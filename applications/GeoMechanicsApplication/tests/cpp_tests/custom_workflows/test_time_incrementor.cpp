@@ -15,7 +15,8 @@
 
 #include "custom_workflows/adaptive_time_incrementor.h"
 #include "custom_workflows/time_step_end_state.hpp"
-#include "tests/cpp_tests/geo_mechanics_fast_suite.h"
+#include "includes/expect.h"
+#include "tests/cpp_tests/geo_mechanics_fast_suite_without_kernel.h"
 
 using namespace Kratos;
 
@@ -49,7 +50,7 @@ AdaptiveTimeIncrementor MakeAdaptiveTimeIncrementor(const AdaptiveTimeIncremento
 namespace Kratos::Testing
 {
 
-KRATOS_TEST_CASE_IN_SUITE(AdaptiveTimeIncrementorThrowsWhenStartTimeExceedsEndTime, KratosGeoMechanicsFastSuiteWithoutKernel)
+TEST_F(KratosGeoMechanicsFastSuiteWithoutKernel, AdaptiveTimeIncrementorThrowsWhenStartTimeExceedsEndTime)
 {
     AdaptiveTimeIncrementorSettings settings;
     settings.EndTime = settings.StartTime - 2.0;
@@ -58,7 +59,7 @@ KRATOS_TEST_CASE_IN_SUITE(AdaptiveTimeIncrementorThrowsWhenStartTimeExceedsEndTi
                                       "Start time (0) must be smaller than end time (-2)")
 }
 
-KRATOS_TEST_CASE_IN_SUITE(AdaptiveTimeIncrementorThrowsWhenStartTimeEqualsEndTime, KratosGeoMechanicsFastSuiteWithoutKernel)
+TEST_F(KratosGeoMechanicsFastSuiteWithoutKernel, AdaptiveTimeIncrementorThrowsWhenStartTimeEqualsEndTime)
 {
     AdaptiveTimeIncrementorSettings settings;
     settings.EndTime = settings.StartTime;
@@ -67,7 +68,7 @@ KRATOS_TEST_CASE_IN_SUITE(AdaptiveTimeIncrementorThrowsWhenStartTimeEqualsEndTim
                                       "Start time (0) must be smaller than end time (0)")
 }
 
-KRATOS_TEST_CASE_IN_SUITE(AdaptiveTimeIncrementorThrowsWhenStartIncrementIsNegative, KratosGeoMechanicsFastSuiteWithoutKernel)
+TEST_F(KratosGeoMechanicsFastSuiteWithoutKernel, AdaptiveTimeIncrementorThrowsWhenStartIncrementIsNegative)
 {
     AdaptiveTimeIncrementorSettings settings;
     settings.StartIncrement = -0.5;
@@ -76,7 +77,7 @@ KRATOS_TEST_CASE_IN_SUITE(AdaptiveTimeIncrementorThrowsWhenStartIncrementIsNegat
                                       "Start increment must be positive, but got -0.5")
 }
 
-KRATOS_TEST_CASE_IN_SUITE(AdaptiveTimeIncrementorThrowsWhenStartIncrementEqualsZero, KratosGeoMechanicsFastSuiteWithoutKernel)
+TEST_F(KratosGeoMechanicsFastSuiteWithoutKernel, AdaptiveTimeIncrementorThrowsWhenStartIncrementEqualsZero)
 {
     AdaptiveTimeIncrementorSettings settings;
     settings.StartIncrement = 0.0;
@@ -85,8 +86,7 @@ KRATOS_TEST_CASE_IN_SUITE(AdaptiveTimeIncrementorThrowsWhenStartIncrementEqualsZ
                                       "Start increment must be positive, but got 0")
 }
 
-KRATOS_TEST_CASE_IN_SUITE(AdaptiveTimeIncrementorThrowsWhenMaxNumberOfCyclesEqualsZero,
-                          KratosGeoMechanicsFastSuiteWithoutKernel)
+TEST_F(KratosGeoMechanicsFastSuiteWithoutKernel, AdaptiveTimeIncrementorThrowsWhenMaxNumberOfCyclesEqualsZero)
 {
     AdaptiveTimeIncrementorSettings settings;
     settings.MaxNumOfCycles = std::size_t{0};
@@ -95,8 +95,7 @@ KRATOS_TEST_CASE_IN_SUITE(AdaptiveTimeIncrementorThrowsWhenMaxNumberOfCyclesEqua
                                       "Maximum number of cycles must be positive")
 }
 
-KRATOS_TEST_CASE_IN_SUITE(AdaptiveTimeIncrementorThrowsWhenReductionFactorIsGreaterThanOne,
-                          KratosGeoMechanicsFastSuiteWithoutKernel)
+TEST_F(KratosGeoMechanicsFastSuiteWithoutKernel, AdaptiveTimeIncrementorThrowsWhenReductionFactorIsGreaterThanOne)
 {
     AdaptiveTimeIncrementorSettings settings;
     settings.ReductionFactor = 2.0;
@@ -105,7 +104,7 @@ KRATOS_TEST_CASE_IN_SUITE(AdaptiveTimeIncrementorThrowsWhenReductionFactorIsGrea
                                       "Reduction factor must not be greater than 1, but got 2")
 }
 
-KRATOS_TEST_CASE_IN_SUITE(AdaptiveTimeIncrementorThrowsWhenReductionFactorIsNegative, KratosGeoMechanicsFastSuiteWithoutKernel)
+TEST_F(KratosGeoMechanicsFastSuiteWithoutKernel, AdaptiveTimeIncrementorThrowsWhenReductionFactorIsNegative)
 {
     AdaptiveTimeIncrementorSettings settings;
     settings.ReductionFactor = -0.5;
@@ -114,7 +113,7 @@ KRATOS_TEST_CASE_IN_SUITE(AdaptiveTimeIncrementorThrowsWhenReductionFactorIsNega
                                       "Reduction factor must be positive, but got -0.5")
 }
 
-KRATOS_TEST_CASE_IN_SUITE(AdaptiveTimeIncrementorThrowsWhenReductionFactorEqualsZero, KratosGeoMechanicsFastSuiteWithoutKernel)
+TEST_F(KratosGeoMechanicsFastSuiteWithoutKernel, AdaptiveTimeIncrementorThrowsWhenReductionFactorEqualsZero)
 {
     AdaptiveTimeIncrementorSettings settings;
     settings.ReductionFactor = 0.0;
@@ -123,8 +122,7 @@ KRATOS_TEST_CASE_IN_SUITE(AdaptiveTimeIncrementorThrowsWhenReductionFactorEquals
                                       "Reduction factor must be positive, but got 0")
 }
 
-KRATOS_TEST_CASE_IN_SUITE(AdaptiveTimeIncrementorDoesNotThrowWhenReductionFactorIsInRange,
-                          KratosGeoMechanicsFastSuiteWithoutKernel)
+TEST_F(KratosGeoMechanicsFastSuiteWithoutKernel, AdaptiveTimeIncrementorDoesNotThrowWhenReductionFactorIsInRange)
 {
     AdaptiveTimeIncrementorSettings settings;
     settings.ReductionFactor = 0.5;
@@ -139,8 +137,7 @@ KRATOS_TEST_CASE_IN_SUITE(AdaptiveTimeIncrementorDoesNotThrowWhenReductionFactor
     KRATOS_EXPECT_FALSE(has_thrown) // No other way to check that the constructor does not throw
 }
 
-KRATOS_TEST_CASE_IN_SUITE(AdaptiveTimeIncrementorDoesNotThrowWhenReductionFactorEqualsOne,
-                          KratosGeoMechanicsFastSuiteWithoutKernel)
+TEST_F(KratosGeoMechanicsFastSuiteWithoutKernel, AdaptiveTimeIncrementorDoesNotThrowWhenReductionFactorEqualsOne)
 {
     AdaptiveTimeIncrementorSettings settings;
     settings.ReductionFactor = 1.0;
@@ -155,8 +152,7 @@ KRATOS_TEST_CASE_IN_SUITE(AdaptiveTimeIncrementorDoesNotThrowWhenReductionFactor
     KRATOS_EXPECT_FALSE(has_thrown) // No other way to check that the constructor does not throw
 }
 
-KRATOS_TEST_CASE_IN_SUITE(AdaptiveTimeIncrementorThrowsWhenIncreaseFactorIsSmallerThanOne,
-                          KratosGeoMechanicsFastSuiteWithoutKernel)
+TEST_F(KratosGeoMechanicsFastSuiteWithoutKernel, AdaptiveTimeIncrementorThrowsWhenIncreaseFactorIsSmallerThanOne)
 {
     AdaptiveTimeIncrementorSettings settings;
     settings.IncreaseFactor = 0.5;
@@ -166,8 +162,7 @@ KRATOS_TEST_CASE_IN_SUITE(AdaptiveTimeIncrementorThrowsWhenIncreaseFactorIsSmall
         "Increase factor must be greater than or equal to 1, but got 0.5")
 }
 
-KRATOS_TEST_CASE_IN_SUITE(AdaptiveTimeIncrementorThrowsWhenMaxDeltaTimeFactorIsSmallerThanOne,
-                          KratosGeoMechanicsFastSuiteWithoutKernel)
+TEST_F(KratosGeoMechanicsFastSuiteWithoutKernel, AdaptiveTimeIncrementorThrowsWhenMaxDeltaTimeFactorIsSmallerThanOne)
 {
     AdaptiveTimeIncrementorSettings settings;
     settings.MaxDeltaTimeFactor = 0.9;
@@ -177,8 +172,7 @@ KRATOS_TEST_CASE_IN_SUITE(AdaptiveTimeIncrementorThrowsWhenMaxDeltaTimeFactorIsS
         "Max_delta_time_factor must be greater than or equal to 1, but got 0.9")
 }
 
-KRATOS_TEST_CASE_IN_SUITE(AdaptiveTimeIncrementorDoesNotThrowWhenIncreaseFactorEqualsOne,
-                          KratosGeoMechanicsFastSuiteWithoutKernel)
+TEST_F(KratosGeoMechanicsFastSuiteWithoutKernel, AdaptiveTimeIncrementorDoesNotThrowWhenIncreaseFactorEqualsOne)
 {
     AdaptiveTimeIncrementorSettings settings;
     settings.IncreaseFactor = 1.0;
@@ -193,8 +187,7 @@ KRATOS_TEST_CASE_IN_SUITE(AdaptiveTimeIncrementorDoesNotThrowWhenIncreaseFactorE
     KRATOS_EXPECT_FALSE(has_thrown) // No other way to check that the constructor does not throw
 }
 
-KRATOS_TEST_CASE_IN_SUITE(AdaptiveTimeIncrementorThrowsWhenMaxNumberOfIterationsEqualsZero,
-                          KratosGeoMechanicsFastSuiteWithoutKernel)
+TEST_F(KratosGeoMechanicsFastSuiteWithoutKernel, AdaptiveTimeIncrementorThrowsWhenMaxNumberOfIterationsEqualsZero)
 {
     AdaptiveTimeIncrementorSettings settings;
     settings.MinNumOfIterations = std::size_t{0};
@@ -205,8 +198,8 @@ KRATOS_TEST_CASE_IN_SUITE(AdaptiveTimeIncrementorThrowsWhenMaxNumberOfIterations
         "Minimum number of iterations (0) is not less than maximum number of iterations (0)")
 }
 
-KRATOS_TEST_CASE_IN_SUITE(AdaptiveTimeIncrementorThrowsWhenMinNumberOfIterationsIsGreaterThanMaxNumberOfIterations,
-                          KratosGeoMechanicsFastSuiteWithoutKernel)
+TEST_F(KratosGeoMechanicsFastSuiteWithoutKernel,
+       AdaptiveTimeIncrementorThrowsWhenMinNumberOfIterationsIsGreaterThanMaxNumberOfIterations)
 {
     AdaptiveTimeIncrementorSettings settings;
     settings.MaxNumOfIterations = std::size_t{10};
@@ -217,7 +210,7 @@ KRATOS_TEST_CASE_IN_SUITE(AdaptiveTimeIncrementorThrowsWhenMinNumberOfIterations
         "Minimum number of iterations (11) is not less than maximum number of iterations (10)")
 }
 
-KRATOS_TEST_CASE_IN_SUITE(WantNextTimeStepWhenMoreThanStartIncrementLeftUntilEndTime, KratosGeoMechanicsFastSuiteWithoutKernel)
+TEST_F(KratosGeoMechanicsFastSuiteWithoutKernel, WantNextTimeStepWhenMoreThanStartIncrementLeftUntilEndTime)
 {
     AdaptiveTimeIncrementorSettings settings;
     const auto                      time_incrementor = MakeAdaptiveTimeIncrementor(settings);
@@ -227,7 +220,7 @@ KRATOS_TEST_CASE_IN_SUITE(WantNextTimeStepWhenMoreThanStartIncrementLeftUntilEnd
     KRATOS_EXPECT_TRUE(time_incrementor.WantNextStep(previous_state))
 }
 
-KRATOS_TEST_CASE_IN_SUITE(WantNextTimeStepWhenLessThanStartIncrementLeftUntilEndTime, KratosGeoMechanicsFastSuiteWithoutKernel)
+TEST_F(KratosGeoMechanicsFastSuiteWithoutKernel, WantNextTimeStepWhenLessThanStartIncrementLeftUntilEndTime)
 {
     AdaptiveTimeIncrementorSettings settings;
     const auto                      time_incrementor = MakeAdaptiveTimeIncrementor(settings);
@@ -237,7 +230,7 @@ KRATOS_TEST_CASE_IN_SUITE(WantNextTimeStepWhenLessThanStartIncrementLeftUntilEnd
     KRATOS_EXPECT_TRUE(time_incrementor.WantNextStep(previous_state))
 }
 
-KRATOS_TEST_CASE_IN_SUITE(NoNextTimeStepWhenEndTimeIsExceeded, KratosGeoMechanicsFastSuiteWithoutKernel)
+TEST_F(KratosGeoMechanicsFastSuiteWithoutKernel, NoNextTimeStepWhenEndTimeIsExceeded)
 {
     AdaptiveTimeIncrementorSettings settings;
     const auto                      time_incrementor = MakeAdaptiveTimeIncrementor(settings);
@@ -247,7 +240,7 @@ KRATOS_TEST_CASE_IN_SUITE(NoNextTimeStepWhenEndTimeIsExceeded, KratosGeoMechanic
     KRATOS_EXPECT_FALSE(time_incrementor.WantNextStep(previous_state))
 }
 
-KRATOS_TEST_CASE_IN_SUITE(NoNextTimeStepWhenAtEndTime, KratosGeoMechanicsFastSuiteWithoutKernel)
+TEST_F(KratosGeoMechanicsFastSuiteWithoutKernel, NoNextTimeStepWhenAtEndTime)
 {
     AdaptiveTimeIncrementorSettings settings;
     const auto                      time_incrementor = MakeAdaptiveTimeIncrementor(settings);
@@ -257,7 +250,7 @@ KRATOS_TEST_CASE_IN_SUITE(NoNextTimeStepWhenAtEndTime, KratosGeoMechanicsFastSui
     KRATOS_EXPECT_FALSE(time_incrementor.WantNextStep(previous_state))
 }
 
-KRATOS_TEST_CASE_IN_SUITE(RetryWhenNotAttemptedYet, KratosGeoMechanicsFastSuiteWithoutKernel)
+TEST_F(KratosGeoMechanicsFastSuiteWithoutKernel, RetryWhenNotAttemptedYet)
 {
     AdaptiveTimeIncrementorSettings settings;
     settings.MaxNumOfCycles     = std::size_t{4};
@@ -268,7 +261,7 @@ KRATOS_TEST_CASE_IN_SUITE(RetryWhenNotAttemptedYet, KratosGeoMechanicsFastSuiteW
     KRATOS_EXPECT_TRUE(time_incrementor.WantRetryStep(cycle_number, previous_state))
 }
 
-KRATOS_TEST_CASE_IN_SUITE(RetryWhenPreviousAttemptDidNotConvergeButAtLeastOneMoreLeft, KratosGeoMechanicsFastSuiteWithoutKernel)
+TEST_F(KratosGeoMechanicsFastSuiteWithoutKernel, RetryWhenPreviousAttemptDidNotConvergeButAtLeastOneMoreLeft)
 {
     AdaptiveTimeIncrementorSettings settings;
     settings.MaxNumOfCycles          = std::size_t{4};
@@ -280,7 +273,7 @@ KRATOS_TEST_CASE_IN_SUITE(RetryWhenPreviousAttemptDidNotConvergeButAtLeastOneMor
     KRATOS_EXPECT_TRUE(time_incrementor.WantRetryStep(cycle_number, previous_state))
 }
 
-KRATOS_TEST_CASE_IN_SUITE(DontRetryWhenPreviousAttemptDidNotConvergeAndNoAttemptsLeft, KratosGeoMechanicsFastSuiteWithoutKernel)
+TEST_F(KratosGeoMechanicsFastSuiteWithoutKernel, DontRetryWhenPreviousAttemptDidNotConvergeAndNoAttemptsLeft)
 {
     AdaptiveTimeIncrementorSettings settings;
     settings.MaxNumOfCycles          = std::size_t{4};
@@ -291,7 +284,7 @@ KRATOS_TEST_CASE_IN_SUITE(DontRetryWhenPreviousAttemptDidNotConvergeAndNoAttempt
     KRATOS_EXPECT_FALSE(time_incrementor.WantRetryStep(settings.MaxNumOfCycles, previous_state))
 }
 
-KRATOS_TEST_CASE_IN_SUITE(DontRetryWhenPreviousAttemptConverged, KratosGeoMechanicsFastSuiteWithoutKernel)
+TEST_F(KratosGeoMechanicsFastSuiteWithoutKernel, DontRetryWhenPreviousAttemptConverged)
 {
     AdaptiveTimeIncrementorSettings settings;
     settings.MaxNumOfCycles          = std::size_t{4};
@@ -303,7 +296,7 @@ KRATOS_TEST_CASE_IN_SUITE(DontRetryWhenPreviousAttemptConverged, KratosGeoMechan
     KRATOS_EXPECT_FALSE(time_incrementor.WantRetryStep(cycle_number, previous_state))
 }
 
-KRATOS_TEST_CASE_IN_SUITE(GetStartIncrementWhenItWouldNotResultInExceedingTheEndTime, KratosGeoMechanicsFastSuiteWithoutKernel)
+TEST_F(KratosGeoMechanicsFastSuiteWithoutKernel, GetStartIncrementWhenItWouldNotResultInExceedingTheEndTime)
 {
     AdaptiveTimeIncrementorSettings settings;
     settings.StartIncrement     = 0.6;
@@ -312,7 +305,7 @@ KRATOS_TEST_CASE_IN_SUITE(GetStartIncrementWhenItWouldNotResultInExceedingTheEnd
     KRATOS_EXPECT_DOUBLE_EQ(settings.StartIncrement, time_incrementor.GetIncrement());
 }
 
-KRATOS_TEST_CASE_IN_SUITE(ReduceStartIncrementWhenItWouldResultInExceedingTheEndTime, KratosGeoMechanicsFastSuiteWithoutKernel)
+TEST_F(KratosGeoMechanicsFastSuiteWithoutKernel, ReduceStartIncrementWhenItWouldResultInExceedingTheEndTime)
 {
     AdaptiveTimeIncrementorSettings settings;
     settings.StartTime      = 0.0;
@@ -323,7 +316,7 @@ KRATOS_TEST_CASE_IN_SUITE(ReduceStartIncrementWhenItWouldResultInExceedingTheEnd
     KRATOS_EXPECT_DOUBLE_EQ(settings.EndTime - settings.StartTime, time_incrementor.GetIncrement());
 }
 
-KRATOS_TEST_CASE_IN_SUITE(ReduceIncrementWhenPreviousAttemptDidNotConverge, KratosGeoMechanicsFastSuiteWithoutKernel)
+TEST_F(KratosGeoMechanicsFastSuiteWithoutKernel, ReduceIncrementWhenPreviousAttemptDidNotConverge)
 {
     AdaptiveTimeIncrementorSettings settings;
     auto                            time_incrementor = MakeAdaptiveTimeIncrementor(settings);
@@ -334,8 +327,7 @@ KRATOS_TEST_CASE_IN_SUITE(ReduceIncrementWhenPreviousAttemptDidNotConverge, Krat
     KRATOS_EXPECT_DOUBLE_EQ(settings.StartIncrement * settings.ReductionFactor, time_incrementor.GetIncrement());
 }
 
-KRATOS_TEST_CASE_IN_SUITE(ReduceIncrementEvenMoreWhenPreviousTwoAttemptsDidNotConverge,
-                          KratosGeoMechanicsFastSuiteWithoutKernel)
+TEST_F(KratosGeoMechanicsFastSuiteWithoutKernel, ReduceIncrementEvenMoreWhenPreviousTwoAttemptsDidNotConverge)
 {
     AdaptiveTimeIncrementorSettings settings;
     auto                            time_incrementor = MakeAdaptiveTimeIncrementor(settings);
@@ -348,8 +340,7 @@ KRATOS_TEST_CASE_IN_SUITE(ReduceIncrementEvenMoreWhenPreviousTwoAttemptsDidNotCo
                             time_incrementor.GetIncrement());
 }
 
-KRATOS_TEST_CASE_IN_SUITE(ReduceIncrementWhenStepConvergedAndMaxNumberOfIterationsWasAttained,
-                          KratosGeoMechanicsFastSuiteWithoutKernel)
+TEST_F(KratosGeoMechanicsFastSuiteWithoutKernel, ReduceIncrementWhenStepConvergedAndMaxNumberOfIterationsWasAttained)
 {
     AdaptiveTimeIncrementorSettings settings;
     auto                            time_incrementor = MakeAdaptiveTimeIncrementor(settings);
@@ -361,8 +352,7 @@ KRATOS_TEST_CASE_IN_SUITE(ReduceIncrementWhenStepConvergedAndMaxNumberOfIteratio
     KRATOS_EXPECT_DOUBLE_EQ(settings.StartIncrement * settings.ReductionFactor, time_incrementor.GetIncrement());
 }
 
-KRATOS_TEST_CASE_IN_SUITE(IncreaseIncrementWhenStepRequiredLessThanMinNumberOfIterations,
-                          KratosGeoMechanicsFastSuiteWithoutKernel)
+TEST_F(KratosGeoMechanicsFastSuiteWithoutKernel, IncreaseIncrementWhenStepRequiredLessThanMinNumberOfIterations)
 {
     AdaptiveTimeIncrementorSettings settings;
     auto                            time_incrementor = MakeAdaptiveTimeIncrementor(settings);
@@ -374,7 +364,7 @@ KRATOS_TEST_CASE_IN_SUITE(IncreaseIncrementWhenStepRequiredLessThanMinNumberOfIt
     KRATOS_EXPECT_DOUBLE_EQ(settings.StartIncrement * settings.IncreaseFactor, time_incrementor.GetIncrement());
 }
 
-KRATOS_TEST_CASE_IN_SUITE(ReduceIncrementToAvoidExceedingEndTime, KratosGeoMechanicsFastSuiteWithoutKernel)
+TEST_F(KratosGeoMechanicsFastSuiteWithoutKernel, ReduceIncrementToAvoidExceedingEndTime)
 {
     AdaptiveTimeIncrementorSettings settings;
     auto                            time_incrementor = MakeAdaptiveTimeIncrementor(settings);
@@ -388,7 +378,7 @@ KRATOS_TEST_CASE_IN_SUITE(ReduceIncrementToAvoidExceedingEndTime, KratosGeoMecha
     KRATOS_EXPECT_DOUBLE_EQ(0.5 * settings.StartIncrement, time_incrementor.GetIncrement());
 }
 
-KRATOS_TEST_CASE_IN_SUITE(ReduceUpscaledIncrementToAvoidExceedingEndTime, KratosGeoMechanicsFastSuiteWithoutKernel)
+TEST_F(KratosGeoMechanicsFastSuiteWithoutKernel, ReduceUpscaledIncrementToAvoidExceedingEndTime)
 {
     AdaptiveTimeIncrementorSettings settings;
     auto                            time_incrementor = MakeAdaptiveTimeIncrementor(settings);
@@ -403,7 +393,7 @@ KRATOS_TEST_CASE_IN_SUITE(ReduceUpscaledIncrementToAvoidExceedingEndTime, Kratos
     KRATOS_EXPECT_DOUBLE_EQ(0.5 * settings.StartIncrement, time_incrementor.GetIncrement());
 }
 
-KRATOS_TEST_CASE_IN_SUITE(ReduceUpscaledIncrementToAvoidExceedingMaxDeltaTimeFactor, KratosGeoMechanicsFastSuiteWithoutKernel)
+TEST_F(KratosGeoMechanicsFastSuiteWithoutKernel, ReduceUpscaledIncrementToAvoidExceedingMaxDeltaTimeFactor)
 {
     AdaptiveTimeIncrementorSettings settings;
     settings.MaxDeltaTimeFactor = 1.5; // lower than the increase factor, this should lead to truncation
@@ -418,7 +408,7 @@ KRATOS_TEST_CASE_IN_SUITE(ReduceUpscaledIncrementToAvoidExceedingMaxDeltaTimeFac
                             time_incrementor.GetIncrement());
 }
 
-KRATOS_TEST_CASE_IN_SUITE(ScaleIncrementToAvoidExtraSmallTimeStep, KratosGeoMechanicsFastSuiteWithoutKernel)
+TEST_F(KratosGeoMechanicsFastSuiteWithoutKernel, ScaleIncrementToAvoidExtraSmallTimeStep)
 {
     AdaptiveTimeIncrementorSettings settings; // with EndTime = 8.0
     settings.StartIncrement          = 7.9999;
@@ -430,7 +420,7 @@ KRATOS_TEST_CASE_IN_SUITE(ScaleIncrementToAvoidExtraSmallTimeStep, KratosGeoMech
     KRATOS_EXPECT_DOUBLE_EQ(8.0, time_incrementor.GetIncrement());
 }
 
-KRATOS_TEST_CASE_IN_SUITE(ThrowExceptionWhenDeltaTimeSmallerThanTheLimit, KratosGeoMechanicsFastSuiteWithoutKernel)
+TEST_F(KratosGeoMechanicsFastSuiteWithoutKernel, ThrowExceptionWhenDeltaTimeSmallerThanTheLimit)
 {
     AdaptiveTimeIncrementorSettings settings; // with EndTime = 8.0
     settings.StartIncrement          = 8.0;   // We jump to the end time right away
@@ -450,7 +440,7 @@ KRATOS_TEST_CASE_IN_SUITE(ThrowExceptionWhenDeltaTimeSmallerThanTheLimit, Kratos
         "Delta time (5e-08) is smaller than given minimum allowable value 1e-06");
 }
 
-KRATOS_TEST_CASE_IN_SUITE(HalfTimeStepAtNonConverged, KratosGeoMechanicsFastSuiteWithoutKernel)
+TEST_F(KratosGeoMechanicsFastSuiteWithoutKernel, HalfTimeStepAtNonConverged)
 {
     AdaptiveTimeIncrementorSettings settings; // with EndTime = 8.0
     settings.StartIncrement          = 8.0;   // We jump to the end time right away
