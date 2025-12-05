@@ -357,8 +357,6 @@ class KratosGeoMechanicsSubmergedConstructionOfExcavation(KratosUnittest.TestCas
                 analysis.GeoMechanicsAnalysis(model, stage_parameters).Run()
 
         if test_helper.want_test_plots():
-            shear_force_collections = []
-            bending_moment_collections = []
             structural_stages=[stage for stage in self.stages_info.values() if
                                stage['base_name'] != "1_Initial_stage" and stage['base_name'] != "2_Null_step"
             ]
@@ -368,58 +366,17 @@ class KratosGeoMechanicsSubmergedConstructionOfExcavation(KratosUnittest.TestCas
             axial_force_plot_label = "Axial force"
             axial_force_kratos_label = "AXIAL_FORCE"
             axial_force_collections = self.get_variable_collections_per_stage(axial_force_kratos_label, axial_force_plot_label,
-                                                                              project_path, structural_stages, y_coords_per_stage)
+                                                                              project_path, structural_stages, y_coords_per_stage, extract_y_and_axial_force_from_line)
 
-            for stage, y_coords in zip(structural_stages, y_coords_per_stage):
-                data_series_collection = []
-                output_data_wall = GiDOutputFileReader().read_output_from(os.path.join(project_path, f"{stage['base_name']}.post.res"))
-                path_to_comparison_file = Path(project_path) / "comparison_data" / f"{stage['base_name']}_comparison.csv"
-                shear_forces = GiDOutputFileReader.nodal_values_at_time("SHEAR_FORCE", stage['end_time'], output_data_wall,
-                                                                        node_ids=get_wall_node_ids())
-                shear_forces = [shear_force / 1000 for shear_force in shear_forces]  # Convert to kN
-                data = []
-                for force, y in zip(shear_forces, y_coords):
-                    data.append((force, y))
+            shear_force_plot_label = "Shear force"
+            shear_force_kratos_label = "SHEAR_FORCE"
+            shear_force_collections = self.get_variable_collections_per_stage(shear_force_kratos_label, shear_force_plot_label,
+                                                                              project_path, structural_stages, y_coords_per_stage, extract_y_and_shear_force_from_line)
 
-                data_series_collection.append(plot_utils.DataSeries(
-                    data,
-                    f"Shear force [Kratos]",
-                    line_style="-",
-                    marker=".",
-                ))
-                comparison_shear_force = test_helper.get_data_points_from_file(
-                    path_to_comparison_file,
-                    extract_y_and_shear_force_from_line
-                )
-                data_series_collection.append(
-                    plot_utils.DataSeries(comparison_shear_force, "Shear Force [Comparison]", marker="1")
-                )
-                shear_force_collections.append(data_series_collection)
-
-
-                data_series_collection = []
-
-                bending_moments = GiDOutputFileReader.nodal_values_at_time("BENDING_MOMENT", stage['end_time'], output_data_wall,
-                                                                        node_ids=get_wall_node_ids())
-                bending_moments = [bending_moment / 1000 for bending_moment in bending_moments]  # Convert to kN
-                data = []
-                for force, y in zip(bending_moments, y_coords):
-                    data.append((force, y))
-
-                data_series_collection.append(plot_utils.DataSeries(
-                    data,
-                    f"Bending moment [Kratos]",
-                    line_style="-",
-                    marker=".",
-                ))
-                comparison_bending_moment = test_helper.get_data_points_from_file(
-                    path_to_comparison_file,
-                    extract_y_and_moment_from_line
-                )
-                data_series_collection.append(
-                    plot_utils.DataSeries(comparison_bending_moment, "Bending moment [Comparison]", marker="1")
-                )
-                bending_moment_collections.append(data_series_collection)
+            bending_moment_plot_label = "Bending moment"
+            bending_moment_kratos_label = "BENDING_MOMENT"
+            bending_moment_collections = self.get_variable_collections_per_stage(bending_moment_kratos_label, bending_moment_plot_label,
+                                                                              project_path, structural_stages, y_coords_per_stage, extract_y_and_moment_from_line)
 
             plot_utils.make_sub_plots(
                 axial_force_collections,
@@ -479,7 +436,7 @@ class KratosGeoMechanicsSubmergedConstructionOfExcavation(KratosUnittest.TestCas
 
     def get_variable_collections_per_stage(self, axial_force_kratos_label, axial_force_plot_label,
                                            project_path,
-                                           structural_stages, y_coords_per_stage):
+                                           structural_stages, y_coords_per_stage, data_point_extractor):
         axial_force_collections = []
         for stage, y_coords in zip(structural_stages, y_coords_per_stage):
             data_series_collection = []
@@ -503,7 +460,7 @@ class KratosGeoMechanicsSubmergedConstructionOfExcavation(KratosUnittest.TestCas
             path_to_comparison_file = Path(project_path) / "comparison_data" / f"{stage['base_name']}_comparison.csv"
             comparison_axial_force = test_helper.get_data_points_from_file(
                 path_to_comparison_file,
-                extract_y_and_axial_force_from_line
+                data_point_extractor
             )
             data_series_collection.append(
                 plot_utils.DataSeries(comparison_axial_force, f"{axial_force_plot_label} [Comparison]", marker="1")
