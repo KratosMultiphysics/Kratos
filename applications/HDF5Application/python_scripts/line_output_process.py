@@ -45,7 +45,7 @@ class LineOutputProcess(KratosMultiphysics.OutputProcess):
             "search_configuration"  : "initial",
             "search_tolerance"      : 1e-6,
             "coordinates_prefix"    : "/<model_part_name>_point_set_output",
-            "variables_prefix"      : "/<model_part_name>_point_set_output/step_<step>",
+            "variables_prefix"      : "/<model_part_name>_point_set_output/step_<step>/",
             "file_parameters"       : {
                 "file_name"         : "",
                 "file_access_mode"  : "read_write",
