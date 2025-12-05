@@ -262,22 +262,21 @@ def get_wall_node_ids():
 
 def _extract_x_and_y_from_line(line, index_of_x=0, index_of_y=1):
     words = line.split(",")
-    return (-1.0 * float(words[index_of_x]), float(words[index_of_y]))
+    return (float(words[index_of_x]), float(words[index_of_y]))
 
 
 def extract_y_and_moment_from_line(line):
-    words = line.split(",")
-    return (float(words[11]), float(words[4]))
-    # return _extract_x_and_y_from_line(line, index_of_x=11, index_of_y=4)
+    return _extract_x_and_y_from_line(line, index_of_x=11, index_of_y=4)
 
 
 def extract_y_and_axial_force_from_line(line):
-    words = line.split(",")
-    return (float(words[5]), float(words[4]))
+    return _extract_x_and_y_from_line(line, index_of_x=5, index_of_y=4)
 
 
 def extract_y_and_shear_force_from_line(line):
-    return _extract_x_and_y_from_line(line, index_of_x=8, index_of_y=4)
+    words = line.split(",")
+    # The shear force sign in the comparison data is opposite to the Kratos sign
+    return (-1.0 * float(words[8]), float(words[4]))
 
 
 class KratosGeoMechanicsSubmergedConstructionOfExcavation(KratosUnittest.TestCase):
@@ -591,37 +590,37 @@ class KratosGeoMechanicsSubmergedConstructionOfExcavation(KratosUnittest.TestCas
 
     def get_variable_collections_per_stage(
         self,
-        axial_force_kratos_label,
-        axial_force_plot_label,
+        kratos_variable_label,
+        variable_plot_label,
         project_path,
         structural_stages,
         y_coords_per_stage,
         data_point_extractor,
     ):
-        axial_force_collections = []
+        variable_data_collections = []
         for stage, y_coords in zip(structural_stages, y_coords_per_stage):
             data_series_collection = []
             output_data_wall = GiDOutputFileReader().read_output_from(
                 os.path.join(project_path, f"{stage['base_name']}.post.res")
             )
-            axial_forces = GiDOutputFileReader.nodal_values_at_time(
-                axial_force_kratos_label,
+            variable_kratos_data = GiDOutputFileReader.nodal_values_at_time(
+                kratos_variable_label,
                 stage["end_time"],
                 output_data_wall,
                 node_ids=get_wall_node_ids(),
             )
-            axial_forces = [
-                axial_force / 1000 for axial_force in axial_forces
-            ]  # Convert to kN
+            variable_kratos_data = [
+                axial_force / 1000 for axial_force in variable_kratos_data
+            ]  # Convert to k<Unit>
 
             data = []
-            for force, y in zip(axial_forces, y_coords):
+            for force, y in zip(variable_kratos_data, y_coords):
                 data.append((force, y))
 
             data_series_collection.append(
                 plot_utils.DataSeries(
                     data,
-                    f"{axial_force_plot_label} [Kratos]",
+                    f"{variable_plot_label} [Kratos]",
                     line_style="-",
                     marker=".",
                 )
@@ -631,18 +630,18 @@ class KratosGeoMechanicsSubmergedConstructionOfExcavation(KratosUnittest.TestCas
                 / "comparison_data"
                 / f"{stage['base_name']}_comparison.csv"
             )
-            comparison_axial_force = test_helper.get_data_points_from_file(
+            comparison_variable = test_helper.get_data_points_from_file(
                 path_to_comparison_file, data_point_extractor
             )
             data_series_collection.append(
                 plot_utils.DataSeries(
-                    comparison_axial_force,
-                    f"{axial_force_plot_label} [Comparison]",
+                    comparison_variable,
+                    f"{variable_plot_label} [Comparison]",
                     marker="1",
                 )
             )
-            axial_force_collections.append(data_series_collection)
-        return axial_force_collections
+            variable_data_collections.append(data_series_collection)
+        return variable_data_collections
 
     def get_y_coords_per_stage(self, project_path, structural_stages):
         y_coords_per_stage = []
