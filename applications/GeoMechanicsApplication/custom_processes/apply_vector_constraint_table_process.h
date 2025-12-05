@@ -41,10 +41,13 @@ public:
     std::string Info() const override;
 
 private:
-    static std::vector<Parameters> CreateParametersForActiveComponents(const Parameters& rSettings);
+    static std::vector<Parameters> CreateParametersForActiveComponents(const ModelPart&  rModelPart,
+                                                                       const Parameters& rSettings);
     static std::vector<char>       ActiveComponents(const Parameters& rSettings);
-    static Parameters    CreateParametersForComponent(const Parameters& rSettings, char component);
-    static std::size_t   ComponentToIndex(char component);
+    static Parameters              CreateParametersForComponent(const ModelPart&  rModelPart,
+                                                                const Parameters& rSettings,
+                                                                char              component);
+    static std::size_t             ComponentToIndex(char component);
     ProcessUniquePointer MakeProcessFor(ModelPart& rModelPart, const Parameters& rParameters) const;
 
     std::vector<std::reference_wrapper<ModelPart>> mrModelParts;

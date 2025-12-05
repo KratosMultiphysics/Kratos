@@ -26,7 +26,7 @@ ApplyVectorConstraintTableProcess::ApplyVectorConstraintTableProcess(Model& rMod
     mrModelParts = ProcessUtilities::GetModelPartsFromSettings(
         rModel, rSettings, ApplyVectorConstraintTableProcess::Info());
     for (const auto& r_model_part : mrModelParts) {
-        const auto parameters_list = CreateParametersForActiveComponents(rSettings);
+        const auto parameters_list = CreateParametersForActiveComponents(r_model_part, rSettings);
         for (const auto& parameters : parameters_list) {
             mProcesses.emplace_back(MakeProcessFor(r_model_part, parameters));
         }
@@ -35,11 +35,12 @@ ApplyVectorConstraintTableProcess::ApplyVectorConstraintTableProcess(Model& rMod
 
 ApplyVectorConstraintTableProcess::~ApplyVectorConstraintTableProcess() = default;
 
-std::vector<Parameters> ApplyVectorConstraintTableProcess::CreateParametersForActiveComponents(const Parameters& rSettings)
+std::vector<Parameters> ApplyVectorConstraintTableProcess::CreateParametersForActiveComponents(
+    const ModelPart& rModelPart, const Parameters& rSettings)
 {
     std::vector<Parameters> result;
     for (auto component : ActiveComponents(rSettings)) {
-        result.emplace_back(CreateParametersForComponent(rSettings, component));
+        result.emplace_back(CreateParametersForComponent(rModelPart, rSettings, component));
     }
     return result;
 }
@@ -56,11 +57,13 @@ std::vector<char> ApplyVectorConstraintTableProcess::ActiveComponents(const Para
     return result;
 }
 
-Parameters ApplyVectorConstraintTableProcess::CreateParametersForComponent(const Parameters& rSettings, char component)
+Parameters ApplyVectorConstraintTableProcess::CreateParametersForComponent(const ModelPart& rModelPart,
+                                                                           const Parameters& rSettings,
+                                                                           char component)
 {
     Parameters result;
     const auto index = ComponentToIndex(component);
-    result.AddValue("model_part_name", rSettings["model_part_name"]);
+    result.AddValue("model_part_name", "\"" + rModelPart.Name() + "\"");
     if (rSettings.Has("is_fixed")) {
         result.AddValue("is_fixed", rSettings["is_fixed"][index]);
     }
