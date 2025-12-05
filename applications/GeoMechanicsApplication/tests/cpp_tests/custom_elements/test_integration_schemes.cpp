@@ -13,7 +13,7 @@
 #include "custom_elements/lobatto_integration_scheme.h"
 #include "custom_elements/lumped_integration_scheme.h"
 #include "includes/expect.h"
-#include "tests/cpp_tests/geo_mechanics_fast_suite.h"
+#include "tests/cpp_tests/geo_mechanics_fast_suite_without_kernel.h"
 #include "tests/cpp_tests/test_utilities.h"
 
 #include <algorithm>
@@ -100,7 +100,7 @@ std::vector<double> ComputeWeightsForLumpedIntegration(const size_t NumberOfPoin
 namespace Kratos::Testing
 {
 
-KRATOS_TEST_CASE_IN_SUITE(ALobattoIntegrationSchemeIsAnIntegrationScheme, KratosGeoMechanicsFastSuiteWithoutKernel)
+TEST_F(KratosGeoMechanicsFastSuiteWithoutKernel, ALobattoIntegrationSchemeIsAnIntegrationScheme)
 {
     constexpr auto number_of_points = 2;
     const auto     p_scheme         = LobattoIntegrationScheme{number_of_points};
@@ -131,8 +131,7 @@ INSTANTIATE_TEST_SUITE_P(KratosGeoMechanicsFastSuiteWithoutKernel,
                                            std::make_tuple(std::size_t{4}, MakeLumpedIntegrationScheme),
                                            std::make_tuple(std::size_t{8}, MakeLumpedIntegrationScheme)));
 
-KRATOS_TEST_CASE_IN_SUITE(SumOfIntegrationPointWeightsOfAllSupportedLobattoSchemesEqualsTwo,
-                          KratosGeoMechanicsFastSuiteWithoutKernel)
+TEST_F(KratosGeoMechanicsFastSuiteWithoutKernel, SumOfIntegrationPointWeightsOfAllSupportedLobattoSchemesEqualsTwo)
 {
     for (auto number : SupportedNumbersOfPointsForLobattoIntegration()) {
         const auto p_scheme = MakeLobattoIntegrationScheme(number);
@@ -140,8 +139,7 @@ KRATOS_TEST_CASE_IN_SUITE(SumOfIntegrationPointWeightsOfAllSupportedLobattoSchem
     }
 }
 
-KRATOS_TEST_CASE_IN_SUITE(PointsOfAllSupportedLobattoSchemesMustBeInRangeAndIncludeBounds,
-                          KratosGeoMechanicsFastSuiteWithoutKernel)
+TEST_F(KratosGeoMechanicsFastSuiteWithoutKernel, PointsOfAllSupportedLobattoSchemesMustBeInRangeAndIncludeBounds)
 {
     for (auto number : SupportedNumbersOfPointsForLobattoIntegration()) {
         const auto scheme = MakeLobattoIntegrationScheme(number);
@@ -154,8 +152,7 @@ KRATOS_TEST_CASE_IN_SUITE(PointsOfAllSupportedLobattoSchemesMustBeInRangeAndIncl
     }
 }
 
-KRATOS_TEST_CASE_IN_SUITE(AttemptingToMakeALobattoSchemeWithAnUnsupportedNumberOfPointsRaisesAnError,
-                          KratosGeoMechanicsFastSuiteWithoutKernel)
+TEST_F(KratosGeoMechanicsFastSuiteWithoutKernel, AttemptingToMakeALobattoSchemeWithAnUnsupportedNumberOfPointsRaisesAnError)
 {
     const auto some_unsupported_numbers_of_points = std::vector<std::size_t>{0, 1, 4, 5, 6, 7};
 
@@ -166,7 +163,7 @@ KRATOS_TEST_CASE_IN_SUITE(AttemptingToMakeALobattoSchemeWithAnUnsupportedNumberO
     }
 }
 
-KRATOS_TEST_CASE_IN_SUITE(ALumpedIntegrationSchemeIsAnIntegrationScheme, KratosGeoMechanicsFastSuiteWithoutKernel)
+TEST_F(KratosGeoMechanicsFastSuiteWithoutKernel, ALumpedIntegrationSchemeIsAnIntegrationScheme)
 {
     constexpr auto number_of_points = 3;
     const auto     p_scheme         = LumpedIntegrationScheme{number_of_points};
@@ -174,8 +171,7 @@ KRATOS_TEST_CASE_IN_SUITE(ALumpedIntegrationSchemeIsAnIntegrationScheme, KratosG
     KRATOS_EXPECT_NE(dynamic_cast<const IntegrationScheme*>(&p_scheme), nullptr);
 }
 
-KRATOS_TEST_CASE_IN_SUITE(SumOfIntegrationPointWeightsOfAllSupportedLumpedSchemesEqualsArea,
-                          KratosGeoMechanicsFastSuiteWithoutKernel)
+TEST_F(KratosGeoMechanicsFastSuiteWithoutKernel, SumOfIntegrationPointWeightsOfAllSupportedLumpedSchemesEqualsArea)
 {
     constexpr auto area_quadrilateral = 4.0;
     for (auto number : SupportedNumbersOfPointsForQuadrilateralLumpedIntegration()) {
@@ -192,8 +188,7 @@ KRATOS_TEST_CASE_IN_SUITE(SumOfIntegrationPointWeightsOfAllSupportedLumpedScheme
     }
 }
 
-KRATOS_TEST_CASE_IN_SUITE(AttemptingToMakeALumpedSchemeWithAnUnsupportedNumberOfPointsRaisesAnError,
-                          KratosGeoMechanicsFastSuiteWithoutKernel)
+TEST_F(KratosGeoMechanicsFastSuiteWithoutKernel, AttemptingToMakeALumpedSchemeWithAnUnsupportedNumberOfPointsRaisesAnError)
 {
     const auto some_unsupported_numbers_of_points = std::vector<std::size_t>{0, 1, 2, 5, 7, 9};
 
@@ -204,8 +199,7 @@ KRATOS_TEST_CASE_IN_SUITE(AttemptingToMakeALumpedSchemeWithAnUnsupportedNumberOf
     }
 }
 
-KRATOS_TEST_CASE_IN_SUITE(PointsOfAllSupportedQuadrilateralLumpedSchemesMustBeInRangeAndIncludeBounds,
-                          KratosGeoMechanicsFastSuiteWithoutKernel)
+TEST_F(KratosGeoMechanicsFastSuiteWithoutKernel, PointsOfAllSupportedQuadrilateralLumpedSchemesMustBeInRangeAndIncludeBounds)
 {
     for (auto number : SupportedNumbersOfPointsForQuadrilateralLumpedIntegration()) {
         const auto p_scheme = MakeLumpedIntegrationScheme(number);
@@ -220,8 +214,7 @@ KRATOS_TEST_CASE_IN_SUITE(PointsOfAllSupportedQuadrilateralLumpedSchemesMustBeIn
     }
 }
 
-KRATOS_TEST_CASE_IN_SUITE(PointsOfAllSupportedTriangleLumpedSchemesMustBeInRangeAndIncludeBounds,
-                          KratosGeoMechanicsFastSuiteWithoutKernel)
+TEST_F(KratosGeoMechanicsFastSuiteWithoutKernel, PointsOfAllSupportedTriangleLumpedSchemesMustBeInRangeAndIncludeBounds)
 {
     for (auto number : SupportedNumbersOfPointsForTriangleLumpedIntegration()) {
         const auto p_scheme = MakeLumpedIntegrationScheme(number);
@@ -236,7 +229,7 @@ KRATOS_TEST_CASE_IN_SUITE(PointsOfAllSupportedTriangleLumpedSchemesMustBeInRange
     }
 }
 
-KRATOS_TEST_CASE_IN_SUITE(CorrectWeightsFromTriangle6LumpedSchemes, KratosGeoMechanicsFastSuiteWithoutKernel)
+TEST_F(KratosGeoMechanicsFastSuiteWithoutKernel, CorrectWeightsFromTriangle6LumpedSchemes)
 {
     std::vector<double> expected_weights{0.0328638, 0.0328638, 0.0328638, 0.300469,
                                          0.300469,  0.300469}; // regression values see core test test_triangle_2d_6
@@ -249,7 +242,7 @@ KRATOS_TEST_CASE_IN_SUITE(CorrectWeightsFromTriangle6LumpedSchemes, KratosGeoMec
     KRATOS_EXPECT_VECTOR_NEAR(expected_weights, actual_weights, tolerance)
 }
 
-KRATOS_TEST_CASE_IN_SUITE(CorrectWeightsFromTriangle3LumpedSchemes, KratosGeoMechanicsFastSuiteWithoutKernel)
+TEST_F(KratosGeoMechanicsFastSuiteWithoutKernel, CorrectWeightsFromTriangle3LumpedSchemes)
 {
     std::vector<double> expected_weights{1.0 / 3.0, 1.0 / 3.0, 1.0 / 3.0};
     std::transform(expected_weights.begin(), expected_weights.end(), expected_weights.begin(),
@@ -261,7 +254,7 @@ KRATOS_TEST_CASE_IN_SUITE(CorrectWeightsFromTriangle3LumpedSchemes, KratosGeoMec
     KRATOS_EXPECT_VECTOR_NEAR(expected_weights, actual_weights, tolerance)
 }
 
-KRATOS_TEST_CASE_IN_SUITE(CorrectWeightsFromQuadrilateral4LumpedSchemes, KratosGeoMechanicsFastSuiteWithoutKernel)
+TEST_F(KratosGeoMechanicsFastSuiteWithoutKernel, CorrectWeightsFromQuadrilateral4LumpedSchemes)
 {
     std::vector<double> expected_weights{1.0 / 4.0, 1.0 / 4.0, 1.0 / 4.0, 1.0 / 4.0};
     std::transform(expected_weights.begin(), expected_weights.end(), expected_weights.begin(),
@@ -273,7 +266,7 @@ KRATOS_TEST_CASE_IN_SUITE(CorrectWeightsFromQuadrilateral4LumpedSchemes, KratosG
     KRATOS_EXPECT_VECTOR_NEAR(expected_weights, actual_weights, tolerance)
 }
 
-KRATOS_TEST_CASE_IN_SUITE(CorrectWeightsFromQuadrilateral8LumpedSchemes, KratosGeoMechanicsFastSuiteWithoutKernel)
+TEST_F(KratosGeoMechanicsFastSuiteWithoutKernel, CorrectWeightsFromQuadrilateral8LumpedSchemes)
 {
     std::vector<double> expected_weights{
         0.0394737, 0.0394737, 0.0394737, 0.0394737, 0.210526,
