@@ -273,6 +273,19 @@
                         "PorousDomain.Wall_Sand_Interface_Right"
                     ]
                 }
+            },
+            {
+                "python_module": "geo_extrapolate_integration_point_values_to_nodes_process",
+                "kratos_module": "KratosMultiphysics.GeoMechanicsApplication",
+                "process_name": "GeoExtrapolateIntegrationPointValuesToNodesProcess",
+                "Parameters": {
+                    "model_part_name": "PorousDomain.Diaphragm_Wall",
+                    "list_of_variables": [
+                        "AXIAL_FORCE",
+                        "BENDING_MOMENT",
+                        "SHEAR_FORCE"
+                    ]
+                }
             }
         ]
     },
@@ -299,7 +312,14 @@
                             "node_output"        : false,
                             "skin_output"        : false,
                             "nodal_results"      : [
-                                "DISPLACEMENT", "TOTAL_DISPLACEMENT", "ROTATION", "WATER_PRESSURE", "REACTION"
+                                "DISPLACEMENT",
+                                "TOTAL_DISPLACEMENT",
+                                "ROTATION",
+                                "WATER_PRESSURE",
+                                "REACTION",
+                                "AXIAL_FORCE",
+                                "BENDING_MOMENT",
+                                "SHEAR_FORCE"
                             ],
                             "gauss_point_results": [
                                 "CAUCHY_STRESS_TENSOR", "TOTAL_STRESS_TENSOR", "ENGINEERING_STRAIN_TENSOR",
