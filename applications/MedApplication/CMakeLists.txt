@@ -76,36 +76,29 @@ if(${INSTALL_TESTING_FILES} MATCHES ON )
   )
 endif(${INSTALL_TESTING_FILES} MATCHES ON)
 
-# Install targets
-install(TARGETS KratosMedCore DESTINATION libs )
-install(TARGETS KratosMedApplication DESTINATION libs )
-
-file(TO_CMAKE_PATH "${HDF5_ROOT}/bin" HDF5_ROOT_DEP)
+# Fix Windows paths
+file(TO_CMAKE_PATH "${HDF5_ROOT}/lib" HDF5_ROOT_DEP_LIB)
+file(TO_CMAKE_PATH "${HDF5_ROOT}/bin" HDF5_ROOT_DEP_BIN)
 file(TO_CMAKE_PATH "${MED_ROOT}/lib" MED_ROOT_DEP)
 
-# Track down DLL and install them along with Kratos libs.
-# This is disabled until I can make it work in linux. Please do not delete it.
-# install(CODE "set(HDF5_ROOT_DEP \"${HDF5_ROOT_DEP}\")")
-# install(CODE "set(MED_ROOT_DEP \"${MED_ROOT_DEP}\")")
-# install(CODE [[
-#   file(GET_RUNTIME_DEPENDENCIES
-#     RESOLVED_DEPENDENCIES_VAR RES
-#     UNRESOLVED_DEPENDENCIES_VAR UNRES
-#     CONFLICTING_DEPENDENCIES_PREFIX CONFLICTING_DEPENDENCIES
-#     DIRECTORIES ${HDF5_ROOT_DEP} ${MED_ROOT_DEP}
-#     LIBRARIES $<TARGET_FILE:KratosMedCore>
-#     PRE_EXCLUDE_REGEXES "api-ms-" "ext-ms-"
-#     POST_EXCLUDE_REGEXES ".*system32/.*\\.dll"
-#   )
-
-#   foreach(_file ${RES})
-#     file(INSTALL
-#       DESTINATION "${CMAKE_INSTALL_PREFIX}/libs"
-#       TYPE SHARED_LIBRARY
-#       FILES "${_file}"
-#     )
-#   endforeach()
-# ]])
+# Install targets
+install(TARGETS KratosMedCore DESTINATION libs)
+install(TARGETS KratosMedApplication DESTINATION libs)
+if(WIN32)
+    install(DIRECTORY "${HDF5_ROOT_DEP_LIB}/" DESTINATION libs FILES_MATCHING PATTERN "*.dll")
+    install(DIRECTORY "${HDF5_ROOT_DEP_BIN}/" DESTINATION libs FILES_MATCHING PATTERN "*.dll")
+    install(DIRECTORY "${MED_ROOT_DEP}/" DESTINATION libs FILES_MATCHING PATTERN "*.dll")
+endif()
+if(APPLE)
+    install(DIRECTORY "${HDF5_ROOT_DEP_LIB}/" DESTINATION libs FILES_MATCHING PATTERN "*.dylib")
+    install(DIRECTORY "${HDF5_ROOT_DEP_BIN}/" DESTINATION libs FILES_MATCHING PATTERN "*.dylib")
+    install(DIRECTORY "${MED_ROOT_DEP}/" DESTINATION libs FILES_MATCHING PATTERN "*.dylib")
+endif()
+if(UNIX AND NOT APPLE)
+    install(DIRECTORY "${HDF5_ROOT_DEP_LIB}/" DESTINATION libs FILES_MATCHING PATTERN "*.so*")
+    install(DIRECTORY "${HDF5_ROOT_DEP_BIN}/" DESTINATION libs FILES_MATCHING PATTERN "*.so*")
+    install(DIRECTORY "${MED_ROOT_DEP}/" DESTINATION libs FILES_MATCHING PATTERN "*.so*")
+endif()
 
 # Define custom targets
 set(KRATOS_KERNEL "${KRATOS_KERNEL};KratosMedCore" PARENT_SCOPE)
