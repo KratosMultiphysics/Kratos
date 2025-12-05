@@ -11,6 +11,7 @@
 //                   Gennady Markelov
 //
 
+#include "containers/model.h"
 #include "custom_constitutive/incremental_linear_elastic_interface_law.h"
 #include "custom_constitutive/incremental_linear_elastic_law.h"
 #include "custom_constitutive/interface_plane_strain.h"
@@ -22,8 +23,16 @@
 #include "custom_geometries/interface_geometry.h"
 #include "custom_utilities/ublas_utilities.h"
 #include "geo_mechanics_application_variables.h"
+#include "geometries/hexahedra_3d_8.h"
+#include "geometries/line_2d_2.h"
+#include "geometries/line_2d_3.h"
+#include "geometries/quadrilateral_3d_4.h"
+#include "geometries/triangle_2d_3.h"
+#include "geometries/triangle_3d_3.h"
+#include "geometries/triangle_3d_6.h"
+#include "includes/expect.h"
 #include "test_setup_utilities/element_setup_utilities.h"
-#include "tests/cpp_tests/geo_mechanics_fast_suite.h"
+#include "tests/cpp_tests/geo_mechanics_fast_suite_without_kernel.h"
 #include "tests/cpp_tests/test_utilities.h"
 
 #include <boost/numeric/ublas/assignment.hpp>
@@ -388,7 +397,7 @@ namespace Kratos::Testing
 
 using namespace Kratos;
 
-KRATOS_TEST_CASE_IN_SUITE(InterfaceElement_IsAnElement, KratosGeoMechanicsFastSuiteWithoutKernel)
+TEST_F(KratosGeoMechanicsFastSuiteWithoutKernel, InterfaceElement_IsAnElement)
 {
     const InterfaceElement element(
         0, std::make_shared<LineInterfaceGeometry2D2Plus2Noded>(CreateNodesFor2Plus2LineInterfaceGeometry()),
@@ -397,7 +406,7 @@ KRATOS_TEST_CASE_IN_SUITE(InterfaceElement_IsAnElement, KratosGeoMechanicsFastSu
     EXPECT_NE(p_casted_element, nullptr);
 }
 
-KRATOS_TEST_CASE_IN_SUITE(LineInterfaceElement_CreatesInstanceWithGeometryInput, KratosGeoMechanicsFastSuiteWithoutKernel)
+TEST_F(KratosGeoMechanicsFastSuiteWithoutKernel, LineInterfaceElement_CreatesInstanceWithGeometryInput)
 {
     // Arrange
     const InterfaceElement element(
@@ -417,7 +426,7 @@ KRATOS_TEST_CASE_IN_SUITE(LineInterfaceElement_CreatesInstanceWithGeometryInput,
     EXPECT_NE(p_created_element->pGetProperties(), nullptr);
 }
 
-KRATOS_TEST_CASE_IN_SUITE(LineInterfaceElement_CreatesInstanceWithNodeInput, KratosGeoMechanicsFastSuiteWithoutKernel)
+TEST_F(KratosGeoMechanicsFastSuiteWithoutKernel, LineInterfaceElement_CreatesInstanceWithNodeInput)
 {
     // Arrange
     const auto nodes        = CreateNodesFor2Plus2LineInterfaceGeometry();
@@ -439,7 +448,7 @@ KRATOS_TEST_CASE_IN_SUITE(LineInterfaceElement_CreatesInstanceWithNodeInput, Kra
     EXPECT_NE(p_created_element->pGetProperties(), nullptr);
 }
 
-KRATOS_TEST_CASE_IN_SUITE(LineInterfaceElement_ReturnsTheExpectedDoFList, KratosGeoMechanicsFastSuiteWithoutKernel)
+TEST_F(KratosGeoMechanicsFastSuiteWithoutKernel, LineInterfaceElement_ReturnsTheExpectedDoFList)
 {
     // Arrange
     const auto p_properties = std::make_shared<Properties>();
@@ -460,7 +469,7 @@ KRATOS_TEST_CASE_IN_SUITE(LineInterfaceElement_ReturnsTheExpectedDoFList, Kratos
     }
 }
 
-KRATOS_TEST_CASE_IN_SUITE(LineInterfaceElement_ReturnsTheExpectedEquationIdVector, KratosGeoMechanicsFastSuiteWithoutKernel)
+TEST_F(KratosGeoMechanicsFastSuiteWithoutKernel, LineInterfaceElement_ReturnsTheExpectedEquationIdVector)
 {
     // Arrange
     const auto p_properties = std::make_shared<Properties>();
@@ -487,8 +496,7 @@ KRATOS_TEST_CASE_IN_SUITE(LineInterfaceElement_ReturnsTheExpectedEquationIdVecto
     KRATOS_EXPECT_VECTOR_EQ(equation_id_vector, expected_ids)
 }
 
-KRATOS_TEST_CASE_IN_SUITE(LineInterfaceElement_LeftHandSideContainsMaterialStiffnessContributions,
-                          KratosGeoMechanicsFastSuiteWithoutKernel)
+TEST_F(KratosGeoMechanicsFastSuiteWithoutKernel, LineInterfaceElement_LeftHandSideContainsMaterialStiffnessContributions)
 {
     // Arrange
     constexpr auto normal_stiffness = 20.0;
@@ -508,8 +516,8 @@ KRATOS_TEST_CASE_IN_SUITE(LineInterfaceElement_LeftHandSideContainsMaterialStiff
     KRATOS_EXPECT_MATRIX_RELATIVE_NEAR(actual_left_hand_side, expected_left_hand_side, Defaults::relative_tolerance)
 }
 
-KRATOS_TEST_CASE_IN_SUITE(LineInterfaceElement_LeftHandSideContainsMaterialStiffnessContributions_Rotated,
-                          KratosGeoMechanicsFastSuiteWithoutKernel)
+TEST_F(KratosGeoMechanicsFastSuiteWithoutKernel,
+       LineInterfaceElement_LeftHandSideContainsMaterialStiffnessContributions_Rotated)
 {
     // Arrange
     constexpr auto normal_stiffness = 20.0;
@@ -540,8 +548,7 @@ KRATOS_TEST_CASE_IN_SUITE(LineInterfaceElement_LeftHandSideContainsMaterialStiff
     KRATOS_EXPECT_MATRIX_NEAR(actual_left_hand_side, expected_left_hand_side, Defaults::relative_tolerance)
 }
 
-KRATOS_TEST_CASE_IN_SUITE(LineInterfaceElement_RightHandSideEqualsMinusInternalForceVector,
-                          KratosGeoMechanicsFastSuiteWithoutKernel)
+TEST_F(KratosGeoMechanicsFastSuiteWithoutKernel, LineInterfaceElement_RightHandSideEqualsMinusInternalForceVector)
 {
     // Arrange
     constexpr auto normal_stiffness = 20.0;
@@ -564,8 +571,7 @@ KRATOS_TEST_CASE_IN_SUITE(LineInterfaceElement_RightHandSideEqualsMinusInternalF
     KRATOS_EXPECT_VECTOR_RELATIVE_NEAR(actual_right_hand_side, expected_right_hand_side, Defaults::relative_tolerance)
 }
 
-KRATOS_TEST_CASE_IN_SUITE(LineInterfaceElement_RightHandSideEqualsMinusInternalForceVector_Rotated,
-                          KratosGeoMechanicsFastSuiteWithoutKernel)
+TEST_F(KratosGeoMechanicsFastSuiteWithoutKernel, LineInterfaceElement_RightHandSideEqualsMinusInternalForceVector_Rotated)
 {
     // Arrange
     constexpr auto normal_stiffness = 20.0;
@@ -592,7 +598,7 @@ KRATOS_TEST_CASE_IN_SUITE(LineInterfaceElement_RightHandSideEqualsMinusInternalF
     KRATOS_EXPECT_VECTOR_RELATIVE_NEAR(actual_right_hand_side, expected_right_hand_side, Defaults::relative_tolerance)
 }
 
-KRATOS_TEST_CASE_IN_SUITE(GetInitializedConstitutiveLawsAfterElementInitialization, KratosGeoMechanicsFastSuiteWithoutKernel)
+TEST_F(KratosGeoMechanicsFastSuiteWithoutKernel, GetInitializedConstitutiveLawsAfterElementInitialization)
 {
     // Arrange
     const auto p_properties = std::make_shared<Properties>();
@@ -614,8 +620,8 @@ KRATOS_TEST_CASE_IN_SUITE(GetInitializedConstitutiveLawsAfterElementInitializati
     }
 }
 
-KRATOS_TEST_CASE_IN_SUITE(InterfaceElement_HasCorrectNumberOfConstitutiveLawsAfterMultipleInitializations,
-                          KratosGeoMechanicsFastSuiteWithoutKernel)
+TEST_F(KratosGeoMechanicsFastSuiteWithoutKernel,
+       InterfaceElement_HasCorrectNumberOfConstitutiveLawsAfterMultipleInitializations)
 {
     // Arrange
     const auto p_properties = std::make_shared<Properties>();
@@ -638,7 +644,7 @@ KRATOS_TEST_CASE_IN_SUITE(InterfaceElement_HasCorrectNumberOfConstitutiveLawsAft
     KRATOS_EXPECT_EQ(constitutive_laws.size(), 2);
 }
 
-KRATOS_TEST_CASE_IN_SUITE(LineInterfaceElement_ReturnsExpectedLeftAndRightHandSide, KratosGeoMechanicsFastSuiteWithoutKernel)
+TEST_F(KratosGeoMechanicsFastSuiteWithoutKernel, LineInterfaceElement_ReturnsExpectedLeftAndRightHandSide)
 {
     // Arrange
     constexpr auto normal_stiffness = 20.0;
@@ -666,8 +672,7 @@ KRATOS_TEST_CASE_IN_SUITE(LineInterfaceElement_ReturnsExpectedLeftAndRightHandSi
     KRATOS_EXPECT_VECTOR_RELATIVE_NEAR(actual_right_hand_side, expected_right_hand_side, Defaults::relative_tolerance)
 }
 
-KRATOS_TEST_CASE_IN_SUITE(LineInterfaceElement_CalculateStrain_ReturnsRelativeDisplacement,
-                          KratosGeoMechanicsFastSuiteWithoutKernel)
+TEST_F(KratosGeoMechanicsFastSuiteWithoutKernel, LineInterfaceElement_CalculateStrain_ReturnsRelativeDisplacement)
 {
     // Arrange
     constexpr auto normal_stiffness = 20.0;
@@ -695,8 +700,7 @@ KRATOS_TEST_CASE_IN_SUITE(LineInterfaceElement_CalculateStrain_ReturnsRelativeDi
     }
 }
 
-KRATOS_TEST_CASE_IN_SUITE(LineInterfaceElement_CalculateCauchyStressVector_ReturnsTraction,
-                          KratosGeoMechanicsFastSuiteWithoutKernel)
+TEST_F(KratosGeoMechanicsFastSuiteWithoutKernel, LineInterfaceElement_CalculateCauchyStressVector_ReturnsTraction)
 {
     // Arrange
     constexpr auto normal_stiffness = 20.0;
@@ -723,8 +727,8 @@ KRATOS_TEST_CASE_IN_SUITE(LineInterfaceElement_CalculateCauchyStressVector_Retur
     }
 }
 
-KRATOS_TEST_CASE_IN_SUITE(LineInterfaceElement_3Plus3NodedElement_ReturnsExpectedLeftAndRightHandSide,
-                          KratosGeoMechanicsFastSuiteWithoutKernel)
+TEST_F(KratosGeoMechanicsFastSuiteWithoutKernel,
+       TriangleInterfaceElement_3Plus3NodedElement_ReturnsExpectedLeftAndRightHandSide)
 {
     // Arrange
     constexpr auto normal_stiffness = 20.0;
@@ -781,7 +785,7 @@ KRATOS_TEST_CASE_IN_SUITE(LineInterfaceElement_3Plus3NodedElement_ReturnsExpecte
     KRATOS_EXPECT_VECTOR_RELATIVE_NEAR(actual_right_hand_side, expected_right_hand_side, Defaults::relative_tolerance)
 }
 
-KRATOS_TEST_CASE_IN_SUITE(TriangleInterfaceElement_CreatesInstanceWithGeometryInput, KratosGeoMechanicsFastSuiteWithoutKernel)
+TEST_F(KratosGeoMechanicsFastSuiteWithoutKernel, TriangleInterfaceElement_CreatesInstanceWithGeometryInput)
 {
     // Arrange
     const InterfaceElement element(
@@ -801,7 +805,7 @@ KRATOS_TEST_CASE_IN_SUITE(TriangleInterfaceElement_CreatesInstanceWithGeometryIn
     EXPECT_NE(p_created_element->pGetProperties(), nullptr);
 }
 
-KRATOS_TEST_CASE_IN_SUITE(TriangleInterfaceElement_CreatesInstanceWithNodeInput, KratosGeoMechanicsFastSuiteWithoutKernel)
+TEST_F(KratosGeoMechanicsFastSuiteWithoutKernel, TriangleInterfaceElement_CreatesInstanceWithNodeInput)
 {
     // Arrange
     const auto nodes        = CreateNodesFor3Plus3SurfaceInterfaceGeometry();
@@ -823,7 +827,7 @@ KRATOS_TEST_CASE_IN_SUITE(TriangleInterfaceElement_CreatesInstanceWithNodeInput,
     EXPECT_NE(p_created_element->pGetProperties(), nullptr);
 }
 
-KRATOS_TEST_CASE_IN_SUITE(TriangleInterfaceElement_ReturnsTheExpectedDoFList, KratosGeoMechanicsFastSuiteWithoutKernel)
+TEST_F(KratosGeoMechanicsFastSuiteWithoutKernel, TriangleInterfaceElement_ReturnsTheExpectedDoFList)
 {
     // Arrange
     const auto p_properties = std::make_shared<Properties>();
@@ -845,7 +849,7 @@ KRATOS_TEST_CASE_IN_SUITE(TriangleInterfaceElement_ReturnsTheExpectedDoFList, Kr
     }
 }
 
-KRATOS_TEST_CASE_IN_SUITE(TriangleInterfaceElement_ReturnsTheExpectedEquationIdVector, KratosGeoMechanicsFastSuiteWithoutKernel)
+TEST_F(KratosGeoMechanicsFastSuiteWithoutKernel, TriangleInterfaceElement_ReturnsTheExpectedEquationIdVector)
 {
     // Arrange
     const auto p_properties = std::make_shared<Properties>();
@@ -876,8 +880,7 @@ KRATOS_TEST_CASE_IN_SUITE(TriangleInterfaceElement_ReturnsTheExpectedEquationIdV
     KRATOS_EXPECT_VECTOR_EQ(equation_id_vector, expected_ids)
 }
 
-KRATOS_TEST_CASE_IN_SUITE(TriangleInterfaceElement_LeftHandSideContainsMaterialStiffnessContributions,
-                          KratosGeoMechanicsFastSuiteWithoutKernel)
+TEST_F(KratosGeoMechanicsFastSuiteWithoutKernel, TriangleInterfaceElement_LeftHandSideContainsMaterialStiffnessContributions)
 {
     // Arrange
     constexpr auto normal_stiffness = 20.0;
@@ -897,8 +900,8 @@ KRATOS_TEST_CASE_IN_SUITE(TriangleInterfaceElement_LeftHandSideContainsMaterialS
     KRATOS_EXPECT_MATRIX_RELATIVE_NEAR(actual_left_hand_side, expected_left_hand_side, Defaults::relative_tolerance)
 }
 
-KRATOS_TEST_CASE_IN_SUITE(TriangleInterfaceElement_LeftHandSideContainsMaterialStiffnessContributions_Rotated,
-                          KratosGeoMechanicsFastSuiteWithoutKernel)
+TEST_F(KratosGeoMechanicsFastSuiteWithoutKernel,
+       TriangleInterfaceElement_LeftHandSideContainsMaterialStiffnessContributions_Rotated)
 {
     // Arrange
     constexpr auto normal_stiffness = 20.0;
@@ -923,8 +926,7 @@ KRATOS_TEST_CASE_IN_SUITE(TriangleInterfaceElement_LeftHandSideContainsMaterialS
     KRATOS_EXPECT_MATRIX_NEAR(actual_left_hand_side, ExpectedLeftHandSideForTriangleElement(), Defaults::relative_tolerance)
 }
 
-KRATOS_TEST_CASE_IN_SUITE(TriangleInterfaceElement_LeftHandSideContainsMaterialStiffnessContributions_RotatedAboutYAxis,
-                          KratosGeoMechanicsFastSuiteWithoutKernel)
+TEST_F(KratosGeoMechanicsFastSuiteWithoutKernel, TriangleInterfaceElement_LeftHandSideContainsMaterialStiffnessContributions_RotatedAboutYAxis)
 {
     // Arrange
     constexpr auto normal_stiffness = 20.0;
@@ -965,8 +967,7 @@ KRATOS_TEST_CASE_IN_SUITE(TriangleInterfaceElement_LeftHandSideContainsMaterialS
     KRATOS_EXPECT_MATRIX_NEAR(actual_left_hand_side, expected_left_hand_side, Defaults::relative_tolerance)
 }
 
-KRATOS_TEST_CASE_IN_SUITE(TriangleInterfaceElement_RightHandSideEqualsMinusInternalForceVector,
-                          KratosGeoMechanicsFastSuiteWithoutKernel)
+TEST_F(KratosGeoMechanicsFastSuiteWithoutKernel, TriangleInterfaceElement_RightHandSideEqualsMinusInternalForceVector)
 {
     // Arrange
     constexpr auto normal_stiffness = 20.0;
@@ -990,8 +991,7 @@ KRATOS_TEST_CASE_IN_SUITE(TriangleInterfaceElement_RightHandSideEqualsMinusInter
     KRATOS_EXPECT_VECTOR_RELATIVE_NEAR(actual_right_hand_side, expected_right_hand_side, tolerance)
 }
 
-KRATOS_TEST_CASE_IN_SUITE(TriangleInterfaceElement_RightHandSideEqualsMinusInternalForceVector_Rotated,
-                          KratosGeoMechanicsFastSuiteWithoutKernel)
+TEST_F(KratosGeoMechanicsFastSuiteWithoutKernel, TriangleInterfaceElement_RightHandSideEqualsMinusInternalForceVector_Rotated)
 {
     // Arrange
     constexpr auto normal_stiffness = 20.0;
@@ -1019,8 +1019,8 @@ KRATOS_TEST_CASE_IN_SUITE(TriangleInterfaceElement_RightHandSideEqualsMinusInter
     KRATOS_EXPECT_VECTOR_RELATIVE_NEAR(actual_right_hand_side, expected_right_hand_side, tolerance)
 }
 
-KRATOS_TEST_CASE_IN_SUITE(TriangleIntrfaceElement_GetInitializedConstitutiveLawsAfterElementInitialization,
-                          KratosGeoMechanicsFastSuiteWithoutKernel)
+TEST_F(KratosGeoMechanicsFastSuiteWithoutKernel,
+       TriangleIntrfaceElement_GetInitializedConstitutiveLawsAfterElementInitialization)
 {
     // Arrange
     const auto p_properties = std::make_shared<Properties>();
@@ -1043,8 +1043,8 @@ KRATOS_TEST_CASE_IN_SUITE(TriangleIntrfaceElement_GetInitializedConstitutiveLaws
     }
 }
 
-KRATOS_TEST_CASE_IN_SUITE(TriangleInterfaceElement_HasCorrectNumberOfConstitutiveLawsAfterMultipleInitializations,
-                          KratosGeoMechanicsFastSuiteWithoutKernel)
+TEST_F(KratosGeoMechanicsFastSuiteWithoutKernel,
+       TriangleInterfaceElement_HasCorrectNumberOfConstitutiveLawsAfterMultipleInitializations)
 {
     // Arrange
     const auto p_properties = std::make_shared<Properties>();
@@ -1067,8 +1067,7 @@ KRATOS_TEST_CASE_IN_SUITE(TriangleInterfaceElement_HasCorrectNumberOfConstitutiv
     KRATOS_EXPECT_EQ(constitutive_laws.size(), 3);
 }
 
-KRATOS_TEST_CASE_IN_SUITE(TriangleInterfaceElement_ReturnsExpectedLeftAndRightHandSide,
-                          KratosGeoMechanicsFastSuiteWithoutKernel)
+TEST_F(KratosGeoMechanicsFastSuiteWithoutKernel, TriangleInterfaceElement_ReturnsExpectedLeftAndRightHandSide)
 {
     // Arrange
     constexpr auto normal_stiffness = 20.0;
@@ -1097,8 +1096,7 @@ KRATOS_TEST_CASE_IN_SUITE(TriangleInterfaceElement_ReturnsExpectedLeftAndRightHa
     KRATOS_EXPECT_VECTOR_NEAR(actual_right_hand_side, expected_right_hand_side, tolerance)
 }
 
-KRATOS_TEST_CASE_IN_SUITE(TriangleInterfaceElement_CalculateStrain_ReturnsRelativeDisplacement,
-                          KratosGeoMechanicsFastSuiteWithoutKernel)
+TEST_F(KratosGeoMechanicsFastSuiteWithoutKernel, TriangleInterfaceElement_CalculateStrain_ReturnsRelativeDisplacement)
 {
     // Arrange
     constexpr auto normal_stiffness = 20.0;
@@ -1128,8 +1126,7 @@ KRATOS_TEST_CASE_IN_SUITE(TriangleInterfaceElement_CalculateStrain_ReturnsRelati
     }
 }
 
-KRATOS_TEST_CASE_IN_SUITE(TriangleInterfaceElementHorizontal_CalculateStrain_ReturnsRelativeDisplacement,
-                          KratosGeoMechanicsFastSuiteWithoutKernel)
+TEST_F(KratosGeoMechanicsFastSuiteWithoutKernel, TriangleInterfaceElementHorizontal_CalculateStrain_ReturnsRelativeDisplacement)
 {
     // Arrange
     constexpr auto normal_stiffness = 20.0;
@@ -1159,8 +1156,7 @@ KRATOS_TEST_CASE_IN_SUITE(TriangleInterfaceElementHorizontal_CalculateStrain_Ret
     }
 }
 
-KRATOS_TEST_CASE_IN_SUITE(TriangleInterfaceElementInYZPlane_CalculateStrain_ReturnsRelativeDisplacement,
-                          KratosGeoMechanicsFastSuiteWithoutKernel)
+TEST_F(KratosGeoMechanicsFastSuiteWithoutKernel, TriangleInterfaceElementInYZPlane_CalculateStrain_ReturnsRelativeDisplacement)
 {
     // Arrange
     constexpr auto normal_stiffness = 20.0;
@@ -1190,8 +1186,7 @@ KRATOS_TEST_CASE_IN_SUITE(TriangleInterfaceElementInYZPlane_CalculateStrain_Retu
     }
 }
 
-KRATOS_TEST_CASE_IN_SUITE(TriangleInterfaceElementInXZPlane_CalculateStrain_ReturnsRelativeDisplacement,
-                          KratosGeoMechanicsFastSuiteWithoutKernel)
+TEST_F(KratosGeoMechanicsFastSuiteWithoutKernel, TriangleInterfaceElementInXZPlane_CalculateStrain_ReturnsRelativeDisplacement)
 {
     // Arrange
     constexpr auto normal_stiffness = 20.0;
@@ -1224,8 +1219,7 @@ KRATOS_TEST_CASE_IN_SUITE(TriangleInterfaceElementInXZPlane_CalculateStrain_Retu
     }
 }
 
-KRATOS_TEST_CASE_IN_SUITE(TriangleInterfaceElement_CalculateCauchyStressVector_ReturnsTraction,
-                          KratosGeoMechanicsFastSuiteWithoutKernel)
+TEST_F(KratosGeoMechanicsFastSuiteWithoutKernel, TriangleInterfaceElement_CalculateCauchyStressVector_ReturnsTraction)
 {
     // Arrange
     constexpr auto normal_stiffness = 20.0;
@@ -1254,8 +1248,8 @@ KRATOS_TEST_CASE_IN_SUITE(TriangleInterfaceElement_CalculateCauchyStressVector_R
     }
 }
 
-KRATOS_TEST_CASE_IN_SUITE(TriangleInterfaceElement_6Plus6NodedElement_ReturnsExpectedLeftAndRightHandSide,
-                          KratosGeoMechanicsFastSuiteWithoutKernel)
+TEST_F(KratosGeoMechanicsFastSuiteWithoutKernel,
+       TriangleInterfaceElement_6Plus6NodedElement_ReturnsExpectedLeftAndRightHandSide)
 {
     // Arrange
     constexpr auto normal_stiffness = 20.0;
@@ -1327,7 +1321,7 @@ KRATOS_TEST_CASE_IN_SUITE(TriangleInterfaceElement_6Plus6NodedElement_ReturnsExp
     KRATOS_EXPECT_VECTOR_NEAR(actual_right_hand_side, expected_right_hand_side, tolerance)
 }
 
-KRATOS_TEST_CASE_IN_SUITE(InterfaceElement_CheckThrowsWhenElementIsNotInitialized, KratosGeoMechanicsFastSuiteWithoutKernel)
+TEST_F(KratosGeoMechanicsFastSuiteWithoutKernel, InterfaceElement_CheckThrowsWhenElementIsNotInitialized)
 {
     constexpr auto normal_stiffness = 20.0;
     constexpr auto shear_stiffness  = 10.0;
@@ -1347,7 +1341,7 @@ KRATOS_TEST_CASE_IN_SUITE(InterfaceElement_CheckThrowsWhenElementIsNotInitialize
     KRATOS_EXPECT_EQ(element.Check(dummy_process_info), 0);
 }
 
-KRATOS_TEST_CASE_IN_SUITE(InterfaceElement_CheckDoesNotThrowWhenElementIsNotActive, KratosGeoMechanicsFastSuiteWithoutKernel)
+TEST_F(KratosGeoMechanicsFastSuiteWithoutKernel, InterfaceElement_CheckDoesNotThrowWhenElementIsNotActive)
 {
     constexpr auto normal_stiffness = 20.0;
     constexpr auto shear_stiffness  = 10.0;
@@ -1367,7 +1361,7 @@ KRATOS_TEST_CASE_IN_SUITE(InterfaceElement_CheckDoesNotThrowWhenElementIsNotActi
     KRATOS_EXPECT_EQ(element.Check(dummy_process_info), 0);
 }
 
-KRATOS_TEST_CASE_IN_SUITE(LineInterfaceElement_InterpolatesNodalStresses, KratosGeoMechanicsFastSuiteWithoutKernel)
+TEST_F(KratosGeoMechanicsFastSuiteWithoutKernel, LineInterfaceElement_InterpolatesNodalStresses)
 {
     // Arrange
     Model model;
@@ -1457,7 +1451,7 @@ KRATOS_TEST_CASE_IN_SUITE(LineInterfaceElement_InterpolatesNodalStresses, Kratos
         actual_traction_vectors[1], UblasUtilities::CreateVector({4.0, 5.0}), Defaults::relative_tolerance)
 }
 
-KRATOS_TEST_CASE_IN_SUITE(PlaneInterfaceElement_InterpolatesNodalStresses, KratosGeoMechanicsFastSuiteWithoutKernel)
+TEST_F(KratosGeoMechanicsFastSuiteWithoutKernel, PlaneInterfaceElement_InterpolatesNodalStresses)
 {
     // Arrange
     Model model;
