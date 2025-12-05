@@ -116,12 +116,6 @@ public:
 
     void PrintData(std::ostream& rOStream) const override { mMidGeometry->PrintData(rOStream); }
 
-    [[nodiscard]] static std::string IntegrationSchemeFunctionalityNotImplementedMessage()
-    {
-        return "This Geometry type does not support functionality related to integration "
-               "schemes.\n";
-    }
-
     array_1d<double, 3> Normal(IndexType IntegrationPointIndex) const override
     {
         KRATOS_ERROR << IntegrationSchemeFunctionalityNotImplementedMessage();
@@ -315,6 +309,12 @@ private:
         result.push_back(std::make_shared<MidGeometryType>(nodes_of_first_side));
         result.push_back(std::make_shared<MidGeometryType>(nodes_of_second_side));
         return result;
+    }
+
+    [[nodiscard]] static std::string IntegrationSchemeFunctionalityNotImplementedMessage()
+    {
+        return "This Geometry type does not support functionality related to integration "
+               "schemes.\n";
     }
 
     std::unique_ptr<BaseType> mMidGeometry;
