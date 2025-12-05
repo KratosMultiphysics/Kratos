@@ -360,20 +360,17 @@ class KratosGeoMechanicsSubmergedConstructionOfExcavation(KratosUnittest.TestCas
             axial_force_collections = []
             shear_force_collections = []
             bending_moment_collections = []
-            titles = self.get_names_of_structural_stages()
-            for stage in self.stages_info.values():
-                if stage['base_name'] == "1_Initial_stage" or stage['base_name'] == "2_Null_step":
-                    continue
+            structural_stages=[stage for stage in self.stages_info.values() if
+                               stage['base_name'] != "1_Initial_stage" and stage['base_name'] != "2_Null_step"
+            ]
+            titles = self.get_names_of_structural_stages(structural_stages)
+            y_coords_per_stage = self.get_y_coords_per_stage(project_path, structural_stages)
+
+            for stage, y_coords in zip(structural_stages, y_coords_per_stage):
                 data_series_collection = []
                 output_data_wall = GiDOutputFileReader().read_output_from(os.path.join(project_path, f"{stage['base_name']}.post.res"))
-                node_ids = get_wall_node_ids()
-                coordinates = test_helper.read_coordinates_from_post_msh_file(
-                    Path(project_path) / f"{stage['base_name']}.post.msh", node_ids=node_ids
-                )
-                y_coords = [coord[1] for coord in coordinates]
-
                 axial_forces = GiDOutputFileReader.nodal_values_at_time("AXIAL_FORCE", stage['end_time'], output_data_wall,
-                                                                        node_ids=node_ids)
+                                                                        node_ids=get_wall_node_ids())
                 axial_forces = [axial_force / 1000 for axial_force in axial_forces]  # Convert to kN
 
                 data = []
@@ -397,9 +394,8 @@ class KratosGeoMechanicsSubmergedConstructionOfExcavation(KratosUnittest.TestCas
                 axial_force_collections.append(data_series_collection)
 
                 data_series_collection = []
-
                 shear_forces = GiDOutputFileReader.nodal_values_at_time("SHEAR_FORCE", stage['end_time'], output_data_wall,
-                                                                        node_ids=node_ids)
+                                                                        node_ids=get_wall_node_ids())
                 shear_forces = [shear_force / 1000 for shear_force in shear_forces]  # Convert to kN
                 data = []
                 for force, y in zip(shear_forces, y_coords):
@@ -424,7 +420,7 @@ class KratosGeoMechanicsSubmergedConstructionOfExcavation(KratosUnittest.TestCas
                 data_series_collection = []
 
                 bending_moments = GiDOutputFileReader.nodal_values_at_time("BENDING_MOMENT", stage['end_time'], output_data_wall,
-                                                                        node_ids=node_ids)
+                                                                        node_ids=get_wall_node_ids())
                 bending_moments = [bending_moment / 1000 for bending_moment in bending_moments]  # Convert to kN
                 data = []
                 for force, y in zip(bending_moments, y_coords):
@@ -501,13 +497,18 @@ class KratosGeoMechanicsSubmergedConstructionOfExcavation(KratosUnittest.TestCas
         self.check_vertical_reaction(project_path, self.stages_info["third_excavation"],
                                      expected_total_vertical_reaction, )
 
-    def get_names_of_structural_stages(self):
-        result = []
-        for stage in self.stages_info.values():
-            if stage['base_name'] == "1_Initial_stage" or stage['base_name'] == "2_Null_step":
-                continue
-            result.append(stage['base_name'])
-        return result
+    def get_y_coords_per_stage(self, project_path, structural_stages):
+        y_coords_per_stage = []
+        for stage in structural_stages:
+            node_ids = get_wall_node_ids()
+            coordinates = test_helper.read_coordinates_from_post_msh_file(
+                Path(project_path) / f"{stage['base_name']}.post.msh", node_ids=node_ids
+            )
+            y_coords_per_stage.append([coord[1] for coord in coordinates])
+        return y_coords_per_stage
+
+    def get_names_of_structural_stages(self, structural_stages):
+        return [stage['base_name'] for stage in structural_stages]
 
     def test_simulation_with_linear_elastic_materials(self):
         self.run_simulation_and_checks("linear_elastic")
