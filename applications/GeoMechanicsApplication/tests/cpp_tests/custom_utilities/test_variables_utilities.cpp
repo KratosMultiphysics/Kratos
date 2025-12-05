@@ -9,26 +9,28 @@
 //
 //  Main authors:    Richard Faasse
 //
+#include "containers/model.h"
 #include "custom_utilities/variables_utilities.hpp"
+#include "includes/expect.h"
 #include "includes/variables.h"
-#include "tests/cpp_tests/geo_mechanics_fast_suite.h"
+#include "tests/cpp_tests/geo_mechanics_fast_suite_without_kernel.h"
 
 namespace Kratos::Testing
 {
 
-KRATOS_TEST_CASE_IN_SUITE(TestVariablesUtilitiesGetsCorrectComponents, KratosGeoMechanicsFastSuiteWithoutKernel)
+TEST_F(KratosGeoMechanicsFastSuiteWithoutKernel, TestVariablesUtilitiesGetsCorrectComponents)
 {
     const auto& component = VariablesUtilities::GetComponentFromVectorVariable(ACCELERATION.Name(), "X");
 
-    KRATOS_EXPECT_EQ(component, ACCELERATION_X);
+    EXPECT_EQ(component, ACCELERATION_X);
 }
 
-KRATOS_TEST_CASE_IN_SUITE(TestVariablesUtilitiesThrowsWhenComponentDoesNotExist,
-                          KratosGeoMechanicsFastSuiteWithoutKernel){KRATOS_EXPECT_EXCEPTION_IS_THROWN(
+TEST_F(KratosGeoMechanicsFastSuiteWithoutKernel,
+       TestVariablesUtilitiesThrowsWhenComponentDoesNotExist){KRATOS_EXPECT_EXCEPTION_IS_THROWN(
     VariablesUtilities::GetComponentFromVectorVariable(ACCELERATION.Name(), "?"),
     "Error: The component \"ACCELERATION_?\" is not registered!")}
 
-KRATOS_TEST_CASE_IN_SUITE(GeometryUtilities_ReturnsGetNodalValuesOf, KratosGeoMechanicsFastSuiteWithoutKernel)
+TEST_F(KratosGeoMechanicsFastSuiteWithoutKernel, GeometryUtilities_ReturnsGetNodalValuesOf)
 {
     // Arrange
     Model model;
