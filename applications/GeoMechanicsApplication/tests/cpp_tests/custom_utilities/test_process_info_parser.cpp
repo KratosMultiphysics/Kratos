@@ -11,7 +11,8 @@
 //
 
 #include "custom_utilities/json_process_info_parser.h"
-#include "tests/cpp_tests/geo_mechanics_fast_suite.h"
+#include "includes/expect.h"
+#include "tests/cpp_tests/geo_mechanics_fast_suite_without_kernel.h"
 
 using namespace Kratos;
 
@@ -23,7 +24,7 @@ const std::string parameterString = R"(
     "key" : "value"
 })";
 
-KRATOS_TEST_CASE_IN_SUITE(GetProcessList_ReturnsExpectedProcesses_ForAllListTypes, KratosGeoMechanicsFastSuiteWithoutKernel)
+TEST_F(KratosGeoMechanicsFastSuiteWithoutKernel, GetProcessList_ReturnsExpectedProcesses_ForAllListTypes)
 {
     // Given
     const std::string process_list = R"(
@@ -83,11 +84,10 @@ KRATOS_TEST_CASE_IN_SUITE(GetProcessList_ReturnsExpectedProcesses_ForAllListType
         ProcessParameters{"AuxiliaryProcess1", Parameters{parameterString}},
         ProcessParameters{"AuxiliaryProcess2", Parameters{parameterString}}};
 
-    KRATOS_EXPECT_EQ(expected_result, actual_result);
+    EXPECT_EQ(expected_result, actual_result);
 }
 
-KRATOS_TEST_CASE_IN_SUITE(GetProcessList_GivesDuplicates_ForProcessesWithIdenticalNames,
-                          KratosGeoMechanicsFastSuiteWithoutKernel)
+TEST_F(KratosGeoMechanicsFastSuiteWithoutKernel, GetProcessList_GivesDuplicates_ForProcessesWithIdenticalNames)
 {
     // Given
     const std::string process_list_with_duplicate_names = R"(
@@ -115,10 +115,10 @@ KRATOS_TEST_CASE_IN_SUITE(GetProcessList_GivesDuplicates_ForProcessesWithIdentic
         ProcessParameters{"ApplyVectorConstraintTableProcess", Parameters{parameterString}},
         ProcessParameters{"ApplyVectorConstraintTableProcess", Parameters{parameterString}}};
 
-    KRATOS_EXPECT_EQ(expected_result, actual_result);
+    EXPECT_EQ(expected_result, actual_result);
 }
 
-KRATOS_TEST_CASE_IN_SUITE(GetProcessList_Throws_WhenProcessDoesNotHaveParameters, KratosGeoMechanicsFastSuiteWithoutKernel)
+TEST_F(KratosGeoMechanicsFastSuiteWithoutKernel, GetProcessList_Throws_WhenProcessDoesNotHaveParameters)
 {
     // Given
     const std::string process_without_parameters = R"(
@@ -139,7 +139,7 @@ KRATOS_TEST_CASE_IN_SUITE(GetProcessList_Throws_WhenProcessDoesNotHaveParameters
         "Getting a value that does not exist. entry string : Parameters")
 }
 
-KRATOS_TEST_CASE_IN_SUITE(GetProcessList_ReturnsEmptyList_WhenNoProcessesAreDefined, KratosGeoMechanicsFastSuiteWithoutKernel)
+TEST_F(KratosGeoMechanicsFastSuiteWithoutKernel, GetProcessList_ReturnsEmptyList_WhenNoProcessesAreDefined)
 {
     JsonProcessInfoParser parser;
     KRATOS_EXPECT_TRUE(parser.GetProcessList(Parameters{}).empty())
