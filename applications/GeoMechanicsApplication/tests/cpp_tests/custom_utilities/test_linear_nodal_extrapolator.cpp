@@ -72,11 +72,10 @@ KRATOS_TEST_CASE_IN_SUITE(NodalExtrapolator_GivesCorrectExtrapolationMatrix_For2
     auto extrapolation_matrix = nodal_extrapolator.CalculateElementExtrapolationMatrix(*p_element);
 
     // clang-format off
-    Matrix expected_extrapolation_matrix = ZeroMatrix(4, 2);
-    expected_extrapolation_matrix <<= 1.0, 0.0,
-                                      0.0, 1.0,
-                                      1.0, 0.0,
-                                      0.0, 1.0;
+    const auto expected_extrapolation_matrix = UblasUtilities::CreateMatrix({{ 1.0, 0.0},
+                                                                             {0.0, 1.0},
+                                                                             {1.0, 0.0},
+                                                                             {0.0, 1.0}});
     // clang-format on
 
     KRATOS_EXPECT_MATRIX_NEAR(extrapolation_matrix, expected_extrapolation_matrix, Defaults::absolute_tolerance)
@@ -92,10 +91,9 @@ KRATOS_TEST_CASE_IN_SUITE(NodalExtrapolator_GivesCorrectExtrapolationMatrix_For2
     auto extrapolation_matrix = nodal_extrapolator.CalculateElementExtrapolationMatrix(*p_element);
 
     // clang-format off
-    Matrix expected_extrapolation_matrix = ZeroMatrix(3, 3);
-    expected_extrapolation_matrix <<= 5.0/3.0, -1.0/3.0, -1.0/3.0,
-                                     -1.0/3.0,  5.0/3.0, -1.0/3.0,
-                                     -1.0/3.0, -1.0/3.0,  5.0/3.0;
+    const auto expected_extrapolation_matrix = UblasUtilities::CreateMatrix({{ 5.0/3.0, -1.0/3.0, -1.0/3.0},
+                                                                             {-1.0/3.0,  5.0/3.0, -1.0/3.0},
+                                                                             {-1.0/3.0, -1.0/3.0,  5.0/3.0}});
     // clang-format on
 
     KRATOS_EXPECT_MATRIX_NEAR(extrapolation_matrix, expected_extrapolation_matrix, 1e-6)
@@ -112,13 +110,12 @@ KRATOS_TEST_CASE_IN_SUITE(NodalExtrapolator_GivesCorrectExtrapolationMatrix_For2
     auto extrapolation_matrix = nodal_extrapolator.CalculateElementExtrapolationMatrix(*p_element);
 
     // clang-format off
-    Matrix expected_extrapolation_matrix = ZeroMatrix(6, 3);
-    expected_extrapolation_matrix <<= 5.0/3.0, -1.0/3.0, -1.0/3.0,
-                                     -1.0/3.0,  5.0/3.0, -1.0/3.0,
-                                     -1.0/3.0, -1.0/3.0,  5.0/3.0,
-                                      2.0/3.0,  2.0/3.0, -1.0/3.0,
-                                     -1.0/3.0,  2.0/3.0,  2.0/3.0,
-                                      2.0/3.0, -1.0/3.0,  2.0/3.0;
+    const auto expected_extrapolation_matrix = UblasUtilities::CreateMatrix({{ 5.0/3.0, -1.0/3.0, -1.0/3.0},
+                                                                             {-1.0/3.0,  5.0/3.0, -1.0/3.0},
+                                                                             {-1.0/3.0, -1.0/3.0,  5.0/3.0},
+                                                                             { 2.0/3.0,  2.0/3.0, -1.0/3.0},
+                                                                             {-1.0/3.0,  2.0/3.0,  2.0/3.0},
+                                                                             { 2.0/3.0, -1.0/3.0,  2.0/3.0}});
     // clang-format on
 
     KRATOS_EXPECT_MATRIX_NEAR(extrapolation_matrix, expected_extrapolation_matrix, 1e-6)
@@ -189,11 +186,10 @@ KRATOS_TEST_CASE_IN_SUITE(NodalExtrapolator_GivesCorrectExtrapolationMatrix_For2
     auto extrapolation_matrix = nodal_extrapolator.CalculateElementExtrapolationMatrix(*p_element);
 
     // clang-format off
-    Matrix expected_extrapolation_matrix = ZeroMatrix(4, 4);
-    expected_extrapolation_matrix <<= 1.866025, -0.5,       0.133974, -0.5,
-                                     -0.5,       1.866025, -0.5,       0.133974,
-                                      0.133974, -0.5,       1.866025, -0.5,
-                                     -0.5,       0.133974, -0.5,       1.866025;
+    const auto expected_extrapolation_matrix = UblasUtilities::CreateMatrix({{ 1.866025, -0.5,       0.133974, -0.5     },
+                                                                             {-0.5,       1.866025, -0.5,       0.133974},
+                                                                             { 0.133974, -0.5,       1.866025, -0.5     },
+                                                                             {-0.5,       0.133974, -0.5,       1.866025}});
     // clang-format on
 
     KRATOS_EXPECT_MATRIX_NEAR(extrapolation_matrix, expected_extrapolation_matrix, 1e-6)
@@ -216,15 +212,14 @@ KRATOS_TEST_CASE_IN_SUITE(NodalExtrapolator_GivesCorrectExtrapolationMatrix_For2
     auto extrapolation_matrix = nodal_extrapolator.CalculateElementExtrapolationMatrix(*p_element);
 
     // clang-format off
-    Matrix expected_extrapolation_matrix = ZeroMatrix(8, 4);
-    expected_extrapolation_matrix <<= 1.866025, -0.5,       0.133974, -0.5,
-                                     -0.5,       1.866025, -0.5,       0.133974,
-                                      0.133974, -0.5,       1.866025, -0.5,
-                                     -0.5,       0.133974, -0.5,       1.866025,
-                                      0.683013,  0.683013, -0.183013, -0.183013,
-                                     -0.183013,  0.683013,  0.683013, -0.183013,
-                                     -0.183013, -0.183013,  0.683013,  0.683013,
-                                      0.683013, -0.183013, -0.183013,  0.683013;
+    const auto expected_extrapolation_matrix = UblasUtilities::CreateMatrix({{ 1.866025, -0.5,       0.133974, -0.5     },
+                                     {-0.5,       1.866025, -0.5,       0.133974},
+                                     { 0.133974, -0.5,       1.866025, -0.5     },
+                                     {-0.5,       0.133974, -0.5,       1.866025},
+                                     { 0.683013,  0.683013, -0.183013, -0.183013},
+                                     {-0.183013,  0.683013,  0.683013, -0.183013},
+                                     {-0.183013, -0.183013,  0.683013,  0.683013},
+                                     { 0.683013, -0.183013, -0.183013,  0.683013}});
     // clang-format on
 
     KRATOS_EXPECT_MATRIX_NEAR(extrapolation_matrix, expected_extrapolation_matrix, 1e-6)
@@ -241,11 +236,10 @@ KRATOS_TEST_CASE_IN_SUITE(NodalExtrapolator_GivesCorrectExtrapolationMatrix_For3
     auto extrapolation_matrix = nodal_extrapolator.CalculateElementExtrapolationMatrix(*p_element);
 
     // clang-format off
-    Matrix expected_extrapolation_matrix = ZeroMatrix(4, 4);
-    expected_extrapolation_matrix <<= -0.309017, -0.309017, -0.309017,  1.927051,
-                                       1.927051, -0.309017, -0.309017, -0.309017,
-                                      -0.309017,  1.927051, -0.309017, -0.309017,
-                                      -0.309017, -0.309017,  1.927051, -0.309017;
+    const auto expected_extrapolation_matrix = UblasUtilities::CreateMatrix({{-0.309017, -0.309017, -0.309017,  1.927051},
+                                                                             { 1.927051, -0.309017, -0.309017, -0.309017},
+                                                                             {-0.309017,  1.927051, -0.309017, -0.309017},
+                                                                             {-0.309017, -0.309017,  1.927051, -0.309017}});
     // clang-format on
 
     KRATOS_EXPECT_MATRIX_NEAR(extrapolation_matrix, expected_extrapolation_matrix, 1e-6)
@@ -270,18 +264,17 @@ KRATOS_TEST_CASE_IN_SUITE(NodalExtrapolator_GivesCorrectExtrapolationMatrix_For3
     auto extrapolation_matrix = nodal_extrapolator.CalculateElementExtrapolationMatrix(*p_element);
 
     // clang-format off
-    Matrix expected_extrapolation_matrix = ZeroMatrix(10, 4);
-    expected_extrapolation_matrix <<= -0.309017, -0.309017, -0.309017,  1.927051,
-                                       1.927051, -0.309017, -0.309017, -0.309017,
-                                      -0.309017,  1.927051, -0.309017, -0.309017,
-                                      -0.309017, -0.309017,  1.927051, -0.309017,
+    const auto expected_extrapolation_matrix = UblasUtilities::CreateMatrix({{-0.309017, -0.309017, -0.309017,  1.927051},
+                                                                             { 1.927051, -0.309017, -0.309017, -0.309017},
+                                                                             {-0.309017,  1.927051, -0.309017, -0.309017},
+                                                                             {-0.309017, -0.309017,  1.927051, -0.309017},
 
-                                       0.809017, -0.309017, -0.309017,  0.809017,
-                                       0.809017,  0.809017, -0.309017, -0.309017,
-                                      -0.309017,  0.809017, -0.309017,  0.809017,
-                                      -0.309017, -0.309017,  0.809017,  0.809017,
-                                       0.809017, -0.309017,  0.809017, -0.309017,
-                                      -0.309017,  0.809017,  0.809017, -0.309017;
+                                                                             { 0.809017, -0.309017, -0.309017,  0.809017},
+                                                                             { 0.809017,  0.809017, -0.309017, -0.309017},
+                                                                             {-0.309017,  0.809017, -0.309017,  0.809017},
+                                                                             {-0.309017, -0.309017,  0.809017,  0.809017},
+                                                                             { 0.809017, -0.309017,  0.809017, -0.309017},
+                                                                             {-0.309017,  0.809017,  0.809017, -0.309017}});
     // clang-format on
 
     KRATOS_EXPECT_MATRIX_NEAR(extrapolation_matrix, expected_extrapolation_matrix, 1e-6)
@@ -304,15 +297,14 @@ KRATOS_TEST_CASE_IN_SUITE(NodalExtrapolator_GivesCorrectExtrapolationMatrix_For3
     auto extrapolation_matrix = nodal_extrapolator.CalculateElementExtrapolationMatrix(*p_element);
 
     // clang-format off
-    Matrix expected_extrapolation_matrix = ZeroMatrix(8, 8);
-    expected_extrapolation_matrix <<=  2.549038, -0.683013,  0.183013, -0.683013, -0.683013,  0.183013, -0.049038,  0.183013,
-                                      -0.683013,  2.549038, -0.683013,  0.183013,  0.183013, -0.683013,  0.183013, -0.049038,
-                                       0.183013, -0.683013,  2.549038, -0.683013, -0.049038,  0.183013, -0.683013,  0.183013,
-                                      -0.683013,  0.183013, -0.683013,  2.549038,  0.183013, -0.049038,  0.183013, -0.683013,
-                                      -0.683013,  0.183013, -0.049038,  0.183013,  2.549038, -0.683013,  0.183013, -0.683013,
-                                       0.183013, -0.683013,  0.183013, -0.049038, -0.683013,  2.549038, -0.683013,  0.183013,
-                                      -0.049038,  0.183013, -0.683013,  0.183013,  0.183013, -0.683013,  2.549038, -0.683013,
-                                       0.183013, -0.049038,  0.183013, -0.683013, -0.683013,  0.183013, -0.683013,  2.549038;
+    const auto expected_extrapolation_matrix = UblasUtilities::CreateMatrix({{ 2.549038, -0.683013,  0.183013, -0.683013, -0.683013,  0.183013, -0.049038,  0.183013},
+                                                                             {-0.683013,  2.549038, -0.683013,  0.183013,  0.183013, -0.683013,  0.183013, -0.049038},
+                                                                             { 0.183013, -0.683013,  2.549038, -0.683013, -0.049038,  0.183013, -0.683013,  0.183013},
+                                                                             {-0.683013,  0.183013, -0.683013,  2.549038,  0.183013, -0.049038,  0.183013, -0.683013},
+                                                                             {-0.683013,  0.183013, -0.049038,  0.183013,  2.549038, -0.683013,  0.183013, -0.683013},
+                                                                             { 0.183013, -0.683013,  0.183013, -0.049038, -0.683013,  2.549038, -0.683013,  0.183013},
+                                                                             {-0.049038,  0.183013, -0.683013,  0.183013,  0.183013, -0.683013,  2.549038, -0.683013},
+                                                                             { 0.183013, -0.049038,  0.183013, -0.683013, -0.683013,  0.183013, -0.683013,  2.549038}});
     // clang-format on
 
     KRATOS_EXPECT_MATRIX_NEAR(extrapolation_matrix, expected_extrapolation_matrix, 1e-6)
@@ -332,28 +324,27 @@ KRATOS_TEST_CASE_IN_SUITE(NodalExtrapolator_GivesCorrectExtrapolationMatrix_For3
     auto extrapolation_matrix = nodal_extrapolator.CalculateElementExtrapolationMatrix(*p_element);
 
     // clang-format off
-    Matrix expected_extrapolation_matrix = ZeroMatrix(20, 8);
-    expected_extrapolation_matrix <<= 2.549038,  -0.683013,   0.183013,  -0.683013,  -0.683013,   0.183013,  -0.049038,   0.183013,
-                                     -0.683013,   2.549038,  -0.683013,   0.183013,   0.183013,  -0.683013,   0.183013,  -0.049038,
-                                      0.183013,  -0.683013,   2.549038,  -0.683013,  -0.049038,   0.183013,  -0.683013,   0.183013,
-                                     -0.683013,   0.183013,  -0.683013,   2.549038,   0.183013,  -0.049038,   0.183013,  -0.683013,
-                                     -0.683013,   0.183013,  -0.049038,   0.183013,   2.549038,  -0.683013,   0.183013,  -0.683013,
-                                      0.183013,  -0.683013,   0.183013,  -0.049038,  -0.683013,   2.549038,  -0.683013,   0.183013,
-                                     -0.049038,   0.183013,  -0.683013,   0.183013,   0.183013,  -0.683013,   2.549038,  -0.683013,
-                                      0.183013,  -0.049038,   0.183013,  -0.683013,  -0.683013,   0.183013,  -0.683013,   2.549038,
+    const auto expected_extrapolation_matrix = UblasUtilities::CreateMatrix({{ 2.549038,  -0.683013,   0.183013,  -0.683013,  -0.683013,   0.183013,  -0.049038,   0.183013},
+                                                                             {-0.683013,   2.549038,  -0.683013,   0.183013,   0.183013,  -0.683013,   0.183013,  -0.049038},
+                                                                             { 0.183013,  -0.683013,   2.549038,  -0.683013,  -0.049038,   0.183013,  -0.683013,   0.183013},
+                                                                             {-0.683013,   0.183013,  -0.683013,   2.549038,   0.183013,  -0.049038,   0.183013,  -0.683013},
+                                                                             {-0.683013,   0.183013,  -0.049038,   0.183013,   2.549038,  -0.683013,   0.183013,  -0.683013},
+                                                                             { 0.183013,  -0.683013,   0.183013,  -0.049038,  -0.683013,   2.549038,  -0.683013,   0.183013},
+                                                                             {-0.049038,   0.183013,  -0.683013,   0.183013,   0.183013,  -0.683013,   2.549038,  -0.683013},
+                                                                             { 0.183013,  -0.049038,   0.183013,  -0.683013,  -0.683013,   0.183013,  -0.683013,   2.549038},
 
-                                      0.9330125,  0.9330125, -0.25,      -0.25,      -0.25,      -0.25,       0.0669875,  0.0669875,
-                                     -0.25,       0.9330125,  0.9330125, -0.25,       0.0669875, -0.25,      -0.25,       0.0669875,
-                                     -0.25,      -0.25,       0.9330125,  0.9330125,  0.0669875,  0.0669875, -0.25,      -0.25,
-                                      0.9330125, -0.25,      -0.25,       0.9330125, -0.25,       0.0669875,  0.0669875, -0.25,
-                                      0.9330125, -0.25,       0.0669875, -0.25,       0.9330125, -0.25,       0.0669875, -0.25,
-                                     -0.25,       0.9330125, -0.25,       0.0669875, -0.25,       0.9330125, -0.25,       0.0669875,
-                                      0.0669875, -0.25,       0.9330125, -0.25,       0.0669875, -0.25,       0.9330125, -0.25,
-                                     -0.25,       0.0669875, -0.25,       0.9330125, -0.25,       0.0669875, -0.25,       0.9330125,
-                                     -0.25,      -0.25,       0.0669875,  0.0669875,  0.9330125,  0.9330125, -0.25,      -0.25,
-                                      0.0669875, -0.25,      -0.25,       0.0669875, -0.25,       0.9330125,  0.9330125, -0.25,
-                                      0.0669875,  0.0669875, -0.25,      -0.25,      -0.25,      -0.25,       0.9330125,  0.9330125,
-                                     -0.25,       0.0669875,  0.0669875, -0.25,       0.9330125, -0.25,      -0.25,       0.9330125;
+                                                                             { 0.9330125,  0.9330125, -0.25,      -0.25,      -0.25,      -0.25,       0.0669875,  0.0669875},
+                                                                             {-0.25,       0.9330125,  0.9330125, -0.25,       0.0669875, -0.25,      -0.25,       0.0669875},
+                                                                             {-0.25,      -0.25,       0.9330125,  0.9330125,  0.0669875,  0.0669875, -0.25,      -0.25     },
+                                                                             { 0.9330125, -0.25,      -0.25,       0.9330125, -0.25,       0.0669875,  0.0669875, -0.25     },
+                                                                             { 0.9330125, -0.25,       0.0669875, -0.25,       0.9330125, -0.25,       0.0669875, -0.25     },
+                                                                             {-0.25,       0.9330125, -0.25,       0.0669875, -0.25,       0.9330125, -0.25,       0.0669875},
+                                                                             { 0.0669875, -0.25,       0.9330125, -0.25,       0.0669875, -0.25,       0.9330125, -0.25     },
+                                                                             {-0.25,       0.0669875, -0.25,       0.9330125, -0.25,       0.0669875, -0.25,       0.9330125},
+                                                                             {-0.25,      -0.25,       0.0669875,  0.0669875,  0.9330125,  0.9330125, -0.25,      -0.25     },
+                                                                             { 0.0669875, -0.25,      -0.25,       0.0669875, -0.25,       0.9330125,  0.9330125, -0.25     },
+                                                                             { 0.0669875,  0.0669875, -0.25,      -0.25,      -0.25,      -0.25,       0.9330125,  0.9330125},
+                                                                             {-0.25,       0.0669875,  0.0669875, -0.25,       0.9330125, -0.25,      -0.25,       0.9330125}});
 
     // clang-format on
 
