@@ -17,7 +17,7 @@ def _make_plot(
     ylabel=None,
     yaxis_inverted=False,
     xscale=None,
-    title=None
+    title=None,
 ):
     figure, axes = plt.subplots(layout="constrained")
     if xscale is not None:
@@ -54,8 +54,15 @@ def _plot_data_series_on_axis(axes, data_series_collection):
     axes.grid(which="minor", color="0.9")
 
 
-def make_sub_plots(data_series_collections, plot_file_path, titles, xlabel=None, ylabel=None, yaxis_inverted=False,
-                   xscale=None):
+def make_sub_plots(
+    data_series_collections,
+    plot_file_path,
+    titles,
+    xlabel=None,
+    ylabel=None,
+    yaxis_inverted=False,
+    xscale=None,
+):
     figure, axes = plt.subplots(1, len(data_series_collections), figsize=(20, 6))
     first_plot = True
     for ax, collection, title in zip(axes, data_series_collections, titles):
@@ -68,15 +75,15 @@ def make_sub_plots(data_series_collections, plot_file_path, titles, xlabel=None,
         ax.set_title(title)
 
         if first_plot:
-            figure.legend(loc='upper center', bbox_to_anchor=(0.5, 0.0))
+            figure.legend(loc="upper center", bbox_to_anchor=(0.5, 0.0))
             if ylabel is not None:
                 ax.set_ylabel(ylabel)
-            first_plot=False
+            first_plot = False
 
     if isinstance(plot_file_path, pathlib.Path):
         plot_file_path = str(plot_file_path.resolve())
     print(f"Saving plot to {plot_file_path}")
-    plt.savefig(plot_file_path, bbox_inches='tight')
+    plt.savefig(plot_file_path, bbox_inches="tight")
 
 
 def make_settlement_history_plot(data_series_collection, plot_file_path):
@@ -92,5 +99,9 @@ def make_settlement_history_plot(data_series_collection, plot_file_path):
 
 def make_stress_over_y_plot(data_series_collection, plot_file_path, title=None):
     _make_plot(
-        data_series_collection, plot_file_path, xlabel="Stress [kPa]", ylabel=r"$y$ [m]", title=title
+        data_series_collection,
+        plot_file_path,
+        xlabel="Stress [kPa]",
+        ylabel=r"$y$ [m]",
+        title=title,
     )
