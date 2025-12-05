@@ -31,6 +31,8 @@
 # (This is a Kratos build script extension and will not work with python build)
 [kratos]
     libs = ["KratosTrilinosApplication.*", "KratosTrilinosCore.*", "libKratosTrilinosCore.*"]
+    # Please note that this trilinos libs needs to be filled manually as prefix/suffix may 
+    # change depending on how the library was installed / compiled.
 
 # Wheel (py and stubs)
 [tool.hatch.build.targets.wheel]
