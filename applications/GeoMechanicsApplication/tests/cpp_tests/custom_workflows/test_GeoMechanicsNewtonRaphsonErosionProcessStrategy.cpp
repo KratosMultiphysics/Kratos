@@ -16,7 +16,7 @@
 /* Project includes */
 #include "custom_workflows/dgeoflow.h"
 #include "tests/cpp_tests/flow_stubs.h"
-#include "tests/cpp_tests/geo_mechanics_fast_suite.h"
+#include <gtest/gtest.h>
 
 namespace Kratos::Testing
 {
@@ -55,13 +55,13 @@ TEST_P(ParametrizedDGeoFlowTests, ErosionProcessStrategy)
                                                     "PorousDomain.Left_head", call_back_functions);
 
     // Assert
-    KRATOS_EXPECT_EQ(status, 0);
-    KRATOS_EXPECT_EQ(reported_textual_progress.front(), "Calculating head level 3m (1/12)");
-    KRATOS_EXPECT_EQ(reported_textual_progress.back(), "Calculating head level 3.8m (9/12)");
-    KRATOS_EXPECT_EQ(reported_textual_progress.size(), 9);
-    KRATOS_EXPECT_DOUBLE_EQ(progress_report_values.front(), 0.0);
-    KRATOS_EXPECT_DOUBLE_EQ(progress_report_values.back(), 0.75);
-    KRATOS_EXPECT_EQ(progress_report_values.size(), 10);
+    EXPECT_EQ(status, 0);
+    EXPECT_EQ(reported_textual_progress.front(), "Calculating head level 3m (1/12)");
+    EXPECT_EQ(reported_textual_progress.back(), "Calculating head level 3.8m (9/12)");
+    EXPECT_EQ(reported_textual_progress.size(), 9);
+    EXPECT_DOUBLE_EQ(progress_report_values.front(), 0.0);
+    EXPECT_DOUBLE_EQ(progress_report_values.back(), 0.75);
+    EXPECT_EQ(progress_report_values.size(), 10);
 }
 
 INSTANTIATE_TEST_SUITE_P(KratosGeoMechanicsIntegrationSuite,
