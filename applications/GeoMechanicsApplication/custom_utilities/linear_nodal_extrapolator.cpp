@@ -86,49 +86,36 @@ std::unique_ptr<LinearNodalExtrapolator::GeometryType> LinearNodalExtrapolator::
     // Creating lower order geometries is only supported for quadratic geometries.
     if (rGeometry.GetGeometryOrderType() != GeometryData::Kratos_Quadratic_Order) return nullptr;
 
-    switch (rGeometry.size()) {
-    case 3:
+    switch (rGeometry.GetGeometryFamily()) {
+        using enum GeometryData::KratosGeometryFamily;
+    case Kratos_Linear:
         return std::make_unique<Line2D2<Node>>(rGeometry(0), rGeometry(1));
-    case 6:
+    case Kratos_Triangle:
         return std::make_unique<Triangle2D3<Node>>(rGeometry(0), rGeometry(1), rGeometry(2));
-    case 8:
+    case Kratos_Quadrilateral:
         return std::make_unique<Quadrilateral2D4<Node>>(rGeometry(0), rGeometry(1), rGeometry(2),
                                                         rGeometry(3));
-    case 10:
+    case Kratos_Tetrahedra:
         return std::make_unique<Tetrahedra3D4<Node>>(rGeometry(0), rGeometry(1), rGeometry(2), rGeometry(3));
-
-    case 20:
+    case Kratos_Hexahedra:
         return std::make_unique<Hexahedra3D8<Node>>(rGeometry(0), rGeometry(1), rGeometry(2),
                                                     rGeometry(3), rGeometry(4), rGeometry(5),
                                                     rGeometry(6), rGeometry(7));
     default:
-        return nullptr;
+        KRATOS_ERROR << "Cannot create lower order geometry: unsupported family type\n";
     }
 }
 
 void LinearNodalExtrapolator::CheckIfGeometryIsSupported(const GeometryType& rGeometry)
 {
-    const auto number_of_nodes = rGeometry.size();
     KRATOS_ERROR_IF(rGeometry.GetGeometryFamily() != GeometryData::KratosGeometryFamily::Kratos_Linear &&
                     rGeometry.GetGeometryFamily() != GeometryData::KratosGeometryFamily::Kratos_Triangle &&
                     rGeometry.GetGeometryFamily() != GeometryData::KratosGeometryFamily::Kratos_Quadrilateral &&
                     rGeometry.GetGeometryFamily() != GeometryData::KratosGeometryFamily::Kratos_Tetrahedra &&
                     rGeometry.GetGeometryFamily() != GeometryData::KratosGeometryFamily::Kratos_Hexahedra);
 
-    KRATOS_ERROR_IF(rGeometry.GetGeometryFamily() == GeometryData::KratosGeometryFamily::Kratos_Linear &&
-                    (number_of_nodes != 2 && number_of_nodes != 3));
-
-    KRATOS_ERROR_IF(rGeometry.GetGeometryFamily() == GeometryData::KratosGeometryFamily::Kratos_Triangle &&
-                    (number_of_nodes != 3 && number_of_nodes != 6));
-
-    KRATOS_ERROR_IF(rGeometry.GetGeometryFamily() == GeometryData::KratosGeometryFamily::Kratos_Quadrilateral &&
-                    (number_of_nodes != 4 && number_of_nodes != 8));
-
-    KRATOS_ERROR_IF(rGeometry.GetGeometryFamily() == GeometryData::KratosGeometryFamily::Kratos_Tetrahedra &&
-                    (number_of_nodes != 4 && number_of_nodes != 10));
-
-    KRATOS_ERROR_IF(rGeometry.GetGeometryFamily() == GeometryData::KratosGeometryFamily::Kratos_Hexahedra &&
-                    (number_of_nodes != 8 && number_of_nodes != 20));
+    KRATOS_ERROR_IF(rGeometry.GetGeometryOrderType() != GeometryData::KratosGeometryOrderType::Kratos_Linear_Order &&
+                    rGeometry.GetGeometryOrderType() != GeometryData::KratosGeometryOrderType::Kratos_Quadratic_Order);
 }
 
 } // namespace Kratos

@@ -23,12 +23,18 @@ Vector UblasUtilities::CreateVector(const std::initializer_list<double>& rInitia
     return result;
 }
 
-Matrix UblasUtilities::CreateMatrix(const std::initializer_list<std::initializer_list<double>>& rInitializerList)
+Matrix UblasUtilities::CreateMatrix(const std::initializer_list<std::initializer_list<double>>& rRows)
 {
-    if (rInitializerList.size() == 0) return {};
+    if (rRows.size() == 0 || rRows.begin()->size() == 0) return {};
 
-    Matrix result(rInitializerList.size(), rInitializerList.begin()->size(), 0.0);
-    for (std::size_t i = 0; const auto& r_row : rInitializerList) {
+    const auto row_length = rRows.begin()->size();
+
+    KRATOS_ERROR_IF_NOT(std::ranges::all_of(rRows, [row_length](const auto& rRow) {
+        return rRow.size() == row_length;
+    })) << "Inconsistent row length in the initializer list for Matrix creation.\n";
+
+    Matrix result(rRows.size(), row_length, 0.0);
+    for (std::size_t i = 0; const auto& r_row : rRows) {
         std::ranges::copy(r_row, row(result, i).begin());
         ++i;
     }
