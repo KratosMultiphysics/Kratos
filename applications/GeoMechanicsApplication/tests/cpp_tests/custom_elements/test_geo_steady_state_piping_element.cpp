@@ -10,8 +10,13 @@
 //  Main authors:    Wijtze Pieter Kikstra
 //
 
+#include "containers/model.h"
 #include "custom_elements/geo_steady_state_Pw_piping_element.h"
-#include "tests/cpp_tests/geo_mechanics_fast_suite.h"
+#include "geometries/line_2d_2.h"
+#include "geometries/line_3d_2.h"
+#include "includes/expect.h"
+#include "includes/model_part.h"
+#include "tests/cpp_tests/geo_mechanics_fast_suite_without_kernel.h"
 #include "tests/cpp_tests/test_utilities.h"
 
 namespace
@@ -119,15 +124,14 @@ namespace Kratos::Testing
 
 using namespace Kratos;
 
-KRATOS_TEST_CASE_IN_SUITE(GeoSteadyStatePwPipingElementIsAnElement, KratosGeoMechanicsFastSuiteWithoutKernel)
+TEST_F(KratosGeoMechanicsFastSuiteWithoutKernel, GeoSteadyStatePwPipingElementIsAnElement)
 {
     const GeoSteadyStatePwPipingElement<2, 2> element;
     auto p_casted_element = dynamic_cast<const Element*>(&element);
     KRATOS_CHECK_NOT_EQUAL(p_casted_element, nullptr);
 }
 
-KRATOS_TEST_CASE_IN_SUITE(GeoSteadyStatePwPipingElementCanCreateInstanceWithGeometryInput,
-                          KratosGeoMechanicsFastSuiteWithoutKernel)
+TEST_F(KratosGeoMechanicsFastSuiteWithoutKernel, GeoSteadyStatePwPipingElementCanCreateInstanceWithGeometryInput)
 {
     // Arrange
     const GeoSteadyStatePwPipingElement<2, 2> element;
@@ -144,7 +148,7 @@ KRATOS_TEST_CASE_IN_SUITE(GeoSteadyStatePwPipingElementCanCreateInstanceWithGeom
     EXPECT_NE(p_created_element->pGetProperties(), nullptr);
 }
 
-KRATOS_TEST_CASE_IN_SUITE(GeoSteadyStatePwPipingElementCanCreateInstanceWithNodeInput, KratosGeoMechanicsFastSuiteWithoutKernel)
+TEST_F(KratosGeoMechanicsFastSuiteWithoutKernel, GeoSteadyStatePwPipingElementCanCreateInstanceWithNodeInput)
 {
     // Arrange
     const auto p_properties = std::make_shared<Properties>();
@@ -164,7 +168,7 @@ KRATOS_TEST_CASE_IN_SUITE(GeoSteadyStatePwPipingElementCanCreateInstanceWithNode
     EXPECT_NE(p_created_element->pGetProperties(), nullptr);
 }
 
-KRATOS_TEST_CASE_IN_SUITE(GeoSteadyStatePwPipingElementReturnsTheExpectedDoFList, KratosGeoMechanicsFastSuiteWithoutKernel)
+TEST_F(KratosGeoMechanicsFastSuiteWithoutKernel, GeoSteadyStatePwPipingElementReturnsTheExpectedDoFList)
 {
     // Arrange
     const auto p_properties = std::make_shared<Properties>();
@@ -180,14 +184,13 @@ KRATOS_TEST_CASE_IN_SUITE(GeoSteadyStatePwPipingElementReturnsTheExpectedDoFList
     p_element->GetDofList(degrees_of_freedom, dummy_process_info);
 
     // Assert
-    KRATOS_EXPECT_EQ(degrees_of_freedom.size(), 2);
+    EXPECT_EQ(degrees_of_freedom.size(), 2);
     for (auto p_dof : degrees_of_freedom) {
-        KRATOS_EXPECT_EQ(p_dof->GetVariable(), WATER_PRESSURE);
+        EXPECT_EQ(p_dof->GetVariable(), WATER_PRESSURE);
     }
 }
 
-KRATOS_TEST_CASE_IN_SUITE(GeoSteadyStatePwPipingElementReturnsTheExpectedEquationIdVector,
-                          KratosGeoMechanicsFastSuiteWithoutKernel)
+TEST_F(KratosGeoMechanicsFastSuiteWithoutKernel, GeoSteadyStatePwPipingElementReturnsTheExpectedEquationIdVector)
 {
     // Arrange
     const auto p_properties = std::make_shared<Properties>();
@@ -213,8 +216,7 @@ KRATOS_TEST_CASE_IN_SUITE(GeoSteadyStatePwPipingElementReturnsTheExpectedEquatio
     KRATOS_EXPECT_VECTOR_EQ(equation_id_vector, expected_ids)
 }
 
-KRATOS_TEST_CASE_IN_SUITE(GeoSteadyStatePwPipingElementReturnsTheExpectedIntegrationMethod,
-                          KratosGeoMechanicsFastSuiteWithoutKernel)
+TEST_F(KratosGeoMechanicsFastSuiteWithoutKernel, GeoSteadyStatePwPipingElementReturnsTheExpectedIntegrationMethod)
 {
     // Arrange
     const GeoSteadyStatePwPipingElement<2, 2> element;
@@ -224,10 +226,10 @@ KRATOS_TEST_CASE_IN_SUITE(GeoSteadyStatePwPipingElementReturnsTheExpectedIntegra
 
     // Assert
     const auto expected_integration_method = GeometryData::IntegrationMethod::GI_GAUSS_2;
-    KRATOS_EXPECT_EQ(p_integration_method, expected_integration_method);
+    EXPECT_EQ(p_integration_method, expected_integration_method);
 }
 
-KRATOS_TEST_CASE_IN_SUITE(GeoSteadyStatePwPipingElementCheckThrowsOnFaultyInput, KratosGeoMechanicsFastSuiteWithoutKernel)
+TEST_F(KratosGeoMechanicsFastSuiteWithoutKernel, GeoSteadyStatePwPipingElementCheckThrowsOnFaultyInput)
 {
     // Arrange
     const auto p_geometry   = std::make_shared<Line2D2<Node>>(CreateCoincidentNodes());
@@ -288,11 +290,10 @@ KRATOS_TEST_CASE_IN_SUITE(GeoSteadyStatePwPipingElementCheckThrowsOnFaultyInput,
     p_element2->GetGeometry().begin()->Z() = 0;
 
     // No exceptions on correct input
-    KRATOS_EXPECT_EQ(p_element2->Check(dummy_process_info), 0);
+    EXPECT_EQ(p_element2->Check(dummy_process_info), 0);
 }
 
-KRATOS_TEST_CASE_IN_SUITE(GeoSteadyStatePwPipingElementReturnsTheExpectedLeftHandSideAndRightHandSide,
-                          KratosGeoMechanicsFastSuiteWithoutKernel)
+TEST_F(KratosGeoMechanicsFastSuiteWithoutKernel, GeoSteadyStatePwPipingElementReturnsTheExpectedLeftHandSideAndRightHandSide)
 {
     // Arrange
     const auto dummy_process_info = ProcessInfo{};
@@ -329,8 +330,8 @@ KRATOS_TEST_CASE_IN_SUITE(GeoSteadyStatePwPipingElementReturnsTheExpectedLeftHan
     KRATOS_EXPECT_VECTOR_RELATIVE_NEAR(actual_right_hand_side, expected_right_hand_side, Defaults::relative_tolerance)
 }
 
-KRATOS_TEST_CASE_IN_SUITE(GeoSteadyStatePwPipingElement3D2NReturnsTheExpectedLeftHandSideAndRightHandSide,
-                          KratosGeoMechanicsFastSuiteWithoutKernel)
+TEST_F(KratosGeoMechanicsFastSuiteWithoutKernel,
+       GeoSteadyStatePwPipingElement3D2NReturnsTheExpectedLeftHandSideAndRightHandSide)
 {
     // Arrange
     const auto dummy_process_info = ProcessInfo{};
@@ -368,7 +369,7 @@ KRATOS_TEST_CASE_IN_SUITE(GeoSteadyStatePwPipingElement3D2NReturnsTheExpectedLef
     KRATOS_EXPECT_VECTOR_RELATIVE_NEAR(actual_right_hand_side, expected_right_hand_side, Defaults::relative_tolerance)
 }
 
-KRATOS_TEST_CASE_IN_SUITE(GeoSteadyStatePwPipingElementHasValuesAfterInitialize, KratosGeoMechanicsFastSuiteWithoutKernel)
+TEST_F(KratosGeoMechanicsFastSuiteWithoutKernel, GeoSteadyStatePwPipingElementHasValuesAfterInitialize)
 {
     // Arrange
     const auto dummy_process_info = ProcessInfo{};
@@ -383,17 +384,16 @@ KRATOS_TEST_CASE_IN_SUITE(GeoSteadyStatePwPipingElementHasValuesAfterInitialize,
     p_element->Initialize(dummy_process_info);
 
     // Assert
-    KRATOS_EXPECT_EQ(p_element->GetValue(PIPE_ELEMENT_LENGTH), 1.);
-    KRATOS_EXPECT_EQ(p_element->GetValue(PIPE_EROSION), false);
+    EXPECT_EQ(p_element->GetValue(PIPE_ELEMENT_LENGTH), 1.);
+    EXPECT_EQ(p_element->GetValue(PIPE_EROSION), false);
     const double quite_small = 1.E-10;
-    KRATOS_EXPECT_EQ(p_element->GetValue(PIPE_HEIGHT), quite_small);
-    KRATOS_EXPECT_EQ(p_element->GetValue(PREV_PIPE_HEIGHT), quite_small);
-    KRATOS_EXPECT_EQ(p_element->GetValue(DIFF_PIPE_HEIGHT), 0.);
-    KRATOS_EXPECT_EQ(p_element->GetValue(PIPE_ACTIVE), false);
+    EXPECT_EQ(p_element->GetValue(PIPE_HEIGHT), quite_small);
+    EXPECT_EQ(p_element->GetValue(PREV_PIPE_HEIGHT), quite_small);
+    EXPECT_EQ(p_element->GetValue(DIFF_PIPE_HEIGHT), 0.);
+    EXPECT_EQ(p_element->GetValue(PIPE_ACTIVE), false);
 }
 
-KRATOS_TEST_CASE_IN_SUITE(GeoSteadyStatePwPipingElementReturnsEquilibriumHeightForHeadGradient,
-                          KratosGeoMechanicsFastSuiteWithoutKernel)
+TEST_F(KratosGeoMechanicsFastSuiteWithoutKernel, GeoSteadyStatePwPipingElementReturnsEquilibriumHeightForHeadGradient)
 {
     // Arrange
     const auto dummy_process_info = ProcessInfo{};
@@ -419,7 +419,7 @@ KRATOS_TEST_CASE_IN_SUITE(GeoSteadyStatePwPipingElementReturnsEquilibriumHeightF
 
     // Assert
     const double infinite_pipe_height = 1.0e10;
-    KRATOS_EXPECT_DOUBLE_EQ(pipe_height, infinite_pipe_height);
+    EXPECT_DOUBLE_EQ(pipe_height, infinite_pipe_height);
 
     // Create a head gradient of 1.E-3.
     p_element->GetGeometry()[1].FastGetSolutionStepValue(WATER_PRESSURE) = 0.0;
@@ -439,10 +439,10 @@ KRATOS_TEST_CASE_IN_SUITE(GeoSteadyStatePwPipingElementReturnsEquilibriumHeightF
                                                             p_element->GetGeometry(), 0.);
 
     // Assert
-    KRATOS_EXPECT_NEAR(pipe_height, 7.0, 1e-10);
+    EXPECT_NEAR(pipe_height, 7.0, 1e-10);
 }
 
-KRATOS_TEST_CASE_IN_SUITE(GeoSteadyStatePwPipingElementReturnsPipeActive, KratosGeoMechanicsFastSuiteWithoutKernel)
+TEST_F(KratosGeoMechanicsFastSuiteWithoutKernel, GeoSteadyStatePwPipingElementReturnsPipeActive)
 {
     // Arrange
     const auto dummy_process_info = ProcessInfo{};
@@ -458,16 +458,16 @@ KRATOS_TEST_CASE_IN_SUITE(GeoSteadyStatePwPipingElementReturnsPipeActive, Kratos
     std::vector<bool> pipe_active_states;
     p_element->CalculateOnIntegrationPoints(PIPE_ACTIVE, pipe_active_states, dummy_process_info);
     // Assert
-    KRATOS_EXPECT_EQ(pipe_active_states, (std::vector<bool>{false, false}));
+    EXPECT_EQ(pipe_active_states, (std::vector<bool>{false, false}));
 
     p_element->SetValue(PIPE_ACTIVE, true);
     pipe_active_states.clear();
     p_element->CalculateOnIntegrationPoints(PIPE_ACTIVE, pipe_active_states, dummy_process_info);
     // Assert
-    KRATOS_EXPECT_EQ(pipe_active_states, (std::vector<bool>{true, true}));
+    EXPECT_EQ(pipe_active_states, (std::vector<bool>{true, true}));
 }
 
-KRATOS_TEST_CASE_IN_SUITE(GeoSteadyStatePwPipingElementReturnsPipeHeight, KratosGeoMechanicsFastSuiteWithoutKernel)
+TEST_F(KratosGeoMechanicsFastSuiteWithoutKernel, GeoSteadyStatePwPipingElementReturnsPipeHeight)
 {
     // Arrange
     const auto dummy_process_info = ProcessInfo{};
@@ -489,7 +489,7 @@ KRATOS_TEST_CASE_IN_SUITE(GeoSteadyStatePwPipingElementReturnsPipeHeight, Kratos
         pipe_heights, (std::vector<double>{pipe_height, pipe_height}), Defaults::relative_tolerance);
 }
 
-KRATOS_TEST_CASE_IN_SUITE(GeoSteadyStatePwPipingElementReturnsPermeabilityMatrix, KratosGeoMechanicsFastSuiteWithoutKernel)
+TEST_F(KratosGeoMechanicsFastSuiteWithoutKernel, GeoSteadyStatePwPipingElementReturnsPermeabilityMatrix)
 {
     // Arrange
     const auto dummy_process_info = ProcessInfo{};
@@ -507,7 +507,7 @@ KRATOS_TEST_CASE_IN_SUITE(GeoSteadyStatePwPipingElementReturnsPermeabilityMatrix
     p_element->CalculateOnIntegrationPoints(PERMEABILITY_MATRIX, permeability_matrices, dummy_process_info);
 
     // Assert
-    KRATOS_EXPECT_EQ(permeability_matrices.size(), 2);
+    EXPECT_EQ(permeability_matrices.size(), 2);
     const auto expected_permeability_matrix = Matrix{1, 1, std::pow(pipe_height, 3) / 12.0};
     KRATOS_EXPECT_MATRIX_RELATIVE_NEAR(permeability_matrices[0], expected_permeability_matrix,
                                        Defaults::relative_tolerance);
@@ -518,14 +518,14 @@ KRATOS_TEST_CASE_IN_SUITE(GeoSteadyStatePwPipingElementReturnsPermeabilityMatrix
     p_element->CalculateOnIntegrationPoints(LOCAL_PERMEABILITY_MATRIX, permeability_matrices, dummy_process_info);
 
     // Assert
-    KRATOS_EXPECT_EQ(permeability_matrices.size(), 2);
+    EXPECT_EQ(permeability_matrices.size(), 2);
     KRATOS_EXPECT_MATRIX_RELATIVE_NEAR(permeability_matrices[0], expected_permeability_matrix,
                                        Defaults::relative_tolerance);
     KRATOS_EXPECT_MATRIX_RELATIVE_NEAR(permeability_matrices[1], expected_permeability_matrix,
                                        Defaults::relative_tolerance);
 }
 
-KRATOS_TEST_CASE_IN_SUITE(GeoSteadyStatePwPipingElementReturnsFluidFluxVector, KratosGeoMechanicsFastSuiteWithoutKernel)
+TEST_F(KratosGeoMechanicsFastSuiteWithoutKernel, GeoSteadyStatePwPipingElementReturnsFluidFluxVector)
 {
     // Arrange
     const auto dummy_process_info = ProcessInfo{};
@@ -563,7 +563,7 @@ KRATOS_TEST_CASE_IN_SUITE(GeoSteadyStatePwPipingElementReturnsFluidFluxVector, K
     // Assert
     auto expected_fluid_flux_array = array_1d<double, 3>{ZeroVector{3}};
     expected_fluid_flux_array[0]   = 1.E-3 * 0.1 / 12.0;
-    KRATOS_EXPECT_EQ(fluid_fluxes.size(), 2);
+    EXPECT_EQ(fluid_fluxes.size(), 2);
     KRATOS_EXPECT_VECTOR_RELATIVE_NEAR(fluid_fluxes[0], expected_fluid_flux_array, Defaults::relative_tolerance);
     KRATOS_EXPECT_VECTOR_RELATIVE_NEAR(fluid_fluxes[1], expected_fluid_flux_array, Defaults::relative_tolerance);
 
@@ -571,7 +571,7 @@ KRATOS_TEST_CASE_IN_SUITE(GeoSteadyStatePwPipingElementReturnsFluidFluxVector, K
     fluid_fluxes.clear();
     p_element->CalculateOnIntegrationPoints(FLUID_FLUX_VECTOR, fluid_fluxes, dummy_process_info);
     expected_fluid_flux_array[0] = -1.E-3 * 0.1 / 12.0;
-    KRATOS_EXPECT_EQ(fluid_fluxes.size(), 2);
+    EXPECT_EQ(fluid_fluxes.size(), 2);
     KRATOS_EXPECT_VECTOR_RELATIVE_NEAR(fluid_fluxes[0], expected_fluid_flux_array, Defaults::relative_tolerance);
     KRATOS_EXPECT_VECTOR_RELATIVE_NEAR(fluid_fluxes[1], expected_fluid_flux_array, Defaults::relative_tolerance);
 }
