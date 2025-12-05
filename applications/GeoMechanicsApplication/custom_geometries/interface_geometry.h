@@ -122,6 +122,7 @@ public:
         return mMidGeometry->PointsLocalCoordinates(rResult);
     }
 
+    // The way for client code to access the mid-geometry
     const GeometryType::Pointer pGetGeometryPart(const IndexType) const override
     {
         return mMidGeometry;
