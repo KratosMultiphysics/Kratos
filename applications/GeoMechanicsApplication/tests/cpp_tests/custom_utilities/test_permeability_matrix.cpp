@@ -13,7 +13,7 @@
 #include "containers/model.h"
 #include "custom_utilities/transport_equation_utilities.hpp"
 #include "includes/checks.h"
-#include "tests/cpp_tests/geo_mechanics_fast_suite.h"
+#include "tests/cpp_tests/geo_mechanics_fast_suite_without_kernel.h"
 #include <boost/numeric/ublas/assignment.hpp>
 
 using namespace Kratos;
@@ -21,7 +21,7 @@ using namespace Kratos;
 namespace Kratos::Testing
 {
 
-KRATOS_TEST_CASE_IN_SUITE(CalculatePermeabilityMatrix2D3NGivesCorrectResults, KratosGeoMechanicsFastSuiteWithoutKernel)
+TEST_F(KratosGeoMechanicsFastSuiteWithoutKernel, CalculatePermeabilityMatrix2D3NGivesCorrectResults)
 {
     // clang-format off
     Matrix GradNpT(3, 2);
@@ -54,7 +54,7 @@ KRATOS_TEST_CASE_IN_SUITE(CalculatePermeabilityMatrix2D3NGivesCorrectResults, Kr
     KRATOS_CHECK_MATRIX_NEAR(PermeabilityMatrix, PMatrix, 1e-12)
 }
 
-KRATOS_TEST_CASE_IN_SUITE(CalculatePermeabilityMatrix3D4NGivesCorrectResults, KratosGeoMechanicsFastSuiteWithoutKernel)
+TEST_F(KratosGeoMechanicsFastSuiteWithoutKernel, CalculatePermeabilityMatrix3D4NGivesCorrectResults)
 {
     // clang-format off
     Matrix GradNpT(4, 3);
