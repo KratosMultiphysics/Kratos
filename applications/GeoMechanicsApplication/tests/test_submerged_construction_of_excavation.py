@@ -357,7 +357,6 @@ class KratosGeoMechanicsSubmergedConstructionOfExcavation(KratosUnittest.TestCas
                 analysis.GeoMechanicsAnalysis(model, stage_parameters).Run()
 
         if test_helper.want_test_plots():
-            axial_force_collections = []
             shear_force_collections = []
             bending_moment_collections = []
             structural_stages=[stage for stage in self.stages_info.values() if
@@ -366,34 +365,15 @@ class KratosGeoMechanicsSubmergedConstructionOfExcavation(KratosUnittest.TestCas
             titles = self.get_names_of_structural_stages(structural_stages)
             y_coords_per_stage = self.get_y_coords_per_stage(project_path, structural_stages)
 
+            axial_force_plot_label = "Axial force"
+            axial_force_kratos_label = "AXIAL_FORCE"
+            axial_force_collections = self.get_variable_collections_per_stage(axial_force_kratos_label, axial_force_plot_label,
+                                                                              project_path, structural_stages, y_coords_per_stage)
+
             for stage, y_coords in zip(structural_stages, y_coords_per_stage):
                 data_series_collection = []
                 output_data_wall = GiDOutputFileReader().read_output_from(os.path.join(project_path, f"{stage['base_name']}.post.res"))
-                axial_forces = GiDOutputFileReader.nodal_values_at_time("AXIAL_FORCE", stage['end_time'], output_data_wall,
-                                                                        node_ids=get_wall_node_ids())
-                axial_forces = [axial_force / 1000 for axial_force in axial_forces]  # Convert to kN
-
-                data = []
-                for force, y in zip(axial_forces, y_coords):
-                    data.append((force, y))
-
-                data_series_collection.append(plot_utils.DataSeries(
-                    data,
-                    f"Axial force [Kratos]",
-                    line_style="-",
-                    marker=".",
-                ))
                 path_to_comparison_file = Path(project_path) / "comparison_data" / f"{stage['base_name']}_comparison.csv"
-                comparison_axial_force = test_helper.get_data_points_from_file(
-                    path_to_comparison_file,
-                    extract_y_and_axial_force_from_line
-                )
-                data_series_collection.append(
-                    plot_utils.DataSeries(comparison_axial_force, "Axial force [Comparison]", marker="1")
-                )
-                axial_force_collections.append(data_series_collection)
-
-                data_series_collection = []
                 shear_forces = GiDOutputFileReader.nodal_values_at_time("SHEAR_FORCE", stage['end_time'], output_data_wall,
                                                                         node_ids=get_wall_node_ids())
                 shear_forces = [shear_force / 1000 for shear_force in shear_forces]  # Convert to kN
@@ -496,6 +476,40 @@ class KratosGeoMechanicsSubmergedConstructionOfExcavation(KratosUnittest.TestCas
                 self.calculate_weight_of_water_after_third_excavation())
         self.check_vertical_reaction(project_path, self.stages_info["third_excavation"],
                                      expected_total_vertical_reaction, )
+
+    def get_variable_collections_per_stage(self, axial_force_kratos_label, axial_force_plot_label,
+                                           project_path,
+                                           structural_stages, y_coords_per_stage):
+        axial_force_collections = []
+        for stage, y_coords in zip(structural_stages, y_coords_per_stage):
+            data_series_collection = []
+            output_data_wall = GiDOutputFileReader().read_output_from(
+                os.path.join(project_path, f"{stage['base_name']}.post.res"))
+            axial_forces = GiDOutputFileReader.nodal_values_at_time(axial_force_kratos_label, stage['end_time'],
+                                                                    output_data_wall,
+                                                                    node_ids=get_wall_node_ids())
+            axial_forces = [axial_force / 1000 for axial_force in axial_forces]  # Convert to kN
+
+            data = []
+            for force, y in zip(axial_forces, y_coords):
+                data.append((force, y))
+
+            data_series_collection.append(plot_utils.DataSeries(
+                data,
+                f"{axial_force_plot_label} [Kratos]",
+                line_style="-",
+                marker=".",
+            ))
+            path_to_comparison_file = Path(project_path) / "comparison_data" / f"{stage['base_name']}_comparison.csv"
+            comparison_axial_force = test_helper.get_data_points_from_file(
+                path_to_comparison_file,
+                extract_y_and_axial_force_from_line
+            )
+            data_series_collection.append(
+                plot_utils.DataSeries(comparison_axial_force, f"{axial_force_plot_label} [Comparison]", marker="1")
+            )
+            axial_force_collections.append(data_series_collection)
+        return axial_force_collections
 
     def get_y_coords_per_stage(self, project_path, structural_stages):
         y_coords_per_stage = []
