@@ -360,7 +360,7 @@ class KratosGeoMechanicsSubmergedConstructionOfExcavation(KratosUnittest.TestCas
             axial_force_collections = []
             shear_force_collections = []
             bending_moment_collections = []
-            titles = []
+            titles = self.get_names_of_structural_stages()
             for stage in self.stages_info.values():
                 if stage['base_name'] == "1_Initial_stage" or stage['base_name'] == "2_Null_step":
                     continue
@@ -444,7 +444,6 @@ class KratosGeoMechanicsSubmergedConstructionOfExcavation(KratosUnittest.TestCas
                     plot_utils.DataSeries(comparison_bending_moment, "Bending moment [Comparison]", marker="1")
                 )
                 bending_moment_collections.append(data_series_collection)
-                titles.append(stage['base_name'])
 
             plot_utils.make_sub_plots(
                 axial_force_collections,
@@ -502,6 +501,13 @@ class KratosGeoMechanicsSubmergedConstructionOfExcavation(KratosUnittest.TestCas
         self.check_vertical_reaction(project_path, self.stages_info["third_excavation"],
                                      expected_total_vertical_reaction, )
 
+    def get_names_of_structural_stages(self):
+        result = []
+        for stage in self.stages_info.values():
+            if stage['base_name'] == "1_Initial_stage" or stage['base_name'] == "2_Null_step":
+                continue
+            result.append(stage['base_name'])
+        return result
 
     def test_simulation_with_linear_elastic_materials(self):
         self.run_simulation_and_checks("linear_elastic")
