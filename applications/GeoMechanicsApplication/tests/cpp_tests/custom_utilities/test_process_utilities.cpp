@@ -17,13 +17,13 @@
 #include "custom_processes/apply_final_stresses_of_previous_stage_to_initial_state.h"
 #include "custom_processes/apply_k0_procedure_process.h"
 #include "custom_utilities/process_utilities.h"
-#include "testing/testing.h"
-#include "tests/cpp_tests/geo_mechanics_fast_suite.h"
+#include "includes/checks.h"
+#include "tests/cpp_tests/geo_mechanics_fast_suite_without_kernel.h"
 
 namespace Kratos::Testing
 {
 
-KRATOS_TEST_CASE_IN_SUITE(GetModelPartsFromSettings_SingleModelPart, KratosGeoMechanicsFastSuiteWithoutKernel)
+TEST_F(KratosGeoMechanicsFastSuiteWithoutKernel, GetModelPartsFromSettings_SingleModelPart)
 {
     Model model;
     model.CreateModelPart("Main");
@@ -35,11 +35,11 @@ KRATOS_TEST_CASE_IN_SUITE(GetModelPartsFromSettings_SingleModelPart, KratosGeoMe
 
     const auto model_parts = ProcessUtilities::GetModelPartsFromSettings(model, settings, "TestProcess");
 
-    KRATOS_EXPECT_EQ(model_parts.size(), 1);
-    KRATOS_EXPECT_EQ(model_parts[0].get().Name(), "Main");
+    EXPECT_EQ(model_parts.size(), 1);
+    EXPECT_EQ(model_parts[0].get().Name(), "Main");
 }
 
-KRATOS_TEST_CASE_IN_SUITE(GetModelPartsFromSettings_ListOfModelParts, KratosGeoMechanicsFastSuiteWithoutKernel)
+TEST_F(KratosGeoMechanicsFastSuiteWithoutKernel, GetModelPartsFromSettings_ListOfModelParts)
 {
     Model model;
     model.CreateModelPart("Part1");
@@ -52,9 +52,9 @@ KRATOS_TEST_CASE_IN_SUITE(GetModelPartsFromSettings_ListOfModelParts, KratosGeoM
 
     const auto model_parts = ProcessUtilities::GetModelPartsFromSettings(model, settings, "TestProcess");
 
-    KRATOS_EXPECT_EQ(model_parts.size(), 2);
-    KRATOS_EXPECT_EQ(model_parts[0].get().Name(), "Part1");
-    KRATOS_EXPECT_EQ(model_parts[1].get().Name(), "Part2");
+    EXPECT_EQ(model_parts.size(), 2);
+    EXPECT_EQ(model_parts[0].get().Name(), "Part1");
+    EXPECT_EQ(model_parts[1].get().Name(), "Part2");
 }
 
 struct NamedFactory {
