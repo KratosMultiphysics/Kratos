@@ -10,14 +10,15 @@
 //  Main authors:    Richard Faasse
 //
 
+#include "containers/model.h"
 #include "custom_elements/geo_steady_state_Pw_piping_element.h"
-#include "tests/cpp_tests/geo_mechanics_fast_suite.h"
+#include "geometries/line_2d_2.h"
+#include "tests/cpp_tests/geo_mechanics_fast_suite_without_kernel.h"
 
 namespace Kratos::Testing
 {
 
-KRATOS_TEST_CASE_IN_SUITE(GeoSteadyStatePipingElement_DoesNotLosePipingStateAfterInitializingTwice,
-                          KratosGeoMechanicsFastSuiteWithoutKernel)
+TEST_F(KratosGeoMechanicsFastSuiteWithoutKernel, GeoSteadyStatePipingElement_DoesNotLosePipingStateAfterInitializingTwice)
 {
     Model model;
     auto& r_model_part = model.CreateModelPart("Dummy");
@@ -27,12 +28,12 @@ KRATOS_TEST_CASE_IN_SUITE(GeoSteadyStatePipingElement_DoesNotLosePipingStateAfte
         1, Kratos::make_shared<Line2D2<Node>>(p_node_1, p_node_2));
 
     p_element->Initialize(r_model_part.GetProcessInfo());
-    KRATOS_EXPECT_FALSE(p_element->GetValue(PIPE_ACTIVE))
+    EXPECT_FALSE(p_element->GetValue(PIPE_ACTIVE));
 
     p_element->SetValue(PIPE_ACTIVE, true);
     p_element->Initialize(r_model_part.GetProcessInfo());
 
-    KRATOS_EXPECT_TRUE(p_element->GetValue(PIPE_ACTIVE))
+    EXPECT_TRUE(p_element->GetValue(PIPE_ACTIVE));
 }
 
 } // namespace Kratos::Testing
