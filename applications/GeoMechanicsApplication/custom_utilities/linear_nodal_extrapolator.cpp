@@ -65,7 +65,7 @@ Matrix LinearNodalExtrapolator::CalculateExtrapolationMatrixForCornerNodes(const
 
     double metric_determinant;
     Matrix quasi_mass_mat_inverse;
-    MathUtils<double>::InvertMatrix(quasi_mass_mat, quasi_mass_mat_inverse, metric_determinant, -1.);
+    MathUtils<>::InvertMatrix(quasi_mass_mat, quasi_mass_mat_inverse, metric_determinant, -1.);
 
     return prod(quasi_mass_mat_inverse, node_coefficients);
 }
