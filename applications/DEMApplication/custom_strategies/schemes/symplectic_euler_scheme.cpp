@@ -31,6 +31,7 @@ namespace Kratos {
             const bool Fix_vel[3]) {
 
         double mass_inv = 1.0 / mass;
+        /*
         for (int k = 0; k < 3; k++) {
             if (Fix_vel[k] == false) {
                 vel[k] += delta_t * force_reduction_factor * force[k] * mass_inv;
@@ -42,6 +43,36 @@ namespace Kratos {
                 displ[k] += delta_displ[k];
                 coor[k] = initial_coor[k] + displ[k];
             }
+        } // dimensions*/
+
+        for (int k = 0; k < 3; k++) {
+            if (Fix_vel[k] == false) {
+                vel[k] += delta_t * force_reduction_factor * force[k] * mass_inv;
+            } 
+        } // dimensions
+
+        bool v_cap = true;
+        double v_max = 0.1;
+        if (v_cap) {
+            double v_norm2 = 0.0;
+            for (int k = 0; k < 3; k++) {
+                v_norm2 += vel[k] * vel[k];
+            }
+            if (v_norm2 > 0.0) {
+                double v_norm = std::sqrt(v_norm2);
+                if (v_norm > v_max) {
+                    double scale = v_max / v_norm;
+                    for (int k = 0; k < 3; k++) {
+                        vel[k] *= scale;
+                    }
+                }
+            }
+        }
+
+        for (int k = 0; k < 3; k++) {
+            delta_displ[k] = delta_t * vel[k];
+            displ[k] += delta_displ[k];
+            coor[k] = initial_coor[k] + displ[k];
         } // dimensions
     }
 
