@@ -52,7 +52,7 @@ namespace Kratos {
         } // dimensions
 
         bool v_cap = true;
-        double v_max = 0.1;
+        double v_max = 0.0585;
         if (v_cap) {
             double v_norm2 = 0.0;
             for (int k = 0; k < 3; k++) {
