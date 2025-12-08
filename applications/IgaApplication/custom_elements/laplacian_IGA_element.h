@@ -117,6 +117,16 @@ public:
 
     /**
     * @brief This is called during the assembling process in order
+    *        to calculate the mass matrix
+    * @param rMassMatrix the mass matrix
+    * @param rCurrentProcessInfo the current process info
+    */
+    void CalculateMassMatrix(
+        MatrixType& rMassMatrix, 
+        const ProcessInfo& rCurrentProcessInfo) override;
+
+    /**
+    * @brief This is called during the assembling process in order
     *        to calculate the condition right hand side matrix
     * @param rLeftHandSideMatrix the condition right hand side matrix
     * @param rCurrentProcessInfo the current process info

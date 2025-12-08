@@ -127,6 +127,43 @@ void LaplacianIGAElement::CalculateLeftHandSide(MatrixType& rLeftHandSideMatrix,
 
 }
 
+// From modification of lefthandside
+void LaplacianIGAElement::CalculateMassMatrix(MatrixType& rMassMatrix, const ProcessInfo& rCurrentProcessInfo)
+{   
+    KRATOS_TRY
+    ConvectionDiffusionSettings::Pointer p_settings = rCurrentProcessInfo[CONVECTION_DIFFUSION_SETTINGS];
+    auto& r_settings = *p_settings;
+
+    const Variable<double>& r_diffusivity_var = r_settings.GetDiffusionVariable(); // Conductivity
+
+    // reading integration points and local gradients
+    const auto& r_geometry = GetGeometry();
+    const GeometryType::IntegrationPointsArrayType& r_integration_points = r_geometry.IntegrationPoints(this->GetIntegrationMethod());
+    const GeometryType::ShapeFunctionsGradientsType& r_DN_De = r_geometry.ShapeFunctionsLocalGradients(this->GetIntegrationMethod());
+    const Matrix& N_gausspoint = r_geometry.ShapeFunctionsValues(this->GetIntegrationMethod());
+
+    const unsigned int number_of_points = r_geometry.size();
+    const unsigned int dim = r_DN_De[0].size2();
+    
+    //resizing as needed the LHS
+    if(rMassMatrix.size1() != number_of_points)
+        rMassMatrix.resize(number_of_points,number_of_points,false);
+    noalias(rMassMatrix) = ZeroMatrix(number_of_points,number_of_points); //resetting M
+
+    // const double conductivity = this->GetProperties().GetValue(r_diffusivity_var);
+    const double conductivity = 1.0;
+
+    for(IndexType i_point = 0; i_point < r_integration_points.size(); ++i_point)
+    {
+        auto N = row(N_gausspoint,i_point);
+        const double int_to_reference_weight = r_integration_points[i_point].Weight(); // * std::abs(DetJ0);
+
+        noalias(rMassMatrix) += int_to_reference_weight * conductivity * outer_prod(N, N);
+    }
+
+    KRATOS_CATCH("")
+
+}
 
 // From classical Laplacian
 void LaplacianIGAElement::CalculateRightHandSide(VectorType& rRightHandSideVector, const ProcessInfo& rCurrentProcessInfo)

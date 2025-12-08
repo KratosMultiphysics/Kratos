@@ -87,3 +87,4 @@ remote_*.md
 
 # External downloaded libs (TPL downloaded libs, etc...)
 external_libraries/tetgen/*
+scripts/standard_configure.bat

@@ -39,6 +39,8 @@
 #endif
 
 #include "custom_solvers/spectra_sym_g_eigs_shift_solver.h"
+#include "custom_solvers/spectra_g_eigs_shift_solver.h"
+
 
 #include "factories/standard_linear_solver_factory.h"
 
@@ -131,6 +133,21 @@ void register_feast_eigensystem_solver(pybind11::module& m, const std::string& n
     using Base = LinearSolver<SparseSpaceType, DenseSpaceType>;
 
     py::class_<EigenSystemSolverType, typename EigenSystemSolverType::Pointer, Base >
+        (m, name.c_str())
+        .def(py::init<Parameters>())
+    ;
+}
+
+void register_spectra_g_eigs_shift_solver(pybind11::module& m, const std::string& name)
+{
+    namespace py = pybind11;
+
+    using Base = LinearSolver<UblasSpace<double, CompressedMatrix, Vector>,
+        UblasSpace<double, Matrix, Vector>>;
+
+    using SpectraGEigsRealSolverType = SpectraGEigsShiftSolver<>;
+
+    py::class_<SpectraGEigsRealSolverType, typename SpectraGEigsRealSolverType::Pointer, Base >
         (m, name.c_str())
         .def(py::init<Parameters>())
     ;
@@ -259,7 +276,8 @@ void AddCustomSolversToPython(pybind11::module& m)
 #endif
 
     // --- spectra eigensystem solver
-    register_spectra_sym_g_eigs_shift_solver(m, "SpectraSymGEigsShiftSolver");
+    register_spectra_sym_g_eigs_shift_solver(m, "SpectraSymGEigsShiftSolver") ;
+    register_spectra_g_eigs_shift_solver(m, "SpectraGEigsShiftSolver");
 
     typedef UblasSpace<double, CompressedMatrix, boost::numeric::ublas::vector<double>> SparseSpaceType;
     typedef UblasSpace<double, Matrix, Vector> LocalSpaceType;
