@@ -56,15 +56,15 @@ def _CheckIfTypeIsDeprecated(config):
     solver_type = config["solver_type"].GetString()
 
     old_new_name_map = {
-        "CGSolver" : "cg",
-        "BICGSTABSolver" : "bicgstab",
-        "GMRESSolver" : "gmres",
-        "AztecSolver" : "aztec",
-        "MLSolver" : "multi_level",
-        "MultiLevelSolver" : "multi_level",
-        "AmgclMPISolver" : "amgcl",
+        "CGSolver"                      : "cg",
+        "BICGSTABSolver"                : "bicgstab",
+        "GMRESSolver"                   : "gmres",
+        "AztecSolver"                   : "aztec",
+        "MLSolver"                      : "multi_level",
+        "MultiLevelSolver"              : "multi_level",
+        "AmgclMPISolver"                : "amgcl",
         "AmgclMPISchurComplementSolver" : "amgcl_schur_complement",
-        "AmesosSolver" : "amesos"
+        "AmesosSolver"                  : "amesos"
     }
 
     if solver_type in old_new_name_map:
@@ -109,7 +109,6 @@ def _CheckIfSolverIsCompiled(solver_type):
         return True
 
     # --- 4. Check Amesos (Direct) Solvers ---
-    # This set includes generic names and specific implementation names
     amesos_solvers = {
         "amesos", "amesos2", "klu", "klu2", 
         "super_lu_dist", "super_lu_dist2", 
@@ -168,7 +167,7 @@ def _CheckIfSolverIsCompiled(solver_type):
 
     return True
 
-def ConstructSolver(configuration):
+def ConstructSolver(configuration = KM.Parameters("""{}""")):
     """
     @brief Constructs a Trilinos linear solver instance.
 
@@ -191,6 +190,15 @@ def ConstructSolver(configuration):
     """
     if not isinstance(configuration, KM.Parameters):
         raise Exception("input is expected to be provided as a Kratos Parameters object")
+
+    # Define solver priority list
+    if not configuration.Has("solver_type"):
+        linear_solvers_by_speed = KratosTrilinos.TrilinosSparseSpace.FastestDirectSolverList()
+        for solver_name in linear_solvers_by_speed:
+            if _CheckIfSolverIsCompiled(solver_name):
+                configuration.AddEmptyValue("solver_type")
+                configuration["solver_type"].SetString(solver_name)
+                break
 
     _CheckIfTypeIsDeprecated(configuration) # for backwards-compatibility
     if not _CheckIfSolverIsCompiled(configuration["solver_type"].GetString()):
