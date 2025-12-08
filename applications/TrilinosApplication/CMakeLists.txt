@@ -68,7 +68,11 @@ endif(${KRATOS_BUILD_TESTING} MATCHES ON)
 # ###############################################################
 ## TrilinosApplication core library (C++ parts)
 add_library( KratosTrilinosCore SHARED ${KRATOS_TRILINOS_APPLICATION_CORE_SOURCES} )
-target_link_libraries(KratosTrilinosCore PUBLIC KratosCore KratosMPICore ${TRILINOS_LIBRARIES} -lgfortran)
+if (${TRILINOS_REQUIRES_LINKING_FORTRAN})
+    target_link_libraries(KratosTrilinosCore PUBLIC KratosCore KratosMPICore ${TRILINOS_LIBRARIES} -lgfortran)
+else()
+    target_link_libraries(KratosTrilinosCore PUBLIC KratosCore KratosMPICore ${TRILINOS_LIBRARIES})
+endif()
 set_target_properties( KratosTrilinosCore PROPERTIES COMPILE_DEFINITIONS "TRILINOS_APPLICATION=EXPORT,API")
 
 target_include_directories(KratosTrilinosCore SYSTEM PUBLIC ${TRILINOS_INCLUDE_DIR})
