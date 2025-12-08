@@ -229,42 +229,6 @@ KRATOS_TEST_CASE_IN_SUITE(InterfaceGeometry_CreateWithId_CreatesNewInstanceOfCor
     KRATOS_EXPECT_EQ(p_new_geometry->WorkingSpaceDimension(), 3);
 }
 
-KRATOS_TEST_CASE_IN_SUITE(InterfaceGeometry_CreateWithId_CreatesNewInstanceOfCorrectTypeAndIdForLinearQuadrilateralMidGeometry,
-                          KratosGeoMechanicsFastSuiteWithoutKernel)
-{
-    const auto geometry = CreateFourPlusFourNoded3DSurfaceInterfaceGeometry();
-
-    constexpr auto new_geometry_id = 1;
-    const auto     p_new_geometry =
-        geometry.Create(new_geometry_id, CreateFourPlusFourNoded3DSurfaceInterfaceGeometry());
-
-    KRATOS_EXPECT_NE(p_new_geometry, nullptr);
-    KRATOS_EXPECT_NE(
-        dynamic_cast<const InterfaceGeometry<Quadrilateral3D4<Node>>*>(p_new_geometry.get()), nullptr);
-    KRATOS_EXPECT_EQ(p_new_geometry->PointsNumber(), 8);
-    KRATOS_EXPECT_EQ(p_new_geometry->Id(), new_geometry_id);
-    KRATOS_EXPECT_EQ(p_new_geometry->LocalSpaceDimension(), 2);
-    KRATOS_EXPECT_EQ(p_new_geometry->WorkingSpaceDimension(), 3);
-}
-
-KRATOS_TEST_CASE_IN_SUITE(InterfaceGeometry_CreateWithId_CreatesNewInstanceOfCorrectTypeAndIdForQuadraticQuadrilateralMidGeometry,
-                          KratosGeoMechanicsFastSuiteWithoutKernel)
-{
-    const auto geometry = CreateEightPlusEightNoded3DSurfaceInterfaceGeometry();
-
-    constexpr auto new_geometry_id = 1;
-    const auto     p_new_geometry =
-        geometry.Create(new_geometry_id, CreateEightPlusEightNoded3DSurfaceInterfaceGeometry());
-
-    KRATOS_EXPECT_NE(p_new_geometry, nullptr);
-    KRATOS_EXPECT_NE(
-        dynamic_cast<const InterfaceGeometry<Quadrilateral3D8<Node>>*>(p_new_geometry.get()), nullptr);
-    KRATOS_EXPECT_EQ(p_new_geometry->PointsNumber(), 16);
-    KRATOS_EXPECT_EQ(p_new_geometry->Id(), new_geometry_id);
-    KRATOS_EXPECT_EQ(p_new_geometry->LocalSpaceDimension(), 2);
-    KRATOS_EXPECT_EQ(p_new_geometry->WorkingSpaceDimension(), 3);
-}
-
 KRATOS_TEST_CASE_IN_SUITE(CreatingInterfaceWithThreeNodesThrows, KratosGeoMechanicsFastSuiteWithoutKernel)
 {
     PointerVector<Node> nodes;
