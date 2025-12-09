@@ -5,6 +5,7 @@ import KratosMultiphysics.GeoMechanicsApplication.context_managers as context_ma
 from KratosMultiphysics.GeoMechanicsApplication.gid_output_file_reader import (
     GiDOutputFileReader,
 )
+from KratosMultiphysics.GeoMechanicsApplication.unit_conversions import unit_to_k_unit
 import test_helper
 
 import os
@@ -270,7 +271,7 @@ def _extract_x_and_y_from_line(line, index_of_x=0, index_of_y=1, x_transform=Non
     return x_, y_
 
 
-def extract_moment_and_y_from_line(line):
+def extract_bending_moment_and_y_from_line(line):
     return _extract_x_and_y_from_line(line, index_of_x=4, index_of_y=1)
 
 
@@ -578,7 +579,7 @@ class KratosGeoMechanicsSubmergedConstructionOfExcavation(KratosUnittest.TestCas
             bending_moment_plot_label,
             project_path,
             structural_stages,
-            extract_moment_and_y_from_line,
+            extract_bending_moment_and_y_from_line,
         )
         plot_utils.make_sub_plots(
             bending_moment_collections,
@@ -616,8 +617,8 @@ class KratosGeoMechanicsSubmergedConstructionOfExcavation(KratosUnittest.TestCas
                 node_ids=node_ids,
             )
             variable_kratos_data = [
-                value / 1000 for value in variable_kratos_data
-            ]  # Convert to k<Unit>
+                unit_to_k_unit(value) for value in variable_kratos_data
+            ]
 
             data_series_collection.append(
                 plot_utils.DataSeries(
