@@ -112,8 +112,8 @@
         "Parameters": {
           "model_part_name"        : "PorousDomain.Bottom1",
           "variable_name"          : "DISPLACEMENT",
-          "active"                 : [true, true, true],
-          "is_fixed"               : [true, true, true],
+          "active"                 : [true, true, false],
+          "is_fixed"               : [true, true, false],
           "value"                  : [0.0, 0.0, 0.0],
           "table"                  : [0, 0, 0]
         }
@@ -125,8 +125,8 @@
         "Parameters": {
           "model_part_name_list"   : ["PorousDomain.LeftSide","PorousDomain.RightSide"],
           "variable_name"          : "DISPLACEMENT",
-          "active"                 : [true, false, true],
-          "is_fixed"               : [true, false, true],
+          "active"                 : [true, false, false],
+          "is_fixed"               : [true, false, false],
           "value"                  : [0.0, 0.0, 0.0],
           "table"                  : [0, 0, 0]
         }
