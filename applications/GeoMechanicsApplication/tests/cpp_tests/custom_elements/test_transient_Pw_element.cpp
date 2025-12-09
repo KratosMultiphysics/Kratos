@@ -11,10 +11,16 @@
 //                   Gennady Markelov
 //
 
+#include "containers/model.h"
 #include "custom_elements/plane_strain_stress_state.h"
 #include "custom_elements/three_dimensional_stress_state.h"
 #include "custom_elements/transient_Pw_element.hpp"
-#include "tests/cpp_tests/geo_mechanics_fast_suite.h"
+#include "geometries/tetrahedra_3d_4.h"
+#include "geometries/triangle_2d_3.h"
+#include "includes/cfd_variables.h"
+#include "includes/expect.h"
+#include "includes/model_part.h"
+#include "tests/cpp_tests/geo_mechanics_fast_suite_without_kernel.h"
 #include "tests/cpp_tests/test_utilities.h"
 
 #include <boost/numeric/ublas/assignment.hpp>
@@ -138,7 +144,7 @@ namespace Kratos::Testing
 
 using namespace Kratos;
 
-KRATOS_TEST_CASE_IN_SUITE(TransientPwElement_CreateInstanceWithGeometryInput, KratosGeoMechanicsFastSuiteWithoutKernel)
+TEST_F(KratosGeoMechanicsFastSuiteWithoutKernel, TransientPwElement_CreateInstanceWithGeometryInput)
 {
     // Arrange
     const auto p_geometry   = std::make_shared<Triangle2D3<Node>>(CreateThreeNodes());
@@ -156,7 +162,7 @@ KRATOS_TEST_CASE_IN_SUITE(TransientPwElement_CreateInstanceWithGeometryInput, Kr
     EXPECT_NE(p_created_element->pGetProperties(), nullptr);
 }
 
-KRATOS_TEST_CASE_IN_SUITE(TransientPwElement_CreateInstanceWithNodeInput, KratosGeoMechanicsFastSuiteWithoutKernel)
+TEST_F(KratosGeoMechanicsFastSuiteWithoutKernel, TransientPwElement_CreateInstanceWithNodeInput)
 {
     // Arrange
     const auto p_properties = std::make_shared<Properties>();
@@ -173,7 +179,7 @@ KRATOS_TEST_CASE_IN_SUITE(TransientPwElement_CreateInstanceWithNodeInput, Kratos
     EXPECT_NE(p_created_element->pGetProperties(), nullptr);
 }
 
-KRATOS_TEST_CASE_IN_SUITE(TransientPwElement_DoFList, KratosGeoMechanicsFastSuiteWithoutKernel)
+TEST_F(KratosGeoMechanicsFastSuiteWithoutKernel, TransientPwElement_DoFList)
 {
     // Arrange
     Model      model;
@@ -187,12 +193,12 @@ KRATOS_TEST_CASE_IN_SUITE(TransientPwElement_DoFList, KratosGeoMechanicsFastSuit
     p_element->GetDofList(degrees_of_freedom, dummy_process_info);
 
     // Assert
-    KRATOS_EXPECT_EQ(degrees_of_freedom.size(), 3);
+    EXPECT_EQ(degrees_of_freedom.size(), 3);
     KRATOS_EXPECT_TRUE(std::all_of(degrees_of_freedom.begin(), degrees_of_freedom.end(),
                                    [](auto p_dof) { return p_dof->GetVariable() == WATER_PRESSURE; }))
 }
 
-KRATOS_TEST_CASE_IN_SUITE(TransientPwElement_EquationIdVector, KratosGeoMechanicsFastSuiteWithoutKernel)
+TEST_F(KratosGeoMechanicsFastSuiteWithoutKernel, TransientPwElement_EquationIdVector)
 {
     // Arrange
     Model model;
@@ -215,7 +221,7 @@ KRATOS_TEST_CASE_IN_SUITE(TransientPwElement_EquationIdVector, KratosGeoMechanic
     KRATOS_EXPECT_VECTOR_EQ(equation_id_vector, expected_ids)
 }
 
-KRATOS_TEST_CASE_IN_SUITE(TransientPwElement_IntegrationMethod, KratosGeoMechanicsFastSuiteWithoutKernel)
+TEST_F(KratosGeoMechanicsFastSuiteWithoutKernel, TransientPwElement_IntegrationMethod)
 {
     // Arrange
     const TransientPwElement<2, 3> element(
@@ -227,10 +233,10 @@ KRATOS_TEST_CASE_IN_SUITE(TransientPwElement_IntegrationMethod, KratosGeoMechani
 
     // Assert
     constexpr auto expected_integration_method = GeometryData::IntegrationMethod::GI_GAUSS_2;
-    KRATOS_EXPECT_EQ(p_integration_method, expected_integration_method);
+    EXPECT_EQ(p_integration_method, expected_integration_method);
 }
 
-KRATOS_TEST_CASE_IN_SUITE(TransientPwElement_CheckThrowsOnFaultyInput, KratosGeoMechanicsFastSuiteWithoutKernel)
+TEST_F(KratosGeoMechanicsFastSuiteWithoutKernel, TransientPwElement_CheckThrowsOnFaultyInput)
 {
     // Arrange
     const auto                     p_properties = std::make_shared<Properties>();
@@ -380,7 +386,7 @@ KRATOS_TEST_CASE_IN_SUITE(TransientPwElement_CheckThrowsOnFaultyInput, KratosGeo
     // No exceptions on correct input for 2D element when retention law vector is initialized
     p_element->Initialize(dummy_process_info);
 
-    KRATOS_EXPECT_EQ(p_element->Check(dummy_process_info), 0);
+    EXPECT_EQ(p_element->Check(dummy_process_info), 0);
 
     auto p_3D_element = CreateTransientPwElementWithPWDofs<3, 4>(model_part, p_properties);
     KRATOS_EXPECT_EXCEPTION_IS_THROWN(
@@ -421,10 +427,10 @@ KRATOS_TEST_CASE_IN_SUITE(TransientPwElement_CheckThrowsOnFaultyInput, KratosGeo
     p_3D_element->Initialize(dummy_process_info);
 
     // No exceptions on correct input for 3D element
-    KRATOS_EXPECT_EQ(p_3D_element->Check(dummy_process_info), 0);
+    EXPECT_EQ(p_3D_element->Check(dummy_process_info), 0);
 }
 
-KRATOS_TEST_CASE_IN_SUITE(TransientPwElement_Initialize, KratosGeoMechanicsFastSuiteWithoutKernel)
+TEST_F(KratosGeoMechanicsFastSuiteWithoutKernel, TransientPwElement_Initialize)
 {
     // Arrange
     TransientPwElement<2, 3> element(
@@ -439,19 +445,19 @@ KRATOS_TEST_CASE_IN_SUITE(TransientPwElement_Initialize, KratosGeoMechanicsFastS
     const auto number_of_integration_points =
         element.GetGeometry().IntegrationPointsNumber(element.GetIntegrationMethod());
     const auto& r_constitutive_law_vector = element.mConstitutiveLawVector;
-    KRATOS_EXPECT_EQ(r_constitutive_law_vector.size(), number_of_integration_points);
+    EXPECT_EQ(r_constitutive_law_vector.size(), number_of_integration_points);
     for (const auto& constitutive_law : r_constitutive_law_vector) {
-        KRATOS_EXPECT_EQ(constitutive_law, nullptr);
+        EXPECT_EQ(constitutive_law, nullptr);
     }
 
     const auto& r_retention_law_vector = element.mRetentionLawVector;
-    KRATOS_EXPECT_EQ(r_retention_law_vector.size(), number_of_integration_points);
+    EXPECT_EQ(r_retention_law_vector.size(), number_of_integration_points);
     KRATOS_EXPECT_TRUE(std::none_of(r_retention_law_vector.begin(), r_retention_law_vector.end(), [](auto p_retention_law) {
         return dynamic_cast<SaturatedLaw*>(p_retention_law.get()) == nullptr;
     }))
 }
 
-KRATOS_TEST_CASE_IN_SUITE(TransientPwElement_InitializeSolution, KratosGeoMechanicsFastSuiteWithoutKernel)
+TEST_F(KratosGeoMechanicsFastSuiteWithoutKernel, TransientPwElement_InitializeSolution)
 {
     // Arrange
     Model model;
@@ -470,7 +476,7 @@ KRATOS_TEST_CASE_IN_SUITE(TransientPwElement_InitializeSolution, KratosGeoMechan
         [](auto& r_node) { return r_node.FastGetSolutionStepValue(HYDRAULIC_DISCHARGE) == 0.0; }))
 }
 
-KRATOS_TEST_CASE_IN_SUITE(TransientPwElement_FinalizeSolutionStep, KratosGeoMechanicsFastSuiteWithoutKernel)
+TEST_F(KratosGeoMechanicsFastSuiteWithoutKernel, TransientPwElement_FinalizeSolutionStep)
 {
     // Arrange
     Model model;
@@ -486,12 +492,12 @@ KRATOS_TEST_CASE_IN_SUITE(TransientPwElement_FinalizeSolutionStep, KratosGeoMech
     p_element->FinalizeSolutionStep(dummy_process_info);
 
     // Assert
-    KRATOS_EXPECT_EQ(p_element->GetGeometry()[0].FastGetSolutionStepValue(HYDRAULIC_DISCHARGE), 500000);
-    KRATOS_EXPECT_EQ(p_element->GetGeometry()[1].FastGetSolutionStepValue(HYDRAULIC_DISCHARGE), 0);
-    KRATOS_EXPECT_EQ(p_element->GetGeometry()[2].FastGetSolutionStepValue(HYDRAULIC_DISCHARGE), -500000);
+    EXPECT_EQ(p_element->GetGeometry()[0].FastGetSolutionStepValue(HYDRAULIC_DISCHARGE), 500000);
+    EXPECT_EQ(p_element->GetGeometry()[1].FastGetSolutionStepValue(HYDRAULIC_DISCHARGE), 0);
+    EXPECT_EQ(p_element->GetGeometry()[2].FastGetSolutionStepValue(HYDRAULIC_DISCHARGE), -500000);
 }
 
-KRATOS_TEST_CASE_IN_SUITE(TransientPwElement_CalculateOnIntegrationPoints_Vector, KratosGeoMechanicsFastSuiteWithoutKernel)
+TEST_F(KratosGeoMechanicsFastSuiteWithoutKernel, TransientPwElement_CalculateOnIntegrationPoints_Vector)
 {
     // Arrange
     Model model;
@@ -510,7 +516,7 @@ KRATOS_TEST_CASE_IN_SUITE(TransientPwElement_CalculateOnIntegrationPoints_Vector
         p_element->GetGeometry().IntegrationPointsNumber(p_element->GetIntegrationMethod());
 
     // Assert
-    KRATOS_EXPECT_EQ(results.size(), number_of_integration_points);
+    EXPECT_EQ(results.size(), number_of_integration_points);
     Vector expected_results(3);
     expected_results <<= 1.0, 1.0, 1.0;
     KRATOS_EXPECT_VECTOR_EQ(results, expected_results);
@@ -520,7 +526,7 @@ KRATOS_TEST_CASE_IN_SUITE(TransientPwElement_CalculateOnIntegrationPoints_Vector
     p_element->CalculateOnIntegrationPoints(EFFECTIVE_SATURATION, results, dummy_process_info);
 
     // Assert
-    KRATOS_EXPECT_EQ(results.size(), number_of_integration_points);
+    EXPECT_EQ(results.size(), number_of_integration_points);
     expected_results <<= 1.0, 1.0, 1.0;
     KRATOS_EXPECT_VECTOR_EQ(results, expected_results);
 
@@ -529,7 +535,7 @@ KRATOS_TEST_CASE_IN_SUITE(TransientPwElement_CalculateOnIntegrationPoints_Vector
     p_element->CalculateOnIntegrationPoints(BISHOP_COEFFICIENT, results, dummy_process_info);
 
     // Assert
-    KRATOS_EXPECT_EQ(results.size(), number_of_integration_points);
+    EXPECT_EQ(results.size(), number_of_integration_points);
     expected_results <<= 1.0, 1.0, 1.0;
     KRATOS_EXPECT_VECTOR_EQ(results, expected_results);
 
@@ -538,7 +544,7 @@ KRATOS_TEST_CASE_IN_SUITE(TransientPwElement_CalculateOnIntegrationPoints_Vector
     p_element->CalculateOnIntegrationPoints(DERIVATIVE_OF_SATURATION, results, dummy_process_info);
 
     // Assert
-    KRATOS_EXPECT_EQ(results.size(), number_of_integration_points);
+    EXPECT_EQ(results.size(), number_of_integration_points);
     expected_results <<= 0.0, 0.0, 0.0;
     KRATOS_EXPECT_VECTOR_EQ(results, expected_results);
 
@@ -547,7 +553,7 @@ KRATOS_TEST_CASE_IN_SUITE(TransientPwElement_CalculateOnIntegrationPoints_Vector
     p_element->CalculateOnIntegrationPoints(RELATIVE_PERMEABILITY, results, dummy_process_info);
 
     // Assert
-    KRATOS_EXPECT_EQ(results.size(), number_of_integration_points);
+    EXPECT_EQ(results.size(), number_of_integration_points);
     expected_results <<= 1.0, 1.0, 1.0;
     KRATOS_EXPECT_VECTOR_EQ(results, expected_results);
 
@@ -556,7 +562,7 @@ KRATOS_TEST_CASE_IN_SUITE(TransientPwElement_CalculateOnIntegrationPoints_Vector
     p_element->CalculateOnIntegrationPoints(HYDRAULIC_HEAD, results, dummy_process_info);
 
     // Assert
-    KRATOS_EXPECT_EQ(results.size(), number_of_integration_points);
+    EXPECT_EQ(results.size(), number_of_integration_points);
     expected_results <<= 0.166667, 0.166667, 0.666667;
     KRATOS_EXPECT_VECTOR_NEAR(results, expected_results, Defaults::relative_tolerance);
 
@@ -565,12 +571,12 @@ KRATOS_TEST_CASE_IN_SUITE(TransientPwElement_CalculateOnIntegrationPoints_Vector
     p_element->CalculateOnIntegrationPoints(DT_WATER_PRESSURE, results, dummy_process_info);
 
     // Assert
-    KRATOS_EXPECT_EQ(results.size(), number_of_integration_points);
+    EXPECT_EQ(results.size(), number_of_integration_points);
     expected_results <<= 0, 0, 0;
     KRATOS_EXPECT_VECTOR_EQ(results, expected_results);
 }
 
-KRATOS_TEST_CASE_IN_SUITE(TransientPwElement_CalculateOnIntegrationPoints_1DArray, KratosGeoMechanicsFastSuiteWithoutKernel)
+TEST_F(KratosGeoMechanicsFastSuiteWithoutKernel, TransientPwElement_CalculateOnIntegrationPoints_1DArray)
 {
     // Arrange
     Model model;
@@ -589,7 +595,7 @@ KRATOS_TEST_CASE_IN_SUITE(TransientPwElement_CalculateOnIntegrationPoints_1DArra
         p_element->GetGeometry().IntegrationPointsNumber(p_element->GetIntegrationMethod());
 
     // Assert
-    KRATOS_EXPECT_EQ(results.size(), number_of_integration_points);
+    EXPECT_EQ(results.size(), number_of_integration_points);
     array_1d<double, 3> expected_nonzero_component{-1e+06, -1e+06, 0};
     for (const auto& component : results) {
         KRATOS_EXPECT_VECTOR_EQ(component, expected_nonzero_component);
@@ -600,14 +606,14 @@ KRATOS_TEST_CASE_IN_SUITE(TransientPwElement_CalculateOnIntegrationPoints_1DArra
     p_element->CalculateOnIntegrationPoints(LOCAL_FLUID_FLUX_VECTOR, results, dummy_process_info);
 
     // Assert
-    KRATOS_EXPECT_EQ(results.size(), number_of_integration_points);
+    EXPECT_EQ(results.size(), number_of_integration_points);
     array_1d<double, 3> expected_zero_component{0, 0, 0};
     for (const auto& component : results) {
         KRATOS_EXPECT_VECTOR_EQ(component, expected_zero_component);
     }
 }
 
-KRATOS_TEST_CASE_IN_SUITE(TransientPwElement_CalculateOnIntegrationPoints_Matrix, KratosGeoMechanicsFastSuiteWithoutKernel)
+TEST_F(KratosGeoMechanicsFastSuiteWithoutKernel, TransientPwElement_CalculateOnIntegrationPoints_Matrix)
 {
     // Arrange
     Model model;
@@ -626,7 +632,7 @@ KRATOS_TEST_CASE_IN_SUITE(TransientPwElement_CalculateOnIntegrationPoints_Matrix
         p_element->GetGeometry().IntegrationPointsNumber(p_element->GetIntegrationMethod());
 
     // Assert
-    KRATOS_EXPECT_EQ(results.size(), number_of_integration_points);
+    EXPECT_EQ(results.size(), number_of_integration_points);
     Matrix expected_nonzero_component(2, 2);
     expected_nonzero_component <<= 1, 1, 1, 1;
     for (const auto& component : results) {
@@ -638,14 +644,14 @@ KRATOS_TEST_CASE_IN_SUITE(TransientPwElement_CalculateOnIntegrationPoints_Matrix
     p_element->CalculateOnIntegrationPoints(LOCAL_PERMEABILITY_MATRIX, results, dummy_process_info);
 
     // Assert
-    KRATOS_EXPECT_EQ(results.size(), number_of_integration_points);
+    EXPECT_EQ(results.size(), number_of_integration_points);
     Matrix expected_zero_component = ZeroMatrix(2, 2);
     for (const auto& component : results) {
         KRATOS_EXPECT_MATRIX_EQ(component, expected_zero_component);
     }
 }
 
-KRATOS_TEST_CASE_IN_SUITE(TransientPwElement2D3N_CalculateLocalSystem, KratosGeoMechanicsFastSuiteWithoutKernel)
+TEST_F(KratosGeoMechanicsFastSuiteWithoutKernel, TransientPwElement2D3N_CalculateLocalSystem)
 {
     // Arrange
     Model model;
@@ -681,7 +687,7 @@ KRATOS_TEST_CASE_IN_SUITE(TransientPwElement2D3N_CalculateLocalSystem, KratosGeo
     KRATOS_EXPECT_VECTOR_RELATIVE_NEAR(actual_right_hand_side, expected_right_hand_side, Defaults::relative_tolerance)
 }
 
-KRATOS_TEST_CASE_IN_SUITE(TransientPwElement3D4N_CalculateLocalSystem, KratosGeoMechanicsFastSuiteWithoutKernel)
+TEST_F(KratosGeoMechanicsFastSuiteWithoutKernel, TransientPwElement3D4N_CalculateLocalSystem)
 {
     // Arrange
     Model model;
@@ -718,7 +724,7 @@ KRATOS_TEST_CASE_IN_SUITE(TransientPwElement3D4N_CalculateLocalSystem, KratosGeo
     KRATOS_EXPECT_VECTOR_RELATIVE_NEAR(actual_right_hand_side, expected_right_hand_side, Defaults::relative_tolerance)
 }
 
-KRATOS_TEST_CASE_IN_SUITE(TransientPwElement_ZeroReturnFunctions, KratosGeoMechanicsFastSuiteWithoutKernel)
+TEST_F(KratosGeoMechanicsFastSuiteWithoutKernel, TransientPwElement_ZeroReturnFunctions)
 {
     // Arrange
     TransientPwElement<2, 3> element(
@@ -734,16 +740,16 @@ KRATOS_TEST_CASE_IN_SUITE(TransientPwElement_ZeroReturnFunctions, KratosGeoMecha
     element.CalculateMassMatrix(actual_matrix, dummy_process_info);
 
     // Assert
-    KRATOS_EXPECT_EQ(actual_matrix.size1(), n_DoF);
-    KRATOS_EXPECT_EQ(actual_matrix.size2(), n_DoF);
+    EXPECT_EQ(actual_matrix.size1(), n_DoF);
+    EXPECT_EQ(actual_matrix.size2(), n_DoF);
     KRATOS_EXPECT_MATRIX_EQ(actual_matrix, expected_matrix);
 
     // Act
     element.CalculateDampingMatrix(actual_matrix, dummy_process_info);
 
     // Assert
-    KRATOS_EXPECT_EQ(actual_matrix.size1(), n_DoF);
-    KRATOS_EXPECT_EQ(actual_matrix.size2(), n_DoF);
+    EXPECT_EQ(actual_matrix.size1(), n_DoF);
+    EXPECT_EQ(actual_matrix.size2(), n_DoF);
     KRATOS_EXPECT_MATRIX_EQ(actual_matrix, expected_matrix);
 
     // Act
@@ -751,21 +757,21 @@ KRATOS_TEST_CASE_IN_SUITE(TransientPwElement_ZeroReturnFunctions, KratosGeoMecha
     element.GetValuesVector(actual_vector, dummy_process_info);
 
     // Assert
-    KRATOS_EXPECT_EQ(actual_vector.size(), n_DoF);
+    EXPECT_EQ(actual_vector.size(), n_DoF);
     KRATOS_EXPECT_VECTOR_EQ(actual_vector, expected_vector);
 
     // Act
     element.GetFirstDerivativesVector(actual_vector, dummy_process_info);
 
     // Assert
-    KRATOS_EXPECT_EQ(actual_vector.size(), n_DoF);
+    EXPECT_EQ(actual_vector.size(), n_DoF);
     KRATOS_EXPECT_VECTOR_EQ(actual_vector, expected_vector);
 
     // Act
     element.GetSecondDerivativesVector(actual_vector, dummy_process_info);
 
     // Assert
-    KRATOS_EXPECT_EQ(actual_vector.size(), n_DoF);
+    EXPECT_EQ(actual_vector.size(), n_DoF);
     KRATOS_EXPECT_VECTOR_EQ(actual_vector, expected_vector);
 }
 
