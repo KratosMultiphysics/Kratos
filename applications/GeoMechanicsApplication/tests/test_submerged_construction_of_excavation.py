@@ -260,23 +260,29 @@ def get_wall_node_ids():
     ]
 
 
-def _extract_x_and_y_from_line(line, index_of_x=0, index_of_y=1):
+def _extract_x_and_y_from_line(line, index_of_x=0, index_of_y=1, x_transform=None):
     words = line.split(",")
-    return (float(words[index_of_x]), float(words[index_of_y]))
+    x_ = float(words[index_of_x])
+    if x_transform:
+        x_ = x_transform(x_)
+    y_ = float(words[index_of_y])
+
+    return x_, y_
 
 
-def extract_y_and_moment_from_line(line):
+def extract_moment_and_y_from_line(line):
     return _extract_x_and_y_from_line(line, index_of_x=11, index_of_y=4)
 
 
-def extract_y_and_axial_force_from_line(line):
+def extract_axial_force_and_y_from_line(line):
     return _extract_x_and_y_from_line(line, index_of_x=5, index_of_y=4)
 
 
-def extract_y_and_shear_force_from_line(line):
-    words = line.split(",")
+def extract_shear_force_and_y_from_line(line):
     # The shear force sign in the comparison data is opposite to the Kratos sign
-    return (-1.0 * float(words[8]), float(words[4]))
+    return _extract_x_and_y_from_line(
+        line, index_of_x=8, index_of_y=4, x_transform=lambda x: -x
+    )
 
 
 class KratosGeoMechanicsSubmergedConstructionOfExcavation(KratosUnittest.TestCase):
@@ -528,10 +534,7 @@ class KratosGeoMechanicsSubmergedConstructionOfExcavation(KratosUnittest.TestCas
             if stage["base_name"] != "1_Initial_stage"
             and stage["base_name"] != "2_Null_step"
         ]
-        plot_titles = self.get_names_of_structural_stages(structural_stages)
-        y_coords_per_stage = self.get_y_coords_per_stage(
-            project_path, structural_stages
-        )
+        plot_titles = [stage["base_name"] for stage in structural_stages]
 
         axial_force_plot_label = "Axial force"
         axial_force_kratos_label = "AXIAL_FORCE"
@@ -540,8 +543,7 @@ class KratosGeoMechanicsSubmergedConstructionOfExcavation(KratosUnittest.TestCas
             axial_force_plot_label,
             project_path,
             structural_stages,
-            y_coords_per_stage,
-            extract_y_and_axial_force_from_line,
+            extract_axial_force_and_y_from_line,
         )
 
         plot_utils.make_sub_plots(
@@ -559,8 +561,7 @@ class KratosGeoMechanicsSubmergedConstructionOfExcavation(KratosUnittest.TestCas
             shear_force_plot_label,
             project_path,
             structural_stages,
-            y_coords_per_stage,
-            extract_y_and_shear_force_from_line,
+            extract_shear_force_and_y_from_line,
         )
         plot_utils.make_sub_plots(
             shear_force_collections,
@@ -577,8 +578,7 @@ class KratosGeoMechanicsSubmergedConstructionOfExcavation(KratosUnittest.TestCas
             bending_moment_plot_label,
             project_path,
             structural_stages,
-            y_coords_per_stage,
-            extract_y_and_moment_from_line,
+            extract_moment_and_y_from_line,
         )
         plot_utils.make_sub_plots(
             bending_moment_collections,
@@ -594,32 +594,34 @@ class KratosGeoMechanicsSubmergedConstructionOfExcavation(KratosUnittest.TestCas
         variable_plot_label,
         project_path,
         structural_stages,
-        y_coords_per_stage,
         data_point_extractor,
     ):
+        node_ids = get_wall_node_ids()
+
+        # Since the coordinates do not change between stages, we base them on the first stage
+        y_coords = self.get_y_coords(
+            project_path, structural_stages[0]["base_name"], node_ids
+        )
+
         variable_data_collections = []
-        for stage, y_coords in zip(structural_stages, y_coords_per_stage):
+        for stage in structural_stages:
             data_series_collection = []
-            output_data_wall = GiDOutputFileReader().read_output_from(
+            output_data = GiDOutputFileReader().read_output_from(
                 os.path.join(project_path, f"{stage['base_name']}.post.res")
             )
             variable_kratos_data = GiDOutputFileReader.nodal_values_at_time(
                 kratos_variable_label,
                 stage["end_time"],
-                output_data_wall,
-                node_ids=get_wall_node_ids(),
+                output_data,
+                node_ids=node_ids,
             )
             variable_kratos_data = [
-                axial_force / 1000 for axial_force in variable_kratos_data
+                value / 1000 for value in variable_kratos_data
             ]  # Convert to k<Unit>
-
-            data = []
-            for force, y in zip(variable_kratos_data, y_coords):
-                data.append((force, y))
 
             data_series_collection.append(
                 plot_utils.DataSeries(
-                    data,
+                    zip(variable_kratos_data, y_coords),
                     f"{variable_plot_label} [Kratos]",
                     line_style="-",
                     marker=".",
@@ -643,18 +645,11 @@ class KratosGeoMechanicsSubmergedConstructionOfExcavation(KratosUnittest.TestCas
             variable_data_collections.append(data_series_collection)
         return variable_data_collections
 
-    def get_y_coords_per_stage(self, project_path, structural_stages):
-        y_coords_per_stage = []
-        for stage in structural_stages:
-            node_ids = get_wall_node_ids()
-            coordinates = test_helper.read_coordinates_from_post_msh_file(
-                Path(project_path) / f"{stage['base_name']}.post.msh", node_ids=node_ids
-            )
-            y_coords_per_stage.append([coord[1] for coord in coordinates])
-        return y_coords_per_stage
-
-    def get_names_of_structural_stages(self, structural_stages):
-        return [stage["base_name"] for stage in structural_stages]
+    def get_y_coords(self, project_path, stage_base_name, node_ids):
+        coordinates = test_helper.read_coordinates_from_post_msh_file(
+            Path(project_path) / f"{stage_base_name}.post.msh", node_ids=node_ids
+        )
+        return [coord[1] for coord in coordinates]
 
     def test_simulation_with_linear_elastic_materials(self):
         self.run_simulation_and_checks("linear_elastic")

@@ -1,5 +1,6 @@
 import matplotlib.pyplot as plt
 import pathlib
+import numpy as np
 
 
 class DataSeries:
@@ -38,6 +39,7 @@ def _make_plot(
         plot_file_path = str(plot_file_path.resolve())
     print(f"Saving plot to {plot_file_path}")
     plt.savefig(plot_file_path)
+    plt.close(figure)
 
 
 def _plot_data_series_on_axis(axes, data_series_collection):
@@ -64,6 +66,7 @@ def make_sub_plots(
     xscale=None,
 ):
     figure, axes = plt.subplots(1, len(data_series_collections), figsize=(20, 6))
+    axes = np.atleast_1d(axes)
     first_plot = True
     for ax, collection, title in zip(axes, data_series_collections, titles):
         _plot_data_series_on_axis(ax, collection)
@@ -84,6 +87,7 @@ def make_sub_plots(
         plot_file_path = str(plot_file_path.resolve())
     print(f"Saving plot to {plot_file_path}")
     plt.savefig(plot_file_path, bbox_inches="tight")
+    plt.close(figure)
 
 
 def make_settlement_history_plot(data_series_collection, plot_file_path):
