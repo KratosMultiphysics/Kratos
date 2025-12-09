@@ -1,6 +1,6 @@
 import math
 from typing import Optional
-
+import csv
 import KratosMultiphysics as Kratos
 import KratosMultiphysics.SystemIdentificationApplication as KratosSI
 from KratosMultiphysics.OptimizationApplication.controls.control import Control
@@ -82,6 +82,10 @@ class DataValuesControl(Control):
             "container_type"                    : "",
             "output_all_fields"                 : false,
             "filter_settings"                   : {},
+             "control_weighting_settings"  : {
+                    "control_weighting_type"        : "constant",
+                    "control_weight_initial": 1.0                        
+                                             },                                
             "model_part_names": [
                 {
                     "primal_model_part_name" : "PLEASE_PROVIDE_MODEL_PART_NAME",
@@ -132,6 +136,7 @@ class DataValuesControl(Control):
                                                 f"control_adjoint_{self.GetName()}",
                                                 [param["adjoint_model_part_name"].GetString() for param in controlled_model_part_names],
                                                 False)
+        self.control_weighting_settings = parameters["control_weighting_settings"]
 
         # filter needs to be based on the primal model part
         # because, filter may keep pointers for the elements to get their center positions
@@ -155,7 +160,7 @@ class DataValuesControl(Control):
         self.filter.Initialize()
 
         physical_field = self.GetPhysicalField()
-
+        #Kratos.Expression.LiteralExpressionIO.SetData(physical_field, 11.0)
         # get the phi field which is in [0, 1] range
         self.physical_phi_field = self.clamper.ProjectBackward(physical_field)
 
@@ -188,6 +193,51 @@ class DataValuesControl(Control):
         self.container_type_helper.ReadExpression(physical_thickness_field, self.controlled_physical_variable)
         return physical_thickness_field
 
+    def GetControlWeight(self) -> float:
+        control_weighting_settings = self.control_weighting_settings
+        weight = 0.0
+        step = self.optimization_problem.GetStep()
+        block_size = 10
+        block = step // block_size
+        if control_weighting_settings["control_weighting_type"].GetString() == "constant":
+            weight = control_weighting_settings["control_weight_initial"].GetDouble()
+        elif control_weighting_settings["control_weighting_type"].GetString() == "constant_stepwise":
+            weight = control_weighting_settings["control_weight_initial"].GetDouble()
+            # if block % 2 == 0:
+            #     if not self.controlled_physical_variable == Kratos.YOUNG_MODULUS:
+            #         weight = 0.0
+            if block % 2 == 1:
+                if not self.controlled_physical_variable == Kratos.TEMPERATURE:
+                    weight = 0.0
+            # if block % 3 == 2:
+            #     if not self.controlled_physical_variable == KratosSM.CONSTITUTIVE_LAW_MIXTURE_PHI:
+            #         weight = 0.0
+        elif control_weighting_settings["control_weighting_type"].GetString() == "exponentially_decreasing":
+            optimization_step = self.optimization_problem.GetStep()
+            weight = (control_weighting_settings["control_weight_initial"].GetDouble() - 1.0) * math.exp(-optimization_step/500) + 1.0
+        elif control_weighting_settings["control_weighting_type"].GetString() == "exponentially_increasing":
+            optimization_step = self.optimization_problem.GetStep()
+            constant = control_weighting_settings["control_weight_initial"].GetDouble()
+            weight = (1.0 - constant ) * (1.0 - math.exp(-optimization_step/500)) + constant
+        else:
+            raise RuntimeError(f"Unknown control weighting defined")
+        filename = self.GetName() +"_weight.csv"
+
+        # Check if the file exists
+        file_exists = os.path.isfile(filename)
+    
+        # Open the file in append mode
+        with open(filename, 'a', newline='') as csvfile:
+            writer = csv.writer(csvfile)
+            
+            # If the file does not exist, create it and add a header
+            if not file_exists:
+                writer.writerow(["Value"])
+            
+            # Append the double value to the next row
+            writer.writerow([weight])
+        return weight
+    
     def MapGradient(self, physical_gradient_variable_container_expression_map: 'dict[SupportedSensitivityFieldVariableTypes, ContainerExpressionTypes]') -> ContainerExpressionTypes:
         with TimeLogger("DataValuesControl::MapGradient", None, "Finished",False):
             keys = physical_gradient_variable_container_expression_map.keys()
