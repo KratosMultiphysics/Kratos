@@ -271,17 +271,17 @@ def _extract_x_and_y_from_line(line, index_of_x=0, index_of_y=1, x_transform=Non
 
 
 def extract_moment_and_y_from_line(line):
-    return _extract_x_and_y_from_line(line, index_of_x=11, index_of_y=4)
+    return _extract_x_and_y_from_line(line, index_of_x=10, index_of_y=3)
 
 
 def extract_axial_force_and_y_from_line(line):
-    return _extract_x_and_y_from_line(line, index_of_x=5, index_of_y=4)
+    return _extract_x_and_y_from_line(line, index_of_x=4, index_of_y=3)
 
 
 def extract_shear_force_and_y_from_line(line):
     # The shear force sign in the comparison data is opposite to the Kratos sign
     return _extract_x_and_y_from_line(
-        line, index_of_x=8, index_of_y=4, x_transform=lambda x: -x
+        line, index_of_x=7, index_of_y=3, x_transform=lambda x: -x
     )
 
 
