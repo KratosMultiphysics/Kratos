@@ -63,7 +63,7 @@ public:
 
     /** Integration methods implemented in geometry. Each geometry
     supposed to have different integration method for
-    integrating. These enums are used to refere to each
+    integrating. These enums are used to refer to each
     different integration methods:
 
     - GI_GAUSS_1 gaussian integration with order 1.
@@ -78,11 +78,7 @@ public:
         GI_GAUSS_3,
         GI_GAUSS_4,
         GI_GAUSS_5,
-        GI_EXTENDED_GAUSS_1,
-        GI_EXTENDED_GAUSS_2,
-        GI_EXTENDED_GAUSS_3,
-        GI_EXTENDED_GAUSS_4,
-        GI_EXTENDED_GAUSS_5,
+        GI_LOBATTO_1,
         NumberOfIntegrationMethods // Note that this entry needs to be always the last to be used as integration methods counter
     };
 
@@ -148,6 +144,7 @@ public:
         Kratos_Brep_Curve_On_Surface,
         Kratos_Quadrature_Point_Geometry,
         Kratos_Coupling_Geometry,
+        Kratos_Quadrature_Point_Curve_Geometry,
         Kratos_Quadrature_Point_Curve_On_Surface_Geometry,
         Kratos_Quadrature_Point_Surface_In_Volume_Geometry,
         NumberOfGeometryTypes // Note that this entry needs to be always the last to be used as geometry types counter
@@ -244,7 +241,7 @@ public:
     /** Complete argument constructor. This constructor gives a
     complete set of arguments to pass all the initial value of
     all the member variables of geometry class. Also it has
-    default value for integration variables to make it usefull
+    default value for integration variables to make it useful
     in the case of constructing new geometry without mapping and
     integrating properties.
 
@@ -417,8 +414,8 @@ public:
     ///@{
 
     /** This method confirm you if this geometry has a specific
-    integration method or not. This method will be usefull to
-    control the geometry before intagrating using a specific
+    integration method or not. This method will be useful to
+    control the geometry before integrating using a specific
     method. In GeometryData class this method controls if the
     integration points vector respecting to this method is empty
     or not.
@@ -720,7 +717,7 @@ public:
     /*
     * @brief access to the shape function derivatives.
     * @param DerivativeOrderIndex defines the wanted order of the derivative
-    * @param IntegrationPointIndex the corresponding contorl point of this geometry
+    * @param IntegrationPointIndex the corresponding control point of this geometry
     * @return the shape function or derivative value related to the input parameters
     *         the matrix is structured: (derivative dN_de / dN_du , the corresponding node)
     */

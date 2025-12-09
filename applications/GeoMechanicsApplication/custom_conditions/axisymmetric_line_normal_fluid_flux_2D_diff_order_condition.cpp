@@ -27,14 +27,14 @@ AxisymmetricLineNormalFluidFlux2DDiffOrderCondition::AxisymmetricLineNormalFluid
 // Constructor 1
 AxisymmetricLineNormalFluidFlux2DDiffOrderCondition::AxisymmetricLineNormalFluidFlux2DDiffOrderCondition(
     IndexType NewId, GeometryType::Pointer pGeometry)
-    : LineNormalFluidFlux2DDiffOrderCondition(NewId, pGeometry)
+    : LineNormalFluidFlux2DDiffOrderCondition(NewId, std::move(pGeometry))
 {
 }
 
 // Constructor 2
 AxisymmetricLineNormalFluidFlux2DDiffOrderCondition::AxisymmetricLineNormalFluidFlux2DDiffOrderCondition(
     IndexType NewId, GeometryType::Pointer pGeometry, PropertiesType::Pointer pProperties)
-    : LineNormalFluidFlux2DDiffOrderCondition(NewId, pGeometry, pProperties)
+    : LineNormalFluidFlux2DDiffOrderCondition(NewId, std::move(pGeometry), std::move(pProperties))
 {
 }
 
@@ -51,7 +51,7 @@ Condition::Pointer AxisymmetricLineNormalFluidFlux2DDiffOrderCondition::Create(
 }
 
 double AxisymmetricLineNormalFluidFlux2DDiffOrderCondition::CalculateIntegrationCoefficient(
-    const IndexType                                 PointNumber,
+    IndexType                                       PointNumber,
     const GeometryType::JacobiansType&              JContainer,
     const GeometryType::IntegrationPointsArrayType& IntegrationPoints) const
 

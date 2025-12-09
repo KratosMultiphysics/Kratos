@@ -14,7 +14,7 @@
 #include "generation_dissipation.h"
 
 namespace Kratos {
-  //-----------------------------------------------------------------------------------------------------------------------
+  //------------------------------------------------------------------------------------------------------------
   GenerationDissipation::GenerationDissipation() {}
   GenerationDissipation::~GenerationDissipation() {}
 
@@ -38,6 +38,7 @@ namespace Kratos {
     const double coeff      = conversion * partition;
 
     // Initialize contribution from different sources of heat generation
+    double thermal_energy;
     double heat_gen;
     double heat_gen_damping_pp = 0.0;
     double heat_gen_damping_pw = 0.0;
@@ -48,49 +49,58 @@ namespace Kratos {
 
     // Damping thermal power
     if (r_process_info[GENERATION_DAMPING_OPTION]) {
-      heat_gen = coeff * contact_params.viscodamping_energy / time;
+      thermal_energy = coeff * contact_params.viscodamping_energy;
+      heat_gen = thermal_energy / time;
 
       if (particle->mNeighborType & PARTICLE_NEIGHBOR) {
+        particle->mGenerationThermalEnergy_damp_particle += thermal_energy;
+        particle->mGenerationHeatFlux_damp_particle      += heat_gen;
         heat_gen_damping_pp = heat_gen;
-        particle->mGenerationHeatFlux_damp_particle += heat_gen;
       }
       else if (particle->mNeighborType & WALL_NEIGHBOR) {
+        particle->mGenerationThermalEnergy_damp_wall += thermal_energy;
+        particle->mGenerationHeatFlux_damp_wall      += heat_gen;
         heat_gen_damping_pw = heat_gen;
-        particle->mGenerationHeatFlux_damp_wall += heat_gen;
       }  
     }
 
     // Sliding friction thermal power
     if (r_process_info[GENERATION_SLIDING_OPTION]) {
-      heat_gen = coeff * contact_params.frictional_energy / time;
+      thermal_energy = coeff * contact_params.frictional_energy;
+      heat_gen = thermal_energy / time;
 
       if (particle->mNeighborType & PARTICLE_NEIGHBOR) {
+        particle->mGenerationThermalEnergy_slid_particle += thermal_energy;
+        particle->mGenerationHeatFlux_slid_particle      += heat_gen;
         heat_gen_sliding_pp = heat_gen;
-        particle->mGenerationHeatFlux_slid_particle += heat_gen;
       }
       else if (particle->mNeighborType & WALL_NEIGHBOR) {
+        particle->mGenerationThermalEnergy_slid_wall += thermal_energy;
+        particle->mGenerationHeatFlux_slid_wall      += heat_gen;
         heat_gen_sliding_pw = heat_gen;
-        particle->mGenerationHeatFlux_slid_wall += heat_gen;
       }
     }
 
     // Rolling friction thermal power
     if (r_process_info[GENERATION_ROLLING_OPTION] && particle->Is(DEMFlags::HAS_ROTATION) && particle->Is(DEMFlags::HAS_ROLLING_FRICTION)) {
-      heat_gen = coeff * contact_params.rollresist_energy / time;
+      thermal_energy = coeff * contact_params.rollresist_energy;
+      heat_gen = thermal_energy / time;
 
       if (particle->mNeighborType & PARTICLE_NEIGHBOR) {
+        particle->mGenerationThermalEnergy_roll_particle += thermal_energy;
+        particle->mGenerationHeatFlux_roll_particle      += heat_gen;
         heat_gen_rolling_pp = heat_gen;
-        particle->mGenerationHeatFlux_roll_particle += heat_gen;
       }
       else if (particle->mNeighborType & WALL_NEIGHBOR) {
+        particle->mGenerationThermalEnergy_roll_wall += thermal_energy;
+        particle->mGenerationHeatFlux_roll_wall      += heat_gen;
         heat_gen_rolling_pw = heat_gen;
-        particle->mGenerationHeatFlux_roll_wall += heat_gen;
       }
     }
 
     // Fill heat map
     if (r_process_info[HEAT_MAP_GENERATION_OPTION])
-      FillDensityMap(r_process_info, particle, time, heat_gen_damping_pp, heat_gen_damping_pw, heat_gen_sliding_pp, heat_gen_sliding_pw, heat_gen_rolling_pp, heat_gen_rolling_pw);
+      FillHeatMap(r_process_info, particle, time, heat_gen_damping_pp, heat_gen_damping_pw, heat_gen_sliding_pp, heat_gen_sliding_pw, heat_gen_rolling_pp, heat_gen_rolling_pw);
 
     return heat_gen_damping_pp + heat_gen_damping_pw + heat_gen_sliding_pp + heat_gen_sliding_pw + heat_gen_rolling_pp + heat_gen_rolling_pw;
 
@@ -109,7 +119,7 @@ namespace Kratos {
   }
 
   //------------------------------------------------------------------------------------------------------------
-  void GenerationDissipation::FillDensityMap(const ProcessInfo& r_process_info,
+  void GenerationDissipation::FillHeatMap(const ProcessInfo& r_process_info,
                                              ThermalSphericParticle* particle,
                                              const double time,
                                              const double heat_gen_damping_pp,

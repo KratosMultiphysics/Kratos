@@ -27,7 +27,6 @@
         "compute_reactions":                  false,
         "move_mesh_flag":                     true,
         "reform_dofs_at_each_step":           false,
-        "nodal_smoothing":                    false,
         "block_builder":                      true,
         "solution_type":                      "Quasi-Static",
         "scheme_type":                        "Newmark",
@@ -69,7 +68,6 @@
             "scaling":         false
         },
         "problem_domain_sub_model_part_list": ["Soil_drained-auto-1"],
-        "processes_sub_model_part_list":      ["Solid_Displacement-auto-1","Solid_Displacement-auto-2","Solid_Displacement-auto-3","Fluid_Pressure-auto-1"],
         "body_domain_sub_model_part_list":    ["Soil_drained-auto-1"]
     },
     "output_processes": {
@@ -148,14 +146,13 @@
             "model_part_name":      "PorousDomain.Fluid_Pressure-auto-1",
             "variable_name":        "WATER_PRESSURE",
             "is_fixed":             true,
-            "value":                0.0,
-            "table":                [0, 0, 0],
             "fluid_pressure_type": "Phreatic_Multi_Line",
             "gravity_direction":    1,
             "out_of_plane_direction":    2,
             "x_coordinates" :    [0.0,0.5,1.0],
             "y_coordinates":    [1.0,0.9,0.5],
-			"z_coordinates":    [0.0,0.0,0.0], 
+            "z_coordinates":    [0.0,0.0,0.0],
+            "table":                [0, 0, 0],
             "specific_weight":      10000.0
         }
     }],

@@ -6,8 +6,7 @@ from KratosMultiphysics.GeoMechanicsApplication import *
 # Import Kratos "wrapper" for unittests
 import KratosMultiphysics.KratosUnittest as KratosUnittest
 
-# Import the tests o test_classes to create the suits
-from generalTests import KratosGeoMechanicsGeneralTests
+# Import the tests of test_classes to create the suits
 from test_excavation import KratosGeoMechanicsExcavationTests
 from test_interface import KratosGeoMechanicsInterfaceTests
 from test_reset_displacement import KratosGeoMechanicsResetDisplacementTests
@@ -39,9 +38,11 @@ from test_column_changing_waterlevel import KratosGeoMechanicsChangingWaterLevel
 from test_set_multiple_moving_load_process import KratosGeoMechanicsSetMultipleMovingLoadProcessTests
 from test_strain_measures import KratosGeoMechanicsStrainMeasureTests
 from test_transient_thermal import KratosGeoMechanicsTransientThermalTests
+from test_transient_thermal_validation import KratosGeoMechanicsTransientThermalValidationTests
 from test_rotation_with_moving_load import KratosGeoMechanicsRotationWithMovingLoadTests
-from test_time_integration import KratosGeoMechanicsTimeIntegrationTests
+from test_avoid_small_end_step import KratosGeoMechanicsAvoidSmallEndStepTests
 from c_phi_reduction_process import KratosGeoMechanicsCPhiReductionProcess
+from test_partial_saturation import KratosGeoMechanicsPartialSaturation
 
 from test_conditions import KratosGeoMechanicsConditionTests
 from test_prescribed_derivatives import KratosGeoMechanicsPrescribedDerivatives
@@ -56,6 +57,21 @@ from test_integration_node_extrapolation import KratosGeoMechanicsExtrapolationT
 from test_truss_backbone_mat import KratosGeoMechanicsTrussBackboneMaterialTests
 from test_line_interface_elements import KratosGeoMechanicsInterfaceElementTests
 from test_three_dimensional_piping_validation import KratosGeoMechanicsThreeDimensionalPipingValidation
+from test_master_slave_constraints import KratosGeoMechanicsMasterSlaveConstraints
+from test_deactivation_with_structural_element import KratosGeoMechanicsDeactivationWithStructuralTest
+from test_mohr_coulomb_with_tension_cutoff import KratosGeoMechanicsMohrCoulombWithTensionTests
+from test_single_element_with_Mohr_Coulomb import KratosGeoMechanicsSingleElementWithMohrCoulomb
+from one_dimensional_consolidation import KratosGeoMechanics1DConsolidation, KratosGeoMechanics1DConsolidationCppRoute
+from test_apply_initial_uniform_stress_field import KratosGeoMechanicsApplyInitialUniformStressFieldTests
+from test_dirichlet_release import KratosGeoMechanicsDirichletReleaseTests
+from test_nodal_hydraulic_head import KratosGeoMechanicsHydraulicHeads
+from test_set_moving_load_process import KratosGeoMechanicsSetMovingLoadProcessTests
+from moving_column_with_fixed_pressure_above_phreatic_line import KratosGeoMechanicsMovingColumnWithFixedPressureAbovePhreaticLine
+from test_surface_interface_elements import KratosGeoMechanicsSurfaceInterfaceElementTests
+from test_dsettlement_validation import  KratosGeoMechanicsDSettlementValidationTests
+from test_dirichlet_u_constant import KratosGeoMechanicsDirichletUConstantTests
+from interface_prestress import KratosGeoMechanicsInterfacePreStressTests
+from test_submerged_construction_of_excavation import KratosGeoMechanicsSubmergedConstructionOfExcavation
 
 def AssembleTestSuites():
     ''' Populates the test suites to run.
@@ -71,11 +87,7 @@ def AssembleTestSuites():
     '''
 
     # Create an array with the selected tests (Small tests):
-    # smallSuite will contain the following tests:
-    # - testSmallExample
-
     small_test_cases = [
-                        KratosGeoMechanicsGeneralTests,
                         KratosGeoMechanicsExcavationTests,
                         KratosGeoMechanicsResetDisplacementTests,
                         KratosGeoMechanicsSoilStructureInteractionTests,
@@ -103,14 +115,20 @@ def AssembleTestSuites():
                         KratosGeoMechanicsFixedSpatialVariationTests,
                         KratosGeoMechanicsExtrapolationTests,
                         KratosGeoMechanicsTrussBackboneMaterialTests,
-                        KratosGeoMechanicsInterfaceElementTests
-    ]
-
-    # Create an array with the selected tests
-    # nightSuite will contain the following tests:
-    # - testSmallExample
-    # - testNightlyFirstExample
-    # - testNightlySecondExample
+                        KratosGeoMechanicsInterfaceElementTests,
+                        KratosGeoMechanicsMasterSlaveConstraints,
+                        KratosGeoMechanicsSingleElementWithMohrCoulomb,
+                        KratosGeoMechanicsMohrCoulombWithTensionTests,
+                        KratosGeoMechanicsApplyInitialUniformStressFieldTests,
+                        KratosGeoMechanicsDirichletReleaseTests,
+                        KratosGeoMechanicsDeactivationWithStructuralTest,
+                        KratosGeoMechanicsHydraulicHeads,
+                        KratosGeoMechanicsSetMovingLoadProcessTests,
+                        KratosGeoMechanicsSurfaceInterfaceElementTests,
+                        KratosGeoMechanicsAvoidSmallEndStepTests,
+                        KratosGeoMechanicsDirichletUConstantTests,
+                        KratosGeoMechanicsInterfacePreStressTests,
+                        ]
 
     night_test_cases = [
                         KratosGeoMechanicsSettlementWorkflowCppRoute,
@@ -122,9 +140,12 @@ def AssembleTestSuites():
                         TestSellmeijersRule,
                         TestElementaryGroundWaterFlow,
                         KratosGeoMechanicsTransientThermalTests,
-                        KratosGeoMechanicsTimeIntegrationTests,
                         KratosGeoMechanicsTransientPressureLineElementTests,
-                        KratosGeoMechanicsTransientPressurePointFluxTests
+                        KratosGeoMechanicsTransientPressurePointFluxTests,
+                        KratosGeoMechanicsPartialSaturation,
+                        KratosGeoMechanics1DConsolidation,
+                        KratosGeoMechanics1DConsolidationCppRoute,
+                        KratosGeoMechanicsMovingColumnWithFixedPressureAbovePhreaticLine,
                         ]
     night_test_cases.extend(small_test_cases)
 
@@ -137,7 +158,10 @@ def AssembleTestSuites():
                         KratosGeoMechanicsTransientGroundWaterFlowTests,
                         TestSellmeijersRuleValidation,
                         KratosGeoMechanicsDynamicsLongTests,
-                        KratosGeoMechanicsThreeDimensionalPipingValidation
+                        KratosGeoMechanicsThreeDimensionalPipingValidation,
+                        KratosGeoMechanicsTransientThermalValidationTests,
+                        KratosGeoMechanicsDSettlementValidationTests,
+                        KratosGeoMechanicsSubmergedConstructionOfExcavation,
                         ]
 
     # Create an array that contains all the tests from every testCase
@@ -150,15 +174,15 @@ def AssembleTestSuites():
     suites = KratosUnittest.KratosSuites
 
     # add the tests to the corresponding suite,
-    smallSuite = suites['small']
-    nightSuite = suites['nightly']
-    validSuite = suites['validation']
-    allSuite = suites['all']
+    small_suite = suites['small']
+    night_suite = suites['nightly']
+    valid_suite = suites['validation']
+    all_suite = suites['all']
 
-    smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases(small_test_cases))
-    nightSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases(night_test_cases))
-    validSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases(valid_test_cases))
-    allSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases(all_test_cases))
+    small_suite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases(small_test_cases))
+    night_suite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases(night_test_cases))
+    valid_suite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases(valid_test_cases))
+    all_suite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases(all_test_cases))
 
     return suites
 

@@ -12,33 +12,27 @@
 //                   Vahid Galavi
 //
 
-#if !defined(KRATOS_GEO_GENERAL_U_PW_DIFF_ORDER_CONDITION_H_INCLUDED)
-#define KRATOS_GEO_GENERAL_U_PW_DIFF_ORDER_CONDITION_H_INCLUDED
+#pragma once
 
-// System includes
 #include <cmath>
 
-// Project includes
+#include "geo_mechanics_application_variables.h"
 #include "includes/condition.h"
 #include "includes/define.h"
 #include "includes/process_info.h"
-#include "includes/serializer.h"
-
-#include "geo_mechanics_application_variables.h"
 
 namespace Kratos
 {
+
+class Serializer;
 
 class KRATOS_API(GEO_MECHANICS_APPLICATION) GeneralUPwDiffOrderCondition : public Condition
 {
 public:
     using IndexType      = std::size_t;
     using PropertiesType = Properties;
-    using NodeType       = Node;
-    using GeometryType   = Geometry<NodeType>;
+    using GeometryType   = Geometry<Node>;
     using NodesArrayType = GeometryType::PointsArrayType;
-    using VectorType     = Vector;
-    using MatrixType     = Matrix;
 
     KRATOS_CLASS_INTRUSIVE_POINTER_DEFINITION(GeneralUPwDiffOrderCondition);
 
@@ -63,13 +57,9 @@ public:
 
     void GetDofList(DofsVectorType& rConditionDofList, const ProcessInfo&) const override;
 
-    void CalculateLocalSystem(MatrixType&        rLeftHandSideMatrix,
-                              VectorType&        rRightHandSideVector,
-                              const ProcessInfo& rCurrentProcessInfo) override;
+    void CalculateLocalSystem(Matrix& rLeftHandSideMatrix, Vector& rRightHandSideVector, const ProcessInfo&) override;
 
-    void CalculateLeftHandSide(MatrixType& rLeftHandSideMatrix, const ProcessInfo& rCurrentProcessInfo) override;
-
-    void CalculateRightHandSide(VectorType& rRightHandSideVector, const ProcessInfo& rCurrentProcessInfo) override;
+    void CalculateRightHandSide(Vector& rRightHandSideVector, const ProcessInfo&) override;
 
     void EquationIdVector(EquationIdVectorType& rResult, const ProcessInfo&) const override;
 
@@ -94,47 +84,28 @@ protected:
     // Member Variables
     Geometry<Node>::Pointer mpPressureGeometry;
 
-    void CalculateAll(MatrixType&        rLeftHandSideMatrix,
-                      VectorType&        rRightHandSideVector,
-                      const ProcessInfo& rCurrentProcessInfo,
-                      bool               CalculateLHSMatrixFlag,
-                      bool               CalculateResidualVectorFlag);
+    void CalculateAll(Vector& rRightHandSideVector, bool CalculateResidualVectorFlag);
 
-    void InitializeConditionVariables(ConditionVariables& rVariables, const ProcessInfo& rCurrentProcessInfo);
+    void InitializeConditionVariables(ConditionVariables& rVariables);
 
-    void CalculateKinematics(ConditionVariables& rVariables, unsigned int PointNumber);
+    static void CalculateKinematics(ConditionVariables& rVariables, unsigned int PointNumber);
 
     virtual void CalculateConditionVector(ConditionVariables& rVariables, unsigned int PointNumber);
 
-    virtual double CalculateIntegrationCoefficient(const IndexType                    PointNumber,
+    virtual double CalculateIntegrationCoefficient(IndexType                          PointNumber,
                                                    const GeometryType::JacobiansType& JContainer,
                                                    const GeometryType::IntegrationPointsArrayType& IntegrationPoints) const;
 
-    void CalculateAndAddLHS(MatrixType& rLeftHandSideMatrix, ConditionVariables& rVariables);
+    void CalculateAndAddRHS(Vector& rRightHandSideVector, ConditionVariables& rVariables);
 
-    void CalculateAndAddRHS(VectorType& rRightHandSideVector, ConditionVariables& rVariables);
-
-    virtual void CalculateAndAddConditionForce(VectorType& rRightHandSideVector, ConditionVariables& rVariables);
+    virtual void CalculateAndAddConditionForce(Vector& rRightHandSideVector, ConditionVariables& rVariables);
 
 private:
     [[nodiscard]] DofsVectorType GetDofs() const;
 
-    // Serialization
-
     friend class Serializer;
-
-    void save(Serializer& rSerializer) const override
-    {
-        KRATOS_SERIALIZE_SAVE_BASE_CLASS(rSerializer, Condition)
-    }
-
-    void load(Serializer& rSerializer) override
-    {
-        KRATOS_SERIALIZE_LOAD_BASE_CLASS(rSerializer, Condition)
-    }
-
+    void save(Serializer& rSerializer) const override;
+    void load(Serializer& rSerializer) override;
 }; // class GeneralUPwDiffOrderCondition.
 
 } // namespace Kratos.
-
-#endif // KRATOS_GEO_GENERAL_U_PW_DIFF_ORDER_CONDITION_H_INCLUDED defined

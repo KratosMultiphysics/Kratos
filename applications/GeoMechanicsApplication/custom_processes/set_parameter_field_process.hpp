@@ -59,7 +59,7 @@ public:
     ///@name Life Cycle
     ///@{
 
-    SetParameterFieldProcess(ModelPart& rModelPart, const Parameters& rParameters);
+    SetParameterFieldProcess(ModelPart& rModelPart, const Parameters& rSettings);
 
     ///@}
     ///@name Operations
@@ -74,8 +74,7 @@ public:
     ///@name Input and output
     ///@{
 
-    /// Turn back information as a string.
-    std::string Info() const override { return "SetParameterFieldProcess"; }
+    [[nodiscard]] std::string Info() const override;
 
     ///@}
 

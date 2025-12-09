@@ -69,9 +69,9 @@ public:
     static constexpr SizeType SystemSize    = 9;
     static constexpr SizeType NumberOfNodes = 3;
     static constexpr SizeType DoFperNode    = 3;
-    static constexpr SizeType StrainSize    = 3;
+    static constexpr double Tolerance       = 1.0e-12;
 
-    using GlobalSizeVector = BoundedVector<double, 9>;
+    using GlobalSizeVector = BoundedVector<double, SystemSize>;
     using array_3 = array_1d<double, 3>;
 
     // Counted pointer of BaseSolidElement
@@ -262,6 +262,13 @@ public:
     double GetJacobian(const double xi) const;
 
     /**
+     * @brief This function returns a proper measure of the area.
+     * If the strain_size is 3 (standard Timoshenko beam), the area is the CROSS_AREA
+     * Else (plane strain Timoshenko beam), hence the area is per unit length
+     */
+    double GetCrossArea();
+
+    /**
      * @brief This function returns tangent and transverse unit vectors of the beam at coordinate xi
     */
     void GetTangentandTransverseUnitVectors(
@@ -330,6 +337,18 @@ public:
     void CalculateOnIntegrationPoints(
         const Variable<double>& rVariable,
         std::vector<double>& rOutput,
+        const ProcessInfo& rCurrentProcessInfo
+        ) override;
+
+    /**
+     * @brief Calculate a double Variable on the Element Constitutive Law
+     * @param rVariable The variable we want to get
+     * @param rOutput The values obtained in the integration points
+     * @param rCurrentProcessInfo the current process info instance
+     */
+    void CalculateOnIntegrationPoints(
+        const Variable<Vector>& rVariable,
+        std::vector<Vector>& rOutput,
         const ProcessInfo& rCurrentProcessInfo
         ) override;
 
@@ -457,7 +476,7 @@ private:
     ///@name Private Operations
     ///@{
 
-
+    Vector CalculateStrainVector(double Xi);
     ///@}
     ///@name Private  Access
     ///@{

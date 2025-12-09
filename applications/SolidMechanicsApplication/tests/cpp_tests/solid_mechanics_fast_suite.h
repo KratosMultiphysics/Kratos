@@ -12,18 +12,19 @@
 
 #pragma once
 
-#include "solid_mechanics_application.h"
+
 #include "testing/testing.h"
+#include "solid_mechanics_application.h"
 
-namespace Kratos::Testing {
+namespace Kratos::Testing 
+{
 
-class KratosStructuralMechanicsFastSuite : public KratosCoreFastSuite {
+class KratosSolidMechanicsFastSuite : public KratosCoreFastSuite {
 public:
   KratosSolidMechanicsFastSuite();
 
 private:
-  KratosSolidMechanicsApplication::Pointer mpSolidApp;
-  //  KratosLinearSolversApplication::Pointer mpLinearSolversApp;
+  KratosSolidMechanicsApplication::Pointer mpSolidMechanicsApp;
 };
 
 } // namespace Kratos::Testing

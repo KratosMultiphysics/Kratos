@@ -133,7 +133,7 @@ class TwoStepUpdatedLagrangianVPImplicitFluidFicCutFemElement : public TwoStepUp
     ///@name Life Cycle
     ///@{
 
-    /// Default constuctor.
+    /// Default constructor.
     TwoStepUpdatedLagrangianVPImplicitFluidFicCutFemElement(IndexType NewId = 0)
       : BaseType(NewId)
     {
@@ -155,7 +155,7 @@ class TwoStepUpdatedLagrangianVPImplicitFluidFicCutFemElement : public TwoStepUp
     {
     }
 
-    /// Constuctor using geometry and properties.
+    /// Constructor using geometry and properties.
     TwoStepUpdatedLagrangianVPImplicitFluidFicCutFemElement(
         IndexType NewId,
         GeometryType::Pointer pGeometry,

@@ -30,7 +30,6 @@
         "compute_reactions": false,
         "move_mesh_flag": false,
         "reform_dofs_at_each_step": false,
-        "nodal_smoothing": true,
         "block_builder": true,
         "rebuild_level": 0,
         "prebuild_dynamics": true,
@@ -57,18 +56,8 @@
             "tolerance": 1e-06,
             "max_iteration": 1000
         },
-        "problem_domain_sub_model_part_list": [
-            "soil_block"
-        ],
-        "processes_sub_model_part_list": [
-            "load",
-            "base_fixed",
-            "side_rollers",
-            "zero_water_pressure"
-        ],
-        "body_domain_sub_model_part_list": [
-            "soil_block"
-        ]
+        "problem_domain_sub_model_part_list": ["soil_block"],
+        "body_domain_sub_model_part_list"   : ["soil_block"]
     },
     "output_processes": {
     },
@@ -96,28 +85,12 @@
                 "kratos_module": "KratosMultiphysics.GeoMechanicsApplication",
                 "process_name": "ApplyVectorConstraintTableProcess",
                 "Parameters": {
-                    "active": [
-                        true,
-                        true,
-                        true
-                    ],
-                    "is_fixed": [
-                        true,
-                        true,
-                        true
-                    ],
-                    "value": [
-                        0.0,
-                        0.0,
-                        0.0
-                    ],
+                    "active": [true, true, true],
+                    "is_fixed": [true, true, true],
+                    "value": [0.0, 0.0, 0.0],
                     "model_part_name": "PorousDomain.base_fixed",
                     "variable_name": "DISPLACEMENT",
-                    "table": [
-                        0,
-                        0,
-                        0
-                    ]
+                    "table": [0, 0, 0]
                 }
             },
             {
@@ -125,28 +98,12 @@
                 "kratos_module": "KratosMultiphysics.GeoMechanicsApplication",
                 "process_name": "ApplyVectorConstraintTableProcess",
                 "Parameters": {
-                    "active": [
-                        true,
-                        false,
-                        true
-                    ],
-                    "is_fixed": [
-                        true,
-                        false,
-                        false
-                    ],
-                    "value": [
-                        0.0,
-                        0.0,
-                        0.0
-                    ],
+                    "active": [true, false, true],
+                    "is_fixed": [true, false, false],
+                    "value": [0.0, 0.0, 0.0],
                     "model_part_name": "PorousDomain.side_rollers",
                     "variable_name": "DISPLACEMENT",
-                    "table": [
-                        0,
-                        0,
-                        0
-                    ]
+                    "table": [0, 0, 0]
                 }
             }
         ],
@@ -156,23 +113,11 @@
                 "kratos_module": "KratosMultiphysics.GeoMechanicsApplication",
                 "process_name": "ApplyVectorConstraintTableProcess",
                 "Parameters": {
-                    "active": [
-                        false,
-                        true,
-                        false
-                    ],
-                    "value": [
-                        0.0,
-                        0.0,
-                        0.0
-                    ],
+                    "active": [false, true, false],
+                    "value": [0.0, 0.0, 0.0],
                     "model_part_name": "PorousDomain.load",
                     "variable_name": "LINE_LOAD",
-                    "table": [
-                        0,
-                        1,
-                        0
-                    ]
+                    "table": [0, 1, 0]
                 }
             },
             {
@@ -188,7 +133,6 @@
                     "fluid_pressure_type": "Uniform"
                 }
             }
-        ],
-        "auxiliary_process_list": []
+        ]
     }
 }

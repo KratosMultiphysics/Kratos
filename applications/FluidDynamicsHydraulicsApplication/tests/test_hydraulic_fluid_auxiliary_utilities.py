@@ -1,7 +1,6 @@
 import KratosMultiphysics as Kratos
 import KratosMultiphysics.FluidDynamicsHydraulicsApplication as KratosFluidHydraulics
 import KratosMultiphysics.KratosUnittest as UnitTest
-import KratosMultiphysics.kratos_utilities as KratosUtils
 
 class HydraulicFluidAuxiliaryUtilitiesTest(UnitTest.TestCase):
 
@@ -75,6 +74,19 @@ class HydraulicFluidAuxiliaryUtilitiesTest(UnitTest.TestCase):
         WettedArea= KratosFluidHydraulics.HydraulicFluidAuxiliaryUtilities.CalculateWettedArea(inlet_skin_model_part,Kratos.INLET,Kratos.AUX_DISTANCE, False)
         theoretical_wetted_area= 2.0*(level_set_z)
         self.assertAlmostEqual(WettedArea, theoretical_wetted_area, 12)
+
+    def testApplyOutletInflowLimiter(self):
+        inlet_skin_model_part = self.model.GetModelPart("TestModelPart.Inlet")
+        for node in inlet_skin_model_part.Nodes:
+            node.SetSolutionStepValue(Kratos.VELOCITY, [0.0,0.0,1.0])
+            node.SetValue(Kratos.NORMAL,[0.0,0.0,-1.0])
+
+        KratosFluidHydraulics.HydraulicFluidAuxiliaryUtilities.ApplyOutletInflowLimiter(inlet_skin_model_part,Kratos.VELOCITY,Kratos.NORMAL)
+
+        for node in inlet_skin_model_part.Nodes:
+            if node.Id==5:
+               v=node.GetSolutionStepValue(Kratos.VELOCITY_Z)
+        self.assertAlmostEqual(v, 0.0, 12)
 
 if __name__ == '__main__':
     UnitTest.main()

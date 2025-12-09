@@ -11,9 +11,8 @@
     "solver_type": "U_Pw",
     "model_part_name": "PorousDomain",
     "domain_size": 2,
-    "model_import_settings": {
-      "input_type": "mdpa",
-      "input_filename": "mesh_stage2"
+    "model_import_settings":              {
+      "input_type":       "use_input_model_part"
     },
     "material_import_settings": {
       "materials_filename": "MaterialParameters2.json"
@@ -28,20 +27,15 @@
     "compute_reactions": false,
     "move_mesh_flag": true,
     "reform_dofs_at_each_step": false,
-    "nodal_smoothing": false,
     "block_builder": true,
     "solution_type": "Quasi-Static",
     "scheme_type": "backward_euler",
     "reset_displacements": true,
     "strategy_type": "line_search",
     "convergence_criterion": "displacement_criterion",
-    "water_pressure_relative_tolerance": 0.0001,
-    "water_pressure_absolute_tolerance": 1E-09,
     "displacement_relative_tolerance": 0.001,
     "displacement_absolute_tolerance": 1E-09,
-    "residual_relative_tolerance": 0.0001,
-    "residual_absolute_tolerance": 1E-09,
-    "min_iterations": 6,
+    "min_iterations": 10,
     "max_iterations": 50,
     "number_cycles": 100,
     "reduction_factor": 0.5,
@@ -64,14 +58,6 @@
     "problem_domain_sub_model_part_list": [
       "Soil-3",
       "Soil-6"
-    ],
-    "processes_sub_model_part_list": [
-      "Displacement_Geometry",
-      "Gravity_Loading-Initial_saturated",
-      "Gravity_Loading-Overburden_1_unsaturated",
-      "Base_Displacement_Fixed",
-      "Fluid_Pressure-Overburden_1_unsaturated",
-      "Lower_Drainage_Fluid_Pressure"
     ],
     "body_domain_sub_model_part_list": [
       "Soil-3",
@@ -127,26 +113,10 @@
         "Parameters": {
           "model_part_name": "PorousDomain.Displacement_Geometry",
           "variable_name": "DISPLACEMENT",
-          "active": [
-            true,
-            false,
-            true
-          ],
-          "is_fixed": [
-            true,
-            false,
-            true
-          ],
-          "value": [
-            0.0,
-            0.0,
-            0.0
-          ],
-          "table": [
-            0,
-            0,
-            0
-          ]
+          "active": [true, false, true],
+          "is_fixed": [true, false, true],
+          "value": [0.0, 0.0, 0.0],
+          "table": [0, 0, 0]
         }
       },
       {
@@ -156,26 +126,10 @@
         "Parameters": {
           "model_part_name": "PorousDomain.Base_Displacement_Fixed",
           "variable_name": "DISPLACEMENT",
-          "active": [
-            true,
-            true,
-            true
-          ],
-          "is_fixed": [
-            true,
-            true,
-            true
-          ],
-          "value": [
-            0.0,
-            0.0,
-            0.0
-          ],
-          "table": [
-            0,
-            0,
-            0
-          ]
+          "active": [true, true, true],
+          "is_fixed": [true, true, true],
+          "value": [0.0, 0.0, 0.0],
+          "table": [0, 0, 0]
         }
       }
     ],
@@ -187,21 +141,9 @@
         "Parameters": {
           "model_part_name": "PorousDomain.Gravity_Loading-Initial_saturated",
           "variable_name": "VOLUME_ACCELERATION",
-          "active": [
-            false,
-            true,
-            false
-          ],
-          "value": [
-            0.0,
-            -9.81,
-            0.0
-          ],
-          "table": [
-            0,
-            0,
-            0
-          ]
+          "active": [false, true, false],
+          "value": [0.0, -9.81, 0.0],
+          "table": [0, 0, 0]
         }
       },
       {
@@ -211,21 +153,9 @@
         "Parameters": {
           "model_part_name": "PorousDomain.Gravity_Loading-Overburden_1_unsaturated",
           "variable_name": "VOLUME_ACCELERATION",
-          "active": [
-            false,
-            true,
-            false
-          ],
-          "value": [
-            0.0,
-            -9.81,
-            0.0
-          ],
-          "table": [
-            0,
-            1,
-            0
-          ]
+          "active": [false, true, false],
+          "value": [0.0, -9.81, 0.0],
+          "table": [0, 1, 0]
         }
       },
       {

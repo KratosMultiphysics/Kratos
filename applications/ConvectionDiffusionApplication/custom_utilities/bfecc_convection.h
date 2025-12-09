@@ -285,7 +285,7 @@ public:
 
     // ************************************************************************************************************
     // See [Kuzmin et al., Comput. Methods Appl. Mech. Engrg., 322 (2017) 23–41] for more info about this limiter
-    // Befor calling make sure that non-historical variable "DISTANCE_GRADIENT" contains the nodal gradient of rVar
+    // Before calling make sure that non-historical variable "DISTANCE_GRADIENT" contains the nodal gradient of rVar
     void CalculateLimiter(
         ModelPart& rModelPart,
         const Variable< double >& rVar)

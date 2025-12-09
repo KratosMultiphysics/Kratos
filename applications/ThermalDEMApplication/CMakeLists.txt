@@ -69,8 +69,11 @@ set( KRATOS_THERMAL_DEM_APPLICATION_CORE_SOURCES
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/radiation/radiation_continuum_zhou.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/real_contact/real_contact_model.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/real_contact/real_contact_lu.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/real_contact/real_contact_morris.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/real_contact/real_contact_zhou.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/real_contact/real_contact_morris_area.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/real_contact/real_contact_morris_area_time.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/real_contact/real_contact_rangel_area.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/real_contact/real_contact_rangel_area_time.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/thermal_spheric_particle.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/thermal_spheric_continuum_particle.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/sintering_spheric_continuum_particle.cpp
@@ -84,6 +87,7 @@ set( KRATOS_THERMAL_DEM_APPLICATION_CORE_SOURCES
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_utilities/tesselation_utilities_3d.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_utilities/graph_utilities.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_utilities/heat_map_utilities.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/custom_utilities/rve_wall_boundary_thermal_2d.cpp
 )
 
 ## Define python interface sources

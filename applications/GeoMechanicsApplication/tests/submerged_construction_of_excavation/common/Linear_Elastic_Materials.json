@@ -1,0 +1,278 @@
+{
+    "properties" : [{
+        "model_part_name" : "PorousDomain.Clay_Left",
+        "properties_id"   : 1,
+        "Material"        : {
+            "constitutive_law" : {
+                "name" : "GeoLinearElasticPlaneStrain2DLaw"
+            },
+            "Variables"        : {
+                "IGNORE_UNDRAINED"              : true,
+                "DENSITY_SOLID"                 : 2038.74,
+                "DENSITY_WATER"                 : 1019.37,
+                "POROSITY"                      : 0.20,
+                "BULK_MODULUS_SOLID"            : 1000000000.0,
+                "BULK_MODULUS_FLUID"            : 2000000.0,
+                "PERMEABILITY_XX"               : 1.157e-15,
+                "PERMEABILITY_YY"               : 1.157e-15,
+                "PERMEABILITY_XY"               : 0.0,
+                "DYNAMIC_VISCOSITY"             : 0.001,
+                "YOUNG_MODULUS"                 : 12000000.0,
+                "POISSON_RATIO"                 : 0.15,
+                "BIOT_COEFFICIENT"              : 1.0,
+                "RETENTION_LAW"                 : "SaturatedBelowPhreaticLevelLaw",
+                "SATURATED_SATURATION"          : 1.0,
+                "RESIDUAL_SATURATION"           : 1e-10,
+                "MINIMUM_RELATIVE_PERMEABILITY" : 0.0001,
+                "K0_MAIN_DIRECTION"             : 1,
+                "K0_NC"                         : 0.5774
+            }
+        }
+    },{
+        "model_part_name" : "PorousDomain.Clay_Upper_Right",
+        "properties_id"   : 2,
+        "Material"        : {
+            "constitutive_law" : {
+                "name" : "GeoLinearElasticPlaneStrain2DLaw"
+            },
+            "Variables"        : {
+                "IGNORE_UNDRAINED"              : true,
+                "DENSITY_SOLID"                 : 2038.74,
+                "DENSITY_WATER"                 : 1019.37,
+                "POROSITY"                      : 0.20,
+                "BULK_MODULUS_SOLID"            : 1000000000.0,
+                "BULK_MODULUS_FLUID"            : 2000000.0,
+                "PERMEABILITY_XX"               : 1.157e-15,
+                "PERMEABILITY_YY"               : 1.157e-15,
+                "PERMEABILITY_XY"               : 0.0,
+                "DYNAMIC_VISCOSITY"             : 0.001,
+                "YOUNG_MODULUS"                 : 12000000.0,
+                "POISSON_RATIO"                 : 0.15,
+                "BIOT_COEFFICIENT"              : 1.0,
+                "RETENTION_LAW"                 : "SaturatedBelowPhreaticLevelLaw",
+                "SATURATED_SATURATION"          : 1.0,
+                "RESIDUAL_SATURATION"           : 1e-10,
+                "MINIMUM_RELATIVE_PERMEABILITY" : 0.0001,
+                "K0_MAIN_DIRECTION"             : 1,
+                "K0_NC"                         : 0.5774
+            }
+        }
+    },{
+        "model_part_name" : "PorousDomain.Clay_Middle_Right",
+        "properties_id"   : 3,
+        "Material"        : {
+            "constitutive_law" : {
+                "name" : "GeoLinearElasticPlaneStrain2DLaw"
+            },
+            "Variables"        : {
+                "IGNORE_UNDRAINED"              : true,
+                "DENSITY_SOLID"                 : 2038.74,
+                "DENSITY_WATER"                 : 1019.37,
+                "POROSITY"                      : 0.20,
+                "BULK_MODULUS_SOLID"            : 1000000000.0,
+                "BULK_MODULUS_FLUID"            : 2000000.0,
+                "PERMEABILITY_XX"               : 1.157e-15,
+                "PERMEABILITY_YY"               : 1.157e-15,
+                "PERMEABILITY_XY"               : 0.0,
+                "DYNAMIC_VISCOSITY"             : 0.001,
+                "YOUNG_MODULUS"                 : 12000000.0,
+                "POISSON_RATIO"                 : 0.15,
+                "BIOT_COEFFICIENT"              : 1.0,
+                "RETENTION_LAW"                 : "SaturatedBelowPhreaticLevelLaw",
+                "SATURATED_SATURATION"          : 1.0,
+                "RESIDUAL_SATURATION"           : 1e-10,
+                "MINIMUM_RELATIVE_PERMEABILITY" : 0.0001,
+                "K0_MAIN_DIRECTION"             : 1,
+                "K0_NC"                         : 0.5774
+            }
+        }
+    },{
+        "model_part_name" : "PorousDomain.Clay_Lower_Right",
+        "properties_id"   : 4,
+        "Material"        : {
+            "constitutive_law" : {
+                "name" : "GeoLinearElasticPlaneStrain2DLaw"
+            },
+            "Variables"        : {
+                "IGNORE_UNDRAINED"              : true,
+                "DENSITY_SOLID"                 : 2038.74,
+                "DENSITY_WATER"                 : 1019.37,
+                "POROSITY"                      : 0.20,
+                "BULK_MODULUS_SOLID"            : 1000000000.0,
+                "BULK_MODULUS_FLUID"            : 2000000.0,
+                "PERMEABILITY_XX"               : 1.157e-15,
+                "PERMEABILITY_YY"               : 1.157e-15,
+                "PERMEABILITY_XY"               : 0.0,
+                "DYNAMIC_VISCOSITY"             : 0.001,
+                "YOUNG_MODULUS"                 : 12000000.0,
+                "POISSON_RATIO"                 : 0.15,
+                "BIOT_COEFFICIENT"              : 1.0,
+                "RETENTION_LAW"                 : "SaturatedBelowPhreaticLevelLaw",
+                "SATURATED_SATURATION"          : 1.0,
+                "RESIDUAL_SATURATION"           : 1e-10,
+                "MINIMUM_RELATIVE_PERMEABILITY" : 0.0001,
+                "K0_MAIN_DIRECTION"             : 1,
+                "K0_NC"                         : 0.5774
+            }
+        }
+    },{
+        "model_part_name" : "PorousDomain.Sand_Left",
+        "properties_id"   : 5,
+        "Material"        : {
+            "constitutive_law" : {
+                "name" : "GeoLinearElasticPlaneStrain2DLaw"
+            },
+            "Variables"        : {
+                "IGNORE_UNDRAINED"     : true,
+                "DENSITY_SOLID"        : 2475.61,
+                "DENSITY_WATER"        : 1019.37,
+                "POROSITY"             : 0.30,
+                "BULK_MODULUS_SOLID"   : 1000000000.0,
+                "BULK_MODULUS_FLUID"   : 2000000.0,
+                "PERMEABILITY_XX"      : 1.157e-15,
+                "PERMEABILITY_YY"      : 1.157e-15,
+                "PERMEABILITY_XY"      : 0.0,
+                "DYNAMIC_VISCOSITY"    : 0.001,
+                "YOUNG_MODULUS"        : 120000000.0,
+                "POISSON_RATIO"        : 0.2,
+                "BIOT_COEFFICIENT"     : 1.0,
+                "RETENTION_LAW"        : "SaturatedBelowPhreaticLevelLaw",
+                "SATURATED_SATURATION" : 1.0,
+                "RESIDUAL_SATURATION"  : 1e-10,
+                "MINIMUM_RELATIVE_PERMEABILITY" : 0.0001,
+                "K0_MAIN_DIRECTION"    : 1,
+                "K0_NC"                : 0.4701
+            }
+        }
+    },{
+        "model_part_name" : "PorousDomain.Sand_Right",
+        "properties_id"   : 6,
+        "Material"        : {
+            "constitutive_law" : {
+                "name" : "GeoLinearElasticPlaneStrain2DLaw"
+            },
+            "Variables"        : {
+                "IGNORE_UNDRAINED"     : true,
+                "DENSITY_SOLID"        : 2475.61,
+                "DENSITY_WATER"        : 1019.37,
+                "POROSITY"             : 0.30,
+                "BULK_MODULUS_SOLID"   : 1000000000.0,
+                "BULK_MODULUS_FLUID"   : 2000000.0,
+                "PERMEABILITY_XX"      : 1.157e-15,
+                "PERMEABILITY_YY"      : 1.157e-15,
+                "PERMEABILITY_XY"      : 0.0,
+                "DYNAMIC_VISCOSITY"    : 0.001,
+                "YOUNG_MODULUS"        : 120000000.0,
+                "POISSON_RATIO"        : 0.2,
+                "BIOT_COEFFICIENT"     : 1.0,
+                "RETENTION_LAW"        : "SaturatedBelowPhreaticLevelLaw",
+                "SATURATED_SATURATION" : 1.0,
+                "RESIDUAL_SATURATION"  : 1e-10,
+                "MINIMUM_RELATIVE_PERMEABILITY" : 0.0001,
+                "K0_MAIN_DIRECTION"    : 1,
+                "K0_NC"                : 0.4701
+            }
+        }
+    },{
+        "model_part_name" : "PorousDomain.Wall_Clay_Interface_Left",
+        "properties_id"   : 7,
+        "Material"        : {
+            "constitutive_law" : {
+                "name" : "GeoIncrementalLinearElasticInterfaceLaw"
+            },
+            "Variables"        : {
+                "INTERFACE_NORMAL_STIFFNESS" : 48000000,
+                "INTERFACE_SHEAR_STIFFNESS"  : 20869565
+            }
+        }
+    },{
+        "model_part_name" : "PorousDomain.Wall_Clay_Interface_Upper_Right",
+        "properties_id"   : 8,
+        "Material"        : {
+            "constitutive_law" : {
+                "name" : "GeoIncrementalLinearElasticInterfaceLaw"
+            },
+            "Variables"        : {
+                "INTERFACE_NORMAL_STIFFNESS" : 48000000,
+                "INTERFACE_SHEAR_STIFFNESS"  : 20869565
+            }
+        }
+    },{
+        "model_part_name" : "PorousDomain.Wall_Clay_Interface_Middle_Right",
+        "properties_id"   : 9,
+        "Material"        : {
+            "constitutive_law" : {
+                "name" : "GeoIncrementalLinearElasticInterfaceLaw"
+            },
+            "Variables"        : {
+                "INTERFACE_NORMAL_STIFFNESS" : 48000000,
+                "INTERFACE_SHEAR_STIFFNESS"  : 20869565
+            }
+        }
+    },{
+        "model_part_name" : "PorousDomain.Wall_Clay_Interface_Lower_Right",
+        "properties_id"   : 10,
+        "Material"        : {
+            "constitutive_law" : {
+                "name" : "GeoIncrementalLinearElasticInterfaceLaw"
+            },
+            "Variables"        : {
+                "INTERFACE_NORMAL_STIFFNESS" : 48000000,
+                "INTERFACE_SHEAR_STIFFNESS"  : 20869565
+            }
+        }
+    },{
+        "model_part_name" : "PorousDomain.Wall_Sand_Interface_Left",
+        "properties_id"   : 11,
+        "Material"        : {
+            "constitutive_law" : {
+                "name" : "GeoIncrementalLinearElasticInterfaceLaw"
+            },
+            "Variables"        : {
+                "INTERFACE_NORMAL_STIFFNESS" : 480000000,
+                "INTERFACE_SHEAR_STIFFNESS"  : 200000000
+            }
+        }
+    },{
+        "model_part_name" : "PorousDomain.Wall_Sand_Interface_Right",
+        "properties_id"   : 12,
+        "Material"        : {
+            "constitutive_law" : {
+                "name" : "GeoIncrementalLinearElasticInterfaceLaw"
+            },
+            "Variables"        : {
+                "INTERFACE_NORMAL_STIFFNESS" : 480000000,
+                "INTERFACE_SHEAR_STIFFNESS"  : 200000000
+            }
+        }
+    },{
+        "model_part_name" : "PorousDomain.Diaphragm_Wall",
+        "properties_id"   : 13,
+        "Material"        : {
+            "constitutive_law" : {
+                "name" : "TimoshenkoBeamPlaneStrainElasticConstitutiveLaw"
+            },
+            "Variables"        : {
+                "YOUNG_MODULUS" : 5.93e9,
+                "POISSON_RATIO" : 0.0,
+                "THICKNESS"     : 1.265,
+                "THICKNESS_EFFECTIVE_Y" : 0.025,
+                "DENSITY"       : 805.82
+            }
+        }
+    },{
+        "model_part_name" : "PorousDomain.Strut",
+        "properties_id"   : 14,
+        "Material"        : {
+            "constitutive_law" : {
+                "name" : "TrussConstitutiveLaw"
+            },
+            "Variables"        : {
+                "YOUNG_MODULUS"       : 2.0e9,
+                "DENSITY"             : 0.0,
+                "CROSS_AREA"          : 0.2,
+                "TRUSS_PRESTRESS_PK2" : 0.0
+            }
+        }
+    }]
+}
