@@ -13,9 +13,18 @@
 #include "containers/model.h"
 #include "custom_elements/transient_thermal_element.h"
 #include "geo_mechanics_application_variables.h"
+#include "geometries/hexahedra_3d_20.h"
+#include "geometries/hexahedra_3d_27.h"
+#include "geometries/hexahedra_3d_8.h"
+#include "geometries/quadrilateral_2d_4.h"
+#include "geometries/quadrilateral_2d_8.h"
+#include "geometries/quadrilateral_2d_9.h"
+#include "geometries/tetrahedra_3d_10.h"
 #include "geometries/triangle_2d_10.h"
 #include "geometries/triangle_2d_15.h"
-#include "tests/cpp_tests/geo_mechanics_fast_suite.h"
+#include "geometries/triangle_2d_6.h"
+#include "includes/expect.h"
+#include "tests/cpp_tests/geo_mechanics_fast_suite_without_kernel.h"
 #include <boost/numeric/ublas/assignment.hpp>
 
 using namespace Kratos;
@@ -72,16 +81,16 @@ void ValidateThermalElement(ModelPart& rModelPart)
     Element::DofsVectorType elemental_dofs;
     p_element->GetDofList(elemental_dofs, r_current_process_info);
 
-    KRATOS_EXPECT_EQ(elemental_dofs.size(), p_element->GetGeometry().size());
+    EXPECT_EQ(elemental_dofs.size(), p_element->GetGeometry().size());
     for (const auto& element_dof : elemental_dofs) {
         // Only the TEMPERATURE dofs should be returned by the element
-        KRATOS_EXPECT_EQ(element_dof->GetVariable(), TEMPERATURE);
+        EXPECT_EQ(element_dof->GetVariable(), TEMPERATURE);
     }
 
     Element::EquationIdVectorType equation_ids;
     p_element->EquationIdVector(equation_ids, r_current_process_info);
     for (unsigned int i = 0; i < equation_ids.size(); i++) {
-        KRATOS_EXPECT_EQ(equation_ids[i], i);
+        EXPECT_EQ(equation_ids[i], i);
     }
 }
 
@@ -97,7 +106,7 @@ Element::Pointer GenerateTransientThermalElementWithZeroDomainSize()
     return transient_thermal_element;
 }
 
-KRATOS_TEST_CASE_IN_SUITE(CheckElement_Throws_WhenDomainSizeIsInvalid, KratosGeoMechanicsFastSuiteWithoutKernel)
+TEST_F(KratosGeoMechanicsFastSuiteWithoutKernel, CheckElement_Throws_WhenDomainSizeIsInvalid)
 {
     Element::Pointer p_element = GenerateTransientThermalElementWithZeroDomainSize();
 
@@ -117,7 +126,7 @@ void GenerateTransientThermalElement2D3N(ModelPart& rModelPart)
     rModelPart.AddElement(transient_thermal_element);
 }
 
-KRATOS_TEST_CASE_IN_SUITE(CheckElement_Throws_WhenTemperatureIsMissing, KratosGeoMechanicsFastSuiteWithoutKernel)
+TEST_F(KratosGeoMechanicsFastSuiteWithoutKernel, CheckElement_Throws_WhenTemperatureIsMissing)
 {
     Model      this_model;
     ModelPart& model_part = this_model.CreateModelPart("Main", 3);
@@ -130,7 +139,7 @@ KRATOS_TEST_CASE_IN_SUITE(CheckElement_Throws_WhenTemperatureIsMissing, KratosGe
                                       "Missing variable TEMPERATURE on nodes 1 2 3")
 }
 
-KRATOS_TEST_CASE_IN_SUITE(CheckElement_Throws_WhenDtTemperatureIsMissing, KratosGeoMechanicsFastSuiteWithoutKernel)
+TEST_F(KratosGeoMechanicsFastSuiteWithoutKernel, CheckElement_Throws_WhenDtTemperatureIsMissing)
 {
     Model      this_model;
     ModelPart& model_part = this_model.CreateModelPart("Main", 3);
@@ -144,7 +153,7 @@ KRATOS_TEST_CASE_IN_SUITE(CheckElement_Throws_WhenDtTemperatureIsMissing, Kratos
                                       "Missing variable DT_TEMPERATURE on nodes 1 2 3")
 }
 
-KRATOS_TEST_CASE_IN_SUITE(CheckElement_Throws_WhenTemperatureDofIsMissing, KratosGeoMechanicsFastSuiteWithoutKernel)
+TEST_F(KratosGeoMechanicsFastSuiteWithoutKernel, CheckElement_Throws_WhenTemperatureDofIsMissing)
 {
     Model      this_model;
     ModelPart& model_part = this_model.CreateModelPart("Main", 3);
@@ -159,7 +168,7 @@ KRATOS_TEST_CASE_IN_SUITE(CheckElement_Throws_WhenTemperatureDofIsMissing, Krato
                                       "Missing the DoF for the variable TEMPERATURE on nodes 1 2 3")
 }
 
-KRATOS_TEST_CASE_IN_SUITE(CheckElement_Throws_WhenPropertyIsMissing, KratosGeoMechanicsFastSuiteWithoutKernel)
+TEST_F(KratosGeoMechanicsFastSuiteWithoutKernel, CheckElement_Throws_WhenPropertyIsMissing)
 {
     Model      this_model;
     ModelPart& model_part = this_model.CreateModelPart("Main", 3);
@@ -190,7 +199,7 @@ void GenerateTransientThermalElement2D3NWithNonZeroZ(ModelPart& rModelPart)
     rModelPart.AddElement(transient_thermal_element);
 }
 
-KRATOS_TEST_CASE_IN_SUITE(CheckElement_Throws_When2DElementHasNonZeroZValue, KratosGeoMechanicsFastSuiteWithoutKernel)
+TEST_F(KratosGeoMechanicsFastSuiteWithoutKernel, CheckElement_Throws_When2DElementHasNonZeroZValue)
 {
     Model      this_model;
     ModelPart& model_part = this_model.CreateModelPart("Main", 3);
@@ -204,7 +213,7 @@ KRATOS_TEST_CASE_IN_SUITE(CheckElement_Throws_When2DElementHasNonZeroZValue, Kra
                                       "Node with Id: 1 has non-zero Z coordinate.")
 }
 
-KRATOS_TEST_CASE_IN_SUITE(CheckElement_Returns0_When2DElementIsCorrectlySet, KratosGeoMechanicsFastSuiteWithoutKernel)
+TEST_F(KratosGeoMechanicsFastSuiteWithoutKernel, CheckElement_Returns0_When2DElementIsCorrectlySet)
 {
     Model      this_model;
     ModelPart& model_part = this_model.CreateModelPart("Main", 3);
@@ -214,30 +223,29 @@ KRATOS_TEST_CASE_IN_SUITE(CheckElement_Returns0_When2DElementIsCorrectlySet, Kra
     SetupElement(model_part);
 
     const ProcessInfo& r_current_process_info = model_part.GetProcessInfo();
-    KRATOS_EXPECT_EQ(model_part.GetElement(1).Check(r_current_process_info), 0);
+    EXPECT_EQ(model_part.GetElement(1).Check(r_current_process_info), 0);
 }
 
 void ExpectDoubleMatrixEqual(const Matrix& rExpectedMatrix, const Matrix& rActualMatrix)
 {
-    KRATOS_EXPECT_EQ(rActualMatrix.size1(), rExpectedMatrix.size1());
-    KRATOS_EXPECT_EQ(rActualMatrix.size2(), rExpectedMatrix.size2());
+    EXPECT_EQ(rActualMatrix.size1(), rExpectedMatrix.size1());
+    EXPECT_EQ(rActualMatrix.size2(), rExpectedMatrix.size2());
     for (std::size_t i = 0; i < rActualMatrix.size1(); i++) {
         for (std::size_t j = 0; j < rActualMatrix.size2(); j++) {
-            KRATOS_EXPECT_DOUBLE_EQ(rActualMatrix(i, j), rExpectedMatrix(i, j));
+            EXPECT_DOUBLE_EQ(rActualMatrix(i, j), rExpectedMatrix(i, j));
         }
     }
 }
 
 void ExpectDoubleVectorEqual(const Vector& rExpectedVector, const Vector& rActualVector)
 {
-    KRATOS_EXPECT_EQ(rActualVector.size(), rExpectedVector.size());
+    EXPECT_EQ(rActualVector.size(), rExpectedVector.size());
     for (std::size_t i = 0; i < rActualVector.size(); i++) {
-        KRATOS_EXPECT_DOUBLE_EQ(rActualVector[i], rExpectedVector[i]);
+        EXPECT_DOUBLE_EQ(rActualVector[i], rExpectedVector[i]);
     }
 }
 
-KRATOS_TEST_CASE_IN_SUITE(ThermalElement_ReturnsExpectedMatrixAndVector_WhenCalculateLocalSystem,
-                          KratosGeoMechanicsFastSuiteWithoutKernel)
+TEST_F(KratosGeoMechanicsFastSuiteWithoutKernel, ThermalElement_ReturnsExpectedMatrixAndVector_WhenCalculateLocalSystem)
 {
     Model      this_model;
     ModelPart& model_part = this_model.CreateModelPart("Main", 3);
@@ -268,7 +276,7 @@ KRATOS_TEST_CASE_IN_SUITE(ThermalElement_ReturnsExpectedMatrixAndVector_WhenCalc
     ExpectDoubleVectorEqual(expected_vector, right_hand_side);
 }
 
-KRATOS_TEST_CASE_IN_SUITE(EquationIdVectorTransientThermalElement2D3N, KratosGeoMechanicsFastSuiteWithoutKernel)
+TEST_F(KratosGeoMechanicsFastSuiteWithoutKernel, EquationIdVectorTransientThermalElement2D3N)
 {
     Model      this_model;
     ModelPart& model_part = this_model.CreateModelPart("Main", 3);
@@ -294,7 +302,7 @@ void GenerateTransientThermalElement2D4N(ModelPart& rModelPart)
     rModelPart.AddElement(transient_thermal_element);
 }
 
-KRATOS_TEST_CASE_IN_SUITE(EquationIdVectorTransientThermalElement2D4N, KratosGeoMechanicsFastSuiteWithoutKernel)
+TEST_F(KratosGeoMechanicsFastSuiteWithoutKernel, EquationIdVectorTransientThermalElement2D4N)
 {
     Model      this_model;
     ModelPart& model_part = this_model.CreateModelPart("Main", 3);
@@ -323,7 +331,7 @@ void GenerateTransientThermalElement2D6N(ModelPart& rModelPart)
     rModelPart.AddElement(transient_thermal_element);
 }
 
-KRATOS_TEST_CASE_IN_SUITE(EquationIdVectorTransientThermalElement2D6N, KratosGeoMechanicsFastSuiteWithoutKernel)
+TEST_F(KratosGeoMechanicsFastSuiteWithoutKernel, EquationIdVectorTransientThermalElement2D6N)
 {
     Model      this_model;
     ModelPart& model_part = this_model.CreateModelPart("Main", 3);
@@ -354,7 +362,7 @@ void GenerateTransientThermalElement2D8N(ModelPart& rModelPart)
     rModelPart.AddElement(transient_thermal_element);
 }
 
-KRATOS_TEST_CASE_IN_SUITE(EquationIdVectorTransientThermalElement2D8N, KratosGeoMechanicsFastSuiteWithoutKernel)
+TEST_F(KratosGeoMechanicsFastSuiteWithoutKernel, EquationIdVectorTransientThermalElement2D8N)
 {
     Model      this_model;
     ModelPart& model_part = this_model.CreateModelPart("Main", 3);
@@ -386,7 +394,7 @@ void GenerateTransientThermalElement2D9N(ModelPart& rModelPart)
     rModelPart.AddElement(transient_thermal_element);
 }
 
-KRATOS_TEST_CASE_IN_SUITE(EquationIdVectorTransientThermalElement2D9N, KratosGeoMechanicsFastSuiteWithoutKernel)
+TEST_F(KratosGeoMechanicsFastSuiteWithoutKernel, EquationIdVectorTransientThermalElement2D9N)
 {
     Model      this_model;
     ModelPart& model_part = this_model.CreateModelPart("Main", 3);
@@ -419,7 +427,7 @@ void GenerateTransientThermalElement2D10N(ModelPart& rModelPart)
     rModelPart.AddElement(transient_thermal_element);
 }
 
-KRATOS_TEST_CASE_IN_SUITE(EquationIdVectorTransientThermalElement2D10N, KratosGeoMechanicsFastSuiteWithoutKernel)
+TEST_F(KratosGeoMechanicsFastSuiteWithoutKernel, EquationIdVectorTransientThermalElement2D10N)
 {
     Model      this_model;
     ModelPart& model_part = this_model.CreateModelPart("Main", 3);
@@ -457,7 +465,7 @@ void GenerateTransientThermalElement2D15N(ModelPart& rModelPart)
     rModelPart.AddElement(transient_thermal_element);
 }
 
-KRATOS_TEST_CASE_IN_SUITE(EquationIdVectorTransientThermalElement2D15N, KratosGeoMechanicsFastSuiteWithoutKernel)
+TEST_F(KratosGeoMechanicsFastSuiteWithoutKernel, EquationIdVectorTransientThermalElement2D15N)
 {
     Model      this_model;
     ModelPart& model_part = this_model.CreateModelPart("Main", 3);
@@ -485,7 +493,7 @@ void GenerateTransientThermalElement3D4N(ModelPart& rModelPart)
     rModelPart.AddElement(transient_thermal_element);
 }
 
-KRATOS_TEST_CASE_IN_SUITE(CheckElement_Throws_When3DPropertyHasInvalidValue, KratosGeoMechanicsFastSuiteWithoutKernel)
+TEST_F(KratosGeoMechanicsFastSuiteWithoutKernel, CheckElement_Throws_When3DPropertyHasInvalidValue)
 {
     Model      this_model;
     ModelPart& model_part = this_model.CreateModelPart("Main", 3);
@@ -504,7 +512,7 @@ KRATOS_TEST_CASE_IN_SUITE(CheckElement_Throws_When3DPropertyHasInvalidValue, Kra
         "invalid value: -5 is out of the range [0, -).")
 }
 
-KRATOS_TEST_CASE_IN_SUITE(EquationIdVectorTransientThermalElement3D4N, KratosGeoMechanicsFastSuiteWithoutKernel)
+TEST_F(KratosGeoMechanicsFastSuiteWithoutKernel, EquationIdVectorTransientThermalElement3D4N)
 {
     Model      this_model;
     ModelPart& model_part = this_model.CreateModelPart("Main", 3);
@@ -535,7 +543,7 @@ void GenerateTransientThermalElement3D8N(ModelPart& rModelPart)
     rModelPart.AddElement(transient_thermal_element);
 }
 
-KRATOS_TEST_CASE_IN_SUITE(EquationIdVectorTransientThermalElement3D8N, KratosGeoMechanicsFastSuiteWithoutKernel)
+TEST_F(KratosGeoMechanicsFastSuiteWithoutKernel, EquationIdVectorTransientThermalElement3D8N)
 {
     Model      this_model;
     ModelPart& model_part = this_model.CreateModelPart("Main", 3);
@@ -568,7 +576,7 @@ void GenerateTransientThermalElement3D10N(ModelPart& rModelPart)
     rModelPart.AddElement(transient_thermal_element);
 }
 
-KRATOS_TEST_CASE_IN_SUITE(EquationIdVectorTransientThermalElement3D10N, KratosGeoMechanicsFastSuiteWithoutKernel)
+TEST_F(KratosGeoMechanicsFastSuiteWithoutKernel, EquationIdVectorTransientThermalElement3D10N)
 {
     Model      this_model;
     ModelPart& model_part = this_model.CreateModelPart("Main", 3);
@@ -611,7 +619,7 @@ void GenerateTransientThermalElement3D20N(ModelPart& rModelPart)
     rModelPart.AddElement(transient_thermal_element);
 }
 
-KRATOS_TEST_CASE_IN_SUITE(EquationIdVectorTransientThermalElement3D20N, KratosGeoMechanicsFastSuiteWithoutKernel)
+TEST_F(KratosGeoMechanicsFastSuiteWithoutKernel, EquationIdVectorTransientThermalElement3D20N)
 {
     Model      this_model;
     ModelPart& model_part = this_model.CreateModelPart("Main", 3);
@@ -661,7 +669,7 @@ void GenerateTransientThermalElement3D27N(ModelPart& rModelPart)
     rModelPart.AddElement(transient_thermal_element);
 }
 
-KRATOS_TEST_CASE_IN_SUITE(EquationIdVectorTransientThermalElement3D27N, KratosGeoMechanicsFastSuiteWithoutKernel)
+TEST_F(KratosGeoMechanicsFastSuiteWithoutKernel, EquationIdVectorTransientThermalElement3D27N)
 {
     Model      this_model;
     ModelPart& model_part = this_model.CreateModelPart("Main", 3);
@@ -674,8 +682,7 @@ KRATOS_TEST_CASE_IN_SUITE(EquationIdVectorTransientThermalElement3D27N, KratosGe
     ValidateThermalElement(model_part);
 }
 
-KRATOS_TEST_CASE_IN_SUITE(TransientThermalElement_GetIntegrationMethodForAllRegisteredElements,
-                          KratosGeoMechanicsFastSuiteWithoutKernel)
+TEST_F(KratosGeoMechanicsFastSuiteWithoutKernel, TransientThermalElement_GetIntegrationMethodForAllRegisteredElements)
 {
     const auto          p_properties = std::make_shared<Properties>();
     PointerVector<Node> nodes;
@@ -685,86 +692,79 @@ KRATOS_TEST_CASE_IN_SUITE(TransientThermalElement_GetIntegrationMethodForAllRegi
     // Act and Assert
     auto p_transient_thermal_line_element_2D2N = make_intrusive<TransientThermalElement<2, 2>>(
         1, std::make_shared<Line2D2<Node>>(nodes), p_properties);
-    KRATOS_EXPECT_EQ(p_transient_thermal_line_element_2D2N->GetIntegrationMethod(),
-                     GeometryData::IntegrationMethod::GI_GAUSS_2);
+    EXPECT_EQ(p_transient_thermal_line_element_2D2N->GetIntegrationMethod(),
+              GeometryData::IntegrationMethod::GI_GAUSS_2);
 
     auto p_transient_thermal_line_element_3D2N = make_intrusive<TransientThermalElement<3, 2>>(
         1, std::make_shared<Line3D2<Node>>(nodes), p_properties);
-    KRATOS_EXPECT_EQ(p_transient_thermal_line_element_3D2N->GetIntegrationMethod(),
-                     GeometryData::IntegrationMethod::GI_GAUSS_2);
+    EXPECT_EQ(p_transient_thermal_line_element_3D2N->GetIntegrationMethod(),
+              GeometryData::IntegrationMethod::GI_GAUSS_2);
 
     nodes.push_back(make_intrusive<Node>(3, 1.0, 1.0, 0.0));
     auto p_transient_thermal_line_element_2D3N = make_intrusive<TransientThermalElement<2, 3>>(
         1, std::make_shared<Line2D3<Node>>(nodes), p_properties);
-    KRATOS_EXPECT_EQ(p_transient_thermal_line_element_2D3N->GetIntegrationMethod(),
-                     GeometryData::IntegrationMethod::GI_GAUSS_2);
+    EXPECT_EQ(p_transient_thermal_line_element_2D3N->GetIntegrationMethod(),
+              GeometryData::IntegrationMethod::GI_GAUSS_2);
 
     auto p_transient_thermal_line_element_3D3N = make_intrusive<TransientThermalElement<3, 3>>(
         1, std::make_shared<Line3D3<Node>>(nodes), p_properties);
-    KRATOS_EXPECT_EQ(p_transient_thermal_line_element_3D3N->GetIntegrationMethod(),
-                     GeometryData::IntegrationMethod::GI_GAUSS_2);
+    EXPECT_EQ(p_transient_thermal_line_element_3D3N->GetIntegrationMethod(),
+              GeometryData::IntegrationMethod::GI_GAUSS_2);
 
     auto p_transient_thermal_element_2D3N = make_intrusive<TransientThermalElement<2, 3>>(
         1, std::make_shared<Triangle2D3<Node>>(nodes), p_properties);
-    KRATOS_EXPECT_EQ(p_transient_thermal_element_2D3N->GetIntegrationMethod(),
-                     GeometryData::IntegrationMethod::GI_GAUSS_2);
+    EXPECT_EQ(p_transient_thermal_element_2D3N->GetIntegrationMethod(), GeometryData::IntegrationMethod::GI_GAUSS_2);
 
     nodes.push_back(make_intrusive<Node>(4, 0.5, 0.0, 0.0));
     auto p_transient_thermal_line_element_2D4N = make_intrusive<TransientThermalElement<2, 4>>(
         1, std::make_shared<Line2D4<Node>>(nodes), p_properties);
-    KRATOS_EXPECT_EQ(p_transient_thermal_line_element_2D4N->GetIntegrationMethod(),
-                     GeometryData::IntegrationMethod::GI_GAUSS_3);
+    EXPECT_EQ(p_transient_thermal_line_element_2D4N->GetIntegrationMethod(),
+              GeometryData::IntegrationMethod::GI_GAUSS_3);
 
     auto p_transient_thermal_element_2D4N = make_intrusive<TransientThermalElement<2, 4>>(
         1, std::make_shared<Quadrilateral2D4<Node>>(nodes), p_properties);
-    KRATOS_EXPECT_EQ(p_transient_thermal_element_2D4N->GetIntegrationMethod(),
-                     GeometryData::IntegrationMethod::GI_GAUSS_2);
+    EXPECT_EQ(p_transient_thermal_element_2D4N->GetIntegrationMethod(), GeometryData::IntegrationMethod::GI_GAUSS_2);
 
     auto p_transient_thermal_element_3D4N = make_intrusive<TransientThermalElement<3, 4>>(
         1, std::make_shared<Tetrahedra3D4<Node>>(nodes), p_properties);
-    KRATOS_EXPECT_EQ(p_transient_thermal_element_3D4N->GetIntegrationMethod(),
-                     GeometryData::IntegrationMethod::GI_GAUSS_2);
+    EXPECT_EQ(p_transient_thermal_element_3D4N->GetIntegrationMethod(), GeometryData::IntegrationMethod::GI_GAUSS_2);
 
     nodes.push_back(make_intrusive<Node>(5, 1.0, 0.5, 0.0));
     auto p_transient_thermal_line_element_2D5N = make_intrusive<TransientThermalElement<2, 5>>(
         1, std::make_shared<Line2D5<Node>>(nodes), p_properties);
-    KRATOS_EXPECT_EQ(p_transient_thermal_line_element_2D5N->GetIntegrationMethod(),
-                     GeometryData::IntegrationMethod::GI_GAUSS_5);
+    EXPECT_EQ(p_transient_thermal_line_element_2D5N->GetIntegrationMethod(),
+              GeometryData::IntegrationMethod::GI_GAUSS_5);
 
     nodes.push_back(make_intrusive<Node>(6, 0.5, 0.5, 0.0));
     auto p_transient_thermal_element_2D6N = make_intrusive<TransientThermalElement<2, 6>>(
         1, std::make_shared<Triangle2D6<Node>>(nodes), p_properties);
-    KRATOS_EXPECT_EQ(p_transient_thermal_element_2D6N->GetIntegrationMethod(),
-                     GeometryData::IntegrationMethod::GI_GAUSS_2);
+    EXPECT_EQ(p_transient_thermal_element_2D6N->GetIntegrationMethod(), GeometryData::IntegrationMethod::GI_GAUSS_2);
 
     nodes.push_back(make_intrusive<Node>(7, 0.5, 0.5, 0.0));
     nodes.push_back(make_intrusive<Node>(8, 0.5, 0.5, 0.0));
     auto p_transient_thermal_element_2D8N = make_intrusive<TransientThermalElement<2, 8>>(
         1, std::make_shared<Quadrilateral2D8<Node>>(nodes), p_properties);
-    KRATOS_EXPECT_EQ(p_transient_thermal_element_2D8N->GetIntegrationMethod(),
-                     GeometryData::IntegrationMethod::GI_GAUSS_2);
+    EXPECT_EQ(p_transient_thermal_element_2D8N->GetIntegrationMethod(), GeometryData::IntegrationMethod::GI_GAUSS_2);
 
     auto p_transient_thermal_element_3D8N = make_intrusive<TransientThermalElement<3, 8>>(
         1, std::make_shared<Hexahedra3D8<Node>>(nodes), p_properties);
-    KRATOS_EXPECT_EQ(p_transient_thermal_element_3D8N->GetIntegrationMethod(),
-                     GeometryData::IntegrationMethod::GI_GAUSS_2);
+    EXPECT_EQ(p_transient_thermal_element_3D8N->GetIntegrationMethod(), GeometryData::IntegrationMethod::GI_GAUSS_2);
 
     nodes.push_back(make_intrusive<Node>(9, 0.5, 0.5, 0.0));
     auto p_transient_thermal_element_2D9N = make_intrusive<TransientThermalElement<2, 9>>(
         1, std::make_shared<Quadrilateral2D9<Node>>(nodes), p_properties);
-    KRATOS_EXPECT_EQ(p_transient_thermal_element_2D9N->GetIntegrationMethod(),
-                     GeometryData::IntegrationMethod::GI_GAUSS_2);
+    EXPECT_EQ(p_transient_thermal_element_2D9N->GetIntegrationMethod(), GeometryData::IntegrationMethod::GI_GAUSS_2);
 
     nodes.push_back(make_intrusive<Node>(10, 0.5, 0.5, 0.0));
     auto p_transient_thermal_element_2D10N = make_intrusive<TransientThermalElement<2, 10>>(
         1, std::make_shared<Triangle2D10<Node>>(nodes), p_properties);
-    KRATOS_EXPECT_EQ(p_transient_thermal_element_2D10N->GetIntegrationMethod(),
-                     GeometryData::IntegrationMethod::GI_GAUSS_4);
+    EXPECT_EQ(p_transient_thermal_element_2D10N->GetIntegrationMethod(),
+              GeometryData::IntegrationMethod::GI_GAUSS_4);
 
     auto p_transient_thermal_element_3D10N = make_intrusive<TransientThermalElement<3, 10>>(
         1, std::make_shared<Tetrahedra3D10<Node>>(nodes), p_properties);
-    KRATOS_EXPECT_EQ(p_transient_thermal_element_3D10N->GetIntegrationMethod(),
-                     GeometryData::IntegrationMethod::GI_GAUSS_2);
+    EXPECT_EQ(p_transient_thermal_element_3D10N->GetIntegrationMethod(),
+              GeometryData::IntegrationMethod::GI_GAUSS_2);
 
     nodes.push_back(make_intrusive<Node>(11, 0.5, 0.5, 0.0));
     nodes.push_back(make_intrusive<Node>(12, 0.5, 0.5, 0.0));
@@ -774,8 +774,8 @@ KRATOS_TEST_CASE_IN_SUITE(TransientThermalElement_GetIntegrationMethodForAllRegi
 
     auto p_transient_thermal_element_2D15N = make_intrusive<TransientThermalElement<2, 15>>(
         1, std::make_shared<Triangle2D15<Node>>(nodes), p_properties);
-    KRATOS_EXPECT_EQ(p_transient_thermal_element_2D15N->GetIntegrationMethod(),
-                     GeometryData::IntegrationMethod::GI_GAUSS_5);
+    EXPECT_EQ(p_transient_thermal_element_2D15N->GetIntegrationMethod(),
+              GeometryData::IntegrationMethod::GI_GAUSS_5);
 
     nodes.push_back(make_intrusive<Node>(16, 0.5, 0.5, 0.0));
     nodes.push_back(make_intrusive<Node>(17, 0.5, 0.5, 0.0));
@@ -785,8 +785,8 @@ KRATOS_TEST_CASE_IN_SUITE(TransientThermalElement_GetIntegrationMethodForAllRegi
 
     auto p_transient_thermal_element_3D20N = make_intrusive<TransientThermalElement<3, 20>>(
         1, std::make_shared<Hexahedra3D20<Node>>(nodes), p_properties);
-    KRATOS_EXPECT_EQ(p_transient_thermal_element_3D20N->GetIntegrationMethod(),
-                     GeometryData::IntegrationMethod::GI_GAUSS_2);
+    EXPECT_EQ(p_transient_thermal_element_3D20N->GetIntegrationMethod(),
+              GeometryData::IntegrationMethod::GI_GAUSS_2);
 
     nodes.push_back(make_intrusive<Node>(21, 0.5, 0.5, 0.0));
     nodes.push_back(make_intrusive<Node>(22, 0.5, 0.5, 0.0));
@@ -798,8 +798,8 @@ KRATOS_TEST_CASE_IN_SUITE(TransientThermalElement_GetIntegrationMethodForAllRegi
 
     auto p_transient_thermal_element_3D27N = make_intrusive<TransientThermalElement<3, 27>>(
         1, std::make_shared<Hexahedra3D27<Node>>(nodes), p_properties);
-    KRATOS_EXPECT_EQ(p_transient_thermal_element_3D27N->GetIntegrationMethod(),
-                     GeometryData::IntegrationMethod::GI_GAUSS_2);
+    EXPECT_EQ(p_transient_thermal_element_3D27N->GetIntegrationMethod(),
+              GeometryData::IntegrationMethod::GI_GAUSS_2);
 }
 
 } // namespace Kratos::Testing
