@@ -11,8 +11,7 @@
 //                   Vahid Galavi
 //
 
-#if !defined(KRATOS_GEO_U_PW_SMALL_STRAIN_FIC_ELEMENT_H_INCLUDED)
-#define KRATOS_GEO_U_PW_SMALL_STRAIN_FIC_ELEMENT_H_INCLUDED
+#pragma once
 
 // System includes
 #include <cmath>
@@ -21,8 +20,8 @@
 #include "includes/serializer.h"
 
 // Application includes
-#include "custom_elements/U_Pw_base_element.hpp"
-#include "custom_elements/U_Pw_small_strain_element.hpp"
+#include "custom_elements/U_Pw_base_element.h"
+#include "custom_elements/U_Pw_small_strain_element.h"
 #include "geo_mechanics_application_variables.h"
 
 namespace Kratos
@@ -102,15 +101,10 @@ public:
     void FinalizeNonLinearIteration(const ProcessInfo& rCurrentProcessInfo) override;
 
     // Turn back information as a string.
-    std::string Info() const override
-    {
-        const std::string constitutive_info =
-            !mConstitutiveLawVector.empty() ? mConstitutiveLawVector[0]->Info() : "not defined";
-        return "U-Pw smal strain FIC Element #" + std::to_string(this->Id()) + "\nConstitutive law: " + constitutive_info;
-    }
+    std::string Info() const override;
 
     // Print information about this object.
-    void PrintInfo(std::ostream& rOStream) const override { rOStream << Info(); }
+    void PrintInfo(std::ostream& rOStream) const override;
 
 protected:
     struct FICElementVariables {
@@ -223,18 +217,10 @@ private:
 
     friend class Serializer;
 
-    void save(Serializer& rSerializer) const override
-    {
-        KRATOS_SERIALIZE_SAVE_BASE_CLASS(rSerializer, Element)
-    }
+    void save(Serializer& rSerializer) const override;
 
-    void load(Serializer& rSerializer) override
-    {
-        KRATOS_SERIALIZE_LOAD_BASE_CLASS(rSerializer, Element)
-    }
+    void load(Serializer& rSerializer) override;
 
 }; // Class UPwSmallStrainFICElement
 
 } // namespace Kratos
-
-#endif // KRATOS_GEO_U_PW_SMALL_STRAIN_FIC_ELEMENT_H_INCLUDED  defined

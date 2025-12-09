@@ -13,7 +13,7 @@
 // External includes
 
 // Project includes
-#include "custom_elements/U_Pw_updated_lagrangian_element.hpp"
+#include "custom_elements/U_Pw_updated_lagrangian_element.h"
 #include "custom_utilities/math_utilities.h"
 #include "custom_utilities/transport_equation_utilities.hpp"
 #include "utilities/math_utils.h"
@@ -104,6 +104,38 @@ std::vector<double> UPwUpdatedLagrangianElement<TDim, TNumNodes>::GetOptionalPer
     const std::vector<Vector>&) const
 {
     return {};
+}
+
+template <unsigned int TDim, unsigned int TNumNodes>
+std::string UPwUpdatedLagrangianElement<TDim, TNumNodes>::Info() const
+{
+    const std::string constitutive_info =
+        !mConstitutiveLawVector.empty() ? mConstitutiveLawVector[0]->Info() : "not defined";
+    return "Updated Lagrangian U-Pw Element #" + std::to_string(this->Id()) + "\nConstitutive law: " + constitutive_info;
+}
+
+template <unsigned int TDim, unsigned int TNumNodes>
+void UPwUpdatedLagrangianElement<TDim, TNumNodes>::PrintInfo(std::ostream& rOStream) const
+{
+    rOStream << Info();
+}
+
+template <unsigned int TDim, unsigned int TNumNodes>
+void UPwUpdatedLagrangianElement<TDim, TNumNodes>::PrintData(std::ostream& rOStream) const
+{
+    this->pGetGeometry()->PrintData(rOStream);
+}
+
+template <unsigned int TDim, unsigned int TNumNodes>
+void UPwUpdatedLagrangianElement<TDim, TNumNodes>::save(Serializer& rSerializer) const
+{
+    KRATOS_SERIALIZE_SAVE_BASE_CLASS(rSerializer, BaseType)
+}
+
+template <unsigned int TDim, unsigned int TNumNodes>
+void UPwUpdatedLagrangianElement<TDim, TNumNodes>::load(Serializer& rSerializer)
+{
+    KRATOS_SERIALIZE_LOAD_BASE_CLASS(rSerializer, BaseType)
 }
 
 template class UPwUpdatedLagrangianElement<2, 3>;

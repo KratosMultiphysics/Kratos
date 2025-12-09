@@ -12,7 +12,7 @@
 //
 
 // Application includes
-#include "custom_elements/U_Pw_small_strain_element.hpp"
+#include "custom_elements/U_Pw_small_strain_element.h"
 #include "custom_utilities/check_utilities.h"
 #include "custom_utilities/constitutive_law_utilities.h"
 #include "custom_utilities/equation_of_motion_utilities.h"
@@ -1351,6 +1351,20 @@ void UPwSmallStrainElement<TDim, TNumNodes>::CalculateAnyOfMaterialResponse(
 
         mConstitutiveLawVector[integration_point]->CalculateMaterialResponseCauchy(rConstitutiveParameters);
     }
+}
+
+template <unsigned int TDim, unsigned int TNumNodes>
+std::string UPwSmallStrainElement<TDim, TNumNodes>::Info() const
+{
+    const std::string constitutive_info =
+        !mConstitutiveLawVector.empty() ? mConstitutiveLawVector[0]->Info() : "not defined";
+    return "U-Pw small strain Element #" + std::to_string(this->Id()) + "\nConstitutive law: " + constitutive_info;
+}
+
+template <unsigned int TDim, unsigned int TNumNodes>
+void UPwSmallStrainElement<TDim, TNumNodes>::PrintInfo(std::ostream& rOStream) const
+{
+    rOStream << Info();
 }
 
 template class UPwSmallStrainElement<2, 3>;

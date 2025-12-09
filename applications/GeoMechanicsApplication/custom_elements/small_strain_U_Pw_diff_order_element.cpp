@@ -24,7 +24,7 @@
 #include "utilities/math_utils.h"
 
 // Application includes
-#include "custom_elements/small_strain_U_Pw_diff_order_element.hpp"
+#include "custom_elements/small_strain_U_Pw_diff_order_element.h"
 #include "custom_utilities/check_utilities.h"
 #include "custom_utilities/constitutive_law_utilities.h"
 #include "custom_utilities/dof_utilities.h"
@@ -1656,5 +1656,15 @@ void SmallStrainUPwDiffOrderElement::CalculateAnyOfMaterialResponse(
         mConstitutiveLawVector[GPoint]->CalculateMaterialResponseCauchy(rConstitutiveParameters);
     }
 }
+
+std::string SmallStrainUPwDiffOrderElement::Info() const
+{
+    const std::string constitutive_info =
+        !mConstitutiveLawVector.empty() ? mConstitutiveLawVector[0]->Info() : "not defined";
+    return "U-Pw small strain different order Element #" + std::to_string(Id()) +
+           "\nConstitutive law: " + constitutive_info;
+}
+
+void SmallStrainUPwDiffOrderElement::PrintInfo(std::ostream& rOStream) const { rOStream << Info(); }
 
 } // Namespace Kratos

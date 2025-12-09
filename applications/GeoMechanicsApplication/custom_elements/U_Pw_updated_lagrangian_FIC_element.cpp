@@ -13,7 +13,7 @@
 // External includes
 
 // Project includes
-#include "custom_elements/U_Pw_updated_lagrangian_FIC_element.hpp"
+#include "custom_elements/U_Pw_updated_lagrangian_FIC_element.h"
 #include "custom_utilities/equation_of_motion_utilities.h"
 #include "custom_utilities/math_utilities.h"
 #include "custom_utilities/transport_equation_utilities.hpp"
@@ -185,6 +185,41 @@ void UPwUpdatedLagrangianFICElement<TDim, TNumNodes>::CalculateOnIntegrationPoin
         UPwSmallStrainFICElement<TDim, TNumNodes>::CalculateOnIntegrationPoints(
             rVariable, rOutput, rCurrentProcessInfo);
     }
+}
+
+template <unsigned int TDim, unsigned int TNumNodes>
+std::string UPwUpdatedLagrangianFICElement<TDim, TNumNodes>::Info() const
+{
+    const std::string constitutive_info =
+        !mConstitutiveLawVector.empty() ? mConstitutiveLawVector[0]->Info() : "not defined";
+    return "Updated Lagrangian U-Pw FIC Element #" + std::to_string(this->Id()) +
+           "\nConstitutive law: " + constitutive_info;
+}
+
+/// Print information about this object.
+template <unsigned int TDim, unsigned int TNumNodes>
+void UPwUpdatedLagrangianFICElement<TDim, TNumNodes>::PrintInfo(std::ostream& rOStream) const
+{
+    rOStream << Info();
+}
+
+/// Print object's data.
+template <unsigned int TDim, unsigned int TNumNodes>
+void UPwUpdatedLagrangianFICElement<TDim, TNumNodes>::PrintData(std::ostream& rOStream) const
+{
+    this->pGetGeometry()->PrintData(rOStream);
+}
+
+template <unsigned int TDim, unsigned int TNumNodes>
+void UPwUpdatedLagrangianFICElement<TDim, TNumNodes>::save(Serializer& rSerializer) const
+{
+    KRATOS_SERIALIZE_SAVE_BASE_CLASS(rSerializer, BaseType)
+}
+
+template <unsigned int TDim, unsigned int TNumNodes>
+void UPwUpdatedLagrangianFICElement<TDim, TNumNodes>::load(Serializer& rSerializer)
+{
+    KRATOS_SERIALIZE_LOAD_BASE_CLASS(rSerializer, BaseType)
 }
 
 template class UPwUpdatedLagrangianFICElement<2, 3>;

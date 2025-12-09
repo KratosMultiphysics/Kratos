@@ -10,8 +10,7 @@
 //  Main authors:    Vahid Galavi
 //
 
-#if !defined(KRATOS_GEO_CR_BEAM_ELEMENT_LINEAR_2D2N_H_INCLUDED)
-#define KRATOS_GEO_CR_BEAM_ELEMENT_LINEAR_2D2N_H_INCLUDED
+#pragma once
 
 // System includes
 
@@ -113,5 +112,3 @@ private:
 };
 
 } // namespace Kratos
-
-#endif

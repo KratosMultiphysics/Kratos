@@ -17,7 +17,7 @@
 #include "includes/serializer.h"
 
 // Application includes
-#include "custom_elements/U_Pw_base_element.hpp"
+#include "custom_elements/U_Pw_base_element.h"
 #include "custom_utilities/interface_element_utilities.h"
 #include "geo_mechanics_application_variables.h"
 
@@ -281,18 +281,9 @@ protected:
     Vector SetFullStressVector(const Vector& rStressVector);
 
 private:
-    /// Serialization
     friend class Serializer;
-
-    void save(Serializer& rSerializer) const override
-    {
-        KRATOS_SERIALIZE_SAVE_BASE_CLASS(rSerializer, Element)
-    }
-
-    void load(Serializer& rSerializer) override
-    {
-        KRATOS_SERIALIZE_LOAD_BASE_CLASS(rSerializer, Element)
-    }
+    void save(Serializer& rSerializer) const override;
+    void load(Serializer& rSerializer) override;
 
 }; // Class UPwSmallStrainInterfaceElement
 

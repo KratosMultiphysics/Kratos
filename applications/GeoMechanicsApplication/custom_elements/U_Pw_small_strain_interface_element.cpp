@@ -12,7 +12,7 @@
 //
 
 // Application includes
-#include "custom_elements/U_Pw_small_strain_interface_element.hpp"
+#include "custom_elements/U_Pw_small_strain_interface_element.h"
 #include "custom_utilities/check_utilities.h"
 #include "custom_utilities/constitutive_law_utilities.h"
 #include "custom_utilities/stress_strain_utilities.h"
@@ -1885,6 +1885,18 @@ void UPwSmallStrainInterfaceElement<TDim, TNumNodes>::InitializeBiotCoefficients
     rVariables.BiotModulusInverse -= rVariables.DerivativeOfSaturation * r_properties[POROSITY];
 
     KRATOS_CATCH("")
+}
+
+template <unsigned int TDim, unsigned int TNumNodes>
+void UPwSmallStrainInterfaceElement<TDim, TNumNodes>::save(Serializer& rSerializer) const
+{
+    KRATOS_SERIALIZE_SAVE_BASE_CLASS(rSerializer, Element)
+}
+
+template <unsigned int TDim, unsigned int TNumNodes>
+void UPwSmallStrainInterfaceElement<TDim, TNumNodes>::load(Serializer& rSerializer)
+{
+    KRATOS_SERIALIZE_LOAD_BASE_CLASS(rSerializer, Element)
 }
 
 template <>

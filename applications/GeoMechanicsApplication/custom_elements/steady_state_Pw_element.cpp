@@ -11,7 +11,7 @@
 //
 
 // Application includes
-#include "custom_elements/steady_state_Pw_element.hpp"
+#include "custom_elements/steady_state_Pw_element.h"
 #include "custom_utilities/check_utilities.h"
 #include "custom_utilities/transport_equation_utilities.hpp"
 #include "includes/cfd_variables.h"
@@ -145,6 +145,31 @@ void SteadyStatePwElement<TDim, TNumNodes>::CalculateAndAddRHS(VectorType& rRigh
     this->CalculateAndAddFluidBodyFlow(rRightHandSideVector, rVariables);
 
     KRATOS_CATCH("")
+}
+
+template <unsigned int TDim, unsigned int TNumNodes>
+std::string SteadyStatePwElement<TDim, TNumNodes>::Info() const
+{
+    const std::string retention_info = !mRetentionLawVector.empty() ? mRetentionLawVector[0]->Info() : "not defined";
+    return "steady-state Pw flow Element #" + std::to_string(this->Id()) + "\nRetention law: " + retention_info;
+}
+
+template <unsigned int TDim, unsigned int TNumNodes>
+void SteadyStatePwElement<TDim, TNumNodes>::PrintInfo(std::ostream& rOStream) const
+{
+    rOStream << this->Info();
+}
+
+template <unsigned int TDim, unsigned int TNumNodes>
+void SteadyStatePwElement<TDim, TNumNodes>::save(Serializer& rSerializer) const
+{
+    KRATOS_SERIALIZE_SAVE_BASE_CLASS(rSerializer, Element)
+}
+
+template <unsigned int TDim, unsigned int TNumNodes>
+void SteadyStatePwElement<TDim, TNumNodes>::load(Serializer& rSerializer)
+{
+    KRATOS_SERIALIZE_LOAD_BASE_CLASS(rSerializer, Element)
 }
 
 template class SteadyStatePwElement<2, 3>;

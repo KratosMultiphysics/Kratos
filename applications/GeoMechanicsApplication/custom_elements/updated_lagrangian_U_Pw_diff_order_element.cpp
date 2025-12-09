@@ -13,7 +13,7 @@
 // External includes
 
 // Project includes
-#include "custom_elements/updated_lagrangian_U_Pw_diff_order_element.hpp"
+#include "custom_elements/updated_lagrangian_U_Pw_diff_order_element.h"
 #include "custom_utilities/math_utilities.h"
 #include "custom_utilities/transport_equation_utilities.hpp"
 #include "utilities/math_utils.h"
@@ -145,9 +145,24 @@ void UpdatedLagrangianUPwDiffOrderElement::save(Serializer& rSerializer) const
     KRATOS_SERIALIZE_SAVE_BASE_CLASS(rSerializer, SmallStrainUPwDiffOrderElement)
 }
 
-void UpdatedLagrangianUPwDiffOrderElement::load(Serializer& rSerializer)
+void UpdatedLagrangianUPwDiffOrderElement::load(Serializer& rSerializer){
+    KRATOS_SERIALIZE_LOAD_BASE_CLASS(rSerializer, SmallStrainUPwDiffOrderElement)}
+
+std::string UpdatedLagrangianUPwDiffOrderElement::Info() const
 {
-    KRATOS_SERIALIZE_LOAD_BASE_CLASS(rSerializer, SmallStrainUPwDiffOrderElement)
+    const std::string constitutive_info =
+        !mConstitutiveLawVector.empty() ? mConstitutiveLawVector[0]->Info() : "not defined";
+    return "Updated Lagrangian U-Pw different order Element #" + std::to_string(this->Id()) +
+           "\nConstitutive law: " + constitutive_info;
 }
 
+void UpdatedLagrangianUPwDiffOrderElement::PrintInfo(std::ostream& rOStream) const
+{
+    rOStream << Info();
+}
+
+void UpdatedLagrangianUPwDiffOrderElement::PrintData(std::ostream& rOStream) const
+{
+    this->pGetGeometry()->PrintData(rOStream);
+}
 } // Namespace Kratos
