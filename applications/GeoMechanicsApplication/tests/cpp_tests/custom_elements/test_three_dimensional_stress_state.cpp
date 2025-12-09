@@ -14,9 +14,10 @@
 #include "custom_elements/three_dimensional_stress_state.h"
 #include "custom_utilities/registration_utilities.h"
 #include "includes/checks.h"
+#include "includes/expect.h"
 #include "includes/stream_serializer.h"
 #include "test_setup_utilities/model_setup_utilities.h"
-#include "tests/cpp_tests/geo_mechanics_fast_suite.h"
+#include "tests/cpp_tests/geo_mechanics_fast_suite_without_kernel.h"
 #include "tests/cpp_tests/test_utilities.h"
 
 #include <boost/numeric/ublas/assignment.hpp>
@@ -29,8 +30,7 @@ using namespace std::string_literals;
 namespace Kratos::Testing
 {
 
-KRATOS_TEST_CASE_IN_SUITE(ThreeDimensionalStressState_CalculateBMatrixReturnsCorrectResults,
-                          KratosGeoMechanicsFastSuiteWithoutKernel)
+TEST_F(KratosGeoMechanicsFastSuiteWithoutKernel, ThreeDimensionalStressState_CalculateBMatrixReturnsCorrectResults)
 {
     auto p_stress_state_policy = std::make_unique<ThreeDimensionalStressState>();
 
@@ -67,7 +67,7 @@ KRATOS_TEST_CASE_IN_SUITE(ThreeDimensionalStressState_CalculateBMatrixReturnsCor
     KRATOS_CHECK_MATRIX_NEAR(calculated_matrix, expected_matrix, 1e-12)
 }
 
-KRATOS_TEST_CASE_IN_SUITE(ThreeDimensionalStressState_CannotBeCopiedButItCanBeMoved, KratosGeoMechanicsFastSuiteWithoutKernel)
+TEST_F(KratosGeoMechanicsFastSuiteWithoutKernel, ThreeDimensionalStressState_CannotBeCopiedButItCanBeMoved)
 {
     EXPECT_FALSE(std::is_copy_constructible_v<ThreeDimensionalStressState>);
     EXPECT_FALSE(std::is_copy_assignable_v<ThreeDimensionalStressState>);
@@ -75,7 +75,7 @@ KRATOS_TEST_CASE_IN_SUITE(ThreeDimensionalStressState_CannotBeCopiedButItCanBeMo
     EXPECT_TRUE(std::is_move_assignable_v<ThreeDimensionalStressState>);
 }
 
-KRATOS_TEST_CASE_IN_SUITE(ThreeDimensionalStressState_GivesCorrectClone, KratosGeoMechanicsFastSuiteWithoutKernel)
+TEST_F(KratosGeoMechanicsFastSuiteWithoutKernel, ThreeDimensionalStressState_GivesCorrectClone)
 {
     const std::unique_ptr<StressStatePolicy> p_stress_state_policy =
         std::make_unique<ThreeDimensionalStressState>();
@@ -85,8 +85,7 @@ KRATOS_TEST_CASE_IN_SUITE(ThreeDimensionalStressState_GivesCorrectClone, KratosG
     KRATOS_EXPECT_NE(p_clone.get(), p_stress_state_policy.get());
 }
 
-KRATOS_TEST_CASE_IN_SUITE(ThreeDimensionalStressState_CalculateGreenLagrangeStrainReturnsCorrectResults,
-                          KratosGeoMechanicsFastSuiteWithoutKernel)
+TEST_F(KratosGeoMechanicsFastSuiteWithoutKernel, ThreeDimensionalStressState_CalculateGreenLagrangeStrainReturnsCorrectResults)
 {
     const auto p_stress_state_policy = std::make_unique<ThreeDimensionalStressState>();
 
@@ -107,7 +106,7 @@ KRATOS_TEST_CASE_IN_SUITE(ThreeDimensionalStressState_CalculateGreenLagrangeStra
     KRATOS_CHECK_VECTOR_NEAR(expected_vector, calculated_vector, 1e-12)
 }
 
-KRATOS_TEST_CASE_IN_SUITE(ThreeDimensionalStressState_GivesCorrectVoigtVector, KratosGeoMechanicsFastSuiteWithoutKernel)
+TEST_F(KratosGeoMechanicsFastSuiteWithoutKernel, ThreeDimensionalStressState_GivesCorrectVoigtVector)
 {
     const std::unique_ptr<StressStatePolicy> p_stress_state_policy =
         std::make_unique<ThreeDimensionalStressState>();
@@ -118,22 +117,21 @@ KRATOS_TEST_CASE_IN_SUITE(ThreeDimensionalStressState_GivesCorrectVoigtVector, K
     KRATOS_EXPECT_VECTOR_NEAR(voigt_vector, expected_voigt_vector, 1.E-10)
 }
 
-KRATOS_TEST_CASE_IN_SUITE(ThreeDimensionalStressState_GivesCorrectVoigtSize, KratosGeoMechanicsFastSuiteWithoutKernel)
+TEST_F(KratosGeoMechanicsFastSuiteWithoutKernel, ThreeDimensionalStressState_GivesCorrectVoigtSize)
 {
     const std::unique_ptr<StressStatePolicy> p_stress_state_policy =
         std::make_unique<ThreeDimensionalStressState>();
-    KRATOS_EXPECT_EQ(p_stress_state_policy->GetVoigtSize(), VOIGT_SIZE_3D);
+    EXPECT_EQ(p_stress_state_policy->GetVoigtSize(), VOIGT_SIZE_3D);
 }
 
-KRATOS_TEST_CASE_IN_SUITE(ThreeDimensionalStressState_GivesCorrectStressTensorSize, KratosGeoMechanicsFastSuiteWithoutKernel)
+TEST_F(KratosGeoMechanicsFastSuiteWithoutKernel, ThreeDimensionalStressState_GivesCorrectStressTensorSize)
 {
     const std::unique_ptr<StressStatePolicy> p_stress_state_policy =
         std::make_unique<ThreeDimensionalStressState>();
-    KRATOS_EXPECT_EQ(p_stress_state_policy->GetStressTensorSize(), STRESS_TENSOR_SIZE_3D);
+    EXPECT_EQ(p_stress_state_policy->GetStressTensorSize(), STRESS_TENSOR_SIZE_3D);
 }
 
-KRATOS_TEST_CASE_IN_SUITE(ThreeDimensionalStressState_CanBeSavedAndLoadedThroughInterface,
-                          KratosGeoMechanicsFastSuiteWithoutKernel)
+TEST_F(KratosGeoMechanicsFastSuiteWithoutKernel, ThreeDimensionalStressState_CanBeSavedAndLoadedThroughInterface)
 {
     // Arrange
     const auto scoped_registration = ScopedSerializerRegistration{
@@ -149,7 +147,7 @@ KRATOS_TEST_CASE_IN_SUITE(ThreeDimensionalStressState_CanBeSavedAndLoadedThrough
 
     // Assert
     ASSERT_NE(p_loaded_policy, nullptr);
-    KRATOS_EXPECT_EQ(p_loaded_policy->GetVoigtSize(), VOIGT_SIZE_3D);
+    EXPECT_EQ(p_loaded_policy->GetVoigtSize(), VOIGT_SIZE_3D);
     auto expected_voigt_vector = Vector{6};
     expected_voigt_vector <<= 1.0, 1.0, 1.0, 0.0, 0.0, 0.0;
     KRATOS_EXPECT_VECTOR_NEAR(p_loaded_policy->GetVoigtVector(), expected_voigt_vector, Defaults::absolute_tolerance);
