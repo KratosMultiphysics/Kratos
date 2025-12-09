@@ -15,7 +15,7 @@ Kratos Multiphysics uses several components of the [Trilinos project](https://tr
 
 ## Kratos interface extension
 
-The Trilinos application also provides __MPI versions of most of the core classes of Kratos__, adapted to work with Epetra distributed matrices where necessary. Hence it provide its own version of the following Kratos classes:
+The `TrilinosApplication` also provides __MPI versions of most of the core classes of Kratos__, adapted to work with Epetra distributed matrices where necessary. Hence it provide its own version of the following Kratos classes:
 
 ### Builder and solvers
 
@@ -187,4 +187,26 @@ Once to compile `TrilinosApplication` just remember to add the application to th
 export KRATOS_APPLICATIONS=
 ...
 add_app ${KRATOS_APP_DIR}/TrilinosApplication
+```
+
+### Linking with Fortran dependencies
+
+#### Context and requirement
+
+When building the `TrilinosApplication` that depends on a library compiled with Fortran (such as a manually compiled version of **MUMPS**, **SuperLU\_DIST**, or another third-party solver), you may encounter linker errors during the final linking stage.
+
+This is because the Fortran compiler, typically **Gfortran**, links in several runtime libraries (like `libgfortran`, `libquadmath`, etc.) that are essential for the Fortran code to execute. If your `TrilinosApplication` is primarily being linked by the C++ compiler (like $\text{g++}$), it will not automatically include these necessary Fortran runtime libraries.
+
+### Solution
+
+To ensure that these required Fortran runtime libraries are correctly included during the linking process, you must enable the following CMake flag:
+
+> `TRILINOS_APPLICATION_LINK_GFORTRAN`
+
+### Usage
+
+Set this flag to `ON` in your CMake configuration:
+
+```cmake
+-DTRILINOS_APPLICATION_LINK_GFORTRAN=ON \
 ```
