@@ -33,13 +33,10 @@ public:
 
     KRATOS_CLASS_INTRUSIVE_POINTER_DEFINITION(LineLoad2DDiffOrderCondition);
 
-    // Default constructor
     LineLoad2DDiffOrderCondition();
 
-    // Constructor 1
     LineLoad2DDiffOrderCondition(IndexType NewId, GeometryType::Pointer pGeometry);
 
-    // Constructor 2
     LineLoad2DDiffOrderCondition(IndexType NewId, GeometryType::Pointer pGeometry, PropertiesType::Pointer pProperties);
 
     Condition::Pointer Create(IndexType               NewId,
@@ -50,8 +47,6 @@ public:
     std::string Info() const override;
 
 protected:
-    // Member Variables
-
     void CalculateConditionVector(ConditionVariables& rVariables, unsigned int PointNumber) override;
 
     double CalculateIntegrationCoefficient(IndexType                          PointNumber,
