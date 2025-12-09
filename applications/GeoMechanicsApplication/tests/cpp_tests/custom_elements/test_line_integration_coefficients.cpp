@@ -12,8 +12,11 @@
 //
 
 #include "custom_elements/integration_coefficient_modifier_for_line_element.h"
+#include "geometries/line_2d_2.h"
+#include "includes/element.h"
+#include "includes/properties.h"
 #include "structural_mechanics_application_variables.h"
-#include "tests/cpp_tests/geo_mechanics_fast_suite.h"
+#include "tests/cpp_tests/geo_mechanics_fast_suite_without_kernel.h"
 #include "tests/cpp_tests/test_utilities.h"
 
 using namespace Kratos;
@@ -21,7 +24,7 @@ using namespace Kratos;
 namespace Kratos::Testing
 {
 
-KRATOS_TEST_CASE_IN_SUITE(LineIntegrationCoefficientsCalculator_ReturnsCorrectValue, KratosGeoMechanicsFastSuiteWithoutKernel)
+TEST_F(KratosGeoMechanicsFastSuiteWithoutKernel, LineIntegrationCoefficientsCalculator_ReturnsCorrectValue)
 {
     // Set
     const auto line_integration_coefficient_calculator =
@@ -44,12 +47,11 @@ KRATOS_TEST_CASE_IN_SUITE(LineIntegrationCoefficientsCalculator_ReturnsCorrectVa
     // Assert
     // The expected number is calculated as follows:
     // 2.0 (detJ) * 0.5 (weight) * 0.5 (cross area) = 0.5
-    KRATOS_EXPECT_EQ(calculated_coefficients.size(), 1);
-    KRATOS_EXPECT_NEAR(calculated_coefficients[0], 0.5, Defaults::absolute_tolerance);
+    EXPECT_EQ(calculated_coefficients.size(), 1);
+    EXPECT_NEAR(calculated_coefficients[0], 0.5, Defaults::absolute_tolerance);
 }
 
-KRATOS_TEST_CASE_IN_SUITE(LineIntegrationCoefficientsCalculator_CloneReturnsNotNullptr,
-                          KratosGeoMechanicsFastSuiteWithoutKernel)
+TEST_F(KratosGeoMechanicsFastSuiteWithoutKernel, LineIntegrationCoefficientsCalculator_CloneReturnsNotNullptr)
 {
     // Set
     const auto line_integration_coefficient_calculator =
@@ -59,6 +61,6 @@ KRATOS_TEST_CASE_IN_SUITE(LineIntegrationCoefficientsCalculator_CloneReturnsNotN
     const auto clone_modifier = line_integration_coefficient_calculator.CloneModifier();
 
     // Assert
-    KRATOS_EXPECT_NE(clone_modifier, nullptr);
+    EXPECT_NE(clone_modifier, nullptr);
 }
 } // namespace Kratos::Testing
