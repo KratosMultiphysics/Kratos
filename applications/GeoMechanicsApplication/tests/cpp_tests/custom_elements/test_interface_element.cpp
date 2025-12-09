@@ -683,7 +683,8 @@ KRATOS_TEST_CASE_IN_SUITE(LineInterfaceElement_CalculateStrain_ReturnsRelativeDi
 
     // Act
     std::vector<Vector> relative_displacements_at_integration_points;
-    element.CalculateOnIntegrationPoints(STRAIN, relative_displacements_at_integration_points, ProcessInfo{});
+    element.CalculateOnIntegrationPoints(GEO_RELATIVE_DISPLACEMENT_VECTOR,
+                                         relative_displacements_at_integration_points, ProcessInfo{});
 
     // Assert
     Vector expected_relative_displacement{2};
@@ -712,7 +713,8 @@ KRATOS_TEST_CASE_IN_SUITE(LineInterfaceElement_CalculateCauchyStressVector_Retur
 
     // Act
     std::vector<Vector> tractions_at_integration_points;
-    element.CalculateOnIntegrationPoints(CAUCHY_STRESS_VECTOR, tractions_at_integration_points, ProcessInfo{});
+    element.CalculateOnIntegrationPoints(GEO_EFFECTIVE_TRACTION_VECTOR,
+                                         tractions_at_integration_points, ProcessInfo{});
 
     // Assert
     Vector expected_traction{2};
@@ -1115,7 +1117,8 @@ KRATOS_TEST_CASE_IN_SUITE(TriangleInterfaceElement_CalculateStrain_ReturnsRelati
 
     // Act
     std::vector<Vector> relative_displacements_at_integration_points;
-    element.CalculateOnIntegrationPoints(STRAIN, relative_displacements_at_integration_points, ProcessInfo{});
+    element.CalculateOnIntegrationPoints(GEO_RELATIVE_DISPLACEMENT_VECTOR,
+                                         relative_displacements_at_integration_points, ProcessInfo{});
 
     // Assert
     Vector expected_relative_displacement{3};
@@ -1146,7 +1149,8 @@ KRATOS_TEST_CASE_IN_SUITE(TriangleInterfaceElementHorizontal_CalculateStrain_Ret
 
     // Act
     std::vector<Vector> relative_displacements_at_integration_points;
-    element.CalculateOnIntegrationPoints(STRAIN, relative_displacements_at_integration_points, ProcessInfo{});
+    element.CalculateOnIntegrationPoints(GEO_RELATIVE_DISPLACEMENT_VECTOR,
+                                         relative_displacements_at_integration_points, ProcessInfo{});
 
     // Assert
     Vector expected_relative_displacement{3};
@@ -1177,7 +1181,8 @@ KRATOS_TEST_CASE_IN_SUITE(TriangleInterfaceElementInYZPlane_CalculateStrain_Retu
 
     // Act
     std::vector<Vector> relative_displacements_at_integration_points;
-    element.CalculateOnIntegrationPoints(STRAIN, relative_displacements_at_integration_points, ProcessInfo{});
+    element.CalculateOnIntegrationPoints(GEO_RELATIVE_DISPLACEMENT_VECTOR,
+                                         relative_displacements_at_integration_points, ProcessInfo{});
 
     // Assert
     Vector expected_relative_displacement{3};
@@ -1211,7 +1216,8 @@ KRATOS_TEST_CASE_IN_SUITE(TriangleInterfaceElementInXZPlane_CalculateStrain_Retu
 
     // Act
     std::vector<Vector> relative_displacements_at_integration_points;
-    element.CalculateOnIntegrationPoints(STRAIN, relative_displacements_at_integration_points, ProcessInfo{});
+    element.CalculateOnIntegrationPoints(GEO_RELATIVE_DISPLACEMENT_VECTOR,
+                                         relative_displacements_at_integration_points, ProcessInfo{});
 
     // Assert
     Vector expected_relative_displacement{3};
@@ -1242,7 +1248,8 @@ KRATOS_TEST_CASE_IN_SUITE(TriangleInterfaceElement_CalculateCauchyStressVector_R
 
     // Act
     std::vector<Vector> tractions_at_integration_points;
-    element.CalculateOnIntegrationPoints(CAUCHY_STRESS_VECTOR, tractions_at_integration_points, ProcessInfo{});
+    element.CalculateOnIntegrationPoints(GEO_EFFECTIVE_TRACTION_VECTOR,
+                                         tractions_at_integration_points, ProcessInfo{});
 
     // Assert
     Vector expected_traction{3};
@@ -1416,7 +1423,8 @@ KRATOS_TEST_CASE_IN_SUITE(LineInterfaceElement_InterpolatesNodalStresses, Kratos
     interface_element.Initialize(dummy_process_info);
 
     std::vector<Vector> actual_traction_vectors;
-    interface_element.CalculateOnIntegrationPoints(CAUCHY_STRESS_VECTOR, actual_traction_vectors, dummy_process_info);
+    interface_element.CalculateOnIntegrationPoints(GEO_EFFECTIVE_TRACTION_VECTOR,
+                                                   actual_traction_vectors, dummy_process_info);
 
     // Assert
     // answers for 1st side
@@ -1447,7 +1455,8 @@ KRATOS_TEST_CASE_IN_SUITE(LineInterfaceElement_InterpolatesNodalStresses, Kratos
 
     // Act
     interface_element.Initialize(dummy_process_info);
-    interface_element.CalculateOnIntegrationPoints(CAUCHY_STRESS_VECTOR, actual_traction_vectors, dummy_process_info);
+    interface_element.CalculateOnIntegrationPoints(GEO_EFFECTIVE_TRACTION_VECTOR,
+                                                   actual_traction_vectors, dummy_process_info);
 
     // Assert
     // answers for 2nd side
@@ -1520,7 +1529,8 @@ KRATOS_TEST_CASE_IN_SUITE(PlaneInterfaceElement_InterpolatesNodalStresses, Krato
     interface_element.Initialize(dummy_process_info);
 
     std::vector<Vector> actual_traction_vectors;
-    interface_element.CalculateOnIntegrationPoints(CAUCHY_STRESS_VECTOR, actual_traction_vectors, dummy_process_info);
+    interface_element.CalculateOnIntegrationPoints(GEO_EFFECTIVE_TRACTION_VECTOR,
+                                                   actual_traction_vectors, dummy_process_info);
 
     // Assert
     // answers for 1st side
@@ -1565,7 +1575,8 @@ KRATOS_TEST_CASE_IN_SUITE(PlaneInterfaceElement_InterpolatesNodalStresses, Krato
 
     // Act
     interface_element.Initialize(dummy_process_info);
-    interface_element.CalculateOnIntegrationPoints(CAUCHY_STRESS_VECTOR, actual_traction_vectors, dummy_process_info);
+    interface_element.CalculateOnIntegrationPoints(GEO_EFFECTIVE_TRACTION_VECTOR,
+                                                   actual_traction_vectors, dummy_process_info);
 
     // Assert
     // answers for 2nd side
