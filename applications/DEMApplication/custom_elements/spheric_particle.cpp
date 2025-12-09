@@ -343,8 +343,8 @@ void SphericParticle::CalculateRightHandSide(const ProcessInfo& r_process_info, 
     if (data_buffer.mTime < (0.0 + 2.0 * data_buffer.mDt)){
         for (int k = 0; k < 3; ++k)
         {
-            total_forces[k] = 0.0;
-            total_moment[k] = 0.0;
+            mOldTotalForce[k] = contact_force[k] + additional_forces[k];
+            mOldTotalMoment[k] = mContactMoment[k] + additionally_applied_moment[k];
         }
     }
 
@@ -354,8 +354,8 @@ void SphericParticle::CalculateRightHandSide(const ProcessInfo& r_process_info, 
         double F_raw = contact_force[k] + additional_forces[k];
         double M_raw = mContactMoment[k] + additionally_applied_moment[k];
 
-        total_forces[k] = alpha * F_raw + (1.0 - alpha) * total_forces[k];
-        total_moment[k] = alpha * M_raw + (1.0 - alpha) * total_moment[k];
+        total_forces[k] = alpha * F_raw + (1.0 - alpha) * mOldTotalForce[k];
+        total_moment[k] = alpha * M_raw + (1.0 - alpha) * mOldTotalMoment[k];
     }
 
     ApplyGlobalDampingToContactForcesAndMoments(total_forces, total_moment);

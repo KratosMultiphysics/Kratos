@@ -465,6 +465,8 @@ int mClusterId;
 DEMIntegrationScheme* mpTranslationalIntegrationScheme;
 DEMIntegrationScheme* mpRotationalIntegrationScheme;
 double mBondedScalingFactor[3] = {0.0};
+double mOldTotalForce[3] = {0.0};
+double mOldTotalMoment[3] = {0.0};
 
 private:
 
