@@ -6,7 +6,7 @@
 //
 
 // Project includes
-#include "custom_conditions/one-phase_flow/line_normal_load_2D_diff_order_condition.hpp"
+#include "custom_conditions/one-phase_flow/line_normal_load_2D_diff_order_condition.h"
 
 namespace Kratos
 {

@@ -14,7 +14,7 @@
 //
 
 // Application includes
-#include "custom_conditions/Pw_normal_flux_condition.hpp"
+#include "custom_conditions/Pw_normal_flux_condition.h"
 #include "custom_utilities/condition_utilities.hpp"
 #include "custom_utilities/variables_utilities.hpp"
 
@@ -64,6 +64,18 @@ void PwNormalFluxCondition<TDim, TNumNodes>::CalculateRHS(Vector&            rRi
         // Contributions to the right hand side
         rRightHandSideVector -= normal_flux * row(r_n_container, integration_point) * integration_coefficient;
     }
+}
+
+template <unsigned int TDim, unsigned int TNumNodes>
+void PwNormalFluxCondition<TDim, TNumNodes>::save(Serializer& rSerializer) const
+{
+    KRATOS_SERIALIZE_SAVE_BASE_CLASS(rSerializer, Condition)
+}
+
+template <unsigned int TDim, unsigned int TNumNodes>
+void PwNormalFluxCondition<TDim, TNumNodes>::load(Serializer& rSerializer)
+{
+    KRATOS_SERIALIZE_LOAD_BASE_CLASS(rSerializer, Condition)
 }
 
 template <unsigned int TDim, unsigned int TNumNodes>

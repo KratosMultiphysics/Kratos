@@ -12,7 +12,7 @@
 //
 
 // Project includes
-#include "custom_conditions/axisymmetric_line_normal_load_2D_diff_order_condition.hpp"
+#include "custom_conditions/axisymmetric_line_normal_load_2D_diff_order_condition.h"
 #include "custom_utilities/element_utilities.hpp"
 
 namespace Kratos
@@ -73,6 +73,16 @@ double AxisymmetricLineNormalLoad2DDiffOrderCondition::CalculateIntegrationCoeff
 std::string AxisymmetricLineNormalLoad2DDiffOrderCondition::Info() const
 {
     return "AxisymmetricLineNormalLoad2DDiffOrderCondition";
+}
+
+void AxisymmetricLineNormalLoad2DDiffOrderCondition::save(Serializer& rSerializer) const
+{
+    KRATOS_SERIALIZE_SAVE_BASE_CLASS(rSerializer, LineNormalLoad2DDiffOrderCondition)
+}
+
+void AxisymmetricLineNormalLoad2DDiffOrderCondition::load(Serializer& rSerializer)
+{
+    KRATOS_SERIALIZE_LOAD_BASE_CLASS(rSerializer, LineNormalLoad2DDiffOrderCondition)
 }
 
 } // Namespace Kratos.

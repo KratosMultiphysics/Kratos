@@ -14,7 +14,7 @@
 #pragma once
 
 // Project includes
-#include "custom_conditions/line_normal_load_2D_diff_order_condition.hpp"
+#include "custom_conditions/line_normal_fluid_flux_2D_diff_order_condition.h"
 #include "includes/serializer.h"
 
 #include "geo_mechanics_application_variables.h"
@@ -22,7 +22,8 @@
 namespace Kratos
 {
 
-class KRATOS_API(GEO_MECHANICS_APPLICATION) AxisymmetricLineNormalLoad2DDiffOrderCondition : public LineNormalLoad2DDiffOrderCondition
+class KRATOS_API(GEO_MECHANICS_APPLICATION) AxisymmetricLineNormalFluidFlux2DDiffOrderCondition
+    : public LineNormalFluidFlux2DDiffOrderCondition
 {
 public:
     using IndexType      = std::size_t;
@@ -30,18 +31,15 @@ public:
     using GeometryType   = Geometry<Node>;
     using NodesArrayType = GeometryType::PointsArrayType;
 
-    KRATOS_CLASS_INTRUSIVE_POINTER_DEFINITION(AxisymmetricLineNormalLoad2DDiffOrderCondition);
+    KRATOS_CLASS_INTRUSIVE_POINTER_DEFINITION(AxisymmetricLineNormalFluidFlux2DDiffOrderCondition);
 
-    // Default constructor
-    AxisymmetricLineNormalLoad2DDiffOrderCondition();
+    AxisymmetricLineNormalFluidFlux2DDiffOrderCondition();
 
-    // Constructor 1
-    AxisymmetricLineNormalLoad2DDiffOrderCondition(IndexType NewId, GeometryType::Pointer pGeometry);
+    AxisymmetricLineNormalFluidFlux2DDiffOrderCondition(IndexType NewId, GeometryType::Pointer pGeometry);
 
-    // Constructor 2
-    AxisymmetricLineNormalLoad2DDiffOrderCondition(IndexType               NewId,
-                                                   GeometryType::Pointer   pGeometry,
-                                                   PropertiesType::Pointer pProperties);
+    AxisymmetricLineNormalFluidFlux2DDiffOrderCondition(IndexType               NewId,
+                                                        GeometryType::Pointer   pGeometry,
+                                                        PropertiesType::Pointer pProperties);
 
     Condition::Pointer Create(IndexType               NewId,
                               NodesArrayType const&   ThisNodes,
@@ -57,17 +55,9 @@ protected:
 
 private:
     friend class Serializer;
+    void save(Serializer& rSerializer) const override;
+    void load(Serializer& rSerializer) override;
 
-    void save(Serializer& rSerializer) const override
-    {
-        KRATOS_SERIALIZE_SAVE_BASE_CLASS(rSerializer, LineNormalLoad2DDiffOrderCondition)
-    }
-
-    void load(Serializer& rSerializer) override
-    {
-        KRATOS_SERIALIZE_LOAD_BASE_CLASS(rSerializer, LineNormalLoad2DDiffOrderCondition)
-    }
-
-}; // class AxisymmetricLineNormalLoad2DDiffOrderCondition.
+}; // class AxisymmetricLineNormalFluidFlux2DDiffOrderCondition.
 
 } // namespace Kratos.

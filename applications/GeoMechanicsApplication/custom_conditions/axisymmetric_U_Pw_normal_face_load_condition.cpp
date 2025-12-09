@@ -12,7 +12,7 @@
 //
 
 // Application includes
-#include "custom_conditions/axisymmetric_U_Pw_normal_face_load_condition.hpp"
+#include "custom_conditions/axisymmetric_U_Pw_normal_face_load_condition.h"
 #include "custom_utilities/element_utilities.hpp"
 
 namespace Kratos
@@ -57,6 +57,18 @@ template <unsigned int TDim, unsigned int TNumNodes>
 std::string AxisymmetricUPwNormalFaceLoadCondition<TDim, TNumNodes>::Info() const
 {
     return "AxisymmetricUPwNormalFaceLoadCondition";
+}
+
+template <unsigned int TDim, unsigned int TNumNodes>
+void AxisymmetricUPwNormalFaceLoadCondition<TDim, TNumNodes>::save(Serializer& rSerializer) const
+{
+    KRATOS_SERIALIZE_SAVE_BASE_CLASS(rSerializer, Condition)
+}
+
+template <unsigned int TDim, unsigned int TNumNodes>
+void AxisymmetricUPwNormalFaceLoadCondition<TDim, TNumNodes>::load(Serializer& rSerializer)
+{
+    KRATOS_SERIALIZE_LOAD_BASE_CLASS(rSerializer, Condition)
 }
 
 template class AxisymmetricUPwNormalFaceLoadCondition<2, 2>;

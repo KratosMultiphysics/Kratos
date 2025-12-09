@@ -13,7 +13,7 @@
 //
 
 // Application includes
-#include "custom_conditions/U_Pw_normal_flux_condition.hpp"
+#include "custom_conditions/U_Pw_normal_flux_condition.h"
 #include "custom_utilities/condition_utilities.hpp"
 #include "custom_utilities/variables_utilities.hpp"
 
@@ -69,6 +69,17 @@ std::string UPwNormalFluxCondition<TDim, TNumNodes>::Info() const
     return "UPwNormalFluxCondition";
 }
 
+template <unsigned int TDim, unsigned int TNumNodes>
+void UPwNormalFluxCondition<TDim, TNumNodes>::save(Serializer& rSerializer) const
+{
+    KRATOS_SERIALIZE_SAVE_BASE_CLASS(rSerializer, Condition)
+}
+
+template <unsigned int TDim, unsigned int TNumNodes>
+void UPwNormalFluxCondition<TDim, TNumNodes>::load(Serializer& rSerializer)
+{
+    KRATOS_SERIALIZE_LOAD_BASE_CLASS(rSerializer, Condition)
+}
 template class UPwNormalFluxCondition<2, 2>;
 template class UPwNormalFluxCondition<2, 3>;
 template class UPwNormalFluxCondition<2, 4>;

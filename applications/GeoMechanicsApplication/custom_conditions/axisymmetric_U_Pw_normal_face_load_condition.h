@@ -17,7 +17,7 @@
 #include "includes/serializer.h"
 
 // Application includes
-#include "custom_conditions/U_Pw_normal_face_load_condition.hpp"
+#include "custom_conditions/U_Pw_normal_face_load_condition.h"
 #include "custom_utilities/condition_utilities.hpp"
 #include "geo_mechanics_application_variables.h"
 
@@ -60,25 +60,13 @@ public:
     std::string Info() const override;
 
 protected:
-    // Member Variables
-
     double CalculateIntegrationCoefficient(const IndexType PointNumber,
                                            const GeometryType::IntegrationPointsArrayType& IntegrationPoints) const override;
 
 private:
-    // Serialization
-
     friend class Serializer;
-
-    void save(Serializer& rSerializer) const override
-    {
-        KRATOS_SERIALIZE_SAVE_BASE_CLASS(rSerializer, Condition)
-    }
-
-    void load(Serializer& rSerializer) override
-    {
-        KRATOS_SERIALIZE_LOAD_BASE_CLASS(rSerializer, Condition)
-    }
+    void save(Serializer& rSerializer) const override;
+    void load(Serializer& rSerializer) override;
 
 }; // class AxisymmetricUPwNormalFaceLoadCondition.
 

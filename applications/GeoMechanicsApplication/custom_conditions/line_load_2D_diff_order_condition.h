@@ -15,7 +15,7 @@
 #pragma once
 
 // Project includes
-#include "custom_conditions/surface_load_3D_diff_order_condition.hpp"
+#include "custom_conditions/general_U_Pw_diff_order_condition.h"
 #include "includes/serializer.h"
 
 #include "geo_mechanics_application_variables.h"
@@ -23,21 +23,24 @@
 namespace Kratos
 {
 
-class KRATOS_API(GEO_MECHANICS_APPLICATION) SurfaceNormalLoad3DDiffOrderCondition : public SurfaceLoad3DDiffOrderCondition
+class KRATOS_API(GEO_MECHANICS_APPLICATION) LineLoad2DDiffOrderCondition : public GeneralUPwDiffOrderCondition
 {
 public:
-    KRATOS_CLASS_INTRUSIVE_POINTER_DEFINITION(SurfaceNormalLoad3DDiffOrderCondition);
+    using IndexType      = std::size_t;
+    using PropertiesType = Properties;
+    using GeometryType   = Geometry<Node>;
+    using NodesArrayType = GeometryType::PointsArrayType;
+
+    KRATOS_CLASS_INTRUSIVE_POINTER_DEFINITION(LineLoad2DDiffOrderCondition);
 
     // Default constructor
-    SurfaceNormalLoad3DDiffOrderCondition();
+    LineLoad2DDiffOrderCondition();
 
     // Constructor 1
-    SurfaceNormalLoad3DDiffOrderCondition(IndexType NewId, GeometryType::Pointer pGeometry);
+    LineLoad2DDiffOrderCondition(IndexType NewId, GeometryType::Pointer pGeometry);
 
     // Constructor 2
-    SurfaceNormalLoad3DDiffOrderCondition(IndexType               NewId,
-                                          GeometryType::Pointer   pGeometry,
-                                          PropertiesType::Pointer pProperties);
+    LineLoad2DDiffOrderCondition(IndexType NewId, GeometryType::Pointer pGeometry, PropertiesType::Pointer pProperties);
 
     Condition::Pointer Create(IndexType               NewId,
                               NodesArrayType const&   ThisNodes,
@@ -47,27 +50,21 @@ public:
     std::string Info() const override;
 
 protected:
+    // Member Variables
+
     void CalculateConditionVector(ConditionVariables& rVariables, unsigned int PointNumber) override;
 
     double CalculateIntegrationCoefficient(IndexType                          PointNumber,
-                                           const GeometryType::JacobiansType& rJContainer,
-                                           const GeometryType::IntegrationPointsArrayType& rIntegrationPoints) const override;
+                                           const GeometryType::JacobiansType& JContainer,
+                                           const GeometryType::IntegrationPointsArrayType& IntegrationPoints) const override;
 
     void CalculateAndAddConditionForce(Vector& rRightHandSideVector, ConditionVariables& rVariables) override;
 
 private:
     friend class Serializer;
+    void save(Serializer& rSerializer) const override;
+    void load(Serializer& rSerializer) override;
 
-    void save(Serializer& rSerializer) const override
-    {
-        KRATOS_SERIALIZE_SAVE_BASE_CLASS(rSerializer, SurfaceLoad3DDiffOrderCondition)
-    }
-
-    void load(Serializer& rSerializer) override
-    {
-        KRATOS_SERIALIZE_LOAD_BASE_CLASS(rSerializer, SurfaceLoad3DDiffOrderCondition)
-    }
-
-}; // class SurfaceNormalLoad3DDiffOrderCondition.
+}; // class LineLoad2DDiffOrderCondition.
 
 } // namespace Kratos.

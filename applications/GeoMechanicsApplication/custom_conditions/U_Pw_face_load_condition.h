@@ -14,34 +14,36 @@
 
 #pragma once
 
-#include "custom_conditions/U_Pw_condition.h"
+// Project includes
 #include "includes/serializer.h"
+
+// Application includes
+#include "custom_conditions/U_Pw_condition.h"
+#include "custom_utilities/condition_utilities.hpp"
+#include "geo_mechanics_application_variables.h"
 
 namespace Kratos
 {
 
 template <unsigned int TDim, unsigned int TNumNodes>
-class KRATOS_API(GEO_MECHANICS_APPLICATION) UPwForceCondition : public UPwCondition<TDim, TNumNodes>
+class KRATOS_API(GEO_MECHANICS_APPLICATION) UPwFaceLoadCondition : public UPwCondition<TDim, TNumNodes>
 {
 public:
-    KRATOS_CLASS_INTRUSIVE_POINTER_DEFINITION(UPwForceCondition);
+    KRATOS_CLASS_INTRUSIVE_POINTER_DEFINITION(UPwFaceLoadCondition);
 
     using IndexType      = std::size_t;
     using PropertiesType = Properties;
     using GeometryType   = Geometry<Node>;
     using NodesArrayType = GeometryType::PointsArrayType;
 
-    // Default constructor
-    UPwForceCondition() : UPwCondition<TDim, TNumNodes>() {}
+    UPwFaceLoadCondition() : UPwCondition<TDim, TNumNodes>() {}
 
-    // Constructor 1
-    UPwForceCondition(IndexType NewId, GeometryType::Pointer pGeometry)
+    UPwFaceLoadCondition(IndexType NewId, GeometryType::Pointer pGeometry)
         : UPwCondition<TDim, TNumNodes>(NewId, pGeometry)
     {
     }
 
-    // Constructor 2
-    UPwForceCondition(IndexType NewId, GeometryType::Pointer pGeometry, PropertiesType::Pointer pProperties)
+    UPwFaceLoadCondition(IndexType NewId, GeometryType::Pointer pGeometry, PropertiesType::Pointer pProperties)
         : UPwCondition<TDim, TNumNodes>(NewId, pGeometry, pProperties)
     {
     }
@@ -50,23 +52,16 @@ public:
                               NodesArrayType const&   ThisNodes,
                               PropertiesType::Pointer pProperties) const override;
 
-    [[nodiscard]] std::string Info() const override;
+    std::string Info() const override;
 
 protected:
-    void CalculateRHS(Vector& rRightHandSideVector, const ProcessInfo& rCurrentProcessInfo) override;
+    void CalculateRHS(Vector& rRightHandSideVector, const ProcessInfo& CurrentProcessInfo) override;
 
 private:
     friend class Serializer;
+    void save(Serializer& rSerializer) const override;
+    void load(Serializer& rSerializer) override;
 
-    void save(Serializer& rSerializer) const override
-    {
-        KRATOS_SERIALIZE_SAVE_BASE_CLASS(rSerializer, Condition)
-    }
-
-    void load(Serializer& rSerializer) override
-    {
-        KRATOS_SERIALIZE_LOAD_BASE_CLASS(rSerializer, Condition)
-    }
-}; // class UPwForceCondition.
+}; // class UPwFaceLoadCondition.
 
 } // namespace Kratos.

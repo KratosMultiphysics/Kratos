@@ -18,8 +18,8 @@
 #include "includes/serializer.h"
 
 // Application includes
-#include "custom_conditions/U_Pw_condition.hpp"
-#include "custom_conditions/U_Pw_face_load_condition.hpp"
+#include "custom_conditions/U_Pw_condition.h"
+#include "custom_conditions/U_Pw_face_load_condition.h"
 #include "custom_utilities/element_utilities.hpp"
 #include "geo_mechanics_application_variables.h"
 
@@ -38,16 +38,13 @@ public:
     using GeometryType   = Geometry<Node>;
     using NodesArrayType = GeometryType::PointsArrayType;
 
-    // Default constructor
     UPwNormalFluxCondition() : UPwFaceLoadCondition<TDim, TNumNodes>() {}
 
-    // Constructor 1
     UPwNormalFluxCondition(IndexType NewId, GeometryType::Pointer pGeometry)
         : UPwFaceLoadCondition<TDim, TNumNodes>(NewId, pGeometry)
     {
     }
 
-    // Constructor 2
     UPwNormalFluxCondition(IndexType NewId, GeometryType::Pointer pGeometry, PropertiesType::Pointer pProperties)
         : UPwFaceLoadCondition<TDim, TNumNodes>(NewId, pGeometry, pProperties)
     {
@@ -64,16 +61,9 @@ protected:
 
 private:
     friend class Serializer;
+    void save(Serializer& rSerializer) const override;
+    void load(Serializer& rSerializer) override;
 
-    void save(Serializer& rSerializer) const override
-    {
-        KRATOS_SERIALIZE_SAVE_BASE_CLASS(rSerializer, Condition)
-    }
-
-    void load(Serializer& rSerializer) override
-    {
-        KRATOS_SERIALIZE_LOAD_BASE_CLASS(rSerializer, Condition)
-    }
 }; // class UPwNormalFluxCondition.
 
 } // namespace Kratos.

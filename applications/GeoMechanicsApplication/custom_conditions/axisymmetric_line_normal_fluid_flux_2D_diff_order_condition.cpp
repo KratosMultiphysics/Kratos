@@ -12,7 +12,7 @@
 //
 
 // Project includes
-#include "custom_conditions/axisymmetric_line_normal_fluid_flux_2D_diff_order_condition.hpp"
+#include "custom_conditions/axisymmetric_line_normal_fluid_flux_2D_diff_order_condition.h"
 #include "custom_utilities/element_utilities.hpp"
 
 namespace Kratos
@@ -76,6 +76,16 @@ double AxisymmetricLineNormalFluidFlux2DDiffOrderCondition::CalculateIntegration
 std::string AxisymmetricLineNormalFluidFlux2DDiffOrderCondition::Info() const
 {
     return "AxisymmetricLineNormalFluidFlux2DDiffOrderCondition";
+}
+
+void AxisymmetricLineNormalFluidFlux2DDiffOrderCondition::save(Serializer& rSerializer) const
+{
+    KRATOS_SERIALIZE_SAVE_BASE_CLASS(rSerializer, LineNormalFluidFlux2DDiffOrderCondition)
+}
+
+void AxisymmetricLineNormalFluidFlux2DDiffOrderCondition::load(Serializer& rSerializer)
+{
+    KRATOS_SERIALIZE_LOAD_BASE_CLASS(rSerializer, LineNormalFluidFlux2DDiffOrderCondition)
 }
 
 } // Namespace Kratos.

@@ -13,7 +13,7 @@
 //
 
 // Application includes
-#include "custom_conditions/U_Pw_condition.hpp"
+#include "custom_conditions/U_Pw_condition.h"
 #include "custom_utilities/dof_utilities.h"
 
 namespace Kratos
@@ -113,6 +113,18 @@ template <unsigned int TDim, unsigned int TNumNodes>
 Condition::DofsVectorType UPwCondition<TDim, TNumNodes>::GetDofs() const
 {
     return Geo::DofUtilities::ExtractUPwDofsFromNodes(GetGeometry(), TDim);
+}
+
+template <unsigned int TDim, unsigned int TNumNodes>
+void UPwCondition<TDim, TNumNodes>::save(Serializer& rSerializer) const
+{
+    KRATOS_SERIALIZE_SAVE_BASE_CLASS(rSerializer, Condition)
+}
+
+template <unsigned int TDim, unsigned int TNumNodes>
+void UPwCondition<TDim, TNumNodes>::load(Serializer& rSerializer)
+{
+    KRATOS_SERIALIZE_LOAD_BASE_CLASS(rSerializer, Condition)
 }
 
 template <unsigned int TDim, unsigned int TNumNodes>

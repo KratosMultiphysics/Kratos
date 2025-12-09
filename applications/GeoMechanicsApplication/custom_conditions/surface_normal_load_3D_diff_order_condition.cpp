@@ -13,7 +13,7 @@
 //
 
 // Project includes
-#include "custom_conditions/surface_normal_load_3D_diff_order_condition.hpp"
+#include "custom_conditions/surface_normal_load_3D_diff_order_condition.h"
 #include "custom_utilities/variables_utilities.hpp"
 #include "includes/variables.h"
 #include "utilities/math_utils.h"
@@ -105,7 +105,13 @@ void SurfaceNormalLoad3DDiffOrderCondition::CalculateAndAddConditionForce(Vector
     }
 }
 
-std::string SurfaceNormalLoad3DDiffOrderCondition::Info() const
+void SurfaceNormalLoad3DDiffOrderCondition::save(Serializer& rSerializer) const
+{
+    KRATOS_SERIALIZE_SAVE_BASE_CLASS(rSerializer, SurfaceLoad3DDiffOrderCondition)
+}
+
+void SurfaceNormalLoad3DDiffOrderCondition::load(Serializer& rSerializer){KRATOS_SERIALIZE_LOAD_BASE_CLASS(
+    rSerializer, SurfaceLoad3DDiffOrderCondition)} std::string SurfaceNormalLoad3DDiffOrderCondition::Info() const
 {
     return "SurfaceNormalLoad3DDiffOrderCondition";
 }
