@@ -217,6 +217,15 @@ SizeType SmallStrainUMATLaw<TVoigtSize>::WorkingSpaceDimension()
 }
 
 template <SizeType TVoigtSize>
+SizeType SmallStrainUMATLaw<TVoigtSize>::GetStrainSize() const
+{
+    // In other constitutive laws, we use mpConstitutiveDimension->GetStrainSize() here, but
+    // due to the C/Fortran interface, we need the VoigtSize to be known compile time.
+    // Therefore, we return the template argument TVoigtSize here.
+    return TVoigtSize;
+}
+
+template <SizeType TVoigtSize>
 void SmallStrainUMATLaw<TVoigtSize>::InitializeMaterial(const Properties&   rMaterialProperties,
                                                         const GeometryType& rElementGeometry,
                                                         const Vector&       rShapeFunctionsValues)

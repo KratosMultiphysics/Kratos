@@ -10,7 +10,7 @@
 //  Main authors:    Vahid Galavi
 //
 
-#include "custom_constitutive/small_strain_umat_2D_plane_strain_law.hpp"
+#include "custom_constitutive/small_strain_umat_2D_plane_strain_law.h"
 #include "constitutive_law_dimension.h"
 
 namespace Kratos
