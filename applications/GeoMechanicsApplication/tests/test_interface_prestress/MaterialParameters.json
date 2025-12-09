@@ -8,7 +8,7 @@
             },
             "Variables": {
                 "IGNORE_UNDRAINED"         :  true,
-                "YOUNG_MODULUS"            :  120.0e6,
+                "YOUNG_MODULUS"            :  1.0e4,
                 "POISSON_RATIO"            :  0.0,
                 "DENSITY_SOLID"            :  0.0,
                 "DENSITY_WATER"            :  1.0e3,
@@ -29,8 +29,8 @@
                 "name"             :  "GeoIncrementalLinearElasticInterfaceLaw"
             },
             "Variables": {
-                "INTERFACE_NORMAL_STIFFNESS":  480.0e6,
-                "INTERFACE_SHEAR_STIFFNESS":   200.0e6
+                "INTERFACE_NORMAL_STIFFNESS":  2.0e3,
+                "INTERFACE_SHEAR_STIFFNESS":   1.0e3
             }
         }
     }]

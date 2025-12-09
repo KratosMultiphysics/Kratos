@@ -69,6 +69,13 @@ class TestLocalRefineOnlyOnBoundaries(KratosUnittest.TestCase):
         for cond in main_model_part_2.Conditions:
             cond.SetValue(KratosMultiphysics.SPLIT_ELEMENT,True)
 
+        # flag conditions before refining
+        for cond in main_model_part_2.Conditions:
+            if cond.Id == 163:
+                cond.Set(KratosMultiphysics.STRUCTURE,True)
+            if cond.Id == 164:
+                cond.Set(KratosMultiphysics.FLUID,True)
+
         #refining
         KratosMultiphysics.FindNodalNeighboursProcess(main_model_part_2).Execute()
         refine_on_reference = False
@@ -85,6 +92,21 @@ class TestLocalRefineOnlyOnBoundaries(KratosUnittest.TestCase):
         self.assertEqual(main_model_part_2.NumberOfConditions(), 360)
         self.assertEqual(current_model["main_model_part_2.MainPart.Wall_BC.Wall1"].NumberOfConditions(), 360)
         self.assertEqual(current_model["main_model_part_2.MainPart.Wall_BC.Wall1"].NumberOfElements(), 0)
+
+        # collecting ids of refined conditions to check flags
+        refined_struct_conditions_ids = []
+        refined_fluid_conditions_ids = []
+        for cond in main_model_part_2.Conditions:
+            if cond.Is(KratosMultiphysics.STRUCTURE):
+                refined_struct_conditions_ids.append(cond.Id)
+            if cond.Is(KratosMultiphysics.FLUID):
+                refined_fluid_conditions_ids.append(cond.Id)
+
+        # check that the condition that was marked before refining has been refined correctly
+        refined_struct_conditions_ids.sort()
+        refined_fluid_conditions_ids.sort()
+        self.assertListEqual(refined_struct_conditions_ids, [271, 272, 273, 274])
+        self.assertListEqual(refined_fluid_conditions_ids, [275, 276, 277, 278])
 
 if __name__ == '__main__':
     KratosUnittest.main()
