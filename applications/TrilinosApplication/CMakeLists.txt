@@ -29,7 +29,7 @@ ENDIF(NOT TRILINOS_FOUND)
 # Amesos2 is currenlty under development and is disabled by default. This can be removed in the future to enable it by default.
 OPTION ( TRILINOS_EXCLUDE_AMESOS2_SOLVER "Exclude Amesos2 Solver" ON )
 
-# If manually compiling some dependencies like MUMPS, linking to Fortran mayb be required
+# If manually compiling some dependencies like MUMPS, linking to Fortran may be required
 OPTION ( TRILINOS_APPLICATION_LINK_GFORTRAN "Not linking Trilinos application with GFortran" OFF )
 
 if(${TRILINOS_EXCLUDE_AMESOS2_SOLVER} MATCHES ON)
