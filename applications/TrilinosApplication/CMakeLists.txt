@@ -30,7 +30,7 @@ ENDIF(NOT TRILINOS_FOUND)
 OPTION ( TRILINOS_EXCLUDE_AMESOS2_SOLVER "Exclude Amesos2 Solver" ON )
 
 # If manually compiling some dependencies like MUMPS, linking to Fortran mayb be required
-OPTION ( TRILINOS_APPLICATION_LINK_GFORTRAN "Not linking Trilinos application with Fortran" OFF )
+OPTION ( TRILINOS_APPLICATION_LINK_GFORTRAN "Not linking Trilinos application with GFortran" OFF )
 
 if(${TRILINOS_EXCLUDE_AMESOS2_SOLVER} MATCHES ON)
     add_definitions(-DTRILINOS_EXCLUDE_AMESOS2_SOLVER)
