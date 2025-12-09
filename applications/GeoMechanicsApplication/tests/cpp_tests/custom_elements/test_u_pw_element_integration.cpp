@@ -10,8 +10,9 @@
 //  Main authors:    Wijtze Pieter Kikstra
 //                   Richard Faasse
 
+#include "containers/model.h"
 #include "test_setup_utilities/element_setup_utilities.h"
-#include "tests/cpp_tests/geo_mechanics_fast_suite.h"
+#include "tests/cpp_tests/geo_mechanics_fast_suite_without_kernel.h"
 
 namespace Kratos::Testing
 {
@@ -27,7 +28,7 @@ TEST_P(ParametrizedIntegrationMethodSuite, TestElementReturnsCorrectIntegrationM
     Model model;
     const auto& [r_element, expected_integration_method] = GetParam();
 
-    KRATOS_EXPECT_EQ(r_element->GetIntegrationMethod(), expected_integration_method)
+    EXPECT_EQ(r_element->GetIntegrationMethod(), expected_integration_method)
         << "\nIntegration method is not as expected for the element with the following geometry: "
         << r_element->GetGeometry().Info();
 }
