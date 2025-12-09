@@ -59,16 +59,16 @@ std::vector<char> ApplyVectorConstraintTableProcess::ActiveComponents(const Para
 
 Parameters ApplyVectorConstraintTableProcess::CreateParametersForComponent(const ModelPart& rModelPart,
                                                                            const Parameters& rSettings,
-                                                                           char component)
+                                                                           char Component)
 {
     Parameters result;
-    const auto index = ComponentToIndex(component);
+    const auto index = ComponentToIndex(Component);
     result.AddValue("model_part_name", "\"" + rModelPart.Name() + "\"");
     if (rSettings.Has("is_fixed")) {
         result.AddValue("is_fixed", rSettings["is_fixed"][index]);
     }
     result.AddValue("value", rSettings["value"][index]);
-    const auto variable_name = rSettings["variable_name"].GetString() + '_' + component;
+    const auto variable_name = rSettings["variable_name"].GetString() + '_' + Component;
     result.AddEmptyValue("variable_name").SetString(variable_name);
     if (rSettings["table"][index].GetInt() != 0) {
         result.AddValue("table", rSettings["table"][index]);

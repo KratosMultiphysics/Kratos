@@ -46,7 +46,7 @@ private:
     static std::vector<char>       ActiveComponents(const Parameters& rSettings);
     static Parameters              CreateParametersForComponent(const ModelPart&  rModelPart,
                                                                 const Parameters& rSettings,
-                                                                char              component);
+                                                                char              Component);
     static std::size_t             ComponentToIndex(char component);
     ProcessUniquePointer MakeProcessFor(ModelPart& rModelPart, const Parameters& rParameters) const;
 
