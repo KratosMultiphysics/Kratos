@@ -330,33 +330,13 @@ void SphericParticle::CalculateRightHandSide(const ProcessInfo& r_process_info, 
     array_1d<double,3>& total_forces = this_node.FastGetSolutionStepValue(TOTAL_FORCES);
     array_1d<double,3>& total_moment = this_node.FastGetSolutionStepValue(PARTICLE_MOMENT);
 
-    /*
     total_forces[0] = contact_force[0] + additional_forces[0];
     total_forces[1] = contact_force[1] + additional_forces[1];
     total_forces[2] = contact_force[2] + additional_forces[2];
 
     total_moment[0] = mContactMoment[0] + additionally_applied_moment[0];
     total_moment[1] = mContactMoment[1] + additionally_applied_moment[1];
-    total_moment[2] = mContactMoment[2] + additionally_applied_moment[2];*/
-    
-    //test force filter
-    if (data_buffer.mTime < (0.0 + 2.0 * data_buffer.mDt)){
-        for (int k = 0; k < 3; ++k)
-        {
-            mOldTotalForce[k] = contact_force[k] + additional_forces[k];
-            mOldTotalMoment[k] = mContactMoment[k] + additionally_applied_moment[k];
-        }
-    }
-
-    const double alpha = 0.1;
-    for (int k = 0; k < 3; ++k)
-    {
-        double F_raw = contact_force[k] + additional_forces[k];
-        double M_raw = mContactMoment[k] + additionally_applied_moment[k];
-
-        total_forces[k] = alpha * F_raw + (1.0 - alpha) * mOldTotalForce[k];
-        total_moment[k] = alpha * M_raw + (1.0 - alpha) * mOldTotalMoment[k];
-    }
+    total_moment[2] = mContactMoment[2] + additionally_applied_moment[2];
 
     ApplyGlobalDampingToContactForcesAndMoments(total_forces, total_moment);
 
