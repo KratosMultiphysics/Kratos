@@ -145,17 +145,24 @@ file(TO_CMAKE_PATH "${HDF5_ROOT}/bin" HDF5_ROOT_DEP_BIN)
 # Install targets
 install(TARGETS KratosHDF5Core DESTINATION libs)
 install(TARGETS KratosHDF5Application DESTINATION libs)
-if(WIN32)
-    install(DIRECTORY "${HDF5_ROOT_DEP_LIB}/" DESTINATION libs FILES_MATCHING PATTERN "*.dll")
-    install(DIRECTORY "${HDF5_ROOT_DEP_BIN}/" DESTINATION libs FILES_MATCHING PATTERN "*.dll")
-endif()
-if(APPLE)
-    install(DIRECTORY "${HDF5_ROOT_DEP_LIB}/" DESTINATION libs FILES_MATCHING PATTERN "*.dylib")
-    install(DIRECTORY "${HDF5_ROOT_DEP_BIN}/" DESTINATION libs FILES_MATCHING PATTERN "*.dylib")
-endif()
-if(UNIX AND NOT APPLE)
-    install(DIRECTORY "${HDF5_ROOT_DEP_LIB}/" DESTINATION libs FILES_MATCHING PATTERN "*.so*")
-    install(DIRECTORY "${HDF5_ROOT_DEP_BIN}/" DESTINATION libs FILES_MATCHING PATTERN "*.so*")
+
+# Install dependent libraries
+# Note: Please be carefull to enable this option if MED or HDF5 are system wide dependencies as it will
+# the full /lib system dir into kratos.
+if(${INSTALL_TPL_LIBRARIES} MATCHES ON)
+  if(WIN32)
+      install(DIRECTORY "${HDF5_ROOT_DEP_LIB}/" DESTINATION libs FILES_MATCHING PATTERN "*.dll")
+      install(DIRECTORY "${HDF5_ROOT_DEP_BIN}/" DESTINATION libs FILES_MATCHING PATTERN "*.dll")
+  endif()
+  if(APPLE)
+      install(DIRECTORY "${HDF5_ROOT_DEP_LIB}/" DESTINATION libs FILES_MATCHING PATTERN "*.dylib")
+      install(DIRECTORY "${HDF5_ROOT_DEP_BIN}/" DESTINATION libs FILES_MATCHING PATTERN "*.dylib")
+  endif()
+  if(UNIX AND NOT APPLE)
+      file(GLOB_RECURSE LIB_FILES "${HDF5_ROOT_DEP_LIB}/*.so*")
+      file(GLOB_RECURSE LIB_FILES APPEND "${HDF5_ROOT_DEP_BIN}/*.so*")
+      install(FILES ${LIB_FILES} DESTINATION libs)
+  endif()
 endif()
 
 # Define custom targets
