@@ -257,27 +257,6 @@ KRATOS_TEST_CASE_IN_SUITE(GeometryUtilities_RotationMatrixForOpenHorizontalInter
     KRATOS_EXPECT_MATRIX_NEAR(Matrix{IdentityMatrix{2}}, rotation_matrix, 1e-6)
 }
 
-KRATOS_TEST_CASE_IN_SUITE(GeometryUtilities_ReturnsEmptyListForEmptyGeometry, KratosGeoMechanicsFastSuiteWithoutKernel)
-{
-    const auto node_ids = GeometryUtilities::GetNodeIdsFromGeometry(Geometry<Node>{});
-
-    KRATOS_EXPECT_TRUE(node_ids.empty());
-}
-
-KRATOS_TEST_CASE_IN_SUITE(GeometryUtilities_ReturnsCorrectNodeIds, KratosGeoMechanicsFastSuiteWithoutKernel)
-{
-    PointerVector<Node> nodes;
-    nodes.push_back(Kratos::make_intrusive<Node>(1, 0.0, 0.0, 0.0));
-    nodes.push_back(Kratos::make_intrusive<Node>(3, 0.0, 0.0, 0.0));
-    nodes.push_back(Kratos::make_intrusive<Node>(42, 0.0, 0.0, 0.0));
-    nodes.push_back(Kratos::make_intrusive<Node>(314, 0.0, 0.0, 0.0));
-    const Geometry geometry(1, nodes);
-
-    const auto node_ids = GeometryUtilities::GetNodeIdsFromGeometry(geometry);
-
-    KRATOS_EXPECT_VECTOR_EQ(node_ids, std::vector({1, 3, 42, 314}));
-}
-
 class GeometryFamiliesReverseFixture
     : public ::testing::TestWithParam<
           std::tuple<GeometryData::KratosGeometryFamily, GeometryData::KratosGeometryOrderType, std::vector<std::size_t>, std::vector<std::size_t>>>
@@ -321,6 +300,10 @@ INSTANTIATE_TEST_CASE_P(
                                       GeometryData::KratosGeometryOrderType::Kratos_Cubic_Order,
                                       std::vector<std::size_t>{1, 2, 3, 4, 5, 6, 7, 8, 9, 10},
                                       std::vector<std::size_t>{1, 3, 2, 9, 8, 7, 6, 5, 4, 10}),
+                      std::make_tuple(GeometryData::KratosGeometryFamily::Kratos_Triangle,
+                                      GeometryData::KratosGeometryOrderType::Kratos_Quartic_Order,
+                                      std::vector<std::size_t>{1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15},
+                                      std::vector<std::size_t>{1, 3, 2, 12, 11, 10, 9, 8, 7, 6, 5, 4, 13, 15, 14}),
                       std::make_tuple(GeometryData::KratosGeometryFamily::Kratos_Quadrilateral,
                                       GeometryData::KratosGeometryOrderType::Kratos_Linear_Order,
                                       std::vector<std::size_t>{1, 2, 3, 4},

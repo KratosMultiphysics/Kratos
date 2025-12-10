@@ -114,15 +114,13 @@ public:
     ///@{
 
     /// Default constructor.
-    Flags() : mIsDefined(BlockType()), mFlags(BlockType()) {}
+    Flags() = default;
 
     /// Copy constructor.
-    Flags(Flags const& rOther) : mIsDefined(rOther.mIsDefined), mFlags(rOther.mFlags)
-    {
-    }
+    Flags(Flags const&) = default;
 
     /// Destructor.
-    virtual ~Flags() {}
+    virtual ~Flags() = default;
 
     static Flags Create(IndexType ThisPosition, bool Value=true)
     {
@@ -136,12 +134,11 @@ public:
     ///@{
 
     /// Assignment operator.
-    Flags& operator=(Flags const& rOther)
-    {
-        mIsDefined = rOther.mIsDefined;
-        mFlags = rOther.mFlags;
-        return *this;
-    }
+    Flags& operator=(Flags const&) = default;
+
+    /// Move operations.
+    Flags(Flags&&) noexcept = default;
+    Flags& operator=(Flags&&) noexcept = default;
 
     /**
      * @brief Conversion operator to bool.
@@ -463,8 +460,8 @@ private:
     ///@name Member Variables
     ///@{
 
-    BlockType mIsDefined; /// Bitmask representing defined flags.
-    BlockType mFlags; /// Bitmask representing flag values.
+    BlockType mIsDefined = {}; /// Bitmask representing defined flags.
+    BlockType mFlags = {}; /// Bitmask representing flag values.
 
     ///@}
     ///@name Private Operators

@@ -185,14 +185,6 @@ public:
     static std::vector<Vector> EvaluateShapeFunctionsAtIntegrationPoints(const Geo::IntegrationPointVectorType& rIntegrationPoints,
                                                                          const Geometry<Node>& rGeometry);
 
-private:
-    template <typename VectorType1, typename VectorType2>
-    static void AddVectorAtPosition(const VectorType1& rSourceVector, VectorType2& rDestinationVector, std::size_t Offset)
-    {
-        auto pos = std::begin(rDestinationVector) + Offset;
-        std::transform(std::begin(rSourceVector), std::end(rSourceVector), pos, pos, std::plus<double>{});
-    }
-
     template <typename MatrixType1, typename MatrixType2>
     static inline void AddMatrixAtPosition(const MatrixType1& rSourceMatrix,
                                            MatrixType2&       rDestinationMatrix,
@@ -209,6 +201,14 @@ private:
                 rDestinationMatrix(di, j + ColumnOffset) += rSourceMatrix(i, j);
             }
         }
+    }
+
+private:
+    template <typename VectorType1, typename VectorType2>
+    static void AddVectorAtPosition(const VectorType1& rSourceVector, VectorType2& rDestinationVector, std::size_t Offset)
+    {
+        auto pos = std::begin(rDestinationVector) + Offset;
+        std::transform(std::begin(rSourceVector), std::end(rSourceVector), pos, pos, std::plus<double>{});
     }
 
 }; /* Class GeoElementUtilities*/
