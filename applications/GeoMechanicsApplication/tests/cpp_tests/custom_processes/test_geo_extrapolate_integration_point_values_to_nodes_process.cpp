@@ -110,7 +110,7 @@ KRATOS_TEST_CASE_IN_SUITE(TestExtrapolationProcess_InitializesNodalArea, KratosG
     Model model;
     auto& model_part = CreateModelPartWithTwoStubElements(model);
 
-    auto parameters = Parameters(R"(
+    const auto parameters = Parameters(R"(
     {
         "model_part_name"            : "MainModelPart",
         "echo_level"                 : 0,
@@ -147,7 +147,7 @@ KRATOS_TEST_CASE_IN_SUITE(TestExtrapolationProcess_ExtrapolatesCorrectlyForConst
     dynamic_cast<StubElementForNodalExtrapolationTest&>(model_part.Elements()[2]).mIntegrationDoubleValues = {
         1.0, 1.0, 1.0, 1.0};
 
-    auto parameters = Parameters(R"(
+    const auto parameters = Parameters(R"(
     {
         "model_part_name"            : "MainModelPart",
         "echo_level"                 : 0,
@@ -178,7 +178,7 @@ KRATOS_TEST_CASE_IN_SUITE(TestExtrapolationProcess_ExtrapolatesCorrectlyForTwoCo
     dynamic_cast<StubElementForNodalExtrapolationTest&>(model_part.Elements()[2]).mIntegrationDoubleValues = {
         2.0, 2.0, 2.0, 2.0};
 
-    auto parameters = Parameters(R"(
+    const auto parameters = Parameters(R"(
     {
         "model_part_name"            : "MainModelPart",
         "echo_level"                 : 0,
@@ -216,7 +216,7 @@ KRATOS_TEST_CASE_IN_SUITE(TestExtrapolationProcess_ExtrapolatesCorrectlyForLinea
     dynamic_cast<StubElementForNodalExtrapolationTest&>(model_part.Elements()[2]).mIntegrationDoubleValues = {
         -inv_sqrt3, -inv_sqrt3, inv_sqrt3, inv_sqrt3};
 
-    auto                                               parameters = Parameters(R"(
+    const auto                                         parameters = Parameters(R"(
      {
          "model_part_name"            : "MainModelPart",
          "echo_level"                 : 0,
@@ -255,7 +255,7 @@ KRATOS_TEST_CASE_IN_SUITE(TestExtrapolationProcess_ExtrapolatesMatrixCorrectlyFo
         ScalarMatrix(3, 3, -inv_sqrt3), ScalarMatrix(3, 3, -inv_sqrt3),
         ScalarMatrix(3, 3, inv_sqrt3), ScalarMatrix(3, 3, inv_sqrt3)};
 
-    auto parameters = Parameters(R"(
+    const auto parameters = Parameters(R"(
      {
          "model_part_name"            : "MainModelPart",
          "echo_level"                 : 0,
@@ -300,7 +300,7 @@ KRATOS_TEST_CASE_IN_SUITE(TestExtrapolationProcess_ExtrapolatesVectorCorrectlyFo
         ScalarVector(6, -inv_sqrt3), ScalarVector(6, -inv_sqrt3), ScalarVector(6, inv_sqrt3),
         ScalarVector(6, inv_sqrt3)};
 
-    auto parameters = Parameters(R"(
+    const auto parameters = Parameters(R"(
      {
          "model_part_name"            : "MainModelPart",
          "echo_level"                 : 0,
@@ -345,7 +345,7 @@ KRATOS_TEST_CASE_IN_SUITE(TestExtrapolationProcess_ExtrapolatesArrayCorrectlyFor
         ScalarVector(3, -inv_sqrt3), ScalarVector(3, -inv_sqrt3), ScalarVector(3, inv_sqrt3),
         ScalarVector(3, inv_sqrt3)};
 
-    auto parameters = Parameters(R"(
+    const auto parameters = Parameters(R"(
      {
          "model_part_name_list"       : ["MainModelPart"],
          "echo_level"                 : 0,
@@ -372,12 +372,14 @@ KRATOS_TEST_CASE_IN_SUITE(CheckInfoGeoExtrapolateIntegrationPointValuesToNodesPr
 {
     // Arrange
     Model model;
-    model.CreateModelPart("MainModelPart");
-    auto                                                     parameters = Parameters(R"(
+    model.CreateModelPart("foo");
+
+    const auto parameters = Parameters(R"(
      {
-         "model_part_name"            : "MainModelPart",
+         "model_part_name"            : "foo",
          "list_of_variables"          : ["FLUID_FLUX_VECTOR"]
      })");
+
     const GeoExtrapolateIntegrationPointValuesToNodesProcess process(model, parameters);
 
     // Act & assert
