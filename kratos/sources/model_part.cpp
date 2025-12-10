@@ -954,11 +954,11 @@ void ModelPart::AddElement(ModelPart::ElementType::Pointer pNewElement, ModelPar
     else
     {
         auto existing_element_it = this->GetMesh(ThisIndex).Elements().find(pNewElement->Id());
-        if( existing_element_it == GetMesh(ThisIndex).ElementsEnd()) //node did not exist
+        if( existing_element_it == GetMesh(ThisIndex).ElementsEnd()) //element did not exist
         {
             GetMesh(ThisIndex).AddElement(pNewElement);
         }
-        else //node did exist already
+        else //element did exist already
         {
             KRATOS_ERROR_IF(&(*existing_element_it) != (pNewElement.get()))//check if the pointee coincides
                 << "attempting to add pNewElement with Id :" << pNewElement->Id() << ", unfortunately a (different) element with the same Id already exists" << std::endl;
@@ -1396,11 +1396,11 @@ void ModelPart::AddCondition(ModelPart::ConditionType::Pointer pNewCondition, Mo
     else
     {
         auto existing_condition_it = this->GetMesh(ThisIndex).Conditions().find(pNewCondition->Id());
-        if( existing_condition_it == GetMesh(ThisIndex).ConditionsEnd()) //node did not exist
+        if( existing_condition_it == GetMesh(ThisIndex).ConditionsEnd()) //condition did not exist
         {
             GetMesh(ThisIndex).AddCondition(pNewCondition);
         }
-        else //node did exist already
+        else //condition did exist already
         {
             KRATOS_ERROR_IF(&(*existing_condition_it) != (pNewCondition.get()))//check if the pointee coincides
                 << "attempting to add pNewCondition with Id :" << pNewCondition->Id() << ", unfortunately a (different) condition with the same Id already exists" << std::endl;
@@ -1602,11 +1602,11 @@ void ModelPart::AddGeometry(ModelPart::GeometryType::Pointer pNewGeometry)
     else 
     {
         auto existing_geometry_it = this->GetMesh(0).Geometries().find(pNewGeometry->Id());
-        if( existing_geometry_it == GetMesh(0).Geometries().end()) //node did not exist
+        if( existing_geometry_it == GetMesh(0).Geometries().end()) //geometry did not exist
         {
             GetMesh(0).AddGeometry(pNewGeometry);
         }
-        else  //node did exist already
+        else  //geometry did exist already
         {
             // Check if the connectivities coincide
             // First check for the geometry type
