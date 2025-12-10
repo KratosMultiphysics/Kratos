@@ -22,6 +22,7 @@
 #include "containers/model.h"
 
 // Application includes
+#include "custom_utilities/iga_flags.h"
 #include "iga_application_variables.h"
 
 namespace Kratos
@@ -562,6 +563,51 @@ public:
                 << system_solve_time.ElapsedSeconds() << std::endl;
 
         rModelPart.GetProcessInfo()[EIGENVALUE_NITSCHE_STABILIZATION_VECTOR] = Eigenvalues;
+
+        if (rModelPart.Conditions().begin()->Is(IgaFlags::FIX_ROTATION_X))
+        {
+            SparseMatrixType& rStabilizationRotationMatrix = this->GetStabilizationMatrix();
+
+            // Get the global stabilization matrix of the respective model part, linked with the Nitsche stabilization scheme.
+            rModelPart.GetProcessInfo()[BUILD_LEVEL] = 3;
+            TSparseSpace::SetToZero(rStabilizationRotationMatrix);
+
+            this->pGetBuilderAndSolver()->Build(pScheme,rModelPart,rStabilizationRotationMatrix,b);
+
+            if (BaseType::GetEchoLevel() == 4) {
+                TSparseSpace::WriteMatrixMarketMatrix("StabilizationRotationMatrix.mm", rStabilizationRotationMatrix, false);
+            }
+
+            SparseMatrixType reduced_stabilization_rotation_matrix = ZeroMatrix((number_of_nodes_master+number_of_nodes_slave)*3,(number_of_nodes_master+number_of_nodes_slave)*3);
+            for (IndexType i = 0; i < (number_of_nodes_master+number_of_nodes_slave)*3; i++)
+            {
+                for (IndexType j = 0; j <= i; j++)
+                {
+                    reduced_stabilization_rotation_matrix(i,j) = rStabilizationRotationMatrix(rResult(i),rResult(j));
+                    if (i != j)
+                    {
+                        reduced_stabilization_rotation_matrix(j,i) = rStabilizationRotationMatrix(rResult(i),rResult(j));
+                    }
+                }
+            }
+       
+            // Eigenvector matrix and eigenvalue vector are initialized by the solver
+            DenseVectorType Eigenvaluesrotation;
+            DenseMatrixType Eigenvectorsrotation;
+
+            // // Solve for eigenvalues and eigenvectors
+            BuiltinTimer system_solve_time;
+            this->pGetBuilderAndSolver()->GetLinearSystemSolver()->Solve(
+                reduced_stabilization_rotation_matrix,
+                reduced_stiffness_matrix,
+                Eigenvaluesrotation,
+                Eigenvectorsrotation);
+
+            KRATOS_INFO_IF("System Solve Time", BaseType::GetEchoLevel() > 0)
+                << system_solve_time.ElapsedSeconds() << std::endl;
+
+            rModelPart.GetProcessInfo()[EIGENVALUE_NITSCHE_STABILIZATION_ROTATION_VECTOR] = Eigenvaluesrotation;
+        }
 
         return true;
     }
