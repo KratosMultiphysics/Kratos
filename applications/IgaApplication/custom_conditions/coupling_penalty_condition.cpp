@@ -30,6 +30,7 @@ namespace Kratos
     {
         KRATOS_TRY
         const double penalty = GetProperties()[PENALTY_FACTOR];
+        const double penalty_rotation = GetProperties()[PENALTY_ROTATION_FACTOR];
 
         const auto& r_geometry_master = GetGeometry().GetGeometryPart(0);
         const auto& r_geometry_slave = GetGeometry().GetGeometryPart(1);
@@ -99,8 +100,9 @@ namespace Kratos
             }
 
             // Differential area
-            const double penalty_integration = penalty * integration_points[point_number].Weight() * determinant_jacobian_vector[point_number];
-
+            double penalty_integration = penalty * integration_points[point_number].Weight();
+            double penalty_rotation_integration = penalty_rotation * integration_points[point_number].Weight();
+     
             // Rotation coupling
             if (Is(IgaFlags::FIX_ROTATION_X))
             {
@@ -115,7 +117,7 @@ namespace Kratos
                     {
                         for (IndexType j = 0; j < mat_size; ++j)
                         {
-                            rLeftHandSideMatrix(i, j) = (phi_r(i) * phi_r(j) + diff_phi(0) * phi_rs(i, j)) * penalty_integration;
+                            rLeftHandSideMatrix(i, j) = (phi_r(i) * phi_r(j) + diff_phi(0) * phi_rs(i, j)) * penalty_rotation_integration;
                         }
                     }
                 }
@@ -123,7 +125,7 @@ namespace Kratos
                 if (CalculateResidualVectorFlag) {
                     for (IndexType i = 0; i < mat_size; ++i)
                     {
-                        rRightHandSideVector[i] = (diff_phi(0) * phi_r(i)) * penalty_integration;
+                        rRightHandSideVector[i] = -(diff_phi(0) * phi_r(i)) * penalty_rotation_integration; 
                     }
                 }
             }
@@ -251,7 +253,7 @@ namespace Kratos
         }
         else
         {
-            diff_phi = phi_slave - phi_master;
+            diff_phi = -(phi_slave - phi_master);
         }
         
         for (IndexType i = 0; i < phi_r_master.size(); i++)
