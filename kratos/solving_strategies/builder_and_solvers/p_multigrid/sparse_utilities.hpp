@@ -677,7 +677,7 @@ void BalancedProduct(const TLHSIndex* pLhsRowExtentBegin,
 
     partition.front() = 0ul;
     const auto chunk_size = entry_count / partition.size();
-    for (TLHSIndex i_end=1ul; i_end<partition.size(); ++i_end) {
+    for (std::size_t i_end=1ul; i_end<partition.size(); ++i_end) {
         partition[i_end] = partition[i_end - 1] + chunk_size;
     } // for i_end in range(1, partition.size())
     partition.back() = entry_count;
