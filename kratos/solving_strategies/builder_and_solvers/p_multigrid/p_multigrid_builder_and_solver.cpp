@@ -66,6 +66,7 @@ struct PMultigridBuilderAndSolver<TSparse,TDense>::Impl
     }; // struct LinearSystem
 
     std::optional<LinearSystem> mMaybeLinearSystem;
+    typename LinearSolverType::Pointer mpRootGridSolver;
 
     std::unique_ptr<Scaling> mpDiagonalScaling;
 
@@ -86,6 +87,7 @@ struct PMultigridBuilderAndSolver<TSparse,TDense>::Impl
           mpMaybeModelPart(),
           mpConstraintAssembler(),
           mMaybeHierarchy(),
+          mpRootGridSolver(),
           mpDiagonalScaling(),
           mMaxIterations(0),
           mTolerance(std::numeric_limits<typename TSparse::DataType>::max()),
@@ -260,8 +262,8 @@ struct PMultigridBuilderAndSolver<TSparse,TDense>::Impl
 
         // Prepare and initialize members.
         KRATOS_TRY
-        if (mpInterface->GetLinearSolver().AdditionalPhysicalDataIsNeeded()) {
-            mpInterface->GetLinearSolver().ProvideAdditionalData(rLhs,
+        if (mpInterface->GetRootGridSolver().AdditionalPhysicalDataIsNeeded()) {
+            mpInterface->GetRootGridSolver().ProvideAdditionalData(rLhs,
                                                                  rSolution,
                                                                  rRhs,
                                                                  mpInterface->GetDofSet(),
@@ -1007,7 +1009,7 @@ void PMultigridBuilderAndSolver<TSparse,TDense>::AssignSettings(const Parameters
             << "\"" << solver_name << "\" is not a valid linear solver name in the registry. "
             << "Make sure you imported the application it is defined in and that the spelling is correct.";
         const auto& r_factory = SolverFactoryRegistry::Get(solver_name);
-        this->mpLinearSystemSolver = r_factory.Create(smoother_settings);
+        this->mpImpl->mpRootGridSolver = r_factory.Create(smoother_settings);
 
         // Construct the coarse hierarchy.
         const std::string coarse_build_precision = coarse_hierarchy_settings["precision"].Get<std::string>();
@@ -1046,10 +1048,15 @@ void PMultigridBuilderAndSolver<TSparse,TDense>::AssignSettings(const Parameters
         const std::string solver_name = leaf_solver_settings["solver_type"].Get<std::string>();
         using SolverFactoryRegistry = KratosComponents<LinearSolverFactory<TSparse,TDense>>;
         KRATOS_ERROR_IF_NOT(SolverFactoryRegistry::Has(solver_name))
-            << "\"" << solver_name << "\" is not a valid linear solver name in the registry. "
-            << "Make sure you imported the application it is defined in and that the spelling is correct.";
+                << "'" << solver_name << "' does not name a registered linear solver. Options are:\n"
+                << []() -> std::string {
+                    std::stringstream message;
+                    for (const auto& r_pair : SolverFactoryRegistry::GetComponents())
+                        message << "\t" << r_pair.first << "\n";
+                    return message.str();
+                }();
         const auto& r_factory = SolverFactoryRegistry::Get(solver_name);
-        this->mpLinearSystemSolver = r_factory.Create(leaf_solver_settings);
+        this->mpImpl->mpRootGridSolver = r_factory.Create(leaf_solver_settings);
         KRATOS_CATCH("")
     }
 
@@ -1117,7 +1124,7 @@ std::size_t PMultigridBuilderAndSolver<TSparse,TDense>::GetEquationSystemSize() 
 }
 
 template <class TSparse, class TDense>
-LinearSolver<TSparse,TDense>& PMultigridBuilderAndSolver<TSparse,TDense>::GetLinearSolver() noexcept
+LinearSolver<TSparse,TDense>& PMultigridBuilderAndSolver<TSparse,TDense>::GetRootGridSolver() noexcept
 {
     return *Interface::mpLinearSystemSolver;
 }
