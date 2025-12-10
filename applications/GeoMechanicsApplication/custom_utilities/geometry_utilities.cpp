@@ -138,15 +138,6 @@ Matrix GeometryUtilities::Calculate3DRotationMatrixForPlaneGeometry(const Geomet
     return result;
 }
 
-std::vector<std::size_t> GeometryUtilities::GetNodeIdsFromGeometry(const Geometry<Node>& rGeometry)
-{
-    std::vector<std::size_t> result;
-    result.reserve(rGeometry.size());
-    std::ranges::transform(rGeometry, std::back_inserter(result),
-                           [](const auto& rNode) { return rNode.Id(); });
-    return result;
-}
-
 void GeometryUtilities::ReverseNodes(PointerVector<Node>&                  rNodes,
                                      GeometryData::KratosGeometryFamily    GeometryFamily,
                                      GeometryData::KratosGeometryOrderType GeometryOrderType)

@@ -56,7 +56,7 @@ void ComputeMassMomentOfInertiaProcess::Execute()
     KRATOS_INFO("Hint")  << "Check variable MASS_MOMENT_OF_INERTIA in the process info in "
                          << "order to access to it at any moment" << std::endl;
 
-    mrThisModelPart.GetProcessInfo()[MASS_MOMENT_OF_INERTIA] = moment_of_inertia;
+    mrThisModelPart.SetValue(MASS_MOMENT_OF_INERTIA, moment_of_inertia);
 
     KRATOS_CATCH("")
 } // class ComputeMassMomentOfInertiaProcess

@@ -69,7 +69,6 @@
             "preconditioner_type": "ilu0"
         },
         "problem_domain_sub_model_part_list": ["Column"],
-        "processes_sub_model_part_list":      ["bottom_fixed","side_slide","zero_pressure","top_load"],
         "body_domain_sub_model_part_list":    ["Column"]
     },
     "output_processes": {
