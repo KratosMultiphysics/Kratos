@@ -666,8 +666,7 @@ KRATOS_TEST_CASE_IN_SUITE(LineInterfaceElement_ReturnsExpectedLeftAndRightHandSi
     KRATOS_EXPECT_VECTOR_RELATIVE_NEAR(actual_right_hand_side, expected_right_hand_side, Defaults::relative_tolerance)
 }
 
-KRATOS_TEST_CASE_IN_SUITE(LineInterfaceElement_CalculateStrain_ReturnsRelativeDisplacement,
-                          KratosGeoMechanicsFastSuiteWithoutKernel)
+KRATOS_TEST_CASE_IN_SUITE(LineInterfaceElement_CalculateRelativeDisplacementVector, KratosGeoMechanicsFastSuiteWithoutKernel)
 {
     // Arrange
     constexpr auto normal_stiffness = 20.0;
@@ -696,8 +695,7 @@ KRATOS_TEST_CASE_IN_SUITE(LineInterfaceElement_CalculateStrain_ReturnsRelativeDi
     }
 }
 
-KRATOS_TEST_CASE_IN_SUITE(LineInterfaceElement_CalculateCauchyStressVector_ReturnsTraction,
-                          KratosGeoMechanicsFastSuiteWithoutKernel)
+KRATOS_TEST_CASE_IN_SUITE(LineInterfaceElement_CalculateEffectiveTractionVector, KratosGeoMechanicsFastSuiteWithoutKernel)
 {
     // Arrange
     constexpr auto normal_stiffness = 20.0;
@@ -1099,7 +1097,7 @@ KRATOS_TEST_CASE_IN_SUITE(TriangleInterfaceElement_ReturnsExpectedLeftAndRightHa
     KRATOS_EXPECT_VECTOR_NEAR(actual_right_hand_side, expected_right_hand_side, tolerance)
 }
 
-KRATOS_TEST_CASE_IN_SUITE(TriangleInterfaceElement_CalculateStrain_ReturnsRelativeDisplacement,
+KRATOS_TEST_CASE_IN_SUITE(TriangleInterfaceElement_CalculateRelativeDisplacementVector,
                           KratosGeoMechanicsFastSuiteWithoutKernel)
 {
     // Arrange
@@ -1131,7 +1129,7 @@ KRATOS_TEST_CASE_IN_SUITE(TriangleInterfaceElement_CalculateStrain_ReturnsRelati
     }
 }
 
-KRATOS_TEST_CASE_IN_SUITE(TriangleInterfaceElementHorizontal_CalculateStrain_ReturnsRelativeDisplacement,
+KRATOS_TEST_CASE_IN_SUITE(TriangleInterfaceElementHorizontal_CalculateRelativeDisplacementVector,
                           KratosGeoMechanicsFastSuiteWithoutKernel)
 {
     // Arrange
@@ -1163,7 +1161,7 @@ KRATOS_TEST_CASE_IN_SUITE(TriangleInterfaceElementHorizontal_CalculateStrain_Ret
     }
 }
 
-KRATOS_TEST_CASE_IN_SUITE(TriangleInterfaceElementInYZPlane_CalculateStrain_ReturnsRelativeDisplacement,
+KRATOS_TEST_CASE_IN_SUITE(TriangleInterfaceElementInYZPlane_CalculateRelativeDisplacementVector,
                           KratosGeoMechanicsFastSuiteWithoutKernel)
 {
     // Arrange
@@ -1195,7 +1193,7 @@ KRATOS_TEST_CASE_IN_SUITE(TriangleInterfaceElementInYZPlane_CalculateStrain_Retu
     }
 }
 
-KRATOS_TEST_CASE_IN_SUITE(TriangleInterfaceElementInXZPlane_CalculateStrain_ReturnsRelativeDisplacement,
+KRATOS_TEST_CASE_IN_SUITE(TriangleInterfaceElementInXZPlane_CalculateRelativeDisplacementVector,
                           KratosGeoMechanicsFastSuiteWithoutKernel)
 {
     // Arrange
@@ -1230,8 +1228,7 @@ KRATOS_TEST_CASE_IN_SUITE(TriangleInterfaceElementInXZPlane_CalculateStrain_Retu
     }
 }
 
-KRATOS_TEST_CASE_IN_SUITE(TriangleInterfaceElement_CalculateCauchyStressVector_ReturnsTraction,
-                          KratosGeoMechanicsFastSuiteWithoutKernel)
+KRATOS_TEST_CASE_IN_SUITE(TriangleInterfaceElement_CalculateEffectiveTractionVector, KratosGeoMechanicsFastSuiteWithoutKernel)
 {
     // Arrange
     constexpr auto normal_stiffness = 20.0;
