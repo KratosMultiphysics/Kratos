@@ -392,6 +392,8 @@ public:
         SparseMatrixType reduced_stabilization_matrix;
         SparseMatrixType reduced_stiffness_matrix;
 
+        Vector rResult;
+        std::size_t number_of_nodes_master, number_of_nodes_slave, number_of_nodes;
         if(rModelPart.ConditionsBegin()->GetGeometry().NumberOfGeometryParts() != 0) // Coupling Nitsche condition
         {
             // 1. find the DOFs on the current interface boundary
@@ -410,7 +412,7 @@ public:
                     }
                 }
             }
-            const std::size_t number_of_nodes_master = reduced_model_part_master.NumberOfNodes();
+            number_of_nodes_master = reduced_model_part_master.NumberOfNodes();
 
             Model reduced_model_slave;
             ModelPart& reduced_model_part_slave = reduced_model_slave.CreateModelPart("new_model");
@@ -427,10 +429,9 @@ public:
                     }
                 }
             }
-            const std::size_t number_of_nodes_slave = reduced_model_part_slave.NumberOfNodes();
+            number_of_nodes_slave = reduced_model_part_slave.NumberOfNodes();
 
             // 2. create the result vector
-            Vector rResult;
             rResult.resize((number_of_nodes_master+number_of_nodes_slave)*3);
 
             IndexType i_master = 0;
@@ -462,10 +463,11 @@ public:
             {
                 for (IndexType j = 0; j <= i; j++)
                 {
-                    reduced_stabilization_matrix(i,j) = rStabilizationMatrix(rResult(i),rResult(j));
+                    auto value = rStabilizationMatrix(rResult(i), rResult(j));
+                    reduced_stabilization_matrix(i,j) = value;
                     if (i != j)
                     {
-                        reduced_stabilization_matrix(j,i) = rStabilizationMatrix(rResult(i),rResult(j));
+                        reduced_stabilization_matrix(j,i) = value;
                     }
                 }
             }
@@ -502,10 +504,9 @@ public:
                     }
                 }
             }
-            const std::size_t number_of_nodes = reduced_model_part.NumberOfNodes();
+            number_of_nodes = reduced_model_part.NumberOfNodes();
 
             // 2. create the result vector
-            Vector rResult;
             rResult.resize((number_of_nodes)*3);
 
             IndexType i = 0;
