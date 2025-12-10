@@ -227,6 +227,11 @@ public:
             CalculateNitscheStabilizationMatrix(rLeftHandSideMatrix, rRightHandSideVector,
                 rCurrentProcessInfo);
         }
+        else if (rCurrentProcessInfo[BUILD_LEVEL] == 3)
+        {
+            CalculateNitscheStabilizationRotationMatrix(rLeftHandSideMatrix, rRightHandSideVector,
+                rCurrentProcessInfo);
+        }
         else
         {
             CalculateAll(rLeftHandSideMatrix, rRightHandSideVector,
@@ -255,6 +260,18 @@ public:
         const ProcessInfo& rCurrentProcessInfo
     ) const override;
 
+    /**
+    * @brief Calculate a double Variable on the Element Constitutive Law
+    * @param rVariable The variable we want to get
+    * @param rValues The values obtained int the integration points
+    * @param rCurrentProcessInfo the current process info instance
+    */
+    void CalculateOnIntegrationPoints(
+        const Variable<double>& rVariable,
+        std::vector<double>& rOutput,
+        const ProcessInfo& rCurrentProcessInfo
+    ) override;
+
     /// Calculates left (K) and right (u) hand sides
     void CalculateAll(
         MatrixType& rLeftHandSideMatrix,
@@ -265,6 +282,12 @@ public:
     );
 
     void CalculateNitscheStabilizationMatrix(
+        MatrixType& rLeftHandSideMatrix,
+        VectorType& rRightHandSideVector,
+        const ProcessInfo& rCurrentProcessInfo
+    );
+
+    void CalculateNitscheStabilizationRotationMatrix(
         MatrixType& rLeftHandSideMatrix,
         VectorType& rRightHandSideVector,
         const ProcessInfo& rCurrentProcessInfo
@@ -439,6 +462,17 @@ private:
         Matrix& rFirstVariationMomentCovariant, 
         array_1d<double, 3>& rRotationMaster,
         array_1d<double, 3>& rRotationSlave,
+        array_1d<double, 3>& rSecondVariationMomentProduct,
+        array_1d<double, 3>& rSecondVariationMomentProductMasterSlave,
+        const PatchType& rPatch);
+
+    void CalculateSecondVariationMomentT2(
+        IndexType IntegrationPointIndex,
+        Matrix& rSecondVariationMoment,
+        const KinematicVariables& rActualKinematic,
+        Matrix& rFirstVariationMomentCovariant, 
+        array_1d<double, 3>& T2Master,
+        array_1d<double, 3>& T2Slave,
         array_1d<double, 3>& rSecondVariationMomentProduct,
         array_1d<double, 3>& rSecondVariationMomentProductMasterSlave,
         const PatchType& rPatch);
