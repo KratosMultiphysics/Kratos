@@ -351,7 +351,7 @@ public:
     ///              "tolerance"         : 1e-8,
     ///              "verbosity"         : 1,
     ///              "constraint_imposition_settings" : {
-    ///                  "method" : "master_slave_elimination"
+    ///                  "method" : "master_slave"
     ///              },
     ///              "coarse_hierarchy_settings" : {}
     ///              "smoother_settings" : {
@@ -426,7 +426,7 @@ protected:
 private:
     std::size_t GetEquationSystemSize() const noexcept;
 
-    LinearSolverType& GetLinearSolver() noexcept;
+    LinearSolverType& GetRootGridSolver() noexcept;
 
     PMultigridBuilderAndSolver(const PMultigridBuilderAndSolver& rOther) = delete;
 

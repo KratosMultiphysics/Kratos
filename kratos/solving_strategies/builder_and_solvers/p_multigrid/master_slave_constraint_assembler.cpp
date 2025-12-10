@@ -212,7 +212,7 @@ void MasterSlaveConstraintAssembler<TSparse,TDense>::AllocateConstraints(Pointer
         << "Number of constraint equations (" << this->GetRelationMatrix().size1() << ") "
         << "is greater than the number of DoFs (" << dependent_system_size << ")";
 
-    KRATOS_ERROR_IF(this->GetRelationMatrix().nnz() <= this->GetRelationMatrix().size1())
+    KRATOS_ERROR_IF(this->GetRelationMatrix().nnz() < this->GetRelationMatrix().size1())
         << "Assembled relation matrix has less entries (" << this->GetRelationMatrix().nnz() << ") "
         << "than constraint equations (" << this->GetRelationMatrix().size1() << ")";
 
