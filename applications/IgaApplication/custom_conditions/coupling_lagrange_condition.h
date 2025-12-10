@@ -103,6 +103,8 @@ public:
     ///@name Operations
     ///@{
 
+    void Initialize(const ProcessInfo& rCurrentProcessInfo) override;
+
     /**
     * @brief This is called during the assembling process in order
     *        to calculate the condition right hand side matrix
@@ -221,6 +223,10 @@ private:
     ///@name private variables
     ///@{
 
+    std::vector<Vector> m_phi_r_master_vector;
+    std::vector<Vector> m_phi_r_slave_vector;
+    std::vector<bool> m_opposite_direction_of_trims_vector;
+
     const double shape_function_tolerance = 1e-6;
 
     ///@}
@@ -233,12 +239,17 @@ private:
     SizeType GetNumberOfNonZeroNodesMaster() const;
     SizeType GetNumberOfNonZeroNodesSlave() const;
 
+    SizeType GetNumberOfNonZeroDOFsMasterRotation() const;
+    SizeType GetNumberOfNonZeroDOFsSlaveRotation() const;
+
     // Compute rotational shape functions
     void CalculateRotationalShapeFunctions(
         IndexType IntegrationPointIndex,
         Vector& phi_r,
         Matrix& phi_rs,
-        array_1d<double, 2>& diff_phi);
+        array_1d<double, 2>& diff_phi,
+        array_1d<double, 3> &trim_tangent_master,
+        array_1d<double, 3> &trim_tangent_slave);
 
     // Compute rotation
     void CalculateRotation(
@@ -259,11 +270,17 @@ private:
     virtual void save(Serializer& rSerializer) const override
     {
         KRATOS_SERIALIZE_SAVE_BASE_CLASS(rSerializer, Condition);
+        rSerializer.save("phi_r_master", m_phi_r_master_vector);
+        rSerializer.save("phi_r_slave", m_phi_r_slave_vector);
+        rSerializer.save("opposite_direction_of_trims", m_opposite_direction_of_trims_vector);
     }
 
     virtual void load(Serializer& rSerializer) override
     {
         KRATOS_SERIALIZE_LOAD_BASE_CLASS(rSerializer, Condition);
+        rSerializer.load("phi_r_master", m_phi_r_master_vector);
+        rSerializer.load("phi_r_slave", m_phi_r_slave_vector);
+        rSerializer.load("opposite_direction_of_trims", m_opposite_direction_of_trims_vector);
     }
 
     ///@}
