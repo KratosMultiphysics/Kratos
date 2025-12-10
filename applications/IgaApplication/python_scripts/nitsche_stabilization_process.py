@@ -86,9 +86,6 @@ class NitscheStabilizationProcess(KratosMultiphysics.Process):
         eigenvalue_nitsche_stabilization_rotation_vector = current_process_info.GetValue(IGA.EIGENVALUE_NITSCHE_STABILIZATION_ROTATION_VECTOR)
         nitsche_stabilization_rotation_factor= eigenvalue_nitsche_stabilization_rotation_vector[eigenvalue_nitsche_stabilization_rotation_vector.Size()-1]*4*self.params["number_of_conditions"].GetInt()
 
-        print(nitsche_stabilization_factor)
-        print(nitsche_stabilization_rotation_factor)
-
         # Set the Nitsche stabilization factor
         for prop in self.model_part_condition.Properties:
             prop.SetValue(IGA.NITSCHE_STABILIZATION_FACTOR, nitsche_stabilization_factor)
