@@ -86,7 +86,7 @@ void SmallStrainUMAT3DInterfaceLaw::CopyConstitutiveMatrix(ConstitutiveLaw::Para
     }
 }
 
-indexStress3D SmallStrainUMAT3DInterfaceLaw::getIndex3D(const indexStress3DInterface index3D) const
+indexStress3D SmallStrainUMAT3DInterfaceLaw::getIndex3D(const indexStress3DInterface index3D)
 {
     switch (index3D) {
     case INDEX_3D_INTERFACE_ZZ:

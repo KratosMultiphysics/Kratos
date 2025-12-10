@@ -39,9 +39,9 @@ void SbmFluidConditionDirichlet::CalculateAll(
     KRATOS_TRY
 
     const auto& r_geometry = GetGeometry();
-    const SizeType number_of_nodes = r_geometry.size();
+    const std::size_t number_of_nodes = r_geometry.size();
 
-    const SizeType mat_size = number_of_nodes * (mDim+1);
+    const std::size_t mat_size = number_of_nodes * (mDim+1);
     //resizing as needed the LHS
     if(rLeftHandSideMatrix.size1() != mat_size)
         rLeftHandSideMatrix.resize(mat_size,mat_size,false);
@@ -113,16 +113,25 @@ void SbmFluidConditionDirichlet::CalculateAll(
     stress_old(1, 0) = r_stress_vector[2];      stress_old(1, 1) = r_stress_vector[1];         
     Vector traction_old_iteration = prod(stress_old, n_tensor); // This results in a 2x1 vector.
 
+    Matrix DB_contribution_w = ZeroMatrix(2, 2);
+    Matrix DB_contribution = ZeroMatrix(2, 2);
+
     for (IndexType i = 0; i < number_of_nodes; i++) {
-        for (IndexType j = 0; j < number_of_nodes; j++) {
-            for (IndexType idim = 0; idim < 2; idim++) {
+        for (IndexType idim = 0; idim < 2; idim++) {
+            DB_contribution_w(0, 0) = DB_voigt(0, 2*i+idim);
+            DB_contribution_w(0, 1) = DB_voigt(2, 2*i+idim);
+            DB_contribution_w(1, 0) = DB_voigt(2, 2*i+idim);
+            DB_contribution_w(1, 1) = DB_voigt(1, 2*i+idim);
+
+            for (IndexType j = 0; j < number_of_nodes; j++) {
+                // Compute the traction vector: sigma * n.
+                Vector traction_nitsche_w = prod(DB_contribution_w, n_tensor);
 
                 // Penalty term
                 rLeftHandSideMatrix(3*i+idim, 3*j+idim) += mHsum(0,i)*mHsum(0,j)* penalty_integration;
                 
                 for (IndexType jdim = 0; jdim < 2; jdim++) {
                     // Extract the 2x2 block for the control point i from the sigma matrix.
-                    Matrix DB_contribution = ZeroMatrix(2, 2);
                     DB_contribution(0, 0) = DB_voigt(0, 2*j+jdim);
                     DB_contribution(0, 1) = DB_voigt(2, 2*j+jdim);
                     DB_contribution(1, 0) = DB_voigt(2, 2*j+jdim);
@@ -134,11 +143,15 @@ void SbmFluidConditionDirichlet::CalculateAll(
                     rLeftHandSideMatrix(3*i+idim, 3*j+jdim) -= H(0, i) * traction(idim) * integration_weight;
                     
                     // skew-symmetric Nitsche term
-                    rLeftHandSideMatrix(3*j+jdim, 3*i+idim) += mHsum(0, i) * traction(idim) * integration_weight;
+                    rLeftHandSideMatrix(3*i+idim, 3*j+jdim) += mHsum(0, j) * traction_nitsche_w(jdim) * integration_weight;
                 }
 
                 // integration by parts PRESSURE
                 rLeftHandSideMatrix(3*i+idim, 3*j+2) += H(0,j)* ( H(0,i) * mNormalParameterSpace[idim] )
+                        * integration_weight;
+                
+                // Nitsche term --> q term
+                rLeftHandSideMatrix(3*j+mDim, 3*i+idim) -= H(0,j)* ( mHsum(0,i) * mNormalParameterSpace[idim] )
                         * integration_weight;
             }
         }
@@ -153,14 +166,18 @@ void SbmFluidConditionDirichlet::CalculateAll(
             rRightHandSideVector(3*i+idim) -= pressure_old_iteration * ( H(0,i) * mNormalParameterSpace[idim] ) * integration_weight;
         
             // skew-symmetric Nitsche term
-            Matrix DB_contribution = ZeroMatrix(2, 2); // Extract the 2x2 block for the control point i from the DB_voigt.
             DB_contribution(0, 0) = DB_voigt(0, 2*i+idim); 
             DB_contribution(0, 1) = DB_voigt(2, 2*i+idim); 
             DB_contribution(1, 0) = DB_voigt(2, 2*i+idim);
             DB_contribution(1, 1) = DB_voigt(1, 2*i+idim); 
             // Compute the traction vector: sigma * n.
             Vector traction = prod(DB_contribution, n_tensor);
-            rRightHandSideVector(3*i+idim) -= velocity_old_iteration[idim] * traction(idim) * integration_weight;
+            for (IndexType jdim = 0; jdim < mDim; jdim++) {
+                rRightHandSideVector(3*i+idim) -= velocity_old_iteration[jdim] * traction(jdim) * integration_weight;
+            }
+            // Nitsche term --> q term
+            rRightHandSideVector(3*i+mDim) += velocity_old_iteration[idim] * ( H(0,i) * mNormalParameterSpace[idim] )
+                        * integration_weight;
         }
     }
     
@@ -184,7 +201,11 @@ void SbmFluidConditionDirichlet::CalculateAll(
             // Compute the traction vector: sigma * n.
             Vector traction = prod(sigma_block, n_tensor);
             // skew-symmetric Nitsche term
-            rRightHandSideVector[3*i+idim] += u_D[idim] * traction(idim) * integration_weight;
+            for (IndexType jdim = 0; jdim < mDim; jdim++) {
+                rRightHandSideVector[3*i+idim] += u_D[jdim] * traction(jdim) * integration_weight;
+            }
+            // Nitsche term --> q term
+            rRightHandSideVector[3*i+mDim] -= u_D[idim] * H(0,i)*mNormalParameterSpace[idim] * integration_weight;
 
         }
     }
@@ -230,7 +251,7 @@ void SbmFluidConditionDirichlet::InitializeMemberVariables()
 void SbmFluidConditionDirichlet::InitializeSbmMemberVariables()
 {
     const auto& r_geometry = this->GetGeometry();
-    const SizeType number_of_nodes = r_geometry.size();
+    const std::size_t number_of_nodes = r_geometry.size();
 
     // Retrieve projection
     Condition candidate_closest_skin_segment_1 = this->GetValue(NEIGHBOUR_CONDITIONS)[0] ;
@@ -285,8 +306,8 @@ void SbmFluidConditionDirichlet::CalculateB(
         Matrix& rB, 
         const ShapeDerivativesType& r_DN_DX) const
 {
-    const SizeType number_of_control_points = GetGeometry().size();
-    const SizeType mat_size = number_of_control_points * 2; // Only 2 DOFs per node in 2D
+    const std::size_t number_of_control_points = GetGeometry().size();
+    const std::size_t mat_size = number_of_control_points * 2; // Only 2 DOFs per node in 2D
 
     // Resize B matrix to 3 rows (strain vector size) and appropriate number of columns
     if (rB.size1() != 3 || rB.size2() != mat_size)
@@ -311,7 +332,7 @@ void SbmFluidConditionDirichlet::ApplyConstitutiveLaw(
         ConstitutiveLaw::Parameters& rValues,
         ConstitutiveVariables& rConstitutiveVariables) const
 {
-    const SizeType number_of_nodes = GetGeometry().size();
+    const std::size_t number_of_nodes = GetGeometry().size();
 
     // Set constitutive law flags:
     Flags& ConstitutiveLawOptions=rValues.GetOptions();
@@ -355,7 +376,7 @@ int SbmFluidConditionDirichlet::Check(const ProcessInfo& rCurrentProcessInfo) co
 void SbmFluidConditionDirichlet::EquationIdVector(EquationIdVectorType &rResult, const ProcessInfo &rCurrentProcessInfo) const
 {
     const GeometryType& rGeom = this->GetGeometry();
-    const SizeType number_of_control_points = GetGeometry().size();
+    const std::size_t number_of_control_points = GetGeometry().size();
     const unsigned int LocalSize = (mDim + 1) * number_of_control_points;
 
     if (rResult.size() != LocalSize)
@@ -379,7 +400,7 @@ void SbmFluidConditionDirichlet::GetDofList(
 {
     KRATOS_TRY;
 
-    const SizeType number_of_control_points = GetGeometry().size();
+    const std::size_t number_of_control_points = GetGeometry().size();
 
     rElementalDofList.resize(0);
     rElementalDofList.reserve((mDim + 1) * number_of_control_points);
@@ -397,8 +418,8 @@ void SbmFluidConditionDirichlet::GetDofList(
 void SbmFluidConditionDirichlet::GetSolutionCoefficientVector(
         Vector& rValues) const
 {
-    const SizeType number_of_control_points = GetGeometry().size();
-    const SizeType mat_size = number_of_control_points * mDim;
+    const std::size_t number_of_control_points = GetGeometry().size();
+    const std::size_t mat_size = number_of_control_points * mDim;
 
     if (rValues.size() != mat_size)
         rValues.resize(mat_size, false);
