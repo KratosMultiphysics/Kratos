@@ -17,6 +17,7 @@
 #include "custom_processes/apply_final_stresses_of_previous_stage_to_initial_state.h"
 #include "custom_processes/apply_k0_procedure_process.h"
 #include "custom_processes/apply_vector_constraint_table_process.h"
+#include "custom_processes/geo_extrapolate_integration_point_values_to_nodes_process.h"
 #include "custom_utilities/process_utilities.h"
 #include "testing/testing.h"
 #include "tests/cpp_tests/geo_mechanics_fast_suite.h"
@@ -141,6 +142,10 @@ static const std::vector<NamedFactory> ProcessesAndOperations = {
     {"ApplyVectorConstraintTableProcess",
      [](Model& rModel, const Parameters& rSettings) {
     return std::make_unique<Kratos::ApplyVectorConstraintTableProcess>(rModel, rSettings);
+}},
+    {"GeoExtrapolateIntegrationPointValuesToNodesProcess",
+     [](Model& rModel, const Parameters& rSettings) {
+    return std::make_unique<Kratos::GeoExtrapolateIntegrationPointValuesToNodesProcess>(rModel, rSettings);
 }},
     {"ActivateModelPartOperation",
      [](Model& rModel, const Parameters& rSettings) {
