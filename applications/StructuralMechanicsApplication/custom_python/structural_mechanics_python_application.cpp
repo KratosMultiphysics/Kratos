@@ -20,6 +20,7 @@
 #include "structural_mechanics_application_variables.h"
 #include "structural_mechanics_application.h"
 #include "custom_python/add_custom_strategies_to_python.h"
+#include "custom_python/add_custom_operations_to_python.hpp"
 #include "custom_python/add_custom_processes_to_python.h"
 #include "custom_python/add_custom_utilities_to_python.h"
 #include "custom_python/add_custom_constitutive_laws_to_python.h"
@@ -39,6 +40,7 @@ PYBIND11_MODULE(KratosStructuralMechanicsApplication,m)
             ;
 
     AddCustomStrategiesToPython(m);
+    AddCustomOperationsToPython(m);
     AddCustomProcessesToPython(m);
     AddCustomUtilitiesToPython(m);
     AddCustomConstitutiveLawsToPython(m);

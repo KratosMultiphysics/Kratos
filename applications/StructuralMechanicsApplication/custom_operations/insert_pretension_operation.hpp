@@ -12,35 +12,35 @@
 #pragma once
 
 // --- Core Includes ---
-#include "processes/process.h" // Process
+#include "operations/operation.h" // Operation
 #include "containers/model.h" // Model
 
 
 namespace Kratos {
 
 
-class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) InsertPretensionProcess final : public Process {
+class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) InsertPretensionOperation final : public Operation {
 public:
-    KRATOS_CLASS_POINTER_DEFINITION(InsertPretensionProcess);
+    KRATOS_CLASS_POINTER_DEFINITION(InsertPretensionOperation);
 
-    InsertPretensionProcess(Model& rModel, Parameters Settings);
+    InsertPretensionOperation(Model& rModel, Parameters Settings);
 
-    InsertPretensionProcess(InsertPretensionProcess&&) noexcept;
+    InsertPretensionOperation(InsertPretensionOperation&&) noexcept;
 
-    ~InsertPretensionProcess();
+    ~InsertPretensionOperation();
 
-    void ExecuteBeforeSolutionLoop() override;
+    void Execute() override;
 
     const Parameters GetDefaultParameters() const override;
 
 private:
-    InsertPretensionProcess(const InsertPretensionProcess&) = delete;
+    InsertPretensionOperation(const InsertPretensionOperation&) = delete;
 
-    InsertPretensionProcess& operator=(const InsertPretensionProcess&) = delete;
+    InsertPretensionOperation& operator=(const InsertPretensionOperation&) = delete;
 
     struct Impl;
     std::unique_ptr<Impl> mpImpl;
-}; // class InsertPretensionProcess
+}; // class InsertPretensionOperation
 
 
 } // namespace Kratos

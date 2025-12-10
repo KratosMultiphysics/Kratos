@@ -10,7 +10,7 @@
 //
 
 // --- Structural Includes ---
-#include "custom_processes/insert_pretension_process.hpp" // InsertPretensionProcess
+#include "custom_operations/insert_pretension_operation.hpp" // InsertPretensionOperation
 
 // --- Core Includes ---
 #include "includes/master_slave_constraint.h" // MasterSlaveConstraint
@@ -33,15 +33,15 @@ namespace Kratos {
 //}; // class PretensionElement
 
 
-struct InsertPretensionProcess::Impl {
+struct InsertPretensionOperation::Impl {
     ModelPart* mpModelPart;
     std::string mImpositionName;
     double mPretensionValue;
-}; // struct InsertPretensionProcess::Impl
+}; // struct InsertPretensionOperation::Impl
 
 
-InsertPretensionProcess::InsertPretensionProcess(Model& rModel, Parameters Settings)
-    : Process(),
+InsertPretensionOperation::InsertPretensionOperation(Model& rModel, Parameters Settings)
+    : Operation(),
       mpImpl(new Impl) {
     Settings.ValidateAndAssignDefaults(this->GetDefaultParameters());
 
@@ -67,19 +67,19 @@ InsertPretensionProcess::InsertPretensionProcess(Model& rModel, Parameters Setti
         KRATOS_ERROR << message.str();
     }
 
-    // This process expects the pre-tension surface to be defined
+    // This operation expects the pre-tension surface to be defined
     // by a set of Conditions in the input ModelPart. It requires
     // at least one Condition.
     KRATOS_ERROR_IF(mpImpl->mpModelPart->Conditions().empty())
-        << "InsertPretensionProcess requires at least one Condition in the provided ModelPart, "
+        << "InsertPretensionOperation requires at least one Condition in the provided ModelPart, "
         << "but there aren't any in '" << mpImpl->mpModelPart->Name() << "'.";
 }
 
 
-InsertPretensionProcess::InsertPretensionProcess(InsertPretensionProcess&&) noexcept = default;
+InsertPretensionOperation::InsertPretensionOperation(InsertPretensionOperation&&) noexcept = default;
 
 
-InsertPretensionProcess::~InsertPretensionProcess() = default;
+InsertPretensionOperation::~InsertPretensionOperation() = default;
 
 
 struct PretensionSurfacePartition {
@@ -325,7 +325,7 @@ PretensionSurfacePartition PretensionPlanePartition(const ModelPart::ConditionsC
 }
 
 
-void InsertPretensionProcess::ExecuteBeforeSolutionLoop() {
+void InsertPretensionOperation::Execute() {
     ModelPart& r_model_part = *mpImpl->mpModelPart;
 
     // Find elements connected to the pre-tension surface.
@@ -495,7 +495,7 @@ void InsertPretensionProcess::ExecuteBeforeSolutionLoop() {
 }
 
 
-const Parameters InsertPretensionProcess::GetDefaultParameters() const {
+const Parameters InsertPretensionOperation::GetDefaultParameters() const {
     return Parameters(R"({
         "model_part_name" : "",
         "pretension_value" : 0.0,

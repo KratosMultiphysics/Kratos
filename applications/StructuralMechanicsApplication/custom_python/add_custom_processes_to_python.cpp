@@ -29,7 +29,6 @@
 #include "custom_processes/spr_error_process.h"
 #include "custom_processes/impose_rigid_movement_process.h"
 #include "custom_processes/impose_z_strain_process.h"
-#include "custom_processes/insert_pretension_process.hpp"
 #include "custom_processes/distribute_load_on_surface_process.h"
 #include "custom_processes/set_moving_load_process.h"
 #include "custom_processes/set_cartesian_local_axes_process.h"
@@ -98,10 +97,6 @@ void  AddCustomProcessesToPython(pybind11::module& m)
 
     py::class_<ImposeZStrainProcess, ImposeZStrainProcess::Pointer, Process>(m, "ImposeZStrainProcess")
         .def(py::init< ModelPart&, Parameters >())
-        ;
-
-    py::class_<InsertPretensionProcess, InsertPretensionProcess::Pointer, Process>(m, "InsertPretensionProcess")
-        .def(py::init<Model&, Parameters>())
         ;
 
     py::class_<DistributeLoadOnSurfaceProcess, DistributeLoadOnSurfaceProcess::Pointer, Process>(m,"DistributeLoadOnSurfaceProcess")
