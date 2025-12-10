@@ -353,6 +353,9 @@ class GeoMechanicalSolver(PythonSolver):
         self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.CAUCHY_STRESS_TENSOR)
         self.main_model_part.AddNodalSolutionStepVariable(GeoMechanicsApplication.TOTAL_STRESS_TENSOR)
         self.main_model_part.AddNodalSolutionStepVariable(GeoMechanicsApplication.FLUID_FLUX_VECTOR)
+        self.main_model_part.AddNodalSolutionStepVariable(StructuralMechanicsApplication.AXIAL_FORCE)
+        self.main_model_part.AddNodalSolutionStepVariable(StructuralMechanicsApplication.BENDING_MOMENT)
+        self.main_model_part.AddNodalSolutionStepVariable(StructuralMechanicsApplication.SHEAR_FORCE)
 
     def _add_temperature_variables(self):
         self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.TEMPERATURE)

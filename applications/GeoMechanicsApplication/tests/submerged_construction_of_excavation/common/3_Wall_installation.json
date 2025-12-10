@@ -66,98 +66,22 @@
                 "kratos_module": "KratosMultiphysics.GeoMechanicsApplication",
                 "process_name" : "ApplyVectorConstraintTableProcess",
                 "Parameters"   : {
-                    "model_part_name": "PorousDomain.Left_Side",
-                    "variable_name"  : "DISPLACEMENT",
-                    "active"         : [
+                    "model_part_name_list": [
+                        "PorousDomain.Left_Side", "PorousDomain.Right_Side_Of_Clay_Upper_Right",
+                        "PorousDomain.Right_Side_Of_Clay_Middle_Right", "PorousDomain.Right_Side_Of_Clay_Lower_Right",
+                        "PorousDomain.Right_Side_Of_Sand_Right"
+                    ],
+                    "variable_name"       : "DISPLACEMENT",
+                    "active"              : [
                         true, false, false
                     ],
-                    "is_fixed"       : [
+                    "is_fixed"            : [
                         true, false, false
                     ],
-                    "value"          : [
+                    "value"               : [
                         0.0, 0.0, 0.0
                     ],
-                    "table"          : [
-                        0, 0, 0
-                    ]
-                }
-            }, {
-                "python_module": "apply_vector_constraint_table_process",
-                "kratos_module": "KratosMultiphysics.GeoMechanicsApplication",
-                "process_name" : "ApplyVectorConstraintTableProcess",
-                "Parameters"   : {
-                    "model_part_name": "PorousDomain.Right_Side_Of_Clay_Upper_Right",
-                    "variable_name"  : "DISPLACEMENT",
-                    "active"         : [
-                        true, false, false
-                    ],
-                    "is_fixed"       : [
-                        true, false, false
-                    ],
-                    "value"          : [
-                        0.0, 0.0, 0.0
-                    ],
-                    "table"          : [
-                        0, 0, 0
-                    ]
-                }
-            }, {
-                "python_module": "apply_vector_constraint_table_process",
-                "kratos_module": "KratosMultiphysics.GeoMechanicsApplication",
-                "process_name" : "ApplyVectorConstraintTableProcess",
-                "Parameters"   : {
-                    "model_part_name": "PorousDomain.Right_Side_Of_Clay_Middle_Right",
-                    "variable_name"  : "DISPLACEMENT",
-                    "active"         : [
-                        true, false, false
-                    ],
-                    "is_fixed"       : [
-                        true, false, false
-                    ],
-                    "value"          : [
-                        0.0, 0.0, 0.0
-                    ],
-                    "table"          : [
-                        0, 0, 0
-                    ]
-                }
-            }, {
-                "python_module": "apply_vector_constraint_table_process",
-                "kratos_module": "KratosMultiphysics.GeoMechanicsApplication",
-                "process_name" : "ApplyVectorConstraintTableProcess",
-                "Parameters"   : {
-                    "model_part_name": "PorousDomain.Right_Side_Of_Clay_Lower_Right",
-                    "variable_name"  : "DISPLACEMENT",
-                    "active"         : [
-                        true, false, false
-                    ],
-                    "is_fixed"       : [
-                        true, false, false
-                    ],
-                    "value"          : [
-                        0.0, 0.0, 0.0
-                    ],
-                    "table"          : [
-                        0, 0, 0
-                    ]
-                }
-            }, {
-                "python_module": "apply_vector_constraint_table_process",
-                "kratos_module": "KratosMultiphysics.GeoMechanicsApplication",
-                "process_name" : "ApplyVectorConstraintTableProcess",
-                "Parameters"   : {
-                    "model_part_name": "PorousDomain.Right_Side_Of_Sand_Right",
-                    "variable_name"  : "DISPLACEMENT",
-                    "active"         : [
-                        true, false, false
-                    ],
-                    "is_fixed"       : [
-                        true, false, false
-                    ],
-                    "value"          : [
-                        0.0, 0.0, 0.0
-                    ],
-                    "table"          : [
+                    "table"               : [
                         0, 0, 0
                     ]
                 }
@@ -248,6 +172,19 @@
                     ],
                     "model_part_name_for_neighbouring_elements": "PorousDomain.porous_computational_model_part"
                 }
+            },
+            {
+                "python_module": "geo_extrapolate_integration_point_values_to_nodes_process",
+                "kratos_module": "KratosMultiphysics.GeoMechanicsApplication",
+                "process_name": "GeoExtrapolateIntegrationPointValuesToNodesProcess",
+                "Parameters": {
+                    "model_part_name": "PorousDomain.Diaphragm_Wall",
+                    "list_of_variables": [
+                        "AXIAL_FORCE",
+                        "BENDING_MOMENT",
+                        "SHEAR_FORCE"
+                    ]
+                }
             }
         ]
     },
@@ -274,7 +211,14 @@
                             "node_output"        : false,
                             "skin_output"        : false,
                             "nodal_results"      : [
-                                "DISPLACEMENT", "TOTAL_DISPLACEMENT", "ROTATION", "WATER_PRESSURE", "REACTION"
+                                "DISPLACEMENT",
+                                "TOTAL_DISPLACEMENT",
+                                "ROTATION",
+                                "WATER_PRESSURE",
+                                "REACTION",
+                                "AXIAL_FORCE",
+                                "BENDING_MOMENT",
+                                "SHEAR_FORCE"
                             ],
                             "gauss_point_results": [
                                 "CAUCHY_STRESS_TENSOR", "TOTAL_STRESS_TENSOR", "ENGINEERING_STRAIN_TENSOR",
