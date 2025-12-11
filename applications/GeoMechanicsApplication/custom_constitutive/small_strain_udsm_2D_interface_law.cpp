@@ -112,7 +112,7 @@ Vector& SmallStrainUDSM2DInterfaceLaw::GetValue(const Variable<Vector>& rVariabl
 {
     if (rVariable == STATE_VARIABLES) {
         SmallStrainUDSMLaw::GetValue(rVariable, rValue);
-    } else if (rVariable == CAUCHY_STRESS_VECTOR) {
+    } else if (rVariable == CAUCHY_STRESS_VECTOR || rVariable == GEO_EFFECTIVE_TRACTION_VECTOR) {
         rValue.resize(GetStrainSize());
 
         auto& r_sig0                  = GetSig0();
@@ -128,7 +128,8 @@ void SmallStrainUDSM2DInterfaceLaw::SetValue(const Variable<Vector>& rVariable,
 {
     if (rVariable == STATE_VARIABLES) {
         SmallStrainUDSMLaw::SetValue(rVariable, rValue, rCurrentProcessInfo);
-    } else if ((rVariable == CAUCHY_STRESS_VECTOR) && (rValue.size() == GetStrainSize())) {
+    } else if ((rVariable == CAUCHY_STRESS_VECTOR || rVariable == GEO_EFFECTIVE_TRACTION_VECTOR) &&
+               rValue.size() == GetStrainSize()) {
         this->SetInternalStressVector(rValue);
     }
 }
