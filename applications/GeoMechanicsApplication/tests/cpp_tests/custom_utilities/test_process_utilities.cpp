@@ -65,7 +65,7 @@ KRATOS_TEST_CASE_IN_SUITE(GetModelPartsFromSettings_ListOfModelParts, KratosGeoM
     KRATOS_EXPECT_EQ(model_parts[1].get().Name(), "Part2");
 }
 
-KRATOS_TEST_CASE_IN_SUITE(GetModelPartsFromSettings_CheckForDuplicaterdNames, KratosGeoMechanicsFastSuiteWithoutKernel)
+KRATOS_TEST_CASE_IN_SUITE(GetModelPartsFromSettings_CheckForDuplicatedNames, KratosGeoMechanicsFastSuiteWithoutKernel)
 {
     // Arrange
     Model model;
