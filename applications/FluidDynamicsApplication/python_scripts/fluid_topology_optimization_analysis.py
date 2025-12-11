@@ -52,6 +52,7 @@ from KratosMultiphysics import ComputeNodalGradientProcess
 
 class FluidTopologyOptimizationAnalysis(FluidDynamicsAnalysis):
     def _ReadOptimizationParameters(self):
+        self.project_parameters_adjoint = self.project_parameters.Clone()
         if (self.project_parameters.Has("optimization_parameters_file_name")):
             self.optimization_parameters_file = self.project_parameters["optimization_parameters_file_name"].GetString()
         else:
@@ -71,10 +72,10 @@ class FluidTopologyOptimizationAnalysis(FluidDynamicsAnalysis):
         """
         if self.IsMpiParallelism():
             self.physics_solver = trilinos_fluid_topology_optimization_solver.CreateSolver(self.model, self.project_parameters)
-            self.adjoint_solver = trilinos_fluid_topology_optimization_solver.CreateSolver(self.model, self.project_parameters, isAdjointSolver=True)
+            self.adjoint_solver = trilinos_fluid_topology_optimization_solver.CreateSolver(self.model, self.project_parameters_adjoint, isAdjointSolver=True)
         else:
             self.physics_solver = fluid_topology_optimization_solver.CreateSolver(self.model, self.project_parameters)
-            self.adjoint_solver = fluid_topology_optimization_solver.CreateSolver(self.model, self.project_parameters, isAdjointSolver=True)
+            self.adjoint_solver = fluid_topology_optimization_solver.CreateSolver(self.model, self.project_parameters_adjoint, isAdjointSolver=True)
 
     def _CreateSolver(self, isAdjointSolver = False):
         """
@@ -83,9 +84,15 @@ class FluidTopologyOptimizationAnalysis(FluidDynamicsAnalysis):
         isAdjointSolver == True  --> adjoint_solver
         """
         if self.IsMpiParallelism():
-            return trilinos_fluid_topology_optimization_solver.CreateSolver(self.model, self.project_parameters, isAdjointSolver)
+            if (not isAdjointSolver):
+                return trilinos_fluid_topology_optimization_solver.CreateSolver(self.model, self.project_parameters)
+            else:
+                return trilinos_fluid_topology_optimization_solver.CreateSolver(self.model, self.project_parameters_adjoint, isAdjointSolver=True)
         else:
-            return fluid_topology_optimization_solver.CreateSolver(self.model, self.project_parameters, isAdjointSolver)
+            if (not isAdjointSolver):
+                return fluid_topology_optimization_solver.CreateSolver(self.model, self.project_parameters, isAdjointSolver)
+            else:
+                return fluid_topology_optimization_solver.CreateSolver(self.model, self.project_parameters_adjoint, isAdjointSolver=True)
     
     def _GetSolver(self, force_adjoint = False):
         """
@@ -135,6 +142,60 @@ class FluidTopologyOptimizationAnalysis(FluidDynamicsAnalysis):
         self.max_it = iterations_settings[1].GetInt()
         if (self.min_it > self.max_it):
             self.MpiPrint("\n!!!WARNING: wrong initialization of the min & max number of iterations\n")
+        
+    def _CreateProcesses(self, parameter_name, initialization_order):
+        """Create a list of Processes
+        This method is TEMPORARY to not break existing code
+        It will be removed in the future
+        """
+        processes_params = self.project_parameters[parameter_name]
+        solution_output_path = self.optimization_parameters["optimization_settings"]["solution_output_settings"]["output_path"].GetString()
+        if parameter_name == "optimization_output_processes":
+            for name, value in processes_params.items():
+                self._SetOutputProcessPath(value, add_path=solution_output_path+"/optimization")      
+        elif parameter_name == "time_output_processes":
+            for name, value in processes_params.items():
+                self._SetOutputProcessPath(value, add_path=solution_output_path+"/time")
+            
+        list_of_processes = super(FluidDynamicsAnalysis, self)._CreateProcesses(parameter_name, initialization_order)
+
+        if parameter_name == "processes":
+            processes_block_names = ["gravity", "initial_conditions_process_list", "boundary_conditions_process_list", "auxiliar_process_list"]
+            if len(list_of_processes) == 0: # Processes are given in the old format (or no processes are specified)
+                for process_name in processes_block_names:
+                    if self.project_parameters.Has(process_name):
+                        info_msg  = "Using the old way to create the processes, this was removed!\n"
+                        info_msg += "Refer to \"https://github.com/KratosMultiphysics/Kratos/wiki/Common-"
+                        info_msg += "Python-Interface-of-Applications-for-Users#analysisstage-usage\" "
+                        info_msg += "for a description of the new format"
+                        raise Exception("FluidTransportTopologyOptimizationAnalysis: " + info_msg)
+            else: # Processes are given in the new format
+                for process_name in processes_block_names:
+                    if (self.project_parameters.Has(process_name) is True):
+                        raise Exception("Mixing of process initialization is not alowed!")
+        elif parameter_name == "optimization_output_processes":
+            if self.project_parameters.Has("output_configuration"):
+                info_msg  = "Using the old way to create the gid-output, this was removed!\n"
+                info_msg += "Refer to \"https://github.com/KratosMultiphysics/Kratos/wiki/Common-"
+                info_msg += "Python-Interface-of-Applications-for-Users#analysisstage-usage\" "
+                info_msg += "for a description of the new format"
+                raise Exception("FluidTransportTopologyOptimizationAnalysis: " + info_msg)
+        elif parameter_name == "time_output_processes":
+            if self.project_parameters.Has("output_configuration"):
+                info_msg  = "Using the old way to create the gid-output, this was removed!\n"
+                info_msg += "Refer to \"https://github.com/KratosMultiphysics/Kratos/wiki/Common-"
+                info_msg += "Python-Interface-of-Applications-for-Users#analysisstage-usage\" "
+                info_msg += "for a description of the new format"
+                raise Exception("FluidTransportTopologyOptimizationAnalysis: " + info_msg)
+        elif parameter_name == "output_processes":
+            info_msg  =  "Using the standard analysis way of setting outputs, not accepatable for Fluid-Transport topology optimization analysis\n"
+            info_msg  += "Replace it with \"optimization_output_processes\"\n"
+            info_msg  += "If time dependent output is needed add a list named \"time_output_processes\"\n"
+            raise Exception("FluidTransportTopologyOptimizationAnalysis: " + info_msg)
+        else:
+            raise NameError("wrong parameter name")
+
+        return list_of_processes
 
     def __CreateListOfProcesses(self):
         """This method creates the processes and the output-processes
@@ -143,10 +204,12 @@ class FluidTopologyOptimizationAnalysis(FluidDynamicsAnalysis):
         self._list_of_processes        = self._CreateProcesses("processes", order_processes_initialization)
         deprecated_output_processes    = self._CheckDeprecatedOutputProcesses(self._list_of_processes)
         order_processes_initialization = self._GetOrderOfOutputProcessesInitialization()
-        self._list_of_output_processes = self._CreateProcesses("output_processes", order_processes_initialization)
+        self._list_of_optimization_output_processes = self._CreateProcesses("optimization_output_processes", [])
+        self._list_of_time_output_processes         = self._CreateProcesses("time_output_processes", [])
+        self._list_of_output_processes = self._list_of_optimization_output_processes + self._list_of_time_output_processes
         self._list_of_processes.extend(self._list_of_output_processes) # Adding the output processes to the regular processes
         self._list_of_output_processes.extend(deprecated_output_processes)
-    
+
     def _GetOrderOfProcessesInitialization(self):
         # The list of processes will contain a list with each individual process already constructed (boundary conditions, initial conditions and gravity)
         # Note 1: gravity is constructed first. Outlet process might need its information.
@@ -175,6 +238,7 @@ class FluidTopologyOptimizationAnalysis(FluidDynamicsAnalysis):
         self._ModelersSetupGeometryModel()
         self._ModelersPrepareGeometryModel()
         self._ModelersSetupModelPart()
+        self.InitializeAnalysisTimeSettings()
         # Prepare Solvers : ImportModelPart -> PrepareModelPart -> AddDofs)
         self.PrepareSolvers()
         # Modify Initial
@@ -189,18 +253,18 @@ class FluidTopologyOptimizationAnalysis(FluidDynamicsAnalysis):
         # Checks
         self.Check()
         self.ModifyAfterSolverInitialize()
-        # Set Topology Optimization Stage: Initialize
-        self._SetTopologyOptimizationStage(0)
+
         for process in self._GetListOfProcesses():
             process.ExecuteBeforeSolutionLoop()
-        ## Stepping and time settings
+
         if self._GetComputingModelPart().ProcessInfo[KratosMultiphysics.IS_RESTARTED]:
             self.time = self._GetComputingModelPart().ProcessInfo[KratosMultiphysics.TIME]
         else:
             self.time = self.project_parameters["problem_data"]["start_time"].GetDouble()
             self._GetComputingModelPart().ProcessInfo[KratosMultiphysics.TIME] = self.time
-        self.start_time = self.time
-        self.end_time = self.project_parameters["problem_data"]["end_time"].GetDouble()
+
+        # Set Topology Optimization Stage: Initialize
+        self._SetTopologyOptimizationStage(0)
         ## If the echo level is high enough, print the complete list of settings used to run the simulation
         if self.echo_level > 1:
             with open("ProjectParametersOutput.json", 'w') as parameter_output_file:
@@ -225,6 +289,14 @@ class FluidTopologyOptimizationAnalysis(FluidDynamicsAnalysis):
         self._GetPhysicsSolver().PrepareModelPart()
         self._GetPhysicsSolver().AddDofs()
 
+    def _SetOutputProcessPath(self, output_processes_settings, add_path=""):
+        if output_processes_settings[0]["Parameters"].Has("output_path" ):
+            base_output_path = output_processes_settings[0]["Parameters"]["output_path"].GetString()
+        else:
+            info_msg = "Defining an output process without settig the output path\n"
+            raise Exception("FluidTransportTopologyOptimizationAnalysis: " + info_msg)
+        output_processes_settings[0]["Parameters"]["output_path"].SetString(add_path + "/" + base_output_path)
+
     def _SetFunctionalWeights(self):
         # set future transport functinals to zero
         self._InitializeFunctionalWeights()
@@ -242,35 +314,42 @@ class FluidTopologyOptimizationAnalysis(FluidDynamicsAnalysis):
         self.MpiPrint("--|" + self.topology_optimization_stage_str + "| NORMALIZED FUNCTIONAL WEIGHTS: " + str(self.normalized_fluid_functional_weights))
         
     def _InitializeFunctionalWeights(self):
-        fluid_functional_weights = self._ImportFluidFunctionalWeights()
-        # normalize weights
-        self.normalized_fluid_functional_weights = self._NormalizeFunctionalWeights(np.asarray(fluid_functional_weights))
-        # get number of functionals
-        self.n_fluid_functionals = len(self.normalized_fluid_functional_weights)
-        self.n_functionals = self.n_fluid_functionals + 7 # 7 = transport fucntionals
-        # initialize initial functionals vector container
-        self.initial_fluid_functionals_values = np.zeros(self.n_fluid_functionals)
-        self.initial_functionals_values = np.zeros(self.n_functionals)
-        # initialize functionals vector container
-        self.fluid_functionals = np.zeros(self.n_fluid_functionals)
-        self.functionals = np.zeros(self.n_functionals)
-        self.EvaluateFunctionals(print_functional=False)
-        self._SetInitialFunctionals()
-        self._SetNormalizationFunctionals()
-        self.functional_weights = self._RescaleFunctionalWeightsByNormalizationValues()
+        "This method assumes that the '_ImportFunctionalWeights()' has already been called"
+        if (self.functional_weigths_imported):
+            # get number of functionals
+            self.n_fluid_functionals = len(self.normalized_fluid_functional_weights)
+            self.n_functionals = self.n_fluid_functionals + 7 # 7 = transportfunctionals
+            # initialize initial functionals vector container
+            self.initial_fluid_functionals_values = np.zeros(self.n_fluid_functionals)
+            self.initial_functionals_values = np.zeros(self.n_functionals)
+            # initialize functionals vector container
+            self.fluid_functionals = np.zeros(self.n_fluid_functionals)
+            self.functionals = np.zeros(self.n_functionals)
+            self.EvaluateFunctionals(print_functional=False)
+            self._SetInitialFunctionals()
+            self._SetNormalizationFunctionals()
+            self.functional_weights = self._RescaleFunctionalWeightsByNormalizationValues()
+        else:
+            info_msg = "Calling '_InitializeFunctionalWeights' method before '_ImportFunctionalWeights()'"
+            raise RuntimeError("FluidTransportTopologyOptimizationAnalysis: " + info_msg)
+
+    def _ImportFunctionalWeights(self):
+        self._ImportFluidFunctionalWeights()
+        self.functional_weigths_imported = True
 
     def _ImportFluidFunctionalWeights(self):
-        fluid_weights = [0.0, 0.0, 0.0]
+        fluid_functional_weights = [0.0, 0.0, 0.0]
         functional_weights_parameters = self.optimization_settings["optimization_problem_settings"]["functional_weights"]["fluid_functionals"]
         self.fluid_functional_normalization_strategy = functional_weights_parameters["normalization"]["type"].GetString()
         if self.fluid_functional_normalization_strategy == "custom":
             self.fluid_functional_normalization_value = functional_weights_parameters["normalization"]["value"].GetDouble()
         else:
             self.fluid_functional_normalization_strategy == "initial"
-        fluid_weights[0] = functional_weights_parameters["resistance"]["weight"].GetDouble()
-        fluid_weights[1] = functional_weights_parameters["strain_rate"]["weight"].GetDouble()
-        fluid_weights[2] = functional_weights_parameters["vorticity"]["weight"].GetDouble()
-        return fluid_weights
+        fluid_functional_weights[0] = functional_weights_parameters["resistance"]["weight"].GetDouble()
+        fluid_functional_weights[1] = functional_weights_parameters["strain_rate"]["weight"].GetDouble()
+        fluid_functional_weights[2] = functional_weights_parameters["vorticity"]["weight"].GetDouble()
+        # normalize weights
+        self.normalized_fluid_functional_weights = self._NormalizeFunctionalWeights(np.asarray(fluid_functional_weights))
     
     def _SetInitialFunctionals(self):
         self.initial_fluid_functional = np.dot(self.normalized_fluid_functional_weights, self.initial_fluid_functionals_values)
@@ -318,6 +397,34 @@ class FluidTopologyOptimizationAnalysis(FluidDynamicsAnalysis):
         """
         self._GetAdjointSolver().Initialize()
 
+    def InitializeAnalysisTimeSettings(self):
+        ## Stepping and time settings
+        if self.IsUnsteadySolution():
+            self.start_time = self.project_parameters["problem_data"]["start_time"].GetDouble()
+            self.end_time = self.project_parameters["problem_data"]["end_time"].GetDouble()
+            self.time_step_base = self._GetSolver().settings["time_stepping"]["time_step"].GetDouble()
+            self.n_time_steps = max(int(np.ceil((self.end_time-self.start_time) / self.time_step_base)), 1)
+            self.time_steps = np.zeros(self.n_time_steps)
+            self.time_steps_integration_weights = np.zeros(self.n_time_steps) # weight to each time step to perform fast time integration of functionals
+            for istep in range(self.n_time_steps):
+                self.time_steps[istep] = self.time_step_base # assume equal time steps
+            for istep in range(self.n_time_steps-1):
+                self.time_steps_integration_weights[istep] = (self.time_steps[istep] + self.time_steps[istep+1]) / 2.0
+            if (self.n_time_steps == 1):
+                self.time_steps_integration_weights[self.n_time_steps-1] = self.time_steps[self.n_time_steps-1]
+            else:
+                self.time_steps_integration_weights[self.n_time_steps-1] = self.time_steps[self.n_time_steps-1] / 2.0
+        else:
+            self.start_time = self.project_parameters["problem_data"]["start_time"].GetDouble()
+            self.end_time = self.start_time + 1e10
+            self.time_step_base = 1.0000000001*1e10
+            self.n_time_steps = 1
+            self.time_steps = np.zeros(self.n_time_steps)
+            self.time_steps_integration_weights = np.zeros(self.n_time_steps) # weight to each time step to perform fast time integration of functionals
+            self.time_steps[0] = self.time_step_base
+            self.time_steps_integration_weights[0] = 1.0
+            
+
     def Check(self):
         """This method checks the AnalysisStage
         Keyword arguments:
@@ -347,7 +454,6 @@ class FluidTopologyOptimizationAnalysis(FluidDynamicsAnalysis):
         self._InitializeOptimization()
         self._InitializeDomainDesign()
         self._PreprocessDerivatives() 
-        # self._ResetFunctionalOutput()
 
     def SolveTopologyOptimization(self):
         self.design_parameter_change = self.design_parameter_change_toll + 10
@@ -355,6 +461,7 @@ class FluidTopologyOptimizationAnalysis(FluidDynamicsAnalysis):
         self.first_iteration = True
         while (not end_solution):
             self.opt_it = self.opt_it+1
+            self._GetSolver().main_model_part.ProcessInfo[KratosMultiphysics.STEP] = self.opt_it
             self.MpiPrint("\n------------------------------------------------------------------------------")
             self.MpiPrint("--| " + self.topology_optimization_name + " TOPOLOGY OPTIMIZATION SOLUTION LOOP. IT: " +  str(self.opt_it))
             self.MpiPrint("------------------------------------------------------------------------------")
@@ -372,14 +479,18 @@ class FluidTopologyOptimizationAnalysis(FluidDynamicsAnalysis):
                     self.MpiPrint("--| ---> Reached Max Number of Iterations")
                 self._Remesh()
                 self.MpiPrint("------------------------------------------------------------------------------\n")
-            self._PrintSolution()
+            self._PrintOptimizationSolution()
             self.first_iteration = False
+
+    def IsLastIteration(self):
+        return (self.opt_it >= self.max_it)
             
     def _IsTopologyOptimizationSolutionEnd(self):
         design_parameter_converged = self._EvaluateDesignParameterChange()
         volume_constraint_valid = not (self.volume_constraint > 0.0)
         self.converged = design_parameter_converged and volume_constraint_valid
-        return not (((self.opt_it < self.max_it) and (not self.converged)) or (self.opt_it < self.min_it))
+        # return not (((self.opt_it < self.max_it) and (not self.converged)) or (self.opt_it < self.min_it))
+        return (self.opt_it >= self.max_it)
 
     def _SolveOptimizer(self):
         self.MpiPrint("\n--|OPTIMIZER|")
@@ -410,7 +521,7 @@ class FluidTopologyOptimizationAnalysis(FluidDynamicsAnalysis):
 
     def _PrintOnlyPhysics(self, print=False):
         if (print):
-            self.OutputSolutionStep()
+            self.OptimizationOutputSolutionStep()
     
     def _GeometricalPreprocessing(self):
         """
@@ -435,13 +546,23 @@ class FluidTopologyOptimizationAnalysis(FluidDynamicsAnalysis):
     
     def _InitializeOptimization(self):  
         self.MpiPrint("--|" + self.topology_optimization_stage_str + "| INITIALIZE OPTIMIZATION")
+        self.SetTimeSolutionStorage()
         self._ComputeDesignParameterFilterUtilities()
         self.opt_it = 0
         self._SetDesignParameterChangeTolerance()
         self.n_optimization_constraints = 0  
         self._InitializeOptimizerSettings()
         self._InitializeConstraints()
+        self._InitializeFunctionalEvaluation()
         self._InitializeRemeshing()
+
+    def SetTimeSolutionStorage(self):
+        # velocity
+        self.velocity_solutions         = np.zeros((self.n_time_steps, self.n_nodes, self.dim))
+        self.adjoint_velocity_solutions = np.zeros((self.n_time_steps, self.n_nodes, self.dim))
+        # pressure
+        self.pressure_solutions         = np.zeros((self.n_time_steps, self.n_nodes))
+        self.adjoint_pressure_solutions = np.zeros((self.n_time_steps, self.n_nodes))
     
     def _SetDesignParameterChangeTolerance(self):
         self.design_parameter_change_toll = self.optimization_settings["change_tolerance"].GetDouble()
@@ -489,6 +610,16 @@ class FluidTopologyOptimizationAnalysis(FluidDynamicsAnalysis):
     def _ResetConstraints(self):
         self.constraints = np.zeros((self.n_optimization_constraints,1))  
         self.constraints_derivatives_wrt_design = np.zeros((self.n_optimization_constraints, self.n_opt_design_parameters))
+
+    def _InitializeFunctionalEvaluation(self):
+        self.functional_weigths_imported = False
+        self._InitializeFunctionalsInTime()
+        self._ImportFunctionalWeights()
+    
+    def _InitializeFunctionalsInTime(self):
+        self.resistance_functionals_in_delta_time  = np.zeros(self.n_time_steps)
+        self.strain_rate_functionals_in_delta_time = np.zeros(self.n_time_steps)
+        self.vorticity_functionals_in_delta_time   = np.zeros(self.n_time_steps)
 
     def _InitializeDomainDesign(self):
         self.MpiPrint("--|" + self.topology_optimization_stage_str + "| INITIALIZE DOMAIN DESIGN")
@@ -704,7 +835,7 @@ class FluidTopologyOptimizationAnalysis(FluidDynamicsAnalysis):
     def _ComputePhysicsParameter(self, physics_parameters, design_parameter):
         parameter = np.zeros(self.n_nodes)
         parameter_derivative_wrt_design_base = np.zeros(self.n_nodes)
-        for subdomain_physics_parameters in physics_parameters:
+        for subdomain_physics_parameters in physics_parameters.values():
             domain = subdomain_physics_parameters["domain"].GetString()
             mp = self._GetSubModelPart(self._GetMainModelPart(), domain)
             if (mp is not None):
@@ -772,7 +903,7 @@ class FluidTopologyOptimizationAnalysis(FluidDynamicsAnalysis):
         return slope_initial, slope_final, start_it, end_it
     
     def _EvaluatePhysicsParameterCurrentValue(self, physics_parameters):
-        for subdomain_physics_parameters in physics_parameters:
+        for subdomain_physics_parameters in physics_parameters.values():
             # Adjust void value
             if (subdomain_physics_parameters["change_value_void"]["change_value"].GetBool()):
                 start_it      = subdomain_physics_parameters["change_value_void"]["iterations"][0].GetInt()
@@ -837,57 +968,98 @@ class FluidTopologyOptimizationAnalysis(FluidDynamicsAnalysis):
         else:   
             self.MpiPrint("--| UNKNOWN SOLUTION |")
         top_opt_stage_str = self.topology_optimization_stage_str
+        self.SetupStageSolutionLoopTimeSettings()
         self.MpiPrint("--|" + top_opt_stage_str + "| START SOLUTION LOOP")
         while self.KeepAdvancingSolutionLoop():
-            self.MpiPrint("--|" + top_opt_stage_str + "| ADVANCE TIME")
+            self.MpiPrint("--|" + top_opt_stage_str + "| ADVANCE TIME STEP")
             self.time = self._AdvanceTime()
-            self.MpiPrint("--|" + top_opt_stage_str + "| INITIALIZE SOLUTION STEP")
+            self.MpiPrint("--|" + top_opt_stage_str + "| INITIALIZE SOLUTION TIME STEP")
             self.InitializeSolutionStep()
-            self.MpiPrint("--|" + top_opt_stage_str + "| UPDATE PHYSICS PARAMETERS STEP")
+            self.MpiPrint("--|" + top_opt_stage_str + "| UPDATE PHYSICS PARAMETERS TIME STEP")
             self.UpdatePhysicsParametersVariablesAndSynchronize()
             self.MpiPrint("--|" + top_opt_stage_str + "| PREDICT")
             self._GetSolver().Predict()
-            self.MpiPrint("--|" + top_opt_stage_str + "| SOLVE SOLUTION STEP")
+            self.MpiPrint("--|" + top_opt_stage_str + "| SOLVE SOLUTION TIME STEP")
             is_converged = self._GetSolver().SolveSolutionStep()
             self.MpiPrint("--|" + top_opt_stage_str + "| CHECK CONVERGENCE")
             self.__CheckIfSolveSolutionStepReturnsAValue(is_converged)
-            self.MpiPrint("--|" + top_opt_stage_str + "| FINALIZE SOLUTION STEP")
+            self.MpiPrint("--|" + top_opt_stage_str + "| FINALIZE SOLUTION TIME STEP")
             self.FinalizeSolutionStep()
         self.MpiPrint("--|" + top_opt_stage_str + "| END SOLUTION LOOP")
 
-    def InitializeSolutionStep(self):
-        super().InitializeSolutionStep()
-        if (self.IsAdjointStage()):
-            mp = self._GetComputingModelPart()
-            KratosMultiphysics.VariableUtils().CopyVectorVar(KratosMultiphysics.VELOCITY, KratosCFD.CONVECTION_VELOCITY, self._GetLocalMeshNodes(mp))
+    def SetupStageSolutionLoopTimeSettings(self):
+        self.time = self.start_time
+        self._GetSolver()._SetStartingTime(self.start_time)
+        self.time_step_counter = 0
+        if (self.IsPhysicsStage()):
+            self._GetPhysicsSolver().main_model_part.ProcessInfo[KratosCFD.FLUID_TOP_OPT_NS_STEP] = 0
+        elif (self.IsAdjointStage()):
+            self._GetPhysicsSolver().main_model_part.ProcessInfo[KratosCFD.FLUID_TOP_OPT_ADJ_NS_STEP] = 0
 
     def KeepAdvancingSolutionLoop(self):
         """This method specifies the stopping criteria for breaking the solution loop
         It can be overridden by derived classes
         """
         if self.IsPhysicsStage(): # NS
-            return self.time < self.end_time
+            state =  self.time < self.end_time
         elif self.IsAdjointStage(): #ADJ
-            return self.time > self.start_time
+            state =  self.time < self.end_time
         else:
             self.MpiPrint("--|" + self.topology_optimization_stage_str + "| Time check outside NS or ADJ_NS solution")
-            return False
+            state = False
+        if (state == True):
+            if (self.time_step_counter > self.n_time_steps):
+                raise RuntimeError("Advancing in Solution Loop with: (self.time_step_counter > self.n_time_steps")
+        return state
 
     def _AdvanceTime(self):
         """
         This methods hadls the time for the Topology Optimization problems, currently its purpos it's just to make thinks work
         """
-        time = super()._AdvanceTime()
-        if self.IsAdjointStage():
-            time = 0.0
+        self.time_step_counter += 1
+        if self.IsUnsteadySolution():
+            time = super()._AdvanceTime()
+        else:
+            time = self.start_time + self.time_step_base
         return time
+    
+    def InitializeSolutionStep(self):
+        super().InitializeSolutionStep()
+        if self.IsPhysicsStage():
+            pass
+        if self.IsAdjointStage():
+            convection_velocity = self.velocity_solutions[self.n_time_steps-self.time_step_counter,:,:].copy()
+            self._GetAdjointSolver()._UpdateConvectionVelocityVariable(convection_velocity)
+            self._GetMainModelPart().GetCommunicator().SynchronizeNonHistoricalVariable(KratosCFD.CONVECTION_VELOCITY)
+        for process in self._GetListOfTimeOutputProcesses():
+            process.ExecuteInitializeSolutionStep()
+
+    def FinalizeSolutionStep(self):
+        super().FinalizeSolutionStep()
+        if self.IsPhysicsStage():
+            self._EvaluateVelocityGradient()
+            self.EvaluateFunctionalsInDeltaTime(self.time_step_counter-1)
+        self.StoreTimeStepSolution()
+    
+    def StoreTimeStepSolution(self):
+        if self.IsPhysicsStage():
+            velocity = np.asarray(KratosMultiphysics.VariableUtils().GetSolutionStepValuesVector(self._GetLocalMeshNodes(), KratosMultiphysics.VELOCITY, 0, self.dim)).reshape(self.n_nodes, self.dim)
+            pressure = np.asarray(KratosMultiphysics.VariableUtils().GetSolutionStepValuesVector(self._GetLocalMeshNodes(), KratosMultiphysics.PRESSURE, 0))
+            self.velocity_solutions[self.time_step_counter-1,:,:] = velocity.copy()
+            self.pressure_solutions[self.time_step_counter-1,:]   = pressure.copy()
+        elif self.IsAdjointStage():
+            velocity_adj = np.asarray(KratosMultiphysics.VariableUtils().GetSolutionStepValuesVector(self._GetLocalMeshNodes(), KratosMultiphysics.VELOCITY_ADJ, 0, self.dim)).reshape(self.n_nodes, self.dim)
+            pressure_adj = np.asarray(KratosMultiphysics.VariableUtils().GetSolutionStepValuesVector(self._GetLocalMeshNodes(), KratosMultiphysics.PRESSURE_ADJ, 0))
+            self.adjoint_velocity_solutions[self.n_time_steps-self.time_step_counter,:,:] = velocity_adj.copy()
+            self.adjoint_pressure_solutions[self.n_time_steps-self.time_step_counter,:]   = pressure_adj.copy()
 
     def _ReInitializePhysics(self):
         """
         This method Re-Initializes the physical values in order to be consistent with the solution of the current optimization step
         """
         self.MpiPrint("--|" + self.topology_optimization_stage_str + "| RE-INITIALIZE PHYSICS")
-        self._GetComputingModelPart().ProcessInfo.SetValue(KratosMultiphysics.TIME, 0.0)
+        self.time = self.start_time
+        self._GetSolver()._SetStartingTime(self.start_time)
 
     def _EvaluateOptimizationProblem(self, design_parameter = [], print_results = False):
         self.MpiPrint("\n--|EVALUATE OPTIMIZATION PROBLEM|")
@@ -909,6 +1081,7 @@ class FluidTopologyOptimizationAnalysis(FluidDynamicsAnalysis):
         self._EvaluateVolumeConstraintAndDerivative()
         if (self.use_other_constraints):
             self._EvaluateOtherConstraintsAndDerivatives()
+        self._UpdateVolumeConstraintDerivativesVariable()
 
     def _EvaluateOtherConstraintsAndDerivatives(self):
         if (self.use_wss_constraint):
@@ -924,13 +1097,9 @@ class FluidTopologyOptimizationAnalysis(FluidDynamicsAnalysis):
     
     def _EvaluateResistanceFunctional(self, print_functional=False):
         """
-        This method computes the resistance functional: int_{\Omega}{\\alpha||u||^2}
+        This method computes the resistance functional: int_{time}{int_{\Omega}{\\alpha||u||^2}}
         """
-        mp = self._GetComputingModelPart()
-        velocity = np.asarray(KratosMultiphysics.VariableUtils().GetSolutionStepValuesVector(self._GetLocalMeshNodes(mp), KratosMultiphysics.VELOCITY, 0, self.dim)).reshape(self.n_nodes, self.dim)
-        nodal_velocity_norm = np.linalg.norm(velocity, axis=1)
-        integrand = self.resistance * (nodal_velocity_norm**2) #component-wise multiplication
-        self.fluid_functionals[0] = np.dot(self.nodal_domain_sizes, integrand)
+        self.fluid_functionals[0] = np.dot(self.resistance_functionals_in_delta_time, self.time_steps_integration_weights)
         if self.IsMpiParallelism():
             self.fluid_functionals[0] = self.MpiSumLocalValues(self.fluid_functionals[0])
         if (self.first_iteration):
@@ -940,15 +1109,22 @@ class FluidTopologyOptimizationAnalysis(FluidDynamicsAnalysis):
         else:
             self.MpiPrint("--|" + self.topology_optimization_stage_str + "| ---> Resistance Functional")
 
+    def _EvaluateResistanceFunctionalInDeltaTime(self, time_step_id):
+        """
+        This method computes the resistance functional for a single dt: int_{\Omega}{\\alpha||u||^2}
+        """
+        mp = self._GetPhysicsMainModelPart()
+        velocity = np.asarray(KratosMultiphysics.VariableUtils().GetSolutionStepValuesVector(self._GetLocalMeshNodes(mp), KratosMultiphysics.VELOCITY, 0, self.dim)).reshape(self.n_nodes, self.dim)
+        nodal_velocity_norm = np.linalg.norm(velocity, axis=1)
+        integrand = self.resistance * (nodal_velocity_norm**2) #component-wise multiplication
+        resistance_functional_in_delta_time = np.dot(self.nodal_domain_sizes, integrand)
+        return resistance_functional_in_delta_time
+
     def _EvaluateStrainRateFunctional(self, print_functional=False):
         """
-        This method computes the Strain-Rate functional: int_{\Omega}{\\2*mu*||1/2*[grad(u)+grad(u)^T]||^2}
+        This method computes the Strain-Rate functional: int_{time}{int_{\Omega}{\\2*mu*||1/2*[grad(u)+grad(u)^T]||^2}}
         """
-        vel_gradient_on_nodes = self._AssembleVelocityGradientOnNodes()
-        vel_symmetric_gradient = 1.0/2.0 * (vel_gradient_on_nodes+(np.transpose(vel_gradient_on_nodes, axes=(0,2,1))))
-        vel_symmetric_gradient_norm_squared = (np.linalg.norm(vel_symmetric_gradient, ord='fro', axis=(1, 2)))**2
-        mu = self._GetViscosity()
-        self.fluid_functionals[1] = 2.0*mu* np.dot(vel_symmetric_gradient_norm_squared, self.nodal_domain_sizes)
+        self.fluid_functionals[1] = np.dot(self.strain_rate_functionals_in_delta_time, self.time_steps_integration_weights)
         if self.IsMpiParallelism():
             self.fluid_functionals[1] = self.MpiSumLocalValues(self.fluid_functionals[1])
         if (self.first_iteration):
@@ -958,17 +1134,22 @@ class FluidTopologyOptimizationAnalysis(FluidDynamicsAnalysis):
         else:
             self.MpiPrint("--|" + self.topology_optimization_stage_str + "| ---> Strain-Rate Functional")
 
+    def _EvaluateStrainRateFunctionalInDeltaTime(self, time_step_id):
+        """
+        This method computes the resistance functional for a single dt: int_{\Omega}{\\2*mu*||1/2*[grad(u)+grad(u)^T]||^2}
+        """
+        vel_gradient_on_nodes = self._AssembleVelocityGradientOnNodes(buffer_id=0)
+        vel_symmetric_gradient = 1.0/2.0 * (vel_gradient_on_nodes+(np.transpose(vel_gradient_on_nodes, axes=(0,2,1))))
+        vel_symmetric_gradient_norm_squared = (np.linalg.norm(vel_symmetric_gradient, ord='fro', axis=(1, 2)))**2
+        mu = self._GetViscosity()
+        strain_rate_functional_in_delta_time = 2.0*mu* np.dot(vel_symmetric_gradient_norm_squared, self.nodal_domain_sizes)
+        return strain_rate_functional_in_delta_time
+
     def _EvaluateVorticityFunctional(self, print_functional=False):
         """
-        This method computes the Vorticity functional: int_{\Omega}{\\2*mu*||1/2*[grad(u)-grad(u)^T]||^2}
+        This method computes the Vorticity functional: int_{time}{int_{\Omega}{\\2*mu*||1/2*[grad(u)-grad(u)^T]||^2}}
         """
-        vel_gradient_on_nodes = self._AssembleVelocityGradientOnNodes()
-        vel_antisymmetric_gradient = 0.5 * (vel_gradient_on_nodes-(np.transpose(vel_gradient_on_nodes, axes=(0,2,1))))
-        vel_antisymmetric_gradient_norm_squared = (np.linalg.norm(vel_antisymmetric_gradient, ord='fro', axis=(1, 2)))**2
-        mu = self._GetViscosity()
-        self.fluid_functionals[2] = 2.0*mu* np.dot(vel_antisymmetric_gradient_norm_squared, self.nodal_domain_sizes)
-        mu = self._GetViscosity()
-        self.fluid_functionals[1] = 2.0*mu* np.dot(vel_antisymmetric_gradient_norm_squared, self.nodal_domain_sizes)
+        self.fluid_functionals[2] = np.dot(self.vorticity_functionals_in_delta_time, self.time_steps_integration_weights)
         if self.IsMpiParallelism():
             self.fluid_functionals[2] = self.MpiSumLocalValues(self.fluid_functionals[2])
         if (self.first_iteration):
@@ -977,6 +1158,17 @@ class FluidTopologyOptimizationAnalysis(FluidDynamicsAnalysis):
             self.MpiPrint("--|" + self.topology_optimization_stage_str + "| ---> Vorticity Functional: (no weight) " + str(self.fluid_functionals[2])) 
         else:
             self.MpiPrint("--|" + self.topology_optimization_stage_str + "| ---> Vorticity Functional")
+
+    def _EvaluateVorticityFunctionalInDeltaTime(self, time_step_id):
+        """
+        This method computes the resistance functional for a single dt: int_{\Omega}{\\2*mu*||1/2*[grad(u)-grad(u)^T]||^2}
+        """
+        vel_gradient_on_nodes = self._AssembleVelocityGradientOnNodes(buffer_id=0)
+        vel_antisymmetric_gradient = 0.5 * (vel_gradient_on_nodes-(np.transpose(vel_gradient_on_nodes, axes=(0,2,1))))
+        vel_antisymmetric_gradient_norm_squared = (np.linalg.norm(vel_antisymmetric_gradient, ord='fro', axis=(1, 2)))**2
+        mu = self._GetViscosity()
+        vorticity_functional_in_delta_time = 2.0*mu* np.dot(vel_antisymmetric_gradient_norm_squared, self.nodal_domain_sizes)
+        return vorticity_functional_in_delta_time
     
     def _EvaluateFunctionalDerivatives(self):
         """
@@ -1005,13 +1197,24 @@ class FluidTopologyOptimizationAnalysis(FluidDynamicsAnalysis):
         return self._ComputeFunctionalDerivativesFluidPhysicsContribution()
 
     def _ComputeFunctionalDerivativesFluidFunctionalContribution(self):
-        velocity = np.asarray(KratosMultiphysics.VariableUtils().GetSolutionStepValuesVector(self._GetLocalMeshNodes(), KratosMultiphysics.VELOCITY, 0, self.dim)).reshape(self.n_nodes, self.dim)
-        return self.functional_weights[0]*self.resistance_derivative_wrt_design_base * np.sum(velocity*velocity, axis=1) * self.nodal_domain_sizes 
+        resistance_functional_derivatives = self._ComputeFunctionalDerivativesResistanceFunctionalContribution()
+        fluid_functional_derivatives = self.functional_weights[0]*resistance_functional_derivatives
+        return fluid_functional_derivatives 
+
+    def _ComputeFunctionalDerivativesResistanceFunctionalContribution(self):
+        resistance_functional_derivatives_in_delta_time = np.zeros((self.n_nodes, self.n_time_steps))
+        for istep in range(self.n_time_steps):
+            velocity = self.velocity_solutions[istep]
+            resistance_functional_derivatives_in_delta_time[:,istep] = self.resistance_derivative_wrt_design_base * np.sum(velocity*velocity, axis=1) * self.nodal_domain_sizes 
+        return np.einsum('ij,j->i', resistance_functional_derivatives_in_delta_time, self.time_steps_integration_weights)
 
     def _ComputeFunctionalDerivativesFluidPhysicsContribution(self):
-        velocity = np.asarray(KratosMultiphysics.VariableUtils().GetSolutionStepValuesVector(self._GetLocalMeshNodes(), KratosMultiphysics.VELOCITY, 0, self.dim)).reshape(self.n_nodes, self.dim)
-        velocity_adjoint= np.asarray(KratosMultiphysics.VariableUtils().GetSolutionStepValuesVector(self._GetLocalMeshNodes(), KratosMultiphysics.VELOCITY_ADJ, 0, self.dim)).reshape(self.n_nodes, self.dim)        
-        return self.resistance_derivative_wrt_design_base * np.sum(velocity*velocity_adjoint, axis=1) * self.nodal_domain_sizes
+        fluid_physics_functional_derivatives_in_delta_time = np.zeros((self.n_nodes, self.n_time_steps))
+        for istep in range(self.n_time_steps):
+            velocity = self.velocity_solutions[istep]
+            velocity_adjoint = self.adjoint_velocity_solutions[istep]       
+            fluid_physics_functional_derivatives_in_delta_time[:,istep] = self.resistance_derivative_wrt_design_base * np.sum(velocity*velocity_adjoint, axis=1) * self.nodal_domain_sizes
+        return np.einsum('ij,j->i', fluid_physics_functional_derivatives_in_delta_time, self.time_steps_integration_weights)
 
     def _EvaluateWSSConstraintAndDerivative(self):
         """
@@ -1095,6 +1298,12 @@ class FluidTopologyOptimizationAnalysis(FluidDynamicsAnalysis):
         """
         return self.CheckOptimizationStage(3) 
     
+    def IsUnsteadySolution(self):
+        return self._GetSolver()._IsUnsteady()
+    
+    def IssteadySolution(self):
+        return not self.IsUnsteadySolution()
+    
     def _GetComputingModelPart(self):
         """
         This method returns the computing model part for the current solver
@@ -1109,6 +1318,12 @@ class FluidTopologyOptimizationAnalysis(FluidDynamicsAnalysis):
     
     def _GetFluidModelPart(self):
         return self._GetMainModelPart()
+    
+    def _GetPhysicsMainModelPart(self):
+        return self._GetPhysicsSolver().GetMainModelPart()
+    
+    def _GetAdjointMainModelPart(self):
+        return self._GetAdjointSolver().GetMainModelPart()
     
     def _GetSubModelPart(self, super_model_part, sub_model_part_name):
         """
@@ -1201,15 +1416,8 @@ class FluidTopologyOptimizationAnalysis(FluidDynamicsAnalysis):
     
     def _PrintFunctionalsToFile(self):
         if self.MpiRunOnlyRank(0):
-            if self.project_parameters["output_processes"].Has("vtu_output"):
-                destination_path = self.project_parameters["output_processes"]["vtu_output"][0]["Parameters"]["output_path"].GetString()
-                with open(destination_path+"/functional_history.txt", "a") as file:
-                    file.write(str(self.functional) + " ")
-                    for ifunc in range(self.n_functionals): 
-                        file.write(str(self.weighted_functionals[ifunc]) + " ")
-                    file.write("\n")
-            if self.project_parameters["output_processes"].Has("vtk_output"):
-                destination_path = self.project_parameters["output_processes"]["vtk_output"][0]["Parameters"]["output_path"].GetString()
+                destination_path = self.optimization_parameters["optimization_settings"]["solution_output_settings"]["output_path"].GetString()
+                destination_path += "/files"
                 with open(destination_path+"/functional_history.txt", "a") as file:
                     file.write(str(self.functional) + " ")
                     for ifunc in range(self.n_functionals): 
@@ -1242,14 +1450,16 @@ class FluidTopologyOptimizationAnalysis(FluidDynamicsAnalysis):
 
     def _ResetFunctionalOutput(self):
         if self.MpiRunOnlyRank(0):
-            if self.project_parameters["output_processes"].Has("vtu_output"):
-                destination_path = self.project_parameters["output_processes"]["vtu_output"][0]["Parameters"]["output_path"].GetString()
-                with open(destination_path+"/functional_history.txt", "w") as file:
-                    file.write("TOTAL | RESISTANCE | STRAIN_RATE | 2*VORTICITY | OUTLET_CONCENTRATION | REGION_TEMPERATURE | DIFFUSIVE_TRANSPORT | CONVECTIVE_TRASNPORT | REACTIVE_TRASNPORT | SOURCE_TRANSPORT\n")
-                    file.write("1 ")
-                    for ifunc in range(self.n_functionals):
-                        file.write(str(self.functional_weights[ifunc]) + " ")
-                    file.write("\n")
+            dest_dir = Path(self.optimization_parameters["optimization_settings"]["solution_output_settings"]["output_path"].GetString()) / "files"
+            dest_dir.mkdir(parents=True, exist_ok=True)
+            destination_path = self.optimization_parameters["optimization_settings"]["solution_output_settings"]["output_path"].GetString()
+            destination_path += "/files"
+            with open(destination_path+"/functional_history.txt", "w") as file:
+                file.write("TOTAL | RESISTANCE | STRAIN_RATE | 2*VORTICITY | OUTLET_CONCENTRATION | REGION_TEMPERATURE | DIFFUSIVE_TRANSPORT | CONVECTIVE_TRASNPORT | REACTIVE_TRASNPORT | SOURCE_TRANSPORT\n")
+                file.write("1 ")
+                for ifunc in range(self.n_functionals):
+                    file.write(str(self.functional_weights[ifunc]) + " ")
+                file.write("\n")
 
     def _PrintConstraints(self):
         self._PrintVolumeConstraint()
@@ -1289,7 +1499,7 @@ class FluidTopologyOptimizationAnalysis(FluidDynamicsAnalysis):
             self.diffusive_filter_type = self.diffusive_filter_settings["filter_type"].GetString()
             self.diffusive_filter_radius = self.diffusive_filter_settings["radius"].GetDouble()
             self.diffusive_filter_type_settings = self.diffusive_filter_settings["type_settings"]
-            if (self.apply_diffusive_filter) and (self.CurrentDomainHasOptimizationNodes()):
+            if self.apply_diffusive_filter:
                 if self.diffusive_filter_type == "pde":
                     self._InitializePdeDiffusiveFilter()
                 else:
@@ -1419,7 +1629,7 @@ class FluidTopologyOptimizationAnalysis(FluidDynamicsAnalysis):
                 
     def _ApplyDiffusiveFilter(self, scalar_variable):
         scalar_variable_in_opt_domain = scalar_variable[self._GetOptimizationDomainNodesMask()]
-        if (self.apply_diffusive_filter) and (self.CurrentDomainHasOptimizationNodes()):
+        if self.apply_diffusive_filter:
             if (self.diffusive_filter_type == "pde"):
                 self.MpiPrint("--|" + self.topology_optimization_stage_str + "| ----> PDE Filter for Design Parameter")
                 self._InitializePdeDiffusiveFilterExecution(scalar_variable)
@@ -1439,7 +1649,7 @@ class FluidTopologyOptimizationAnalysis(FluidDynamicsAnalysis):
     
     def _ApplyDiffusiveFilterDerivative(self, scalar_variable_derivative):
         scalar_variable_derivative_in_opt_domain = scalar_variable_derivative[self._GetOptimizationDomainNodesMask()]
-        if (self.apply_diffusive_filter) and (self.CurrentDomainHasOptimizationNodes()):
+        if self.apply_diffusive_filter:
             if (self.diffusive_filter_type == "pde"):
                 self.MpiPrint("--|" + self.topology_optimization_stage_str + "| ----> PDE Filter for Functional Derivative")
                 self._InitializePdeDiffusiveFilterExecution(scalar_variable_derivative)
@@ -1466,27 +1676,74 @@ class FluidTopologyOptimizationAnalysis(FluidDynamicsAnalysis):
             count += 1
         return design_parameter
     
-    def OutputSolutionStep(self):
-        self.MpiPrint("\n--| PRINT SOLUTION STEP OUTPUT TO FILES")
-        super().OutputSolutionStep()
+    def OptimizationOutputSolutionStep(self):
+        self.MpiPrint("\n--| PRINT OPTIMIZATION STEP OUTPUT TO FILES")
+        """This function printed / writes output files after the solution of a optimization step
+        """
+        execute_was_called = False
+        for output_process in self._GetListOfOptimizationOutputProcesses():
+            if output_process.IsOutputStep():
+                if not execute_was_called:
+                    for process in self._GetListOfProcesses():
+                        process.ExecuteBeforeOutputStep()
+                    execute_was_called = True
+                output_process.PrintOutput()
+        if execute_was_called:
+            for process in self._GetListOfProcesses():
+                process.ExecuteAfterOutputStep()
 
-    def _PrintSolution(self):
-        self.OutputSolutionStep()
-        self._CorrectPvtuFilesInVtuOutput()
+    def TimeOutputSolutionStep(self, print_time_step=True):
+        """This function printed / writes output files after the solution of a time step
+        """
+        if (print_time_step):
+            self.MpiPrint("\n--| PRINT TIME SOLUTION OUTPUT TO FILES")
+            for istep in range(self.n_time_steps):
+                KratosMultiphysics.VariableUtils().SetSolutionStepValuesVector(self._GetLocalMeshNodes(), KratosMultiphysics.VELOCITY, self.velocity_solutions[istep].flatten(), 0)
+                KratosMultiphysics.VariableUtils().SetSolutionStepValuesVector(self._GetLocalMeshNodes(), KratosMultiphysics.PRESSURE, self.pressure_solutions[istep], 0)
+                KratosMultiphysics.VariableUtils().SetSolutionStepValuesVector(self._GetLocalMeshNodes(), KratosMultiphysics.VELOCITY_ADJ, self.adjoint_velocity_solutions[istep].flatten(), 0)
+                KratosMultiphysics.VariableUtils().SetSolutionStepValuesVector(self._GetLocalMeshNodes(), KratosMultiphysics.PRESSURE_ADJ, self.adjoint_pressure_solutions[istep], 0)
+                for output_process in self._GetListOfTimeOutputProcesses():
+                    self.PrintTimeOutputProcess(output_process, istep+1)
+
+    def PrintTimeOutputProcess(self, output_process, time_step_id):
+        time_step_counter = str(time_step_id).zfill(len(str(self.n_time_steps))) 
+        file_name = "time_step_" + time_step_counter
+        if type(output_process).__name__ == "VtkOutputProcess":
+            output_process.vtk_io.PrintOutput(file_name)
+        elif type(output_process).__name__ == "VtuOutputProcess":
+            for vtu_output in output_process.vtu_output_ios:
+                vtu_output.PrintOutput(f"{output_process.output_path / file_name}")
+
+    def _GetListOfOptimizationOutputProcesses(self):
+        """This function returns the list of output processes involved in this Analysis
+        """
+        if not hasattr(self, '_list_of_optimization_output_processes'):
+            raise Exception("The list of optimization output-processes was not yet created!")
+        return self._list_of_optimization_output_processes
+    
+    def _GetListOfTimeOutputProcesses(self):
+        """This function returns the list of output processes involved in this Analysis
+        """
+        if not hasattr(self, '_list_of_optimization_output_processes'):
+            raise Exception("The list of optimization output-processes was not yet created!")
+        return self._list_of_time_output_processes
+
+    def _PrintOptimizationSolution(self):
+        self.OptimizationOutputSolutionStep()
+        self._CorrectPvtuFilesInOptimizationVtuOutput()
+        if self._IsTopologyOptimizationSolutionEnd():
+            self.TimeOutputSolutionStep()
+            self._CorrectPvtuFilesInTimeVtuOutput()
         self._PrintFunctionalsToFile()
         if self.first_iteration:
             self._CopyInputFiles()
         
     def _CopyInputFiles(self):
         if self.MpiRunOnlyRank(0):
-            if self.project_parameters["output_processes"].Has("vtu_output"):
-                destination_path = self.project_parameters["output_processes"]["vtu_output"][0]["Parameters"]["output_path"].GetString()
-                self._CopyFile(src_path="ProjectParameters.json", dst_path=destination_path+"/ProjectParameters.json")
-                self._CopyFile(src_path="OptimizationParameters.json", dst_path=destination_path+"/OptimizationParameters.json")
-            if self.project_parameters["output_processes"].Has("vtk_output"):
-                destination_path = self.project_parameters["output_processes"]["vtk_output"][0]["Parameters"]["output_path"].GetString()
-                self._CopyFile(src_path="ProjectParameters.json", dst_path=destination_path+"/ProjectParameters.json")
-                self._CopyFile(src_path="OptimizationParameters.json", dst_path=destination_path+"/OptimizationParameters.json")
+            destination_path = self.optimization_parameters["optimization_settings"]["solution_output_settings"]["output_path"].GetString()
+            destination_path += "/files"
+            self._CopyFile(src_path="ProjectParameters.json", dst_path=destination_path+"/ProjectParameters.json")
+            self._CopyFile(src_path="OptimizationParameters.json", dst_path=destination_path+"/OptimizationParameters.json")
 
     def _CopyFile(self, src_path, dst_path):
         src = Path(src_path)
@@ -1531,7 +1788,7 @@ class FluidTopologyOptimizationAnalysis(FluidDynamicsAnalysis):
                                             )
             remesh_param = KratosMultiphysics.Parameters("""{ }""")
             if (self.dim == 2):
-                self.local_hessian = KratosMMG.ComputeHessianSolMetricProcess2D(main_mp, KratosMultiphysics.DISTANCE, metric_param)
+                self.local_hessian = KratosMultiphysics.ComputeHessianSolMetricProcess2D(main_mp, KratosMultiphysics.DISTANCE, metric_param)
                 self.mmg_process = KratosMMG.MmgProcess2D(main_mp, remesh_param)
             elif (self.dim == 3):
                 self.local_hessian = KratosMMG.ComputeHessianSolMetricProcess3D(main_mp, KratosMultiphysics.DISTANCE, metric_param)
@@ -1575,6 +1832,15 @@ class FluidTopologyOptimizationAnalysis(FluidDynamicsAnalysis):
         if (abs(self.normalized_fluid_functional_weights[2]) > 1e-10):
             self._EvaluateVorticityFunctional(print_functional)
 
+    def EvaluateFunctionalsInDeltaTime(self, time_step_id):
+        self._EvaluateRequiredGradients()
+        if (abs(self.normalized_fluid_functional_weights[0]) > 1e-10):
+            self.resistance_functionals_in_delta_time[time_step_id]  = self._EvaluateResistanceFunctionalInDeltaTime(time_step_id)
+        if (abs(self.normalized_fluid_functional_weights[1]) > 1e-10):
+            self.strain_rate_functionals_in_delta_time[time_step_id] = self._EvaluateStrainRateFunctionalInDeltaTime(time_step_id)
+        if (abs(self.normalized_fluid_functional_weights[2]) > 1e-10):
+            self.vorticity_functionals_in_delta_time[time_step_id]   = self._EvaluateVorticityFunctionalInDeltaTime(time_step_id)
+
     def EvaluateTotalFunctional(self):
         self.functionals = np.concatenate((self.fluid_functionals, np.zeros(self.n_functionals-self.n_fluid_functionals)))
         self.weighted_functionals = self.functional_weights * self.functionals
@@ -1595,19 +1861,21 @@ class FluidTopologyOptimizationAnalysis(FluidDynamicsAnalysis):
 
     def _EvaluateRequiredGradients(self):
         self._ComputeScalarVariableNodalGradient(KratosMultiphysics.DESIGN_PARAMETER, KratosMultiphysics.DESIGN_PARAMETER_GRADIENT)
+
+    def _EvaluateVelocityGradient(self):
         self._ComputeScalarVariableNodalGradient(KratosMultiphysics.VELOCITY_X, KratosMultiphysics.VELOCITY_X_GRADIENT)
         self._ComputeScalarVariableNodalGradient(KratosMultiphysics.VELOCITY_Y, KratosMultiphysics.VELOCITY_Y_GRADIENT)
         if (self.dim == 3):
             self._ComputeScalarVariableNodalGradient(KratosMultiphysics.VELOCITY_Z, KratosMultiphysics.VELOCITY_Z_GRADIENT)
 
-    def _AssembleVelocityGradientOnNodes(self):
-        gradient_x = np.asarray(KratosMultiphysics.VariableUtils().GetSolutionStepValuesVector(self._GetLocalMeshNodes(), KratosMultiphysics.VELOCITY_X_GRADIENT, 0, self.dim)).reshape(self.n_nodes, self.dim)
-        gradient_y = np.asarray(KratosMultiphysics.VariableUtils().GetSolutionStepValuesVector(self._GetLocalMeshNodes(), KratosMultiphysics.VELOCITY_Y_GRADIENT, 0, self.dim)).reshape(self.n_nodes, self.dim)
+    def _AssembleVelocityGradientOnNodes(self, buffer_id):
+        gradient_x = np.asarray(KratosMultiphysics.VariableUtils().GetSolutionStepValuesVector(self._GetLocalMeshNodes(), KratosMultiphysics.VELOCITY_X_GRADIENT, buffer_id, self.dim)).reshape(self.n_nodes, self.dim)
+        gradient_y = np.asarray(KratosMultiphysics.VariableUtils().GetSolutionStepValuesVector(self._GetLocalMeshNodes(), KratosMultiphysics.VELOCITY_Y_GRADIENT, buffer_id, self.dim)).reshape(self.n_nodes, self.dim)
         gradient = np.zeros((self.n_nodes, self.dim, self.dim))
         gradient[:,0,:] = gradient_x
         gradient[:,1,:] = gradient_y
         if (self.dim == 3):
-            gradient_z = np.asarray(KratosMultiphysics.VariableUtils().GetSolutionStepValuesVector(self._GetLocalMeshNodes(), KratosMultiphysics.VELOCITY_Z_GRADIENT, 0, self.dim)).reshape(self.n_nodes, self.dim)
+            gradient_z = np.asarray(KratosMultiphysics.VariableUtils().GetSolutionStepValuesVector(self._GetLocalMeshNodes(), KratosMultiphysics.VELOCITY_Z_GRADIENT, buffer_id, self.dim)).reshape(self.n_nodes, self.dim)
             gradient[:,2,:] = gradient_z
         return gradient
     
@@ -1786,6 +2054,9 @@ class FluidTopologyOptimizationAnalysis(FluidDynamicsAnalysis):
                         }
                     }
                 }
+            },
+            "solution_output_settings": {
+                "output_path": "solution"
             }
         }""")
         default_optimization_settings.AddMissingParameters(self.GetBaseOptimizationSettings())
@@ -1803,7 +2074,8 @@ class FluidTopologyOptimizationAnalysis(FluidDynamicsAnalysis):
             "remeshing_settings": {},
             "symmetry_settings": {},
             "optimization_domain_settings": {},
-            "optimization_problem_settings": {}                                                  
+            "optimization_problem_settings": {},
+            "solution_output_settings": {}                                                
         }""")
         return base_physics_parameters_settings
     
@@ -1839,12 +2111,17 @@ class FluidTopologyOptimizationAnalysis(FluidDynamicsAnalysis):
         self.project_parameters = parameters
         self.topology_optimization_stage = 0
         self.topology_optimization_stage_str = "INIT"
-        super().__init__(model,parameters) 
         self._ReadOptimizationParameters()
+        super().__init__(model,parameters) 
+        self.HandleAdjointSolverAddVariables()
         # self._CreateTopologyOptimizationSolvers() # currently it is a useless method 
         self._SetMinMaxIt()  
         self._SetTopologyOptimizationName()
         self.InitializeDataCommunicator()
+
+    def HandleAdjointSolverAddVariables(self):
+        self._GetAdjointSolver().AddVariables()
+        KratosMultiphysics.MergeVariableListsUtility().Merge(self._GetPhysicsSolver().main_model_part, self._GetAdjointSolver().main_model_part)
 
     def InitializeDataCommunicator(self):
         self.data_communicator = DataCommunicator.GetDefault()
@@ -2062,6 +2339,14 @@ class FluidTopologyOptimizationAnalysis(FluidDynamicsAnalysis):
         for node in self._GetLocalMeshNodes():
             node.SetValue(KratosMultiphysics.FUNCTIONAL_DERIVATIVE, self.functional_derivatives_wrt_design[self.nodes_ids_global_to_local_partition_dictionary[node.Id]][0])
 
+    def _UpdateConstraintsDerivativesVariable(self):
+        self._UpdateVolumeConstraintDerivativesVariable()
+    
+    def _UpdateVolumeConstraintDerivativesVariable(self):
+        # for node in self._GetLocalMeshNodes():
+        #     node.SetValue(KratosMultiphysics.FUNCTIONAL_DERIVATIVE, self.functional_derivatives_wrt_design[self.nodes_ids_global_to_local_partition_dictionary[node.Id]][0])
+        pass
+    
     def MpiSumLocalValues(self, local_value):
         """
         Performs a global sum reduction of the provided local value across all MPI ranks.
@@ -2257,7 +2542,7 @@ class FluidTopologyOptimizationAnalysis(FluidDynamicsAnalysis):
     
     def _GetLocalMeshNodes(self, mp = None):
         if mp is None:
-            return self._GetMainModelPart().GetCommunicator().LocalMesh().Nodes
+            return self._GetPhysicsMainModelPart().GetCommunicator().LocalMesh().Nodes
         else:
             return mp.GetCommunicator().LocalMesh().Nodes
         
@@ -2270,7 +2555,7 @@ class FluidTopologyOptimizationAnalysis(FluidDynamicsAnalysis):
     def _GetPhysicsSolverDistributedModelPartImporter(self):
         return self.physics_solver.distributed_model_part_importer
 
-    def _CorrectPvtuFilesInVtuOutput(self):
+    def _CorrectPvtuFilesInOptimizationVtuOutput(self):
         """
         Corrects the relative paths in the .pvtu files generated during VTU output.
         This method should be executed only on rank 0. It checks the `vtu_output`
@@ -2283,20 +2568,41 @@ class FluidTopologyOptimizationAnalysis(FluidDynamicsAnalysis):
         incorrect relative paths when writing parallel `.pvtu` files.
         """
         if (self.MpiRunOnlyRank(0)):
-            if (self.project_parameters.Has("output_processes")):
-                if (self.project_parameters["output_processes"].Has("vtu_output")):
-                    vtu_output_settings = self.project_parameters["output_processes"]["vtu_output"][0]
-                    if (vtu_output_settings.Has("Parameters")):
-                        vtu_output_parameters = vtu_output_settings["Parameters"]
-                        mp_name     = vtu_output_parameters["model_part_name"].GetString()
-                        folder_name = vtu_output_parameters["output_path"].GetString()
-                        curr_it_str = str(self.opt_it)
-                        file_name = f"{mp_name}_{curr_it_str}.pvtu"
-                        pvtu_path = Path(folder_name) / file_name
-                        if pvtu_path.exists():
-                            text = pvtu_path.read_text(encoding='utf-8')
-                            fixed_text = text.replace(folder_name+"/", "")
-                            pvtu_path.write_text(fixed_text, encoding='utf-8')
+            output_processes_list_names = ["optimization_output_processes"]
+            for output_process_list_name in output_processes_list_names:
+                if (self.project_parameters.Has(output_process_list_name)):
+                    if (self.project_parameters[output_process_list_name].Has("vtu_output")):
+                        vtu_output_settings = self.project_parameters[output_process_list_name]["vtu_output"][0]
+                        if (vtu_output_settings.Has("Parameters")):
+                            vtu_output_parameters = vtu_output_settings["Parameters"]
+                            mp_name     = vtu_output_parameters["model_part_name"].GetString()
+                            folder_name = vtu_output_parameters["output_path"].GetString()
+                            curr_it_str = str(self.opt_it)
+                            file_name = f"{mp_name}_{curr_it_str}.pvtu"
+                            pvtu_path = Path(folder_name) / file_name
+                            if pvtu_path.exists():
+                                text = pvtu_path.read_text(encoding='utf-8')
+                                fixed_text = text.replace(folder_name+"/", "")
+                                pvtu_path.write_text(fixed_text, encoding='utf-8')
+
+    def _CorrectPvtuFilesInTimeVtuOutput(self):
+        if (self.MpiRunOnlyRank(0)):
+            output_processes_list_names = ["time_output_processes"]
+            for output_process_list_name in output_processes_list_names:
+                if (self.project_parameters.Has(output_process_list_name)):
+                    if (self.project_parameters[output_process_list_name].Has("vtu_output")):
+                        vtu_output_settings = self.project_parameters[output_process_list_name]["vtu_output"][0]
+                        if (vtu_output_settings.Has("Parameters")):
+                            vtu_output_parameters = vtu_output_settings["Parameters"]
+                            folder_name = vtu_output_parameters["output_path"].GetString()
+                            for istep in range(self.n_time_steps):
+                                time_step_counter = str(istep+1).zfill(len(str(self.n_time_steps))) 
+                                file_name = "time_step_" + time_step_counter + ".pvtu"
+                                pvtu_path = Path(folder_name) / file_name
+                                if pvtu_path.exists():
+                                    text = pvtu_path.read_text(encoding='utf-8')
+                                    fixed_text = text.replace(folder_name+"/", "")
+                                    pvtu_path.write_text(fixed_text, encoding='utf-8')
 
 ###########################################################
 ### METHODS FOR MPI UTILITIES
@@ -2356,3 +2662,11 @@ class FluidTopologyOptimizationAnalysis(FluidDynamicsAnalysis):
             return True
         else:
             return False
+        
+    def GetPhysicsBufferIdFromTimeStepId(self, time_step_id):
+        # assume time step id starts from 0 for the first time step and ends with self.n_time_steps-1
+        return self.n_time_steps-(time_step_id+1)
+    
+    def GetAdjointBufferIdFromTimeStepId(self, time_step_id):
+        # assume time step id starts from 0 for the first time step and ends with self.n_time_steps-1
+        return time_step_id
