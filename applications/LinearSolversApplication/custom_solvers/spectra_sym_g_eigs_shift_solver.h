@@ -10,6 +10,9 @@
 #if !defined(KRATOS_SPECTRA_SYM_G_EIGS_SHIFT_SOLVER_H_INCLUDED)
 #define KRATOS_SPECTRA_SYM_G_EIGS_SHIFT_SOLVER_H_INCLUDED
 
+#if !defined(BOOST_BIND_GLOBAL_PLACEHOLDERS)
+#define BOOST_BIND_GLOBAL_PLACEHOLDERS
+
 // External includes
 #include <Eigen/Core>
 #include <Spectra/SymGEigsShiftSolver.h>
@@ -24,15 +27,22 @@
 #include "linear_solvers/iterative_solver.h"
 #include "custom_utilities/ublas_wrapper.h"
 #include "utilities/builtin_timer.h"
+#include "linear_solvers/amgcl_solver.h"
+
+#include <cstdio>
+#include <string>
 
 namespace Kratos
 {
+
+class OwnSymShiftInvert;
 
 template<
     class TSparseSpaceType = UblasSpace<double, CompressedMatrix, Vector>,
     class TDenseSpaceType = UblasSpace<double, Matrix, Vector>,
     class TPreconditionerType = Preconditioner<TSparseSpaceType, TDenseSpaceType>,
     class TReordererType = Reorderer<TSparseSpaceType, TDenseSpaceType>>
+
 class SpectraSymGEigsShiftSolver
     : public IterativeSolver<TSparseSpaceType, TDenseSpaceType, TPreconditionerType, TReordererType>
 {
@@ -60,7 +70,8 @@ class SpectraSymGEigsShiftSolver
             "normalize_eigenvectors": false,
             "max_iteration": 1000,
             "shift": 0.0,
-            "echo_level": 1
+            "echo_level": 1,
+            "custom_factorization": "sparse_lu"
         })");
 
         mParam.ValidateAndAssignDefaults(default_params);
@@ -89,6 +100,7 @@ class SpectraSymGEigsShiftSolver
         const int max_iteration = BaseType::GetMaxIterationsNumber();
         const int echo_level = mParam["echo_level"].GetInt();
         const double shift = mParam["shift"].GetDouble();
+        const std::string custom_factorization = mParam["custom_factorization"].GetString();
 
         // --- wrap ublas matrices
 
@@ -303,13 +315,18 @@ private:
         using FacType = Eigen::SparseLU<ResType>;
         #endif // defined EIGEN_USE_MKL_ALL
 
+        // Use Eigen's iterative solvers instead of SparseLU
+        using IterativeSolver = Eigen::ConjugateGradient<ResType, Eigen::Lower | Eigen::Upper>;
+
         using ConstGenericMatrixA = const Eigen::Ref<const MatrixA>;
         using ConstGenericMatrixB = const Eigen::Ref<const MatrixB>;
 
         ConstGenericMatrixA m_matA;
         ConstGenericMatrixB m_matB;
         const Index m_n;
+        std::string m_cust_fact; // Declare cust_fact as a member variable
         FacType m_solver;
+        IterativeSolver m_solverCG;
 
     public:
         ///
@@ -322,9 +339,19 @@ private:
         /// \param B A sparse matrix object.
         ///
         OwnSymShiftInvert(ConstGenericMatrixA& A, ConstGenericMatrixB& B) :
-            m_matA(A), m_matB(B), m_n(A.rows())
+            m_matA(A), m_matB(B), m_n(A.rows()), m_solverCG()
         {
             KRATOS_ERROR_IF(m_n != A.cols() || m_n != B.rows() || m_n != B.cols()) << "SymShiftInvert: A and B must be square matrices of the same size" << std::endl;
+            m_solverCG.setMaxIterations(10000); // You can adjust this
+            m_solverCG.setTolerance(1e-8);     // Set the convergence tolerance
+        }
+
+        OwnSymShiftInvert(ConstGenericMatrixA& A, ConstGenericMatrixB& B, std::string cust_fact) :
+            m_matA(A), m_matB(B), m_n(A.rows()), m_cust_fact(cust_fact), m_solverCG()
+        {
+            KRATOS_ERROR_IF(m_n != A.cols() || m_n != B.rows() || m_n != B.cols()) << "SymShiftInvert: A and B must be square matrices of the same size" << std::endl;
+            m_solverCG.setMaxIterations(10000); // You can adjust this
+            m_solverCG.setTolerance(1e-8);     // Set the convergence tolerance
         }
 
         ///
@@ -341,6 +368,17 @@ private:
         ///
         void set_shift(const Scalar& sigma)
         {
+        if (m_cust_fact == "CG"){
+
+            if (sigma == 0.0) {
+                m_solverCG.compute(m_matA);
+            } else {
+                m_solverCG.compute(m_matA - sigma * m_matB);
+            }
+            const bool success = m_solverCG.info() == Eigen::Success;
+            KRATOS_ERROR_IF_NOT(success) << "SymShiftInvert: factorization failed with the given shift" << std::endl;
+
+        } else {
             if (sigma == 0.0) {
                 m_solver.compute(m_matA);
             } else {
@@ -349,7 +387,7 @@ private:
             const bool success = m_solver.info() == Eigen::Success;
             KRATOS_ERROR_IF_NOT(success) << "SymShiftInvert: factorization failed with the given shift" << std::endl;
         }
-
+        }
         ///
         /// Perform the shift-invert operation \f$y=(A-\sigma B)^{-1}x\f$.
         ///
@@ -359,9 +397,18 @@ private:
         // y_out = inv(A - sigma * B) * x_in
         void perform_op(const Scalar* x_in, Scalar* y_out) const
         {
-            MapConstVec x(x_in, m_n);
-            MapVec y(y_out, m_n);
-            y.noalias() = m_solver.solve(x);
+            if (m_cust_fact == "CG"){
+
+                MapConstVec x(x_in, m_n);
+                MapVec y(y_out, m_n);
+                y.noalias() = m_solverCG.solve(x);
+
+            } else {
+                MapConstVec x(x_in, m_n);
+                MapVec y(y_out, m_n);
+                y.noalias() = m_solver.solve(x);
+            }
+
         }
     };
 
@@ -398,5 +445,7 @@ inline std::ostream& operator <<(
 }
 
 } // namespace Kratos
+
+#endif // defined(BOOST_BIND_GLOBAL_PLACEHOLDERS)
 
 #endif // defined(KRATOS_SPECTRA_SYM_G_EIGS_SHIFT_SOLVER_H_INCLUDED)
