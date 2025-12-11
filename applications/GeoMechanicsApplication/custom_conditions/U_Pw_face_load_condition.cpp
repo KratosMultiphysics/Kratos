@@ -21,6 +21,25 @@ namespace Kratos
 {
 
 template <unsigned int TDim, unsigned int TNumNodes>
+UPwFaceLoadCondition<TDim, TNumNodes>::UPwFaceLoadCondition() : UPwCondition<TDim, TNumNodes>()
+{
+}
+
+template <unsigned int TDim, unsigned int TNumNodes>
+UPwFaceLoadCondition<TDim, TNumNodes>::UPwFaceLoadCondition(IndexType NewId, GeometryType::Pointer pGeometry)
+    : UPwCondition<TDim, TNumNodes>(NewId, pGeometry)
+{
+}
+
+template <unsigned int TDim, unsigned int TNumNodes>
+UPwFaceLoadCondition<TDim, TNumNodes>::UPwFaceLoadCondition(IndexType               NewId,
+                                                            GeometryType::Pointer   pGeometry,
+                                                            PropertiesType::Pointer pProperties)
+    : UPwCondition<TDim, TNumNodes>(NewId, pGeometry, pProperties)
+{
+}
+
+template <unsigned int TDim, unsigned int TNumNodes>
 Condition::Pointer UPwFaceLoadCondition<TDim, TNumNodes>::Create(IndexType             NewId,
                                                                  NodesArrayType const& ThisNodes,
                                                                  PropertiesType::Pointer pProperties) const

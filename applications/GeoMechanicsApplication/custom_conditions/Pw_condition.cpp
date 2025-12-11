@@ -19,7 +19,9 @@ namespace Kratos
 {
 
 template <unsigned int TDim, unsigned int TNumNodes>
-PwCondition<TDim, TNumNodes>::PwCondition() : PwCondition(0, nullptr, nullptr) {}
+PwCondition<TDim, TNumNodes>::PwCondition() : PwCondition(0, nullptr, nullptr)
+{
+}
 
 template <unsigned int TDim, unsigned int TNumNodes>
 PwCondition<TDim, TNumNodes>::PwCondition(IndexType NewId, GeometryType::Pointer pGeometry)

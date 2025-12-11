@@ -36,17 +36,11 @@ public:
     using GeometryType   = Geometry<Node>;
     using NodesArrayType = GeometryType::PointsArrayType;
 
-    UPwLysmerAbsorbingCondition() : UPwFaceLoadCondition<TDim, TNumNodes>() {}
+    UPwLysmerAbsorbingCondition();
 
-    UPwLysmerAbsorbingCondition(IndexType NewId, GeometryType::Pointer pGeometry)
-        : UPwFaceLoadCondition<TDim, TNumNodes>(NewId, pGeometry)
-    {
-    }
+    UPwLysmerAbsorbingCondition(IndexType NewId, GeometryType::Pointer pGeometry);
 
-    UPwLysmerAbsorbingCondition(IndexType NewId, GeometryType::Pointer pGeometry, PropertiesType::Pointer pProperties)
-        : UPwFaceLoadCondition<TDim, TNumNodes>(NewId, pGeometry, pProperties)
-    {
-    }
+    UPwLysmerAbsorbingCondition(IndexType NewId, GeometryType::Pointer pGeometry, PropertiesType::Pointer pProperties);
 
     Condition::Pointer Create(IndexType               NewId,
                               NodesArrayType const&   ThisNodes,

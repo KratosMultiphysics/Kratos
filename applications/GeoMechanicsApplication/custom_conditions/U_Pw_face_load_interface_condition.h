@@ -38,19 +38,11 @@ public:
     using GeometryType   = Geometry<Node>;
     using NodesArrayType = GeometryType::PointsArrayType;
 
-    UPwFaceLoadInterfaceCondition() : UPwFaceLoadInterfaceCondition(0, nullptr, nullptr) {}
+    UPwFaceLoadInterfaceCondition();
 
-    UPwFaceLoadInterfaceCondition(IndexType NewId, GeometryType::Pointer pGeometry)
-        : UPwFaceLoadInterfaceCondition(NewId, pGeometry, nullptr)
-    {
-    }
+    UPwFaceLoadInterfaceCondition(IndexType NewId, GeometryType::Pointer pGeometry);
 
-    UPwFaceLoadInterfaceCondition(IndexType NewId, GeometryType::Pointer pGeometry, PropertiesType::Pointer pProperties)
-        : UPwCondition<TDim, TNumNodes>(NewId, pGeometry, pProperties)
-    {
-        // Lobatto integration method with the integration points located at the "mid plane nodes" of the interface
-        this->SetIntegrationMethod(GeometryData::IntegrationMethod::GI_GAUSS_1);
-    }
+    UPwFaceLoadInterfaceCondition(IndexType NewId, GeometryType::Pointer pGeometry, PropertiesType::Pointer pProperties);
 
     Condition::Pointer Create(IndexType               NewId,
                               NodesArrayType const&   ThisNodes,

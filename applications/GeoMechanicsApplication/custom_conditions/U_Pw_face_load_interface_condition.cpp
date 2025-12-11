@@ -20,6 +20,29 @@ namespace Kratos
 {
 
 template <unsigned int TDim, unsigned int TNumNodes>
+UPwFaceLoadInterfaceCondition<TDim, TNumNodes>::UPwFaceLoadInterfaceCondition()
+    : UPwFaceLoadInterfaceCondition(0, nullptr, nullptr)
+{
+}
+
+template <unsigned int TDim, unsigned int TNumNodes>
+UPwFaceLoadInterfaceCondition<TDim, TNumNodes>::UPwFaceLoadInterfaceCondition(IndexType NewId,
+                                                                              GeometryType::Pointer pGeometry)
+    : UPwFaceLoadInterfaceCondition(NewId, pGeometry, nullptr)
+{
+}
+
+template <unsigned int TDim, unsigned int TNumNodes>
+UPwFaceLoadInterfaceCondition<TDim, TNumNodes>::UPwFaceLoadInterfaceCondition(IndexType NewId,
+                                                                              GeometryType::Pointer pGeometry,
+                                                                              PropertiesType::Pointer pProperties)
+    : UPwCondition<TDim, TNumNodes>(NewId, pGeometry, pProperties)
+{
+    // Lobatto integration method with the integration points located at the "mid plane nodes" of the interface
+    this->SetIntegrationMethod(GeometryData::IntegrationMethod::GI_GAUSS_1);
+}
+
+template <unsigned int TDim, unsigned int TNumNodes>
 Condition::Pointer UPwFaceLoadInterfaceCondition<TDim, TNumNodes>::Create(IndexType NewId,
                                                                           NodesArrayType const& ThisNodes,
                                                                           PropertiesType::Pointer pProperties) const

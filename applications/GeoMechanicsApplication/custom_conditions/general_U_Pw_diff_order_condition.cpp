@@ -24,17 +24,21 @@
 namespace Kratos
 {
 
-GeneralUPwDiffOrderCondition::GeneralUPwDiffOrderCondition() : GeneralUPwDiffOrderCondition(0, nullptr, nullptr) {};
+GeneralUPwDiffOrderCondition::GeneralUPwDiffOrderCondition()
+    : GeneralUPwDiffOrderCondition(0, nullptr, nullptr) {};
 
 GeneralUPwDiffOrderCondition::GeneralUPwDiffOrderCondition(IndexType NewId, GeometryType::Pointer pGeometry)
     : GeneralUPwDiffOrderCondition(NewId, pGeometry, nullptr)
 {
 }
 
-GeneralUPwDiffOrderCondition::GeneralUPwDiffOrderCondition(IndexType NewId, GeometryType::Pointer pGeometry, PropertiesType::Pointer pProperties)
+GeneralUPwDiffOrderCondition::GeneralUPwDiffOrderCondition(IndexType               NewId,
+                                                           GeometryType::Pointer   pGeometry,
+                                                           PropertiesType::Pointer pProperties)
     : Condition(NewId, pGeometry, pProperties)
 {
 }
+
 Condition::Pointer GeneralUPwDiffOrderCondition::Create(IndexType               NewId,
                                                         NodesArrayType const&   ThisNodes,
                                                         PropertiesType::Pointer pProperties) const

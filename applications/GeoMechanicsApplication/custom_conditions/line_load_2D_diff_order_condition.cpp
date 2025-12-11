@@ -91,11 +91,8 @@ void LineLoad2DDiffOrderCondition::save(Serializer& rSerializer) const
     KRATOS_SERIALIZE_SAVE_BASE_CLASS(rSerializer, GeneralUPwDiffOrderCondition)
 }
 
-void LineLoad2DDiffOrderCondition::load(Serializer& rSerializer)
-{
-    KRATOS_SERIALIZE_LOAD_BASE_CLASS(
-    rSerializer, GeneralUPwDiffOrderCondition)
-}
+void LineLoad2DDiffOrderCondition::load(Serializer& rSerializer){
+    KRATOS_SERIALIZE_LOAD_BASE_CLASS(rSerializer, GeneralUPwDiffOrderCondition)}
 
 std::string LineLoad2DDiffOrderCondition::Info() const
 {

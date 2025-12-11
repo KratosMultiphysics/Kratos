@@ -35,17 +35,11 @@ class KRATOS_API(GEO_MECHANICS_APPLICATION) UPwCondition : public Condition
 public:
     KRATOS_CLASS_INTRUSIVE_POINTER_DEFINITION(UPwCondition);
 
-    UPwCondition() : UPwCondition(0, nullptr, nullptr) {}
+    UPwCondition();
 
-    UPwCondition(IndexType NewId, GeometryType::Pointer pGeometry)
-        : UPwCondition(NewId, pGeometry, nullptr)
-    {
-    }
+    UPwCondition(IndexType NewId, GeometryType::Pointer pGeometry);
 
-    UPwCondition(IndexType NewId, GeometryType::Pointer pGeometry, PropertiesType::Pointer pProperties)
-        : Condition(NewId, pGeometry, pProperties)
-    {
-    }
+    UPwCondition(IndexType NewId, GeometryType::Pointer pGeometry, PropertiesType::Pointer pProperties);
 
     ~UPwCondition() override = default;
 

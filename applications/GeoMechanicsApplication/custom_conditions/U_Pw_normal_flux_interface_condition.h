@@ -37,17 +37,11 @@ public:
     using GeometryType   = Geometry<Node>;
     using NodesArrayType = GeometryType::PointsArrayType;
 
-    UPwNormalFluxInterfaceCondition() : UPwFaceLoadInterfaceCondition<TDim, TNumNodes>() {}
+    UPwNormalFluxInterfaceCondition();
 
-    UPwNormalFluxInterfaceCondition(IndexType NewId, GeometryType::Pointer pGeometry)
-        : UPwFaceLoadInterfaceCondition<TDim, TNumNodes>(NewId, pGeometry)
-    {
-    }
+    UPwNormalFluxInterfaceCondition(IndexType NewId, GeometryType::Pointer pGeometry);
 
-    UPwNormalFluxInterfaceCondition(IndexType NewId, GeometryType::Pointer pGeometry, PropertiesType::Pointer pProperties)
-        : UPwFaceLoadInterfaceCondition<TDim, TNumNodes>(NewId, pGeometry, pProperties)
-    {
-    }
+    UPwNormalFluxInterfaceCondition(IndexType NewId, GeometryType::Pointer pGeometry, PropertiesType::Pointer pProperties);
 
     Condition::Pointer Create(IndexType               NewId,
                               NodesArrayType const&   ThisNodes,

@@ -21,6 +21,26 @@ namespace Kratos
 {
 
 template <unsigned int TDim, unsigned int TNumNodes>
+UPwLysmerAbsorbingCondition<TDim, TNumNodes>::UPwLysmerAbsorbingCondition()
+    : UPwFaceLoadCondition<TDim, TNumNodes>()
+{
+}
+
+template <unsigned int TDim, unsigned int TNumNodes>
+UPwLysmerAbsorbingCondition<TDim, TNumNodes>::UPwLysmerAbsorbingCondition(IndexType NewId, GeometryType::Pointer pGeometry)
+    : UPwFaceLoadCondition<TDim, TNumNodes>(NewId, pGeometry)
+{
+}
+
+template <unsigned int TDim, unsigned int TNumNodes>
+UPwLysmerAbsorbingCondition<TDim, TNumNodes>::UPwLysmerAbsorbingCondition(IndexType NewId,
+                                                                          GeometryType::Pointer pGeometry,
+                                                                          PropertiesType::Pointer pProperties)
+    : UPwFaceLoadCondition<TDim, TNumNodes>(NewId, pGeometry, pProperties)
+{
+}
+
+template <unsigned int TDim, unsigned int TNumNodes>
 Condition::Pointer UPwLysmerAbsorbingCondition<TDim, TNumNodes>::Create(IndexType NewId,
                                                                         NodesArrayType const& ThisNodes,
                                                                         PropertiesType::Pointer pProperties) const

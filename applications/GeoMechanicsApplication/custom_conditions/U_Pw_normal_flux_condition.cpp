@@ -23,6 +23,26 @@ namespace Kratos
 {
 
 template <unsigned int TDim, unsigned int TNumNodes>
+UPwNormalFluxCondition<TDim, TNumNodes>::UPwNormalFluxCondition()
+    : UPwFaceLoadCondition<TDim, TNumNodes>()
+{
+}
+
+template <unsigned int TDim, unsigned int TNumNodes>
+UPwNormalFluxCondition<TDim, TNumNodes>::UPwNormalFluxCondition(IndexType NewId, GeometryType::Pointer pGeometry)
+    : UPwFaceLoadCondition<TDim, TNumNodes>(NewId, pGeometry)
+{
+}
+
+template <unsigned int TDim, unsigned int TNumNodes>
+UPwNormalFluxCondition<TDim, TNumNodes>::UPwNormalFluxCondition(IndexType               NewId,
+                                                                GeometryType::Pointer   pGeometry,
+                                                                PropertiesType::Pointer pProperties)
+    : UPwFaceLoadCondition<TDim, TNumNodes>(NewId, pGeometry, pProperties)
+{
+}
+
+template <unsigned int TDim, unsigned int TNumNodes>
 Condition::Pointer UPwNormalFluxCondition<TDim, TNumNodes>::Create(IndexType             NewId,
                                                                    NodesArrayType const& ThisNodes,
                                                                    PropertiesType::Pointer pProperties) const

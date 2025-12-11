@@ -38,17 +38,11 @@ public:
     using GeometryType   = Geometry<Node>;
     using NodesArrayType = GeometryType::PointsArrayType;
 
-    UPwNormalFluxFICCondition() : UPwNormalFluxFICCondition(0, nullptr, nullptr) {}
+    UPwNormalFluxFICCondition();
 
-    UPwNormalFluxFICCondition(IndexType NewId, GeometryType::Pointer pGeometry)
-        : UPwNormalFluxFICCondition(NewId, pGeometry, nullptr)
-    {
-    }
+    UPwNormalFluxFICCondition(IndexType NewId, GeometryType::Pointer pGeometry);
 
-    UPwNormalFluxFICCondition(IndexType NewId, GeometryType::Pointer pGeometry, PropertiesType::Pointer pProperties)
-        : UPwNormalFluxCondition<TDim, TNumNodes>(NewId, pGeometry, pProperties)
-    {
-    }
+    UPwNormalFluxFICCondition(IndexType NewId, GeometryType::Pointer pGeometry, PropertiesType::Pointer pProperties);
 
     Condition::Pointer Create(IndexType               NewId,
                               NodesArrayType const&   ThisNodes,
