@@ -13,7 +13,7 @@
 //
 
 // Application includes
-#include "custom_conditions/U_Pw_force_condition.hpp"
+#include "custom_conditions/U_Pw_force_condition.h"
 
 namespace Kratos
 {

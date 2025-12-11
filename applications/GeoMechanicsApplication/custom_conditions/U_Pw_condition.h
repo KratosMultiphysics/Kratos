@@ -41,7 +41,7 @@ public:
 
     UPwCondition(IndexType NewId, GeometryType::Pointer pGeometry, PropertiesType::Pointer pProperties);
 
-    ~UPwCondition() override = default;
+    ~UPwCondition() override;
 
     Condition::Pointer Create(IndexType               NewId,
                               NodesArrayType const&   ThisNodes,

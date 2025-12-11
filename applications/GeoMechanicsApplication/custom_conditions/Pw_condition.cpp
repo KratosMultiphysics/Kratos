@@ -36,6 +36,9 @@ PwCondition<TDim, TNumNodes>::PwCondition(IndexType NewId, GeometryType::Pointer
 }
 
 template <unsigned int TDim, unsigned int TNumNodes>
+PwCondition<TDim, TNumNodes>::~PwCondition() = default;
+
+template <unsigned int TDim, unsigned int TNumNodes>
 Condition::Pointer PwCondition<TDim, TNumNodes>::Create(IndexType               NewId,
                                                         NodesArrayType const&   ThisNodes,
                                                         PropertiesType::Pointer pProperties) const

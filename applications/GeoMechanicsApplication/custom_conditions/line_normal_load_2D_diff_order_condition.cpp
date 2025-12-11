@@ -22,19 +22,16 @@
 namespace Kratos
 {
 
-// Default Constructor
 LineNormalLoad2DDiffOrderCondition::LineNormalLoad2DDiffOrderCondition()
     : LineLoad2DDiffOrderCondition()
 {
 }
 
-// Constructor 1
 LineNormalLoad2DDiffOrderCondition::LineNormalLoad2DDiffOrderCondition(IndexType NewId, GeometryType::Pointer pGeometry)
     : LineLoad2DDiffOrderCondition(NewId, std::move(pGeometry))
 {
 }
 
-// Constructor 2
 LineNormalLoad2DDiffOrderCondition::LineNormalLoad2DDiffOrderCondition(IndexType NewId,
                                                                        GeometryType::Pointer pGeometry,
                                                                        PropertiesType::Pointer pProperties)

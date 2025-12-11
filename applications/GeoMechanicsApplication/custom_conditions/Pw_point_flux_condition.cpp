@@ -37,6 +37,9 @@ PwPointFluxCondition<TDim, TNumNodes>::PwPointFluxCondition(IndexType           
 }
 
 template <unsigned int TDim, unsigned int TNumNodes>
+PwPointFluxCondition<TDim, TNumNodes>::~PwPointFluxCondition() = default;
+
+template <unsigned int TDim, unsigned int TNumNodes>
 Condition::Pointer PwPointFluxCondition<TDim, TNumNodes>::Create(IndexType             NewId,
                                                                  NodesArrayType const& rThisNodes,
                                                                  PropertiesType::Pointer pProperties) const

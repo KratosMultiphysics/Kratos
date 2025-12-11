@@ -18,20 +18,17 @@
 namespace Kratos
 {
 
-// Default Constructor
 AxisymmetricLineNormalFluidFlux2DDiffOrderCondition::AxisymmetricLineNormalFluidFlux2DDiffOrderCondition()
     : LineNormalFluidFlux2DDiffOrderCondition()
 {
 }
 
-// Constructor 1
 AxisymmetricLineNormalFluidFlux2DDiffOrderCondition::AxisymmetricLineNormalFluidFlux2DDiffOrderCondition(
     IndexType NewId, GeometryType::Pointer pGeometry)
     : LineNormalFluidFlux2DDiffOrderCondition(NewId, std::move(pGeometry))
 {
 }
 
-// Constructor 2
 AxisymmetricLineNormalFluidFlux2DDiffOrderCondition::AxisymmetricLineNormalFluidFlux2DDiffOrderCondition(
     IndexType NewId, GeometryType::Pointer pGeometry, PropertiesType::Pointer pProperties)
     : LineNormalFluidFlux2DDiffOrderCondition(NewId, std::move(pGeometry), std::move(pProperties))

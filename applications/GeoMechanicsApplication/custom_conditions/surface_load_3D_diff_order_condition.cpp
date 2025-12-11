@@ -94,8 +94,12 @@ void SurfaceLoad3DDiffOrderCondition::save(Serializer& rSerializer) const
     KRATOS_SERIALIZE_SAVE_BASE_CLASS(rSerializer, GeneralUPwDiffOrderCondition)
 }
 
-void SurfaceLoad3DDiffOrderCondition::load(Serializer& rSerializer){KRATOS_SERIALIZE_LOAD_BASE_CLASS(
-    rSerializer, GeneralUPwDiffOrderCondition)} std::string SurfaceLoad3DDiffOrderCondition::Info() const
+void SurfaceLoad3DDiffOrderCondition::load(Serializer& rSerializer)
+{
+    KRATOS_SERIALIZE_LOAD_BASE_CLASS(rSerializer, GeneralUPwDiffOrderCondition)
+}
+
+std::string SurfaceLoad3DDiffOrderCondition::Info() const
 {
     return "SurfaceLoad3DDiffOrderCondition";
 }

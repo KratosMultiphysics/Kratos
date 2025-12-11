@@ -23,20 +23,17 @@
 namespace Kratos
 {
 
-// Default Constructor
 SurfaceNormalLoad3DDiffOrderCondition::SurfaceNormalLoad3DDiffOrderCondition()
     : SurfaceLoad3DDiffOrderCondition()
 {
 }
 
-// Constructor 1
 SurfaceNormalLoad3DDiffOrderCondition::SurfaceNormalLoad3DDiffOrderCondition(IndexType NewId,
                                                                              GeometryType::Pointer pGeometry)
     : SurfaceLoad3DDiffOrderCondition(NewId, std::move(pGeometry))
 {
 }
 
-// Constructor 2
 SurfaceNormalLoad3DDiffOrderCondition::SurfaceNormalLoad3DDiffOrderCondition(IndexType NewId,
                                                                              GeometryType::Pointer pGeometry,
                                                                              PropertiesType::Pointer pProperties)
@@ -110,8 +107,12 @@ void SurfaceNormalLoad3DDiffOrderCondition::save(Serializer& rSerializer) const
     KRATOS_SERIALIZE_SAVE_BASE_CLASS(rSerializer, SurfaceLoad3DDiffOrderCondition)
 }
 
-void SurfaceNormalLoad3DDiffOrderCondition::load(Serializer& rSerializer){KRATOS_SERIALIZE_LOAD_BASE_CLASS(
-    rSerializer, SurfaceLoad3DDiffOrderCondition)} std::string SurfaceNormalLoad3DDiffOrderCondition::Info() const
+void SurfaceNormalLoad3DDiffOrderCondition::load(Serializer& rSerializer)
+{
+    KRATOS_SERIALIZE_LOAD_BASE_CLASS(rSerializer, SurfaceLoad3DDiffOrderCondition)
+}
+
+std::string SurfaceNormalLoad3DDiffOrderCondition::Info() const
 {
     return "SurfaceNormalLoad3DDiffOrderCondition";
 }

@@ -40,7 +40,7 @@ public:
 
     PwCondition(IndexType NewId, GeometryType::Pointer pGeometry, PropertiesType::Pointer pProperties);
 
-    ~PwCondition() override = default;
+    ~PwCondition() override;
 
     Condition::Pointer Create(IndexType               NewId,
                               NodesArrayType const&   ThisNodes,

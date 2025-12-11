@@ -37,7 +37,7 @@ public:
 
     PwPointFluxCondition(IndexType NewId, GeometryType::Pointer pGeometry, PropertiesType::Pointer pProperties);
 
-    ~PwPointFluxCondition() override = default;
+    ~PwPointFluxCondition() override;
 
     Condition::Pointer Create(IndexType               NewId,
                               NodesArrayType const&   rThisNodes,
