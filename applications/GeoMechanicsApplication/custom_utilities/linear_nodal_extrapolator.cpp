@@ -33,18 +33,18 @@ Matrix LinearNodalExtrapolator::CalculateElementExtrapolationMatrix(const Elemen
         p_interface_element ? p_interface_element->GetMidGeometry() : rElement.GetGeometry();
     CheckIfGeometryIsSupported(r_geometry);
 
-    const auto p_lower_order_geometry = CreateLowerOrderGeometry(r_geometry);
-    const GeometryType& p_corner_geometry = p_lower_order_geometry ? *p_lower_order_geometry : r_geometry;
+    const auto  p_lower_order_geometry = CreateLowerOrderGeometry(r_geometry);
+    const auto& r_corner_geometry = p_lower_order_geometry ? *p_lower_order_geometry : r_geometry;
 
     const auto integration_points = GeoElementUtilities::GetIntegrationPointsOf(rElement);
 
-    Matrix result = CalculateExtrapolationMatrixForCornerNodes(r_geometry, integration_points, p_corner_geometry);
+    auto result = CalculateExtrapolationMatrixForCornerNodes(r_geometry, integration_points, r_corner_geometry);
 
-    if (p_lower_order_geometry) {
-        AddRowsForMidsideNodes(r_geometry, result);
-    }
+    if (p_lower_order_geometry) AddRowsForMidsideNodes(r_geometry, result);
 
     if (p_interface_element) {
+        // The extrapolation matrix has been calculated for the mid-geometry. Now we still need to
+        // expand to it the full interface geometry (which comprises two sides).
         auto tmp = Matrix{2 * result.size1(), result.size2(), 0.0};
         GeoElementUtilities::AddMatrixAtPosition(result, tmp, 0, 0);
         GeoElementUtilities::AddMatrixAtPosition(result, tmp, result.size1(), 0);
@@ -58,17 +58,16 @@ Matrix LinearNodalExtrapolator::CalculateExtrapolationMatrixForCornerNodes(const
                                                                            const Geo::IntegrationPointVectorType& rIntegrationPoints,
                                                                            const GeometryType& rCornerGeometry)
 {
-    const SizeType number_of_corner_nodes = rCornerGeometry.PointsNumber();
-
-    const auto number_of_integration_points = rIntegrationPoints.size();
-    Matrix     node_coefficients(number_of_corner_nodes, number_of_integration_points);
     const auto determinants_of_jacobian =
         GeoElementUtilities::EvaluateDeterminantsOfJacobiansAtIntegrationPoints(rIntegrationPoints, rGeometry);
 
     const auto shape_functions_values_at_integration_points =
         GeoElementUtilities::EvaluateShapeFunctionsAtIntegrationPoints(rIntegrationPoints, rCornerGeometry);
 
-    Matrix quasi_mass_mat = ZeroMatrix(number_of_corner_nodes, number_of_corner_nodes);
+    const auto number_of_corner_nodes = rCornerGeometry.PointsNumber();
+    Matrix     quasi_mass_mat         = ZeroMatrix(number_of_corner_nodes, number_of_corner_nodes);
+    const auto number_of_integration_points = rIntegrationPoints.size();
+    Matrix     node_coefficients(number_of_corner_nodes, number_of_integration_points);
     for (IndexType i = 0; i < number_of_integration_points; ++i) {
         const auto& N = shape_functions_values_at_integration_points[i];
         quasi_mass_mat += outer_prod(N, N) * determinants_of_jacobian[i] * rIntegrationPoints[i].Weight();

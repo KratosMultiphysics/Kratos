@@ -26,20 +26,19 @@ Matrix ExtrapolationUtilities::CalculateExtrapolationMatrix(const Element& rElem
 {
     const auto& r_geometry         = rElement.GetGeometry();
     const auto  integration_method = rElement.GetIntegrationMethod();
-    const auto  element_id         = rElement.Id();
 
     const auto extrapolator = LinearNodalExtrapolator{};
     const auto result       = extrapolator.CalculateElementExtrapolationMatrix(rElement);
 
     KRATOS_ERROR_IF_NOT(result.size1() == r_geometry.PointsNumber())
         << "A number of extrapolation matrix rows " << result.size1() << " is not equal to a number of nodes "
-        << r_geometry.PointsNumber() << " for element id " << element_id << std::endl;
+        << r_geometry.PointsNumber() << " for element id " << rElement.Id() << std::endl;
 
     KRATOS_ERROR_IF_NOT(result.size2() == r_geometry.IntegrationPointsNumber(integration_method))
         << "A number of extrapolation matrix columns " << result.size2()
         << " is not equal to a number of integration points "
         << r_geometry.IntegrationPointsNumber(integration_method) << " for element id "
-        << element_id << std::endl;
+        << rElement.Id() << std::endl;
 
     return result;
 }
@@ -47,16 +46,14 @@ Matrix ExtrapolationUtilities::CalculateExtrapolationMatrix(const Element& rElem
 std::vector<std::optional<Vector>> ExtrapolationUtilities::CalculateNodalVectors(
     const std::vector<std::size_t>& rNodeIds, const Element& rElement, const std::vector<Vector>& rVectorsAtIntegrationPoints)
 {
-    const auto& r_geometry = rElement.GetGeometry();
-    const auto  element_id = rElement.Id();
-
-    const auto element_node_ids     = GenericUtilities::GetIdsFromEntityContents(r_geometry);
-    const auto extrapolation_matrix = CalculateExtrapolationMatrix(rElement);
+    const auto& r_geometry           = rElement.GetGeometry();
+    const auto  element_node_ids     = GenericUtilities::GetIdsFromEntityContents(r_geometry);
+    const auto  extrapolation_matrix = CalculateExtrapolationMatrix(rElement);
 
     KRATOS_ERROR_IF_NOT(extrapolation_matrix.size2() == rVectorsAtIntegrationPoints.size())
         << "An extrapolation matrix size " << extrapolation_matrix.size2()
         << " is not equal to given stress vectors size " << rVectorsAtIntegrationPoints.size()
-        << " for element Id " << element_id << std::endl;
+        << " for element Id " << rElement.Id() << std::endl;
 
     const auto          number_of_nodes = r_geometry.PointsNumber();
     std::vector<Vector> extrapolated_vectors_at_nodes(

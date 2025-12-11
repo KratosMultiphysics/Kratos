@@ -11,7 +11,6 @@
 //
 
 #include "element_utilities.hpp"
-
 #include "custom_elements/interface_element.h"
 
 #include <cstddef>
