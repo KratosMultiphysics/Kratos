@@ -20,6 +20,7 @@
 #include "cs_dsg3_thick_shell_element_3D3N.h"
 #include "structural_mechanics_application_variables.h"
 #include "custom_utilities/EICR.hpp"
+#include "custom_utilities/structural_mechanics_element_utilities.h"
 
 namespace Kratos
 {
@@ -1267,5 +1268,70 @@ template class CSDSG3ThickShellElement3D3N<false>;
 /***********************************************************************************/
 /***********************************************************************************/
 
+template <bool IS_COROTATIONAL>
+void CSDSG3ThickShellElement3D3N<IS_COROTATIONAL>::CalculateMassMatrix(
+    MatrixType& rMassMatrix,
+    const ProcessInfo& rCurrentProcessInfo)
+{
+    const auto& r_geometry = GetGeometry();
+    const IndexType number_of_nodes = r_geometry.PointsNumber();
+    const IndexType system_size = number_of_nodes * GetDoFsPerNode();
+
+    if (rMassMatrix.size1() != system_size || rMassMatrix.size2() != system_size)
+        rMassMatrix.resize(system_size, system_size, false);
+    rMassMatrix.clear();
+    const auto& r_props = GetProperties();
+
+    const bool compute_lumped_mass_matrix = StructuralMechanicsElementUtilities::ComputeLumpedMassMatrix(r_props, rCurrentProcessInfo);
+
+    double density = 0.0;
+    if (r_props.Has(DENSITY)) {
+        density = r_props[DENSITY];
+    } else {
+        // In composite shells the density is to be retrieved from the CL
+        mConstitutiveLawVector[0]->GetValue(DENSITY, density);
+        KRATOS_ERROR_IF(density <= 0.0) << "DENSITY is null as far as the shell CL is concerned... Please implement the GetValue(DENSITY) " <<  std::endl;
+    }
+    const double thickness = r_props[THICKNESS];
+
+    bounded_3_matrix rotation_matrix;
+    CalculateRotationMatrixGlobalToLocal(rotation_matrix, true);
+
+    array_3 local_coords_1, local_coords_2, local_coords_3;
+    noalias(local_coords_1) = ZeroVector(3);
+    noalias(local_coords_2) = prod(rotation_matrix, r_geometry[1].GetInitialPosition() - r_geometry[0].GetInitialPosition());
+    noalias(local_coords_3) = prod(rotation_matrix, r_geometry[2].GetInitialPosition() - r_geometry[0].GetInitialPosition());
+    const double ref_area = CalculateArea(local_coords_1, local_coords_2, local_coords_3);
+
+    if (compute_lumped_mass_matrix) { // Lumped
+        const double nodal_mass = density * thickness * ref_area / 3.0;
+
+        for (SizeType i=0; i < number_of_nodes; i++) {
+            SizeType index = i * GetDoFsPerNode();
+            rMassMatrix(index, index) = nodal_mass;
+            rMassMatrix(index + 1, index + 1) = nodal_mass;
+            rMassMatrix(index + 2, index + 2) = nodal_mass;
+        }
+    } else { // Consistent mass matrix
+        // General matrix form as per Felippa plane stress CST
+        // The shell assumes that the density is provided by the CL if composite shell is used
+        const double factor = thickness * thickness / 12.0;
+
+        for (SizeType row = 0; row < system_size; row++) {
+            if (row % 6 < 3) { // Translational entry
+                for (SizeType col = 0; col < 3; col++) {
+                    rMassMatrix(row, 6 * col + row % 6) = 1.0;
+                }
+            } else { // Rotational entry
+                for (SizeType col = 0; col < 3; col++) {
+                    rMassMatrix(row, 6 * col + row % 6) = factor;
+                }
+            }
+            // Diagonal entry
+            rMassMatrix(row, row) *= 2.0;
+        }
+        rMassMatrix *= thickness * density * ref_area / 12.0;
+    }
+}
 
 } // Namespace Kratos

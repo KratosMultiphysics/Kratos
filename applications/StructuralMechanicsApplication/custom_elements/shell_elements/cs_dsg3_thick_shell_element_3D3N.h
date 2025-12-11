@@ -402,6 +402,13 @@ public:
     void AddBodyForces(const double Area, VectorType &rRightHandSideVector);
 
     /**
+     * @brief This method computes the mass matrix
+     */
+    void CalculateMassMatrix(
+        MatrixType &rMassMatrix,
+        const ProcessInfo &rCurrentProcessInfo);
+
+    /**
      * @brief This method returns a material property (e.g. Poisson ratio) without assuming that this property is
      * in the main property. It looks into the subproperties to find the property.
      */
