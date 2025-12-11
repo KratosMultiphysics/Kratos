@@ -65,6 +65,23 @@ KRATOS_TEST_CASE_IN_SUITE(GetModelPartsFromSettings_ListOfModelParts, KratosGeoM
     KRATOS_EXPECT_EQ(model_parts[1].get().Name(), "Part2");
 }
 
+KRATOS_TEST_CASE_IN_SUITE(GetModelPartsFromSettings_CheckForDuplicaterdNames, KratosGeoMechanicsFastSuiteWithoutKernel)
+{
+    // Arrange
+    Model model;
+    model.CreateModelPart("Part1");
+    model.CreateModelPart("Part2");
+
+    Parameters settings(R"(
+        {
+            "model_part_name_list": ["Part1", "Part1"]
+        })");
+
+    // Act and Assert
+    KRATOS_EXPECT_EXCEPTION_IS_THROWN(ProcessUtilities::GetModelPartsFromSettings(model, settings, "TestProcess"),
+                                      "model_part_name_list has duplicated names for TestProcess.")
+}
+
 struct NamedFactory {
     std::string                                                    name;
     std::function<void(Kratos::Model&, const Kratos::Parameters&)> factory;
