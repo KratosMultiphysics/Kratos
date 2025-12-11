@@ -289,6 +289,19 @@ KRATOS_TEST_CASE_IN_SUITE(MidGeometryOf3Plus3SurfaceInterfaceIsDefinedByMidPoint
     ExpectPointsAreNear(r_mid_geometry.Points(), expected_mid_points);
 }
 
+KRATOS_TEST_CASE_IN_SUITE(MidGeometryOf6Plus6SurfaceInterfaceIsDefinedByMidPointsOfNodePairs,
+                          KratosGeoMechanicsFastSuiteWithoutKernel)
+{
+    const auto     interface_geometry = CreateSixPlusSixNoded3DSurfaceInterfaceGeometry();
+    constexpr auto unused_part_index  = std::size_t{0};
+    const auto&    r_mid_geometry     = interface_geometry.GetGeometryPart(unused_part_index);
+
+    const auto expected_mid_points =
+        std::vector<Point>{{0.0, 0.0, 0.25}, {1.0, 0.0, 0.25}, {0.0, 1.0, 0.25},
+                           {0.5, 0.0, 0.25}, {0.5, 0.5, 0.25}, {0.0, 0.5, 0.25}};
+    ExpectPointsAreNear(r_mid_geometry.Points(), expected_mid_points);
+}
+
 KRATOS_TEST_CASE_IN_SUITE(InterfaceGeometry_ReturnsCorrectShapeFunctionValuesInNodes_ForTwoPlusTwoNodedGeometry,
                           KratosGeoMechanicsFastSuiteWithoutKernel)
 {
