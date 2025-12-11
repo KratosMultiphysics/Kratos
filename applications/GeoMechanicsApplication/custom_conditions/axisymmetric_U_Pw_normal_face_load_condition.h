@@ -36,20 +36,13 @@ public:
     using GeometryType   = Geometry<Node>;
     using NodesArrayType = GeometryType::PointsArrayType;
 
-    AxisymmetricUPwNormalFaceLoadCondition()
-        : AxisymmetricUPwNormalFaceLoadCondition(0, nullptr, nullptr)
-    {
-    }
+    AxisymmetricUPwNormalFaceLoadCondition();
 
-    AxisymmetricUPwNormalFaceLoadCondition(IndexType NewId, GeometryType::Pointer pGeometry)
-        : AxisymmetricUPwNormalFaceLoadCondition(NewId, pGeometry, nullptr)
-    {
-    }
+    AxisymmetricUPwNormalFaceLoadCondition(IndexType NewId, GeometryType::Pointer pGeometry);
 
-    AxisymmetricUPwNormalFaceLoadCondition(IndexType NewId, GeometryType::Pointer pGeometry, PropertiesType::Pointer pProperties)
-        : UPwNormalFaceLoadCondition<TDim, TNumNodes>(NewId, pGeometry, pProperties)
-    {
-    }
+    AxisymmetricUPwNormalFaceLoadCondition(IndexType               NewId,
+                                           GeometryType::Pointer   pGeometry,
+                                           PropertiesType::Pointer pProperties);
 
     Condition::Pointer Create(IndexType               NewId,
                               NodesArrayType const&   ThisNodes,

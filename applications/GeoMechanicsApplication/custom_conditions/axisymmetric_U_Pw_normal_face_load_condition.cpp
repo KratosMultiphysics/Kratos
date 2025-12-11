@@ -19,6 +19,26 @@ namespace Kratos
 {
 
 template <unsigned int TDim, unsigned int TNumNodes>
+AxisymmetricUPwNormalFaceLoadCondition<TDim, TNumNodes>::AxisymmetricUPwNormalFaceLoadCondition()
+    : AxisymmetricUPwNormalFaceLoadCondition(0, nullptr, nullptr)
+{
+}
+
+template <unsigned int TDim, unsigned int TNumNodes>
+AxisymmetricUPwNormalFaceLoadCondition<TDim, TNumNodes>::AxisymmetricUPwNormalFaceLoadCondition(
+    IndexType NewId, GeometryType::Pointer pGeometry)
+    : AxisymmetricUPwNormalFaceLoadCondition(NewId, pGeometry, nullptr)
+{
+}
+
+template <unsigned int TDim, unsigned int TNumNodes>
+AxisymmetricUPwNormalFaceLoadCondition<TDim, TNumNodes>::AxisymmetricUPwNormalFaceLoadCondition(
+    IndexType NewId, GeometryType::Pointer pGeometry, PropertiesType::Pointer pProperties)
+    : UPwNormalFaceLoadCondition<TDim, TNumNodes>(NewId, pGeometry, pProperties)
+{
+}
+
+template <unsigned int TDim, unsigned int TNumNodes>
 Condition::Pointer AxisymmetricUPwNormalFaceLoadCondition<TDim, TNumNodes>::Create(
     IndexType NewId, NodesArrayType const& ThisNodes, PropertiesType::Pointer pProperties) const
 {
