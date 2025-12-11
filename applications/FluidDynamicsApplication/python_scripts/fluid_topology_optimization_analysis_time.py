@@ -52,6 +52,7 @@ from KratosMultiphysics import ComputeNodalGradientProcess
 
 class FluidTopologyOptimizationAnalysisTime(FluidDynamicsAnalysis):
     def _ReadOptimizationParameters(self):
+        self.project_parameters_adjoint = self.project_parameters.Clone()
         if (self.project_parameters.Has("optimization_parameters_file_name")):
             self.optimization_parameters_file = self.project_parameters["optimization_parameters_file_name"].GetString()
         else:
@@ -71,10 +72,10 @@ class FluidTopologyOptimizationAnalysisTime(FluidDynamicsAnalysis):
         """
         if self.IsMpiParallelism():
             self.physics_solver = trilinos_fluid_topology_optimization_solver_time.CreateSolver(self.model, self.project_parameters)
-            self.adjoint_solver = trilinos_fluid_topology_optimization_solver_time.CreateSolver(self.model, self.project_parameters, isAdjointSolver=True)
+            self.adjoint_solver = trilinos_fluid_topology_optimization_solver_time.CreateSolver(self.model, self.project_parameters_adjoint, isAdjointSolver=True)
         else:
             self.physics_solver = fluid_topology_optimization_solver_time.CreateSolver(self.model, self.project_parameters)
-            self.adjoint_solver = fluid_topology_optimization_solver_time.CreateSolver(self.model, self.project_parameters, isAdjointSolver=True)
+            self.adjoint_solver = fluid_topology_optimization_solver_time.CreateSolver(self.model, self.project_parameters_adjoint, isAdjointSolver=True)
 
     def _CreateSolver(self, isAdjointSolver = False):
         """
@@ -83,9 +84,15 @@ class FluidTopologyOptimizationAnalysisTime(FluidDynamicsAnalysis):
         isAdjointSolver == True  --> adjoint_solver
         """
         if self.IsMpiParallelism():
-            return trilinos_fluid_topology_optimization_solver_time.CreateSolver(self.model, self.project_parameters, isAdjointSolver)
+            if (not isAdjointSolver):
+                return trilinos_fluid_topology_optimization_solver_time.CreateSolver(self.model, self.project_parameters)
+            else:
+                return trilinos_fluid_topology_optimization_solver_time.CreateSolver(self.model, self.project_parameters_adjoint, isAdjointSolver=True)
         else:
-            return fluid_topology_optimization_solver_time.CreateSolver(self.model, self.project_parameters, isAdjointSolver)
+            if (not isAdjointSolver):
+                return fluid_topology_optimization_solver_time.CreateSolver(self.model, self.project_parameters, isAdjointSolver)
+            else:
+                return fluid_topology_optimization_solver_time.CreateSolver(self.model, self.project_parameters_adjoint, isAdjointSolver=True)
     
     def _GetSolver(self, force_adjoint = False):
         """
@@ -231,7 +238,7 @@ class FluidTopologyOptimizationAnalysisTime(FluidDynamicsAnalysis):
         self._ModelersSetupGeometryModel()
         self._ModelersPrepareGeometryModel()
         self._ModelersSetupModelPart()
-        self.InitializeAnalysisTimeAndSolversBuffer()
+        self.InitializeAnalysisTimeSettings()
         # Prepare Solvers : ImportModelPart -> PrepareModelPart -> AddDofs)
         self.PrepareSolvers()
         # Modify Initial
@@ -390,27 +397,33 @@ class FluidTopologyOptimizationAnalysisTime(FluidDynamicsAnalysis):
         """
         self._GetAdjointSolver().Initialize()
 
-    def InitializeAnalysisTimeAndSolversBuffer(self):
+    def InitializeAnalysisTimeSettings(self):
         ## Stepping and time settings
-        self.start_time = self.project_parameters["problem_data"]["start_time"].GetDouble()
-        self.end_time = self.project_parameters["problem_data"]["end_time"].GetDouble()
-        self.time_step_base = self._GetSolver().settings["time_stepping"]["time_step"].GetDouble()
-        self.n_time_steps = max(int(np.ceil((self.end_time-self.start_time) / self.time_step_base)), 1)
-        self.time_steps = np.zeros(self.n_time_steps)
-        self.time_steps_integration_weights = np.zeros(self.n_time_steps) # weight to each time step to perform fast time integration of functionals
-        for istep in range(self.n_time_steps):
-            self.time_steps[istep] = self.time_step_base # assume equal time steps
-        for istep in range(self.n_time_steps-1):
-            self.time_steps_integration_weights[istep] = (self.time_steps[istep] + self.time_steps[istep+1]) / 2.0
-        if (self.n_time_steps == 1):
-            self.time_steps_integration_weights[self.n_time_steps-1] = self.time_steps[self.n_time_steps-1]
+        if self.IsUnsteadySolution():
+            self.start_time = self.project_parameters["problem_data"]["start_time"].GetDouble()
+            self.end_time = self.project_parameters["problem_data"]["end_time"].GetDouble()
+            self.time_step_base = self._GetSolver().settings["time_stepping"]["time_step"].GetDouble()
+            self.n_time_steps = max(int(np.ceil((self.end_time-self.start_time) / self.time_step_base)), 1)
+            self.time_steps = np.zeros(self.n_time_steps)
+            self.time_steps_integration_weights = np.zeros(self.n_time_steps) # weight to each time step to perform fast time integration of functionals
+            for istep in range(self.n_time_steps):
+                self.time_steps[istep] = self.time_step_base # assume equal time steps
+            for istep in range(self.n_time_steps-1):
+                self.time_steps_integration_weights[istep] = (self.time_steps[istep] + self.time_steps[istep+1]) / 2.0
+            if (self.n_time_steps == 1):
+                self.time_steps_integration_weights[self.n_time_steps-1] = self.time_steps[self.n_time_steps-1]
+            else:
+                self.time_steps_integration_weights[self.n_time_steps-1] = self.time_steps[self.n_time_steps-1] / 2.0
         else:
-            self.time_steps_integration_weights[self.n_time_steps-1] = self.time_steps[self.n_time_steps-1] / 2.0
-        # self._SetMinBufferSizeBasedOnTimeSteps()
-
-    def _SetMinBufferSizeBasedOnTimeSteps(self):
-        self._GetPhysicsSolver().min_buffer_size = self.n_time_steps # since bdf2 is used as itme scheme
-        self._GetAdjointSolver().min_buffer_size = self.n_time_steps # since bdf2 is used as time scheme
+            self.start_time = self.project_parameters["problem_data"]["start_time"].GetDouble()
+            self.end_time = self.start_time + 1e10
+            self.time_step_base = 1.0000000001*1e10
+            self.n_time_steps = 1
+            self.time_steps = np.zeros(self.n_time_steps)
+            self.time_steps_integration_weights = np.zeros(self.n_time_steps) # weight to each time step to perform fast time integration of functionals
+            self.time_steps[0] = self.time_step_base
+            self.time_steps_integration_weights[0] = 1.0
+            
 
     def Check(self):
         """This method checks the AnalysisStage
@@ -1004,7 +1017,10 @@ class FluidTopologyOptimizationAnalysisTime(FluidDynamicsAnalysis):
         This methods hadls the time for the Topology Optimization problems, currently its purpos it's just to make thinks work
         """
         self.time_step_counter += 1
-        time = super()._AdvanceTime()
+        if self.IsUnsteadySolution():
+            time = super()._AdvanceTime()
+        else:
+            time = self.start_time + self.time_step_base
         return time
     
     def InitializeSolutionStep(self):
@@ -1083,9 +1099,6 @@ class FluidTopologyOptimizationAnalysisTime(FluidDynamicsAnalysis):
         """
         This method computes the resistance functional: int_{time}{int_{\Omega}{\\alpha||u||^2}}
         """
-        # resistance_functionals_in_delta_time = np.zeros(self.n_time_steps)
-        # for istep in range(self.n_time_steps):
-        #     resistance_functionals_in_delta_time[istep] = self._EvaluateResistanceFunctionalInDeltaTime(istep)
         self.fluid_functionals[0] = np.dot(self.resistance_functionals_in_delta_time, self.time_steps_integration_weights)
         if self.IsMpiParallelism():
             self.fluid_functionals[0] = self.MpiSumLocalValues(self.fluid_functionals[0])
@@ -1111,9 +1124,6 @@ class FluidTopologyOptimizationAnalysisTime(FluidDynamicsAnalysis):
         """
         This method computes the Strain-Rate functional: int_{time}{int_{\Omega}{\\2*mu*||1/2*[grad(u)+grad(u)^T]||^2}}
         """
-        # strain_rate_functionals_in_delta_time = np.zeros(self.n_time_steps)
-        # for istep in range(self.n_time_steps):
-        #     strain_rate_functionals_in_delta_time[istep] = self._EvaluateStrainRateFunctionalInDeltaTime(istep)
         self.fluid_functionals[1] = np.dot(self.strain_rate_functionals_in_delta_time, self.time_steps_integration_weights)
         if self.IsMpiParallelism():
             self.fluid_functionals[1] = self.MpiSumLocalValues(self.fluid_functionals[1])
@@ -1139,9 +1149,6 @@ class FluidTopologyOptimizationAnalysisTime(FluidDynamicsAnalysis):
         """
         This method computes the Vorticity functional: int_{time}{int_{\Omega}{\\2*mu*||1/2*[grad(u)-grad(u)^T]||^2}}
         """
-        # vorticity_functionals_in_delta_time = np.zeros(self.n_time_steps)
-        # for istep in range(self.n_time_steps):
-        #     vorticity_functionals_in_delta_time[istep] = self._EvaluateVorticityFunctionalInDeltaTime(istep)
         self.fluid_functionals[2] = np.dot(self.vorticity_functionals_in_delta_time, self.time_steps_integration_weights)
         if self.IsMpiParallelism():
             self.fluid_functionals[2] = self.MpiSumLocalValues(self.fluid_functionals[2])
@@ -1290,6 +1297,12 @@ class FluidTopologyOptimizationAnalysisTime(FluidDynamicsAnalysis):
         This method returns TRUE the topology optimization stage is 3 <=> OPT
         """
         return self.CheckOptimizationStage(3) 
+    
+    def IsUnsteadySolution(self):
+        return self._GetSolver()._IsUnsteady()
+    
+    def IssteadySolution(self):
+        return not self.IsUnsteadySolution()
     
     def _GetComputingModelPart(self):
         """
@@ -2098,9 +2111,9 @@ class FluidTopologyOptimizationAnalysisTime(FluidDynamicsAnalysis):
         self.project_parameters = parameters
         self.topology_optimization_stage = 0
         self.topology_optimization_stage_str = "INIT"
+        self._ReadOptimizationParameters()
         super().__init__(model,parameters) 
         self.HandleAdjointSolverAddVariables()
-        self._ReadOptimizationParameters()
         # self._CreateTopologyOptimizationSolvers() # currently it is a useless method 
         self._SetMinMaxIt()  
         self._SetTopologyOptimizationName()

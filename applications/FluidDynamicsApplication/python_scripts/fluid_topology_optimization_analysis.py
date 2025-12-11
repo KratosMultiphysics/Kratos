@@ -1531,7 +1531,7 @@ class FluidTopologyOptimizationAnalysis(FluidDynamicsAnalysis):
                                             )
             remesh_param = KratosMultiphysics.Parameters("""{ }""")
             if (self.dim == 2):
-                self.local_hessian = KratosW.ComputeHessianSolMetricProcess2D(main_mp, KratosMultiphysics.DISTANCE, metric_param)
+                self.local_hessian = KratosMMG.ComputeHessianSolMetricProcess2D(main_mp, KratosMultiphysics.DISTANCE, metric_param)
                 self.mmg_process = KratosMMG.MmgProcess2D(main_mp, remesh_param)
             elif (self.dim == 3):
                 self.local_hessian = KratosMMG.ComputeHessianSolMetricProcess3D(main_mp, KratosMultiphysics.DISTANCE, metric_param)

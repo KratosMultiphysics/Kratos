@@ -144,15 +144,19 @@ class TrilinosFluidTopologyOptimizationSolver(TrilinosNavierStokesMonolithicSolv
         KratosMultiphysics.Logger.PrintInfo(self.__class__.__name__, "Fluid Topology Optimization ADJ-NS solver variables added correctly.")          
 
     def _SetTimeSchemeBufferSize(self):
-        scheme_type = self.settings["time_scheme"].GetString()
-        if scheme_type == "bossak":
-            KratosMultiphysics.Logger.PrintWarning("[WARNING] " + self.__class__.__name__ + " time scheme_type: \' " + scheme_type + " \' is not compatible with the current implementation of FluidTopologyOptimization. Its value has been reset to default value: \' bdf2 \'")
+        self.is_unsteady = True
+        self.time_scheme = self.settings["time_scheme"].GetString()
+        self.settings["time_stepping"]["automatic_time_step"].SetBool(False)
+        if self.time_scheme == "bossak":
+            KratosMultiphysics.Logger.PrintWarning("[WARNING] " + self.__class__.__name__ + " time scheme_type: \' " + self.time_scheme + " \' is not compatible with the current implementation of FluidTopologyOptimization. Its value has been reset to default value: \' bdf2 \'")
             self.settings["time_scheme"].SetString("bdf2")
             self.min_buffer_size = 3
-        elif scheme_type == "bdf2":
+        elif self.time_scheme == "bdf2":
             self.min_buffer_size = 3
-        elif scheme_type == "steady":
-            self.min_buffer_size = 1
+        elif self.time_scheme == "steady":
+            self.settings["time_scheme"].SetString("bdf2")
+            self.is_unsteady = False
+            self.min_buffer_size = 3
             self._SetUpSteadySimulation()
     
     def _SetNodalProperties(self):
@@ -331,9 +335,20 @@ class TrilinosFluidTopologyOptimizationSolver(TrilinosNavierStokesMonolithicSolv
     def InitializeSolutionStep(self):
         self.is_resistance_updated = False
         # If required, compute the BDF coefficients
-        if hasattr(self, 'time_discretization'):
-            (self.time_discretization).ComputeAndSaveBDFCoefficients(self.GetComputingModelPart().ProcessInfo)
-        self._GetSolutionStrategy().InitializeSolutionStep()
+        if self._IsUnsteady():
+            if hasattr(self, 'time_discretization'):
+                (self.time_discretization).ComputeAndSaveBDFCoefficients(self.GetComputingModelPart().ProcessInfo)
+        else:
+            self.SetSteadyStateSolutionStep()
+        self._GetSolutionStrategy().InitializeSolutionStep()     
+
+    def SetTimeDependentSolutionStep(self):
+        pass
+
+    def SetSteadyStateSolutionStep(self):
+        model_part = self.GetComputingModelPart()
+        model_part.ProcessInfo[KratosMultiphysics.BDF_COEFFICIENTS] = [0.0, 0.0, 0.0] # set to zero time integration coefficients
+        model_part.ProcessInfo[KratosMultiphysics.DYNAMIC_TAU] = 0.0 # set to zero time stabilization coefficient
 
     def PrintPhysicsParametersUpdateStatus(self, problem_phase_str):
         if (not self.is_resistance_updated):
@@ -419,6 +434,12 @@ class TrilinosFluidTopologyOptimizationSolver(TrilinosNavierStokesMonolithicSolv
             num_nodes_conditions = domain_size
         condition_name = f"{base_condition_name}{domain_size}D{num_nodes_conditions}N" 
         return element_name, condition_name
+    
+    def _IsUnsteady(self):
+        return self.is_unsteady
+    
+    def _IsSteady(self):
+        return not self._IsUnsteady()
         
 
 
