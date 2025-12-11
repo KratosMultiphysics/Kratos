@@ -317,7 +317,7 @@ Internally, the mapper assembles and solves a global RBF interpolation system.
 If ```json"precompute_mapping_matrix": true```, the resulting mapping matrix is stored and reused, allowing efficient repeated mapping calls.
 - Support Points
   - ```json"use_all_rbf_support_points": true``` → all origin points contribute to the RBF system.
-  - ```json"max_support_points" > 0`` → restricts support to a local neighborhood for each destination point.
+  - ```json"max_support_points" > 0``` → restricts support to a local neighborhood for each destination point.
 
 
 #### Beam Mapper 
@@ -350,7 +350,7 @@ A typical configuration json looks as follows:
 **Explanation of the main entries:**
 - ```json"type"```: selects the CoSimulation mapper. "kratos_beam_mapping" activates the _BeamMapper_.
 - ```json"model_part_name_beam" / "model_part_name_surface"```: names of the origin beam model part and the target surface model part used for the mapping.
-- ```json"solver_name_beam" / "solver_name_surface": identifiers of the solvers that own these model parts. They are used internally by the CoSimulation framework to retrieve nodal values.
+- ```json"solver_name_beam" / "solver_name_surface"```: identifiers of the solvers that own these model parts. They are used internally by the CoSimulation framework to retrieve nodal values.
 - ```json"echo_level"```: controls the amount of printed information for debugging.
 - ```json"mapper_settings"```
   - ```json"mapper_type"```: must be "beam_mapper" to use the _BeamMapper_.
