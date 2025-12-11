@@ -72,6 +72,7 @@
 #include "processes/generic_find_elements_neighbours_process.h"
 #include "processes/check_same_modelpart_using_skin_distance_process.h"
 #include "processes/calculate_nodal_distance_to_skin_process.h"
+#include "processes/gauss_point_error_process.h"
 
 #include "spaces/ublas_space.h"
 #include "linear_solvers/linear_solver.h"
@@ -677,6 +678,10 @@ void  AddProcessesToPython(pybind11::module& m)
 
     py::class_<TimeAveragingProcess, TimeAveragingProcess::Pointer, Process>(m, "TimeAveragingProcess")
     .def(py::init<Model&, Parameters>())
+    ;
+
+    py::class_<GaussPointErrorProcess, GaussPointErrorProcess::Pointer, Process>(m, "GaussPointErrorProcess")
+    .def(py::init<ModelPart&, ModelPart&, int>())
     ;
 
     py::class_<SplitInternalInterfacesProcess, SplitInternalInterfacesProcess::Pointer, Process>(m, "SplitInternalInterfacesProcess")
