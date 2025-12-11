@@ -305,13 +305,13 @@ public:
     ///@{
 
     /// Turn back information as a string.
-    [[nodiscard]] std::string Info() const override { return "SmallStrainUMATLaw"; }
+    [[nodiscard]] std::string Info() const override;
 
     /// Print information about this object.
-    void PrintInfo(std::ostream& rOStream) const override { rOStream << Info(); }
+    void PrintInfo(std::ostream& rOStream) const override;
 
     /// Print object's data.
-    void PrintData(std::ostream& rOStream) const override { rOStream << "SmallStrainUMATLaw Data"; }
+    void PrintData(std::ostream& rOStream) const override;
 
     ///@}
     ///@name Friends

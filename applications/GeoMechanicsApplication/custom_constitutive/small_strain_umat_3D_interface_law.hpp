@@ -88,12 +88,12 @@ public:
     /**
      * @brief Dimension of the law:
      */
-    SizeType WorkingSpaceDimension() override { return Dimension; }
+    SizeType WorkingSpaceDimension() override;
 
     /**
      * @brief Voigt tensor size:
      */
-    SizeType GetStrainSize() const override { return VoigtSize; }
+    SizeType GetStrainSize() const override;
 
     /**
      * @brief Returns the expected strain measure of this constitutive law (by default Green-Lagrange)
@@ -116,16 +116,13 @@ public:
     ///@{
 
     /// Turn back information as a string.
-    std::string Info() const override { return "SmallStrainUMAT3DInterfaceLaw"; }
+    std::string Info() const override;
 
     /// Print information about this object.
-    void PrintInfo(std::ostream& rOStream) const override { rOStream << Info(); }
+    void PrintInfo(std::ostream& rOStream) const override;
 
     /// Print object's data.
-    void PrintData(std::ostream& rOStream) const override
-    {
-        rOStream << "SmallStrainUMAT3DInterfaceLaw Data";
-    }
+    void PrintData(std::ostream& rOStream) const override;
 
     ///@}
     ///@name Friends

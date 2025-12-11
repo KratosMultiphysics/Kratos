@@ -786,6 +786,24 @@ bool SmallStrainUMATLaw<TVoigtSize>::Has(const Variable<Vector>& rVariable)
     return rVariable == STATE_VARIABLES || rVariable == CAUCHY_STRESS_VECTOR;
 }
 
+template <SizeType TVoigtSize>
+[[nodiscard]] std::string SmallStrainUMATLaw<TVoigtSize>::Info() const
+{
+    return "SmallStrainUMATLaw";
+}
+
+template <SizeType TVoigtSize>
+void SmallStrainUMATLaw<TVoigtSize>::PrintInfo(std::ostream& rOStream) const
+{
+    rOStream << Info();
+}
+
+template <SizeType TVoigtSize>
+void SmallStrainUMATLaw<TVoigtSize>::PrintData(std::ostream& rOStream) const
+{
+    rOStream << "SmallStrainUMATLaw Data";
+}
+
 template class SmallStrainUMATLaw<VOIGT_SIZE_3D>;
 template class SmallStrainUMATLaw<VOIGT_SIZE_2D_INTERFACE>;
 template class SmallStrainUMATLaw<VOIGT_SIZE_3D_INTERFACE>;

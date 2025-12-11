@@ -10,7 +10,7 @@
 //  Main authors:    Vahid Galavi
 //
 
-#include "custom_constitutive/small_strain_umat_2D_plane_strain_law.h"
+#include "custom_constitutive/small_strain_umat_2D_plane_strain_law.hpp"
 #include "constitutive_law_dimension.h"
 
 namespace Kratos
@@ -115,4 +115,22 @@ void SmallStrainUMAT2DPlaneStrainLaw::SetValue(const Variable<Vector>& rVariable
     }
 }
 
+SizeType SmallStrainUMAT2DPlaneStrainLaw::WorkingSpaceDimension() { return Dimension; }
+
+SizeType SmallStrainUMAT2DPlaneStrainLaw::GetStrainSize() const { return VoigtSize; }
+
+std::string SmallStrainUMAT2DPlaneStrainLaw::Info() const
+{
+    return "SmallStrainUMAT2DPlaneStrainLaw";
+}
+
+void SmallStrainUMAT2DPlaneStrainLaw::PrintInfo(std::ostream& rOStream) const
+{
+    rOStream << Info();
+}
+
+void SmallStrainUMAT2DPlaneStrainLaw::PrintData(std::ostream& rOStream) const
+{
+    rOStream << "SmallStrainUMAT2DPlaneStrainLaw Data";
+}
 } // namespace Kratos

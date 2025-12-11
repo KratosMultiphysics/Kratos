@@ -10,7 +10,7 @@
 //  Main authors:    Wijtze Pieter Kikstra
 //
 
-#include "custom_constitutive/small_strain_umat_2D_plane_strain_law.h"
+#include "custom_constitutive/small_strain_umat_2D_plane_strain_law.hpp"
 #include "custom_constitutive/three_dimensional.h"
 #include "tests/cpp_tests/geo_mechanics_fast_suite.h"
 
