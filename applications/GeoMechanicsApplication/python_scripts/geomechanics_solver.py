@@ -324,6 +324,8 @@ class GeoMechanicalSolver(PythonSolver):
         self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.VOLUME_ACCELERATION)
         self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.NORMAL_CONTACT_STRESS)
         self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.TANGENTIAL_CONTACT_STRESS)
+        self.main_model_part.AddNodalSolutionStepVariable(GeoMechanicsApplication.GEO_RELATIVE_DISPLACEMENT_VECTOR)
+        self.main_model_part.AddNodalSolutionStepVariable(GeoMechanicsApplication.GEO_EFFECTIVE_TRACTION_VECTOR)
 
     def _add_rotational_variables(self):
         if (self.settings.Has("rotation_dofs")):

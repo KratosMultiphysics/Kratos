@@ -155,10 +155,10 @@ void InterfaceElement::CalculateOnIntegrationPoints(const Variable<Vector>& rVar
                                                     std::vector<Vector>&    rOutput,
                                                     const ProcessInfo&      rCurrentProcessInfo)
 {
-    if (rVariable == STRAIN) {
+    if (rVariable == GEO_RELATIVE_DISPLACEMENT_VECTOR) {
         const auto local_b_matrices = CalculateLocalBMatricesAtIntegrationPoints();
         rOutput = CalculateRelativeDisplacementsAtIntegrationPoints(local_b_matrices);
-    } else if (rVariable == CAUCHY_STRESS_VECTOR) {
+    } else if (rVariable == GEO_EFFECTIVE_TRACTION_VECTOR) {
         const auto local_b_matrices = CalculateLocalBMatricesAtIntegrationPoints();
         const auto relative_displacements = CalculateRelativeDisplacementsAtIntegrationPoints(local_b_matrices);
         rOutput = CalculateTractionsAtIntegrationPoints(relative_displacements, rCurrentProcessInfo);

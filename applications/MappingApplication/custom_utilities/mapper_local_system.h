@@ -133,7 +133,7 @@ public:
     virtual CoordinatesArrayType& Coordinates() const = 0;
 
 
-    void AddInterfaceInfo(MapperInterfaceInfoPointerType pInterfaceInfo) // TODO pass by const ref?
+    virtual void AddInterfaceInfo(MapperInterfaceInfoPointerType pInterfaceInfo) // TODO pass by const ref?
     {
         mInterfaceInfos.push_back(pInterfaceInfo);
     }
