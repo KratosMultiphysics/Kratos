@@ -349,13 +349,13 @@ A typical configuration json looks as follows:
 
 **Explanation of the main entries:**
 - `"type"`: selects the CoSimulation mapper. "kratos_beam_mapping" activates the _BeamMapper_.
-- ```json"model_part_name_beam" / "model_part_name_surface"```: names of the origin beam model part and the target surface model part used for the mapping.
-- ```json"solver_name_beam" / "solver_name_surface"```: identifiers of the solvers that own these model parts. They are used internally by the CoSimulation framework to retrieve nodal values.
-- ```json"echo_level"```: controls the amount of printed information for debugging.
-- ```json"mapper_settings"```
-  - ```json"mapper_type"```: must be "beam_mapper" to use the _BeamMapper_.
-  - ```json"use_corotation"```: enables the co-rotational formulation (false → linear mapping, true → large-rotation mapping)
-  - ```json"search_settings"```: parameters controlling the projection of surface nodes onto the beam centerline.
+- `"model_part_name_beam" / "model_part_name_surface"`: names of the origin beam model part and the target surface model part used for the mapping.
+- `"solver_name_beam" / "solver_name_surface"`: identifiers of the solvers that own these model parts. They are used internally by the CoSimulation framework to retrieve nodal values.
+- `"echo_level"`: controls the amount of printed information for debugging.
+- `"mapper_settings"`
+  - `"mapper_type"`: must be "beam_mapper" to use the _BeamMapper_.
+  - `"use_corotation"`: enables the co-rotational formulation (false → linear mapping, true → large-rotation mapping)
+  - `"search_settings"`: parameters controlling the projection of surface nodes onto the beam centerline.
 
 ### When to use which Mapper?
 
