@@ -76,7 +76,7 @@ std::vector<std::reference_wrapper<ModelPart>> ProcessUtilities::GetModelPartsFr
         unique_names.insert(mp_ref.get().Name());
     }
     KRATOS_ERROR_IF_NOT(unique_names.size() == model_part_names.size())
-        << "model_part_name_list has duplicated names for " << rProcessInfo << std::endl;
+        << "model_part_name_list has duplicated names for " << rProcessInfo << "." << std::endl;
 
     return result;
 }
