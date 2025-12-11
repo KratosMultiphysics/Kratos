@@ -36,9 +36,9 @@ ConstitutiveLaw::SizeType GeoIncrementalLinearElasticInterfaceLaw::GetStrainSize
 
 Vector& GeoIncrementalLinearElasticInterfaceLaw::GetValue(const Variable<Vector>& rThisVariable, Vector& rValue)
 {
-    if (rThisVariable == STRAIN) {
+    if (rThisVariable == GEO_RELATIVE_DISPLACEMENT_VECTOR) {
         rValue = mPreviousRelativeDisplacement;
-    } else if (rThisVariable == CAUCHY_STRESS_VECTOR) {
+    } else if (rThisVariable == GEO_EFFECTIVE_TRACTION_VECTOR) {
         rValue = mPreviousTraction;
     } else {
         KRATOS_ERROR << "Can't get value of " << rThisVariable.Name() << ": unsupported variable\n";
