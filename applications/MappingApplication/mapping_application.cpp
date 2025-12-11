@@ -38,6 +38,7 @@
 #include "custom_mappers/projection_3D_2D_mapper.h"
 #include "custom_mappers/beam_mapper.h"
 #include "custom_mappers/coupling_geometry_mapper.h"
+#include "custom_mappers/radial_basis_function_mapper.h"
 #include "custom_mappers/nearest_neighbor_mapper_iga.h"
 
 // Macros for registering mappers
@@ -95,6 +96,7 @@ void KratosMappingApplication::Register()
 
     KRATOS_REGISTER_MAPPER_WITH_BACKEND(NearestNeighborMapperIGA, "nearest_neighbor_iga");
 
+    KRATOS_REGISTER_MAPPER(RadialBasisFunctionMapper,  "radial_basis_function");
     KRATOS_REGISTER_MAPPER(CouplingGeometryMapper,  "coupling_geometry");
     KRATOS_REGISTER_MAPPER(BeamMapper,  "beam_mapper");
 
