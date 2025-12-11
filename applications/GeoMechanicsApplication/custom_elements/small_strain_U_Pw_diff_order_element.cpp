@@ -1661,8 +1661,10 @@ std::string SmallStrainUPwDiffOrderElement::Info() const
 {
     const std::string constitutive_info =
         !mConstitutiveLawVector.empty() ? mConstitutiveLawVector[0]->Info() : "not defined";
-    return "U-Pw small strain different order Element #" + std::to_string(Id()) +
-           "\nConstitutive law: " + constitutive_info;
+    std::ostringstream oss;
+    oss << "U-Pw small strain different order Element #" << Id() << "\nConstitutive law: " << constitutive_info;
+
+    return oss.str();
 }
 
 void SmallStrainUPwDiffOrderElement::PrintInfo(std::ostream& rOStream) const { rOStream << Info(); }

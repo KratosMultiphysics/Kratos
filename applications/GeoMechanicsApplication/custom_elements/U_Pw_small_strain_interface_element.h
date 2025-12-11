@@ -172,10 +172,6 @@ protected:
         double BishopCoefficient;
     };
 
-    /// Member Variables
-    std::vector<double> mInitialGap;
-    std::vector<bool>   mIsOpen;
-
     void ModifyInactiveElementStress(const double& JointWidth, Vector& StressVector);
 
     virtual void CalculateOnLobattoIntegrationPoints(const Variable<array_1d<double, 3>>& rVariable,
@@ -281,6 +277,10 @@ protected:
     Vector SetFullStressVector(const Vector& rStressVector);
 
 private:
+    /// Member Variables
+    std::vector<double> mInitialGap;
+    std::vector<bool>   mIsOpen;
+
     friend class Serializer;
     void save(Serializer& rSerializer) const override;
     void load(Serializer& rSerializer) override;

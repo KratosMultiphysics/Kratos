@@ -129,12 +129,6 @@ protected:
         BoundedMatrix<double, TDim, TDim * TNumNodes> DimUMatrix;
     };
 
-    /// Member Variables
-
-    array_1d<std::vector<array_1d<double, TNumNodes>>, TDim> mNodalConstitutiveTensor;
-
-    array_1d<array_1d<double, TNumNodes>, TDim> mNodalDtStress;
-
     double CalculateShearModulus(const Matrix& ConstitutiveMatrix) const;
 
     void SaveGPConstitutiveTensor(array_1d<Matrix, TDim>& rConstitutiveTensorContainer,
@@ -207,6 +201,12 @@ protected:
                                              const FICElementVariables& rFICVariables);
 
 private:
+    /// Member Variables
+
+    array_1d<std::vector<array_1d<double, TNumNodes>>, TDim> mNodalConstitutiveTensor;
+
+    array_1d<array_1d<double, TNumNodes>, TDim> mNodalDtStress;
+
     /// Assignment operator.
     UPwSmallStrainFICElement& operator=(UPwSmallStrainFICElement const& rOther);
 

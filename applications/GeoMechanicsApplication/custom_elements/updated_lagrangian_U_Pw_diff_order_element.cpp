@@ -152,8 +152,11 @@ std::string UpdatedLagrangianUPwDiffOrderElement::Info() const
 {
     const std::string constitutive_info =
         !mConstitutiveLawVector.empty() ? mConstitutiveLawVector[0]->Info() : "not defined";
-    return "Updated Lagrangian U-Pw different order Element #" + std::to_string(this->Id()) +
-           "\nConstitutive law: " + constitutive_info;
+    std::ostringstream oss;
+    oss << "Updated Lagrangian U-Pw different order Element #" << this->Id()
+        << "\nConstitutive law: " << constitutive_info;
+
+    return oss.str();
 }
 
 void UpdatedLagrangianUPwDiffOrderElement::PrintInfo(std::ostream& rOStream) const
