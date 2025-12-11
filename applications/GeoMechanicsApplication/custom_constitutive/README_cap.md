@@ -60,9 +60,14 @@ This produces compaction hardening: as the material densifies, it supports highe
 
 ### Combined Mohr–Coulomb + Cap Yield Surface
 
-The figure below shows a typical Mohr–Coulomb yield surface extended with tension cutoff and compression cap yield surfaces:
+The figure below shows a typical Mohr–Coulomb yield surface extended with tension cutoff and compression cap yield surfaces. In $(\sigma, \tau)$ coordinates:
 
 <img src="documentation_data/mohr-coulomb-with-tension-cutoff-and-cap_zones.svg" alt="Mohr-Coulomb with tension cutoff" title="Mohr-Coulomb with tension cutoff" width="800">
+
+Here, we need to convert the compression cap yield surface from $(p, q)$ coordinates to $(\sigma, \tau)$ coordinates. The conversion is to be followed ...
+
+### Compression cap in $(\siga, \tau)$ coordinates
+...
 
 
 ### Plastic Potential for the compression cap
