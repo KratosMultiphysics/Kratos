@@ -256,6 +256,17 @@ KRATOS_TEST_CASE_IN_SUITE(CreatingInterfaceWithThreeNodesThrows, KratosGeoMechan
                                       "Number of nodes must be 2+2, 3+3, 6+6, 4+4 or 8+8")
 }
 
+KRATOS_TEST_CASE_IN_SUITE(MidGeometryOf2Plus2LineInterfaceIsDefinedByMidPointsOfNodePairs,
+                          KratosGeoMechanicsFastSuiteWithoutKernel)
+{
+    const auto     interface_geometry = CreateTwoPlusTwoNoded2DLineInterfaceGeometry();
+    constexpr auto unused_part_index  = std::size_t{0};
+    const auto&    r_mid_geometry     = interface_geometry.GetGeometryPart(unused_part_index);
+
+    const auto expected_mid_points = std::vector<Point>{{-0.5, 0.1, 0.0}, {6.0, 0.1, 0.0}};
+    ExpectPointsAreNear(r_mid_geometry.Points(), expected_mid_points);
+}
+
 KRATOS_TEST_CASE_IN_SUITE(InterfaceGeometry_ReturnsCorrectShapeFunctionValuesInNodes_ForTwoPlusTwoNodedGeometry,
                           KratosGeoMechanicsFastSuiteWithoutKernel)
 {
