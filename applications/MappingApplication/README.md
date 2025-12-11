@@ -357,6 +357,9 @@ A typical configuration json looks as follows:
   - `"use_corotation"`: enables the co-rotational formulation (false → linear mapping, true → large-rotation mapping)
   - `"search_settings"`: parameters controlling the projection of surface nodes onto the beam centerline.
 
+**Note:**
+This mapper currently supports FEM beam elements only. IGA beams are not yet supported.
+
 ### When to use which Mapper?
 
 - **Matching Interface**\
