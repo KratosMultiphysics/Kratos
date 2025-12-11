@@ -89,6 +89,7 @@ KratosStructuralMechanicsApplication::KratosStructuralMechanicsApplication()
       mShellThickCorotationalElement3D3N(0, Element::GeometryType::Pointer(new Triangle3D3<NodeType >(Element::GeometryType::PointsArrayType(3)))),
 
       mShellThinCorotationalShiftedBoundaryElement3D3N(0, Element::GeometryType::Pointer(new Triangle3D3<NodeType >(Element::GeometryType::PointsArrayType(3)))),
+      mShellThickCorotationalShiftedBoundaryElement3D3N(0, Element::GeometryType::Pointer(new Triangle3D3<NodeType >(Element::GeometryType::PointsArrayType(3)))),
       // Adding the membrane elements
       mMembraneElement3D4N(0, Element::GeometryType::Pointer(new Quadrilateral3D4<NodeType >(Element::GeometryType::PointsArrayType(4)))),
       mMembraneElement3D3N(0, Element::GeometryType::Pointer(new Triangle3D3<NodeType >(Element::GeometryType::PointsArrayType(3)))),
@@ -587,6 +588,7 @@ void KratosStructuralMechanicsApplication::Register() {
     KRATOS_REGISTER_ELEMENT("ShellThinElementCorotational3D3N", mShellThinCorotationalElement3D3N)
 
     KRATOS_REGISTER_ELEMENT("ShellThinCorotationalShiftedBoundaryElement3D3N", mShellThinCorotationalShiftedBoundaryElement3D3N)
+    KRATOS_REGISTER_ELEMENT("ShellThickCorotationalShiftedBoundaryElement3D3N", mShellThickCorotationalShiftedBoundaryElement3D3N)
 
     // Register the membrane element
     KRATOS_REGISTER_ELEMENT("MembraneElement3D4N", mMembraneElement3D4N)
