@@ -311,17 +311,17 @@ void SbmLaplacianConditionNeumann::ComputeGradientTaylorExpansionContribution(Ma
             }
         } else {
             // 3D
-            for (IndexType n = 2; n <= mBasisFunctionsOrder; n++) {
+            for (int n = 2; n <= mBasisFunctionsOrder; n++) {
                 Matrix& shapeFunctionDerivatives = shape_function_derivatives[n-1];
             
-                IndexType countDerivativeId = 0;
+                int countDerivativeId = 0;
                 // Loop over blocks of derivatives in x
-                for (IndexType k_x = n; k_x >= 0; k_x--) {
+                for (int k_x = n; k_x >= 0; k_x--) {
                     // Loop over the possible derivatives in y
-                    for (IndexType k_y = n - k_x; k_y >= 0; k_y--) {
+                    for (int k_y = n - k_x; k_y >= 0; k_y--) {
 
                         // derivatives in z
-                        IndexType k_z = n - k_x - k_y;
+                        int k_z = n - k_x - k_y;
                         double derivative = shapeFunctionDerivatives(i,countDerivativeId); 
                         
                         if (k_x >= 1) {
