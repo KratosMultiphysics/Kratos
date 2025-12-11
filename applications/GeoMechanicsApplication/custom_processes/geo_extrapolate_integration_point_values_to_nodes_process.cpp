@@ -14,6 +14,7 @@
 
 #include "custom_processes/geo_extrapolate_integration_point_values_to_nodes_process.h"
 #include "containers/model.h"
+#include "custom_utilities/linear_nodal_extrapolator.h"
 #include "custom_utilities/process_utilities.h"
 #include "utilities/atomic_utilities.h"
 #include "utilities/variable_utils.h"
@@ -22,6 +23,7 @@ namespace Kratos
 {
 GeoExtrapolateIntegrationPointValuesToNodesProcess::GeoExtrapolateIntegrationPointValuesToNodesProcess(
     Model& rModel, Parameters ThisParameters)
+    : mpExtrapolator(std::make_unique<LinearNodalExtrapolator>())
 {
     mrModelParts = ProcessUtilities::GetModelPartsFromSettings(
         rModel, ThisParameters, GeoExtrapolateIntegrationPointValuesToNodesProcess::Info());

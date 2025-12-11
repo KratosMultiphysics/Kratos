@@ -14,7 +14,6 @@
 
 #pragma once
 
-#include "custom_utilities/linear_nodal_extrapolator.h"
 #include "geometries/geometry.h"
 #include "includes/element.h"
 #include "includes/kratos_parameters.h"
@@ -67,9 +66,9 @@ private:
     std::vector<const Variable<Matrix>*>              mMatrixVariables;
     const Variable<double>&                           mrAverageVariable       = NODAL_AREA;
     std::map<SizeType, Matrix>                        mExtrapolationMatrixMap = {};
-    std::unique_ptr<NodalExtrapolator> mpExtrapolator = std::make_unique<LinearNodalExtrapolator>();
-    std::map<const Variable<Vector>*, Vector> mZeroValuesOfVectorVariables;
-    std::map<const Variable<Matrix>*, Matrix> mZeroValuesOfMatrixVariables;
+    std::unique_ptr<NodalExtrapolator>                mpExtrapolator;
+    std::map<const Variable<Vector>*, Vector>         mZeroValuesOfVectorVariables;
+    std::map<const Variable<Matrix>*, Matrix>         mZeroValuesOfMatrixVariables;
 
     void FillVariableLists(const Parameters& rParameters);
     void InitializeVectorAndMatrixZeros();
