@@ -34,7 +34,7 @@
 #include "custom_conditions/T_normal_flux_condition.h"
 #include "custom_conditions/U_Pw_face_load_condition.h"
 #include "custom_conditions/U_Pw_face_load_interface_condition.h"
-#include "custom_conditions/U_Pw_force_condition.hpp"
+#include "custom_conditions/U_Pw_force_condition.h"
 #include "custom_conditions/U_Pw_normal_face_load_condition.h"
 #include "custom_conditions/U_Pw_normal_flux_FIC_condition.h"
 #include "custom_conditions/U_Pw_normal_flux_condition.h"
