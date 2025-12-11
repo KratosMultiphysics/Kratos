@@ -25,7 +25,6 @@
 
 namespace Kratos
 {
-class RBFSupportAccumulator;
 
 ///@addtogroup MappingApplication
 ///@{
