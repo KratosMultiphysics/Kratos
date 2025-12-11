@@ -1232,35 +1232,6 @@ int CSDSG3ThickShellElement3D3N<IS_COROTATIONAL>::Check(
 /***********************************************************************************/
 /***********************************************************************************/
 
-template <bool IS_COROTATIONAL>
-void CSDSG3ThickShellElement3D3N<IS_COROTATIONAL>::save(
-    Serializer& rSerializer) const
-{
-    KRATOS_SERIALIZE_SAVE_BASE_CLASS(rSerializer, Element);
-    int IntMethod = int(GetIntegrationMethod());
-    rSerializer.save("IntegrationMethod",IntMethod);
-    rSerializer.save("ConstitutiveLawVector", mConstitutiveLawVector);
-    rSerializer.save("pCoordinateTransformation", mpCoordinateTransformation);
-}
-
-/***********************************************************************************/
-/***********************************************************************************/
-
-template <bool IS_COROTATIONAL>
-void CSDSG3ThickShellElement3D3N<IS_COROTATIONAL>::load(
-    Serializer& rSerializer)
-{
-    KRATOS_SERIALIZE_LOAD_BASE_CLASS(rSerializer, Element);
-    int IntMethod;
-    rSerializer.load("IntegrationMethod",IntMethod);
-    mThisIntegrationMethod = IntegrationMethod(IntMethod);
-    rSerializer.load("ConstitutiveLawVector", mConstitutiveLawVector);
-    rSerializer.load("pCoordinateTransformation", mpCoordinateTransformation);
-}
-
-/***********************************************************************************/
-/***********************************************************************************/
-
 // Either corotational or linear
 template class CSDSG3ThickShellElement3D3N<true>;
 template class CSDSG3ThickShellElement3D3N<false>;
@@ -1332,6 +1303,51 @@ void CSDSG3ThickShellElement3D3N<IS_COROTATIONAL>::CalculateMassMatrix(
         }
         rMassMatrix *= thickness * density * ref_area / 12.0;
     }
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+template <bool IS_COROTATIONAL>
+void CSDSG3ThickShellElement3D3N<IS_COROTATIONAL>::CalculateDampingMatrix(
+    MatrixType& rDampingMatrix,
+    const ProcessInfo& rCurrentProcessInfo
+)
+{
+    const auto& r_geometry = GetGeometry();
+    const IndexType number_of_nodes = r_geometry.PointsNumber();
+    const IndexType system_size = number_of_nodes * GetDoFsPerNode();
+
+    StructuralMechanicsElementUtilities::CalculateRayleighDampingMatrix(*this, rDampingMatrix, rCurrentProcessInfo, system_size);
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+template <bool IS_COROTATIONAL>
+void CSDSG3ThickShellElement3D3N<IS_COROTATIONAL>::save(
+    Serializer& rSerializer) const
+{
+    KRATOS_SERIALIZE_SAVE_BASE_CLASS(rSerializer, Element);
+    int IntMethod = int(GetIntegrationMethod());
+    rSerializer.save("IntegrationMethod",IntMethod);
+    rSerializer.save("ConstitutiveLawVector", mConstitutiveLawVector);
+    rSerializer.save("pCoordinateTransformation", mpCoordinateTransformation);
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+template <bool IS_COROTATIONAL>
+void CSDSG3ThickShellElement3D3N<IS_COROTATIONAL>::load(
+    Serializer& rSerializer)
+{
+    KRATOS_SERIALIZE_LOAD_BASE_CLASS(rSerializer, Element);
+    int IntMethod;
+    rSerializer.load("IntegrationMethod",IntMethod);
+    mThisIntegrationMethod = IntegrationMethod(IntMethod);
+    rSerializer.load("ConstitutiveLawVector", mConstitutiveLawVector);
+    rSerializer.load("pCoordinateTransformation", mpCoordinateTransformation);
 }
 
 } // Namespace Kratos

@@ -409,6 +409,13 @@ public:
         const ProcessInfo &rCurrentProcessInfo);
 
     /**
+     * @brief This method computes the damping matrix
+     */
+    void CalculateDampingMatrix(
+        MatrixType &rDampingMatrix,
+        const ProcessInfo &rCurrentProcessInfo);
+
+    /**
      * @brief This method returns a material property (e.g. Poisson ratio) without assuming that this property is
      * in the main property. It looks into the subproperties to find the property.
      */
