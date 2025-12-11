@@ -128,9 +128,6 @@ public:
     /// The index type definition to be consistent
     using IndexType = typename BaseType::IndexType;
 
-    /// The size type definition
-    using SizeType = typename BaseType::SizeType;
-
     /// DofArray type
     using DofsArrayType = ModelPart::DofsArrayType;
 
@@ -692,8 +689,8 @@ protected:
     IndexType mMaxIterationsNumber;   /// The maximum number of iterations considered
     int mVerbosity;                   /// The versoisty level
     int mBlockSize;                   /// The size of the dof block
-    SizeType mGMRESSize;              /// The size of the GMRES
-    SizeType mCoarseEnough;           /// The level of coarsening allowed
+    std::size_t mGMRESSize;              /// The size of the GMRES
+    std::size_t mCoarseEnough;           /// The level of coarsening allowed
     bool mFallbackToGMRES;            /// Of consider GMRES as fallback (TODO: Local flag?)
     bool mProvideCoordinates;         /// If the coordinates are provided (TODO: Local flag?)
     bool mUseBlockMatricesIfPossible; /// If use the bloack matrices if possible  (TODO: Local flag?)

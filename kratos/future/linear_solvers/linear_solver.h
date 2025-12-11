@@ -20,6 +20,7 @@
 
 // Project includes
 #include "containers/csr_matrix.h"
+#include "future/containers/linear_operator.h"
 #include "containers/system_vector.h"
 #include "includes/model_part.h"
 
@@ -82,9 +83,6 @@ public:
     /// Type definition for data
     using DataType = typename SparseMatrixType::DataType;
 
-    /// Type definition for size
-    using SizeType = typename SparseMatrixType::DataType;
-
     /// Type definition for index
     using IndexType = typename SparseMatrixType::IndexType;
 
@@ -93,6 +91,9 @@ public:
 
     /// Local system vector type definition
     using DenseVectorType = DenseVector<DataType>;
+
+    /// Linear operator type definition
+    using LinearOperatorType = LinearOperator<VectorType, SparseMatrixType>;
 
     ///@}
     ///@name Life Cycle
@@ -128,7 +129,7 @@ public:
      * @param rX. Solution vector. it's also the initial guess for iterative linear solvers.
      * @param rB. Right hand side vector.
      */
-    virtual void Initialize(SparseMatrixType& rA, VectorType& rX, VectorType& rB)
+    virtual void Initialize(LinearOperatorType& rA, VectorType& rX, VectorType& rB)
     {
     }
 
@@ -139,7 +140,7 @@ public:
      * @param rX. Solution vector. it's also the initial guess for iterative linear solvers.
      * @param rB. Right hand side vector.
      */
-    virtual void InitializeSolutionStep(SparseMatrixType& rA, VectorType& rX, VectorType& rB)
+    virtual void InitializeSolutionStep(LinearOperatorType& rA, VectorType& rX, VectorType& rB)
     {
     }
 
@@ -150,7 +151,7 @@ public:
      * @param rB. Right hand side vector.
      * @return @p true if the provided system was solved successfully satisfying the given requirements, @p false otherwise.
      */
-    virtual bool PerformSolutionStep(SparseMatrixType& rA, VectorType& rX, VectorType& rB)
+    virtual bool PerformSolutionStep(LinearOperatorType& rA, VectorType& rX, VectorType& rB)
     {
         KRATOS_ERROR << "Calling linear solver base class" << std::endl;
         return false;
@@ -163,7 +164,7 @@ public:
      * @param rX. Solution vector. it's also the initial guess for iterative linear solvers.
      * @param rB. Right hand side vector.
      */
-    virtual void FinalizeSolutionStep(SparseMatrixType& rA, VectorType& rX, VectorType& rB)
+    virtual void FinalizeSolutionStep(LinearOperatorType& rA, VectorType& rX, VectorType& rB)
     {
     }
 
@@ -305,10 +306,10 @@ public:
         VectorType& rX,
         VectorType& rB)
     {
-        const SizeType size = rA.size1();
-        const SizeType size_a = rA.size2();
-        const SizeType size_x = rX.size();
-        const SizeType size_b = rB.size();
+        const std::size_t size = rA.size1();
+        const std::size_t size_a = rA.size2();
+        const std::size_t size_x = rX.size();
+        const std::size_t size_b = rB.size();
 
         return ((size ==  size_a) &&
                 (size ==  size_x) &&
@@ -327,12 +328,12 @@ public:
         DenseMatrixType& rX,
         DenseMatrixType& rB)
     {
-        const SizeType size = rA.size1();
-        const SizeType size_a = rA.size2();
-        const SizeType size_1_x = rX.size1();
-        const SizeType size_1_b = rB.size1();
-        const SizeType size_2_x = rX.size2();
-        const SizeType size_2_b = rB.size2();
+        const std::size_t size = rA.size1();
+        const std::size_t size_a = rA.size2();
+        const std::size_t size_1_x = rX.size1();
+        const std::size_t size_1_b = rB.size1();
+        const std::size_t size_2_x = rX.size2();
+        const std::size_t size_2_b = rB.size2();
 
         return ((size ==  size_a) &&
                 (size ==  size_1_x) &&

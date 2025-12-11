@@ -23,6 +23,7 @@
 // Project includes
 #include "includes/define.h"
 #include "includes/kratos_parameters.h"
+#include "future/containers/linear_operator.h"
 #include "future/linear_solvers/linear_solver.h"
 #include "future/linear_solvers/preconditioner.h"
 
@@ -78,6 +79,8 @@ public:
     using VectorType = TVectorType;
 
     using PreconditionerType = TPreconditionerType;
+
+    using LinearOperatorType = LinearOperator<TVectorType>;
 
     using IndexType = typename BaseType::IndexType;
 
@@ -180,6 +183,10 @@ public:
         return *this;
     }
 
+    ///@}
+    ///@name Operations
+    ///@{
+
     /** This function is designed to be called every time the coefficients change in the system
     		 * that is, normally at the beginning of each solve.
     		 * For example if we are implementing a direct solver, this is the place to do the factorization
@@ -245,10 +252,31 @@ public:
             GetPreconditioner()->ProvideAdditionalData(rA,rX,rB,rdof_set,r_model_part);
     }
 
-    ///@}
-    ///@name Operations
-    ///@{
+    /**
+     * @brief Normal solve method.
+     * @details Solves the linear system Ax=b and puts the result on SystemVector& rX. rX is also th initial guess for iterative methods.
+     * @param pLinearOperator System matrix linear operator pointer
+     * @param rX Solution vector
+     * @param rB Right hand side vector
+     */
+    virtual bool Solve(typename LinearOperatorType::Pointer pLinearOperator, VectorType& rX, VectorType& rB)
+    {
+        KRATOS_ERROR << "Calling linear solver base class" << std::endl;
+        return false;
+    }
 
+    /**
+     * @brief Multi solve method for solving a set of linear systems with same coefficient matrix.
+     * @details Solves the linear system Ax=b and puts the result on SystemVector& rX. rX is also th initial guess for iterative methods.
+     * @param pLinearOperator System matrix linear operator pointer
+     * @param rX Solution matrix
+     * @param rB Right hand side matrix
+     */
+    virtual bool Solve(typename LinearOperatorType::Pointer pLinearOperator, DenseMatrixType& rX, DenseMatrixType& rB)
+    {
+        KRATOS_ERROR << "Calling linear solver base class" << std::endl;
+        return false;
+    }
 
     ///@}
     ///@name Access

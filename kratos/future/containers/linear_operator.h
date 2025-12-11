@@ -17,6 +17,7 @@
 // External includes
 
 // Project includes
+#include "containers/csr_matrix.h"
 #include "includes/model_part.h"
 
 namespace Kratos::Future
@@ -49,17 +50,22 @@ namespace Kratos::Future
  *
  * @tparam TSystemVectorType The system vector type used in the Kratos linear algebra backend
  */
-template <class TSystemVectorType>
-struct LinearOperator
+template <class TSystemVectorType, typename... TSparseMatrixType>
+class LinearOperator
 {
+
+static_assert(sizeof...(TSparseMatrixType) < 2, "TSparseMatrixType must be either a single type representing the sparse matrix type or empty to indicate a matrix-free operator.");
+
+public:
     ///@name Type Definitions
     ///@{
 
     /// Pointer definition of LinearOperator
     KRATOS_CLASS_POINTER_DEFINITION(LinearOperator);
 
-    /// Type definition for the apply function functor
-    using ApplyFunctionType = std::function<void(const TSystemVectorType&, TSystemVectorType&)>;
+    static constexpr bool IsCsr = sizeof...(TSparseMatrixType) == 1;
+
+    using TSparseMatrixTypePointer = std::conditional_t<IsCsr, typename std::tuple_element<0, std::tuple<TSparseMatrixType...>>::type::Pointer, void*>;
 
     ///@}
     ///@name Life Cycle
@@ -75,35 +81,26 @@ struct LinearOperator
      * @brief Constructor from row/column sizes and function objects.
      * @param NumRows Number of rows of the operator
      * @param NumCols Number of columns of the operator
-     * @param ApplyFunction Function object implementing \( y = A(x) \)
-     * @param ApplyTransposeFunction Function object implementing \( y = A^T(x) \)
      */
     LinearOperator(
         std::size_t NumRows,
-        std::size_t NumCols,
-        ApplyFunctionType ApplyFunction = nullptr,
-        ApplyFunctionType ApplyTransposeFunction = nullptr)
+        std::size_t NumCols) requires(!IsCsr)
         : mNumRows(NumRows)
         , mNumCols(NumCols)
-        , mApplyFunction(ApplyFunction)
-        , mApplyTransposeFunction(ApplyTransposeFunction)
     {
     }
 
     /**
      * @brief Constructor from a pair of (rows, cols) and function objects.
      * @param Size Pair containing {NumRows, NumCols}
-     * @param ApplyFunction Function object implementing \( y = A(x) \)
-     * @param ApplyTransposeFunction Function object implementing \( y = A^T(x) \)
      */
-    LinearOperator(
-        std::pair<std::size_t, std::size_t> Size,
-        ApplyFunctionType ApplyFunction = nullptr,
-        ApplyFunctionType ApplyTransposeFunction = nullptr)
+    LinearOperator(std::pair<std::size_t, std::size_t> Size) requires(!IsCsr)
         : mNumRows(std::get<0>(Size))
         , mNumCols(std::get<1>(Size))
-        , mApplyFunction(ApplyFunction)
-        , mApplyTransposeFunction(ApplyTransposeFunction)
+    {
+    }
+
+    LinearOperator(TSparseMatrixType... Args) requires(IsCsr)
     {
     }
 
@@ -135,16 +132,11 @@ struct LinearOperator
      * @details Computes \( y = A(x) \).
      * @param rX Input vector
      * @param rY Output vector (result)
-     * @throws Error if the apply function is not defined
      */
     void Apply(
         const TSystemVectorType& rX,
         TSystemVectorType& rY)
     {
-        if (!mApplyFunction) {
-            KRATOS_ERROR << "Apply function is not defined." << std::endl;
-        }
-        mApplyFunction(rX, rY);
     }
 
     /**
@@ -152,16 +144,11 @@ struct LinearOperator
      * @details Computes \( y = A^T(x) \).
      * @param rX Input vector
      * @param rY Output vector (result)
-     * @throws Error if the transpose apply function is not defined
      */
     void ApplyTranspose(
         const TSystemVectorType& rX,
         TSystemVectorType& rY)
     {
-        if (!mApplyTransposeFunction) {
-            KRATOS_ERROR << "Apply transpose function is not defined." << std::endl;
-        }
-        mApplyTransposeFunction(rX, rY);
     }
 
     /**
@@ -172,8 +159,6 @@ struct LinearOperator
     {
         mNumRows = 0;
         mNumCols = 0;
-        mApplyFunction = nullptr;
-        mApplyTransposeFunction = nullptr;
     }
 
     ///@}
@@ -196,24 +181,6 @@ struct LinearOperator
     void SetCols(std::size_t NumCols)
     {
         mNumCols = NumCols;
-    }
-
-    /**
-     * @brief Set the apply function.
-     * @param ApplyFunction Function implementing \( y = A(x) \)
-     */
-    void SetApplyFunction(ApplyFunctionType ApplyFunction)
-    {
-        mApplyFunction = ApplyFunction;
-    }
-
-    /**
-     * @brief Set the apply transpose function.
-     * @param ApplyTransposeFunction Function implementing \( y = A^T(x) \)
-     */
-    void SetApplyTransposeFunction(ApplyFunctionType ApplyTransposeFunction)
-    {
-        mApplyTransposeFunction = ApplyTransposeFunction;
     }
 
     ///@}
@@ -248,13 +215,7 @@ private:
     /// Number of columns of the operator
     std::size_t mNumCols = 0;
 
-    /// Function implementing the operator application y = A(x)
-    ApplyFunctionType mApplyFunction = nullptr;
-
-    /// Function implementing the transpose operator application y = A^T(x)
-    ApplyFunctionType mApplyTransposeFunction = nullptr;
-
-}; // struct LinearOperator
+}; // class LinearOperator
 
 ///@}
 ///@name Input and output

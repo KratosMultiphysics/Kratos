@@ -180,12 +180,12 @@ public:
         const double max_dt = std::min(cfl_dt, mMaxAllowedDt); // Check if the user defined delta time is more restrictive than the CFL one
         const SizeType n_steps = std::ceil(target_dt / max_dt); // Required number of substeps (rounded up)
         const double dt = target_dt / n_steps; // Time increment to be used in the substep loop
-        KRATOS_INFO_IF("FluxCorrectedTransportConvectionProcess", mEchoLevel > 0) << u8"Solving FCT convection with \u0394t = " << dt << u8" (max allowed \u0394t = " <<  max_dt << ")" << std::endl;
+        // KRATOS_INFO_IF("FluxCorrectedTransportConvectionProcess", mEchoLevel > 0) << u8"Solving FCT convection with \u0394t = " << dt << u8" (max allowed \u0394t = " <<  max_dt << ")" << std::endl;
 
         // Substepping time loop
         for (IndexType step = 1; step <= n_steps; ++step) {
             // Solve current substep
-            KRATOS_INFO_IF("FluxCorrectedTransportConvectionProcess", mEchoLevel > 1) << "Substep = " << step << " - Time = " <<  prev_time << u8" - \u0394t = " << dt << std::endl;
+            // KRATOS_INFO_IF("FluxCorrectedTransportConvectionProcess", mEchoLevel > 1) << "Substep = " << step << " - Time = " <<  prev_time << u8" - \u0394t = " << dt << std::endl;
             this->SolveSubStep(dt);
 
             // Advance in time
