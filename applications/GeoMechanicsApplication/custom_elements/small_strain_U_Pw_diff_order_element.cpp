@@ -41,6 +41,25 @@
 
 namespace Kratos
 {
+SmallStrainUPwDiffOrderElement::SmallStrainUPwDiffOrderElement(IndexType             NewId,
+                                                               GeometryType::Pointer pGeometry,
+                                                               std::unique_ptr<StressStatePolicy> pStressStatePolicy,
+                                                               std::unique_ptr<IntegrationCoefficientModifier> pCoefficientModifier)
+    : UPwBaseElement(NewId, pGeometry, std::move(pStressStatePolicy), std::move(pCoefficientModifier))
+{
+    SetUpPressureGeometryPointer();
+}
+
+SmallStrainUPwDiffOrderElement::SmallStrainUPwDiffOrderElement(IndexType               NewId,
+                                                               GeometryType::Pointer   pGeometry,
+                                                               PropertiesType::Pointer pProperties,
+                                                               std::unique_ptr<StressStatePolicy> pStressStatePolicy,
+                                                               std::unique_ptr<IntegrationCoefficientModifier> pCoefficientModifier)
+    : UPwBaseElement(NewId, pGeometry, pProperties, std::move(pStressStatePolicy), std::move(pCoefficientModifier))
+{
+    SetUpPressureGeometryPointer();
+}
+
 Element::Pointer SmallStrainUPwDiffOrderElement::Create(IndexType               NewId,
                                                         NodesArrayType const&   ThisNodes,
                                                         PropertiesType::Pointer pProperties) const
