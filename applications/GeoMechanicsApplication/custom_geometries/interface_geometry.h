@@ -44,7 +44,7 @@ public:
                             (rThisPoints.size() == 8) || (rThisPoints.size() == 16))
             << "Number of nodes must be 2+2, 3+3, 6+6, 4+4 or 8+8\n";
 
-        mMidGeometry = std::make_unique<MidGeometryType>(CreatePointsOfMidGeometry());
+        mMidGeometry = std::make_shared<MidGeometryType>(CreatePointsOfMidGeometry());
         this->SetGeometryData(&mMidGeometry->GetGeometryData());
     }
 
