@@ -70,7 +70,7 @@ std::vector<std::reference_wrapper<ModelPart>> ProcessUtilities::GetModelPartsFr
         model_part_names, std::back_inserter(result),
         [&rModel](const auto& rName) -> ModelPart& { return rModel.GetModelPart(rName); });
 
-    std::set<std::string> unique_names(model_part_names.begin(), model_part_names.end());
+    const std::set<std::string, std::less<>> unique_names(model_part_names.begin(), model_part_names.end());
     KRATOS_ERROR_IF_NOT(unique_names.size() == model_part_names.size())
         << "model_part_name_list has duplicated names for " << rProcessInfo << "." << std::endl;
 
