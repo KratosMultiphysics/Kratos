@@ -12,6 +12,8 @@
 
 #pragma once
 
+#include <gtest/gtest.h>
+
 namespace Kratos::Testing::Defaults
 {
 
@@ -30,9 +32,9 @@ void ExpectPointsAreNear(const PointContainerType1& rPoints1,
 {
     ASSERT_EQ(rPoints1.size(), rPoints2.size());
     for (auto i = std::size_t{0}; i < rPoints1.size(); ++i) {
-        KRATOS_EXPECT_NEAR(rPoints1[i].X(), rPoints2[i].X(), AbsoluteTolerance);
-        KRATOS_EXPECT_NEAR(rPoints1[i].Y(), rPoints2[i].Y(), AbsoluteTolerance);
-        KRATOS_EXPECT_NEAR(rPoints1[i].Z(), rPoints2[i].Z(), AbsoluteTolerance);
+        EXPECT_NEAR(rPoints1[i].X(), rPoints2[i].X(), AbsoluteTolerance);
+        EXPECT_NEAR(rPoints1[i].Y(), rPoints2[i].Y(), AbsoluteTolerance);
+        EXPECT_NEAR(rPoints1[i].Z(), rPoints2[i].Z(), AbsoluteTolerance);
     }
 }
 
