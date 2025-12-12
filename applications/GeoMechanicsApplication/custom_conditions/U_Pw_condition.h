@@ -9,14 +9,12 @@
 //
 //
 //  Main authors:    Ignasi de Pouplana,
-//                   Vahid Galavi,
-//                   Aron Noordam
+//                   Vahid Galavi
 //
 
 #pragma once
 
 // System includes
-#include <cmath>
 
 // Project includes
 #include "includes/condition.h"
@@ -32,38 +30,33 @@ namespace Kratos
 {
 
 template <unsigned int TDim, unsigned int TNumNodes>
-class KRATOS_API(GEO_MECHANICS_APPLICATION) PwCondition : public Condition
+class KRATOS_API(GEO_MECHANICS_APPLICATION) UPwCondition : public Condition
 {
 public:
-    KRATOS_CLASS_INTRUSIVE_POINTER_DEFINITION(PwCondition);
+    KRATOS_CLASS_INTRUSIVE_POINTER_DEFINITION(UPwCondition);
 
-    PwCondition() : PwCondition(0, nullptr, nullptr) {}
+    UPwCondition();
 
-    PwCondition(IndexType NewId, GeometryType::Pointer pGeometry)
-        : PwCondition(NewId, pGeometry, nullptr)
-    {
-    }
+    UPwCondition(IndexType NewId, GeometryType::Pointer pGeometry);
 
-    PwCondition(IndexType NewId, GeometryType::Pointer pGeometry, PropertiesType::Pointer pProperties)
-        : Condition(NewId, pGeometry, pProperties)
-    {
-    }
+    UPwCondition(IndexType NewId, GeometryType::Pointer pGeometry, PropertiesType::Pointer pProperties);
 
-    ~PwCondition() override = default;
+    ~UPwCondition() override;
 
     Condition::Pointer Create(IndexType               NewId,
                               NodesArrayType const&   ThisNodes,
                               PropertiesType::Pointer pProperties) const override;
-
     Condition::Pointer Create(IndexType NewId, GeometryType::Pointer pGeom, PropertiesType::Pointer pProperties) const override;
 
     void GetDofList(DofsVectorType& rConditionDofList, const ProcessInfo&) const override;
 
+    IntegrationMethod GetIntegrationMethod() const override { return mThisIntegrationMethod; }
+
+    void SetIntegrationMethod(IntegrationMethod method) { mThisIntegrationMethod = method; }
+
     void CalculateLocalSystem(Matrix&            rLeftHandSideMatrix,
                               Vector&            rRightHandSideVector,
                               const ProcessInfo& rCurrentProcessInfo) override;
-
-    void CalculateLeftHandSide(Matrix& rLeftHandSideMatrix, const ProcessInfo& rCurrentProcessInfo) override;
 
     void CalculateRightHandSide(Vector& rRightHandSideVector, const ProcessInfo& rCurrentProcessInfo) override;
 
@@ -76,22 +69,15 @@ protected:
 
     virtual void CalculateRHS(Vector& rRightHandSideVector, const ProcessInfo& rCurrentProcessInfo);
 
-private:
     [[nodiscard]] DofsVectorType GetDofs() const;
 
+private:
+    GeometryData::IntegrationMethod mThisIntegrationMethod{Condition::GetIntegrationMethod()};
+
     friend class Serializer;
+    void save(Serializer& rSerializer) const override;
+    void load(Serializer& rSerializer) override;
 
-    void save(Serializer& rSerializer) const override
-    {
-        KRATOS_SERIALIZE_SAVE_BASE_CLASS(rSerializer, Condition)
-    }
-
-    void load(Serializer& rSerializer) override
-    {
-        KRATOS_SERIALIZE_LOAD_BASE_CLASS(rSerializer, Condition)
-    }
-};
-
-// class PwCondition.
+}; // class UPwCondition.
 
 } // namespace Kratos.

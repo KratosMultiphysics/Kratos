@@ -18,7 +18,7 @@
 #include "includes/serializer.h"
 
 // Application includes
-#include "custom_conditions/U_Pw_condition.hpp"
+#include "custom_conditions/U_Pw_condition.h"
 #include "custom_utilities/condition_utilities.hpp"
 #include "geo_mechanics_application_variables.h"
 
@@ -36,20 +36,11 @@ public:
     using GeometryType   = Geometry<Node>;
     using NodesArrayType = GeometryType::PointsArrayType;
 
-    // Default constructor
-    UPwFaceLoadCondition() : UPwCondition<TDim, TNumNodes>() {}
+    UPwFaceLoadCondition();
 
-    // Constructor 1
-    UPwFaceLoadCondition(IndexType NewId, GeometryType::Pointer pGeometry)
-        : UPwCondition<TDim, TNumNodes>(NewId, pGeometry)
-    {
-    }
+    UPwFaceLoadCondition(IndexType NewId, GeometryType::Pointer pGeometry);
 
-    // Constructor 2
-    UPwFaceLoadCondition(IndexType NewId, GeometryType::Pointer pGeometry, PropertiesType::Pointer pProperties)
-        : UPwCondition<TDim, TNumNodes>(NewId, pGeometry, pProperties)
-    {
-    }
+    UPwFaceLoadCondition(IndexType NewId, GeometryType::Pointer pGeometry, PropertiesType::Pointer pProperties);
 
     Condition::Pointer Create(IndexType               NewId,
                               NodesArrayType const&   ThisNodes,
@@ -62,16 +53,9 @@ protected:
 
 private:
     friend class Serializer;
+    void save(Serializer& rSerializer) const override;
+    void load(Serializer& rSerializer) override;
 
-    void save(Serializer& rSerializer) const override
-    {
-        KRATOS_SERIALIZE_SAVE_BASE_CLASS(rSerializer, Condition)
-    }
-
-    void load(Serializer& rSerializer) override
-    {
-        KRATOS_SERIALIZE_LOAD_BASE_CLASS(rSerializer, Condition)
-    }
 }; // class UPwFaceLoadCondition.
 
 } // namespace Kratos.

@@ -13,25 +13,22 @@
 //
 
 // Project includes
-#include "custom_conditions/surface_load_3D_diff_order_condition.hpp"
+#include "custom_conditions/surface_load_3D_diff_order_condition.h"
 #include "custom_utilities/condition_utilities.hpp"
 #include <custom_utilities/variables_utilities.hpp>
 
 namespace Kratos
 {
 
-// Default Constructor
 SurfaceLoad3DDiffOrderCondition::SurfaceLoad3DDiffOrderCondition() : GeneralUPwDiffOrderCondition()
 {
 }
 
-// Constructor 1
 SurfaceLoad3DDiffOrderCondition::SurfaceLoad3DDiffOrderCondition(IndexType NewId, GeometryType::Pointer pGeometry)
     : GeneralUPwDiffOrderCondition(NewId, std::move(pGeometry))
 {
 }
 
-// Constructor 2
 SurfaceLoad3DDiffOrderCondition::SurfaceLoad3DDiffOrderCondition(IndexType             NewId,
                                                                  GeometryType::Pointer pGeometry,
                                                                  PropertiesType::Pointer pProperties)
@@ -90,6 +87,16 @@ void SurfaceLoad3DDiffOrderCondition::CalculateAndAddConditionForce(Vector& rRig
         rRightHandSideVector[3 * node + 2] +=
             rVariables.Nu[node] * rVariables.ConditionVector[2] * rVariables.IntegrationCoefficient;
     }
+}
+
+void SurfaceLoad3DDiffOrderCondition::save(Serializer& rSerializer) const
+{
+    KRATOS_SERIALIZE_SAVE_BASE_CLASS(rSerializer, GeneralUPwDiffOrderCondition)
+}
+
+void SurfaceLoad3DDiffOrderCondition::load(Serializer& rSerializer)
+{
+    KRATOS_SERIALIZE_LOAD_BASE_CLASS(rSerializer, GeneralUPwDiffOrderCondition)
 }
 
 std::string SurfaceLoad3DDiffOrderCondition::Info() const

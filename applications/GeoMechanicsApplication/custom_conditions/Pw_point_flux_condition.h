@@ -14,7 +14,7 @@
 
 #pragma once
 
-#include "custom_conditions/Pw_condition.hpp"
+#include "custom_conditions/Pw_condition.h"
 #include "includes/serializer.h"
 
 namespace Kratos
@@ -37,7 +37,7 @@ public:
 
     PwPointFluxCondition(IndexType NewId, GeometryType::Pointer pGeometry, PropertiesType::Pointer pProperties);
 
-    ~PwPointFluxCondition() override = default;
+    ~PwPointFluxCondition() override;
 
     Condition::Pointer Create(IndexType               NewId,
                               NodesArrayType const&   rThisNodes,
@@ -50,16 +50,8 @@ protected:
 
 private:
     friend class Serializer;
-
-    void save(Serializer& rSerializer) const override
-    {
-        KRATOS_SERIALIZE_SAVE_BASE_CLASS(rSerializer, BaseType)
-    }
-
-    void load(Serializer& rSerializer) override
-    {
-        KRATOS_SERIALIZE_LOAD_BASE_CLASS(rSerializer, BaseType)
-    }
+    void save(Serializer& rSerializer) const override;
+    void load(Serializer& rSerializer) override;
 };
 
 } // namespace Kratos

@@ -8,14 +8,13 @@
 //  License:         geo_mechanics_application/license.txt
 //
 //
-//  Main authors:    Ignasi de Pouplana,
-//                   Vahid Galavi
+//  Main authors:    Vahid Galavi
 //
 
 #pragma once
 
 // Project includes
-#include "custom_conditions/line_load_2D_diff_order_condition.hpp"
+#include "custom_conditions/line_normal_load_2D_diff_order_condition.h"
 #include "includes/serializer.h"
 
 #include "geo_mechanics_application_variables.h"
@@ -23,7 +22,7 @@
 namespace Kratos
 {
 
-class KRATOS_API(GEO_MECHANICS_APPLICATION) LineNormalLoad2DDiffOrderCondition : public LineLoad2DDiffOrderCondition
+class KRATOS_API(GEO_MECHANICS_APPLICATION) AxisymmetricLineNormalLoad2DDiffOrderCondition : public LineNormalLoad2DDiffOrderCondition
 {
 public:
     using IndexType      = std::size_t;
@@ -31,16 +30,15 @@ public:
     using GeometryType   = Geometry<Node>;
     using NodesArrayType = GeometryType::PointsArrayType;
 
-    KRATOS_CLASS_INTRUSIVE_POINTER_DEFINITION(LineNormalLoad2DDiffOrderCondition);
+    KRATOS_CLASS_INTRUSIVE_POINTER_DEFINITION(AxisymmetricLineNormalLoad2DDiffOrderCondition);
 
-    // Default constructor
-    LineNormalLoad2DDiffOrderCondition();
+    AxisymmetricLineNormalLoad2DDiffOrderCondition();
 
-    // Constructor 1
-    LineNormalLoad2DDiffOrderCondition(IndexType NewId, GeometryType::Pointer pGeometry);
+    AxisymmetricLineNormalLoad2DDiffOrderCondition(IndexType NewId, GeometryType::Pointer pGeometry);
 
-    // Constructor 2
-    LineNormalLoad2DDiffOrderCondition(IndexType NewId, GeometryType::Pointer pGeometry, PropertiesType::Pointer pProperties);
+    AxisymmetricLineNormalLoad2DDiffOrderCondition(IndexType               NewId,
+                                                   GeometryType::Pointer   pGeometry,
+                                                   PropertiesType::Pointer pProperties);
 
     Condition::Pointer Create(IndexType               NewId,
                               NodesArrayType const&   ThisNodes,
@@ -50,30 +48,15 @@ public:
     std::string Info() const override;
 
 protected:
-    // Member Variables
-
-    void CalculateConditionVector(ConditionVariables& rVariables, unsigned int PointNumber) override;
     double CalculateIntegrationCoefficient(IndexType                          PointNumber,
                                            const GeometryType::JacobiansType& JContainer,
                                            const GeometryType::IntegrationPointsArrayType& IntegrationPoints) const override;
 
-    void CalculateAndAddConditionForce(Vector& rRightHandSideVector, ConditionVariables& rVariables) override;
-
 private:
-    // Serialization
-
     friend class Serializer;
+    void save(Serializer& rSerializer) const override;
+    void load(Serializer& rSerializer) override;
 
-    void save(Serializer& rSerializer) const override
-    {
-        KRATOS_SERIALIZE_SAVE_BASE_CLASS(rSerializer, LineLoad2DDiffOrderCondition)
-    }
-
-    void load(Serializer& rSerializer) override
-    {
-        KRATOS_SERIALIZE_LOAD_BASE_CLASS(rSerializer, LineLoad2DDiffOrderCondition)
-    }
-
-}; // class LineNormalLoad2DDiffOrderCondition.
+}; // class AxisymmetricLineNormalLoad2DDiffOrderCondition.
 
 } // namespace Kratos.

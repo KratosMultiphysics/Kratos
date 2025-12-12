@@ -18,7 +18,7 @@
 #include "includes/serializer.h"
 
 // Application includes
-#include "custom_conditions/U_Pw_condition.hpp"
+#include "custom_conditions/U_Pw_condition.h"
 #include "custom_utilities/condition_utilities.hpp"
 #include "custom_utilities/interface_element_utilities.h"
 #include "geo_mechanics_application_variables.h"
@@ -38,19 +38,11 @@ public:
     using GeometryType   = Geometry<Node>;
     using NodesArrayType = GeometryType::PointsArrayType;
 
-    UPwFaceLoadInterfaceCondition() : UPwFaceLoadInterfaceCondition(0, nullptr, nullptr) {}
+    UPwFaceLoadInterfaceCondition();
 
-    UPwFaceLoadInterfaceCondition(IndexType NewId, GeometryType::Pointer pGeometry)
-        : UPwFaceLoadInterfaceCondition(NewId, pGeometry, nullptr)
-    {
-    }
+    UPwFaceLoadInterfaceCondition(IndexType NewId, GeometryType::Pointer pGeometry);
 
-    UPwFaceLoadInterfaceCondition(IndexType NewId, GeometryType::Pointer pGeometry, PropertiesType::Pointer pProperties)
-        : UPwCondition<TDim, TNumNodes>(NewId, pGeometry, pProperties)
-    {
-        // Lobatto integration method with the integration points located at the "mid plane nodes" of the interface
-        this->SetIntegrationMethod(GeometryData::IntegrationMethod::GI_GAUSS_1);
-    }
+    UPwFaceLoadInterfaceCondition(IndexType NewId, GeometryType::Pointer pGeometry, PropertiesType::Pointer pProperties);
 
     Condition::Pointer Create(IndexType               NewId,
                               NodesArrayType const&   ThisNodes,
@@ -85,19 +77,10 @@ protected:
 private:
     Vector mInitialGap;
 
-    // Serialization
-
     friend class Serializer;
+    void save(Serializer& rSerializer) const override;
+    void load(Serializer& rSerializer) override;
 
-    void save(Serializer& rSerializer) const override
-    {
-        KRATOS_SERIALIZE_SAVE_BASE_CLASS(rSerializer, Condition)
-    }
-
-    void load(Serializer& rSerializer) override
-    {
-        KRATOS_SERIALIZE_LOAD_BASE_CLASS(rSerializer, Condition)
-    }
 }; // class UPwFaceLoadInterfaceCondition.
 
 } // namespace Kratos.

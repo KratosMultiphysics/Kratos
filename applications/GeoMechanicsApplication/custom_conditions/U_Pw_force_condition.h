@@ -14,7 +14,7 @@
 
 #pragma once
 
-#include "custom_conditions/U_Pw_condition.hpp"
+#include "custom_conditions/U_Pw_condition.h"
 #include "includes/serializer.h"
 
 namespace Kratos
@@ -31,20 +31,11 @@ public:
     using GeometryType   = Geometry<Node>;
     using NodesArrayType = GeometryType::PointsArrayType;
 
-    // Default constructor
-    UPwForceCondition() : UPwCondition<TDim, TNumNodes>() {}
+    UPwForceCondition();
 
-    // Constructor 1
-    UPwForceCondition(IndexType NewId, GeometryType::Pointer pGeometry)
-        : UPwCondition<TDim, TNumNodes>(NewId, pGeometry)
-    {
-    }
+    UPwForceCondition(IndexType NewId, GeometryType::Pointer pGeometry);
 
-    // Constructor 2
-    UPwForceCondition(IndexType NewId, GeometryType::Pointer pGeometry, PropertiesType::Pointer pProperties)
-        : UPwCondition<TDim, TNumNodes>(NewId, pGeometry, pProperties)
-    {
-    }
+    UPwForceCondition(IndexType NewId, GeometryType::Pointer pGeometry, PropertiesType::Pointer pProperties);
 
     Condition::Pointer Create(IndexType               NewId,
                               NodesArrayType const&   ThisNodes,
@@ -58,15 +49,10 @@ protected:
 private:
     friend class Serializer;
 
-    void save(Serializer& rSerializer) const override
-    {
-        KRATOS_SERIALIZE_SAVE_BASE_CLASS(rSerializer, Condition)
-    }
+    void save(Serializer& rSerializer) const override;
 
-    void load(Serializer& rSerializer) override
-    {
-        KRATOS_SERIALIZE_LOAD_BASE_CLASS(rSerializer, Condition)
-    }
+    void load(Serializer& rSerializer) override;
+
 }; // class UPwForceCondition.
 
 } // namespace Kratos.

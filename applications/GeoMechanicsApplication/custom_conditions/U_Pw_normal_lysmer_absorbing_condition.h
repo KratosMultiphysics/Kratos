@@ -16,8 +16,8 @@
 #include "includes/serializer.h"
 
 // Application includes
-#include "custom_conditions/U_Pw_condition.hpp"
-#include "custom_conditions/U_Pw_face_load_condition.hpp"
+#include "custom_conditions/U_Pw_condition.h"
+#include "custom_conditions/U_Pw_face_load_condition.h"
 #include "custom_utilities/element_utilities.hpp"
 #include "geo_mechanics_application_variables.h"
 
@@ -36,20 +36,11 @@ public:
     using GeometryType   = Geometry<Node>;
     using NodesArrayType = GeometryType::PointsArrayType;
 
-    // Default constructor
-    UPwLysmerAbsorbingCondition() : UPwFaceLoadCondition<TDim, TNumNodes>() {}
+    UPwLysmerAbsorbingCondition();
 
-    // Constructor 1
-    UPwLysmerAbsorbingCondition(IndexType NewId, GeometryType::Pointer pGeometry)
-        : UPwFaceLoadCondition<TDim, TNumNodes>(NewId, pGeometry)
-    {
-    }
+    UPwLysmerAbsorbingCondition(IndexType NewId, GeometryType::Pointer pGeometry);
 
-    // Constructor 2
-    UPwLysmerAbsorbingCondition(IndexType NewId, GeometryType::Pointer pGeometry, PropertiesType::Pointer pProperties)
-        : UPwFaceLoadCondition<TDim, TNumNodes>(NewId, pGeometry, pProperties)
-    {
-    }
+    UPwLysmerAbsorbingCondition(IndexType NewId, GeometryType::Pointer pGeometry, PropertiesType::Pointer pProperties);
 
     Condition::Pointer Create(IndexType               NewId,
                               NodesArrayType const&   ThisNodes,
@@ -125,8 +116,6 @@ protected:
         DimensionMatrixType CAbsMatrix; // damping part of absorbing matrix;
         DimensionMatrixType KAbsMatrix; // stiffness part of absorbing matrix;
     };
-
-    // Member Variables
 
     /**
      * @brief Adds the condition matrix to the global left hand side
@@ -221,16 +210,9 @@ private:
                                            const ProcessInfo& rCurrentProcessInfo);
 
     friend class Serializer;
+    void save(Serializer& rSerializer) const override;
+    void load(Serializer& rSerializer) override;
 
-    void save(Serializer& rSerializer) const override
-    {
-        KRATOS_SERIALIZE_SAVE_BASE_CLASS(rSerializer, Condition)
-    }
-
-    void load(Serializer& rSerializer) override
-    {
-        KRATOS_SERIALIZE_LOAD_BASE_CLASS(rSerializer, Condition)
-    }
 }; // class UPwLysmerAbsorbingCondition.
 
 } // namespace Kratos.

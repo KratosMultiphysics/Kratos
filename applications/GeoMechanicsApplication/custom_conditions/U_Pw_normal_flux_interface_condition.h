@@ -18,8 +18,8 @@
 #include "includes/serializer.h"
 
 // Application includes
-#include "custom_conditions/U_Pw_condition.hpp"
-#include "custom_conditions/U_Pw_face_load_interface_condition.hpp"
+#include "custom_conditions/U_Pw_condition.h"
+#include "custom_conditions/U_Pw_face_load_interface_condition.h"
 #include "custom_utilities/element_utilities.hpp"
 
 namespace Kratos
@@ -37,20 +37,11 @@ public:
     using GeometryType   = Geometry<Node>;
     using NodesArrayType = GeometryType::PointsArrayType;
 
-    // Default constructor
-    UPwNormalFluxInterfaceCondition() : UPwFaceLoadInterfaceCondition<TDim, TNumNodes>() {}
+    UPwNormalFluxInterfaceCondition();
 
-    // Constructor 1
-    UPwNormalFluxInterfaceCondition(IndexType NewId, GeometryType::Pointer pGeometry)
-        : UPwFaceLoadInterfaceCondition<TDim, TNumNodes>(NewId, pGeometry)
-    {
-    }
+    UPwNormalFluxInterfaceCondition(IndexType NewId, GeometryType::Pointer pGeometry);
 
-    // Constructor 2
-    UPwNormalFluxInterfaceCondition(IndexType NewId, GeometryType::Pointer pGeometry, PropertiesType::Pointer pProperties)
-        : UPwFaceLoadInterfaceCondition<TDim, TNumNodes>(NewId, pGeometry, pProperties)
-    {
-    }
+    UPwNormalFluxInterfaceCondition(IndexType NewId, GeometryType::Pointer pGeometry, PropertiesType::Pointer pProperties);
 
     Condition::Pointer Create(IndexType               NewId,
                               NodesArrayType const&   ThisNodes,
@@ -59,24 +50,13 @@ public:
     std::string Info() const override;
 
 protected:
-    // Member Variables
-
     void CalculateRHS(Vector& rRightHandSideVector, const ProcessInfo& CurrentProcessInfo) override;
 
 private:
-    // Serialization
-
     friend class Serializer;
+    void save(Serializer& rSerializer) const override;
+    void load(Serializer& rSerializer) override;
 
-    void save(Serializer& rSerializer) const override
-    {
-        KRATOS_SERIALIZE_SAVE_BASE_CLASS(rSerializer, Condition)
-    }
-
-    void load(Serializer& rSerializer) override
-    {
-        KRATOS_SERIALIZE_LOAD_BASE_CLASS(rSerializer, Condition)
-    }
 }; // class UPwNormalFluxInterfaceCondition.
 
 } // namespace Kratos.

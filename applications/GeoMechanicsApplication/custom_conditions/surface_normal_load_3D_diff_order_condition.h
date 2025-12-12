@@ -15,7 +15,7 @@
 #pragma once
 
 // Project includes
-#include "custom_conditions/surface_load_3D_diff_order_condition.hpp"
+#include "custom_conditions/surface_load_3D_diff_order_condition.h"
 #include "includes/serializer.h"
 
 #include "geo_mechanics_application_variables.h"
@@ -28,13 +28,10 @@ class KRATOS_API(GEO_MECHANICS_APPLICATION) SurfaceNormalLoad3DDiffOrderConditio
 public:
     KRATOS_CLASS_INTRUSIVE_POINTER_DEFINITION(SurfaceNormalLoad3DDiffOrderCondition);
 
-    // Default constructor
     SurfaceNormalLoad3DDiffOrderCondition();
 
-    // Constructor 1
     SurfaceNormalLoad3DDiffOrderCondition(IndexType NewId, GeometryType::Pointer pGeometry);
 
-    // Constructor 2
     SurfaceNormalLoad3DDiffOrderCondition(IndexType               NewId,
                                           GeometryType::Pointer   pGeometry,
                                           PropertiesType::Pointer pProperties);
@@ -57,16 +54,8 @@ protected:
 
 private:
     friend class Serializer;
-
-    void save(Serializer& rSerializer) const override
-    {
-        KRATOS_SERIALIZE_SAVE_BASE_CLASS(rSerializer, SurfaceLoad3DDiffOrderCondition)
-    }
-
-    void load(Serializer& rSerializer) override
-    {
-        KRATOS_SERIALIZE_LOAD_BASE_CLASS(rSerializer, SurfaceLoad3DDiffOrderCondition)
-    }
+    void save(Serializer& rSerializer) const override;
+    void load(Serializer& rSerializer) override;
 
 }; // class SurfaceNormalLoad3DDiffOrderCondition.
 
