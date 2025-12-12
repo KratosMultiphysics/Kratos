@@ -136,4 +136,16 @@ void SmallStrainUMAT3DInterfaceLaw::SetValue(const Variable<Vector>& rVariable,
     }
 }
 
+SizeType SmallStrainUMAT3DInterfaceLaw::WorkingSpaceDimension() { return Dimension; }
+
+SizeType SmallStrainUMAT3DInterfaceLaw::GetStrainSize() const { return VoigtSize; }
+
+std::string SmallStrainUMAT3DInterfaceLaw::Info() const { return "SmallStrainUMAT3DInterfaceLaw"; }
+
+void SmallStrainUMAT3DInterfaceLaw::PrintInfo(std::ostream& rOStream) const { rOStream << Info(); }
+
+void SmallStrainUMAT3DInterfaceLaw::PrintData(std::ostream& rOStream) const
+{
+    rOStream << "SmallStrainUMAT3DInterfaceLaw Data";
+}
 } // namespace Kratos

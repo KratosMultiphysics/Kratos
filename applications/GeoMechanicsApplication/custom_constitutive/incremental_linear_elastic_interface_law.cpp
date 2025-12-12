@@ -19,6 +19,13 @@
 namespace Kratos
 {
 
+GeoIncrementalLinearElasticInterfaceLaw::GeoIncrementalLinearElasticInterfaceLaw(std::unique_ptr<ConstitutiveLawDimension> pConstitutiveLawDimension)
+    : mpConstitutiveLawDimension(std::move(pConstitutiveLawDimension))
+{
+}
+
+GeoIncrementalLinearElasticInterfaceLaw::~GeoIncrementalLinearElasticInterfaceLaw() = default;
+
 ConstitutiveLaw::Pointer GeoIncrementalLinearElasticInterfaceLaw::Clone() const
 {
     return std::make_shared<GeoIncrementalLinearElasticInterfaceLaw>(mpConstitutiveLawDimension->Clone());

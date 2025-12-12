@@ -153,13 +153,7 @@ public:
     /**
      * @brief Voigt tensor size:
      */
-    [[nodiscard]] SizeType GetStrainSize() const override
-    {
-        // In other constitutive laws, we use mpConstitutiveDimension->GetStrainSize() here, but
-        // due to the C/Fortran interface, we need the VoigtSize to be known compile time.
-        // Therefore, we return the template argument TVoigtSize here.
-        return TVoigtSize;
-    }
+    [[nodiscard]] SizeType GetStrainSize() const override;
 
     /**
      * @brief Returns the expected strain measure of this constitutive law (by default Green-Lagrange)
@@ -311,13 +305,13 @@ public:
     ///@{
 
     /// Turn back information as a string.
-    [[nodiscard]] std::string Info() const override { return "SmallStrainUMATLaw"; }
+    [[nodiscard]] std::string Info() const override;
 
     /// Print information about this object.
-    void PrintInfo(std::ostream& rOStream) const override { rOStream << Info(); }
+    void PrintInfo(std::ostream& rOStream) const override;
 
     /// Print object's data.
-    void PrintData(std::ostream& rOStream) const override { rOStream << "SmallStrainUMATLaw Data"; }
+    void PrintData(std::ostream& rOStream) const override;
 
     ///@}
     ///@name Friends

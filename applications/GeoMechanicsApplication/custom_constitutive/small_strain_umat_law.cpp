@@ -217,6 +217,15 @@ SizeType SmallStrainUMATLaw<TVoigtSize>::WorkingSpaceDimension()
 }
 
 template <SizeType TVoigtSize>
+SizeType SmallStrainUMATLaw<TVoigtSize>::GetStrainSize() const
+{
+    // In other constitutive laws, we use mpConstitutiveDimension->GetStrainSize() here, but
+    // due to the C/Fortran interface, we need the VoigtSize to be known compile time.
+    // Therefore, we return the template argument TVoigtSize here.
+    return TVoigtSize;
+}
+
+template <SizeType TVoigtSize>
 void SmallStrainUMATLaw<TVoigtSize>::InitializeMaterial(const Properties&   rMaterialProperties,
                                                         const GeometryType& rElementGeometry,
                                                         const Vector&       rShapeFunctionsValues)
@@ -775,6 +784,24 @@ template <SizeType TVoigtSize>
 bool SmallStrainUMATLaw<TVoigtSize>::Has(const Variable<Vector>& rVariable)
 {
     return rVariable == STATE_VARIABLES || rVariable == CAUCHY_STRESS_VECTOR;
+}
+
+template <SizeType TVoigtSize>
+[[nodiscard]] std::string SmallStrainUMATLaw<TVoigtSize>::Info() const
+{
+    return "SmallStrainUMATLaw";
+}
+
+template <SizeType TVoigtSize>
+void SmallStrainUMATLaw<TVoigtSize>::PrintInfo(std::ostream& rOStream) const
+{
+    rOStream << Info();
+}
+
+template <SizeType TVoigtSize>
+void SmallStrainUMATLaw<TVoigtSize>::PrintData(std::ostream& rOStream) const
+{
+    rOStream << "SmallStrainUMATLaw Data";
 }
 
 template class SmallStrainUMATLaw<VOIGT_SIZE_3D>;
