@@ -10,17 +10,16 @@
 //  Main authors:    Vahid Galavi
 //
 
-#if !defined(KRATOS_GEO_U_PW_UPDATED_LAGRANGIAN_FIC_ELEMENT_H_INCLUDED)
-#define KRATOS_GEO_U_PW_UPDATED_LAGRANGIAN_FIC_ELEMENT_H_INCLUDED
+#pragma once
 
 // System includes
 
 // External includes
 
 // Project includes
-#include "custom_elements/U_Pw_base_element.hpp"
-#include "custom_elements/U_Pw_small_strain_FIC_element.hpp"
-#include "custom_elements/U_Pw_small_strain_element.hpp"
+#include "custom_elements/U_Pw_base_element.h"
+#include "custom_elements/U_Pw_small_strain_FIC_element.h"
+#include "custom_elements/U_Pw_small_strain_element.h"
 #include "custom_utilities/element_utilities.hpp"
 #include "custom_utilities/stress_strain_utilities.h"
 #include "geo_mechanics_application_variables.h"
@@ -175,22 +174,13 @@ public:
     ///@{
 
     /// Turn back information as a string.
-    std::string Info() const override
-    {
-        const std::string constitutive_info =
-            !mConstitutiveLawVector.empty() ? mConstitutiveLawVector[0]->Info() : "not defined";
-        return "Updated Lagrangian U-Pw FIC Element #" + std::to_string(this->Id()) +
-               "\nConstitutive law: " + constitutive_info;
-    }
+    std::string Info() const override;
 
     /// Print information about this object.
-    void PrintInfo(std::ostream& rOStream) const override { rOStream << Info(); }
+    void PrintInfo(std::ostream& rOStream) const override;
 
     /// Print object's data.
-    void PrintData(std::ostream& rOStream) const override
-    {
-        this->pGetGeometry()->PrintData(rOStream);
-    }
+    void PrintData(std::ostream& rOStream) const override;
 
     ///@}
     ///@name Friends
@@ -268,15 +258,9 @@ private:
 
     // A private default constructor necessary for serialization
 
-    void save(Serializer& rSerializer) const override
-    {
-        KRATOS_SERIALIZE_SAVE_BASE_CLASS(rSerializer, BaseType)
-    }
+    void save(Serializer& rSerializer) const override;
+    void load(Serializer& rSerializer) override;
 
-    void load(Serializer& rSerializer) override
-    {
-        KRATOS_SERIALIZE_LOAD_BASE_CLASS(rSerializer, BaseType)
-    }
 }; // Class UPwUpdatedLagrangianFICElement
 
 ///@}
@@ -288,4 +272,3 @@ private:
 ///@}
 
 } // namespace Kratos.
-#endif // KRATOS_GEO_U_PW_UPDATED_LAGRANGIAN_FIC_ELEMENT_H_INCLUDED  defined

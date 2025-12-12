@@ -11,7 +11,7 @@
 //
 
 // Application includes
-#include "custom_elements/transient_Pw_element.hpp"
+#include "custom_elements/transient_Pw_element.h"
 #include "custom_utilities/check_utilities.h"
 #include "custom_utilities/dof_utilities.h"
 #include "custom_utilities/transport_equation_utilities.hpp"
@@ -495,6 +495,31 @@ template <unsigned int TDim, unsigned int TNumNodes>
 Element::DofsVectorType TransientPwElement<TDim, TNumNodes>::GetDofs() const
 {
     return Geo::DofUtilities::ExtractDofsFromNodes(this->GetGeometry(), WATER_PRESSURE);
+}
+
+template <unsigned int TDim, unsigned int TNumNodes>
+std::string TransientPwElement<TDim, TNumNodes>::Info() const
+{
+    const std::string retention_info = !mRetentionLawVector.empty() ? mRetentionLawVector[0]->Info() : "not defined";
+    return "transient Pw flow Element #" + std::to_string(this->Id()) + "\nRetention law: " + retention_info;
+}
+
+template <unsigned int TDim, unsigned int TNumNodes>
+void TransientPwElement<TDim, TNumNodes>::PrintInfo(std::ostream& rOStream) const
+{
+    rOStream << Info();
+}
+
+template <unsigned int TDim, unsigned int TNumNodes>
+void TransientPwElement<TDim, TNumNodes>::save(Serializer& rSerializer) const
+{
+    KRATOS_SERIALIZE_SAVE_BASE_CLASS(rSerializer, Element)
+}
+
+template <unsigned int TDim, unsigned int TNumNodes>
+void TransientPwElement<TDim, TNumNodes>::load(Serializer& rSerializer)
+{
+    KRATOS_SERIALIZE_LOAD_BASE_CLASS(rSerializer, Element)
 }
 
 template class TransientPwElement<2, 3>;

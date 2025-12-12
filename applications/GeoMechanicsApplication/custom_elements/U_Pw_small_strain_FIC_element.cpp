@@ -12,7 +12,7 @@
 //
 
 // Application includes
-#include "custom_elements/U_Pw_small_strain_FIC_element.hpp"
+#include "custom_elements/U_Pw_small_strain_FIC_element.h"
 #include "custom_utilities/equation_of_motion_utilities.h"
 #include "custom_utilities/extrapolation_utilities.h"
 #include "custom_utilities/math_utilities.h"
@@ -1396,6 +1396,32 @@ void UPwSmallStrainFICElement<TDim, TNumNodes>::CalculateAndAddPressureGradientF
     GeoElementUtilities::AssemblePBlockVector(rRightHandSideVector, pressure_gradient_flow);
 
     KRATOS_CATCH("")
+}
+
+template <unsigned int TDim, unsigned int TNumNodes>
+std::string UPwSmallStrainFICElement<TDim, TNumNodes>::Info() const
+{
+    const std::string constitutive_info =
+        !mConstitutiveLawVector.empty() ? mConstitutiveLawVector[0]->Info() : "not defined";
+    return "U-Pw smal strain FIC Element #" + std::to_string(this->Id()) + "\nConstitutive law: " + constitutive_info;
+}
+
+template <unsigned int TDim, unsigned int TNumNodes>
+void UPwSmallStrainFICElement<TDim, TNumNodes>::PrintInfo(std::ostream& rOStream) const
+{
+    rOStream << Info();
+}
+
+template <unsigned int TDim, unsigned int TNumNodes>
+void UPwSmallStrainFICElement<TDim, TNumNodes>::save(Serializer& rSerializer) const
+{
+    KRATOS_SERIALIZE_SAVE_BASE_CLASS(rSerializer, Element)
+}
+
+template <unsigned int TDim, unsigned int TNumNodes>
+void UPwSmallStrainFICElement<TDim, TNumNodes>::load(Serializer& rSerializer)
+{
+    KRATOS_SERIALIZE_LOAD_BASE_CLASS(rSerializer, Element)
 }
 
 template class UPwSmallStrainFICElement<2, 3>;

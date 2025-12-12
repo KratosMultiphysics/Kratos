@@ -13,7 +13,7 @@
 
 #include "custom_elements/plane_strain_stress_state.h"
 #include "custom_elements/three_dimensional_stress_state.h"
-#include "custom_elements/transient_Pw_element.hpp"
+#include "custom_elements/transient_Pw_element.h"
 #include "tests/cpp_tests/geo_mechanics_fast_suite.h"
 #include "tests/cpp_tests/test_utilities.h"
 

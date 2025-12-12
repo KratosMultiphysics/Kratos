@@ -12,7 +12,7 @@
 //
 
 // Application includes
-#include "custom_elements/U_Pw_base_element.hpp"
+#include "custom_elements/U_Pw_base_element.h"
 #include "custom_utilities/check_utilities.h"
 #include "custom_utilities/dof_utilities.h"
 #include "custom_utilities/equation_of_motion_utilities.h"
@@ -437,5 +437,18 @@ std::unique_ptr<IntegrationCoefficientModifier> UPwBaseElement::CloneIntegration
 {
     return mIntegrationCoefficientsCalculator.CloneModifier();
 }
+
+std::string UPwBaseElement::Info() const
+{
+    const std::string constitutive_info =
+        !mConstitutiveLawVector.empty() ? mConstitutiveLawVector[0]->Info() : "not defined";
+
+    std::ostringstream oss;
+    oss << "U-Pw Base class Element #" << Id() << "\nConstitutive law: " << constitutive_info;
+
+    return oss.str();
+}
+
+void UPwBaseElement::PrintInfo(std::ostream& rOStream) const { rOStream << Info(); }
 
 } // Namespace Kratos

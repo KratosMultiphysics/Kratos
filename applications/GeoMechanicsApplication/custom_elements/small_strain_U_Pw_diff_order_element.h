@@ -13,7 +13,7 @@
 
 #pragma once
 
-#include "custom_elements/U_Pw_base_element.hpp"
+#include "custom_elements/U_Pw_base_element.h"
 #include "custom_retention/retention_law.h"
 #include "geometries/geometry_data.h"
 #include "includes/constitutive_law.h"
@@ -45,21 +45,13 @@ public:
     SmallStrainUPwDiffOrderElement(IndexType                          NewId,
                                    GeometryType::Pointer              pGeometry,
                                    std::unique_ptr<StressStatePolicy> pStressStatePolicy,
-                                   std::unique_ptr<IntegrationCoefficientModifier> pCoefficientModifier = nullptr)
-        : UPwBaseElement(NewId, pGeometry, std::move(pStressStatePolicy), std::move(pCoefficientModifier))
-    {
-        SetUpPressureGeometryPointer();
-    }
+                                   std::unique_ptr<IntegrationCoefficientModifier> pCoefficientModifier = nullptr);
 
     SmallStrainUPwDiffOrderElement(IndexType                          NewId,
                                    GeometryType::Pointer              pGeometry,
                                    PropertiesType::Pointer            pProperties,
                                    std::unique_ptr<StressStatePolicy> pStressStatePolicy,
-                                   std::unique_ptr<IntegrationCoefficientModifier> pCoefficientModifier = nullptr)
-        : UPwBaseElement(NewId, pGeometry, pProperties, std::move(pStressStatePolicy), std::move(pCoefficientModifier))
-    {
-        SetUpPressureGeometryPointer();
-    }
+                                   std::unique_ptr<IntegrationCoefficientModifier> pCoefficientModifier = nullptr);
 
     ~SmallStrainUPwDiffOrderElement() override = default;
 
@@ -107,16 +99,10 @@ public:
     using Element::Calculate;
 
     // Turn back information as a string.
-    std::string Info() const override
-    {
-        const std::string constitutive_info =
-            !mConstitutiveLawVector.empty() ? mConstitutiveLawVector[0]->Info() : "not defined";
-        return "U-Pw small strain different order Element #" + std::to_string(Id()) +
-               "\nConstitutive law: " + constitutive_info;
-    }
+    std::string Info() const override;
 
     // Print information about this object.
-    void PrintInfo(std::ostream& rOStream) const override { rOStream << Info(); }
+    void PrintInfo(std::ostream& rOStream) const override;
 
 protected:
     struct ElementVariables {

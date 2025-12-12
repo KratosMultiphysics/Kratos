@@ -10,7 +10,7 @@
 //  Main authors:    Gennady Markelov
 //
 
-#include "custom_elements/U_Pw_small_strain_element.hpp"
+#include "custom_elements/U_Pw_small_strain_element.h"
 #include "custom_utilities/extrapolation_utilities.h"
 #include "custom_utilities/nodal_extrapolator.h"
 #include "geometries/triangle_2d_10.h"

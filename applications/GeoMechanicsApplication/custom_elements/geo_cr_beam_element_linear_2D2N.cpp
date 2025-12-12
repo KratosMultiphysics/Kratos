@@ -15,7 +15,7 @@
 // External includes
 
 // Project includes
-#include "custom_elements/geo_cr_beam_element_linear_2D2N.hpp"
+#include "custom_elements/geo_cr_beam_element_linear_2D2N.h"
 #include "custom_utilities/static_condensation_utility.h"
 #include "geo_mechanics_application_variables.h"
 #include "includes/define.h"

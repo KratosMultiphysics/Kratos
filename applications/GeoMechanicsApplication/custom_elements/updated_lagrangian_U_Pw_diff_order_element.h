@@ -10,11 +10,10 @@
 //  Main authors:    Vahid Galavi
 //
 
-#if !defined(KRATOS_GEO_UPDATED_LAGRANGIAN_U_PW_DIFF_ORDER_ELEMENT_H_INCLUDED)
-#define KRATOS_GEO_UPDATED_LAGRANGIAN_U_PW_DIFF_ORDER_ELEMENT_H_INCLUDED
+#pragma once
 
 // Project includes
-#include "custom_elements/small_strain_U_Pw_diff_order_element.hpp"
+#include "custom_elements/small_strain_U_Pw_diff_order_element.h"
 #include "custom_utilities/element_utilities.hpp"
 #include "custom_utilities/stress_strain_utilities.h"
 #include "geo_mechanics_application_variables.h"
@@ -155,22 +154,13 @@ public:
     ///@{
 
     /// Turn back information as a string.
-    std::string Info() const override
-    {
-        const std::string constitutive_info =
-            !mConstitutiveLawVector.empty() ? mConstitutiveLawVector[0]->Info() : "not defined";
-        return "Updated Lagrangian U-Pw different order Element #" + std::to_string(this->Id()) +
-               "\nConstitutive law: " + constitutive_info;
-    }
+    std::string Info() const override;
 
     /// Print information about this object.
-    void PrintInfo(std::ostream& rOStream) const override { rOStream << Info(); }
+    void PrintInfo(std::ostream& rOStream) const override;
 
     /// Print object's data.
-    void PrintData(std::ostream& rOStream) const override
-    {
-        this->pGetGeometry()->PrintData(rOStream);
-    }
+    void PrintData(std::ostream& rOStream) const override;
 
     ///@}
     ///@name Friends
@@ -269,4 +259,3 @@ private:
 ///@}
 
 } // namespace Kratos.
-#endif // KRATOS_GEO_UPDATED_LAGRANGIAN_U_PW_DIFF_ORDER_ELEMENT_H_INCLUDED defined

@@ -16,7 +16,7 @@
 #include "includes/serializer.h"
 
 // Application includes
-#include "custom_elements/U_Pw_small_strain_element.hpp"
+#include "custom_elements/U_Pw_small_strain_element.h"
 #include "custom_utilities/element_utilities.hpp"
 #include "custom_utilities/stress_strain_utilities.h"
 
@@ -121,15 +121,10 @@ public:
                                       const ProcessInfo&      rCurrentProcessInfo) override;
 
     // Turn back information as a string.
-    std::string Info() const override
-    {
-        const std::string retention_info =
-            !mRetentionLawVector.empty() ? mRetentionLawVector[0]->Info() : "not defined";
-        return "transient Pw flow Element #" + std::to_string(this->Id()) + "\nRetention law: " + retention_info;
-    }
+    std::string Info() const override;
 
     // Print information about this object.
-    void PrintInfo(std::ostream& rOStream) const override { rOStream << Info(); }
+    void PrintInfo(std::ostream& rOStream) const override;
 
 protected:
     void CalculateAll(MatrixType&        rLeftHandSideMatrix,
@@ -162,13 +157,8 @@ private:
     /// Serialization
 
     friend class Serializer;
-
-    void save(Serializer& rSerializer) const override
-    {
-        KRATOS_SERIALIZE_SAVE_BASE_CLASS(rSerializer, Element)
-    }
-
-    void load(Serializer& rSerializer) override{KRATOS_SERIALIZE_LOAD_BASE_CLASS(rSerializer, Element)}
+    void save(Serializer& rSerializer) const override;
+    void load(Serializer& rSerializer) override;
 
     // Assignment operator.
     TransientPwElement& operator=(TransientPwElement const& rOther);

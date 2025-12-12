@@ -17,7 +17,7 @@
 #include "includes/serializer.h"
 
 // Application includes
-#include "custom_elements/U_Pw_base_element.hpp"
+#include "custom_elements/U_Pw_base_element.h"
 #include "custom_utilities/interface_element_utilities.h"
 #include "geo_mechanics_application_variables.h"
 
@@ -172,10 +172,6 @@ protected:
         double BishopCoefficient;
     };
 
-    /// Member Variables
-    std::vector<double> mInitialGap;
-    std::vector<bool>   mIsOpen;
-
     void ModifyInactiveElementStress(const double& JointWidth, Vector& StressVector);
 
     virtual void CalculateOnLobattoIntegrationPoints(const Variable<array_1d<double, 3>>& rVariable,
@@ -281,18 +277,13 @@ protected:
     Vector SetFullStressVector(const Vector& rStressVector);
 
 private:
-    /// Serialization
+    /// Member Variables
+    std::vector<double> mInitialGap;
+    std::vector<bool>   mIsOpen;
+
     friend class Serializer;
-
-    void save(Serializer& rSerializer) const override
-    {
-        KRATOS_SERIALIZE_SAVE_BASE_CLASS(rSerializer, Element)
-    }
-
-    void load(Serializer& rSerializer) override
-    {
-        KRATOS_SERIALIZE_LOAD_BASE_CLASS(rSerializer, Element)
-    }
+    void save(Serializer& rSerializer) const override;
+    void load(Serializer& rSerializer) override;
 
 }; // Class UPwSmallStrainInterfaceElement
 
