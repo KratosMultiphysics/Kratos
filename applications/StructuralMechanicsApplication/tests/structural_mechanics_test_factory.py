@@ -76,6 +76,12 @@ class StructuralMechanicsTestFactory(KratosUnittest.TestCase):
         with KratosUnittest.WorkFolderScope(".", __file__):
             self.test.Finalize()
 
+class LinearReissnerMindlinTest(StructuralMechanicsTestFactory):
+    file_name = "reissner_mindlin_shells/3_noded/linear/hook_triangles_test"
+
+class CorotationalReissnerMindlinTest(StructuralMechanicsTestFactory):
+    file_name = "reissner_mindlin_shells/3_noded/corotational/hook_triangles_test"
+
 class MixedUEElementTest(StructuralMechanicsTestFactory):
     file_name = "mixed_u_E_test/mixed_u_E_element_test"
 
