@@ -12,13 +12,33 @@
 //
 
 // Application includes
-#include "custom_conditions/U_Pw_normal_lysmer_absorbing_condition.hpp"
+#include "custom_conditions/U_Pw_normal_lysmer_absorbing_condition.h"
 #include "custom_utilities/condition_utilities.hpp"
 #include "custom_utilities/dof_utilities.h"
 #include "custom_utilities/extrapolation_utilities.h"
 
 namespace Kratos
 {
+
+template <unsigned int TDim, unsigned int TNumNodes>
+UPwLysmerAbsorbingCondition<TDim, TNumNodes>::UPwLysmerAbsorbingCondition()
+    : UPwFaceLoadCondition<TDim, TNumNodes>()
+{
+}
+
+template <unsigned int TDim, unsigned int TNumNodes>
+UPwLysmerAbsorbingCondition<TDim, TNumNodes>::UPwLysmerAbsorbingCondition(IndexType NewId, GeometryType::Pointer pGeometry)
+    : UPwFaceLoadCondition<TDim, TNumNodes>(NewId, pGeometry)
+{
+}
+
+template <unsigned int TDim, unsigned int TNumNodes>
+UPwLysmerAbsorbingCondition<TDim, TNumNodes>::UPwLysmerAbsorbingCondition(IndexType NewId,
+                                                                          GeometryType::Pointer pGeometry,
+                                                                          PropertiesType::Pointer pProperties)
+    : UPwFaceLoadCondition<TDim, TNumNodes>(NewId, pGeometry, pProperties)
+{
+}
 
 template <unsigned int TDim, unsigned int TNumNodes>
 Condition::Pointer UPwLysmerAbsorbingCondition<TDim, TNumNodes>::Create(IndexType NewId,
@@ -535,6 +555,17 @@ std::string UPwLysmerAbsorbingCondition<TDim, TNumNodes>::Info() const
     return "UPwLysmerAbsorbingCondition";
 }
 
+template <unsigned int TDim, unsigned int TNumNodes>
+void UPwLysmerAbsorbingCondition<TDim, TNumNodes>::save(Serializer& rSerializer) const
+{
+    KRATOS_SERIALIZE_SAVE_BASE_CLASS(rSerializer, Condition)
+}
+
+template <unsigned int TDim, unsigned int TNumNodes>
+void UPwLysmerAbsorbingCondition<TDim, TNumNodes>::load(Serializer& rSerializer)
+{
+    KRATOS_SERIALIZE_LOAD_BASE_CLASS(rSerializer, Condition)
+}
 // 2 noded line
 template class UPwLysmerAbsorbingCondition<2, 2>;
 

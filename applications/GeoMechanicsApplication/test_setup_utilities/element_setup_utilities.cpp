@@ -11,9 +11,9 @@
 //
 
 #include "element_setup_utilities.h"
-#include "custom_conditions/Pw_point_flux_condition.hpp"
-#include "custom_conditions/U_Pw_normal_face_load_condition.hpp"
-#include "custom_conditions/line_load_2D_diff_order_condition.hpp"
+#include "custom_conditions/Pw_point_flux_condition.h"
+#include "custom_conditions/U_Pw_normal_face_load_condition.h"
+#include "custom_conditions/line_load_2D_diff_order_condition.h"
 #include "custom_elements/Pw_element.h"
 #include "custom_elements/U_Pw_small_strain_element.hpp"
 #include "custom_elements/calculation_contribution.h"
