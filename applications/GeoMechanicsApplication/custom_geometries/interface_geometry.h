@@ -44,8 +44,8 @@ public:
                             (rThisPoints.size() == 8) || (rThisPoints.size() == 16))
             << "Number of nodes must be 2+2, 3+3, 6+6, 4+4 or 8+8\n";
 
-        mMidGeometry = std::make_shared<MidGeometryType>(CreatePointsOfMidGeometry());
-        this->SetGeometryData(&mMidGeometry->GetGeometryData());
+        mpMidGeometry = std::make_shared<MidGeometryType>(CreatePointsOfMidGeometry());
+        this->SetGeometryData(&mpMidGeometry->GetGeometryData());
     }
 
     [[nodiscard]] BaseType::Pointer Create(const PointsArrayType& rThisPoints) const override
@@ -61,40 +61,40 @@ public:
 
     [[nodiscard]] GeometryData::KratosGeometryFamily GetGeometryFamily() const override
     {
-        return mMidGeometry->GetGeometryFamily();
+        return mpMidGeometry->GetGeometryFamily();
     }
 
     [[nodiscard]] GeometryData::KratosGeometryOrderType GetGeometryOrderType() const override
     {
-        return mMidGeometry->GetGeometryOrderType();
+        return mpMidGeometry->GetGeometryOrderType();
     }
 
-    [[nodiscard]] double Area() const override { return mMidGeometry->Area(); }
+    [[nodiscard]] double Area() const override { return mpMidGeometry->Area(); }
 
     [[nodiscard]] double ShapeFunctionValue(IndexType ShapeFunctionIndex,
                                             const CoordinatesArrayType& rLocalCoordinate) const override
     {
-        return mMidGeometry->ShapeFunctionValue(ShapeFunctionIndex, rLocalCoordinate);
+        return mpMidGeometry->ShapeFunctionValue(ShapeFunctionIndex, rLocalCoordinate);
     }
 
     Vector& ShapeFunctionsValues(Vector& rResult, const CoordinatesArrayType& rLocalCoordinate) const override
     {
-        return mMidGeometry->ShapeFunctionsValues(rResult, rLocalCoordinate);
+        return mpMidGeometry->ShapeFunctionsValues(rResult, rLocalCoordinate);
     }
 
     Matrix& ShapeFunctionsLocalGradients(Matrix& rResult, const CoordinatesArrayType& rLocalCoordinate) const override
     {
-        return mMidGeometry->ShapeFunctionsLocalGradients(rResult, rLocalCoordinate);
+        return mpMidGeometry->ShapeFunctionsLocalGradients(rResult, rLocalCoordinate);
     }
 
     Matrix& Jacobian(Matrix& rResult, const CoordinatesArrayType& rLocalCoordinate) const override
     {
-        return mMidGeometry->Jacobian(rResult, rLocalCoordinate);
+        return mpMidGeometry->Jacobian(rResult, rLocalCoordinate);
     }
 
     [[nodiscard]] double DeterminantOfJacobian(const CoordinatesArrayType& rLocalCoordinate) const override
     {
-        return mMidGeometry->DeterminantOfJacobian(rLocalCoordinate);
+        return mpMidGeometry->DeterminantOfJacobian(rLocalCoordinate);
     }
 
     Matrix& InverseOfJacobian(Matrix& rResult, const CoordinatesArrayType& rLocalCoordinate) const override
@@ -102,35 +102,35 @@ public:
         KRATOS_ERROR << "Inverse of Jacobian is not implemented for the interface geometry\n";
     }
 
-    [[nodiscard]] double Length() const override { return mMidGeometry->Length(); }
+    [[nodiscard]] double Length() const override { return mpMidGeometry->Length(); }
 
-    [[nodiscard]] double DomainSize() const override { return mMidGeometry->DomainSize(); }
+    [[nodiscard]] double DomainSize() const override { return mpMidGeometry->DomainSize(); }
 
     [[nodiscard]] std::string Info() const override
     {
-        return "An interface geometry consisting of two sub-geometries with Info: " + mMidGeometry->Info();
+        return "An interface geometry consisting of two sub-geometries with Info: " + mpMidGeometry->Info();
     }
 
     CoordinatesArrayType& PointLocalCoordinates(CoordinatesArrayType& rResult,
                                                 const CoordinatesArrayType& rGlobalCoordinate) const override
     {
-        return mMidGeometry->PointLocalCoordinates(rResult, rGlobalCoordinate);
+        return mpMidGeometry->PointLocalCoordinates(rResult, rGlobalCoordinate);
     }
 
     Matrix& PointsLocalCoordinates(Matrix& rResult) const override
     {
-        return mMidGeometry->PointsLocalCoordinates(rResult);
+        return mpMidGeometry->PointsLocalCoordinates(rResult);
     }
 
     // The way for client code to access the mid-geometry
     const GeometryType::Pointer pGetGeometryPart(const IndexType) const override
     {
-        return mMidGeometry;
+        return mpMidGeometry;
     }
 
     void PrintInfo(std::ostream& rOStream) const override { rOStream << Info(); }
 
-    void PrintData(std::ostream& rOStream) const override { mMidGeometry->PrintData(rOStream); }
+    void PrintData(std::ostream& rOStream) const override { mpMidGeometry->PrintData(rOStream); }
 
     array_1d<double, 3> Normal(IndexType IntegrationPointIndex) const override
     {
@@ -223,7 +223,7 @@ public:
 
     GeometriesArrayType GenerateEdges() const override
     {
-        KRATOS_ERROR_IF_NOT(mMidGeometry->GetGeometryFamily() == GeometryData::KratosGeometryFamily::Kratos_Linear)
+        KRATOS_ERROR_IF_NOT(mpMidGeometry->GetGeometryFamily() == GeometryData::KratosGeometryFamily::Kratos_Linear)
             << "Edges can only be generated for line geometries. This is a surface interface "
                "geometry, which does not support edges.\n";
 
@@ -232,7 +232,7 @@ public:
 
     GeometriesArrayType GenerateFaces() const override
     {
-        KRATOS_ERROR_IF(mMidGeometry->GetGeometryFamily() == GeometryData::KratosGeometryFamily::Kratos_Linear)
+        KRATOS_ERROR_IF(mpMidGeometry->GetGeometryFamily() == GeometryData::KratosGeometryFamily::Kratos_Linear)
             << "Faces can only be generated for surface geometries. This is a line "
                "interface geometry, which does not support faces.\n";
 
@@ -241,7 +241,7 @@ public:
 
     GeometriesArrayType GenerateBoundariesEntities() const override
     {
-        switch (mMidGeometry->GetGeometryFamily()) {
+        switch (mpMidGeometry->GetGeometryFamily()) {
             using enum GeometryData::KratosGeometryFamily;
         case Kratos_Linear:
             return this->GenerateEdges();
@@ -333,7 +333,7 @@ private:
                "schemes.\n";
     }
 
-    std::shared_ptr<BaseType> mMidGeometry;
+    std::shared_ptr<BaseType> mpMidGeometry;
 };
 
 } // namespace Kratos
