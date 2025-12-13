@@ -13,6 +13,16 @@
 
 #include "custom_utilities/linear_nodal_extrapolator.h"
 #include "custom_utilities/ublas_utilities.h"
+#include "geometries/hexahedra_3d_20.h"
+#include "geometries/hexahedra_3d_8.h"
+#include "geometries/line_2d_2.h"
+#include "geometries/line_2d_3.h"
+#include "geometries/quadrilateral_2d_4.h"
+#include "geometries/quadrilateral_2d_8.h"
+#include "geometries/tetrahedra_3d_10.h"
+#include "geometries/tetrahedra_3d_4.h"
+#include "geometries/triangle_2d_3.h"
+#include "geometries/triangle_2d_6.h"
 #include "test_setup_utilities/element_setup_utilities.h"
 #include "tests/cpp_tests/geo_mechanics_fast_suite.h"
 #include "tests/cpp_tests/test_utilities.h"
@@ -23,14 +33,18 @@
 namespace Kratos::Testing
 {
 
+using namespace Kratos;
+
 KRATOS_TEST_CASE_IN_SUITE(NodalExtrapolator_GivesCorrectExtrapolationMatrix_For2D2NLine,
                           KratosGeoMechanicsFastSuiteWithoutKernel)
 {
-    const auto nodes = ElementSetupUtilities::GenerateNodes({{0.0, 0.0, 0.0}, {1.0, 0.0, 0.0}});
-    auto p_element = ElementSetupUtilities::Create2D2NElement(nodes, std::make_shared<Properties>());
+    const auto nodes    = ElementSetupUtilities::GenerateNodes({{0.0, 0.0, 0.0}, {1.0, 0.0, 0.0}});
+    const auto geometry = Line2D2<Node>{nodes};
 
-    const LinearNodalExtrapolator nodal_extrapolator;
-    const auto extrapolation_matrix = nodal_extrapolator.CalculateElementExtrapolationMatrix(*p_element);
+    const auto     nodal_extrapolator   = LinearNodalExtrapolator{};
+    constexpr auto integration_method   = GeometryData::IntegrationMethod::GI_GAUSS_2;
+    const auto     extrapolation_matrix = nodal_extrapolator.CalculateElementExtrapolationMatrix(
+        geometry, geometry.IntegrationPoints(integration_method));
 
     // clang-format off
     const auto expected_extrapolation_matrix = UblasUtilities::CreateMatrix(
@@ -46,10 +60,12 @@ KRATOS_TEST_CASE_IN_SUITE(NodalExtrapolator_GivesCorrectExtrapolationMatrix_For2
 {
     const auto nodes =
         ElementSetupUtilities::GenerateNodes({{0.0, 0.0, 0.0}, {1.0, 0.0, 0.0}, {0.5, 0.0, 0.0}});
-    auto p_element = ElementSetupUtilities::Create2D3NLineElement(nodes, std::make_shared<Properties>());
+    const auto geometry = Line2D3<Node>{nodes};
 
-    const LinearNodalExtrapolator nodal_extrapolator;
-    const auto extrapolation_matrix = nodal_extrapolator.CalculateElementExtrapolationMatrix(*p_element);
+    const auto     nodal_extrapolator   = LinearNodalExtrapolator{};
+    constexpr auto integration_method   = GeometryData::IntegrationMethod::GI_GAUSS_2;
+    const auto     extrapolation_matrix = nodal_extrapolator.CalculateElementExtrapolationMatrix(
+        geometry, geometry.IntegrationPoints(integration_method));
 
     // clang-format off
     const auto expected_extrapolation_matrix = UblasUtilities::CreateMatrix(
@@ -61,36 +77,17 @@ KRATOS_TEST_CASE_IN_SUITE(NodalExtrapolator_GivesCorrectExtrapolationMatrix_For2
     KRATOS_EXPECT_MATRIX_NEAR(extrapolation_matrix, expected_extrapolation_matrix, Defaults::absolute_tolerance)
 }
 
-KRATOS_TEST_CASE_IN_SUITE(NodalExtrapolator_GivesCorrectExtrapolationMatrix_For2Plus2LineInterface,
-                          KratosGeoMechanicsFastSuiteWithoutKernel)
-{
-    const auto nodes = ElementSetupUtilities::GenerateNodes(
-        {{0.0, 0.0, 0.0}, {1.0, 0.0, 0.0}, {0.0, 0.0, 0.5}, {1.0, 0.0, 0.5}});
-    auto p_element =
-        ElementSetupUtilities::Create2D4NInterfaceElement(nodes, std::make_shared<Properties>());
-
-    const LinearNodalExtrapolator nodal_extrapolator;
-    const auto extrapolation_matrix = nodal_extrapolator.CalculateElementExtrapolationMatrix(*p_element);
-
-    // clang-format off
-    const auto expected_extrapolation_matrix = UblasUtilities::CreateMatrix({{1.0, 0.0},
-                                                                             {0.0, 1.0},
-                                                                             {1.0, 0.0},
-                                                                             {0.0, 1.0}});
-    // clang-format on
-
-    KRATOS_EXPECT_MATRIX_NEAR(extrapolation_matrix, expected_extrapolation_matrix, Defaults::absolute_tolerance)
-}
-
 KRATOS_TEST_CASE_IN_SUITE(NodalExtrapolator_GivesCorrectExtrapolationMatrix_For2D3NTriangle,
                           KratosGeoMechanicsFastSuiteWithoutKernel)
 {
     const auto nodes =
         ElementSetupUtilities::GenerateNodes({{0.0, 0.0, 0.0}, {1.0, 0.0, 0.0}, {0.0, 1.0, 0.0}});
-    auto p_element = ElementSetupUtilities::Create2D3NElement(nodes, std::make_shared<Properties>());
+    const auto geometry = Triangle2D3<Node>{nodes};
 
-    const LinearNodalExtrapolator nodal_extrapolator;
-    const auto extrapolation_matrix = nodal_extrapolator.CalculateElementExtrapolationMatrix(*p_element);
+    const auto     nodal_extrapolator   = LinearNodalExtrapolator{};
+    constexpr auto integration_method   = GeometryData::IntegrationMethod::GI_GAUSS_2;
+    const auto     extrapolation_matrix = nodal_extrapolator.CalculateElementExtrapolationMatrix(
+        geometry, geometry.IntegrationPoints(integration_method));
 
     // clang-format off
     const auto expected_extrapolation_matrix = UblasUtilities::CreateMatrix({{ 5.0/3.0, -1.0/3.0, -1.0/3.0},
@@ -106,10 +103,12 @@ KRATOS_TEST_CASE_IN_SUITE(NodalExtrapolator_GivesCorrectExtrapolationMatrix_For2
 {
     const auto nodes = ElementSetupUtilities::GenerateNodes(
         {{0.0, 0.0, 0.0}, {1.0, 0.0, 0.0}, {0.0, 1.0, 0.0}, {0.5, 0.0, 0.0}, {0.5, 0.5, 0.0}, {0.0, 0.5, 0.0}});
-    auto p_element = ElementSetupUtilities::Create2D6NElement(nodes, std::make_shared<Properties>());
+    const auto geometry = Triangle2D6<Node>{nodes};
 
-    const LinearNodalExtrapolator nodal_extrapolator;
-    const auto extrapolation_matrix = nodal_extrapolator.CalculateElementExtrapolationMatrix(*p_element);
+    const auto     nodal_extrapolator   = LinearNodalExtrapolator{};
+    constexpr auto integration_method   = GeometryData::IntegrationMethod::GI_GAUSS_2;
+    const auto     extrapolation_matrix = nodal_extrapolator.CalculateElementExtrapolationMatrix(
+        geometry, geometry.IntegrationPoints(integration_method));
 
     // clang-format off
     const auto expected_extrapolation_matrix = UblasUtilities::CreateMatrix({{ 5.0/3.0, -1.0/3.0, -1.0/3.0},
@@ -123,69 +122,17 @@ KRATOS_TEST_CASE_IN_SUITE(NodalExtrapolator_GivesCorrectExtrapolationMatrix_For2
     KRATOS_EXPECT_MATRIX_NEAR(extrapolation_matrix, expected_extrapolation_matrix, 1e-6)
 }
 
-KRATOS_TEST_CASE_IN_SUITE(NodalExtrapolator_GivesCorrectExtrapolationMatrix_For3Plus3TriangularInterface,
-                          KratosGeoMechanicsFastSuiteWithoutKernel)
-{
-    const auto nodes = ElementSetupUtilities::GenerateNodes(
-        {{0.0, 0.0, 0.0}, {1.0, 0.0, 0.0}, {0.0, 1.0, 0.0}, {0.0, 0.0, 0.1}, {1.0, 0.0, 0.1}, {0.0, 1.0, 0.1}});
-    auto p_element =
-        ElementSetupUtilities::Create3D6NInterfaceElement(nodes, std::make_shared<Properties>());
-
-    const LinearNodalExtrapolator nodal_extrapolator;
-    const auto extrapolation_matrix = nodal_extrapolator.CalculateElementExtrapolationMatrix(*p_element);
-
-    // clang-format off
-    const auto expected_extrapolation_matrix = UblasUtilities::CreateMatrix({{1.0, 0.0, 0.0},
-                                                                             {0.0, 1.0, 0.0},
-                                                                             {0.0, 0.0, 1.0},
-                                                                             {1.0, 0.0, 0.0},
-                                                                             {0.0, 1.0, 0.0},
-                                                                             {0.0, 0.0, 1.0}});
-    // clang-format on
-
-    KRATOS_EXPECT_MATRIX_NEAR(extrapolation_matrix, expected_extrapolation_matrix, Defaults::absolute_tolerance)
-}
-
-KRATOS_TEST_CASE_IN_SUITE(NodalExtrapolator_GivesCorrectExtrapolationMatrix_For4Plus4QuadrilateralInterface,
-                          KratosGeoMechanicsFastSuiteWithoutKernel)
-{
-    const auto nodes = ElementSetupUtilities::GenerateNodes({{0.0, 0.0, 0.0},
-                                                             {1.0, 0.0, 0.0},
-                                                             {1.0, 1.0, 0.0},
-                                                             {0.0, 1.0, 0.0},
-                                                             {0.0, 0.0, 0.1},
-                                                             {1.0, 0.0, 0.1},
-                                                             {1.0, 1.0, 0.1},
-                                                             {0.0, 1.0, 0.1}});
-    auto       p_element =
-        ElementSetupUtilities::Create3D8NInterfaceElement(nodes, std::make_shared<Properties>(), 1);
-
-    const LinearNodalExtrapolator nodal_extrapolator;
-    const auto extrapolation_matrix = nodal_extrapolator.CalculateElementExtrapolationMatrix(*p_element);
-
-    // clang-format off
-    const auto expected_extrapolation_matrix = UblasUtilities::CreateMatrix({{1.0, 0.0, 0.0, 0.0},
-                                                                             {0.0, 1.0, 0.0, 0.0},
-                                                                             {0.0, 0.0, 1.0, 0.0},
-                                                                             {0.0, 0.0, 0.0, 1.0},
-                                                                             {1.0, 0.0, 0.0, 0.0},
-                                                                             {0.0, 1.0, 0.0, 0.0},
-                                                                             {0.0, 0.0, 1.0, 0.0},
-                                                                             {0.0, 0.0, 0.0, 1.0}});
-    // clang-format on
-
-    KRATOS_EXPECT_MATRIX_NEAR(extrapolation_matrix, expected_extrapolation_matrix, Defaults::absolute_tolerance)
-}
-
 KRATOS_TEST_CASE_IN_SUITE(NodalExtrapolator_GivesCorrectExtrapolationMatrix_For2D4NQuadrilateral,
                           KratosGeoMechanicsFastSuiteWithoutKernel)
 {
     const auto nodes = ElementSetupUtilities::GenerateNodes(
         {{0.0, 0.0, 0.0}, {1.0, 0.0, 0.0}, {1.0, 1.0, 0.0}, {0.0, 1.0, 0.0}});
-    auto p_element = ElementSetupUtilities::Create2D4NElement(nodes, std::make_shared<Properties>());
+    const auto geometry = Quadrilateral2D4<Node>{nodes};
 
-    const LinearNodalExtrapolator nodal_extrapolator;
-    const auto extrapolation_matrix = nodal_extrapolator.CalculateElementExtrapolationMatrix(*p_element);
+    const auto     nodal_extrapolator   = LinearNodalExtrapolator{};
+    constexpr auto integration_method   = GeometryData::IntegrationMethod::GI_GAUSS_2;
+    const auto     extrapolation_matrix = nodal_extrapolator.CalculateElementExtrapolationMatrix(
+        geometry, geometry.IntegrationPoints(integration_method));
 
     // clang-format off
     const auto expected_extrapolation_matrix = UblasUtilities::CreateMatrix({{ 1.866025, -0.5,       0.133974, -0.5     },
@@ -200,18 +147,20 @@ KRATOS_TEST_CASE_IN_SUITE(NodalExtrapolator_GivesCorrectExtrapolationMatrix_For2
 KRATOS_TEST_CASE_IN_SUITE(NodalExtrapolator_GivesCorrectExtrapolationMatrix_For2D8NQuadrilateral,
                           KratosGeoMechanicsFastSuiteWithoutKernel)
 {
-    const auto nodes = ElementSetupUtilities::GenerateNodes({{0.0, 0.0, 0.0},
-                                                             {1.0, 0.0, 0.0},
-                                                             {1.0, 1.0, 0.0},
-                                                             {0.0, 1.0, 0.0},
-                                                             {0.5, 0.0, 0.0},
-                                                             {1.0, 0.5, 0.0},
-                                                             {0.5, 1.0, 0.0},
-                                                             {0.0, 0.5, 0.0}});
-    auto p_element = ElementSetupUtilities::Create2D8NElement(nodes, std::make_shared<Properties>());
+    const auto nodes    = ElementSetupUtilities::GenerateNodes({{0.0, 0.0, 0.0},
+                                                                {1.0, 0.0, 0.0},
+                                                                {1.0, 1.0, 0.0},
+                                                                {0.0, 1.0, 0.0},
+                                                                {0.5, 0.0, 0.0},
+                                                                {1.0, 0.5, 0.0},
+                                                                {0.5, 1.0, 0.0},
+                                                                {0.0, 0.5, 0.0}});
+    const auto geometry = Quadrilateral2D8<Node>{nodes};
 
-    const LinearNodalExtrapolator nodal_extrapolator;
-    const auto extrapolation_matrix = nodal_extrapolator.CalculateElementExtrapolationMatrix(*p_element);
+    const auto     nodal_extrapolator   = LinearNodalExtrapolator{};
+    constexpr auto integration_method   = GeometryData::IntegrationMethod::GI_GAUSS_2;
+    const auto     extrapolation_matrix = nodal_extrapolator.CalculateElementExtrapolationMatrix(
+        geometry, geometry.IntegrationPoints(integration_method));
 
     // clang-format off
     const auto expected_extrapolation_matrix = UblasUtilities::CreateMatrix(
@@ -233,10 +182,12 @@ KRATOS_TEST_CASE_IN_SUITE(NodalExtrapolator_GivesCorrectExtrapolationMatrix_For3
 {
     const auto nodes = ElementSetupUtilities::GenerateNodes(
         {{0.0, 0.0, 0.0}, {1.0, 0.0, 0.0}, {0.0, 1.0, 0.0}, {0.0, 0.0, 1.0}});
-    auto p_element = ElementSetupUtilities::Create3D4NElement(nodes, std::make_shared<Properties>());
+    const auto geometry = Tetrahedra3D4<Node>{nodes};
 
-    const LinearNodalExtrapolator nodal_extrapolator;
-    const auto extrapolation_matrix = nodal_extrapolator.CalculateElementExtrapolationMatrix(*p_element);
+    const auto     nodal_extrapolator   = LinearNodalExtrapolator{};
+    constexpr auto integration_method   = GeometryData::IntegrationMethod::GI_GAUSS_2;
+    const auto     extrapolation_matrix = nodal_extrapolator.CalculateElementExtrapolationMatrix(
+        geometry, geometry.IntegrationPoints(integration_method));
 
     // clang-format off
     const auto expected_extrapolation_matrix = UblasUtilities::CreateMatrix({{-0.309017, -0.309017, -0.309017,  1.927051},
@@ -251,20 +202,22 @@ KRATOS_TEST_CASE_IN_SUITE(NodalExtrapolator_GivesCorrectExtrapolationMatrix_For3
 KRATOS_TEST_CASE_IN_SUITE(NodalExtrapolator_GivesCorrectExtrapolationMatrix_For3D10NKratos_Tetrahedra,
                           KratosGeoMechanicsFastSuiteWithoutKernel)
 {
-    const auto nodes = ElementSetupUtilities::GenerateNodes({{0.0, 0.0, 0.0},
-                                                             {1.0, 0.0, 0.0},
-                                                             {0.0, 1.0, 0.0},
-                                                             {0.0, 0.0, 1.0},
-                                                             {0.5, 0.0, 0.0},
-                                                             {0.5, 0.5, 0.0},
-                                                             {0.0, 0.5, 0.0},
-                                                             {0.0, 0.0, 0.5},
-                                                             {0.5, 0.0, 0.5},
-                                                             {0.0, 0.5, 0.5}});
-    auto p_element = ElementSetupUtilities::Create3D10NElement(nodes, std::make_shared<Properties>());
+    const auto nodes    = ElementSetupUtilities::GenerateNodes({{0.0, 0.0, 0.0},
+                                                                {1.0, 0.0, 0.0},
+                                                                {0.0, 1.0, 0.0},
+                                                                {0.0, 0.0, 1.0},
+                                                                {0.5, 0.0, 0.0},
+                                                                {0.5, 0.5, 0.0},
+                                                                {0.0, 0.5, 0.0},
+                                                                {0.0, 0.0, 0.5},
+                                                                {0.5, 0.0, 0.5},
+                                                                {0.0, 0.5, 0.5}});
+    const auto geometry = Tetrahedra3D10<Node>{nodes};
 
-    const LinearNodalExtrapolator nodal_extrapolator;
-    const auto extrapolation_matrix = nodal_extrapolator.CalculateElementExtrapolationMatrix(*p_element);
+    const auto     nodal_extrapolator   = LinearNodalExtrapolator{};
+    constexpr auto integration_method   = GeometryData::IntegrationMethod::GI_GAUSS_2;
+    const auto     extrapolation_matrix = nodal_extrapolator.CalculateElementExtrapolationMatrix(
+        geometry, geometry.IntegrationPoints(integration_method));
 
     // clang-format off
     const auto expected_extrapolation_matrix = UblasUtilities::CreateMatrix({{-0.309017, -0.309017, -0.309017,  1.927051},
@@ -286,18 +239,20 @@ KRATOS_TEST_CASE_IN_SUITE(NodalExtrapolator_GivesCorrectExtrapolationMatrix_For3
 KRATOS_TEST_CASE_IN_SUITE(NodalExtrapolator_GivesCorrectExtrapolationMatrix_For3D8NKratos_Hexahedra,
                           KratosGeoMechanicsFastSuiteWithoutKernel)
 {
-    const auto nodes = ElementSetupUtilities::GenerateNodes({{0.0, 0.0, 0.0},
-                                                             {1.0, 0.0, 0.0},
-                                                             {1.0, 1.0, 0.0},
-                                                             {0.0, 1.0, 0.0},
-                                                             {0.0, 0.0, 1.0},
-                                                             {1.0, 0.0, 1.0},
-                                                             {1.0, 1.0, 1.0},
-                                                             {0.0, 1.0, 1.0}});
-    auto p_element = ElementSetupUtilities::Create3D8NElement(nodes, std::make_shared<Properties>());
+    const auto nodes    = ElementSetupUtilities::GenerateNodes({{0.0, 0.0, 0.0},
+                                                                {1.0, 0.0, 0.0},
+                                                                {1.0, 1.0, 0.0},
+                                                                {0.0, 1.0, 0.0},
+                                                                {0.0, 0.0, 1.0},
+                                                                {1.0, 0.0, 1.0},
+                                                                {1.0, 1.0, 1.0},
+                                                                {0.0, 1.0, 1.0}});
+    const auto geometry = Hexahedra3D8<Node>{nodes};
 
-    const LinearNodalExtrapolator nodal_extrapolator;
-    const auto extrapolation_matrix = nodal_extrapolator.CalculateElementExtrapolationMatrix(*p_element);
+    const auto     nodal_extrapolator   = LinearNodalExtrapolator{};
+    constexpr auto integration_method   = GeometryData::IntegrationMethod::GI_GAUSS_2;
+    const auto     extrapolation_matrix = nodal_extrapolator.CalculateElementExtrapolationMatrix(
+        geometry, geometry.IntegrationPoints(integration_method));
 
     // clang-format off
     const auto expected_extrapolation_matrix = UblasUtilities::CreateMatrix({{ 2.549038, -0.683013,  0.183013, -0.683013, -0.683013,  0.183013, -0.049038,  0.183013},
@@ -321,10 +276,12 @@ KRATOS_TEST_CASE_IN_SUITE(NodalExtrapolator_GivesCorrectExtrapolationMatrix_For3
          {1.0, 0.0, 1.0}, {1.0, 1.0, 1.0}, {0.0, 1.0, 1.0}, {0.5, 0.0, 0.0}, {1.0, 0.5, 0.0},
          {0.5, 1.0, 0.0}, {0.0, 0.5, 0.0}, {0.0, 0.0, 0.5}, {1.0, 0.0, 0.5}, {1.0, 1.0, 0.5},
          {0.0, 1.0, 0.5}, {0.5, 0.0, 1.0}, {1.0, 0.5, 1.0}, {0.5, 1.0, 1.0}, {0.0, 0.5, 1.0}});
-    auto p_element = ElementSetupUtilities::Create3D20NElement(nodes, std::make_shared<Properties>());
+    const auto geometry = Hexahedra3D20<Node>{nodes};
 
-    const LinearNodalExtrapolator nodal_extrapolator;
-    const auto extrapolation_matrix = nodal_extrapolator.CalculateElementExtrapolationMatrix(*p_element);
+    const auto     nodal_extrapolator   = LinearNodalExtrapolator{};
+    constexpr auto integration_method   = GeometryData::IntegrationMethod::GI_GAUSS_2;
+    const auto     extrapolation_matrix = nodal_extrapolator.CalculateElementExtrapolationMatrix(
+        geometry, geometry.IntegrationPoints(integration_method));
 
     // clang-format off
     const auto expected_extrapolation_matrix = UblasUtilities::CreateMatrix({{ 2.549038,  -0.683013,   0.183013,  -0.683013,  -0.683013,   0.183013,  -0.049038,   0.183013},

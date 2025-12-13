@@ -68,7 +68,6 @@ private:
     std::vector<const Variable<Matrix>*>              mMatrixVariables;
     const Variable<double>&                           mrAverageVariable       = NODAL_AREA;
     std::map<SizeType, Matrix>                        mExtrapolationMatrixMap = {};
-    std::unique_ptr<NodalExtrapolator>                mpExtrapolator;
     std::map<const Variable<Vector>*, Vector>         mZeroValuesOfVectorVariables;
     std::map<const Variable<Matrix>*, Matrix>         mZeroValuesOfMatrixVariables;
 

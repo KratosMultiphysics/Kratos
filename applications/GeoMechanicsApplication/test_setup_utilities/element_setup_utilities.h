@@ -92,7 +92,7 @@ public:
 
     static Element::Pointer Create3D8NInterfaceElement(const PointerVector<Node>& rNodes,
                                                        const Properties::Pointer& rProperties,
-                                                       std::size_t                Id);
+                                                       std::size_t Id = std::size_t{0});
 
     static Element::Pointer Create3D4NElement(const PointerVector<Node>& rNodes,
                                               const Properties::Pointer& rProperties);

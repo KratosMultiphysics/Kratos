@@ -26,30 +26,17 @@
 namespace Kratos
 {
 
-Matrix LinearNodalExtrapolator::CalculateElementExtrapolationMatrix(const Element& rElement) const
+Matrix LinearNodalExtrapolator::CalculateElementExtrapolationMatrix(const GeometryType& rGeometry,
+                                                                    const Geo::IntegrationPointVectorType& rIntegrationPoints) const
 {
-    auto        p_interface_element = dynamic_cast<const InterfaceElement*>(&rElement);
-    const auto& r_geometry =
-        p_interface_element ? p_interface_element->GetMidGeometry() : rElement.GetGeometry();
-    CheckIfGeometryIsSupported(r_geometry);
+    CheckIfGeometryIsSupported(rGeometry);
 
-    const auto  p_lower_order_geometry = CreateLowerOrderGeometry(r_geometry);
-    const auto& r_corner_geometry = p_lower_order_geometry ? *p_lower_order_geometry : r_geometry;
+    const auto  p_lower_order_geometry = CreateLowerOrderGeometry(rGeometry);
+    const auto& r_corner_geometry = p_lower_order_geometry ? *p_lower_order_geometry : rGeometry;
 
-    const auto integration_points = GeoElementUtilities::GetIntegrationPointsOf(rElement);
+    auto result = CalculateExtrapolationMatrixForCornerNodes(rGeometry, rIntegrationPoints, r_corner_geometry);
 
-    auto result = CalculateExtrapolationMatrixForCornerNodes(r_geometry, integration_points, r_corner_geometry);
-
-    if (p_lower_order_geometry) AddRowsForMidsideNodes(r_geometry, result);
-
-    if (p_interface_element) {
-        // The extrapolation matrix has been calculated for the mid-geometry. Now we still need to
-        // expand to it the full interface geometry (which comprises two sides).
-        auto tmp = Matrix{2 * result.size1(), result.size2(), 0.0};
-        GeoElementUtilities::AddMatrixAtPosition(result, tmp, 0, 0);
-        GeoElementUtilities::AddMatrixAtPosition(result, tmp, result.size1(), 0);
-        std::swap(result, tmp);
-    }
+    if (p_lower_order_geometry) AddRowsForMidsideNodes(rGeometry, result);
 
     return result;
 }
@@ -68,7 +55,7 @@ Matrix LinearNodalExtrapolator::CalculateExtrapolationMatrixForCornerNodes(const
     Matrix     quasi_mass_mat         = ZeroMatrix(number_of_corner_nodes, number_of_corner_nodes);
     const auto number_of_integration_points = rIntegrationPoints.size();
     Matrix     node_coefficients(number_of_corner_nodes, number_of_integration_points);
-    for (IndexType i = 0; i < number_of_integration_points; ++i) {
+    for (auto i = std::size_t{0}; i < number_of_integration_points; ++i) {
         const auto& N = shape_functions_values_at_integration_points[i];
         quasi_mass_mat += outer_prod(N, N) * determinants_of_jacobian[i] * rIntegrationPoints[i].Weight();
         column(node_coefficients, i) = N * determinants_of_jacobian[i] * rIntegrationPoints[i].Weight();

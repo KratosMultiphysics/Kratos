@@ -14,7 +14,7 @@
 
 #include "custom_processes/geo_extrapolate_integration_point_values_to_nodes_process.h"
 #include "containers/model.h"
-#include "custom_utilities/linear_nodal_extrapolator.h"
+#include "custom_utilities/extrapolation_utilities.h"
 #include "utilities/atomic_utilities.h"
 #include "utilities/variable_utils.h"
 
@@ -29,7 +29,7 @@ GeoExtrapolateIntegrationPointValuesToNodesProcess::GeoExtrapolateIntegrationPoi
 
 GeoExtrapolateIntegrationPointValuesToNodesProcess::GeoExtrapolateIntegrationPointValuesToNodesProcess(
     ModelPart& rMainModelPart, Parameters ThisParameters)
-    : mrModelPart(rMainModelPart), mpExtrapolator(std::make_unique<LinearNodalExtrapolator>())
+    : mrModelPart(rMainModelPart)
 {
     const Parameters default_parameters =
         GeoExtrapolateIntegrationPointValuesToNodesProcess::GetDefaultParameters();
@@ -144,7 +144,7 @@ void GeoExtrapolateIntegrationPointValuesToNodesProcess::CacheExtrapolationMatri
     // write to the same cache at the same time.
     for (const auto& rElement : mrModelPart.Elements()) {
         if (!ExtrapolationMatrixIsCachedFor(rElement)) {
-            CacheExtrapolationMatrixFor(rElement, mpExtrapolator->CalculateElementExtrapolationMatrix(rElement));
+            CacheExtrapolationMatrixFor(rElement, ExtrapolationUtilities::CalculateExtrapolationMatrix(rElement));
         }
     }
 }

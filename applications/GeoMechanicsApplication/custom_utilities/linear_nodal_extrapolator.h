@@ -13,25 +13,22 @@
 #pragma once
 
 #include "geo_aliases.h"
-#include "geometries/geometry.h"
-#include "includes/define.h"
+#include "includes/kratos_export_api.h"
+#include "includes/ublas_interface.h"
 #include "nodal_extrapolator.h"
 
-#include <cstddef>
+#include <memory>
 
 namespace Kratos
 {
-
-class Element;
 
 class KRATOS_API(GEO_MECHANICS_APPLICATION) LinearNodalExtrapolator : public NodalExtrapolator
 {
 public:
     using NodalExtrapolator::GeometryType;
-    using SizeType  = std::size_t;
-    using IndexType = std::size_t;
 
-    [[nodiscard]] Matrix CalculateElementExtrapolationMatrix(const Element& rElement) const override;
+    [[nodiscard]] Matrix CalculateElementExtrapolationMatrix(
+        const GeometryType& rGeometry, const Geo::IntegrationPointVectorType& rIntegrationPoints) const override;
 
 private:
     void static CheckIfGeometryIsSupported(const GeometryType& rGeometry);

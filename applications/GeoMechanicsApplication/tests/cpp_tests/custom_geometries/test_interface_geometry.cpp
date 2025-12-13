@@ -19,6 +19,7 @@
 #include "geometries/quadrilateral_3d_8.h"
 #include "geometries/triangle_3d_3.h"
 #include "geometries/triangle_3d_6.h"
+#include "test_setup_utilities/element_setup_utilities.h"
 #include "tests/cpp_tests/geo_mechanics_fast_suite.h"
 #include "tests/cpp_tests/test_utilities.h"
 
@@ -259,7 +260,10 @@ KRATOS_TEST_CASE_IN_SUITE(CreatingInterfaceWithThreeNodesThrows, KratosGeoMechan
 KRATOS_TEST_CASE_IN_SUITE(MidGeometryOf2Plus2LineInterfaceIsDefinedByMidPointsOfNodePairs,
                           KratosGeoMechanicsFastSuiteWithoutKernel)
 {
-    const auto     interface_geometry = CreateTwoPlusTwoNoded2DLineInterfaceGeometry();
+    const auto nodes = ElementSetupUtilities::GenerateNodes(
+        {{0.0, 0.0, 0.0}, {5.0, 0.0, 0.0}, {-1.0, 0.2, 0.0}, {7.0, 0.2, 0.0}});
+    constexpr auto geometry_id        = std::size_t{1};
+    const auto     interface_geometry = InterfaceGeometry<Line2D2<Node>>{geometry_id, nodes};
     constexpr auto unused_part_index  = std::size_t{0};
     const auto&    r_mid_geometry     = interface_geometry.GetGeometryPart(unused_part_index);
 
@@ -270,7 +274,10 @@ KRATOS_TEST_CASE_IN_SUITE(MidGeometryOf2Plus2LineInterfaceIsDefinedByMidPointsOf
 KRATOS_TEST_CASE_IN_SUITE(MidGeometryOf3Plus3LineInterfaceIsDefinedByMidPointsOfNodePairs,
                           KratosGeoMechanicsFastSuiteWithoutKernel)
 {
-    const auto     interface_geometry = CreateThreePlusThreeNoded2DLineInterfaceGeometry();
+    const auto nodes = ElementSetupUtilities::GenerateNodes(
+        {{0.0, 0.0, 0.0}, {5.0, 0.0, 0.0}, {2.5, 0.0, 0.0}, {-1.0, 0.2, 0.0}, {7.0, 0.2, 0.0}, {3.5, 0.4, 0.0}});
+    constexpr auto geometry_id        = std::size_t{1};
+    const auto     interface_geometry = InterfaceGeometry<Line2D3<Node>>{geometry_id, nodes};
     constexpr auto unused_part_index  = std::size_t{0};
     const auto&    r_mid_geometry     = interface_geometry.GetGeometryPart(unused_part_index);
 
@@ -278,52 +285,96 @@ KRATOS_TEST_CASE_IN_SUITE(MidGeometryOf3Plus3LineInterfaceIsDefinedByMidPointsOf
     ExpectPointsAreNear(r_mid_geometry.Points(), expected_mid_points);
 }
 
-KRATOS_TEST_CASE_IN_SUITE(MidGeometryOf3Plus3SurfaceInterfaceIsDefinedByMidPointsOfNodePairs,
+KRATOS_TEST_CASE_IN_SUITE(MidGeometryOf3Plus3TriangularInterfaceIsDefinedByMidPointsOfNodePairs,
                           KratosGeoMechanicsFastSuiteWithoutKernel)
 {
-    const auto     interface_geometry = CreateThreePlusThreeNoded3DSurfaceInterfaceGeometry();
-    constexpr auto unused_part_index  = std::size_t{0};
-    const auto&    r_mid_geometry     = interface_geometry.GetGeometryPart(unused_part_index);
-
-    const auto expected_mid_points = std::vector<Point>{{0.0, 0.0, 0.25}, {1.0, 0.0, 0.25}, {1.0, 1.0, 0.25}};
-    ExpectPointsAreNear(r_mid_geometry.Points(), expected_mid_points);
-}
-
-KRATOS_TEST_CASE_IN_SUITE(MidGeometryOf6Plus6SurfaceInterfaceIsDefinedByMidPointsOfNodePairs,
-                          KratosGeoMechanicsFastSuiteWithoutKernel)
-{
-    const auto     interface_geometry = CreateSixPlusSixNoded3DSurfaceInterfaceGeometry();
+    const auto nodes = ElementSetupUtilities::GenerateNodes(
+        {{0.0, 0.0, 0.0}, {1.0, 0.0, 0.0}, {1.0, 1.0, 0.0}, {0.5, 0.5, 0.5}, {1.5, 0.5, 0.5}, {1.5, 1.5, 0.5}});
+    constexpr auto geometry_id        = std::size_t{1};
+    const auto     interface_geometry = InterfaceGeometry<Triangle3D3<Node>>{geometry_id, nodes};
     constexpr auto unused_part_index  = std::size_t{0};
     const auto&    r_mid_geometry     = interface_geometry.GetGeometryPart(unused_part_index);
 
     const auto expected_mid_points =
-        std::vector<Point>{{0.0, 0.0, 0.25}, {1.0, 0.0, 0.25}, {0.0, 1.0, 0.25},
-                           {0.5, 0.0, 0.25}, {0.5, 0.5, 0.25}, {0.0, 0.5, 0.25}};
+        std::vector<Point>{{0.25, 0.25, 0.25}, {1.25, 0.25, 0.25}, {1.25, 1.25, 0.25}};
     ExpectPointsAreNear(r_mid_geometry.Points(), expected_mid_points);
 }
 
-KRATOS_TEST_CASE_IN_SUITE(MidGeometryOf4Plus4SurfaceInterfaceIsDefinedByMidPointsOfNodePairs,
+KRATOS_TEST_CASE_IN_SUITE(MidGeometryOf6Plus6TriangularInterfaceIsDefinedByMidPointsOfNodePairs,
                           KratosGeoMechanicsFastSuiteWithoutKernel)
 {
-    const auto     interface_geometry = CreateFourPlusFourNoded3DSurfaceInterfaceGeometry();
+    const auto nodes = ElementSetupUtilities::GenerateNodes({{0.0, 0.0, 0.0},
+                                                             {1.0, 0.0, 0.0},
+                                                             {1.0, 1.0, 0.0},
+                                                             {0.5, 0.0, 0.0},
+                                                             {1.0, 0.5, 0.0},
+                                                             {0.5, 0.5, 0.0},
+                                                             {0.5, 0.5, 0.5},
+                                                             {1.5, 0.5, 0.5},
+                                                             {1.5, 1.5, 0.5},
+                                                             {1.0, 0.5, 0.5},
+                                                             {1.5, 1.0, 0.5},
+                                                             {1.0, 1.0, 0.5}});
+
+    constexpr auto geometry_id        = std::size_t{1};
+    const auto     interface_geometry = InterfaceGeometry<Triangle3D6<Node>>{geometry_id, nodes};
     constexpr auto unused_part_index  = std::size_t{0};
     const auto&    r_mid_geometry     = interface_geometry.GetGeometryPart(unused_part_index);
 
     const auto expected_mid_points =
-        std::vector<Point>{{0.0, 0.0, 0.25}, {1.0, 0.0, 0.25}, {1.0, 1.0, 0.25}, {0.0, 1.0, 0.25}};
+        std::vector<Point>{{0.25, 0.25, 0.25}, {1.25, 0.25, 0.25}, {1.25, 1.25, 0.25},
+                           {0.75, 0.25, 0.25}, {1.25, 0.75, 0.25}, {0.75, 0.75, 0.25}};
     ExpectPointsAreNear(r_mid_geometry.Points(), expected_mid_points);
 }
 
-KRATOS_TEST_CASE_IN_SUITE(MidGeometryOf8Plus8SurfaceInterfaceIsDefinedByMidPointsOfNodePairs,
+KRATOS_TEST_CASE_IN_SUITE(MidGeometryOf4Plus4QuadrilateralInterfaceIsDefinedByMidPointsOfNodePairs,
                           KratosGeoMechanicsFastSuiteWithoutKernel)
 {
-    const auto     interface_geometry = CreateEightPlusEightNoded3DSurfaceInterfaceGeometry();
-    constexpr auto unused_part_index  = std::size_t{0};
-    const auto&    r_mid_geometry     = interface_geometry.GetGeometryPart(unused_part_index);
+    const auto     nodes          = ElementSetupUtilities::GenerateNodes({{0.0, 0.0, 0.0},
+                                                                          {1.0, 0.0, 0.0},
+                                                                          {1.0, 1.0, 0.0},
+                                                                          {0.0, 1.0, 0.0},
+                                                                          {0.5, 0.5, 0.5},
+                                                                          {1.5, 0.5, 0.5},
+                                                                          {1.5, 1.5, 0.5},
+                                                                          {0.5, 1.5, 0.5}});
+    constexpr auto geometry_id    = std::size_t{1};
+    const auto interface_geometry = InterfaceGeometry<Quadrilateral3D4<Node>>{geometry_id, nodes};
+    constexpr auto unused_part_index = std::size_t{0};
+    const auto&    r_mid_geometry    = interface_geometry.GetGeometryPart(unused_part_index);
 
-    const auto expected_mid_points =
-        std::vector<Point>{{0.0, 0.0, 0.25}, {1.0, 0.0, 0.25}, {1.0, 1.0, 0.25}, {0.0, 1.0, 0.25},
-                           {0.5, 0.0, 0.25}, {1.0, 0.5, 0.25}, {0.5, 1.0, 0.25}, {0.0, 0.5, 0.25}};
+    const auto expected_mid_points = std::vector<Point>{
+        {0.25, 0.25, 0.25}, {1.25, 0.25, 0.25}, {1.25, 1.25, 0.25}, {0.25, 1.25, 0.25}};
+    ExpectPointsAreNear(r_mid_geometry.Points(), expected_mid_points);
+}
+
+KRATOS_TEST_CASE_IN_SUITE(MidGeometryOf8Plus8QuadrilateralInterfaceIsDefinedByMidPointsOfNodePairs,
+                          KratosGeoMechanicsFastSuiteWithoutKernel)
+{
+    const auto     nodes          = ElementSetupUtilities::GenerateNodes({{0.0, 0.0, 0.0},
+                                                                          {1.0, 0.0, 0.0},
+                                                                          {1.0, 1.0, 0.0},
+                                                                          {0.0, 1.0, 0.0},
+                                                                          {0.5, 0.0, 0.0},
+                                                                          {1.0, 0.5, 0.0},
+                                                                          {0.5, 1.0, 0.0},
+                                                                          {0.0, 0.5, 0.0},
+                                                                          {0.5, 0.5, 0.5},
+                                                                          {1.5, 0.5, 0.5},
+                                                                          {1.5, 1.5, 0.5},
+                                                                          {0.5, 1.5, 0.5},
+                                                                          {1.0, 0.5, 0.5},
+                                                                          {1.5, 1.0, 0.5},
+                                                                          {1.0, 1.5, 0.5},
+                                                                          {0.5, 1.0, 0.5}});
+    constexpr auto geometry_id    = std::size_t{1};
+    const auto interface_geometry = InterfaceGeometry<Quadrilateral3D8<Node>>{geometry_id, nodes};
+    constexpr auto unused_part_index = std::size_t{0};
+    const auto&    r_mid_geometry    = interface_geometry.GetGeometryPart(unused_part_index);
+
+    const auto expected_mid_points = std::vector<Point>{
+        {0.25, 0.25, 0.25}, {1.25, 0.25, 0.25}, {1.25, 1.25, 0.25}, {0.25, 1.25, 0.25},
+        {0.75, 0.25, 0.25}, {1.25, 0.75, 0.25}, {0.75, 1.25, 0.25}, {0.25, 0.75, 0.25}};
     ExpectPointsAreNear(r_mid_geometry.Points(), expected_mid_points);
 }
 

@@ -13,7 +13,7 @@
 #include "custom_elements/U_Pw_small_strain_element.hpp"
 #include "custom_utilities/extrapolation_utilities.h"
 #include "custom_utilities/nodal_extrapolator.h"
-#include "geometries/triangle_2d_10.h"
+#include "custom_utilities/ublas_utilities.h"
 #include "includes/checks.h"
 #include "test_setup_utilities/element_setup_utilities.h"
 #include "tests/cpp_tests/geo_mechanics_fast_suite.h"
@@ -116,4 +116,86 @@ KRATOS_TEST_CASE_IN_SUITE(ExtrapolationUtilities_CalculateNodalVectorsForTriangl
                                            Defaults::relative_tolerance);
     }
 }
+
+KRATOS_TEST_CASE_IN_SUITE(ExtrapolationUtilities_CalculateExtrapolationMatrixOf2Plus2LineInterfaceElement,
+                          KratosGeoMechanicsFastSuiteWithoutKernel)
+{
+    const auto nodes = ElementSetupUtilities::GenerateNodes(
+        {{0.0, 0.0, 0.0}, {1.0, 0.0, 0.0}, {0.0, 0.0, 0.5}, {1.0, 0.0, 0.5}});
+    auto p_element =
+        ElementSetupUtilities::Create2D4NInterfaceElement(nodes, std::make_shared<Properties>());
+
+    const auto extrapolation_matrix = ExtrapolationUtilities::CalculateExtrapolationMatrix(*p_element);
+
+    // clang-format off
+    // Note that due to the applied Lobatto integration scheme (where the positions of the
+    // integration points coincide with the nodal ones), we obtain a somewhat different matrix
+    // compared to the 2-noded line with a Gauss integration scheme.
+    const auto expected_extrapolation_matrix = UblasUtilities::CreateMatrix({{1.0, 0.0},
+                                                                             {0.0, 1.0},
+                                                                             {1.0, 0.0},
+                                                                             {0.0, 1.0}});
+    // clang-format on
+
+    KRATOS_EXPECT_MATRIX_NEAR(extrapolation_matrix, expected_extrapolation_matrix, Defaults::absolute_tolerance)
+}
+
+KRATOS_TEST_CASE_IN_SUITE(ExtrapolationUtilities_CalculateExtrapolationMatrixOf3Plus3TriangularInterfaceElement,
+                          KratosGeoMechanicsFastSuiteWithoutKernel)
+{
+    const auto nodes = ElementSetupUtilities::GenerateNodes(
+        {{0.0, 0.0, 0.0}, {1.0, 0.0, 0.0}, {0.0, 1.0, 0.0}, {0.0, 0.0, 0.1}, {1.0, 0.0, 0.1}, {0.0, 1.0, 0.1}});
+    auto p_element =
+        ElementSetupUtilities::Create3D6NInterfaceElement(nodes, std::make_shared<Properties>());
+
+    const auto extrapolation_matrix = ExtrapolationUtilities::CalculateExtrapolationMatrix(*p_element);
+
+    // clang-format off
+    // Note that due to the applied lumped integration scheme (where the positions of the
+    // integration points coincide with the nodal ones), we obtain a somewhat different matrix
+    // compared to the 3-noded triangle with an area integration scheme.
+    const auto expected_extrapolation_matrix = UblasUtilities::CreateMatrix({{1.0, 0.0, 0.0},
+                                                                             {0.0, 1.0, 0.0},
+                                                                             {0.0, 0.0, 1.0},
+                                                                             {1.0, 0.0, 0.0},
+                                                                             {0.0, 1.0, 0.0},
+                                                                             {0.0, 0.0, 1.0}});
+    // clang-format on
+
+    KRATOS_EXPECT_MATRIX_NEAR(extrapolation_matrix, expected_extrapolation_matrix, Defaults::absolute_tolerance)
+}
+
+KRATOS_TEST_CASE_IN_SUITE(ExtrapolationUtilities_CalculateExtrapolationMatrixOf4Plus4QuadrilateralInterfaceElement,
+                          KratosGeoMechanicsFastSuiteWithoutKernel)
+{
+    const auto nodes = ElementSetupUtilities::GenerateNodes({{0.0, 0.0, 0.0},
+                                                             {1.0, 0.0, 0.0},
+                                                             {1.0, 1.0, 0.0},
+                                                             {0.0, 1.0, 0.0},
+                                                             {0.0, 0.0, 0.1},
+                                                             {1.0, 0.0, 0.1},
+                                                             {1.0, 1.0, 0.1},
+                                                             {0.0, 1.0, 0.1}});
+    auto       p_element =
+        ElementSetupUtilities::Create3D8NInterfaceElement(nodes, std::make_shared<Properties>());
+
+    const auto extrapolation_matrix = ExtrapolationUtilities::CalculateExtrapolationMatrix(*p_element);
+
+    // clang-format off
+    // Note that due to the applied lumped integration scheme (where the positions of the
+    // integration points coincide with the nodal ones), we obtain a somewhat different matrix
+    // compared to the 4-noded quadrilateral with a Gauss integration scheme.
+    const auto expected_extrapolation_matrix = UblasUtilities::CreateMatrix({{1.0, 0.0, 0.0, 0.0},
+                                                                             {0.0, 1.0, 0.0, 0.0},
+                                                                             {0.0, 0.0, 1.0, 0.0},
+                                                                             {0.0, 0.0, 0.0, 1.0},
+                                                                             {1.0, 0.0, 0.0, 0.0},
+                                                                             {0.0, 1.0, 0.0, 0.0},
+                                                                             {0.0, 0.0, 1.0, 0.0},
+                                                                             {0.0, 0.0, 0.0, 1.0}});
+    // clang-format on
+
+    KRATOS_EXPECT_MATRIX_NEAR(extrapolation_matrix, expected_extrapolation_matrix, Defaults::absolute_tolerance)
+}
+
 } // namespace Kratos::Testing

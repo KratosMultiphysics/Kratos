@@ -13,8 +13,10 @@
 
 #include "custom_utilities/extrapolation_utilities.h"
 
+#include "custom_elements/interface_element.h"
 #include "custom_utilities/generic_utilities.h"
 #include "custom_utilities/linear_nodal_extrapolator.h"
+#include "element_utilities.hpp"
 #include "geometry_utilities.h"
 #include "includes/element.h"
 #include "includes/node.h"
@@ -24,21 +26,31 @@ namespace Kratos
 
 Matrix ExtrapolationUtilities::CalculateExtrapolationMatrix(const Element& rElement)
 {
-    const auto& r_geometry         = rElement.GetGeometry();
-    const auto  integration_method = rElement.GetIntegrationMethod();
+    auto        p_interface_element = dynamic_cast<const InterfaceElement*>(&rElement);
+    const auto& r_geometry_for_extrapolation =
+        p_interface_element ? p_interface_element->GetMidGeometry() : rElement.GetGeometry();
+    const auto integration_points = GeoElementUtilities::GetIntegrationPointsOf(rElement);
 
     const auto extrapolator = LinearNodalExtrapolator{};
-    const auto result       = extrapolator.CalculateElementExtrapolationMatrix(rElement);
+    auto result = extrapolator.CalculateElementExtrapolationMatrix(r_geometry_for_extrapolation, integration_points);
 
-    KRATOS_ERROR_IF_NOT(result.size1() == r_geometry.PointsNumber())
+    if (p_interface_element) {
+        // The extrapolation matrix has been calculated for the mid-geometry. Since both sides of
+        // the interface element need to use that matrix, we have to expand the resultant matrix.
+        const auto number_of_rows_per_side = result.size1();
+        result.resize(2 * number_of_rows_per_side, result.size2());
+        subrange(result, number_of_rows_per_side, result.size1(), 0, result.size2()) =
+            subrange(result, 0, number_of_rows_per_side, 0, result.size2());
+    }
+
+    KRATOS_ERROR_IF_NOT(result.size1() == rElement.GetGeometry().PointsNumber())
         << "A number of extrapolation matrix rows " << result.size1() << " is not equal to a number of nodes "
-        << r_geometry.PointsNumber() << " for element id " << rElement.Id() << std::endl;
+        << rElement.GetGeometry().PointsNumber() << " for element id " << rElement.Id() << std::endl;
 
-    KRATOS_ERROR_IF_NOT(result.size2() == r_geometry.IntegrationPointsNumber(integration_method))
+    KRATOS_ERROR_IF_NOT(result.size2() == integration_points.size())
         << "A number of extrapolation matrix columns " << result.size2()
-        << " is not equal to a number of integration points "
-        << r_geometry.IntegrationPointsNumber(integration_method) << " for element id "
-        << rElement.Id() << std::endl;
+        << " is not equal to a number of integration points " << integration_points.size()
+        << " for element id " << rElement.Id() << std::endl;
 
     return result;
 }
