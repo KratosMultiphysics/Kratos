@@ -80,6 +80,7 @@ namespace Kratos
             return id1 < id2 ? std::make_pair(id1, id2) : std::make_pair(id2, id1);
         }
 
+        virtual void BeforeSetInitialSphereContacts(const ProcessInfo& r_process_info, std::set<std::pair<int, int>>& CementedContactPairsLocal);
         virtual void SetInitialSphereContacts(const ProcessInfo& r_process_info, std::map<std::pair<int, int>, double>& CementedContactAreasMapLocal);
         void SetInitialFemContacts();
         virtual void CreateContinuumConstitutiveLaws();
@@ -151,6 +152,7 @@ namespace Kratos
         virtual bool IsSkin() { return (bool)*mSkinSphere; }
         void MarkNewSkinParticlesDueToBreakage();
         virtual void GetCementedContactAreasMap(std::map<std::pair<int, int>, double>* CementedContactAreasMap);
+        virtual void GetCementedContactPairsSet(std::set<std::pair<int, int>>* CementedContactPairsSet);
 
         /// Turn back information as a string
         virtual std::string Info() const override
@@ -200,6 +202,7 @@ namespace Kratos
         std::vector<int>            mFemIniNeighbourIds;
         std::vector<double>         mFemIniNeighbourDelta;
         std::map<std::pair<int, int>, double>* mCementedContactAreasMapPtr;
+        std::set<std::pair<int, int>>* mCementedContactPairsSetPtr;
 
     private:
 

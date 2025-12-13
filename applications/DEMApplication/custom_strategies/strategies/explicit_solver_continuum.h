@@ -124,6 +124,7 @@ namespace Kratos {
         std::vector<SphericContinuumParticle*> mListOfGhostSphericContinuumParticles;
         DenseVector<int> mSearchControlVector;
         std::map<std::pair<int, int>, double> mCementedContactAreasMap;
+        std::set<std::pair<int, int>> mCementedContactPairsSet;
 
     }; // Class ContinuumExplicitSolverStrategy
 

@@ -944,7 +944,45 @@ namespace Kratos {
 
         ProcessInfo& r_process_info = GetModelPart().GetProcessInfo();
         const int number_of_particles = (int) mListOfSphericContinuumParticles.size();
+        const bool adjust_bond_contact_area_option = r_process_info[ADJUST_BOND_CONTACT_AREA_OPTION];
+        const double bond_generate_percentage = r_process_info[BOND_GENERATE_PERCENTAGE]; // e.g = 0.3
 
+        #pragma omp parallel
+        {
+            std::set<std::pair<int, int>> CementedContactPairsLocal;
+            
+            #pragma omp for
+            for (int i = 0; i < number_of_particles; i++) {
+                mListOfSphericContinuumParticles[i]->BeforeSetInitialSphereContacts(r_process_info, CementedContactPairsLocal);
+            }
+
+            #pragma omp critical
+            {
+                mCementedContactPairsSet.insert(CementedContactPairsLocal.begin(), CementedContactPairsLocal.end());
+            }
+        }
+
+        if (adjust_bond_contact_area_option) {
+            std::vector<decltype(mCementedContactPairsSet)::value_type> toRemove;
+            for (const auto& pair : mCementedContactPairsSet) {
+                const double random_value = static_cast<double>(rand()) / RAND_MAX;
+                if (random_value > bond_generate_percentage) {
+                    toRemove.push_back(pair);
+                }
+            }
+            for (const auto& pair : toRemove) {
+                mCementedContactPairsSet.erase(pair);
+            }
+        }
+        
+        #pragma omp parallel
+        {
+            #pragma omp for
+            for (int i = 0; i < number_of_particles; i++) {
+                mListOfSphericContinuumParticles[i]->GetCementedContactPairsSet(&mCementedContactPairsSet);
+            }
+        }
+        
         #pragma omp parallel
         {
             std::map<std::pair<int, int>, double> CementedContactAreasMapLocal;

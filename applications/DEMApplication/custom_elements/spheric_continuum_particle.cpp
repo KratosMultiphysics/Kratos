@@ -40,6 +40,19 @@ namespace Kratos {
     SphericContinuumParticle::~SphericContinuumParticle() {
     }
     
+    void SphericContinuumParticle::BeforeSetInitialSphereContacts(const ProcessInfo& r_process_info, std::set<std::pair<int, int>>& CementedContactPairsLocal) {
+
+        for (unsigned int i = 0; i < mNeighbourElements.size(); i++) {
+            SphericContinuumParticle* neighbour_iterator = dynamic_cast<SphericContinuumParticle*>(mNeighbourElements[i]);
+            int r_other_continuum_group = neighbour_iterator->mContinuumGroup; // finding out neighbor's Continuum Group Id
+            if ((r_other_continuum_group == this->mContinuumGroup) && (this->mContinuumGroup != 0)) {
+                if (this->Id() < neighbour_iterator->Id()){
+                    CementedContactPairsLocal.insert(makeKey(this->Id(), neighbour_iterator->Id()));
+                }
+            } 
+        }
+    }//BeforeSetInitialSphereContacts
+    
     void SphericContinuumParticle::SetInitialSphereContacts(const ProcessInfo& r_process_info, std::map<std::pair<int, int>, double>& CementedContactAreasMapLocal) {
 
         std::vector<SphericContinuumParticle*> ContinuumInitialNeighborsElements;
@@ -75,16 +88,9 @@ namespace Kratos {
             double radius_sum = GetRadius() + neighbour_iterator->GetRadius();
             double initial_delta = radius_sum - distance;
 
-            bool set_continuum_contact = true;
-            if (r_process_info[ADJUST_BOND_CONTACT_AREA_OPTION]){
-
-                const double bond_generate_percentage = r_process_info[BOND_GENERATE_PERCENTAGE]; // e.g = 0.3
-
-                const double random_value = static_cast<double>(rand()) / RAND_MAX;
-
-                if (random_value > bond_generate_percentage) {
-                    set_continuum_contact = false;
-                }
+            bool set_continuum_contact = false;
+            if (mCementedContactPairsSetPtr->find(makeKey(this->Id(), neighbour_iterator->Id())) != mCementedContactPairsSetPtr->end()) {
+                set_continuum_contact = true;
             }
             
             int r_other_continuum_group = neighbour_iterator->mContinuumGroup; // finding out neighbor's Continuum Group Id
@@ -1222,6 +1228,10 @@ namespace Kratos {
 
     void SphericContinuumParticle::GetCementedContactAreasMap(std::map<std::pair<int, int>, double>* CementedContactAreasMap){
         mCementedContactAreasMapPtr = CementedContactAreasMap;
+    }
+
+    void SphericContinuumParticle::GetCementedContactPairsSet(std::set<std::pair<int, int>>* CementedContactPairsSet){
+        mCementedContactPairsSetPtr = CementedContactPairsSet;
     }
 
 } // namespace Kratos
