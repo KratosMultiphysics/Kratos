@@ -205,8 +205,7 @@ void InterfaceElement::Initialize(const ProcessInfo& rCurrentProcessInfo)
         r_neighbour_element.CalculateOnIntegrationPoints(
             TOTAL_STRESS_VECTOR, neighbour_cauchy_stresses, rCurrentProcessInfo);
         interface_nodal_cauchy_stresses = ExtrapolationUtilities::CalculateNodalVectors(
-            interface_node_ids, r_neighbour_element.GetGeometry(), r_neighbour_element.GetIntegrationMethod(),
-            neighbour_cauchy_stresses, r_neighbour_element.Id());
+            interface_node_ids, r_neighbour_element, neighbour_cauchy_stresses);
         InterpolateNodalStressesToInitialTractions(interface_nodal_cauchy_stresses);
     }
     const auto shape_function_values_at_integration_points =
@@ -237,6 +236,17 @@ int InterfaceElement::Check(const ProcessInfo& rCurrentProcessInfo) const
     }
 
     return 0;
+}
+
+Geo::IntegrationPointVectorType InterfaceElement::GetIntegrationPoints() const
+{
+    return mIntegrationScheme->GetIntegrationPoints();
+}
+
+const Geometry<Node>& InterfaceElement::GetMidGeometry() const
+{
+    constexpr auto unused_part_index = std::size_t{0};
+    return GetGeometry().GetGeometryPart(unused_part_index);
 }
 
 Element::DofsVectorType InterfaceElement::GetDofs() const
