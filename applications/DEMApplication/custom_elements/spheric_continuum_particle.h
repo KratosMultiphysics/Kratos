@@ -76,7 +76,11 @@ namespace Kratos
             return std::unique_ptr<SphericParticle::ParticleDataBuffer>(new ParticleDataBuffer(p_this_particle));
         }
 
-        virtual void SetInitialSphereContacts(const ProcessInfo& r_process_info);
+        static std::pair<int, int> makeKey(int id1, int id2) {
+            return id1 < id2 ? std::make_pair(id1, id2) : std::make_pair(id2, id1);
+        }
+
+        virtual void SetInitialSphereContacts(const ProcessInfo& r_process_info, std::map<std::pair<int, int>, double>& CementedContactAreasMapLocal);
         void SetInitialFemContacts();
         virtual void CreateContinuumConstitutiveLaws();
         void FinalizeSolutionStep(const ProcessInfo& r_process_info) override;
@@ -146,6 +150,7 @@ namespace Kratos
         virtual double GetInitialBondVolume(int index);
         virtual bool IsSkin() { return (bool)*mSkinSphere; }
         void MarkNewSkinParticlesDueToBreakage();
+        virtual void GetCementedContactAreasMap(std::map<std::pair<int, int>, double>* CementedContactAreasMap);
 
         /// Turn back information as a string
         virtual std::string Info() const override
@@ -194,6 +199,7 @@ namespace Kratos
         double*                     mSkinSphere;
         std::vector<int>            mFemIniNeighbourIds;
         std::vector<double>         mFemIniNeighbourDelta;
+        std::map<std::pair<int, int>, double>* mCementedContactAreasMapPtr;
 
     private:
 

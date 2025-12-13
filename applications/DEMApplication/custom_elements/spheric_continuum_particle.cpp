@@ -39,8 +39,8 @@ namespace Kratos {
 
     SphericContinuumParticle::~SphericContinuumParticle() {
     }
-
-    void SphericContinuumParticle::SetInitialSphereContacts(const ProcessInfo& r_process_info) {
+    
+    void SphericContinuumParticle::SetInitialSphereContacts(const ProcessInfo& r_process_info, std::map<std::pair<int, int>, double>& CementedContactAreasMapLocal) {
 
         std::vector<SphericContinuumParticle*> ContinuumInitialNeighborsElements;
         std::vector<SphericContinuumParticle*> DiscontinuumInitialNeighborsElements;
@@ -107,7 +107,10 @@ namespace Kratos {
                                                 neighbour_iterator->GetRadius(), 
                                                 ini_bond_contact_area,
                                                 r_process_info);
-                mIniBondContactArea[static_cast<int>(neighbour_iterator->Id())] = ini_bond_contact_area;
+                //mIniBondContactArea[static_cast<int>(neighbour_iterator->Id())] = ini_bond_contact_area;
+                if (this->Id() < neighbour_iterator->Id()){
+                    CementedContactAreasMapLocal[makeKey(this->Id(), neighbour_iterator->Id())] = ini_bond_contact_area;
+                }
                 double V_bond = 0.0;
                 double R_bond = std::sqrt(ini_bond_contact_area / Globals::Pi);
                 CalculateBondVolume(distance, GetRadius(), neighbour_iterator->GetRadius(), R_bond, V_bond);
@@ -1149,9 +1152,19 @@ namespace Kratos {
         }
     }
 
+    /*
     double SphericContinuumParticle::GetInitialBondContactArea(int index) {
         if (mIniBondContactArea.find(static_cast<int>(index)) != mIniBondContactArea.end()){
             return mIniBondContactArea[static_cast<int>(index)];
+        } else {
+            return 0.0;
+        }
+    }*/
+
+    double SphericContinuumParticle::GetInitialBondContactArea(int index) {
+        std::pair<int, int> key = makeKey(static_cast<int>(this->Id()), static_cast<int>(index));
+        if (mCementedContactAreasMapPtr->find(key) != mCementedContactAreasMapPtr->end()){
+            return (*mCementedContactAreasMapPtr)[key];
         } else {
             return 0.0;
         }
@@ -1205,6 +1218,10 @@ namespace Kratos {
             bond->mUnidimendionalDamage = acumulated_damage;
         }
         KRATOS_CATCH("")
+    }
+
+    void SphericContinuumParticle::GetCementedContactAreasMap(std::map<std::pair<int, int>, double>* CementedContactAreasMap){
+        mCementedContactAreasMapPtr = CementedContactAreasMap;
     }
 
 } // namespace Kratos

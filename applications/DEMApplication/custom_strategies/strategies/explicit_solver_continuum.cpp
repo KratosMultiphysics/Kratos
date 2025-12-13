@@ -947,9 +947,11 @@ namespace Kratos {
 
         #pragma omp parallel
         {
+            std::map<std::pair<int, int>, double> CementedContactAreasMapLocal;
+            
             #pragma omp for
             for (int i = 0; i < number_of_particles; i++) {
-                mListOfSphericContinuumParticles[i]->SetInitialSphereContacts(r_process_info);
+                mListOfSphericContinuumParticles[i]->SetInitialSphereContacts(r_process_info, CementedContactAreasMapLocal);
                 mListOfSphericContinuumParticles[i]->CreateContinuumConstitutiveLaws();
             }
 
@@ -958,6 +960,19 @@ namespace Kratos {
                 for (int i = 0; i < number_of_particles; i++) {
                     mListOfSphericContinuumParticles[i]->ContactAreaWeighting(r_process_info);
                 }
+            }
+
+            #pragma omp critical
+            {
+                mCementedContactAreasMap.insert(CementedContactAreasMapLocal.begin(), CementedContactAreasMapLocal.end());
+            }
+        }
+
+        #pragma omp parallel
+        {
+            #pragma omp for
+            for (int i = 0; i < number_of_particles; i++) {
+                mListOfSphericContinuumParticles[i]->GetCementedContactAreasMap(&mCementedContactAreasMap);
             }
         }
 
