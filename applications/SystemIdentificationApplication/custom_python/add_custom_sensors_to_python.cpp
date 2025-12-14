@@ -22,6 +22,7 @@
 #include "custom_sensors/sensor_view.h"
 #include "custom_sensors/displacement_sensor.h"
 #include "custom_sensors/strain_sensor.h"
+#include "custom_sensors/temperature_sensor.h"
 
 // Include base h
 #include "custom_python/add_custom_sensors_to_python.h"
@@ -115,6 +116,16 @@ void  AddCustomSensorsToPython(pybind11::module& m)
             py::arg("weight"))
         .def_static("GetDefaultParameters", &StrainSensor::GetDefaultParameters)
         .def_static("Create", &StrainSensor::Create, py::arg("domain_model_part"), py::arg("sensor_model_part"), py::arg("sensor_id"), py::arg("sensor_parameters"))
+        ;
+
+    py::class_<TemperatureSensor, TemperatureSensor::Pointer, Sensor>(sensor_module, "TemperatureSensor")
+        .def(py::init<const std::string&,Node::Pointer,const Element&,const double>(),
+            py::arg("name"),
+            py::arg("node"),
+            py::arg("element"),
+            py::arg("weight"))
+        .def_static("GetDefaultParameters", &TemperatureSensor::GetDefaultParameters)
+        .def_static("Create", &TemperatureSensor::Create, py::arg("domain_model_part"), py::arg("sensor_model_part"), py::arg("sensor_id"), py::arg("sensor_parameters"))
         ;
 }
 

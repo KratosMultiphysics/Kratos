@@ -565,5 +565,179 @@ class TestStrainSensorSolids(UnitTest.TestCase):
                 self.assertAlmostEqual(sensitivity, response_sensitivities[j * 3 + 2], 4)
                 node.SetSolutionStepValue(Kratos.DISPLACEMENT_Z, node.GetSolutionStepValue(Kratos.DISPLACEMENT_Z) - delta)
 
+
+class TestTemperatureSensor(UnitTest.TestCase):
+    @classmethod
+    def setUpClass(cls) -> None:
+        cls.model = Kratos.Model()
+        cls.model_part = cls.model.CreateModelPart("Test")
+        cls.sensor_model_part = cls.model.CreateModelPart("SensorModelPart")
+        cls.model_part.AddNodalSolutionStepVariable(Kratos.TEMPERATURE)
+
+        cls.model_part.CreateNewNode(1, 0.0, 0.0, 0.0)
+        cls.model_part.CreateNewNode(2, 1.0, 0.0, 0.0)
+        cls.model_part.CreateNewNode(3, 1.0, 1.0, 0.0)
+        cls.model_part.CreateNewNode(4, 0.0, 1.0, 0.0)
+
+        prop = cls.model_part.CreateNewProperties(1)
+
+        cls.model_part.CreateNewElement("Element2D3N", 1, [1, 2, 4], prop)
+        cls.model_part.CreateNewElement("Element2D3N", 2, [2, 3, 4], prop)
+
+        for node in cls.model_part.Nodes:
+            node.SetSolutionStepValue(Kratos.TEMPERATURE, node.Id + 2)
+
+        parameters = [
+            Kratos.Parameters("""{
+
+                "type"         : "temperature_sensor",
+                "name"         : "temp_x_1",
+                "value"        : 0,
+                "location"     : [0.3333333333333, 0.3333333333333, 0.0],
+                "weight"       : 1.0,
+                "variable_data": {}
+            }"""),
+            Kratos.Parameters("""{
+
+                "type"         : "temperature_sensor",
+                "name"         : "temp_x_2",
+                "value"        : 0,
+                "location"     : [0.6666666666667, 0.6666666666667, 0.0],
+                "weight"       : 1.0,
+                "variable_data": {}
+            }"""),
+            Kratos.Parameters("""{
+
+                "type"         : "temperature_sensor",
+                "name"         : "temp_x_3",
+                "value"        : 0,
+                "location"     : [0.5, 0.5, 0.0],
+                "weight"       : 1.0,
+                "variable_data": {}
+            }""")
+        ]
+
+        cls.sensors = CreateSensors(cls.sensor_model_part, cls.model_part, parameters)
+        cls.ref_values = [13/3, 5, 5]
+
+    def test_SensorsOnNodes(self):
+        parameters = [
+            Kratos.Parameters("""{
+
+                "type"         : "temperature_sensor",
+                "name"         : "temp_x_1",
+                "value"        : 0,
+                "location"     : [0.0, 0.0, 0.0],
+                "weight"       : 1.0,
+                "variable_data": {}
+            }"""),
+            Kratos.Parameters("""{
+
+                "type"         : "temperature_sensor",
+                "name"         : "temp_x_2",
+                "value"        : 0,
+                "location"     : [1.0, 0.0, 0.0],
+                "weight"       : 1.0,
+                "variable_data": {}
+            }"""),
+            Kratos.Parameters("""{
+
+                "type"         : "temperature_sensor",
+                "name"         : "temp_x_3",
+                "value"        : 0,
+                "location"     : [1.0, 1.0, 0.0],
+                "weight"       : 1.0,
+                "variable_data": {}
+            }"""),
+            Kratos.Parameters("""{
+
+                "type"         : "temperature_sensor",
+                "name"         : "temp_x_4",
+                "value"        : 0,
+                "location"     : [0.0, 1.0, 0.0],
+                "weight"       : 1.0,
+                "variable_data": {}
+            }""")
+        ]
+
+        sensors = CreateSensors(self.model.CreateModelPart("SensorsOnNodes"), self.model_part, parameters)
+        for sensor, ref_node_id in zip(sensors, [1, 2, 3, 4]):
+            self.assertAlmostEqual(sensor.CalculateValue(self.model_part), self.model_part.GetNode(ref_node_id).GetSolutionStepValue(Kratos.TEMPERATURE))
+
+    def test_SensorsOnEdges(self):
+        parameters = [
+            Kratos.Parameters("""{
+
+                "type"         : "temperature_sensor",
+                "name"         : "temp_x_1",
+                "value"        : 0,
+                "location"     : [0.5, 0.0, 0.0],
+                "weight"       : 1.0,
+                "variable_data": {}
+            }"""),
+            Kratos.Parameters("""{
+
+                "type"         : "temperature_sensor",
+                "name"         : "temp_x_2",
+                "value"        : 0,
+                "location"     : [1.0, 0.5, 0.0],
+                "weight"       : 1.0,
+                "variable_data": {}
+            }"""),
+            Kratos.Parameters("""{
+
+                "type"         : "temperature_sensor",
+                "name"         : "temp_x_3",
+                "value"        : 0,
+                "location"     : [0.5, 0.5, 0.0],
+                "weight"       : 1.0,
+                "variable_data": {}
+            }"""),
+            Kratos.Parameters("""{
+
+                "type"         : "temperature_sensor",
+                "name"         : "temp_x_4",
+                "value"        : 0,
+                "location"     : [0.5, 1.0, 0.0],
+                "weight"       : 1.0,
+                "variable_data": {}
+            }"""),
+            Kratos.Parameters("""{
+
+                "type"         : "temperature_sensor",
+                "name"         : "temp_x_5",
+                "value"        : 0,
+                "location"     : [0.0, 0.5, 0.0],
+                "weight"       : 1.0,
+                "variable_data": {}
+            }""")
+        ]
+
+        sensors = CreateSensors(self.model.CreateModelPart("SensorsOnEdges"), self.model_part, parameters)
+        for sensor, (ref_node_id_1, ref_node_id_2) in zip(sensors, [(1, 2), (2, 3), (2, 4), (3, 4), (1, 4)]):
+            ref_value = (self.model_part.GetNode(ref_node_id_1).GetSolutionStepValue(Kratos.TEMPERATURE) + self.model_part.GetNode(ref_node_id_2).GetSolutionStepValue(Kratos.TEMPERATURE)) / 2.0
+            self.assertAlmostEqual(sensor.CalculateValue(self.model_part), ref_value)
+
+    def test_CalculateValue(self):
+        values = [sensor.CalculateValue(self.model_part) for sensor in self.sensors]
+        self.assertVectorAlmostEqual(values, self.ref_values, 7)
+
+    def test_PartialSensitivity(self):
+        sensitivity_matrix = Kratos.Matrix(3, 18)
+        sensitivity_gradient = Kratos.Vector()
+        for i, sensor in enumerate(self.sensors):
+            ref_value = self.ref_values[i]
+            delta = 1e-5
+
+            element: Kratos.Element = self.model_part.GetElement(sensor.GetNode().GetValue(KratosSI.SENSOR_ELEMENT_ID))
+            sensor.CalculatePartialSensitivity(element, Kratos.TEMPERATURE, sensitivity_matrix, sensitivity_gradient, self.model_part.ProcessInfo)
+            for j, node in enumerate(element.GetGeometry()):
+                node.SetSolutionStepValue(Kratos.TEMPERATURE, node.GetSolutionStepValue(Kratos.TEMPERATURE) + delta)
+                perturbed_value = sensor.CalculateValue(self.model_part)
+                sensitivity = (perturbed_value - ref_value) / delta
+                self.assertAlmostEqual(sensitivity, -1* sensitivity_gradient[j]) # -1 because structural responses are designed opposite to fluid ones and need a sign change
+                node.SetSolutionStepValue(Kratos.TEMPERATURE, node.GetSolutionStepValue(Kratos.TEMPERATURE) - delta)
+
+
 if __name__ == '__main__':
     UnitTest.main()
