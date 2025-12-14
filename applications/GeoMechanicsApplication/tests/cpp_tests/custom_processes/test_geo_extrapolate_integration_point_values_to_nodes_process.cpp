@@ -16,6 +16,10 @@
 #include "geometries/quadrilateral_2d_4.h"
 #include "tests/cpp_tests/geo_mechanics_fast_suite.h"
 
+#include <numbers>
+
+using namespace std::numbers;
+
 namespace Kratos::Testing
 {
 
@@ -25,7 +29,7 @@ public:
     KRATOS_CLASS_INTRUSIVE_POINTER_DEFINITION(StubElementForNodalExtrapolationTest);
 
     StubElementForNodalExtrapolationTest(IndexType NewId, GeometryType::Pointer pGeometry)
-        : Element(NewId, pGeometry)
+        : Element(NewId, std::move(pGeometry))
     {
     }
 
@@ -106,14 +110,14 @@ KRATOS_TEST_CASE_IN_SUITE(TestExtrapolationProcess_InitializesNodalArea, KratosG
     Model model;
     auto& model_part = CreateModelPartWithTwoStubElements(model);
 
-    auto parameters = Parameters(R"(
+    const auto parameters = Parameters(R"(
     {
         "model_part_name"            : "MainModelPart",
         "echo_level"                 : 0,
         "list_of_variables"          : ["HYDRAULIC_HEAD"]
     })");
 
-    GeoExtrapolateIntegrationPointValuesToNodesProcess process(model_part, parameters);
+    GeoExtrapolateIntegrationPointValuesToNodesProcess process(model, parameters);
 
     process.ExecuteBeforeSolutionLoop();
 
@@ -143,14 +147,14 @@ KRATOS_TEST_CASE_IN_SUITE(TestExtrapolationProcess_ExtrapolatesCorrectlyForConst
     dynamic_cast<StubElementForNodalExtrapolationTest&>(model_part.Elements()[2]).mIntegrationDoubleValues = {
         1.0, 1.0, 1.0, 1.0};
 
-    auto parameters = Parameters(R"(
+    const auto parameters = Parameters(R"(
     {
         "model_part_name"            : "MainModelPart",
         "echo_level"                 : 0,
         "list_of_variables"          : ["HYDRAULIC_HEAD"]
     })");
 
-    GeoExtrapolateIntegrationPointValuesToNodesProcess process(model_part, parameters);
+    GeoExtrapolateIntegrationPointValuesToNodesProcess process(model, parameters);
     process.Execute();
 
     for (auto& node : model_part.Nodes()) {
@@ -174,14 +178,14 @@ KRATOS_TEST_CASE_IN_SUITE(TestExtrapolationProcess_ExtrapolatesCorrectlyForTwoCo
     dynamic_cast<StubElementForNodalExtrapolationTest&>(model_part.Elements()[2]).mIntegrationDoubleValues = {
         2.0, 2.0, 2.0, 2.0};
 
-    auto parameters = Parameters(R"(
+    const auto parameters = Parameters(R"(
     {
         "model_part_name"            : "MainModelPart",
         "echo_level"                 : 0,
         "list_of_variables"          : ["HYDRAULIC_HEAD"]
     })");
 
-    GeoExtrapolateIntegrationPointValuesToNodesProcess process(model_part, parameters);
+    GeoExtrapolateIntegrationPointValuesToNodesProcess process(model, parameters);
     process.Execute();
 
     std::vector<double> expected_values = {1.0, 1.5, 1.5, 1.0, 2.0, 2.0};
@@ -206,19 +210,19 @@ KRATOS_TEST_CASE_IN_SUITE(TestExtrapolationProcess_ExtrapolatesCorrectlyForLinea
 
     // Linear field in x between -1 and 1
     dynamic_cast<StubElementForNodalExtrapolationTest&>(model_part.Elements()[1]).mIntegrationDoubleValues = {
-        -0.57735, 0.57735, 0.57735, -0.57735};
+        -inv_sqrt3, inv_sqrt3, inv_sqrt3, -inv_sqrt3};
 
     // Linear field in y between -1 and 1
     dynamic_cast<StubElementForNodalExtrapolationTest&>(model_part.Elements()[2]).mIntegrationDoubleValues = {
-        -0.57735, -0.57735, 0.57735, 0.57735};
+        -inv_sqrt3, -inv_sqrt3, inv_sqrt3, inv_sqrt3};
 
-    auto                                               parameters = Parameters(R"(
+    const auto                                         parameters = Parameters(R"(
      {
          "model_part_name"            : "MainModelPart",
          "echo_level"                 : 0,
          "list_of_variables"          : ["HYDRAULIC_HEAD"]
      })");
-    GeoExtrapolateIntegrationPointValuesToNodesProcess process(model_part, parameters);
+    GeoExtrapolateIntegrationPointValuesToNodesProcess process(model, parameters);
     process.Execute();
 
     std::vector<double> expected_values = {-1, 0, 1, -1, -1, 1};
@@ -243,22 +247,22 @@ KRATOS_TEST_CASE_IN_SUITE(TestExtrapolationProcess_ExtrapolatesMatrixCorrectlyFo
 
     // Linear field in x between -1 and 1
     dynamic_cast<StubElementForNodalExtrapolationTest&>(model_part.Elements()[1]).mIntegrationMatrixValues = {
-        ScalarMatrix(3, 3, -0.57735), ScalarMatrix(3, 3, 0.57735), ScalarMatrix(3, 3, 0.57735),
-        ScalarMatrix(3, 3, -0.57735)};
+        ScalarMatrix(3, 3, -inv_sqrt3), ScalarMatrix(3, 3, inv_sqrt3),
+        ScalarMatrix(3, 3, inv_sqrt3), ScalarMatrix(3, 3, -inv_sqrt3)};
 
     // Linear field in y between -1 and 1
     dynamic_cast<StubElementForNodalExtrapolationTest&>(model_part.Elements()[2]).mIntegrationMatrixValues = {
-        ScalarMatrix(3, 3, -0.57735), ScalarMatrix(3, 3, -0.57735), ScalarMatrix(3, 3, 0.57735),
-        ScalarMatrix(3, 3, 0.57735)};
+        ScalarMatrix(3, 3, -inv_sqrt3), ScalarMatrix(3, 3, -inv_sqrt3),
+        ScalarMatrix(3, 3, inv_sqrt3), ScalarMatrix(3, 3, inv_sqrt3)};
 
-    auto parameters = Parameters(R"(
+    const auto parameters = Parameters(R"(
      {
          "model_part_name"            : "MainModelPart",
          "echo_level"                 : 0,
          "list_of_variables"          : ["CAUCHY_STRESS_TENSOR"]
      })");
 
-    GeoExtrapolateIntegrationPointValuesToNodesProcess process(model_part, parameters);
+    GeoExtrapolateIntegrationPointValuesToNodesProcess process(model, parameters);
     process.Execute();
 
     std::vector<Matrix> expected_values = {ScalarMatrix(3, 3, -1), ScalarMatrix(3, 3, 0),
@@ -288,21 +292,22 @@ KRATOS_TEST_CASE_IN_SUITE(TestExtrapolationProcess_ExtrapolatesVectorCorrectlyFo
 
     // Linear field in x between -1 and 1
     dynamic_cast<StubElementForNodalExtrapolationTest&>(model_part.Elements()[1]).mIntegrationVectorValues = {
-        ScalarVector(6, -0.57735), ScalarVector(6, 0.57735), ScalarVector(6, 0.57735),
-        ScalarVector(6, -0.57735)};
+        ScalarVector(6, -inv_sqrt3), ScalarVector(6, inv_sqrt3), ScalarVector(6, inv_sqrt3),
+        ScalarVector(6, -inv_sqrt3)};
 
     // Linear field in y between -1 and 1
     dynamic_cast<StubElementForNodalExtrapolationTest&>(model_part.Elements()[2]).mIntegrationVectorValues = {
-        ScalarVector(6, -0.57735), ScalarVector(6, -0.57735), ScalarVector(6, 0.57735), ScalarVector(6, 0.57735)};
+        ScalarVector(6, -inv_sqrt3), ScalarVector(6, -inv_sqrt3), ScalarVector(6, inv_sqrt3),
+        ScalarVector(6, inv_sqrt3)};
 
-    auto parameters = Parameters(R"(
+    const auto parameters = Parameters(R"(
      {
          "model_part_name"            : "MainModelPart",
          "echo_level"                 : 0,
          "list_of_variables"          : ["CAUCHY_STRESS_VECTOR"]
      })");
 
-    GeoExtrapolateIntegrationPointValuesToNodesProcess process(model_part, parameters);
+    GeoExtrapolateIntegrationPointValuesToNodesProcess process(model, parameters);
     process.Execute();
 
     std::vector<Vector> expected_values = {ScalarVector(6, -1), ScalarVector(6, 0),
@@ -332,21 +337,22 @@ KRATOS_TEST_CASE_IN_SUITE(TestExtrapolationProcess_ExtrapolatesArrayCorrectlyFor
 
     // Linear field in x between -1 and 1
     dynamic_cast<StubElementForNodalExtrapolationTest&>(model_part.Elements()[1]).mIntegrationArrayValues = {
-        ScalarVector(3, -0.57735), ScalarVector(3, 0.57735), ScalarVector(3, 0.57735),
-        ScalarVector(3, -0.57735)};
+        ScalarVector(3, -inv_sqrt3), ScalarVector(3, inv_sqrt3), ScalarVector(3, inv_sqrt3),
+        ScalarVector(3, -inv_sqrt3)};
 
     // Linear field in y between -1 and 1
     dynamic_cast<StubElementForNodalExtrapolationTest&>(model_part.Elements()[2]).mIntegrationArrayValues = {
-        ScalarVector(3, -0.57735), ScalarVector(3, -0.57735), ScalarVector(3, 0.57735), ScalarVector(3, 0.57735)};
+        ScalarVector(3, -inv_sqrt3), ScalarVector(3, -inv_sqrt3), ScalarVector(3, inv_sqrt3),
+        ScalarVector(3, inv_sqrt3)};
 
-    auto parameters = Parameters(R"(
+    const auto parameters = Parameters(R"(
      {
-         "model_part_name"            : "MainModelPart",
+         "model_part_name_list"       : ["MainModelPart"],
          "echo_level"                 : 0,
          "list_of_variables"          : ["FLUID_FLUX_VECTOR"]
      })");
 
-    GeoExtrapolateIntegrationPointValuesToNodesProcess process(model_part, parameters);
+    GeoExtrapolateIntegrationPointValuesToNodesProcess process(model, parameters);
     process.Execute();
 
     std::vector<Vector>              expected_values = {ScalarVector(3, -1), ScalarVector(3, 0),
@@ -360,6 +366,24 @@ KRATOS_TEST_CASE_IN_SUITE(TestExtrapolationProcess_ExtrapolatesArrayCorrectlyFor
     for (std::size_t i = 0; i < expected_values.size(); ++i) {
         KRATOS_EXPECT_VECTOR_NEAR(actual_values[i], expected_values[i], 1e-6)
     }
+}
+
+KRATOS_TEST_CASE_IN_SUITE(CheckInfoGeoExtrapolateIntegrationPointValuesToNodesProcess, KratosGeoMechanicsFastSuiteWithoutKernel)
+{
+    // Arrange
+    Model model;
+    model.CreateModelPart("foo");
+
+    const auto parameters = Parameters(R"(
+     {
+         "model_part_name"            : "foo",
+         "list_of_variables"          : ["FLUID_FLUX_VECTOR"]
+     })");
+
+    const GeoExtrapolateIntegrationPointValuesToNodesProcess process(model, parameters);
+
+    // Act & assert
+    KRATOS_EXPECT_EQ(process.Info(), "GeoExtrapolateIntegrationPointValuesToNodesProcess");
 }
 
 } // namespace Kratos::Testing

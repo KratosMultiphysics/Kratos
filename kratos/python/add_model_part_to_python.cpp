@@ -9,7 +9,6 @@
 //
 //  Main authors:    Pooyan Dadvand
 //
-//
 
 // System includes
 
@@ -19,9 +18,7 @@
 // Project includes
 #include "includes/define_python.h"
 #include "containers/model.h"
-#include "includes/model_part.h"
 #include "includes/kratos_components.h"
-#include "includes/process_info.h"
 #include "utilities/quaternion.h"
 #include "python/add_model_part_to_python.h"
 #include "python/containers_interface.h"

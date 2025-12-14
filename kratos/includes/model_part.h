@@ -206,6 +206,21 @@ public:
         usage. */
     typedef MeshType::ConditionConstantIterator ConditionConstantIterator;
 
+    /// Geometries container. A vector set of Conditions with their Id's as key.
+    typedef MeshType::GeometryContainerType GeometryContainerType;
+
+    /** Iterator over the Geometries. This iterator is an indirect
+       iterator over Geometries::Pointer which turn back a reference to
+       Geometry by * operator and not a pointer for more convenient
+       usage. */
+    typedef MeshType::GeometryIterator GeometryIterator;
+
+    /** Const iterator over the Geometries. This iterator is an indirect
+        iterator over Geometries::Pointer which turn back a reference to
+        Geometry by * operator and not a pointer for more convenient
+        usage. */
+    typedef MeshType::GeometryConstantIterator GeometryConstantIterator;
+
     /// Defining a table with double argument and result type as table type.
     typedef Table<double,double> TableType;
 
@@ -241,25 +256,6 @@ public:
     Table by * operator and not a pointer for more convenient
     usage. */
     typedef MeshType::MasterSlaveConstraintConstantIteratorType MasterSlaveConstraintConstantIteratorType;
-
-    /// The Geometry Container.
-    /**
-    * Contains all geometries, which can be addressed by specific identifiers.
-    */
-   /// Type alias for the container of geometries.
-    using GeometryContainerType = PointerVectorSet<GeometryType,
-        IndexedObject,
-        std::less<typename IndexedObject::result_type>,
-        std::equal_to<typename IndexedObject::result_type>,
-        typename GeometryType::Pointer,
-        std::vector<typename GeometryType::Pointer>
-    >;
-
-    /// Iterator for geometries in the container. Provides direct references to geometries.
-    typedef typename GeometryContainerType::iterator GeometryIterator;
-
-    /// Const iterator for geometries in the container. Provides direct references to geometries.
-    typedef typename GeometryContainerType::const_iterator GeometryConstantIterator;
 
     /// The container of the sub model parts. A hash table is used.
     /**
@@ -1350,12 +1346,49 @@ public:
     }
 
     ///@}
-    ///@name Geometry Container
+    ///@name Geometries
     ///@{
 
     SizeType NumberOfGeometries() const
     {
-        return mGeometries.size();
+        return GetMesh(0).NumberOfGeometries();
+    }
+
+    /** Inserts a geometry in the current mesh.
+     */
+    void AddGeometry(typename GeometryType::Pointer pNewGeometry);
+
+    /// Inserts a list of geometries to a submodelpart provided their Id. Does nothing if applied to the top model part
+    void AddGeometries(std::vector<IndexType> const& GeometriesIds);
+
+    /// Inserts a list of pointers to geometries
+    template<class TIteratorType >
+    void AddGeometries(TIteratorType geometries_begin,  TIteratorType geometries_end)
+    {
+        EntityRangeChecker<GeometryContainerType>()(this, geometries_begin, geometries_end);
+
+        InsertEntityRange([](ModelPart* pModelPart) {
+            return &(pModelPart->GetMesh().Geometries());
+        }, geometries_begin, geometries_end);
+    }
+
+    /// Inserts a list of geometries to a submodelpart provided their iterators
+    template<class TContainer, std::enable_if_t<IsRValueContainer<TContainer>::value, bool> = true>
+    void AddGeometries(TContainer&& rInputContainer)
+    {
+        // This check is required in cases where std::vector<IndexType> is passed as an r value, then it will
+        // not call the correct addition with the input args of const std::vector<IndexType>&, it will get in to this method.
+        // this check will redirect it to the std::vector<IndexType> method with the rContainer.
+        if constexpr(!std::is_same_v<BaseType<TContainer>, std::vector<IndexType>>) {
+            EntityRangeChecker<GeometryContainerType>()(this, rInputContainer.begin(), rInputContainer.end());
+
+            InsertEntities([](ModelPart* pModelPart) {
+                return &(pModelPart->GetMesh().Geometries());
+            }, std::move(rInputContainer));
+        } else {
+            // call the vector of int insertion.
+            AddGeometries(rInputContainer);
+        }
     }
 
     /**
@@ -1460,151 +1493,82 @@ public:
         GeometryType::Pointer pGeometry
         );
 
-    /// Adds a geometry to the geometry container.
-    void AddGeometry(typename GeometryType::Pointer pNewGeometry);
-
-    /// Inserts a list of geometries to a submodelpart provided their Id. Does nothing if applied to the top model part
-    void AddGeometries(std::vector<IndexType> const& GeometriesIds);
-
-    /// Inserts a list of geometries to a submodelpart provided their iterators
-    template<class TIteratorType >
-    void AddGeometries(TIteratorType GeometryBegin,  TIteratorType GeometriesEnd, IndexType ThisIndex = 0)
+    /** Returns if the Element corresponding to it's identifier exists */
+    bool HasGeometry(IndexType GeometryId) const 
     {
-        KRATOS_TRY
-
-        ModelPart* p_root_model_part = &this->GetRootModelPart();
-
-        block_for_each(GeometryBegin, GeometriesEnd, [p_root_model_part](const auto& prGeometry) {
-            const auto& r_geometry = ReferenceGetter<GeometryContainerType::value_type>::Get(prGeometry);
-            const auto& r_geometries = p_root_model_part->Geometries();
-            auto it_found = r_geometries.find(r_geometry.Id());
-            if (it_found != p_root_model_part->GeometriesEnd()) {
-                if (GeometryType::HasSameGeometryType(r_geometry, *it_found)) { // Check the geometry type and connectivities
-                    for (IndexType i_pt = 0; i_pt < r_geometry.PointsNumber(); ++i_pt) {
-                        KRATOS_ERROR_IF((r_geometry)[i_pt].Id() != (*it_found)[i_pt].Id()) << "Attempting to add a new geometry with Id: " << r_geometry.Id() << ". A same type geometry with same Id but different connectivities already exists." << std::endl;
-                    }
-                } else if(&(*it_found) != &r_geometry) { // Check if the pointee coincides
-                    KRATOS_ERROR << "Attempting to add a new geometry with Id: " << it_found->Id() << ". A different geometry with the same Id already exists." << std::endl;
-                }
-            }
-        });
-
-        InsertEntityRange([](ModelPart* pModelPart) {
-            return &(pModelPart->Geometries());
-        }, GeometryBegin, GeometriesEnd);
-
-        KRATOS_CATCH("")
+        return GetMesh(0).HasGeometry(GeometryId);
     }
 
-
-    /// Inserts a list of geometries to a submodelpart provided their iterators
-    template<class TContainer, std::enable_if_t<IsRValueContainer<TContainer>::value, bool> = true>
-    void AddGeometries(TContainer&& rInputContainer)
+    /** Returns if the Element corresponding to it's name exists */
+    bool HasGeometry(std::string GeometryName) const 
     {
-        KRATOS_TRY
-
-        // This check is required in cases where std::vector<IndexType> is passed as an r value, then it will
-        // not call the correct addition with the input args of const std::vector<IndexType>&, it will get in to this method.
-        // this check will redirect it to the std::vector<IndexType> method with the rContainer.
-        if constexpr(!std::is_same_v<BaseType<TContainer>, std::vector<IndexType>>) {
-            ModelPart* p_root_model_part = &this->GetRootModelPart();
-
-            block_for_each(rInputContainer.begin(), rInputContainer.end(), [p_root_model_part](const auto& prGeometry) {
-                const auto& r_geometry = ReferenceGetter<GeometryContainerType::value_type>::Get(prGeometry);
-                const auto& r_geometries = p_root_model_part->Geometries();
-                auto it_found = r_geometries.find(r_geometry.Id());
-                if (it_found != p_root_model_part->GeometriesEnd()) {
-                    if (GeometryType::HasSameGeometryType(r_geometry, *it_found)) { // Check the geometry type and connectivities
-                        for (IndexType i_pt = 0; i_pt < r_geometry.PointsNumber(); ++i_pt) {
-                            KRATOS_ERROR_IF((r_geometry)[i_pt].Id() != (*it_found)[i_pt].Id()) << "Attempting to add a new geometry with Id: " << r_geometry.Id() << ". A same type geometry with same Id but different connectivities already exists." << std::endl;
-                        }
-                    } else if(&(*it_found) != &r_geometry) { // Check if the pointee coincides
-                        KRATOS_ERROR << "Attempting to add a new geometry with Id: " << it_found->Id() << ". A different geometry with the same Id already exists." << std::endl;
-                    }
-                }
-            });
-
-            InsertEntities([](ModelPart* pModelPart) {
-                return &(pModelPart->Geometries());
-            }, std::move(rInputContainer));
-        } else {
-            // call the vector of int insertion.
-            AddGeometries(rInputContainer);
-        }
-
-
-
-        KRATOS_CATCH("")
+        return GetMesh(0).HasGeometry(GeometryName);
     }
 
     /// Returns the Geometry::Pointer corresponding to the Id
-    typename GeometryType::Pointer pGetGeometry(IndexType GeometryId) {
-        auto i = mGeometries.find(GeometryId);
-        KRATOS_ERROR_IF(i == mGeometries.end()) << " geometry index not found: " << GeometryId << ".";
-        return *(i.base());
+    typename GeometryType::Pointer pGetGeometry(IndexType GeometryId) 
+    {
+        return GetMesh(0).pGetGeometry(GeometryId);
     }
 
     /// Returns the const Geometry::Pointer corresponding to the Id
-    const typename GeometryType::Pointer pGetGeometry(IndexType GeometryId) const {
-        auto i = mGeometries.find(GeometryId);
-        KRATOS_ERROR_IF(i == mGeometries.end()) << " geometry index not found: " << GeometryId << ".";
-        return *(i.base());
+    const typename GeometryType::Pointer pGetGeometry(const IndexType GeometryId) const 
+    {
+        return GetMesh(0).pGetGeometry(GeometryId);
     }
 
     /// Returns the Geometry::Pointer corresponding to the name
-    typename GeometryType::Pointer pGetGeometry(std::string GeometryName) {
-        auto hash_index = GeometryType::GenerateId(GeometryName);
-        auto i = mGeometries.find(hash_index);
-        KRATOS_ERROR_IF(i == mGeometries.end()) << " geometry index not found: " << GeometryName << ".";
-        return *(i.base());
+    typename GeometryType::Pointer pGetGeometry(std::string GeometryName) 
+    {
+        return GetMesh(0).pGetGeometry(GeometryName);
     }
 
     /// Returns the Geometry::Pointer corresponding to the name
-    const typename GeometryType::Pointer pGetGeometry(std::string GeometryName) const {
-        auto hash_index = GeometryType::GenerateId(GeometryName);
-        auto i = mGeometries.find(hash_index);
-        KRATOS_ERROR_IF(i == mGeometries.end()) << " geometry index not found: " << GeometryName << ".";
-        return *(i.base());
+    const typename GeometryType::Pointer pGetGeometry(const std::string GeometryName) const 
+    {
+        return GetMesh(0).pGetGeometry(GeometryName);
     }
 
     /// Returns a reference geometry corresponding to the id
-    GeometryType& GetGeometry(IndexType GeometryId) {
-        return *pGetGeometry(GeometryId);
+    GeometryType& GetGeometry(IndexType GeometryId) 
+    {
+        return GetMesh(0).GetGeometry(GeometryId);
     }
 
     /// Returns a const reference geometry corresponding to the id
-    const GeometryType& GetGeometry(IndexType GeometryId) const {
-        return *pGetGeometry(GeometryId);
+    const GeometryType& GetGeometry(IndexType GeometryId) const 
+    {
+        return GetMesh(0).GetGeometry(GeometryId);
     }
 
     /// Returns a reference geometry corresponding to the name
-    GeometryType& GetGeometry(std::string GeometryName) {
-        return *pGetGeometry(GeometryName);
+    GeometryType& GetGeometry(std::string GeometryName) 
+    {
+        return GetMesh(0).GetGeometry(GeometryName);
     }
 
     /// Returns a const reference geometry corresponding to the name
-    const GeometryType& GetGeometry(std::string GeometryName) const {
-        return *pGetGeometry(GeometryName);
+    const GeometryType& GetGeometry(std::string GeometryName) const 
+    {
+        return GetMesh(0).GetGeometry(GeometryName);
     }
 
-
-    /// Checks if has geometry by id.
-    bool HasGeometry(IndexType GeometryId) const {
-        return (mGeometries.find(GeometryId) != mGeometries.end());
-    }
-
-    /// Checks if has geometry by name.
-    bool HasGeometry(std::string GeometryName) const {
-        auto hash_index = GeometryType::GenerateId(GeometryName);
-        return (mGeometries.find(hash_index) != mGeometries.end());
-    }
-
-
-    /// Removes a geometry by id.
+    /** Remove the geometry with given Id from mesh with ThisIndex in this modelpart and all its subs.
+    */
     void RemoveGeometry(IndexType GeometryId);
 
-    /// Removes a geometry by name.
+    /** Remove the geometry with given name from mesh with ThisIndex in this modelpart and all its subs.
+    */
     void RemoveGeometry(std::string GeometryName);
+
+     /** Remove given geometry from mesh with ThisIndex in this modelpart and all its subs.
+    */
+    void RemoveGeometry(GeometryType& ThisGeometry);
+
+    /** Remove given geometry from mesh with ThisIndex in this modelpart and all its subs.
+    */
+    void RemoveGeometry(GeometryType::Pointer pThisGeometry);
+
 
     /// Removes a geometry by id from all root and sub model parts.
     void RemoveGeometryFromAllLevels(IndexType GeometryId);
@@ -1612,38 +1576,63 @@ public:
     /// Removes a geometry by name from all root and sub model parts.
     void RemoveGeometryFromAllLevels(std::string GeometryName);
 
+    /** Remove given geometry from mesh with ThisIndex in parents, itself and children.
+    */
+    void RemoveGeometryFromAllLevels(GeometryType& ThisGeometry);
+
+    /** Remove given geometry from mesh with ThisIndex in parents, itself and children.
+    */
+    void RemoveGeometryFromAllLevels(GeometryType::Pointer pThisGeometry);
 
     /// Begin geometry iterator
-    GeometryIterator GeometriesBegin() {
-        return mGeometries.begin();
+    GeometryIterator GeometriesBegin() 
+    {
+        return GetMesh(0).GeometriesBegin();
     }
 
     /// Begin geometry const iterator
-    GeometryConstantIterator GeometriesBegin() const {
-        return mGeometries.begin();
+    GeometryConstantIterator GeometriesBegin() const 
+    {
+        return GetMesh(0).GeometriesBegin();
     }
 
     /// End geometry iterator
-    GeometryIterator GeometriesEnd() {
-        return mGeometries.end();
+    GeometryIterator GeometriesEnd() 
+    {
+        return GetMesh(0).GeometriesEnd();
     }
 
     /// End geometry const iterator
-    GeometryConstantIterator GeometriesEnd() const {
-        return mGeometries.end();
+    GeometryConstantIterator GeometriesEnd() const 
+    {
+        return GetMesh(0).GeometriesEnd();
     }
-
 
     /// Get geometry container
     GeometryContainerType& Geometries()
     {
-        return mGeometries;
+        return GetMesh(0).Geometries();
     }
 
     /// Get geometry map container
     const GeometryContainerType& Geometries() const
     {
-        return mGeometries;
+        return GetMesh(0).Geometries();
+    }
+
+    GeometryContainerType::Pointer pGeometries()
+    {
+        return GetMesh(0).pGeometries();
+    }
+
+    void SetGeometries(GeometryContainerType::Pointer pOtherGeometries)
+    {
+        GetMesh(0).SetGeometries(pOtherGeometries);
+    }
+
+    GeometryContainerType::ContainerType& GeometriesArray()
+    {
+        return GetMesh(0).GeometriesArray();
     }
 
     ///@}
@@ -1730,35 +1719,47 @@ public:
     ///@}
     ///@name Access
     ///@{
+    
 
+    /**
+     * @brief Access the @ref ProcessInfo related to the current @ref ModelPart tree.
+     */
     ProcessInfo& GetProcessInfo()
     {
-        return *mpProcessInfo;
+        return *(this->GetRootModelPart().mpProcessInfo);
     }
 
+    /**
+     * @brief Access the @ref ProcessInfo related to the current @ref ModelPart tree.
+     */
     ProcessInfo const& GetProcessInfo() const
     {
-        return *mpProcessInfo;
+        return *(this->GetRootModelPart().mpProcessInfo);
     }
 
+    /**
+     * @brief Access the @ref ProcessInfo related to the current @ref ModelPart tree.
+     */
     ProcessInfo::Pointer pGetProcessInfo()
     {
-        return mpProcessInfo;
+        return this->GetRootModelPart().mpProcessInfo;
     }
 
+    /**
+     * @brief Access the @ref ProcessInfo related to the current @ref ModelPart tree.
+     */
     const ProcessInfo::Pointer pGetProcessInfo() const
     {
-        return mpProcessInfo;
+        return this->GetRootModelPart().mpProcessInfo;
     }
 
+    /**
+     * @brief Set the @ref ProcessInfo associated with the current @ref ModelPart tree.
+     * @param pNewProcessInfo pointer to the new @ref ProcessInfo object.
+     */
     void SetProcessInfo(ProcessInfo::Pointer pNewProcessInfo)
     {
-        mpProcessInfo = pNewProcessInfo;
-    }
-
-    void SetProcessInfo(ProcessInfo& NewProcessInfo)
-    {
-        *mpProcessInfo = NewProcessInfo;
+        this->GetRootModelPart().mpProcessInfo = pNewProcessInfo;
     }
 
     SizeType NumberOfMeshes()
@@ -1949,8 +1950,6 @@ private:
     TablesContainerType mTables; /// The tables contained on the model part
 
     MeshesContainerType mMeshes; /// The container of all meshes
-
-    GeometryContainerType mGeometries; /// The container of geometries
 
     VariablesList::Pointer mpVariablesList; /// The variable list
 
@@ -2260,9 +2259,18 @@ template <> struct ModelPart::Container<ModelPart::MasterSlaveConstraintContaine
 
 template <> struct ModelPart::Container<ModelPart::GeometryContainerType> {
     static std::string GetEntityName() { return "geometry"; }
-    // TODO: Can be used once we move the geometries container to meshes.
-    // static GeometryContainerType& GetContainer(ModelPart::MeshType& rMesh) { return rMesh.Geometries(); }
+    static GeometryContainerType& GetContainer(ModelPart::MeshType& rMesh) { return rMesh.Geometries(); }
 };
+
+template <> struct ModelPart::Container<ModelPart::PropertiesContainerType> {
+    static std::string GetEntityName() { return "property"; }
+    static ModelPart::PropertiesContainerType& GetContainer(ModelPart::MeshType& rMesh) { return rMesh.Properties(); }
+};
+
+template <> struct ModelPart::Container<ModelPart::DofsArrayType> {
+    static std::string GetEntityName() { return "dof"; }
+};
+
 
 ///@}
 ///@name Input and output

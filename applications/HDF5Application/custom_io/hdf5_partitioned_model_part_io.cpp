@@ -1,18 +1,40 @@
-#include "hdf5_partitioned_model_part_io.h"
+//    |  /           |
+//    ' /   __| _` | __|  _ \   __|
+//    . \  |   (   | |   (   |\__ `
+//   _|\_\_|  \__,_|\__|\___/ ____/
+//                   Multi-Physics
+//
+//  License:        BSD License
+//                  license: HDF5Application/license.txt
+//
+//  Main author:    Michael Andre, https://github.com/msandre
+//                  Suneth Warnakulasuriya
+//
 
-#include "utilities/openmp_utils.h"
-#include "custom_io/hdf5_points_data.h"
+// System includes
+
+// Project includes
+#include "mpi/includes/mpi_communicator.h"
+#include "utilities/parallel_utilities.h"
+
+// Application includes
 #include "custom_io/hdf5_connectivities_data.h"
+#include "custom_io/hdf5_points_data.h"
+#include "custom_utilities/container_io_utils.h"
 #include "custom_utilities/factor_elements_and_conditions_utility.h"
 #include "custom_utilities/hdf5_data_set_partition_utility.h"
-#include "custom_utilities/container_io_utils.h"
+
+// Include base h
+#include "hdf5_partitioned_model_part_io.h"
 
 namespace Kratos
 {
 namespace HDF5
 {
-PartitionedModelPartIO::PartitionedModelPartIO(File::Pointer pFile, std::string const& rPrefix)
-: ModelPartIO(pFile, rPrefix)
+PartitionedModelPartIO::PartitionedModelPartIO(
+    Parameters Settings,
+    File::Pointer pFile)
+    : ModelPartIO(Settings, pFile)
 {
     KRATOS_TRY;
 
@@ -45,19 +67,19 @@ void PartitionedModelPartIO::WriteNodes(NodesContainerType const& rNodes)
 
     NodesContainerType local_nodes;
     NodesContainerType ghost_nodes;
+
     const unsigned num_nodes = rNodes.size();
     local_nodes.reserve(num_nodes);
     ghost_nodes.reserve(0.1 * num_nodes);
-    File& r_file = *mpFile;
 
     // Divide nodes into local and global containers.
-    int my_pid = r_file.GetPID();
-    for (auto it_node = rNodes.begin(); it_node != rNodes.end(); ++it_node)
-    {
-        if (it_node->FastGetSolutionStepValue(PARTITION_INDEX) == my_pid)
+    int my_pid = mpFile->GetPID();
+    for (auto it_node = rNodes.begin(); it_node != rNodes.end(); ++it_node) {
+        if (it_node->FastGetSolutionStepValue(PARTITION_INDEX) == my_pid) {
             local_nodes.push_back(*it_node.base());
-        else
+        } else {
             ghost_nodes.push_back(*it_node.base());
+        }
     }
 
     // Write local nodes.
@@ -68,101 +90,106 @@ void PartitionedModelPartIO::WriteNodes(NodesContainerType const& rNodes)
     ghost_points.Write(ghost_nodes, Internals::NodesIO{}, Parameters(R"({})"));
     WritePartitionIndex(mPrefix + "/Nodes/Ghost", ghost_nodes);
 
-    KRATOS_CATCH("");
-}
-
-void PartitionedModelPartIO::ReadModelPart(ModelPart& rModelPart)
-{
-    KRATOS_TRY;
-
-    BaseType::ReadModelPart(rModelPart);
-    ReadAndAssignPartitionIndex(mPrefix + "/Nodes/Ghost", rModelPart);
+    // Write partition index
+    WritePartitionIndex(mPrefix + "/Nodes/Ghost", ghost_nodes);
 
     KRATOS_CATCH("");
 }
 
 void PartitionedModelPartIO::Check()
 {
-    if (mpFile->GetTotalProcesses() == 1)
+    if (mpFile->GetTotalProcesses() == 1) {
         KRATOS_ERROR << "Using PartitionedModelPartIO with single process file access." << std::endl;
+    }
 }
 
-void PartitionedModelPartIO::WritePartitionIndex(const std::string& rPath, NodesContainerType const& rGhostNodes)
+void PartitionedModelPartIO::ReadParitionIndices(ModelPart& rModelPart)
+{
+    KRATOS_TRY
+
+    KRATOS_ERROR_IF_NOT(rModelPart.HasNodalSolutionStepVariable(PARTITION_INDEX))
+        << "PARTITION_INDEX variable not found in nodal solution step variables list of "
+        << rModelPart.FullName() << ".";
+
+    // get the communicator
+    auto& r_communicator = rModelPart.GetCommunicator();
+    const auto my_pid = r_communicator.MyPID();
+
+    auto& r_nodes = rModelPart.Nodes();
+
+    // set the partition index of all nodes first to the current rank
+    // since we don't know which nodes belongs to ghost or local yet.
+    block_for_each(r_nodes, [my_pid](auto& rNode) {
+        rNode.FastGetSolutionStepValue(PARTITION_INDEX) = my_pid;
+    });
+
+    // now we read the ghost node partition index from the H5 file.
+    const auto& r_ghost_node_path = mPrefix + "/Nodes/Ghost";
+    const auto [start_index, block_size] = StartIndexAndBlockSize(*mpFile, r_ghost_node_path);
+    Vector<int> partition_ids, node_ids;
+    mpFile->ReadDataSet(r_ghost_node_path + "/PARTITION_INDEX", partition_ids, start_index, block_size);
+    mpFile->ReadDataSet(r_ghost_node_path + "/Ids", node_ids, start_index, block_size);
+
+    // now we correct PARTITION_INDEX of ghost nodes.
+    IndexPartition<IndexType>(node_ids.size()).for_each([&r_nodes, &node_ids, &partition_ids](const auto Index) {
+        r_nodes[node_ids[Index]].FastGetSolutionStepValue(PARTITION_INDEX) = partition_ids[Index];
+    });
+
+    KRATOS_CATCH("");
+}
+
+void PartitionedModelPartIO::SetCommunicator(ModelPart& rModelPart) const
+{
+    KRATOS_TRY
+
+    KRATOS_ERROR_IF_NOT(mpFile->GetDataCommunicator().IsDistributed())
+        << "Trying to use PartitionedModelPartIO with an HDF5File which is based on serial communicator.";
+
+    // set the mpi communicator
+    if (!rModelPart.GetCommunicator().IsDistributed()) {
+        rModelPart.SetCommunicator(Kratos::make_shared<MPICommunicator>(rModelPart.pGetNodalSolutionStepVariablesList().get(), mpFile->GetDataCommunicator()));
+    }
+
+    // get the communicator
+    auto& r_communicator = rModelPart.GetCommunicator();
+    const auto my_pid = r_communicator.MyPID();
+
+    // now we have set all the PARTITION_INDEX values correctly for all nodes,
+    // now we set the local mesh and ghost mesh nodes correctly.
+    auto& r_local_nodes = r_communicator.LocalMesh().Nodes();
+    auto& r_ghost_nodes = r_communicator.GhostMesh().Nodes();
+
+    for (auto p_itr = rModelPart.Nodes().ptr_begin(); p_itr != rModelPart.Nodes().ptr_end(); ++p_itr) {
+        if ((*p_itr)->FastGetSolutionStepValue(PARTITION_INDEX) == my_pid) {
+            r_local_nodes.insert(r_local_nodes.end(), *p_itr);
+        } else {
+            r_ghost_nodes.insert(r_ghost_nodes.end(), *p_itr);
+        }
+    }
+
+    // now populate sub model parts
+    for (auto& r_sub_model_part : rModelPart.SubModelParts()) {
+        this->SetCommunicator(r_sub_model_part);
+    }
+
+    KRATOS_CATCH("");
+}
+
+void PartitionedModelPartIO::WritePartitionIndex(
+    const std::string& rPath,
+    const NodesContainerType& rGhostNodes)
 {
     KRATOS_TRY;
 
     Vector<int> partition_ids(rGhostNodes.size());
-    const int num_threads = OpenMPUtils::GetNumThreads();
-    OpenMPUtils::PartitionVector partition;
-    OpenMPUtils::DivideInPartitions(rGhostNodes.size(), num_threads, partition);
-#pragma omp parallel
-    {
-        const int thread_id = OpenMPUtils::ThisThread();
-        NodesContainerType::const_iterator it = rGhostNodes.begin() + partition[thread_id];
-        for (auto i = partition[thread_id]; i < partition[thread_id + 1]; ++i)
-        {
-            partition_ids[i] = it->FastGetSolutionStepValue(PARTITION_INDEX);
-            ++it;
-        }
-    }
+
+    IndexPartition<IndexType>(rGhostNodes.size()).for_each([&rGhostNodes, &partition_ids](const auto Index) {
+        partition_ids[Index] = (rGhostNodes.begin() + Index)->FastGetSolutionStepValue(PARTITION_INDEX);
+    });
+
     WriteInfo info;
     mpFile->WriteDataSet(rPath + "/PARTITION_INDEX", partition_ids, info);
 
-    KRATOS_CATCH("");
-}
-
-void PartitionedModelPartIO::ReadAndAssignPartitionIndex(const std::string& rPath, ModelPart& rModelPart) const
-{
-    KRATOS_TRY;
-
-    const int num_threads = OpenMPUtils::GetNumThreads();
-    OpenMPUtils::PartitionVector partition;
-    NodesContainerType& r_nodes = rModelPart.Nodes();
-
-    // First assign my partition id to ALL nodes.
-    const int my_pid = rModelPart.GetCommunicator().MyPID();
-    OpenMPUtils::DivideInPartitions(r_nodes.size(), num_threads, partition);
-#pragma omp parallel
-    {
-        const int thread_id = OpenMPUtils::ThisThread();
-        NodesContainerType::const_iterator it = r_nodes.begin() + partition[thread_id];
-        for (auto i = partition[thread_id]; i < partition[thread_id + 1]; ++i)
-        {
-            it->FastGetSolutionStepValue(PARTITION_INDEX) = my_pid;
-            ++it;
-        }
-    }
-
-    // Read and assign partition ids for ghosts. If this is slow, try storing the
-    // partition index in the node's non-historical container when the ghost nodes and
-    // local nodes are read. Then copy it to the solution step data after the buffer
-    // is initialized.
-    unsigned start_index, block_size;
-    std::tie(start_index, block_size) = StartIndexAndBlockSize(rPath);
-    Vector<int> partition_ids, node_ids;
-    mpFile->ReadDataSet(rPath + "/PARTITION_INDEX", partition_ids, start_index, block_size);
-    mpFile->ReadDataSet(rPath + "/Ids", node_ids, start_index, block_size);
-    for (unsigned i = 0; i < node_ids.size(); ++i)
-        r_nodes[node_ids[i]].FastGetSolutionStepValue(PARTITION_INDEX) = partition_ids[i];
-
-    KRATOS_CATCH("");
-}
-
-std::tuple<unsigned, unsigned> PartitionedModelPartIO::StartIndexAndBlockSize(std::string const& rPath) const
-{
-    KRATOS_TRY;
-    unsigned start_index, block_size;
-    std::tie(start_index, block_size) = HDF5::StartIndexAndBlockSize(*mpFile, rPath);
-    return std::make_tuple(start_index, block_size);
-    KRATOS_CATCH("");
-}
-
-void PartitionedModelPartIO::StoreWriteInfo(std::string const& rPath, WriteInfo const& rInfo)
-{
-    KRATOS_TRY;
-    WritePartitionTable(*mpFile, rPath, rInfo);
-    const int size = rInfo.TotalSize;
-    mpFile->WriteAttribute(rPath, "Size", size);
     KRATOS_CATCH("");
 }
 

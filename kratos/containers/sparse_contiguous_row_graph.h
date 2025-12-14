@@ -419,6 +419,7 @@ public:
     ///@name Inquiry
     ///@{
 
+    static constexpr bool IsThreadSafe = true;
 
     ///@}
     ///@name Input and output

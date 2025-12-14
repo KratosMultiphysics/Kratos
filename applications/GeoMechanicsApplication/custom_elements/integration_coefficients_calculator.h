@@ -49,16 +49,14 @@ public:
         auto calculate_integration_coefficient = [](const auto& rIntegrationPoint, auto DetJ) {
             return rIntegrationPoint.Weight() * DetJ;
         };
-        std::transform(rIntegrationPoints.begin(), rIntegrationPoints.end(), rDetJs.begin(),
-                       result.begin(), calculate_integration_coefficient);
+        std::ranges::transform(rIntegrationPoints, rDetJs, result.begin(), calculate_integration_coefficient);
 
         if (mCoefficientModifier && pElement) {
             auto apply_modifier = [&element = *pElement, &modifier = *mCoefficientModifier](
                                       auto IntegrationCoefficient, const auto& rIntegrationPoint) {
                 return modifier(IntegrationCoefficient, rIntegrationPoint, element);
             };
-            std::transform(result.cbegin(), result.cend(), rIntegrationPoints.begin(),
-                           result.begin(), apply_modifier);
+            std::ranges::transform(result, rIntegrationPoints, result.begin(), apply_modifier);
         }
 
         return result;

@@ -49,31 +49,4 @@ KRATOS_TEST_CASE_IN_SUITE(ElementUtilities_ReturnsCorrectListOfShapeFunctionsVal
     }
 }
 
-KRATOS_TEST_CASE_IN_SUITE(ElementUtilities_ChecksPropertiesThrowsErrorsForWrongProperties,
-                          KratosGeoMechanicsFastSuiteWithoutKernel)
-{
-    Properties properties(2);
-
-    KRATOS_EXPECT_EXCEPTION_IS_THROWN(
-        GeoElementUtilities::CheckPermeabilityProperties(properties, 1),
-        "Error: PERMEABILITY_XX does not exist in the properties with Id: 2")
-
-    properties.SetValue(PERMEABILITY_XX, -10.0);
-    KRATOS_EXPECT_EXCEPTION_IS_THROWN(
-        GeoElementUtilities::CheckPermeabilityProperties(properties, 1),
-        "Error: PERMEABILITY_XX has an invalid negative value (-10) in the properties with Id: 2")
-
-    properties.SetValue(PERMEABILITY_XX, 10.0);
-    EXPECT_NO_THROW(GeoElementUtilities::CheckPermeabilityProperties(properties, 1));
-
-    properties.SetValue(PERMEABILITY_YY, 10.0);
-    properties.SetValue(PERMEABILITY_XY, 0.0);
-    EXPECT_NO_THROW(GeoElementUtilities::CheckPermeabilityProperties(properties, 2));
-
-    properties.SetValue(PERMEABILITY_ZZ, 10.0);
-    properties.SetValue(PERMEABILITY_YZ, 0.0);
-    properties.SetValue(PERMEABILITY_ZX, 0.0);
-    EXPECT_NO_THROW(GeoElementUtilities::CheckPermeabilityProperties(properties, 3));
-}
-
 } // namespace Kratos::Testing

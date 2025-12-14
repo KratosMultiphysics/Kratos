@@ -28,7 +28,7 @@ if(${KRATOS_USE_FUTURE} MATCHES ON)
     add_definitions( -DKRATOS_USE_FUTURE )
     message(WARNING "You are using sources from Kratos::Future. This is not recommended for stability.")
     ## TODO: Change this in the future (no pun intended) and make it part of the interface target in a different folder.
-    FILE(GLOB_RECURSE KRATOS_FUTURE_PYTHON_SOURCES "future/python/*.cpp") 
+    FILE(GLOB_RECURSE KRATOS_FUTURE_PYTHON_SOURCES "future/python/*.cpp")
     FILE(GLOB_RECURSE KRATOS_FUTURE_TEST_SOURCES ${CMAKE_CURRENT_SOURCE_DIR}/future/tests/cpp_tests/*.cpp)
     kratos_add_sources(KRATOS_CORE_SOURCES SOURCE_DIRS "${LIST_FUTURE}" EXCEPTIONS "${KRATOS_FUTURE_PYTHON_SOURCES}" "${KRATOS_FUTURE_TEST_SOURCES}")
 endif(${KRATOS_USE_FUTURE} MATCHES ON)
@@ -58,16 +58,17 @@ file(GLOB_RECURSE KRATOS_CORE_TESTING_ENGINE_SOURCES ${CMAKE_CURRENT_SOURCE_DIR}
 ## Kratos I/o sources
 file(GLOB_RECURSE KRATOS_CORE_INPUT_OUTPUT_SOURCES ${CMAKE_CURRENT_SOURCE_DIR}/input_output/*.cpp)
 file(GLOB KRATOS_EXPRESSION_SOURCES ${CMAKE_CURRENT_SOURCE_DIR}/expression/*.cpp)
+file(GLOB KRATOS_TENSOR_ADAPTOR_SOURCES ${CMAKE_CURRENT_SOURCE_DIR}/tensor_adaptors/*.cpp)
 
 ## Kratos tests sources. Enabled by default
 if(${KRATOS_BUILD_TESTING} MATCHES ON)
     include(GoogleTest)
 
-    file(GLOB_RECURSE KRATOS_TEST_UTILITIES_SOURCES 
+    file(GLOB_RECURSE KRATOS_TEST_UTILITIES_SOURCES
         ${CMAKE_CURRENT_SOURCE_DIR}/tests/test_utilities/*.cpp
     )
 
-    file(GLOB_RECURSE KRATOS_TEST_SOURCES 
+    file(GLOB_RECURSE KRATOS_TEST_SOURCES
         ${CMAKE_CURRENT_SOURCE_DIR}/tests/cpp_tests/*.cpp
         ${CMAKE_CURRENT_SOURCE_DIR}/testing/*.cpp
     )
@@ -88,7 +89,7 @@ endif(${KRATOS_BUILD_TESTING} MATCHES ON)
 
 ## Kratos benchmark sources. Disabled by default
 if(${KRATOS_BUILD_BENCHMARK} MATCHES ON)
-    file(GLOB_RECURSE KRATOS_BENCHMARK_SOURCES 
+    file(GLOB_RECURSE KRATOS_BENCHMARK_SOURCES
         ${CMAKE_CURRENT_SOURCE_DIR}/benchmarks/*.cpp
     )
 
@@ -114,7 +115,7 @@ target_compile_definitions(KratosVersion PRIVATE
 )
 
 ## Define library KratosCore to be included in all of the others
-add_library(KratosCore SHARED ${KRATOS_CORE_SOURCES} ${KRATOS_CORE_INPUT_OUTPUT_SOURCES} ${KRATOS_EXPRESSION_SOURCES} ${KRATOS_TPL_SOURCES} $<TARGET_OBJECTS:KratosVersion>)
+add_library(KratosCore SHARED ${KRATOS_CORE_SOURCES} ${KRATOS_CORE_INPUT_OUTPUT_SOURCES} ${KRATOS_EXPRESSION_SOURCES} ${KRATOS_TENSOR_ADAPTOR_SOURCES} ${KRATOS_TPL_SOURCES} $<TARGET_OBJECTS:KratosVersion>)
 
 # Set the shared external libraries for kratos (gidpost, tyniexpr, json, etc...)
 set(KRATOS_EXTERNAL_LIBRARIES gidpost tinyexpr clipper)
@@ -133,7 +134,11 @@ if(${CMAKE_COMPILER_IS_GNUCXX})
     endif()
 endif()
 
+if(KRATOS_USE_TBB)
+    set(KRATOS_EXTERNAL_LIBRARIES ${KRATOS_EXTERNAL_LIBRARIES} TBB::tbb)
+endif()
 target_link_libraries(KratosCore PUBLIC ${KRATOS_EXTERNAL_LIBRARIES})
+
 set_target_properties(KratosCore PROPERTIES COMPILE_DEFINITIONS "KRATOS_CORE=IMPORT,API")
 
 # Set batch size in the unity build
@@ -188,6 +193,7 @@ if(CMAKE_UNITY_BUILD MATCHES ON)
 
     ## this cannot be compiled with unity build because calculate_discontinuous_distance_to_skin_process.cpp does implicit instantiation before specialization
     set_source_files_properties (${CMAKE_CURRENT_SOURCE_DIR}/processes/find_global_nodal_entity_neighbours_process.cpp PROPERTIES SKIP_UNITY_BUILD_INCLUSION TRUE)
+    set_source_files_properties (${CMAKE_CURRENT_SOURCE_DIR}/linear_solvers/linear_solver_ublas.cpp PROPERTIES SKIP_UNITY_BUILD_INCLUSION TRUE)
 
     ## The following are conflicting due to KratosComponents
     file(GLOB_RECURSE KRATOS_STRATEGIES_SOURCES ${CMAKE_CURRENT_SOURCE_DIR}/solving_strategies/*.cpp)
@@ -216,10 +222,20 @@ if(${INSTALL_TESTING_FILES} MATCHES ON )
         PATTERN "*.cpp" EXCLUDE
         PATTERN "*.hpp" EXCLUDE
     )
+
+    if(${KRATOS_USE_FUTURE} MATCHES ON)
+        install(DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/future/tests DESTINATION kratos/future
+                PATTERN "*.git" EXCLUDE
+                PATTERN "*.c" EXCLUDE
+                PATTERN "*.h" EXCLUDE
+                PATTERN "*.cpp" EXCLUDE
+                PATTERN "*.hpp" EXCLUDE
+            )
+    endif(${KRATOS_USE_FUTURE} MATCHES ON)
 endif(${INSTALL_TESTING_FILES} MATCHES ON)
 
 # Install targets
-install(TARGETS Kratos DESTINATION libs )
+install(TARGETS Kratos DESTINATION libs)
 install(TARGETS KratosCore DESTINATION libs)
 
 # Mpi
