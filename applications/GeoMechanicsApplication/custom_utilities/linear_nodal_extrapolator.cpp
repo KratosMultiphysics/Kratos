@@ -13,14 +13,12 @@
 
 #include "linear_nodal_extrapolator.h"
 
-#include "custom_elements/interface_element.h"
 #include "element_utilities.hpp"
 #include "geometries/hexahedra_3d_8.h"
 #include "geometries/line_2d_2.h"
 #include "geometries/quadrilateral_2d_4.h"
 #include "geometries/tetrahedra_3d_4.h"
 #include "geometries/triangle_2d_3.h"
-#include "includes/element.h"
 #include "node_utilities.h"
 
 namespace Kratos
