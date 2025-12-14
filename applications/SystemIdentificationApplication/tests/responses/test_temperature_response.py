@@ -73,6 +73,7 @@ class TestTemperatureDetectionAdjointResponseFunction(kratos_unittest.TestCase):
 
         for i, sensor in enumerate(cls.sensors):
             sensor.GetNode().SetValue(KratosSI.SENSOR_MEASURED_VALUE, i * 15 - 10)
+            sensor.GetNode().SetValue(KratosSI.SENSOR_NORMALIZATION_FACTOR, 1.0)
             cls.adjoint_response_function.AddSensor(sensor)
 
         cls.adjoint_response_function.Initialize()
