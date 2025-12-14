@@ -96,7 +96,7 @@ void GeoExtrapolateIntegrationPointValuesToNodesProcess::InitializeVectorAndMatr
         auto first_element = r_model_part.get().Elements().begin();
 
         const auto integration_points_number =
-            first_element->GetGeometry().IntegrationPointsNumber(first_element->GetIntegrationMethod());
+            GeoElementUtilities::GetNumberOfIntegrationPointsOf(*first_element);
 
         const ProcessInfo& r_process_info = r_model_part.get().GetProcessInfo();
         InitializeZerosOfVectorVariables(*first_element, integration_points_number, r_process_info);
@@ -175,7 +175,7 @@ const Matrix& GeoExtrapolateIntegrationPointValuesToNodesProcess::GetCachedExtra
 void GeoExtrapolateIntegrationPointValuesToNodesProcess::AddIntegrationPointContributionsForAllVariables(
     Element& rElement, const Matrix& rExtrapolationMatrix) const
 {
-    const auto integration_points_number = GeoElementUtilities::GetIntegrationPointsOf(rElement).size();
+    const auto integration_points_number = GeoElementUtilities::GetNumberOfIntegrationPointsOf(rElement);
 
     for (const auto p_var : mDoubleVariables) {
         AddIntegrationContributionsToNodes(rElement, *p_var, rExtrapolationMatrix,

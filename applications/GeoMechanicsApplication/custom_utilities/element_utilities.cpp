@@ -143,11 +143,19 @@ Vector GeoElementUtilities::CalculateNodalHydraulicHeadFromWaterPressures(const 
     return nodal_hydraulic_heads;
 }
 
+std::size_t GeoElementUtilities::GetNumberOfIntegrationPointsOf(const Element& rElement)
+{
+    auto p_interface_element = dynamic_cast<const InterfaceElement*>(&rElement);
+    return p_interface_element
+               ? p_interface_element->GetIntegrationScheme().GetNumberOfIntegrationPoints()
+               : rElement.GetGeometry().IntegrationPointsNumber(rElement.GetIntegrationMethod());
+}
+
 Geo::IntegrationPointVectorType GeoElementUtilities::GetIntegrationPointsOf(const Element& rElement)
 {
     auto p_interface_element = dynamic_cast<const InterfaceElement*>(&rElement);
     return p_interface_element
-               ? p_interface_element->GetIntegrationPoints()
+               ? p_interface_element->GetIntegrationScheme().GetIntegrationPoints()
                : rElement.GetGeometry().IntegrationPoints(rElement.GetIntegrationMethod());
 }
 

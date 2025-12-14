@@ -238,9 +238,9 @@ int InterfaceElement::Check(const ProcessInfo& rCurrentProcessInfo) const
     return 0;
 }
 
-Geo::IntegrationPointVectorType InterfaceElement::GetIntegrationPoints() const
+const IntegrationScheme& InterfaceElement::GetIntegrationScheme() const
 {
-    return mpIntegrationScheme->GetIntegrationPoints();
+    return *mpIntegrationScheme;
 }
 
 const Geometry<Node>& InterfaceElement::GetMidGeometry() const

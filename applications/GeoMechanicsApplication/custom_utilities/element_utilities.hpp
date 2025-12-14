@@ -182,6 +182,7 @@ public:
     static Vector CalculateNodalHydraulicHeadFromWaterPressures(const GeometryType& rGeom,
                                                                 const Properties&   rProp);
 
+    static std::size_t                     GetNumberOfIntegrationPointsOf(const Element& rElement);
     static Geo::IntegrationPointVectorType GetIntegrationPointsOf(const Element& rElement);
     static std::vector<Vector> EvaluateShapeFunctionsAtIntegrationPoints(const Geo::IntegrationPointVectorType& rIntegrationPoints,
                                                                          const Geometry<Node>& rGeometry);
