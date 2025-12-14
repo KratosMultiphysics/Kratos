@@ -17,9 +17,9 @@
 #include "custom_utilities/generic_utilities.h"
 #include "custom_utilities/linear_nodal_extrapolator.h"
 #include "element_utilities.hpp"
+#include "geometries/geometry.h"
 #include "geometry_utilities.h"
 #include "includes/element.h"
-#include "includes/node.h"
 
 namespace Kratos
 {

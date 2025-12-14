@@ -13,13 +13,15 @@
 
 #pragma once
 
-#include "geometries/geometry.h"
 #include "includes/kratos_export_api.h"
+#include "includes/ublas_interface.h"
+
+#include <optional>
+#include <vector>
 
 namespace Kratos
 {
-class NodalExtrapolator;
-class Node;
+
 class Element;
 
 class KRATOS_API(GEO_MECHANICS_APPLICATION) ExtrapolationUtilities
