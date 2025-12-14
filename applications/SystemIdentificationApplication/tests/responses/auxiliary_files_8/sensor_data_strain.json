@@ -1,0 +1,30 @@
+{
+    "list_of_sensors": [
+        {
+            "location": [
+                0.25,
+                0.25,
+                0.0
+            ],
+            "name": "strain_xx_1",
+            "strain_type": "strain_xx",
+            "strain_variable": "SHELL_STRAIN",
+            "type": "strain_sensor",
+            "variable_data": {},
+            "weight": 1
+        },
+        {
+            "location": [
+                0.75,
+                0.75,
+                0.0
+            ],
+            "name": "strain_xx_2",
+            "strain_type": "strain_xx",
+            "strain_variable": "SHELL_STRAIN",
+            "type": "strain_sensor",
+            "variable_data": {},
+            "weight": 1
+        }
+    ]
+}
