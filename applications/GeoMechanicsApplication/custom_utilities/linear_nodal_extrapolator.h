@@ -12,9 +12,7 @@
 
 #pragma once
 
-#include "geo_aliases.h"
 #include "includes/kratos_export_api.h"
-#include "includes/ublas_interface.h"
 #include "nodal_extrapolator.h"
 
 #include <memory>
