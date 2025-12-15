@@ -122,6 +122,16 @@ public:
         return length;
     }
 
+    template <class TContainerType>
+    double CalculateArea(TContainerType& rContainer)
+    {
+        double area = block_for_each<SumReduction<double>>(rContainer, [&](typename TContainerType::value_type& rEntity){
+            return rEntity.GetGeometry().Area();
+        });
+
+        return area;
+    }
+
     double ComputeVolume();
 
     void ComputeVolumeShapeDerivatives(const Variable<array_3d>& rDerivativeVariable);
