@@ -1929,11 +1929,11 @@ class FluidTopologyOptimizationAnalysis(FluidDynamicsAnalysis):
         ##settings string in json format
         base_physics_parameters_settings = KratosMultiphysics.Parameters("""
         {
-            "resistance": {},                                                                
-            "conductivity": {},
-            "decay": {},
-            "convection_coefficient": {},
-            "transport_source": {}                                                     
+            "resistance": [{}],                                                                
+            "conductivity": [{}],
+            "decay": [{}],
+            "convection_coefficient": [{}],
+            "transport_source": [{}]                                                     
         }""")
         return base_physics_parameters_settings
     
