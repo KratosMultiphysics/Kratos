@@ -16,6 +16,7 @@
 #include "geometries/triangle_2d_3.h"
 #include "includes/constitutive_law.h"
 #include "includes/element.h"
+#include "includes/expect.h"
 #include "includes/kratos_parameters.h"
 #include "includes/model_part.h"
 #include "includes/node.h"
@@ -23,7 +24,7 @@
 #include "includes/ublas_interface.h"
 #include "includes/variables.h"
 #include "tests/cpp_tests/custom_constitutive/mock_constitutive_law.hpp"
-#include "tests/cpp_tests/geo_mechanics_fast_suite.h"
+#include "tests/cpp_tests/geo_mechanics_fast_suite_without_kernel.h"
 
 #include <boost/numeric/ublas/assignment.hpp>
 
@@ -103,8 +104,8 @@ ModelPart& CreateModelPartWithAStubElement(Model& rModel)
 
 namespace Kratos::Testing
 {
-KRATOS_TEST_CASE_IN_SUITE(ApplyFinalStressesOfPreviousStageToInitialState_SetsInitialStressOfConstitutiveLaws,
-                          KratosGeoMechanicsFastSuiteWithoutKernel)
+TEST_F(KratosGeoMechanicsFastSuiteWithoutKernel,
+       ApplyFinalStressesOfPreviousStageToInitialState_SetsInitialStressOfConstitutiveLaws)
 {
     Model  model;
     auto&  model_part = CreateModelPartWithAStubElement(model);
@@ -131,7 +132,7 @@ KRATOS_TEST_CASE_IN_SUITE(ApplyFinalStressesOfPreviousStageToInitialState_SetsIn
     model_part.Elements()[1].CalculateOnIntegrationPoints(CONSTITUTIVE_LAW, constitutive_laws,
                                                           model_part.GetProcessInfo());
 
-    KRATOS_EXPECT_EQ(constitutive_laws.size(), number_of_integration_points);
+    EXPECT_EQ(constitutive_laws.size(), number_of_integration_points);
     for (const auto& constitutive_law : constitutive_laws) {
         KRATOS_EXPECT_VECTOR_NEAR(constitutive_law->GetInitialState().GetInitialStressVector(),
                                   initial_stress_vector, 1e-12)
@@ -140,8 +141,8 @@ KRATOS_TEST_CASE_IN_SUITE(ApplyFinalStressesOfPreviousStageToInitialState_SetsIn
     }
 }
 
-KRATOS_TEST_CASE_IN_SUITE(ApplyFinalStressesOfPreviousStageToInitialState_ThrowsInExecuteInitialize_WhenConstitutiveLawsCannotBeRetrieved,
-                          KratosGeoMechanicsFastSuiteWithoutKernel)
+TEST_F(KratosGeoMechanicsFastSuiteWithoutKernel,
+       ApplyFinalStressesOfPreviousStageToInitialState_ThrowsInExecuteInitialize_WhenConstitutiveLawsCannotBeRetrieved)
 {
     Model model;
     auto& model_part = CreateModelPartWithAStubElement(model);
@@ -158,8 +159,8 @@ KRATOS_TEST_CASE_IN_SUITE(ApplyFinalStressesOfPreviousStageToInitialState_Throws
         "The constitutive laws on the integration points could not be retrieved for element 1")
 }
 
-KRATOS_TEST_CASE_IN_SUITE(ApplyFinalStressesOfPreviousStageToInitialState_ThrowsInExecuteInitialize_WhenStressVectorsCannotBeRetrieved,
-                          KratosGeoMechanicsFastSuiteWithoutKernel)
+TEST_F(KratosGeoMechanicsFastSuiteWithoutKernel,
+       ApplyFinalStressesOfPreviousStageToInitialState_ThrowsInExecuteInitialize_WhenStressVectorsCannotBeRetrieved)
 {
     Model model;
     CreateModelPartWithAStubElement(model);
@@ -172,8 +173,8 @@ KRATOS_TEST_CASE_IN_SUITE(ApplyFinalStressesOfPreviousStageToInitialState_Throws
         "The stress vectors on the integration points could not be retrieved for element 1")
 }
 
-KRATOS_TEST_CASE_IN_SUITE(ApplyFinalStressesOfPreviousStageToInitialState_ThrowsInExecuteInitialize_WhenStressVectorsAndConstitutiveLawsAreNotTheSameSize,
-                          KratosGeoMechanicsFastSuiteWithoutKernel)
+TEST_F(KratosGeoMechanicsFastSuiteWithoutKernel,
+       ApplyFinalStressesOfPreviousStageToInitialState_ThrowsInExecuteInitialize_WhenStressVectorsAndConstitutiveLawsAreNotTheSameSize)
 {
     Model      model;
     auto&      model_part         = CreateModelPartWithAStubElement(model);
@@ -189,13 +190,13 @@ KRATOS_TEST_CASE_IN_SUITE(ApplyFinalStressesOfPreviousStageToInitialState_Throws
                                       "number of constitutive laws (3) for element 1")
 }
 
-KRATOS_TEST_CASE_IN_SUITE(CheckInfoApplyFinalStressesOfPreviousStageToInitialState, KratosGeoMechanicsFastSuiteWithoutKernel)
+TEST_F(KratosGeoMechanicsFastSuiteWithoutKernel, CheckInfoApplyFinalStressesOfPreviousStageToInitialState)
 {
     Model model;
     model.CreateModelPart("foo");
     const auto parameters = Parameters{R"({"model_part_name" : "foo"})"};
     const ApplyFinalStressesOfPreviousStageToInitialState process(model, parameters);
-    KRATOS_EXPECT_EQ(process.Info(), "ApplyFinalStressesOfPreviousStageToInitialState");
+    EXPECT_EQ(process.Info(), "ApplyFinalStressesOfPreviousStageToInitialState");
 }
 
 } // namespace Kratos::Testing
