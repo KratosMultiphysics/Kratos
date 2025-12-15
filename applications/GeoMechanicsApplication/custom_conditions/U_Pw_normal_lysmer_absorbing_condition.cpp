@@ -15,7 +15,7 @@
 #include "custom_conditions/U_Pw_normal_lysmer_absorbing_condition.h"
 #include "custom_utilities/condition_utilities.hpp"
 #include "custom_utilities/dof_utilities.h"
-#include "custom_utilities/linear_nodal_extrapolator.h"
+#include "custom_utilities/extrapolation_utilities.h"
 
 namespace Kratos
 {
@@ -277,14 +277,6 @@ void UPwLysmerAbsorbingCondition<TDim, TNumNodes>::CalculateNodalStiffnessMatrix
 }
 
 template <unsigned int TDim, unsigned int TNumNodes>
-Matrix UPwLysmerAbsorbingCondition<TDim, TNumNodes>::CalculateExtrapolationMatrixNeighbour(const Element& rNeighbourElement)
-{
-    LinearNodalExtrapolator extrapolator;
-    return extrapolator.CalculateElementExtrapolationMatrix(
-        rNeighbourElement.GetGeometry(), rNeighbourElement.GetIntegrationMethod());
-}
-
-template <unsigned int TDim, unsigned int TNumNodes>
 void UPwLysmerAbsorbingCondition<TDim, TNumNodes>::GetNeighbourElementVariables(
     NormalLysmerAbsorbingVariables& rVariables, const ProcessInfo& rCurrentProcessInfo)
 {
@@ -337,7 +329,7 @@ void UPwLysmerAbsorbingCondition<TDim, TNumNodes>::GetNeighbourElementVariables(
             (1.0 - prop_neighbour[POROSITY]) * prop_neighbour[DENSITY_SOLID];
     }
 
-    Matrix extrapolation_matrix = CalculateExtrapolationMatrixNeighbour(r_neighbour_element);
+    Matrix extrapolation_matrix = ExtrapolationUtilities::CalculateExtrapolationMatrix(r_neighbour_element);
 
     // project parameters on neighbour nodes
     Vector Ec_nodes_neighbour  = prod(extrapolation_matrix, confined_stiffness_vector);

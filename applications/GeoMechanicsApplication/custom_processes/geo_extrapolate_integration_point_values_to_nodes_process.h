@@ -66,7 +66,6 @@ private:
     std::vector<const Variable<Matrix>*>              mMatrixVariables;
     const Variable<double>&                           mrAverageVariable       = NODAL_AREA;
     std::map<SizeType, Matrix>                        mExtrapolationMatrixMap = {};
-    std::unique_ptr<NodalExtrapolator>                mpExtrapolator;
     std::map<const Variable<Vector>*, Vector>         mZeroValuesOfVectorVariables;
     std::map<const Variable<Matrix>*, Matrix>         mZeroValuesOfMatrixVariables;
 
@@ -126,7 +125,7 @@ private:
     [[nodiscard]] bool          ExtrapolationMatrixIsCachedFor(const Element& rElement) const;
     [[nodiscard]] const Matrix& GetCachedExtrapolationMatrixFor(const Element& rElement) const;
 
-    void AddIntegrationPointContributionsForAllVariables(Element& rElem, const Matrix& rExtrapolationMatrix) const;
+    void AddIntegrationPointContributionsForAllVariables(Element& rElement, const Matrix& rExtrapolationMatrix) const;
 };
 
 } // namespace Kratos.

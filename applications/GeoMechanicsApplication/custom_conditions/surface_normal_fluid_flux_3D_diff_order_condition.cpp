@@ -80,10 +80,8 @@ void SurfaceNormalFluidFlux3DDiffOrderCondition::save(Serializer& rSerializer) c
     KRATOS_SERIALIZE_SAVE_BASE_CLASS(rSerializer, SurfaceLoad3DDiffOrderCondition)
 }
 
-void SurfaceNormalFluidFlux3DDiffOrderCondition::load(Serializer& rSerializer)
-{
-    KRATOS_SERIALIZE_LOAD_BASE_CLASS(rSerializer, SurfaceLoad3DDiffOrderCondition)
-}
+void SurfaceNormalFluidFlux3DDiffOrderCondition::load(Serializer& rSerializer){
+    KRATOS_SERIALIZE_LOAD_BASE_CLASS(rSerializer, SurfaceLoad3DDiffOrderCondition)}
 
 std::string SurfaceNormalFluidFlux3DDiffOrderCondition::Info() const
 {
