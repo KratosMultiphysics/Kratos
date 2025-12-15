@@ -15,7 +15,7 @@ except:
 def CreateResponseFunction(response_id, response_settings, model):
     response_type = response_settings["response_type"].GetString()
 
-    if response_type == "adjoint_lift_potential_jump":
+    if response_type == "adjoint_lift_potential_jump" or response_type == "adjoint_lift_far_field":
         return potential_flow_response.AdjointResponseFunction(response_id, response_settings, model)
     elif response_type == "stochastic_adjoint_lift_potential_jump":
         if is_xmc_available:
@@ -27,4 +27,4 @@ def CreateResponseFunction(response_id, response_settings, model):
             raise ImportError(err_msg)
     else:
         raise NameError("The type of the following response function is not specified: "+ response_id +
-                        ".\nAvailable types are: 'adjoint_lift_potential_jump'." )
+                        ".\nAvailable types are: 'adjoint_lift_potential_jump' and 'adjoint_lift_far_field'." )

@@ -14,6 +14,7 @@
 #include "incompressible_potential_flow_element.h"
 #include "incompressible_perturbation_potential_flow_element.h"
 #include "compressible_potential_flow_element.h"
+#include "transonic_perturbation_potential_flow_element.h"
 #include "embedded_incompressible_potential_flow_element.h"
 #include "embedded_compressible_potential_flow_element.h"
 #include "adjoint_finite_difference_potential_flow_element.h"
@@ -62,8 +63,10 @@ namespace Kratos
 
         pPrimalElement->CalculateRightHandSide(RHS, rCurrentProcessInfo);
 
+        auto rhs_size = (RHS.size() == NumNodes + 1) ? NumNodes : RHS.size();
+        
         if (rOutput.size1() != NumNodes)
-            rOutput.resize(Dim*NumNodes, RHS.size(), false);
+            rOutput.resize(Dim*NumNodes, rhs_size, false);
 
         for(unsigned int i_node = 0; i_node<NumNodes; i_node++){
             for(unsigned int i_dim = 0; i_dim<Dim; i_dim++){
@@ -75,14 +78,14 @@ namespace Kratos
                     pPrimalElement->CalculateRightHandSide(RHS_perturbed, rCurrentProcessInfo);
 
                     //compute derivative of RHS w.r.t. design variable with finite differences
-                    for(unsigned int i = 0; i < RHS.size(); ++i)
+                    for(unsigned int i = 0; i < rhs_size; ++i)
                         rOutput( (i_dim + i_node*Dim), i) = (RHS_perturbed[i] - RHS[i]) / delta;
 
                     // unperturb the design variable
                     pPrimalElement->GetGeometry()[i_node].GetInitialPosition()[i_dim] -= delta;
                     pPrimalElement->GetGeometry()[i_node].Coordinates()[i_dim] -= delta;
                 }else{
-                    for(unsigned int i = 0; i < RHS.size(); ++i)
+                    for(unsigned int i = 0; i < rhs_size; ++i)
                         rOutput((i_dim + i_node*Dim), i) = 0.0;
                 }
             }
@@ -122,6 +125,8 @@ namespace Kratos
 
             pPrimalElement->CalculateRightHandSide(RHS, rCurrentProcessInfo);
 
+            auto rhs_size = (RHS.size() == NumNodes + 1) ? NumNodes : RHS.size();
+
             for(unsigned int i_node = 0; i_node<NumNodes; i_node++){
                 // Apply F.D in all cut nodes that are not trailing edge nodes.
                 if (!r_geometry[i_node].GetValue(TRAILING_EDGE)){
@@ -132,7 +137,7 @@ namespace Kratos
                     // Recover distance value
                     pPrimalElement->GetGeometry()[i_node].GetSolutionStepValue(GEOMETRY_DISTANCE) = distances[i_node];
 
-                    for (unsigned int i_dof =0;i_dof<RHS.size();i_dof++) {
+                    for (unsigned int i_dof =0;i_dof<rhs_size;i_dof++) {
                         rOutput(i_node,i_dof) = (RHS_perturbed(i_dof)-RHS(i_dof))/delta;
                     }
                 }
@@ -184,6 +189,8 @@ namespace Kratos
 
     template class AdjointFiniteDifferencePotentialFlowElement<IncompressiblePotentialFlowElement<2,3>>;
     template class AdjointFiniteDifferencePotentialFlowElement<CompressiblePotentialFlowElement<2,3>>;
+    template class AdjointFiniteDifferencePotentialFlowElement<TransonicPerturbationPotentialFlowElement<2,3>>;
+    template class AdjointFiniteDifferencePotentialFlowElement<TransonicPerturbationPotentialFlowElement<3,4>>;
     template class AdjointFiniteDifferencePotentialFlowElement<EmbeddedIncompressiblePotentialFlowElement<2,3>>;
     template class AdjointFiniteDifferencePotentialFlowElement<EmbeddedCompressiblePotentialFlowElement<2,3>>;
     template class AdjointFiniteDifferencePotentialFlowElement<IncompressiblePerturbationPotentialFlowElement<2,3>>;

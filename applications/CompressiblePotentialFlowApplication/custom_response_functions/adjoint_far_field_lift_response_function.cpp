@@ -30,12 +30,11 @@ namespace Kratos
 
         const Parameters default_parameters = Parameters(R"(
         {
-            "reference_chord"             : 1.0,
             "far_field_model_part_name"   : "",
-            "analyzer"                    : "kratos",
-            "response_type"               : "adjoint_lift_far_field",
+            "reference_chord"             : 0.0,
+            "step_size"                   : 0.0,
             "gradient_mode"               : "semi_analytic",
-            "step_size"                   : 1e-6
+            "response_type"               : "adjoint_lift_far_field"
         })" );
         ResponseSettings.ValidateAndAssignDefaults(default_parameters);
 

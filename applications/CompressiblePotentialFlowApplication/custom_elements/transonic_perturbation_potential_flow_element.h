@@ -42,7 +42,7 @@ namespace Kratos
 ///@name Kratos Classes
 ///@{
 
-template <int TDim, int TNumNodes>
+template <int Dim, int NumNodes>
 class TransonicPerturbationPotentialFlowElement : public Element
 {
 public:
@@ -52,7 +52,9 @@ public:
     typedef Element BaseType;
 
     typedef PointerVector<GeometryType> GeometriesArrayType;
-    typedef PotentialFlowUtilities::ElementalData<TNumNodes, TDim> ElementalData;
+    typedef PotentialFlowUtilities::ElementalData<NumNodes, Dim> ElementalData;
+    static constexpr int TNumNodes = NumNodes;
+    static constexpr int TDim = Dim;
 
     ///@}
     ///@name Pointer Definitions
@@ -145,6 +147,8 @@ public:
 
     void Initialize(const ProcessInfo& rCurrentProcessInfo) override;
 
+    void InitializeSolutionStep(const ProcessInfo& rCurrentProcessInfo) override;
+
     void CalculateLocalSystem(MatrixType& rLeftHandSideMatrix,
                               VectorType& rRightHandSideVector,
                               const ProcessInfo& rCurrentProcessInfo) override;
@@ -199,7 +203,7 @@ public:
     ///@}
 protected:
 
-    BoundedVector<double, TNumNodes + 1> AssembleDensityDerivativeAndShapeFunctions(const double densityDerivativeWRTVelocitySquared, const double densityDerivativeWRTUpwindVelocitySquared, const array_1d<double, TDim>& velocity, const array_1d<double, TDim>& upwindVelocity,const ProcessInfo& rCurrentProcessInfo);
+    BoundedVector<double, NumNodes + 1> AssembleDensityDerivativeAndShapeFunctions(const double densityDerivativeWRTVelocitySquared, const double densityDerivativeWRTUpwindVelocitySquared, const array_1d<double, Dim>& velocity, const array_1d<double, Dim>& upwindVelocity,const ProcessInfo& rCurrentProcessInfo);
 
     void CalculateRightHandSideNormalElement(VectorType& rRightHandSideVector,
                                             const ProcessInfo& rCurrentProcessInfo);
@@ -217,18 +221,18 @@ protected:
     virtual void AssembleSupersonicLeftHandSide(MatrixType& rLeftHandSideMatrix,
         const double densityDerivativeWRTVelocity,
         const double densityDerivativeWRTUpwindVelocity,
-        const array_1d<double, TDim> velocity,
-        const array_1d<double, TDim> upwindVelocity,
+        const array_1d<double, Dim> velocity,
+        const array_1d<double, Dim> upwindVelocity,
         const ProcessInfo& rCurrentProcessInfo);
 
-    virtual void CalculateLeftHandSideContribution(BoundedMatrix<double, TNumNodes, TNumNodes>& rLhs_total,
+    virtual void CalculateLeftHandSideContribution(BoundedMatrix<double, NumNodes, NumNodes>& rLhs_total,
                                          const ProcessInfo& rCurrentProcessInfo,
-                                         const array_1d<double, TDim>& rVelocity,
+                                         const array_1d<double, Dim>& rVelocity,
                                          const ElementalData& rData);
 
-    virtual void CalculateRightHandSideContribution(BoundedVector<double, TNumNodes>& rRhs_total,
+    virtual void CalculateRightHandSideContribution(BoundedVector<double, NumNodes>& rRhs_total,
                                         const double rDensity,
-                                        const array_1d<double, TDim>& rVelocity);
+                                        const array_1d<double, Dim>& rVelocity);
 
     inline GlobalPointer<Element> pGetUpwindElement() const;
 
@@ -251,7 +255,7 @@ private:
     ///@{
 
     void GetWakeDistances(array_1d<double,
-                         TNumNodes>& distances) const;
+                         NumNodes>& distances) const;
 
     void GetEquationIdVectorExtendedElement(EquationIdVectorType& rResult) const;
 
@@ -275,14 +279,14 @@ private:
     // void CalculateRightHandSideSupersonicElement(VectorType& rRightHandSideVector,
     //                                         const ProcessInfo& rCurrentProcessInfo);
 
-    BoundedMatrix<double, TNumNodes, TNumNodes> CalculateLeftHandSideWakeConditions(
+    BoundedMatrix<double, NumNodes, NumNodes> CalculateLeftHandSideWakeConditions(
                                             const ElementalData& rData,
                                             const ProcessInfo& rCurrentProcessInfo);
 
-    BoundedVector<double, TNumNodes> CalculateRightHandSideWakeConditions(
+    BoundedVector<double, NumNodes> CalculateRightHandSideWakeConditions(
                                             const ElementalData& rData,
                                             const ProcessInfo& rCurrentProcessInfo,
-                                            const array_1d<double, TDim>& rDiff_velocity);
+                                            const array_1d<double, Dim>& rDiff_velocity);
 
     void CalculateLeftHandSideSubdividedElement(Matrix& lhs_positive,
                                                Matrix& lhs_negative,
@@ -299,32 +303,32 @@ private:
         Matrix& rLeftHandSideMatrix,
         Matrix& lhs_positive,
         Matrix& lhs_negative,
-        const BoundedMatrix<double, TNumNodes, TNumNodes>& rUpper_lhs_total,
-        const BoundedMatrix<double, TNumNodes, TNumNodes>& rLower_lhs_total,
-        const BoundedMatrix<double, TNumNodes, TNumNodes>& rLhs_wake_condition,
+        const BoundedMatrix<double, NumNodes, NumNodes>& rUpper_lhs_total,
+        const BoundedMatrix<double, NumNodes, NumNodes>& rLower_lhs_total,
+        const BoundedMatrix<double, NumNodes, NumNodes>& rLhs_wake_condition,
         const ElementalData& data) const;
 
     void AssignLeftHandSideWakeElement(MatrixType& rLeftHandSideMatrix,
-                                    const BoundedMatrix<double, TNumNodes, TNumNodes>& rUpper_lhs_total,
-                                    const BoundedMatrix<double, TNumNodes, TNumNodes>& rLower_lhs_total,
-                                    const BoundedMatrix<double, TNumNodes, TNumNodes>& rLhs_wake_condition,
+                                    const BoundedMatrix<double, NumNodes, NumNodes>& rUpper_lhs_total,
+                                    const BoundedMatrix<double, NumNodes, NumNodes>& rLower_lhs_total,
+                                    const BoundedMatrix<double, NumNodes, NumNodes>& rLhs_wake_condition,
                                     const ElementalData& rData) const;
 
     void AssignLeftHandSideWakeNode(MatrixType& rLeftHandSideMatrix,
-                                    const BoundedMatrix<double, TNumNodes, TNumNodes>& rUpper_lhs_total,
-                                    const BoundedMatrix<double, TNumNodes, TNumNodes>& rLower_lhs_total,
-                                    const BoundedMatrix<double, TNumNodes, TNumNodes>& rLhs_wake_condition,
+                                    const BoundedMatrix<double, NumNodes, NumNodes>& rUpper_lhs_total,
+                                    const BoundedMatrix<double, NumNodes, NumNodes>& rLower_lhs_total,
+                                    const BoundedMatrix<double, NumNodes, NumNodes>& rLhs_wake_condition,
                                     const ElementalData& rData,
                                     unsigned int row) const;
 
     void AssignRightHandSideWakeNode(VectorType& rRightHandSideVector,
-                                    const BoundedVector<double, TNumNodes>& rUpper_rhs,
-                                    const BoundedVector<double, TNumNodes>& rLower_rhs,
-                                    const BoundedVector<double, TNumNodes>& rWake_rhs,
+                                    const BoundedVector<double, NumNodes>& rUpper_rhs,
+                                    const BoundedVector<double, NumNodes>& rLower_rhs,
+                                    const BoundedVector<double, NumNodes>& rWake_rhs,
                                     const ElementalData& rData,
                                     unsigned int& rRow) const;
 
-    array_1d<size_t, TNumNodes> GetAssemblyKey(const GeometryType& rGeom, const GeometryType& rUpwindGeom, const ProcessInfo& rCurrentProcessInfo);
+    array_1d<size_t, NumNodes> GetAssemblyKey(const GeometryType& rGeom, const GeometryType& rUpwindGeom, const ProcessInfo& rCurrentProcessInfo);
 
     void FindUpwindEdge(GeometryType& rUpwindEdge,
                         const ProcessInfo& rCurrentProcessInfo);

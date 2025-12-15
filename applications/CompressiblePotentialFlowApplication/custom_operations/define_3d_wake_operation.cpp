@@ -57,7 +57,11 @@ Define3DWakeOperation::Define3DWakeOperation(
     // Saving the modelparts
     mpTrailingEdgeModelPart = &(rModel.GetModelPart(mParameters["trailing_edge_model_part_name"].GetString()));
     mpBodyModelPart         = &(rModel.GetModelPart(mParameters["body_model_part_name"].GetString()));
-    mpWakeModelPart         = &(rModel.CreateModelPart("wake_model_part"));
+
+    if (!rModel.HasModelPart("wake_model_part")){
+        mpWakeModelPart         = &(rModel.CreateModelPart("wake_model_part"));
+    }
+
     mpRootModelPart         = &(mpBodyModelPart->GetRootModelPart());
 
     if (mParameters["upper_surface_model_part_name"].GetString() != "")
@@ -131,6 +135,12 @@ void Define3DWakeOperation::InitializeVariables()
         r_nodes.SetValue(TRAILING_EDGE, false);
         r_nodes.SetValue(WAKE_DISTANCE, 0.0);
     });
+    for (auto& r_cond : mpBodyModelPart->Conditions()) {
+        auto& r_geometry = r_cond.GetGeometry();
+        for (unsigned int j = 0; j < r_geometry.size(); j++) {
+            r_geometry[j].Set(SOLID);
+        }
+    }
     auto& r_elements = mpRootModelPart->Elements();
     VariableUtils().SetNonHistoricalVariable(WAKE, 0, r_elements);
     

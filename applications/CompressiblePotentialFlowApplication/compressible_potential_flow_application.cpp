@@ -42,6 +42,8 @@ KratosCompressiblePotentialFlowApplication::KratosCompressiblePotentialFlowAppli
     mAdjointIncompressiblePerturbationPotentialFlowElement2D3N(0, Element::GeometryType::Pointer(new Triangle2D3<Node >(Element::GeometryType::PointsArrayType(3)))),
     mAdjointIncompressiblePerturbationPotentialFlowElement3D4N(0, Element::GeometryType::Pointer(new Tetrahedra3D4<Node >(Element::GeometryType::PointsArrayType(4)))),
     mAdjointCompressiblePotentialFlowElement2D3N(0, Element::GeometryType::Pointer(new Triangle2D3<Node >(Element::GeometryType::PointsArrayType(3)))),
+    mAdjointTransonicPerturbationPotentialFlowElement2D3N(0, Element::GeometryType::Pointer(new Triangle2D3<Node >(Element::GeometryType::PointsArrayType(3)))),
+    mAdjointTransonicPerturbationPotentialFlowElement3D4N(0, Element::GeometryType::Pointer(new Tetrahedra3D4<Node >(Element::GeometryType::PointsArrayType(4)))),
     mEmbeddedIncompressiblePotentialFlowElement2D3N(0, Element::GeometryType::Pointer(new Triangle2D3<Node >(Element::GeometryType::PointsArrayType(3)))),
     mEmbeddedIncompressiblePotentialFlowElement3D4N(0, Element::GeometryType::Pointer(new Tetrahedra3D4<Node >(Element::GeometryType::PointsArrayType(4)))),
     mEmbeddedCompressiblePotentialFlowElement2D3N(0, Element::GeometryType::Pointer(new Triangle2D3<Node >(Element::GeometryType::PointsArrayType(3)))),
@@ -129,6 +131,7 @@ void KratosCompressiblePotentialFlowApplication::Register()
   KRATOS_REGISTER_VARIABLE(LOWER_WAKE);
   KRATOS_REGISTER_VARIABLE(AIRFOIL);
   KRATOS_REGISTER_VARIABLE(FAR_FIELD);
+  KRATOS_REGISTER_VARIABLE(UPWIND_ELEMENT);
 
   // To be removed
   KRATOS_REGISTER_VARIABLE(TRAILING_EDGE_ELEMENT);
@@ -153,6 +156,8 @@ void KratosCompressiblePotentialFlowApplication::Register()
   KRATOS_REGISTER_ELEMENT("AdjointIncompressiblePerturbationPotentialFlowElement2D3N", mAdjointIncompressiblePerturbationPotentialFlowElement2D3N);
   KRATOS_REGISTER_ELEMENT("AdjointIncompressiblePerturbationPotentialFlowElement3D4N", mAdjointIncompressiblePerturbationPotentialFlowElement3D4N);
   KRATOS_REGISTER_ELEMENT("AdjointCompressiblePotentialFlowElement2D3N", mAdjointCompressiblePotentialFlowElement2D3N);
+  KRATOS_REGISTER_ELEMENT("AdjointTransonicPerturbationPotentialFlowElement2D3N", mAdjointTransonicPerturbationPotentialFlowElement2D3N);
+  KRATOS_REGISTER_ELEMENT("AdjointTransonicPerturbationPotentialFlowElement3D4N", mAdjointTransonicPerturbationPotentialFlowElement3D4N);
   KRATOS_REGISTER_ELEMENT("EmbeddedIncompressiblePotentialFlowElement2D3N", mEmbeddedIncompressiblePotentialFlowElement2D3N);
   KRATOS_REGISTER_ELEMENT("EmbeddedIncompressiblePotentialFlowElement3D4N", mEmbeddedIncompressiblePotentialFlowElement3D4N);
   KRATOS_REGISTER_ELEMENT("EmbeddedCompressiblePotentialFlowElement2D3N", mEmbeddedCompressiblePotentialFlowElement2D3N);

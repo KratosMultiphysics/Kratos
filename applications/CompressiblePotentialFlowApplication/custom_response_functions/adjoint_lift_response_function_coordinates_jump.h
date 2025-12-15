@@ -150,6 +150,11 @@ protected:
     ///@name Protected Operations
     ///@{
 
+    /**
+     * @brief This method provides the defaults parameters to avoid conflicts between the different constructors
+     */
+    const Parameters GetDefaultParameters() const;
+
     ///@}
     ///@name Protected  Access
     ///@{
@@ -173,8 +178,9 @@ private:
     ///@name Member Variables
     ///@{
 
-    Element::Pointer mpNeighboringElement;
+    std::vector<IndexType> mTrailingEdgeElementIds;
     double mReferenceChord;
+    std::string mTrailingEdgeModelPartName;
 
 
     ///@}

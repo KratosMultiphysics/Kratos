@@ -13,11 +13,14 @@
 #include "compressible_potential_flow_application_variables.h"
 #include "incompressible_potential_flow_element.h"
 #include "incompressible_perturbation_potential_flow_element.h"
+#include "transonic_perturbation_potential_flow_element.h"
 #include "compressible_potential_flow_element.h"
 #include "embedded_incompressible_potential_flow_element.h"
 #include "embedded_compressible_potential_flow_element.h"
 #include "adjoint_base_potential_flow_element.h"
 #include "custom_utilities/potential_flow_utilities.h"
+#include "utilities/geometry_utilities.h"
+#include "utilities/enrichment_utilities.h"
 
 namespace Kratos
 {
@@ -31,6 +34,7 @@ namespace Kratos
     void AdjointBasePotentialFlowElement<TPrimalElement>::Initialize(const ProcessInfo& rCurrentProcessInfo)
     {
         mpPrimalElement->Initialize(rCurrentProcessInfo);
+        FindUpwindElement(rCurrentProcessInfo);
     }
 
     template <class TPrimalElement>
@@ -169,8 +173,8 @@ namespace Kratos
 
         if(wake == 0)//normal element
         {
-            if (rResult.size() != NumNodes)
-                rResult.resize(NumNodes, false);
+            if (rResult.size() != NumNodes+1)
+                rResult.resize(NumNodes+1, false);
 
             if(kutta == 0){
                 for (unsigned int i = 0; i < NumNodes; i++)
@@ -184,6 +188,8 @@ namespace Kratos
                         rResult[i] = r_geometry[i].GetDof(ADJOINT_AUXILIARY_VELOCITY_POTENTIAL).EquationId();
                 }
             }
+            if (r_this.IsNot(INLET))
+                AddUpwindEquationId(rResult);
         }
         else//wake element
         {
@@ -353,6 +359,177 @@ namespace Kratos
     /*PRIVATE*/
 
     template <class TPrimalElement>
+    inline GlobalPointer<Element> AdjointBasePotentialFlowElement<TPrimalElement>::pGetUpwindElement() const
+    {
+        KRATOS_ERROR_IF(mpUpwindElement.get() == nullptr)
+            << "No upwind element found for element #" << this->Id() << std::endl;
+        return mpUpwindElement;
+    }
+
+    template <class TPrimalElement>
+    void AdjointBasePotentialFlowElement<TPrimalElement>::pSetUpwindElement(GlobalPointer<Element> pUpwindElement)
+    {
+        mpUpwindElement = pUpwindElement;
+    }
+
+    template <class TPrimalElement>
+    bool AdjointBasePotentialFlowElement<TPrimalElement>::CheckUpwindElement()
+    {
+        return mpUpwindElement.get() == nullptr;
+    }
+
+    template <class TPrimalElement>
+    void AdjointBasePotentialFlowElement<TPrimalElement>::AddUpwindEquationId(
+        EquationIdVectorType& rResult) const
+    {
+        const int additional_upwind_node_index = GetAdditionalUpwindNodeIndex();
+        const auto& r_upstream_element = *pGetUpwindElement();
+        const auto& r_upwind_geomtery = r_upstream_element.GetGeometry();
+        const int upstream_kutta = r_upstream_element.GetValue(KUTTA);
+        if (upstream_kutta == 0) { // upwind element is not kutta
+            // TODO special treatment for upwind wake elements
+            rResult[NumNodes] = r_upwind_geomtery[additional_upwind_node_index].GetDof(ADJOINT_VELOCITY_POTENTIAL).EquationId();
+        } else { // upwind element is kutta
+            if (!r_upwind_geomtery[additional_upwind_node_index].GetValue(TRAILING_EDGE)) {
+                // upwind node is not trailing edge
+                rResult[NumNodes] = r_upwind_geomtery[additional_upwind_node_index].GetDof(ADJOINT_VELOCITY_POTENTIAL).EquationId();
+            } else {
+                // upwind node is trailing edge
+                rResult[NumNodes] = r_upwind_geomtery[additional_upwind_node_index].GetDof(ADJOINT_AUXILIARY_VELOCITY_POTENTIAL).EquationId();
+            }
+        }
+    }
+
+    template <class TPrimalElement>
+    void AdjointBasePotentialFlowElement<TPrimalElement>::FindUpwindElement(const ProcessInfo& rCurrentProcessInfo)
+    {
+        GeometryType upwind_element_boundary;
+        FindUpwindEdge(upwind_element_boundary, rCurrentProcessInfo);
+        std::vector<size_t> upwind_element_nodes;
+        PotentialFlowUtilities::GetSortedIds<Dim, NumNodes>(upwind_element_nodes, upwind_element_boundary);
+
+        GlobalPointersVector<Element> upwind_element_candidates;
+        PotentialFlowUtilities::GetNodeNeighborElementCandidates<Dim, NumNodes>(upwind_element_candidates, upwind_element_boundary);
+        SelectUpwindElement(upwind_element_nodes, upwind_element_candidates);
+    }
+
+    template <class TPrimalElement>
+    void AdjointBasePotentialFlowElement<TPrimalElement>::FindUpwindEdge(GeometryType& rUpwindEdge,
+        const ProcessInfo& rCurrentProcessInfo)
+    {
+
+        GeometriesArrayType element_boundary_geometry;
+        GetElementGeometryBoundary(element_boundary_geometry);
+
+        // free stream values
+        const array_1d<double, 3> free_stream_velocity = rCurrentProcessInfo[FREE_STREAM_VELOCITY];
+
+        double minimum_edge_flux = 0.0;
+        for (SizeType i = 0; i < element_boundary_geometry.size(); i++)
+        {
+            const auto edge_normal = GetEdgeNormal(element_boundary_geometry[i]);
+
+            const double edge_flux = inner_prod(edge_normal, free_stream_velocity);
+
+            if(edge_flux < minimum_edge_flux)
+            {
+                minimum_edge_flux = edge_flux;
+                rUpwindEdge = element_boundary_geometry[i];
+            }
+        }
+    }
+
+    template <class TPrimalElement>
+    void AdjointBasePotentialFlowElement<TPrimalElement>::GetElementGeometryBoundary(GeometriesArrayType& rElementGeometryBoundary)
+    {
+        const AdjointBasePotentialFlowElement& r_this = *this;
+
+        // current element geometry
+        const GeometryType& r_geom = r_this.GetGeometry();
+
+        // get element edges or faces depending on dimension of the problem
+        if constexpr (Dim == 2)
+        {
+            // current element edges
+            rElementGeometryBoundary = r_geom.GenerateEdges();
+        }
+        else if constexpr (Dim == 3)
+        {
+            // current element faces
+            rElementGeometryBoundary = r_geom.GenerateFaces();
+        }
+    }
+
+    template <class TPrimalElement>
+    array_1d<double, 3> AdjointBasePotentialFlowElement<TPrimalElement>::GetEdgeNormal(const GeometryType& rEdge)
+    {
+        // get local coordinates of edge center
+        array_1d<double, 3> edge_center_coordinates;
+        rEdge.PointLocalCoordinates(edge_center_coordinates, rEdge.Center());
+
+        // outward pointing normals of each edge
+        return rEdge.Normal(edge_center_coordinates);
+    }
+
+    template <class TPrimalElement>
+    void AdjointBasePotentialFlowElement<TPrimalElement>::SelectUpwindElement(
+        std::vector<IndexType>& rUpwindElementNodeIds,
+        GlobalPointersVector<Element>& rUpwindElementCandidates)
+    {
+        for (SizeType i = 0; i < rUpwindElementCandidates.size(); i++)
+        {
+            // get sorted node ids of neighbording elements
+            std::vector<size_t> neighbor_element_ids;
+            PotentialFlowUtilities::GetSortedIds<Dim, NumNodes>(neighbor_element_ids, rUpwindElementCandidates[i].GetGeometry());
+
+            // find element which shares the upwind element nodes with current element
+            // but is not the current element
+            if(std::includes(neighbor_element_ids.begin(), neighbor_element_ids.end(),
+                rUpwindElementNodeIds.begin(), rUpwindElementNodeIds.end())
+                && rUpwindElementCandidates[i].Id() != this->Id())
+            {
+                mpUpwindElement = rUpwindElementCandidates(i);
+                break;
+            }
+        }
+
+        // If no upwind element is found, the element is an INLET element and the
+        // upwind element pointer points to itself
+        if (this->CheckUpwindElement())
+        {
+            this->pSetUpwindElement(this);
+            this->SetFlags(INLET);
+        }
+    }
+
+    template <class TPrimalElement>
+    int AdjointBasePotentialFlowElement<TPrimalElement>::GetAdditionalUpwindNodeIndex() const
+    {
+        // current and upwind element geometry
+        const GeometryType& r_geom = this->GetGeometry();
+        const GeometryType& r_upwind_geom = pGetUpwindElement()->GetGeometry();
+        std::vector<size_t> element_nodes_ids;
+        PotentialFlowUtilities::GetSortedIds<Dim, NumNodes>(element_nodes_ids, r_geom);
+
+        // Search for the Id of the upwind element node that
+        // is not contained in the current element
+        bool upstream_element_id_found = false;
+        // loop over upwind element nodes
+        for (unsigned int i = 0; i < NumNodes; i++) {
+            if( std::find(element_nodes_ids.begin(), element_nodes_ids.end(),
+                r_upwind_geom[i].Id()) == element_nodes_ids.end() )  {
+                    upstream_element_id_found = true;
+                    return i;
+                }
+        }
+
+        KRATOS_ERROR_IF(!upstream_element_id_found) << "No upstream element id found for element #"
+                << this->Id() << std::endl;
+
+        return -1;
+    }
+
+    template <class TPrimalElement>
     void AdjointBasePotentialFlowElement<TPrimalElement>::save(Serializer& rSerializer) const
     {
         KRATOS_SERIALIZE_SAVE_BASE_CLASS(rSerializer, Element );
@@ -372,6 +549,8 @@ namespace Kratos
     template class AdjointBasePotentialFlowElement<IncompressiblePerturbationPotentialFlowElement<2,3>>;
     template class AdjointBasePotentialFlowElement<IncompressiblePerturbationPotentialFlowElement<3,4>>;
     template class AdjointBasePotentialFlowElement<CompressiblePotentialFlowElement<2,3>>;
+    template class AdjointBasePotentialFlowElement<TransonicPerturbationPotentialFlowElement<2,3>>;
+    template class AdjointBasePotentialFlowElement<TransonicPerturbationPotentialFlowElement<3,4>>;
     template class AdjointBasePotentialFlowElement<EmbeddedIncompressiblePotentialFlowElement<2,3>>;
     template class AdjointBasePotentialFlowElement<EmbeddedCompressiblePotentialFlowElement<2,3>>;
 } // namespace Kratos.

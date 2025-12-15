@@ -14,7 +14,7 @@ class ApplyFarFieldAndWakeProcess(KratosMultiphysics.Process):
         KratosMultiphysics.Process.__init__(self)
 
         if not settings.Has("angle_of_attack_units"):
-            KratosMultiphysics.Logger.PrintWarning("ApplyFarFieldAndWakeProcess", "'angle of attack_units' is not provided. Using 'radians' as default angle of attack unit.")
+            KratosMultiphysics.Logger.PrintWarning("ApplyFarFieldAndWakeProcess", "'angle_of_attack_units' is not provided. Using 'radians' as default angle of attack unit.")
 
         default_parameters = KratosMultiphysics.Parameters( """
             {
@@ -42,8 +42,8 @@ class ApplyFarFieldAndWakeProcess(KratosMultiphysics.Process):
             }  """ )
         settings.ValidateAndAssignDefaults(default_parameters)
 
-
-        self.far_field_model_part = Model[settings["model_part_name"].GetString()]
+        self.model = Model
+        self.far_field_model_part = self.model[settings["model_part_name"].GetString()]
         self.fluid_model_part = self.far_field_model_part.GetRootModelPart()
 
         self.angle_of_attack_units = settings["angle_of_attack_units"].GetString()
@@ -72,10 +72,12 @@ class ApplyFarFieldAndWakeProcess(KratosMultiphysics.Process):
         self.free_stream_velocity = KratosMultiphysics.Vector(3)
 
         if self.angle_of_attack_units == "radians":
-            KratosMultiphysics.Logger.PrintWarning("ApplyFarFieldAndWakeProcess", " Using 'radians' as angle of attack unit. This will be deprecated soon.")
+            KratosMultiphysics.Logger.PrintWarning("ApplyFarFieldAndWakeProcess", " Using 'radians' as angle_of_attack_unit. This will be deprecated soon.")
         elif self.angle_of_attack_units == "degrees":
             self.angle_of_attack = self.angle_of_attack*math.pi/180
-
+        else:
+            raise RuntimeError("ApplyFarFieldAndWakeProcess: Please select 'radians' or 'degrees' as angle_of_attack_unit")
+            
         self.domain_size = self.fluid_model_part.ProcessInfo.GetValue(KratosMultiphysics.DOMAIN_SIZE)
         if self.domain_size == 2:
             # By convention 2D airfoils are in the xy plane
@@ -128,6 +130,8 @@ class ApplyFarFieldAndWakeProcess(KratosMultiphysics.Process):
         if self.define_wake:
             if  self.compute_wake_at_each_step and self.fluid_model_part.ProcessInfo[KratosMultiphysics.STEP] > 1:
                 KratosMultiphysics.Logger.PrintWarning("ApplyFarFieldAndWakeProcess", " Using define_wake_operation at each step. This will be deprecated soon.")
+                if self.model.GetModelPart("wake_model_part").HasSubModelPart("Wake"): 
+                    self.model.GetModelPart("wake_model_part").RemoveSubModelPart("Wake")
                 self.wake_operation.Execute()
 
     def ExecuteFinalizeSolutionStep(self):

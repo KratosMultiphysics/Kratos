@@ -166,6 +166,24 @@ public:
         KRATOS_CATCH("")
     }
 
+    void InitializeSolutionStep(
+        ModelPart& rModelPart,
+        TSystemMatrixType& A,
+        TSystemVectorType& Dx,
+        TSystemVectorType& b) override
+    {
+        KRATOS_TRY
+
+        if (mIsTransonic){
+            // Initialize the upwind factor constant, critical mach and mach limit with the user-defined values
+            rModelPart.GetProcessInfo()[CRITICAL_MACH]          = mInitialCriticalMach;
+            rModelPart.GetProcessInfo()[UPWIND_FACTOR_CONSTANT] = mInitialUpwindFactorConstant;
+            rModelPart.GetProcessInfo()[MACH_LIMIT]             = std::sqrt(mMachNumberSquaredLimit);
+        }
+        BaseType::InitializeSolutionStep(rModelPart,A,Dx,b);
+        KRATOS_CATCH("")
+    }
+
     /**
      * @brief Function to be called when it is needed to initialize an iteration. It is designed to be called at the beginning of each non linear iteration
      * @details Here CRITICAL_MACH and UPWIND_FACTOR_CONSTANT are updated, between nonlinear iterations, to a user-defined value when a user-defined 

@@ -17,6 +17,10 @@
 
 // Project includes
 #include "includes/element.h"
+#include "includes/kratos_flags.h"
+#include "utilities/geometry_utilities.h"
+#include "utilities/enrichment_utilities.h"
+#include "custom_utilities/potential_flow_utilities.h"
 
 namespace Kratos
 {
@@ -30,6 +34,7 @@ public:
     ///@{
 
     typedef Element BaseType;
+    typedef PointerVector<GeometryType> GeometriesArrayType;
     static constexpr int NumNodes = TPrimalElement::TNumNodes;
     static constexpr int Dim = TPrimalElement::TDim;
 
@@ -144,13 +149,38 @@ public:
 
     Element::Pointer pGetPrimalElement();
 
+    inline GlobalPointer<Element> pGetUpwindElement() const;
+
+    bool CheckUpwindElement();
+
+    void pSetUpwindElement(GlobalPointer<Element> pUpwindElement);
+
+    array_1d<double, 3> GetEdgeNormal(const GeometryType& rEdge);
+
+    virtual void FindUpwindElement(const ProcessInfo& rCurrentProcessInfo);
+
 protected:
 
     Element::Pointer mpPrimalElement;
 
+    GlobalPointer<Element> mpUpwindElement;
+
     void GetValuesOnSplitElement(Vector& split_element_values, const array_1d<double,NumNodes>& distances) const;
 
 private:
+
+    void AddUpwindEquationId(EquationIdVectorType& rResult) const;
+
+    void FindUpwindEdge(GeometryType& rUpwindEdge,
+                        const ProcessInfo& rCurrentProcessInfo);
+
+    void GetElementGeometryBoundary(GeometriesArrayType& rElementGeometryBoundary);
+
+
+    void SelectUpwindElement(std::vector<IndexType>& rUpwindElementNodesIds,
+                             GlobalPointersVector<Element>& rUpwindElementCandidates);
+
+    int GetAdditionalUpwindNodeIndex() const;
 
     friend class Serializer;
 

@@ -128,7 +128,8 @@ class AdjointResponseFunction(ResponseFunctionInterface):
 
     def _GetLabel(self):
         type_labels = {
-            "adjoint_lift_potential_jump" : "LiftPotentialJump"
+            "adjoint_lift_potential_jump" : "LiftPotentialJump",
+            "adjoint_lift_far_field"      : "LiftFarfield"
         }
         response_type = self.response_settings["response_type"].GetString()
         return "Adjoint" + type_labels[response_type]  +"Response"
@@ -147,5 +148,5 @@ class AdjointResponseFunction(ResponseFunctionInterface):
                     if not process["Parameters"].Has("compute_wake_at_each_step") or not process["Parameters"]["compute_wake_at_each_step"].GetBool():
                         if not process["Parameters"].Has("compute_wake_at_each_step"):
                             process["Parameters"].AddEmptyValue("compute_wake_at_each_step")
-                    process["Parameters"]["compute_wake_at_each_step"].SetBool(True)
+                    process["Parameters"]["compute_wake_at_each_step"].SetBool(False)
         return parameters
