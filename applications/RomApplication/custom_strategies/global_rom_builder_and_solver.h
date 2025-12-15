@@ -332,6 +332,27 @@ public:
         // Reset the ROM solution increment in the root modelpart database
         auto& r_root_mp = rModelPart.GetRootModelPart();
         r_root_mp.GetValue(ROM_SOLUTION_INCREMENT) = ZeroVector(GetNumberOfROMModes());
+
+        if (mRightRomBasisInitialized==false){
+            mPhiGlobal = ZeroMatrix(BaseBuilderAndSolverType::GetEquationSystemSize(), GetNumberOfROMModes());
+            BuildRightROMBasis(rModelPart, mPhiGlobal);
+            mRightRomBasisInitialized = true;
+        }
+
+        if (mSelectedIdsInitilized==false)
+        {
+            LoadSelectedIds("selected_elements_list.txt");
+            weight_constant = rModelPart.GetProcessInfo()[CONSTRAINT_SCALE_FACTOR];
+            InitializeWeights(rModelPart);
+            mSelectedIdsInitilized = true;
+        }
+
+        const SizeType system_size = BaseBuilderAndSolverType::GetEquationSystemSize();
+        if (mWeightMatrix.rows() != static_cast<Eigen::Index>(system_size) || 
+            mWeightMatrix.cols() != static_cast<Eigen::Index>(system_size)) {
+            mWeightMatrix.resize(system_size, system_size);
+        }
+        mWeightMatrix.setIdentity();
     }
 
 
@@ -463,6 +484,12 @@ protected:
     bool mHromSimulation = false;
     bool mHromWeightsInitialized = false;
     bool mRightRomBasisInitialized = false;
+    EigenSparseMatrix mWeightMatrix; // Matriz de ponderación para priorizar nodos/elementos
+    bool mSelectedIdsInitilized=false;
+    bool mWeightedMatrixInitilized=false;
+    double weight_constant = 1.0;
+    std::unordered_set<IndexType> mSelectedIds; 
+    Matrix mPhiGlobal;
 
     ///@}
     ///@name Protected operators
@@ -740,6 +767,34 @@ protected:
             }
         }
 
+        const SizeType system_size = BaseBuilderAndSolverType::GetEquationSystemSize();
+        std::vector<bool> processed(system_size, false);
+        processed.shrink_to_fit();
+        #pragma omp parallel firstprivate(nelements, EquationId, system_size)
+        {
+            # pragma omp for  schedule(guided, 512) nowait
+            for (int k = 0; k < nelements; k++) 
+            {
+                auto it_elem = el_begin + k;
+                if (it_elem->IsActive()) 
+                {   
+                    it_elem->EquationIdVector(EquationId, CurrentProcessInfo);  
+                    if (it_elem->GetValue(ACTIVATION_LEVEL))
+                    {
+                        for (auto dof_id : EquationId) 
+                        {
+                            KRATOS_ERROR_IF(dof_id >= system_size) << "DOF ID out of range: " << dof_id << std::endl;
+                            if (!processed[dof_id]) {
+                                processed[dof_id] = true;
+                                #pragma omp critical
+                                mWeightMatrix.coeffRef(dof_id, dof_id) = weight_constant;
+                            }
+                        }
+                    }          
+                }
+            }
+        }
+        
         KRATOS_INFO_IF("GlobalROMResidualBasedBlockBuilderAndSolver", this->GetEchoLevel() >= 1) << "Build time: " << timer.ElapsedSeconds() << std::endl;
 
         KRATOS_INFO_IF("GlobalROMResidualBasedBlockBuilderAndSolver", (this->GetEchoLevel() > 2 && rModelPart.GetCommunicator().MyPID() == 0)) << "Finished parallel building" << std::endl;
@@ -757,23 +812,56 @@ protected:
     {
         KRATOS_TRY
 
-        if (mRightRomBasisInitialized==false){
-            mPhiGlobal = ZeroMatrix(BaseBuilderAndSolverType::GetEquationSystemSize(), GetNumberOfROMModes());
-            mRightRomBasisInitialized = true;
-        }
-
-        BuildRightROMBasis(rModelPart, mPhiGlobal);
-
         auto a_wrapper = UblasWrapper<double>(rA);
         const auto& eigen_rA = a_wrapper.matrix();
         Eigen::Map<EigenDynamicVector> eigen_rb(rb.data().begin(), rb.size());
         Eigen::Map<EigenDynamicMatrix> eigen_mPhiGlobal(mPhiGlobal.data().begin(), mPhiGlobal.size1(), mPhiGlobal.size2());
 
-        EigenDynamicMatrix eigen_rA_times_mPhiGlobal = eigen_rA * eigen_mPhiGlobal; //TODO: Make it in parallel.
+        // Incorporar la matriz de ponderación W
+        Eigen::SparseMatrix<double> eigen_weighted_rA = mWeightMatrix * eigen_rA;
+        Eigen::VectorXd eigen_weighted_rb = mWeightMatrix * eigen_rb;
 
-        // Compute the matrix multiplication
-        mEigenRomA = eigen_mPhiGlobal.transpose() * eigen_rA_times_mPhiGlobal; //TODO: Make it in parallel.
-        mEigenRomB = eigen_mPhiGlobal.transpose() * eigen_rb; //TODO: Make it in parallel.
+        // Proyección al sistema reducido
+        EigenDynamicMatrix eigen_weighted_rA_times_mPhiGlobal = eigen_weighted_rA * eigen_mPhiGlobal;
+        mEigenRomA = eigen_mPhiGlobal.transpose() * eigen_weighted_rA_times_mPhiGlobal;
+        mEigenRomB = eigen_mPhiGlobal.transpose() * eigen_weighted_rb;
+
+        KRATOS_CATCH("")
+    }
+
+    void LoadSelectedIds(const std::string& filename)
+    {
+        KRATOS_TRY
+
+        std::ifstream file(filename);
+        IndexType id;
+        while (file >> id) {
+            mSelectedIds.insert(id);
+        }
+
+        KRATOS_INFO("GlobalROMBuilderAndSolver") << "Load " << mSelectedIds.size() << " IDs from " << filename << std::endl;
+
+        KRATOS_CATCH("")
+    }
+
+    void InitializeWeights(ModelPart& rModelPart)
+    {
+        KRATOS_TRY
+
+        std::unordered_set<std::size_t> indices_set(mSelectedIds.begin(), mSelectedIds.end());
+        const int n_elements = rModelPart.NumberOfElements();
+        IndexPartition<std::size_t>(n_elements).for_each([&](std::size_t index) {
+            auto it_element = rModelPart.ElementsBegin() + index;  
+            if (indices_set.find(it_element->Id()) != indices_set.end()) {
+                it_element->SetValue(ACTIVATION_LEVEL, 1);
+                auto& r_geometry = it_element->GetGeometry();
+                size_t NumNodes = r_geometry.size();
+                for (IndexType i = 0; i < NumNodes; i++)
+                {
+                    r_geometry[i].FastGetSolutionStepValue(ACTIVATION_LEVEL) = 1;
+                }
+            }
+        });
 
         KRATOS_CATCH("")
     }
@@ -796,6 +884,34 @@ protected:
         using EigenDynamicVector = Eigen::Matrix<double, Eigen::Dynamic, 1>;
         Eigen::Map<EigenDynamicVector> dxrom_eigen(dxrom.data().begin(), dxrom.size());
         dxrom_eigen = rEigenRomA.colPivHouseholderQr().solve(rEigenRomB);
+
+        // TSystemMatrixType rom_A;
+        // TSystemVectorType rom_b;
+        // const int rows = rEigenRomA.rows();
+        // const int cols = rEigenRomA.cols();
+        // rom_A.resize(rows, cols, false);
+        // std::vector<unsigned long> row_nnz(rows, 0);
+        // for (int i = 0; i < rows; ++i){
+        //     for (int j = 0; j < cols; ++j){
+        //         if(std::abs(rEigenRomA(i,j)) > 1e-16)
+        //             row_nnz[i]++;
+        //     }
+        // }
+        // unsigned long total_nnz = std::accumulate(row_nnz.begin(), row_nnz.end(), 0UL);
+        // rom_A.reserve(total_nnz, false);
+        // for (int i = 0; i < rows; ++i){
+        //     for (int j = 0; j < cols; ++j){
+        //         double val = rEigenRomA(i,j);
+        //         if(std::abs(val) > 1e-16)
+        //             rom_A.push_back(i, j, val);
+        //     }
+        // }
+        // const int size = rEigenRomB.size();
+        // rom_b.resize(size, false);
+        // for (int i = 0; i < size; ++i){
+        //     rom_b[i] = rEigenRomB(i);
+        // }
+        // BaseType::mpLinearSystemSolver->Solve(rom_A, dxrom, rom_b);
 
         double time = solving_timer.ElapsedSeconds();
         KRATOS_INFO_IF("GlobalROMBuilderAndSolver", (this->GetEchoLevel() > 0)) << "Solve reduced system time: " << time << std::endl;
@@ -830,7 +946,6 @@ private:
     SizeType mNumberOfRomModes;
     EigenDynamicMatrix mEigenRomA;
     EigenDynamicVector mEigenRomB;
-    Matrix mPhiGlobal;
     bool mMonotonicityPreservingFlag;
 
     ///@}

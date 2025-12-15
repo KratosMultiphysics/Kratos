@@ -139,9 +139,14 @@ class CalculateRomBasisOutputProcess(KratosMultiphysics.OutputProcess):
 
     def _ComputeSVD(self, snapshots_matrix):
 
-        # Calculate the randomized SVD of the snapshots matrix
-        u,sigma,_,_= RandomizedSingularValueDecomposition().Calculate(snapshots_matrix, self.svd_truncation_tolerance)
-        return u, sigma
+        if self.svd_truncation_tolerance >= 1:
+            column = int(self.svd_truncation_tolerance)
+            u,sigma,_,_= RandomizedSingularValueDecomposition().Calculate(snapshots_matrix, 0.0)
+            return u[:,:column],sigma[:column]
+        else:
+            # Calculate the randomized SVD of the snapshots matrix
+            u,sigma,_,_= RandomizedSingularValueDecomposition().Calculate(snapshots_matrix, self.svd_truncation_tolerance)
+            return u, sigma
 
 
     def _PrintRomBasis(self, u, sigma):
