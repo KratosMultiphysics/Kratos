@@ -54,8 +54,8 @@ KRATOS_TEST_CASE_IN_SUITE(LinearStrategyEliminationBuild, KratosCoreFastSuite)
     // Create the linear solver
     Parameters amgcl_settings = Parameters(R"({
     })");
-    using AMGCLSolverType = Future::AMGCLSolver<CsrMatrix<>, SystemVector<>>;
-    using LinearSolverType = Future::LinearSolver<CsrMatrix<>, SystemVector<>>;
+    using AMGCLSolverType = Future::AMGCLSolver<SystemVector<>, CsrMatrix<>>;
+    using LinearSolverType = Future::LinearSolver<SystemVector<>, CsrMatrix<>>;
     typename LinearSolverType::Pointer p_amgcl_solver = Kratos::make_shared<AMGCLSolverType>(amgcl_settings);
 
     // Create the strategy
@@ -113,8 +113,8 @@ KRATOS_TEST_CASE_IN_SUITE(LinearStrategyBlockBuild, KratosCoreFastSuite)
     // Create the linear solver
     Parameters amgcl_settings = Parameters(R"({
     })");
-    using AMGCLSolverType = Future::AMGCLSolver<CsrMatrix<>, SystemVector<>>;
-    using LinearSolverType = Future::LinearSolver<CsrMatrix<>, SystemVector<>>;
+    using AMGCLSolverType = Future::AMGCLSolver<SystemVector<>, CsrMatrix<>>;
+    using LinearSolverType = Future::LinearSolver<SystemVector<>, CsrMatrix<>>;
     typename LinearSolverType::Pointer p_amgcl_solver = Kratos::make_shared<AMGCLSolverType>(amgcl_settings);
 
     // Create the strategy
@@ -184,8 +184,8 @@ KRATOS_TEST_CASE_IN_SUITE(LinearStrategyWithJumpConstraintEliminationBuild, Krat
     // Create the linear solver
     Parameters amgcl_settings = Parameters(R"({
     })");
-    using AMGCLSolverType = Future::AMGCLSolver<CsrMatrix<>, SystemVector<>>;
-    using LinearSolverType = Future::LinearSolver<CsrMatrix<>, SystemVector<>>;
+    using AMGCLSolverType = Future::AMGCLSolver<SystemVector<>, CsrMatrix<>>;
+    using LinearSolverType = Future::LinearSolver<SystemVector<>, CsrMatrix<>>;
     typename LinearSolverType::Pointer p_amgcl_solver = Kratos::make_shared<AMGCLSolverType>(amgcl_settings);
 
     // Create the strategy
@@ -255,8 +255,8 @@ KRATOS_TEST_CASE_IN_SUITE(LinearStrategyWithJumpConstraintBlockBuild, KratosCore
     // Create the linear solver
     Parameters amgcl_settings = Parameters(R"({
     })");
-    using AMGCLSolverType = Future::AMGCLSolver<CsrMatrix<>, SystemVector<>>;
-    using LinearSolverType = Future::LinearSolver<CsrMatrix<>, SystemVector<>>;
+    using AMGCLSolverType = Future::AMGCLSolver<SystemVector<>, CsrMatrix<>>;
+    using LinearSolverType = Future::LinearSolver<SystemVector<>, CsrMatrix<>>;
     typename LinearSolverType::Pointer p_amgcl_solver = Kratos::make_shared<AMGCLSolverType>(amgcl_settings);
 
     // Create the strategy
@@ -324,8 +324,8 @@ KRATOS_TEST_CASE_IN_SUITE(LinearStrategyWithPeriodicityConstraintEliminationBuil
     // Create the linear solver
     Parameters amgcl_settings = Parameters(R"({
     })");
-    using AMGCLSolverType = Future::AMGCLSolver<CsrMatrix<>, SystemVector<>>;
-    using LinearSolverType = Future::LinearSolver<CsrMatrix<>, SystemVector<>>;
+    using AMGCLSolverType = Future::AMGCLSolver<SystemVector<>, CsrMatrix<>>;
+    using LinearSolverType = Future::LinearSolver<SystemVector<>, CsrMatrix<>>;
     typename LinearSolverType::Pointer p_amgcl_solver = Kratos::make_shared<AMGCLSolverType>(amgcl_settings);
 
     // Create the strategy
@@ -394,8 +394,8 @@ KRATOS_TEST_CASE_IN_SUITE(LinearStrategyWithPeriodicityConstraintBlockBuild, Kra
     // Create the linear solver
     Parameters amgcl_settings = Parameters(R"({
     })");
-    using AMGCLSolverType = Future::AMGCLSolver<CsrMatrix<>, SystemVector<>>;
-    using LinearSolverType = Future::LinearSolver<CsrMatrix<>, SystemVector<>>;
+    using AMGCLSolverType = Future::AMGCLSolver<SystemVector<>, CsrMatrix<>>;
+    using LinearSolverType = Future::LinearSolver<SystemVector<>, CsrMatrix<>>;
     typename LinearSolverType::Pointer p_amgcl_solver = Kratos::make_shared<AMGCLSolverType>(amgcl_settings);
 
     // Create the strategy
@@ -473,8 +473,8 @@ KRATOS_TEST_CASE_IN_SUITE(LinearStrategyWithMultipleDofsConstraintsEliminationBu
     // Create the linear solver
     Parameters amgcl_settings = Parameters(R"({
     })");
-    using AMGCLSolverType = Future::AMGCLSolver<CsrMatrix<>, SystemVector<>>;
-    using LinearSolverType = Future::LinearSolver<CsrMatrix<>, SystemVector<>>;
+    using AMGCLSolverType = Future::AMGCLSolver<SystemVector<>, CsrMatrix<>>;
+    using LinearSolverType = Future::LinearSolver<SystemVector<>, CsrMatrix<>>;
     typename LinearSolverType::Pointer p_amgcl_solver = Kratos::make_shared<AMGCLSolverType>(amgcl_settings);
 
     // Create the strategy
@@ -552,8 +552,8 @@ KRATOS_TEST_CASE_IN_SUITE(LinearStrategyWithMultipleDofsConstraintsBlockBuild, K
     // Create the linear solver
     Parameters amgcl_settings = Parameters(R"({
     })");
-    using AMGCLSolverType = Future::AMGCLSolver<CsrMatrix<>, SystemVector<>>;
-    using LinearSolverType = Future::LinearSolver<CsrMatrix<>, SystemVector<>>;
+    using AMGCLSolverType = Future::AMGCLSolver<SystemVector<>, CsrMatrix<>>;
+    using LinearSolverType = Future::LinearSolver<SystemVector<>, CsrMatrix<>>;
     typename LinearSolverType::Pointer p_amgcl_solver = Kratos::make_shared<AMGCLSolverType>(amgcl_settings);
 
     // Create the strategy
@@ -635,8 +635,8 @@ KRATOS_TEST_CASE_IN_SUITE(LinearStrategyWithTieConstraintsEliminationBuild, Krat
     // Create the linear solver
     Parameters amgcl_settings = Parameters(R"({
     })");
-    using AMGCLSolverType = Future::AMGCLSolver<CsrMatrix<>, SystemVector<>>;
-    using LinearSolverType = Future::LinearSolver<CsrMatrix<>, SystemVector<>>;
+    using AMGCLSolverType = Future::AMGCLSolver<SystemVector<>, CsrMatrix<>>;
+    using LinearSolverType = Future::LinearSolver<SystemVector<>, CsrMatrix<>>;
     typename LinearSolverType::Pointer p_amgcl_solver = Kratos::make_shared<AMGCLSolverType>(amgcl_settings);
 
     // Create the strategy
@@ -720,8 +720,8 @@ KRATOS_TEST_CASE_IN_SUITE(LinearStrategyWithTieConstraintsBlockBuild, KratosCore
     // Create the linear solver
     Parameters amgcl_settings = Parameters(R"({
     })");
-    using AMGCLSolverType = Future::AMGCLSolver<CsrMatrix<>, SystemVector<>>;
-    using LinearSolverType = Future::LinearSolver<CsrMatrix<>, SystemVector<>>;
+    using AMGCLSolverType = Future::AMGCLSolver<SystemVector<>, CsrMatrix<>>;
+    using LinearSolverType = Future::LinearSolver<SystemVector<>, CsrMatrix<>>;
     typename LinearSolverType::Pointer p_amgcl_solver = Kratos::make_shared<AMGCLSolverType>(amgcl_settings);
 
     // Create the strategy
@@ -800,8 +800,8 @@ KRATOS_TEST_CASE_IN_SUITE(LinearStrategyWithRigidBodyMotionConstraintElimination
     // Create the linear solver
     Parameters amgcl_settings = Parameters(R"({
     })");
-    using AMGCLSolverType = Future::AMGCLSolver<CsrMatrix<>, SystemVector<>>;
-    using LinearSolverType = Future::LinearSolver<CsrMatrix<>, SystemVector<>>;
+    using AMGCLSolverType = Future::AMGCLSolver<SystemVector<>, CsrMatrix<>>;
+    using LinearSolverType = Future::LinearSolver<SystemVector<>, CsrMatrix<>>;
     typename LinearSolverType::Pointer p_amgcl_solver = Kratos::make_shared<AMGCLSolverType>(amgcl_settings);
 
     // Create the strategy
@@ -865,8 +865,8 @@ KRATOS_TEST_CASE_IN_SUITE(LinearStrategyWithRigidBodyMotionConstraintBlockBuild,
     // Create the linear solver
     Parameters amgcl_settings = Parameters(R"({
     })");
-    using AMGCLSolverType = Future::AMGCLSolver<CsrMatrix<>, SystemVector<>>;
-    using LinearSolverType = Future::LinearSolver<CsrMatrix<>, SystemVector<>>;
+    using AMGCLSolverType = Future::AMGCLSolver<SystemVector<>, CsrMatrix<>>;
+    using LinearSolverType = Future::LinearSolver<SystemVector<>, CsrMatrix<>>;
     typename LinearSolverType::Pointer p_amgcl_solver = Kratos::make_shared<AMGCLSolverType>(amgcl_settings);
 
     // Create the strategy

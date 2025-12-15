@@ -24,8 +24,8 @@ KRATOS_TEST_CASE_IN_SUITE(LinearOperatorEmpty, KratosCoreFutureSuite)
     Future::LinearOperator<SystemVector<>> linear_operator(std::make_pair(5,5));
 
     // Check linear operator features
-    KRATOS_EXPECT_EQ(linear_operator.Rows(), 5);
-    KRATOS_EXPECT_EQ(linear_operator.Cols(), 5);
+    KRATOS_EXPECT_EQ(linear_operator.NumRows(), 5);
+    KRATOS_EXPECT_EQ(linear_operator.NumCols(), 5);
     KRATOS_EXPECT_TRUE(linear_operator.IsMatrixFree());
 
     // Check that applying the base operator raises an error
@@ -68,8 +68,8 @@ KRATOS_TEST_CASE_IN_SUITE(LinearOperatorWithCsr, KratosCoreFutureSuite)
     linear_operator.Apply(input_vector, output_vector);
 
     // Check linear operator features
-    KRATOS_EXPECT_EQ(linear_operator.Rows(), 5);
-    KRATOS_EXPECT_EQ(linear_operator.Cols(), 5);
+    KRATOS_EXPECT_EQ(linear_operator.NumRows(), 5);
+    KRATOS_EXPECT_EQ(linear_operator.NumCols(), 5);
     KRATOS_EXPECT_FALSE(linear_operator.IsMatrixFree());
 
     // Check the output values

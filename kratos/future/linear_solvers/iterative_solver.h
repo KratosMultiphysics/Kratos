@@ -62,7 +62,9 @@ namespace Kratos::Future
     - TStopCriteriaType for specifying type of the object which control the stop criteria for iteration loop.
 */
 template<
-    class TMatrixType = CsrMatrix<>, class TVectorType = SystemVector<>, class TPreconditionerType = Preconditioner<TMatrixType, TMatrixType>>
+    class TVectorType = SystemVector<>,
+    class TMatrixType = CsrMatrix<>,
+    class TPreconditionerType = Preconditioner<TMatrixType, TMatrixType>>
 class IterativeSolver : public Future::LinearSolver<TMatrixType, TVectorType>
 {
 public:
@@ -74,13 +76,7 @@ public:
 
     using BaseType = Future::LinearSolver<TMatrixType, TVectorType>;
 
-    using SparseMatrixType = TMatrixType;
-
-    using VectorType = TVectorType;
-
     using PreconditionerType = TPreconditionerType;
-
-    using LinearOperatorType = LinearOperator<TVectorType>;
 
     using IndexType = typename BaseType::IndexType;
 
@@ -195,7 +191,10 @@ public:
     		@param rX. Solution vector. it's also the initial guess for iterative linear solvers.
     		@param rB. Right hand side vector.
     		*/
-    void InitializeSolutionStep (SparseMatrixType& rA, VectorType& rX, VectorType& rB) override
+    void InitializeSolutionStep(
+        TMatrixType& rA,
+        TVectorType& rX,
+        TVectorType& rB) override
     {
         GetPreconditioner()->InitializeSolutionStep(rA,rX,rB);
     }
@@ -206,7 +205,10 @@ public:
     @param rX. Solution vector. it's also the initial guess for iterative linear solvers.
     @param rB. Right hand side vector.
     */
-    void FinalizeSolutionStep (SparseMatrixType& rA, VectorType& rX, VectorType& rB) override
+    void FinalizeSolutionStep(
+        TMatrixType& rA,
+        TVectorType& rX,
+        TVectorType& rB) override
     {
         GetPreconditioner()->FinalizeSolutionStep(rA,rX,rB);
     }
@@ -240,10 +242,10 @@ public:
      * which require knowledge on the spatial position of the nodes associated to a given dof.
      * This function is the place to eventually provide such data
      */
-    void ProvideAdditionalData (
-        SparseMatrixType& rA,
-        VectorType& rX,
-        VectorType& rB,
+    void ProvideAdditionalData(
+        TMatrixType& rA,
+        TVectorType& rX,
+        TVectorType& rB,
         typename ModelPart::DofsArrayType& rdof_set,
         ModelPart& r_model_part
     ) override
@@ -252,42 +254,16 @@ public:
             GetPreconditioner()->ProvideAdditionalData(rA,rX,rB,rdof_set,r_model_part);
     }
 
-    /**
-     * @brief Normal solve method.
-     * @details Solves the linear system Ax=b and puts the result on SystemVector& rX. rX is also th initial guess for iterative methods.
-     * @param pLinearOperator System matrix linear operator pointer
-     * @param rX Solution vector
-     * @param rB Right hand side vector
-     */
-    virtual bool Solve(typename LinearOperatorType::Pointer pLinearOperator, VectorType& rX, VectorType& rB)
-    {
-        KRATOS_ERROR << "Calling linear solver base class" << std::endl;
-        return false;
-    }
-
-    /**
-     * @brief Multi solve method for solving a set of linear systems with same coefficient matrix.
-     * @details Solves the linear system Ax=b and puts the result on SystemVector& rX. rX is also th initial guess for iterative methods.
-     * @param pLinearOperator System matrix linear operator pointer
-     * @param rX Solution matrix
-     * @param rB Right hand side matrix
-     */
-    virtual bool Solve(typename LinearOperatorType::Pointer pLinearOperator, DenseMatrixType& rX, DenseMatrixType& rB)
-    {
-        KRATOS_ERROR << "Calling linear solver base class" << std::endl;
-        return false;
-    }
-
     ///@}
     ///@name Access
     ///@{
 
-    virtual typename TPreconditionerType::Pointer GetPreconditioner(void)
+    virtual typename TPreconditionerType::Pointer GetPreconditioner()
     {
         return mpPreconditioner;
     }
 
-    virtual const typename TPreconditionerType::Pointer GetPreconditioner(void) const
+    virtual const typename TPreconditionerType::Pointer GetPreconditioner() const
     {
         return mpPreconditioner;
     }
@@ -438,12 +414,12 @@ protected:
     ///@name Protected Operations
     ///@{
 
-    void PreconditionedMult(SparseMatrixType& rA, VectorType& rX, VectorType& rY)
+    void PreconditionedMult(TMatrixType& rA, TVectorType& rX, TVectorType& rY)
     {
         GetPreconditioner()->Mult(rA, rX, rY);
     }
 
-    void PreconditionedTransposeMult(SparseMatrixType& rA, VectorType& rX, VectorType& rY)
+    void PreconditionedTransposeMult(TMatrixType& rA, TVectorType& rX, TVectorType& rY)
     {
         GetPreconditioner()->TransposeMult(rA, rX, rY);
     }

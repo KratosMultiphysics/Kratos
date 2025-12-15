@@ -82,13 +82,13 @@ public:
     KRATOS_CLASS_POINTER_DEFINITION(LinearOperator);
 
     /// Sparse matrix type (if any) or void
-    using TSparseMatrixType = typename matrix_type_or_void<Ts...>::type;
+    using SparseMatrixType = typename matrix_type_or_void<Ts...>::type;
 
     /// Sparse matrix pointer type (if any) or void*
-    using TSparseMatrixTypePointer = typename matrix_type_or_void<Ts...>::p_type;
+    using SparseMatrixPointerType = typename matrix_type_or_void<Ts...>::p_type;
 
     /// Boolean indicating whether a CSR matrix type is provided
-    static constexpr bool kIsMatrixFree = std::is_void_v<TSparseMatrixType>;
+    static constexpr bool kIsMatrixFree = std::is_void_v<SparseMatrixType>;
 
     ///@}
     ///@name Life Cycle
@@ -124,6 +124,16 @@ public:
     }
 
     /**
+     * @brief Constructor from parameters.
+     * @param ThisParameters Parameters containing the linear operator settings
+     */
+    LinearOperator(Parameters ThisParameters) requires(kIsMatrixFree)
+    {
+        mNumRows = ThisParameters["num_rows"].GetInt();
+        mNumCols = ThisParameters["num_cols"].GetInt();
+    }
+
+    /**
      * @brief Constructor from a CSR matrix.
      * Constructs a LinearOperator that wraps the provided CSR matrix.
      * Note that this constructor is only enabled when a CSR matrix type is provided.
@@ -132,7 +142,7 @@ public:
     LinearOperator(Ts& ...rA) requires(!kIsMatrixFree)
     {
         auto& r_A = std::get<0>(std::forward_as_tuple(rA...)); // Extract the CSR matrix from the parameter pack
-        mpCsrMatrix = std::make_shared<TSparseMatrixType>(r_A);
+        mpCsrMatrix = std::make_shared<SparseMatrixType>(r_A);
         mNumRows = mpCsrMatrix->size1();
         mNumCols = mpCsrMatrix->size2();
     }
@@ -217,7 +227,7 @@ public:
      * @brief Set the number of rows.
      * @param NumRows Number of rows
      */
-    void SetRows(std::size_t NumRows)
+    void SetNumRows(std::size_t NumRows)
     {
         mNumRows = NumRows;
     }
@@ -226,9 +236,14 @@ public:
      * @brief Set the number of columns.
      * @param NumCols Number of columns
      */
-    void SetCols(std::size_t NumCols)
+    void SetNumCols(std::size_t NumCols)
     {
         mNumCols = NumCols;
+    }
+
+    SparseMatrixPointerType pGetMatrix() const requires(!kIsMatrixFree)
+    {
+        return mpCsrMatrix;
     }
 
     ///@}
@@ -239,7 +254,7 @@ public:
      * @brief Get the number of rows.
      * @return Number of rows of the operator
      */
-    std::size_t Rows() const
+    std::size_t NumRows() const //TODO: Rename to size1() as in our CSR arrays?
     {
         return mNumRows;
     }
@@ -248,7 +263,7 @@ public:
      * @brief Get the number of columns.
      * @return Number of columns of the operator
      */
-    std::size_t Cols() const
+    std::size_t NumCols() const //TODO: Rename to size2() as in our CSR arrays?
     {
         return mNumCols;
     }
@@ -273,7 +288,7 @@ private:
     std::size_t mNumCols = 0;
 
     /// Pointer to the CSR matrix (if applicable)
-    TSparseMatrixTypePointer mpCsrMatrix = nullptr;
+    SparseMatrixPointerType mpCsrMatrix = nullptr;
 
 }; // class LinearOperator
 

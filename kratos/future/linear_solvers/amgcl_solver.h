@@ -103,8 +103,8 @@ void KRATOS_API(KRATOS_CORE) AMGCLSolve(
  * @author Denis Demidov
  * @author Riccardo Rossi
  */
-template<class TMatrixType, class TVectorType>
-class AMGCLSolver : public Future::LinearSolver< TMatrixType, TVectorType>
+template<class TVectorType, class TMatrixType>
+class AMGCLSolver : public Future::LinearSolver<TVectorType, TMatrixType>
 {
 public:
     ///@name Type Definitions
@@ -114,13 +114,7 @@ public:
     KRATOS_CLASS_POINTER_DEFINITION( AMGCLSolver );
 
     /// The base class definition
-    using BaseType = Future::LinearSolver<TMatrixType, TVectorType>;
-
-    /// The sparse matrix type
-    using SparseMatrixType = TMatrixType;
-
-    /// Vector type definition
-    using VectorType = TVectorType;
+    using BaseType = Future::LinearSolver<TVectorType, TMatrixType>;
 
     /// Dense matrix type
     using DenseMatrixType = typename BaseType::DenseMatrixType;
@@ -130,6 +124,12 @@ public:
 
     /// DofArray type
     using DofsArrayType = ModelPart::DofsArrayType;
+
+    /// Linear operator type definition
+    using LinearOperatorPointerType = typename BaseType::LinearOperatorType::Pointer;
+
+    /// Sparse matrix type definition extracted from LinearOperator
+    using MatrixPointerType = typename BaseType::LinearOperatorType::SparseMatrixPointerType;
 
     ///@}
     ///@name Life Cycle
@@ -322,15 +322,17 @@ public:
      * @param rB Right hand side vector.
      */
     bool Solve(
-        SparseMatrixType& rA,
-        VectorType& rX,
-        VectorType& rB
-        ) override
+        LinearOperatorPointerType pLinearOperatorType,
+        TVectorType& rX,
+        TVectorType& rB) override
     {
+        // Get CSR matrix from linear operator
+        auto& r_A = *(pLinearOperatorType->pGetMatrix());
+
         // Initial checks
-        KRATOS_ERROR_IF(rA.size1() != rA.size2()) << "matrix A is not square! sizes are " << rA.size1() << " and " << rA.size2() << std::endl;
-        KRATOS_ERROR_IF(rX.size() != rA.size1()) << "size of x does not match the size of A. x size is " << rX.size() << " matrix size is " << rA.size1() << std::endl;
-        KRATOS_ERROR_IF(rB.size() != rA.size1()) << "size of b does not match the size of A. b size is " << rB.size() << " matrix size is " << rA.size1() << std::endl;
+        KRATOS_ERROR_IF(r_A.size1() != r_A.size2()) << "matrix A is not square! sizes are " << r_A.size1() << " and " << r_A.size2() << std::endl;
+        KRATOS_ERROR_IF(rX.size() != r_A.size1()) << "size of x does not match the size of A. x size is " << rX.size() << " matrix size is " << r_A.size1() << std::endl;
+        KRATOS_ERROR_IF(rB.size() != r_A.size1()) << "size of b does not match the size of A. b size is " << rB.size() << " matrix size is " << r_A.size1() << std::endl;
 
         mAMGCLParameters.put("solver.tol", mTolerance);
         mAMGCLParameters.put("solver.maxiter", mMaxIterationsNumber);
@@ -345,7 +347,7 @@ public:
             int nmodes = amgcl::coarsening::rigid_body_modes(mBlockSize,
                     boost::make_iterator_range(
                         &mCoordinates[0][0],
-                        &mCoordinates[0][0] + rA.size1()),
+                        &mCoordinates[0][0] + r_A.size1()),
                     B);
 
             if (static_block_size != 1 && static_block_size != 3) {
@@ -356,7 +358,7 @@ public:
             mAMGCLParameters.put("precond.coarsening.aggr.eps_strong", 0.0);
             mAMGCLParameters.put("precond.coarsening.aggr.block_size", 1);
             mAMGCLParameters.put("precond.coarsening.nullspace.cols",  nmodes);
-            mAMGCLParameters.put("precond.coarsening.nullspace.rows",  rA.size1());
+            mAMGCLParameters.put("precond.coarsening.nullspace.rows",  r_A.size1());
             mAMGCLParameters.put("precond.coarsening.nullspace.B",     &B[0]);
         } else if(mUseAMGPreconditioning && mAMGCLParameters.get<std::string>("precond.coarsening.type") != std::string("ruge_stuben")) {
             mAMGCLParameters.put("precond.coarsening.aggr.eps_strong", 0.0);
@@ -404,16 +406,16 @@ public:
                 mAMGCLParameters.erase("solver.M");
 
             if(mUseBlockMatricesIfPossible) {
-                KRATOS_ERROR_IF(rA.size1()%mBlockSize != 0) << "The block size employed " << mBlockSize << " is not an exact multiple of the matrix size "
-                    << rA.size1() << std::endl;
+                KRATOS_ERROR_IF(r_A.size1()%mBlockSize != 0) << "The block size employed " << mBlockSize << " is not an exact multiple of the matrix size "
+                    << r_A.size1() << std::endl;
             }
-            AMGCLSolve(static_block_size, rA,rX,rB, iters, resid, mAMGCLParameters, mVerbosity, mUseGPGPU);
+            AMGCLSolve(static_block_size, r_A, rX, rB, iters, resid, mAMGCLParameters, mVerbosity, mUseGPGPU);
         } //please do not remove this parenthesis!
 
         if(mFallbackToGMRES && resid > mTolerance ) {
             mAMGCLParameters.put("solver.type", "gmres");
             mAMGCLParameters.put("solver.M",  mGMRESSize);
-            AMGCLSolve(1, rA,rX,rB, iters, resid, mAMGCLParameters, mVerbosity, mUseGPGPU);
+            AMGCLSolve(1, r_A, rX, rB, iters, resid, mAMGCLParameters, mVerbosity, mUseGPGPU);
         }
 
         KRATOS_WARNING_IF("AMGCL Linear Solver", mTolerance < resid)<<"Non converged linear solution. ["<< resid << " > "<< mTolerance << "]" << std::endl;
@@ -470,18 +472,6 @@ public:
     }
 
     /**
-     * @brief Multi solve method for solving a set of linear systems with same coefficient matrix.
-     * @details Solves the linear system Ax=b and puts the result on SystemVector& rX. rVectorx is also th initial guess for iterative methods.
-     * @param rA System matrix
-     * @param rX Solution vector. it's also the initial guess for iterative linear solvers.
-     * @param rB Right hand side vector.
-     */
-    bool Solve(SparseMatrixType& rA, DenseMatrixType& rX, DenseMatrixType& rB) override
-    {
-        return false;
-    }
-
-    /**
      * @brief Some solvers may require a minimum degree of knowledge of the structure of the matrix. To make an example
      * when solving a mixed u-p problem, it is important to identify the row associated to v and p.
      * @details Another example is the automatic prescription of rotation null-space for smoothed-aggregation solvers
@@ -493,21 +483,15 @@ public:
         return true;
     }
 
-    /**
-     * @brief Some solvers may require a minimum degree of knowledge of the structure of the matrix.
-     * @details To make an example when solving a mixed u-p problem, it is important to identify the row associated to v and p. Another example is the automatic prescription of rotation null-space for smoothed-aggregation solvers which require knowledge on the spatial position of the nodes associated to a given dof. This function is the place to eventually provide such data
-     * @param rA System matrix
-     * @param rX Solution vector. It's also the initial guess for iterative linear solvers.
-     * @param rB Right hand side vector.
-     */
     void ProvideAdditionalData (
-        SparseMatrixType& rA,
-        VectorType& rX,
-        VectorType& rB,
+        LinearOperatorPointerType pLinearOperator,
+        TVectorType& rX,
+        TVectorType& rB,
         DofsArrayType& rDofSet,
-        ModelPart& rModelPart
-        ) override
+        ModelPart& rModelPart) override
     {
+        const auto p_A = pLinearOperator->pGetMatrix();
+
         int old_ndof = -1;
         int ndof=0;
 
@@ -515,7 +499,7 @@ public:
         {
             unsigned int old_node_id = rDofSet.size() ? rDofSet.begin()->Id() : 0;
             for (auto it = rDofSet.begin(); it!=rDofSet.end(); it++) {
-                if(it->EquationId() < rA.size1() ) {
+                if (it->EquationId() < p_A->size1()) {
                     IndexType id = it->Id();
                     if(id != old_node_id) {
                         old_node_id = id;
@@ -540,7 +524,7 @@ public:
         }
         else //distribute
         {
-            const std::size_t system_size = rA.size1();
+            const std::size_t system_size = p_A->size1();
             int current_rank = rModelPart.GetCommunicator().GetDataCommunicator().Rank();
             unsigned int old_node_id = rDofSet.size() ? rDofSet.begin()->Id() : 0;
             for (auto it = rDofSet.begin(); it!=rDofSet.end(); it++) {
@@ -576,10 +560,10 @@ public:
         KRATOS_INFO_IF("AMGCL Linear Solver", mVerbosity > 1) << "mndof: " << mBlockSize << std::endl;
 
         if(mProvideCoordinates) {
-            mCoordinates.resize(rA.size1()/mBlockSize);
+            mCoordinates.resize(p_A->size1()/mBlockSize);
             unsigned int i=0;
             for (auto it_dof = rDofSet.begin(); it_dof!=rDofSet.end(); it_dof+=mBlockSize) {
-                if(it_dof->EquationId() < rA.size1() ) {
+                if (it_dof->EquationId() < p_A->size1()) {
                     auto it_node = rModelPart.Nodes().find(it_dof->Id());
                     mCoordinates[ i ] = it_node->Coordinates();
                     i++;

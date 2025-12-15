@@ -16,6 +16,7 @@
 // External includes
 
 // Project includes
+#include "future/containers/linear_operator.h"
 #include "future/linear_solvers/direct_solver.h"
 #include "includes/define.h"
 #include "includes/kratos_parameters.h"
@@ -27,10 +28,6 @@ template< class TMatrixType, class TVectorType >
 class LUSkylineFactorization
 {
 public:
-
-    using VectorType = TVectorType;
-
-    using SparseMatrixType = TMatrixType;
 
     using DataType = typename TMatrixType::DataType;
 
@@ -64,7 +61,7 @@ public:
     //**********************************************************************************
     //**********************************************************************************
 
-    void copyFromCSRMatrix(SparseMatrixType& A)
+    void copyFromCSRMatrix(const TMatrixType& A)
     {
         int i, j, newi, newj, indexj, ordering, *invperm;
         double entry;
@@ -424,8 +421,8 @@ public:
     /* bugfix janosch void backForwardSolve(int vector_size, Vector<double>& b, Vector<double>& x) // n, b, x*/
     void backForwardSolve(
         int vector_size,
-        const VectorType& b,
-        VectorType& x) // n, b, x
+        const TVectorType& b,
+        TVectorType& x) // n, b, x
     {
         // y = L^-1 * perm[b] ;
         // y = U^-1 * y ;
@@ -487,21 +484,19 @@ public:
 
 
 
-template<class TMatrixType, class TVectorType>
-class SkylineLUFactorizationSolver : public Future::DirectSolver<TMatrixType, TVectorType>
+template<class TVectorType, class TMatrixType>
+class SkylineLUFactorizationSolver : public Future::DirectSolver<TVectorType, TMatrixType>
 {
 public:
 
     /// Counted pointer of SkylineLUFactorizationSolver
     KRATOS_CLASS_POINTER_DEFINITION(SkylineLUFactorizationSolver);
 
-    typedef Future::DirectSolver<TMatrixType, TVectorType> BaseType;
-
-    using VectorType = TVectorType;
-
-    using SparseMatrixType = TMatrixType;
+    using BaseType = Future::DirectSolver<TVectorType, TMatrixType>;
 
     using DenseMatrixType = typename BaseType::DenseMatrixType;
+
+    using LinearOperatorPointerType = typename LinearOperator<TVectorType, TMatrixType>::Pointer;
 
     /// Default constructor
     SkylineLUFactorizationSolver() = default;
@@ -520,19 +515,12 @@ public:
     /// Destructor.
     ~SkylineLUFactorizationSolver() override = default;
 
-    /** Normal solve method.
-    Solves the linear system Ax=b and puts the result on SystemVector& rX.
-    rX is also th initial guess for iterative methods.
-    @param rA. System matrix
-    @param rX. Solution vector.
-    @param rB. Right hand side vector.
-    */
     bool Solve(
-        SparseMatrixType& rA,
-        VectorType& rX,
-        VectorType& rB) override
+        LinearOperatorPointerType pLinearOperator,
+        TVectorType& rX,
+        TVectorType& rB) override
     {
-        if(this->IsNotConsistent(rA, rX, rB))
+        if(this->IsNotConsistent(pLinearOperator, rX, rB))
             return false;
 
         const int size = rX.size();
@@ -541,7 +529,7 @@ public:
         LUSkylineFactorization<TMatrixType, TVectorType> myFactorization;
 
         // copy myMatrix into skyline format
-        myFactorization.copyFromCSRMatrix(rA);
+        myFactorization.copyFromCSRMatrix(*pLinearOperator->pGetMatrix());
 
         // factorize it
         myFactorization.factorize();
@@ -552,15 +540,8 @@ public:
         return true;
     }
 
-    /** Multi solve method for solving a set of linear systems with same coefficient matrix.
-    Solves the linear system Ax=b and puts the result on SystemVector& rX.
-    rX is also th initial guess for iterative methods.
-    @param rA. System matrix
-    @param rX. Solution vector.
-    @param rB. Right hand side vector.
-    */
     bool Solve(
-        SparseMatrixType& rA,
+        LinearOperatorPointerType pLinearOperator,
         DenseMatrixType& rX,
         DenseMatrixType& rB) override
     {
@@ -569,13 +550,14 @@ public:
 
         bool is_solved = true;
 
-        VectorType x(size1);
-        VectorType b(size1);
+        TVectorType x(size1);
+        TVectorType b(size1);
 
         // define an object to store skyline matrix and factorization
         LUSkylineFactorization<TMatrixType, TVectorType> myFactorization;
         // copy myMatrix into skyline format
-        myFactorization.copyFromCSRMatrix(rA);
+        const auto& r_A = *(pLinearOperator->pGetMatrix());
+        myFactorization.copyFromCSRMatrix(r_A);
         // factorize it
         myFactorization.factorize();
 

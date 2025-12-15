@@ -57,11 +57,12 @@ KRATOS_TEST_CASE_IN_SUITE(FutureLinearSolversSkylineLUFactorizationSolver, Krato
     // Set the linear solver to be tested
     Parameters skyline_lu_settings(R"({
     })");
-    auto p_linear_solver = Kratos::make_unique<Future::SkylineLUFactorizationSolver<CsrMatrix<>, SystemVector<>>>(skyline_lu_settings);
+    Future::LinearSolver<SystemVector<>, CsrMatrix<>>::Pointer p_linear_solver = Kratos::make_unique<Future::SkylineLUFactorizationSolver<SystemVector<>, CsrMatrix<>>>(skyline_lu_settings);
 
     // Solve the problem
     SystemVector<> sol(system_size);
-    p_linear_solver->Solve(LHS, sol, RHS);
+    auto p_LHS = Kratos::make_shared<CsrMatrix<>>(LHS);
+    p_linear_solver->Solve(p_LHS, sol, RHS);
 
     // Check the obtained results
     std::vector<double> ref_sol = {0.487946221604, 0.979601298099, 0.836810384794, 0.93973110802, 0.602225312935};
@@ -82,11 +83,12 @@ KRATOS_TEST_CASE_IN_SUITE(FutureLinearSolversAmgcl, KratosCoreFutureSuite)
         "verbosity"                      : 1,
         "tolerance"                      : 1e-6
     })");
-    auto p_linear_solver = Kratos::make_unique<Future::AMGCLSolver<CsrMatrix<>, SystemVector<>>>(amgcl_settings);
+    Future::LinearSolver<SystemVector<>, CsrMatrix<>>::Pointer p_linear_solver = Kratos::make_unique<Future::AMGCLSolver<SystemVector<>, CsrMatrix<>>>(amgcl_settings);
 
     // Solve the problem
     SystemVector<> sol(system_size);
-    p_linear_solver->Solve(LHS, sol, RHS);
+    auto p_LHS = Kratos::make_shared<CsrMatrix<>>(LHS);
+    p_linear_solver->Solve(p_LHS, sol, RHS);
 
     // Check the obtained results
     std::vector<double> ref_sol = {0.487946221604, 0.979601298099, 0.836810384794, 0.93973110802, 0.602225312935};

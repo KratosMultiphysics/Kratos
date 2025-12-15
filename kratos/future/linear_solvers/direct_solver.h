@@ -36,21 +36,15 @@ namespace Kratos::Future
      matrices used as temporary matrices or multi solve unknowns and
    right hand sides and their operators.
 */
-template<class TMatrixType = CsrMatrix<>, class TVectorType = SystemVector<>>
-class DirectSolver : public Future::LinearSolver<TMatrixType, TVectorType>
+template<class TVectorType = SystemVector<>, class TMatrixType = CsrMatrix<>>
+class DirectSolver : public Future::LinearSolver<TVectorType, TMatrixType>
 {
 public:
 
     /// Counted pointer of DirectSolver
     KRATOS_CLASS_POINTER_DEFINITION(DirectSolver);
 
-    using BaseType = Future::LinearSolver<TMatrixType, TVectorType>;
-
-    using VectorType = TVectorType;
-
-    using SparseMatrixType = TMatrixType;
-
-    using DenseMatrixType = typename BaseType::DenseMatrixType;
+    using BaseType = Future::LinearSolver<TVectorType, TMatrixType>;
 
     /// Default constructor.
     DirectSolver() = default;
@@ -82,19 +76,19 @@ private:
 }; // Class DirectSolver
 
 /// input stream function
-template<class TMatrixType, class TVectorType>
+template<class TVectorType, class TMatrixType>
 inline std::istream& operator >> (
     std::istream& rIStream,
-    DirectSolver<TMatrixType, TVectorType>& rThis)
+    DirectSolver<TVectorType, TMatrixType>& rThis)
 {
     return rIStream;
 }
 
 /// output stream function
-template<class TMatrixType, class TVectorType>
+template<class TVectorType, class TMatrixType>
 inline std::ostream& operator << (
     std::ostream& rOStream,
-    const DirectSolver<TMatrixType,TVectorType>& rThis)
+    const DirectSolver<TVectorType, TMatrixType>& rThis)
 {
     rThis.PrintInfo(rOStream);
     rOStream << std::endl;

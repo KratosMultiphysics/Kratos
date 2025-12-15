@@ -58,9 +58,12 @@ namespace Kratos::Future
  * @author Riccardo Rossi
  * @author Ruben Zorrilla
  */
-template<class TMatrixType = CsrMatrix<>, class TVectorType= SystemVector<>>
+template<class TVectorType= SystemVector<>, typename... Ts>
 class LinearSolver
 {
+
+static_assert(sizeof...(Ts) < 2, "Ts must be either a single type representing the sparse matrix type or empty to indicate a matrix-free operator.");
+
 public:
     ///@name Type Definitions
     ///@{
@@ -68,32 +71,29 @@ public:
     /// Pointer definition of LinearSolver
     KRATOS_CLASS_POINTER_DEFINITION(LinearSolver);
 
-    /// Type definition for sparse matrix
-    using SparseMatrixType = TMatrixType;
+    /// Linear operator type definition
+    using LinearOperatorType = LinearOperator<TVectorType, Ts...>;
 
-    /// Type definition for pointer to sparse matrix
-    using SparseMatrixPointerType = typename SparseMatrixType::Pointer;
+    /// Linear operator pointer type definition
+    using LinearOperatorPointerType = typename LinearOperatorType::Pointer;
 
-    /// Type definition for vector
-    using VectorType = TVectorType;
-
-    /// Type definition for pointer to vector
-    using VectorPointerType = typename VectorType::Pointer;
+    /// Sparse matrix type definition extracted from LinearOperator
+    using MatrixPointerType = typename LinearOperatorType::SparseMatrixPointerType;
 
     /// Type definition for data
-    using DataType = typename SparseMatrixType::DataType;
+    using DataType = typename TVectorType::DataType;
 
     /// Type definition for index
-    using IndexType = typename SparseMatrixType::IndexType;
+    using IndexType = typename TVectorType::IndexType;
 
     /// Local system matrix type definition
     using DenseMatrixType = DenseMatrix<DataType>;
 
     /// Local system vector type definition
-    using DenseVectorType = DenseVector<DataType>;
+    using DenseTVectorType = DenseVector<DataType>;
 
-    /// Linear operator type definition
-    using LinearOperatorType = LinearOperator<VectorType, SparseMatrixType>;
+    /// Boolean indicating whether a CSR matrix type is provided
+    static constexpr bool kIsMatrixFree = LinearOperatorType::kIsMatrixFree;
 
     ///@}
     ///@name Life Cycle
@@ -125,33 +125,42 @@ public:
     /**
      * @brief This function is designed to be called as few times as possible.
      * @details It creates the data structures that only depend on the connectivity of the matrix (and not on its coefficients) so that the memory can be allocated once and expensive operations can be done only when strictly  needed
-     * @param rA. System matrix
-     * @param rX. Solution vector. it's also the initial guess for iterative linear solvers.
-     * @param rB. Right hand side vector.
+     * @param pLinearOperator System matrix linear operator pointer.
+     * @param rX Solution vector. it's also the initial guess for iterative linear solvers.
+     * @param rB Right hand side vector.
      */
-    virtual void Initialize(LinearOperatorType& rA, VectorType& rX, VectorType& rB)
+    virtual void Initialize(
+        LinearOperatorPointerType pLinearOperator,
+        TVectorType& rX,
+        TVectorType& rB)
     {
     }
 
     /**
      * @brief This function is designed to be called every time the coefficients change in the system that is, normally at the beginning of each solve.
      * @details For example if we are implementing a direct solver, this is the place to do the factorization so that then the backward substitution can be performed effectively more than once
-     * @param rA. System matrix
-     * @param rX. Solution vector. it's also the initial guess for iterative linear solvers.
-     * @param rB. Right hand side vector.
+     * @param pLinearOperator System matrix linear operator pointer.
+     * @param rX Solution vector. it's also the initial guess for iterative linear solvers.
+     * @param rB Right hand side vector.
      */
-    virtual void InitializeSolutionStep(LinearOperatorType& rA, VectorType& rX, VectorType& rB)
+    virtual void InitializeSolutionStep(
+        LinearOperatorPointerType pLinearOperator,
+        TVectorType& rX,
+        TVectorType& rB)
     {
     }
 
     /**
      * @brief This function actually performs the solution work, eventually taking advantage of what was done before in the Initialize and InitializeSolutionStep functions.
-     * @param rA. System matrix
-     * @param rX. Solution vector. it's also the initial guess for iterative linear solvers.
-     * @param rB. Right hand side vector.
+     * @param pLinearOperator System matrix linear operator pointer.
+     * @param rX Solution vector. it's also the initial guess for iterative linear solvers.
+     * @param rB Right hand side vector.
      * @return @p true if the provided system was solved successfully satisfying the given requirements, @p false otherwise.
      */
-    virtual bool PerformSolutionStep(LinearOperatorType& rA, VectorType& rX, VectorType& rB)
+    virtual bool PerformSolutionStep(
+        LinearOperatorPointerType pLinearOperator,
+        TVectorType& rX,
+        TVectorType& rB)
     {
         KRATOS_ERROR << "Calling linear solver base class" << std::endl;
         return false;
@@ -160,11 +169,14 @@ public:
     /**
      * @brief This function is designed to be called at the end of the solve step.
      * @details for example this is the place to remove any data that we do not want to save for later
-     * @param rA. System matrix
-     * @param rX. Solution vector. it's also the initial guess for iterative linear solvers.
-     * @param rB. Right hand side vector.
+     * @param pLinearOperator System matrix linear operator pointer.
+     * @param rX Solution vector. it's also the initial guess for iterative linear solvers.
+     * @param rB Right hand side vector.
      */
-    virtual void FinalizeSolutionStep(LinearOperatorType& rA, VectorType& rX, VectorType& rB)
+    virtual void FinalizeSolutionStep(
+        LinearOperatorPointerType pLinearOperator,
+        TVectorType& rX,
+        TVectorType& rB)
     {
     }
 
@@ -177,14 +189,55 @@ public:
     }
 
     /**
-     * @brief Normal solve method.
+     * @brief Solve method with linear operator as input.
      * @details Solves the linear system Ax=b and puts the result on SystemVector& rX. rX is also th initial guess for iterative methods.
-     * @param rA. System matrix
-     * @param rX. Solution vector. it's also the initial
-    guess for iterative linear solvers.
-     * @param rB. Right hand side vector.
+     * @param rLinearOperator System matrix linear operator
+     * @param rX Solution vector
+     * @param rB Right hand side vector
+     * @return true if the system was solved successfully, false otherwise
      */
-    virtual bool Solve(SparseMatrixType& rA, VectorType& rX, VectorType& rB)
+    virtual bool Solve(
+        LinearOperatorPointerType pLinearOperator,
+        TVectorType& rX,
+        TVectorType& rB)
+    {
+        this->InitializeSolutionStep(pLinearOperator, rX, rB);
+        const auto status = this->PerformSolutionStep(pLinearOperator, rX, rB);
+        this->FinalizeSolutionStep(pLinearOperator, rX, rB);
+        this->Clear();
+        return status;
+    }
+
+    /**
+     * @brief Solve method overload taking a sparse matrix as input.
+     * @details Solves the linear system Ax=b and puts the result on SystemVector& rX. rX is also the initial guess for iterative methods.
+     * Note that this method internally creates a LinearOperator from the provided sparse matrix and calls the corresponding Solve method.
+     * @param pA Matrix type pointer representing the system
+     * @param rX Solution vector
+     * @param rB Right hand side vector
+     * @return true if the system was solved successfully, false otherwise
+     */
+    bool Solve(
+        MatrixPointerType pA,
+        TVectorType& rX,
+        TVectorType& rB)
+    {
+        auto p_linear_operator = Kratos::make_shared<LinearOperatorType>(*pA);
+        return Solve(p_linear_operator, rX, rB);
+    }
+
+    /**
+     * @brief Multi solve method for solving a set of linear systems with same coefficient matrix.
+     * @details Solves the linear system Ax=b and puts the result on SystemVector& rX. rX is also th initial guess for iterative methods.
+     * @param rLinearOperator System matrix linear operator
+     * @param rX Solution vector
+     * @param rB Right hand side vector
+     * @return true if the system was solved successfully, false otherwise
+     */
+    virtual bool Solve(
+        LinearOperatorPointerType rLinearOperator,
+        DenseMatrixType& rX,
+        DenseMatrixType& rB)
     {
         KRATOS_ERROR << "Calling linear solver base class" << std::endl;
         return false;
@@ -192,31 +245,55 @@ public:
 
     /**
      * @brief Multi solve method for solving a set of linear systems with same coefficient matrix.
-     * @details Solves the linear system Ax=b and puts the result on SystemVector& rX. rX is also th initial guess for iterative methods.
-     * @param rA. System matrix
-     * @param rX. Solution vector. it's also the initial
-    guess for iterative linear solvers.
-     * @param rB. Right hand side vector.
+     * @details Solves the linear system Ax=b and puts the result on SystemVector& rX. rX is also the initial guess for iterative methods.
+     * Note that this method internally creates a LinearOperator from the provided sparse matrix and calls the corresponding Solve method.
+     * @param pA Pointer to the sparse matrix representing the system
+     * @param rX Solution vector
+     * @param rB Right hand side vector
+     * @return true if the system was solved successfully, false otherwise
      */
-    virtual bool Solve(SparseMatrixType& rA, DenseMatrixType& rX, DenseMatrixType& rB)
+    bool Solve(
+        MatrixPointerType pA,
+        DenseMatrixType& rX,
+        DenseMatrixType& rB)
     {
-        KRATOS_ERROR << "Calling linear solver base class" << std::endl;
-        return false;
+        auto p_linear_operator = Kratos::make_shared<LinearOperatorType>(*pA);
+        return Solve(p_linear_operator, rX, rB);
     }
 
     /**
      * @brief Eigenvalue and eigenvector solve method for derived eigensolvers
-     * @param K The stiffness matrix
-     * @param M The mass matrix
+     * @param K The stiffness matrix linear operator
+     * @param M The mass matrix linear operator
      * @param Eigenvalues The vector containing the eigen values
      * @param Eigenvectors The matrix containing the eigen vectors
      */
-    virtual  void Solve(SparseMatrixType& K,
-                        SparseMatrixType& M,
-                        DenseVectorType& Eigenvalues,
-                        DenseMatrixType& Eigenvectors)
+    virtual void Solve(
+        LinearOperatorPointerType K,
+        LinearOperatorPointerType M,
+        DenseTVectorType& Eigenvalues,
+        DenseMatrixType& Eigenvectors)
     {
         KRATOS_ERROR << "Calling linear solver base class" << std::endl;
+    }
+
+    /**
+     * @brief Eigenvalue and eigenvector solve method for derived eigensolvers
+     * Note that this method internally creates a LinearOperator from the provided stiffness and mass matrices and calls the corresponding Solve method.
+     * @param pK Pointer to the stiffness matrix
+     * @param pM Pointer to the mass matrix
+     * @param Eigenvalues The vector containing the eigen values
+     * @param Eigenvectors The matrix containing the eigen vectors
+     */
+    void Solve(
+        MatrixPointerType pK,
+        MatrixPointerType pM,
+        DenseTVectorType& Eigenvalues,
+        DenseMatrixType& Eigenvectors)
+    {
+        auto p_linear_operator_K = Kratos::make_shared<LinearOperatorType>(*pK);
+        auto p_linear_operator_M = Kratos::make_shared<LinearOperatorType>(*pM);
+        Solve(p_linear_operator_K, p_linear_operator_M, Eigenvalues, Eigenvectors);
     }
 
     /**
@@ -239,20 +316,44 @@ public:
      * Another example is the automatic prescription of rotation null-space for smoothed-aggregation solvers,
      * which require knowledge of the spatial position of the nodes associated with a given degree of freedom (DOF).
      * This function provides the opportunity to provide such data if needed.
-     * @param rA The sparse matrix.
+     * @param pLinearOperator Pointer to the sparse matrix linear operator.
      * @param rX The solution vector.
      * @param rB The right-hand side vector.
      * @param rDoFSet The set of degrees of freedom.
      * @param rModelPart The model part.
      */
     virtual void ProvideAdditionalData(
-        SparseMatrixType& rA,
-        VectorType& rX,
-        VectorType& rB,
+        LinearOperatorPointerType pLinearOperator,
+        TVectorType& rX,
+        TVectorType& rB,
         typename ModelPart::DofsArrayType& rDoFSet,
-        ModelPart& rModelPart
-        )
+        ModelPart& rModelPart)
     {
+    }
+
+    /**
+     * @brief Provides additional physical data required by the solver.
+     * @details Some solvers may require a minimum degree of knowledge of the structure of the matrix.
+     * For example, when solving a mixed u-p problem, it is important to identify the row associated with v and p.
+     * Another example is the automatic prescription of rotation null-space for smoothed-aggregation solvers,
+     * which require knowledge of the spatial position of the nodes associated with a given degree of freedom (DOF).
+     * This function provides the opportunity to provide such data if needed.
+     * Note that this method internally creates a LinearOperator from the provided sparse matrix and calls the corresponding Solve method.
+     * @param pA Pointer to the sparse matrix.
+     * @param rX The solution vector.
+     * @param rB The right-hand side vector.
+     * @param rDoFSet The set of degrees of freedom.
+     * @param rModelPart The model part.
+     */
+    void ProvideAdditionalData(
+        MatrixPointerType pA,
+        TVectorType& rX,
+        TVectorType& rB,
+        typename ModelPart::DofsArrayType& rDoFSet,
+        ModelPart& rModelPart)
+    {
+        auto p_linear_operator = Kratos::make_shared<LinearOperatorType>(*pA);
+        return ProvideAdditionalData(p_linear_operator, rX, rB, rDoFSet, rModelPart);
     }
 
     ///@}
@@ -296,79 +397,74 @@ public:
 
     /**
      * @brief This method checks if the dimensions of the system of equations are consistent
-     * @param rA The LHS of the system of equations
+     * @param pLinearOperator Pointer to the sparse matrix linear operator
      * @param rX The vector containing the unknowns
      * @param rB The RHS of the system of equations
      * @return True if consistent, false otherwise
      */
     virtual bool IsConsistent(
-        SparseMatrixType& rA,
-        VectorType& rX,
-        VectorType& rB)
+        LinearOperatorPointerType pLinearOperator,
+        TVectorType& rX,
+        TVectorType& rB)
     {
-        const std::size_t size = rA.size1();
-        const std::size_t size_a = rA.size2();
+        const std::size_t num_rows = pLinearOperator->NumRows();
+        const std::size_t num_cols = pLinearOperator->NumCols();
         const std::size_t size_x = rX.size();
         const std::size_t size_b = rB.size();
 
-        return ((size ==  size_a) &&
-                (size ==  size_x) &&
-                (size ==  size_b));
+        return ((num_rows ==  num_cols) && (num_rows ==  size_x) && (num_rows ==  size_b));
     }
 
     /**
      * @brief This method checks if the dimensions of the system of equations are consistent (dense matrix for RHS and unknowns version)
-     * @param rA The LHS of the system of equations
+     * @param pLinearOperator Pointer to the sparse matrix linear operator
      * @param rX The matrix containing the unknowns
      * @param rB The matrix containing the RHSs of the system of equations
      * @return True if consistent, false otherwise
      */
     virtual bool IsConsistent(
-        SparseMatrixType& rA,
+        LinearOperatorPointerType pLinearOperator,
         DenseMatrixType& rX,
         DenseMatrixType& rB)
     {
-        const std::size_t size = rA.size1();
-        const std::size_t size_a = rA.size2();
+        const std::size_t num_rows = pLinearOperator->NumRows();
+        const std::size_t num_cols = pLinearOperator->NumCols();
         const std::size_t size_1_x = rX.size1();
         const std::size_t size_1_b = rB.size1();
         const std::size_t size_2_x = rX.size2();
         const std::size_t size_2_b = rB.size2();
 
-        return ((size ==  size_a) &&
-                (size ==  size_1_x) &&
-                (size ==  size_1_b) &&
-                (size_2_x == size_2_b));
+        return ((num_rows ==  num_cols) && (num_rows ==  size_1_x) && (num_rows ==  size_1_b) && (size_2_x == size_2_b));
     }
 
     /**
      * @brief This method checks if the dimensions of the system of equations are not consistent
-     * @param rA The LHS of the system of equations
+     * @param pLinearOperator Pointer to the sparse matrix linear operator
      * @param rX The vector containing the unknowns
      * @param rB The RHS of the system of equations
      * @return False if consistent, true otherwise
      */
     virtual bool IsNotConsistent(
-        SparseMatrixType& rA,
-        VectorType& rX,
-        VectorType& rB)
+        LinearOperatorPointerType pLinearOperator,
+        TVectorType& rX,
+        TVectorType& rB)
     {
-        return (!IsConsistent(rA, rX, rB));
+        return !IsConsistent(pLinearOperator, rX, rB);
     }
 
     /**
      * @brief This method checks if the dimensions of the system of equations are not consistent
-     * @param rA The LHS of the system of equations
+     * @param pLinearOperator Pointer to the sparse matrix linear operator
      * @param rX The matrix containing the unknowns
      * @param rB The matrix containing the RHSs of the system of equations
      * @return False if consistent, true otherwise
      */
     virtual bool IsNotConsistent(
-        SparseMatrixType& rA,
+        LinearOperatorPointerType pLinearOperator,
         DenseMatrixType& rX,
         DenseMatrixType& rB)
     {
-        return (!IsConsistent(rA, rX, rB));
+        return !IsConsistent(pLinearOperator, rX, rB);
     }
 
     ///@}
@@ -467,19 +563,19 @@ private:
 ///@{
 
 /// input stream function
-template<class TMatrixType, class TVectorType>
+template<class TVectorType, typename... Ts>
 inline std::istream& operator >> (
     std::istream& IStream,
-    LinearSolver<TMatrixType, TVectorType>& rThis)
+    LinearSolver<TVectorType, Ts...>& rThis)
 {
     return IStream;
 }
 
 /// output stream function
-template<class TMatrixType, class TVectorType>
+template<class TVectorType, typename... Ts>
 inline std::ostream& operator << (
     std::ostream& rOStream,
-    const LinearSolver<TMatrixType, TMatrixType>& rThis)
+    const LinearSolver<TVectorType, Ts...>& rThis)
 {
     rThis.PrintInfo(rOStream);
     rOStream << std::endl;
