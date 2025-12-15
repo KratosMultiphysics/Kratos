@@ -384,8 +384,8 @@ int KratosExecute::ExecuteWithPiping(ModelPart&                rModelPart,
         KRATOS_ERROR << "No river boundary found.";
     }
 
-    FindCriticalHead(rModelPart, rGidOutputSettings, rCriticalHeadInfo, pOutput, rKratosLogBuffer,
-                     p_river_boundary, pSolvingStrategy, rCallBackFunctions);
+    FindCriticalHead(rModelPart, rGidOutputSettings, rCriticalHeadInfo, std::move(pOutput),
+                     rKratosLogBuffer, p_river_boundary, pSolvingStrategy, rCallBackFunctions);
 
     WriteCriticalHeadResultToFile();
 
@@ -395,7 +395,8 @@ int KratosExecute::ExecuteWithPiping(ModelPart&                rModelPart,
 
 void KratosExecute::WriteCriticalHeadResultToFile() const
 {
-    const auto path_to_critical_head_file = std::filesystem::path{mWorkingDirectory} / "criticalHead.json";
+    const auto path_to_critical_head_file =
+        std::filesystem::path{mWorkingDirectory} / "criticalHead.json";
 
     KRATOS_INFO_IF("GeoFlowKernel", this->GetEchoLevel() > 0)
         << "Writing result to: " << path_to_critical_head_file.generic_string() << std::endl;
@@ -417,7 +418,7 @@ void KratosExecute::WriteCriticalHeadResultToFile() const
     out_stream.close();
 }
 
-void KratosExecute::AddNodalSolutionStepVariables(ModelPart& rModelPart) const
+void KratosExecute::AddNodalSolutionStepVariables(ModelPart& rModelPart)
 {
     // Pressure to head conversion
     rModelPart.AddNodalSolutionStepVariable(VOLUME_ACCELERATION);
@@ -528,7 +529,7 @@ void KratosExecute::HandleCleanUp(const CallBackFunctions& rCallBackFunctions,
                                   const std::stringstream& rKratosLogBuffer)
 {
     rCallBackFunctions.LogCallback(rKratosLogBuffer.str().c_str());
-    Logger::RemoveOutput(pOutput);
+    Logger::RemoveOutput(std::move(pOutput));
     ResetModelParts();
 }
 

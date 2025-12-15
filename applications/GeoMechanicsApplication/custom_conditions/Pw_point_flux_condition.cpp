@@ -12,7 +12,7 @@
 //                   John van Esch
 //
 
-#include "custom_conditions/Pw_point_flux_condition.hpp"
+#include "custom_conditions/Pw_point_flux_condition.h"
 
 namespace Kratos
 {
@@ -37,6 +37,9 @@ PwPointFluxCondition<TDim, TNumNodes>::PwPointFluxCondition(IndexType           
 }
 
 template <unsigned int TDim, unsigned int TNumNodes>
+PwPointFluxCondition<TDim, TNumNodes>::~PwPointFluxCondition() = default;
+
+template <unsigned int TDim, unsigned int TNumNodes>
 Condition::Pointer PwPointFluxCondition<TDim, TNumNodes>::Create(IndexType             NewId,
                                                                  NodesArrayType const& rThisNodes,
                                                                  PropertiesType::Pointer pProperties) const
@@ -48,6 +51,18 @@ template <unsigned int TDim, unsigned int TNumNodes>
 void PwPointFluxCondition<TDim, TNumNodes>::CalculateRHS(Vector& rRightHandSideVector, const ProcessInfo&)
 {
     rRightHandSideVector[0] = this->GetGeometry()[0].FastGetSolutionStepValue(NORMAL_FLUID_FLUX);
+}
+
+template <unsigned int TDim, unsigned int TNumNodes>
+void PwPointFluxCondition<TDim, TNumNodes>::save(Serializer& rSerializer) const
+{
+    KRATOS_SERIALIZE_SAVE_BASE_CLASS(rSerializer, BaseType)
+}
+
+template <unsigned int TDim, unsigned int TNumNodes>
+void PwPointFluxCondition<TDim, TNumNodes>::load(Serializer& rSerializer)
+{
+    KRATOS_SERIALIZE_LOAD_BASE_CLASS(rSerializer, BaseType)
 }
 
 template <unsigned int TDim, unsigned int TNumNodes>

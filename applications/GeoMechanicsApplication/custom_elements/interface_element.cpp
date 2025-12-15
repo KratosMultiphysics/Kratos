@@ -16,7 +16,11 @@
 #include "custom_utilities/dof_utilities.h"
 #include "custom_utilities/element_utilities.hpp"
 #include "custom_utilities/equation_of_motion_utilities.h"
+#include "custom_utilities/extrapolation_utilities.h"
+#include "custom_utilities/generic_utilities.h"
 #include "custom_utilities/geometry_utilities.h"
+#include "custom_utilities/math_utilities.h"
+#include "geo_aliases.h"
 #include "interface_stress_state.h"
 #include "lobatto_integration_scheme.h"
 #include "lumped_integration_scheme.h"
@@ -88,10 +92,10 @@ InterfaceElement::InterfaceElement(IndexType                          NewId,
 void InterfaceElement::MakeIntegrationSchemeAndAssignFunction()
 {
     if (GetGeometry().LocalSpaceDimension() == 1) {
-        mIntegrationScheme = std::make_unique<LobattoIntegrationScheme>(GetGeometry().PointsNumber() / 2);
+        mpIntegrationScheme = std::make_unique<LobattoIntegrationScheme>(GetGeometry().PointsNumber() / 2);
         mfpCalculateRotationMatrix = GeometryUtilities::Calculate2DRotationMatrixForLineGeometry;
     } else {
-        mIntegrationScheme = std::make_unique<LumpedIntegrationScheme>(GetGeometry().PointsNumber() / 2);
+        mpIntegrationScheme = std::make_unique<LumpedIntegrationScheme>(GetGeometry().PointsNumber() / 2);
         mfpCalculateRotationMatrix = GeometryUtilities::Calculate3DRotationMatrixForPlaneGeometry;
     }
 }
@@ -151,10 +155,10 @@ void InterfaceElement::CalculateOnIntegrationPoints(const Variable<Vector>& rVar
                                                     std::vector<Vector>&    rOutput,
                                                     const ProcessInfo&      rCurrentProcessInfo)
 {
-    if (rVariable == STRAIN) {
+    if (rVariable == GEO_RELATIVE_DISPLACEMENT_VECTOR) {
         const auto local_b_matrices = CalculateLocalBMatricesAtIntegrationPoints();
         rOutput = CalculateRelativeDisplacementsAtIntegrationPoints(local_b_matrices);
-    } else if (rVariable == CAUCHY_STRESS_VECTOR) {
+    } else if (rVariable == GEO_EFFECTIVE_TRACTION_VECTOR) {
         const auto local_b_matrices = CalculateLocalBMatricesAtIntegrationPoints();
         const auto relative_displacements = CalculateRelativeDisplacementsAtIntegrationPoints(local_b_matrices);
         rOutput = CalculateTractionsAtIntegrationPoints(relative_displacements, rCurrentProcessInfo);
@@ -182,14 +186,34 @@ void InterfaceElement::Initialize(const ProcessInfo& rCurrentProcessInfo)
 {
     Element::Initialize(rCurrentProcessInfo);
 
+    mConstitutiveLaws.clear();
+    for (auto i = std::size_t{0}; i < mpIntegrationScheme->GetNumberOfIntegrationPoints(); ++i) {
+        mConstitutiveLaws.push_back(GetProperties()[CONSTITUTIVE_LAW]->Clone());
+    }
+    // Only interpolate when neighbouring elements that provide nodal stresses were found
+    if (this->Has(NEIGHBOUR_ELEMENTS) && this->GetValue(NEIGHBOUR_ELEMENTS).size() > 0) {
+        // interface element can at maximum have 2 neighbours
+        KRATOS_DEBUG_ERROR_IF(this->GetValue(NEIGHBOUR_ELEMENTS).size() > 2)
+            << "Too many neighbour elements for interface element " << this->Id() << std::endl;
+        const auto interface_node_ids = GenericUtilities::GetIdsFromEntityContents(GetGeometry());
+        std::vector<std::optional<Vector>> interface_nodal_cauchy_stresses(interface_node_ids.size());
+        auto&               r_neighbour_element = this->GetValue(NEIGHBOUR_ELEMENTS).front();
+        std::vector<Vector> neighbour_cauchy_stresses;
+        // Note that the interface elements don't account for water pressures yet. Consequently,
+        // we need to consider the total stresses rather than the effective stresses to calculate
+        // the appropriate prestresses to be applied.
+        r_neighbour_element.CalculateOnIntegrationPoints(
+            TOTAL_STRESS_VECTOR, neighbour_cauchy_stresses, rCurrentProcessInfo);
+        interface_nodal_cauchy_stresses = ExtrapolationUtilities::CalculateNodalVectors(
+            interface_node_ids, r_neighbour_element, neighbour_cauchy_stresses);
+        InterpolateNodalStressesToInitialTractions(interface_nodal_cauchy_stresses);
+    }
     const auto shape_function_values_at_integration_points =
         GeoElementUtilities::EvaluateShapeFunctionsAtIntegrationPoints(
-            mIntegrationScheme->GetIntegrationPoints(), GetGeometry());
-
-    mConstitutiveLaws.clear();
-    for (const auto& r_shape_function_values : shape_function_values_at_integration_points) {
-        mConstitutiveLaws.push_back(GetProperties()[CONSTITUTIVE_LAW]->Clone());
-        mConstitutiveLaws.back()->InitializeMaterial(GetProperties(), GetGeometry(), r_shape_function_values);
+            mpIntegrationScheme->GetIntegrationPoints(), GetGeometry());
+    for (auto i = std::size_t{0}; i < mConstitutiveLaws.size(); ++i) {
+        mConstitutiveLaws[i]->InitializeMaterial(GetProperties(), GetGeometry(),
+                                                 shape_function_values_at_integration_points[i]);
     }
 }
 
@@ -199,8 +223,8 @@ int InterfaceElement::Check(const ProcessInfo& rCurrentProcessInfo) const
     if (error != 0) return error;
 
     if (this->IsActive()) {
-        KRATOS_ERROR_IF(mIntegrationScheme->GetNumberOfIntegrationPoints() != mConstitutiveLaws.size())
-            << "Number of integration points (" << mIntegrationScheme->GetNumberOfIntegrationPoints()
+        KRATOS_ERROR_IF(mpIntegrationScheme->GetNumberOfIntegrationPoints() != mConstitutiveLaws.size())
+            << "Number of integration points (" << mpIntegrationScheme->GetNumberOfIntegrationPoints()
             << ") and constitutive laws (" << mConstitutiveLaws.size() << ") do not match.\n";
 
         const auto r_properties  = GetProperties();
@@ -214,6 +238,17 @@ int InterfaceElement::Check(const ProcessInfo& rCurrentProcessInfo) const
     return 0;
 }
 
+const IntegrationScheme& InterfaceElement::GetIntegrationScheme() const
+{
+    return *mpIntegrationScheme;
+}
+
+const Geometry<Node>& InterfaceElement::GetMidGeometry() const
+{
+    constexpr auto unused_part_index = std::size_t{0};
+    return GetGeometry().GetGeometryPart(unused_part_index);
+}
+
 Element::DofsVectorType InterfaceElement::GetDofs() const
 {
     const auto no_Pw_geometry_yet = Geometry<Node>{};
@@ -223,7 +258,7 @@ Element::DofsVectorType InterfaceElement::GetDofs() const
 
 std::vector<Matrix> InterfaceElement::CalculateLocalBMatricesAtIntegrationPoints() const
 {
-    const auto& r_integration_points = mIntegrationScheme->GetIntegrationPoints();
+    const auto& r_integration_points = mpIntegrationScheme->GetIntegrationPoints();
     const auto  shape_function_values_at_integration_points =
         GeoElementUtilities::EvaluateShapeFunctionsAtIntegrationPoints(r_integration_points, GetGeometry());
 
@@ -249,8 +284,8 @@ std::vector<Matrix> InterfaceElement::CalculateLocalBMatricesAtIntegrationPoints
 std::vector<double> InterfaceElement::CalculateIntegrationCoefficients() const
 {
     const auto determinants_of_jacobian = CalculateDeterminantsOfJacobiansAtIntegrationPoints(
-        mIntegrationScheme->GetIntegrationPoints(), GetGeometry());
-    return mIntegrationCoefficientsCalculator.Run<>(mIntegrationScheme->GetIntegrationPoints(),
+        mpIntegrationScheme->GetIntegrationPoints(), GetGeometry());
+    return mIntegrationCoefficientsCalculator.Run<>(mpIntegrationScheme->GetIntegrationPoints(),
                                                     determinants_of_jacobian, this);
 }
 
@@ -309,10 +344,82 @@ std::vector<Vector> InterfaceElement::CalculateTractionsAtIntegrationPoints(cons
 void InterfaceElement::ApplyRotationToBMatrix(Matrix& rBMatrix, const Matrix& rRotationMatrix) const
 {
     const auto dim = GetGeometry().WorkingSpaceDimension();
-    for (int i = 0; i + dim <= rBMatrix.size2(); i += dim) {
+    for (auto i = std::size_t{0}; i + dim <= rBMatrix.size2(); i += dim) {
         auto sub_matrix = subrange(rBMatrix, 0, rBMatrix.size1(), i, i + dim);
         sub_matrix.assign(Matrix{prod(sub_matrix, trans(rRotationMatrix))});
     }
+}
+
+void InterfaceElement::InterpolateNodalStressesToInitialTractions(const std::vector<std::optional<Vector>>& rInterfaceNodalCauchyStresses) const
+{
+    // interpolate nodal stresses on a chosen side
+    auto&      r_interface_geometry    = GetGeometry();
+    const auto number_of_nodes_on_side = r_interface_geometry.PointsNumber() / 2;
+    // check which side is shared with the neighbour geometry, by checking for the first nodes of the first side
+    auto in_first_side = rInterfaceNodalCauchyStresses[0].has_value();
+
+    const std::size_t   start_index = in_first_side ? 0 : number_of_nodes_on_side;
+    std::vector<Vector> nodal_stresses;
+    for (auto i = std::size_t{0}; i < number_of_nodes_on_side; ++i) {
+        nodal_stresses.push_back(rInterfaceNodalCauchyStresses[start_index + i].value());
+    }
+
+    std::size_t integration_point_index = 0;
+    for (const auto& r_integration_point : mpIntegrationScheme->GetIntegrationPoints()) {
+        const auto integration_point_stress =
+            InterpolateNodalStressToIntegrationPoints(r_integration_point, nodal_stresses);
+
+        const auto integration_point_local_stress_tensor =
+            RotateStressToLocalCoordinates(r_integration_point, integration_point_stress);
+        const auto traction_vector = ConvertLocalStressToTraction(integration_point_local_stress_tensor);
+
+        const auto initial_state =
+            make_intrusive<InitialState>(traction_vector, InitialState::InitialImposingType::STRESS_ONLY);
+        mConstitutiveLaws[integration_point_index]->SetInitialState(initial_state);
+        ++integration_point_index;
+    }
+}
+
+Vector InterfaceElement::InterpolateNodalStressToIntegrationPoints(const Geo::IntegrationPointType& rIntegrationPoint,
+                                                                   const std::vector<Vector>& rNodalStresses) const
+{
+    auto result                                  = Vector(rNodalStresses[0].size(), 0.0);
+    auto integration_point_shape_function_values = Vector{};
+    GetGeometry().ShapeFunctionsValues(integration_point_shape_function_values, rIntegrationPoint);
+    for (auto i = std::size_t{0}; i < GetGeometry().PointsNumber() / 2; ++i) {
+        result += integration_point_shape_function_values[i] * rNodalStresses[i];
+    }
+    return result;
+}
+
+Matrix InterfaceElement::RotateStressToLocalCoordinates(const Geo::IntegrationPointType& rIntegrationPoint,
+                                                        const Vector& rGlobalStressVector) const
+{
+    auto rotation_tensor = Matrix(3, 3, 0.0);
+    if (GetGeometry().LocalSpaceDimension() == 1) {
+        const auto two_d_rotation_tensor = mfpCalculateRotationMatrix(GetGeometry(), rIntegrationPoint);
+        GeoElementUtilities::AddMatrixAtPosition(two_d_rotation_tensor, rotation_tensor, 0, 0);
+        rotation_tensor(2, 2) = 1.0;
+    } else {
+        rotation_tensor = mfpCalculateRotationMatrix(GetGeometry(), rIntegrationPoint);
+    }
+    return GeoMechanicsMathUtilities::RotateSecondOrderTensor(
+        MathUtils<>::StressVectorToTensor(rGlobalStressVector), rotation_tensor);
+}
+
+Vector InterfaceElement::ConvertLocalStressToTraction(const Matrix& rLocalStress) const
+{
+    // extract normal and shear components to form initial traction
+    auto result = Vector(mConstitutiveLaws[0]->GetStrainSize());
+    if (GetGeometry().LocalSpaceDimension() == 1) {
+        result[0] = rLocalStress(1, 1);
+        result[1] = rLocalStress(0, 1);
+    } else {
+        result[0] = rLocalStress(2, 2);
+        result[1] = rLocalStress(0, 2);
+        result[2] = rLocalStress(1, 2);
+    }
+    return result;
 }
 
 // Instances of this class can not be copied but can be moved. Check that at compile time.

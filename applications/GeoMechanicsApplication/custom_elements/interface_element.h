@@ -66,6 +66,10 @@ public:
     void Initialize(const ProcessInfo& rCurrentProcessInfo) override;
     int  Check(const ProcessInfo& rCurrentProcessInfo) const override;
 
+    const IntegrationScheme& GetIntegrationScheme() const;
+
+    const Geometry<Node>& GetMidGeometry() const;
+
 private:
     InterfaceElement() = default;
 
@@ -80,9 +84,15 @@ private:
                                                               const ProcessInfo& rProcessInfo);
     void ApplyRotationToBMatrix(Matrix& rBMatrix, const Matrix& rRotationMatrix) const;
     void MakeIntegrationSchemeAndAssignFunction();
+    void InterpolateNodalStressesToInitialTractions(const std::vector<std::optional<Vector>>& rInterfaceNodalCauchyStresses) const;
+    Vector InterpolateNodalStressToIntegrationPoints(const Geo::IntegrationPointType& rIntegrationPoint,
+                                                     const std::vector<Vector>& rNodalStresses) const;
+    Matrix RotateStressToLocalCoordinates(const Geo::IntegrationPointType& rIntegrationPoint,
+                                          const Vector& rGlobalStressVector) const;
+    Vector ConvertLocalStressToTraction(const Matrix& rLocalStress) const;
     std::function<Matrix(const Geometry<Node>&, const array_1d<double, 3>&)> mfpCalculateRotationMatrix;
 
-    std::unique_ptr<IntegrationScheme>    mIntegrationScheme;
+    std::unique_ptr<IntegrationScheme>    mpIntegrationScheme;
     std::unique_ptr<StressStatePolicy>    mpStressStatePolicy;
     std::vector<ConstitutiveLaw::Pointer> mConstitutiveLaws;
     IntegrationCoefficientsCalculator     mIntegrationCoefficientsCalculator;
