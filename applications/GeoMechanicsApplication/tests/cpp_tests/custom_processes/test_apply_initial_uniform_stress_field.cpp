@@ -10,18 +10,20 @@
 //  Main authors:    Richard Faasse
 //
 
+#include "containers/model.h"
 #include "custom_constitutive/incremental_linear_elastic_law.h"
 #include "custom_constitutive/plane_strain.h"
 #include "custom_constitutive/three_dimensional.h"
 #include "custom_processes/apply_initial_uniform_stress_field.h"
+#include "includes/expect.h"
 #include "test_setup_utilities/model_setup_utilities.h"
-#include "tests/cpp_tests/geo_mechanics_fast_suite.h"
+#include "tests/cpp_tests/geo_mechanics_fast_suite_without_kernel.h"
 #include "tests/cpp_tests/test_utilities.h"
 
 namespace Kratos::Testing
 {
-KRATOS_TEST_CASE_IN_SUITE(ApplyInitialUniformStressFieldProcessAppliesStressesToPlaneStrainElementsInModelPart,
-                          KratosGeoMechanicsFastSuiteWithoutKernel)
+TEST_F(KratosGeoMechanicsFastSuiteWithoutKernel,
+       ApplyInitialUniformStressFieldProcessAppliesStressesToPlaneStrainElementsInModelPart)
 {
     // Note that when creating the process using python, these parameters
     // should also contain the "model_part_name" field.
@@ -48,8 +50,8 @@ KRATOS_TEST_CASE_IN_SUITE(ApplyInitialUniformStressFieldProcessAppliesStressesTo
     }
 }
 
-KRATOS_TEST_CASE_IN_SUITE(ApplyInitialUniformStressFieldProcessAppliesStressesToThreeDimensionalElementsInModelPart,
-                          KratosGeoMechanicsFastSuiteWithoutKernel)
+TEST_F(KratosGeoMechanicsFastSuiteWithoutKernel,
+       ApplyInitialUniformStressFieldProcessAppliesStressesToThreeDimensionalElementsInModelPart)
 {
     Parameters parameters(R"({
         "value": [1.0, 2.0, 3.0, 4.0, 5.0, 6.0]
@@ -74,8 +76,8 @@ KRATOS_TEST_CASE_IN_SUITE(ApplyInitialUniformStressFieldProcessAppliesStressesTo
     }
 }
 
-KRATOS_TEST_CASE_IN_SUITE(ApplyInitialUniformStressFieldProcessAppliesStressesToPlaneStrainDiffOrderElementsInModelPart,
-                          KratosGeoMechanicsFastSuiteWithoutKernel)
+TEST_F(KratosGeoMechanicsFastSuiteWithoutKernel,
+       ApplyInitialUniformStressFieldProcessAppliesStressesToPlaneStrainDiffOrderElementsInModelPart)
 {
     Parameters parameters(R"({
         "value": [1.0, 2.0, 3.0, 4.0]
@@ -100,8 +102,8 @@ KRATOS_TEST_CASE_IN_SUITE(ApplyInitialUniformStressFieldProcessAppliesStressesTo
     }
 }
 
-KRATOS_TEST_CASE_IN_SUITE(ApplyInitialUniformStressFieldProcessThrowsUponConstructionWhenValuesAreMissing,
-                          KratosGeoMechanicsFastSuiteWithoutKernel)
+TEST_F(KratosGeoMechanicsFastSuiteWithoutKernel,
+       ApplyInitialUniformStressFieldProcessThrowsUponConstructionWhenValuesAreMissing)
 {
     Parameters parameters;
     Model      model;
@@ -111,8 +113,8 @@ KRATOS_TEST_CASE_IN_SUITE(ApplyInitialUniformStressFieldProcessThrowsUponConstru
                                       "Getting a value that does not exist. entry string : value");
 }
 
-KRATOS_TEST_CASE_IN_SUITE(ApplyInitialUniformStressFieldThrowsUponConstructionWhenStressVectorSizeIsIncorrectForPlaneStrain,
-                          KratosGeoMechanicsFastSuiteWithoutKernel)
+TEST_F(KratosGeoMechanicsFastSuiteWithoutKernel,
+       ApplyInitialUniformStressFieldThrowsUponConstructionWhenStressVectorSizeIsIncorrectForPlaneStrain)
 {
     Parameters parameters(R"({
         "value": [1.0, 2.0, 3.0]
@@ -130,7 +132,7 @@ KRATOS_TEST_CASE_IN_SUITE(ApplyInitialUniformStressFieldThrowsUponConstructionWh
         "'Main'. Please check the process parameters.");
 }
 
-KRATOS_TEST_CASE_IN_SUITE(CheckInfoApplyInitialUniformStressField, KratosGeoMechanicsFastSuiteWithoutKernel)
+TEST_F(KratosGeoMechanicsFastSuiteWithoutKernel, CheckInfoApplyInitialUniformStressField)
 {
     // Arrange
     Model model;
