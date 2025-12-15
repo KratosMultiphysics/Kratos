@@ -13,8 +13,11 @@
 #include "containers/model.h"
 #include "custom_processes/apply_c_phi_reduction_process.h"
 #include "geometries/triangle_2d_3.h"
-#include "tests/cpp_tests/geo_mechanics_fast_suite.h"
+#include "includes/expect.h"
+#include "includes/ublas_interface.h"
+#include "tests/cpp_tests/geo_mechanics_fast_suite_without_kernel.h"
 #include "tests/cpp_tests/stub_linear_elastic_law.h"
+
 #include <boost/numeric/ublas/assignment.hpp>
 
 using namespace Kratos;
@@ -64,12 +67,12 @@ void CheckReducedCPhi(const ModelPart& rModelPart, double COrig, double PhiOrig,
         const auto  c_index   = element_properties.GetValue(INDEX_OF_UMAT_C_PARAMETER) - 1;
         const auto  phi_index = element_properties.GetValue(INDEX_OF_UMAT_PHI_PARAMETER) - 1;
 
-        KRATOS_EXPECT_DOUBLE_EQ(umat_properties_vector(c_index), ReductionFactor * COrig);
+        EXPECT_DOUBLE_EQ(umat_properties_vector(c_index), ReductionFactor * COrig);
 
         const double phi_rad = MathUtils<>::DegreesToRadians(PhiOrig);
         const double tan_phi = std::tan(phi_rad);
-        KRATOS_EXPECT_DOUBLE_EQ(std::tan(MathUtils<>::DegreesToRadians(umat_properties_vector(phi_index))),
-                                ReductionFactor * tan_phi);
+        EXPECT_DOUBLE_EQ(std::tan(MathUtils<>::DegreesToRadians(umat_properties_vector(phi_index))),
+                         ReductionFactor * tan_phi);
     }
 }
 
@@ -77,7 +80,7 @@ void CheckReducedCPhi(const ModelPart& rModelPart, double COrig, double PhiOrig,
 
 namespace Kratos::Testing
 {
-KRATOS_TEST_CASE_IN_SUITE(CheckCAndPhiReducedAfterCallingApplyCPhiReductionProcess, KratosGeoMechanicsFastSuiteWithoutKernel)
+TEST_F(KratosGeoMechanicsFastSuiteWithoutKernel, CheckCAndPhiReducedAfterCallingApplyCPhiReductionProcess)
 {
     Model       model;
     const auto& r_model_part = PrepareCPhiTestModelPart(model);
@@ -89,8 +92,7 @@ KRATOS_TEST_CASE_IN_SUITE(CheckCAndPhiReducedAfterCallingApplyCPhiReductionProce
     CheckReducedCPhi(r_model_part, 10.0, 25.0, 0.9);
 }
 
-KRATOS_TEST_CASE_IN_SUITE(CheckCAndPhiTwiceReducedAfterCallingApplyCPhiReductionProcessTwice,
-                          KratosGeoMechanicsFastSuiteWithoutKernel)
+TEST_F(KratosGeoMechanicsFastSuiteWithoutKernel, CheckCAndPhiTwiceReducedAfterCallingApplyCPhiReductionProcessTwice)
 {
     Model       model;
     const auto& r_model_part = PrepareCPhiTestModelPart(model);
@@ -104,7 +106,7 @@ KRATOS_TEST_CASE_IN_SUITE(CheckCAndPhiTwiceReducedAfterCallingApplyCPhiReduction
     CheckReducedCPhi(r_model_part, 10.0, 25.0, 0.8);
 }
 
-KRATOS_TEST_CASE_IN_SUITE(CheckFailureUmatInputsApplyCPhiReductionProcess, KratosGeoMechanicsFastSuiteWithoutKernel)
+TEST_F(KratosGeoMechanicsFastSuiteWithoutKernel, CheckFailureUmatInputsApplyCPhiReductionProcess)
 {
     Model model;
     auto& r_model_part = CreateModelPartWithElements(model);
@@ -168,7 +170,7 @@ KRATOS_TEST_CASE_IN_SUITE(CheckFailureUmatInputsApplyCPhiReductionProcess, Krato
         "Cohesion C out of range: -1e-05")
 }
 
-KRATOS_TEST_CASE_IN_SUITE(CheckFailureEmptyModelPartApplyCPhiReductionProcess, KratosGeoMechanicsFastSuiteWithoutKernel)
+TEST_F(KratosGeoMechanicsFastSuiteWithoutKernel, CheckFailureEmptyModelPartApplyCPhiReductionProcess)
 {
     Model model;
     model.CreateModelPart("dummy");
@@ -180,7 +182,7 @@ KRATOS_TEST_CASE_IN_SUITE(CheckFailureEmptyModelPartApplyCPhiReductionProcess, K
         "analysis requires at least one element.")
 }
 
-KRATOS_TEST_CASE_IN_SUITE(CheckReturnsZeroForValidModelPartApplyCPhiReductionProcess, KratosGeoMechanicsFastSuiteWithoutKernel)
+TEST_F(KratosGeoMechanicsFastSuiteWithoutKernel, CheckReturnsZeroForValidModelPartApplyCPhiReductionProcess)
 {
     Model model;
     PrepareCPhiTestModelPart(model);
@@ -190,8 +192,7 @@ KRATOS_TEST_CASE_IN_SUITE(CheckReturnsZeroForValidModelPartApplyCPhiReductionPro
     KRATOS_CHECK_EQUAL(process.Check(), 0);
 }
 
-KRATOS_TEST_CASE_IN_SUITE(CheckFailureNegativeReductionFactorApplyCPhiReductionProcess,
-                          KratosGeoMechanicsFastSuiteWithoutKernel)
+TEST_F(KratosGeoMechanicsFastSuiteWithoutKernel, CheckFailureNegativeReductionFactorApplyCPhiReductionProcess)
 {
     Model model;
     PrepareCPhiTestModelPart(model);
@@ -208,8 +209,7 @@ KRATOS_TEST_CASE_IN_SUITE(CheckFailureNegativeReductionFactorApplyCPhiReductionP
         "Reduction factor should not drop below 0.01, calculation stopped.");
 }
 
-KRATOS_TEST_CASE_IN_SUITE(CheckFailureTooSmallReductionIncrementApplyCPhiReductionProcess,
-                          KratosGeoMechanicsFastSuiteWithoutKernel)
+TEST_F(KratosGeoMechanicsFastSuiteWithoutKernel, CheckFailureTooSmallReductionIncrementApplyCPhiReductionProcess)
 {
     Model model;
     auto& r_model_part = PrepareCPhiTestModelPart(model);
@@ -232,7 +232,7 @@ KRATOS_TEST_CASE_IN_SUITE(CheckFailureTooSmallReductionIncrementApplyCPhiReducti
                                       "calculation stopped. Final safety factor = 1.10919");
 }
 
-KRATOS_TEST_CASE_IN_SUITE(CheckInfoApplyCPhiReductionProcess, KratosGeoMechanicsFastSuiteWithoutKernel)
+TEST_F(KratosGeoMechanicsFastSuiteWithoutKernel, CheckInfoApplyCPhiReductionProcess)
 {
     // Arrange
     Model model;
