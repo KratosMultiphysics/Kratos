@@ -131,9 +131,16 @@ class RomDatabase(object):
         """
         type_of_list = self.identify_list_type(mu)
         if type_of_list=="mu":
-            serialized_mu = self.serialize_mu(self.make_mu_dictionary(mu))
+            if 'FOM' in table_name:
+                serialized_mu = self.serialize_mu(self.make_mu_dictionary(mu[:2]))
+            else:    
+                serialized_mu = self.serialize_mu(self.make_mu_dictionary(mu))
         elif type_of_list=="complete_mu":
-            serialized_mu = self.serialize_entire_mu_train(mu)
+            if 'FOM' in table_name:
+                mu = [[mu_i[0],mu_i[1]] for mu_i in mu]
+                serialized_mu = self.serialize_entire_mu_train(mu)
+            else:
+                serialized_mu = self.serialize_entire_mu_train(mu)
         elif type_of_list=="Empty list":
             serialized_mu = 'No mu provided, running single case as described by the ProjectParameters.json'
         else:
@@ -248,6 +255,20 @@ class RomDatabase(object):
             cursor.execute(f'SELECT COUNT(*) FROM {table_name} WHERE file_name = ?', (file_name,))
             count = cursor.fetchone()[0]
         return count > 0, file_name
+
+
+    def delete_if_in_database(self, table_name, mu):
+        """
+        Delete if a given set of parameters is already in the specified table.
+
+        Args:
+            table_name: Name of the database table.
+            mu: Parameters to check.
+        """
+        file_name, _ = self.get_hashed_file_name_for_table(table_name, mu)
+        with sqlite3.connect(self.database_name) as conn:
+            cursor = conn.cursor()
+            cursor.execute(f'DELETE FROM {table_name} WHERE file_name = ?', (file_name,))
 
 
     def add_to_database(self, table_name, mu, numpy_array):
@@ -432,27 +453,31 @@ class RomDatabase(object):
         Returns:
             np.array: Matrix of snapshots.
         """
-        if mu_list == [None]: #this happens when no mu is passed, the simulation run is the one in the ProjectParameters.json
+        if mu_list == [None]:
             mu_list_unique = mu_list
         else:
-            unique_tuples = set(tuple(item) for item in mu_list)
-            mu_list_unique = [list(item) for item in unique_tuples] #unique members in mu_list
-        SnapshotsMatrix = []
+            mu_list_unique = []
+            [mu_list_unique.append(mu) for mu in mu_list if mu not in mu_list_unique]
+
+        SnapshotsMatrix = [None] * len(mu_list)  
         unavailable_cases = []
+
         with sqlite3.connect(self.database_name) as conn:
             cursor = conn.cursor()
             for mu in mu_list_unique:
                 hash_mu, _ = self.get_hashed_file_name_for_table(table_name, mu)
                 cursor.execute(f"SELECT file_name FROM {table_name} WHERE file_name = ?", (hash_mu,))
                 result = cursor.fetchone()
+                index = mu_list.index(mu)  
                 if result:
                     file_name = result[0]
                     if QoI is not None:
                         file_name += QoI
-                    SnapshotsMatrix.append(self.get_single_numpy_from_database(file_name))
+                    SnapshotsMatrix[index] = self.get_single_numpy_from_database(file_name)
                 else:
                     print(f"No entry found for hash {hash_mu}")
                     unavailable_cases.append(mu)
+                    SnapshotsMatrix[index] = np.zeros_like(SnapshotsMatrix[0])
 
         if unavailable_cases:
             print(f"Retrieved snapshots matrix for {table_name} does not contain {len(unavailable_cases)} cases: {unavailable_cases}")

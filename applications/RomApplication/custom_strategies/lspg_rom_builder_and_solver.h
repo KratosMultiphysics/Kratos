@@ -342,18 +342,10 @@ public:
     {
         KRATOS_TRY
 
-        if (mRightRomBasisInitialized==false){
-            mPhiGlobal = ZeroMatrix(BaseBuilderAndSolverType::mEquationSystemSize, BaseType::GetNumberOfROMModes());
-            mRightRomBasisInitialized = true;
-        }
-
-        BaseType::BuildRightROMBasis(rModelPart, mPhiGlobal);
         auto a_wrapper = UblasWrapper<double>(rA);
         const auto& eigen_rA = a_wrapper.matrix();
         Eigen::Map<EigenDynamicVector> eigen_rb(rb.data().begin(), rb.size());
-        Eigen::Map<EigenDynamicMatrix> eigen_mPhiGlobal(mPhiGlobal.data().begin(), mPhiGlobal.size1(), mPhiGlobal.size2());
-
-        EigenDynamicMatrix eigen_rA_times_mPhiGlobal = eigen_rA * eigen_mPhiGlobal; //TODO: Make it in parallel.
+        Eigen::Map<EigenDynamicMatrix> eigen_mPhiGlobal(BaseType::mPhiGlobal.data().begin(), BaseType::mPhiGlobal.size1(), BaseType::mPhiGlobal.size2());
 
         if (BaseType::mHromSimulation) {
             if (mSolvingTechnique != "normal_equations") {
@@ -362,7 +354,7 @@ public:
 
             auto a_comp_wrapper = UblasWrapper<double>(rAComp);
             const auto& eigen_rAComp = a_comp_wrapper.matrix();
-
+            EigenDynamicMatrix eigen_rA_times_mPhiGlobal = eigen_rA * eigen_mPhiGlobal; //TODO: Make it in parallel.
             EigenDynamicMatrix eigen_rAComp_times_mPhiGlobal = eigen_rAComp * eigen_mPhiGlobal; //TODO: Make it in parallel.
 
             if (mSolvingTechnique == "normal_equations") {
@@ -374,13 +366,20 @@ public:
         else {
 
             if (mSolvingTechnique == "normal_equations"){
+                Eigen::SparseMatrix<double> eigen_weighted_rA = BaseType::mWeightMatrix * eigen_rA;
+                Eigen::VectorXd eigen_weighted_rb = BaseType::mWeightMatrix * eigen_rb;
+                EigenDynamicMatrix eigen_weighted_rA_times_mPhiGlobal = eigen_weighted_rA * eigen_mPhiGlobal;
                 // Compute the matrix multiplication
-                mEigenRomA = eigen_rA_times_mPhiGlobal.transpose() * eigen_rA_times_mPhiGlobal; //TODO: Make it in parallel.
-                mEigenRomB = eigen_rA_times_mPhiGlobal.transpose() * eigen_rb; //TODO: Make it in parallel.
+                mEigenRomA = eigen_weighted_rA_times_mPhiGlobal.transpose() * eigen_weighted_rA_times_mPhiGlobal; //TODO: Make it in parallel.
+                mEigenRomB = eigen_weighted_rA_times_mPhiGlobal.transpose() * eigen_weighted_rb; //TODO: Make it in parallel.
             }
             else if (mSolvingTechnique == "qr_decomposition") {
-                mEigenRomA = eigen_rA_times_mPhiGlobal;
-                mEigenRomB = eigen_rb;
+                Eigen::SparseMatrix<double> eigen_weighted_rA = BaseType::mWeightMatrix * eigen_rA;
+                Eigen::VectorXd eigen_weighted_rb = BaseType::mWeightMatrix * eigen_rb;
+                EigenDynamicMatrix eigen_weighted_rA_times_mPhiGlobal = eigen_weighted_rA * eigen_mPhiGlobal;
+                // Compute the matrix multiplication
+                mEigenRomA = eigen_weighted_rA_times_mPhiGlobal; 
+                mEigenRomB = eigen_weighted_rb; 
             }
         }
 

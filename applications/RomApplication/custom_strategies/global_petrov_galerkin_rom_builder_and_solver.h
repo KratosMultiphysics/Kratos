@@ -197,29 +197,24 @@ public:
     {
         KRATOS_TRY
 
-        if (mRightRomBasisInitialized==false){
-            mPhiGlobal = ZeroMatrix(BaseBuilderAndSolverType::mEquationSystemSize, BaseType::GetNumberOfROMModes());
-            mRightRomBasisInitialized = true;
-        }
-
         if (mLeftRomBasisInitialized==false){
             mPsiGlobal = ZeroMatrix(BaseBuilderAndSolverType::mEquationSystemSize, mNumberOfPetrovGalerkinRomModes);
+            BuildLeftROMBasis(rModelPart, mPsiGlobal);
             mLeftRomBasisInitialized = true;
         }
 
-        BaseType::BuildRightROMBasis(rModelPart, mPhiGlobal);
-        BuildLeftROMBasis(rModelPart, mPsiGlobal);
         auto a_wrapper = UblasWrapper<double>(rA);
         const auto& eigen_rA = a_wrapper.matrix();
         Eigen::Map<EigenDynamicVector> eigen_rb(rb.data().begin(), rb.size());
-        Eigen::Map<EigenDynamicMatrix> eigen_mPhiGlobal(mPhiGlobal.data().begin(), mPhiGlobal.size1(), mPhiGlobal.size2());
+        Eigen::Map<EigenDynamicMatrix> eigen_mPhiGlobal(BaseType::mPhiGlobal.data().begin(), BaseType::mPhiGlobal.size1(), BaseType::mPhiGlobal.size2());
         Eigen::Map<EigenDynamicMatrix> eigen_mPsiGlobal(mPsiGlobal.data().begin(), mPsiGlobal.size1(), mPsiGlobal.size2());
 
-        EigenDynamicMatrix eigen_rA_times_mPhiGlobal = eigen_rA * eigen_mPhiGlobal; //TODO: Make it in parallel.
-
+        Eigen::SparseMatrix<double> eigen_weighted_rA = BaseType::mWeightMatrix * eigen_rA;
+        Eigen::VectorXd eigen_weighted_rb = BaseType::mWeightMatrix * eigen_rb;
+        EigenDynamicMatrix eigen_weighted_rA_times_mPhiGlobal = eigen_weighted_rA * eigen_mPhiGlobal;
         // Compute the matrix multiplication
-        mEigenRomA = eigen_mPsiGlobal.transpose() * eigen_rA_times_mPhiGlobal; //TODO: Make it in parallel.
-        mEigenRomB = eigen_mPsiGlobal.transpose() * eigen_rb; //TODO: Make it in parallel.
+        mEigenRomA = eigen_mPsiGlobal.transpose() * eigen_weighted_rA_times_mPhiGlobal; //TODO: Make it in parallel.
+        mEigenRomB = eigen_mPsiGlobal.transpose() * eigen_weighted_rb;
 
         KRATOS_CATCH("")
     }
