@@ -255,6 +255,8 @@ void  AddCustomUtilitiesToPython(pybind11::module& m)
         .def("ComputeDistancesToBoundingModelPart", &GeometryUtilities::ComputeDistancesToBoundingModelPart)
         .def("CalculateLength",&GeometryUtilities::CalculateLength<ModelPart::ElementsContainerType>)
         .def("CalculateLength",&GeometryUtilities::CalculateLength<ModelPart::ConditionsContainerType>)
+        .def("CalculateArea",&GeometryUtilities::CalculateArea<ModelPart::ElementsContainerType>)
+        .def("CalculateArea",&GeometryUtilities::CalculateArea<ModelPart::ConditionsContainerType>)
         .def("ComputeVolume", &GeometryUtilities::ComputeVolume)
         .def("ComputeVolumeShapeDerivatives", &GeometryUtilities::ComputeVolumeShapeDerivatives)
         ;

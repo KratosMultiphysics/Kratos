@@ -32,6 +32,12 @@ def CreateResponseFunction(response_id, response_settings, model):
         return airfoil_2d_responses.ChordLengthResponseFunction(response_id, response_settings, model)
     elif response_type == "airfoil_perimeter":
         return airfoil_2d_responses.PerimeterResponseFunction(response_id, response_settings, model)
+    elif response_type == "wing_angle_of_attack":
+        return airfoil_2d_responses.WingAngleOfAttackResponseFunction(response_id, response_settings, model)
+    elif response_type == "wing_chord_length":
+        return airfoil_2d_responses.WingChordLengthResponseFunction(response_id, response_settings, model)
+    elif response_type == "wing_perimeter":
+        return airfoil_2d_responses.WingPerimeterResponseFunction(response_id, response_settings, model)
     elif response_type == "total_volume":
         return total_volume.TotalVolume(response_id, response_settings, model)
     else:
