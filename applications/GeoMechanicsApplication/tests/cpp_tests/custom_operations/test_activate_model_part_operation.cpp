@@ -15,7 +15,7 @@
 #include "geometries/quadrilateral_2d_4.h"
 #include "includes/expect.h"
 #include "processes/structured_mesh_generator_process.h"
-#include "tests/cpp_tests/geo_mechanics_fast_suite.h"
+#include "tests/cpp_tests/geo_mechanics_fast_suite_without_kernel.h"
 
 // Application includes
 #include "custom_operations/activate_model_part_operation.h"
@@ -23,7 +23,7 @@
 namespace Kratos::Testing
 {
 
-KRATOS_TEST_CASE_IN_SUITE(ActivateModelPartOperation, KratosGeoMechanicsFastSuiteWithoutKernel)
+TEST_F(KratosGeoMechanicsFastSuiteWithoutKernel, ActivateModelPartOperation)
 {
     // Create the test model part
     Model test_model;
