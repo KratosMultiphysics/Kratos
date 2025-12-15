@@ -249,8 +249,8 @@ void DisplacementShellShiftedBoundaryCondition::CalculateLocalSystem(
         }
     }
 
-    D(6,6) = D(5,5)*5.0/6.0;
-    D(7,7) = D(5,5)*5.0/6.0;
+    D(6,6) = C_mat(1,1) / 2.0 * 5.0 / 6.0;
+    D(7,7) = C_mat(1,1) / 2.0 * 5.0 / 6.0; 
 
     for ( IndexType i = 0; i < n_nodes; ++i ) {
         const IndexType initial_index = i*6;
@@ -269,15 +269,15 @@ void DisplacementShellShiftedBoundaryCondition::CalculateLocalSystem(
         B_mat_shell(5, initial_index + 3) = -r_DN_DX(i, 0);
         B_mat_shell(5, initial_index + 4) = r_DN_DX(i, 1);
 
-        // B_mat_shell(6, initial_index + 2) = r_DN_DX(i, 0);
-        // B_mat_shell(6, initial_index + 3) = r_N[i];
-        // B_mat_shell(7, initial_index + 2) = r_DN_DX(i, 1);
-        // B_mat_shell(7, initial_index + 4) = r_N[i];
-
-        B_mat_shell(6, initial_index + 2) = -r_DN_DX(i, 1);
+        B_mat_shell(6, initial_index + 2) = r_DN_DX(i, 0);
         B_mat_shell(6, initial_index + 3) = r_N[i];
-        B_mat_shell(7, initial_index + 2) = r_DN_DX(i, 0);
+        B_mat_shell(7, initial_index + 2) = r_DN_DX(i, 1);
         B_mat_shell(7, initial_index + 4) = r_N[i];
+
+        // B_mat_shell(6, initial_index + 2) = -r_DN_DX(i, 1);
+        // B_mat_shell(6, initial_index + 3) = r_N[i];
+        // B_mat_shell(7, initial_index + 2) = r_DN_DX(i, 0);
+        // B_mat_shell(7, initial_index + 4) = r_N[i];
     }
 
     // Get Dirichlet BC imposition data
@@ -290,7 +290,7 @@ void DisplacementShellShiftedBoundaryCondition::CalculateLocalSystem(
         bc_values[d + 3] = 0.0; //r_bc_val_rot[d];
     }
     const double gamma = rCurrentProcessInfo[PENALTY_COEFFICIENT]; //TO DO: rCurrentProcessInfo[PENALTY_COEFFICIENT];
-    KRATOS_WATCH(gamma)
+    // KRATOS_WATCH(gamma)
 
     // Calculate the Nitsche BC imposition contribution
     // 1. Add Nitsche penalty term //TO DO check this
@@ -322,7 +322,7 @@ void DisplacementShellShiftedBoundaryCondition::CalculateLocalSystem(
 
     // 2. Add Nitsche stabilization term
     Matrix aux_N(6, local_size);
-    Matrix transB_C_proj = ZeroMatrix(local_size, 6); //first variation traction
+    Matrix transB_C_proj = ZeroMatrix(local_size, 8); //first variation traction
     CalculateAuxShapeFunctionsMatrix(r_N, aux_N);
     CalculateBtransCProjectionLinearisation(D, B_mat_shell, normal, transB_C_proj);
     const Matrix stab_lhs = prod(transB_C_proj, aux_N); 
@@ -562,14 +562,14 @@ void DisplacementShellShiftedBoundaryCondition::CalculateBtransCProjectionLinear
         }
     // bending part    
         for (std::size_t j = 0; j < local_size; ++j) {
-            rAuxMat(j,3) = rUnitNormal[0]*aux_transBC(j,3) + rUnitNormal[1]*aux_transBC(j,5);
+            rAuxMat(j,4) = rUnitNormal[0]*aux_transBC(j,3) + rUnitNormal[1]*aux_transBC(j,5);
         }
         for (std::size_t j = 0; j < local_size; ++j) {
-            rAuxMat(j,4) = rUnitNormal[0]*aux_transBC(j,5) + rUnitNormal[1]*aux_transBC(j,4);
+            rAuxMat(j,3) = rUnitNormal[0]*aux_transBC(j,5) + rUnitNormal[1]*aux_transBC(j,4);
         }
     // TO DO: shear and drilling part
         for (std::size_t j = 0; j < local_size; ++j) {
-            rAuxMat(j,2) = rUnitNormal[0]*aux_transBC(j,7) + rUnitNormal[1]*aux_transBC(j,6);
+            rAuxMat(j,2) = rUnitNormal[0]*aux_transBC(j,6) + rUnitNormal[1]*aux_transBC(j,7);
         }
         
 

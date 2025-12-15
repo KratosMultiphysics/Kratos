@@ -63,7 +63,7 @@ void ShellThickShiftedBoundaryElement3D3N<TKinematics>::CalculateLocalSystem(
         // Note that it might happen that an interface element has no surrogate face (i.e. a unique node in the surrogate skin)
         const auto sur_bd_ids_vect = GetSurrogateFacesIds();
 
-        KRATOS_WATCH("Is interface");
+        // KRATOS_WATCH("Is interface");
 
         if (sur_bd_ids_vect.size() != 0) {
 
@@ -97,7 +97,7 @@ void ShellThickShiftedBoundaryElement3D3N<TKinematics>::CalculateLocalSystem(
                 double dom_size_parent;
                 const auto& r_geom = this->GetGeometry();
 
-                KRATOS_WATCH(r_geom)
+                // KRATOS_WATCH(r_geom)
 
                 array_1d<double, NumNodes> N_parent;
                 BoundedMatrix<double, NumNodes, 2> DN_DX_parent;
@@ -170,19 +170,19 @@ void ShellThickShiftedBoundaryElement3D3N<TKinematics>::CalculateLocalSystem(
                         B(5, initial_index + 3) = -DN_DX_parent(i, 0);
                         B(5, initial_index + 4) = DN_DX_parent(i, 1);
 
-                        // B(6, initial_index + 2) = DN_DX_parent(i, 0);
-                        // B(6, initial_index + 3) = N_parent[i];
-                        // B(7, initial_index + 2) = DN_DX_parent(i, 1);
-                        // B(7, initial_index + 4) = N_parent[i];
-
-                        B(6, initial_index + 2) = -DN_DX_parent(i, 1);
+                        B(6, initial_index + 2) = DN_DX_parent(i, 0);
                         B(6, initial_index + 3) = N_parent[i];
-                        B(7, initial_index + 2) = DN_DX_parent(i, 0);
+                        B(7, initial_index + 2) = DN_DX_parent(i, 1);
                         B(7, initial_index + 4) = N_parent[i];
+
+                        // B(6, initial_index + 2) = -DN_DX_parent(i, 1);
+                        // B(6, initial_index + 3) = N_parent[i];
+                        // B(7, initial_index + 2) = DN_DX_parent(i, 0);
+                        // B(7, initial_index + 4) = N_parent[i];
                     }
 
                     Matrix D(8, 8);
-                    noalias(D) = ZeroMatrix(6, 6);
+                    noalias(D) = ZeroMatrix(8, 8);
 
                     for(std::size_t i = 0; i < r_C.size1(); ++i)
                     {
@@ -192,8 +192,8 @@ void ShellThickShiftedBoundaryElement3D3N<TKinematics>::CalculateLocalSystem(
                         }
                     }
 
-                    D(6,6) = D(5,5)*5.0/6.0;
-                    D(7,7) = D(5,5)*5.0/6.0;
+                    // D(6,6) = D(5,5)*5.0/6.0;
+                    // D(7,7) = D(5,5)*5.0/6.0;
 
                     CalculateCBProjectionLinearisation(D, B, n_sur_bd, aux_CB_projection);
                     CalculateCauchyTractionVector(r_stress, n_sur_bd, cauchy_traction);
@@ -505,15 +505,15 @@ void ShellThickShiftedBoundaryElement3D3N<TKinematics>::CalculateCBProjectionLin
 
         // bending part    
         for (std::size_t j = 0; j < LocalSize; ++j) {
-            rAuxMat(3,j) = rUnitNormal[0]*aux_CB(3,j) + rUnitNormal[1]*aux_CB(5,j);
+            rAuxMat(4,j) = rUnitNormal[0]*aux_CB(3,j) + rUnitNormal[1]*aux_CB(5,j);
         }
         for (std::size_t j = 0; j < LocalSize; ++j) {
-            rAuxMat(4,j) = rUnitNormal[0]*aux_CB(5,j) + rUnitNormal[1]*aux_CB(4,j);
+            rAuxMat(3,j) = rUnitNormal[0]*aux_CB(5,j) + rUnitNormal[1]*aux_CB(4,j);
         }
 
         // // TO DO: shear and drilling part
         for (std::size_t j = 0; j < LocalSize; ++j) {
-            rAuxMat(2,j) = rUnitNormal[0]*aux_CB(7,j) + rUnitNormal[1]*aux_CB(6,j);
+            rAuxMat(2,j) = rUnitNormal[0]*aux_CB(6,j) + rUnitNormal[1]*aux_CB(7,j);
         }
 
 
