@@ -10,7 +10,7 @@
 //  Main authors:    Vahid Galavi
 //
 
-#include "custom_constitutive/small_strain_umat_2D_interface_law.hpp"
+#include "custom_constitutive/small_strain_umat_2D_interface_law.h"
 #include "constitutive_law_dimension.h"
 
 namespace Kratos
@@ -130,6 +130,16 @@ void SmallStrainUMAT2DInterfaceLaw::SetValue(const Variable<Vector>& rVariable,
 SizeType SmallStrainUMAT2DInterfaceLaw::WorkingSpaceDimension() { return Dimension; }
 
 SizeType SmallStrainUMAT2DInterfaceLaw::GetStrainSize() const { return VoigtSize; }
+
+ConstitutiveLaw::StrainMeasure SmallStrainUMAT2DInterfaceLaw::GetStrainMeasure()
+{
+    return StrainMeasure_Infinitesimal;
+}
+
+ConstitutiveLaw::StressMeasure SmallStrainUMAT2DInterfaceLaw::GetStressMeasure()
+{
+    return StressMeasure_Cauchy;
+}
 
 std::string SmallStrainUMAT2DInterfaceLaw::Info() const { return "SmallStrainUMAT2DInterfaceLaw"; }
 

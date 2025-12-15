@@ -16,7 +16,7 @@
 #include "includes/define.h"
 
 // Project includes
-#include "small_strain_umat_law.hpp"
+#include "small_strain_umat_law.h"
 
 namespace Kratos
 {
@@ -48,8 +48,7 @@ namespace Kratos
 // matrix/vector sizes to be consistent with a 3D model). Be careful with changing this, as it may
 // lead to UMATs writing to out-of-bounds memory locations. Locally, the static definition of
 // VoigtSize is used to ensure copying/using only the necessary data
-class KRATOS_API(GEO_MECHANICS_APPLICATION) SmallStrainUMAT2DPlaneStrainLaw
-    : public SmallStrainUMATLaw<VOIGT_SIZE_3D>
+class KRATOS_API(GEO_MECHANICS_APPLICATION) SmallStrainUMAT2DInterfaceLaw : public SmallStrainUMATLaw<VOIGT_SIZE_3D>
 {
 public:
     // The base class ConstitutiveLaw type definition
@@ -62,12 +61,12 @@ public:
     static constexpr SizeType Dimension = N_DIM_2D;
 
     /// Static definition of the VoigtSize
-    static constexpr SizeType VoigtSize = VOIGT_SIZE_2D_PLANE_STRAIN;
+    static constexpr SizeType VoigtSize = VOIGT_SIZE_2D_INTERFACE;
 
-    /// Pointer definition of SmallStrainUMAT2DPlaneStrainLaw
-    KRATOS_CLASS_POINTER_DEFINITION(SmallStrainUMAT2DPlaneStrainLaw);
+    /// Pointer definition of SmallStrainUMAT2DInterfaceLaw
+    KRATOS_CLASS_POINTER_DEFINITION(SmallStrainUMAT2DInterfaceLaw);
 
-    explicit SmallStrainUMAT2DPlaneStrainLaw(std::unique_ptr<ConstitutiveLawDimension> pConstitutiveDimension);
+    explicit SmallStrainUMAT2DInterfaceLaw(std::unique_ptr<ConstitutiveLawDimension> pConstitutiveDimension);
 
     //@}
     //@name Life Cycle
@@ -98,13 +97,13 @@ public:
      * @brief Returns the expected strain measure of this constitutive law (by default Green-Lagrange)
      * @return the expected strain measure
      */
-    StrainMeasure GetStrainMeasure() override { return StrainMeasure_Infinitesimal; }
+    StrainMeasure GetStrainMeasure() override;
 
     /**
      * returns the stress measure of this constitutive law (by default 1st Piola-Kirchhoff stress in voigt notation)
      * @return the expected stress measure
      */
-    StressMeasure GetStressMeasure() override { return StressMeasure_Cauchy; }
+    StressMeasure GetStressMeasure() override;
 
     ///@}
     ///@name Inquiry
@@ -168,6 +167,8 @@ private:
     ///@name Static Member Variables
     ///@{
 
+    static indexStress3D getIndex3D(indexStress2DInterface index2D);
+
     ///@}
     ///@name Member Variables
     ///@{
@@ -193,7 +194,7 @@ private:
 
     void load(Serializer& rSerializer) override;
 
-    SmallStrainUMAT2DPlaneStrainLaw() = default;
+    SmallStrainUMAT2DInterfaceLaw();
 
     ///@}
     ///@name Private Inquiry
@@ -205,7 +206,7 @@ private:
 
     ///@}
 
-}; // Class SmallStrainUMAT2DPlaneStrainLaw
+}; // Class SmallStrainUMAT2DInterfaceLaw
 
 ///@}
 

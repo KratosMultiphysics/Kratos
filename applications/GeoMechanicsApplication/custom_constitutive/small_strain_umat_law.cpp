@@ -14,7 +14,7 @@
 
 // External includes
 
-#include "custom_constitutive/small_strain_umat_law.hpp"
+#include "custom_constitutive/small_strain_umat_law.h"
 #include "constitutive_law_dimension.h"
 #include "custom_utilities/check_utilities.h"
 #include "custom_utilities/constitutive_law_utilities.h"
@@ -223,6 +223,18 @@ SizeType SmallStrainUMATLaw<TVoigtSize>::GetStrainSize() const
     // due to the C/Fortran interface, we need the VoigtSize to be known compile time.
     // Therefore, we return the template argument TVoigtSize here.
     return TVoigtSize;
+}
+
+template <SizeType TVoigtSize>
+ConstitutiveLaw::StrainMeasure SmallStrainUMATLaw<TVoigtSize>::GetStrainMeasure()
+{
+    return StrainMeasure_Infinitesimal;
+}
+
+template <SizeType TVoigtSize>
+ConstitutiveLaw::StressMeasure SmallStrainUMATLaw<TVoigtSize>::GetStressMeasure()
+{
+    return StressMeasure_Cauchy;
 }
 
 template <SizeType TVoigtSize>

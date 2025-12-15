@@ -16,7 +16,7 @@
 #include "includes/define.h"
 
 // Project includes
-#include "small_strain_umat_law.hpp"
+#include "small_strain_umat_law.h"
 
 namespace Kratos
 {
@@ -99,13 +99,13 @@ public:
      * @brief Returns the expected strain measure of this constitutive law (by default Green-Lagrange)
      * @return the expected strain measure
      */
-    StrainMeasure GetStrainMeasure() override { return StrainMeasure_Infinitesimal; }
+    StrainMeasure GetStrainMeasure() override;
 
     /**
      * returns the stress measure of this constitutive law (by default 1st Piola-Kirchhoff stress in voigt notation)
      * @return the expected stress measure
      */
-    StressMeasure GetStressMeasure() override { return StressMeasure_Cauchy; }
+    StressMeasure GetStressMeasure() override;
 
     ///@}
     ///@name Inquiry
