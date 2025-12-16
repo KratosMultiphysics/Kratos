@@ -50,7 +50,7 @@ endif(POLICY CMP0167)
 
 # Set here the version number **** only update upon tagging a release!
 set (KratosMultiphysics_MAJOR_VERSION 10)
-set (KratosMultiphysics_MINOR_VERSION 3)
+set (KratosMultiphysics_MINOR_VERSION 4)
 set (KratosMultiphysics_PATCH_VERSION 0)
 
 # If KRATOS_SOURCE_DIR is not defined use the CMAKE_SOURCE_DIR
@@ -722,12 +722,6 @@ endforeach()
 message("\n***********************************************************************\n")
 
 message("\nList of upcoming API-breaking and behavior changes:")
-message("\t Geometry 'Dimension' removed: https://github.com/KratosMultiphysics/Kratos/pull/10977")
-message("\t Geometry old projection methods deprecation: https://github.com/KratosMultiphysics/Kratos/pull/9024")
-message("\t Geometry old closest point methods deprecation: https://github.com/KratosMultiphysics/Kratos/pull/9243")
-message("\t Model 'CreateModelPart' behavior change (no error thrown if model part exists): https://github.com/KratosMultiphysics/Kratos/pull/9598")
-message("\t Make GetIntegrationMethod method of Condition const: https://github.com/KratosMultiphysics/Kratos/pull/9769")
-message("\t Behavior change of ModelPart.GetProperties (MeshIndex removed): https://github.com/KratosMultiphysics/Kratos/pull/9774")
 message("\t Behavior change of Testing. Please ensure you use KRATOS_EXPECT for testing instead of KRATOS_CHECK")
 message("\t Removal of misused EXTENDED_GAUSS integration rules and unification across geometries: https://github.com/KratosMultiphysics/Kratos/pull/13444")
 

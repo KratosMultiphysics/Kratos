@@ -324,6 +324,8 @@ class GeoMechanicalSolver(PythonSolver):
         self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.VOLUME_ACCELERATION)
         self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.NORMAL_CONTACT_STRESS)
         self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.TANGENTIAL_CONTACT_STRESS)
+        self.main_model_part.AddNodalSolutionStepVariable(GeoMechanicsApplication.GEO_RELATIVE_DISPLACEMENT_VECTOR)
+        self.main_model_part.AddNodalSolutionStepVariable(GeoMechanicsApplication.GEO_EFFECTIVE_TRACTION_VECTOR)
 
     def _add_rotational_variables(self):
         if (self.settings.Has("rotation_dofs")):
@@ -353,6 +355,9 @@ class GeoMechanicalSolver(PythonSolver):
         self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.CAUCHY_STRESS_TENSOR)
         self.main_model_part.AddNodalSolutionStepVariable(GeoMechanicsApplication.TOTAL_STRESS_TENSOR)
         self.main_model_part.AddNodalSolutionStepVariable(GeoMechanicsApplication.FLUID_FLUX_VECTOR)
+        self.main_model_part.AddNodalSolutionStepVariable(StructuralMechanicsApplication.AXIAL_FORCE)
+        self.main_model_part.AddNodalSolutionStepVariable(StructuralMechanicsApplication.BENDING_MOMENT)
+        self.main_model_part.AddNodalSolutionStepVariable(StructuralMechanicsApplication.SHEAR_FORCE)
 
     def _add_temperature_variables(self):
         self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.TEMPERATURE)

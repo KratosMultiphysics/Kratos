@@ -14,6 +14,7 @@
 #include "custom_constitutive/tension_cutoff.h"
 #include "custom_utilities/registration_utilities.h"
 #include "custom_utilities/stress_strain_utilities.h"
+#include "custom_utilities/ublas_utilities.h"
 #include "geo_mechanics_application_variables.h"
 #include "includes/stream_serializer.h"
 #include "tests/cpp_tests/geo_mechanics_fast_suite.h"
@@ -126,6 +127,70 @@ KRATOS_TEST_CASE_IN_SUITE(TensionCutOff_CanBeSavedAndLoadedThroughInterface, Kra
     expected_derivative <<= 1.0, 1.0;
     KRATOS_EXPECT_VECTOR_NEAR(p_loaded_tension_cut_off->DerivativeOfFlowFunction(sigma_tau),
                               expected_derivative, Defaults::absolute_tolerance);
+}
+
+KRATOS_TEST_CASE_IN_SUITE(CoulombYieldSurface_Check, KratosGeoMechanicsFastSuiteWithoutKernel)
+{
+    // Arrange
+    Properties properties(3);
+
+    // Act & Assert
+    KRATOS_EXPECT_EXCEPTION_IS_THROWN(CoulombYieldSurface{properties},
+                                      "GEO_COHESION does not exist in the property with Id 3.")
+    properties.SetValue(GEO_COHESION, -1.0);
+    KRATOS_EXPECT_EXCEPTION_IS_THROWN(CoulombYieldSurface{properties},
+                                      "GEO_COHESION in the property with Id 3 has an invalid "
+                                      "value: -1 is out of the range [0, -).")
+    properties.SetValue(GEO_COHESION, 1.0);
+
+    KRATOS_EXPECT_EXCEPTION_IS_THROWN(
+        CoulombYieldSurface{properties},
+        "GEO_FRICTION_ANGLE does not exist in the property with Id 3.")
+    properties.SetValue(GEO_FRICTION_ANGLE, -30.0);
+    KRATOS_EXPECT_EXCEPTION_IS_THROWN(CoulombYieldSurface{properties},
+                                      "GEO_FRICTION_ANGLE in the property with Id 3 has an invalid "
+                                      "value: -30 is out of the range [0, -).")
+    properties.SetValue(GEO_FRICTION_ANGLE, 30.0);
+
+    KRATOS_EXPECT_EXCEPTION_IS_THROWN(
+        CoulombYieldSurface{properties},
+        "GEO_DILATANCY_ANGLE does not exist in the property with Id 3.")
+    properties.SetValue(GEO_DILATANCY_ANGLE, -30.0);
+    KRATOS_EXPECT_EXCEPTION_IS_THROWN(CoulombYieldSurface{properties},
+                                      "GEO_DILATANCY_ANGLE in the property with Id 3 has an "
+                                      "invalid value: -30 is out of the range [0, 30].")
+    properties.SetValue(GEO_DILATANCY_ANGLE, 40.0);
+    KRATOS_EXPECT_EXCEPTION_IS_THROWN(CoulombYieldSurface{properties},
+                                      " GEO_DILATANCY_ANGLE in the property with Id 3 has an "
+                                      "invalid value: 40 is out of the range [0, 30].")
+    properties.SetValue(GEO_DILATANCY_ANGLE, 30.0);
+
+    properties.SetValue(GEO_COULOMB_HARDENING_TYPE, "Linear");
+    KRATOS_EXPECT_EXCEPTION_IS_THROWN(
+        CoulombYieldSurface{properties},
+        "GEO_COHESION_FUNCTION_COEFFICIENTS does not exist in the property with Id 3.")
+    properties.SetValue(GEO_COHESION_FUNCTION_COEFFICIENTS, UblasUtilities::CreateVector({-1.0}));
+    KRATOS_EXPECT_EXCEPTION_IS_THROWN(
+        CoulombYieldSurface{properties},
+        "Error: Entry 0 in GEO_COHESION_FUNCTION_COEFFICIENTS out of range. Value: -1")
+    properties.SetValue(GEO_COHESION_FUNCTION_COEFFICIENTS, UblasUtilities::CreateVector({1.0}));
+
+    KRATOS_EXPECT_EXCEPTION_IS_THROWN(
+        CoulombYieldSurface{properties},
+        "GEO_FRICTION_ANGLE_FUNCTION_COEFFICIENTS does not exist in the property with Id 3.")
+    properties.SetValue(GEO_FRICTION_ANGLE_FUNCTION_COEFFICIENTS, UblasUtilities::CreateVector({-1.0}));
+    KRATOS_EXPECT_EXCEPTION_IS_THROWN(
+        CoulombYieldSurface{properties},
+        "Error: Entry 0 in GEO_FRICTION_ANGLE_FUNCTION_COEFFICIENTS out of range. Value: -1")
+    properties.SetValue(GEO_FRICTION_ANGLE_FUNCTION_COEFFICIENTS, UblasUtilities::CreateVector({1.0}));
+
+    KRATOS_EXPECT_EXCEPTION_IS_THROWN(
+        CoulombYieldSurface{properties},
+        "GEO_DILATANCY_ANGLE_FUNCTION_COEFFICIENTS does not exist in the property with Id 3.")
+    properties.SetValue(GEO_DILATANCY_ANGLE_FUNCTION_COEFFICIENTS, UblasUtilities::CreateVector({-1.0}));
+    KRATOS_EXPECT_EXCEPTION_IS_THROWN(
+        CoulombYieldSurface{properties},
+        "Error: Entry 0 in GEO_DILATANCY_ANGLE_FUNCTION_COEFFICIENTS out of range. Value: -1")
 }
 
 } // namespace Kratos::Testing
