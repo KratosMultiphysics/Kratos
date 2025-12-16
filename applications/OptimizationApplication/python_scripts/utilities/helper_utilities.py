@@ -1,12 +1,15 @@
 from pathlib import Path
 from importlib import import_module
-from typing import Any
+from typing import Any, TYPE_CHECKING
 
 import KratosMultiphysics as Kratos
-from KratosMultiphysics.OptimizationApplication.utilities.optimization_problem import OptimizationProblem
 from KratosMultiphysics.kratos_utilities import GetListOfAvailableApplications
 from KratosMultiphysics.kratos_utilities import GetKratosMultiphysicsPath
 from KratosMultiphysics.OptimizationApplication.utilities.union_utilities import ContainerExpressionTypes
+
+if TYPE_CHECKING:
+    from KratosMultiphysics.OptimizationApplication.utilities.optimization_problem import OptimizationProblem
+
 
 def GetClassModuleFromKratos(full_class_name: str) -> str:
     sub_module_paths = full_class_name.split(".")
@@ -26,23 +29,32 @@ def GetClassModuleFromKratos(full_class_name: str) -> str:
         return f"KratosMultiphysics.{relative_sub_module}", sub_module_paths[-1]
 
     # now check if it is found in any of the compiled applications
-    list_of_available_appliacations = GetListOfAvailableApplications()
+    list_of_available_applications = GetListOfAvailableApplications()
 
     module_application = ""
-    for application in list_of_available_appliacations:
+    for application in list_of_available_applications:
         if Path(f"{kratos_path}/{application}/{relative_sub_module_path}.py").is_file():
             module_application = f"KratosMultiphysics.{application}.{relative_sub_module}"
 
     if module_application != "":
         return module_application, sub_module_paths[-1]
     else:
-        raise RuntimeError(f"{full_class_name} is not found in KratosMultiphysics core or any of the available application directories in Kratos. Available applications:\n\t" + "\n\t".join(list_of_available_appliacations))
+        raise RuntimeError(
+            f"{full_class_name} is not found in KratosMultiphysics core or any of the available "
+            f"application directories in Kratos. Available applications:\n\t"
+            + "\n\t".join(list_of_available_applications)
+        )
+
 
 def CallOnAll(list_of_objects: 'list[Any]', method: Any, *args, **kwargs):
     for obj in list_of_objects:
         getattr(obj, method.__name__)(*args, **kwargs)
 
-def IsSameContainerExpression(container_expression_1: ContainerExpressionTypes, container_expression_2: ContainerExpressionTypes) -> bool:
+
+def IsSameContainerExpression(
+    container_expression_1: ContainerExpressionTypes,
+    container_expression_2: ContainerExpressionTypes
+) -> bool:
     if container_expression_1.GetModelPart().FullName() != container_expression_2.GetModelPart().FullName():
         return False
 
@@ -51,21 +63,36 @@ def IsSameContainerExpression(container_expression_1: ContainerExpressionTypes, 
 
     return True
 
-def HasContainerExpression(container_expression: ContainerExpressionTypes, list_of_container_expressions: 'list[ContainerExpressionTypes]') -> bool:
-    return any([IsSameContainerExpression(container_expression, list_container_expression) for list_container_expression in list_of_container_expressions])
 
-def OptimizationComponentFactory(model: Kratos.Model, parameters: Kratos.Parameters, optimization_problem: OptimizationProblem):
+def HasContainerExpression(
+    container_expression: ContainerExpressionTypes,
+    list_of_container_expressions: 'list[ContainerExpressionTypes]'
+) -> bool:
+    return any(
+        IsSameContainerExpression(container_expression, list_container_expression)
+        for list_container_expression in list_of_container_expressions
+    )
+
+
+def OptimizationComponentFactory(
+    model: Kratos.Model,
+    parameters: Kratos.Parameters,
+    optimization_problem
+):
+    from KratosMultiphysics.OptimizationApplication.utilities.optimization_problem import OptimizationProblem
+    assert isinstance(optimization_problem, OptimizationProblem)
+
     if not parameters.Has("type"):
-        raise RuntimeError(f"Components created from OptimizationComponentFactory require the \"type\" [ provided paramters = {parameters}].")
+        raise RuntimeError(
+            f'Components created from OptimizationComponentFactory require the "type" '
+            f"[ provided parameters = {parameters}]."
+        )
 
     python_type = parameters["type"].GetString()
 
     if not parameters.Has("module") or parameters["module"].GetString() == "":
-        # in the case python type comes without a module
-        # as in the case python_type is in the sys path or the current working directory.
         full_module_name = python_type
     else:
-        # in the case python type comes witha a module.
         module = parameters["module"].GetString()
         full_module_name = f"{module}.{python_type}"
 
@@ -75,18 +102,26 @@ def OptimizationComponentFactory(model: Kratos.Model, parameters: Kratos.Paramet
 
     return getattr(module, "Factory")(model, parameters, optimization_problem)
 
-def SurrogateModellingComponentFactory(models: 'dict[Kratos.Model]', parameters: Kratos.Parameters, optimization_problem: OptimizationProblem):
+
+def SurrogateModellingComponentFactory(
+    models: 'dict[Kratos.Model]',
+    parameters: Kratos.Parameters,
+    optimization_problem
+):
+    from KratosMultiphysics.OptimizationApplication.utilities.optimization_problem import OptimizationProblem
+    assert isinstance(optimization_problem, OptimizationProblem)
+
     if not parameters.Has("type"):
-        raise RuntimeError(f"Components created from OptimizationComponentFactory require the \"type\" [ provided paramters = {parameters}].")
+        raise RuntimeError(
+            f'Components created from OptimizationComponentFactory require the "type" '
+            f"[ provided parameters = {parameters}]."
+        )
 
     python_type = parameters["type"].GetString()
 
     if not parameters.Has("module") or parameters["module"].GetString() == "":
-        # in the case python type comes without a module
-        # as in the case python_type is in the sys path or the current working directory.
         full_module_name = python_type
     else:
-        # in the case python type comes witha a module.
         module = parameters["module"].GetString()
         full_module_name = f"{module}.{python_type}"
 
@@ -96,7 +131,11 @@ def SurrogateModellingComponentFactory(models: 'dict[Kratos.Model]', parameters:
 
     return getattr(module, "Factory")(models, parameters, optimization_problem)
 
-def GetAllComponentFullNamesWithData(optimization_problem: OptimizationProblem) -> 'list[str]':
+
+def GetAllComponentFullNamesWithData(optimization_problem) -> 'list[str]':
+    from KratosMultiphysics.OptimizationApplication.utilities.optimization_problem import OptimizationProblem
+    assert isinstance(optimization_problem, OptimizationProblem)
+
     data_container = optimization_problem.GetProblemDataContainer()
 
     list_of_components_full_names_with_data: 'list[str]' = []
@@ -110,9 +149,12 @@ def GetAllComponentFullNamesWithData(optimization_problem: OptimizationProblem) 
 
     return list_of_components_full_names_with_data
 
-def GetComponentHavingDataByFullName(component_full_name: str, optimization_problem: OptimizationProblem) -> Any:
-    data_container = optimization_problem.GetProblemDataContainer()
 
+def GetComponentHavingDataByFullName(component_full_name: str, optimization_problem) -> Any:
+    from KratosMultiphysics.OptimizationApplication.utilities.optimization_problem import OptimizationProblem
+    assert isinstance(optimization_problem, OptimizationProblem)
+
+    data_container = optimization_problem.GetProblemDataContainer()
     name_data = component_full_name.split(".")
 
     if len(name_data) == 1:
@@ -129,11 +171,17 @@ def GetComponentHavingDataByFullName(component_full_name: str, optimization_prob
     msg = ""
     for component_type, dict_of_components in optimization_problem.GetComponentContainer().items():
         for sub_item_name in dict_of_components.keys():
-            msg += "\n\t" + Kratos.StringUtilities.ConvertCamelCaseToSnakeCase(component_type.__name__) + f".{sub_item_name}"
+            msg += (
+                "\n\t"
+                + Kratos.StringUtilities.ConvertCamelCaseToSnakeCase(component_type.__name__)
+                + f".{sub_item_name}"
+            )
+
     if data_container.HasValue("object"):
         for sub_item_name in data_container["object"].GetSubItems().keys():
             msg += "\n\t" + sub_item_name
 
-    raise RuntimeError(f"\"{component_full_name}\" full component name is not found in the optimization problem. Followings are supported component with full names:" + msg)
-
-
+    raise RuntimeError(
+        f"\"{component_full_name}\" full component name is not found in the optimization problem. "
+        f"Followings are supported component with full names:" + msg
+    )
