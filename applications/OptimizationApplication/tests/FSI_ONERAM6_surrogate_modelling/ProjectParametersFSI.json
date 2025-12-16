@@ -1,0 +1,106 @@
+{
+    "problem_data" :
+    {
+        "start_time" : 0.0,
+        "end_time" : 1.0,
+        "echo_level" : 0,
+        "print_colors" : true,
+        "parallel_type" : "OpenMP"
+    },
+    "solver_settings" :
+    {
+        "type" : "coupled_solvers.gauss_seidel_strong",
+        "echo_level" : 3,
+        "num_coupling_iterations" : 50,
+        "data_transfer_operators" : {
+            "mapper" : {"type" : "kratos_mapping",
+                "mapper_settings" : {
+                    "mapper_type" : "nearest_element"
+            }}
+        },
+        "convergence_accelerators" : [
+            {
+                "type"      : "aitken",
+                "solver"    : "fluid",
+                "data_name" : "disp"
+            }
+        ],
+         "convergence_criteria" : [
+            {
+                "type"          : "relative_norm_initial_residual",
+                "solver"        : "fluid",
+                "data_name"     : "disp",
+                "abs_tolerance" : 1e-6,
+                "rel_tolerance" : 1e-6,
+                "echo_level"	: 3
+            }
+        ],
+        "coupling_sequence":
+        [
+            {
+                "name": "fluid",
+                "output_data_list": [],
+                "input_data_list": []
+            },{
+                "name": "structure",
+                "input_data_list"  : [{
+                    "data"              : "forces",
+                    "from_solver"       : "fluid",
+                    "from_solver_data"  : "forces",
+                    "data_transfer_operator" : "mapper",
+                        "data_transfer_operator_options" : ["use_transpose"]
+                }],
+                "output_data_list" : [
+                    {
+                        "data"           : "disp",
+                        "to_solver"      : "fluid",
+                        "to_solver_data" : "disp",
+                        "data_transfer_operator" : "mapper"
+                    }
+                ]
+            }
+
+        ],
+        "solvers" :
+        {
+            "fluid":
+            {
+                "type" : "solver_wrappers.kratos.potential_flow_wrapper",
+                "solver_wrapper_settings" : {
+                    "input_file"  : "ProjectParametersCFD"
+                },
+                "data" : {
+                    "disp" : {
+                        "model_part_name" : "FluidModelPart.fsi_Interface",
+                        "dimension" : 3,
+                        "variable_name" : "MESH_DISPLACEMENT"
+                    },
+                    "forces" : {
+                        "model_part_name" : "FluidModelPart.fsi_Interface",
+                        "dimension" : 3,
+                        "variable_name" : "REACTION"
+                    }
+                }
+            },
+            "structure" :
+            {
+                "type" : "solver_wrappers.kratos.structural_mechanics_wrapper",
+                "solver_wrapper_settings" : {
+                    "input_file"  : "ProjectParametersCSM"
+                },
+                "data" : {
+                    "disp" : {
+                        "model_part_name" : "Structure.wing_surface",
+                        "dimension" : 3,
+                        "variable_name" : "DISPLACEMENT"
+                    },
+                    "forces" : {
+                        "model_part_name" : "Structure.wing_surface",
+                        "dimension" : 3,
+                        "variable_name" : "POINT_LOAD"
+                    }
+                }
+            }
+        }
+    }
+}

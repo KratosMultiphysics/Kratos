@@ -1,0 +1,122 @@
+{
+    "problem_data": {
+        "parallel_type": "OpenMP",
+        "echo_level": 0
+    },
+
+    "model_parts": [],
+
+    "analyses": [
+        {
+            "name": "fsi",
+            "type": "kratos_cosim_analysis_execution_policy",
+            "settings": {
+                "model_names": [
+                    "fluid", "structure"
+                ],
+                "analysis_module": "KratosMultiphysics.CoSimulationApplication",
+                "analysis_type": "CoSimulationAnalysis",
+                "analysis_settings": {
+                    "@include_json": "ProjectParametersFSI.json"
+                }              
+            }
+        }
+    ],
+
+    "responses": [],
+
+    "controls": [{
+            "name": "aoa_free_stream_mach_control",
+            "type": "surrogate_doe",
+            "settings": {
+            	"control_model_name"	: "fluid",
+            	"names_of_models_to_reset"	: ["structure", "fluid"],
+                "analysis_name" : "fsi",
+                "variable_names_list": ["FREE_STREAM_MACH", "ANGLE_OF_ATTACK"]
+            }
+        }],
+
+    "algorithm_settings": {
+        "type": "fsi_surrogate",
+        "surrogate_settings": {
+            "DOE_csv"	: {"train" : "DOE/train/train.csv",
+        	               "valid" : "DOE/valid/valid.csv"},
+            "samples_csv"	: {"train" : "surrogate_io/train.csv",
+        	                   "valid" : "surrogate_io/valid.csv"},
+            "variables": {"solutionVars"  : ["('POINT_LOAD','Structure.wing_surface', 'structure')",
+                                             "('DISPLACEMENT','Structure.wing_surface', 'structure')",
+                                             "('PRESSURE_COEFFICIENT','FluidModelPart.fsi_Interface', 'fluid')",
+                                             "('LIFT_COEFFICIENT','FluidModelPart.fsi_Interface', 'fluid')",
+                                             "('DRAG_COEFFICIENT','FluidModelPart.fsi_Interface', 'fluid')"],
+                          "controlVars"   :["FREE_STREAM_MACH", "ANGLE_OF_ATTACK"]}
+        },
+        "controls": ["aoa_free_stream_mach_control"]
+        
+    },
+    "processes": {
+        "kratos_processes": {},
+        "optimization_data_processes": {
+            "output_processes": [
+                {
+                    "type" : "surrogate_modelling_vtu_output_process",
+                    "module" : "KratosMultiphysics.OptimizationApplication.processes",
+                    "model_name": "fluid",
+                    "settings"    : {
+                        "model_part_name"        : "FluidModelPart.fluid",
+                        "output_control_type"                : "step",
+                        "output_interval"                    : 1,
+                        "file_format"                        : "binary",
+                        "output_precision"                   : 7,
+                        "output_sub_model_parts"             : false,
+                        "output_path"                        : {"train" : "DOE/train",
+                                                                "valid" : "DOE/valid"},
+                        "save_output_files_in_folder"        : true,
+                        "delete_existing_data_folder"        : false,
+                        "write_deformed_configuration"      : false,
+                        "nodal_solution_step_data_variables": ["VELOCITY","PRESSURE","MESH_DISPLACEMENT","MESH_VELOCITY"],
+                        "element_data_value_variables"      : ["WAKE"]
+                        }
+                },
+                {
+                    "type" : "surrogate_modelling_vtu_output_process",
+                    "module" : "KratosMultiphysics.OptimizationApplication.processes",
+                    "model_name": "fluid",
+                    "settings"    : {
+                        "model_part_name"        : "FluidModelPart.fsi_Interface",
+                        "output_control_type"                : "step",
+                        "output_interval"                    : 1,
+                        "file_format"                        : "binary",
+                        "output_precision"                   : 7,
+                        "output_sub_model_parts"             : false,
+                        "output_path"                        : {"train" : "DOE/train",
+                                                                "valid" : "DOE/valid"},
+                        "save_output_files_in_folder"       : true,
+                        "delete_existing_data_folder"        : false,
+                        "write_deformed_configuration"      : true,
+                        "nodal_solution_step_data_variables": ["VELOCITY","PRESSURE","MESH_DISPLACEMENT","MESH_VELOCITY","REACTION"],
+                        "element_data_value_variables"      : [],
+                        "condition_data_value_variables"    : ["PRESSURE_COEFFICIENT","MACH"]
+                        }
+                },
+                {
+                    "type" : "surrogate_modelling_vtu_output_process",
+                    "module" : "KratosMultiphysics.OptimizationApplication.processes",
+                    "model_name": "structure",
+                    "settings"    : {
+                        "model_part_name"                             : "Structure",
+                        "output_control_type"                         : "step",
+                        "output_interval"                            : 1,
+                        "file_format"                                 : "ascii",
+                        "output_precision"                            : 7,
+                        "output_sub_model_parts"                      : false,
+                        "output_path"                                 : {"train" : "DOE/train",
+                                                                         "valid" : "DOE/valid"},
+                        "save_output_files_in_folder"                 : true,
+                        "delete_existing_data_folder"        : false,
+                        "nodal_solution_step_data_variables"          : ["DISPLACEMENT","POINT_LOAD"]
+                        }
+                }
+            ]
+        }
+    }
+}
