@@ -82,7 +82,7 @@
 #include "geometries/triangle_3d_6.h"
 
 // elements
-#include "custom_elements/Pw_element.h"
+#include "custom_elements/Pw_element.hpp"
 #include "custom_elements/U_Pw_small_strain_FIC_element.h"
 #include "custom_elements/U_Pw_small_strain_element.h"
 #include "custom_elements/U_Pw_small_strain_interface_element.h"

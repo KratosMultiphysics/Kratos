@@ -21,6 +21,34 @@ namespace Kratos
 {
 
 template <unsigned int TDim, unsigned int TNumNodes>
+TransientPwElement<TDim, TNumNodes>::TransientPwElement(IndexType             NewId,
+                                                        const NodesArrayType& ThisNodes,
+                                                        std::unique_ptr<StressStatePolicy> pStressStatePolicy,
+                                                        std::unique_ptr<IntegrationCoefficientModifier> pCoefficientModifier)
+    : BaseType(NewId, ThisNodes, std::move(pStressStatePolicy), std::move(pCoefficientModifier))
+{
+}
+
+template <unsigned int TDim, unsigned int TNumNodes>
+TransientPwElement<TDim, TNumNodes>::TransientPwElement(IndexType             NewId,
+                                                        GeometryType::Pointer pGeometry,
+                                                        std::unique_ptr<StressStatePolicy> pStressStatePolicy,
+                                                        std::unique_ptr<IntegrationCoefficientModifier> pCoefficientModifier)
+    : BaseType(NewId, pGeometry, std::move(pStressStatePolicy), std::move(pCoefficientModifier))
+{
+}
+
+template <unsigned int TDim, unsigned int TNumNodes>
+TransientPwElement<TDim, TNumNodes>::TransientPwElement(IndexType               NewId,
+                                                        GeometryType::Pointer   pGeometry,
+                                                        PropertiesType::Pointer pProperties,
+                                                        std::unique_ptr<StressStatePolicy> pStressStatePolicy,
+                                                        std::unique_ptr<IntegrationCoefficientModifier> pCoefficientModifier)
+    : BaseType(NewId, pGeometry, pProperties, std::move(pStressStatePolicy), std::move(pCoefficientModifier))
+{
+}
+
+template <unsigned int TDim, unsigned int TNumNodes>
 Element::Pointer TransientPwElement<TDim, TNumNodes>::Create(IndexType             NewId,
                                                              NodesArrayType const& ThisNodes,
                                                              PropertiesType::Pointer pProperties) const

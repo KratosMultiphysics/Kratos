@@ -21,6 +21,38 @@
 
 namespace Kratos
 {
+UPwBaseElement::UPwBaseElement(IndexType                                       NewId,
+                               const NodesArrayType&                           ThisNodes,
+                               std::unique_ptr<StressStatePolicy>              pStressStatePolicy,
+                               std::unique_ptr<IntegrationCoefficientModifier> pCoefficientModifier)
+    : Element(NewId, ThisNodes),
+      mpStressStatePolicy{std::move(pStressStatePolicy)},
+      mIntegrationCoefficientsCalculator{std::move(pCoefficientModifier)}
+{
+}
+
+UPwBaseElement::UPwBaseElement(IndexType                                       NewId,
+                               GeometryType::Pointer                           pGeometry,
+                               std::unique_ptr<StressStatePolicy>              pStressStatePolicy,
+                               std::unique_ptr<IntegrationCoefficientModifier> pCoefficientModifier)
+    : Element(NewId, pGeometry),
+      mpStressStatePolicy{std::move(pStressStatePolicy)},
+      mIntegrationCoefficientsCalculator{std::move(pCoefficientModifier)}
+{
+}
+
+UPwBaseElement::UPwBaseElement(IndexType                                       NewId,
+                               GeometryType::Pointer                           pGeometry,
+                               PropertiesType::Pointer                         pProperties,
+                               std::unique_ptr<StressStatePolicy>              pStressStatePolicy,
+                               std::unique_ptr<IntegrationCoefficientModifier> pCoefficientModifier)
+    : Element(NewId, pGeometry, pProperties),
+      mpStressStatePolicy{std::move(pStressStatePolicy)},
+      mIntegrationCoefficientsCalculator{std::move(pCoefficientModifier)}
+{
+    // this is needed for interface elements
+    mThisIntegrationMethod = this->GetIntegrationMethod();
+}
 
 int UPwBaseElement::Check(const ProcessInfo& rCurrentProcessInfo) const
 {

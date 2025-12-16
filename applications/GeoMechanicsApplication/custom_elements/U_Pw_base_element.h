@@ -25,7 +25,7 @@
 
 // Application includes
 #include "custom_utilities/element_utilities.hpp"
-#include "integration_coefficients_calculator.h"
+#include "integration_coefficients_calculator.hpp"
 #include "stress_state_policy.h"
 
 namespace Kratos
@@ -44,37 +44,18 @@ public:
     UPwBaseElement(IndexType                                       NewId,
                    const NodesArrayType&                           ThisNodes,
                    std::unique_ptr<StressStatePolicy>              pStressStatePolicy,
-                   std::unique_ptr<IntegrationCoefficientModifier> pCoefficientModifier = nullptr)
-        : Element(NewId, ThisNodes),
-          mpStressStatePolicy{std::move(pStressStatePolicy)},
-          mIntegrationCoefficientsCalculator{std::move(pCoefficientModifier)}
-    {
-    }
+                   std::unique_ptr<IntegrationCoefficientModifier> pCoefficientModifier = nullptr);
 
-    /// Constructor using Geometry
     UPwBaseElement(IndexType                                       NewId,
                    GeometryType::Pointer                           pGeometry,
                    std::unique_ptr<StressStatePolicy>              pStressStatePolicy,
-                   std::unique_ptr<IntegrationCoefficientModifier> pCoefficientModifier = nullptr)
-        : Element(NewId, pGeometry),
-          mpStressStatePolicy{std::move(pStressStatePolicy)},
-          mIntegrationCoefficientsCalculator{std::move(pCoefficientModifier)}
-    {
-    }
+                   std::unique_ptr<IntegrationCoefficientModifier> pCoefficientModifier = nullptr);
 
-    /// Constructor using Properties
     UPwBaseElement(IndexType                                       NewId,
                    GeometryType::Pointer                           pGeometry,
                    PropertiesType::Pointer                         pProperties,
                    std::unique_ptr<StressStatePolicy>              pStressStatePolicy,
-                   std::unique_ptr<IntegrationCoefficientModifier> pCoefficientModifier = nullptr)
-        : Element(NewId, pGeometry, pProperties),
-          mpStressStatePolicy{std::move(pStressStatePolicy)},
-          mIntegrationCoefficientsCalculator{std::move(pCoefficientModifier)}
-    {
-        // this is needed for interface elements
-        mThisIntegrationMethod = this->GetIntegrationMethod();
-    }
+                   std::unique_ptr<IntegrationCoefficientModifier> pCoefficientModifier = nullptr);
 
     ~UPwBaseElement() override                           = default;
     UPwBaseElement(const UPwBaseElement&)                = delete;

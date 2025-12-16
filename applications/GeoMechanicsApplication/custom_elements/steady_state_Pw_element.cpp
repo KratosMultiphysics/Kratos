@@ -18,6 +18,33 @@
 
 namespace Kratos
 {
+template <unsigned int TDim, unsigned int TNumNodes>
+SteadyStatePwElement<TDim, TNumNodes>::SteadyStatePwElement(IndexType             NewId,
+                                                            const NodesArrayType& ThisNodes,
+                                                            std::unique_ptr<StressStatePolicy> pStressStatePolicy,
+                                                            std::unique_ptr<IntegrationCoefficientModifier> pCoefficientModifier)
+    : BaseType(NewId, ThisNodes, std::move(pStressStatePolicy), std::move(pCoefficientModifier))
+{
+}
+
+template <unsigned int TDim, unsigned int TNumNodes>
+SteadyStatePwElement<TDim, TNumNodes>::SteadyStatePwElement(IndexType             NewId,
+                                                            GeometryType::Pointer pGeometry,
+                                                            std::unique_ptr<StressStatePolicy> pStressStatePolicy,
+                                                            std::unique_ptr<IntegrationCoefficientModifier> pCoefficientModifier)
+    : BaseType(NewId, pGeometry, std::move(pStressStatePolicy), std::move(pCoefficientModifier))
+{
+}
+
+template <unsigned int TDim, unsigned int TNumNodes>
+SteadyStatePwElement<TDim, TNumNodes>::SteadyStatePwElement(IndexType               NewId,
+                                                            GeometryType::Pointer   pGeometry,
+                                                            PropertiesType::Pointer pProperties,
+                                                            std::unique_ptr<StressStatePolicy> pStressStatePolicy,
+                                                            std::unique_ptr<IntegrationCoefficientModifier> pCoefficientModifier)
+    : BaseType(NewId, pGeometry, pProperties, std::move(pStressStatePolicy), std::move(pCoefficientModifier))
+{
+}
 
 template <unsigned int TDim, unsigned int TNumNodes>
 Element::Pointer SteadyStatePwElement<TDim, TNumNodes>::Create(IndexType             NewId,

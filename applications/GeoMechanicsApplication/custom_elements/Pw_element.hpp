@@ -31,7 +31,7 @@
 #include "includes/cfd_variables.h"
 #include "includes/element.h"
 #include "includes/serializer.h"
-#include "integration_coefficients_calculator.h"
+#include "integration_coefficients_calculator.hpp"
 #include "permeability_calculator.hpp"
 
 #include <optional>

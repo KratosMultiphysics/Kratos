@@ -12,7 +12,7 @@
 //                   Gennady Markelov
 //
 
-#include "custom_elements/Pw_element.h"
+#include "custom_elements/Pw_element.hpp"
 
 namespace Kratos
 {
