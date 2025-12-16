@@ -44,9 +44,9 @@ void MITC4AndesShellThickElement3D4N<IS_COROTATIONAL>::Initialize(
         InitializeMaterial();
 
         if constexpr (is_corotational) {
-            mpCoordinateTransformation = Kratos::make_unique<ShellQ4_CorotationalCoordinateTransformation>(pGetGeometry());
+            mpCoordinateTransformation = Kratos::make_unique<CoordinateTransformationType>(pGetGeometry());
             mpCoordinateTransformation->Initialize();
-        }
+        } // TODO what if linear?????????????
     }
     KRATOS_CATCH("MITC4AndesShellThickElement3D4N::Initialize")
 }

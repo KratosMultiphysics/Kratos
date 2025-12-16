@@ -70,9 +70,14 @@ public:
     using bounded_24_vector = array_1d<double, 24>;
     using bounded_3_matrix = BoundedMatrix<double, 3, 3>; // rotation matrix
     using bounded_24_matrix = BoundedMatrix<double, 24, 24>; // stiffness matrix
-    using CoordinateTransformationPointerType = Kratos::unique_ptr<ShellQ4_CorotationalCoordinateTransformation>;
 
     static constexpr bool is_corotational = IS_COROTATIONAL;
+    using CoordinateTransformationType = std::conditional_t<
+        IS_COROTATIONAL,
+        ShellQ4_CorotationalCoordinateTransformation,
+        ShellQ4_CoordinateTransformation>;
+
+    using CoordinateTransformationPointerType = Kratos::unique_ptr<CoordinateTransformationType>;
 
     // Counted pointer of BaseSolidElement
     KRATOS_CLASS_INTRUSIVE_POINTER_DEFINITION(MITC4AndesShellThickElement3D4N);
@@ -88,7 +93,7 @@ public:
 
     // Constructor using an array of nodes
     MITC4AndesShellThickElement3D4N(IndexType NewId, GeometryType::Pointer pGeometry) : Element(NewId, pGeometry),
-        mpCoordinateTransformation(Kratos::make_unique<ShellQ4_CorotationalCoordinateTransformation>(pGeometry))
+    mpCoordinateTransformation(Kratos::make_unique<CoordinateTransformationType>(pGeometry))
     {
         mThisIntegrationMethod = GeometryData::IntegrationMethod::GI_GAUSS_2;
     }
@@ -96,7 +101,8 @@ public:
     // Constructor using an array of nodes with properties
     MITC4AndesShellThickElement3D4N(IndexType NewId, GeometryType::Pointer pGeometry, PropertiesType::Pointer pProperties)
         : Element(NewId,pGeometry,pProperties),
-        mpCoordinateTransformation(Kratos::make_unique<ShellQ4_CorotationalCoordinateTransformation>(pGeometry))
+        mpCoordinateTransformation(Kratos::make_unique<CoordinateTransformationType>(pGeometry))
+
     {
         // This is needed to prevent uninitialised integration method in inactive elements
         mThisIntegrationMethod = GeometryData::IntegrationMethod::GI_GAUSS_2;
@@ -467,7 +473,7 @@ protected:
 
     std::vector<ConstitutiveLaw::Pointer> mConstitutiveLawVector; /// The vector containing the constitutive laws
 
-    CoordinateTransformationPointerType mpCoordinateTransformation = nullptr;
+    Kratos::unique_ptr<CoordinateTransformationType> mpCoordinateTransformation = nullptr;
 
 
     ///@}
