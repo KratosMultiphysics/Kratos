@@ -44,6 +44,8 @@ class PotentialFlowWrapper(kratos_base_wrapper.KratosBaseWrapper):
                 self.lift_process = ComputeLiftProcess(self.model, sub_project_parameters[i]["Parameters"])
 
     def SolveSolutionStep(self):
+        if self.model.GetModelPart("wake_model_part").HasSubModelPart("Mesh_1"): 
+            self.model.GetModelPart("wake_model_part").RemoveSubModelPart("Mesh_1")
         self.wake_operation.Execute()
 
         ## the next two lines are needed in order to add Wake DoFs to the new Wake Elements Nodes
