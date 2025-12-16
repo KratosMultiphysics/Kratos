@@ -13,13 +13,13 @@
 // System includes
 
 // External includes
+#include "pybind11/numpy.h"
 
 // Project includes
 #include "includes/define_python.h"
 #include "includes/model_part.h"
 #include "python/add_dofs_to_python.h"
-#include "utilities/parallel_utilities.h"
-#include "pybind11/numpy.h"
+
 namespace Kratos::Python {
 
 void  AddDofsToPython(pybind11::module& m)
