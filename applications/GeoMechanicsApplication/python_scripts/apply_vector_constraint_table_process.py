@@ -7,5 +7,4 @@ def Factory(settings, model):
         raise TypeError("expected input shall be a Parameters object, encapsulating a json string")
 
     params = settings["Parameters"]
-    model_part = model[params["model_part_name"].GetString()]
-    return Geo.ApplyVectorConstraintTableProcess(model_part, params)
+    return Geo.ApplyVectorConstraintTableProcess(model, params)
