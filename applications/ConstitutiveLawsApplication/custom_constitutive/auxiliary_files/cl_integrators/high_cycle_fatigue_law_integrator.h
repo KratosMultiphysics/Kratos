@@ -278,8 +278,12 @@ public:
         }
         if (MaxStress > Sth) { //In those cases with no fatigue in course (MaxStress < Sth), tbe fatigue reduction factor does not evolve.
             rFatigueReductionFactor = std::min(rFatigueReductionFactor, std::exp(-B0 * std::pow(std::log10(static_cast<double>(LocalNumberOfCycles)), FatigueReductionFactorSmoothness * (BETAF * BETAF))));
-            rMaterialParameters.Has(YIELD_STRESS) ? rMaterialParameters[YIELD_STRESS] : rMaterialParameters[YIELD_STRESS_TENSION];
-            const double min_fatigue_reduction_factor = rMaterialParameters.Has(MINIMUM_FATIGUE_REDUCTION_FACTOR) ? rMaterialParameters[MINIMUM_FATIGUE_REDUCTION_FACTOR] : rMaterialParameters[HIGH_CYCLE_FATIGUE_COEFFICIENTS][0];
+
+            // Determine minimum fatigue reduction factor and ensure it's within (0,1)
+            double min_fatigue_reduction_factor = rMaterialParameters.Has(MINIMUM_FATIGUE_REDUCTION_FACTOR) ? rMaterialParameters[MINIMUM_FATIGUE_REDUCTION_FACTOR] : rMaterialParameters[HIGH_CYCLE_FATIGUE_COEFFICIENTS][0];
+            KRATOS_ERROR_IF(min_fatigue_reduction_factor <= 0.0 || min_fatigue_reduction_factor >= 1.0) << "MINIMUM_FATIGUE_REDUCTION_FACTOR must be in (0,1). Provided: " << min_fatigue_reduction_factor << std::endl;
+
+            // Clamp rFatigueReductionFactor to be not smaller than the minimum allowed
             rFatigueReductionFactor = (rFatigueReductionFactor < min_fatigue_reduction_factor) ? min_fatigue_reduction_factor : rFatigueReductionFactor;
         }
     }
