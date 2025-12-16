@@ -34,7 +34,6 @@ macro(kratos_python_install_tests)
     install(DIRECTORY DESTINATION ${CMAKE_INSTALL_PREFIX}/${TEST_DESTINATION})
 
     # Recursively find all files in the origin directory
-    message("(D)===> ${TEST_DIRECTORY}")
     file(GLOB_RECURSE SRC_FILES RELATIVE ${TEST_DIRECTORY} ${TEST_DIRECTORY}/* )
 
     # Filter the file list based on the exclusion patterns
