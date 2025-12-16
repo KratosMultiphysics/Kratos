@@ -1,0 +1,314 @@
+{
+    "output_processes": {
+        "gid_output": [
+            {
+                "Parameters": {
+                    "model_part_name": "FluidModelPart.fluid",
+                    "output_name": "oneraCFD",
+                    "postprocess_parameters": {
+                        "point_data_configuration": [],
+                        "result_file_configuration": {
+                            "additional_list_files": [],
+                            "body_output": true,
+                            "elemental_conditional_flags_results": [
+                                "STRUCTURE"
+                            ],
+                            "file_label": "step",
+                            "flush_after_output": false,
+                            "gauss_point_results": [
+                                "PRESSURE_COEFFICIENT",
+                                "VELOCITY",
+                                "WAKE",
+                                "KUTTA"
+                            ],
+                            "gidpost_flags": {
+                                "GiDPostMode": "GiD_PostBinary",
+                                "MultiFileFlag": "SingleFile",
+                                "WriteConditionsFlag": "WriteConditions",
+                                "WriteDeformedMeshFlag": "WriteDeformed"
+                            },
+                            "nodal_flags_results": [],
+                            "nodal_nonhistorical_results": [
+                                "TRAILING_EDGE"
+                            ],
+                            "nodal_results": [
+                                "VELOCITY_POTENTIAL",
+                                "AUXILIARY_VELOCITY_POTENTIAL"
+                            ],
+                            "node_output": false,
+                            "output_control_type": "step",
+                            "output_interval": 1,
+                            "plane_output": [],
+                            "skin_output": false,
+                            "time_label_format": "{:.12f}"
+                        }
+                    }
+                },
+                "help": "This process writes postprocessing files for GiD",
+                "kratos_module": "KratosMultiphysics",
+                "process_name": "GiDOutputProcess",
+                "python_module": "gid_output_process"
+            }
+        ],
+        "vtk_output": []
+    },
+    "problem_data": {
+        "echo_level": 3,
+        "end_time": 1.0,
+        "parallel_type": "OpenMP",
+        "problem_name": "OneraM6CFD",
+        "start_time": 0.0
+    },
+    "processes": {
+        "ale_boundary_conditions": [
+            {
+                "Parameters": {
+                    "constrained": [
+                        true,
+                        true,
+                        true
+                    ],
+                    "interval": [
+                        0.0,
+                        1e+30
+                    ],
+                    "model_part_name": "FluidModelPart.far_field",
+                    "variable_name": "MESH_DISPLACEMENT"
+                },
+                "help": "This process fixes the selected components of a given vector variable",
+                "kratos_module": "KratosMultiphysics",
+                "python_module": "fix_vector_variable_process"
+            },
+            {
+                "Parameters": {
+                    "constrained": [
+                        true,
+                        true,
+                        true
+                    ],
+                    "interval": [
+                        0.0,
+                        1e+30
+                    ],
+                    "model_part_name": "FluidModelPart.fsi_Interface",
+                    "variable_name": "MESH_DISPLACEMENT"
+                },
+                "help": "This process fixes the selected components of a given vector variable",
+                "kratos_module": "KratosMultiphysics",
+                "python_module": "fix_vector_variable_process"
+            }
+        ],
+        "boundary_conditions_process_list": [
+            {
+                "Parameters": {
+                    "angle_of_attack": 3.06,
+                    "angle_of_attack_units": "degrees",
+                    "check_wake_condition_echo_level": 0,
+                    "check_wake_condition_tolerance": 0.1,
+                    "compute_wake_at_each_step": false,
+                    "critical_mach": 0.99,
+                    "define_wake": true,
+                    "free_stream_density": 1.225,
+                    "heat_capacity_ratio": 1.4,
+                    "initialize_flow_field": true,
+                    "inlet_potential": 1.0,
+                    "mach_infinity": 0.839,
+                    "mach_number_limit": 0.94,
+                    "mach_number_squared_limit": -1,
+                    "model_part_name": "FluidModelPart.far_field",
+                    "perturbation_field": true,
+                    "speed_of_sound": 340,
+                    "upwind_factor_constant": 1.0,
+                    "wake_parameters": {
+                        "blunt_te_surface_model_part_name": "",
+                        "body_model_part_name": "FluidModelPart.fsi_Interface",
+                        "echo_level": 1,
+                        "lower_surface_model_part_name": "",
+                        "root_points_model_part_name": "",
+                        "shed_wake_element_size": 0.2,
+                        "shed_wake_from_trailing_edge": false,
+                        "shed_wake_grow_factor": 1.05,
+                        "shed_wake_length": 12.5,
+                        "shed_wake_projection_root_edge": 0.0,
+                        "tip_points_model_part_name": "",
+                        "trailing_edge_model_part_name": "FluidModelPart.trailing_edge",
+                        "upper_surface_model_part_name": "",
+                        "visualize_wake_vtk": false,
+                        "wake_distance_tolerance": 1e-09,
+                        "wake_normal": [
+                            0.0,
+                            0.0,
+                            1.0
+                        ],
+                        "wake_stl_file_name": "wake_very_coarse.stl",
+                        "wake_translation_direction": [
+                            0.0,
+                            0.0,
+                            0.0
+                        ]
+                    },
+                    "wake_type": "Operations.KratosMultiphysics.CompressiblePotentialFlowApplication.Define3DWakeOperation"
+                },
+                "kratos_module": "KratosMultiphysics.CompressiblePotentialFlowApplication",
+                "process_name": "FarFieldAndWakeProcess",
+                "python_module": "apply_far_field_and_wake_process"
+            },
+            {
+                "Parameters": {
+                    "far_field_model_part_name": "FluidModelPart.far_field",
+                    "is_infinite_wing": false,
+                    "mean_aerodynamic_chord": 0.64607,
+                    "model_part_name": "FluidModelPart.fsi_Interface",
+                    "moment_reference_point": [
+                        0.0,
+                        0.0,
+                        0.0
+                    ],
+                    "trailing_edge_model_part_name": "FluidModelPart.trailing_edge"
+                },
+                "kratos_module": "KratosMultiphysics.CompressiblePotentialFlowApplication",
+                "process_name": "ComputeLiftProcess3D",
+                "python_module": "compute_lift_process"
+            },
+            {
+                "Parameters": {
+                    "create_output_file": false,
+                    "model_part_name": "FluidModelPart.fsi_Interface"
+                },
+                "kratos_module": "KratosMultiphysics.CompressiblePotentialFlowApplication",
+                "process_name": "ComputeForcesOnNodesProcess",
+                "python_module": "compute_forces_on_nodes_process"
+            }
+        ],
+        "initial_conditions_process_list": []
+    },
+    "solver_settings": {
+        "ale_boundary_parts": [
+            "fsi_Interface"
+        ],
+        "echo_level": 0,
+        "fluid_solver_settings": {
+            "absolute_tolerance": 1e-08,
+            "assign_neighbour_elements_to_conditions": false,
+            "auxiliary_variables_list": [
+                "DISTANCE",
+                "REACTION"
+            ],
+            "compute_reactions": false,
+            "convergence_criterion": "solution_criterion",
+            "domain_size": 3,
+            "echo_level": 1,
+            "element_replace_settings": {
+                "condition_name": "PotentialWallCondition3D3N",
+                "element_name": "TransonicPerturbationPotentialFlowElement3D4N"
+            },
+            "enforce_element_and_conditions_replacement": true,
+            "formulation": {
+                "element_type": "perturbation_transonic"
+            },
+            "linear_solver_settings": {
+                "num_threads_mkl": "do_nothing",
+                "solver_type": "LinearSolversApplication.pardiso_lu",
+                "verbosity": 0
+            },
+            "material_import_settings": {
+                "materials_filename": ""
+            },
+            "maximum_iterations": 500,
+            "model_import_settings": {
+                "ignore_variables_not_in_solution_step_data": false,
+                "input_filename": "fluid_final_trial",
+                "input_type": "mdpa",
+                "reorder": false,
+                "reorder_consecutive": false,
+                "skip_timer": true
+            },
+            "model_part_name": "FluidModelPart",
+            "move_mesh_flag": false,
+            "no_skin_parts": [
+                "trailing_edge"
+            ],
+            "potential_application_echo_level": 0,
+            "reference_chord": 0.7532,
+            "reform_dofs_at_each_step": false,
+            "relative_tolerance": 1e-08,
+            "scheme_settings": {
+                "initial_critical_mach": 0.85,
+                "initial_upwind_factor_constant": 2.0,
+                "is_transonic": true,
+                "mach_number_squared_limit": 3.0,
+                "name": "static_scheme",
+                "target_critical_mach": 0.95,
+                "target_upwind_factor_constant": 1.5,
+                "update_relative_residual_norm": 0.01
+            },
+            "skin_parts": [
+                "far_field",
+                "fsi_Interface"
+            ],
+            "solver_type": "potential_flow",
+            "solving_strategy_settings": {
+                "advanced_settings": {
+                    "build_level": 2,
+                    "builder_and_solver_settings": {},
+                    "compute_reactions": false,
+                    "convergence_criteria_settings": {},
+                    "echo_level": 1,
+                    "first_alpha_value": 0.5,
+                    "line_search_tolerance": 0.5,
+                    "linear_solver_settings": {},
+                    "max_alpha": 2.0,
+                    "max_iteration": 500,
+                    "max_line_search_iterations": 5,
+                    "min_alpha": 0.1,
+                    "move_mesh_flag": false,
+                    "name": "line_search_strategy",
+                    "reform_dofs_at_each_step": false,
+                    "scheme_settings": {},
+                    "second_alpha_value": 1.0,
+                    "use_old_stiffness_in_first_iteration": false
+                },
+                "type": "line_search"
+            },
+            "time_stepping": {
+                "CFL_number": 1,
+                "automatic_time_step": false,
+                "maximum_delta_time": 1.0,
+                "minimum_delta_time": 0.0001,
+                "time_step": 1.0
+            },
+            "volume_model_part_name": "fluid"
+        },
+        "mesh_motion_parts": [],
+        "mesh_motion_solver_settings": {
+            "buffer_size": 1,
+            "calculate_mesh_velocity": false,
+            "compute_reactions": false,
+            "domain_size": 3,
+            "echo_level": 0,
+            "linear_solver_settings": {
+                "num_threads_mkl": "do_nothing",
+                "solver_type": "LinearSolversApplication.pardiso_lu",
+                "verbosity": 0
+            },
+            "mesh_velocity_calculation": {},
+            "model_import_settings": {
+                "input_filename": "unknown_name",
+                "input_type": "mdpa"
+            },
+            "model_part_name": "FluidModelPart",
+            "poisson_ratio": 0.3,
+            "reform_dofs_each_step": false,
+            "reinitialize_model_part_each_step": false,
+            "solver_type": "structural_similarity",
+            "superimpose_mesh_disp_with": [],
+            "superimpose_mesh_velocity_with": [],
+            "time_stepping": {}
+        },
+        "model_import_settings": {
+            "input_type": "use_input_model_part"
+        },
+        "solver_type": "ale_potential_flow",
+        "start_fluid_solution_time": 0.0
+    }
+}

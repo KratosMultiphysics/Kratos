@@ -1,0 +1,58 @@
+{
+    "problem_data"     : {
+        "problem_name"  : "OneraM6CSM",
+        "parallel_type" : "OpenMP",
+        "echo_level"    : 0,
+        "start_time"    : 0.0,
+        "end_time"      : 1.0
+    },
+    "solver_settings"  : {
+        "solver_type"                     : "static",
+        "model_part_name"                 : "Structure",
+        "domain_size"                     : 3,
+        "max_iteration"     : 100,
+        "echo_level"                      : 0,
+        "analysis_type"                   : "linear",
+        "model_import_settings"           : {
+            "input_type"     : "mdpa",
+            "input_filename" : "solid_final_trial"
+        },
+        "material_import_settings"        : {
+            "materials_filename" : "StructuralMaterials.json"
+        },
+        "time_stepping"                   : {
+            "time_step" : 1.0
+        },
+        "linear_solver_settings"             : {
+            "solver_type" : "LinearSolversApplication.pardiso_lu"
+        },
+        "rotation_dofs"                   : true
+    },
+    "processes"        : {
+        "constraints_process_list" : [{
+            "python_module" : "assign_vector_variable_process",
+            "kratos_module" : "KratosMultiphysics",
+            "Parameters"    : {
+                "model_part_name" : "Structure.wing_root",
+                "variable_name"   : "DISPLACEMENT",
+                "interval"        : [0.0,"End"],
+                "value"           : [0.0,0.0,0.0]
+            }
+        },
+        {
+            "python_module" : "assign_vector_variable_process",
+            "kratos_module" : "KratosMultiphysics",
+            "Parameters"    : {
+                "model_part_name" : "Structure.wing_root",
+                "variable_name"   : "ROTATION",
+                "interval"        : [0.0,"End"],
+                "value"           : [0.0,0.0,0.0]
+            }
+        }],
+        "loads_process_list"       : [],
+        "list_other_processes"     : []
+    },
+    "output_processes" : {
+        "vtk_output" : []
+    }
+}
