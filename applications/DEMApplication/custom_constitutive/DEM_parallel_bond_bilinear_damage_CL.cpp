@@ -319,7 +319,7 @@ void DEM_parallel_bond_bilinear_damage::CalculateTangentialForces(double OldLoca
         double updated_max_tau_strength = bond_tau_zero;
 
         if (contact_sigma >= 0) {
-            updated_max_tau_strength += internal_friction * contact_sigma;
+            updated_max_tau_strength += tan(internal_friction * Globals::Pi / 180.0) * contact_sigma;
         }
         tau_strength = updated_max_tau_strength * (1.0 + k_softening / kt_el) * kt_updated / (kt_updated + k_softening);
 
