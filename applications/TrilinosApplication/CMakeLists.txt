@@ -155,13 +155,12 @@ install(FILES ${TRILINOS_LIBRARIES_AND_LINKS} DESTINATION libs )
 # Kratos Testing. Install everything except sources to ensure that reference and configuration files are copied.
 if(${INSTALL_TESTING_FILES} MATCHES ON )
     get_filename_component (CURRENT_DIR_NAME ${CMAKE_CURRENT_SOURCE_DIR} NAME)
-    install(DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/tests DESTINATION applications/${CURRENT_DIR_NAME}
-        PATTERN "*.git" EXCLUDE
-        PATTERN "*.c" EXCLUDE
-        PATTERN "*.h" EXCLUDE
-        PATTERN "*.cpp" EXCLUDE
-        PATTERN "*.hpp" EXCLUDE
-  )
+    kratos_python_install_tests(
+        DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}/tests"
+        DESTINATION "applications/${CURRENT_DIR_NAME}" 
+        INSTALL_PYTHON_USING_LINKS "${INSTALL_PYTHON_USING_LINKS}"
+        EXCLUSION_PATTERNS "\.git$" "\.c$" "\.h$" "\.cpp$" "\.hpp$"
+    )
 endif(${INSTALL_TESTING_FILES} MATCHES ON)
 
 ## Install targets

@@ -215,22 +215,20 @@ kratos_python_install_directory(${INSTALL_PYTHON_USING_LINKS} ${CMAKE_CURRENT_SO
 
 # Kratos Testing. Install everything except sources
 if(${INSTALL_TESTING_FILES} MATCHES ON )
-    install(DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/tests DESTINATION kratos
-        PATTERN "*.git" EXCLUDE
-        PATTERN "*.c" EXCLUDE
-        PATTERN "*.h" EXCLUDE
-        PATTERN "*.cpp" EXCLUDE
-        PATTERN "*.hpp" EXCLUDE
+    kratos_python_install_tests(
+        DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}/tests"
+        DESTINATION "kratos" 
+        INSTALL_PYTHON_USING_LINKS "${INSTALL_PYTHON_USING_LINKS}"
+        EXCLUSION_PATTERNS "\.git$" "\.c$" "\.h$" "\.cpp$" "\.hpp$"
     )
 
     if(${KRATOS_USE_FUTURE} MATCHES ON)
-        install(DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/future/tests DESTINATION kratos/future
-                PATTERN "*.git" EXCLUDE
-                PATTERN "*.c" EXCLUDE
-                PATTERN "*.h" EXCLUDE
-                PATTERN "*.cpp" EXCLUDE
-                PATTERN "*.hpp" EXCLUDE
-            )
+        kratos_python_install_tests(
+            DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}/future/tests"
+            DESTINATION "kratos/future" 
+            INSTALL_PYTHON_USING_LINKS "${INSTALL_PYTHON_USING_LINKS}"
+            EXCLUSION_PATTERNS "\.git$" "\.c$" "\.h$" "\.cpp$" "\.hpp$"
+        )
     endif(${KRATOS_USE_FUTURE} MATCHES ON)
 endif(${INSTALL_TESTING_FILES} MATCHES ON)
 
