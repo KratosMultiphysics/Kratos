@@ -142,7 +142,6 @@ kratos_python_install_directory(${INSTALL_PYTHON_USING_LINKS} ${CMAKE_CURRENT_SO
 
 # Kratos Testing. Install everything except sources to ensure that reference and configuration files are copied.
 if(${INSTALL_TESTING_FILES} MATCHES ON )
-    get_filename_component (CURRENT_DIR_NAME ${CMAKE_CURRENT_SOURCE_DIR} NAME)
     kratos_python_install_tests(
         DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}/tests"
         DESTINATION "applications/${CURRENT_DIR_NAME}" 

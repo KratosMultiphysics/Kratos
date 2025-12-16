@@ -154,7 +154,6 @@ install(FILES ${TRILINOS_LIBRARIES_AND_LINKS} DESTINATION libs )
 
 # Kratos Testing. Install everything except sources to ensure that reference and configuration files are copied.
 if(${INSTALL_TESTING_FILES} MATCHES ON )
-    get_filename_component (CURRENT_DIR_NAME ${CMAKE_CURRENT_SOURCE_DIR} NAME)
     kratos_python_install_tests(
         DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}/tests"
         DESTINATION "applications/${CURRENT_DIR_NAME}" 
