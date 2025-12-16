@@ -74,7 +74,7 @@ class FsiSurrogate:
         default_settings = Kratos.Parameters("""{
             "module": "KratosMultiphysics.OptimizationApplication.execution_policies"
         }""")
-        for analyses_settings in self.project_parameters["analyses"]:
+        for analyses_settings in self.project_parameters["analyses"].values():
             analyses_settings.AddMissingParameters(default_settings)
             execution_policy = SurrogateModellingComponentFactory(self.models, analyses_settings, self.optimization_problem)
             self.optimization_problem.AddComponent(execution_policy)
@@ -100,7 +100,7 @@ class FsiSurrogate:
         for process_type in self.__algorithm.GetProcessesOrder():
             self.optimization_problem.AddProcessType(process_type)
             if optimization_data_processes.Has(process_type):
-                for process_settings in optimization_data_processes[process_type]:
+                for process_settings in optimization_data_processes[process_type].values():
                     process_settings.AddMissingParameters(optimization_data_process_default_settings)
                     process = SurrogateModellingComponentFactory(self.models, process_settings, self.optimization_problem)
                     self.optimization_problem.AddProcess(process_type, process)
