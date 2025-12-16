@@ -17,8 +17,10 @@
 #include "tests/cpp_tests/geo_mechanics_fast_suite.h"
 
 #include <numbers>
+#include <string>
 
 using namespace std::numbers;
+using namespace std::string_literals;
 
 namespace Kratos::Testing
 {
@@ -225,6 +227,47 @@ KRATOS_TEST_CASE_IN_SUITE(TestExtrapolationProcess_ExtrapolatesCorrectlyForLinea
          "model_part_name"            : "MainModelPart",
          "echo_level"                 : 0,
          "list_of_variables"          : ["HYDRAULIC_HEAD"]
+     })");
+    GeoExtrapolateIntegrationPointValuesToNodesProcess process(model, parameters);
+    process.ExecuteBeforeSolutionLoop();
+    process.ExecuteFinalizeSolutionStep();
+    process.ExecuteFinalize();
+
+    std::vector<double> expected_values = {-1, 0, 1, -1, -1, 1};
+    std::vector<double> actual_values;
+    actual_values.reserve(model_part.Nodes().size());
+    std::transform(model_part.Nodes().begin(), model_part.Nodes().end(), std::back_inserter(actual_values),
+                   [](const auto& node) { return node.FastGetSolutionStepValue(HYDRAULIC_HEAD); });
+
+    KRATOS_EXPECT_VECTOR_NEAR(actual_values, expected_values, 1e-6)
+}
+
+KRATOS_TEST_CASE_IN_SUITE(TestExtrapolationProcess_ExtrapolatesCorrectlyForLinearFields_EvenIfUnrelatedEmptyModelPartsAreSupplied,
+                          KratosGeoMechanicsFastSuiteWithoutKernel)
+{
+    //   This test uses the following two-element system.
+    //   4------3------6
+    //   |  El1 |  El2 |
+    //   1------2------5
+    //
+    Model model;
+    auto& model_part = CreateModelPartWithTwoStubElements(model);
+    model.CreateModelPart("foo"s);
+    model.CreateModelPart("bar"s);
+
+    // Linear field in x between -1 and 1
+    dynamic_cast<StubElementForNodalExtrapolationTest&>(model_part.Elements()[1]).mIntegrationDoubleValues = {
+        -inv_sqrt3, inv_sqrt3, inv_sqrt3, -inv_sqrt3};
+
+    // Linear field in y between -1 and 1
+    dynamic_cast<StubElementForNodalExtrapolationTest&>(model_part.Elements()[2]).mIntegrationDoubleValues = {
+        -inv_sqrt3, -inv_sqrt3, inv_sqrt3, inv_sqrt3};
+
+    const auto                                         parameters = Parameters(R"(
+     {
+         "model_part_name_list" : ["MainModelPart", "foo", "bar"],
+         "echo_level"           : 0,
+         "list_of_variables"    : ["HYDRAULIC_HEAD"]
      })");
     GeoExtrapolateIntegrationPointValuesToNodesProcess process(model, parameters);
     process.ExecuteBeforeSolutionLoop();

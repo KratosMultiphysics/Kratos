@@ -126,10 +126,11 @@ void GeoExtrapolateIntegrationPointValuesToNodesProcess::ExecuteFinalizeSolution
     CacheExtrapolationMatricesForElements();
 
     for (const auto& r_model_part : mrModelParts) {
-        block_for_each(r_model_part.get().Elements(), [this](Element& rElement) {
+        block_for_each(r_model_part.get().Elements(),
+                       [this, &r_process_info = r_model_part.get().GetProcessInfo()](Element& rElement) {
             if (rElement.IsActive()) {
                 AddIntegrationPointContributionsForAllVariables(
-                    rElement, GetCachedExtrapolationMatrixFor(rElement));
+                    rElement, GetCachedExtrapolationMatrixFor(rElement), r_process_info);
             }
         });
     }
@@ -167,25 +168,25 @@ const Matrix& GeoExtrapolateIntegrationPointValuesToNodesProcess::GetCachedExtra
 }
 
 void GeoExtrapolateIntegrationPointValuesToNodesProcess::AddIntegrationPointContributionsForAllVariables(
-    Element& rElement, const Matrix& rExtrapolationMatrix) const
+    Element& rElement, const Matrix& rExtrapolationMatrix, const ProcessInfo& rProcessInfo) const
 {
     const auto integration_points_number = GeoElementUtilities::GetNumberOfIntegrationPointsOf(rElement);
 
     for (const auto p_var : mDoubleVariables) {
         AddIntegrationContributionsToNodes(rElement, *p_var, rExtrapolationMatrix,
-                                           integration_points_number, AtomicAdd<double>);
+                                           integration_points_number, rProcessInfo, AtomicAdd<double>);
     }
     for (const auto p_var : mArrayVariables) {
-        AddIntegrationContributionsToNodes(rElement, *p_var, rExtrapolationMatrix,
-                                           integration_points_number, AtomicAdd<double, 3>);
+        AddIntegrationContributionsToNodes(rElement, *p_var, rExtrapolationMatrix, integration_points_number,
+                                           rProcessInfo, AtomicAdd<double, 3>);
     }
     for (const auto p_var : mVectorVariables) {
-        AddIntegrationContributionsToNodes(rElement, *p_var, rExtrapolationMatrix,
-                                           integration_points_number, AtomicAddVector<Vector, Vector>);
+        AddIntegrationContributionsToNodes(rElement, *p_var, rExtrapolationMatrix, integration_points_number,
+                                           rProcessInfo, AtomicAddVector<Vector, Vector>);
     }
     for (const auto p_var : mMatrixVariables) {
-        AddIntegrationContributionsToNodes(rElement, *p_var, rExtrapolationMatrix,
-                                           integration_points_number, AtomicAddMatrix<Matrix, Matrix>);
+        AddIntegrationContributionsToNodes(rElement, *p_var, rExtrapolationMatrix, integration_points_number,
+                                           rProcessInfo, AtomicAddMatrix<Matrix, Matrix>);
     }
 }
 
