@@ -1,7 +1,13 @@
 # This functin installs a symbolic link
 macro(install_symlink filepath sympath symfile)
     install(DIRECTORY DESTINATION ${sympath})
-    install(CODE "execute_process(COMMAND \"${CMAKE_COMMAND}\" -E create_symlink ${filepath} ${sympath}/${symfile})")
+    install(CODE [[
+        execute_process(
+            COMMAND "${CMAKE_COMMAND}" -E create_symlink 
+            "${filepath}" 
+            "${sympath}/${symfile}"
+        )
+    ]])
 endmacro(install_symlink)
 
 # This function install a symlinc to an entire directory
