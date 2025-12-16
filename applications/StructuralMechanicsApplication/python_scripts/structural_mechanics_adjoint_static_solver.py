@@ -44,7 +44,8 @@ class StructuralMechanicsAdjointStaticSolver(MechanicalSolver):
         process_info = self.main_model_part.ProcessInfo
         if (process_info.Has(StructuralMechanicsApplication.IS_ADJOINT) and
             process_info.GetValue(StructuralMechanicsApplication.IS_ADJOINT)):
-            raise RuntimeError("Modelpart '{}' is already adjoint modelpart!".format(self.main_model_part.Name))
+            print("Modelpart '{}' is already adjoint modelpart!".format(self.main_model_part.Name))
+            return
 
         # defines how the primal elements should be replaced with their adjoint counterparts
         replacement_settings = KratosMultiphysics.Parameters("""

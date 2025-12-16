@@ -31,7 +31,7 @@ namespace Kratos {
 StrainSensor::StrainSensor(
     const std::string& rName,
     Node::Pointer pNode,
-    const Variable<Matrix>& rStrainVariable,
+    const Variable<Vector>& rStrainVariable,
     const StrainType& rStrainType,
     const Element& rElement,
     const double Weight)
@@ -40,6 +40,7 @@ StrainSensor::StrainSensor(
       mStrainType(rStrainType),
       mrStrainVariable(rStrainVariable)
 {
+    
     KRATOS_ERROR_IF_NOT(rElement.GetGeometry().IsInside(*(this->GetNode()), mLocalPoint))
         << "The point " << this->GetNode()->Coordinates() << " is not inside or on the boundary of the geometry of element with id "
         << mElementId << ".";
@@ -124,7 +125,7 @@ Sensor::Pointer StrainSensor::Create(
     auto p_sensor = Kratos::make_shared<StrainSensor>(
         SensorParameters["name"].GetString(),
         p_node,
-        KratosComponents<Variable<Matrix>>::Get(SensorParameters["strain_variable"].GetString()),
+        KratosComponents<Variable<Vector>>::Get(SensorParameters["strain_variable"].GetString()),
         strain_type,
         r_element,
         SensorParameters["weight"].GetDouble()
@@ -187,7 +188,7 @@ double StrainSensor::CalculateValue(ModelPart& rModelPart)
     if (rModelPart.HasElement(mElementId)) {
         auto& r_element = rModelPart.GetElement(mElementId);
 
-        std::vector<Matrix> strains;
+        std::vector<Vector> strains;
         r_element.CalculateOnIntegrationPoints(mrStrainVariable, strains, rModelPart.GetProcessInfo());
 
         for (const auto& strain : strains) {
@@ -218,7 +219,7 @@ void StrainSensor::CalculateGradient(
 
     if (rAdjointElement.Id() == mElementId) {
         auto& r_element = const_cast<Element&>(rAdjointElement);
-        std::vector<Matrix> perturbed_strains, ref_strains;
+        std::vector<Vector> perturbed_strains, ref_strains;
         r_element.CalculateOnIntegrationPoints(mrStrainVariable, ref_strains, rProcessInfo);
 
         Element::DofsVectorType elemental_dofs;
@@ -410,8 +411,8 @@ double StrainSensor::CalculateStrainDirectionalSensitivity(
     const Variable<double>& rPerturbationVariable,
     ModelPart::NodeType& rNode,
     ModelPart::ElementType& rElement,
-    std::vector<Matrix>& rPerturbedStrains,
-    const std::vector<Matrix>& rRefStrains,
+    std::vector<Vector>& rPerturbedStrains,
+    const std::vector<Vector>& rRefStrains,
     const ProcessInfo& rProcessInfo) const
 {
     KRATOS_TRY

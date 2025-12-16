@@ -65,7 +65,7 @@ public:
     StrainSensor(
         const std::string& rName,
         Node::Pointer pNode,
-        const Variable<Matrix>& rStrainVariable,
+        const Variable<Vector>& rStrainVariable,
         const StrainType& rStrainType,
         const Element& rElement,
         const double Weight);
@@ -181,7 +181,7 @@ private:
 
     Point mLocalPoint;
 
-    const Variable<Matrix>& mrStrainVariable;
+    const Variable<Vector>& mrStrainVariable;
 
     ///@}
     ///@name Private operations
@@ -196,8 +196,8 @@ private:
         const Variable<double>& rPerturbationVariable,
         ModelPart::NodeType& rNode,
         ModelPart::ElementType& rElement,
-        std::vector<Matrix>& rPerturbedStrains,
-        const std::vector<Matrix>& rRefStrains,
+        std::vector<Vector>& rPerturbedStrains,
+        const std::vector<Vector>& rRefStrains,
         const ProcessInfo& rProcessInfo) const;
 
     ///@}

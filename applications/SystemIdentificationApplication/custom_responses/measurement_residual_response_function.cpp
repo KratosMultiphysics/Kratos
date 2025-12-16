@@ -147,19 +147,55 @@ double MeasurementResidualResponseFunction::CalculateValue(ModelPart& rModelPart
     KRATOS_TRY
 
     double sum = 0.0;
+    double active_count = 0.0;
+    double non_active_count = 0.0;
+    double max_sensor_error = 0.0;
 
     for (auto& p_sensor : mpSensorsList) {
         const double sensor_value = p_sensor->CalculateValue(rModelPart);
         const double current_sensor_error = sensor_value - p_sensor->GetNode()->GetValue(SENSOR_MEASURED_VALUE);
+        // std::string name = p_sensor->GetName();
+        // if (name == "disp_x_39" && std::abs(current_sensor_error) < 2e-4){
+        //     KRATOS_WATCH(current_sensor_error);
+        //     p_sensor->SetSensorValue(sensor_value);
+        //     p_sensor->GetNode()->SetValue(SENSOR_ERROR, 0.0);
+        //     // KRATOS_WATCH(current_sensor_error);
+        //     // KRATOS_WATCH("Sensor " << p_sensor->GetName() << " is within tolerance.");
+        //     non_active_count++;
+        //     continue;
+        // }
+        // compute max current sensor error
+        if (std::abs(current_sensor_error) > max_sensor_error) {
+            max_sensor_error = std::abs(current_sensor_error);
+        }
+
+        if ( std::abs(current_sensor_error) < 1e-99) {
+            p_sensor->SetSensorValue(sensor_value);
+            p_sensor->GetNode()->SetValue(SENSOR_ERROR, 0.0);
+            // KRATOS_WATCH(current_sensor_error);
+            // KRATOS_WATCH("Sensor " << p_sensor->GetName() << " is within tolerance.");
+            non_active_count++;
+            continue;
+        }
 
         p_sensor->SetSensorValue(sensor_value);
         p_sensor->GetNode()->SetValue(SENSOR_ERROR, current_sensor_error);
-        p_sensor->GetNode()->SetValue(SENSOR_RELATIVE_ERROR, current_sensor_error / p_sensor->GetNode()->GetValue(SENSOR_MEASURED_VALUE));
 
         sum += ( std::pow( 0.5 * pow(current_sensor_error, 2) * p_sensor->GetWeight(), mPCoefficient ) );
+        active_count++;
+    }
+    KRATOS_WATCH("Active sensors: " << active_count);
+    KRATOS_WATCH("Non-active sensors: " << non_active_count);   
+    mC1 = std::pow( sum, 1 / mPCoefficient - 1 ) / std::pow(2, mPCoefficient - 1);
+
+    // output the maximum sensor error into file (for information) sensor_error.txt
+    std::ofstream error_file("sensor_error.txt", std::ios::app);
+    error_file << max_sensor_error << std::endl;
+
+    if (max_sensor_error < 1e-8) {
+        KRATOS_ERROR << "Maximum sensor error: " << max_sensor_error << " is above the tolerance 1e-7." << std::endl;
     }
 
-    mC1 = std::pow( sum, 1 / mPCoefficient - 1 ) / std::pow(2, mPCoefficient - 1);
 
     return std::pow(sum, 1 / mPCoefficient);
 

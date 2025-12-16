@@ -1,12 +1,14 @@
 import typing
 import numpy
 import KratosMultiphysics as Kratos
+import KratosMultiphysics.OptimizationApplication as KratosOA
 from KratosMultiphysics.OptimizationApplication.utilities.optimization_problem import OptimizationProblem
 from KratosMultiphysics.OptimizationApplication.utilities.component_data_view import ComponentDataView
 from KratosMultiphysics.OptimizationApplication.utilities.optimization_problem_utilities import GetComponentHavingDataByFullName
 from KratosMultiphysics.OptimizationApplication.utilities.optimization_problem_utilities import GetComponentValueByFullName
 from KratosMultiphysics.OptimizationApplication.convergence_criteria.convergence_criterion import ConvergenceCriterion
 from KratosMultiphysics.OptimizationApplication.utilities.logger_utilities import time_decorator
+
 
 def Factory(_: Kratos.Model, parameters: Kratos.Parameters, optimization_problem: OptimizationProblem) -> ConvergenceCriterion:
     if not parameters.Has("settings"):
@@ -57,7 +59,7 @@ class L2ConvCriterion(ConvergenceCriterion):
         if not hasattr(field, "Evaluate"):
             raise RuntimeError(f"The value represented by {self.__field_name} is not a field.")
 
-        self.__norm = numpy.linalg.norm(field.Evaluate().flatten())
+        self.__norm = KratosOA.ExpressionUtils.NormL2(field)
         self.__conv = self.__norm <= self.__tolerance
         self.__component_data_view.GetBufferedData().SetValue(self.__field_name.split(':')[0] + "_l2_norm", self.__norm)
         return self.__conv

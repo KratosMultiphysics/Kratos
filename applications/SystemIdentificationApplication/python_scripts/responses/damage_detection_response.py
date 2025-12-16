@@ -86,7 +86,7 @@ class DamageDetectionResponse(ResponseFunction):
         self.optimization_problem = optimization_problem
 
     def GetImplementedPhysicalKratosVariables(self) -> 'list[SupportedSensitivityFieldVariableTypes]':
-        return [Kratos.YOUNG_MODULUS]
+        return [Kratos.YOUNG_MODULUS, Kratos.THICKNESS]
 
     def Initialize(self) -> None:
         self.model_part = self.model_part_operation.GetModelPart()

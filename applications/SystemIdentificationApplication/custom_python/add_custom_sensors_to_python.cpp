@@ -106,7 +106,7 @@ void  AddCustomSensorsToPython(pybind11::module& m)
         .value("STRAIN_YZ", StrainSensor::StrainType::STRAIN_YZ)
         .export_values();
     strain_sensor
-        .def(py::init<const std::string&,Node::Pointer, const Variable<Matrix>&, const StrainSensor::StrainType&, const Element&,const double>(),
+        .def(py::init<const std::string&,Node::Pointer, const Variable<Vector>&, const StrainSensor::StrainType&, const Element&,const double>(),
             py::arg("name"),
             py::arg("node"),
             py::arg("strain_variable"),

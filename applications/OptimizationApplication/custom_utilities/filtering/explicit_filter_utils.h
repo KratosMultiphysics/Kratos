@@ -160,6 +160,8 @@ private:
 
     typename KDTree::Pointer mpSearchTree;
 
+    bool mCloudNodeMesh = false;
+
     ///@}
     ///@name Private operations
     ///@{
