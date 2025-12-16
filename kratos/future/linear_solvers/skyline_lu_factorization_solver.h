@@ -532,11 +532,11 @@ public:
         const int size = rX.size();
 
         // define an object to store skyline matrix and factorization
-        const auto& r_A = *(pLinearOperator->template GetMatrix<CsrMatrixType>());
         LUSkylineFactorization<CsrMatrixType, TVectorType> myFactorization;
 
         // copy myMatrix into skyline format
-        myFactorization.copyFromCSRMatrix(pLinearOperator->template GetMatrix<CsrMatrixType>());
+        const auto& r_A = pLinearOperator->template GetMatrix<CsrMatrixType>();
+        myFactorization.copyFromCSRMatrix(r_A);
 
         // factorize it
         myFactorization.factorize();

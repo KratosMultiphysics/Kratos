@@ -157,7 +157,7 @@ public:
         const TVectorType& rX,
         TVectorType& rY) override
     {
-        if (std::holds_alternative<>(mCsrMatrix)) {
+        if (std::holds_alternative<CsrMatrixType>(mCsrMatrix)) {
             std::get<CsrMatrixType>(mCsrMatrix).SpMV(rX, rY);
         } else if (std::holds_alternative<DistributedCsrMatrixType>(mCsrMatrix)) {
             std::get<DistributedCsrMatrixType>(mCsrMatrix).SpMV(rX, rY);

@@ -179,7 +179,7 @@ public:
     template<class TMatrixType>
     TMatrixType& GetMatrix() const
     {
-        return std::get<MatrixVariantType>(this->GetMatrixImpl());
+        return std::get<TMatrixType>(this->GetMatrixImpl());
     }
 
     ///@}
@@ -224,10 +224,9 @@ protected:
      * @brief Get the underlying matrix variant.
      * @return Reference to the matrix variant
      */
-    virtual MatrixVariantType& GetMatrixImpl() const
+    [[noreturn]]virtual MatrixVariantType& GetMatrixImpl() const
     {
         KRATOS_ERROR << "GetMatrixImpl() not implemented in base LinearOperator class." << std::endl;
-        return std::monostate{};
     }
 
     ///@}

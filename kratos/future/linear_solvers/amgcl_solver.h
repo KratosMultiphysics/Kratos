@@ -488,7 +488,7 @@ public:
         typename ModelPart::DofsArrayType& rDofSet,
         ModelPart& rModelPart) override
     {
-        const auto p_A = pLinearOperator->template GetMatrix<CsrMatrix<>>();
+        const auto& r_A = pLinearOperator->template GetMatrix<CsrMatrix<>>();
 
         int old_ndof = -1;
         int ndof=0;
@@ -497,7 +497,7 @@ public:
         {
             unsigned int old_node_id = rDofSet.size() ? rDofSet.begin()->Id() : 0;
             for (auto it = rDofSet.begin(); it!=rDofSet.end(); it++) {
-                if (it->EquationId() < p_A->size1()) {
+                if (it->EquationId() < r_A.size1()) {
                     IndexType id = it->Id();
                     if(id != old_node_id) {
                         old_node_id = id;
@@ -522,7 +522,7 @@ public:
         }
         else //distribute
         {
-            const std::size_t system_size = p_A->size1();
+            const std::size_t system_size = r_A.size1();
             int current_rank = rModelPart.GetCommunicator().GetDataCommunicator().Rank();
             unsigned int old_node_id = rDofSet.size() ? rDofSet.begin()->Id() : 0;
             for (auto it = rDofSet.begin(); it!=rDofSet.end(); it++) {
@@ -558,10 +558,10 @@ public:
         KRATOS_INFO_IF("AMGCL Linear Solver", mVerbosity > 1) << "mndof: " << mBlockSize << std::endl;
 
         if(mProvideCoordinates) {
-            mCoordinates.resize(p_A->size1()/mBlockSize);
+            mCoordinates.resize(r_A.size1()/mBlockSize);
             unsigned int i=0;
             for (auto it_dof = rDofSet.begin(); it_dof!=rDofSet.end(); it_dof+=mBlockSize) {
-                if (it_dof->EquationId() < p_A->size1()) {
+                if (it_dof->EquationId() < r_A.size1()) {
                     auto it_node = rModelPart.Nodes().find(it_dof->Id());
                     mCoordinates[ i ] = it_node->Coordinates();
                     i++;
