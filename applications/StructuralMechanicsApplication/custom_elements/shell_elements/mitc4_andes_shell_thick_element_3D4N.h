@@ -72,8 +72,7 @@ public:
     using bounded_24_matrix = BoundedMatrix<double, 24, 24>; // stiffness matrix
 
     static constexpr bool is_corotational = IS_COROTATIONAL;
-    using CoordinateTransformationType = std::conditional_t<
-        IS_COROTATIONAL,
+    using CoordinateTransformationType = std::conditional_t<IS_COROTATIONAL,
         ShellQ4_CorotationalCoordinateTransformation,
         ShellQ4_CoordinateTransformation>;
 

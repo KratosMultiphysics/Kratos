@@ -43,10 +43,9 @@ void MITC4AndesShellThickElement3D4N<IS_COROTATIONAL>::Initialize(
             mConstitutiveLawVector.resize(r_integration_points.size());
         InitializeMaterial();
 
-        if constexpr (is_corotational) {
-            mpCoordinateTransformation = Kratos::make_unique<CoordinateTransformationType>(pGetGeometry());
-            mpCoordinateTransformation->Initialize();
-        } // TODO what if linear?????????????
+        mpCoordinateTransformation = Kratos::make_unique<CoordinateTransformationType>(pGetGeometry());
+        mpCoordinateTransformation->Initialize();
+
     }
     KRATOS_CATCH("MITC4AndesShellThickElement3D4N::Initialize")
 }
@@ -62,15 +61,14 @@ void MITC4AndesShellThickElement3D4N<IS_COROTATIONAL>::InitializeMaterial()
     // TODO: ensure retro-compatibility with older SHELLS using Section class
 
     const auto& r_properties = GetProperties();
-    const auto& r_geometry = GetGeometry();
     if (r_properties[CONSTITUTIVE_LAW] != nullptr) {
         auto N_values = Vector();
         for (IndexType point_number = 0; point_number < mConstitutiveLawVector.size(); ++point_number) {
             mConstitutiveLawVector[point_number] = r_properties[CONSTITUTIVE_LAW]->Clone();
-            mConstitutiveLawVector[point_number]->InitializeMaterial(r_properties, r_geometry, N_values);
+            mConstitutiveLawVector[point_number]->InitializeMaterial(r_properties, GetGeometry(), N_values);
         }
     } else {
-        KRATOS_ERROR << "A constitutive law needs to be specified for the CS-DSG3 shell element with ID " << this->Id() << std::endl;
+        KRATOS_ERROR << "A constitutive law needs to be specified for the MITC4-ANDES thick shell element with ID " << this->Id() << std::endl;
     }
 
     KRATOS_CATCH("MITC4AndesShellThickElement3D4N::InitializeMaterial")
@@ -89,7 +87,7 @@ Element::Pointer MITC4AndesShellThickElement3D4N<IS_COROTATIONAL>::Clone(
 
     MITC4AndesShellThickElement3D4N::Pointer p_new_elem = Kratos::make_intrusive<MITC4AndesShellThickElement3D4N>
         (NewId, GetGeometry().Create(rThisNodes), pGetProperties());
-    p_new_elem->SetData(this->GetData());
+    p_new_elem->SetData(GetData());
     p_new_elem->Set(Flags(*this));
 
     // Currently selected integration methods
@@ -130,8 +128,8 @@ void MITC4AndesShellThickElement3D4N<IS_COROTATIONAL>::EquationIdVector(
         rResult[local_index++] = r_geometry[i].GetDof(DISPLACEMENT_Y, xpos + 1).EquationId();
         rResult[local_index++] = r_geometry[i].GetDof(DISPLACEMENT_Z, xpos + 2).EquationId();
         rResult[local_index++] = r_geometry[i].GetDof(ROTATION_X, rot_pos     ).EquationId();
-        rResult[local_index++] = r_geometry[i].GetDof(ROTATION_Y, rot_pos + 1 ).EquationId();
-        rResult[local_index++] = r_geometry[i].GetDof(ROTATION_Z, rot_pos + 2 ).EquationId();
+        rResult[local_index++] = r_geometry[i].GetDof(ROTATION_Y, rot_pos +  1).EquationId();
+        rResult[local_index++] = r_geometry[i].GetDof(ROTATION_Z, rot_pos +  2).EquationId();
     }
     KRATOS_CATCH("MITC4AndesShellThickElement3D4N::EquationIdVector")
 }
@@ -184,6 +182,7 @@ double MITC4AndesShellThickElement3D4N<IS_COROTATIONAL>::CalculateArea(
     // const double x31 = r_coord_3[0] - r_coord_1[0];
     // const double y31 = r_coord_3[1] - r_coord_1[1];
     // return 0.5 * (x21 * y31 - y21 * x31);
+    return 0.0;
     KRATOS_CATCH("MITC4AndesShellThickElement3D4N::CalculateArea")
 }
 
