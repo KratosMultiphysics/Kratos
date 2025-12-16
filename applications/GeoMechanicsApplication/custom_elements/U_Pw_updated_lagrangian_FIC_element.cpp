@@ -23,6 +23,46 @@ namespace Kratos
 {
 
 template <unsigned int TDim, unsigned int TNumNodes>
+UPwUpdatedLagrangianFICElement<TDim, TNumNodes>::UPwUpdatedLagrangianFICElement(IndexType NewId)
+    : UPwSmallStrainFICElement<TDim, TNumNodes>(NewId)
+{
+}
+
+template <unsigned int TDim, unsigned int TNumNodes>
+UPwUpdatedLagrangianFICElement<TDim, TNumNodes>::UPwUpdatedLagrangianFICElement(
+    IndexType                                       NewId,
+    const NodesArrayType&                           ThisNodes,
+    std::unique_ptr<StressStatePolicy>              pStressStatePolicy,
+    std::unique_ptr<IntegrationCoefficientModifier> pCoefficientModifier)
+    : UPwSmallStrainFICElement<TDim, TNumNodes>(
+          NewId, ThisNodes, std::move(pStressStatePolicy), std::move(pCoefficientModifier))
+{
+}
+
+template <unsigned int TDim, unsigned int TNumNodes>
+UPwUpdatedLagrangianFICElement<TDim, TNumNodes>::UPwUpdatedLagrangianFICElement(
+    IndexType                                       NewId,
+    GeometryType::Pointer                           pGeometry,
+    std::unique_ptr<StressStatePolicy>              pStressStatePolicy,
+    std::unique_ptr<IntegrationCoefficientModifier> pCoefficientModifier)
+    : UPwSmallStrainFICElement<TDim, TNumNodes>(
+          NewId, pGeometry, std::move(pStressStatePolicy), std::move(pCoefficientModifier))
+{
+}
+
+template <unsigned int TDim, unsigned int TNumNodes>
+UPwUpdatedLagrangianFICElement<TDim, TNumNodes>::UPwUpdatedLagrangianFICElement(
+    IndexType                                       NewId,
+    GeometryType::Pointer                           pGeometry,
+    PropertiesType::Pointer                         pProperties,
+    std::unique_ptr<StressStatePolicy>              pStressStatePolicy,
+    std::unique_ptr<IntegrationCoefficientModifier> pCoefficientModifier)
+    : UPwSmallStrainFICElement<TDim, TNumNodes>(
+          NewId, pGeometry, pProperties, std::move(pStressStatePolicy), std::move(pCoefficientModifier))
+{
+}
+
+template <unsigned int TDim, unsigned int TNumNodes>
 Element::Pointer UPwUpdatedLagrangianFICElement<TDim, TNumNodes>::Create(IndexType NewId,
                                                                          NodesArrayType const& ThisNodes,
                                                                          PropertiesType::Pointer pProperties) const

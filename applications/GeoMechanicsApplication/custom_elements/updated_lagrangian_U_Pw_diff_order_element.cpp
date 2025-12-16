@@ -21,6 +21,31 @@
 namespace Kratos
 {
 
+UpdatedLagrangianUPwDiffOrderElement::UpdatedLagrangianUPwDiffOrderElement()
+    : SmallStrainUPwDiffOrderElement()
+{
+}
+
+UpdatedLagrangianUPwDiffOrderElement::UpdatedLagrangianUPwDiffOrderElement(
+    IndexType                                       NewId,
+    GeometryType::Pointer                           pGeometry,
+    std::unique_ptr<StressStatePolicy>              pStressStatePolicy,
+    std::unique_ptr<IntegrationCoefficientModifier> pCoefficientModifier)
+    : SmallStrainUPwDiffOrderElement(NewId, pGeometry, std::move(pStressStatePolicy), std::move(pCoefficientModifier))
+{
+}
+
+UpdatedLagrangianUPwDiffOrderElement::UpdatedLagrangianUPwDiffOrderElement(
+    IndexType                                       NewId,
+    GeometryType::Pointer                           pGeometry,
+    PropertiesType::Pointer                         pProperties,
+    std::unique_ptr<StressStatePolicy>              pStressStatePolicy,
+    std::unique_ptr<IntegrationCoefficientModifier> pCoefficientModifier)
+    : SmallStrainUPwDiffOrderElement(
+          NewId, pGeometry, pProperties, std::move(pStressStatePolicy), std::move(pCoefficientModifier))
+{
+}
+
 Element::Pointer UpdatedLagrangianUPwDiffOrderElement::Create(IndexType             NewId,
                                                               const NodesArrayType& rNodes,
                                                               PropertiesType::Pointer pProperties) const

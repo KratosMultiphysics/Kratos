@@ -83,41 +83,26 @@ public:
     KRATOS_CLASS_INTRUSIVE_POINTER_DEFINITION(UPwUpdatedLagrangianElement);
 
     /// Default Constructor
-    explicit UPwUpdatedLagrangianElement(IndexType NewId = 0)
-        : UPwSmallStrainElement<TDim, TNumNodes>(NewId)
-    {
-    }
+    explicit UPwUpdatedLagrangianElement(IndexType NewId = 0);
 
     /// Constructor using an array of nodes
     UPwUpdatedLagrangianElement(IndexType                          NewId,
                                 const NodesArrayType&              ThisNodes,
                                 std::unique_ptr<StressStatePolicy> pStressStatePolicy,
-                                std::unique_ptr<IntegrationCoefficientModifier> pCoefficientModifier = nullptr)
-        : UPwSmallStrainElement<TDim, TNumNodes>(
-              NewId, ThisNodes, std::move(pStressStatePolicy), std::move(pCoefficientModifier))
-    {
-    }
+                                std::unique_ptr<IntegrationCoefficientModifier> pCoefficientModifier = nullptr);
 
     /// Constructor using Geometry
     UPwUpdatedLagrangianElement(IndexType                          NewId,
                                 GeometryType::Pointer              pGeometry,
                                 std::unique_ptr<StressStatePolicy> pStressStatePolicy,
-                                std::unique_ptr<IntegrationCoefficientModifier> pCoefficientModifier = nullptr)
-        : UPwSmallStrainElement<TDim, TNumNodes>(
-              NewId, pGeometry, std::move(pStressStatePolicy), std::move(pCoefficientModifier))
-    {
-    }
+                                std::unique_ptr<IntegrationCoefficientModifier> pCoefficientModifier = nullptr);
 
     /// Constructor using Properties
     UPwUpdatedLagrangianElement(IndexType                          NewId,
                                 GeometryType::Pointer              pGeometry,
                                 PropertiesType::Pointer            pProperties,
                                 std::unique_ptr<StressStatePolicy> pStressStatePolicy,
-                                std::unique_ptr<IntegrationCoefficientModifier> pCoefficientModifier = nullptr)
-        : UPwSmallStrainElement<TDim, TNumNodes>(
-              NewId, pGeometry, pProperties, std::move(pStressStatePolicy), std::move(pCoefficientModifier))
-    {
-    }
+                                std::unique_ptr<IntegrationCoefficientModifier> pCoefficientModifier = nullptr);
 
     ~UPwUpdatedLagrangianElement() = default;
 

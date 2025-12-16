@@ -74,28 +74,20 @@ public:
     KRATOS_CLASS_INTRUSIVE_POINTER_DEFINITION(UpdatedLagrangianUPwDiffOrderElement);
 
     /// Default Constructor
-    UpdatedLagrangianUPwDiffOrderElement() : SmallStrainUPwDiffOrderElement() {}
+    UpdatedLagrangianUPwDiffOrderElement();
 
     /// Constructor using Geometry
     UpdatedLagrangianUPwDiffOrderElement(IndexType                          NewId,
                                          GeometryType::Pointer              pGeometry,
                                          std::unique_ptr<StressStatePolicy> pStressStatePolicy,
-                                         std::unique_ptr<IntegrationCoefficientModifier> pCoefficientModifier = nullptr)
-        : SmallStrainUPwDiffOrderElement(
-              NewId, pGeometry, std::move(pStressStatePolicy), std::move(pCoefficientModifier))
-    {
-    }
+                                         std::unique_ptr<IntegrationCoefficientModifier> pCoefficientModifier = nullptr);
 
     /// Constructor using Properties
     UpdatedLagrangianUPwDiffOrderElement(IndexType                          NewId,
                                          GeometryType::Pointer              pGeometry,
                                          PropertiesType::Pointer            pProperties,
                                          std::unique_ptr<StressStatePolicy> pStressStatePolicy,
-                                         std::unique_ptr<IntegrationCoefficientModifier> pCoefficientModifier = nullptr)
-        : SmallStrainUPwDiffOrderElement(
-              NewId, pGeometry, pProperties, std::move(pStressStatePolicy), std::move(pCoefficientModifier))
-    {
-    }
+                                         std::unique_ptr<IntegrationCoefficientModifier> pCoefficientModifier = nullptr);
 
     /// Destructor
     ~UpdatedLagrangianUPwDiffOrderElement() override = default;

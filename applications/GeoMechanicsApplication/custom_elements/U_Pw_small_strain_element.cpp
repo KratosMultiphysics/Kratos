@@ -30,6 +30,34 @@ namespace Kratos
 {
 
 template <unsigned int TDim, unsigned int TNumNodes>
+UPwSmallStrainElement<TDim, TNumNodes>::UPwSmallStrainElement(IndexType             NewId,
+                                                              const NodesArrayType& ThisNodes,
+                                                              std::unique_ptr<StressStatePolicy> pStressStatePolicy,
+                                                              std::unique_ptr<IntegrationCoefficientModifier> pCoefficientModifier)
+    : UPwBaseElement(NewId, ThisNodes, std::move(pStressStatePolicy), std::move(pCoefficientModifier))
+{
+}
+
+template <unsigned int TDim, unsigned int TNumNodes>
+UPwSmallStrainElement<TDim, TNumNodes>::UPwSmallStrainElement(IndexType             NewId,
+                                                              GeometryType::Pointer pGeometry,
+                                                              std::unique_ptr<StressStatePolicy> pStressStatePolicy,
+                                                              std::unique_ptr<IntegrationCoefficientModifier> pCoefficientModifier)
+    : UPwBaseElement(NewId, pGeometry, std::move(pStressStatePolicy), std::move(pCoefficientModifier))
+{
+}
+
+template <unsigned int TDim, unsigned int TNumNodes>
+UPwSmallStrainElement<TDim, TNumNodes>::UPwSmallStrainElement(IndexType               NewId,
+                                                              GeometryType::Pointer   pGeometry,
+                                                              PropertiesType::Pointer pProperties,
+                                                              std::unique_ptr<StressStatePolicy> pStressStatePolicy,
+                                                              std::unique_ptr<IntegrationCoefficientModifier> pCoefficientModifier)
+    : UPwBaseElement(NewId, pGeometry, pProperties, std::move(pStressStatePolicy), std::move(pCoefficientModifier))
+{
+}
+
+template <unsigned int TDim, unsigned int TNumNodes>
 Element::Pointer UPwSmallStrainElement<TDim, TNumNodes>::Create(IndexType             NewId,
                                                                 NodesArrayType const& ThisNodes,
                                                                 PropertiesType::Pointer pProperties) const
@@ -1365,6 +1393,18 @@ template <unsigned int TDim, unsigned int TNumNodes>
 void UPwSmallStrainElement<TDim, TNumNodes>::PrintInfo(std::ostream& rOStream) const
 {
     rOStream << Info();
+}
+
+template <unsigned int TDim, unsigned int TNumNodes>
+void UPwSmallStrainElement<TDim, TNumNodes>::save(Serializer& rSerializer) const
+{
+    KRATOS_SERIALIZE_SAVE_BASE_CLASS(rSerializer, UPwBaseElement)
+}
+
+template <unsigned int TDim, unsigned int TNumNodes>
+void UPwSmallStrainElement<TDim, TNumNodes>::load(Serializer& rSerializer)
+{
+    KRATOS_SERIALIZE_LOAD_BASE_CLASS(rSerializer, UPwBaseElement)
 }
 
 template class UPwSmallStrainElement<2, 3>;
