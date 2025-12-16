@@ -60,12 +60,6 @@ void GeoExtrapolateIntegrationPointValuesToNodesProcess::FillVariableLists(const
     }
 }
 
-void GeoExtrapolateIntegrationPointValuesToNodesProcess::Execute()
-{
-    ExecuteBeforeSolutionLoop();
-    ExecuteFinalizeSolutionStep();
-}
-
 void GeoExtrapolateIntegrationPointValuesToNodesProcess::ExecuteBeforeSolutionLoop()
 {
     InitializeAverageVariablesForElements();

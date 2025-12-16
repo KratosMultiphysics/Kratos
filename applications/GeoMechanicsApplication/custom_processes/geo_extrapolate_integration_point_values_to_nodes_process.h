@@ -50,7 +50,6 @@ public:
 
     ~GeoExtrapolateIntegrationPointValuesToNodesProcess() override;
 
-    void                           Execute() override;
     void                           ExecuteBeforeSolutionLoop() override;
     void                           ExecuteFinalizeSolutionStep() override;
     void                           ExecuteFinalize() override;
