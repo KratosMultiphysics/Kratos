@@ -486,7 +486,8 @@ void DEM_parallel_bond_bilinear_damage::CalculateTangentialForces(double OldLoca
 
         if ((element1->Id() == sphere_id) && (element2->Id() == neigh_sphere_id)) {
             std::ofstream normal_forces_file("delta_stress.txt", std::ios_base::out | std::ios_base::app);
-            normal_forces_file << r_process_info[TIME] << " " << contact_sigma/*1*/ << " " << contact_tau/*2*/ << " " << mDamageNormal/*3*/ << " " << mDamageTangential/*4*/ << " " << '\n'; 
+            normal_forces_file << r_process_info[TIME] << " " << contact_sigma/*1*/ << " " << contact_tau/*2*/ << " " << mDamageNormal/*3*/ << " " << mDamageTangential/*4*/ << " " << BondedLocalElasticContactForce[0]/*1*/ << " " << BondedLocalElasticContactForce[1]/*2*/ << " "  <<
+            UnbondedLocalElasticContactForce[0]/*1*/ << " " << UnbondedLocalElasticContactForce[1]/*2*/ << " " << '\n'; 
             normal_forces_file.flush();
             normal_forces_file.close();
         }
