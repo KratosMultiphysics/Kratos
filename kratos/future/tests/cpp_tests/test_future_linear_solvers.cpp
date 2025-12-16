@@ -57,7 +57,7 @@ KRATOS_TEST_CASE_IN_SUITE(FutureLinearSolversSkylineLUFactorizationSolver, Krato
     // Set the linear solver to be tested
     Parameters skyline_lu_settings(R"({
     })");
-    Future::LinearSolver<SystemVector<>, CsrMatrix<>>::Pointer p_linear_solver = Kratos::make_unique<Future::SkylineLUFactorizationSolver<SystemVector<>, CsrMatrix<>>>(skyline_lu_settings);
+    Future::LinearSolver<SystemVector<>>::Pointer p_linear_solver = Kratos::make_unique<Future::SkylineLUFactorizationSolver<SystemVector<>>>(skyline_lu_settings);
 
     // Solve the problem
     SystemVector<> sol(system_size);
@@ -83,7 +83,7 @@ KRATOS_TEST_CASE_IN_SUITE(FutureLinearSolversAmgcl, KratosCoreFutureSuite)
         "verbosity"                      : 1,
         "tolerance"                      : 1e-6
     })");
-    Future::LinearSolver<SystemVector<>, CsrMatrix<>>::Pointer p_linear_solver = Kratos::make_unique<Future::AMGCLSolver<SystemVector<>, CsrMatrix<>>>(amgcl_settings);
+    Future::LinearSolver<SystemVector<>>::Pointer p_linear_solver = Kratos::make_unique<Future::AMGCLSolver<SystemVector<>>>(amgcl_settings);
 
     // Solve the problem
     SystemVector<> sol(system_size);

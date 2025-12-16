@@ -437,9 +437,11 @@ public:
         return tmp;
     }
 
-    void ApplyHomogeneousDirichlet(const DistributedSystemVector<TDataType,TIndexType>& rFreeDofsVector,
-                                   const TDataType DiagonalValue,
-                                   DistributedSystemVector<TDataType,TIndexType>& rRHS)
+    template<class TVectorType1, class TVectorType2>
+    void ApplyHomogeneousDirichlet(
+        const TVectorType1& rFreeDofsVector,
+        const TDataType DiagonalValue,
+        TVectorType2& rRHS)
     {
         KRATOS_TRY
         KRATOS_ERROR_IF(local_size1() != rFreeDofsVector.LocalSize() ) << "ApplyHomogeneousDirichlet: mismatch between row sizes : " << local_size1()
@@ -489,8 +491,10 @@ public:
     //*
 
     // y += A*x  -- where A is *this
-    void SpMV(const DistributedSystemVector<TDataType,TIndexType>& x,
-              DistributedSystemVector<TDataType,TIndexType>& y) const
+    template<class TInputVectorType, class TOutputVectorType>
+    void SpMV(
+        const TInputVectorType& x,
+        TOutputVectorType& y) const
     {
         //get off diagonal terms (requires communication)
         auto off_diag_x = mpVectorImporter->ImportData(x);
@@ -499,10 +503,12 @@ public:
     }
 
     //y = alpha*y + beta*A*x
-    void SpMV(const TDataType alpha,
-              const DistributedSystemVector<TDataType,TIndexType>& x,
-              const TDataType beta,
-              DistributedSystemVector<TDataType,TIndexType>& y) const
+    template<class TInputVectorType, class TOutputVectorType>
+    void SpMV(
+        const TDataType alpha,
+        const TInputVectorType& x,
+        const TDataType beta,
+        TOutputVectorType& y) const
     {
         //get off diagonal terms (requires communication)
         auto off_diag_x = mpVectorImporter->ImportData(x);
@@ -511,10 +517,11 @@ public:
     }
 
     // y += A^t*x  -- where A is *this
-    DistributedVectorExporter<TIndexType>* TransposeSpMV(const DistributedSystemVector<TDataType,TIndexType>& x,
-            DistributedSystemVector<TDataType,TIndexType>& y,
-            DistributedVectorExporter<TIndexType>* pTransposeExporter = nullptr
-                                                        ) const
+    template<class TInputVectorType, class TOutputVectorType>
+    DistributedVectorExporter<TIndexType>* TransposeSpMV(
+        const TInputVectorType& x,
+        TOutputVectorType& y,
+        DistributedVectorExporter<TIndexType>* pTransposeExporter = nullptr) const
     {
         GetDiagonalBlock().TransposeSpMV(x.GetLocalData(),y.GetLocalData());
 
@@ -532,13 +539,13 @@ public:
     }
 
     // y += A^t*x  -- where A is *this
+    template<class TInputVectorType, class TOutputVectorType>
     DistributedVectorExporter<TIndexType>* TransposeSpMV(
         TDataType alpha,
-        const DistributedSystemVector<TDataType,TIndexType>& x,
+        const TInputVectorType& x,
         TDataType beta,
-        DistributedSystemVector<TDataType,TIndexType>& y,
-        DistributedVectorExporter<TIndexType>* pTransposeExporter = nullptr
-    ) const
+        TOutputVectorType& y,
+        DistributedVectorExporter<TIndexType>* pTransposeExporter = nullptr) const
     {
         GetDiagonalBlock().TransposeSpMV(alpha,x.GetLocalData(),beta,y.GetLocalData());
 

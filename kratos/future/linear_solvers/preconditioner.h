@@ -20,6 +20,7 @@
 // External includes
 
 // Project includes
+#include "future/containers/linear_operator.h"
 #include "includes/define.h"
 #include "includes/model_part.h"
 
@@ -69,7 +70,7 @@ namespace Kratos::Future
      }
      \end{verbatim}
 */
-template<class TMatrixType, class TVectorType>
+template<class TVectorType>
 class Preconditioner
 {
 public:
@@ -81,11 +82,11 @@ public:
 
     using VectorType = TVectorType;
 
-    using SparseMatrixType = TMatrixType;
-
-    using DataType = typename SparseMatrixType::DataType;
+    using DataType = typename TVectorType::DataType;
 
     using DenseMatrixType = DenseMatrix<DataType>;
+
+    using LinearOperatorPointerType = typename LinearOperator<TVectorType>::Pointer;
 
     ///@}
     ///@name Life Cycle
@@ -116,19 +117,19 @@ public:
 
     /** Preconditioner Initialize
     Initialize preconditioner for linear system rA*rX=rB
-    @param rA  system matrix.
+    @param pLinearOperator Pointer to the linear operator representing the system matrix
     @param rX Unknows vector
     @param rB Right side linear system of equations.
     */
     virtual void Initialize(
-        SparseMatrixType& rA,
+        LinearOperatorPointerType pLinearOperator,
         VectorType& rX,
         VectorType& rB)
     {
     }
 
     virtual void Initialize(
-        SparseMatrixType& rA,
+        LinearOperatorPointerType pLinearOperator,
         DenseMatrixType& rX,
         DenseMatrixType& rB)
     {
@@ -140,7 +141,7 @@ public:
             b[i] = rB(i,0);
         }
 
-        Initialize(rA, x, b);
+        Initialize(pLinearOperator, x, b);
     }
 
     /** This function is designed to be called every time the coefficients change in the system
@@ -152,7 +153,7 @@ public:
     @param rB. Right hand side vector.
     */
     virtual void InitializeSolutionStep(
-        SparseMatrixType& rA,
+        LinearOperatorPointerType pLinearOperator,
         VectorType& rX,
         VectorType& rB)
     {
@@ -165,7 +166,7 @@ public:
     @param rB. Right hand side vector.
     */
     virtual void FinalizeSolutionStep(
-        SparseMatrixType& rA,
+        LinearOperatorPointerType pLinearOperator,
         VectorType& rX,
         VectorType& rB)
     {
@@ -197,7 +198,7 @@ public:
      * This function is the place to eventually provide such data
      */
     virtual void ProvideAdditionalData(
-        SparseMatrixType& rA,
+        LinearOperatorPointerType pLinearOperator,
         VectorType& rX,
         VectorType& rB,
         typename ModelPart::DofsArrayType& rdof_set,
@@ -205,24 +206,24 @@ public:
     {}
 
     virtual void Mult(
-        SparseMatrixType& rA,
+        LinearOperatorPointerType pLinearOperator,
         VectorType& rX,
         VectorType& rY)
     {
         VectorType z = rX;
         ApplyRight(z);
-        rA.SpMV(z, rY);
+        pLinearOperator->SpMV(z, rY);
         ApplyLeft(rY);
     }
 
     virtual void TransposeMult(
-        SparseMatrixType& rA,
+        LinearOperatorPointerType pLinearOperator,
         VectorType& rX,
         VectorType& rY)
     {
         VectorType z = rX;
         ApplyTransposeLeft(z);
-        rA.TransposeSpMV(z, rY);
+        pLinearOperator->TransposeSpMV(z, rY);
         ApplyTransposeRight(rY);
     }
 
@@ -385,19 +386,19 @@ private:
 ///@{
 
 /// input stream function
-template<class TMatrixType, class TVectorType>
+template<class TVectorType>
 inline std::istream& operator >> (
     std::istream& IStream,
-    Preconditioner<TMatrixType, TVectorType>& rThis)
+    Preconditioner<TVectorType>& rThis)
     {
         return IStream;
     }
 
 /// output stream function
-template<class TMatrixType, class TVectorType>
+template<class TVectorType>
 inline std::ostream& operator << (
     std::ostream& OStream,
-    const Preconditioner<TMatrixType, TVectorType>& rThis)
+    const Preconditioner<TVectorType>& rThis)
 {
     rThis.PrintInfo(OStream);
     OStream << std::endl;

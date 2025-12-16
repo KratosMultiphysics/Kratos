@@ -484,19 +484,25 @@ public:
 
 
 
-template<class TVectorType, class TMatrixType>
-class SkylineLUFactorizationSolver : public Future::DirectSolver<TVectorType, TMatrixType>
+template<class TVectorType>
+class SkylineLUFactorizationSolver : public Future::DirectSolver<TVectorType>
 {
 public:
 
     /// Counted pointer of SkylineLUFactorizationSolver
     KRATOS_CLASS_POINTER_DEFINITION(SkylineLUFactorizationSolver);
 
-    using BaseType = Future::DirectSolver<TVectorType, TMatrixType>;
+    using BaseType = Future::DirectSolver<TVectorType>;
 
     using DenseMatrixType = typename BaseType::DenseMatrixType;
 
-    using LinearOperatorPointerType = typename LinearOperator<TVectorType, TMatrixType>::Pointer;
+    using DataType = typename TVectorType::DataType;
+
+    using IndexType = typename TVectorType::IndexType;
+
+    using CsrMatrixType = CsrMatrix<DataType, IndexType>;
+
+    using LinearOperatorPointerType = typename LinearOperator<TVectorType>::Pointer;
 
     /// Default constructor
     SkylineLUFactorizationSolver() = default;
@@ -526,10 +532,11 @@ public:
         const int size = rX.size();
 
         // define an object to store skyline matrix and factorization
-        LUSkylineFactorization<TMatrixType, TVectorType> myFactorization;
+        const auto& r_A = *(pLinearOperator->template GetMatrix<CsrMatrixType>());
+        LUSkylineFactorization<CsrMatrixType, TVectorType> myFactorization;
 
         // copy myMatrix into skyline format
-        myFactorization.copyFromCSRMatrix(*pLinearOperator->pGetMatrix());
+        myFactorization.copyFromCSRMatrix(pLinearOperator->template GetMatrix<CsrMatrixType>());
 
         // factorize it
         myFactorization.factorize();
@@ -554,9 +561,9 @@ public:
         TVectorType b(size1);
 
         // define an object to store skyline matrix and factorization
-        LUSkylineFactorization<TMatrixType, TVectorType> myFactorization;
+        LUSkylineFactorization<CsrMatrixType, TVectorType> myFactorization;
         // copy myMatrix into skyline format
-        const auto& r_A = *(pLinearOperator->pGetMatrix());
+        const auto& r_A = pLinearOperator->template GetMatrix<CsrMatrixType>();
         myFactorization.copyFromCSRMatrix(r_A);
         // factorize it
         myFactorization.factorize();
@@ -595,19 +602,19 @@ public:
 
 
 /// input stream function
-template<class TMatrixType, class TVectorType>
+template<class TVectorType>
 inline std::istream& operator >> (
     std::istream& rIStream,
-    SkylineLUFactorizationSolver<TMatrixType,TVectorType>& rThis)
+    SkylineLUFactorizationSolver<TVectorType>& rThis)
 {
     return rIStream;
 }
 
 /// output stream function
-template<class TMatrixType, class TVectorType>
+template<class TVectorType>
 inline std::ostream& operator << (
     std::ostream& rOStream,
-    const SkylineLUFactorizationSolver<TMatrixType, TVectorType>& rThis)
+    const SkylineLUFactorizationSolver<TVectorType>& rThis)
 {
     rThis.PrintInfo(rOStream);
     rOStream << std::endl;

@@ -18,6 +18,7 @@
 
 // Project includes
 #include "containers/csr_matrix.h"
+#include "containers/distributed_csr_matrix.h"
 #include "includes/model_part.h"
 
 namespace Kratos::Future
@@ -29,23 +30,23 @@ namespace Kratos::Future
 ///@name Kratos Classes
 ///@{
 
-namespace
-{
-    // Lazy wrapper to prevent instantiation unless selected
-    template<typename... Ts>
-    struct matrix_type_or_void
-    {
-        using type = void;
-        using p_type = void*;
-    };
+// namespace
+// {
+//     // Lazy wrapper to prevent instantiation unless selected
+//     template<typename... Ts>
+//     struct matrix_type_or_void
+//     {
+//         using type = void;
+//         using p_type = void*;
+//     };
 
-    template<typename T0, typename... Ts>
-    struct matrix_type_or_void<T0, Ts...>
-    {
-        using type = T0;
-        using p_type = typename T0::Pointer;
-    };
-}
+//     template<typename T0, typename... Ts>
+//     struct matrix_type_or_void<T0, Ts...>
+//     {
+//         using type = T0;
+//         using p_type = typename T0::Pointer;
+//     };
+// }
 
 /**
  * @brief
@@ -68,11 +69,9 @@ namespace
  * @tparam TSystemVectorType The system vector type used in the Kratos linear algebra backend
  * @tparam Ts Optional parameter pack representing the sparse matrix type (e.g., CsrMatrix<double>).
  */
-template <class TSystemVectorType, typename... Ts>
+template <class TVectorType>
 class LinearOperator
 {
-
-static_assert(sizeof...(Ts) < 2, "Ts must be either a single type representing the sparse matrix type or empty to indicate a matrix-free operator.");
 
 public:
     ///@name Type Definitions
@@ -81,14 +80,18 @@ public:
     /// Pointer definition of LinearOperator
     KRATOS_CLASS_POINTER_DEFINITION(LinearOperator);
 
-    /// Sparse matrix type (if any) or void
-    using SparseMatrixType = typename matrix_type_or_void<Ts...>::type;
+    /// Data type stored in the system vector
+    using DataType = typename TVectorType::DataType;
 
-    /// Sparse matrix pointer type (if any) or void*
-    using SparseMatrixPointerType = typename matrix_type_or_void<Ts...>::p_type;
+    /// Index type used in the system vector
+    using IndexType = typename TVectorType::IndexType;
 
-    /// Boolean indicating whether a CSR matrix type is provided
-    static constexpr bool kIsMatrixFree = std::is_void_v<SparseMatrixType>;
+    /// Vector type used to represent system matrix
+    using MatrixVariantType = std::variant<
+        std::monostate,
+        CsrMatrix<DataType, IndexType>,
+        DistributedCsrMatrix<DataType, IndexType>
+    >;
 
     ///@}
     ///@name Life Cycle
@@ -101,50 +104,13 @@ public:
     LinearOperator() = default;
 
     /**
-     * @brief Constructor from row/column sizes.
-     * @param NumRows Number of rows of the operator
-     * @param NumCols Number of columns of the operator
-     */
-    LinearOperator(
-        std::size_t NumRows,
-        std::size_t NumCols) requires(kIsMatrixFree)
-        : mNumRows(NumRows)
-        , mNumCols(NumCols)
-    {
-    }
-
-    /**
-     * @brief Constructor from a pair of (rows, cols).
-     * @param Size Pair containing {NumRows, NumCols}
-     */
-    LinearOperator(std::pair<std::size_t, std::size_t> Size) requires(kIsMatrixFree)
-        : mNumRows(std::get<0>(Size))
-        , mNumCols(std::get<1>(Size))
-    {
-    }
-
-    /**
      * @brief Constructor from parameters.
      * @param ThisParameters Parameters containing the linear operator settings
      */
-    LinearOperator(Parameters ThisParameters) requires(kIsMatrixFree)
+    LinearOperator(Parameters ThisParameters)
     {
         mNumRows = ThisParameters["num_rows"].GetInt();
         mNumCols = ThisParameters["num_cols"].GetInt();
-    }
-
-    /**
-     * @brief Constructor from a CSR matrix.
-     * Constructs a LinearOperator that wraps the provided CSR matrix.
-     * Note that this constructor is only enabled when a CSR matrix type is provided.
-     * @param rA Reference to the CSR matrix
-     */
-    LinearOperator(Ts& ...rA) requires(!kIsMatrixFree)
-    {
-        auto& r_A = std::get<0>(std::forward_as_tuple(rA...)); // Extract the CSR matrix from the parameter pack
-        mpCsrMatrix = std::make_shared<SparseMatrixType>(r_A);
-        mNumRows = mpCsrMatrix->size1();
-        mNumCols = mpCsrMatrix->size2();
     }
 
     /// Deleted copy constructor (non-copyable)
@@ -170,53 +136,22 @@ public:
     ///@name Operations
     ///@{
 
-    /**
-     * @brief Apply the linear operator.
-     * @details Computes \( y = A(x) \).
-     * @param rX Input vector
-     * @param rY Output vector (result)
-     */
-    void Apply(
-        const TSystemVectorType& rX,
-        TSystemVectorType& rY)
-    {
-        if constexpr (!kIsMatrixFree) {
-            // Apply the CSR matrix
-            mpCsrMatrix->SpMV(rX, rY);
-        } else {
-            // Matrix-free application (to be implemented by the user)
-            KRATOS_ERROR << "Matrix-free Apply() must be implemented in derived classes." << std::endl;
-        }
-    }
+    virtual void SpMV(
+        const TVectorType& rX,
+        TVectorType& rY) = 0;
 
-    /**
-     * @brief Apply the transpose of the linear operator.
-     * @details Computes \( y = A^T(x) \).
-     * @param rX Input vector
-     * @param rY Output vector (result)
-     */
-    void ApplyTranspose(
-        const TSystemVectorType& rX,
-        TSystemVectorType& rY)
-    {
-        if constexpr (!kIsMatrixFree) {
-            // Apply the transpose of the CSR matrix
-            mpCsrMatrix->TransposeSpMV(rX, rY);
-        } else {
-            // Matrix-free transpose application (to be implemented by the user)
-            KRATOS_ERROR << "Matrix-free ApplyTranspose() must be implemented in derived classes." << std::endl;
-        }
-    }
+    virtual void TransposeSpMV(
+        const TVectorType& rX,
+        TVectorType& rY) = 0;
 
     /**
      * @brief Clear the operator data.
      * @details Resets the sizes and function objects to null.
      */
-    void Clear()
+    virtual void Clear()
     {
         mNumRows = 0;
         mNumCols = 0;
-        mpCsrMatrix = nullptr;
     }
 
     ///@}
@@ -241,9 +176,10 @@ public:
         mNumCols = NumCols;
     }
 
-    SparseMatrixPointerType pGetMatrix() const requires(!kIsMatrixFree)
+    template<class TMatrixType>
+    TMatrixType& GetMatrix() const
     {
-        return mpCsrMatrix;
+        return std::get<MatrixVariantType>(this->GetMatrixImpl());
     }
 
     ///@}
@@ -272,9 +208,26 @@ public:
      * @brief Check if the operator is matrix-free.
      * @return True if the operator is matrix-free, false if it wraps a CSR matrix
      */
-    bool IsMatrixFree() const
+    virtual bool IsMatrixFree() const
     {
-        return kIsMatrixFree;
+        return true;
+    }
+
+    ///@}
+
+protected:
+
+    ///@name Protected access
+    ///@{
+
+    /**
+     * @brief Get the underlying matrix variant.
+     * @return Reference to the matrix variant
+     */
+    virtual MatrixVariantType& GetMatrixImpl() const
+    {
+        KRATOS_ERROR << "GetMatrixImpl() not implemented in base LinearOperator class." << std::endl;
+        return std::monostate{};
     }
 
     ///@}
@@ -286,9 +239,6 @@ private:
 
     /// Number of columns of the operator
     std::size_t mNumCols = 0;
-
-    /// Pointer to the CSR matrix (if applicable)
-    SparseMatrixPointerType mpCsrMatrix = nullptr;
 
 }; // class LinearOperator
 

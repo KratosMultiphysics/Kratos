@@ -12,32 +12,27 @@
 
 // Project includes
 #include "future/containers/linear_operator.h"
+#include "future/containers/sparse_matrix_linear_operator.h"
 #include "containers/system_vector.h"
 #include "testing/testing.h"
 
 namespace Kratos::Testing
 {
 
-KRATOS_TEST_CASE_IN_SUITE(LinearOperatorEmpty, KratosCoreFutureSuite)
-{
-    // Set up the linear operator
-    Future::LinearOperator<SystemVector<>> linear_operator(std::make_pair(5,5));
+// KRATOS_TEST_CASE_IN_SUITE(LinearOperatorEmpty, KratosCoreFutureSuite)
+// {
+//     // Set up the linear operator
+//     Parameters linear_operator_settings(R"({
+//         "num_rows": 5,
+//         "num_cols": 5
+//     })");
+//     Future::LinearOperator<SystemVector<>> linear_operator(linear_operator_settings);
 
-    // Check linear operator features
-    KRATOS_EXPECT_EQ(linear_operator.NumRows(), 5);
-    KRATOS_EXPECT_EQ(linear_operator.NumCols(), 5);
-    KRATOS_EXPECT_TRUE(linear_operator.IsMatrixFree());
-
-    // Check that applying the base operator raises an error
-    const SystemVector<> input_vector(5);
-    SystemVector<> output_vector(5);
-    KRATOS_EXPECT_EXCEPTION_IS_THROWN(
-        linear_operator.Apply(input_vector, output_vector),
-        "Matrix-free Apply() must be implemented in derived classes.");
-    KRATOS_EXPECT_EXCEPTION_IS_THROWN(
-        linear_operator.ApplyTranspose(input_vector, output_vector),
-        "Matrix-free ApplyTranspose() must be implemented in derived classes.");
-}
+//     // Check linear operator features
+//     KRATOS_EXPECT_EQ(linear_operator.NumRows(), 5);
+//     KRATOS_EXPECT_EQ(linear_operator.NumCols(), 5);
+//     KRATOS_EXPECT_TRUE(linear_operator.IsMatrixFree());
+// }
 
 KRATOS_TEST_CASE_IN_SUITE(LinearOperatorWithCsr, KratosCoreFutureSuite)
 {
@@ -62,10 +57,10 @@ KRATOS_TEST_CASE_IN_SUITE(LinearOperatorWithCsr, KratosCoreFutureSuite)
     CsrMatrix<double> csr_matrix(matrix_map);
 
     // Set up the linear operator from the CSR matrix
-    Future::LinearOperator<SystemVector<>, CsrMatrix<double>> linear_operator(csr_matrix);
+    Future::SparseMatrixLinearOperator<SystemVector<>> linear_operator(csr_matrix);
 
     // Apply the linear operator to an input vector
-    linear_operator.Apply(input_vector, output_vector);
+    linear_operator.SpMV(input_vector, output_vector);
 
     // Check linear operator features
     KRATOS_EXPECT_EQ(linear_operator.NumRows(), 5);

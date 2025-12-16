@@ -104,7 +104,7 @@ void AddStrategiesToPython(py::module& m)
         .def("CalculateOutputData", py::overload_cast<const Variable<Matrix>&>(&Strategy::CalculateOutputData, py::const_))
     ;
 
-    using LinearSolverType = Future::LinearSolver<SystemVector<>, CsrMatrix<>>;
+    using LinearSolverType = Future::LinearSolver<SystemVector<>>;
     using ImplicitStrategyType = Future::ImplicitStrategy<CsrMatrix<>, SystemVector<>, SparseContiguousRowGraph<>>;
     py::class_<ImplicitStrategyType, typename ImplicitStrategyType::Pointer, Strategy>(m, "ImplicitStrategy")
         // .def(py::init<ModelPart&, Parameters>()) //TODO: Expose this one once we fix the registry stuff

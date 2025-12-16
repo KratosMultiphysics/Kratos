@@ -67,7 +67,7 @@ public:
     using SchemePointerType = typename ImplicitScheme<TSparseMatrixType, TSystemVectorType, TSparseGraphType>::Pointer;
 
     // Linear solver pointer definition
-    using LinearSolverPointerType = typename Future::LinearSolver<TSystemVectorType, TSparseMatrixType>::Pointer;
+    using LinearSolverPointerType = typename Future::LinearSolver<TSystemVectorType>::Pointer;
 
     /// Index type definition
     using IndexType = typename TSparseMatrixType::IndexType;

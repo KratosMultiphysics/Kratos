@@ -7,7 +7,7 @@
 //  License:         BSD License
 //                   Kratos default license: kratos/license.txt
 //
-//  Main authors:    Pooyan Dadvand
+//  Main authors:    Denis Deminov
 //                   Riccardo Rossi
 //                   Ruben Zorrilla
 //
@@ -102,9 +102,10 @@ void KRATOS_API(KRATOS_CORE) AMGCLSolve(
  * AMGCL builds the AMG hierarchy on a CPU and then transfers it to one of the provided backends. This allows for transparent acceleration of the solution phase with help of OpenCL, CUDA, or OpenMP technologies. Users may provide their own backends which enables tight integration between AMGCL and the user code.
  * @author Denis Demidov
  * @author Riccardo Rossi
+ * @author Ruben Zorrilla
  */
-template<class TVectorType, class TMatrixType>
-class AMGCLSolver : public Future::LinearSolver<TVectorType, TMatrixType>
+template<class TVectorType>
+class AMGCLSolver : public Future::LinearSolver<TVectorType>
 {
 public:
     ///@name Type Definitions
@@ -114,22 +115,19 @@ public:
     KRATOS_CLASS_POINTER_DEFINITION( AMGCLSolver );
 
     /// The base class definition
-    using BaseType = Future::LinearSolver<TVectorType, TMatrixType>;
+    using BaseType = Future::LinearSolver<TVectorType>;
 
-    /// Dense matrix type
-    using DenseMatrixType = typename BaseType::DenseMatrixType;
+    /// Type definition for data
+    using DataType = typename TVectorType::DataType;
 
-    /// The index type definition to be consistent
-    using IndexType = typename BaseType::IndexType;
+    /// Type definition for index
+    using IndexType = typename TVectorType::IndexType;
 
-    /// DofArray type
-    using DofsArrayType = ModelPart::DofsArrayType;
+    /// Local system matrix type definition
+    using DenseMatrixType = DenseMatrix<DataType>;
 
-    /// Linear operator type definition
-    using LinearOperatorPointerType = typename BaseType::LinearOperatorType::Pointer;
-
-    /// Sparse matrix type definition extracted from LinearOperator
-    using MatrixPointerType = typename BaseType::LinearOperatorType::SparseMatrixPointerType;
+    /// Linear operator pointer type definition
+    using LinearOperatorPointerType = typename LinearOperator<TVectorType>::Pointer;
 
     ///@}
     ///@name Life Cycle
@@ -327,7 +325,7 @@ public:
         TVectorType& rB) override
     {
         // Get CSR matrix from linear operator
-        auto& r_A = *(pLinearOperatorType->pGetMatrix());
+        auto& r_A = pLinearOperatorType->template GetMatrix<CsrMatrix<>>();
 
         // Initial checks
         KRATOS_ERROR_IF(r_A.size1() != r_A.size2()) << "matrix A is not square! sizes are " << r_A.size1() << " and " << r_A.size2() << std::endl;
@@ -487,10 +485,10 @@ public:
         LinearOperatorPointerType pLinearOperator,
         TVectorType& rX,
         TVectorType& rB,
-        DofsArrayType& rDofSet,
+        typename ModelPart::DofsArrayType& rDofSet,
         ModelPart& rModelPart) override
     {
-        const auto p_A = pLinearOperator->pGetMatrix();
+        const auto p_A = pLinearOperator->template GetMatrix<CsrMatrix<>>();
 
         int old_ndof = -1;
         int ndof=0;
@@ -845,10 +843,10 @@ protected:
 /**
  * input stream function
  */
-template<class TMatrixType, class TVectorType>
+template<class TVectorType>
 inline std::istream& operator >> (
     std::istream& rIStream,
-    AMGCLSolver< TMatrixType, TVectorType>& rThis)
+    AMGCLSolver< TVectorType>& rThis)
 {
     return rIStream;
 }
@@ -856,10 +854,10 @@ inline std::istream& operator >> (
 /**
  * output stream function
  */
-template<class TMatrixType, class TVectorType>
+template<class TVectorType>
 inline std::ostream& operator << (
     std::ostream& rOStream,
-    const AMGCLSolver<TMatrixType, TVectorType>& rThis)
+    const AMGCLSolver<TVectorType>& rThis)
 {
     rThis.PrintInfo(rOStream);
     rOStream << std::endl;
