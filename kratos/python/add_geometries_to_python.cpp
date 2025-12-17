@@ -207,7 +207,18 @@ void  AddGeometriesToPython(pybind11::module& m)
     .def("ShapeFunctionDerivatives", [](GeometryType& self, IndexType DerivativeOrderIndex,
         IndexType IntegrationPointIndex)
         { return(self.ShapeFunctionDerivatives(DerivativeOrderIndex, IntegrationPointIndex, self.GetDefaultIntegrationMethod())); })
-    // Mapping
+     // Mapping
+    .def("ProjectionPointGlobalToLocalSpace", [](GeometryType& self, const CoordinatesArrayType& rGlobalCoordinates, CoordinatesArrayType rLocalCoordinates, const double Tolerance)
+        {
+            self.ProjectionPointGlobalToLocalSpace(rGlobalCoordinates, rLocalCoordinates, Tolerance);
+            return rLocalCoordinates;
+        }, py::arg("global_coordinates"), py::arg("local_coordinates"), py::arg("tolerance") = 1.0e-5)
+    .def("ProjectionPointGlobalToLocalSpace", [](GeometryType& self, const CoordinatesArrayType& rGlobalCoordinates, const double Tolerance)
+        {
+            CoordinatesArrayType local_coordinates;
+            self.ProjectionPointGlobalToLocalSpace(rGlobalCoordinates, local_coordinates, Tolerance);
+            return local_coordinates;
+        }, py::arg("global_coordinates"), py::arg("tolerance") = 1.0e-5)
     .def("GlobalCoordinates", [](GeometryType& self, CoordinatesArrayType& LocalCoordinates)
         {
         CoordinatesArrayType result = ZeroVector( 3 );

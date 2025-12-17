@@ -701,6 +701,12 @@ void SnakeSbmProcess::SnakeStepNurbs(
                     // -> we mark an arbitrary knot span (the one with the x of the first point and the y of the second point) as cut.
                     knot_span_u_point_split = rKnotSpansUV[0][0];
                     knot_span_v_point_split = rKnotSpansUV[1][1];
+
+
+                    // FIXME: check thorugh diagonal 
+                    rKnotSpansAvailable[IdMatrix][rKnotSpansUV[1][0]][rKnotSpansUV[0][0]] = 2;
+                    rKnotSpansAvailable[IdMatrix][rKnotSpansUV[1][0]][rKnotSpansUV[0][1]] = 2;
+                    rKnotSpansAvailable[IdMatrix][rKnotSpansUV[1][1]][rKnotSpansUV[0][0]] = 2;
                 }
             }
 
@@ -888,6 +894,12 @@ bool SnakeSbmProcess::IsPointInsideSkinBoundary(
             prev_extended_coordinates += (prev_direction / prev_direction_norm) * extension_length;
         }
         const Node prev_extended_node(0, prev_extended_coordinates[0], prev_extended_coordinates[1], prev_extended_coordinates[2]);
+
+        // array_1d<double, 3> point_extended_coordinates = temp_point.Coordinates();
+        // if (prev_direction_norm != 0.0) {
+        //     point_extended_coordinates -= (prev_direction / prev_direction_norm) * extension_length;
+        // }
+        // const Node point_extended_node(0, point_extended_coordinates[0], point_extended_coordinates[1], point_extended_coordinates[2]);
 
         if (SegmentsIntersect(temp_point, main_extended_node, prev_extended_node, r_prev_second_node)) {
             return cross_product_previous_z > 0.0;

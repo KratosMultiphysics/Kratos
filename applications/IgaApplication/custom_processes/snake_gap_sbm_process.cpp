@@ -745,8 +745,8 @@ void SnakeGapSbmProcess::CreateSbmExtendedGeometries(
             array_1d<double,3> v_proj_1 = rSkinSubModelPart.GetNode(proj_id_first).Coordinates() - p_first->Coordinates();
             array_1d<double,3> v_proj_2 = rSkinSubModelPart.GetNode(proj_id_second).Coordinates() - p_second->Coordinates();
 
-            v_proj_1 /= norm_2(v_proj_1);
-            v_proj_2 /= norm_2(v_proj_2);
+            // v_proj_1 /= norm_2(v_proj_1); //FIXME:
+            // v_proj_2 /= norm_2(v_proj_2);
 
             const double dot1 = v_proj_1[0]*normal_cond[0] + v_proj_1[1]*normal_cond[1];
             const double dot2 = v_proj_2[0]*normal_cond[0] + v_proj_2[1]*normal_cond[1]; 
@@ -1160,7 +1160,7 @@ void SnakeGapSbmProcess::CreateGapAndSkinQuadraturePoints(
     if (mGapSbmType == "interpolation")
     {
         std::size_t number_interpolation_cuts = (p-1);
-        if (!(norm_2(skin_2 - skin_1) > rIntegrationParameters.rKnotSpanSizes[0]/10 && p>1))
+        if (!(norm_2(skin_2 - skin_1) > rIntegrationParameters.rKnotSpanSizes[0]/50 && p>1))
             number_interpolation_cuts = 0;
 
 
@@ -1211,8 +1211,8 @@ void SnakeGapSbmProcess::CreateGapAndSkinQuadraturePoints(
                 if (normal_norm > 1.0e-16) {
                     normal_direction /= normal_norm;
 
-                    // if constexpr(TIsInnerLoop)
-                    //     normal_direction*=-1;
+                    if constexpr(!TIsInnerLoop)
+                        normal_direction*=-1;
                 }
             }
 
@@ -1310,9 +1310,9 @@ void SnakeGapSbmProcess::CreateGapAndSkinQuadraturePoints(
             interpolation_points.push_back(r_skin_node.Coordinates());
         }
 
-        const double ridge = 1e-12;
+        const double ridge = 1e-11;
 
-        if (norm_2(skin_2 - skin_1) > rIntegrationParameters.rKnotSpanSizes[0]/10 && p>1 && segment_count >= p+1)
+        if (norm_2(skin_2 - skin_1) > rIntegrationParameters.rKnotSpanSizes[0]/50 && p>1 && segment_count >= p+1)
             p_nurbs_curve_skin1_skin2 = FitBezierUV_LS_Generic(interpolation_points, p, ridge);
     }
     else if (mGapSbmType == "default")
@@ -1350,7 +1350,7 @@ void SnakeGapSbmProcess::CreateGapAndSkinQuadraturePoints(
             check_enough_samples = true;
         }
 
-        if (norm_2(skin_2 - skin_1) > rIntegrationParameters.rKnotSpanSizes[0]/10 && check_enough_samples && p>1)
+        if (norm_2(skin_2 - skin_1) > rIntegrationParameters.rKnotSpanSizes[0]/50 && check_enough_samples && p>1)
         {
             p_nurbs_curve_skin1_skin2 = FitUV_BetweenSkinNodes_Generic<TIsInnerLoop>(
                 rSkinSubModelPart, *pNurbsSurface, id_closest_true_node, id_closest_true_node_2, p, /*ridge=*/1e-14);
@@ -1418,10 +1418,10 @@ void SnakeGapSbmProcess::CreateGapAndSkinQuadraturePoints(
     const double characteristic_condition_length = CalculateGapElementCharacteristicLength(
         pSurrogateNode1->Coordinates(), pSurrogateNode2->Coordinates(), p_skin_node_1->Coordinates(), p_skin_node_2->Coordinates());
     
-    // if (!mUseForMultipatch)
-    //     this->CreateConditions(
-    //         brep_quadrature_point_list_skin1_skin2.ptr_begin(), brep_quadrature_point_list_skin1_skin2.ptr_end(),
-    //         r_layer_model_part, condition_name, id, PropertiesPointerType(), rIntegrationParameters.rKnotSpanSizes, neighbour_geometries_skin1_skin2, characteristic_condition_length);
+    if (!mUseForMultipatch)
+        this->CreateConditions(
+            brep_quadrature_point_list_skin1_skin2.ptr_begin(), brep_quadrature_point_list_skin1_skin2.ptr_end(),
+            r_layer_model_part, condition_name, id, PropertiesPointerType(), rIntegrationParameters.rKnotSpanSizes, neighbour_geometries_skin1_skin2, characteristic_condition_length);
 
     // check for void elements/true coincident with surrogate boundary
     if (
@@ -1501,9 +1501,9 @@ void SnakeGapSbmProcess::CreateGapAndSkinQuadraturePoints(
     if (mpGapElementsSubModelPart->GetRootModelPart().Elements().size() > 0)
         id_element = mpGapElementsSubModelPart->GetRootModelPart().Elements().back().Id() + 1;
 
-    // this->CreateElements(
-    //     surface_quadrature_point_list.ptr_begin(), surface_quadrature_point_list.ptr_end(),
-    //     *mpGapElementsSubModelPart, mGapElementName, id_element, PropertiesPointerType(), neighbour_geometries_skin1_skin2, characteristic_length);
+    this->CreateElements(
+        surface_quadrature_point_list.ptr_begin(), surface_quadrature_point_list.ptr_end(),
+        *mpGapElementsSubModelPart, mGapElementName, id_element, PropertiesPointerType(), neighbour_geometries_skin1_skin2, characteristic_length);
 }
 
 void SnakeGapSbmProcess::CreateConditions(
@@ -1875,8 +1875,7 @@ void SnakeGapSbmProcess::SetSurrogateToSkinProjections(
         return coordinate;
     };
 
-    constexpr double tol = 1.0e-12;
-
+    constexpr double tol = 1.0e-8;
     auto compute_candidate_indices = [&](double coordinate,
                                          double min_value,
                                          double max_value,
