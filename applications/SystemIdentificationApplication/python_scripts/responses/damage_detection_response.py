@@ -1,6 +1,7 @@
 from typing import Optional
 import csv
 from pathlib import Path
+import math
 
 import KratosMultiphysics as Kratos
 import KratosMultiphysics.OptimizationApplication as KratosOA
@@ -193,14 +194,14 @@ class DamageDetectionResponse(ResponseFunction):
             return
         elif sensor_normalization_type == "maximum_measured_value":
             normalization_factor = max(abs(sensor.GetNode().GetValue(KratosDT.SENSOR_MEASURED_VALUE)) for sensor in self.list_of_sensors)
-            if normalization_factor <= 1e-12:
+            if math.isclose(normalization_factor, 0.0, abs_tol=1e-16):
                 raise RuntimeError(f"The maximum measured value for sensor normalization is approximately zero ({normalization_factor}). Cannot normalize.")
             for sensor in self.list_of_sensors:
                 sensor.GetNode().SetValue(KratosDT.SENSOR_NORMALIZATION_FACTOR, normalization_factor)
             return
         elif sensor_normalization_type == "average_measured_value":
             normalization_factor = sum(abs(sensor.GetNode().GetValue(KratosDT.SENSOR_MEASURED_VALUE)) for sensor in self.list_of_sensors) / len(self.list_of_sensors)
-            if normalization_factor <= 1e-12:
+            if math.isclose(normalization_factor, 0.0, abs_tol=1e-16):
                 raise RuntimeError(f"The average measured value for sensor normalization is approximately zero ({normalization_factor}). Cannot normalize.")
             for sensor in self.list_of_sensors:
                 sensor.GetNode().SetValue(KratosDT.SENSOR_NORMALIZATION_FACTOR, normalization_factor)
@@ -220,7 +221,7 @@ class DamageDetectionResponse(ResponseFunction):
             max_measured_value = max(abs(sensor.GetNode().GetValue(KratosDT.SENSOR_MEASURED_VALUE)) for sensor in self.list_of_sensors)
             for sensor in self.list_of_sensors:
                 normalization_factor = max(abs(sensor.GetNode().GetValue(KratosDT.SENSOR_MEASURED_VALUE)), epsilon * max_measured_value)
-                if normalization_factor <= 1e-12:
+                if math.isclose(normalization_factor, 0.0, abs_tol=1e-16):
                     raise RuntimeError(f"The local maximum measured value for sensor \"{sensor.GetName()}\" normalization is approximately zero ({normalization_factor}). Cannot normalize.")
                 sensor.GetNode().SetValue(KratosDT.SENSOR_NORMALIZATION_FACTOR, normalization_factor)
             return

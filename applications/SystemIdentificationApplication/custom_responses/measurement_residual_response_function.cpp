@@ -156,10 +156,6 @@ double MeasurementResidualResponseFunction::CalculateValue(ModelPart& rModelPart
         p_sensor->GetNode()->SetValue(SENSOR_ERROR, current_sensor_error);
         p_sensor->GetNode()->SetValue(SENSOR_RELATIVE_ERROR, current_sensor_error / p_sensor->GetNode()->GetValue(SENSOR_MEASURED_VALUE));
         
-        KRATOS_ERROR_IF(std::abs(p_sensor->GetNode()->GetValue(SENSOR_NORMALIZATION_FACTOR)) <= 1e-12)
-            << "Sensor \"" << p_sensor->GetName() << "\" has a SENSOR_NORMALIZATION_FACTOR = " << p_sensor->GetNode()->GetValue(SENSOR_NORMALIZATION_FACTOR) << " which will lead to division by approximately zero.\n"
-            << "Please set SENSOR_NORMALIZATION_FACTOR > 1e-12, or use a different normalization type.\n";
-
         sum += ( std::pow( 0.5 * pow(current_sensor_error / p_sensor->GetNode()->GetValue(SENSOR_NORMALIZATION_FACTOR), 2) * p_sensor->GetWeight(), mPCoefficient ) );
     }
 
@@ -189,10 +185,6 @@ void MeasurementResidualResponseFunction::CalculateDerivative(
     for (auto& p_sensor : mpSensorsList) {
         TCalculationType::Calculate(*p_sensor, local_sensor_response_gradient, rResidualGradient, rArgs...);
         
-        KRATOS_ERROR_IF(std::abs(p_sensor->GetNode()->GetValue(SENSOR_NORMALIZATION_FACTOR)) <= 1e-12)
-            << "Sensor \"" << p_sensor->GetName() << "\" has a SENSOR_NORMALIZATION_FACTOR = " << p_sensor->GetNode()->GetValue(SENSOR_NORMALIZATION_FACTOR) << " which will lead to division by approximately zero.\n"
-            << "Please set SENSOR_NORMALIZATION_FACTOR > 1e-12, or use a different normalization type.\n";
-
         noalias(rResponseGradient) += local_sensor_response_gradient * mC1 * (std::pow(p_sensor->GetWeight(), mPCoefficient) * (1 / std::pow( p_sensor->GetNode()->GetValue(SENSOR_NORMALIZATION_FACTOR), 2 * mPCoefficient )) * std::pow(p_sensor->GetNode()->GetValue(SENSOR_ERROR), mPCoefficient * 2 - 1 ) );
     }
 
