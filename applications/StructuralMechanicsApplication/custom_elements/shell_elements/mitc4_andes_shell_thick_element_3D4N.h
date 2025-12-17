@@ -229,11 +229,13 @@ public:
      * @details The B matrix includes the bending and shear parts. Size of 8x24 since we have 8 generalized strains and 24 dofs (4 nodes with 6 dofs each)
      */
     void CalculateShearBendingB(
+        const double xi,
+        const double eta,
         MatrixType& rB,
         const double Area,
-        const array_3& r_coord_1,
-        const array_3& r_coord_2,
-        const array_3& r_coord_3,
+        const array_3& r_local_coord_1,
+        const array_3& r_local_coord_2,
+        const array_3& r_local_coord_3,
         const array_3& r_coord_4
     );
 
@@ -243,12 +245,12 @@ public:
      * @details The B matrix includes the membrane based on the Haugen and Felippa's ANDES quad membrane element
      */
     void CalculateMembraneB(
+        const double xi,
+        const double eta,
         MatrixType& rB,
         const double Area,
-        const array_3& r_coord_1,
-        const array_3& r_coord_2,
-        const array_3& r_coord_3,
-        const array_3& r_coord_4
+        const bounded_4_matrix& rX_dist,
+        const bounded_4_matrix& rY_dist
     );
 
     /**

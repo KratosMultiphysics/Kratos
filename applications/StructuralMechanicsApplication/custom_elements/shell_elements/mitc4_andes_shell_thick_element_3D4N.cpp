@@ -30,13 +30,14 @@ namespace Kratos
 
 template <bool IS_COROTATIONAL>
 void MITC4AndesShellThickElement3D4N<IS_COROTATIONAL>::Initialize(
-    const ProcessInfo& rCurrentProcessInfo)
+    const ProcessInfo &rCurrentProcessInfo)
 {
     KRATOS_TRY
 
     // Initialization should not be done again in a restart!
-    if (!rCurrentProcessInfo[IS_RESTARTED]) {
-        const auto& r_integration_points = GetGeometry().IntegrationPoints(mThisIntegrationMethod);
+    if (!rCurrentProcessInfo[IS_RESTARTED])
+    {
+        const auto &r_integration_points = GetGeometry().IntegrationPoints(mThisIntegrationMethod);
 
         // Constitutive Law initialisation
         if (mConstitutiveLawVector.size() != r_integration_points.size())
@@ -45,7 +46,6 @@ void MITC4AndesShellThickElement3D4N<IS_COROTATIONAL>::Initialize(
 
         mpCoordinateTransformation = Kratos::make_unique<CoordinateTransformationType>(pGetGeometry());
         mpCoordinateTransformation->Initialize();
-
     }
     KRATOS_CATCH("MITC4AndesShellThickElement3D4N::Initialize")
 }
@@ -60,14 +60,18 @@ void MITC4AndesShellThickElement3D4N<IS_COROTATIONAL>::InitializeMaterial()
 
     // TODO: ensure retro-compatibility with older SHELLS using Section class
 
-    const auto& r_properties = GetProperties();
-    if (r_properties[CONSTITUTIVE_LAW] != nullptr) {
+    const auto &r_properties = GetProperties();
+    if (r_properties[CONSTITUTIVE_LAW] != nullptr)
+    {
         auto N_values = Vector();
-        for (IndexType point_number = 0; point_number < mConstitutiveLawVector.size(); ++point_number) {
+        for (IndexType point_number = 0; point_number < mConstitutiveLawVector.size(); ++point_number)
+        {
             mConstitutiveLawVector[point_number] = r_properties[CONSTITUTIVE_LAW]->Clone();
             mConstitutiveLawVector[point_number]->InitializeMaterial(r_properties, GetGeometry(), N_values);
         }
-    } else {
+    }
+    else
+    {
         KRATOS_ERROR << "A constitutive law needs to be specified for the MITC4-ANDES thick shell element with ID " << this->Id() << std::endl;
     }
 
@@ -80,13 +84,11 @@ void MITC4AndesShellThickElement3D4N<IS_COROTATIONAL>::InitializeMaterial()
 template <bool IS_COROTATIONAL>
 Element::Pointer MITC4AndesShellThickElement3D4N<IS_COROTATIONAL>::Clone(
     IndexType NewId,
-    NodesArrayType const& rThisNodes
-    ) const
+    NodesArrayType const &rThisNodes) const
 {
     KRATOS_TRY
 
-    MITC4AndesShellThickElement3D4N::Pointer p_new_elem = Kratos::make_intrusive<MITC4AndesShellThickElement3D4N>
-        (NewId, GetGeometry().Create(rThisNodes), pGetProperties());
+    MITC4AndesShellThickElement3D4N::Pointer p_new_elem = Kratos::make_intrusive<MITC4AndesShellThickElement3D4N>(NewId, GetGeometry().Create(rThisNodes), pGetProperties());
     p_new_elem->SetData(GetData());
     p_new_elem->Set(Flags(*this));
 
@@ -106,12 +108,11 @@ Element::Pointer MITC4AndesShellThickElement3D4N<IS_COROTATIONAL>::Clone(
 
 template <bool IS_COROTATIONAL>
 void MITC4AndesShellThickElement3D4N<IS_COROTATIONAL>::EquationIdVector(
-    EquationIdVectorType& rResult,
-    const ProcessInfo& rCurrentProcessInfo
-    ) const
+    EquationIdVectorType &rResult,
+    const ProcessInfo &rCurrentProcessInfo) const
 {
     KRATOS_TRY
-    const auto& r_geometry = GetGeometry();
+    const auto &r_geometry = GetGeometry();
     const SizeType number_of_nodes = r_geometry.size();
     const SizeType dofs_per_node = GetDoFsPerNode();
 
@@ -120,16 +121,17 @@ void MITC4AndesShellThickElement3D4N<IS_COROTATIONAL>::EquationIdVector(
     if (rResult.size() != dofs_per_node * number_of_nodes)
         rResult.resize(dofs_per_node * number_of_nodes, false);
 
-    const IndexType xpos    = r_geometry[0].GetDofPosition(DISPLACEMENT_X);
+    const IndexType xpos = r_geometry[0].GetDofPosition(DISPLACEMENT_X);
     const IndexType rot_pos = r_geometry[0].GetDofPosition(ROTATION_X);
 
-    for (IndexType i = 0; i < number_of_nodes; ++i) {
-        rResult[local_index++] = r_geometry[i].GetDof(DISPLACEMENT_X, xpos    ).EquationId();
+    for (IndexType i = 0; i < number_of_nodes; ++i)
+    {
+        rResult[local_index++] = r_geometry[i].GetDof(DISPLACEMENT_X, xpos).EquationId();
         rResult[local_index++] = r_geometry[i].GetDof(DISPLACEMENT_Y, xpos + 1).EquationId();
         rResult[local_index++] = r_geometry[i].GetDof(DISPLACEMENT_Z, xpos + 2).EquationId();
-        rResult[local_index++] = r_geometry[i].GetDof(ROTATION_X, rot_pos     ).EquationId();
-        rResult[local_index++] = r_geometry[i].GetDof(ROTATION_Y, rot_pos +  1).EquationId();
-        rResult[local_index++] = r_geometry[i].GetDof(ROTATION_Z, rot_pos +  2).EquationId();
+        rResult[local_index++] = r_geometry[i].GetDof(ROTATION_X, rot_pos).EquationId();
+        rResult[local_index++] = r_geometry[i].GetDof(ROTATION_Y, rot_pos + 1).EquationId();
+        rResult[local_index++] = r_geometry[i].GetDof(ROTATION_Z, rot_pos + 2).EquationId();
     }
     KRATOS_CATCH("MITC4AndesShellThickElement3D4N::EquationIdVector")
 }
@@ -139,28 +141,28 @@ void MITC4AndesShellThickElement3D4N<IS_COROTATIONAL>::EquationIdVector(
 
 template <bool IS_COROTATIONAL>
 void MITC4AndesShellThickElement3D4N<IS_COROTATIONAL>::GetDofList(
-    DofsVectorType& rElementalDofList,
-    const ProcessInfo& rCurrentProcessInfo
-    ) const
+    DofsVectorType &rElementalDofList,
+    const ProcessInfo &rCurrentProcessInfo) const
 {
     KRATOS_TRY
 
-    const auto& r_geometry = GetGeometry();
+    const auto &r_geometry = GetGeometry();
     const SizeType number_of_nodes = r_geometry.size();
     const SizeType dofs_per_node = GetDoFsPerNode(); // u, v, w, theta_x, theta_y, theta_z
     rElementalDofList.resize(dofs_per_node * number_of_nodes);
     IndexType index = 0;
 
-    const IndexType xpos    = r_geometry[0].GetDofPosition(DISPLACEMENT_X);
+    const IndexType xpos = r_geometry[0].GetDofPosition(DISPLACEMENT_X);
     const IndexType rot_pos = r_geometry[0].GetDofPosition(ROTATION_X);
 
-    for (IndexType i = 0; i < number_of_nodes; ++i) {
-        rElementalDofList[index++] = r_geometry[i].pGetDof(DISPLACEMENT_X, xpos    );
+    for (IndexType i = 0; i < number_of_nodes; ++i)
+    {
+        rElementalDofList[index++] = r_geometry[i].pGetDof(DISPLACEMENT_X, xpos);
         rElementalDofList[index++] = r_geometry[i].pGetDof(DISPLACEMENT_Y, xpos + 1);
         rElementalDofList[index++] = r_geometry[i].pGetDof(DISPLACEMENT_Z, xpos + 2);
-        rElementalDofList[index++] = r_geometry[i].pGetDof(ROTATION_X, rot_pos     );
-        rElementalDofList[index++] = r_geometry[i].pGetDof(ROTATION_Y, rot_pos +  1);
-        rElementalDofList[index++] = r_geometry[i].pGetDof(ROTATION_Z, rot_pos +  2);
+        rElementalDofList[index++] = r_geometry[i].pGetDof(ROTATION_X, rot_pos);
+        rElementalDofList[index++] = r_geometry[i].pGetDof(ROTATION_Y, rot_pos + 1);
+        rElementalDofList[index++] = r_geometry[i].pGetDof(ROTATION_Z, rot_pos + 2);
     }
     KRATOS_CATCH("MITC4AndesShellThickElement3D4N::GetDofList")
 }
@@ -170,11 +172,10 @@ void MITC4AndesShellThickElement3D4N<IS_COROTATIONAL>::GetDofList(
 
 template <bool IS_COROTATIONAL>
 double MITC4AndesShellThickElement3D4N<IS_COROTATIONAL>::CalculateArea(
-    const array_3& r_coord_1,
-    const array_3& r_coord_2,
-    const array_3& r_coord_3,
-    const array_3& r_coord_4
-) const
+    const array_3 &r_coord_1,
+    const array_3 &r_coord_2,
+    const array_3 &r_coord_3,
+    const array_3 &r_coord_4) const
 {
     KRATOS_TRY
     // const double x21 = r_coord_2[0] - r_coord_1[0];
@@ -191,9 +192,8 @@ double MITC4AndesShellThickElement3D4N<IS_COROTATIONAL>::CalculateArea(
 
 template <bool IS_COROTATIONAL>
 void MITC4AndesShellThickElement3D4N<IS_COROTATIONAL>::CalculateRotationMatrixGlobalToLocal(
-    bounded_3_matrix& rRotationMatrix,
-    const bool UseInitialConfiguration
-) const
+    bounded_3_matrix &rRotationMatrix,
+    const bool UseInitialConfiguration) const
 {
     KRATOS_TRY
     // const auto& r_geometry = GetGeometry();
@@ -229,7 +229,7 @@ void MITC4AndesShellThickElement3D4N<IS_COROTATIONAL>::CalculateRotationMatrixGl
     //     v2 -= inner_prod(v1, v2) * v1; // v2 orthogonal to v1
     //     const double norm_v2 = norm_2(v2);
     //     KRATOS_DEBUG_ERROR_IF_NOT(norm_v2 > 0.0) << "Zero length local axis 2 for MITC4AndesShellThickElement3D4N " << this->Id() << std::endl;
-    //     v2 /= norm_v2; 
+    //     v2 /= norm_v2;
     // }
     // noalias(v3) = MathUtils<double>::CrossProduct(v1, v2);
 
@@ -245,8 +245,8 @@ void MITC4AndesShellThickElement3D4N<IS_COROTATIONAL>::CalculateRotationMatrixGl
 
 template <bool IS_COROTATIONAL>
 void MITC4AndesShellThickElement3D4N<IS_COROTATIONAL>::RotateLHSToGlobal(
-    MatrixType& rLHS,
-    const bounded_3_matrix& rRotationMatrix // provided
+    MatrixType &rLHS,
+    const bounded_3_matrix &rRotationMatrix // provided
 ) const
 {
     KRATOS_TRY
@@ -287,8 +287,8 @@ void MITC4AndesShellThickElement3D4N<IS_COROTATIONAL>::RotateLHSToGlobal(
 
 template <bool IS_COROTATIONAL>
 void MITC4AndesShellThickElement3D4N<IS_COROTATIONAL>::RotateRHSToGlobal(
-    VectorType& rRHS,
-    const bounded_3_matrix& rRotationMatrix // provided
+    VectorType &rRHS,
+    const bounded_3_matrix &rRotationMatrix // provided
 ) const
 {
     KRATOS_TRY
@@ -317,8 +317,8 @@ void MITC4AndesShellThickElement3D4N<IS_COROTATIONAL>::RotateRHSToGlobal(
 
 template <bool IS_COROTATIONAL>
 void MITC4AndesShellThickElement3D4N<IS_COROTATIONAL>::RotateRHSToLocal(
-    VectorType& rRHS,
-    const bounded_3_matrix& rRotationMatrix // provided
+    VectorType &rRHS,
+    const bounded_3_matrix &rRotationMatrix // provided
 ) const
 {
     KRATOS_TRY
@@ -347,50 +347,49 @@ void MITC4AndesShellThickElement3D4N<IS_COROTATIONAL>::RotateRHSToLocal(
 
 template <bool IS_COROTATIONAL>
 void MITC4AndesShellThickElement3D4N<IS_COROTATIONAL>::Fill_XY_Matrices(
-    bounded_4_matrix& rX_dist,
-    bounded_4_matrix& rY_dist,
-    const array_3& r_local_coord_0,
-    const array_3& r_local_coord_1,
-    const array_3& r_local_coord_2,
-    const array_3& r_local_coord_3
-)
+    bounded_4_matrix &rX_dist,
+    bounded_4_matrix &rY_dist,
+    const array_3 &r_local_coord_0,
+    const array_3 &r_local_coord_1,
+    const array_3 &r_local_coord_2,
+    const array_3 &r_local_coord_3)
 {
     rX_dist.clear();
     rY_dist.clear();
 
-    rX_dist(0,1) = r_local_coord_0[0] - r_local_coord_1[0];
-    rX_dist(0,2) = r_local_coord_0[0] - r_local_coord_2[0];
-    rX_dist(0,3) = r_local_coord_0[0] - r_local_coord_3[0];
+    rX_dist(0, 1) = r_local_coord_0[0] - r_local_coord_1[0];
+    rX_dist(0, 2) = r_local_coord_0[0] - r_local_coord_2[0];
+    rX_dist(0, 3) = r_local_coord_0[0] - r_local_coord_3[0];
 
-    rY_dist(0,1) = r_local_coord_0[1] - r_local_coord_1[1];
-    rY_dist(0,2) = r_local_coord_0[1] - r_local_coord_2[1];
-    rY_dist(0,3) = r_local_coord_0[1] - r_local_coord_3[1];
+    rY_dist(0, 1) = r_local_coord_0[1] - r_local_coord_1[1];
+    rY_dist(0, 2) = r_local_coord_0[1] - r_local_coord_2[1];
+    rY_dist(0, 3) = r_local_coord_0[1] - r_local_coord_3[1];
 
-    rX_dist(1,0) = -rX_dist(0,1);
-    rX_dist(2,0) = -rX_dist(0,2);
-    rX_dist(3,0) = -rX_dist(0,3);
+    rX_dist(1, 0) = -rX_dist(0, 1);
+    rX_dist(2, 0) = -rX_dist(0, 2);
+    rX_dist(3, 0) = -rX_dist(0, 3);
 
-    rY_dist(1,0) = -rY_dist(0,1);
-    rY_dist(2,0) = -rY_dist(0,2);
-    rY_dist(3,0) = -rY_dist(0,3);
+    rY_dist(1, 0) = -rY_dist(0, 1);
+    rY_dist(2, 0) = -rY_dist(0, 2);
+    rY_dist(3, 0) = -rY_dist(0, 3);
 
-    rX_dist(1,2) = r_local_coord_1[0] - r_local_coord_2[0];
-    rX_dist(1,3) = r_local_coord_1[0] - r_local_coord_3[0];
+    rX_dist(1, 2) = r_local_coord_1[0] - r_local_coord_2[0];
+    rX_dist(1, 3) = r_local_coord_1[0] - r_local_coord_3[0];
 
-    rY_dist(1,2) = r_local_coord_1[1] - r_local_coord_2[1];
-    rY_dist(1,3) = r_local_coord_1[1] - r_local_coord_3[1];
+    rY_dist(1, 2) = r_local_coord_1[1] - r_local_coord_2[1];
+    rY_dist(1, 3) = r_local_coord_1[1] - r_local_coord_3[1];
 
-    rX_dist(2,1) = -rX_dist(1,2);
-    rX_dist(3,1) = -rX_dist(1,3);
+    rX_dist(2, 1) = -rX_dist(1, 2);
+    rX_dist(3, 1) = -rX_dist(1, 3);
 
-    rX_dist(2,3) = r_local_coord_2[0] - r_local_coord_3[0];
-    rX_dist(3,2) = -rX_dist(2,3);
+    rX_dist(2, 3) = r_local_coord_2[0] - r_local_coord_3[0];
+    rX_dist(3, 2) = -rX_dist(2, 3);
 
-    rY_dist(2,1) = -rY_dist(1,2);
-    rY_dist(3,1) = -rY_dist(1,3);
+    rY_dist(2, 1) = -rY_dist(1, 2);
+    rY_dist(3, 1) = -rY_dist(1, 3);
 
-    rY_dist(2,3) = r_local_coord_2[1] - r_local_coord_3[1];
-    rY_dist(3,2) = -rY_dist(2,3);
+    rY_dist(2, 3) = r_local_coord_2[1] - r_local_coord_3[1];
+    rY_dist(3, 2) = -rY_dist(2, 3);
 }
 
 /***********************************************************************************/
@@ -398,17 +397,16 @@ void MITC4AndesShellThickElement3D4N<IS_COROTATIONAL>::Fill_XY_Matrices(
 
 template <bool IS_COROTATIONAL>
 void MITC4AndesShellThickElement3D4N<IS_COROTATIONAL>::CalculateShearBendingB(
-    MatrixType& rB,
+    const double xi,
+    const double eta,
+    MatrixType &rB,
     const double Area,
-    const array_3& r_local_coord_1,
-    const array_3& r_local_coord_2,
-    const array_3& r_local_coord_3,
-    const array_3& r_coord_4
-)
+    const array_3 &r_local_coord_1,
+    const array_3 &r_local_coord_2,
+    const array_3 &r_local_coord_3,
+    const array_3 &r_coord_4)
 {
     KRATOS_TRY
-
-
 
     KRATOS_CATCH("MITC4AndesShellThickElement3D4N::CalculateBbendingShearTriangle")
 }
@@ -418,15 +416,93 @@ void MITC4AndesShellThickElement3D4N<IS_COROTATIONAL>::CalculateShearBendingB(
 
 template <bool IS_COROTATIONAL>
 void MITC4AndesShellThickElement3D4N<IS_COROTATIONAL>::CalculateMembraneB(
-    MatrixType& rB,
+    const double xi,
+    const double eta,
+    MatrixType &rBm,
     const double Area,
-    const array_3& r_local_coord_1,
-    const array_3& r_local_coord_2,
-    const array_3& r_local_coord_3,
-    const array_3& r_local_coord_4
-)
+    const bounded_4_matrix &rX_dist,
+    const bounded_4_matrix &rY_dist)
 {
     KRATOS_TRY
+
+    if (rBm.size1() != 8 || rBm.size2() != 24)
+        rBm.resize(8, 24, false);
+    rBm.clear();
+
+    BoundedMatrix<double, 12, 3> L; // (5.2.4 Haugen thesis)
+
+    std::vector<std::array<int, 4>> cyclic_permutations = {
+        {4, 1, 2, 3},
+        {1, 2, 3, 4},
+        {2, 3, 4, 1},
+        {3, 4, 1, 2}};
+
+    const double alpha = 1.5;
+    const double alpha_6 = alpha / 6.0;
+    const double alpha_3 = 2.0 * alpha_6;
+
+    for (IndexType permutation = 0; permutation < 4; ++permutation) {
+        const IndexType i = cyclic_permutations[permutation][0] - 1;
+        const IndexType j = cyclic_permutations[permutation][1] - 1;
+        const IndexType k = cyclic_permutations[permutation][2] - 1;
+        const IndexType l = cyclic_permutations[permutation][3] - 1;
+
+        L(permutation * 3, 0) = rY_dist(k, i);
+        L(permutation * 3, 2) = rX_dist(i, k);
+
+        L(permutation * 3 + 1, 1) = rX_dist(i, k);
+        L(permutation * 3 + 1, 2) = rY_dist(k, i);
+
+        L(permutation * 3 + 2, 0) = alpha_6 * (rY_dist(i, j) * rY_dist(i, j) - rY_dist(k, j) * rY_dist(k, j));
+        L(permutation * 3 + 2, 1) = alpha_6 * (rX_dist(i, j) * rX_dist(i, j) - rX_dist(k, j) * rX_dist(k, j));
+        L(permutation * 3 + 2, 2) = alpha_3 * (rX_dist(k, j) * rY_dist(k, j) - rX_dist(i, j) * rY_dist(i, j));
+    }
+    L *= 0.5 / Area;
+
+    BoundedVector<IndexType, 12> local_indices; // u,v,theta_z to global size
+    local_indices[0] = 0;
+    local_indices[1] = 1;
+    local_indices[2] = 5;
+    local_indices[3] = 6;
+    local_indices[4] = 7;
+    local_indices[5] = 11;
+    local_indices[6] = 12;
+    local_indices[7] = 13;
+    local_indices[8] = 17;
+    local_indices[9] = 18;
+    local_indices[10] = 19;
+    local_indices[11] = 23;
+
+    for (IndexType i = 0; i < 3; ++i) { // 3 first membrane strains
+        for (IndexType j = 0; j < 12; ++j) {
+            // Assemble into the global size membrane B matrix
+            rBm(i, local_indices[j]) = L(j, i);
+        }
+    }
+
+    // Now we compute the high order membrane terms
+    // aux parameters in (5.2.41 Haugen thesis)
+    const double rho1 = 0.1;
+    const double rho2 = -0.1;
+    const double rho3 = -0.1;
+    const double rho4 = 0.1;
+    const double rho5 = 0.0;
+    const double rho6 = 0.5;
+    const double rho7 = 0.0;
+    const double rho8 = -0.5;
+    const double beta1 = 0.6;
+    const double beta2 = 0.0;
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -437,8 +513,8 @@ void MITC4AndesShellThickElement3D4N<IS_COROTATIONAL>::CalculateMembraneB(
 
 template <bool IS_COROTATIONAL>
 void MITC4AndesShellThickElement3D4N<IS_COROTATIONAL>::GetNodalValuesVector(
-    VectorType& rNodalValues,
-    const bounded_3_matrix& rT) const
+    VectorType &rNodalValues,
+    const bounded_3_matrix &rT) const
 {
     KRATOS_TRY
     // const auto& r_geometry = GetGeometry();
@@ -472,10 +548,9 @@ void MITC4AndesShellThickElement3D4N<IS_COROTATIONAL>::GetNodalValuesVector(
 
 template <bool IS_COROTATIONAL>
 void MITC4AndesShellThickElement3D4N<IS_COROTATIONAL>::CalculateLocalSystem(
-    MatrixType& rLHS,
-    VectorType& rRHS,
-    const ProcessInfo& rProcessInfo
-    )
+    MatrixType &rLHS,
+    VectorType &rRHS,
+    const ProcessInfo &rProcessInfo)
 {
     KRATOS_TRY
 
@@ -510,7 +585,7 @@ void MITC4AndesShellThickElement3D4N<IS_COROTATIONAL>::CalculateLocalSystem(
     // r_cl_options.Set(ConstitutiveLaw::COMPUTE_STRESS, true);
     // r_cl_options.Set(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR, true);
     // r_cl_options.Set(ConstitutiveLaw::USE_ELEMENT_PROVIDED_STRAIN, true);
-    
+
     // // Let's initialize the constitutive law's values
     // VectorType gen_strain_vector(strain_size), gen_stress_vector(strain_size); // Generalized
     // MatrixType gen_constitutive_matrix(strain_size, strain_size);
@@ -573,9 +648,8 @@ void MITC4AndesShellThickElement3D4N<IS_COROTATIONAL>::CalculateLocalSystem(
 
 template <bool IS_COROTATIONAL>
 void MITC4AndesShellThickElement3D4N<IS_COROTATIONAL>::CalculateLeftHandSide(
-    MatrixType& rLHS,
-    const ProcessInfo& rProcessInfo
-    )
+    MatrixType &rLHS,
+    const ProcessInfo &rProcessInfo)
 {
     KRATOS_TRY
 
@@ -606,7 +680,7 @@ void MITC4AndesShellThickElement3D4N<IS_COROTATIONAL>::CalculateLeftHandSide(
     // r_cl_options.Set(ConstitutiveLaw::COMPUTE_STRESS, true);
     // r_cl_options.Set(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR, true);
     // r_cl_options.Set(ConstitutiveLaw::USE_ELEMENT_PROVIDED_STRAIN, true);
-    
+
     // // Let's initialize the constitutive law's values
     // VectorType gen_strain_vector(strain_size), gen_stress_vector(strain_size); // Generalized
     // MatrixType gen_constitutive_matrix(strain_size, strain_size);
@@ -664,9 +738,8 @@ void MITC4AndesShellThickElement3D4N<IS_COROTATIONAL>::CalculateLeftHandSide(
 
 template <bool IS_COROTATIONAL>
 void MITC4AndesShellThickElement3D4N<IS_COROTATIONAL>::CalculateRightHandSide(
-    VectorType& rRHS,
-    const ProcessInfo& rProcessInfo
-    )
+    VectorType &rRHS,
+    const ProcessInfo &rProcessInfo)
 {
     KRATOS_TRY
 
@@ -697,7 +770,7 @@ void MITC4AndesShellThickElement3D4N<IS_COROTATIONAL>::CalculateRightHandSide(
     // r_cl_options.Set(ConstitutiveLaw::COMPUTE_STRESS, true);
     // r_cl_options.Set(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR, false);
     // r_cl_options.Set(ConstitutiveLaw::USE_ELEMENT_PROVIDED_STRAIN, true);
-    
+
     // // Let's initialize the constitutive law's values
     // VectorType gen_strain_vector(strain_size), gen_stress_vector(strain_size); // Generalized
     // MatrixType gen_constitutive_matrix(strain_size, strain_size);
@@ -792,17 +865,17 @@ void MITC4AndesShellThickElement3D4N<IS_COROTATIONAL>::AddBodyForces(
     KRATOS_CATCH("MITC4AndesShellThickElement3D4N::AddBodyForces")
 }
 
-
 /***********************************************************************************/
 /***********************************************************************************/
 
 template <bool IS_COROTATIONAL>
 void MITC4AndesShellThickElement3D4N<IS_COROTATIONAL>::FinalizeNonLinearIteration(
-    const ProcessInfo& rCurrentProcessInfo)
+    const ProcessInfo &rCurrentProcessInfo)
 {
     KRATOS_TRY
 
-    if constexpr (is_corotational) {
+    if constexpr (is_corotational)
+    {
         this->mpCoordinateTransformation->FinalizeNonLinearIteration();
     }
 
@@ -814,7 +887,7 @@ void MITC4AndesShellThickElement3D4N<IS_COROTATIONAL>::FinalizeNonLinearIteratio
 
 template <bool IS_COROTATIONAL>
 void MITC4AndesShellThickElement3D4N<IS_COROTATIONAL>::FinalizeSolutionStep(
-    const ProcessInfo& rCurrentProcessInfo)
+    const ProcessInfo &rCurrentProcessInfo)
 {
     KRATOS_TRY
 
@@ -849,7 +922,7 @@ void MITC4AndesShellThickElement3D4N<IS_COROTATIONAL>::FinalizeSolutionStep(
     //     r_cl_options.Set(ConstitutiveLaw::COMPUTE_STRESS, true);
     //     r_cl_options.Set(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR, true);
     //     r_cl_options.Set(ConstitutiveLaw::USE_ELEMENT_PROVIDED_STRAIN, true);
-        
+
     //     // Let's initialize the constitutive law's values
     //     VectorType gen_strain_vector(strain_size), gen_stress_vector(strain_size);
     //     MatrixType gen_constitutive_matrix(strain_size, strain_size);
@@ -886,13 +959,12 @@ void MITC4AndesShellThickElement3D4N<IS_COROTATIONAL>::FinalizeSolutionStep(
     KRATOS_CATCH("MITC4AndesShellThickElement3D4N::FinalizeSolutionStep")
 }
 
-
 /***********************************************************************************/
 /***********************************************************************************/
 
 template <bool IS_COROTATIONAL>
 void MITC4AndesShellThickElement3D4N<IS_COROTATIONAL>::InitializeSolutionStep(
-    const ProcessInfo& rCurrentProcessInfo)
+    const ProcessInfo &rCurrentProcessInfo)
 {
     KRATOS_TRY
 
@@ -926,7 +998,7 @@ void MITC4AndesShellThickElement3D4N<IS_COROTATIONAL>::InitializeSolutionStep(
     //     auto &r_cl_options = cl_values.GetOptions();
     //     r_cl_options.Set(ConstitutiveLaw::COMPUTE_STRESS, true);
     //     r_cl_options.Set(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR, true);
-        
+
     //     // Let's initialize the constitutive law's values
     //     VectorType gen_strain_vector(strain_size), gen_stress_vector(strain_size);
     //     MatrixType gen_constitutive_matrix(strain_size, strain_size);
@@ -971,11 +1043,11 @@ void MITC4AndesShellThickElement3D4N<IS_COROTATIONAL>::InitializeSolutionStep(
 
 template <bool IS_COROTATIONAL>
 int MITC4AndesShellThickElement3D4N<IS_COROTATIONAL>::Check(
-    const ProcessInfo& rCurrentProcessInfo) const
+    const ProcessInfo &rCurrentProcessInfo) const
 {
     KRATOS_TRY
 
-    const auto& r_properties = GetProperties();
+    const auto &r_properties = GetProperties();
     KRATOS_ERROR_IF_NOT(mConstitutiveLawVector[0]->GetStrainSize() == 8) << "The constitutive law used is not suitable for shell calculations, the StrainSize is NOT 8..." << std::endl;
     KRATOS_ERROR_IF_NOT(r_properties.Has(THICKNESS)) << "THICKNESS not provided for MITC4AndesShellThickElement3D4N " << this->Id() << std::endl;
     KRATOS_ERROR_IF_NOT(r_properties.GetValue(THICKNESS) > 0.0) << "Wrong value for THICKNESS in the  MITC4AndesShellThickElement3D4N " << this->Id() << std::endl;
@@ -989,10 +1061,9 @@ int MITC4AndesShellThickElement3D4N<IS_COROTATIONAL>::Check(
 
 template <bool IS_COROTATIONAL>
 void MITC4AndesShellThickElement3D4N<IS_COROTATIONAL>::CalculateMassMatrix(
-    MatrixType& rMassMatrix,
-    const ProcessInfo& rCurrentProcessInfo)
+    MatrixType &rMassMatrix,
+    const ProcessInfo &rCurrentProcessInfo)
 {
-
 }
 
 /***********************************************************************************/
@@ -1000,11 +1071,10 @@ void MITC4AndesShellThickElement3D4N<IS_COROTATIONAL>::CalculateMassMatrix(
 
 template <bool IS_COROTATIONAL>
 void MITC4AndesShellThickElement3D4N<IS_COROTATIONAL>::CalculateDampingMatrix(
-    MatrixType& rDampingMatrix,
-    const ProcessInfo& rCurrentProcessInfo
-)
+    MatrixType &rDampingMatrix,
+    const ProcessInfo &rCurrentProcessInfo)
 {
-    const auto& r_geometry = GetGeometry();
+    const auto &r_geometry = GetGeometry();
     const IndexType number_of_nodes = r_geometry.PointsNumber();
     const IndexType system_size = number_of_nodes * GetDoFsPerNode();
 
@@ -1016,11 +1086,11 @@ void MITC4AndesShellThickElement3D4N<IS_COROTATIONAL>::CalculateDampingMatrix(
 
 template <bool IS_COROTATIONAL>
 void MITC4AndesShellThickElement3D4N<IS_COROTATIONAL>::save(
-    Serializer& rSerializer) const
+    Serializer &rSerializer) const
 {
     KRATOS_SERIALIZE_SAVE_BASE_CLASS(rSerializer, Element);
     int IntMethod = int(GetIntegrationMethod());
-    rSerializer.save("IntegrationMethod",IntMethod);
+    rSerializer.save("IntegrationMethod", IntMethod);
     rSerializer.save("ConstitutiveLawVector", mConstitutiveLawVector);
     rSerializer.save("pCoordinateTransformation", mpCoordinateTransformation);
 }
@@ -1030,11 +1100,11 @@ void MITC4AndesShellThickElement3D4N<IS_COROTATIONAL>::save(
 
 template <bool IS_COROTATIONAL>
 void MITC4AndesShellThickElement3D4N<IS_COROTATIONAL>::load(
-    Serializer& rSerializer)
+    Serializer &rSerializer)
 {
     KRATOS_SERIALIZE_LOAD_BASE_CLASS(rSerializer, Element);
     int IntMethod;
-    rSerializer.load("IntegrationMethod",IntMethod);
+    rSerializer.load("IntegrationMethod", IntMethod);
     mThisIntegrationMethod = IntegrationMethod(IntMethod);
     rSerializer.load("ConstitutiveLawVector", mConstitutiveLawVector);
     rSerializer.load("pCoordinateTransformation", mpCoordinateTransformation);

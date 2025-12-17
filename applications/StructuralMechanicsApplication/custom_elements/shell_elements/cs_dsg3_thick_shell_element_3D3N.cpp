@@ -755,7 +755,7 @@ void CSDSG3ThickShellElement3D3N<IS_COROTATIONAL>::CalculateLocalSystem(
     r_cl_options.Set(ConstitutiveLaw::COMPUTE_STRESS, true);
     r_cl_options.Set(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR, true);
     r_cl_options.Set(ConstitutiveLaw::USE_ELEMENT_PROVIDED_STRAIN, true);
-    
+
     // Let's initialize the constitutive law's values
     VectorType gen_strain_vector(strain_size), gen_stress_vector(strain_size); // Generalized
     MatrixType gen_constitutive_matrix(strain_size, strain_size);
