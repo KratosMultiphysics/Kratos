@@ -404,7 +404,8 @@ void MITC4AndesShellThickElement3D4N<IS_COROTATIONAL>::CalculateShearBendingB(
     const array_3 &r_local_coord_1,
     const array_3 &r_local_coord_2,
     const array_3 &r_local_coord_3,
-    const array_3 &r_coord_4)
+    const array_3 &r_local_coord_4
+)
 {
     KRATOS_TRY
 
@@ -419,9 +420,8 @@ void MITC4AndesShellThickElement3D4N<IS_COROTATIONAL>::CalculateMembraneB(
     const double xi,
     const double eta,
     MatrixType &rBm,
-    const double Area,
-    const bounded_4_matrix &rX_dist,
-    const bounded_4_matrix &rY_dist)
+    ThickShellParameters& rThickShellParameters
+)
 {
     KRATOS_TRY
 
@@ -441,23 +441,26 @@ void MITC4AndesShellThickElement3D4N<IS_COROTATIONAL>::CalculateMembraneB(
     const double alpha_6 = alpha / 6.0;
     const double alpha_3 = 2.0 * alpha_6;
 
+    const auto& r_X_dist = rThickShellParameters.X_dist;
+    const auto& r_Y_dist = rThickShellParameters.Y_dist;
+
     for (IndexType permutation = 0; permutation < 4; ++permutation) {
         const IndexType i = cyclic_permutations[permutation][0] - 1;
         const IndexType j = cyclic_permutations[permutation][1] - 1;
         const IndexType k = cyclic_permutations[permutation][2] - 1;
         const IndexType l = cyclic_permutations[permutation][3] - 1;
 
-        L(permutation * 3, 0) = rY_dist(k, i);
-        L(permutation * 3, 2) = rX_dist(i, k);
+        L(permutation * 3, 0) = r_Y_dist(k, i);
+        L(permutation * 3, 2) = r_X_dist(i, k);
 
-        L(permutation * 3 + 1, 1) = rX_dist(i, k);
-        L(permutation * 3 + 1, 2) = rY_dist(k, i);
+        L(permutation * 3 + 1, 1) = r_X_dist(i, k);
+        L(permutation * 3 + 1, 2) = r_Y_dist(k, i);
 
-        L(permutation * 3 + 2, 0) = alpha_6 * (rY_dist(i, j) * rY_dist(i, j) - rY_dist(k, j) * rY_dist(k, j));
-        L(permutation * 3 + 2, 1) = alpha_6 * (rX_dist(i, j) * rX_dist(i, j) - rX_dist(k, j) * rX_dist(k, j));
-        L(permutation * 3 + 2, 2) = alpha_3 * (rX_dist(k, j) * rY_dist(k, j) - rX_dist(i, j) * rY_dist(i, j));
+        L(permutation * 3 + 2, 0) = alpha_6 * (r_Y_dist(i, j) * r_Y_dist(i, j) - r_Y_dist(k, j) * r_Y_dist(k, j));
+        L(permutation * 3 + 2, 1) = alpha_6 * (r_X_dist(i, j) * r_X_dist(i, j) - r_X_dist(k, j) * r_X_dist(k, j));
+        L(permutation * 3 + 2, 2) = alpha_3 * (r_X_dist(k, j) * r_Y_dist(k, j) - r_X_dist(i, j) * r_Y_dist(i, j));
     }
-    L *= 0.5 / Area;
+    L *= 0.5 / rThickShellParameters.Area;
 
     BoundedVector<IndexType, 12> local_indices; // u,v,theta_z to global size
     local_indices[0] = 0;
@@ -492,6 +495,24 @@ void MITC4AndesShellThickElement3D4N<IS_COROTATIONAL>::CalculateMembraneB(
     const double rho8 = -0.5;
     const double beta1 = 0.6;
     const double beta2 = 0.0;
+
+    const auto& r_geometry = GetGeometry();
+    BoundedMatrix<double, 7, 12> H; // (5.2.26 Haugen thesis)
+    H.clear();
+
+    BoundedMatrix<double, 3, 7> Q1, Q2, Q3, Q4;
+    bounded_3_matrix T13, T24, inv_T13, inv_T24;
+
+    array_3 r_xi, r_eta;
+    noalias(r_xi)  = 0.5 * (rThickShellParameters.r2 + rThickShellParameters.r3 - rThickShellParameters.r1 - rThickShellParameters.r4);
+    noalias(r_eta) = 0.5 * (rThickShellParameters.r3 + rThickShellParameters.r4 - rThickShellParameters.r1 - rThickShellParameters.r2);
+
+    const double l_xi = norm_2(r_xi);
+    const double l_eta = norm_2(r_eta);
+
+    array_3 s_xi, s_eta;
+    noalias(s_xi) = r_xi / l_xi;
+    noalias(s_eta) = r_eta / l_eta;
 
 
 

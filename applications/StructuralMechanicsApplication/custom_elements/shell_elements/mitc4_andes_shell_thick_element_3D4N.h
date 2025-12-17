@@ -79,6 +79,51 @@ public:
 
     using CoordinateTransformationPointerType = Kratos::unique_ptr<CoordinateTransformationType>;
 
+    struct ThickShellParameters {
+        double detJ = 0.0;
+        double Area = 0.0;
+        BoundedMatrix<double, 2, 2> J;
+        BoundedMatrix<double, 2, 2> InvJ;
+        array_1d<double, 4> X_coords; // x coordinates of the nodes
+        array_1d<double, 4> Y_coords; // y coordinates of the nodes
+        bounded_4_matrix X_dist;      // x distances between nodes
+        bounded_4_matrix Y_dist;      // y distances between nodes
+
+        array_3 r1, r2, r3, r4; // position vectors of the nodes
+
+        // Default constructor
+        ThickShellParameters()
+        {
+            J.clear();
+            InvJ.clear();
+            X_dist.clear();
+            Y_dist.clear();
+            X_coords.clear();
+            Y_coords.clear();
+        }
+
+        // Constructor with Geometry
+        ThickShellParameters(const GeometryType& rGeometry)
+        {
+            J.clear();
+            InvJ.clear();
+            X_dist.clear();
+            Y_dist.clear();
+            noalias(r1) = rGeometry[0].GetInitialPosition();
+            noalias(r2) = rGeometry[1].GetInitialPosition();
+            noalias(r3) = rGeometry[2].GetInitialPosition();
+            noalias(r4) = rGeometry[3].GetInitialPosition();
+
+            array_3 ref_node_coords;
+            for (IndexType i = 0; i < 4; ++i) {
+                noalias(ref_node_coords) = rGeometry[i].GetInitialPosition();
+                X_coords[i] = ref_node_coords[0];
+                Y_coords[i] = ref_node_coords[1]; // TODO CHECK
+            }
+        }
+
+    };
+
     // Counted pointer of BaseSolidElement
     KRATOS_CLASS_INTRUSIVE_POINTER_DEFINITION(MITC4AndesShellThickElement3D4N);
 
@@ -247,11 +292,8 @@ public:
     void CalculateMembraneB(
         const double xi,
         const double eta,
-        MatrixType& rB,
-        const double Area,
-        const bounded_4_matrix& rX_dist,
-        const bounded_4_matrix& rY_dist
-    );
+        MatrixType &rBm,
+        ThickShellParameters& rThickShellParameters);
 
     /**
      * @brief This method computes the are of the triangle defined by the three given coordinates

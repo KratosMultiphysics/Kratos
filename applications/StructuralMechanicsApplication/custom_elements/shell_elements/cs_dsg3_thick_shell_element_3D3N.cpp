@@ -174,9 +174,9 @@ void CSDSG3ThickShellElement3D3N<IS_COROTATIONAL>::GetDofList(
 
 template <bool IS_COROTATIONAL>
 double CSDSG3ThickShellElement3D3N<IS_COROTATIONAL>::CalculateArea(
-    const array_3& r_coord_1, 
-    const array_3& r_coord_2, 
-    const array_3& r_coord_3 
+    const array_3& r_coord_1,
+    const array_3& r_coord_2,
+    const array_3& r_coord_3
 ) const
 {
     KRATOS_TRY
