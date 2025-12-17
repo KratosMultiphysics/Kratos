@@ -420,7 +420,7 @@ void MITC4AndesShellThickElement3D4N<IS_COROTATIONAL>::CalculateMembraneB(
     const double xi,
     const double eta,
     MatrixType &rBm,
-    ThickShellParameters& rThickShellParameters
+    ThickShellParameters& rShellParams
 )
 {
     KRATOS_TRY
@@ -441,8 +441,8 @@ void MITC4AndesShellThickElement3D4N<IS_COROTATIONAL>::CalculateMembraneB(
     const double alpha_6 = alpha / 6.0;
     const double alpha_3 = 2.0 * alpha_6;
 
-    const auto& r_X_dist = rThickShellParameters.X_dist;
-    const auto& r_Y_dist = rThickShellParameters.Y_dist;
+    const auto& r_X_dist = rShellParams.X_dist;
+    const auto& r_Y_dist = rShellParams.Y_dist;
 
     for (IndexType permutation = 0; permutation < 4; ++permutation) {
         const IndexType i = cyclic_permutations[permutation][0] - 1;
@@ -460,7 +460,7 @@ void MITC4AndesShellThickElement3D4N<IS_COROTATIONAL>::CalculateMembraneB(
         L(permutation * 3 + 2, 1) = alpha_6 * (r_X_dist(i, j) * r_X_dist(i, j) - r_X_dist(k, j) * r_X_dist(k, j));
         L(permutation * 3 + 2, 2) = alpha_3 * (r_X_dist(k, j) * r_Y_dist(k, j) - r_X_dist(i, j) * r_Y_dist(i, j));
     }
-    L *= 0.5 / rThickShellParameters.Area;
+    L *= 0.5 / rShellParams.Area;
 
     BoundedVector<IndexType, 12> local_indices; // u,v,theta_z to global size
     local_indices[0] = 0;
@@ -504,8 +504,8 @@ void MITC4AndesShellThickElement3D4N<IS_COROTATIONAL>::CalculateMembraneB(
     bounded_3_matrix T13, T24, inv_T13, inv_T24;
 
     array_3 r_xi, r_eta;
-    noalias(r_xi)  = 0.5 * (rThickShellParameters.r2 + rThickShellParameters.r3 - rThickShellParameters.r1 - rThickShellParameters.r4);
-    noalias(r_eta) = 0.5 * (rThickShellParameters.r3 + rThickShellParameters.r4 - rThickShellParameters.r1 - rThickShellParameters.r2);
+    noalias(r_xi)  = 0.5 * (rShellParams.r2 + rShellParams.r3 - rShellParams.r1 - rShellParams.r4);
+    noalias(r_eta) = 0.5 * (rShellParams.r3 + rShellParams.r4 - rShellParams.r1 - rShellParams.r2);
 
     const double l_xi = norm_2(r_xi);
     const double l_eta = norm_2(r_eta);
@@ -513,6 +513,65 @@ void MITC4AndesShellThickElement3D4N<IS_COROTATIONAL>::CalculateMembraneB(
     array_3 s_xi, s_eta;
     noalias(s_xi) = r_xi / l_xi;
     noalias(s_eta) = r_eta / l_eta;
+
+    array_3 r1_cross_s_xi, r1_cross_s_eta;
+    array_3 r2_cross_s_xi, r2_cross_s_eta;
+    array_3 r3_cross_s_xi, r3_cross_s_eta;
+    array_3 r4_cross_s_xi, r4_cross_s_eta;
+
+    noalias(r1_cross_s_xi)  = math_utils::CrossProduct(rShellParams.r1, s_xi);
+    noalias(r1_cross_s_eta) = math_utils::CrossProduct(rShellParams.r1, s_eta);
+    noalias(r2_cross_s_xi)  = math_utils::CrossProduct(rShellParams.r2, s_xi);
+    noalias(r2_cross_s_eta) = math_utils::CrossProduct(rShellParams.r2, s_eta);
+    noalias(r3_cross_s_xi)  = math_utils::CrossProduct(rShellParams.r3, s_xi);
+    noalias(r3_cross_s_eta) = math_utils::CrossProduct(rShellParams.r3, s_eta);
+    noalias(r4_cross_s_xi)  = math_utils::CrossProduct(rShellParams.r4, s_xi);
+    noalias(r4_cross_s_eta) = math_utils::CrossProduct(rShellParams.r4, s_eta);
+
+    const double d_xi_1  = norm_2(r1_cross_s_xi);
+    const double d_eta_1 = norm_2(r1_cross_s_eta);
+    const double d_xi_2  = norm_2(r2_cross_s_xi);
+    const double d_eta_2 = norm_2(r2_cross_s_eta);
+    const double d_xi_3  = norm_2(r3_cross_s_xi);
+    const double d_eta_3 = norm_2(r3_cross_s_eta);
+    const double d_xi_4  = norm_2(r4_cross_s_xi);
+    const double d_eta_4 = norm_2(r4_cross_s_eta);
+
+    // Eq. 5.2.29 Haugen thesis
+    const double chi_xi_1  = d_xi_1 / l_xi;
+    const double chi_eta_1 = d_eta_1 / l_eta;
+    const double chi_xi_2  = d_xi_2 / l_xi;
+    const double chi_eta_2 = d_eta_2 / l_eta;
+    const double chi_xi_3  = d_xi_3 / l_xi;
+    const double chi_eta_3 = d_eta_3 / l_eta;
+    const double chi_xi_4  = d_xi_4 / l_xi;
+    const double chi_eta_4 = d_eta_4 / l_eta;
+
+    array_3 r24, r13, r42, r31;
+    noalias(r24) = rShellParams.r2 - rShellParams.r4;
+    noalias(r13) = rShellParams.r1 - rShellParams.r3;
+    noalias(r42) = -r24;
+    noalias(r31) = -r13;
+
+    const double l24 = norm_2(r24);
+    const double l13 = norm_2(r13);
+
+    array_3 e24, e13;
+    noalias(e24) = r24 / l24;
+    noalias(e13) = r13 / l13;
+
+    array_3 cross_1, cross_2, cross_3, cross_4;
+    noalias(cross_1) = math_utils::CrossProduct(r31, e24);
+    noalias(cross_2) = math_utils::CrossProduct(r42, e13);
+    noalias(cross_3) = math_utils::CrossProduct(r24, e13);
+    noalias(cross_4) = math_utils::CrossProduct(r13, e24);
+    const double chi_24 = 0.5 * std::sqrt(inner_prod(cross_1, cross_4)) / l24;
+    const double chi_13 = 0.5 * std::sqrt(inner_prod(cross_2, cross_3)) / l13; // CHECK
+
+    const double chi_xi_t = l_eta / l_xi;
+    const double chi_eta_t = l_xi / l_eta;
+
+    Q1(0, 0) = rho1 * chi_xi_1; Q1(0, 1) = rho2*chi_xi_1; Q1(0, 2) = rho3*chi_xi_1; Q1(0, 3) = rho4*chi_xi_1; Q1(0, 4) = alpha * chi_xi_t; // Q1(0, 5) = -beta1* chi_xi_1 /  
 
 
 

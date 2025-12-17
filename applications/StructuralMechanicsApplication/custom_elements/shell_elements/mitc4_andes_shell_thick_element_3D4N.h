@@ -71,6 +71,7 @@ public:
     using bounded_3_matrix = BoundedMatrix<double, 3, 3>; // rotation matrix
     using bounded_4_matrix = BoundedMatrix<double, 4, 4>; // rotation matrix
     using bounded_24_matrix = BoundedMatrix<double, 24, 24>; // stiffness matrix
+    using math_utils = MathUtils<double>;
 
     static constexpr bool is_corotational = IS_COROTATIONAL;
     using CoordinateTransformationType = std::conditional_t<IS_COROTATIONAL,
