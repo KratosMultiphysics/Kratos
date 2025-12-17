@@ -522,7 +522,7 @@ private:
         rSerializer.load("PreviousCycleTime", mPreviousCycleTime);
         rSerializer.load("Period", mPeriod);
         rSerializer.load("ReferenceDamage", mReferenceDamage);
-        rSerializer.save("PreviousCycleDamage", mPreviousCycleDamage);
+        rSerializer.load("PreviousCycleDamage", mPreviousCycleDamage);
         rSerializer.load("FirstCycleOfANewLoad", mFirstCycleOfANewLoad);
         rSerializer.load("CFactor", mCFactor);
     }
