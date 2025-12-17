@@ -208,7 +208,7 @@ class DamageDetectionResponse(ResponseFunction):
         elif sensor_normalization_type == "local_measured_value":
             for sensor in self.list_of_sensors:
                 normalization_factor = abs(sensor.GetNode().GetValue(KratosDT.SENSOR_MEASURED_VALUE))
-                if normalization_factor <= 1e-12:
+                if math.isclose(normalization_factor, 0.0, abs_tol=1e-16):
                     raise RuntimeError(f"The local measured value for sensor \"{sensor.GetName()}\" normalization is approximately zero ({normalization_factor}). Cannot normalize.")
                 sensor.GetNode().SetValue(KratosDT.SENSOR_NORMALIZATION_FACTOR, normalization_factor)
             return
