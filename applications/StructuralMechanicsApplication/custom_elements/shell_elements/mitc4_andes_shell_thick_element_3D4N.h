@@ -69,6 +69,7 @@ public:
     using array_3 = array_1d<double, 3>;
     using bounded_24_vector = array_1d<double, 24>;
     using bounded_3_matrix = BoundedMatrix<double, 3, 3>; // rotation matrix
+    using bounded_4_matrix = BoundedMatrix<double, 4, 4>; // rotation matrix
     using bounded_24_matrix = BoundedMatrix<double, 24, 24>; // stiffness matrix
 
     static constexpr bool is_corotational = IS_COROTATIONAL;
@@ -230,8 +231,8 @@ public:
     void CalculateShearBendingB(
         MatrixType& rB,
         const double Area,
-        const array_3& r_coord_1, 
-        const array_3& r_coord_2, 
+        const array_3& r_coord_1,
+        const array_3& r_coord_2,
         const array_3& r_coord_3,
         const array_3& r_coord_4
     );
@@ -244,8 +245,8 @@ public:
     void CalculateMembraneB(
         MatrixType& rB,
         const double Area,
-        const array_3& r_coord_1, 
-        const array_3& r_coord_2, 
+        const array_3& r_coord_1,
+        const array_3& r_coord_2,
         const array_3& r_coord_3,
         const array_3& r_coord_4
     );
@@ -371,6 +372,15 @@ public:
         // We can call this method after we perform the Initialize
         return mConstitutiveLawVector[0]->GetStrainSize();
     }
+
+    void Fill_XY_Matrices(
+        bounded_4_matrix& rX_dist,
+        bounded_4_matrix& rY_dist,
+        const array_3& r_local_coord_1,
+        const array_3& r_local_coord_2,
+        const array_3& r_local_coord_3,
+        const array_3& r_local_coord_4
+    );
 
     /**
      * @brief Returns a custom 3-point Gauss quadrature in area coordinates for a triangle.

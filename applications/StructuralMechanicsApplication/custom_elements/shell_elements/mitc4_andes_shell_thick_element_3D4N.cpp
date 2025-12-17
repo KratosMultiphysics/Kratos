@@ -170,8 +170,8 @@ void MITC4AndesShellThickElement3D4N<IS_COROTATIONAL>::GetDofList(
 
 template <bool IS_COROTATIONAL>
 double MITC4AndesShellThickElement3D4N<IS_COROTATIONAL>::CalculateArea(
-    const array_3& r_coord_1, 
-    const array_3& r_coord_2, 
+    const array_3& r_coord_1,
+    const array_3& r_coord_2,
     const array_3& r_coord_3,
     const array_3& r_coord_4
 ) const
@@ -346,6 +346,57 @@ void MITC4AndesShellThickElement3D4N<IS_COROTATIONAL>::RotateRHSToLocal(
 /***********************************************************************************/
 
 template <bool IS_COROTATIONAL>
+void MITC4AndesShellThickElement3D4N<IS_COROTATIONAL>::Fill_XY_Matrices(
+    bounded_4_matrix& rX_dist,
+    bounded_4_matrix& rY_dist,
+    const array_3& r_local_coord_0,
+    const array_3& r_local_coord_1,
+    const array_3& r_local_coord_2,
+    const array_3& r_local_coord_3
+)
+{
+    rX_dist.clear();
+    rY_dist.clear();
+
+    rX_dist(0,1) = r_local_coord_0[0] - r_local_coord_1[0];
+    rX_dist(0,2) = r_local_coord_0[0] - r_local_coord_2[0];
+    rX_dist(0,3) = r_local_coord_0[0] - r_local_coord_3[0];
+
+    rY_dist(0,1) = r_local_coord_0[1] - r_local_coord_1[1];
+    rY_dist(0,2) = r_local_coord_0[1] - r_local_coord_2[1];
+    rY_dist(0,3) = r_local_coord_0[1] - r_local_coord_3[1];
+
+    rX_dist(1,0) = -rX_dist(0,1);
+    rX_dist(2,0) = -rX_dist(0,2);
+    rX_dist(3,0) = -rX_dist(0,3);
+
+    rY_dist(1,0) = -rY_dist(0,1);
+    rY_dist(2,0) = -rY_dist(0,2);
+    rY_dist(3,0) = -rY_dist(0,3);
+
+    rX_dist(1,2) = r_local_coord_1[0] - r_local_coord_2[0];
+    rX_dist(1,3) = r_local_coord_1[0] - r_local_coord_3[0];
+
+    rY_dist(1,2) = r_local_coord_1[1] - r_local_coord_2[1];
+    rY_dist(1,3) = r_local_coord_1[1] - r_local_coord_3[1];
+
+    rX_dist(2,1) = -rX_dist(1,2);
+    rX_dist(3,1) = -rX_dist(1,3);
+
+    rX_dist(2,3) = r_local_coord_2[0] - r_local_coord_3[0];
+    rX_dist(3,2) = -rX_dist(2,3);
+
+    rY_dist(2,1) = -rY_dist(1,2);
+    rY_dist(3,1) = -rY_dist(1,3);
+
+    rY_dist(2,3) = r_local_coord_2[1] - r_local_coord_3[1];
+    rY_dist(3,2) = -rY_dist(2,3);
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+template <bool IS_COROTATIONAL>
 void MITC4AndesShellThickElement3D4N<IS_COROTATIONAL>::CalculateShearBendingB(
     MatrixType& rB,
     const double Area,
@@ -376,6 +427,7 @@ void MITC4AndesShellThickElement3D4N<IS_COROTATIONAL>::CalculateMembraneB(
 )
 {
     KRATOS_TRY
+
 
 
     KRATOS_CATCH("MITC4AndesShellThickElement3D4N::CalculateBmTriangle")
