@@ -31,9 +31,6 @@ class PotentialFlowWrapper(kratos_base_wrapper.KratosBaseWrapper):
 
         for i in range(sub_project_parameters.size()):
             if "wake" in sub_project_parameters[i]["python_module"].GetString():
-                registry_entry = sub_project_parameters[i]["Parameters"]["wake_type"].GetString()
-                operation = KratosMultiphysics.Registry[f"{registry_entry}.Prototype"]
-                self.wake_operation = operation.Create(self.model, sub_project_parameters[i]["Parameters"]["wake_parameters"])
                 if not sub_project_parameters[i]["Parameters"]["define_wake"].GetBool():
                     err_msg =  "The potential flow requires defining an operation for the wake!"
                     raise Exception(err_msg)
@@ -44,9 +41,6 @@ class PotentialFlowWrapper(kratos_base_wrapper.KratosBaseWrapper):
                 self.lift_process = ComputeLiftProcess(self.model, sub_project_parameters[i]["Parameters"])
 
     def SolveSolutionStep(self):
-        if self.model.GetModelPart("wake_model_part").HasSubModelPart("Mesh_1"): 
-            self.model.GetModelPart("wake_model_part").RemoveSubModelPart("Mesh_1")
-        self.wake_operation.Execute()
 
         ## the next two lines are needed in order to add Wake DoFs to the new Wake Elements Nodes
         ## and delete the ones that are no longer in the Wake Region.
