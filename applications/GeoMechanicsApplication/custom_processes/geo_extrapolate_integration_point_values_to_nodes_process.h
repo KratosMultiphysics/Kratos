@@ -50,7 +50,6 @@ public:
 
     ~GeoExtrapolateIntegrationPointValuesToNodesProcess() override;
 
-    void                           Execute() override;
     void                           ExecuteBeforeSolutionLoop() override;
     void                           ExecuteFinalizeSolutionStep() override;
     void                           ExecuteFinalize() override;
@@ -96,27 +95,23 @@ private:
                                             const Variable<T>& rVariable,
                                             const Matrix&      rExtrapolationMatrix,
                                             SizeType           NumberOfIntegrationPoints,
+                                            const ProcessInfo& rProcessInfo,
                                             const U&           rAtomicAddOperation) const
     {
         auto&          r_geometry = rElement.GetGeometry();
         std::vector<T> values_on_integration_points(NumberOfIntegrationPoints);
-        for (const auto& r_model_part : mrModelParts) {
-            rElement.CalculateOnIntegrationPoints(rVariable, values_on_integration_points,
-                                                  r_model_part.get().GetProcessInfo());
+        rElement.CalculateOnIntegrationPoints(rVariable, values_on_integration_points, rProcessInfo);
 
-            for (IndexType iNode = 0; iNode < r_geometry.PointsNumber(); ++iNode) {
-                // We first initialize the source, which we need to do by getting the first value,
-                // because we don't know the size of the dynamically allocated Vector/Matrix
-                T source = rExtrapolationMatrix(iNode, 0) * values_on_integration_points[0];
-                for (IndexType i_gauss_point = 1;
-                     i_gauss_point < values_on_integration_points.size(); ++i_gauss_point) {
-                    source += rExtrapolationMatrix(iNode, i_gauss_point) *
-                              values_on_integration_points[i_gauss_point];
-                }
-                source /= r_geometry[iNode].GetValue(mrAverageVariable);
-
-                rAtomicAddOperation(r_geometry[iNode].FastGetSolutionStepValue(rVariable), source);
+        for (IndexType iNode = 0; iNode < r_geometry.PointsNumber(); ++iNode) {
+            // We first initialize the source, which we need to do by getting the first value,
+            // because we don't know the size of the dynamically allocated Vector/Matrix
+            T source = rExtrapolationMatrix(iNode, 0) * values_on_integration_points[0];
+            for (IndexType i_gauss_point = 1; i_gauss_point < values_on_integration_points.size(); ++i_gauss_point) {
+                source += rExtrapolationMatrix(iNode, i_gauss_point) * values_on_integration_points[i_gauss_point];
             }
+            source /= r_geometry[iNode].GetValue(mrAverageVariable);
+
+            rAtomicAddOperation(r_geometry[iNode].FastGetSolutionStepValue(rVariable), source);
         }
     }
 
@@ -125,7 +120,9 @@ private:
     [[nodiscard]] bool          ExtrapolationMatrixIsCachedFor(const Element& rElement) const;
     [[nodiscard]] const Matrix& GetCachedExtrapolationMatrixFor(const Element& rElement) const;
 
-    void AddIntegrationPointContributionsForAllVariables(Element& rElement, const Matrix& rExtrapolationMatrix) const;
+    void AddIntegrationPointContributionsForAllVariables(Element&           rElement,
+                                                         const Matrix&      rExtrapolationMatrix,
+                                                         const ProcessInfo& rProcessInfo) const;
 };
 
 } // namespace Kratos.
