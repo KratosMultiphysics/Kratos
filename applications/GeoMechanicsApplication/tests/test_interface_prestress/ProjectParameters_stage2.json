@@ -56,7 +56,7 @@
                 "Parameters": {
                     "model_part_name": "PorousDomain.Interface",
                     "output_file_name": "stage_2_interface_output.json",
-                    "gauss_points_output_variables": ["CAUCHY_STRESS_VECTOR", "STRAIN"],
+                    "gauss_points_output_variables": ["GEO_EFFECTIVE_TRACTION_VECTOR", "GEO_RELATIVE_DISPLACEMENT_VECTOR"],
                     "time_frequency": 0.9999999999
                 }
             }
