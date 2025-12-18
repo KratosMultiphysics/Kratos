@@ -12,7 +12,7 @@
 //                   Wijtze Pieter Kikstra
 //                   Richard Faasse
 
-#include "custom_processes/geo_extrapolate_integration_point_values_to_nodes_process.h"
+#include "custom_processes/geo_extrapolate_integration_point_values_to_nodes_process.hpp"
 #include "containers/model.h"
 #include "custom_utilities/element_utilities.hpp"
 #include "custom_utilities/extrapolation_utilities.h"
