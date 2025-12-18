@@ -150,13 +150,15 @@ KRATOS_TEST_CASE_IN_SUITE(DataValueContainerMergeOverride, KratosCoreFastSuite) 
 
 }
 
-KRATOS_TEST_CASE_IN_SUITE(DataValueContainerGetOrCreateValue, KratosCoreFastSuite) {
+KRATOS_TEST_CASE_IN_SUITE(DataValueContainerEmplace, KratosCoreFastSuite) {
     DataValueContainer container;
 
     const double density = 1000.0;
     const double viscosity_1 = 1e-3;
     const double viscosity_2 = 2e-3;
     const array_1d<double, 3> velocity{0.1, 0.2, 0.3};
+
+    const Vector vec_1 = Vector(5, 0.1);
 
     container.SetValue(DENSITY, density);
     container.SetValue(VISCOSITY, viscosity_1);
@@ -171,15 +173,27 @@ KRATOS_TEST_CASE_IN_SUITE(DataValueContainerGetOrCreateValue, KratosCoreFastSuit
 
 
     KRATOS_EXPECT_EQ(container.Emplace(DISTANCE), 0.0);
-    const array_1d<double, 3> momentum{0.9, 1.1, 1.2}, zero{};
+    const array_1d<double, 3> momentum{0.9, 1.1, 1.2};
+    const array_1d<double, 3> zero{0.0, 0.0, 0.0};
     KRATOS_EXPECT_VECTOR_EQ(container.Emplace(MOMENTUM, momentum), momentum);
 
+    KRATOS_EXPECT_FALSE(container.Has(ACCELERATION))
     KRATOS_EXPECT_VECTOR_EQ(container.Emplace(ACCELERATION), zero);
+    KRATOS_EXPECT_TRUE(container.Has(ACCELERATION))
     KRATOS_EXPECT_EQ(container.Emplace(ACCELERATION_X), 0.0);
 
     KRATOS_EXPECT_EQ(container.Emplace(DISPLACEMENT_Z, 0.7), 0.7);
     KRATOS_EXPECT_EQ(container.Emplace(DISPLACEMENT_X, 0.7), 0.0);
     KRATOS_EXPECT_EQ(container.Emplace(DISPLACEMENT_Y, 0.7), 0.0);
+
+    KRATOS_EXPECT_FALSE(container.Has(CONSTRAINT_LABELS))
+    KRATOS_EXPECT_VECTOR_EQ(container.Emplace(CONSTRAINT_LABELS, vec_1), vec_1);
+    KRATOS_EXPECT_TRUE(container.Has(CONSTRAINT_LABELS))
+
+    container.Emplace(CONSTRAINT_LABELS)[2] = 0.2;
+    Vector vec_2 = Vector(5, 0.1);
+    vec_2[2] = 0.2;
+    KRATOS_EXPECT_VECTOR_EQ(container.GetValue(CONSTRAINT_LABELS), vec_2);
 }
 }
 } // namespace Kratos.

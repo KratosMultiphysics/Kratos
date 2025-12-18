@@ -13,15 +13,11 @@
 #pragma once
 
 // System includes
-#include <string>
-#include <iostream>
 #include <cstddef>
-#include <vector>
 
 // External includes
 
 // Project includes
-#include "includes/define.h"
 #include "containers/variable.h"
 #include "includes/kratos_components.h"
 #include "includes/exception.h"

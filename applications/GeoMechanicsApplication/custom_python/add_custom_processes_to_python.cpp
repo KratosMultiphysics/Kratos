@@ -160,7 +160,7 @@ void AddCustomProcessesToPython(pybind11::module& m)
 
     py::class_<ApplyVectorConstraintTableProcess, ApplyVectorConstraintTableProcess::Pointer, Process>(
         m, "ApplyVectorConstraintTableProcess")
-        .def(py::init<ModelPart&, const Parameters&>());
+        .def(py::init<Model&, const Parameters&>());
 
     py::class_<ApplyScalarConstraintTableProcess, ApplyScalarConstraintTableProcess::Pointer, Process>(
         m, "ApplyScalarConstraintTableProcess")
@@ -172,7 +172,7 @@ void AddCustomProcessesToPython(pybind11::module& m)
 
     py::class_<GeoExtrapolateIntegrationPointValuesToNodesProcess, GeoExtrapolateIntegrationPointValuesToNodesProcess::Pointer, Process>(
         m, "GeoExtrapolateIntegrationPointValuesToNodesProcess")
-        .def(py::init<ModelPart&, const Parameters&>());
+        .def(py::init<Model&, const Parameters&>());
 
     py::class_<ApplyCPhiReductionProcess, ApplyCPhiReductionProcess::Pointer, Process>(
         m, "ApplyCPhiReductionProcess")
