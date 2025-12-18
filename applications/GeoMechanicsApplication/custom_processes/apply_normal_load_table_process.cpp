@@ -12,7 +12,7 @@
 //                   Gennady Markelov
 //
 #include "apply_normal_load_table_process.h"
-#include "apply_boundary_hydrostatic_pressure_table_process.hpp"
+#include "apply_boundary_hydrostatic_pressure_table_process.h"
 #include "apply_boundary_phreatic_line_pressure_table_process.hpp"
 #include "apply_boundary_phreatic_surface_pressure_table_process.hpp"
 #include "apply_component_table_process.h"

@@ -20,7 +20,7 @@
 #include "includes/model_part.h"
 #include "processes/process.h"
 
-#include "custom_processes/apply_boundary_hydrostatic_pressure_table_process.hpp"
+#include "custom_processes/apply_boundary_hydrostatic_pressure_table_process.h"
 #include "custom_processes/apply_boundary_phreatic_line_pressure_table_process.hpp"
 #include "custom_processes/apply_boundary_phreatic_surface_pressure_table_process.hpp"
 #include "custom_processes/apply_c_phi_reduction_process.h"
