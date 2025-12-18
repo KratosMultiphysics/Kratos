@@ -102,6 +102,9 @@ class JacobiStrongCoupledSolver(CoSimulationCoupledSolver):
             is_converged = all([conv_crit.IsConverged() for conv_crit in self.convergence_criteria_list])
 
             if is_converged:
+                for conv_acc in self.convergence_accelerators_list:
+                    conv_acc.ComputeLastAcceleratorDataPoint()
+
                 if self.echo_level > 0:
                     cs_tools.cs_print_info(self._ClassName(), colors.green("### CONVERGENCE WAS ACHIEVED ###"))
                 self.__CommunicateIfTimeStepNeedsToBeRepeated(False)
