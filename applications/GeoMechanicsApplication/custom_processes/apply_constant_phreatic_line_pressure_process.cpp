@@ -12,6 +12,7 @@
 
 #include "apply_constant_phreatic_line_pressure_process.h"
 #include "includes/model_part.h"
+#include "includes/node.h"
 
 #include <algorithm>
 
