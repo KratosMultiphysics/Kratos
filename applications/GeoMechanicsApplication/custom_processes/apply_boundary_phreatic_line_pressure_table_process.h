@@ -14,7 +14,7 @@
 
 #include "includes/table.h"
 
-#include "custom_processes/apply_constant_boundary_phreatic_line_pressure_process.hpp"
+#include "custom_processes/apply_constant_boundary_phreatic_line_pressure_process.h"
 
 namespace Kratos
 {
