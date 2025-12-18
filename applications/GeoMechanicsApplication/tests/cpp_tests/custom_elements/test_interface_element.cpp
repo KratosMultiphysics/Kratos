@@ -19,7 +19,7 @@
 #include "custom_constitutive/three_dimensional.h"
 #include "custom_elements/interface_element.h"
 #include "custom_elements/interface_stress_state.h"
-#include "custom_geometries/interface_geometry.h"
+#include "custom_geometries/interface_geometry.hpp"
 #include "custom_utilities/ublas_utilities.h"
 #include "geo_mechanics_application_variables.h"
 #include "test_setup_utilities/element_setup_utilities.h"
