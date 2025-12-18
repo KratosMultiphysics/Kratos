@@ -1032,8 +1032,8 @@ void TransportTopologyOptimizationElement<TransportTopologyOptimizationElementDa
     // const double bdf0 = rData.bdf0;
 
     // Get shape function values
-    const array_1d<double,3>& N = rData.N;
-    const BoundedMatrix<double,3,2>& DN = rData.DN_DX;
+    const array_1d<double,4>& N = rData.N;
+    const BoundedMatrix<double,4,3>& DN = rData.DN_DX;
 
     // const double dyn_tau = rData.DynamicTau;
     // Stabilization parameters 
@@ -1252,8 +1252,8 @@ void TransportTopologyOptimizationElement<TransportTopologyOptimizationElementDa
     // const double bdf0 = rData.bdf0;
 
     // Get shape function values
-    const array_1d<double,3>& N = rData.N;
-    const BoundedMatrix<double,3,2>& DN = rData.DN_DX;
+    const array_1d<double,4>& N = rData.N;
+    const BoundedMatrix<double,4,3>& DN = rData.DN_DX;
 
     // const double dyn_tau = rData.DynamicTau;
     // Stabilization parameters 

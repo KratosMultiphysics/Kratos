@@ -888,7 +888,7 @@ const double crLHS9 = N[0]*crLHS0;
 const double crLHS10 = crLHS3*crLHS7;
 const double crLHS11 = crLHS5*crLHS7;
 const double crLHS12 = crLHS10 + crLHS11 + crLHS9;
-const double crLHS13 = 1.0/(crLHS0*stab_c3 + crLHS1*stab_c1*1.0/(h*h) + stab_c2*fabs(crLHS7)*1.0/h*sqrt(crLHS2*crLHS2 + crLHS4*crLHS4));
+const double crLHS13 = 1.0/(crLHS0*stab_c3 + crLHS1*stab_c1/pow(h, 2) + stab_c2*sqrt(pow(crLHS2, 2) + pow(crLHS4, 2))*fabs(crLHS7)/h);
 const double crLHS14 = 1.0*crLHS13;
 const double crLHS15 = crLHS12*crLHS14;
 const double crLHS16 = DN(1,0)*crLHS2;
@@ -911,15 +911,15 @@ const double crLHS32 = N[2]*crLHS9 + crLHS1*(DN(0,0)*DN(2,0) + DN(0,1)*DN(2,1));
 const double crLHS33 = N[1]*crLHS7;
 const double crLHS34 = N[2]*crLHS19 + crLHS1*(DN(1,0)*DN(2,0) + DN(1,1)*DN(2,1));
 const double crLHS35 = N[2]*crLHS7;
-rLHS(0,0)+=-gauss_weight*(1.0*N[0]*crLHS0*crLHS12*crLHS13 - crLHS0*N[0]*N[0] - crLHS1*(DN(0,0)*DN(0,0) + DN(0,1)*DN(0,1)) - crLHS10*crLHS15 - crLHS11*crLHS15 - crLHS6*crLHS8);
+rLHS(0,0)+=-gauss_weight*(-pow(N[0], 2)*crLHS0 + 1.0*N[0]*crLHS0*crLHS12*crLHS13 - crLHS1*(pow(DN(0,0), 2) + pow(DN(0,1), 2)) - crLHS10*crLHS15 - crLHS11*crLHS15 - crLHS6*crLHS8);
 rLHS(0,1)+=-gauss_weight*(1.0*N[0]*crLHS0*crLHS13*crLHS22 - crLHS10*crLHS23 - crLHS11*crLHS23 - crLHS18*crLHS8 - crLHS24);
 rLHS(0,2)+=-gauss_weight*(1.0*N[0]*crLHS0*crLHS13*crLHS30 - crLHS10*crLHS31 - crLHS11*crLHS31 - crLHS27*crLHS8 - crLHS32);
 rLHS(1,0)+=-gauss_weight*(1.0*N[1]*crLHS0*crLHS12*crLHS13 - crLHS15*crLHS20 - crLHS15*crLHS21 - crLHS24 - crLHS33*crLHS6);
-rLHS(1,1)+=-gauss_weight*(1.0*N[1]*crLHS0*crLHS13*crLHS22 - crLHS0*N[1]*N[1] - crLHS1*(DN(1,0)*DN(1,0) + DN(1,1)*DN(1,1)) - crLHS18*crLHS33 - crLHS20*crLHS23 - crLHS21*crLHS23);
+rLHS(1,1)+=-gauss_weight*(-pow(N[1], 2)*crLHS0 + 1.0*N[1]*crLHS0*crLHS13*crLHS22 - crLHS1*(pow(DN(1,0), 2) + pow(DN(1,1), 2)) - crLHS18*crLHS33 - crLHS20*crLHS23 - crLHS21*crLHS23);
 rLHS(1,2)+=-gauss_weight*(1.0*N[1]*crLHS0*crLHS13*crLHS30 - crLHS20*crLHS31 - crLHS21*crLHS31 - crLHS27*crLHS33 - crLHS34);
 rLHS(2,0)+=-gauss_weight*(1.0*N[2]*crLHS0*crLHS12*crLHS13 - crLHS15*crLHS28 - crLHS15*crLHS29 - crLHS32 - crLHS35*crLHS6);
 rLHS(2,1)+=-gauss_weight*(1.0*N[2]*crLHS0*crLHS13*crLHS22 - crLHS18*crLHS35 - crLHS23*crLHS28 - crLHS23*crLHS29 - crLHS34);
-rLHS(2,2)+=-gauss_weight*(1.0*N[2]*crLHS0*crLHS13*crLHS30 - crLHS0*N[2]*N[2] - crLHS1*(DN(2,0)*DN(2,0) + DN(2,1)*DN(2,1)) - crLHS27*crLHS35 - crLHS28*crLHS31 - crLHS29*crLHS31);
+rLHS(2,2)+=-gauss_weight*(-pow(N[2], 2)*crLHS0 + 1.0*N[2]*crLHS0*crLHS13*crLHS30 - crLHS1*(pow(DN(2,0), 2) + pow(DN(2,1), 2)) - crLHS27*crLHS35 - crLHS28*crLHS31 - crLHS29*crLHS31);
  
     
 }
@@ -966,7 +966,7 @@ const double crLHS9 = N[0]*crLHS0;
 const double crLHS10 = crLHS3*crLHS7;
 const double crLHS11 = crLHS5*crLHS7;
 const double crLHS12 = crLHS10 + crLHS11 + crLHS9;
-const double crLHS13 = 1.0/(crLHS0*stab_c3 + crLHS1*stab_c1*1.0/(h*h) + stab_c2*fabs(crLHS7)*1.0/h*sqrt(crLHS2*crLHS2 + crLHS4*crLHS4));
+const double crLHS13 = 1.0/(crLHS0*stab_c3 + crLHS1*stab_c1/pow(h, 2) + stab_c2*sqrt(pow(crLHS2, 2) + pow(crLHS4, 2))*fabs(crLHS7)/h);
 const double crLHS14 = 1.0*crLHS13;
 const double crLHS15 = crLHS12*crLHS14;
 const double crLHS16 = DN(1,0)*crLHS2;
@@ -1001,22 +1001,22 @@ const double crLHS44 = N[3]*crLHS19 + crLHS1*(DN(1,0)*DN(3,0) + DN(1,1)*DN(3,1))
 const double crLHS45 = N[2]*crLHS7;
 const double crLHS46 = N[3]*crLHS28 + crLHS1*(DN(2,0)*DN(3,0) + DN(2,1)*DN(3,1));
 const double crLHS47 = N[3]*crLHS7;
-rLHS(0,0)+=-gauss_weight*(1.0*N[0]*crLHS0*crLHS12*crLHS13 - crLHS0*N[0]*N[0] - crLHS1*(DN(0,0)*DN(0,0) + DN(0,1)*DN(0,1)) - crLHS10*crLHS15 - crLHS11*crLHS15 - crLHS6*crLHS8);
+rLHS(0,0)+=-gauss_weight*(-pow(N[0], 2)*crLHS0 + 1.0*N[0]*crLHS0*crLHS12*crLHS13 - crLHS1*(pow(DN(0,0), 2) + pow(DN(0,1), 2)) - crLHS10*crLHS15 - crLHS11*crLHS15 - crLHS6*crLHS8);
 rLHS(0,1)+=-gauss_weight*(1.0*N[0]*crLHS0*crLHS13*crLHS22 - crLHS10*crLHS23 - crLHS11*crLHS23 - crLHS18*crLHS8 - crLHS24);
 rLHS(0,2)+=-gauss_weight*(1.0*N[0]*crLHS0*crLHS13*crLHS31 - crLHS10*crLHS32 - crLHS11*crLHS32 - crLHS27*crLHS8 - crLHS33);
 rLHS(0,3)+=-gauss_weight*(1.0*N[0]*crLHS0*crLHS13*crLHS39 - crLHS10*crLHS40 - crLHS11*crLHS40 - crLHS36*crLHS8 - crLHS41);
 rLHS(1,0)+=-gauss_weight*(1.0*N[1]*crLHS0*crLHS12*crLHS13 - crLHS15*crLHS20 - crLHS15*crLHS21 - crLHS24 - crLHS42*crLHS6);
-rLHS(1,1)+=-gauss_weight*(1.0*N[1]*crLHS0*crLHS13*crLHS22 - crLHS0*N[1]*N[1] - crLHS1*(DN(1,0)*DN(1,0) + DN(1,1)*DN(1,1)) - crLHS18*crLHS42 - crLHS20*crLHS23 - crLHS21*crLHS23);
+rLHS(1,1)+=-gauss_weight*(-pow(N[1], 2)*crLHS0 + 1.0*N[1]*crLHS0*crLHS13*crLHS22 - crLHS1*(pow(DN(1,0), 2) + pow(DN(1,1), 2)) - crLHS18*crLHS42 - crLHS20*crLHS23 - crLHS21*crLHS23);
 rLHS(1,2)+=-gauss_weight*(1.0*N[1]*crLHS0*crLHS13*crLHS31 - crLHS20*crLHS32 - crLHS21*crLHS32 - crLHS27*crLHS42 - crLHS43);
 rLHS(1,3)+=-gauss_weight*(1.0*N[1]*crLHS0*crLHS13*crLHS39 - crLHS20*crLHS40 - crLHS21*crLHS40 - crLHS36*crLHS42 - crLHS44);
 rLHS(2,0)+=-gauss_weight*(1.0*N[2]*crLHS0*crLHS12*crLHS13 - crLHS15*crLHS29 - crLHS15*crLHS30 - crLHS33 - crLHS45*crLHS6);
 rLHS(2,1)+=-gauss_weight*(1.0*N[2]*crLHS0*crLHS13*crLHS22 - crLHS18*crLHS45 - crLHS23*crLHS29 - crLHS23*crLHS30 - crLHS43);
-rLHS(2,2)+=-gauss_weight*(1.0*N[2]*crLHS0*crLHS13*crLHS31 - crLHS0*N[2]*N[2] - crLHS1*(DN(2,0)*DN(2,0) + DN(2,1)*DN(2,1)) - crLHS27*crLHS45 - crLHS29*crLHS32 - crLHS30*crLHS32);
+rLHS(2,2)+=-gauss_weight*(-pow(N[2], 2)*crLHS0 + 1.0*N[2]*crLHS0*crLHS13*crLHS31 - crLHS1*(pow(DN(2,0), 2) + pow(DN(2,1), 2)) - crLHS27*crLHS45 - crLHS29*crLHS32 - crLHS30*crLHS32);
 rLHS(2,3)+=-gauss_weight*(1.0*N[2]*crLHS0*crLHS13*crLHS39 - crLHS29*crLHS40 - crLHS30*crLHS40 - crLHS36*crLHS45 - crLHS46);
 rLHS(3,0)+=-gauss_weight*(1.0*N[3]*crLHS0*crLHS12*crLHS13 - crLHS15*crLHS37 - crLHS15*crLHS38 - crLHS41 - crLHS47*crLHS6);
 rLHS(3,1)+=-gauss_weight*(1.0*N[3]*crLHS0*crLHS13*crLHS22 - crLHS18*crLHS47 - crLHS23*crLHS37 - crLHS23*crLHS38 - crLHS44);
 rLHS(3,2)+=-gauss_weight*(1.0*N[3]*crLHS0*crLHS13*crLHS31 - crLHS27*crLHS47 - crLHS32*crLHS37 - crLHS32*crLHS38 - crLHS46);
-rLHS(3,3)+=-gauss_weight*(1.0*N[3]*crLHS0*crLHS13*crLHS39 - crLHS0*N[3]*N[3] - crLHS1*(DN(3,0)*DN(3,0) + DN(3,1)*DN(3,1)) - crLHS36*crLHS47 - crLHS37*crLHS40 - crLHS38*crLHS40);
+rLHS(3,3)+=-gauss_weight*(-pow(N[3], 2)*crLHS0 + 1.0*N[3]*crLHS0*crLHS13*crLHS39 - crLHS1*(pow(DN(3,0), 2) + pow(DN(3,1), 2)) - crLHS36*crLHS47 - crLHS37*crLHS40 - crLHS38*crLHS40);
  
     
 }
@@ -1066,7 +1066,7 @@ const double crLHS12 = crLHS3*crLHS9;
 const double crLHS13 = crLHS5*crLHS9;
 const double crLHS14 = crLHS7*crLHS9;
 const double crLHS15 = crLHS11 + crLHS12 + crLHS13 + crLHS14;
-const double crLHS16 = 1.0/(crLHS0*stab_c3 + crLHS1*stab_c1*1.0/(h*h) + stab_c2*fabs(crLHS9)*1.0/h*sqrt(crLHS2*crLHS2 + crLHS4*crLHS4 + crLHS6*crLHS6));
+const double crLHS16 = 1.0/(crLHS0*stab_c3 + crLHS1*stab_c1/pow(h, 2) + stab_c2*sqrt(pow(crLHS2, 2) + pow(crLHS4, 2) + pow(crLHS6, 2))*fabs(crLHS9)/h);
 const double crLHS17 = 1.0*crLHS16;
 const double crLHS18 = crLHS15*crLHS17;
 const double crLHS19 = DN(1,0)*crLHS2;
@@ -1107,22 +1107,22 @@ const double crLHS53 = N[3]*crLHS23 + crLHS1*(DN(1,0)*DN(3,0) + DN(1,1)*DN(3,1) 
 const double crLHS54 = N[2]*crLHS9;
 const double crLHS55 = N[3]*crLHS34 + crLHS1*(DN(2,0)*DN(3,0) + DN(2,1)*DN(3,1) + DN(2,2)*DN(3,2));
 const double crLHS56 = N[3]*crLHS9;
-rLHS(0,0)+=-gauss_weight*(1.0*N[0]*crLHS0*crLHS15*crLHS16 - crLHS0*N[0]*N[0] - crLHS1*(DN(0,0)*DN(0,0) + DN(0,1)*DN(0,1) + DN(0,2)*DN(0,2)) - crLHS10*crLHS8 - crLHS12*crLHS18 - crLHS13*crLHS18 - crLHS14*crLHS18);
+rLHS(0,0)+=-gauss_weight*(-pow(N[0], 2)*crLHS0 + 1.0*N[0]*crLHS0*crLHS15*crLHS16 - crLHS1*(pow(DN(0,0), 2) + pow(DN(0,1), 2) + pow(DN(0,2), 2)) - crLHS10*crLHS8 - crLHS12*crLHS18 - crLHS13*crLHS18 - crLHS14*crLHS18);
 rLHS(0,1)+=-gauss_weight*(1.0*N[0]*crLHS0*crLHS16*crLHS27 - crLHS10*crLHS22 - crLHS12*crLHS28 - crLHS13*crLHS28 - crLHS14*crLHS28 - crLHS29);
 rLHS(0,2)+=-gauss_weight*(1.0*N[0]*crLHS0*crLHS16*crLHS38 - crLHS10*crLHS33 - crLHS12*crLHS39 - crLHS13*crLHS39 - crLHS14*crLHS39 - crLHS40);
 rLHS(0,3)+=-gauss_weight*(1.0*N[0]*crLHS0*crLHS16*crLHS48 - crLHS10*crLHS44 - crLHS12*crLHS49 - crLHS13*crLHS49 - crLHS14*crLHS49 - crLHS50);
 rLHS(1,0)+=-gauss_weight*(1.0*N[1]*crLHS0*crLHS15*crLHS16 - crLHS18*crLHS24 - crLHS18*crLHS25 - crLHS18*crLHS26 - crLHS29 - crLHS51*crLHS8);
-rLHS(1,1)+=-gauss_weight*(1.0*N[1]*crLHS0*crLHS16*crLHS27 - crLHS0*N[1]*N[1] - crLHS1*(DN(1,0)*DN(1,0) + DN(1,1)*DN(1,1) + DN(1,2)*DN(1,2)) - crLHS22*crLHS51 - crLHS24*crLHS28 - crLHS25*crLHS28 - crLHS26*crLHS28);
+rLHS(1,1)+=-gauss_weight*(-pow(N[1], 2)*crLHS0 + 1.0*N[1]*crLHS0*crLHS16*crLHS27 - crLHS1*(pow(DN(1,0), 2) + pow(DN(1,1), 2) + pow(DN(1,2), 2)) - crLHS22*crLHS51 - crLHS24*crLHS28 - crLHS25*crLHS28 - crLHS26*crLHS28);
 rLHS(1,2)+=-gauss_weight*(1.0*N[1]*crLHS0*crLHS16*crLHS38 - crLHS24*crLHS39 - crLHS25*crLHS39 - crLHS26*crLHS39 - crLHS33*crLHS51 - crLHS52);
 rLHS(1,3)+=-gauss_weight*(1.0*N[1]*crLHS0*crLHS16*crLHS48 - crLHS24*crLHS49 - crLHS25*crLHS49 - crLHS26*crLHS49 - crLHS44*crLHS51 - crLHS53);
 rLHS(2,0)+=-gauss_weight*(1.0*N[2]*crLHS0*crLHS15*crLHS16 - crLHS18*crLHS35 - crLHS18*crLHS36 - crLHS18*crLHS37 - crLHS40 - crLHS54*crLHS8);
 rLHS(2,1)+=-gauss_weight*(1.0*N[2]*crLHS0*crLHS16*crLHS27 - crLHS22*crLHS54 - crLHS28*crLHS35 - crLHS28*crLHS36 - crLHS28*crLHS37 - crLHS52);
-rLHS(2,2)+=-gauss_weight*(1.0*N[2]*crLHS0*crLHS16*crLHS38 - crLHS0*N[2]*N[2] - crLHS1*(DN(2,0)*DN(2,0) + DN(2,1)*DN(2,1) + DN(2,2)*DN(2,2)) - crLHS33*crLHS54 - crLHS35*crLHS39 - crLHS36*crLHS39 - crLHS37*crLHS39);
+rLHS(2,2)+=-gauss_weight*(-pow(N[2], 2)*crLHS0 + 1.0*N[2]*crLHS0*crLHS16*crLHS38 - crLHS1*(pow(DN(2,0), 2) + pow(DN(2,1), 2) + pow(DN(2,2), 2)) - crLHS33*crLHS54 - crLHS35*crLHS39 - crLHS36*crLHS39 - crLHS37*crLHS39);
 rLHS(2,3)+=-gauss_weight*(1.0*N[2]*crLHS0*crLHS16*crLHS48 - crLHS35*crLHS49 - crLHS36*crLHS49 - crLHS37*crLHS49 - crLHS44*crLHS54 - crLHS55);
 rLHS(3,0)+=-gauss_weight*(1.0*N[3]*crLHS0*crLHS15*crLHS16 - crLHS18*crLHS45 - crLHS18*crLHS46 - crLHS18*crLHS47 - crLHS50 - crLHS56*crLHS8);
 rLHS(3,1)+=-gauss_weight*(1.0*N[3]*crLHS0*crLHS16*crLHS27 - crLHS22*crLHS56 - crLHS28*crLHS45 - crLHS28*crLHS46 - crLHS28*crLHS47 - crLHS53);
 rLHS(3,2)+=-gauss_weight*(1.0*N[3]*crLHS0*crLHS16*crLHS38 - crLHS33*crLHS56 - crLHS39*crLHS45 - crLHS39*crLHS46 - crLHS39*crLHS47 - crLHS55);
-rLHS(3,3)+=-gauss_weight*(1.0*N[3]*crLHS0*crLHS16*crLHS48 - crLHS0*N[3]*N[3] - crLHS1*(DN(3,0)*DN(3,0) + DN(3,1)*DN(3,1) + DN(3,2)*DN(3,2)) - crLHS44*crLHS56 - crLHS45*crLHS49 - crLHS46*crLHS49 - crLHS47*crLHS49);
+rLHS(3,3)+=-gauss_weight*(-pow(N[3], 2)*crLHS0 + 1.0*N[3]*crLHS0*crLHS16*crLHS48 - crLHS1*(pow(DN(3,0), 2) + pow(DN(3,1), 2) + pow(DN(3,2), 2)) - crLHS44*crLHS56 - crLHS45*crLHS49 - crLHS46*crLHS49 - crLHS47*crLHS49);
 
 }
 
@@ -1172,7 +1172,7 @@ const double crRHS8 = N[0]*vconv(0,1) + N[1]*vconv(1,1) + N[2]*vconv(2,1);
 const double crRHS9 = crRHS5*crRHS8;
 const double crRHS10 = N[0]*c[0] + N[1]*c[1] + N[2]*c[2];
 const double crRHS11 = crRHS10*(crRHS7 + crRHS9);
-const double crRHS12 = 1.0*(crRHS0 - crRHS10*crRHS7 - crRHS10*crRHS9 - crRHS2)*1.0/(crRHS1*stab_c3 + crRHS3*stab_c1*1.0/(h*h) + stab_c2*fabs(crRHS10)*1.0/h*sqrt(crRHS6*crRHS6 + crRHS8*crRHS8));
+const double crRHS12 = 1.0*(crRHS0 - crRHS10*crRHS7 - crRHS10*crRHS9 - crRHS2)/(crRHS1*stab_c3 + crRHS3*stab_c1/pow(h, 2) + stab_c2*sqrt(pow(crRHS6, 2) + pow(crRHS8, 2))*fabs(crRHS10)/h);
 const double crRHS13 = crRHS1*crRHS12;
 const double crRHS14 = crRHS10*crRHS12;
 const double crRHS15 = crRHS14*crRHS6;
@@ -1229,7 +1229,7 @@ const double crRHS8 = N[0]*vconv(0,1) + N[1]*vconv(1,1) + N[2]*vconv(2,1) + N[3]
 const double crRHS9 = crRHS5*crRHS8;
 const double crRHS10 = N[0]*c[0] + N[1]*c[1] + N[2]*c[2] + N[3]*c[3];
 const double crRHS11 = crRHS10*(crRHS7 + crRHS9);
-const double crRHS12 = 1.0*(crRHS0 - crRHS10*crRHS7 - crRHS10*crRHS9 - crRHS2)*1.0/(crRHS1*stab_c3 + crRHS3*stab_c1*1.0/(h*h) + stab_c2*fabs(crRHS10)*1.0/h*sqrt(crRHS6*crRHS6 + crRHS8*crRHS8));
+const double crRHS12 = 1.0*(crRHS0 - crRHS10*crRHS7 - crRHS10*crRHS9 - crRHS2)/(crRHS1*stab_c3 + crRHS3*stab_c1/pow(h, 2) + stab_c2*sqrt(pow(crRHS6, 2) + pow(crRHS8, 2))*fabs(crRHS10)/h);
 const double crRHS13 = crRHS1*crRHS12;
 const double crRHS14 = crRHS10*crRHS12;
 const double crRHS15 = crRHS14*crRHS6;
@@ -1255,8 +1255,8 @@ void TransportTopologyOptimizationElement<TransportTopologyOptimizationElementDa
     // const double bdf0 = rData.bdf0;
 
     // Get shape function values
-    const array_1d<double,3>& N = rData.N;
-    const BoundedMatrix<double,3,2>& DN = rData.DN_DX;
+    const array_1d<double,4>& N = rData.N;
+    const BoundedMatrix<double,4,3>& DN = rData.DN_DX;
 
     // const double dyn_tau = rData.DynamicTau;
     // Stabilization parameters 
@@ -1290,7 +1290,7 @@ const double crRHS11 = N[0]*vconv(0,2) + N[1]*vconv(1,2) + N[2]*vconv(2,2) + N[3
 const double crRHS12 = crRHS11*crRHS6;
 const double crRHS13 = N[0]*c[0] + N[1]*c[1] + N[2]*c[2] + N[3]*c[3];
 const double crRHS14 = crRHS13*(crRHS10 + crRHS12 + crRHS8);
-const double crRHS15 = 1.0*(crRHS0 - crRHS10*crRHS13 - crRHS12*crRHS13 - crRHS13*crRHS8 - crRHS2)*1.0/(crRHS1*stab_c3 + crRHS3*stab_c1*1.0/(h*h) + stab_c2*fabs(crRHS13)*1.0/h*sqrt(crRHS11*crRHS11 + crRHS7*crRHS7 + crRHS9*crRHS9));
+const double crRHS15 = 1.0*(crRHS0 - crRHS10*crRHS13 - crRHS12*crRHS13 - crRHS13*crRHS8 - crRHS2)/(crRHS1*stab_c3 + crRHS3*stab_c1/pow(h, 2) + stab_c2*sqrt(pow(crRHS11, 2) + pow(crRHS7, 2) + pow(crRHS9, 2))*fabs(crRHS13)/h);
 const double crRHS16 = crRHS1*crRHS15;
 const double crRHS17 = crRHS13*crRHS15;
 const double crRHS18 = crRHS17*crRHS7;
@@ -1345,7 +1345,7 @@ const double crLHS8 = N[0]*crLHS0;
 const double crLHS9 = crLHS3*crLHS6;
 const double crLHS10 = crLHS5*crLHS6;
 const double crLHS11 = crLHS10 - crLHS8 + crLHS9;
-const double crLHS12 = 1.0*1.0/(crLHS0*stab_c3 + crLHS1*stab_c1*1.0/(h*h) + stab_c2*fabs(crLHS6)*1.0/h*sqrt(crLHS2*crLHS2 + crLHS4*crLHS4));
+const double crLHS12 = 1.0/(crLHS0*stab_c3 + crLHS1*stab_c1/pow(h, 2) + stab_c2*sqrt(pow(crLHS2, 2) + pow(crLHS4, 2))*fabs(crLHS6)/h);
 const double crLHS13 = crLHS12*crLHS8;
 const double crLHS14 = crLHS11*crLHS12;
 const double crLHS15 = N[1]*crLHS0;
@@ -1369,15 +1369,15 @@ const double crLHS32 = crLHS12*crLHS15;
 const double crLHS33 = N[2]*crLHS15 + crLHS1*(DN(1,0)*DN(2,0) + DN(1,1)*DN(2,1));
 const double crLHS34 = crLHS6*(crLHS24 + crLHS26);
 const double crLHS35 = crLHS12*crLHS23;
-rLHS(0,0)+=gauss_weight*(N[0]*crLHS7 + crLHS0*(N[0]*N[0]) + crLHS1*(DN(0,0)*DN(0,0) + DN(0,1)*DN(0,1)) + crLHS10*crLHS14 + crLHS11*crLHS13 + crLHS14*crLHS9);
+rLHS(0,0)+=gauss_weight*(pow(N[0], 2)*crLHS0 + N[0]*crLHS7 + crLHS1*(pow(DN(0,0), 2) + pow(DN(0,1), 2)) + crLHS10*crLHS14 + crLHS11*crLHS13 + crLHS14*crLHS9);
 rLHS(0,1)+=gauss_weight*(N[1]*crLHS7 + crLHS10*crLHS21 + crLHS13*crLHS20 + crLHS21*crLHS9 + crLHS22);
 rLHS(0,2)+=gauss_weight*(N[2]*crLHS7 + crLHS10*crLHS29 + crLHS13*crLHS28 + crLHS29*crLHS9 + crLHS30);
 rLHS(1,0)+=gauss_weight*(N[0]*crLHS31 + crLHS11*crLHS32 + crLHS14*crLHS17 + crLHS14*crLHS19 + crLHS22);
-rLHS(1,1)+=gauss_weight*(N[1]*crLHS31 + crLHS0*(N[1]*N[1]) + crLHS1*(DN(1,0)*DN(1,0) + DN(1,1)*DN(1,1)) + crLHS17*crLHS21 + crLHS19*crLHS21 + crLHS20*crLHS32);
+rLHS(1,1)+=gauss_weight*(pow(N[1], 2)*crLHS0 + N[1]*crLHS31 + crLHS1*(pow(DN(1,0), 2) + pow(DN(1,1), 2)) + crLHS17*crLHS21 + crLHS19*crLHS21 + crLHS20*crLHS32);
 rLHS(1,2)+=gauss_weight*(N[2]*crLHS31 + crLHS17*crLHS29 + crLHS19*crLHS29 + crLHS28*crLHS32 + crLHS33);
 rLHS(2,0)+=gauss_weight*(N[0]*crLHS34 + crLHS11*crLHS35 + crLHS14*crLHS25 + crLHS14*crLHS27 + crLHS30);
 rLHS(2,1)+=gauss_weight*(N[1]*crLHS34 + crLHS20*crLHS35 + crLHS21*crLHS25 + crLHS21*crLHS27 + crLHS33);
-rLHS(2,2)+=gauss_weight*(N[2]*crLHS34 + crLHS0*(N[2]*N[2]) + crLHS1*(DN(2,0)*DN(2,0) + DN(2,1)*DN(2,1)) + crLHS25*crLHS29 + crLHS27*crLHS29 + crLHS28*crLHS35);
+rLHS(2,2)+=gauss_weight*(pow(N[2], 2)*crLHS0 + N[2]*crLHS34 + crLHS1*(pow(DN(2,0), 2) + pow(DN(2,1), 2)) + crLHS25*crLHS29 + crLHS27*crLHS29 + crLHS28*crLHS35);
 
 }
 
@@ -1422,7 +1422,7 @@ const double crLHS8 = N[0]*crLHS0;
 const double crLHS9 = crLHS3*crLHS6;
 const double crLHS10 = crLHS5*crLHS6;
 const double crLHS11 = crLHS10 - crLHS8 + crLHS9;
-const double crLHS12 = 1.0*1.0/(crLHS0*stab_c3 + crLHS1*stab_c1*1.0/(h*h) + stab_c2*fabs(crLHS6)*1.0/h*sqrt(crLHS2*crLHS2 + crLHS4*crLHS4));
+const double crLHS12 = 1.0/(crLHS0*stab_c3 + crLHS1*stab_c1/pow(h, 2) + stab_c2*sqrt(pow(crLHS2, 2) + pow(crLHS4, 2))*fabs(crLHS6)/h);
 const double crLHS13 = crLHS12*crLHS8;
 const double crLHS14 = crLHS11*crLHS12;
 const double crLHS15 = N[1]*crLHS0;
@@ -1458,22 +1458,22 @@ const double crLHS44 = crLHS12*crLHS23;
 const double crLHS45 = N[3]*crLHS23 + crLHS1*(DN(2,0)*DN(3,0) + DN(2,1)*DN(3,1));
 const double crLHS46 = crLHS6*(crLHS32 + crLHS34);
 const double crLHS47 = crLHS12*crLHS31;
-rLHS(0,0)+=gauss_weight*(N[0]*crLHS7 + crLHS0*(N[0]*N[0]) + crLHS1*(DN(0,0)*DN(0,0) + DN(0,1)*DN(0,1)) + crLHS10*crLHS14 + crLHS11*crLHS13 + crLHS14*crLHS9);
+rLHS(0,0)+=gauss_weight*(pow(N[0], 2)*crLHS0 + N[0]*crLHS7 + crLHS1*(pow(DN(0,0), 2) + pow(DN(0,1), 2)) + crLHS10*crLHS14 + crLHS11*crLHS13 + crLHS14*crLHS9);
 rLHS(0,1)+=gauss_weight*(N[1]*crLHS7 + crLHS10*crLHS21 + crLHS13*crLHS20 + crLHS21*crLHS9 + crLHS22);
 rLHS(0,2)+=gauss_weight*(N[2]*crLHS7 + crLHS10*crLHS29 + crLHS13*crLHS28 + crLHS29*crLHS9 + crLHS30);
 rLHS(0,3)+=gauss_weight*(N[3]*crLHS7 + crLHS10*crLHS37 + crLHS13*crLHS36 + crLHS37*crLHS9 + crLHS38);
 rLHS(1,0)+=gauss_weight*(N[0]*crLHS39 + crLHS11*crLHS40 + crLHS14*crLHS17 + crLHS14*crLHS19 + crLHS22);
-rLHS(1,1)+=gauss_weight*(N[1]*crLHS39 + crLHS0*(N[1]*N[1]) + crLHS1*(DN(1,0)*DN(1,0) + DN(1,1)*DN(1,1)) + crLHS17*crLHS21 + crLHS19*crLHS21 + crLHS20*crLHS40);
+rLHS(1,1)+=gauss_weight*(pow(N[1], 2)*crLHS0 + N[1]*crLHS39 + crLHS1*(pow(DN(1,0), 2) + pow(DN(1,1), 2)) + crLHS17*crLHS21 + crLHS19*crLHS21 + crLHS20*crLHS40);
 rLHS(1,2)+=gauss_weight*(N[2]*crLHS39 + crLHS17*crLHS29 + crLHS19*crLHS29 + crLHS28*crLHS40 + crLHS41);
 rLHS(1,3)+=gauss_weight*(N[3]*crLHS39 + crLHS17*crLHS37 + crLHS19*crLHS37 + crLHS36*crLHS40 + crLHS42);
 rLHS(2,0)+=gauss_weight*(N[0]*crLHS43 + crLHS11*crLHS44 + crLHS14*crLHS25 + crLHS14*crLHS27 + crLHS30);
 rLHS(2,1)+=gauss_weight*(N[1]*crLHS43 + crLHS20*crLHS44 + crLHS21*crLHS25 + crLHS21*crLHS27 + crLHS41);
-rLHS(2,2)+=gauss_weight*(N[2]*crLHS43 + crLHS0*(N[2]*N[2]) + crLHS1*(DN(2,0)*DN(2,0) + DN(2,1)*DN(2,1)) + crLHS25*crLHS29 + crLHS27*crLHS29 + crLHS28*crLHS44);
+rLHS(2,2)+=gauss_weight*(pow(N[2], 2)*crLHS0 + N[2]*crLHS43 + crLHS1*(pow(DN(2,0), 2) + pow(DN(2,1), 2)) + crLHS25*crLHS29 + crLHS27*crLHS29 + crLHS28*crLHS44);
 rLHS(2,3)+=gauss_weight*(N[3]*crLHS43 + crLHS25*crLHS37 + crLHS27*crLHS37 + crLHS36*crLHS44 + crLHS45);
 rLHS(3,0)+=gauss_weight*(N[0]*crLHS46 + crLHS11*crLHS47 + crLHS14*crLHS33 + crLHS14*crLHS35 + crLHS38);
 rLHS(3,1)+=gauss_weight*(N[1]*crLHS46 + crLHS20*crLHS47 + crLHS21*crLHS33 + crLHS21*crLHS35 + crLHS42);
 rLHS(3,2)+=gauss_weight*(N[2]*crLHS46 + crLHS28*crLHS47 + crLHS29*crLHS33 + crLHS29*crLHS35 + crLHS45);
-rLHS(3,3)+=gauss_weight*(N[3]*crLHS46 + crLHS0*(N[3]*N[3]) + crLHS1*(DN(3,0)*DN(3,0) + DN(3,1)*DN(3,1)) + crLHS33*crLHS37 + crLHS35*crLHS37 + crLHS36*crLHS47);
+rLHS(3,3)+=gauss_weight*(pow(N[3], 2)*crLHS0 + N[3]*crLHS46 + crLHS1*(pow(DN(3,0), 2) + pow(DN(3,1), 2)) + crLHS33*crLHS37 + crLHS35*crLHS37 + crLHS36*crLHS47);
 
 }
 
@@ -1521,7 +1521,7 @@ const double crLHS11 = crLHS3*crLHS8;
 const double crLHS12 = crLHS5*crLHS8;
 const double crLHS13 = crLHS7*crLHS8;
 const double crLHS14 = -crLHS10 + crLHS11 + crLHS12 + crLHS13;
-const double crLHS15 = 1.0*1.0/(crLHS0*stab_c3 + crLHS1*stab_c1*1.0/(h*h) + stab_c2*fabs(crLHS8)*1.0/h*sqrt(crLHS2*crLHS2 + crLHS4*crLHS4 + crLHS6*crLHS6));
+const double crLHS15 = 1.0/(crLHS0*stab_c3 + crLHS1*stab_c1/pow(h, 2) + stab_c2*sqrt(pow(crLHS2, 2) + pow(crLHS4, 2) + pow(crLHS6, 2))*fabs(crLHS8)/h);
 const double crLHS16 = crLHS10*crLHS15;
 const double crLHS17 = crLHS14*crLHS15;
 const double crLHS18 = N[1]*crLHS0;
@@ -1563,22 +1563,22 @@ const double crLHS53 = crLHS15*crLHS28;
 const double crLHS54 = N[3]*crLHS28 + crLHS1*(DN(2,0)*DN(3,0) + DN(2,1)*DN(3,1) + DN(2,2)*DN(3,2));
 const double crLHS55 = crLHS8*(crLHS39 + crLHS41 + crLHS43);
 const double crLHS56 = crLHS15*crLHS38;
-rLHS(0,0)+=gauss_weight*(N[0]*crLHS9 + crLHS0*(N[0]*N[0]) + crLHS1*(DN(0,0)*DN(0,0) + DN(0,1)*DN(0,1) + DN(0,2)*DN(0,2)) + crLHS11*crLHS17 + crLHS12*crLHS17 + crLHS13*crLHS17 + crLHS14*crLHS16);
+rLHS(0,0)+=gauss_weight*(pow(N[0], 2)*crLHS0 + N[0]*crLHS9 + crLHS1*(pow(DN(0,0), 2) + pow(DN(0,1), 2) + pow(DN(0,2), 2)) + crLHS11*crLHS17 + crLHS12*crLHS17 + crLHS13*crLHS17 + crLHS14*crLHS16);
 rLHS(0,1)+=gauss_weight*(N[1]*crLHS9 + crLHS11*crLHS26 + crLHS12*crLHS26 + crLHS13*crLHS26 + crLHS16*crLHS25 + crLHS27);
 rLHS(0,2)+=gauss_weight*(N[2]*crLHS9 + crLHS11*crLHS36 + crLHS12*crLHS36 + crLHS13*crLHS36 + crLHS16*crLHS35 + crLHS37);
 rLHS(0,3)+=gauss_weight*(N[3]*crLHS9 + crLHS11*crLHS46 + crLHS12*crLHS46 + crLHS13*crLHS46 + crLHS16*crLHS45 + crLHS47);
 rLHS(1,0)+=gauss_weight*(N[0]*crLHS48 + crLHS14*crLHS49 + crLHS17*crLHS20 + crLHS17*crLHS22 + crLHS17*crLHS24 + crLHS27);
-rLHS(1,1)+=gauss_weight*(N[1]*crLHS48 + crLHS0*(N[1]*N[1]) + crLHS1*(DN(1,0)*DN(1,0) + DN(1,1)*DN(1,1) + DN(1,2)*DN(1,2)) + crLHS20*crLHS26 + crLHS22*crLHS26 + crLHS24*crLHS26 + crLHS25*crLHS49);
+rLHS(1,1)+=gauss_weight*(pow(N[1], 2)*crLHS0 + N[1]*crLHS48 + crLHS1*(pow(DN(1,0), 2) + pow(DN(1,1), 2) + pow(DN(1,2), 2)) + crLHS20*crLHS26 + crLHS22*crLHS26 + crLHS24*crLHS26 + crLHS25*crLHS49);
 rLHS(1,2)+=gauss_weight*(N[2]*crLHS48 + crLHS20*crLHS36 + crLHS22*crLHS36 + crLHS24*crLHS36 + crLHS35*crLHS49 + crLHS50);
 rLHS(1,3)+=gauss_weight*(N[3]*crLHS48 + crLHS20*crLHS46 + crLHS22*crLHS46 + crLHS24*crLHS46 + crLHS45*crLHS49 + crLHS51);
 rLHS(2,0)+=gauss_weight*(N[0]*crLHS52 + crLHS14*crLHS53 + crLHS17*crLHS30 + crLHS17*crLHS32 + crLHS17*crLHS34 + crLHS37);
 rLHS(2,1)+=gauss_weight*(N[1]*crLHS52 + crLHS25*crLHS53 + crLHS26*crLHS30 + crLHS26*crLHS32 + crLHS26*crLHS34 + crLHS50);
-rLHS(2,2)+=gauss_weight*(N[2]*crLHS52 + crLHS0*(N[2]*N[2]) + crLHS1*(DN(2,0)*DN(2,0) + DN(2,1)*DN(2,1) + DN(2,2)*DN(2,2)) + crLHS30*crLHS36 + crLHS32*crLHS36 + crLHS34*crLHS36 + crLHS35*crLHS53);
+rLHS(2,2)+=gauss_weight*(pow(N[2], 2)*crLHS0 + N[2]*crLHS52 + crLHS1*(pow(DN(2,0), 2) + pow(DN(2,1), 2) + pow(DN(2,2), 2)) + crLHS30*crLHS36 + crLHS32*crLHS36 + crLHS34*crLHS36 + crLHS35*crLHS53);
 rLHS(2,3)+=gauss_weight*(N[3]*crLHS52 + crLHS30*crLHS46 + crLHS32*crLHS46 + crLHS34*crLHS46 + crLHS45*crLHS53 + crLHS54);
 rLHS(3,0)+=gauss_weight*(N[0]*crLHS55 + crLHS14*crLHS56 + crLHS17*crLHS40 + crLHS17*crLHS42 + crLHS17*crLHS44 + crLHS47);
 rLHS(3,1)+=gauss_weight*(N[1]*crLHS55 + crLHS25*crLHS56 + crLHS26*crLHS40 + crLHS26*crLHS42 + crLHS26*crLHS44 + crLHS51);
 rLHS(3,2)+=gauss_weight*(N[2]*crLHS55 + crLHS35*crLHS56 + crLHS36*crLHS40 + crLHS36*crLHS42 + crLHS36*crLHS44 + crLHS54);
-rLHS(3,3)+=gauss_weight*(N[3]*crLHS55 + crLHS0*(N[3]*N[3]) + crLHS1*(DN(3,0)*DN(3,0) + DN(3,1)*DN(3,1) + DN(3,2)*DN(3,2)) + crLHS40*crLHS46 + crLHS42*crLHS46 + crLHS44*crLHS46 + crLHS45*crLHS56);
+rLHS(3,3)+=gauss_weight*(pow(N[3], 2)*crLHS0 + N[3]*crLHS55 + crLHS1*(pow(DN(3,0), 2) + pow(DN(3,1), 2) + pow(DN(3,2), 2)) + crLHS40*crLHS46 + crLHS42*crLHS46 + crLHS44*crLHS46 + crLHS45*crLHS56);
 
 }
 
@@ -1647,7 +1647,7 @@ const double crRHS21 = N[0]*vconv(0,0) + N[1]*vconv(1,0) + N[2]*vconv(2,0);
 const double crRHS22 = N[0]*vconv(0,1) + N[1]*vconv(1,1) + N[2]*vconv(2,1);
 const double crRHS23 = crRHS12*crRHS21 + crRHS13*crRHS22;
 const double crRHS24 = crRHS19*functional_weights[6];
-const double crRHS25 = 1.0*(crRHS0 + crRHS10*crRHS15*crRHS19 + crRHS11*crRHS17*crRHS19 - crRHS2 - crRHS3 + crRHS4 - crRHS6 + crRHS7*functional_weights[6]*(crRHS21*(DN(0,0)*c[0] + DN(1,0)*c[1] + DN(2,0)*c[2]) + crRHS22*(DN(0,1)*c[0] + DN(1,1)*c[1] + DN(2,1)*c[2])) - crRHS8)*1.0/(crRHS1*stab_c3 + crRHS9*stab_c1*1.0/(h*h) + stab_c2*fabs(crRHS19)*1.0/h*sqrt(crRHS15*crRHS15 + crRHS17*crRHS17));
+const double crRHS25 = 1.0*(crRHS0 + crRHS10*crRHS15*crRHS19 + crRHS11*crRHS17*crRHS19 - crRHS2 - crRHS3 + crRHS4 - crRHS6 + crRHS7*functional_weights[6]*(crRHS21*(DN(0,0)*c[0] + DN(1,0)*c[1] + DN(2,0)*c[2]) + crRHS22*(DN(0,1)*c[0] + DN(1,1)*c[1] + DN(2,1)*c[2])) - crRHS8)/(crRHS1*stab_c3 + crRHS9*stab_c1/pow(h, 2) + stab_c2*sqrt(pow(crRHS15, 2) + pow(crRHS17, 2))*fabs(crRHS19)/h);
 const double crRHS26 = crRHS1*crRHS25;
 const double crRHS27 = crRHS19*crRHS25;
 const double crRHS28 = DN(1,0)*crRHS15;
@@ -1725,7 +1725,7 @@ const double crRHS21 = N[0]*vconv(0,0) + N[1]*vconv(1,0) + N[2]*vconv(2,0) + N[3
 const double crRHS22 = N[0]*vconv(0,1) + N[1]*vconv(1,1) + N[2]*vconv(2,1) + N[3]*vconv(3,1);
 const double crRHS23 = crRHS12*crRHS21 + crRHS13*crRHS22;
 const double crRHS24 = crRHS19*functional_weights[6];
-const double crRHS25 = 1.0*(crRHS0 + crRHS10*crRHS15*crRHS19 + crRHS11*crRHS17*crRHS19 - crRHS2 - crRHS3 + crRHS4 - crRHS6 + crRHS7*functional_weights[6]*(crRHS21*(DN(0,0)*c[0] + DN(1,0)*c[1] + DN(2,0)*c[2] + DN(3,0)*c[3]) + crRHS22*(DN(0,1)*c[0] + DN(1,1)*c[1] + DN(2,1)*c[2] + DN(3,1)*c[3])) - crRHS8)*1.0/(crRHS1*stab_c3 + crRHS9*stab_c1*1.0/(h*h) + stab_c2*fabs(crRHS19)*1.0/h*sqrt(crRHS15*crRHS15 + crRHS17*crRHS17));
+const double crRHS25 = 1.0*(crRHS0 + crRHS10*crRHS15*crRHS19 + crRHS11*crRHS17*crRHS19 - crRHS2 - crRHS3 + crRHS4 - crRHS6 + crRHS7*functional_weights[6]*(crRHS21*(DN(0,0)*c[0] + DN(1,0)*c[1] + DN(2,0)*c[2] + DN(3,0)*c[3]) + crRHS22*(DN(0,1)*c[0] + DN(1,1)*c[1] + DN(2,1)*c[2] + DN(3,1)*c[3])) - crRHS8)/(crRHS1*stab_c3 + crRHS9*stab_c1/pow(h, 2) + stab_c2*sqrt(pow(crRHS15, 2) + pow(crRHS17, 2))*fabs(crRHS19)/h);
 const double crRHS26 = crRHS1*crRHS25;
 const double crRHS27 = crRHS19*crRHS25;
 const double crRHS28 = DN(1,0)*crRHS15;
@@ -1755,8 +1755,8 @@ void TransportTopologyOptimizationElement<TransportTopologyOptimizationElementDa
     // const double bdf0 = rData.bdf0;
 
     // Get shape function values
-    const array_1d<double,3>& N = rData.N;
-    const BoundedMatrix<double,3,2>& DN = rData.DN_DX;
+    const array_1d<double,4>& N = rData.N;
+    const BoundedMatrix<double,4,3>& DN = rData.DN_DX;
 
     // const double dyn_tau = rData.DynamicTau;
     // Stabilization parameters 
@@ -1811,7 +1811,7 @@ const double crRHS26 = N[0]*vconv(0,1) + N[1]*vconv(1,1) + N[2]*vconv(2,1) + N[3
 const double crRHS27 = N[0]*vconv(0,2) + N[1]*vconv(1,2) + N[2]*vconv(2,2) + N[3]*vconv(3,2);
 const double crRHS28 = crRHS13*crRHS25 + crRHS14*crRHS26 + crRHS15*crRHS27;
 const double crRHS29 = crRHS23*functional_weights[6];
-const double crRHS30 = 1.0*(crRHS0 + crRHS10*crRHS17*crRHS23 + crRHS11*crRHS19*crRHS23 + crRHS12*crRHS21*crRHS23 - crRHS2 - crRHS3 + crRHS4 - crRHS6 + crRHS7*functional_weights[6]*(crRHS25*(DN(0,0)*c[0] + DN(1,0)*c[1] + DN(2,0)*c[2] + DN(3,0)*c[3]) + crRHS26*(DN(0,1)*c[0] + DN(1,1)*c[1] + DN(2,1)*c[2] + DN(3,1)*c[3]) + crRHS27*(DN(0,2)*c[0] + DN(1,2)*c[1] + DN(2,2)*c[2] + DN(3,2)*c[3])) - crRHS8)*1.0/(crRHS1*stab_c3 + crRHS9*stab_c1*1.0/(h*h) + stab_c2*fabs(crRHS23)*1.0/h*sqrt(crRHS17*crRHS17 + crRHS19*crRHS19 + crRHS21*crRHS21));
+const double crRHS30 = 1.0*(crRHS0 + crRHS10*crRHS17*crRHS23 + crRHS11*crRHS19*crRHS23 + crRHS12*crRHS21*crRHS23 - crRHS2 - crRHS3 + crRHS4 - crRHS6 + crRHS7*functional_weights[6]*(crRHS25*(DN(0,0)*c[0] + DN(1,0)*c[1] + DN(2,0)*c[2] + DN(3,0)*c[3]) + crRHS26*(DN(0,1)*c[0] + DN(1,1)*c[1] + DN(2,1)*c[2] + DN(3,1)*c[3]) + crRHS27*(DN(0,2)*c[0] + DN(1,2)*c[1] + DN(2,2)*c[2] + DN(3,2)*c[3])) - crRHS8)/(crRHS1*stab_c3 + crRHS9*stab_c1/pow(h, 2) + stab_c2*sqrt(pow(crRHS17, 2) + pow(crRHS19, 2) + pow(crRHS21, 2))*fabs(crRHS23)/h);
 const double crRHS31 = crRHS1*crRHS30;
 const double crRHS32 = crRHS23*crRHS30;
 const double crRHS33 = DN(1,0)*crRHS17;

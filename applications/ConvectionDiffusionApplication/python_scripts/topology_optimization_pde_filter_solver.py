@@ -122,6 +122,7 @@ class TopologyOptimizationPdeFilterSolver(ConvectionDiffusionStationarySolver):
     def PrepareModelPart(self):
         KratosMultiphysics.VariableUtils().SetNonHistoricalVariable(KratosCD.PDE_FILTER_DIFFUSION, 0.0, self.main_model_part.Nodes)
         KratosMultiphysics.VariableUtils().SetNonHistoricalVariable(KratosCD.PDE_FILTER_REACTION , 0.0, self.main_model_part.Nodes)
+        KratosMultiphysics.VariableUtils().SetNonHistoricalVariable(KratosCD.PDE_FILTER_REACTION , 0.0, self.main_model_part.Nodes)
         
         if not self.is_restarted():
             KratosMultiphysics.ReplaceElementsAndConditionsProcess(self.main_model_part, self._get_element_condition_replace_settings()).Execute()
