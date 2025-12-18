@@ -41,7 +41,7 @@
 #include "custom_processes/apply_normal_load_table_process.h"
 #include "custom_processes/apply_phreatic_line_pressure_table_process.h"
 #include "custom_processes/apply_phreatic_multi_line_pressure_table_process.h"
-#include "custom_processes/apply_phreatic_surface_pressure_table_process.hpp"
+#include "custom_processes/apply_phreatic_surface_pressure_table_process.h"
 #include "custom_processes/apply_scalar_constraint_table_process.h"
 #include "custom_processes/apply_vector_constraint_table_process.h"
 #include "custom_processes/apply_write_result_scalar_process.hpp"
