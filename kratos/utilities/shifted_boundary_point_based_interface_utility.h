@@ -186,19 +186,15 @@ public:
     //TODO
     // Calculate positive and negative side pressure at the nodes of the skin model part
     // Result is stored in POSITIVE_FACE_PRESSURE and NEGATIVE_FACE_PRESSURE.
-    template <std::size_t TDim>
-    void CalculatePressureAtSkinNodesTemplated();
-    void CalculatePressureAtSkinNodes();
-
-    //TODO
-    template <std::size_t TDim>
-    void CalculateVelocityAtSkinNodesTemplated();
-    void CalculateVelocityAtSkinNodes();
-
     //TODO
     template <std::size_t TDim>
     void CalculateVariablesAtSkinPointsTemplated();
     void CalculateVariablesAtSkinPoints();
+
+    //TODO
+    template <std::size_t TDim>
+    void CalculateVariablesAtSkinPointsAndNodesTemplated();
+    void CalculateVariablesAtSkinPointsAndNodes();
 
     //TODO
     void CalculateExtensionError();
@@ -456,23 +452,23 @@ protected:
     // Calculate positive and negative side pressure inside a given SBM_BOUNDARY element using given shape function values.
     // returns true if pressure of point was calculated successfully
     //TODO rename to CalculatePressureInsideSplitElement ?
-    bool CalculatePressureAtSplitElementSkinPoint(
-        const ElementType::Pointer pElement,
-        const Vector& rPointShapeFunctionValues,
-        double& rPositiveSidePressure,
-        double& rNegativeSidePressure);
+    // bool CalculatePressureAtSplitElementSkinPoint(
+    //     const ElementType::Pointer pElement,
+    //     const Vector& rPointShapeFunctionValues,
+    //     double& rPositiveSidePressure,
+    //     double& rNegativeSidePressure);
 
-    bool CalculatePressureGradientAtSplitElementSkinPoint(
-        const ElementType::Pointer pElement,
-        const Matrix& rPointShapeFunctionDerivatives,
-        Vector& rPositiveSidePressureGradient,
-        Vector& rNegativeSidePressureGradient);
+    // bool CalculatePressureGradientAtSplitElementSkinPoint(
+    //     const ElementType::Pointer pElement,
+    //     const Matrix& rPointShapeFunctionDerivatives,
+    //     Vector& rPositiveSidePressureGradient,
+    //     Vector& rNegativeSidePressureGradient);
 
-    bool CalculateVelocityAtSplitElementSkinPoint(
-        const ElementType::Pointer pElement,
-        const Vector& rPointShapeFunctionValues,
-        array_1d<double,3>& rPositiveSideVelocity,
-        array_1d<double,3>& rNegativeSideVelocity);
+    // bool CalculateVelocityAtSplitElementSkinPoint(
+    //     const ElementType::Pointer pElement,
+    //     const Vector& rPointShapeFunctionValues,
+    //     array_1d<double,3>& rPositiveSideVelocity,
+    //     array_1d<double,3>& rNegativeSideVelocity);
 
     /**
      * @brief Get the MLS shape functions factory object

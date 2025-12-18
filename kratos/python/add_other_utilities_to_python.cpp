@@ -820,9 +820,8 @@ void AddOtherUtilitiesToPython(pybind11::module &m)
         .def("SetInterfaceFlags", &ShiftedBoundaryPointBasedInterfaceUtility::SetInterfaceFlags)
         .def("DeactivateElementsAndNodes", &ShiftedBoundaryPointBasedInterfaceUtility::DeactivateElementsAndNodes, py::arg("deactivate_unstable_clusters"))
         .def("CalculateAndAddSkinIntegrationPointConditions", &ShiftedBoundaryPointBasedInterfaceUtility::CalculateAndAddSkinIntegrationPointConditions)
-        .def("CalculatePressureAtSkinNodes", &ShiftedBoundaryPointBasedInterfaceUtility::CalculatePressureAtSkinNodes)
-        .def("CalculateVelocityAtSkinNodes", &ShiftedBoundaryPointBasedInterfaceUtility::CalculateVelocityAtSkinNodes)
         .def("CalculateVariablesAtSkinPoints", &ShiftedBoundaryPointBasedInterfaceUtility::CalculateVariablesAtSkinPoints)
+        .def("CalculateVariablesAtSkinPointsAndNodes", &ShiftedBoundaryPointBasedInterfaceUtility::CalculateVariablesAtSkinPointsAndNodes)
         .def("CalculateExtensionError", &ShiftedBoundaryPointBasedInterfaceUtility::CalculateExtensionError)
     ;
 

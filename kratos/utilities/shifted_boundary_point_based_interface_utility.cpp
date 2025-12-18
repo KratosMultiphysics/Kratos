@@ -19,6 +19,7 @@
 #include "containers/pointer_vector.h"
 #include "includes/define.h"
 #include "includes/element.h"
+#include "includes/exception.h"
 #include "includes/kratos_flags.h"
 #include "includes/lock_object.h"
 #include "includes/smart_pointers.h"
@@ -665,117 +666,117 @@ namespace Kratos
         KRATOS_INFO("ShiftedBoundaryPointBasedInterfaceUtility") << "'" << mSkinModelPartName << "' skin point conditions were added." << std::endl;
     }
 
-    void ShiftedBoundaryPointBasedInterfaceUtility::CalculatePressureAtSkinNodes()
-    {
-        const std::size_t n_dim = mpModelPart->GetProcessInfo()[DOMAIN_SIZE];
-        switch (n_dim) {
-            case 2:
-                CalculatePressureAtSkinNodesTemplated<2>();
-                break;
-            case 3:
-                CalculatePressureAtSkinNodesTemplated<3>();
-                break;
-            default:
-                KRATOS_ERROR << "Wrong domain size.";
-        }
-    }
+    // void ShiftedBoundaryPointBasedInterfaceUtility::CalculatePressureAtSkinNodes()
+    // {
+    //     const std::size_t n_dim = mpModelPart->GetProcessInfo()[DOMAIN_SIZE];
+    //     switch (n_dim) {
+    //         case 2:
+    //             CalculatePressureAtSkinNodesTemplated<2>();
+    //             break;
+    //         case 3:
+    //             CalculatePressureAtSkinNodesTemplated<3>();
+    //             break;
+    //         default:
+    //             KRATOS_ERROR << "Wrong domain size.";
+    //     }
+    // }
 
-    template <std::size_t TDim>
-    void ShiftedBoundaryPointBasedInterfaceUtility::CalculatePressureAtSkinNodesTemplated()
-    {
-        // Create the bin-based point locator (TDim here makes template necessary)
-        const std::size_t point_locator_max_results = 10000;
-        const double point_locator_tolerance = 1.0e-5;
-        BinBasedFastPointLocator<TDim> point_locator(*mpModelPart);
-        point_locator.UpdateSearchDatabase();
+    // template <std::size_t TDim>
+    // void ShiftedBoundaryPointBasedInterfaceUtility::CalculatePressureAtSkinNodesTemplated()
+    // {
+    //     // Create the bin-based point locator (TDim here makes template necessary)
+    //     const std::size_t point_locator_max_results = 10000;
+    //     const double point_locator_tolerance = 1.0e-5;
+    //     BinBasedFastPointLocator<TDim> point_locator(*mpModelPart);
+    //     point_locator.UpdateSearchDatabase();
 
-        // Initialize counter for number of skin nodes that can not be calculated properly
-        std::size_t n_skin_nodes_without_correct_extension = 0;
+    //     // Initialize counter for number of skin nodes that can not be calculated properly
+    //     std::size_t n_skin_nodes_without_correct_extension = 0;
 
-        // For each skin node interpolate the positive and negative side pressure from the fluid mesh
-        LockObject mutex_valid_ex;
-        block_for_each(mpSkinModelPart->Nodes(), [&](NodeType& rSkinNode){
-            // Locate node in fluid mesh (should be inside a deactivated element)
-            Vector skin_node_N(TDim+1); //TODO this restricts the use to tri and tetra
-            Element::Pointer p_element = nullptr;
-            typename BinBasedFastPointLocator<TDim>::ResultContainerType search_results(point_locator_max_results);
-            const bool is_found = point_locator.FindPointOnMesh(
-                rSkinNode.Coordinates(), skin_node_N, p_element,
-                search_results.begin(), point_locator_max_results, point_locator_tolerance);
+    //     // For each skin node interpolate the positive and negative side pressure from the fluid mesh
+    //     LockObject mutex_valid_ex;
+    //     block_for_each(mpSkinModelPart->Nodes(), [&](NodeType& rSkinNode){
+    //         // Locate node in fluid mesh (should be inside a deactivated element)
+    //         Vector skin_node_N(TDim+1); //TODO this restricts the use to tri and tetra
+    //         Element::Pointer p_element = nullptr;
+    //         typename BinBasedFastPointLocator<TDim>::ResultContainerType search_results(point_locator_max_results);
+    //         const bool is_found = point_locator.FindPointOnMesh(
+    //             rSkinNode.Coordinates(), skin_node_N, p_element,
+    //             search_results.begin(), point_locator_max_results, point_locator_tolerance);
 
-            // If the skin node is found, interpolate the positive and negative face pressure
-            if (is_found) {
-                // Get positive and negative side pressure variables of skin node
-                double& r_skin_p_pos = rSkinNode.FastGetSolutionStepValue(POSITIVE_FACE_PRESSURE);
-                double& r_skin_p_neg = rSkinNode.FastGetSolutionStepValue(NEGATIVE_FACE_PRESSURE);
+    //         // If the skin node is found, interpolate the positive and negative face pressure
+    //         if (is_found) {
+    //             // Get positive and negative side pressure variables of skin node
+    //             double& r_skin_p_pos = rSkinNode.FastGetSolutionStepValue(POSITIVE_FACE_PRESSURE);
+    //             double& r_skin_p_neg = rSkinNode.FastGetSolutionStepValue(NEGATIVE_FACE_PRESSURE);
 
-                // Calculate pressure at skin node for positive and negative side of Gamma
-                const bool p_calculated_successfully = CalculatePressureAtSplitElementSkinPoint(p_element, skin_node_N, r_skin_p_pos, r_skin_p_neg);
-                if (!p_calculated_successfully) {
-                    std::scoped_lock<LockObject> lock(mutex_valid_ex);
-                    n_skin_nodes_without_correct_extension++;
-                }
-            }
-        });
-        KRATOS_WARNING_IF("ShiftedBoundaryPointBasedInterfaceUtility", n_skin_nodes_without_correct_extension > 0)
-            << "The pressure at " << n_skin_nodes_without_correct_extension << " skin nodes was calculated without valid extension." << std::endl;
-    }
+    //             // Calculate pressure at skin node for positive and negative side of Gamma
+    //             const bool p_calculated_successfully = CalculatePressureAtSplitElementSkinPoint(p_element, skin_node_N, r_skin_p_pos, r_skin_p_neg);
+    //             if (!p_calculated_successfully) {
+    //                 std::scoped_lock<LockObject> lock(mutex_valid_ex);
+    //                 n_skin_nodes_without_correct_extension++;
+    //             }
+    //         }
+    //     });
+    //     KRATOS_WARNING_IF("ShiftedBoundaryPointBasedInterfaceUtility", n_skin_nodes_without_correct_extension > 0)
+    //         << "The pressure at " << n_skin_nodes_without_correct_extension << " skin nodes was calculated without valid extension." << std::endl;
+    // }
 
-    void ShiftedBoundaryPointBasedInterfaceUtility::CalculateVelocityAtSkinNodes()
-    {
-        const std::size_t n_dim = mpModelPart->GetProcessInfo()[DOMAIN_SIZE];
-        switch (n_dim) {
-            case 2:
-                CalculateVelocityAtSkinNodesTemplated<2>();
-                break;
-            case 3:
-                CalculateVelocityAtSkinNodesTemplated<3>();
-                break;
-            default:
-                KRATOS_ERROR << "Wrong domain size.";
-        }
-    }
+    // void ShiftedBoundaryPointBasedInterfaceUtility::CalculateVelocityAtSkinNodes()
+    // {
+    //     const std::size_t n_dim = mpModelPart->GetProcessInfo()[DOMAIN_SIZE];
+    //     switch (n_dim) {
+    //         case 2:
+    //             CalculateVelocityAtSkinNodesTemplated<2>();
+    //             break;
+    //         case 3:
+    //             CalculateVelocityAtSkinNodesTemplated<3>();
+    //             break;
+    //         default:
+    //             KRATOS_ERROR << "Wrong domain size.";
+    //     }
+    // }
 
-    template <std::size_t TDim>
-    void ShiftedBoundaryPointBasedInterfaceUtility::CalculateVelocityAtSkinNodesTemplated()
-    {
-        // Create the bin-based point locator (TDim here makes template necessary)
-        const std::size_t point_locator_max_results = 10000;
-        const double point_locator_tolerance = 1.0e-5;
-        BinBasedFastPointLocator<TDim> point_locator(*mpModelPart);
-        point_locator.UpdateSearchDatabase();
+    // template <std::size_t TDim>
+    // void ShiftedBoundaryPointBasedInterfaceUtility::CalculateVelocityAtSkinNodesTemplated()
+    // {
+    //     // Create the bin-based point locator (TDim here makes template necessary)
+    //     const std::size_t point_locator_max_results = 10000;
+    //     const double point_locator_tolerance = 1.0e-5;
+    //     BinBasedFastPointLocator<TDim> point_locator(*mpModelPart);
+    //     point_locator.UpdateSearchDatabase();
 
-        // Initialize counter for number of skin nodes that can not be calculated properly
-        std::size_t n_skin_nodes_without_correct_extension = 0;
+    //     // Initialize counter for number of skin nodes that can not be calculated properly
+    //     std::size_t n_skin_nodes_without_correct_extension = 0;
 
-        // For each skin node interpolate the positive and negative side velocity from the fluid mesh
-        LockObject mutex_valid_ex;
-        block_for_each(mpSkinModelPart->Nodes(), [&](NodeType& rSkinNode){
-            // Locate node in fluid mesh (should be inside a deactivated element)
-            Vector skin_node_N(TDim+1); //TODO this restricts the use to tri and tetra
-            Element::Pointer p_element = nullptr;
-            typename BinBasedFastPointLocator<TDim>::ResultContainerType search_results(point_locator_max_results);
-            const bool is_found = point_locator.FindPointOnMesh(
-                rSkinNode.Coordinates(), skin_node_N, p_element,
-                search_results.begin(), point_locator_max_results, point_locator_tolerance);
+    //     // For each skin node interpolate the positive and negative side velocity from the fluid mesh
+    //     LockObject mutex_valid_ex;
+    //     block_for_each(mpSkinModelPart->Nodes(), [&](NodeType& rSkinNode){
+    //         // Locate node in fluid mesh (should be inside a deactivated element)
+    //         Vector skin_node_N(TDim+1); //TODO this restricts the use to tri and tetra
+    //         Element::Pointer p_element = nullptr;
+    //         typename BinBasedFastPointLocator<TDim>::ResultContainerType search_results(point_locator_max_results);
+    //         const bool is_found = point_locator.FindPointOnMesh(
+    //             rSkinNode.Coordinates(), skin_node_N, p_element,
+    //             search_results.begin(), point_locator_max_results, point_locator_tolerance);
 
-            // If the skin node is found, interpolate the positive and negative face fluid velocity
-            if (is_found) {
-                // Get positive and negative side velocity variables of skin node
-                array_1d<double,3>& r_skin_u_pos = rSkinNode.FastGetSolutionStepValue(POSITIVE_FACE_FLUID_VELOCITY);
-                array_1d<double,3>& r_skin_u_neg = rSkinNode.FastGetSolutionStepValue(NEGATIVE_FACE_FLUID_VELOCITY);
+    //         // If the skin node is found, interpolate the positive and negative face fluid velocity
+    //         if (is_found) {
+    //             // Get positive and negative side velocity variables of skin node
+    //             array_1d<double,3>& r_skin_u_pos = rSkinNode.FastGetSolutionStepValue(POSITIVE_FACE_FLUID_VELOCITY);
+    //             array_1d<double,3>& r_skin_u_neg = rSkinNode.FastGetSolutionStepValue(NEGATIVE_FACE_FLUID_VELOCITY);
 
-                // Calculate velocity at skin node for positive and negative side of Gamma
-                const bool u_calculated_successfully = CalculateVelocityAtSplitElementSkinPoint(p_element, skin_node_N, r_skin_u_pos, r_skin_u_neg);
-                if (!u_calculated_successfully) {
-                    std::scoped_lock<LockObject> lock(mutex_valid_ex);
-                    n_skin_nodes_without_correct_extension++;
-                }
-            }
-        });
-        KRATOS_WARNING_IF("ShiftedBoundaryPointBasedInterfaceUtility", n_skin_nodes_without_correct_extension > 0)
-            << "The velocity at " << n_skin_nodes_without_correct_extension << " skin nodes was calculated without valid extension." << std::endl;
-    }
+    //             // Calculate velocity at skin node for positive and negative side of Gamma
+    //             const bool u_calculated_successfully = CalculateVelocityAtSplitElementSkinPoint(p_element, skin_node_N, r_skin_u_pos, r_skin_u_neg);
+    //             if (!u_calculated_successfully) {
+    //                 std::scoped_lock<LockObject> lock(mutex_valid_ex);
+    //                 n_skin_nodes_without_correct_extension++;
+    //             }
+    //         }
+    //     });
+    //     KRATOS_WARNING_IF("ShiftedBoundaryPointBasedInterfaceUtility", n_skin_nodes_without_correct_extension > 0)
+    //         << "The velocity at " << n_skin_nodes_without_correct_extension << " skin nodes was calculated without valid extension." << std::endl;
+    // }
 
     void ShiftedBoundaryPointBasedInterfaceUtility::CalculateVariablesAtSkinPoints()
     {
@@ -915,6 +916,106 @@ namespace Kratos
         });
         KRATOS_WARNING_IF("ShiftedBoundaryPointBasedInterfaceUtility", n_split_elements_without_correct_extension > 0)
         << "The unknowns inside " << n_split_elements_without_correct_extension << " split elements were calculated without valid extension." << std::endl;
+    }
+
+    void ShiftedBoundaryPointBasedInterfaceUtility::CalculateVariablesAtSkinPointsAndNodes()
+    {
+        const std::size_t n_dim = mpModelPart->GetProcessInfo()[DOMAIN_SIZE];
+        switch (n_dim) {
+            case 2:
+                CalculateVariablesAtSkinPointsAndNodesTemplated<2>();
+                break;
+            case 3:
+                CalculateVariablesAtSkinPointsAndNodesTemplated<3>();
+                break;
+            default:
+                KRATOS_ERROR << "Wrong domain size.";
+        }
+    }
+
+    template <std::size_t TDim>
+    void ShiftedBoundaryPointBasedInterfaceUtility::CalculateVariablesAtSkinPointsAndNodesTemplated()
+    {
+        // Calculate variables at all skin points (integration points) and store them in the skin points model part
+        CalculateVariablesAtSkinPointsTemplated<TDim>();
+
+        // Create dictionaries to accumulate the weighted values and weights for each skin node for interpolation
+        std::unordered_map<std::size_t, array_1d<double,2>> dict_sum_weighted_p; //positive and negative side pressure
+        std::unordered_map<std::size_t, array_1d<array_1d<double,3>,2>> dict_sum_weighted_u; //positive and negative side velocity
+        // traction from pressure, traction from stress, drag force
+        std::unordered_map<std::size_t, double> dict_sum_weights;
+        for (auto& r_skin_node : mpSkinModelPart->Nodes()) {
+            dict_sum_weighted_p[r_skin_node.Id()] = ZeroVector(2);
+            dict_sum_weighted_u[r_skin_node.Id()][0] = ZeroVector(3);
+            dict_sum_weighted_u[r_skin_node.Id()][1] = ZeroVector(3);
+            dict_sum_weights[r_skin_node.Id()] = 0.0;
+        }
+
+        // Set the bin-based fast point locator
+        //TODO faster to keep pointer_locator for all iterations?
+        const std::size_t point_locator_max_results = 10000;
+        const double point_locator_tolerance = 1.0e-5;
+        BinBasedFastPointLocator<TDim> point_locator_skin(*mpSkinModelPart);
+        point_locator_skin.UpdateSearchDatabase();
+
+
+        // Loop over all skin points and locate them in the skin model part to add their contribution to the skin nodes
+        LockObject mutex;
+        block_for_each(mpSkinPointsModelPart->Nodes(), [&](NodeType& rSkinPoint){
+            // Search for the skin point in the skin mesh to get the element containing the point and the shape function values
+            array_1d<double,3> skin_pt_position = rSkinPoint.Coordinates();
+            Vector aux_N(TDim+1); //Note that this restricts the use to tri and tetra
+            Element::Pointer p_element = nullptr;
+            typename BinBasedFastPointLocator<TDim>::ResultContainerType search_results(point_locator_max_results);
+            const bool is_found = point_locator_skin.FindPointOnMesh(
+                skin_pt_position, aux_N, p_element,
+                search_results.begin(), point_locator_max_results, point_locator_tolerance);
+
+            if (is_found) {
+                // Get skin point variables
+                const double& r_p_pos = rSkinPoint.FastGetSolutionStepValue(POSITIVE_FACE_PRESSURE);
+                const double& r_p_neg = rSkinPoint.FastGetSolutionStepValue(NEGATIVE_FACE_PRESSURE);
+                const array_1d<double,3>& r_u_pos = rSkinPoint.FastGetSolutionStepValue(POSITIVE_FACE_FLUID_VELOCITY);
+                const array_1d<double,3>& r_u_neg = rSkinPoint.FastGetSolutionStepValue(NEGATIVE_FACE_FLUID_VELOCITY);
+                // const array_1d<double,3>& r_traction_p = rSkinPoint.FastGetSolutionStepValue(TRACTION_FROM_FLUID_PRESSURE);
+                // const array_1d<double,3>& r_traction_tau = rSkinPoint.FastGetSolutionStepValue(TRACTION_FROM_FLUID_STRESS);
+                // const array_1d<double,3>& r_drag_force = rSkinPoint.FastGetSolutionStepValue(DRAG_FORCE);
+
+                // Loop over the nodes of the element to add the skin point's contribution to each node
+                const auto& r_geom = p_element->GetGeometry();
+                for (std::size_t i_node = 0; i_node < r_geom.PointsNumber(); ++i_node) {
+                    const IndexType node_id = r_geom[i_node].Id();
+                    const double N_i = aux_N(i_node);
+
+                    std::scoped_lock<LockObject> lock(mutex);
+                    dict_sum_weighted_p[node_id][0] += N_i * r_p_pos;
+                    dict_sum_weighted_p[node_id][1] += N_i * r_p_neg;
+                    dict_sum_weighted_u[node_id][0] += N_i * r_u_pos;
+                    dict_sum_weighted_u[node_id][1] += N_i * r_u_neg;
+                    // dict_sum_weighted_vectors[node_id][2] += N_i * r_traction_p;
+                    // dict_sum_weighted_vectors[node_id][3] += N_i * r_traction_tau;
+                    // dict_sum_weighted_vectors[node_id][4] += N_i * r_drag_force;
+                    dict_sum_weights[node_id] += N_i;
+                }
+            } else {
+                KRATOS_WARNING("ShiftedBoundaryPointBasedInterfaceUtility") << "Skin point " << rSkinPoint.Id() << " could not be located in the skin mesh." << std::endl;
+            }
+        });
+
+        // Set the skin nodes variables based on the skin points contributions
+        block_for_each(mpSkinModelPart->Nodes(), [&](NodeType& rSkinNode){
+            const auto& sum_weighted_p = dict_sum_weighted_p[rSkinNode.Id()];
+            const auto& sum_weighted_u = dict_sum_weighted_u[rSkinNode.Id()];
+            const double& sum_weights = dict_sum_weights[rSkinNode.Id()];
+
+            rSkinNode.FastGetSolutionStepValue(POSITIVE_FACE_PRESSURE)       = sum_weighted_p[0] / sum_weights;
+            rSkinNode.FastGetSolutionStepValue(NEGATIVE_FACE_PRESSURE)       = sum_weighted_p[1] / sum_weights;
+            rSkinNode.FastGetSolutionStepValue(POSITIVE_FACE_FLUID_VELOCITY) = sum_weighted_u[0] / sum_weights;
+            rSkinNode.FastGetSolutionStepValue(NEGATIVE_FACE_FLUID_VELOCITY) = sum_weighted_u[1] / sum_weights;
+            // rSkinNode.FastGetSolutionStepValue(TRACTION_FROM_FLUID_PRESSURE) = sum_weighted_vectors[2]   / sum_weights;
+            // rSkinNode.FastGetSolutionStepValue(TRACTION_FROM_FLUID_STRESS)   = sum_weighted_vectors[3]   / sum_weights;
+            // rSkinNode.FastGetSolutionStepValue(DRAG_FORCE)                   = sum_weighted_vectors[4]  / sum_weights;
+        });
     }
 
     void ShiftedBoundaryPointBasedInterfaceUtility::CalculateExtensionError()
@@ -1105,252 +1206,252 @@ namespace Kratos
         else { return true; }
     }
 
-    bool ShiftedBoundaryPointBasedInterfaceUtility::CalculatePressureAtSplitElementSkinPoint(
-        const ElementType::Pointer pElement,
-        const Vector& rPointShapeFunctionValues,
-        double& rPositiveSidePressure,
-        double& rNegativeSidePressure)
-    {
-        //TODO ? Check whether the element is actually a part of the boundary
-        // if (!pElement->Is(SBM_BOUNDARY)) {
-        //     return 0;
-        // }
-        const auto& r_geom = pElement->GetGeometry();
-        const std::size_t n_nodes = r_geom.PointsNumber();
+    // bool ShiftedBoundaryPointBasedInterfaceUtility::CalculatePressureAtSplitElementSkinPoint(
+    //     const ElementType::Pointer pElement,
+    //     const Vector& rPointShapeFunctionValues,
+    //     double& rPositiveSidePressure,
+    //     double& rNegativeSidePressure)
+    // {
+    //     //TODO ? Check whether the element is actually a part of the boundary
+    //     // if (!pElement->Is(SBM_BOUNDARY)) {
+    //     //     return 0;
+    //     // }
+    //     const auto& r_geom = pElement->GetGeometry();
+    //     const std::size_t n_nodes = r_geom.PointsNumber();
 
-        // Initialize pressure variables
-        rPositiveSidePressure = 0.0;
-        rNegativeSidePressure = 0.0;
+    //     // Initialize pressure variables
+    //     rPositiveSidePressure = 0.0;
+    //     rNegativeSidePressure = 0.0;
 
-        Vector sides_vector(n_nodes);
-        const std::size_t sides_found = mSidesVectorMap.count(pElement);
-        // Some deactivated elements containing Gamma might not have skin points and therefore no side vector (originally)
-        if (!sides_found) {
-            // Create sides vector based on the element's nodes belonging to SBM_BOUNDARY or SBM_INTERFACE, if possible.
-            // Helpful for sparse distributions of skin points.
-            for (std::size_t i_node = 0; i_node < n_nodes; ++i_node) {
-                auto& r_node = r_geom[i_node];
-                if (r_node.Is(SBM_BOUNDARY) && !r_node.Is(SBM_INTERFACE)) {
-                    sides_vector[i_node] =  1.0;
-                } else if (r_node.Is(SBM_INTERFACE) && !r_node.Is(SBM_BOUNDARY)) {
-                    sides_vector[i_node] = -1.0;
-                } else { return false; }
-            }
-            // Store the created sides vector for future calculations
-            mSidesVectorMap.insert(std::make_pair(pElement, sides_vector));
-        } else {
-            // Get sides vector for the element the skin node is located in
-            sides_vector = mSidesVectorMap[pElement];
-        }
+    //     Vector sides_vector(n_nodes);
+    //     const std::size_t sides_found = mSidesVectorMap.count(pElement);
+    //     // Some deactivated elements containing Gamma might not have skin points and therefore no side vector (originally)
+    //     if (!sides_found) {
+    //         // Create sides vector based on the element's nodes belonging to SBM_BOUNDARY or SBM_INTERFACE, if possible.
+    //         // Helpful for sparse distributions of skin points.
+    //         for (std::size_t i_node = 0; i_node < n_nodes; ++i_node) {
+    //             auto& r_node = r_geom[i_node];
+    //             if (r_node.Is(SBM_BOUNDARY) && !r_node.Is(SBM_INTERFACE)) {
+    //                 sides_vector[i_node] =  1.0;
+    //             } else if (r_node.Is(SBM_INTERFACE) && !r_node.Is(SBM_BOUNDARY)) {
+    //                 sides_vector[i_node] = -1.0;
+    //             } else { return false; }
+    //         }
+    //         // Store the created sides vector for future calculations
+    //         mSidesVectorMap.insert(std::make_pair(pElement, sides_vector));
+    //     } else {
+    //         // Get sides vector for the element the skin node is located in
+    //         sides_vector = mSidesVectorMap[pElement];
+    //     }
 
-        // Calculate positive and negative side pressure at skin node
-        bool point_is_without_positive_extension = false;
-        bool point_is_without_negative_extension = false;
-        for (std::size_t i_node = 0; i_node < n_nodes; ++i_node) {
-            const auto p_node = r_geom(i_node);
-            const double i_node_N = rPointShapeFunctionValues[i_node];
+    //     // Calculate positive and negative side pressure at skin node
+    //     bool point_is_without_positive_extension = false;
+    //     bool point_is_without_negative_extension = false;
+    //     for (std::size_t i_node = 0; i_node < n_nodes; ++i_node) {
+    //         const auto p_node = r_geom(i_node);
+    //         const double i_node_N = rPointShapeFunctionValues[i_node];
 
-            // Check whether extension exists for node
-            const std::size_t extension_found = mExtensionOperatorMap.count(p_node);
+    //         // Check whether extension exists for node
+    //         const std::size_t extension_found = mExtensionOperatorMap.count(p_node);
 
-            // The extension needs to be used for nodes of the element which are located on the other side of the pressure that is being calculated
-            if (sides_vector[i_node] > 0.0) {
-                rPositiveSidePressure += i_node_N * p_node->FastGetSolutionStepValue(PRESSURE);
-                if (extension_found) {
-                    const auto& ext_op_data = mExtensionOperatorMap[p_node];
-                    // Iterate over the node's extension operator data and add the support node weight (i_cl_node_N) times the pressure at the support node
-                    for (auto it_data = ext_op_data.begin(); it_data != ext_op_data.end(); ++it_data) {
-                        //const auto& r_support_node_data = *it_data;
-                        const auto p_support_node = std::get<0>(*it_data);
-                        const double weight_support_node = std::get<1>(*it_data);
-                        rNegativeSidePressure += i_node_N * weight_support_node * p_support_node->FastGetSolutionStepValue(PRESSURE);
-                    }
-                } else { point_is_without_negative_extension = true; }
-            } else {
-                if (extension_found) {
-                    const auto& ext_op_data = mExtensionOperatorMap[p_node];
-                    // Iterate over the node's extension operator data and add the support node weight (i_cl_node_N) times the pressure at the support node
-                    for (auto it_data = ext_op_data.begin(); it_data != ext_op_data.end(); ++it_data) {
-                        //const auto& r_support_node_data = *it_data;
-                        const auto p_support_node = std::get<0>(*it_data);
-                        const double weight_support_node = std::get<1>(*it_data);
-                        rPositiveSidePressure += i_node_N * weight_support_node * p_support_node->FastGetSolutionStepValue(PRESSURE);
-                    }
-                } else { point_is_without_positive_extension = true; }
-                rNegativeSidePressure += i_node_N * p_node->FastGetSolutionStepValue(PRESSURE);
-            }
-        }
-        if (point_is_without_positive_extension || point_is_without_negative_extension) { return false; }
-        else { return true; }
-    }
+    //         // The extension needs to be used for nodes of the element which are located on the other side of the pressure that is being calculated
+    //         if (sides_vector[i_node] > 0.0) {
+    //             rPositiveSidePressure += i_node_N * p_node->FastGetSolutionStepValue(PRESSURE);
+    //             if (extension_found) {
+    //                 const auto& ext_op_data = mExtensionOperatorMap[p_node];
+    //                 // Iterate over the node's extension operator data and add the support node weight (i_cl_node_N) times the pressure at the support node
+    //                 for (auto it_data = ext_op_data.begin(); it_data != ext_op_data.end(); ++it_data) {
+    //                     //const auto& r_support_node_data = *it_data;
+    //                     const auto p_support_node = std::get<0>(*it_data);
+    //                     const double weight_support_node = std::get<1>(*it_data);
+    //                     rNegativeSidePressure += i_node_N * weight_support_node * p_support_node->FastGetSolutionStepValue(PRESSURE);
+    //                 }
+    //             } else { point_is_without_negative_extension = true; }
+    //         } else {
+    //             if (extension_found) {
+    //                 const auto& ext_op_data = mExtensionOperatorMap[p_node];
+    //                 // Iterate over the node's extension operator data and add the support node weight (i_cl_node_N) times the pressure at the support node
+    //                 for (auto it_data = ext_op_data.begin(); it_data != ext_op_data.end(); ++it_data) {
+    //                     //const auto& r_support_node_data = *it_data;
+    //                     const auto p_support_node = std::get<0>(*it_data);
+    //                     const double weight_support_node = std::get<1>(*it_data);
+    //                     rPositiveSidePressure += i_node_N * weight_support_node * p_support_node->FastGetSolutionStepValue(PRESSURE);
+    //                 }
+    //             } else { point_is_without_positive_extension = true; }
+    //             rNegativeSidePressure += i_node_N * p_node->FastGetSolutionStepValue(PRESSURE);
+    //         }
+    //     }
+    //     if (point_is_without_positive_extension || point_is_without_negative_extension) { return false; }
+    //     else { return true; }
+    // }
 
-    bool ShiftedBoundaryPointBasedInterfaceUtility::CalculatePressureGradientAtSplitElementSkinPoint(
-        const ElementType::Pointer pElement,
-        const Matrix& rPointShapeFunctionDerivatives,
-        Vector& rPositiveSidePressureGradient,
-        Vector& rNegativeSidePressureGradient)
-    {
-        //TODO ? Check whether the element is actually a part of the boundary
-        // if (!pElement->Is(SBM_BOUNDARY)) {
-        //     return 0;
-        // }
-        const auto& r_geom = pElement->GetGeometry();
-        const std::size_t n_dim = r_geom.WorkingSpaceDimension();
-        const std::size_t n_nodes = r_geom.PointsNumber();
+    // bool ShiftedBoundaryPointBasedInterfaceUtility::CalculatePressureGradientAtSplitElementSkinPoint(
+    //     const ElementType::Pointer pElement,
+    //     const Matrix& rPointShapeFunctionDerivatives,
+    //     Vector& rPositiveSidePressureGradient,
+    //     Vector& rNegativeSidePressureGradient)
+    // {
+    //     //TODO ? Check whether the element is actually a part of the boundary
+    //     // if (!pElement->Is(SBM_BOUNDARY)) {
+    //     //     return 0;
+    //     // }
+    //     const auto& r_geom = pElement->GetGeometry();
+    //     const std::size_t n_dim = r_geom.WorkingSpaceDimension();
+    //     const std::size_t n_nodes = r_geom.PointsNumber();
 
-        // Initialize pressure variables
-        rPositiveSidePressureGradient = ZeroVector(n_dim);
-        rNegativeSidePressureGradient = ZeroVector(n_dim);
+    //     // Initialize pressure variables
+    //     rPositiveSidePressureGradient = ZeroVector(n_dim);
+    //     rNegativeSidePressureGradient = ZeroVector(n_dim);
 
-        Vector sides_vector(n_nodes);
-        const std::size_t sides_found = mSidesVectorMap.count(pElement);
-        // Some deactivated elements containing Gamma might not have skin points and therefore no side vector (originally)
-        // NOTE that this might be wrong if another skin geometry is embedded close by!
-        if (!sides_found) {
-            // Create sides vector based on the element's nodes belonging to SBM_BOUNDARY or SBM_INTERFACE, if possible.
-            // Helpful for sparse distributions of skin points.
-            for (std::size_t i_node = 0; i_node < n_nodes; ++i_node) {
-                auto& r_node = r_geom[i_node];
-                if (r_node.Is(SBM_BOUNDARY) && !r_node.Is(SBM_INTERFACE)) {
-                    sides_vector[i_node] =  1.0;
-                } else if (r_node.Is(SBM_INTERFACE) && !r_node.Is(SBM_BOUNDARY)) {
-                    sides_vector[i_node] = -1.0;
-                } else { return false; }
-            }
-            // Store the created sides vector for future calculations
-            mSidesVectorMap.insert(std::make_pair(pElement, sides_vector));
-        } else {
-            // Get sides vector for the element the skin node is located in
-            sides_vector = mSidesVectorMap[pElement];
-        }
+    //     Vector sides_vector(n_nodes);
+    //     const std::size_t sides_found = mSidesVectorMap.count(pElement);
+    //     // Some deactivated elements containing Gamma might not have skin points and therefore no side vector (originally)
+    //     // NOTE that this might be wrong if another skin geometry is embedded close by!
+    //     if (!sides_found) {
+    //         // Create sides vector based on the element's nodes belonging to SBM_BOUNDARY or SBM_INTERFACE, if possible.
+    //         // Helpful for sparse distributions of skin points.
+    //         for (std::size_t i_node = 0; i_node < n_nodes; ++i_node) {
+    //             auto& r_node = r_geom[i_node];
+    //             if (r_node.Is(SBM_BOUNDARY) && !r_node.Is(SBM_INTERFACE)) {
+    //                 sides_vector[i_node] =  1.0;
+    //             } else if (r_node.Is(SBM_INTERFACE) && !r_node.Is(SBM_BOUNDARY)) {
+    //                 sides_vector[i_node] = -1.0;
+    //             } else { return false; }
+    //         }
+    //         // Store the created sides vector for future calculations
+    //         mSidesVectorMap.insert(std::make_pair(pElement, sides_vector));
+    //     } else {
+    //         // Get sides vector for the element the skin node is located in
+    //         sides_vector = mSidesVectorMap[pElement];
+    //     }
 
-        // Calculate positive and negative side pressure gradient at skin node
-        bool point_is_without_positive_extension = false;
-        bool point_is_without_negative_extension = false;
-        for (std::size_t i_node = 0; i_node < n_nodes; ++i_node) {
-            const auto p_node = r_geom(i_node);
+    //     // Calculate positive and negative side pressure gradient at skin node
+    //     bool point_is_without_positive_extension = false;
+    //     bool point_is_without_negative_extension = false;
+    //     for (std::size_t i_node = 0; i_node < n_nodes; ++i_node) {
+    //         const auto p_node = r_geom(i_node);
 
-            // Check whether extension exists for node
-            const std::size_t extension_found = mExtensionOperatorMap.count(p_node);
+    //         // Check whether extension exists for node
+    //         const std::size_t extension_found = mExtensionOperatorMap.count(p_node);
 
-            // The extension needs to be used for nodes of the element which are located on the other side of the pressure that is being calculated
-            if (sides_vector[i_node] > 0.0) {
-                for (std::size_t d = 0; d < n_dim; ++d) {
-                    rPositiveSidePressureGradient(d) += rPointShapeFunctionDerivatives(i_node, d) * p_node->FastGetSolutionStepValue(PRESSURE);
-                }
-                if (extension_found) {
-                    const auto& ext_op_data = mExtensionOperatorMap[p_node];
-                    // Iterate over the node's extension operator data and add the support node weight (i_cl_node_N) times the pressure at the support node
-                    for (auto it_data = ext_op_data.begin(); it_data != ext_op_data.end(); ++it_data) {
-                        //const auto& r_support_node_data = *it_data;
-                        const auto p_support_node = std::get<0>(*it_data);
-                        const double weight_support_node = std::get<1>(*it_data);
-                        for (std::size_t d = 0; d < n_dim; ++d) {
-                            rNegativeSidePressureGradient(d) += rPointShapeFunctionDerivatives(i_node, d) * weight_support_node * p_node->FastGetSolutionStepValue(PRESSURE);
-                        }
-                    }
-                } else { point_is_without_negative_extension = true; }
-            } else {
-                if (extension_found) {
-                    const auto& ext_op_data = mExtensionOperatorMap[p_node];
-                    // Iterate over the node's extension operator data and add the support node weight (i_cl_node_N) times the pressure at the support node
-                    for (auto it_data = ext_op_data.begin(); it_data != ext_op_data.end(); ++it_data) {
-                        //const auto& r_support_node_data = *it_data;
-                        const auto p_support_node = std::get<0>(*it_data);
-                        const double weight_support_node = std::get<1>(*it_data);
-                        for (std::size_t d = 0; d < n_dim; ++d) {
-                            rPositiveSidePressureGradient(d) += rPointShapeFunctionDerivatives(i_node, d) * weight_support_node * p_node->FastGetSolutionStepValue(PRESSURE);
-                        }
-                    }
-                } else { point_is_without_positive_extension = true; }
-                for (std::size_t d = 0; d < n_dim; ++d) {
-                    rNegativeSidePressureGradient(d) += rPointShapeFunctionDerivatives(i_node, d) * p_node->FastGetSolutionStepValue(PRESSURE);
-                }
-            }
-        }
-        if (point_is_without_positive_extension || point_is_without_negative_extension) { return false; }
-        else { return true; }
-    }
+    //         // The extension needs to be used for nodes of the element which are located on the other side of the pressure that is being calculated
+    //         if (sides_vector[i_node] > 0.0) {
+    //             for (std::size_t d = 0; d < n_dim; ++d) {
+    //                 rPositiveSidePressureGradient(d) += rPointShapeFunctionDerivatives(i_node, d) * p_node->FastGetSolutionStepValue(PRESSURE);
+    //             }
+    //             if (extension_found) {
+    //                 const auto& ext_op_data = mExtensionOperatorMap[p_node];
+    //                 // Iterate over the node's extension operator data and add the support node weight (i_cl_node_N) times the pressure at the support node
+    //                 for (auto it_data = ext_op_data.begin(); it_data != ext_op_data.end(); ++it_data) {
+    //                     //const auto& r_support_node_data = *it_data;
+    //                     const auto p_support_node = std::get<0>(*it_data);
+    //                     const double weight_support_node = std::get<1>(*it_data);
+    //                     for (std::size_t d = 0; d < n_dim; ++d) {
+    //                         rNegativeSidePressureGradient(d) += rPointShapeFunctionDerivatives(i_node, d) * weight_support_node * p_node->FastGetSolutionStepValue(PRESSURE);
+    //                     }
+    //                 }
+    //             } else { point_is_without_negative_extension = true; }
+    //         } else {
+    //             if (extension_found) {
+    //                 const auto& ext_op_data = mExtensionOperatorMap[p_node];
+    //                 // Iterate over the node's extension operator data and add the support node weight (i_cl_node_N) times the pressure at the support node
+    //                 for (auto it_data = ext_op_data.begin(); it_data != ext_op_data.end(); ++it_data) {
+    //                     //const auto& r_support_node_data = *it_data;
+    //                     const auto p_support_node = std::get<0>(*it_data);
+    //                     const double weight_support_node = std::get<1>(*it_data);
+    //                     for (std::size_t d = 0; d < n_dim; ++d) {
+    //                         rPositiveSidePressureGradient(d) += rPointShapeFunctionDerivatives(i_node, d) * weight_support_node * p_node->FastGetSolutionStepValue(PRESSURE);
+    //                     }
+    //                 }
+    //             } else { point_is_without_positive_extension = true; }
+    //             for (std::size_t d = 0; d < n_dim; ++d) {
+    //                 rNegativeSidePressureGradient(d) += rPointShapeFunctionDerivatives(i_node, d) * p_node->FastGetSolutionStepValue(PRESSURE);
+    //             }
+    //         }
+    //     }
+    //     if (point_is_without_positive_extension || point_is_without_negative_extension) { return false; }
+    //     else { return true; }
+    // }
 
-    bool ShiftedBoundaryPointBasedInterfaceUtility::CalculateVelocityAtSplitElementSkinPoint(
-        const ElementType::Pointer pElement,
-        const Vector& rPointShapeFunctionValues,
-        array_1d<double,3>& rPositiveSideVelocity,
-        array_1d<double,3>& rNegativeSideVelocity)
-    {
-        //TODO ? Check whether the element is actually a part of the boundary
-        // if (!pElement->Is(SBM_BOUNDARY)) {
-        //     return 0;
-        // }
-        const auto& r_geom = pElement->GetGeometry();
-        const std::size_t n_nodes = r_geom.PointsNumber();
+    // bool ShiftedBoundaryPointBasedInterfaceUtility::CalculateVelocityAtSplitElementSkinPoint(
+    //     const ElementType::Pointer pElement,
+    //     const Vector& rPointShapeFunctionValues,
+    //     array_1d<double,3>& rPositiveSideVelocity,
+    //     array_1d<double,3>& rNegativeSideVelocity)
+    // {
+    //     //TODO ? Check whether the element is actually a part of the boundary
+    //     // if (!pElement->Is(SBM_BOUNDARY)) {
+    //     //     return 0;
+    //     // }
+    //     const auto& r_geom = pElement->GetGeometry();
+    //     const std::size_t n_nodes = r_geom.PointsNumber();
 
-        // Initialize velocity variables
-        rPositiveSideVelocity = ZeroVector(3);
-        rNegativeSideVelocity = ZeroVector(3);
+    //     // Initialize velocity variables
+    //     rPositiveSideVelocity = ZeroVector(3);
+    //     rNegativeSideVelocity = ZeroVector(3);
 
-        Vector sides_vector(n_nodes);
-        const std::size_t sides_found = mSidesVectorMap.count(pElement);
-        // Some deactivated elements containing Gamma might not have skin points and therefore no side vector (originally)
-        // NOTE that this might be wrong if another skin geometry is embedded close by!
-        if (!sides_found) {
-            // Create sides vector based on the element's nodes belonging to SBM_BOUNDARY or SBM_INTERFACE, if possible.
-            // Helpful for sparse distributions of skin points.
-            for (std::size_t i_node = 0; i_node < n_nodes; ++i_node) {
-                auto& r_node = r_geom[i_node];
-                if (r_node.Is(SBM_BOUNDARY) && !r_node.Is(SBM_INTERFACE)) {
-                    sides_vector[i_node] =  1.0;
-                } else if (r_node.Is(SBM_INTERFACE) && !r_node.Is(SBM_BOUNDARY)) {
-                    sides_vector[i_node] = -1.0;
-                } else { return false; }
-            }
-            // Store the created sides vector for future calculations
-            mSidesVectorMap.insert(std::make_pair(pElement, sides_vector));
-        } else {
-            // Get sides vector for the element the skin node is located in
-            sides_vector = mSidesVectorMap[pElement];
-        }
+    //     Vector sides_vector(n_nodes);
+    //     const std::size_t sides_found = mSidesVectorMap.count(pElement);
+    //     // Some deactivated elements containing Gamma might not have skin points and therefore no side vector (originally)
+    //     // NOTE that this might be wrong if another skin geometry is embedded close by!
+    //     if (!sides_found) {
+    //         // Create sides vector based on the element's nodes belonging to SBM_BOUNDARY or SBM_INTERFACE, if possible.
+    //         // Helpful for sparse distributions of skin points.
+    //         for (std::size_t i_node = 0; i_node < n_nodes; ++i_node) {
+    //             auto& r_node = r_geom[i_node];
+    //             if (r_node.Is(SBM_BOUNDARY) && !r_node.Is(SBM_INTERFACE)) {
+    //                 sides_vector[i_node] =  1.0;
+    //             } else if (r_node.Is(SBM_INTERFACE) && !r_node.Is(SBM_BOUNDARY)) {
+    //                 sides_vector[i_node] = -1.0;
+    //             } else { return false; }
+    //         }
+    //         // Store the created sides vector for future calculations
+    //         mSidesVectorMap.insert(std::make_pair(pElement, sides_vector));
+    //     } else {
+    //         // Get sides vector for the element the skin node is located in
+    //         sides_vector = mSidesVectorMap[pElement];
+    //     }
 
-        // Calculate positive and negative side velocity at skin node
-        bool point_is_without_positive_extension = false;
-        bool point_is_without_negative_extension = false;
-        for (std::size_t i_node = 0; i_node < n_nodes; ++i_node) {
-            const auto p_node = r_geom(i_node);
-            const double i_node_N = rPointShapeFunctionValues[i_node];
+    //     // Calculate positive and negative side velocity at skin node
+    //     bool point_is_without_positive_extension = false;
+    //     bool point_is_without_negative_extension = false;
+    //     for (std::size_t i_node = 0; i_node < n_nodes; ++i_node) {
+    //         const auto p_node = r_geom(i_node);
+    //         const double i_node_N = rPointShapeFunctionValues[i_node];
 
-            // Check whether extension exists for node
-            const std::size_t extension_found = mExtensionOperatorMap.count(p_node);
+    //         // Check whether extension exists for node
+    //         const std::size_t extension_found = mExtensionOperatorMap.count(p_node);
 
-            // The extension needs to be used for nodes of the element which are located on the other side of the velocity that is being calculated
-            if (sides_vector[i_node] > 0.0) {
-                rPositiveSideVelocity += i_node_N * p_node->FastGetSolutionStepValue(VELOCITY);
-                if (extension_found) {
-                    const auto& ext_op_data = mExtensionOperatorMap[p_node];
-                    // Iterate over the node's extension operator data and add the support node weight (i_cl_node_N) times the velocity at the support node
-                    for (auto it_data = ext_op_data.begin(); it_data != ext_op_data.end(); ++it_data) {
-                        //const auto& r_support_node_data = *it_data;
-                        const auto p_support_node = std::get<0>(*it_data);
-                        const double weight_support_node = std::get<1>(*it_data);
-                        rNegativeSideVelocity += i_node_N * weight_support_node * p_support_node->FastGetSolutionStepValue(VELOCITY);
-                    }
-                } else { point_is_without_negative_extension = true; }
-            } else {
-                if (extension_found) {
-                    const auto& ext_op_data = mExtensionOperatorMap[p_node];
-                    // Iterate over the node's extension operator data and add the support node weight (i_cl_node_N) times the velocity at the support node
-                    for (auto it_data = ext_op_data.begin(); it_data != ext_op_data.end(); ++it_data) {
-                        //const auto& r_support_node_data = *it_data;
-                        const auto p_support_node = std::get<0>(*it_data);
-                        const double weight_support_node = std::get<1>(*it_data);
-                        rPositiveSideVelocity += i_node_N * weight_support_node * p_support_node->FastGetSolutionStepValue(VELOCITY);
-                    }
-                } else { point_is_without_positive_extension = true; }
-                rNegativeSideVelocity += i_node_N * p_node->FastGetSolutionStepValue(VELOCITY);
-            }
-        }
-        if (point_is_without_positive_extension || point_is_without_negative_extension) { return false; }
-        else { return true; }
-    }
+    //         // The extension needs to be used for nodes of the element which are located on the other side of the velocity that is being calculated
+    //         if (sides_vector[i_node] > 0.0) {
+    //             rPositiveSideVelocity += i_node_N * p_node->FastGetSolutionStepValue(VELOCITY);
+    //             if (extension_found) {
+    //                 const auto& ext_op_data = mExtensionOperatorMap[p_node];
+    //                 // Iterate over the node's extension operator data and add the support node weight (i_cl_node_N) times the velocity at the support node
+    //                 for (auto it_data = ext_op_data.begin(); it_data != ext_op_data.end(); ++it_data) {
+    //                     //const auto& r_support_node_data = *it_data;
+    //                     const auto p_support_node = std::get<0>(*it_data);
+    //                     const double weight_support_node = std::get<1>(*it_data);
+    //                     rNegativeSideVelocity += i_node_N * weight_support_node * p_support_node->FastGetSolutionStepValue(VELOCITY);
+    //                 }
+    //             } else { point_is_without_negative_extension = true; }
+    //         } else {
+    //             if (extension_found) {
+    //                 const auto& ext_op_data = mExtensionOperatorMap[p_node];
+    //                 // Iterate over the node's extension operator data and add the support node weight (i_cl_node_N) times the velocity at the support node
+    //                 for (auto it_data = ext_op_data.begin(); it_data != ext_op_data.end(); ++it_data) {
+    //                     //const auto& r_support_node_data = *it_data;
+    //                     const auto p_support_node = std::get<0>(*it_data);
+    //                     const double weight_support_node = std::get<1>(*it_data);
+    //                     rPositiveSideVelocity += i_node_N * weight_support_node * p_support_node->FastGetSolutionStepValue(VELOCITY);
+    //                 }
+    //             } else { point_is_without_positive_extension = true; }
+    //             rNegativeSideVelocity += i_node_N * p_node->FastGetSolutionStepValue(VELOCITY);
+    //         }
+    //     }
+    //     if (point_is_without_positive_extension || point_is_without_negative_extension) { return false; }
+    //     else { return true; }
+    // }
 
     double ShiftedBoundaryPointBasedInterfaceUtility::CalculateSkinDistanceToNode(
         const Node& rNode,
@@ -2359,7 +2460,7 @@ namespace Kratos
         array_1d<double,3> area_normal = rIntPtAreaNormal;
         double skin_pt_weight = norm_2(area_normal);
 
-        // Do not at wall condition for 0D skin elements, this also prevents problems with zero normal
+        // Do not add wall condition for 0D skin elements, this also prevents problems with zero normal
         if (skin_pt_weight < 1e-10) {
             return false;
         }
@@ -2577,14 +2678,11 @@ namespace Kratos
         }
     }
 
-    template void KRATOS_API(KRATOS_CORE) ShiftedBoundaryPointBasedInterfaceUtility::CalculatePressureAtSkinNodesTemplated<2>();
-    template void KRATOS_API(KRATOS_CORE) ShiftedBoundaryPointBasedInterfaceUtility::CalculatePressureAtSkinNodesTemplated<3>();
-
-    template void KRATOS_API(KRATOS_CORE) ShiftedBoundaryPointBasedInterfaceUtility::CalculateVelocityAtSkinNodesTemplated<2>();
-    template void KRATOS_API(KRATOS_CORE) ShiftedBoundaryPointBasedInterfaceUtility::CalculateVelocityAtSkinNodesTemplated<3>();
-
     template void KRATOS_API(KRATOS_CORE) ShiftedBoundaryPointBasedInterfaceUtility::CalculateVariablesAtSkinPointsTemplated<2>();
     template void KRATOS_API(KRATOS_CORE) ShiftedBoundaryPointBasedInterfaceUtility::CalculateVariablesAtSkinPointsTemplated<3>();
+
+    template void KRATOS_API(KRATOS_CORE) ShiftedBoundaryPointBasedInterfaceUtility::CalculateVariablesAtSkinPointsAndNodesTemplated<2>();
+    template void KRATOS_API(KRATOS_CORE) ShiftedBoundaryPointBasedInterfaceUtility::CalculateVariablesAtSkinPointsAndNodesTemplated<3>();
 
     template bool KRATOS_API(KRATOS_CORE) ShiftedBoundaryPointBasedInterfaceUtility::CalculateUnknownsForBothSidesOfSplitElement<2>(
         const ElementType::Pointer pElement,

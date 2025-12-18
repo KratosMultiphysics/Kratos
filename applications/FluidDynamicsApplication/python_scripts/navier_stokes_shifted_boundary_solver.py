@@ -299,12 +299,10 @@ class NavierStokesShiftedBoundaryMonolithicSolver(FluidSolver):
     def FinalizeSolutionStep(self):
         # Compute Variables for skin model parts in sbm utilities
         for sbm_interface_utility in self.sbm_interface_utilities:
-            if self.postprocess_skin_points:
+            if self.postprocess_pressure or self.postprocess_velocity:
+                sbm_interface_utility.CalculateVariablesAtSkinPointsAndNodes()
+            elif self.postprocess_skin_points:
                 sbm_interface_utility.CalculateVariablesAtSkinPoints()
-            if self.postprocess_velocity:
-                sbm_interface_utility.CalculateVelocityAtSkinNodes()
-            if self.postprocess_pressure:
-                sbm_interface_utility.CalculatePressureAtSkinNodes()
 
             #sbm_interface_utility.CalculateExtensionError()
 
