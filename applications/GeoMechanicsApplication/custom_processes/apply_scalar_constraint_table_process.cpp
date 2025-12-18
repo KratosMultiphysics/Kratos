@@ -16,7 +16,7 @@
 #include "apply_constant_phreatic_line_pressure_process.h"
 #include "apply_constant_phreatic_surface_pressure_process.h"
 #include "apply_hydrostatic_pressure_table_process.h"
-#include "apply_phreatic_line_pressure_table_process.hpp"
+#include "apply_phreatic_line_pressure_table_process.h"
 #include "apply_phreatic_multi_line_pressure_table_process.h"
 #include "apply_phreatic_surface_pressure_table_process.hpp"
 #include "custom_utilities/parameters_utilities.h"
