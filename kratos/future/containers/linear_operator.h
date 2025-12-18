@@ -120,7 +120,7 @@ public:
     LinearOperator(LinearOperator&& rOther) = default;
 
     /// Default destructor (non-virtual)
-    ~LinearOperator() = default;
+    virtual ~LinearOperator() = default;
 
     ///@}
     ///@name Operators
@@ -138,11 +138,11 @@ public:
 
     virtual void SpMV(
         const TVectorType& rX,
-        TVectorType& rY) = 0;
+        TVectorType& rY) const = 0;
 
     virtual void TransposeSpMV(
         const TVectorType& rX,
-        TVectorType& rY) = 0;
+        TVectorType& rY) const = 0;
 
     /**
      * @brief Clear the operator data.
@@ -177,9 +177,19 @@ public:
     }
 
     template<class TMatrixType>
-    TMatrixType& GetMatrix() const
+    TMatrixType& GetMatrix()
     {
-        return std::get<TMatrixType>(this->GetMatrixImpl());
+        auto& r_matrix = this->GetMatrixImpl();
+        KRATOS_ERROR_IF_NOT(std::holds_alternative<TMatrixType>(r_matrix)) << "Requested matrix type does not match stored matrix.";
+        return std::get<TMatrixType>(r_matrix);
+    }
+
+    template<class TMatrixType>
+    const TMatrixType& GetMatrix() const
+    {
+        const auto& r_matrix = this->GetMatrixImpl();
+        KRATOS_ERROR_IF_NOT(std::holds_alternative<TMatrixType>(r_matrix)) << "Requested matrix type does not match stored matrix.";
+        return std::get<TMatrixType>(r_matrix);
     }
 
     ///@}
@@ -224,7 +234,15 @@ protected:
      * @brief Get the underlying matrix variant.
      * @return Reference to the matrix variant
      */
-    [[noreturn]]virtual MatrixVariantType& GetMatrixImpl() const
+    [[noreturn]] virtual MatrixVariantType& GetMatrixImpl()
+    {
+        KRATOS_ERROR << "GetMatrixImpl() not implemented in base LinearOperator class." << std::endl;
+    }
+    /**
+     * @brief Get the underlying matrix variant.
+     * @return Reference to the matrix variant
+     */
+    [[noreturn]] virtual const MatrixVariantType& GetMatrixImpl() const
     {
         KRATOS_ERROR << "GetMatrixImpl() not implemented in base LinearOperator class." << std::endl;
     }

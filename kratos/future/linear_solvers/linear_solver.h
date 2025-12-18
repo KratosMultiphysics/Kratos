@@ -57,7 +57,7 @@ namespace Kratos::Future
  * @author Riccardo Rossi
  * @author Ruben Zorrilla
  */
-template<class TVectorType= SystemVector<>>
+template<class TVectorType>
 class LinearSolver
 {
 
@@ -179,7 +179,7 @@ public:
     /**
      * @brief Solve method with linear operator as input.
      * @details Solves the linear system Ax=b and puts the result on SystemVector& rX. rX is also th initial guess for iterative methods.
-     * @param rLinearOperator System matrix linear operator
+     * @param pLinearOperator System matrix linear operator pointer
      * @param rX Solution vector
      * @param rB Right hand side vector
      * @return true if the system was solved successfully, false otherwise
@@ -197,58 +197,20 @@ public:
     }
 
     /**
-     * @brief Solve method overload taking a sparse matrix as input.
-     * @details Solves the linear system Ax=b and puts the result on SystemVector& rX. rX is also the initial guess for iterative methods.
-     * Note that this method internally creates a LinearOperator from the provided sparse matrix and calls the corresponding Solve method.
-     * @param rA Matrix representing the system
-     * @param rX Solution vector
-     * @param rB Right hand side vector
-     * @return true if the system was solved successfully, false otherwise
-     */
-    template<class TMatrixType>
-    bool Solve(
-        TMatrixType& rA,
-        TVectorType& rX,
-        TVectorType& rB)
-    {
-        auto p_linear_operator = Kratos::make_shared<SparseMatrixLinearOperator<TVectorType>>(rA);
-        return Solve(p_linear_operator, rX, rB);
-    }
-
-    /**
      * @brief Multi solve method for solving a set of linear systems with same coefficient matrix.
      * @details Solves the linear system Ax=b and puts the result on SystemVector& rX. rX is also th initial guess for iterative methods.
-     * @param rLinearOperator System matrix linear operator
+     * @param pLinearOperator System matrix linear operator pointer
      * @param rX Solution vector
      * @param rB Right hand side vector
      * @return true if the system was solved successfully, false otherwise
      */
     virtual bool Solve(
-        LinearOperatorPointerType rLinearOperator,
+        LinearOperatorPointerType pLinearOperator,
         DenseMatrixType& rX,
         DenseMatrixType& rB)
     {
         KRATOS_ERROR << "Calling linear solver base class" << std::endl;
         return false;
-    }
-
-    /**
-     * @brief Multi solve method for solving a set of linear systems with same coefficient matrix.
-     * @details Solves the linear system Ax=b and puts the result on SystemVector& rX. rX is also the initial guess for iterative methods.
-     * Note that this method internally creates a LinearOperator from the provided sparse matrix and calls the corresponding Solve method.
-     * @param rA Matrix representing the system
-     * @param rX Solution vector
-     * @param rB Right hand side vector
-     * @return true if the system was solved successfully, false otherwise
-     */
-    template<class TMatrixType>
-    bool Solve(
-        TMatrixType& rA,
-        DenseMatrixType& rX,
-        DenseMatrixType& rB)
-    {
-        auto p_linear_operator = Kratos::make_shared<SparseMatrixLinearOperator<TVectorType>>(rA);
-        return Solve(p_linear_operator, rX, rB);
     }
 
     /**
@@ -259,32 +221,12 @@ public:
      * @param Eigenvectors The matrix containing the eigen vectors
      */
     virtual void Solve(
-        LinearOperatorPointerType K,
-        LinearOperatorPointerType M,
+        LinearOperatorPointerType pLinearOperatorK,
+        LinearOperatorPointerType pLinearOperatorM,
         DenseTVectorType& Eigenvalues,
         DenseMatrixType& Eigenvectors)
     {
         KRATOS_ERROR << "Calling linear solver base class" << std::endl;
-    }
-
-    /**
-     * @brief Eigenvalue and eigenvector solve method for derived eigensolvers
-     * Note that this method internally creates a LinearOperator from the provided stiffness and mass matrices and calls the corresponding Solve method.
-     * @param rK Stiffness matrix
-     * @param rM Mass matrix
-     * @param Eigenvalues The vector containing the eigen values
-     * @param Eigenvectors The matrix containing the eigen vectors
-     */
-    template<class TMatrixType>
-    void Solve(
-        TMatrixType& rK,
-        TMatrixType& rM,
-        DenseTVectorType& Eigenvalues,
-        DenseMatrixType& Eigenvectors)
-    {
-        auto p_linear_operator_K = Kratos::make_shared<SparseMatrixLinearOperator<TVectorType>>(rK);
-        auto p_linear_operator_M = Kratos::make_shared<SparseMatrixLinearOperator<TVectorType>>(rM);
-        Solve(p_linear_operator_K, p_linear_operator_M, Eigenvalues, Eigenvectors);
     }
 
     /**
@@ -320,32 +262,6 @@ public:
         typename ModelPart::DofsArrayType& rDoFSet,
         ModelPart& rModelPart)
     {
-    }
-
-    /**
-     * @brief Provides additional physical data required by the solver.
-     * @details Some solvers may require a minimum degree of knowledge of the structure of the matrix.
-     * For example, when solving a mixed u-p problem, it is important to identify the row associated with v and p.
-     * Another example is the automatic prescription of rotation null-space for smoothed-aggregation solvers,
-     * which require knowledge of the spatial position of the nodes associated with a given degree of freedom (DOF).
-     * This function provides the opportunity to provide such data if needed.
-     * Note that this method internally creates a LinearOperator from the provided sparse matrix and calls the corresponding Solve method.
-     * @param rA Matrix representing the system.
-     * @param rX The solution vector.
-     * @param rB The right-hand side vector.
-     * @param rDoFSet The set of degrees of freedom.
-     * @param rModelPart The model part.
-     */
-    template<class TMatrixType>
-    void ProvideAdditionalData(
-        TMatrixType& rA,
-        TVectorType& rX,
-        TVectorType& rB,
-        typename ModelPart::DofsArrayType& rDoFSet,
-        ModelPart& rModelPart)
-    {
-        auto p_linear_operator = Kratos::make_shared<SparseMatrixLinearOperator<TVectorType>>(rA);
-        return ProvideAdditionalData(p_linear_operator, rX, rB, rDoFSet, rModelPart);
     }
 
     ///@}

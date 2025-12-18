@@ -18,7 +18,9 @@
 
 // Project includes
 #include "containers/csr_matrix.h"
+#include "containers/system_vector.h"
 #include "containers/distributed_csr_matrix.h"
+#include "containers/distributed_system_vector.h"
 #include "future/containers/linear_operator.h"
 #include "includes/model_part.h"
 
@@ -70,7 +72,7 @@ namespace Kratos::Future
 //  * @tparam TVectorType The system vector type used in the Kratos linear algebra backend
 //  * @tparam Ts Optional parameter pack representing the sparse matrix type (e.g., CsrMatrix<double>).
 //  */
-template <class TVectorType>
+template <class TVectorType, class TMatrixType>
 class SparseMatrixLinearOperator : public LinearOperator<TVectorType>
 {
 
@@ -90,8 +92,14 @@ public:
     /// Serial CSR matrix type
     using CsrMatrixType = CsrMatrix<DataType, IndexType>;
 
+    /// Serial system vector type
+    using SystemVectorType = SystemVector<DataType, IndexType>;
+
     /// Distributed CSR matrix type
     using DistributedCsrMatrixType = DistributedCsrMatrix<DataType, IndexType>;
+
+    /// Distributed system vector type
+    using DistributedSystemVectorType = DistributedSystemVector<DataType, IndexType>;
 
     /// Matrix variant type definition from base class
     using MatrixVariantType = typename LinearOperator<TVectorType>::MatrixVariantType;
@@ -121,7 +129,7 @@ public:
      * Note that this constructor is only enabled when a CSR matrix type is provided.
      * @param rA Reference to the CSR matrix
      */
-    template<class TMatrixType>
+    // template<class TMatrixType>
     SparseMatrixLinearOperator(const TMatrixType& rA)
         : LinearOperator<TVectorType>()
     {
@@ -155,28 +163,32 @@ public:
 
     void SpMV(
         const TVectorType& rX,
-        TVectorType& rY) override
+        TVectorType& rY) const override
     {
-        if (std::holds_alternative<CsrMatrixType>(mCsrMatrix)) {
-            std::get<CsrMatrixType>(mCsrMatrix).SpMV(rX, rY);
-        } else if (std::holds_alternative<DistributedCsrMatrixType>(mCsrMatrix)) {
-            std::get<DistributedCsrMatrixType>(mCsrMatrix).SpMV(rX, rY);
-        } else {
-            KRATOS_ERROR << "Unsupported matrix type in SparseMatrixLinearOperator Apply()." << std::endl;
-        }
-    }
+        const auto& r_A = this->template GetMatrix<TMatrixType>();
+        SpMVImpl(r_A, rX, rY);
+        // if (std::holds_alternative<CsrMatrixType>(mCsrMatrix)) {
+            //     std::get<CsrMatrixType>(mCsrMatrix).SpMV(rX, rY);
+            // } else if (std::holds_alternative<DistributedCsrMatrixType>(mCsrMatrix)) {
+                //     std::get<DistributedCsrMatrixType>(mCsrMatrix).SpMV(rX, rY);
+                // } else {
+                    //     KRATOS_ERROR << "Unsupported matrix type in SparseMatrixLinearOperator Apply()." << std::endl;
+                    // }
+                }
 
     void TransposeSpMV(
         const TVectorType& rX,
-        TVectorType& rY) override
+        TVectorType& rY) const override
     {
-        if (std::holds_alternative<CsrMatrixType>(mCsrMatrix)) {
-            std::get<CsrMatrixType>(mCsrMatrix).TransposeSpMV(rX, rY);
-        } else if (std::holds_alternative<DistributedCsrMatrixType>(mCsrMatrix)) {
-            std::get<DistributedCsrMatrixType>(mCsrMatrix).TransposeSpMV(rX, rY);
-        } else {
-            KRATOS_ERROR << "Unsupported matrix type in SparseMatrixLinearOperator Apply()." << std::endl;
-        }
+        const auto& r_A = this->template GetMatrix<TMatrixType>();
+        TransposeSpMVImpl(r_A, rX, rY);
+        // if (std::holds_alternative<CsrMatrixType>(mCsrMatrix)) {
+        //     std::get<CsrMatrixType>(mCsrMatrix).TransposeSpMV(rX, rY);
+        // } else if (std::holds_alternative<DistributedCsrMatrixType>(mCsrMatrix)) {
+        //     std::get<DistributedCsrMatrixType>(mCsrMatrix).TransposeSpMV(rX, rY);
+        // } else {
+        //     KRATOS_ERROR << "Unsupported matrix type in SparseMatrixLinearOperator Apply()." << std::endl;
+        // }
     }
 
     void Clear() override
@@ -205,7 +217,12 @@ protected:
     ///@name Protected access
     ///@{
 
-    MatrixVariantType& GetMatrixImpl() const override
+    MatrixVariantType& GetMatrixImpl() override
+    {
+        return mCsrMatrix;
+    }
+
+    const MatrixVariantType& GetMatrixImpl() const override
     {
         return mCsrMatrix;
     }
@@ -216,6 +233,38 @@ private:
 
     /// Pointer to the CSR matrix (if applicable)
     MatrixVariantType mCsrMatrix;
+
+    void SpMVImpl(
+        const CsrMatrixType& rA,
+        const SystemVectorType& rX,
+        SystemVectorType& rY) const
+    {
+        rA.SpMV(rX, rY);
+    }
+
+    void SpMVImpl(
+        const DistributedCsrMatrixType& rA,
+        const DistributedSystemVectorType& rX,
+        DistributedSystemVectorType& rY) const
+    {
+        rA.SpMV(rX, rY);
+    }
+
+    void TransposeSpMVImpl(
+        const CsrMatrixType& rA,
+        const SystemVectorType& rX,
+        SystemVectorType& rY) const
+    {
+        rA.TransposeSpMV(rX, rY);
+    }
+
+    void TransposeSpMVImpl(
+        const DistributedCsrMatrixType& rA,
+        const DistributedSystemVectorType& rX,
+        DistributedSystemVectorType& rY) const
+    {
+        rA.TransposeSpMV(rX, rY);
+    }
 
 }; // class SparseMatrixLinearOperator
 

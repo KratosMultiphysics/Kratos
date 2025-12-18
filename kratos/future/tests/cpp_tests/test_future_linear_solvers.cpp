@@ -12,6 +12,7 @@
 
 // Project includes
 #include "testing/testing.h"
+#include "future/containers/linear_operator.h"
 #include "future/linear_solvers/amgcl_solver.h"
 #include "future/linear_solvers/skyline_lu_factorization_solver.h"
 
@@ -61,8 +62,8 @@ KRATOS_TEST_CASE_IN_SUITE(FutureLinearSolversSkylineLUFactorizationSolver, Krato
 
     // Solve the problem
     SystemVector<> sol(system_size);
-    auto p_LHS = Kratos::make_shared<CsrMatrix<>>(LHS);
-    p_linear_solver->Solve(p_LHS, sol, RHS);
+    Future::LinearOperator<SystemVector<>>::Pointer p_linear_operator = Kratos::make_shared<Future::SparseMatrixLinearOperator<SystemVector<>,CsrMatrix<>>>(LHS);
+    p_linear_solver->Solve(p_linear_operator, sol, RHS);
 
     // Check the obtained results
     std::vector<double> ref_sol = {0.487946221604, 0.979601298099, 0.836810384794, 0.93973110802, 0.602225312935};
@@ -87,8 +88,8 @@ KRATOS_TEST_CASE_IN_SUITE(FutureLinearSolversAmgcl, KratosCoreFutureSuite)
 
     // Solve the problem
     SystemVector<> sol(system_size);
-    auto p_LHS = Kratos::make_shared<CsrMatrix<>>(LHS);
-    p_linear_solver->Solve(p_LHS, sol, RHS);
+    Future::LinearOperator<SystemVector<>>::Pointer p_linear_operator = Kratos::make_shared<Future::SparseMatrixLinearOperator<SystemVector<>,CsrMatrix<>>>(LHS);
+    p_linear_solver->Solve(p_linear_operator, sol, RHS);
 
     // Check the obtained results
     std::vector<double> ref_sol = {0.487946221604, 0.979601298099, 0.836810384794, 0.93973110802, 0.602225312935};

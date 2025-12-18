@@ -19,21 +19,6 @@
 namespace Kratos::Testing
 {
 
-// KRATOS_TEST_CASE_IN_SUITE(LinearOperatorEmpty, KratosCoreFutureSuite)
-// {
-//     // Set up the linear operator
-//     Parameters linear_operator_settings(R"({
-//         "num_rows": 5,
-//         "num_cols": 5
-//     })");
-//     Future::LinearOperator<SystemVector<>> linear_operator(linear_operator_settings);
-
-//     // Check linear operator features
-//     KRATOS_EXPECT_EQ(linear_operator.NumRows(), 5);
-//     KRATOS_EXPECT_EQ(linear_operator.NumCols(), 5);
-//     KRATOS_EXPECT_TRUE(linear_operator.IsMatrixFree());
-// }
-
 KRATOS_TEST_CASE_IN_SUITE(LinearOperatorWithCsr, KratosCoreFutureSuite)
 {
     // Set the input and output vectors
@@ -57,7 +42,7 @@ KRATOS_TEST_CASE_IN_SUITE(LinearOperatorWithCsr, KratosCoreFutureSuite)
     CsrMatrix<double> csr_matrix(matrix_map);
 
     // Set up the linear operator from the CSR matrix
-    Future::SparseMatrixLinearOperator<SystemVector<>> linear_operator(csr_matrix);
+    const Future::SparseMatrixLinearOperator<SystemVector<>,CsrMatrix<>> linear_operator(csr_matrix);
 
     // Apply the linear operator to an input vector
     linear_operator.SpMV(input_vector, output_vector);
