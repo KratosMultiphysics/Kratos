@@ -34,7 +34,7 @@
 
 // The strategies to test
 #include <custom_processes/apply_component_table_process.h>
-#include <custom_processes/apply_constant_hydrostatic_pressure_process.hpp>
+#include <custom_processes/apply_constant_hydrostatic_pressure_process.h>
 #include <linear_solvers/skyline_lu_factorization_solver.h>
 
 #include <solving_strategies/convergencecriterias/mixed_generic_criteria.h>
