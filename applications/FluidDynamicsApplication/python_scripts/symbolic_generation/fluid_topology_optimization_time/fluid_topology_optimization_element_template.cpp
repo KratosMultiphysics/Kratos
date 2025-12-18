@@ -1146,7 +1146,7 @@ void FluidTopologyOptimizationElement<FluidTopologyOptimizationElementData<3,4,t
     const array_1d<double,4>& p = rData.Pressure;
     // const array_1d<double,4>& pn = rData.Pressure_OldStep1;
     // const array_1d<double,4>& pnn = rData.Pressure_OldStep2;
-    const array_1d<double,4>& stress = rData.ShearStress;
+    const array_1d<double,6>& stress = rData.ShearStress;
 
     // Assemble RHS contribution
     const double gauss_weight = rData.Weight;
