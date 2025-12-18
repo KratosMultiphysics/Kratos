@@ -47,7 +47,7 @@
 #include "custom_processes/apply_write_result_scalar_process.h"
 #include "custom_processes/calculate_incremental_motion_process.h"
 #include "custom_processes/calculate_total_motion_process.h"
-#include "custom_processes/deactivate_conditions_on_inactive_elements_process.hpp"
+#include "custom_processes/deactivate_conditions_on_inactive_elements_process.h"
 #include "custom_processes/find_neighbour_elements_of_conditions_process.h"
 #include "custom_processes/find_neighbours_of_interfaces_process.h"
 #include "custom_processes/geo_extrapolate_integration_point_values_to_nodes_process.h"
