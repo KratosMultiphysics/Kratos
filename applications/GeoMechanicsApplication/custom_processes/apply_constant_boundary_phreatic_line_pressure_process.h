@@ -18,8 +18,6 @@
 #include "includes/model_part.h"
 #include "processes/process.h"
 
-#include <algorithm>
-
 namespace Kratos
 {
 

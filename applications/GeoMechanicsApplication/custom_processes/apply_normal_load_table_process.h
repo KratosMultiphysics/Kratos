@@ -23,7 +23,6 @@ namespace Kratos
 {
 
 class ModelPart;
-class Parameters;
 
 class KRATOS_API(GEO_MECHANICS_APPLICATION) ApplyNormalLoadTableProcess : public Process
 {

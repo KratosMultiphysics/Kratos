@@ -11,6 +11,7 @@
 //
 
 #include "apply_constant_boundary_phreatic_surface_pressure_process.h"
+#include "includes/model_part.h"
 #include "utilities/math_utils.h"
 
 namespace Kratos

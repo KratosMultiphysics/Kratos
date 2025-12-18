@@ -12,8 +12,8 @@
 //
 
 #include "apply_constant_hydrostatic_pressure_process.h"
-
 #include "geo_mechanics_application_variables.h"
+#include "includes/model_part.h"
 
 namespace Kratos
 {

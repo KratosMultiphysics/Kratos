@@ -14,6 +14,7 @@
 #include "find_neighbour_elements_of_conditions_process.h"
 #include "custom_utilities/neighbouring_element_finder.hpp"
 #include "geometries/geometry.h"
+#include "includes/model_part.h"
 
 #include <algorithm>
 #include <iterator>

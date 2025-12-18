@@ -16,8 +16,6 @@
 #include "includes/kratos_parameters.h"
 #include "processes/process.h"
 
-#include "geo_mechanics_application_variables.h"
-
 namespace Kratos
 {
 class ModelPart;

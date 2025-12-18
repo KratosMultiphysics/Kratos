@@ -10,7 +10,7 @@
 //  Main authors:    Jonathan Nuttall
 //
 #include "set_multiple_moving_loads.h"
-#include "includes/variables.h"
+#include "includes/model_part.h"
 
 namespace Kratos
 {

@@ -19,7 +19,6 @@ namespace Kratos
 {
 
 class ModelPart;
-class Parameters;
 
 ///
 /// @brief This process applies an initial uniform stress field to all elements in a model part.

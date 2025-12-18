@@ -13,11 +13,11 @@
 
 #pragma once
 
-#include "includes/model_part.h"
 #include "processes/process.h"
 
 namespace Kratos
 {
+class ModelPart;
 
 class KRATOS_API(GEO_MECHANICS_APPLICATION) FindNeighbourElementsOfConditionsProcess : public Process
 {

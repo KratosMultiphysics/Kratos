@@ -18,7 +18,6 @@ namespace Kratos
 {
 
 class ModelPart;
-class Parameters;
 
 class KRATOS_API(GEO_MECHANICS_APPLICATION) ApplyVectorConstraintTableProcess : public Process
 {

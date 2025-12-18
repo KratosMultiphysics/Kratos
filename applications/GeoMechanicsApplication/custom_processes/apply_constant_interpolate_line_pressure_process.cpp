@@ -12,6 +12,8 @@
 
 #include "apply_constant_interpolate_line_pressure_process.h"
 #include "geo_mechanics_application_variables.h"
+#include "includes/model_part.h"
+
 #include <algorithm>
 
 namespace Kratos

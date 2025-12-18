@@ -18,6 +18,7 @@
 #include "custom_utilities/check_utilities.h"
 #include "custom_utilities/constitutive_law_utilities.h"
 #include "custom_utilities/process_utilities.h"
+#include "geo_mechanics_application_variables.h"
 #include "includes/model_part.h"
 #include "utilities/math_utils.h"
 

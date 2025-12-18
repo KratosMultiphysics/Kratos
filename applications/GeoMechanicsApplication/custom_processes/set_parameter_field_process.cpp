@@ -18,10 +18,8 @@
 #include "set_parameter_field_process.hpp"
 
 #include <utilities/function_parser_utility.h>
-#include <utilities/mortar_utilities.h>
 
 #include "geo_mechanics_application_variables.h"
-#include "utilities/interval_utility.h"
 
 namespace Kratos
 {
