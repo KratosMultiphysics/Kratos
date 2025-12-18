@@ -60,6 +60,20 @@
         }
     },
     "processes"       : {
+        "json_output": [
+            {
+                "python_module": "json_output_process",
+                "kratos_module": "KratosMultiphysics",
+                "process_name": "JsonOutputProcess",
+                "Parameters": {
+                    "model_part_name": "PorousDomain.InterfaceElementsAndNodes",
+                    "output_file_name": "4_First_excavation_interface_output.json",
+                    "output_variables"             : ["GEO_EFFECTIVE_TRACTION_VECTOR"],
+                    "gauss_points_output_variables": [],
+                    "time_frequency": 0.9999999999
+                }
+            }
+        ],
         "constraints_process_list": [
             {
                 "python_module": "apply_vector_constraint_table_process",
@@ -67,8 +81,10 @@
                 "process_name" : "ApplyVectorConstraintTableProcess",
                 "Parameters"   : {
                     "model_part_name_list": [
-                        "PorousDomain.Left_Side", "PorousDomain.Right_Side_Of_Clay_Upper_Right",
-                        "PorousDomain.Right_Side_Of_Clay_Middle_Right", "PorousDomain.Right_Side_Of_Clay_Lower_Right",
+                        "PorousDomain.Left_Side",
+                        "PorousDomain.Right_Side_Of_Clay_Upper_Right",
+                        "PorousDomain.Right_Side_Of_Clay_Middle_Right",
+                        "PorousDomain.Right_Side_Of_Clay_Lower_Right",
                         "PorousDomain.Right_Side_Of_Sand_Right"
                     ],
                     "variable_name"       : "DISPLACEMENT",
@@ -180,6 +196,21 @@
                         "BENDING_MOMENT",
                         "SHEAR_FORCE"
                     ]
+                }
+            },
+            {
+                "python_module": "geo_extrapolate_integration_point_values_to_nodes_process",
+                "kratos_module": "KratosMultiphysics.GeoMechanicsApplication",
+                "process_name": "GeoExtrapolateIntegrationPointValuesToNodesProcess",
+                "Parameters": {
+                    "model_part_name_list": [
+                        "PorousDomain.Wall_Clay_Interface_Left",
+                        "PorousDomain.Wall_Sand_Interface_Left",
+                        "PorousDomain.Wall_Clay_Interface_Middle_Right",
+                        "PorousDomain.Wall_Clay_Interface_Lower_Right",
+                        "PorousDomain.Wall_Sand_Interface_Right"
+                    ],
+                    "list_of_variables": ["GEO_EFFECTIVE_TRACTION_VECTOR"]
                 }
             }
         ]
