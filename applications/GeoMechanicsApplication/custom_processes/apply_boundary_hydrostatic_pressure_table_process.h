@@ -15,7 +15,7 @@
 
 #include "includes/table.h"
 
-#include "custom_processes/apply_constant_boundary_hydrostatic_pressure_process.hpp"
+#include "custom_processes/apply_constant_boundary_hydrostatic_pressure_process.h"
 
 namespace Kratos
 {
