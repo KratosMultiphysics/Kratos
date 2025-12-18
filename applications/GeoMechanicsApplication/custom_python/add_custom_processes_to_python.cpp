@@ -44,7 +44,7 @@
 #include "custom_processes/apply_phreatic_surface_pressure_table_process.h"
 #include "custom_processes/apply_scalar_constraint_table_process.h"
 #include "custom_processes/apply_vector_constraint_table_process.h"
-#include "custom_processes/apply_write_result_scalar_process.hpp"
+#include "custom_processes/apply_write_result_scalar_process.h"
 #include "custom_processes/calculate_incremental_motion_process.h"
 #include "custom_processes/calculate_total_motion_process.h"
 #include "custom_processes/deactivate_conditions_on_inactive_elements_process.hpp"
