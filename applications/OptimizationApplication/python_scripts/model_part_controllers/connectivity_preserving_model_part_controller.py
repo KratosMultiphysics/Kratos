@@ -26,6 +26,7 @@ class ConnectivityPreservingModelPartController(ModelPartController):
 
         for sub_model_part_settings in self.parameters["transformation_settings"].values():
             sub_model_part_settings.ValidateAndAssignDefaults(default_settings["transformation_settings"].values()[0])
+            self.model_part = model.CreateModelPart(sub_model_part_settings["destination_model_part_name"].GetString())
 
     def ImportModelPart(self) -> None:
         connectivity_preserve_modeller = Kratos.ConnectivityPreserveModeler()
