@@ -270,7 +270,7 @@ for dim, nnodes in zip(dim_vector, nnodes_vector):
 
     ## ADJOINT BASE GALERKIN FUNCTIONAL RESIDUAL
     rv_galerkin_adj  = -(grad_sym_voigt_w_adj.transpose()*stress_adj) # diffusion term, OBS--> A:B=A_sym:B_sym + A_asym:B_asym, but (grad(u)+grad(u)^T) is sym, so we can use the grad_sym_voigt(w)
-    rv_galerkin     += -rho*w_gauss.transpose()*accel_adj_gauss
+    rv_galerkin_adj += -rho*w_adj_gauss.transpose()*accel_adj_gauss
     rv_galerkin_adj +=  div_w_adj*p_adj_gauss # pressure term
     rv_galerkin_adj += -alpha*(w_adj_gauss.transpose()*v_adj_gauss) # resistance (alpha) term
     rv_galerkin_adj +=  rho*w_adj_gauss.transpose()*f_adj_gauss # RHS forcing
