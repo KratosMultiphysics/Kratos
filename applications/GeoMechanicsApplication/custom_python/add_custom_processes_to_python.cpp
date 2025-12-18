@@ -32,7 +32,7 @@
 #include "custom_processes/apply_constant_interpolate_line_pressure_process.h"
 #include "custom_processes/apply_constant_phreatic_line_pressure_process.h"
 #include "custom_processes/apply_constant_phreatic_multi_line_pressure_process.h"
-#include "custom_processes/apply_constant_phreatic_surface_pressure_process.hpp"
+#include "custom_processes/apply_constant_phreatic_surface_pressure_process.h"
 #include "custom_processes/apply_excavation_process.h"
 #include "custom_processes/apply_final_stresses_of_previous_stage_to_initial_state.h"
 #include "custom_processes/apply_hydrostatic_pressure_table_process.hpp"
