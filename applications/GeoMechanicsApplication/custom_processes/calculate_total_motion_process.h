@@ -15,6 +15,8 @@
 
 namespace Kratos
 {
+class ModelPart;
+
 /// <summary>
 /// Process to calculate the total motion of nodes in a model part. Where total motion is either
 /// TOTAL_DISPLACEMENT or TOTAL_ROTATION.

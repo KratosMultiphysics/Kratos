@@ -13,7 +13,6 @@
 #include "apply_k0_procedure_process.h"
 
 #include <algorithm>
-#include <iterator>
 #include <ostream>
 
 #include "containers/model.h"

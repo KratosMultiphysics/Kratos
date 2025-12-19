@@ -10,8 +10,6 @@
 //  Main authors:    Aron Noordam
 //
 
-#pragma once
-
 #include "set_absorbing_boundary_parameters_process.h"
 #include "includes/model_part.h"
 

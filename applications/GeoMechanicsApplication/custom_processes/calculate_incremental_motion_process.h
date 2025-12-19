@@ -15,6 +15,7 @@
 
 namespace Kratos
 {
+class ModelPart;
 
 class KRATOS_API(GEO_MECHANICS_APPLICATION) CalculateIncrementalMotionProcess : public Process
 {

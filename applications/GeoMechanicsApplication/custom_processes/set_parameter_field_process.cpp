@@ -16,10 +16,9 @@
 
 // Project includes
 #include "set_parameter_field_process.hpp"
-
-#include <utilities/function_parser_utility.h>
-
 #include "geo_mechanics_application_variables.h"
+#include "includes/model_part.h"
+#include <utilities/function_parser_utility.h>
 
 namespace Kratos
 {

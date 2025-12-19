@@ -11,6 +11,7 @@
 //
 
 #include "apply_constant_boundary_phreatic_line_pressure_process.h"
+#include "includes/model_part.h"
 
 namespace Kratos
 {

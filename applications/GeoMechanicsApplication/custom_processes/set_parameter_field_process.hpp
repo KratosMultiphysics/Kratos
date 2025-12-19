@@ -26,7 +26,6 @@
 
 namespace Kratos
 {
-
 ///@name Kratos Globals
 ///@{
 

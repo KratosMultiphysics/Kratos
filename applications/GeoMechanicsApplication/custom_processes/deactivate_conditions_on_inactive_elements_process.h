@@ -18,6 +18,8 @@
 
 namespace Kratos
 {
+class ModelPart;
+
 ///@name Type Definitions
 ///@{
 

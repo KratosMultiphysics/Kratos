@@ -12,6 +12,7 @@
 
 #include "custom_processes/deactivate_conditions_on_inactive_elements_process.h"
 #include "includes/kratos_flags.h"
+#include "includes/model_part.h"
 #include "utilities/parallel_utilities.h"
 
 namespace Kratos
