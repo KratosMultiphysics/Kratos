@@ -63,7 +63,6 @@
             "scaling"     : true
         }, 
         "problem_domain_sub_model_part_list": ["soils","Cable-auto-1"],
-        "processes_sub_model_part_list":      ["Solid_Displacement-auto-1","Point_Load-auto-1","Cable-auto-1"],
         "body_domain_sub_model_part_list":    ["soils","Cable-auto-1"]
     },
     "output_processes": {

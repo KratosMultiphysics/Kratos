@@ -57,7 +57,6 @@
             "max_iteration"                : 1000
         },
         "problem_domain_sub_model_part_list" : ["soil_block"],
-        "processes_sub_model_part_list"      : ["load","base_fixed","side_roller_xy","side_roller_yz","zero_water_pressure"],
         "body_domain_sub_model_part_list"    : ["soil_block"]
     },
     "processes": {
