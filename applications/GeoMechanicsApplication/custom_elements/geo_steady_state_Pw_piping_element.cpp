@@ -14,7 +14,7 @@
 
 namespace Kratos
 {
-    using namespace std::string_literals;
+using namespace std::string_literals;
 
 template <unsigned int TDim, unsigned int TNumNodes>
 GeoSteadyStatePwPipingElement<TDim, TNumNodes>::GeoSteadyStatePwPipingElement(IndexType NewId)
