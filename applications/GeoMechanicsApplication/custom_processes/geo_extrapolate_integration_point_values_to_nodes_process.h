@@ -14,6 +14,7 @@
 
 #pragma once
 
+#include "custom_utilities/node_utilities.h"
 #include "geometries/geometry.h"
 #include "includes/element.h"
 #include "includes/kratos_parameters.h"
@@ -100,8 +101,11 @@ private:
         std::vector<T> values_on_integration_points(NumberOfIntegrationPoints);
         rElement.CalculateOnIntegrationPoints(rVariable, values_on_integration_points, rProcessInfo);
 
-        auto index = std::size_t{0};
+        const auto global_to_local_mapping =
+            NodeUtilities::CreateGlobalToLocalNodeIndexMap(rElement.GetGeometry().Points());
         for (auto& r_node : rElement.GetGeometry()) {
+            const auto index = global_to_local_mapping.at(r_node.Id());
+
             // We first initialize the source, which we need to do by getting the first value,
             // because we don't know the size of the dynamically allocated Vector/Matrix
             T source = rExtrapolationMatrix(index, 0) * values_on_integration_points[0];
@@ -111,7 +115,6 @@ private:
             source /= mNodeIdToConnectedElementIds.at(r_node.Id()).size();
 
             rAtomicAddOperation(r_node.FastGetSolutionStepValue(rVariable), source);
-            ++index;
         }
     }
 
