@@ -46,7 +46,7 @@ namespace Kratos {
 
         BaseClassType::Initialize(element1, element2, pProps);
 
-        mDebugPrintingOption = false;
+        //mDebugPrintingOption = false;
         if (!mpProperties->Has(DEBUG_PRINTING_OPTION)) {
             mDebugPrintingOption = false;
         } else {

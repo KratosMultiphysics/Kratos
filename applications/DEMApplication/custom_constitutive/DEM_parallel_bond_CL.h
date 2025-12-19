@@ -210,7 +210,7 @@ namespace Kratos{
         //double mBondedLocalContactTangentTorque[3] = {0.0};
         double mKn;
         double mKt;
-        bool mDebugPrintingOption = false;
+        bool mDebugPrintingOption;
         double mBondSigmaMax = 0.0;
         double mBondTauZero = 0.0;
         double mCalculation_area = 0.0;

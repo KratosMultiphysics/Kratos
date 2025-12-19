@@ -121,7 +121,7 @@ namespace Kratos {
         double mBondedViscoDampingLocalContactForce[3] = {0.0};
         double mBondedScalingFactor = 0.0;
         double mUnbondedScalingFactor = 0.0;
-        bool mDebugPrintingOption = false;
+        bool mDebugPrintingOption;
         double mDamageEnergyCoeff = 0.0;
         double mUnbondedEquivViscoDampCoeffTangential = 0.0;
         double mUnbondedEquivViscoDampCoeffNormal = 0.0;

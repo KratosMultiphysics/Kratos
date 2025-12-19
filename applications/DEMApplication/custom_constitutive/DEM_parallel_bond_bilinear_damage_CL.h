@@ -86,9 +86,9 @@ namespace Kratos{
         double mDamageMoment = 0.0;
         const double mDamageThresholdTolerance = 0.9999;
         double mDamageReal = 0.0;
-        bool mDebugPrintingOption = false;
+        //bool mDebugPrintingOption;
         double mInitialIndentationForBondedPart = 0.0;
-        double mAccumulatedBondedTangentialLocalDisplacement[2] = {0.0};
+        //double mAccumulatedBondedTangentialLocalDisplacement[2] = {0.0};
     
     protected:
 

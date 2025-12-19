@@ -33,7 +33,7 @@ void DEM_parallel_bond::Initialize(SphericContinuumParticle* element1,
                                    SphericContinuumParticle* element2,
                                    Properties::Pointer pProps) {
     mpProperties = pProps;
-    mDebugPrintingOption = false;
+    //mDebugPrintingOption = false;
     if (!mpProperties->Has(DEBUG_PRINTING_OPTION)) {
         mDebugPrintingOption = false;
     } else {
