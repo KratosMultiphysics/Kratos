@@ -676,6 +676,12 @@ protected:
             Vector& rVolumeForce,
             const double& rIntegrationWeight);
 
+    virtual void CalculateAndAddInternalForces(VectorType& rRightHandSideVector,
+            GeneralVariables & rVariables,
+            Vector& rVolumeForce,
+            const double& rIntegrationWeight,
+            const ProcessInfo& rCurrentProcessInfo);
+
     /**
      * Set Variables of the Element to the Parameters of the Constitutive Law
      */

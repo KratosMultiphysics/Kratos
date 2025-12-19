@@ -547,8 +547,7 @@ int  MPMUpdatedLagrangianVPVMS::Check( const ProcessInfo& rCurrentProcessInfo ) 
     const unsigned int dimension = r_geometry.WorkingSpaceDimension();
 
     // Verify that the dofs exist
-    for ( IndexType i = 0; i < number_of_nodes; i++ ) {
-        const NodeType &rnode = this->GetGeometry()[i];
+    for (const auto& rnode : r_geometry) {
         KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(VELOCITY,rnode)
 
         KRATOS_CHECK_DOF_IN_NODE(VELOCITY_X, rnode)
@@ -557,6 +556,7 @@ int  MPMUpdatedLagrangianVPVMS::Check( const ProcessInfo& rCurrentProcessInfo ) 
     }
 
     KRATOS_CATCH( "" );
+    return 0;
 }
 
 //************************************************************************************
@@ -1115,8 +1115,39 @@ void MPMUpdatedLagrangianVPVMS::CalculateAndAddRHS(
     //if (rCurrentProcessInfo.GetValue(STABILIZATION_TYPE)==1)
     // Operation performed: rRightHandSideVector -= Stabilized Pressure Forces
     CalculateAndAddStabilizedPressure( rRightHandSideVector, rVariables, rVolumeForce, rIntegrationWeight);
+
+    // Calculate and add internal forces
+    CalculateAndAddInternalForces( rRightHandSideVector, rVariables, rVolumeForce, rIntegrationWeight, rCurrentProcessInfo);
 }
 
+void MPMUpdatedLagrangianVPVMS::CalculateAndAddInternalForces(VectorType& rRightHandSideVector,
+        GeneralVariables& rVariables,
+        Vector& rVolumeForce,
+        const double& rIntegrationWeight,
+        const ProcessInfo& rCurrentProcessInfo)
+{
+    KRATOS_TRY
+
+    const unsigned int number_of_nodes = GetGeometry().size();
+    const unsigned int dimension = GetGeometry().WorkingSpaceDimension();
+
+    const unsigned int size = number_of_nodes * dimension + number_of_nodes;
+    Matrix tmpLeftHandSide = ZeroMatrix(size,size);
+
+    this->CalculateAndAddLHS(
+            tmpLeftHandSide,
+            rVariables,
+            mMP.volume,
+            rCurrentProcessInfo);
+
+    Vector tmpValuesVector;
+
+    this->GetValuesVector(tmpValuesVector, 0);
+
+    noalias(rRightHandSideVector) -= prod(tmpLeftHandSide,tmpValuesVector);
+
+    KRATOS_CATCH( "" )
+}
 //************************************************************************************
 //************************************************************************************
 
