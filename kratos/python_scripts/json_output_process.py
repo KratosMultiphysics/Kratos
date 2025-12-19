@@ -285,7 +285,7 @@ class JsonOutputProcess(KratosMultiphysics.Process):
                                             data["RESULTANT"][variable_name + "_Z"][-1] += value[2]
                                 else:
                                     if not self.resultant_solution:
-                                        list = self.__kratos_vector_to__python_list(value)
+                                        list = self.__kratos_vector_to_python_list(value)
                                         data[node_identifier][variable_name ].append(list)
                                     else:
                                         aux = 0.0
@@ -297,12 +297,12 @@ class JsonOutputProcess(KratosMultiphysics.Process):
                                             data["RESULTANT"][variable_name ][-1] += aux
                             elif variable_type == "Vector":
                                 if not self.resultant_solution:
-                                    data[node_identifier][variable_name].append(self.__kratos_vector_to__python_list(value))
+                                    data[node_identifier][variable_name].append(self.__kratos_vector_to_python_list(value))
                                 else:
                                     if count == 0:
-                                        data["RESULTANT"][variable_name].append(self.__kratos_vector_to__python_list(value))
+                                        data["RESULTANT"][variable_name].append(self.__kratos_vector_to_python_list(value))
                                     else:
-                                        data["RESULTANT"][variable_name][-1] += self.__kratos_vector_to__python_list(value)
+                                        data["RESULTANT"][variable_name][-1] += self.__kratos_vector_to_python_list(value)
 
                             # TODO: Add pending classes
                         count += 1
@@ -352,7 +352,7 @@ class JsonOutputProcess(KratosMultiphysics.Process):
                                                 data["RESULTANT"][variable_name + "_Z"][str(gp)][-1] += value[gp][2]
                                 else:
                                     if not self.resultant_solution:
-                                        list = self.__kratos_vector_to__python_list(value)
+                                        list = self.__kratos_vector_to_python_list(value)
                                         for gp in range(gauss_point_number):
                                             data["ELEMENT_" + str(elem.Id)][variable_name][str(gp)].append(list)
                                     else:
@@ -371,12 +371,12 @@ class JsonOutputProcess(KratosMultiphysics.Process):
                             elif variable_type == "Vector":
                                 if not self.resultant_solution:
                                     for gp in range(gauss_point_number):
-                                        list = self.__kratos_vector_to__python_list(value[gp])
+                                        list = self.__kratos_vector_to_python_list(value[gp])
                                         data["ELEMENT_" + str(elem.Id)][variable_name][str(gp)].append(list)
                                 else:
                                     if count == 0:
                                         for gp in range(gauss_point_number):
-                                            list = self.__kratos_vector_to__python_list(value[gp])
+                                            list = self.__kratos_vector_to_python_list(value[gp])
                                             data["RESULTANT"][variable_name][str(gp)][-1] += list
 
                                 # TODO: Add pending classes
@@ -384,7 +384,7 @@ class JsonOutputProcess(KratosMultiphysics.Process):
 
             write_external_json(self.output_file_name, data)
 
-    def __kratos_vector_to__python_list(self, value):
+    def __kratos_vector_to_python_list(self, value):
         """ This method is executed in order to finalize the current computation
 
         Keyword arguments:
