@@ -223,14 +223,14 @@ public:
         auto p_eff_dx = r_linear_system_container.pEffectiveDx;
         auto p_eff_rhs = r_linear_system_container.pEffectiveRhs;
         auto p_eff_lhs = r_linear_system_container.pEffectiveLhs;
-        auto p_lhs_lin_op = Kratos::make_shared<SparseMatrixLinearOperator<TVectorType, TMatrixType>>(*p_lhs);
+        auto p_eff_lhs_lin_op = Kratos::make_shared<SparseMatrixLinearOperator<TVectorType, TMatrixType>>(*p_eff_lhs);
 
         // Solve the system
         const auto& rp_linear_solver = this->pGetLinearSolver();
         if (rp_linear_solver->AdditionalPhysicalDataIsNeeded()) {
-            rp_linear_solver->ProvideAdditionalData(p_lhs_lin_op, *p_eff_dx, *p_eff_rhs, r_eff_dof_set, this->GetModelPart());
+            rp_linear_solver->ProvideAdditionalData(p_eff_lhs_lin_op, *p_eff_dx, *p_eff_rhs, r_eff_dof_set, this->GetModelPart());
         }
-        rp_linear_solver->Solve(p_lhs_lin_op, *p_eff_dx, *p_eff_rhs);
+        rp_linear_solver->Solve(p_eff_lhs_lin_op, *p_eff_dx, *p_eff_rhs);
 
         // Debugging info
         this->EchoInfo();
