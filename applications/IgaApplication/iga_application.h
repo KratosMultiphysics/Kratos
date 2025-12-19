@@ -21,6 +21,7 @@
 #include "custom_elements/truss_embedded_edge_element.h"
 #include "custom_elements/iga_membrane_element.h"
 #include "custom_elements/shell_3p_element.h"
+#include "custom_elements/shell_3p_mixed_element.h"
 #include "custom_elements/shell_5p_hierarchic_element.h"
 #include "custom_elements/shell_5p_element.h"
 #include "custom_elements/laplacian_element.h"
@@ -133,6 +134,7 @@ private:
     const TrussEmbeddedEdgeElement mTrussEmbeddedEdgeElement;
     const IgaMembraneElement mIgaMembraneElement;
     const Shell3pElement mShell3pElement;
+    const Shell3pMixedElement mShell3pMixedElement;
     const Shell5pHierarchicElement mShell5pHierarchicElement;
     const Shell5pElement mShell5pElement;
     const LaplacianElement mLaplacianElement;

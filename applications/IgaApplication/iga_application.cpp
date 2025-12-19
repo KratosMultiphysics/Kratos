@@ -12,6 +12,7 @@
 #include "iga_application.h"
 #include "iga_application_variables.h"
 
+
 namespace Kratos {
 
 KratosIgaApplication::KratosIgaApplication()
@@ -23,6 +24,8 @@ KratosIgaApplication::KratosIgaApplication()
     , mIgaMembraneElement(0, Element::GeometryType::Pointer(
         new Geometry<Node>(Element::GeometryType::PointsArrayType(1))))
     , mShell3pElement(0, Element::GeometryType::Pointer(
+        new Geometry<Node>(Element::GeometryType::PointsArrayType(1))))
+    , mShell3pMixedElement(0, Element::GeometryType::Pointer(
         new Geometry<Node>(Element::GeometryType::PointsArrayType(1))))
     , mShell5pHierarchicElement(0, Element::GeometryType::Pointer(
         new Geometry<Node>(Element::GeometryType::PointsArrayType(1))))
@@ -86,6 +89,7 @@ KRATOS_INFO("") << "    KRATOS  _____ _____\n"
     KRATOS_REGISTER_ELEMENT("TrussEmbeddedEdgeElement", mTrussEmbeddedEdgeElement)
     KRATOS_REGISTER_ELEMENT("IgaMembraneElement", mIgaMembraneElement)
     KRATOS_REGISTER_ELEMENT("Shell3pElement", mShell3pElement)
+    KRATOS_REGISTER_ELEMENT("Shell3pMixedElement", mShell3pMixedElement)
     KRATOS_REGISTER_ELEMENT("Shell5pHierarchicElement", mShell5pHierarchicElement)
     KRATOS_REGISTER_ELEMENT("Shell5pElement", mShell5pElement)
     KRATOS_REGISTER_ELEMENT("LaplacianElement", mLaplacianElement)
@@ -196,6 +200,14 @@ KRATOS_INFO("") << "    KRATOS  _____ _____\n"
     KRATOS_REGISTER_VARIABLE(KNOT_VECTOR_V)
     KRATOS_REGISTER_VARIABLE(KNOT_SPAN_SIZES)
     KRATOS_REGISTER_VARIABLE(PARAMETER_SPACE_CORNERS)
+
+    // Mixed shell stress DOFs
+    KRATOS_REGISTER_VARIABLE(MEMBRANE_STRESS_X)
+    KRATOS_REGISTER_VARIABLE(MEMBRANE_STRESS_Y)
+    KRATOS_REGISTER_VARIABLE(MEMBRANE_STRESS_Z)
+    KRATOS_REGISTER_VARIABLE(BENDING_STRESS_X)
+    KRATOS_REGISTER_VARIABLE(BENDING_STRESS_Y)
+    KRATOS_REGISTER_VARIABLE(BENDING_STRESS_Z)
 }
 
 }  // namespace Kratos
