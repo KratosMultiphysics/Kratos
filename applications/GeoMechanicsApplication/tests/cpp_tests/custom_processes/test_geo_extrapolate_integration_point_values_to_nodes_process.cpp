@@ -102,36 +102,6 @@ ModelPart& CreateModelPartWithTwoStubElements(Model& model)
     return model_part;
 }
 
-KRATOS_TEST_CASE_IN_SUITE(TestExtrapolationProcess_InitializesNodalArea, KratosGeoMechanicsFastSuiteWithoutKernel)
-{
-    //   This test uses the following two-element system.
-    //   4------3------6
-    //   |  El1 |  El2 |
-    //   1------2------5
-    //
-    Model model;
-    auto& model_part = CreateModelPartWithTwoStubElements(model);
-
-    const auto parameters = Parameters(R"(
-    {
-        "model_part_name"            : "MainModelPart",
-        "echo_level"                 : 0,
-        "list_of_variables"          : ["HYDRAULIC_HEAD"]
-    })");
-
-    GeoExtrapolateIntegrationPointValuesToNodesProcess process(model, parameters);
-
-    process.ExecuteBeforeSolutionLoop();
-
-    std::vector<double> expected_values = {1.0, 2.0, 2.0, 1.0, 1.0, 1.0};
-    std::vector<double> actual_values;
-    actual_values.reserve(model_part.Nodes().size());
-    std::transform(model_part.Nodes().begin(), model_part.Nodes().end(), std::back_inserter(actual_values),
-                   [](const auto& node) { return node.GetValue(NODAL_AREA); });
-
-    KRATOS_EXPECT_VECTOR_NEAR(actual_values, expected_values, 1e-6)
-}
-
 KRATOS_TEST_CASE_IN_SUITE(TestExtrapolationProcess_ExtrapolatesCorrectlyForConstantField,
                           KratosGeoMechanicsFastSuiteWithoutKernel)
 {
@@ -487,6 +457,7 @@ KRATOS_TEST_CASE_IN_SUITE(TestExtrapolationProcess_ExtrapolatesCorrectlyWhenMode
     Model model;
     auto& r_bottom_model_part = model.CreateModelPart("Bottom");
     r_bottom_model_part.AddNodalSolutionStepVariable(HYDRAULIC_HEAD);
+    r_bottom_model_part.AddNodalSolutionStepVariable(HYDRAULIC_DISCHARGE);
     auto node_1 = r_bottom_model_part.CreateNewNode(1, 0.0, 0.0, 0.0);
     auto node_2 = r_bottom_model_part.CreateNewNode(2, 1.0, 0.0, 0.0);
     auto node_3 = r_bottom_model_part.CreateNewNode(3, 1.0, 1.0, 0.0);
@@ -504,10 +475,11 @@ KRATOS_TEST_CASE_IN_SUITE(TestExtrapolationProcess_ExtrapolatesCorrectlyWhenMode
 
     auto& r_top_model_part = model.CreateModelPart("Top");
     r_top_model_part.AddNodalSolutionStepVariable(HYDRAULIC_HEAD);
+    r_top_model_part.AddNodalSolutionStepVariable(HYDRAULIC_DISCHARGE);
     r_top_model_part.AddNode(node_3);
     r_top_model_part.AddNode(node_6);
-    auto node_7     = r_bottom_model_part.CreateNewNode(7, 1.0, 2.0, 0.0);
-    auto node_8     = r_bottom_model_part.CreateNewNode(8, 2.0, 2.0, 0.0);
+    auto node_7     = r_top_model_part.CreateNewNode(7, 1.0, 2.0, 0.0);
+    auto node_8     = r_top_model_part.CreateNewNode(8, 2.0, 2.0, 0.0);
     auto geometry_3 = std::make_shared<Quadrilateral2D4<Node>>(node_3, node_6, node_8, node_7);
     auto element_3  = Kratos::make_intrusive<StubElementForNodalExtrapolationTest>(3, geometry_3);
     r_top_model_part.AddElement(element_3);
@@ -532,7 +504,7 @@ KRATOS_TEST_CASE_IN_SUITE(TestExtrapolationProcess_ExtrapolatesCorrectlyWhenMode
     {
         "model_part_name"       : "Top",
         "echo_level"                 : 0,
-        "list_of_variables"          : ["HYDRAULIC_HEAD"]
+        "list_of_variables"          : ["HYDRAULIC_DISCHARGE"]
     })");
     GeoExtrapolateIntegrationPointValuesToNodesProcess process_2(model, parameters_2);
     process_2.ExecuteBeforeSolutionLoop();
@@ -540,13 +512,15 @@ KRATOS_TEST_CASE_IN_SUITE(TestExtrapolationProcess_ExtrapolatesCorrectlyWhenMode
     process_1.ExecuteFinalizeSolutionStep();
 
     for (auto& node : r_bottom_model_part.Nodes()) {
-        KRATOS_EXPECT_NEAR(node.FastGetSolutionStepValue(HYDRAULIC_HEAD), 1.0, 1e-6);
+        EXPECT_NEAR(node.FastGetSolutionStepValue(HYDRAULIC_HEAD), 1.0, 1e-6)
+            << "Hydraulic head at node " << node.Id();
     }
 
     process_2.ExecuteFinalizeSolutionStep();
 
     for (auto& node : r_top_model_part.Nodes()) {
-        KRATOS_EXPECT_NEAR(node.FastGetSolutionStepValue(HYDRAULIC_HEAD), 1.0, 1e-6);
+        EXPECT_NEAR(node.FastGetSolutionStepValue(HYDRAULIC_DISCHARGE), 1.0, 1e-6)
+            << "Hydraulic discharge at node " << node.Id();
     }
 }
 

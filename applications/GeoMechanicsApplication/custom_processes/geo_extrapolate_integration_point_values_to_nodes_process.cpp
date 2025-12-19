@@ -66,19 +66,14 @@ void GeoExtrapolateIntegrationPointValuesToNodesProcess::ExecuteBeforeSolutionLo
     InitializeVectorAndMatrixZeros();
 }
 
-void GeoExtrapolateIntegrationPointValuesToNodesProcess::InitializeAverageVariablesForElements() const
+void GeoExtrapolateIntegrationPointValuesToNodesProcess::InitializeAverageVariablesForElements()
 {
     for (const auto& r_model_part : mrModelParts) {
-        VariableUtils().SetNonHistoricalVariable(mrAverageVariable, 0.0, r_model_part.get().Nodes());
-
-        block_for_each(r_model_part.get().Elements(), [this](Element& rElement) {
-            if (rElement.IsActive()) {
-                for (auto& node : rElement.GetGeometry()) {
-                    auto& node_var_to_update = node.GetValue(mrAverageVariable);
-                    AtomicAdd(node_var_to_update, 1.0);
-                }
+        for (const auto& r_element : r_model_part.get().Elements()) {
+            for (const auto& r_node : r_element.GetGeometry()) {
+                mNodeIdToConnectedElementIds[r_node.Id()].insert(r_element.Id());
             }
-        });
+        }
     }
 }
 
@@ -209,14 +204,6 @@ void GeoExtrapolateIntegrationPointValuesToNodesProcess::InitializeVariables()
                 rNode.FastGetSolutionStepValue(*p_var) = mZeroValuesOfMatrixVariables[p_var];
             }
         });
-    }
-}
-
-void GeoExtrapolateIntegrationPointValuesToNodesProcess::ExecuteFinalize()
-{
-    for (const auto& r_model_part : mrModelParts) {
-        block_for_each(r_model_part.get().Nodes(),
-                       [this](Node& rNode) { rNode.GetData().Erase(mrAverageVariable); });
     }
 }
 

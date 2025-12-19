@@ -52,7 +52,6 @@ public:
 
     void                           ExecuteBeforeSolutionLoop() override;
     void                           ExecuteFinalizeSolutionStep() override;
-    void                           ExecuteFinalize() override;
     [[nodiscard]] const Parameters GetDefaultParameters() const override;
     [[nodiscard]] std::string      Info() const override;
     void                           PrintInfo(std::ostream& rOStream) const override;
@@ -63,10 +62,10 @@ private:
     std::vector<const Variable<array_1d<double, 3>>*> mArrayVariables;
     std::vector<const Variable<Vector>*>              mVectorVariables;
     std::vector<const Variable<Matrix>*>              mMatrixVariables;
-    const Variable<double>&                           mrAverageVariable       = NODAL_AREA;
     std::map<SizeType, Matrix>                        mExtrapolationMatrixMap = {};
     std::map<const Variable<Vector>*, Vector>         mZeroValuesOfVectorVariables;
     std::map<const Variable<Matrix>*, Matrix>         mZeroValuesOfMatrixVariables;
+    std::map<std::size_t, std::set<std::size_t>>      mNodeIdToConnectedElementIds;
 
     void FillVariableLists(const Parameters& rParameters);
     void InitializeVectorAndMatrixZeros();
@@ -77,7 +76,7 @@ private:
                                           SizeType           NumberOfIntegrationPoints,
                                           const ProcessInfo& rProcessInfo);
     void InitializeVariables();
-    void InitializeAverageVariablesForElements() const;
+    void InitializeAverageVariablesForElements();
 
     template <class T>
     bool TryAddVariableToList(const std::string& rVariableName, std::vector<const Variable<T>*>& rList) const
@@ -98,20 +97,21 @@ private:
                                             const ProcessInfo& rProcessInfo,
                                             const U&           rAtomicAddOperation) const
     {
-        auto&          r_geometry = rElement.GetGeometry();
         std::vector<T> values_on_integration_points(NumberOfIntegrationPoints);
         rElement.CalculateOnIntegrationPoints(rVariable, values_on_integration_points, rProcessInfo);
 
-        for (IndexType iNode = 0; iNode < r_geometry.PointsNumber(); ++iNode) {
+        auto index = std::size_t{0};
+        for (auto& r_node : rElement.GetGeometry()) {
             // We first initialize the source, which we need to do by getting the first value,
             // because we don't know the size of the dynamically allocated Vector/Matrix
-            T source = rExtrapolationMatrix(iNode, 0) * values_on_integration_points[0];
+            T source = rExtrapolationMatrix(index, 0) * values_on_integration_points[0];
             for (IndexType i_gauss_point = 1; i_gauss_point < values_on_integration_points.size(); ++i_gauss_point) {
-                source += rExtrapolationMatrix(iNode, i_gauss_point) * values_on_integration_points[i_gauss_point];
+                source += rExtrapolationMatrix(index, i_gauss_point) * values_on_integration_points[i_gauss_point];
             }
-            source /= r_geometry[iNode].GetValue(mrAverageVariable);
+            source /= mNodeIdToConnectedElementIds.at(r_node.Id()).size();
 
-            rAtomicAddOperation(r_geometry[iNode].FastGetSolutionStepValue(rVariable), source);
+            rAtomicAddOperation(r_node.FastGetSolutionStepValue(rVariable), source);
+            ++index;
         }
     }
 
