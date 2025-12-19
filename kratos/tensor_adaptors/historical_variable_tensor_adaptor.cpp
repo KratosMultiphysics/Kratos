@@ -61,10 +61,11 @@ HistoricalVariableTensorAdaptor::HistoricalVariableTensorAdaptor(
     : mpVariable(pVariable),
       mStepIndex(StepIndex)
 {
+    this->mpContainer = pContainer;
+
     std::visit([this, pContainer, StepIndex](auto pVariable) {
         HistoricalVariableTensorAdaptorHelperUtils::Check(*pContainer, *pVariable, StepIndex);
-        this->mpStorage = Kratos::make_intrusive<Storage>(
-            pContainer,
+        this->mpStorage = Kratos::make_shared<Storage>(
             TensorAdaptorUtils::GetTensorShape(
                 *pContainer, *pVariable, [pVariable, StepIndex](auto& rValue, const Node& rNode) {
                     rValue = rNode.FastGetSolutionStepValue(*pVariable, StepIndex);
@@ -80,9 +81,11 @@ HistoricalVariableTensorAdaptor::HistoricalVariableTensorAdaptor(
     : mpVariable(pVariable),
       mStepIndex(StepIndex)
 {
+    this->mpContainer = pContainer;
+
     std::visit([&rDataShape, this, pContainer](auto pVariable) {
-        this->mpStorage = Kratos::make_intrusive<Storage>(
-                                pContainer, TensorAdaptorUtils::GetTensorShape(
+        this->mpStorage = Kratos::make_shared<Storage>(
+                                TensorAdaptorUtils::GetTensorShape(
                                 *pContainer, *pVariable, rDataShape.data(),
                                 rDataShape.data() + rDataShape.size()));
     }, mpVariable);
@@ -99,14 +102,14 @@ HistoricalVariableTensorAdaptor::HistoricalVariableTensorAdaptor(
 {
     KRATOS_TRY
 
-    KRATOS_ERROR_IF_NOT(std::holds_alternative<ModelPart::NodesContainerType::Pointer>(this->mpStorage->GetContainer()))
+    KRATOS_ERROR_IF_NOT(std::holds_alternative<ModelPart::NodesContainerType::Pointer>(this->GetContainer()))
         << "HistoricalVariableTensorAdaptor can only be used with tensor data having nodal containers "
         << "[ tensor adaptor = " << rOther << " ].\n";
 
     // now check whether the given storage is compatible with the variable.
     std::visit([this, &rOther](auto pVariable) {
         using data_type = typename BareType<decltype(*pVariable)>::Type;
-        const auto& r_data_shape = this->mpStorage->DataShape();
+        const auto& r_data_shape = this->DataShape();
         KRATOS_ERROR_IF_NOT(DataTypeTraits<data_type>::IsValidShape(r_data_shape.data().begin(), r_data_shape.data().begin() + r_data_shape.size()))
             << "The data storage within the tensor data is not compatible with the " << pVariable->Name()
             << " [ origin data shape = " << rOther.DataShape() << ", tensor adaptor = " << *this << " ].\n";
@@ -149,7 +152,7 @@ void HistoricalVariableTensorAdaptor::CollectData()
 
         KRATOS_ERROR_IF_NOT(r_tensor_shape[0] == p_container->size())
             << "Underlying container of the tensor data has changed size [ tensor data = "
-            << this->mpStorage->Info() << ", container size = " << p_container->size() << " ].\n";
+            << this->Info() << ", container size = " << p_container->size() << " ].\n";
 
         ContainerIOUtils::CopyToContiguousArray<data_type>(
             *p_container, this->ViewData(), r_tensor_shape.data().begin(),
@@ -171,7 +174,7 @@ void HistoricalVariableTensorAdaptor::StoreData()
 
         KRATOS_ERROR_IF_NOT(r_tensor_shape[0] == p_container->size())
             << "Underlying container of the tensor data has changed size [ tensor data = "
-            << this->mpStorage->Info() << ", container size = " << p_container->size() << " ].\n";
+            << this->Info() << ", container size = " << p_container->size() << " ].\n";
 
         if constexpr(DataTypeTraits<data_type>::IsDynamic) {
             const auto& zero = TensorAdaptorUtils::GetZeroValue(*pVariable, this->DataShape());
@@ -211,7 +214,7 @@ std::string HistoricalVariableTensorAdaptor::Info() const
     std::visit([&info](auto pVariable) {
         info << " Variable = " << pVariable->Name();
     }, this->mpVariable);
-    info << ", Step index = " << mStepIndex << ", " << this->mpStorage->Info();
+    info << ", Step index = " << mStepIndex << ", " << BaseType::Info();
     return info.str();
 }
 

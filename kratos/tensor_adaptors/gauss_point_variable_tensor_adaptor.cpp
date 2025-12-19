@@ -33,6 +33,8 @@ GaussPointVariableTensorAdaptor::GaussPointVariableTensorAdaptor(
     : mpVariable(pVariable),
       mpProcessInfo(pProcessInfo)
 {
+    this->mpContainer = pContainer;
+
     using container_type = BareType<decltype(*pContainer)>;
     using entity_type = typename container_type::value_type;
 
@@ -40,8 +42,7 @@ GaussPointVariableTensorAdaptor::GaussPointVariableTensorAdaptor(
         using variable_type = BareType<decltype(*pVariable)>;
         using data_type = typename variable_type::Type;
 
-        this->mpStorage = Kratos::make_intrusive<Storage>(
-            pContainer,
+        this->mpStorage = Kratos::make_shared<Storage>(
             TensorAdaptorUtils::GetTensorShape<std::vector<data_type>>(
                 *pContainer, [pVariable, this](auto& rValues, const auto& rEntity) {
                     const_cast<entity_type&>(rEntity).CalculateOnIntegrationPoints(*pVariable, rValues, *(this->mpProcessInfo));
@@ -69,7 +70,7 @@ GaussPointVariableTensorAdaptor::GaussPointVariableTensorAdaptor(
     // now check whether the given storage is compatible with the variable.
     std::visit([this, &rOther](auto pVariable) {
         using data_type = typename BareType<decltype(*pVariable)>::Type;
-        const auto& r_data_shape = this->mpStorage->DataShape();
+        const auto& r_data_shape = this->DataShape();
         KRATOS_ERROR_IF_NOT(DataTypeTraits<std::vector<data_type>>::IsValidShape(r_data_shape.data().begin(), r_data_shape.data().begin() + r_data_shape.size()))
             << "The data storage within the tensor data is not compatible with " << pVariable->Name()
             << " [ origin data shape = " << rOther.DataShape() << ", tensor adaptor = " << *this << " ].\n";
@@ -93,7 +94,7 @@ void GaussPointVariableTensorAdaptor::CollectData()
 
             KRATOS_ERROR_IF_NOT(tensor_shape[0] == pContainer->size())
                 << "Underlying container of the tensor data has changed size [ tensor data = "
-                << this->mpStorage->Info() << ", container size = " << pContainer->size() << " ].\n";
+                << this->Info() << ", container size = " << pContainer->size() << " ].\n";
 
             ContainerIOUtils::CopyToContiguousArray<std::vector<data_type>>(
                 *pContainer, this->ViewData(), tensor_shape.data().begin(),
@@ -103,7 +104,7 @@ void GaussPointVariableTensorAdaptor::CollectData()
                         *pVariable, rValues, *(this->mpProcessInfo));
                 });
         }
-    }, this->mpStorage->GetContainer(), mpVariable);
+    }, this->GetContainer(), mpVariable);
 }
 
 void GaussPointVariableTensorAdaptor::StoreData()
@@ -118,7 +119,7 @@ std::string GaussPointVariableTensorAdaptor::Info() const
     std::visit([&info](auto pVariable) {
         info << " Variable = " << pVariable->Name();
     }, this->mpVariable);
-    info << ", " << this->mpStorage->Info();
+    info << ", " << BaseType::Info();
     return info.str();
 }
 

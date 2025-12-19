@@ -31,7 +31,8 @@ class KRATOS_API(GEO_MECHANICS_APPLICATION) FixWaterPressuresAbovePhreaticLinePr
 {
 public:
     FixWaterPressuresAbovePhreaticLineProcess(ModelPart& rMainModelPart, const Parameters& rSettings);
-    void ExecuteInitializeSolutionStep() override;
+    void                      ExecuteInitializeSolutionStep() override;
+    [[nodiscard]] std::string Info() const override;
 
 private:
     ModelPart&    mrModelPart;

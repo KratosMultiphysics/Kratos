@@ -47,12 +47,9 @@ public:
 
     explicit GeoExtrapolateIntegrationPointValuesToNodesProcess(Model& rModel,
                                                                 Parameters ThisParameters = Parameters(R"({})"));
-    explicit GeoExtrapolateIntegrationPointValuesToNodesProcess(ModelPart& rMainModelPart,
-                                                                Parameters ThisParameters = Parameters(R"({})"));
 
     ~GeoExtrapolateIntegrationPointValuesToNodesProcess() override;
 
-    void                           Execute() override;
     void                           ExecuteBeforeSolutionLoop() override;
     void                           ExecuteFinalizeSolutionStep() override;
     void                           ExecuteFinalize() override;
@@ -61,14 +58,13 @@ public:
     void                           PrintInfo(std::ostream& rOStream) const override;
 
 private:
-    ModelPart&                                        mrModelPart;
+    std::vector<std::reference_wrapper<ModelPart>>    mrModelParts;
     std::vector<const Variable<double>*>              mDoubleVariables;
     std::vector<const Variable<array_1d<double, 3>>*> mArrayVariables;
     std::vector<const Variable<Vector>*>              mVectorVariables;
     std::vector<const Variable<Matrix>*>              mMatrixVariables;
     const Variable<double>&                           mrAverageVariable       = NODAL_AREA;
     std::map<SizeType, Matrix>                        mExtrapolationMatrixMap = {};
-    std::unique_ptr<NodalExtrapolator>                mpExtrapolator;
     std::map<const Variable<Vector>*, Vector>         mZeroValuesOfVectorVariables;
     std::map<const Variable<Matrix>*, Matrix>         mZeroValuesOfMatrixVariables;
 
@@ -99,23 +95,23 @@ private:
                                             const Variable<T>& rVariable,
                                             const Matrix&      rExtrapolationMatrix,
                                             SizeType           NumberOfIntegrationPoints,
+                                            const ProcessInfo& rProcessInfo,
                                             const U&           rAtomicAddOperation) const
     {
-        auto&          r_this_geometry = rElement.GetGeometry();
+        auto&          r_geometry = rElement.GetGeometry();
         std::vector<T> values_on_integration_points(NumberOfIntegrationPoints);
-        rElement.CalculateOnIntegrationPoints(rVariable, values_on_integration_points,
-                                              mrModelPart.GetProcessInfo());
+        rElement.CalculateOnIntegrationPoints(rVariable, values_on_integration_points, rProcessInfo);
 
-        for (IndexType iNode = 0; iNode < r_this_geometry.PointsNumber(); ++iNode) {
+        for (IndexType iNode = 0; iNode < r_geometry.PointsNumber(); ++iNode) {
             // We first initialize the source, which we need to do by getting the first value,
             // because we don't know the size of the dynamically allocated Vector/Matrix
             T source = rExtrapolationMatrix(iNode, 0) * values_on_integration_points[0];
             for (IndexType i_gauss_point = 1; i_gauss_point < values_on_integration_points.size(); ++i_gauss_point) {
                 source += rExtrapolationMatrix(iNode, i_gauss_point) * values_on_integration_points[i_gauss_point];
             }
-            source /= r_this_geometry[iNode].GetValue(mrAverageVariable);
+            source /= r_geometry[iNode].GetValue(mrAverageVariable);
 
-            rAtomicAddOperation(r_this_geometry[iNode].FastGetSolutionStepValue(rVariable), source);
+            rAtomicAddOperation(r_geometry[iNode].FastGetSolutionStepValue(rVariable), source);
         }
     }
 
@@ -124,7 +120,9 @@ private:
     [[nodiscard]] bool          ExtrapolationMatrixIsCachedFor(const Element& rElement) const;
     [[nodiscard]] const Matrix& GetCachedExtrapolationMatrixFor(const Element& rElement) const;
 
-    void AddIntegrationPointContributionsForAllVariables(Element& rElem, const Matrix& rExtrapolationMatrix) const;
+    void AddIntegrationPointContributionsForAllVariables(Element&           rElement,
+                                                         const Matrix&      rExtrapolationMatrix,
+                                                         const ProcessInfo& rProcessInfo) const;
 };
 
 } // namespace Kratos.

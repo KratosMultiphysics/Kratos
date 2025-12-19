@@ -137,4 +137,6 @@ void SetMultipleMovingLoadsProcess::ExecuteFinalizeSolutionStep()
         rMovingPointLoad->ExecuteFinalizeSolutionStep();
     }
 }
+
+std::string SetMultipleMovingLoadsProcess::Info() const { return "SetMultipleMovingLoadsProcess"; }
 } // namespace Kratos

@@ -34,10 +34,21 @@ file(GLOB_RECURSE KRATOS_GEO_MECHANICS_APPLICATION_CORE
     ${CMAKE_CURRENT_SOURCE_DIR}/external_bindings/*.cpp
 )
 
+
+# Shared setup functionality between unit test and microbenchmarking
+file(GLOB_RECURSE TestSetupSources
+        ${CMAKE_CURRENT_SOURCE_DIR}/test_setup_utilities/*.cpp
+)
+
+add_library(KratosGeoMechanicsTestSetupUtilities SHARED ${TestSetupSources})
+target_link_libraries(KratosGeoMechanicsTestSetupUtilities KratosGeoMechanicsCore)
+set_target_properties(KratosGeoMechanicsTestSetupUtilities PROPERTIES COMPILE_DEFINITIONS "KRATOS_GEO_TEST_UTILS=IMPORT,API" CXX_STANDARD 20)
+
 ## GeoMechanics testing sources
 if(${KRATOS_BUILD_TESTING} MATCHES ON)
     file(GLOB_RECURSE KRATOS_GEO_MECHANICS_APPLICATION_TESTING_SOURCES ${CMAKE_CURRENT_SOURCE_DIR}/tests/*.cpp)
     kratos_add_gtests(TARGET KratosGeoMechanicsCore SOURCES "${KRATOS_GEO_MECHANICS_APPLICATION_TESTING_SOURCES}")
+    target_link_libraries(KratosGeoMechanicsCoreTest KratosGeoMechanicsTestSetupUtilities)
     set_target_properties("KratosGeoMechanicsCoreTest" PROPERTIES CXX_STANDARD 20)
 endif(${KRATOS_BUILD_TESTING} MATCHES ON)
 
@@ -108,7 +119,24 @@ endif(${INSTALL_TESTING_FILES} MATCHES ON)
 # Install targets
 install(TARGETS KratosGeoMechanicsCore DESTINATION libs )
 install(TARGETS KratosGeoMechanicsApplication DESTINATION libs )
+install(TARGETS KratosGeoMechanicsTestSetupUtilities DESTINATION libs)
 
 # Define custom targets
 set(KRATOS_KERNEL "${KRATOS_KERNEL};KratosGeoMechanicsCore" PARENT_SCOPE)
 set(KRATOS_PYTHON_INTERFACE "${KRATOS_PYTHON_INTERFACE};KratosGeoMechanicsApplication" PARENT_SCOPE)
+
+if(${KRATOS_BUILD_BENCHMARK} MATCHES ON)
+    file(GLOB_RECURSE KRATOS_BENCHMARK_SOURCES
+            ${CMAKE_CURRENT_SOURCE_DIR}/benchmarks/*.cpp
+    )
+
+    foreach(file ${KRATOS_BENCHMARK_SOURCES})
+        get_filename_component(filename ${file} NAME_WE)
+        add_executable(${filename} ${file})
+        target_link_libraries(${filename} PUBLIC KratosGeoMechanicsCore KratosGeoMechanicsTestSetupUtilities benchmark::benchmark)
+        set_target_properties(${filename} PROPERTIES COMPILE_DEFINITIONS "KRATOS_GEO_BENCHMARK=IMPORT,API")
+        set_target_properties(${filename} PROPERTIES CXX_STANDARD 20)
+
+        install(TARGETS ${filename} DESTINATION benchmark)
+    endforeach(file ${KRATOS_BENCHMARK_SOURCES})
+endif(${KRATOS_BUILD_BENCHMARK} MATCHES ON)

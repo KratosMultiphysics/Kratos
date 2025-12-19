@@ -20,6 +20,7 @@
 #include "input_output/logger_table_output.h"
 
 #include <format>
+#include <filesystem>
 #include <iomanip>
 #include <sstream>
 
@@ -384,8 +385,8 @@ int KratosExecute::ExecuteWithPiping(ModelPart&                rModelPart,
         KRATOS_ERROR << "No river boundary found.";
     }
 
-    FindCriticalHead(rModelPart, rGidOutputSettings, rCriticalHeadInfo, pOutput, rKratosLogBuffer,
-                     p_river_boundary, pSolvingStrategy, rCallBackFunctions);
+    FindCriticalHead(rModelPart, rGidOutputSettings, rCriticalHeadInfo, std::move(pOutput),
+                     rKratosLogBuffer, p_river_boundary, pSolvingStrategy, rCallBackFunctions);
 
     WriteCriticalHeadResultToFile();
 
@@ -395,27 +396,30 @@ int KratosExecute::ExecuteWithPiping(ModelPart&                rModelPart,
 
 void KratosExecute::WriteCriticalHeadResultToFile() const
 {
+    const auto path_to_critical_head_file =
+        std::filesystem::path{mWorkingDirectory} / "criticalHead.json";
+
     KRATOS_INFO_IF("GeoFlowKernel", this->GetEchoLevel() > 0)
-        << "Writing result to: " << mWorkingDirectory << "\\criticalHead.json" << std::endl;
+        << "Writing result to: " << path_to_critical_head_file.generic_string() << std::endl;
 
     // output critical head_json
-    std::ofstream critical_head_file(mWorkingDirectory + "\\criticalHead.json");
+    std::ofstream out_stream(path_to_critical_head_file);
 
-    critical_head_file << "{\n";
-    critical_head_file << "\t \"PipeData\":\t{\n";
+    out_stream << "{\n";
+    out_stream << "\t \"PipeData\":\t{\n";
     if (mPipingSuccess) {
-        critical_head_file << "\t\t \"Success\": \"True\",\n";
-        critical_head_file << std::format("\t\t \"CriticalHead\": \"{}\"\n", mCriticalHead);
+        out_stream << "\t\t \"Success\": \"True\",\n";
+        out_stream << std::format("\t\t \"CriticalHead\": \"{}\"\n", mCriticalHead);
     } else {
-        critical_head_file << "\t\t \"Success\": \"False\"\n";
+        out_stream << "\t\t \"Success\": \"False\"\n";
     }
-    critical_head_file << "\t }\n";
-    critical_head_file << "}\n";
+    out_stream << "\t }\n";
+    out_stream << "}\n";
 
-    critical_head_file.close();
+    out_stream.close();
 }
 
-void KratosExecute::AddNodalSolutionStepVariables(ModelPart& rModelPart) const
+void KratosExecute::AddNodalSolutionStepVariables(ModelPart& rModelPart)
 {
     // Pressure to head conversion
     rModelPart.AddNodalSolutionStepVariable(VOLUME_ACCELERATION);
@@ -522,7 +526,7 @@ void KratosExecute::HandleCleanUp(const CallBackFunctions& rCallBackFunctions,
                                   const std::stringstream& rKratosLogBuffer)
 {
     rCallBackFunctions.LogCallback(rKratosLogBuffer.str().c_str());
-    Logger::RemoveOutput(pOutput);
+    Logger::RemoveOutput(std::move(pOutput));
     ResetModelParts();
 }
 

@@ -192,8 +192,6 @@ protected:
 
     void CalculateInitialGap(const GeometryType& Geom);
 
-    void ExtrapolateGPValues(const std::vector<double>& JointWidthContainer);
-
     void CalculateMaterialStiffnessMatrix(MatrixType&        rStiffnessMatrix,
                                           const ProcessInfo& CurrentProcessInfo) override;
 
