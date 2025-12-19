@@ -63,7 +63,7 @@ class TestVMShapeControlBase:
         with kratos_unittest.WorkFolderScope(".", __file__):
             DeleteFileIfExisting(f"{cls.GetMdpaFileName()}.time")
 
-@kratos_unittest.skipIfApplicationsNotAvailable("StructuralMechanicsApplication")
+@kratos_unittest.skipIfApplicationsNotAvailable("StructuralMechanicsApplication", "MeshMovingApplication")
 class TestVMShapeControlShell(TestVMShapeControlBase, kratos_unittest.TestCase):
     @classmethod
     def GetImplicitControlParameters(self) -> Kratos.Parameters:
@@ -145,7 +145,7 @@ class TestVMShapeControlShell(TestVMShapeControlBase, kratos_unittest.TestCase):
         self.assertAlmostEqual(Kratos.Expression.Utils.NormL2(explicit_control_field), 3.633180424916991, 10)
         self.assertAlmostEqual(Kratos.Expression.Utils.NormL2(explicit_shape_field), 22.013379276492945, 10)
 
-@kratos_unittest.skipIfApplicationsNotAvailable("StructuralMechanicsApplication")
+@kratos_unittest.skipIfApplicationsNotAvailable("StructuralMechanicsApplication", "MeshMovingApplication")
 class TestVMShapeControlSolid(TestVMShapeControlBase, kratos_unittest.TestCase):
     @classmethod
     def GetImplicitControlParameters(self) -> Kratos.Parameters:
