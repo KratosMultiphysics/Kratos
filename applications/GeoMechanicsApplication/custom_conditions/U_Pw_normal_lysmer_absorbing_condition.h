@@ -169,12 +169,6 @@ protected:
     void CalculateNodalStiffnessMatrix(NormalLysmerAbsorbingVariables& rVariables,
                                        const Element::GeometryType&    rGeom);
 
-    /**
-     * @brief Calculates the extrapolation matrix for neighbour elements.Values from integration points are extrapolated to the nodes
-     * @param rNeighbourElement The neighbouring element of the condition
-     */
-    Matrix CalculateExtrapolationMatrixNeighbour(const Element& rNeighbourElement);
-
 private:
     using hashmap =
         std::unordered_multimap<DenseVector<int>, std::vector<Condition::Pointer>, KeyHasherRange<DenseVector<int>>, KeyComparorRange<DenseVector<int>>>;
