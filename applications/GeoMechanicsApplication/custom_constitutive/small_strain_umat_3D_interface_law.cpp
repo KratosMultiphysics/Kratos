@@ -15,6 +15,7 @@
 
 namespace Kratos
 {
+using namespace std::string_literals;
 
 SmallStrainUMAT3DInterfaceLaw::SmallStrainUMAT3DInterfaceLaw(std::unique_ptr<ConstitutiveLawDimension> pConstitutiveDimension)
     : SmallStrainUMATLaw<VOIGT_SIZE_3D>(std::move(pConstitutiveDimension))
@@ -150,7 +151,7 @@ ConstitutiveLaw::StressMeasure SmallStrainUMAT3DInterfaceLaw::GetStressMeasure()
     return StressMeasure_Cauchy;
 }
 
-std::string SmallStrainUMAT3DInterfaceLaw::Info() const { return "SmallStrainUMAT3DInterfaceLaw"; }
+std::string SmallStrainUMAT3DInterfaceLaw::Info() const { return "SmallStrainUMAT3DInterfaceLaw"s; }
 
 void SmallStrainUMAT3DInterfaceLaw::PrintInfo(std::ostream& rOStream) const { rOStream << Info(); }
 

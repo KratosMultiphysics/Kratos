@@ -29,6 +29,7 @@
 
 namespace Kratos
 {
+using namespace std::string_literals;
 
 #ifdef KRATOS_COMPILED_IN_WINDOWS
 using f_UMATMod = void(__stdcall*)(double*       STRESS,
@@ -801,7 +802,7 @@ bool SmallStrainUMATLaw<TVoigtSize>::Has(const Variable<Vector>& rVariable)
 template <SizeType TVoigtSize>
 [[nodiscard]] std::string SmallStrainUMATLaw<TVoigtSize>::Info() const
 {
-    return "SmallStrainUMATLaw";
+    return "SmallStrainUMATLaw"s;
 }
 
 template <SizeType TVoigtSize>
