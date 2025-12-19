@@ -100,7 +100,7 @@ void DEM_parallel_bond_bilinear_damage::CalculateNormalForces(double LocalElasti
     if (DamageEnergyCoeffNormal > 30.0){
         double suggested_fracture_energy = 31.0 * (calculation_area * bond_sigma_max * bond_sigma_max) / (2.0 * kn_el);
         KRATOS_INFO("DEM") << "The normal damage energy is too big! It shouble be smaller than " << suggested_fracture_energy << std::endl;
-        KRATOS_ERROR<< "The [normal damage energy] is too small!" << std::endl;
+        KRATOS_ERROR<< "The [normal damage energy] is too big!" << std::endl;
     }
     //KRATOS_ERROR_IF(DamageEnergyCoeffNormal > 30.0) << "Normal damage energy is too big!" << std::endl;
 
@@ -272,7 +272,7 @@ void DEM_parallel_bond_bilinear_damage::CalculateTangentialForces(double OldLoca
     if (DamageEnergyCoeffTangential > 30.0){
         double suggested_fracture_energy = 31.0 * (calculation_area * bond_tau_zero * bond_tau_zero) / (2.0 * kt_el);
         KRATOS_INFO("DEM") << "The tangential damage energy is too big! It shouble be smaller than " << suggested_fracture_energy << std::endl;
-        KRATOS_ERROR<< "The [tangential damage energy] is too small!" << std::endl;
+        KRATOS_ERROR<< "The [tangential damage energy] is too big!" << std::endl;
     }
     //KRATOS_ERROR_IF(DamageEnergyCoeffTangential > 30.0) << "Tangential damage energy is too big!" << std::endl;
 
@@ -319,7 +319,7 @@ void DEM_parallel_bond_bilinear_damage::CalculateTangentialForces(double OldLoca
         double updated_max_tau_strength = bond_tau_zero;
 
         if (contact_sigma >= 0) {
-            updated_max_tau_strength += internal_friction * contact_sigma;
+            updated_max_tau_strength += tan(internal_friction * Globals::Pi / 180.0) * contact_sigma;
         }
         tau_strength = updated_max_tau_strength * (1.0 + k_softening / kt_el) * kt_updated / (kt_updated + k_softening);
 
@@ -486,7 +486,8 @@ void DEM_parallel_bond_bilinear_damage::CalculateTangentialForces(double OldLoca
 
         if ((element1->Id() == sphere_id) && (element2->Id() == neigh_sphere_id)) {
             std::ofstream normal_forces_file("delta_stress.txt", std::ios_base::out | std::ios_base::app);
-            normal_forces_file << r_process_info[TIME] << " " << contact_sigma/*1*/ << " " << contact_tau/*2*/ << " " << mDamageNormal/*3*/ << " " << mDamageTangential/*4*/ << " " << '\n'; 
+            normal_forces_file << r_process_info[TIME] << " " << contact_sigma/*1*/ << " " << contact_tau/*2*/ << " " << mDamageNormal/*3*/ << " " << mDamageTangential/*4*/ << " " << BondedLocalElasticContactForce[0]/*1*/ << " " << BondedLocalElasticContactForce[1]/*2*/ << " "  <<
+            UnbondedLocalElasticContactForce[0]/*1*/ << " " << UnbondedLocalElasticContactForce[1]/*2*/ << " " << '\n'; 
             normal_forces_file.flush();
             normal_forces_file.close();
         }
@@ -500,6 +501,13 @@ void DEM_parallel_bond_bilinear_damage::CalculateTangentialForces(double OldLoca
         mDamageReal = mDamageTangential;
         mDamageNormal = mDamageReal;
     }
+    mDamageMoment = mDamageReal;
+    
+    /* //different definition of real damage
+    mDamageReal += std::sqrt((mDamageNormal - mDamageReal) * (mDamageNormal - mDamageReal) + (mDamageTangential - mDamageReal) * (mDamageTangential - mDamageReal));
+    mDamageNormal = mDamageReal;
+    mDamageTangential = mDamageReal;
+    mDamageMoment = mDamageReal;*/
 
     KRATOS_CATCH("")
 }
@@ -507,6 +515,36 @@ void DEM_parallel_bond_bilinear_damage::CalculateTangentialForces(double OldLoca
 //*************************************
 // Moment calculation
 //*************************************
+
+void DEM_parallel_bond_bilinear_damage::ComputeParticleRotationalMoments(SphericContinuumParticle* element,
+                                                SphericContinuumParticle* neighbor,
+                                                double equiv_young,
+                                                double distance,
+                                                double calculation_area,
+                                                double LocalCoordSystem[3][3],
+                                                double ElasticLocalRotationalMoment[3],
+                                                double ViscoLocalRotationalMoment[3],
+                                                double equiv_poisson,
+                                                double indentation) {
+
+    KRATOS_TRY
+    DEM_parallel_bond::ComputeParticleRotationalMoments(element,
+                                        neighbor,
+                                        equiv_young,
+                                        distance,
+                                        calculation_area,
+                                        LocalCoordSystem,
+                                        ElasticLocalRotationalMoment,
+                                        ViscoLocalRotationalMoment,
+                                        equiv_poisson,
+                                        indentation);
+
+    ElasticLocalRotationalMoment[0] *= (1.0 - mDamageMoment);
+    ElasticLocalRotationalMoment[1] *= (1.0 - mDamageMoment);
+    ElasticLocalRotationalMoment[2] *= (1.0 - mDamageMoment);
+     
+    KRATOS_CATCH("")
+}//ComputeParticleRotationalMoments
 
 double DEM_parallel_bond_bilinear_damage::GetBondKn(double bond_equiv_young, double calculation_area, double distance){
     KRATOS_TRY
