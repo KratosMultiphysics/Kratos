@@ -365,11 +365,11 @@ class GenericConstitutiveLawIntegratorDamage
             const double yield_stress = rMaterialProperties[YIELD_STRESS];
             const double stress_tolerance = tolerance * yield_stress;
 
-            KRATOS_ERROR_IF(stress[0] < yield_stress - tol)
+            KRATOS_ERROR_IF(stress[0] < yield_stress - stress_tolerance)
                 << "Bad definition of STRESS_DAMAGE_CURVE: first stress point is below YIELD_STRESS. Provided STRESS_DAMAGE_CURVE[0]=" << stress[0]
                 << ", YIELD_STRESS=" << yield_stress << std::endl;
 
-            KRATOS_ERROR_IF(stress[0] > yield_stress + tol)
+            KRATOS_ERROR_IF(stress[0] > yield_stress + stress_tolerance)
                 << "Bad definition of STRESS_DAMAGE_CURVE: first stress point is above YIELD_STRESS. Provided STRESS_DAMAGE_CURVE[0]=" << stress[0]
                 << ", YIELD_STRESS=" << yield_stress << std::endl;
         }
