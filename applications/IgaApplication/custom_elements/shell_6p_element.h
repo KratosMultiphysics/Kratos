@@ -30,90 +30,64 @@ namespace Kratos
 ///@name Kratos Classes
 ///@{
 /// Short class definition.
-/** Reissner-Mindlin shell based on degenerated solid (Benson et al.)
+/** Reissner–Mindlin shell element for isogeometric B-Rep analysis based on degenerated solid theory.
+    The element uses a curvilinear geometry representation from the IGA framework.
+    Employing six kinematic parameters per control point (three translational and three rotational degrees of freedom). 
+
+    The present implementation is inspired by the formulations in Benson et al. and Du et al. , but does not follow any 
+    single reference verbatim; the kinematic assumptions, strain measures and numerical integration are adapted to the 
+    Kratos IGA framework and to geometrically nonlinear analysis of thin to moderately thick CAD-based shell structures.  
+
+    For further details, see:
+     [1] Benson, D.J., Bazilevs, Y., Hsu, M.C., & Hughes, T.J.R. (2010).
+     "Isogeometric shell analysis: The Reissner–Mindlin shell."
+     Computer Methods in Applied Mechanics and Engineering, 199, 276-289
+
+     [2] Du, X., Li, J., Wang, W., Zhao, G., Liu, Y., & Zhang, P. (2024).
+     "Isogeometric Shape Optimization of Reissner–Mindlin Shell with Analytical Sensitivity 
+      and Application to Cellular Sandwich Structures."
+     Composite Structures, Elsevier.
 */
+
 class Shell6pElement
     : public Element
 {
 protected:
 
-    /// Internal variables used for metric transformation
+    /// @brief Internal structs
     struct KinematicVariables
     {
-        // covariant metric
         array_1d<double, 3> a_ab_covariant;
         array_1d<double, 3> b_ab_covariant;
-
-        //base vector 1
         array_1d<double, 3> a1;
-        //base vector 2
         array_1d<double, 3> a2;
-        //base vector 3 normalized
         array_1d<double, 3> a3;
-        //not-normalized base vector 3
         array_1d<double, 3> a3_tilde;
-
-        //differential area
         double dA;
-
-        /**
-        * The default constructor
-        * @param Dimension: The size of working space dimension
-        */
-        KinematicVariables(std::size_t Dimension)
-        {
-            noalias(a_ab_covariant) = ZeroVector(Dimension);
-            noalias(b_ab_covariant) = ZeroVector(Dimension);
-
-            noalias(a1) = ZeroVector(Dimension);
-            noalias(a2) = ZeroVector(Dimension);
-            noalias(a3) = ZeroVector(Dimension);
-
-            noalias(a3_tilde) = ZeroVector(Dimension);
-
-            dA = 1.0;
-        }
+        KinematicVariables(std::size_t Dimension);
     };
 
-    /**
-    * Internal variables used in the constitutive equations
-    */
+
     struct ConstitutiveVariables
     {
         Vector StrainVector;
         Vector StressVector;
         Matrix ConstitutiveMatrix;
-
-        /**
-        * @param StrainSize: The size of the strain vector in Voigt notation
-        */
-        ConstitutiveVariables(std::size_t StrainSize)
-        {
-            StrainVector = ZeroVector(StrainSize);
-            StressVector = ZeroVector(StrainSize);
-            ConstitutiveMatrix = ZeroMatrix(StrainSize, StrainSize);
-        }
+        
+        /// @param StrainSize: The size of the strain vector in Voigt notation
+        ConstitutiveVariables(std::size_t StrainSize);
     };
 
-    /**
-    * Internal variables used in the constitutive equations
-    */
+
     struct SecondVariations
     {
         Matrix B11;
         Matrix B22;
         Matrix B12;
 
-        /**
-        * The default constructor
-        * @param StrainSize: The size of the strain vector in Voigt notation
-        */
-        SecondVariations(const int& mat_size)
-        {
-            B11 = ZeroMatrix(mat_size, mat_size);
-            B22 = ZeroMatrix(mat_size, mat_size);
-            B12 = ZeroMatrix(mat_size, mat_size);
-        }
+        /// @param mat_size: The matrix size in Voigt notation
+        SecondVariations(const int& mat_size);
+
     }; 
 
 public:
@@ -123,11 +97,8 @@ public:
     /// Counted pointer of Shell6pElement
     KRATOS_CLASS_INTRUSIVE_POINTER_DEFINITION(Shell6pElement);
 
-    /// Size types
-    typedef std::size_t IndexType;
-
-    // GometryType
-    typedef Geometry<Node> GeometryType;
+    using IndexType = std::size_t;
+    using GeometryType = Geometry<Node>;
 
     ///@}
     ///@name Life Cycle
@@ -149,11 +120,8 @@ public:
     {};
 
     /// Default constructor necessary for serialization
-    Shell6pElement()
-        : Element()
-    {};
-    /// Destructor.
-    virtual ~Shell6pElement() = default;
+    Shell6pElement() = default;
+
 
     ///@}
     ///@name Life Cycle
@@ -536,23 +504,23 @@ private:
         const ConstitutiveLaw::StressMeasure ThisStressMeasure
     ) const;
 
-    inline void CalculateAndAddK(
+     void CalculateAndAddK(
         MatrixType& rLeftHandSideMatrix,
         const Matrix& rKm,
         const Matrix& rKd,                                                                                                               
         const double IntegrationWeight,
         const double IntegrationWeight_zeta) const;
 
-    inline void CalculateAndAddKm(
+     void CalculateAndAddKm(
         MatrixType& rKm,
         const Matrix& rB,
         const Matrix& rD) const;
     
-    inline void CalculateAndAddKmBd(                                             
+     void CalculateAndAddKmBd(                                             
         MatrixType& rKd,
         const MatrixType& rBd) const;
 
-    inline void CalculateAndAddNonlinearKm(
+     void CalculateAndAddNonlinearKm(
         Matrix& rLeftHandSideMatrix,
         const Matrix& rB,
         const Matrix& rD,

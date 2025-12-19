@@ -22,6 +22,39 @@
 
 namespace Kratos
 {
+  /// Internal variables used for metric transformation
+   Shell6pElement::KinematicVariables::KinematicVariables(std::size_t Dimension)
+    {
+        // covariant metric
+        noalias(a_ab_covariant) = ZeroVector(Dimension);
+        noalias(b_ab_covariant) = ZeroVector(Dimension);
+        //base vector 1
+        noalias(a1) = ZeroVector(Dimension);
+        //base vector 2
+        noalias(a2) = ZeroVector(Dimension);
+        //base vector 3 normalized
+        noalias(a3) = ZeroVector(Dimension);
+        //not-normalized base vector 3
+        noalias(a3_tilde) = ZeroVector(Dimension);
+        //differential area
+        dA = 1.0;
+    }
+
+    Shell6pElement::ConstitutiveVariables::ConstitutiveVariables(std::size_t StrainSize)
+    {
+        StrainVector       = ZeroVector(StrainSize);
+        StressVector       = ZeroVector(StrainSize);
+        ConstitutiveMatrix = ZeroMatrix(StrainSize, StrainSize);
+    }
+
+    Shell6pElement::SecondVariations::SecondVariations(const int& mat_size)
+    {
+        B11 = ZeroMatrix(mat_size, mat_size);
+        B22 = ZeroMatrix(mat_size, mat_size);
+        B12 = ZeroMatrix(mat_size, mat_size);
+    }
+
+
     ///@name Initialize Functions
     ///@{
 
