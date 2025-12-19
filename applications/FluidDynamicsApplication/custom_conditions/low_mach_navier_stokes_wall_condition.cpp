@@ -613,7 +613,8 @@ void LowMachNavierStokesWallCondition<TDim,TNumNodes,TWallModel...>::CalculateNo
 // }
 
 template class LowMachNavierStokesWallCondition<2,2>;
-// template class LowMachNavierStokesWallCondition<3,3>;
+template class LowMachNavierStokesWallCondition<3,3>;
+template class LowMachNavierStokesWallCondition<3,4>;
 // template class LowMachNavierStokesWallCondition<2,2,LinearLogWallLaw<2,2>>;
 // template class LowMachNavierStokesWallCondition<3,3,LinearLogWallLaw<3,3>>;
 // template class LowMachNavierStokesWallCondition<2,2,NavierSlipWallLaw<2,2>>;
