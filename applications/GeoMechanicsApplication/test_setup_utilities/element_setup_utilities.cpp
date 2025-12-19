@@ -22,7 +22,7 @@
 #include "custom_elements/plane_strain_stress_state.h"
 #include "custom_elements/small_strain_U_Pw_diff_order_element.h"
 #include "custom_elements/three_dimensional_stress_state.h"
-#include "custom_geometries/interface_geometry.h"
+#include "custom_geometries/interface_geometry.hpp"
 #include "geometries/hexahedra_3d_20.h"
 #include "geometries/hexahedra_3d_8.h"
 #include "geometries/line_2d_2.h"

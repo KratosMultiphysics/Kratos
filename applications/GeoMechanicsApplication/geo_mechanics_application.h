@@ -52,7 +52,7 @@
 #include "custom_conditions/thermal_point_flux_condition.h"
 
 // Geometries
-#include "custom_geometries/interface_geometry.h"
+#include "custom_geometries/interface_geometry.hpp"
 #include "geometries/hexahedra_3d_20.h"
 #include "geometries/hexahedra_3d_27.h"
 #include "geometries/hexahedra_3d_8.h"
