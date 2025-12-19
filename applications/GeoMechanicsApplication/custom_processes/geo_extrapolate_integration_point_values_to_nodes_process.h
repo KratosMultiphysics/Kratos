@@ -104,13 +104,14 @@ private:
         const auto global_to_local_mapping =
             NodeUtilities::CreateGlobalToLocalNodeIndexMap(rElement.GetGeometry().Points());
         for (auto& r_node : rElement.GetGeometry()) {
-            const auto index = global_to_local_mapping.at(r_node.Id());
+            const auto local_node_index = global_to_local_mapping.at(r_node.Id());
 
             // We first initialize the source, which we need to do by getting the first value,
             // because we don't know the size of the dynamically allocated Vector/Matrix
-            T source = rExtrapolationMatrix(index, 0) * values_on_integration_points[0];
+            T source = rExtrapolationMatrix(local_node_index, 0) * values_on_integration_points[0];
             for (IndexType i_gauss_point = 1; i_gauss_point < values_on_integration_points.size(); ++i_gauss_point) {
-                source += rExtrapolationMatrix(index, i_gauss_point) * values_on_integration_points[i_gauss_point];
+                source += rExtrapolationMatrix(local_node_index, i_gauss_point) *
+                          values_on_integration_points[i_gauss_point];
             }
             source /= mNodeIdToConnectedElementIds.at(r_node.Id()).size();
 
