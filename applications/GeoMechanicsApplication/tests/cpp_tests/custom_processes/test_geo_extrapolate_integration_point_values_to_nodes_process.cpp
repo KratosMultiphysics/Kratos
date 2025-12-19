@@ -79,7 +79,6 @@ public:
 ModelPart& CreateModelPartWithTwoStubElements(Model& model)
 {
     auto& model_part = model.CreateModelPart("MainModelPart");
-    model_part.AddNodalSolutionStepVariable(NODAL_AREA);
     model_part.AddNodalSolutionStepVariable(HYDRAULIC_HEAD);
     model_part.AddNodalSolutionStepVariable(CAUCHY_STRESS_TENSOR);
     model_part.AddNodalSolutionStepVariable(CAUCHY_STRESS_VECTOR);
