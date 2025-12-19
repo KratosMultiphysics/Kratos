@@ -18,6 +18,7 @@
 
 namespace Kratos
 {
+using namespace std::string_literals;
 
 ApplyConstantBoundaryHydrostaticPressureProcess::ApplyConstantBoundaryHydrostaticPressureProcess(ModelPart& model_part,
                                                                                                  Parameters rParameters)
@@ -77,7 +78,7 @@ void ApplyConstantBoundaryHydrostaticPressureProcess::ExecuteInitialize()
 
 std::string ApplyConstantBoundaryHydrostaticPressureProcess::Info() const
 {
-    return "ApplyConstantBoundaryHydrostaticPressureProcess";
+    return "ApplyConstantBoundaryHydrostaticPressureProcess"s;
 }
 
 ModelPart& ApplyConstantBoundaryHydrostaticPressureProcess::GetModelPart() { return mrModelPart; }

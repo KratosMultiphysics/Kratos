@@ -19,6 +19,7 @@
 
 namespace Kratos
 {
+using namespace std::string_literals;
 
 ApplyVectorConstraintTableProcess::ApplyVectorConstraintTableProcess(Model& rModel, const Parameters& rSettings)
     : Process(Flags())
@@ -125,7 +126,7 @@ void ApplyVectorConstraintTableProcess::ExecuteFinalize()
 
 std::string ApplyVectorConstraintTableProcess::Info() const
 {
-    return "ApplyVectorConstraintTableProcess";
+    return "ApplyVectorConstraintTableProcess"s;
 }
 
 } // namespace Kratos

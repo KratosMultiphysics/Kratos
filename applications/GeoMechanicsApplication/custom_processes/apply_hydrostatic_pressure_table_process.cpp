@@ -18,6 +18,7 @@
 
 namespace Kratos
 {
+using namespace std::string_literals;
 
 ApplyHydrostaticPressureTableProcess::ApplyHydrostaticPressureTableProcess(ModelPart& model_part, Parameters rParameters)
     : ApplyConstantHydrostaticPressureProcess(model_part, rParameters)
@@ -60,7 +61,7 @@ void ApplyHydrostaticPressureTableProcess::ExecuteInitializeSolutionStep()
 
 std::string ApplyHydrostaticPressureTableProcess::Info() const
 {
-    return "ApplyHydrostaticPressureTableProcess";
+    return "ApplyHydrostaticPressureTableProcess"s;
 }
 
 } // namespace Kratos

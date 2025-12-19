@@ -17,6 +17,7 @@
 
 namespace Kratos
 {
+using namespace std::string_literals;
 
 CalculateTotalMotionProcess::CalculateTotalMotionProcess(ModelPart& rModelPart, const Parameters& rParameters)
     : Process(Flags()), mrModelPart{rModelPart}
@@ -54,6 +55,6 @@ void CalculateTotalMotionProcess::Execute()
     }
 }
 
-std::string CalculateTotalMotionProcess::Info() const { return "CalculateTotalMotionProcess"; }
+std::string CalculateTotalMotionProcess::Info() const { return "CalculateTotalMotionProcess"s; }
 
 } // namespace Kratos

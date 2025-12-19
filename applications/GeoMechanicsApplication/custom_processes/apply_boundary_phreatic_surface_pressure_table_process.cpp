@@ -17,6 +17,7 @@
 
 namespace Kratos
 {
+using namespace std::string_literals;
 
 ApplyBoundaryPhreaticSurfacePressureTableProcess::ApplyBoundaryPhreaticSurfacePressureTableProcess(
     ModelPart& model_part, Parameters rParameters)
@@ -55,7 +56,7 @@ void ApplyBoundaryPhreaticSurfacePressureTableProcess::ExecuteInitializeSolution
 
 std::string ApplyBoundaryPhreaticSurfacePressureTableProcess::Info() const
 {
-    return "ApplyBoundaryPhreaticSurfacePressureTableProcess";
+    return "ApplyBoundaryPhreaticSurfacePressureTableProcess"s;
 }
 
 } // namespace Kratos

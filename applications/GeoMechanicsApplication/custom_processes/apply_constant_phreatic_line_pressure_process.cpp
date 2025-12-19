@@ -20,6 +20,7 @@
 
 namespace Kratos
 {
+using namespace std::string_literals;
 
 ApplyConstantPhreaticLinePressureProcess::ApplyConstantPhreaticLinePressureProcess(ModelPart& model_part,
                                                                                    Parameters rParameters)
@@ -120,7 +121,7 @@ void ApplyConstantPhreaticLinePressureProcess::ExecuteInitialize()
 
 std::string ApplyConstantPhreaticLinePressureProcess::Info() const
 {
-    return "ApplyConstantPhreaticLinePressureProcess";
+    return "ApplyConstantPhreaticLinePressureProcess"s;
 }
 
 double ApplyConstantPhreaticLinePressureProcess::CalculatePressure(const Node& rNode) const

@@ -22,6 +22,7 @@
 
 namespace Kratos
 {
+using namespace std::string_literals;
 
 SetParameterFieldProcess::SetParameterFieldProcess(ModelPart& rModelPart, const Parameters& rSettings)
     : Process(), mrModelPart(rModelPart), mParameters(rSettings)
@@ -155,5 +156,5 @@ std::vector<IndexType> SetParameterFieldProcess::GetVectorIndices() const
     return result;
 }
 
-std::string SetParameterFieldProcess::Info() const { return "SetParameterFieldProcess"; }
+std::string SetParameterFieldProcess::Info() const { return "SetParameterFieldProcess"s; }
 } // namespace Kratos.

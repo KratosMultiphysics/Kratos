@@ -23,6 +23,8 @@
 
 namespace Kratos
 {
+using namespace std::string_literals;
+
 GeoExtrapolateIntegrationPointValuesToNodesProcess::GeoExtrapolateIntegrationPointValuesToNodesProcess(
     Model& rModel, Parameters ThisParameters)
 {
@@ -223,7 +225,7 @@ void GeoExtrapolateIntegrationPointValuesToNodesProcess::ExecuteFinalize()
 
 std::string GeoExtrapolateIntegrationPointValuesToNodesProcess::Info() const
 {
-    return "GeoExtrapolateIntegrationPointValuesToNodesProcess";
+    return "GeoExtrapolateIntegrationPointValuesToNodesProcess"s;
 }
 
 void GeoExtrapolateIntegrationPointValuesToNodesProcess::PrintInfo(std::ostream& rOStream) const

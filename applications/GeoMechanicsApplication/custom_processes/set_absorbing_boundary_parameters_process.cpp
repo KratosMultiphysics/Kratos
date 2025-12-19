@@ -19,6 +19,7 @@
 
 namespace Kratos
 {
+using namespace std::string_literals;
 
 SetAbsorbingBoundaryParametersProcess::SetAbsorbingBoundaryParametersProcess(ModelPart& model_part, Parameters rParameters)
     : Process(Flags()), mrModelPart(model_part)
@@ -65,7 +66,7 @@ void SetAbsorbingBoundaryParametersProcess::ExecuteInitialize()
 
 std::string SetAbsorbingBoundaryParametersProcess::Info() const
 {
-    return "SetAbsorbingBoundaryParametersProcess";
+    return "SetAbsorbingBoundaryParametersProcess"s;
 }
 
 } // namespace Kratos

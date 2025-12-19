@@ -23,6 +23,7 @@
 
 namespace Kratos
 {
+using namespace std::string_literals;
 
 constexpr int normalComponentNumber     = 0;
 constexpr int tangentialComponentNumber = 1;
@@ -178,6 +179,6 @@ void ApplyNormalLoadTableProcess::ExecuteFinalize()
     }
 }
 
-std::string ApplyNormalLoadTableProcess::Info() const { return "ApplyNormalLoadTableProcess"; }
+std::string ApplyNormalLoadTableProcess::Info() const { return "ApplyNormalLoadTableProcess"s; }
 
 } // namespace Kratos

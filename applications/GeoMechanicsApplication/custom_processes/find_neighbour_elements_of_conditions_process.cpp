@@ -21,6 +21,7 @@
 
 namespace Kratos
 {
+using namespace std::string_literals;
 
 FindNeighbourElementsOfConditionsProcess::FindNeighbourElementsOfConditionsProcess(ModelPart& rModelPart)
     : mrModelPart(rModelPart)
@@ -84,7 +85,7 @@ std::ostream& operator<<(std::ostream& rOStream, const FindNeighbourElementsOfCo
 
 std::string FindNeighbourElementsOfConditionsProcess::Info() const
 {
-    return "FindNeighbourElementsOfConditionsProcess";
+    return "FindNeighbourElementsOfConditionsProcess"s;
 }
 
 void FindNeighbourElementsOfConditionsProcess::PrintData(std::ostream& rOStream) const

@@ -19,6 +19,7 @@
 
 namespace Kratos
 {
+using namespace std::string_literals;
 
 ApplyConstantHydrostaticPressureProcess::ApplyConstantHydrostaticPressureProcess(ModelPart& model_part,
                                                                                  Parameters rParameters)
@@ -97,7 +98,7 @@ const std::string& ApplyConstantHydrostaticPressureProcess::GetName() const
 /// Turn back information as a string.
 std::string ApplyConstantHydrostaticPressureProcess::Info() const
 {
-    return "ApplyConstantHydrostaticPressureProcess";
+    return "ApplyConstantHydrostaticPressureProcess"s;
 }
 
 } // namespace Kratos

@@ -17,6 +17,7 @@
 
 namespace Kratos
 {
+using namespace std::string_literals;
 
 CalculateIncrementalMotionProcess::CalculateIncrementalMotionProcess(ModelPart&        rModelPart,
                                                                      const Parameters& rParameters)
@@ -56,7 +57,7 @@ void CalculateIncrementalMotionProcess::Execute()
 
 std::string CalculateIncrementalMotionProcess::Info() const
 {
-    return "CalculateIncrementalMotionProcess";
+    return "CalculateIncrementalMotionProcess"s;
 }
 
 } // namespace Kratos

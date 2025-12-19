@@ -26,6 +26,7 @@
 
 namespace Kratos
 {
+using namespace std::string_literals;
 
 ApplyScalarConstraintTableProcess::ApplyScalarConstraintTableProcess(ModelPart& rModelPart,
                                                                      const Parameters& rProcessSettings)
@@ -190,7 +191,7 @@ void ApplyScalarConstraintTableProcess::ExecuteFinalize() { mProcess->ExecuteFin
 
 std::string ApplyScalarConstraintTableProcess::Info() const
 {
-    return "ApplyScalarConstraintTableProcess";
+    return "ApplyScalarConstraintTableProcess"s;
 }
 
 } // namespace Kratos

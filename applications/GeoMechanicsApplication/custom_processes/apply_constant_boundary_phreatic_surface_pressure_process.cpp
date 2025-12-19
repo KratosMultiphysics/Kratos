@@ -18,6 +18,7 @@
 
 namespace Kratos
 {
+using namespace std::string_literals;
 
 ApplyConstantBoundaryPhreaticSurfacePressureProcess::ApplyConstantBoundaryPhreaticSurfacePressureProcess(
     ModelPart& model_part, Parameters rParameters)
@@ -90,7 +91,7 @@ void ApplyConstantBoundaryPhreaticSurfacePressureProcess::ExecuteInitialize()
 
 std::string ApplyConstantBoundaryPhreaticSurfacePressureProcess::Info() const
 {
-    return "ApplyConstantBoundaryPhreaticSurfacePressureProcess";
+    return "ApplyConstantBoundaryPhreaticSurfacePressureProcess"s;
 }
 
 void ApplyConstantBoundaryPhreaticSurfacePressureProcess::calculateEquationParameters()

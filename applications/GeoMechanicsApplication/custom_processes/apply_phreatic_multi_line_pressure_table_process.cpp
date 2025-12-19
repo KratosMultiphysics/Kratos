@@ -17,6 +17,7 @@
 
 namespace Kratos
 {
+using namespace std::string_literals;
 
 ApplyPhreaticMultiLinePressureTableProcess::ApplyPhreaticMultiLinePressureTableProcess(ModelPart& model_part,
                                                                                        Parameters rParameters)
@@ -82,7 +83,7 @@ void ApplyPhreaticMultiLinePressureTableProcess::ExecuteInitializeSolutionStep()
 
 std::string ApplyPhreaticMultiLinePressureTableProcess::Info() const
 {
-    return "ApplyPhreaticMultiLinePressureTableProcess";
+    return "ApplyPhreaticMultiLinePressureTableProcess"s;
 }
 
 void ApplyPhreaticMultiLinePressureTableProcess::PrintInfo(std::ostream& rOStream) const

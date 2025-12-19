@@ -18,6 +18,7 @@
 
 namespace Kratos
 {
+using namespace std::string_literals;
 
 ApplyConstantPhreaticMultiLinePressureProcess::ApplyConstantPhreaticMultiLinePressureProcess(ModelPart& model_part,
                                                                                              Parameters rParameters)
@@ -170,7 +171,7 @@ void ApplyConstantPhreaticMultiLinePressureProcess::ExecuteInitialize()
 
 std::string ApplyConstantPhreaticMultiLinePressureProcess::Info() const
 {
-    return "ApplyConstantPhreaticMultiLinePressureProcess";
+    return "ApplyConstantPhreaticMultiLinePressureProcess"s;
 }
 
 void ApplyConstantPhreaticMultiLinePressureProcess::PrintInfo(std::ostream& rOStream) const

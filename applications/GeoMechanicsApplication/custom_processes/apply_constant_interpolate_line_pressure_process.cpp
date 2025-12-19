@@ -20,6 +20,7 @@
 
 namespace Kratos
 {
+using namespace std::string_literals;
 
 ApplyConstantInterpolateLinePressureProcess ::ApplyConstantInterpolateLinePressureProcess(ModelPart& model_part,
                                                                                           Parameters rParameters)
@@ -99,7 +100,7 @@ void ApplyConstantInterpolateLinePressureProcess::ExecuteInitializeSolutionStep(
 
 std::string ApplyConstantInterpolateLinePressureProcess::Info() const
 {
-    return "ApplyConstantInterpolateLinePressureProcess";
+    return "ApplyConstantInterpolateLinePressureProcess"s;
 }
 
 double ApplyConstantInterpolateLinePressureProcess::CalculatePressure(const Node& rNode)

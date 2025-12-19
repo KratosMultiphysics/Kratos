@@ -17,6 +17,8 @@
 
 namespace Kratos
 {
+using namespace std::string_literals;
+
 DeactivateConditionsOnInactiveElements::DeactivateConditionsOnInactiveElements(ModelPart& rModelPart)
     : Process(), mrModelPart(rModelPart)
 {
@@ -48,7 +50,7 @@ void DeactivateConditionsOnInactiveElements::Execute()
 
 std::string DeactivateConditionsOnInactiveElements::Info() const
 {
-    return "DeactivateConditionsOnInactiveElements";
+    return "DeactivateConditionsOnInactiveElements"s;
 }
 
 void DeactivateConditionsOnInactiveElements::PrintData(std::ostream& rOStream) const

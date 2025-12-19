@@ -19,6 +19,7 @@
 
 namespace Kratos
 {
+using namespace std::string_literals;
 
 ApplyWriteScalarProcess::ApplyWriteScalarProcess(ModelPart& model_part, Parameters rParameters)
     : Process(Flags()), mrModelPart(model_part)
@@ -123,6 +124,6 @@ void ApplyWriteScalarProcess::ExecuteFinalize()
     KRATOS_CATCH("")
 }
 
-std::string ApplyWriteScalarProcess::Info() const { return "ApplyWriteScalarProcess"; }
+std::string ApplyWriteScalarProcess::Info() const { return "ApplyWriteScalarProcess"s; }
 
 } // namespace Kratos

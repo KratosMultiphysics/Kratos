@@ -24,6 +24,7 @@
 
 namespace Kratos
 {
+using namespace std::string_literals;
 
 ApplyCPhiReductionProcess::ApplyCPhiReductionProcess(Model& rModel, const Parameters& rProcessSettings)
 {
@@ -170,6 +171,6 @@ bool ApplyCPhiReductionProcess::IsStepRestarted() const
     return mrModelParts[0].get().GetProcessInfo().GetValue(NUMBER_OF_CYCLES) > 1;
 }
 
-std::string ApplyCPhiReductionProcess::Info() const { return "ApplyCPhiReductionProcess"; }
+std::string ApplyCPhiReductionProcess::Info() const { return "ApplyCPhiReductionProcess"s; }
 
 } // namespace Kratos

@@ -17,6 +17,7 @@
 
 namespace Kratos
 {
+using namespace std::string_literals;
 
 ApplyInitialUniformStressField::ApplyInitialUniformStressField(ModelPart& rModelPart, const Parameters& rParameters)
     : mrModelPart(rModelPart), mImposedStressVector(rParameters["value"].GetVector())
@@ -44,7 +45,7 @@ void ApplyInitialUniformStressField::ExecuteInitialize()
 
 std::string ApplyInitialUniformStressField::Info() const
 {
-    return "ApplyInitialUniformStressField";
+    return "ApplyInitialUniformStressField"s;
 }
 
 } // namespace Kratos
