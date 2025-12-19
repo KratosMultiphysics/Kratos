@@ -17,6 +17,7 @@
 #include "custom_utilities/element_utilities.hpp"
 #include "custom_utilities/extrapolation_utilities.h"
 #include "custom_utilities/process_utilities.h"
+#include "includes/kratos_parameters.h"
 #include "utilities/atomic_utilities.h"
 #include "utilities/variable_utils.h"
 

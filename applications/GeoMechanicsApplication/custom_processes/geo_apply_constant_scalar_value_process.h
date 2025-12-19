@@ -19,6 +19,7 @@ namespace Kratos
 {
 
 class ModelPart;
+class Parameters;
 
 ///@name Kratos Classes
 ///@{

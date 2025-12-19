@@ -20,6 +20,7 @@ namespace Kratos
 
 class ModelPart;
 class Element;
+class Parameters;
 
 class KRATOS_API(GEO_MECHANICS_APPLICATION) ApplyFinalStressesOfPreviousStageToInitialState : public Process
 {

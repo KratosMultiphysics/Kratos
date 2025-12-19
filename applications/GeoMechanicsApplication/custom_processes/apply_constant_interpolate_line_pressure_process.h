@@ -13,14 +13,13 @@
 #pragma once
 
 #include "geo_mechanics_application_variables.h"
-#include "includes/kratos_flags.h"
-#include "includes/kratos_parameters.h"
 #include "processes/process.h"
 
 namespace Kratos
 {
 class ModelPart;
 class Node;
+class Parameters;
 
 class KRATOS_API(GEO_MECHANICS_APPLICATION) ApplyConstantInterpolateLinePressureProcess : public Process
 {

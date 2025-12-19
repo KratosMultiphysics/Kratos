@@ -11,6 +11,7 @@
 //
 
 #include "apply_initial_uniform_stress_field.h"
+#include "includes/kratos_parameters.h"
 #include "includes/model_part.h"
 #include "utilities/parallel_utilities.h"
 

@@ -18,6 +18,8 @@
 
 namespace Kratos
 {
+class Model;
+class Parameters;
 
 class KRATOS_API(GEO_MECHANICS_APPLICATION) ApplyExcavationProcess : public Process
 {

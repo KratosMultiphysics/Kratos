@@ -21,7 +21,7 @@
 #include "custom_utilities/process_utilities.h"
 #include "geo_aliases.h"
 #include "geo_mechanics_application_variables.h"
-#include "includes/element.h"
+#include "includes/kratos_parameters.h"
 #include "includes/model_part.h"
 
 namespace

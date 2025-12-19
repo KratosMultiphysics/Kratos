@@ -14,7 +14,6 @@
 #pragma once
 
 #include "includes/kratos_export_api.h"
-#include "includes/kratos_parameters.h"
 #include "includes/smart_pointers.h"
 #include "includes/table.h"
 #include "processes/process.h"
@@ -25,6 +24,7 @@ namespace Kratos
 {
 
 class ModelPart;
+class Parameters;
 
 class KRATOS_API(GEO_MECHANICS_APPLICATION) ApplyComponentTableProcess : public Process
 {

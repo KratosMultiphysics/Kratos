@@ -11,6 +11,8 @@
 //
 
 #include "apply_constant_boundary_phreatic_surface_pressure_process.h"
+#include "includes/kratos_flags.h"
+#include "includes/kratos_parameters.h"
 #include "includes/model_part.h"
 #include "utilities/math_utils.h"
 

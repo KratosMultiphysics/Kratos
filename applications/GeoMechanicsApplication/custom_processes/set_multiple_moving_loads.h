@@ -13,7 +13,6 @@
 #pragma once
 
 #include "includes/define.h"
-#include "includes/kratos_parameters.h"
 #include "processes/process.h"
 
 #include "../../StructuralMechanicsApplication/custom_processes/set_moving_load_process.h"
@@ -21,6 +20,7 @@
 namespace Kratos
 {
 class ModelPart;
+class Parameters;
 
 /**
  * @class SetMultipleMovingLoadsProcess

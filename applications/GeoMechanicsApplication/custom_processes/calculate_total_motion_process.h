@@ -16,6 +16,7 @@
 namespace Kratos
 {
 class ModelPart;
+class Parameters;
 
 /// <summary>
 /// Process to calculate the total motion of nodes in a model part. Where total motion is either
