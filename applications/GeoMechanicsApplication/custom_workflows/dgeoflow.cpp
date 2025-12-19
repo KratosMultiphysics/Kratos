@@ -19,8 +19,8 @@
 #include "input_output/logger_output.h"
 #include "input_output/logger_table_output.h"
 
-#include <format>
 #include <filesystem>
+#include <format>
 #include <iomanip>
 #include <sstream>
 
