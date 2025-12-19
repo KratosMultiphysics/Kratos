@@ -406,14 +406,14 @@ public:
      */
     void CalculateMassMatrix(
         MatrixType &rMassMatrix,
-        const ProcessInfo &rCurrentProcessInfo);
+        const ProcessInfo &rCurrentProcessInfo) override;
 
     /**
      * @brief This method computes the damping matrix
      */
     void CalculateDampingMatrix(
         MatrixType &rDampingMatrix,
-        const ProcessInfo &rCurrentProcessInfo);
+        const ProcessInfo &rCurrentProcessInfo) override;
 
     /**
      * @brief This method returns a material property (e.g. Poisson ratio) without assuming that this property is
