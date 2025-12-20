@@ -1030,7 +1030,6 @@ class GenericConstitutiveLawIntegratorPlasticity
                 << "EQUIVALENT_STRESS_VECTOR_PLASTICITY_POINT_CURVE is required when using HARDENING_CURVE = CurveDefinedByPoints." << std::endl;
 
             const bool has_plastic_strain = rMaterialProperties.Has(PLASTIC_STRAIN_VECTOR_PLASTICITY_POINT_CURVE);
-            const bool has_total_strain = rMaterialProperties.Has(TOTAL_STRAIN_VECTOR_PLASTICITY_POINT_CURVE);
             const Vector& stress = rMaterialProperties[EQUIVALENT_STRESS_VECTOR_PLASTICITY_POINT_CURVE];
             const Vector& strain = has_plastic_strain ? rMaterialProperties[PLASTIC_STRAIN_VECTOR_PLASTICITY_POINT_CURVE] : rMaterialProperties[TOTAL_STRAIN_VECTOR_PLASTICITY_POINT_CURVE];
 
