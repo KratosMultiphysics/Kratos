@@ -197,7 +197,7 @@ void DEM_parallel_bond_bilinear_damage::CalculateNormalForces(double LocalElasti
 
     double bond_sigma = 0.0;
     if (calculation_area > 0.0){
-        contact_sigma = mBondedLocalElasticContactForce2 / calculation_area;
+        bond_sigma = mBondedLocalElasticContactForce2 / calculation_area;
     }
         
     //for debug
