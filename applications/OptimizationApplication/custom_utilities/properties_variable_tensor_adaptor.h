@@ -112,8 +112,7 @@ public:
      * @details This method is designed to store data even if the variable is not already available in the
      *          entities' properties. If it is not present in the entities' properties, then a correctly shaped zero valued value
      *          will be set and then their relevant components will be overwritten by this method.
-     * @warning Do not call @ref Check if you intend to use PropertiesVariableTensorAdaptor to add the variable
-     *          to the entities, and avoid unnecessarily initializing dummy values.
+     *
      * @warning If the entities' properties are not unique for each entity, this will result in a race condition.
      */
     void StoreData() override;
