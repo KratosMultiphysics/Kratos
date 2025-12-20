@@ -8,6 +8,131 @@ from KratosMultiphysics.testing.utilities import ReadModelPart
 # Import KratosUnittest
 import KratosMultiphysics.KratosUnittest as kratos_unittest
 
+class TestPropertiesVariableTensorAdaptor(kratos_unittest.TestCase):
+    @classmethod
+    def setUpClass(cls):
+        cls.model = Kratos.Model()
+        cls.model_part = cls.model.CreateModelPart("test")
+        cls.model_part.AddNodalSolutionStepVariable(Kratos.DENSITY)
+        cls.model_part.AddNodalSolutionStepVariable(Kratos.PRESSURE)
+        cls.model_part.AddNodalSolutionStepVariable(Kratos.ACCELERATION)
+        cls.model_part.AddNodalSolutionStepVariable(Kratos.VELOCITY)
+        with kratos_unittest.WorkFolderScope(".", __file__, True):
+            ReadModelPart("model_part_utils_test/quads", cls.model_part)
+
+        for node in cls.model_part.Nodes:
+            id = node.Id
+            node.SetSolutionStepValue(Kratos.VELOCITY, Kratos.Array3([id+3, id+4, id+5]))
+            node.SetSolutionStepValue(Kratos.PRESSURE, id+3)
+            node.SetValue(Kratos.PRESSURE, id+3)
+            node.SetValue(Kratos.VELOCITY, Kratos.Array3([id+3, id+4, id+5]))
+
+        KratosOA.OptimizationUtils.CreateEntitySpecificPropertiesForContainer(cls.model_part, cls.model_part.Conditions, True)
+        for condition in cls.model_part.Conditions:
+            id = condition.Id
+            condition.Properties[Kratos.PRESSURE] = id+400
+            condition.Properties[Kratos.VELOCITY] = Kratos.Array3([id+500, id+600, id+700])
+            condition.SetValue(Kratos.PRESSURE, id+4)
+            condition.SetValue(Kratos.VELOCITY, Kratos.Array3([id+5, id+6, id+7]))
+
+        KratosOA.OptimizationUtils.CreateEntitySpecificPropertiesForContainer(cls.model_part, cls.model_part.Elements, True)
+        for element in cls.model_part.Elements:
+            id = element.Id
+            element.Properties[Kratos.PRESSURE] =  id+500
+            element.Properties[Kratos.VELOCITY] =  Kratos.Array3([id+600, id+700, id+800])
+            element.SetValue(Kratos.PRESSURE, id+5)
+            element.SetValue(Kratos.VELOCITY, Kratos.Array3([id+6, id+7, id+8]))
+
+    def test_Check(self):
+        model = Kratos.Model()
+        model_part = model.CreateModelPart("test")
+        model_part.AddNodalSolutionStepVariable(Kratos.DENSITY)
+        model_part.AddNodalSolutionStepVariable(Kratos.PRESSURE)
+        model_part.AddNodalSolutionStepVariable(Kratos.ACCELERATION)
+        model_part.AddNodalSolutionStepVariable(Kratos.VELOCITY)
+        with kratos_unittest.WorkFolderScope(".", __file__, True):
+            ReadModelPart("model_part_utils_test/quads", model_part)
+
+        ta = KratosOA.PropertiesVariableTensorAdaptor(model_part.Elements, Kratos.PRESSURE)
+        with self.assertRaises(RuntimeError):
+            ta.Check()
+
+        model_part.GetProperties(1)[Kratos.PRESSURE] = 1.0
+        with self.assertRaises(RuntimeError):
+            ta.Check()
+
+    def test_ElementPropertiesScalar(self):
+        ta = KratosOA.PropertiesVariableTensorAdaptor(self.model_part.Elements, Kratos.PRESSURE)
+        ta.Check()
+        ta.CollectData()
+
+        original_ta = Kratos.TensorAdaptors.DoubleTensorAdaptor(ta)
+
+        ta.data *= 2.1
+
+        for i, element in enumerate(self.model_part.Elements):
+            self.assertEqual(ta.data[i], element.Properties[Kratos.PRESSURE] * 2.1)
+
+        ta.data *= 4.3
+        ta.StoreData()
+
+        for i, element in enumerate(self.model_part.Elements):
+            self.assertEqual(element.Properties[Kratos.PRESSURE], original_ta.data[i] * 2.1 * 4.3)
+
+    def test_ElementPropertiesVector(self):
+        ta = KratosOA.PropertiesVariableTensorAdaptor(self.model_part.Elements, Kratos.VELOCITY)
+        ta.Check()
+        ta.CollectData()
+
+        original_ta = Kratos.TensorAdaptors.DoubleTensorAdaptor(ta)
+
+        ta.data *= 2.1
+
+        for i, element in enumerate(self.model_part.Elements):
+            self.assertVectorAlmostEqual(ta.data[i], element.Properties[Kratos.VELOCITY] * 2.1)
+
+        ta.data *= 4.3
+        ta.StoreData()
+
+        for i, element in enumerate(self.model_part.Elements):
+            self.assertVectorAlmostEqual(element.Properties[Kratos.VELOCITY], original_ta.data[i] * 2.1 * 4.3)
+
+    def test_ConditionPropertiesScalar(self):
+        ta = KratosOA.PropertiesVariableTensorAdaptor(self.model_part.Conditions, Kratos.PRESSURE)
+        ta.Check()
+        ta.CollectData()
+
+        original_ta = Kratos.TensorAdaptors.DoubleTensorAdaptor(ta)
+
+        ta.data *= 2.1
+
+        for i, condition in enumerate(self.model_part.Conditions):
+            self.assertEqual(ta.data[i], condition.Properties[Kratos.PRESSURE] * 2.1)
+
+        ta.data *= 4.3
+        ta.StoreData()
+
+        for i, condition in enumerate(self.model_part.Conditions):
+            self.assertEqual(condition.Properties[Kratos.PRESSURE], original_ta.data[i] * 2.1 * 4.3)
+
+    def test_ConditionPropertiesVector(self):
+        ta = KratosOA.PropertiesVariableTensorAdaptor(self.model_part.Conditions, Kratos.VELOCITY)
+        ta.Check()
+        ta.CollectData()
+
+        original_ta = Kratos.TensorAdaptors.DoubleTensorAdaptor(ta)
+
+        ta.data *= 2.1
+
+        for i, condition in enumerate(self.model_part.Conditions):
+            self.assertVectorAlmostEqual(ta.data[i], condition.Properties[Kratos.VELOCITY] * 2.1)
+
+        ta.data *= 4.3
+        ta.StoreData()
+
+        for i, condition in enumerate(self.model_part.Conditions):
+            self.assertVectorAlmostEqual(condition.Properties[Kratos.VELOCITY], original_ta.data[i] * 2.1 * 4.3)
+
 class TestContainerExpression(ABC):
     @classmethod
     def CreateEntities(cls):
