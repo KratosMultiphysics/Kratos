@@ -209,7 +209,8 @@ void DEM_parallel_bond_bilinear_damage::CalculateNormalForces(double LocalElasti
         if ((element1->Id() == sphere_id) && (element2->Id() == neigh_sphere_id)) {
             std::ofstream normal_forces_file("debug_info_normal.txt", std::ios_base::out | std::ios_base::app);
             normal_forces_file << r_process_info[TIME]/*0*/ << " " << bonded_indentation/*1*/ << " " << bond_sigma/*2*/ << " " 
-            << mBondedLocalElasticContactForce2/*3*/ << " " << mUnbondedLocalElasticContactForce2/*4*/ << " " << '\n'; 
+            << mBondedLocalElasticContactForce2/*3*/ << " " << mUnbondedLocalElasticContactForce2/*4*/ << " " 
+            << indentation_particle << '\n'; 
             normal_forces_file.flush();
             normal_forces_file.close();
         }
