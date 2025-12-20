@@ -195,6 +195,26 @@ void DEM_parallel_bond_bilinear_damage::CalculateNormalForces(double LocalElasti
         mBondedScalingFactor[2] = 0.0;
     }
 
+    double bond_sigma = 0.0;
+    if (calculation_area > 0.0){
+        contact_sigma = mBondedLocalElasticContactForce2 / calculation_area;
+    }
+        
+    //for debug
+    if (mDebugPrintingOption) {
+
+        const long unsigned int& sphere_id = (*mpProperties)[DEBUG_PRINTING_ID_1];
+        const long unsigned int& neigh_sphere_id = (*mpProperties)[DEBUG_PRINTING_ID_2];
+        
+        if ((element1->Id() == sphere_id) && (element2->Id() == neigh_sphere_id)) {
+            std::ofstream normal_forces_file("debug_info_normal.txt", std::ios_base::out | std::ios_base::app);
+            normal_forces_file << r_process_info[TIME]/*0*/ << " " << bonded_indentation/*1*/ << " " << bond_sigma/*2*/ << " " 
+            << mBondedLocalElasticContactForce2/*3*/ << " " << mUnbondedLocalElasticContactForce2/*4*/ << " " << '\n'; 
+            normal_forces_file.flush();
+            normal_forces_file.close();
+        }
+    }
+
     KRATOS_CATCH("")  
 
 } // CalculateNormalForces
@@ -485,9 +505,11 @@ void DEM_parallel_bond_bilinear_damage::CalculateTangentialForces(double OldLoca
         const long unsigned int& neigh_sphere_id = (*mpProperties)[DEBUG_PRINTING_ID_2];
 
         if ((element1->Id() == sphere_id) && (element2->Id() == neigh_sphere_id)) {
-            std::ofstream normal_forces_file("delta_stress.txt", std::ios_base::out | std::ios_base::app);
-            normal_forces_file << r_process_info[TIME] << " " << contact_sigma/*1*/ << " " << contact_tau/*2*/ << " " << mDamageNormal/*3*/ << " " << mDamageTangential/*4*/ << " " << BondedLocalElasticContactForce[0]/*1*/ << " " << BondedLocalElasticContactForce[1]/*2*/ << " "  <<
-            UnbondedLocalElasticContactForce[0]/*1*/ << " " << UnbondedLocalElasticContactForce[1]/*2*/ << " " << '\n'; 
+            std::ofstream normal_forces_file("debug_info_tangential.txt", std::ios_base::out | std::ios_base::app);
+            normal_forces_file << r_process_info[TIME]/*0*/ << " " << delta_accumulated/*0*/<< " " << contact_tau/*2*/ << " " 
+            << mDamageNormal/*3*/ << " " << mDamageTangential/*4*/ << " " 
+            << BondedLocalElasticContactForce[0]/*1*/ << " " << BondedLocalElasticContactForce[1]/*2*/ << " "
+            << UnbondedLocalElasticContactForce[0]/*1*/ << " " << UnbondedLocalElasticContactForce[1]/*2*/ << " " << '\n'; 
             normal_forces_file.flush();
             normal_forces_file.close();
         }
