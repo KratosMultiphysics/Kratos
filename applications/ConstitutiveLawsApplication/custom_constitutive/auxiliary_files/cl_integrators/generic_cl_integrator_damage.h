@@ -70,7 +70,7 @@ class GenericConstitutiveLawIntegratorDamage
     static constexpr double tolerance = std::numeric_limits<double>::epsilon();
 
     /// The type of yield surface
-    typedef TYieldSurfaceType YieldSurfaceType;
+    using YieldSurfaceType = TYieldSurfaceType;
 
     /// The define the working dimension size, already defined in the yield surface
     static constexpr SizeType Dimension = YieldSurfaceType::Dimension;
@@ -325,35 +325,34 @@ class GenericConstitutiveLawIntegratorDamage
     {
         KRATOS_ERROR_IF_NOT(rMaterialProperties.Has(SOFTENING_TYPE)) << "SOFTENING_TYPE is not a defined value" << std::endl;
 
-        const bool has_strain_curve = rMaterialProperties.Has(STRAIN_DAMAGE_CURVE);
-        const bool has_stress_curve = rMaterialProperties.Has(STRESS_DAMAGE_CURVE);
+        const bool has_strain_vector = rMaterialProperties.Has(STRAIN_DAMAGE_CURVE);
+        const bool has_stress_vector = rMaterialProperties.Has(STRESS_DAMAGE_CURVE);
 
         //Checks when using the CurveFittingDamage softening curve
-        KRATOS_ERROR_IF(has_strain_curve != has_stress_curve)
+        KRATOS_ERROR_IF(has_strain_vector != has_stress_vector)
             << "Bad definition of STRAIN_DAMAGE_CURVE / STRESS_DAMAGE_CURVE: both must be provided together. " << std::endl;
 
-        if (has_strain_curve && has_stress_curve) {
+        if (has_strain_vector && has_stress_vector) {
 
-            const Vector& strain = rMaterialProperties[STRAIN_DAMAGE_CURVE];
-            const Vector& stress = rMaterialProperties[STRESS_DAMAGE_CURVE];
+            const Vector& r_strain_vector = rMaterialProperties[STRAIN_DAMAGE_CURVE];
+            const Vector& r_stress_vector = rMaterialProperties[STRESS_DAMAGE_CURVE];
 
-            KRATOS_ERROR_IF(strain.size() != stress.size())
+            KRATOS_ERROR_IF(r_strain_vector.size() != r_stress_vector.size())
                 << "Bad definition of STRAIN_DAMAGE_CURVE / STRESS_DAMAGE_CURVE: inconsistent dimensions. " << std::endl;
 
-            KRATOS_ERROR_IF(strain.size() < 2)
-                << "Bad definition of STRAIN_DAMAGE_CURVE / STRESS_DAMAGE_CURVE: at least 2 points are required. Provided size: " << strain.size() << std::endl;
+            KRATOS_ERROR_IF(r_strain_vector.size() < 2)
+                << "Bad definition of STRAIN_DAMAGE_CURVE / STRESS_DAMAGE_CURVE: at least 2 points are required. Provided size: " << r_strain_vector.size() << std::endl;
+            KRATOS_ERROR_IF(r_strain_vector[0] <= tolerance)
+                << "Bad definition of STRAIN_DAMAGE_CURVE: first value cannot be 0. Provided STRAIN_DAMAGE_CURVE[0]=" << r_strain_vector[0] << std::endl;
 
-            KRATOS_ERROR_IF(strain[0] <= tolerance)
-                << "Bad definition of STRAIN_DAMAGE_CURVE: first value cannot be 0. Provided STRAIN_DAMAGE_CURVE[0]=" << strain[0] << std::endl;
-
-            for (SizeType i = 1; i < strain.size(); ++i) {
-                KRATOS_ERROR_IF(strain[i] <= strain[i-1] + tolerance)
+            for (SizeType i = 1; i < r_strain_vector.size(); ++i) {
+                KRATOS_ERROR_IF(r_strain_vector[i] <= r_strain_vector[i-1] + tolerance)
                     << "Bad definition of STRAIN_DAMAGE_CURVE: it must be strictly increasing. " << std::endl;
             }
 
-            double previous_stiffness = stress[0] / strain[0];
-            for (SizeType i = 1; i < strain.size(); ++i) {
-                const double current_stiffness = stress[i] / strain[i];
+            double previous_stiffness = r_stress_vector[0] / r_strain_vector[0];
+            for (SizeType i = 1; i < r_strain_vector.size(); ++i) {
+                const double current_stiffness = r_stress_vector[i] / r_strain_vector[i];
                 KRATOS_ERROR_IF(current_stiffness > previous_stiffness + tolerance)
                     << "Bad definition of STRAIN_DAMAGE_CURVE / STRESS_DAMAGE_CURVE: stiffness recovery detected (secant stiffness must be non-increasing). " << std::endl;
                 previous_stiffness = current_stiffness;
@@ -365,12 +364,12 @@ class GenericConstitutiveLawIntegratorDamage
             const double yield_stress = rMaterialProperties[YIELD_STRESS];
             const double stress_tolerance = tolerance * yield_stress;
 
-            KRATOS_ERROR_IF(stress[0] < yield_stress - stress_tolerance)
-                << "Bad definition of STRESS_DAMAGE_CURVE: first stress point is below YIELD_STRESS. Provided STRESS_DAMAGE_CURVE[0]=" << stress[0]
+            KRATOS_ERROR_IF(r_stress_vector[0] < yield_stress - stress_tolerance)
+                << "Bad definition of STRESS_DAMAGE_CURVE: first stress point is below YIELD_STRESS. Provided STRESS_DAMAGE_CURVE[0]=" << r_stress_vector[0]
                 << ", YIELD_STRESS=" << yield_stress << std::endl;
 
-            KRATOS_ERROR_IF(stress[0] > yield_stress + stress_tolerance)
-                << "Bad definition of STRESS_DAMAGE_CURVE: first stress point is above YIELD_STRESS. Provided STRESS_DAMAGE_CURVE[0]=" << stress[0]
+            KRATOS_ERROR_IF(r_stress_vector[0] > yield_stress + stress_tolerance)
+                << "Bad definition of STRESS_DAMAGE_CURVE: first stress point is above YIELD_STRESS. Provided STRESS_DAMAGE_CURVE[0]=" << r_stress_vector[0]
                 << ", YIELD_STRESS=" << yield_stress << std::endl;
         }
 
