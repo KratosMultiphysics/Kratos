@@ -48,7 +48,7 @@ namespace Kratos
  * @ingroup StructuralMechanicsApplication
  * @brief This is the enhanced CS-DSG3 shell element. This element accounts for shear deformation using the Discrete Shear Gap (DSG) technique smoothed with the sub-triangulation
  * described in Rama et al [1] for an increased accuracy and stability. The shear and bending strain-displacement matrices are smoothed to improve the performance of the element in bending-dominated problems.
- * The membrane part is based on the ANDES membrane formulation proposed by Felippa [2]. 
+ * The membrane part is based on the ANDES membrane formulation proposed by Felippa [2].
  * This element can be used in both Linear and corotational formulations [3].
  * References:
  * [1]: Rama et al., "Efficient Co-Rotational 3-Node Shell Element", American Journal of Engineering and Applied Sciences 2016, 9 (2): 420.431 DOI: 10.3844/ajeassp.2016.420.431
@@ -206,7 +206,7 @@ public:
     /**
      * @brief Returns the set of integration points
      */
-    const GeometryType::IntegrationPointsArrayType IntegrationPoints() const 
+    const GeometryType::IntegrationPointsArrayType IntegrationPoints() const
     {
         return GetGeometry().IntegrationPoints();
     }
@@ -227,8 +227,8 @@ public:
     void CalculateBbendingShearTriangle(
         MatrixType& rB,
         const double Area,
-        const array_3& r_coord_1, 
-        const array_3& r_coord_2, 
+        const array_3& r_coord_1,
+        const array_3& r_coord_2,
         const array_3& r_coord_3
     );
 
@@ -239,8 +239,8 @@ public:
     void CalculateSmoothedBendingShearB(
         MatrixType& rB,
         const double Area,
-        const array_3& r_coord_1, 
-        const array_3& r_coord_2, 
+        const array_3& r_coord_1,
+        const array_3& r_coord_2,
         const array_3& r_coord_3
     );
 
@@ -252,8 +252,8 @@ public:
     void CalculateBmTriangle(
         MatrixType& rB,
         const double Area,
-        const array_3& r_coord_1, 
-        const array_3& r_coord_2, 
+        const array_3& r_coord_1,
+        const array_3& r_coord_2,
         const array_3& r_coord_3,
         const double area_coord_1,
         const double area_coord_2,
@@ -419,13 +419,12 @@ public:
      * @brief This method returns a material property (e.g. Poisson ratio) without assuming that this property is
      * in the main property. It looks into the subproperties to find the property.
      */
-    template <class TDataType> 
+    template <class TDataType>
     TDataType GetMaterialProperty(const Variable<TDataType>& rVariable, const Properties& rProps)
     {
         if (rProps.Has(rVariable)) {
             return rProps.GetValue(rVariable);
         } else {
-            const IndexType number_subprops = rProps.NumberOfSubproperties();
             const auto &r_sub_props_list = rProps.GetSubProperties();
             for (auto& r_subprop : r_sub_props_list) {
                 if (r_subprop.Has(rVariable)) {

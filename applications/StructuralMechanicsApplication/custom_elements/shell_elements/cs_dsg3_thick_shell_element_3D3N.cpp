@@ -174,9 +174,9 @@ void CSDSG3ThickShellElement3D3N<IS_COROTATIONAL>::GetDofList(
 
 template <bool IS_COROTATIONAL>
 double CSDSG3ThickShellElement3D3N<IS_COROTATIONAL>::CalculateArea(
-    const array_3& r_coord_1, 
-    const array_3& r_coord_2, 
-    const array_3& r_coord_3 
+    const array_3& r_coord_1,
+    const array_3& r_coord_2,
+    const array_3& r_coord_3
 ) const
 {
     KRATOS_TRY
@@ -231,7 +231,7 @@ void CSDSG3ThickShellElement3D3N<IS_COROTATIONAL>::CalculateRotationMatrixGlobal
         v2 -= inner_prod(v1, v2) * v1; // v2 orthogonal to v1
         const double norm_v2 = norm_2(v2);
         KRATOS_DEBUG_ERROR_IF_NOT(norm_v2 > 0.0) << "Zero length local axis 2 for CSDSG3ThickShellElement3D3N " << this->Id() << std::endl;
-        v2 /= norm_v2; 
+        v2 /= norm_v2;
     }
     noalias(v3) = MathUtils<double>::CrossProduct(v1, v2);
 
@@ -351,18 +351,17 @@ template <bool IS_COROTATIONAL>
 void CSDSG3ThickShellElement3D3N<IS_COROTATIONAL>::CalculateSmoothedBendingShearB(
     MatrixType& rB,
     const double Area,
-    const array_3& r_coord_1, 
-    const array_3& r_coord_2, 
+    const array_3& r_coord_1,
+    const array_3& r_coord_2,
     const array_3& r_coord_3
 )
 {
-    
     const IndexType strain_size = GetStrainSize();
     const auto& r_geometry = GetGeometry();
     const auto& r_props = GetProperties();
     const IndexType number_of_nodes = r_geometry.PointsNumber();
     const IndexType system_size = number_of_nodes * GetDoFsPerNode();
-    
+
     if (rB.size1() != strain_size || rB.size2() != system_size)
         rB.resize(strain_size, system_size, false);
     rB.clear();
@@ -755,7 +754,7 @@ void CSDSG3ThickShellElement3D3N<IS_COROTATIONAL>::CalculateLocalSystem(
     r_cl_options.Set(ConstitutiveLaw::COMPUTE_STRESS, true);
     r_cl_options.Set(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR, true);
     r_cl_options.Set(ConstitutiveLaw::USE_ELEMENT_PROVIDED_STRAIN, true);
-    
+
     // Let's initialize the constitutive law's values
     VectorType gen_strain_vector(strain_size), gen_stress_vector(strain_size); // Generalized
     MatrixType gen_constitutive_matrix(strain_size, strain_size);
@@ -851,7 +850,7 @@ void CSDSG3ThickShellElement3D3N<IS_COROTATIONAL>::CalculateLeftHandSide(
     r_cl_options.Set(ConstitutiveLaw::COMPUTE_STRESS, true);
     r_cl_options.Set(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR, true);
     r_cl_options.Set(ConstitutiveLaw::USE_ELEMENT_PROVIDED_STRAIN, true);
-    
+
     // Let's initialize the constitutive law's values
     VectorType gen_strain_vector(strain_size), gen_stress_vector(strain_size); // Generalized
     MatrixType gen_constitutive_matrix(strain_size, strain_size);
@@ -890,11 +889,12 @@ void CSDSG3ThickShellElement3D3N<IS_COROTATIONAL>::CalculateLeftHandSide(
         noalias(rLHS) += weight * prod(trans(B), temporal);
     }
     if constexpr (is_corotational) {
+        Vector empty_vector;
         this->mpCoordinateTransformation->FinalizeCalculations(mpCoordinateTransformation->CreateLocalCoordinateSystem(),
                                                                Vector(),
                                                                nodal_values,
                                                                rLHS,
-                                                               Vector(),
+                                                               empty_vector,
                                                                true,
                                                                true);
     } else {
@@ -942,7 +942,7 @@ void CSDSG3ThickShellElement3D3N<IS_COROTATIONAL>::CalculateRightHandSide(
     r_cl_options.Set(ConstitutiveLaw::COMPUTE_STRESS, true);
     r_cl_options.Set(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR, false);
     r_cl_options.Set(ConstitutiveLaw::USE_ELEMENT_PROVIDED_STRAIN, true);
-    
+
     // Let's initialize the constitutive law's values
     VectorType gen_strain_vector(strain_size), gen_stress_vector(strain_size); // Generalized
     MatrixType gen_constitutive_matrix(strain_size, strain_size);
@@ -981,10 +981,11 @@ void CSDSG3ThickShellElement3D3N<IS_COROTATIONAL>::CalculateRightHandSide(
 
     }
     if constexpr (is_corotational) {
+        Matrix empty_matrix;
         this->mpCoordinateTransformation->FinalizeCalculations(mpCoordinateTransformation->CreateLocalCoordinateSystem(),
                                                                Vector(),
                                                                nodal_values,
-                                                               Matrix(),
+                                                               empty_matrix,
                                                                rRHS,
                                                                true,
                                                                false);
@@ -1094,7 +1095,7 @@ void CSDSG3ThickShellElement3D3N<IS_COROTATIONAL>::FinalizeSolutionStep(
         r_cl_options.Set(ConstitutiveLaw::COMPUTE_STRESS, true);
         r_cl_options.Set(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR, true);
         r_cl_options.Set(ConstitutiveLaw::USE_ELEMENT_PROVIDED_STRAIN, true);
-        
+
         // Let's initialize the constitutive law's values
         VectorType gen_strain_vector(strain_size), gen_stress_vector(strain_size);
         MatrixType gen_constitutive_matrix(strain_size, strain_size);
@@ -1103,7 +1104,7 @@ void CSDSG3ThickShellElement3D3N<IS_COROTATIONAL>::FinalizeSolutionStep(
         cl_values.SetConstitutiveMatrix(gen_constitutive_matrix);
 
         const auto& r_integration_points = CustomTriangleAreaCoordinatesQuadrature(area);
-        double zeta1, zeta2, zeta3, weight;
+        double zeta1, zeta2, zeta3;
         MatrixType B(strain_size, system_size);
         MatrixType Bm(strain_size, system_size);
         MatrixType B_bs_smoothed(strain_size, system_size);
@@ -1171,7 +1172,7 @@ void CSDSG3ThickShellElement3D3N<IS_COROTATIONAL>::InitializeSolutionStep(
         auto &r_cl_options = cl_values.GetOptions();
         r_cl_options.Set(ConstitutiveLaw::COMPUTE_STRESS, true);
         r_cl_options.Set(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR, true);
-        
+
         // Let's initialize the constitutive law's values
         VectorType gen_strain_vector(strain_size), gen_stress_vector(strain_size);
         MatrixType gen_constitutive_matrix(strain_size, strain_size);
@@ -1180,7 +1181,7 @@ void CSDSG3ThickShellElement3D3N<IS_COROTATIONAL>::InitializeSolutionStep(
         cl_values.SetConstitutiveMatrix(gen_constitutive_matrix);
 
         const auto& r_integration_points = CustomTriangleAreaCoordinatesQuadrature(area);
-        double zeta1, zeta2, zeta3, weight;
+        double zeta1, zeta2, zeta3;
 
         MatrixType B(strain_size, system_size);
         MatrixType Bm(strain_size, system_size);
@@ -1228,13 +1229,6 @@ int CSDSG3ThickShellElement3D3N<IS_COROTATIONAL>::Check(
 
     KRATOS_CATCH("CSDSG3ThickShellElement3D3N::Check")
 }
-
-/***********************************************************************************/
-/***********************************************************************************/
-
-// Either corotational or linear
-template class CSDSG3ThickShellElement3D3N<true>;
-template class CSDSG3ThickShellElement3D3N<false>;
 
 /***********************************************************************************/
 /***********************************************************************************/
@@ -1349,5 +1343,12 @@ void CSDSG3ThickShellElement3D3N<IS_COROTATIONAL>::load(
     rSerializer.load("ConstitutiveLawVector", mConstitutiveLawVector);
     rSerializer.load("pCoordinateTransformation", mpCoordinateTransformation);
 }
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+// Either corotational or linear
+template class CSDSG3ThickShellElement3D3N<true>;
+template class CSDSG3ThickShellElement3D3N<false>;
 
 } // Namespace Kratos
