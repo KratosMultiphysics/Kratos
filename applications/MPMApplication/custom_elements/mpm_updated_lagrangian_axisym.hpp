@@ -21,7 +21,6 @@
 #include "includes/element.h"
 #include "includes/serializer.h"
 #include "includes/ublas_interface.h"
-#include "includes/constitutive_law.h"
 #include "custom_elements/mpm_updated_lagrangian.hpp"
 
 namespace Kratos
@@ -41,17 +40,6 @@ public:
 
     ///@name Type Definitions
     ///@{
-    ///Reference type definition for constitutive laws
-    typedef ConstitutiveLaw ConstitutiveLawType;
-    ///Pointer type for constitutive laws
-    typedef ConstitutiveLawType::Pointer ConstitutiveLawPointerType;
-    ///StressMeasure from constitutive laws
-    typedef ConstitutiveLawType::StressMeasure StressMeasureType;
-    ///Type definition for integration methods
-    typedef GeometryData::IntegrationMethod IntegrationMethod;
-
-    typedef typename GeometryType::CoordinatesArrayType CoordinatesArrayType;
-
     /// Counted pointer of LargeDisplacementElement
     KRATOS_CLASS_INTRUSIVE_POINTER_DEFINITION( MPMUpdatedLagrangianAxisym );
     ///@}
