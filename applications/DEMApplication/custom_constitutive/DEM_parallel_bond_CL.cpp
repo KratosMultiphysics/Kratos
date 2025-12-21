@@ -465,9 +465,10 @@ void DEM_parallel_bond::CalculateNormalForces(double LocalElasticContactForce[3]
         mUnbondedLocalElasticContactForce2 = 0.0;
     }
         
-    //if(calculation_area){
-    //    contact_sigma = mBondedLocalElasticContactForce2 / calculation_area;
-    //}
+    double bond_sigma = 0.0;
+    if(calculation_area){
+        bond_sigma = mBondedLocalElasticContactForce2 / calculation_area;
+    }
 
     LocalElasticContactForce[2] = mBondedLocalElasticContactForce2 + mUnbondedLocalElasticContactForce2;
 
@@ -484,8 +485,10 @@ void DEM_parallel_bond::CalculateNormalForces(double LocalElasticContactForce[3]
         const long unsigned int& neigh_sphere_id = (*mpProperties)[DEBUG_PRINTING_ID_2];
 
         if ((element1->Id() == sphere_id) && (element2->Id() == neigh_sphere_id)) {
-            std::ofstream normal_forces_file("delta_stress_normal.txt", std::ios_base::out | std::ios_base::app);
-            normal_forces_file << r_process_info[TIME] << " " << bonded_indentation/*2*/ << " " << contact_sigma/*3*/ << " " << indentation <<'\n'; 
+            std::ofstream normal_forces_file("debug_info_normal.txt", std::ios_base::out | std::ios_base::app);
+            normal_forces_file << r_process_info[TIME]/*0*/ << " " << bonded_indentation/*1*/ << " " << bond_sigma/*2*/ << " " 
+            << mBondedLocalElasticContactForce2/*3*/ << " " << mUnbondedLocalElasticContactForce2/*4*/ << " " 
+            << indentation_particle << '\n'; 
             normal_forces_file.flush();
             normal_forces_file.close();
         }
