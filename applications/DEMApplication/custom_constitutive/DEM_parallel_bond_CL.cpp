@@ -772,8 +772,10 @@ void DEM_parallel_bond::CalculateTangentialForces(double OldLocalElasticContactF
         const double AccumulatedBondedTangentialLocalDisplacementModulus = sqrt(mAccumulatedBondedTangentialLocalDisplacement[0]*mAccumulatedBondedTangentialLocalDisplacement[0] + mAccumulatedBondedTangentialLocalDisplacement[1]*mAccumulatedBondedTangentialLocalDisplacement[1]);
 
         if ((element1->Id() == sphere_id) && (element2->Id() == neigh_sphere_id)) {
-            std::ofstream normal_forces_file("delta_stress_tangential.txt", std::ios_base::out | std::ios_base::app);
-            normal_forces_file << r_process_info[TIME] << " " << AccumulatedBondedTangentialLocalDisplacementModulus/*4*/ << " " << contact_tau/*5*/ << '\n'; 
+            std::ofstream normal_forces_file("debug_info_tangential.txt", std::ios_base::out | std::ios_base::app);
+            normal_forces_file << r_process_info[TIME]/*0*/ << " " << AccumulatedBondedTangentialLocalDisplacementModulus/*1*/<< " " 
+            << contact_tau/*2*/ << " " << BondedLocalElasticContactForce[0]/*3*/ << " " << BondedLocalElasticContactForce[1]/*4*/ << " "
+            << UnbondedLocalElasticContactForce[0]/*5*/ << " " << UnbondedLocalElasticContactForce[1]/*6*/ << " " << '\n'; 
             normal_forces_file.flush();
             normal_forces_file.close();
         }
