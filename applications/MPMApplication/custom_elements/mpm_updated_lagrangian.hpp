@@ -11,45 +11,28 @@
 //
 
 
-#if !defined(KRATOS_UPDATED_LAGRANGIAN_H_INCLUDED )
-#define  KRATOS_UPDATED_LAGRANGIAN_H_INCLUDED
+#pragma once
 
 // System includes
 
 // External includes
 
 // Project includes
-#include "includes/define.h"
 #include "includes/element.h"
 #include "includes/serializer.h"
 #include "includes/ublas_interface.h"
-#include "includes/variables.h"
 #include "includes/constitutive_law.h"
 
 namespace Kratos
 {
-///@name Kratos Globals
-///@{
-///@}
-///@name Type Definitions
-///@{
-///@}
-///@name  Enum's
-///@{
-///@}
-///@name  Functions
-///@{
-///@}
 ///@name Kratos Classes
 ///@{
 
-/// Large Displacement Lagrangian Element for 3D and 2D geometries. (base class)
-
 /**
+ * Large Displacement Lagrangian Element for 3D and 2D geometries. (base class)
  * Implements a Large Displacement Lagrangian definition for structural analysis.
  * This works for arbitrary geometries in 3D and 2D (base class)
  */
-
 class MPMUpdatedLagrangian
     : public Element
 {
@@ -73,15 +56,6 @@ public:
     ///@}
 
 protected:
-
-    /**
-     * Flags related to the element computation
-     */
-
-    KRATOS_DEFINE_LOCAL_FLAG( COMPUTE_RHS_VECTOR );
-    KRATOS_DEFINE_LOCAL_FLAG( COMPUTE_LHS_MATRIX );
-    KRATOS_DEFINE_LOCAL_FLAG( COMPUTE_RHS_VECTOR_WITH_COMPONENTS );
-    KRATOS_DEFINE_LOCAL_FLAG( COMPUTE_LHS_MATRIX_WITH_COMPONENTS );
 
     struct MaterialPointVariables
     {
@@ -198,7 +172,6 @@ protected:
     /**
      * Parameters to be used in the Element as they are. Direct interface to Parameters Struct
      */
-
     struct GeneralVariables
     {
     public:
@@ -235,11 +208,17 @@ public:
     /// Empty constructor needed for serialization
     MPMUpdatedLagrangian();
 
-
     /// Default constructors
-    MPMUpdatedLagrangian(IndexType NewId, GeometryType::Pointer pGeometry);
+    MPMUpdatedLagrangian(
+        IndexType NewId,
+        GeometryType::Pointer pGeometry
+    );
 
-    MPMUpdatedLagrangian(IndexType NewId, GeometryType::Pointer pGeometry, PropertiesType::Pointer pProperties);
+    MPMUpdatedLagrangian(
+        IndexType NewId,
+        GeometryType::Pointer pGeometry,
+        PropertiesType::Pointer pProperties
+    );
 
     ///Copy constructor
     MPMUpdatedLagrangian(MPMUpdatedLagrangian const& rOther);
@@ -265,9 +244,17 @@ public:
      * @param pProperties: the properties assigned to the new element
      * @return a Pointer to the new element
      */
-    Element::Pointer Create(IndexType NewId, NodesArrayType const& ThisNodes, PropertiesType::Pointer pProperties) const override;
+    Element::Pointer Create(
+        IndexType NewId,
+        NodesArrayType const& ThisNodes,
+        PropertiesType::Pointer pProperties
+    ) const override;
 
-    Element::Pointer Create(IndexType NewId, GeometryType::Pointer pGeom, PropertiesType::Pointer pProperties) const override;
+    Element::Pointer Create(
+        IndexType NewId,
+        GeometryType::Pointer pGeom,
+        PropertiesType::Pointer pProperties
+    ) const override;
 
     /**
      * clones the selected element variables, creating a new one
@@ -276,66 +263,82 @@ public:
      * @param pProperties: the properties assigned to the new element
      * @return a Pointer to the new element
      */
-    Element::Pointer Clone(IndexType NewId, NodesArrayType const& ThisNodes) const override;
-
-
-    //************* GETTING METHODS
+    Element::Pointer Clone(
+        IndexType NewId,
+        NodesArrayType const& ThisNodes
+    ) const override;
 
     /**
      * Sets on rElementalDofList the degrees of freedom of the considered element geometry
      */
-    void GetDofList(DofsVectorType& rElementalDofList, const ProcessInfo& rCurrentProcessInfo) const override;
+    void GetDofList(
+        DofsVectorType& rElementalDofList,
+        const ProcessInfo& rCurrentProcessInfo
+    ) const override;
 
     /**
      * Sets on rResult the ID's of the element degrees of freedom
      */
-    void EquationIdVector(EquationIdVectorType& rResult, const ProcessInfo& rCurrentProcessInfo) const override;
+    void EquationIdVector(
+        EquationIdVectorType& rResult,
+        const ProcessInfo& rCurrentProcessInfo
+    ) const override;
 
     /**
      * Sets on rValues the nodal displacements
      */
-    void GetValuesVector(Vector& rValues, int Step = 0) const override;
+    void GetValuesVector(
+        Vector& rValues,
+        int Step = 0
+    ) const override;
 
     /**
      * Sets on rValues the nodal velocities
      */
-    void GetFirstDerivativesVector(Vector& rValues, int Step = 0) const override;
+    void GetFirstDerivativesVector(
+        Vector& rValues,
+        int Step = 0
+    ) const override;
 
     /**
      * Sets on rValues the nodal accelerations
      */
-    void GetSecondDerivativesVector(Vector& rValues, int Step = 0) const  override;
-
-    //************* STARTING - ENDING  METHODS
+    void GetSecondDerivativesVector(
+        Vector& rValues,
+        int Step = 0
+    ) const  override;
 
     /**
       * Called to initialize the element.
       * Must be called before any calculation is done
       */
-    void Initialize(const ProcessInfo& rCurrentProcessInfo) override;
+    void Initialize(
+        const ProcessInfo& rCurrentProcessInfo
+    ) override;
 
     /**
-     * Called at the beginning of each solution step
+     * Called at the end of each solution step
      */
-    void InitializeSolutionStep(const ProcessInfo& rCurrentProcessInfo) override;
+    void FinalizeSolutionStep(
+        const ProcessInfo& rCurrentProcessInfo
+    ) override;
 
     /**
      * This is a first and temporary attempt to move Particle to Grid Mapping from InitializeSolutionStep.
      * This will be moved to an utility in the future, after restructuring of MPM's internal variables data structure.
      * this is called at predict before doing the actual predict
-      * @param rCurrentProcessInfo the current process info instance
+     * @param rCurrentProcessInfo the current process info instance
      */
-    void AddExplicitContribution(const ProcessInfo& rCurrentProcessInfo) override;
+    void AddExplicitContribution(
+        const ProcessInfo& rCurrentProcessInfo
+    ) override;
 
-
-    /**
-     * Called at the end of each solution step
-     */
-    void FinalizeSolutionStep(const ProcessInfo& rCurrentProcessInfo) override;
-
-
-    //************* COMPUTING  METHODS
-
+    void AddExplicitContribution(
+        const VectorType& rRHSVector,
+        const Variable<VectorType>& rRHSVariable,
+        const Variable<array_1d<double, 3> >& rDestinationVariable,
+        const ProcessInfo& rCurrentProcessInfo
+    ) override;
 
     /**
      * this is called during the assembling process in order
@@ -346,9 +349,11 @@ public:
      * @param rCurrentProcessInfo: the current process info instance
      */
 
-    void CalculateLocalSystem(MatrixType& rLeftHandSideMatrix,
-                              VectorType& rRightHandSideVector,
-                              const ProcessInfo& rCurrentProcessInfo) override;
+    void CalculateLocalSystem(
+        MatrixType& rLeftHandSideMatrix,
+        VectorType& rRightHandSideVector,
+        const ProcessInfo& rCurrentProcessInfo
+    ) override;
 
     /**
       * this is called during the assembling process in order
@@ -356,8 +361,10 @@ public:
       * @param rRightHandSideVector: the elemental right hand side vector
       * @param rCurrentProcessInfo: the current process info instance
       */
-    void CalculateRightHandSide(VectorType& rRightHandSideVector,
-                                const ProcessInfo& rCurrentProcessInfo) override;
+    void CalculateRightHandSide(
+        VectorType& rRightHandSideVector,
+        const ProcessInfo& rCurrentProcessInfo
+    ) override;
 
     /**
      * this is called during the assembling process in order
@@ -365,8 +372,10 @@ public:
      * @param rLeftHandSideVector: the elemental left hand side vector
      * @param rCurrentProcessInfo: the current process info instance
      */
-    void CalculateLeftHandSide (MatrixType& rLeftHandSideMatrix,
-                                const ProcessInfo& rCurrentProcessInfo) override;
+    void CalculateLeftHandSide(
+        MatrixType& rLeftHandSideMatrix,
+        const ProcessInfo& rCurrentProcessInfo
+    ) override;
 
     /**
       * this is called during the assembling process in order
@@ -374,8 +383,10 @@ public:
       * @param rMassMatrix: the elemental mass matrix
       * @param rCurrentProcessInfo: the current process info instance
       */
-    void CalculateMassMatrix(MatrixType& rMassMatrix,
-                             const ProcessInfo& rCurrentProcessInfo) override;
+    void CalculateMassMatrix(
+        MatrixType& rMassMatrix,
+        const ProcessInfo& rCurrentProcessInfo
+    ) override;
 
     /**
       * this is called during the assembling process in order
@@ -383,17 +394,11 @@ public:
       * @param rDampingMatrix: the elemental damping matrix
       * @param rCurrentProcessInfo: the current process info instance
       */
-    void CalculateDampingMatrix(MatrixType& rDampingMatrix,
-                                const ProcessInfo& rCurrentProcessInfo) override;
+    void CalculateDampingMatrix(
+        MatrixType& rDampingMatrix,
+        const ProcessInfo& rCurrentProcessInfo
+    ) override;
 
-
-    void AddExplicitContribution(const VectorType& rRHSVector,
-                                 const Variable<VectorType>& rRHSVariable,
-                                 const Variable<array_1d<double, 3> >& rDestinationVariable,
-                                 const ProcessInfo& rCurrentProcessInfo) override;
-
-    //************************************************************************************
-    //************************************************************************************
     /**
      * This function provides the place to perform checks on the completeness of the input.
      * It is designed to be called only once (or anyway, not often) typically at the beginning
@@ -401,19 +406,14 @@ public:
      * or that no common error is found.
      * @param rCurrentProcessInfo
      */
-    int Check(const ProcessInfo& rCurrentProcessInfo) const override;
+    int Check(
+        const ProcessInfo& rCurrentProcessInfo
+    ) const override;
 
-
-    ///@}
-    ///@name Access
-    ///@{
-
-    ///@}
-    ///@name Inquiry
-    ///@{
     ///@}
     ///@name Input and output
     ///@{
+
     /// Turn back information as a string.
     std::string Info() const override
     {
@@ -438,49 +438,68 @@ public:
     ///@name Access Get Values
     ///@{
 
-    void CalculateOnIntegrationPoints(const Variable<bool>& rVariable,
+    void CalculateOnIntegrationPoints(
+        const Variable<bool>& rVariable,
         std::vector<bool>& rValues,
-        const ProcessInfo& rCurrentProcessInfo) override;
+        const ProcessInfo& rCurrentProcessInfo
+    ) override;
 
-    void CalculateOnIntegrationPoints(const Variable<int>& rVariable,
+    void CalculateOnIntegrationPoints(
+        const Variable<int>& rVariable,
         std::vector<int>& rValues,
-        const ProcessInfo& rCurrentProcessInfo) override;
+        const ProcessInfo& rCurrentProcessInfo
+    ) override;
 
-    void CalculateOnIntegrationPoints(const Variable<double>& rVariable,
+    void CalculateOnIntegrationPoints(
+        const Variable<double>& rVariable,
         std::vector<double>& rValues,
-        const ProcessInfo& rCurrentProcessInfo) override;
+        const ProcessInfo& rCurrentProcessInfo
+    ) override;
 
-    void CalculateOnIntegrationPoints(const Variable<array_1d<double, 3 > >& rVariable,
+    void CalculateOnIntegrationPoints(
+        const Variable<array_1d<double, 3 > >& rVariable,
         std::vector<array_1d<double, 3 > >& rValues,
-        const ProcessInfo& rCurrentProcessInfo) override;
+        const ProcessInfo& rCurrentProcessInfo
+    ) override;
 
-    void CalculateOnIntegrationPoints(const Variable<Vector>& rVariable,
+    void CalculateOnIntegrationPoints(
+        const Variable<Vector>& rVariable,
         std::vector<Vector>& rValues,
-        const ProcessInfo& rCurrentProcessInfo) override;
+        const ProcessInfo& rCurrentProcessInfo
+    ) override;
 
     ///@}
     ///@name Access Set Values
     ///@{
 
-    void SetValuesOnIntegrationPoints(const Variable<int>& rVariable,
+    void SetValuesOnIntegrationPoints(
+        const Variable<int>& rVariable,
         const std::vector<int>& rValues,
-        const ProcessInfo& rCurrentProcessInfo) override;
+        const ProcessInfo& rCurrentProcessInfo
+    ) override;
 
-    void SetValuesOnIntegrationPoints(const Variable<double>& rVariable,
+    void SetValuesOnIntegrationPoints(
+        const Variable<double>& rVariable,
         const std::vector<double>& rValues,
-        const ProcessInfo& rCurrentProcessInfo) override;
+        const ProcessInfo& rCurrentProcessInfo
+    ) override;
 
-    void SetValuesOnIntegrationPoints(const Variable<array_1d<double, 3 > >& rVariable,
+    void SetValuesOnIntegrationPoints(
+        const Variable<array_1d<double, 3 > >& rVariable,
         const std::vector<array_1d<double, 3 > >& rValues,
-        const ProcessInfo& rCurrentProcessInfo) override;
+        const ProcessInfo& rCurrentProcessInfo
+    ) override;
 
-    void SetValuesOnIntegrationPoints(const Variable<Vector>& rVariable,
+    void SetValuesOnIntegrationPoints(
+        const Variable<Vector>& rVariable,
         const std::vector<Vector>& rValues,
-        const ProcessInfo& rCurrentProcessInfo) override;
+        const ProcessInfo& rCurrentProcessInfo
+    ) override;
 
     ///@}
 
 protected:
+
     ///@name Protected static Member Variables
     ///@{
     ///@}
@@ -493,6 +512,7 @@ protected:
      * Container for historical total elastic deformation measure F0 = dx/dX
      */
     Matrix mDeformationGradientF0;
+
     /**
      * Container for the total deformation gradient determinants
      */
@@ -502,16 +522,6 @@ protected:
      * Container for constitutive law instances on each integration point
      */
     ConstitutiveLaw::Pointer mConstitutiveLawVector;
-
-
-    /**
-     * Finalize and Initialize label
-     */
-    bool mFinalizedStep;
-
-    ///@}
-    ///@name Protected Operators
-    ///@{
 
     virtual SizeType GetNumberOfDofs() {
         return GetGeometry().WorkingSpaceDimension();
@@ -527,91 +537,94 @@ protected:
         VectorType& rRightHandSideVector,
         const ProcessInfo& rCurrentProcessInfo,
         const bool CalculateStiffnessMatrixFlag,
-        const bool CalculateResidualVectorFlag);
-
-    ///@}
-    ///@name Protected Operations
-    ///@{
-
+        const bool CalculateResidualVectorFlag
+    );
 
     /**
      * Calculation and addition of the matrices of the LHS
      */
-
     virtual void CalculateAndAddLHS(
         MatrixType& rLeftHandSideMatrix,
         GeneralVariables& rVariables,
         const double& rIntegrationWeight,
-        const ProcessInfo& rCurrentProcessInfo);
+        const ProcessInfo& rCurrentProcessInfo
+    );
 
     /**
      * Calculation and addition of the vectors of the RHS
      */
-
     virtual void CalculateAndAddRHS(
         VectorType& rRightHandSideVector,
         GeneralVariables& rVariables,
         Vector& rVolumeForce,
         const double& rIntegrationWeight,
-        const ProcessInfo& rCurrentProcessInfo);
-
+        const ProcessInfo& rCurrentProcessInfo
+    );
 
     /**
      * Calculation of the Material Stiffness Matrix. Kuum = BT * C * B
      */
-
-    virtual void CalculateAndAddKuum(MatrixType& rLeftHandSideMatrix,
-                                     GeneralVariables& rVariables,
-                                     const double& rIntegrationWeight);
+    virtual void CalculateAndAddKuum(
+        MatrixType& rLeftHandSideMatrix,
+        GeneralVariables& rVariables,
+        const double& rIntegrationWeight
+    );
 
     /**
      * Calculation of the Geometric Stiffness Matrix. Kuug = BT * S
      */
-    virtual void CalculateAndAddKuug(MatrixType& rLeftHandSideMatrix,
-                                     GeneralVariables& rVariables,
-                                     const double& rIntegrationWeight,
-                                     const bool IsAxisymmetric = false);
-
+    virtual void CalculateAndAddKuug(
+        MatrixType& rLeftHandSideMatrix,
+        GeneralVariables& rVariables,
+        const double& rIntegrationWeight,
+        const bool IsAxisymmetric = false
+    );
 
     /**
      * Calculation of the External Forces Vector. Fe = N * t + N * b
      */
-    virtual void CalculateAndAddExternalForces(VectorType& rRightHandSideVector,
-            GeneralVariables& rVariables,
-            Vector& rVolumeForce,
-            const double& rIntegrationWeight);
-
+    virtual void CalculateAndAddExternalForces(
+        VectorType& rRightHandSideVector,
+        GeneralVariables& rVariables,
+        Vector& rVolumeForce,
+        const double& rIntegrationWeight
+    );
 
     /**
       * Calculation of the Internal Forces Vector. Fi = B * sigma
       */
-    virtual void CalculateAndAddInternalForces(VectorType& rRightHandSideVector,
-            GeneralVariables & rVariables,
-            const double& rIntegrationWeight);
+    virtual void CalculateAndAddInternalForces(
+        VectorType& rRightHandSideVector,
+        GeneralVariables & rVariables,
+        const double& rIntegrationWeight
+    );
 
     /// Calculation of the Explicit Stresses from velocity gradient.
-    virtual void CalculateExplicitStresses(const ProcessInfo& rCurrentProcessInfo,
-        GeneralVariables& rVariables);
-
+    virtual void CalculateExplicitStresses(
+        const ProcessInfo& rCurrentProcessInfo,
+        GeneralVariables& rVariables
+    );
 
     /**
      * Set Variables of the Element to the Parameters of the Constitutive Law
      */
-    virtual void SetGeneralVariables(GeneralVariables& rVariables,
-                                     ConstitutiveLaw::Parameters& rValues, const Vector& rN);
-
+    virtual void SetGeneralVariables(
+        GeneralVariables& rVariables,
+        ConstitutiveLaw::Parameters& rValues,
+         const Vector& rN
+    );
 
     /**
      * Initialize Material Properties on the Constitutive Law
      */
-    virtual void InitializeMaterial (const ProcessInfo& rCurrentProcessInfo);
-
+    virtual void InitializeMaterial(
+        const ProcessInfo& rCurrentProcessInfo
+    );
 
     /**
      * Reset the Constitutive Law Parameters
      */
     void ResetConstitutiveLaw() override;
-
 
     /**
      * Clear Nodal Forces
@@ -621,111 +634,111 @@ protected:
     /**
      * Calculate Element Kinematics
      */
-    virtual void CalculateKinematics(GeneralVariables& rVariables, const ProcessInfo& rCurrentProcessInfo);
-
+    virtual void CalculateKinematics(
+        GeneralVariables& rVariables,
+        const ProcessInfo& rCurrentProcessInfo
+    );
 
     /**
      * Calculation of the Current Displacement
      */
-    Matrix& CalculateCurrentDisp(Matrix & rCurrentDisp, const ProcessInfo& rCurrentProcessInfo);
+    Matrix& CalculateCurrentDisp(
+        Matrix & rCurrentDisp,
+        const ProcessInfo& rCurrentProcessInfo
+    );
 
     /**
      * Correct Precision Errors (for rigid free movements)
      */
     void DecimalCorrection(Vector& rVector);
 
-
     /**
      * Initialize Element General Variables
      */
-    virtual void InitializeGeneralVariables(GeneralVariables & rVariables, const ProcessInfo& rCurrentProcessInfo);
-
+    virtual void InitializeGeneralVariables(
+        GeneralVariables & rVariables,
+        const ProcessInfo& rCurrentProcessInfo
+    );
 
     /**
       * Finalize Element Internal Variables
       */
-    virtual void FinalizeStepVariables(GeneralVariables & rVariables, const ProcessInfo& rCurrentProcessInfo);
+    virtual void FinalizeStepVariables(
+        GeneralVariables & rVariables,
+        const ProcessInfo& rCurrentProcessInfo
+    );
 
     /**
       * Update the position of the MP or Gauss point when Finalize Element Internal Variables is called
       */
 
-    virtual void UpdateGaussPoint(GeneralVariables & rVariables, const ProcessInfo& rCurrentProcessInfo);
+    virtual void UpdateGaussPoint(
+        GeneralVariables & rVariables,
+        const ProcessInfo& rCurrentProcessInfo
+    );
 
     /**
      * Get the Historical Deformation Gradient to calculate after finalize the step
      */
-    virtual void GetHistoricalVariables( GeneralVariables& rVariables);
-
+    virtual void GetHistoricalVariables(
+        GeneralVariables& rVariables
+    );
 
     /**
      * Calculation of the Green Lagrange Strain Vector
      */
-    virtual void CalculateGreenLagrangeStrain(const Matrix& rF,
-            Vector& rStrainVector);
+    virtual void CalculateGreenLagrangeStrain(
+        const Matrix& rF,
+        Vector& rStrainVector
+    );
 
     /**
      * Calculation of the Almansi Strain Vector
      */
-    virtual void CalculateAlmansiStrain(const Matrix& rF,
-                                        Vector& rStrainVector);
-
+    virtual void CalculateAlmansiStrain(
+        const Matrix& rF,
+        Vector& rStrainVector
+    );
 
     /**
      * Calculation of the Deformation Matrix  BL
      */
-    virtual void CalculateDeformationMatrix(Matrix& rB,
-                                            const Matrix& rDN_DX,
-                                            const Matrix& rN,
-                                            const bool IsAxisymmetric = false);
+    virtual void CalculateDeformationMatrix(
+        Matrix& rB,
+        const Matrix& rDN_DX,
+        const Matrix& rN,
+        const bool IsAxisymmetric = false
+    );
 
     /**
      * Calculation of the Integration Weight
      */
-    virtual double& CalculateIntegrationWeight(double& rIntegrationWeight);
-
+    virtual double& CalculateIntegrationWeight(
+        double& rIntegrationWeight
+    );
 
     /**
      * Calculation of the Volume Change of the Element
      */
-    virtual double& CalculateVolumeChange(double& rVolumeChange, GeneralVariables& rVariables);
-
+    virtual double& CalculateVolumeChange(
+        double& rVolumeChange,
+        GeneralVariables& rVariables
+    );
 
     /// Calculation of the Deformation Gradient F
-    void CalculateDeformationGradient(const Matrix& rDN_DX, Matrix& rF, Matrix& rDeltaPosition,
-        const bool IsAxisymmetric = false);
-
-    ///@name Protected LifeCycle
-    ///@{
-    ///@}
+    void CalculateDeformationGradient(
+        const Matrix& rDN_DX,
+        Matrix& rF,
+        Matrix& rDeltaPosition,
+        const bool IsAxisymmetric = false
+    );
 
 private:
-
-    ///@name Static Member Variables
-    ///@{
-    ///@}
-    ///@name Member Variables
-    ///@{
-
-
-    ///@}
-    ///@name Private Operators
-    ///@{
-
-
-    ///@}
-    ///@name Private Operations
-    ///@{
-
-
-    ///@}
-    ///@name Private  Access
-    ///@{
-    ///@}
 
     ///@}
     ///@name Serialization
     ///@{
+
     friend class Serializer;
 
     // A private default constructor necessary for serialization
@@ -734,23 +747,6 @@ private:
 
     void load(Serializer& rSerializer) override;
 
-
-    ///@name Private Inquiry
-    ///@{
-    ///@}
-    ///@name Un accessible methods
-    ///@{
-    ///@}
-
 }; // Class MPMUpdatedLagrangian
 
-///@}
-///@name Type Definitions
-///@{
-///@}
-///@name Input and output
-///@{
-///@}
-
 } // namespace Kratos.
-#endif // KRATOS_UPDATED_LAGRANGIAN_H_INCLUDED  defined
