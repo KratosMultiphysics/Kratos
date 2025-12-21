@@ -111,9 +111,10 @@ private:
         for (auto& r_node : rElement.GetGeometry()) {
             const auto  local_node_index = global_to_local_mapping.at(r_node.Id());
             const auto& r_row            = row(rExtrapolationMatrix, local_node_index);
-            auto        nodal_value      = std::inner_product(
-                r_row.begin(), r_row.end(), values_on_integration_points.begin(), GetZeroValueOf(rVariable));
-            nodal_value /= mNodeIdToConnectedElementIds.at(r_node.Id()).size();
+            const T     nodal_value =
+                std::inner_product(r_row.begin(), r_row.end(), values_on_integration_points.begin(),
+                                   GetZeroValueOf(rVariable)) /
+                mNodeIdToConnectedElementIds.at(r_node.Id()).size();
 
             rAtomicAddOperation(r_node.FastGetSolutionStepValue(rVariable), nodal_value);
         }
