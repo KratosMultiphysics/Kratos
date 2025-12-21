@@ -24,7 +24,6 @@
 #include "mpm_application_variables.h"
 #include "includes/checks.h"
 #include "custom_utilities/mpm_energy_calculation_utility.h"
-#include "custom_utilities/mpm_explicit_utilities.h"
 #include "custom_utilities/mpm_math_utilities.h"
 
 namespace Kratos
@@ -273,9 +272,6 @@ void MPMUpdatedLagrangian::CalculateElementalSystem(
     GeneralVariables Variables;
     this->InitializeGeneralVariables(Variables,rCurrentProcessInfo);
     const Vector& r_N = row(GetGeometry().ShapeFunctionsValues(), 0);
-    const bool is_explicit = (rCurrentProcessInfo.Has(IS_EXPLICIT))
-        ? rCurrentProcessInfo.GetValue(IS_EXPLICIT)
-        : false;
 
     // Create constitutive law parameters:
     ConstitutiveLaw::Parameters Values(GetGeometry(),GetProperties(),rCurrentProcessInfo);
@@ -284,34 +280,31 @@ void MPMUpdatedLagrangian::CalculateElementalSystem(
     Flags &ConstitutiveLawOptions=Values.GetOptions();
     ConstitutiveLawOptions.Set(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR);
 
-    if (!is_explicit)
-    {
-        ConstitutiveLawOptions.Set(ConstitutiveLaw::USE_ELEMENT_PROVIDED_STRAIN);
-        ConstitutiveLawOptions.Set(ConstitutiveLaw::COMPUTE_STRESS);
+    ConstitutiveLawOptions.Set(ConstitutiveLaw::USE_ELEMENT_PROVIDED_STRAIN);
+    ConstitutiveLawOptions.Set(ConstitutiveLaw::COMPUTE_STRESS);
 
-        // Compute element kinematics B, F, DN_DX ...
-        this->CalculateKinematics(Variables, rCurrentProcessInfo);
+    // Compute element kinematics B, F, DN_DX ...
+    this->CalculateKinematics(Variables, rCurrentProcessInfo);
 
-        // Set general variables to constitutivelaw parameters
-        this->SetGeneralVariables(Variables, Values, r_N);
+    // Set general variables to constitutivelaw parameters
+    this->SetGeneralVariables(Variables, Values, r_N);
 
-        // Calculate Material Response
-        /* NOTE:
-        The function below will call CalculateMaterialResponseCauchy() by default and then (may)
-        call CalculateMaterialResponseKirchhoff() in the constitutive_law.*/
-        mConstitutiveLawVector->CalculateMaterialResponse(Values, Variables.StressMeasure);
+    // Calculate Material Response
+    /* NOTE:
+    The function below will call CalculateMaterialResponseCauchy() by default and then (may)
+    call CalculateMaterialResponseKirchhoff() in the constitutive_law.*/
+    mConstitutiveLawVector->CalculateMaterialResponse(Values, Variables.StressMeasure);
 
-        /* NOTE:
-        The material points will have constant mass as defined at the beginning.
-        However, the density and volume (integration weight) are changing every time step.*/
-        // Update MP_Density
-        mMP.density = (GetProperties()[DENSITY]) / Variables.detFT;
-    }
+    /* NOTE:
+    The material points will have constant mass as defined at the beginning.
+    However, the density and volume (integration weight) are changing every time step.*/
+    // Update MP_Density
+    mMP.density = (GetProperties()[DENSITY]) / Variables.detFT;
 
     // The MP_Volume (integration weight) is evaluated
     mMP.volume = mMP.mass / mMP.density;
 
-    if (CalculateStiffnessMatrixFlag && !is_explicit) // if calculation of the matrix is required
+    if (CalculateStiffnessMatrixFlag) // if calculation of the matrix is required
     {
         // Contributions to stiffness matrix calculated on the reference configuration
         this->CalculateAndAddLHS(
@@ -482,20 +475,8 @@ void MPMUpdatedLagrangian::CalculateAndAddRHS(
     // Operation performed: rRightHandSideVector += ExtForce*IntToReferenceWeight
     this->CalculateAndAddExternalForces( rRightHandSideVector, rVariables, rVolumeForce, rIntegrationWeight );
 
-    const bool is_explicit = (rCurrentProcessInfo.Has(IS_EXPLICIT))
-        ? rCurrentProcessInfo.GetValue(IS_EXPLICIT)
-        : false;
-    if (is_explicit)
-    {
-        MPMExplicitUtilities::CalculateAndAddExplicitInternalForce(rCurrentProcessInfo ,
-            *this, mMP.cauchy_stress_vector, mMP.volume,
-            mConstitutiveLawVector->GetStrainSize(), rRightHandSideVector);
-    }
-    else
-    {
-        // Operation performed: rRightHandSideVector -= IntForce*IntToReferenceWeight
-        this->CalculateAndAddInternalForces(rRightHandSideVector, rVariables, rIntegrationWeight);
-    }
+    // Operation performed: rRightHandSideVector -= IntForce*IntToReferenceWeight
+    this->CalculateAndAddInternalForces(rRightHandSideVector, rVariables, rIntegrationWeight);
 }
 
 //************************************************************************************
@@ -541,76 +522,6 @@ void MPMUpdatedLagrangian::CalculateAndAddInternalForces(
     noalias( rRightHandSideVector ) -= internal_forces;
 
     KRATOS_CATCH( "" )
-}
-
-//************************************************************************************
-//************************************************************************************
-void MPMUpdatedLagrangian::CalculateExplicitStresses(
-    const ProcessInfo& rCurrentProcessInfo,
-    GeneralVariables& rVariables
-)
-{
-    KRATOS_TRY
-
-    // Create constitutive law parameters:
-    ConstitutiveLaw::Parameters Values(GetGeometry(), GetProperties(), rCurrentProcessInfo);
-
-    // Define the stress measure
-    rVariables.StressMeasure = ConstitutiveLaw::StressMeasure_Cauchy;
-
-    // Set constitutive law flags:
-    Flags& ConstitutiveLawOptions = Values.GetOptions();
-    ConstitutiveLawOptions.Set(ConstitutiveLaw::COMPUTE_STRESS, true);
-
-    // use element provided strain incremented from velocity gradient
-    ConstitutiveLawOptions.Set(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR, true);
-    ConstitutiveLawOptions.Set(ConstitutiveLaw::USE_ELEMENT_PROVIDED_STRAIN, false);
-
-    // Compute explicit element kinematics, strain is incremented here.
-    Matrix Jacobian;
-    GetGeometry().Jacobian(Jacobian, 0);
-    Matrix InvJ;
-    double detJ;
-    MathUtils<double>::InvertMatrix(Jacobian, InvJ, detJ);
-    const Matrix& r_N = GetGeometry().ShapeFunctionsValues();
-    Matrix r_DN_De = GetGeometry().ShapeFunctionLocalGradient(0);
-    rVariables.DN_DX = prod(r_DN_De, InvJ); // cartesian gradients
-
-    MPMExplicitUtilities::CalculateExplicitKinematics(rCurrentProcessInfo, *this,
-        mMP.almansi_strain_vector, rVariables.F, mConstitutiveLawVector->GetStrainSize());
-
-    rVariables.StressVector = mMP.cauchy_stress_vector;
-    rVariables.StrainVector = mMP.almansi_strain_vector;
-
-    // Update gradient deformation
-    rVariables.F0 = mDeformationGradientF0; // total member def grad NOT including this increment
-    rVariables.FT = prod(rVariables.F, rVariables.F0); // total def grad including this increment
-    rVariables.detF = MathUtils<double>::Det(rVariables.F); // det of current increment
-    rVariables.detF0 = MathUtils<double>::Det(rVariables.F0); // det of def grad NOT including this increment
-    rVariables.detFT = MathUtils<double>::Det(rVariables.FT); // det of total def grad including this increment
-    mDeformationGradientF0 = rVariables.FT; // update member internal total grad def
-    mDeterminantF0 = rVariables.detFT; // update member internal total grad def det
-
-    // Update MP volume
-    if (rCurrentProcessInfo.GetValue(IS_COMPRESSIBLE))
-    {
-        mMP.density = (GetProperties()[DENSITY]) / rVariables.detFT;
-        mMP.volume = mMP.mass / mMP.density;
-    }
-
-    rVariables.CurrentDisp = CalculateCurrentDisp(rVariables.CurrentDisp, rCurrentProcessInfo);
-
-    // Set general variables to constitutivelaw parameters
-    const Vector& r_N_vec = row(r_N, 0);
-    this->SetGeneralVariables(rVariables, Values, r_N_vec);
-
-    // Calculate Material Response
-    /* NOTE:
-    The function below will call CalculateMaterialResponseCauchy() by default and then (may)
-    call CalculateMaterialResponseKirchhoff() in the constitutive_law.*/
-    mConstitutiveLawVector->CalculateMaterialResponse(Values, rVariables.StressMeasure);
-
-    KRATOS_CATCH("")
 }
 
 //************************************************************************************
@@ -862,10 +773,6 @@ void MPMUpdatedLagrangian::AddExplicitContribution(
     const unsigned int dimension = r_geometry.WorkingSpaceDimension();
     const unsigned int number_of_nodes = r_geometry.PointsNumber();
 
-    const bool is_explicit_central_difference = (rCurrentProcessInfo.Has(IS_EXPLICIT_CENTRAL_DIFFERENCE))
-        ? rCurrentProcessInfo.GetValue(IS_EXPLICIT_CENTRAL_DIFFERENCE)
-        : false;
-
     // Calculating shape functions
     const Matrix& r_N = GetGeometry().ShapeFunctionsValues();
     array_1d<double,3> nodal_momentum = ZeroVector(3);
@@ -878,16 +785,6 @@ void MPMUpdatedLagrangian::AddExplicitContribution(
         {
             nodal_momentum[j] = r_N(0, i) * mMP.velocity[j] * mMP.mass;
             nodal_inertia[j] = r_N(0, i) * mMP.acceleration[j] * mMP.mass;
-        }
-
-        // Add in the predictor velocity increment for central difference explicit
-        // This is the 'previous grid acceleration', which is actually
-        // be the initial material point acceleration mapped to the grid.
-        if (is_explicit_central_difference) {
-            const double& delta_time = rCurrentProcessInfo[DELTA_TIME];
-            for (unsigned int j = 0; j < dimension; j++) {
-                nodal_momentum[j] += 0.5 * delta_time * (r_N(0, i) * mMP.acceleration[j]) * mMP.mass;
-            }
         }
 
         r_geometry[i].SetLock();
@@ -905,13 +802,6 @@ void MPMUpdatedLagrangian::FinalizeSolutionStep(
 )
 {
     KRATOS_TRY
-
-    const bool is_explicit = (rCurrentProcessInfo.Has(IS_EXPLICIT))
-        ? rCurrentProcessInfo.GetValue(IS_EXPLICIT)
-        : false;
-
-    KRATOS_ERROR_IF(is_explicit)
-    << "FinalizeSolutionStep for explicit time integration is done in the scheme";
 
     // Create and initialize element variables:
     GeneralVariables Variables;
@@ -972,10 +862,7 @@ void MPMUpdatedLagrangian::FinalizeStepVariables(
     if (mConstitutiveLawVector->Has(MP_ACCUMULATED_PLASTIC_DEVIATORIC_STRAIN))
         mConstitutiveLawVector->GetValue(MP_ACCUMULATED_PLASTIC_DEVIATORIC_STRAIN, mMP.accumulated_plastic_deviatoric_strain);
 
-    const bool is_explicit = (rCurrentProcessInfo.Has(IS_EXPLICIT))
-        ? rCurrentProcessInfo.GetValue(IS_EXPLICIT)
-        : false;
-    if (!is_explicit) this->UpdateGaussPoint(rVariables, rCurrentProcessInfo);
+    this->UpdateGaussPoint(rVariables, rCurrentProcessInfo);
 }
 
 //************************************************************************************
@@ -1539,42 +1426,6 @@ void MPMUpdatedLagrangian::DecimalCorrection(
     KRATOS_CATCH( "" )
 }
 
-
-//************************************************************************************
-//************************************************************************************
-void MPMUpdatedLagrangian::CalculateOnIntegrationPoints(
-    const Variable<bool>& rVariable,
-    std::vector<bool>& rValues,
-    const ProcessInfo& rCurrentProcessInfo
-)
-{
-    if (rValues.size() != 1)
-        rValues.resize(1);
-
-    if (rVariable == CALCULATE_EXPLICIT_MP_STRESS)
-    {
-        GeneralVariables Variables;
-        this->InitializeGeneralVariables(Variables, rCurrentProcessInfo);
-        this->CalculateExplicitStresses(rCurrentProcessInfo, Variables);
-        this->FinalizeStepVariables(Variables, rCurrentProcessInfo);
-        rValues[0] = true;
-    }
-    else if (rVariable == EXPLICIT_MAP_GRID_TO_MP)
-    {
-        MPMExplicitUtilities::UpdateGaussPointExplicit(rCurrentProcessInfo, *this);
-        rValues[0] = true;
-    }
-    else if (rVariable == CALCULATE_MUSL_VELOCITY_FIELD)
-    {
-        MPMExplicitUtilities::CalculateMUSLGridVelocity(rCurrentProcessInfo, *this);
-        rValues[0] = true;
-    }
-    else
-    {
-        KRATOS_ERROR << "Variable " << rVariable << " is called in CalculateOnIntegrationPoints, but is not implemented." << std::endl;
-    }
-}
-
 //************************************************************************************
 //************************************************************************************
 void MPMUpdatedLagrangian::CalculateOnIntegrationPoints(
@@ -1805,14 +1656,10 @@ int  MPMUpdatedLagrangian::Check(
 
     this->GetProperties().GetValue( CONSTITUTIVE_LAW )->GetLawFeatures(LawFeatures);
 
-    const bool is_explicit = (rCurrentProcessInfo.Has(IS_EXPLICIT))
-        ? rCurrentProcessInfo.GetValue(IS_EXPLICIT) : false;
-
     bool correct_strain_measure = false;
     for(unsigned int i=0; i<LawFeatures.mStrainMeasures.size(); i++)
     {
         if(LawFeatures.mStrainMeasures[i] == ConstitutiveLaw::StrainMeasure_Deformation_Gradient) correct_strain_measure = true;
-        if (is_explicit && LawFeatures.mStrainMeasures[i] == ConstitutiveLaw::StrainMeasure_Velocity_Gradient) correct_strain_measure = true;
 
     }
     if (true)

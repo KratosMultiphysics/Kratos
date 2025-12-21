@@ -439,12 +439,6 @@ public:
     ///@{
 
     void CalculateOnIntegrationPoints(
-        const Variable<bool>& rVariable,
-        std::vector<bool>& rValues,
-        const ProcessInfo& rCurrentProcessInfo
-    ) override;
-
-    void CalculateOnIntegrationPoints(
         const Variable<int>& rVariable,
         std::vector<int>& rValues,
         const ProcessInfo& rCurrentProcessInfo
@@ -597,12 +591,6 @@ protected:
         VectorType& rRightHandSideVector,
         GeneralVariables & rVariables,
         const double& rIntegrationWeight
-    );
-
-    /// Calculation of the Explicit Stresses from velocity gradient.
-    virtual void CalculateExplicitStresses(
-        const ProcessInfo& rCurrentProcessInfo,
-        GeneralVariables& rVariables
     );
 
     /**
