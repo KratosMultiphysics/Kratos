@@ -77,6 +77,27 @@ void GeoExtrapolateIntegrationPointValuesToNodesProcess::InitializeAverageVariab
     }
 }
 
+double GeoExtrapolateIntegrationPointValuesToNodesProcess::GetZeroValueOf(const Variable<double>&) const
+{
+    return 0.0;
+}
+
+array_1d<double, 3> GeoExtrapolateIntegrationPointValuesToNodesProcess::GetZeroValueOf(
+    const Variable<array_1d<double, 3>>&) const
+{
+    return array_1d<double, 3>(3, 0.0);
+}
+
+Vector GeoExtrapolateIntegrationPointValuesToNodesProcess::GetZeroValueOf(const Variable<Vector>& rVariable) const
+{
+    return mZeroValuesOfVectorVariables.at(&rVariable);
+}
+
+Matrix GeoExtrapolateIntegrationPointValuesToNodesProcess::GetZeroValueOf(const Variable<Matrix>& rVariable) const
+{
+    return mZeroValuesOfMatrixVariables.at(&rVariable);
+}
+
 void GeoExtrapolateIntegrationPointValuesToNodesProcess::InitializeVectorAndMatrixZeros()
 {
     for (const auto& r_model_part : mrModelParts) {
