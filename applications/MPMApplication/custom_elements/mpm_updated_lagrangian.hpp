@@ -688,8 +688,7 @@ protected:
      */
     virtual void CalculateDeformationMatrix(
         Matrix& rB,
-        const Matrix& rDN_DX,
-        const Matrix& rN
+        const Matrix& rDN_DX
     );
 
     /**

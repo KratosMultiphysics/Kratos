@@ -367,14 +367,12 @@ void MPMUpdatedLagrangian::CalculateKinematics(
 
     rVariables.DN_DX = prod(r_DN_De, Invj); //overwrites DX now is the current position with displacements
 
-    const Matrix& r_N = GetGeometry().ShapeFunctionsValues();
-
     // Determinant of the previous Deformation Gradient F_n
     rVariables.detF0 = mDeterminantF0;
     rVariables.F0    = mDeformationGradientF0;
 
     // Compute the deformation matrix B
-    this->CalculateDeformationMatrix(rVariables.B, rVariables.DN_DX, r_N);
+    this->CalculateDeformationMatrix(rVariables.B, rVariables.DN_DX);
 
     KRATOS_CATCH( "" )
 }
@@ -383,8 +381,7 @@ void MPMUpdatedLagrangian::CalculateKinematics(
 //************************************************************************************
 void MPMUpdatedLagrangian::CalculateDeformationMatrix(
     Matrix& rB,
-    const Matrix& rDN_DX,
-    const Matrix& rN
+    const Matrix& rDN_DX
 )
 {
     KRATOS_TRY

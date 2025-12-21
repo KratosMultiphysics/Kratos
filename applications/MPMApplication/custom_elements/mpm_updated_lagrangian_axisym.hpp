@@ -165,8 +165,7 @@ protected:
      */
     virtual void CalculateDeformationMatrix(
         Matrix& rB,
-        const Matrix& rDN_DX,
-        const Matrix& rN
+        const Matrix& rDN_DX
     ) override;
 
     /// Calculation of the Deformation Gradient F

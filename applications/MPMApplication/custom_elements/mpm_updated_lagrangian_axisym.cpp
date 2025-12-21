@@ -182,14 +182,15 @@ void MPMUpdatedLagrangianAxisym::CalculateKinematics(
 //************************************************************************************
 void MPMUpdatedLagrangianAxisym::CalculateDeformationMatrix(
     Matrix& rB,
-    const Matrix& rDN_DX,
-    const Matrix& rN
+    const Matrix& rDN_DX
 )
 {
     KRATOS_TRY
 
     const unsigned int number_of_nodes = GetGeometry().PointsNumber();
     const unsigned int dimension       = GetGeometry().WorkingSpaceDimension();
+
+    const Matrix& rN = GetGeometry().ShapeFunctionsValues();
 
     rB.clear(); // Set all components to zero
 
