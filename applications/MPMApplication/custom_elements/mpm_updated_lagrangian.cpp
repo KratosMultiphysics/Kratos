@@ -24,7 +24,6 @@
 #include "mpm_application_variables.h"
 #include "includes/checks.h"
 #include "custom_utilities/mpm_energy_calculation_utility.h"
-#include "custom_utilities/mpm_math_utilities.h"
 
 namespace Kratos
 {
@@ -131,7 +130,9 @@ MPMUpdatedLagrangian::~MPMUpdatedLagrangian()
 
 //************************************************************************************
 //************************************************************************************
-void MPMUpdatedLagrangian::Initialize(const ProcessInfo& rCurrentProcessInfo)
+void MPMUpdatedLagrangian::Initialize(
+    const ProcessInfo& rCurrentProcessInfo
+)
 {
     KRATOS_TRY
 
@@ -159,12 +160,7 @@ void MPMUpdatedLagrangian::InitializeGeneralVariables(
     const SizeType number_of_nodes = GetGeometry().size();
     const SizeType dimension = GetGeometry().WorkingSpaceDimension();
     const SizeType strain_size = GetProperties().GetValue(CONSTITUTIVE_LAW)->GetStrainSize();
-    const bool is_axisymmetric = (rCurrentProcessInfo.Has(IS_AXISYMMETRIC))
-        ? rCurrentProcessInfo.GetValue(IS_AXISYMMETRIC)
-        : false;
-    const SizeType def_grad_dim = (is_axisymmetric)
-        ? 3
-        : dimension;
+    const SizeType def_grad_dim = dimension;
 
     rVariables.detF  = 1;
 
@@ -364,30 +360,21 @@ void MPMUpdatedLagrangian::CalculateKinematics(
     //DX refers to the current undeformed background grid element. This derivative is needed for the incremental deformation gradient
     rVariables.DN_DX = prod(r_DN_De, InvJ); 
 
-    const bool is_axisymmetric = (rCurrentProcessInfo.Has(IS_AXISYMMETRIC))
-        ? rCurrentProcessInfo.GetValue(IS_AXISYMMETRIC)
-        : false;
-
     rVariables.CurrentDisp = CalculateCurrentDisp(rVariables.CurrentDisp, rCurrentProcessInfo);
     
     // calculate incremental deformation gradient
-    this->CalculateDeformationGradient(rVariables.DN_DX, rVariables.F, rVariables.CurrentDisp, is_axisymmetric);
+    this->CalculateDeformationGradient(rVariables.DN_DX, rVariables.F, rVariables.CurrentDisp);
 
     rVariables.DN_DX = prod(r_DN_De, Invj); //overwrites DX now is the current position with displacements
 
     const Matrix& r_N = GetGeometry().ShapeFunctionsValues();
-
-    if (is_axisymmetric) {
-        rVariables.CurrentRadius = MPMMathUtilities<double>::CalculateRadius(r_N, GetGeometry());
-        rVariables.ReferenceRadius = MPMMathUtilities<double>::CalculateRadius(r_N, GetGeometry(), Initial);
-    }
 
     // Determinant of the previous Deformation Gradient F_n
     rVariables.detF0 = mDeterminantF0;
     rVariables.F0    = mDeformationGradientF0;
 
     // Compute the deformation matrix B
-    this->CalculateDeformationMatrix(rVariables.B, rVariables.DN_DX, r_N, is_axisymmetric);
+    this->CalculateDeformationMatrix(rVariables.B, rVariables.DN_DX, r_N);
 
     KRATOS_CATCH( "" )
 }
@@ -397,8 +384,7 @@ void MPMUpdatedLagrangian::CalculateKinematics(
 void MPMUpdatedLagrangian::CalculateDeformationMatrix(
     Matrix& rB,
     const Matrix& rDN_DX,
-    const Matrix& rN,
-    const bool IsAxisymmetric
+    const Matrix& rN
 )
 {
     KRATOS_TRY
@@ -408,22 +394,7 @@ void MPMUpdatedLagrangian::CalculateDeformationMatrix(
 
     rB.clear(); // Set all components to zero
 
-    if (IsAxisymmetric)
-    {
-        const double radius = MPMMathUtilities<double>::CalculateRadius(rN, GetGeometry());
-
-        for (unsigned int i = 0; i < number_of_nodes; i++)
-        {
-            const unsigned int index = dimension * i;
-
-            rB(0, index + 0) = rDN_DX(i, 0);
-            rB(1, index + 1) = rDN_DX(i, 1);
-            rB(2, index + 0) = rN(0, i) / radius;
-            rB(3, index + 0) = rDN_DX(i, 1);
-            rB(3, index + 1) = rDN_DX(i, 0);
-        }
-    }
-    else if( dimension == 2 )
+    if( dimension == 2 )
     {
         for ( unsigned int i = 0; i < number_of_nodes; i++ )
         {
@@ -543,10 +514,7 @@ void MPMUpdatedLagrangian::CalculateAndAddLHS(
     // Operation performed: add K_geometry to the rLefsHandSideMatrix
     if (!is_ignore_geometric_stiffness)
     {
-        const bool is_axisymmetric = (rCurrentProcessInfo.Has(IS_AXISYMMETRIC))
-            ? rCurrentProcessInfo.GetValue(IS_AXISYMMETRIC)
-            : false;
-        this->CalculateAndAddKuug(rLeftHandSideMatrix, rVariables, rIntegrationWeight, is_axisymmetric);
+        this->CalculateAndAddKuug(rLeftHandSideMatrix, rVariables, rIntegrationWeight);
     }
 }
 
@@ -570,50 +538,15 @@ void MPMUpdatedLagrangian::CalculateAndAddKuum(
 void MPMUpdatedLagrangian::CalculateAndAddKuug(
     MatrixType& rLeftHandSideMatrix,
     GeneralVariables& rVariables,
-    const double& rIntegrationWeight,
-    const bool IsAxisymmetric
+    const double& rIntegrationWeight
 )
 {
     KRATOS_TRY
 
-    if (IsAxisymmetric)
-    {
-        // Axisymmetric geometric matrix
-        double alpha_1;
-        double alpha_2;
-        double alpha_3;
-
-        const Matrix& r_N = GetGeometry().ShapeFunctionsValues();
-
-        const unsigned int number_of_nodes = GetGeometry().size();
-        unsigned int index_i = 0;
-        const double radius = MPMMathUtilities<double>::CalculateRadius(r_N, GetGeometry());
-
-        for (unsigned int i = 0; i < number_of_nodes; i++)
-        {
-            unsigned int index_j = 0;
-            for (unsigned int j = 0; j < number_of_nodes; j++)
-            {
-                alpha_1 = rVariables.DN_DX(j, 0) * (rVariables.DN_DX(i, 0) * rVariables.StressVector[0] + rVariables.DN_DX(i, 1) * rVariables.StressVector[3]);
-                alpha_2 = rVariables.DN_DX(j, 1) * (rVariables.DN_DX(i, 0) * rVariables.StressVector[3] + rVariables.DN_DX(i, 1) * rVariables.StressVector[1]);
-                alpha_3 = r_N(0, i) * r_N(0, j) * rVariables.StressVector[2] * (1.0 / radius * radius);
-
-                rLeftHandSideMatrix(index_i, index_j) += (alpha_1 + alpha_2 + alpha_3) * rIntegrationWeight;
-                rLeftHandSideMatrix(index_i + 1, index_j + 1) += (alpha_1 + alpha_2) * rIntegrationWeight;
-
-                index_j += 2;
-            }
-            index_i += 2;
-        }
-    }
-    else
-    {
-        const unsigned int dimension = GetGeometry().WorkingSpaceDimension();
-        Matrix stress_tensor = MathUtils<double>::StressVectorToTensor(rVariables.StressVector);
-        Matrix reduced_Kg = prod(rVariables.DN_DX, rIntegrationWeight * Matrix(prod(stress_tensor, trans(rVariables.DN_DX))));
-        MathUtils<double>::ExpandAndAddReducedMatrix(rLeftHandSideMatrix, reduced_Kg, dimension);
-    }
-
+    const unsigned int dimension = GetGeometry().WorkingSpaceDimension();
+    Matrix stress_tensor = MathUtils<double>::StressVectorToTensor(rVariables.StressVector);
+    Matrix reduced_Kg = prod(rVariables.DN_DX, rIntegrationWeight * Matrix(prod(stress_tensor, trans(rVariables.DN_DX))));
+    MathUtils<double>::ExpandAndAddReducedMatrix(rLeftHandSideMatrix, reduced_Kg, dimension);
 
     KRATOS_CATCH( "" )
 }
@@ -639,39 +572,12 @@ double& MPMUpdatedLagrangian::CalculateVolumeChange(
 void MPMUpdatedLagrangian::CalculateDeformationGradient(
     const Matrix& rDN_DX,
     Matrix& rF,
-    Matrix& rDisplacement,
-    const bool IsAxisymmetric
+    Matrix& rDisplacement
 )
 {
     KRATOS_TRY
 
-    const unsigned int dimension = GetGeometry().WorkingSpaceDimension();
-
-    if (IsAxisymmetric)
-    {
-        // Compute radius
-        const double current_radius = MPMMathUtilities<double>::CalculateRadius(GetGeometry().ShapeFunctionsValues(), GetGeometry());
-        const double initial_radius = MPMMathUtilities<double>::CalculateRadius(GetGeometry().ShapeFunctionsValues(), GetGeometry(), Initial);
-
-        rF = IdentityMatrix(3);
-
-        if (dimension == 2)
-        {
-            for (IndexType i = 0; i < GetGeometry().PointsNumber(); ++i)
-            {
-                rF(0, 0) += rDisplacement(i, 0) * rDN_DX(i, 0);
-                rF(0, 1) += rDisplacement(i, 0) * rDN_DX(i, 1);
-                rF(1, 0) += rDisplacement(i, 1) * rDN_DX(i, 0);
-                rF(1, 1) += rDisplacement(i, 1) * rDN_DX(i, 1);
-            }
-
-            rF(2, 2) = current_radius / initial_radius;
-        }
-        else KRATOS_ERROR << "Dimension given is wrong!" << std::endl;
-    }
-    else
-    {
-        /* NOTE::
+    /* NOTE::
     Deformation Gradient F [(dx_n+1 - dx_n)/dx_n] is to be updated in constitutive law parameter as total deformation gradient.
     The increment of total deformation gradient can be evaluated in 2 ways, which are:
     1. By: noalias( rVariables.F ) = prod( jacobian, InvJ);
@@ -684,12 +590,12 @@ void MPMUpdatedLagrangian::CalculateDeformationGradient(
 
     // METHOD 2: Update  incremental deformation gradient: F_ij = δ_ij + u_i,j
 
-        const unsigned int dimension = GetGeometry().WorkingSpaceDimension();
-        Matrix I = IdentityMatrix(dimension);
-        Matrix gradient_displacement = ZeroMatrix(dimension, dimension);
-        gradient_displacement = prod(trans(rDisplacement), rDN_DX);
-        noalias(rF) = (I + gradient_displacement);
-    }
+    const unsigned int dimension = GetGeometry().WorkingSpaceDimension();
+    Matrix I = IdentityMatrix(dimension);
+    Matrix gradient_displacement = ZeroMatrix(dimension, dimension);
+    gradient_displacement = prod(trans(rDisplacement), rDN_DX);
+    noalias(rF) = (I + gradient_displacement);
+
     KRATOS_CATCH("")
 }
 
@@ -955,8 +861,6 @@ void MPMUpdatedLagrangian::InitializeMaterial(
         mMP.almansi_strain_vector = ZeroVector(mConstitutiveLawVector->GetStrainSize());
         mMP.cauchy_stress_vector = ZeroVector(mConstitutiveLawVector->GetStrainSize());
 
-        // Resize the deformation gradient if we are axisymmetric
-        if (mConstitutiveLawVector->GetStrainSize() == 4) mDeformationGradientF0 = IdentityMatrix(3);
     }
     else
         KRATOS_ERROR <<  "A constitutive law needs to be specified for the element with ID: " << this->Id() << std::endl;

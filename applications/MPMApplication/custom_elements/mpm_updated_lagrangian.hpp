@@ -570,8 +570,7 @@ protected:
     virtual void CalculateAndAddKuug(
         MatrixType& rLeftHandSideMatrix,
         GeneralVariables& rVariables,
-        const double& rIntegrationWeight,
-        const bool IsAxisymmetric = false
+        const double& rIntegrationWeight
     );
 
     /**
@@ -694,8 +693,7 @@ protected:
     virtual void CalculateDeformationMatrix(
         Matrix& rB,
         const Matrix& rDN_DX,
-        const Matrix& rN,
-        const bool IsAxisymmetric = false
+        const Matrix& rN
     );
 
     /**
@@ -714,11 +712,10 @@ protected:
     );
 
     /// Calculation of the Deformation Gradient F
-    void CalculateDeformationGradient(
+    virtual void CalculateDeformationGradient(
         const Matrix& rDN_DX,
         Matrix& rF,
-        Matrix& rDeltaPosition,
-        const bool IsAxisymmetric = false
+        Matrix& rDeltaPosition
     );
 
 private:
