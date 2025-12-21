@@ -61,6 +61,7 @@ namespace Kratos
         KratosApplication("MPMApplication"),
         /// Elements, using QuadraturePointGeometries:
         mMPMUpdatedLagrangian(0, Element::GeometryType::Pointer(new GeometryType(Element::GeometryType::PointsArrayType(0)))),
+        mMPMUpdatedLagrangianAxisym(0, Element::GeometryType::Pointer(new GeometryType(Element::GeometryType::PointsArrayType(0)))),
         mMPMUpdatedLagrangianUP(0, Element::GeometryType::Pointer(new GeometryType(Element::GeometryType::PointsArrayType(0)))),
         mMPMUpdatedLagrangianExplicit(0, Element::GeometryType::Pointer(new GeometryType(Element::GeometryType::PointsArrayType(0)))),
         mMPMUpdatedLagrangianPQ(0, Element::GeometryType::Pointer(new GeometryType(Element::GeometryType::PointsArrayType(0)))),
@@ -117,6 +118,7 @@ namespace Kratos
 
         // Registering elements
         KRATOS_REGISTER_ELEMENT("MPMUpdatedLagrangian", mMPMUpdatedLagrangian)
+        KRATOS_REGISTER_ELEMENT("MPMUpdatedLagrangianAxisym", mMPMUpdatedLagrangianAxisym)
         KRATOS_REGISTER_ELEMENT("MPMUpdatedLagrangianUP", mMPMUpdatedLagrangianUP)
         KRATOS_REGISTER_ELEMENT("MPMUpdatedLagrangianExplicit", mMPMUpdatedLagrangianExplicit)
         KRATOS_REGISTER_ELEMENT("MPMUpdatedLagrangianPQ", mMPMUpdatedLagrangianPQ)

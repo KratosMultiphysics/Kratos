@@ -48,6 +48,7 @@
 
 //---element
 #include "custom_elements/mpm_updated_lagrangian.hpp"
+#include "custom_elements/mpm_updated_lagrangian_axisym.hpp"
 #include "custom_elements/mpm_updated_lagrangian_UP.hpp"
 #include "custom_elements/mpm_updated_lagrangian_explicit.hpp"
 #include "custom_elements/mpm_updated_lagrangian_PQ.hpp"
@@ -233,6 +234,7 @@ private:
 
     // Elements
     const MPMUpdatedLagrangian mMPMUpdatedLagrangian;
+    const MPMUpdatedLagrangianAxisym mMPMUpdatedLagrangianAxisym;
     const MPMUpdatedLagrangianUP mMPMUpdatedLagrangianUP;
     const MPMUpdatedLagrangianExplicit mMPMUpdatedLagrangianExplicit;
     const MPMUpdatedLagrangianPQ mMPMUpdatedLagrangianPQ;
