@@ -13,7 +13,6 @@
 
 // System includes
 #include <omp.h>
-#include <sstream>
 
 // External includes
 
@@ -28,57 +27,49 @@
 namespace Kratos
 {
 
-///**
-//* Flags related to the element computation
-//*/
-//KRATOS_CREATE_LOCAL_FLAG( MPMUpdatedLagrangian, COMPUTE_RHS_VECTOR,                 0 );
-//KRATOS_CREATE_LOCAL_FLAG( MPMUpdatedLagrangian, COMPUTE_LHS_MATRIX,                 1 );
-//KRATOS_CREATE_LOCAL_FLAG( MPMUpdatedLagrangian, COMPUTE_RHS_VECTOR_WITH_COMPONENTS, 2 );
-//KRATOS_CREATE_LOCAL_FLAG( MPMUpdatedLagrangian, COMPUTE_LHS_MATRIX_WITH_COMPONENTS, 3 );
-
 //******************************CONSTRUCTOR*******************************************
 //************************************************************************************
-
 MPMUpdatedLagrangianUP::MPMUpdatedLagrangianUP()
     : MPMUpdatedLagrangian()
     , m_mp_pressure(1.0)
 {
-    //DO NOT CALL IT: only needed for Register and Serialization!!!
 }
+
 //******************************CONSTRUCTOR*******************************************
 //************************************************************************************
-MPMUpdatedLagrangianUP::MPMUpdatedLagrangianUP( IndexType NewId, GeometryType::Pointer pGeometry )
+MPMUpdatedLagrangianUP::MPMUpdatedLagrangianUP(
+    IndexType NewId,
+    GeometryType::Pointer pGeometry
+)
     : MPMUpdatedLagrangian( NewId, pGeometry )
     , m_mp_pressure(1.0)
 {
-    //DO NOT ADD DOFS HERE!!!
 }
 
 //******************************CONSTRUCTOR*******************************************
 //************************************************************************************
-
-MPMUpdatedLagrangianUP::MPMUpdatedLagrangianUP( IndexType NewId, GeometryType::Pointer pGeometry, PropertiesType::Pointer pProperties )
+MPMUpdatedLagrangianUP::MPMUpdatedLagrangianUP(
+    IndexType NewId,
+    GeometryType::Pointer pGeometry,
+    PropertiesType::Pointer pProperties
+)
     : MPMUpdatedLagrangian( NewId, pGeometry, pProperties )
     , m_mp_pressure(1.0)
 {
-    mFinalizedStep = true;
-
-
 }
+
 //******************************COPY CONSTRUCTOR**************************************
 //************************************************************************************
-
-MPMUpdatedLagrangianUP::MPMUpdatedLagrangianUP( MPMUpdatedLagrangianUP const& rOther)
+MPMUpdatedLagrangianUP::MPMUpdatedLagrangianUP(
+    MPMUpdatedLagrangianUP const& rOther
+)
     :MPMUpdatedLagrangian(rOther)
     , m_mp_pressure(rOther.m_mp_pressure)
-     //,mDeformationGradientF0(rOther.mDeformationGradientF0)
-     //,mDeterminantF0(rOther.mDeterminantF0)
 {
 }
 
 //******************************ASSIGNMENT OPERATOR***********************************
 //************************************************************************************
-
 MPMUpdatedLagrangianUP&  MPMUpdatedLagrangianUP::operator=(MPMUpdatedLagrangianUP const& rOther)
 {
     MPMUpdatedLagrangian::operator=(rOther);
@@ -87,23 +78,35 @@ MPMUpdatedLagrangianUP&  MPMUpdatedLagrangianUP::operator=(MPMUpdatedLagrangianU
 
     return *this;
 }
+
 //*********************************OPERATIONS*****************************************
 //************************************************************************************
-
-Element::Pointer MPMUpdatedLagrangianUP::Create( IndexType NewId, NodesArrayType const& ThisNodes, PropertiesType::Pointer pProperties ) const
+Element::Pointer MPMUpdatedLagrangianUP::Create(
+    IndexType NewId,
+    NodesArrayType const& ThisNodes,
+    PropertiesType::Pointer pProperties
+) const
 {
     return Element::Pointer( new MPMUpdatedLagrangianUP( NewId, GetGeometry().Create( ThisNodes ), pProperties ) );
 }
 
-Element::Pointer MPMUpdatedLagrangianUP::Create(IndexType NewId, GeometryType::Pointer pGeom, PropertiesType::Pointer pProperties) const
+//*********************************OPERATIONS*****************************************
+//************************************************************************************
+Element::Pointer MPMUpdatedLagrangianUP::Create(
+    IndexType NewId,
+    GeometryType::Pointer pGeom,
+    PropertiesType::Pointer pProperties
+) const
 {
     return Kratos::make_intrusive< MPMUpdatedLagrangianUP >(NewId, pGeom, pProperties);
 }
 
 //************************************CLONE*******************************************
 //************************************************************************************
-
-Element::Pointer MPMUpdatedLagrangianUP::Clone( IndexType NewId, NodesArrayType const& rThisNodes ) const
+Element::Pointer MPMUpdatedLagrangianUP::Clone(
+    IndexType NewId,
+    NodesArrayType const& rThisNodes
+) const
 {
 
     MPMUpdatedLagrangianUP NewElement (NewId, GetGeometry().Create( rThisNodes ), pGetProperties() );
@@ -118,54 +121,19 @@ Element::Pointer MPMUpdatedLagrangianUP::Clone( IndexType NewId, NodesArrayType 
 
     return Element::Pointer( new MPMUpdatedLagrangianUP(NewElement) );
 }
+
 //*******************************DESTRUCTOR*******************************************
 //************************************************************************************
 MPMUpdatedLagrangianUP::~MPMUpdatedLagrangianUP()
 {
 }
 
-
 //************************************************************************************
 //************************************************************************************
-
-void MPMUpdatedLagrangianUP::Initialize(const ProcessInfo& rCurrentProcessInfo)
-{
-    KRATOS_TRY
-
-    // Initialization should not be done again in a restart!
-    if (!rCurrentProcessInfo[IS_RESTARTED]) {
-        // Initialize parameters
-        const unsigned int dimension = GetGeometry().WorkingSpaceDimension();
-        mDeterminantF0 = 1;
-        mDeformationGradientF0 = IdentityMatrix(dimension);
-
-        // Initialize constitutive law and materials
-        InitializeMaterial(rCurrentProcessInfo);
-    }
-
-    KRATOS_CATCH( "" )
-}
-
-//************************************************************************************
-//************************************************************************************
-
-void MPMUpdatedLagrangianUP::InitializeGeneralVariables (GeneralVariables& rVariables, const ProcessInfo& rCurrentProcessInfo)
-{
-    KRATOS_TRY
-
-    MPMUpdatedLagrangian::InitializeGeneralVariables(rVariables,rCurrentProcessInfo);
-
-    KRATOS_CATCH( "" )
-
-}
-
-//************************************************************************************
-//************************************************************************************
-/**
- * The position of the Gauss points/Material points is updated
- */
-
-void MPMUpdatedLagrangianUP::UpdateGaussPoint( GeneralVariables & rVariables, const ProcessInfo& rCurrentProcessInfo)
+void MPMUpdatedLagrangianUP::UpdateGaussPoint(
+    GeneralVariables & rVariables,
+    const ProcessInfo& rCurrentProcessInfo
+)
 {
     KRATOS_TRY
 
@@ -237,9 +205,10 @@ void MPMUpdatedLagrangianUP::UpdateGaussPoint( GeneralVariables & rVariables, co
 
 //*********************************COMPUTE KINEMATICS*********************************
 //************************************************************************************
-
-
-void MPMUpdatedLagrangianUP::CalculateKinematics(GeneralVariables& rVariables, const ProcessInfo& rCurrentProcessInfo)
+void MPMUpdatedLagrangianUP::CalculateKinematics(
+    GeneralVariables& rVariables,
+    const ProcessInfo& rCurrentProcessInfo
+)
 {
     KRATOS_TRY
 
@@ -284,66 +253,16 @@ void MPMUpdatedLagrangianUP::CalculateKinematics(GeneralVariables& rVariables, c
     rVariables.F0    = mDeformationGradientF0;
 
     // Compute the deformation matrix B
-    this->CalculateDeformationMatrix(rVariables.B, rVariables.F, rVariables.DN_DX);
+    this->CalculateDeformationMatrix(rVariables.B, rVariables.DN_DX);
 
     KRATOS_CATCH( "" )
 }
+
 //************************************************************************************
-
-void MPMUpdatedLagrangianUP::CalculateDeformationMatrix(Matrix& rB,
-        Matrix& rF,
-        Matrix& rDN_DX)
-{
-    KRATOS_TRY
-
-    const unsigned int number_of_nodes = GetGeometry().PointsNumber();
-    const unsigned int dimension       = GetGeometry().WorkingSpaceDimension();
-
-    rB.clear(); // Set all components to zero
-
-    if( dimension == 2 )
-    {
-        for ( unsigned int i = 0; i < number_of_nodes; i++ )
-        {
-            unsigned int index = 2 * i;
-            rB( 0, index + 0 ) = rDN_DX( i, 0 );
-            rB( 1, index + 1 ) = rDN_DX( i, 1 );
-            rB( 2, index + 0 ) = rDN_DX( i, 1 );
-            rB( 2, index + 1 ) = rDN_DX( i, 0 );
-        }
-    }
-    else if( dimension == 3 )
-    {
-        for ( unsigned int i = 0; i < number_of_nodes; i++ )
-        {
-            unsigned int index = 3 * i;
-
-            rB( 0, index + 0 ) = rDN_DX( i, 0 );
-            rB( 1, index + 1 ) = rDN_DX( i, 1 );
-            rB( 2, index + 2 ) = rDN_DX( i, 2 );
-
-            rB( 3, index + 0 ) = rDN_DX( i, 1 );
-            rB( 3, index + 1 ) = rDN_DX( i, 0 );
-
-            rB( 4, index + 1 ) = rDN_DX( i, 2 );
-            rB( 4, index + 2 ) = rDN_DX( i, 1 );
-
-            rB( 5, index + 0 ) = rDN_DX( i, 2 );
-            rB( 5, index + 2 ) = rDN_DX( i, 0 );
-        }
-    }
-    else
-    {
-        KRATOS_ERROR << "Dimension given is wrong!" << std::endl;
-    }
-
-    KRATOS_CATCH( "" )
-}
-
-////************************************************************************************
-////************************************************************************************
-
-void MPMUpdatedLagrangianUP::AddExplicitContribution(const ProcessInfo& rCurrentProcessInfo )
+//************************************************************************************
+void MPMUpdatedLagrangianUP::AddExplicitContribution(
+    const ProcessInfo& rCurrentProcessInfo
+)
 {
     /* NOTE:
     In the InitializeSolutionStep of each time step the nodal initial conditions are evaluated.
@@ -356,8 +275,6 @@ void MPMUpdatedLagrangianUP::AddExplicitContribution(const ProcessInfo& rCurrent
 
     // Calculating shape function
     const Matrix& r_N = GetGeometry().ShapeFunctionsValues();
-
-    mFinalizedStep = false;
 
     array_1d<double,3> aux_MP_velocity = ZeroVector(3);
     array_1d<double,3> aux_MP_acceleration = ZeroVector(3);
@@ -408,15 +325,16 @@ void MPMUpdatedLagrangianUP::AddExplicitContribution(const ProcessInfo& rCurrent
         r_geometry[i].UnSetLock();
     }
 }
-//************************************************************************************
-//************************************************************************************
 
+//************************************************************************************
+//************************************************************************************
 void MPMUpdatedLagrangianUP::CalculateAndAddRHS(
     VectorType& rRightHandSideVector,
     GeneralVariables& rVariables,
     Vector& rVolumeForce,
     const double& rIntegrationWeight,
-    const ProcessInfo& rCurrentProcessInfo)
+    const ProcessInfo& rCurrentProcessInfo
+)
 {
     rVariables.detF0   *= rVariables.detF;
     double determinant_F = rVariables.detF;
@@ -439,13 +357,15 @@ void MPMUpdatedLagrangianUP::CalculateAndAddRHS(
     rVariables.detF0   /= rVariables.detF;
 
 }
+
 //************************************************************************************
 //*********************Calculate the contribution of external force*******************
-
-void MPMUpdatedLagrangianUP::CalculateAndAddExternalForces(VectorType& rRightHandSideVector,
-        GeneralVariables& rVariables,
-        Vector& rVolumeForce,
-        const double& rIntegrationWeight)
+void MPMUpdatedLagrangianUP::CalculateAndAddExternalForces(
+    VectorType& rRightHandSideVector,
+    GeneralVariables& rVariables,
+    Vector& rVolumeForce,
+    const double& rIntegrationWeight
+)
 {
     KRATOS_TRY
 
@@ -465,12 +385,14 @@ void MPMUpdatedLagrangianUP::CalculateAndAddExternalForces(VectorType& rRightHan
 
     KRATOS_CATCH( "" )
 }
-//************************************************************************************
-//************************************************************************************
 
-void MPMUpdatedLagrangianUP::CalculateAndAddInternalForces(VectorType& rRightHandSideVector,
-        GeneralVariables & rVariables,
-        const double& rIntegrationWeight)
+//************************************************************************************
+//************************************************************************************
+void MPMUpdatedLagrangianUP::CalculateAndAddInternalForces(
+    VectorType& rRightHandSideVector,
+    GeneralVariables & rVariables,
+    const double& rIntegrationWeight
+)
 {
     KRATOS_TRY
 
@@ -495,7 +417,10 @@ void MPMUpdatedLagrangianUP::CalculateAndAddInternalForces(VectorType& rRightHan
 
 //******************************************************************************************************************
 //******************************************************************************************************************
-double& MPMUpdatedLagrangianUP::CalculatePUCoefficient(double& rCoefficient, GeneralVariables & rVariables)
+double& MPMUpdatedLagrangianUP::CalculatePUCoefficient(
+    double& rCoefficient,
+    GeneralVariables & rVariables
+)
 {
     KRATOS_TRY
 
@@ -507,11 +432,12 @@ double& MPMUpdatedLagrangianUP::CalculatePUCoefficient(double& rCoefficient, Gen
     KRATOS_CATCH( "" )
 }
 
-
 //************************************************************************************
 //************************************************************************************
-
-double& MPMUpdatedLagrangianUP::CalculatePUDeltaCoefficient(double &rDeltaCoefficient, GeneralVariables & rVariables)
+double& MPMUpdatedLagrangianUP::CalculatePUDeltaCoefficient(
+    double &rDeltaCoefficient,
+    GeneralVariables & rVariables
+)
 {
 
     KRATOS_TRY
@@ -527,10 +453,11 @@ double& MPMUpdatedLagrangianUP::CalculatePUDeltaCoefficient(double &rDeltaCoeffi
 
 //************************************************************************************
 //************************************************************************************
-
-void MPMUpdatedLagrangianUP::CalculateAndAddPressureForces(VectorType& rRightHandSideVector,
-        GeneralVariables & rVariables,
-        const double& rIntegrationWeight)
+void MPMUpdatedLagrangianUP::CalculateAndAddPressureForces(
+    VectorType& rRightHandSideVector,
+    GeneralVariables & rVariables,
+    const double& rIntegrationWeight
+)
 {
     KRATOS_TRY
 
@@ -570,12 +497,14 @@ void MPMUpdatedLagrangianUP::CalculateAndAddPressureForces(VectorType& rRightHan
 
     KRATOS_CATCH( "" )
 }
-//************************************************************************************
-//************************************************************************************
 
-void MPMUpdatedLagrangianUP::CalculateAndAddStabilizedPressure(VectorType& rRightHandSideVector,
-        GeneralVariables & rVariables,
-        const double& rIntegrationWeight)
+//************************************************************************************
+//************************************************************************************
+void MPMUpdatedLagrangianUP::CalculateAndAddStabilizedPressure(
+    VectorType& rRightHandSideVector,
+    GeneralVariables & rVariables,
+    const double& rIntegrationWeight
+)
 {
     KRATOS_TRY
 
@@ -633,14 +562,15 @@ void MPMUpdatedLagrangianUP::CalculateAndAddStabilizedPressure(VectorType& rRigh
 
     KRATOS_CATCH( "" )
 }
-//************************************************************************************
-//************************************************************************************
 
+//************************************************************************************
+//************************************************************************************
 void MPMUpdatedLagrangianUP::CalculateAndAddLHS(
     MatrixType& rLeftHandSideMatrix,
     GeneralVariables& rVariables,
     const double& rIntegrationWeight,
-    const ProcessInfo& rCurrentProcessInfo)
+    const ProcessInfo& rCurrentProcessInfo
+)
 {
     rVariables.detF0   *= rVariables.detF;
     double determinant_F = rVariables.detF;
@@ -672,13 +602,14 @@ void MPMUpdatedLagrangianUP::CalculateAndAddLHS(
     rVariables.detF0   /= rVariables.detF;
 
 }
-//************************************************************************************
-//************************************************************************************
 
-void MPMUpdatedLagrangianUP::CalculateAndAddKuum(MatrixType& rLeftHandSideMatrix,
-        GeneralVariables& rVariables,
-        const double& rIntegrationWeight
-                                             )
+//************************************************************************************
+//************************************************************************************
+void MPMUpdatedLagrangianUP::CalculateAndAddKuum(
+    MatrixType& rLeftHandSideMatrix,
+    GeneralVariables& rVariables,
+    const double& rIntegrationWeight
+)
 {
     KRATOS_TRY
 
@@ -713,11 +644,11 @@ void MPMUpdatedLagrangianUP::CalculateAndAddKuum(MatrixType& rLeftHandSideMatrix
 
 //************************************************************************************
 //************************************************************************************
-
-void MPMUpdatedLagrangianUP::CalculateAndAddKuugUP(MatrixType& rLeftHandSideMatrix,
-        GeneralVariables& rVariables,
-        const double& rIntegrationWeight)
-
+void MPMUpdatedLagrangianUP::CalculateAndAddKuugUP(
+    MatrixType& rLeftHandSideMatrix,
+    GeneralVariables& rVariables,
+    const double& rIntegrationWeight
+)
 {
     KRATOS_TRY
 
@@ -755,10 +686,11 @@ void MPMUpdatedLagrangianUP::CalculateAndAddKuugUP(MatrixType& rLeftHandSideMatr
 
 //************************************************************************************
 //************************************************************************************
-
-void MPMUpdatedLagrangianUP::CalculateAndAddKup (MatrixType& rLeftHandSideMatrix,
-        GeneralVariables& rVariables,
-        const double& rIntegrationWeight)
+void MPMUpdatedLagrangianUP::CalculateAndAddKup(
+    MatrixType& rLeftHandSideMatrix,
+    GeneralVariables& rVariables,
+    const double& rIntegrationWeight
+)
 {
     KRATOS_TRY
 
@@ -786,11 +718,11 @@ void MPMUpdatedLagrangianUP::CalculateAndAddKup (MatrixType& rLeftHandSideMatrix
 
 //************************************************************************************
 //************************************************************************************
-
-void MPMUpdatedLagrangianUP::CalculateAndAddKpu (MatrixType& rLeftHandSideMatrix,
-        GeneralVariables& rVariables,
-        const double& rIntegrationWeight)
-
+void MPMUpdatedLagrangianUP::CalculateAndAddKpu(
+    MatrixType& rLeftHandSideMatrix,
+    GeneralVariables& rVariables,
+    const double& rIntegrationWeight
+)
 {
     KRATOS_TRY
 
@@ -815,12 +747,14 @@ void MPMUpdatedLagrangianUP::CalculateAndAddKpu (MatrixType& rLeftHandSideMatrix
 
     KRATOS_CATCH( "" )
 }
-//************************************************************************************
-//************************************************************************************
 
-void MPMUpdatedLagrangianUP::CalculateAndAddKpp (MatrixType& rLeftHandSideMatrix,
-        GeneralVariables& rVariables,
-        const double& rIntegrationWeight)
+//************************************************************************************
+//************************************************************************************
+void MPMUpdatedLagrangianUP::CalculateAndAddKpp(
+    MatrixType& rLeftHandSideMatrix,
+    GeneralVariables& rVariables,
+    const double& rIntegrationWeight
+)
 {
     KRATOS_TRY
 
@@ -853,6 +787,7 @@ void MPMUpdatedLagrangianUP::CalculateAndAddKpp (MatrixType& rLeftHandSideMatrix
 
     KRATOS_CATCH( "" )
 }
+
 //************************************************************************************
 //************************************************************************************
 // I changed the constant matrix in the stabilized term:
@@ -861,10 +796,11 @@ void MPMUpdatedLagrangianUP::CalculateAndAddKpp (MatrixType& rLeftHandSideMatrix
 // shape function values of each integration point
 //************************************************************************************
 //************************************************************************************
-
-void MPMUpdatedLagrangianUP::CalculateAndAddKppStab (MatrixType& rLeftHandSideMatrix,
-        GeneralVariables & rVariables,
-        const double& rIntegrationWeight)
+void MPMUpdatedLagrangianUP::CalculateAndAddKppStab(
+    MatrixType& rLeftHandSideMatrix,
+    GeneralVariables & rVariables,
+    const double& rIntegrationWeight
+)
 {
     KRATOS_TRY
 
@@ -886,7 +822,7 @@ void MPMUpdatedLagrangianUP::CalculateAndAddKppStab (MatrixType& rLeftHandSideMa
 
         alpha_stabilization = alpha_stabilization * factor_value / shear_modulus;
     }
-        else
+    else
     {
         KRATOS_ERROR << "No pressure stabilization existing if YOUNG_MODULUS and POISSON_RATIO or DYNAMIC_VISCOSITY is specified" << std::endl;
     }
@@ -922,25 +858,12 @@ void MPMUpdatedLagrangianUP::CalculateAndAddKppStab (MatrixType& rLeftHandSideMa
     KRATOS_CATCH( "" )
 }
 
-
-//************************************CALCULATE VOLUME CHANGE*************************
-//************************************************************************************
-
-double& MPMUpdatedLagrangianUP::CalculateVolumeChange( double& rVolumeChange, GeneralVariables& rVariables )
-{
-    KRATOS_TRY
-
-    rVolumeChange = 1.0 / (rVariables.detF * rVariables.detF0);
-
-    return rVolumeChange;
-
-    KRATOS_CATCH( "" )
-}
-
 //************************************************************************************
 //************************************************************************************
-
-void MPMUpdatedLagrangianUP::EquationIdVector( EquationIdVectorType& rResult, const ProcessInfo& CurrentProcessInfo ) const
+void MPMUpdatedLagrangianUP::EquationIdVector(
+    EquationIdVectorType& rResult,
+    const ProcessInfo& CurrentProcessInfo
+) const
 {
     const GeometryType& r_geometry = GetGeometry();
     const unsigned int number_of_nodes = r_geometry.size();
@@ -970,8 +893,10 @@ void MPMUpdatedLagrangianUP::EquationIdVector( EquationIdVectorType& rResult, co
 
 //************************************************************************************
 //************************************************************************************
-
-void MPMUpdatedLagrangianUP::GetDofList( DofsVectorType& rElementalDofList, const ProcessInfo& CurrentProcessInfo ) const
+void MPMUpdatedLagrangianUP::GetDofList(
+    DofsVectorType& rElementalDofList,
+    const ProcessInfo& CurrentProcessInfo
+) const
 {
     rElementalDofList.resize( 0 );
 
@@ -990,11 +915,12 @@ void MPMUpdatedLagrangianUP::GetDofList( DofsVectorType& rElementalDofList, cons
     }
 }
 
-
 //************************************************************************************
 //****************MASS MATRIX*********************************************************
-
-void MPMUpdatedLagrangianUP::CalculateMassMatrix( MatrixType& rMassMatrix, const ProcessInfo& rCurrentProcessInfo )
+void MPMUpdatedLagrangianUP::CalculateMassMatrix(
+    MatrixType& rMassMatrix,
+    const ProcessInfo& rCurrentProcessInfo
+)
 {
     KRATOS_TRY
 
@@ -1039,8 +965,10 @@ void MPMUpdatedLagrangianUP::CalculateMassMatrix( MatrixType& rMassMatrix, const
 
 //************************************************************************************
 //************************************************************************************
-
-void MPMUpdatedLagrangianUP::GetValuesVector( Vector& values, int Step ) const
+void MPMUpdatedLagrangianUP::GetValuesVector(
+    Vector& values,
+    int Step
+) const
 {
     const GeometryType& r_geometry = GetGeometry();
     const unsigned int number_of_nodes = r_geometry.size();
@@ -1071,8 +999,10 @@ void MPMUpdatedLagrangianUP::GetValuesVector( Vector& values, int Step ) const
 
 //************************************************************************************
 //************************************************************************************
-
-void MPMUpdatedLagrangianUP::GetFirstDerivativesVector( Vector& values, int Step ) const
+void MPMUpdatedLagrangianUP::GetFirstDerivativesVector(
+    Vector& values,
+    int Step
+) const
 {
     const GeometryType& r_geometry = GetGeometry();
     const unsigned int number_of_nodes = r_geometry.size();
@@ -1100,8 +1030,10 @@ void MPMUpdatedLagrangianUP::GetFirstDerivativesVector( Vector& values, int Step
 
 //************************************************************************************
 //************************************************************************************
-
-void MPMUpdatedLagrangianUP::GetSecondDerivativesVector( Vector& values, int Step ) const
+void MPMUpdatedLagrangianUP::GetSecondDerivativesVector(
+    Vector& values,
+    int Step
+) const
 {
     const GeometryType& r_geometry = GetGeometry();
     const unsigned int number_of_nodes = r_geometry.size();
@@ -1131,17 +1063,10 @@ void MPMUpdatedLagrangianUP::GetSecondDerivativesVector( Vector& values, int Ste
 
 //************************************************************************************
 //************************************************************************************
-
-void MPMUpdatedLagrangianUP::GetHistoricalVariables( GeneralVariables& rVariables )
-{
-    //Deformation Gradient F ( set to identity )
-    MPMUpdatedLagrangian::GetHistoricalVariables(rVariables);
-}
-
-//************************************************************************************
-//************************************************************************************
-
-void MPMUpdatedLagrangianUP::FinalizeStepVariables( GeneralVariables & rVariables, const ProcessInfo& rCurrentProcessInfo)
+void MPMUpdatedLagrangianUP::FinalizeStepVariables(
+    GeneralVariables & rVariables,
+    const ProcessInfo& rCurrentProcessInfo
+)
 {
     GeometryType& r_geometry = GetGeometry();
     const unsigned int number_of_nodes = r_geometry.PointsNumber();
@@ -1174,9 +1099,13 @@ void MPMUpdatedLagrangianUP::FinalizeStepVariables( GeneralVariables & rVariable
 
 }
 
-void MPMUpdatedLagrangianUP::CalculateOnIntegrationPoints(const Variable<double>& rVariable,
+//************************************************************************************
+//************************************************************************************
+void MPMUpdatedLagrangianUP::CalculateOnIntegrationPoints(
+    const Variable<double>& rVariable,
     std::vector<double>& rValues,
-    const ProcessInfo& rCurrentProcessInfo)
+    const ProcessInfo& rCurrentProcessInfo
+)
 {
     if (rValues.size() != 1)
         rValues.resize(1);
@@ -1190,10 +1119,13 @@ void MPMUpdatedLagrangianUP::CalculateOnIntegrationPoints(const Variable<double>
     }
 }
 
+//************************************************************************************
+//************************************************************************************
 void MPMUpdatedLagrangianUP::SetValuesOnIntegrationPoints(
     const Variable<double>& rVariable,
     const std::vector<double>& rValues,
-    const ProcessInfo& rCurrentProcessInfo)
+    const ProcessInfo& rCurrentProcessInfo
+)
 {
     KRATOS_ERROR_IF(rValues.size() > 1)
         << "Only 1 value per integration point allowed! Passed values vector size: "
@@ -1210,14 +1142,9 @@ void MPMUpdatedLagrangianUP::SetValuesOnIntegrationPoints(
 
 //************************************************************************************
 //************************************************************************************
-/**
- * This function provides the place to perform checks on the completeness of the input.
- * It is designed to be called only once (or anyway, not often) typically at the beginning
- * of the calculations, so to verify that nothing is missing from the input
- * or that no common error is found.
- * @param rCurrentProcessInfo
- */
-int MPMUpdatedLagrangianUP::Check( const ProcessInfo& rCurrentProcessInfo ) const
+int MPMUpdatedLagrangianUP::Check(
+    const ProcessInfo& rCurrentProcessInfo
+) const
 {
     KRATOS_TRY
 
@@ -1241,17 +1168,24 @@ int MPMUpdatedLagrangianUP::Check( const ProcessInfo& rCurrentProcessInfo ) cons
     KRATOS_CATCH( "" );
 }
 
-void MPMUpdatedLagrangianUP::save( Serializer& rSerializer ) const
+//************************************************************************************
+//************************************************************************************
+void MPMUpdatedLagrangianUP::save(
+    Serializer& rSerializer
+) const
 {
     KRATOS_SERIALIZE_SAVE_BASE_CLASS( rSerializer, MPMUpdatedLagrangian )
     rSerializer.save("Pressure",m_mp_pressure);
 }
 
-void MPMUpdatedLagrangianUP::load( Serializer& rSerializer )
+//************************************************************************************
+//************************************************************************************
+void MPMUpdatedLagrangianUP::load(
+    Serializer& rSerializer
+)
 {
     KRATOS_SERIALIZE_LOAD_BASE_CLASS( rSerializer, MPMUpdatedLagrangian )
     rSerializer.load("Pressure",m_mp_pressure);
 }
 
 } // Namespace Kratos
-
