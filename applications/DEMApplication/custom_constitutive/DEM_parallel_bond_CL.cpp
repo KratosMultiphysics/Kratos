@@ -571,7 +571,7 @@ void DEM_parallel_bond::CalculateViscoDamping(double LocalRelVel[3],
         CalculateUnbondedViscoDampingForce(LocalRelVel, mUnbondedViscoDampingLocalContactForce, element1, element2);
     }
 
-    //TODO: bond viscodamping force should be removed
+    //TODO: bond viscodamping force should be removed, it is not correct
     //if (!failure_id) {
     //    mBondedViscoDampingLocalContactForce[0] = -equiv_visco_damp_coeff_tangential * LocalRelVel[0];
     //    mBondedViscoDampingLocalContactForce[1] = -equiv_visco_damp_coeff_tangential * LocalRelVel[1];
@@ -773,11 +773,13 @@ void DEM_parallel_bond::CalculateTangentialForces(double OldLocalElasticContactF
 
         const long unsigned int& sphere_id = (*mpProperties)[DEBUG_PRINTING_ID_1];
         const long unsigned int& neigh_sphere_id = (*mpProperties)[DEBUG_PRINTING_ID_2];
-        const double AccumulatedBondedTangentialLocalDisplacementModulus = sqrt(mAccumulatedBondedTangentialLocalDisplacement[0]*mAccumulatedBondedTangentialLocalDisplacement[0] + mAccumulatedBondedTangentialLocalDisplacement[1]*mAccumulatedBondedTangentialLocalDisplacement[1]);
+        const double current_tangential_force_module_elastic = sqrt(BondedLocalElasticContactForce[0] * BondedLocalElasticContactForce[0]
+                                                            + BondedLocalElasticContactForce[1] * BondedLocalElasticContactForce[1]);
+        const double accu_bond_tangential_local_disp_modulus = current_tangential_force_module_elastic / kt_el;
 
         if ((element1->Id() == sphere_id) && (element2->Id() == neigh_sphere_id)) {
             std::ofstream normal_forces_file("debug_info_tangential.txt", std::ios_base::out | std::ios_base::app);
-            normal_forces_file << r_process_info[TIME]/*0*/ << " " << AccumulatedBondedTangentialLocalDisplacementModulus/*1*/<< " " 
+            normal_forces_file << r_process_info[TIME]/*0*/ << " " << accu_bond_tangential_local_disp_modulus/*1*/<< " " 
             << contact_tau/*2*/ << " " << BondedLocalElasticContactForce[0]/*3*/ << " " << BondedLocalElasticContactForce[1]/*4*/ << " "
             << UnbondedLocalElasticContactForce[0]/*5*/ << " " << UnbondedLocalElasticContactForce[1]/*6*/ << " " << '\n'; 
             normal_forces_file.flush();
