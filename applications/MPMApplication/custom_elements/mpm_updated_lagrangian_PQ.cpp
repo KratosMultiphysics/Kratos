@@ -35,24 +35,24 @@ namespace Kratos
 {
 
 MPMUpdatedLagrangianPQ::MPMUpdatedLagrangianPQ( )
-    : MPMUpdatedLagrangian( )
+    : MPMUpdatedLagrangianExplicit( )
 { }//DO NOT CALL IT: only needed for Register and Serialization!!!
 
 MPMUpdatedLagrangianPQ::MPMUpdatedLagrangianPQ( IndexType NewId, GeometryType::Pointer pGeometry )
-    : MPMUpdatedLagrangian( NewId, pGeometry )
+    : MPMUpdatedLagrangianExplicit( NewId, pGeometry )
 { }//DO NOT ADD DOFS HERE!!!
 
 MPMUpdatedLagrangianPQ::MPMUpdatedLagrangianPQ( IndexType NewId, GeometryType::Pointer pGeometry, PropertiesType::Pointer pProperties )
-    : MPMUpdatedLagrangian( NewId, pGeometry, pProperties )
-{ mFinalizedStep = true; }
+    : MPMUpdatedLagrangianExplicit( NewId, pGeometry, pProperties )
+{}
 
 MPMUpdatedLagrangianPQ::MPMUpdatedLagrangianPQ(MPMUpdatedLagrangianPQ const& rOther)
-    :MPMUpdatedLagrangian(rOther)
+    :MPMUpdatedLagrangianExplicit(rOther)
 { }
 
 MPMUpdatedLagrangianPQ& MPMUpdatedLagrangianPQ::operator=(MPMUpdatedLagrangianPQ const& rOther)
 {
-    MPMUpdatedLagrangian::operator=(rOther);
+    MPMUpdatedLagrangianExplicit::operator=(rOther);
     return *this;
 }
 
@@ -105,8 +105,6 @@ void MPMUpdatedLagrangianPQ::AddExplicitContribution(const ProcessInfo& rCurrent
     GeometryType& r_geometry = GetGeometry();
     const unsigned int dimension = r_geometry.WorkingSpaceDimension();
     const unsigned int number_of_nodes = r_geometry.PointsNumber();
-
-    mFinalizedStep = false;
 
     // Calculating shape functions
     array_1d<double, 3> nodal_momentum = ZeroVector(3);
@@ -184,18 +182,18 @@ void MPMUpdatedLagrangianPQ::CalculateOnIntegrationPoints(const Variable<int>& r
 {
     if (rValues.size() != 1) rValues.resize(1);
     if (rVariable == MP_SUB_POINTS) rValues[0] = GetGeometry().IntegrationPointsNumber();
-    else MPMUpdatedLagrangian::CalculateOnIntegrationPoints(rVariable, rValues, rCurrentProcessInfo);
+    else MPMUpdatedLagrangianExplicit::CalculateOnIntegrationPoints(rVariable, rValues, rCurrentProcessInfo);
 }
 
 
 void MPMUpdatedLagrangianPQ::save( Serializer& rSerializer ) const
 {
-    KRATOS_SERIALIZE_SAVE_BASE_CLASS( rSerializer, MPMUpdatedLagrangian )
+    KRATOS_SERIALIZE_SAVE_BASE_CLASS( rSerializer, MPMUpdatedLagrangianExplicit )
 }
 
 void MPMUpdatedLagrangianPQ::load( Serializer& rSerializer )
 {
-    KRATOS_SERIALIZE_LOAD_BASE_CLASS( rSerializer, MPMUpdatedLagrangian )
+    KRATOS_SERIALIZE_LOAD_BASE_CLASS( rSerializer, MPMUpdatedLagrangianExplicit )
 }
 } // Namespace Kratos
 

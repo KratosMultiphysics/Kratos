@@ -49,6 +49,7 @@
 //---element
 #include "custom_elements/mpm_updated_lagrangian.hpp"
 #include "custom_elements/mpm_updated_lagrangian_UP.hpp"
+#include "custom_elements/mpm_updated_lagrangian_explicit.hpp"
 #include "custom_elements/mpm_updated_lagrangian_PQ.hpp"
 
 //---constitutive laws
@@ -233,6 +234,7 @@ private:
     // Elements
     const MPMUpdatedLagrangian mMPMUpdatedLagrangian;
     const MPMUpdatedLagrangianUP mMPMUpdatedLagrangianUP;
+    const MPMUpdatedLagrangianExplicit mMPMUpdatedLagrangianExplicit;
     const MPMUpdatedLagrangianPQ mMPMUpdatedLagrangianPQ;
 
     // Deprecated Elements

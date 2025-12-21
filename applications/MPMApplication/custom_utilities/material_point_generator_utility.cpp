@@ -35,6 +35,14 @@ namespace Kratos::MaterialPointGeneratorUtility
             ? rBackgroundGridModelPart.GetProcessInfo().GetValue(IS_AXISYMMETRIC)
             : false;
 
+        const bool is_explicit = (rBackgroundGridModelPart.GetProcessInfo().Has(IS_EXPLICIT))
+            ? rBackgroundGridModelPart.GetProcessInfo().GetValue(IS_EXPLICIT)
+            : false;
+
+        const bool is_pqmpm = (rBackgroundGridModelPart.GetProcessInfo().Has(IS_PQMPM))
+            ? rBackgroundGridModelPart.GetProcessInfo().GetValue(IS_PQMPM)
+            : false;
+
         // Initialize zero the variables needed
         std::vector<array_1d<double, 3>> xg = { ZeroVector(3) };
         std::vector<array_1d<double, 3>> mp_displacement = { ZeroVector(3) };
@@ -116,6 +124,9 @@ namespace Kratos::MaterialPointGeneratorUtility
                         else KRATOS_ERROR << "Element for mixed U-P formulation is only implemented for 2D Triangle Elements." << std::endl;
                     }
                     else if (IsAxisSymmetry && domain_size == 3) KRATOS_ERROR << "Axisymmetric elements must be used in a 2D domain. You specified a 3D domain." << std::endl;
+                    else if (is_explicit && !is_pqmpm) {
+                        element_type_name = "MPMUpdatedLagrangianExplicit";
+                    }
                     else if (rBackgroundGridModelPart.GetProcessInfo().Has(IS_PQMPM)) {
                         if (rBackgroundGridModelPart.GetProcessInfo().GetValue(IS_PQMPM)) {
                             element_type_name = "MPMUpdatedLagrangianPQ";
