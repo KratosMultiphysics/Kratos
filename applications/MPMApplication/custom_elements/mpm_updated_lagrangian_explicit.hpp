@@ -285,30 +285,6 @@ public:
     ) const override;
 
     /**
-     * Sets on rValues the nodal displacements
-     */
-    void GetValuesVector(
-        Vector& rValues,
-        int Step = 0
-    ) const override;
-
-    /**
-     * Sets on rValues the nodal velocities
-     */
-    void GetFirstDerivativesVector(
-        Vector& rValues,
-        int Step = 0
-    ) const override;
-
-    /**
-     * Sets on rValues the nodal accelerations
-     */
-    void GetSecondDerivativesVector(
-        Vector& rValues,
-        int Step = 0
-    ) const  override;
-
-    /**
       * Called to initialize the element.
       * Must be called before any calculation is done
       */
@@ -363,39 +339,6 @@ public:
       */
     void CalculateRightHandSide(
         VectorType& rRightHandSideVector,
-        const ProcessInfo& rCurrentProcessInfo
-    ) override;
-
-    /**
-     * this is called during the assembling process in order
-     * to calculate the elemental left hand side vector only
-     * @param rLeftHandSideVector: the elemental left hand side vector
-     * @param rCurrentProcessInfo: the current process info instance
-     */
-    void CalculateLeftHandSide(
-        MatrixType& rLeftHandSideMatrix,
-        const ProcessInfo& rCurrentProcessInfo
-    ) override;
-
-    /**
-      * this is called during the assembling process in order
-      * to calculate the elemental mass matrix
-      * @param rMassMatrix: the elemental mass matrix
-      * @param rCurrentProcessInfo: the current process info instance
-      */
-    void CalculateMassMatrix(
-        MatrixType& rMassMatrix,
-        const ProcessInfo& rCurrentProcessInfo
-    ) override;
-
-    /**
-      * this is called during the assembling process in order
-      * to calculate the elemental damping matrix
-      * @param rDampingMatrix: the elemental damping matrix
-      * @param rCurrentProcessInfo: the current process info instance
-      */
-    void CalculateDampingMatrix(
-        MatrixType& rDampingMatrix,
         const ProcessInfo& rCurrentProcessInfo
     ) override;
 
@@ -473,12 +416,6 @@ public:
     ///@{
 
     void SetValuesOnIntegrationPoints(
-        const Variable<int>& rVariable,
-        const std::vector<int>& rValues,
-        const ProcessInfo& rCurrentProcessInfo
-    ) override;
-
-    void SetValuesOnIntegrationPoints(
         const Variable<double>& rVariable,
         const std::vector<double>& rValues,
         const ProcessInfo& rCurrentProcessInfo
@@ -541,16 +478,6 @@ protected:
     );
 
     /**
-     * Calculation and addition of the matrices of the LHS
-     */
-    virtual void CalculateAndAddLHS(
-        MatrixType& rLeftHandSideMatrix,
-        GeneralVariables& rVariables,
-        const double& rIntegrationWeight,
-        const ProcessInfo& rCurrentProcessInfo
-    );
-
-    /**
      * Calculation and addition of the vectors of the RHS
      */
     virtual void CalculateAndAddRHS(
@@ -562,40 +489,12 @@ protected:
     );
 
     /**
-     * Calculation of the Material Stiffness Matrix. Kuum = BT * C * B
-     */
-    virtual void CalculateAndAddKuum(
-        MatrixType& rLeftHandSideMatrix,
-        GeneralVariables& rVariables,
-        const double& rIntegrationWeight
-    );
-
-    /**
-     * Calculation of the Geometric Stiffness Matrix. Kuug = BT * S
-     */
-    virtual void CalculateAndAddKuug(
-        MatrixType& rLeftHandSideMatrix,
-        GeneralVariables& rVariables,
-        const double& rIntegrationWeight,
-        const bool IsAxisymmetric = false
-    );
-
-    /**
      * Calculation of the External Forces Vector. Fe = N * t + N * b
      */
     virtual void CalculateAndAddExternalForces(
         VectorType& rRightHandSideVector,
         GeneralVariables& rVariables,
         Vector& rVolumeForce,
-        const double& rIntegrationWeight
-    );
-
-    /**
-      * Calculation of the Internal Forces Vector. Fi = B * sigma
-      */
-    virtual void CalculateAndAddInternalForces(
-        VectorType& rRightHandSideVector,
-        GeneralVariables & rVariables,
         const double& rIntegrationWeight
     );
 
@@ -622,22 +521,9 @@ protected:
     );
 
     /**
-     * Reset the Constitutive Law Parameters
-     */
-    void ResetConstitutiveLaw() override;
-
-    /**
      * Clear Nodal Forces
      */
     void ClearNodalForces ();
-
-    /**
-     * Calculate Element Kinematics
-     */
-    virtual void CalculateKinematics(
-        GeneralVariables& rVariables,
-        const ProcessInfo& rCurrentProcessInfo
-    );
 
     /**
      * Calculation of the Current Displacement
@@ -646,11 +532,6 @@ protected:
         Matrix & rCurrentDisp,
         const ProcessInfo& rCurrentProcessInfo
     );
-
-    /**
-     * Correct Precision Errors (for rigid free movements)
-     */
-    void DecimalCorrection(Vector& rVector);
 
     /**
      * Initialize Element General Variables
@@ -675,62 +556,6 @@ protected:
     virtual void UpdateGaussPoint(
         GeneralVariables & rVariables,
         const ProcessInfo& rCurrentProcessInfo
-    );
-
-    /**
-     * Get the Historical Deformation Gradient to calculate after finalize the step
-     */
-    virtual void GetHistoricalVariables(
-        GeneralVariables& rVariables
-    );
-
-    /**
-     * Calculation of the Green Lagrange Strain Vector
-     */
-    virtual void CalculateGreenLagrangeStrain(
-        const Matrix& rF,
-        Vector& rStrainVector
-    );
-
-    /**
-     * Calculation of the Almansi Strain Vector
-     */
-    virtual void CalculateAlmansiStrain(
-        const Matrix& rF,
-        Vector& rStrainVector
-    );
-
-    /**
-     * Calculation of the Deformation Matrix  BL
-     */
-    virtual void CalculateDeformationMatrix(
-        Matrix& rB,
-        const Matrix& rDN_DX,
-        const Matrix& rN,
-        const bool IsAxisymmetric = false
-    );
-
-    /**
-     * Calculation of the Integration Weight
-     */
-    virtual double& CalculateIntegrationWeight(
-        double& rIntegrationWeight
-    );
-
-    /**
-     * Calculation of the Volume Change of the Element
-     */
-    virtual double& CalculateVolumeChange(
-        double& rVolumeChange,
-        GeneralVariables& rVariables
-    );
-
-    /// Calculation of the Deformation Gradient F
-    void CalculateDeformationGradient(
-        const Matrix& rDN_DX,
-        Matrix& rF,
-        Matrix& rDeltaPosition,
-        const bool IsAxisymmetric = false
     );
 
 private:
