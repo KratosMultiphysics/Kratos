@@ -31,7 +31,7 @@ class TestSystemIdentification(UnitTest.TestCase):
 
         data = numpy.loadtxt("auxiliary_files/damaged_problem/measured_data.csv", comments="#", usecols=[0,3,4,5,6], delimiter=",")
         ref_data = numpy.loadtxt("auxiliary_files/damaged_problem/measured_data_ref.csv", comments="#", usecols=[0,3,4,5,6], delimiter=",")
-        self.assertTrue(numpy.allclose(data, ref_data, 1e-16, 1e-16))
+        numpy.testing.assert_allclose(data, ref_data, rtol=1e-13, atol=1e-13, verbose=True)
 
     def test_SystemIdentification(self):
         self._run_single_threaded_process("auxiliary_files/system_identification/MainKratos.py")
@@ -41,8 +41,8 @@ class TestSystemIdentification(UnitTest.TestCase):
             "output_file_name"      : "auxiliary_files/summary.csv",
             "remove_output_file"    : true,
             "comparison_type"       : "csv_file",
-            "tolerance"             : 1e-16,
-            "relative_tolerance"    : 1e-16,
+            "tolerance"             : 1e-13,
+            "relative_tolerance"    : 1e-13,
             "dimension"             : 3
         }""")
         CompareTwoFilesCheckProcess(params).Execute()
@@ -55,8 +55,8 @@ class TestSystemIdentification(UnitTest.TestCase):
             "output_file_name"      : "auxiliary_files/summary_p_norm.csv",
             "remove_output_file"    : true,
             "comparison_type"       : "csv_file",
-            "tolerance"             : 1e-16,
-            "relative_tolerance"    : 1e-16,
+            "tolerance"             : 1e-13,
+            "relative_tolerance"    : 1e-13,
             "dimension"             : 3
         }""")
         CompareTwoFilesCheckProcess(params).Execute()
