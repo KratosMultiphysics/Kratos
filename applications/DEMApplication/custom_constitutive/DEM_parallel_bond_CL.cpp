@@ -571,12 +571,11 @@ void DEM_parallel_bond::CalculateViscoDamping(double LocalRelVel[3],
         CalculateUnbondedViscoDampingForce(LocalRelVel, mUnbondedViscoDampingLocalContactForce, element1, element2);
     }
 
-    //TODO: bond viscodamping force should be removed, it is not correct
-    //if (!failure_id) {
-    //    mBondedViscoDampingLocalContactForce[0] = -equiv_visco_damp_coeff_tangential * LocalRelVel[0];
-    //    mBondedViscoDampingLocalContactForce[1] = -equiv_visco_damp_coeff_tangential * LocalRelVel[1];
-    //    mBondedViscoDampingLocalContactForce[2] = -equiv_visco_damp_coeff_normal * LocalRelVel[2];
-    //}
+    if (!failure_id) {
+        mBondedViscoDampingLocalContactForce[0] = -equiv_visco_damp_coeff_tangential * LocalRelVel[0];
+        mBondedViscoDampingLocalContactForce[1] = -equiv_visco_damp_coeff_tangential * LocalRelVel[1];
+        mBondedViscoDampingLocalContactForce[2] = -equiv_visco_damp_coeff_normal * LocalRelVel[2];
+    }
 
     ViscoDampingLocalContactForce[0] = mUnbondedViscoDampingLocalContactForce[0] + mBondedViscoDampingLocalContactForce[0];
     ViscoDampingLocalContactForce[1] = mUnbondedViscoDampingLocalContactForce[1] + mBondedViscoDampingLocalContactForce[1];
