@@ -15,6 +15,7 @@
 #include "geo_mechanics_application_variables.h"
 #include "geometries/quadrilateral_2d_4.h"
 #include "tests/cpp_tests/geo_mechanics_fast_suite.h"
+#include "tests/cpp_tests/test_utilities.h"
 
 #include <numbers>
 #include <string>
@@ -137,7 +138,7 @@ KRATOS_TEST_CASE_IN_SUITE(TestExtrapolationProcess_ExtrapolatesCorrectlyForConst
 KRATOS_TEST_CASE_IN_SUITE(TestExtrapolationProcess_ExtrapolatesCorrectlyForConstantFieldWithInactiveElement,
                           KratosGeoMechanicsFastSuiteWithoutKernel)
 {
-    //   This test uses the following two-element system.
+    //   This test uses the following two-element system, where the second element is inactive.
     //   4------3------6
     //   |  El1 |  El2 |
     //   1------2------5
@@ -164,7 +165,7 @@ KRATOS_TEST_CASE_IN_SUITE(TestExtrapolationProcess_ExtrapolatesCorrectlyForConst
     process.ExecuteFinalizeSolutionStep();
 
     for (auto& node : model_part.Elements()[1].GetGeometry()) {
-        KRATOS_EXPECT_NEAR(node.FastGetSolutionStepValue(HYDRAULIC_HEAD), 1.0, 1e-6);
+        KRATOS_EXPECT_NEAR(node.FastGetSolutionStepValue(HYDRAULIC_HEAD), 1.0, Defaults::absolute_tolerance);
     }
 }
 
