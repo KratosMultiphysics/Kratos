@@ -90,6 +90,24 @@ int ApplyCPhiReductionProcess::Check()
     KRATOS_ERROR_IF(std::ranges::all_of(mrModelParts, [](const auto& r_model_part) {
         return r_model_part.get().Elements().empty();
     })) << "None of the provided model parts contains at least one element. A c-phi reduction analysis requires at least one element.\n";
+
+    for (const auto& r_model_part : mrModelParts) {
+        for (const auto& r_element : r_model_part.get().Elements()) {
+            auto                  r_properties = r_element.GetProperties();
+            const CheckProperties check_properties(r_properties, "model part property",
+                                                   CheckProperties::Bounds::AllInclusive);
+            if (r_properties.Has(GEO_COHESION)) {
+                check_properties.Check(GEO_COHESION);
+                check_properties.Check(GEO_FRICTION_ANGLE);
+            } else {
+                check_properties.CheckAvailability(UMAT_PARAMETERS);
+                check_properties.Check(INDEX_OF_UMAT_PHI_PARAMETER, 1,
+                                       static_cast<int>(r_properties[UMAT_PARAMETERS].size()));
+                check_properties.Check(INDEX_OF_UMAT_C_PARAMETER, 1,
+                                       static_cast<int>(r_properties[UMAT_PARAMETERS].size()));
+            }
+        }
+    }
     return 0;
 }
 
@@ -98,12 +116,6 @@ double ApplyCPhiReductionProcess::GetAndCheckPhi(const Properties& rModelPartPro
     // Get the initial properties from the model part. Recall that we create a separate
     // properties object with reduced c and phi for each and every element. Those reduced
     // properties objects are not linked to the original ones.
-
-    const CheckProperties check_properties(rModelPartProperties, "model part property",
-                                           CheckProperties::Bounds::AllInclusive);
-    check_properties.CheckAvailability(UMAT_PARAMETERS);
-    check_properties.Check(INDEX_OF_UMAT_PHI_PARAMETER, 1,
-                           static_cast<int>(rModelPartProperties[UMAT_PARAMETERS].size()));
 
     const auto phi = ConstitutiveLawUtilities::GetFrictionAngleInDegrees(rModelPartProperties);
     KRATOS_ERROR_IF(phi < 0. || phi > 90.)
@@ -126,16 +138,6 @@ double ApplyCPhiReductionProcess::GetAndCheckC(const Properties& rModelPartPrope
     // properties object with reduced c and phi for each and every element. Those reduced
     // properties objects are not linked to the original ones.
 
-    KRATOS_ERROR_IF_NOT(rModelPartProperties.Has(UMAT_PARAMETERS))
-        << "Missing required item UMAT_PARAMETERS" << std::endl;
-    KRATOS_ERROR_IF_NOT(rModelPartProperties.Has(INDEX_OF_UMAT_C_PARAMETER))
-        << "Missing required item INDEX_OF_UMAT_C_PARAMETER" << std::endl;
-
-    KRATOS_ERROR_IF(rModelPartProperties[INDEX_OF_UMAT_C_PARAMETER] < 1 ||
-                    rModelPartProperties[INDEX_OF_UMAT_C_PARAMETER] >
-                        static_cast<int>(rModelPartProperties[UMAT_PARAMETERS].size()))
-        << "invalid INDEX_OF_UMAT_C_PARAMETER: " << rModelPartProperties[INDEX_OF_UMAT_C_PARAMETER]
-        << " (out-of-bounds index)" << std::endl;
     const auto c = ConstitutiveLawUtilities::GetCohesion(rModelPartProperties);
     KRATOS_ERROR_IF(c < 0.) << "Cohesion C out of range: " << c << std::endl;
     return c;
@@ -143,15 +145,19 @@ double ApplyCPhiReductionProcess::GetAndCheckC(const Properties& rModelPartPrope
 
 void ApplyCPhiReductionProcess::SetCPhiAtElement(Element& rElement, double ReducedPhi, double ReducedC)
 {
-    // Get C/Phi material properties of this element
-    const auto& r_prop = rElement.GetProperties();
+    auto& r_properties = rElement.GetProperties();
 
-    // Overwrite C and Phi in the UMAT_PARAMETERS
-    auto Umat_parameters                                     = r_prop[UMAT_PARAMETERS];
-    Umat_parameters[r_prop[INDEX_OF_UMAT_PHI_PARAMETER] - 1] = ReducedPhi;
-    Umat_parameters[r_prop[INDEX_OF_UMAT_C_PARAMETER] - 1]   = ReducedC;
+    if (r_properties.Has(GEO_FRICTION_ANGLE)) {
+        r_properties.SetValue(GEO_FRICTION_ANGLE, ReducedPhi);
+        r_properties.SetValue(GEO_COHESION, ReducedC);
+    } else {
+        // Overwrite C and Phi in the UMAT_PARAMETERS
+        auto Umat_parameters = r_properties[UMAT_PARAMETERS];
+        Umat_parameters[r_properties[INDEX_OF_UMAT_PHI_PARAMETER] - 1] = ReducedPhi;
+        Umat_parameters[r_properties[INDEX_OF_UMAT_C_PARAMETER] - 1]   = ReducedC;
 
-    SetValueAtElement(rElement, UMAT_PARAMETERS, Umat_parameters);
+        SetValueAtElement(rElement, UMAT_PARAMETERS, Umat_parameters);
+    }
 }
 
 void ApplyCPhiReductionProcess::SetValueAtElement(Element& rElement, const Variable<Vector>& rVariable, const Vector& rValue)
