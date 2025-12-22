@@ -134,6 +134,40 @@ KRATOS_TEST_CASE_IN_SUITE(TestExtrapolationProcess_ExtrapolatesCorrectlyForConst
     }
 }
 
+KRATOS_TEST_CASE_IN_SUITE(TestExtrapolationProcess_ExtrapolatesCorrectlyForConstantFieldWithInactiveElement,
+                          KratosGeoMechanicsFastSuiteWithoutKernel)
+{
+    //   This test uses the following two-element system.
+    //   4------3------6
+    //   |  El1 |  El2 |
+    //   1------2------5
+    //
+
+    Model model;
+    auto& model_part = CreateModelPartWithTwoStubElements(model);
+
+    dynamic_cast<StubElementForNodalExtrapolationTest&>(model_part.Elements()[1]).mIntegrationDoubleValues = {
+        1.0, 1.0, 1.0, 1.0};
+    dynamic_cast<StubElementForNodalExtrapolationTest&>(model_part.Elements()[2]).mIntegrationDoubleValues = {
+        1.0, 1.0, 1.0, 1.0};
+    model_part.Elements()[2].Set(ACTIVE, false);
+
+    const auto parameters = Parameters(R"(
+    {
+        "model_part_name"            : "MainModelPart",
+        "echo_level"                 : 0,
+        "list_of_variables"          : ["HYDRAULIC_HEAD"]
+    })");
+
+    GeoExtrapolateIntegrationPointValuesToNodesProcess process(model, parameters);
+    process.ExecuteBeforeSolutionLoop();
+    process.ExecuteFinalizeSolutionStep();
+
+    for (auto& node : model_part.Elements()[1].GetGeometry()) {
+        KRATOS_EXPECT_NEAR(node.FastGetSolutionStepValue(HYDRAULIC_HEAD), 1.0, 1e-6);
+    }
+}
+
 KRATOS_TEST_CASE_IN_SUITE(TestExtrapolationProcess_ExtrapolatesCorrectlyForTwoConstantButDifferentFields,
                           KratosGeoMechanicsFastSuiteWithoutKernel)
 {
