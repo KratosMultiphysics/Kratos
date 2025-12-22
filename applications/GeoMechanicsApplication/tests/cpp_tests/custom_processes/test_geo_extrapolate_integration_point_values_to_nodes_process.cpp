@@ -14,6 +14,7 @@
 #include "custom_processes/geo_extrapolate_integration_point_values_to_nodes_process.h"
 #include "geo_mechanics_application_variables.h"
 #include "geometries/quadrilateral_2d_4.h"
+#include "test_setup_utilities/model_setup_utilities.h"
 #include "tests/cpp_tests/geo_mechanics_fast_suite.h"
 #include "tests/cpp_tests/test_utilities.h"
 
@@ -428,27 +429,26 @@ KRATOS_TEST_CASE_IN_SUITE(TestExtrapolationProcess_ExtrapolatesCorrectlyWhenNode
     //   |  El1 |  El2 |
     //   1------2------5
     //
-
     Model model;
+
     auto& r_left_model_part = model.CreateModelPart("Left");
     r_left_model_part.AddNodalSolutionStepVariable(HYDRAULIC_HEAD);
-    auto p_node_1 = r_left_model_part.CreateNewNode(1, 0.0, 0.0, 0.0);
-    auto p_node_2 = r_left_model_part.CreateNewNode(2, 1.0, 0.0, 0.0);
-    auto p_node_3 = r_left_model_part.CreateNewNode(3, 1.0, 1.0, 0.0);
-    auto p_node_4 = r_left_model_part.CreateNewNode(4, 0.0, 1.0, 0.0);
-
-    auto p_geometry_1 = std::make_shared<Quadrilateral2D4<Node>>(p_node_1, p_node_2, p_node_3, p_node_4);
+    const auto node_definitions = NodeDefinitionVector{
+        {1, {0.0, 0.0, 0.0}}, {2, {1.0, 0.0, 0.0}}, {3, {1.0, 1.0, 0.0}}, {4, {0.0, 1.0, 0.0}}};
+    const auto nodes_of_element_1 = ModelSetupUtilities::CreateNodes(r_left_model_part, node_definitions);
+    auto p_geometry_1 = std::make_shared<Quadrilateral2D4<Node>>(nodes_of_element_1);
     auto p_element_1 = Kratos::make_intrusive<StubElementForNodalExtrapolationTest>(1, p_geometry_1);
     r_left_model_part.AddElement(p_element_1);
 
     auto& r_right_model_part = model.CreateModelPart("Right");
     r_right_model_part.AddNodalSolutionStepVariable(HYDRAULIC_HEAD);
-    r_right_model_part.AddNode(p_node_2);
-    r_right_model_part.AddNode(p_node_3);
+    r_right_model_part.AddNode(r_left_model_part.pGetNode(2));
+    r_right_model_part.AddNode(r_left_model_part.pGetNode(3));
     auto p_node_5 = r_right_model_part.CreateNewNode(5, 2.0, 0.0, 0.0);
     auto p_node_6 = r_right_model_part.CreateNewNode(6, 2.0, 1.0, 0.0);
 
-    auto p_geometry_2 = std::make_shared<Quadrilateral2D4<Node>>(p_node_2, p_node_5, p_node_6, p_node_3);
+    auto p_geometry_2 = std::make_shared<Quadrilateral2D4<Node>>(
+        r_left_model_part.pGetNode(2), p_node_5, p_node_6, r_left_model_part.pGetNode(3));
     auto p_element_2 = Kratos::make_intrusive<StubElementForNodalExtrapolationTest>(2, p_geometry_2);
     r_right_model_part.AddElement(p_element_2);
 
