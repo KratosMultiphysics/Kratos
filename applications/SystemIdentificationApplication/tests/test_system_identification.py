@@ -27,14 +27,14 @@ class TestSystemIdentification(UnitTest.TestCase):
     def test_DamagedSystem(self):
         self.addCleanup(DeleteFileIfExisting, "auxiliary_files/damaged_problem/measured_data.csv")
 
-        self._run_single_threaded_process("auxiliary_files/damaged_problem/MainKratos.py")
+        self.__RunSingleThreadedProcess("auxiliary_files/damaged_problem/MainKratos.py")
 
         data = numpy.loadtxt("auxiliary_files/damaged_problem/measured_data.csv", comments="#", usecols=[0,3,4,5,6], delimiter=",")
         ref_data = numpy.loadtxt("auxiliary_files/damaged_problem/measured_data_ref.csv", comments="#", usecols=[0,3,4,5,6], delimiter=",")
-        numpy.testing.assert_allclose(data, ref_data, rtol=1e-13, atol=1e-13, verbose=True)
+        self.assertTrue(numpy.allclose(data, ref_data, 1e-13, 1e-13))
 
     def test_SystemIdentification(self):
-        self._run_single_threaded_process("auxiliary_files/system_identification/MainKratos.py")
+        self.__RunSingleThreadedProcess("auxiliary_files/system_identification/MainKratos.py")
 
         params = Kratos.Parameters("""{
             "reference_file_name"   : "auxiliary_files/system_identification_summary_ref.csv",
@@ -48,7 +48,7 @@ class TestSystemIdentification(UnitTest.TestCase):
         CompareTwoFilesCheckProcess(params).Execute()
 
     def test_SystemIdentificationPNorm(self):
-        self._run_single_threaded_process("auxiliary_files/system_identification_p_norm/MainKratos.py")
+        self.__RunSingleThreadedProcess("auxiliary_files/system_identification_p_norm/MainKratos.py")
 
         params = Kratos.Parameters("""{
             "reference_file_name"   : "auxiliary_files/system_identification_p_norm_summary_ref.csv",
