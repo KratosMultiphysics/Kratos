@@ -35,12 +35,12 @@ void  AddCustomResponseUtilitiesToPython(pybind11::module& m)
     m.def_submodule("MassResponseUtils")
         .def("Check", &MassResponseUtils::Check)
         .def("CalculateValue", &MassResponseUtils::CalculateValue)
-        .def("CalculateGradient", &MassResponseUtils::CalculateGradient, py::arg("list_of_gradient_variables"), py::arg("list_of_gradient_required_model_parts"), py::arg("list_of_gradient_computed_model_parts"), py::arg("list_of_container_expressions"), py::arg("perturbation_size"))
+        .def("CalculateGradient", &MassResponseUtils::CalculateGradient, py::arg("physical_variable"), py::arg("gradient_required_model_parts"), py::arg("gradient_computed_model_parts"), py::arg("combined_tensor_adaptor"), py::arg("perturbation_size"))
         ;
 
     m.def_submodule("LinearStrainEnergyResponseUtils")
         .def("CalculateValue", &LinearStrainEnergyResponseUtils::CalculateValue)
-        .def("CalculateGradient", &LinearStrainEnergyResponseUtils::CalculateGradient, py::arg("list_of_gradient_variables"), py::arg("list_of_gradient_required_model_parts"), py::arg("list_of_gradient_computed_model_parts"), py::arg("list_of_container_expressions"), py::arg("perturbation_size"))
+        .def("CalculateGradient", &LinearStrainEnergyResponseUtils::CalculateGradient, py::arg("physical_variable"), py::arg("gradient_required_model_parts"), py::arg("gradient_computed_model_parts"), py::arg("combined_tensor_adaptor"), py::arg("perturbation_size"))
         ;
 
     m.def_submodule("MaxOverhangAngleResponseUtils")
