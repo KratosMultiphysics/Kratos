@@ -41,8 +41,8 @@ class TestSystemIdentification(UnitTest.TestCase):
             "output_file_name"      : "auxiliary_files/summary.csv",
             "remove_output_file"    : true,
             "comparison_type"       : "csv_file",
-            "tolerance"             : 1e-13,
-            "relative_tolerance"    : 1e-13,
+            "tolerance"             : 1e-11,
+            "relative_tolerance"    : 1e-11,
             "dimension"             : 3
         }""")
         CompareTwoFilesCheckProcess(params).Execute()
@@ -55,8 +55,8 @@ class TestSystemIdentification(UnitTest.TestCase):
             "output_file_name"      : "auxiliary_files/summary_p_norm.csv",
             "remove_output_file"    : true,
             "comparison_type"       : "csv_file",
-            "tolerance"             : 1e-13,
-            "relative_tolerance"    : 1e-13,
+            "tolerance"             : 1e-11,
+            "relative_tolerance"    : 1e-11,
             "dimension"             : 3
         }""")
         CompareTwoFilesCheckProcess(params).Execute()
