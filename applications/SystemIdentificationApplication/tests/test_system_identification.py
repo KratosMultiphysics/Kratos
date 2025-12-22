@@ -10,7 +10,7 @@ from KratosMultiphysics.kratos_utilities import DeleteFileIfExisting
 from KratosMultiphysics.compare_two_files_check_process import CompareTwoFilesCheckProcess
 
 class TestSystemIdentification(UnitTest.TestCase):
-    def _run_single_threaded_process(self, script_path):
+    def __RunSingleThreadedProcess(self, script_path):
         env = os.environ.copy()
         env["OMP_NUM_THREADS"] = "1"
         env["OPENBLAS_NUM_THREADS"] = "1"
