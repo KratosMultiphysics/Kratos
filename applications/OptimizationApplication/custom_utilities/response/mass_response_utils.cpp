@@ -17,7 +17,7 @@
 #include <functional>
 
 // Project includes
-#include "expression/variable_expression_io.h"
+#include "tensor_adaptors/variable_tensor_adaptor.h"
 #include "includes/define.h"
 #include "includes/variables.h"
 #include "utilities/element_size_calculator.h"
@@ -27,7 +27,7 @@
 
 // Application includes
 #include "custom_utilities/optimization_utils.h"
-#include "custom_utilities/properties_variable_expression_io.h"
+#include "custom_utilities/properties_variable_tensor_adaptor.h"
 #include "optimization_application_variables.h"
 
 // Include base h
@@ -120,7 +120,7 @@ void MassResponseUtils::CalculateGradient(
     const PhysicalFieldVariableTypes& rPhysicalVariable,
     ModelPart& rGradientRequiredModelPart,
     ModelPart& rGradientComputedModelPart,
-    std::vector<ContainerExpressionType>& rListOfContainerExpressions,
+    CombinedTensorAdaptor<double>& rCombinedTensorAdaptor,
     const double PerturbationSize)
 {
     KRATOS_TRY
@@ -161,36 +161,28 @@ void MassResponseUtils::CalculateGradient(
         }
 
         // now fill the container expressions
-        for (auto& p_container_expression : rListOfContainerExpressions) {
-            std::visit([pVariable](auto& pContainerExpression){
-                using container_type = std::decay_t<decltype(*pContainerExpression)>;
+        for (auto p_tensor_adaptor : rCombinedTensorAdaptor.GetTensorAdaptors()) {
+            std::visit([&p_tensor_adaptor, &pVariable](const auto& pContainer) {
+                using container_type = BareType<decltype(*pContainer)>;
 
-                if (*pVariable == SHAPE) {
-                    if constexpr(std::is_same_v<container_type, ContainerExpression<ModelPart::NodesContainerType>>) {
-                        VariableExpressionIO::Read(*pContainerExpression, &SHAPE_SENSITIVITY, false);
-                    } else {
-                        KRATOS_ERROR << "Requesting sensitivity w.r.t. "
-                                        "SHAPE for a Container expression "
-                                        "which is not a NodalExpression. [ "
-                                        "Requested container expression = "
-                                        << *pContainerExpression << " ].\n";
-                    }
+                if constexpr(std::is_same_v<container_type, ModelPart::NodesContainerType>) {
+                    KRATOS_ERROR_IF_NOT(*pVariable == SHAPE)
+                        << "Sensitivity w.r.t. " << pVariable->Name()
+                        << " can be computed on an element tensor adaptor only. "
+                        << "Requested tensor adaptor = "
+                        << *p_tensor_adaptor << " ].\n";
+                    VariableTensorAdaptor(*p_tensor_adaptor, &SHAPE_SENSITIVITY, false).CollectData();
                 } else {
-                    if constexpr(std::is_same_v<container_type, ContainerExpression<ModelPart::ElementsContainerType>>) {
-                        const auto& sensitivity_variable = KratosComponents<Variable<double>>::Get(pVariable->Name() + "_SENSITIVITY");
-                        PropertiesVariableExpressionIO::Read(*pContainerExpression, &sensitivity_variable);
-                    } else {
-                        KRATOS_ERROR << "Requesting sensitivity w.r.t. "
-                                     << pVariable->Name()
-                                     << " for a Container expression "
-                                        "which is not an ElementExpression. [ "
-                                        "Requested container expression = "
-                                     << *pContainerExpression << " ].\n";
-                    }
+                    KRATOS_ERROR_IF(*pVariable == SHAPE)
+                        << "Sensitivity w.r.t. " << pVariable->Name()
+                        << " can be computed on a nodal tensor adaptor only. "
+                        << "Requested tensor adaptor = "
+                        << *p_tensor_adaptor << " ].\n";
+
+                    const auto& sensitivity_variable = KratosComponents<Variable<double>>::Get(pVariable->Name() + "_SENSITIVITY");
+                    PropertiesVariableTensorAdaptor(*p_tensor_adaptor, &sensitivity_variable, false).CollectData();
                 }
-
-
-            }, p_container_expression);
+            }, p_tensor_adaptor->GetContainer());
         }
     }, rPhysicalVariable);
 

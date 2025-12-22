@@ -20,7 +20,7 @@
 // Project includes
 #include "includes/define.h"
 #include "includes/model_part.h"
-#include "expression/container_expression.h"
+#include "tensor_adaptors/combined_tensor_adaptor.h"
 
 // Application includes
 
@@ -42,8 +42,6 @@ public:
 
     using PhysicalFieldVariableTypes = std::variant<const Variable<double>*, const Variable<array_1d<double, 3>>*>;
 
-    using ContainerExpressionType = std::variant<ContainerExpression<ModelPart::NodesContainerType>::Pointer, ContainerExpression<ModelPart::ConditionsContainerType>::Pointer, ContainerExpression<ModelPart::ElementsContainerType>::Pointer>;
-
     ///@}
     ///@name Static operations
     ///@{
@@ -56,7 +54,7 @@ public:
         const PhysicalFieldVariableTypes& rPhysicalVariable,
         ModelPart& rGradientRequiredModelPart,
         ModelPart& rGradientComputedModelPart,
-        std::vector<ContainerExpressionType>& rListOfContainerExpressions,
+        CombinedTensorAdaptor<double>& rCombinedTensorAdaptor,
         const double PerturbationSize);
 
     ///@}
