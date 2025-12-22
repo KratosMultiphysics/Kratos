@@ -574,7 +574,7 @@ KRATOS_TEST_CASE_IN_SUITE(LineInterfaceElement_RightHandSideEqualsMinusInternalF
     Vector actual_internal_forces_vector;
     element.Calculate(INTERNAL_FORCES_VECTOR, actual_internal_forces_vector, ProcessInfo{});
     // Assert
-    auto expected_internal_forces_vector = Vector{(-1.0) * expected_right_hand_side};
+    const auto expected_internal_forces_vector = Vector{(-1.0) * expected_right_hand_side};
     KRATOS_EXPECT_VECTOR_RELATIVE_NEAR(actual_internal_forces_vector,
                                        expected_internal_forces_vector, Defaults::relative_tolerance)
 }
