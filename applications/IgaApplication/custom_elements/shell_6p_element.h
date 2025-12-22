@@ -73,8 +73,6 @@ protected:
         Vector StrainVector;
         Vector StressVector;
         Matrix ConstitutiveMatrix;
-        
-        /// @param StrainSize: The size of the strain vector in Voigt notation
         ConstitutiveVariables(std::size_t StrainSize);
     };
 
@@ -84,10 +82,7 @@ protected:
         Matrix B11;
         Matrix B22;
         Matrix B12;
-
-        /// @param mat_size: The matrix size in Voigt notation
         SecondVariations(const int& mat_size);
-
     }; 
 
 public:
@@ -186,15 +181,13 @@ public:
         MatrixType& rLeftHandSideMatrix,
         const ProcessInfo& rCurrentProcessInfo) override
     {
-        const std::size_t number_of_nodes = GetGeometry().size();
-        const std::size_t mat_size = number_of_nodes * 6; //
-
-        VectorType right_hand_side_vector;
-
+        const std::size_t mat_size = GetGeometry().size() * 6;
+        
         if (rLeftHandSideMatrix.size1() != mat_size)
             rLeftHandSideMatrix.resize(mat_size, mat_size);
         noalias(rLeftHandSideMatrix) = ZeroMatrix(mat_size, mat_size);
 
+        VectorType right_hand_side_vector;
         CalculateAll(rLeftHandSideMatrix, right_hand_side_vector,
             rCurrentProcessInfo, true, false);
     }
@@ -212,8 +205,7 @@ public:
         VectorType& rRightHandSideVector,
         const ProcessInfo& rCurrentProcessInfo) override
     {
-        const std::size_t number_of_nodes = GetGeometry().size();
-        const std::size_t mat_size = number_of_nodes * 6;
+        const std::size_t mat_size = GetGeometry().size() * 6;
 
         if (rRightHandSideVector.size() != mat_size)
             rRightHandSideVector.resize(mat_size);
