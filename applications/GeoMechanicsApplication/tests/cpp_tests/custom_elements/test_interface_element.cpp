@@ -566,16 +566,17 @@ KRATOS_TEST_CASE_IN_SUITE(LineInterfaceElement_RightHandSideEqualsMinusInternalF
     Vector actual_external_forces_vector;
     element.Calculate(EXTERNAL_FORCES_VECTOR, actual_external_forces_vector, ProcessInfo{});
     // Assert
-    auto expected_external_forces_vector = Vector{8,0.0};
-    KRATOS_EXPECT_VECTOR_RELATIVE_NEAR(actual_external_forces_vector, expected_external_forces_vector, Defaults::relative_tolerance)
+    const auto expected_external_forces_vector = Vector{8, 0.0};
+    KRATOS_EXPECT_VECTOR_RELATIVE_NEAR(actual_external_forces_vector,
+                                       expected_external_forces_vector, Defaults::relative_tolerance)
 
     // Act
     Vector actual_internal_forces_vector;
     element.Calculate(INTERNAL_FORCES_VECTOR, actual_internal_forces_vector, ProcessInfo{});
     // Assert
-    auto expected_internal_forces_vector = Vector{- expected_right_hand_side};
-    KRATOS_EXPECT_VECTOR_RELATIVE_NEAR(actual_internal_forces_vector, expected_internal_forces_vector, Defaults::relative_tolerance)
-
+    auto expected_internal_forces_vector = Vector{(-1.0) * expected_right_hand_side};
+    KRATOS_EXPECT_VECTOR_RELATIVE_NEAR(actual_internal_forces_vector,
+                                       expected_internal_forces_vector, Defaults::relative_tolerance)
 }
 
 KRATOS_TEST_CASE_IN_SUITE(LineInterfaceElement_RightHandSideEqualsMinusInternalForceVector_Rotated,
