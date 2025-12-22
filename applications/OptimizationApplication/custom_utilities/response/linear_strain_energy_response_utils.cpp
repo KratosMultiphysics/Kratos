@@ -139,6 +139,9 @@ void LinearStrainEnergyResponseUtils::CalculateGradient(
         }
     }, rPhysicalVariable);
 
+    // update the combined tensor adaptor flat vector.
+    rCombinedTensorAdaptor.CollectData();
+
     KRATOS_CATCH("");
 }
 

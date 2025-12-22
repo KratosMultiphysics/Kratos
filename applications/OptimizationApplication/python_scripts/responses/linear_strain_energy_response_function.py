@@ -82,7 +82,6 @@ class LinearStrainEnergyResponseFunction(ResponseFunction):
 
                 ta_list.append(Kratos.TensorAdaptors.DoubleTensorAdaptor(ce.GetContainer(), Kratos.DoubleNDData(shape), copy=False))
             cta = Kratos.TensorAdaptors.DoubleCombinedTensorAdaptor(ta_list, False, False)
-            cta.CollectData()
             physical_variable_combined_tensor_adaptors[physical_variable] = cta
         # =========================================================
 
