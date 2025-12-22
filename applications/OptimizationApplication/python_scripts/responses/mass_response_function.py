@@ -67,14 +67,40 @@ class MassResponseFunction(ResponseFunction):
         # now get the intersected model parts
         intersected_model_part_map = ModelPartUtilities.GetIntersectedMap(self.model_part, merged_model_part_map, False)
 
+        # TODO: Remove this block once everything is updated to TensorAdaptors
+        # =========================================================
+        physical_variable_combined_tensor_adaptors: 'dict[SupportedSensitivityFieldVariableTypes, Kratos.TensorAdaptors.DoubleCombinedTensorAdaptor]' = {}
+        for physical_variable, collective_expression in physical_variable_collective_expressions.items():
+            ta_list = []
+            for ce in collective_expression.GetContainerExpressions():
+                if isinstance(physical_variable, Kratos.DoubleVariable):
+                    shape = Kratos.DenseVectorUnsignedInt([len(ce.GetContainer())])
+                elif isinstance(physical_variable, Kratos.Array1DVariable3):
+                    shape = Kratos.DenseVectorUnsignedInt([len(ce.GetContainer()), 3])
+                else:
+                    raise RuntimeError("Unsupported type")
+
+                ta_list.append(Kratos.TensorAdaptors.DoubleTensorAdaptor(ce.GetContainer(), Kratos.DoubleNDData(shape), copy=False))
+            cta = Kratos.TensorAdaptors.DoubleCombinedTensorAdaptor(ta_list, False, False)
+            cta.CollectData()
+            physical_variable_combined_tensor_adaptors[physical_variable] = cta
+        # =========================================================
+
         # calculate the gradients
         for physical_variable, merged_model_part in merged_model_part_map.items():
             KratosOA.ResponseUtils.MassResponseUtils.CalculateGradient(
                 physical_variable,
                 merged_model_part,
                 intersected_model_part_map[physical_variable],
-                physical_variable_collective_expressions[physical_variable].GetContainerExpressions(),
+                physical_variable_combined_tensor_adaptors[physical_variable],
                 self.perturbation_size)
+
+        # TODO: Remove this block once everything is updated to TensorAdaptors
+        # =========================================================
+        for physical_variable, collective_expression in physical_variable_collective_expressions.items():
+            for i, ce in enumerate(collective_expression.GetContainerExpressions()):
+                Kratos.Expression.CArrayExpressionIO.Read(ce, physical_variable_combined_tensor_adaptors[physical_variable].GetTensorAdaptors()[i].data)
+        # =========================================================
 
     def __str__(self) -> str:
         return f"Response [type = {self.__class__.__name__}, name = {self.GetName()}, model part name = {self.model_part.FullName()}]"
