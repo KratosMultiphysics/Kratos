@@ -70,20 +70,22 @@ void GeoExtrapolateIntegrationPointValuesToNodesProcess::InitializeAverageVariab
 {
     for (const auto& r_model_part : mrModelParts) {
         for (const auto& r_element : r_model_part.get().Elements()) {
-            for (const auto& r_node : r_element.GetGeometry()) {
-                mNodeIdToConnectedElementIds[r_node.Id()].insert(r_element.Id());
+            if (r_element.IsActive()) {
+                for (const auto& r_node : r_element.GetGeometry()) {
+                    mNodeIdToConnectedElementIds[r_node.Id()].insert(r_element.Id());
+                }
             }
         }
     }
 }
 
-double GeoExtrapolateIntegrationPointValuesToNodesProcess::GetZeroValueOf(const Variable<double>&) const
+double GeoExtrapolateIntegrationPointValuesToNodesProcess::GetZeroValueOf(const Variable<double>&)
 {
     return 0.0;
 }
 
 array_1d<double, 3> GeoExtrapolateIntegrationPointValuesToNodesProcess::GetZeroValueOf(
-    const Variable<array_1d<double, 3>>&) const
+    const Variable<array_1d<double, 3>>&)
 {
     return array_1d<double, 3>(3, 0.0);
 }

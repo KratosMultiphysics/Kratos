@@ -79,10 +79,10 @@ private:
     void InitializeVariables();
     void InitializeAverageVariablesForElements();
 
-    double              GetZeroValueOf(const Variable<double>&) const;
-    array_1d<double, 3> GetZeroValueOf(const Variable<array_1d<double, 3>>&) const;
-    Vector              GetZeroValueOf(const Variable<Vector>& rVariable) const;
-    Matrix              GetZeroValueOf(const Variable<Matrix>& rVariable) const;
+    [[nodiscard]] static double              GetZeroValueOf(const Variable<double>&);
+    [[nodiscard]] static array_1d<double, 3> GetZeroValueOf(const Variable<array_1d<double, 3>>&);
+    [[nodiscard]] Vector GetZeroValueOf(const Variable<Vector>& rVariable) const;
+    [[nodiscard]] Matrix GetZeroValueOf(const Variable<Matrix>& rVariable) const;
 
     template <class T>
     bool TryAddVariableToList(const std::string& rVariableName, std::vector<const Variable<T>*>& rList) const
@@ -114,7 +114,7 @@ private:
             const T     nodal_value =
                 std::inner_product(r_row.begin(), r_row.end(), values_on_integration_points.begin(),
                                    GetZeroValueOf(rVariable)) /
-                mNodeIdToConnectedElementIds.at(r_node.Id()).size();
+                static_cast<double>(mNodeIdToConnectedElementIds.at(r_node.Id()).size());
 
             rAtomicAddOperation(r_node.FastGetSolutionStepValue(rVariable), nodal_value);
         }
