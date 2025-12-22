@@ -10,37 +10,31 @@ from KratosMultiphysics.kratos_utilities import DeleteFileIfExisting
 from KratosMultiphysics.compare_two_files_check_process import CompareTwoFilesCheckProcess
 
 class TestSystemIdentification(UnitTest.TestCase):
-    def test_DamagedSystem(self):
-        self.addCleanup(DeleteFileIfExisting, "auxiliary_files/damaged_problem/measured_data.csv")
-
+    def _run_single_threaded_process(self, script_path):
         env = os.environ.copy()
         env["OMP_NUM_THREADS"] = "1"
         env["OPENBLAS_NUM_THREADS"] = "1"
-        env["MKL_NUM_THREADS"] = "1"
         env["NUMEXPR_NUM_THREADS"] = "1"
+        if any(k.startswith("MKL") for k in env):
+            env["MKL_NUM_THREADS"] = "1"
 
         subprocess.run(
-            [sys.executable, "auxiliary_files/damaged_problem/MainKratos.py"],
+            [sys.executable, script_path],
             env=env,
             check=True
         )
+
+    def test_DamagedSystem(self):
+        self.addCleanup(DeleteFileIfExisting, "auxiliary_files/damaged_problem/measured_data.csv")
+
+        self._run_single_threaded_process("auxiliary_files/damaged_problem/MainKratos.py")
 
         data = numpy.loadtxt("auxiliary_files/damaged_problem/measured_data.csv", comments="#", usecols=[0,3,4,5,6], delimiter=",")
         ref_data = numpy.loadtxt("auxiliary_files/damaged_problem/measured_data_ref.csv", comments="#", usecols=[0,3,4,5,6], delimiter=",")
         self.assertTrue(numpy.allclose(data, ref_data, 1e-16, 1e-16))
 
     def test_SystemIdentification(self):
-        env = os.environ.copy()
-        env["OMP_NUM_THREADS"] = "1"
-        env["OPENBLAS_NUM_THREADS"] = "1"
-        env["MKL_NUM_THREADS"] = "1"
-        env["NUMEXPR_NUM_THREADS"] = "1"
-
-        subprocess.run(
-            [sys.executable, "auxiliary_files/system_identification/MainKratos.py"],
-            env=env,
-            check=True
-        )
+        self._run_single_threaded_process("auxiliary_files/system_identification/MainKratos.py")
 
         params = Kratos.Parameters("""{
             "reference_file_name"   : "auxiliary_files/system_identification_summary_ref.csv",
@@ -54,17 +48,7 @@ class TestSystemIdentification(UnitTest.TestCase):
         CompareTwoFilesCheckProcess(params).Execute()
 
     def test_SystemIdentificationPNorm(self):
-        env = os.environ.copy()
-        env["OMP_NUM_THREADS"] = "1"
-        env["OPENBLAS_NUM_THREADS"] = "1"
-        env["MKL_NUM_THREADS"] = "1"
-        env["NUMEXPR_NUM_THREADS"] = "1"
-
-        subprocess.run(
-            [sys.executable, "auxiliary_files/system_identification_p_norm/MainKratos.py"],
-            env=env,
-            check=True
-        )
+        self._run_single_threaded_process("auxiliary_files/system_identification_p_norm/MainKratos.py")
 
         params = Kratos.Parameters("""{
             "reference_file_name"   : "auxiliary_files/system_identification_p_norm_summary_ref.csv",
