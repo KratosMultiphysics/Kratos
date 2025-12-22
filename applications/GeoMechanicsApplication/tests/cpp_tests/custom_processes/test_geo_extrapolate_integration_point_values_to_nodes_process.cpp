@@ -131,7 +131,7 @@ KRATOS_TEST_CASE_IN_SUITE(TestExtrapolationProcess_ExtrapolatesCorrectlyForConst
     process.ExecuteFinalizeSolutionStep();
 
     for (auto& node : model_part.Nodes()) {
-        KRATOS_EXPECT_NEAR(node.FastGetSolutionStepValue(HYDRAULIC_HEAD), 1.0, 1e-6);
+        KRATOS_EXPECT_NEAR(node.FastGetSolutionStepValue(HYDRAULIC_HEAD), 1.0, Defaults::absolute_tolerance);
     }
 }
 
@@ -202,7 +202,7 @@ KRATOS_TEST_CASE_IN_SUITE(TestExtrapolationProcess_ExtrapolatesCorrectlyForTwoCo
     std::transform(model_part.Nodes().begin(), model_part.Nodes().end(), std::back_inserter(actual_values),
                    [](const auto& node) { return node.FastGetSolutionStepValue(HYDRAULIC_HEAD); });
 
-    KRATOS_EXPECT_VECTOR_NEAR(actual_values, expected_values, 1e-6)
+    KRATOS_EXPECT_VECTOR_NEAR(actual_values, expected_values, Defaults::absolute_tolerance)
 }
 
 KRATOS_TEST_CASE_IN_SUITE(TestExtrapolationProcess_ExtrapolatesCorrectlyForLinearFields,
@@ -240,7 +240,7 @@ KRATOS_TEST_CASE_IN_SUITE(TestExtrapolationProcess_ExtrapolatesCorrectlyForLinea
     std::transform(model_part.Nodes().begin(), model_part.Nodes().end(), std::back_inserter(actual_values),
                    [](const auto& node) { return node.FastGetSolutionStepValue(HYDRAULIC_HEAD); });
 
-    KRATOS_EXPECT_VECTOR_NEAR(actual_values, expected_values, 1e-6)
+    KRATOS_EXPECT_VECTOR_NEAR(actual_values, expected_values, Defaults::absolute_tolerance)
 }
 
 KRATOS_TEST_CASE_IN_SUITE(TestExtrapolationProcess_ExtrapolatesCorrectlyForLinearFields_EvenIfUnrelatedEmptyModelPartsAreSupplied,
@@ -280,7 +280,7 @@ KRATOS_TEST_CASE_IN_SUITE(TestExtrapolationProcess_ExtrapolatesCorrectlyForLinea
     std::transform(model_part.Nodes().begin(), model_part.Nodes().end(), std::back_inserter(actual_values),
                    [](const auto& node) { return node.FastGetSolutionStepValue(HYDRAULIC_HEAD); });
 
-    KRATOS_EXPECT_VECTOR_NEAR(actual_values, expected_values, 1e-6)
+    KRATOS_EXPECT_VECTOR_NEAR(actual_values, expected_values, Defaults::absolute_tolerance)
 }
 
 KRATOS_TEST_CASE_IN_SUITE(TestExtrapolationProcess_ExtrapolatesMatrixCorrectlyForLinearFields,
@@ -325,7 +325,7 @@ KRATOS_TEST_CASE_IN_SUITE(TestExtrapolationProcess_ExtrapolatesMatrixCorrectlyFo
         [](const auto& node) { return node.FastGetSolutionStepValue(CAUCHY_STRESS_TENSOR); });
 
     for (std::size_t i = 0; i < expected_values.size(); ++i) {
-        KRATOS_EXPECT_MATRIX_NEAR(actual_values[i], expected_values[i], 1e-6)
+        KRATOS_EXPECT_MATRIX_NEAR(actual_values[i], expected_values[i], Defaults::absolute_tolerance)
     }
 }
 
@@ -371,7 +371,7 @@ KRATOS_TEST_CASE_IN_SUITE(TestExtrapolationProcess_ExtrapolatesVectorCorrectlyFo
         [](const auto& node) { return node.FastGetSolutionStepValue(CAUCHY_STRESS_VECTOR); });
 
     for (std::size_t i = 0; i < expected_values.size(); ++i) {
-        KRATOS_EXPECT_VECTOR_NEAR(actual_values[i], expected_values[i], 1e-6)
+        KRATOS_EXPECT_VECTOR_NEAR(actual_values[i], expected_values[i], Defaults::absolute_tolerance)
     }
 }
 
@@ -416,7 +416,7 @@ KRATOS_TEST_CASE_IN_SUITE(TestExtrapolationProcess_ExtrapolatesArrayCorrectlyFor
                    [](const auto& node) { return node.FastGetSolutionStepValue(FLUID_FLUX_VECTOR); });
 
     for (std::size_t i = 0; i < expected_values.size(); ++i) {
-        KRATOS_EXPECT_VECTOR_NEAR(actual_values[i], expected_values[i], 1e-6)
+        KRATOS_EXPECT_VECTOR_NEAR(actual_values[i], expected_values[i], Defaults::absolute_tolerance)
     }
 }
 
@@ -469,11 +469,11 @@ KRATOS_TEST_CASE_IN_SUITE(TestExtrapolationProcess_ExtrapolatesCorrectlyWhenNode
     process.ExecuteFinalizeSolutionStep();
 
     for (auto& node : r_left_model_part.Nodes()) {
-        KRATOS_EXPECT_NEAR(node.FastGetSolutionStepValue(HYDRAULIC_HEAD), 1.0, 1e-6);
+        KRATOS_EXPECT_NEAR(node.FastGetSolutionStepValue(HYDRAULIC_HEAD), 1.0, Defaults::absolute_tolerance);
     }
 
     for (auto& node : r_right_model_part.Nodes()) {
-        KRATOS_EXPECT_NEAR(node.FastGetSolutionStepValue(HYDRAULIC_HEAD), 1.0, 1e-6);
+        KRATOS_EXPECT_NEAR(node.FastGetSolutionStepValue(HYDRAULIC_HEAD), 1.0, Defaults::absolute_tolerance);
     }
 }
 
@@ -546,14 +546,14 @@ KRATOS_TEST_CASE_IN_SUITE(TestExtrapolationProcess_ExtrapolatesCorrectlyWhenMode
     process_1.ExecuteFinalizeSolutionStep();
 
     for (auto& node : r_bottom_model_part.Nodes()) {
-        EXPECT_NEAR(node.FastGetSolutionStepValue(HYDRAULIC_HEAD), 1.0, 1e-6)
+        EXPECT_NEAR(node.FastGetSolutionStepValue(HYDRAULIC_HEAD), 1.0, Defaults::absolute_tolerance)
             << "Hydraulic head at node " << node.Id();
     }
 
     process_2.ExecuteFinalizeSolutionStep();
 
     for (auto& node : r_top_model_part.Nodes()) {
-        EXPECT_NEAR(node.FastGetSolutionStepValue(HYDRAULIC_DISCHARGE), 1.0, 1e-6)
+        EXPECT_NEAR(node.FastGetSolutionStepValue(HYDRAULIC_DISCHARGE), 1.0, Defaults::absolute_tolerance)
             << "Hydraulic discharge at node " << node.Id();
     }
 }
