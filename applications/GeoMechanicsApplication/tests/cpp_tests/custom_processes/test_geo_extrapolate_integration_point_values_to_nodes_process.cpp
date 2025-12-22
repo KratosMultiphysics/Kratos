@@ -432,25 +432,25 @@ KRATOS_TEST_CASE_IN_SUITE(TestExtrapolationProcess_ExtrapolatesCorrectlyWhenNode
     Model model;
     auto& r_left_model_part = model.CreateModelPart("Left");
     r_left_model_part.AddNodalSolutionStepVariable(HYDRAULIC_HEAD);
-    auto node_1 = r_left_model_part.CreateNewNode(1, 0.0, 0.0, 0.0);
-    auto node_2 = r_left_model_part.CreateNewNode(2, 1.0, 0.0, 0.0);
-    auto node_3 = r_left_model_part.CreateNewNode(3, 1.0, 1.0, 0.0);
-    auto node_4 = r_left_model_part.CreateNewNode(4, 0.0, 1.0, 0.0);
+    auto p_node_1 = r_left_model_part.CreateNewNode(1, 0.0, 0.0, 0.0);
+    auto p_node_2 = r_left_model_part.CreateNewNode(2, 1.0, 0.0, 0.0);
+    auto p_node_3 = r_left_model_part.CreateNewNode(3, 1.0, 1.0, 0.0);
+    auto p_node_4 = r_left_model_part.CreateNewNode(4, 0.0, 1.0, 0.0);
 
-    auto geometry_1 = std::make_shared<Quadrilateral2D4<Node>>(node_1, node_2, node_3, node_4);
-    auto element_1  = Kratos::make_intrusive<StubElementForNodalExtrapolationTest>(1, geometry_1);
-    r_left_model_part.AddElement(element_1);
+    auto p_geometry_1 = std::make_shared<Quadrilateral2D4<Node>>(p_node_1, p_node_2, p_node_3, p_node_4);
+    auto p_element_1 = Kratos::make_intrusive<StubElementForNodalExtrapolationTest>(1, p_geometry_1);
+    r_left_model_part.AddElement(p_element_1);
 
     auto& r_right_model_part = model.CreateModelPart("Right");
     r_right_model_part.AddNodalSolutionStepVariable(HYDRAULIC_HEAD);
-    r_right_model_part.AddNode(node_2);
-    r_right_model_part.AddNode(node_3);
-    auto node_5 = r_right_model_part.CreateNewNode(5, 2.0, 0.0, 0.0);
-    auto node_6 = r_right_model_part.CreateNewNode(6, 2.0, 1.0, 0.0);
+    r_right_model_part.AddNode(p_node_2);
+    r_right_model_part.AddNode(p_node_3);
+    auto p_node_5 = r_right_model_part.CreateNewNode(5, 2.0, 0.0, 0.0);
+    auto p_node_6 = r_right_model_part.CreateNewNode(6, 2.0, 1.0, 0.0);
 
-    auto geometry_2 = std::make_shared<Quadrilateral2D4<Node>>(node_2, node_5, node_6, node_3);
-    auto element_2  = Kratos::make_intrusive<StubElementForNodalExtrapolationTest>(2, geometry_2);
-    r_right_model_part.AddElement(element_2);
+    auto p_geometry_2 = std::make_shared<Quadrilateral2D4<Node>>(p_node_2, p_node_5, p_node_6, p_node_3);
+    auto p_element_2 = Kratos::make_intrusive<StubElementForNodalExtrapolationTest>(2, p_geometry_2);
+    r_right_model_part.AddElement(p_element_2);
 
     dynamic_cast<StubElementForNodalExtrapolationTest&>(r_left_model_part.Elements()[1]).mIntegrationDoubleValues = {
         1.0, 1.0, 1.0, 1.0};
@@ -468,12 +468,12 @@ KRATOS_TEST_CASE_IN_SUITE(TestExtrapolationProcess_ExtrapolatesCorrectlyWhenNode
     process.ExecuteBeforeSolutionLoop();
     process.ExecuteFinalizeSolutionStep();
 
-    for (auto& node : r_left_model_part.Nodes()) {
-        KRATOS_EXPECT_NEAR(node.FastGetSolutionStepValue(HYDRAULIC_HEAD), 1.0, Defaults::absolute_tolerance);
+    for (auto& r_node : r_left_model_part.Nodes()) {
+        KRATOS_EXPECT_NEAR(r_node.FastGetSolutionStepValue(HYDRAULIC_HEAD), 1.0, Defaults::absolute_tolerance);
     }
 
-    for (auto& node : r_right_model_part.Nodes()) {
-        KRATOS_EXPECT_NEAR(node.FastGetSolutionStepValue(HYDRAULIC_HEAD), 1.0, Defaults::absolute_tolerance);
+    for (auto& r_node : r_right_model_part.Nodes()) {
+        KRATOS_EXPECT_NEAR(r_node.FastGetSolutionStepValue(HYDRAULIC_HEAD), 1.0, Defaults::absolute_tolerance);
     }
 }
 
