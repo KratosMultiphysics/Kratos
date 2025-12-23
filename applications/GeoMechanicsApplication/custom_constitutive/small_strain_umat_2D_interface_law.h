@@ -194,7 +194,7 @@ private:
 
     void load(Serializer& rSerializer) override;
 
-    SmallStrainUMAT2DInterfaceLaw();
+    SmallStrainUMAT2DInterfaceLaw() = default;
 
     ///@}
     ///@name Private Inquiry

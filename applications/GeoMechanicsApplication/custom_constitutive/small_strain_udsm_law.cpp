@@ -155,8 +155,6 @@ using f_UserMod          = void (*)(int*,
 
 using SizeType = std::size_t;
 
-SmallStrainUDSMLaw::~SmallStrainUDSMLaw() = default;
-
 SmallStrainUDSMLaw::SmallStrainUDSMLaw(std::unique_ptr<ConstitutiveLawDimension> pDimension)
     : mpDimension(std::move(pDimension))
 {

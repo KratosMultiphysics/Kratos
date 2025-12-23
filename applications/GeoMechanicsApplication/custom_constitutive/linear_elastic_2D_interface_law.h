@@ -14,6 +14,7 @@
 
 // Project includes
 #include "custom_constitutive/incremental_linear_elastic_law.h"
+#include "geo_mechanics_application_constants.h"
 
 namespace Kratos
 {

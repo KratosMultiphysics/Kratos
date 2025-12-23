@@ -192,7 +192,7 @@ private:
     ///@{
     friend class Serializer;
 
-    SmallStrainUMAT3DInterfaceLaw();
+    SmallStrainUMAT3DInterfaceLaw() = default;
 
     void save(Serializer& rSerializer) const override;
 

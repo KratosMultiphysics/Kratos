@@ -101,8 +101,6 @@ void SmallStrainUMAT2DInterfaceLaw::save(Serializer& rSerializer) const
 void SmallStrainUMAT2DInterfaceLaw::load(Serializer& rSerializer){
     KRATOS_SERIALIZE_LOAD_BASE_CLASS(rSerializer, SmallStrainUMATLaw)}
 
-SmallStrainUMAT2DInterfaceLaw::SmallStrainUMAT2DInterfaceLaw() = default;
-
 Vector& SmallStrainUMAT2DInterfaceLaw::GetValue(const Variable<Vector>& rThisVariable, Vector& rValue)
 {
     if (rThisVariable == STATE_VARIABLES) {

@@ -128,7 +128,7 @@ public:
 
     explicit SmallStrainUMATLaw(std::unique_ptr<ConstitutiveLawDimension> pConstitutiveDimension);
 
-    ~SmallStrainUMATLaw() override;
+    ~SmallStrainUMATLaw() override = default;
     SmallStrainUMATLaw(const SmallStrainUMATLaw& rOther);
     SmallStrainUMATLaw& operator=(const SmallStrainUMATLaw& rOther);
     SmallStrainUMATLaw(SmallStrainUMATLaw&&) noexcept            = delete;
@@ -342,7 +342,7 @@ protected:
     ///@name Protected  Access
     ///@{
 
-    SmallStrainUMATLaw();
+    SmallStrainUMATLaw() = default;
 
     virtual void UpdateInternalDeltaStrainVector(ConstitutiveLaw::Parameters& rValues);
     virtual void UpdateInternalStrainVectorFinalized(ConstitutiveLaw::Parameters& rValues);

@@ -112,16 +112,10 @@ using f_UMATMod = void (*)(double*       STRESS,
 #endif
 
 template <SizeType TVoigtSize>
-SmallStrainUMATLaw<TVoigtSize>::SmallStrainUMATLaw() = default;
-
-template <SizeType TVoigtSize>
 SmallStrainUMATLaw<TVoigtSize>::SmallStrainUMATLaw(std::unique_ptr<ConstitutiveLawDimension> pConstitutiveDimension)
     : ConstitutiveLaw{}, mpConstitutiveDimension(std::move(pConstitutiveDimension))
 {
 }
-
-template <SizeType TVoigtSize>
-SmallStrainUMATLaw<TVoigtSize>::~SmallStrainUMATLaw() = default;
 
 template <SizeType TVoigtSize>
 SmallStrainUMATLaw<TVoigtSize>::SmallStrainUMATLaw(const SmallStrainUMATLaw& rOther)
