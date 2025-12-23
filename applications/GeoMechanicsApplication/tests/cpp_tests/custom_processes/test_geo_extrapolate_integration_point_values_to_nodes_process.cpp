@@ -29,90 +29,6 @@ namespace
 
 using namespace Kratos;
 
-using ConstModelPartReferenceVector = std::vector<std::reference_wrapper<const ModelPart>>;
-
-std::string MakeModelPartNameFrom(const ModelPart& rModelPart)
-{
-    return R"(        "model_part_name": ")" + rModelPart.Name() + '"';
-}
-
-std::string MakeModelPartNameListFrom(const ConstModelPartReferenceVector& rModelPartRefs)
-{
-    auto ss = std::stringstream{};
-    ss << R"(        "model_part_name_list": [)";
-    if (!rModelPartRefs.empty()) {
-        // The names need to be separated by commas, but we must avoid a trailing comma. Therefore,
-        // using `std::ranges::copy` with an `std::ostream_iterator` with ", " as the delimiter is
-        // not good enough.
-        auto quoted_name = [](const auto& rModelPartRef) {
-            return '"' + rModelPartRef.get().Name() + '"';
-        };
-        ss << quoted_name(rModelPartRefs.front());
-        for (auto it = rModelPartRefs.begin() + 1; it != rModelPartRefs.end(); ++it) {
-            ss << ", " << quoted_name(*it);
-        }
-    }
-    ss << "]";
-
-    return ss.str();
-}
-
-std::string MakeVariableListFrom(const VariableData& rVariableData)
-{
-    return R"(        "list_of_variables": [")" + rVariableData.Name() + R"("])";
-}
-
-Parameters CreateExtrapolationProcessSettings(const std::string& rModelPartsSetting, const VariableData& rVariableData)
-{
-    // clang-format off
-    return Parameters{
-        "    {\n"s +
-            rModelPartsSetting + ",\n"s +
-            R"(        "echo_level": 0)" + ",\n" +
-            MakeVariableListFrom(rVariableData) + '\n' +
-        "    }\n"s
-    };
-    // clang-format on
-}
-
-Parameters CreateExtrapolationProcessSettings(const ModelPart& rModelPart, const VariableData& rVariableData)
-{
-    return CreateExtrapolationProcessSettings(MakeModelPartNameFrom(rModelPart), rVariableData);
-}
-
-Parameters CreateExtrapolationProcessSettings(const ConstModelPartReferenceVector& rModelPartRefs,
-                                              const VariableData&                  rVariableData)
-{
-    return CreateExtrapolationProcessSettings(MakeModelPartNameListFrom(rModelPartRefs), rVariableData);
-}
-
-void BuildAndRunExtrapolationProcess(Model& rModel, const Parameters& rProcessSettings)
-{
-    auto extrapolation_process = GeoExtrapolateIntegrationPointValuesToNodesProcess{rModel, rProcessSettings};
-    extrapolation_process.ExecuteBeforeSolutionLoop();
-    extrapolation_process.ExecuteFinalizeSolutionStep();
-}
-
-template <typename NodeContainerType>
-void AssertNodalValues(const NodeContainerType&   rNodes,
-                       const Variable<double>&    rVariable,
-                       const std::vector<double>& rExpectedNodalValues)
-{
-    auto actual_nodal_values = std::vector<double>{};
-    actual_nodal_values.reserve(rNodes.size());
-    auto get_nodal_value = [&rVariable](const auto& rNode) {
-        return rNode.FastGetSolutionStepValue(rVariable);
-    };
-    std::ranges::transform(rNodes, std::back_inserter(actual_nodal_values), get_nodal_value);
-
-    KRATOS_EXPECT_VECTOR_NEAR(actual_nodal_values, rExpectedNodalValues, Testing::Defaults::absolute_tolerance);
-}
-
-} // namespace
-
-namespace Kratos::Testing
-{
-
 class StubElementForNodalExtrapolationTest : public Element
 {
 public:
@@ -189,6 +105,95 @@ ModelPart& CreateModelPartWithTwoStubElements(Model& model)
     return r_result;
 }
 
+using ConstModelPartReferenceVector = std::vector<std::reference_wrapper<const ModelPart>>;
+
+std::string MakeModelPartNameFrom(const ModelPart& rModelPart)
+{
+    return R"(        "model_part_name": ")" + rModelPart.Name() + '"';
+}
+
+std::string MakeModelPartNameListFrom(const ConstModelPartReferenceVector& rModelPartRefs)
+{
+    auto ss = std::stringstream{};
+    ss << R"(        "model_part_name_list": [)";
+    if (!rModelPartRefs.empty()) {
+        // The names need to be separated by commas, but we must avoid a trailing comma. Therefore,
+        // using `std::ranges::copy` with an `std::ostream_iterator` with ", " as the delimiter is
+        // not good enough.
+        auto quoted_name = [](const auto& rModelPartRef) {
+            return '"' + rModelPartRef.get().Name() + '"';
+        };
+        ss << quoted_name(rModelPartRefs.front());
+        for (auto it = rModelPartRefs.begin() + 1; it != rModelPartRefs.end(); ++it) {
+            ss << ", " << quoted_name(*it);
+        }
+    }
+    ss << "]";
+
+    return ss.str();
+}
+
+std::string MakeVariableListFrom(const VariableData& rVariableData)
+{
+    return R"(        "list_of_variables": [")" + rVariableData.Name() + R"("])";
+}
+
+Parameters CreateExtrapolationProcessSettings(const std::string& rModelPartsSetting, const VariableData& rVariableData)
+{
+    // clang-format off
+    return Parameters{
+        "    {\n"s +
+            rModelPartsSetting + ",\n"s +
+            R"(        "echo_level": 0)" + ",\n" +
+            MakeVariableListFrom(rVariableData) + '\n' +
+        "    }\n"s
+    };
+    // clang-format on
+}
+
+Parameters CreateExtrapolationProcessSettings(const ModelPart& rModelPart, const VariableData& rVariableData)
+{
+    return CreateExtrapolationProcessSettings(MakeModelPartNameFrom(rModelPart), rVariableData);
+}
+
+Parameters CreateExtrapolationProcessSettings(const ConstModelPartReferenceVector& rModelPartRefs,
+                                              const VariableData&                  rVariableData)
+{
+    return CreateExtrapolationProcessSettings(MakeModelPartNameListFrom(rModelPartRefs), rVariableData);
+}
+
+void SetIntegrationPointValues(Element& rElement, const std::vector<double>& rValues)
+{
+    dynamic_cast<StubElementForNodalExtrapolationTest&>(rElement).mIntegrationDoubleValues = rValues;
+}
+
+void BuildAndRunExtrapolationProcess(Model& rModel, const Parameters& rProcessSettings)
+{
+    auto extrapolation_process = GeoExtrapolateIntegrationPointValuesToNodesProcess{rModel, rProcessSettings};
+    extrapolation_process.ExecuteBeforeSolutionLoop();
+    extrapolation_process.ExecuteFinalizeSolutionStep();
+}
+
+template <typename NodeContainerType>
+void AssertNodalValues(const NodeContainerType&   rNodes,
+                       const Variable<double>&    rVariable,
+                       const std::vector<double>& rExpectedNodalValues)
+{
+    auto actual_nodal_values = std::vector<double>{};
+    actual_nodal_values.reserve(rNodes.size());
+    auto get_nodal_value = [&rVariable](const auto& rNode) {
+        return rNode.FastGetSolutionStepValue(rVariable);
+    };
+    std::ranges::transform(rNodes, std::back_inserter(actual_nodal_values), get_nodal_value);
+
+    KRATOS_EXPECT_VECTOR_NEAR(actual_nodal_values, rExpectedNodalValues, Testing::Defaults::absolute_tolerance);
+}
+
+} // namespace
+
+namespace Kratos::Testing
+{
+
 KRATOS_TEST_CASE_IN_SUITE(TestExtrapolationProcess_ExtrapolatesCorrectlyForConstantField,
                           KratosGeoMechanicsFastSuiteWithoutKernel)
 {
@@ -201,10 +206,8 @@ KRATOS_TEST_CASE_IN_SUITE(TestExtrapolationProcess_ExtrapolatesCorrectlyForConst
     Model model;
     auto& r_model_part = CreateModelPartWithTwoStubElements(model);
 
-    dynamic_cast<StubElementForNodalExtrapolationTest&>(r_model_part.Elements()[1]).mIntegrationDoubleValues = {
-        1.0, 1.0, 1.0, 1.0};
-    dynamic_cast<StubElementForNodalExtrapolationTest&>(r_model_part.Elements()[2]).mIntegrationDoubleValues = {
-        1.0, 1.0, 1.0, 1.0};
+    SetIntegrationPointValues(r_model_part.Elements()[1], std::vector(4, 1.0));
+    SetIntegrationPointValues(r_model_part.Elements()[2], std::vector(4, 1.0));
 
     const auto& r_test_variable = HYDRAULIC_HEAD;
 
@@ -225,10 +228,9 @@ KRATOS_TEST_CASE_IN_SUITE(TestExtrapolationProcess_ExtrapolatesCorrectlyForConst
     Model model;
     auto& r_model_part = CreateModelPartWithTwoStubElements(model);
 
-    dynamic_cast<StubElementForNodalExtrapolationTest&>(r_model_part.Elements()[1]).mIntegrationDoubleValues = {
-        1.0, 1.0, 1.0, 1.0};
-    dynamic_cast<StubElementForNodalExtrapolationTest&>(r_model_part.Elements()[2]).mIntegrationDoubleValues = {
-        1.0, 1.0, 1.0, 1.0};
+    SetIntegrationPointValues(r_model_part.Elements()[1], std::vector(4, 1.0));
+    SetIntegrationPointValues(r_model_part.Elements()[2], std::vector(4, 1.0));
+
     r_model_part.Elements()[2].Set(ACTIVE, false);
 
     BuildAndRunExtrapolationProcess(model, CreateExtrapolationProcessSettings(r_model_part, HYDRAULIC_HEAD));
@@ -247,10 +249,8 @@ KRATOS_TEST_CASE_IN_SUITE(TestExtrapolationProcess_ExtrapolatesCorrectlyForTwoCo
     Model model;
     auto& r_model_part = CreateModelPartWithTwoStubElements(model);
 
-    dynamic_cast<StubElementForNodalExtrapolationTest&>(r_model_part.Elements()[1]).mIntegrationDoubleValues = {
-        1.0, 1.0, 1.0, 1.0};
-    dynamic_cast<StubElementForNodalExtrapolationTest&>(r_model_part.Elements()[2]).mIntegrationDoubleValues = {
-        2.0, 2.0, 2.0, 2.0};
+    SetIntegrationPointValues(r_model_part.Elements()[1], std::vector(4, 1.0));
+    SetIntegrationPointValues(r_model_part.Elements()[2], std::vector(4, 2.0));
 
     BuildAndRunExtrapolationProcess(model, CreateExtrapolationProcessSettings(r_model_part, HYDRAULIC_HEAD));
 
@@ -269,12 +269,10 @@ KRATOS_TEST_CASE_IN_SUITE(TestExtrapolationProcess_ExtrapolatesCorrectlyForLinea
     auto& r_model_part = CreateModelPartWithTwoStubElements(model);
 
     // Linear field in x between -1 and 1
-    dynamic_cast<StubElementForNodalExtrapolationTest&>(r_model_part.Elements()[1]).mIntegrationDoubleValues = {
-        -inv_sqrt3, inv_sqrt3, inv_sqrt3, -inv_sqrt3};
+    SetIntegrationPointValues(r_model_part.Elements()[1], {-inv_sqrt3, inv_sqrt3, inv_sqrt3, -inv_sqrt3});
 
     // Linear field in y between -1 and 1
-    dynamic_cast<StubElementForNodalExtrapolationTest&>(r_model_part.Elements()[2]).mIntegrationDoubleValues = {
-        -inv_sqrt3, -inv_sqrt3, inv_sqrt3, inv_sqrt3};
+    SetIntegrationPointValues(r_model_part.Elements()[2], {-inv_sqrt3, -inv_sqrt3, inv_sqrt3, inv_sqrt3});
 
     BuildAndRunExtrapolationProcess(model, CreateExtrapolationProcessSettings(r_model_part, HYDRAULIC_HEAD));
 
@@ -295,12 +293,10 @@ KRATOS_TEST_CASE_IN_SUITE(TestExtrapolationProcess_ExtrapolatesCorrectlyForLinea
     const auto& r_bar_model_part  = model.CreateModelPart("bar"s);
 
     // Linear field in x between -1 and 1
-    dynamic_cast<StubElementForNodalExtrapolationTest&>(r_main_model_part.Elements()[1]).mIntegrationDoubleValues = {
-        -inv_sqrt3, inv_sqrt3, inv_sqrt3, -inv_sqrt3};
+    SetIntegrationPointValues(r_main_model_part.Elements()[1], {-inv_sqrt3, inv_sqrt3, inv_sqrt3, -inv_sqrt3});
 
     // Linear field in y between -1 and 1
-    dynamic_cast<StubElementForNodalExtrapolationTest&>(r_main_model_part.Elements()[2]).mIntegrationDoubleValues = {
-        -inv_sqrt3, -inv_sqrt3, inv_sqrt3, inv_sqrt3};
+    SetIntegrationPointValues(r_main_model_part.Elements()[2], {-inv_sqrt3, -inv_sqrt3, inv_sqrt3, inv_sqrt3});
 
     BuildAndRunExtrapolationProcess(
         model, CreateExtrapolationProcessSettings(
@@ -453,10 +449,8 @@ KRATOS_TEST_CASE_IN_SUITE(TestExtrapolationProcess_ExtrapolatesCorrectlyWhenNode
     r_right_model_part.AddElement(make_intrusive<StubElementForNodalExtrapolationTest>(
         2, std::make_shared<Quadrilateral2D4<Node>>(nodes_of_element_2)));
 
-    dynamic_cast<StubElementForNodalExtrapolationTest&>(r_left_model_part.Elements()[1]).mIntegrationDoubleValues = {
-        1.0, 1.0, 1.0, 1.0};
-    dynamic_cast<StubElementForNodalExtrapolationTest&>(r_right_model_part.Elements()[2]).mIntegrationDoubleValues = {
-        1.0, 1.0, 1.0, 1.0};
+    SetIntegrationPointValues(r_left_model_part.Elements()[1], std::vector(4, 1.0));
+    SetIntegrationPointValues(r_right_model_part.Elements()[2], std::vector(4, 1.0));
 
     BuildAndRunExtrapolationProcess(
         model, CreateExtrapolationProcessSettings(
@@ -507,12 +501,9 @@ KRATOS_TEST_CASE_IN_SUITE(TestExtrapolationProcess_ExtrapolatesCorrectlyWhenMode
     auto element_3  = Kratos::make_intrusive<StubElementForNodalExtrapolationTest>(3, geometry_3);
     r_top_model_part.AddElement(element_3);
 
-    dynamic_cast<StubElementForNodalExtrapolationTest&>(r_bottom_model_part.Elements()[1]).mIntegrationDoubleValues = {
-        1.0, 1.0, 1.0, 1.0};
-    dynamic_cast<StubElementForNodalExtrapolationTest&>(r_bottom_model_part.Elements()[2]).mIntegrationDoubleValues = {
-        1.0, 1.0, 1.0, 1.0};
-    dynamic_cast<StubElementForNodalExtrapolationTest&>(r_top_model_part.Elements()[3]).mIntegrationDoubleValues = {
-        1.0, 1.0, 1.0, 1.0};
+    SetIntegrationPointValues(r_bottom_model_part.Elements()[1], std::vector(4, 1.0));
+    SetIntegrationPointValues(r_bottom_model_part.Elements()[2], std::vector(4, 1.0));
+    SetIntegrationPointValues(r_top_model_part.Elements()[3], std::vector(4, 1.0));
 
     GeoExtrapolateIntegrationPointValuesToNodesProcess process_1(
         model, CreateExtrapolationProcessSettings(r_bottom_model_part, HYDRAULIC_HEAD));
