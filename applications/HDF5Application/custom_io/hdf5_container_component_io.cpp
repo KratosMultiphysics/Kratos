@@ -260,11 +260,12 @@ bool ContainerComponentIO<TContainerType, TContainerDataIO, TComponents...>::Wri
         if constexpr(TContainerDataIO::DataAvailability == Internals::DataAvailabilityStatesList::INCONCLUSIVE) {
             // the entities in the rContainer may or may not contain the rComponent. Hence, for this
             // type we need to compute the availability.
-            const auto availability_local_counts_pair = IndexPartition<IndexType>(rLocalContainer.size()).for_each<CombinedReduction<SumReduction<IndexType>, SumReduction<IndexType>>>([&rContainerDataIO, &rLocalContainer, &r_component, &availability](const auto Index) {
+            const std::tuple<int, int> availability_local_counts_pair = IndexPartition<IndexType>(rLocalContainer.size()).for_each<CombinedReduction<SumReduction<IndexType>, SumReduction<IndexType>>>([&rContainerDataIO, &rLocalContainer, &r_component, &availability](const auto Index) {
                 availability[Index] = rContainerDataIO.HasValue(*(rLocalContainer.begin() + Index), r_component);
-                return std::make_tuple<IndexType, IndexType>(availability[Index] == true, availability[Index] == false);
+                return std::make_tuple<int, int>(static_cast<int>(availability[Index] == 1), static_cast<int>(availability[Index] == 0));
             });
-            const auto& availability_global_counts_pair = mpFile->GetDataCommunicator().SumAll(std::vector<IndexType>{std::get<0>(availability_local_counts_pair), std::get<1>(availability_local_counts_pair), rLocalContainer.size()});
+
+            const auto& availability_global_counts_pair = mpFile->GetDataCommunicator().SumAll(std::vector<int>{std::get<0>(availability_local_counts_pair), std::get<1>(availability_local_counts_pair)});
 
             KRATOS_ERROR_IF(availability_global_counts_pair[1] == availability_global_counts_pair[2])
                 << "None of the entities in the container have \"" << rComponentName << "\" defined.";
