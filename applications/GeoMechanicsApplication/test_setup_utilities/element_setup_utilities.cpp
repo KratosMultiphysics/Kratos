@@ -11,9 +11,9 @@
 //
 
 #include "element_setup_utilities.h"
-#include "custom_conditions/Pw_point_flux_condition.hpp"
-#include "custom_conditions/U_Pw_normal_face_load_condition.hpp"
-#include "custom_conditions/line_load_2D_diff_order_condition.hpp"
+#include "custom_conditions/Pw_point_flux_condition.h"
+#include "custom_conditions/U_Pw_normal_face_load_condition.h"
+#include "custom_conditions/line_load_2D_diff_order_condition.h"
 #include "custom_elements/Pw_element.h"
 #include "custom_elements/U_Pw_small_strain_element.hpp"
 #include "custom_elements/calculation_contribution.h"
@@ -22,11 +22,13 @@
 #include "custom_elements/plane_strain_stress_state.h"
 #include "custom_elements/small_strain_U_Pw_diff_order_element.hpp"
 #include "custom_elements/three_dimensional_stress_state.h"
-#include "custom_geometries/interface_geometry.h"
+#include "custom_geometries/interface_geometry.hpp"
 #include "geometries/hexahedra_3d_20.h"
 #include "geometries/hexahedra_3d_8.h"
 #include "geometries/line_2d_2.h"
 #include "geometries/point_3d.h"
+#include "geometries/quadrilateral_2d_4.h"
+#include "geometries/quadrilateral_2d_8.h"
 #include "geometries/quadrilateral_3d_4.h"
 #include "geometries/quadrilateral_3d_8.h"
 #include "geometries/tetrahedra_3d_10.h"
@@ -34,23 +36,6 @@
 #include "geometries/triangle_2d_15.h"
 #include "geometries/triangle_2d_3.h"
 #include "geometries/triangle_2d_6.h"
-
-namespace
-{
-
-using namespace Kratos;
-
-PointerVector<Node> GenerateNodes(const std::vector<Point>& rPoints)
-{
-    PointerVector<Node> nodes;
-    nodes.reserve(rPoints.size());
-    for (const auto& r_point : rPoints) {
-        nodes.push_back(make_intrusive<Node>(nodes.size() + 1, r_point.X(), r_point.Y(), r_point.Z()));
-    }
-    return nodes;
-}
-
-} // namespace
 
 namespace Kratos::Testing
 {
@@ -124,6 +109,16 @@ std::vector<Kratos::Point> ElementSetupUtilities::CreatePointsFor3D6NInterfaceEl
             {0.0, 0.0, 0.1}, {1.0, 0.0, 0.1}, {0.0, 1.0, 0.1}};
 }
 
+PointerVector<Node> ElementSetupUtilities::GenerateNodes(const std::vector<Point>& rPoints)
+{
+    PointerVector<Node> result;
+    result.reserve(rPoints.size());
+    for (const auto& r_point : rPoints) {
+        result.push_back(make_intrusive<Node>(result.size() + 1, r_point.X(), r_point.Y(), r_point.Z()));
+    }
+    return result;
+}
+
 std::vector<Kratos::Point> ElementSetupUtilities::CreatePointsFor2D15NElement()
 {
     return {{0.00, 0.00, 0.0}, {1.00, 0.00, 0.0}, {0.00, 1.00, 0.0}, {0.25, 0.00, 0.0},
@@ -161,6 +156,29 @@ Element::Pointer ElementSetupUtilities::Create2D3NElement(const PointerVector<No
 Element::Pointer ElementSetupUtilities::Create2D3NElement()
 {
     return Create2D3NElement(GenerateNodes(CreatePointsFor2D3NElement()), std::make_shared<Properties>(0));
+}
+
+Element::Pointer ElementSetupUtilities::Create2D4NElement(const PointerVector<Node>& rNodes,
+                                                          const Properties::Pointer& rProperties)
+{
+    return make_intrusive<UPwSmallStrainElement<2, 4>>(
+        1, std::make_shared<Quadrilateral2D4<Node>>(rNodes), rProperties,
+        std::make_unique<PlaneStrainStressState>(), nullptr);
+}
+
+Element::Pointer ElementSetupUtilities::Create2D8NElement(const PointerVector<Node>& rNodes,
+                                                          const Properties::Pointer& rProperties)
+{
+    return make_intrusive<UPwSmallStrainElement<2, 8>>(
+        1, std::make_shared<Quadrilateral2D8<Node>>(rNodes), rProperties,
+        std::make_unique<PlaneStrainStressState>(), nullptr);
+}
+
+Element::Pointer ElementSetupUtilities::Create2D3NLineElement(const PointerVector<Node>& rNodes,
+                                                              const Properties::Pointer& rProperties)
+{
+    return make_intrusive<UPwSmallStrainElement<2, 3>>(1, std::make_shared<Line2D3<Node>>(rNodes), rProperties,
+                                                       std::make_unique<PlaneStrainStressState>(), nullptr);
 }
 
 Element::Pointer ElementSetupUtilities::Create2D2NElement(const PointerVector<Node>& rNodes,

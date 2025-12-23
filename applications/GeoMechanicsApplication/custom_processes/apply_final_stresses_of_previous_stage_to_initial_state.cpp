@@ -13,6 +13,7 @@
 #include "apply_final_stresses_of_previous_stage_to_initial_state.h"
 #include "containers/model.h"
 #include "custom_utilities/process_utilities.h"
+#include "geo_mechanics_application_variables.h"
 #include "includes/initial_state.h"
 #include "includes/kratos_parameters.h"
 #include "includes/model_part.h"
@@ -39,7 +40,7 @@ void ApplyFinalStressesOfPreviousStageToInitialState::ExecuteInitialize()
             rElement.CalculateOnIntegrationPoints(PK2_STRESS_VECTOR, stresses_on_integration_points,
                                                   r_model_part.get().GetProcessInfo());
             if (stresses_on_integration_points.empty()) {
-                rElement.CalculateOnIntegrationPoints(CAUCHY_STRESS_VECTOR, stresses_on_integration_points,
+                rElement.CalculateOnIntegrationPoints(GEO_EFFECTIVE_TRACTION_VECTOR, stresses_on_integration_points,
                                                       r_model_part.get().GetProcessInfo());
             }
             std::vector<ConstitutiveLaw::Pointer> constitutive_laws;
