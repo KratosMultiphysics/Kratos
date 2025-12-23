@@ -78,6 +78,21 @@ void BuildAndRunExtrapolationProcess(Model& rModel, const Parameters& rProcessSe
     extrapolation_process.ExecuteFinalizeSolutionStep();
 }
 
+template <typename NodeContainerType>
+void AssertNodalValues(const NodeContainerType&   rNodes,
+                       const Variable<double>&    rVariable,
+                       const std::vector<double>& rExpectedNodalValues)
+{
+    auto actual_nodal_values = std::vector<double>{};
+    actual_nodal_values.reserve(rNodes.size());
+    auto get_nodal_value = [&rVariable](const auto& rNode) {
+        return rNode.FastGetSolutionStepValue(rVariable);
+    };
+    std::ranges::transform(rNodes, std::back_inserter(actual_nodal_values), get_nodal_value);
+
+    KRATOS_EXPECT_VECTOR_NEAR(actual_nodal_values, rExpectedNodalValues, Testing::Defaults::absolute_tolerance);
+}
+
 } // namespace
 
 namespace Kratos::Testing
@@ -184,9 +199,7 @@ KRATOS_TEST_CASE_IN_SUITE(TestExtrapolationProcess_ExtrapolatesCorrectlyForConst
     })");
     BuildAndRunExtrapolationProcess(model, parameters);
 
-    for (auto& node : model_part.Nodes()) {
-        KRATOS_EXPECT_NEAR(node.FastGetSolutionStepValue(HYDRAULIC_HEAD), 1.0, Defaults::absolute_tolerance);
-    }
+    AssertNodalValues(model_part.Nodes(), HYDRAULIC_HEAD, std::vector(6, 1.0));
 }
 
 KRATOS_TEST_CASE_IN_SUITE(TestExtrapolationProcess_ExtrapolatesCorrectlyForConstantFieldWithInactiveElement,
@@ -215,9 +228,7 @@ KRATOS_TEST_CASE_IN_SUITE(TestExtrapolationProcess_ExtrapolatesCorrectlyForConst
     })");
     BuildAndRunExtrapolationProcess(model, parameters);
 
-    for (auto& node : model_part.Elements()[1].GetGeometry()) {
-        KRATOS_EXPECT_NEAR(node.FastGetSolutionStepValue(HYDRAULIC_HEAD), 1.0, Defaults::absolute_tolerance);
-    }
+    AssertNodalValues(model_part.Elements()[1].GetGeometry(), HYDRAULIC_HEAD, std::vector(4, 1.0));
 }
 
 KRATOS_TEST_CASE_IN_SUITE(TestExtrapolationProcess_ExtrapolatesCorrectlyForTwoConstantButDifferentFields,
@@ -244,13 +255,7 @@ KRATOS_TEST_CASE_IN_SUITE(TestExtrapolationProcess_ExtrapolatesCorrectlyForTwoCo
     })");
     BuildAndRunExtrapolationProcess(model, parameters);
 
-    std::vector<double> expected_values = {1.0, 1.5, 1.5, 1.0, 2.0, 2.0};
-    std::vector<double> actual_values;
-    actual_values.reserve(model_part.Nodes().size());
-    std::transform(model_part.Nodes().begin(), model_part.Nodes().end(), std::back_inserter(actual_values),
-                   [](const auto& node) { return node.FastGetSolutionStepValue(HYDRAULIC_HEAD); });
-
-    KRATOS_EXPECT_VECTOR_NEAR(actual_values, expected_values, Defaults::absolute_tolerance)
+    AssertNodalValues(model_part.Nodes(), HYDRAULIC_HEAD, {1.0, 1.5, 1.5, 1.0, 2.0, 2.0});
 }
 
 KRATOS_TEST_CASE_IN_SUITE(TestExtrapolationProcess_ExtrapolatesCorrectlyForLinearFields,
@@ -280,13 +285,7 @@ KRATOS_TEST_CASE_IN_SUITE(TestExtrapolationProcess_ExtrapolatesCorrectlyForLinea
      })");
     BuildAndRunExtrapolationProcess(model, parameters);
 
-    std::vector<double> expected_values = {-1, 0, 1, -1, -1, 1};
-    std::vector<double> actual_values;
-    actual_values.reserve(model_part.Nodes().size());
-    std::transform(model_part.Nodes().begin(), model_part.Nodes().end(), std::back_inserter(actual_values),
-                   [](const auto& node) { return node.FastGetSolutionStepValue(HYDRAULIC_HEAD); });
-
-    KRATOS_EXPECT_VECTOR_NEAR(actual_values, expected_values, Defaults::absolute_tolerance)
+    AssertNodalValues(model_part.Nodes(), HYDRAULIC_HEAD, {-1.0, 0.0, 1.0, -1.0, -1.0, 1.0});
 }
 
 KRATOS_TEST_CASE_IN_SUITE(TestExtrapolationProcess_ExtrapolatesCorrectlyForLinearFields_EvenIfUnrelatedEmptyModelPartsAreSupplied,
@@ -315,14 +314,7 @@ KRATOS_TEST_CASE_IN_SUITE(TestExtrapolationProcess_ExtrapolatesCorrectlyForLinea
                    {std::cref(r_main_model_part), std::cref(r_foo_model_part), std::cref(r_bar_model_part)},
                    HYDRAULIC_HEAD));
 
-    std::vector<double> expected_values = {-1, 0, 1, -1, -1, 1};
-    std::vector<double> actual_values;
-    actual_values.reserve(r_main_model_part.Nodes().size());
-    std::ranges::transform(r_main_model_part.Nodes(), std::back_inserter(actual_values), [](const auto& node) {
-        return node.FastGetSolutionStepValue(HYDRAULIC_HEAD);
-    });
-
-    KRATOS_EXPECT_VECTOR_NEAR(actual_values, expected_values, Defaults::absolute_tolerance)
+    AssertNodalValues(r_main_model_part.Nodes(), HYDRAULIC_HEAD, {-1.0, 0.0, 1.0, -1.0, -1.0, 1.0});
 }
 
 KRATOS_TEST_CASE_IN_SUITE(TestExtrapolationProcess_ExtrapolatesMatrixCorrectlyForLinearFields,
@@ -495,13 +487,8 @@ KRATOS_TEST_CASE_IN_SUITE(TestExtrapolationProcess_ExtrapolatesCorrectlyWhenNode
         model, CreateExtrapolationProcessSettings(
                    {std::cref(r_left_model_part), std::cref(r_right_model_part)}, HYDRAULIC_HEAD));
 
-    for (auto& r_node : r_left_model_part.Nodes()) {
-        KRATOS_EXPECT_NEAR(r_node.FastGetSolutionStepValue(HYDRAULIC_HEAD), 1.0, Defaults::absolute_tolerance);
-    }
-
-    for (auto& r_node : r_right_model_part.Nodes()) {
-        KRATOS_EXPECT_NEAR(r_node.FastGetSolutionStepValue(HYDRAULIC_HEAD), 1.0, Defaults::absolute_tolerance);
-    }
+    AssertNodalValues(r_left_model_part.Nodes(), HYDRAULIC_HEAD, std::vector(4, 1.0));
+    AssertNodalValues(r_right_model_part.Nodes(), HYDRAULIC_HEAD, std::vector(4, 1.0));
 }
 
 KRATOS_TEST_CASE_IN_SUITE(TestExtrapolationProcess_ExtrapolatesCorrectlyWhenModelPartsWithSharedNodesAreUsedByDifferentProcesses,
@@ -572,17 +559,11 @@ KRATOS_TEST_CASE_IN_SUITE(TestExtrapolationProcess_ExtrapolatesCorrectlyWhenMode
 
     process_1.ExecuteFinalizeSolutionStep();
 
-    for (auto& node : r_bottom_model_part.Nodes()) {
-        EXPECT_NEAR(node.FastGetSolutionStepValue(HYDRAULIC_HEAD), 1.0, Defaults::absolute_tolerance)
-            << "Hydraulic head at node " << node.Id();
-    }
+    AssertNodalValues(r_bottom_model_part.Nodes(), HYDRAULIC_HEAD, std::vector(6, 1.0));
 
     process_2.ExecuteFinalizeSolutionStep();
 
-    for (auto& node : r_top_model_part.Nodes()) {
-        EXPECT_NEAR(node.FastGetSolutionStepValue(HYDRAULIC_DISCHARGE), 1.0, Defaults::absolute_tolerance)
-            << "Hydraulic discharge at node " << node.Id();
-    }
+    AssertNodalValues(r_top_model_part.Nodes(), HYDRAULIC_DISCHARGE, std::vector(4, 1.0));
 }
 
 KRATOS_TEST_CASE_IN_SUITE(CheckInfoGeoExtrapolateIntegrationPointValuesToNodesProcess, KratosGeoMechanicsFastSuiteWithoutKernel)
