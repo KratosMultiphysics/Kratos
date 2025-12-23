@@ -17,7 +17,6 @@
 
 namespace Kratos
 {
-
 /**
  * @class GeoIncrementalLinearElasticLaw
  * @ingroup GeoMechanicsApplication
@@ -31,7 +30,7 @@ public:
     using SizeType = std::size_t;
 
     KRATOS_CLASS_POINTER_DEFINITION(GeoIncrementalLinearElasticLaw);
-    GeoIncrementalLinearElasticLaw();
+    GeoIncrementalLinearElasticLaw() = default;
 
     explicit GeoIncrementalLinearElasticLaw(std::unique_ptr<ConstitutiveLawDimension> pConstitutiveDimension);
     GeoIncrementalLinearElasticLaw(const GeoIncrementalLinearElasticLaw& rOther);

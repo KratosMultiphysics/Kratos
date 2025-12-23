@@ -48,8 +48,6 @@ void SetShearEntriesToZero(Matrix& rMatrix, std::size_t NumberOfNormalComponents
 namespace Kratos
 {
 
-GeoIncrementalLinearElasticLaw::GeoIncrementalLinearElasticLaw() = default;
-
 GeoIncrementalLinearElasticLaw::GeoIncrementalLinearElasticLaw(std::unique_ptr<ConstitutiveLawDimension> pConstitutiveDimension)
     : GeoLinearElasticLaw{},
       mpConstitutiveDimension(std::move(pConstitutiveDimension)),
