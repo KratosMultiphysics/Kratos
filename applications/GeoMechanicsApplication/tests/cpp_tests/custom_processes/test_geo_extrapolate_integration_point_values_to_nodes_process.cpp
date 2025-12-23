@@ -433,24 +433,26 @@ KRATOS_TEST_CASE_IN_SUITE(TestExtrapolationProcess_ExtrapolatesCorrectlyWhenNode
 
     auto& r_left_model_part = model.CreateModelPart("Left");
     r_left_model_part.AddNodalSolutionStepVariable(HYDRAULIC_HEAD);
-    const auto node_definitions = NodeDefinitionVector{
-        {1, {0.0, 0.0, 0.0}}, {2, {1.0, 0.0, 0.0}}, {3, {1.0, 1.0, 0.0}}, {4, {0.0, 1.0, 0.0}}};
-    const auto nodes_of_element_1 = ModelSetupUtilities::CreateNodes(r_left_model_part, node_definitions);
-    auto p_geometry_1 = std::make_shared<Quadrilateral2D4<Node>>(nodes_of_element_1);
-    auto p_element_1 = Kratos::make_intrusive<StubElementForNodalExtrapolationTest>(1, p_geometry_1);
-    r_left_model_part.AddElement(p_element_1);
+    const auto nodes_of_element_1 = ModelSetupUtilities::CreateNodes(
+        r_left_model_part,
+        {{1, {0.0, 0.0, 0.0}}, {2, {1.0, 0.0, 0.0}}, {3, {1.0, 1.0, 0.0}}, {4, {0.0, 1.0, 0.0}}});
+    r_left_model_part.AddElement(make_intrusive<StubElementForNodalExtrapolationTest>(
+        1, std::make_shared<Quadrilateral2D4<Node>>(nodes_of_element_1)));
 
     auto& r_right_model_part = model.CreateModelPart("Right");
     r_right_model_part.AddNodalSolutionStepVariable(HYDRAULIC_HEAD);
     r_right_model_part.AddNode(r_left_model_part.pGetNode(2));
     r_right_model_part.AddNode(r_left_model_part.pGetNode(3));
-    auto p_node_5 = r_right_model_part.CreateNewNode(5, 2.0, 0.0, 0.0);
-    auto p_node_6 = r_right_model_part.CreateNewNode(6, 2.0, 1.0, 0.0);
-
-    auto p_geometry_2 = std::make_shared<Quadrilateral2D4<Node>>(
-        r_left_model_part.pGetNode(2), p_node_5, p_node_6, r_left_model_part.pGetNode(3));
-    auto p_element_2 = Kratos::make_intrusive<StubElementForNodalExtrapolationTest>(2, p_geometry_2);
-    r_right_model_part.AddElement(p_element_2);
+    ModelSetupUtilities::CreateNodes(r_right_model_part, {{5, {2.0, 0.0, 0.0}}, {6, {2.0, 1.0, 0.0}}});
+    // Unfortunately, it appeared that `PointerVector<Node>::insert` does not work properly, so
+    // we're limited to using `PointerVector<Node>::push_back`
+    auto nodes_of_element_2 = PointerVector<Node>{};
+    nodes_of_element_2.push_back(r_right_model_part.pGetNode(2));
+    nodes_of_element_2.push_back(r_right_model_part.pGetNode(5));
+    nodes_of_element_2.push_back(r_right_model_part.pGetNode(6));
+    nodes_of_element_2.push_back(r_right_model_part.pGetNode(3));
+    r_right_model_part.AddElement(make_intrusive<StubElementForNodalExtrapolationTest>(
+        2, std::make_shared<Quadrilateral2D4<Node>>(nodes_of_element_2)));
 
     dynamic_cast<StubElementForNodalExtrapolationTest&>(r_left_model_part.Elements()[1]).mIntegrationDoubleValues = {
         1.0, 1.0, 1.0, 1.0};
