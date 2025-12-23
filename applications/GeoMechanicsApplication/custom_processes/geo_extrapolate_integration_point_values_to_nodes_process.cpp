@@ -70,10 +70,10 @@ void GeoExtrapolateIntegrationPointValuesToNodesProcess::InitializeAverageVariab
 {
     for (const auto& r_model_part : mrModelParts) {
         for (const auto& r_element : r_model_part.get().Elements()) {
-            if (r_element.IsActive()) {
-                for (const auto& r_node : r_element.GetGeometry()) {
-                    mNodeIdToConnectedElementIds[r_node.Id()].insert(r_element.Id());
-                }
+            if (!r_element.IsActive()) continue;
+
+            for (const auto& r_node : r_element.GetGeometry()) {
+                mNodeIdToConnectedElementIds[r_node.Id()].insert(r_element.Id());
             }
         }
     }
