@@ -62,6 +62,7 @@
 
 #include "custom_elements/shell_elements/shell_thin_shifted_boundary_element_3D3N.hpp"
 #include "custom_elements/shell_elements/shell_thick_shifted_boundary_element_3D3N.hpp"
+#include "custom_elements/shell_elements/shell_thick_nitsche_boundary_element_3D3N.hpp"
 
 /* Adding the bushing element */
 #include "custom_elements/nodal_elements/bushing_element.h"
@@ -308,7 +309,8 @@ private:
     const ShellThickElement3D3N<ShellKinematics::NONLINEAR_COROTATIONAL> mShellThickCorotationalElement3D3N;
 
     const ShellThinShiftedBoundaryElement3D3N<ShellKinematics::NONLINEAR_COROTATIONAL> mShellThinCorotationalShiftedBoundaryElement3D3N; 
-    const ShellThickShiftedBoundaryElement3D3N<ShellKinematics::NONLINEAR_COROTATIONAL> mShellThickCorotationalShiftedBoundaryElement3D3N; 
+    const ShellThickShiftedBoundaryElement3D3N<ShellKinematics::NONLINEAR_COROTATIONAL> mShellThickCorotationalShiftedBoundaryElement3D3N;
+    const ShellThickNitscheBoundaryElement3D3N<ShellKinematics::NONLINEAR_COROTATIONAL> mShellThickCorotationalNitscheBoundaryElement3D3N; 
 
     // Adding the membrane elements
     const MembraneElement mMembraneElement3D4N;
