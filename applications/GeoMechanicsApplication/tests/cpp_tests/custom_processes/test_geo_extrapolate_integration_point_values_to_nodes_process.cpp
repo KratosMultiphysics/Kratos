@@ -80,13 +80,11 @@ public:
     std::vector<array_1d<double, 3>> mIntegrationArrayValues  = {};
 };
 
-ModelPart& CreateModelPartWithTwoStubElements(Model& model)
+ModelPart& CreateModelPartWithTwoStubElements(Model& model, const VariableData& rVariable)
 {
     auto& r_result = model.CreateModelPart("MainModelPart");
-    r_result.AddNodalSolutionStepVariable(HYDRAULIC_HEAD);
-    r_result.AddNodalSolutionStepVariable(CAUCHY_STRESS_TENSOR);
-    r_result.AddNodalSolutionStepVariable(CAUCHY_STRESS_VECTOR);
-    r_result.AddNodalSolutionStepVariable(FLUID_FLUX_VECTOR);
+    r_result.AddNodalSolutionStepVariable(rVariable);
+
     auto node_1 = r_result.CreateNewNode(1, 0.0, 0.0, 0.0);
     auto node_2 = r_result.CreateNewNode(2, 1.0, 0.0, 0.0);
     auto node_3 = r_result.CreateNewNode(3, 1.0, 1.0, 0.0);
@@ -202,13 +200,12 @@ KRATOS_TEST_CASE_IN_SUITE(TestExtrapolationProcess_ExtrapolatesCorrectlyForConst
     //   |  El1 |  El2 |
     //   1------2------5
 
-    auto  model        = Model{};
-    auto& r_model_part = CreateModelPartWithTwoStubElements(model);
+    auto        model           = Model{};
+    const auto& r_test_variable = HYDRAULIC_HEAD;
+    auto&       r_model_part    = CreateModelPartWithTwoStubElements(model, r_test_variable);
 
     SetIntegrationPointValues(r_model_part.Elements()[1], std::vector(4, 1.0));
     SetIntegrationPointValues(r_model_part.Elements()[2], std::vector(4, 1.0));
-
-    const auto& r_test_variable = HYDRAULIC_HEAD;
 
     BuildAndRunExtrapolationProcess(model, CreateExtrapolationProcessSettings(r_model_part, r_test_variable));
 
@@ -223,17 +220,18 @@ KRATOS_TEST_CASE_IN_SUITE(TestExtrapolationProcess_ExtrapolatesCorrectlyForConst
     //   |  El1 |  El2 |
     //   1------2------5
 
-    auto  model        = Model{};
-    auto& r_model_part = CreateModelPartWithTwoStubElements(model);
+    auto        model           = Model{};
+    const auto& r_test_variable = HYDRAULIC_HEAD;
+    auto&       r_model_part    = CreateModelPartWithTwoStubElements(model, r_test_variable);
 
     SetIntegrationPointValues(r_model_part.Elements()[1], std::vector(4, 1.0));
     SetIntegrationPointValues(r_model_part.Elements()[2], std::vector(4, 1.0));
 
     r_model_part.Elements()[2].Set(ACTIVE, false);
 
-    BuildAndRunExtrapolationProcess(model, CreateExtrapolationProcessSettings(r_model_part, HYDRAULIC_HEAD));
+    BuildAndRunExtrapolationProcess(model, CreateExtrapolationProcessSettings(r_model_part, r_test_variable));
 
-    AssertNodalValues(r_model_part.Elements()[1].GetGeometry(), HYDRAULIC_HEAD, std::vector(4, 1.0));
+    AssertNodalValues(r_model_part.Elements()[1].GetGeometry(), r_test_variable, std::vector(4, 1.0));
 }
 
 KRATOS_TEST_CASE_IN_SUITE(TestExtrapolationProcess_ExtrapolatesCorrectlyForTwoConstantButDifferentFields,
@@ -244,15 +242,16 @@ KRATOS_TEST_CASE_IN_SUITE(TestExtrapolationProcess_ExtrapolatesCorrectlyForTwoCo
     //   |  El1 |  El2 |
     //   1------2------5
 
-    auto  model        = Model{};
-    auto& r_model_part = CreateModelPartWithTwoStubElements(model);
+    auto        model           = Model{};
+    const auto& r_test_variable = HYDRAULIC_HEAD;
+    auto&       r_model_part    = CreateModelPartWithTwoStubElements(model, r_test_variable);
 
     SetIntegrationPointValues(r_model_part.Elements()[1], std::vector(4, 1.0));
     SetIntegrationPointValues(r_model_part.Elements()[2], std::vector(4, 2.0));
 
-    BuildAndRunExtrapolationProcess(model, CreateExtrapolationProcessSettings(r_model_part, HYDRAULIC_HEAD));
+    BuildAndRunExtrapolationProcess(model, CreateExtrapolationProcessSettings(r_model_part, r_test_variable));
 
-    AssertNodalValues(r_model_part.Nodes(), HYDRAULIC_HEAD, {1.0, 1.5, 1.5, 1.0, 2.0, 2.0});
+    AssertNodalValues(r_model_part.Nodes(), r_test_variable, {1.0, 1.5, 1.5, 1.0, 2.0, 2.0});
 }
 
 KRATOS_TEST_CASE_IN_SUITE(TestExtrapolationProcess_ExtrapolatesCorrectlyForLinearFields,
@@ -263,8 +262,9 @@ KRATOS_TEST_CASE_IN_SUITE(TestExtrapolationProcess_ExtrapolatesCorrectlyForLinea
     //   |  El1 |  El2 |
     //   1------2------5
 
-    auto  model        = Model{};
-    auto& r_model_part = CreateModelPartWithTwoStubElements(model);
+    auto        model           = Model{};
+    const auto& r_test_variable = HYDRAULIC_HEAD;
+    auto&       r_model_part    = CreateModelPartWithTwoStubElements(model, r_test_variable);
 
     // Linear field in x between -1 and 1
     SetIntegrationPointValues(r_model_part.Elements()[1], {-inv_sqrt3, inv_sqrt3, inv_sqrt3, -inv_sqrt3});
@@ -272,9 +272,9 @@ KRATOS_TEST_CASE_IN_SUITE(TestExtrapolationProcess_ExtrapolatesCorrectlyForLinea
     // Linear field in y between -1 and 1
     SetIntegrationPointValues(r_model_part.Elements()[2], {-inv_sqrt3, -inv_sqrt3, inv_sqrt3, inv_sqrt3});
 
-    BuildAndRunExtrapolationProcess(model, CreateExtrapolationProcessSettings(r_model_part, HYDRAULIC_HEAD));
+    BuildAndRunExtrapolationProcess(model, CreateExtrapolationProcessSettings(r_model_part, r_test_variable));
 
-    AssertNodalValues(r_model_part.Nodes(), HYDRAULIC_HEAD, {-1.0, 0.0, 1.0, -1.0, -1.0, 1.0});
+    AssertNodalValues(r_model_part.Nodes(), r_test_variable, {-1.0, 0.0, 1.0, -1.0, -1.0, 1.0});
 }
 
 KRATOS_TEST_CASE_IN_SUITE(TestExtrapolationProcess_ExtrapolatesCorrectlyForLinearFields_EvenIfUnrelatedEmptyModelPartsAreSupplied,
@@ -286,7 +286,8 @@ KRATOS_TEST_CASE_IN_SUITE(TestExtrapolationProcess_ExtrapolatesCorrectlyForLinea
     //   1------2------5
 
     auto        model             = Model{};
-    auto&       r_main_model_part = CreateModelPartWithTwoStubElements(model);
+    const auto& r_test_variable   = HYDRAULIC_HEAD;
+    auto&       r_main_model_part = CreateModelPartWithTwoStubElements(model, r_test_variable);
     const auto& r_foo_model_part  = model.CreateModelPart("foo"s);
     const auto& r_bar_model_part  = model.CreateModelPart("bar"s);
 
@@ -299,9 +300,9 @@ KRATOS_TEST_CASE_IN_SUITE(TestExtrapolationProcess_ExtrapolatesCorrectlyForLinea
     BuildAndRunExtrapolationProcess(
         model, CreateExtrapolationProcessSettings(
                    {std::cref(r_main_model_part), std::cref(r_foo_model_part), std::cref(r_bar_model_part)},
-                   HYDRAULIC_HEAD));
+                   r_test_variable));
 
-    AssertNodalValues(r_main_model_part.Nodes(), HYDRAULIC_HEAD, {-1.0, 0.0, 1.0, -1.0, -1.0, 1.0});
+    AssertNodalValues(r_main_model_part.Nodes(), r_test_variable, {-1.0, 0.0, 1.0, -1.0, -1.0, 1.0});
 }
 
 KRATOS_TEST_CASE_IN_SUITE(TestExtrapolationProcess_ExtrapolatesMatrixCorrectlyForLinearFields,
@@ -312,8 +313,9 @@ KRATOS_TEST_CASE_IN_SUITE(TestExtrapolationProcess_ExtrapolatesMatrixCorrectlyFo
     //   |  El1 |  El2 |
     //   1------2------5
 
-    auto  model        = Model{};
-    auto& r_model_part = CreateModelPartWithTwoStubElements(model);
+    auto        model           = Model{};
+    const auto& r_test_variable = CAUCHY_STRESS_TENSOR;
+    auto&       r_model_part    = CreateModelPartWithTwoStubElements(model, r_test_variable);
 
     // Linear field in x between -1 and 1
     dynamic_cast<StubElementForNodalExtrapolationTest&>(r_model_part.Elements()[1]).mIntegrationMatrixValues = {
@@ -325,16 +327,17 @@ KRATOS_TEST_CASE_IN_SUITE(TestExtrapolationProcess_ExtrapolatesMatrixCorrectlyFo
         ScalarMatrix(3, 3, -inv_sqrt3), ScalarMatrix(3, 3, -inv_sqrt3),
         ScalarMatrix(3, 3, inv_sqrt3), ScalarMatrix(3, 3, inv_sqrt3)};
 
-    BuildAndRunExtrapolationProcess(model, CreateExtrapolationProcessSettings(r_model_part, CAUCHY_STRESS_TENSOR));
+    BuildAndRunExtrapolationProcess(model, CreateExtrapolationProcessSettings(r_model_part, r_test_variable));
 
     std::vector<Matrix> expected_values = {ScalarMatrix(3, 3, -1), ScalarMatrix(3, 3, 0),
                                            ScalarMatrix(3, 3, 1),  ScalarMatrix(3, 3, -1),
                                            ScalarMatrix(3, 3, -1), ScalarMatrix(3, 3, 1)};
     std::vector<Matrix> actual_values;
     actual_values.reserve(r_model_part.Nodes().size());
-    std::transform(
-        r_model_part.Nodes().begin(), r_model_part.Nodes().end(), std::back_inserter(actual_values),
-        [](const auto& node) { return node.FastGetSolutionStepValue(CAUCHY_STRESS_TENSOR); });
+    std::transform(r_model_part.Nodes().begin(), r_model_part.Nodes().end(),
+                   std::back_inserter(actual_values), [&r_test_variable](const auto& node) {
+        return node.FastGetSolutionStepValue(r_test_variable);
+    });
 
     for (std::size_t i = 0; i < expected_values.size(); ++i) {
         KRATOS_EXPECT_MATRIX_NEAR(actual_values[i], expected_values[i], Defaults::absolute_tolerance)
@@ -349,8 +352,9 @@ KRATOS_TEST_CASE_IN_SUITE(TestExtrapolationProcess_ExtrapolatesVectorCorrectlyFo
     //   |  El1 |  El2 |
     //   1------2------5
 
-    auto  model        = Model{};
-    auto& r_model_part = CreateModelPartWithTwoStubElements(model);
+    auto        model           = Model{};
+    const auto& r_test_variable = CAUCHY_STRESS_VECTOR;
+    auto&       r_model_part    = CreateModelPartWithTwoStubElements(model, r_test_variable);
 
     // Linear field in x between -1 and 1
     dynamic_cast<StubElementForNodalExtrapolationTest&>(r_model_part.Elements()[1]).mIntegrationVectorValues = {
@@ -362,16 +366,17 @@ KRATOS_TEST_CASE_IN_SUITE(TestExtrapolationProcess_ExtrapolatesVectorCorrectlyFo
         ScalarVector(6, -inv_sqrt3), ScalarVector(6, -inv_sqrt3), ScalarVector(6, inv_sqrt3),
         ScalarVector(6, inv_sqrt3)};
 
-    BuildAndRunExtrapolationProcess(model, CreateExtrapolationProcessSettings(r_model_part, CAUCHY_STRESS_VECTOR));
+    BuildAndRunExtrapolationProcess(model, CreateExtrapolationProcessSettings(r_model_part, r_test_variable));
 
     std::vector<Vector> expected_values = {ScalarVector(6, -1), ScalarVector(6, 0),
                                            ScalarVector(6, 1),  ScalarVector(6, -1),
                                            ScalarVector(6, -1), ScalarVector(6, 1)};
     std::vector<Vector> actual_values;
     actual_values.reserve(r_model_part.Nodes().size());
-    std::transform(
-        r_model_part.Nodes().begin(), r_model_part.Nodes().end(), std::back_inserter(actual_values),
-        [](const auto& node) { return node.FastGetSolutionStepValue(CAUCHY_STRESS_VECTOR); });
+    std::transform(r_model_part.Nodes().begin(), r_model_part.Nodes().end(),
+                   std::back_inserter(actual_values), [&r_test_variable](const auto& node) {
+        return node.FastGetSolutionStepValue(r_test_variable);
+    });
 
     for (std::size_t i = 0; i < expected_values.size(); ++i) {
         KRATOS_EXPECT_VECTOR_NEAR(actual_values[i], expected_values[i], Defaults::absolute_tolerance)
@@ -386,8 +391,9 @@ KRATOS_TEST_CASE_IN_SUITE(TestExtrapolationProcess_ExtrapolatesArrayCorrectlyFor
     //   |  El1 |  El2 |
     //   1------2------5
 
-    auto  model        = Model{};
-    auto& r_model_part = CreateModelPartWithTwoStubElements(model);
+    auto        model           = Model{};
+    const auto& r_test_variable = FLUID_FLUX_VECTOR;
+    auto&       r_model_part    = CreateModelPartWithTwoStubElements(model, r_test_variable);
 
     // Linear field in x between -1 and 1
     dynamic_cast<StubElementForNodalExtrapolationTest&>(r_model_part.Elements()[1]).mIntegrationArrayValues = {
@@ -399,15 +405,17 @@ KRATOS_TEST_CASE_IN_SUITE(TestExtrapolationProcess_ExtrapolatesArrayCorrectlyFor
         ScalarVector(3, -inv_sqrt3), ScalarVector(3, -inv_sqrt3), ScalarVector(3, inv_sqrt3),
         ScalarVector(3, inv_sqrt3)};
 
-    BuildAndRunExtrapolationProcess(model, CreateExtrapolationProcessSettings(r_model_part, FLUID_FLUX_VECTOR));
+    BuildAndRunExtrapolationProcess(model, CreateExtrapolationProcessSettings(r_model_part, r_test_variable));
 
     std::vector<Vector>              expected_values = {ScalarVector(3, -1), ScalarVector(3, 0),
                                                         ScalarVector(3, 1),  ScalarVector(3, -1),
                                                         ScalarVector(3, -1), ScalarVector(3, 1)};
     std::vector<array_1d<double, 3>> actual_values;
     actual_values.reserve(r_model_part.Nodes().size());
-    std::transform(r_model_part.Nodes().begin(), r_model_part.Nodes().end(), std::back_inserter(actual_values),
-                   [](const auto& node) { return node.FastGetSolutionStepValue(FLUID_FLUX_VECTOR); });
+    std::transform(r_model_part.Nodes().begin(), r_model_part.Nodes().end(),
+                   std::back_inserter(actual_values), [&r_test_variable](const auto& node) {
+        return node.FastGetSolutionStepValue(r_test_variable);
+    });
 
     for (std::size_t i = 0; i < expected_values.size(); ++i) {
         KRATOS_EXPECT_VECTOR_NEAR(actual_values[i], expected_values[i], Defaults::absolute_tolerance)
