@@ -14,10 +14,6 @@
 #pragma once
 
 #include "custom_elements/U_Pw_base_element.h"
-#include "custom_retention/retention_law.h"
-#include "geometries/geometry_data.h"
-#include "includes/constitutive_law.h"
-#include "includes/define.h"
 #include "includes/kratos_export_api.h"
 #include "includes/smart_pointers.h"
 #include "includes/ublas_interface.h"

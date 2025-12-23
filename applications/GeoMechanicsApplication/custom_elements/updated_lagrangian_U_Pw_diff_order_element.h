@@ -14,9 +14,6 @@
 
 // Project includes
 #include "custom_elements/small_strain_U_Pw_diff_order_element.h"
-#include "custom_utilities/element_utilities.hpp"
-#include "custom_utilities/stress_strain_utilities.h"
-#include "geo_mechanics_application_variables.h"
 #include "stress_state_policy.h"
 
 namespace Kratos
@@ -74,7 +71,7 @@ public:
     KRATOS_CLASS_INTRUSIVE_POINTER_DEFINITION(UpdatedLagrangianUPwDiffOrderElement);
 
     /// Default Constructor
-    UpdatedLagrangianUPwDiffOrderElement();
+    UpdatedLagrangianUPwDiffOrderElement() = default;
 
     /// Constructor using Geometry
     UpdatedLagrangianUPwDiffOrderElement(IndexType                          NewId,

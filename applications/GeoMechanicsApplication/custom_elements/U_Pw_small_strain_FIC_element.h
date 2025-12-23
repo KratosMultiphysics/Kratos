@@ -22,7 +22,6 @@
 // Application includes
 #include "custom_elements/U_Pw_base_element.h"
 #include "custom_elements/U_Pw_small_strain_element.h"
-#include "geo_mechanics_application_variables.h"
 
 namespace Kratos
 {

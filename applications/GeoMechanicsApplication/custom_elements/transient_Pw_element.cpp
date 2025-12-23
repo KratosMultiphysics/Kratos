@@ -12,8 +12,11 @@
 
 // Application includes
 #include "custom_elements/transient_Pw_element.h"
+#include "custom_retention/retention_law_factory.h"
 #include "custom_utilities/check_utilities.h"
 #include "custom_utilities/dof_utilities.h"
+#include "custom_utilities/element_utilities.hpp"
+#include "custom_utilities/stress_strain_utilities.h"
 #include "custom_utilities/transport_equation_utilities.hpp"
 #include "includes/cfd_variables.h"
 

@@ -18,8 +18,6 @@
 
 // Application includes
 #include "custom_elements/U_Pw_base_element.h"
-#include "custom_utilities/interface_element_utilities.h"
-#include "geo_mechanics_application_variables.h"
 
 namespace Kratos
 {

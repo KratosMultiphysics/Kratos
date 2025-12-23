@@ -13,6 +13,15 @@
 //
 
 #include "custom_elements/Pw_element.hpp"
+#include "custom_utilities/check_utilities.h"
+#include "custom_utilities/constitutive_law_utilities.h"
+#include "custom_utilities/dof_utilities.h"
+#include "custom_utilities/element_utilities.hpp"
+#include "custom_utilities/hydraulic_discharge.h"
+#include "custom_utilities/transport_equation_utilities.hpp"
+#include "custom_utilities/variables_utilities.hpp"
+#include "geo_mechanics_application_variables.h"
+#include "includes/cfd_variables.h"
 
 namespace Kratos
 {
@@ -461,6 +470,33 @@ typename FluidBodyFlowCalculator<TNumNodes>::InputProvider PwElement<TDim, TNumN
         MakePropertiesGetter(), MakeRetentionLawsGetter(), GetIntegrationCoefficients(),
         MakeProjectedGravityForIntegrationPointsGetter(), MakeShapeFunctionLocalGradientsGetter(),
         MakeLocalSpaceDimensionGetter(), GetFluidPressures());
+}
+
+template <unsigned int TDim, unsigned int TNumNodes>
+Matrix PwElement<TDim, TNumNodes>::CalculateNContainer()
+{
+    return GetGeometry().ShapeFunctionsValues(GetIntegrationMethod());
+}
+
+template <unsigned int TDim, unsigned int TNumNodes>
+Vector PwElement<TDim, TNumNodes>::CalculateIntegrationCoefficients()
+{
+    GetGeometry().DeterminantOfJacobian(mDetJCcontainer, this->GetIntegrationMethod());
+    return mIntegrationCoefficientsCalculator.Run<Vector>(
+        GetGeometry().IntegrationPoints(GetIntegrationMethod()), mDetJCcontainer, this);
+}
+
+template <unsigned int TDim, unsigned int TNumNodes>
+std::vector<double> PwElement<TDim, TNumNodes>::CalculateFluidPressure()
+{
+    return GeoTransportEquationUtilities::CalculateFluidPressures(
+        mNContainer, VariablesUtilities::GetNodalValuesOf<TNumNodes>(WATER_PRESSURE, this->GetGeometry()));
+}
+
+template <unsigned int TDim, unsigned int TNumNodes>
+Element::DofsVectorType PwElement<TDim, TNumNodes>::GetDofs() const
+{
+    return Geo::DofUtilities::ExtractDofsFromNodes(GetGeometry(), WATER_PRESSURE);
 }
 
 template <unsigned int TDim, unsigned int TNumNodes>

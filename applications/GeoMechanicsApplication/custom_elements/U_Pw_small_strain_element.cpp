@@ -15,13 +15,16 @@
 #include "custom_elements/U_Pw_small_strain_element.h"
 #include "custom_utilities/check_utilities.h"
 #include "custom_utilities/constitutive_law_utilities.h"
+#include "custom_utilities/element_utilities.hpp"
 #include "custom_utilities/equation_of_motion_utilities.h"
 #include "custom_utilities/hydraulic_discharge.h"
 #include "custom_utilities/math_utilities.h"
 #include "custom_utilities/node_utilities.h"
 #include "custom_utilities/output_utilities.hpp"
+#include "custom_utilities/stress_strain_utilities.h"
 #include "custom_utilities/transport_equation_utilities.hpp"
 #include "custom_utilities/variables_utilities.hpp"
+#include "geo_mechanics_application_variables.h"
 #include "includes/cfd_variables.h"
 
 #include <numeric>

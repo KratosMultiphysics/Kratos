@@ -16,15 +16,12 @@
 // Project includes
 #include "containers/array_1d.h"
 #include "custom_retention/retention_law.h"
-#include "custom_retention/retention_law_factory.h"
 #include "geometries/geometry.h"
 #include "includes/constitutive_law.h"
 #include "includes/define.h"
 #include "includes/element.h"
-#include "utilities/math_utils.h"
 
 // Application includes
-#include "custom_utilities/element_utilities.hpp"
 #include "integration_coefficients_calculator.hpp"
 #include "stress_state_policy.h"
 

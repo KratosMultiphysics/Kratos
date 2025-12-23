@@ -12,6 +12,7 @@
 //
 
 #include "integration_coefficients_calculator.hpp"
+#include "includes/node.h"
 
 namespace Kratos
 {

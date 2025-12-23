@@ -17,8 +17,6 @@
 
 // Application includes
 #include "custom_elements/U_Pw_small_strain_element.h"
-#include "custom_utilities/element_utilities.hpp"
-#include "custom_utilities/stress_strain_utilities.h"
 
 namespace Kratos
 {

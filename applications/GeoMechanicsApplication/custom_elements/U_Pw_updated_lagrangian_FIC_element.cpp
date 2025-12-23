@@ -14,9 +14,12 @@
 
 // Project includes
 #include "custom_elements/U_Pw_updated_lagrangian_FIC_element.h"
+#include "custom_utilities/element_utilities.hpp"
 #include "custom_utilities/equation_of_motion_utilities.h"
 #include "custom_utilities/math_utilities.h"
+#include "custom_utilities/stress_strain_utilities.h"
 #include "custom_utilities/transport_equation_utilities.hpp"
+#include "geo_mechanics_application_variables.h"
 #include "utilities/math_utils.h"
 
 namespace Kratos

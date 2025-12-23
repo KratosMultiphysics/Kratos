@@ -17,6 +17,7 @@
 #include "custom_utilities/extrapolation_utilities.h"
 #include "custom_utilities/math_utilities.h"
 #include "custom_utilities/transport_equation_utilities.hpp"
+#include "geo_mechanics_application_variables.h"
 
 namespace
 {

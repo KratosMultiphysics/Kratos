@@ -20,11 +20,13 @@
 #include "geometries/triangle_2d_3.h"
 #include "geometries/triangle_2d_6.h"
 #include "includes/cfd_variables.h"
+#include "includes/constitutive_law.h"
 #include "includes/serializer.h"
 #include "utilities/math_utils.h"
 
 // Application includes
 #include "custom_elements/small_strain_U_Pw_diff_order_element.h"
+#include "custom_retention/retention_law.h"
 #include "custom_utilities/check_utilities.h"
 #include "custom_utilities/constitutive_law_utilities.h"
 #include "custom_utilities/dof_utilities.h"

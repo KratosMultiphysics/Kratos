@@ -13,6 +13,14 @@
 //
 
 #include "custom_elements/transient_thermal_element.h"
+#include "custom_constitutive/thermal_dispersion_law.h"
+#include "custom_constitutive/thermal_filter_law.h"
+#include "custom_retention/retention_law_factory.h"
+#include "custom_utilities/check_utilities.h"
+#include "custom_utilities/dof_utilities.h"
+#include "custom_utilities/variables_utilities.hpp"
+#include "geo_mechanics_application_variables.h"
+#include "includes/serializer.h"
 
 namespace Kratos
 {

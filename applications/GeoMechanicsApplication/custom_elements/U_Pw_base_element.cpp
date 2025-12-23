@@ -13,11 +13,14 @@
 
 // Application includes
 #include "custom_elements/U_Pw_base_element.h"
+#include "custom_retention/retention_law_factory.h"
 #include "custom_utilities/check_utilities.h"
 #include "custom_utilities/dof_utilities.h"
+#include "custom_utilities/element_utilities.hpp"
 #include "custom_utilities/equation_of_motion_utilities.h"
 #include "includes/serializer.h"
 #include "utilities/geometry_utilities.h"
+#include "utilities/math_utils.h"
 
 namespace Kratos
 {

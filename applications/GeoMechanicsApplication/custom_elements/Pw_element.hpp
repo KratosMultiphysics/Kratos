@@ -18,17 +18,8 @@
 #include "calculation_contribution.h"
 #include "compressibility_calculator.hpp"
 #include "custom_retention/retention_law_factory.h"
-#include "custom_utilities/check_utilities.h"
-#include "custom_utilities/constitutive_law_utilities.h"
-#include "custom_utilities/dof_utilities.h"
-#include "custom_utilities/element_utilities.hpp"
-#include "custom_utilities/hydraulic_discharge.h"
-#include "custom_utilities/transport_equation_utilities.hpp"
-#include "custom_utilities/variables_utilities.hpp"
 #include "filter_compressibility_calculator.hpp"
 #include "fluid_body_flow_calculator.hpp"
-#include "geo_mechanics_application_variables.h"
-#include "includes/cfd_variables.h"
 #include "includes/element.h"
 #include "includes/serializer.h"
 #include "integration_coefficients_calculator.hpp"
@@ -151,33 +142,21 @@ private:
         return [this]() -> const Matrix& { return mNContainer; };
     }
 
-    Matrix CalculateNContainer()
-    {
-        return GetGeometry().ShapeFunctionsValues(GetIntegrationMethod());
-    }
+    Matrix CalculateNContainer();
 
     auto GetIntegrationCoefficients()
     {
         return [this]() -> const Vector& { return mIntegrationCoefficients; };
     }
 
-    Vector CalculateIntegrationCoefficients()
-    {
-        GetGeometry().DeterminantOfJacobian(mDetJCcontainer, this->GetIntegrationMethod());
-        return mIntegrationCoefficientsCalculator.Run<Vector>(
-            GetGeometry().IntegrationPoints(GetIntegrationMethod()), mDetJCcontainer, this);
-    }
+    Vector CalculateIntegrationCoefficients();
 
     auto GetFluidPressures()
     {
         return [this]() -> const std::vector<double>& { return mFluidPressures; };
     }
 
-    std::vector<double> CalculateFluidPressure()
-    {
-        return GeoTransportEquationUtilities::CalculateFluidPressures(
-            mNContainer, VariablesUtilities::GetNodalValuesOf<TNumNodes>(WATER_PRESSURE, this->GetGeometry()));
-    }
+    std::vector<double> CalculateFluidPressure();
 
     auto MakeProjectedGravityForIntegrationPointsGetter() const
     {
@@ -220,10 +199,7 @@ private:
         return [this]() -> std::size_t { return this->GetGeometry().LocalSpaceDimension(); };
     }
 
-    [[nodiscard]] DofsVectorType GetDofs() const
-    {
-        return Geo::DofUtilities::ExtractDofsFromNodes(GetGeometry(), WATER_PRESSURE);
-    }
+    [[nodiscard]] DofsVectorType GetDofs() const;
 
     friend class Serializer;
 
