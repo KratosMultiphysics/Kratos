@@ -201,9 +201,8 @@ KRATOS_TEST_CASE_IN_SUITE(TestExtrapolationProcess_ExtrapolatesCorrectlyForConst
     //   4------3------6
     //   |  El1 |  El2 |
     //   1------2------5
-    //
 
-    Model model;
+    auto  model        = Model{};
     auto& r_model_part = CreateModelPartWithTwoStubElements(model);
 
     SetIntegrationPointValues(r_model_part.Elements()[1], std::vector(4, 1.0));
@@ -223,9 +222,8 @@ KRATOS_TEST_CASE_IN_SUITE(TestExtrapolationProcess_ExtrapolatesCorrectlyForConst
     //   4------3------6
     //   |  El1 |  El2 |
     //   1------2------5
-    //
 
-    Model model;
+    auto  model        = Model{};
     auto& r_model_part = CreateModelPartWithTwoStubElements(model);
 
     SetIntegrationPointValues(r_model_part.Elements()[1], std::vector(4, 1.0));
@@ -245,8 +243,8 @@ KRATOS_TEST_CASE_IN_SUITE(TestExtrapolationProcess_ExtrapolatesCorrectlyForTwoCo
     //   4------3------6
     //   |  El1 |  El2 |
     //   1------2------5
-    //
-    Model model;
+
+    auto  model        = Model{};
     auto& r_model_part = CreateModelPartWithTwoStubElements(model);
 
     SetIntegrationPointValues(r_model_part.Elements()[1], std::vector(4, 1.0));
@@ -264,8 +262,8 @@ KRATOS_TEST_CASE_IN_SUITE(TestExtrapolationProcess_ExtrapolatesCorrectlyForLinea
     //   4------3------6
     //   |  El1 |  El2 |
     //   1------2------5
-    //
-    Model model;
+
+    auto  model        = Model{};
     auto& r_model_part = CreateModelPartWithTwoStubElements(model);
 
     // Linear field in x between -1 and 1
@@ -286,8 +284,8 @@ KRATOS_TEST_CASE_IN_SUITE(TestExtrapolationProcess_ExtrapolatesCorrectlyForLinea
     //   4------3------6
     //   |  El1 |  El2 |
     //   1------2------5
-    //
-    Model       model;
+
+    auto        model             = Model{};
     auto&       r_main_model_part = CreateModelPartWithTwoStubElements(model);
     const auto& r_foo_model_part  = model.CreateModelPart("foo"s);
     const auto& r_bar_model_part  = model.CreateModelPart("bar"s);
@@ -313,8 +311,8 @@ KRATOS_TEST_CASE_IN_SUITE(TestExtrapolationProcess_ExtrapolatesMatrixCorrectlyFo
     //   4------3------6
     //   |  El1 |  El2 |
     //   1------2------5
-    //
-    Model model;
+
+    auto  model        = Model{};
     auto& r_model_part = CreateModelPartWithTwoStubElements(model);
 
     // Linear field in x between -1 and 1
@@ -350,8 +348,8 @@ KRATOS_TEST_CASE_IN_SUITE(TestExtrapolationProcess_ExtrapolatesVectorCorrectlyFo
     //   4------3------6
     //   |  El1 |  El2 |
     //   1------2------5
-    //
-    Model model;
+
+    auto  model        = Model{};
     auto& r_model_part = CreateModelPartWithTwoStubElements(model);
 
     // Linear field in x between -1 and 1
@@ -387,8 +385,8 @@ KRATOS_TEST_CASE_IN_SUITE(TestExtrapolationProcess_ExtrapolatesArrayCorrectlyFor
     //   4------3------6
     //   |  El1 |  El2 |
     //   1------2------5
-    //
-    Model model;
+
+    auto  model        = Model{};
     auto& r_model_part = CreateModelPartWithTwoStubElements(model);
 
     // Linear field in x between -1 and 1
@@ -423,8 +421,8 @@ KRATOS_TEST_CASE_IN_SUITE(TestExtrapolationProcess_ExtrapolatesCorrectlyWhenNode
     //   4------3------6
     //   |  El1 |  El2 |
     //   1------2------5
-    //
-    Model model;
+
+    auto model = Model{};
 
     auto& r_left_model_part = model.CreateModelPart("Left");
     r_left_model_part.AddNodalSolutionStepVariable(HYDRAULIC_HEAD);
@@ -469,9 +467,9 @@ KRATOS_TEST_CASE_IN_SUITE(TestExtrapolationProcess_ExtrapolatesCorrectlyWhenMode
     //   4------3------6
     //   |  El1 |  El2 |
     //   1------2------5
-    //
 
-    Model model;
+    auto model = Model{};
+
     auto& r_bottom_model_part = model.CreateModelPart("Bottom");
     r_bottom_model_part.AddNodalSolutionStepVariable(HYDRAULIC_HEAD);
     r_bottom_model_part.AddNodalSolutionStepVariable(HYDRAULIC_DISCHARGE);
@@ -525,7 +523,7 @@ KRATOS_TEST_CASE_IN_SUITE(TestExtrapolationProcess_ExtrapolatesCorrectlyWhenMode
 KRATOS_TEST_CASE_IN_SUITE(CheckInfoGeoExtrapolateIntegrationPointValuesToNodesProcess, KratosGeoMechanicsFastSuiteWithoutKernel)
 {
     // Arrange
-    Model       model;
+    auto        model        = Model{};
     const auto& r_model_part = model.CreateModelPart("foo");
 
     const auto process = GeoExtrapolateIntegrationPointValuesToNodesProcess{
