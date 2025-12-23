@@ -257,7 +257,7 @@ void ShellThickNitscheBoundaryElement3D3N<TKinematics>::CalculateLocalSystem(
                         }
                     }
                 }
-            // }
+            }
         }
     }
 
