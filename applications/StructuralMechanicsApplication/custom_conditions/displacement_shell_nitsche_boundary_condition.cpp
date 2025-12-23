@@ -339,24 +339,27 @@ void DisplacementShellNitscheBoundaryCondition::CalculateLocalSystem(
 
     // KRATOS_WATCH(aux_N)
     // KRATOS_WATCH(r_N)
+    // KRATOS_WATCH(r_DN_DX)
     // KRATOS_WATCH(normal)
     // exit(0);
 
-    CalculateBtransCProjectionLinearisation(D, B_mat_shell, normal, transB_C_proj);
-    const Matrix stab_lhs = prod(transB_C_proj, aux_N); 
+    // CalculateBtransCProjectionLinearisation(D, B_mat_shell, normal, transB_C_proj);
+    // const Matrix stab_lhs = prod(transB_C_proj, aux_N) + prod(trans(aux_N), trans(transB_C_proj)); 
 
-    Vector stab_rhs_bc = ZeroVector(local_size);
+    // Vector stab_rhs_bc = ZeroVector(local_size);
 
-    for (IndexType i = 0; i < local_size; ++i) {
-        for (IndexType d = 0; d < n_dim; ++d) {
-            stab_rhs_bc[i] += transB_C_proj(i,d) * bc_values[d];
-        }
-    }
+    // for (IndexType i = 0; i < local_size; ++i) {
+    //     for (IndexType d = 0; d < n_dim; ++d) {
+    //         stab_rhs_bc[i] += transB_C_proj(i,d) * bc_values[d];
+    //     }
+    // }
 
-    const Vector stab_rhs_unk = prod(stab_lhs, unknown_values);
-    rLeftHandSideMatrix += w * stab_lhs;
-    rRightHandSideVector += w * stab_rhs_bc;
-    rRightHandSideVector -= w * stab_rhs_unk;
+    // const Vector stab_rhs_unk = prod(stab_lhs, unknown_values);
+    // rLeftHandSideMatrix += w * stab_lhs;
+    // rRightHandSideVector += w * stab_rhs_bc;
+    // rRightHandSideVector -= w * stab_rhs_unk;
+
+
 
     KRATOS_CATCH("")
 }
