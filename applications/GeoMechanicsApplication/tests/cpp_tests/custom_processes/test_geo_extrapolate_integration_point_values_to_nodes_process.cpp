@@ -166,27 +166,27 @@ public:
 
 ModelPart& CreateModelPartWithTwoStubElements(Model& model)
 {
-    auto& model_part = model.CreateModelPart("MainModelPart");
-    model_part.AddNodalSolutionStepVariable(HYDRAULIC_HEAD);
-    model_part.AddNodalSolutionStepVariable(CAUCHY_STRESS_TENSOR);
-    model_part.AddNodalSolutionStepVariable(CAUCHY_STRESS_VECTOR);
-    model_part.AddNodalSolutionStepVariable(FLUID_FLUX_VECTOR);
-    auto node_1 = model_part.CreateNewNode(1, 0.0, 0.0, 0.0);
-    auto node_2 = model_part.CreateNewNode(2, 1.0, 0.0, 0.0);
-    auto node_3 = model_part.CreateNewNode(3, 1.0, 1.0, 0.0);
-    auto node_4 = model_part.CreateNewNode(4, 0.0, 1.0, 0.0);
-    auto node_5 = model_part.CreateNewNode(5, 2.0, 0.0, 0.0);
-    auto node_6 = model_part.CreateNewNode(6, 2.0, 1.0, 0.0);
+    auto& r_result = model.CreateModelPart("MainModelPart");
+    r_result.AddNodalSolutionStepVariable(HYDRAULIC_HEAD);
+    r_result.AddNodalSolutionStepVariable(CAUCHY_STRESS_TENSOR);
+    r_result.AddNodalSolutionStepVariable(CAUCHY_STRESS_VECTOR);
+    r_result.AddNodalSolutionStepVariable(FLUID_FLUX_VECTOR);
+    auto node_1 = r_result.CreateNewNode(1, 0.0, 0.0, 0.0);
+    auto node_2 = r_result.CreateNewNode(2, 1.0, 0.0, 0.0);
+    auto node_3 = r_result.CreateNewNode(3, 1.0, 1.0, 0.0);
+    auto node_4 = r_result.CreateNewNode(4, 0.0, 1.0, 0.0);
+    auto node_5 = r_result.CreateNewNode(5, 2.0, 0.0, 0.0);
+    auto node_6 = r_result.CreateNewNode(6, 2.0, 1.0, 0.0);
 
     auto geometry_1 = std::make_shared<Quadrilateral2D4<Node>>(node_1, node_2, node_3, node_4);
     auto element_1  = Kratos::make_intrusive<StubElementForNodalExtrapolationTest>(1, geometry_1);
-    model_part.AddElement(element_1);
+    r_result.AddElement(element_1);
 
     auto geometry_2 = std::make_shared<Quadrilateral2D4<Node>>(node_2, node_5, node_6, node_3);
     auto element_2  = Kratos::make_intrusive<StubElementForNodalExtrapolationTest>(2, geometry_2);
-    model_part.AddElement(element_2);
+    r_result.AddElement(element_2);
 
-    return model_part;
+    return r_result;
 }
 
 KRATOS_TEST_CASE_IN_SUITE(TestExtrapolationProcess_ExtrapolatesCorrectlyForConstantField,
@@ -199,16 +199,18 @@ KRATOS_TEST_CASE_IN_SUITE(TestExtrapolationProcess_ExtrapolatesCorrectlyForConst
     //
 
     Model model;
-    auto& model_part = CreateModelPartWithTwoStubElements(model);
+    auto& r_model_part = CreateModelPartWithTwoStubElements(model);
 
-    dynamic_cast<StubElementForNodalExtrapolationTest&>(model_part.Elements()[1]).mIntegrationDoubleValues = {
+    dynamic_cast<StubElementForNodalExtrapolationTest&>(r_model_part.Elements()[1]).mIntegrationDoubleValues = {
         1.0, 1.0, 1.0, 1.0};
-    dynamic_cast<StubElementForNodalExtrapolationTest&>(model_part.Elements()[2]).mIntegrationDoubleValues = {
+    dynamic_cast<StubElementForNodalExtrapolationTest&>(r_model_part.Elements()[2]).mIntegrationDoubleValues = {
         1.0, 1.0, 1.0, 1.0};
 
-    BuildAndRunExtrapolationProcess(model, CreateExtrapolationProcessSettings(model_part, HYDRAULIC_HEAD));
+    const auto& r_test_variable = HYDRAULIC_HEAD;
 
-    AssertNodalValues(model_part.Nodes(), HYDRAULIC_HEAD, std::vector(6, 1.0));
+    BuildAndRunExtrapolationProcess(model, CreateExtrapolationProcessSettings(r_model_part, r_test_variable));
+
+    AssertNodalValues(r_model_part.Nodes(), r_test_variable, std::vector(6, 1.0));
 }
 
 KRATOS_TEST_CASE_IN_SUITE(TestExtrapolationProcess_ExtrapolatesCorrectlyForConstantFieldWithInactiveElement,
@@ -221,17 +223,17 @@ KRATOS_TEST_CASE_IN_SUITE(TestExtrapolationProcess_ExtrapolatesCorrectlyForConst
     //
 
     Model model;
-    auto& model_part = CreateModelPartWithTwoStubElements(model);
+    auto& r_model_part = CreateModelPartWithTwoStubElements(model);
 
-    dynamic_cast<StubElementForNodalExtrapolationTest&>(model_part.Elements()[1]).mIntegrationDoubleValues = {
+    dynamic_cast<StubElementForNodalExtrapolationTest&>(r_model_part.Elements()[1]).mIntegrationDoubleValues = {
         1.0, 1.0, 1.0, 1.0};
-    dynamic_cast<StubElementForNodalExtrapolationTest&>(model_part.Elements()[2]).mIntegrationDoubleValues = {
+    dynamic_cast<StubElementForNodalExtrapolationTest&>(r_model_part.Elements()[2]).mIntegrationDoubleValues = {
         1.0, 1.0, 1.0, 1.0};
-    model_part.Elements()[2].Set(ACTIVE, false);
+    r_model_part.Elements()[2].Set(ACTIVE, false);
 
-    BuildAndRunExtrapolationProcess(model, CreateExtrapolationProcessSettings(model_part, HYDRAULIC_HEAD));
+    BuildAndRunExtrapolationProcess(model, CreateExtrapolationProcessSettings(r_model_part, HYDRAULIC_HEAD));
 
-    AssertNodalValues(model_part.Elements()[1].GetGeometry(), HYDRAULIC_HEAD, std::vector(4, 1.0));
+    AssertNodalValues(r_model_part.Elements()[1].GetGeometry(), HYDRAULIC_HEAD, std::vector(4, 1.0));
 }
 
 KRATOS_TEST_CASE_IN_SUITE(TestExtrapolationProcess_ExtrapolatesCorrectlyForTwoConstantButDifferentFields,
@@ -243,16 +245,16 @@ KRATOS_TEST_CASE_IN_SUITE(TestExtrapolationProcess_ExtrapolatesCorrectlyForTwoCo
     //   1------2------5
     //
     Model model;
-    auto& model_part = CreateModelPartWithTwoStubElements(model);
+    auto& r_model_part = CreateModelPartWithTwoStubElements(model);
 
-    dynamic_cast<StubElementForNodalExtrapolationTest&>(model_part.Elements()[1]).mIntegrationDoubleValues = {
+    dynamic_cast<StubElementForNodalExtrapolationTest&>(r_model_part.Elements()[1]).mIntegrationDoubleValues = {
         1.0, 1.0, 1.0, 1.0};
-    dynamic_cast<StubElementForNodalExtrapolationTest&>(model_part.Elements()[2]).mIntegrationDoubleValues = {
+    dynamic_cast<StubElementForNodalExtrapolationTest&>(r_model_part.Elements()[2]).mIntegrationDoubleValues = {
         2.0, 2.0, 2.0, 2.0};
 
-    BuildAndRunExtrapolationProcess(model, CreateExtrapolationProcessSettings(model_part, HYDRAULIC_HEAD));
+    BuildAndRunExtrapolationProcess(model, CreateExtrapolationProcessSettings(r_model_part, HYDRAULIC_HEAD));
 
-    AssertNodalValues(model_part.Nodes(), HYDRAULIC_HEAD, {1.0, 1.5, 1.5, 1.0, 2.0, 2.0});
+    AssertNodalValues(r_model_part.Nodes(), HYDRAULIC_HEAD, {1.0, 1.5, 1.5, 1.0, 2.0, 2.0});
 }
 
 KRATOS_TEST_CASE_IN_SUITE(TestExtrapolationProcess_ExtrapolatesCorrectlyForLinearFields,
@@ -264,19 +266,19 @@ KRATOS_TEST_CASE_IN_SUITE(TestExtrapolationProcess_ExtrapolatesCorrectlyForLinea
     //   1------2------5
     //
     Model model;
-    auto& model_part = CreateModelPartWithTwoStubElements(model);
+    auto& r_model_part = CreateModelPartWithTwoStubElements(model);
 
     // Linear field in x between -1 and 1
-    dynamic_cast<StubElementForNodalExtrapolationTest&>(model_part.Elements()[1]).mIntegrationDoubleValues = {
+    dynamic_cast<StubElementForNodalExtrapolationTest&>(r_model_part.Elements()[1]).mIntegrationDoubleValues = {
         -inv_sqrt3, inv_sqrt3, inv_sqrt3, -inv_sqrt3};
 
     // Linear field in y between -1 and 1
-    dynamic_cast<StubElementForNodalExtrapolationTest&>(model_part.Elements()[2]).mIntegrationDoubleValues = {
+    dynamic_cast<StubElementForNodalExtrapolationTest&>(r_model_part.Elements()[2]).mIntegrationDoubleValues = {
         -inv_sqrt3, -inv_sqrt3, inv_sqrt3, inv_sqrt3};
 
-    BuildAndRunExtrapolationProcess(model, CreateExtrapolationProcessSettings(model_part, HYDRAULIC_HEAD));
+    BuildAndRunExtrapolationProcess(model, CreateExtrapolationProcessSettings(r_model_part, HYDRAULIC_HEAD));
 
-    AssertNodalValues(model_part.Nodes(), HYDRAULIC_HEAD, {-1.0, 0.0, 1.0, -1.0, -1.0, 1.0});
+    AssertNodalValues(r_model_part.Nodes(), HYDRAULIC_HEAD, {-1.0, 0.0, 1.0, -1.0, -1.0, 1.0});
 }
 
 KRATOS_TEST_CASE_IN_SUITE(TestExtrapolationProcess_ExtrapolatesCorrectlyForLinearFields_EvenIfUnrelatedEmptyModelPartsAreSupplied,
@@ -317,27 +319,27 @@ KRATOS_TEST_CASE_IN_SUITE(TestExtrapolationProcess_ExtrapolatesMatrixCorrectlyFo
     //   1------2------5
     //
     Model model;
-    auto& model_part = CreateModelPartWithTwoStubElements(model);
+    auto& r_model_part = CreateModelPartWithTwoStubElements(model);
 
     // Linear field in x between -1 and 1
-    dynamic_cast<StubElementForNodalExtrapolationTest&>(model_part.Elements()[1]).mIntegrationMatrixValues = {
+    dynamic_cast<StubElementForNodalExtrapolationTest&>(r_model_part.Elements()[1]).mIntegrationMatrixValues = {
         ScalarMatrix(3, 3, -inv_sqrt3), ScalarMatrix(3, 3, inv_sqrt3),
         ScalarMatrix(3, 3, inv_sqrt3), ScalarMatrix(3, 3, -inv_sqrt3)};
 
     // Linear field in y between -1 and 1
-    dynamic_cast<StubElementForNodalExtrapolationTest&>(model_part.Elements()[2]).mIntegrationMatrixValues = {
+    dynamic_cast<StubElementForNodalExtrapolationTest&>(r_model_part.Elements()[2]).mIntegrationMatrixValues = {
         ScalarMatrix(3, 3, -inv_sqrt3), ScalarMatrix(3, 3, -inv_sqrt3),
         ScalarMatrix(3, 3, inv_sqrt3), ScalarMatrix(3, 3, inv_sqrt3)};
 
-    BuildAndRunExtrapolationProcess(model, CreateExtrapolationProcessSettings(model_part, CAUCHY_STRESS_TENSOR));
+    BuildAndRunExtrapolationProcess(model, CreateExtrapolationProcessSettings(r_model_part, CAUCHY_STRESS_TENSOR));
 
     std::vector<Matrix> expected_values = {ScalarMatrix(3, 3, -1), ScalarMatrix(3, 3, 0),
                                            ScalarMatrix(3, 3, 1),  ScalarMatrix(3, 3, -1),
                                            ScalarMatrix(3, 3, -1), ScalarMatrix(3, 3, 1)};
     std::vector<Matrix> actual_values;
-    actual_values.reserve(model_part.Nodes().size());
+    actual_values.reserve(r_model_part.Nodes().size());
     std::transform(
-        model_part.Nodes().begin(), model_part.Nodes().end(), std::back_inserter(actual_values),
+        r_model_part.Nodes().begin(), r_model_part.Nodes().end(), std::back_inserter(actual_values),
         [](const auto& node) { return node.FastGetSolutionStepValue(CAUCHY_STRESS_TENSOR); });
 
     for (std::size_t i = 0; i < expected_values.size(); ++i) {
@@ -354,27 +356,27 @@ KRATOS_TEST_CASE_IN_SUITE(TestExtrapolationProcess_ExtrapolatesVectorCorrectlyFo
     //   1------2------5
     //
     Model model;
-    auto& model_part = CreateModelPartWithTwoStubElements(model);
+    auto& r_model_part = CreateModelPartWithTwoStubElements(model);
 
     // Linear field in x between -1 and 1
-    dynamic_cast<StubElementForNodalExtrapolationTest&>(model_part.Elements()[1]).mIntegrationVectorValues = {
+    dynamic_cast<StubElementForNodalExtrapolationTest&>(r_model_part.Elements()[1]).mIntegrationVectorValues = {
         ScalarVector(6, -inv_sqrt3), ScalarVector(6, inv_sqrt3), ScalarVector(6, inv_sqrt3),
         ScalarVector(6, -inv_sqrt3)};
 
     // Linear field in y between -1 and 1
-    dynamic_cast<StubElementForNodalExtrapolationTest&>(model_part.Elements()[2]).mIntegrationVectorValues = {
+    dynamic_cast<StubElementForNodalExtrapolationTest&>(r_model_part.Elements()[2]).mIntegrationVectorValues = {
         ScalarVector(6, -inv_sqrt3), ScalarVector(6, -inv_sqrt3), ScalarVector(6, inv_sqrt3),
         ScalarVector(6, inv_sqrt3)};
 
-    BuildAndRunExtrapolationProcess(model, CreateExtrapolationProcessSettings(model_part, CAUCHY_STRESS_VECTOR));
+    BuildAndRunExtrapolationProcess(model, CreateExtrapolationProcessSettings(r_model_part, CAUCHY_STRESS_VECTOR));
 
     std::vector<Vector> expected_values = {ScalarVector(6, -1), ScalarVector(6, 0),
                                            ScalarVector(6, 1),  ScalarVector(6, -1),
                                            ScalarVector(6, -1), ScalarVector(6, 1)};
     std::vector<Vector> actual_values;
-    actual_values.reserve(model_part.Nodes().size());
+    actual_values.reserve(r_model_part.Nodes().size());
     std::transform(
-        model_part.Nodes().begin(), model_part.Nodes().end(), std::back_inserter(actual_values),
+        r_model_part.Nodes().begin(), r_model_part.Nodes().end(), std::back_inserter(actual_values),
         [](const auto& node) { return node.FastGetSolutionStepValue(CAUCHY_STRESS_VECTOR); });
 
     for (std::size_t i = 0; i < expected_values.size(); ++i) {
@@ -391,26 +393,26 @@ KRATOS_TEST_CASE_IN_SUITE(TestExtrapolationProcess_ExtrapolatesArrayCorrectlyFor
     //   1------2------5
     //
     Model model;
-    auto& model_part = CreateModelPartWithTwoStubElements(model);
+    auto& r_model_part = CreateModelPartWithTwoStubElements(model);
 
     // Linear field in x between -1 and 1
-    dynamic_cast<StubElementForNodalExtrapolationTest&>(model_part.Elements()[1]).mIntegrationArrayValues = {
+    dynamic_cast<StubElementForNodalExtrapolationTest&>(r_model_part.Elements()[1]).mIntegrationArrayValues = {
         ScalarVector(3, -inv_sqrt3), ScalarVector(3, inv_sqrt3), ScalarVector(3, inv_sqrt3),
         ScalarVector(3, -inv_sqrt3)};
 
     // Linear field in y between -1 and 1
-    dynamic_cast<StubElementForNodalExtrapolationTest&>(model_part.Elements()[2]).mIntegrationArrayValues = {
+    dynamic_cast<StubElementForNodalExtrapolationTest&>(r_model_part.Elements()[2]).mIntegrationArrayValues = {
         ScalarVector(3, -inv_sqrt3), ScalarVector(3, -inv_sqrt3), ScalarVector(3, inv_sqrt3),
         ScalarVector(3, inv_sqrt3)};
 
-    BuildAndRunExtrapolationProcess(model, CreateExtrapolationProcessSettings(model_part, FLUID_FLUX_VECTOR));
+    BuildAndRunExtrapolationProcess(model, CreateExtrapolationProcessSettings(r_model_part, FLUID_FLUX_VECTOR));
 
     std::vector<Vector>              expected_values = {ScalarVector(3, -1), ScalarVector(3, 0),
                                                         ScalarVector(3, 1),  ScalarVector(3, -1),
                                                         ScalarVector(3, -1), ScalarVector(3, 1)};
     std::vector<array_1d<double, 3>> actual_values;
-    actual_values.reserve(model_part.Nodes().size());
-    std::transform(model_part.Nodes().begin(), model_part.Nodes().end(), std::back_inserter(actual_values),
+    actual_values.reserve(r_model_part.Nodes().size());
+    std::transform(r_model_part.Nodes().begin(), r_model_part.Nodes().end(), std::back_inserter(actual_values),
                    [](const auto& node) { return node.FastGetSolutionStepValue(FLUID_FLUX_VECTOR); });
 
     for (std::size_t i = 0; i < expected_values.size(); ++i) {
