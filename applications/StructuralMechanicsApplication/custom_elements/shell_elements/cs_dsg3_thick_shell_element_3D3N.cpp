@@ -358,7 +358,6 @@ void CSDSG3ThickShellElement3D3N<IS_COROTATIONAL>::CalculateSmoothedBendingShear
 {
     const IndexType strain_size = GetStrainSize();
     const auto& r_geometry = GetGeometry();
-    const auto& r_props = GetProperties();
     const IndexType number_of_nodes = r_geometry.PointsNumber();
     const IndexType system_size = number_of_nodes * GetDoFsPerNode();
 
