@@ -27,8 +27,6 @@
 
 namespace Kratos
 {
-ActivateModelPartOperation::ActivateModelPartOperation() : Operation() {}
-
 ActivateModelPartOperation::ActivateModelPartOperation(Model& rModel, const Parameters& rSettings)
 {
     mrModelParts = ProcessUtilities::GetModelPartsFromSettings(rModel, rSettings, "ActivateModelPartOperation");
