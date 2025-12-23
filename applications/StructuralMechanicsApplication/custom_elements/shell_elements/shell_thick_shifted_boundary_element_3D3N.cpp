@@ -195,7 +195,10 @@ void ShellThickShiftedBoundaryElement3D3N<TKinematics>::CalculateLocalSystem(
                     // D(6,6) = D(5,5)*5.0/6.0;
                     // D(7,7) = D(5,5)*5.0/6.0;
 
-                    CalculateCBProjectionLinearisation(D, B, n_sur_bd, aux_CB_projection);
+                    BoundedMatrix<double,8,LocalSize> B_parent = ZeroMatrix(8, 18);
+                    B_parent = -1.0 * data.B; 
+
+                    CalculateCBProjectionLinearisation(D, B_parent, n_sur_bd, aux_CB_projection);
                     CalculateCauchyTractionVector(r_stress, n_sur_bd, cauchy_traction);
     
                     // Add the surrogate boundary flux contribution
@@ -212,8 +215,10 @@ void ShellThickShiftedBoundaryElement3D3N<TKinematics>::CalculateLocalSystem(
                         i_loc_id = sur_bd_local_ids[i_node + 1];
                         for (std::size_t d = 0; d < 6; ++d) {
                             rRightHandSideVector(i_loc_id*BlockSize+d) += aux_val * cauchy_traction[d];
-                            for (std::size_t j_node = 0; j_node < NumNodes; ++j_node) {
-                                rLeftHandSideMatrix(i_loc_id*BlockSize+d, j_node*BlockSize+d) -= aux_val * aux_CB_projection(d,j_node*BlockSize + d);
+                            // for (std::size_t j_node = 0; j_node < NumNodes; ++j_node) {
+                            for (std::size_t j_node = 0; j_node < NumNodes * 6; ++j_node) { //TO DO
+                                rLeftHandSideMatrix(i_loc_id*BlockSize+d, j_node) -= aux_val * aux_CB_projection(d,j_node);
+                                // rLeftHandSideMatrix(i_loc_id*BlockSize+d, j_node*BlockSize+d) -= aux_val * aux_CB_projection(d,j_node*BlockSize + d);
                             }
                         }
                     }
