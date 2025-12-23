@@ -291,7 +291,7 @@ bool ContainerComponentIO<TContainerType, TContainerDataIO, TComponents...>::Wri
             value_type value_prototype{};
 
             // identifying the shape of the component by looking at the first entity which has the component defined.
-            auto first_available_pos = std::find(availability.begin(), availability.end(), true);
+            auto first_available_pos = std::find(availability.begin(), availability.end(), 1);
             if (first_available_pos != availability.end()) {
                 // if the value type is not static, then we need to get the shape
                 // of the first element assuming all the entities will have the same
