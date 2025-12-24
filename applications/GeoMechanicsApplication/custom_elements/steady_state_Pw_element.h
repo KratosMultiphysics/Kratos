@@ -10,17 +10,13 @@
 //  Main authors:    Vahid Galavi
 //
 
-#if !defined(KRATOS_GEO_STEADY_STATE_PW_ELEMENT_H_INCLUDED)
-#define KRATOS_GEO_STEADY_STATE_PW_ELEMENT_H_INCLUDED
+#pragma once
 
 // Project includes
 #include "includes/serializer.h"
 
 // Application includes
-#include "custom_elements/transient_Pw_element.hpp"
-#include "custom_utilities/element_utilities.hpp"
-#include "custom_utilities/stress_strain_utilities.h"
-#include "geo_mechanics_application_variables.h"
+#include "custom_elements/transient_Pw_element.h"
 
 namespace Kratos
 {
@@ -56,29 +52,18 @@ public:
     SteadyStatePwElement(IndexType                          NewId,
                          const NodesArrayType&              ThisNodes,
                          std::unique_ptr<StressStatePolicy> pStressStatePolicy,
-                         std::unique_ptr<IntegrationCoefficientModifier> pCoefficientModifier = nullptr)
-        : BaseType(NewId, ThisNodes, std::move(pStressStatePolicy), std::move(pCoefficientModifier))
-    {
-    }
+                         std::unique_ptr<IntegrationCoefficientModifier> pCoefficientModifier = nullptr);
 
-    /// Constructor using Geometry
     SteadyStatePwElement(IndexType                          NewId,
                          GeometryType::Pointer              pGeometry,
                          std::unique_ptr<StressStatePolicy> pStressStatePolicy,
-                         std::unique_ptr<IntegrationCoefficientModifier> pCoefficientModifier = nullptr)
-        : BaseType(NewId, pGeometry, std::move(pStressStatePolicy), std::move(pCoefficientModifier))
-    {
-    }
+                         std::unique_ptr<IntegrationCoefficientModifier> pCoefficientModifier = nullptr);
 
-    /// Constructor using Properties
     SteadyStatePwElement(IndexType                          NewId,
                          GeometryType::Pointer              pGeometry,
                          PropertiesType::Pointer            pProperties,
                          std::unique_ptr<StressStatePolicy> pStressStatePolicy,
-                         std::unique_ptr<IntegrationCoefficientModifier> pCoefficientModifier = nullptr)
-        : BaseType(NewId, pGeometry, pProperties, std::move(pStressStatePolicy), std::move(pCoefficientModifier))
-    {
-    }
+                         std::unique_ptr<IntegrationCoefficientModifier> pCoefficientModifier = nullptr);
 
     ~SteadyStatePwElement() = default;
 
@@ -91,15 +76,10 @@ public:
     int Check(const ProcessInfo& rCurrentProcessInfo) const override;
 
     // Turn back information as a string.
-    std::string Info() const override
-    {
-        const std::string retention_info =
-            !mRetentionLawVector.empty() ? mRetentionLawVector[0]->Info() : "not defined";
-        return "steady-state Pw flow Element #" + std::to_string(this->Id()) + "\nRetention law: " + retention_info;
-    }
+    std::string Info() const override;
 
     // Print information about this object.
-    void PrintInfo(std::ostream& rOStream) const override { rOStream << Info(); }
+    void PrintInfo(std::ostream& rOStream) const override;
 
 protected:
     /// Member Variables
@@ -118,13 +98,8 @@ private:
     /// Serialization
 
     friend class Serializer;
-
-    void save(Serializer& rSerializer) const override
-    {
-        KRATOS_SERIALIZE_SAVE_BASE_CLASS(rSerializer, Element)
-    }
-
-    void load(Serializer& rSerializer) override{KRATOS_SERIALIZE_LOAD_BASE_CLASS(rSerializer, Element)}
+    void save(Serializer& rSerializer) const override;
+    void load(Serializer& rSerializer) override;
 
     // Assignment operator.
     SteadyStatePwElement& operator=(SteadyStatePwElement const& rOther);
@@ -135,5 +110,3 @@ private:
 }; // Class SteadyStatePwElement
 
 } // namespace Kratos
-
-#endif // KRATOS_GEO_STEADY_STATE_PW_ELEMENT_H_INCLUDED  defined

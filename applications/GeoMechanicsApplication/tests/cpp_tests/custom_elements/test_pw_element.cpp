@@ -11,7 +11,7 @@
 //                   Richard Faasse
 //
 
-#include "custom_elements/Pw_element.h"
+#include "custom_elements/Pw_element.hpp"
 #include "custom_elements/calculation_contribution.h"
 #include "custom_elements/integration_coefficient_modifier_for_line_element.h"
 #include "geometries/line_2d_4.h"

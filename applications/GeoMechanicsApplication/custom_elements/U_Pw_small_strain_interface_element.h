@@ -17,9 +17,7 @@
 #include "includes/serializer.h"
 
 // Application includes
-#include "custom_elements/U_Pw_base_element.hpp"
-#include "custom_utilities/interface_element_utilities.h"
-#include "geo_mechanics_application_variables.h"
+#include "custom_elements/U_Pw_base_element.h"
 
 namespace Kratos
 {
@@ -46,35 +44,21 @@ public:
 
     explicit UPwSmallStrainInterfaceElement(IndexType NewId = 0) : UPwBaseElement(NewId) {}
 
-    /// Constructor using an array of nodes
     UPwSmallStrainInterfaceElement(IndexType                          NewId,
                                    const NodesArrayType&              ThisNodes,
                                    std::unique_ptr<StressStatePolicy> pStressStatePolicy,
-                                   std::unique_ptr<IntegrationCoefficientModifier> pCoefficientModifier = nullptr)
-        : UPwBaseElement(NewId, ThisNodes, std::move(pStressStatePolicy), std::move(pCoefficientModifier))
-    {
-    }
+                                   std::unique_ptr<IntegrationCoefficientModifier> pCoefficientModifier = nullptr);
 
-    /// Constructor using Geometry
     UPwSmallStrainInterfaceElement(IndexType                          NewId,
                                    GeometryType::Pointer              pGeometry,
                                    std::unique_ptr<StressStatePolicy> pStressStatePolicy,
-                                   std::unique_ptr<IntegrationCoefficientModifier> pCoefficientModifier = nullptr)
-        : UPwBaseElement(NewId, pGeometry, std::move(pStressStatePolicy), std::move(pCoefficientModifier))
-    {
-    }
+                                   std::unique_ptr<IntegrationCoefficientModifier> pCoefficientModifier = nullptr);
 
-    /// Constructor using Properties
     UPwSmallStrainInterfaceElement(IndexType                          NewId,
                                    GeometryType::Pointer              pGeometry,
                                    PropertiesType::Pointer            pProperties,
                                    std::unique_ptr<StressStatePolicy> pStressStatePolicy,
-                                   std::unique_ptr<IntegrationCoefficientModifier> pCoefficientModifier = nullptr)
-        : UPwBaseElement(NewId, pGeometry, pProperties, std::move(pStressStatePolicy), std::move(pCoefficientModifier))
-    {
-        /// Lobatto integration method with the integration points located at the "mid plane nodes" of the interface
-        mThisIntegrationMethod = GeometryData::IntegrationMethod::GI_GAUSS_1;
-    }
+                                   std::unique_ptr<IntegrationCoefficientModifier> pCoefficientModifier = nullptr);
 
     ~UPwSmallStrainInterfaceElement() override                                       = default;
     UPwSmallStrainInterfaceElement(const UPwSmallStrainInterfaceElement&)            = delete;
@@ -171,10 +155,6 @@ protected:
         double RelativePermeability;
         double BishopCoefficient;
     };
-
-    /// Member Variables
-    std::vector<double> mInitialGap;
-    std::vector<bool>   mIsOpen;
 
     void ModifyInactiveElementStress(const double& JointWidth, Vector& StressVector);
 
@@ -281,18 +261,13 @@ protected:
     Vector SetFullStressVector(const Vector& rStressVector);
 
 private:
-    /// Serialization
+    /// Member Variables
+    std::vector<double> mInitialGap;
+    std::vector<bool>   mIsOpen;
+
     friend class Serializer;
-
-    void save(Serializer& rSerializer) const override
-    {
-        KRATOS_SERIALIZE_SAVE_BASE_CLASS(rSerializer, Element)
-    }
-
-    void load(Serializer& rSerializer) override
-    {
-        KRATOS_SERIALIZE_LOAD_BASE_CLASS(rSerializer, Element)
-    }
+    void save(Serializer& rSerializer) const override;
+    void load(Serializer& rSerializer) override;
 
 }; // Class UPwSmallStrainInterfaceElement
 

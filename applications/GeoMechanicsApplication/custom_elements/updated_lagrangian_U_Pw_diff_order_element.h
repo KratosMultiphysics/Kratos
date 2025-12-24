@@ -10,14 +10,10 @@
 //  Main authors:    Vahid Galavi
 //
 
-#if !defined(KRATOS_GEO_UPDATED_LAGRANGIAN_U_PW_DIFF_ORDER_ELEMENT_H_INCLUDED)
-#define KRATOS_GEO_UPDATED_LAGRANGIAN_U_PW_DIFF_ORDER_ELEMENT_H_INCLUDED
+#pragma once
 
 // Project includes
-#include "custom_elements/small_strain_U_Pw_diff_order_element.hpp"
-#include "custom_utilities/element_utilities.hpp"
-#include "custom_utilities/stress_strain_utilities.h"
-#include "geo_mechanics_application_variables.h"
+#include "custom_elements/small_strain_U_Pw_diff_order_element.h"
 #include "stress_state_policy.h"
 
 namespace Kratos
@@ -75,28 +71,20 @@ public:
     KRATOS_CLASS_INTRUSIVE_POINTER_DEFINITION(UpdatedLagrangianUPwDiffOrderElement);
 
     /// Default Constructor
-    UpdatedLagrangianUPwDiffOrderElement() : SmallStrainUPwDiffOrderElement() {}
+    UpdatedLagrangianUPwDiffOrderElement() = default;
 
     /// Constructor using Geometry
     UpdatedLagrangianUPwDiffOrderElement(IndexType                          NewId,
                                          GeometryType::Pointer              pGeometry,
                                          std::unique_ptr<StressStatePolicy> pStressStatePolicy,
-                                         std::unique_ptr<IntegrationCoefficientModifier> pCoefficientModifier = nullptr)
-        : SmallStrainUPwDiffOrderElement(
-              NewId, pGeometry, std::move(pStressStatePolicy), std::move(pCoefficientModifier))
-    {
-    }
+                                         std::unique_ptr<IntegrationCoefficientModifier> pCoefficientModifier = nullptr);
 
     /// Constructor using Properties
     UpdatedLagrangianUPwDiffOrderElement(IndexType                          NewId,
                                          GeometryType::Pointer              pGeometry,
                                          PropertiesType::Pointer            pProperties,
                                          std::unique_ptr<StressStatePolicy> pStressStatePolicy,
-                                         std::unique_ptr<IntegrationCoefficientModifier> pCoefficientModifier = nullptr)
-        : SmallStrainUPwDiffOrderElement(
-              NewId, pGeometry, pProperties, std::move(pStressStatePolicy), std::move(pCoefficientModifier))
-    {
-    }
+                                         std::unique_ptr<IntegrationCoefficientModifier> pCoefficientModifier = nullptr);
 
     /// Destructor
     ~UpdatedLagrangianUPwDiffOrderElement() override = default;
@@ -155,22 +143,13 @@ public:
     ///@{
 
     /// Turn back information as a string.
-    std::string Info() const override
-    {
-        const std::string constitutive_info =
-            !mConstitutiveLawVector.empty() ? mConstitutiveLawVector[0]->Info() : "not defined";
-        return "Updated Lagrangian U-Pw different order Element #" + std::to_string(this->Id()) +
-               "\nConstitutive law: " + constitutive_info;
-    }
+    std::string Info() const override;
 
     /// Print information about this object.
-    void PrintInfo(std::ostream& rOStream) const override { rOStream << Info(); }
+    void PrintInfo(std::ostream& rOStream) const override;
 
     /// Print object's data.
-    void PrintData(std::ostream& rOStream) const override
-    {
-        this->pGetGeometry()->PrintData(rOStream);
-    }
+    void PrintData(std::ostream& rOStream) const override;
 
     ///@}
     ///@name Friends
@@ -269,4 +248,3 @@ private:
 ///@}
 
 } // namespace Kratos.
-#endif // KRATOS_GEO_UPDATED_LAGRANGIAN_U_PW_DIFF_ORDER_ELEMENT_H_INCLUDED defined

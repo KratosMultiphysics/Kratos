@@ -11,8 +11,7 @@
 //                   Vahid Galavi
 //
 
-#if !defined(KRATOS_GEO_U_PW_SMALL_STRAIN_FIC_ELEMENT_H_INCLUDED)
-#define KRATOS_GEO_U_PW_SMALL_STRAIN_FIC_ELEMENT_H_INCLUDED
+#pragma once
 
 // System includes
 #include <cmath>
@@ -21,9 +20,8 @@
 #include "includes/serializer.h"
 
 // Application includes
-#include "custom_elements/U_Pw_base_element.hpp"
-#include "custom_elements/U_Pw_small_strain_element.hpp"
-#include "geo_mechanics_application_variables.h"
+#include "custom_elements/U_Pw_base_element.h"
+#include "custom_elements/U_Pw_small_strain_element.h"
 
 namespace Kratos
 {
@@ -54,36 +52,21 @@ public:
     {
     }
 
-    /// Constructor using an array of nodes
     UPwSmallStrainFICElement(IndexType                          NewId,
                              const NodesArrayType&              ThisNodes,
                              std::unique_ptr<StressStatePolicy> pStressStatePolicy,
-                             std::unique_ptr<IntegrationCoefficientModifier> pCoefficientModifier = nullptr)
-        : UPwSmallStrainElement<TDim, TNumNodes>(
-              NewId, ThisNodes, std::move(pStressStatePolicy), std::move(pCoefficientModifier))
-    {
-    }
+                             std::unique_ptr<IntegrationCoefficientModifier> pCoefficientModifier = nullptr);
 
-    /// Constructor using Geometry
     UPwSmallStrainFICElement(IndexType                          NewId,
                              GeometryType::Pointer              pGeometry,
                              std::unique_ptr<StressStatePolicy> pStressStatePolicy,
-                             std::unique_ptr<IntegrationCoefficientModifier> pCoefficientModifier = nullptr)
-        : UPwSmallStrainElement<TDim, TNumNodes>(
-              NewId, pGeometry, std::move(pStressStatePolicy), std::move(pCoefficientModifier))
-    {
-    }
+                             std::unique_ptr<IntegrationCoefficientModifier> pCoefficientModifier = nullptr);
 
-    /// Constructor using Properties
     UPwSmallStrainFICElement(IndexType                          NewId,
                              GeometryType::Pointer              pGeometry,
                              PropertiesType::Pointer            pProperties,
                              std::unique_ptr<StressStatePolicy> pStressStatePolicy,
-                             std::unique_ptr<IntegrationCoefficientModifier> pCoefficientModifier = nullptr)
-        : UPwSmallStrainElement<TDim, TNumNodes>(
-              NewId, pGeometry, pProperties, std::move(pStressStatePolicy), std::move(pCoefficientModifier))
-    {
-    }
+                             std::unique_ptr<IntegrationCoefficientModifier> pCoefficientModifier = nullptr);
 
     ~UPwSmallStrainFICElement() = default;
 
@@ -102,15 +85,10 @@ public:
     void FinalizeNonLinearIteration(const ProcessInfo& rCurrentProcessInfo) override;
 
     // Turn back information as a string.
-    std::string Info() const override
-    {
-        const std::string constitutive_info =
-            !mConstitutiveLawVector.empty() ? mConstitutiveLawVector[0]->Info() : "not defined";
-        return "U-Pw smal strain FIC Element #" + std::to_string(this->Id()) + "\nConstitutive law: " + constitutive_info;
-    }
+    std::string Info() const override;
 
     // Print information about this object.
-    void PrintInfo(std::ostream& rOStream) const override { rOStream << Info(); }
+    void PrintInfo(std::ostream& rOStream) const override;
 
 protected:
     struct FICElementVariables {
@@ -134,12 +112,6 @@ protected:
         Matrix                                        DimVoigtMatrix;
         BoundedMatrix<double, TDim, TDim * TNumNodes> DimUMatrix;
     };
-
-    /// Member Variables
-
-    array_1d<std::vector<array_1d<double, TNumNodes>>, TDim> mNodalConstitutiveTensor;
-
-    array_1d<array_1d<double, TNumNodes>, TDim> mNodalDtStress;
 
     double CalculateShearModulus(const Matrix& ConstitutiveMatrix) const;
 
@@ -213,6 +185,12 @@ protected:
                                              const FICElementVariables& rFICVariables);
 
 private:
+    /// Member Variables
+
+    array_1d<std::vector<array_1d<double, TNumNodes>>, TDim> mNodalConstitutiveTensor;
+
+    array_1d<array_1d<double, TNumNodes>, TDim> mNodalDtStress;
+
     /// Assignment operator.
     UPwSmallStrainFICElement& operator=(UPwSmallStrainFICElement const& rOther);
 
@@ -223,18 +201,10 @@ private:
 
     friend class Serializer;
 
-    void save(Serializer& rSerializer) const override
-    {
-        KRATOS_SERIALIZE_SAVE_BASE_CLASS(rSerializer, Element)
-    }
+    void save(Serializer& rSerializer) const override;
 
-    void load(Serializer& rSerializer) override
-    {
-        KRATOS_SERIALIZE_LOAD_BASE_CLASS(rSerializer, Element)
-    }
+    void load(Serializer& rSerializer) override;
 
 }; // Class UPwSmallStrainFICElement
 
 } // namespace Kratos
-
-#endif // KRATOS_GEO_U_PW_SMALL_STRAIN_FIC_ELEMENT_H_INCLUDED  defined

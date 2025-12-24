@@ -10,8 +10,7 @@
 //  Main authors:    Vahid Galavi
 //
 
-#if !defined(KRATOS_GEO_CR_BEAM_ELEMENT_LINEAR_2D2N_H_INCLUDED)
-#define KRATOS_GEO_CR_BEAM_ELEMENT_LINEAR_2D2N_H_INCLUDED
+#pragma once
 
 // System includes
 
@@ -72,7 +71,7 @@ public:
                             NodesArrayType const&   ThisNodes,
                             PropertiesType::Pointer pProperties) const override;
 
-    ~GeoCrBeamElementLinear2D2N() = default;
+    ~GeoCrBeamElementLinear2D2N() override = default;
 
     void Initialize(const ProcessInfo& rCurrentProcessInfo) override;
 
@@ -94,16 +93,17 @@ public:
                                       std::vector<array_1d<double, 3>>&    rOutput,
                                       const ProcessInfo& rCurrentProcessInfo) override;
     using CrBeamElementLinear2D2N::CalculateOnIntegrationPoints;
+    using Element::CalculateOnIntegrationPoints;
 
     void ResetConstitutiveLaw() override;
 
 protected:
     GeoCrBeamElementLinear2D2N() = default;
 
+private:
     Vector mInternalGlobalForcesFinalized         = ZeroVector(msElementSize);
     Vector mInternalGlobalForcesFinalizedPrevious = ZeroVector(msElementSize);
 
-private:
     // stores the globalized internal forces for calculation of the residual
     bool mIsInitialization = false;
 
@@ -113,5 +113,3 @@ private:
 };
 
 } // namespace Kratos
-
-#endif
