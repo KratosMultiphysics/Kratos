@@ -142,8 +142,8 @@ Parameters CreateExtrapolationProcessSettings(const std::string& rModelPartsSett
     return Parameters{
         "    {\n"s +
             rModelPartsSetting + ",\n"s +
-            R"(        "echo_level": 0)" + ",\n" +
-            MakeVariableListFrom(rVariableData) + '\n' +
+            R"(        "echo_level": 0)" + ",\n"s +
+            MakeVariableListFrom(rVariableData) + "\n"s +
         "    }\n"s
     };
     // clang-format on
