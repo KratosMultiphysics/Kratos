@@ -170,6 +170,12 @@ private:
     void CheckField(const ContainerExpression<TContainerType>& rContainerExpression) const;
 
     template<class TMeshDependencyType>
+    void GenericGetIntegrationWeights(ContainerExpression<TContainerType>& rContainerExpression) const;
+
+    template<class TMeshDependencyType>
+    ContainerExpression<TContainerType> GenericForwardFilterField(const ContainerExpression<TContainerType>& rContainerExpression) const;
+
+    template<class TMeshDependencyType>
     ContainerExpression<TContainerType> GenericBackwardFilterField(const ContainerExpression<TContainerType>& rContainerExpression) const;
 
     ///@}

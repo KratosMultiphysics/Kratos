@@ -65,35 +65,42 @@ Expression::ConstPointer GetNodalDomainSizeExpression(
     return p_expression;
 }
 
-template<class TEntityType>
-double GetDomainSize(
-    const EntityPoint<TEntityType>& rPoint,
-    Expression const * const pExpression,
-    const bool NodeCloudMesh)
+struct NodeCloudsType
 {
-    if (NodeCloudMesh == true){
-        KRATOS_ERROR << "NodeCloudMesh == true can be used only with ModelPart::NodeType." << std::endl;
-    }
-    return rPoint.GetEntity().GetGeometry().DomainSize();
-}
-
-template<>
-double GetDomainSize(
-    const EntityPoint<ModelPart::NodeType>& rPoint,
-    Expression const * const pExpression,
-    const bool NodeCloudMesh)
-{
-    if (NodeCloudMesh == true){
+    template<class TEntityType>
+    static inline double GetDomainSize(
+        const EntityPoint<TEntityType>& rPoint,
+        Expression const * const pExpression)
+    {
+        if constexpr(!std::is_same_v<TEntityType, ModelPart::NodeType>) {
+            KRATOS_ERROR << "Point / node clouds should only be used with nodes.";
+        }
         return 1.0;
     }
-    else{
-        return pExpression->Evaluate(rPoint.Id(), rPoint.Id(), 0);
+
+    static inline double Compute(
+        const double Value,
+        const double DomainSize)
+    {
+        return Value;
     }
-}
+};
 
 struct MeshIndependentType
 {
-    static double Compute(
+    template<class TEntityType>
+    static inline double GetDomainSize(
+        const EntityPoint<TEntityType>& rPoint,
+        Expression const * const pExpression)
+    {
+        if constexpr(std::is_same_v<TEntityType, ModelPart::NodeType>) {
+            return pExpression->Evaluate(rPoint.Id(), rPoint.Id(), 0);
+        } else {
+            return rPoint.GetEntity().GetGeometry().DomainSize();
+        }
+    }
+
+    static inline double Compute(
         const double Value,
         const double DomainSize)
     {
@@ -103,7 +110,19 @@ struct MeshIndependentType
 
 struct MeshDependentType
 {
-    static double Compute(
+    template<class TEntityType>
+    static inline double GetDomainSize(
+        const EntityPoint<TEntityType>& rPoint,
+        Expression const * const pExpression)
+    {
+        if constexpr(std::is_same_v<TEntityType, ModelPart::NodeType>) {
+            return pExpression->Evaluate(rPoint.Id(), rPoint.Id(), 0);
+        } else {
+            return rPoint.GetEntity().GetGeometry().DomainSize();
+        }
+    }
+
+    static inline double Compute(
         const double Value,
         const double DomainSize)
     {
@@ -111,7 +130,7 @@ struct MeshDependentType
     }
 };
 
-template <class TEntityType>
+template <class TMeshDependencyType, class TEntityType>
 void ComputeWeightForAllNeighbors(
     double& rSumOfWeights,
     std::vector<double>& rListOfWeights,
@@ -121,11 +140,10 @@ void ComputeWeightForAllNeighbors(
     const std::vector<typename EntityPoint<TEntityType>::Pointer>& rNeighbourNodes,
     const std::vector<double>& rSquaredDistances,
     const IndexType NumberOfNeighbours,
-    Expression const * const pExpression,
-    const bool NodeCloudMesh)
+    Expression const * const pExpression)
 {
     for (IndexType i = 0; i < NumberOfNeighbours; ++i) {
-        const double domain_size = GetDomainSize(*rNeighbourNodes[i], pExpression, NodeCloudMesh);
+        const double domain_size = TMeshDependencyType::GetDomainSize(*rNeighbourNodes[i], pExpression);
         const double filter_weight = rFilterFunction.ComputeWeight(Radius, std::sqrt(rSquaredDistances[i])) * domain_size;
         rListOfWeights[i] = filter_weight;
         rSumOfWeights += filter_weight;
@@ -197,20 +215,22 @@ void ExplicitFilterUtils<TContainerType>::ExplicitFilterUtils::Update()
     mpSearchTree =  Kratos::make_shared<ExplicitFilterUtils::KDTree>(mEntityPointVector.begin(), mEntityPointVector.end(), mBucketSize);
 
     if constexpr(std::is_same_v<TContainerType, ModelPart::NodesContainerType>) {
-        const auto& r_nodes = mrModelPart.Nodes();
-        const auto& r_conditions = mrModelPart.Conditions();
-        const IndexType number_of_conditions = r_conditions.size();
+        if (!mNodeCloudMesh) {
+            const auto& r_nodes = mrModelPart.Nodes();
+            const auto& r_conditions = mrModelPart.Conditions();
+            const IndexType number_of_conditions = r_conditions.size();
 
-        const auto& r_elements = mrModelPart.Elements();
-        const IndexType number_of_elements = r_elements.size();
+            const auto& r_elements = mrModelPart.Elements();
+            const IndexType number_of_elements = r_elements.size();
 
-        if (number_of_elements > 0) {
-            mpNodalDomainSizeExpression = ExplicitFilterUtilsHelperUtilities::GetNodalDomainSizeExpression(r_elements, r_nodes);
-        } else if (number_of_conditions > 0) {
-            mpNodalDomainSizeExpression = ExplicitFilterUtilsHelperUtilities::GetNodalDomainSizeExpression(r_conditions, r_nodes);
-        } else {
-            KRATOS_ERROR << "Nodal mapping requires atleast either conditions or elements to be present in "
-                         << mrModelPart.FullName() << ".\n";
+            if (number_of_elements > 0) {
+                mpNodalDomainSizeExpression = ExplicitFilterUtilsHelperUtilities::GetNodalDomainSizeExpression(r_elements, r_nodes);
+            } else if (number_of_conditions > 0) {
+                mpNodalDomainSizeExpression = ExplicitFilterUtilsHelperUtilities::GetNodalDomainSizeExpression(r_conditions, r_nodes);
+            } else {
+                KRATOS_ERROR << "Nodal mapping requires atleast either conditions or elements to be present in "
+                            << mrModelPart.FullName() << ".\n";
+            }
         }
     }
 
@@ -243,7 +263,8 @@ void ExplicitFilterUtils<TContainerType>::CheckField(const ContainerExpression<T
 }
 
 template<class TContainerType>
-ContainerExpression<TContainerType> ExplicitFilterUtils<TContainerType>::ForwardFilterField(const ContainerExpression<TContainerType>& rContainerExpression) const
+template<class TMeshDependencyType>
+ContainerExpression<TContainerType> ExplicitFilterUtils<TContainerType>::GenericForwardFilterField(const ContainerExpression<TContainerType>& rContainerExpression) const
 {
     KRATOS_TRY
 
@@ -281,9 +302,9 @@ ContainerExpression<TContainerType> ExplicitFilterUtils<TContainerType>::Forward
             << mMaxNumberOfNeighbors << " ].\n";
 
         double sum_of_weights = 0.0;
-        ExplicitFilterUtilsHelperUtilities::ComputeWeightForAllNeighbors(
+        ExplicitFilterUtilsHelperUtilities::ComputeWeightForAllNeighbors<TMeshDependencyType>(
             sum_of_weights, rTLS.mListOfWeights, *mpKernelFunction, radius,
-            entity_point, rTLS.mNeighbourEntityPoints, rTLS.mResultingSquaredDistances, number_of_neighbors, this->mpNodalDomainSizeExpression.get(), mNodeCloudMesh);
+            entity_point, rTLS.mNeighbourEntityPoints, rTLS.mResultingSquaredDistances, number_of_neighbors, this->mpNodalDomainSizeExpression.get());
 
         mpDamping->Apply(rTLS.mListOfDampedWeights, rTLS.mListOfWeights, Index, number_of_neighbors, rTLS.mNeighbourEntityPoints);
 
@@ -306,6 +327,7 @@ ContainerExpression<TContainerType> ExplicitFilterUtils<TContainerType>::Forward
 
     KRATOS_CATCH("");
 }
+
 template<class TContainerType>
 template<class TMeshDependencyType>
 ContainerExpression<TContainerType> ExplicitFilterUtils<TContainerType>::GenericBackwardFilterField(const ContainerExpression<TContainerType>& rContainerExpression) const
@@ -350,14 +372,14 @@ ContainerExpression<TContainerType> ExplicitFilterUtils<TContainerType>::Generic
             << mMaxNumberOfNeighbors << " ].\n";
 
         double sum_of_weights = 0.0;
-        ExplicitFilterUtilsHelperUtilities::ComputeWeightForAllNeighbors(
+        ExplicitFilterUtilsHelperUtilities::ComputeWeightForAllNeighbors<TMeshDependencyType>(
             sum_of_weights, rTLS.mListOfWeights, *mpKernelFunction, radius,
-            entity_point, rTLS.mNeighbourEntityPoints, rTLS.mResultingSquaredDistances, number_of_neighbors, this->mpNodalDomainSizeExpression.get(), mNodeCloudMesh);
+            entity_point, rTLS.mNeighbourEntityPoints, rTLS.mResultingSquaredDistances, number_of_neighbors, this->mpNodalDomainSizeExpression.get());
 
         mpDamping->Apply(rTLS.mListOfDampedWeights, rTLS.mListOfWeights, Index, number_of_neighbors, rTLS.mNeighbourEntityPoints);
 
         const IndexType current_data_begin = Index * stride;
-        const double domain_size = ExplicitFilterUtilsHelperUtilities::GetDomainSize(entity_point, mpNodalDomainSizeExpression.get(), mNodeCloudMesh);
+        const double domain_size = TMeshDependencyType::GetDomainSize(entity_point, mpNodalDomainSizeExpression.get());
 
         for (IndexType j = 0; j < stride; ++j) {
             const auto& r_damped_weights = rTLS.mListOfDampedWeights[j];
@@ -382,19 +404,8 @@ ContainerExpression<TContainerType> ExplicitFilterUtils<TContainerType>::Generic
 }
 
 template<class TContainerType>
-ContainerExpression<TContainerType> ExplicitFilterUtils<TContainerType>::BackwardFilterField(const ContainerExpression<TContainerType>& rContainerExpression) const
-{
-    return GenericBackwardFilterField<ExplicitFilterUtilsHelperUtilities::MeshIndependentType>(rContainerExpression);
-}
-
-template<class TContainerType>
-ContainerExpression<TContainerType> ExplicitFilterUtils<TContainerType>::BackwardFilterIntegratedField(const ContainerExpression<TContainerType>& rContainerExpression) const
-{
-    return GenericBackwardFilterField<ExplicitFilterUtilsHelperUtilities::MeshDependentType>(rContainerExpression);
-}
-
-template<class TContainerType>
-void ExplicitFilterUtils<TContainerType>::GetIntegrationWeights(ContainerExpression<TContainerType>& rContainerExpression) const
+template<class TMeshDependencyType>
+void ExplicitFilterUtils<TContainerType>::GenericGetIntegrationWeights(ContainerExpression<TContainerType>& rContainerExpression) const
 {
 
     KRATOS_ERROR_IF_NOT(&rContainerExpression.GetModelPart() == &mrModelPart)
@@ -407,13 +418,53 @@ void ExplicitFilterUtils<TContainerType>::GetIntegrationWeights(ContainerExpress
 
     IndexPartition<IndexType>(r_container.size()).for_each([&](const IndexType Index){
         const EntityPoint<EntityType> entity(*(r_container.begin() + Index), Index);
-        const auto integration_weight = ExplicitFilterUtilsHelperUtilities::GetDomainSize(entity, this->mpNodalDomainSizeExpression.get(), mNodeCloudMesh);
+        const auto integration_weight = TMeshDependencyType::GetDomainSize(entity, this->mpNodalDomainSizeExpression.get());
         const IndexType current_data_begin = Index * stride;
         for (IndexType j = 0; j < stride; ++j) {
             double& current_index_value = *(p_expression->begin() + current_data_begin + j);
             current_index_value = integration_weight;
         }
     });
+}
+
+template<class TContainerType>
+ContainerExpression<TContainerType> ExplicitFilterUtils<TContainerType>::ForwardFilterField(const ContainerExpression<TContainerType>& rContainerExpression) const
+{
+    if (mNodeCloudMesh) {
+        return GenericForwardFilterField<ExplicitFilterUtilsHelperUtilities::NodeCloudsType>(rContainerExpression);
+    } else {
+        return GenericForwardFilterField<ExplicitFilterUtilsHelperUtilities::MeshIndependentType>(rContainerExpression);
+    }
+}
+
+template<class TContainerType>
+ContainerExpression<TContainerType> ExplicitFilterUtils<TContainerType>::BackwardFilterField(const ContainerExpression<TContainerType>& rContainerExpression) const
+{
+    if (mNodeCloudMesh) {
+        return GenericBackwardFilterField<ExplicitFilterUtilsHelperUtilities::NodeCloudsType>(rContainerExpression);
+    } else {
+        return GenericBackwardFilterField<ExplicitFilterUtilsHelperUtilities::MeshIndependentType>(rContainerExpression);
+    }
+}
+
+template<class TContainerType>
+ContainerExpression<TContainerType> ExplicitFilterUtils<TContainerType>::BackwardFilterIntegratedField(const ContainerExpression<TContainerType>& rContainerExpression) const
+{
+    if (mNodeCloudMesh) {
+        return GenericBackwardFilterField<ExplicitFilterUtilsHelperUtilities::NodeCloudsType>(rContainerExpression);
+    } else {
+        return GenericBackwardFilterField<ExplicitFilterUtilsHelperUtilities::MeshDependentType>(rContainerExpression);
+    }
+}
+
+template<class TContainerType>
+void ExplicitFilterUtils<TContainerType>::GetIntegrationWeights(ContainerExpression<TContainerType>& rContainerExpression) const
+{
+    if (mNodeCloudMesh) {
+        GenericGetIntegrationWeights<ExplicitFilterUtilsHelperUtilities::NodeCloudsType>(rContainerExpression);
+    } else {
+        GenericGetIntegrationWeights<ExplicitFilterUtilsHelperUtilities::MeshIndependentType>(rContainerExpression);
+    }
 }
 
 template<class TContainerType>
@@ -469,9 +520,9 @@ void ExplicitFilterUtils<TContainerType>::CalculateMatrix(Matrix& rOutput) const
 
         std::vector<double> list_of_weights(number_of_neighbors, 0.0);
         double sum_of_weights = 0.0;
-        ExplicitFilterUtilsHelperUtilities::ComputeWeightForAllNeighbors(
+        ExplicitFilterUtilsHelperUtilities::ComputeWeightForAllNeighbors<ExplicitFilterUtilsHelperUtilities::MeshIndependentType>(
             sum_of_weights, list_of_weights, *mpKernelFunction, radius,
-            *mEntityPointVector[Index], rTLS.mNeighbourEntityPoints, rTLS.mResultingSquaredDistances, number_of_neighbors, this->mpNodalDomainSizeExpression.get(), mNodeCloudMesh);
+            *mEntityPointVector[Index], rTLS.mNeighbourEntityPoints, rTLS.mResultingSquaredDistances, number_of_neighbors, this->mpNodalDomainSizeExpression.get());
 
         double* data_begin = (rOutput.data().begin() + Index * number_of_entities);
 
