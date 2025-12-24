@@ -136,12 +136,12 @@ std::string MakeVariableListFrom(const VariableData& rVariableData)
     return R"(        "list_of_variables": [")" + rVariableData.Name() + R"("])";
 }
 
-Parameters CreateExtrapolationProcessSettings(const std::string& rModelPartsSetting, const VariableData& rVariableData)
+Parameters CreateExtrapolationProcessSettings(const std::string& rModelPartNameOrNames, const VariableData& rVariableData)
 {
     // clang-format off
     return Parameters{
         "    {\n"s +
-            rModelPartsSetting + ",\n"s +
+            rModelPartNameOrNames + ",\n"s +
             R"(        "echo_level": 0)" + ",\n"s +
             MakeVariableListFrom(rVariableData) + "\n"s +
         "    }\n"s
