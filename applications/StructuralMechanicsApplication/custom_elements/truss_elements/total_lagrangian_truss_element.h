@@ -162,17 +162,42 @@ public:
     void GetNodalValuesVector(SystemSizeBoundedArrayType& rNodalValue) const;
 
     /**
-     * @brief Computes the length of the FE and returns it
+     * @brief Computes the reference (initial) length of the FE and returns it
      */
-    double CalculateLength() const
+    double CalculateReferenceLength() const
     {
-        // if constexpr (Dimension == 2) {
-        //     // Same implementation for 2N and 3N
-        //     return StructuralMechanicsElementUtilities::CalculateReferenceLength2D2N(*this);
-        // } else {
-        //     return StructuralMechanicsElementUtilities::CalculateReferenceLength3D2N(*this);
-        // }
+        if constexpr (Dimension == 2) {
+            // Same implementation for 2N and 3N
+            return StructuralMechanicsElementUtilities::CalculateReferenceLength2D2N(*this);
+        } else {
+            return StructuralMechanicsElementUtilities::CalculateReferenceLength3D2N(*this);
+        }
         return 0.0; // TODO
+    }
+
+    /**
+     * @brief Computes the current length (updated) of the FE and returns it
+     */
+    double CalculateCurrentLength() const
+    {
+        if constexpr (Dimension == 2) {
+            // Same implementation for 2N and 3N
+            return StructuralMechanicsElementUtilities::CalculateCurrentLength2D2N(*this);
+        } else {
+            return StructuralMechanicsElementUtilities::CalculateCurrentLength3D2N(*this);
+        }
+        return 0.0; // TODO
+    }
+
+    /**
+     * @brief Computes the Green-Lagrange strain of the element
+     * @param CurrentLength The current length of the element
+     * @param ReferenceLength The reference length of the element
+     * @return The Green-Lagrange strain
+     */
+    double CalculateGreenLagrangeStrain(const double CurrentLength, const double ReferenceLength) const
+    {
+        return 0.5 * (std::pow(CurrentLength / ReferenceLength, 2) - 1.0);
     }
 
     /**
