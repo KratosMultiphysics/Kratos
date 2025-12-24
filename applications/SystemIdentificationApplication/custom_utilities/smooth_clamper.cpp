@@ -51,7 +51,7 @@ template<class TContainerType>
 double SmoothClamper<TContainerType>::CalculateForwardProjectionGradient(const double X) const
 {
     const double x_tilde = std::clamp((X - mMin) / mDelta, 0.0, 1.0);
-    return (6 * x_tilde - 6 * x_tilde * x_tilde);
+    return 6 * x_tilde - 6 * x_tilde * x_tilde;
 }
 
 template<class TContainerType>
