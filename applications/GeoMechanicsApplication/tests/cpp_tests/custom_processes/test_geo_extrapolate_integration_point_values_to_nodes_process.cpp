@@ -187,19 +187,40 @@ void BuildAndRunExtrapolationProcess(Model& rModel, const Parameters& rProcessSe
     extrapolation_process.ExecuteFinalizeSolutionStep();
 }
 
+template <typename NodeContainerType, typename DataType>
+std::vector<DataType> GetNodalValues(const NodeContainerType& rNodes, const Variable<DataType>& rVariable)
+{
+    auto result = std::vector<DataType>{};
+    result.reserve(rNodes.size());
+    auto get_nodal_value = [&rVariable](const auto& rNode) {
+        return rNode.FastGetSolutionStepValue(rVariable);
+    };
+    std::ranges::transform(rNodes, std::back_inserter(result), get_nodal_value);
+
+    return result;
+}
+
 template <typename NodeContainerType>
 void AssertNodalValues(const NodeContainerType&   rNodes,
                        const Variable<double>&    rVariable,
                        const std::vector<double>& rExpectedNodalValues)
 {
-    auto actual_nodal_values = std::vector<double>{};
-    actual_nodal_values.reserve(rNodes.size());
-    auto get_nodal_value = [&rVariable](const auto& rNode) {
-        return rNode.FastGetSolutionStepValue(rVariable);
-    };
-    std::ranges::transform(rNodes, std::back_inserter(actual_nodal_values), get_nodal_value);
+    KRATOS_EXPECT_VECTOR_NEAR(GetNodalValues(rNodes, rVariable), rExpectedNodalValues,
+                              Testing::Defaults::absolute_tolerance);
+}
 
-    KRATOS_EXPECT_VECTOR_NEAR(actual_nodal_values, rExpectedNodalValues, Testing::Defaults::absolute_tolerance);
+template <typename NodeContainerType>
+void AssertNodalValues(const NodeContainerType&   rNodes,
+                       const Variable<Matrix>&    rVariable,
+                       const std::vector<Matrix>& rExpectedNodalValues)
+{
+    const auto actual_nodal_values = GetNodalValues(rNodes, rVariable);
+
+    ASSERT_EQ(actual_nodal_values.size(), rExpectedNodalValues.size());
+    for (auto i = std::size_t{0}; i < actual_nodal_values.size(); ++i) {
+        KRATOS_EXPECT_MATRIX_NEAR(actual_nodal_values[i], rExpectedNodalValues[i],
+                                  Testing::Defaults::absolute_tolerance);
+    }
 }
 
 } // namespace
@@ -344,19 +365,10 @@ KRATOS_TEST_CASE_IN_SUITE(TestExtrapolationProcess_ExtrapolatesMatrixCorrectlyFo
 
     BuildAndRunExtrapolationProcess(model, CreateExtrapolationProcessSettings(r_model_part, r_test_variable));
 
-    std::vector<Matrix> expected_values = {ScalarMatrix(3, 3, -1), ScalarMatrix(3, 3, 0),
-                                           ScalarMatrix(3, 3, 1),  ScalarMatrix(3, 3, -1),
-                                           ScalarMatrix(3, 3, -1), ScalarMatrix(3, 3, 1)};
-    std::vector<Matrix> actual_values;
-    actual_values.reserve(r_model_part.Nodes().size());
-    std::transform(r_model_part.Nodes().begin(), r_model_part.Nodes().end(),
-                   std::back_inserter(actual_values), [&r_test_variable](const auto& node) {
-        return node.FastGetSolutionStepValue(r_test_variable);
-    });
-
-    for (std::size_t i = 0; i < expected_values.size(); ++i) {
-        KRATOS_EXPECT_MATRIX_NEAR(actual_values[i], expected_values[i], Defaults::absolute_tolerance)
-    }
+    const auto expected_values = std::vector<Matrix>{
+        ScalarMatrix(3, 3, -1.0), ScalarMatrix(3, 3, 0.0),  ScalarMatrix(3, 3, 1.0),
+        ScalarMatrix(3, 3, -1.0), ScalarMatrix(3, 3, -1.0), ScalarMatrix(3, 3, 1.0)};
+    AssertNodalValues(r_model_part.Nodes(), r_test_variable, expected_values);
 }
 
 KRATOS_TEST_CASE_IN_SUITE(TestExtrapolationProcess_ExtrapolatesVectorCorrectlyForLinearFields,
