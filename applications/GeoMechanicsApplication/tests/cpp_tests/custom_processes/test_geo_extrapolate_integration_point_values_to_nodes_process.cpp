@@ -383,19 +383,19 @@ KRATOS_TEST_CASE_IN_SUITE(TestExtrapolationProcess_ExtrapolatesMatrixCorrectlyFo
 
     // Linear field in x between -1 and 1
     SetIntegrationPointValues(r_model_part.Elements()[1],
-                              {ScalarMatrix(3, 3, -inv_sqrt3), ScalarMatrix(3, 3, inv_sqrt3),
-                               ScalarMatrix(3, 3, inv_sqrt3), ScalarMatrix(3, 3, -inv_sqrt3)});
+                              {Matrix(3, 3, -inv_sqrt3), Matrix(3, 3, inv_sqrt3),
+                               Matrix(3, 3, inv_sqrt3), Matrix(3, 3, -inv_sqrt3)});
 
     // Linear field in y between -1 and 1
     SetIntegrationPointValues(r_model_part.Elements()[2],
-                              {ScalarMatrix(3, 3, -inv_sqrt3), ScalarMatrix(3, 3, -inv_sqrt3),
-                               ScalarMatrix(3, 3, inv_sqrt3), ScalarMatrix(3, 3, inv_sqrt3)});
+                              {Matrix(3, 3, -inv_sqrt3), Matrix(3, 3, -inv_sqrt3),
+                               Matrix(3, 3, inv_sqrt3), Matrix(3, 3, inv_sqrt3)});
 
     BuildAndRunExtrapolationProcess(model, CreateExtrapolationProcessSettings(r_model_part, r_test_variable));
 
-    const auto expected_values = std::vector<Matrix>{
-        ScalarMatrix(3, 3, -1.0), ScalarMatrix(3, 3, 0.0),  ScalarMatrix(3, 3, 1.0),
-        ScalarMatrix(3, 3, -1.0), ScalarMatrix(3, 3, -1.0), ScalarMatrix(3, 3, 1.0)};
+    const auto expected_values =
+        std::vector{Matrix(3, 3, -1.0), Matrix(3, 3, 0.0),  Matrix(3, 3, 1.0),
+                    Matrix(3, 3, -1.0), Matrix(3, 3, -1.0), Matrix(3, 3, 1.0)};
     AssertNodalValues(r_model_part.Nodes(), r_test_variable, expected_values);
 }
 
@@ -423,9 +423,8 @@ KRATOS_TEST_CASE_IN_SUITE(TestExtrapolationProcess_ExtrapolatesVectorCorrectlyFo
 
     BuildAndRunExtrapolationProcess(model, CreateExtrapolationProcessSettings(r_model_part, r_test_variable));
 
-    const auto expected_values =
-        std::vector<Vector>{ScalarVector(6, -1), ScalarVector(6, 0),  ScalarVector(6, 1),
-                            ScalarVector(6, -1), ScalarVector(6, -1), ScalarVector(6, 1)};
+    const auto expected_values = std::vector{Vector(6, -1.0), Vector(6, 0.0),  Vector(6, 1.0),
+                                             Vector(6, -1.0), Vector(6, -1.0), Vector(6, 1.0)};
     AssertNodalValues(r_model_part.Nodes(), r_test_variable, expected_values);
 }
 
