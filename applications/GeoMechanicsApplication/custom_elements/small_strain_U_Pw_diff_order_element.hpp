@@ -107,13 +107,7 @@ public:
     using Element::Calculate;
 
     // Turn back information as a string.
-    std::string Info() const override
-    {
-        const std::string constitutive_info =
-            !mConstitutiveLawVector.empty() ? mConstitutiveLawVector[0]->Info() : "not defined";
-        return "U-Pw small strain different order Element #" + std::to_string(Id()) +
-               "\nConstitutive law: " + constitutive_info;
-    }
+    std::string Info() const override;
 
     // Print information about this object.
     void PrintInfo(std::ostream& rOStream) const override { rOStream << Info(); }
