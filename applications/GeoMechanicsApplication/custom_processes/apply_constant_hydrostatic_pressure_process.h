@@ -13,12 +13,12 @@
 
 #pragma once
 
+#include "includes/kratos_parameters.h"
 #include "processes/process.h"
 
 namespace Kratos
 {
 class ModelPart;
-class Parameters;
 
 class KRATOS_API(GEO_MECHANICS_APPLICATION) ApplyConstantHydrostaticPressureProcess : public Process
 {

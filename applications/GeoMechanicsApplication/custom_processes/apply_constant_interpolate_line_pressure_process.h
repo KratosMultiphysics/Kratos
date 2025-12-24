@@ -13,13 +13,13 @@
 #pragma once
 
 #include "geo_mechanics_application_variables.h"
+#include "includes/kratos_parameters.h"
 #include "processes/process.h"
 
 namespace Kratos
 {
 class ModelPart;
 class Node;
-class Parameters;
 
 class KRATOS_API(GEO_MECHANICS_APPLICATION) ApplyConstantInterpolateLinePressureProcess : public Process
 {
@@ -78,9 +78,9 @@ private:
 
     Node* FindClosestNodeOnBoundaryNodes(const Node& rNode, const std::vector<Node*>& BoundaryNodes, const bool isBottom);
 
-    void FindTopBoundaryNodes(const Node& rNode, std::vector<Node*>& TopBoundaryNodes);
+    void FindTopBoundaryNodes(const Node& rNode, std::vector<Node*>& TopBoundaryNodes) const;
 
-    void FindBottomBoundaryNodes(const Node& rNode, std::vector<Node*>& BottomBoundaryNodes);
+    void FindBottomBoundaryNodes(const Node& rNode, std::vector<Node*>& BottomBoundaryNodes) const;
 
     void FindLeftBoundaryNodes(const Node&               rNode,
                                const std::vector<Node*>& rBoundaryNodes,

@@ -13,10 +13,10 @@
 #include "apply_constant_interpolate_line_pressure_process.h"
 #include "geo_mechanics_application_variables.h"
 #include "includes/kratos_flags.h"
-#include "includes/kratos_parameters.h"
 #include "includes/model_part.h"
 
 #include <algorithm>
+#include <string>
 
 namespace Kratos
 {
@@ -305,7 +305,7 @@ Node* ApplyConstantInterpolateLinePressureProcess::FindClosestNodeOnBoundaryNode
 }
 
 void ApplyConstantInterpolateLinePressureProcess::FindTopBoundaryNodes(const Node& rNode,
-                                                                       std::vector<Node*>& TopBoundaryNodes)
+                                                                       std::vector<Node*>& TopBoundaryNodes) const
 {
     for (const auto& p_boundary_node : mBoundaryNodes) {
         if (p_boundary_node->Coordinates()[mGravityDirection] >= rNode.Coordinates()[mGravityDirection]) {
@@ -315,7 +315,7 @@ void ApplyConstantInterpolateLinePressureProcess::FindTopBoundaryNodes(const Nod
 }
 
 void ApplyConstantInterpolateLinePressureProcess::FindBottomBoundaryNodes(const Node& rNode,
-                                                                          std::vector<Node*>& BottomBoundaryNodes)
+                                                                          std::vector<Node*>& BottomBoundaryNodes) const
 {
     for (const auto& p_boundary_node : mBoundaryNodes) {
         if (p_boundary_node->Coordinates()[mGravityDirection] <= rNode.Coordinates()[mGravityDirection]) {
@@ -424,12 +424,14 @@ void ApplyConstantInterpolateLinePressureProcess::FillListOfBoundaryNodesFast(st
 
             if (IsMoreThanOneElementWithThisEdgeFast(FaceID, node_elements, node_elements_size))
                 continue;
-            // boundary nodes:
-            for (unsigned int iPoint = 0; iPoint < nPoints; ++iPoint) {
-                if (std::find(BoundaryNodes.begin(), BoundaryNodes.end(), FaceID[iPoint]) ==
-                    BoundaryNodes.end()) {
-                    BoundaryNodes.push_back(FaceID[iPoint]);
+
+            auto add_if_missing = [&BoundaryNodes](int node_id) {
+                if (std::ranges::find(BoundaryNodes, node_id) == BoundaryNodes.end()) {
+                    BoundaryNodes.push_back(node_id);
                 }
+            };
+            for (unsigned int iPoint = 0; iPoint < nPoints; ++iPoint) {
+                add_if_missing(FaceID[iPoint]);
             }
         }
     }
@@ -474,11 +476,10 @@ bool ApplyConstantInterpolateLinePressureProcess::IsMoreThanOneElementWithThisEd
             bool found = false;
             if (iElementID == ID_UNDEFINED) continue;
             for (unsigned int iPointInner = 0; iPointInner < rFaceIDs.size(); ++iPointInner) {
-                if (iPointInner != iPoint) {
-                    // std::any_of followed by breaking out of 2 for loops
-                    found = std::ranges::find(ElementIDs[iPointInner], iElementID) !=
-                            ElementIDs[iPointInner].end();
-                }
+                if (iPointInner == iPoint) continue;
+                // std::any_of followed by breaking out of 2 for loops
+                found = std::ranges::find(ElementIDs[iPointInner], iElementID) !=
+                        ElementIDs[iPointInner].end();
             }
 
             if (!found) continue;

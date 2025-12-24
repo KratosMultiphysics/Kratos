@@ -20,6 +20,8 @@
 #include "includes/model_part.h"
 #include <utilities/function_parser_utility.h>
 
+#include <string>
+
 namespace Kratos
 {
 using namespace std::string_literals;

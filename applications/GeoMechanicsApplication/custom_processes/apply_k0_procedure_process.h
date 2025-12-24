@@ -14,13 +14,13 @@
 
 #include "containers/array_1d.h"
 #include "includes/element.h"
+#include "includes/kratos_parameters.h"
 #include "processes/process.h"
 
 namespace Kratos
 {
 
 class ModelPart;
-class Parameters;
 
 class KRATOS_API(GEO_MECHANICS_APPLICATION) ApplyK0ProcedureProcess : public Process
 {

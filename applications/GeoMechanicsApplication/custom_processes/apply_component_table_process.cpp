@@ -12,11 +12,11 @@
 
 #include "apply_component_table_process.h"
 #include "geo_mechanics_application_variables.h"
-#include "includes/kratos_parameters.h"
 #include "includes/model_part.h"
 #include "utilities/variable_utils.h"
 
 #include <boost/algorithm/string.hpp>
+#include <string>
 
 namespace Kratos
 {

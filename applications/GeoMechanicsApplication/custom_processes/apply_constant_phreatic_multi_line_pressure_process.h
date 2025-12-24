@@ -12,6 +12,7 @@
 
 #pragma once
 
+#include "includes/kratos_parameters.h"
 #include "processes/process.h"
 
 namespace Kratos
@@ -19,7 +20,6 @@ namespace Kratos
 
 class ModelPart;
 class Node;
-class Parameters;
 
 class KRATOS_API(GEO_MECHANICS_APPLICATION) ApplyConstantPhreaticMultiLinePressureProcess : public Process
 {

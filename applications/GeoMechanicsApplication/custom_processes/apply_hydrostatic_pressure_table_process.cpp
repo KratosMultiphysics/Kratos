@@ -13,8 +13,9 @@
 
 #include "apply_hydrostatic_pressure_table_process.h"
 #include "geo_mechanics_application_variables.h"
-#include "includes/kratos_parameters.h"
 #include "includes/model_part.h"
+
+#include <string>
 
 namespace Kratos
 {

@@ -13,9 +13,10 @@
 
 #include "apply_constant_phreatic_surface_pressure_process.h"
 #include "includes/kratos_flags.h"
-#include "includes/kratos_parameters.h"
 #include "includes/model_part.h"
 #include "includes/node.h"
+
+#include <string>
 
 namespace Kratos
 {

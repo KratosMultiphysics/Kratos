@@ -15,6 +15,8 @@
 #include "includes/kratos_parameters.h"
 #include "includes/model_part.h"
 
+#include <string>
+
 namespace Kratos
 {
 using namespace std::string_literals;

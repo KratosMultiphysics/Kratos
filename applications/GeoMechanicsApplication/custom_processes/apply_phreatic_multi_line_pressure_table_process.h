@@ -15,11 +15,11 @@
 #include "includes/table.h"
 
 #include "custom_processes/apply_constant_phreatic_multi_line_pressure_process.h"
+#include "includes/kratos_parameters.h"
 
 namespace Kratos
 {
 class ModelPart;
-class Parameters;
 
 class KRATOS_API(GEO_MECHANICS_APPLICATION) ApplyPhreaticMultiLinePressureTableProcess
     : public ApplyConstantPhreaticMultiLinePressureProcess

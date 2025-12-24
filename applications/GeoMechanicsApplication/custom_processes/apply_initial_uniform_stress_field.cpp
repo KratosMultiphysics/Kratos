@@ -15,6 +15,8 @@
 #include "includes/model_part.h"
 #include "utilities/parallel_utilities.h"
 
+#include <string>
+
 namespace Kratos
 {
 using namespace std::string_literals;

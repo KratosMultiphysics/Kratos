@@ -12,6 +12,7 @@
 
 #pragma once
 
+#include "includes/kratos_parameters.h"
 #include "includes/table.h"
 #include "processes/process.h"
 
@@ -19,7 +20,6 @@ namespace Kratos
 {
 
 class ModelPart;
-class Parameters;
 
 class KRATOS_API(GEO_MECHANICS_APPLICATION) ApplyWriteScalarProcess : public Process
 {
@@ -38,7 +38,9 @@ public:
     ApplyWriteScalarProcess& operator=(ApplyWriteScalarProcess&&)      = delete;
 
     /// Execute method is used to execute the ApplyWriteScalarProcess algorithms.
-    void Execute() override {};
+    void Execute() override {
+        // to avoid using the base class function
+    };
 
     /// this function is designed for being called at the beginning of the computations
     /// right after reading the model and the groups

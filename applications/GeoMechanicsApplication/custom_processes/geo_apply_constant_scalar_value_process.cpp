@@ -19,6 +19,8 @@
 #include "includes/model_part.h"
 #include "utilities/variable_utils.h"
 
+#include <string>
+
 namespace Kratos
 {
 using namespace std::string_literals;

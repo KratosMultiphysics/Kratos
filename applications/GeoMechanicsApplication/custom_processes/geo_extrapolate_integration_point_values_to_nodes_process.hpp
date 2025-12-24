@@ -16,6 +16,7 @@
 
 #include "geometries/geometry.h"
 #include "includes/element.h"
+#include "includes/kratos_parameters.h"
 #include "includes/model_part.h"
 #include "includes/node.h"
 #include "processes/process.h"
@@ -25,7 +26,6 @@ namespace Kratos
 
 class Model;
 class NodalExtrapolator;
-class Parameters;
 class ProcessInfo;
 
 /**

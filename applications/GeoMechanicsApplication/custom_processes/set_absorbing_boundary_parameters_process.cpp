@@ -11,11 +11,11 @@
 //
 
 #include "set_absorbing_boundary_parameters_process.h"
+#include "geo_mechanics_application_variables.h"
 #include "includes/kratos_flags.h"
-#include "includes/kratos_parameters.h"
 #include "includes/model_part.h"
 
-#include "geo_mechanics_application_variables.h"
+#include <string>
 
 namespace Kratos
 {
