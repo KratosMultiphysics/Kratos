@@ -7,7 +7,7 @@
         {
             "type": "mdpa_model_part_controller",
             "settings": {
-                "model_part_name": "AdjointStructure",
+                "model_part_name": "AdjointStructure1",
                 "domain_size": 3,
                 "input_filename": "auxiliary_files_7/Structure"
             }
@@ -17,7 +17,20 @@
             "settings": {
                 "transformation_settings": [
                     {
-                        "source_model_part_name": "AdjointStructure",
+                        "source_model_part_name": "AdjointStructure1",
+                        "destination_model_part_name": "AdjointStructure2",
+                        "destination_element_name": "ShellThinElement3D3N",
+                        "destination_condition_name": "LineLoadCondition3D2N"
+                    }
+                ]
+            }
+        },
+        {
+            "type": "connectivity_preserving_model_part_controller",
+            "settings": {
+                "transformation_settings": [
+                    {
+                        "source_model_part_name": "AdjointStructure1",
                         "destination_model_part_name": "Structure",
                         "destination_element_name": "ShellThinElement3D3N",
                         "destination_condition_name": "LineLoadCondition3D2N"
@@ -30,7 +43,7 @@
             "module": "KratosMultiphysics.SystemIdentificationApplication.sensor_io",
             "settings": {
                 "sensor_group_name": "sensors1",
-                "domain_model_part_name": "AdjointStructure",
+                "domain_model_part_name": "AdjointStructure1",
                 "@include_json": "auxiliary_files_7/sensor_data_displacement.json"
             }
         },
@@ -39,7 +52,7 @@
             "module": "KratosMultiphysics.SystemIdentificationApplication.sensor_io",
             "settings": {
                 "sensor_group_name": "sensors2",
-                "domain_model_part_name": "AdjointStructure",
+                "domain_model_part_name": "AdjointStructure2",
                 "@include_json": "auxiliary_files_7/sensor_data_temperature.json"
             }
         }
@@ -69,7 +82,7 @@
                 "sensor_group_name": "sensors1",
                 "p_coefficient": 1,
                 "evaluated_model_part_names": [
-                    "AdjointStructure"
+                    "AdjointStructure1"
                 ],
                 "adjoint_parameters": {
                     "@include_json": "auxiliary_files_7/adjoint_project_parameters_p_norm_1.json"
@@ -94,7 +107,7 @@
                 "sensor_group_name": "sensors2",
                 "p_coefficient": 1,
                 "evaluated_model_part_names": [
-                    "AdjointStructure"
+                    "AdjointStructure2"
                 ],
                 "adjoint_parameters": {
                     "@include_json": "auxiliary_files_7/adjoint_project_parameters_p_norm_2.json"
@@ -139,7 +152,11 @@
                 "model_part_names": [
                     {
                         "primal_model_part_name": "Structure",
-                        "adjoint_model_part_name": "AdjointStructure"
+                        "adjoint_model_part_name": "AdjointStructure1"
+                    },
+                    {
+                        "primal_model_part_name": "Structure",
+                        "adjoint_model_part_name": "AdjointStructure2"
                     }
                 ],
                 "control_variable_name": "YOUNG_MODULUS",
@@ -164,7 +181,11 @@
                 "model_part_names": [
                     {
                         "primal_model_part_name": "Structure",
-                        "adjoint_model_part_name": "AdjointStructure"
+                        "adjoint_model_part_name": "AdjointStructure1"
+                    },
+                    {
+                        "primal_model_part_name": "Structure",
+                        "adjoint_model_part_name": "AdjointStructure2"
                     }
                 ],
                 "control_variable_name": "TEMPERATURE",

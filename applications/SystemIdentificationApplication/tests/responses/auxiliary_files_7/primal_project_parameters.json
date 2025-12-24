@@ -80,7 +80,7 @@
                 "Parameters": {
                     "model_part_name": "Structure.LineLoad2D_right",
                     "variable_name": "LINE_LOAD",
-                    "modulus": 1e8,
+                    "modulus": 1e7,
                     "direction": [
                         1.0,
                         0.0,
@@ -98,7 +98,7 @@
                 "Parameters": {
                     "model_part_name": "Structure.Parts_Solid_full",
                     "variable_name": "TEMPERATURE",
-                    "value": 3.0,
+                    "value": 0.15,
                     "interval": [
                         0.0,
                         0.0

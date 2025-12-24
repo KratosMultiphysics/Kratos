@@ -17,7 +17,7 @@
     "solver_settings": {
         "solver_type": "adjoint_static",
         "analysis_type": "linear",
-        "model_part_name": "AdjointStructure",
+        "model_part_name": "AdjointStructure2",
         "domain_size": 3,
         "time_stepping": {
             "time_step": 1.0
@@ -58,7 +58,7 @@
                 "help": "This process fixes the selected components of a given vector variable",
                 "process_name": "AssignVectorVariableProcess",
                 "Parameters": {
-                    "model_part_name": "AdjointStructure.DISPLACEMENT_left",
+                    "model_part_name": "AdjointStructure2.DISPLACEMENT_left",
                     "variable_name": "ADJOINT_DISPLACEMENT",
                     "value": [
                         0.0,
@@ -80,6 +80,5 @@
         "loads_process_list": [],
         "list_other_processes": []
     },
-    "output_processes": {},
-    "analysis_stage": "KratosMultiphysics.SystemIdentificationApplication.sensor_sensitivity_solvers.sensor_sensitivity_static_analysis"
+    "output_processes": {}
 }

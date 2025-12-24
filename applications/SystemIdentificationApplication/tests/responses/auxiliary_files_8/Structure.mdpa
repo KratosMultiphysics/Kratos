@@ -33,7 +33,7 @@ Begin Conditions LineLoadCondition3D2N// GUI group identifier: right
     3 0 7 9
 End Conditions
 
-Begin SubModelPart Parts_Mat_1 
+Begin SubModelPart Parts_Mat_2 
     Begin SubModelPartNodes
         2
         3
@@ -68,7 +68,7 @@ Begin SubModelPart Parts_Solid_full
     End SubModelPartElements
 End SubModelPart
 
-Begin SubModelPart Parts_Solid_volume // Group volume // Subtree Parts_Solid
+Begin SubModelPart Parts_Mat_1 // Group volume // Subtree Parts_Solid
     Begin SubModelPartNodes
             1
             2
@@ -107,4 +107,23 @@ Begin SubModelPart LineLoad2D_right // Group right // Subtree LineLoad2D
             2
             3
     End SubModelPartConditions
+End SubModelPart
+
+Begin SubModelPart Parts_Nodes_1
+    Begin SubModelPartNodes
+        1
+        2
+        3
+        4
+        6
+        8
+    End SubModelPartNodes
+End SubModelPart
+
+Begin SubModelPart Parts_Nodes_2
+    Begin SubModelPartNodes
+        5
+        7
+        9
+    End SubModelPartNodes
 End SubModelPart

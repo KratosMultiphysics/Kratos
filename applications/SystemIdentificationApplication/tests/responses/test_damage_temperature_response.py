@@ -159,7 +159,7 @@ class TestDamageTemperatureDetectionResponse(kratos_unittest.TestCase):
             model_part = response.GetInfluencingModelPart()
 
             ref_value = response.CalculateValue()
-            self.assertAlmostEqual(ref_value, 168809.49890615378, 7)
+            self.assertAlmostEqual(ref_value, 56.87997750742867, 7)
 
             response.CalculateGradient(var)
 
@@ -171,19 +171,18 @@ class TestDamageTemperatureDetectionResponse(kratos_unittest.TestCase):
                 E_orig = element.Properties[Kratos.YOUNG_MODULUS]
                 element.Properties[Kratos.YOUNG_MODULUS] = (1 + delta) * E_orig
                 sensitivity = ((response.CalculateValue() - ref_value) / ( delta * E_orig))
-                self.assertAlmostEqual(gradients1[index], sensitivity, 7)
+                self.assertAlmostEqual(gradients1[index], sensitivity, 14)
                 element.Properties[Kratos.YOUNG_MODULUS] = E_orig
 
-            delta = 1e-3
+            delta = 1e-8
             for index, node in enumerate(model_part.Nodes):
                 node: Kratos.Node
                 nodal_temp = node.GetSolutionStepValue(Kratos.TEMPERATURE)
                 node.SetSolutionStepValue(Kratos.TEMPERATURE,   nodal_temp * (1 + delta))
                 sensitivity = ((response.CalculateValue() - ref_value) / (delta * nodal_temp))
-                self.assertAlmostEqual(gradients2[index], sensitivity, 1)
+                self.assertAlmostEqual(gradients2[index], sensitivity, 3)
                 node.SetSolutionStepValue(Kratos.TEMPERATURE,  nodal_temp)
         
-
 @kratos_unittest.skipIfApplicationsNotAvailable("ConstitutiveLawsApplication")
 class TestDamageTemperatureDetectionResponseStrainSensor(kratos_unittest.TestCase):
     def test_DamageTemperatureResponse(self):
@@ -203,7 +202,7 @@ class TestDamageTemperatureDetectionResponseStrainSensor(kratos_unittest.TestCas
             model_part = response.GetInfluencingModelPart()
 
             ref_value = response.CalculateValue()
-            self.assertAlmostEqual(ref_value, 82.83951393136022, 7)
+            self.assertAlmostEqual(ref_value, 45.69906833857283, 7)
 
             response.CalculateGradient(var)
 
@@ -215,10 +214,10 @@ class TestDamageTemperatureDetectionResponseStrainSensor(kratos_unittest.TestCas
                 E_orig = element.Properties[Kratos.YOUNG_MODULUS]
                 element.Properties[Kratos.YOUNG_MODULUS] = (1 + delta) * E_orig
                 sensitivity = ((response.CalculateValue() - ref_value) / (delta * E_orig))
-                self.assertAlmostEqual(gradients1[index], sensitivity, 6)
+                self.assertAlmostEqual(gradients1[index], sensitivity, 14)
                 element.Properties[Kratos.YOUNG_MODULUS] = E_orig
 
-            delta = 1e-3
+            delta = 1e-8
             for index, node in enumerate(model_part.Nodes):
                 node: Kratos.Node
                 nodal_temp = node.GetSolutionStepValue(Kratos.TEMPERATURE)

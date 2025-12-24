@@ -2,7 +2,7 @@
     "properties": [
         {
             "model_part_name": "Structure.Parts_Solid_full",
-            "properties_id": 1,
+            "properties_id": 0,
             "Material": {
                 "constitutive_law": {
                     "name": "ConstitutiveLawsApplication.ThermalLinearPlaneStress"

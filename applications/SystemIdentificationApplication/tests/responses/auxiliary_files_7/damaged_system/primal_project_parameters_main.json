@@ -2,7 +2,7 @@
     "problem_data": {
         "problem_name": "gg",
         "parallel_type": "OpenMP",
-        "echo_level": 0,
+        "echo_level": 1,
         "start_time": 0.0,
         "end_time": 1.0
     },
@@ -12,14 +12,15 @@
         },
         "solver_type": "Static",
         "model_part_name": "Structure",
-        "domain_size": 3,
+        "domain_size": 2,
         "echo_level": 0,
-        "analysis_type": "linear",
+        "analysis_type": "non_linear",
         "model_import_settings": {
-            "input_type": "use_input_model_part"
+            "input_type": "mdpa",
+            "input_filename": "../Structure"
         },
         "material_import_settings": {
-            "materials_filename": "auxiliary_files_8/StructuralMaterials.json"
+            "materials_filename": "StructuralMaterials.json"
         },
         "line_search": false,
         "convergence_criterion": "residual_criterion",
@@ -96,17 +97,30 @@
                 "python_module": "assign_scalar_variable_process",
                 "kratos_module": "KratosMultiphysics",
                 "Parameters": {
-                    "model_part_name": "Structure.Parts_Solid_full",
+                    "model_part_name": "Structure.Parts_Nodes_1",
                     "variable_name": "TEMPERATURE",
-                    "value": 0.15,
+                    "value": 0.1,
                     "interval": [
                         0.0,
-                        0.0
+                        "End"
+                    ]
+                }
+            },
+            {
+                "python_module": "assign_scalar_variable_process",
+                "kratos_module": "KratosMultiphysics",
+                "Parameters": {
+                    "model_part_name": "Structure.Parts_Nodes_2",
+                    "variable_name": "TEMPERATURE",
+                    "value": 0.2,
+                    "interval": [
+                        0.0,
+                        "End"
                     ]
                 }
             }
         ],
         "list_other_processes": []
     },
-    "output_processes": {}
+    "analysis_stage": "KratosMultiphysics.StructuralMechanicsApplication.structural_mechanics_analysis"
 }
