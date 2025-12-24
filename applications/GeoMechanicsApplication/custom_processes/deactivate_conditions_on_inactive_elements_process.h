@@ -16,8 +16,12 @@
 #include "includes/model_part.h"
 #include "processes/process.h"
 
+#include <string>
+
 namespace Kratos
 {
+class ModelPart;
+
 ///@name Type Definitions
 ///@{
 
@@ -49,11 +53,7 @@ public:
     /**
      * @param rModelPart The model part to check.
      */
-    explicit DeactivateConditionsOnInactiveElements(ModelPart& rModelPart)
-        : Process(), mrModelPart(rModelPart)
-    {
-    }
-
+    explicit DeactivateConditionsOnInactiveElements(ModelPart& rModelPart);
     DeactivateConditionsOnInactiveElements(const DeactivateConditionsOnInactiveElements&) = delete;
     DeactivateConditionsOnInactiveElements& operator=(DeactivateConditionsOnInactiveElements&) = delete;
     ~DeactivateConditionsOnInactiveElements() override = default;
@@ -83,7 +83,7 @@ public:
 
     [[nodiscard]] std::string Info() const override;
 
-    void PrintData(std::ostream& rOStream) const override { this->PrintInfo(rOStream); }
+    void PrintData(std::ostream& rOStream) const override;
 
     ///@}
     ///@name Friends

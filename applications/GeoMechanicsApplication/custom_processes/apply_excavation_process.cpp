@@ -23,6 +23,7 @@
 
 namespace Kratos
 {
+using namespace std::string_literals;
 
 ApplyExcavationProcess::ApplyExcavationProcess(Model& rModel, const Parameters& rProcessSettings)
     : mDeactivateSoilPart{rProcessSettings["deactivate_soil_part"].GetBool()}
@@ -55,8 +56,6 @@ void ApplyExcavationProcess::ExecuteInitialize()
     KRATOS_CATCH("")
 }
 
-std::string ApplyExcavationProcess::Info() const { return "ApplyExcavationProcess"; }
-
-ApplyExcavationProcess::~ApplyExcavationProcess() = default;
+std::string ApplyExcavationProcess::Info() const { return "ApplyExcavationProcess"s; }
 
 } // namespace Kratos

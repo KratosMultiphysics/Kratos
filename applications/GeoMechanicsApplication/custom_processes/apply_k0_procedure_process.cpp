@@ -13,7 +13,6 @@
 #include "apply_k0_procedure_process.h"
 
 #include <algorithm>
-#include <iterator>
 #include <ostream>
 
 #include "containers/model.h"
@@ -22,13 +21,13 @@
 #include "custom_utilities/process_utilities.h"
 #include "geo_aliases.h"
 #include "geo_mechanics_application_variables.h"
-#include "includes/element.h"
 #include "includes/model_part.h"
 
 namespace
 {
 
 using namespace Kratos;
+using namespace std::string_literals;
 
 void SetConsiderDiagonalEntriesOnlyAndNoShear(ModelPart::ElementsContainerType& rElements, bool Whether)
 {
@@ -199,7 +198,7 @@ void ApplyK0ProcedureProcess::ExecuteFinalizeSolutionStep()
     KRATOS_CATCH("")
 }
 
-std::string ApplyK0ProcedureProcess::Info() const { return "ApplyK0ProcedureProcess"; }
+std::string ApplyK0ProcedureProcess::Info() const { return "ApplyK0ProcedureProcess"s; }
 
 bool ApplyK0ProcedureProcess::UseStandardProcedure() const
 {

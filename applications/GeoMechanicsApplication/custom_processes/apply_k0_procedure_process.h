@@ -17,10 +17,11 @@
 #include "includes/kratos_parameters.h"
 #include "processes/process.h"
 
+#include <string>
+
 namespace Kratos
 {
 
-class Element;
 class ModelPart;
 
 class KRATOS_API(GEO_MECHANICS_APPLICATION) ApplyK0ProcedureProcess : public Process

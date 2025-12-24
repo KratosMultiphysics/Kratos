@@ -21,6 +21,8 @@
 #include "includes/node.h"
 #include "processes/process.h"
 
+#include <string>
+
 namespace Kratos
 {
 
@@ -48,7 +50,7 @@ public:
     explicit GeoExtrapolateIntegrationPointValuesToNodesProcess(Model& rModel,
                                                                 Parameters ThisParameters = Parameters(R"({})"));
 
-    ~GeoExtrapolateIntegrationPointValuesToNodesProcess() override;
+    ~GeoExtrapolateIntegrationPointValuesToNodesProcess() override = default;
 
     void                           ExecuteBeforeSolutionLoop() override;
     void                           ExecuteFinalizeSolutionStep() override;

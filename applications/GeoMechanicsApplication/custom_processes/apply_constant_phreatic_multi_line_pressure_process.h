@@ -12,12 +12,10 @@
 
 #pragma once
 
-#include "includes/kratos_flags.h"
 #include "includes/kratos_parameters.h"
 #include "processes/process.h"
-#include <algorithm>
 
-#include "geo_mechanics_application_variables.h"
+#include <string>
 
 namespace Kratos
 {
