@@ -82,6 +82,11 @@ public:
 
 ModelPart& CreateModelPartWithTwoStubElements(Model& model, const VariableData& rVariable)
 {
+    //   This function creates the following two-element system:
+    //   4------3------6
+    //   |  El1 |  El2 |
+    //   1------2------5
+
     auto& r_result = model.CreateModelPart("MainModelPart"s);
     r_result.AddNodalSolutionStepVariable(rVariable);
 
@@ -180,7 +185,7 @@ void SetIntegrationPointValues(Element& rElement, const std::vector<Matrix>& rVa
     dynamic_cast<StubElementForNodalExtrapolationTest&>(rElement).mIntegrationMatrixValues = rValues;
 }
 
-void BuildAndRunExtrapolationProcess(Model& rModel, const Parameters& rProcessSettings)
+void CreateAndRunExtrapolationProcess(Model& rModel, const Parameters& rProcessSettings)
 {
     auto extrapolation_process = GeoExtrapolateIntegrationPointValuesToNodesProcess{rModel, rProcessSettings};
     extrapolation_process.ExecuteBeforeSolutionLoop();
@@ -270,7 +275,7 @@ KRATOS_TEST_CASE_IN_SUITE(TestExtrapolationProcess_ExtrapolatesCorrectlyForConst
     SetIntegrationPointValues(r_model_part.Elements()[1], std::vector(4, 1.0));
     SetIntegrationPointValues(r_model_part.Elements()[2], std::vector(4, 1.0));
 
-    BuildAndRunExtrapolationProcess(model, CreateExtrapolationProcessSettings(r_model_part, r_test_variable));
+    CreateAndRunExtrapolationProcess(model, CreateExtrapolationProcessSettings(r_model_part, r_test_variable));
 
     AssertNodalValues(r_model_part.Nodes(), r_test_variable, std::vector(6, 1.0));
 }
@@ -292,7 +297,7 @@ KRATOS_TEST_CASE_IN_SUITE(TestExtrapolationProcess_ExtrapolatesCorrectlyForConst
 
     r_model_part.Elements()[2].Set(ACTIVE, false);
 
-    BuildAndRunExtrapolationProcess(model, CreateExtrapolationProcessSettings(r_model_part, r_test_variable));
+    CreateAndRunExtrapolationProcess(model, CreateExtrapolationProcessSettings(r_model_part, r_test_variable));
 
     AssertNodalValues(r_model_part.Elements()[1].GetGeometry(), r_test_variable, std::vector(4, 1.0));
 }
@@ -312,7 +317,7 @@ KRATOS_TEST_CASE_IN_SUITE(TestExtrapolationProcess_ExtrapolatesCorrectlyForTwoCo
     SetIntegrationPointValues(r_model_part.Elements()[1], std::vector(4, 1.0));
     SetIntegrationPointValues(r_model_part.Elements()[2], std::vector(4, 2.0));
 
-    BuildAndRunExtrapolationProcess(model, CreateExtrapolationProcessSettings(r_model_part, r_test_variable));
+    CreateAndRunExtrapolationProcess(model, CreateExtrapolationProcessSettings(r_model_part, r_test_variable));
 
     AssertNodalValues(r_model_part.Nodes(), r_test_variable, {1.0, 1.5, 1.5, 1.0, 2.0, 2.0});
 }
@@ -335,7 +340,7 @@ KRATOS_TEST_CASE_IN_SUITE(TestExtrapolationProcess_ExtrapolatesCorrectlyForLinea
     // Linear field in y between -1 and 1
     SetIntegrationPointValues(r_model_part.Elements()[2], {-inv_sqrt3, -inv_sqrt3, inv_sqrt3, inv_sqrt3});
 
-    BuildAndRunExtrapolationProcess(model, CreateExtrapolationProcessSettings(r_model_part, r_test_variable));
+    CreateAndRunExtrapolationProcess(model, CreateExtrapolationProcessSettings(r_model_part, r_test_variable));
 
     AssertNodalValues(r_model_part.Nodes(), r_test_variable, {-1.0, 0.0, 1.0, -1.0, -1.0, 1.0});
 }
@@ -360,7 +365,7 @@ KRATOS_TEST_CASE_IN_SUITE(TestExtrapolationProcess_ExtrapolatesCorrectlyForLinea
     // Linear field in y between -1 and 1
     SetIntegrationPointValues(r_main_model_part.Elements()[2], {-inv_sqrt3, -inv_sqrt3, inv_sqrt3, inv_sqrt3});
 
-    BuildAndRunExtrapolationProcess(
+    CreateAndRunExtrapolationProcess(
         model, CreateExtrapolationProcessSettings(
                    {std::cref(r_main_model_part), std::cref(r_foo_model_part), std::cref(r_bar_model_part)},
                    r_test_variable));
@@ -390,7 +395,7 @@ KRATOS_TEST_CASE_IN_SUITE(TestExtrapolationProcess_ExtrapolatesMatrixCorrectlyFo
                               {Matrix(3, 3, -inv_sqrt3), Matrix(3, 3, -inv_sqrt3),
                                Matrix(3, 3, inv_sqrt3), Matrix(3, 3, inv_sqrt3)});
 
-    BuildAndRunExtrapolationProcess(model, CreateExtrapolationProcessSettings(r_model_part, r_test_variable));
+    CreateAndRunExtrapolationProcess(model, CreateExtrapolationProcessSettings(r_model_part, r_test_variable));
 
     const auto expected_values =
         std::vector{Matrix(3, 3, -1.0), Matrix(3, 3, 0.0),  Matrix(3, 3, 1.0),
@@ -420,7 +425,7 @@ KRATOS_TEST_CASE_IN_SUITE(TestExtrapolationProcess_ExtrapolatesVectorCorrectlyFo
                               std::vector{Vector(6, -inv_sqrt3), Vector(6, -inv_sqrt3),
                                           Vector(6, inv_sqrt3), Vector(6, inv_sqrt3)});
 
-    BuildAndRunExtrapolationProcess(model, CreateExtrapolationProcessSettings(r_model_part, r_test_variable));
+    CreateAndRunExtrapolationProcess(model, CreateExtrapolationProcessSettings(r_model_part, r_test_variable));
 
     const auto expected_values = std::vector{Vector(6, -1.0), Vector(6, 0.0),  Vector(6, 1.0),
                                              Vector(6, -1.0), Vector(6, -1.0), Vector(6, 1.0)};
@@ -451,7 +456,7 @@ KRATOS_TEST_CASE_IN_SUITE(TestExtrapolationProcess_ExtrapolatesArrayCorrectlyFor
         std::vector{array_1d<double, 3>(3, -inv_sqrt3), array_1d<double, 3>(3, -inv_sqrt3),
                     array_1d<double, 3>(3, inv_sqrt3), array_1d<double, 3>(3, inv_sqrt3)});
 
-    BuildAndRunExtrapolationProcess(model, CreateExtrapolationProcessSettings(r_model_part, r_test_variable));
+    CreateAndRunExtrapolationProcess(model, CreateExtrapolationProcessSettings(r_model_part, r_test_variable));
 
     const auto expected_values = std::vector{
         array_1d<double, 3>(3, -1.0), array_1d<double, 3>(3, 0.0),  array_1d<double, 3>(3, 1.0),
@@ -489,7 +494,7 @@ KRATOS_TEST_CASE_IN_SUITE(TestExtrapolationProcess_ExtrapolatesCorrectlyWhenNode
     SetIntegrationPointValues(r_left_model_part.Elements()[1], std::vector(4, 1.0));
     SetIntegrationPointValues(r_right_model_part.Elements()[2], std::vector(4, 1.0));
 
-    BuildAndRunExtrapolationProcess(
+    CreateAndRunExtrapolationProcess(
         model, CreateExtrapolationProcessSettings(
                    {std::cref(r_left_model_part), std::cref(r_right_model_part)}, HYDRAULIC_HEAD));
 
