@@ -130,9 +130,6 @@
 #include "custom_constitutive/truss_backbone_constitutive_law.h"
 #include "custom_elements/interface_stress_state.h"
 
-// retention law models
-#include "custom_retention/saturated_below_phreatic_level_law.h"
-
 namespace Kratos
 {
 
