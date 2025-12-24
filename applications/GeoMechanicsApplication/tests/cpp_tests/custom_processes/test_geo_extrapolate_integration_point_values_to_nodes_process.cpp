@@ -82,7 +82,7 @@ public:
 
 ModelPart& CreateModelPartWithTwoStubElements(Model& model, const VariableData& rVariable)
 {
-    auto& r_result = model.CreateModelPart("MainModelPart");
+    auto& r_result = model.CreateModelPart("MainModelPart"s);
     r_result.AddNodalSolutionStepVariable(rVariable);
 
     Testing::ModelSetupUtilities::CreateNodes(r_result, {{1, {0.0, 0.0, 0.0}},
@@ -196,7 +196,6 @@ std::vector<DataType> GetNodalValues(const NodeContainerType& rNodes, const Vari
         return rNode.FastGetSolutionStepValue(rVariable);
     };
     std::ranges::transform(rNodes, std::back_inserter(result), get_nodal_value);
-
     return result;
 }
 
@@ -470,7 +469,7 @@ KRATOS_TEST_CASE_IN_SUITE(TestExtrapolationProcess_ExtrapolatesCorrectlyWhenNode
 
     auto model = Model{};
 
-    auto& r_left_model_part = model.CreateModelPart("Left");
+    auto& r_left_model_part = model.CreateModelPart("Left"s);
     r_left_model_part.AddNodalSolutionStepVariable(HYDRAULIC_HEAD);
     const auto nodes_of_element_1 = ModelSetupUtilities::CreateNodes(
         r_left_model_part,
@@ -478,7 +477,7 @@ KRATOS_TEST_CASE_IN_SUITE(TestExtrapolationProcess_ExtrapolatesCorrectlyWhenNode
     r_left_model_part.AddElement(make_intrusive<StubElementForNodalExtrapolationTest>(
         1, std::make_shared<Quadrilateral2D4<Node>>(nodes_of_element_1)));
 
-    auto& r_right_model_part = model.CreateModelPart("Right");
+    auto& r_right_model_part = model.CreateModelPart("Right"s);
     r_right_model_part.AddNodalSolutionStepVariable(HYDRAULIC_HEAD);
     r_right_model_part.AddNode(r_left_model_part.pGetNode(2));
     r_right_model_part.AddNode(r_left_model_part.pGetNode(3));
@@ -512,7 +511,7 @@ KRATOS_TEST_CASE_IN_SUITE(TestExtrapolationProcess_ExtrapolatesCorrectlyWhenMode
     const auto& r_test_variable_1 = HYDRAULIC_HEAD;
     const auto& r_test_variable_2 = HYDRAULIC_DISCHARGE;
 
-    auto& r_bottom_model_part = model.CreateModelPart("Bottom");
+    auto& r_bottom_model_part = model.CreateModelPart("Bottom"s);
     r_bottom_model_part.AddNodalSolutionStepVariable(r_test_variable_1);
     r_bottom_model_part.AddNodalSolutionStepVariable(r_test_variable_2);
     ModelSetupUtilities::CreateNodes(r_bottom_model_part, {{1, {0.0, 0.0, 0.0}},
@@ -528,7 +527,7 @@ KRATOS_TEST_CASE_IN_SUITE(TestExtrapolationProcess_ExtrapolatesCorrectlyWhenMode
     r_bottom_model_part.AddElement(make_intrusive<StubElementForNodalExtrapolationTest>(
         2, std::make_shared<Quadrilateral2D4<Node>>(nodes_of_element_2)));
 
-    auto& r_top_model_part = model.CreateModelPart("Top");
+    auto& r_top_model_part = model.CreateModelPart("Top"s);
     r_top_model_part.AddNodalSolutionStepVariable(r_test_variable_1);
     r_top_model_part.AddNodalSolutionStepVariable(r_test_variable_2);
     r_top_model_part.AddNode(r_bottom_model_part.pGetNode(3));
@@ -561,13 +560,13 @@ KRATOS_TEST_CASE_IN_SUITE(CheckInfoGeoExtrapolateIntegrationPointValuesToNodesPr
 {
     // Arrange
     auto        model        = Model{};
-    const auto& r_model_part = model.CreateModelPart("foo");
+    const auto& r_model_part = model.CreateModelPart("foo"s);
 
     const auto process = GeoExtrapolateIntegrationPointValuesToNodesProcess{
         model, CreateExtrapolationProcessSettings(r_model_part, FLUID_FLUX_VECTOR)};
 
     // Act & assert
-    KRATOS_EXPECT_EQ(process.Info(), "GeoExtrapolateIntegrationPointValuesToNodesProcess");
+    KRATOS_EXPECT_EQ(process.Info(), "GeoExtrapolateIntegrationPointValuesToNodesProcess"s);
 }
 
 } // namespace Kratos::Testing
