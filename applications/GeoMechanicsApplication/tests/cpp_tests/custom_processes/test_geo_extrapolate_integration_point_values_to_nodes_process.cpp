@@ -483,13 +483,7 @@ KRATOS_TEST_CASE_IN_SUITE(TestExtrapolationProcess_ExtrapolatesCorrectlyWhenNode
     r_right_model_part.AddNode(r_left_model_part.pGetNode(2));
     r_right_model_part.AddNode(r_left_model_part.pGetNode(3));
     ModelSetupUtilities::CreateNodes(r_right_model_part, {{5, {2.0, 0.0, 0.0}}, {6, {2.0, 1.0, 0.0}}});
-    // Unfortunately, it appeared that `PointerVector<Node>::insert` does not work properly, so
-    // we're limited to using `PointerVector<Node>::push_back`
-    auto nodes_of_element_2 = PointerVector<Node>{};
-    nodes_of_element_2.push_back(r_right_model_part.pGetNode(2));
-    nodes_of_element_2.push_back(r_right_model_part.pGetNode(5));
-    nodes_of_element_2.push_back(r_right_model_part.pGetNode(6));
-    nodes_of_element_2.push_back(r_right_model_part.pGetNode(3));
+    const auto nodes_of_element_2 = ModelSetupUtilities::GetNodesFromIds(r_right_model_part, {2, 5, 6, 3});
     r_right_model_part.AddElement(make_intrusive<StubElementForNodalExtrapolationTest>(
         2, std::make_shared<Quadrilateral2D4<Node>>(nodes_of_element_2)));
 
