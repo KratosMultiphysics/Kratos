@@ -85,20 +85,20 @@ ModelPart& CreateModelPartWithTwoStubElements(Model& model, const VariableData& 
     auto& r_result = model.CreateModelPart("MainModelPart");
     r_result.AddNodalSolutionStepVariable(rVariable);
 
-    auto node_1 = r_result.CreateNewNode(1, 0.0, 0.0, 0.0);
-    auto node_2 = r_result.CreateNewNode(2, 1.0, 0.0, 0.0);
-    auto node_3 = r_result.CreateNewNode(3, 1.0, 1.0, 0.0);
-    auto node_4 = r_result.CreateNewNode(4, 0.0, 1.0, 0.0);
-    auto node_5 = r_result.CreateNewNode(5, 2.0, 0.0, 0.0);
-    auto node_6 = r_result.CreateNewNode(6, 2.0, 1.0, 0.0);
+    Testing::ModelSetupUtilities::CreateNodes(r_result, {{1, {0.0, 0.0, 0.0}},
+                                                         {2, {1.0, 0.0, 0.0}},
+                                                         {3, {1.0, 1.0, 0.0}},
+                                                         {4, {0.0, 1.0, 0.0}},
+                                                         {5, {2.0, 0.0, 0.0}},
+                                                         {6, {2.0, 1.0, 0.0}}});
 
-    auto geometry_1 = std::make_shared<Quadrilateral2D4<Node>>(node_1, node_2, node_3, node_4);
-    auto element_1  = Kratos::make_intrusive<StubElementForNodalExtrapolationTest>(1, geometry_1);
-    r_result.AddElement(element_1);
+    const auto nodes_of_element_1 = Testing::ModelSetupUtilities::GetNodesFromIds(r_result, {1, 2, 3, 4});
+    r_result.AddElement(make_intrusive<StubElementForNodalExtrapolationTest>(
+        1, std::make_shared<Quadrilateral2D4<Node>>(nodes_of_element_1)));
 
-    auto geometry_2 = std::make_shared<Quadrilateral2D4<Node>>(node_2, node_5, node_6, node_3);
-    auto element_2  = Kratos::make_intrusive<StubElementForNodalExtrapolationTest>(2, geometry_2);
-    r_result.AddElement(element_2);
+    const auto nodes_of_element_2 = Testing::ModelSetupUtilities::GetNodesFromIds(r_result, {2, 5, 6, 3});
+    r_result.AddElement(make_intrusive<StubElementForNodalExtrapolationTest>(
+        2, std::make_shared<Quadrilateral2D4<Node>>(nodes_of_element_2)));
 
     return r_result;
 }
