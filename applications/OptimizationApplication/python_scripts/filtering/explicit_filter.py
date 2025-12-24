@@ -17,7 +17,7 @@ class ExplicitFilter(Filter):
     def GetDefaultParameters(cls) -> Kratos.Parameters:
         return Kratos.Parameters("""{
             "filter_type"               : "explicit_filter",
-            "node_cloud_mesh"               : false,
+            "node_cloud_mesh"           : false,
             "filter_function_type"      : "linear",
             "max_nodes_in_filter_radius": 100000,
             "echo_level"                : 0,
@@ -72,12 +72,12 @@ class ExplicitFilter(Filter):
         if self.data_location in [Kratos.Globals.DataLocation.NodeHistorical, Kratos.Globals.DataLocation.NodeNonHistorical]:
             self.filter_utils = KratosOA.NodeExplicitFilterUtils(self.model_part, filter_function_type, max_nodes_in_filter_radius, echo_level, node_cloud_mesh)
         elif self.data_location == Kratos.Globals.DataLocation.Condition:
-            if node_cloud_mesh == True:
-                raise RuntimeError("You need to have elements to filter variables as conditions.")
+            if node_cloud_mesh:
+                raise RuntimeError("\"node_cloud_mesh\" flag can be only used for filtering meshes with nodes.")
             self.filter_utils = KratosOA.ConditionExplicitFilterUtils(self.model_part, filter_function_type, max_nodes_in_filter_radius, echo_level)
         elif self.data_location == Kratos.Globals.DataLocation.Element:
-            if node_cloud_mesh == True:
-                raise RuntimeError("You need to have elements to filter variables as conditions.")
+            if node_cloud_mesh:
+                raise RuntimeError("\"node_cloud_mesh\" flag can be only used for filtering meshes with nodes.")
             self.filter_utils = KratosOA.ElementExplicitFilterUtils(self.model_part, filter_function_type, max_nodes_in_filter_radius, echo_level)
 
         self.Update()
