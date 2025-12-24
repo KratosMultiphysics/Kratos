@@ -167,12 +167,10 @@ public:
     double CalculateReferenceLength() const
     {
         if constexpr (Dimension == 2) {
-            // Same implementation for 2N and 3N
             return StructuralMechanicsElementUtilities::CalculateReferenceLength2D2N(*this);
         } else {
             return StructuralMechanicsElementUtilities::CalculateReferenceLength3D2N(*this);
         }
-        return 0.0; // TODO
     }
 
     /**
@@ -181,12 +179,10 @@ public:
     double CalculateCurrentLength() const
     {
         if constexpr (Dimension == 2) {
-            // Same implementation for 2N and 3N
             return StructuralMechanicsElementUtilities::CalculateCurrentLength2D2N(*this);
         } else {
             return StructuralMechanicsElementUtilities::CalculateCurrentLength3D2N(*this);
         }
-        return 0.0; // TODO
     }
 
     /**
