@@ -103,12 +103,12 @@ ModelPart& CreateModelPartWithTwoStubElements(Model& model, const VariableData& 
     return r_result;
 }
 
-using ConstModelPartReferenceVector = std::vector<std::reference_wrapper<const ModelPart>>;
-
 std::string MakeModelPartNameFrom(const ModelPart& rModelPart)
 {
     return R"(        "model_part_name": ")" + rModelPart.Name() + '"';
 }
+
+using ConstModelPartReferenceVector = std::vector<std::reference_wrapper<const ModelPart>>;
 
 std::string MakeModelPartNameListFrom(const ConstModelPartReferenceVector& rModelPartRefs)
 {
