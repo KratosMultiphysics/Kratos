@@ -508,56 +508,53 @@ KRATOS_TEST_CASE_IN_SUITE(TestExtrapolationProcess_ExtrapolatesCorrectlyWhenMode
     //   |  El1 |  El2 |
     //   1------2------5
 
-    auto model = Model{};
+    auto        model             = Model{};
+    const auto& r_test_variable_1 = HYDRAULIC_HEAD;
+    const auto& r_test_variable_2 = HYDRAULIC_DISCHARGE;
 
     auto& r_bottom_model_part = model.CreateModelPart("Bottom");
-    r_bottom_model_part.AddNodalSolutionStepVariable(HYDRAULIC_HEAD);
-    r_bottom_model_part.AddNodalSolutionStepVariable(HYDRAULIC_DISCHARGE);
-    auto node_1 = r_bottom_model_part.CreateNewNode(1, 0.0, 0.0, 0.0);
-    auto node_2 = r_bottom_model_part.CreateNewNode(2, 1.0, 0.0, 0.0);
-    auto node_3 = r_bottom_model_part.CreateNewNode(3, 1.0, 1.0, 0.0);
-    auto node_4 = r_bottom_model_part.CreateNewNode(4, 0.0, 1.0, 0.0);
-    auto node_5 = r_bottom_model_part.CreateNewNode(5, 2.0, 0.0, 0.0);
-    auto node_6 = r_bottom_model_part.CreateNewNode(6, 2.0, 1.0, 0.0);
-
-    auto geometry_1 = std::make_shared<Quadrilateral2D4<Node>>(node_1, node_2, node_3, node_4);
-    auto element_1  = Kratos::make_intrusive<StubElementForNodalExtrapolationTest>(1, geometry_1);
-    r_bottom_model_part.AddElement(element_1);
-
-    auto geometry_2 = std::make_shared<Quadrilateral2D4<Node>>(node_2, node_5, node_6, node_3);
-    auto element_2  = Kratos::make_intrusive<StubElementForNodalExtrapolationTest>(2, geometry_2);
-    r_bottom_model_part.AddElement(element_2);
+    r_bottom_model_part.AddNodalSolutionStepVariable(r_test_variable_1);
+    r_bottom_model_part.AddNodalSolutionStepVariable(r_test_variable_2);
+    ModelSetupUtilities::CreateNodes(r_bottom_model_part, {{1, {0.0, 0.0, 0.0}},
+                                                           {2, {1.0, 0.0, 0.0}},
+                                                           {3, {1.0, 1.0, 0.0}},
+                                                           {4, {0.0, 1.0, 0.0}},
+                                                           {5, {2.0, 0.0, 0.0}},
+                                                           {6, {2.0, 1.0, 0.0}}});
+    const auto nodes_of_element_1 = ModelSetupUtilities::GetNodesFromIds(r_bottom_model_part, {1, 2, 3, 4});
+    r_bottom_model_part.AddElement(make_intrusive<StubElementForNodalExtrapolationTest>(
+        1, std::make_shared<Quadrilateral2D4<Node>>(nodes_of_element_1)));
+    const auto nodes_of_element_2 = ModelSetupUtilities::GetNodesFromIds(r_bottom_model_part, {2, 5, 6, 3});
+    r_bottom_model_part.AddElement(make_intrusive<StubElementForNodalExtrapolationTest>(
+        2, std::make_shared<Quadrilateral2D4<Node>>(nodes_of_element_2)));
 
     auto& r_top_model_part = model.CreateModelPart("Top");
-    r_top_model_part.AddNodalSolutionStepVariable(HYDRAULIC_HEAD);
-    r_top_model_part.AddNodalSolutionStepVariable(HYDRAULIC_DISCHARGE);
-    r_top_model_part.AddNode(node_3);
-    r_top_model_part.AddNode(node_6);
-    auto node_7     = r_top_model_part.CreateNewNode(7, 1.0, 2.0, 0.0);
-    auto node_8     = r_top_model_part.CreateNewNode(8, 2.0, 2.0, 0.0);
-    auto geometry_3 = std::make_shared<Quadrilateral2D4<Node>>(node_3, node_6, node_8, node_7);
-    auto element_3  = Kratos::make_intrusive<StubElementForNodalExtrapolationTest>(3, geometry_3);
-    r_top_model_part.AddElement(element_3);
+    r_top_model_part.AddNodalSolutionStepVariable(r_test_variable_1);
+    r_top_model_part.AddNodalSolutionStepVariable(r_test_variable_2);
+    r_top_model_part.AddNode(r_bottom_model_part.pGetNode(3));
+    r_top_model_part.AddNode(r_bottom_model_part.pGetNode(6));
+    ModelSetupUtilities::CreateNodes(r_top_model_part, {{7, {1.0, 2.0, 0.0}}, {8, {2.0, 2.0, 0.0}}});
+    const auto nodes_of_element_3 = ModelSetupUtilities::GetNodesFromIds(r_top_model_part, {3, 6, 8, 7});
+    r_top_model_part.AddElement(make_intrusive<StubElementForNodalExtrapolationTest>(
+        3, std::make_shared<Quadrilateral2D4<Node>>(nodes_of_element_3)));
 
     SetIntegrationPointValues(r_bottom_model_part.Elements()[1], std::vector(4, 1.0));
     SetIntegrationPointValues(r_bottom_model_part.Elements()[2], std::vector(4, 1.0));
     SetIntegrationPointValues(r_top_model_part.Elements()[3], std::vector(4, 1.0));
 
-    GeoExtrapolateIntegrationPointValuesToNodesProcess process_1(
-        model, CreateExtrapolationProcessSettings(r_bottom_model_part, HYDRAULIC_HEAD));
+    auto process_1 = GeoExtrapolateIntegrationPointValuesToNodesProcess{
+        model, CreateExtrapolationProcessSettings(r_bottom_model_part, r_test_variable_1)};
     process_1.ExecuteBeforeSolutionLoop();
-
-    GeoExtrapolateIntegrationPointValuesToNodesProcess process_2(
-        model, CreateExtrapolationProcessSettings(r_top_model_part, HYDRAULIC_DISCHARGE));
+    auto process_2 = GeoExtrapolateIntegrationPointValuesToNodesProcess{
+        model, CreateExtrapolationProcessSettings(r_top_model_part, r_test_variable_2)};
     process_2.ExecuteBeforeSolutionLoop();
-
     process_1.ExecuteFinalizeSolutionStep();
 
-    AssertNodalValues(r_bottom_model_part.Nodes(), HYDRAULIC_HEAD, std::vector(6, 1.0));
+    AssertNodalValues(r_bottom_model_part.Nodes(), r_test_variable_1, std::vector(6, 1.0));
 
     process_2.ExecuteFinalizeSolutionStep();
 
-    AssertNodalValues(r_top_model_part.Nodes(), HYDRAULIC_DISCHARGE, std::vector(4, 1.0));
+    AssertNodalValues(r_top_model_part.Nodes(), r_test_variable_2, std::vector(4, 1.0));
 }
 
 KRATOS_TEST_CASE_IN_SUITE(CheckInfoGeoExtrapolateIntegrationPointValuesToNodesProcess, KratosGeoMechanicsFastSuiteWithoutKernel)
