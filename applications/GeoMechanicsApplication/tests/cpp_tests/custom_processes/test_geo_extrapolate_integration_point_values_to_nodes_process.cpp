@@ -211,20 +211,6 @@ void AssertNodalValues(const NodeContainerType&   rNodes,
 
 template <typename NodeContainerType>
 void AssertNodalValues(const NodeContainerType&   rNodes,
-                       const Variable<Matrix>&    rVariable,
-                       const std::vector<Matrix>& rExpectedNodalValues)
-{
-    const auto actual_nodal_values = GetNodalValues(rNodes, rVariable);
-
-    ASSERT_EQ(actual_nodal_values.size(), rExpectedNodalValues.size());
-    for (auto i = std::size_t{0}; i < actual_nodal_values.size(); ++i) {
-        KRATOS_EXPECT_MATRIX_NEAR(actual_nodal_values[i], rExpectedNodalValues[i],
-                                  Testing::Defaults::absolute_tolerance);
-    }
-}
-
-template <typename NodeContainerType>
-void AssertNodalValues(const NodeContainerType&   rNodes,
                        const Variable<Vector>&    rVariable,
                        const std::vector<Vector>& rExpectedNodalValues)
 {
@@ -233,6 +219,34 @@ void AssertNodalValues(const NodeContainerType&   rNodes,
     ASSERT_EQ(actual_nodal_values.size(), rExpectedNodalValues.size());
     for (auto i = std::size_t{0}; i < actual_nodal_values.size(); ++i) {
         KRATOS_EXPECT_VECTOR_NEAR(actual_nodal_values[i], rExpectedNodalValues[i],
+                                  Testing::Defaults::absolute_tolerance);
+    }
+}
+
+template <typename NodeContainerType>
+void AssertNodalValues(const NodeContainerType&                rNodes,
+                       const Variable<array_1d<double, 3>>&    rVariable,
+                       const std::vector<array_1d<double, 3>>& rExpectedNodalValues)
+{
+    const auto actual_nodal_values = GetNodalValues(rNodes, rVariable);
+
+    ASSERT_EQ(actual_nodal_values.size(), rExpectedNodalValues.size());
+    for (auto i = std::size_t{0}; i < actual_nodal_values.size(); ++i) {
+        KRATOS_EXPECT_VECTOR_NEAR(actual_nodal_values[i], rExpectedNodalValues[i],
+                                  Testing::Defaults::absolute_tolerance);
+    }
+}
+
+template <typename NodeContainerType>
+void AssertNodalValues(const NodeContainerType&   rNodes,
+                       const Variable<Matrix>&    rVariable,
+                       const std::vector<Matrix>& rExpectedNodalValues)
+{
+    const auto actual_nodal_values = GetNodalValues(rNodes, rVariable);
+
+    ASSERT_EQ(actual_nodal_values.size(), rExpectedNodalValues.size());
+    for (auto i = std::size_t{0}; i < actual_nodal_values.size(); ++i) {
+        KRATOS_EXPECT_MATRIX_NEAR(actual_nodal_values[i], rExpectedNodalValues[i],
                                   Testing::Defaults::absolute_tolerance);
     }
 }
@@ -441,19 +455,10 @@ KRATOS_TEST_CASE_IN_SUITE(TestExtrapolationProcess_ExtrapolatesArrayCorrectlyFor
 
     BuildAndRunExtrapolationProcess(model, CreateExtrapolationProcessSettings(r_model_part, r_test_variable));
 
-    std::vector<Vector>              expected_values = {ScalarVector(3, -1), ScalarVector(3, 0),
-                                                        ScalarVector(3, 1),  ScalarVector(3, -1),
-                                                        ScalarVector(3, -1), ScalarVector(3, 1)};
-    std::vector<array_1d<double, 3>> actual_values;
-    actual_values.reserve(r_model_part.Nodes().size());
-    std::transform(r_model_part.Nodes().begin(), r_model_part.Nodes().end(),
-                   std::back_inserter(actual_values), [&r_test_variable](const auto& node) {
-        return node.FastGetSolutionStepValue(r_test_variable);
-    });
-
-    for (std::size_t i = 0; i < expected_values.size(); ++i) {
-        KRATOS_EXPECT_VECTOR_NEAR(actual_values[i], expected_values[i], Defaults::absolute_tolerance)
-    }
+    const auto expected_values = std::vector{
+        array_1d<double, 3>(3, -1.0), array_1d<double, 3>(3, 0.0),  array_1d<double, 3>(3, 1.0),
+        array_1d<double, 3>(3, -1.0), array_1d<double, 3>(3, -1.0), array_1d<double, 3>(3, 1.0)};
+    AssertNodalValues(r_model_part.Nodes(), r_test_variable, expected_values);
 }
 
 KRATOS_TEST_CASE_IN_SUITE(TestExtrapolationProcess_ExtrapolatesCorrectlyWhenNodesAreSharedBetweenModelParts,
