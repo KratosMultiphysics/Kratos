@@ -16,7 +16,6 @@
 #include "utilities/variable_utils.h"
 
 #include <boost/algorithm/string.hpp>
-#include <string>
 
 namespace Kratos
 {

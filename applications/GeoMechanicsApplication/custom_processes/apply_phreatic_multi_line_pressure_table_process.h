@@ -17,6 +17,8 @@
 #include "custom_processes/apply_constant_phreatic_multi_line_pressure_process.h"
 #include "includes/kratos_parameters.h"
 
+#include <string>
+
 namespace Kratos
 {
 class ModelPart;

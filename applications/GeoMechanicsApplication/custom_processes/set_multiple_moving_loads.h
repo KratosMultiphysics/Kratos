@@ -15,6 +15,8 @@
 #include "includes/define.h"
 #include "processes/process.h"
 
+#include <string>
+
 #include "../../StructuralMechanicsApplication/custom_processes/set_moving_load_process.h"
 
 namespace Kratos

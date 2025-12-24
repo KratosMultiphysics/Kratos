@@ -18,7 +18,6 @@
 
 #include <algorithm>
 #include <iterator>
-#include <string>
 
 namespace Kratos
 {

@@ -15,8 +15,6 @@
 #include "includes/kratos_flags.h"
 #include "includes/model_part.h"
 
-#include <string>
-
 namespace Kratos
 {
 using namespace std::string_literals;

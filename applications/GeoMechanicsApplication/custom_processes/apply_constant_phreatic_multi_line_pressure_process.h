@@ -15,6 +15,8 @@
 #include "includes/kratos_parameters.h"
 #include "processes/process.h"
 
+#include <string>
+
 namespace Kratos
 {
 

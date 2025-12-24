@@ -21,6 +21,8 @@
 #include "includes/node.h"
 #include "processes/process.h"
 
+#include <string>
+
 namespace Kratos
 {
 

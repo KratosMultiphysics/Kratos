@@ -15,11 +15,11 @@
 #include "includes/constitutive_law.h"
 #include "processes/process.h"
 
+#include <string>
+
 namespace Kratos
 {
-
-class ModelPart;
-class Element;
+class Model;
 class Parameters;
 
 class KRATOS_API(GEO_MECHANICS_APPLICATION) ApplyFinalStressesOfPreviousStageToInitialState : public Process

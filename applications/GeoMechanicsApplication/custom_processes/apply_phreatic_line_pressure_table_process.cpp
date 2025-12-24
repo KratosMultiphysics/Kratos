@@ -14,8 +14,6 @@
 #include "geo_mechanics_application_variables.h"
 #include "includes/model_part.h"
 
-#include <string>
-
 namespace Kratos
 {
 using namespace std::string_literals;

@@ -14,9 +14,11 @@
 
 #include "processes/process.h"
 
+#include <string>
+
 namespace Kratos
 {
-
+class Model;
 class ModelPart;
 class Parameters;
 

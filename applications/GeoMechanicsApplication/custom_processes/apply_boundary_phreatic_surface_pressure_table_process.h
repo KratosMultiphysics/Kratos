@@ -17,6 +17,8 @@
 #include "custom_processes/apply_constant_boundary_phreatic_surface_pressure_process.h"
 #include "includes/kratos_parameters.h"
 
+#include <string>
+
 namespace Kratos
 {
 class ModelPart;

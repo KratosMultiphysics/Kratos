@@ -18,6 +18,8 @@
 #include "includes/kratos_export_api.h"
 #include "processes/process.h"
 
+#include <string>
+
 namespace Kratos
 {
 

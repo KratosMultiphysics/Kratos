@@ -22,8 +22,6 @@
 #include "includes/model_part.h"
 #include "utilities/math_utils.h"
 
-#include <string>
-
 namespace Kratos
 {
 using namespace std::string_literals;

@@ -16,7 +16,6 @@
 #include "includes/model_part.h"
 
 #include <algorithm>
-#include <string>
 
 namespace Kratos
 {

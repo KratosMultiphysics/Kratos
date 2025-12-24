@@ -24,6 +24,8 @@
 
 #include "utilities/mortar_utilities.h"
 
+#include <string>
+
 namespace Kratos
 {
 ///@name Kratos Globals

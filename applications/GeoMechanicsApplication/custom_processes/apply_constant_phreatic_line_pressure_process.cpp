@@ -16,7 +16,6 @@
 #include "includes/node.h"
 
 #include <algorithm>
-#include <string>
 
 namespace Kratos
 {
