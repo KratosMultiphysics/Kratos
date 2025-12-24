@@ -307,10 +307,9 @@ Node* ApplyConstantInterpolateLinePressureProcess::FindClosestNodeOnBoundaryNode
 void ApplyConstantInterpolateLinePressureProcess::FindTopBoundaryNodes(const Node& rNode,
                                                                        std::vector<Node*>& TopBoundaryNodes)
 {
-    for (unsigned int i = 0; i < mBoundaryNodes.size(); ++i) {
-        if (mBoundaryNodes[i]->Coordinates()[mGravityDirection] >= rNode.Coordinates()[mGravityDirection]) {
-            // node is on top boundary
-            TopBoundaryNodes.push_back(mBoundaryNodes[i]);
+    for (const auto& p_boundary_node : mBoundaryNodes) {
+        if (p_boundary_node->Coordinates()[mGravityDirection] >= rNode.Coordinates()[mGravityDirection]) {
+            TopBoundaryNodes.push_back(p_boundary_node);
         }
     }
 }
@@ -318,10 +317,9 @@ void ApplyConstantInterpolateLinePressureProcess::FindTopBoundaryNodes(const Nod
 void ApplyConstantInterpolateLinePressureProcess::FindBottomBoundaryNodes(const Node& rNode,
                                                                           std::vector<Node*>& BottomBoundaryNodes)
 {
-    for (unsigned int i = 0; i < mBoundaryNodes.size(); ++i) {
-        if (mBoundaryNodes[i]->Coordinates()[mGravityDirection] <= rNode.Coordinates()[mGravityDirection]) {
-            // node is on top boundary
-            BottomBoundaryNodes.push_back(mBoundaryNodes[i]);
+    for (const auto& p_boundary_node : mBoundaryNodes) {
+        if (p_boundary_node->Coordinates()[mGravityDirection] <= rNode.Coordinates()[mGravityDirection]) {
+            BottomBoundaryNodes.push_back(p_boundary_node);
         }
     }
 }
@@ -330,9 +328,8 @@ void ApplyConstantInterpolateLinePressureProcess::FindLeftBoundaryNodes(const No
                                                                         const std::vector<Node*>& rBoundaryNodes,
                                                                         std::vector<Node*>& rLeftBoundaryNodes) const
 {
-    for (auto p_boundary_node : rBoundaryNodes) {
+    for (const auto& p_boundary_node : rBoundaryNodes) {
         if (p_boundary_node->Coordinates()[mHorizontalDirection] <= rNode.Coordinates()[mHorizontalDirection]) {
-            // node is on top boundary
             rLeftBoundaryNodes.push_back(p_boundary_node);
         }
     }
@@ -342,25 +339,24 @@ void ApplyConstantInterpolateLinePressureProcess::FindRightBoundaryNodes(const N
                                                                          const std::vector<Node*>& rBoundaryNodes,
                                                                          std::vector<Node*>& rRightBoundaryNodes) const
 {
-    for (auto p_boundary_node : rBoundaryNodes) {
+    for (const auto& p_boundary_node : rBoundaryNodes) {
         if (p_boundary_node->Coordinates()[mHorizontalDirection] >= rNode.Coordinates()[mHorizontalDirection]) {
-            // node is on top boundary
             rRightBoundaryNodes.push_back(p_boundary_node);
         }
     }
 }
 
-int ApplyConstantInterpolateLinePressureProcess::GetMaxNodeID()
+IndexType ApplyConstantInterpolateLinePressureProcess::GetMaxNodeID()
 {
     KRATOS_TRY
 
-    int MaxNodeID = -1;
-    block_for_each(mrModelPart.Nodes(), [&MaxNodeID](const Node& rNode) {
+    auto max_node_Id = static_cast<IndexType>(-1);
+    block_for_each(mrModelPart.Nodes(), [&max_node_Id](const Node& rNode) {
 #pragma omp critical
-        MaxNodeID = std::max<int>(MaxNodeID, rNode.Id());
+        max_node_Id = std::max(max_node_Id, rNode.Id());
     });
 
-    return MaxNodeID;
+    return max_node_Id;
 
     KRATOS_CATCH("")
 }
@@ -369,17 +365,18 @@ void ApplyConstantInterpolateLinePressureProcess::FindBoundaryNodes()
 {
     KRATOS_TRY
 
-    std::vector<int> BoundaryNodes;
+    std::vector<int> boundary_nodes;
 
-    FillListOfBoundaryNodesFast(BoundaryNodes);
-    mBoundaryNodes.resize(BoundaryNodes.size());
+    FillListOfBoundaryNodesFast(boundary_nodes);
+    mBoundaryNodes.resize(boundary_nodes.size());
 
-    unsigned int iPosition = 0;
-    block_for_each(mrModelPart.Nodes(), [&iPosition, &BoundaryNodes, this](Node& rNode) {
-        const int Id = rNode.Id();
-        for (unsigned int j = 0; j < BoundaryNodes.size(); ++j) {
-            if (Id == BoundaryNodes[j]) {
-                mBoundaryNodes[iPosition++] = &rNode;
+    unsigned int i_position = 0;
+    block_for_each(mrModelPart.Nodes(), [&i_position, &boundary_nodes, this](Node& rNode) {
+        const auto node_id = static_cast<int>(rNode.Id());
+        for (const auto boundary_node_id : boundary_nodes) {
+            if (node_id == boundary_node_id) {
+                mBoundaryNodes[i_position] = &rNode;
+                i_position++;
             }
         }
     });
@@ -389,60 +386,49 @@ void ApplyConstantInterpolateLinePressureProcess::FindBoundaryNodes()
 
 void ApplyConstantInterpolateLinePressureProcess::FillListOfBoundaryNodesFast(std::vector<int>& BoundaryNodes)
 {
-    const int ID_UNDEFINED = -1;
-    const int N_ELEMENT    = 10;
+    std::vector<std::vector<int>> node_elements;
+    std::vector<int>              node_elements_size;
 
-    std::vector<std::vector<int>> ELementsOfNodes;
-    std::vector<int>              ELementsOfNodesSize;
+    const auto max_node_Id = GetMaxNodeID();
 
-    int MaxNodeID = GetMaxNodeID();
+    node_elements.resize(max_node_Id);
+    node_elements_size.resize(max_node_Id);
+    std::ranges::fill(node_elements_size, 0);
 
-    ELementsOfNodes.resize(MaxNodeID);
-    ELementsOfNodesSize.resize(MaxNodeID);
-
-    for (unsigned int i = 0; i < ELementsOfNodes.size(); ++i) {
-        ELementsOfNodes[i].resize(N_ELEMENT);
-        ELementsOfNodesSize[i] = 0;
-        std::fill(ELementsOfNodes[i].begin(), ELementsOfNodes[i].end(), ID_UNDEFINED);
-    }
-
-    const unsigned int                         nElements         = mrModelPart.NumberOfElements();
+    const auto                                 nElements         = mrModelPart.NumberOfElements();
     ModelPart::ElementsContainerType::iterator it_begin_elements = mrModelPart.ElementsBegin();
 
-    for (unsigned int i = 0; i < nElements; ++i) {
+    for (IndexType i = 0; i < nElements; ++i) {
         ModelPart::ElementsContainerType::iterator pElemIt = it_begin_elements + i;
         for (unsigned int iPoint = 0; iPoint < pElemIt->GetGeometry().PointsNumber(); ++iPoint) {
-            int NodeID    = pElemIt->GetGeometry()[iPoint].Id();
-            int ElementId = pElemIt->Id();
+            const auto NodeID    = pElemIt->GetGeometry()[iPoint].Id();
+            const auto ElementId = static_cast<int>(pElemIt->Id());
 
-            int index = NodeID - 1;
-            ELementsOfNodesSize[index]++;
-            if (ELementsOfNodesSize[index] > N_ELEMENT - 1) {
-                ELementsOfNodes[index].push_back(ElementId);
-            } else {
-                ELementsOfNodes[index][ELementsOfNodesSize[index] - 1] = ElementId;
-            }
+            const auto index = NodeID - 1;
+            node_elements_size[index]++;
+            node_elements[index].push_back(ElementId);
         }
     }
 
     for (unsigned int i = 0; i < nElements; ++i) {
         ModelPart::ElementsContainerType::iterator pElemIt = it_begin_elements + i;
 
-        int nEdges = pElemIt->GetGeometry().EdgesNumber();
-        for (int iEdge = 0; iEdge < nEdges; ++iEdge) {
-            const unsigned int nPoints = pElemIt->GetGeometry().GenerateEdges()[iEdge].PointsNumber();
+        const auto nEdges = pElemIt->GetGeometry().EdgesNumber();
+        for (IndexType iEdge = 0; iEdge < nEdges; ++iEdge) {
+            const auto       nPoints = pElemIt->GetGeometry().GenerateEdges()[iEdge].PointsNumber();
             std::vector<int> FaceID(nPoints);
             for (unsigned int iPoint = 0; iPoint < nPoints; ++iPoint) {
-                FaceID[iPoint] = pElemIt->GetGeometry().GenerateEdges()[iEdge].GetPoint(iPoint).Id();
+                FaceID[iPoint] =
+                    static_cast<int>(pElemIt->GetGeometry().GenerateEdges()[iEdge].GetPoint(iPoint).Id());
             }
 
-            if (!IsMoreThanOneElementWithThisEdgeFast(FaceID, ELementsOfNodes, ELementsOfNodesSize)) {
-                // boundary nodes:
-                for (unsigned int iPoint = 0; iPoint < nPoints; ++iPoint) {
-                    auto it = std::find(BoundaryNodes.begin(), BoundaryNodes.end(), FaceID[iPoint]);
-                    if (it == BoundaryNodes.end()) {
-                        BoundaryNodes.push_back(FaceID[iPoint]);
-                    }
+            if (IsMoreThanOneElementWithThisEdgeFast(FaceID, node_elements, node_elements_size))
+                continue;
+            // boundary nodes:
+            for (unsigned int iPoint = 0; iPoint < nPoints; ++iPoint) {
+                if (std::find(BoundaryNodes.begin(), BoundaryNodes.end(), FaceID[iPoint]) ==
+                    BoundaryNodes.end()) {
+                    BoundaryNodes.push_back(FaceID[iPoint]);
                 }
             }
         }
@@ -458,58 +444,52 @@ bool ApplyConstantInterpolateLinePressureProcess::IsMoreThanOneElementWithThisEd
     const std::vector<int>&              rELementsOfNodesSize) const
 
 {
-    const int ID_UNDEFINED = -1;
-    int       nMaxElements = 0;
-    for (auto node_id : rFaceIDs) {
+    int nMaxElements = 0;
+    for (const auto node_id : rFaceIDs) {
         nMaxElements += rELementsOfNodesSize[node_id - 1];
     }
 
-    if (nMaxElements > 0) {
-        std::vector<vector<int>> ElementIDs;
-        ElementIDs.resize(rFaceIDs.size());
-        for (unsigned int i = 0; i < ElementIDs.size(); ++i) {
-            ElementIDs[i].resize(nMaxElements);
-            std::fill(ElementIDs[i].begin(), ElementIDs[i].end(), ID_UNDEFINED);
-        }
+    if (nMaxElements == 0) return false;
 
-        for (unsigned int iPoint = 0; iPoint < rFaceIDs.size(); ++iPoint) {
-            int NodeID = rFaceIDs[iPoint];
-            int index  = NodeID - 1;
-            for (int i = 0; i < rELementsOfNodesSize[index]; ++i) {
-                int iElementID        = rELementsOfNodes[index][i];
-                ElementIDs[iPoint][i] = iElementID;
-            }
-        }
-
-        std::vector<int> SharedElementIDs;
-        for (unsigned int iPoint = 0; iPoint < rFaceIDs.size(); ++iPoint) {
-            for (unsigned int i = 0; i < ElementIDs[iPoint].size(); ++i) {
-                int  iElementID = ElementIDs[iPoint][i];
-                bool found      = false;
-                if (iElementID != ID_UNDEFINED) {
-                    for (unsigned int iPointInner = 0; iPointInner < rFaceIDs.size(); ++iPointInner) {
-                        if (iPointInner != iPoint) {
-                            // std::any_of followed by breaking out of 2 for loops
-                            for (unsigned int j = 0; j < ElementIDs[iPointInner].size(); ++j) {
-                                if (ElementIDs[iPointInner][j] == iElementID) found = true;
-                            }
-                        }
-                    }
-                }
-
-                if (found) {
-                    auto it = std::find(SharedElementIDs.begin(), SharedElementIDs.end(), iElementID);
-                    if (it == SharedElementIDs.end()) {
-                        SharedElementIDs.push_back(iElementID);
-                    }
-                }
-            }
-        }
-
-        return SharedElementIDs.size() > 1;
+    std::vector<vector<int>> ElementIDs;
+    ElementIDs.resize(rFaceIDs.size());
+    const int ID_UNDEFINED = -1;
+    for (auto& r_element_id : ElementIDs) {
+        r_element_id.resize(nMaxElements);
+        std::ranges::fill(r_element_id, ID_UNDEFINED);
     }
 
-    return false;
+    for (unsigned int iPoint = 0; iPoint < rFaceIDs.size(); ++iPoint) {
+        int NodeID = rFaceIDs[iPoint];
+        int index  = NodeID - 1;
+        for (int i = 0; i < rELementsOfNodesSize[index]; ++i) {
+            int iElementID        = rELementsOfNodes[index][i];
+            ElementIDs[iPoint][i] = iElementID;
+        }
+    }
+
+    std::vector<int> SharedElementIDs;
+    for (unsigned int iPoint = 0; iPoint < rFaceIDs.size(); ++iPoint) {
+        for (auto iElementID : ElementIDs[iPoint]) {
+            bool found = false;
+            if (iElementID == ID_UNDEFINED) continue;
+            for (unsigned int iPointInner = 0; iPointInner < rFaceIDs.size(); ++iPointInner) {
+                if (iPointInner != iPoint) {
+                    // std::any_of followed by breaking out of 2 for loops
+                    found = std::ranges::find(ElementIDs[iPointInner], iElementID) !=
+                            ElementIDs[iPointInner].end();
+                }
+            }
+
+            if (!found) continue;
+            auto it = std::find(SharedElementIDs.begin(), SharedElementIDs.end(), iElementID);
+            if (it == SharedElementIDs.end()) {
+                SharedElementIDs.push_back(iElementID);
+            }
+        }
+    }
+
+    return SharedElementIDs.size() > 1;
 }
 
 } // namespace Kratos

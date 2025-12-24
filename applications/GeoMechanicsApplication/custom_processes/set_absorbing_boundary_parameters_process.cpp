@@ -56,7 +56,7 @@ void SetAbsorbingBoundaryParametersProcess::ExecuteInitialize()
 {
     KRATOS_TRY
 
-    block_for_each(mrModelPart.Conditions(), [&](Condition& rCondition) {
+    block_for_each(mrModelPart.Conditions(), [this](Condition& rCondition) {
         rCondition.SetValue(ABSORBING_FACTORS, mAbsorbingFactors);
         rCondition.SetValue(VIRTUAL_THICKNESS, mVirtualThickness);
     });

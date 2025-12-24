@@ -51,10 +51,6 @@ ApplyWriteScalarProcess::ApplyWriteScalarProcess(ModelPart& model_part, Paramete
     KRATOS_CATCH("")
 }
 
-void ApplyWriteScalarProcess::Execute() {}
-
-/// this function is designed for being called at the beginning of the computations
-/// right after reading the model and the groups
 void ApplyWriteScalarProcess::ExecuteInitialize()
 {
     KRATOS_TRY
@@ -71,8 +67,10 @@ void ApplyWriteScalarProcess::ExecuteInitialize()
         for (IndexType i = 0; i < nNodes; ++i) {
             ModelPart::NodesContainerType::iterator it = it_begin + i;
 
-            const IndexType nodeId = it->Id();
-            std::string fileName = mModelPartName + "_" + std::to_string(nodeId) + "_" + mVariableName + ".res";
+            const IndexType    nodeId = it->Id();
+            std::ostringstream oss;
+            oss << mModelPartName << "_" << nodeId << "_" << mVariableName << ".res";
+            const std::string fileName = oss.str();
 
             if (mAppendFile) {
                 // append instead of overwrite
