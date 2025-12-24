@@ -223,6 +223,20 @@ void AssertNodalValues(const NodeContainerType&   rNodes,
     }
 }
 
+template <typename NodeContainerType>
+void AssertNodalValues(const NodeContainerType&   rNodes,
+                       const Variable<Vector>&    rVariable,
+                       const std::vector<Vector>& rExpectedNodalValues)
+{
+    const auto actual_nodal_values = GetNodalValues(rNodes, rVariable);
+
+    ASSERT_EQ(actual_nodal_values.size(), rExpectedNodalValues.size());
+    for (auto i = std::size_t{0}; i < actual_nodal_values.size(); ++i) {
+        KRATOS_EXPECT_VECTOR_NEAR(actual_nodal_values[i], rExpectedNodalValues[i],
+                                  Testing::Defaults::absolute_tolerance);
+    }
+}
+
 } // namespace
 
 namespace Kratos::Testing
@@ -395,19 +409,10 @@ KRATOS_TEST_CASE_IN_SUITE(TestExtrapolationProcess_ExtrapolatesVectorCorrectlyFo
 
     BuildAndRunExtrapolationProcess(model, CreateExtrapolationProcessSettings(r_model_part, r_test_variable));
 
-    std::vector<Vector> expected_values = {ScalarVector(6, -1), ScalarVector(6, 0),
-                                           ScalarVector(6, 1),  ScalarVector(6, -1),
-                                           ScalarVector(6, -1), ScalarVector(6, 1)};
-    std::vector<Vector> actual_values;
-    actual_values.reserve(r_model_part.Nodes().size());
-    std::transform(r_model_part.Nodes().begin(), r_model_part.Nodes().end(),
-                   std::back_inserter(actual_values), [&r_test_variable](const auto& node) {
-        return node.FastGetSolutionStepValue(r_test_variable);
-    });
-
-    for (std::size_t i = 0; i < expected_values.size(); ++i) {
-        KRATOS_EXPECT_VECTOR_NEAR(actual_values[i], expected_values[i], Defaults::absolute_tolerance)
-    }
+    const auto expected_values =
+        std::vector<Vector>{ScalarVector(6, -1), ScalarVector(6, 0),  ScalarVector(6, 1),
+                            ScalarVector(6, -1), ScalarVector(6, -1), ScalarVector(6, 1)};
+    AssertNodalValues(r_model_part.Nodes(), r_test_variable, expected_values);
 }
 
 KRATOS_TEST_CASE_IN_SUITE(TestExtrapolationProcess_ExtrapolatesArrayCorrectlyForLinearFields,
