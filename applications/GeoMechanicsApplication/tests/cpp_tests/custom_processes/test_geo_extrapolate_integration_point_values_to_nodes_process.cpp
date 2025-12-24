@@ -165,6 +165,11 @@ void SetIntegrationPointValues(Element& rElement, const std::vector<double>& rVa
     dynamic_cast<StubElementForNodalExtrapolationTest&>(rElement).mIntegrationDoubleValues = rValues;
 }
 
+void SetIntegrationPointValues(Element& rElement, const std::vector<Matrix>& rValues)
+{
+    dynamic_cast<StubElementForNodalExtrapolationTest&>(rElement).mIntegrationMatrixValues = rValues;
+}
+
 void BuildAndRunExtrapolationProcess(Model& rModel, const Parameters& rProcessSettings)
 {
     auto extrapolation_process = GeoExtrapolateIntegrationPointValuesToNodesProcess{rModel, rProcessSettings};
@@ -318,14 +323,14 @@ KRATOS_TEST_CASE_IN_SUITE(TestExtrapolationProcess_ExtrapolatesMatrixCorrectlyFo
     auto&       r_model_part    = CreateModelPartWithTwoStubElements(model, r_test_variable);
 
     // Linear field in x between -1 and 1
-    dynamic_cast<StubElementForNodalExtrapolationTest&>(r_model_part.Elements()[1]).mIntegrationMatrixValues = {
-        ScalarMatrix(3, 3, -inv_sqrt3), ScalarMatrix(3, 3, inv_sqrt3),
-        ScalarMatrix(3, 3, inv_sqrt3), ScalarMatrix(3, 3, -inv_sqrt3)};
+    SetIntegrationPointValues(r_model_part.Elements()[1],
+                              {ScalarMatrix(3, 3, -inv_sqrt3), ScalarMatrix(3, 3, inv_sqrt3),
+                               ScalarMatrix(3, 3, inv_sqrt3), ScalarMatrix(3, 3, -inv_sqrt3)});
 
     // Linear field in y between -1 and 1
-    dynamic_cast<StubElementForNodalExtrapolationTest&>(r_model_part.Elements()[2]).mIntegrationMatrixValues = {
-        ScalarMatrix(3, 3, -inv_sqrt3), ScalarMatrix(3, 3, -inv_sqrt3),
-        ScalarMatrix(3, 3, inv_sqrt3), ScalarMatrix(3, 3, inv_sqrt3)};
+    SetIntegrationPointValues(r_model_part.Elements()[2],
+                              {ScalarMatrix(3, 3, -inv_sqrt3), ScalarMatrix(3, 3, -inv_sqrt3),
+                               ScalarMatrix(3, 3, inv_sqrt3), ScalarMatrix(3, 3, inv_sqrt3)});
 
     BuildAndRunExtrapolationProcess(model, CreateExtrapolationProcessSettings(r_model_part, r_test_variable));
 
