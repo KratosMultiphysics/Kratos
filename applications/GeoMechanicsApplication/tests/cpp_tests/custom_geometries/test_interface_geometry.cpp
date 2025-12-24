@@ -11,7 +11,7 @@
 //                   Anne van de Graaf
 //
 
-#include "custom_geometries/interface_geometry.h"
+#include "custom_geometries/interface_geometry.hpp"
 #include "geometries/geometry_data.h"
 #include "geometries/line_2d_2.h"
 #include "geometries/line_2d_3.h"

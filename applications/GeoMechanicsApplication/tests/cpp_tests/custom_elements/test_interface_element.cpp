@@ -19,7 +19,7 @@
 #include "custom_constitutive/three_dimensional.h"
 #include "custom_elements/interface_element.h"
 #include "custom_elements/interface_stress_state.h"
-#include "custom_geometries/interface_geometry.h"
+#include "custom_geometries/interface_geometry.hpp"
 #include "custom_utilities/ublas_utilities.h"
 #include "geo_mechanics_application_variables.h"
 #include "test_setup_utilities/element_setup_utilities.h"
@@ -557,11 +557,26 @@ KRATOS_TEST_CASE_IN_SUITE(LineInterfaceElement_RightHandSideEqualsMinusInternalF
     // Act
     Vector actual_right_hand_side;
     element.CalculateRightHandSide(actual_right_hand_side, ProcessInfo{});
-
     // Assert
     auto expected_right_hand_side = Vector{8};
     expected_right_hand_side <<= 1.0, 5.0, 1.0, 5.0, -1.0, -5.0, -1.0, -5.0;
     KRATOS_EXPECT_VECTOR_RELATIVE_NEAR(actual_right_hand_side, expected_right_hand_side, Defaults::relative_tolerance)
+
+    // Act
+    Vector actual_external_forces_vector;
+    element.Calculate(EXTERNAL_FORCES_VECTOR, actual_external_forces_vector, ProcessInfo{});
+    // Assert
+    const auto expected_external_forces_vector = Vector{8, 0.0};
+    KRATOS_EXPECT_VECTOR_RELATIVE_NEAR(actual_external_forces_vector,
+                                       expected_external_forces_vector, Defaults::relative_tolerance)
+
+    // Act
+    Vector actual_internal_forces_vector;
+    element.Calculate(INTERNAL_FORCES_VECTOR, actual_internal_forces_vector, ProcessInfo{});
+    // Assert
+    const auto expected_internal_forces_vector = Vector{(-1.0) * expected_right_hand_side};
+    KRATOS_EXPECT_VECTOR_RELATIVE_NEAR(actual_internal_forces_vector,
+                                       expected_internal_forces_vector, Defaults::relative_tolerance)
 }
 
 KRATOS_TEST_CASE_IN_SUITE(LineInterfaceElement_RightHandSideEqualsMinusInternalForceVector_Rotated,
