@@ -295,49 +295,51 @@ BoundedMatrix<double, 3, 3> TotalLagrangianTrussElement<TDimension>::GetFrenetSe
 /***********************************************************************************/
 
 template <SizeType TDimension>
-void TotalLagrangianTrussElement<TDimension>::GetNodalValuesVector(SystemSizeBoundedArrayType& rNodalValues) const
+void TotalLagrangianTrussElement<TDimension>::GetNodalValuesVector(
+    SystemSizeBoundedArrayType& rNodalValues
+) const
 {
-    if (rNodalValues.size() != SystemSize)
-        rNodalValues.resize(SystemSize, false);
-    const auto &r_geom = GetGeometry();
-    BoundedVector<double, SystemSize> global_values;
-    BoundedMatrix<double, DofsPerNode, DofsPerNode> T;
-    BoundedMatrix<double, SystemSize, SystemSize> global_size_T;
+    // if (rNodalValues.size() != SystemSize)
+    //     rNodalValues.resize(SystemSize, false);
+    // const auto &r_geom = GetGeometry();
+    // BoundedVector<double, SystemSize> global_values;
+    // BoundedMatrix<double, DofsPerNode, DofsPerNode> T;
+    // BoundedMatrix<double, SystemSize, SystemSize> global_size_T;
 
-    if constexpr (Dimension == 2) {
+    // if constexpr (Dimension == 2) {
 
-        const double angle = GetAngle();
-        // We fill the vector with global values
-        for (SizeType i = 0; i < NNodes; ++i) {
-            const auto& r_displ = r_geom[i].FastGetSolutionStepValue(DISPLACEMENT);
-            global_values[i * DofsPerNode]     = r_displ[0];
-            global_values[i * DofsPerNode + 1] = r_displ[1];
-        }
+    //     const double angle = GetAngle();
+    //     // We fill the vector with global values
+    //     for (SizeType i = 0; i < NNodes; ++i) {
+    //         const auto& r_displ = r_geom[i].FastGetSolutionStepValue(DISPLACEMENT);
+    //         global_values[i * DofsPerNode]     = r_displ[0];
+    //         global_values[i * DofsPerNode + 1] = r_displ[1];
+    //     }
 
-        StructuralMechanicsElementUtilities::BuildRotationMatrixForTruss(T, angle);
-        if constexpr (NNodes == 2) {
-            StructuralMechanicsElementUtilities::BuildElementSizeRotationMatrixFor2D2NTruss(T, global_size_T);
-        } else {
-            StructuralMechanicsElementUtilities::BuildElementSizeRotationMatrixFor2D3NTruss(T, global_size_T);
-        }
-        noalias(rNodalValues) = prod(trans(global_size_T), global_values);
-    } else {
-        // We fill the vector with global values
-        for (SizeType i = 0; i < NNodes; ++i) {
-            const auto& r_displ = r_geom[i].FastGetSolutionStepValue(DISPLACEMENT);
-            global_values[i * DofsPerNode]     = r_displ[0];
-            global_values[i * DofsPerNode + 1] = r_displ[1];
-            global_values[i * DofsPerNode + 2] = r_displ[2];
-        }
+    //     StructuralMechanicsElementUtilities::BuildRotationMatrixForTruss(T, angle);
+    //     if constexpr (NNodes == 2) {
+    //         StructuralMechanicsElementUtilities::BuildElementSizeRotationMatrixFor2D2NTruss(T, global_size_T);
+    //     } else {
+    //         StructuralMechanicsElementUtilities::BuildElementSizeRotationMatrixFor2D3NTruss(T, global_size_T);
+    //     }
+    //     noalias(rNodalValues) = prod(trans(global_size_T), global_values);
+    // } else {
+    //     // We fill the vector with global values
+    //     for (SizeType i = 0; i < NNodes; ++i) {
+    //         const auto& r_displ = r_geom[i].FastGetSolutionStepValue(DISPLACEMENT);
+    //         global_values[i * DofsPerNode]     = r_displ[0];
+    //         global_values[i * DofsPerNode + 1] = r_displ[1];
+    //         global_values[i * DofsPerNode + 2] = r_displ[2];
+    //     }
 
-        noalias(T) = GetFrenetSerretMatrix(); // global to local
-        if constexpr (NNodes == 2) {
-            StructuralMechanicsElementUtilities::BuildElementSizeRotationMatrixFor3D2NTruss(T, global_size_T);
-        } else {
-            StructuralMechanicsElementUtilities::BuildElementSizeRotationMatrixFor3D3NTruss(T, global_size_T);
-        }
-        noalias(rNodalValues) = prod(global_size_T, global_values);
-    }
+    //     noalias(T) = GetFrenetSerretMatrix(); // global to local
+    //     if constexpr (NNodes == 2) {
+    //         StructuralMechanicsElementUtilities::BuildElementSizeRotationMatrixFor3D2NTruss(T, global_size_T);
+    //     } else {
+    //         StructuralMechanicsElementUtilities::BuildElementSizeRotationMatrixFor3D3NTruss(T, global_size_T);
+    //     }
+    //     noalias(rNodalValues) = prod(global_size_T, global_values);
+    // }
 }
 
 /***********************************************************************************/
@@ -350,23 +352,25 @@ array_1d<double, 3> TotalLagrangianTrussElement<TDimension>::GetLocalAxesBodyFor
     const IndexType PointNumber
     ) const
 {
-    const auto body_force = StructuralMechanicsElementUtilities::GetBodyForce(*this, rIntegrationPoints, PointNumber);
-    array_1d<double, 3> local_body_force = ZeroVector(3);
-    
-    if constexpr (Dimension == 2) {
-        const double angle = GetAngle();
+    // const auto body_force = StructuralMechanicsElementUtilities::GetBodyForce(*this, rIntegrationPoints, PointNumber);
+    // array_1d<double, 3> local_body_force = ZeroVector(3);
 
-        const double c = std::cos(angle);
-        const double s = std::sin(angle);
-        local_body_force[0] = c * body_force[0] + s * body_force[1];
-        local_body_force[1] = -s * body_force[0] + c * body_force[1];
-        return local_body_force;
-    } else {
-        BoundedMatrix<double, Dimension, Dimension> T;
-        noalias(T) = GetFrenetSerretMatrix(); // global to local
-        noalias(local_body_force) = prod(T, body_force);
-        return local_body_force;
-    }
+    // if constexpr (Dimension == 2) {
+    //     const double angle = GetAngle();
+
+    //     const double c = std::cos(angle);
+    //     const double s = std::sin(angle);
+    //     local_body_force[0] = c * body_force[0] + s * body_force[1];
+    //     local_body_force[1] = -s * body_force[0] + c * body_force[1];
+    //     return local_body_force;
+    // } else {
+    //     BoundedMatrix<double, Dimension, Dimension> T;
+    //     noalias(T) = GetFrenetSerretMatrix(); // global to local
+    //     noalias(local_body_force) = prod(T, body_force);
+    //     return local_body_force;
+    // }
+
+    return array_1d<double, 3>();
 }
 
 /***********************************************************************************/
@@ -381,68 +385,68 @@ void TotalLagrangianTrussElement<TDimension>::CalculateLocalSystem(
 {
     KRATOS_TRY;
 
-    const auto &r_props = GetProperties();
-    const auto &r_geometry = GetGeometry();
+    // const auto &r_props = GetProperties();
+    // const auto &r_geometry = GetGeometry();
 
-    if (rLHS.size1() != SystemSize || rLHS.size2() != SystemSize) {
-        rLHS.resize(SystemSize, SystemSize, false);
-    }
-    rLHS.clear();
+    // if (rLHS.size1() != SystemSize || rLHS.size2() != SystemSize) {
+    //     rLHS.resize(SystemSize, SystemSize, false);
+    // }
+    // rLHS.clear();
 
-    if (rRHS.size() != SystemSize) {
-        rRHS.resize(SystemSize, false);
-    }
-    rRHS.clear();
+    // if (rRHS.size() != SystemSize) {
+    //     rRHS.resize(SystemSize, false);
+    // }
+    // rRHS.clear();
 
-    const auto& integration_points = IntegrationPoints(GetIntegrationMethod());
+    // const auto& integration_points = IntegrationPoints(GetIntegrationMethod());
 
-    ConstitutiveLaw::Parameters cl_values(r_geometry, r_props, rProcessInfo);
-    auto &r_cl_options = cl_values.GetOptions();
-    r_cl_options.Set(ConstitutiveLaw::COMPUTE_STRESS             , true);
-    r_cl_options.Set(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR, true);
+    // ConstitutiveLaw::Parameters cl_values(r_geometry, r_props, rProcessInfo);
+    // auto &r_cl_options = cl_values.GetOptions();
+    // r_cl_options.Set(ConstitutiveLaw::COMPUTE_STRESS             , true);
+    // r_cl_options.Set(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR, true);
 
-    const double length = CalculateLength();
-    const double J      = 0.5 * length;
-    const double area   = r_props[CROSS_AREA];
+    // const double length = CalculateLength();
+    // const double J      = 0.5 * length;
+    // const double area   = r_props[CROSS_AREA];
 
-    // Let's initialize the cl values
-    VectorType strain_vector(1), stress_vector(1);
-    MatrixType constitutive_matrix(1, 1); // Young modulus
+    // // Let's initialize the cl values
+    // VectorType strain_vector(1), stress_vector(1);
+    // MatrixType constitutive_matrix(1, 1); // Young modulus
 
-    strain_vector.clear();
-    cl_values.SetStrainVector(strain_vector);
-    cl_values.SetStressVector(stress_vector);
-    cl_values.SetConstitutiveMatrix(constitutive_matrix);
-    SystemSizeBoundedArrayType nodal_values(SystemSize);
-    GetNodalValuesVector(nodal_values); // In local axes
+    // strain_vector.clear();
+    // cl_values.SetStrainVector(strain_vector);
+    // cl_values.SetStressVector(stress_vector);
+    // cl_values.SetConstitutiveMatrix(constitutive_matrix);
+    // SystemSizeBoundedArrayType nodal_values(SystemSize);
+    // GetNodalValuesVector(nodal_values); // In local axes
 
-    SystemSizeBoundedArrayType B, N_shape, N_shapeY, N_shapeZ;
+    // SystemSizeBoundedArrayType B, N_shape, N_shapeY, N_shapeZ;
 
-    // Loop over the integration points
-    for (SizeType IP = 0; IP < integration_points.size(); ++IP) {
-        const auto local_body_forces = GetLocalAxesBodyForce(*this, integration_points, IP);
+    // // Loop over the integration points
+    // for (SizeType IP = 0; IP < integration_points.size(); ++IP) {
+    //     const auto local_body_forces = GetLocalAxesBodyForce(*this, integration_points, IP);
 
-        const double xi     = integration_points[IP].X();
-        const double weight = integration_points[IP].Weight();
-        const double jacobian_weight = weight * J * area;
-        GetShapeFunctionsValues(N_shape, length, xi);
-        GetShapeFunctionsValuesY(N_shapeY, length, xi);
-        GetShapeFunctionsValuesZ(N_shapeZ, length, xi);
-        GetFirstDerivativesShapeFunctionsValues(B, length, xi);
+    //     const double xi     = integration_points[IP].X();
+    //     const double weight = integration_points[IP].Weight();
+    //     const double jacobian_weight = weight * J * area;
+    //     GetShapeFunctionsValues(N_shape, length, xi);
+    //     GetShapeFunctionsValuesY(N_shapeY, length, xi);
+    //     GetShapeFunctionsValuesZ(N_shapeZ, length, xi);
+    //     GetFirstDerivativesShapeFunctionsValues(B, length, xi);
 
-        strain_vector[0] = inner_prod(B, nodal_values);
-        mConstitutiveLawVector[IP]->CalculateMaterialResponsePK2(cl_values); // fills stress and const. matrix
+    //     strain_vector[0] = inner_prod(B, nodal_values);
+    //     mConstitutiveLawVector[IP]->CalculateMaterialResponsePK2(cl_values); // fills stress and const. matrix
 
-        const auto pre_stress = r_props.Has(TRUSS_PRESTRESS_PK2) ? r_props[TRUSS_PRESTRESS_PK2] :  0.0;
+    //     const auto pre_stress = r_props.Has(TRUSS_PRESTRESS_PK2) ? r_props[TRUSS_PRESTRESS_PK2] :  0.0;
 
-        noalias(rLHS) += outer_prod(B, B) * constitutive_matrix(0, 0) * jacobian_weight;
-        noalias(rRHS) -= B * (stress_vector[0] + pre_stress) * jacobian_weight;
+    //     noalias(rLHS) += outer_prod(B, B) * constitutive_matrix(0, 0) * jacobian_weight;
+    //     noalias(rRHS) -= B * (stress_vector[0] + pre_stress) * jacobian_weight;
 
-        noalias(rRHS) += N_shape  * local_body_forces[0] * jacobian_weight;
-        noalias(rRHS) += N_shapeY * local_body_forces[1] * jacobian_weight;
-        noalias(rRHS) += N_shapeZ * local_body_forces[2] * jacobian_weight;
-    }
-    RotateAll(rLHS, rRHS); // rotate to global
+    //     noalias(rRHS) += N_shape  * local_body_forces[0] * jacobian_weight;
+    //     noalias(rRHS) += N_shapeY * local_body_forces[1] * jacobian_weight;
+    //     noalias(rRHS) += N_shapeZ * local_body_forces[2] * jacobian_weight;
+    // }
+    // RotateAll(rLHS, rRHS); // rotate to global
 
     KRATOS_CATCH("")
 }
@@ -457,53 +461,53 @@ void TotalLagrangianTrussElement<TDimension>::CalculateLeftHandSide(
     )
 {
     KRATOS_TRY;
-    const auto &r_props = GetProperties();
-    const auto &r_geometry = GetGeometry();
+    // const auto &r_props = GetProperties();
+    // const auto &r_geometry = GetGeometry();
 
-    if (rLHS.size1() != SystemSize || rLHS.size2() != SystemSize) {
-        rLHS.resize(SystemSize, SystemSize, false);
-    }
-    rLHS.clear();
+    // if (rLHS.size1() != SystemSize || rLHS.size2() != SystemSize) {
+    //     rLHS.resize(SystemSize, SystemSize, false);
+    // }
+    // rLHS.clear();
 
-    const auto& integration_points = IntegrationPoints(GetIntegrationMethod());
+    // const auto& integration_points = IntegrationPoints(GetIntegrationMethod());
 
-    ConstitutiveLaw::Parameters cl_values(r_geometry, r_props, rProcessInfo);
-    auto &r_cl_options = cl_values.GetOptions();
-    r_cl_options.Set(ConstitutiveLaw::COMPUTE_STRESS             , true);
-    r_cl_options.Set(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR, true);
+    // ConstitutiveLaw::Parameters cl_values(r_geometry, r_props, rProcessInfo);
+    // auto &r_cl_options = cl_values.GetOptions();
+    // r_cl_options.Set(ConstitutiveLaw::COMPUTE_STRESS             , true);
+    // r_cl_options.Set(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR, true);
 
-    const double length = CalculateLength();
-    const double J      = 0.5 * length;
-    const double area   = r_props[CROSS_AREA];
+    // const double length = CalculateLength();
+    // const double J      = 0.5 * length;
+    // const double area   = r_props[CROSS_AREA];
 
-    // Let's initialize the cl values
-    VectorType strain_vector(1), stress_vector(1);
-    MatrixType constitutive_matrix(1, 1); // Young modulus
+    // // Let's initialize the cl values
+    // VectorType strain_vector(1), stress_vector(1);
+    // MatrixType constitutive_matrix(1, 1); // Young modulus
 
-    strain_vector.clear();
-    cl_values.SetStrainVector(strain_vector);
-    cl_values.SetStressVector(stress_vector);
-    cl_values.SetConstitutiveMatrix(constitutive_matrix);
-    SystemSizeBoundedArrayType nodal_values(SystemSize);
-    GetNodalValuesVector(nodal_values); // In local axes
+    // strain_vector.clear();
+    // cl_values.SetStrainVector(strain_vector);
+    // cl_values.SetStressVector(stress_vector);
+    // cl_values.SetConstitutiveMatrix(constitutive_matrix);
+    // SystemSizeBoundedArrayType nodal_values(SystemSize);
+    // GetNodalValuesVector(nodal_values); // In local axes
 
-    SystemSizeBoundedArrayType B;
+    // SystemSizeBoundedArrayType B;
 
-    // Loop over the integration points
-    for (SizeType IP = 0; IP < integration_points.size(); ++IP) {
-        const auto local_body_forces = GetLocalAxesBodyForce(*this, integration_points, IP);
+    // // Loop over the integration points
+    // for (SizeType IP = 0; IP < integration_points.size(); ++IP) {
+    //     const auto local_body_forces = GetLocalAxesBodyForce(*this, integration_points, IP);
 
-        const double xi     = integration_points[IP].X();
-        const double weight = integration_points[IP].Weight();
-        const double jacobian_weight = weight * J * area;
-        GetFirstDerivativesShapeFunctionsValues(B, length, xi);
+    //     const double xi     = integration_points[IP].X();
+    //     const double weight = integration_points[IP].Weight();
+    //     const double jacobian_weight = weight * J * area;
+    //     GetFirstDerivativesShapeFunctionsValues(B, length, xi);
 
-        strain_vector[0] = inner_prod(B, nodal_values);
-        mConstitutiveLawVector[IP]->CalculateMaterialResponsePK2(cl_values); // fills stress and const. matrix
+    //     strain_vector[0] = inner_prod(B, nodal_values);
+    //     mConstitutiveLawVector[IP]->CalculateMaterialResponsePK2(cl_values); // fills stress and const. matrix
 
-        noalias(rLHS) += outer_prod(B, B) * constitutive_matrix(0, 0) * jacobian_weight;
-    }
-    RotateLHS(rLHS); // rotate to global
+    //     noalias(rLHS) += outer_prod(B, B) * constitutive_matrix(0, 0) * jacobian_weight;
+    // }
+    // RotateLHS(rLHS); // rotate to global
 
     KRATOS_CATCH("")
 }
@@ -518,65 +522,65 @@ void TotalLagrangianTrussElement<TDimension>::CalculateRightHandSide(
     )
 {
     KRATOS_TRY;
-    const auto &r_props = GetProperties();
-    const auto &r_geometry = GetGeometry();
+    // const auto &r_props = GetProperties();
+    // const auto &r_geometry = GetGeometry();
 
-    if (rRHS.size() != SystemSize) {
-        rRHS.resize(SystemSize, false);
-    }
-    rRHS.clear();
+    // if (rRHS.size() != SystemSize) {
+    //     rRHS.resize(SystemSize, false);
+    // }
+    // rRHS.clear();
 
-    const auto& integration_points = IntegrationPoints(GetIntegrationMethod());
+    // const auto& integration_points = IntegrationPoints(GetIntegrationMethod());
 
-    ConstitutiveLaw::Parameters cl_values(r_geometry, r_props, rProcessInfo);
-    auto &r_cl_options = cl_values.GetOptions();
-    r_cl_options.Set(ConstitutiveLaw::COMPUTE_STRESS             , true);
-    r_cl_options.Set(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR, true);
+    // ConstitutiveLaw::Parameters cl_values(r_geometry, r_props, rProcessInfo);
+    // auto &r_cl_options = cl_values.GetOptions();
+    // r_cl_options.Set(ConstitutiveLaw::COMPUTE_STRESS             , true);
+    // r_cl_options.Set(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR, true);
 
-    const double length = CalculateLength();
-    const double J      = 0.5 * length;
-    const double area   = r_props[CROSS_AREA];
+    // const double length = CalculateLength();
+    // const double J      = 0.5 * length;
+    // const double area   = r_props[CROSS_AREA];
 
-    // Let's initialize the cl values
-    VectorType strain_vector(1), stress_vector(1);
-    MatrixType constitutive_matrix(1, 1); // Young modulus
+    // // Let's initialize the cl values
+    // VectorType strain_vector(1), stress_vector(1);
+    // MatrixType constitutive_matrix(1, 1); // Young modulus
 
-    strain_vector.clear();
-    cl_values.SetStrainVector(strain_vector);
-    cl_values.SetStressVector(stress_vector);
-    cl_values.SetConstitutiveMatrix(constitutive_matrix);
-    SystemSizeBoundedArrayType nodal_values(SystemSize);
-    GetNodalValuesVector(nodal_values); // In local axes
+    // strain_vector.clear();
+    // cl_values.SetStrainVector(strain_vector);
+    // cl_values.SetStressVector(stress_vector);
+    // cl_values.SetConstitutiveMatrix(constitutive_matrix);
+    // SystemSizeBoundedArrayType nodal_values(SystemSize);
+    // GetNodalValuesVector(nodal_values); // In local axes
 
-    SystemSizeBoundedArrayType B, N_shape, N_shapeY, N_shapeZ;
+    // SystemSizeBoundedArrayType B, N_shape, N_shapeY, N_shapeZ;
 
-    // Loop over the integration points
-    for (SizeType IP = 0; IP < integration_points.size(); ++IP) {
-        const auto local_body_forces = GetLocalAxesBodyForce(*this, integration_points, IP);
+    // // Loop over the integration points
+    // for (SizeType IP = 0; IP < integration_points.size(); ++IP) {
+    //     const auto local_body_forces = GetLocalAxesBodyForce(*this, integration_points, IP);
 
-        const double xi     = integration_points[IP].X();
-        const double weight = integration_points[IP].Weight();
-        const double jacobian_weight = weight * J * area;
-        GetShapeFunctionsValues(N_shape, length, xi);
-        GetShapeFunctionsValuesY(N_shapeY, length, xi);
-        GetShapeFunctionsValuesZ(N_shapeZ, length, xi);
-        GetFirstDerivativesShapeFunctionsValues(B, length, xi);
+    //     const double xi     = integration_points[IP].X();
+    //     const double weight = integration_points[IP].Weight();
+    //     const double jacobian_weight = weight * J * area;
+    //     GetShapeFunctionsValues(N_shape, length, xi);
+    //     GetShapeFunctionsValuesY(N_shapeY, length, xi);
+    //     GetShapeFunctionsValuesZ(N_shapeZ, length, xi);
+    //     GetFirstDerivativesShapeFunctionsValues(B, length, xi);
 
-        strain_vector[0] = inner_prod(B, nodal_values);
-        mConstitutiveLawVector[IP]->CalculateMaterialResponsePK2(cl_values); // fills stress and const. matrix
+    //     strain_vector[0] = inner_prod(B, nodal_values);
+    //     mConstitutiveLawVector[IP]->CalculateMaterialResponsePK2(cl_values); // fills stress and const. matrix
 
-        double pre_stress = 0.0;
-        if (r_props.Has(TRUSS_PRESTRESS_PK2)) {
-            pre_stress = r_props[TRUSS_PRESTRESS_PK2];
-        }
+    //     double pre_stress = 0.0;
+    //     if (r_props.Has(TRUSS_PRESTRESS_PK2)) {
+    //         pre_stress = r_props[TRUSS_PRESTRESS_PK2];
+    //     }
 
-        noalias(rRHS) -= B * (stress_vector[0] + pre_stress) * jacobian_weight;
+    //     noalias(rRHS) -= B * (stress_vector[0] + pre_stress) * jacobian_weight;
 
-        noalias(rRHS) += N_shape  * local_body_forces[0] * jacobian_weight;
-        noalias(rRHS) += N_shapeY * local_body_forces[1] * jacobian_weight;
-        noalias(rRHS) += N_shapeZ * local_body_forces[2] * jacobian_weight;
-    }
-    RotateRHS(rRHS); // rotate to global
+    //     noalias(rRHS) += N_shape  * local_body_forces[0] * jacobian_weight;
+    //     noalias(rRHS) += N_shapeY * local_body_forces[1] * jacobian_weight;
+    //     noalias(rRHS) += N_shapeZ * local_body_forces[2] * jacobian_weight;
+    // }
+    // RotateRHS(rRHS); // rotate to global
 
     KRATOS_CATCH("")
 }
@@ -589,28 +593,28 @@ void TotalLagrangianTrussElement<TDimension>::RotateLHS(
     MatrixType& rLHS
 )
 {
-    BoundedMatrix<double, SystemSize, SystemSize> global_size_T, aux_product;
-    BoundedMatrix<double, DofsPerNode, DofsPerNode> T;
-    if constexpr (Dimension == 2) {
-        const double angle = GetAngle();
+    // BoundedMatrix<double, SystemSize, SystemSize> global_size_T, aux_product;
+    // BoundedMatrix<double, DofsPerNode, DofsPerNode> T;
+    // if constexpr (Dimension == 2) {
+    //     const double angle = GetAngle();
 
-        StructuralMechanicsElementUtilities::BuildRotationMatrixForTruss(T, angle);
-        if constexpr (NNodes == 2) {
-            StructuralMechanicsElementUtilities::BuildElementSizeRotationMatrixFor2D2NTruss(T, global_size_T);
-        } else {
-            StructuralMechanicsElementUtilities::BuildElementSizeRotationMatrixFor2D3NTruss(T, global_size_T);
-        }
-    } else {
-        noalias(T) = trans(GetFrenetSerretMatrix()); // global to local
+    //     StructuralMechanicsElementUtilities::BuildRotationMatrixForTruss(T, angle);
+    //     if constexpr (NNodes == 2) {
+    //         StructuralMechanicsElementUtilities::BuildElementSizeRotationMatrixFor2D2NTruss(T, global_size_T);
+    //     } else {
+    //         StructuralMechanicsElementUtilities::BuildElementSizeRotationMatrixFor2D3NTruss(T, global_size_T);
+    //     }
+    // } else {
+    //     noalias(T) = trans(GetFrenetSerretMatrix()); // global to local
 
-        if constexpr (NNodes == 2) {
-            StructuralMechanicsElementUtilities::BuildElementSizeRotationMatrixFor3D2NTruss(T, global_size_T);
-        } else {
-            StructuralMechanicsElementUtilities::BuildElementSizeRotationMatrixFor3D3NTruss(T, global_size_T);
-        }
-    }
-    noalias(aux_product) = prod(rLHS, trans(global_size_T));
-    noalias(rLHS) = prod(global_size_T, aux_product);
+    //     if constexpr (NNodes == 2) {
+    //         StructuralMechanicsElementUtilities::BuildElementSizeRotationMatrixFor3D2NTruss(T, global_size_T);
+    //     } else {
+    //         StructuralMechanicsElementUtilities::BuildElementSizeRotationMatrixFor3D3NTruss(T, global_size_T);
+    //     }
+    // }
+    // noalias(aux_product) = prod(rLHS, trans(global_size_T));
+    // noalias(rLHS) = prod(global_size_T, aux_product);
 }
 
 /***********************************************************************************/
@@ -621,29 +625,29 @@ void TotalLagrangianTrussElement<TDimension>::RotateRHS(
     VectorType& rRHS
 )
 {
-    BoundedMatrix<double, DofsPerNode, DofsPerNode> T;
-    BoundedMatrix<double, SystemSize, SystemSize> global_size_T;
-    BoundedVector<double, SystemSize> local_rhs;
+    // BoundedMatrix<double, DofsPerNode, DofsPerNode> T;
+    // BoundedMatrix<double, SystemSize, SystemSize> global_size_T;
+    // BoundedVector<double, SystemSize> local_rhs;
 
-    if constexpr (Dimension == 2) {
-        const double angle = GetAngle();
-        StructuralMechanicsElementUtilities::BuildRotationMatrixForTruss(T, angle);
-        if constexpr (NNodes == 2) {
-            StructuralMechanicsElementUtilities::BuildElementSizeRotationMatrixFor2D2NTruss(T, global_size_T);
-        } else {
-            StructuralMechanicsElementUtilities::BuildElementSizeRotationMatrixFor2D3NTruss(T, global_size_T);
-        }
+    // if constexpr (Dimension == 2) {
+    //     const double angle = GetAngle();
+    //     StructuralMechanicsElementUtilities::BuildRotationMatrixForTruss(T, angle);
+    //     if constexpr (NNodes == 2) {
+    //         StructuralMechanicsElementUtilities::BuildElementSizeRotationMatrixFor2D2NTruss(T, global_size_T);
+    //     } else {
+    //         StructuralMechanicsElementUtilities::BuildElementSizeRotationMatrixFor2D3NTruss(T, global_size_T);
+    //     }
 
-    } else {
-        noalias(T) = trans(GetFrenetSerretMatrix()); // global to local
-        if constexpr (NNodes == 2) {
-            StructuralMechanicsElementUtilities::BuildElementSizeRotationMatrixFor3D2NTruss(T, global_size_T);
-        } else {
-            StructuralMechanicsElementUtilities::BuildElementSizeRotationMatrixFor3D3NTruss(T, global_size_T);
-        }
-    }
-    noalias(local_rhs) = rRHS;
-    noalias(rRHS) = prod(global_size_T, local_rhs);
+    // } else {
+    //     noalias(T) = trans(GetFrenetSerretMatrix()); // global to local
+    //     if constexpr (NNodes == 2) {
+    //         StructuralMechanicsElementUtilities::BuildElementSizeRotationMatrixFor3D2NTruss(T, global_size_T);
+    //     } else {
+    //         StructuralMechanicsElementUtilities::BuildElementSizeRotationMatrixFor3D3NTruss(T, global_size_T);
+    //     }
+    // }
+    // noalias(local_rhs) = rRHS;
+    // noalias(rRHS) = prod(global_size_T, local_rhs);
 }
 
 /***********************************************************************************/
@@ -655,34 +659,34 @@ void TotalLagrangianTrussElement<TDimension>::RotateAll(
     VectorType& rRHS
 )
 {
-    BoundedMatrix<double, DofsPerNode, DofsPerNode> T;
-    BoundedMatrix<double, SystemSize, SystemSize> global_size_T, aux_product;
-    BoundedVector<double, SystemSize> local_rhs;
+    // BoundedMatrix<double, DofsPerNode, DofsPerNode> T;
+    // BoundedMatrix<double, SystemSize, SystemSize> global_size_T, aux_product;
+    // BoundedVector<double, SystemSize> local_rhs;
 
-    if constexpr (Dimension == 2) {
-        const double angle = GetAngle();
-        StructuralMechanicsElementUtilities::BuildRotationMatrixForTruss(T, angle);
+    // if constexpr (Dimension == 2) {
+    //     const double angle = GetAngle();
+    //     StructuralMechanicsElementUtilities::BuildRotationMatrixForTruss(T, angle);
 
-        if constexpr (NNodes == 2) {
-            StructuralMechanicsElementUtilities::BuildElementSizeRotationMatrixFor2D2NTruss(T, global_size_T);
-        } else {
-            StructuralMechanicsElementUtilities::BuildElementSizeRotationMatrixFor2D3NTruss(T, global_size_T);
-        }
+    //     if constexpr (NNodes == 2) {
+    //         StructuralMechanicsElementUtilities::BuildElementSizeRotationMatrixFor2D2NTruss(T, global_size_T);
+    //     } else {
+    //         StructuralMechanicsElementUtilities::BuildElementSizeRotationMatrixFor2D3NTruss(T, global_size_T);
+    //     }
 
-    } else {
-        noalias(T) = trans(GetFrenetSerretMatrix()); // global to local
-        if constexpr (NNodes == 2) {
-            StructuralMechanicsElementUtilities::BuildElementSizeRotationMatrixFor3D2NTruss(T, global_size_T);
-        } else {
-            StructuralMechanicsElementUtilities::BuildElementSizeRotationMatrixFor3D3NTruss(T, global_size_T);
-        }
-    }
+    // } else {
+    //     noalias(T) = trans(GetFrenetSerretMatrix()); // global to local
+    //     if constexpr (NNodes == 2) {
+    //         StructuralMechanicsElementUtilities::BuildElementSizeRotationMatrixFor3D2NTruss(T, global_size_T);
+    //     } else {
+    //         StructuralMechanicsElementUtilities::BuildElementSizeRotationMatrixFor3D3NTruss(T, global_size_T);
+    //     }
+    // }
 
-    noalias(local_rhs) = rRHS;
-    noalias(rRHS) = prod(global_size_T, local_rhs);
+    // noalias(local_rhs) = rRHS;
+    // noalias(rRHS) = prod(global_size_T, local_rhs);
 
-    noalias(aux_product) = prod(rLHS, trans(global_size_T));
-    noalias(rLHS) = prod(global_size_T, aux_product);
+    // noalias(aux_product) = prod(rLHS, trans(global_size_T));
+    // noalias(rLHS) = prod(global_size_T, aux_product);
 }
 
 /***********************************************************************************/
@@ -695,57 +699,57 @@ void TotalLagrangianTrussElement<TDimension>::CalculateOnIntegrationPoints(
     const ProcessInfo& rProcessInfo
     )
 {
-    const auto& integration_points = IntegrationPoints(GetIntegrationMethod());
-    rOutput.resize(integration_points.size());
+    // const auto& integration_points = IntegrationPoints(GetIntegrationMethod());
+    // rOutput.resize(integration_points.size());
 
-    if (rVariable == AXIAL_FORCE) {
-        ConstitutiveLaw::Parameters cl_values(GetGeometry(), GetProperties(), rProcessInfo);
-        VectorType strain_vector(1), stress_vector(1);
-        MatrixType C(1,1);
-        StructuralMechanicsElementUtilities::InitializeConstitutiveLawValuesForStressCalculation(cl_values, strain_vector, stress_vector, C);
+    // if (rVariable == AXIAL_FORCE) {
+    //     ConstitutiveLaw::Parameters cl_values(GetGeometry(), GetProperties(), rProcessInfo);
+    //     VectorType strain_vector(1), stress_vector(1);
+    //     MatrixType C(1,1);
+    //     StructuralMechanicsElementUtilities::InitializeConstitutiveLawValuesForStressCalculation(cl_values, strain_vector, stress_vector, C);
 
-        const double length = CalculateLength();
-        SystemSizeBoundedArrayType nodal_values(SystemSize);
-        GetNodalValuesVector(nodal_values);
+    //     const double length = CalculateLength();
+    //     SystemSizeBoundedArrayType nodal_values(SystemSize);
+    //     GetNodalValuesVector(nodal_values);
 
-        SystemSizeBoundedArrayType B;
-        const double area = GetProperties()[CROSS_AREA];
+    //     SystemSizeBoundedArrayType B;
+    //     const double area = GetProperties()[CROSS_AREA];
 
-        // Loop over the integration points
-        for (SizeType IP = 0; IP < integration_points.size(); ++IP) {
-            const double xi = integration_points[IP].X();
-            GetFirstDerivativesShapeFunctionsValues(B, length, xi);
+    //     // Loop over the integration points
+    //     for (SizeType IP = 0; IP < integration_points.size(); ++IP) {
+    //         const double xi = integration_points[IP].X();
+    //         GetFirstDerivativesShapeFunctionsValues(B, length, xi);
 
-            strain_vector[0] = inner_prod(B, nodal_values);
+    //         strain_vector[0] = inner_prod(B, nodal_values);
 
-            mConstitutiveLawVector[IP]->CalculateMaterialResponsePK2(cl_values);
+    //         mConstitutiveLawVector[IP]->CalculateMaterialResponsePK2(cl_values);
 
-            double pre_stress = 0.0;
-            if (GetProperties().Has(TRUSS_PRESTRESS_PK2)) {
-                pre_stress = GetProperties()[TRUSS_PRESTRESS_PK2];
-            }
+    //         double pre_stress = 0.0;
+    //         if (GetProperties().Has(TRUSS_PRESTRESS_PK2)) {
+    //             pre_stress = GetProperties()[TRUSS_PRESTRESS_PK2];
+    //         }
 
-            rOutput[IP] = (cl_values.GetStressVector()[0] + pre_stress) * area;
-        }
-    } else if (rVariable == AXIAL_STRAIN) {
-        ConstitutiveLaw::Parameters cl_values(GetGeometry(), GetProperties(), rProcessInfo);
-        VectorType strain_vector(1), stress_vector(1);
-        MatrixType C(1,1);
-        StructuralMechanicsElementUtilities::InitializeConstitutiveLawValuesForStressCalculation(cl_values, strain_vector, stress_vector, C);
+    //         rOutput[IP] = (cl_values.GetStressVector()[0] + pre_stress) * area;
+    //     }
+    // } else if (rVariable == AXIAL_STRAIN) {
+    //     ConstitutiveLaw::Parameters cl_values(GetGeometry(), GetProperties(), rProcessInfo);
+    //     VectorType strain_vector(1), stress_vector(1);
+    //     MatrixType C(1,1);
+    //     StructuralMechanicsElementUtilities::InitializeConstitutiveLawValuesForStressCalculation(cl_values, strain_vector, stress_vector, C);
 
-        const double length = CalculateLength();
-        SystemSizeBoundedArrayType nodal_values(SystemSize);
-        GetNodalValuesVector(nodal_values);
+    //     const double length = CalculateLength();
+    //     SystemSizeBoundedArrayType nodal_values(SystemSize);
+    //     GetNodalValuesVector(nodal_values);
 
-        SystemSizeBoundedArrayType B;
+    //     SystemSizeBoundedArrayType B;
 
-        // Loop over the integration points
-        for (SizeType IP = 0; IP < integration_points.size(); ++IP) {
-            const double xi = integration_points[IP].X();
-            GetFirstDerivativesShapeFunctionsValues(B, length, xi);
-            rOutput[IP] = inner_prod(B, nodal_values);
-        }
-    }
+    //     // Loop over the integration points
+    //     for (SizeType IP = 0; IP < integration_points.size(); ++IP) {
+    //         const double xi = integration_points[IP].X();
+    //         GetFirstDerivativesShapeFunctionsValues(B, length, xi);
+    //         rOutput[IP] = inner_prod(B, nodal_values);
+    //     }
+    // }
 }
 
 /***********************************************************************************/
@@ -758,32 +762,32 @@ void TotalLagrangianTrussElement<TDimension>::CalculateOnIntegrationPoints(
     const ProcessInfo& rProcessInfo
     )
 {
-    const auto& integration_points = IntegrationPoints(GetIntegrationMethod());
-    rOutput.resize(integration_points.size());
+    // const auto& integration_points = IntegrationPoints(GetIntegrationMethod());
+    // rOutput.resize(integration_points.size());
 
-    if (rVariable == PK2_STRESS_VECTOR) {
-        ConstitutiveLaw::Parameters cl_values(GetGeometry(), GetProperties(), rProcessInfo);
-        VectorType strain_vector(1), stress_vector(1);
-        MatrixType constitutive_matrix(1,1);
-        StructuralMechanicsElementUtilities::InitializeConstitutiveLawValuesForStressCalculation(cl_values, strain_vector, stress_vector, constitutive_matrix);
+    // if (rVariable == PK2_STRESS_VECTOR) {
+    //     ConstitutiveLaw::Parameters cl_values(GetGeometry(), GetProperties(), rProcessInfo);
+    //     VectorType strain_vector(1), stress_vector(1);
+    //     MatrixType constitutive_matrix(1,1);
+    //     StructuralMechanicsElementUtilities::InitializeConstitutiveLawValuesForStressCalculation(cl_values, strain_vector, stress_vector, constitutive_matrix);
 
-        const double length = CalculateLength();
-        SystemSizeBoundedArrayType nodal_values(SystemSize);
-        GetNodalValuesVector(nodal_values);
+    //     const double length = CalculateLength();
+    //     SystemSizeBoundedArrayType nodal_values(SystemSize);
+    //     GetNodalValuesVector(nodal_values);
 
-        SystemSizeBoundedArrayType dN_dX;
+    //     SystemSizeBoundedArrayType dN_dX;
 
-        for (SizeType integration_point = 0; integration_point < integration_points.size(); ++integration_point) {
-            GetFirstDerivativesShapeFunctionsValues(dN_dX, length, integration_points[integration_point].X());
-            strain_vector[0] = inner_prod(dN_dX, nodal_values);
-            mConstitutiveLawVector[integration_point]->CalculateMaterialResponsePK2(cl_values);
-            auto stress = cl_values.GetStressVector()[0];
-            if (GetProperties().Has(TRUSS_PRESTRESS_PK2)) {
-                stress += GetProperties()[TRUSS_PRESTRESS_PK2];
-            }
-            rOutput[integration_point] = ScalarVector(1, stress);
-        }
-    }
+    //     for (SizeType integration_point = 0; integration_point < integration_points.size(); ++integration_point) {
+    //         GetFirstDerivativesShapeFunctionsValues(dN_dX, length, integration_points[integration_point].X());
+    //         strain_vector[0] = inner_prod(dN_dX, nodal_values);
+    //         mConstitutiveLawVector[integration_point]->CalculateMaterialResponsePK2(cl_values);
+    //         auto stress = cl_values.GetStressVector()[0];
+    //         if (GetProperties().Has(TRUSS_PRESTRESS_PK2)) {
+    //             stress += GetProperties()[TRUSS_PRESTRESS_PK2];
+    //         }
+    //         rOutput[integration_point] = ScalarVector(1, stress);
+    //     }
+    // }
 }
 /***********************************************************************************/
 /***********************************************************************************/
