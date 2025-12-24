@@ -27,7 +27,7 @@ public:
 
     ApplyVectorConstraintTableProcess(Model& rModel, const Parameters& rSettings);
 
-    ~ApplyVectorConstraintTableProcess() override;
+    ~ApplyVectorConstraintTableProcess() override = default;
 
     ApplyVectorConstraintTableProcess(const ApplyVectorConstraintTableProcess&)            = delete;
     ApplyVectorConstraintTableProcess& operator=(const ApplyVectorConstraintTableProcess&) = delete;

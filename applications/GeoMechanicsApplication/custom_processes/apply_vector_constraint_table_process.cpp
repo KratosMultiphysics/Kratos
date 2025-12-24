@@ -34,8 +34,6 @@ ApplyVectorConstraintTableProcess::ApplyVectorConstraintTableProcess(Model& rMod
     }
 }
 
-ApplyVectorConstraintTableProcess::~ApplyVectorConstraintTableProcess() = default;
-
 std::vector<Parameters> ApplyVectorConstraintTableProcess::CreateParametersForActiveComponents(
     const ModelPart& rModelPart, const Parameters& rSettings)
 {

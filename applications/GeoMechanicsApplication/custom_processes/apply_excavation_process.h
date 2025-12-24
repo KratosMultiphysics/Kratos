@@ -28,7 +28,7 @@ public:
 
     ApplyExcavationProcess(Model& rModel, const Parameters& rProcessSettings);
 
-    ~ApplyExcavationProcess() override;
+    ~ApplyExcavationProcess() override = default;
 
     ApplyExcavationProcess(const ApplyExcavationProcess&)            = delete;
     ApplyExcavationProcess& operator=(const ApplyExcavationProcess&) = delete;

@@ -37,8 +37,6 @@ GeoExtrapolateIntegrationPointValuesToNodesProcess::GeoExtrapolateIntegrationPoi
     FillVariableLists(ThisParameters);
 }
 
-GeoExtrapolateIntegrationPointValuesToNodesProcess::~GeoExtrapolateIntegrationPointValuesToNodesProcess() = default;
-
 const Parameters GeoExtrapolateIntegrationPointValuesToNodesProcess::GetDefaultParameters() const
 {
     return Parameters(R"(

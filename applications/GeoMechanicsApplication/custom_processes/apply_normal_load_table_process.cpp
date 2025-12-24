@@ -156,8 +156,6 @@ void ApplyNormalLoadTableProcess::MakeProcessForTangentialComponent(const Parame
     }
 }
 
-ApplyNormalLoadTableProcess::~ApplyNormalLoadTableProcess() = default;
-
 void ApplyNormalLoadTableProcess::ExecuteInitialize()
 {
     for (const auto& process : mProcesses) {

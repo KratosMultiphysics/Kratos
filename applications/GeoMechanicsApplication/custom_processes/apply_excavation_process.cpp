@@ -58,6 +58,4 @@ void ApplyExcavationProcess::ExecuteInitialize()
 
 std::string ApplyExcavationProcess::Info() const { return "ApplyExcavationProcess"s; }
 
-ApplyExcavationProcess::~ApplyExcavationProcess() = default;
-
 } // namespace Kratos

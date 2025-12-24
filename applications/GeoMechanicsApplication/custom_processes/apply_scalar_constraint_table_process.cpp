@@ -35,8 +35,6 @@ ApplyScalarConstraintTableProcess::ApplyScalarConstraintTableProcess(ModelPart& 
     MakeInternalProcess(rProcessSettings);
 }
 
-ApplyScalarConstraintTableProcess::~ApplyScalarConstraintTableProcess() = default;
-
 void ApplyScalarConstraintTableProcess::MakeInternalProcess(const Parameters& rProcessSettings)
 {
     auto names_of_settings_to_copy = std::vector<std::string>{"model_part_name", "variable_name"};
