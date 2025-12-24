@@ -16,7 +16,7 @@
 #include "includes/define.h"
 
 // Project includes
-#include "small_strain_umat_law.hpp"
+#include "small_strain_umat_law.h"
 
 namespace Kratos
 {
@@ -48,9 +48,12 @@ namespace Kratos
 // matrix/vector sizes to be consistent with a 3D model). Be careful with changing this, as it may
 // lead to UMATs writing to out-of-bounds memory locations. Locally, the static definition of
 // VoigtSize is used to ensure copying/using only the necessary data
-class KRATOS_API(GEO_MECHANICS_APPLICATION) SmallStrainUMAT2DInterfaceLaw : public SmallStrainUMATLaw<VOIGT_SIZE_3D>
+class KRATOS_API(GEO_MECHANICS_APPLICATION) SmallStrainUMAT3DInterfaceLaw : public SmallStrainUMATLaw<VOIGT_SIZE_3D>
 {
 public:
+    // The process info type definition
+    using ProcessInfoType = ProcessInfo;
+
     // The base class ConstitutiveLaw type definition
     using BaseType = ConstitutiveLaw;
 
@@ -58,15 +61,15 @@ public:
     using SizeType = std::size_t;
 
     /// Static definition of the dimension
-    static constexpr SizeType Dimension = N_DIM_2D;
+    static constexpr SizeType Dimension = N_DIM_3D;
 
-    /// Static definition of the VoigtSize
-    static constexpr SizeType VoigtSize = VOIGT_SIZE_2D_INTERFACE;
+    /// Static definition of the Voigt Size
+    static constexpr SizeType VoigtSize = VOIGT_SIZE_3D_INTERFACE;
 
-    /// Pointer definition of SmallStrainUMAT2DInterfaceLaw
-    KRATOS_CLASS_POINTER_DEFINITION(SmallStrainUMAT2DInterfaceLaw);
+    /// Pointer definition of SmallStrainUMAT3DInterfaceLaw
+    KRATOS_CLASS_POINTER_DEFINITION(SmallStrainUMAT3DInterfaceLaw);
 
-    explicit SmallStrainUMAT2DInterfaceLaw(std::unique_ptr<ConstitutiveLawDimension> pConstitutiveDimension);
+    explicit SmallStrainUMAT3DInterfaceLaw(std::unique_ptr<ConstitutiveLawDimension> pConstitutiveDimension);
 
     //@}
     //@name Life Cycle
@@ -76,34 +79,33 @@ public:
      * @brief Clone method
      */
     ConstitutiveLaw::Pointer Clone() const override;
-
-    Vector& GetValue(const Variable<Vector>& rThisVariable, Vector& rValue) override;
     using SmallStrainUMATLaw::GetValue;
+    Vector& GetValue(const Variable<Vector>& rThisVariable, Vector& rValue) override;
 
-    void SetValue(const Variable<Vector>& rVariable, const Vector& rValue, const ProcessInfo& rCurrentProcessInfo) override;
     using SmallStrainUMATLaw::SetValue;
+    void SetValue(const Variable<Vector>& rVariable, const Vector& rValue, const ProcessInfo& rCurrentProcessInfo) override;
 
     /**
      * @brief Dimension of the law:
      */
-    SizeType WorkingSpaceDimension() override { return Dimension; }
+    SizeType WorkingSpaceDimension() override;
 
     /**
      * @brief Voigt tensor size:
      */
-    SizeType GetStrainSize() const override { return VoigtSize; }
+    SizeType GetStrainSize() const override;
 
     /**
      * @brief Returns the expected strain measure of this constitutive law (by default Green-Lagrange)
      * @return the expected strain measure
      */
-    StrainMeasure GetStrainMeasure() override { return StrainMeasure_Infinitesimal; }
+    StrainMeasure GetStrainMeasure() override;
 
     /**
      * returns the stress measure of this constitutive law (by default 1st Piola-Kirchhoff stress in voigt notation)
      * @return the expected stress measure
      */
-    StressMeasure GetStressMeasure() override { return StressMeasure_Cauchy; }
+    StressMeasure GetStressMeasure() override;
 
     ///@}
     ///@name Inquiry
@@ -114,16 +116,13 @@ public:
     ///@{
 
     /// Turn back information as a string.
-    std::string Info() const override { return "SmallStrainUMAT2DInterfaceLaw"; }
+    std::string Info() const override;
 
     /// Print information about this object.
-    void PrintInfo(std::ostream& rOStream) const override { rOStream << Info(); }
+    void PrintInfo(std::ostream& rOStream) const override;
 
     /// Print object's data.
-    void PrintData(std::ostream& rOStream) const override
-    {
-        rOStream << "SmallStrainUMAT2DInterfaceLaw Data";
-    }
+    void PrintData(std::ostream& rOStream) const override;
 
     ///@}
     ///@name Friends
@@ -170,7 +169,7 @@ private:
     ///@name Static Member Variables
     ///@{
 
-    static indexStress3D getIndex3D(indexStress2DInterface index2D);
+    static indexStress3D getIndex3D(indexStress3DInterface index3D);
 
     ///@}
     ///@name Member Variables
@@ -193,11 +192,11 @@ private:
     ///@{
     friend class Serializer;
 
+    SmallStrainUMAT3DInterfaceLaw() = default;
+
     void save(Serializer& rSerializer) const override;
 
     void load(Serializer& rSerializer) override;
-
-    SmallStrainUMAT2DInterfaceLaw();
 
     ///@}
     ///@name Private Inquiry
@@ -209,7 +208,7 @@ private:
 
     ///@}
 
-}; // Class SmallStrainUMAT2DInterfaceLaw
+}; // Class SmallStrainUMAT3DInterfaceLaw
 
 ///@}
 

@@ -90,7 +90,7 @@ public:
     KRATOS_CLASS_POINTER_DEFINITION(SmallStrainUDSMLaw);
 
     explicit SmallStrainUDSMLaw(std::unique_ptr<ConstitutiveLawDimension> pDimension = nullptr);
-    ~SmallStrainUDSMLaw() override;
+    ~SmallStrainUDSMLaw() override = default;
 
     // This constitutive law cannot be copied. Use member function `Clone` instead.
     SmallStrainUDSMLaw(const SmallStrainUDSMLaw&)            = delete;

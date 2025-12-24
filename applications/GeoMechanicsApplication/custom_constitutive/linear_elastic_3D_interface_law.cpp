@@ -54,6 +54,10 @@ void LinearElastic3DInterfaceLaw::GetLawFeatures(Features& rFeatures)
     rFeatures.mSpaceDimension = WorkingSpaceDimension();
 }
 
+SizeType LinearElastic3DInterfaceLaw::WorkingSpaceDimension() { return Dimension; }
+
+SizeType LinearElastic3DInterfaceLaw::GetStrainSize() const { return VOIGT_SIZE_3D_INTERFACE; }
+
 void LinearElastic3DInterfaceLaw::CalculateElasticMatrix(Matrix& C, ConstitutiveLaw::Parameters& rValues)
 {
     KRATOS_TRY
@@ -86,4 +90,13 @@ void LinearElastic3DInterfaceLaw::CalculatePK2Stress(const Vector&              
     KRATOS_CATCH("")
 }
 
+void LinearElastic3DInterfaceLaw::save(Serializer& rSerializer) const
+{
+    KRATOS_SERIALIZE_SAVE_BASE_CLASS(rSerializer, LinearElastic2DInterfaceLaw)
+}
+
+void LinearElastic3DInterfaceLaw::load(Serializer& rSerializer)
+{
+    KRATOS_SERIALIZE_LOAD_BASE_CLASS(rSerializer, LinearElastic2DInterfaceLaw)
+}
 } // Namespace Kratos

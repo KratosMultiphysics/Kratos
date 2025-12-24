@@ -13,22 +13,19 @@
 
 #pragma once
 
-#include "constitutive_law_dimension.h"
 #include "includes/constitutive_law.h"
 #include "includes/kratos_export_api.h"
 
 namespace Kratos
 {
+class ConstitutiveLawDimension;
 
 class KRATOS_API(GEO_MECHANICS_APPLICATION) GeoIncrementalLinearElasticInterfaceLaw : public ConstitutiveLaw
 {
 public:
     using BaseType = ConstitutiveLaw;
 
-    explicit GeoIncrementalLinearElasticInterfaceLaw(std::unique_ptr<ConstitutiveLawDimension> pConstitutiveLawDimension)
-        : mpConstitutiveLawDimension(std::move(pConstitutiveLawDimension))
-    {
-    }
+    explicit GeoIncrementalLinearElasticInterfaceLaw(std::unique_ptr<ConstitutiveLawDimension> pConstitutiveLawDimension);
 
     ~GeoIncrementalLinearElasticInterfaceLaw() override = default;
     GeoIncrementalLinearElasticInterfaceLaw(const GeoIncrementalLinearElasticInterfaceLaw&) = delete;
