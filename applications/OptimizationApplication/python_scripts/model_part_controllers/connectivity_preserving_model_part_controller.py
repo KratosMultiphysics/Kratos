@@ -26,14 +26,11 @@ class ConnectivityPreservingModelPartController(ModelPartController):
 
         for sub_model_part_settings in self.parameters["transformation_settings"].values():
             sub_model_part_settings.ValidateAndAssignDefaults(default_settings["transformation_settings"].values()[0])
-            self.model_part = model.CreateModelPart(sub_model_part_settings["destination_model_part_name"].GetString())
-
-    def ImportModelPart(self) -> None:
-        connectivity_preserve_modeller = Kratos.ConnectivityPreserveModeler()
-        for transformation_settings in self.parameters["transformation_settings"].values():
+            
             # get source and destination model parts
-            source_model_part = self.model[transformation_settings["source_model_part_name"].GetString()]
-            destination_model_part_name: str = transformation_settings["destination_model_part_name"].GetString()
+            source_model_part = self.model[sub_model_part_settings["source_model_part_name"].GetString()]
+            destination_model_part_name: str = sub_model_part_settings["destination_model_part_name"].GetString()
+            
             if not self.model.HasModelPart(destination_model_part_name):
                 # if the destination model part is not there, then check whether the destination root model part is existing
                 destination_root_model_part_name = destination_model_part_name.split(".")[0]
@@ -50,10 +47,27 @@ class ConnectivityPreservingModelPartController(ModelPartController):
                         msg += f"\n\t{destination_root_model_part.FullName()} model part variables list:\n\t\t" + "\n\t\t".join(KratosOA.OptimizationUtils.GetSolutionStepVariableNamesList(destination_root_model_part))
                         msg += f"\n\t{source_model_part.FullName()} model part variables list:\n\t\t" + "\n\t\t".join(KratosOA.OptimizationUtils.GetSolutionStepVariableNamesList(source_model_part))
                         raise RuntimeError(msg)
-                KratosOA.OptimizationUtils.SetSolutionStepVariablesList(destination_root_model_part, source_model_part)
                 destination_model_part = self.model.CreateModelPart(destination_model_part_name)
             else:
                 destination_model_part = self.model[destination_model_part_name]
+
+    def ImportModelPart(self) -> None:
+        connectivity_preserve_modeller = Kratos.ConnectivityPreserveModeler()
+        for transformation_settings in self.parameters["transformation_settings"].values():
+            # get source and destination model parts
+            source_model_part = self.model[transformation_settings["source_model_part_name"].GetString()]
+            destination_model_part_name: str = transformation_settings["destination_model_part_name"].GetString()
+            destination_model_part = self.model[destination_model_part_name]
+            destination_root_model_part_name = destination_model_part_name.split(".")[0]
+            destination_root_model_part = self.model[destination_root_model_part_name]
+            
+            if not KratosOA.OptimizationUtils.IsSolutionStepVariablesListASubSet(source_model_part, destination_root_model_part):
+                msg = f"The destination root model part solution step variables at {destination_root_model_part.FullName()} is not a sub set of {source_model_part.FullName()}"
+                msg += f"\n\t{destination_root_model_part.FullName()} model part variables list:\n\t\t" + "\n\t\t".join(KratosOA.OptimizationUtils.GetSolutionStepVariableNamesList(destination_root_model_part))
+                msg += f"\n\t{source_model_part.FullName()} model part variables list:\n\t\t" + "\n\t\t".join(KratosOA.OptimizationUtils.GetSolutionStepVariableNamesList(source_model_part))
+                raise RuntimeError(msg)
+            
+            self._SetNodalSolutionStepVariablesListRecursively(destination_root_model_part, source_model_part)
 
             element_name = transformation_settings["destination_element_name"].GetString()
             condition_name = transformation_settings["destination_condition_name"].GetString()
@@ -71,3 +85,8 @@ class ConnectivityPreservingModelPartController(ModelPartController):
 
     def GetModelPart(self) -> Kratos.ModelPart:
         return None
+
+    def _SetNodalSolutionStepVariablesListRecursively(self, destination_model_part: Kratos.ModelPart, source_model_part: Kratos.ModelPart) -> None:
+        KratosOA.OptimizationUtils.SetSolutionStepVariablesList(destination_model_part, source_model_part)
+        for sub_model_part in destination_model_part.SubModelParts:
+            self._SetNodalSolutionStepVariablesListRecursively(sub_model_part, source_model_part)
