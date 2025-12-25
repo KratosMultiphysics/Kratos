@@ -1,6 +1,7 @@
 from typing import Optional
 import csv
 from pathlib import Path
+import math
 
 import KratosMultiphysics as Kratos
 import KratosMultiphysics.OptimizationApplication as KratosOA
@@ -38,6 +39,8 @@ class DamageDetectionResponse(ResponseFunction):
                 {
                     "primal_analysis_name": "Structure_static",
                     "sensor_measurement_csv_file": "measurement_data.csv",
+                    "sensor_normalization_settings": {
+                        "type": "none"},
                     "weight": 1.0,
                     "variable_io_settings": {
                         "model_part_name"           : "Structure",
@@ -66,18 +69,19 @@ class DamageDetectionResponse(ResponseFunction):
             raise RuntimeError(f"No model parts were provided for {self._GetResponsePrefix()}. [ response name = \"{self.GetName()}\"]")
 
         # reading test analsis list
-        self.list_of_test_analysis_data: 'list[tuple[ExecutionPolicyDecorator, DataIO, str, float]]' = []
+        self.list_of_test_analysis_data: 'list[tuple[ExecutionPolicyDecorator, str, Kratos.Parameters, float]]' = []
         for params in parameters["test_analysis_list"].values():
             params.ValidateAndAssignDefaults(default_settings["test_analysis_list"][0])
             primal_analysis_name = params["primal_analysis_name"].GetString()
             sensor_measurement_data_file_name = params["sensor_measurement_csv_file"].GetString()
+            sensor_normalization_settings = params["sensor_normalization_settings"]
             weight = params["weight"].GetDouble()
-            self.list_of_test_analysis_data.append((optimization_problem.GetExecutionPolicy(primal_analysis_name), sensor_measurement_data_file_name, weight))
+            self.list_of_test_analysis_data.append((optimization_problem.GetExecutionPolicy(primal_analysis_name), sensor_measurement_data_file_name, sensor_normalization_settings, weight))
 
         self.model_part_operation = ModelPartOperation(self.model, ModelPartOperation.OperationType.UNION, f"response_{self.GetName()}", evaluated_model_part_names, False)
         self.model_part: Optional[Kratos.ModelPart] = None
 
-        self.analysis_model_part_operation = ModelPartOperation(self.model, ModelPartOperation.OperationType.UNION, f"response_test_analysis_{self.GetName()}", [exec.GetAnalysisModelPart().FullName() for exec, _, _ in self.list_of_test_analysis_data], False)
+        self.analysis_model_part_operation = ModelPartOperation(self.model, ModelPartOperation.OperationType.UNION, f"response_test_analysis_{self.GetName()}", [exec.GetAnalysisModelPart().FullName() for exec, _, _, _ in self.list_of_test_analysis_data], False)
         self.analysis_model_part: Optional[Kratos.ModelPart] = None
 
         self.adjoint_analysis = SystemIdentificationStaticAnalysis(self.model, parameters["adjoint_parameters"])
@@ -103,6 +107,7 @@ class DamageDetectionResponse(ResponseFunction):
         self.list_of_sensors = GetSensors(sensor_group_data)
         for sensor in self.list_of_sensors:
             sensor.GetNode().SetValue(KratosDT.SENSOR_MEASURED_VALUE, 0.0)
+            sensor.GetNode().SetValue(KratosDT.SENSOR_NORMALIZATION_FACTOR, 1.0)
             self.damage_response_function.AddSensor(sensor)
 
         self.damage_response_function.Initialize()
@@ -123,11 +128,12 @@ class DamageDetectionResponse(ResponseFunction):
 
     def CalculateValue(self) -> float:
         result = 0.0
-        for exec_policy, sensor_measurement_data_file_name, test_case_weight in self.list_of_test_analysis_data:
+        for exec_policy, sensor_measurement_data_file_name, sensor_normalization_settings, test_case_weight in self.list_of_test_analysis_data:
             # first run the primal analysis.
             exec_policy.Execute()
 
             self.__SetSensorMeasuredValue(sensor_measurement_data_file_name)
+            self.__SetSensorNormalizationFactor(sensor_normalization_settings)
 
             result += test_case_weight * self.damage_response_function.CalculateValue(exec_policy.GetAnalysisModelPart())
             Kratos.Logger.PrintInfo(self._GetResponsePrefix(), f"Computed \"{exec_policy.GetName()}\".")
@@ -141,9 +147,10 @@ class DamageDetectionResponse(ResponseFunction):
                 Kratos.Expression.LiteralExpressionIO.SetDataToZero(container_expression, physical_variable)
 
         # now compute sensitivities for each test scenario
-        for exec_policy, sensor_measurement_data_file_name, test_case_weight in self.list_of_test_analysis_data:
+        for exec_policy, sensor_measurement_data_file_name, sensor_normalization_settings, test_case_weight in self.list_of_test_analysis_data:
             # read and replace the measurement data for each test scenario
             self.__SetSensorMeasuredValue(sensor_measurement_data_file_name)
+            self.__SetSensorNormalizationFactor(sensor_normalization_settings)
 
             # run a single adjoint for each test scenario
             self.adjoint_analysis._GetSolver().GetComputingModelPart().ProcessInfo[KratosDT.TEST_ANALYSIS_NAME] = exec_policy.GetName()
@@ -178,6 +185,51 @@ class DamageDetectionResponse(ResponseFunction):
                 if measured_sensor_name in self.sensor_name_dict:
                     self.__GetSensor(measured_sensor_name).GetNode().SetValue(KratosDT.SENSOR_MEASURED_VALUE, measured_value)
 
+    def __SetSensorNormalizationFactor(self, sensor_normalization_settings: Kratos.Parameters) -> None:
+        sensor_normalization_type = sensor_normalization_settings["type"].GetString()
+        if sensor_normalization_type == "none": 
+            normalization_factor = 1.0
+            for sensor in self.list_of_sensors:
+                sensor.GetNode().SetValue(KratosDT.SENSOR_NORMALIZATION_FACTOR, normalization_factor)
+            return
+        elif sensor_normalization_type == "maximum_measured_value":
+            normalization_factor = max(abs(sensor.GetNode().GetValue(KratosDT.SENSOR_MEASURED_VALUE)) for sensor in self.list_of_sensors)
+            if math.isclose(normalization_factor, 0.0, abs_tol=1e-16):
+                raise RuntimeError(f"The maximum measured value for sensor normalization is approximately zero ({normalization_factor}). Cannot normalize.")
+            for sensor in self.list_of_sensors:
+                sensor.GetNode().SetValue(KratosDT.SENSOR_NORMALIZATION_FACTOR, normalization_factor)
+            return
+        elif sensor_normalization_type == "average_measured_value":
+            normalization_factor = sum(abs(sensor.GetNode().GetValue(KratosDT.SENSOR_MEASURED_VALUE)) for sensor in self.list_of_sensors) / len(self.list_of_sensors)
+            if math.isclose(normalization_factor, 0.0, abs_tol=1e-16):
+                raise RuntimeError(f"The average measured value for sensor normalization is approximately zero ({normalization_factor}). Cannot normalize.")
+            for sensor in self.list_of_sensors:
+                sensor.GetNode().SetValue(KratosDT.SENSOR_NORMALIZATION_FACTOR, normalization_factor)
+            return
+        elif sensor_normalization_type == "local_measured_value":
+            for sensor in self.list_of_sensors:
+                normalization_factor = abs(sensor.GetNode().GetValue(KratosDT.SENSOR_MEASURED_VALUE))
+                if math.isclose(normalization_factor, 0.0, abs_tol=1e-16):
+                    raise RuntimeError(f"The local measured value for sensor \"{sensor.GetName()}\" normalization is approximately zero ({normalization_factor}). Cannot normalize.")
+                sensor.GetNode().SetValue(KratosDT.SENSOR_NORMALIZATION_FACTOR, normalization_factor)
+            return
+        elif sensor_normalization_type == "local_maximum_measured_value":
+            if not sensor_normalization_settings.Has("epsilon"):
+                raise RuntimeError(f"""The sensor normalization settings for type \"local_maximum_measured_value\" 
+                                   must have an \"epsilon\" value.""")
+            epsilon = sensor_normalization_settings["epsilon"].GetDouble()
+            max_measured_value = max(abs(sensor.GetNode().GetValue(KratosDT.SENSOR_MEASURED_VALUE)) for sensor in self.list_of_sensors)
+            for sensor in self.list_of_sensors:
+                normalization_factor = max(abs(sensor.GetNode().GetValue(KratosDT.SENSOR_MEASURED_VALUE)), epsilon * max_measured_value)
+                if math.isclose(normalization_factor, 0.0, abs_tol=1e-16):
+                    raise RuntimeError(f"The local maximum measured value for sensor \"{sensor.GetName()}\" normalization is approximately zero ({normalization_factor}). Cannot normalize.")
+                sensor.GetNode().SetValue(KratosDT.SENSOR_NORMALIZATION_FACTOR, normalization_factor)
+            return
+        else:
+            raise RuntimeError(f"""Unsupported sensor normalization type \"{sensor_normalization_type}\".
+                               Supported types are: none, maximum_measured_value, average_measured_value, 
+                               local_measured_value, local_maximum_measured_value.""")
+            
     def _GetResponsePrefix(self) -> str:
         return "DamageDetectionResponse"
 
