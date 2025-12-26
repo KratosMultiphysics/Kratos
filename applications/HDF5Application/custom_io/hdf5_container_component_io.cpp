@@ -250,7 +250,7 @@ bool ContainerComponentIO<TContainerType, TContainerDataIO, TComponents...>::Wri
         std::vector<int> shape(value_type_traits::Dimension);
 
         // first we have to check the availability
-        Vector<unsigned char> availability(rLocalContainer.size(), 1);
+        Vector<char> availability(rLocalContainer.size(), 1);
         Internals::DataAvailabilityStatesList container_data_availability = TContainerDataIO::DataAvailability;
 
         // check for the availability. Here we do not check for the case CONSISTENTLY_UNAVAILABLE
@@ -260,11 +260,12 @@ bool ContainerComponentIO<TContainerType, TContainerDataIO, TComponents...>::Wri
         if constexpr(TContainerDataIO::DataAvailability == Internals::DataAvailabilityStatesList::INCONCLUSIVE) {
             // the entities in the rContainer may or may not contain the rComponent. Hence, for this
             // type we need to compute the availability.
-            const auto availability_local_counts_pair = IndexPartition<IndexType>(rLocalContainer.size()).for_each<CombinedReduction<SumReduction<IndexType>, SumReduction<IndexType>>>([&rContainerDataIO, &rLocalContainer, &r_component, &availability](const auto Index) {
+            const std::tuple<char, char> availability_local_counts_pair = IndexPartition<IndexType>(rLocalContainer.size()).for_each<CombinedReduction<SumReduction<IndexType>, SumReduction<IndexType>>>([&rContainerDataIO, &rLocalContainer, &r_component, &availability](const auto Index) {
                 availability[Index] = rContainerDataIO.HasValue(*(rLocalContainer.begin() + Index), r_component);
-                return std::make_tuple<IndexType, IndexType>(availability[Index] == true, availability[Index] == false);
+                return std::make_tuple<char, char>(static_cast<char>(availability[Index] == 1), static_cast<char>(availability[Index] == 0));
             });
-            const auto& availability_global_counts_pair = mpFile->GetDataCommunicator().SumAll(std::vector<IndexType>{std::get<0>(availability_local_counts_pair), std::get<1>(availability_local_counts_pair), rLocalContainer.size()});
+
+            const auto& availability_global_counts_pair = mpFile->GetDataCommunicator().SumAll(std::vector<char>{std::get<0>(availability_local_counts_pair), std::get<1>(availability_local_counts_pair)});
 
             KRATOS_ERROR_IF(availability_global_counts_pair[1] == availability_global_counts_pair[2])
                 << "None of the entities in the container have \"" << rComponentName << "\" defined.";
@@ -290,7 +291,7 @@ bool ContainerComponentIO<TContainerType, TContainerDataIO, TComponents...>::Wri
             value_type value_prototype{};
 
             // identifying the shape of the component by looking at the first entity which has the component defined.
-            auto first_available_pos = std::find(availability.begin(), availability.end(), true);
+            auto first_available_pos = std::find(availability.begin(), availability.end(), 1);
             if (first_available_pos != availability.end()) {
                 // if the value type is not static, then we need to get the shape
                 // of the first element assuming all the entities will have the same
