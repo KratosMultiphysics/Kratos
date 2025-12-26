@@ -115,25 +115,46 @@ KRATOS_TEST_CASE_IN_SUITE(CheckFailureUmatInputsApplyCPhiReductionProcess, Krato
     const auto parameters = Parameters{R"({"model_part_name" : "dummy"})"};
 
     KRATOS_EXPECT_EXCEPTION_IS_THROWN(
-        (ApplyCPhiReductionProcess{model, parameters}.ExecuteInitializeSolutionStep()),
+        (ApplyCPhiReductionProcess{model, parameters}.Check()),
         "UMAT_PARAMETERS does not exist in the model part property with Id 0.")
 
     Vector umat_parameters(6);
     umat_parameters <<= 10000000, 0.2, 10.0, 25.0, 25.0, 1000;
     r_model_part_properties.SetValue(UMAT_PARAMETERS, umat_parameters);
 
-    // checking of Phi
+    // checking settings for Phi
     KRATOS_EXPECT_EXCEPTION_IS_THROWN(
-        (ApplyCPhiReductionProcess{model, parameters}.ExecuteInitializeSolutionStep()),
+        (ApplyCPhiReductionProcess{model, parameters}.Check()),
         "INDEX_OF_UMAT_PHI_PARAMETER does not exist in the model part property with Id 0.")
 
     r_model_part_properties.SetValue(INDEX_OF_UMAT_PHI_PARAMETER, 0);
-    KRATOS_EXPECT_EXCEPTION_IS_THROWN((ApplyCPhiReductionProcess{model, parameters}.ExecuteInitializeSolutionStep()), "INDEX_OF_UMAT_PHI_PARAMETER in the model part property with Id 0 has an invalid value: 0 is out of the range [1, 6].")
+    KRATOS_EXPECT_EXCEPTION_IS_THROWN((ApplyCPhiReductionProcess{model, parameters}.Check()),
+                                      "INDEX_OF_UMAT_PHI_PARAMETER in the model part property with "
+                                      "Id 0 has an invalid value: 0 is out of the range [1, 6].")
 
     r_model_part_properties.SetValue(INDEX_OF_UMAT_PHI_PARAMETER, 7);
-    KRATOS_EXPECT_EXCEPTION_IS_THROWN((ApplyCPhiReductionProcess{model, parameters}.ExecuteInitializeSolutionStep()), "INDEX_OF_UMAT_PHI_PARAMETER in the model part property with Id 0 has an invalid value: 7 is out of the range [1, 6].")
+    KRATOS_EXPECT_EXCEPTION_IS_THROWN((ApplyCPhiReductionProcess{model, parameters}.Check()),
+                                      "INDEX_OF_UMAT_PHI_PARAMETER in the model part property with "
+                                      "Id 0 has an invalid value: 7 is out of the range [1, 6].")
 
     r_model_part_properties.SetValue(INDEX_OF_UMAT_PHI_PARAMETER, 4);
+
+    // checking settings for c
+    KRATOS_EXPECT_EXCEPTION_IS_THROWN(
+        (ApplyCPhiReductionProcess{model, parameters}.Check()),
+        "INDEX_OF_UMAT_C_PARAMETER does not exist in the model part property with Id 0.")
+
+    r_model_part_properties.SetValue(INDEX_OF_UMAT_C_PARAMETER, 0);
+    KRATOS_EXPECT_EXCEPTION_IS_THROWN((ApplyCPhiReductionProcess{model, parameters}.Check()),
+                                      "INDEX_OF_UMAT_C_PARAMETER in the model part property with "
+                                      "Id 0 has an invalid value: 0 is out of the range [1, 6].")
+
+    r_model_part_properties.SetValue(INDEX_OF_UMAT_C_PARAMETER, 7);
+    KRATOS_EXPECT_EXCEPTION_IS_THROWN((ApplyCPhiReductionProcess{model, parameters}.Check()),
+                                      "INDEX_OF_UMAT_C_PARAMETER in the model part property with "
+                                      "Id 0 has an invalid value: 7 is out of the range [1, 6].")
+
+    // checking Phi value
     umat_parameters(3) = -0.0001;
     r_model_part_properties.SetValue(UMAT_PARAMETERS, umat_parameters);
 
@@ -145,21 +166,8 @@ KRATOS_TEST_CASE_IN_SUITE(CheckFailureUmatInputsApplyCPhiReductionProcess, Krato
 
     umat_parameters(3) = 25.0;
     r_model_part_properties.SetValue(UMAT_PARAMETERS, umat_parameters);
-    // checking of c
-    KRATOS_EXPECT_EXCEPTION_IS_THROWN(
-        (ApplyCPhiReductionProcess{model, parameters}.ExecuteInitializeSolutionStep()),
-        "Missing required item INDEX_OF_UMAT_C_PARAMETER")
 
-    r_model_part_properties.SetValue(INDEX_OF_UMAT_C_PARAMETER, 0);
-    KRATOS_EXPECT_EXCEPTION_IS_THROWN(
-        (ApplyCPhiReductionProcess{model, parameters}.ExecuteInitializeSolutionStep()),
-        "invalid INDEX_OF_UMAT_C_PARAMETER: 0 (out-of-bounds index)")
-
-    r_model_part_properties.SetValue(INDEX_OF_UMAT_C_PARAMETER, 7);
-    KRATOS_EXPECT_EXCEPTION_IS_THROWN(
-        (ApplyCPhiReductionProcess{model, parameters}.ExecuteInitializeSolutionStep()),
-        "invalid INDEX_OF_UMAT_C_PARAMETER: 7 (out-of-bounds index)")
-
+    // checking c value
     r_model_part_properties.SetValue(INDEX_OF_UMAT_C_PARAMETER, 3);
     umat_parameters(2) = -0.00001;
     r_model_part_properties.SetValue(UMAT_PARAMETERS, umat_parameters);
