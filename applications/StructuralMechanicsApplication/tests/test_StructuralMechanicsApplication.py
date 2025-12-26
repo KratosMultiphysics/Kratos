@@ -244,6 +244,7 @@ from structural_mechanics_test_factory import ShellT3AndQ4NonLinearDynamicUnstru
 from restart_tests import TestSmallDisplacement2D4N  as TTestSmallDisplacement2D4N
 from restart_tests import TestTotalLagrangian2D3N    as TTestTotalLagrangian2D3N
 from restart_tests import TestUpdatedLagrangian3D8N  as TTestUpdatedLagrangian3D8N
+from test_step_controller import TestStepControllers as TTestStepControllers
 
 ##### RESPONSE_FUNCTION #####
 from structural_response_function_test_factory import TestAdjointStrainEnergyResponseFunction as TTestAdjointStrainEnergyResponseFunction
@@ -453,6 +454,7 @@ def AssembleTestSuites():
             print("FEAST not available in LinearSolversApplication")
 
     nightSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([THarmonicAnalysisTestsWithHDF5]))
+    nightSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TTestStepControllers]))
 
     nightSuite.addTest(TTestAdjointSensitivityAnalysisBeamStructureLocalStress('test_execution'))
     nightSuite.addTest(TTestAdjointSensitivityAnalysisBeamStructureNodalDisplacement('test_execution'))
