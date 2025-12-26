@@ -420,29 +420,160 @@ class TestContainerExpressionUtils(kratos_unittest.TestCase):
         KratosOA.ExpressionUtils.HamilotinanUpdate(input_phi, output_phi, input_v, input_grad)
         # print(f"INPUT_PHI: {input_phi.Evaluate()}\nINPUT_V: {input_v.Evaluate()}\nINPUT_GRAD: {input_grad.Evaluate()}\nOUTPUT PHI: {output_phi.Evaluate()}")
 
-    def test_EPow(self):
+    def test_Heaviside(self):
+        import csv
+        import math
+        from pathlib import Path
+
+        # Heaviside parameters to sweep
+        precisions = [50, 100, 200, 1000, 2000]
+        k = 10.0
+
+        # Expression containers
         input_elemental = Kratos.Expression.ElementExpression(self.model_part)
-        output_elemental = Kratos.Expression.ElementExpression(self.model_part)
-        precision = 1000
-        k = 10
 
-        py_e = []
-        element: Kratos.Element
-        for element in self.model_part.Elements:
-            element.SetValue(Kratos.DENSITY, element.Id - 15)
-            # py_e.append((math.exp(-element.Id) + math.exp(element.Id))/2)
-            # py_e.append(2*k * math.exp(- element.Id * k * 2) / pow(math.exp(-element.Id * k * 2) + 1, 2))
-            py_e.append(1 / (1 + math.exp(-(element.Id - 15) * k * 2)))
+        # --- Build synthetic phi in [-1, 1] over the elements ---
+        elements = sorted(self.model_part.Elements, key=lambda e: e.Id)
+        n_elems = len(elements)
 
-            
+        element_ids = []
+        phi_vals = []
+
+        for i, element in enumerate(elements):
+            # linearly spaced in [-1, 1]
+            if n_elems == 1:
+                phi = 0.0
+            else:
+                phi = -1.0 + 2.0 * i / (n_elems - 1)
+
+            element.SetValue(Kratos.DENSITY, phi)
+            element_ids.append(element.Id)
+            phi_vals.append(phi)
+
+        # Read DENSITY into the input expression
         Kratos.Expression.VariableExpressionIO.Read(input_elemental, Kratos.DENSITY)
 
-        KratosOA.ExpressionUtils.Heaviside(output_elemental, input_elemental, precision, k)
-        
-        print(f"\nELEMENTAL INPUT (e POWER): {input_elemental.Evaluate()}\nELEMENTAL OUTPUT (e POWER): {output_elemental.Evaluate()}\nMATH (e POWER): {py_e}")
+        # --- Analytic reference H_ref(φ) computed ONCE ---
+        ref_vals = [
+            1.0 / (1.0 + math.exp(-2.0 * k * phi))
+            for phi in phi_vals
+        ]
 
-        for i in range(self.model_part.NumberOfElements()):
-            self.assertAlmostEqual(output_elemental.Evaluate()[i], py_e[i], 5)
+        # --- Evaluate Kratos Heaviside for each precision ---
+        kratos_results = {}  # precision -> list of H values
+
+        for precision in precisions:
+            output_elemental = Kratos.Expression.ElementExpression(self.model_part)
+            KratosOA.ExpressionUtils.Heaviside(output_elemental, input_elemental, precision, k)
+            kratos_results[precision] = list(output_elemental.Evaluate())
+
+        # --- Optional check: compare one precision against reference ---
+        # Use a reasonable decimal accuracy; 14–15 is usually plenty for doubles.
+        check_precision = precisions[-1]  # e.g. 2000
+        for i in range(n_elems):
+            self.assertAlmostEqual(
+                kratos_results[check_precision][i],
+                ref_vals[i],
+                15  # you can bump this to 17 if you want to reproduce your experiment
+            )
+
+        # --- Write everything to CSV once ---
+        out_dir = Path("analysis")
+        out_dir.mkdir(exist_ok=True)
+        out_path =  Path("heaviside_test.csv")
+
+        with out_path.open("w", newline="") as f:
+            writer = csv.writer(f)
+            header = ["element_id", "phi", "H_ref"] + [f"H_prec_{p}" for p in precisions]
+            writer.writerow(header)
+
+            for idx, eid in enumerate(element_ids):
+                row = [eid, phi_vals[idx], ref_vals[idx]]
+                for p in precisions:
+                    row.append(kratos_results[p][idx])
+                writer.writerow(row)
+
+        print(f"Heaviside test data written to {out_path}")
+
+    def test_DiracDelta(self):
+        import csv
+        import math
+        from pathlib import Path
+
+        # Precisions to test (same style as for Heaviside)
+        precisions = [50, 100, 200, 1000]
+        k = 10.0
+
+        # ContainerExpressions
+        input_elemental = Kratos.Expression.ElementExpression(self.model_part)
+
+        # --- Build synthetic phi in [-1, 1] over the elements ---
+        elements = sorted(self.model_part.Elements, key=lambda e: e.Id)
+        n_elems = len(elements)
+
+        element_ids = []
+        phi_vals = []
+
+        for i, element in enumerate(elements):
+            if n_elems == 1:
+                phi = 0.0
+            else:
+                phi = -1.0 + 2.0 * i / (n_elems - 1)  # linear in [-1,1]
+
+            element.SetValue(Kratos.DENSITY, phi)
+            element_ids.append(element.Id)
+            phi_vals.append(phi)
+
+        # Read DENSITY into the input expression
+        Kratos.Expression.VariableExpressionIO.Read(input_elemental, Kratos.DENSITY)
+
+        # --- Analytic reference δ_ref(φ) = dH/dφ ---
+        delta_ref = []
+        for phi in phi_vals:
+            s = -2.0 * k * phi
+            e = math.exp(s)
+            # H' = 2k * e^{-2k phi} / (1 + e^{-2k phi})^2
+            delta_ref.append(2.0 * k * e / (1.0 + e) ** 2)
+
+        # --- Evaluate Kratos DiracDelta for each precision ---
+        kratos_results = {}  # precision -> list of δ values
+
+        for precision in precisions:
+            output_elemental = Kratos.Expression.ElementExpression(self.model_part)
+            KratosOA.ExpressionUtils.DiracDelta(
+                output_elemental, input_elemental, precision, k
+            )
+            kratos_results[precision] = list(output_elemental.Evaluate())
+
+        # --- Optional consistency check against analytic reference ---
+        # Use a realistic decimal accuracy for doubles (12–15).
+        check_precision = precisions[-1]  # e.g. 1000
+        for i in range(n_elems):
+            self.assertAlmostEqual(
+                kratos_results[check_precision][i],
+                delta_ref[i],
+                12  # tighten/loosen as you like
+            )
+
+        # --- Write everything to CSV ---
+        out_dir = Path("analysis")
+        out_dir.mkdir(exist_ok=True)
+        out_path = out_dir / "dirac_test.csv"
+
+        with out_path.open("w", newline="") as f:
+            writer = csv.writer(f)
+            header = ["element_id", "phi", "delta_ref"] + [f"delta_prec_{p}" for p in precisions]
+            writer.writerow(header)
+
+            for idx, eid in enumerate(element_ids):
+                row = [eid, phi_vals[idx], delta_ref[idx]]
+                for p in precisions:
+                    row.append(kratos_results[p][idx])
+                writer.writerow(row)
+
+        print(f"Dirac delta test data written to {out_path}")
+
+
 
 
 if __name__ == "__main__":
