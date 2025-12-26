@@ -331,11 +331,16 @@ void BuildElementSizeRotationMatrixFor3D3NTruss(
     BoundedMatrix<double, 9, 9>& rElementSizeRotationMatrix);
 
 /**
- * @brief This function computes the inclination angle of a 2 noded beam
+ * @brief This function computes the reference inclination angle of a 2 noded beam
  * @param rGeometry The geometry of the beam
- * It assumes 3 dofs per node: u,v,theta
  */
 double GetReferenceRotationAngle2D2NBeam(const GeometryType &rGeometry);
+
+/**
+ * @brief This function computes the current inclination angle of a 2 noded beam
+ * @param rGeometry The geometry of the beam
+ */
+double GetCurrentRotationAngle2D2NBeam(const GeometryType& rGeometry);
 
 /**
  * @brief This function computes the inclination angle of a 3 noded beam

@@ -511,11 +511,24 @@ void BuildElementSizeRotationMatrixFor3D3NTruss(
 
 double GetReferenceRotationAngle2D2NBeam(const GeometryType& rGeometry)
 {
-    const auto &r_node_1 = rGeometry[0];
-    const auto &r_node_2 = rGeometry[1];
+    const auto &r_coords_1 = rGeometry[0].GetInitialPosition().Coordinates();
+    const auto &r_coords_2 = rGeometry[1].GetInitialPosition().Coordinates();
 
-    const double delta_x = r_node_2.X0() - r_node_1.X0();
-    const double delta_y = r_node_2.Y0() - r_node_1.Y0();
+    const double delta_x = r_coords_2[0] - r_coords_1[0];
+    const double delta_y = r_coords_2[1] - r_coords_1[1];
+    return std::atan2(delta_y, delta_x);
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+double GetCurrentRotationAngle2D2NBeam(const GeometryType& rGeometry)
+{
+    const auto &r_coords_1 = rGeometry[0].Coordinates();
+    const auto &r_coords_2 = rGeometry[1].Coordinates();
+
+    const double delta_x = r_coords_2[0] - r_coords_1[0];
+    const double delta_y = r_coords_2[1] - r_coords_1[1];
 
     return std::atan2(delta_y, delta_x);
 }
@@ -621,7 +634,7 @@ void BuildElementSizeRotationMatrixFor2D3NBeam(
 
 double CalculatePhi(const Properties& rProperties, const double L, const SizeType Plane)
 {
-    const double E   = rProperties[YOUNG_MODULUS];
+    const double E = rProperties[YOUNG_MODULUS];
 
     double I, G, A_s;
     if (Plane == 0) {
