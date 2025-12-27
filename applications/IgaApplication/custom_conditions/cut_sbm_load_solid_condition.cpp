@@ -101,10 +101,10 @@ void CutSbmLoadSolidCondition::InitializeSbmMemberVariables()
     const Point&  p_true = r_geometry.Center();            // true boundary
     const Point&  p_sur  = r_surrogate_geometry.Center();  // surrogate
 
-    std::ofstream out("centers.txt", std::ios::app);       // append mode
-    out << std::setprecision(15)                           // full precision
-        << p_true.X() << ' ' << p_true.Y() << ' ' << p_true.Z() << ' '
-        << p_sur .X() << ' ' << p_sur .Y() << ' ' << p_sur .Z() << '\n';
+    // std::ofstream out("centers.txt", std::ios::app);       // append mode
+    // out << std::setprecision(15)                           // full precision
+    //     << p_true.X() << ' ' << p_true.Y() << ' ' << p_true.Z() << ' '
+    //     << p_sur .X() << ' ' << p_sur .Y() << ' ' << p_sur .Z() << '\n';
 }
 
 void CutSbmLoadSolidCondition::CalculateLocalSystem(
@@ -163,22 +163,22 @@ void CutSbmLoadSolidCondition::CalculateRightHandSide(
     Vector N_sum_vec = ZeroVector(number_of_control_points);
     ComputeTaylorExpansionContribution(N_sum_vec);
 
-    Vector g_N = this->GetValue(FORCE); 
+    // Vector g_N = this->GetValue(FORCE); 
 
-    // Vector g_N = ZeroVector(3); 
+    Vector g_N = ZeroVector(3); 
 
-    // double nu = this->GetProperties().GetValue(POISSON_RATIO);
-    // double E = this->GetProperties().GetValue(YOUNG_MODULUS);
+    double nu = this->GetProperties().GetValue(POISSON_RATIO);
+    double E = this->GetProperties().GetValue(YOUNG_MODULUS);
 
-    // const double x = r_true_geometry.Center().X();
-    // const double y = r_true_geometry.Center().Y();
+    const double x = r_true_geometry.Center().X();
+    const double y = r_true_geometry.Center().Y();
 
-    // // // // cosinusoidal
-    // g_N[0] = E/(1-nu)*(sin(x)*sinh(y)) * mNormalPhysicalSpace[0]; 
-    // g_N[1] = E/(1-nu)*(sin(x)*sinh(y)) * mNormalPhysicalSpace[1]; 
+    // // // cosinusoidal
+    g_N[0] = E/(1-nu)*(sin(x)*sinh(y)) * mNormalPhysicalSpace[0]; 
+    g_N[1] = E/(1-nu)*(sin(x)*sinh(y)) * mNormalPhysicalSpace[1]; 
 
-    // // g_N[0] = E/(1-nu*nu) * mNormalPhysicalSpace[0] +  E/2/(1+nu) * mNormalPhysicalSpace[1]; 
-    // // g_N[1] = E/2/(1+nu) * mNormalPhysicalSpace[0] + E*nu/(1-nu*nu)* mNormalPhysicalSpace[1]; 
+    // g_N[0] = E/(1-nu*nu) * mNormalPhysicalSpace[0] +  E/2/(1+nu) * mNormalPhysicalSpace[1]; 
+    // g_N[1] = E/2/(1+nu) * mNormalPhysicalSpace[0] + E*nu/(1-nu*nu)* mNormalPhysicalSpace[1]; 
 
 
     for (IndexType i = 0; i < number_of_control_points; i++) {

@@ -156,6 +156,9 @@ void SbmSolidCondition::InitializeSbmMemberVariables()
 
     mDistanceVector.resize(3);
     noalias(mDistanceVector) = mpProjectionNode->Coordinates() - r_geometry.Center().Coordinates();
+
+    //FIXME:
+    // mDistanceVector = ZeroVector(3);
 }
 
 void SbmSolidCondition::CalculateLocalSystem(
@@ -485,6 +488,15 @@ void SbmSolidCondition::CalculateRightHandSide(
         //--------------------------------------------------------------------------------------------
 
         Vector u_D = mpProjectionNode->GetValue(DISPLACEMENT);
+
+        // // BODY FITTED
+        // const double x = r_geometry.Center().X();
+        // const double y = r_geometry.Center().Y();
+
+        // // // // cosinusoidal
+        // u_D[0] = -cos(x)*sinh(y); 
+        // u_D[1] = sin(x)*cosh(y); 
+
 
         for (IndexType i = 0; i < number_of_control_points; i++) {
 

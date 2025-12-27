@@ -490,7 +490,8 @@ const Parameters AssignIgaInterpolationConditionProcess::GetDefaultParameters() 
     {
         "echo_level" : 0,
         "model_part_name" : "",
-        "reference_model_part_name" : ""
+        "reference_model_part_name" : "",
+        "poly_degree": 1
     }
     )");
 
@@ -608,7 +609,9 @@ void AssignIgaInterpolationConditionProcess::AssignInterpolatedValuesToCondition
                 // Use all samples with LSQ and enforce endpoints
                 std::size_t p = round(t_nodes.size()/3)+1; // choose degree; or read from parameters
                 if (mParameters.Has("poly_degree")) {
-                    p = static_cast<std::size_t>(mParameters["poly_degree"].GetInt());
+                    std::size_t tentative_p = static_cast<std::size_t>(mParameters["poly_degree"].GetInt());
+
+                    p = std::min(p, tentative_p);
                 }
 
                 const double interpolated_value =

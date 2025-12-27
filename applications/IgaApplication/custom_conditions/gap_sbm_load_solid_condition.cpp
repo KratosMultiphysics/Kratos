@@ -117,22 +117,21 @@ void GapSbmLoadSolidCondition::InitializeSbmMemberVariables()
         
     mDistanceVectorSkin.resize(3);
     noalias(mDistanceVectorSkin) = mpSkinProjectionNode->Coordinates() - r_surrogate_geometry.Center().Coordinates();
-
-    // mDistanceVectorSkin = mDistanceVectorGap;//*1.1;
-    // mTrueNormal= mNormalPhysicalSpace;
+    mDistanceVectorSkin = mDistanceVectorGap; //FIXME:
 
     this->SetValue(PROJECTION_NODE_COORDINATES, mpSkinProjectionNode->Coordinates());
 
     // dot product n dot n_tilde
     mTrueDotSurrogateNormal = inner_prod(mNormalPhysicalSpace, mTrueNormal);
+    mTrueDotSurrogateNormal = 1; //FIXME:
 
     const Point&  p_true = r_geometry.Center();            // true boundary
     const Point&  p_sur  = r_surrogate_geometry.Center();  // surrogate
 
-    std::ofstream out("centers.txt", std::ios::app);       // append mode
-    out << std::setprecision(15)                           // full precision
-        << p_true.X() << ' ' << p_true.Y() << ' ' << p_true.Z() << ' '
-        << p_sur .X() << ' ' << p_sur .Y() << ' ' << p_sur .Z() << '\n';
+    // std::ofstream out("centers.txt", std::ios::app);       // append mode
+    // out << std::setprecision(15)                           // full precision
+    //     << p_true.X() << ' ' << p_true.Y() << ' ' << p_true.Z() << ' '
+    //     << p_sur .X() << ' ' << p_sur .Y() << ' ' << p_sur .Z() << '\n';
 }
 
 void GapSbmLoadSolidCondition::CalculateLocalSystem(
@@ -335,16 +334,11 @@ void GapSbmLoadSolidCondition::CalculateRightHandSide(
     double E = this->GetProperties().GetValue(YOUNG_MODULUS);
     Vector g_N = ZeroVector(3);
 
-    // const double x = mpSkinProjectionNode->X();
-    // const double y = mpSkinProjectionNode->Y();
-
-    const double x = r_surrogate_geometry.Center().X() + mDistanceVectorSkin[0];
-    const double y = r_surrogate_geometry.Center().Y() + mDistanceVectorSkin[1];
-
+    const double x = mpSkinProjectionNode->X();
+    const double y = mpSkinProjectionNode->Y();
     // // cosinusoidal
     g_N[0] = E/(1-nu)*(sin(x)*sinh(y)) * mTrueNormal[0]; 
     g_N[1] = E/(1-nu)*(sin(x)*sinh(y)) * mTrueNormal[1]; 
-
 
     // g_N = mpSkinProjectionNode->GetValue(FORCE);
 

@@ -118,16 +118,20 @@ void GapSbmSolidCondition::InitializeSbmMemberVariables()
 
     mpSkinProjectionNode = &(r_geometry.GetValue(NEIGHBOUR_NODES)[0]);
 
+    SetValue(PROJECTION_NODE_COORDINATES, mpSkinProjectionNode->Coordinates());
+
     mDistanceVectorSkin.resize(3);
     noalias(mDistanceVectorSkin) = mpSkinProjectionNode->Coordinates() - r_surrogate_geometry.Center().Coordinates();
+
+    mDistanceVectorSkin = mDistanceVector; //FIXME:
 
     const Point&  p_true = r_geometry.Center();            // true boundary
     const Point&  p_sur  = r_surrogate_geometry.Center();  // surrogate
 
-    std::ofstream out("centers.txt", std::ios::app);       // append mode
-    out << std::setprecision(15)                           // full precision
-        << p_true.X() << ' ' << p_true.Y() << ' ' << p_true.Z() << ' '
-        << p_sur .X() << ' ' << p_sur .Y() << ' ' << p_sur .Z() << '\n';
+    // std::ofstream out("centers.txt", std::ios::app);       // append mode
+    // out << std::setprecision(15)                           // full precision
+    //     << p_true.X() << ' ' << p_true.Y() << ' ' << p_true.Z() << ' '
+    //     << p_sur .X() << ' ' << p_sur .Y() << ' ' << p_sur .Z() << '\n';
 }
 
 void GapSbmSolidCondition::CalculateLocalSystem(

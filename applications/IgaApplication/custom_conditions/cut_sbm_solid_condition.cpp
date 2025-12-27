@@ -121,10 +121,10 @@ void CutSbmSolidCondition::InitializeSbmMemberVariables()
     const Point&  p_true = r_geometry.Center();            // true boundary
     const Point&  p_sur  = r_surrogate_geometry.Center();  // surrogate
 
-    std::ofstream out("centers.txt", std::ios::app);       // append mode
-    out << std::setprecision(15)                           // full precision
-        << p_true.X() << ' ' << p_true.Y() << ' ' << p_true.Z() << ' '
-        << p_sur .X() << ' ' << p_sur .Y() << ' ' << p_sur .Z() << '\n';
+    // std::ofstream out("centers.txt", std::ios::app);       // append mode
+    // out << std::setprecision(15)                           // full precision
+    //     << p_true.X() << ' ' << p_true.Y() << ' ' << p_true.Z() << ' '
+    //     << p_sur .X() << ' ' << p_sur .Y() << ' ' << p_sur .Z() << '\n';
 }
 
 void CutSbmSolidCondition::CalculateLocalSystem(
@@ -327,6 +327,13 @@ void CutSbmSolidCondition::CalculateRightHandSide(
             rRightHandSideVector(iglob) += N_sum_vec(i) * old_stress_normal[idim] * integration_weight;
 
         }
+    }
+
+
+    for (unsigned int i = 0; i < r_surrogate_geometry.size(); i++) {
+        std::ofstream outputFile("txt_files/Id_active_control_points_condition.txt", std::ios::app);
+        outputFile << r_surrogate_geometry[i].GetId() << "  " <<r_surrogate_geometry[i].GetDof(DISPLACEMENT_X).EquationId() <<"\n";
+        outputFile.close();
     }
     KRATOS_CATCH("")
 }

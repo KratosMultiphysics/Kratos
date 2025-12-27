@@ -783,6 +783,8 @@ void SnakeSbmProcess::SnakeStepNurbs(
         const IndexType node_id_2 = node_id_1 + 1;
         // Create two nodes and two conditions for each skin condition
         auto p_new_node = new Node(node_id_2, rConditionCoordinates[0][1], rConditionCoordinates[1][1], 0.0);
+        p_new_node->SetValue(SURROGATE_REPEATED_VERTICES_ID,
+                             std::vector<std::size_t>{static_cast<std::size_t>(node_id_1)});
         // compute normal and tangent informations at the local coord of the point 
         std::vector<CoordinatesArrayType> global_space_derivatives;
         std::size_t derivative_order = 2;
@@ -1048,7 +1050,12 @@ void SnakeSbmProcess::CreateSurrogateBuondaryFromSnakeInner(
         IndexType idSurrogateNode = id_surrogate_first_node;
         for (int j = 0; j < rNumberKnotSpans[1]; j++) {
             for (int i = 0; i < rNumberKnotSpans[0]; i++) {
-                rSurrogateModelPartInner.CreateNewNode(idSurrogateNode, rKnotVectorU[i], rKnotVectorV[j], 0.0);
+                auto p_new_node = rSurrogateModelPartInner.CreateNewNode(idSurrogateNode, rKnotVectorU[i], rKnotVectorV[j], 0.0);
+                array_1d<int, 3> entering_xyz;
+                entering_xyz[0] = -1;
+                entering_xyz[1] = -1;
+                entering_xyz[2] = -1;
+                p_new_node->SetValue(SURROGATE_ENTERING_XYZ, entering_xyz);
                 idSurrogateNode++;
             }
         }
@@ -1056,6 +1063,136 @@ void SnakeSbmProcess::CreateSurrogateBuondaryFromSnakeInner(
     {
         id_surrogate_first_node = rSurrogateModelPartInner.GetRootModelPart().NumberOfNodes() - rNumberKnotSpans[1]*rNumberKnotSpans[0] + 1;
     }
+
+    IndexType next_node_id = rSurrogateModelPartInner.GetRootModelPart().NumberOfNodes() + 1;
+    auto ensure_knot_span_node_impl = [&](IndexType node_id,
+                                          const array_1d<int, 3>& rEnteringXYZ,
+                                          const bool is_above_reference_point,
+                                          const std::size_t axis_primary,
+                                          const std::size_t axis_secondary) {
+        auto matches_entering = [](const array_1d<int, 3>& rExisting, const array_1d<int, 3>& rIncoming) {
+            for (std::size_t idx = 0; idx < 3; ++idx) {
+                if (rIncoming[idx] != -1 && rExisting[idx] != -1 && rExisting[idx] != rIncoming[idx]) {
+                    return false;
+                }
+            }
+            return true;
+        };
+
+        auto apply_entering = [](array_1d<int, 3>& rTarget, const array_1d<int, 3>& rIncoming) {
+            for (std::size_t idx = 0; idx < 3; ++idx) {
+                if (rIncoming[idx] != -1) {
+                    rTarget[idx] = rIncoming[idx];
+                }
+            }
+        };
+
+        auto& r_node = rSurrogateModelPartInner.GetNode(node_id);
+        if (r_node.Has(SURROGATE_REPEATED_VERTICES_ID)) {
+            const auto& repeated_ids = r_node.GetValue(SURROGATE_REPEATED_VERTICES_ID);
+            for (const auto repeated_id : repeated_ids) {
+                if (!rSurrogateModelPartInner.HasNode(repeated_id)) {
+                    continue;
+                }
+                auto& r_repeated_node = rSurrogateModelPartInner.GetNode(repeated_id);
+                if (!r_repeated_node.Has(SURROGATE_ENTERING_XYZ)) {
+                    continue;
+                }
+                auto repeated_entering = r_repeated_node.GetValue(SURROGATE_ENTERING_XYZ);
+                if (matches_entering(repeated_entering, rEnteringXYZ)) {
+                    apply_entering(repeated_entering, rEnteringXYZ);
+                    r_repeated_node.SetValue(SURROGATE_ENTERING_XYZ, repeated_entering);
+                    return repeated_id;
+                }
+            }
+        }
+
+        if (r_node.Has(SURROGATE_ENTERING_XYZ)) {
+            auto current_entering = r_node.GetValue(SURROGATE_ENTERING_XYZ);
+            if (matches_entering(current_entering, rEnteringXYZ)) {
+                apply_entering(current_entering, rEnteringXYZ);
+                r_node.SetValue(SURROGATE_ENTERING_XYZ, current_entering);
+                return node_id;
+            }
+        }
+
+        const IndexType new_id = next_node_id++;
+        auto p_new_node = rSurrogateModelPartInner.CreateNewNode(new_id, r_node.X(), r_node.Y(), r_node.Z());
+        const int primary_entry = rEnteringXYZ[axis_primary];
+        const int above_value = (primary_entry == 1) ? 1 : 1;
+        const int below_value = (above_value == 1) ? 0 : 0;
+        array_1d<int, 3> entering_old = r_node.Has(SURROGATE_ENTERING_XYZ)
+            ? r_node.GetValue(SURROGATE_ENTERING_XYZ)
+            : rEnteringXYZ;
+        array_1d<int, 3> entering_new = rEnteringXYZ;
+        if (is_above_reference_point) {
+            entering_old[axis_secondary] = 0;
+            entering_new[axis_secondary] = 1;
+        } else {
+            entering_old[axis_secondary] = 1;
+            entering_new[axis_secondary] = 0;
+        }
+        r_node.SetValue(SURROGATE_ENTERING_XYZ, entering_old);
+        p_new_node->SetValue(SURROGATE_ENTERING_XYZ, entering_new);
+        p_new_node->SetValue(SURROGATE_REPEATED_VERTICES_ID,
+                             std::vector<std::size_t>{static_cast<std::size_t>(node_id)});
+
+        auto repeated_ids = r_node.Has(SURROGATE_REPEATED_VERTICES_ID)
+            ? r_node.GetValue(SURROGATE_REPEATED_VERTICES_ID)
+            : std::vector<std::size_t>{};
+        repeated_ids.push_back(static_cast<std::size_t>(new_id));
+        r_node.SetValue(SURROGATE_REPEATED_VERTICES_ID, repeated_ids);
+        return new_id;
+    };
+
+    auto ensure_knot_span_node_x = [&](IndexType node_id,
+                                       const array_1d<int, 3>& rEnteringXYZ,
+                                       const bool is_above_reference_point) {
+        return ensure_knot_span_node_impl(node_id, rEnteringXYZ, is_above_reference_point, 0, 1);
+    };
+
+    auto ensure_knot_span_node_y = [&](IndexType node_id,
+                                       const array_1d<int, 3>& rEnteringXYZ,
+                                       const bool /*is_above_reference_point*/) {
+        auto matches_entering = [](const array_1d<int, 3>& rExisting, const array_1d<int, 3>& rIncoming) {
+            for (std::size_t idx = 0; idx < 3; ++idx) {
+                if (rIncoming[idx] != -1 && rExisting[idx] != -1 && rExisting[idx] != rIncoming[idx]) {
+                    return false;
+                }
+            }
+            return true;
+        };
+
+        auto& r_node = rSurrogateModelPartInner.GetNode(node_id);
+
+        if (r_node.Has(SURROGATE_ENTERING_XYZ)) {
+            const auto& entering = r_node.GetValue(SURROGATE_ENTERING_XYZ);
+            if (matches_entering(entering, rEnteringXYZ)) {
+                return node_id;
+            }
+        }
+
+        if (r_node.Has(SURROGATE_REPEATED_VERTICES_ID)) {
+            const auto& repeated_ids = r_node.GetValue(SURROGATE_REPEATED_VERTICES_ID);
+            for (const auto repeated_id : repeated_ids) {
+                if (!rSurrogateModelPartInner.HasNode(repeated_id)) {
+                    continue;
+                }
+                auto& r_repeated_node = rSurrogateModelPartInner.GetNode(repeated_id);
+                if (!r_repeated_node.Has(SURROGATE_ENTERING_XYZ)) {
+                    continue;
+                }
+                const auto& repeated_entering = r_repeated_node.GetValue(SURROGATE_ENTERING_XYZ);
+                
+                if (matches_entering(repeated_entering, rEnteringXYZ)) {
+                    return repeated_id;
+                }
+            }
+        }
+
+        KRATOS_ERROR << "::[SnakeSbmProcess]::ensure_knot_span_node_y: no matching surrogate node found for base node "
+                     << node_id << " and entering vector " << rEnteringXYZ << std::endl;
+    };
     
     auto p_cond_prop = rSurrogateModelPartInner.pGetProperties(0);
     
@@ -1097,6 +1234,12 @@ void SnakeSbmProcess::CreateSurrogateBuondaryFromSnakeInner(
 
                     IndexType id_node_1 = id_surrogate_first_node + node1_i + node1_j*rNumberKnotSpans[0];
                     IndexType id_node_2 = id_surrogate_first_node + node2_i + node2_j*rNumberKnotSpans[0];
+                    array_1d<int, 3> entering_xyz;
+                    entering_xyz[0] = 0;
+                    entering_xyz[1] = -1;
+                    entering_xyz[2] = -1;
+                    id_node_1 = ensure_knot_span_node_x(id_node_1, entering_xyz, true);
+                    id_node_2 = ensure_knot_span_node_x(id_node_2, entering_xyz, false);
                         
                     auto p_condition = rSurrogateModelPartInner.CreateNewCondition("LineCondition2D2N", id_surrogate_condition, {{id_node_2, id_node_1}}, p_cond_prop );
 
@@ -1116,6 +1259,12 @@ void SnakeSbmProcess::CreateSurrogateBuondaryFromSnakeInner(
 
                 IndexType id_node_1 = id_surrogate_first_node + node1_i + node1_j*rNumberKnotSpans[0]; 
                 IndexType id_node_2 = id_surrogate_first_node + node2_i + node2_j*rNumberKnotSpans[0];
+                array_1d<int, 3> entering_xyz;
+                entering_xyz[0] = 1;
+                entering_xyz[1] = -1;
+                entering_xyz[2] = -1;
+                id_node_1 = ensure_knot_span_node_x(id_node_1, entering_xyz, true);
+                id_node_2 = ensure_knot_span_node_x(id_node_2, entering_xyz, false);
                     
                 auto p_condition = rSurrogateModelPartInner.CreateNewCondition("LineCondition2D2N", id_surrogate_condition, {{id_node_2, id_node_1}}, p_cond_prop );
                 id_surrogate_condition++;
@@ -1146,6 +1295,12 @@ void SnakeSbmProcess::CreateSurrogateBuondaryFromSnakeInner(
 
                     IndexType id_node_1 = id_surrogate_first_node + node1_i + node1_j*rNumberKnotSpans[0];
                     IndexType id_node_2 = id_surrogate_first_node + node2_i + node2_j*rNumberKnotSpans[0];
+                    array_1d<int, 3> entering_xyz;
+                    entering_xyz[0] = -1;
+                    entering_xyz[1] = 0;
+                    entering_xyz[2] = -1;
+                    id_node_1 = ensure_knot_span_node_y(id_node_1, entering_xyz, false);
+                    id_node_2 = ensure_knot_span_node_y(id_node_2, entering_xyz, true);
                         
                     auto p_condition = rSurrogateModelPartInner.CreateNewCondition("LineCondition2D2N", id_surrogate_condition, {{id_node_1, id_node_2}}, p_cond_prop );
                     // BOUNDARY true means that the condition (i.e. the sbm face) is entering looking from x,y,z positive
@@ -1163,6 +1318,12 @@ void SnakeSbmProcess::CreateSurrogateBuondaryFromSnakeInner(
 
                 IndexType id_node_1 = id_surrogate_first_node + node1_i + node1_j*(rNumberKnotSpans[0]);
                 IndexType id_node_2 = id_surrogate_first_node + node2_i + node2_j*(rNumberKnotSpans[0]);
+                array_1d<int, 3> entering_xyz;
+                entering_xyz[0] = -1;
+                entering_xyz[1] = 1;
+                entering_xyz[2] = -1;
+                id_node_1 = ensure_knot_span_node_y(id_node_1, entering_xyz, false);
+                id_node_2 = ensure_knot_span_node_y(id_node_2, entering_xyz, true);
                 auto p_condition = rSurrogateModelPartInner.CreateNewCondition("LineCondition2D2N", id_surrogate_condition, {{id_node_1, id_node_2}}, p_cond_prop );
                 // surrogate_model_part_inner.AddCondition(p_cond);
                 id_surrogate_condition++;
@@ -1463,6 +1624,9 @@ void SnakeSbmProcess::KeepLargestZeroIsland(std::vector<std::vector<int>>& rGrid
     // 4-neighborhood
     const int delta_row_4[4] = {-1, 1, 0, 0};
     const int delta_col_4[4] = { 0, 0,-1, 1};
+
+    // const int delta_row_4[8] = {-1,-1,-1, 0, 0, 1, 1, 1};
+    // const int delta_col_4[8] = {-1, 0, 1,-1, 1,-1, 0, 1};
 
     int component_id = 0;
     int largest_component_id = -1;

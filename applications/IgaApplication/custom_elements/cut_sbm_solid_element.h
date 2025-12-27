@@ -254,6 +254,16 @@ public:
         Matrix& r_DN_DX) const;
 
     /**
+     * @brief Calculate the spatial derivative matrix collecting all pure derivatives.
+     *
+     * @param rSpatialDerivatives Matrix storing ∂u/∂x, ∂u/∂y, ∂v/∂x, ∂v/∂y entries.
+     * @param r_DN_DX The shape function derivatives in the global coordinate system
+     */
+    void CalculateSpatialDerivatives(
+        Matrix& rSpatialDerivatives,
+        Matrix& r_DN_DX) const;
+
+    /**
      * @brief Retrieves the scalar characteristic length stored as a vector variable.
      * @return Euclidean norm of CHARACTERISTIC_GEOMETRY_LENGTH.
      */

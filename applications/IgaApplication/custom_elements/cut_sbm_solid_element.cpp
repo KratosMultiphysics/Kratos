@@ -135,13 +135,15 @@ void CutSbmSolidElement::InitializeSbmMemberVariables()
     mDistanceVector.resize(3);
     noalias(mDistanceVector) = r_geometry.Center().Coordinates() - r_surrogate_geometry.Center().Coordinates();
 
+    SetValue(PROJECTION_NODE_COORDINATES, r_surrogate_geometry.Center().Coordinates());
+
     const Point&  p_true = r_geometry.Center();            // true boundary
     const Point&  p_sur  = r_surrogate_geometry.Center();  // surrogate
 
-    std::ofstream out("centers.txt", std::ios::app);       // append mode
-    out << std::setprecision(15)                           // full precision
-        << p_true.X() << ' ' << p_true.Y() << ' ' << p_true.Z() << ' '
-        << p_sur .X() << ' ' << p_sur .Y() << ' ' << p_sur .Z() << '\n';
+    // std::ofstream out("centers.txt", std::ios::app);       // append mode
+    // out << std::setprecision(15)                           // full precision
+    //     << p_true.X() << ' ' << p_true.Y() << ' ' << p_true.Z() << ' '
+    //     << p_sur .X() << ' ' << p_sur .Y() << ' ' << p_sur .Z() << '\n';
 }
 
 void CutSbmSolidElement::CalculateLocalSystem(
@@ -411,7 +413,13 @@ void CutSbmSolidElement::FinalizeSolutionStep(const ProcessInfo& rCurrentProcess
 
         Vector displacement_true = prod(N_sum_matrix, old_displacement_coefficient_vector);
 
+
+        Matrix B_derivatives;
+        CalculateSpatialDerivatives(B_derivatives, grad_N_sum);
+        Vector spatial_derivatives = prod(B_derivatives, old_displacement_coefficient_vector);
+
         SetValue(DISPLACEMENT, displacement_true);
+        SetValue(STRAIN, spatial_derivatives);
 }
 
 void CutSbmSolidElement::InitializeSolutionStep(const ProcessInfo& rCurrentProcessInfo){
@@ -421,12 +429,12 @@ void CutSbmSolidElement::InitializeSolutionStep(const ProcessInfo& rCurrentProce
 
     mpConstitutiveLaw->InitializeMaterialResponse(constitutive_law_parameters, ConstitutiveLaw::StressMeasure_Cauchy);
 
-    // for (unsigned int i = 0; i < GetSurrogateGeometry().size(); i++) {
+    for (unsigned int i = 0; i < GetSurrogateGeometry().size(); i++) {
 
-    //     std::ofstream outputFile("txt_files/Id_active_control_points.txt", std::ios::app);
-    //     outputFile << GetSurrogateGeometry()[i].GetId() << "  " <<GetSurrogateGeometry()[i].GetDof(DISPLACEMENT_X).EquationId() <<"\n";
-    //     outputFile.close();
-    // }
+        std::ofstream outputFile("txt_files/Id_active_control_points.txt", std::ios::app);
+        outputFile << GetSurrogateGeometry()[i].GetId() << "  " <<GetSurrogateGeometry()[i].GetDof(DISPLACEMENT_X).EquationId() <<"\n";
+        outputFile.close();
+    }
 }
 
 void CutSbmSolidElement::CalculateOnIntegrationPoints(
@@ -506,6 +514,36 @@ void CutSbmSolidElement::CalculateB(
             rB(2, r) = r_DN_DX(kr,0) * (dirr) + r_DN_DX(kr,1) * (1-dirr);
         }
     }
+
+void CutSbmSolidElement::CalculateSpatialDerivatives(
+        Matrix& rSpatialDerivatives,
+        Matrix& r_DN_DX) const
+{
+    const auto& r_surrogate_geometry = GetSurrogateGeometry();
+    const SizeType number_of_control_points = r_surrogate_geometry.size();
+    const SizeType mat_size = number_of_control_points * 2;
+
+    const SizeType spatial_row_count = 4;
+    if (rSpatialDerivatives.size1() != spatial_row_count || rSpatialDerivatives.size2() != mat_size)
+        rSpatialDerivatives.resize(spatial_row_count, mat_size);
+    noalias(rSpatialDerivatives) = ZeroMatrix(spatial_row_count, mat_size);
+
+    for (IndexType r = 0; r < mat_size; ++r)
+    {
+        const IndexType kr = r / 2;
+        const IndexType dirr = r % 2;
+
+        if (dirr == 0) {
+            // Horizontal displacement contributions
+            rSpatialDerivatives(0, r) = r_DN_DX(kr, 0); // du/dx
+            rSpatialDerivatives(1, r) = r_DN_DX(kr, 1); // du/dy
+        } else {
+            // Vertical displacement contributions
+            rSpatialDerivatives(2, r) = r_DN_DX(kr, 0); // dv/dx
+            rSpatialDerivatives(3, r) = r_DN_DX(kr, 1); // dv/dy
+        }
+    }
+}
 
 double CutSbmSolidElement::GetCharacteristicGeometryLengthScalar() const
 {
