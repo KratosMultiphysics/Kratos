@@ -1169,11 +1169,8 @@ namespace Kratos {
 
     double SphericContinuumParticle::GetInitialBondContactArea(int index) {
         std::pair<int, int> key = makeKey(static_cast<int>(this->Id()), static_cast<int>(index));
-        if (mCementedContactAreasMapPtr->find(key) != mCementedContactAreasMapPtr->end()){
-            return (*mCementedContactAreasMapPtr)[key];
-        } else {
-            return 0.0;
-        }
+        auto it = mCementedContactAreasMapPtr->find(key);
+        return it != mCementedContactAreasMapPtr->end() ? it->second : 0.0;
     }
 
     double SphericContinuumParticle::GetInitialBondVolume(int index) {
