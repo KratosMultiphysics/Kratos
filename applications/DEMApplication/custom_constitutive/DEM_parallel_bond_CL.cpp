@@ -755,17 +755,14 @@ void DEM_parallel_bond::CalculateTangentialForces(double OldLocalElasticContactF
         mUnBondedScalingFactor[1] = 0.0;
     }
 
-    current_tangential_force_module = sqrt((BondedLocalElasticContactForce[0] + mBondedViscoDampingLocalContactForce[0])
-                                            * (BondedLocalElasticContactForce[0] + mBondedViscoDampingLocalContactForce[0])
-                                            + (BondedLocalElasticContactForce[1] + mBondedViscoDampingLocalContactForce[1]) 
-                                            * (BondedLocalElasticContactForce[1] + mBondedViscoDampingLocalContactForce[1]));
+    current_tangential_force_module = sqrt(BondedLocalElasticContactForce[0]*BondedLocalElasticContactForce[0] + 
+                                        BondedLocalElasticContactForce[1]*BondedLocalElasticContactForce[1]);
 
     if (calculation_area){
+        //Only the elastic bond force is considered to calculate the stresses in the bond
         contact_tau = current_tangential_force_module / calculation_area;
-        contact_sigma = mBondedLocalContactForce[2] / calculation_area;
+        contact_sigma = mBondedLocalElasticContactForce2 / calculation_area;
     }
-
-    
 
     //for debug
     if (mDebugPrintingOption) {
