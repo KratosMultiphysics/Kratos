@@ -12,8 +12,8 @@
 
 // Project includes
 #include "solving_strategies/builder_and_solvers/p_multigrid/augmented_lagrange_constraint_assembler.hpp" // AugmentedLagrangeConstraintAssembler
-#include "solving_strategies/builder_and_solvers/p_multigrid/sparse_utilities.hpp" // MapRowContribution
-#include "solving_strategies/builder_and_solvers/p_multigrid/constraint_utilities.hpp" // ProcessMasterSlaveConstraint, ProcessMultifreedomConstraint
+#include "solving_strategies/builder_and_solvers/p_multigrid/sparse_utilities.hpp" // MapRowContribution, BalancedProduct
+#include "solving_strategies/builder_and_solvers/p_multigrid/constraint_utilities.hpp" // ProcessMasterSlaveConstraint, ProcessMultifreedomConstraint, detail::MakeRelationTopology
 #include "solving_strategies/builder_and_solvers/p_multigrid/diagonal_scaling.hpp" // Scaling
 #include "spaces/ublas_space.h" // TUblasSparseSpace, TUblasDenseSpace
 #include "utilities/sparse_matrix_multiplication_utility.h" // SparseMatrixMultiplicationUtility
@@ -37,8 +37,13 @@ void ApplyDirichletConditions(typename TSparse::MatrixType& rRelationMatrix,
                               int Verbosity)
 {
     // Sanity checks.
-    KRATOS_ERROR_IF_NOT(static_cast<typename TSparse::IndexType>(std::distance(itDofBegin, itDofEnd)) == rRelationMatrix.size2());
-    KRATOS_ERROR_IF_NOT(rConstraintGaps.size() == rRelationMatrix.size1());
+    KRATOS_ERROR_IF_NOT(static_cast<typename TSparse::IndexType>(std::distance(itDofBegin, itDofEnd)) == rRelationMatrix.size2())
+        << "number of DoFs (" << std::distance(itDofBegin, itDofEnd) << ") "
+        << "does not match the constraint gradient's shape (" << rRelationMatrix.size1() << "x" << rRelationMatrix.size2() << ")";
+
+    KRATOS_ERROR_IF_NOT(rConstraintGaps.size() == rRelationMatrix.size1())
+        << "number of constraint gaps (" << rConstraintGaps.size() << ") "
+        << "does not match the number of constraint equations (" << rRelationMatrix.size1() << ")";
 
     KRATOS_TRY
 
@@ -129,11 +134,11 @@ struct AugmentedLagrangeConstraintAssembler<TSparse,TDense>::Impl
     using Interface = AugmentedLagrangeConstraintAssembler<TSparse,TDense>;
 
     /// @brief A map associating slave IDs with constraint indices and the number of constraint objects referencing it.
-    std::unordered_map<std::size_t,         //< identifier of the constraint equation (slave ID for MasterSlaveConstraint, CONSTRAINT_LABEL for MultifreedomConstraint)
-                       std::pair<
-                            std::size_t,    //< row index of the constraint equation in the relation matrix
-                            std::size_t     //< number of constraint objects defining the equation
-                       >
+    CSRHashMap<std::size_t,         //< identifier of the constraint equation (slave ID for MasterSlaveConstraint, CONSTRAINT_LABEL for MultifreedomConstraint)
+               std::pair<
+                    std::size_t,    //< row index of the constraint equation in the relation matrix
+                    std::size_t     //< number of constraint objects defining the equation
+               >
     > mConstraintIdMap;
 
     std::optional<typename TSparse::MatrixType> mMaybeTransposeRelationMatrix;
@@ -162,7 +167,7 @@ template <class TSparse, class TDense>
 AugmentedLagrangeConstraintAssembler<TSparse,TDense>::AugmentedLagrangeConstraintAssembler(Parameters Settings,
                                                                                            std::string&& rInstanceName)
     : Base(ConstraintImposition::AugmentedLagrange, std::move(rInstanceName)),
-      mpImpl(new Impl{/*mConstraintIdToIndexMap: */std::unordered_map<std::size_t,std::pair<std::size_t,std::size_t>>(),
+      mpImpl(new Impl{/*mConstraintIdToIndexMap: */ CSRHashMap<std::size_t,std::pair<std::size_t,std::size_t>>(),
                       /*mMaybeTransposeRelationMatrix: */std::optional<typename TSparse::MatrixType>(),
                       /*mpScaling*/ nullptr,
                       /*mVerbosity: */1})
@@ -196,30 +201,45 @@ AugmentedLagrangeConstraintAssembler<TSparse,TDense>::~AugmentedLagrangeConstrai
 
 
 template <class TSparse, class TDense>
-void AugmentedLagrangeConstraintAssembler<TSparse,TDense>::Allocate(const typename Base::ConstraintArray& rConstraints,
-                                                                    const ProcessInfo& rProcessInfo,
-                                                                    typename TSparse::MatrixType& rLhs,
-                                                                    typename TSparse::VectorType& rSolution,
-                                                                    typename TSparse::VectorType& rRhs,
-                                                                    typename Base::DofSet& rDofSet)
+void AugmentedLagrangeConstraintAssembler<TSparse,TDense>::AllocateConstraints(PointerVectorSet<MasterSlaveConstraint,IndexedObject>::const_iterator itConstraintBegin,
+                                                                               PointerVectorSet<MasterSlaveConstraint,IndexedObject>::const_iterator itConstraintEnd,
+                                                                               const ProcessInfo& rProcessInfo,
+                                                                               typename Base::DofSet::const_iterator itDofBegin,
+                                                                               typename Base::DofSet::const_iterator itDofEnd)
 {
     KRATOS_TRY
 
     this->Clear();
-    if (rConstraints.empty()) {
-        this->GetRelationMatrix() = typename TSparse::MatrixType(0, rLhs.size2(), 0);
+
+    // Handle case with no constraints.
+    if (itConstraintBegin == itConstraintEnd) {
+        this->GetRelationMatrix() = typename TSparse::MatrixType(0, std::distance(itDofBegin, itDofEnd), 0);
         this->GetRelationMatrix().index1_data()[0] = 0;
         this->GetRelationMatrix().set_filled(1, 0);
         return;
     }
 
-    detail::MakeRelationTopology<TSparse,TDense>(rDofSet.size(),
-                                                 rConstraints,
+    detail::MakeRelationTopology<TSparse,TDense>(std::distance(itDofBegin, itDofEnd),
+                                                 itConstraintBegin,
+                                                 itConstraintEnd,
                                                  rProcessInfo,
                                                  this->GetRelationMatrix(),
                                                  this->GetConstraintGapVector(),
                                                  mpImpl->mConstraintIdMap);
 
+    this->GetConstraintGapVector().resize(this->GetRelationMatrix().size1(), false);
+
+    KRATOS_CATCH("")
+}
+
+
+template <class TSparse, class TDense>
+void AugmentedLagrangeConstraintAssembler<TSparse,TDense>::AllocateSystem(typename TSparse::MatrixType& rLhs,
+                                                                          typename TSparse::VectorType& rSolution,
+                                                                          typename TSparse::VectorType& rRhs,
+                                                                          typename Base::DofSet& rDofs)
+{
+    KRATOS_TRY
     // At this point, the sparsity pattern of the unconstrained LHS matrix (K), as well
     // as the relation matrix (A) are constructed. The current policy in Kratos is that
     // constraint imposition happens on K in-place, meaning K will have the union of both
@@ -232,7 +252,6 @@ void AugmentedLagrangeConstraintAssembler<TSparse,TDense>::Allocate(const typena
         SparseMatrixMultiplicationUtility::MatrixMultiplication(transpose, this->GetRelationMatrix(), this->GetHessian());
     }
     MergeMatrices<typename TSparse::DataType>(rLhs, this->GetHessian());
-
     KRATOS_CATCH("")
 }
 
@@ -240,12 +259,12 @@ void AugmentedLagrangeConstraintAssembler<TSparse,TDense>::Allocate(const typena
 template <class TSparse, class TDense>
 void AugmentedLagrangeConstraintAssembler<TSparse,TDense>::Assemble(const typename Base::ConstraintArray& rConstraints,
                                                                     const ProcessInfo& rProcessInfo,
-                                                                    typename Base::DofSet& rDofSet,
+                                                                    typename Base::DofSet::const_iterator itDofBegin,
+                                                                    typename Base::DofSet::const_iterator itDofEnd,
                                                                     const bool AssembleLhs,
                                                                     const bool AssembleRhs)
 {
     KRATOS_TRY
-
     /// @todo @p AssembleLhs and @p AssembleRhs are currently ignored,
     ///       and everything gets assembled. Think it through what needs
     ///       to be done and what can be omitted for each case. - matekelemen
@@ -255,24 +274,25 @@ void AugmentedLagrangeConstraintAssembler<TSparse,TDense>::Assemble(const typena
                                                    this->GetHessian(),
                                                    this->GetConstraintGapVector(),
                                                    mpImpl->mConstraintIdMap);
+    KRATOS_CATCH("")
 
+    KRATOS_TRY
     // Propagate obvious dirichlet conditions.
     detail::ApplyDirichletConditions<TSparse,TDense>(this->GetRelationMatrix(),
                                                      this->GetConstraintGapVector(),
-                                                     rDofSet.begin(),
-                                                     rDofSet.end(),
+                                                     itDofBegin,
+                                                     itDofEnd,
                                                      this->GetName(),
                                                      mpImpl->mVerbosity);
-
     KRATOS_CATCH("")
 }
 
 
 template <class TSparse, class TDense>
 void AugmentedLagrangeConstraintAssembler<TSparse,TDense>::Initialize(typename TSparse::MatrixType& rLhs,
+                                                                      typename TSparse::VectorType& rSolution,
                                                                       typename TSparse::VectorType& rRhs,
-                                                                      typename Base::DofSet::iterator itDofBegin,
-                                                                      typename Base::DofSet::iterator itDofEnd)
+                                                                      [[maybe_unused]] typename Base::DofSet& rDofs)
 {
     KRATOS_TRY
 
@@ -310,10 +330,10 @@ void AugmentedLagrangeConstraintAssembler<TSparse,TDense>::Initialize(typename T
     {
         const typename TSparse::MatrixType& r_transpose_relation_matrix = this->GetTransposeRelationMatrix();
         KRATOS_ERROR_IF(r_transpose_relation_matrix.size1() != this->GetRelationMatrix().size2()
-                        || r_transpose_relation_matrix.size2() != this->GetRelationMatrix().size1()
-                        || r_transpose_relation_matrix.nnz() != this->GetRelationMatrix().nnz())
+                     || r_transpose_relation_matrix.size2() != this->GetRelationMatrix().size1()
+                     || r_transpose_relation_matrix.nnz()   != this->GetRelationMatrix().nnz())
             << "the transpose of the relation matrix is uninitialized or out of date "
-            << "(" << this->GetRelationMatrix().size1() << "x" << this->GetRelationMatrix().size2() << "/" << this->GetRelationMatrix().nnz() << ") "
+            << "(" << this->GetRelationMatrix().size1()          << "x" << this->GetRelationMatrix().size2()          << "/" << this->GetRelationMatrix().nnz() << ") "
             << "(" << this->GetTransposeRelationMatrix().size1() << "x" << this->GetTransposeRelationMatrix().size2() << "/" << this->GetTransposeRelationMatrix().nnz() << ") ";
 
         typename TSparse::MatrixType relation_product;
@@ -340,9 +360,11 @@ void AugmentedLagrangeConstraintAssembler<TSparse,TDense>::Initialize(typename T
 
 
 template <class TSparse, class TDense>
-void AugmentedLagrangeConstraintAssembler<TSparse,TDense>::InitializeSolutionStep(typename TSparse::MatrixType& rLhs,
-                                                                                  typename TSparse::VectorType& rSolution,
-                                                                                  typename TSparse::VectorType& rRhs)
+void AugmentedLagrangeConstraintAssembler<TSparse,TDense>::InitializeConstraintIteration(typename TSparse::MatrixType& rLhs,
+                                                                                         typename TSparse::VectorType& rSolution,
+                                                                                         typename TSparse::VectorType& rRhs,
+                                                                                         [[maybe_unused]] typename Base::DofSet::iterator itDofBegin,
+                                                                                         [[maybe_unused]] typename Base::DofSet::iterator itDofEnd)
 {
     KRATOS_TRY
 
@@ -362,11 +384,13 @@ void AugmentedLagrangeConstraintAssembler<TSparse,TDense>::InitializeSolutionSte
 
 template <class TSparse, class TDense>
 bool
-AugmentedLagrangeConstraintAssembler<TSparse,TDense>::FinalizeSolutionStep(typename TSparse::MatrixType& rLhs,
-                                                                           typename TSparse::VectorType& rSolution,
-                                                                           typename TSparse::VectorType& rRhs,
-                                                                           PMGStatusStream::Report& rReport,
-                                                                           PMGStatusStream& rStream)
+AugmentedLagrangeConstraintAssembler<TSparse,TDense>::FinalizeConstraintIteration(typename TSparse::MatrixType& rLhs,
+                                                                                  typename TSparse::VectorType& rSolution,
+                                                                                  [[maybe_unused]] typename TSparse::VectorType& rRhs,
+                                                                                  [[maybe_unused]] typename Base::DofSet::iterator itDofBegin,
+                                                                                  [[maybe_unused]] typename Base::DofSet::iterator itDofEnd,
+                                                                                  PMGStatusStream::Report& rReport,
+                                                                                  PMGStatusStream& rStream)
 {
     KRATOS_TRY
 
@@ -398,10 +422,10 @@ AugmentedLagrangeConstraintAssembler<TSparse,TDense>::FinalizeSolutionStep(typen
 
 
 template <class TSparse, class TDense>
-void AugmentedLagrangeConstraintAssembler<TSparse,TDense>::Finalize(typename TSparse::MatrixType& rLhs,
-                                                                    typename TSparse::VectorType& rSolution,
-                                                                    typename TSparse::VectorType& rRhs,
-                                                                    typename Base::DofSet& rDofSet)
+void AugmentedLagrangeConstraintAssembler<TSparse,TDense>::Finalize([[maybe_unused]] typename TSparse::MatrixType& rLhs,
+                                                                    [[maybe_unused]] typename TSparse::VectorType& rSolution,
+                                                                    [[maybe_unused]] typename TSparse::VectorType& rRhs,
+                                                                    [[maybe_unused]] typename Base::DofSet& rDofSet)
 {
 }
 
