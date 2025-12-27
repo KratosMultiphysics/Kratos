@@ -152,7 +152,7 @@ namespace Kratos
         virtual bool IsSkin() { return (bool)*mSkinSphere; }
         void MarkNewSkinParticlesDueToBreakage();
         virtual void GetCementedContactAreasMap(std::map<std::pair<int, int>, double>* CementedContactAreasMap);
-        virtual void GetCementedContactPairsSet(std::set<std::pair<int, int>>* CementedContactPairsSet);
+        virtual void SetCementedContactPairsSet(std::set<std::pair<int, int>>* CementedContactPairsSet);
 
         /// Turn back information as a string
         virtual std::string Info() const override
@@ -202,7 +202,8 @@ namespace Kratos
         std::vector<int>            mFemIniNeighbourIds;
         std::vector<double>         mFemIniNeighbourDelta;
         std::map<std::pair<int, int>, double>* mCementedContactAreasMapPtr;
-        std::set<std::pair<int, int>>* mCementedContactPairsSetPtr;
+        //std::set<std::pair<int, int>>* mCementedContactPairsSetPtr;
+        const std::set<std::pair<int,int>>* mCementedContactPairsSetPtr = nullptr;
 
     private:
 

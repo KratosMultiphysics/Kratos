@@ -1230,7 +1230,7 @@ namespace Kratos {
         mCementedContactAreasMapPtr = CementedContactAreasMap;
     }
 
-    void SphericContinuumParticle::GetCementedContactPairsSet(std::set<std::pair<int, int>>* CementedContactPairsSet){
+    void SphericContinuumParticle::SetCementedContactPairsSet(std::set<std::pair<int, int>>* CementedContactPairsSet){
         mCementedContactPairsSetPtr = CementedContactPairsSet;
     }
 
