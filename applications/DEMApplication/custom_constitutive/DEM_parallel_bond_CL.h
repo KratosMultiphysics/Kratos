@@ -214,7 +214,8 @@ namespace Kratos{
         double mBondSigmaMax = 0.0;
         double mBondTauZero = 0.0;
         double mCalculation_area = 0.0;
-
+        int mTransientDampingStepsCount = 0;
+        int mTransientDampingStepsTotal = 0;
 
     protected:
 
