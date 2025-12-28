@@ -200,6 +200,13 @@ void DEM_parallel_bond::Check(Properties::Pointer pProp) const {
         pProp->GetValue(BOND_RADIUS_FACTOR) = 1.0;
     }
 
+    if(!pProp->Has(BOND_TRANSIENT_DAMPING_STEPS)) {
+        KRATOS_WARNING("DEM")<<std::endl;
+        KRATOS_WARNING("DEM")<<"WARNING: Variable BOND_TRANSIENT_DAMPING_STEPS is set as 0 by default (not active)."<<std::endl;
+        KRATOS_WARNING("DEM")<<std::endl;
+        pProp->GetValue(BOND_TRANSIENT_DAMPING_STEPS) = 0;
+    }
+
     if (!pProp->Has(IS_UNBREAKABLE)) {
         KRATOS_WARNING("DEM")<<std::endl;
         KRATOS_WARNING("DEM")<<"WARNING: Variable IS_UNBREAKABLE was not present in the properties when using DEM_parallel_bond_CL. False value assigned by default."<<std::endl;
@@ -571,11 +578,13 @@ void DEM_parallel_bond::CalculateViscoDamping(double LocalRelVel[3],
         CalculateUnbondedViscoDampingForce(LocalRelVel, mUnbondedViscoDampingLocalContactForce, element1, element2);
     }
 
+    const int transient_damping_steps_total = (*mpProperties)[BOND_TRANSIENT_DAMPING_STEPS];
+
     if (!failure_id) {
         mBondedViscoDampingLocalContactForce[0] = -equiv_visco_damp_coeff_tangential * LocalRelVel[0];
         mBondedViscoDampingLocalContactForce[1] = -equiv_visco_damp_coeff_tangential * LocalRelVel[1];
         mBondedViscoDampingLocalContactForce[2] = -equiv_visco_damp_coeff_normal * LocalRelVel[2];
-    } else if (failure_id && mTransientDampingStepsCount < mTransientDampingStepsTotal) { // to avoid sudden jump when bond breaks
+    } else if (failure_id && mTransientDampingStepsCount < transient_damping_steps_total) { // to avoid sudden jump when bond breaks // not use by default
         mBondedViscoDampingLocalContactForce[0] = -equiv_visco_damp_coeff_tangential * LocalRelVel[0];
         mBondedViscoDampingLocalContactForce[1] = -equiv_visco_damp_coeff_tangential * LocalRelVel[1];
         mBondedViscoDampingLocalContactForce[2] = -equiv_visco_damp_coeff_normal * LocalRelVel[2];
