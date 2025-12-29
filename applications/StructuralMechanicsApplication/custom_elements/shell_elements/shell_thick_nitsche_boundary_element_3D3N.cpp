@@ -247,17 +247,17 @@ void ShellThickNitscheBoundaryElement3D3N<TKinematics>::CalculateLocalSystem(
                         i_loc_id = sur_bd_local_ids[i_node + 1];
                         for (std::size_t d = 0; d < 5; ++d) { //HACK!
                             rRightHandSideVector(i_loc_id*BlockSize+d) += aux_val * cauchy_traction[d];
-                            for (std::size_t j_node = 0; j_node < NumNodes * 6; ++j_node) { //BIG TO DO
+                            // for (std::size_t j_node = 0; j_node < NumNodes * 6; ++j_node) { //BIG TO DO
                             for (std::size_t j_node = 0; j_node < NumNodes; ++j_node) {
                                 rLeftHandSideMatrix(i_loc_id*BlockSize+d, j_node*BlockSize+d) -= aux_val * aux_CB_projection(d,j_node*BlockSize + d);
                                 rLeftHandSideMatrix(j_node*BlockSize+d, i_loc_id*BlockSize+d) -= aux_val * aux_CB_projection(d,j_node*BlockSize + d);
-                                rLeftHandSideMatrix(i_loc_id*BlockSize+d, j_node) -= aux_val * aux_CB_projection(d,j_node);
-                                rLeftHandSideMatrix(j_node, i_loc_id*BlockSize+d) -= aux_val * aux_CB_projection(d,j_node);
+                            //     rLeftHandSideMatrix(i_loc_id*BlockSize+d, j_node) -= aux_val * aux_CB_projection(d,j_node);
+                            //     rLeftHandSideMatrix(j_node, i_loc_id*BlockSize+d) -= aux_val * aux_CB_projection(d,j_node);
+                            // }
                             }
                         }
                     }
                 }
-            }
         }
     }
 
