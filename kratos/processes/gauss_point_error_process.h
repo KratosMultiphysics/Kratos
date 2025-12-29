@@ -71,13 +71,14 @@ public:
     ///@{
 
     /// Default constructor.
-    // GaussPointErrorProcess(
-    //     ModelPart& rModelPart,
-    //     unsigned int DomainSize)
-    //     : mrModelPart(rModelPart),
-    //       mDomainSize(DomainSize)
-    // {
-    // }
+    GaussPointErrorProcess(
+        ModelPart& rModelPart,
+        unsigned int DomainSize)
+        : mrModelPart(rModelPart),
+          mrReferenceModelPart(rModelPart),
+          mDomainSize(DomainSize)
+    {
+    }
 
     GaussPointErrorProcess(
         ModelPart& rModelPart,
@@ -109,15 +110,16 @@ public:
     ///@name Operations
     ///@{
 
-    void ExecuteFinalize() override
+    // void ExecuteFinalize() override
+    void ExecuteModelPartFluid() 
     {
         KRATOS_TRY
 
         // Variables initialization
-        double cut_area = 0.0;
+        // double cut_area = 0.0;
         double total_area = 0.0;
-        double cut_error_p_norm = 0.0;
-        double cut_error_v_norm = 0.0;
+        // double cut_error_p_norm = 0.0;
+        // double cut_error_v_norm = 0.0;
         double total_error_p_norm = 0.0;
         double total_error_v_norm = 0.0;
 
@@ -128,192 +130,625 @@ public:
         point_locator.UpdateSearchDatabase();
 
         // Loop the elements to compute the error error in each Gauss pt.
-        if(mDomainSize == 2)
+        // if(mDomainSize == 2)
+        // {
+        for(auto it_elem = mrModelPart.ElementsBegin(); it_elem != mrModelPart.ElementsEnd(); ++it_elem)
         {
-            for(auto it_elem = mrModelPart.ElementsBegin(); it_elem != mrModelPart.ElementsEnd(); ++it_elem)
-            {
-                auto &r_geom = it_elem->GetGeometry();
-                const auto elem_dist = it_elem->GetValue(ELEMENTAL_DISTANCES);
+            auto &r_geom = it_elem->GetGeometry();
+            const auto elem_dist = it_elem->GetValue(ELEMENTAL_DISTANCES);
 
-                const auto &r_p_0 = r_geom[0].FastGetSolutionStepValue(PRESSURE);
-                const auto &r_p_1 = r_geom[1].FastGetSolutionStepValue(PRESSURE);
-                const auto &r_p_2 = r_geom[2].FastGetSolutionStepValue(PRESSURE);
-                const auto &r_vel_0 = r_geom[0].FastGetSolutionStepValue(VELOCITY);
-                const auto &r_vel_1 = r_geom[1].FastGetSolutionStepValue(VELOCITY);
-                const auto &r_vel_2 = r_geom[2].FastGetSolutionStepValue(VELOCITY);
+            const auto &r_p_0 = r_geom[0].FastGetSolutionStepValue(PRESSURE);
+            const auto &r_p_1 = r_geom[1].FastGetSolutionStepValue(PRESSURE);
+            const auto &r_p_2 = r_geom[2].FastGetSolutionStepValue(PRESSURE);
+            const auto &r_vel_0 = r_geom[0].FastGetSolutionStepValue(VELOCITY);
+            const auto &r_vel_1 = r_geom[1].FastGetSolutionStepValue(VELOCITY);
+            const auto &r_vel_2 = r_geom[2].FastGetSolutionStepValue(VELOCITY);
 
-                // unsigned int aux_n = 0;
-                // const double min_y = -1.0;
-                // for (unsigned int i = 0; i < r_geom.PointsNumber(); ++i) {
-                //     if (r_geom[i].Y() > min_y) {
-                //         aux_n++;
-                //     }
-                // }
+            // unsigned int aux_n = 0;
+            // const double min_y = -1.0;
+            // for (unsigned int i = 0; i < r_geom.PointsNumber(); ++i) {
+            //     if (r_geom[i].Y() > min_y) {
+            //         aux_n++;
+            //     }
+            // }
 
-                // const bool is_valid = aux_n == r_geom.PointsNumber() ? true : false;
-                const bool is_valid = true;
+            // const bool is_valid = aux_n == r_geom.PointsNumber() ? true : false;
+            // const bool is_valid = true;
 
-                // Split element case
-                if (is_valid) {
-                    if (this->IsCut(elem_dist)){
-                        // Generate the splitting pattern
-                        DivideTriangle2D3<Node>::Pointer p_divide_util = Kratos::make_shared<DivideTriangle2D3<Node>>(r_geom, elem_dist);
-                        p_divide_util->GenerateDivision();
+            // // Split element case
+            // if (is_valid) {
+            //     if (this->IsCut(elem_dist)){
+            //         // Generate the splitting pattern
+            //         DivideTriangle2D3<Node>::Pointer p_divide_util = Kratos::make_shared<DivideTriangle2D3<Node>>(r_geom, elem_dist);
+            //         p_divide_util->GenerateDivision();
 
-                        // Generate the modified shape functions util
-                        auto p_geom = it_elem->pGetGeometry();
-                        ModifiedShapeFunctions::Pointer p_ausas_modified_sh_func = Kratos::make_shared<Triangle2D3AusasModifiedShapeFunctions>(p_geom, elem_dist);
+            //         // Generate the modified shape functions util
+            //         auto p_geom = it_elem->pGetGeometry();
+            //         ModifiedShapeFunctions::Pointer p_ausas_modified_sh_func = Kratos::make_shared<Triangle2D3AusasModifiedShapeFunctions>(p_geom, elem_dist);
 
-                        Matrix N_pos_side;
-                        Vector w_gauss_pos_side;
-                        GeometryType::ShapeFunctionsGradientsType DN_DX_pos_side;
-                        p_ausas_modified_sh_func->ComputePositiveSideShapeFunctionsAndGradientsValues(N_pos_side, DN_DX_pos_side, w_gauss_pos_side, GeometryData::IntegrationMethod::GI_GAUSS_2);
+            //         Matrix N_pos_side;
+            //         Vector w_gauss_pos_side;
+            //         GeometryType::ShapeFunctionsGradientsType DN_DX_pos_side;
+            //         p_ausas_modified_sh_func->ComputePositiveSideShapeFunctionsAndGradientsValues(N_pos_side, DN_DX_pos_side, w_gauss_pos_side, GeometryData::IntegrationMethod::GI_GAUSS_2);
 
-                        // Save the coordinates of all the subdivision Gauss pts.
-                        const unsigned int n_pos_gauss_pt = w_gauss_pos_side.size();
-                        Matrix pos_gauss_pts_coords = ZeroMatrix(n_pos_gauss_pt, 2);
-                        const unsigned int n_pos_sbdiv = (p_divide_util->GetPositiveSubdivisions()).size();
+            //         // Save the coordinates of all the subdivision Gauss pts.
+            //         const unsigned int n_pos_gauss_pt = w_gauss_pos_side.size();
+            //         Matrix pos_gauss_pts_coords = ZeroMatrix(n_pos_gauss_pt, 2);
+            //         const unsigned int n_pos_sbdiv = (p_divide_util->GetPositiveSubdivisions()).size();
 
-                        for (unsigned int i_sbdiv = 0; i_sbdiv < n_pos_sbdiv; ++i_sbdiv){
-                            auto p_sbdiv = (p_divide_util->GetPositiveSubdivisions())[i_sbdiv];
-                            auto N = p_sbdiv->ShapeFunctionsValues(GeometryData::IntegrationMethod::GI_GAUSS_2);
-                            for (unsigned int i_gauss = 0;  i_gauss < 3; ++i_gauss){
-                                pos_gauss_pts_coords(i_sbdiv*3+i_gauss,0) = ((*p_sbdiv)[0]).X()*N(i_gauss,0) + ((*p_sbdiv)[1]).X()*N(i_gauss,1) + ((*p_sbdiv)[2]).X()*N(i_gauss,2);
-                                pos_gauss_pts_coords(i_sbdiv*3+i_gauss,1) = ((*p_sbdiv)[0]).Y()*N(i_gauss,0) + ((*p_sbdiv)[1]).Y()*N(i_gauss,1) + ((*p_sbdiv)[2]).Y()*N(i_gauss,2);
-                            }
-                        }
+            //         for (unsigned int i_sbdiv = 0; i_sbdiv < n_pos_sbdiv; ++i_sbdiv){
+            //             auto p_sbdiv = (p_divide_util->GetPositiveSubdivisions())[i_sbdiv];
+            //             auto N = p_sbdiv->ShapeFunctionsValues(GeometryData::IntegrationMethod::GI_GAUSS_2);
+            //             for (unsigned int i_gauss = 0;  i_gauss < 3; ++i_gauss){
+            //                 pos_gauss_pts_coords(i_sbdiv*3+i_gauss,0) = ((*p_sbdiv)[0]).X()*N(i_gauss,0) + ((*p_sbdiv)[1]).X()*N(i_gauss,1) + ((*p_sbdiv)[2]).X()*N(i_gauss,2);
+            //                 pos_gauss_pts_coords(i_sbdiv*3+i_gauss,1) = ((*p_sbdiv)[0]).Y()*N(i_gauss,0) + ((*p_sbdiv)[1]).Y()*N(i_gauss,1) + ((*p_sbdiv)[2]).Y()*N(i_gauss,2);
+            //             }
+            //         }
 
-                        // Compute the error in each Gauss pt.
-                        for (unsigned int i_gauss = 0; i_gauss < n_pos_gauss_pt; ++i_gauss){
-                            // Locate the Gauss pt. in the reference mesh
-                            array_1d<double,3> coords = ZeroVector(3);
-                            coords[0] = pos_gauss_pts_coords(i_gauss,0);
-                            coords[1] = pos_gauss_pts_coords(i_gauss,1);
-                            Vector N_vect;
-                            Element::Pointer p_elem;
-                            const bool is_found = point_locator.FindPointOnMeshSimplified(coords, N_vect, p_elem);
-                            KRATOS_WARNING_IF("GaussPointErrorProcess", is_found != true) << "Gauss pt. x: " << coords[0] << " y: " << coords[1] << " not found in element " << it_elem->Id() << std::endl;
+            //         // Compute the error in each Gauss pt.
+            //         for (unsigned int i_gauss = 0; i_gauss < n_pos_gauss_pt; ++i_gauss){
+            //             // Locate the Gauss pt. in the reference mesh
+            //             array_1d<double,3> coords = ZeroVector(3);
+            //             coords[0] = pos_gauss_pts_coords(i_gauss,0);
+            //             coords[1] = pos_gauss_pts_coords(i_gauss,1);
+            //             Vector N_vect;
+            //             Element::Pointer p_elem;
+            //             const bool is_found = point_locator.FindPointOnMeshSimplified(coords, N_vect, p_elem);
+            //             KRATOS_WARNING_IF("GaussPointErrorProcess", is_found != true) << "Gauss pt. x: " << coords[0] << " y: " << coords[1] << " not found in element " << it_elem->Id() << std::endl;
 
-                            // Compute the body-fitted values in the embedded mesh
-                            double p_exact = 0.0;
-                            array_1d<double,3> v_exact = ZeroVector(3);
+            //             // Compute the body-fitted values in the embedded mesh
+            //             double p_exact = 0.0;
+            //             array_1d<double,3> v_exact = ZeroVector(3);
 
-                            if (is_found){
-                                const auto &r_geom_elem = p_elem->GetGeometry();
-                                for (unsigned int i_node = 0; i_node < r_geom_elem.PointsNumber(); ++i_node){
-                                    v_exact += r_geom_elem[i_node].GetSolutionStepValue(VELOCITY) * N_vect[i_node];
-                                    p_exact += r_geom_elem[i_node].GetSolutionStepValue(PRESSURE) * N_vect[i_node];
-                                }
-                            }
+            //             if (is_found){
+            //                 const auto &r_geom_elem = p_elem->GetGeometry();
+            //                 for (unsigned int i_node = 0; i_node < r_geom_elem.PointsNumber(); ++i_node){
+            //                     v_exact += r_geom_elem[i_node].GetSolutionStepValue(VELOCITY) * N_vect[i_node];
+            //                     p_exact += r_geom_elem[i_node].GetSolutionStepValue(PRESSURE) * N_vect[i_node];
+            //                 }
+            //             }
 
-                            // Exact solution
-                            // const double x_coord = pos_gauss_pts_coords(i_gauss,0);
-                            // const double y_coord = pos_gauss_pts_coords(i_gauss,1);
-                            // const double p_exact = this->ComputePressureExactSolution(x_coord, y_coord);
-                            // const array_1d<double, 3> v_exact = this->ComputeVelocityExactSolution(x_coord, y_coord);
+            //             // Exact solution
+            //             // const double x_coord = pos_gauss_pts_coords(i_gauss,0);
+            //             // const double y_coord = pos_gauss_pts_coords(i_gauss,1);
+            //             // const double p_exact = this->ComputePressureExactSolution(x_coord, y_coord);
+            //             // const array_1d<double, 3> v_exact = this->ComputeVelocityExactSolution(x_coord, y_coord);
 
-                            // Obtained solution
-                            array_1d<double, 3> v_solu;
-                            const double p_solu = r_p_0*N_pos_side(i_gauss,0) + r_p_1*N_pos_side(i_gauss,1) + r_p_2*N_pos_side(i_gauss,2);
-                            v_solu[0] = r_vel_0[0]*N_pos_side(i_gauss,0) + r_vel_1[0]*N_pos_side(i_gauss,1) + r_vel_2[0]*N_pos_side(i_gauss,2);
-                            v_solu[1] = r_vel_0[1]*N_pos_side(i_gauss,0) + r_vel_1[1]*N_pos_side(i_gauss,1) + r_vel_2[1]*N_pos_side(i_gauss,2);
-                            v_solu[2] = r_vel_0[2]*N_pos_side(i_gauss,0) + r_vel_1[2]*N_pos_side(i_gauss,1) + r_vel_2[2]*N_pos_side(i_gauss,2);
+            //             // Obtained solution
+            //             array_1d<double, 3> v_solu;
+            //             const double p_solu = r_p_0*N_pos_side(i_gauss,0) + r_p_1*N_pos_side(i_gauss,1) + r_p_2*N_pos_side(i_gauss,2);
+            //             v_solu[0] = r_vel_0[0]*N_pos_side(i_gauss,0) + r_vel_1[0]*N_pos_side(i_gauss,1) + r_vel_2[0]*N_pos_side(i_gauss,2);
+            //             v_solu[1] = r_vel_0[1]*N_pos_side(i_gauss,0) + r_vel_1[1]*N_pos_side(i_gauss,1) + r_vel_2[1]*N_pos_side(i_gauss,2);
+            //             v_solu[2] = r_vel_0[2]*N_pos_side(i_gauss,0) + r_vel_1[2]*N_pos_side(i_gauss,1) + r_vel_2[2]*N_pos_side(i_gauss,2);
 
-                            // Velocity error norm
-                            cut_error_v_norm += w_gauss_pos_side[i_gauss]*inner_prod(v_exact - v_solu, v_exact - v_solu);
-                            total_error_v_norm += w_gauss_pos_side[i_gauss]*inner_prod(v_exact - v_solu, v_exact - v_solu);
+            //             // Velocity error norm
+            //             cut_error_v_norm += w_gauss_pos_side[i_gauss]*inner_prod(v_exact - v_solu, v_exact - v_solu);
+            //             total_error_v_norm += w_gauss_pos_side[i_gauss]*inner_prod(v_exact - v_solu, v_exact - v_solu);
 
-                            // Pressure error norm
-                            cut_error_p_norm += w_gauss_pos_side[i_gauss]*std::pow(p_exact - p_solu, 2);
-                            total_error_p_norm += w_gauss_pos_side[i_gauss]*std::pow(p_exact - p_solu, 2);
+            //             // Pressure error norm
+            //             cut_error_p_norm += w_gauss_pos_side[i_gauss]*std::pow(p_exact - p_solu, 2);
+            //             total_error_p_norm += w_gauss_pos_side[i_gauss]*std::pow(p_exact - p_solu, 2);
 
-                            // Add the local Gauss contribution to the areas
-                            cut_area += w_gauss_pos_side[i_gauss];
-                            total_area += w_gauss_pos_side[i_gauss];
-                        }
+            //             // Add the local Gauss contribution to the areas
+            //             cut_area += w_gauss_pos_side[i_gauss];
+            //             total_area += w_gauss_pos_side[i_gauss];
+            //         }
 
-                    // No split element case
-                    } else {
-                        // Check if the element is in the positive (fluid) region
-                        if (this->IsPositive(elem_dist)){
-                            // Get geometry data
-                            Vector jac_vect;
-                            jac_vect = r_geom.DeterminantOfJacobian(jac_vect, GeometryData::IntegrationMethod::GI_GAUSS_2);
-                            auto N = r_geom.ShapeFunctionsValues(GeometryData::IntegrationMethod::GI_GAUSS_2);
+            //     // No split element case
+            //     } else {
+                    // Check if the element is in the positive (fluid) region
+            if (this->IsPositive(elem_dist)){
+                // Get geometry data
+                Vector jac_vect;
+                jac_vect = r_geom.DeterminantOfJacobian(jac_vect, GeometryData::IntegrationMethod::GI_GAUSS_2);
+                auto N = r_geom.ShapeFunctionsValues(GeometryData::IntegrationMethod::GI_GAUSS_2);
 
-                            // Compute the error in each Gauss pt.
-                            for (unsigned int i_gauss = 0; i_gauss < 3; ++i_gauss){
-                                // Locate the Gauss pt. in the reference mesh
-                                array_1d<double,3> coords = ZeroVector(3);
-                                coords[0] = r_geom[0].X()*N(i_gauss,0) + r_geom[1].X()*N(i_gauss,1) + r_geom[2].X()*N(i_gauss,2);
-                                coords[1] = r_geom[0].Y()*N(i_gauss,0) + r_geom[1].Y()*N(i_gauss,1) + r_geom[2].Y()*N(i_gauss,2);
-                                Vector N_vect;
-                                Element::Pointer p_elem;
-                                const bool is_found = point_locator.FindPointOnMeshSimplified(coords, N_vect, p_elem);
-                                KRATOS_WARNING_IF("GaussPointErrorProcess", is_found != true) << "Gauss pt. x: " << coords[0] << " y: " << coords[1] << " not found!" << std::endl;
+                // Compute the error in each Gauss pt.
+                for (unsigned int i_gauss = 0; i_gauss < 3; ++i_gauss){
+                    // Locate the Gauss pt. in the reference mesh
+                    array_1d<double,3> coords = ZeroVector(3);
+                    coords[0] = r_geom[0].X()*N(i_gauss,0) + r_geom[1].X()*N(i_gauss,1) + r_geom[2].X()*N(i_gauss,2);
+                    coords[1] = r_geom[0].Y()*N(i_gauss,0) + r_geom[1].Y()*N(i_gauss,1) + r_geom[2].Y()*N(i_gauss,2);
+                    Vector N_vect;
+                    Element::Pointer p_elem;
+                    const bool is_found = point_locator.FindPointOnMeshSimplified(coords, N_vect, p_elem);
+                    KRATOS_WARNING_IF("GaussPointErrorProcess", is_found != true) << "Gauss pt. x: " << coords[0] << " y: " << coords[1] << " not found!" << std::endl;
 
-                                // Compute the body-fitted values in the embedded mesh
-                                double p_exact = 0.0;
-                                array_1d<double,3> v_exact = ZeroVector(3);
+                    // Compute the body-fitted values in the embedded mesh
+                    double p_exact = 0.0;
+                    array_1d<double,3> v_exact = ZeroVector(3);
 
-                                if (is_found){
-                                    const auto &r_geom_elem = p_elem->GetGeometry();
-                                    for (unsigned int i_node = 0; i_node < r_geom_elem.PointsNumber(); ++i_node){
-                                        v_exact += r_geom_elem[i_node].GetSolutionStepValue(VELOCITY) * N_vect[i_node];
-                                        p_exact += r_geom_elem[i_node].GetSolutionStepValue(PRESSURE) * N_vect[i_node];
-                                    }
-                                }
-
-                                // Exact solution
-                                // const double x_coord = r_geom[0].X()*N(i_gauss,0) + r_geom[1].X()*N(i_gauss,1) + r_geom[2].X()*N(i_gauss,2);
-                                // const double y_coord = r_geom[0].Y()*N(i_gauss,0) + r_geom[1].Y()*N(i_gauss,1) + r_geom[2].Y()*N(i_gauss,2);
-                                // const double p_exact = this->ComputePressureExactSolution(x_coord, y_coord);
-                                // const array_1d<double, 3> v_exact = this->ComputeVelocityExactSolution(x_coord, y_coord);
-
-                                // Obtained solution
-                                array_1d<double, 3> v_solu;
-                                const double p_solu = r_p_0*N(i_gauss,0) + r_p_1*N(i_gauss,1) + r_p_2*N(i_gauss,2);
-                                v_solu[0] = r_vel_0[0]*N(i_gauss,0) + r_vel_1[0]*N(i_gauss,1) + r_vel_2[0]*N(i_gauss,2);
-                                v_solu[1] = r_vel_0[1]*N(i_gauss,0) + r_vel_1[1]*N(i_gauss,1) + r_vel_2[1]*N(i_gauss,2);
-                                v_solu[2] = r_vel_0[2]*N(i_gauss,0) + r_vel_1[2]*N(i_gauss,1) + r_vel_2[2]*N(i_gauss,2);
-
-                                // Velocity error norm
-                                total_error_v_norm += (jac_vect[i_gauss] / 6.0)*inner_prod(v_exact - v_solu, v_exact - v_solu);
-
-                                // Pressure error norm
-                                total_error_p_norm += (jac_vect[i_gauss] / 6.0)*std::pow(p_exact - p_solu, 2);
-
-                                // Add the local Gauss contribution to the areas
-                                total_area += (jac_vect[i_gauss] / 6.0);
-                            }
+                    if (is_found){
+                        const auto &r_geom_elem = p_elem->GetGeometry();
+                        for (unsigned int i_node = 0; i_node < r_geom_elem.PointsNumber(); ++i_node){
+                            v_exact += r_geom_elem[i_node].GetSolutionStepValue(VELOCITY) * N_vect[i_node];
+                            p_exact += r_geom_elem[i_node].GetSolutionStepValue(PRESSURE) * N_vect[i_node];
                         }
                     }
+
+                    // Exact solution
+                    // const double x_coord = r_geom[0].X()*N(i_gauss,0) + r_geom[1].X()*N(i_gauss,1) + r_geom[2].X()*N(i_gauss,2);
+                    // const double y_coord = r_geom[0].Y()*N(i_gauss,0) + r_geom[1].Y()*N(i_gauss,1) + r_geom[2].Y()*N(i_gauss,2);
+                    // const double p_exact = this->ComputePressureExactSolution(x_coord, y_coord);
+                    // const array_1d<double, 3> v_exact = this->ComputeVelocityExactSolution(x_coord, y_coord);
+
+                    // Obtained solution
+                    array_1d<double, 3> v_solu;
+                    const double p_solu = r_p_0*N(i_gauss,0) + r_p_1*N(i_gauss,1) + r_p_2*N(i_gauss,2);
+                    v_solu[0] = r_vel_0[0]*N(i_gauss,0) + r_vel_1[0]*N(i_gauss,1) + r_vel_2[0]*N(i_gauss,2);
+                    v_solu[1] = r_vel_0[1]*N(i_gauss,0) + r_vel_1[1]*N(i_gauss,1) + r_vel_2[1]*N(i_gauss,2);
+                    v_solu[2] = r_vel_0[2]*N(i_gauss,0) + r_vel_1[2]*N(i_gauss,1) + r_vel_2[2]*N(i_gauss,2);
+
+                    // Velocity error norm
+                    total_error_v_norm += (jac_vect[i_gauss] / 6.0)*inner_prod(v_exact - v_solu, v_exact - v_solu);
+
+                    // Pressure error norm
+                    total_error_p_norm += (jac_vect[i_gauss] / 6.0)*std::pow(p_exact - p_solu, 2);
+
+                    // Add the local Gauss contribution to the areas
+                    total_area += (jac_vect[i_gauss] / 6.0);
                 }
             }
+                // }
+            // }
         }
-        else if(mDomainSize == 3)
-        {
-            KRATOS_ERROR << "3D case not implemented yet." << std::endl;
-        }
+        // }
+        // else if(mDomainSize == 3)
+        // {
+        //     KRATOS_ERROR << "3D case not implemented yet." << std::endl;
+        // }
 
         // Compute the square root of the norms
-        cut_error_p_norm = std::sqrt(cut_error_p_norm);
-        cut_error_v_norm = std::sqrt(cut_error_v_norm);
+        // cut_error_p_norm = std::sqrt(cut_error_p_norm);
+        // cut_error_v_norm = std::sqrt(cut_error_v_norm);
         total_error_p_norm = std::sqrt(total_error_p_norm);
         total_error_v_norm = std::sqrt(total_error_v_norm);
 
         // Print the obtained values
         std::cout << std::endl;
-        std::cout << "Cut area: " << cut_area << std::endl;
+        // std::cout << "Cut area: " << cut_area << std::endl;
         std::cout << "Total area: " << total_area << std::endl;
-        std::cout << "Cut error p_norm: " << cut_error_p_norm << std::endl;
+        // std::cout << "Cut error p_norm: " << cut_error_p_norm << std::endl;
         std::cout << "Total error p_norm: " << total_error_p_norm << std::endl;
-        std::cout << "Cut error v_norm: " << cut_error_v_norm << std::endl;
+        // std::cout << "Cut error v_norm: " << cut_error_v_norm << std::endl;
         std::cout << "Total error v_norm: " << total_error_v_norm << std::endl;
         std::cout << std::endl;
 
         KRATOS_CATCH("");
     }
+
+
+    // void ExecuteModelPartSolid() 
+    void Execute() override
+    {
+        KRATOS_TRY
+
+        // Variables initialization
+        double total_area = 0.0;
+        double total_error_disp_norm = 0.0;
+
+        KRATOS_WATCH("gauss point error solid process");
+
+        // Map reference values from reference mesh to analysis mesh
+        BinBasedFastPointLocator<2> point_locator = BinBasedFastPointLocator<2>(mrReferenceModelPart);
+        point_locator.UpdateSearchDatabase();
+
+        // Loop the elements to compute the error error in each Gauss pt.
+        for(auto it_elem = mrModelPart.ElementsBegin(); it_elem != mrModelPart.ElementsEnd(); ++it_elem)
+        {
+            auto &r_geom = it_elem->GetGeometry();
+            const auto elem_dist = it_elem->GetValue(ELEMENTAL_DISTANCES);
+
+            const auto &r_disp_0 = r_geom[0].FastGetSolutionStepValue(DISPLACEMENT);
+            const auto &r_disp_1 = r_geom[1].FastGetSolutionStepValue(DISPLACEMENT);
+            const auto &r_disp_2 = r_geom[2].FastGetSolutionStepValue(DISPLACEMENT);
+
+            // Get geometry data
+            Vector jac_vect;
+            jac_vect = r_geom.DeterminantOfJacobian(jac_vect, GeometryData::IntegrationMethod::GI_GAUSS_2);
+            auto N = r_geom.ShapeFunctionsValues(GeometryData::IntegrationMethod::GI_GAUSS_2);
+
+            // Compute the error in each Gauss pt.
+            for (unsigned int i_gauss = 0; i_gauss < 3; ++i_gauss){
+                // Locate the Gauss pt. in the reference mesh
+                array_1d<double,3> coords = ZeroVector(3);
+                coords[0] = r_geom[0].X()*N(i_gauss,0) + r_geom[1].X()*N(i_gauss,1) + r_geom[2].X()*N(i_gauss,2);
+                coords[1] = r_geom[0].Y()*N(i_gauss,0) + r_geom[1].Y()*N(i_gauss,1) + r_geom[2].Y()*N(i_gauss,2);
+                Vector N_vect;
+                Element::Pointer p_elem;
+                const bool is_found = point_locator.FindPointOnMeshSimplified(coords, N_vect, p_elem);
+                KRATOS_WARNING_IF("GaussPointErrorProcess", is_found != true) << "Gauss pt. x: " << coords[0] << " y: " << coords[1] << " not found!" << std::endl;
+
+                // Compute the body-fitted values in the embedded mesh
+                array_1d<double,3> disp_exact = ZeroVector(3);
+
+                if (is_found){
+                    const auto &r_geom_elem = p_elem->GetGeometry();
+                    for (unsigned int i_node = 0; i_node < r_geom_elem.PointsNumber(); ++i_node){
+                        disp_exact += r_geom_elem[i_node].GetSolutionStepValue(DISPLACEMENT) * N_vect[i_node];
+                    }
+                }
+
+                // Obtained solution
+                array_1d<double, 3> disp_solu;
+                disp_solu[0] = r_disp_0[0]*N(i_gauss,0) + r_disp_1[0]*N(i_gauss,1) + r_disp_2[0]*N(i_gauss,2);
+                disp_solu[1] = r_disp_0[1]*N(i_gauss,0) + r_disp_1[1]*N(i_gauss,1) + r_disp_2[1]*N(i_gauss,2);
+                disp_solu[2] = r_disp_0[2]*N(i_gauss,0) + r_disp_1[2]*N(i_gauss,1) + r_disp_2[2]*N(i_gauss,2);
+
+                // Displacement error norm
+                total_error_disp_norm += (jac_vect[i_gauss] / 6.0)*inner_prod(disp_exact - disp_solu, disp_exact - disp_solu);
+
+                // Add the local Gauss contribution to the areas
+                total_area += (jac_vect[i_gauss] / 6.0);
+            }
+        }
+
+        // Compute the square root of the norms
+        total_error_disp_norm = std::sqrt(total_error_disp_norm);
+
+        // Print the obtained values
+        std::cout << std::endl;
+        std::cout << "Total area: " << total_area << std::endl;
+        std::cout << "Total error disp_norm: " << total_error_disp_norm << std::endl;
+        std::cout << std::endl;
+
+        KRATOS_CATCH("");
+    }
+
+    double ExecuteModelPartSolid() 
+    {
+        KRATOS_TRY
+
+        // Variables initialization
+        double total_area = 0.0;
+        double total_error_disp_norm = 0.0;
+
+        KRATOS_WATCH("gauss point error solid process");
+
+        // Map reference values from reference mesh to analysis mesh
+        BinBasedFastPointLocator<2> point_locator = BinBasedFastPointLocator<2>(mrReferenceModelPart);
+        point_locator.UpdateSearchDatabase();
+
+        // Loop the elements to compute the error error in each Gauss pt.
+        for(auto it_elem = mrModelPart.ElementsBegin(); it_elem != mrModelPart.ElementsEnd(); ++it_elem)
+        {
+        
+            auto &r_geom = it_elem->GetGeometry();
+            const auto elem_dist = it_elem->GetValue(ELEMENTAL_DISTANCES);
+
+            const auto &r_disp_0 = r_geom[0].FastGetSolutionStepValue(DISPLACEMENT);
+            const auto &r_disp_1 = r_geom[1].FastGetSolutionStepValue(DISPLACEMENT);
+            const auto &r_disp_2 = r_geom[2].FastGetSolutionStepValue(DISPLACEMENT);
+
+            // Get geometry data
+            Vector jac_vect;
+            jac_vect = r_geom.DeterminantOfJacobian(jac_vect, GeometryData::IntegrationMethod::GI_GAUSS_2);
+            auto N = r_geom.ShapeFunctionsValues(GeometryData::IntegrationMethod::GI_GAUSS_2);
+
+            // Compute the error in each Gauss pt.
+            for (unsigned int i_gauss = 0; i_gauss < 3; ++i_gauss){
+                // Locate the Gauss pt. in the reference mesh
+                array_1d<double,3> coords = ZeroVector(3);
+                coords[0] = r_geom[0].X()*N(i_gauss,0) + r_geom[1].X()*N(i_gauss,1) + r_geom[2].X()*N(i_gauss,2);
+                coords[1] = r_geom[0].Y()*N(i_gauss,0) + r_geom[1].Y()*N(i_gauss,1) + r_geom[2].Y()*N(i_gauss,2);
+                Vector N_vect;
+                Element::Pointer p_elem;
+                const bool is_found = point_locator.FindPointOnMeshSimplified(coords, N_vect, p_elem);
+                KRATOS_WARNING_IF("GaussPointErrorProcess", is_found != true) << "Gauss pt. x: " << coords[0] << " y: " << coords[1] << " not found!" << std::endl;
+
+                // Compute the body-fitted values in the embedded mesh
+                array_1d<double,3> disp_exact = ZeroVector(3);
+
+                if (is_found){
+                    const auto &r_geom_elem = p_elem->GetGeometry();
+                    for (unsigned int i_node = 0; i_node < r_geom_elem.PointsNumber(); ++i_node){
+                        disp_exact += r_geom_elem[i_node].GetSolutionStepValue(DISPLACEMENT) * N_vect[i_node];
+                    }
+                }
+
+                // Obtained solution
+                array_1d<double, 3> disp_solu;
+                disp_solu[0] = r_disp_0[0]*N(i_gauss,0) + r_disp_1[0]*N(i_gauss,1) + r_disp_2[0]*N(i_gauss,2);
+                disp_solu[1] = r_disp_0[1]*N(i_gauss,0) + r_disp_1[1]*N(i_gauss,1) + r_disp_2[1]*N(i_gauss,2);
+                disp_solu[2] = r_disp_0[2]*N(i_gauss,0) + r_disp_1[2]*N(i_gauss,1) + r_disp_2[2]*N(i_gauss,2);
+
+                // Displacement error norm
+                total_error_disp_norm += (jac_vect[i_gauss] / 6.0)*inner_prod(disp_exact - disp_solu, disp_exact - disp_solu);
+
+                // Add the local Gauss contribution to the areas
+                total_area += (jac_vect[i_gauss] / 6.0);
+            }
+        }
+
+        // Compute the square root of the norms
+        total_error_disp_norm = std::sqrt(total_error_disp_norm);
+
+        // Print the obtained values
+        std::cout << std::endl;
+        std::cout << "Total area: " << total_area << std::endl;
+        std::cout << "Total error disp_norm: " << total_error_disp_norm << std::endl;
+        std::cout << std::endl;
+        
+        return total_error_disp_norm;
+
+        KRATOS_CATCH("");
+    }
+
+    double ExecuteModelPartSolidExact() 
+    {
+        KRATOS_TRY
+
+        // Variables initialization
+        double total_area = 0.0;
+        double total_error_disp_norm = 0.0;
+
+        KRATOS_WATCH("gauss point error solid exact process");
+
+        // Map reference values from reference mesh to analysis mesh
+        // BinBasedFastPointLocator<2> point_locator = BinBasedFastPointLocator<2>(mrReferenceModelPart);
+        // point_locator.UpdateSearchDatabase();
+
+        // Loop the elements to compute the error error in each Gauss pt.
+        for(auto it_elem = mrModelPart.ElementsBegin(); it_elem != mrModelPart.ElementsEnd(); ++it_elem)
+        {   
+            // KRATOS_WATCH(it_elem->Is(ACTIVE))
+            // KRATOS_WATCH(it_elem->Is(INTERFACE))
+            // KRATOS_WATCH(it_elem->Is(BOUNDARY))
+            // if(it_elem->Is(BOUNDARY) == false)
+            // {
+                auto &r_geom = it_elem->GetGeometry();
+                const auto elem_dist = it_elem->GetValue(ELEMENTAL_DISTANCES);
+
+                const auto &r_disp_0 = r_geom[0].FastGetSolutionStepValue(DISPLACEMENT);
+                const auto &r_disp_1 = r_geom[1].FastGetSolutionStepValue(DISPLACEMENT);
+                const auto &r_disp_2 = r_geom[2].FastGetSolutionStepValue(DISPLACEMENT);
+
+                // Get geometry data
+                Vector jac_vect;
+                jac_vect = r_geom.DeterminantOfJacobian(jac_vect, GeometryData::IntegrationMethod::GI_GAUSS_2);
+                auto N = r_geom.ShapeFunctionsValues(GeometryData::IntegrationMethod::GI_GAUSS_2);
+
+                // Compute the error in each Gauss pt.
+                for (unsigned int i_gauss = 0; i_gauss < 3; ++i_gauss){
+                    // Locate the Gauss pt. in the reference mesh
+                    array_1d<double,3> coords = ZeroVector(3);
+                    coords[0] = r_geom[0].X()*N(i_gauss,0) + r_geom[1].X()*N(i_gauss,1) + r_geom[2].X()*N(i_gauss,2);
+                    coords[1] = r_geom[0].Y()*N(i_gauss,0) + r_geom[1].Y()*N(i_gauss,1) + r_geom[2].Y()*N(i_gauss,2);
+                    Vector N_vect;
+                    Element::Pointer p_elem;
+                    // const bool is_found = point_locator.FindPointOnMeshSimplified(coords, N_vect, p_elem);
+                    // KRATOS_WARNING_IF("GaussPointErrorProcess", is_found != true) << "Gauss pt. x: " << coords[0] << " y: " << coords[1] << " not found!" << std::endl;
+
+                    // Compute the body-fitted values in the embedded mesh
+                    // array_1d<double,3> disp_exact = ZeroVector(3);
+
+                    // Exact solution
+                    const double x_coord = coords[0];
+                    const double y_coord = coords[1];
+                    const array_1d<double, 3> disp_exact = this->ComputeDisplacementExactSolution(x_coord, y_coord);
+
+
+                    // KRATOS_WATCH(r_disp_0)
+                    // KRATOS_WATCH(r_disp_1)
+                    // KRATOS_WATCH(r_disp_2)
+
+                    // Obtained solution
+                    array_1d<double, 3> disp_solu;
+                    disp_solu[0] = r_disp_0[0]*N(i_gauss,0) + r_disp_1[0]*N(i_gauss,1) + r_disp_2[0]*N(i_gauss,2);
+                    disp_solu[1] = r_disp_0[1]*N(i_gauss,0) + r_disp_1[1]*N(i_gauss,1) + r_disp_2[1]*N(i_gauss,2);
+                    disp_solu[2] = r_disp_0[2]*N(i_gauss,0) + r_disp_1[2]*N(i_gauss,1) + r_disp_2[2]*N(i_gauss,2);
+
+
+                    // KRATOS_WATCH(coords[0])
+                    // KRATOS_WATCH(coords[1])
+                    // KRATOS_WATCH(disp_exact)
+                    // KRATOS_WATCH(disp_solu)
+                    // KRATOS_WATCH(jac_vect[i_gauss])
+
+                    // Displacement error norm
+                    total_error_disp_norm += (jac_vect[i_gauss] / 6.0)*inner_prod(disp_exact - disp_solu, disp_exact - disp_solu);
+
+                    // KRATOS_WATCH(total_error_disp_norm)
+
+                    // Add the local Gauss contribution to the areas
+                    total_area += (jac_vect[i_gauss] / 6.0);
+                }
+            // }
+        }
+
+        // Compute the square root of the norms
+        total_error_disp_norm = std::sqrt(total_error_disp_norm);
+
+        // Print the obtained values
+        std::cout << std::endl;
+        std::cout << "Total area: " << total_area << std::endl;
+        std::cout << "Total error disp_norm: " << total_error_disp_norm << std::endl;
+        std::cout << std::endl;
+        
+        return total_error_disp_norm;
+
+        KRATOS_CATCH("");
+    }
+
+    double ExecuteModelPartSolidThinExact() 
+    {
+        KRATOS_TRY
+
+        // Variables initialization
+        double total_area = 0.0;
+        double total_error_disp_norm = 0.0;
+
+        KRATOS_WATCH("gauss point error solid exact process");
+
+        // Map reference values from reference mesh to analysis mesh
+        // BinBasedFastPointLocator<2> point_locator = BinBasedFastPointLocator<2>(mrReferenceModelPart);
+        // point_locator.UpdateSearchDatabase();
+
+        // Loop the elements to compute the error error in each Gauss pt.
+        for(auto it_elem = mrModelPart.ElementsBegin(); it_elem != mrModelPart.ElementsEnd(); ++it_elem)
+        {
+            auto &r_geom = it_elem->GetGeometry();
+            const auto elem_dist = it_elem->GetValue(ELEMENTAL_DISTANCES);
+
+            const auto &r_disp_0 = r_geom[0].FastGetSolutionStepValue(DISPLACEMENT);
+            const auto &r_disp_1 = r_geom[1].FastGetSolutionStepValue(DISPLACEMENT);
+            const auto &r_disp_2 = r_geom[2].FastGetSolutionStepValue(DISPLACEMENT);
+
+            // Get geometry data
+            Vector jac_vect;
+            jac_vect = r_geom.DeterminantOfJacobian(jac_vect, GeometryData::IntegrationMethod::GI_GAUSS_2);
+            auto N = r_geom.ShapeFunctionsValues(GeometryData::IntegrationMethod::GI_GAUSS_2);
+
+            // Compute the error in each Gauss pt.
+            for (unsigned int i_gauss = 0; i_gauss < 3; ++i_gauss){
+                // Locate the Gauss pt. in the reference mesh
+                array_1d<double,3> coords = ZeroVector(3);
+                coords[0] = r_geom[0].X()*N(i_gauss,0) + r_geom[1].X()*N(i_gauss,1) + r_geom[2].X()*N(i_gauss,2);
+                coords[1] = r_geom[0].Y()*N(i_gauss,0) + r_geom[1].Y()*N(i_gauss,1) + r_geom[2].Y()*N(i_gauss,2);
+                Vector N_vect;
+                Element::Pointer p_elem;
+                // const bool is_found = point_locator.FindPointOnMeshSimplified(coords, N_vect, p_elem);
+                // KRATOS_WARNING_IF("GaussPointErrorProcess", is_found != true) << "Gauss pt. x: " << coords[0] << " y: " << coords[1] << " not found!" << std::endl;
+
+                // Compute the body-fitted values in the embedded mesh
+                // array_1d<double,3> disp_exact = ZeroVector(3);
+
+                // Exact solution
+                const double x_coord = coords[0];
+                const double y_coord = coords[1];
+                const array_1d<double, 3> disp_exact = this->ComputeDisplacementThinExactSolution(x_coord, y_coord);
+
+
+                // KRATOS_WATCH(r_disp_0)
+                // KRATOS_WATCH(r_disp_1)
+                // KRATOS_WATCH(r_disp_2)
+
+                // Obtained solution
+                array_1d<double, 3> disp_solu;
+                disp_solu[0] = r_disp_0[0]*N(i_gauss,0) + r_disp_1[0]*N(i_gauss,1) + r_disp_2[0]*N(i_gauss,2);
+                disp_solu[1] = r_disp_0[1]*N(i_gauss,0) + r_disp_1[1]*N(i_gauss,1) + r_disp_2[1]*N(i_gauss,2);
+                disp_solu[2] = r_disp_0[2]*N(i_gauss,0) + r_disp_1[2]*N(i_gauss,1) + r_disp_2[2]*N(i_gauss,2);
+
+
+                // KRATOS_WATCH(coords[0])
+                // KRATOS_WATCH(coords[1])
+                // KRATOS_WATCH(disp_exact)
+                // KRATOS_WATCH(disp_solu)
+                // KRATOS_WATCH(jac_vect[i_gauss])
+
+                // Displacement error norm
+                total_error_disp_norm += (jac_vect[i_gauss] / 6.0)*inner_prod(disp_exact - disp_solu, disp_exact - disp_solu);
+
+                // KRATOS_WATCH(total_error_disp_norm)
+
+                // Add the local Gauss contribution to the areas
+                total_area += (jac_vect[i_gauss] / 6.0);
+            }
+        }
+
+        // Compute the square root of the norms
+        total_error_disp_norm = std::sqrt(total_error_disp_norm);
+
+        // Print the obtained values
+        std::cout << std::endl;
+        std::cout << "Total area: " << total_area << std::endl;
+        std::cout << "Total error disp_norm: " << total_error_disp_norm << std::endl;
+        std::cout << std::endl;
+        
+        return total_error_disp_norm;
+
+        KRATOS_CATCH("");
+    }
+
+
+    double ExecuteModelPartGradientSolid() //TO DO
+    {
+        KRATOS_TRY
+
+        // Variables initialization
+        double total_area = 0.0;
+        double total_error_disp_norm = 0.0;
+
+        KRATOS_WATCH("gauss point error solid process");
+
+        // Map reference values from reference mesh to analysis mesh
+        BinBasedFastPointLocator<2> point_locator = BinBasedFastPointLocator<2>(mrReferenceModelPart);
+        point_locator.UpdateSearchDatabase();
+
+        // Loop the elements to compute the error error in each Gauss pt.
+        for(auto it_elem = mrModelPart.ElementsBegin(); it_elem != mrModelPart.ElementsEnd(); ++it_elem)
+        {
+            auto &r_geom = it_elem->GetGeometry();
+            const auto elem_dist = it_elem->GetValue(ELEMENTAL_DISTANCES);
+
+            const auto &r_disp_0 = r_geom[0].FastGetSolutionStepValue(DISPLACEMENT);
+            const auto &r_disp_1 = r_geom[1].FastGetSolutionStepValue(DISPLACEMENT);
+            const auto &r_disp_2 = r_geom[2].FastGetSolutionStepValue(DISPLACEMENT);
+
+            // Get geometry data
+            Vector jac_vect;
+            jac_vect = r_geom.DeterminantOfJacobian(jac_vect, GeometryData::IntegrationMethod::GI_GAUSS_2);
+            auto N = r_geom.ShapeFunctionsValues(GeometryData::IntegrationMethod::GI_GAUSS_2);
+            auto dN = r_geom.ShapeFunctionsLocalGradients(GeometryData::IntegrationMethod::GI_GAUSS_2);
+
+            // KRATOS_WATCH(N)
+            // KRATOS_WATCH(dN)
+
+            // Compute the error in each Gauss pt.
+            for (unsigned int i_gauss = 0; i_gauss < 3; ++i_gauss){
+                // Locate the Gauss pt. in the reference mesh
+                array_1d<double,3> coords = ZeroVector(3);
+                coords[0] = r_geom[0].X()*N(i_gauss,0) + r_geom[1].X()*N(i_gauss,1) + r_geom[2].X()*N(i_gauss,2);
+                coords[1] = r_geom[0].Y()*N(i_gauss,0) + r_geom[1].Y()*N(i_gauss,1) + r_geom[2].Y()*N(i_gauss,2);
+                Vector N_vect;
+                Element::Pointer p_elem;
+                const bool is_found = point_locator.FindPointOnMeshSimplified(coords, N_vect, p_elem);
+                KRATOS_WARNING_IF("GaussPointErrorProcess", is_found != true) << "Gauss pt. x: " << coords[0] << " y: " << coords[1] << " not found!" << std::endl;
+
+                // Compute the body-fitted values in the embedded mesh
+                array_1d<double,3> disp_exact = ZeroVector(3);
+
+                if (is_found){
+                    const auto &r_geom_elem = p_elem->GetGeometry();
+                    for (unsigned int i_node = 0; i_node < r_geom_elem.PointsNumber(); ++i_node){
+                        disp_exact += r_geom_elem[i_node].GetSolutionStepValue(DISPLACEMENT) * N_vect[i_node];
+                                    // + ;TO DO
+                    }
+                }
+
+                // Obtained solution
+                array_1d<double, 3> disp_solu;
+                disp_solu[0] = r_disp_0[0]*N(i_gauss,0) + r_disp_1[0]*N(i_gauss,1) + r_disp_2[0]*N(i_gauss,2)
+                             + r_disp_0[0]*dN[i_gauss](0,0) + r_disp_1[0]*dN[i_gauss](1,0) + r_disp_2[0]*dN[i_gauss](2,0)
+                             + r_disp_0[0]*dN[i_gauss](0,1) + r_disp_1[0]*dN[i_gauss](1,1) + r_disp_2[0]*dN[i_gauss](2,1);
+                disp_solu[1] = r_disp_0[1]*N(i_gauss,0) + r_disp_1[1]*N(i_gauss,1) + r_disp_2[1]*N(i_gauss,2)
+                             + r_disp_0[1]*dN[i_gauss](0,0) + r_disp_1[1]*dN[i_gauss](1,0) + r_disp_2[1]*dN[i_gauss](2,0)
+                             + r_disp_0[1]*dN[i_gauss](0,1) + r_disp_1[1]*dN[i_gauss](1,1) + r_disp_2[1]*dN[i_gauss](2,1);
+                disp_solu[2] = r_disp_0[2]*N(i_gauss,0) + r_disp_1[2]*N(i_gauss,1) + r_disp_2[2]*N(i_gauss,2)
+                             + r_disp_0[2]*dN[i_gauss](0,0) + r_disp_1[2]*dN[i_gauss](1,0) + r_disp_2[2]*dN[i_gauss](2,0)
+                             + r_disp_0[2]*dN[i_gauss](0,1) + r_disp_1[2]*dN[i_gauss](1,1) + r_disp_2[2]*dN[i_gauss](2,1);
+                // Displacement error norm
+                total_error_disp_norm += (jac_vect[i_gauss] / 6.0)*inner_prod(disp_exact - disp_solu, disp_exact - disp_solu);
+
+                // Add the local Gauss contribution to the areas
+                total_area += (jac_vect[i_gauss] / 6.0);
+            }
+        }
+
+        // Compute the square root of the norms
+        total_error_disp_norm = std::sqrt(total_error_disp_norm);
+
+        // Print the obtained values
+        std::cout << std::endl;
+        std::cout << "Total area: " << total_area << std::endl;
+        std::cout << "Total error disp_norm: " << total_error_disp_norm << std::endl;
+        std::cout << std::endl;
+        
+        return total_error_disp_norm;
+        
+        KRATOS_CATCH("");
+    }
+
 
     ///@}
     ///@name Access
@@ -433,6 +868,36 @@ protected:
         const double rho = 1.0;
         const double squared_radius = (std::pow(X,2) + std::pow(Y,2));
         return 0.5*rho*(squared_radius - 1.0);
+    }
+
+    //Case flat plate thick
+    array_1d<double,3> ComputeDisplacementExactSolution(
+        const double X,
+        const double Y)
+    {
+        double value = X*X*(12-X)/100000.0+1.2*X/100000;
+
+        array_1d<double, 3> displacement(0.0);
+        displacement[0] = 0.0; 
+        displacement[1] = 0.0; 
+        displacement[2] = value;  
+
+        return displacement;
+    }
+
+    //Case flat plate thin
+    array_1d<double,3> ComputeDisplacementThinExactSolution(
+        const double X,
+        const double Y)
+    {
+        double value = X*X*(12-X)/100000.0;
+
+        array_1d<double, 3> displacement(0.0);
+        displacement[0] = 0.0; 
+        displacement[1] = 0.0; 
+        displacement[2] = value;  
+
+        return displacement;
     }
 
     ///@}
