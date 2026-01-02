@@ -92,7 +92,7 @@ private:
                                 const std::vector<Node*>& rBoundaryNodes,
                                 std::vector<Node*>&       rRightBoundaryNodes) const;
 
-    IndexType GetMaxNodeID();
+    int GetMaxNodeID();
 
     void FindBoundaryNodes();
 
