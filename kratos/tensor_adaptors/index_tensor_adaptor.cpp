@@ -47,7 +47,7 @@ template <class TContainerType>
 DenseVector<unsigned int> GetShape(const TContainerType& rContainer)
 {
     if (rContainer.empty()) {
-        return DenseVector<unsigned int>(0);
+        return zero_vector<unsigned int>(2);
     }
 
     const auto& r_first = *rContainer.begin();
