@@ -35,7 +35,7 @@ namespace Kratos {
  *          on Gauss points for various Kratos containers (Geometries, Elements, Conditions).
  *          It extends TensorAdaptor<double>.
  *
- * @author Antigravity AI
+ * @author Riccardo Rossi and Antigravity AI
  */
 class KRATOS_API(KRATOS_CORE) GeometriesTensorAdaptor: public TensorAdaptor<double> {
 public:
