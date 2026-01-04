@@ -34,7 +34,7 @@
 #include "tensor_adaptors/equation_ids_tensor_adaptor.h"
 #include "tensor_adaptors/gauss_point_variable_tensor_adaptor.h"
 #include "tensor_adaptors/node_position_tensor_adaptor.h"
-#include "tensor_adaptors/index_tensor_adaptor.h"
+#include "tensor_adaptors/geometry_ids_tensor_adaptor.h"
 
 // Include base h
 #include "add_tensor_adaptors_to_python.h"
@@ -154,11 +154,11 @@ void AddTensorAdaptorsToPython(pybind11::module& m)
         .def(py::init<const NodePositionTensorAdaptor::BaseType&, Globals::Configuration, const bool>(), py::arg("tensor_adaptor"), py::arg("configuration"), py::arg("copy") = true)
         ;
 
-    py::class_<IndexTensorAdaptor, IndexTensorAdaptor::Pointer, IndexTensorAdaptor::BaseType>(tensor_adaptor_sub_module, "IndexTensorAdaptor")
+    py::class_<GeometryIdsTensorAdaptor, GeometryIdsTensorAdaptor::Pointer, GeometryIdsTensorAdaptor::BaseType>(tensor_adaptor_sub_module, "GeometryIdsTensorAdaptor")
         .def(py::init<ModelPart::GeometryContainerType::Pointer>(), py::arg("container"))
         .def(py::init<ModelPart::ElementsContainerType::Pointer>(), py::arg("container"))
         .def(py::init<ModelPart::ConditionsContainerType::Pointer>(), py::arg("container"))
-        .def(py::init<const IndexTensorAdaptor::BaseType&, const bool>(), py::arg("tensor_adaptor"), py::arg("copy") = true)
+        .def(py::init<const GeometryIdsTensorAdaptor::BaseType&, const bool>(), py::arg("tensor_adaptor"), py::arg("copy") = true)
         ;
 }
 

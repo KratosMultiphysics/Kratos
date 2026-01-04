@@ -17,7 +17,7 @@
 // External includes
 
 // Project includes
-#include "tensor_adaptors/index_tensor_adaptor.h"
+#include "tensor_adaptors/geometry_ids_tensor_adaptor.h"
 #include "utilities/parallel_utilities.h"
 #include "tensor_adaptors/tensor_adaptor_utils.h"
 
@@ -99,7 +99,7 @@ void CollectIds(Kratos::span<int> Span, const TContainerType& rContainer, const 
 
 } // namespace
 
-IndexTensorAdaptor::IndexTensorAdaptor(ContainerPointerType pContainer)
+GeometryIdsTensorAdaptor::GeometryIdsTensorAdaptor(ContainerPointerType pContainer)
     : TensorAdaptor<int>()
 {
     mpContainer = pContainer;
@@ -108,19 +108,19 @@ IndexTensorAdaptor::IndexTensorAdaptor(ContainerPointerType pContainer)
         if constexpr (IsSupportedContainer<ContainerType>()) {
             mpStorage = Kratos::make_shared<NDData<int>>(GetShape(*p_container));
         } else {
-             KRATOS_ERROR << "Unsupported container type for IndexTensorAdaptor. Only Geometries, Elements, and Conditions are supported." << std::endl;
+             KRATOS_ERROR << "Unsupported container type for GeometryIdsTensorAdaptor. Only Geometries, Elements, and Conditions are supported." << std::endl;
         }
     }, *mpContainer);
 }
 
-IndexTensorAdaptor::IndexTensorAdaptor(
+GeometryIdsTensorAdaptor::GeometryIdsTensorAdaptor(
     const TensorAdaptor& rOther,
     const bool Copy)
     : TensorAdaptor<int>(rOther, Copy)
 {
 }
 
-void IndexTensorAdaptor::Check() const
+void GeometryIdsTensorAdaptor::Check() const
 {
     std::visit([](auto&& p_container) {
         using ContainerType = std::decay_t<decltype(*p_container)>;
@@ -130,7 +130,7 @@ void IndexTensorAdaptor::Check() const
     }, *mpContainer);
 }
 
-void IndexTensorAdaptor::CollectData()
+void GeometryIdsTensorAdaptor::CollectData()
 {
     if (!mpStorage) {
         // Should not happen if constructed correctly
@@ -149,14 +149,14 @@ void IndexTensorAdaptor::CollectData()
     }, *mpContainer);
 }
 
-void IndexTensorAdaptor::StoreData()
+void GeometryIdsTensorAdaptor::StoreData()
 {
-    KRATOS_ERROR << "StoreData is not implemented for IndexTensorAdaptor. Renumbering via TensorAdaptor is disabled." << std::endl;
+    KRATOS_ERROR << "StoreData is not implemented for GeometryIdsTensorAdaptor. Renumbering via TensorAdaptor is disabled." << std::endl;
 }
 
-std::string IndexTensorAdaptor::Info() const
+std::string GeometryIdsTensorAdaptor::Info() const
 {
-    return "IndexTensorAdaptor";
+    return "GeometryIdsTensorAdaptor";
 }
 
 } // namespace Kratos

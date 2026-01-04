@@ -3,7 +3,7 @@ import KratosMultiphysics as Kratos
 import KratosMultiphysics.KratosUnittest as KratosUnittest
 import numpy
 
-class TestIndexTensorAdaptor(KratosUnittest.TestCase):
+class TestGeometryIdsTensorAdaptor(KratosUnittest.TestCase):
     @classmethod
     def setUpClass(cls):
         cls.current_model = Kratos.Model()
@@ -22,10 +22,10 @@ class TestIndexTensorAdaptor(KratosUnittest.TestCase):
         cls.model_part.CreateNewElement("Element2D3N", 1, [1, 2, 3], props)
         cls.model_part.CreateNewElement("Element2D3N", 2, [2, 4, 3], props)
 
-    def test_IndexTensorAdaptorCollect(self):
-        # Test Element Container with IndexTensorAdaptor
-        # Assuming IndexTensorAdaptor is exposed under Kratos.TensorAdaptors or similar
-        adaptor = Kratos.TensorAdaptors.IndexTensorAdaptor(self.model_part.Elements)
+    def test_GeometryIdsTensorAdaptorCollect(self):
+        # Test Element Container with GeometryIdsTensorAdaptor
+        # Assuming GeometryIdsTensorAdaptor is exposed under Kratos.TensorAdaptors or similar
+        adaptor = Kratos.TensorAdaptors.GeometryIdsTensorAdaptor(self.model_part.Elements)
         
         # Check compatibility
         adaptor.Check()
@@ -49,8 +49,8 @@ class TestIndexTensorAdaptor(KratosUnittest.TestCase):
         self.assertTrue(numpy.array_equal(data, expected_indices), 
                         msg=f"Collected indices mismatch.\nExpected:\n{expected_indices}\nGot:\n{data}")
 
-    def test_IndexTensorAdaptorStoreDataError(self):
-        adaptor = Kratos.TensorAdaptors.IndexTensorAdaptor(self.model_part.Elements)
+    def test_GeometryIdsTensorAdaptorStoreDataError(self):
+        adaptor = Kratos.TensorAdaptors.GeometryIdsTensorAdaptor(self.model_part.Elements)
         
         # Test Store Data (Should Throw Error)
         with self.assertRaisesRegex(RuntimeError, "StoreData is not implemented"):

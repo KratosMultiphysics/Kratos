@@ -26,7 +26,7 @@ namespace Kratos {
 ///@{
 
 /**
- * @class IndexTensorAdaptor
+ * @class GeometryIdsTensorAdaptor
  * @ingroup TensorAdaptors
  * @brief Adaptor class for handling node indices of Geometries, Elements, or Conditions.
  *
@@ -34,25 +34,25 @@ namespace Kratos {
  *          various Kratos containers (Geometries, Elements, Conditions).
  *          It extends TensorAdaptor<int>.
  *
- * @section IndexTensorAdaptor_supported_container Supported container types
+ * @section GeometryIdsTensorAdaptor_supported_container Supported container types
  * - @ref ModelPart::GeometryContainerType
  * - @ref ModelPart::ElementsContainerType
  * - @ref ModelPart::ConditionsContainerType
  *
- * @section IndexTensorAdaptor_usage Usage
+ * @section GeometryIdsTensorAdaptor_usage Usage
  * - Use @ref Check to verify the container is valid.
  * - Use @ref CollectData to read Node IDs from the entities.
  * - Use @ref StoreData Not allowed. Throws an error.
  *
  * @author Antigravity AI
  */
-class KRATOS_API(KRATOS_CORE) IndexTensorAdaptor: public TensorAdaptor<int> {
+class KRATOS_API(KRATOS_CORE) GeometryIdsTensorAdaptor: public TensorAdaptor<int> {
 public:
 
     ///@name Type definitions
     ///@{
 
-    KRATOS_CLASS_POINTER_DEFINITION(IndexTensorAdaptor);
+    KRATOS_CLASS_POINTER_DEFINITION(GeometryIdsTensorAdaptor);
 
     using BaseType = TensorAdaptor<int>;
 
@@ -60,15 +60,15 @@ public:
     ///@name Life cycle
     ///@{
 
-    IndexTensorAdaptor(
+    GeometryIdsTensorAdaptor(
         ContainerPointerType pContainer);
 
-    IndexTensorAdaptor(
+    GeometryIdsTensorAdaptor(
         const TensorAdaptor& rOther,
         const bool Copy = true);
 
     // Destructor
-    ~IndexTensorAdaptor() override = default;
+    ~GeometryIdsTensorAdaptor() override = default;
 
     ///@}
     ///@name Public operations
