@@ -35,6 +35,7 @@
 #include "tensor_adaptors/gauss_point_variable_tensor_adaptor.h"
 #include "tensor_adaptors/node_position_tensor_adaptor.h"
 #include "tensor_adaptors/index_tensor_adaptor.h"
+#include "tensor_adaptors/geometries_tensor_adaptor.h"
 
 // Include base h
 #include "add_tensor_adaptors_to_python.h"
@@ -159,6 +160,23 @@ void AddTensorAdaptorsToPython(pybind11::module& m)
         .def(py::init<ModelPart::ElementsContainerType::Pointer>(), py::arg("container"))
         .def(py::init<ModelPart::ConditionsContainerType::Pointer>(), py::arg("container"))
         .def(py::init<const IndexTensorAdaptor::BaseType&, const bool>(), py::arg("tensor_adaptor"), py::arg("copy") = true)
+        ;
+
+    using GeometriesTensorAdaptorType = GeometriesTensorAdaptor;
+    py::class_<GeometriesTensorAdaptorType, GeometriesTensorAdaptorType::Pointer, GeometriesTensorAdaptorType::BaseType> geometries_tensor_adaptor(tensor_adaptor_sub_module, "GeometriesTensorAdaptor");
+
+    py::enum_<GeometriesTensorAdaptorType::DatumType>(geometries_tensor_adaptor, "DatumType")
+        .value("ShapeFunctions", GeometriesTensorAdaptorType::DatumType::ShapeFunctions)
+        .value("ShapeFunctionDerivatives", GeometriesTensorAdaptorType::DatumType::ShapeFunctionDerivatives)
+        .value("Jacobians", GeometriesTensorAdaptorType::DatumType::Jacobians)
+        .value("IntegrationWeights", GeometriesTensorAdaptorType::DatumType::IntegrationWeights)
+        .export_values();
+
+    geometries_tensor_adaptor
+        .def(py::init<ModelPart::GeometryContainerType::Pointer, GeometriesTensorAdaptorType::DatumType, GeometryData::IntegrationMethod>(), py::arg("container"), py::arg("datum"), py::arg("integration_method") = GeometryData::IntegrationMethod::NumberOfIntegrationMethods)
+        .def(py::init<ModelPart::ElementsContainerType::Pointer, GeometriesTensorAdaptorType::DatumType, GeometryData::IntegrationMethod>(), py::arg("container"), py::arg("datum"), py::arg("integration_method") = GeometryData::IntegrationMethod::NumberOfIntegrationMethods)
+        .def(py::init<ModelPart::ConditionsContainerType::Pointer, GeometriesTensorAdaptorType::DatumType, GeometryData::IntegrationMethod>(), py::arg("container"), py::arg("datum"), py::arg("integration_method") = GeometryData::IntegrationMethod::NumberOfIntegrationMethods)
+        .def(py::init<const GeometriesTensorAdaptorType::BaseType&, const bool>(), py::arg("tensor_adaptor"), py::arg("copy") = true)
         ;
 }
 
