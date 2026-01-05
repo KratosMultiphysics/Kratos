@@ -206,15 +206,9 @@ void TotalLagrangianTrussElement<TDimension>::GetShapeFunctionsValuesY(
     if constexpr (Dimension == 2) {
         rN[1] = base_N[0];
         rN[3] = base_N[1];
-        if constexpr (NNodes == 3) {
-            rN[5] = base_N[2];
-        }
     } else {
         rN[1] = base_N[0];
         rN[4] = base_N[1];
-        if constexpr (NNodes == 3) {
-            rN[7] = base_N[2];
-        }
     }
 }
 
@@ -236,12 +230,8 @@ void TotalLagrangianTrussElement<TDimension>::GetShapeFunctionsValuesZ(
     if constexpr (Dimension == 3) {
         array_1d<double, NNodes> base_N;
         noalias(base_N) = GetBaseShapeFunctions(xi);
-
         rN[2] = base_N[0];
         rN[5] = base_N[1];
-        if constexpr (NNodes == 3) {
-            rN[8] = base_N[2];
-        }
     }
 }
 
@@ -251,7 +241,7 @@ void TotalLagrangianTrussElement<TDimension>::GetShapeFunctionsValuesZ(
 template <SizeType TDimension>
 void TotalLagrangianTrussElement<TDimension>::GetFirstDerivativesShapeFunctionsValues(
     SystemSizeBoundedArrayType& rdN_dX,
-    const double Length,
+    const double RefLength,
     const double xi
     ) const
 {
@@ -269,17 +259,11 @@ void TotalLagrangianTrussElement<TDimension>::GetFirstDerivativesShapeFunctionsV
     if constexpr (Dimension == 2) {
         rdN_dX[0] = dN_de(0, 0);
         rdN_dX[2] = dN_de(1, 0);
-        if constexpr (NNodes == 3) {
-            rdN_dX[4] = dN_de(2, 0);
-        }
     } else {
         rdN_dX[0] = dN_de(0, 0);
         rdN_dX[3] = dN_de(1, 0);
-        if constexpr (NNodes == 3) {
-            rdN_dX[6] = dN_de(2, 0);
-        }
     }
-    rdN_dX *= 2.0 / Length; // The Jacobian
+    rdN_dX *= 2.0 / RefLength; // The Jacobian
 }
 
 /***********************************************************************************/
@@ -299,31 +283,30 @@ void TotalLagrangianTrussElement<TDimension>::GetNodalValuesVector(
     SystemSizeBoundedArrayType& rNodalValues
 ) const
 {
-    // if (rNodalValues.size() != SystemSize)
-    //     rNodalValues.resize(SystemSize, false);
-    // const auto &r_geom = GetGeometry();
-    // BoundedVector<double, SystemSize> global_values;
-    // BoundedMatrix<double, DofsPerNode, DofsPerNode> T;
-    // BoundedMatrix<double, SystemSize, SystemSize> global_size_T;
+    if (rNodalValues.size() != SystemSize)
+        rNodalValues.resize(SystemSize, false);
+    const auto &r_geom = GetGeometry();
+    BoundedVector<double, SystemSize> global_values;
+    BoundedMatrix<double, DofsPerNode, DofsPerNode> T;
+    BoundedMatrix<double, SystemSize, SystemSize> global_size_T;
 
-    // if constexpr (Dimension == 2) {
+    if constexpr (Dimension == 2) {
+        const double angle = GetCurrentAngle();
+        // We fill the vector with global values
+        for (SizeType i = 0; i < NNodes; ++i) {
+            const auto& r_displ = r_geom[i].FastGetSolutionStepValue(DISPLACEMENT);
+            global_values[i * DofsPerNode]     = r_displ[0];
+            global_values[i * DofsPerNode + 1] = r_displ[1];
+        }
 
-    //     const double angle = GetAngle();
-    //     // We fill the vector with global values
-    //     for (SizeType i = 0; i < NNodes; ++i) {
-    //         const auto& r_displ = r_geom[i].FastGetSolutionStepValue(DISPLACEMENT);
-    //         global_values[i * DofsPerNode]     = r_displ[0];
-    //         global_values[i * DofsPerNode + 1] = r_displ[1];
-    //     }
+        StructuralMechanicsElementUtilities::BuildRotationMatrixForTruss(T, angle);
+        if constexpr (NNodes == 2) {
+            StructuralMechanicsElementUtilities::BuildElementSizeRotationMatrixFor2D2NTruss(T, global_size_T);
+        }
+        noalias(rNodalValues) = prod(trans(global_size_T), global_values);
+    }
 
-    //     StructuralMechanicsElementUtilities::BuildRotationMatrixForTruss(T, angle);
-    //     if constexpr (NNodes == 2) {
-    //         StructuralMechanicsElementUtilities::BuildElementSizeRotationMatrixFor2D2NTruss(T, global_size_T);
-    //     } else {
-    //         StructuralMechanicsElementUtilities::BuildElementSizeRotationMatrixFor2D3NTruss(T, global_size_T);
-    //     }
-    //     noalias(rNodalValues) = prod(trans(global_size_T), global_values);
-    // } else {
+    // else {
     //     // We fill the vector with global values
     //     for (SizeType i = 0; i < NNodes; ++i) {
     //         const auto& r_displ = r_geom[i].FastGetSolutionStepValue(DISPLACEMENT);
