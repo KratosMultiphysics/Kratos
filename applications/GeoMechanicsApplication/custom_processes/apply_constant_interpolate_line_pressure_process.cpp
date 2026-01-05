@@ -349,13 +349,13 @@ int ApplyConstantInterpolateLinePressureProcess::GetMaxNodeID()
 {
     KRATOS_TRY
 
-    IndexType MaxNodeID = -1;
+    int MaxNodeID = -1;
     block_for_each(mrModelPart.Nodes(), [&MaxNodeID](const Node& rNode) {
 #pragma omp critical
-        MaxNodeID = std::max<int>(MaxNodeID, rNode.Id());
+        MaxNodeID = std::max(MaxNodeID, static_cast<int>(rNode.Id()));
     });
 
-    return static_cast<int>(MaxNodeID);
+    return MaxNodeID;
 
     KRATOS_CATCH("")
 }
@@ -371,7 +371,7 @@ void ApplyConstantInterpolateLinePressureProcess::FindBoundaryNodes()
 
     unsigned int iPosition = 0;
     block_for_each(mrModelPart.Nodes(), [&iPosition, &BoundaryNodes, this](Node& rNode) {
-        const int Id = static_cast<int>(rNode.Id());
+        const auto Id = static_cast<int>(rNode.Id());
         for (const auto& r_boundary_node : BoundaryNodes) {
             if (Id == r_boundary_node) {
                 mBoundaryNodes[iPosition] = &rNode;
@@ -402,14 +402,14 @@ void ApplyConstantInterpolateLinePressureProcess::FillListOfBoundaryNodesFast(st
         std::fill(ELementsOfNodes[i].begin(), ELementsOfNodes[i].end(), ID_UNDEFINED);
     }
 
-    const unsigned int nElements = static_cast<unsigned int>(mrModelPart.NumberOfElements());
+    const auto nElements = static_cast<unsigned int>(mrModelPart.NumberOfElements());
     ModelPart::ElementsContainerType::iterator it_begin_elements = mrModelPart.ElementsBegin();
 
     for (unsigned int i = 0; i < nElements; ++i) {
         ModelPart::ElementsContainerType::iterator pElemIt = it_begin_elements + i;
         for (unsigned int iPoint = 0; iPoint < pElemIt->GetGeometry().PointsNumber(); ++iPoint) {
-            int NodeID    = static_cast<int>(pElemIt->GetGeometry()[iPoint].Id());
-            int ElementId = static_cast<int>(pElemIt->Id());
+            auto NodeID    = static_cast<int>(pElemIt->GetGeometry()[iPoint].Id());
+            auto ElementId = static_cast<int>(pElemIt->Id());
 
             int index = NodeID - 1;
             ELementsOfNodesSize[index]++;
@@ -424,9 +424,9 @@ void ApplyConstantInterpolateLinePressureProcess::FillListOfBoundaryNodesFast(st
     for (unsigned int i = 0; i < nElements; ++i) {
         ModelPart::ElementsContainerType::iterator pElemIt = it_begin_elements + i;
 
-        int nEdges = static_cast<int>(pElemIt->GetGeometry().EdgesNumber());
+        auto nEdges = static_cast<int>(pElemIt->GetGeometry().EdgesNumber());
         for (int iEdge = 0; iEdge < nEdges; ++iEdge) {
-            const unsigned int nPoints =
+            const auto nPoints =
                 static_cast<unsigned int>(pElemIt->GetGeometry().GenerateEdges()[iEdge].PointsNumber());
             std::vector<int> FaceID(nPoints);
             for (unsigned int iPoint = 0; iPoint < nPoints; ++iPoint) {
