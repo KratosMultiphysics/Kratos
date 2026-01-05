@@ -266,27 +266,6 @@ void AssertNodalValues(const NodeContainerType&   rNodes,
 namespace Kratos::Testing
 {
 
-KRATOS_TEST_CASE_IN_SUITE(TestExtrapolationProcess_ExtrapolatesCorrectlyForConstantField,
-                          KratosGeoMechanicsFastSuiteWithoutKernel)
-{
-    //   This test uses the following two-element system.
-    //   4------3------6
-    //   |  El1 |  El2 |
-    //   1------2------5
-
-    auto        model           = Model{};
-    const auto& r_test_variable = HYDRAULIC_HEAD;
-    auto&       r_model_part    = CreateModelPartWithTwoStubElements(model, r_test_variable);
-
-    const auto unused_process_info = ProcessInfo{};
-    r_model_part.Elements()[1].SetValuesOnIntegrationPoints(r_test_variable, std::vector(4, 1.0), unused_process_info);
-    r_model_part.Elements()[2].SetValuesOnIntegrationPoints(r_test_variable, std::vector(4, 1.0), unused_process_info);
-
-    CreateAndRunExtrapolationProcess(model, CreateExtrapolationProcessSettings(r_model_part, r_test_variable));
-
-    AssertNodalValues(r_model_part.Nodes(), r_test_variable, std::vector(6, 1.0));
-}
-
 KRATOS_TEST_CASE_IN_SUITE(TestExtrapolationProcess_ExtrapolatesCorrectlyForConstantFieldWithInactiveElement,
                           KratosGeoMechanicsFastSuiteWithoutKernel)
 {
@@ -301,7 +280,7 @@ KRATOS_TEST_CASE_IN_SUITE(TestExtrapolationProcess_ExtrapolatesCorrectlyForConst
 
     const auto unused_process_info = ProcessInfo{};
     r_model_part.Elements()[1].SetValuesOnIntegrationPoints(r_test_variable, std::vector(4, 1.0), unused_process_info);
-    r_model_part.Elements()[2].SetValuesOnIntegrationPoints(r_test_variable, std::vector(4, 1.0), unused_process_info);
+    r_model_part.Elements()[2].SetValuesOnIntegrationPoints(r_test_variable, std::vector(4, 2.0), unused_process_info);
 
     r_model_part.Elements()[2].Set(ACTIVE, false);
 
@@ -520,14 +499,14 @@ KRATOS_TEST_CASE_IN_SUITE(TestExtrapolationProcess_ExtrapolatesCorrectlyWhenNode
     r_left_model_part.Elements()[1].SetValuesOnIntegrationPoints(
         r_test_variable, std::vector(4, 1.0), unused_process_info);
     r_right_model_part.Elements()[2].SetValuesOnIntegrationPoints(
-        r_test_variable, std::vector(4, 1.0), unused_process_info);
+        r_test_variable, std::vector(4, 2.0), unused_process_info);
 
     CreateAndRunExtrapolationProcess(
         model, CreateExtrapolationProcessSettings(
                    {std::cref(r_left_model_part), std::cref(r_right_model_part)}, r_test_variable));
 
-    AssertNodalValues(r_left_model_part.Nodes(), r_test_variable, std::vector(4, 1.0));
-    AssertNodalValues(r_right_model_part.Nodes(), r_test_variable, std::vector(4, 1.0));
+    AssertNodalValues(r_left_model_part.Nodes(), r_test_variable, {1.0, 1.5, 1.5, 1.0});
+    AssertNodalValues(r_right_model_part.Nodes(), r_test_variable, {1.5, 1.5, 2.0, 2.0});
 }
 
 KRATOS_TEST_CASE_IN_SUITE(TestExtrapolationProcess_ExtrapolatesCorrectlyWhenModelPartsWithSharedNodesAreUsedByDifferentProcesses,
@@ -576,9 +555,9 @@ KRATOS_TEST_CASE_IN_SUITE(TestExtrapolationProcess_ExtrapolatesCorrectlyWhenMode
     r_bottom_model_part.Elements()[1].SetValuesOnIntegrationPoints(
         r_test_variable_1, std::vector(4, 1.0), unused_process_info);
     r_bottom_model_part.Elements()[2].SetValuesOnIntegrationPoints(
-        r_test_variable_1, std::vector(4, 1.0), unused_process_info);
+        r_test_variable_1, std::vector(4, 2.0), unused_process_info);
     r_top_model_part.Elements()[3].SetValuesOnIntegrationPoints(
-        r_test_variable_1, std::vector(4, 1.0), unused_process_info);
+        r_test_variable_1, std::vector(4, 3.0), unused_process_info);
 
     auto process_1 = GeoExtrapolateIntegrationPointValuesToNodesProcess{
         model, CreateExtrapolationProcessSettings(r_bottom_model_part, r_test_variable_1)};
@@ -588,11 +567,13 @@ KRATOS_TEST_CASE_IN_SUITE(TestExtrapolationProcess_ExtrapolatesCorrectlyWhenMode
     process_2.ExecuteBeforeSolutionLoop();
     process_1.ExecuteFinalizeSolutionStep();
 
-    AssertNodalValues(r_bottom_model_part.Nodes(), r_test_variable_1, std::vector(6, 1.0));
+    // Note that element 3 is not considered by the first extrapolation process
+    AssertNodalValues(r_bottom_model_part.Nodes(), r_test_variable_1, {1.0, 1.5, 1.5, 1.0, 2.0, 2.0});
 
     process_2.ExecuteFinalizeSolutionStep();
 
-    AssertNodalValues(r_top_model_part.Nodes(), r_test_variable_2, std::vector(4, 1.0));
+    // Note that elements 1 and 2 are not considered by the second extrapolation process
+    AssertNodalValues(r_top_model_part.Nodes(), r_test_variable_2, std::vector(4, 3.0));
 }
 
 KRATOS_TEST_CASE_IN_SUITE(CheckInfoGeoExtrapolateIntegrationPointValuesToNodesProcess, KratosGeoMechanicsFastSuiteWithoutKernel)
