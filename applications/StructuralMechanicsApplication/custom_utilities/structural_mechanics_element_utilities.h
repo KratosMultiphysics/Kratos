@@ -366,7 +366,7 @@ void InitializeConstitutiveLawValuesForStressCalculation(ConstitutiveLaw::Parame
  * This is valid for STRAIGHT lines
  * @param rGeometry: The geometry of the line element
  */
-BoundedMatrix<double, 3, 3> GetFrenetSerretMatrix3D(const GeometryType& rGeometry);
+BoundedMatrix<double, 3, 3> GetFrenetSerretMatrix3D(const GeometryType& rGeometry, const bool UseCurrentConfiguration = false);
 
 } // namespace StructuralMechanicsElementUtilities.
 }  // namespace Kratos.

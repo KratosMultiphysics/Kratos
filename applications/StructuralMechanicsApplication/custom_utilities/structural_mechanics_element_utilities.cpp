@@ -676,7 +676,10 @@ void InitializeConstitutiveLawValuesForStressCalculation(ConstitutiveLaw::Parame
 /***********************************************************************************/
 /***********************************************************************************/
 
-BoundedMatrix<double, 3, 3> GetFrenetSerretMatrix3D(const GeometryType& rGeometry)
+BoundedMatrix<double, 3, 3> GetFrenetSerretMatrix3D(
+    const GeometryType& rGeometry,
+    const bool UseCurrentConfiguration
+    )
 {
     BoundedMatrix<double, 3, 3> T;
     T.clear(); // global to local
@@ -686,7 +689,11 @@ BoundedMatrix<double, 3, 3> GetFrenetSerretMatrix3D(const GeometryType& rGeometr
     array_1d<double, 3> m;
 
     // t is the axis of the truss
-    noalias(t) = rGeometry[1].GetInitialPosition() - rGeometry[0].GetInitialPosition();
+    if (UseCurrentConfiguration) {
+        noalias(t) = rGeometry[1].Coordinates() - rGeometry[0].Coordinates();
+    } else {
+        noalias(t) = rGeometry[1].GetInitialPosition() - rGeometry[0].GetInitialPosition();
+    }
     t /= norm_2(t);
 
     n.clear();
