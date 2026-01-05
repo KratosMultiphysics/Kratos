@@ -256,10 +256,8 @@ double CalculateCurrentLength2D2N(const Element& rElement)
     KRATOS_TRY;
 
     const array_1d<double, 3> delta_pos =
-        rElement.GetGeometry()[1].GetInitialPosition().Coordinates() -
-        rElement.GetGeometry()[0].GetInitialPosition().Coordinates() +
-        rElement.GetGeometry()[1].FastGetSolutionStepValue(DISPLACEMENT) -
-        rElement.GetGeometry()[0].FastGetSolutionStepValue(DISPLACEMENT);
+        rElement.GetGeometry()[1].Coordinates() -
+        rElement.GetGeometry()[0].Coordinates();
 
     const double l = std::sqrt((delta_pos[0] * delta_pos[0]) +
                                (delta_pos[1] * delta_pos[1]));
@@ -296,10 +294,8 @@ double CalculateCurrentLength3D2N(const Element& rElement)
     KRATOS_TRY;
 
     const array_1d<double, 3> delta_pos =
-        rElement.GetGeometry()[1].GetInitialPosition().Coordinates() -
-        rElement.GetGeometry()[0].GetInitialPosition().Coordinates() +
-        rElement.GetGeometry()[1].FastGetSolutionStepValue(DISPLACEMENT) -
-        rElement.GetGeometry()[0].FastGetSolutionStepValue(DISPLACEMENT);
+        rElement.GetGeometry()[1].Coordinates() -
+        rElement.GetGeometry()[0].Coordinates();
 
     const double l = MathUtils<double>::Norm3(delta_pos);
 

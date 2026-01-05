@@ -336,13 +336,12 @@ array_1d<double, 3> TotalLagrangianTrussElement<TDimension>::GetLocalAxesBodyFor
         local_body_force[0] = c * body_force[0] + s * body_force[1];
         local_body_force[1] = -s * body_force[0] + c * body_force[1];
         return local_body_force;
-    }
-    // else {
+    } else {
     //     BoundedMatrix<double, Dimension, Dimension> T;
     //     noalias(T) = GetFrenetSerretMatrix(); // global to local
     //     noalias(local_body_force) = prod(T, body_force);
     //     return local_body_force;
-    // }
+    }
 
     return array_1d<double, 3>();
 }
@@ -416,9 +415,9 @@ void TotalLagrangianTrussElement<TDimension>::CalculateLocalSystem(
 
     const double ref_length = CalculateReferenceLength();
     const double curr_length = CalculateCurrentLength();
-    const double J = 0.5 * ref_length;
+    const double J = 0.5 * ref_length; // Jacobian to the natural coordinates
     const double ref_area = r_props[CROSS_AREA];
-    const double Fxx = curr_length / ref_length;
+    const double Fxx = curr_length / ref_length; // Deformation gradient in the axial direction
     const auto pre_stress = r_props.Has(TRUSS_PRESTRESS_PK2) ? r_props[TRUSS_PRESTRESS_PK2] :  0.0;
 
     // Let's initialize the cl values
@@ -433,7 +432,6 @@ void TotalLagrangianTrussElement<TDimension>::CalculateLocalSystem(
     GetNodalValuesVector(nodal_values); // In local axes
 
     SystemSizeBoundedArrayType B, N_shape, N_shapeY;
-    MatrixType K_geo(SystemSize, SystemSize);
     // N_shapeZ;
 
     // Loop over the integration points
@@ -457,8 +455,8 @@ void TotalLagrangianTrussElement<TDimension>::CalculateLocalSystem(
         noalias(rLHS) += Fxx * Fxx * outer_prod(B, B) * constitutive_matrix(0, 0) * jacobian_weight; // Material stiffness
         noalias(rLHS) += CalculateGeometricStiffnessMatrix(stress_vector[0] + pre_stress, ref_length) * jacobian_weight; // Geometric stiffness
 
-        // noalias(rRHS) += N_shape  * local_body_forces[0] * jacobian_weight;
-        // noalias(rRHS) += N_shapeY * local_body_forces[1] * jacobian_weight;
+        noalias(rRHS) += N_shape  * local_body_forces[0] * jacobian_weight;
+        noalias(rRHS) += N_shapeY * local_body_forces[1] * jacobian_weight;
         // noalias(rRHS) += N_shapeZ * local_body_forces[2] * jacobian_weight;
     }
     RotateAll(rLHS, rRHS); // rotate to global
@@ -476,53 +474,62 @@ void TotalLagrangianTrussElement<TDimension>::CalculateLeftHandSide(
     )
 {
     KRATOS_TRY;
-    // const auto &r_props = GetProperties();
-    // const auto &r_geometry = GetGeometry();
 
-    // if (rLHS.size1() != SystemSize || rLHS.size2() != SystemSize) {
-    //     rLHS.resize(SystemSize, SystemSize, false);
-    // }
-    // rLHS.clear();
+   const auto &r_props = GetProperties();
+    const auto &r_geometry = GetGeometry();
 
-    // const auto& integration_points = IntegrationPoints(GetIntegrationMethod());
+    if (rLHS.size1() != SystemSize || rLHS.size2() != SystemSize) {
+        rLHS.resize(SystemSize, SystemSize, false);
+    }
+    rLHS.clear();
 
-    // ConstitutiveLaw::Parameters cl_values(r_geometry, r_props, rProcessInfo);
-    // auto &r_cl_options = cl_values.GetOptions();
-    // r_cl_options.Set(ConstitutiveLaw::COMPUTE_STRESS             , true);
-    // r_cl_options.Set(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR, true);
+    const auto& r_integration_points = IntegrationPoints(GetIntegrationMethod());
 
-    // const double length = CalculateLength();
-    // const double J      = 0.5 * length;
-    // const double area   = r_props[CROSS_AREA];
+    ConstitutiveLaw::Parameters cl_values(r_geometry, r_props, rProcessInfo);
+    auto &r_cl_options = cl_values.GetOptions();
+    r_cl_options.Set(ConstitutiveLaw::COMPUTE_STRESS             , true);
+    r_cl_options.Set(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR, true);
 
-    // // Let's initialize the cl values
-    // VectorType strain_vector(1), stress_vector(1);
-    // MatrixType constitutive_matrix(1, 1); // Young modulus
+    const double ref_length = CalculateReferenceLength();
+    const double curr_length = CalculateCurrentLength();
+    const double J = 0.5 * ref_length; // Jacobian to the natural coordinates
+    const double ref_area = r_props[CROSS_AREA];
+    const double Fxx = curr_length / ref_length; // Deformation gradient in the axial direction
+    const auto pre_stress = r_props.Has(TRUSS_PRESTRESS_PK2) ? r_props[TRUSS_PRESTRESS_PK2] :  0.0;
 
-    // strain_vector.clear();
-    // cl_values.SetStrainVector(strain_vector);
-    // cl_values.SetStressVector(stress_vector);
-    // cl_values.SetConstitutiveMatrix(constitutive_matrix);
-    // SystemSizeBoundedArrayType nodal_values(SystemSize);
-    // GetNodalValuesVector(nodal_values); // In local axes
+    // Let's initialize the cl values
+    VectorType strain_vector(1), stress_vector(1);
+    MatrixType constitutive_matrix(1, 1); // Young modulus
 
-    // SystemSizeBoundedArrayType B;
+    strain_vector.clear();
+    cl_values.SetStrainVector(strain_vector);
+    cl_values.SetStressVector(stress_vector);
+    cl_values.SetConstitutiveMatrix(constitutive_matrix);
+    SystemSizeBoundedArrayType nodal_values(SystemSize);
+    GetNodalValuesVector(nodal_values); // In local axes
 
-    // // Loop over the integration points
-    // for (SizeType IP = 0; IP < integration_points.size(); ++IP) {
-    //     const auto local_body_forces = GetLocalAxesBodyForce(*this, integration_points, IP);
+    SystemSizeBoundedArrayType B;
+    // N_shapeZ;
 
-    //     const double xi     = integration_points[IP].X();
-    //     const double weight = integration_points[IP].Weight();
-    //     const double jacobian_weight = weight * J * area;
-    //     GetFirstDerivativesShapeFunctionsValues(B, length, xi);
+    // Loop over the integration points
+    for (SizeType IP = 0; IP < r_integration_points.size(); ++IP) {
+        const auto local_body_forces = GetLocalAxesBodyForce(*this, r_integration_points, IP);
 
-    //     strain_vector[0] = inner_prod(B, nodal_values);
-    //     mConstitutiveLawVector[IP]->CalculateMaterialResponsePK2(cl_values); // fills stress and const. matrix
+        const double xi     = r_integration_points[IP].X();
+        const double weight = r_integration_points[IP].Weight();
+        const double jacobian_weight = weight * J * ref_area;
+        // GetShapeFunctionsValuesZ(N_shapeZ, length, xi);
+        GetFirstDerivativesShapeFunctionsValues(B, ref_length, xi);
 
-    //     noalias(rLHS) += outer_prod(B, B) * constitutive_matrix(0, 0) * jacobian_weight;
-    // }
-    // RotateLHS(rLHS); // rotate to global
+        strain_vector[0] = CalculateGreenLagrangeStrain(curr_length, ref_length);
+
+        mConstitutiveLawVector[IP]->CalculateMaterialResponsePK2(cl_values); // fills stress and const. matrix
+
+        noalias(rLHS) += Fxx * Fxx * outer_prod(B, B) * constitutive_matrix(0, 0) * jacobian_weight; // Material stiffness
+        noalias(rLHS) += CalculateGeometricStiffnessMatrix(stress_vector[0] + pre_stress, ref_length) * jacobian_weight; // Geometric stiffness
+
+    }
+    RotateLHS(rLHS); // rotate to global
 
     KRATOS_CATCH("")
 }
@@ -557,7 +564,7 @@ void TotalLagrangianTrussElement<TDimension>::CalculateRightHandSide(
     const double J = 0.5 * ref_length;
     const double ref_area = r_props[CROSS_AREA];
     const double Fxx = curr_length / ref_length;
-    const auto pre_stress = r_props.Has(TRUSS_PRESTRESS_PK2) ? r_props[TRUSS_PRESTRESS_PK2] :  0.0;
+    const auto pre_stress = r_props.Has(TRUSS_PRESTRESS_PK2) ? r_props[TRUSS_PRESTRESS_PK2] : 0.0;
 
     // Let's initialize the cl values
     VectorType strain_vector(1), stress_vector(1);
@@ -591,8 +598,8 @@ void TotalLagrangianTrussElement<TDimension>::CalculateRightHandSide(
 
         noalias(rRHS) -= Fxx * B * (stress_vector[0] + pre_stress) * jacobian_weight;
 
-        // noalias(rRHS) += N_shape  * local_body_forces[0] * jacobian_weight;
-        // noalias(rRHS) += N_shapeY * local_body_forces[1] * jacobian_weight;
+        noalias(rRHS) += N_shape  * local_body_forces[0] * jacobian_weight;
+        noalias(rRHS) += N_shapeY * local_body_forces[1] * jacobian_weight;
         // noalias(rRHS) += N_shapeZ * local_body_forces[2] * jacobian_weight;
     }
     RotateRHS(rRHS); // rotate to global
