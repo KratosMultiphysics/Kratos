@@ -434,13 +434,12 @@ void ApplyConstantInterpolateLinePressureProcess::FillListOfBoundaryNodesFast(st
                     static_cast<int>(pElemIt->GetGeometry().GenerateEdges()[iEdge].GetPoint(iPoint).Id());
             }
 
-            if (!IsMoreThanOneElementWithThisEdgeFast(FaceID, ELementsOfNodes, ELementsOfNodesSize)) {
-                // boundary nodes:
-                for (unsigned int iPoint = 0; iPoint < nPoints; ++iPoint) {
-                    auto it = std::find(BoundaryNodes.begin(), BoundaryNodes.end(), FaceID[iPoint]);
-                    if (it == BoundaryNodes.end()) {
-                        BoundaryNodes.push_back(FaceID[iPoint]);
-                    }
+            if (IsMoreThanOneElementWithThisEdgeFast(FaceID, ELementsOfNodes, ELementsOfNodesSize))
+                continue;
+            // boundary nodes:
+            for (unsigned int iPoint = 0; iPoint < nPoints; ++iPoint) {
+                if (std::ranges::find(BoundaryNodes, FaceID[iPoint]) == BoundaryNodes.end()) {
+                    BoundaryNodes.push_back(FaceID[iPoint]);
                 }
             }
         }
@@ -485,11 +484,10 @@ bool ApplyConstantInterpolateLinePressureProcess::IsMoreThanOneElementWithThisEd
                 bool found = false;
                 if (element_id != ID_UNDEFINED) {
                     for (unsigned int iPointInner = 0; iPointInner < rFaceIDs.size(); ++iPointInner) {
-                        if (iPointInner != iPoint) {
-                            // std::any_of followed by breaking out of 2 for loops
-                            for (const auto element_id_loop : ElementIDs[iPointInner]) {
-                                if (element_id_loop == element_id) found = true;
-                            }
+                        if (iPointInner == iPoint) continue;
+                        // std::any_of followed by breaking out of 2 for loops
+                        for (const auto element_id_loop : ElementIDs[iPointInner]) {
+                            if (element_id_loop == element_id) found = true;
                         }
                     }
                 }
