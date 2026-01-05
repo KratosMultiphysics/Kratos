@@ -510,11 +510,11 @@ private:
     
     
 
-    inline void CalculateAndAddNonlinearKm(
-        Matrix& rLeftHandSideMatrix,
-        const SecondVariations& rSecondVariationsStrain,
-        const Vector& rSD,
-        const double IntegrationWeight) const;
+    // inline void CalculateAndAddNonlinearKm(
+    //     Matrix& rLeftHandSideMatrix,
+    //     const SecondVariations& rSecondVariationsStrain,
+    //     const Vector& rSD,
+    //     const double IntegrationWeight) const;
 
     // Calculation of the PK2 stress
     void CalculatePK2Stress(
@@ -554,10 +554,7 @@ private:
         std::vector<Matrix>& rDQ_Dalpha_init,
         std::vector<Matrix>& rDTransCartToCov_Dalpha_init,
         const Matrix& rHessian) const;
-    void ExtractStressDOFs(
-        const IndexType IntegrationPointIndex,
-        array_1d<double,3>& rSigmaMem,
-        array_1d<double,3>& rSigmaBend) const;
+
     /**
      * @brief This method gets a value directly from the CL
      * @details Avoids code repetition
@@ -618,7 +615,7 @@ private:
         rSerializer.load("T_vector", m_T_vector);
         rSerializer.load("constitutive_law_vector", mConstitutiveLawVector);
     }
-    
+
     ///@}
 
 };     // Class Shell3pMixedElement
