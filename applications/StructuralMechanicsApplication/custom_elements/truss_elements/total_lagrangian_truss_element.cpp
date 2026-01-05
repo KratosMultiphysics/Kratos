@@ -877,6 +877,64 @@ Vector TotalLagrangianTrussElement<TDimension>::GetBaseShapeFunctions(const doub
 /***********************************************************************************/
 /***********************************************************************************/
 
+template <SizeType TDimension>
+TotalLagrangianTrussElement<TDimension>::MatrixType TotalLagrangianTrussElement<TDimension>::
+CalculateClosedFormK(
+    const double Sxx
+)
+{
+    MatrixType K = ZeroMatrix(SystemSize, SystemSize);
+    const auto &r_props = GetProperties();
+    const double E = r_props[YOUNG_MODULUS];
+    const double A = r_props[CROSS_AREA];
+    const double L0 = CalculateReferenceLength();
+    const double L = CalculateCurrentLength();
+    const double Fxx = L / L0;
+    const double theta = GetCurrentAngle();
+
+    const double k = Fxx * Fxx * E * A / L0;
+
+    // Material stiffness matrix
+    K(0,0) =  k * std::cos(theta) * std::cos(theta);
+    K(0,1) =  k * std::cos(theta) * std::sin(theta);
+    K(1,0) =  K(0,1);
+    K(1,1) =  k * std::sin(theta) * std::sin(theta);
+
+    K(0,2) = -k * std::cos(theta) * std::cos(theta);
+    K(1,2) = -k * std::sin(theta) * std::cos(theta);
+    K(2,0) =  K(0,2);
+    K(2,1) =  K(1,2);
+    K(2,2) =  k * std::cos(theta) * std::cos(theta);
+
+    K(3,3) =  k * std::sin(theta) * std::sin(theta);
+    K(2,3) = k * std::cos(theta) * std::sin(theta);
+    K(3,2) = K(2,3);
+    K(1,3) = -k * std::sin(theta) * std::sin(theta);
+    K(3,1) = K(1,3);
+    K(0,3) = -k * std::cos(theta) * std::sin(theta);
+    K(3,0) = K(0,3);
+
+    // Geometric stiffness matrix
+    const double k_fact_g = Sxx * A / L0;
+
+        for (IndexType i = 0; i < SystemSize; ++i) {
+            for (IndexType j = 0; j < SystemSize; ++j) {
+                if (i == j) {
+                    K(i, i) += k_fact_g;
+                } else if (i == j + 2) {
+                    K(i, j) += -k_fact_g;
+                } else if (i + 2 == j) {
+                    K(i, j) += -k_fact_g;
+                }
+            }
+        }
+
+    return K;
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
 template class TotalLagrangianTrussElement<2>;
 template class TotalLagrangianTrussElement<3>;
 

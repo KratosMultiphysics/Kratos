@@ -216,6 +216,8 @@ public:
         const double Ref_Length
     );
 
+    MatrixType CalculateClosedFormK(const double Sxx);
+
     /**
      * @brief Called to initialize the element.
      * @warning Must be called before any calculation is done
