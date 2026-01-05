@@ -612,18 +612,16 @@ void TotalLagrangianTrussElement<TDimension>::RotateLHS(
     MatrixType& rLHS
 )
 {
-    // BoundedMatrix<double, SystemSize, SystemSize> global_size_T, aux_product;
-    // BoundedMatrix<double, DofsPerNode, DofsPerNode> T;
-    // if constexpr (Dimension == 2) {
-    //     const double angle = GetAngle();
+    BoundedMatrix<double, SystemSize, SystemSize> global_size_T, aux_product;
+    BoundedMatrix<double, DofsPerNode, DofsPerNode> T;
 
-    //     StructuralMechanicsElementUtilities::BuildRotationMatrixForTruss(T, angle);
-    //     if constexpr (NNodes == 2) {
-    //         StructuralMechanicsElementUtilities::BuildElementSizeRotationMatrixFor2D2NTruss(T, global_size_T);
-    //     } else {
-    //         StructuralMechanicsElementUtilities::BuildElementSizeRotationMatrixFor2D3NTruss(T, global_size_T);
-    //     }
-    // } else {
+    if constexpr (Dimension == 2) {
+        const double angle = GetCurrentAngle();
+
+        StructuralMechanicsElementUtilities::BuildRotationMatrixForTruss(T, angle);
+        StructuralMechanicsElementUtilities::BuildElementSizeRotationMatrixFor2D2NTruss(T, global_size_T);
+
+    } else {
     //     noalias(T) = trans(GetFrenetSerretMatrix()); // global to local
 
     //     if constexpr (NNodes == 2) {
@@ -631,9 +629,10 @@ void TotalLagrangianTrussElement<TDimension>::RotateLHS(
     //     } else {
     //         StructuralMechanicsElementUtilities::BuildElementSizeRotationMatrixFor3D3NTruss(T, global_size_T);
     //     }
-    // }
-    // noalias(aux_product) = prod(rLHS, trans(global_size_T));
-    // noalias(rLHS) = prod(global_size_T, aux_product);
+    }
+
+    noalias(aux_product) = prod(rLHS, trans(global_size_T));
+    noalias(rLHS) = prod(global_size_T, aux_product);
 }
 
 /***********************************************************************************/
@@ -644,29 +643,25 @@ void TotalLagrangianTrussElement<TDimension>::RotateRHS(
     VectorType& rRHS
 )
 {
-    // BoundedMatrix<double, DofsPerNode, DofsPerNode> T;
-    // BoundedMatrix<double, SystemSize, SystemSize> global_size_T;
-    // BoundedVector<double, SystemSize> local_rhs;
+    BoundedMatrix<double, DofsPerNode, DofsPerNode> T;
+    BoundedMatrix<double, SystemSize, SystemSize> global_size_T;
+    BoundedVector<double, SystemSize> local_rhs;
 
-    // if constexpr (Dimension == 2) {
-    //     const double angle = GetAngle();
-    //     StructuralMechanicsElementUtilities::BuildRotationMatrixForTruss(T, angle);
-    //     if constexpr (NNodes == 2) {
-    //         StructuralMechanicsElementUtilities::BuildElementSizeRotationMatrixFor2D2NTruss(T, global_size_T);
-    //     } else {
-    //         StructuralMechanicsElementUtilities::BuildElementSizeRotationMatrixFor2D3NTruss(T, global_size_T);
-    //     }
+    if constexpr (Dimension == 2) {
+        const double angle = GetCurrentAngle();
+        StructuralMechanicsElementUtilities::BuildRotationMatrixForTruss(T, angle);
+        StructuralMechanicsElementUtilities::BuildElementSizeRotationMatrixFor2D2NTruss(T, global_size_T);
 
-    // } else {
-    //     noalias(T) = trans(GetFrenetSerretMatrix()); // global to local
-    //     if constexpr (NNodes == 2) {
-    //         StructuralMechanicsElementUtilities::BuildElementSizeRotationMatrixFor3D2NTruss(T, global_size_T);
-    //     } else {
-    //         StructuralMechanicsElementUtilities::BuildElementSizeRotationMatrixFor3D3NTruss(T, global_size_T);
-    //     }
-    // }
-    // noalias(local_rhs) = rRHS;
-    // noalias(rRHS) = prod(global_size_T, local_rhs);
+    } else {
+        // noalias(T) = trans(GetFrenetSerretMatrix()); // global to local
+        // if constexpr (NNodes == 2) {
+        //     StructuralMechanicsElementUtilities::BuildElementSizeRotationMatrixFor3D2NTruss(T, global_size_T);
+        // } else {
+        //     StructuralMechanicsElementUtilities::BuildElementSizeRotationMatrixFor3D3NTruss(T, global_size_T);
+        // }
+    }
+    noalias(local_rhs) = rRHS;
+    noalias(rRHS) = prod(global_size_T, local_rhs);
 }
 
 /***********************************************************************************/
@@ -678,34 +673,29 @@ void TotalLagrangianTrussElement<TDimension>::RotateAll(
     VectorType& rRHS
 )
 {
-    // BoundedMatrix<double, DofsPerNode, DofsPerNode> T;
-    // BoundedMatrix<double, SystemSize, SystemSize> global_size_T, aux_product;
-    // BoundedVector<double, SystemSize> local_rhs;
+    BoundedMatrix<double, DofsPerNode, DofsPerNode> T;
+    BoundedMatrix<double, SystemSize, SystemSize> global_size_T, aux_product;
+    BoundedVector<double, SystemSize> local_rhs;
 
-    // if constexpr (Dimension == 2) {
-    //     const double angle = GetAngle();
-    //     StructuralMechanicsElementUtilities::BuildRotationMatrixForTruss(T, angle);
+    if constexpr (Dimension == 2) {
+        const double angle = GetCurrentAngle();
+        StructuralMechanicsElementUtilities::BuildRotationMatrixForTruss(T, angle);
+        StructuralMechanicsElementUtilities::BuildElementSizeRotationMatrixFor2D2NTruss(T, global_size_T);
 
-    //     if constexpr (NNodes == 2) {
-    //         StructuralMechanicsElementUtilities::BuildElementSizeRotationMatrixFor2D2NTruss(T, global_size_T);
-    //     } else {
-    //         StructuralMechanicsElementUtilities::BuildElementSizeRotationMatrixFor2D3NTruss(T, global_size_T);
-    //     }
+    } else {
+        // noalias(T) = trans(GetFrenetSerretMatrix()); // global to local
+        // if constexpr (NNodes == 2) {
+        //     StructuralMechanicsElementUtilities::BuildElementSizeRotationMatrixFor3D2NTruss(T, global_size_T);
+        // } else {
+        //     StructuralMechanicsElementUtilities::BuildElementSizeRotationMatrixFor3D3NTruss(T, global_size_T);
+        // }
+    }
 
-    // } else {
-    //     noalias(T) = trans(GetFrenetSerretMatrix()); // global to local
-    //     if constexpr (NNodes == 2) {
-    //         StructuralMechanicsElementUtilities::BuildElementSizeRotationMatrixFor3D2NTruss(T, global_size_T);
-    //     } else {
-    //         StructuralMechanicsElementUtilities::BuildElementSizeRotationMatrixFor3D3NTruss(T, global_size_T);
-    //     }
-    // }
+    noalias(local_rhs) = rRHS;
+    noalias(rRHS) = prod(global_size_T, local_rhs);
 
-    // noalias(local_rhs) = rRHS;
-    // noalias(rRHS) = prod(global_size_T, local_rhs);
-
-    // noalias(aux_product) = prod(rLHS, trans(global_size_T));
-    // noalias(rLHS) = prod(global_size_T, aux_product);
+    noalias(aux_product) = prod(rLHS, trans(global_size_T));
+    noalias(rLHS) = prod(global_size_T, aux_product);
 }
 
 /***********************************************************************************/
