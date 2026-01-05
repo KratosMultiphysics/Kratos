@@ -294,13 +294,9 @@ void TotalLagrangianTrussElement<TDimension>::GetNodalValuesVector(
         }
 
         StructuralMechanicsElementUtilities::BuildRotationMatrixForTruss(T, angle);
-        if constexpr (NNodes == 2) {
-            StructuralMechanicsElementUtilities::BuildElementSizeRotationMatrixFor2D2NTruss(T, global_size_T);
-        }
+        StructuralMechanicsElementUtilities::BuildElementSizeRotationMatrixFor2D2NTruss(T, global_size_T);
         noalias(rNodalValues) = prod(trans(global_size_T), global_values);
-    }
-
-    // else {
+    } else {
     //     // We fill the vector with global values
     //     for (SizeType i = 0; i < NNodes; ++i) {
     //         const auto& r_displ = r_geom[i].FastGetSolutionStepValue(DISPLACEMENT);
@@ -316,7 +312,7 @@ void TotalLagrangianTrussElement<TDimension>::GetNodalValuesVector(
     //         StructuralMechanicsElementUtilities::BuildElementSizeRotationMatrixFor3D3NTruss(T, global_size_T);
     //     }
     //     noalias(rNodalValues) = prod(global_size_T, global_values);
-    // }
+    }
 }
 
 /***********************************************************************************/
