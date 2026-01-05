@@ -65,6 +65,7 @@ public:
 
     /// The base element type
     using BaseType = Element;
+    using MatrixType = typename BaseType::MatrixType;
     static constexpr SizeType NNodes      = 2;
     static constexpr SizeType Dimension   = TDimension;
     static constexpr SizeType DofsPerNode = TDimension;
@@ -204,6 +205,16 @@ public:
     {
         return 0.5 * (std::pow(CurrentLength / ReferenceLength, 2) - 1.0);
     }
+
+    /**
+     * @brief Computes the Geometric stiffness matrix of the element
+     * @param Stress_x The axial Cauchy stress of the element
+     * @param Ref_Length The reference length of the element
+     */
+    MatrixType CalculateGeometricStiffnessMatrix(
+        const double Stress_x,
+        const double Ref_Length
+    );
 
     /**
      * @brief Called to initialize the element.
