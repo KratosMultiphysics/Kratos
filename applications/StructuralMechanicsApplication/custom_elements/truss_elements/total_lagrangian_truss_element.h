@@ -128,9 +128,18 @@ public:
      * @brief This method returns the angle of the FE axis in the reference configuration
      * 2D calculations
      */
-    double GetAngle() const
+    double GetReferenceAngle() const
     {
         return StructuralMechanicsElementUtilities::GetReferenceRotationAngle2D2NBeam(GetGeometry());
+    }
+
+    /**
+     * @brief This method returns the angle of the FE axis in the current configuration
+     * 2D calculations
+     */
+    double GetCurrentAngle() const
+    {
+        return StructuralMechanicsElementUtilities::GetCurrentRotationAngle2D2NBeam(GetGeometry());
     }
 
     /**
