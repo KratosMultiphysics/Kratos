@@ -21,7 +21,7 @@ where:
 In stress-invariant form, the MC yield function is typically written as:
 
 ```math
-    F_{MC}(p, q) =\frac{6 \sin{\phi}}{3 - \sin{\phi}} p + \frac{6 c \cos⁡{\phi}}{3 - \sin{\phi}} - q
+    F_{MC}(p, q) = q - \frac{6 \sin{\phi}}{3 - \sin{\phi}} p - \frac{6 c \cos⁡{\phi}}{3 - \sin{\phi}}
 ```
 where:
 
