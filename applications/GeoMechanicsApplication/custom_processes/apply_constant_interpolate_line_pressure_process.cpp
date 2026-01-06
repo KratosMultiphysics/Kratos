@@ -21,8 +21,8 @@ namespace Kratos
 {
 using namespace std::string_literals;
 
-ApplyConstantInterpolateLinePressureProcess ::ApplyConstantInterpolateLinePressureProcess(ModelPart& model_part,
-                                                                                          Parameters rParameters)
+ApplyConstantInterpolateLinePressureProcess::ApplyConstantInterpolateLinePressureProcess(ModelPart& model_part,
+                                                                                         Parameters rParameters)
     : Process(Flags()), mrModelPart(model_part)
 {
     KRATOS_TRY
@@ -486,7 +486,8 @@ bool ApplyConstantInterpolateLinePressureProcess::IsMoreThanOneElementWithThisEd
     for (unsigned int iPoint = 0; iPoint < rFaceIDs.size(); ++iPoint) {
         for (const auto element_id : ElementIDs[iPoint]) {
             if (element_id == ID_UNDEFINED) continue;
-            const auto ContainsElementInRange = [&ElementIDs, element_id](unsigned int begin, unsigned int end) -> bool {
+            const auto ContainsElementInRange = [&ElementIDs, element_id](
+                                                    unsigned int begin, unsigned int end) -> bool {
                 for (unsigned int iPointInner = begin; iPointInner < end; ++iPointInner) {
                     const auto& rElementIds = ElementIDs[iPointInner];
                     if (std::find(rElementIds.begin(), rElementIds.end(), element_id) != rElementIds.end()) {
@@ -496,10 +497,11 @@ bool ApplyConstantInterpolateLinePressureProcess::IsMoreThanOneElementWithThisEd
                 return false;
             };
             const auto found = ContainsElementInRange(0, iPoint) ||
-                    ContainsElementInRange(iPoint + 1, ElementIDs.size());
+                               ContainsElementInRange(iPoint + 1, ElementIDs.size());
 
             if (!found) continue;
-            if (std::find(SharedElementIDs.begin(), SharedElementIDs.end(), element_id) == SharedElementIDs.end()) {
+            if (std::find(SharedElementIDs.begin(), SharedElementIDs.end(), element_id) ==
+                SharedElementIDs.end()) {
                 SharedElementIDs.push_back(element_id);
             }
         }
