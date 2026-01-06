@@ -436,11 +436,13 @@ void ApplyConstantInterpolateLinePressureProcess::FillListOfBoundaryNodesFast(st
 
             if (IsMoreThanOneElementWithThisEdgeFast(FaceID, ELementsOfNodes, ELementsOfNodesSize))
                 continue;
-            // boundary nodes:
-            for (unsigned int iPoint = 0; iPoint < nPoints; ++iPoint) {
-                if (std::ranges::find(BoundaryNodes, FaceID[iPoint]) == BoundaryNodes.end()) {
-                    BoundaryNodes.push_back(FaceID[iPoint]);
+            auto add_boundary_node_if_missing = [&BoundaryNodes](int node_id) {
+                if (std::ranges::find(BoundaryNodes, node_id) == BoundaryNodes.end()) {
+                    BoundaryNodes.push_back(node_id);
                 }
+            };
+            for (unsigned int iPoint = 0; iPoint < nPoints; ++iPoint) {
+                add_boundary_node_if_missing(FaceID[iPoint]);
             }
         }
     }
@@ -455,56 +457,53 @@ bool ApplyConstantInterpolateLinePressureProcess::IsMoreThanOneElementWithThisEd
     const std::vector<int>&              rELementsOfNodesSize) const
 
 {
-    const int ID_UNDEFINED = -1;
-    int       nMaxElements = 0;
+    int nMaxElements = 0;
     for (auto node_id : rFaceIDs) {
         nMaxElements += rELementsOfNodesSize[node_id - 1];
     }
 
-    if (nMaxElements > 0) {
-        std::vector<vector<int>> ElementIDs;
-        ElementIDs.resize(rFaceIDs.size());
-        for (auto& r_element_id : ElementIDs) {
-            r_element_id.resize(nMaxElements);
-            std::ranges::fill(r_element_id, ID_UNDEFINED);
-        }
+    if (nMaxElements == 0) return false;
 
-        for (unsigned int iPoint = 0; iPoint < rFaceIDs.size(); ++iPoint) {
-            int NodeID = rFaceIDs[iPoint];
-            int index  = NodeID - 1;
-            for (int i = 0; i < rELementsOfNodesSize[index]; ++i) {
-                int iElementID        = rELementsOfNodes[index][i];
-                ElementIDs[iPoint][i] = iElementID;
-            }
-        }
+    constexpr int ID_UNDEFINED = -1;
 
-        std::vector<int> SharedElementIDs;
-        for (unsigned int iPoint = 0; iPoint < rFaceIDs.size(); ++iPoint) {
-            for (const auto element_id : ElementIDs[iPoint]) {
-                bool found = false;
-                if (element_id != ID_UNDEFINED) {
-                    for (unsigned int iPointInner = 0; iPointInner < rFaceIDs.size(); ++iPointInner) {
-                        if (iPointInner == iPoint) continue;
-                        // std::any_of followed by breaking out of 2 for loops
-                        for (const auto element_id_loop : ElementIDs[iPointInner]) {
-                            if (element_id_loop == element_id) found = true;
-                        }
-                    }
-                }
-
-                if (found) {
-                    auto it = std::find(SharedElementIDs.begin(), SharedElementIDs.end(), element_id);
-                    if (it == SharedElementIDs.end()) {
-                        SharedElementIDs.push_back(element_id);
-                    }
-                }
-            }
-        }
-
-        return SharedElementIDs.size() > 1;
+    std::vector<vector<int>> ElementIDs;
+    ElementIDs.resize(rFaceIDs.size());
+    for (auto& r_element_id : ElementIDs) {
+        r_element_id.resize(nMaxElements);
+        std::ranges::fill(r_element_id, ID_UNDEFINED);
     }
 
-    return false;
+    for (unsigned int iPoint = 0; iPoint < rFaceIDs.size(); ++iPoint) {
+        int NodeID = rFaceIDs[iPoint];
+        int index  = NodeID - 1;
+        for (int i = 0; i < rELementsOfNodesSize[index]; ++i) {
+            int iElementID        = rELementsOfNodes[index][i];
+            ElementIDs[iPoint][i] = iElementID;
+        }
+    }
+
+    std::vector<int> SharedElementIDs;
+    for (unsigned int iPoint = 0; iPoint < rFaceIDs.size(); ++iPoint) {
+        for (const auto element_id : ElementIDs[iPoint]) {
+            bool found = false;
+            if (element_id == ID_UNDEFINED) continue;
+            for (unsigned int iPointInner = 0; iPointInner < rFaceIDs.size(); ++iPointInner) {
+                if (iPointInner == iPoint) continue;
+                // std::any_of followed by breaking out of 2 for loops
+                for (const auto element_id_loop : ElementIDs[iPointInner]) {
+                    if (element_id_loop == element_id) found = true;
+                }
+            }
+
+            if (!found) continue;
+            auto it = std::find(SharedElementIDs.begin(), SharedElementIDs.end(), element_id);
+            if (it == SharedElementIDs.end()) {
+                SharedElementIDs.push_back(element_id);
+            }
+        }
+    }
+
+    return SharedElementIDs.size() > 1;
 }
 
 } // namespace Kratos
