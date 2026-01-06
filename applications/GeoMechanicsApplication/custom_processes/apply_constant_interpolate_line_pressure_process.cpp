@@ -485,7 +485,6 @@ bool ApplyConstantInterpolateLinePressureProcess::IsMoreThanOneElementWithThisEd
     std::vector<int> SharedElementIDs;
     for (unsigned int iPoint = 0; iPoint < rFaceIDs.size(); ++iPoint) {
         for (const auto element_id : ElementIDs[iPoint]) {
-            bool found = false;
             if (element_id == ID_UNDEFINED) continue;
             const auto ContainsElementInRange = [&ElementIDs, element_id](unsigned int begin, unsigned int end) -> bool {
                 for (unsigned int iPointInner = begin; iPointInner < end; ++iPointInner) {
@@ -496,12 +495,11 @@ bool ApplyConstantInterpolateLinePressureProcess::IsMoreThanOneElementWithThisEd
                 }
                 return false;
             };
-            found = ContainsElementInRange(0, iPoint) ||
+            const auto found = ContainsElementInRange(0, iPoint) ||
                     ContainsElementInRange(iPoint + 1, ElementIDs.size());
 
             if (!found) continue;
-            auto it = std::find(SharedElementIDs.begin(), SharedElementIDs.end(), element_id);
-            if (it == SharedElementIDs.end()) {
+            if (std::find(SharedElementIDs.begin(), SharedElementIDs.end(), element_id) == SharedElementIDs.end()) {
                 SharedElementIDs.push_back(element_id);
             }
         }
