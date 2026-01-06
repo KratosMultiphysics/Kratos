@@ -1,8 +1,8 @@
-### Compression Cap Hardening
+### Compression cap hardening
 
-The standard Mohr–Coulomb yield surface characterizes shear failure in geomaterials by relating the shear stress $\tau$ on a potential failure plane to the corresponding normal stress $\sigma$. While suitable for frictional materials, the standard Mohr-Coulomb envelope lacks a mechanism to confine the admissible stress space under high compressive pressure. As a result, the pure Mohr-Coulomb model cannot represent the compaction, crushing, and plastic volumetric hardening that occur in soils and rocks under high confining stresses.
+The standard Mohr–Coulomb yield surface characterizes shear failure in geomaterials by relating the shear stress $\tau$ on a potential failure plane to the corresponding normal stress $\sigma$. While suitable for frictional materials, the standard Mohr-Coulomb envelope lacks a mechanism to limit the admissible stress space under high compressive pressure. As a result, the standard Mohr-Coulomb model cannot represent the compaction, crushing, and plastic volumetric hardening that occur in soils and rocks under high confining stresses.
 
-To address this limitation, a compression cap is introduced. The cap provides a smooth or piecewise-smooth closure of the yield surface in the high-compression regime and allows the plasticity model to incorporate hardening or crushing effects. Here we describe the combined Mohr-Coulomb and cap yield surfaces.
+To address this limitation, a compression cap is introduced. The cap provides a smooth closure of the yield surface in the high-compression regime. Here we describe the combined Mohr-Coulomb and cap yield surfaces.
 
 ### Mohr–Coulomb yield surface
 
@@ -21,19 +21,19 @@ where:
 In stress-invariant form, the MC yield function is typically written as:
 
 ```math
-    F_{MC}(p, q) = q + p \sin⁡{\phi} - c \cos⁡{\phi} = 0
+    F_{MC}(p, q) =\frac{6 \sin{\phi}}{3 - \sin{\phi}} p + \frac{6 c \cos⁡{\phi}}{3 - \sin{\phi}} - q
 ```
 where:
 
 - $`p = \frac{1}{3} tr(\sigma)`$ is the mean effective stress
-- $`q = \sqrt{\frac{3}{2}s:s}`$ is the diviotoric norm, with $`𝑠`$ the deviatoric stress tensor.
+- $`q = \sqrt{\frac{3}{2}\tau:\tau}`$ is the norm of diviotoric stress tensor $`\tau`$.
 
 This defines a hexagonal pyramid in principal stress space, but is shown as a straight line in the $`(\sigma, \tau)`$ Mohr plane.
 
-### Compression Cap Concept
-At high confining pressures, real geomaterials exhibit compaction and crushing rather than unlimited shear strength. The Mohr-Coulomb envelope alone allows unbounded compressive stresses. A cap yield surface introduces a limit to admissible volumetric compression and establishes a mechanism for volumetric plastic deformation and hardening.
+### Compression cap concept
+At high confining pressures, real geomaterials exhibit compaction and crushing rather than unlimited strength. The Mohr-Coulomb envelope alone allows unbounded compressive stresses. A cap yield surface introduces a limit to admissible volumetric compression and establishes a mechanism for volumetric plastic deformation.
 
-In stress-invariant space, the cap is usually defined as an ellipse (or a smooth rounded surface) closing the Morh-Coulomb shear wall in the compressive regime.
+In stress-invariant space, the cap is defined as an ellipse (or a smooth rounded surface) closing the Mohr-Coulomb yield surface in the compressive regime.
 
 ### Cap yield surface
 A common choice is an elliptical cap:
@@ -43,10 +43,10 @@ A common choice is an elliptical cap:
 ```
 where:
 
-- $`p_c`$ = cap position (controls hardening/softening),
+- $`p_c`$ = cap position (preconsolidation pressure),
 - $`X`$ = cap size parameter
 
-The cap intersects the MC surface at a smooth transition point to ensure the overall yield surface is convex. The cap expands or contracts depending on the accumulated plastic volumetric strain:
+The cap intersects the MC surface at a transition point to ensure the overall yield surface is convex. 
 
 ```math
     p_c = p_{c0} + H \epsilon^p
@@ -56,9 +56,8 @@ where:
 - $`H`$ = the hardening modulus
 - $`\epsilon^p`$ = the plastic volumetric strain
 
-This produces compaction hardening: as the material densifies, it supports higher compressive stresses.
 
-### Combined Mohr–Coulomb + Cap Yield Surface
+### Combined Mohr–Coulomb + cap yield surface
 
 The figure below shows a typical Mohr–Coulomb yield surface extended with tension cutoff and compression cap yield surfaces. In $(\sigma, \tau)$ coordinates:
 
