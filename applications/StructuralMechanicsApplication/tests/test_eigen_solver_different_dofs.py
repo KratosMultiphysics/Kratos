@@ -38,7 +38,7 @@ class TestEigenSolverWithDifferentDofs(KratosUnittest.TestCase):
             self.__CheckEigenSolution(model["Structure"])
 
     def __CheckEigenSolution(self, model_part):
-        exp_eigen_values = KM.Vector([2.3779548, 2.465771262])
+        exp_eigen_values = KM.Vector([2.37803453, 2.465872222])
 
         self.assertVectorAlmostEqual(exp_eigen_values, model_part.ProcessInfo[KSM.EIGENVALUE_VECTOR])
 
@@ -46,8 +46,8 @@ class TestEigenSolverWithDifferentDofs(KratosUnittest.TestCase):
         eigen_vec_res_bottom_nodes.fill(0.0)
 
         eigen_vec_res_top_node_raw = [
-            [0.0, -0.00579401, 0.0,-0.9999832,0.0, 0.0],
-            [-0.00716752, 0.0, 0.0, 0.0, 0.99997431, 0.0]
+            [0.0, -0.005793701, 0.0,-0.9999832,0.0, 0.0],
+            [-0.00716715, 0.0, 0.0, 0.0, 0.99997431, 0.0]
         ]
 
         eigen_vec_res_top_node = KM.Matrix(2,6)

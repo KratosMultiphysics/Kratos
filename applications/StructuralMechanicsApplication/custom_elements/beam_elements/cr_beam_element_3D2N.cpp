@@ -1361,30 +1361,33 @@ void CrBeamElement3D2N::BuildSingleMassMatrix(MatrixType& rMassMatrix,
     temp_mass_matrix *= CT;
     rMassMatrix += temp_mass_matrix;
 
-    temp_mass_matrix = ZeroMatrix(MatSize, MatSize);
+    if (Phi > 1.0e-12) {
 
-    temp_mass_matrix(0, 0) = 6.00 / 5.00;
-    temp_mass_matrix(0, 1) = dir * ((1.00 / 10.00) - (1.00 / 2.00) * Phi) * L;
-    temp_mass_matrix(0, 2) = -6.00 / 5.00;
-    temp_mass_matrix(0, 3) = dir * ((1.00 / 10.00) - (1.00 / 2.00) * Phi) * L;
-    temp_mass_matrix(1, 0) = temp_mass_matrix(0, 1);
-    temp_mass_matrix(1, 1) =
-        ((2.00 / 15.00) + (1.00 / 6.00) * Phi + (1.00 / 3.00) * Phi2) * L2;
-    temp_mass_matrix(1, 2) = dir * ((-1.00 / 10.00) + (1.00 / 2.00) * Phi) * L;
-    temp_mass_matrix(1, 3) =
-        -((1.00 / 30.00) + (1.00 / 6.00) * Phi - (1.00 / 6.00) * Phi2) * L2;
-    temp_mass_matrix(2, 0) = temp_mass_matrix(0, 2);
-    temp_mass_matrix(2, 1) = temp_mass_matrix(1, 2);
-    temp_mass_matrix(2, 2) = 6.00 / 5.00;
-    temp_mass_matrix(2, 3) = dir * ((-1.00 / 10.00) + (1.00 / 2.00) * Phi) * L;
-    temp_mass_matrix(3, 0) = temp_mass_matrix(0, 3);
-    temp_mass_matrix(3, 1) = temp_mass_matrix(1, 3);
-    temp_mass_matrix(3, 2) = temp_mass_matrix(2, 3);
-    temp_mass_matrix(3, 3) =
-        ((2.00 / 15.00) + (1.00 / 6.00) * Phi + (1.00 / 3.00) * Phi2) * L2;
+        temp_mass_matrix = ZeroMatrix(MatSize, MatSize);
 
-    temp_mass_matrix *= CR;
-    rMassMatrix += temp_mass_matrix;
+        temp_mass_matrix(0, 0) = 6.00 / 5.00;
+        temp_mass_matrix(0, 1) = dir * ((1.00 / 10.00) - (1.00 / 2.00) * Phi) * L;
+        temp_mass_matrix(0, 2) = -6.00 / 5.00;
+        temp_mass_matrix(0, 3) = dir * ((1.00 / 10.00) - (1.00 / 2.00) * Phi) * L;
+        temp_mass_matrix(1, 0) = temp_mass_matrix(0, 1);
+        temp_mass_matrix(1, 1) =
+            ((2.00 / 15.00) + (1.00 / 6.00) * Phi + (1.00 / 3.00) * Phi2) * L2;
+        temp_mass_matrix(1, 2) = dir * ((-1.00 / 10.00) + (1.00 / 2.00) * Phi) * L;
+        temp_mass_matrix(1, 3) =
+            -((1.00 / 30.00) + (1.00 / 6.00) * Phi - (1.00 / 6.00) * Phi2) * L2;
+        temp_mass_matrix(2, 0) = temp_mass_matrix(0, 2);
+        temp_mass_matrix(2, 1) = temp_mass_matrix(1, 2);
+        temp_mass_matrix(2, 2) = 6.00 / 5.00;
+        temp_mass_matrix(2, 3) = dir * ((-1.00 / 10.00) + (1.00 / 2.00) * Phi) * L;
+        temp_mass_matrix(3, 0) = temp_mass_matrix(0, 3);
+        temp_mass_matrix(3, 1) = temp_mass_matrix(1, 3);
+        temp_mass_matrix(3, 2) = temp_mass_matrix(2, 3);
+        temp_mass_matrix(3, 3) =
+            ((2.00 / 15.00) + (1.00 / 6.00) * Phi + (1.00 / 3.00) * Phi2) * L2;
+
+        temp_mass_matrix *= CR;
+        rMassMatrix += temp_mass_matrix;
+    }
     KRATOS_CATCH("")
 }
 
