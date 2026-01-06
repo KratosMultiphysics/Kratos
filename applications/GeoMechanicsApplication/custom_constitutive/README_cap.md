@@ -6,7 +6,7 @@ To address this limitation, a compression cap is introduced. The cap provides a 
 
 ### Mohr–Coulomb yield surface
 
-In the $`(\sigma, \tau)`$ stress space, the Mohr-Coulmb yiel surface is expressed as:
+In the $`(\sigma, \tau)`$ stress space, the Mohr-Coulomb yiel surface is expressed as:
 
 ```math
     F_{MC}(\sigma, \tau) = \tau + \sigma \sin⁡{\phi} - c \cos⁡{\phi} = 0
@@ -16,7 +16,7 @@ where:
 - $`\sigma`$ = normal stress component
 - $`\tau`$ = shear stress component
 - $`c`$ = cohesion of material
-- $`\phi`$ = Internal friction angle
+- $`\phi`$ = friction angle
 
 In stress-invariant form, the MC yield function is typically written as:
 
@@ -26,17 +26,17 @@ In stress-invariant form, the MC yield function is typically written as:
 where:
 
 - $`p = \frac{1}{3} tr(\sigma)`$ is the mean effective stress
-- $`q = \sqrt{\frac{3}{2}\tau:\tau}`$ is the norm of diviotoric stress tensor $`\tau`$.
+- $`q = \sqrt{\frac{3}{2}\sigma':\sigma'}`$ is the norm of diviatoric stress tensor, where $`\sigma' = \sigma - p`$.
 
-This defines a hexagonal pyramid in principal stress space, but is shown as a straight line in the $`(\sigma, \tau)`$ Mohr plane.
+This defines a hexagonal pyramid in principal stress space, but is shown as a straight line in the $`(\sigma, \tau)`$ diagram.
 
 ### Compression cap concept
 At high confining pressures, real geomaterials exhibit compaction and crushing rather than unlimited strength. The Mohr-Coulomb envelope alone allows unbounded compressive stresses. A cap yield surface introduces a limit to admissible volumetric compression and establishes a mechanism for volumetric plastic deformation.
 
-In stress-invariant space, the cap is defined as an ellipse (or a smooth rounded surface) closing the Mohr-Coulomb yield surface in the compressive regime.
+In $`p-q`$ stress-invariant space, the cap is defined as an ellipse (or a smooth rounded surface) closing the Mohr-Coulomb yield surface in the compressive regime.
 
 ### Cap yield surface
-A common choice is an elliptical cap:
+An elliptical cap can be defined as:
 
 ```math
     F_{cap}(p, q) = \left( \frac{q}{X} \right)^2 + p^2 - p_c^2
@@ -46,7 +46,7 @@ where:
 - $`p_c`$ = cap position (preconsolidation pressure),
 - $`X`$ = cap size parameter
 
-The cap intersects the MC surface at a transition point to ensure the overall yield surface is convex. 
+The cap intersects the MC surface. A linear relation for cap position can be written as: 
 
 ```math
     p_c = p_{c0} + H \epsilon^p
@@ -64,9 +64,6 @@ The figure below shows a typical Mohr–Coulomb yield surface extended with tens
 <img src="documentation_data/mohr-coulomb-with-tension-cutoff-and-cap_zones.svg" alt="Mohr-Coulomb with tension cutoff" title="Mohr-Coulomb with tension cutoff" width="800">
 
 Here, we need to convert the compression cap yield surface from $(p, q)$ coordinates to $(\sigma, \tau)$ coordinates. The conversion is to be followed ...
-
-### Compression cap in $(\siga, \tau)$ coordinates
-...
 
 
 ### Plastic Potential for the compression cap
