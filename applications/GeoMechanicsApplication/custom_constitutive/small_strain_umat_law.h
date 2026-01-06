@@ -19,6 +19,7 @@
 #include <string>
 
 // Project includes
+#include "constitutive_law_dimension.h"
 #include "includes/constitutive_law.h"
 #include "includes/serializer.h"
 
@@ -39,8 +40,6 @@ namespace Kratos
    KSLAY,   double* KSPT,    int* KSTEP, int* KINC);
 
 */
-
-class ConstitutiveLawDimension;
 
 using pF_UMATMod = void (*)(double*       STRESS,
                             double*       STATEV,

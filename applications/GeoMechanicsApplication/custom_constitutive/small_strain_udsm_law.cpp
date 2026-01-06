@@ -13,7 +13,6 @@
 #include <algorithm>
 #include <type_traits>
 
-#include "custom_constitutive/constitutive_law_dimension.h"
 #include "custom_constitutive/small_strain_udsm_law.h"
 #include "custom_utilities/check_utilities.h"
 #include "custom_utilities/constitutive_law_utilities.h"

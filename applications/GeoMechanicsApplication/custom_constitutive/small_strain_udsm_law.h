@@ -15,6 +15,7 @@
 #include <iostream>
 #include <string>
 
+#include "custom_constitutive/constitutive_law_dimension.h"
 #include "geo_mechanics_application_variables.h"
 #include "includes/constitutive_law.h"
 #include "includes/define.h"
@@ -22,9 +23,6 @@
 
 namespace Kratos
 {
-
-class ConstitutiveLawDimension;
-
 /*
    - structure of the functions in PLAXIS UDSM:
    - Function to get stress, stiffness matrix, attribute, number of state variables, ...

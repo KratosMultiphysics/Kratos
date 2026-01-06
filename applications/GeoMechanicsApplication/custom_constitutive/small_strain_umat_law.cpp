@@ -15,7 +15,6 @@
 // External includes
 
 #include "custom_constitutive/small_strain_umat_law.h"
-#include "constitutive_law_dimension.h"
 #include "custom_utilities/check_utilities.h"
 #include "custom_utilities/constitutive_law_utilities.h"
 
