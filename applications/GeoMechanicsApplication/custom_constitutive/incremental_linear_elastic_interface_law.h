@@ -27,7 +27,7 @@ public:
 
     explicit GeoIncrementalLinearElasticInterfaceLaw(std::unique_ptr<ConstitutiveLawDimension> pConstitutiveLawDimension);
 
-    ~GeoIncrementalLinearElasticInterfaceLaw() override = default;
+    ~GeoIncrementalLinearElasticInterfaceLaw() override;
     GeoIncrementalLinearElasticInterfaceLaw(const GeoIncrementalLinearElasticInterfaceLaw&) = delete;
     GeoIncrementalLinearElasticInterfaceLaw& operator=(const GeoIncrementalLinearElasticInterfaceLaw&) = delete;
     GeoIncrementalLinearElasticInterfaceLaw(GeoIncrementalLinearElasticInterfaceLaw&&) noexcept = default;
