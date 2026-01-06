@@ -77,7 +77,7 @@ private:
                                           SizeType           NumberOfIntegrationPoints,
                                           const ProcessInfo& rProcessInfo);
     void InitializeVariables();
-    void InitializeAverageVariablesForElements();
+    void InitializeNodeToConnectedElementsMap();
 
     [[nodiscard]] static double              GetZeroValueOf(const Variable<double>&);
     [[nodiscard]] static array_1d<double, 3> GetZeroValueOf(const Variable<array_1d<double, 3>>&);

@@ -62,11 +62,11 @@ void GeoExtrapolateIntegrationPointValuesToNodesProcess::FillVariableLists(const
 
 void GeoExtrapolateIntegrationPointValuesToNodesProcess::ExecuteBeforeSolutionLoop()
 {
-    InitializeAverageVariablesForElements();
+    InitializeNodeToConnectedElementsMap();
     InitializeVectorAndMatrixZeros();
 }
 
-void GeoExtrapolateIntegrationPointValuesToNodesProcess::InitializeAverageVariablesForElements()
+void GeoExtrapolateIntegrationPointValuesToNodesProcess::InitializeNodeToConnectedElementsMap()
 {
     for (const auto& r_model_part : mrModelParts) {
         for (const auto& r_element : r_model_part.get().Elements()) {
