@@ -13,6 +13,7 @@
 #pragma once
 
 // System includes
+#include <any>
 
 // External includes
 
@@ -86,12 +87,8 @@ public:
     /// Index type used in the system vector
     using IndexType = typename TVectorType::IndexType;
 
-    /// Vector type used to represent system matrix
-    using MatrixVariantType = std::variant<
-        std::monostate,
-        CsrMatrix<DataType, IndexType>,
-        DistributedCsrMatrix<DataType, IndexType>
-    >;
+    /// Any type used to represent system matrix
+    using MatrixType = std::any;
 
     ///@}
     ///@name Life Cycle
@@ -180,16 +177,18 @@ public:
     TMatrixType& GetMatrix()
     {
         auto& r_matrix = this->GetMatrixImpl();
-        KRATOS_ERROR_IF_NOT(std::holds_alternative<TMatrixType>(r_matrix)) << "Requested matrix type does not match stored matrix.";
-        return std::get<TMatrixType>(r_matrix);
+        // KRATOS_ERROR_IF_NOT(std::holds_alternative<TMatrixType>(r_matrix)) << "Requested matrix type does not match stored matrix.";
+        // return std::get<TMatrixType>(r_matrix);
+        return std::any_cast<TMatrixType&>(r_matrix);
     }
 
     template<class TMatrixType>
     const TMatrixType& GetMatrix() const
     {
         const auto& r_matrix = this->GetMatrixImpl();
-        KRATOS_ERROR_IF_NOT(std::holds_alternative<TMatrixType>(r_matrix)) << "Requested matrix type does not match stored matrix.";
-        return std::get<TMatrixType>(r_matrix);
+        // KRATOS_ERROR_IF_NOT(std::holds_alternative<TMatrixType>(r_matrix)) << "Requested matrix type does not match stored matrix.";
+        // return std::get<TMatrixType>(r_matrix);
+        return std::any_cast<const TMatrixType&>(r_matrix);
     }
 
     ///@}
@@ -234,7 +233,7 @@ protected:
      * @brief Get the underlying matrix variant.
      * @return Reference to the matrix variant
      */
-    [[noreturn]] virtual MatrixVariantType& GetMatrixImpl()
+    [[noreturn]] virtual MatrixType& GetMatrixImpl()
     {
         KRATOS_ERROR << "GetMatrixImpl() not implemented in base LinearOperator class." << std::endl;
     }
@@ -242,7 +241,7 @@ protected:
      * @brief Get the underlying matrix variant.
      * @return Reference to the matrix variant
      */
-    [[noreturn]] virtual const MatrixVariantType& GetMatrixImpl() const
+    [[noreturn]] virtual const MatrixType& GetMatrixImpl() const
     {
         KRATOS_ERROR << "GetMatrixImpl() not implemented in base LinearOperator class." << std::endl;
     }

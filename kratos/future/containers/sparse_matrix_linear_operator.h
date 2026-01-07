@@ -101,8 +101,8 @@ public:
     /// Distributed system vector type
     using DistributedSystemVectorType = DistributedSystemVector<DataType, IndexType>;
 
-    /// Matrix variant type definition from base class
-    using MatrixVariantType = typename LinearOperator<TVectorType>::MatrixVariantType;
+    /// Matrix any type definition from base class
+    using MatrixType = typename LinearOperator<TVectorType>::MatrixType;
 
     ///@}
     ///@name Life Cycle
@@ -217,12 +217,12 @@ protected:
     ///@name Protected access
     ///@{
 
-    MatrixVariantType& GetMatrixImpl() override
+    MatrixType& GetMatrixImpl() override
     {
         return mCsrMatrix;
     }
 
-    const MatrixVariantType& GetMatrixImpl() const override
+    const MatrixType& GetMatrixImpl() const override
     {
         return mCsrMatrix;
     }
@@ -232,7 +232,7 @@ protected:
 private:
 
     /// Pointer to the CSR matrix (if applicable)
-    MatrixVariantType mCsrMatrix;
+    MatrixType mCsrMatrix;
 
     void SpMVImpl(
         const CsrMatrixType& rA,
