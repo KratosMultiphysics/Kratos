@@ -225,6 +225,21 @@ public:
     void Initialize(const ProcessInfo& rCurrentProcessInfo) override;
 
     /**
+     * @brief This method is called to calculate the mass matrix
+     * This method discerns wether to calculate a lumped or consistent mass matrix
+     */
+    void CalculateMassMatrix(
+        MatrixType& rMassMatrix,
+        const ProcessInfo& rCurrentProcessInfo) override;
+
+    /**
+     * @brief This method calculates the damping matrix
+     */
+    void CalculateDampingMatrix(
+        MatrixType& rDampingMatrix,
+        const ProcessInfo& rCurrentProcessInfo) override;
+
+    /**
      * @brief It creates a new element pointer and clones the previous element data
      * @param NewId the ID of the new element
      * @param ThisNodes the nodes of the new element

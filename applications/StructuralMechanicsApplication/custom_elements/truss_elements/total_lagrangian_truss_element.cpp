@@ -685,6 +685,67 @@ void TotalLagrangianTrussElement<TDimension>::RotateAll(
 /***********************************************************************************/
 
 template <SizeType TDimension>
+void TotalLagrangianTrussElement<TDimension>::CalculateMassMatrix(
+    TotalLagrangianTrussElement<TDimension>::MatrixType& rMassMatrix,
+    const ProcessInfo& rCurrentProcessInfo
+)
+{
+    KRATOS_TRY;
+
+    const auto &r_props = GetProperties();
+
+    if (rMassMatrix.size1() != SystemSize || rMassMatrix.size2() != SystemSize) {
+        rMassMatrix.resize(SystemSize, SystemSize, false);
+    }
+    rMassMatrix.clear();
+
+    const double A = r_props[CROSS_AREA];
+    const double L0 = CalculateReferenceLength();
+    const double rho = r_props[DENSITY];
+    const double total_mass = rho * A * L0;
+
+    if (StructuralMechanicsElementUtilities::ComputeLumpedMassMatrix(r_props, rCurrentProcessInfo)) {
+        // Compute lumped mass matrix
+        noalias(rMassMatrix) = 0.5 * total_mass * IdentityMatrix(SystemSize, SystemSize);
+    } else {
+        // Compute consistent mass matrix
+        for (IndexType i = 0; i < SystemSize; ++i) {
+            for (IndexType j = 0; j < SystemSize; ++j) {
+                if (i == j) {
+                    rMassMatrix(i, i) = 2.0;
+                } else if (i == j + Dimension) {
+                    rMassMatrix(i, j) = 1.0;
+                } else if (i + Dimension == j) {
+                    rMassMatrix(i, j) = 1.0;
+                }
+            }
+        }
+        rMassMatrix *= total_mass / 6.0;
+    }
+
+    KRATOS_CATCH("CalculateMassMatrix")
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+template <SizeType TDimension>
+void TotalLagrangianTrussElement<TDimension>::CalculateDampingMatrix(
+    TotalLagrangianTrussElement<TDimension>::MatrixType& rDampingMatrix,
+    const ProcessInfo& rCurrentProcessInfo
+)
+{
+    StructuralMechanicsElementUtilities::CalculateRayleighDampingMatrix(
+        *this,
+        rDampingMatrix,
+        rCurrentProcessInfo,
+        SystemSize);
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+template <SizeType TDimension>
 void TotalLagrangianTrussElement<TDimension>::CalculateOnIntegrationPoints(
     const Variable<double>& rVariable,
     std::vector<double>& rOutput,
