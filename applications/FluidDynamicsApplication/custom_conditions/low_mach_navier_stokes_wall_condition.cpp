@@ -198,23 +198,19 @@ void LowMachNavierStokesWallCondition<TDim,TNumNodes,TWallModel...>::CalculateRi
     // Loop on gauss points
     noalias(rRightHandSideVector) = ZeroVector(LocalSize);
 
-    // // Struct to pass around the data
-    // ConditionDataStruct data;
-    // // Allocate memory needed
-    // array_1d<double,MatrixSize> rhs_gauss;
+    // Struct to pass around the data
+    ConditionDataStruct data;
 
-    // // Compute condition normal
-    // this->CalculateNormal(data.Normal); //this already contains the area
-    // const double A = norm_2(data.Normal);
-    // data.Normal /= A;
+    // Allocate memory needed
+    array_1d<double,LocalSize> rhs_gauss;
 
-    // // Gauss point information
-    // GeometryType& rGeom = this->GetGeometry();
-    // const GeometryType::IntegrationPointsArrayType& IntegrationPoints = rGeom.IntegrationPoints(GeometryData::IntegrationMethod::GI_GAUSS_2);
-    // const unsigned int NumGauss = IntegrationPoints.size();
-    // Vector GaussPtsJDet = ZeroVector(NumGauss);
-    // rGeom.DeterminantOfJacobian(GaussPtsJDet, GeometryData::IntegrationMethod::GI_GAUSS_2);
-    // const MatrixType Ncontainer = rGeom.ShapeFunctionsValues(GeometryData::IntegrationMethod::GI_GAUSS_2);
+    // Gauss point information
+    auto& r_geom = this->GetGeometry();
+    const auto& integration_points = r_geom.IntegrationPoints(GeometryData::IntegrationMethod::GI_GAUSS_2);
+    const std::size_t n_gauss = integration_points.size();
+    Vector gauss_pts_det_J = ZeroVector(n_gauss);
+    r_geom.DeterminantOfJacobian(gauss_pts_det_J, GeometryData::IntegrationMethod::GI_GAUSS_2);
+    const MatrixType N_container = r_geom.ShapeFunctionsValues(GeometryData::IntegrationMethod::GI_GAUSS_2);
 
     // // Calculate viscous stress for the slip tangential correction
     // if (rCurrentProcessInfo.Has(SLIP_TANGENTIAL_CORRECTION_SWITCH)) {
@@ -226,14 +222,13 @@ void LowMachNavierStokesWallCondition<TDim,TNumNodes,TWallModel...>::CalculateRi
     //     }
     // }
 
-    // for(unsigned int igauss = 0; igauss<NumGauss; igauss++)
-    // {
-    //     data.N = row(Ncontainer, igauss);
-    //     const double J = GaussPtsJDet[igauss];
-    //     data.wGauss = J * IntegrationPoints[igauss].Weight();
-    //     ComputeGaussPointRHSContribution(rhs_gauss, data, rCurrentProcessInfo);
-    //     noalias(rRightHandSideVector) += rhs_gauss;
-    // }
+    for(std::size_t i_gauss = 0; i_gauss < n_gauss; ++i_gauss) {
+        data.N = row(N_container, i_gauss);
+        data.wGauss = gauss_pts_det_J[i_gauss] * integration_points[i_gauss].Weight();
+        data.Normal = r_geom.UnitNormal(i_gauss, GeometryData::IntegrationMethod::GI_GAUSS_2);
+        ComputeGaussPointRHSContribution(rhs_gauss, data, rCurrentProcessInfo);
+        noalias(rRightHandSideVector) += rhs_gauss;
+    }
 
     // // Add the wall law contribution
     // constexpr SizeType n_wall_models = sizeof...(TWallModel);
@@ -342,31 +337,6 @@ void LowMachNavierStokesWallCondition<TDim, TNumNodes,TWallModel...>::Calculate(
     }
 }
 
-template<unsigned int TDim, unsigned int TNumNodes, class... TWallModel>
-void LowMachNavierStokesWallCondition<TDim,TNumNodes,TWallModel...>::CalculateNormal(array_1d<double,3>& rAreaNormal)
-{
-    const auto& r_geom = GetGeometry();
-    if constexpr (TDim == 2) {
-        rAreaNormal[0] = r_geom[1].Y() - r_geom[0].Y();
-        rAreaNormal[1] = - (r_geom[1].X() - r_geom[0].X());
-        rAreaNormal[2] = 0.0;
-    } else if constexpr (TDim == 3 && TNumNodes == 3) {
-        array_1d<double,3> v1,v2;
-        v1[0] = r_geom[1].X() - r_geom[0].X();
-        v1[1] = r_geom[1].Y() - r_geom[0].Y();
-        v1[2] = r_geom[1].Z() - r_geom[0].Z();
-
-        v2[0] = r_geom[2].X() - r_geom[0].X();
-        v2[1] = r_geom[2].Y() - r_geom[0].Y();
-        v2[2] = r_geom[2].Z() - r_geom[0].Z();
-
-        MathUtils<double>::CrossProduct(rAreaNormal,v1,v2);
-        rAreaNormal *= 0.5;
-    } else {
-        KRATOS_ERROR << "'CalculateNormal' is not implemented for current geometry." << std::endl;
-    }
-}
-
 // template<unsigned int TDim, unsigned int TNumNodes, class... TWallModel>
 // void LowMachNavierStokesWallCondition<TDim,TNumNodes,TWallModel...>::ComputeGaussPointLHSContribution(
 //     BoundedMatrix<double, LocalSize, LocalSize>& lhs_gauss,
@@ -386,59 +356,57 @@ void LowMachNavierStokesWallCondition<TDim,TNumNodes,TWallModel...>::CalculateNo
 
 
 
-// template<unsigned int TDim, unsigned int TNumNodes, class... TWallModel>
-// void LowMachNavierStokesWallCondition<TDim,TNumNodes,TWallModel...>::ComputeGaussPointRHSContribution(
-//     array_1d<double, LocalSize>& rhs_gauss,
-//     const ConditionDataStruct& data,
-//     const ProcessInfo& rProcessInfo)
-// {
-//     // Initialize the local RHS
-//     const unsigned int LocalSize = TDim+1;
-//     noalias(rhs_gauss) = ZeroVector(TNumNodes*LocalSize);
+template<unsigned int TDim, unsigned int TNumNodes, class... TWallModel>
+void LowMachNavierStokesWallCondition<TDim,TNumNodes,TWallModel...>::ComputeGaussPointRHSContribution(
+    array_1d<double, LocalSize>& rhs_gauss,
+    const ConditionDataStruct& data,
+    const ProcessInfo& rProcessInfo)
+{
+    // Initialize the local RHS
+    noalias(rhs_gauss) = ZeroVector(TNumNodes*BlockSize);
 
-//     // Gauss pt. Neumann BC contribution
-//     this->ComputeRHSNeumannContribution(rhs_gauss, data);
+    // Gauss pt. Neumann BC contribution
+    this->ComputeRHSNeumannContribution(rhs_gauss, data);
 
-//     // Gauss pt. outlet inflow prevention contribution
-//     if (rProcessInfo.Has(OUTLET_INFLOW_CONTRIBUTION_SWITCH)) {
-//         if (this->Is(OUTLET) && rProcessInfo[OUTLET_INFLOW_CONTRIBUTION_SWITCH]){
-//             this->ComputeRHSOutletInflowContribution(rhs_gauss, data, rProcessInfo);
-//         }
-//     }
+    // // Gauss pt. outlet inflow prevention contribution
+    // if (rProcessInfo.Has(OUTLET_INFLOW_CONTRIBUTION_SWITCH)) {
+    //     if (this->Is(OUTLET) && rProcessInfo[OUTLET_INFLOW_CONTRIBUTION_SWITCH]){
+    //         this->ComputeRHSOutletInflowContribution(rhs_gauss, data, rProcessInfo);
+    //     }
+    // }
 
-//     // Contribution to avoid spurious tangential components in the pure-slip residual
-//     if (rProcessInfo.Has(SLIP_TANGENTIAL_CORRECTION_SWITCH)) {
-//         if (this->Is(SLIP) && rProcessInfo[SLIP_TANGENTIAL_CORRECTION_SWITCH]) {
-//             CalculateGaussPointSlipTangentialCorrectionRHSContribution(rhs_gauss, data);
-//         }
-//     }
-// }
-
+    // // Contribution to avoid spurious tangential components in the pure-slip residual
+    // if (rProcessInfo.Has(SLIP_TANGENTIAL_CORRECTION_SWITCH)) {
+    //     if (this->Is(SLIP) && rProcessInfo[SLIP_TANGENTIAL_CORRECTION_SWITCH]) {
+    //         CalculateGaussPointSlipTangentialCorrectionRHSContribution(rhs_gauss, data);
+    //     }
+    // }
+}
 
 
-// template<unsigned int TDim, unsigned int TNumNodes, class... TWallModel>
-// void LowMachNavierStokesWallCondition<TDim,TNumNodes,TWallModel...>::ComputeRHSNeumannContribution(
-//     array_1d<double,LocalSize>& rhs_gauss,
-//     const ConditionDataStruct& data)
-// {
-//     const unsigned int LocalSize = TDim+1;
-//     const GeometryType& rGeom = this->GetGeometry();
 
-//     // Add Neumann BC contribution
-//     for (unsigned int i=0; i<TNumNodes; ++i)
-//     {
-//         const double pext = rGeom[i].FastGetSolutionStepValue(EXTERNAL_PRESSURE);
+template<unsigned int TDim, unsigned int TNumNodes, class... TWallModel>
+void LowMachNavierStokesWallCondition<TDim,TNumNodes,TWallModel...>::ComputeRHSNeumannContribution(
+    array_1d<double,LocalSize>& rhs_gauss,
+    const ConditionDataStruct& data)
+{
+    const auto& r_geom = this->GetGeometry();
 
-//         for (unsigned int j=0; j<TNumNodes; ++j)
-//         {
-//             unsigned int row = j*LocalSize;
-//             for (unsigned int d=0; d<TDim; ++d)
-//             {
-//                 rhs_gauss[row+d] -= data.wGauss*data.N[j]*data.N[i]*pext*data.Normal[d];
-//             }
-//         }
-//     }
-// }
+    // Add Neumann BC contribution
+    for (unsigned int i_node = 0; i_node < TNumNodes; ++i_node) {
+        const double q_ext = r_geom[i_node].FastGetSolutionStepValue(FACE_HEAT_FLUX); // Heat flux
+        const double p_ext = r_geom[i_node].FastGetSolutionStepValue(EXTERNAL_PRESSURE); // External pressure
+        for (unsigned int j_node = 0; j_node < TNumNodes; ++j_node) {
+            const double aux = data.wGauss * data.N[j_node] * data.N[i_node];
+            const double aux_q = aux * q_ext;
+            const double aux_p = aux * p_ext;
+            for (unsigned int d = 0; d < TDim; ++d) {
+                rhs_gauss[j_node * BlockSize + 1 + d] -= aux_p * data.Normal[d]; // Assemble velocity equation contribution
+            }
+            rhs_gauss[j_node * BlockSize + TDim + 1] += aux_q; // Assemble temperature equation contribution
+        }
+    }
+}
 
 
 // template<unsigned int TDim, unsigned int TNumNodes, class... TWallModel>
@@ -613,7 +581,8 @@ void LowMachNavierStokesWallCondition<TDim,TNumNodes,TWallModel...>::CalculateNo
 // }
 
 template class LowMachNavierStokesWallCondition<2,2>;
-// template class LowMachNavierStokesWallCondition<3,3>;
+template class LowMachNavierStokesWallCondition<3,3>;
+template class LowMachNavierStokesWallCondition<3,4>;
 // template class LowMachNavierStokesWallCondition<2,2,LinearLogWallLaw<2,2>>;
 // template class LowMachNavierStokesWallCondition<3,3,LinearLogWallLaw<3,3>>;
 // template class LowMachNavierStokesWallCondition<2,2,NavierSlipWallLaw<2,2>>;

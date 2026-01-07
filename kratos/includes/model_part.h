@@ -9,31 +9,22 @@
 //
 //  Main authors:    Pooyan Dadvand
 //
-//
 
 #pragma once
 
 // System includes
-#include <string>
-#include <iostream>
-#include <sstream>
-#include <cstddef>
-#include <type_traits>
 
 // External includes
 
 // Project includes
-#include "includes/define.h"
 #include "includes/key_hash.h"
 #include "includes/serializer.h"
 #include "includes/process_info.h"
-#include "containers/data_value_container.h"
 #include "includes/mesh.h"
 #include "includes/element.h"
 #include "includes/condition.h"
 #include "includes/communicator.h"
 #include "includes/table.h"
-#include "containers/pointer_vector_map.h"
 #include "containers/pointer_hash_map_set.h"
 #include "input_output/logger.h"
 #include "includes/kratos_flags.h"

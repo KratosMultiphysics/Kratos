@@ -62,9 +62,17 @@ public:
                                       std::vector<ConstitutiveLaw::Pointer>&    rOutput,
                                       const ProcessInfo&) override;
     using Element::CalculateOnIntegrationPoints;
+
+    void Calculate(const Variable<Vector>& rVariable, Vector& rOutput, const ProcessInfo& rProcessInfo) override;
+    using Element::Calculate;
+
     void GetDofList(DofsVectorType& rElementalDofList, const ProcessInfo&) const override;
     void Initialize(const ProcessInfo& rCurrentProcessInfo) override;
     int  Check(const ProcessInfo& rCurrentProcessInfo) const override;
+
+    const IntegrationScheme& GetIntegrationScheme() const;
+
+    const Geometry<Node>& GetMidGeometry() const;
 
 private:
     InterfaceElement() = default;
@@ -88,7 +96,7 @@ private:
     Vector ConvertLocalStressToTraction(const Matrix& rLocalStress) const;
     std::function<Matrix(const Geometry<Node>&, const array_1d<double, 3>&)> mfpCalculateRotationMatrix;
 
-    std::unique_ptr<IntegrationScheme>    mIntegrationScheme;
+    std::unique_ptr<IntegrationScheme>    mpIntegrationScheme;
     std::unique_ptr<StressStatePolicy>    mpStressStatePolicy;
     std::vector<ConstitutiveLaw::Pointer> mConstitutiveLaws;
     IntegrationCoefficientsCalculator     mIntegrationCoefficientsCalculator;
