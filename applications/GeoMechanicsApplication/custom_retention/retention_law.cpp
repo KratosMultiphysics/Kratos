@@ -14,9 +14,12 @@
 #include "custom_retention/retention_law.h"
 #include "geo_mechanics_application_variables.h"
 
+#include <string>
+
+using namespace std::string_literals;
+
 namespace Kratos
 {
-
 double& RetentionLaw::CalculateValue(Parameters& rParameters, const Variable<double>& rThisVariable, double& rValue) const
 {
     if (rThisVariable == DEGREE_OF_SATURATION) {
@@ -72,7 +75,7 @@ int RetentionLaw::Check(const std::vector<RetentionLaw::Pointer>& rRetentionLawV
     return rRetentionLawVector[0]->Check(rProperties, rCurrentProcessInfo);
 }
 
-std::string RetentionLaw::Info() const { return "RetentionLaw"; }
+std::string RetentionLaw::Info() const { return "RetentionLaw"s; }
 
 void RetentionLaw::PrintInfo(std::ostream& rOStream) const { rOStream << Info(); }
 
