@@ -32,7 +32,7 @@
     },
     "processes"        : {
         "boundary_conditions_process_list" : [{
-            "python_module" : "apply_far_field_process",
+            "python_module" : "apply_far_field_and_wake_process",
             "kratos_module" : "KratosMultiphysics.CompressiblePotentialFlowApplication",
             "process_name"  : "FarFieldProcess",
             "Parameters"    : {
@@ -41,14 +41,12 @@
                 "mach_infinity"   : 0.03,
                 "speed_of_sound"  : 340.0,
                 "initialize_flow_field": false,
-                "perturbation_field": true
-            }
-        },{
-            "python_module" : "define_wake_process_2d",
-            "kratos_module" : "KratosMultiphysics.CompressiblePotentialFlowApplication",
-            "process_name"  : "DefineWakeProcess2D",
-            "Parameters"    : {
-                "model_part_name" : "FluidModelPart.Body2D_Body"
+                "perturbation_field": true,
+                "define_wake": true,
+                "wake_type"  : "Operations.KratosMultiphysics.CompressiblePotentialFlowApplication.Define2DWakeOperation",
+                "wake_parameters"    : {
+                    "body_model_part_name" : "FluidModelPart.Body2D_Body"
+                }
             }
         }],
         "auxiliar_process_list"            : []

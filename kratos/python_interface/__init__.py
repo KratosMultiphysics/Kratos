@@ -1,6 +1,10 @@
 import os
 import sys
 
+# Added .libs to search path to avoid having to define the PATH and LD_LIBRARY_PATH
+# May be redundant with the sys.path.append below, but I need more testing in diferent envs (abspath vs relpath)
+sys.path.append(os.path.join(os.path.dirname(__file__), ".libs"))
+
 # This is a "dirty" fix to force python to keep loading shared libraries from
 # the PATH in windows (See https://docs.python.org/3/library/os.html#os.add_dll_directory)
 # THIS NEEDS TO BE EXECUTED BEFORE ANY DLL / DEPENDENCY IS LOADED.
@@ -146,7 +150,7 @@ if sys.version_info.major != int(kratos_version_info[0]) and sys.version_info.mi
         kratos_version_info[0], kratos_version_info[1]
     ))
 
-# print the process id e.g. for attaching a debugger
+# Print the process id e.g. for attatching a debugger
 if KratosGlobals.Kernel.BuildType() != "Release":
     Logger.PrintInfo("Process Id", os.getpid())
 

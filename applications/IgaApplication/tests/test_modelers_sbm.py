@@ -60,7 +60,7 @@ class TestModelersSbm(KratosUnittest.TestCase):
                             "geometry_type": "GeometrySurface",
                             "iga_model_part": "ComputationalDomain",
                             "type": "element",
-                            "name": "LaplacianIGAElement",
+                            "name": "LaplacianElement",
                             "shape_function_derivatives_order": 3,
                             "variables": [
                             {
@@ -105,8 +105,8 @@ class TestModelersSbm(KratosUnittest.TestCase):
         self.assertEqual(support_model_part.GetConditions()[21].Info(), "\"SbmLaplacianConditionDirichlet\" #21")
         self.assertEqual(support_model_part.GetConditions()[80].Info(), "\"SbmLaplacianConditionDirichlet\" #80")
 
-        self.assertEqual(computational_model_part.GetElements()[13].Info(), "LaplacianIgaElement #13")
-        self.assertEqual(computational_model_part.GetElements()[40].Info(), "LaplacianIgaElement #40")
+        self.assertEqual(computational_model_part.GetElements()[13].Info(), "LaplacianElement #13")
+        self.assertEqual(computational_model_part.GetElements()[40].Info(), "LaplacianElement #40")
 
     
     def test_iga_modeler_inner_outer_sbm(self):
@@ -167,7 +167,7 @@ class TestModelersSbm(KratosUnittest.TestCase):
                             "geometry_type": "GeometrySurface",
                             "iga_model_part": "ComputationalDomain",
                             "type": "element",
-                            "name": "LaplacianIGAElement",
+                            "name": "LaplacianElement",
                             "shape_function_derivatives_order": 3,
                             "variables": [
                             {
@@ -213,18 +213,17 @@ class TestModelersSbm(KratosUnittest.TestCase):
         # # Check if all needed node are within the model parts
         self.assertEqual(support_model_part_inner.NumberOfNodes(), 990)
         self.assertEqual(support_model_part_inner.NumberOfConditions(), 110)
-        self.assertEqual(support_model_part_outer.NumberOfNodes(), 2250)
-        self.assertEqual(support_model_part_outer.NumberOfConditions(), 250)
-        self.assertEqual(computational_model_part.NumberOfNodes(), 7371)
+        self.assertEqual(support_model_part_outer.NumberOfNodes(), 2160)
+        self.assertEqual(support_model_part_outer.NumberOfConditions(), 240)
+        self.assertEqual(computational_model_part.NumberOfNodes(), 7290)
         self.assertEqual(computational_model_part.NumberOfConditions(), 0)
-        self.assertEqual(computational_model_part.NumberOfElements(), 819)
-
+        self.assertEqual(computational_model_part.NumberOfElements(), 810)
         self.assertEqual(support_model_part_inner.GetConditions()[323].Info(), "\"SbmLaplacianConditionDirichlet\" #323")
-        self.assertEqual(support_model_part_inner.GetConditions()[432].Info(), "\"SbmLaplacianConditionDirichlet\" #432")
+        self.assertEqual(support_model_part_inner.GetConditions()[411].Info(), "\"SbmLaplacianConditionDirichlet\" #411")
         self.assertEqual(support_model_part_outer.GetConditions()[73].Info(), "\"SbmLaplacianConditionNeumann\" #73")
-        self.assertEqual(support_model_part_outer.GetConditions()[322].Info(), "\"SbmLaplacianConditionNeumann\" #322")
-        self.assertEqual(computational_model_part.GetElements()[13].Info(), "LaplacianIgaElement #13")
-        self.assertEqual(computational_model_part.GetElements()[40].Info(), "LaplacianIgaElement #40")
+        self.assertEqual(support_model_part_outer.GetConditions()[301].Info(), "\"SbmLaplacianConditionNeumann\" #301")
+        self.assertEqual(computational_model_part.GetElements()[13].Info(), "LaplacianElement #13")
+        self.assertEqual(computational_model_part.GetElements()[40].Info(), "LaplacianElement #40")
 
     
     # test the call to the nurbs_geometry_modeler_sbm to create a rectangle + the breps
@@ -332,26 +331,26 @@ class TestModelersSbm(KratosUnittest.TestCase):
         run_modelers(current_model, modeler_settings)
 
         expected_nodes = [
-            [ 0.0  ,  0.4  ,  0.0 ],
-            [ 2.0  ,  0.4  ,  0.0 ],
-            [ 0.0  ,  0.8  ,  0.0 ],
-            [ 2.0  ,  0.8  ,  0.0 ],
-            [ 0.0  ,  1.2000000000000002  ,  0.0 ],
-            [ 2.0  ,  1.2000000000000002  ,  0.0 ],
-            [ 0.0  ,  1.6  ,  0.0 ],
-            [ 2.0  ,  1.6  ,  0.0 ],
-            [ 0.0  ,  2.0  ,  0.0 ],
-            [ 2.0  ,  2.0  ,  0.0 ],
-            [ 0.0  ,  0.0  ,  0.0 ],
-            [ 0.4  ,  2.0  ,  0.0 ],
-            [ 0.4  ,  0.0  ,  0.0 ],
-            [ 0.8  ,  2.0  ,  0.0 ],
-            [ 0.8  ,  0.0  ,  0.0 ],
-            [ 1.2000000000000002  ,  2.0  ,  0.0 ],
-            [ 1.2000000000000002  ,  0.0  ,  0.0 ],
-            [ 1.6  ,  2.0  ,  0.0 ],
-            [ 1.6  ,  0.0  ,  0.0 ],
-            [ 2.0  ,  2.0  ,  0.0 ]
+            [ 0.0 ,  0.4 ,  0.0 ],
+            [ 2.0 ,  0.4 ,  0.0 ],
+            [ 0.0 ,  0.8 ,  0.0 ],
+            [ 2.0 ,  0.8 ,  0.0 ],
+            [ 0.0 ,  1.2000000000000002 ,  0.0 ],
+            [ 2.0 ,  1.2000000000000002 ,  0.0 ],
+            [ 0.0 ,  1.6 ,  0.0 ],
+            [ 2.0 ,  1.6 ,  0.0 ],
+            [ 0.0 ,  2.0 ,  0.0 ],
+            [ 2.0 ,  2.0 ,  0.0 ],
+            [ 0.0 ,  0.0 ,  0.0 ],
+            [ 0.0 ,  2.0 ,  0.0 ],
+            [ 0.4 ,  0.0 ,  0.0 ],
+            [ 0.4 ,  2.0 ,  0.0 ],
+            [ 0.8 ,  0.0 ,  0.0 ],
+            [ 0.8 ,  2.0 ,  0.0 ],
+            [ 1.2000000000000002 ,  0.0 ,  0.0 ],
+            [ 1.2000000000000002 ,  2.0 ,  0.0 ],
+            [ 1.6 ,  0.0 ,  0.0 ],
+            [ 1.6 ,  2.0 ,  0.0 ]
         ]
 
         # test surrogate nodes
@@ -632,56 +631,54 @@ class TestModelersSbm(KratosUnittest.TestCase):
         ]
 
         expected_nodes_outer = [
-            [ 0.4  ,  0.6  ,  0.0 ],
-            [ 3.600000000000001  ,  0.6  ,  0.0 ],
-            [ 0.4  ,  1.2  ,  0.0 ],
-            [ 3.400000000000001  ,  1.2  ,  0.0 ],
-            [ 0.6000000000000001  ,  1.7999999999999998  ,  0.0 ],
-            [ 3.400000000000001  ,  1.7999999999999998  ,  0.0 ],
-            [ 0.6000000000000001  ,  2.4  ,  0.0 ],
-            [ 3.400000000000001  ,  2.4  ,  0.0 ],
-            [ 0.6000000000000001  ,  3.0  ,  0.0 ],
-            [ 3.400000000000001  ,  3.0  ,  0.0 ],
-            [ 0.8  ,  3.6  ,  0.0 ],
-            [ 3.400000000000001  ,  3.6  ,  0.0 ],
-            [ 0.8  ,  4.2  ,  0.0 ],
-            [ 3.2000000000000006  ,  4.2  ,  0.0 ],
-            [ 0.8  ,  4.8  ,  0.0 ],
-            [ 3.2000000000000006  ,  4.8  ,  0.0 ],
-            [ 1.0  ,  5.3999999999999995  ,  0.0 ],
-            [ 2.8000000000000003  ,  5.3999999999999995  ,  0.0 ],
-            [ 0.4  ,  0.0  ,  0.0 ],
-            [ 0.4  ,  1.2  ,  0.0 ],
-            [ 0.6000000000000001  ,  0.0  ,  0.0 ],
-            [ 0.6000000000000001  ,  3.0  ,  0.0 ],
-            [ 0.8  ,  0.0  ,  0.0 ],
-            [ 0.8  ,  4.8  ,  0.0 ],
-            [ 1.0  ,  0.0  ,  0.0 ],
-            [ 1.0  ,  5.3999999999999995  ,  0.0 ],
-            [ 1.2  ,  0.0  ,  0.0 ],
-            [ 1.2  ,  5.3999999999999995  ,  0.0 ],
-            [ 1.4  ,  0.0  ,  0.0 ],
-            [ 1.4  ,  5.3999999999999995  ,  0.0 ],
-            [ 1.5999999999999999  ,  0.0  ,  0.0 ],
-            [ 1.5999999999999999  ,  5.3999999999999995  ,  0.0 ],
-            [ 1.7999999999999998  ,  0.0  ,  0.0 ],
-            [ 1.7999999999999998  ,  5.3999999999999995  ,  0.0 ],
-            [ 1.9999999999999998  ,  0.0  ,  0.0 ],
-            [ 1.9999999999999998  ,  5.3999999999999995  ,  0.0 ],
-            [ 2.1999999999999997  ,  0.0  ,  0.0 ],
-            [ 2.1999999999999997  ,  5.3999999999999995  ,  0.0 ],
-            [ 2.4  ,  0.0  ,  0.0 ],
-            [ 2.4  ,  5.3999999999999995  ,  0.0 ],
-            [ 2.6  ,  0.0  ,  0.0 ],
-            [ 2.6  ,  5.3999999999999995  ,  0.0 ],
-            [ 2.8000000000000003  ,  0.0  ,  0.0 ],
-            [ 2.8000000000000003  ,  4.8  ,  0.0 ],
-            [ 3.0000000000000004  ,  0.0  ,  0.0 ],
-            [ 3.0000000000000004  ,  4.8  ,  0.0 ],
-            [ 3.2000000000000006  ,  0.0  ,  0.0 ],
-            [ 3.2000000000000006  ,  3.6  ,  0.0 ],
-            [ 3.400000000000001  ,  0.0  ,  0.0 ],
-            [ 3.400000000000001  ,  0.6  ,  0.0 ]
+            [0.4, 0.6, 0.0],
+            [3.400000000000001, 0.6, 0.0],
+            [0.4, 1.2, 0.0],
+            [3.400000000000001, 1.2, 0.0],
+            [0.6000000000000001, 1.7999999999999998, 0.0],
+            [3.400000000000001, 1.7999999999999998, 0.0],
+            [0.6000000000000001, 2.4, 0.0],
+            [3.400000000000001, 2.4, 0.0],
+            [0.6000000000000001, 3.0, 0.0],
+            [3.400000000000001, 3.0, 0.0],
+            [0.8, 3.6, 0.0],
+            [3.400000000000001, 3.6, 0.0],
+            [0.8, 4.2, 0.0],
+            [3.2000000000000006, 4.2, 0.0],
+            [0.8, 4.8, 0.0],
+            [3.2000000000000006, 4.8, 0.0],
+            [1.0, 5.3999999999999995, 0.0],
+            [2.8000000000000003, 5.3999999999999995, 0.0],
+            [0.4, 0.0, 0.0],
+            [0.4, 1.2, 0.0],
+            [0.6000000000000001, 0.0, 0.0],
+            [0.6000000000000001, 3.0, 0.0],
+            [0.8, 0.0, 0.0],
+            [0.8, 4.8, 0.0],
+            [1.0, 0.0, 0.0],
+            [1.0, 5.3999999999999995, 0.0],
+            [1.2, 0.0, 0.0],
+            [1.2, 5.3999999999999995, 0.0],
+            [1.4, 0.0, 0.0],
+            [1.4, 5.3999999999999995, 0.0],
+            [1.5999999999999999, 0.0, 0.0],
+            [1.5999999999999999, 5.3999999999999995, 0.0],
+            [1.7999999999999998, 0.0, 0.0],
+            [1.7999999999999998, 5.3999999999999995, 0.0],
+            [1.9999999999999998, 0.0, 0.0],
+            [1.9999999999999998, 5.3999999999999995, 0.0],
+            [2.1999999999999997, 0.0, 0.0],
+            [2.1999999999999997, 5.3999999999999995, 0.0],
+            [2.4, 0.0, 0.0],
+            [2.4, 5.3999999999999995, 0.0],
+            [2.6, 0.0, 0.0],
+            [2.6, 5.3999999999999995, 0.0],
+            [2.8000000000000003, 0.0, 0.0],
+            [2.8000000000000003, 4.8, 0.0],
+            [3.0000000000000004, 0.0, 0.0],
+            [3.0000000000000004, 4.8, 0.0],
+            [3.2000000000000006, 0.0, 0.0],
+            [3.2000000000000006, 3.6, 0.0],
         ]
 
         # test surrogate nodes
@@ -704,10 +701,194 @@ class TestModelersSbm(KratosUnittest.TestCase):
             i += 1
 
         # test the creation of the breps
-        self.assertEqual(current_model["IgaModelPart"].NumberOfGeometries(), 73)
+        self.assertEqual(current_model["IgaModelPart"].NumberOfGeometries(), 71)
         self.assertAlmostEqual(current_model["IgaModelPart"].GetGeometry(1).Center().X, 2.0)
         self.assertAlmostEqual(current_model["IgaModelPart"].GetGeometry(1).Center().Y, 3.0)
         self.assertAlmostEqual(current_model["IgaModelPart"].GetGeometry(1).Center().Z, 0.0)
+
+    
+    def test_iga_modeler_outer_sbm_layers(self):
+        current_model = KratosMultiphysics.Model()
+        modeler_settings = KratosMultiphysics.Parameters("""
+        [
+            {
+            "modeler_name" : "ImportNurbsSbmModeler",
+            "Parameters" : {
+                "input_filename" : "import_nurbs_test/square_nurbs.json",
+                "model_part_name" : "skinModelPart_outer_initial",
+                "link_layer_to_condition_name": [
+                {
+                    "layer_name" : "bottom",
+                    "condition_name" : "SbmLaplacianConditionDirichlet"
+                },
+                                                         {
+                    "layer_name" : "left",
+                    "condition_name" : "SbmLaplacianConditionDirichlet"
+                },
+                {
+                    "layer_name" : "right",
+                    "condition_name" : "SbmLaplacianConditionNeumann"
+                },
+                                                         {
+                    "layer_name" : "top",
+                    "condition_name" : "SbmLaplacianConditionNeumann"
+                }
+                ]
+                }
+            },                            
+            {
+            "modeler_name": "NurbsGeometryModelerSbm",
+            "Parameters": {
+                    "model_part_name" : "IgaModelPart",
+                    "lower_point_xyz": [-1.0,-1.0,0.0],
+                    "upper_point_xyz": [2.0,2.0,0.0],
+                    "lower_point_uvw": [-1.0,-1.0,0.0],
+                    "upper_point_uvw": [2.0,2.0,0.0],
+                    "polynomial_order" : [1, 1],
+                    "number_of_knot_spans" : [10,10],
+                    "lambda_outer": 0.5,
+                    "number_of_inner_loops": 0,
+                    "skin_model_part_outer_initial_name": "skinModelPart_outer_initial",           
+                    "skin_model_part_name": "skin_model_part"
+                }
+            },
+            {
+                "modeler_name": "IgaModelerSbm",
+                "Parameters": {
+                    "echo_level": 0,
+                    "skin_model_part_name": "skin_model_part",
+                    "analysis_model_part_name": "IgaModelPart",
+                    "element_condition_list": [
+                        {
+                            "geometry_type": "GeometrySurface",
+                            "iga_model_part": "ComputationalDomain",
+                            "type": "element",
+                            "name": "LaplacianElement",
+                            "shape_function_derivatives_order": 3
+                        },
+                        {
+                            "geometry_type": "SurfaceEdge",
+                            "iga_model_part": "SBM_Support_outer",
+                            "type": "condition",
+                            "name": "SbmCondition",
+                            "shape_function_derivatives_order": 3, 
+                            "sbm_parameters": {
+                                "is_inner" : false
+                            }
+                        }
+                    ] // element condition list
+                }
+            }] // iga modeler
+            """)
+
+        iga_model_part = current_model.CreateModelPart("IgaModelPart")
+        iga_model_part.ProcessInfo.SetValue(KratosMultiphysics.DOMAIN_SIZE, 2)
+        
+        run_modelers(current_model, modeler_settings)
+
+        support_model_part = current_model.GetModelPart("IgaModelPart.SBM_Support_outer")
+        computational_model_part = current_model.GetModelPart("IgaModelPart.ComputationalDomain")
+
+        # # Check if all needed node are within the model parts
+        self.assertEqual(support_model_part.NumberOfNodes(), 0)
+        self.assertEqual(support_model_part.NumberOfConditions(), 48)
+        self.assertEqual(computational_model_part.NumberOfNodes(), 256)
+        self.assertEqual(computational_model_part.NumberOfConditions(), 0)
+
+        self.assertEqual(support_model_part.GetConditions()[55].Info(), "\"SbmLaplacianConditionDirichlet\" #55")
+        self.assertEqual(support_model_part.GetConditions()[28].Info(), "\"SbmLaplacianConditionNeumann\" #28")
+
+    def test_iga_modeler_outer_sbm_layers_unordered_curves(self):
+        current_model = KratosMultiphysics.Model()
+        modeler_settings = KratosMultiphysics.Parameters("""
+        [
+            {
+            "modeler_name" : "ImportNurbsSbmModeler",
+            "Parameters" : {
+                "input_filename" : "import_nurbs_test/square_nurbs_unordered.json",
+                "model_part_name" : "skinModelPart_outer_initial",
+                "link_layer_to_condition_name": [
+                {
+                    "layer_name" : "bottom",
+                    "condition_name" : "SbmLaplacianConditionDirichlet"
+                },
+                {
+                    "layer_name" : "left",
+                    "condition_name" : "SbmLaplacianConditionDirichlet"
+                },
+                {
+                    "layer_name" : "right",
+                    "condition_name" : "SbmLaplacianConditionNeumann"
+                },
+                {
+                    "layer_name" : "top",
+                    "condition_name" : "SbmLaplacianConditionNeumann"
+                }
+                ]
+                }
+            },                            
+            {
+            "modeler_name": "NurbsGeometryModelerSbm",
+            "Parameters": {
+                    "model_part_name" : "IgaModelPart",
+                    "lower_point_xyz": [-1.0,-1.0,0.0],
+                    "upper_point_xyz": [2.0,2.0,0.0],
+                    "lower_point_uvw": [-1.0,-1.0,0.0],
+                    "upper_point_uvw": [2.0,2.0,0.0],
+                    "polynomial_order" : [1, 1],
+                    "number_of_knot_spans" : [10,10],
+                    "lambda_outer": 0.5,
+                    "number_of_inner_loops": 0,
+                    "skin_model_part_outer_initial_name": "skinModelPart_outer_initial",           
+                    "skin_model_part_name": "skin_model_part"
+                }
+            },
+            {
+                "modeler_name": "IgaModelerSbm",
+                "Parameters": {
+                    "echo_level": 0,
+                    "skin_model_part_name": "skin_model_part",
+                    "analysis_model_part_name": "IgaModelPart",
+                    "element_condition_list": [
+                        {
+                            "geometry_type": "GeometrySurface",
+                            "iga_model_part": "ComputationalDomain",
+                            "type": "element",
+                            "name": "LaplacianElement",
+                            "shape_function_derivatives_order": 3
+                        },
+                        {
+                            "geometry_type": "SurfaceEdge",
+                            "iga_model_part": "SBM_Support_outer",
+                            "type": "condition",
+                            "name": "SbmCondition",
+                            "shape_function_derivatives_order": 3, 
+                            "sbm_parameters": {
+                                "is_inner" : false
+                            }
+                        }
+                    ] // element condition list
+                }
+            }] // iga modeler
+            """)
+
+        iga_model_part = current_model.CreateModelPart("IgaModelPart")
+        iga_model_part.ProcessInfo.SetValue(KratosMultiphysics.DOMAIN_SIZE, 2)
+        
+        run_modelers(current_model, modeler_settings)
+
+        support_model_part = current_model.GetModelPart("IgaModelPart.SBM_Support_outer")
+        computational_model_part = current_model.GetModelPart("IgaModelPart.ComputationalDomain")
+
+        # Expect same results as ordered case: curves are reordered internally
+        self.assertEqual(support_model_part.NumberOfNodes(), 0)
+        self.assertEqual(support_model_part.NumberOfConditions(), 48)
+        self.assertEqual(computational_model_part.NumberOfNodes(), 256)
+        self.assertEqual(computational_model_part.NumberOfConditions(), 0)
+
+        # Spot-check two conditions types to ensure mapping still holds
+        self.assertEqual(support_model_part.GetConditions()[55].Info(), "\"SbmLaplacianConditionDirichlet\" #55")
+        self.assertEqual(support_model_part.GetConditions()[28].Info(), "\"SbmLaplacianConditionNeumann\" #28")
 
 
 if __name__ == '__main__':

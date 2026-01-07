@@ -11,9 +11,15 @@
 //
 
 #include "custom_constitutive/small_strain_umat_2D_interface_law.hpp"
+#include "constitutive_law_dimension.h"
 
 namespace Kratos
 {
+
+SmallStrainUMAT2DInterfaceLaw::SmallStrainUMAT2DInterfaceLaw(std::unique_ptr<ConstitutiveLawDimension> pConstitutiveDimension)
+    : SmallStrainUMATLaw<VOIGT_SIZE_3D>(std::move(pConstitutiveDimension))
+{
+}
 
 ConstitutiveLaw::Pointer SmallStrainUMAT2DInterfaceLaw::Clone() const
 {
@@ -74,7 +80,7 @@ void SmallStrainUMAT2DInterfaceLaw::CopyConstitutiveMatrix(ConstitutiveLaw::Para
     }
 }
 
-indexStress3D SmallStrainUMAT2DInterfaceLaw::getIndex3D(indexStress2DInterface index2D) const
+indexStress3D SmallStrainUMAT2DInterfaceLaw::getIndex3D(indexStress2DInterface index2D)
 {
     switch (index2D) {
     case INDEX_2D_INTERFACE_ZZ:
@@ -86,11 +92,21 @@ indexStress3D SmallStrainUMAT2DInterfaceLaw::getIndex3D(indexStress2DInterface i
     }
 }
 
+void SmallStrainUMAT2DInterfaceLaw::save(Serializer& rSerializer) const
+{
+    KRATOS_SERIALIZE_SAVE_BASE_CLASS(rSerializer, SmallStrainUMATLaw)
+}
+
+void SmallStrainUMAT2DInterfaceLaw::load(Serializer& rSerializer){
+    KRATOS_SERIALIZE_LOAD_BASE_CLASS(rSerializer, SmallStrainUMATLaw)}
+
+SmallStrainUMAT2DInterfaceLaw::SmallStrainUMAT2DInterfaceLaw() = default;
+
 Vector& SmallStrainUMAT2DInterfaceLaw::GetValue(const Variable<Vector>& rThisVariable, Vector& rValue)
 {
     if (rThisVariable == STATE_VARIABLES) {
-        SmallStrainUMAT3DLaw::GetValue(rThisVariable, rValue);
-    } else if (rThisVariable == CAUCHY_STRESS_VECTOR) {
+        SmallStrainUMATLaw::GetValue(rThisVariable, rValue);
+    } else if (rThisVariable == CAUCHY_STRESS_VECTOR || rThisVariable == GEO_EFFECTIVE_TRACTION_VECTOR) {
         if (rValue.size() != VoigtSize) rValue.resize(VoigtSize);
 
         rValue[INDEX_2D_INTERFACE_ZZ] = mStressVectorFinalized[INDEX_3D_ZZ];
@@ -104,8 +120,9 @@ void SmallStrainUMAT2DInterfaceLaw::SetValue(const Variable<Vector>& rVariable,
                                              const ProcessInfo&      rCurrentProcessInfo)
 {
     if (rVariable == STATE_VARIABLES) {
-        SmallStrainUMAT3DLaw::SetValue(rVariable, rValue, rCurrentProcessInfo);
-    } else if ((rVariable == CAUCHY_STRESS_VECTOR) && (rValue.size() == VoigtSize)) {
+        SmallStrainUMATLaw::SetValue(rVariable, rValue, rCurrentProcessInfo);
+    } else if ((rVariable == CAUCHY_STRESS_VECTOR || rVariable == GEO_EFFECTIVE_TRACTION_VECTOR) &&
+               rValue.size() == VoigtSize) {
         this->SetInternalStressVector(rValue);
     }
 }

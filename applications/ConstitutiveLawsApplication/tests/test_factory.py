@@ -128,6 +128,9 @@ class SmallDeformationPlasticityTest(TestFactory):
 class SimpleJ2PlasticityTest(TestFactory):
     file_name = "SimpleSmallDeformationPlasticity/plasticity_j2_cube_test"
 
+class PlaneStressJ2Plasticity(TestFactory):
+    file_name = "PlaneStressJ2Plasticity/plane_stress_j2_test"
+
 class TensileTestStructuralTest(TestFactory):
     file_name = "TensileTestStructural/TensileTestStructural"
 
@@ -143,7 +146,8 @@ class TractionSeparationLawTest(TestFactory):
 class CurveByPointsPlasticityTest(TestFactory):
     file_name = "CurveByPointsPlasticity/plastic_test"
 
-
+class ThicknessIntegratedShellConstitutiveLawTest(TestFactory):
+    file_name = "ThicknessIntegratedShellConstitutiveLaw/thickness_integrated_cl_test"
 
 if __name__ == '__main__':
     KratosUnittest.main()

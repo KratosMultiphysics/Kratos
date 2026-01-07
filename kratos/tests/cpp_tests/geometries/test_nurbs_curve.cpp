@@ -489,5 +489,79 @@ typedef Node NodeType;
         KRATOS_EXPECT_EQ(curve.GetGeometryFamily(), geometry_family);
         KRATOS_EXPECT_EQ(curve.GetGeometryType(), geometry_type);
     }
+
+    // test quadrature points of curve on surface
+    KRATOS_TEST_CASE_IN_SUITE(NurbsCurve2dCreateCurveQuadraturePoints, KratosCoreNurbsGeometriesFastSuite)
+    {
+        // Nurbs curve on a Nurbs surface
+        auto curve = GenerateReferenceCurve3d();
+
+        typename Geometry<Node>::IntegrationPointsArrayType integration_points;
+        IntegrationInfo integration_info = curve.GetDefaultIntegrationInfo();
+        curve.CreateIntegrationPoints(integration_points, integration_info);
+
+        typename Geometry<Node>::GeometriesArrayType quadrature_points;
+        curve.CreateQuadraturePointGeometries(quadrature_points, 3, integration_points, integration_info);
+
+        KRATOS_EXPECT_EQ(quadrature_points.size(), 20);
+        double length = 0;
+        for (IndexType i = 0; i < quadrature_points.size(); ++i) {
+            for (IndexType j = 0; j < quadrature_points[i].IntegrationPointsNumber(); ++j) {
+                length += quadrature_points[i].IntegrationPoints()[j].Weight();
+            }
+        }
+        KRATOS_EXPECT_NEAR(length, 131.892570399495, TOLERANCE);
+
+        auto element = Element(0, quadrature_points(2));
+
+        // Check shape functions. This is to guarantee that the information does not get lost.
+        KRATOS_EXPECT_MATRIX_NEAR(
+            element.pGetGeometry()->ShapeFunctionsValues(),
+            quadrature_points(2)->ShapeFunctionsValues(),
+            TOLERANCE);
+
+        // Check first derivatives
+        KRATOS_EXPECT_MATRIX_NEAR(
+            element.GetGeometry().ShapeFunctionDerivatives(1, 0),
+            quadrature_points(2)->ShapeFunctionLocalGradient(0),
+            TOLERANCE);
+
+        // Check second derivatives
+        KRATOS_EXPECT_MATRIX_NEAR(
+            element.GetGeometry().ShapeFunctionDerivatives(2, 0),
+            quadrature_points(2)->ShapeFunctionDerivatives(2, 0),
+            TOLERANCE);
+
+        array_1d<double, 3> global_coords;
+        array_1d<double, 3> local_coords;
+        local_coords[0] = integration_points[10][0];
+        local_coords[1] = integration_points[10][1];
+        curve.GlobalCoordinates(global_coords, local_coords);
+
+        KRATOS_EXPECT_VECTOR_NEAR(quadrature_points[10].Center(), global_coords, TOLERANCE);
+
+        // check normals and jacobian 
+        array_1d<double, 3> normal_expected; 
+        normal_expected[0] = 0.235684;
+        normal_expected[1] = -0.155414;
+        normal_expected[2] = 0.0;
+        array_1d<double, 3> normal = quadrature_points[10].Normal(0);
+
+        KRATOS_EXPECT_VECTOR_NEAR(normal_expected, normal, 1e-6);
+
+        normal_expected[0] = 0.0220049;
+        normal_expected[1] = -0.264418;
+        normal_expected[2] = 0.0;
+
+        normal = quadrature_points[7].Normal(0);
+        KRATOS_EXPECT_VECTOR_NEAR(normal_expected, normal, 1e-6);
+
+        normal_expected[0] = 0.110004;
+        normal_expected[1] = -0.992532;
+        normal_expected[2] = 0.0;
+
+        normal = quadrature_points[3].Normal(0);
+        KRATOS_EXPECT_VECTOR_NEAR(normal_expected, normal, 1e-6);
+    }
 } // namespace Testing.
 } // namespace Kratos.

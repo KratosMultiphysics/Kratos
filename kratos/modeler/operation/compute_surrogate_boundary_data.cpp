@@ -104,7 +104,7 @@ void ComputeSurrogateBoundaryData::Execute()
 
                         for (std::size_t ii = 0; ii < 3; ii++)
                         {
-                            surrogate_boundary_data[node_index].GetVectorDistance()[ii] = point[ii] - closest_point[ii];
+                            surrogate_boundary_data[node_index].GetVectorDistance()[ii] = closest_point[ii] - point[ii];
                         }
                     } else {
                         KRATOS_WARNING("SurrogateBoundaryModeler") << "Input geometry has no elements or conditions. Unable to compute distance to skin." << std::endl;
@@ -141,17 +141,17 @@ std::string ComputeSurrogateBoundaryData::PrintSurrogateBoundaryData(std::vector
     rOStream << "=== Meshing Data ===" << std::endl;
     rOStream << "NumberOfDivisions: " << n[0] << " " << n[1] << " " << n[2] << std::endl;
 
-    rOStream << "VoxelSize: "
-            << GetKeyPlanes(0)[1] - GetKeyPlanes(0)[0] << " "
-            << GetKeyPlanes(1)[1] - GetKeyPlanes(1)[0] << " "
-            << GetKeyPlanes(2)[1] - GetKeyPlanes(2)[0] << " "
+    rOStream << "BoxSize: " 
+            << (GetKeyPlanes(0)[1] - GetKeyPlanes(0)[0])*n[0] << " " 
+            << (GetKeyPlanes(1)[1] - GetKeyPlanes(1)[0])*n[1] << " " 
+            << (GetKeyPlanes(2)[1] - GetKeyPlanes(2)[0])*n[2] << " " 
             << std::endl;
 
     rOStream << "=== Node Data ===" << std::endl;
 
-    for (std::size_t i = 0; i < n[0]; ++i) {
+    for (std::size_t k = 0; k < n[2]; ++k) {
         for (std::size_t j = 0; j < n[1]; ++j) {
-            for (std::size_t k = 0; k < n[2]; ++k) {
+            for (std::size_t i = 0; i < n[0]; ++i) {
                 SurrogateBoundaryNode& node = rSurrogateBoundaryData[GetNodeIndex(i,j,k)];;
                 auto& v = node.GetVectorDistance();
                 rOStream << node.IsActive() << " " << node.IsInside() << " "

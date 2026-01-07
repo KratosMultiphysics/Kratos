@@ -29,9 +29,6 @@ class SensorSensitivityAdjointStaticSolver(StructuralMechanicsAdjointStaticSolve
         # skip calling Initialize of StructuralMechanicsAdjointStaticSolver and call the its base class Initialize
         super(StructuralMechanicsAdjointStaticSolver, self).Initialize()
 
-        # set the strategy to only build LHS once, and build RHS for all other solves
-        self._GetSolutionStrategy().SetRebuildLevel(0)
-
         Kratos.Logger.PrintInfo(self.__class__.__name__, "Finished initialization.")
 
     def SetResponseFunction(self, response_function: Kratos.AdjointResponseFunction) -> None:
@@ -50,23 +47,6 @@ class SensorSensitivityAdjointStaticSolver(StructuralMechanicsAdjointStaticSolve
 
     def SolveSolutionStep(self) -> bool:
         return super(StructuralMechanicsAdjointStaticSolver, self).SolveSolutionStep()
-
-    def GetSensitivities(self) -> 'dict[SupportedSensitivityFieldVariableTypes, ExpressionUnionType]':
-        sensitivity_settings = self.settings["sensitivity_settings"]
-        sensitivities_dict: 'dict[SupportedSensitivityFieldVariableTypes, ExpressionUnionType]' = {}
-        self.__ReadSensitivities(sensitivities_dict, sensitivity_settings["nodal_solution_step_sensitivity_variables"].GetStringArray(), Kratos.Expression.NodalExpression, lambda x, y: Kratos.Expression.VariableExpressionIO.Read(x, y, True))
-        self.__ReadSensitivities(sensitivities_dict, sensitivity_settings["condition_data_value_sensitivity_variables"].GetStringArray(), Kratos.Expression.ConditionExpression, lambda x, y: Kratos.Expression.VariableExpressionIO.Read(x, y))
-        self.__ReadSensitivities(sensitivities_dict, sensitivity_settings["element_data_value_sensitivity_variables"].GetStringArray(), Kratos.Expression.ElementExpression, lambda x, y: Kratos.Expression.VariableExpressionIO.Read(x, y))
-        return sensitivities_dict
-
-    def __ReadSensitivities(self, sensitivity_dict: 'dict[SupportedSensitivityFieldVariableTypes, ExpressionUnionType]', list_of_variable_names: 'list[str]', expression_type, read_lambda) -> None:
-        for sensitivity_variable_name in list_of_variable_names:
- 
-            sensitivity_variable_name = Kratos.SensitivityUtilities.GetSensitivityVariableName(Kratos.KratosGlobals.GetVariable(sensitivity_variable_name))
-            sensitivity_variable = Kratos.KratosGlobals.GetVariable(sensitivity_variable_name)
-            exp = expression_type(self.GetSensitivityModelPart())
-            read_lambda(exp, sensitivity_variable)
-            sensitivity_dict[sensitivity_variable] = exp.Clone()
 
     def _CreateScheme(self):
         return Kratos.ResidualBasedAdjointStaticScheme(None)

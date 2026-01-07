@@ -656,6 +656,48 @@ public:
         return mData.GetValue(rThisVariable);
     }
 
+
+    /**
+     * @brief Get the the data value if existing or create the value for a given @p rThisVariable.
+     * @details This method returns a reference to a value represented by @p rThisVariable from the
+     *          database. If the @p rThisVariable is not found, then a new value is created using
+     *          @p rThisVariable::Zero() method and then reference to new value is returned.
+     *
+     * @warning Multiple Emplace functions can be run concurrently OVER DIFFERENT DATABASES.
+     *          Concurrent Emplaces onto the same database ARE NOT THREADSAFE.
+     *
+     * @param rThisVariable     Variable representing the value.
+     * @return TDataType&       Reference to the value.
+     */
+    template<class TVariableType>
+    typename TVariableType::Type& Emplace(const TVariableType& rThisVariable)
+    {
+        return mData.Emplace(rThisVariable);
+    }
+
+    /**
+     * @brief Get the the data value if existing or create the value for a given @p rThisVariable.
+     * @details This method returns a reference to a value represented by @p rThisVariable from the
+     *          database. If the @p rThisVariable is not found, then a new value is created using
+     *          @p rInitValue and then reference to new value is returned.
+     *
+     *          In the case if @p rThisVariable is a component, then first a new value representing
+     *          the source variable is created with @p Zero() method, and then @p rInitValue
+     *          is used to initialize the component referred by @p rThisVariable.
+     *
+     * @warning Multiple Emplace functions can be run concurrently OVER DIFFERENT DATABASES.
+     *          Concurrent Emplaces onto the same database ARE NOT THREADSAFE.
+     *
+     * @param rThisVariable     Variable representing the value.
+     * @param rInitValue        Initialization value in case the @p rThisVariable is not found in the database.
+     * @return TDataType&       Reference to the value.
+     */
+    template<class TVariableType>
+    typename TVariableType::Type& Emplace(const TVariableType& rThisVariable, const typename TVariableType::Type& rInitValue)
+    {
+        return mData.Emplace(rThisVariable, rInitValue);
+    }
+
     ///@}
     ///@name Dynamic access to internals
     ///@{
@@ -2109,8 +2151,15 @@ public:
     ///@{
 
     /**
-     * @brief This method gives you number of all edges of this geometry.
-     * @details For example, for a hexahedron, this would be 12
+     * @brief This method gives you the number of all edges of this geometry.
+     * @details The returned number of edges depends on the shape of the geometry only:
+     * - Any line: 1
+     * - Any triangle: 3
+     * - Any quadrilateral: 4
+     * - Any tetrahedron: 6
+     * - Any hexahedron: 12
+     * - Any wedge: 9
+     * - Any pyramid: 8
      * @return SizeType contains number of this geometry edges.
      * @see EdgesNumber()
      * @see Edges()
@@ -2140,8 +2189,9 @@ public:
 
     /**
      * @brief This method gives you all edges of this geometry.
-     * @details This method will gives you all the edges with one dimension less than this geometry.
-     * For example a triangle would return three lines as its edges or a tetrahedral would return four triangle as its edges but won't return its six edge lines by this method.
+     * @details Each returned edge will be a line geometry. The number of points of each edge must match the number of
+     * points of the geometry's boundary. In the special case of inquiring the edges of a line, it will return the
+     * line itself.
      * @return GeometriesArrayType contains this geometry edges.
      * @see EdgesNumber()
      * @see Edge()
