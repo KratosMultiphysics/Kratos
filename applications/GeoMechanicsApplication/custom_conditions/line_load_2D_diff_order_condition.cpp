@@ -13,22 +13,19 @@
 //
 
 // Project includes
-#include "custom_conditions/line_load_2D_diff_order_condition.hpp"
+#include "custom_conditions/line_load_2D_diff_order_condition.h"
 #include "custom_utilities/condition_utilities.hpp"
 
 namespace Kratos
 {
 
-// Default Constructor
 LineLoad2DDiffOrderCondition::LineLoad2DDiffOrderCondition() : GeneralUPwDiffOrderCondition() {}
 
-// Constructor 1
 LineLoad2DDiffOrderCondition::LineLoad2DDiffOrderCondition(IndexType NewId, GeometryType::Pointer pGeometry)
     : GeneralUPwDiffOrderCondition(NewId, std::move(pGeometry))
 {
 }
 
-// Constructor 2
 LineLoad2DDiffOrderCondition::LineLoad2DDiffOrderCondition(IndexType               NewId,
                                                            GeometryType::Pointer   pGeometry,
                                                            PropertiesType::Pointer pProperties)
@@ -86,6 +83,17 @@ void LineLoad2DDiffOrderCondition::CalculateAndAddConditionForce(Vector& rRightH
     }
 }
 
-std::string LineLoad2DDiffOrderCondition::Info() const { return "LineLoad2DDiffOrderCondition"; }
+void LineLoad2DDiffOrderCondition::save(Serializer& rSerializer) const
+{
+    KRATOS_SERIALIZE_SAVE_BASE_CLASS(rSerializer, GeneralUPwDiffOrderCondition)
+}
+
+void LineLoad2DDiffOrderCondition::load(Serializer& rSerializer){
+    KRATOS_SERIALIZE_LOAD_BASE_CLASS(rSerializer, GeneralUPwDiffOrderCondition)}
+
+std::string LineLoad2DDiffOrderCondition::Info() const
+{
+    return "LineLoad2DDiffOrderCondition";
+}
 
 } // Namespace Kratos.

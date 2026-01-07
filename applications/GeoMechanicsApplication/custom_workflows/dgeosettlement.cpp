@@ -155,12 +155,12 @@ void KratosGeoSettlement::InitializeProcessFactory()
                                 MakeCreatorFor<ApplyScalarConstraintTableProcess>());
     mProcessFactory->AddCreator("ApplyNormalLoadTableProcess", MakeCreatorFor<ApplyNormalLoadTableProcess>());
     mProcessFactory->AddCreator("ApplyVectorConstraintTableProcess",
-                                MakeCreatorFor<ApplyVectorConstraintTableProcess>());
+                                MakeCreatorWithModelFor<ApplyVectorConstraintTableProcess>());
     mProcessFactory->AddCreator("SetParameterFieldProcess", MakeCreatorFor<SetParameterFieldProcess>());
     mProcessFactory->AddCreator("ApplyExcavationProcess", MakeCreatorWithModelFor<ApplyExcavationProcess>());
     mProcessFactory->AddCreator("ApplyK0ProcedureProcess", MakeCreatorWithModelFor<ApplyK0ProcedureProcess>());
     mProcessFactory->AddCreator("GeoExtrapolateIntegrationPointValuesToNodesProcess",
-                                MakeCreatorFor<GeoExtrapolateIntegrationPointValuesToNodesProcess>());
+                                MakeCreatorWithModelFor<GeoExtrapolateIntegrationPointValuesToNodesProcess>());
     mProcessFactory->AddCreator("FixWaterPressuresAbovePhreaticLineProcess",
                                 MakeCreatorFor<FixWaterPressuresAbovePhreaticLineProcess>());
     mProcessFactory->SetCallBackWhenProcessIsUnknown([](const std::string& rProcessName) {

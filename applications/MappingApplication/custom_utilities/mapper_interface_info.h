@@ -25,6 +25,7 @@
 
 namespace Kratos
 {
+
 ///@addtogroup MappingApplication
 ///@{
 
@@ -118,7 +119,7 @@ public:
     virtual MapperInterfaceInfo::Pointer Create(const CoordinatesArrayType& rCoordinates,
                                                 const IndexType SourceLocalSystemIndex,
                                                 const IndexType SourceRank) const = 0;
-
+                                                
     // needed for serialization
     virtual MapperInterfaceInfo::Pointer Create() const = 0;
 
