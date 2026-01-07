@@ -49,7 +49,6 @@
          "scaling": true
         },
         "problem_domain_sub_model_part_list": ["Sand","Clay","Peat","Dam1","Dam2"],
-        "processes_sub_model_part_list":      ["Base","Sides","Water_Uniform","Hydrostatic_water_pressure","Gravity"],
         "body_domain_sub_model_part_list":    ["Sand","Clay","Peat","Dam1","Dam2"]
     },
     "output_processes": {

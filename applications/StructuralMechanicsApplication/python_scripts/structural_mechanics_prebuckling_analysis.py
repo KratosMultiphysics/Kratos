@@ -56,7 +56,6 @@ class StructuralMechanicsPrebucklingAnalysis(StructuralMechanicsAnalysis):
             self.time = self._GetSolver().AdvanceInTime(self.time)
             self.step += 1
             self.InitializeSolutionStep()
-            self._GetSolver().Predict()
             is_converged = self._GetSolver().SolveSolutionStep()
             self.FinalizeSolutionStep()
             self.OutputSolutionStep()

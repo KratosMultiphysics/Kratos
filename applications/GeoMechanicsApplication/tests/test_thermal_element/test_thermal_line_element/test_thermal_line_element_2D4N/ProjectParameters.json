@@ -64,7 +64,6 @@
       "preconditioner_type"              : "ilu0"
     },
     "problem_domain_sub_model_part_list" : ["filter"],
-    "processes_sub_model_part_list"      : ["Start","top","bottom"],
     "body_domain_sub_model_part_list"    : ["filter"]
   },
   "output_processes": {

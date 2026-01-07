@@ -13,7 +13,7 @@
 //
 
 // Application includes
-#include "custom_conditions/U_Pw_normal_flux_FIC_condition.hpp"
+#include "custom_conditions/U_Pw_normal_flux_FIC_condition.h"
 #include "custom_utilities/condition_utilities.hpp"
 #include "custom_utilities/transport_equation_utilities.hpp"
 #include "custom_utilities/variables_utilities.hpp"
@@ -22,6 +22,26 @@
 
 namespace Kratos
 {
+
+template <unsigned int TDim, unsigned int TNumNodes>
+UPwNormalFluxFICCondition<TDim, TNumNodes>::UPwNormalFluxFICCondition()
+    : UPwNormalFluxFICCondition(0, nullptr, nullptr)
+{
+}
+
+template <unsigned int TDim, unsigned int TNumNodes>
+UPwNormalFluxFICCondition<TDim, TNumNodes>::UPwNormalFluxFICCondition(IndexType NewId, GeometryType::Pointer pGeometry)
+    : UPwNormalFluxFICCondition(NewId, pGeometry, nullptr)
+{
+}
+
+template <unsigned int TDim, unsigned int TNumNodes>
+UPwNormalFluxFICCondition<TDim, TNumNodes>::UPwNormalFluxFICCondition(IndexType NewId,
+                                                                      GeometryType::Pointer pGeometry,
+                                                                      PropertiesType::Pointer pProperties)
+    : UPwNormalFluxCondition<TDim, TNumNodes>(NewId, pGeometry, pProperties)
+{
+}
 
 template <unsigned int TDim, unsigned int TNumNodes>
 Condition::Pointer UPwNormalFluxFICCondition<TDim, TNumNodes>::Create(IndexType NewId,
@@ -212,6 +232,17 @@ std::string UPwNormalFluxFICCondition<TDim, TNumNodes>::Info() const
     return "UPwNormalFluxFICCondition";
 }
 
+template <unsigned int TDim, unsigned int TNumNodes>
+void UPwNormalFluxFICCondition<TDim, TNumNodes>::save(Serializer& rSerializer) const
+{
+    KRATOS_SERIALIZE_SAVE_BASE_CLASS(rSerializer, Condition)
+}
+
+template <unsigned int TDim, unsigned int TNumNodes>
+void UPwNormalFluxFICCondition<TDim, TNumNodes>::load(Serializer& rSerializer)
+{
+    KRATOS_SERIALIZE_LOAD_BASE_CLASS(rSerializer, Condition)
+}
 template class UPwNormalFluxFICCondition<2, 2>;
 template class UPwNormalFluxFICCondition<3, 3>;
 template class UPwNormalFluxFICCondition<3, 4>;
