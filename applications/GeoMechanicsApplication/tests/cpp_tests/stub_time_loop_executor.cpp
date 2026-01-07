@@ -9,7 +9,10 @@
 //
 //  Main authors:    Richard Faasse
 //
+
 #include "stub_time_loop_executor.h"
+#include "custom_workflows/strategy_wrapper.hpp"
+#include "custom_workflows/time_incrementor.h"
 #include "geo_mechanics_fast_suite.h"
 #include "processes/process.h"
 

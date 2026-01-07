@@ -67,20 +67,20 @@ private:
     static std::unique_ptr<TimeIncrementor> MakeTimeIncrementor(const Parameters& rProjectParameters);
     std::shared_ptr<StrategyWrapper> MakeStrategyWrapper(const Parameters& rProjectParameters,
                                                          const std::filesystem::path& rWorkingDirectory);
-    LoggerOutput::Pointer            CreateLoggingOutput(std::stringstream& rKratosLogBuffer) const;
-    void FlushLoggingOutput(const std::function<void(const char*)>& rLogCallback,
-                            LoggerOutput::Pointer                   pLoggerOutput,
-                            const std::stringstream&                rKratosLogBuffer) const;
+    static LoggerOutput::Pointer     CreateLoggingOutput(std::stringstream& rKratosLogBuffer);
+    static void FlushLoggingOutput(const std::function<void(const char*)>& rLogCallback,
+                                   LoggerOutput::Pointer                   pLoggerOutput,
+                                   const std::stringstream&                rKratosLogBuffer);
 
     template <typename TVariableType>
     void ResetValuesOfNodalVariable(const TVariableType& rVariable)
     {
         if (!GetComputationalModelPart().HasNodalSolutionStepVariable(rVariable)) return;
 
-        NodeUtilities::AssignUpdatedVectorVariableToNonFixedComponentsOfNodes(
-            GetComputationalModelPart().Nodes(), rVariable, rVariable.Zero(), 0);
-        NodeUtilities::AssignUpdatedVectorVariableToNonFixedComponentsOfNodes(
-            GetComputationalModelPart().Nodes(), rVariable, rVariable.Zero(), 1);
+        NodeUtilities::AssignUpdatedVectorVariableToNodes(GetComputationalModelPart().Nodes(),
+                                                          rVariable, rVariable.Zero(), 0);
+        NodeUtilities::AssignUpdatedVectorVariableToNodes(GetComputationalModelPart().Nodes(),
+                                                          rVariable, rVariable.Zero(), 1);
     }
 
     template <typename ProcessType>
@@ -89,6 +89,14 @@ private:
         return [&model = mModel](const Parameters& rProcessSettings) {
             auto& model_part = model.GetModelPart(rProcessSettings["model_part_name"].GetString());
             return std::make_unique<ProcessType>(model_part, rProcessSettings);
+        };
+    }
+
+    template <typename ProcessType>
+    std::function<ProcessFactory::ProductType(const Parameters&)> MakeCreatorWithModelFor()
+    {
+        return [&model = mModel](const Parameters& rProcessSettings) {
+            return std::make_unique<ProcessType>(model, rProcessSettings);
         };
     }
 

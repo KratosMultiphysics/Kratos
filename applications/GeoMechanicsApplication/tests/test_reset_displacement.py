@@ -4,6 +4,7 @@ import os
 import KratosMultiphysics
 import KratosMultiphysics.KratosUnittest as KratosUnittest
 import KratosMultiphysics.GeoMechanicsApplication.geomechanics_analysis as analysis
+from KratosMultiphysics.GeoMechanicsApplication.gid_output_file_reader import GiDOutputFileReader
 import KratosMultiphysics.GeoMechanicsApplication.run_multiple_stages as run_multiple_stages
 import test_helper
 
@@ -96,7 +97,7 @@ class KratosGeoMechanicsResetDisplacementTests(KratosUnittest.TestCase):
         L = 1       # [m]
         eps = (F*L**3)/(3*E*I)
 
-        reader = test_helper.GiDOutputFileReader()
+        reader = GiDOutputFileReader()
         output_data = reader.read_output_from(os.path.join(project_path, "geo_beam_with_reset_displacement_stage_1.post.res"))
         time = 1.0
         end_node_id = 11
