@@ -577,7 +577,7 @@ void AddSearchStrategiesToPython(pybind11::module& m)
     })
     .def("SearchInBoundingBox", [&](GeometricalObjectsBins& self, const Point& rPoint, const array_1d<double, 3>& rMinPoint, const array_1d<double, 3>& rMaxPoint) {
         // Perform the search
-        std::vector<ResultType> results;
+        std::vector<ResultTypeGeometricalObject> results;
         self.SearchInBoundingBox(rPoint, rMinPoint, rMaxPoint, results);
 
         // Copy the results to the python list
@@ -589,7 +589,7 @@ void AddSearchStrategiesToPython(pybind11::module& m)
     })
     .def("SearchInBoundingBox", [&](GeometricalObjectsBins& self, const NodesContainerType& rNodes, const array_1d<double, 3>& rMinPoint, const array_1d<double, 3>& rMaxPoint) {
         // Perform the search
-        std::vector<std::vector<ResultType>> results;
+        std::vector<std::vector<ResultTypeGeometricalObject>> results;
         self.SearchInBoundingBox(rNodes.begin(), rNodes.end(), rMinPoint, rMaxPoint, results);
 
         // Copy the results to the python list
