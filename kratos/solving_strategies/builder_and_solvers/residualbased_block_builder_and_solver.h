@@ -23,7 +23,6 @@
 #endif
 
 /* Project includes */
-#include "includes/define.h"
 #include "solving_strategies/builder_and_solvers/builder_and_solver.h"
 #include "includes/model_part.h"
 #include "includes/key_hash.h"
@@ -1072,6 +1071,24 @@ public:
     void SetScaleFactor(const double ScaleFactor)
     {
         mScaleFactor = ScaleFactor;
+    }
+
+    /**
+     * @brief Checks if the 'Constant Constraints' option is enabled.
+     * @return bool True if constant constraints are enabled, false otherwise.
+     */
+    bool IsConstantConstraints()
+    {
+        return mOptions.Is(CONSTANT_CONSTRAINTS);
+    }
+
+    /**
+     * @brief Sets the 'Constant Constraints' option.
+     * @param ConstantConstraints The new state for the option (true to enable, false to disable).
+     */
+    void SetConstantConstraints(const bool ConstantConstraints)
+    {
+        mOptions.Set(CONSTANT_CONSTRAINTS, ConstantConstraints);
     }
 
     ///@}
