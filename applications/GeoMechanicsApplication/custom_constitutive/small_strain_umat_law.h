@@ -19,6 +19,7 @@
 #include <string>
 
 // Project includes
+#include "constitutive_law_dimension.h"
 #include "includes/constitutive_law.h"
 #include "includes/serializer.h"
 
@@ -39,8 +40,6 @@ namespace Kratos
    KSLAY,   double* KSPT,    int* KSTEP, int* KINC);
 
 */
-
-class ConstitutiveLawDimension;
 
 using pF_UMATMod = void (*)(double*       STRESS,
                             double*       STATEV,
@@ -128,7 +127,7 @@ public:
 
     explicit SmallStrainUMATLaw(std::unique_ptr<ConstitutiveLawDimension> pConstitutiveDimension);
 
-    ~SmallStrainUMATLaw() override;
+    ~SmallStrainUMATLaw() override = default;
     SmallStrainUMATLaw(const SmallStrainUMATLaw& rOther);
     SmallStrainUMATLaw& operator=(const SmallStrainUMATLaw& rOther);
     SmallStrainUMATLaw(SmallStrainUMATLaw&&) noexcept            = delete;
@@ -153,25 +152,19 @@ public:
     /**
      * @brief Voigt tensor size:
      */
-    [[nodiscard]] SizeType GetStrainSize() const override
-    {
-        // In other constitutive laws, we use mpConstitutiveDimension->GetStrainSize() here, but
-        // due to the C/Fortran interface, we need the VoigtSize to be known compile time.
-        // Therefore, we return the template argument TVoigtSize here.
-        return TVoigtSize;
-    }
+    [[nodiscard]] SizeType GetStrainSize() const override;
 
     /**
      * @brief Returns the expected strain measure of this constitutive law (by default Green-Lagrange)
      * @return the expected strain measure
      */
-    StrainMeasure GetStrainMeasure() override { return StrainMeasure_Infinitesimal; }
+    StrainMeasure GetStrainMeasure() override;
 
     /**
      * returns the stress measure of this constitutive law (by default 1st Piola-Kirchhoff stress in voigt notation)
      * @return the expected stress measure
      */
-    StressMeasure GetStressMeasure() override { return StressMeasure_Cauchy; }
+    StressMeasure GetStressMeasure() override;
 
     /**
      * @brief Computes the material response:
@@ -311,13 +304,13 @@ public:
     ///@{
 
     /// Turn back information as a string.
-    [[nodiscard]] std::string Info() const override { return "SmallStrainUMATLaw"; }
+    [[nodiscard]] std::string Info() const override;
 
     /// Print information about this object.
-    void PrintInfo(std::ostream& rOStream) const override { rOStream << Info(); }
+    void PrintInfo(std::ostream& rOStream) const override;
 
     /// Print object's data.
-    void PrintData(std::ostream& rOStream) const override { rOStream << "SmallStrainUMATLaw Data"; }
+    void PrintData(std::ostream& rOStream) const override;
 
     ///@}
     ///@name Friends
@@ -348,7 +341,7 @@ protected:
     ///@name Protected  Access
     ///@{
 
-    SmallStrainUMATLaw();
+    SmallStrainUMATLaw() = default;
 
     virtual void UpdateInternalDeltaStrainVector(ConstitutiveLaw::Parameters& rValues);
     virtual void UpdateInternalStrainVectorFinalized(ConstitutiveLaw::Parameters& rValues);
