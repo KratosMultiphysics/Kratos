@@ -26,9 +26,9 @@ In stress-invariant form, the MC yield function is typically written as:
 where:
 
 - $`p = \frac{1}{3} tr(\sigma)`$ is the mean effective stress
-- $`q = \sqrt{\frac{3}{2}\sigma':\sigma'}`$ is the norm of diviatoric stress tensor, where $`\sigma' = \sigma - p`$.
+- $`q = \sqrt{\frac{3}{2}\sigma':\sigma'}`$ is the norm of deviatoric stress tensor, where $`\sigma' = \sigma - p`$.
 
-This defines a hexagonal pyramid in principal stress space, but is shown as a straight line in the $`(\sigma, \tau)`$ diagram.
+This defines a hexagonal pyramid in principal stress space, but is shown as a straight line in the $`(\sigma, \tau)`$ stress space.
 
 ### Compression cap concept
 At high confining pressures, real geomaterials exhibit compaction and crushing rather than unlimited strength. The Mohr-Coulomb envelope alone allows unbounded compressive stresses. A cap yield surface introduces a limit to admissible volumetric compression and establishes a mechanism for volumetric plastic deformation.
