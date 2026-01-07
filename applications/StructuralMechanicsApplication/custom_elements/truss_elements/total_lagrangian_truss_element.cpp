@@ -265,7 +265,8 @@ void TotalLagrangianTrussElement<TDimension>::GetFirstDerivativesShapeFunctionsV
 template <SizeType TDimension>
 BoundedMatrix<double, 3, 3> TotalLagrangianTrussElement<TDimension>::GetFrenetSerretMatrix() const
 {
-    return StructuralMechanicsElementUtilities::GetFrenetSerretMatrix3D(GetGeometry());
+    // The Frenet-Serret in the current configuration
+    return StructuralMechanicsElementUtilities::GetFrenetSerretMatrix3D(GetGeometry(), true);
 }
 
 /***********************************************************************************/
@@ -297,21 +298,21 @@ void TotalLagrangianTrussElement<TDimension>::GetNodalValuesVector(
         StructuralMechanicsElementUtilities::BuildElementSizeRotationMatrixFor2D2NTruss(T, global_size_T);
         noalias(rNodalValues) = prod(trans(global_size_T), global_values);
     } else {
-    //     // We fill the vector with global values
-    //     for (SizeType i = 0; i < NNodes; ++i) {
-    //         const auto& r_displ = r_geom[i].FastGetSolutionStepValue(DISPLACEMENT);
-    //         global_values[i * DofsPerNode]     = r_displ[0];
-    //         global_values[i * DofsPerNode + 1] = r_displ[1];
-    //         global_values[i * DofsPerNode + 2] = r_displ[2];
-    //     }
+        // We fill the vector with global values
+        for (SizeType i = 0; i < NNodes; ++i) {
+            const auto& r_displ = r_geom[i].FastGetSolutionStepValue(DISPLACEMENT);
+            global_values[i * DofsPerNode]     = r_displ[0];
+            global_values[i * DofsPerNode + 1] = r_displ[1];
+            global_values[i * DofsPerNode + 2] = r_displ[2];
+        }
 
-    //     noalias(T) = GetFrenetSerretMatrix(); // global to local
-    //     if constexpr (NNodes == 2) {
-    //         StructuralMechanicsElementUtilities::BuildElementSizeRotationMatrixFor3D2NTruss(T, global_size_T);
-    //     } else {
-    //         StructuralMechanicsElementUtilities::BuildElementSizeRotationMatrixFor3D3NTruss(T, global_size_T);
-    //     }
-    //     noalias(rNodalValues) = prod(global_size_T, global_values);
+        noalias(T) = GetFrenetSerretMatrix(); // global to local
+        if constexpr (NNodes == 2) {
+            StructuralMechanicsElementUtilities::BuildElementSizeRotationMatrixFor3D2NTruss(T, global_size_T);
+        } else {
+            StructuralMechanicsElementUtilities::BuildElementSizeRotationMatrixFor3D3NTruss(T, global_size_T);
+        }
+        noalias(rNodalValues) = prod(global_size_T, global_values);
     }
 }
 
@@ -326,7 +327,7 @@ array_1d<double, 3> TotalLagrangianTrussElement<TDimension>::GetLocalAxesBodyFor
     ) const
 {
     const auto body_force = StructuralMechanicsElementUtilities::GetBodyForce(*this, rIntegrationPoints, PointNumber);
-    array_1d<double, 3> local_body_force = ZeroVector(3);
+    array_1d<double, 3> local_body_force;
 
     if constexpr (Dimension == 2) {
         const double angle = GetCurrentAngle(); // TODO CHECK this
@@ -335,12 +336,13 @@ array_1d<double, 3> TotalLagrangianTrussElement<TDimension>::GetLocalAxesBodyFor
         const double s = std::sin(angle);
         local_body_force[0] = c * body_force[0] + s * body_force[1];
         local_body_force[1] = -s * body_force[0] + c * body_force[1];
+        local_body_force[2] = 0.0;
         return local_body_force;
     } else {
-    //     BoundedMatrix<double, Dimension, Dimension> T;
-    //     noalias(T) = GetFrenetSerretMatrix(); // global to local
-    //     noalias(local_body_force) = prod(T, body_force);
-    //     return local_body_force;
+        BoundedMatrix<double, Dimension, Dimension> T;
+        noalias(T) = GetFrenetSerretMatrix(); // global to local
+        noalias(local_body_force) = prod(T, body_force);
+        return local_body_force;
     }
 
     return array_1d<double, 3>();
@@ -360,24 +362,19 @@ CalculateGeometricStiffnessMatrix(
     MatrixType K_geometric(SystemSize, SystemSize);
     K_geometric.clear();
 
-    if constexpr (Dimension == 2) {
-        for (IndexType i = 0; i < SystemSize; ++i) {
-            for (IndexType j = 0; j < SystemSize; ++j) {
-                if (i == j) {
-                    K_geometric(i, i) = 1.0;
-                } else if (i == j + 2) {
-                    K_geometric(i, j) = -1.0;
-                } else if (i + 2 == j) {
-                    K_geometric(i, j) = -1.0;
-                }
+    for (IndexType i = 0; i < SystemSize; ++i) {
+        for (IndexType j = 0; j < SystemSize; ++j) {
+            if (i == j) {
+                K_geometric(i, i) = 1.0;
+            } else if (i == j + Dimension) {
+                K_geometric(i, j) = -1.0;
+            } else if (i + Dimension == j) {
+                K_geometric(i, j) = -1.0;
             }
         }
-        return K_geometric * Stress_x / std::pow(Ref_Length, 2);
-    } else {
-        // TODO
     }
+    return K_geometric * Stress_x / std::pow(Ref_Length, 2);
 
-    return K_geometric;
     KRATOS_CATCH("CalculateGeometricStiffnessMatrix")
 }
 
