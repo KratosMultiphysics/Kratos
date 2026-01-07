@@ -265,7 +265,7 @@ void TotalLagrangianTrussElement<TDimension>::GetFirstDerivativesShapeFunctionsV
 template <SizeType TDimension>
 BoundedMatrix<double, 3, 3> TotalLagrangianTrussElement<TDimension>::GetFrenetSerretMatrix() const
 {
-    // The Frenet-Serret in the current configuration
+    // The Frenet-Serret in the CURRENT configuration
     return StructuralMechanicsElementUtilities::GetFrenetSerretMatrix3D(GetGeometry(), true);
 }
 
@@ -618,13 +618,8 @@ void TotalLagrangianTrussElement<TDimension>::RotateLHS(
         StructuralMechanicsElementUtilities::BuildElementSizeRotationMatrixFor2D2NTruss(T, global_size_T);
 
     } else {
-    //     noalias(T) = trans(GetFrenetSerretMatrix()); // global to local
-
-    //     if constexpr (NNodes == 2) {
-    //         StructuralMechanicsElementUtilities::BuildElementSizeRotationMatrixFor3D2NTruss(T, global_size_T);
-    //     } else {
-    //         StructuralMechanicsElementUtilities::BuildElementSizeRotationMatrixFor3D3NTruss(T, global_size_T);
-    //     }
+        noalias(T) = trans(GetFrenetSerretMatrix()); // global to local
+        StructuralMechanicsElementUtilities::BuildElementSizeRotationMatrixFor3D2NTruss(T, global_size_T);
     }
 
     noalias(aux_product) = prod(rLHS, trans(global_size_T));
@@ -649,12 +644,8 @@ void TotalLagrangianTrussElement<TDimension>::RotateRHS(
         StructuralMechanicsElementUtilities::BuildElementSizeRotationMatrixFor2D2NTruss(T, global_size_T);
 
     } else {
-        // noalias(T) = trans(GetFrenetSerretMatrix()); // global to local
-        // if constexpr (NNodes == 2) {
-        //     StructuralMechanicsElementUtilities::BuildElementSizeRotationMatrixFor3D2NTruss(T, global_size_T);
-        // } else {
-        //     StructuralMechanicsElementUtilities::BuildElementSizeRotationMatrixFor3D3NTruss(T, global_size_T);
-        // }
+        noalias(T) = trans(GetFrenetSerretMatrix()); // global to local
+        StructuralMechanicsElementUtilities::BuildElementSizeRotationMatrixFor3D2NTruss(T, global_size_T);
     }
     noalias(local_rhs) = rRHS;
     noalias(rRHS) = prod(global_size_T, local_rhs);
@@ -679,12 +670,8 @@ void TotalLagrangianTrussElement<TDimension>::RotateAll(
         StructuralMechanicsElementUtilities::BuildElementSizeRotationMatrixFor2D2NTruss(T, global_size_T);
 
     } else {
-        // noalias(T) = trans(GetFrenetSerretMatrix()); // global to local
-        // if constexpr (NNodes == 2) {
-        //     StructuralMechanicsElementUtilities::BuildElementSizeRotationMatrixFor3D2NTruss(T, global_size_T);
-        // } else {
-        //     StructuralMechanicsElementUtilities::BuildElementSizeRotationMatrixFor3D3NTruss(T, global_size_T);
-        // }
+        noalias(T) = trans(GetFrenetSerretMatrix()); // global to local
+        StructuralMechanicsElementUtilities::BuildElementSizeRotationMatrixFor3D2NTruss(T, global_size_T);
     }
 
     noalias(local_rhs) = rRHS;
@@ -910,17 +897,17 @@ CalculateClosedFormK(
     // Geometric stiffness matrix
     const double k_fact_g = Sxx * A / L0;
 
-        for (IndexType i = 0; i < SystemSize; ++i) {
-            for (IndexType j = 0; j < SystemSize; ++j) {
-                if (i == j) {
-                    K(i, i) += k_fact_g;
-                } else if (i == j + 2) {
-                    K(i, j) += -k_fact_g;
-                } else if (i + 2 == j) {
-                    K(i, j) += -k_fact_g;
-                }
+    for (IndexType i = 0; i < SystemSize; ++i) {
+        for (IndexType j = 0; j < SystemSize; ++j) {
+            if (i == j) {
+                K(i, i) += k_fact_g;
+            } else if (i == j + 2) {
+                K(i, j) += -k_fact_g;
+            } else if (i + 2 == j) {
+                K(i, j) += -k_fact_g;
             }
         }
+    }
 
     return K;
 }
