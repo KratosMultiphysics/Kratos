@@ -104,26 +104,6 @@ public:
                      const Properties&                         rProperties,
                      const ProcessInfo&                        rCurrentProcessInfo);
 
-    /**
-     * @brief This method is used to check that two Retention Laws are the same type (references)
-     * @param rLHS The first argument
-     * @param rRHS The second argument
-     */
-    inline static bool HasSameType(const RetentionLaw& rLHS, const RetentionLaw& rRHS)
-    {
-        return (typeid(rLHS) == typeid(rRHS));
-    }
-
-    /**
-     * @brief This method is used to check that tow Retention Laws are the same type (pointers)
-     * @param rLHS The first argument
-     * @param rRHS The second argument
-     */
-    inline static bool HasSameType(const RetentionLaw* rLHS, const RetentionLaw* rRHS)
-    {
-        return HasSameType(*rLHS, *rRHS);
-    }
-
     [[nodiscard]] virtual std::string Info() const;
 
     virtual void PrintInfo(std::ostream& rOStream) const;
