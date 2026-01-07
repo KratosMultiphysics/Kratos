@@ -1,15 +1,24 @@
 import KratosMultiphysics
 import KratosMultiphysics.KratosUnittest as KratosUnittest
+import KratosMultiphysics.kratos_utilities as KratosUtils
 
 import itertools
 import json
+import os
 from pathlib import Path
+
+def GetFilePath(fileName):
+    return os.path.join(os.path.dirname(os.path.realpath(__file__)), fileName)
 
 class TestJsonOutputProcess(KratosUnittest.TestCase):
     def setUp(self):
         super().setUp()
         self.model = KratosMultiphysics.Model()
         self.model_part = self.model.CreateModelPart("Main")
+
+    def tearDown(self):
+        KratosUtils.DeleteFileIfExisting(GetFilePath("external_forces_output.json"))
+        KratosUtils.DeleteFileIfExisting(GetFilePath("resultant_external_forces_output.json"))
 
     def add_three_nodes_to_model_part(self):
         node_ids_and_coordinates = [
@@ -77,6 +86,7 @@ class TestJsonOutputProcess(KratosUnittest.TestCase):
         self.add_vectors_to_nodes_of_model_part(
             vector_variable_for_testing, test_vectors
         )
+        ref_solution = [6.0, 6.0, 6.0]
 
         output_file_path = (
             Path(__file__).resolve().parent / "resultant_external_forces_output.json"
@@ -101,7 +111,7 @@ class TestJsonOutputProcess(KratosUnittest.TestCase):
         self.assertEqual(len(resultant_vector_variable_results_for_all_time_steps), 1)
         self.assertVectorAlmostEqual(
             resultant_vector_variable_results_for_all_time_steps[0],
-            list(itertools.chain(*test_vectors)),
+            ref_solution,
         )
 
 
