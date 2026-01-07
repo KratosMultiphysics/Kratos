@@ -13,17 +13,18 @@
 #pragma once
 
 // System includes
-#include <unordered_set>
-// TODO: Replace with more suited and advanced implementations
+// #include <unordered_map> // NOTE: STL implementation
 
 // External includes
+#include "ankerl/unordered_dense.h"
 
 // Project includes
 
 namespace Kratos {
 
 template<class T>
-using unordered_set = std::unordered_set<T>;
+using unordered_set = ankerl::unordered_dense::set<T>;
+// using unordered_set = std::unordered_set<T>; // NOTE: STL implementation
 
 
 } // namespace Kratos
