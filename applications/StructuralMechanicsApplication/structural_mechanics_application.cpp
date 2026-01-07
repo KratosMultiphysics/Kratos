@@ -87,6 +87,8 @@ KratosStructuralMechanicsApplication::KratosStructuralMechanicsApplication()
       mShellThinElement3D3N(0, Element::GeometryType::Pointer(new Triangle3D3<NodeType >(Element::GeometryType::PointsArrayType(3)))),
       mShellThinCorotationalElement3D3N(0, Element::GeometryType::Pointer(new Triangle3D3<NodeType >(Element::GeometryType::PointsArrayType(3)))),
       mShellThickCorotationalElement3D3N(0, Element::GeometryType::Pointer(new Triangle3D3<NodeType >(Element::GeometryType::PointsArrayType(3)))),
+      mCSDSG3ThickShellLinearElement3D3N(0, Element::GeometryType::Pointer(new Triangle3D3<NodeType >(Element::GeometryType::PointsArrayType(3)))),
+      mCSDSG3ThickShellCorotationalElement3D3N(0, Element::GeometryType::Pointer(new Triangle3D3<NodeType >(Element::GeometryType::PointsArrayType(3)))),
       // Adding the membrane elements
       mMembraneElement3D4N(0, Element::GeometryType::Pointer(new Quadrilateral3D4<NodeType >(Element::GeometryType::PointsArrayType(4)))),
       mMembraneElement3D3N(0, Element::GeometryType::Pointer(new Triangle3D3<NodeType >(Element::GeometryType::PointsArrayType(3)))),
@@ -582,6 +584,8 @@ void KratosStructuralMechanicsApplication::Register() {
     KRATOS_REGISTER_ELEMENT("ShellThinElement3D3N", mShellThinElement3D3N)
     KRATOS_REGISTER_ELEMENT("ShellThickElementCorotational3D3N", mShellThickCorotationalElement3D3N)
     KRATOS_REGISTER_ELEMENT("ShellThinElementCorotational3D3N", mShellThinCorotationalElement3D3N)
+    KRATOS_REGISTER_ELEMENT("CSDSG3ThickShellLinearElement3D3N", mCSDSG3ThickShellLinearElement3D3N)
+    KRATOS_REGISTER_ELEMENT("CSDSG3ThickShellCorotationalElement3D3N", mCSDSG3ThickShellCorotationalElement3D3N)
 
     // Register the membrane element
     KRATOS_REGISTER_ELEMENT("MembraneElement3D4N", mMembraneElement3D4N)
@@ -818,6 +822,7 @@ void KratosStructuralMechanicsApplication::Register() {
     KRATOS_REGISTER_CONSTITUTIVE_LAW("TimoshenkoBeamElasticConstitutiveLaw", mTimoshenkoBeamElasticConstitutiveLaw);
     KRATOS_REGISTER_CONSTITUTIVE_LAW("TimoshenkoBeamPlaneStrainElasticConstitutiveLaw", mTimoshenkoBeamPlaneStrainElasticConstitutiveLaw);
     KRATOS_REGISTER_CONSTITUTIVE_LAW("TimoshenkoBeamElasticConstitutiveLaw3D", mTimoshenkoBeamElasticConstitutiveLaw3D);
+    KRATOS_REGISTER_CONSTITUTIVE_LAW("ReissnerMindlinShellElasticConstitutiveLaw", mReissnerMindlinShellElasticConstitutiveLaw);
 
 }
 }  // namespace Kratos.

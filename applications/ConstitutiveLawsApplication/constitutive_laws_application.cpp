@@ -429,6 +429,8 @@ void KratosConstitutiveLawsApplication::Register()
     KRATOS_REGISTER_CONSTITUTIVE_LAW("SmallStrainThermalIsotropicDamagePlaneStressDruckerPrager", mSmallStrainThermalIsotropicDamagePlaneStressDruckerPrager);
     KRATOS_REGISTER_CONSTITUTIVE_LAW("SmallStrainThermalIsotropicDamagePlaneStressSimoJu", mSmallStrainThermalIsotropicDamagePlaneStressSimoJu);
 
+    KRATOS_REGISTER_CONSTITUTIVE_LAW("ThicknessIntegratedIsotropicConstitutiveLaw", mThicknessIntegratedIsotropicConstitutiveLaw);
+
     //Fatigue variables
     KRATOS_REGISTER_VARIABLE(HIGH_CYCLE_FATIGUE_COEFFICIENTS)
     KRATOS_REGISTER_VARIABLE(FATIGUE_REDUCTION_FACTOR)
@@ -444,6 +446,7 @@ void KratosConstitutiveLawsApplication::Register()
     KRATOS_REGISTER_VARIABLE(DAMAGE_ACTIVATION)
     KRATOS_REGISTER_VARIABLE(PREVIOUS_CYCLE);
     KRATOS_REGISTER_VARIABLE(CYCLE_PERIOD)
+    KRATOS_REGISTER_VARIABLE(MINIMUM_FATIGUE_REDUCTION_FACTOR)
     KRATOS_REGISTER_VARIABLE(ADVANCE_STRATEGY_APPLIED)
 
 
