@@ -59,10 +59,14 @@ KratosApplication::KratosApplication(const std::string& ApplicationName)
       //prisms
       mPrismCondition2D4N( 0, GeometryType::Pointer(new Quadrilateral2D4<NodeType >(GeometryType::PointsArrayType(4)))),
       mPrismCondition3D6N( 0, GeometryType::Pointer(new Prism3D6<NodeType >(GeometryType::PointsArrayType(6)))),
-
+      // IBRA
+      mBrepCurveOnSurfaceCondition( 0, GeometryType::Pointer(new BrepCurveOnSurface<PointerVector<NodeType>, false, PointerVector<NodeType>>(GeometryType::PointsArrayType()))),
+      mNurbsCurveCondition( 0, GeometryType::Pointer(new NurbsCurveGeometry<3, PointerVector<NodeType>>(GeometryType::PointsArrayType()))),
+      
       // Master-Slave Constraint
       mMasterSlaveConstraint(),
       mLinearMasterSlaveConstraint(),
+      mLinearMultifreedomConstraint(),
 
       // Periodic conditions
       mPeriodicCondition( 0, GeometryType::Pointer(new Line2D2<NodeType >(GeometryType::PointsArrayType(2)))),
@@ -170,11 +174,12 @@ void KratosApplication::RegisterKratosCore() {
     Serializer::Register("DofDouble", Dof<double>());
 
     Serializer::Register("MasterSlaveConstraint", MasterSlaveConstraint());
+    Serializer::Register("MultifreedomConstraint", MultifreedomConstraint());
 
     //Register specific conditions ( must be completed : conditions defined in kratos_application.h)
     //generic condition
     KRATOS_REGISTER_CONDITION("GenericCondition", mGenericCondition);
-    
+
     // Point conditions
     KRATOS_REGISTER_CONDITION("PointCondition2D1N", mPointCondition2D1N);
     KRATOS_REGISTER_CONDITION("PointCondition3D1N", mPointCondition3D1N);
@@ -196,9 +201,14 @@ void KratosApplication::RegisterKratosCore() {
     KRATOS_REGISTER_CONDITION("PrismCondition2D4N", mPrismCondition2D4N);
     KRATOS_REGISTER_CONDITION("PrismCondition3D6N", mPrismCondition3D6N);
 
+    // IBRA Conditions
+    KRATOS_REGISTER_CONDITION("BrepCurveOnSurfaceCondition", mBrepCurveOnSurfaceCondition);
+    KRATOS_REGISTER_CONDITION("NurbsCurveCondition", mNurbsCurveCondition);
+
     //Master-slave constraints
     KRATOS_REGISTER_CONSTRAINT("MasterSlaveConstraint",mMasterSlaveConstraint);
     KRATOS_REGISTER_CONSTRAINT("LinearMasterSlaveConstraint",mLinearMasterSlaveConstraint);
+    KRATOS_REGISTER_CONSTRAINT("LinearMultifreedomConstraint", mLinearMultifreedomConstraint);
 
     KRATOS_REGISTER_CONDITION("PeriodicCondition", mPeriodicCondition)
     KRATOS_REGISTER_CONDITION("PeriodicConditionEdge", mPeriodicConditionEdge)

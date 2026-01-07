@@ -21,7 +21,6 @@
 #include "includes/constitutive_law.h"
 #include "includes/define.h"
 #include "includes/element.h"
-#include "includes/serializer.h"
 #include "utilities/math_utils.h"
 
 // Application includes
@@ -198,15 +197,12 @@ private:
 
     friend class Serializer;
 
-    void save(Serializer& rSerializer) const override
-    {
-        KRATOS_SERIALIZE_SAVE_BASE_CLASS(rSerializer, Element)
-    }
+    void save(Serializer& rSerializer) const override;
 
-    void load(Serializer& rSerializer) override{KRATOS_SERIALIZE_LOAD_BASE_CLASS(rSerializer, Element)}
+    void load(Serializer& rSerializer) override;
 
     std::unique_ptr<StressStatePolicy> mpStressStatePolicy;
-    IntegrationCoefficientsCalculator mIntegrationCoefficientsCalculator;
+    IntegrationCoefficientsCalculator  mIntegrationCoefficientsCalculator;
 };
 
 // Class UPwBaseElement

@@ -90,7 +90,6 @@ public:
     /// Assignment operator.
     SpatialSearchResult& operator=(SpatialSearchResult const& /*Other*/) = default;
 
-
     ///@}
     ///@name Operations
     ///@{
@@ -255,8 +254,6 @@ inline std::ostream& operator << (std::ostream& rOStream,
     return rOStream;
 }
 ///@}
-
-///@} addtogroup block
 
 }  // namespace Kratos.
 

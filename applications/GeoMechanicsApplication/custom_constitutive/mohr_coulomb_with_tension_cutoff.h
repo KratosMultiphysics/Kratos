@@ -68,9 +68,8 @@ private:
     CoulombWithTensionCutOffImpl              mCoulombWithTensionCutOffImpl;
     bool                                      mIsModelInitialized = false;
 
-    [[nodiscard]] Vector CalculateTrialStressVector(const Vector& rStrainVector,
-                                                    double        YoungsModulus,
-                                                    double        PoissonsRatio) const;
+    [[nodiscard]] Vector CalculateTrialStressVector(const Vector& rStrainVector, const Properties& rProperties) const;
+
     friend class Serializer;
     void save(Serializer& rSerializer) const override;
     void load(Serializer& rSerializer) override;

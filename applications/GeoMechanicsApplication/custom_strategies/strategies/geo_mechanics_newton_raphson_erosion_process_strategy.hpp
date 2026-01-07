@@ -21,7 +21,6 @@
 // Application includes
 #include "boost/range/adaptor/filtered.hpp"
 #include "custom_elements/geo_steady_state_Pw_piping_element.h"
-#include "custom_elements/steady_state_Pw_piping_element.hpp"
 #include "custom_strategies/strategies/geo_mechanics_newton_raphson_strategy.hpp"
 #include "custom_utilities/transport_equation_utilities.hpp"
 #include "geo_mechanics_application_variables.h"
@@ -75,8 +74,8 @@ public:
         std::transform(rPipeElements.begin(), rPipeElements.end(), std::back_inserter(result),
                        [](auto p_element) { return dynamic_cast<PipingElementType*>(p_element); });
 
-        const auto number_of_piping_elements = static_cast<std::size_t>(std::count_if(
-            result.begin(), result.end(), [](auto p_element) { return p_element != nullptr; }));
+        const auto number_of_piping_elements = static_cast<std::size_t>(
+            std::ranges::count_if(result, [](auto p_element) { return p_element != nullptr; }));
         if (number_of_piping_elements == 0) return std::nullopt;
 
         KRATOS_ERROR_IF(number_of_piping_elements != rPipeElements.size())
@@ -95,13 +94,6 @@ public:
         if (piping_elements.empty()) {
             KRATOS_INFO_IF("PipingLoop", this->GetEchoLevel() > 0 && rank == 0)
                 << "No Pipe Elements -> Finalizing Solution " << std::endl;
-            this->BaseClassFinalizeSolutionStep();
-            return;
-        }
-
-        if (const auto piping_interface_elements =
-                TryDownCastToPipingElement<SteadyStatePwPipingElement<2, 4>>(piping_elements)) {
-            this->DetermineOpenPipingElements(piping_interface_elements.value());
             this->BaseClassFinalizeSolutionStep();
             return;
         }
@@ -225,7 +217,7 @@ private:
     SizeType GetNumberOfActivePipeElements(const FilteredElementsType& rPipeElements)
     {
         auto is_pipe_active = [](auto p_element) { return p_element->GetValue(PIPE_ACTIVE); };
-        return std::count_if(std::begin(rPipeElements), std::end(rPipeElements), is_pipe_active);
+        return std::ranges::count_if(rPipeElements, is_pipe_active);
     }
 
     /// <summary>
@@ -264,8 +256,8 @@ private:
         KRATOS_INFO_IF("ResidualBasedNewtonRaphsonStrategy", this->GetEchoLevel() > 0 && rank == 0)
             << "Recalculating" << std::endl;
 
-        GeoMechanicsNewtonRaphsonStrategy<TSparseSpace, TDenseSpace, TLinearSolver>::InitializeSolutionStep();
         GeoMechanicsNewtonRaphsonStrategy<TSparseSpace, TDenseSpace, TLinearSolver>::Predict();
+        GeoMechanicsNewtonRaphsonStrategy<TSparseSpace, TDenseSpace, TLinearSolver>::InitializeSolutionStep();
         return GeoMechanicsNewtonRaphsonStrategy<TSparseSpace, TDenseSpace, TLinearSolver>::SolveSolutionStep();
     }
 

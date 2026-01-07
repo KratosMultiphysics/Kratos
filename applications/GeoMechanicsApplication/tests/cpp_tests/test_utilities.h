@@ -12,23 +12,30 @@
 
 #pragma once
 
-#include <filesystem>
+#include <gtest/gtest.h>
 
-namespace Kratos::Testing
-{
-
-namespace Defaults
+namespace Kratos::Testing::Defaults
 {
 
 constexpr auto absolute_tolerance = 1.0e-12;
 constexpr auto relative_tolerance = 1.0e-6;
 
-} // namespace Defaults
+} // namespace Kratos::Testing::Defaults
 
-class TestUtilities
+namespace Kratos::Testing
 {
-public:
-    static bool CompareFiles(const std::filesystem::path& rPath1, const std::filesystem::path& rPath2);
-};
+
+template <typename PointContainerType1, typename PointContainerType2>
+void ExpectPointsAreNear(const PointContainerType1& rPoints1,
+                         const PointContainerType2& rPoints2,
+                         double AbsoluteTolerance = Defaults::absolute_tolerance)
+{
+    ASSERT_EQ(rPoints1.size(), rPoints2.size());
+    for (auto i = std::size_t{0}; i < rPoints1.size(); ++i) {
+        EXPECT_NEAR(rPoints1[i].X(), rPoints2[i].X(), AbsoluteTolerance);
+        EXPECT_NEAR(rPoints1[i].Y(), rPoints2[i].Y(), AbsoluteTolerance);
+        EXPECT_NEAR(rPoints1[i].Z(), rPoints2[i].Z(), AbsoluteTolerance);
+    }
+}
 
 } // namespace Kratos::Testing

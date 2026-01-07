@@ -36,10 +36,10 @@ Geo::IntegrationPointVectorType LobattoIntegrationScheme::CreateIntegrationPoint
     // instance, here: https://en.wikipedia.org/wiki/Gaussian_quadrature#Gauss%E2%80%93Lobatto_rules
     switch (NumberOfPoints) {
     case 2:
-        return {{-1.0, 1.0}, {1.0, 1.0}};
+        return {{Point(-1.0), 1.0}, {Point(1.0), 1.0}};
 
     case 3:
-        return {{-1.0, 1.0 / 3.0}, {0.0, 4.0 / 3.0}, {1.0, 1.0 / 3.0}};
+        return {{Point(-1.0), 1.0 / 3.0}, {Point(0.0), 4.0 / 3.0}, {Point(1.0), 1.0 / 3.0}};
 
     default:
         KRATOS_ERROR << "Can't construct Lobatto integration scheme: no support for "

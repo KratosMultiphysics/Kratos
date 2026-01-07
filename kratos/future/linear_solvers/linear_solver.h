@@ -148,10 +148,12 @@ public:
      * @param rA. System matrix
      * @param rX. Solution vector. it's also the initial guess for iterative linear solvers.
      * @param rB. Right hand side vector.
+     * @return @p true if the provided system was solved successfully satisfying the given requirements, @p false otherwise.
      */
-    virtual void PerformSolutionStep(SparseMatrixType& rA, VectorType& rX, VectorType& rB)
+    virtual bool PerformSolutionStep(SparseMatrixType& rA, VectorType& rX, VectorType& rB)
     {
         KRATOS_ERROR << "Calling linear solver base class" << std::endl;
+        return false;
     }
 
     /**

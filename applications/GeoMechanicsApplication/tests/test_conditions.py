@@ -25,11 +25,11 @@ class KratosGeoMechanicsConditionTests(KratosUnittest.TestCase):
         pressure = test_helper.get_water_pressure(simulation)
         self.assertAlmostEqual(etalon_value, pressure[2])
 
-    def check_displacement(self, test_name, etalon_value):
+    def check_displacement(self, test_name, etalon_value, node_index=2):
         file_path = test_helper.get_file_path(os.path.join('test_conditions', test_name))
         simulation = test_helper.run_kratos(file_path)
         displacement = test_helper.get_displacement(simulation)
-        self.assertAlmostEqual(etalon_value, displacement[2][1])
+        self.assertAlmostEqual(etalon_value, displacement[node_index][1])
 
     def test_PwNormalFluxCondition2D2N(self):
         self.check_water_pressure('test_PwNormalFluxCondition2D2N', self.etalon_value1)
@@ -87,6 +87,18 @@ class KratosGeoMechanicsConditionTests(KratosUnittest.TestCase):
 
     def test_UPwNormalFaceLoadCondition2D5N(self):
         self.check_displacement('test_UPwNormalFaceLoadCondition2D5N', self.etalon_value2)
+
+    def test_UPwNormalFaceLoadCondition3D3N(self):
+        self.check_displacement('test_UPwNormalFaceLoadCondition3D3N', self.etalon_value2, node_index=11)
+        
+    def test_UPwNormalFaceLoadCondition3D4N(self):
+        self.check_displacement('test_UPwNormalFaceLoadCondition3D4N', self.etalon_value2, node_index=11)
+        
+    def test_UPwNormalFaceLoadCondition3D6N(self):
+        self.check_displacement('test_UPwNormalFaceLoadCondition3D6N', self.etalon_value2, node_index=51)
+        
+    def test_UPwNormalFaceLoadCondition3D8N(self):
+        self.check_displacement('test_UPwNormalFaceLoadCondition3D8N', self.etalon_value2, node_index=32)
 
     def test_LineNormalLoadDiffOrderCondition2D3N(self):
         self.check_displacement('test_LineNormalLoadDiffOrderCondition2D3N', self.etalon_value2)
