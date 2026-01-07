@@ -31,8 +31,10 @@
 #include "custom_processes/deactivate_conditions_on_inactive_elements_process.hpp"
 #include "custom_processes/find_neighbour_elements_of_conditions_process.h"
 #include "custom_processes/geo_extrapolate_integration_point_values_to_nodes_process.h"
+#include "custom_utilities/generic_utilities.h"
 #include "custom_utilities/input_utility.h"
 #include "custom_utilities/process_info_parser.h"
+#include "custom_utilities/process_utilities.h"
 #include "custom_utilities/solving_strategy_factory.hpp"
 #include "solving_strategy_wrapper.hpp"
 #include "spaces/ublas_space.h"
@@ -153,12 +155,12 @@ void KratosGeoSettlement::InitializeProcessFactory()
                                 MakeCreatorFor<ApplyScalarConstraintTableProcess>());
     mProcessFactory->AddCreator("ApplyNormalLoadTableProcess", MakeCreatorFor<ApplyNormalLoadTableProcess>());
     mProcessFactory->AddCreator("ApplyVectorConstraintTableProcess",
-                                MakeCreatorFor<ApplyVectorConstraintTableProcess>());
+                                MakeCreatorWithModelFor<ApplyVectorConstraintTableProcess>());
     mProcessFactory->AddCreator("SetParameterFieldProcess", MakeCreatorFor<SetParameterFieldProcess>());
-    mProcessFactory->AddCreator("ApplyExcavationProcess", MakeCreatorFor<ApplyExcavationProcess>());
-    mProcessFactory->AddCreator("ApplyK0ProcedureProcess", MakeCreatorFor<ApplyK0ProcedureProcess>());
+    mProcessFactory->AddCreator("ApplyExcavationProcess", MakeCreatorWithModelFor<ApplyExcavationProcess>());
+    mProcessFactory->AddCreator("ApplyK0ProcedureProcess", MakeCreatorWithModelFor<ApplyK0ProcedureProcess>());
     mProcessFactory->AddCreator("GeoExtrapolateIntegrationPointValuesToNodesProcess",
-                                MakeCreatorFor<GeoExtrapolateIntegrationPointValuesToNodesProcess>());
+                                MakeCreatorWithModelFor<GeoExtrapolateIntegrationPointValuesToNodesProcess>());
     mProcessFactory->AddCreator("FixWaterPressuresAbovePhreaticLineProcess",
                                 MakeCreatorFor<FixWaterPressuresAbovePhreaticLineProcess>());
     mProcessFactory->SetCallBackWhenProcessIsUnknown([](const std::string& rProcessName) {
@@ -185,24 +187,24 @@ int KratosGeoSettlement::RunStage(const std::filesystem::path&            rWorki
         KRATOS_INFO("KratosGeoSettlement")
             << "Parsed project parameters file " << project_parameters_file_path << std::endl;
 
-        mModelPartName = project_parameters["solver_settings"]["model_part_name"].GetString();
-        if (const auto model_part_name = project_parameters["solver_settings"]["model_part_name"].GetString();
+        auto solver_settings = project_parameters["solver_settings"];
+        mModelPartName       = solver_settings["model_part_name"].GetString();
+        if (const auto model_part_name = solver_settings["model_part_name"].GetString();
             !mModel.HasModelPart(model_part_name)) {
             auto&      model_part = AddNewModelPart(model_part_name);
             const auto mesh_file_name =
-                project_parameters["solver_settings"]["model_import_settings"]["input_filename"].GetString();
+                solver_settings["model_import_settings"]["input_filename"].GetString();
             mpInputUtility->ReadModelFromFile(rWorkingDirectory / mesh_file_name, model_part);
             AddDegreesOfFreedomTo(model_part);
             KRATOS_INFO("KratosGeoSettlement") << "Added degrees of freedom" << std::endl;
         }
 
-        PrepareModelPart(project_parameters["solver_settings"]);
+        ProcessUtilities::AddProcessesSubModelPartListToSolverSettings(project_parameters, solver_settings);
+        PrepareModelPart(solver_settings);
 
-        if (project_parameters["solver_settings"].Has("material_import_settings")) {
+        if (solver_settings.Has("material_import_settings")) {
             const auto material_file_name =
-                project_parameters["solver_settings"]["material_import_settings"]
-                                  ["materials_filename"]
-                                      .GetString();
+                solver_settings["material_import_settings"]["materials_filename"].GetString();
             const auto material_file_path = rWorkingDirectory / material_file_name;
             mpInputUtility->AddMaterialsFromFile(material_file_path.generic_string(), mModel);
             KRATOS_INFO("KratosGeoSettlement") << "Read the materials from " << material_file_path << std::endl;
@@ -213,10 +215,6 @@ int KratosGeoSettlement::RunStage(const std::filesystem::path&            rWorki
 
         for (const auto& process : processes) {
             process->ExecuteInitialize();
-        }
-
-        for (const auto& process : processes) {
-            process->ExecuteBeforeSolutionLoop();
         }
 
         if (mpTimeLoopExecutor) {
@@ -305,7 +303,7 @@ void KratosGeoSettlement::AddDegreesOfFreedomTo(Kratos::ModelPart& rModelPart)
     VariableUtils().AddDof(VOLUME_ACCELERATION_Z, rModelPart);
 }
 
-LoggerOutput::Pointer KratosGeoSettlement::CreateLoggingOutput(std::stringstream& rKratosLogBuffer) const
+LoggerOutput::Pointer KratosGeoSettlement::CreateLoggingOutput(std::stringstream& rKratosLogBuffer)
 {
     auto logger_output = std::make_shared<LoggerOutput>(rKratosLogBuffer);
     Logger::AddOutput(logger_output);
@@ -314,10 +312,10 @@ LoggerOutput::Pointer KratosGeoSettlement::CreateLoggingOutput(std::stringstream
 
 void KratosGeoSettlement::FlushLoggingOutput(const std::function<void(const char*)>& rLogCallback,
                                              LoggerOutput::Pointer                   pLoggerOutput,
-                                             const std::stringstream& rKratosLogBuffer) const
+                                             const std::stringstream& rKratosLogBuffer)
 {
     rLogCallback(rKratosLogBuffer.str().c_str());
-    Logger::RemoveOutput(pLoggerOutput);
+    Logger::RemoveOutput(std::move(pLoggerOutput));
 }
 
 const InputUtility* KratosGeoSettlement::GetInterfaceInputUtility() const
@@ -372,6 +370,9 @@ std::shared_ptr<StrategyWrapper> KratosGeoSettlement::MakeStrategyWrapper(const 
     FindNeighbourElementsOfConditionsProcess{GetComputationalModelPart()}.Execute();
     DeactivateConditionsOnInactiveElements{GetComputationalModelPart()}.Execute();
 
+    GetComputationalModelPart().GetProcessInfo()[START_TIME] = GetStartTimeFrom(rProjectParameters);
+    GetComputationalModelPart().GetProcessInfo()[END_TIME]   = GetEndTimeFrom(rProjectParameters);
+
     // For now, we can create solving strategy wrappers only
     using SolvingStrategyWrapperType = SolvingStrategyWrapper<SparseSpaceType, DenseSpaceType>;
     return std::make_shared<SolvingStrategyWrapperType>(std::move(solving_strategy),
@@ -386,11 +387,6 @@ void KratosGeoSettlement::PrepareModelPart(const Parameters& rSolverSettings)
 
     if (!main_model_part.HasSubModelPart(mComputationalSubModelPartName)) {
         main_model_part.CreateSubModelPart(mComputationalSubModelPartName);
-    }
-
-    if (rSolverSettings.Has("nodal_smoothing")) {
-        main_model_part.GetProcessInfo().SetValue(NODAL_SMOOTHING,
-                                                  rSolverSettings["nodal_smoothing"].GetBool());
     }
 
     // Note that the computing part and the main model part _share_ their process info and properties
@@ -411,13 +407,11 @@ void KratosGeoSettlement::PrepareModelPart(const Parameters& rSolverSettings)
         domain_part_names.emplace_back(sub_model_part.GetString());
     }
 
-    // Add nodes to computing model part
     std::set<Node::IndexType> node_id_set;
     for (const auto& name : domain_part_names) {
         auto& domain_part = main_model_part.GetSubModelPart(name);
-        for (const auto& node : domain_part.Nodes()) {
-            node_id_set.insert(node.Id());
-        }
+        GenericUtilities::GetIdsFromEntityContents(domain_part.Nodes(),
+                                                   std::inserter(node_id_set, node_id_set.end()));
     }
     GetComputationalModelPart().AddNodes(
         std::vector<Node::IndexType>{node_id_set.begin(), node_id_set.end()});
@@ -425,27 +419,24 @@ void KratosGeoSettlement::PrepareModelPart(const Parameters& rSolverSettings)
     std::set<IndexedObject::IndexType> element_id_set;
     for (const auto& name : domain_part_names) {
         auto& domain_part = main_model_part.GetSubModelPart(name);
-        for (const auto& element : domain_part.Elements()) {
-            element_id_set.insert(element.Id());
-        }
+        GenericUtilities::GetIdsFromEntityContents(
+            domain_part.Elements(), std::inserter(element_id_set, element_id_set.end()));
     }
     GetComputationalModelPart().AddElements(
         std::vector<IndexedObject::IndexType>{element_id_set.begin(), element_id_set.end()});
 
-    GetComputationalModelPart().Conditions().clear();
     const auto processes_sub_model_part_list = rSolverSettings["processes_sub_model_part_list"];
     std::vector<std::string> domain_condition_names;
     for (const auto& sub_model_part : processes_sub_model_part_list) {
         domain_condition_names.emplace_back(sub_model_part.GetString());
     }
-
     std::set<IndexedObject::IndexType> condition_id_set;
     for (const auto& name : domain_condition_names) {
         auto& domain_part = main_model_part.GetSubModelPart(name);
-        for (const auto& condition : domain_part.Conditions()) {
-            condition_id_set.insert(condition.Id());
-        }
+        GenericUtilities::GetIdsFromEntityContents(
+            domain_part.Conditions(), std::inserter(condition_id_set, condition_id_set.end()));
     }
+    GetComputationalModelPart().Conditions().clear();
     GetComputationalModelPart().AddConditions(
         std::vector<IndexedObject::IndexType>{condition_id_set.begin(), condition_id_set.end()});
 

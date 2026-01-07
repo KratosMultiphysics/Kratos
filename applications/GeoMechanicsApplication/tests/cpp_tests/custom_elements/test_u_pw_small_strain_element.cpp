@@ -18,12 +18,12 @@
 #include "custom_elements/plane_strain_stress_state.h"
 #include "custom_utilities/registration_utilities.h"
 #include "includes/variables.h"
+#include "test_setup_utilities/element_setup_utilities.h"
+#include "test_setup_utilities/model_setup_utilities.h"
 #include "tests/cpp_tests/custom_constitutive/mock_constitutive_law.hpp"
 #include "tests/cpp_tests/geo_mechanics_fast_suite.h"
 #include "tests/cpp_tests/stub_constitutive_law.h"
 #include "tests/cpp_tests/test_utilities.h"
-#include "tests/cpp_tests/test_utilities/element_setup_utilities.h"
-#include "tests/cpp_tests/test_utilities/model_setup_utilities.h"
 
 #include <boost/numeric/ublas/assignment.hpp>
 #include <string>
@@ -713,5 +713,4 @@ KRATOS_TEST_CASE_IN_SUITE(UPwSmallStrainElement_InitializeCorrectlySetsStatePara
                                            Defaults::relative_tolerance);
     }
 }
-
 } // namespace Kratos::Testing

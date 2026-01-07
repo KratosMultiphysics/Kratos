@@ -82,7 +82,7 @@ private:
     void InitializeCoordinates(const Parameters& rParameters);
     void ValidateCoordinates(const Parameters& rParameters) const;
 
-    void InitializeParameters(Parameters& rParameters) const;
+    static void InitializeParameters(Parameters& rParameters);
 }; // Class ApplyConstantPhreaticMultiLinePressureProcess
 
 /// input stream function

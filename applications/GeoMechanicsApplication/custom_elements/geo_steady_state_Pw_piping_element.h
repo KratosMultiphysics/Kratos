@@ -19,6 +19,7 @@
 #include "custom_utilities/element_utilities.hpp"
 #include "custom_utilities/math_utilities.h"
 #include "custom_utilities/transport_equation_utilities.hpp"
+#include "custom_utilities/variables_utilities.hpp"
 #include "geo_mechanics_application_variables.h"
 #include "includes/cfd_variables.h"
 #include "includes/element.h"
@@ -101,12 +102,20 @@ public:
     {
         KRATOS_TRY
         CheckUtilities::CheckDomainSize(GetGeometry().DomainSize(), Id());
-        CheckHasSolutionStepsDataFor(WATER_PRESSURE);
-        CheckHasDofsFor(WATER_PRESSURE);
-        CheckProperties();
-        // conditional on model dimension
+        CheckUtilities::CheckHasNodalSolutionStepData(this->GetGeometry(), {std::cref(WATER_PRESSURE)});
+        CheckUtilities::CheckHasDofs(this->GetGeometry(), {std::cref(WATER_PRESSURE)});
+
+        const CheckProperties check_properties(this->GetProperties(), "material properties at element",
+                                               this->Id(), CheckProperties::Bounds::AllInclusive);
+        check_properties.Check(DENSITY_WATER);
+        check_properties.Check(DYNAMIC_VISCOSITY);
+        check_properties.Check(PIPE_HEIGHT);
+        if constexpr (TDim == 3) {
+            check_properties.Check(PIPE_WIDTH_FACTOR);
+        }
+
         if constexpr (TDim == 2) {
-            CheckForNonZeroZCoordinate();
+            CheckUtilities::CheckForNonZeroZCoordinateIn2D(this->GetGeometry());
         }
 
         KRATOS_CATCH("")
@@ -226,52 +235,6 @@ public:
     std::string Info() const override { return "GeoSteadyStatePwPipingElement"; }
 
 private:
-    void CheckHasSolutionStepsDataFor(const Variable<double>& rVariable) const
-    {
-        for (const auto& node : GetGeometry()) {
-            KRATOS_ERROR_IF_NOT(node.SolutionStepsDataHas(rVariable))
-                << "Missing variable " << rVariable.Name() << " on node " << node.Id() << std::endl;
-        }
-    }
-
-    void CheckHasDofsFor(const Variable<double>& rVariable) const
-    {
-        for (const auto& node : GetGeometry()) {
-            KRATOS_ERROR_IF_NOT(node.HasDofFor(rVariable))
-                << "Missing degree of freedom for " << rVariable.Name() << " on node " << node.Id()
-                << std::endl;
-        }
-    }
-
-    void CheckProperties() const
-    {
-        // typical material parameters check, this should be in the check of the constitutive
-        // law. possibly check PIPE_HEIGHT, CROSS_SECTION == 1.0
-        CheckProperty(DENSITY_WATER);
-        CheckProperty(DYNAMIC_VISCOSITY);
-        CheckProperty(PIPE_HEIGHT);
-        if constexpr (TDim == 3) {
-            CheckProperty(PIPE_WIDTH_FACTOR);
-        }
-    }
-
-    void CheckProperty(const Kratos::Variable<double>& rVariable) const
-    {
-        KRATOS_ERROR_IF_NOT(GetProperties().Has(rVariable))
-            << rVariable.Name() << " does not exist in the properties of element " << Id() << std::endl;
-        KRATOS_ERROR_IF(GetProperties()[rVariable] < 0.0)
-            << rVariable.Name() << " (" << GetProperties()[rVariable]
-            << ") is not in the range [0,-> at element " << Id() << std::endl;
-    }
-
-    void CheckForNonZeroZCoordinate() const
-    {
-        const auto& r_geometry = GetGeometry();
-        auto pos = std::ranges::find_if(r_geometry, [](const auto& node) { return node.Z() != 0.0; });
-        KRATOS_ERROR_IF_NOT(pos == r_geometry.end())
-            << "Node with non-zero Z coordinate found. Id: " << pos->Id() << std::endl;
-    }
-
     static double CalculateLength(const GeometryType& Geom)
     {
         // currently length is only calculated in x direction, to be changed for inclined pipes
@@ -300,8 +263,9 @@ private:
                                      const BoundedMatrix<double, TNumNodes, TNumNodes>& rPermeabilityMatrix,
                                      const array_1d<double, TNumNodes>& rFluidBodyVector) const
     {
-        const auto permeability_vector =
-            array_1d<double, TNumNodes>{-prod(rPermeabilityMatrix, GetNodalValuesOf(WATER_PRESSURE))};
+        const auto permeability_vector = array_1d<double, TNumNodes>{
+            -prod(rPermeabilityMatrix,
+                  VariablesUtilities::GetNodalValuesOf<TNumNodes>(WATER_PRESSURE, GetGeometry()))};
         rRightHandSideVector = permeability_vector + rFluidBodyVector;
     }
 
@@ -343,16 +307,6 @@ private:
                 constitutive_matrix, 1.0, rIntegrationCoefficients[integration_point_index]);
         }
 
-        return result;
-    }
-
-    array_1d<double, TNumNodes> GetNodalValuesOf(const Variable<double>& rNodalVariable) const
-    {
-        auto        result     = array_1d<double, TNumNodes>{};
-        const auto& r_geometry = GetGeometry();
-        std::ranges::transform(r_geometry, result.begin(), [&rNodalVariable](const auto& node) {
-            return node.FastGetSolutionStepValue(rNodalVariable);
-        });
         return result;
     }
 

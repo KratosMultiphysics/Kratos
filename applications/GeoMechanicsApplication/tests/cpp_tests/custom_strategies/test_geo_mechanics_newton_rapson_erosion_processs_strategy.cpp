@@ -11,6 +11,7 @@
 //
 
 // Project includes
+#include "custom_elements/Pw_element.h"
 #include "custom_elements/geo_steady_state_Pw_piping_element.h"
 #include "custom_strategies/strategies/geo_mechanics_newton_raphson_erosion_process_strategy.hpp"
 #include "tests/cpp_tests/geo_mechanics_fast_suite.h"
@@ -38,7 +39,7 @@ public:
                                                         typename TBuilderAndSolverType::Pointer pNewBuilderAndSolver,
                                                         Parameters& rParameters)
         : GeoMechanicsNewtonRaphsonErosionProcessStrategy<TSparseSpace, TDenseSpace, TLinearSolver>(
-              rModelPart, pScheme, pNewConvergenceCriteria, pNewBuilderAndSolver, rParameters),
+              rModelPart, std::move(pScheme), std::move(pNewConvergenceCriteria), std::move(pNewBuilderAndSolver), rParameters),
           mrModelPart(rModelPart)
     {
     }
@@ -124,9 +125,10 @@ auto SetupPipingStrategy(Model& rModel)
     auto p_element_props = r_model_part.CreateNewProperties(0);
     p_element_props->SetValue(CONSTITUTIVE_LAW, LinearElastic2DInterfaceLaw().Clone());
 
-    auto p_element = make_intrusive<SteadyStatePwElement<2, 4>>(
-        0, CreateQuadrilateral2D4N(r_model_part, std::vector<int>{7, 8, 9, 10}, 3.0, 4.0, 2000.0, 2000.0),
-        p_element_props, std::make_unique<PlaneStrainStressState>(), nullptr);
+    auto contributions = {CalculationContribution::Permeability, CalculationContribution::FluidBodyFlow};
+    auto p_element = make_intrusive<PwElement<2, 4>>(
+        0, CreateQuadrilateral2D4N(r_model_part, std::vector<int>{13, 14, 15, 16}, 3.0, 4.0, 2000.0, 2000.0),
+        p_element_props, contributions, nullptr);
     p_element->Initialize(r_process_info);
     r_model_part.AddElement(p_element);
 
