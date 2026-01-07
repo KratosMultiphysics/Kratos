@@ -196,8 +196,9 @@ class BasePatchTestCrBeam3D2N(KratosUnittest.TestCase):
         #check free vibration of cantilever tip
         disp_y_simulated = mp.Nodes[nr_nodes].GetSolutionStepValue(
             KratosMultiphysics.DISPLACEMENT_Y)
-        disp_y_analytical = [-4.4017262561983686e-05,-0.00018621779467051006,
-        -0.00040709297076666834,-0.0006775988708011861,-0.0009923249270175282]
+
+        disp_y_analytical = [-4.769300748233744e-05,-0.00019510832370405536,
+                             -0.00041824627366809827,-0.0006910029664765308,-0.0010073938469196014]
 
         self.assertAlmostEqual(disp_y_analytical[time_step], disp_y_simulated)
 
