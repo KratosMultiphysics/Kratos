@@ -28,6 +28,12 @@ public:
                                                            const array_1d<double, 3>& rLocalCoordinate);
     static Matrix Calculate3DRotationMatrixForPlaneGeometry(const Geometry<Node>& rGeometry,
                                                             const array_1d<double, 3>& rLocalCoordinate);
+    static void   ReverseNodes(PointerVector<Node>&                  rNodes,
+                               GeometryData::KratosGeometryFamily    GeometryFamily,
+                               GeometryData::KratosGeometryOrderType GeometryOrderType);
+    static void   ReverseNodes(std::vector<std::size_t>&             rNodeIds,
+                               GeometryData::KratosGeometryFamily    GeometryFamily,
+                               GeometryData::KratosGeometryOrderType GeometryOrderType);
 };
 
 } // namespace Kratos

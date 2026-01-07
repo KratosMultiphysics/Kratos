@@ -68,13 +68,6 @@
         "problem_domain_sub_model_part_list": [
             "Soil_column"
         ],
-        "processes_sub_model_part_list": [
-            "Side_rollers",
-            "Base_Fixed",
-            "Initial_field_pressure",
-            "Fixed_base_pressure",
-            "Gravity_load"
-        ],
         "body_domain_sub_model_part_list": [
             "Soil_column"
         ]

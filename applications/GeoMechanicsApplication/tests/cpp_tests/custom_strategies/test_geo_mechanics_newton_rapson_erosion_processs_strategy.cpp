@@ -39,7 +39,7 @@ public:
                                                         typename TBuilderAndSolverType::Pointer pNewBuilderAndSolver,
                                                         Parameters& rParameters)
         : GeoMechanicsNewtonRaphsonErosionProcessStrategy<TSparseSpace, TDenseSpace, TLinearSolver>(
-              rModelPart, pScheme, pNewConvergenceCriteria, pNewBuilderAndSolver, rParameters),
+              rModelPart, std::move(pScheme), std::move(pNewConvergenceCriteria), std::move(pNewBuilderAndSolver), rParameters),
           mrModelPart(rModelPart)
     {
     }
