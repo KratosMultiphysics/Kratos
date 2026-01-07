@@ -292,9 +292,9 @@ class JsonOutputProcess(KratosMultiphysics.Process):
                                         for index in range(len(value)):
                                             aux += value[index]
                                         if count == 0:
-                                            data["RESULTANT"][variable_name ].append(aux)
+                                            data["RESULTANT"][variable_name].append(aux)
                                         else:
-                                            data["RESULTANT"][variable_name ][-1] += aux
+                                            data["RESULTANT"][variable_name][-1] += aux
                             elif variable_type == "Vector":
                                 if not self.resultant_solution:
                                     data[node_identifier][variable_name].append(self.__kratos_vector_to_python_list(value))
@@ -302,7 +302,9 @@ class JsonOutputProcess(KratosMultiphysics.Process):
                                     if count == 0:
                                         data["RESULTANT"][variable_name].append(self.__kratos_vector_to_python_list(value))
                                     else:
-                                        data["RESULTANT"][variable_name][-1] += self.__kratos_vector_to_python_list(value)
+                                        vector_value = self.__kratos_vector_to_python_list(value)
+                                        for i in range(len(vector_value)):
+                                            data["RESULTANT"][variable_name][-1][i] += vector_value[i]
 
                             # TODO: Add pending classes
                         count += 1
