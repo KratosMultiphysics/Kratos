@@ -428,8 +428,7 @@ void TotalLagrangianTrussElement<TDimension>::CalculateLocalSystem(
     SystemSizeBoundedArrayType nodal_values(SystemSize);
     GetNodalValuesVector(nodal_values); // In local axes
 
-    SystemSizeBoundedArrayType B, N_shape, N_shapeY;
-    // N_shapeZ;
+    SystemSizeBoundedArrayType B, N_shape, N_shapeY, N_shapeZ;
 
     // Loop over the integration points
     for (SizeType IP = 0; IP < r_integration_points.size(); ++IP) {
@@ -440,7 +439,7 @@ void TotalLagrangianTrussElement<TDimension>::CalculateLocalSystem(
         const double jacobian_weight = weight * J * ref_area;
         GetShapeFunctionsValues(N_shape, ref_length, xi);
         GetShapeFunctionsValuesY(N_shapeY, ref_length, xi);
-        // GetShapeFunctionsValuesZ(N_shapeZ, length, xi);
+        GetShapeFunctionsValuesZ(N_shapeZ, ref_length, xi);
         GetFirstDerivativesShapeFunctionsValues(B, ref_length, xi);
 
         strain_vector[0] = CalculateGreenLagrangeStrain(curr_length, ref_length);
@@ -454,7 +453,7 @@ void TotalLagrangianTrussElement<TDimension>::CalculateLocalSystem(
 
         noalias(rRHS) += N_shape  * local_body_forces[0] * jacobian_weight;
         noalias(rRHS) += N_shapeY * local_body_forces[1] * jacobian_weight;
-        // noalias(rRHS) += N_shapeZ * local_body_forces[2] * jacobian_weight;
+        noalias(rRHS) += N_shapeZ * local_body_forces[2] * jacobian_weight;
     }
     RotateAll(rLHS, rRHS); // rotate to global
 
@@ -472,7 +471,7 @@ void TotalLagrangianTrussElement<TDimension>::CalculateLeftHandSide(
 {
     KRATOS_TRY;
 
-   const auto &r_props = GetProperties();
+    const auto &r_props = GetProperties();
     const auto &r_geometry = GetGeometry();
 
     if (rLHS.size1() != SystemSize || rLHS.size2() != SystemSize) {
@@ -484,7 +483,7 @@ void TotalLagrangianTrussElement<TDimension>::CalculateLeftHandSide(
 
     ConstitutiveLaw::Parameters cl_values(r_geometry, r_props, rProcessInfo);
     auto &r_cl_options = cl_values.GetOptions();
-    r_cl_options.Set(ConstitutiveLaw::COMPUTE_STRESS             , true);
+    r_cl_options.Set(ConstitutiveLaw::COMPUTE_STRESS             , false);
     r_cl_options.Set(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR, true);
 
     const double ref_length = CalculateReferenceLength();
@@ -505,8 +504,7 @@ void TotalLagrangianTrussElement<TDimension>::CalculateLeftHandSide(
     SystemSizeBoundedArrayType nodal_values(SystemSize);
     GetNodalValuesVector(nodal_values); // In local axes
 
-    SystemSizeBoundedArrayType B;
-    // N_shapeZ;
+    SystemSizeBoundedArrayType B; // Derivatives of the shape functions with respect to reference coordinates
 
     // Loop over the integration points
     for (SizeType IP = 0; IP < r_integration_points.size(); ++IP) {
@@ -515,7 +513,6 @@ void TotalLagrangianTrussElement<TDimension>::CalculateLeftHandSide(
         const double xi     = r_integration_points[IP].X();
         const double weight = r_integration_points[IP].Weight();
         const double jacobian_weight = weight * J * ref_area;
-        // GetShapeFunctionsValuesZ(N_shapeZ, length, xi);
         GetFirstDerivativesShapeFunctionsValues(B, ref_length, xi);
 
         strain_vector[0] = CalculateGreenLagrangeStrain(curr_length, ref_length);
@@ -554,7 +551,7 @@ void TotalLagrangianTrussElement<TDimension>::CalculateRightHandSide(
     ConstitutiveLaw::Parameters cl_values(r_geometry, r_props, rProcessInfo);
     auto &r_cl_options = cl_values.GetOptions();
     r_cl_options.Set(ConstitutiveLaw::COMPUTE_STRESS             , true);
-    r_cl_options.Set(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR, true);
+    r_cl_options.Set(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR, false);
 
     const double ref_length = CalculateReferenceLength();
     const double curr_length = CalculateCurrentLength();
@@ -574,8 +571,7 @@ void TotalLagrangianTrussElement<TDimension>::CalculateRightHandSide(
     SystemSizeBoundedArrayType nodal_values(SystemSize);
     GetNodalValuesVector(nodal_values); // In local axes
 
-    SystemSizeBoundedArrayType B, N_shape, N_shapeY;
-    // N_shapeZ;
+    SystemSizeBoundedArrayType B, N_shape, N_shapeY, N_shapeZ;
 
     // Loop over the integration points
     for (SizeType IP = 0; IP < r_integration_points.size(); ++IP) {
@@ -586,7 +582,7 @@ void TotalLagrangianTrussElement<TDimension>::CalculateRightHandSide(
         const double jacobian_weight = weight * J * ref_area;
         GetShapeFunctionsValues(N_shape, ref_length, xi);
         GetShapeFunctionsValuesY(N_shapeY, ref_length, xi);
-        // GetShapeFunctionsValuesZ(N_shapeZ, length, xi);
+        GetShapeFunctionsValuesZ(N_shapeZ, ref_length, xi);
         GetFirstDerivativesShapeFunctionsValues(B, ref_length, xi);
 
         strain_vector[0] = CalculateGreenLagrangeStrain(curr_length, ref_length);
@@ -597,7 +593,7 @@ void TotalLagrangianTrussElement<TDimension>::CalculateRightHandSide(
 
         noalias(rRHS) += N_shape  * local_body_forces[0] * jacobian_weight;
         noalias(rRHS) += N_shapeY * local_body_forces[1] * jacobian_weight;
-        // noalias(rRHS) += N_shapeZ * local_body_forces[2] * jacobian_weight;
+        noalias(rRHS) += N_shapeZ * local_body_forces[2] * jacobian_weight;
     }
     RotateRHS(rRHS); // rotate to global
 
