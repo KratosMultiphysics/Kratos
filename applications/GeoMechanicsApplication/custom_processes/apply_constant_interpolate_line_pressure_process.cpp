@@ -499,7 +499,8 @@ bool ApplyConstantInterpolateLinePressureProcess::IsMoreThanOneElementWithThisEd
             if (element_id == ID_UNDEFINED) continue;
 
             if (!(ContainsElementInRange(ElementIDs, element_id, 0, iPoint) ||
-                  ContainsElementInRange(ElementIDs, element_id, iPoint + 1, ElementIDs.size())))
+                  ContainsElementInRange(ElementIDs, element_id, iPoint + 1,
+                                         static_cast<int>(ElementIDs.size()))))
                 continue;
             if (std::find(SharedElementIDs.begin(), SharedElementIDs.end(), element_id) ==
                 SharedElementIDs.end()) {
