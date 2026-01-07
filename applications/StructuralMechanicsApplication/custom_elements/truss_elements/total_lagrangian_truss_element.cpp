@@ -691,57 +691,60 @@ void TotalLagrangianTrussElement<TDimension>::CalculateOnIntegrationPoints(
     const ProcessInfo& rProcessInfo
     )
 {
-    // const auto& integration_points = IntegrationPoints(GetIntegrationMethod());
-    // rOutput.resize(integration_points.size());
+    const auto& integration_points = IntegrationPoints(GetIntegrationMethod());
+    rOutput.resize(integration_points.size());
 
-    // if (rVariable == AXIAL_FORCE) {
-    //     ConstitutiveLaw::Parameters cl_values(GetGeometry(), GetProperties(), rProcessInfo);
-    //     VectorType strain_vector(1), stress_vector(1);
-    //     MatrixType C(1,1);
-    //     StructuralMechanicsElementUtilities::InitializeConstitutiveLawValuesForStressCalculation(cl_values, strain_vector, stress_vector, C);
+    if (rVariable == AXIAL_FORCE) {
+        ConstitutiveLaw::Parameters cl_values(GetGeometry(), GetProperties(), rProcessInfo);
+        VectorType strain_vector(1), stress_vector(1);
+        MatrixType C(1,1);
+        StructuralMechanicsElementUtilities::InitializeConstitutiveLawValuesForStressCalculation(cl_values, strain_vector, stress_vector, C);
 
-    //     const double length = CalculateLength();
-    //     SystemSizeBoundedArrayType nodal_values(SystemSize);
-    //     GetNodalValuesVector(nodal_values);
+        const double ref_length = CalculateReferenceLength();
+        const double curr_length = CalculateCurrentLength();
+        SystemSizeBoundedArrayType nodal_values(SystemSize);
+        GetNodalValuesVector(nodal_values);
 
-    //     SystemSizeBoundedArrayType B;
-    //     const double area = GetProperties()[CROSS_AREA];
+        SystemSizeBoundedArrayType B;
+        const double ref_area = GetProperties()[CROSS_AREA];
 
-    //     // Loop over the integration points
-    //     for (SizeType IP = 0; IP < integration_points.size(); ++IP) {
-    //         const double xi = integration_points[IP].X();
-    //         GetFirstDerivativesShapeFunctionsValues(B, length, xi);
+        double pre_stress = 0.0;
+        if (GetProperties().Has(TRUSS_PRESTRESS_PK2)) {
+            pre_stress = GetProperties()[TRUSS_PRESTRESS_PK2];
+        }
 
-    //         strain_vector[0] = inner_prod(B, nodal_values);
+        // Loop over the integration points
+        for (SizeType IP = 0; IP < integration_points.size(); ++IP) {
+            const double xi = integration_points[IP].X();
+            GetFirstDerivativesShapeFunctionsValues(B, ref_length, xi);
 
-    //         mConstitutiveLawVector[IP]->CalculateMaterialResponsePK2(cl_values);
+            strain_vector[0] = CalculateGreenLagrangeStrain(curr_length, ref_length);
 
-    //         double pre_stress = 0.0;
-    //         if (GetProperties().Has(TRUSS_PRESTRESS_PK2)) {
-    //             pre_stress = GetProperties()[TRUSS_PRESTRESS_PK2];
-    //         }
+            mConstitutiveLawVector[IP]->CalculateMaterialResponsePK2(cl_values);
 
-    //         rOutput[IP] = (cl_values.GetStressVector()[0] + pre_stress) * area;
-    //     }
-    // } else if (rVariable == AXIAL_STRAIN) {
-    //     ConstitutiveLaw::Parameters cl_values(GetGeometry(), GetProperties(), rProcessInfo);
-    //     VectorType strain_vector(1), stress_vector(1);
-    //     MatrixType C(1,1);
-    //     StructuralMechanicsElementUtilities::InitializeConstitutiveLawValuesForStressCalculation(cl_values, strain_vector, stress_vector, C);
+            rOutput[IP] = (cl_values.GetStressVector()[0] + pre_stress) * ref_area;
+        }
+    } else if (rVariable == AXIAL_STRAIN) {
+        ConstitutiveLaw::Parameters cl_values(GetGeometry(), GetProperties(), rProcessInfo);
+        VectorType strain_vector(1), stress_vector(1);
+        MatrixType C(1,1);
+        StructuralMechanicsElementUtilities::InitializeConstitutiveLawValuesForStressCalculation(cl_values, strain_vector, stress_vector, C);
 
-    //     const double length = CalculateLength();
-    //     SystemSizeBoundedArrayType nodal_values(SystemSize);
-    //     GetNodalValuesVector(nodal_values);
+        SystemSizeBoundedArrayType nodal_values(SystemSize);
+        GetNodalValuesVector(nodal_values);
 
-    //     SystemSizeBoundedArrayType B;
+        const double ref_length = CalculateReferenceLength();
+        const double curr_length = CalculateCurrentLength();
 
-    //     // Loop over the integration points
-    //     for (SizeType IP = 0; IP < integration_points.size(); ++IP) {
-    //         const double xi = integration_points[IP].X();
-    //         GetFirstDerivativesShapeFunctionsValues(B, length, xi);
-    //         rOutput[IP] = inner_prod(B, nodal_values);
-    //     }
-    // }
+        SystemSizeBoundedArrayType B;
+
+        // Loop over the integration points
+        for (SizeType IP = 0; IP < integration_points.size(); ++IP) {
+            const double xi = integration_points[IP].X();
+            GetFirstDerivativesShapeFunctionsValues(B, ref_length, xi);
+            rOutput[IP] = CalculateGreenLagrangeStrain(curr_length, ref_length);
+        }
+    }
 }
 
 /***********************************************************************************/
@@ -754,32 +757,35 @@ void TotalLagrangianTrussElement<TDimension>::CalculateOnIntegrationPoints(
     const ProcessInfo& rProcessInfo
     )
 {
-    // const auto& integration_points = IntegrationPoints(GetIntegrationMethod());
-    // rOutput.resize(integration_points.size());
+    const auto& integration_points = IntegrationPoints(GetIntegrationMethod());
+    rOutput.resize(integration_points.size());
 
-    // if (rVariable == PK2_STRESS_VECTOR) {
-    //     ConstitutiveLaw::Parameters cl_values(GetGeometry(), GetProperties(), rProcessInfo);
-    //     VectorType strain_vector(1), stress_vector(1);
-    //     MatrixType constitutive_matrix(1,1);
-    //     StructuralMechanicsElementUtilities::InitializeConstitutiveLawValuesForStressCalculation(cl_values, strain_vector, stress_vector, constitutive_matrix);
+    if (rVariable == PK2_STRESS_VECTOR) {
+        ConstitutiveLaw::Parameters cl_values(GetGeometry(), GetProperties(), rProcessInfo);
+        VectorType strain_vector(1), stress_vector(1);
+        MatrixType constitutive_matrix(1,1);
+        StructuralMechanicsElementUtilities::InitializeConstitutiveLawValuesForStressCalculation(cl_values, strain_vector, stress_vector, constitutive_matrix);
 
-    //     const double length = CalculateLength();
-    //     SystemSizeBoundedArrayType nodal_values(SystemSize);
-    //     GetNodalValuesVector(nodal_values);
+        const double ref_length = CalculateReferenceLength();
+        const double curr_length = CalculateCurrentLength();
 
-    //     SystemSizeBoundedArrayType dN_dX;
+        SystemSizeBoundedArrayType nodal_values(SystemSize);
+        GetNodalValuesVector(nodal_values);
 
-    //     for (SizeType integration_point = 0; integration_point < integration_points.size(); ++integration_point) {
-    //         GetFirstDerivativesShapeFunctionsValues(dN_dX, length, integration_points[integration_point].X());
-    //         strain_vector[0] = inner_prod(dN_dX, nodal_values);
-    //         mConstitutiveLawVector[integration_point]->CalculateMaterialResponsePK2(cl_values);
-    //         auto stress = cl_values.GetStressVector()[0];
-    //         if (GetProperties().Has(TRUSS_PRESTRESS_PK2)) {
-    //             stress += GetProperties()[TRUSS_PRESTRESS_PK2];
-    //         }
-    //         rOutput[integration_point] = ScalarVector(1, stress);
-    //     }
-    // }
+        SystemSizeBoundedArrayType dN_dX;
+
+        for (SizeType integration_point = 0; integration_point < integration_points.size(); ++integration_point) {
+            GetFirstDerivativesShapeFunctionsValues(dN_dX, ref_length, integration_points[integration_point].X());
+            strain_vector[0] = CalculateGreenLagrangeStrain(curr_length, ref_length);
+            mConstitutiveLawVector[integration_point]->CalculateMaterialResponsePK2(cl_values);
+
+            auto& r_stress = cl_values.GetStressVector()[0];
+            if (GetProperties().Has(TRUSS_PRESTRESS_PK2)) {
+                r_stress += GetProperties()[TRUSS_PRESTRESS_PK2];
+            }
+            rOutput[integration_point] = ScalarVector(1, r_stress);
+        }
+    }
 }
 /***********************************************************************************/
 /***********************************************************************************/
@@ -901,9 +907,9 @@ CalculateClosedFormK(
         for (IndexType j = 0; j < SystemSize; ++j) {
             if (i == j) {
                 K(i, i) += k_fact_g;
-            } else if (i == j + 2) {
+            } else if (i == j + Dimension) {
                 K(i, j) += -k_fact_g;
-            } else if (i + 2 == j) {
+            } else if (i + Dimension == j) {
                 K(i, j) += -k_fact_g;
             }
         }
