@@ -48,7 +48,7 @@ public:
     ///@name Life Cycle
     ///@{
 
-    SetMultipleMovingLoadsProcess(ModelPart& rModelPart, const Parameters& rParameters);
+    SetMultipleMovingLoadsProcess(ModelPart& rModelPart, const Parameters& rProcessSettings);
 
     SetMultipleMovingLoadsProcess(const SetMultipleMovingLoadsProcess&)            = delete;
     SetMultipleMovingLoadsProcess& operator=(const SetMultipleMovingLoadsProcess&) = delete;
@@ -105,7 +105,8 @@ private:
     /**
      * \brief Remove cloned conditions as they are not executed
      */
-    void RemoveClonedConditions();
+    void                      RemoveClonedConditions();
+    [[nodiscard]] std::string Info() const override;
 
     ///@}
 };

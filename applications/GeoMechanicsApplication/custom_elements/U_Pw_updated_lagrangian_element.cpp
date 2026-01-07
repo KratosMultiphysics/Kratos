@@ -27,7 +27,8 @@ Element::Pointer UPwUpdatedLagrangianElement<TDim, TNumNodes>::Create(IndexType 
                                                                       PropertiesType::Pointer pProperties) const
 {
     return Element::Pointer(new UPwUpdatedLagrangianElement(
-        NewId, this->GetGeometry().Create(ThisNodes), pProperties, this->GetStressStatePolicy().Clone()));
+        NewId, this->GetGeometry().Create(ThisNodes), pProperties,
+        this->GetStressStatePolicy().Clone(), this->CloneIntegrationCoefficientModifier()));
 }
 
 template <unsigned int TDim, unsigned int TNumNodes>
@@ -35,8 +36,9 @@ Element::Pointer UPwUpdatedLagrangianElement<TDim, TNumNodes>::Create(IndexType 
                                                                       GeometryType::Pointer pGeom,
                                                                       PropertiesType::Pointer pProperties) const
 {
-    return Element::Pointer(new UPwUpdatedLagrangianElement(NewId, pGeom, pProperties,
-                                                            this->GetStressStatePolicy().Clone()));
+    return Element::Pointer(new UPwUpdatedLagrangianElement(
+        NewId, pGeom, pProperties, this->GetStressStatePolicy().Clone(),
+        this->CloneIntegrationCoefficientModifier()));
 }
 
 template <unsigned int TDim, unsigned int TNumNodes>
@@ -46,7 +48,7 @@ void UPwUpdatedLagrangianElement<TDim, TNumNodes>::CalculateAll(MatrixType& rLef
                                                                 bool CalculateStiffnessMatrixFlag,
                                                                 bool CalculateResidualVectorFlag)
 {
-    KRATOS_TRY;
+    KRATOS_TRY
 
     UPwSmallStrainElement<TDim, TNumNodes>::CalculateAll(rLeftHandSideMatrix, rRightHandSideVector,
                                                          rCurrentProcessInfo, CalculateStiffnessMatrixFlag,
@@ -89,8 +91,7 @@ void UPwUpdatedLagrangianElement<TDim, TNumNodes>::CalculateOnIntegrationPoints(
         rOutput = this->CalculateDeformationGradients();
     } else if (rVariable == GREEN_LAGRANGE_STRAIN_TENSOR) {
         const auto deformation_gradients = this->CalculateDeformationGradients();
-        std::transform(deformation_gradients.begin(), deformation_gradients.end(), rOutput.begin(),
-                       [this](const Matrix& rDeformationGradient) {
+        std::ranges::transform(deformation_gradients, rOutput.begin(), [this](const Matrix& rDeformationGradient) {
             return MathUtils<>::StrainVectorToTensor(this->CalculateGreenLagrangeStrain(rDeformationGradient));
         });
     } else {

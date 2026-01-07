@@ -54,7 +54,6 @@ void CalculateLaplacian(const double time, const array_1d<double, 3>& coor, arra
 ///@name Input and output
 ///@{
 
-/// Turn back information as a stemplate<class T, std::size_t dim> tring.
 
 virtual std::string Info() const
 {

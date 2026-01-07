@@ -26,7 +26,7 @@ namespace Kratos
 BoundedMatrix<double,3,3> ConvDiffChangeOfPhase2D::msMassFactors;
 BoundedMatrix<double,3,2> ConvDiffChangeOfPhase2D::msDN_DX;
 array_1d<double,3> ConvDiffChangeOfPhase2D::msN; //dimension = number of nodes
-array_1d<double,2> ConvDiffChangeOfPhase2D::ms_vel_gauss; //dimesion coincides with space dimension
+array_1d<double,2> ConvDiffChangeOfPhase2D::ms_vel_gauss; //dimension coincides with space dimension
 array_1d<double,3> ConvDiffChangeOfPhase2D::ms_temp_vec_np; //dimension = number of nodes
 array_1d<double,3> ConvDiffChangeOfPhase2D::ms_u_DN; //dimension = number of nodes
 
@@ -480,7 +480,7 @@ double ConvDiffChangeOfPhase2D::g(double T)
         return L;
 }
 
-//Area calculation fo current "phase-change" element
+//Area calculation for current "phase-change" element
 double ConvDiffChangeOfPhase2D::AA(double x1, double y1, double x2, double y2, double x3, double y3)
 {
 

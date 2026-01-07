@@ -48,6 +48,7 @@
 #include "geometries/nurbs_volume_geometry.h"
 #include "geometries/nurbs_surface_geometry.h"
 #include "geometries/nurbs_curve_geometry.h"
+#include "geometries/nurbs_curve_on_surface_geometry.h"
 #include "geometries/surface_in_nurbs_volume_geometry.h"
 
 namespace Kratos::Python
@@ -127,6 +128,7 @@ void  AddGeometriesToPython(pybind11::module& m)
     .def(py::init< std::string, GeometryType::PointsArrayType& >())
     // Id functions
     .def_property("Id", &GeometryType::Id, SetId1)
+    .def_property_readonly("Name", &GeometryType::Name)
     .def("SetId", SetId1)
     .def("SetId", SetId2)
     .def("IsIdGeneratedFromString", IsIdGeneratedFromString1)
@@ -357,6 +359,15 @@ void  AddGeometriesToPython(pybind11::module& m)
         .def("IsRational", &NurbsCurveGeometry<2, NodeContainerType>::IsRational)
         .def("Weights", &NurbsCurveGeometry<2, NodeContainerType>::Weights)
         ;
+
+    // NurbsCurveOnSurface3D
+    using NurbsCurveOnSurfaceGeometry3DType = Kratos::NurbsCurveOnSurfaceGeometry<3, NodeContainerType, NodeContainerType>;
+    py::class_<NurbsCurveOnSurfaceGeometry3DType, NurbsCurveOnSurfaceGeometry3DType::Pointer, GeometryType>(m, "NurbsCurveOnSurfaceGeometry3D")
+        .def(py::init<
+            NurbsCurveOnSurfaceGeometry3DType::NurbsSurfaceType::Pointer,
+            NurbsCurveOnSurfaceGeometry3DType::NurbsCurveType::Pointer>())
+        ;
+
 
     py::class_<SurfaceInNurbsVolumeGeometry<3, NodeContainerType>, SurfaceInNurbsVolumeGeometry<3, NodeContainerType>::Pointer, GeometryType>(m, "SurfaceInNurbsVolumeGeometry")
         .def(py::init<NurbsVolumeGeometry<NodeContainerType>::Pointer, GeometryType::Pointer>())

@@ -1,0 +1,357 @@
+// KRATOS  ___|  |                   |                   |
+//       \___ \  __|  __| |   |  __| __| |   |  __| _` | |
+//             | |   |    |   | (    |   |   | |   (   | |
+//       _____/ \__|_|   \__,_|\___|\__|\__,_|_|  \__,_|_| MECHANICS
+//
+//  License:         BSD License
+//                   license: StructuralMechanicsApplication/license.txt
+//
+//  Main authors:    Riccardo Rossi
+//                   Vicente Mataix Ferrandiz
+//
+
+#pragma once
+
+// System includes
+
+// External include
+
+// Project includes
+#include "includes/define.h"
+#include "base_solid_element.h"
+#include "includes/variables.h"
+
+namespace Kratos
+{
+///@name Kratos Globals
+///@{
+///@}
+///@name Type Definitions
+///@{
+///@}
+///@name  Enum's
+///@{
+
+///@}
+///@name  Functions
+///@{
+
+///@}
+///@name Kratos Classes
+///@{
+
+/**
+ * @class TotalLagrangian
+ * @ingroup StructuralMechanicsApplication
+ * @brief Total Lagrangian element for 2D and 3D geometries.
+ * @details Implements a total Lagrangian definition for structural analysis. This works for arbitrary geometries in 2D and 3D
+ * @author Riccardo Rossi
+ * @author Vicente Mataix Ferrandiz
+ */
+class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) TotalLagrangian
+    : public BaseSolidElement
+{
+public:
+    ///@name Type Definitions
+    ///@{
+
+    ///Reference type definition for constitutive laws
+    typedef ConstitutiveLaw ConstitutiveLawType;
+
+    ///Pointer type for constitutive laws
+    typedef ConstitutiveLawType::Pointer ConstitutiveLawPointerType;
+
+    ///Type definition for integration methods
+    typedef GeometryData::IntegrationMethod IntegrationMethod;
+
+    /// The base element type
+    typedef BaseSolidElement BaseType;
+
+    /// The definition of the index type
+    typedef std::size_t IndexType;
+
+    /// The definition of the sizetype
+    typedef std::size_t SizeType;
+
+    /// Counted pointer of TotalLagrangian
+    KRATOS_CLASS_INTRUSIVE_POINTER_DEFINITION(TotalLagrangian);
+
+    ///@}
+    ///@name Life Cycle
+    ///@{
+
+    /// Default constructor.
+    TotalLagrangian(IndexType NewId, GeometryType::Pointer pGeometry);
+    TotalLagrangian(IndexType NewId, GeometryType::Pointer pGeometry, PropertiesType::Pointer pProperties);
+
+    // Copy constructor
+    TotalLagrangian(TotalLagrangian const& rOther)
+        :BaseType(rOther)
+    {};
+
+    /// Destructor.
+    ~TotalLagrangian() override;
+
+    ///@}
+    ///@name Operators
+    ///@{
+    ///@}
+    ///@name Operations
+    ///@{
+
+    /**
+     * @brief Creates a new element
+     * @param NewId The Id of the new created element
+     * @param pGeom The pointer to the geometry of the element
+     * @param pProperties The pointer to property
+     * @return The pointer to the created element
+     */
+    Element::Pointer Create(
+        IndexType NewId,
+        GeometryType::Pointer pGeom,
+        PropertiesType::Pointer pProperties
+        ) const override;
+
+    /**
+     * @brief Creates a new element
+     * @param NewId The Id of the new created element
+     * @param ThisNodes The array containing nodes
+     * @param pProperties The pointer to property
+     * @return The pointer to the created element
+     */
+    Element::Pointer Create(
+        IndexType NewId,
+        NodesArrayType const& ThisNodes,
+        PropertiesType::Pointer pProperties
+        ) const override;
+
+    /**
+     * @brief It creates a new element pointer and clones the previous element data
+     * @param NewId the ID of the new element
+     * @param ThisNodes the nodes of the new element
+     * @param pProperties the properties assigned to the new element
+     * @return a Pointer to the new element
+     */
+    Element::Pointer Clone (
+        IndexType NewId,
+        NodesArrayType const& rThisNodes
+        ) const override;
+
+    //std::string Info() const;
+
+    void CalculateSensitivityMatrix(const Variable<array_1d<double, 3>>& rDesignVariable,
+                                    Matrix& rOutput,
+                                    const ProcessInfo& rCurrentProcessInfo) override;
+
+    ///@}
+    ///@name Access
+    ///@{
+
+    ///@}
+    ///@name Inquiry
+    ///@{
+    ///@}
+    ///@name Input and output
+    ///@{
+
+    /// Turn back information as a string.
+    std::string Info() const override
+    {
+        std::stringstream buffer;
+        buffer << "Updated Lagrangian Solid Element #" << Id();
+        if (!BaseType::mConstitutiveLawVector.empty()
+            && BaseType::mConstitutiveLawVector[0] != nullptr) {
+          buffer << "\nConstitutive law: " << BaseType::mConstitutiveLawVector[0]->Info();
+        } else {
+          buffer << " (no constitutive law)";
+        }
+        return buffer.str();
+        return buffer.str();
+    }
+
+    /// Print information about this object.
+    void PrintInfo(std::ostream& rOStream) const override
+    {
+        rOStream << "Updated Lagrangian Solid Element #" << Id();
+        if (!BaseType::mConstitutiveLawVector.empty()
+            && BaseType::mConstitutiveLawVector[0] != nullptr) {
+          rOStream << "\nConstitutive law: " << BaseType::mConstitutiveLawVector[0]->Info();
+        } else {
+          rOStream << " (no constitutive law)";
+        }
+    }
+
+    /// Print object's data.
+    void PrintData(std::ostream& rOStream) const override
+    {
+        pGetGeometry()->PrintData(rOStream);
+    }
+
+    ///@}
+    ///@name Friends
+    ///@{
+    ///@}
+
+protected:
+    ///@name Protected static Member Variables
+    ///@{
+    ///@}
+    ///@name Protected member Variables
+    ///@{
+
+    ///@}
+    ///@name Protected Operators
+    ///@{
+
+    TotalLagrangian() : BaseSolidElement()
+    {
+    }
+
+    /**
+     * @brief This functions calculates both the RHS and the LHS
+     * @param rLeftHandSideMatrix The LHS
+     * @param rRightHandSideVector The RHS
+     * @param rCurrentProcessInfo The current process info instance
+     * @param CalculateStiffnessMatrixFlag The flag to set if compute the LHS
+     * @param CalculateResidualVectorFlag The flag to set if compute the RHS
+     */
+    void CalculateAll(
+        MatrixType& rLeftHandSideMatrix,
+        VectorType& rRightHandSideVector,
+        const ProcessInfo& rCurrentProcessInfo,
+        const bool CalculateStiffnessMatrixFlag,
+        const bool CalculateResidualVectorFlag
+        ) override;
+
+    /**
+     * @brief This functions updates the kinematics variables
+     * @param rThisKinematicVariables The kinematic variables to be calculated
+     * @param PointNumber The integration point considered
+     * @param rIntegrationMethod The integration method considered
+     */
+    void CalculateKinematicVariables(
+        KinematicVariables& rThisKinematicVariables,
+        const IndexType PointNumber,
+        const GeometryType::IntegrationMethod& rIntegrationMethod
+        ) override;
+
+    /**
+     * @brief This method returns the size of the strain vector
+     */
+    std::size_t GetStrainSize() const;
+
+    ///@}
+    ///@name Protected Operations
+    ///@{
+    ///@}
+    ///@name Protected  Access
+    ///@{
+    ///@}
+    ///@name Protected Inquiry
+    ///@{
+    ///@}
+    ///@name Protected LifeCycle
+    ///@{
+    ///@}
+
+private:
+    ///@name Static Member Variables
+    ///@{
+
+    ///@}
+    ///@name Member Variables
+    ///@{
+
+    ///@}
+    ///@name Private Operators
+    ///@{
+
+    ///@}
+    ///@name Private Operations
+    ///@{
+
+    /**
+     * @brief This method computes the deformation matrix B
+     * @param rB The deformation matrix
+     * @param rF The deformation gradient
+     * @param rDN_DX The gradient derivative of the shape function
+     */
+    void CalculateB(Matrix& rB, Matrix const& rF, const Matrix& rDN_DX);
+
+    void Calculate2DB(Matrix& rB, const Matrix& rF, const Matrix& rDN_DX);
+
+    void Calculate3DB(Matrix& rB, const Matrix& rF, const Matrix& rDN_DX);
+
+    void CalculateAxisymmetricB(Matrix& rB, const Matrix& rF, const Matrix& rDN_DX, const Vector& rN);
+
+    void CalculateAxisymmetricF(Matrix const& rJ, Matrix const& rInvJ0, Vector const& rN, Matrix& rF);
+
+    void CalculateStress(Vector& rStrain,
+                         std::size_t IntegrationPoint,
+                         Vector& rStress,
+                         ProcessInfo const& rCurrentProcessInfo);
+
+    void CalculateStress(Matrix const& rF,
+                         std::size_t IntegrationPoint,
+                         Vector& rStress,
+                         ProcessInfo const& rCurrentProcessInfo);
+
+    void CalculateStrain(Matrix const& rF,
+                         std::size_t IntegrationPoint,
+                         Vector& rStrain,
+                         ProcessInfo const& rCurrentProcessInfo);
+
+    void CalculateShapeSensitivity(ShapeParameter Deriv,
+                                   Matrix& rDN_DX0,
+                                   Matrix& rDN_DX0_Deriv,
+                                   Matrix& rF_Deriv,
+                                   double& rDetJ0_Deriv,
+                                   std::size_t IntegrationPointIndex);
+
+    void CalculateBSensitivity(Matrix const& rDN_DX,
+                               Matrix const& rF,
+                               Matrix const& rDN_DX_Deriv,
+                               Matrix const& rF_Deriv,
+                               Matrix& rB_Deriv);
+
+
+    bool IsAxissymmetric() const;
+
+    ///@}
+    ///@name Private  Access
+    ///@{
+    ///@}
+
+    ///@}
+    ///@name Serialization
+    ///@{
+    friend class Serializer;
+
+    // A private default constructor necessary for serialization
+
+    void save(Serializer& rSerializer) const override;
+
+    void load(Serializer& rSerializer) override;
+
+    ///@name Private Inquiry
+    ///@{
+    ///@}
+    ///@name Un accessible methods
+    ///@{
+    /// Assignment operator.
+    //TotalLagrangian& operator=(const TotalLagrangian& rOther);
+    /// Copy constructor.
+    //TotalLagrangian(const TotalLagrangian& rOther);
+    ///@}
+
+}; // Class TotalLagrangian
+
+///@}
+///@name Type Definitions
+///@{
+///@}
+///@name Input and output
+///@{
+///@}
+
+} // namespace Kratos.

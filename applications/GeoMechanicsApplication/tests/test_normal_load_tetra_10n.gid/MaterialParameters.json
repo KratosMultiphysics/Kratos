@@ -4,10 +4,10 @@
       "properties_id":           1,
       "Material": {
           "constitutive_law": {
-              "name"             :  "LinearElastic3DLaw" 
+              "name"             :  "GeoIncrementalLinearElastic3DLaw"
           },
           "Variables": {
-              "IGNORE_UNDRAINED"         :  true,	  
+              "IGNORE_UNDRAINED"         :  true,  
               "YOUNG_MODULUS"            :  3.0e7,
               "POISSON_RATIO"            :  0,
               "DENSITY_SOLID"            :  0,
@@ -22,8 +22,7 @@
               "PERMEABILITY_YZ"          :  0.0,
               "PERMEABILITY_ZX"          :  0.0,
               "DYNAMIC_VISCOSITY"        :  1.0e-3
-         },
-         "Tables": {}
+         }
       }
    }]
 }

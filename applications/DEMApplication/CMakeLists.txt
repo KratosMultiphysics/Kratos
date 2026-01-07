@@ -37,7 +37,6 @@ set(KRATOS_DEM_APPLICATION_CORE
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_conditions/mapping_condition.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/DEM_discontinuum_constitutive_law.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/DEM_continuum_constitutive_law.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/DEM_rolling_friction_model.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/custom_clusters/singlespherecluster3D.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_strategies/schemes/dem_integration_scheme.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_strategies/schemes/forward_euler_scheme.cpp
@@ -68,6 +67,7 @@ set(KRATOS_DEM_APPLICATION_CORE
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/DEM_KDEM_CamClay_CL.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/dem_kdem_fissured_rock_cl.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/DEM_ExponentialHC_CL.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/DEM_D_Linear_Simple_Coulomb_CL.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/DEM_D_Linear_viscous_Coulomb_CL.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/DEM_D_Linear_HighStiffness_CL.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/DEM_D_Linear_HighStiffness_2D_CL.cpp
@@ -113,10 +113,16 @@ set(KRATOS_DEM_APPLICATION_CORE
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_utilities/random_variable.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_utilities/piecewise_linear_random_variable.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_utilities/discrete_random_variable.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/custom_utilities/rve_utilities.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/custom_utilities/rve_wall_boundary_2d.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/DEM_rolling_friction_model.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/DEM_rolling_friction_model_constant_torque.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/DEM_rolling_friction_model_viscous_torque.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/DEM_rolling_friction_model_bounded.cpp
-
+    ${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/DEM_global_damping.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/DEM_global_damping_nonviscous_constantforcedir.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/DEM_global_damping_nonviscous_variableforcedir.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/DEM_global_damping_viscous.cpp
 )
 
 set(KRATOS_DEM_APPLICATION_PYTHON_INTERFACE

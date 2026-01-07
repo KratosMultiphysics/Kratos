@@ -13,28 +13,28 @@
 //
 
 // Project includes
-#include "custom_conditions/line_normal_fluid_flux_2D_diff_order_condition.hpp"
+#include "custom_conditions/line_normal_fluid_flux_2D_diff_order_condition.h"
+#include "custom_utilities/variables_utilities.hpp"
+
+#include <numeric>
 
 namespace Kratos
 {
 
-// Default Constructor
 LineNormalFluidFlux2DDiffOrderCondition::LineNormalFluidFlux2DDiffOrderCondition()
     : LineLoad2DDiffOrderCondition()
 {
 }
 
-// Constructor 1
 LineNormalFluidFlux2DDiffOrderCondition::LineNormalFluidFlux2DDiffOrderCondition(IndexType NewId,
                                                                                  GeometryType::Pointer pGeometry)
-    : LineLoad2DDiffOrderCondition(NewId, pGeometry)
+    : LineLoad2DDiffOrderCondition(NewId, std::move(pGeometry))
 {
 }
 
-// Constructor 2
 LineNormalFluidFlux2DDiffOrderCondition::LineNormalFluidFlux2DDiffOrderCondition(
     IndexType NewId, GeometryType::Pointer pGeometry, PropertiesType::Pointer pProperties)
-    : LineLoad2DDiffOrderCondition(NewId, pGeometry, pProperties)
+    : LineLoad2DDiffOrderCondition(NewId, std::move(pGeometry), std::move(pProperties))
 {
 }
 
@@ -42,28 +42,30 @@ Condition::Pointer LineNormalFluidFlux2DDiffOrderCondition::Create(IndexType    
                                                                    NodesArrayType const& ThisNodes,
                                                                    PropertiesType::Pointer pProperties) const
 {
-    return Condition::Pointer(new LineNormalFluidFlux2DDiffOrderCondition(
-        NewId, GetGeometry().Create(ThisNodes), pProperties));
+    return Create(NewId, GetGeometry().Create(ThisNodes), pProperties);
+}
+
+Condition::Pointer LineNormalFluidFlux2DDiffOrderCondition::Create(IndexType             NewId,
+                                                                   GeometryType::Pointer pGeom,
+                                                                   PropertiesType::Pointer pProperties) const
+{
+    return make_intrusive<LineNormalFluidFlux2DDiffOrderCondition>(NewId, pGeom, pProperties);
 }
 
 void LineNormalFluidFlux2DDiffOrderCondition::CalculateConditionVector(ConditionVariables& rVariables,
                                                                        unsigned int PointNumber)
 {
     KRATOS_TRY
-
-    const SizeType NumPNodes = mpPressureGeometry->PointsNumber();
-    rVariables.ConditionVector.resize(1, false);
-    rVariables.ConditionVector[0] = 0.0;
-
-    for (SizeType i = 0; i < NumPNodes; ++i) {
-        rVariables.ConditionVector[0] +=
-            rVariables.Np[i] * GetGeometry()[i].FastGetSolutionStepValue(NORMAL_FLUID_FLUX);
-    }
-
+    Vector nodal_normal_fluid_flux_vector(mpPressureGeometry->PointsNumber());
+    VariablesUtilities::GetNodalValues(*mpPressureGeometry, NORMAL_FLUID_FLUX,
+                                       nodal_normal_fluid_flux_vector.begin());
+    rVariables.ConditionVector =
+        ScalarVector(1, std::inner_product(rVariables.Np.cbegin(), rVariables.Np.cend(),
+                                           nodal_normal_fluid_flux_vector.cbegin(), 0.0));
     KRATOS_CATCH("")
 }
 
-void LineNormalFluidFlux2DDiffOrderCondition::CalculateAndAddConditionForce(VectorType& rRightHandSideVector,
+void LineNormalFluidFlux2DDiffOrderCondition::CalculateAndAddConditionForce(Vector& rRightHandSideVector,
                                                                             ConditionVariables& rVariables)
 {
     const SizeType NumUNodes = GetGeometry().PointsNumber();
@@ -74,6 +76,14 @@ void LineNormalFluidFlux2DDiffOrderCondition::CalculateAndAddConditionForce(Vect
             rVariables.Np[i] * rVariables.ConditionVector[0] * rVariables.IntegrationCoefficient;
     }
 }
+
+void LineNormalFluidFlux2DDiffOrderCondition::save(Serializer& rSerializer) const
+{
+    KRATOS_SERIALIZE_SAVE_BASE_CLASS(rSerializer, LineLoad2DDiffOrderCondition)
+}
+
+void LineNormalFluidFlux2DDiffOrderCondition::load(Serializer& rSerializer){
+    KRATOS_SERIALIZE_LOAD_BASE_CLASS(rSerializer, LineLoad2DDiffOrderCondition)}
 
 std::string LineNormalFluidFlux2DDiffOrderCondition::Info() const
 {

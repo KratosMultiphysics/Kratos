@@ -4,8 +4,8 @@
 //   _|\_\_|  \__,_|\__|\___/ ____/
 //                   Multi-Physics
 //
-//  License:		 BSD License
-//					 Kratos default license: kratos/license.txt
+//  License:         BSD License
+//                   Kratos default license: kratos/license.txt
 //
 //  Main authors:    Pooyan Dadvand
 //                   Riccardo Rossi
@@ -17,15 +17,11 @@
 // System includes
 #include <filesystem>
 #include <fstream>
-#include <string>
-#include <unordered_set>
 
 // External includes
 
 // Project includes
-#include "includes/define.h"
 #include "includes/io.h"
-#include "containers/flags.h"
 
 namespace Kratos
 {
@@ -52,7 +48,8 @@ namespace Kratos
 /// An IO class for reading and writing a modelpart
 /** This class reads and writes all modelpart data including the meshes.
 */
-class KRATOS_API(KRATOS_CORE) ModelPartIO : public IO
+class KRATOS_API(KRATOS_CORE) ModelPartIO 
+    : public IO
 {
 public:
     ///@name Type Definitions
@@ -61,20 +58,43 @@ public:
     /// Pointer definition of ModelPartIO
     KRATOS_CLASS_POINTER_DEFINITION(ModelPartIO);
 
-    typedef IO                                    BaseType;
+    /// Alias for the base IO type.
+    using BaseType = IO;
 
-    typedef BaseType::NodeType                    NodeType;
-    typedef BaseType::MeshType                    MeshType;
-    typedef BaseType::NodesContainerType          NodesContainerType;
-    typedef BaseType::PropertiesContainerType     PropertiesContainerType;
-    typedef BaseType::ElementsContainerType       ElementsContainerType;
-    typedef BaseType::ConditionsContainerType     ConditionsContainerType;
-    typedef BaseType::ConnectivitiesContainerType ConnectivitiesContainerType;
+    /// Alias for the node type.
+    using NodeType = BaseType::NodeType;
 
-    typedef std::vector<std::ostream*>            OutputFilesContainerType;
-    typedef std::size_t                           SizeType;
+    /// Alias for the mesh type.
+    using MeshType = BaseType::MeshType;
 
-    // Prevents this class from hiding IO::WriteProperties(Properties)
+    /// Alias for the nodes container type.
+    using NodesContainerType = BaseType::NodesContainerType;
+
+    /// Alias for the properties container type.
+    using PropertiesContainerType = BaseType::PropertiesContainerType;
+
+    /// The geometry map type within ModelPart
+    using GeometryContainerType = BaseType::GeometryContainerType;
+
+    /// Alias for the elements container type.
+    using ElementsContainerType = BaseType::ElementsContainerType;
+
+    /// Alias for the conditions container type.
+    using ConditionsContainerType = BaseType::ConditionsContainerType;
+
+    /// Alias for the master-slave constraints container type.
+    using MasterSlaveConstraintContainerType = BaseType::MasterSlaveConstraintContainerType;
+
+    /// Alias for the connectivities container type.
+    using ConnectivitiesContainerType = BaseType::ConnectivitiesContainerType;
+
+    /// Alias for the output files container type.
+    using OutputFilesContainerType = std::vector<std::ostream*>;
+
+    /// Alias for the size type.
+    using SizeType = std::size_t;
+
+    /// Prevents this class from hiding IO::WriteProperties(Properties)
     using BaseType::WriteProperties;
 
     ///@}
@@ -91,22 +111,18 @@ public:
         Kratos::shared_ptr<std::iostream> Stream,
         const Flags Options = IO::IGNORE_VARIABLES_ERROR.AsFalse() | IO::SKIP_TIMER);
 
-
     /// Constructor with filenames.
     // ModelPartIO(std::string const& InputFilename, std::string const& OutputFilename)
     //     : mNumberOfLines(0), mInput(std::ifstream(InputFilename.c_str())), mOutput(std::ofstream(OutputFilename.c_str()))
     // {
     // }
 
-
     /// Destructor.
     ~ModelPartIO() override;
-
 
     ///@}
     ///@name Operators
     ///@{
-
 
     ///@}
     ///@name Operations
@@ -216,7 +232,7 @@ public:
      * @param rElementsConnectivities The elements connectivities
      * @return The number of elements
      */
-    std::size_t  ReadElementsConnectivities(ConnectivitiesContainerType& rElementsConnectivities) override;
+    std::size_t ReadElementsConnectivities(ConnectivitiesContainerType& rElementsConnectivities) override;
 
     /**
      * @brief This method writes an array of elements
@@ -241,13 +257,47 @@ public:
      * @param rConditionsConnectivities The conditions connectivities
      * @return The number of conditions
      */
-    std::size_t  ReadConditionsConnectivities(ConnectivitiesContainerType& rConditionsConnectivities) override;
+    std::size_t ReadConditionsConnectivities(ConnectivitiesContainerType& rConditionsConnectivities) override;
 
     /**
      * @brief This method writes an array of conditions
      * @param rThisConditions The array of conditions to be written
      */
     void WriteConditions(ConditionsContainerType const& rThisConditions) override;
+
+    /**
+     * @brief Reads the master-slave constraints from an input source.
+     * @details This method is intended to be overridden by derived classes to implement
+     * the specific logic for reading master-slave constraints into the provided
+     * container. The base class implementation throws an error, indicating that
+     * the method must be implemented in the derived class.
+     * @param rThisNodes The nodes to be used for associating the master-slave constraints.
+     * @param rConstraintContainer The container where the master-slave
+     *        constraints will be stored. This container is expected to be populated
+     *        by the derived class implementation.
+     */
+    void ReadConstraints(
+        NodesContainerType& rThisNodes,
+        MasterSlaveConstraintContainerType& rConstraintContainer
+        ) override;
+
+    /**
+     * @brief This method reads the constraints connectivities
+     * @param rConditionsConnectivities The constraints connectivities
+     * @return The number of constraints
+     */
+    std::size_t ReadConstraintsConnectivities(ConnectivitiesContainerType& rConstraintsConnectivities) override;
+
+    /**
+     * @brief Writes the master-slave constraints to the output.
+     * @details This method is intended to be overridden by derived classes to provide
+     * specific functionality for writing master-slave constraints. The base
+     * class implementation throws an error, indicating that the method must
+     * be implemented in the derived class.
+     * @param rConstraintContainer The container holding the master-slave
+     *        constraints to be written.
+     */
+    void WriteConstraints(MasterSlaveConstraintContainerType const& rConstraintContainer) override;
 
     /**
      * @brief This method reads the initial values of the model part
@@ -313,26 +363,75 @@ public:
 
     void SwapStreamSource(Kratos::shared_ptr<std::iostream> newStream);
 
+    /**
+     * @brief Virtual method to read element and condition IDs from a sub-model part.
+     * @details This method is intended to be overridden by derived classes.
+     * @param rModelPartName The name of the sub-model part to read from.
+     * @param rElementsIds Set to store element IDs.
+     * @param rConditionsIds Set to store condition IDs.
+     */
     void ReadSubModelPartElementsAndConditionsIds(
         std::string const& rModelPartName,
-        std::unordered_set<SizeType> &rElementsIds,
-        std::unordered_set<SizeType> &rConditionsIds) override;
+        std::unordered_set<SizeType>& rElementsIds,
+        std::unordered_set<SizeType>& rConditionsIds
+        ) override;
 
+    /**
+     * @brief Virtual method to read element, condition, master-slave constraint, and geometry IDs from a sub-model part.
+     * @details This method is intended to be overridden by derived classes.
+     * @param rModelPartName The name of the sub-model part to read from.
+     * @param rElementsIds Set to store element IDs.
+     * @param rConditionsIds Set to store condition IDs.
+     * @param rConstraintIds Set to store master-slave constraint IDs.
+     * @param rGeometriesIds Set to store geometry IDs.
+     */
+    void ReadSubModelPartEntitiesIds(
+        std::string const& rModelPartName,
+        std::unordered_set<SizeType>& rElementsIds,
+        std::unordered_set<SizeType>& rConditionsIds,
+        std::unordered_set<SizeType>& rConstraintIds,
+        std::unordered_set<SizeType>& rGeometriesIds
+        ) override;
+
+    /**
+     * @brief Virtual method to read nodal graph from entities list.
+     * @details This method is intended to be overridden by derived classes.
+     * @param rAuxConnectivities Container of connectivities.
+     * @param rElementsIds Set of element IDs.
+     * @param rConditionsIds Set of condition IDs.
+     * @return The size of the nodal graph.
+     */
     std::size_t ReadNodalGraphFromEntitiesList(
         ConnectivitiesContainerType& rAuxConnectivities,
-        std::unordered_set<SizeType> &rElementsIds,
-        std::unordered_set<SizeType> &rConditionsIds) override;
+        std::unordered_set<SizeType>& rElementsIds,
+        std::unordered_set<SizeType>& rConditionsIds
+        ) override;
 
+    /**
+     * @brief Virtual method to read nodal graph from entities list including master-slave constraints and geometries.
+     * @details This method is intended to be overridden by derived classes.
+     * @param rAuxConnectivities Container of connectivities.
+     * @param rElementsIds Set of element IDs.
+     * @param rConditionsIds Set of condition IDs.
+     * @param rConstraintIds Set of master-slave constraint IDs.
+     * @param rGeometriesIds Set of geometry IDs.
+     * @return The size of the nodal graph.
+     */
+    std::size_t ReadNodalGraphFromEntitiesList(
+        ConnectivitiesContainerType& rAuxConnectivities,
+        std::unordered_set<SizeType>& rElementsIds,
+        std::unordered_set<SizeType>& rConditionsIds,
+        std::unordered_set<SizeType>& rConstraintIds,
+        std::unordered_set<SizeType>& rGeometriesIds
+        ) override;
 
     ///@}
     ///@name Access
     ///@{
 
-
     ///@}
     ///@name Inquiry
     ///@{
-
 
     ///@}
     ///@name Input and output
@@ -359,54 +458,74 @@ public:
     ///@name Friends
     ///@{
 
-
     ///@}
-
 protected:
     ///@name Protected static Member Variables
     ///@{
-
 
     ///@}
     ///@name Protected member Variables
     ///@{
 
-
     ///@}
     ///@name Protected Operators
     ///@{
-
 
     ///@}
     ///@name Protected Operations
     ///@{
 
-  	virtual ModelPartIO::SizeType ReorderedNodeId(ModelPartIO::SizeType NodeId);
-  	virtual ModelPartIO::SizeType ReorderedGeometryId(ModelPartIO::SizeType GeometryId);
-  	virtual ModelPartIO::SizeType ReorderedElementId(ModelPartIO::SizeType ElementId);
-  	virtual ModelPartIO::SizeType ReorderedConditionId(ModelPartIO::SizeType ConditionId);
+    /**
+     * @brief Returns the reordered node ID.
+     * @param NodeId The original node ID.
+     * @return The reordered node ID (same as input in this base class).
+     */
+    virtual ModelPartIO::SizeType ReorderedNodeId(ModelPartIO::SizeType NodeId);
+
+    /**
+     * @brief Returns the reordered geometry ID.
+     * @param GeometryId The original geometry ID.
+     * @return The reordered geometry ID (same as input in this base class).
+     */
+    virtual ModelPartIO::SizeType ReorderedGeometryId(ModelPartIO::SizeType GeometryId);
+
+    /**
+     * @brief Returns the reordered element ID.
+     * @param ElementId The original element ID.
+     * @return The reordered element ID (same as input in this base class).
+     */
+    virtual ModelPartIO::SizeType ReorderedElementId(ModelPartIO::SizeType ElementId);
+
+    /**
+     * @brief Returns the reordered condition ID.
+     * @param ConditionId The original condition ID.
+     * @return The reordered condition ID (same as input in this base class).
+     */
+    virtual ModelPartIO::SizeType ReorderedConditionId(ModelPartIO::SizeType ConditionId);
+
+    /**
+     * @brief Returns the reordered master-slave constraint ID.
+     * @param ConstraintId The original constraint ID.
+     * @return The reordered constraint ID (same as input in this base class).
+     */
+    virtual ModelPartIO::SizeType ReorderedConstraintId(ModelPartIO::SizeType ConstraintId);
 
     ///@}
     ///@name Protected  Access
     ///@{
 
-
     ///@}
     ///@name Protected Inquiry
     ///@{
-
 
     ///@}
     ///@name Protected LifeCycle
     ///@{
 
-
     ///@}
-
 private:
     ///@name Static Member Variables
     ///@{
-
 
     ///@}
     ///@name Member Variables
@@ -419,11 +538,9 @@ private:
 
     Kratos::shared_ptr<std::iostream> mpStream;
 
-
     ///@}
     ///@name Private Operators
     ///@{
-
 
     ///@}
     ///@name Private Operations
@@ -435,9 +552,9 @@ private:
 
     bool CheckEndBlock(std::string const& BlockName, std::string& rWord);
 
-    void ReadModelPartDataBlock(ModelPart& rModelPart, const bool is_submodelpart=false);
+    void ReadModelPartDataBlock(ModelPart& rModelPart, const bool IsSubmodelpart=false);
 
-    void WriteModelPartDataBlock(ModelPart& rModelPart, const bool is_submodelpart=false);
+    void WriteModelPartDataBlock(ModelPart& rModelPart, const bool IsSubmodelpart=false);
 
     template<class TablesContainerType>
     void ReadTableBlock(TablesContainerType& rTables);
@@ -465,79 +582,298 @@ private:
 
     void ReadElementsBlock(NodesContainerType& rThisNodes, PropertiesContainerType& rThisProperties, ElementsContainerType& rThisElements);
 
-
     void ReadConditionsBlock(ModelPart& rModelPart);
 
     void ReadConditionsBlock(NodesContainerType& rThisNodes, PropertiesContainerType& rThisProperties, ConditionsContainerType& rThisConditions);
 
+    /**
+     * @brief Reads the master-slave constraints block from the input file.
+     * @details This function is responsible for parsing and loading the master-slave 
+     * constraints defined in the input file into the provided ModelPart. 
+     * Master-slave constraints are used to define relationships between 
+     * degrees of freedom in the model.
+     * @param rModelPart Reference to the ModelPart where the constraints will be added.
+     */
+    void ReadConstraintsBlock(ModelPart& rModelPart);
 
+    /**
+     * @brief Reads a block of master-slave constraints from the input.
+     * @details This function processes and reads the master-slave constraint data
+     * from the input file, associating it with the provided nodes and
+     * storing the constraints in the specified container.
+     * @param rThisNodes A reference to the container of nodes to be used
+     *                   for associating the master-slave constraints.
+     * @param rConstraints A reference to the container where
+     *                                the read master-slave constraints
+     *                                will be stored.
+     */
+    void ReadConstraintsBlock(
+        NodesContainerType& rThisNodes,
+        MasterSlaveConstraintContainerType& rConstraints
+        );
+
+    /**
+     * @brief Reads nodal data block from the input stream into the given model part.
+     * @param rThisModelPart Reference to the model part whose nodal data will be read.
+     */
     void ReadNodalDataBlock(ModelPart& rThisModelPart);
 
+    /**
+     * @brief Writes nodal data block from the given model part to the output stream.
+     * @param rThisModelPart Reference to the model part whose nodal data will be written.
+     */
     void WriteNodalDataBlock(ModelPart& rThisModelPart);
 
+    /**
+     * @brief Reads nodal DOF variable data from the input stream into the provided nodes.
+     * @tparam TVariableType Type of the variable to be read.
+     * @param rThisNodes Reference to the container of nodes.
+     * @param rVariable The variable to be read.
+     */
     template<class TVariableType>
     void ReadNodalDofVariableData(NodesContainerType& rThisNodes, const TVariableType& rVariable);
 
-
+    /**
+     * @brief Reads nodal flags from the input stream and assigns them to the provided nodes.
+     * @param rThisNodes Reference to the container of nodes.
+     * @param rFlags Flags to be read and applied.
+     */
     void ReadNodalFlags(NodesContainerType& rThisNodes, Flags const& rFlags);
 
+    /**
+     * @brief Reads scalar variable data for each node in the container.
+     * @tparam TVariableType Type of the scalar variable.
+     * @param rThisNodes Reference to the container of nodes.
+     * @param rVariable The scalar variable to read.
+     */
     template<class TVariableType>
     void ReadNodalScalarVariableData(NodesContainerType& rThisNodes, const TVariableType& rVariable);
 
-
-
+    /**
+     * @brief Reads vectorial variable data for each node in the container.
+     * @tparam TVariableType Type of the variable.
+     * @tparam TDataType Type of the vector data.
+     * @param rThisNodes Reference to the container of nodes.
+     * @param rVariable The variable to read.
+     * @param Dummy Dummy parameter to help with template deduction.
+     */
     template<class TVariableType, class TDataType>
     void ReadNodalVectorialVariableData(NodesContainerType& rThisNodes, const TVariableType& rVariable, TDataType Dummy);
 
+    /**
+     * @brief Reads elemental data block from the input stream into the given elements container.
+     * @param rThisElements Reference to the container of elements.
+     */
     void ReadElementalDataBlock(ElementsContainerType& rThisElements);
-    template<class TObjectsContainerType>
-    void WriteDataBlock(const TObjectsContainerType& rThisObjectContainer, const std::string& rObjectName);
-    template<class TVariableType, class TObjectsContainerType>
-    void WriteDataBlock(const TObjectsContainerType& rThisObjectContainer,const VariableData* rVariable, const std::string& rObjectName);
 
+    /**
+     * @brief Reads scalar variable data for each element in the container.
+     * @tparam TVariableType Type of the scalar variable.
+     * @param rThisElements Reference to the container of elements.
+     * @param rVariable The scalar variable to read.
+     */
     template<class TVariableType>
     void ReadElementalScalarVariableData(ElementsContainerType& rThisElements, const TVariableType& rVariable);
 
-
+    /**
+     * @brief Reads vectorial variable data for each element in the container.
+     * @tparam TVariableType Type of the variable.
+     * @tparam TDataType Type of the vector data.
+     * @param rThisElements Reference to the container of elements.
+     * @param rVariable The variable to read.
+     * @param Dummy Dummy parameter to help with template deduction.
+     */
     template<class TVariableType, class TDataType>
     void ReadElementalVectorialVariableData(ElementsContainerType& rThisElements, const TVariableType& rVariable, TDataType Dummy);
+
+    /**
+     * @brief Reads conditional data block from the input stream into the given conditions container.
+     * @param rThisConditions Reference to the container of conditions.
+     */
     void ReadConditionalDataBlock(ConditionsContainerType& rThisConditions);
 
+    /**
+     * @brief Reads scalar variable data for each condition in the container.
+     * @tparam TVariableType Type of the scalar variable.
+     * @param rThisConditions Reference to the container of conditions.
+     * @param rVariable The scalar variable to read.
+     */
     template<class TVariableType>
     void ReadConditionalScalarVariableData(ConditionsContainerType& rThisConditions, const TVariableType& rVariable);
 
-
+    /**
+     * @brief Reads vectorial variable data for each condition in the container.
+     * @tparam TVariableType Type of the variable.
+     * @tparam TDataType Type of the vector data.
+     * @param rThisConditions Reference to the container of conditions.
+     * @param rVariable The variable to read.
+     * @param Dummy Dummy parameter to help with template deduction.
+     */
     template<class TVariableType, class TDataType>
     void ReadConditionalVectorialVariableData(ConditionsContainerType& rThisConditions, const TVariableType& rVariable, TDataType Dummy);
 
+    /**
+     * @brief Reads master-slave constraint data block from the input stream into the given constraints container.
+     * @param rThisConstraints Reference to the container of master-slave constraints.
+     */
+    void ReadConstraintDataBlock(MasterSlaveConstraintContainerType& rThisConstraints);
+
+    /**
+     * @brief Reads scalar variable data for each constraint in the container.
+     * @tparam TVariableType Type of the scalar variable.
+     * @param rThisConstraints Reference to the container of constraints.
+     * @param rVariable The scalar variable to read.
+     */
+    template<class TVariableType>
+    void ReadConstraintScalarVariableData(MasterSlaveConstraintContainerType& rThisConstraints, const TVariableType& rVariable);
+
+    /**
+     * @brief Reads vectorial variable data for each constraint in the container.
+     * @tparam TVariableType Type of the variable.
+     * @tparam TDataType Type of the vector data.
+     * @param rThisConstraints Reference to the container of constraints.
+     * @param rVariable The variable to read.
+     * @param Dummy Dummy parameter to help with template deduction.
+     */
+    template<class TVariableType, class TDataType>
+    void ReadConstraintVectorialVariableData(MasterSlaveConstraintContainerType& rThisConstraints, const TVariableType& rVariable, TDataType Dummy);
+
+    /**
+     * @brief Reads geometry data block from the input stream into the given geometries container.
+     * @param rThisGeometries Reference to the container of geometries.
+     */
+    void ReadGeometryDataBlock(GeometryContainerType& rThisGeometries);
+
+    /**
+     * @brief Reads scalar variable data for each geometry in the container.
+     * @tparam TVariableType Type of the scalar variable.
+     * @param rThisGeometries Reference to the container of geometries.
+     * @param rVariable The scalar variable to read.
+     */
+    template<class TVariableType>
+    void ReadGeometryScalarVariableData(GeometryContainerType& rThisGeometries, const TVariableType& rVariable);
+
+    /**
+     * @brief Reads vectorial variable data for each geometry in the container.
+     * @tparam TVariableType Type of the variable.
+     * @tparam TDataType Type of the vector data.
+     * @param rThisGeometries Reference to the container of geometries.
+     * @param rVariable The variable to read.
+     * @param Dummy Dummy parameter to help with template deduction.
+     */
+    template<class TVariableType, class TDataType>
+    void ReadGeometryVectorialVariableData(GeometryContainerType& rThisGeometries, const TVariableType& rVariable, TDataType Dummy);
+
+    /**
+     * @brief Writes a data block for the specified object container.
+     * @tparam TObjectsContainerType Type of the object container.
+     * @param rThisObjectContainer Reference to the container of objects.
+     * @param rObjectName Name of the object group to write.
+     */
+    template<class TObjectsContainerType>
+    void WriteDataBlock(const TObjectsContainerType& rThisObjectContainer, const std::string& rObjectName);
+
+    /**
+     * @brief Writes a data block for the specified variable in the object container.
+     * @tparam TVariableType Type of the variable.
+     * @tparam TObjectsContainerType Type of the object container.
+     * @param rThisObjectContainer Reference to the container of objects.
+     * @param rVariable Pointer to the variable data to write.
+     * @param rObjectName Name of the object group to write.
+     */
+    template<class TVariableType, class TObjectsContainerType>
+    void WriteDataBlock(const TObjectsContainerType& rThisObjectContainer, const VariableData* rVariable, const std::string& rObjectName);
+
     SizeType ReadGeometriesConnectivitiesBlock(ConnectivitiesContainerType& rThisConnectivities);
 
+    /**
+     * @brief Reads the elements connectivities block from the input stream.
+     * @param rThisConnectivities Reference to the container where the connectivities will be stored.
+     * @return The number of elements read.
+     */
     SizeType ReadElementsConnectivitiesBlock(ConnectivitiesContainerType& rThisConnectivities);
 
+    /**
+     * @brief Reads the conditions connectivities block from the input stream.
+     * @param rThisConnectivities Reference to the container where the connectivities will be stored.
+     * @return The number of conditions read.
+     */
     SizeType ReadConditionsConnectivitiesBlock(ConnectivitiesContainerType& rThisConnectivities);
 
+    /**
+     * @brief Reads the master-slave constraints connectivities block from the input stream.
+     * @param rThisConnectivities Reference to the container where the connectivities will be stored.
+     * @return The number of master-slave constraints read.
+     */
+    SizeType ReadConstraintsConnectivitiesBlock(ConnectivitiesContainerType& rThisConnectivities);
+
+    /**
+     * @brief Fills the nodal connectivities from the geometry block.
+     * @param rNodalConnectivities Reference to the container where the nodal connectivities will be stored.
+     */
     void FillNodalConnectivitiesFromGeometryBlock(ConnectivitiesContainerType& rNodalConnectivities);
 
+    /**
+     * @brief Fills the nodal connectivities from the element block.
+     * @param rNodalConnectivities Reference to the container where the nodal connectivities will be stored.
+     */
     void FillNodalConnectivitiesFromElementBlock(ConnectivitiesContainerType& rNodalConnectivities);
 
+    /**
+     * @brief Fills the nodal connectivities from the condition block.
+     * @param rNodalConnectivities Reference to the container where the nodal connectivities will be stored.
+     */
     void FillNodalConnectivitiesFromConditionBlock(ConnectivitiesContainerType& rNodalConnectivities);
 
+    /**
+     * @brief Fills the nodal connectivities from the master-slave constraint block.
+     * @param rNodalConnectivities Reference to the container where the nodal connectivities will be stored.
+     */
+    void FillNodalConnectivitiesFromConstraintBlock(ConnectivitiesContainerType& rNodalConnectivities);
+
+    /**
+     * @brief Fills the nodal connectivities from the geometry block for a specific list of geometries.
+     * @param rNodalConnectivities Reference to the container where the nodal connectivities will be stored.
+     * @param rGeometriesIds Set of geometry IDs to filter the connectivities.
+     */
     void FillNodalConnectivitiesFromGeometryBlockInList(
         ConnectivitiesContainerType& rNodalConnectivities,
-        std::unordered_set<SizeType>& rGeometriesIds);
+        std::unordered_set<SizeType>& rGeometriesIds
+        );
 
+    /**
+     * @brief Fills the nodal connectivities from the element block for a specific list of elements.
+     * @param rNodalConnectivities Reference to the container where the nodal connectivities will be stored.
+     * @param rElementsIds Set of element IDs to filter the connectivities.
+     */
     void FillNodalConnectivitiesFromElementBlockInList(
         ConnectivitiesContainerType& rNodalConnectivities,
-        std::unordered_set<SizeType>& rElementsIds);
+        std::unordered_set<SizeType>& rElementsIds
+        );
 
+    /**
+     * @brief Fills the nodal connectivities from the condition block for a specific list of conditions.
+     * @param rNodalConnectivities Reference to the container where the nodal connectivities will be stored.
+     * @param rConditionsIds Set of condition IDs to filter the connectivities.
+     */
     void FillNodalConnectivitiesFromConditionBlockInList(
         ConnectivitiesContainerType& rNodalConnectivities,
-        std::unordered_set<SizeType>& rConditionsIds);
+        std::unordered_set<SizeType>& rConditionsIds
+        );
+
+    /**
+     * @brief Fills the nodal connectivities from the master-slave constraint block for a specific list of constraints.
+     * @param rNodalConnectivities Reference to the container where the nodal connectivities will be stored.
+     * @param rConstraintsIds Set of master-slave constraint IDs to filter the connectivities.
+     */
+    void FillNodalConnectivitiesFromConstraintBlockInList(
+        ConnectivitiesContainerType& rNodalConnectivities,
+        std::unordered_set<SizeType>& rConstraintsIds
+        );
 
     void ReadCommunicatorDataBlock(Communicator& rThisCommunicator, NodesContainerType& rThisNodes);
 
     void ReadCommunicatorLocalNodesBlock(Communicator& rThisCommunicator, NodesContainerType& rThisNodes);
-
 
     void ReadCommunicatorGhostNodesBlock(Communicator& rThisCommunicator, NodesContainerType& rThisNodes);
 
@@ -545,9 +881,7 @@ private:
 
     void WriteMeshBlock(ModelPart& rModelPart);
 
-
     void ReadMeshDataBlock(MeshType& rMesh);
-
 
     void ReadMeshNodesBlock(ModelPart& rModelPart, MeshType& rMesh);
 
@@ -567,15 +901,51 @@ private:
 
     void ReadSubModelPartPropertiesBlock(ModelPart& rMainModelPart, ModelPart& rSubModelPart);
 
+    /**
+     * @brief Reads the nodes block of a submodelpart.
+     * @param rMainModelPart Reference to the main model part.
+     * @param rSubModelPart Reference to the submodelpart where the nodes will be added.
+     */
     void ReadSubModelPartNodesBlock(ModelPart& rMainModelPart, ModelPart& rSubModelPart);
 
+    /**
+     * @brief Reads the elements block of a submodelpart.
+     * @param rMainModelPart Reference to the main model part.
+     * @param rSubModelPart Reference to the submodelpart where the elements will be added.
+     */
     void ReadSubModelPartElementsBlock(ModelPart& rMainModelPart, ModelPart& rSubModelPart);
 
+    /**
+     * @brief Reads the conditions block of a submodelpart.
+     * @param rMainModelPart Reference to the main model part.
+     * @param rSubModelPart Reference to the submodelpart where the conditions will be added.
+     */
     void ReadSubModelPartConditionsBlock(ModelPart& rMainModelPart, ModelPart& rSubModelPart);
 
+    /**
+     * @brief Reads the geometries block of a submodelpart.
+     * @param rMainModelPart Reference to the main model part.
+     * @param rSubModelPart Reference to the submodelpart where the geometries will be added.
+     */
     void ReadSubModelPartGeometriesBlock(
         ModelPart &rMainModelPart,
         ModelPart &rSubModelPart);
+
+    /**
+     * @brief Reads and processes the SubModelPartConstraints block from the input stream.
+     * @details This function reads geometry IDs from the input stream until it detects the end of the
+     * "SubModelPartConstraints" block. The read geometry IDs are stored in a vector,
+     * which is then sorted in ascending order. Finally, the sorted IDs are used to add master-slave
+     * constraints to the provided sub-model part.
+     * @param rMainModelPart The main model part used for context during the parsing process.
+     * @param rSubModelPart The sub-model part that will have the master-slave constraints added.
+     * @note The function relies on the correctness of the stream data and may throw exceptions
+     *       if an error occurs during the reading or processing of the block.
+     */
+     void ReadSubModelPartConstraintsBlock(
+        ModelPart &rMainModelPart,
+        ModelPart &rSubModelPart
+        );
 
     void DivideInputToPartitionsImpl(
         OutputFilesContainerType& rOutputFiles,
@@ -588,20 +958,47 @@ private:
 
     void DividePropertiesBlock(OutputFilesContainerType& OutputFiles);
 
+    /**
+     * @brief Divides the nodes block into partitions.
+     * @param OutputFiles The container of output files for each partition.
+     * @param NodesAllPartitions The partition indices for all nodes.
+     */
     void DivideNodesBlock(OutputFilesContainerType& OutputFiles,
                           PartitionIndicesContainerType const& NodesAllPartitions);
 
+    /**
+     * @brief Divides the geometries block into partitions.
+     * @param OutputFiles The container of output files for each partition.
+     * @param GeometriesAllPartitions The partition indices for all geometries.
+     */
     void DivideGeometriesBlock(OutputFilesContainerType& OutputFiles,
                              PartitionIndicesContainerType const& GeometriesAllPartitions);
 
+    /**
+     * @brief Divides the elements block into partitions.
+     * @param OutputFiles The container of output files for each partition.
+     * @param ElementsAllPartitions The partition indices for all elements.
+     */
     void DivideElementsBlock(OutputFilesContainerType& OutputFiles,
                              PartitionIndicesContainerType const& ElementsAllPartitions);
 
-
-
+    /**
+     * @brief Divides the conditions block into partitions.
+     * @param OutputFiles The container of output files for each partition.
+     * @param ConditionsAllPartitions The partition indices for all conditions.
+     */
     void DivideConditionsBlock(OutputFilesContainerType& OutputFiles,
                                PartitionIndicesContainerType const& ConditionsAllPartitions);
 
+    /**
+     * @brief Divides the master-slave constraints block into partitions.
+     * @param rOutputFiles The container of output files for each partition.
+     * @param rConstraintsAllPartitions The partition indices for all master-slave constraints.
+     */
+    void DivideConstraintsBlock(
+        OutputFilesContainerType& rOutputFiles,
+        const PartitionIndicesContainerType& rConstraintsAllPartitions
+        );
 
     void DivideNodalDataBlock(OutputFilesContainerType& OutputFiles,
                               PartitionIndicesContainerType const& NodesAllPartitions);
@@ -612,84 +1009,213 @@ private:
     void DivideDofVariableData(OutputFilesContainerType& OutputFiles,
                                PartitionIndicesContainerType const& NodesAllPartitions);
 
+    void DivideScalarVariableData(OutputFilesContainerType& OutputFiles,
+                                PartitionIndicesContainerType const& EntitiesPartitions,
+                                std::string BlockName);
+
     template<class TValueType>
     void DivideVectorialVariableData(OutputFilesContainerType& OutputFiles,
                                      PartitionIndicesContainerType const& EntitiesPartitions,
                                      std::string BlockName);
 
 
+    /**
+     * @brief Divides the elemental data block into partitions.
+     * @param OutputFiles The container of output files for each partition.
+     * @param ElementsAllPartitions The partition indices for all elements.
+     */
     void DivideElementalDataBlock(OutputFilesContainerType& OutputFiles,
                                   PartitionIndicesContainerType const& ElementsAllPartitions);
 
-    void DivideScalarVariableData(OutputFilesContainerType& OutputFiles,
-                                  PartitionIndicesContainerType const& EntitiesPartitions,
-                                  std::string BlockName);
-
-
+    /**
+     * @brief Divides the conditional data block into partitions.
+     * @param OutputFiles The container of output files for each partition.
+     * @param ConditionsAllPartitions The partition indices for all conditions.
+     */
     void DivideConditionalDataBlock(OutputFilesContainerType& OutputFiles,
                                     PartitionIndicesContainerType const& ConditionsAllPartitions);
 
+    /**
+     * @brief Divides the master-slave constraint data block into partitions.
+     * @param rOutputFiles The container of output files for each partition.
+     * @param rConstraintsAllPartitions The partition indices for all master-slave constraints.
+     */
+    void DivideConstraintDataBlock(
+        OutputFilesContainerType& rOutputFiles,
+        const PartitionIndicesContainerType& rConstraintsAllPartitions
+        );
 
-    void DivideMeshBlock(OutputFilesContainerType& OutputFiles,
-                                         PartitionIndicesContainerType const& NodesAllPartitions,
-                                         PartitionIndicesContainerType const& ElementsAllPartitions,
-                                         PartitionIndicesContainerType const& ConditionsAllPartitions);
+    /**
+     * @brief Divides the mesh block into partitions.
+     * @param rOutputFiles The container of output files for each partition.
+     * @param rNodesAllPartitions The partition indices for all nodes.
+     * @param rElementsAllPartitions The partition indices for all elements.
+     * @param rConditionsAllPartitions The partition indices for all conditions.
+     * @param rConstraintsAllPartitions The partition indices for all master-slave constraints.
+     */
+    void DivideMeshBlock(
+        OutputFilesContainerType& rOutputFiles,
+        const PartitionIndicesContainerType& rNodesAllPartitions,
+        const PartitionIndicesContainerType& rElementsAllPartitions,
+        const PartitionIndicesContainerType& rConditionsAllPartitions,
+        const PartitionIndicesContainerType& rConstraintsAllPartitions
+        );
 
-	void DivideSubModelPartBlock(OutputFilesContainerType& OutputFiles,
-		PartitionIndicesContainerType const& NodesAllPartitions,
-		PartitionIndicesContainerType const& ElementsAllPartitions,
-		PartitionIndicesContainerType const& ConditionsAllPartitions);
+    /**
+     * @brief Divides the submodelpart block into partitions.
+     * @param rOutputFiles The container of output files for each partition.
+     * @param rNodesAllPartitions The partition indices for all nodes.
+     * @param rElementsAllPartitions The partition indices for all elements.
+     * @param rConditionsAllPartitions The partition indices for all conditions.
+     * @param rConstraintsAllPartitions The partition indices for all master-slave constraints.
+     */
+	void DivideSubModelPartBlock(
+        OutputFilesContainerType& rOutputFiles,
+        const PartitionIndicesContainerType& rNodesAllPartitions,
+        const PartitionIndicesContainerType& rElementsAllPartitions,
+        const PartitionIndicesContainerType& rConditionsAllPartitions,
+        const PartitionIndicesContainerType& rConstraintsAllPartitions,
+        const PartitionIndicesContainerType& rGeometriesAllPartitions
+        );
 
     void DivideMeshDataBlock(OutputFilesContainerType& OutputFiles);
 
-
+    /**
+     * @brief Divides the mesh nodes block into partitions.
+     * @param OutputFiles The container of output files for each partition.
+     * @param NodesAllPartitions The partition indices for all nodes.
+     */
     void DivideMeshNodesBlock(OutputFilesContainerType& OutputFiles,
                                          PartitionIndicesContainerType const& NodesAllPartitions);
 
-
+    /**
+     * @brief Divides the mesh elements block into partitions.
+     * @param OutputFiles The container of output files for each partition.
+     * @param ElementsAllPartitions The partition indices for all elements.
+     */
     void DivideMeshElementsBlock(OutputFilesContainerType& OutputFiles,
                                          PartitionIndicesContainerType const& ElementsAllPartitions);
 
+    /**
+     * @brief Divides the mesh conditions block into partitions.
+     * @param OutputFiles The container of output files for each partition.
+     * @param ConditionsAllPartitions The partition indices for all conditions.
+     */
     void DivideMeshConditionsBlock(OutputFilesContainerType& OutputFiles,
                                          PartitionIndicesContainerType const& ConditionsAllPartitions);
 
+    /**
+     * @brief Divides the mesh master-slave constraints block into partitions.
+     * @param rOutputFiles The container of output files for each partition.
+     * @param rConstraintsAllPartitions The partition indices for all master-slave constraints.
+     */
+    void DivideMeshConstraintsBlock(
+        OutputFilesContainerType& rOutputFiles,
+        const PartitionIndicesContainerType& rConstraintsAllPartitions
+        );
 
-	void DivideSubModelPartDataBlock(OutputFilesContainerType& OutputFiles);
+    /**
+     * @brief Divides the submodelpart data block into partitions.
+     * @param OutputFiles The container of output files for each partition.
+     */
+    void DivideSubModelPartDataBlock(OutputFilesContainerType& OutputFiles);
 
-	void DivideSubModelPartTableBlock(OutputFilesContainerType& OutputFiles);
+    /**
+     * @brief Divides the submodelpart table block into partitions.
+     * @param OutputFiles The container of output files for each partition.
+     */
+    void DivideSubModelPartTableBlock(OutputFilesContainerType& OutputFiles);
 
+    /**
+     * @brief Divides the submodelpart nodes block into partitions.
+     * @param OutputFiles The container of output files for each partition.
+     * @param NodesAllPartitions The partition indices for all nodes.
+     */
+    void DivideSubModelPartNodesBlock(OutputFilesContainerType& OutputFiles,
+        PartitionIndicesContainerType const& NodesAllPartitions);
 
-	void DivideSubModelPartNodesBlock(OutputFilesContainerType& OutputFiles,
-		PartitionIndicesContainerType const& NodesAllPartitions);
+    /**
+     * @brief Divides the submodelpart elements block into partitions.
+     * @param OutputFiles The container of output files for each partition.
+     * @param ElementsAllPartitions The partition indices for all elements.
+     */
+    void DivideSubModelPartElementsBlock(OutputFilesContainerType& OutputFiles,
+        PartitionIndicesContainerType const& ElementsAllPartitions);
 
+    /**
+     * @brief Divides the submodelpart conditions block into partitions.
+     * @param OutputFiles The container of output files for each partition.
+     * @param ConditionsAllPartitions The partition indices for all conditions.
+     */
+    void DivideSubModelPartConditionsBlock(OutputFilesContainerType& OutputFiles,
+        PartitionIndicesContainerType const& ConditionsAllPartitions);
 
-	void DivideSubModelPartElementsBlock(OutputFilesContainerType& OutputFiles,
-		PartitionIndicesContainerType const& ElementsAllPartitions);
+    /**
+     * @brief Divides the submodelpart master-slave constraints block into partitions.
+     * @param OutputFiles The container of output files for each partition.
+     * @param ConstraintsAllPartitions The partition indices for all master-slave constraints.
+     */
+    void DivideSubModelPartConstraintsBlock(
+        OutputFilesContainerType& rOutputFiles,
+        const PartitionIndicesContainerType& rConstraintsAllPartitions
+        );
 
-	void DivideSubModelPartConditionsBlock(OutputFilesContainerType& OutputFiles,
-		PartitionIndicesContainerType const& ConditionsAllPartitions);
+    /**
+     * @brief Divides the submodelpart geometries block into partitions.
+     * @param OutputFiles The container of output files for each partition.
+     * @param GeometriesAllPartitions The partition indices for all geometries.
+     */
+    void DivideSubModelPartGeometriesBlock(
+        OutputFilesContainerType& rOutputFiles,
+        const PartitionIndicesContainerType& rGeometriesAllPartitions
+        );
 
 	void WritePartitionIndices(OutputFilesContainerType& OutputFiles, PartitionIndicesType const&  NodesPartitions, PartitionIndicesContainerType const& NodesAllPartitions);
 
+    /**
+     * @brief Writes communicator data to output files for partitions.
+     * @param OutputFiles The container of output files for each partition.
+     * @param NumberOfPartitions The number of partitions.
+     * @param DomainsColoredGraph The graph representing domain connectivity.
+     * @param NodesPartitions The partition indices for nodes.
+     * @param ElementsPartitions The partition indices for elements.
+     * @param ConditionsPartitions The partition indices for conditions.
+     * @param ConstraintsPartitions The partition indices for master-slave constraints.
+     * @param GeometriesPartitions The partition indices for geometries.
+     * @param NodesAllPartitions The partition indices for all nodes.
+     * @param ElementsAllPartitions The partition indices for all elements.
+     * @param ConditionsAllPartitions The partition indices for all conditions.
+     * @param ConstraintsAllPartitions The partition indices for all master-slave constraints.
+     * @param GeometriesAllPartitions The partition indices for all geometries.
+     */
+    void WriteCommunicatorData(
+        OutputFilesContainerType& OutputFiles,
+        SizeType NumberOfPartitions,
+        GraphType const& DomainsColoredGraph,
+        PartitionIndicesType const& NodesPartitions,
+        PartitionIndicesType const& ElementsPartitions,
+        PartitionIndicesType const& ConditionsPartitions,
+        PartitionIndicesType const& ConstraintsPartitions,
+        PartitionIndicesType const& GeometriesPartitions,
+        PartitionIndicesContainerType const& NodesAllPartitions,
+        PartitionIndicesContainerType const& ElementsAllPartitions,
+        PartitionIndicesContainerType const& ConditionsAllPartitions,
+        PartitionIndicesContainerType const& ConstraintsAllPartitions,
+        PartitionIndicesContainerType const& GeometriesAllPartitions
+        );
 
-    void WriteCommunicatorData(OutputFilesContainerType& OutputFiles, SizeType NumberOfPartitions, GraphType const& DomainsColoredGraph,
-                               PartitionIndicesType const& NodesPartitions,
-                               PartitionIndicesType const& ElementsPartitions,
-                               PartitionIndicesType const& ConditionsPartitions,
-                               PartitionIndicesContainerType const& NodesAllPartitions,
-                               PartitionIndicesContainerType const& ElementsAllPartitions,
-                               PartitionIndicesContainerType const& ConditionsAllPartitions);
-
-    void WriteCommunicatorLocalNodes(OutputFilesContainerType& OutputFiles, SizeType NumberOfPartitions, PartitionIndicesType const& NodesPartitions, PartitionIndicesContainerType const& NodesAllPartitions);
+    void WriteCommunicatorLocalNodes(
+        OutputFilesContainerType& OutputFiles,
+        SizeType NumberOfPartitions,
+        PartitionIndicesType const& NodesPartitions,
+        PartitionIndicesContainerType const& NodesAllPartitions
+        );
 
     void WriteInAllFiles(OutputFilesContainerType& OutputFiles, std::string const& ThisWord);
 
 
     template<class TContainerType, class TKeyType>
     typename TContainerType::iterator FindKey(TContainerType& ThisContainer , TKeyType ThisKey, std::string ComponentName);
-
-
-
 
     // Basically it starts to read the character sequence until reaching a
     // "(" and then goes until corresponding ")" which means the vector or

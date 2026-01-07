@@ -1,3 +1,6 @@
+# Temporal fix until to avoid list[type] related errors until we move to 3.9 and above.
+from __future__ import annotations
+
 from typing import Optional
 from abc import ABC, abstractmethod
 

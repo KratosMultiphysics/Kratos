@@ -71,6 +71,8 @@ import test_integration_points
 import test_mls_shape_functions_utility
 import test_model_part_combination_utilities
 import test_force_and_torque_utils
+import test_kernel
+import test_cad_tessellation_modeler
 import test_print_info_in_file
 import test_sparse_matrices
 import test_rbf_shape_functions_utility
@@ -98,6 +100,9 @@ import test_obj_io
 import test_import_obj_modeler
 import test_vectorized_interpolation
 import test_clean_up_problematic_triangles_modeler
+import test_tetrahedral_mesh_orientation_check
+import test_nd_data
+import test_tensor_adaptors
 
 # Import modules required for sequential orchestrator test
 from test_sequential_orchestrator import EmptyAnalysisStage
@@ -184,12 +189,15 @@ def AssembleTestSuites():
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([test_coordinate_transformation_utils.TestCoordinateTransformationUtilitiesCoarseSphere]))
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([test_coordinate_transformation_utils.TestCoordinateTransformationUtilities2DSymmetricalSquare]))
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([test_sensitivity_utilities.TestSensitivityUtilitiesTwoDimSymmetricalSquare]))
+    smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([test_sensitivity_utilities.TestSensitivityUtilitiesGetSensitivityVariableName]))
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([test_file_name_data_collector.TestFileNameDataCollector]))
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([test_function_parser_utility.TestGenericFunctionUtility]))
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([test_integration_points.TestIntegrationPoints]))
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([test_mls_shape_functions_utility.TestMLSShapeFunctionsUtility]))
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([test_model_part_combination_utilities.TestModelPartCombinationUtilities]))
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([test_force_and_torque_utils.TestForceAndTorqueUtils]))
+    smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([test_kernel.TestKernel]))
+    smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([test_cad_tessellation_modeler.TestCadTessellationModeler]))
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([test_sparse_matrices.TestSparseMatrixInterface]))
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([test_generic_find_elemental_neighbours_process.TestGenericFindElementalNeighboursProcess]))
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([test_graph_utilities.TestGraphUtilities]))
@@ -222,6 +230,9 @@ def AssembleTestSuites():
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([test_import_obj_modeler.TestImportOBJModeler]))
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([test_vectorized_interpolation.TestVectorizedInterpolation]))
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([test_clean_up_problematic_triangles_modeler.TestCleanUpProblematicTrianglesModeler]))
+    smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([test_tetrahedral_mesh_orientation_check.TestTetrahedralMeshOrientationCheck]))
+    smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([test_nd_data.TestNDData]))
+    smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([test_tensor_adaptors.TestTensorAdaptors]))
 
 
     if sympy_available:
@@ -240,3 +251,10 @@ def AssembleTestSuites():
 if __name__ == '__main__':
     KratosMultiphysics.Logger.GetDefaultOutput().SetSeverity(KratosMultiphysics.Logger.Severity.WARNING)
     KratosUnittest.runTests(AssembleTestSuites())
+
+    # run future tests
+    if hasattr(KratosMultiphysics, "Future"):
+        import KratosMultiphysics.KratosUnittest as kratos_unittest
+        with kratos_unittest.WorkFolderScope("../future/tests", __file__, True):
+            from test_KratosFutureCore import AssembleTestSuites as AssembleFutureTestSuites
+            KratosUnittest.runTests(AssembleFutureTestSuites())

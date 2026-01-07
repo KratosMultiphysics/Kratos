@@ -42,7 +42,6 @@ public:
     using SizeType = std::size_t;
     using UPwBaseElement::CalculateDerivativesOnInitialConfiguration;
     using UPwBaseElement::mConstitutiveLawVector;
-    using UPwBaseElement::mIsInitialised;
     using UPwBaseElement::mRetentionLawVector;
     using UPwBaseElement::mStateVariablesFinalized;
     using UPwBaseElement::mStressVector;
@@ -51,14 +50,20 @@ public:
     explicit UPwSmallStrainElement(IndexType NewId = 0) : UPwBaseElement(NewId) {}
 
     /// Constructor using an array of nodes
-    UPwSmallStrainElement(IndexType NewId, const NodesArrayType& ThisNodes, std::unique_ptr<StressStatePolicy> pStressStatePolicy)
-        : UPwBaseElement(NewId, ThisNodes, std::move(pStressStatePolicy))
+    UPwSmallStrainElement(IndexType                          NewId,
+                          const NodesArrayType&              ThisNodes,
+                          std::unique_ptr<StressStatePolicy> pStressStatePolicy,
+                          std::unique_ptr<IntegrationCoefficientModifier> pCoefficientModifier = nullptr)
+        : UPwBaseElement(NewId, ThisNodes, std::move(pStressStatePolicy), std::move(pCoefficientModifier))
     {
     }
 
     /// Constructor using Geometry
-    UPwSmallStrainElement(IndexType NewId, GeometryType::Pointer pGeometry, std::unique_ptr<StressStatePolicy> pStressStatePolicy)
-        : UPwBaseElement(NewId, pGeometry, std::move(pStressStatePolicy))
+    UPwSmallStrainElement(IndexType                          NewId,
+                          GeometryType::Pointer              pGeometry,
+                          std::unique_ptr<StressStatePolicy> pStressStatePolicy,
+                          std::unique_ptr<IntegrationCoefficientModifier> pCoefficientModifier = nullptr)
+        : UPwBaseElement(NewId, pGeometry, std::move(pStressStatePolicy), std::move(pCoefficientModifier))
     {
     }
 
@@ -66,8 +71,9 @@ public:
     UPwSmallStrainElement(IndexType                          NewId,
                           GeometryType::Pointer              pGeometry,
                           PropertiesType::Pointer            pProperties,
-                          std::unique_ptr<StressStatePolicy> pStressStatePolicy)
-        : UPwBaseElement(NewId, pGeometry, pProperties, std::move(pStressStatePolicy))
+                          std::unique_ptr<StressStatePolicy> pStressStatePolicy,
+                          std::unique_ptr<IntegrationCoefficientModifier> pCoefficientModifier = nullptr)
+        : UPwBaseElement(NewId, pGeometry, pProperties, std::move(pStressStatePolicy), std::move(pCoefficientModifier))
     {
     }
 
@@ -183,10 +189,6 @@ protected:
         Matrix UVoigtMatrix;
     };
 
-    void SaveGPStress(Matrix& rStressContainer, const Vector& rStressVector, unsigned int GPoint);
-
-    void ExtrapolateGPValues(const Matrix& rStressContainer);
-
     void CalculateMaterialStiffnessMatrix(MatrixType&        rStiffnessMatrix,
                                           const ProcessInfo& CurrentProcessInfo) override;
 
@@ -200,7 +202,7 @@ protected:
 
     virtual void InitializeElementVariables(ElementVariables& rVariables, const ProcessInfo& CurrentProcessInfo);
 
-    virtual void CalculateKinematics(ElementVariables& rVariables, unsigned int PointNumber);
+    virtual void CalculateKinematics(ElementVariables& rVariables, unsigned int IntegrationPointIndex);
 
     Matrix CalculateBMatrix(const Matrix& rDN_DX, const Vector& rN) const;
     std::vector<Matrix> CalculateBMatrices(const GeometryType::ShapeFunctionsGradientsType& rDN_DXContainer,
@@ -249,8 +251,6 @@ protected:
     void InitializeNodalVolumeAccelerationVariables(ElementVariables& rVariables);
 
     void InitializeProperties(ElementVariables& rVariables);
-    std::vector<array_1d<double, TDim>> CalculateFluidFluxes(const std::vector<double>& rPermeabilityUpdateFactors,
-                                                             const ProcessInfo& rCurrentProcessInfo);
 
     [[nodiscard]] std::vector<double> CalculateDegreesOfSaturation(const std::vector<double>& rFluidPressures) const;
     [[nodiscard]] std::vector<double> CalculateDerivativesOfSaturation(const std::vector<double>& rFluidPressures) const;
@@ -270,8 +270,6 @@ protected:
                                         std::vector<Vector>& rStressVectors,
                                         std::vector<Matrix>& rConstitutiveMatrices);
 
-    void CalculateExtrapolationMatrix(BoundedMatrix<double, TNumNodes, TNumNodes>& rExtrapolationMatrix);
-
     void ResetHydraulicDischarge();
     void CalculateHydraulicDischarge(const ProcessInfo& rCurrentProcessInfo);
     void CalculateSoilGamma(ElementVariables& rVariables);
@@ -288,20 +286,12 @@ private:
 
     void save(Serializer& rSerializer) const override
     {
-        KRATOS_SERIALIZE_SAVE_BASE_CLASS(rSerializer, Element)
+        KRATOS_SERIALIZE_SAVE_BASE_CLASS(rSerializer, UPwBaseElement)
     }
 
     void load(Serializer& rSerializer) override
     {
-        KRATOS_SERIALIZE_LOAD_BASE_CLASS(rSerializer, Element)
-    }
-
-    template <class TValueType>
-    inline void ThreadSafeNodeWrite(NodeType& rNode, const Variable<TValueType>& Var, const TValueType Value)
-    {
-        rNode.SetLock();
-        rNode.FastGetSolutionStepValue(Var) = Value;
-        rNode.UnSetLock();
+        KRATOS_SERIALIZE_LOAD_BASE_CLASS(rSerializer, UPwBaseElement)
     }
 };
 

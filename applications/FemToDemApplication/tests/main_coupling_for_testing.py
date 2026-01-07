@@ -40,7 +40,7 @@ class MainCouplingFemDemForTestingSolution(MainCouplingFemDem.MainCoupledFemDem_
         # processes to be executed before witting the output
         self.FEM_Solution.model_processes.ExecuteBeforeOutputStep()
 
-        # processes to be executed after writting the output
+        # processes to be executed after writing the output
         self.FEM_Solution.model_processes.ExecuteAfterOutputStep()
 
         self.CheckControlValuesForTesting()

@@ -19,7 +19,6 @@
 #include "includes/constitutive_law.h"
 #include "includes/define.h"
 #include "includes/kratos_export_api.h"
-#include "includes/serializer.h"
 #include "includes/smart_pointers.h"
 #include "includes/ublas_interface.h"
 
@@ -37,7 +36,6 @@ public:
     KRATOS_CLASS_INTRUSIVE_POINTER_DEFINITION(SmallStrainUPwDiffOrderElement);
 
     using UPwBaseElement::mConstitutiveLawVector;
-    using UPwBaseElement::mIsInitialised;
     using UPwBaseElement::mRetentionLawVector;
     using UPwBaseElement::mStateVariablesFinalized;
     using UPwBaseElement::mStressVector;
@@ -46,8 +44,9 @@ public:
 
     SmallStrainUPwDiffOrderElement(IndexType                          NewId,
                                    GeometryType::Pointer              pGeometry,
-                                   std::unique_ptr<StressStatePolicy> pStressStatePolicy)
-        : UPwBaseElement(NewId, pGeometry, std::move(pStressStatePolicy))
+                                   std::unique_ptr<StressStatePolicy> pStressStatePolicy,
+                                   std::unique_ptr<IntegrationCoefficientModifier> pCoefficientModifier = nullptr)
+        : UPwBaseElement(NewId, pGeometry, std::move(pStressStatePolicy), std::move(pCoefficientModifier))
     {
         SetUpPressureGeometryPointer();
     }
@@ -55,8 +54,9 @@ public:
     SmallStrainUPwDiffOrderElement(IndexType                          NewId,
                                    GeometryType::Pointer              pGeometry,
                                    PropertiesType::Pointer            pProperties,
-                                   std::unique_ptr<StressStatePolicy> pStressStatePolicy)
-        : UPwBaseElement(NewId, pGeometry, pProperties, std::move(pStressStatePolicy))
+                                   std::unique_ptr<StressStatePolicy> pStressStatePolicy,
+                                   std::unique_ptr<IntegrationCoefficientModifier> pCoefficientModifier = nullptr)
+        : UPwBaseElement(NewId, pGeometry, pProperties, std::move(pStressStatePolicy), std::move(pCoefficientModifier))
     {
         SetUpPressureGeometryPointer();
     }
@@ -70,8 +70,6 @@ public:
     Element::Pointer Create(IndexType NewId, GeometryType::Pointer pGeom, PropertiesType::Pointer pProperties) const override;
 
     int Check(const ProcessInfo& rCurrentProcessInfo) const override;
-
-    void InitializeSolutionStep(const ProcessInfo& rCurrentProcessInfo) override;
 
     void FinalizeSolutionStep(const ProcessInfo& rCurrentProcessInfo) override;
 
@@ -105,6 +103,9 @@ public:
 
     using Element::CalculateOnIntegrationPoints;
 
+    void Calculate(const Variable<Vector>& rVariable, Vector& rOutput, const ProcessInfo& rCurrentProcessInfo) override;
+    using Element::Calculate;
+
     // Turn back information as a string.
     std::string Info() const override
     {
@@ -130,7 +131,6 @@ protected:
         Vector Nu;     // Contains the displacement shape functions at every node
         Vector Np;     // Contains the pressure shape functions at every node
         Matrix DNu_DX; // Contains the global derivatives of the displacement shape functions
-        Matrix DNu_DXInitialConfiguration; // Contains the global derivatives of the displacement shape functions
 
         Matrix DNp_DX; // Contains the global derivatives of the pressure shape functions
         Matrix B;
@@ -144,8 +144,7 @@ protected:
         Matrix F;
 
         // needed for updated Lagrangian:
-        double detJ;                     // displacement
-        double detJInitialConfiguration; // displacement
+        double detJ;
 
         // Nodal variables
         Vector BodyAcceleration;
@@ -190,41 +189,40 @@ protected:
 
     void InitializeProperties(ElementVariables& rVariables);
 
-    virtual void CalculateKinematics(ElementVariables& rVariables, unsigned int GPoint);
+    virtual void ExtractShapeFunctionDataAtIntegrationPoint(ElementVariables& rVariables, unsigned int GPoint);
 
-    void CalculateAndAddLHS(MatrixType& rLeftHandSideMatrix, ElementVariables& rVariables) const;
+    void CalculateAndAddLHS(MatrixType& rLeftHandSideMatrix, const ElementVariables& rVariables) const;
 
-    void CalculateAndAddStiffnessMatrix(MatrixType& rLeftHandSideMatrix, const ElementVariables& rVariables) const;
+    static void CalculateAndAddStiffnessMatrix(MatrixType& rLeftHandSideMatrix, const ElementVariables& rVariables);
 
     void CalculateAndAddCouplingMatrix(MatrixType& rLeftHandSideMatrix, const ElementVariables& rVariables) const;
 
-    void CalculateAndAddCompressibilityMatrix(MatrixType&             rLeftHandSideMatrix,
-                                              const ElementVariables& rVariables) const;
-
-    void CalculateAndAddRHS(VectorType& rRightHandSideVector, ElementVariables& rVariables, unsigned int GPoint);
+    static void CalculateAndAddCompressibilityMatrix(MatrixType&             rLeftHandSideMatrix,
+                                                     const ElementVariables& rVariables);
 
     void CalculateAndAddStiffnessForce(VectorType&             rRightHandSideVector,
                                        const ElementVariables& rVariables,
-                                       unsigned int            GPoint);
+                                       unsigned int            GPoint) const;
 
-    void CalculateAndAddMixBodyForce(VectorType& rRightHandSideVector, ElementVariables& rVariables);
+    void CalculateAndAddMixBodyForce(VectorType& rRightHandSideVector, ElementVariables& rVariables) const;
 
     void CalculateAndAddCouplingTerms(VectorType& rRightHandSideVector, const ElementVariables& rVariables) const;
 
-    void CalculateAndAddCompressibilityFlow(VectorType&             rRightHandSideVector,
-                                            const ElementVariables& rVariables) const;
+    static void CalculateAndAddCompressibilityFlow(VectorType&             rRightHandSideVector,
+                                                   const ElementVariables& rVariables);
 
-    [[nodiscard]] std::vector<double> CalculateRelativePermeabilityValues(const std::vector<double>& rFluidPressures) const;
     [[nodiscard]] std::vector<double> CalculateBishopCoefficients(const std::vector<double>& rFluidPressures) const;
-    void CalculateAndAddPermeabilityFlow(VectorType& rRightHandSideVector, const ElementVariables& rVariables) const;
+    static void CalculateAndAddPermeabilityFlow(VectorType&             rRightHandSideVector,
+                                                const ElementVariables& rVariables);
 
-    void CalculateAndAddFluidBodyFlow(VectorType& rRightHandSideVector, const ElementVariables& rVariables);
+    void CalculateAndAddFluidBodyFlow(VectorType& rRightHandSideVector, const ElementVariables& rVariables) const;
 
     Matrix CalculateBMatrix(const Matrix& rDN_DX, const Vector& rN) const;
     std::vector<Matrix> CalculateBMatrices(const GeometryType::ShapeFunctionsGradientsType& rDN_DXContainer,
                                            const Matrix& rNContainer) const;
 
-    void AssignPressureToIntermediateNodes();
+    Vector GetPressures(size_t n_nodes) const;
+    void   AssignPressureToIntermediateNodes();
 
     virtual Vector CalculateGreenLagrangeStrain(const Matrix& rDeformationGradient) const;
 
@@ -245,7 +243,7 @@ protected:
                                         std::vector<Vector>& rStressVectors,
                                         std::vector<Matrix>& rConstitutiveMatrices);
 
-    Vector GetPressureSolutionVector();
+    [[nodiscard]] Vector GetPressureSolutionVector() const;
 
     [[nodiscard]] std::vector<double> CalculateDegreesOfSaturation(const std::vector<double>& rFluidPressures);
     [[nodiscard]] std::vector<double> CalculateDerivativesOfSaturation(const std::vector<double>& rFluidPressures);
@@ -269,26 +267,25 @@ private:
 
     friend class Serializer;
 
-    void save(Serializer& rSerializer) const override
-    {
-        KRATOS_SERIALIZE_SAVE_BASE_CLASS(rSerializer, UPwBaseElement)
-    }
+    void save(Serializer& rSerializer) const override;
 
-    void load(Serializer& rSerializer) override
-    {
-        KRATOS_SERIALIZE_LOAD_BASE_CLASS(rSerializer, UPwBaseElement)
-    }
+    void load(Serializer& rSerializer) override;
 
-    // Private Operations
+    Vector CalculateInternalForces(ElementVariables&          rVariables,
+                                   const std::vector<Matrix>& rBMatrices,
+                                   const std::vector<double>& rIntegrationCoefficients,
+                                   const std::vector<double>& rBiotCoefficients,
+                                   const std::vector<double>& rDegreesOfSaturation,
+                                   const std::vector<double>& rBiotModuliInverse,
+                                   const std::vector<double>& rRelativePermeabilityValues,
+                                   const std::vector<double>& rBishopCoefficients) const;
 
-    template <class TValueType>
-    inline void ThreadSafeNodeWrite(NodeType& rNode, const Variable<TValueType>& Var, const TValueType Value)
-    {
-        rNode.SetLock();
-        rNode.FastGetSolutionStepValue(Var) = Value;
-        rNode.UnSetLock();
-    }
-
+    Vector CalculateExternalForces(ElementVariables&          rVariables,
+                                   const std::vector<double>& rIntegrationCoefficients,
+                                   const std::vector<double>& rIntegrationCoefficientsOnInitialConfiguration,
+                                   const std::vector<double>& rDegreesOfSaturation,
+                                   const std::vector<double>& rRelativePermeabilityValues,
+                                   const std::vector<double>& rBishopCoefficients) const;
 }; // Class SmallStrainUPwDiffOrderElement
 
 } // namespace Kratos

@@ -12,29 +12,26 @@
 //
 
 // Project includes
-#include "custom_conditions/axisymmetric_line_normal_load_2D_diff_order_condition.hpp"
+#include "custom_conditions/axisymmetric_line_normal_load_2D_diff_order_condition.h"
 #include "custom_utilities/element_utilities.hpp"
 
 namespace Kratos
 {
 
-// Default Constructor
 AxisymmetricLineNormalLoad2DDiffOrderCondition::AxisymmetricLineNormalLoad2DDiffOrderCondition()
     : LineNormalLoad2DDiffOrderCondition()
 {
 }
 
-// Constructor 1
 AxisymmetricLineNormalLoad2DDiffOrderCondition::AxisymmetricLineNormalLoad2DDiffOrderCondition(
     IndexType NewId, GeometryType::Pointer pGeometry)
-    : LineNormalLoad2DDiffOrderCondition(NewId, pGeometry)
+    : LineNormalLoad2DDiffOrderCondition(NewId, std::move(pGeometry))
 {
 }
 
-// Constructor 2
 AxisymmetricLineNormalLoad2DDiffOrderCondition::AxisymmetricLineNormalLoad2DDiffOrderCondition(
     IndexType NewId, GeometryType::Pointer pGeometry, PropertiesType::Pointer pProperties)
-    : LineNormalLoad2DDiffOrderCondition(NewId, pGeometry, pProperties)
+    : LineNormalLoad2DDiffOrderCondition(NewId, std::move(pGeometry), std::move(pProperties))
 {
 }
 
@@ -42,12 +39,18 @@ Condition::Pointer AxisymmetricLineNormalLoad2DDiffOrderCondition::Create(IndexT
                                                                           NodesArrayType const& ThisNodes,
                                                                           PropertiesType::Pointer pProperties) const
 {
-    return Condition::Pointer(new AxisymmetricLineNormalLoad2DDiffOrderCondition(
-        NewId, GetGeometry().Create(ThisNodes), pProperties));
+    return Create(NewId, GetGeometry().Create(ThisNodes), pProperties);
+}
+
+Condition::Pointer AxisymmetricLineNormalLoad2DDiffOrderCondition::Create(IndexType NewId,
+                                                                          GeometryType::Pointer pGeom,
+                                                                          PropertiesType::Pointer pProperties) const
+{
+    return make_intrusive<AxisymmetricLineNormalLoad2DDiffOrderCondition>(NewId, pGeom, pProperties);
 }
 
 double AxisymmetricLineNormalLoad2DDiffOrderCondition::CalculateIntegrationCoefficient(
-    const IndexType                                 PointNumber,
+    IndexType                                       PointNumber,
     const GeometryType::JacobiansType&              JContainer,
     const GeometryType::IntegrationPointsArrayType& IntegrationPoints) const
 
@@ -67,6 +70,16 @@ double AxisymmetricLineNormalLoad2DDiffOrderCondition::CalculateIntegrationCoeff
 std::string AxisymmetricLineNormalLoad2DDiffOrderCondition::Info() const
 {
     return "AxisymmetricLineNormalLoad2DDiffOrderCondition";
+}
+
+void AxisymmetricLineNormalLoad2DDiffOrderCondition::save(Serializer& rSerializer) const
+{
+    KRATOS_SERIALIZE_SAVE_BASE_CLASS(rSerializer, LineNormalLoad2DDiffOrderCondition)
+}
+
+void AxisymmetricLineNormalLoad2DDiffOrderCondition::load(Serializer& rSerializer)
+{
+    KRATOS_SERIALIZE_LOAD_BASE_CLASS(rSerializer, LineNormalLoad2DDiffOrderCondition)
 }
 
 } // Namespace Kratos.

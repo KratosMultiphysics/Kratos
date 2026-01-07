@@ -16,6 +16,8 @@
 #include <algorithm>
 
 #include "containers/variable.h"
+#include "geometries/geometry.h"
+#include "includes/node.h"
 
 namespace Kratos
 {
@@ -23,12 +25,21 @@ namespace Kratos
 class KRATOS_API(GEO_MECHANICS_APPLICATION) VariablesUtilities
 {
 public:
-    template <typename GeometryType, typename OutputIt>
-    static OutputIt GetNodalValues(const GeometryType& rGeometry, const Variable<double>& rNodalVariable, OutputIt FirstOut)
+    template <typename OutputIt>
+    static OutputIt GetNodalValues(const Geometry<Node>& rGeometry, const Variable<double>& rNodalVariable, OutputIt FirstOut)
     {
         return std::transform(rGeometry.begin(), rGeometry.end(), FirstOut, [&rNodalVariable](const auto& node) {
             return node.FastGetSolutionStepValue(rNodalVariable);
         });
+    }
+
+    template <unsigned int TNumNodes>
+    static array_1d<double, TNumNodes> GetNodalValuesOf(const Variable<double>& rNodalVariable,
+                                                        const Geometry<Node>&   rGeometry)
+    {
+        auto result = array_1d<double, TNumNodes>{};
+        GetNodalValues(rGeometry, rNodalVariable, result.begin());
+        return result;
     }
 
     static const Variable<double>& GetComponentFromVectorVariable(const std::string& rSourceVariableName,

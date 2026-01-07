@@ -1,7 +1,7 @@
 import KratosMultiphysics
 import KratosMultiphysics.DamApplication as KratosDam
 
-## This proces sets the value of water loads.
+## This process sets the value of water loads.
 
 def Factory(settings, Model):
     if not isinstance(settings, KratosMultiphysics.Parameters):
@@ -35,10 +35,10 @@ class ImposeWaterLoadsConditionProcess(KratosMultiphysics.Process):
 
             self.components_process_list.append(KratosDam.DamWestergaardConditionLoadProcess(model_part, settings))
 
-    def ExecuteInitialize(self):
+    def ExecuteBeforeSolutionLoop(self):
 
         for component in self.components_process_list:
-            component.ExecuteInitialize()
+            component.ExecuteBeforeSolutionLoop()
 
     def ExecuteInitializeSolutionStep(self):
 

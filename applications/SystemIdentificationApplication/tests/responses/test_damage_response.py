@@ -4,13 +4,14 @@ import KratosMultiphysics.SystemIdentificationApplication as KratosSI
 
 from KratosMultiphysics.OptimizationApplication.responses.response_routine import ResponseRoutine
 from KratosMultiphysics.OptimizationApplication.optimization_analysis import OptimizationAnalysis
-from KratosMultiphysics.SystemIdentificationApplication.utilities.sensor_utils import GetSensors
+from KratosMultiphysics.SystemIdentificationApplication.utilities.sensor_utils import CreateSensors
 
 class TestDamageDetectionAdjointResponseFunction(kratos_unittest.TestCase):
     @classmethod
     def setUpClass(cls) -> None:
         cls.model = Kratos.Model()
         cls.model_part = cls.model.CreateModelPart("Test")
+        cls.sensor_model_part = cls.model.CreateModelPart("SensorModelPart")
         cls.model_part.AddNodalSolutionStepVariable(Kratos.DISPLACEMENT)
 
         cls.model_part.CreateNewNode(1, 0.0, 0.0, 0.0)
@@ -66,12 +67,12 @@ class TestDamageDetectionAdjointResponseFunction(kratos_unittest.TestCase):
             }""")
         ]
 
-        cls.sensors = GetSensors(cls.model_part, parameters)
+        cls.sensors = CreateSensors(cls.sensor_model_part, cls.model_part, parameters)
 
-        cls.adjoint_response_function = KratosSI.Sensors.MeasurementResidualResponseFunction(3.0)
+        cls.adjoint_response_function = KratosSI.Responses.MeasurementResidualResponseFunction(3.0)
 
         for i, sensor in enumerate(cls.sensors):
-            sensor.SetValue(KratosSI.SENSOR_MEASURED_VALUE, i * 15 - 10)
+            sensor.GetNode().SetValue(KratosSI.SENSOR_MEASURED_VALUE, i * 15 - 10)
             cls.adjoint_response_function.AddSensor(sensor)
 
         cls.adjoint_response_function.Initialize()
@@ -84,7 +85,7 @@ class TestDamageDetectionAdjointResponseFunction(kratos_unittest.TestCase):
     def test_CalculateValue(self):
         value = 0.0
         for sensor in self.sensors:
-            value += (0.5 * sensor.GetWeight() * (sensor.CalculateValue(self.model_part) - sensor.GetValue(KratosSI.SENSOR_MEASURED_VALUE)) ** 2) ** 3.0
+            value += (0.5 * sensor.GetWeight() * (sensor.CalculateValue(self.model_part) - sensor.GetNode().GetValue(KratosSI.SENSOR_MEASURED_VALUE)) ** 2) ** 3.0
         self.assertAlmostEqual(self.ref_value, value ** (1 / 3), 5)
 
     def test_CalculateGradient(self):
@@ -140,6 +141,37 @@ class TestDamageDetectionResponse(kratos_unittest.TestCase):
 
             ref_value = response.CalculateValue()
             self.assertAlmostEqual(ref_value, 0.0009799118589232621, 6)
+
+            response.CalculateGradient(var)
+
+            gradients = var[Kratos.YOUNG_MODULUS].Evaluate()
+
+            delta = 1e-8
+            for index, element in enumerate(model_part.Elements):
+                element.Properties[Kratos.YOUNG_MODULUS] += delta
+                sensitivity = ((response.CalculateValue() - ref_value) / delta)
+                self.assertAlmostEqual(gradients[index], sensitivity, 6)
+                element.Properties[Kratos.YOUNG_MODULUS] -= delta
+
+class TestDamageDetectionResponseStrainSensor(kratos_unittest.TestCase):
+    def test_DamageResponse(self):
+        with kratos_unittest.WorkFolderScope(".", __file__):
+            with open("auxiliary_files_2/optimization_parameters_p_norm.json", "r") as file_input:
+                parameters = Kratos.Parameters(file_input.read())
+
+            model = Kratos.Model()
+            analysis = OptimizationAnalysis(model, parameters)
+
+            analysis.Initialize()
+            analysis.Check()
+            objective: ResponseRoutine = analysis.optimization_problem.GetComponent("damage_response", ResponseRoutine)
+
+            var = objective.GetRequiredPhysicalGradients()
+            response = objective.GetReponse()
+            model_part = response.GetInfluencingModelPart()
+
+            ref_value = response.CalculateValue()
+            self.assertAlmostEqual(ref_value, 2.7829118764552163e-08, 10)
 
             response.CalculateGradient(var)
 

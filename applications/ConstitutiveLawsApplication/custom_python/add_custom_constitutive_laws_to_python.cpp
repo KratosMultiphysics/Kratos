@@ -52,8 +52,12 @@
 #include "custom_constitutive/small_strains/viscous/viscous_generalized_kelvin.h"
 #include "custom_constitutive/small_strains/viscoplasticity/generic_small_strain_viscoplasticity_3d.h"
 #include "custom_constitutive/small_strains/plasticity/generic_small_strain_isotropic_plasticity.h"
+#include "custom_constitutive/small_strains/plasticity/generic_small_strain_isotropic_plasticity_plane_stress.h"
+#include "custom_constitutive/small_strains/plasticity/generic_small_strain_kinematic_plasticity_plane_stress.h"
 #include "custom_constitutive/finite_strains/plasticity/generic_finite_strain_isotropic_plasticity.h"
 #include "custom_constitutive/finite_strains/plasticity/generic_finite_strain_kinematic_plasticity.h"
+#include "custom_constitutive/finite_strains/plasticity/generic_finite_strain_isotropic_plasticity_plane_stress.h"
+#include "custom_constitutive/finite_strains/plasticity/generic_finite_strain_kinematic_plasticity_plane_stress.h"
 #include "custom_constitutive/small_strains/damage/generic_small_strain_isotropic_damage.h"
 #include "custom_constitutive/small_strains/damage/generic_small_strain_d_plus_d_minus_damage.h"
 #include "custom_constitutive/small_strains/plasticity/generic_small_strain_kinematic_plasticity.h"
@@ -75,6 +79,7 @@
 // Yield surfaces
 #include "custom_constitutive/auxiliary_files/yield_surfaces/generic_yield_surface.h"
 #include "custom_constitutive/auxiliary_files/yield_surfaces/von_mises_yield_surface.h"
+#include "custom_constitutive/auxiliary_files/yield_surfaces/plane_stress_von_mises_yield_surface.h"
 #include "custom_constitutive/auxiliary_files/yield_surfaces/modified_mohr_coulomb_yield_surface.h"
 #include "custom_constitutive/auxiliary_files/yield_surfaces/mohr_coulomb_yield_surface.h"
 #include "custom_constitutive/auxiliary_files/yield_surfaces/rankine_yield_surface.h"
@@ -94,6 +99,7 @@
 // Plastic potentials
 #include "custom_constitutive/auxiliary_files/plastic_potentials/generic_plastic_potential.h"
 #include "custom_constitutive/auxiliary_files/plastic_potentials/von_mises_plastic_potential.h"
+#include "custom_constitutive/auxiliary_files/plastic_potentials/plane_stress_von_mises_plastic_potential.h"
 #include "custom_constitutive/auxiliary_files/plastic_potentials/tresca_plastic_potential.h"
 #include "custom_constitutive/auxiliary_files/plastic_potentials/modified_mohr_coulomb_plastic_potential.h"
 #include "custom_constitutive/auxiliary_files/plastic_potentials/mohr_coulomb_plastic_potential.h"
@@ -103,6 +109,8 @@
 // Rules of mixtures
 #include "custom_constitutive/composites/rule_of_mixtures_law.h"
 #include "custom_constitutive/composites/traction_separation_law.h"
+#include "custom_constitutive/small_strains/anisotropy_orthotropy/generic_anisotropic_law.h"
+#include "custom_constitutive/small_strains/anisotropy_orthotropy/generic_anisotropic_plane_stress_2d_law.h"
 
 #include "custom_constitutive/small_strains/plastic_damage/associative_plastic_damage_model.h"
 
@@ -114,6 +122,9 @@
 #include "custom_constitutive/thermal/small_strains/damage/generic_small_strain_thermal_isotropic_damage_plane_stress.h"
 
 #include "custom_constitutive/thermal/auxiliary_files/thermal_yield_surfaces/thermal_von_mises_yield_surface.h"
+
+// Structural elements CL
+#include "custom_constitutive/structural_elements_constitutive_laws/thickness_integrated_isotropic_constitutive_law.h"
 
 namespace Kratos::Python {
 
@@ -241,6 +252,11 @@ void AddCustomConstitutiveLawsToPython(pybind11::module& m)
     // Custom Constitutive Laws Registration
     // Isotropic Plasticity
     /* Small strain */
+
+    py::class_< GenericSmallStrainIsotropicPlasticityPlaneStress <GenericConstitutiveLawIntegratorPlasticity<PlaneStressVonMisesYieldSurface<PlaneStressVonMisesPlasticPotential<3>>>>,
+    typename GenericSmallStrainIsotropicPlasticityPlaneStress <GenericConstitutiveLawIntegratorPlasticity<PlaneStressVonMisesYieldSurface<PlaneStressVonMisesPlasticPotential<3>>>>::Pointer,
+    ConstitutiveLaw >
+    (m,"SmallStrainIsotropicPlasticityPlaneStressVonMisesVonMises").def(py::init<>());
 
     py::class_< GenericSmallStrainIsotropicPlasticity <GenericConstitutiveLawIntegratorPlasticity<VonMisesYieldSurface<VonMisesPlasticPotential<3>>>>,
     typename GenericSmallStrainIsotropicPlasticity <GenericConstitutiveLawIntegratorPlasticity<VonMisesYieldSurface<VonMisesPlasticPotential<3>>>>::Pointer,
@@ -488,6 +504,11 @@ void AddCustomConstitutiveLawsToPython(pybind11::module& m)
     // Kinematic Plasticity
     /* Small strain */
 
+	py::class_< GenericSmallStrainKinematicPlasticityPlaneStress <GenericConstitutiveLawIntegratorKinematicPlasticity<PlaneStressVonMisesYieldSurface<PlaneStressVonMisesPlasticPotential<3>>>>,
+    typename GenericSmallStrainKinematicPlasticityPlaneStress <GenericConstitutiveLawIntegratorKinematicPlasticity<PlaneStressVonMisesYieldSurface<PlaneStressVonMisesPlasticPotential<3>>>>::Pointer,
+    ConstitutiveLaw >
+    (m,"SmallStrainKinematicPlasticityPlaneStressVonMisesVonMises").def(py::init<>());
+
 	py::class_< GenericSmallStrainKinematicPlasticity <GenericConstitutiveLawIntegratorKinematicPlasticity<VonMisesYieldSurface<VonMisesPlasticPotential<3>>>>,
     typename GenericSmallStrainKinematicPlasticity <GenericConstitutiveLawIntegratorKinematicPlasticity<VonMisesYieldSurface<VonMisesPlasticPotential<3>>>>::Pointer,
     ConstitutiveLaw >
@@ -717,6 +738,11 @@ void AddCustomConstitutiveLawsToPython(pybind11::module& m)
 
     /* Finite strain */
     // Isotropic
+    py::class_< GenericFiniteStrainIsotropicPlasticityPlaneStress <GenericConstitutiveLawIntegratorPlasticity<PlaneStressVonMisesYieldSurface<PlaneStressVonMisesPlasticPotential<3>>>>,
+    typename GenericFiniteStrainIsotropicPlasticityPlaneStress <GenericConstitutiveLawIntegratorPlasticity<PlaneStressVonMisesYieldSurface<PlaneStressVonMisesPlasticPotential<3>>>>::Pointer,
+    ConstitutiveLaw >
+    (m,"FiniteStrainIsotropicPlasticityPlaneStressVonMisesVonMises").def(py::init<>());
+
     py::class_< GenericFiniteStrainIsotropicPlasticity <GenericConstitutiveLawIntegratorPlasticity<VonMisesYieldSurface<VonMisesPlasticPotential<6>>>>,
     typename GenericFiniteStrainIsotropicPlasticity <GenericConstitutiveLawIntegratorPlasticity<VonMisesYieldSurface<VonMisesPlasticPotential<6>>>>::Pointer,
     ConstitutiveLaw >
@@ -799,6 +825,11 @@ void AddCustomConstitutiveLawsToPython(pybind11::module& m)
 
     /* Finite strain */
     // Kinematic
+    py::class_< GenericFiniteStrainKinematicPlasticityPlaneStress <GenericConstitutiveLawIntegratorKinematicPlasticity<PlaneStressVonMisesYieldSurface<PlaneStressVonMisesPlasticPotential<3>>>>,
+    typename GenericFiniteStrainKinematicPlasticityPlaneStress <GenericConstitutiveLawIntegratorKinematicPlasticity<PlaneStressVonMisesYieldSurface<PlaneStressVonMisesPlasticPotential<3>>>>::Pointer,
+    ConstitutiveLaw >
+    (m,"FiniteStrainKinematicPlasticityPlaneStressVonMisesVonMises").def(py::init<>());
+
     py::class_< GenericFiniteStrainKinematicPlasticity <GenericConstitutiveLawIntegratorKinematicPlasticity<VonMisesYieldSurface<VonMisesPlasticPotential<6>>>>,
     typename GenericFiniteStrainKinematicPlasticity <GenericConstitutiveLawIntegratorKinematicPlasticity<VonMisesYieldSurface<VonMisesPlasticPotential<6>>>>::Pointer,
     ConstitutiveLaw >
@@ -1351,8 +1382,24 @@ void AddCustomConstitutiveLawsToPython(pybind11::module& m)
     (m,"ParallelRuleOfMixturesLaw2D").def(py::init<>())
     ;
 
-    py::class_< SerialParallelRuleOfMixturesLaw, typename SerialParallelRuleOfMixturesLaw::Pointer,  ConstitutiveLaw  >
-    (m,"SerialParallelRuleOfMixturesLaw").def(py::init<>())
+    py::class_< SerialParallelRuleOfMixturesLaw<3>, typename SerialParallelRuleOfMixturesLaw<3>::Pointer,  ConstitutiveLaw  >
+    (m,"SerialParallelRuleOfMixturesLaw3D").def(py::init<>())
+    ;
+
+    py::class_< SerialParallelRuleOfMixturesLaw<2>, typename SerialParallelRuleOfMixturesLaw<2>::Pointer,  ConstitutiveLaw  >
+    (m,"SerialParallelRuleOfMixturesLaw2D").def(py::init<>())
+    ;
+
+    py::class_< GenericAnisotropicLaw<3>, typename GenericAnisotropicLaw<3>::Pointer,  ConstitutiveLaw  >
+    (m,"GenericAnisotropic3DLaw").def(py::init<>())
+    ;
+
+    py::class_< GenericAnisotropicLaw<2>, typename GenericAnisotropicLaw<2>::Pointer,  ConstitutiveLaw  >
+    (m,"GenericAnisotropicPlaneStrain2DLaw").def(py::init<>())
+    ;
+
+    py::class_< GenericAnisotropicPlaneStress2DLaw, typename GenericAnisotropicPlaneStress2DLaw::Pointer,  ConstitutiveLaw  >
+    (m,"GenericAnisotropicPlaneStress2DLaw").def(py::init<>())
     ;
 
     py::class_< AssociativePlasticDamageModel <VonMisesYieldSurface<VonMisesPlasticPotential<6>>>,
@@ -1468,6 +1515,12 @@ void AddCustomConstitutiveLawsToPython(pybind11::module& m)
     py::class_<  GenericSmallStrainThermalIsotropicDamagePlaneStress <GenericConstitutiveLawIntegratorDamage<ThermalRankineYieldSurface<VonMisesPlasticPotential<3>>>>,
     typename GenericSmallStrainThermalIsotropicDamagePlaneStress <GenericConstitutiveLawIntegratorDamage<ThermalRankineYieldSurface<VonMisesPlasticPotential<3>>>>::Pointer,
     ConstitutiveLaw > (m,"SmallStrainThermalIsotropicDamagePlaneStressRankine").def(py::init<>());
+
+    // Structural elements CLs
+    py::class_< ThicknessIntegratedIsotropicConstitutiveLaw, typename ThicknessIntegratedIsotropicConstitutiveLaw::Pointer,  ConstitutiveLaw  >
+    (m,"ThicknessIntegratedIsotropicConstitutiveLaw").def(py::init<>())
+    ;
+
 
 }
 

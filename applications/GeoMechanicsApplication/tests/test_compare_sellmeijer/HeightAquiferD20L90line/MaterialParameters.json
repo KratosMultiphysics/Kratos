@@ -1,0 +1,84 @@
+{
+    "properties": [
+        {
+            "model_part_name": "PorousDomain.Soil",
+            "properties_id": 1,
+            "Material": {
+                "constitutive_law": {
+                    "name": "GeoLinearElasticPlaneStrain2DLaw"
+                },
+                "Variables": {
+                    "YOUNG_MODULUS": 10000,
+                    "POISSON_RATIO": 0.2,
+                    "DENSITY_SOLID": 2650,
+                    "DENSITY_WATER": 1000,
+                    "POROSITY": 0.3,
+                    "BULK_MODULUS_SOLID": 0,
+                    "BULK_MODULUS_FLUID": 0,
+                    "PERMEABILITY_XX": 1.157e-12,
+                    "PERMEABILITY_YY": 1.157e-12,
+                    "PERMEABILITY_XY": 0.0,
+                    "DYNAMIC_VISCOSITY": 0.001,
+                    "BIOT_COEFFICIENT": 1.0,
+                    "RETENTION_LAW": "SaturatedLaw",
+                    "SATURATED_SATURATION": 1.0
+                }
+            }
+        },
+        {
+            "model_part_name": "PorousDomain.Embankment",
+            "properties_id": 2,
+            "Material": {
+                "constitutive_law": {
+                    "name": "GeoLinearElasticPlaneStrain2DLaw"
+                },
+                "Variables": {
+                    "YOUNG_MODULUS": 10000,
+                    "POISSON_RATIO": 0.2,
+                    "DENSITY_SOLID": 2650,
+                    "DENSITY_WATER": 1000,
+                    "POROSITY": 0.3,
+                    "BULK_MODULUS_SOLID": 0,
+                    "BULK_MODULUS_FLUID": 0,
+                    "PERMEABILITY_XX": 1.157e-15,
+                    "PERMEABILITY_YY": 1.157e-15,
+                    "PERMEABILITY_XY": 0.0,
+                    "DYNAMIC_VISCOSITY": 0.001,
+                    "BIOT_COEFFICIENT": 1.0,
+                    "RETENTION_LAW": "SaturatedLaw",
+                    "SATURATED_SATURATION": 1.0
+                }
+            }
+        },
+        {
+            "model_part_name": "PorousDomain.Pipe",
+            "properties_id": 3,
+            "Material": {
+                "constitutive_law": {
+                    "name": "GeoLinearElasticPlaneStrain2DLaw"
+                },
+                "Variables": {
+                    "YOUNG_MODULUS": 100000,
+                    "POISSON_RATIO": 0.2,
+                    "DENSITY_SOLID": 2650.0,
+                    "DENSITY_WATER": 1000.0,
+                    "POROSITY": 1.0,
+                    "BULK_MODULUS_SOLID": 9e+19,
+                    "BULK_MODULUS_FLUID": 1e+20,
+                    "PERMEABILITY_XX": 0.0,
+                    "DYNAMIC_VISCOSITY": 0.001,
+                    "BIOT_COEFFICIENT": 1.0,
+                    "RETENTION_LAW": "SaturatedLaw",
+                    "SATURATED_SATURATION": 1.0,
+                    "PIPE_ETA": 0.25,
+                    "PIPE_THETA": 37,
+                    "PIPE_START_ELEMENT": 1058,
+                    "PIPE_MODIFIED_D": false,
+                    "PIPE_MODEL_FACTOR": 1.0,
+                    "PIPE_D_70": 0.0003,
+                    "PIPE_HEIGHT": 0.0
+                }
+            }
+        }
+    ]
+}

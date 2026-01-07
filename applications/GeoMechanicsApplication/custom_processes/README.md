@@ -5,8 +5,10 @@ This folder contains the custom processes that are used in the GeoMechanicsAppli
 Documented processes:
 - [$c-\phi$ reduction process](#c-phi-reduction-process)
 - [GeoExtrapolateIntegrationPointValuesToNodesProcess](#extrapolation-of-integration-values-to-nodes)
-- [ResetDisplacementProcess](#reset-displacement-process)
+- [ApplyFinalStressesOfPreviousStageToInitialState](#apply-final-stresses-of-previous-stage-to-initial-state-process)
 - [$K_0$ procedure process](#K_0-procedure-process)
+- [ApplyInitialUniformStress](#apply-initial-uniform-stress)
+- [FindNeighboursOfInterfaces](#find-neighbours-of-interfaces)
 
 ## $c-\phi$ reduction process
 For the assessment of a safety factor to characterize slope stability, a Mohr-Coulomb material based $c-\phi$ reduction 
@@ -19,7 +21,10 @@ The $c-\phi$ reduction process requires the existence of a stress state in your 
 points violate the given Mohr-Coulomb failure surface. During the stage with the active $c-\phi$ reduction process, 
 $c$ and $\tan \phi$ will be incrementally reduced in steps with an initial size of 10%. For each reduction step stresses are 
 mapped back onto the reduced Mohr-Coulomb yield surface and equilibrium is found if possible. When equilibrium is no longer 
-found in the given number of iterations for the Newton-Raphson scheme, the step is retried with a halved reduction increment. This is repeated until the allowed number of cycles for a step is reached.   
+found in the given number of iterations for the Newton-Raphson scheme, the step is retried with a halved reduction increment.
+This is repeated until the allowed number of cycles for a step is reached or until the reduction factor drops below 0.01.
+As the stepping is "mis"using the time-stepping of the GeoMechanics application, reaching the end_time also terminates the
+reduction process.
 
 ### Safety factor
 The safety factor is computed as the inverse of the reduction factor [[1]](#1):
@@ -34,14 +39,14 @@ $$\alpha = \frac{c_c}{c} = \frac{\tan \phi_c}{\tan \phi}$$
 The `GeoExtrapolateIntegrationPointValuesToNodesProcess` can be used as a post-processing step to acquire nodal data for variables that are stored at the integration points. This is useful for visualization services which expect nodal data.
 
 Conceptually the process consists of the following steps:
-1. Determine a count for each node, to keep track of how many elements will contribute to the nodal value.
+1. Determine a count for each node, to keep track of how many elements will contribute to the nodal value.  Note that only the elements of the given model part(s) are considered!
 2. Calculate the extrapolation matrix, to distribute the integration values to the nodes.
 3. Calculate the integration point values of the variables of interest, by using the `CalculateOnIntegrationPoints` function of the `Element` class.
 4. For each element, distribute the integration point values to their respective nodes by multiplying the extrapolation matrix with the integration point values.
 5. Divide the nodal values by the count to get the average value.
 
-### Restrictions
-Currently, this process is only implemented for 3-noded or 6-noded `Triangle` and 4-noded or 8-noded `Quadrilateral` elements in 2D. The extrapolation is always done linearly. For the higher order 6-noded and 8-noded elements, this means the corner nodes are extrapolated as usual, but the mid-side nodes are extrapolated using linear combinations of the extrapolation contributions for the corner nodes.
+### Limitations
+The process supports floating-point scalar, vector, and matrix variables.  The supported element shapes include lines, triangles, quadrilaterals, tetrahedra, and hexahedra as well as line and plane interfaces.  Furthermore, the order of the element's shape functions must be either linear or quadratic.  The extrapolation is always done linearly.  For the quadratic elements, this means the corner nodes are extrapolated as usual, but the mid-side nodes are extrapolated using linear combinations of the extrapolation contributions for the corner nodes.
 
 ### Usage
 The process is defined as follows in json (also found in some of the [integration tests](../tests/test_integration_node_extrapolation)):
@@ -56,19 +61,18 @@ The process is defined as follows in json (also found in some of the [integratio
   }
 }
 ```
-Where the `model_part_name` should contain the name of the model part where the extrapolation is to be performed for the variables in `list_of_variables`. These variables could be of any type, as long as the `Element` class has an implementation of the `CalculateOnIntegrationPoints` function for them.
+The process receives either a single model part name (when using `model_part_name`) or a list of model part names (when using `model_part_name_list`).  Note that any elements that are not part of the given model part(s) are **not** considered by the extrapolation process.  Inactive elements are automatically discarded by the process.  In general, the variables that are to be extrapolated (supplied through `list_of_variables`) should be valid for all elements of the supplied model part(s), or else errors may occur.  For instance, extrapolation of bending moments only makes sense for structural elements that have curvatures.  Similarly, extrapolation of traction vectors only makes sense in the context of interface elements.  Therefore, it is recommended to have one extrapolation process per group of variables that can be calculated for all of the elements of the given model part(s).  As mentioned in the [Section Limitations](#limitations), these variables could be of any type, as long as the `Element` class has an implementation of the `CalculateOnIntegrationPoints` function for them.
 
 
 When this process is added to the `ProjectParameters.json`, the variables specified in `list_of_variables` can be exported as nodal output (e.g. as `nodal_results` in the `GiDOutputProcess`). 
 
-## Reset displacement process
-The `ResetDisplacementProcess` can be used to change the reference point of the displacements to the displacement at the start of that stage.
+## Apply Final Stresses Of Previous Stage To Initial State Process
+The `ApplyFinalStressesOfPreviousStageToInitialState` process can be used to change the reference point of the displacements to the displacement at the start of that stage. This process only needs to be applied to structural and interface elements, to convert the displacements from a total displacement to a staged displacement.
 
 ### Requirements
 For this process to work, the following requirements have to be met:
 1. The elements in the model part that the process is applied to should have an implementation for `CalculateOnIntegrationPoints` that calculates the PK2_STRESS_VECTOR as well as an overload of `CalculateOnIntegrationPoints` that returns a list of ConstitutiveLaw::Pointer objects for each integration point.
-2. The input type of the model can only be "rest" (short for restarted), to ensure that the state of the model is retained from the previous stage. The reason for this, is that the constitutive laws are used at the start of a state to calculate the initial stresses based on the history. If the model is not 'restarted', the constitutive laws will be cleared and the initial stresses can not be calculated correctly.
-3. The ConstitutiveLaw used in the elements this process is applied to should use the `InitialState` to apply the initial stresses to the calculated stresses.
+2. The ConstitutiveLaw used in the elements this process is applied to should use the `InitialState` to apply the initial stresses to the calculated stresses.
 
 
 ## $K_0$ procedure process
@@ -89,11 +93,19 @@ When the overconsolidation ratio ("OCR") and optionally the unloading-reloading 
 
 $$K_0 = OCR.K_0^{nc} +  \frac{\nu_{ur}}{1 - \nu_{ur}} ( OCR - 1 )$$
 
-![Initial effective stress tensor](initial_effective_stress_tensor.png)
+```math
+\sigma^{'}_{initial} = \begin{bmatrix} {K_0 \sigma^{'}_{zz}} & 0 & 0 \\
+                                        0 & {K_0 \sigma^{'}_{zz}} & 0 \\
+                                        0 & 0 & {\sigma^{'}_{zz}} \end{bmatrix}
+```
 
 Alternatively, when the pre-overburden pressure "POP" is specified, the initial stress tensor becomes:
 
-![Initial effective stress tensor with POP](initial_effective_stress_tensor_with_POP.png)
+```math
+\sigma^{'}_{initial} = \begin{bmatrix} {K_0^{nc} (\sigma^{'}_{zz} + POP )} - \frac{\nu_{ur}}{1 - \nu_{ur}} POP & 0 & 0 \\
+                                        0 & {K_0^{nc} (\sigma^{'}_{zz} + POP)} - \frac{\nu_{ur}}{1 - \nu_{ur}} POP & 0 \\
+                                        0 & 0 & {\sigma^{'}_{zz}} \end{bmatrix}
+```
 
 When the optional unloading-reloading Poisson's ratio is omitted, a default value $\nu_{ur} = 0$ is used such that the correction term drops to 0.
 
@@ -104,20 +116,36 @@ After the stress adaptation by the $K_0$ procedure, the stress state may not be 
 The process is defined as follows in "ProjectParameters.json" (also found in some of the [integration tests](../tests/test_k0_procedure_process)). Without the addition of this process, no adaptation of the horizontal stresses takes place.
 ```json
 {
-  "auxilliary_process_list": [
+  "auxiliary_process_list": [
     {
       "python_module": "apply_k0_procedure_process",
       "kratos_module": "KratosMultiphysics.GeoMechanicsApplication",
       "process_name": "ApplyK0ProcedureProcess",
       "Parameters": {
         "model_part_name": "PorousDomain.porous_computational_model_part",
-        "variable_name": "CAUCHY_STRESS_TENSOR",
         "use_standard_procedure": true
       }
     }
   ]
 }
 ```
+Next to specifying a single model part, it is also possible to provide a list:
+```json
+{
+  "auxiliary_process_list": [
+    {
+      "python_module": "apply_k0_procedure_process",
+      "kratos_module": "KratosMultiphysics.GeoMechanicsApplication",
+      "process_name": "ApplyK0ProcedureProcess",
+      "Parameters": {
+        "model_part_name_list": ["PorousDomain.Clay", "PorousDomain.Sand"],
+        "use_standard_procedure": true
+      }
+    }
+  ]
+}
+```
+
 The "apply_k0_procedure_process" needs the following material parameter input to be added in the "MaterialParameters.json".
 ```json
 {
@@ -126,7 +154,6 @@ The "apply_k0_procedure_process" needs the following material parameter input to
     "K0_NC":                       0.6,
     "UDSM_NAME"                :  "MohrCoulomb64.dll",
     "IS_FORTRAN_UDSM"          :  true,
-    "NUMBER_OF_UMAT_PARAMETERS":  6,
     "INDEX_OF_UMAT_PHI_PARAMETER": 4,
     "UMAT_PARAMETERS"          :  [30000000,
                                    0.2,
@@ -137,9 +164,79 @@ The "apply_k0_procedure_process" needs the following material parameter input to
     "OCR":                         1.4,
     "POISSON_UNLOADING_RELOADING": 0.35,
     "POP":                         800.0
-  },
+  }
 }
 ```
 
+## Apply Initial Uniform Stress
+
+This process applies an initial uniform stress field to all elements in a model part.
+The elements in the model part need to be able to calculate and set the CAUCHY_STRESS_VECTOR variable.
+The Parameters object should contain a "value" field, which is a vector representing the stress components.
+The vector should have a length equal to the strain size (e.g. 4 for plane strain and axisymmetric cases, 6 for 3D).
+Note that this means that if you want to apply a uniform stress field to 
+elements with different strain sizes, you will need to apply the process multiple times with separate model parts.
+
+Example usage for a case with 3D elements in a ProjectParameters.json file:
+```json
+{
+    "loads_process_list": [
+      {
+        "python_module": "apply_initial_uniform_stress_field",
+        "kratos_module": "KratosMultiphysics.GeoMechanicsApplication",
+        "process_name":  "ApplyInitialUniformStressField",
+        "Parameters":    {
+        "model_part_name": "PorousDomain.Soil",
+        "value": [1.0, 2.0, 3.0, 4.0, 5.0, 6.0]
+        }
+      }
+    ]
+}
+```
+
+
+## Find Neighbours Of Interfaces
+
+This process finds the neighbouring elements of interface elements in a model part. These neighbours are then used to calculate and apply a prestress to the interfaces based on the stress state of the neighbouring elements. Typically, this process is used in a multi-stage analysis, where in a specific stage the interfaces are installed (along with a structural element that models, for instance, a sheet pile wall). To avoid deformations due to differences in stress between already existing soil elements and the newly added interface elements, equilibrium is ensured by prestressing the interfaces using the stresses of the surrounding soil.
+
+The process of applying prestress to the interfaces consists of the following steps:
+1. The neighbouring elements of the interface elements are found using this process.
+2. The stresses at the integration points of the neighbouring elements are extrapolated to their respective nodes.
+3. The nodal stresses are interpolated to the integration points of the interface elements.
+
+Note that steps 2 and 3 are not part of `FindNeighboursOfInterfacesProcess`, but they are taken care of by the interface element itself when neighbours are known. The process only finds neighbouring elements with a higher local dimension than the interface elements, to avoid prestressing the element with stresses of non-continuum elements (e.g. structural elements or other interface elements). 
+
+Example usage for a case in a ProjectParameters.json file:
+
+```json
+{
+  "python_module": "find_neighbours_of_interfaces_process",
+  "kratos_module": "KratosMultiphysics.GeoMechanicsApplication",
+  "process_name": "FindNeighboursOfInterfacesProcess",
+  "Parameters": {
+    "model_part_name": "PorousDomain.Interface",
+    "model_part_name_for_neighbouring_elements": "PorousDomain.porous_computational_model_part"
+  }
+}
+```
+
+The `model_part_name_for_neighbouring_elements` is used to specify the model part that contains the elements which can be neighbours to the interface elements. Typically, this is the entire computational domain.
+
+Next to specifying a single model part, it is also possible to provide a list of model parts containing interface elements:
+```json
+{
+  "auxiliary_process_list": [
+    {
+      "python_module": "find_neighbours_of_interfaces_process",
+      "kratos_module": "KratosMultiphysics.GeoMechanicsApplication",
+      "process_name": "FindNeighboursOfInterfacesProcess",
+      "Parameters": {
+        "model_part_name_list": ["Interfaces_Left", "Interfaces_Right"],
+        "model_part_name_for_neighbouring_elements": "PorousDomain.porous_computational_model_part"
+      }
+    }
+  ]
+}
+```
 ## References
 <a id="1">[1]</a> Brinkgreve, R.B.J., Bakker, H.L., 1991. Non-linear finite element analysis of safety factors, Computer Methods and Advances in Geomechanics, Beer, Booker & Carterr (eds), Balkema, Rotterdam.

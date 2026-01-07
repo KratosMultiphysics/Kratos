@@ -151,3 +151,11 @@ $$q_{mc} = \frac{3}{\sqrt{3}\cos \bar{\theta}_s - \sin \bar{\theta}_s \sin \phi 
 Assessment of how the current stress utilizes the capacity as defined by the Mohr Coulomb yield surface.
 
 $$(q_{mc} - q)\frac{3 \sin{\phi}}{\sqrt{3} \cos{\bar{\theta}_s} - \sin{\bar{\theta}_s} \sin{\phi}}$$
+
+## Extrapolation utilities
+
+### CalculateExtrapolationMatrix  function
+This function calculates an extrapolation matrix that is used to extrapolate data from integration points of an element to its nodes. The matrix is used to perform linear interpolation. 
+
+### CalculateNodalVectors function
+This function uses the extrapolation matrix to extrapolate vector inputs, for example, stress vectors from the integration points to the element nodes that are provided as input. 

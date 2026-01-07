@@ -37,21 +37,38 @@
 // Include base h
 #include "hdf5_file.h"
 
+#ifndef KRATOS_CHECK_FOR_HDF5_ERROR
+#define KRATOS_CHECK_FOR_HDF5_ERROR(METHOD, /*int*/ RETURN_VALUE)                                           \
+    if (RETURN_VALUE < 0) {                                                                                 \
+        std::stringstream message;                                                                          \
+        message << "call to " << #METHOD << " returned error code " << RETURN_VALUE << " with message:\n";  \
+        auto callback = [](unsigned depth,                                                                  \
+                        const H5E_error_t* p_error_descriptor,                                              \
+                        void* p_stream) -> herr_t {                                                         \
+            std::stringstream& r_stream = *static_cast<std::stringstream*>(p_stream);                       \
+            if (!depth) r_stream << p_error_descriptor->desc << "\n";                                       \
+            r_stream << "in file " << p_error_descriptor->file_name                                         \
+                    << ":" << p_error_descriptor->line                                                      \
+                    << " in function " << p_error_descriptor->func_name << "\n";                            \
+            return 0;                                                                                       \
+        };                                                                                                  \
+        H5Ewalk(H5E_DEFAULT, H5E_WALK_UPWARD, callback, static_cast<void*>(&message));                      \
+        KRATOS_ERROR << message.str();                                                                      \
+    }
+#endif
+
 #ifndef KRATOS_HDF5_CALL_WITH_RETURN
 #define KRATOS_HDF5_CALL_WITH_RETURN(RETURN_VALUE, METHOD, ...) \
     RETURN_VALUE = METHOD(__VA_ARGS__);                         \
-    KRATOS_ERROR_IF(RETURN_VALUE < 0)                           \
-        << "Error occured in " << #METHOD                       \
-        << " [ hdf5 error code = " << RETURN_VALUE << " ].\n";
+    KRATOS_CHECK_FOR_HDF5_ERROR(METHOD, RETURN_VALUE)           \
 
 #endif
 
 #ifndef KRATOS_HDF5_CALL
-#define KRATOS_HDF5_CALL(METHOD, ...)                                              \
-    {                                                                              \
-        const auto error = METHOD(__VA_ARGS__);                                    \
-        KRATOS_ERROR_IF(error < 0) << "Error occured in " << #METHOD               \
-                                   << " [ hdf5 error code = " << error << " ].\n"; \
+#define KRATOS_HDF5_CALL(METHOD, ...)              \
+    {                                              \
+        const auto error = METHOD(__VA_ARGS__);    \
+        KRATOS_CHECK_FOR_HDF5_ERROR(METHOD, error) \
     }
 
 #endif
@@ -87,6 +104,13 @@ File::File(
     : mpDataCommunicator(&rDataCommunicator)
 {
     KRATOS_TRY;
+
+    // Unset error handling callbacks set by dependencies.
+    // Some dependencies (such as h5py) may set callbacks via the legacy HDF5 API,
+    // which breaks Kratos HDF5 calls. We don't do any kind of error handling
+    // apart from reporting, so there's no behavior change on our end, but if
+    // dependencies issue HDF5 calls after Kratos, they might run into trouble.
+    KRATOS_HDF5_CALL(H5Eset_auto, H5E_DEFAULT, NULL, NULL)
 
     Parameters default_params(R"(
             {
@@ -550,6 +574,17 @@ void File::WriteDataSet(
     WriteDataSetImpl<TDataType, DataTransferMode::Collective>(rPath, rData, rInfo);
 }
 
+template<class TDataType, class TIntegerType>
+void File::WriteDataSet(
+    const std::string& rPath,
+    TDataType const * pData,
+    TIntegerType const * itrShapeBegin,
+    TIntegerType const * itrShapeEnd,
+    WriteInfo& rInfo)
+{
+    WriteDataSetImpl<DataTransferMode::Collective>(rPath, pData, itrShapeBegin, itrShapeEnd, rInfo);
+}
+
 template<class TDataType>
 void File::WriteDataSetIndependent(
     const std::string& rPath,
@@ -557,6 +592,17 @@ void File::WriteDataSetIndependent(
     WriteInfo& rInfo)
 {
     WriteDataSetImpl<TDataType, DataTransferMode::Independent>(rPath, rData, rInfo);
+}
+
+template<class TDataType, class TIntegerType>
+void File::WriteDataSetIndependent(
+    const std::string& rPath,
+    TDataType const * pData,
+    TIntegerType const * itrShapeBegin,
+    TIntegerType const * itrShapeEnd,
+    WriteInfo& rInfo)
+{
+    WriteDataSetImpl<DataTransferMode::Independent>(rPath, pData, itrShapeBegin, itrShapeEnd, rInfo);
 }
 
 std::vector<unsigned> File::GetDataDimensions(const std::string& rPath) const
@@ -747,20 +793,42 @@ template<class TDataType>
 void File::ReadDataSet(
     const std::string& rPath,
     TDataType& rData,
-    const unsigned StartIndex,
+    const unsigned iBegin,
     const unsigned BlockSize) const
 {
-    ReadDataSetImpl<TDataType, DataTransferMode::Collective>(rPath, rData, StartIndex, BlockSize);
+    ReadDataSetImpl<TDataType, DataTransferMode::Collective>(rPath, rData, iBegin, BlockSize);
+}
+
+template<class TDataType, class TIntegerType>
+void File::ReadDataSet(
+    const std::string& rPath,
+    TDataType * pData,
+    TIntegerType const * itrShapeBegin,
+    TIntegerType const * itrShapeEnd,
+    const unsigned iBegin)
+{
+    ReadDataSetImpl<DataTransferMode::Collective>(rPath, pData, itrShapeBegin, itrShapeEnd, iBegin);
 }
 
 template<class TDataType>
 void File::ReadDataSetIndependent(
     const std::string& rPath,
     TDataType& rData,
-    const unsigned StartIndex,
+    const unsigned iBegin,
     const unsigned BlockSize) const
 {
-    ReadDataSetImpl<TDataType, DataTransferMode::Independent>(rPath, rData, StartIndex, BlockSize);
+    ReadDataSetImpl<TDataType, DataTransferMode::Independent>(rPath, rData, iBegin, BlockSize);
+}
+
+template<class TDataType, class TIntegerType>
+void File::ReadDataSetIndependent(
+    const std::string& rPath,
+    TDataType * pData,
+    TIntegerType const * itrShapeBegin,
+    TIntegerType const * itrShapeEnd,
+    const unsigned iBegin)
+{
+    ReadDataSetImpl<DataTransferMode::Independent>(rPath, pData, itrShapeBegin, itrShapeEnd, iBegin);
 }
 
 unsigned File::GetOpenObjectsCount() const
@@ -782,23 +850,21 @@ bool File::HasDataType(const std::string& rPath) const
 {
     KRATOS_TRY;
 
-    hid_t dset_id, dtype_id;
+    using primitive_type = typename DataTypeTraits<TDataType>::PrimitiveType;
+
+    hid_t dset_id, dtype_id, kratos_type_id;
+    htri_t result;
+
+    kratos_type_id = Internals::GetPrimitiveH5Type<primitive_type>();
 
     KRATOS_HDF5_CALL_WITH_RETURN(dset_id, H5Dopen, GetFileId(), rPath.c_str(), H5P_DEFAULT)
     KRATOS_HDF5_CALL_WITH_RETURN(dtype_id, H5Dget_type, dset_id);
-    H5T_class_t type = H5Tget_class(dtype_id);
+    KRATOS_HDF5_CALL_WITH_RETURN(result, H5Tequal, dtype_id, kratos_type_id);
 
-    KRATOS_ERROR_IF(type == H5T_NO_CLASS) << "Invalid data type." << std::endl;
     KRATOS_HDF5_CALL(H5Tclose, dtype_id)
     KRATOS_HDF5_CALL(H5Dclose, dset_id)
 
-    if constexpr(std::is_same_v<TDataType, int>) {
-        return type == H5T_INTEGER;
-    } else if constexpr(std::is_same_v<TDataType, double>) {
-        return type == H5T_FLOAT;
-    } else {
-        static_assert(!std::is_same_v<TDataType, TDataType>, "Unsupported data type.");
-    }
+    return (result > 0);
 
     KRATOS_CATCH("");
 }
@@ -839,21 +905,15 @@ void File::SetFileDriver(const std::string& rDriver, hid_t FaplId) const
     KRATOS_CATCH("");
 }
 
-template<class TDataType, File::DataTransferMode TDataTransferMode>
+template<File::DataTransferMode TDataTransferMode, class TDataType, class TIntegerType = unsigned int>
 void File::WriteDataSetImpl(
     const std::string& rPath,
-    const TDataType& rData,
+    TDataType const * pData,
+    TIntegerType const * itrShapeBegin,
+    TIntegerType const * itrShapeEnd,
     WriteInfo& rInfo)
 {
     KRATOS_TRY
-
-    using TypeTraits = DataTypeTraits<TDataType>;
-
-    static_assert(TypeTraits::IsContiguous, "HDF5File can only write contiguous data sets.");
-
-    constexpr auto local_dimension = TypeTraits::Dimension;
-
-    constexpr auto global_dimension = (local_dimension == 1 ? 1 : 2);
 
     BuiltinTimer timer;
 
@@ -865,43 +925,41 @@ void File::WriteDataSetImpl(
     }
 
     // Initialize data space dimensions.
-    std::vector<hsize_t> local_shape(local_dimension);
-    TypeTraits::Shape(rData, local_shape.data(), local_shape.data() + local_dimension);
+    std::vector<hsize_t> local_shape(itrShapeBegin, itrShapeEnd);
 
-    const hsize_t number_of_local_primitive_data_values = TypeTraits::Size(rData);
+    // here we know, every rank should have the same number of dimensions, because every
+    // rank will be calling the write method with the correct type of the values
+    // even if they are dynamic. If they are dynamic, the number of components
+    // in each dimension may not be initialized properly.
+    std::vector<hsize_t> global_shape(local_shape.size(), 0);
 
     const auto& r_data_communicator = GetDataCommunicator();
-    // get the maximized dimensions of the underlying data. Max is taken because,
-    // there can be empty ranks which will give wrong sizes in the case of dynamic
-    // data types.
-    if constexpr(local_dimension >= 2) {
-        if constexpr(TypeTraits::template IsDimensionDynamic<1>()) {
-            // this is the matrix version. Hence it is better to get the max size
-            // from all ranks.
-            const auto max_size = r_data_communicator.MaxAll(static_cast<unsigned int>(local_shape[1]));
 
-            // now check every non-empty ranks have the same sizes since this dimension
-            // is a dynamic dimension.
-            KRATOS_ERROR_IF(number_of_local_primitive_data_values > 0 && max_size != local_shape[1])
-                << "Mismatching shapes found in different ranks. All ranks should have the same shapes in data sets.";
+    // gather all the shapes from every rank
+    const auto& r_collected_local_shapes = r_data_communicator.AllGatherv(std::vector<unsigned int>(local_shape.begin(), local_shape.end()));
 
-            local_shape[1] = max_size;
+    // identifying the global shape
+    for (const auto& r_rank_shape : r_collected_local_shapes) {
+        // we allow collecting different sizes from the first dimension,
+        // this usually represent different number of nodes, conditions
+        // in each rank.
+        global_shape[0] += r_rank_shape[0];
+
+        KRATOS_ERROR_IF_NOT(r_rank_shape.size() == global_shape.size())
+            << "Number of dimensions mismatch. Every rank should have data with the same number of dimensions [ "
+            << "current checking rank shape = " << r_rank_shape << ", global shape = " << global_shape << " ].\n";
+
+        for (IndexType i_dim = 1; i_dim < global_shape.size(); ++i_dim) {
+            if (global_shape[i_dim] == 0) {
+                global_shape[i_dim] = r_rank_shape[i_dim];
+            }
+
+            KRATOS_ERROR_IF(r_rank_shape[i_dim] != 0 && r_rank_shape[i_dim] != global_shape[i_dim])
+                << "Shape mismatch. Every rank should have data with same number of components in each"
+                << " dimension or zero number of components (except for the first dimension) [ "
+                << "checking dimension = " << i_dim << ", current checking rank shape = " << r_rank_shape
+                << ", global shape = " << global_shape << " ].\n";
         }
-    }
-
-    // local_reduced_shape holds the max 2d flattened shape if the local_shape dimensions
-    // are higher than 2.
-    std::array<hsize_t, global_dimension> local_reduced_shape{}, local_shape_start{}, global_shape{};
-
-    // get total number of items to be written in the data set to the first dimension.
-    global_shape[0] = r_data_communicator.SumAll(static_cast<unsigned int>(local_shape[0]));
-    local_reduced_shape[0] = local_shape[0];
-
-    if constexpr(global_dimension > 1) {
-        // flattens higher dimensions into one since we write matrices which is the highest dimension
-        // supported by paraview for visualization
-        global_shape[1] = std::accumulate(local_shape.begin() + 1, local_shape.end(), hsize_t{1}, std::multiplies<hsize_t>());
-        local_reduced_shape[1] = global_shape[1];
     }
 
     // Set the data type.
@@ -914,14 +972,14 @@ void File::WriteDataSetImpl(
         KRATOS_HDF5_CALL_WITH_RETURN(dset_id, H5Dcreate, GetFileId(), rPath.c_str(), dtype_id, fspace_id, H5P_DEFAULT, H5P_DEFAULT, H5P_DEFAULT)
     } else {
         // if it is existing, get it.
-        KRATOS_ERROR_IF_NOT(HasDataType<typename TypeTraits::PrimitiveType>(rPath))
+        KRATOS_ERROR_IF_NOT(HasDataType<TDataType>(rPath))
             << "Wrong scalar data type: " << rPath << std::endl;
         const auto& data_dimensions = Internals::GetDataDimensions(*this, rPath);
-        KRATOS_ERROR_IF_NOT(data_dimensions.size() == global_dimension)
+        KRATOS_ERROR_IF_NOT(data_dimensions.size() == global_shape.size())
             << "Wrong number of dimensions [ file number of data dimensions = "
             << data_dimensions.size() << ", memory data number of dimensions = "
-            << global_dimension << " ].\n";
-        for (IndexType i = 0; i < global_dimension; ++i) {
+            << global_shape.size() << " ].\n";
+        for (IndexType i = 0; i < global_shape.size(); ++i) {
             KRATOS_ERROR_IF_NOT(data_dimensions[i] == global_shape[i])
                 << "Wrong dimensional value at index = " << i
                 << " [ data dimension in file = " << data_dimensions[i]
@@ -932,56 +990,78 @@ void File::WriteDataSetImpl(
         KRATOS_HDF5_CALL_WITH_RETURN(fspace_id, H5Dget_space, dset_id)
     }
 
-    // here onwards the procedure differs shared memory and distributed memeory runs.
+    // the offsets to identify which blocks from the mainblock will be written by this rank.
+    // since we allow only different number of components in the first dimension,
+    // only for the first dimension we will calculate the offsets. Other dimensions
+    // should be of same number of components in each dimension in each rank.
+    std::vector<hsize_t> offset(global_shape.size(), 0);
+
+    // the count represents how much data to write from each rank. this will have
+    // different values for different ranks only in the first dimension.
+    std::vector<hsize_t> count(global_shape);
+    count[0] = local_shape[0];
+
+    // here onwards the procedure differs shared memory and distributed memory runs.
     // The same steps need to be applied if the HDF5Application is compiled with serial hdf5lib
     // and if the HDF5Application is compiled with mpi hdf5lib but running in shared memory parallelization
     // only.
     // Different steps has to be taken if it is run in a distributed memory environment.
 
     if (!r_data_communicator.IsDistributed()) {
-        if (number_of_local_primitive_data_values > 0) {
-            KRATOS_HDF5_CALL(H5Dwrite, dset_id, dtype_id, H5S_ALL, H5S_ALL, H5P_DEFAULT, TypeTraits::GetContiguousData(rData))
-        } else {
-            KRATOS_HDF5_CALL(H5Dwrite, dset_id, dtype_id, H5S_ALL, H5S_ALL, H5P_DEFAULT, nullptr)
-        }
+        KRATOS_HDF5_CALL(H5Dwrite, dset_id, dtype_id, H5S_ALL, H5S_ALL, H5P_DEFAULT, pData)
     } else {
         #ifdef KRATOS_USING_MPI
+
+        // HDF5 methods for DataTransferMode::Collective writing should be always called from every rank, even if some ranks have nothing to write.
+        bool write_data = TDataTransferMode == DataTransferMode::Collective;
+
+        // HDF5 methods for DataTransferMode::Independent should be only called from ranks where there is something to write.
+        write_data |= std::accumulate(local_shape.begin(), local_shape.end(), 1u, std::multiplies<hsize_t>{}) > 0;
+
+        #if H5_VERS_MAJOR < 2 && ((H5_VERS_MINOR == 14 && H5_VERS_RELEASE < 2) ||  H5_VERS_MINOR < 14)
+            /**
+             *  Until hdf5 1.14.2, if someone tries to read/write empty containers from every rank, it throws an error. This is
+             *  fixed in the later versions. This is valid for both collective and independent writing mechanisms.
+             *
+             * TODO: Remove this pre-compiler directive once we move to compatible versions.
+             */
+            write_data &= std::accumulate(global_shape.begin(), global_shape.end(), 1u, std::multiplies<hsize_t>{}) > 0;
+        #endif
+
+        if (write_data) {
+            hid_t dxpl_id, mspace_id;
+            KRATOS_HDF5_CALL_WITH_RETURN(dxpl_id, H5Pcreate, H5P_DATASET_XFER)
+
             if constexpr(TDataTransferMode == DataTransferMode::Collective) {
-                local_shape_start[0] = r_data_communicator.ScanSum(static_cast<unsigned int>(local_reduced_shape[0])) - local_reduced_shape[0];
+                // if it is collective, calculate the offsets for each rank.
+                offset[0] = std::accumulate(
+                    r_collected_local_shapes.begin(),
+                    r_collected_local_shapes.begin() + r_data_communicator.Rank(),
+                    0u, [](const hsize_t Value, const auto& rRankShape) {
+                        return Value + rRankShape[0];
+                    });
+                KRATOS_HDF5_CALL(H5Pset_dxpl_mpio, dxpl_id, H5FD_MPIO_COLLECTIVE)
+            } else {
+                KRATOS_HDF5_CALL(H5Pset_dxpl_mpio, dxpl_id, H5FD_MPIO_INDEPENDENT)
             }
 
-            if (TDataTransferMode == DataTransferMode::Collective || number_of_local_primitive_data_values > 0) {
-                hid_t dxpl_id, mspace_id;
-                KRATOS_HDF5_CALL_WITH_RETURN(dxpl_id, H5Pcreate, H5P_DATASET_XFER)
-                if constexpr(TDataTransferMode == DataTransferMode::Collective) {
-                    KRATOS_HDF5_CALL(H5Pset_dxpl_mpio, dxpl_id, H5FD_MPIO_COLLECTIVE)
-                } else {
-                    KRATOS_HDF5_CALL(H5Pset_dxpl_mpio, dxpl_id, H5FD_MPIO_INDEPENDENT)
-                }
-
-                // select the local hyperslab
-                KRATOS_HDF5_CALL(H5Sselect_hyperslab, fspace_id, H5S_SELECT_SET, local_shape_start.data(), nullptr, local_reduced_shape.data(), nullptr)
-                KRATOS_HDF5_CALL_WITH_RETURN(mspace_id, H5Screate_simple, global_dimension, local_reduced_shape.data(), nullptr)
-                if (number_of_local_primitive_data_values > 0) {
-                    KRATOS_HDF5_CALL(H5Dwrite, dset_id, dtype_id, mspace_id, fspace_id, dxpl_id, TypeTraits::GetContiguousData(rData))
-                } else {
-                    KRATOS_HDF5_CALL(H5Dwrite, dset_id, dtype_id, mspace_id, fspace_id, dxpl_id, nullptr)
-                }
-
-                KRATOS_HDF5_CALL(H5Pclose, dxpl_id)
-                KRATOS_HDF5_CALL(H5Sclose, mspace_id)
-            }
+            // select the local hyperslab
+            KRATOS_HDF5_CALL(H5Sselect_hyperslab, fspace_id, H5S_SELECT_SET, offset.data(), nullptr, count.data(), nullptr)
+            KRATOS_HDF5_CALL_WITH_RETURN(mspace_id, H5Screate_simple, count.size(), count.data(), nullptr)
+            KRATOS_HDF5_CALL(H5Dwrite, dset_id, dtype_id, mspace_id, fspace_id, dxpl_id, pData)
+            KRATOS_HDF5_CALL(H5Pclose, dxpl_id)
+            KRATOS_HDF5_CALL(H5Sclose, mspace_id)
+        }
         #else
-            KRATOS_ERROR << "HDFApplication is not compiled with MPI enabled";
+        KRATOS_ERROR << "The HDF5Application was compiled without MPI support, but a distributed communicator was provided.";
         #endif
     }
 
     KRATOS_HDF5_CALL(H5Sclose, fspace_id)
     KRATOS_HDF5_CALL(H5Dclose, dset_id)
 
-    // Set the write info.
-    rInfo.StartIndex = local_shape_start[0];
-    rInfo.BlockSize = local_reduced_shape[0];
+    rInfo.StartIndex = offset[0];
+    rInfo.BlockSize = count[0];
     rInfo.TotalSize = global_shape[0];
 
     KRATOS_INFO_IF("HDF5Application", GetEchoLevel() == 2)
@@ -990,57 +1070,56 @@ void File::WriteDataSetImpl(
     KRATOS_CATCH("Path: \"" + rPath + "\".");
 }
 
-template<class TDataType, File::DataTransferMode TDataTransferMode>
+template<File::DataTransferMode TDataTransferMode, class TDataType, class TIntegerType>
 void File::ReadDataSetImpl(
     const std::string& rPath,
-    TDataType& rData,
-    const unsigned StartIndex,
-    const unsigned BlockSize) const
+    TDataType * pData,
+    TIntegerType const * itrShapeBegin,
+    TIntegerType const * itrShapeEnd,
+    const unsigned iBegin) const
 {
     KRATOS_TRY;
 
-    using TypeTraits = DataTypeTraits<TDataType>;
-
-    static_assert(TypeTraits::IsContiguous, "HDF5File can only write contiguous data sets.");
-
-    constexpr auto local_dimension = TypeTraits::Dimension;
-
-    constexpr auto global_dimension = (local_dimension == 1 ? 1 : 2);
-
     BuiltinTimer timer;
+
     // Check that full path exists.
     KRATOS_ERROR_IF_NOT(IsDataSet(rPath))
         << "Path is not a data set: " << rPath << std::endl;
 
-    const auto& file_space_dims = GetDataDimensions(rPath);
+    const auto& global_shape = GetDataDimensions(rPath);
+
+    std::vector<hsize_t> local_shape(itrShapeBegin, itrShapeEnd);
 
     // Check consistency of file's data set dimensions.
-    KRATOS_ERROR_IF(file_space_dims.size() != global_dimension)
-        << "Invalid data set dimension." << std::endl;
-    KRATOS_ERROR_IF(StartIndex + BlockSize > file_space_dims[0])
-        << "StartIndex (" << StartIndex << ") + BlockSize (" << BlockSize
-        << ") > size of data set (" << file_space_dims[0] << ")." << std::endl;
+    KRATOS_ERROR_IF(global_shape.size() != local_shape.size())
+        << "Invalid data set dimension. [ file space shape = " << global_shape
+        << ", required local shape = " << local_shape << std::endl;
 
-    std::vector<hsize_t> memory_space_dims(local_dimension);
-    TypeTraits::Shape(rData, memory_space_dims.data(), memory_space_dims.data() + local_dimension);
-
-    if constexpr(local_dimension >= 2) {
-        if constexpr(TypeTraits::template IsDimensionDynamic<1>()) {
-            const auto v = std::accumulate(memory_space_dims.begin() + 2, memory_space_dims.end(), hsize_t{1}, std::multiplies<hsize_t>());
-            KRATOS_ERROR_IF_NOT(file_space_dims[1] % v == 0) << "Size mismatch with memory space and file space.";
-            memory_space_dims[1] = file_space_dims[1] / v;
-        }
+    for (IndexType i_dim = 1; i_dim < local_shape.size(); ++i_dim) {
+        KRATOS_ERROR_IF(local_shape[i_dim] != 0 && local_shape[i_dim] != global_shape[i_dim])
+            << "Shape mismatch. Every rank should have data with same number of components in each"
+            << " dimension or zero number of components (except for the first dimension) [ "
+            << "checking dimension = " << i_dim << ", current checking rank shape = " << local_shape
+            << ", global shape = " << global_shape << " ].\n";
     }
-    memory_space_dims[0] = BlockSize;
 
-    // now reshape the memory space data
-    TypeTraits::Reshape(rData, memory_space_dims.data(), memory_space_dims.data() + local_dimension);
+    // the size of each block each rank should read
+    std::vector<hsize_t> count(global_shape.begin(), global_shape.end());
+    count[0] = local_shape[0];
 
-    std::vector<hsize_t> local_reduced_space_dims(file_space_dims.begin(), file_space_dims.end()), local_space_start(global_dimension, 0);
-    local_reduced_space_dims[0] = BlockSize;
-    local_space_start[0] = StartIndex;
+    // the offsets to identify which blocks from the mainblock will be written by this rank.
+    // since we allow only different number of components in the first dimension,
+    // only for the first dimension we will calculate the offsets. Other dimensions
+    // should be of same number of components in each dimension in each rank.
+    std::vector<hsize_t> offset(global_shape.size(), 0);
+    offset[0] = iBegin;
 
-    KRATOS_ERROR_IF_NOT(HasDataType<typename TypeTraits::PrimitiveType>(rPath))
+    KRATOS_ERROR_IF(offset[0] + local_shape[0] > global_shape[0])
+        << "Data size mismatch. [ current rank offset = " << offset
+        << ", local shape = " << local_shape << ", global shape = "
+        << global_shape << " ].\n";
+
+    KRATOS_ERROR_IF_NOT(HasDataType<TDataType>(rPath))
         << "Data type mismatch at " << rPath << std::endl;
 
     // Set the data type.
@@ -1051,17 +1130,26 @@ void File::ReadDataSetImpl(
     hid_t dset_id, file_space_id, mem_space_id;
     KRATOS_HDF5_CALL_WITH_RETURN(dset_id, H5Dopen, file_id, rPath.c_str(), H5P_DEFAULT)
     KRATOS_HDF5_CALL_WITH_RETURN(file_space_id, H5Dget_space, dset_id)
-    KRATOS_HDF5_CALL_WITH_RETURN(mem_space_id, H5Screate_simple, global_dimension, local_reduced_space_dims.data(), nullptr)
-    KRATOS_HDF5_CALL(H5Sselect_hyperslab, file_space_id, H5S_SELECT_SET, local_space_start.data(), nullptr, local_reduced_space_dims.data(), nullptr)
+    KRATOS_HDF5_CALL_WITH_RETURN(mem_space_id, H5Screate_simple, global_shape.size(), count.data(), nullptr)
+    KRATOS_HDF5_CALL(H5Sselect_hyperslab, file_space_id, H5S_SELECT_SET, offset.data(), nullptr, count.data(), nullptr)
 
     if (!GetDataCommunicator().IsDistributed()) {
-        if (TypeTraits::Size(rData) > 0) {
-            KRATOS_HDF5_CALL(H5Dread, dset_id, dtype_id, mem_space_id, file_space_id, H5P_DEFAULT, TypeTraits::GetContiguousData(rData))
-        } else {
-            KRATOS_HDF5_CALL(H5Dread, dset_id, dtype_id, mem_space_id, file_space_id, H5P_DEFAULT, nullptr)
-        }
+        KRATOS_HDF5_CALL(H5Dread, dset_id, dtype_id, mem_space_id, file_space_id, H5P_DEFAULT, pData)
     } else {
         #ifdef KRATOS_USING_MPI
+
+        bool read_data  = true;
+        #if H5_VERS_MAJOR < 2 && ((H5_VERS_MINOR == 14 && H5_VERS_RELEASE < 2) ||  H5_VERS_MINOR < 14)
+            /**
+             *  Until hdf5 1.14.2, if someone tries to read/write empty containers from every rank, it throws an error. This is
+             *  fixed in the later versions.
+             *
+             * TODO: Remove this pre-compiler directive once we move to compatible versions.
+             */
+            read_data &= mpDataCommunicator->SumAll(std::accumulate(local_shape.begin(), local_shape.end(), 1u, std::multiplies<hsize_t>{})) > 0;
+        #endif
+
+        if (read_data) {
             hid_t dxpl_id;
             KRATOS_HDF5_CALL_WITH_RETURN(dxpl_id, H5Pcreate, H5P_DATASET_XFER)
             if constexpr(TDataTransferMode == DataTransferMode::Collective) {
@@ -1069,14 +1157,12 @@ void File::ReadDataSetImpl(
             } else {
                 KRATOS_HDF5_CALL(H5Pset_dxpl_mpio, dxpl_id, H5FD_MPIO_INDEPENDENT)
             }
-            if (TypeTraits::Size(rData) > 0) {
-                KRATOS_HDF5_CALL(H5Dread, dset_id, dtype_id, mem_space_id, file_space_id, dxpl_id, TypeTraits::GetContiguousData(rData))
-            } else {
-                KRATOS_HDF5_CALL(H5Dread, dset_id, dtype_id, mem_space_id, file_space_id, dxpl_id, nullptr)
-            }
+            KRATOS_HDF5_CALL(H5Dread, dset_id, dtype_id, mem_space_id, file_space_id, dxpl_id, pData)
             KRATOS_HDF5_CALL(H5Pclose, dxpl_id)
+        }
+
         #else
-            KRATOS_ERROR << "HDF5Application is not compiled with MPI.";
+        KRATOS_ERROR << "The HDF5Application was compiled without MPI support, but a distributed communicator was provided.";
         #endif
     }
 
@@ -1085,14 +1171,103 @@ void File::ReadDataSetImpl(
     KRATOS_HDF5_CALL(H5Sclose, mem_space_id)
 
     KRATOS_INFO_IF("HDF5Application", GetEchoLevel() == 2)
-        << "Read time \"" << rPath << "\": " << timer.ElapsedSeconds() << std::endl;
+        << "read time \"" << rPath << "\": " << timer.ElapsedSeconds() << std::endl;
+
+    KRATOS_CATCH("Path: \"" + rPath + "\".");
+}
+
+template<class TDataType, File::DataTransferMode TDataTransferMode>
+void File::WriteDataSetImpl(
+    const std::string& rPath,
+    const TDataType& rData,
+    WriteInfo& rInfo)
+{
+    KRATOS_TRY
+
+    using TypeTraits = DataTypeTraits<TDataType>;
+
+    constexpr auto local_dimension = TypeTraits::Dimension;
+
+    static_assert(TypeTraits::IsContiguous, "HDF5File can only write contiguous data sets.");
+
+    std::vector<hsize_t> shape(local_dimension);
+    TypeTraits::Shape(rData, shape.data(), shape.data() + local_dimension);
+
+    if (TypeTraits::Size(rData) > 0) {
+        WriteDataSetImpl<TDataTransferMode, typename TypeTraits::PrimitiveType, hsize_t>(
+            rPath, TypeTraits::GetContiguousData(rData), shape.data(),
+            shape.data() + local_dimension, rInfo);
+    }
+    else {
+        WriteDataSetImpl<TDataTransferMode, typename TypeTraits::PrimitiveType, hsize_t>(
+            rPath, nullptr, shape.data(), shape.data() + local_dimension, rInfo);
+    }
+
+    KRATOS_CATCH("Path: \"" + rPath + "\".");
+}
+
+template<class TDataType, File::DataTransferMode TDataTransferMode>
+void File::ReadDataSetImpl(
+    const std::string& rPath,
+    TDataType& rData,
+    const unsigned iBegin,
+    const unsigned BlockSize) const
+{
+    KRATOS_TRY;
+
+    using TypeTraits = DataTypeTraits<TDataType>;
+
+    static_assert(TypeTraits::IsContiguous, "HDF5File can only write contiguous data sets.");
+
+    constexpr auto local_dimension = TypeTraits::Dimension;
+
+    // Check that full path exists.
+    KRATOS_ERROR_IF_NOT(IsDataSet(rPath))
+        << "Path is not a data set: " << rPath << std::endl;
+
+    const auto& file_space_dims = GetDataDimensions(rPath);
+
+    // Check consistency of file's data set dimensions.
+    KRATOS_ERROR_IF(file_space_dims.size() != local_dimension)
+        << "Invalid data set dimension." << std::endl;
+
+    std::vector<hsize_t> shape(file_space_dims.begin(), file_space_dims.end());
+    shape[0] = BlockSize;
+
+    // now reshape the memory space data
+    TypeTraits::Reshape(rData, shape.data(), shape.data() + local_dimension);
+
+    if (TypeTraits::Size(rData) > 0) {
+        ReadDataSetImpl<TDataTransferMode, typename TypeTraits::PrimitiveType, hsize_t>(
+            rPath, TypeTraits::GetContiguousData(rData), shape.data(),
+            shape.data() + local_dimension, iBegin);
+    } else {
+        ReadDataSetImpl<TDataTransferMode, typename TypeTraits::PrimitiveType, hsize_t>(
+            rPath, nullptr, shape.data(), shape.data() + local_dimension,
+            iBegin);
+    }
 
     KRATOS_CATCH("Path: \"" + rPath + "\".");
 }
 
 // template instantiations
+template KRATOS_API(HDF5_APPLICATION) bool File::HasDataType<char>(const std::string&) const;
+template KRATOS_API(HDF5_APPLICATION) bool File::HasDataType<unsigned char>(const std::string&) const;
 template KRATOS_API(HDF5_APPLICATION) bool File::HasDataType<int>(const std::string&) const;
 template KRATOS_API(HDF5_APPLICATION) bool File::HasDataType<double>(const std::string&) const;
+
+#ifndef KRATOS_HDF5_FILE_DATA_SET_PRIMITIVE_METHOD_INSTANTIATION
+#define KRATOS_HDF5_FILE_DATA_SET_PRIMITIVE_METHOD_INSTANTIATION(PRIMITIVE_TYPE)                                                                                                                                \
+template KRATOS_API(HDF5_APPLICATION) void File::WriteDataSetImpl<File::DataTransferMode::Collective>(const std::string&, PRIMITIVE_TYPE const *, unsigned int const *, unsigned int const *, WriteInfo&);      \
+template KRATOS_API(HDF5_APPLICATION) void File::WriteDataSetImpl<File::DataTransferMode::Independent>(const std::string&, PRIMITIVE_TYPE const *, unsigned int const *, unsigned int const *, WriteInfo&);     \
+template KRATOS_API(HDF5_APPLICATION) void File::WriteDataSet(const std::string&, PRIMITIVE_TYPE const *, unsigned int const *, unsigned int const *, WriteInfo&);                                              \
+template KRATOS_API(HDF5_APPLICATION) void File::WriteDataSetIndependent(const std::string&, PRIMITIVE_TYPE const *, unsigned int const *, unsigned int const *, WriteInfo&);                                   \
+template KRATOS_API(HDF5_APPLICATION) void File::ReadDataSetImpl<File::DataTransferMode::Collective>(const std::string&, PRIMITIVE_TYPE *, unsigned int const *, unsigned int const *, const unsigned) const;   \
+template KRATOS_API(HDF5_APPLICATION) void File::ReadDataSetImpl<File::DataTransferMode::Independent>(const std::string&, PRIMITIVE_TYPE *, unsigned int const *, unsigned int const *, const unsigned) const;  \
+template KRATOS_API(HDF5_APPLICATION) void File::ReadDataSet(const std::string&, PRIMITIVE_TYPE *, unsigned int const *, unsigned int const *, const unsigned);                                                 \
+template KRATOS_API(HDF5_APPLICATION) void File::ReadDataSetIndependent(const std::string&, PRIMITIVE_TYPE *, unsigned int const *, unsigned int const *, const unsigned);                                      \
+
+#endif
 
 #ifndef KRATOS_HDF5_FILE_DATA_SET_METHOD_INSTANTIATION
 #define KRATOS_HDF5_FILE_DATA_SET_METHOD_INSTANTIATION(...)                                                                                                                                     \
@@ -1115,6 +1290,14 @@ template KRATOS_API(HDF5_APPLICATION) bool File::HasDataType<double>(const std::
 
 #endif
 
+KRATOS_HDF5_FILE_DATA_SET_PRIMITIVE_METHOD_INSTANTIATION(char)
+KRATOS_HDF5_FILE_DATA_SET_PRIMITIVE_METHOD_INSTANTIATION(unsigned char)
+KRATOS_HDF5_FILE_DATA_SET_PRIMITIVE_METHOD_INSTANTIATION(int)
+KRATOS_HDF5_FILE_DATA_SET_PRIMITIVE_METHOD_INSTANTIATION(double)
+
+KRATOS_HDF5_FILE_ATTRIBUTE_METHOD_INSTANTIATION(char);
+KRATOS_HDF5_FILE_ATTRIBUTE_METHOD_INSTANTIATION(unsigned char);
+KRATOS_HDF5_FILE_ATTRIBUTE_METHOD_INSTANTIATION(bool);
 KRATOS_HDF5_FILE_ATTRIBUTE_METHOD_INSTANTIATION(int);
 KRATOS_HDF5_FILE_ATTRIBUTE_METHOD_INSTANTIATION(double);
 KRATOS_HDF5_FILE_ATTRIBUTE_METHOD_INSTANTIATION(std::string);
@@ -1127,6 +1310,9 @@ KRATOS_HDF5_FILE_ATTRIBUTE_METHOD_INSTANTIATION(array_1d<double, 4>);
 KRATOS_HDF5_FILE_ATTRIBUTE_METHOD_INSTANTIATION(array_1d<double, 6>);
 KRATOS_HDF5_FILE_ATTRIBUTE_METHOD_INSTANTIATION(array_1d<double, 9>);
 
+KRATOS_HDF5_FILE_DATA_SET_METHOD_INSTANTIATION(std::string);
+KRATOS_HDF5_FILE_DATA_SET_METHOD_INSTANTIATION(Vector<char>);
+KRATOS_HDF5_FILE_DATA_SET_METHOD_INSTANTIATION(Vector<unsigned char>);
 KRATOS_HDF5_FILE_DATA_SET_METHOD_INSTANTIATION(Vector<int>);
 KRATOS_HDF5_FILE_DATA_SET_METHOD_INSTANTIATION(Vector<double>);
 KRATOS_HDF5_FILE_DATA_SET_METHOD_INSTANTIATION(Vector<array_1d<double, 3>>);
@@ -1134,12 +1320,15 @@ KRATOS_HDF5_FILE_DATA_SET_METHOD_INSTANTIATION(Vector<array_1d<double, 4>>);
 KRATOS_HDF5_FILE_DATA_SET_METHOD_INSTANTIATION(Vector<array_1d<double, 6>>);
 KRATOS_HDF5_FILE_DATA_SET_METHOD_INSTANTIATION(Vector<array_1d<double, 9>>);
 KRATOS_HDF5_FILE_DATA_SET_METHOD_INSTANTIATION(Matrix<int>);
+KRATOS_HDF5_FILE_DATA_SET_METHOD_INSTANTIATION(Matrix<char>);
+KRATOS_HDF5_FILE_DATA_SET_METHOD_INSTANTIATION(Matrix<unsigned char>);
 KRATOS_HDF5_FILE_DATA_SET_METHOD_INSTANTIATION(Matrix<double>);
 
 #undef KRATOS_HDF5_FILE_DATA_SET_METHOD_INSTANTIATION
 #undef KRATOS_HDF5_FILE_ATTRIBUTE_METHOD_INSTANTIATION
 #undef KRATOS_HDF5_CALL
 #undef KRATOS_HDF5_CALL_WITH_RETURN
+#undef KRATOS_HDF5_FILE_DATA_SET_PRIMITIVE_METHOD_INSTANTIATION
 
 } // namespace HDF5.
 } // namespace Kratos.

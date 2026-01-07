@@ -26,8 +26,8 @@ class EmbeddedFormulation(object):
         self.condition_name = None
         self.process_info_data = {}
         self.element_has_nodal_properties = False
-        self.historical_nodal_properties_variables_list = []
-        self.non_historical_nodal_properties_variables_list = []
+        self.historical_nodal_variables_list = []
+        self.non_historical_nodal_variables_list = []
 
         if formulation_settings.Has("element_type"):
             element_type = formulation_settings["element_type"].GetString()
@@ -96,8 +96,8 @@ class EmbeddedFormulation(object):
         self.level_set_type = formulation_settings["level_set_type"].GetString()
         self.element_integrates_in_time = True
         self.element_has_nodal_properties = True
-        self.historical_nodal_properties_variables_list = [KratosMultiphysics.DENSITY]
-        self.non_historical_nodal_properties_variables_list = [KratosMultiphysics.SOUND_VELOCITY]
+        self.historical_nodal_variables_list = [KratosMultiphysics.DENSITY, KratosCFD.SOLID_FRACTION_VELOCITY]
+        self.non_historical_nodal_variables_list = [KratosMultiphysics.SOUND_VELOCITY]
 
         self.process_info_data[KratosMultiphysics.DYNAMIC_TAU] = formulation_settings["dynamic_tau"].GetDouble()
         self.process_info_data[KratosMultiphysics.PENALTY_COEFFICIENT] = formulation_settings["penalty_coefficient"].GetDouble()
@@ -143,8 +143,8 @@ class EmbeddedFormulation(object):
         self.level_set_type = formulation_settings["level_set_type"].GetString()
         self.element_integrates_in_time = True
         self.element_has_nodal_properties = True
-        self.historical_nodal_properties_variables_list = [KratosMultiphysics.DENSITY]
-        self.non_historical_nodal_properties_variables_list = [KratosMultiphysics.SOUND_VELOCITY]
+        self.historical_nodal_variables_list = [KratosMultiphysics.DENSITY, KratosCFD.SOLID_FRACTION_VELOCITY]
+        self.non_historical_nodal_variables_list = [KratosMultiphysics.SOUND_VELOCITY]
 
         self.process_info_data[KratosMultiphysics.DYNAMIC_TAU] = formulation_settings["dynamic_tau"].GetDouble()
         self.process_info_data[KratosMultiphysics.PENALTY_COEFFICIENT] = formulation_settings["penalty_coefficient"].GetDouble()
@@ -250,6 +250,7 @@ class NavierStokesEmbeddedMonolithicSolver(FluidSolver):
                 "input_filename": "unknown_name",
                 "reorder": false
             },
+            "enforce_element_and_conditions_replacement": true,
             "material_import_settings": {
                 "materials_filename": ""
             },
@@ -323,8 +324,8 @@ class NavierStokesEmbeddedMonolithicSolver(FluidSolver):
         self.level_set_type = self.embedded_formulation.level_set_type
         self.element_integrates_in_time = self.embedded_formulation.element_integrates_in_time
         self.element_has_nodal_properties = self.embedded_formulation.element_has_nodal_properties
-        self.historical_nodal_properties_variables_list = self.embedded_formulation.historical_nodal_properties_variables_list
-        self.non_historical_nodal_properties_variables_list = self.embedded_formulation.non_historical_nodal_properties_variables_list
+        self.historical_nodal_variables_list = self.embedded_formulation.historical_nodal_variables_list
+        self.non_historical_nodal_variables_list = self.embedded_formulation.non_historical_nodal_variables_list
 
         ## Set the distance reading filename
         # TODO: remove the manual "distance_file_name" set as soon as the problem type one has been tested.
@@ -359,10 +360,9 @@ class NavierStokesEmbeddedMonolithicSolver(FluidSolver):
             self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.MESH_DISPLACEMENT)
             self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.MESH_REACTION)
 
-        # Adding variables required for the nodal material properties
-        if self.element_has_nodal_properties:
-            for variable in self.historical_nodal_properties_variables_list:
-                self.main_model_part.AddNodalSolutionStepVariable(variable)
+        # Adding variables required by the formulation (this includes the nodal material properties)
+        for variable in self.historical_nodal_variables_list:
+            self.main_model_part.AddNodalSolutionStepVariable(variable)
 
         KratosMultiphysics.Logger.PrintInfo(self.__class__.__name__, "Fluid solver variables added correctly.")
 
@@ -413,7 +413,7 @@ class NavierStokesEmbeddedMonolithicSolver(FluidSolver):
                 data_communicator,
                 computing_model_part)
 
-        # If required, intialize the FM-ALE utility
+        # If required, initialize the FM-ALE utility
         if self._FmAleIsActive():
             self.fm_ale_step = 1
             # Fill the virtual model part geometry. Note that the mesh moving util is created in this first call
@@ -498,8 +498,8 @@ class NavierStokesEmbeddedMonolithicSolver(FluidSolver):
         return materials_imported
 
     def _SetNodalProperties(self):
-        set_density = KratosMultiphysics.DENSITY in self.historical_nodal_properties_variables_list
-        set_sound_velocity = KratosMultiphysics.SOUND_VELOCITY in self.non_historical_nodal_properties_variables_list
+        set_density = KratosMultiphysics.DENSITY in self.historical_nodal_variables_list
+        set_sound_velocity = KratosMultiphysics.SOUND_VELOCITY in self.non_historical_nodal_variables_list
 
         # Get density and dynamic viscostity from the properties of the first element
         for el in self.main_model_part.Elements:

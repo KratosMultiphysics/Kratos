@@ -143,23 +143,35 @@ namespace Kratos
     SetNumericalIntegrationMethod(numerical_integration_method);
 
     // Set flags
-    mHasMotion = r_process_info[MOTION_OPTION];
-    
-    mHasVariableRadius = (r_properties.Has(THERMAL_EXPANSION_COEFFICIENT) && r_properties[THERMAL_EXPANSION_COEFFICIENT] != 0.0) ||
-                          r_properties.HasTable(TEMPERATURE, THERMAL_EXPANSION_COEFFICIENT);
+    mComputeForces = r_process_info[COMPUTE_FORCES_OPTION];
+    mComputeMotion = r_process_info[COMPUTE_MOTION_OPTION];
 
-    mStoreContactParam = mHasMotion &&
-                        (r_process_info[HEAT_GENERATION_OPTION]  ||
-                        (r_process_info[DIRECT_CONDUCTION_OPTION] && r_process_info[DIRECT_CONDUCTION_MODEL_NAME].compare("collisional") == 0));    
+    mHasTempDependRadius = (r_properties.Has(THERMAL_EXPANSION_COEFFICIENT) && r_properties[THERMAL_EXPANSION_COEFFICIENT] != 0.0) ||
+                            r_properties.HasTable(TEMPERATURE, THERMAL_EXPANSION_COEFFICIENT);
     
+    mStoreContactParam = mComputeForces &&
+                        (r_process_info[HEAT_GENERATION_OPTION] ||
+                        (r_process_info[DIRECT_CONDUCTION_OPTION] && r_process_info[DIRECT_CONDUCTION_MODEL_NAME].compare("collisional") == 0) || 
+                        (r_process_info[REAL_CONTACT_OPTION] && (r_process_info[REAL_CONTACT_MODEL_NAME].compare("morris_area_time") == 0      ||
+                                                                 r_process_info[REAL_CONTACT_MODEL_NAME].compare("rangel_area_time") == 0))); 
+    
+    // Save initial temperature
+    mInitialTemperature = GetParticleTemperature();
+
     // Clear maps
     mContactParamsParticle.clear();
     mContactParamsWall.clear();
 
     // Initialize accumulated energy dissipations
-    mPreviousViscodampingEnergy = 0.0;
-    mPreviousFrictionalEnergy   = 0.0;
-    mPreviousRollResistEnergy   = 0.0;
+    mPreviousViscodampingEnergy            = 0.0;
+    mPreviousFrictionalEnergy              = 0.0;
+    mPreviousRollResistEnergy              = 0.0;
+    mGenerationThermalEnergy_damp_particle = 0.0;
+    mGenerationThermalEnergy_damp_wall     = 0.0;
+    mGenerationThermalEnergy_slid_particle = 0.0;
+    mGenerationThermalEnergy_slid_wall     = 0.0;
+    mGenerationThermalEnergy_roll_particle = 0.0;
+    mGenerationThermalEnergy_roll_wall     = 0.0;
 
     KRATOS_CATCH("")
   }
@@ -169,7 +181,7 @@ namespace Kratos
     KRATOS_TRY
 
     // Initialize base class
-    if (mHasMotion)
+    if (mComputeForces)
       SphericParticle::InitializeSolutionStep(r_process_info);
 
     // Check if it is time to evaluate thermal problem
@@ -227,7 +239,7 @@ namespace Kratos
     KRATOS_TRY
 
     // Force components
-    if (mHasMotion)
+    if (mComputeForces)
       SphericParticle::CalculateRightHandSide(r_process_info, dt, gravity);
     
     // Heat flux components
@@ -314,7 +326,7 @@ namespace Kratos
 
     // Heat generation
     // ASSUMPTION: Heat is generated even when neighbor is adiabatic
-    if (r_process_info[HEAT_GENERATION_OPTION] && mHasMotion)
+    if (r_process_info[HEAT_GENERATION_OPTION] && mComputeForces)
       mGenerationHeatFlux += GetGenerationModel().ComputeHeatGeneration(r_process_info, this);
 
     // Check if neighbor is adiabatic
@@ -434,10 +446,11 @@ namespace Kratos
                                                                double GlobalContactForceTotal[3],
                                                                double LocalContactForceTotal[3],
                                                                double LocalContactForceDamping[3],
-                                                               bool   sliding) {
+                                                               bool   sliding,
+                                                               double identation) {
     KRATOS_TRY
 
-    SphericParticle::StoreBallToRigidFaceContactInfo(r_process_info, data_buffer, GlobalContactForceTotal, LocalContactForceTotal, LocalContactForceDamping, sliding);
+    SphericParticle::StoreBallToRigidFaceContactInfo(r_process_info, data_buffer, GlobalContactForceTotal, LocalContactForceTotal, LocalContactForceDamping, sliding, identation);
 
     if (!mStoreContactParam)
       return;
@@ -501,7 +514,7 @@ namespace Kratos
   //------------------------------------------------------------------------------------------------------------
   void ThermalSphericParticle::Move(const double delta_t, const bool rotation_option, const double force_reduction_factor, const int StepFlag) {
     // Time integration of motion
-    if (mHasMotion)
+    if (mComputeForces && mComputeMotion)
       SphericParticle::Move(delta_t, rotation_option, force_reduction_factor, StepFlag);
 
     // Time integration of temperature
@@ -517,7 +530,7 @@ namespace Kratos
   void ThermalSphericParticle::FinalizeSolutionStep(const ProcessInfo& r_process_info) {
     KRATOS_TRY
 
-    if (mHasMotion) {
+    if (mComputeForces) {
       SphericParticle::FinalizeSolutionStep(r_process_info);
 
       // Remove non-contacting neighbors from maps of contact parameters
@@ -526,7 +539,7 @@ namespace Kratos
     }
 
     // Update temperature dependent radius
-    if (mIsTimeToSolve && mHasVariableRadius) {
+    if (mIsTimeToSolve && mHasTempDependRadius) {
       double added_search_distance = r_process_info[SEARCH_RADIUS_INCREMENT];
       UpdateTemperatureDependentRadius(r_process_info);
       ComputeAddedSearchDistance(r_process_info, added_search_distance);
@@ -541,13 +554,23 @@ namespace Kratos
     KRATOS_TRY
 
     // Update radius
-    const double new_radius = GetParticleRadius() * (1.0 + GetParticleExpansionCoefficient() * (GetParticleTemperature() - mPreviousTemperature));
+    const double r     = GetParticleRadius();
+    const double alpha = GetParticleExpansionCoefficient();
+    const double T     = GetParticleTemperature();
+    const double new_radius = mInitialRadius * (1.0 + alpha * (T - mInitialTemperature));  // Total (used in "Rangel et al, Comput Geotech, 176:106789, 2024")
+    //const double new_radius = r * (1.0 + alpha * (T - mPreviousTemperature)); // Incremental
     SetParticleRadius(new_radius);
 
-    // Update inertia
-    SetParticleMomentInertia(CalculateMomentOfInertia());
+    // Update density
+    const double m = GetParticleMass();
+    const double V = GetParticleVolume();
+    double* rho = &(GetProperties()[PARTICLE_DENSITY]);
+    *rho = m / V;
+    GetFastProperties()->SetDensityFromProperties(rho);
 
-    // TODO: update density
+    // Update inertia
+    const double I = CalculateMomentOfInertia();
+    SetParticleMomentInertia(I);
 
     KRATOS_CATCH("")
   }
@@ -812,6 +835,7 @@ namespace Kratos
   double ThermalSphericParticle::ComputeFourierNumber(void) {
     KRATOS_TRY
 
+    // ATTENTION: Assumption: Original model was not assumed real Young modulus for col_time_max and Rc_max!
     const double col_time_max = ComputeMaxCollisionTime();
     const double Rc_max       = ComputeMaxContactRadius();
 
@@ -829,13 +853,30 @@ namespace Kratos
 
     const double eff_radius             = ComputeEffectiveRadius();
     const double eff_mass               = ComputeEffectiveMass();
-    const double eff_young              = ComputeEffectiveYoungReal(); // ATTENTION: Assumption: Original model was not assumed real Young modulus!
-    const double impact_normal_velocity = fabs(GetContactParameters().impact_velocity[0]);
+    const double eff_young              = ComputeEffectiveYoung();
+    const double impact_normal_velocity = std::abs(GetContactParameters().impact_velocity[0]);
 
     if (impact_normal_velocity != 0.0)
       return 2.87 * pow(eff_mass * eff_mass / (eff_radius * eff_young * eff_young * impact_normal_velocity), 0.2);
     else
-      return std::numeric_limits<double>::max();
+      return 0.0;
+
+    KRATOS_CATCH("")
+  }
+
+  //------------------------------------------------------------------------------------------------------------
+  double ThermalSphericParticle::ComputeMaxCollisionTimeReal(void) {
+    KRATOS_TRY
+
+    const double eff_radius             = ComputeEffectiveRadius();
+    const double eff_mass               = ComputeEffectiveMass();
+    const double eff_young              = ComputeEffectiveYoungReal();
+    const double impact_normal_velocity = std::abs(GetContactParameters().impact_velocity[0]);
+
+    if (impact_normal_velocity != 0.0)
+      return 2.87 * pow(eff_mass * eff_mass / (eff_radius * eff_young * eff_young * impact_normal_velocity), 0.2);
+    else
+      return 0.0;
 
     KRATOS_CATCH("")
   }
@@ -846,8 +887,22 @@ namespace Kratos
 
     const double eff_radius             = ComputeEffectiveRadius();
     const double eff_mass               = ComputeEffectiveMass();
-    const double eff_young              = ComputeEffectiveYoungReal(); // ATTENTION: Assumption: Original model was not assumed real Young modulus!
-    const double impact_normal_velocity = fabs(GetContactParameters().impact_velocity[0]);
+    const double eff_young              = ComputeEffectiveYoung();
+    const double impact_normal_velocity = std::abs(GetContactParameters().impact_velocity[0]);
+
+    return pow(15.0 * eff_mass * eff_radius * eff_radius * impact_normal_velocity * impact_normal_velocity / (16.0 * eff_young), 0.2);
+    
+    KRATOS_CATCH("")
+  }
+
+  //------------------------------------------------------------------------------------------------------------
+  double ThermalSphericParticle::ComputeMaxContactRadiusReal(void) {
+    KRATOS_TRY
+
+    const double eff_radius             = ComputeEffectiveRadius();
+    const double eff_mass               = ComputeEffectiveMass();
+    const double eff_young              = ComputeEffectiveYoungReal();
+    const double impact_normal_velocity = std::abs(GetContactParameters().impact_velocity[0]);
 
     return pow(15.0 * eff_mass * eff_radius * eff_radius * impact_normal_velocity * impact_normal_velocity / (16.0 * eff_young), 0.2);
     
@@ -864,7 +919,7 @@ namespace Kratos
       if (mNeighborType & PARTICLE_NEIGHBOR) {
         const double r1 = GetParticleRadius();
         const double r2 = GetNeighborRadius();
-        Rc = sqrt(fabs(r1 * r1 - pow(((r1 * r1 - r2 * r2 + mNeighborDistance * mNeighborDistance) / (2.0 * mNeighborDistance)), 2.0)));
+        Rc = sqrt(std::abs(r1 * r1 - pow(((r1 * r1 - r2 * r2 + mNeighborDistance * mNeighborDistance) / (2.0 * mNeighborDistance)), 2.0)));
       }
       else if (mNeighborType & WALL_NEIGHBOR) {
         const double r = GetParticleRadius();

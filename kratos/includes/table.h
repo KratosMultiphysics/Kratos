@@ -5,14 +5,13 @@
 //                   Multi-Physics
 //
 //  License:         BSD License
-//                     Kratos default license: kratos/license.txt
+//                   Kratos default license: kratos/license.txt
 //
 //  Main authors:    Pooyan Dadvand
 //                   Riccardo Rossi
 //
 
-#if !defined(KRATOS_TABLE_H_INCLUDED )
-#define  KRATOS_TABLE_H_INCLUDED
+#pragma once
 
 // System includes
 #include <string>
@@ -22,7 +21,6 @@
 
 // Project includes
 #include "input_output/logger.h"
-#include "includes/define.h"
 #include "containers/variable.h"
 
 namespace Kratos
@@ -48,8 +46,8 @@ namespace Kratos
 ///@}
 ///@name Kratos Classes
 ///@{
-    
-/** 
+
+/**
  * @class Table
  * @ingroup KratosCore
  * @brief This class represents the value of its variable depending to other variable.
@@ -71,11 +69,11 @@ public:
     /// Pointer definition of Table
     KRATOS_CLASS_POINTER_DEFINITION(Table);
 
-    typedef std::array<TResultType, TResultsColumns>  result_row_type;
+    using result_row_type = std::array<TResultType, TResultsColumns>;
 
-    typedef std::pair<TArgumentType, result_row_type> RecordType;
+    using RecordType = std::pair<TArgumentType, result_row_type>;
 
-    typedef std::vector<RecordType> TableContainerType;
+    using TableContainerType = std::vector<RecordType>;
 
     ///@}
     ///@name Life Cycle
@@ -210,7 +208,6 @@ public:
 
     }
 
-
     // assumes that the X is the greater than the last argument and put the row at the end.
     // faster than insert.
     void PushBack(TArgumentType const& X, TResultType const& Y)
@@ -238,7 +235,7 @@ public:
     {
         mData.push_back(RecordType(X,Y));
     }
-    
+
     /**
      * @brief This method clears database
      */
@@ -251,7 +248,6 @@ public:
     ///@name Access
     ///@{
 
-
     TableContainerType& Data()
     {
         return mData;
@@ -262,11 +258,9 @@ public:
         return mData;
     }
 
-
     ///@}
     ///@name Inquiry
     ///@{
-
 
     ///@}
     ///@name Input and output
@@ -313,50 +307,10 @@ public:
     ///@name Friends
     ///@{
 
-
     ///@}
-
-protected:
-    ///@name Protected static Member Variables
-    ///@{
-
-
-    ///@}
-    ///@name Protected member Variables
-    ///@{
-
-
-    ///@}
-    ///@name Protected Operators
-    ///@{
-
-
-    ///@}
-    ///@name Protected Operations
-    ///@{
-
-
-    ///@}
-    ///@name Protected  Access
-    ///@{
-
-
-    ///@}
-    ///@name Protected Inquiry
-    ///@{
-
-
-    ///@}
-    ///@name Protected LifeCycle
-    ///@{
-
-
-    ///@}
-
 private:
     ///@name Static Member Variables
     ///@{
-
 
     ///@}
     ///@name Member Variables
@@ -369,8 +323,6 @@ private:
     ///@}
     ///@name Private Operators
     ///@{
-
-
 
     ///@}
     ///@name Private Operations
@@ -410,24 +362,19 @@ private:
         }
     }
 
-
     ///@}
     ///@name Private  Access
     ///@{
-
 
     ///@}
     ///@name Private Inquiry
     ///@{
 
-
     ///@}
     ///@name Un accessible methods
     ///@{
 
-
     ///@}
-
 }; // Class Table
 
 template<>
@@ -440,17 +387,17 @@ public:
     /// Pointer definition of Table
     KRATOS_CLASS_POINTER_DEFINITION(Table);
 
-    typedef double TResultType;
-    typedef double TArgumentType;
+    using TResultType = double;
+    using TArgumentType = double;
 
-    typedef std::array<TResultType, 1>  result_row_type;
+    using result_row_type = std::array<TResultType, 1>;
 
-    typedef std::pair<TArgumentType, result_row_type> RecordType;
+    using RecordType = std::pair<TArgumentType, result_row_type>;
 
-    typedef std::vector<RecordType> TableContainerType;
+    using TableContainerType = std::vector<RecordType>;
 
-    typedef Variable<TArgumentType> XVariableType;
-    typedef Variable<TResultType> YVariableType;
+    using XVariableType = Variable<TArgumentType>;
+    using YVariableType = Variable<TResultType>;
 
     ///@}
     ///@name Life Cycle
@@ -467,7 +414,6 @@ public:
     }
 
     virtual ~Table() = default;
-
 
     ///@}
     ///@name Operators
@@ -608,7 +554,6 @@ public:
         insert(X,a);
     }
 
-
     // inserts a row in a sorted position where Xi-1 < X < Xi+1
     void insert(TArgumentType const& X, result_row_type const& Y)
     {
@@ -657,24 +602,20 @@ public:
 
         return InterpolateDerivative(mData[size-2].first, mData[size-2].second[0], mData[size-1].first, mData[size-1].second[0], result);
     }
-     TResultType& InterpolateDerivative( TArgumentType const& X1, TResultType const& Y1, TArgumentType const& X2, TResultType const& Y2, TResultType& Result) const
+
+    TResultType& InterpolateDerivative( TArgumentType const& X1, TResultType const& Y1, TArgumentType const& X2, TResultType const& Y2, TResultType& Result) const
     {
-        const double epsilon = 1e-12;
+        const TResultType epsilon = std::numeric_limits<TResultType>::epsilon() * 1.0e3;
         TArgumentType dx = X2 - X1;
         TResultType dy = Y2 - Y1;
-        if (dx < epsilon)
-        {
-            dx=epsilon;
-            KRATOS_WARNING("") 
-            << "*******************************************\n"
-            << "*** ATTENTION: SMALL dX WHEN COMPUTING  ***\n"
-            << "*** DERIVATIVE FROM TABLE. SET TO 1E-12 ***\n"
-            << "*******************************************" <<std::endl;
+        if (dx < epsilon) {
+            dx = epsilon;
+            KRATOS_WARNING("Table") << "ATTENTION: SMALL dX WHEN COMPUTING DERIVATIVE FROM TABLE. SET TO " << epsilon << std::endl;
         }
         Result= dy/dx;
         return Result;
     }
-    
+
     /**
      * @brief This method clears database
      */
@@ -682,11 +623,10 @@ public:
     {
         mData.clear();
     }
-    
+
     ///@}
     ///@name Access
     ///@{
-
 
     TableContainerType& Data()
     {
@@ -698,11 +638,9 @@ public:
         return mData;
     }
 
-
     ///@}
     ///@name Inquiry
     ///@{
-
 
     ///@}
     ///@name Input and output
@@ -751,14 +689,10 @@ public:
     ///@name Friends
     ///@{
 
-
     ///@}
-
-
 private:
     ///@name Static Member Variables
     ///@{
-
 
     ///@}
     ///@name Member Variables
@@ -771,8 +705,6 @@ private:
     ///@}
     ///@name Private Operators
     ///@{
-
-
 
     ///@}
     ///@name Private Operations
@@ -810,38 +742,30 @@ private:
             for(auto j = i_row->second.begin() ; j != i_row->second.end() ; j++)
                 rSerializer.load("Column", *j);
         }
-   }
-
+    }
 
     ///@}
     ///@name Private  Access
     ///@{
 
-
     ///@}
     ///@name Private Inquiry
     ///@{
-
 
     ///@}
     ///@name Un accessible methods
     ///@{
 
-
     ///@}
-
 }; // Class Table
 
 ///@}
-
 ///@name Type Definitions
 ///@{
-
 
 ///@}
 ///@name Input and output
 ///@{
-
 
 /// input stream function
 template<class TArgumentType, class TResultType>
@@ -865,7 +789,3 @@ inline std::ostream& operator << (std::ostream& rOStream,
 ///@} addtogroup block
 
 }  // namespace Kratos.
-
-#endif // KRATOS_TABLE_H_INCLUDED  defined 
-
-

@@ -33,7 +33,7 @@
 #include "solving_strategies/builder_and_solvers/residualbased_block_builder_and_solver.h"
 
 // The strategies to test
-#include <custom_processes/apply_component_table_process.hpp>
+#include <custom_processes/apply_component_table_process.h>
 #include <custom_processes/apply_constant_hydrostatic_pressure_process.hpp>
 #include <linear_solvers/skyline_lu_factorization_solver.h>
 
@@ -115,24 +115,28 @@ public:
                           const Kratos::Parameters& rGidOutputSettings,
                           const CriticalHeadInfo&   rCriticalHeadInfo,
                           LoggerOutput::Pointer     pOutput,
+                          const std::stringstream&  rKratosLogBuffer,
                           const CallBackFunctions&  rCallBackFunctions,
                           const GeoMechanicsNewtonRaphsonErosionProcessStrategyType::Pointer pSolvingStrategy);
 
     void WriteCriticalHeadResultToFile() const;
 
-    void AddNodalSolutionStepVariables(ModelPart& rModelPart) const;
+    static void AddNodalSolutionStepVariables(ModelPart& rModelPart);
 
     int FindCriticalHead(ModelPart&                 rModelPart,
                          const Kratos::Parameters&  rGidOutputSettings,
                          const CriticalHeadInfo&    rCriticalHeadInfo,
                          LoggerOutput::Pointer      pOutput,
+                         const std::stringstream&   rKratosLogBuffer,
                          const shared_ptr<Process>& pRiverBoundary,
                          const GeoMechanicsNewtonRaphsonErosionProcessStrategyType::Pointer pSolvingStrategy,
                          const CallBackFunctions& rCallBackFunctions);
 
     void HandleCriticalHeadFound(const CriticalHeadInfo& rCriticalHeadInfo);
 
-    void HandleCleanUp(const CallBackFunctions& rCallBackFunctions, LoggerOutput::Pointer pOutput);
+    void HandleCleanUp(const CallBackFunctions& rCallBackFunctions,
+                       LoggerOutput::Pointer    pOutput,
+                       const std::stringstream& rKratosLogBuffer);
 
 private:
     // Initial Setup

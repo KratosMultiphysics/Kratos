@@ -12,6 +12,8 @@ import test_DEM_2D_contact
 import test_DEM_3D_contact
 import test_DEM_2D_constitutive_laws
 import test_DEM_3D_constitutive_laws
+import test_DEM_2D_contact_models
+import test_DEM_3D_contact_models
 import test_DEM_2D_restitution
 import test_DEM_3D_restitution
 import test_DEM_2D_continuum_vs_discontinuum
@@ -35,6 +37,8 @@ import test_search_nodes
 import test_dem_3d_parallel_bond_model
 import test_dem_3d_smooth_joint_model
 import test_moving_periodic_boundary
+import test_servo_control
+import test_properties_measure_utility
 import sys
 sys.path.append('DEM3D_chung_ooi_tests/test1_data')
 sys.path.append('DEM3D_chung_ooi_tests/test2_data')
@@ -70,6 +74,8 @@ def AssembleTestSuites():
     smallSuite.addTest(test_glued_particles.TestGluedParticles("test_Glued_Particles_1"))
     smallSuite.addTest(test_DEM_2D.TestDEM2D("test_DEM2D_1"))
     smallSuite.addTest(test_DEM_3D_contact.TestDEM3DContact("test_DEM3D_contact"))
+    smallSuite.addTest(test_DEM_2D_contact_models.Test2DContactModels("test_DEM2D_ContactModels"))
+    smallSuite.addTest(test_DEM_3D_contact_models.Test3DContactModels("test_DEM3D_ContactModels"))
     smallSuite.addTest(test_DEM_2D_constitutive_laws.DEM2DConstitutiveLaws("test_DEM2D_ConstitutiveLaws1"))
     smallSuite.addTest(test_DEM_2D_constitutive_laws.DEM2DConstitutiveLaws("test_DEM2D_ConstitutiveLaws2"))
     smallSuite.addTest(test_DEM_2D_constitutive_laws.DEM2DConstitutiveLaws("test_DEM2D_ConstitutiveLaws3"))
@@ -107,6 +113,8 @@ def AssembleTestSuites():
     smallSuite.addTest(test_dem_3d_parallel_bond_model.TestParallelBondModel("test_ParallelBondModel_1"))
     smallSuite.addTest(test_dem_3d_smooth_joint_model.TestSmoothJointModel("test_SmoothJointModel_1"))
     smallSuite.addTest(test_moving_periodic_boundary.TestMovingPeriodicBoundary("test_MovingPeriodicBoundary"))
+    smallSuite.addTest(test_servo_control.TestServoControl("test_ServoControl"))
+    smallSuite.addTest(test_properties_measure_utility.TestPropertiesMeasureUtility("test_PropertiesMeasureUtility"))
 
     # Create a test suit with the selected tests plus all small tests
     nightSuite = suites['nightly']

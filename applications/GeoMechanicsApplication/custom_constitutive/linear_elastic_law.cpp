@@ -11,6 +11,7 @@
 //
 
 #include "linear_elastic_law.h"
+#include "custom_utilities/check_utilities.h"
 #include "includes/mat_variables.h"
 
 namespace Kratos
@@ -18,15 +19,13 @@ namespace Kratos
 
 bool GeoLinearElasticLaw::RequiresInitializeMaterialResponse()
 {
-    // Avoid that `ConstitutiveLaw::InitializeMaterialResponse` throws
-    // an exception
+    // Avoid that `ConstitutiveLaw::InitializeMaterialResponse` throws an exception
     return false;
 }
 
 bool GeoLinearElasticLaw::RequiresFinalizeMaterialResponse()
 {
-    // Avoid that `ConstitutiveLaw::FinalizeMaterialResponse` throws
-    // an exception
+    // Avoid that `ConstitutiveLaw::FinalizeMaterialResponse` throws an exception
     return false;
 }
 
@@ -85,8 +84,8 @@ double& GeoLinearElasticLaw::CalculateValue(ConstitutiveLaw::Parameters& rParame
                                             double&                      rValue)
 {
     if (rThisVariable == STRAIN_ENERGY) {
-        Vector& r_strain_vector = rParameterValues.GetStrainVector();
-        Vector& r_stress_vector = rParameterValues.GetStressVector();
+        const auto& r_strain_vector = rParameterValues.GetStrainVector();
+        auto&       r_stress_vector = rParameterValues.GetStressVector();
         this->CalculatePK2Stress(r_strain_vector, r_stress_vector, rParameterValues);
 
         rValue = 0.5 * inner_prod(r_strain_vector, r_stress_vector); // Strain energy = 0.5*E:C:E
@@ -154,17 +153,13 @@ int GeoLinearElasticLaw::Check(const Properties&   rMaterialProperties,
                                const GeometryType& rElementGeometry,
                                const ProcessInfo&  rCurrentProcessInfo) const
 {
-    KRATOS_ERROR_IF_NOT(rMaterialProperties.Has(YOUNG_MODULUS))
-        << "YOUNG_MODULUS is not available in material parameters" << std::endl;
-    KRATOS_ERROR_IF(rMaterialProperties[YOUNG_MODULUS] <= 0.0)
-        << "YOUNG_MODULUS is invalid value " << std::endl;
-
-    KRATOS_ERROR_IF_NOT(rMaterialProperties.Has(POISSON_RATIO))
-        << "POISSON_RATIO is not available in material parameters" << std::endl;
-
-    const double& nu = rMaterialProperties[POISSON_RATIO];
-    KRATOS_ERROR_IF((nu > 0.499 && nu < 0.501) || (nu < -0.999 && nu > -1.01))
-        << "POISSON_RATIO has invalid value " << std::endl;
+    const CheckProperties check_properties(rMaterialProperties, "parameters of material",
+                                           CheckProperties::Bounds::AllExclusive);
+    check_properties.Check(YOUNG_MODULUS);
+    constexpr auto min_value_poisson_ratio = -1.0;
+    constexpr auto max_value_poisson_ratio = 0.5;
+    check_properties.SingleUseBounds(CheckProperties::Bounds::InclusiveLowerAndExclusiveUpper)
+        .Check(POISSON_RATIO, min_value_poisson_ratio, max_value_poisson_ratio);
 
     return 0;
 }

@@ -27,6 +27,7 @@
 #include "input_output/logger.h"
 #include "utilities/quaternion.h"
 #include "constraints/linear_master_slave_constraint.h"
+#include "solving_strategies/builder_and_solvers/p_multigrid/linear_multifreedom_constraint.hpp" // LinearMultifreedomConstraint
 
 // Geometries definition
 #include "geometries/register_kratos_components_for_geometry.h"
@@ -59,6 +60,8 @@
 #include "geometries/hexahedra_3d_27.h"
 #include "geometries/quadrature_point_geometry.h"
 #include "geometries/coupling_geometry.h"
+#include "geometries/brep_curve_on_surface.h"
+#include "geometries/brep_curve.h"
 
 // Elements
 #include "elements/mesh_element.h"
@@ -133,7 +136,7 @@ class KRATOS_API(KRATOS_CORE) KratosApplication {
     /// Destructor.
     virtual ~KratosApplication()
     {
-        // This must be commented until tests have been fixed.
+        DeregisterVariables();
         DeregisterCommonComponents();
         DeregisterApplication();
     }
@@ -148,6 +151,8 @@ class KRATOS_API(KRATOS_CORE) KratosApplication {
     }
 
     void RegisterKratosCore();
+
+    void DeregisterVariables();
 
     template<class TComponentsContainer>
     void DeregisterComponent(std::string const & rComponentName);
@@ -483,10 +488,15 @@ class KRATOS_API(KRATOS_CORE) KratosApplication {
     const MeshCondition mPrismCondition2D4N;
     const MeshCondition mPrismCondition3D6N;
 
+    // IBRA Conditions
+    const MeshCondition mBrepCurveOnSurfaceCondition;
+    const MeshCondition mNurbsCurveCondition;
+
 
     // Master-Slave base constraint
     const MasterSlaveConstraint mMasterSlaveConstraint;
     const LinearMasterSlaveConstraint mLinearMasterSlaveConstraint;
+    const LinearMultifreedomConstraint mLinearMultifreedomConstraint;
 
     // Periodic Condition
     const PeriodicCondition mPeriodicCondition;

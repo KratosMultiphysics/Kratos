@@ -12,11 +12,31 @@
 //
 
 // Application includes
-#include "custom_conditions/Pw_condition.hpp"
+#include "custom_conditions/Pw_condition.h"
 #include "custom_utilities/dof_utilities.h"
 
 namespace Kratos
 {
+
+template <unsigned int TDim, unsigned int TNumNodes>
+PwCondition<TDim, TNumNodes>::PwCondition() : PwCondition(0, nullptr, nullptr)
+{
+}
+
+template <unsigned int TDim, unsigned int TNumNodes>
+PwCondition<TDim, TNumNodes>::PwCondition(IndexType NewId, GeometryType::Pointer pGeometry)
+    : PwCondition(NewId, pGeometry, nullptr)
+{
+}
+
+template <unsigned int TDim, unsigned int TNumNodes>
+PwCondition<TDim, TNumNodes>::PwCondition(IndexType NewId, GeometryType::Pointer pGeometry, PropertiesType::Pointer pProperties)
+    : Condition(NewId, pGeometry, pProperties)
+{
+}
+
+template <unsigned int TDim, unsigned int TNumNodes>
+PwCondition<TDim, TNumNodes>::~PwCondition() = default;
 
 template <unsigned int TDim, unsigned int TNumNodes>
 Condition::Pointer PwCondition<TDim, TNumNodes>::Create(IndexType               NewId,
@@ -41,8 +61,8 @@ void PwCondition<TDim, TNumNodes>::GetDofList(DofsVectorType& rConditionDofList,
 }
 
 template <unsigned int TDim, unsigned int TNumNodes>
-void PwCondition<TDim, TNumNodes>::CalculateLocalSystem(MatrixType&        rLeftHandSideMatrix,
-                                                        VectorType&        rRightHandSideVector,
+void PwCondition<TDim, TNumNodes>::CalculateLocalSystem(Matrix&            rLeftHandSideMatrix,
+                                                        Vector&            rRightHandSideVector,
                                                         const ProcessInfo& rCurrentProcessInfo)
 {
     KRATOS_TRY
@@ -65,18 +85,17 @@ void PwCondition<TDim, TNumNodes>::CalculateLocalSystem(MatrixType&        rLeft
 }
 
 template <unsigned int TDim, unsigned int TNumNodes>
-void PwCondition<TDim, TNumNodes>::CalculateLeftHandSide(MatrixType&        rLeftHandSideMatrix,
-                                                         const ProcessInfo& rCurrentProcessInfo)
+void PwCondition<TDim, TNumNodes>::CalculateLeftHandSide(Matrix& rLeftHandSideMatrix, const ProcessInfo& rCurrentProcessInfo)
 {
-    KRATOS_TRY;
+    KRATOS_TRY
 
     KRATOS_ERROR << "PwCondition::CalculateLeftHandSide is not implemented" << std::endl;
 
-    KRATOS_CATCH("");
+    KRATOS_CATCH("")
 }
 
 template <unsigned int TDim, unsigned int TNumNodes>
-void PwCondition<TDim, TNumNodes>::CalculateRightHandSide(VectorType&        rRightHandSideVector,
+void PwCondition<TDim, TNumNodes>::CalculateRightHandSide(Vector&            rRightHandSideVector,
                                                           const ProcessInfo& rCurrentProcessInfo)
 {
     KRATOS_TRY
@@ -100,15 +119,15 @@ void PwCondition<TDim, TNumNodes>::EquationIdVector(EquationIdVectorType& rResul
 }
 
 template <unsigned int TDim, unsigned int TNumNodes>
-void PwCondition<TDim, TNumNodes>::CalculateAll(MatrixType&        rLeftHandSideMatrix,
-                                                VectorType&        rRightHandSideVector,
+void PwCondition<TDim, TNumNodes>::CalculateAll(Matrix&            rLeftHandSideMatrix,
+                                                Vector&            rRightHandSideVector,
                                                 const ProcessInfo& CurrentProcessInfo)
 {
     this->CalculateRHS(rRightHandSideVector, CurrentProcessInfo);
 }
 
 template <unsigned int TDim, unsigned int TNumNodes>
-void PwCondition<TDim, TNumNodes>::CalculateRHS(VectorType& rRightHandSideVector, const ProcessInfo& CurrentProcessInfo)
+void PwCondition<TDim, TNumNodes>::CalculateRHS(Vector& rRightHandSideVector, const ProcessInfo& CurrentProcessInfo)
 {
     KRATOS_TRY
 
@@ -123,6 +142,18 @@ template <unsigned int TDim, unsigned int TNumNodes>
 Condition::DofsVectorType PwCondition<TDim, TNumNodes>::GetDofs() const
 {
     return Geo::DofUtilities::ExtractDofsFromNodes(GetGeometry(), WATER_PRESSURE);
+}
+
+template <unsigned int TDim, unsigned int TNumNodes>
+void PwCondition<TDim, TNumNodes>::save(Serializer& rSerializer) const
+{
+    KRATOS_SERIALIZE_SAVE_BASE_CLASS(rSerializer, Condition)
+}
+
+template <unsigned int TDim, unsigned int TNumNodes>
+void PwCondition<TDim, TNumNodes>::load(Serializer& rSerializer)
+{
+    KRATOS_SERIALIZE_LOAD_BASE_CLASS(rSerializer, Condition)
 }
 
 template <unsigned int TDim, unsigned int TNumNodes>

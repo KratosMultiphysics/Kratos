@@ -28,7 +28,6 @@
         "compute_reactions":                  false,
         "move_mesh_flag":                     false,
         "reform_dofs_at_each_step":           false,
-        "nodal_smoothing":                    false,
         "block_builder":                      true,
         "solution_type":                      "Transient_Heat_Transfer",
         "scheme_type":                        "Backward_Euler",
@@ -65,7 +64,6 @@
             "preconditioner_type": "ilu0"
         },
         "problem_domain_sub_model_part_list": ["Soil"],
-        "processes_sub_model_part_list":      ["left","right","initial"],
         "body_domain_sub_model_part_list":    ["Soil"]
     },
     "output_processes": {
@@ -133,8 +131,6 @@
             "value":                25.0,
             "table":                0
         }
-    }],
-    "loads_process_list":       [],
-        "auxiliar_process_list": []
+    }]
     }
 }

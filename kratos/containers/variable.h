@@ -13,17 +13,13 @@
 //
 //
 
-#if !defined(KRATOS_VARIABLE_H_INCLUDED )
-#define  KRATOS_VARIABLE_H_INCLUDED
+#pragma once
 
 // System includes
-#include <string>
-#include <iostream>
 
 // External includes
 
 // Project includes
-#include "includes/define.h"
 #include "includes/registry.h"
 #include "variable_data.h"
 #include "utilities/stl_vector_io.h"
@@ -69,13 +65,13 @@ public:
     KRATOS_CLASS_POINTER_DEFINITION(Variable);
 
     /// type of this variable
-    typedef TDataType Type;
+    using Type = TDataType;
 
     // Type used for key values which defined in VariableData
-    typedef VariableData::KeyType KeyType;
+    using KeyType = VariableData::KeyType;
 
     // Type of this varible with given TDataType
-    typedef Variable<TDataType> VariableType;
+    using VariableType = Variable<TDataType>;
 
     ///@}
     ///@name Life Cycle
@@ -95,9 +91,7 @@ public:
         : VariableData(NewName, sizeof(TDataType)),
           mZero(Zero),
           mpTimeDerivativeVariable(pTimeDerivativeVariable)
-    {
-        RegisterThisVariable();
-    }
+    {}
     /**
      * @brief Constructor with specific name and zero value
      * @param NewName The name to be assigned to the new variable
@@ -110,9 +104,7 @@ public:
         : VariableData(NewName, sizeof(TDataType)),
           mZero(TDataType()),
           mpTimeDerivativeVariable(pTimeDerivativeVariable)
-    {
-         RegisterThisVariable();
-   }
+    {}
 
     /**
      * @brief Constructor for creating a component of other variable
@@ -128,9 +120,7 @@ public:
         )
         : VariableData(rNewName, sizeof(TDataType), pSourceVariable, ComponentIndex),
           mZero(Zero)
-    {
-        RegisterThisVariable();
-    }
+    {}
 
     /**
      * @brief Constructor for creating a component of other variable
@@ -149,9 +139,7 @@ public:
         : VariableData(rNewName, sizeof(TDataType), pSourceVariable, ComponentIndex),
           mZero(Zero),
           mpTimeDerivativeVariable(pTimeDerivativeVariable)
-    {
-        RegisterThisVariable();
-    }
+    {}
 
     /**
      * Copy constructor.
@@ -325,6 +313,19 @@ public:
         return GetValueByIndex(static_cast<TDataType*>(pSource),GetComponentIndex());
     }
 
+    /// Add the variable to the Kratos Registry
+    void Register() const {
+        const std::string variable_path("variables.all."+Name());
+        if (!Registry::HasItem(variable_path)) {
+            Registry::AddItem<VariableType>(variable_path, *this);
+            Registry::AddItem<VariableType>("variables."+Registry::GetCurrentSource()+"."+Name(), *this);
+        } else if(!Registry::GetItem(variable_path).IsSameType(*this)) {
+            KRATOS_ERROR << "Attempting to register " << Name()
+                << " but a variable with the same name and different type already exists"
+                << std::endl;
+        }
+    }
+
     ///@}
     ///@name Access
     ///@{
@@ -471,13 +472,6 @@ private:
         return *static_cast<const TDataType*>(pValue + index);
     }
 
-    void RegisterThisVariable(){
-        std::string variable_path = "variables.all." + Name();
-        if(!Registry::HasItem(variable_path)){
-            Registry::AddItem<VariableType>(variable_path, *this);
-        }
-    }
-
     ///@}
     ///@name Serialization
     ///@{
@@ -557,5 +551,3 @@ inline std::ostream& operator << (std::ostream& rOStream,
 ///@}
 
 }  // namespace Kratos.
-
-#endif // KRATOS_VARIABLE_H_INCLUDED  defined

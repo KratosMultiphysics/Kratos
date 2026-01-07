@@ -92,16 +92,20 @@ public:
     /// Constructor using an array of nodes
     UPwUpdatedLagrangianElement(IndexType                          NewId,
                                 const NodesArrayType&              ThisNodes,
-                                std::unique_ptr<StressStatePolicy> pStressStatePolicy)
-        : UPwSmallStrainElement<TDim, TNumNodes>(NewId, ThisNodes, std::move(pStressStatePolicy))
+                                std::unique_ptr<StressStatePolicy> pStressStatePolicy,
+                                std::unique_ptr<IntegrationCoefficientModifier> pCoefficientModifier = nullptr)
+        : UPwSmallStrainElement<TDim, TNumNodes>(
+              NewId, ThisNodes, std::move(pStressStatePolicy), std::move(pCoefficientModifier))
     {
     }
 
     /// Constructor using Geometry
     UPwUpdatedLagrangianElement(IndexType                          NewId,
                                 GeometryType::Pointer              pGeometry,
-                                std::unique_ptr<StressStatePolicy> pStressStatePolicy)
-        : UPwSmallStrainElement<TDim, TNumNodes>(NewId, pGeometry, std::move(pStressStatePolicy))
+                                std::unique_ptr<StressStatePolicy> pStressStatePolicy,
+                                std::unique_ptr<IntegrationCoefficientModifier> pCoefficientModifier = nullptr)
+        : UPwSmallStrainElement<TDim, TNumNodes>(
+              NewId, pGeometry, std::move(pStressStatePolicy), std::move(pCoefficientModifier))
     {
     }
 
@@ -109,8 +113,10 @@ public:
     UPwUpdatedLagrangianElement(IndexType                          NewId,
                                 GeometryType::Pointer              pGeometry,
                                 PropertiesType::Pointer            pProperties,
-                                std::unique_ptr<StressStatePolicy> pStressStatePolicy)
-        : UPwSmallStrainElement<TDim, TNumNodes>(NewId, pGeometry, pProperties, std::move(pStressStatePolicy))
+                                std::unique_ptr<StressStatePolicy> pStressStatePolicy,
+                                std::unique_ptr<IntegrationCoefficientModifier> pCoefficientModifier = nullptr)
+        : UPwSmallStrainElement<TDim, TNumNodes>(
+              NewId, pGeometry, pProperties, std::move(pStressStatePolicy), std::move(pCoefficientModifier))
     {
     }
 
@@ -265,12 +271,12 @@ private:
 
     void save(Serializer& rSerializer) const override
     {
-        KRATOS_SERIALIZE_SAVE_BASE_CLASS(rSerializer, BaseType);
+        KRATOS_SERIALIZE_SAVE_BASE_CLASS(rSerializer, BaseType)
     }
 
     void load(Serializer& rSerializer) override
     {
-        KRATOS_SERIALIZE_LOAD_BASE_CLASS(rSerializer, BaseType);
+        KRATOS_SERIALIZE_LOAD_BASE_CLASS(rSerializer, BaseType)
     }
 };
 

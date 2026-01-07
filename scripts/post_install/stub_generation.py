@@ -108,10 +108,13 @@ def MoveKratosModuleStubFilesToPythonModule(stub_file_path: Path, list_of_python
         if not Path(stub_source_file_name).is_file():
             # it is not a single stub file, it has multiple nested packages.
             # hence it is a directory
-            stub_source_file_name = stub_source_file_name.parent / stub_source_file_name.name[:-4]
-            stub_dest_file_name = kratos_module.GetPythonPath().parent
-            shutil.copytree(stub_source_file_name, stub_dest_file_name, dirs_exist_ok=True)
-            shutil.rmtree(stub_source_file_name)
+            try:
+                stub_source_file_name = stub_source_file_name.parent / stub_source_file_name.name[:-4]
+                stub_dest_file_name = kratos_module.GetPythonPath().parent
+                shutil.copytree(stub_source_file_name, stub_dest_file_name, dirs_exist_ok=True)
+                shutil.rmtree(stub_source_file_name)
+            except Exception as e:
+                print("Error at MoveKratosModuleStubFilesToPythonModule:", e)
         else:
             # it is a single stub file.
             if kratos_module.GetPythonPath().name == "__init__.py":
@@ -211,6 +214,7 @@ def Main():
     args: 'list[str]' = ["-o", str(kratos_library_path)]
     for k in list_of_cpp_libs:
         args.extend(["-p", k.GetCppLibModule()])
+    args.append("--include-docstrings")
     options = parse_options(args)
     generate_stubs(options)
 
@@ -228,7 +232,10 @@ if __name__ == "__main__":
     error_and_warning_outut_file = f"{sys.argv[1]}/stub_generation_errors_and_warnings.txt"
     if "--quiet" in sys.argv: # suppress output from Kratos imports
         args = [arg for arg in sys.argv if arg != "--quiet"]
-        subprocess.run([sys.executable] + args, stdout = subprocess.PIPE, stderr = sys.stderr, check=True)
+        proc = subprocess.run([sys.executable] + args, stdout = subprocess.PIPE, stderr = sys.stderr, check=True)
+        if proc.stderr is not None:
+            print(proc.stderr)
+
     else:
         Main()
         PostProcessGeneratedStubFiles()

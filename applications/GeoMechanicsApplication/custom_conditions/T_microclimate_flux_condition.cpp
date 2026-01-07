@@ -27,6 +27,27 @@ namespace Kratos
 using namespace MicroClimateConstants;
 
 template <unsigned int TDim, unsigned int TNumNodes>
+GeoTMicroClimateFluxCondition<TDim, TNumNodes>::GeoTMicroClimateFluxCondition()
+    : GeoTCondition<TDim, TNumNodes>()
+{
+}
+
+template <unsigned int TDim, unsigned int TNumNodes>
+GeoTMicroClimateFluxCondition<TDim, TNumNodes>::GeoTMicroClimateFluxCondition(IndexType NewId,
+                                                                              GeometryType::Pointer pGeometry)
+    : GeoTCondition<TDim, TNumNodes>(NewId, pGeometry)
+{
+}
+
+template <unsigned int TDim, unsigned int TNumNodes>
+GeoTMicroClimateFluxCondition<TDim, TNumNodes>::GeoTMicroClimateFluxCondition(IndexType NewId,
+                                                                              GeometryType::Pointer pGeometry,
+                                                                              Properties::Pointer pProperties)
+    : GeoTCondition<TDim, TNumNodes>(NewId, pGeometry, pProperties)
+{
+}
+
+template <unsigned int TDim, unsigned int TNumNodes>
 Condition::Pointer GeoTMicroClimateFluxCondition<TDim, TNumNodes>::Create(IndexType NewId,
                                                                           const NodesArrayType& rNodes,
                                                                           Properties::Pointer pProperties) const
@@ -67,7 +88,6 @@ void GeoTMicroClimateFluxCondition<TDim, TNumNodes>::CalculateLocalSystem(Matrix
     rLeftHandSideMatrix  = Matrix{TNumNodes, TNumNodes, 0.0};
     rRightHandSideVector = Vector{TNumNodes, 0.0};
 
-    // Previous definitions
     const auto& r_geom               = this->GetGeometry();
     const auto& r_integration_points = r_geom.IntegrationPoints(this->GetIntegrationMethod());
     const auto number_of_integration_points = static_cast<unsigned int>(r_integration_points.size());
@@ -95,17 +115,16 @@ void GeoTMicroClimateFluxCondition<TDim, TNumNodes>::CalculateLocalSystem(Matrix
     const auto right_hand_side_fluxes =
         CalculateRightHandSideFluxes(time_step_size, previous_storage, previous_radiation);
 
-    // Loop over integration points
     for (unsigned int integration_point_index = 0;
          integration_point_index < number_of_integration_points; ++integration_point_index) {
         const auto N = array_1d<double, TNumNodes>{row(r_N_container, integration_point_index)};
 
         // Compute weighting coefficient for integration
-        const auto IntegrationCoefficient = ConditionUtilities::CalculateIntegrationCoefficient<TDim, TNumNodes>(
+        const auto integration_coefficient = ConditionUtilities::CalculateIntegrationCoefficient(
             jacobians[integration_point_index], r_integration_points[integration_point_index].Weight());
 
-        CalculateAndAddLHS(rLeftHandSideMatrix, N, IntegrationCoefficient, left_hand_side_fluxes);
-        CalculateAndAddRHS(rRightHandSideVector, N, IntegrationCoefficient, nodal_temperatures,
+        CalculateAndAddLHS(rLeftHandSideMatrix, N, integration_coefficient, left_hand_side_fluxes);
+        CalculateAndAddRHS(rRightHandSideVector, N, integration_coefficient, nodal_temperatures,
                            left_hand_side_fluxes, right_hand_side_fluxes);
     }
 
@@ -404,6 +423,42 @@ template <unsigned int TDim, unsigned int TNumNodes>
 std::string GeoTMicroClimateFluxCondition<TDim, TNumNodes>::Info() const
 {
     return "GeoTMicroClimateFluxCondition";
+}
+
+template <unsigned int TDim, unsigned int TNumNodes>
+void GeoTMicroClimateFluxCondition<TDim, TNumNodes>::save(Serializer& rSerializer) const
+{
+    KRATOS_SERIALIZE_SAVE_BASE_CLASS(rSerializer, Condition)
+    rSerializer.save("mIsInitialized", mIsInitialized);
+    rSerializer.save("mAlbedoCoefficient", mAlbedoCoefficient);
+    rSerializer.save("mFirstCoverStorageCoefficient", mFirstCoverStorageCoefficient);
+    rSerializer.save("mSecondCoverStorageCoefficient", mSecondCoverStorageCoefficient);
+    rSerializer.save("mThirdCoverStorageCoefficient", mThirdCoverStorageCoefficient);
+    rSerializer.save("mBuildEnvironmentRadiation", mBuildEnvironmentRadiation);
+    rSerializer.save("mMinimalStorage", mMinimalStorage);
+    rSerializer.save("mMaximalStorage", mMaximalStorage);
+    rSerializer.save("mRoughnessTemperature", mRoughnessTemperature);
+    rSerializer.save("mNetRadiation", mNetRadiation);
+    rSerializer.save("mWaterStorage", mWaterStorage);
+    rSerializer.save("mWaterDensity", mWaterDensity);
+}
+
+template <unsigned int TDim, unsigned int TNumNodes>
+void GeoTMicroClimateFluxCondition<TDim, TNumNodes>::load(Serializer& rSerializer)
+{
+    KRATOS_SERIALIZE_LOAD_BASE_CLASS(rSerializer, Condition)
+    rSerializer.load("mIsInitialized", mIsInitialized);
+    rSerializer.load("mAlbedoCoefficient", mAlbedoCoefficient);
+    rSerializer.load("mFirstCoverStorageCoefficient", mFirstCoverStorageCoefficient);
+    rSerializer.load("mSecondCoverStorageCoefficient", mSecondCoverStorageCoefficient);
+    rSerializer.load("mThirdCoverStorageCoefficient", mThirdCoverStorageCoefficient);
+    rSerializer.load("mBuildEnvironmentRadiation", mBuildEnvironmentRadiation);
+    rSerializer.load("mMinimalStorage", mMinimalStorage);
+    rSerializer.load("mMaximalStorage", mMaximalStorage);
+    rSerializer.load("mRoughnessTemperature", mRoughnessTemperature);
+    rSerializer.load("mNetRadiation", mNetRadiation);
+    rSerializer.load("mWaterStorage", mWaterStorage);
+    rSerializer.load("mWaterDensity", mWaterDensity);
 }
 
 template class GeoTMicroClimateFluxCondition<2, 2>;

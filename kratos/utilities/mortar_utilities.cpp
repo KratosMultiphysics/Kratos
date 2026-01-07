@@ -4,8 +4,8 @@
 //   _|\_\_|  \__,_|\__|\___/ ____/
 //                   Multi-Physics
 //
-//  License:		 BSD License
-//					 Kratos default license: kratos/license.txt
+//  License:         BSD License
+//                   Kratos default license: kratos/license.txt
 //
 //  Main authors:    Vicente Mataix Ferrandiz
 //
@@ -208,7 +208,7 @@ void ComputeNodesTangentFromNormalModelPart(ModelPart& rModelPart)
 /***********************************************************************************/
 
 void ComputeTangentsFromNormal(
-    NodeType& rNode,
+    Node& rNode,
     const array_1d<double, 3>& rNormal,
     const std::size_t Dimension
     )
@@ -235,7 +235,7 @@ void ComputeTangentsFromNormal(
 /***********************************************************************************/
 
 void ComputeTangentNodeWithLMAndSlip(
-    NodeType& rNode,
+    Node& rNode,
     const std::size_t StepLM,
     const Variable<array_1d<double, 3>>* pSlipVariable,
     const double SlipCoefficient,
@@ -293,7 +293,7 @@ void ComputeTangentNodeWithLMAndSlip(
 /***********************************************************************************/
 
 void ComputeTangentNodeWithSlip(
-    NodeType& rNode,
+    Node& rNode,
     const std::size_t StepLM,
     const Variable<array_1d<double, 3>>* pSlipVariable,
     const double SlipCoefficient,
@@ -453,7 +453,7 @@ const std::string GetAuxiliarVariable<Variable<array_1d<double, 3>>>()
 
 template< >
 double GetAuxiliarValue<Variable<double>>(
-    NodeType& rThisNode,
+    Node& rThisNode,
     const std::size_t iSize
     )
 {
@@ -465,7 +465,7 @@ double GetAuxiliarValue<Variable<double>>(
 
 template< >
 double GetAuxiliarValue<Variable<array_1d<double, 3>>>(
-    NodeType& rThisNode,
+    Node& rThisNode,
     const std::size_t iSize
     )
 {
@@ -636,7 +636,7 @@ void AddValue<Variable<array_1d<double, 3>>, MortarUtilitiesSettings::SaveAsNonH
 
 template<>
 void AddAreaWeightedNodalValue<Variable<double>, MortarUtilitiesSettings::SaveAsHistoricalVariable>(
-    NodeType& rThisNode,
+    Node& rThisNode,
     const Variable<double>& rThisVariable,
     const double RefArea,
     const double Tolerance
@@ -653,7 +653,7 @@ void AddAreaWeightedNodalValue<Variable<double>, MortarUtilitiesSettings::SaveAs
 
 template<>
 void AddAreaWeightedNodalValue<Variable<array_1d<double, 3>>, MortarUtilitiesSettings::SaveAsHistoricalVariable>(
-    NodeType& rThisNode,
+    Node& rThisNode,
     const Variable<array_1d<double, 3>>& rThisVariable,
     const double RefArea,
     const double Tolerance
@@ -670,7 +670,7 @@ void AddAreaWeightedNodalValue<Variable<array_1d<double, 3>>, MortarUtilitiesSet
 
 template<>
 void AddAreaWeightedNodalValue<Variable<double>, MortarUtilitiesSettings::SaveAsNonHistoricalVariable>(
-    NodeType& rThisNode,
+    Node& rThisNode,
     const Variable<double>& rThisVariable,
     const double RefArea,
     const double Tolerance
@@ -687,7 +687,7 @@ void AddAreaWeightedNodalValue<Variable<double>, MortarUtilitiesSettings::SaveAs
 
 template<>
 void AddAreaWeightedNodalValue<Variable<array_1d<double, 3>>, MortarUtilitiesSettings::SaveAsNonHistoricalVariable>(
-    NodeType& rThisNode,
+    Node& rThisNode,
     const Variable<array_1d<double, 3>>& rThisVariable,
     const double RefArea,
     const double Tolerance
