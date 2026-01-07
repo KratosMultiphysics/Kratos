@@ -1,11 +1,9 @@
 import KratosMultiphysics
 import KratosMultiphysics.KratosUnittest as KratosUnittest
-from KratosMultiphysics.json_output_process import JsonOutputProcess
 
 import itertools
 import json
 from pathlib import Path
-
 
 class TestJsonOutputProcess(KratosUnittest.TestCase):
     def setUp(self):
@@ -27,7 +25,7 @@ class TestJsonOutputProcess(KratosUnittest.TestCase):
             node.SetSolutionStepValue(vector_variable, vector)
 
     def produce_json_output_file(self, process_settings):
-        output_process = JsonOutputProcess(self.model, process_settings)
+        output_process = KratosMultiphysics.JsonOutputProcess(self.model, process_settings)
 
         output_process.ExecuteInitialize()
 
