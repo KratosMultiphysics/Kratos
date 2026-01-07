@@ -138,7 +138,11 @@
                         "write_initial_values": false,
                         "list_of_output_components": [
                             "response_function.damage_response"
-                        ]
+                        ],
+                        "format_info": {
+                            "float_precision": 16
+                            
+                        }
                     }
                 }
             ]

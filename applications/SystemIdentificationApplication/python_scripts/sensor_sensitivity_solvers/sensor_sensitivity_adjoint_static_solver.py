@@ -29,9 +29,6 @@ class SensorSensitivityAdjointStaticSolver(StructuralMechanicsAdjointStaticSolve
         # skip calling Initialize of StructuralMechanicsAdjointStaticSolver and call the its base class Initialize
         super(StructuralMechanicsAdjointStaticSolver, self).Initialize()
 
-        # set the strategy to only build LHS once, and build RHS for all other solves
-        self._GetSolutionStrategy().SetRebuildLevel(0)
-
         Kratos.Logger.PrintInfo(self.__class__.__name__, "Finished initialization.")
 
     def SetResponseFunction(self, response_function: Kratos.AdjointResponseFunction) -> None:

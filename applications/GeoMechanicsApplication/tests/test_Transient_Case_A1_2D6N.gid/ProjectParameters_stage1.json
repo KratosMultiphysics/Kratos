@@ -67,7 +67,6 @@
             "preconditioner_type": "ilu0"
         },
         "problem_domain_sub_model_part_list": ["Soil"],
-        "processes_sub_model_part_list":      ["bottom","top","gravity"],
         "body_domain_sub_model_part_list":    ["Soil"]
     },
     "output_processes": {

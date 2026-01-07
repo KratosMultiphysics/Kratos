@@ -3,6 +3,7 @@ import KratosMultiphysics.MappingApplication # registering the mappers
 from KratosMultiphysics import KratosUnittest
 from KratosMultiphysics.testing.utilities import ReadModelPart
 import os
+from KratosMultiphysics.kratos_utilities import CheckIfApplicationsAvailable
 
 def GetFilePath(file_name):
     return os.path.join(os.path.dirname(os.path.realpath(__file__)), "mdpa_files", file_name)
@@ -30,10 +31,11 @@ class TestCouplingGeometryMapper(KratosUnittest.TestCase):
         reference_result = [0.2380991480071958, 0.2380991480071958, 0.2380991480071958, 1.3120351229689677, 1.3120351229689677, 1.3120351229689677, 0.6908309106360845, 0.6908309106360845, 0.6908309106360845, 0.9063686826513201, 0.9063686826513201, 0.9063686826513201, 0.9261336708771284, 0.9261336708771284, 0.9261336708771284, 0.9265324648593039, 0.9265324648593039, 0.9265324648593039]
         self.assertVectorAlmostEqual(mapped_results,reference_result)
 
-@KratosUnittest.skipIfApplicationsNotAvailable("IgaApplication")
 class TestIgaFEMCouplingGeometryMapper(KratosUnittest.TestCase):
     @classmethod
     def setUpClass(self):
+        if not CheckIfApplicationsAvailable("IgaApplication"):
+            raise KratosUnittest.SkipTest("The IgaApplication is not available!")
         import KratosMultiphysics.IgaApplication as Iga
         self.mapper_parameters = KM.Parameters("""{
             "mapper_type": "coupling_geometry",
@@ -63,10 +65,11 @@ class TestIgaFEMCouplingGeometryMapper(KratosUnittest.TestCase):
         reference_result = [1.0, 1.0, 1.0, 0.9999999999999998, 0.9999999999999998, 0.9999999999999998]
         self.assertVectorAlmostEqual(mapped_results,reference_result)
 
-@KratosUnittest.skipIfApplicationsNotAvailable("IgaApplication")
 class TestDualMortarIgaFEMCouplingGeometryMapper(KratosUnittest.TestCase):
     @classmethod
     def setUpClass(self):
+        if not CheckIfApplicationsAvailable("IgaApplication"):
+            raise KratosUnittest.SkipTest("The IgaApplication is not available!")
         import KratosMultiphysics.IgaApplication as Iga
         self.mapper_parameters = KM.Parameters("""{
             "mapper_type": "coupling_geometry",

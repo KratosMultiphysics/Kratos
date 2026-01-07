@@ -58,7 +58,6 @@
       "scaling"                        : true
     },
     "problem_domain_sub_model_part_list": ["Parts_Solid_Grond"    ],
-    "processes_sub_model_part_list"     : ["gravity", "WATER_PRESSURE_Bottom", "WATER_PRESSURE_Top"],
     "body_domain_sub_model_part_list"   : ["Parts_Solid_Grond"    ],
     "newmark_beta"                     : 0.25,
     "newmark_gamma"                    : 0.5,
