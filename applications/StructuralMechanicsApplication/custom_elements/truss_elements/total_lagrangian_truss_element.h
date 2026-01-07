@@ -218,6 +218,18 @@ public:
 
     MatrixType CalculateClosedFormK(const double Sxx);
 
+    void GetValuesVector(
+        Vector& rValues,
+        int Step = 0) const override;
+
+    void GetSecondDerivativesVector(
+        Vector& rValues,
+        int Step = 0) const override;
+
+    void GetFirstDerivativesVector(
+        Vector& rValues,
+        int Step = 0) const override;
+
     /**
      * @brief Called to initialize the element.
      * @warning Must be called before any calculation is done

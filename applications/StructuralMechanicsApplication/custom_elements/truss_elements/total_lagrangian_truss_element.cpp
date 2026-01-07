@@ -690,7 +690,7 @@ void TotalLagrangianTrussElement<TDimension>::CalculateMassMatrix(
     const ProcessInfo& rCurrentProcessInfo
 )
 {
-    KRATOS_TRY;
+    KRATOS_TRY
 
     const auto &r_props = GetProperties();
 
@@ -735,11 +735,13 @@ void TotalLagrangianTrussElement<TDimension>::CalculateDampingMatrix(
     const ProcessInfo& rCurrentProcessInfo
 )
 {
+    KRATOS_TRY
     StructuralMechanicsElementUtilities::CalculateRayleighDampingMatrix(
         *this,
         rDampingMatrix,
         rCurrentProcessInfo,
         SystemSize);
+    KRATOS_CATCH("CalculateDampingMatrix")
 }
 
 /***********************************************************************************/
@@ -977,6 +979,81 @@ CalculateClosedFormK(
     }
 
     return K;
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+template <SizeType TDimension>
+void TotalLagrangianTrussElement<TDimension>::GetValuesVector(Vector& rValues, int Step) const
+{
+
+    KRATOS_TRY
+    if (rValues.size() != SystemSize) {
+        rValues.resize(SystemSize, false);
+    }
+
+    for (IndexType i = 0; i < NNodes; ++i) {
+        int index = i * Dimension;
+        const auto& r_disp =
+            GetGeometry()[i].FastGetSolutionStepValue(DISPLACEMENT, Step);
+
+        rValues[index] = r_disp[0];
+        rValues[index + 1] = r_disp[1];
+        if constexpr (Dimension == 3)
+            rValues[index + 2] = r_disp[2];
+    }
+    KRATOS_CATCH("")
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+template <SizeType TDimension>
+void TotalLagrangianTrussElement<TDimension>::GetFirstDerivativesVector(Vector& rValues, int Step) const
+{
+
+    KRATOS_TRY
+    if (rValues.size() != SystemSize) {
+        rValues.resize(SystemSize, false);
+    }
+
+    for (IndexType i = 0; i < NNodes; ++i) {
+        int index = i * Dimension;
+        const auto& r_vel =
+            GetGeometry()[i].FastGetSolutionStepValue(VELOCITY, Step);
+
+        rValues[index] = r_vel[0];
+        rValues[index + 1] = r_vel[1];
+        if constexpr (Dimension == 3)
+            rValues[index + 2] = r_vel[2];
+    }
+    KRATOS_CATCH("")
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+template <SizeType TDimension>
+void TotalLagrangianTrussElement<TDimension>::GetSecondDerivativesVector(Vector& rValues, int Step) const
+{
+
+    KRATOS_TRY
+    if (rValues.size() != SystemSize) {
+        rValues.resize(SystemSize, false);
+    }
+
+    for (IndexType i = 0; i < NNodes; ++i) {
+        int index = i * Dimension;
+        const auto& r_acc = GetGeometry()[i].FastGetSolutionStepValue(ACCELERATION, Step);
+
+        rValues[index] = r_acc[0];
+        rValues[index + 1] = r_acc[1];
+        if constexpr (Dimension == 3)
+            rValues[index + 2] = r_acc[2];
+    }
+
+    KRATOS_CATCH("")
 }
 
 /***********************************************************************************/
