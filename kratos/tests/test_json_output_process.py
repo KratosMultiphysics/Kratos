@@ -3,7 +3,6 @@ import KratosMultiphysics.KratosUnittest as KratosUnittest
 import KratosMultiphysics.kratos_utilities as KratosUtils
 from KratosMultiphysics.json_output_process import JsonOutputProcess
 
-import itertools
 import json
 import os
 from pathlib import Path
