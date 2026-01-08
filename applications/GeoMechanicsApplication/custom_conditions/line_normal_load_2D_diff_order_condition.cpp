@@ -13,7 +13,7 @@
 //
 
 // Project includes
-#include "custom_conditions/line_normal_load_2D_diff_order_condition.hpp"
+#include "custom_conditions/line_normal_load_2D_diff_order_condition.h"
 #include "custom_utilities/variables_utilities.hpp"
 #include "includes/variables.h"
 
@@ -22,23 +22,20 @@
 namespace Kratos
 {
 
-// Default Constructor
 LineNormalLoad2DDiffOrderCondition::LineNormalLoad2DDiffOrderCondition()
     : LineLoad2DDiffOrderCondition()
 {
 }
 
-// Constructor 1
 LineNormalLoad2DDiffOrderCondition::LineNormalLoad2DDiffOrderCondition(IndexType NewId, GeometryType::Pointer pGeometry)
-    : LineLoad2DDiffOrderCondition(NewId, pGeometry)
+    : LineLoad2DDiffOrderCondition(NewId, std::move(pGeometry))
 {
 }
 
-// Constructor 2
 LineNormalLoad2DDiffOrderCondition::LineNormalLoad2DDiffOrderCondition(IndexType NewId,
                                                                        GeometryType::Pointer pGeometry,
                                                                        PropertiesType::Pointer pProperties)
-    : LineLoad2DDiffOrderCondition(NewId, pGeometry, pProperties)
+    : LineLoad2DDiffOrderCondition(NewId, std::move(pGeometry), std::move(pProperties))
 {
 }
 
@@ -108,6 +105,14 @@ void LineNormalLoad2DDiffOrderCondition::CalculateAndAddConditionForce(Vector& r
             rVariables.Nu[node] * rVariables.ConditionVector[1] * rVariables.IntegrationCoefficient;
     }
 }
+
+void LineNormalLoad2DDiffOrderCondition::save(Serializer& rSerializer) const
+{
+    KRATOS_SERIALIZE_SAVE_BASE_CLASS(rSerializer, LineLoad2DDiffOrderCondition)
+}
+
+void LineNormalLoad2DDiffOrderCondition::load(Serializer& rSerializer){
+    KRATOS_SERIALIZE_LOAD_BASE_CLASS(rSerializer, LineLoad2DDiffOrderCondition)}
 
 std::string LineNormalLoad2DDiffOrderCondition::Info() const
 {

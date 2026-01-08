@@ -1,6 +1,6 @@
 {
     "custom_entries": [
-        "penalty.md",
+        "dirichlet_boundary_particles.md",
         "point_load.md"
     ]
 }

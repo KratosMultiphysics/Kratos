@@ -51,7 +51,6 @@
             "scaling": true
         },
         "problem_domain_sub_model_part_list": ["Soil"],
-        "processes_sub_model_part_list": ["TopWaterPressure", "Bottom", "LeftSide", "RightSide", "SoilExcludingBoundary", "LineLoad"],
         "body_domain_sub_model_part_list": ["Soil"],
         "move_mesh_flag": false
     },
@@ -78,8 +77,8 @@
                             "body_output": true,
                             "node_output": false,
                             "skin_output": false,
-                            "nodal_results": ["TOTAL_DISPLACEMENT", "WATER_PRESSURE", "CAUCHY_STRESS_TENSOR"],
-                            "gauss_point_results": ["CAUCHY_STRESS_TENSOR"]
+                            "nodal_results": ["TOTAL_DISPLACEMENT", "WATER_PRESSURE", "CAUCHY_STRESS_TENSOR", "TOTAL_STRESS_TENSOR"],
+                            "gauss_point_results": ["CAUCHY_STRESS_TENSOR", "TOTAL_STRESS_TENSOR"]
                         }
                     }
                 }
@@ -106,20 +105,7 @@
                 "kratos_module": "KratosMultiphysics.GeoMechanicsApplication",
                 "process_name": "ApplyVectorConstraintTableProcess",
                 "Parameters": {
-                    "model_part_name": "PorousDomain.LeftSide",
-                    "variable_name": "DISPLACEMENT",
-                    "active": [true, false, false],
-                    "is_fixed": [true, false, false],
-                    "value": [0.0, 0.0, 0.0],
-                    "table": [0, 0, 0]
-                }
-            },
-            {
-                "python_module": "apply_vector_constraint_table_process",
-                "kratos_module": "KratosMultiphysics.GeoMechanicsApplication",
-                "process_name": "ApplyVectorConstraintTableProcess",
-                "Parameters": {
-                    "model_part_name": "PorousDomain.RightSide",
+                    "model_part_name_list": ["PorousDomain.LeftSide","PorousDomain.RightSide"],
                     "variable_name": "DISPLACEMENT",
                     "active": [true, false, false],
                     "is_fixed": [true, false, false],
@@ -208,7 +194,7 @@
                 "process_name": "GeoExtrapolateIntegrationPointValuesToNodesProcess",
                 "Parameters": {
                     "model_part_name": "PorousDomain",
-                    "list_of_variables": ["CAUCHY_STRESS_TENSOR"]
+                    "list_of_variables": ["CAUCHY_STRESS_TENSOR", "TOTAL_STRESS_TENSOR"]
                 }
             }
         ]

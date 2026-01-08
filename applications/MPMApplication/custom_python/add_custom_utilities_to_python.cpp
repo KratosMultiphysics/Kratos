@@ -74,6 +74,7 @@ namespace Kratos::Python{
         m.def("SearchElement", SearchElementAccordingToDimension);
         m.def("GenerateMaterialPointElement", GenerateMaterialPointElementAccordingToDimension);
         m.def("GenerateMaterialPointCondition", GenerateMaterialPointConditionAccordingToDimension);
+        m.def("GenerateLagrangeNodes", MaterialPointGeneratorUtility::GenerateLagrangeNodes);
 
         // Calculate energy utility
         py::class_< MPMEnergyCalculationUtility> (m,"EnergyCalculationUtility")

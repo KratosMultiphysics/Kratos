@@ -28,7 +28,6 @@
         "compute_reactions":                  false,
         "move_mesh_flag":                     false,
         "reform_dofs_at_each_step":           false,
-        "nodal_smoothing":                    false,
         "block_builder":                      true,
         "solution_type":                      "Dynamic",
         "scheme_type":                        "Newmark",
@@ -42,25 +41,13 @@
         "convergence_criterion":              "displacement_criterion",
         "displacement_relative_tolerance":    1.0E-4,
         "displacement_absolute_tolerance":    1.0E-9,
-        "residual_relative_tolerance":        1.0E-4,
-        "residual_absolute_tolerance":        1.0E-9,
-        "water_pressure_relative_tolerance":  1.0E-4,
-        "water_pressure_absolute_tolerance":  1.0E-9,
         "min_iterations":                     6,
         "max_iterations":                     30,
         "number_cycles":                      100,
         "reduction_factor":                   1,
         "increase_factor":                    1,
         "desired_iterations":                 4,
-        "max_radius_factor":                  10.0,
-        "min_radius_factor":                  0.1,
         "calculate_reactions":                true,
-        "max_line_search_iterations":         5,
-        "first_alpha_value":                  0.5,
-        "second_alpha_value":                 1.0,
-        "min_alpha":                          0.1,
-        "max_alpha":                          2.0,
-        "line_search_tolerance":              0.5,
         "rotation_dofs":                      true,
         "linear_solver_settings":             {
             "solver_type":         "skyline_lu_factorization",
@@ -70,7 +57,6 @@
             "preconditioner_type": "ilu0"
         },
         "problem_domain_sub_model_part_list": ["soil"],
-        "processes_sub_model_part_list":      ["sides","load","abs"],
         "body_domain_sub_model_part_list":    ["soil"]
     },
     "output_processes": {
@@ -136,7 +122,7 @@
         "Parameters":    {
             "model_part_name":      "PorousDomain.abs",
             "absorbing_factors": [1,1],
-			"virtual_thickness": 1000
+            "virtual_thickness": 1000
         }
     }]
     }

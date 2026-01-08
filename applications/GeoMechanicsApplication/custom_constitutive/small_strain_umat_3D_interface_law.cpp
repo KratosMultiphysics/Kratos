@@ -10,11 +10,12 @@
 //  Main authors:    Vahid Galavi
 //
 
-#include "custom_constitutive/small_strain_umat_3D_interface_law.hpp"
+#include "custom_constitutive/small_strain_umat_3D_interface_law.h"
 #include "constitutive_law_dimension.h"
 
 namespace Kratos
 {
+using namespace std::string_literals;
 
 SmallStrainUMAT3DInterfaceLaw::SmallStrainUMAT3DInterfaceLaw(std::unique_ptr<ConstitutiveLawDimension> pConstitutiveDimension)
     : SmallStrainUMATLaw<VOIGT_SIZE_3D>(std::move(pConstitutiveDimension))
@@ -86,7 +87,7 @@ void SmallStrainUMAT3DInterfaceLaw::CopyConstitutiveMatrix(ConstitutiveLaw::Para
     }
 }
 
-indexStress3D SmallStrainUMAT3DInterfaceLaw::getIndex3D(const indexStress3DInterface index3D) const
+indexStress3D SmallStrainUMAT3DInterfaceLaw::getIndex3D(const indexStress3DInterface index3D)
 {
     switch (index3D) {
     case INDEX_3D_INTERFACE_ZZ:
@@ -100,8 +101,6 @@ indexStress3D SmallStrainUMAT3DInterfaceLaw::getIndex3D(const indexStress3DInter
     }
 }
 
-SmallStrainUMAT3DInterfaceLaw::SmallStrainUMAT3DInterfaceLaw() = default;
-
 void SmallStrainUMAT3DInterfaceLaw::save(Serializer& rSerializer) const
 {
     KRATOS_SERIALIZE_SAVE_BASE_CLASS(rSerializer, SmallStrainUMATLaw)
@@ -114,7 +113,7 @@ Vector& SmallStrainUMAT3DInterfaceLaw::GetValue(const Variable<Vector>& rThisVar
 {
     if (rThisVariable == STATE_VARIABLES) {
         SmallStrainUMATLaw::GetValue(rThisVariable, rValue);
-    } else if (rThisVariable == CAUCHY_STRESS_VECTOR) {
+    } else if (rThisVariable == CAUCHY_STRESS_VECTOR || rThisVariable == GEO_EFFECTIVE_TRACTION_VECTOR) {
         if (rValue.size() != VoigtSize) rValue.resize(VoigtSize);
 
         rValue[INDEX_3D_INTERFACE_ZZ] = mStressVectorFinalized[INDEX_3D_ZZ];
@@ -130,9 +129,32 @@ void SmallStrainUMAT3DInterfaceLaw::SetValue(const Variable<Vector>& rVariable,
 {
     if (rVariable == STATE_VARIABLES) {
         SmallStrainUMATLaw::SetValue(rVariable, rValue, rCurrentProcessInfo);
-    } else if ((rVariable == CAUCHY_STRESS_VECTOR) && (rValue.size() == VoigtSize)) {
+    } else if ((rVariable == CAUCHY_STRESS_VECTOR || rVariable == GEO_EFFECTIVE_TRACTION_VECTOR) &&
+               rValue.size() == VoigtSize) {
         this->SetInternalStressVector(rValue);
     }
 }
 
+SizeType SmallStrainUMAT3DInterfaceLaw::WorkingSpaceDimension() { return Dimension; }
+
+SizeType SmallStrainUMAT3DInterfaceLaw::GetStrainSize() const { return VoigtSize; }
+
+ConstitutiveLaw::StrainMeasure SmallStrainUMAT3DInterfaceLaw::GetStrainMeasure()
+{
+    return StrainMeasure_Infinitesimal;
+}
+
+ConstitutiveLaw::StressMeasure SmallStrainUMAT3DInterfaceLaw::GetStressMeasure()
+{
+    return StressMeasure_Cauchy;
+}
+
+std::string SmallStrainUMAT3DInterfaceLaw::Info() const { return "SmallStrainUMAT3DInterfaceLaw"s; }
+
+void SmallStrainUMAT3DInterfaceLaw::PrintInfo(std::ostream& rOStream) const { rOStream << Info(); }
+
+void SmallStrainUMAT3DInterfaceLaw::PrintData(std::ostream& rOStream) const
+{
+    rOStream << "SmallStrainUMAT3DInterfaceLaw Data";
+}
 } // namespace Kratos
