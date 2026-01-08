@@ -23,14 +23,14 @@
 namespace Kratos
 {
 GeoCrBeamElementLinear2D2N::GeoCrBeamElementLinear2D2N(IndexType NewId, GeometryType::Pointer pGeometry)
-    : CrBeamElementLinear2D2N(NewId, pGeometry)
+    : CrBeamElementLinear2D2N(NewId, std::move(pGeometry))
 {
 }
 
 GeoCrBeamElementLinear2D2N::GeoCrBeamElementLinear2D2N(IndexType               NewId,
                                                        GeometryType::Pointer   pGeometry,
                                                        PropertiesType::Pointer pProperties)
-    : CrBeamElementLinear2D2N(NewId, pGeometry, pProperties)
+    : CrBeamElementLinear2D2N(NewId, std::move(pGeometry), std::move(pProperties))
 {
 }
 

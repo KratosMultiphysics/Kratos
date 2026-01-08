@@ -69,6 +69,9 @@ from test_set_moving_load_process import KratosGeoMechanicsSetMovingLoadProcessT
 from moving_column_with_fixed_pressure_above_phreatic_line import KratosGeoMechanicsMovingColumnWithFixedPressureAbovePhreaticLine
 from test_surface_interface_elements import KratosGeoMechanicsSurfaceInterfaceElementTests
 from test_dsettlement_validation import  KratosGeoMechanicsDSettlementValidationTests
+from test_dirichlet_u_constant import KratosGeoMechanicsDirichletUConstantTests
+from interface_prestress import KratosGeoMechanicsInterfacePreStressTests
+from test_submerged_construction_of_excavation import KratosGeoMechanicsSubmergedConstructionOfExcavation
 
 def AssembleTestSuites():
     ''' Populates the test suites to run.
@@ -123,7 +126,9 @@ def AssembleTestSuites():
                         KratosGeoMechanicsSetMovingLoadProcessTests,
                         KratosGeoMechanicsSurfaceInterfaceElementTests,
                         KratosGeoMechanicsAvoidSmallEndStepTests,
-    ]
+                        KratosGeoMechanicsDirichletUConstantTests,
+                        KratosGeoMechanicsInterfacePreStressTests,
+                        ]
 
     night_test_cases = [
                         KratosGeoMechanicsSettlementWorkflowCppRoute,
@@ -156,6 +161,7 @@ def AssembleTestSuites():
                         KratosGeoMechanicsThreeDimensionalPipingValidation,
                         KratosGeoMechanicsTransientThermalValidationTests,
                         KratosGeoMechanicsDSettlementValidationTests,
+                        KratosGeoMechanicsSubmergedConstructionOfExcavation,
                         ]
 
     # Create an array that contains all the tests from every testCase

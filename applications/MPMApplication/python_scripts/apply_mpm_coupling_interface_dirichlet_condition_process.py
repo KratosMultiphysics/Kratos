@@ -55,6 +55,14 @@ class ApplyMPMCouplingInterfaceDirichletConditionProcess(ApplyMPMParticleDirichl
         mpm_material_model_part_name = "MPM_Material." + self.model_part_name
         self.model_part = self.model[mpm_material_model_part_name]
 
+        # Create additional nodes for Lagrange dofs in case of Lagrange or Perturbed Lagranian method
+        if self.boundary_condition_type==2 or self.boundary_condition_type==3:
+            is_restarted = self.model_part.ProcessInfo[KratosMultiphysics.IS_RESTARTED]
+            if not is_restarted:
+                grid_model_part=self.model.GetModelPart("Background_Grid")
+                
+                KratosMPM.GenerateLagrangeNodes(grid_model_part)
+
         ### Translate conditions with INTERFACE flag into a new model part "MPM_Coupling_Dirichlet_Interface" responsible for coupling with structure
         # Create coupling model part
         if not self.model.HasModelPart("MPM_Coupling_Dirichlet_Interface"):

@@ -18,11 +18,12 @@
 #include "custom_elements/plane_strain_stress_state.h"
 #include "custom_utilities/registration_utilities.h"
 #include "includes/variables.h"
+#include "test_setup_utilities/element_setup_utilities.h"
+#include "test_setup_utilities/model_setup_utilities.h"
+#include "tests/cpp_tests/custom_constitutive/mock_constitutive_law.hpp"
 #include "tests/cpp_tests/geo_mechanics_fast_suite.h"
 #include "tests/cpp_tests/stub_constitutive_law.h"
 #include "tests/cpp_tests/test_utilities.h"
-#include "tests/cpp_tests/test_utilities/element_setup_utilities.h"
-#include "tests/cpp_tests/test_utilities/model_setup_utilities.h"
 
 #include <boost/numeric/ublas/assignment.hpp>
 #include <string>
@@ -675,48 +676,6 @@ KRATOS_TEST_CASE_IN_SUITE(UPwSmallStrainElement_CalculateShearCapacity, KratosGe
                               Defaults::absolute_tolerance);
 }
 
-class MockConstitutiveLaw : public ConstitutiveLaw
-{
-public:
-    [[nodiscard]] ConstitutiveLaw::Pointer Clone() const override
-    {
-        return std::make_shared<MockConstitutiveLaw>();
-    }
-
-    void SetValue(const Variable<Vector>& rVariable, const Vector& rValue, const ProcessInfo& rCurrentProcessInfo) override
-    {
-        if (rVariable == STATE_VARIABLES) {
-            mStateVariables = rValue;
-        }
-    }
-
-    using ConstitutiveLaw::SetValue;
-
-    MOCK_METHOD(bool, RequiresInitializeMaterialResponse, (), (override));
-    MOCK_METHOD(void, CalculateMaterialResponseCauchy, (Parameters&), (override));
-    MOCK_METHOD(void, FinalizeMaterialResponseCauchy, (Parameters&), (override));
-
-    Vector& GetValue(const Variable<Vector>& rVariable, Vector& rValue) override
-    {
-        if (rVariable == STATE_VARIABLES) {
-            rValue = mStateVariables;
-        }
-        return rValue;
-    }
-
-    using ConstitutiveLaw::GetValue;
-
-    bool Has(const Variable<Vector>& rThisVariable) override
-    {
-        return rThisVariable == STATE_VARIABLES;
-    }
-
-    using ConstitutiveLaw::Has;
-
-private:
-    Vector mStateVariables;
-};
-
 KRATOS_TEST_CASE_IN_SUITE(UPwSmallStrainElement_InitializeCorrectlySetsStateParameters,
                           KratosGeoMechanicsFastSuiteWithoutKernel)
 {
@@ -754,5 +713,4 @@ KRATOS_TEST_CASE_IN_SUITE(UPwSmallStrainElement_InitializeCorrectlySetsStatePara
                                            Defaults::relative_tolerance);
     }
 }
-
 } // namespace Kratos::Testing

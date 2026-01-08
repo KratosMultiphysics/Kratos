@@ -121,7 +121,7 @@ public:
 
     void WriteCriticalHeadResultToFile() const;
 
-    void AddNodalSolutionStepVariables(ModelPart& rModelPart) const;
+    static void AddNodalSolutionStepVariables(ModelPart& rModelPart);
 
     int FindCriticalHead(ModelPart&                 rModelPart,
                          const Kratos::Parameters&  rGidOutputSettings,
