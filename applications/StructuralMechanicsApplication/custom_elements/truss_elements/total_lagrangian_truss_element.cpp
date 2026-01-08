@@ -1003,7 +1003,7 @@ void TotalLagrangianTrussElement<TDimension>::GetValuesVector(Vector& rValues, i
         if constexpr (Dimension == 3)
             rValues[index + 2] = r_disp[2];
     }
-    KRATOS_CATCH("")
+    KRATOS_CATCH("GetValuesVector")
 }
 
 /***********************************************************************************/
@@ -1028,7 +1028,7 @@ void TotalLagrangianTrussElement<TDimension>::GetFirstDerivativesVector(Vector& 
         if constexpr (Dimension == 3)
             rValues[index + 2] = r_vel[2];
     }
-    KRATOS_CATCH("")
+    KRATOS_CATCH("GetFirstDerivativesVector")
 }
 
 /***********************************************************************************/
@@ -1053,7 +1053,7 @@ void TotalLagrangianTrussElement<TDimension>::GetSecondDerivativesVector(Vector&
             rValues[index + 2] = r_acc[2];
     }
 
-    KRATOS_CATCH("")
+    KRATOS_CATCH("GetSecondDerivativesVector")
 }
 
 /***********************************************************************************/
