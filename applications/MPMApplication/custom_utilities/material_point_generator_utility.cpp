@@ -711,7 +711,7 @@ namespace Kratos::MaterialPointGeneratorUtility
                 std::string err_msg = "The input number of MATERIAL_POINTS_PER_ELEMENT ";
                 err_msg += "(" + std::to_string(MaterialPointsPerElement) + ")";
                 err_msg += " is not available for Hexahedral elements\n";
-                err_msg += "Available options are: 1, 8, 27, 64 and 25.\n";
+                err_msg += "Available options are: 1, 8, 27, 64 and 125.\n";
                 KRATOS_ERROR <<  err_msg << std::endl;
                 break;
             }
@@ -757,7 +757,7 @@ namespace Kratos::MaterialPointGeneratorUtility
             default:
                 std::string err_msg = "The input number of MATERIAL_POINTS_PER_CONDITION: ";
                 err_msg += "(" + std::to_string(MaterialPointsPerCondition) + ")";
-                err_msg += " is not available for Triangular" + std::to_string(domain_size) + "D.\n";
+                err_msg += " is not available for triangles (3D).\n";
                 err_msg += "Available options are: 1, 3, 6 and 12.";
                 KRATOS_ERROR << err_msg << std::endl;
                 break;
@@ -783,7 +783,7 @@ namespace Kratos::MaterialPointGeneratorUtility
             default:
                 std::string err_msg = "The input number of MATERIAL_POINTS_PER_CONDITION ";
                 err_msg += "(" + std::to_string(MaterialPointsPerCondition) + ")";
-                err_msg += " is not available for Triangular" + std::to_string(domain_size) + "D.\n";
+                err_msg += " is not available for quadrilaterals (3D).\n";
                 err_msg += "Available options are: 1, 4, 9 and 16.";
                 KRATOS_ERROR <<  err_msg << std::endl;
                 break;
