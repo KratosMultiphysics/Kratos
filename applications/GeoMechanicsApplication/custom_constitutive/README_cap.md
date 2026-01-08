@@ -6,7 +6,7 @@ To address this limitation, a compression cap is introduced. The cap provides a 
 
 ### Mohr–Coulomb yield surface
 
-In the $`(\sigma, \tau)`$ stress space, the Mohr-Coulomb yiel surface is expressed as:
+In the $`(\sigma, \tau)`$ stress space, the Mohr-Coulomb yield surface is expressed as:
 
 ```math
     F_{MC}(\sigma, \tau) = \tau + \sigma \sin⁡{\phi} - c \cos⁡{\phi} = 0
@@ -46,7 +46,7 @@ where:
 - $`p_c`$ = cap position (preconsolidation pressure),
 - $`X`$ = cap size parameter
 
-The cap intersects the MC surface. A linear relation for cap position can be written as: 
+The cap intersects the MC surface. A linear hardening relation for the cap position can be written as: 
 
 ```math
     p_c = p_{c0} + H \epsilon^p
