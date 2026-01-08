@@ -302,9 +302,7 @@ class JsonOutputProcess(KratosMultiphysics.Process):
                                     if count == 0:
                                         data["RESULTANT"][variable_name].append(self.__kratos_vector_to_python_list(value))
                                     else:
-                                        vector_value = self.__kratos_vector_to_python_list(value)
-                                        for i in range(len(vector_value)):
-                                            data["RESULTANT"][variable_name][-1][i] += vector_value[i]
+                                        data["RESULTANT"][variable_name][-1] = list(map(add, data["RESULTANT"][variable_name][-1], self.__kratos_vector_to_python_list(value)))
 
                             # TODO: Add pending classes
                         count += 1
