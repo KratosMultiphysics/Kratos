@@ -14,7 +14,6 @@
 #include <type_traits>
 #include <vector>
 
-
 // External includes
 
 // Project includes
@@ -22,15 +21,14 @@
 #include "tensor_adaptors/tensor_adaptor_utils.h"
 #include "utilities/parallel_utilities.h"
 
-
 namespace Kratos {
 
 namespace {
 
 template <class TContainerType> constexpr bool IsSupportedContainer() {
-  return std::is_same_v<TContainerType, ModelPart::GeometryContainerType> ||
-         std::is_same_v<TContainerType, ModelPart::ElementsContainerType> ||
-         std::is_same_v<TContainerType, ModelPart::ConditionsContainerType>;
+  return IsInList<TContainerType, ModelPart::GeometryContainerType,
+                  ModelPart::ElementsContainerType,
+                  ModelPart::ConditionsContainerType>;
 }
 
 template <class TEntity> const auto &GetGeometry(const TEntity &rEntity) {
@@ -100,7 +98,7 @@ ConnectivityIdsTensorAdaptor::ConnectivityIdsTensorAdaptor(
   mpContainer = pContainer;
   std::visit(
       [this](auto &&p_container) {
-        using ContainerType = std::decay_t<decltype(*p_container)>;
+        using ContainerType = BareType<decltype(*p_container)>;
         if constexpr (IsSupportedContainer<ContainerType>()) {
           mpStorage = Kratos::make_shared<NDData<int>>(GetShape(*p_container));
         } else {
@@ -120,7 +118,7 @@ ConnectivityIdsTensorAdaptor::ConnectivityIdsTensorAdaptor(
 void ConnectivityIdsTensorAdaptor::Check() const {
   std::visit(
       [](auto &&p_container) {
-        using ContainerType = std::decay_t<decltype(*p_container)>;
+        using ContainerType = BareType<decltype(*p_container)>;
         if constexpr (IsSupportedContainer<ContainerType>()) {
           CheckContainer(*p_container);
         }
@@ -129,19 +127,14 @@ void ConnectivityIdsTensorAdaptor::Check() const {
 }
 
 void ConnectivityIdsTensorAdaptor::CollectData() {
-  if (!mpStorage) {
-    // Should not happen if constructed correctly
-    return;
-  }
 
   const auto &shape = mpStorage->Shape();
-  if (shape.size() < 2)
-    return; // Should be [N, M]
+
   const std::size_t num_nodes = shape[1];
 
   std::visit(
       [&](auto &&p_container) {
-        using ContainerType = std::decay_t<decltype(*p_container)>;
+        using ContainerType = BareType<decltype(*p_container)>;
         if constexpr (IsSupportedContainer<ContainerType>()) {
           CollectIds(this->ViewData(), *p_container, num_nodes);
         }
