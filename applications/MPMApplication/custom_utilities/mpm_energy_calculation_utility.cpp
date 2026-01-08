@@ -12,13 +12,13 @@
 
 
 // System includes
+#include <tuple>
 
 // External includes
 
 // Project includes
 #include "utilities/parallel_utilities.h"
 #include "utilities/reduction_utilities.h"
-#include <tuple>
 #include "mpm_energy_calculation_utility.h"
 
 namespace Kratos
@@ -87,9 +87,7 @@ namespace Kratos
         rElement.CalculateOnIntegrationPoints(MP_ALMANSI_STRAIN_VECTOR, mp_almansi_strain, process_info);
 
         for(SizeType j = 0; j < mp_cauchy_stress[0].size(); ++j)
-        {
             mp_strain_energy +=  0.5 * mp_volume[0] * mp_cauchy_stress[0][j] * mp_almansi_strain[0][j];
-        }
 
         return mp_strain_energy;
     }

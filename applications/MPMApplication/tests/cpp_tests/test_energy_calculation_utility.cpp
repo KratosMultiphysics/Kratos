@@ -17,9 +17,9 @@
 
 // Project includes
 #include "testing/testing.h"
+#include "containers/model.h"
 #include "custom_utilities/mpm_energy_calculation_utility.h"
 #include "mpm_application_variables.h"
-#include "containers/model.h"
 
 namespace Kratos::Testing
 {
