@@ -53,7 +53,7 @@ namespace Kratos::Future
  * @author Ruben Zorrilla
  * @author Riccardo Rossi
  */
-template <class TSparseMatrixType, class TSystemVectorType, class TSparseGraphType>
+template <class TLinearAlgebra>
 class ImplicitStrategy : public Strategy
 {
 public:
@@ -64,31 +64,16 @@ public:
     KRATOS_CLASS_POINTER_DEFINITION(ImplicitStrategy);
 
     // Scheme pointer type definition
-    using SchemePointerType = typename ImplicitScheme<TSparseMatrixType, TSystemVectorType, TSparseGraphType>::Pointer;
+    using SchemePointerType = typename ImplicitScheme<TLinearAlgebra>::Pointer;
 
     // Linear solver pointer definition
-    using LinearSolverPointerType = typename Future::LinearSolver<TSystemVectorType>::Pointer;
+    using LinearSolverPointerType = typename Future::LinearSolver<TLinearAlgebra>::Pointer;
 
-    /// Index type definition
-    using IndexType = typename TSparseMatrixType::IndexType;
-
-    /// Data type definition
-    using DataType = typename TSparseMatrixType::DataType;
+    /// Linear system container type definition
+    using LinearSystemContainerType = LinearSystemContainer<TLinearAlgebra>;
 
     /// DOFs array type definition
     using DofsArrayType = typename ModelPart::DofsArrayType;
-
-    /// Matrix type definition
-    using SystemMatrixType = TSparseMatrixType;
-
-    /// Matrix pointer type definition
-    using SystemMatrixPointerType = typename TSparseMatrixType::Pointer;
-
-    /// Vector type definition
-    using SystemVectorType = TSystemVectorType;
-
-    /// Vector type definition
-    using SystemVectorPointerType = typename SystemVectorType::Pointer;
 
     ///@}
     ///@name Life Cycle
@@ -192,7 +177,7 @@ public:
         ModelPart &rModelPart,
         Parameters ThisParameters) const override
     {
-        return Kratos::make_shared<ImplicitStrategy<TSparseMatrixType, TSystemVectorType, TSparseGraphType>>(rModelPart, ThisParameters);
+        return Kratos::make_shared<ImplicitStrategy<TLinearAlgebra>>(rModelPart, ThisParameters);
     }
 
     void Initialize() override
@@ -502,12 +487,12 @@ public:
     //     return mpEffectiveDx;
     // }
 
-    LinearSystemContainer<TSparseMatrixType, TSystemVectorType>& GetLinearSystemContainer()
+    LinearSystemContainerType& GetLinearSystemContainer()
     {
         return mLinearSystemContainer;
     }
 
-    const LinearSystemContainer<TSparseMatrixType, TSystemVectorType>& GetLinearSystemContainer() const
+    const LinearSystemContainerType& GetLinearSystemContainer() const
     {
         return mLinearSystemContainer;
     }
@@ -720,7 +705,7 @@ private:
 
     LinearSolverPointerType mpLinearSolver = nullptr; /// The pointer to the linear solver
 
-    LinearSystemContainer<TSparseMatrixType, TSystemVectorType> mLinearSystemContainer;
+    LinearSystemContainerType mLinearSystemContainer;
 
     int mEchoLevel;
 

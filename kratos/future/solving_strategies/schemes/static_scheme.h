@@ -18,8 +18,6 @@
 // External includes
 
 // Project includes
-#include "containers/csr_matrix.h"
-#include "containers/system_vector.h"
 #include "includes/model_part.h"
 #include "includes/kratos_parameters.h"
 #include "spaces/kratos_space.h"
@@ -87,15 +85,15 @@ struct StaticThreadLocalStorage
  * @brief This class provides the implementation of the static scheme
  * @author Ruben Zorrilla
  */
-template<class TSparseMatrixType, class TSystemVectorType, class TSparseGraphType>
-class StaticScheme : public ImplicitScheme<TSparseMatrixType, TSystemVectorType, TSparseGraphType>
+template<class TLinearAlgebra>
+class StaticScheme : public ImplicitScheme<TLinearAlgebra>
 {
 public:
 
     // FIXME: Does not work... ask @Charlie
     // /// Add scheme to Kratos registry
-    // KRATOS_REGISTRY_ADD_TEMPLATE_PROTOTYPE("Schemes.KratosMultiphysics", StaticScheme, StaticScheme, TSparseMatrixType, TSystemVectorType)
-    // KRATOS_REGISTRY_ADD_TEMPLATE_PROTOTYPE("Schemes.All", StaticScheme, StaticScheme, TSparseMatrixType, TSystemVectorType)
+    // KRATOS_REGISTRY_ADD_TEMPLATE_PROTOTYPE("Schemes.KratosMultiphysics", StaticScheme, StaticScheme, TLinearAlgebra)
+    // KRATOS_REGISTRY_ADD_TEMPLATE_PROTOTYPE("Schemes.All", StaticScheme, StaticScheme, TLinearAlgebra)
 
     ///@name Type Definitions
     ///@{
@@ -104,13 +102,16 @@ public:
     KRATOS_CLASS_POINTER_DEFINITION(StaticScheme);
 
     /// The definition of the current class
-    using BaseType = ImplicitScheme<TSparseMatrixType, TSystemVectorType, TSparseGraphType>;
+    using BaseType = ImplicitScheme<TLinearAlgebra>;
 
     /// Index type definition
-    using IndexType = typename TSparseMatrixType::IndexType;
+    using IndexType = typename TLinearAlgebra::IndexType;
 
     /// Data type definition
-    using DataType = typename TSparseMatrixType::DataType;
+    using DataType = typename TLinearAlgebra::DataType;
+
+    /// Vector type definition
+    using VectorType = typename TLinearAlgebra::VectorType;
 
     /// TLS type
     using TLSType = StaticThreadLocalStorage<DataType>;
@@ -163,15 +164,15 @@ public:
         ModelPart& rModelPart,
         Parameters ThisParameters) const override
     {
-        return Kratos::make_shared<StaticScheme<TSparseMatrixType, TSystemVectorType, TSparseGraphType>>(rModelPart, ThisParameters);
+        return Kratos::make_shared<StaticScheme<TLinearAlgebra>>(rModelPart, ThisParameters);
     }
 
     typename BaseType::Pointer Clone() override
     {
-        return Kratos::make_shared<StaticScheme<TSparseMatrixType, TSystemVectorType, TSparseGraphType>>(*this) ;
+        return Kratos::make_shared<StaticScheme<TLinearAlgebra>>(*this) ;
     }
 
-    void Predict(LinearSystemContainer<TSparseMatrixType, TSystemVectorType>& rLinearSystemContainer) override
+    void Predict(LinearSystemContainer<TLinearAlgebra>& rLinearSystemContainer) override
     {
         KRATOS_TRY
 
@@ -198,7 +199,7 @@ public:
             // Note that this already accounts for the Dirichlet BCs affecting the effective DOF set
             auto& r_dof_set = *(rLinearSystemContainer.pDofSet);
             auto& r_eff_dof_set = *(rLinearSystemContainer.pEffectiveDofSet);
-            TSystemVectorType x(r_dof_set.size());
+            VectorType x(r_dof_set.size());
             (this->GetBuilder()).CalculateSolutionVector(r_eff_dof_set, *p_constraints_T, *p_constraints_Q, x);
 
             // Update DOFs with solution values
@@ -215,7 +216,7 @@ public:
         KRATOS_CATCH("")
     }
 
-    void Update(LinearSystemContainer<TSparseMatrixType, TSystemVectorType> &rLinearSystemContainer) override
+    void Update(LinearSystemContainer<TLinearAlgebra> &rLinearSystemContainer) override
     {
         KRATOS_TRY
 

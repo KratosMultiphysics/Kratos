@@ -18,8 +18,6 @@
 // External includes
 
 // Project includes
-#include "containers/csr_matrix.h"
-#include "containers/distributed_csr_matrix.h"
 #include "includes/model_part.h"
 
 namespace Kratos::Future
@@ -31,46 +29,18 @@ namespace Kratos::Future
 ///@name Kratos Classes
 ///@{
 
-// namespace
-// {
-//     // Lazy wrapper to prevent instantiation unless selected
-//     template<typename... Ts>
-//     struct matrix_type_or_void
-//     {
-//         using type = void;
-//         using p_type = void*;
-//     };
-
-//     template<typename T0, typename... Ts>
-//     struct matrix_type_or_void<T0, Ts...>
-//     {
-//         using type = T0;
-//         using p_type = typename T0::Pointer;
-//     };
-// }
-
 /**
  * @brief
  * @class LinearOperator
  * @ingroup KratosCore
  * @brief Auxiliary container to store a linear operator
  * @details
- * This lightweight container mimics the behavior of a linear operator,
- * providing a general abstraction for the application of a matrix-like object
- * onto a vector without explicitly storing the matrix entries.
- *
- * It is conceptually equivalent to the Python `scipy.sparse.linalg.LinearOperator`.
- * The operator defines two callable functions:
- *  - `Apply()`: performs the product \( y = A(x) \)
- *  - `ApplyTranspose()`: performs the product \( y = A^T(x) \)
- *
- * This structure can be used to:
- *  - Represent explicit CSR matrices (via wrapping)
- *  - Derive matrix-free operators (e.g. preconditioners, Schur complements)
- * @tparam TSystemVectorType The system vector type used in the Kratos linear algebra backend
- * @tparam Ts Optional parameter pack representing the sparse matrix type (e.g., CsrMatrix<double>).
+ * This class implements a generic linear operator interface to be used
+ * in matrix-free algorithms. Being a generic interface, it can be derived
+ * to wrap different types of linear operators, including maxtrix-based ones.
+ * @tparam TLinearAlgebra The struct containing the linear algebra types
  */
-template <class TVectorType>
+template <class TLinearAlgebra>
 class LinearOperator
 {
 
@@ -81,14 +51,17 @@ public:
     /// Pointer definition of LinearOperator
     KRATOS_CLASS_POINTER_DEFINITION(LinearOperator);
 
+    /// Vector type definition from template parameter
+    using VectorType = typename TLinearAlgebra::VectorType;
+
+    /// Matrix type definition from template parameter
+    using MatrixType = typename TLinearAlgebra::MatrixType;
+
     /// Data type stored in the system vector
-    using DataType = typename TVectorType::DataType;
+    using DataType = typename VectorType::DataType;
 
     /// Index type used in the system vector
-    using IndexType = typename TVectorType::IndexType;
-
-    /// Any type used to represent system matrix
-    using MatrixType = std::any;
+    using IndexType = typename VectorType::IndexType;
 
     ///@}
     ///@name Life Cycle
@@ -133,13 +106,23 @@ public:
     ///@name Operations
     ///@{
 
+    /**
+     * @brief Performs the matrix-vector product y = A * x.
+     * @param rX Input vector x
+     * @param rY Output vector y
+     */
     virtual void SpMV(
-        const TVectorType& rX,
-        TVectorType& rY) const = 0;
+        const VectorType& rX,
+        VectorType& rY) const = 0;
 
+    /**
+     * @brief Performs the transposed matrix-vector product y = A^T * x.
+     * @param rX Input vector x
+     * @param rY Output vector y
+     */
     virtual void TransposeSpMV(
-        const TVectorType& rX,
-        TVectorType& rY) const = 0;
+        const VectorType& rX,
+        VectorType& rY) const = 0;
 
     /**
      * @brief Clear the operator data.
@@ -173,22 +156,28 @@ public:
         mNumCols = NumCols;
     }
 
+    /**
+     * @brief Get a reference to the underlying matrix.
+     * @tparam TMatrixType The type of the matrix to retrieve
+     * @return Reference to the matrix
+     */
     template<class TMatrixType>
     TMatrixType& GetMatrix()
     {
-        auto& r_matrix = this->GetMatrixImpl();
-        // KRATOS_ERROR_IF_NOT(std::holds_alternative<TMatrixType>(r_matrix)) << "Requested matrix type does not match stored matrix.";
-        // return std::get<TMatrixType>(r_matrix);
-        return std::any_cast<TMatrixType&>(r_matrix);
+        auto& r_matrix = this->GetMatrixImpl(); // Get the underlying matrix as std::any
+        return std::any_cast<std::reference_wrapper<TMatrixType>>(r_matrix).get(); // Cast and return the reference
     }
 
+    /**
+     * @brief Get a const reference to the underlying matrix.
+     * @tparam TMatrixType The type of the matrix to retrieve
+     * @return Const reference to the matrix
+     */
     template<class TMatrixType>
     const TMatrixType& GetMatrix() const
     {
-        const auto& r_matrix = this->GetMatrixImpl();
-        // KRATOS_ERROR_IF_NOT(std::holds_alternative<TMatrixType>(r_matrix)) << "Requested matrix type does not match stored matrix.";
-        // return std::get<TMatrixType>(r_matrix);
-        return std::any_cast<const TMatrixType&>(r_matrix);
+        const auto& r_matrix = this->GetMatrixImpl(); // Get the underlying matrix as const std::any
+        return std::any_cast<std::reference_wrapper<TMatrixType>>(r_matrix).get(); // Cast and return the reference
     }
 
     ///@}
@@ -230,18 +219,23 @@ protected:
     ///@{
 
     /**
-     * @brief Get the underlying matrix variant.
-     * @return Reference to the matrix variant
+     * @brief Implementation to get a reference to the underlying matrix.
+     * This method is to be overridden in matrix-based LinearOperator classes.
+     * An exception is thrown if this method is called from the base class (matrix-free).
+     * @return Reference to the matrix as an std::any
      */
-    [[noreturn]] virtual MatrixType& GetMatrixImpl()
+    [[noreturn]] virtual std::any& GetMatrixImpl()
     {
         KRATOS_ERROR << "GetMatrixImpl() not implemented in base LinearOperator class." << std::endl;
     }
+
     /**
-     * @brief Get the underlying matrix variant.
-     * @return Reference to the matrix variant
+     * @brief Implementation to get a const reference to the underlying matrix.
+     * This method is to be overridden in matrix-based LinearOperator classes.
+     * An exception is thrown if this method is called from the base class (matrix-free).
+     * @return Reference to the matrix as a const std::any
      */
-    [[noreturn]] virtual const MatrixType& GetMatrixImpl() const
+    [[noreturn]] virtual const std::any& GetMatrixImpl() const
     {
         KRATOS_ERROR << "GetMatrixImpl() not implemented in base LinearOperator class." << std::endl;
     }

@@ -20,6 +20,7 @@
 #include "includes/define_python.h"
 
 // Future Extensions
+#include "future/containers/define_linear_algebra_serial.h"
 #include "future/python/add_linear_solvers_to_python.h"
 #include "future/linear_solvers/amgcl_solver.h"
 #include "future/linear_solvers/linear_solver.h"
@@ -34,7 +35,7 @@ namespace py = pybind11;
 void AddLinearSolversToPython(py::module& m)
 {
 
-    using LinearSolverType = Future::LinearSolver<SystemVector<>>;
+    using LinearSolverType = Future::LinearSolver<SerialLinearAlgebra>;
     py::class_<LinearSolverType, typename LinearSolverType::Pointer>(m, "LinearSolver")
         .def(py::init<>())
         .def("Initialize", &LinearSolverType::Initialize)
@@ -42,14 +43,14 @@ void AddLinearSolversToPython(py::module& m)
         .def("GetIterationsNumber", &LinearSolverType::GetIterationsNumber)
     ;
 
-    using DirectSolverType = Future::DirectSolver<SystemVector<>>;
+    using DirectSolverType = Future::DirectSolver<SerialLinearAlgebra>;
     py::class_<DirectSolverType, typename DirectSolverType::Pointer, LinearSolverType>(m, "DirectSolver")
         .def(py::init<>())
         .def(py::init<Parameters>())
         // .def("__str__", PrintObject<DirectSolverType>)
     ;
 
-    using SkylineLUFactorizationSolverType = Future::SkylineLUFactorizationSolver<SystemVector<>>;
+    using SkylineLUFactorizationSolverType = Future::SkylineLUFactorizationSolver<SerialLinearAlgebra>;
     py::class_<SkylineLUFactorizationSolverType, SkylineLUFactorizationSolverType::Pointer, DirectSolverType>(m, "SkylineLUFactorizationSolver")
         .def(py::init<>())
         .def(py::init<Parameters>())
@@ -82,7 +83,7 @@ void AddLinearSolversToPython(py::module& m)
         .value("SA_EMIN", SA_EMIN)
     ;
 
-    using AMGCLSolverType = Future::AMGCLSolver<SystemVector<>>;
+    using AMGCLSolverType = Future::AMGCLSolver<SerialLinearAlgebra>;
     py::class_<AMGCLSolverType, typename AMGCLSolverType::Pointer, LinearSolverType>(m, "AMGCLSolver")
         .def(py::init<AMGCLSmoother, AMGCLIterativeSolverType, double, int, int, int>())
         .def(py::init<AMGCLSmoother, AMGCLIterativeSolverType, AMGCLCoarseningType, double, int, int, int, bool>())

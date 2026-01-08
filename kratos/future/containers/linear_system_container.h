@@ -34,34 +34,37 @@ namespace Kratos::Future
 /**
  * @brief Auxiliary container to store the linear system
  * This auxiliary container is intended to store all the arrays requires for the linear system setup
- * @tparam TSparseMatrixType The sparse matrix type
- * @tparam TSystemVectorType The system vector type
+ * @tparam TLinearAlgebra The linear algebra type
  * TODO: to be changed to LinearSystem and have the matrices and vectors stored by their name in a dictionary, so we can reuse them if needed in the strategy
  */
-template <class TSparseMatrixType, class TSystemVectorType>
+template <class TLinearAlgebra>
 struct LinearSystemContainer
 {
 
     /// Pointer definition of LinearSystemContainer
     KRATOS_CLASS_POINTER_DEFINITION(LinearSystemContainer);
 
-    typename TSparseMatrixType::Pointer pLhs = nullptr; // Pointer to the LHS matrix
+    using MatrixType = typename TLinearAlgebra::MatrixType;
 
-    typename TSystemVectorType::Pointer pRhs = nullptr; // Pointer to the RHS vector
+    using VectorType = typename TLinearAlgebra::VectorType;
 
-    typename TSystemVectorType::Pointer pDx = nullptr; // Pointer to the solution increment vector
+    typename MatrixType::Pointer pLhs = nullptr; // Pointer to the LHS matrix
 
-    typename TSparseMatrixType::Pointer pEffectiveLhs = nullptr; // Pointer to the effective LHS matrix (i.e., after applying system constraints)
+    typename VectorType::Pointer pRhs = nullptr; // Pointer to the RHS vector
 
-    typename TSystemVectorType::Pointer pEffectiveRhs = nullptr; // Pointer to the effective RHS vector (i.e., after applying system constraints)
+    typename VectorType::Pointer pDx = nullptr; // Pointer to the solution increment vector
 
-    typename TSystemVectorType::Pointer pEffectiveDx = nullptr; // Pointer to the effective solution increment vector (i.e., after applying system constraints)
+    typename MatrixType::Pointer pEffectiveLhs = nullptr; // Pointer to the effective LHS matrix (i.e., after applying system constraints)
 
-    typename TSparseMatrixType::Pointer pEffectiveT = nullptr; // Linear system constraints total relation matrix
+    typename VectorType::Pointer pEffectiveRhs = nullptr; // Pointer to the effective RHS vector (i.e., after applying system constraints)
 
-    typename TSparseMatrixType::Pointer pConstraintsT = nullptr; // Master-slave constraints relation matrix
+    typename VectorType::Pointer pEffectiveDx = nullptr; // Pointer to the effective solution increment vector (i.e., after applying system constraints)
 
-    typename TSystemVectorType::Pointer pConstraintsQ = nullptr; // Master-slave constraints constant vector
+    typename MatrixType::Pointer pEffectiveT = nullptr; // Linear system constraints total relation matrix
+
+    typename MatrixType::Pointer pConstraintsT = nullptr; // Master-slave constraints relation matrix
+
+    typename VectorType::Pointer pConstraintsQ = nullptr; // Master-slave constraints constant vector
 
     typename ModelPart::DofsArrayType::Pointer pDofSet = Kratos::make_shared<ModelPart::DofsArrayType>(); // The PVS containing the DOFs of the system
 

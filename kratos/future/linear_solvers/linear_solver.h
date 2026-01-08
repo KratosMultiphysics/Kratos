@@ -19,8 +19,8 @@
 
 // Project includes
 #include "containers/csr_matrix.h"
+#include "future/containers/define_linear_algebra_serial.h"
 #include "future/containers/sparse_matrix_linear_operator.h"
-#include "containers/system_vector.h"
 #include "includes/model_part.h"
 
 namespace Kratos::Future
@@ -57,7 +57,7 @@ namespace Kratos::Future
  * @author Riccardo Rossi
  * @author Ruben Zorrilla
  */
-template<class TVectorType>
+template<class TLinearAlgebra>
 class LinearSolver
 {
 
@@ -69,19 +69,22 @@ public:
     KRATOS_CLASS_POINTER_DEFINITION(LinearSolver);
 
     /// Linear operator pointer type definition
-    using LinearOperatorPointerType = typename LinearOperator<TVectorType>::Pointer;
+    using LinearOperatorPointerType = typename LinearOperator<TLinearAlgebra>::Pointer;
+
+    /// Vector type definition from linear algebra template parameter
+    using VectorType = typename TLinearAlgebra::VectorType;
 
     /// Type definition for data
-    using DataType = typename TVectorType::DataType;
+    using DataType = typename VectorType::DataType;
 
     /// Type definition for index
-    using IndexType = typename TVectorType::IndexType;
+    using IndexType = typename VectorType::IndexType;
 
     /// Local system matrix type definition
     using DenseMatrixType = DenseMatrix<DataType>;
 
     /// Local system vector type definition
-    using DenseTVectorType = DenseVector<DataType>;
+    using DenseVectorType = DenseVector<DataType>;
 
     ///@}
     ///@name Life Cycle
@@ -119,8 +122,8 @@ public:
      */
     virtual void Initialize(
         LinearOperatorPointerType pLinearOperator,
-        TVectorType& rX,
-        TVectorType& rB)
+        VectorType& rX,
+        VectorType& rB)
     {
     }
 
@@ -133,8 +136,8 @@ public:
      */
     virtual void InitializeSolutionStep(
         LinearOperatorPointerType pLinearOperator,
-        TVectorType& rX,
-        TVectorType& rB)
+        VectorType& rX,
+        VectorType& rB)
     {
     }
 
@@ -147,8 +150,8 @@ public:
      */
     virtual bool PerformSolutionStep(
         LinearOperatorPointerType pLinearOperator,
-        TVectorType& rX,
-        TVectorType& rB)
+        VectorType& rX,
+        VectorType& rB)
     {
         KRATOS_ERROR << "Calling linear solver base class" << std::endl;
         return false;
@@ -163,8 +166,8 @@ public:
      */
     virtual void FinalizeSolutionStep(
         LinearOperatorPointerType pLinearOperator,
-        TVectorType& rX,
-        TVectorType& rB)
+        VectorType& rX,
+        VectorType& rB)
     {
     }
 
@@ -186,8 +189,8 @@ public:
      */
     virtual bool Solve(
         LinearOperatorPointerType pLinearOperator,
-        TVectorType& rX,
-        TVectorType& rB)
+        VectorType& rX,
+        VectorType& rB)
     {
         this->InitializeSolutionStep(pLinearOperator, rX, rB);
         const auto status = this->PerformSolutionStep(pLinearOperator, rX, rB);
@@ -223,7 +226,7 @@ public:
     virtual void Solve(
         LinearOperatorPointerType pLinearOperatorK,
         LinearOperatorPointerType pLinearOperatorM,
-        DenseTVectorType& Eigenvalues,
+        DenseVectorType& Eigenvalues,
         DenseMatrixType& Eigenvectors)
     {
         KRATOS_ERROR << "Calling linear solver base class" << std::endl;
@@ -257,8 +260,8 @@ public:
      */
     virtual void ProvideAdditionalData(
         LinearOperatorPointerType pLinearOperator,
-        TVectorType& rX,
-        TVectorType& rB,
+        VectorType& rX,
+        VectorType& rB,
         typename ModelPart::DofsArrayType& rDoFSet,
         ModelPart& rModelPart)
     {
@@ -312,8 +315,8 @@ public:
      */
     virtual bool IsConsistent(
         LinearOperatorPointerType pLinearOperator,
-        TVectorType& rX,
-        TVectorType& rB)
+        VectorType& rX,
+        VectorType& rB)
     {
         const std::size_t num_rows = pLinearOperator->NumRows();
         const std::size_t num_cols = pLinearOperator->NumCols();
@@ -354,8 +357,8 @@ public:
      */
     virtual bool IsNotConsistent(
         LinearOperatorPointerType pLinearOperator,
-        TVectorType& rX,
-        TVectorType& rB)
+        VectorType& rX,
+        VectorType& rB)
     {
         return !IsConsistent(pLinearOperator, rX, rB);
     }
@@ -471,19 +474,19 @@ private:
 ///@{
 
 /// input stream function
-template<class TVectorType>
+template<class TLinearAlgebra>
 inline std::istream& operator >> (
     std::istream& IStream,
-    LinearSolver<TVectorType>& rThis)
+    LinearSolver<TLinearAlgebra>& rThis)
 {
     return IStream;
 }
 
 /// output stream function
-template<class TVectorType>
+template<class TLinearAlgebra>
 inline std::ostream& operator << (
     std::ostream& rOStream,
-    const LinearSolver<TVectorType>& rThis)
+    const LinearSolver<TLinearAlgebra>& rThis)
 {
     rThis.PrintInfo(rOStream);
     rOStream << std::endl;

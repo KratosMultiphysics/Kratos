@@ -21,7 +21,6 @@
 #include "utilities/builtin_timer.h"
 
 #ifdef KRATOS_USE_FUTURE
-#include "future/containers/linear_operator.h"
 #include "future/containers/sparse_matrix_linear_operator.h"
 #include "future/linear_solvers/linear_solver.h"
 #include "future/solving_strategies/schemes/implicit_scheme.h"
@@ -58,8 +57,8 @@ namespace Kratos::Future
  * @author Riccardo Rossi
  */
 //TODO: Check if TSparseGraphType is really needed
-template <class TMatrixType, class TVectorType, class TSparseGraphType>
-class LinearStrategy : public ImplicitStrategy<TMatrixType, TVectorType, TSparseGraphType>
+template <class TLinearAlgebra>
+class LinearStrategy : public ImplicitStrategy<TLinearAlgebra>
 {
 public:
     ///@name Type Definitions */
@@ -69,7 +68,7 @@ public:
     KRATOS_CLASS_POINTER_DEFINITION(LinearStrategy);
 
     /// The definition of the current class base type
-    using BaseType = ImplicitStrategy<TMatrixType, TVectorType, TSparseGraphType>;
+    using BaseType = ImplicitStrategy<TLinearAlgebra>;
 
     // Scheme pointer type definition
     using SchemePointerType = typename BaseType::SchemePointerType;
@@ -172,7 +171,7 @@ public:
         ModelPart& rModelPart,
         Parameters ThisParameters) const override
     {
-        return Kratos::make_shared<LinearStrategy<TMatrixType, TVectorType, TSparseGraphType>>(rModelPart, ThisParameters);
+        return Kratos::make_shared<LinearStrategy<TLinearAlgebra>>(rModelPart, ThisParameters);
     }
 
     bool SolveSolutionStep() override
@@ -223,7 +222,7 @@ public:
         auto p_eff_dx = r_linear_system_container.pEffectiveDx;
         auto p_eff_rhs = r_linear_system_container.pEffectiveRhs;
         auto p_eff_lhs = r_linear_system_container.pEffectiveLhs;
-        auto p_eff_lhs_lin_op = Kratos::make_shared<SparseMatrixLinearOperator<TVectorType, TMatrixType>>(*p_eff_lhs);
+        auto p_eff_lhs_lin_op = Kratos::make_shared<SparseMatrixLinearOperator<TLinearAlgebra>>(*p_eff_lhs);
 
         // Solve the system
         const auto& rp_linear_solver = this->pGetLinearSolver();

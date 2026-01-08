@@ -24,6 +24,7 @@
 #include "testing/testing.h"
 
 #ifdef KRATOS_USE_FUTURE
+#include "future/containers/define_linear_algebra_serial.h"
 #include "future/linear_solvers/amgcl_solver.h"
 #include "future/linear_solvers/skyline_lu_factorization_solver.h"
 #include "future/solving_strategies/schemes/static_scheme.h"
@@ -49,12 +50,12 @@ KRATOS_TEST_CASE_IN_SUITE(StaticSchemeBuild1D, KratosCoreFastSuite)
             "name" : "block_builder"
         }
     })");
-    using SchemeType = Future::StaticScheme<CsrMatrix<>, SystemVector<>, SparseContiguousRowGraph<>>;
+    using SchemeType = Future::StaticScheme<Future::SerialLinearAlgebra>;
     auto p_scheme = Kratos::make_unique<SchemeType>(r_test_model_part, scheme_settings);
 
     // Set up the matrix graph and arrays
     // Note that in a standard case this happens at the strategy level
-    Future::LinearSystemContainer<CsrMatrix<>, SystemVector<>> linear_system_container;
+    Future::LinearSystemContainer<Future::SerialLinearAlgebra> linear_system_container;
 
     // Call the initialize solution step (note that this sets all the arrays above)
     p_scheme->InitializeSolutionStep(linear_system_container);
@@ -108,12 +109,12 @@ KRATOS_TEST_CASE_IN_SUITE(StaticSchemeBuild2D, KratosCoreFastSuite)
             "name" : "block_builder"
         }
     })");
-    using SchemeType = Future::StaticScheme<CsrMatrix<>, SystemVector<>, SparseContiguousRowGraph<>>;
+    using SchemeType = Future::StaticScheme<Future::SerialLinearAlgebra>;
     auto p_scheme = Kratos::make_unique<SchemeType>(r_test_model_part, scheme_settings);
 
     // Set up the matrix graph and arrays
     // Note that in a standard case this happens at the strategy level
-    Future::LinearSystemContainer<CsrMatrix<>, SystemVector<>> linear_system_container;
+    Future::LinearSystemContainer<Future::SerialLinearAlgebra> linear_system_container;
 
     // Call the initialize solution step (note that this sets all the arrays above)
     p_scheme->InitializeSolutionStep(linear_system_container);

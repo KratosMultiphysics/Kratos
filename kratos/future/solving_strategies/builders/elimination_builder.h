@@ -19,9 +19,6 @@
 
 // Project includes
 #include "builder.h"
-#include "containers/csr_matrix.h"
-#include "containers/system_vector.h"
-#include "containers/sparse_contiguous_row_graph.h"
 #include "includes/define.h"
 #include "includes/model_part.h"
 #include "utilities/amgcl_csr_conversion_utilities.h"
@@ -51,8 +48,8 @@ namespace Kratos::Future
  * the nodal database.
  * @author Ruben Zorrilla
  */
-template<class TSparseMatrixType, class TSystemVectorType, class TSparseGraphType>
-class EliminationBuilder : public Builder<TSparseMatrixType, TSystemVectorType, TSparseGraphType>
+template<class TLinearAlgebra>
+class EliminationBuilder : public Builder<TLinearAlgebra>
 {
 public:
     ///@name Type Definitions
@@ -62,10 +59,19 @@ public:
     KRATOS_CLASS_POINTER_DEFINITION(EliminationBuilder);
 
     /// Base builder type definition
-    using BaseType = Builder<TSparseMatrixType, TSystemVectorType, TSparseGraphType>;
+    using BaseType = Builder<TLinearAlgebra>;
+
+    /// Matrix type definition
+    using MatrixType = typename TLinearAlgebra::MatrixType;
+
+    /// Vector type definition
+    using VectorType = typename TLinearAlgebra::VectorType;
+
+    /// Sparse graph type definition
+    using SparseGraphType = TLinearAlgebra::SparseGraphType;
 
     /// Index type definition from sparse matrix
-    using IndexType = typename TSparseMatrixType::IndexType;
+    using IndexType = typename TLinearAlgebra::IndexType;
 
     /// DOF array type definition
     using DofsArrayType = typename BaseType::DofsArrayType;
@@ -97,18 +103,18 @@ public:
     ///@{
 
     void AllocateLinearSystem(
-        const TSparseGraphType& rSparseGraph,
-        LinearSystemContainer<TSparseMatrixType, TSystemVectorType> &rLinearSystemContainer) override
+        const SparseGraphType& rSparseGraph,
+        LinearSystemContainer<TLinearAlgebra> &rLinearSystemContainer) override
     {
         // Set the system arrays
         // Note that the graph-based constructor does both resizing and initialization
-        auto p_dx = Kratos::make_shared<TSystemVectorType>(rSparseGraph);
+        auto p_dx = Kratos::make_shared<VectorType>(rSparseGraph);
         rLinearSystemContainer.pDx.swap(p_dx);
 
-        auto p_rhs = Kratos::make_shared<TSystemVectorType>(rSparseGraph);
+        auto p_rhs = Kratos::make_shared<VectorType>(rSparseGraph);
         rLinearSystemContainer.pRhs.swap(p_rhs);
 
-        auto p_lhs = Kratos::make_shared<TSparseMatrixType>(rSparseGraph);
+        auto p_lhs = Kratos::make_shared<MatrixType>(rSparseGraph);
         rLinearSystemContainer.pLhs.swap(p_lhs);
 
         // Get the number of free DOFs to allocate the effective system arrays
@@ -119,32 +125,32 @@ public:
         });
 
         // Allocate the effective arrays according to the number of free effective DOFs
-        auto p_eff_lhs = Kratos::make_shared<TSparseMatrixType>();
+        auto p_eff_lhs = Kratos::make_shared<MatrixType>();
         rLinearSystemContainer.pEffectiveLhs.swap(p_eff_lhs);
 
-        auto p_eff_rhs = Kratos::make_shared<TSystemVectorType>(n_free_dofs);
+        auto p_eff_rhs = Kratos::make_shared<VectorType>(n_free_dofs);
         rLinearSystemContainer.pEffectiveRhs.swap(p_eff_rhs);
 
-        auto p_eff_dx = Kratos::make_shared<TSystemVectorType>(n_free_dofs);
+        auto p_eff_dx = Kratos::make_shared<VectorType>(n_free_dofs);
         rLinearSystemContainer.pEffectiveDx.swap(p_eff_dx);
     }
 
-    void AllocateLinearSystemConstraints(LinearSystemContainer<TSparseMatrixType, TSystemVectorType>& rLinearSystemContainer) override
+    void AllocateLinearSystemConstraints(LinearSystemContainer<TLinearAlgebra>& rLinearSystemContainer) override
     {
         // Check if there are master-slave constraints
         auto& r_eff_dof_set = *(rLinearSystemContainer.pEffectiveDofSet);
         const std::size_t n_constraints = this->GetModelPart().NumberOfMasterSlaveConstraints();
         if (n_constraints) {
             // Fill the master-slave constraints graph
-            TSparseGraphType constraints_sparse_graph;
+            SparseGraphType constraints_sparse_graph;
             auto& r_dof_set = *(rLinearSystemContainer.pDofSet);
             this->SetUpMasterSlaveConstraintsGraph(r_dof_set, r_eff_dof_set, constraints_sparse_graph);
 
             // Allocate the constraints arrays (note that we are using the move assignment operator in here)
-            auto p_aux_q = Kratos::make_shared<TSystemVectorType>(r_dof_set.size());
+            auto p_aux_q = Kratos::make_shared<VectorType>(r_dof_set.size());
             rLinearSystemContainer.pConstraintsQ.swap(p_aux_q);
 
-            auto p_aux_T = Kratos::make_shared<TSparseMatrixType>(constraints_sparse_graph);
+            auto p_aux_T = Kratos::make_shared<MatrixType>(constraints_sparse_graph);
             rLinearSystemContainer.pConstraintsT.swap(p_aux_T);
 
             // // Free the constraints sparse matrix graph memory to avoid having two graphs at the same time
@@ -154,7 +160,7 @@ public:
         // Set up Dirichlet matrix sparse graph
         // Note that the row size is the effective DOF set size as the master-slave constraints act over the already effective DOF set
         KRATOS_ERROR_IF(r_eff_dof_set.empty()) << "Effective DOF set is empty." << std::endl;
-        TSparseGraphType dirichlet_sparse_graph(r_eff_dof_set.size());
+        SparseGraphType dirichlet_sparse_graph(r_eff_dof_set.size());
 
         // Loop the effective DOFs to add the free ones to the graph
         // Note that this graph results in a diagonal matrix with zeros in the fixed DOFs
@@ -173,12 +179,12 @@ public:
         // Allocate the Dirichlet constraints relation matrix
         // Note that there is no need to allocate the Dirichlet constraints relation vector as this is never used
         // as we always solve for the solution increment (the Dirichlet values are already in the effective DOF set data)
-        auto p_aux_T = Kratos::make_shared<TSparseMatrixType>(dirichlet_sparse_graph);
+        auto p_aux_T = Kratos::make_shared<MatrixType>(dirichlet_sparse_graph);
         mpDirichletT.swap(p_aux_T);
     }
 
     //FIXME: Do the RHS-only version
-    void ApplyLinearSystemConstraints(LinearSystemContainer<TSparseMatrixType, TSystemVectorType>& rLinearSystemContainer) override
+    void ApplyLinearSystemConstraints(LinearSystemContainer<TLinearAlgebra>& rLinearSystemContainer) override
     {
         // Get effective arrays
         auto p_eff_dx = rLinearSystemContainer.pEffectiveDx;
@@ -233,7 +239,7 @@ private:
     ///@name Member Variables
     ///@{
 
-    typename TSparseMatrixType::Pointer mpDirichletT = nullptr; // Dirichlet constraints relation matrix
+    typename MatrixType::Pointer mpDirichletT = nullptr; // Dirichlet constraints relation matrix
 
     ///@}
     ///@name Private Operations

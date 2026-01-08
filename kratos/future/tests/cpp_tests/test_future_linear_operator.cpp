@@ -10,10 +10,13 @@
 //  Main authors:    Ruben Zorrilla
 //
 
+// System includes
+
+// External includes
+
 // Project includes
-#include "future/containers/linear_operator.h"
+#include "future/containers/define_linear_algebra_serial.h"
 #include "future/containers/sparse_matrix_linear_operator.h"
-#include "containers/system_vector.h"
 #include "testing/testing.h"
 
 namespace Kratos::Testing
@@ -42,7 +45,7 @@ KRATOS_TEST_CASE_IN_SUITE(LinearOperatorWithCsr, KratosCoreFutureSuite)
     CsrMatrix<double> csr_matrix(matrix_map);
 
     // Set up the linear operator from the CSR matrix
-    const Future::SparseMatrixLinearOperator<SystemVector<>,CsrMatrix<>> linear_operator(csr_matrix);
+    const Future::SparseMatrixLinearOperator<Future::SerialLinearAlgebra> linear_operator(csr_matrix);
 
     // Apply the linear operator to an input vector
     linear_operator.SpMV(input_vector, output_vector);

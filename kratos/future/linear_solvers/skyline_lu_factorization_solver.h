@@ -484,25 +484,27 @@ public:
 
 
 
-template<class TVectorType>
-class SkylineLUFactorizationSolver : public Future::DirectSolver<TVectorType>
+template<class TLinearAlgebra>
+class SkylineLUFactorizationSolver : public Future::DirectSolver<TLinearAlgebra>
 {
 public:
 
     /// Counted pointer of SkylineLUFactorizationSolver
     KRATOS_CLASS_POINTER_DEFINITION(SkylineLUFactorizationSolver);
 
-    using BaseType = Future::DirectSolver<TVectorType>;
+    using BaseType = Future::DirectSolver<TLinearAlgebra>;
 
     using DenseMatrixType = typename BaseType::DenseMatrixType;
 
-    using DataType = typename TVectorType::DataType;
+    using CsrMatrixType = TLinearAlgebra::MatrixType;
 
-    using IndexType = typename TVectorType::IndexType;
+    using VectorType = typename TLinearAlgebra::VectorType;
 
-    using CsrMatrixType = CsrMatrix<DataType, IndexType>;
+    using DataType = typename VectorType::DataType;
 
-    using LinearOperatorPointerType = typename LinearOperator<TVectorType>::Pointer;
+    using IndexType = typename VectorType::IndexType;
+
+    using LinearOperatorPointerType = typename LinearOperator<TLinearAlgebra>::Pointer;
 
     /// Default constructor
     SkylineLUFactorizationSolver() = default;
@@ -523,8 +525,8 @@ public:
 
     bool Solve(
         LinearOperatorPointerType pLinearOperator,
-        TVectorType& rX,
-        TVectorType& rB) override
+        VectorType& rX,
+        VectorType& rB) override
     {
         if(this->IsNotConsistent(pLinearOperator, rX, rB))
             return false;
@@ -532,9 +534,10 @@ public:
         const int size = rX.size();
 
         // define an object to store skyline matrix and factorization
-        LUSkylineFactorization<CsrMatrixType, TVectorType> myFactorization;
+        LUSkylineFactorization<CsrMatrixType, VectorType> myFactorization;
 
         // copy myMatrix into skyline format
+        KRATOS_ERROR_IF(pLinearOperator->IsMatrixFree()) << "SkylineLUFactorizationSolver cannot be used with matrix-free linear operators." << std::endl;
         const auto& r_A = pLinearOperator->template GetMatrix<CsrMatrixType>();
         myFactorization.copyFromCSRMatrix(r_A);
 
@@ -557,12 +560,14 @@ public:
 
         bool is_solved = true;
 
-        TVectorType x(size1);
-        TVectorType b(size1);
+        VectorType x(size1);
+        VectorType b(size1);
 
         // define an object to store skyline matrix and factorization
-        LUSkylineFactorization<CsrMatrixType, TVectorType> myFactorization;
+        LUSkylineFactorization<CsrMatrixType, VectorType> myFactorization;
+
         // copy myMatrix into skyline format
+        KRATOS_ERROR_IF(pLinearOperator->IsMatrixFree()) << "SkylineLUFactorizationSolver cannot be used with matrix-free linear operators." << std::endl;
         const auto& r_A = pLinearOperator->template GetMatrix<CsrMatrixType>();
         myFactorization.copyFromCSRMatrix(r_A);
         // factorize it
@@ -602,19 +607,19 @@ public:
 
 
 /// input stream function
-template<class TVectorType>
+template<class TLinearAlgebra>
 inline std::istream& operator >> (
     std::istream& rIStream,
-    SkylineLUFactorizationSolver<TVectorType>& rThis)
+    SkylineLUFactorizationSolver<TLinearAlgebra>& rThis)
 {
     return rIStream;
 }
 
 /// output stream function
-template<class TVectorType>
+template<class TLinearAlgebra>
 inline std::ostream& operator << (
     std::ostream& rOStream,
-    const SkylineLUFactorizationSolver<TVectorType>& rThis)
+    const SkylineLUFactorizationSolver<TLinearAlgebra>& rThis)
 {
     rThis.PrintInfo(rOStream);
     rOStream << std::endl;

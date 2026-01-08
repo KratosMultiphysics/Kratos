@@ -19,9 +19,6 @@
 
 // Project includes
 #include "builder.h"
-#include "containers/csr_matrix.h"
-#include "containers/system_vector.h"
-#include "containers/sparse_contiguous_row_graph.h"
 #include "includes/define.h"
 #include "includes/model_part.h"
 #include "utilities/amgcl_csr_conversion_utilities.h"
@@ -47,8 +44,8 @@ namespace Kratos::Future
  * matrix. The value of the diagonal term is computed according to the scaling type.
  * @author Ruben Zorrilla
  */
-template<class TSparseMatrixType, class TSystemVectorType, class TSparseGraphType>
-class BlockBuilder : public Builder<TSparseMatrixType, TSystemVectorType, TSparseGraphType>
+template<class TLinearAlgebra>
+class BlockBuilder : public Builder<TLinearAlgebra>
 {
 public:
     ///@name Type Definitions
@@ -58,13 +55,19 @@ public:
     KRATOS_CLASS_POINTER_DEFINITION(BlockBuilder);
 
     /// Base builder type definition
-    using BaseType = Builder<TSparseMatrixType, TSystemVectorType, TSparseGraphType>;
-
-    /// Data type definition from sparse matrix
-    using DataType = typename TSparseMatrixType::DataType;
+    using BaseType = Builder<TLinearAlgebra>;
 
     /// Index type definition from sparse matrix
-    using IndexType = typename TSparseMatrixType::IndexType;
+    using IndexType = typename TLinearAlgebra::IndexType;
+
+    /// Matrix type definition
+    using MatrixType = typename TLinearAlgebra::MatrixType;
+
+    /// Vector type definition
+    using VectorType = typename TLinearAlgebra::VectorType;
+
+    /// Sparse graph type definition
+    using SparseGraphType = TLinearAlgebra::SparseGraphType;
 
     /// DOF type definition
     using DofType = typename BaseType::DofType;
@@ -106,18 +109,18 @@ public:
     ///@{
 
     void AllocateLinearSystem(
-        const TSparseGraphType& rSparseGraph,
-        LinearSystemContainer<TSparseMatrixType, TSystemVectorType> &rLinearSystemContainer) override
+        const SparseGraphType& rSparseGraph,
+        LinearSystemContainer<TLinearAlgebra> &rLinearSystemContainer) override
     {
         // Set the system arrays
         // Note that the graph-based constructor does both resizing and initialization
-        auto p_dx = Kratos::make_shared<TSystemVectorType>(rSparseGraph);
+        auto p_dx = Kratos::make_shared<VectorType>(rSparseGraph);
         rLinearSystemContainer.pDx.swap(p_dx);
 
-        auto p_rhs = Kratos::make_shared<TSystemVectorType>(rSparseGraph);
+        auto p_rhs = Kratos::make_shared<VectorType>(rSparseGraph);
         rLinearSystemContainer.pRhs.swap(p_rhs);
 
-        auto p_lhs = Kratos::make_shared<TSparseMatrixType>(rSparseGraph);
+        auto p_lhs = Kratos::make_shared<MatrixType>(rSparseGraph);
         rLinearSystemContainer.pLhs.swap(p_lhs);
 
         // Set the effective arrays
@@ -129,40 +132,40 @@ public:
             rLinearSystemContainer.pEffectiveDx = rLinearSystemContainer.pDx;
         } else {
             // Allocate the effective vectors according to the effective DOF set size
-            auto p_eff_lhs = Kratos::make_shared<TSparseMatrixType>();
+            auto p_eff_lhs = Kratos::make_shared<MatrixType>();
             rLinearSystemContainer.pEffectiveLhs.swap(p_eff_lhs);
 
-            auto p_eff_rhs = Kratos::make_shared<TSystemVectorType>(rLinearSystemContainer.pEffectiveDofSet->size());
+            auto p_eff_rhs = Kratos::make_shared<VectorType>(rLinearSystemContainer.pEffectiveDofSet->size());
             rLinearSystemContainer.pEffectiveRhs.swap(p_eff_rhs);
 
-            auto p_eff_dx = Kratos::make_shared<TSystemVectorType>(rLinearSystemContainer.pEffectiveDofSet->size());
+            auto p_eff_dx = Kratos::make_shared<VectorType>(rLinearSystemContainer.pEffectiveDofSet->size());
             rLinearSystemContainer.pEffectiveDx.swap(p_eff_dx);
         }
     }
 
-    void AllocateLinearSystemConstraints(LinearSystemContainer<TSparseMatrixType, TSystemVectorType>& rLinearSystemContainer) override
+    void AllocateLinearSystemConstraints(LinearSystemContainer<TLinearAlgebra>& rLinearSystemContainer) override
     {
         // Check if there are master-slave constraints
         //TODO: Do the MPI sum all
         const std::size_t n_constraints = this->GetModelPart().NumberOfMasterSlaveConstraints();
         if (n_constraints) {
             // Fill the master-slave constraints graph
-            TSparseGraphType constraints_sparse_graph;
+            SparseGraphType constraints_sparse_graph;
             auto& r_dof_set = *rLinearSystemContainer.pDofSet;
             auto& r_eff_dof_set = *rLinearSystemContainer.pEffectiveDofSet;
             this->SetUpMasterSlaveConstraintsGraph(r_dof_set, r_eff_dof_set, constraints_sparse_graph);
 
             // Allocate the constraints arrays (note that we are using the move assignment operator in here)
-            auto p_aux_q = Kratos::make_shared<TSystemVectorType>(r_dof_set.size());
+            auto p_aux_q = Kratos::make_shared<VectorType>(r_dof_set.size());
             rLinearSystemContainer.pConstraintsQ.swap(p_aux_q);
 
-            auto p_aux_T = Kratos::make_shared<TSparseMatrixType>(constraints_sparse_graph);
+            auto p_aux_T = Kratos::make_shared<MatrixType>(constraints_sparse_graph);
             rLinearSystemContainer.pConstraintsT.swap(p_aux_T);
         }
     }
 
     //FIXME: Do the RHS-only version
-    void ApplyLinearSystemConstraints(LinearSystemContainer<TSparseMatrixType, TSystemVectorType>& rLinearSystemContainer) override
+    void ApplyLinearSystemConstraints(LinearSystemContainer<TLinearAlgebra>& rLinearSystemContainer) override
     {
         // Calculate the effective LHS, RHS and solution vector
         ApplyBlockBuildMasterSlaveConstraints(rLinearSystemContainer);
@@ -190,7 +193,7 @@ private:
      * This method applies the master-slave constraints following a block-type build
      * @param rLinearSystemContainer Auxiliary container with the linear system arrays
      */
-    void ApplyBlockBuildMasterSlaveConstraints(LinearSystemContainer<TSparseMatrixType, TSystemVectorType> &rLinearSystemContainer)
+    void ApplyBlockBuildMasterSlaveConstraints(LinearSystemContainer<TLinearAlgebra> &rLinearSystemContainer)
     {
         const auto& r_model_part = this->GetModelPart();
         const std::size_t n_constraints = r_model_part.NumberOfMasterSlaveConstraints();
@@ -251,8 +254,8 @@ private:
      */
     void ApplyBlockBuildDirichletConditions(
         const DofsArrayType& rDofArray,
-        TSparseMatrixType& rLHS,
-        TSystemVectorType& rRHS) const
+        MatrixType& rLHS,
+        VectorType& rRHS) const
     {
         // Set the free DOFs vector (0 means fixed / 1 means free)
         // Note that we initialize to 1 so we start assuming all free
@@ -290,7 +293,7 @@ private:
      */
     void ApplyBlockBuildDirichletConditions(
         const DofsArrayType& rDofArray,
-        TSystemVectorType& rRHS) const
+        VectorType& rRHS) const
     {
         // Loop the DOFs to find which ones are fixed
         // Note that DOFs are assumed to be numbered consecutively in the block building
@@ -309,7 +312,7 @@ private:
      * @param rLHS Left Hand Side matrix
      * @return double Diagonal scaling factor
      */
-    virtual double GetDiagonalScalingFactor(const TSparseMatrixType& rLHS) const
+    virtual double GetDiagonalScalingFactor(const MatrixType& rLHS) const
     {
         if (mScalingType == "no_scaling") {
             return 1.0;

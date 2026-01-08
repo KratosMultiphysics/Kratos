@@ -104,8 +104,8 @@ void KRATOS_API(KRATOS_CORE) AMGCLSolve(
  * @author Riccardo Rossi
  * @author Ruben Zorrilla
  */
-template<class TVectorType>
-class AMGCLSolver : public Future::LinearSolver<TVectorType>
+template<class TLinearAlgebra>
+class AMGCLSolver : public Future::LinearSolver<TLinearAlgebra>
 {
 public:
     ///@name Type Definitions
@@ -115,19 +115,22 @@ public:
     KRATOS_CLASS_POINTER_DEFINITION( AMGCLSolver );
 
     /// The base class definition
-    using BaseType = Future::LinearSolver<TVectorType>;
+    using BaseType = Future::LinearSolver<TLinearAlgebra>;
+
+    /// Vector type definition from linear algebra template parameter
+    using VectorType = typename TLinearAlgebra::VectorType;
 
     /// Type definition for data
-    using DataType = typename TVectorType::DataType;
+    using DataType = typename VectorType::DataType;
 
     /// Type definition for index
-    using IndexType = typename TVectorType::IndexType;
+    using IndexType = typename VectorType::IndexType;
 
     /// Local system matrix type definition
     using DenseMatrixType = DenseMatrix<DataType>;
 
     /// Linear operator pointer type definition
-    using LinearOperatorPointerType = typename LinearOperator<TVectorType>::Pointer;
+    using LinearOperatorPointerType = typename LinearOperator<TLinearAlgebra>::Pointer;
 
     ///@}
     ///@name Life Cycle
@@ -321,8 +324,8 @@ public:
      */
     bool Solve(
         LinearOperatorPointerType pLinearOperatorType,
-        TVectorType& rX,
-        TVectorType& rB) override
+        VectorType& rX,
+        VectorType& rB) override
     {
         // Get CSR matrix from linear operator
         auto& r_A = pLinearOperatorType->template GetMatrix<CsrMatrix<>>();
@@ -483,8 +486,8 @@ public:
 
     void ProvideAdditionalData (
         LinearOperatorPointerType pLinearOperator,
-        TVectorType& rX,
-        TVectorType& rB,
+        VectorType& rX,
+        VectorType& rB,
         typename ModelPart::DofsArrayType& rDofSet,
         ModelPart& rModelPart) override
     {
@@ -843,10 +846,10 @@ protected:
 /**
  * input stream function
  */
-template<class TVectorType>
+template<class TLinearAlgebra>
 inline std::istream& operator >> (
     std::istream& rIStream,
-    AMGCLSolver< TVectorType>& rThis)
+    AMGCLSolver< TLinearAlgebra>& rThis)
 {
     return rIStream;
 }
@@ -854,10 +857,10 @@ inline std::istream& operator >> (
 /**
  * output stream function
  */
-template<class TVectorType>
+template<class TLinearAlgebra>
 inline std::ostream& operator << (
     std::ostream& rOStream,
-    const AMGCLSolver<TVectorType>& rThis)
+    const AMGCLSolver<TLinearAlgebra>& rThis)
 {
     rThis.PrintInfo(rOStream);
     rOStream << std::endl;
