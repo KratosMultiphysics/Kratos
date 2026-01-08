@@ -548,6 +548,7 @@ class FluidTopologyOptimizationAnalysis(FluidDynamicsAnalysis):
         self.MpiPrint("--|" + self.topology_optimization_stage_str + "| INITIALIZE OPTIMIZATION")
         self.SetTimeSolutionStorage()
         self._ComputeDesignParameterFilterUtilities()
+        self._InitializeOptimizationSolutionStabilization()
         self.opt_it = 0
         self._SetDesignParameterChangeTolerance()
         self.n_optimization_constraints = 0  
@@ -692,6 +693,21 @@ class FluidTopologyOptimizationAnalysis(FluidDynamicsAnalysis):
     def _ComputeDesignParameterFilterUtilities(self):
         self._ComputeDesignParameterDiffusiveFilterUtilities()
         self._ComputeDesignParameterProjectiveFilterUtilities()
+
+    def _InitializeOptimizationSolutionStabilization(self):
+        self.optimization_solution_stabilization_settings = self.optimization_settings["solution_stabilization_settings"]
+        self._InitializeAdjointViscosityAdaptation()
+
+    def _InitializeAdjointViscosityAdaptation(self):
+        self.adjoint_viscosity_adaptation_settings = self.optimization_solution_stabilization_settings["adjoint_viscosity_adaptation_settings"]
+        self.use_adjoint_viscosity_adaptation = self.adjoint_viscosity_adaptation_settings["use_adjoint_viscosity_adaptation"].GetBool()
+        if self.use_adjoint_viscosity_adaptation:
+            self.adjoint_viscosity_adaptation_factor = self.adjoint_viscosity_adaptation_settings["adjoint_viscosity_adaptation_factor"].GetDouble()
+            if (abs(self.adjoint_viscosity_adaptation_factor-1.0) > 1e-10):
+                self.physics_viscosity = self._GetViscosity()
+                self.adjoint_viscosity = self.physics_viscosity * self.adjoint_viscosity_adaptation_factor
+            else:
+                self.use_adjoint_viscosity_adaptation = False
 
     def _InitializeOptimizationDomainSettings(self):
         """
@@ -951,7 +967,9 @@ class FluidTopologyOptimizationAnalysis(FluidDynamicsAnalysis):
         This method executes a single ADJ_NS solution of the Topology Optimization problem loop
         """
         self._SetTopologyOptimizationStage(2) # ADJOINT PROBLEM SOLUTION
+        self._InitializeAdjointProblemSolutionStabilization()
         self._RunStageSolutionLoop() 
+        self._FinalizeAdjointProblemSolutionStabilization()
 
     def _RunStageSolutionLoop(self):
         """
@@ -995,6 +1013,22 @@ class FluidTopologyOptimizationAnalysis(FluidDynamicsAnalysis):
             self._GetPhysicsSolver().main_model_part.ProcessInfo[KratosCFD.FLUID_TOP_OPT_NS_STEP] = 0
         elif (self.IsAdjointStage()):
             self._GetPhysicsSolver().main_model_part.ProcessInfo[KratosCFD.FLUID_TOP_OPT_ADJ_NS_STEP] = 0
+
+    def _InitializeAdjointProblemSolutionStabilization(self):
+        self._InitializeAdjointProblemSolutionViscosityAdaptation()
+
+    def _FinalizeAdjointProblemSolutionStabilization(self):
+        self._FinalizeAdjointProblemSolutionViscosityAdaptation()
+
+    def _InitializeAdjointProblemSolutionViscosityAdaptation(self):
+        if (self.use_adjoint_viscosity_adaptation):
+            for elem in self._GetMainModelPart().GetCommunicator().LocalMesh().Elements:
+                elem.Properties[KratosMultiphysics.DYNAMIC_VISCOSITY] = self.adjoint_viscosity
+
+    def _FinalizeAdjointProblemSolutionViscosityAdaptation(self):
+        if (self.use_adjoint_viscosity_adaptation):
+            for elem in self._GetMainModelPart().GetCommunicator().LocalMesh().Elements:
+                elem.Properties[KratosMultiphysics.DYNAMIC_VISCOSITY] = self.physics_viscosity
 
     def KeepAdvancingSolutionLoop(self):
         """This method specifies the stopping criteria for breaking the solution loop
@@ -1494,16 +1528,16 @@ class FluidTopologyOptimizationAnalysis(FluidDynamicsAnalysis):
         self.design_parameter_filtered = np.zeros(self.n_nodes)
 
     def _InitializeDiffusiveFilter(self):
-            self.diffusive_filter_settings = self.optimization_settings["diffusive_filter_settings"]
-            self.apply_diffusive_filter = self.diffusive_filter_settings["use_filter"].GetBool()
-            self.diffusive_filter_type = self.diffusive_filter_settings["filter_type"].GetString()
-            self.diffusive_filter_radius = self.diffusive_filter_settings["radius"].GetDouble()
-            self.diffusive_filter_type_settings = self.diffusive_filter_settings["type_settings"]
-            if self.apply_diffusive_filter:
-                if self.diffusive_filter_type == "pde":
-                    self._InitializePdeDiffusiveFilter()
-                else:
-                    self._InitializeDiscreteDiffusiveFilter()
+        self.diffusive_filter_settings = self.optimization_settings["diffusive_filter_settings"]
+        self.apply_diffusive_filter = self.diffusive_filter_settings["use_filter"].GetBool()
+        self.diffusive_filter_type = self.diffusive_filter_settings["filter_type"].GetString()
+        self.diffusive_filter_radius = self.diffusive_filter_settings["radius"].GetDouble()
+        self.diffusive_filter_type_settings = self.diffusive_filter_settings["type_settings"]
+        if self.apply_diffusive_filter:
+            if self.diffusive_filter_type == "pde":
+                self._InitializePdeDiffusiveFilter()
+            else:
+                self._InitializeDiscreteDiffusiveFilter()
 
     def _ComputeDesignParameterProjectiveFilterUtilities(self):
         self._InitializeProjectiveFilter()
@@ -1961,6 +1995,12 @@ class FluidTopologyOptimizationAnalysis(FluidDynamicsAnalysis):
                 "min_max_projection_slope": [1e-10, 2],
                 "activation_change"       : 1e-2
             },
+            "solution_stabilization_settings": {
+                "adjoint_viscosity_adaptation_settings": {
+                    "use_adjoint_viscosity_adaptation": false,
+                    "adjoint_viscosity_adaptation_factor": 10                                                  
+                }
+            },                                                       
             "remeshing_settings": {
                 "remesh"   : false,
                 "level_set": 0.15 ,
@@ -2071,6 +2111,7 @@ class FluidTopologyOptimizationAnalysis(FluidDynamicsAnalysis):
             "optimizer_settings": {},
             "diffusive_filter_settings": {},
             "projective_filter_settings": {},
+            "solution_stabilization_settings": {},
             "remeshing_settings": {},
             "symmetry_settings": {},
             "optimization_domain_settings": {},
