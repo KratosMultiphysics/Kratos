@@ -144,6 +144,7 @@ class PotentialFlowSolver(FluidSolver):
             "formulation": {
                 "element_type": "incompressible"
             },
+            "enforce_element_and_conditions_replacement": true,
             "element_replace_settings": {
                 "condition_name":  "",
                 "element_name": ""
@@ -188,7 +189,6 @@ class PotentialFlowSolver(FluidSolver):
 
         self._validate_settings_in_baseclass=True # To be removed eventually
         super().__init__(model, custom_settings)
-        self._enforce_element_and_conditions_replacement = False #TODO: Remove once we remove the I/O from the solver
 
         # Set the element and condition names for the replace settings
         self.formulation = PotentialFlowFormulation(self.settings["formulation"])

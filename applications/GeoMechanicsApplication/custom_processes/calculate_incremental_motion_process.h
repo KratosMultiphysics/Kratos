@@ -26,7 +26,8 @@ public:
     CalculateIncrementalMotionProcess(const CalculateIncrementalMotionProcess&)            = delete;
     CalculateIncrementalMotionProcess& operator=(const CalculateIncrementalMotionProcess&) = delete;
 
-    void Execute() override;
+    void                      Execute() override;
+    [[nodiscard]] std::string Info() const override;
 
 private:
     ModelPart&  mrModelPart;

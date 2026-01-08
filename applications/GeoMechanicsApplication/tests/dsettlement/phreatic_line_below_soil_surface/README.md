@@ -9,7 +9,7 @@ A schematic can be found in the figure below:
 
 The test is performed in 5 stages:
 1. A $`K_0`$ stage with a linear elastic model, with a Young's modulus of $`1 [\mathrm{GPa}]`$ and a Poisson's ratio of 0.2.
-2. A stage with the abc model (with a duration of $`1 [\mathrm{s}]`$). The time step is $`1 [\mathrm{s}]`$, such that there is horizontal stress redistribution by the abc model.
+2. A stage with the abc model (with a duration of $`1 [\mathrm{s}]`$). The time step is $`1 [\mathrm{s}]`$, such that there is horizontal stress redistribution by the abc model. The load stepping scheme is used, to apply external forces gradually (starting with steps of 10% of the initial external forces and automatically adjusting the step size according to the number of iterations and convergence behavior).
 3. A settlement under self weight stage ($`8640000 [\mathrm{s}]`$ or $`100 [\mathrm{d}]`$). The option `"reset_displacement"` is set to `true` here, such that the total displacements start counting from the start of this stage.
 4. A loading stage (with a duration of $`1 [\mathrm{s}]`$) with a uniform surface load of $`20 [\mathrm{kPa}]`$ applied in the negative $`Y`$ direction to the top of the model. The time step is $`1 [\mathrm{s}]`$, such that there is horizontal stress redistribution by the abc model.
 5. A second settlement stage, such that the total time reaches $`10000 [\mathrm{d}]`$ (or $`864000000 [\mathrm{s}]`$). The same uniform surface load of $`20 [\mathrm{kPa}]`$ is applied in the negative $`Y`$ direction. The time step is > $`0.001 [\mathrm{d}]`$, such that there is no horizontal stress redistribution by the abc model.
@@ -32,7 +32,12 @@ Settlement over time, where nodes 2, 3, and 104 are located at the top edge of t
 
 ![Settlement](test_case_3_settlement_plot.svg)
 
-The following plots show the water pressure distribution ($`p_{\mathrm{w}}`$) as well as the vertical effective stress distribution ($`\sigma_{\mathrm{eff, yy}}`$) along the left edge of the soil column at certain times.
+The following plots show the water pressure distribution ($`p_{\mathrm{w}}`$), the vertical effective stress distribution ($`\sigma_{\mathrm{eff, yy}}`$), and the vertical total stress distribution ($`\sigma_{\mathrm{tot, yy}}`$) along the left edge of the soil column at certain times.
+
+At the start of the analysis (after 0 days):
+
+![Stress plot after 0 days](test_case_3_stress_plot_after_0_days.svg)
+
 After 100 days of settlement under self weight:
 
 ![Stress plot after 100 days](test_case_3_stress_plot_after_100_days.svg)
@@ -41,7 +46,7 @@ At 100.1 days after applying the uniform surface load of $`20 [\mathrm{kPa}]`$ a
 
 ![Stress plot after 100.1 days](test_case_3_stress_plot_after_100.1_days.svg)
 
-After 10000 days of settlement:
+After 10,000 days of settlement:
 
 ![Stress plot after 10000 days](test_case_3_stress_plot_after_10000_days.svg)
 

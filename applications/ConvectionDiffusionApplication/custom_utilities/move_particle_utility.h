@@ -205,7 +205,6 @@ namespace Kratos
 			mvector_of_particle_pointers_vectors.resize(mnelems);
             //int artz;
             //std::cin >> artz;
-			int i_int=0; //careful! it's not the id, but the position inside the array!
 			std::cout << "about to create particles" << std::endl;
 			//now we seed: LOOP IN ELEMENTS
 			//using loop index, DO NOT parallelize this! change lines : mparticles_in_elems_pointers((ii*mmaximum_number_of_particles)+mparticles_in_elems_integers(ii)) = pparticle; and the next one
@@ -230,7 +229,6 @@ namespace Kratos
 
 				Geometry< Node >& geom = ielem->GetGeometry();
 				//unsigned int elem_id = ielem->Id();
-				//mareas_vector[i_int]=CalculateArea(geom); UNUSED SO COMMENTED
 				ComputeGaussPointPositions_initial(geom, pos, N); //we also have the standard (4), and 45
 				//now we seed the particles in the current element
 				for (unsigned int j = 0; j < pos.size1(); j++)
@@ -257,7 +255,6 @@ namespace Kratos
 					 number_of_particles++ ;
 
 				}
-				++i_int;
 			}
 
 			m_nparticles=particle_id; //we save the last particle created as the total number of particles we have. For the moment this is true.
@@ -1173,8 +1170,6 @@ namespace Kratos
 
 			#pragma omp parallel firstprivate(elem_partition) // firstprivate(results)//we will add the nodes in different parts of aux and later assemble everything together, remaming particles ids to get consecutive ids
 			{
-				unsigned int reused_particles=0;
-
 				unsigned int freeparticle = 0; //we start by the first position;
 
 				int k = OpenMPUtils::ThisThread();
@@ -1272,10 +1267,6 @@ namespace Kratos
 							if (keep_looking)
 							{
 								KRATOS_THROW_ERROR(std::logic_error, "FINISHED THE LIST AND COULDN'T FIND A FREE CELL FOR THE NEW PARTICLE!", "");
-							}
-						    else
-						    {
-								reused_particles++;
 							}
 
 						  }

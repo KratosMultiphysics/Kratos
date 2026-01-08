@@ -27,7 +27,6 @@
         "compute_reactions":                  true,
         "move_mesh_flag":                     false,
         "reform_dofs_at_each_step":           false,
-        "nodal_smoothing":                    true,
         "block_builder":                      true,
         "solution_type":                      "Quasi-Static",
         "scheme_type":                        "Newmark",
@@ -64,7 +63,6 @@
             "scaling":       true
         },
         "problem_domain_sub_model_part_list": ["Soil_drained-auto-2"],
-        "processes_sub_model_part_list":      ["Solid_Displacement-auto-2","Solid_Displacement-auto-1","Fluid_Pressure-auto-1","Normal_Load-auto-1"],
         "body_domain_sub_model_part_list":    ["Soil_drained-auto-2"]
     },
     "output_processes": {
@@ -90,7 +88,7 @@
                         "node_output":         false,
                         "skin_output":         false,
                         "plane_output":        [],
-                        "nodal_results":       ["DISPLACEMENT","TOTAL_DISPLACEMENT","ROTATION","WATER_PRESSURE","REACTION","REACTION_WATER_PRESSURE","POINT_LOAD","LINE_LOAD","SURFACE_LOAD","NORMAL_CONTACT_STRESS","TANGENTIAL_CONTACT_STRESS","NORMAL_FLUID_FLUX","VOLUME_ACCELERATION","NODAL_DAMAGE_VARIABLE","NODAL_JOINT_WIDTH","NODAL_JOINT_DAMAGE"],
+                        "nodal_results":       ["DISPLACEMENT","TOTAL_DISPLACEMENT","ROTATION","WATER_PRESSURE","REACTION","REACTION_WATER_PRESSURE","POINT_LOAD","LINE_LOAD","SURFACE_LOAD","NORMAL_CONTACT_STRESS","TANGENTIAL_CONTACT_STRESS","NORMAL_FLUID_FLUX","VOLUME_ACCELERATION"],
                         "gauss_point_results": ["MOMENT","FORCE","GREEN_LAGRANGE_STRAIN_TENSOR","CAUCHY_STRESS_TENSOR","TOTAL_STRESS_TENSOR","VON_MISES_STRESS","FLUID_FLUX_VECTOR","PERMEABILITY_MATRIX","DAMAGE_VARIABLE","JOINT_WIDTH","LOCAL_STRESS_VECTOR","LOCAL_RELATIVE_DISPLACEMENT_VECTOR","LOCAL_FLUID_FLUX_VECTOR","LOCAL_PERMEABILITY_MATRIX"]
                     },
                     "point_data_configuration":  []

@@ -12,9 +12,9 @@
 #pragma once
 
 #include "custom_utilities/node_utilities.h"
-#include "custom_utilities/variables_utilities.hpp"
 #include "geomechanics_time_integration_scheme.hpp"
 #include "includes/model_part.h"
+
 #include <optional>
 
 namespace Kratos
@@ -62,39 +62,7 @@ public:
 
     void FinalizeSolutionStep(ModelPart& rModelPart, TSystemMatrixType& rA, TSystemVectorType& rDx, TSystemVectorType& rb) override
     {
-        KRATOS_TRY
-
-        if (rModelPart.GetProcessInfo()[NODAL_SMOOTHING]) {
-            // Clear nodal variables
-            block_for_each(rModelPart.Nodes(), [](Node& rNode) {
-                rNode.FastGetSolutionStepValue(NODAL_AREA)            = 0.0;
-                rNode.FastGetSolutionStepValue(NODAL_DAMAGE_VARIABLE) = 0.0;
-                rNode.FastGetSolutionStepValue(NODAL_JOINT_AREA)      = 0.0;
-                rNode.FastGetSolutionStepValue(NODAL_JOINT_WIDTH)     = 0.0;
-                rNode.FastGetSolutionStepValue(NODAL_JOINT_DAMAGE)    = 0.0;
-            });
-
-            this->FinalizeSolutionStepActiveEntities(rModelPart, rA, rDx, rb);
-
-            // Compute smoothed nodal variables
-            block_for_each(rModelPart.Nodes(), [](Node& rNode) {
-                if (const double& nodal_area = rNode.FastGetSolutionStepValue(NODAL_AREA); nodal_area > 1.0e-20) {
-                    const double inv_nodal_area = 1.0 / nodal_area;
-                    rNode.FastGetSolutionStepValue(NODAL_DAMAGE_VARIABLE) *= inv_nodal_area;
-                }
-
-                if (const double& nodal_joint_area = rNode.FastGetSolutionStepValue(NODAL_JOINT_AREA);
-                    nodal_joint_area > 1.0e-20) {
-                    const double inv_nodal_joint_area = 1.0 / nodal_joint_area;
-                    rNode.FastGetSolutionStepValue(NODAL_JOINT_WIDTH) *= inv_nodal_joint_area;
-                    rNode.FastGetSolutionStepValue(NODAL_JOINT_DAMAGE) *= inv_nodal_joint_area;
-                }
-            });
-        } else {
-            this->FinalizeSolutionStepActiveEntities(rModelPart, rA, rDx, rb);
-        }
-
-        KRATOS_CATCH("")
+        this->FinalizeSolutionStepActiveEntities(rModelPart, rA, rDx, rb);
     }
 
 protected:
