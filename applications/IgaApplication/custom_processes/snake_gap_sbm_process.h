@@ -15,6 +15,7 @@
 
 // System includes
 #include <algorithm>
+#include <limits>
 
 // Project includes
 #include "includes/model_part.h"
@@ -309,6 +310,13 @@ struct IntegrationParameters
         , rKnotSpanSizes(rKnotSpans)
     {}
 };
+
+    struct ProjectionResult
+    {
+        IndexType ProjectionId = std::numeric_limits<IndexType>::max();
+        CoordinatesArrayType ProjectionPoint = ZeroVector(3);
+        bool SuccessfullProjection = false;
+    };
     
 private:
 
@@ -360,6 +368,29 @@ private:
         const ModelPart& rSkinSubModelPart);
 
     /**
+     * @brief Adds extra gap elements for curve intersections between surrogate1-skin1 and skin1-skin2.
+     * @tparam TIsInnerLoop True when processing inner loop quadrature information.
+     * @param rIntegrationParameters Reference to the integration parameters container.
+     * @param pNurbsSurface Pointer to the NURBS surface used for projections.
+     * @param rSurrogate1Skin1 Reference to the brep curve connecting surrogate_1 and skin_1.
+     * @param rSkin1Skin2 Reference to the brep curve connecting skin_1 and skin_2.
+     * @param rSurrogate1 Coordinates of the first surrogate point.
+     * @param rSkin1 Coordinates of the first skin point.
+     * @param rNeighbourGeometries Reference geometries used for the surrogate association.
+     * @param rElementIdCounter Reference to the identifier counter used for the elements.
+     */
+    template <bool TIsInnerLoop>
+    void CreateAdditionalGapElementsFromCurveIntersections(
+        IntegrationParameters& rIntegrationParameters,
+        NurbsSurfaceType::Pointer& pNurbsSurface,
+        const BrepCurveType& rSurrogate1Skin1,
+        const BrepCurveType& rSkin1Skin2,
+        const array_1d<double,3>& rSurrogate1,
+        const array_1d<double,3>& rSkin1,
+        const std::vector<Geometry<Node>::Pointer>& rNeighbourGeometries,
+        std::size_t& rElementIdCounter) const;
+
+    /**
      * @brief Populates the surrogate-to-skin projection mapping.
      * @tparam TIsInnerLoop True when working with the inner loop orientation.
      * @param rSurrogateSubModelPart Reference to the surrogate sub model part.
@@ -370,7 +401,8 @@ private:
     void SetSurrogateToSkinProjections(
         const ModelPart& rSurrogateSubModelPart,
         const ModelPart& rSkinSubModelPart,
-        const KnotSpanIdsCSR& rSkinNodesPerSpan);
+        const KnotSpanIdsCSR& rSkinNodesPerSpan,
+        const KnotSpanIdsCSR& rSkinConditionsPerSpan);
 
     /**
      * @brief Checks that surrogate boundary vertices lie on the same skin layer.
@@ -378,7 +410,7 @@ private:
      * @param pSurrogateNode1 Pointer to the first surrogate vertex to be validated.
      * @param pSurrogateNode2 Pointer to the second surrogate vertex to be validated.
      */
-    void AssestProjectionsFeasibility(
+    std::vector<IndexType> AssestProjectionsFeasibility(
         const ModelPart& rSkinSubModelPart,
         Node::Pointer pSurrogateNode1, 
         Node::Pointer pSurrogateNode2);
@@ -425,6 +457,17 @@ private:
         PropertiesPointerType pProperties,
         const std::vector<Geometry<Node>::Pointer> &pSurrogateReferenceGeometries,
         const double CharacteristicLength) const;
+
+    template <bool TIsInnerLoop>
+    ProjectionResult ComputeSingleProjection(
+        const ModelPart& rSkinSubModelPart,
+        const CoordinatesArrayType& rSurrogateMidPoint,
+        const IndexType LeftProjectionId,
+        const IndexType RightProjectionId,
+        const std::string& rCommonLayerName,
+        const array_1d<double,3>& rNormalCond,
+        const IntegrationParameters& rIntegrationParameters,
+        const KnotSpanIdsCSR& rSkinConditionsPerKnotSpan) const;
     
     /**
      * @brief Creates a Brep curve for the active knot range.
@@ -940,7 +983,7 @@ typename NurbsCurveGeometryType::Pointer FitUV_BetweenSkinNodes_Generic(
  * @param r Pointer to the third point.
  * @return Signed area representing the orientation.
  */
-double Orientation(
+ static double Orientation(
     const Node::Pointer& p, const Node::Pointer& q, const Node::Pointer& r)
 {
     return (q->X() - p->X()) * (r->Y() - p->Y()) -
@@ -954,7 +997,7 @@ double Orientation(
  * @param r Pointer to the second endpoint.
  * @return True when q lies within the bounding box of segment pr.
  */
-bool OnSegment(
+ static bool OnSegment(
     const Node::Pointer& p, const Node::Pointer& q, const Node::Pointer& r)
 {
     return (std::min(p->X(), r->X()) <= q->X() && q->X() <= std::max(p->X(), r->X()) &&
@@ -969,7 +1012,7 @@ bool OnSegment(
  * @param D Pointer to the second endpoint of the second segment.
  * @return True when the segments intersect.
  */
-bool SegmentsIntersect(
+ static bool SegmentsIntersect(
     const Node::Pointer& A, const Node::Pointer& B, const Node::Pointer& C, const Node::Pointer& D)
 {
     double o1 = Orientation(A, B, C);
@@ -999,7 +1042,7 @@ bool SegmentsIntersect(
  * @param rIntersection Output: intersection coordinates (valid only if function returns true).
  * @return True when the segments intersect.
  */
-bool SegmentsIntersect(
+ static bool SegmentsIntersect(
     const Node::Pointer& A, const Node::Pointer& B,
     const Node::Pointer& C, const Node::Pointer& D,
     array_1d<double,3>& rIntersection)
@@ -1068,7 +1111,23 @@ IndexType FindClosestNodeInLayerWithDirection(
     const ModelPart& rSkinSubModelPart,
     const Vector& rKnotSpanSizes,
     const KnotSpanIdsCSR& rSkinConditionsPerSpan,
-    const Vector& rDirection);
+    const Vector& rDirection) const;
+
+/**
+ * @brief Finds the closest node belonging to the target layer within the knot span identified by the point.
+ * @param rPoint Point used to identify the knot span.
+ * @param rLayer Name of the skin layer to be matched.
+ * @param rSkinSubModelPart Reference to the skin sub model part containing the candidate nodes.
+ * @param rKnotSpanSizes Reference to the knot span sizes guiding the search.
+ * @param rSkinConditionsPerSpan CSR matrix storing skin conditions per knot span.
+ * @return Identifier of the closest node fulfilling the criteria.
+ */
+IndexType FindClosestNodeInLayer(
+    const array_1d<double,3>& rPoint,
+    const std::string& rLayer,
+    const ModelPart& rSkinSubModelPart,
+    const Vector& rKnotSpanSizes,
+    const KnotSpanIdsCSR& rSkinConditionsPerSpan) const;
 
 template <bool TIsInnerLoop>
 std::pair<SnakeGapSbmProcess::IndexType, SnakeGapSbmProcess::IndexType> FindClosestPairInLayerWithNormalDirection(
@@ -1077,7 +1136,7 @@ std::pair<SnakeGapSbmProcess::IndexType, SnakeGapSbmProcess::IndexType> FindClos
     const ModelPart& rSkinSubModelPart,
     const Vector& rKnotSpanSizes,
     const KnotSpanIdsCSR& rSkinConditionsPerSpan,
-    const Vector& rDirection);
+    const Vector& rDirection) const;
     
 /**
 * @brief Attaches the surrogate middle geometry to skin nodes.

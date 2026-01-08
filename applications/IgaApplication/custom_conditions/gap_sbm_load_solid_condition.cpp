@@ -117,13 +117,14 @@ void GapSbmLoadSolidCondition::InitializeSbmMemberVariables()
         
     mDistanceVectorSkin.resize(3);
     noalias(mDistanceVectorSkin) = mpSkinProjectionNode->Coordinates() - r_surrogate_geometry.Center().Coordinates();
-    mDistanceVectorSkin = mDistanceVectorGap; //FIXME:
+    // mDistanceVectorSkin = mDistanceVectorGap; //FIXME:
+    // mTrueNormal = mNormalPhysicalSpace; //FIXME:
 
     this->SetValue(PROJECTION_NODE_COORDINATES, mpSkinProjectionNode->Coordinates());
 
     // dot product n dot n_tilde
     mTrueDotSurrogateNormal = inner_prod(mNormalPhysicalSpace, mTrueNormal);
-    mTrueDotSurrogateNormal = 1; //FIXME:
+    // mTrueDotSurrogateNormal = 1.0; //FIXME:
 
     const Point&  p_true = r_geometry.Center();            // true boundary
     const Point&  p_sur  = r_surrogate_geometry.Center();  // surrogate
@@ -336,6 +337,10 @@ void GapSbmLoadSolidCondition::CalculateRightHandSide(
 
     const double x = mpSkinProjectionNode->X();
     const double y = mpSkinProjectionNode->Y();
+
+    // FIXME:
+    // const double x = r_boundary_geometry.Center().X();
+    // const double y = r_boundary_geometry.Center().Y();
     // // cosinusoidal
     g_N[0] = E/(1-nu)*(sin(x)*sinh(y)) * mTrueNormal[0]; 
     g_N[1] = E/(1-nu)*(sin(x)*sinh(y)) * mTrueNormal[1]; 

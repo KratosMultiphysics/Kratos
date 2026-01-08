@@ -56,6 +56,7 @@ SnakeSbmProcess::SnakeSbmProcess(
 
 void SnakeSbmProcess::CreateTheSnakeCoordinates(bool RemoveIslands)
 {   
+    RemoveIslands = true;
     // Initilize the property of skin_model_part_in and out
     // skin model part may have nodes if imported from an stl file or geometries if imported from a nurbs file
     if (mpSkinModelPartInnerInitial->NumberOfNodes()>0 || mpSkinModelPartInnerInitial->NumberOfGeometries()>0) 
