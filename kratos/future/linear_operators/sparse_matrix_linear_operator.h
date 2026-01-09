@@ -69,15 +69,6 @@ public:
     SparseMatrixLinearOperator() = default;
 
     /**
-     * @brief Constructor from parameters.
-     * @param ThisParameters Parameters containing the linear operator settings
-     */
-    SparseMatrixLinearOperator(Parameters ThisParameters)
-        : LinearOperator<TLinearAlgebra>(ThisParameters)
-    {
-    }
-
-    /**
      * @brief Constructor from a CSR matrix.
      * Constructs a SparseMatrixLinearOperator that wraps the provided CSR matrix.
      * Note that this constructor is only enabled when a CSR matrix type is provided.
@@ -158,11 +149,13 @@ protected:
 
     std::any& GetMatrixImpl() override
     {
+        KRATOS_ERROR_IF_NOT(mrCsrMatrix.has_value()) << "Matrix is not set." << std::endl;
         return mrCsrMatrix;
     }
 
     const std::any& GetMatrixImpl() const override
     {
+        KRATOS_ERROR_IF_NOT(mrCsrMatrix.has_value()) << "Matrix is not set." << std::endl;
         return mrCsrMatrix;
     }
 

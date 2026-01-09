@@ -54,9 +54,6 @@ public:
     /// Vector type definition from template parameter
     using VectorType = typename TLinearAlgebra::VectorType;
 
-    /// Matrix type definition from template parameter
-    using MatrixType = typename TLinearAlgebra::MatrixType;
-
     /// Data type stored in the system vector
     using DataType = typename VectorType::DataType;
 
@@ -113,7 +110,10 @@ public:
      */
     virtual void SpMV(
         const VectorType& rX,
-        VectorType& rY) const = 0;
+        VectorType& rY) const
+    {
+        KRATOS_ERROR << "SpMV() is not implemented in base LinearOperator class." << std::endl;
+    }
 
     /**
      * @brief Performs the transposed matrix-vector product y = A^T * x.
@@ -122,7 +122,10 @@ public:
      */
     virtual void TransposeSpMV(
         const VectorType& rX,
-        VectorType& rY) const = 0;
+        VectorType& rY) const
+    {
+        KRATOS_ERROR << "TransposeSpMV() is not implemented in base LinearOperator class." << std::endl;
+    }
 
     /**
      * @brief Clear the operator data.
