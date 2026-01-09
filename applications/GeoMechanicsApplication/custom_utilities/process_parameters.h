@@ -18,7 +18,7 @@
 namespace Kratos
 {
 
-struct ProcessParameters {
+struct KRATOS_API(GEO_MECHANICS_APPLICATION) ProcessParameters {
     std::string name;
     Parameters  parameters;
 
