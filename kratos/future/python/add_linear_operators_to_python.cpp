@@ -31,7 +31,7 @@ namespace py = pybind11;
 
 void AddLinearOperatorsToPython(py::module& m)
 {
-    using LinearOperatorType = Future::LinearOperator<Future::SerialLinearAlgebra>;
+    using LinearOperatorType = Future::LinearOperator<Future::SerialLinearAlgebraTraits>;
     py::class_<LinearOperatorType, typename LinearOperatorType::Pointer>(m, "LinearOperator")
         .def(py::init<Parameters>())
         .def("SpMV", &LinearOperatorType::SpMV)
@@ -39,15 +39,15 @@ void AddLinearOperatorsToPython(py::module& m)
         .def("Clear", &LinearOperatorType::Clear)
         .def("SetNumRows", &LinearOperatorType::SetNumRows)
         .def("SetNumCols", &LinearOperatorType::SetNumCols)
-        .def("GetMatrix", py::overload_cast<>(&LinearOperatorType::GetMatrix<typename Future::SerialLinearAlgebra::MatrixType>), py::return_value_policy::reference)
+        .def("GetMatrix", py::overload_cast<>(&LinearOperatorType::GetMatrix<typename Future::SerialLinearAlgebraTraits::MatrixType>), py::return_value_policy::reference)
         .def("NumRows", &LinearOperatorType::NumRows)
         .def("NumCols", &LinearOperatorType::NumCols)
         .def("IsMatrixFree", &LinearOperatorType::IsMatrixFree)
         ;
 
-    using SparseMatrixLinearOperatorType = Future::SparseMatrixLinearOperator<Future::SerialLinearAlgebra>;
+    using SparseMatrixLinearOperatorType = Future::SparseMatrixLinearOperator<Future::SerialLinearAlgebraTraits>;
     py::class_<SparseMatrixLinearOperatorType, typename SparseMatrixLinearOperatorType::Pointer, LinearOperatorType>(m, "SparseMatrixLinearOperator")
-        .def(py::init<typename Future::SerialLinearAlgebra::MatrixType&>())
+        .def(py::init<typename Future::SerialLinearAlgebraTraits::MatrixType&>())
         ;
 }
 

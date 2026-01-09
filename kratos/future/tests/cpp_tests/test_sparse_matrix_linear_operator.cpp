@@ -45,7 +45,7 @@ KRATOS_TEST_CASE_IN_SUITE(SparseMatrixLinearOperator, KratosCoreFutureSuite)
     CsrMatrix<double> csr_matrix(matrix_map);
 
     // Set up the linear operator from the CSR matrix
-    const Future::SparseMatrixLinearOperator<Future::SerialLinearAlgebra> linear_operator(csr_matrix);
+    const Future::SparseMatrixLinearOperator<Future::SerialLinearAlgebraTraits> linear_operator(csr_matrix);
 
     // Apply the linear operator to an input vector
     linear_operator.SpMV(input_vector, output_vector);
