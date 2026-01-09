@@ -19,7 +19,7 @@
 #include "custom_utilities/extrapolation_utilities.h"
 #include "custom_utilities/generic_utilities.hpp"
 #include "custom_utilities/geometry_utilities.h"
-#include "custom_utilities/math_utilities.h"
+#include "custom_utilities/math_utilities.hpp"
 #include "geo_aliases.h"
 #include "interface_stress_state.h"
 #include "lobatto_integration_scheme.h"
