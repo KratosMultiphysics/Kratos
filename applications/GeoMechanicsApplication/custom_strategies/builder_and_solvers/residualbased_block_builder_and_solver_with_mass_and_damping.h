@@ -378,7 +378,7 @@ public:
         BuildRHSNoDirichlet(pScheme, rModelPart, rb);
 
         // NOTE: dofs are assumed to be numbered consecutively in the BlockBuilderAndSolver
-        block_for_each(BaseType::mDofSet, [&](Dof<double>& r_dof) {
+        block_for_each(BaseType::mDofSet, [&rb](const Dof<double>& r_dof) {
             if (r_dof.IsFixed()) {
                 const std::size_t i = r_dof.EquationId();
                 rb[i]               = 0.0;
@@ -396,7 +396,7 @@ public:
      */
     Parameters GetDefaultParameters() const override
     {
-        Parameters default_parameters = Parameters(R"(
+        auto default_parameters = Parameters(R"(
         {
             "name"                                 : "block_builder_and_solver_with_mass_and_damping",
             "block_builder"                        : true,
@@ -520,7 +520,7 @@ protected:
 
         // assemble all elements
 
-        const int nelements = static_cast<int>(r_elements.size());
+        const auto nelements = static_cast<int>(r_elements.size());
 #pragma omp parallel firstprivate(nelements, rhs_contribution, equation_ids)
         {
 #pragma omp for schedule(guided, 512) nowait
@@ -540,7 +540,7 @@ protected:
             rhs_contribution.resize(0, false);
 
             // assemble all conditions
-            const int nconditions = static_cast<int>(r_conditions.size());
+            const auto nconditions = static_cast<int>(r_conditions.size());
 #pragma omp for schedule(guided, 512)
             for (int i = 0; i < nconditions; i++) {
                 auto it = r_conditions.begin() + i;
