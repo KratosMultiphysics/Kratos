@@ -168,7 +168,7 @@ public:
     TMatrixType& GetMatrix()
     {
         KRATOS_ERROR_IF(this->IsMatrixFree()) << "Trying to access matrix from a matrix-free LinearOperator." << std::endl;
-        auto& r_matrix = this->GetMatrixImpl(); // Get the underlying matrix as std::any
+        auto r_matrix = this->GetMatrixImpl(); // Get the underlying matrix as std::any
         return std::any_cast<std::reference_wrapper<TMatrixType>>(r_matrix).get(); // Cast and return the reference
     }
 
@@ -181,7 +181,7 @@ public:
     const TMatrixType& GetMatrix() const
     {
         KRATOS_ERROR_IF(this->IsMatrixFree()) << "Trying to access matrix from a matrix-free LinearOperator." << std::endl;
-        const auto& r_matrix = this->GetMatrixImpl(); // Get the underlying matrix as const std::any
+        const auto r_matrix = this->GetMatrixImpl(); // Get the underlying matrix as const std::any
         return std::any_cast<std::reference_wrapper<TMatrixType>>(r_matrix).get(); // Cast and return the reference
     }
 
@@ -229,7 +229,7 @@ protected:
      * An exception is thrown if this method is called from the base class (matrix-free).
      * @return Reference to the matrix as an std::any
      */
-    [[noreturn]] virtual std::any& GetMatrixImpl()
+    virtual std::any GetMatrixImpl()
     {
         KRATOS_ERROR << "GetMatrixImpl() not implemented in base LinearOperator class." << std::endl;
     }
@@ -240,7 +240,7 @@ protected:
      * An exception is thrown if this method is called from the base class (matrix-free).
      * @return Reference to the matrix as a const std::any
      */
-    [[noreturn]] virtual const std::any& GetMatrixImpl() const
+    virtual const std::any GetMatrixImpl() const
     {
         KRATOS_ERROR << "GetMatrixImpl() not implemented in base LinearOperator class." << std::endl;
     }
