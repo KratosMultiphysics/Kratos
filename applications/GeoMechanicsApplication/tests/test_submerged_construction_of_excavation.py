@@ -261,7 +261,7 @@ def get_wall_node_ids():
         8988,
     ]
 
-def get_interface_soil_node_ids():
+def get_soil_side_node_ids_of_left_interfaces():
     return [
         9424,
         9421,
@@ -561,6 +561,7 @@ class KratosGeoMechanicsSubmergedConstructionOfExcavation(KratosUnittest.TestCas
         self.distributed_surface_load = 5.0e3  # N/m/m
         self.load_edge_length = 5.0  # m
 
+        # fmt: off
         self.stages_info = {
             "initial_stage":      {"end_time": -1.0, "base_name": "1_Initial_stage"},
             "null_step":          {"end_time":  0.0, "base_name": "2_Null_step"},
@@ -570,6 +571,7 @@ class KratosGeoMechanicsSubmergedConstructionOfExcavation(KratosUnittest.TestCas
             "second_excavation":  {"end_time":  4.0, "base_name": "6_Second_excavation"},
             "third_excavation":   {"end_time":  5.0, "base_name": "7_Third_excavation"},
         }
+        # fmt: on
 
         self.bottom_node_ids = [
             1,
@@ -791,8 +793,6 @@ class KratosGeoMechanicsSubmergedConstructionOfExcavation(KratosUnittest.TestCas
     def create_interface_plots(self, project_path):
         structural_stages = self.get_structural_stages()
 
-        plot_titles = [stage["base_name"] for stage in structural_stages]
-
         normal_traction_kratos_label = "GEO_EFFECTIVE_TRACTION_VECTOR"
         normal_traction_plot_label = "Normal traction"
         normal_traction_collections = self.get_variable_collections_per_stage(
@@ -804,11 +804,12 @@ class KratosGeoMechanicsSubmergedConstructionOfExcavation(KratosUnittest.TestCas
             extract_normal_traction_and_y_from_line,
         )
 
+        plot_titles = [stage["base_name"] for stage in structural_stages]
         plot_utils.make_sub_plots(
             normal_traction_collections,
             Path(project_path) / "normal_tractions_all_stages.svg",
             titles=plot_titles,
-            xlabel="Normal Traction [kN/m^2]",
+            xlabel=r"Normal Traction [$\mathrm{kN} / \mathrm{m}^2$]",
             ylabel="y [m]",
             )
 
@@ -822,15 +823,12 @@ class KratosGeoMechanicsSubmergedConstructionOfExcavation(KratosUnittest.TestCas
             "left_interface",
             extract_shear_traction_and_y_from_line,
         )
-        # sort on column with y
-        #for collection in shear_traction_collections:
-        #    print(f"{collection[0].label}: {collection[0].data_points}")
-        #shear_traction_collections.sort(key=lambda i: (i[1], i[0]))
+
         plot_utils.make_sub_plots(
             shear_traction_collections,
             Path(project_path) / "shear_tractions_all_stages.svg",
             titles=plot_titles,
-            xlabel="Shear Traction [kN/m^2]",
+            xlabel=r"Shear Traction [$\mathrm{kN} / \mathrm{m}^2$]",
             ylabel="y [m]",
             )
 
@@ -903,11 +901,7 @@ class KratosGeoMechanicsSubmergedConstructionOfExcavation(KratosUnittest.TestCas
         object_name,
         data_point_extractor,
     ):
-        node_ids = []
-        if object_name.__contains__("wall"):
-            node_ids = get_wall_node_ids()
-        else:
-            node_ids = get_interface_soil_node_ids()
+        node_ids = get_wall_node_ids() if object_name == "wall" else get_soil_side_node_ids_of_left_interfaces()
 
         # Since the coordinates do not change between stages, we base them on the first stage
         y_coords = self.get_y_coords(
@@ -919,7 +913,7 @@ class KratosGeoMechanicsSubmergedConstructionOfExcavation(KratosUnittest.TestCas
             output_data = GiDOutputFileReader().read_output_from(
                 os.path.join(project_path, f"{stage['base_name']}.post.res")
             )
-            if object_name.__contains__("wall"):
+            if object_name == "wall":
                 variable_kratos_data = GiDOutputFileReader.nodal_values_at_time(
                     kratos_variable_label,
                     stage["end_time"],
@@ -929,8 +923,9 @@ class KratosGeoMechanicsSubmergedConstructionOfExcavation(KratosUnittest.TestCas
             else:
                 json_data = self.read_json_output(project_path, stage)
                 variable_kratos_data = []
+                index = 0 if variable_plot_label == "Normal traction" else 1
                 for node_label in [f"NODE_{node_id}" for node_id in node_ids]:
-                    variable_kratos_data.append(json_data[node_label][kratos_variable_label][0][1])
+                    variable_kratos_data.append(json_data[node_label][kratos_variable_label][0][index])
 
             variable_kratos_data = [
                 unit_to_k_unit(value) for value in variable_kratos_data
