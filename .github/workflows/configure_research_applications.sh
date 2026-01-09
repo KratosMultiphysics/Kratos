@@ -39,7 +39,7 @@ add_app ${KRATOS_APP_DIR}/PoromechanicsApplication;
 add_app ${KRATOS_APP_DIR}/RANSApplication;
 add_app ${KRATOS_APP_DIR}/ShallowWaterApplication;
 add_app ${KRATOS_APP_DIR}/ShapeOptimizationApplication;
-add_app ${KRATOS_APP_DIR}/SwimmingDEMApplication;
+# add_app ${KRATOS_APP_DIR}/SwimmingDEMApplication;
 add_app ${KRATOS_APP_DIR}/SystemIdentificationApplication;
 
 # Clean
@@ -64,6 +64,7 @@ ${KRATOS_CMAKE_OPTIONS_FLAGS}                                       \
 -DTRILINOS_INCLUDE_DIR="/usr/include/trilinos"                      \
 -DTRILINOS_LIBRARY_DIR="/usr/lib/x86_64-linux-gnu"                  \
 -DTRILINOS_LIBRARY_PREFIX="trilinos_"                               \
+-DUSE_EIGEN_SUITESPARSE:BOOL=ON                                     \
 -DCMAKE_UNITY_BUILD=ON
 
 # Build

@@ -16,6 +16,7 @@
 #include "custom_constitutive/small_strain_udsm_law.h"
 #include "custom_elements/U_Pw_small_strain_element.hpp"
 #include "custom_elements/plane_strain_stress_state.h"
+#include "custom_retention/saturated_law.h"
 #include "custom_utilities/registration_utilities.h"
 #include "includes/variables.h"
 #include "test_setup_utilities/element_setup_utilities.h"
@@ -713,5 +714,4 @@ KRATOS_TEST_CASE_IN_SUITE(UPwSmallStrainElement_InitializeCorrectlySetsStatePara
                                            Defaults::relative_tolerance);
     }
 }
-
 } // namespace Kratos::Testing

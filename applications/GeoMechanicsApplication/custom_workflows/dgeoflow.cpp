@@ -222,13 +222,13 @@ int KratosExecute::MainExecution(ModelPart& rModelPart,
         Time += DeltaTime;
         rModelPart.CloneTimeStep(Time);
         rpSolvingStrategy->Initialize();
+        rpSolvingStrategy->Predict();
         rpSolvingStrategy->InitializeSolutionStep();
 
         for (const auto& process : mProcesses) {
             process->ExecuteInitializeSolutionStep();
         }
 
-        rpSolvingStrategy->Predict();
         rpSolvingStrategy->SolveSolutionStep();
 
         for (const auto& process : mProcesses) {
@@ -384,8 +384,8 @@ int KratosExecute::ExecuteWithPiping(ModelPart&                rModelPart,
         KRATOS_ERROR << "No river boundary found.";
     }
 
-    FindCriticalHead(rModelPart, rGidOutputSettings, rCriticalHeadInfo, pOutput, rKratosLogBuffer,
-                     p_river_boundary, pSolvingStrategy, rCallBackFunctions);
+    FindCriticalHead(rModelPart, rGidOutputSettings, rCriticalHeadInfo, std::move(pOutput),
+                     rKratosLogBuffer, p_river_boundary, pSolvingStrategy, rCallBackFunctions);
 
     WriteCriticalHeadResultToFile();
 
@@ -418,7 +418,7 @@ void KratosExecute::WriteCriticalHeadResultToFile() const
     out_stream.close();
 }
 
-void KratosExecute::AddNodalSolutionStepVariables(ModelPart& rModelPart) const
+void KratosExecute::AddNodalSolutionStepVariables(ModelPart& rModelPart)
 {
     // Pressure to head conversion
     rModelPart.AddNodalSolutionStepVariable(VOLUME_ACCELERATION);
@@ -529,7 +529,7 @@ void KratosExecute::HandleCleanUp(const CallBackFunctions& rCallBackFunctions,
                                   const std::stringstream& rKratosLogBuffer)
 {
     rCallBackFunctions.LogCallback(rKratosLogBuffer.str().c_str());
-    Logger::RemoveOutput(pOutput);
+    Logger::RemoveOutput(std::move(pOutput));
     ResetModelParts();
 }
 

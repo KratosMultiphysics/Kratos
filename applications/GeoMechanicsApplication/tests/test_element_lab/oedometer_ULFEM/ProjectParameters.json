@@ -64,7 +64,6 @@
             "scaling":       true
         },
         "problem_domain_sub_model_part_list": ["Soil"],
-        "processes_sub_model_part_list":      ["Lateral_fixity","Bottom_fixed","top_load"],
         "body_domain_sub_model_part_list":    ["Soil"]
     },
     "output_processes": {

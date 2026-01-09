@@ -35,8 +35,7 @@ const std::string parameter_json_settings = R"(
                                                     {
                                                         "materials_filename": "MaterialParameters1.json"
                                                     },
-                                                    "problem_domain_sub_model_part_list": [],
-                                                    "processes_sub_model_part_list": []
+                                                    "problem_domain_sub_model_part_list": []
                                                 }
                                             }
                                             )"; // these have material_import settings

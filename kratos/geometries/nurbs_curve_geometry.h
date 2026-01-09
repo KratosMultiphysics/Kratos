@@ -560,20 +560,10 @@ public:
                 default_method, rIntegrationPoints[i],
                 N, shape_function_derivatives);
             
-            array_1d<double, 3> local_tangent = ZeroVector(3);
-            local_tangent[0] = global_space_derivatives[1][0];
-            local_tangent[1] = global_space_derivatives[1][1];
-            if (this->WorkingSpaceDimension() > 2) {
-                local_tangent[2] = global_space_derivatives[1][2];
-            }
-
             rResultGeometries(i) = CreateQuadraturePointsUtility<NodeType>::CreateQuadraturePointCurve(
-                this->WorkingSpaceDimension(),
-                2,
-                data_container,
-                nonzero_control_points,
-                local_tangent,
-                this);
+                this->WorkingSpaceDimension(), 1, 
+                data_container, nonzero_control_points,
+                global_space_derivatives[1][0], global_space_derivatives[1][1], this);
         }
     }
 

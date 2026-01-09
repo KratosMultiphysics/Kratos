@@ -13,7 +13,7 @@
 //
 
 // Project includes
-#include "custom_conditions/line_normal_fluid_flux_2D_diff_order_condition.hpp"
+#include "custom_conditions/line_normal_fluid_flux_2D_diff_order_condition.h"
 #include "custom_utilities/variables_utilities.hpp"
 
 #include <numeric>
@@ -21,23 +21,20 @@
 namespace Kratos
 {
 
-// Default Constructor
 LineNormalFluidFlux2DDiffOrderCondition::LineNormalFluidFlux2DDiffOrderCondition()
     : LineLoad2DDiffOrderCondition()
 {
 }
 
-// Constructor 1
 LineNormalFluidFlux2DDiffOrderCondition::LineNormalFluidFlux2DDiffOrderCondition(IndexType NewId,
                                                                                  GeometryType::Pointer pGeometry)
-    : LineLoad2DDiffOrderCondition(NewId, pGeometry)
+    : LineLoad2DDiffOrderCondition(NewId, std::move(pGeometry))
 {
 }
 
-// Constructor 2
 LineNormalFluidFlux2DDiffOrderCondition::LineNormalFluidFlux2DDiffOrderCondition(
     IndexType NewId, GeometryType::Pointer pGeometry, PropertiesType::Pointer pProperties)
-    : LineLoad2DDiffOrderCondition(NewId, pGeometry, pProperties)
+    : LineLoad2DDiffOrderCondition(NewId, std::move(pGeometry), std::move(pProperties))
 {
 }
 
@@ -79,6 +76,14 @@ void LineNormalFluidFlux2DDiffOrderCondition::CalculateAndAddConditionForce(Vect
             rVariables.Np[i] * rVariables.ConditionVector[0] * rVariables.IntegrationCoefficient;
     }
 }
+
+void LineNormalFluidFlux2DDiffOrderCondition::save(Serializer& rSerializer) const
+{
+    KRATOS_SERIALIZE_SAVE_BASE_CLASS(rSerializer, LineLoad2DDiffOrderCondition)
+}
+
+void LineNormalFluidFlux2DDiffOrderCondition::load(Serializer& rSerializer){
+    KRATOS_SERIALIZE_LOAD_BASE_CLASS(rSerializer, LineLoad2DDiffOrderCondition)}
 
 std::string LineNormalFluidFlux2DDiffOrderCondition::Info() const
 {
