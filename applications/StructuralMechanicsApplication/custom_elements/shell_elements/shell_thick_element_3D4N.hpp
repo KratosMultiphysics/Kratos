@@ -389,6 +389,15 @@ private:
     */
     ShellCrossSection::SectionBehaviorType GetSectionBehavior() const override;
 
+
+
+    void CalculateMaterialResponse(
+        ShellCrossSection::SectionParameters& rSectionParameters,
+        const SizeType& rPointNumber)
+    {
+        this->mSections[rPointNumber]->CalculateSectionResponse(rSectionParameters, ConstitutiveLaw::StressMeasure_PK2);
+    }
+
     ///@}
 
     ///@name Static Member Variables

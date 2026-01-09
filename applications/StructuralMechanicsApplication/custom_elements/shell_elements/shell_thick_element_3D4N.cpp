@@ -518,7 +518,8 @@ void ShellThickElement3D4N<TKinematics>::CalculateOnIntegrationPoints(const Vari
             // calculate force resultants
             parameters.SetShapeFunctionsValues(iN);
             parameters.SetShapeFunctionsDerivatives(jacOp.XYDerivatives());
-            section->CalculateSectionResponse(parameters, ConstitutiveLaw::StressMeasure_PK2);
+            // section->CalculateSectionResponse(parameters, ConstitutiveLaw::StressMeasure_PK2);
+            CalculateMaterialResponse(parameters, i);
 
             // Compute stresses
             CalculateStressesFromForceResultants(generalizedStresses,
@@ -806,36 +807,37 @@ void ShellThickElement3D4N<TKinematics>::CalculateLaminaStrains(ShellCrossSectio
 template <ShellKinematics TKinematics>
 void ShellThickElement3D4N<TKinematics>::CalculateLaminaStresses(ShellCrossSection::Pointer& section, ShellCrossSection::SectionParameters parameters, const std::vector<VectorType>& rlaminateStrains, std::vector<VectorType>& rlaminateStresses)
 {
-    // Setup flag to compute ply constitutive matrices
-    // (units [Pa] and rotated to element orientation)
-    section->SetupGetPlyConstitutiveMatrices();
-    Flags& options = parameters.GetOptions();
-    options.Set(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR,true);
-    section->CalculateSectionResponse(parameters,
-                                      ConstitutiveLaw::StressMeasure_PK2);
+    // // Setup flag to compute ply constitutive matrices
+    // // (units [Pa] and rotated to element orientation)
+    // section->SetupGetPlyConstitutiveMatrices();
+    // Flags& options = parameters.GetOptions();
+    // options.Set(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR,true);
+    // // section->CalculateSectionResponse(parameters,
+    // //                                   ConstitutiveLaw::StressMeasure_PK2);
+    // CalculateMaterialResponse(parameters, i);
 
-    // Resize output vector. 2 Surfaces for each ply
-    rlaminateStresses.resize(2 * section->NumberOfPlies());
-    for (unsigned int i = 0; i < 2 * section->NumberOfPlies(); i++) {
-        rlaminateStresses[i].resize(8, false);
-        rlaminateStresses[i].clear();
-    }
+    // // Resize output vector. 2 Surfaces for each ply
+    // rlaminateStresses.resize(2 * section->NumberOfPlies());
+    // for (unsigned int i = 0; i < 2 * section->NumberOfPlies(); i++) {
+    //     rlaminateStresses[i].resize(8, false);
+    //     rlaminateStresses[i].clear();
+    // }
 
-    // Loop over all plies - start from top ply, top surface
-    for (unsigned int plyNumber = 0;
-            plyNumber < section->NumberOfPlies(); ++plyNumber) {
-        // determine stresses at currrent ply, top surface
-        // (element coordinate system)
-        rlaminateStresses[2 * plyNumber] = prod(
-                                               section->GetPlyConstitutiveMatrix(plyNumber),
-                                               rlaminateStrains[2 * plyNumber]);
+    // // Loop over all plies - start from top ply, top surface
+    // for (unsigned int plyNumber = 0;
+    //         plyNumber < section->NumberOfPlies(); ++plyNumber) {
+    //     // determine stresses at currrent ply, top surface
+    //     // (element coordinate system)
+    //     rlaminateStresses[2 * plyNumber] = prod(
+    //                                            section->GetPlyConstitutiveMatrix(plyNumber),
+    //                                            rlaminateStrains[2 * plyNumber]);
 
-        // determine stresses at currrent ply, bottom surface
-        // (element coordinate system)
-        rlaminateStresses[2 * plyNumber + 1] = prod(
-                section->GetPlyConstitutiveMatrix(plyNumber),
-                rlaminateStrains[2 * plyNumber + 1]);
-    }
+    //     // determine stresses at currrent ply, bottom surface
+    //     // (element coordinate system)
+    //     rlaminateStresses[2 * plyNumber + 1] = prod(
+    //             section->GetPlyConstitutiveMatrix(plyNumber),
+    //             rlaminateStrains[2 * plyNumber + 1]);
+    // }
 }
 
 template <ShellKinematics TKinematics>
@@ -1278,7 +1280,8 @@ void ShellThickElement3D4N<TKinematics>::CalculateAll(MatrixType& rLeftHandSideM
         //add in shear stabilization
         double shearStabilisation = CalculateStenbergShearStabilization(referenceCoordinateSystem, section->GetThickness(GetProperties()));
         parameters.SetStenbergShearStabilization(shearStabilisation);
-        section->CalculateSectionResponse(parameters, ConstitutiveLaw::StressMeasure_PK2);
+        // section->CalculateSectionResponse(parameters, ConstitutiveLaw::StressMeasure_PK2);
+        CalculateMaterialResponse(parameters, i);
         Ddrilling = section->GetDrillingStiffness();
 
         // multiply the section tangent matrices and stress resultants by 'dA'
@@ -1372,264 +1375,265 @@ bool ShellThickElement3D4N<TKinematics>::TryCalculateOnIntegrationPoints_General
 {
     // Check the required output
 
-    int ijob = 0;
-    bool bGlobal = false;
-    CheckGeneralizedStressOrStrainOutput(rVariable, ijob, bGlobal);
+    // int ijob = 0;
+    // bool bGlobal = false;
+    // CheckGeneralizedStressOrStrainOutput(rVariable, ijob, bGlobal);
 
-    // quick return
+    // // quick return
 
-    if (ijob == 0) {
-        return false;
-    }
+    // if (ijob == 0) {
+    //     return false;
+    // }
 
-    // resize output
+    // // resize output
 
-    SizeType size = 4;
-    if (rValues.size() != size) {
-        rValues.resize(size);
-    }
+    // SizeType size = 4;
+    // if (rValues.size() != size) {
+    //     rValues.resize(size);
+    // }
 
-    // Get some references.
+    // // Get some references.
 
-    const PropertiesType& props = GetProperties();
-    const GeometryType& geom = GetGeometry();
-    const Matrix& shapeFunctions = geom.ShapeFunctionsValues();
-    Vector iN(shapeFunctions.size2());
+    // const PropertiesType& props = GetProperties();
+    // const GeometryType& geom = GetGeometry();
+    // const Matrix& shapeFunctions = geom.ShapeFunctionsValues();
+    // Vector iN(shapeFunctions.size2());
 
-    // Compute the local coordinate system.
+    // // Compute the local coordinate system.
 
-    ShellQ4_LocalCoordinateSystem localCoordinateSystem(
-        this->mpCoordinateTransformation->CreateLocalCoordinateSystem());
+    // ShellQ4_LocalCoordinateSystem localCoordinateSystem(
+    //     this->mpCoordinateTransformation->CreateLocalCoordinateSystem());
 
-    ShellQ4_LocalCoordinateSystem referenceCoordinateSystem(
-        this->mpCoordinateTransformation->CreateReferenceCoordinateSystem());
+    // ShellQ4_LocalCoordinateSystem referenceCoordinateSystem(
+    //     this->mpCoordinateTransformation->CreateReferenceCoordinateSystem());
 
-    // Prepare all the parameters needed for the MITC formulation.
-    // This is to be done here outside the Gauss Loop.
+    // // Prepare all the parameters needed for the MITC formulation.
+    // // This is to be done here outside the Gauss Loop.
 
-    MITC4Params shearParameters(referenceCoordinateSystem);
+    // MITC4Params shearParameters(referenceCoordinateSystem);
 
-    // Instantiate the Jacobian Operator.
-    // This will store:
-    // the jacobian matrix, its inverse, its determinant
-    // and the derivatives of the shape functions in the local
-    // coordinate system
+    // // Instantiate the Jacobian Operator.
+    // // This will store:
+    // // the jacobian matrix, its inverse, its determinant
+    // // and the derivatives of the shape functions in the local
+    // // coordinate system
 
-    ShellUtilities::JacobianOperator jacOp;
+    // ShellUtilities::JacobianOperator jacOp;
 
-    // Instantiate all strain-displacement matrices.
+    // // Instantiate all strain-displacement matrices.
 
-    Matrix B(8, 24, 0.0);
-    Vector Bdrilling(24, 0.0);
+    // Matrix B(8, 24, 0.0);
+    // Vector Bdrilling(24, 0.0);
 
-    // Instantiate all section tangent matrices.
+    // // Instantiate all section tangent matrices.
 
-    Matrix D(8, 8, 0.0);
+    // Matrix D(8, 8, 0.0);
 
-    // Instantiate strain and stress-resultant vectors
+    // // Instantiate strain and stress-resultant vectors
 
-    Vector generalizedStrains(8);
-    Vector generalizedStresses(8);
-    std::vector<VectorType> rlaminateStrains;
-    std::vector<VectorType> rlaminateStresses;
+    // Vector generalizedStrains(8);
+    // Vector generalizedStresses(8);
+    // std::vector<VectorType> rlaminateStrains;
+    // std::vector<VectorType> rlaminateStresses;
 
-    // Get the current displacements in global coordinate system
+    // // Get the current displacements in global coordinate system
 
-    Vector globalDisplacements(24);
-    this->GetValuesVector(globalDisplacements, 0);
+    // Vector globalDisplacements(24);
+    // this->GetValuesVector(globalDisplacements, 0);
 
-    // Get the current displacements in local coordinate system
+    // // Get the current displacements in local coordinate system
 
-    Vector localDisplacements(
-        this->mpCoordinateTransformation->CalculateLocalDisplacements(localCoordinateSystem, globalDisplacements));
+    // Vector localDisplacements(
+    //     this->mpCoordinateTransformation->CalculateLocalDisplacements(localCoordinateSystem, globalDisplacements));
 
-    // Instantiate the EAS Operator.
-    // This will apply the Enhanced Assumed Strain Method for the calculation
-    // of the membrane contribution.
+    // // Instantiate the EAS Operator.
+    // // This will apply the Enhanced Assumed Strain Method for the calculation
+    // // of the membrane contribution.
 
-    EASOperator EASOp(referenceCoordinateSystem, mEASStorage);
+    // EASOperator EASOp(referenceCoordinateSystem, mEASStorage);
 
-    // Just to store the rotation matrix for visualization purposes
-    Matrix R(8, 8);
-    Matrix aux33(3, 3);
+    // // Just to store the rotation matrix for visualization purposes
+    // Matrix R(8, 8);
+    // Matrix aux33(3, 3);
 
-    // Initialize parameters for the cross section calculation
+    // // Initialize parameters for the cross section calculation
 
-    ShellCrossSection::SectionParameters parameters(geom, props, rCurrentProcessInfo);
-    parameters.SetGeneralizedStrainVector(generalizedStrains);
-    parameters.SetGeneralizedStressVector(generalizedStresses);
-    parameters.SetConstitutiveMatrix(D);
-    Flags& options = parameters.GetOptions();
-    options.Set(ConstitutiveLaw::COMPUTE_STRESS, true);
-    options.Set(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR, false);
+    // ShellCrossSection::SectionParameters parameters(geom, props, rCurrentProcessInfo);
+    // parameters.SetGeneralizedStrainVector(generalizedStrains);
+    // parameters.SetGeneralizedStressVector(generalizedStresses);
+    // parameters.SetConstitutiveMatrix(D);
+    // Flags& options = parameters.GetOptions();
+    // options.Set(ConstitutiveLaw::COMPUTE_STRESS, true);
+    // options.Set(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR, false);
 
-    // Gauss Loop
+    // // Gauss Loop
 
-    for (unsigned int i = 0; i < size; i++) {
+    // for (unsigned int i = 0; i < size; i++) {
 
-        // get a reference of the current integration point and shape functions
+    //     // get a reference of the current integration point and shape functions
 
-        const GeometryType::IntegrationPointType& ip = geom.IntegrationPoints()[i];
+    //     const GeometryType::IntegrationPointType& ip = geom.IntegrationPoints()[i];
 
-        noalias(iN) = row(shapeFunctions, i);
+    //     noalias(iN) = row(shapeFunctions, i);
 
-        // Compute Jacobian, Inverse of Jacobian, Determinant of Jacobian
-        // and Shape functions derivatives in the local coordinate system
+    //     // Compute Jacobian, Inverse of Jacobian, Determinant of Jacobian
+    //     // and Shape functions derivatives in the local coordinate system
 
-        jacOp.Calculate(referenceCoordinateSystem, geom.ShapeFunctionLocalGradient(i));
+    //     jacOp.Calculate(referenceCoordinateSystem, geom.ShapeFunctionLocalGradient(i));
 
-        // Compute all strain-displacement matrices
+    //     // Compute all strain-displacement matrices
 
-        CalculateBMatrix(ip.X(), ip.Y(), jacOp, shearParameters, iN, B, Bdrilling);
+    //     CalculateBMatrix(ip.X(), ip.Y(), jacOp, shearParameters, iN, B, Bdrilling);
 
-        // Calculate strain vectors in local coordinate system
+    //     // Calculate strain vectors in local coordinate system
 
-        noalias(generalizedStrains) = prod(B, localDisplacements);
+    //     noalias(generalizedStrains) = prod(B, localDisplacements);
 
-        // Apply the EAS method to modify the membrane part of the strains computed above.
+    //     // Apply the EAS method to modify the membrane part of the strains computed above.
 
-        EASOp.GaussPointComputation_Step1(ip.X(), ip.Y(), jacOp, generalizedStrains, mEASStorage);
+    //     EASOp.GaussPointComputation_Step1(ip.X(), ip.Y(), jacOp, generalizedStrains, mEASStorage);
 
-        // Calculate the response of the Cross Section
-        ShellCrossSection::Pointer& section = this->mSections[i];
+    //     // Calculate the response of the Cross Section
+    //     ShellCrossSection::Pointer& section = this->mSections[i];
 
-        //Add in shear stabilization
-        double shearStabilisation = CalculateStenbergShearStabilization(referenceCoordinateSystem, section->GetThickness(GetProperties()));
-        parameters.SetStenbergShearStabilization(shearStabilisation);
+    //     //Add in shear stabilization
+    //     double shearStabilisation = CalculateStenbergShearStabilization(referenceCoordinateSystem, section->GetThickness(GetProperties()));
+    //     parameters.SetStenbergShearStabilization(shearStabilisation);
 
-        if (ijob > 2) {
-            if (ijob > 7) {
-                //Calculate lamina stresses
-                CalculateLaminaStrains(section,generalizedStrains,rlaminateStrains);
-                CalculateLaminaStresses(section,parameters,rlaminateStrains,rlaminateStresses);
-            } else {
-                // calculate force resultants
-                parameters.SetShapeFunctionsValues(iN);
-                parameters.SetShapeFunctionsDerivatives(jacOp.XYDerivatives());
-                section->CalculateSectionResponse(parameters, ConstitutiveLaw::StressMeasure_PK2);
+    //     if (ijob > 2) {
+    //         if (ijob > 7) {
+    //             //Calculate lamina stresses
+    //             CalculateLaminaStrains(section,generalizedStrains,rlaminateStrains);
+    //             CalculateLaminaStresses(section,parameters,rlaminateStrains,rlaminateStresses);
+    //         } else {
+    //             // calculate force resultants
+    //             parameters.SetShapeFunctionsValues(iN);
+    //             parameters.SetShapeFunctionsDerivatives(jacOp.XYDerivatives());
+    //             // section->CalculateSectionResponse(parameters, ConstitutiveLaw::StressMeasure_PK2);
+    //             CalculateMaterialResponse(parameters, i);
 
-                if (ijob > 4) {
-                    // Compute stresses
-                    CalculateStressesFromForceResultants(generalizedStresses,
-                                                         section->GetThickness(GetProperties()));
-                }
-            }
-        }
+    //             if (ijob > 4) {
+    //                 // Compute stresses
+    //                 CalculateStressesFromForceResultants(generalizedStresses,
+    //                                                      section->GetThickness(GetProperties()));
+    //             }
+    //         }
+    //     }
 
-        // save the results
+    //     // save the results
 
-        this->DecimalCorrection(generalizedStrains);
-        this->DecimalCorrection(generalizedStresses);
+    //     this->DecimalCorrection(generalizedStrains);
+    //     this->DecimalCorrection(generalizedStresses);
 
-        // now the results are in the element coordinate system
-        // if necessary, rotate the results in the section (local) coordinate system
-        if (section->GetOrientationAngle() != 0.0 && !bGlobal) {
-            if (ijob > 7) {
-                section->GetRotationMatrixForGeneralizedStresses(-(section->GetOrientationAngle()), R);
-                for (unsigned int i = 0; i < rlaminateStresses.size(); i++) {
-                    rlaminateStresses[i] = prod(R, rlaminateStresses[i]);
-                }
+    //     // now the results are in the element coordinate system
+    //     // if necessary, rotate the results in the section (local) coordinate system
+    //     if (section->GetOrientationAngle() != 0.0 && !bGlobal) {
+    //         if (ijob > 7) {
+    //             section->GetRotationMatrixForGeneralizedStresses(-(section->GetOrientationAngle()), R);
+    //             for (unsigned int i = 0; i < rlaminateStresses.size(); i++) {
+    //                 rlaminateStresses[i] = prod(R, rlaminateStresses[i]);
+    //             }
 
-                section->GetRotationMatrixForGeneralizedStrains(-(section->GetOrientationAngle()), R);
-                for (unsigned int i = 0; i < rlaminateStrains.size(); i++) {
-                    rlaminateStrains[i] = prod(R, rlaminateStrains[i]);
-                }
-            } else if (ijob > 2) {
-                section->GetRotationMatrixForGeneralizedStresses(-(section->GetOrientationAngle()), R);
-                generalizedStresses = prod(R, generalizedStresses);
-            } else {
-                section->GetRotationMatrixForGeneralizedStrains(-(section->GetOrientationAngle()), R);
-                generalizedStrains = prod(R, generalizedStrains);
-            }
-        }
+    //             section->GetRotationMatrixForGeneralizedStrains(-(section->GetOrientationAngle()), R);
+    //             for (unsigned int i = 0; i < rlaminateStrains.size(); i++) {
+    //                 rlaminateStrains[i] = prod(R, rlaminateStrains[i]);
+    //             }
+    //         } else if (ijob > 2) {
+    //             section->GetRotationMatrixForGeneralizedStresses(-(section->GetOrientationAngle()), R);
+    //             generalizedStresses = prod(R, generalizedStresses);
+    //         } else {
+    //             section->GetRotationMatrixForGeneralizedStrains(-(section->GetOrientationAngle()), R);
+    //             generalizedStrains = prod(R, generalizedStrains);
+    //         }
+    //     }
 
-        Matrix& iValue = rValues[i];
-        if (iValue.size1() != 3 || iValue.size2() != 3) {
-            iValue.resize(3, 3, false);
-        }
+    //     Matrix& iValue = rValues[i];
+    //     if (iValue.size1() != 3 || iValue.size2() != 3) {
+    //         iValue.resize(3, 3, false);
+    //     }
 
-        if (ijob == 1) { // strains
-            iValue(0, 0) = generalizedStrains(0);
-            iValue(1, 1) = generalizedStrains(1);
-            iValue(2, 2) = 0.0;
-            iValue(0, 1) = iValue(1, 0) = 0.5 * generalizedStrains(2);
-            iValue(0, 2) = iValue(2, 0) = 0.5 * generalizedStrains(7);
-            iValue(1, 2) = iValue(2, 1) = 0.5 * generalizedStrains(6);
-        } else if (ijob == 2) { // curvatures
-            iValue(0, 0) = generalizedStrains(3);
-            iValue(1, 1) = generalizedStrains(4);
-            iValue(2, 2) = 0.0;
-            iValue(0, 1) = iValue(1, 0) = 0.5 * generalizedStrains(5);
-            iValue(0, 2) = iValue(2, 0) = 0.0;
-            iValue(1, 2) = iValue(2, 1) = 0.0;
-        } else if (ijob == 3) { // forces
-            iValue(0, 0) = generalizedStresses(0);
-            iValue(1, 1) = generalizedStresses(1);
-            iValue(2, 2) = 0.0;
-            iValue(0, 1) = iValue(1, 0) = generalizedStresses(2);
-            iValue(0, 2) = iValue(2, 0) = generalizedStresses(7);
-            iValue(1, 2) = iValue(2, 1) = generalizedStresses(6);
-        } else if (ijob == 4) { // moments
-            iValue(0, 0) = generalizedStresses(3);
-            iValue(1, 1) = generalizedStresses(4);
-            iValue(2, 2) = 0.0;
-            iValue(0, 1) = iValue(1, 0) = generalizedStresses(5);
-            iValue(0, 2) = iValue(2, 0) = 0.0;
-            iValue(1, 2) = iValue(2, 1) = 0.0;
-        } else if (ijob == 5) { // SHELL_STRESS_TOP_SURFACE
-            iValue(0, 0) = generalizedStresses(0) +
-                           generalizedStresses(3);
-            iValue(1, 1) = generalizedStresses(1) +
-                           generalizedStresses(4);
-            iValue(2, 2) = 0.0;
-            iValue(0, 1) = iValue(1, 0) = generalizedStresses[2] +
-                                          generalizedStresses[5];
-            iValue(0, 2) = iValue(2, 0) = 0.0;
-            iValue(1, 2) = iValue(2, 1) = 0.0;
-        } else if (ijob == 6) { // SHELL_STRESS_MIDDLE_SURFACE
-            iValue(0, 0) = generalizedStresses(0);
-            iValue(1, 1) = generalizedStresses(1);
-            iValue(2, 2) = 0.0;
-            iValue(0, 1) = iValue(1, 0) = generalizedStresses[2];
-            iValue(0, 2) = iValue(2, 0) = generalizedStresses[6];
-            iValue(1, 2) = iValue(2, 1) = generalizedStresses[7];
-        } else if (ijob == 7) { // SHELL_STRESS_BOTTOM_SURFACE
-            iValue(0, 0) = generalizedStresses(0) -
-                           generalizedStresses(3);
-            iValue(1, 1) = generalizedStresses(1) -
-                           generalizedStresses(4);
-            iValue(2, 2) = 0.0;
-            iValue(0, 1) = iValue(1, 0) = generalizedStresses[2] -
-                                          generalizedStresses[5];
-            iValue(0, 2) = iValue(2, 0) = 0.0;
-            iValue(1, 2) = iValue(2, 1) = 0.0;
-        } else if (ijob == 8) { // SHELL_ORTHOTROPIC_STRESS_BOTTOM_SURFACE
-            iValue(0, 0) =
-                rlaminateStresses[rlaminateStresses.size() - 1][0];
-            iValue(1, 1) =
-                rlaminateStresses[rlaminateStresses.size() - 1][1];
-            iValue(2, 2) = 0.0;
-            iValue(0, 1) = iValue(1, 0) =
-                               rlaminateStresses[rlaminateStresses.size() - 1][2];
-            iValue(0, 2) = iValue(2, 0) = rlaminateStresses[rlaminateStresses.size() - 1][6];
-            iValue(1, 2) = iValue(2, 1) = rlaminateStresses[rlaminateStresses.size() - 1][7];
-        } else if (ijob == 9) { // SHELL_ORTHOTROPIC_STRESS_TOP_SURFACE
-            iValue(0, 0) = rlaminateStresses[0][0];
-            iValue(1, 1) = rlaminateStresses[0][1];
-            iValue(2, 2) = 0.0;
-            iValue(0, 1) = iValue(1, 0) = rlaminateStresses[0][2];
-            iValue(0, 2) = iValue(2, 0) = rlaminateStresses[0][6];
-            iValue(1, 2) = iValue(2, 1) = rlaminateStresses[0][7];
-        }
+    //     if (ijob == 1) { // strains
+    //         iValue(0, 0) = generalizedStrains(0);
+    //         iValue(1, 1) = generalizedStrains(1);
+    //         iValue(2, 2) = 0.0;
+    //         iValue(0, 1) = iValue(1, 0) = 0.5 * generalizedStrains(2);
+    //         iValue(0, 2) = iValue(2, 0) = 0.5 * generalizedStrains(7);
+    //         iValue(1, 2) = iValue(2, 1) = 0.5 * generalizedStrains(6);
+    //     } else if (ijob == 2) { // curvatures
+    //         iValue(0, 0) = generalizedStrains(3);
+    //         iValue(1, 1) = generalizedStrains(4);
+    //         iValue(2, 2) = 0.0;
+    //         iValue(0, 1) = iValue(1, 0) = 0.5 * generalizedStrains(5);
+    //         iValue(0, 2) = iValue(2, 0) = 0.0;
+    //         iValue(1, 2) = iValue(2, 1) = 0.0;
+    //     } else if (ijob == 3) { // forces
+    //         iValue(0, 0) = generalizedStresses(0);
+    //         iValue(1, 1) = generalizedStresses(1);
+    //         iValue(2, 2) = 0.0;
+    //         iValue(0, 1) = iValue(1, 0) = generalizedStresses(2);
+    //         iValue(0, 2) = iValue(2, 0) = generalizedStresses(7);
+    //         iValue(1, 2) = iValue(2, 1) = generalizedStresses(6);
+    //     } else if (ijob == 4) { // moments
+    //         iValue(0, 0) = generalizedStresses(3);
+    //         iValue(1, 1) = generalizedStresses(4);
+    //         iValue(2, 2) = 0.0;
+    //         iValue(0, 1) = iValue(1, 0) = generalizedStresses(5);
+    //         iValue(0, 2) = iValue(2, 0) = 0.0;
+    //         iValue(1, 2) = iValue(2, 1) = 0.0;
+    //     } else if (ijob == 5) { // SHELL_STRESS_TOP_SURFACE
+    //         iValue(0, 0) = generalizedStresses(0) +
+    //                        generalizedStresses(3);
+    //         iValue(1, 1) = generalizedStresses(1) +
+    //                        generalizedStresses(4);
+    //         iValue(2, 2) = 0.0;
+    //         iValue(0, 1) = iValue(1, 0) = generalizedStresses[2] +
+    //                                       generalizedStresses[5];
+    //         iValue(0, 2) = iValue(2, 0) = 0.0;
+    //         iValue(1, 2) = iValue(2, 1) = 0.0;
+    //     } else if (ijob == 6) { // SHELL_STRESS_MIDDLE_SURFACE
+    //         iValue(0, 0) = generalizedStresses(0);
+    //         iValue(1, 1) = generalizedStresses(1);
+    //         iValue(2, 2) = 0.0;
+    //         iValue(0, 1) = iValue(1, 0) = generalizedStresses[2];
+    //         iValue(0, 2) = iValue(2, 0) = generalizedStresses[6];
+    //         iValue(1, 2) = iValue(2, 1) = generalizedStresses[7];
+    //     } else if (ijob == 7) { // SHELL_STRESS_BOTTOM_SURFACE
+    //         iValue(0, 0) = generalizedStresses(0) -
+    //                        generalizedStresses(3);
+    //         iValue(1, 1) = generalizedStresses(1) -
+    //                        generalizedStresses(4);
+    //         iValue(2, 2) = 0.0;
+    //         iValue(0, 1) = iValue(1, 0) = generalizedStresses[2] -
+    //                                       generalizedStresses[5];
+    //         iValue(0, 2) = iValue(2, 0) = 0.0;
+    //         iValue(1, 2) = iValue(2, 1) = 0.0;
+    //     } else if (ijob == 8) { // SHELL_ORTHOTROPIC_STRESS_BOTTOM_SURFACE
+    //         iValue(0, 0) =
+    //             rlaminateStresses[rlaminateStresses.size() - 1][0];
+    //         iValue(1, 1) =
+    //             rlaminateStresses[rlaminateStresses.size() - 1][1];
+    //         iValue(2, 2) = 0.0;
+    //         iValue(0, 1) = iValue(1, 0) =
+    //                            rlaminateStresses[rlaminateStresses.size() - 1][2];
+    //         iValue(0, 2) = iValue(2, 0) = rlaminateStresses[rlaminateStresses.size() - 1][6];
+    //         iValue(1, 2) = iValue(2, 1) = rlaminateStresses[rlaminateStresses.size() - 1][7];
+    //     } else if (ijob == 9) { // SHELL_ORTHOTROPIC_STRESS_TOP_SURFACE
+    //         iValue(0, 0) = rlaminateStresses[0][0];
+    //         iValue(1, 1) = rlaminateStresses[0][1];
+    //         iValue(2, 2) = 0.0;
+    //         iValue(0, 1) = iValue(1, 0) = rlaminateStresses[0][2];
+    //         iValue(0, 2) = iValue(2, 0) = rlaminateStresses[0][6];
+    //         iValue(1, 2) = iValue(2, 1) = rlaminateStresses[0][7];
+    //     }
 
-        // if requested, rotate the results in the global coordinate system
-        if (bGlobal) {
-            const Matrix& RG = localCoordinateSystem.Orientation();
-            noalias(aux33) = prod(trans(RG), iValue);
-            noalias(iValue) = prod(aux33, RG);
-        }
+    //     // if requested, rotate the results in the global coordinate system
+    //     if (bGlobal) {
+    //         const Matrix& RG = localCoordinateSystem.Orientation();
+    //         noalias(aux33) = prod(trans(RG), iValue);
+    //         noalias(iValue) = prod(aux33, RG);
+    //     }
 
-    } // Gauss Loop
+    // } // Gauss Loop
 
     return true;
 }
