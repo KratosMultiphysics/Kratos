@@ -1034,16 +1034,9 @@ class FluidTopologyOptimizationAnalysis(FluidDynamicsAnalysis):
         """This method specifies the stopping criteria for breaking the solution loop
         It can be overridden by derived classes
         """
-        if self.IsPhysicsStage(): # NS
-            state =  self.time < self.end_time
-        elif self.IsAdjointStage(): #ADJ
-            state =  self.time < self.end_time
-        else:
-            self.MpiPrint("--|" + self.topology_optimization_stage_str + "| Time check outside NS or ADJ_NS solution")
-            state = False
-        if (state == True):
-            if (self.time_step_counter > self.n_time_steps):
-                raise RuntimeError("Advancing in Solution Loop with: (self.time_step_counter > self.n_time_steps")
+        state =  (abs(self.end_time-self.time) > 1e-9*self.end_time)
+        if (self.time_step_counter > self.n_time_steps):
+            raise RuntimeError("Advancing in Solution Loop with: (self.time_step_counter > self.n_time_steps")
         return state
 
     def _AdvanceTime(self):
