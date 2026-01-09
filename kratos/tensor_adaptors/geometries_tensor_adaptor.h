@@ -18,8 +18,8 @@
 // External includes
 
 // Project includes
-#include "tensor_adaptor.h"
 #include "geometries/geometry_data.h"
+#include "tensor_adaptor.h"
 
 namespace Kratos {
 
@@ -29,78 +29,88 @@ namespace Kratos {
 /**
  * @class GeometriesTensorAdaptor
  * @ingroup TensorAdaptors
- * @brief Adaptor class for handling Geometry functions (ShapeFunctions, Derivatives, Jacobians).
+ * @brief Adaptor class for handling Geometry functions (ShapeFunctions,
+ * Derivatives, Jacobians).
  *
- * @details This class provides an interface to evaluate and expose geometry functions
- *          on Gauss points for various Kratos containers (Geometries, Elements, Conditions).
- *          It extends TensorAdaptor<double>.
+ * @details This class provides an interface to evaluate and expose geometry
+ * functions on Gauss points for various Kratos containers (Geometries,
+ * Elements, Conditions). It extends TensorAdaptor<double>. Possible DatumTypes:
+ *          - ShapeFunctions: Returns shape function values. Shape: [n_elem,
+ * n_gauss, n_node].
+ *          - ShapeFunctionDerivatives: Returns global derivatives (DN/DX).
+ * Shape: [n_elem, n_gauss, n_node, working_dim]. This means that
+ * DNDx(iel,igauss,inode,0) is the dN(inode)/dx
+ *          - Jacobians: Returns Jacobians at gauss points. Shape: [n_elem,
+ * n_gauss, working_dim, local_dim].
+ *          - IntegrationWeights: Returns integration weights. Shape: [n_elem,
+ * n_gauss].
  *
  * @author Riccardo Rossi and Antigravity AI
  */
-class KRATOS_API(KRATOS_CORE) GeometriesTensorAdaptor: public TensorAdaptor<double> {
+class KRATOS_API(KRATOS_CORE) GeometriesTensorAdaptor
+    : public TensorAdaptor<double> {
 public:
+  ///@name Type definitions
+  ///@{
 
-    ///@name Type definitions
-    ///@{
+  KRATOS_CLASS_POINTER_DEFINITION(GeometriesTensorAdaptor);
 
-    KRATOS_CLASS_POINTER_DEFINITION(GeometriesTensorAdaptor);
+  using BaseType = TensorAdaptor<double>;
 
-    using BaseType = TensorAdaptor<double>;
+  enum class DatumType {
+    ShapeFunctions,
+    ShapeFunctionDerivatives,
+    Jacobians,
+    IntegrationWeights
+  };
 
-    enum class DatumType {
-        ShapeFunctions,
-        ShapeFunctionDerivatives,
-        Jacobians,
-        IntegrationWeights
-    };
+  ///@}
+  ///@name Life cycle
+  ///@{
 
-    ///@}
-    ///@name Life cycle
-    ///@{
+  GeometriesTensorAdaptor(
+      ContainerPointerType pContainer, DatumType Datum,
+      GeometryData::IntegrationMethod IntegrationMethod =
+          GeometryData::IntegrationMethod::NumberOfIntegrationMethods);
 
-    GeometriesTensorAdaptor(
-        ContainerPointerType pContainer,
-        DatumType Datum,
-        GeometryData::IntegrationMethod IntegrationMethod = GeometryData::IntegrationMethod::NumberOfIntegrationMethods
-        );
+  GeometriesTensorAdaptor(const TensorAdaptor &rOther,
+                          ContainerPointerType pContainer, DatumType Datum,
+                          GeometryData::IntegrationMethod IntegrationMethod,
+                          const bool Copy = true);
 
-    GeometriesTensorAdaptor(
-        const TensorAdaptor& rOther,
-        const bool Copy = true);
+  // Destructor
+  ~GeometriesTensorAdaptor() override = default;
 
-    // Destructor
-    ~GeometriesTensorAdaptor() override = default;
+  ///@}
+  ///@name Public operations
+  ///@{
 
-    ///@}
-    ///@name Public operations
-    ///@{
+  /**
+   * @brief Check if the container is valid.
+   */
+  void Check() const override;
 
-    /**
-     * @brief Check if the container is valid.
-     */
-    void Check() const override;
+  /**
+   * @brief Fill the internal data from Kratos data structures.
+   */
+  void CollectData() override;
 
-    /**
-     * @brief Fill the internal data from Kratos data structures.
-     */
-    void CollectData() override;
+  /**
+   * @brief Store internal data to the given container.
+   */
+  void StoreData() override;
 
-    /**
-     * @brief Store internal data to the given container.
-     */
-    void StoreData() override;
+  ///@}
+  ///@name Input and output
+  ///@{
 
-    ///@}
-    ///@name Input and output
-    ///@{
+  std::string Info() const override;
 
-    std::string Info() const override;
-
-    ///@}
+  ///@}
 
 private:
-    DatumType mDatum;
-    GeometryData::IntegrationMethod mIntegrationMethod;
+  DatumType mDatum;
+  GeometryData::IntegrationMethod mIntegrationMethod;
 };
 
 /// @}
