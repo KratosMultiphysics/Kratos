@@ -386,6 +386,44 @@ void ShellThickElement3D4N<TKinematics>::Initialize(const ProcessInfo& rCurrentP
 /***********************************************************************************/
 
 template <ShellKinematics TKinematics>
+void ShellThickElement3D4N<TKinematics>::CalculateMaterialResponse(
+        ShellCrossSection::SectionParameters& rSectionParameters,
+        const SizeType& rIntegrationPointNumber,
+        const ProcessInfo& rProcessInfo)
+{
+    // this->mSections[rPointNumber]->CalculateSectionResponse(rSectionParameters, ConstitutiveLaw::StressMeasure_PK2);
+
+    const auto& r_geometry = GetGeometry();
+    const auto& r_props = GetProperties();
+
+    ConstitutiveLaw::Parameters cl_values(r_geometry, r_props, rProcessInfo);
+    auto &r_cl_options = cl_values.GetOptions();
+    r_cl_options.Set(ConstitutiveLaw::COMPUTE_STRESS, true);
+    r_cl_options.Set(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR, true);
+    r_cl_options.Set(ConstitutiveLaw::USE_ELEMENT_PROVIDED_STRAIN, true);
+
+    KRATOS_WATCH(rSectionParameters.GetGeneralizedStrainVector())
+    KRATOS_WATCH(rSectionParameters.GetGeneralizedStressVector())
+    KRATOS_WATCH(rSectionParameters.GetConstitutiveMatrix())
+
+
+    cl_values.SetStrainVector(rSectionParameters.GetGeneralizedStrainVector());
+    cl_values.SetStressVector(rSectionParameters.GetGeneralizedStressVector());
+    cl_values.SetConstitutiveMatrix(rSectionParameters.GetConstitutiveMatrix());
+
+
+    mConstitutiveLawVector[rIntegrationPointNumber]->CalculateMaterialResponseCauchy(cl_values);
+
+    std::cout << "after calculating-..." << std::endl;
+    KRATOS_WATCH(rSectionParameters.GetGeneralizedStrainVector())
+    KRATOS_WATCH(rSectionParameters.GetGeneralizedStressVector())
+    KRATOS_WATCH(rSectionParameters.GetConstitutiveMatrix())
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+template <ShellKinematics TKinematics>
 void ShellThickElement3D4N<TKinematics>::FinalizeNonLinearIteration(const ProcessInfo& rCurrentProcessInfo)
 {
     BaseType::FinalizeNonLinearIteration(rCurrentProcessInfo);
@@ -398,6 +436,9 @@ void ShellThickElement3D4N<TKinematics>::FinalizeNonLinearIteration(const Proces
     mEASStorage.FinalizeNonLinearIteration(localDisplacementVector);
 }
 
+/***********************************************************************************/
+/***********************************************************************************/
+
 template <ShellKinematics TKinematics>
 void ShellThickElement3D4N<TKinematics>::InitializeSolutionStep(const ProcessInfo& rCurrentProcessInfo)
 {
@@ -405,6 +446,9 @@ void ShellThickElement3D4N<TKinematics>::InitializeSolutionStep(const ProcessInf
 
     mEASStorage.InitializeSolutionStep();
 }
+
+/***********************************************************************************/
+/***********************************************************************************/
 
 template <ShellKinematics TKinematics>
 void ShellThickElement3D4N<TKinematics>::FinalizeSolutionStep(const ProcessInfo& rCurrentProcessInfo)
@@ -414,6 +458,8 @@ void ShellThickElement3D4N<TKinematics>::FinalizeSolutionStep(const ProcessInfo&
     mEASStorage.FinalizeSolutionStep();
 }
 
+/***********************************************************************************/
+/***********************************************************************************/
 
 // =====================================================================================
 //
@@ -530,7 +576,7 @@ void ShellThickElement3D4N<TKinematics>::CalculateOnIntegrationPoints(const Vari
             EASOp.GaussPointComputation_Step1(ip.X(), ip.Y(), jacOp, generalizedStrains, mEASStorage);
 
             // Calculate the response of the Cross Section
-            ShellCrossSection::Pointer& section = this->mSections[i];
+            // ShellCrossSection::Pointer& section = this->mSections[i];
 
             //add in shear stabilization
             double shearStabilisation = CalculateStenbergShearStabilization(referenceCoordinateSystem, section->GetThickness(GetProperties()));
@@ -541,11 +587,11 @@ void ShellThickElement3D4N<TKinematics>::CalculateOnIntegrationPoints(const Vari
             parameters.SetShapeFunctionsValues(iN);
             parameters.SetShapeFunctionsDerivatives(jacOp.XYDerivatives());
             // section->CalculateSectionResponse(parameters, ConstitutiveLaw::StressMeasure_PK2);
-            CalculateMaterialResponse(parameters, i);
+            CalculateMaterialResponse(parameters, i, rCurrentProcessInfo);
 
             // Compute stresses
             CalculateStressesFromForceResultants(generalizedStresses,
-                                                 section->GetThickness(GetProperties()));
+                                                 GetProperties()[THICKNESS]);
 
             // Calculate von mises results
             CalculateVonMisesStress(generalizedStresses, rVariable, rValues[i]);
@@ -703,6 +749,9 @@ void ShellThickElement3D4N<TKinematics>::CalculateOnIntegrationPoints(const Vari
     }
 }
 
+/***********************************************************************************/
+/***********************************************************************************/
+
 template <ShellKinematics TKinematics>
 void ShellThickElement3D4N<TKinematics>::CalculateOnIntegrationPoints(const Variable<Matrix>& rVariable,
         std::vector<Matrix>& rValues,
@@ -725,12 +774,15 @@ void ShellThickElement3D4N<TKinematics>::CalculateOnIntegrationPoints(const Vari
     }
 }
 
+/***********************************************************************************/
+/***********************************************************************************/
+
 template <ShellKinematics TKinematics>
 int ShellThickElement3D4N<TKinematics>::Check(const ProcessInfo& rCurrentProcessInfo) const
 {
     KRATOS_TRY;
 
-    BaseType::Check(rCurrentProcessInfo);
+    // BaseType::Check(rCurrentProcessInfo);
 
     const auto& r_geom = GetGeometry();
 
@@ -749,6 +801,9 @@ int ShellThickElement3D4N<TKinematics>::Check(const ProcessInfo& rCurrentProcess
 // Class ShellThickElement3D4N - Private methods
 //
 // =====================================================================================
+
+/***********************************************************************************/
+/***********************************************************************************/
 
 template <ShellKinematics TKinematics>
 void ShellThickElement3D4N<TKinematics>::CalculateStressesFromForceResultants(VectorType& rstresses, const double& rthickness)
@@ -769,6 +824,9 @@ void ShellThickElement3D4N<TKinematics>::CalculateStressesFromForceResultants(Ve
     rstresses[6] *= 1.5 / rthickness;
     rstresses[7] *= 1.5 / rthickness;
 }
+
+/***********************************************************************************/
+/***********************************************************************************/
 
 template <ShellKinematics TKinematics>
 void ShellThickElement3D4N<TKinematics>::CalculateLaminaStrains(ShellCrossSection::Pointer& section, const Vector& generalizedStrains, std::vector<VectorType>& rlaminateStrains)
@@ -826,6 +884,9 @@ void ShellThickElement3D4N<TKinematics>::CalculateLaminaStrains(ShellCrossSectio
     }
 }
 
+/***********************************************************************************/
+/***********************************************************************************/
+
 template <ShellKinematics TKinematics>
 void ShellThickElement3D4N<TKinematics>::CalculateLaminaStresses(ShellCrossSection::Pointer& section, ShellCrossSection::SectionParameters parameters, const std::vector<VectorType>& rlaminateStrains, std::vector<VectorType>& rlaminateStresses)
 {
@@ -861,6 +922,9 @@ void ShellThickElement3D4N<TKinematics>::CalculateLaminaStresses(ShellCrossSecti
     //             rlaminateStrains[2 * plyNumber + 1]);
     // }
 }
+
+/***********************************************************************************/
+/***********************************************************************************/
 
 template <ShellKinematics TKinematics>
 double ShellThickElement3D4N<TKinematics>::CalculateTsaiWuPlaneStress(const std::vector<VectorType>& rlaminateStresses, const Matrix& rLamina_Strengths, const unsigned int& rPly)
@@ -935,6 +999,9 @@ double ShellThickElement3D4N<TKinematics>::CalculateTsaiWuPlaneStress(const std:
     return std::min(tsai_reserve_factor_bottom, tsai_reserve_factor_top);
 }
 
+/***********************************************************************************/
+/***********************************************************************************/
+
 template <ShellKinematics TKinematics>
 void ShellThickElement3D4N<TKinematics>::CalculateVonMisesStress(const Vector& generalizedStresses, const Variable<double>& rVariable, double& rVon_Mises_Result)
 {
@@ -980,6 +1047,9 @@ void ShellThickElement3D4N<TKinematics>::CalculateVonMisesStress(const Vector& g
                                std::max(von_mises_mid, von_mises_bottom)));
     }
 }
+
+/***********************************************************************************/
+/***********************************************************************************/
 
 template <ShellKinematics TKinematics>
 void ShellThickElement3D4N<TKinematics>::CheckGeneralizedStressOrStrainOutput(const Variable<Matrix>& rVariable, int& ijob, bool& bGlobal)
@@ -1032,6 +1102,9 @@ void ShellThickElement3D4N<TKinematics>::CheckGeneralizedStressOrStrainOutput(co
     }
 }
 
+/***********************************************************************************/
+/***********************************************************************************/
+
 template <ShellKinematics TKinematics>
 double ShellThickElement3D4N<TKinematics>::CalculateStenbergShearStabilization(const ShellQ4_LocalCoordinateSystem& referenceCoordinateSystem, const double& hMean)
 {
@@ -1057,6 +1130,9 @@ double ShellThickElement3D4N<TKinematics>::CalculateStenbergShearStabilization(c
 
     return ((hMean*hMean) / (hMean*hMean + 0.1*h_e*h_e));
 }
+
+/***********************************************************************************/
+/***********************************************************************************/
 
 template <ShellKinematics TKinematics>
 void ShellThickElement3D4N<TKinematics>::CalculateBMatrix(double xi, double eta,
@@ -1163,6 +1239,9 @@ void ShellThickElement3D4N<TKinematics>::CalculateBMatrix(double xi, double eta,
     // I had to "virtually" swap the 2 rows of the matrix B before the assignment from the product on the Right-Hand-Side.
     // In this way the matrix B is consistent with the notation used in Kratos without recoding all the MITC stuff.
 }
+
+/***********************************************************************************/
+/***********************************************************************************/
 
 template <ShellKinematics TKinematics>
 void ShellThickElement3D4N<TKinematics>::CalculateAll(MatrixType& rLeftHandSideMatrix,
@@ -1303,7 +1382,7 @@ void ShellThickElement3D4N<TKinematics>::CalculateAll(MatrixType& rLeftHandSideM
         double shearStabilisation = CalculateStenbergShearStabilization(referenceCoordinateSystem, section->GetThickness(GetProperties()));
         parameters.SetStenbergShearStabilization(shearStabilisation);
         // section->CalculateSectionResponse(parameters, ConstitutiveLaw::StressMeasure_PK2);
-        CalculateMaterialResponse(parameters, i);
+        CalculateMaterialResponse(parameters, i, rCurrentProcessInfo);
         Ddrilling = section->GetDrillingStiffness();
 
         // multiply the section tangent matrices and stress resultants by 'dA'
@@ -1352,6 +1431,9 @@ void ShellThickElement3D4N<TKinematics>::CalculateAll(MatrixType& rLeftHandSideM
     // Add body forces contributions. This doesn't depend on the coordinate system
     AddBodyForces(dArea, rRightHandSideVector);
 }
+
+/***********************************************************************************/
+/***********************************************************************************/
 
 template <ShellKinematics TKinematics>
 void ShellThickElement3D4N<TKinematics>::AddBodyForces(const array_1d<double,4>& dA, VectorType& rRightHandSideVector)

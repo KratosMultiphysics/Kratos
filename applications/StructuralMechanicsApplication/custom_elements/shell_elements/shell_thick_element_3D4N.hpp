@@ -393,10 +393,8 @@ private:
 
     void CalculateMaterialResponse(
         ShellCrossSection::SectionParameters& rSectionParameters,
-        const SizeType& rPointNumber)
-    {
-        this->mSections[rPointNumber]->CalculateSectionResponse(rSectionParameters, ConstitutiveLaw::StressMeasure_PK2);
-    }
+        const SizeType& rPointNumber,
+        const ProcessInfo& rProcessInfo);
 
     ///@}
 
