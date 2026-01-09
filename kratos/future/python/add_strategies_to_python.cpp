@@ -98,40 +98,40 @@ void AddStrategiesToPython(py::module& m)
         .def(py::init<ModelPart&, Parameters>())
     ;
 
-    // py::class_<Strategy, typename Strategy::Pointer>(m, "Strategy")
-    //     .def("GetModelPart", [&](const Strategy& rThis) -> const ModelPart& {return rThis.GetModelPart();}, py::return_value_policy::reference_internal)
-    //     .def("Info", &Strategy::Info)
-    //     .def("Name", &Strategy::Name)
-    //     .def("CalculateOutputData", py::overload_cast<const Variable<Vector>&>(&Strategy::CalculateOutputData, py::const_))
-    //     .def("CalculateOutputData", py::overload_cast<const Variable<Matrix>&>(&Strategy::CalculateOutputData, py::const_))
-    // ;
+    py::class_<Strategy, typename Strategy::Pointer>(m, "Strategy")
+        .def("GetModelPart", [&](const Strategy& rThis) -> const ModelPart& {return rThis.GetModelPart();}, py::return_value_policy::reference_internal)
+        .def("Info", &Strategy::Info)
+        .def("Name", &Strategy::Name)
+        .def("CalculateOutputData", py::overload_cast<const Variable<Vector>&>(&Strategy::CalculateOutputData, py::const_))
+        .def("CalculateOutputData", py::overload_cast<const Variable<Matrix>&>(&Strategy::CalculateOutputData, py::const_))
+    ;
 
-    // using LinearSolverType = Future::LinearSolver<SystemVector<>>;
-    // using ImplicitStrategyType = Future::ImplicitStrategy<Future::SerialLinearAlgebra>;
-    // py::class_<ImplicitStrategyType, typename ImplicitStrategyType::Pointer, Strategy>(m, "ImplicitStrategy")
-    //     // .def(py::init<ModelPart&, Parameters>()) //TODO: Expose this one once we fix the registry stuff
-    //     .def(py::init<ModelPart &, typename ImplicitSchemeType::Pointer, typename LinearSolverType::Pointer, bool, bool, bool, bool>())
-    //     .def("Initialize", &ImplicitStrategyType::Initialize)
-    //     .def("InitializeSolutionStep", &ImplicitStrategyType::InitializeSolutionStep)
-    //     .def("Predict", &ImplicitStrategyType::Predict)
-    //     .def("SolveSolutionStep", &ImplicitStrategyType::SolveSolutionStep)
-    //     .def("FinalizeSolutionStep", &ImplicitStrategyType::FinalizeSolutionStep)
-    //     .def("Clear", &ImplicitStrategyType::Clear)
-    //     .def("Check", &ImplicitStrategyType::Check)
-    //     .def("GetEchoLevel", &ImplicitStrategyType::GetEchoLevel)
-    //     .def("GetComputeReactions", &ImplicitStrategyType::GetComputeReactions)
-    //     .def("GetReformDofsAtEachStep", &ImplicitStrategyType::GetReformDofsAtEachStep)
-    //     .def("GetResidualNorm", &ImplicitStrategyType::GetResidualNorm)
-    //     .def("SetEchoLevel", &ImplicitStrategyType::SetEchoLevel)
-    //     .def("SetComputeReactions", &ImplicitStrategyType::SetComputeReactions)
-    //     .def("SetReformDofsAtEachStep", &ImplicitStrategyType::SetReformDofsAtEachStep)
-    // ;
+    using LinearSolverType = Future::LinearSolver<Future::SerialLinearAlgebra>;
+    using ImplicitStrategyType = Future::ImplicitStrategy<Future::SerialLinearAlgebra>;
+    py::class_<ImplicitStrategyType, typename ImplicitStrategyType::Pointer, Strategy>(m, "ImplicitStrategy")
+        // .def(py::init<ModelPart&, Parameters>()) //TODO: Expose this one once we fix the registry stuff
+        .def(py::init<ModelPart &, typename ImplicitSchemeType::Pointer, typename LinearSolverType::Pointer, bool, bool, bool, bool>())
+        .def("Initialize", &ImplicitStrategyType::Initialize)
+        .def("InitializeSolutionStep", &ImplicitStrategyType::InitializeSolutionStep)
+        .def("Predict", &ImplicitStrategyType::Predict)
+        .def("SolveSolutionStep", &ImplicitStrategyType::SolveSolutionStep)
+        .def("FinalizeSolutionStep", &ImplicitStrategyType::FinalizeSolutionStep)
+        .def("Clear", &ImplicitStrategyType::Clear)
+        .def("Check", &ImplicitStrategyType::Check)
+        .def("GetEchoLevel", &ImplicitStrategyType::GetEchoLevel)
+        .def("GetComputeReactions", &ImplicitStrategyType::GetComputeReactions)
+        .def("GetReformDofsAtEachStep", &ImplicitStrategyType::GetReformDofsAtEachStep)
+        .def("GetResidualNorm", &ImplicitStrategyType::GetResidualNorm)
+        .def("SetEchoLevel", &ImplicitStrategyType::SetEchoLevel)
+        .def("SetComputeReactions", &ImplicitStrategyType::SetComputeReactions)
+        .def("SetReformDofsAtEachStep", &ImplicitStrategyType::SetReformDofsAtEachStep)
+    ;
 
-    // using LinearStrategyType = Future::LinearStrategy<Future::SerialLinearAlgebra>;
-    // py::class_<LinearStrategyType, typename LinearStrategyType::Pointer, ImplicitStrategyType>(m, "LinearStrategy")
-    //     // .def(py::init<ModelPart&, Parameters>()) //TODO: Expose this one once we fix the registry stuff
-    //     .def(py::init<ModelPart &, typename ImplicitSchemeType::Pointer, typename LinearSolverType::Pointer, bool, bool, bool, bool>())
-    // ;
+    using LinearStrategyType = Future::LinearStrategy<Future::SerialLinearAlgebra>;
+    py::class_<LinearStrategyType, typename LinearStrategyType::Pointer, ImplicitStrategyType>(m, "LinearStrategy")
+        // .def(py::init<ModelPart&, Parameters>()) //TODO: Expose this one once we fix the registry stuff
+        .def(py::init<ModelPart &, typename ImplicitSchemeType::Pointer, typename LinearSolverType::Pointer, bool, bool, bool, bool>())
+    ;
 }
 
 }  // namespace Kratos::Future::Python.
