@@ -1001,7 +1001,7 @@ void File::WriteDataSetImpl(
     std::vector<hsize_t> count(global_shape);
     count[0] = local_shape[0];
 
-    // here onwards the procedure differs shared memory and distributed memeory runs.
+    // here onwards the procedure differs shared memory and distributed memory runs.
     // The same steps need to be applied if the HDF5Application is compiled with serial hdf5lib
     // and if the HDF5Application is compiled with mpi hdf5lib but running in shared memory parallelization
     // only.
@@ -1010,9 +1010,7 @@ void File::WriteDataSetImpl(
     if (!r_data_communicator.IsDistributed()) {
         KRATOS_HDF5_CALL(H5Dwrite, dset_id, dtype_id, H5S_ALL, H5S_ALL, H5P_DEFAULT, pData)
     } else {
-        #ifndef KRATOS_USING_MPI
-            KRATOS_ERROR << "HDFApplication is not compiled with MPI enabled";
-        #endif
+        #ifdef KRATOS_USING_MPI
 
         // HDF5 methods for DataTransferMode::Collective writing should be always called from every rank, even if some ranks have nothing to write.
         bool write_data = TDataTransferMode == DataTransferMode::Collective;
@@ -1054,6 +1052,9 @@ void File::WriteDataSetImpl(
             KRATOS_HDF5_CALL(H5Pclose, dxpl_id)
             KRATOS_HDF5_CALL(H5Sclose, mspace_id)
         }
+        #else
+        KRATOS_ERROR << "The HDF5Application was compiled without MPI support, but a distributed communicator was provided.";
+        #endif
     }
 
     KRATOS_HDF5_CALL(H5Sclose, fspace_id)
@@ -1135,9 +1136,7 @@ void File::ReadDataSetImpl(
     if (!GetDataCommunicator().IsDistributed()) {
         KRATOS_HDF5_CALL(H5Dread, dset_id, dtype_id, mem_space_id, file_space_id, H5P_DEFAULT, pData)
     } else {
-        #ifndef KRATOS_USING_MPI
-            KRATOS_ERROR << "HDFApplication is not compiled with MPI enabled";
-        #endif
+        #ifdef KRATOS_USING_MPI
 
         bool read_data  = true;
         #if H5_VERS_MAJOR < 2 && ((H5_VERS_MINOR == 14 && H5_VERS_RELEASE < 2) ||  H5_VERS_MINOR < 14)
@@ -1161,6 +1160,10 @@ void File::ReadDataSetImpl(
             KRATOS_HDF5_CALL(H5Dread, dset_id, dtype_id, mem_space_id, file_space_id, dxpl_id, pData)
             KRATOS_HDF5_CALL(H5Pclose, dxpl_id)
         }
+
+        #else
+        KRATOS_ERROR << "The HDF5Application was compiled without MPI support, but a distributed communicator was provided.";
+        #endif
     }
 
     KRATOS_HDF5_CALL(H5Dclose, dset_id)

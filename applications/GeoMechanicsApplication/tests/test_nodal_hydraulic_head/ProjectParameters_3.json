@@ -28,7 +28,6 @@
         "compute_reactions": false,
         "move_mesh_flag": false,
         "reform_dofs_at_each_step": false,
-        "nodal_smoothing": false,
         "block_builder": true,
         "solution_type": "Steady_State_Groundwater_Flow",
         "scheme_type": "Backward_Euler",
@@ -64,17 +63,8 @@
             "solver_type": "LinearSolversApplication.skyline_lu_factorization",
             "scaling": true
         },
-        "problem_domain_sub_model_part_list": [
-            "Soil"
-        ],
-        "processes_sub_model_part_list": [
-            "Top_pressure",
-            "Bottom_pressure",
-            "gravity"
-        ],
-        "body_domain_sub_model_part_list": [
-            "Soil"
-        ],
+        "problem_domain_sub_model_part_list": ["Soil"],
+        "body_domain_sub_model_part_list"   : ["Soil"],
         "max_piping_iterations": 500
     },
     "output_processes": {

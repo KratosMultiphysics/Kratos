@@ -19,6 +19,15 @@ class GeoMechanicsStaticScheme
 
 GeoMechanicsTimeIntegrationScheme <|-- GeoMechanicsStaticScheme
 
+class LoadSteppingScheme
+{
+    void InitializeSolutionStep() override
+    void CalculateSystemContributions() override
+    void CalculateRHSContribution() override
+}
+
+GeoMechanicsStaticScheme <|-- LoadSteppingScheme
+
 class BackwardEulerScheme
 {
     void UpdateVariablesDerivatives() override;
