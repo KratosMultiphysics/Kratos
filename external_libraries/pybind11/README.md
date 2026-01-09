@@ -1,5 +1,6 @@
-# **pybind11 (v3) — Seamless interoperability between C++ and Python**
+# **pybind11 (v3.0.1) — Seamless interoperability between C++ and Python**
 
+See: https://github.com/pybind/pybind11/releases/tag/v3.0.1
 
 [Setuptools example](https://github.com/pybind/python_example) • [Scikit-build example](https://github.com/pybind/scikit_build_example) • [CMake example](https://github.com/pybind/cmake_example)
 
