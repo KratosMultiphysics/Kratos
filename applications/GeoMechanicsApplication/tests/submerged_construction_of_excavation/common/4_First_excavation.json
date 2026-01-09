@@ -66,7 +66,7 @@
                 "kratos_module": "KratosMultiphysics",
                 "process_name": "JsonOutputProcess",
                 "Parameters": {
-                    "model_part_name": "PorousDomain.InterfaceElementsAndNodes",
+                    "model_part_name": "PorousDomain.LeftInterfaceSoilSideNodes",
                     "output_file_name": "4_First_excavation_interface_output.json",
                     "output_variables"             : ["GEO_EFFECTIVE_TRACTION_VECTOR"],
                     "gauss_points_output_variables": [],
@@ -205,10 +205,7 @@
                 "Parameters": {
                     "model_part_name_list": [
                         "PorousDomain.Wall_Clay_Interface_Left",
-                        "PorousDomain.Wall_Sand_Interface_Left",
-                        "PorousDomain.Wall_Clay_Interface_Middle_Right",
-                        "PorousDomain.Wall_Clay_Interface_Lower_Right",
-                        "PorousDomain.Wall_Sand_Interface_Right"
+                        "PorousDomain.Wall_Sand_Interface_Left"
                     ],
                     "list_of_variables": ["GEO_EFFECTIVE_TRACTION_VECTOR"]
                 }
