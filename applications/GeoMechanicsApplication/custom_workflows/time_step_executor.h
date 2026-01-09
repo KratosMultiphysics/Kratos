@@ -15,7 +15,7 @@
 
 #include "processes/process.h"
 #include "strategy_wrapper.h"
-#include "time_step_end_state.hpp"
+#include "time_step_end_state.h"
 
 #include <functional>
 #include <memory>

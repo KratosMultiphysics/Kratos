@@ -12,7 +12,7 @@
 //
 
 #include "adaptive_time_incrementor.h"
-#include "time_step_end_state.hpp"
+#include "time_step_end_state.h"
 
 #include "includes/exception.h"
 
