@@ -30,7 +30,7 @@ namespace Kratos::Future
 ///@name Kratos Classes
 ///@{
 
-struct DistributedLinearAlgebra
+struct DistributedLinearAlgebraTraits
 {
     using DataType = double;
 
