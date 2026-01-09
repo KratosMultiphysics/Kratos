@@ -16,10 +16,10 @@
 // External includes
 
 // Project includes
-#include "future/containers/linear_operator.h"
-#include "future/linear_solvers/direct_solver.h"
 #include "includes/define.h"
 #include "includes/kratos_parameters.h"
+#include "future/linear_operators/linear_operator.h"
+#include "future/linear_solvers/direct_solver.h"
 
 namespace Kratos::Future
 {

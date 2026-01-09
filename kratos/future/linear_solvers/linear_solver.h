@@ -20,8 +20,8 @@
 // Project includes
 #include "containers/csr_matrix.h"
 #include "future/containers/define_linear_algebra_serial.h"
-#include "future/containers/sparse_matrix_linear_operator.h"
 #include "includes/model_part.h"
+#include "future/linear_operators/sparse_matrix_linear_operator.h"
 
 namespace Kratos::Future
 {

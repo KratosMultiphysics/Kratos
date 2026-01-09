@@ -13,7 +13,7 @@
 // Project includes
 #include "testing/testing.h"
 #include "future/containers/define_linear_algebra_serial.h"
-#include "future/containers/linear_operator.h"
+#include "future/linear_operators/linear_operator.h"
 #include "future/linear_solvers/amgcl_solver.h"
 #include "future/linear_solvers/skyline_lu_factorization_solver.h"
 

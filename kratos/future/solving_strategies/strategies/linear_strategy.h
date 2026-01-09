@@ -21,7 +21,7 @@
 #include "utilities/builtin_timer.h"
 
 #ifdef KRATOS_USE_FUTURE
-#include "future/containers/sparse_matrix_linear_operator.h"
+#include "future/linear_operators/sparse_matrix_linear_operator.h"
 #include "future/linear_solvers/linear_solver.h"
 #include "future/solving_strategies/schemes/implicit_scheme.h"
 #include "future/solving_strategies/strategies/implicit_strategy.h"

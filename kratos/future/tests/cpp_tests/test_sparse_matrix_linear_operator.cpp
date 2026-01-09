@@ -16,7 +16,7 @@
 
 // Project includes
 #include "future/containers/define_linear_algebra_serial.h"
-#include "future/containers/sparse_matrix_linear_operator.h"
+#include "future/linear_operators/sparse_matrix_linear_operator.h"
 #include "testing/testing.h"
 
 namespace Kratos::Testing

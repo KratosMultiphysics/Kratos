@@ -17,8 +17,8 @@
 // External includes
 
 // Project includes
-#include "future/containers/linear_operator.h"
 #include "includes/model_part.h"
+#include "future/linear_operators/linear_operator.h"
 
 namespace Kratos::Future
 {

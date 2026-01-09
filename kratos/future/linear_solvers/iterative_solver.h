@@ -22,7 +22,7 @@
 // Project includes
 #include "includes/define.h"
 #include "includes/kratos_parameters.h"
-#include "future/containers/linear_operator.h"
+#include "future/linear_operators/linear_operator.h"
 #include "future/linear_solvers/linear_solver.h"
 #include "future/linear_solvers/preconditioner.h"
 
