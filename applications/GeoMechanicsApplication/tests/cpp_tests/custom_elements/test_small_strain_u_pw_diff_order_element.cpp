@@ -15,7 +15,7 @@
 #include "custom_elements/plane_strain_stress_state.h"
 #include "custom_elements/small_strain_U_Pw_diff_order_element.hpp"
 #include "custom_retention/saturated_law.h"
-#include "custom_utilities/registration_utilities.h"
+#include "custom_utilities/registration_utilities.hpp"
 #include "custom_utilities/ublas_utilities.h"
 #include "geo_mechanics_application_variables.h"
 #include "test_setup_utilities/element_setup_utilities.h"

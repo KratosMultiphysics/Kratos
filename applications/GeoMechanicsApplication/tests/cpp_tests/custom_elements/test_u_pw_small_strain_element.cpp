@@ -17,7 +17,7 @@
 #include "custom_elements/U_Pw_small_strain_element.hpp"
 #include "custom_elements/plane_strain_stress_state.h"
 #include "custom_retention/saturated_law.h"
-#include "custom_utilities/registration_utilities.h"
+#include "custom_utilities/registration_utilities.hpp"
 #include "includes/variables.h"
 #include "test_setup_utilities/element_setup_utilities.h"
 #include "test_setup_utilities/model_setup_utilities.h"

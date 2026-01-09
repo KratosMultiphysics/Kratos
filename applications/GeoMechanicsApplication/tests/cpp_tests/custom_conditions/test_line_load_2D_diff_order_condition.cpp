@@ -11,7 +11,7 @@
 //
 #include "containers/variables_list.h"
 #include "custom_conditions/general_U_Pw_diff_order_condition.h"
-#include "custom_utilities/registration_utilities.h"
+#include "custom_utilities/registration_utilities.hpp"
 #include "geo_aliases.h"
 #include "geo_mechanics_application.h"
 #include "geometries/line_2d_2.h"
