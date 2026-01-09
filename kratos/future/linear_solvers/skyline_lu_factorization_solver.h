@@ -523,6 +523,7 @@ public:
     /// Destructor.
     ~SkylineLUFactorizationSolver() override = default;
 
+    //TODO: This Solve method should be split into Initialize, InitializeSolutionStep, SolveSolutionStep, FinalizeSolutionStep, ...
     bool Solve(
         LinearOperatorPointerType pLinearOperator,
         VectorType& rX,
@@ -550,6 +551,7 @@ public:
         return true;
     }
 
+    //TODO: This Solve method should be split into Initialize, InitializeSolutionStep, SolveSolutionStep, FinalizeSolutionStep, ...
     bool Solve(
         LinearOperatorPointerType pLinearOperator,
         DenseMatrixType& rX,

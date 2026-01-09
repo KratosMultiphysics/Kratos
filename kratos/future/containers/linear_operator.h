@@ -164,6 +164,7 @@ public:
     template<class TMatrixType>
     TMatrixType& GetMatrix()
     {
+        KRATOS_ERROR_IF(this->IsMatrixFree()) << "Trying to access matrix from a matrix-free LinearOperator." << std::endl;
         auto& r_matrix = this->GetMatrixImpl(); // Get the underlying matrix as std::any
         return std::any_cast<std::reference_wrapper<TMatrixType>>(r_matrix).get(); // Cast and return the reference
     }
@@ -176,6 +177,7 @@ public:
     template<class TMatrixType>
     const TMatrixType& GetMatrix() const
     {
+        KRATOS_ERROR_IF(this->IsMatrixFree()) << "Trying to access matrix from a matrix-free LinearOperator." << std::endl;
         const auto& r_matrix = this->GetMatrixImpl(); // Get the underlying matrix as const std::any
         return std::any_cast<std::reference_wrapper<TMatrixType>>(r_matrix).get(); // Cast and return the reference
     }
@@ -188,7 +190,7 @@ public:
      * @brief Get the number of rows.
      * @return Number of rows of the operator
      */
-    std::size_t NumRows() const //TODO: Rename to size1() as in our CSR arrays?
+    std::size_t NumRows() const
     {
         return mNumRows;
     }
@@ -197,7 +199,7 @@ public:
      * @brief Get the number of columns.
      * @return Number of columns of the operator
      */
-    std::size_t NumCols() const //TODO: Rename to size2() as in our CSR arrays?
+    std::size_t NumCols() const
     {
         return mNumCols;
     }

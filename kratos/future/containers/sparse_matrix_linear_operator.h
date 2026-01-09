@@ -83,26 +83,10 @@ public:
      * Note that this constructor is only enabled when a CSR matrix type is provided.
      * @param rA Reference to the CSR matrix
      */
-    // template<class TMatrixType>
     SparseMatrixLinearOperator(MatrixType& rA)
         : LinearOperator<TLinearAlgebra>()
     {
         mrCsrMatrix = std::ref(rA);
-        this->SetNumRows(rA.size1());
-        this->SetNumCols(rA.size2());
-    }
-
-    /**
-     * @brief Constructor from a CSR matrix.
-     * Constructs a SparseMatrixLinearOperator that wraps the provided CSR matrix.
-     * Note that this constructor is only enabled when a CSR matrix type is provided.
-     * @param rA Reference to the CSR matrix
-     */
-    // template<class TMatrixType>
-    SparseMatrixLinearOperator(const MatrixType& rA)
-        : LinearOperator<TLinearAlgebra>()
-    {
-        mrCsrMatrix = std::ref(const_cast<MatrixType&>(rA));
         this->SetNumRows(rA.size1());
         this->SetNumCols(rA.size2());
     }
@@ -186,7 +170,7 @@ protected:
 
 private:
 
-    /// Reference to the CSR matrix
+    /// Reference to the CSR matrix (of type MatrixType& wrapped as std::any)
     std::any mrCsrMatrix;
 
 }; // class SparseMatrixLinearOperator
