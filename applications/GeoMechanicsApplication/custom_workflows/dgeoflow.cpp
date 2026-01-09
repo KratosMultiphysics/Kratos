@@ -360,7 +360,7 @@ void KratosExecute::ExecuteWithoutPiping(ModelPart&                rModelPart,
 int KratosExecute::ExecuteWithPiping(ModelPart&                rModelPart,
                                      const Kratos::Parameters& rGidOutputSettings,
                                      const CriticalHeadInfo&   rCriticalHeadInfo,
-                                     LoggerOutput::Pointer     pOutput,
+                                     const LoggerOutput::Pointer& rpOutput,
                                      const std::stringstream&  rKratosLogBuffer,
                                      const CallBackFunctions&  rCallBackFunctions,
                                      const GeoMechanicsNewtonRaphsonErosionProcessStrategyType::Pointer pSolvingStrategy)
@@ -384,7 +384,7 @@ int KratosExecute::ExecuteWithPiping(ModelPart&                rModelPart,
         KRATOS_ERROR << "No river boundary found.";
     }
 
-    FindCriticalHead(rModelPart, rGidOutputSettings, rCriticalHeadInfo, std::move(pOutput),
+    FindCriticalHead(rModelPart, rGidOutputSettings, rCriticalHeadInfo, std::move(rpOutput),
                      rKratosLogBuffer, p_river_boundary, pSolvingStrategy, rCallBackFunctions);
 
     WriteCriticalHeadResultToFile();

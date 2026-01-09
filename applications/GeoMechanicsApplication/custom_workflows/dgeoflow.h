@@ -114,7 +114,7 @@ public:
     int ExecuteWithPiping(ModelPart&                rModelPart,
                           const Kratos::Parameters& rGidOutputSettings,
                           const CriticalHeadInfo&   rCriticalHeadInfo,
-                          LoggerOutput::Pointer     pOutput,
+                          const LoggerOutput::Pointer& rpOutput,
                           const std::stringstream&  rKratosLogBuffer,
                           const CallBackFunctions&  rCallBackFunctions,
                           const GeoMechanicsNewtonRaphsonErosionProcessStrategyType::Pointer pSolvingStrategy);
