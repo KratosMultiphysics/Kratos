@@ -33,10 +33,10 @@ The [`MPMWriteEnergyOutputProcess`](https://github.com/KratosMultiphysics/Kratos
 String identifying the name of the target ModelPart.
 
 ##### `interval`
-Print the requested variables if the simulation time is within this interval.
+Print the energy of the requested model part if the simulation time is within this interval.
 
 ##### `print_format`
-Selects the number of decimals that will be printed. Maxmum number of relevant decimals is 16.
+String identifying the format to be used for printing the energy.
 
 ##### `output_file_settings`
 Defines the settings for the [`TimeBasesAsciiFileWriterUtility`](https://github.com/KratosMultiphysics/Kratos/blob/master/kratos/python_scripts/time_based_ascii_file_writer_utility.py):
