@@ -248,7 +248,7 @@ public:
      */
     void ExecuteInitialize() override
     {
-        SnakeSbmProcess::CreateTheSnakeCoordinates();
+        SnakeSbmProcess::CreateTheSnakeCoordinates(true);
     };
 
     /**
@@ -318,7 +318,9 @@ private:
     std::string mGapInterfaceConditionName;
     std::size_t mInternalDivisions;
     std::size_t mGapApproximationOrder;
+    std::size_t mGapInterpolationOrder;
     std::string mGapSbmType;
+    bool mUseForMultipatch = false;
 
     /**
      * @brief Creates the gap SBM geometries for the configured model part.
@@ -400,7 +402,8 @@ private:
         std::size_t& rIdCounter,
         PropertiesPointerType pProperties,
         const Vector KnotSpanSizes,
-        const std::vector<Geometry<Node>::Pointer> &pSurrogateReferenceGeometries) const;
+        const std::vector<Geometry<Node>::Pointer> &pSurrogateReferenceGeometries,
+        const double CharacteristicLength) const;
 
     /// Creates elements from geometries
     /**
@@ -420,7 +423,8 @@ private:
         const std::string& rElementName,
         std::size_t& rIdCounter,
         PropertiesPointerType pProperties,
-        const std::vector<Geometry<Node>::Pointer> &pSurrogateReferenceGeometries) const;
+        const std::vector<Geometry<Node>::Pointer> &pSurrogateReferenceGeometries,
+        const double CharacteristicLength) const;
     
     /**
      * @brief Creates a Brep curve for the active knot range.
@@ -573,6 +577,20 @@ private:
         const array_1d<double,3>&  rP10,
         const array_1d<double,3>&  rP11,
         double                     Step = 1.0e-8);
+
+    /**
+     * @brief Computes the characteristic length associated with the gap quadrilateral defined by the four reference points.
+     * @param rSurrogatePoint1 Coordinates of the first surrogate node.
+     * @param rSurrogatePoint2 Coordinates of the second surrogate node.
+     * @param rSkinPoint1 Coordinates of the first skin node.
+     * @param rSkinPoint2 Coordinates of the second skin node.
+     * @return Radius obtained from the farthest vertex with respect to the centroid.
+     */
+    double CalculateGapElementCharacteristicLength(
+        const array_1d<double,3>& rSurrogatePoint1,
+        const array_1d<double,3>& rSurrogatePoint2,
+        const array_1d<double,3>& rSkinPoint1,
+        const array_1d<double,3>& rSkinPoint2) const;
 
 
 /**
@@ -973,6 +991,66 @@ bool SegmentsIntersect(
 }
 
 /**
+ * @brief Determines if two segments intersect in the plane and returns the intersection point.
+ * @param A Pointer to the first endpoint of the first segment.
+ * @param B Pointer to the second endpoint of the first segment.
+ * @param C Pointer to the first endpoint of the second segment.
+ * @param D Pointer to the second endpoint of the second segment.
+ * @param rIntersection Output: intersection coordinates (valid only if function returns true).
+ * @return True when the segments intersect.
+ */
+bool SegmentsIntersect(
+    const Node::Pointer& A, const Node::Pointer& B,
+    const Node::Pointer& C, const Node::Pointer& D,
+    array_1d<double,3>& rIntersection)
+{
+    // Vector representation in 2D
+    const double x1 = A->X(), y1 = A->Y();
+    const double x2 = B->X(), y2 = B->Y();
+    const double x3 = C->X(), y3 = C->Y();
+    const double x4 = D->X(), y4 = D->Y();
+
+    const double dx12 = x2 - x1;
+    const double dy12 = y2 - y1;
+    const double dx34 = x4 - x3;
+    const double dy34 = y4 - y3;
+
+    const double denom = dx12 * dy34 - dy12 * dx34;
+    const double eps = 1.0e-14;
+
+    // Parallel (including collinear) case
+    if (std::abs(denom) < eps) {
+        // Collinear check via orientation
+        const Node::Pointer pA = A, pB = B, pC = C, pD = D;
+        const double o1 = Orientation(pA, pB, pC);
+        const double o2 = Orientation(pA, pB, pD);
+        if (std::abs(o1) < eps || std::abs(o2) < eps) {
+            // Overlapping or touching: return a shared endpoint if any
+            if (OnSegment(pA, pC, pB)) { rIntersection[0]=x3; rIntersection[1]=y3; rIntersection[2]=0.0; return true; }
+            if (OnSegment(pA, pD, pB)) { rIntersection[0]=x4; rIntersection[1]=y4; rIntersection[2]=0.0; return true; }
+            if (OnSegment(pC, pA, pD)) { rIntersection[0]=x1; rIntersection[1]=y1; rIntersection[2]=0.0; return true; }
+            if (OnSegment(pC, pB, pD)) { rIntersection[0]=x2; rIntersection[1]=y2; rIntersection[2]=0.0; return true; }
+        }
+        return false;
+    }
+
+    // Proper intersection: solve for t and u in A + t*(B-A) = C + u*(D-C)
+    const double t = ((x3 - x1) * dy34 - (y3 - y1) * dx34) / denom;
+    const double u = ((x3 - x1) * dy12 - (y3 - y1) * dx12) / denom;
+
+    if (t >= -eps && t <= 1.0 + eps && u >= -eps && u <= 1.0 + eps) {
+        rIntersection[0] = x1 + t * dx12;
+        rIntersection[1] = y1 + t * dy12;
+        // Preserve planar assumption; set Z from linear interpolation if available
+        const double z1 = A->Z();
+        const double z2 = B->Z();
+        rIntersection[2] = z1 + t * (z2 - z1);
+        return true;
+    }
+    return false;
+}
+
+/**
  * @brief Finds the closest node belonging to the target layer by following a prescribed direction.
  * @tparam TIsInnerLoop True when searching along the inner loop orientation.
  * @param rStartPoint Starting point used for the directional search.
@@ -992,7 +1070,48 @@ IndexType FindClosestNodeInLayerWithDirection(
     const KnotSpanIdsCSR& rSkinConditionsPerSpan,
     const Vector& rDirection);
 
-        
+template <bool TIsInnerLoop>
+std::pair<SnakeGapSbmProcess::IndexType, SnakeGapSbmProcess::IndexType> FindClosestPairInLayerWithNormalDirection(
+    const array_1d<double,3>& rStartPoint,
+    const std::string& rLayer,
+    const ModelPart& rSkinSubModelPart,
+    const Vector& rKnotSpanSizes,
+    const KnotSpanIdsCSR& rSkinConditionsPerSpan,
+    const Vector& rDirection);
+    
+/**
+* @brief Attaches the surrogate middle geometry to skin nodes.
+* @param rSkinSubModelPart Skin model part containing the nodes.
+* @param rSegmentProjectionIds Projection node ids for each surrogate segment node.
+* @param pSurrogateMiddleGeometry Surrogate middle brep geometry.
+* @param pProjectionNode1 First projection node on the skin.
+* @param pProjectionNode2 Second projection node on the skin.
+*/
+void AttachSurrogateMiddleGeometryToSkinNodes(
+    const ModelPart& rSkinSubModelPart,
+    const std::vector<IndexType>& rSegmentProjectionIds,
+    GeometryType::Pointer pSurrogateMiddleGeometry,
+    const NodeType::Pointer& pProjectionNode1,
+    const NodeType::Pointer& pProjectionNode2);
+
+/**
+    * @brief Synchronizes neighbour geometries of the first and last skin nodes.
+    * @param rSkinSubModelPart Skin model part whose end nodes will be updated.
+    */
+void SynchronizeEndSkinNodeNeighbourGeometries(const ModelPart& rSkinSubModelPart);
+
+/**
+    * @brief Creates multipatch coupling conditions on the inner skin.
+    * @param rSkinSubModelPart Skin model part containing the inner-loop conditions.
+    * @param rKnotSpanSizes Knot-span sizes used to scale integration data.
+    * @param pNurbsSurface Pointer to the NURBS surface hosting the SBM geometry.
+    */
+void CreateInnerSkinMultipatchCouplingConditions(
+    const ModelPart& rSkinSubModelPart,
+    const Vector& rKnotSpanSizes,
+    NurbsSurfaceType::Pointer& pNurbsSurface);
+
+
 }; // Class SnakeGapSbmProcess
 
 }  // namespace Kratos.
