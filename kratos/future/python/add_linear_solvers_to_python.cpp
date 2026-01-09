@@ -35,7 +35,7 @@ namespace py = pybind11;
 void AddLinearSolversToPython(py::module& m)
 {
 
-    using LinearSolverType = Future::LinearSolver<SerialLinearAlgebra>;
+    using LinearSolverType = Future::LinearSolver<SerialLinearAlgebraTraits>;
     py::class_<LinearSolverType, typename LinearSolverType::Pointer>(m, "LinearSolver")
         .def(py::init<>())
         .def("Initialize", &LinearSolverType::Initialize)
@@ -43,14 +43,14 @@ void AddLinearSolversToPython(py::module& m)
         .def("GetIterationsNumber", &LinearSolverType::GetIterationsNumber)
     ;
 
-    using DirectSolverType = Future::DirectSolver<SerialLinearAlgebra>;
+    using DirectSolverType = Future::DirectSolver<SerialLinearAlgebraTraits>;
     py::class_<DirectSolverType, typename DirectSolverType::Pointer, LinearSolverType>(m, "DirectSolver")
         .def(py::init<>())
         .def(py::init<Parameters>())
         // .def("__str__", PrintObject<DirectSolverType>)
     ;
 
-    using SkylineLUFactorizationSolverType = Future::SkylineLUFactorizationSolver<SerialLinearAlgebra>;
+    using SkylineLUFactorizationSolverType = Future::SkylineLUFactorizationSolver<SerialLinearAlgebraTraits>;
     py::class_<SkylineLUFactorizationSolverType, SkylineLUFactorizationSolverType::Pointer, DirectSolverType>(m, "SkylineLUFactorizationSolver")
         .def(py::init<>())
         .def(py::init<Parameters>())
@@ -83,7 +83,7 @@ void AddLinearSolversToPython(py::module& m)
         .value("SA_EMIN", SA_EMIN)
     ;
 
-    using AMGCLSolverType = Future::AMGCLSolver<SerialLinearAlgebra>;
+    using AMGCLSolverType = Future::AMGCLSolver<SerialLinearAlgebraTraits>;
     py::class_<AMGCLSolverType, typename AMGCLSolverType::Pointer, LinearSolverType>(m, "AMGCLSolver")
         .def(py::init<AMGCLSmoother, AMGCLIterativeSolverType, double, int, int, int>())
         .def(py::init<AMGCLSmoother, AMGCLIterativeSolverType, AMGCLCoarseningType, double, int, int, int, bool>())

@@ -59,11 +59,11 @@ KRATOS_TEST_CASE_IN_SUITE(FutureLinearSolversSkylineLUFactorizationSolver, Krato
     // Set the linear solver to be tested
     Parameters skyline_lu_settings(R"({
     })");
-    Future::LinearSolver<Future::SerialLinearAlgebra>::Pointer p_linear_solver = Kratos::make_unique<Future::SkylineLUFactorizationSolver<Future::SerialLinearAlgebra>>(skyline_lu_settings);
+    Future::LinearSolver<Future::SerialLinearAlgebraTraits>::Pointer p_linear_solver = Kratos::make_unique<Future::SkylineLUFactorizationSolver<Future::SerialLinearAlgebraTraits>>(skyline_lu_settings);
 
     // Solve the problem
     SystemVector<> sol(system_size);
-    Future::LinearOperator<Future::SerialLinearAlgebra>::Pointer p_linear_operator = Kratos::make_shared<Future::SparseMatrixLinearOperator<Future::SerialLinearAlgebra>>(LHS);
+    Future::LinearOperator<Future::SerialLinearAlgebraTraits>::Pointer p_linear_operator = Kratos::make_shared<Future::SparseMatrixLinearOperator<Future::SerialLinearAlgebraTraits>>(LHS);
     p_linear_solver->Solve(p_linear_operator, sol, RHS);
 
     // Check the obtained results
@@ -85,11 +85,11 @@ KRATOS_TEST_CASE_IN_SUITE(FutureLinearSolversAmgcl, KratosCoreFutureSuite)
         "verbosity"                      : 1,
         "tolerance"                      : 1e-6
     })");
-    Future::LinearSolver<Future::SerialLinearAlgebra>::Pointer p_linear_solver = Kratos::make_unique<Future::AMGCLSolver<Future::SerialLinearAlgebra>>(amgcl_settings);
+    Future::LinearSolver<Future::SerialLinearAlgebraTraits>::Pointer p_linear_solver = Kratos::make_unique<Future::AMGCLSolver<Future::SerialLinearAlgebraTraits>>(amgcl_settings);
 
     // Solve the problem
     SystemVector<> sol(system_size);
-    Future::LinearOperator<Future::SerialLinearAlgebra>::Pointer p_linear_operator = Kratos::make_shared<Future::SparseMatrixLinearOperator<Future::SerialLinearAlgebra>>(LHS);
+    Future::LinearOperator<Future::SerialLinearAlgebraTraits>::Pointer p_linear_operator = Kratos::make_shared<Future::SparseMatrixLinearOperator<Future::SerialLinearAlgebraTraits>>(LHS);
     p_linear_solver->Solve(p_linear_operator, sol, RHS);
 
     // Check the obtained results

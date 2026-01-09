@@ -33,7 +33,7 @@ namespace py = pybind11;
 
 void AddContainersToPython(py::module& m)
 {
-    using ImplicitStrategyDataContainerType = Future::ImplicitStrategyDataContainer<Future::SerialLinearAlgebra>;
+    using ImplicitStrategyDataContainerType = Future::ImplicitStrategyDataContainer<Future::SerialLinearAlgebraTraits>;
     py::class_<ImplicitStrategyDataContainerType, typename ImplicitStrategyDataContainerType::Pointer>(m, "ImplicitStrategyDataContainer")
         .def(py::init<>())
         .def("Clear", &ImplicitStrategyDataContainerType::Clear)

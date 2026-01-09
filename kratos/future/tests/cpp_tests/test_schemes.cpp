@@ -50,12 +50,12 @@ KRATOS_TEST_CASE_IN_SUITE(StaticSchemeBuild1D, KratosCoreFastSuite)
             "name" : "block_builder"
         }
     })");
-    using SchemeType = Future::StaticScheme<Future::SerialLinearAlgebra>;
+    using SchemeType = Future::StaticScheme<Future::SerialLinearAlgebraTraits>;
     auto p_scheme = Kratos::make_unique<SchemeType>(r_test_model_part, scheme_settings);
 
     // Set up the matrix graph and arrays
     // Note that in a standard case this happens at the strategy level
-    Future::ImplicitStrategyDataContainer<Future::SerialLinearAlgebra> linear_system_container;
+    Future::ImplicitStrategyDataContainer<Future::SerialLinearAlgebraTraits> linear_system_container;
 
     // Call the initialize solution step (note that this sets all the arrays above)
     p_scheme->InitializeSolutionStep(linear_system_container);
@@ -109,12 +109,12 @@ KRATOS_TEST_CASE_IN_SUITE(StaticSchemeBuild2D, KratosCoreFastSuite)
             "name" : "block_builder"
         }
     })");
-    using SchemeType = Future::StaticScheme<Future::SerialLinearAlgebra>;
+    using SchemeType = Future::StaticScheme<Future::SerialLinearAlgebraTraits>;
     auto p_scheme = Kratos::make_unique<SchemeType>(r_test_model_part, scheme_settings);
 
     // Set up the matrix graph and arrays
     // Note that in a standard case this happens at the strategy level
-    Future::ImplicitStrategyDataContainer<Future::SerialLinearAlgebra> linear_system_container;
+    Future::ImplicitStrategyDataContainer<Future::SerialLinearAlgebraTraits> linear_system_container;
 
     // Call the initialize solution step (note that this sets all the arrays above)
     p_scheme->InitializeSolutionStep(linear_system_container);

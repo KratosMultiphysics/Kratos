@@ -30,7 +30,7 @@ namespace Kratos::Future
 ///@name Kratos Classes
 ///@{
 
-struct SerialLinearAlgebra
+struct SerialLinearAlgebraTraits
 {
     using DataType = double;
 
