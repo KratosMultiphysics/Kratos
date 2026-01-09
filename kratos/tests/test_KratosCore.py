@@ -36,6 +36,7 @@ import test_reorder
 import test_exact_integration
 import test_gid_io
 import test_output_process
+import test_json_output_process
 import test_vtk_output_process
 import test_vector_interface
 import test_matrix_interface
@@ -104,6 +105,7 @@ import test_tetrahedral_mesh_orientation_check
 import test_nd_data
 import test_tensor_adaptors
 import test_geometries_tensor_adaptor
+import test_connectivity_ids_tensor_adaptor
 
 # Import modules required for sequential orchestrator test
 from test_sequential_orchestrator import EmptyAnalysisStage
@@ -156,6 +158,7 @@ def AssembleTestSuites():
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([test_exact_integration.TestExactIntegration]))
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([test_gid_io.TestGidIO]))
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([test_output_process.TestOutputProcess]))
+    smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([test_json_output_process.TestJsonOutputProcess]))
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([test_vtk_output_process.TestVtkOutputProcess]))
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([test_vector_interface.TestVectorInterface]))
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([test_matrix_interface.TestMatrixInterface]))
@@ -235,6 +238,7 @@ def AssembleTestSuites():
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([test_nd_data.TestNDData]))
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([test_tensor_adaptors.TestTensorAdaptors]))
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([test_geometries_tensor_adaptor.TestGeometriesTensorAdaptor]))
+    smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([test_connectivity_ids_tensor_adaptor.TestConnectivityIdsTensorAdaptor]))
 
 
     if sympy_available:
