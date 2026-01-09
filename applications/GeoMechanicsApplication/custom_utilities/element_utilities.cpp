@@ -11,6 +11,7 @@
 //
 
 #include "element_utilities.hpp"
+#include "custom_elements/interface_element.h"
 
 #include <cstddef>
 
@@ -142,6 +143,22 @@ Vector GeoElementUtilities::CalculateNodalHydraulicHeadFromWaterPressures(const 
     return nodal_hydraulic_heads;
 }
 
+std::size_t GeoElementUtilities::GetNumberOfIntegrationPointsOf(const Element& rElement)
+{
+    auto p_interface_element = dynamic_cast<const InterfaceElement*>(&rElement);
+    return p_interface_element
+               ? p_interface_element->GetIntegrationScheme().GetNumberOfIntegrationPoints()
+               : rElement.GetGeometry().IntegrationPointsNumber(rElement.GetIntegrationMethod());
+}
+
+Geo::IntegrationPointVectorType GeoElementUtilities::GetIntegrationPointsOf(const Element& rElement)
+{
+    auto p_interface_element = dynamic_cast<const InterfaceElement*>(&rElement);
+    return p_interface_element
+               ? p_interface_element->GetIntegrationScheme().GetIntegrationPoints()
+               : rElement.GetGeometry().IntegrationPoints(rElement.GetIntegrationMethod());
+}
+
 std::vector<Vector> GeoElementUtilities::EvaluateShapeFunctionsAtIntegrationPoints(
     const Geo::IntegrationPointVectorType& rIntegrationPoints, const Geometry<Node>& rGeometry)
 {
@@ -155,6 +172,17 @@ std::vector<Vector> GeoElementUtilities::EvaluateShapeFunctionsAtIntegrationPoin
     result.reserve(rIntegrationPoints.size());
     std::ranges::transform(rIntegrationPoints, std::back_inserter(result), evaluate_shape_function_values);
 
+    return result;
+}
+
+Vector GeoElementUtilities::EvaluateDeterminantsOfJacobiansAtIntegrationPoints(
+    const Geo::IntegrationPointVectorType& rIntegrationPoints, const Geometry<Node>& rGeometry)
+{
+    auto result                           = Vector{rIntegrationPoints.size()};
+    auto evaluate_determinant_of_jacobian = [&rGeometry](const auto& rIntegrationPoint) {
+        return rGeometry.DeterminantOfJacobian(rIntegrationPoint);
+    };
+    std::ranges::transform(rIntegrationPoints, result.begin(), evaluate_determinant_of_jacobian);
     return result;
 }
 

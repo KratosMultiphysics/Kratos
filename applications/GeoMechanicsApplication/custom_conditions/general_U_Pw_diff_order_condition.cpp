@@ -12,7 +12,7 @@
 //                   Vahid Galavi
 //
 
-#include "custom_conditions/general_U_Pw_diff_order_condition.hpp"
+#include "custom_conditions/general_U_Pw_diff_order_condition.h"
 #include "custom_utilities/dof_utilities.h"
 #include "geometries/line_2d_2.h"
 #include "geometries/line_2d_3.h"
@@ -23,6 +23,21 @@
 
 namespace Kratos
 {
+
+GeneralUPwDiffOrderCondition::GeneralUPwDiffOrderCondition()
+    : GeneralUPwDiffOrderCondition(0, nullptr, nullptr) {};
+
+GeneralUPwDiffOrderCondition::GeneralUPwDiffOrderCondition(IndexType NewId, GeometryType::Pointer pGeometry)
+    : GeneralUPwDiffOrderCondition(NewId, pGeometry, nullptr)
+{
+}
+
+GeneralUPwDiffOrderCondition::GeneralUPwDiffOrderCondition(IndexType               NewId,
+                                                           GeometryType::Pointer   pGeometry,
+                                                           PropertiesType::Pointer pProperties)
+    : Condition(NewId, pGeometry, pProperties)
+{
+}
 
 Condition::Pointer GeneralUPwDiffOrderCondition::Create(IndexType               NewId,
                                                         NodesArrayType const&   ThisNodes,

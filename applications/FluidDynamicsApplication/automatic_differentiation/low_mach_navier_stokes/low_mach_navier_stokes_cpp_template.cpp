@@ -419,7 +419,7 @@ void LowMachNavierStokes< LowMachNavierStokesData<3,4> >::ComputeGaussPointLHSCo
     const auto& r_t = rData.Temperature;
     const auto& r_t_lin = rData.Temperature;
     const auto& r_u_mesh = rData.MeshVelocity;
-    const BoundedMatrix<double,2,3> lin_u_conv = rData.Velocity - rData.MeshVelocity;
+    const BoundedMatrix<double,3,4> lin_u_conv = rData.Velocity - rData.MeshVelocity;
 
     // Get shape function values
     const auto& r_N = rData.N;
@@ -463,7 +463,7 @@ void LowMachNavierStokes<LowMachNavierStokesData<3,8>>::ComputeGaussPointLHSCont
     const auto& r_t = rData.Temperature;
     const auto& r_t_lin = rData.Temperature;
     const auto& r_u_mesh = rData.MeshVelocity;
-    const BoundedMatrix<double,2,4> lin_u_conv = rData.Velocity - rData.MeshVelocity;
+    const BoundedMatrix<double,3,8> lin_u_conv = rData.Velocity - rData.MeshVelocity;
 
     // Get shape function values
     const auto& r_N = rData.N;
@@ -628,7 +628,7 @@ void LowMachNavierStokes<LowMachNavierStokesData<3,4>>::ComputeGaussPointRHSCont
 
     const auto& r_t_lin = rData.Temperature;
     const auto& r_u_mesh = rData.MeshVelocity;
-    const BoundedMatrix<double, 2, 3> lin_u_conv = r_u - r_u_mesh;
+    const BoundedMatrix<double, 3, 4> lin_u_conv = r_u - r_u_mesh;
 
     // Get shape function values
     const auto& r_N = rData.N;
@@ -643,7 +643,7 @@ void LowMachNavierStokes<LowMachNavierStokesData<3,4>>::ComputeGaussPointRHSCont
     // Add RHS Gauss point contribution
     const double gauss_weight = rData.Weight;
 
-    //substitute_rhs_2D3N
+    //substitute_rhs_3D4N
 }
 
 template <>
@@ -683,7 +683,7 @@ void LowMachNavierStokes<LowMachNavierStokesData<3,8>>::ComputeGaussPointRHSCont
 
     const auto& r_t_lin = rData.Temperature;
     const auto& r_u_mesh = rData.MeshVelocity;
-    const BoundedMatrix<double, 2, 4> lin_u_conv = r_u - r_u_mesh;
+    const BoundedMatrix<double, 3, 8> lin_u_conv = r_u - r_u_mesh;
 
     // Get shape function values
     const auto& r_N = rData.N;
@@ -698,7 +698,7 @@ void LowMachNavierStokes<LowMachNavierStokesData<3,8>>::ComputeGaussPointRHSCont
     // Add RHS Gauss point contribution
     const double gauss_weight = rData.Weight;
 
-    //substitute_rhs_2D4N
+    //substitute_rhs_3D8N
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////

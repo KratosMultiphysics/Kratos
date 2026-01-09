@@ -13,6 +13,7 @@
 
 #include "linear_nodal_extrapolator.h"
 
+#include "element_utilities.hpp"
 #include "geometries/hexahedra_3d_8.h"
 #include "geometries/line_2d_2.h"
 #include "geometries/quadrilateral_2d_4.h"
@@ -24,43 +25,38 @@ namespace Kratos
 {
 
 Matrix LinearNodalExtrapolator::CalculateElementExtrapolationMatrix(const GeometryType& rGeometry,
-                                                                    const GeometryData::IntegrationMethod& rIntegrationMethod) const
+                                                                    const Geo::IntegrationPointVectorType& rIntegrationPoints) const
 {
     CheckIfGeometryIsSupported(rGeometry);
 
-    const auto p_lower_order_geometry = CreateLowerOrderGeometry(rGeometry);
-    const GeometryType& p_corner_geometry = p_lower_order_geometry ? *p_lower_order_geometry : rGeometry;
+    const auto  p_lower_order_geometry = CreateLowerOrderGeometry(rGeometry);
+    const auto& r_corner_geometry = p_lower_order_geometry ? *p_lower_order_geometry : rGeometry;
 
-    Matrix extrapolation_matrix =
-        CalculateExtrapolationMatrixForCornerNodes(rGeometry, rIntegrationMethod, p_corner_geometry);
+    auto result = CalculateExtrapolationMatrixForCornerNodes(rGeometry, rIntegrationPoints, r_corner_geometry);
 
-    if (p_lower_order_geometry) {
-        AddRowsForMidsideNodes(rGeometry, extrapolation_matrix);
-    }
+    if (p_lower_order_geometry) AddRowsForMidsideNodes(rGeometry, result);
 
-    return extrapolation_matrix;
+    return result;
 }
 
 Matrix LinearNodalExtrapolator::CalculateExtrapolationMatrixForCornerNodes(const GeometryType& rGeometry,
-                                                                           const GeometryData::IntegrationMethod& rIntegrationMethod,
+                                                                           const Geo::IntegrationPointVectorType& rIntegrationPoints,
                                                                            const GeometryType& rCornerGeometry)
 {
-    const SizeType number_of_corner_nodes = rCornerGeometry.PointsNumber();
+    const auto determinants_of_jacobian =
+        GeoElementUtilities::EvaluateDeterminantsOfJacobiansAtIntegrationPoints(rIntegrationPoints, rGeometry);
 
-    Matrix      quasi_mass_mat     = ZeroMatrix(number_of_corner_nodes, number_of_corner_nodes);
-    const auto& integration_points = rGeometry.IntegrationPoints(rIntegrationMethod);
-    const auto  number_of_integration_points = integration_points.size();
-    Matrix      node_coefficients(number_of_corner_nodes, number_of_integration_points);
-    Vector      determinants_of_jacobian;
-    rGeometry.DeterminantOfJacobian(determinants_of_jacobian, rIntegrationMethod);
+    const auto shape_functions_values_at_integration_points =
+        GeoElementUtilities::EvaluateShapeFunctionsAtIntegrationPoints(rIntegrationPoints, rCornerGeometry);
 
-    const Matrix& shape_functions_values_at_integration_points =
-        rCornerGeometry.ShapeFunctionsValues(rIntegrationMethod);
-
-    for (IndexType i = 0; i < number_of_integration_points; ++i) {
-        const Vector N = row(shape_functions_values_at_integration_points, i);
-        quasi_mass_mat += outer_prod(N, N) * determinants_of_jacobian[i] * integration_points[i].Weight();
-        column(node_coefficients, i) = N * determinants_of_jacobian[i] * integration_points[i].Weight();
+    const auto number_of_corner_nodes = rCornerGeometry.PointsNumber();
+    Matrix     quasi_mass_mat         = ZeroMatrix(number_of_corner_nodes, number_of_corner_nodes);
+    const auto number_of_integration_points = rIntegrationPoints.size();
+    Matrix     node_coefficients(number_of_corner_nodes, number_of_integration_points);
+    for (auto i = std::size_t{0}; i < number_of_integration_points; ++i) {
+        const auto& N = shape_functions_values_at_integration_points[i];
+        quasi_mass_mat += outer_prod(N, N) * determinants_of_jacobian[i] * rIntegrationPoints[i].Weight();
+        column(node_coefficients, i) = N * determinants_of_jacobian[i] * rIntegrationPoints[i].Weight();
     }
 
     double metric_determinant;

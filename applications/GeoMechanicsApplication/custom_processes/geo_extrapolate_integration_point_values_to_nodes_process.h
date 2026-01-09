@@ -14,6 +14,7 @@
 
 #pragma once
 
+#include "custom_utilities/node_utilities.h"
 #include "geometries/geometry.h"
 #include "includes/element.h"
 #include "includes/kratos_parameters.h"
@@ -47,30 +48,25 @@ public:
 
     explicit GeoExtrapolateIntegrationPointValuesToNodesProcess(Model& rModel,
                                                                 Parameters ThisParameters = Parameters(R"({})"));
-    explicit GeoExtrapolateIntegrationPointValuesToNodesProcess(ModelPart& rMainModelPart,
-                                                                Parameters ThisParameters = Parameters(R"({})"));
 
     ~GeoExtrapolateIntegrationPointValuesToNodesProcess() override;
 
-    void                           Execute() override;
     void                           ExecuteBeforeSolutionLoop() override;
     void                           ExecuteFinalizeSolutionStep() override;
-    void                           ExecuteFinalize() override;
     [[nodiscard]] const Parameters GetDefaultParameters() const override;
     [[nodiscard]] std::string      Info() const override;
     void                           PrintInfo(std::ostream& rOStream) const override;
 
 private:
-    ModelPart&                                        mrModelPart;
+    std::vector<std::reference_wrapper<ModelPart>>    mrModelParts;
     std::vector<const Variable<double>*>              mDoubleVariables;
     std::vector<const Variable<array_1d<double, 3>>*> mArrayVariables;
     std::vector<const Variable<Vector>*>              mVectorVariables;
     std::vector<const Variable<Matrix>*>              mMatrixVariables;
-    const Variable<double>&                           mrAverageVariable       = NODAL_AREA;
     std::map<SizeType, Matrix>                        mExtrapolationMatrixMap = {};
-    std::unique_ptr<NodalExtrapolator>                mpExtrapolator;
     std::map<const Variable<Vector>*, Vector>         mZeroValuesOfVectorVariables;
     std::map<const Variable<Matrix>*, Matrix>         mZeroValuesOfMatrixVariables;
+    std::map<std::size_t, std::set<std::size_t>>      mNodeIdToConnectedElementIds;
 
     void FillVariableLists(const Parameters& rParameters);
     void InitializeVectorAndMatrixZeros();
@@ -81,7 +77,12 @@ private:
                                           SizeType           NumberOfIntegrationPoints,
                                           const ProcessInfo& rProcessInfo);
     void InitializeVariables();
-    void InitializeAverageVariablesForElements() const;
+    void InitializeNodeToConnectedElementsMap();
+
+    [[nodiscard]] static double              GetZeroValueOf(const Variable<double>&);
+    [[nodiscard]] static array_1d<double, 3> GetZeroValueOf(const Variable<array_1d<double, 3>>&);
+    [[nodiscard]] Vector GetZeroValueOf(const Variable<Vector>& rVariable) const;
+    [[nodiscard]] Matrix GetZeroValueOf(const Variable<Matrix>& rVariable) const;
 
     template <class T>
     bool TryAddVariableToList(const std::string& rVariableName, std::vector<const Variable<T>*>& rList) const
@@ -99,23 +100,23 @@ private:
                                             const Variable<T>& rVariable,
                                             const Matrix&      rExtrapolationMatrix,
                                             SizeType           NumberOfIntegrationPoints,
+                                            const ProcessInfo& rProcessInfo,
                                             const U&           rAtomicAddOperation) const
     {
-        auto&          r_this_geometry = rElement.GetGeometry();
         std::vector<T> values_on_integration_points(NumberOfIntegrationPoints);
-        rElement.CalculateOnIntegrationPoints(rVariable, values_on_integration_points,
-                                              mrModelPart.GetProcessInfo());
+        rElement.CalculateOnIntegrationPoints(rVariable, values_on_integration_points, rProcessInfo);
 
-        for (IndexType iNode = 0; iNode < r_this_geometry.PointsNumber(); ++iNode) {
-            // We first initialize the source, which we need to do by getting the first value,
-            // because we don't know the size of the dynamically allocated Vector/Matrix
-            T source = rExtrapolationMatrix(iNode, 0) * values_on_integration_points[0];
-            for (IndexType i_gauss_point = 1; i_gauss_point < values_on_integration_points.size(); ++i_gauss_point) {
-                source += rExtrapolationMatrix(iNode, i_gauss_point) * values_on_integration_points[i_gauss_point];
-            }
-            source /= r_this_geometry[iNode].GetValue(mrAverageVariable);
+        const auto global_to_local_mapping =
+            NodeUtilities::CreateGlobalToLocalNodeIndexMap(rElement.GetGeometry().Points());
+        for (auto& r_node : rElement.GetGeometry()) {
+            const auto  local_node_index = global_to_local_mapping.at(r_node.Id());
+            const auto& r_row            = row(rExtrapolationMatrix, local_node_index);
+            const T     nodal_value =
+                std::inner_product(r_row.begin(), r_row.end(), values_on_integration_points.begin(),
+                                   GetZeroValueOf(rVariable)) /
+                static_cast<double>(mNodeIdToConnectedElementIds.at(r_node.Id()).size());
 
-            rAtomicAddOperation(r_this_geometry[iNode].FastGetSolutionStepValue(rVariable), source);
+            rAtomicAddOperation(r_node.FastGetSolutionStepValue(rVariable), nodal_value);
         }
     }
 
@@ -124,7 +125,9 @@ private:
     [[nodiscard]] bool          ExtrapolationMatrixIsCachedFor(const Element& rElement) const;
     [[nodiscard]] const Matrix& GetCachedExtrapolationMatrixFor(const Element& rElement) const;
 
-    void AddIntegrationPointContributionsForAllVariables(Element& rElem, const Matrix& rExtrapolationMatrix) const;
+    void AddIntegrationPointContributionsForAllVariables(Element&           rElement,
+                                                         const Matrix&      rExtrapolationMatrix,
+                                                         const ProcessInfo& rProcessInfo) const;
 };
 
 } // namespace Kratos.

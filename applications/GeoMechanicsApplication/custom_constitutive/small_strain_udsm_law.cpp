@@ -13,7 +13,6 @@
 #include <algorithm>
 #include <type_traits>
 
-#include "custom_constitutive/constitutive_law_dimension.h"
 #include "custom_constitutive/small_strain_udsm_law.h"
 #include "custom_utilities/check_utilities.h"
 #include "custom_utilities/constitutive_law_utilities.h"
@@ -30,6 +29,7 @@ namespace
 {
 
 using namespace Kratos;
+using namespace std::string_literals;
 
 constexpr auto index_of_is_non_symmetric_flag    = 0;
 constexpr auto index_of_is_stress_dependent_flag = 1;
@@ -153,8 +153,6 @@ using f_UserMod          = void (*)(int*,
 #endif
 
 using SizeType = std::size_t;
-
-SmallStrainUDSMLaw::~SmallStrainUDSMLaw() = default;
 
 SmallStrainUDSMLaw::SmallStrainUDSMLaw(std::unique_ptr<ConstitutiveLawDimension> pDimension)
     : mpDimension(std::move(pDimension))
@@ -927,7 +925,7 @@ bool SmallStrainUDSMLaw::Has(const Variable<Vector>& rThisVariable)
     return rThisVariable == STATE_VARIABLES || rThisVariable == CAUCHY_STRESS_VECTOR;
 }
 
-std::string SmallStrainUDSMLaw::Info() const { return "SmallStrainUDSMLaw"; }
+std::string SmallStrainUDSMLaw::Info() const { return "SmallStrainUDSMLaw"s; }
 
 void SmallStrainUDSMLaw::PrintInfo(std::ostream& rOStream) const { rOStream << Info(); }
 

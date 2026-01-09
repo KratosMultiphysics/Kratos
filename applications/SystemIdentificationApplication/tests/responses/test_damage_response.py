@@ -171,7 +171,7 @@ class TestDamageDetectionResponseStrainSensor(kratos_unittest.TestCase):
             model_part = response.GetInfluencingModelPart()
 
             ref_value = response.CalculateValue()
-            self.assertAlmostEqual(ref_value, 1.9789595600760277e-07, 6)
+            self.assertAlmostEqual(ref_value, 2.7829118764552163e-08, 10)
 
             response.CalculateGradient(var)
 

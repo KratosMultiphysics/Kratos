@@ -370,7 +370,7 @@ public:
 
         // Assemble entities
         TLSType aux_tls;
-        #pragma omp parallel firstprivate(n_elems, n_conds, elems_begin, conds_begin, r_process_info, aux_tls)
+        #pragma omp parallel
         {
             // Assemble elements
             # pragma omp for schedule(guided, 512) nowait
@@ -436,7 +436,7 @@ public:
 
         // Assemble entities
         TLSType aux_tls;
-        #pragma omp parallel firstprivate(n_elems, n_conds, elems_begin, conds_begin, r_process_info, aux_tls)
+        #pragma omp parallel
         {
             // Assemble elements
             # pragma omp for schedule(guided, 512) nowait
@@ -666,7 +666,7 @@ public:
 
         // Assemble entities
         TLSType aux_tls;
-        #pragma omp parallel firstprivate(n_elems, n_conds, elems_begin, conds_begin, r_process_info, aux_tls)
+        #pragma omp parallel
         {
             // Assemble elements
             # pragma omp for schedule(guided, 512) nowait
@@ -726,7 +726,7 @@ public:
 
         // Assemble entities
         TLSType aux_tls;
-        #pragma omp parallel firstprivate(n_elems, n_conds, elems_begin, conds_begin, r_process_info, aux_tls)
+        #pragma omp parallel
         {
             // Assemble elements
             # pragma omp for schedule(guided, 512) nowait
@@ -786,7 +786,7 @@ public:
 
         // Assemble entities
         TLSType aux_tls;
-        #pragma omp parallel firstprivate(n_elems, n_conds, elems_begin, conds_begin, r_process_info, aux_tls)
+        #pragma omp parallel
         {
             // Assemble elements
             # pragma omp for schedule(guided, 512) nowait
@@ -846,7 +846,7 @@ public:
 
         // Assemble entities
         TLSType aux_tls;
-        #pragma omp parallel firstprivate(n_elems, n_conds, elems_begin, conds_begin, r_process_info, aux_tls)
+        #pragma omp parallel
         {
             // Assemble elements
             # pragma omp for schedule(guided, 512) nowait
@@ -915,7 +915,7 @@ public:
 
             TLSType aux_tls;
             auto& r_eff_dof_set = *(rLinearSystemContainer.pEffectiveDofSet);
-            #pragma omp parallel firstprivate(r_eff_dof_set, consts_begin, r_process_info)
+            #pragma omp parallel
             {
                 // Auxiliary set to store the inactive constraints slave DOFs (required by the block build)
                 std::unordered_set<IndexType> auxiliar_inactive_slave_dofs;

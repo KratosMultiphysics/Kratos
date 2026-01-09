@@ -38,11 +38,9 @@ public:
 
     GeoThermalPointFluxCondition(IndexType NewId, GeometryType::Pointer pGeometry, PropertiesType::Pointer pProperties);
 
-    Condition::Pointer Create(IndexType NewId, const NodesArrayType& rThisNodes, PropertiesType::Pointer pProperties) const override
-    {
-        return Kratos::make_intrusive<GeoThermalPointFluxCondition>(
-            NewId, this->GetGeometry().Create(rThisNodes), pProperties);
-    }
+    Condition::Pointer Create(IndexType               NewId,
+                              const NodesArrayType&   rThisNodes,
+                              PropertiesType::Pointer pProperties) const override;
 
     std::string Info() const override;
 
@@ -52,15 +50,9 @@ protected:
 private:
     friend class Serializer;
 
-    void save(Serializer& rSerializer) const override
-    {
-        KRATOS_SERIALIZE_SAVE_BASE_CLASS(rSerializer, BaseType)
-    }
+    void save(Serializer& rSerializer) const override;
 
-    void load(Serializer& rSerializer) override
-    {
-        KRATOS_SERIALIZE_LOAD_BASE_CLASS(rSerializer, BaseType)
-    }
+    void load(Serializer& rSerializer) override;
 };
 
 } // namespace Kratos

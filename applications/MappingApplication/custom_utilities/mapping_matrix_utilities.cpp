@@ -206,12 +206,59 @@ void MappingMatrixUtilitiesType::BuildMappingMatrix(
 
     BuildMatrix(rpMappingMatrix, rMapperLocalSystems);
 
-    // refactor to be used from the mapper directly
-    // if (EchoLevel > 2) {
-    //     const std::string base_file_name = "O_" + rModelPartOrigin.Name() + "__D_" + rModelPartDestination.Name() +".mm";
-    //     MappingSparseSpaceType::WriteMatrixMarketMatrix(("MappingMatrix_"+base_file_name).c_str(), *rpMappingMatrix, false);
-    //     CheckRowSum<MappingSparseSpaceType, DenseSpaceType>(*rpMappingMatrix, base_file_name);
-    // }
+    MappingMatrixUtilitiesType::InitializeSystemVector(rpInterfaceVectorOrigin, num_nodes_origin);
+    MappingMatrixUtilitiesType::InitializeSystemVector(rpInterfaceVectorDestination, num_nodes_destination);
+
+    KRATOS_CATCH("")
+}
+
+template<>
+void MappingMatrixUtilitiesType::BuildMappingMatrixRBFMapper(
+    Kratos::unique_ptr<typename MappingSparseSpaceType::MatrixType>& rpMappingMatrix,
+    Kratos::unique_ptr<typename MappingSparseSpaceType::VectorType>& rpInterfaceVectorOrigin,
+    Kratos::unique_ptr<typename MappingSparseSpaceType::VectorType>& rpInterfaceVectorDestination,
+    const ModelPart& rModelPartOrigin,
+    const ModelPart& rModelPartDestination,
+    std::vector<Kratos::unique_ptr<MapperLocalSystem>>& rMapperLocalSystems,
+    const IndexType NumberOfPolynomialTerms,
+    const bool BuildOriginInterpolationMatrix,
+    const bool OriginIsIga,
+    const int EchoLevel)
+{
+    KRATOS_TRY
+
+    static_assert(!MappingSparseSpaceType::IsDistributed(), "Using a distributed Space!");
+
+    const SizeType num_nodes_origin = rModelPartOrigin.NumberOfNodes();
+    const SizeType num_conditions_origin = rModelPartOrigin.NumberOfConditions();
+    const SizeType num_nodes_destination = rModelPartDestination.NumberOfNodes();
+    const SizeType num_conditions_destination = rModelPartDestination.NumberOfConditions();
+
+    IndexType origin_size;
+    IndexType destination_size;
+
+    if (!OriginIsIga){
+        origin_size = num_nodes_origin;
+        destination_size = num_nodes_destination;
+    } else if (OriginIsIga && BuildOriginInterpolationMatrix) {
+        origin_size = num_conditions_origin;
+        destination_size = num_conditions_destination;
+    } else if (OriginIsIga && !BuildOriginInterpolationMatrix) {
+        origin_size = num_conditions_origin;
+        destination_size = num_nodes_destination;
+    }
+    
+    // Initialize the Matrix
+    // This has to be done always since the Graph has changed if the Interface is updated!
+    if (BuildOriginInterpolationMatrix){
+        ConstructMatrixStructure(rpMappingMatrix, rMapperLocalSystems,
+                                origin_size + NumberOfPolynomialTerms, destination_size + NumberOfPolynomialTerms);
+    } else {
+        ConstructMatrixStructure(rpMappingMatrix, rMapperLocalSystems,
+                                origin_size + NumberOfPolynomialTerms, destination_size);
+    }
+
+    BuildMatrix(rpMappingMatrix, rMapperLocalSystems);
 
     MappingMatrixUtilitiesType::InitializeSystemVector(rpInterfaceVectorOrigin, num_nodes_origin);
     MappingMatrixUtilitiesType::InitializeSystemVector(rpInterfaceVectorDestination, num_nodes_destination);

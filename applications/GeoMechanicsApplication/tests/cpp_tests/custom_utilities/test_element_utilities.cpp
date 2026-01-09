@@ -10,7 +10,7 @@
 //  Main authors:    Richard Faasse
 //
 
-#include "custom_geometries/interface_geometry.h"
+#include "custom_geometries/interface_geometry.hpp"
 #include "custom_utilities/element_utilities.hpp"
 #include "geometries/line_2d_2.h"
 #include "includes/node.h"

@@ -548,6 +548,7 @@ void AMGCLSolver<TSparse,TDense>::InitializeSolutionStep(SparseMatrixType& rLhs,
 
         // Construct a GPU-bound shared-memory solver.
         #define KRATOS_MAKE_SHARED_MEMORY_AMGCL_SOLVER(BLOCK_SIZE)                                          \
+            register_vexcl_static_matrix_type<typename TSparse::DataType,BLOCK_SIZE>();                     \
             using BackendType = amgcl::backend::vexcl<typename Impl::template BackendMatrix<BLOCK_SIZE>>;   \
             using SolverType = typename Impl::template MakeSharedMemorySolver<BackendType>::element_type;   \
                                                                                                             \
@@ -564,6 +565,7 @@ void AMGCLSolver<TSparse,TDense>::InitializeSolutionStep(SparseMatrixType& rLhs,
         // Construct a GPU-bound distributed-memory solver.
         #ifdef KRATOS_USING_MPI
             #define KRATOS_MAKE_DISTRIBUTED_AMGCL_SOLVER(BLOCK_SIZE)                                            \
+                register_vexcl_static_matrix_type<typename TSparse::DataType,BLOCK_SIZE>();                     \
                 using BackendType = amgcl::backend::vexcl<typename Impl::template BackendMatrix<BLOCK_SIZE>>;   \
                 using SolverType = typename Impl::template MakeDistributedSolver<BackendType>::element_type;    \
                                                                                                                 \

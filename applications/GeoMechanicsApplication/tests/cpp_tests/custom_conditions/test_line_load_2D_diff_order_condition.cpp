@@ -10,7 +10,7 @@
 //  Main authors:    Anne van de Graaf
 //
 #include "containers/variables_list.h"
-#include "custom_conditions/general_U_Pw_diff_order_condition.hpp"
+#include "custom_conditions/general_U_Pw_diff_order_condition.h"
 #include "custom_utilities/registration_utilities.h"
 #include "geo_aliases.h"
 #include "geo_mechanics_application.h"

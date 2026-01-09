@@ -140,6 +140,7 @@ class MPMSolver(PythonSolver):
 
         # Generate material points
         self._GenerateMaterialPoint()
+        self._GetSolutionStrategy().Initialize()
 
         KratosMultiphysics.Logger.PrintInfo("::[MPMSolver]:: ","Solver is initialized correctly.")
 
@@ -152,13 +153,12 @@ class MPMSolver(PythonSolver):
         return new_time
 
     def InitializeSolutionStep(self):
-        self._SearchElement()
-        self._GetSolutionStrategy().Initialize()
-
-        #clean nodal values and map from MPs to nodes
+        
         self._GetSolutionStrategy().InitializeSolutionStep()
 
     def Predict(self):
+        self._SearchElement()
+        #clean nodal values and map from MPs to nodes
         self._GetSolutionStrategy().Predict()
 
     def SolveSolutionStep(self):

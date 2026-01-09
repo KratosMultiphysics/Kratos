@@ -375,8 +375,6 @@ public:
         return R;
     }
 
-private:
-
     /**
     * Computes the Spin Fitter Matrix.
     * This is the only matrix not included in the EICR, because it depends on how

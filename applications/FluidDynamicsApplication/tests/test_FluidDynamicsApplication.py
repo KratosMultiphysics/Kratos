@@ -133,6 +133,7 @@ def AssembleTestSuites():
     nightSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([NavierStokesCompressibleExplicitSolverTest]))
     nightSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([FluidComputationProcessesTest]))
     nightSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([NavierStokesFractionalVectorialConvectionTest]))
+    nightSuite.addTest(AdjointFluidTest('testCylinder'))
 
     # For very long tests that should not be in nightly and you can use to validate
     validationSuite = suites['validation']
@@ -145,7 +146,6 @@ def AssembleTestSuites():
     validationSuite.addTest(AdjointQSVMSSensitivity2D('testSteadyCylinder'))
     validationSuite.addTest(ManufacturedSolutionTest('testManufacturedSolution'))
     #FIXME: MOVE BACK THE SOD TO NIGHT ONCE WE FIX THE NIGHTLY BUILD ISSUE
-    validationSuite.addTest(AdjointFluidTest('testCylinder'))
     validationSuite.addTest(AdjointFluidTest('testSlipCylinder'))
     validationSuite.addTest(SodShockTubeTest('testSodShockTubeExplicitASGS'))
     validationSuite.addTest(SodShockTubeTest('testSodShockTubeExplicitASGSShockCapturing'))

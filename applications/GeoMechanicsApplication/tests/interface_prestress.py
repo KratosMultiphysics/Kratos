@@ -85,7 +85,7 @@ class KratosGeoMechanicsInterfacePreStressTests(KratosUnittest.TestCase):
         self._check_output_vectors(
             output_data,
             expected_traction_vector,
-            output_item_label="CAUCHY_STRESS_VECTOR",
+            output_item_label="GEO_EFFECTIVE_TRACTION_VECTOR",
             name_of_output_item="traction",
             name_of_normal_component="normal traction",
             name_of_shear_component="shear_traction",
@@ -104,7 +104,7 @@ class KratosGeoMechanicsInterfacePreStressTests(KratosUnittest.TestCase):
         self._check_output_vectors(
             output_data,
             expected_relative_displacement_vector,
-            output_item_label="STRAIN",
+            output_item_label="GEO_RELATIVE_DISPLACEMENT_VECTOR",
             name_of_output_item="relative displacement",
             name_of_normal_component="relative normal displacement",
             name_of_shear_component="relative shear displacement",

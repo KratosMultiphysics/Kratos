@@ -14,7 +14,8 @@
 #include "custom_constitutive/incremental_linear_elastic_interface_law.h"
 #include "custom_constitutive/interface_plane_strain.h"
 #include "custom_constitutive/interface_three_dimensional_surface.h"
-#include "custom_geometries/interface_geometry.h"
+#include "custom_geometries/interface_geometry.hpp"
+#include "custom_utilities/registration_utilities.h"
 #include "geo_mechanics_application_variables.h"
 #include "geometries/line_2d_2.h"
 #include "includes/checks.h"
@@ -22,7 +23,6 @@
 #include "tests/cpp_tests/geo_mechanics_fast_suite.h"
 #include "tests/cpp_tests/test_utilities.h"
 
-#include "custom_utilities/registration_utilities.h"
 #include <boost/numeric/ublas/assignment.hpp>
 #include <sstream>
 #include <string>
@@ -70,15 +70,17 @@ void TestInitialStates(GeoIncrementalLinearElasticInterfaceLaw& rLaw,
                                        rExpectedInitialTraction, Kratos::Testing::Defaults::relative_tolerance)
 }
 
-void TestStrainAndStress(GeoIncrementalLinearElasticInterfaceLaw& rLaw,
-                         const Vector&                            rExpectedStrain,
-                         const Vector&                            rExpectedStress)
+void TestRelativeDisplacementVectorAndTractionVector(GeoIncrementalLinearElasticInterfaceLaw& rLaw,
+                                                     const Vector& rExpectedRelativeDisplacementVector,
+                                                     const Vector& rExpectedEffectiveTractionVector)
 {
     auto value = Vector{};
-    rLaw.GetValue(STRAIN, value);
-    KRATOS_EXPECT_VECTOR_RELATIVE_NEAR(value, rExpectedStrain, Kratos::Testing::Defaults::relative_tolerance)
-    rLaw.GetValue(CAUCHY_STRESS_VECTOR, value);
-    KRATOS_EXPECT_VECTOR_RELATIVE_NEAR(value, rExpectedStress, Kratos::Testing::Defaults::relative_tolerance)
+    rLaw.GetValue(GEO_RELATIVE_DISPLACEMENT_VECTOR, value);
+    KRATOS_EXPECT_VECTOR_RELATIVE_NEAR(value, rExpectedRelativeDisplacementVector,
+                                       Kratos::Testing::Defaults::relative_tolerance)
+    rLaw.GetValue(GEO_EFFECTIVE_TRACTION_VECTOR, value);
+    KRATOS_EXPECT_VECTOR_RELATIVE_NEAR(value, rExpectedEffectiveTractionVector,
+                                       Kratos::Testing::Defaults::relative_tolerance)
 }
 } // namespace
 
@@ -283,12 +285,12 @@ KRATOS_TEST_CASE_IN_SUITE(WhenNoInitialStateIsGivenStartWithZeroRelativeDisplace
     auto law_2D = CreateLaw2D();
     InitializeLawMaterial(law_2D);
 
-    TestStrainAndStress(law_2D, Vector{ZeroVector{2}}, Vector{ZeroVector{2}});
+    TestRelativeDisplacementVectorAndTractionVector(law_2D, Vector{ZeroVector{2}}, Vector{ZeroVector{2}});
 
     auto law_3D = CreateLaw3D();
     InitializeLawMaterial(law_3D);
 
-    TestStrainAndStress(law_3D, Vector{ZeroVector{3}}, Vector{ZeroVector{3}});
+    TestRelativeDisplacementVectorAndTractionVector(law_3D, Vector{ZeroVector{3}}, Vector{ZeroVector{3}});
 }
 
 KRATOS_TEST_CASE_IN_SUITE(WhenAnInitialStateIsGivenStartFromThereAfterMaterialInitialization,
@@ -300,7 +302,7 @@ KRATOS_TEST_CASE_IN_SUITE(WhenAnInitialStateIsGivenStartFromThereAfterMaterialIn
     SetLawInitialState(law_2D, initial_relative_displacement, initial_traction);
     InitializeLawMaterial(law_2D);
 
-    TestStrainAndStress(law_2D, initial_relative_displacement, initial_traction);
+    TestRelativeDisplacementVectorAndTractionVector(law_2D, initial_relative_displacement, initial_traction);
 
     auto       law_3D                           = CreateLaw3D();
     const auto initial_relative_displacement_3D = Vector{ScalarVector{3, 0.5}};
@@ -308,7 +310,7 @@ KRATOS_TEST_CASE_IN_SUITE(WhenAnInitialStateIsGivenStartFromThereAfterMaterialIn
     SetLawInitialState(law_3D, initial_relative_displacement_3D, initial_traction_3D);
     InitializeLawMaterial(law_3D);
 
-    TestStrainAndStress(law_3D, initial_relative_displacement_3D, initial_traction_3D);
+    TestRelativeDisplacementVectorAndTractionVector(law_3D, initial_relative_displacement_3D, initial_traction_3D);
 }
 
 KRATOS_TEST_CASE_IN_SUITE(ComputedIncrementalTractionIsProductOfIncrementalRelativeDisplacementAndStiffness,
@@ -444,7 +446,7 @@ KRATOS_TEST_CASE_IN_SUITE(LinearElasticLawForInterfacesCanBeSavedToAndLoadedFrom
     auto restored_law_2D = GeoIncrementalLinearElasticInterfaceLaw{nullptr};
     serializer.load(tag_2D, restored_law_2D);
 
-    TestStrainAndStress(restored_law_2D, relative_displacement, traction);
+    TestRelativeDisplacementVectorAndTractionVector(restored_law_2D, relative_displacement, traction);
     TestInitialStates(restored_law_2D, initial_relative_displacement, initial_traction);
 
     auto       law_3D                           = CreateLaw3D();
@@ -469,7 +471,7 @@ KRATOS_TEST_CASE_IN_SUITE(LinearElasticLawForInterfacesCanBeSavedToAndLoadedFrom
     auto restored_law_3D = GeoIncrementalLinearElasticInterfaceLaw{nullptr};
     serializer.load(tag_3D, restored_law_3D);
 
-    TestStrainAndStress(restored_law_3D, relative_displacement, traction);
+    TestRelativeDisplacementVectorAndTractionVector(restored_law_3D, relative_displacement, traction);
     TestInitialStates(restored_law_3D, initial_relative_displacement_3D, initial_traction_3D);
 }
 

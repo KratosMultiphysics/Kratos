@@ -89,7 +89,7 @@ KRATOS_TEST_CASE_IN_SUITE(InterfaceCoulombWithTensionCutOff_CalculateMaterialRes
 
     // Arrange: set elastic tensile state
     traction_vector <<= 5.0, 4.0;
-    law.SetValue(CAUCHY_STRESS_VECTOR, traction_vector, ProcessInfo{});
+    law.SetValue(GEO_EFFECTIVE_TRACTION_VECTOR, traction_vector, ProcessInfo{});
     law.FinalizeMaterialResponseCauchy(parameters);
 
     // Act
@@ -100,7 +100,7 @@ KRATOS_TEST_CASE_IN_SUITE(InterfaceCoulombWithTensionCutOff_CalculateMaterialRes
 
     // Arrange: set elastic tensile state (reverse shear)
     traction_vector <<= 5.0, -2.0;
-    law.SetValue(CAUCHY_STRESS_VECTOR, traction_vector, ProcessInfo{});
+    law.SetValue(GEO_EFFECTIVE_TRACTION_VECTOR, traction_vector, ProcessInfo{});
     law.FinalizeMaterialResponseCauchy(parameters);
 
     // Act
@@ -299,7 +299,7 @@ KRATOS_TEST_CASE_IN_SUITE(InterfaceCoulombWithTensionCutOff_Serialization, Krato
     ASSERT_NE(p_loaded_law.get(), nullptr);
 
     auto loaded_calculated_traction_vector = Vector{};
-    p_loaded_law->GetValue(CAUCHY_STRESS_VECTOR, loaded_calculated_traction_vector);
+    p_loaded_law->GetValue(GEO_EFFECTIVE_TRACTION_VECTOR, loaded_calculated_traction_vector);
     KRATOS_EXPECT_VECTOR_EQ(loaded_calculated_traction_vector, calculated_traction_vector);
 
     // Check whether the finalized traction and relative displacement have been restored properly
