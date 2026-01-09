@@ -230,7 +230,7 @@ GeometriesTensorAdaptor::GeometriesTensorAdaptor(
 {
     mpContainer = pContainer;
     std::visit([this](auto&& p_container) {
-        using ContainerType = std::decay_t<decltype(*p_container)>;
+        using ContainerType = BareType<decltype(*p_container)>;
         if constexpr (IsSupportedContainer<ContainerType>()) {
             auto method = GetIntegrationMethod(*p_container, mIntegrationMethod);
             auto shape = GetShape(*p_container, mDatum, method);
