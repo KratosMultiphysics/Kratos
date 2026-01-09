@@ -56,8 +56,7 @@ class MPMWriteEnergyOutputProcess(KratosMultiphysics.OutputProcess):
 
         file_header = self._GetFileHeader()
         self.output_file = TimeBasedAsciiFileWriterUtility(self.model_part, file_handler_params, file_header).file
-        if self.output_file:
-            self.PrintOutput()
+        self.PrintOutput()
 
     def IsOutputStep(self):
         time = self.model_part.ProcessInfo[KratosMultiphysics.TIME]
