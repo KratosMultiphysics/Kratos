@@ -217,14 +217,14 @@ public:
      * This method sets up the linear system of equations (DOF sets and allocation) and calls the Initialize of all entities
      * Further operations might be required depending on the time integration scheme
      * Note that steps from 1 to 4 can be done once if the DOF set does not change (i.e., the mesh and the constraints active/inactive status do not change in time)
-     * @param rLinearSystemContainer Auxiliary container with the linear system arrays
+     * @param rImplicitStrategyDataContainer Auxiliary container with the linear system arrays
      */
-    virtual void Initialize(LinearSystemContainer<TLinearAlgebra> &rLinearSystemContainer)
+    virtual void Initialize(ImplicitStrategyDataContainer<TLinearAlgebra> &rImplicitStrategyDataContainer)
     {
         KRATOS_TRY
 
         // Set up the system
-        InitializeLinearSystem(rLinearSystemContainer);
+        InitializeLinearSystem(rImplicitStrategyDataContainer);
 
         // Initialize elements, conditions and constraints
         EntitiesUtilities::InitializeAllEntities(*mpModelPart);
@@ -234,9 +234,9 @@ public:
 
     /**
      * @brief Function called once at the beginning of each solution step
-     * @param rLinearSystemContainer Auxiliary container with the linear system arrays
+     * @param rImplicitStrategyDataContainer Auxiliary container with the linear system arrays
      */
-    virtual void InitializeSolutionStep(LinearSystemContainer<TLinearAlgebra>& rLinearSystemContainer)
+    virtual void InitializeSolutionStep(ImplicitStrategyDataContainer<TLinearAlgebra>& rImplicitStrategyDataContainer)
     {
         // Initializes solution step for all of the elements, conditions and constraints
         EntitiesUtilities::InitializeSolutionStepAllEntities(*mpModelPart);
@@ -245,19 +245,19 @@ public:
     /**
      * @brief Performing the prediction of the solution.
      * @warning Must be defined in derived classes
-     * @param rLinearSystemContainer Auxiliary container with the linear system arrays
+     * @param rImplicitStrategyDataContainer Auxiliary container with the linear system arrays
      */
-    virtual void Predict(LinearSystemContainer<TLinearAlgebra> &rLinearSystemContainer)
+    virtual void Predict(ImplicitStrategyDataContainer<TLinearAlgebra> &rImplicitStrategyDataContainer)
     {
         KRATOS_ERROR << "\'ImplicitScheme\' does not implement \'Predict\' method. Call derived class one." << std::endl;
     }
 
     /**
      * @brief Function called once at the end of a solution step, after convergence is reached if an iterative process is needed
-     * @param rLinearSystemContainer Auxiliary container with the linear system arrays
+     * @param rImplicitStrategyDataContainer Auxiliary container with the linear system arrays
      */
     //TODO: Think on the arguments of this one (I'd pass all in order to provide maximum flexibility in derived classes)
-    virtual void FinalizeSolutionStep(LinearSystemContainer<TLinearAlgebra> &rLinearSystemContainer)
+    virtual void FinalizeSolutionStep(ImplicitStrategyDataContainer<TLinearAlgebra> &rImplicitStrategyDataContainer)
     {
         KRATOS_TRY
 
@@ -269,9 +269,9 @@ public:
 
     /**
      * @brief Function to be called when it is needed to initialize an iteration. It is designed to be called at the beginning of each non linear iteration
-     * @param rLinearSystemContainer Auxiliary container with the linear system arrays
+     * @param rImplicitStrategyDataContainer Auxiliary container with the linear system arrays
      */
-    virtual void InitializeNonLinIteration(LinearSystemContainer<TLinearAlgebra> &rLinearSystemContainer)
+    virtual void InitializeNonLinIteration(ImplicitStrategyDataContainer<TLinearAlgebra> &rImplicitStrategyDataContainer)
     {
         KRATOS_TRY
 
@@ -283,9 +283,9 @@ public:
 
     /**
      * @brief Function to be called when it is needed to finalize an iteration. It is designed to be called at the end of each non linear iteration
-     * @param rLinearSystemContainer Auxiliary container with the linear system arrays
+     * @param rImplicitStrategyDataContainer Auxiliary container with the linear system arrays
      */
-    virtual void FinalizeNonLinIteration(LinearSystemContainer<TLinearAlgebra> &rLinearSystemContainer)
+    virtual void FinalizeNonLinIteration(ImplicitStrategyDataContainer<TLinearAlgebra> &rImplicitStrategyDataContainer)
     {
         KRATOS_TRY
 
@@ -885,7 +885,7 @@ public:
         Timer::Stop("BuildDampingMatrix");
     }
 
-    virtual void BuildMasterSlaveConstraints(LinearSystemContainer<TLinearAlgebra>& rLinearSystemContainer)
+    virtual void BuildMasterSlaveConstraints(ImplicitStrategyDataContainer<TLinearAlgebra>& rImplicitStrategyDataContainer)
     {
         if (mpModelPart->NumberOfMasterSlaveConstraints() != 0) {
             Timer::Start("BuildConstraints");
@@ -901,8 +901,8 @@ public:
             const std::size_t n_consts = r_consts.size();
 
             // Get constraints arrays from the linear system container
-            auto& r_constraints_T = *(rLinearSystemContainer.pConstraintsT);
-            auto& r_constraints_q = *(rLinearSystemContainer.pConstraintsQ);
+            auto& r_constraints_T = *(rImplicitStrategyDataContainer.pConstraintsT);
+            auto& r_constraints_q = *(rImplicitStrategyDataContainer.pConstraintsQ);
 
             // Initialize constraints arrays
             r_constraints_T.SetValue(0.0);
@@ -915,7 +915,7 @@ public:
             r_constraints_q.BeginAssemble();
 
             TLSType aux_tls;
-            auto& r_eff_dof_set = *(rLinearSystemContainer.pEffectiveDofSet);
+            auto& r_eff_dof_set = *(rImplicitStrategyDataContainer.pEffectiveDofSet);
             #pragma omp parallel
             {
                 // Auxiliary set to store the inactive constraints slave DOFs (required by the block build)
@@ -978,7 +978,7 @@ public:
             // Setting the missing effective but not constrain-related DOFs into the T and C system
             // For doing so we loop the standard DOF array (the one from elements and conditions)
             // We search for each DOF in the effective DOF ids map, if present it means its effective
-            auto& r_dof_set = *(rLinearSystemContainer.pDofSet);
+            auto& r_dof_set = *(rImplicitStrategyDataContainer.pDofSet);
             IndexPartition<IndexType>(r_dof_set.size()).for_each([&](IndexType Index){
                 const auto p_dof = *(r_dof_set.ptr_begin() + Index);
                 const auto p_dof_find = r_eff_dof_set.find(*p_dof);
@@ -1007,14 +1007,14 @@ public:
      * @brief Builds the linear system constraints
      * This method builds the linear system constraints, that is, the master-slave and eventual Dirichlet constraints
      * The master-slave constraints are build according to the scheme implementation while the Dirichlet ones depend on the build type
-     * @param rLinearSystemContainer Auxiliary container with the linear system arrays
+     * @param rImplicitStrategyDataContainer Auxiliary container with the linear system arrays
      */
-    virtual void BuildLinearSystemConstraints(LinearSystemContainer<TLinearAlgebra> &rLinearSystemContainer)
+    virtual void BuildLinearSystemConstraints(ImplicitStrategyDataContainer<TLinearAlgebra> &rImplicitStrategyDataContainer)
     {
         BuiltinTimer build_linear_system_constraints_time;
 
         // Build the master-slave constraints relation matrix and constant vector
-        BuildMasterSlaveConstraints(rLinearSystemContainer);
+        BuildMasterSlaveConstraints(rImplicitStrategyDataContainer);
 
         KRATOS_INFO_IF("ImplicitScheme", this->GetEchoLevel() > 0) << "Build linear system constraints time: " << build_linear_system_constraints_time << std::endl;
     }
@@ -1023,13 +1023,13 @@ public:
      * @brief Applies the linear system constraints
      * This method applies the linear system constraints, that is the master-slave and the Dirichlet constraints
      * @param rEffectiveDofSet The effective DOFs array (i.e., those that are not slaves)
-     * @param rLinearSystemContainer Auxiliary container with the linear system arrays
+     * @param rImplicitStrategyDataContainer Auxiliary container with the linear system arrays
      */
-    virtual void ApplyLinearSystemConstraints(LinearSystemContainer<TLinearAlgebra> &rLinearSystemContainer)
+    virtual void ApplyLinearSystemConstraints(ImplicitStrategyDataContainer<TLinearAlgebra> &rImplicitStrategyDataContainer)
     {
         BuiltinTimer apply_linear_system_constraints_time;
 
-        GetBuilder().ApplyLinearSystemConstraints(rLinearSystemContainer);
+        GetBuilder().ApplyLinearSystemConstraints(rImplicitStrategyDataContainer);
 
         KRATOS_INFO_IF("ImplicitScheme", this->GetEchoLevel() > 0) << "Apply linear system constraints time: " << apply_linear_system_constraints_time << std::endl;
     }
@@ -1097,7 +1097,7 @@ public:
      * @param Dx Incremental update of primary variables
      * @param b RHS Vector
      */
-    virtual void Update(LinearSystemContainer<TLinearAlgebra>& rLinearSystemContainer)
+    virtual void Update(ImplicitStrategyDataContainer<TLinearAlgebra>& rImplicitStrategyDataContainer)
     {
         KRATOS_ERROR << "\'ImplicitScheme\' does not implement \'Update\' method. Call derived class one." << std::endl;
     }
@@ -1142,18 +1142,18 @@ public:
     /**
      * @brief Calculates the update vector
      * This method computes the solution update vector from the effective one
-     * @param rLinearSystemContainer Auxiliary container with the linear system arrays
+     * @param rImplicitStrategyDataContainer Auxiliary container with the linear system arrays
      */
-    void CalculateUpdateVector(LinearSystemContainer<TLinearAlgebra>& rLinearSystemContainer)
+    void CalculateUpdateVector(ImplicitStrategyDataContainer<TLinearAlgebra>& rImplicitStrategyDataContainer)
     {
         // Check if the effective relation matrix is set
-        auto p_eff_T = rLinearSystemContainer.pEffectiveT;
+        auto p_eff_T = rImplicitStrategyDataContainer.pEffectiveT;
         KRATOS_ERROR_IF(mpModelPart->NumberOfMasterSlaveConstraints() != 0 && p_eff_T == nullptr) <<
             "There are constraints but effective relation matrix is not set. Solution update vector cannot be computed." << std::endl;
 
         // Compute the solution vector from the effective one
-        auto& r_dx = *rLinearSystemContainer.pDx;
-        auto& r_eff_dx = *rLinearSystemContainer.pEffectiveDx;
+        auto& r_dx = *rImplicitStrategyDataContainer.pDx;
+        auto& r_eff_dx = *rImplicitStrategyDataContainer.pEffectiveDx;
         if (p_eff_T != nullptr) {
             r_dx.SetValue(0.0);
             p_eff_T->SpMV(r_eff_dx, r_dx);
@@ -1350,16 +1350,16 @@ protected:
      * 2) Set up the system ids (i.e., the DOFs equation ids), including the effective DOF ids, which may not match the "standard" ones
      * 3) Allocate the memory for the linear system constraints arrays (note that the operations done in here may depend on the build type)
      * 4) Allocate the memory for the system arrays (note that this implies building the sparse matrix graph)
-     * @param rLinearSystemContainer Auxiliary container with the linear system arrays
+     * @param rImplicitStrategyDataContainer Auxiliary container with the linear system arrays
      */
-    void InitializeLinearSystem(LinearSystemContainer<TLinearAlgebra>& rLinearSystemContainer)
+    void InitializeLinearSystem(ImplicitStrategyDataContainer<TLinearAlgebra>& rImplicitStrategyDataContainer)
     {
         KRATOS_TRY
 
         // Setting up the DOFs list
         BuiltinTimer setup_dofs_time;
-        auto p_dof_set = rLinearSystemContainer.pDofSet;
-        auto p_eff_dof_set = rLinearSystemContainer.pEffectiveDofSet;
+        auto p_dof_set = rImplicitStrategyDataContainer.pDofSet;
+        auto p_eff_dof_set = rImplicitStrategyDataContainer.pEffectiveDofSet;
         auto [eq_system_size, eff_eq_system_size] = this->SetUpDofArrays(p_dof_set, p_eff_dof_set);
         KRATOS_INFO_IF("ImplicitScheme", this->GetEchoLevel() > 0) << "Setup DOFs Time: " << setup_dofs_time << std::endl;
 
@@ -1372,12 +1372,12 @@ protected:
 
         // Allocating the system constraints arrays
         BuiltinTimer constraints_allocation_time;
-        (this->GetBuilder()).AllocateLinearSystemConstraints(rLinearSystemContainer);
+        (this->GetBuilder()).AllocateLinearSystemConstraints(rImplicitStrategyDataContainer);
         KRATOS_INFO_IF("ImplicitScheme", this->GetEchoLevel() > 0) << "Linear system constraints allocation time: " << constraints_allocation_time << std::endl;
 
         // Call the builder to allocate and initialize the system vectors
         BuiltinTimer linear_system_allocation_time;
-        (this->GetBuilder()).AllocateLinearSystem(rLinearSystemContainer);
+        (this->GetBuilder()).AllocateLinearSystem(rImplicitStrategyDataContainer);
         KRATOS_INFO_IF("ImplicitScheme", this->GetEchoLevel() > 0) << "Linear system allocation time: " << linear_system_allocation_time << std::endl;
 
         KRATOS_CATCH("")

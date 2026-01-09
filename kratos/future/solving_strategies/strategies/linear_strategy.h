@@ -182,7 +182,7 @@ public:
         // Get system data
         auto& r_dof_set = this->GetDofSet();
         auto& r_eff_dof_set = this->GetEffectiveDofSet();
-        auto& r_linear_system_container = this->GetLinearSystemContainer();
+        auto& r_linear_system_container = this->GetImplicitStrategyDataContainer();
 
         // Get system arrays
         auto p_dx = r_linear_system_container.pDx;

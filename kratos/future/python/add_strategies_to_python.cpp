@@ -38,11 +38,11 @@ namespace py = pybind11;
 void AddStrategiesToPython(py::module& m)
 {
     using BuilderType = Future::Builder<Future::SerialLinearAlgebra>;
-    using LinearSystemContainerType = Future::LinearSystemContainer<Future::SerialLinearAlgebra>;
+    using ImplicitStrategyDataContainerType = Future::ImplicitStrategyDataContainer<Future::SerialLinearAlgebra>;
     py::class_<BuilderType, typename BuilderType::Pointer>(m, "Builder")
         .def(py::init<ModelPart &, Parameters>())
-        .def("AllocateLinearSystem", py::overload_cast<LinearSystemContainerType&>(&BuilderType::AllocateLinearSystem))
-        .def("AllocateLinearSystem", py::overload_cast<const Future::SerialLinearAlgebra::SparseGraphType&, LinearSystemContainerType&>(&BuilderType::AllocateLinearSystem))
+        .def("AllocateLinearSystem", py::overload_cast<ImplicitStrategyDataContainerType&>(&BuilderType::AllocateLinearSystem))
+        .def("AllocateLinearSystem", py::overload_cast<const Future::SerialLinearAlgebra::SparseGraphType&, ImplicitStrategyDataContainerType&>(&BuilderType::AllocateLinearSystem))
         .def("AllocateLinearSystemConstraints", &BuilderType::AllocateLinearSystemConstraints)
         .def("SetUpSparseMatrixGraph", &BuilderType::SetUpSparseMatrixGraph)
         .def("SetUpMasterSlaveConstraintsGraph", &BuilderType::SetUpMasterSlaveConstraintsGraph)

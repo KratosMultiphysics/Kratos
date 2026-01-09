@@ -24,7 +24,7 @@
 // Future Extensions
 #include "future/python/add_containers_to_python.h"
 #include "future/containers/define_linear_algebra_serial.h"
-#include "future/containers/linear_system_container.h"
+#include "future/containers/implicit_strategy_data_container.h"
 
 namespace Kratos::Future::Python
 {
@@ -33,11 +33,11 @@ namespace py = pybind11;
 
 void AddContainersToPython(py::module& m)
 {
-    using LinearSystemContainerType = Future::LinearSystemContainer<Future::SerialLinearAlgebra>;
-    py::class_<LinearSystemContainerType, typename LinearSystemContainerType::Pointer>(m, "LinearSystemContainer")
+    using ImplicitStrategyDataContainerType = Future::ImplicitStrategyDataContainer<Future::SerialLinearAlgebra>;
+    py::class_<ImplicitStrategyDataContainerType, typename ImplicitStrategyDataContainerType::Pointer>(m, "ImplicitStrategyDataContainer")
         .def(py::init<>())
-        .def("Clear", &LinearSystemContainerType::Clear)
-        .def("RequiresEffectiveDofSet", &LinearSystemContainerType::RequiresEffectiveDofSet)
+        .def("Clear", &ImplicitStrategyDataContainerType::Clear)
+        .def("RequiresEffectiveDofSet", &ImplicitStrategyDataContainerType::RequiresEffectiveDofSet)
     ;
 }
 

@@ -104,7 +104,7 @@ public:
 
     void AllocateLinearSystem(
         const SparseGraphType& rSparseGraph,
-        LinearSystemContainer<TLinearAlgebra> &rLinearSystemContainer) override
+        ImplicitStrategyDataContainer<TLinearAlgebra> &rLinearSystemContainer) override
     {
         // Set the system arrays
         // Note that the graph-based constructor does both resizing and initialization
@@ -135,7 +135,7 @@ public:
         rLinearSystemContainer.pEffectiveDx.swap(p_eff_dx);
     }
 
-    void AllocateLinearSystemConstraints(LinearSystemContainer<TLinearAlgebra>& rLinearSystemContainer) override
+    void AllocateLinearSystemConstraints(ImplicitStrategyDataContainer<TLinearAlgebra>& rLinearSystemContainer) override
     {
         // Check if there are master-slave constraints
         auto& r_eff_dof_set = *(rLinearSystemContainer.pEffectiveDofSet);
@@ -184,7 +184,7 @@ public:
     }
 
     //FIXME: Do the RHS-only version
-    void ApplyLinearSystemConstraints(LinearSystemContainer<TLinearAlgebra>& rLinearSystemContainer) override
+    void ApplyLinearSystemConstraints(ImplicitStrategyDataContainer<TLinearAlgebra>& rLinearSystemContainer) override
     {
         // Get effective arrays
         auto p_eff_dx = rLinearSystemContainer.pEffectiveDx;

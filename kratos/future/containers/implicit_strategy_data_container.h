@@ -1,4 +1,3 @@
-
 //    |  /           |
 //    ' /   __| _` | __|  _ \   __|
 //    . \  |   (   | |   (   |\__ `
@@ -38,11 +37,11 @@ namespace Kratos::Future
  * TODO: to be changed to LinearSystem and have the matrices and vectors stored by their name in a dictionary, so we can reuse them if needed in the strategy
  */
 template <class TLinearAlgebra>
-struct LinearSystemContainer
+struct ImplicitStrategyDataContainer
 {
 
-    /// Pointer definition of LinearSystemContainer
-    KRATOS_CLASS_POINTER_DEFINITION(LinearSystemContainer);
+    /// Pointer definition of ImplicitStrategyDataContainer
+    KRATOS_CLASS_POINTER_DEFINITION(ImplicitStrategyDataContainer);
 
     using MatrixType = typename TLinearAlgebra::MatrixType;
 
@@ -112,7 +111,7 @@ struct LinearSystemContainer
         return pDofSet == pEffectiveDofSet;
     }
 
-}; // Class LinearSolverContainer
+}; // Class ImplicitStrategyDataContainer
 
 ///@}
 ///@name Input and output

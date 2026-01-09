@@ -110,7 +110,7 @@ public:
 
     void AllocateLinearSystem(
         const SparseGraphType& rSparseGraph,
-        LinearSystemContainer<TLinearAlgebra> &rLinearSystemContainer) override
+        ImplicitStrategyDataContainer<TLinearAlgebra> &rLinearSystemContainer) override
     {
         // Set the system arrays
         // Note that the graph-based constructor does both resizing and initialization
@@ -143,7 +143,7 @@ public:
         }
     }
 
-    void AllocateLinearSystemConstraints(LinearSystemContainer<TLinearAlgebra>& rLinearSystemContainer) override
+    void AllocateLinearSystemConstraints(ImplicitStrategyDataContainer<TLinearAlgebra>& rLinearSystemContainer) override
     {
         // Check if there are master-slave constraints
         //TODO: Do the MPI sum all
@@ -165,7 +165,7 @@ public:
     }
 
     //FIXME: Do the RHS-only version
-    void ApplyLinearSystemConstraints(LinearSystemContainer<TLinearAlgebra>& rLinearSystemContainer) override
+    void ApplyLinearSystemConstraints(ImplicitStrategyDataContainer<TLinearAlgebra>& rLinearSystemContainer) override
     {
         // Calculate the effective LHS, RHS and solution vector
         ApplyBlockBuildMasterSlaveConstraints(rLinearSystemContainer);
@@ -193,7 +193,7 @@ private:
      * This method applies the master-slave constraints following a block-type build
      * @param rLinearSystemContainer Auxiliary container with the linear system arrays
      */
-    void ApplyBlockBuildMasterSlaveConstraints(LinearSystemContainer<TLinearAlgebra> &rLinearSystemContainer)
+    void ApplyBlockBuildMasterSlaveConstraints(ImplicitStrategyDataContainer<TLinearAlgebra> &rLinearSystemContainer)
     {
         const auto& r_model_part = this->GetModelPart();
         const std::size_t n_constraints = r_model_part.NumberOfMasterSlaveConstraints();

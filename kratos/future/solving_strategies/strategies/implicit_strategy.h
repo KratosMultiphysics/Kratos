@@ -69,8 +69,8 @@ public:
     // Linear solver pointer definition
     using LinearSolverPointerType = typename Future::LinearSolver<TLinearAlgebra>::Pointer;
 
-    /// Linear system container type definition
-    using LinearSystemContainerType = LinearSystemContainer<TLinearAlgebra>;
+    /// Data container type definition
+    using ImplicitStrategyDataContainerType = ImplicitStrategyDataContainer<TLinearAlgebra>;
 
     /// DOFs array type definition
     using DofsArrayType = typename ModelPart::DofsArrayType;
@@ -185,7 +185,7 @@ public:
         KRATOS_TRY
 
         // Initialize scheme (this has to be done once)
-        pGetScheme()->Initialize(mLinearSystemContainer);
+        pGetScheme()->Initialize(mImplicitStrategyDataContainer);
 
         KRATOS_CATCH("")
     }
@@ -195,7 +195,7 @@ public:
         KRATOS_TRY
 
         // Call the scheme InitializeSolutionStep
-        pGetScheme()->InitializeSolutionStep(mLinearSystemContainer);
+        pGetScheme()->InitializeSolutionStep(mImplicitStrategyDataContainer);
 
         KRATOS_CATCH("")
     }
@@ -205,7 +205,7 @@ public:
         KRATOS_TRY
 
         // Call the time scheme predict (note that this also updates the mesh if needed)
-        pGetScheme()->Predict(mLinearSystemContainer);
+        pGetScheme()->Predict(mImplicitStrategyDataContainer);
 
         KRATOS_CATCH("")
     }
@@ -220,7 +220,7 @@ public:
         KRATOS_TRY;
 
         // Finalisation of the solution step (operations to be done after achieving convergence)
-        pGetScheme()->FinalizeSolutionStep(mLinearSystemContainer);
+        pGetScheme()->FinalizeSolutionStep(mImplicitStrategyDataContainer);
 
         // Reset flags for next step
         mStiffnessMatrixIsBuilt = false; // By default we always rebuilt (if not implement a derived strategy)
@@ -243,7 +243,7 @@ public:
         }
 
         // Clearing the system of equations
-        mLinearSystemContainer.Clear();
+        mImplicitStrategyDataContainer.Clear();
 
         // Clearing scheme
         // Note that this resets the DOF set
@@ -487,22 +487,19 @@ public:
     //     return mpEffectiveDx;
     // }
 
-    LinearSystemContainerType& GetLinearSystemContainer()
+    ImplicitStrategyDataContainerType& GetImplicitStrategyDataContainer()
     {
-        return mLinearSystemContainer;
+        return mImplicitStrategyDataContainer;
     }
 
-    const LinearSystemContainerType& GetLinearSystemContainer() const
+    const ImplicitStrategyDataContainerType& GetImplicitStrategyDataContainer() const
     {
-        return mLinearSystemContainer;
+        return mImplicitStrategyDataContainer;
     }
 
-    /**
-     * @brief It allows to get the list of Dofs from the element
-     */
     DofsArrayType& GetDofSet()
     {
-        return *mLinearSystemContainer.pDofSet;
+        return *mImplicitStrategyDataContainer.pDofSet;
     }
 
     /**
@@ -510,7 +507,7 @@ public:
      */
     const DofsArrayType& GetDofSet() const
     {
-        return *mLinearSystemContainer.pDofSet;
+        return *mImplicitStrategyDataContainer.pDofSet;
     }
 
     /**
@@ -518,7 +515,7 @@ public:
      */
     DofsArrayType& GetEffectiveDofSet()
     {
-        return *mLinearSystemContainer.pEffectiveDofSet;
+        return *mImplicitStrategyDataContainer.pEffectiveDofSet;
     }
 
     /**
@@ -526,7 +523,7 @@ public:
      */
     const DofsArrayType &GetEffectiveDofSet() const
     {
-        return *mLinearSystemContainer.mEffectiveDofSet;
+        return *mImplicitStrategyDataContainer.mEffectiveDofSet;
     }
 
     ///@}
@@ -582,7 +579,7 @@ public:
      */
     double GetResidualNorm()
     {
-        auto p_rhs = mLinearSystemContainer.pRhs;
+        auto p_rhs = mImplicitStrategyDataContainer.pRhs;
         KRATOS_ERROR_IF(p_rhs == nullptr) << "Right hand side vector is not set. Residual cannot be computed." << std::endl;
         if (p_rhs->size() != 0) {
             return p_rhs->Norm();
@@ -659,9 +656,9 @@ protected:
      */
     virtual void EchoInfo()
     {
-        const auto& r_A = mLinearSystemContainer.pLhs;
-        const auto& r_b = mLinearSystemContainer.pRhs;
-        const auto& r_dx = *mLinearSystemContainer.pDx;
+        const auto& r_A = mImplicitStrategyDataContainer.pLhs;
+        const auto& r_b = mImplicitStrategyDataContainer.pRhs;
+        const auto& r_dx = *mImplicitStrategyDataContainer.pDx;
 
         if (GetEchoLevel() == 3) { //if it is needed to print the debug info
             KRATOS_INFO("ImplicitStrategy") << "LHS = " << r_A << std::endl;
@@ -705,7 +702,7 @@ private:
 
     LinearSolverPointerType mpLinearSolver = nullptr; /// The pointer to the linear solver
 
-    LinearSystemContainerType mLinearSystemContainer;
+    ImplicitStrategyDataContainerType mImplicitStrategyDataContainer;
 
     int mEchoLevel;
 
