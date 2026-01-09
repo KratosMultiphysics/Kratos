@@ -611,4 +611,20 @@ shared_ptr<Process> KratosExecute::FindRiverBoundaryAutomatically(
     return p_river_boundary;
 }
 
+KratosExecute::CriticalHeadInfo::CriticalHeadInfo(double minCriticalHead, double maxCriticalHead, double stepCriticalHead)
+    : minCriticalHead(minCriticalHead), maxCriticalHead(maxCriticalHead), stepCriticalHead(stepCriticalHead)
+{
+}
+
+KratosExecute::CallBackFunctions::CallBackFunctions(std::function<void(const char*)> LogCallback,
+                                                    std::function<void(double)>      ReportProgress,
+                                                    std::function<void(const char*)> ReportTextualProgress,
+                                                    std::function<bool()> ShouldCancel)
+    : LogCallback(std::move(LogCallback)),
+      ReportProgress(std::move(ReportProgress)),
+      ReportTextualProgress(std::move(ReportTextualProgress)),
+      ShouldCancel(std::move(ShouldCancel))
+{
+}
+
 } // namespace Kratos

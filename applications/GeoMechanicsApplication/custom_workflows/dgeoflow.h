@@ -72,18 +72,15 @@ public:
     static GeoMechanicsNewtonRaphsonErosionProcessStrategyType::Pointer setup_strategy_dgeoflow(ModelPart& rModelPart);
     void ParseProcesses(ModelPart& rModelPart, Parameters projFile);
 
-    struct CriticalHeadInfo {
+    struct KRATOS_API(GEO_MECHANICS_APPLICATION) CriticalHeadInfo {
         double minCriticalHead  = 0.0;
         double maxCriticalHead  = 0.0;
         double stepCriticalHead = 0.0;
 
-        CriticalHeadInfo(double minCriticalHead, double maxCriticalHead, double stepCriticalHead)
-            : minCriticalHead(minCriticalHead), maxCriticalHead(maxCriticalHead), stepCriticalHead(stepCriticalHead)
-        {
-        }
+        CriticalHeadInfo(double minCriticalHead, double maxCriticalHead, double stepCriticalHead);
     };
 
-    struct CallBackFunctions {
+    struct KRATOS_API(GEO_MECHANICS_APPLICATION) CallBackFunctions {
         std::function<void(const char*)> LogCallback;
         std::function<void(double)>      ReportProgress;
         std::function<void(const char*)> ReportTextualProgress;
@@ -92,13 +89,7 @@ public:
         CallBackFunctions(std::function<void(const char*)> LogCallback,
                           std::function<void(double)>      ReportProgress,
                           std::function<void(const char*)> ReportTextualProgress,
-                          std::function<bool()>            ShouldCancel)
-            : LogCallback(std::move(LogCallback)),
-              ReportProgress(std::move(ReportProgress)),
-              ReportTextualProgress(std::move(ReportTextualProgress)),
-              ShouldCancel(std::move(ShouldCancel))
-        {
-        }
+                          std::function<bool()>            ShouldCancel);
     };
 
     int ExecuteFlowAnalysis(std::string_view         WorkingDirectory,
