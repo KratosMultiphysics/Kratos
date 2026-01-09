@@ -28,9 +28,7 @@ namespace {
 template <class TContainerType>
 constexpr bool IsSupportedContainer()
 {
-    return std::is_same_v<TContainerType, ModelPart::GeometryContainerType> ||
-           std::is_same_v<TContainerType, ModelPart::ElementsContainerType> ||
-           std::is_same_v<TContainerType, ModelPart::ConditionsContainerType>;
+    return IsInList<TContainerType, ModelPart::GeometryContainerType, ModelPart::ElementsContainerType, ModelPart::ConditionsContainerType>;
 }
 
 template <class TEntity>
