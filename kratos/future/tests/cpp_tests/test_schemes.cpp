@@ -55,14 +55,14 @@ KRATOS_TEST_CASE_IN_SUITE(StaticSchemeBuild1D, KratosCoreFastSuite)
 
     // Set up the matrix graph and arrays
     // Note that in a standard case this happens at the strategy level
-    Future::ImplicitStrategyDataContainer<Future::SerialLinearAlgebraTraits> linear_system_container;
+    Future::ImplicitStrategyDataContainer<Future::SerialLinearAlgebraTraits> strategy_data_container;
 
-    // Call the initialize solution step (note that this sets all the arrays above)
-    p_scheme->InitializeSolutionStep(linear_system_container);
+    // Call the initialize (note that this sets all the arrays above)
+    p_scheme->Initialize(strategy_data_container);
 
     // Call the build
-    auto p_lhs = linear_system_container.pLhs;
-    auto p_rhs = linear_system_container.pRhs;
+    auto p_lhs = strategy_data_container.pLhs;
+    auto p_rhs = strategy_data_container.pRhs;
     p_scheme->Build(*p_lhs, *p_rhs);
 
     // Check resultant matrices
@@ -114,14 +114,14 @@ KRATOS_TEST_CASE_IN_SUITE(StaticSchemeBuild2D, KratosCoreFastSuite)
 
     // Set up the matrix graph and arrays
     // Note that in a standard case this happens at the strategy level
-    Future::ImplicitStrategyDataContainer<Future::SerialLinearAlgebraTraits> linear_system_container;
+    Future::ImplicitStrategyDataContainer<Future::SerialLinearAlgebraTraits> strategy_data_container;
 
-    // Call the initialize solution step (note that this sets all the arrays above)
-    p_scheme->InitializeSolutionStep(linear_system_container);
+    // Call the initialize (note that this sets all the arrays above)
+    p_scheme->Initialize(strategy_data_container);
 
     // Call the build
-    auto p_lhs = linear_system_container.pLhs;
-    auto p_rhs = linear_system_container.pRhs;
+    auto p_lhs = strategy_data_container.pLhs;
+    auto p_rhs = strategy_data_container.pRhs;
 
     sleep(30);
 
