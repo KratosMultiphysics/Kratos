@@ -97,10 +97,10 @@ public:
 
     /**
      * @brief This function returns the number of dofs of the respective element by using the following input:
-     * @param rTheElement The current element
+     * @param rElement The current element
      */
 
-    static std::size_t GetNumDofsElement(Element& rTheElement);
+    static std::size_t GetNumDofsElement(const Element& rElement);
 
 }; // class StaticCondensationUtility
 

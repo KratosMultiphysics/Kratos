@@ -108,7 +108,7 @@ std::vector<int> GeoStaticCondensationUtility::CreateRemainingDofList(Element& r
     // fill remaining dofs
     std::vector<int> remaining_dofs_vec(0);
     for (std::size_t i = 0; i < GetNumDofsElement(rTheElement); ++i) {
-        int  current_dof = i;
+        int  current_dof = static_cast<int>(i);
         bool check       = false;
         for (std::size_t j = 0; j < num_dofs_condensed; ++j) {
             if (current_dof == rDofList[j]) check = true;
@@ -181,36 +181,31 @@ void GeoStaticCondensationUtility::ConvertingCondensation(Element& rTheElement,
     CondensedDofsDisp        = -prod(K22_inv, CondensedDofsDisp);
 
     // 4.) Fill rValues to maintain same matrix size
+    auto check_dofs_and_fill_rValues = [&rValues](int i, std::size_t num_dofs,
+                                                  const std::vector<int>& r_dof_list, const Vector& r_dofs) {
+        for (std::size_t j = 0; j < num_dofs; ++j) {
+            if (i == r_dof_list[j]) {
+                rValues[i] = r_dofs[j];
+                return true;
+            }
+        }
+        return false;
+    };
     rValues = ZeroVector(num_dofs_element);
     for (int i = 0; i < static_cast<int>(num_dofs_element); ++i) {
-        bool check = false;
         // check if dof i is condensed
-        for (std::size_t j = 0; j < num_dofs_condensed; ++j) {
-            if (i == rDofList[j]) {
-                rValues[i] = CondensedDofsDisp[j];
-                check      = true;
-                break;
-            }
-        }
-
-        if (check) continue; // found respective dof -> search for next dof
+        if (check_dofs_and_fill_rValues(i, num_dofs_condensed, rDofList, CondensedDofsDisp))
+            continue; // found respective dof -> search for next dof
         // check remaining dofs
-        else {
-            for (std::size_t j = 0; j < num_dofs_remaining; ++j) {
-                if (i == remaining_dof_list[j]) {
-                    rValues[i] = remaining_dofs_disp[j];
-                    break;
-                }
-            }
-        }
+        check_dofs_and_fill_rValues(i, num_dofs_remaining, remaining_dof_list, remaining_dofs_disp);
     }
     KRATOS_CATCH("")
 }
 
-std::size_t GeoStaticCondensationUtility::GetNumDofsElement(Element& rTheElement)
+std::size_t GeoStaticCondensationUtility::GetNumDofsElement(const Element& rElement)
 {
-    Vector all_dof_values = Vector(0);
-    rTheElement.GetValuesVector(all_dof_values);
+    auto all_dof_values = Vector(0);
+    rElement.GetValuesVector(all_dof_values);
     return all_dof_values.size();
 }
 
