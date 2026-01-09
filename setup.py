@@ -8,8 +8,8 @@ def set_install_requirements():
     """
     Creates kratos requirements list
     """
-    release_tag = "test_release0.1.2"
-    kratos_version = "10.3.1.3"
+    release_tag = "test_release0.1.3"
+    kratos_version = "10.3.1.4"
     python_version_part = ""
     platform_part = ""
 
