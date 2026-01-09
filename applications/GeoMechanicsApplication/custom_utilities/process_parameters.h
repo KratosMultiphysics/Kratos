@@ -22,15 +22,9 @@ struct ProcessParameters {
     std::string name;
     Parameters  parameters;
 
-    ProcessParameters(const std::string& rName, const Parameters& rParameters)
-        : name{rName}, parameters{rParameters}
-    {
-    }
+    ProcessParameters(const std::string& rName, const Parameters& rParameters);
 
-    bool operator==(const ProcessParameters& rhs) const
-    {
-        return name == rhs.name && parameters.WriteJsonString() == rhs.parameters.WriteJsonString();
-    }
+    bool operator==(const ProcessParameters& rhs) const;
 };
 
 } // namespace Kratos
