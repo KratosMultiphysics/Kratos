@@ -330,7 +330,7 @@ array_1d<double, 3> TotalLagrangianTrussElement<TDimension>::GetLocalAxesBodyFor
     array_1d<double, 3> local_body_force;
 
     if constexpr (Dimension == 2) {
-        const double angle = GetCurrentAngle(); // TODO CHECK this
+        const double angle = GetCurrentAngle();
 
         const double c = std::cos(angle);
         const double s = std::sin(angle);
