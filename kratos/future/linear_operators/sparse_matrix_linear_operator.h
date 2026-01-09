@@ -33,9 +33,9 @@ namespace Kratos::Future
  * @brief
  * @class SparseMatrixLinearOperator
  * @ingroup KratosCore
- * @brief Linear operator wrapping a sparse matrix
+ * @brief Linear operator handling a sparse matrix
  * @details
- * This class implements a LinearOperator that wraps a sparse matrix,
+ * This class implements a LinearOperator that handles a sparse matrix,
  * allowing to use it in matrix-free algorithms while still storing
  * the matrix entries explicitly. The linear operator can be also used
  * in matrix-based algorithms by accessing the underlying sparse matrix.
@@ -67,15 +67,6 @@ public:
      * @details Creates an empty SparseMatrixLinearOperator with uninitialized function objects.
      */
     SparseMatrixLinearOperator() = default;
-
-    /**
-     * @brief Constructor from parameters.
-     * @param ThisParameters Parameters containing the linear operator settings
-     */
-    SparseMatrixLinearOperator(Parameters ThisParameters)
-        : LinearOperator<TLinearAlgebra>(ThisParameters)
-    {
-    }
 
     /**
      * @brief Constructor from a CSR matrix.
@@ -156,13 +147,15 @@ protected:
     ///@name Protected access
     ///@{
 
-    std::any& GetMatrixImpl() override
+    std::any GetMatrixImpl() override
     {
+        KRATOS_ERROR_IF_NOT(mrCsrMatrix.has_value()) << "Matrix is not set." << std::endl;
         return mrCsrMatrix;
     }
 
-    const std::any& GetMatrixImpl() const override
+    const std::any GetMatrixImpl() const override
     {
+        KRATOS_ERROR_IF_NOT(mrCsrMatrix.has_value()) << "Matrix is not set." << std::endl;
         return mrCsrMatrix;
     }
 
@@ -170,7 +163,7 @@ protected:
 
 private:
 
-    /// Reference to the CSR matrix (of type MatrixType& wrapped as std::any)
+    /// Reference to the CSR matrix (of type MatrixType& handled as std::any)
     std::any mrCsrMatrix;
 
 }; // class SparseMatrixLinearOperator

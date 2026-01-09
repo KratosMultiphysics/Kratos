@@ -54,9 +54,6 @@ public:
     /// Vector type definition from template parameter
     using VectorType = typename TLinearAlgebra::VectorType;
 
-    /// Matrix type definition from template parameter
-    using MatrixType = typename TLinearAlgebra::MatrixType;
-
     /// Data type stored in the system vector
     using DataType = typename VectorType::DataType;
 
@@ -113,7 +110,10 @@ public:
      */
     virtual void SpMV(
         const VectorType& rX,
-        VectorType& rY) const = 0;
+        VectorType& rY) const
+    {
+        KRATOS_ERROR << "SpMV() is not implemented in base LinearOperator class." << std::endl;
+    }
 
     /**
      * @brief Performs the transposed matrix-vector product y = A^T * x.
@@ -122,7 +122,10 @@ public:
      */
     virtual void TransposeSpMV(
         const VectorType& rX,
-        VectorType& rY) const = 0;
+        VectorType& rY) const
+    {
+        KRATOS_ERROR << "TransposeSpMV() is not implemented in base LinearOperator class." << std::endl;
+    }
 
     /**
      * @brief Clear the operator data.
@@ -165,7 +168,7 @@ public:
     TMatrixType& GetMatrix()
     {
         KRATOS_ERROR_IF(this->IsMatrixFree()) << "Trying to access matrix from a matrix-free LinearOperator." << std::endl;
-        auto& r_matrix = this->GetMatrixImpl(); // Get the underlying matrix as std::any
+        auto r_matrix = this->GetMatrixImpl(); // Get the underlying matrix as std::any
         return std::any_cast<std::reference_wrapper<TMatrixType>>(r_matrix).get(); // Cast and return the reference
     }
 
@@ -178,7 +181,7 @@ public:
     const TMatrixType& GetMatrix() const
     {
         KRATOS_ERROR_IF(this->IsMatrixFree()) << "Trying to access matrix from a matrix-free LinearOperator." << std::endl;
-        const auto& r_matrix = this->GetMatrixImpl(); // Get the underlying matrix as const std::any
+        const auto r_matrix = this->GetMatrixImpl(); // Get the underlying matrix as const std::any
         return std::any_cast<std::reference_wrapper<TMatrixType>>(r_matrix).get(); // Cast and return the reference
     }
 
@@ -226,7 +229,7 @@ protected:
      * An exception is thrown if this method is called from the base class (matrix-free).
      * @return Reference to the matrix as an std::any
      */
-    [[noreturn]] virtual std::any& GetMatrixImpl()
+    virtual std::any GetMatrixImpl()
     {
         KRATOS_ERROR << "GetMatrixImpl() not implemented in base LinearOperator class." << std::endl;
     }
@@ -237,7 +240,7 @@ protected:
      * An exception is thrown if this method is called from the base class (matrix-free).
      * @return Reference to the matrix as a const std::any
      */
-    [[noreturn]] virtual const std::any& GetMatrixImpl() const
+    virtual const std::any GetMatrixImpl() const
     {
         KRATOS_ERROR << "GetMatrixImpl() not implemented in base LinearOperator class." << std::endl;
     }
