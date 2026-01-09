@@ -14,7 +14,7 @@
 #include "custom_utilities/extrapolation_utilities.h"
 
 #include "custom_elements/interface_element.h"
-#include "custom_utilities/generic_utilities.h"
+#include "custom_utilities/generic_utilities.hpp"
 #include "custom_utilities/linear_nodal_extrapolator.h"
 #include "element_utilities.hpp"
 #include "geometries/geometry.h"

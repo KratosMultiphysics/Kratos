@@ -17,7 +17,7 @@
 #include "custom_utilities/element_utilities.hpp"
 #include "custom_utilities/equation_of_motion_utilities.hpp"
 #include "custom_utilities/extrapolation_utilities.h"
-#include "custom_utilities/generic_utilities.h"
+#include "custom_utilities/generic_utilities.hpp"
 #include "custom_utilities/geometry_utilities.h"
 #include "custom_utilities/math_utilities.h"
 #include "geo_aliases.h"
