@@ -348,6 +348,9 @@ Element::Pointer ShellThickElement3D4N<TKinematics>::Create(IndexType NewId, Geo
     return Kratos::make_intrusive< ShellThickElement3D4N >(NewId, pGeom, pProperties);
 }
 
+/***********************************************************************************/
+/***********************************************************************************/
+
 template <ShellKinematics TKinematics>
 void ShellThickElement3D4N<TKinematics>::Initialize(const ProcessInfo& rCurrentProcessInfo)
 {
@@ -357,11 +360,30 @@ void ShellThickElement3D4N<TKinematics>::Initialize(const ProcessInfo& rCurrentP
 
     // Initialization should not be done again in a restart!
     if (!rCurrentProcessInfo[IS_RESTARTED]) {
-        mEASStorage.Initialize(GetGeometry());
+        const auto& r_geometry = GetGeometry();
+        mEASStorage.Initialize(r_geometry);
+        const auto& r_integration_points = r_geometry.IntegrationPoints();
+
+        if (mConstitutiveLawVector.size() != r_integration_points.size())
+            mConstitutiveLawVector.resize(r_integration_points.size());
+
+        const auto& r_properties = GetProperties();
+        if (r_properties[CONSTITUTIVE_LAW] != nullptr) {
+            auto N_values = Vector();
+            for (IndexType point_number = 0; point_number < mConstitutiveLawVector.size(); ++point_number) {
+                mConstitutiveLawVector[point_number] = r_properties[CONSTITUTIVE_LAW]->Clone();
+                mConstitutiveLawVector[point_number]->InitializeMaterial(r_properties, r_geometry, N_values);
+            }
+        } else {
+            KRATOS_ERROR << "A constitutive law needs to be specified for the CS-DSG3 shell element with ID " << this->Id() << std::endl;
+        }
     }
 
     KRATOS_CATCH("")
 }
+
+/***********************************************************************************/
+/***********************************************************************************/
 
 template <ShellKinematics TKinematics>
 void ShellThickElement3D4N<TKinematics>::FinalizeNonLinearIteration(const ProcessInfo& rCurrentProcessInfo)

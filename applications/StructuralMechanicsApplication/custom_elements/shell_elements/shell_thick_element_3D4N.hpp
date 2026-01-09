@@ -409,6 +409,8 @@ private:
 
     EASOperatorStorage mEASStorage; /*!< The storage instance for the EAS Operator */
 
+    std::vector<ConstitutiveLaw::Pointer> mConstitutiveLawVector; /// The vector containing the constitutive laws
+
     ///@}
 
     ///@name Serialization
