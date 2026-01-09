@@ -21,8 +21,7 @@
 #include "geometries/geometry_data.h"
 #include "tensor_adaptor.h"
 
-namespace Kratos
-{
+namespace Kratos {
 
 ///@name Kratos Classes
 ///@{
@@ -49,71 +48,69 @@ namespace Kratos
  * @author Riccardo Rossi and Antigravity AI
  */
 class KRATOS_API(KRATOS_CORE) GeometriesTensorAdaptor
-    : public TensorAdaptor<double>
-{
+    : public TensorAdaptor<double> {
 public:
-    ///@name Type definitions
-    ///@{
+  ///@name Type definitions
+  ///@{
 
-    KRATOS_CLASS_POINTER_DEFINITION(GeometriesTensorAdaptor);
+  KRATOS_CLASS_POINTER_DEFINITION(GeometriesTensorAdaptor);
 
-    using BaseType = TensorAdaptor<double>;
+  using BaseType = TensorAdaptor<double>;
 
-    enum class DatumType
-    {
-        ShapeFunctions,
-        ShapeFunctionDerivatives,
-        Jacobians,
-        IntegrationWeights
-    };
+  enum class DatumType {
+    ShapeFunctions,
+    ShapeFunctionDerivatives,
+    Jacobians,
+    IntegrationWeights
+  };
 
-    ///@}
-    ///@name Life cycle
-    ///@{
+  ///@}
+  ///@name Life cycle
+  ///@{
 
-    GeometriesTensorAdaptor(
-        ContainerPointerType pContainer, DatumType Datum,
-        GeometryData::IntegrationMethod IntegrationMethod =
-            GeometryData::IntegrationMethod::NumberOfIntegrationMethods);
+  GeometriesTensorAdaptor(
+      ContainerPointerType pContainer, DatumType Datum,
+      GeometryData::IntegrationMethod IntegrationMethod =
+          GeometryData::IntegrationMethod::NumberOfIntegrationMethods);
 
-    GeometriesTensorAdaptor(const TensorAdaptor &rOther,
-                            ContainerPointerType pContainer, DatumType Datum,
-                            GeometryData::IntegrationMethod IntegrationMethod,
-                            const bool Copy = true);
+  GeometriesTensorAdaptor(const TensorAdaptor &rOther,
+                          ContainerPointerType pContainer, DatumType Datum,
+                          GeometryData::IntegrationMethod IntegrationMethod,
+                          const bool Copy = true);
 
-    // Destructor
-    ~GeometriesTensorAdaptor() override = default;
+  // Destructor
+  ~GeometriesTensorAdaptor() override = default;
 
-    ///@}
-    ///@name Public operations
-    ///@{
+  ///@}
+  ///@name Public operations
+  ///@{
 
-    /**
-     * @brief Check if the container is valid.
-     */
-    void Check() const override;
+  /**
+   * @brief Check if the container is valid.
+   */
+  void Check() const override;
 
-    /**
-     * @brief Fill the internal data from Kratos data structures.
-     */
-    void CollectData() override;
+  /**
+   * @brief Fill the internal data from Kratos data structures.
+   */
+  void CollectData() override;
 
-    /**
-     * @brief Store internal data to the given container.
-     */
-    void StoreData() override;
+  /**
+   * @brief Store internal data to the given container.
+   */
+  void StoreData() override;
 
-    ///@}
-    ///@name Input and output
-    ///@{
+  ///@}
+  ///@name Input and output
+  ///@{
 
-    std::string Info() const override;
+  std::string Info() const override;
 
-    ///@}
+  ///@}
 
 private:
-    DatumType mDatum;
-    GeometryData::IntegrationMethod mIntegrationMethod;
+  DatumType mDatum;
+  GeometryData::IntegrationMethod mIntegrationMethod;
 };
 
 /// @}
