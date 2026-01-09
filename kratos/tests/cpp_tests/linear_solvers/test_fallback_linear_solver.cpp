@@ -63,6 +63,27 @@ public:
     }
 
     ///@}
+    ///@name Input and output
+    ///@{
+
+    /// Turn back information as a string.
+    std::string Info() const override
+    {
+        return "Dummy linear solver";
+    }
+
+    /// Print information about this object.
+    void PrintInfo(std::ostream& rOStream) const override
+    {
+        rOStream << "Dummy linear solver";
+    }
+
+    /// Print object's data.
+    void PrintData(std::ostream& rOStream) const override
+    {
+    }
+
+    ///@}
 
 }; // Class DummyLinearSolver
 
@@ -87,7 +108,8 @@ KRATOS_TEST_CASE_IN_SUITE(FallbackLinearSolverConstructorSolvers, KratosCoreFast
     // Create the solvers
     auto p_solver1 = Kratos::make_shared<DummyLinearSolverType>();
     Parameters amgcl_parameters = Parameters(R"({
-        "solver_type": "amgcl"
+        "solver_type": "amgcl",
+        "block_size" : 3
     })");
     auto p_solver2 = LinearSolverFactoryType().Create(amgcl_parameters);
 
@@ -98,8 +120,9 @@ KRATOS_TEST_CASE_IN_SUITE(FallbackLinearSolverConstructorSolvers, KratosCoreFast
     for (std::size_t i = 0; i < size; ++i) {
         A.push_back(i, i, 1.0);
     }
-    VectorType b(size);
-    VectorType x(size);
+    A.set_filled(size + 1, size);
+    VectorType b = ZeroVector(size);
+    VectorType x = ZeroVector(size);
 
     // Create a simple fallback solver
     std::vector<LinearSolverType::Pointer> solvers = {p_solver1, p_solver2};
@@ -124,15 +147,17 @@ KRATOS_TEST_CASE_IN_SUITE(FallbackLinearSolverConstructorParameters, KratosCoreF
     for (std::size_t i = 0; i < size; ++i) {
         A.push_back(i, i, 1.0);
     }
-    VectorType b(size);
-    VectorType x(size);
+    A.set_filled(size + 1, size);
+    VectorType b = ZeroVector(size);
+    VectorType x = ZeroVector(size);
 
     // Create a simple fallback solver
     Parameters parameters = Parameters(R"({
         "solver_type": "fallback_linear_solver",
         "solvers"    : [
             {
-                "solver_type": "amgcl"
+                "solver_type": "amgcl",
+                "block_size" : 3
             },
             {
                 "solver_type": "skyline_lu_factorization"

@@ -1,4 +1,5 @@
 import KratosMultiphysics.KratosUnittest as KratosUnittest
+from KratosMultiphysics.GeoMechanicsApplication.gid_output_file_reader import GiDOutputFileReader
 import test_helper
 
 import os
@@ -33,7 +34,7 @@ class KratosGeoMechanicsHydraulicHeads(KratosUnittest.TestCase):
 
         self.assertEqual(status, 0)
 
-        reader = test_helper.GiDOutputFileReader()
+        reader = GiDOutputFileReader()
         output_data = reader.read_output_from(
             os.path.join(
                 self.test_path, f"test_nodal_hydraulic_head_{test_no}.post.res"

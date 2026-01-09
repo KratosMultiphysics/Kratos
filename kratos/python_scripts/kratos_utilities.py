@@ -1,4 +1,5 @@
 import os, sys, shutil, re
+from pathlib import Path
 import KratosMultiphysics as KM
 
 def IssueDeprecationWarning(label, *message):
@@ -21,6 +22,14 @@ def DeleteDirectoryIfExisting(directory_name):
         shutil.rmtree(directory_name)
     except:
         pass
+
+def DeleteDirectoryIfExistingAndEmpty(directory_name):
+    """This function tries to delete a folder if the directory
+    and sub-directories does not contain any files
+    It uses try/except to also work in MPI
+    """
+    if not any([file.is_file() for file in Path(directory_name).rglob('*')]):
+        DeleteDirectoryIfExisting(directory_name)
 
 def DeleteFilesEndingWith(directory_name, *ends_with):
     """This function deletes all the files in a directory that
