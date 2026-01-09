@@ -148,7 +148,6 @@ public:
     double GetMaxReferenceEdgeLength(const GeometryType& rGeometry) const
     {
         double max_length = 0.0;
-        const SizeType number_of_points = rGeometry.PointsNumber();
 
         const auto& r_coord_1 = rGeometry[0].GetInitialPosition();
         const auto& r_coord_2 = rGeometry[1].GetInitialPosition();

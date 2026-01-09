@@ -14,6 +14,7 @@
 
 // Application includes
 #include "geo_mechanics_application.h"
+#include "custom_retention/saturated_below_phreatic_level_law.h"
 
 namespace Kratos
 {
@@ -444,6 +445,9 @@ void KratosGeoMechanicsApplication::Register()
     KRATOS_REGISTER_3D_VARIABLE_WITH_COMPONENTS(INCREMENTAL_ROTATION)
 
     KRATOS_REGISTER_VARIABLE(IS_CONVERGED)
+
+    KRATOS_REGISTER_VARIABLE(GEO_RELATIVE_DISPLACEMENT_VECTOR)
+    KRATOS_REGISTER_VARIABLE(GEO_EFFECTIVE_TRACTION_VECTOR)
 
     KRATOS_REGISTER_VARIABLE(TOTAL_STRESS_TENSOR)
     KRATOS_REGISTER_VARIABLE(TOTAL_STRESS_VECTOR)

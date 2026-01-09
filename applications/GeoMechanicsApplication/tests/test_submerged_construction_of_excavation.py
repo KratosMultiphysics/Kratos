@@ -549,9 +549,9 @@ class KratosGeoMechanicsSubmergedConstructionOfExcavation(KratosUnittest.TestCas
 
         plot_utils.make_sub_plots(
             axial_force_collections,
-            Path(project_path) / f"axial_forces_all_stages.svg",
+            Path(project_path) / "axial_forces_all_stages.svg",
             titles=plot_titles,
-            xlabel="Axial Force [kN]",
+            xlabel="Axial Force [kN/m]",
             ylabel="y [m]",
         )
 
@@ -566,9 +566,9 @@ class KratosGeoMechanicsSubmergedConstructionOfExcavation(KratosUnittest.TestCas
         )
         plot_utils.make_sub_plots(
             shear_force_collections,
-            Path(project_path) / f"shear_forces_all_stages.svg",
+            Path(project_path) / "shear_forces_all_stages.svg",
             titles=plot_titles,
-            xlabel="Shear Force [kN]",
+            xlabel="Shear Force [kN/m]",
             ylabel="y [m]",
         )
 
@@ -583,9 +583,9 @@ class KratosGeoMechanicsSubmergedConstructionOfExcavation(KratosUnittest.TestCas
         )
         plot_utils.make_sub_plots(
             bending_moment_collections,
-            Path(project_path) / f"bending_moments_all_stages.svg",
+            Path(project_path) / "bending_moments_all_stages.svg",
             titles=plot_titles,
-            xlabel="Bending moment [kNm]",
+            xlabel="Bending moment [kNm/m]",
             ylabel="y [m]",
         )
 
