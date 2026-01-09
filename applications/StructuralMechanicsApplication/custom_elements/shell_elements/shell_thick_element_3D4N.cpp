@@ -402,22 +402,11 @@ void ShellThickElement3D4N<TKinematics>::CalculateMaterialResponse(
     r_cl_options.Set(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR, true);
     r_cl_options.Set(ConstitutiveLaw::USE_ELEMENT_PROVIDED_STRAIN, true);
 
-    KRATOS_WATCH(rSectionParameters.GetGeneralizedStrainVector())
-    KRATOS_WATCH(rSectionParameters.GetGeneralizedStressVector())
-    KRATOS_WATCH(rSectionParameters.GetConstitutiveMatrix())
-
-
     cl_values.SetStrainVector(rSectionParameters.GetGeneralizedStrainVector());
     cl_values.SetStressVector(rSectionParameters.GetGeneralizedStressVector());
     cl_values.SetConstitutiveMatrix(rSectionParameters.GetConstitutiveMatrix());
 
-
     mConstitutiveLawVector[rIntegrationPointNumber]->CalculateMaterialResponseCauchy(cl_values);
-
-    std::cout << "after calculating-..." << std::endl;
-    KRATOS_WATCH(rSectionParameters.GetGeneralizedStrainVector())
-    KRATOS_WATCH(rSectionParameters.GetGeneralizedStressVector())
-    KRATOS_WATCH(rSectionParameters.GetConstitutiveMatrix())
 }
 
 /***********************************************************************************/
@@ -579,7 +568,7 @@ void ShellThickElement3D4N<TKinematics>::CalculateOnIntegrationPoints(const Vari
             // ShellCrossSection::Pointer& section = this->mSections[i];
 
             //add in shear stabilization
-            double shearStabilisation = CalculateStenbergShearStabilization(referenceCoordinateSystem, section->GetThickness(GetProperties()));
+            double shearStabilisation = CalculateStenbergShearStabilization(referenceCoordinateSystem, GetProperties()[THICKNESS]);
             parameters.SetStenbergShearStabilization(shearStabilisation);
             //double shearStabilisation = (hMean*hMean) / (hMean*hMean + 0.1*h_e*h_e);
 
@@ -1271,6 +1260,7 @@ void ShellThickElement3D4N<TKinematics>::CalculateAll(MatrixType& rLeftHandSideM
     const PropertiesType& props = GetProperties();
     const GeometryType& geom = GetGeometry();
     const Matrix& shapeFunctions = geom.ShapeFunctionsValues();
+    const double thickness = props[THICKNESS];
     Vector iN(shapeFunctions.size2());
 
     // Compute the local coordinate system.
@@ -1374,16 +1364,17 @@ void ShellThickElement3D4N<TKinematics>::CalculateAll(MatrixType& rLeftHandSideM
 
         // Calculate the response of the Cross Section
 
-        ShellCrossSection::Pointer& section = this->mSections[i];
+        // ShellCrossSection::Pointer& section = this->mSections[i];
 
         parameters.SetShapeFunctionsValues(iN);
         parameters.SetShapeFunctionsDerivatives(jacOp.XYDerivatives());
         //add in shear stabilization
-        double shearStabilisation = CalculateStenbergShearStabilization(referenceCoordinateSystem, section->GetThickness(GetProperties()));
+        double shearStabilisation = CalculateStenbergShearStabilization(referenceCoordinateSystem, thickness);
         parameters.SetStenbergShearStabilization(shearStabilisation);
         // section->CalculateSectionResponse(parameters, ConstitutiveLaw::StressMeasure_PK2);
         CalculateMaterialResponse(parameters, i, rCurrentProcessInfo);
-        Ddrilling = section->GetDrillingStiffness();
+        // Ddrilling = section->GetDrillingStiffness();
+        Ddrilling = D(2, 2);
 
         // multiply the section tangent matrices and stress resultants by 'dA'
 
