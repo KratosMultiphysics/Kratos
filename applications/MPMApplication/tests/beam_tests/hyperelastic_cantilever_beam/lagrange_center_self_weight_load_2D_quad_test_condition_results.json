@@ -1,0 +1,579 @@
+{
+  "TIME": [
+    1.1
+  ],
+  "MP_4921": {
+    "MPC_CONTACT_FORCE_X": [
+      -22306.91710517531
+    ],
+    "MPC_CONTACT_FORCE_Y": [
+      -189.87619990111756
+    ],
+    "MPC_CONTACT_FORCE_Z": [
+      -0.0
+    ],
+    "MPC_AREA": [
+      0.0125
+    ]
+  },
+  "MP_4922": {
+    "MPC_CONTACT_FORCE_X": [
+      -43218.6899016791
+    ],
+    "MPC_CONTACT_FORCE_Y": [
+      -555.8159647893132
+    ],
+    "MPC_CONTACT_FORCE_Z": [
+      -0.0
+    ],
+    "MPC_AREA": [
+      0.025
+    ]
+  },
+  "MP_4923": {
+    "MPC_CONTACT_FORCE_X": [
+      -41704.80987948497
+    ],
+    "MPC_CONTACT_FORCE_Y": [
+      -746.8636664596992
+    ],
+    "MPC_CONTACT_FORCE_Z": [
+      -0.0
+    ],
+    "MPC_AREA": [
+      0.025
+    ]
+  },
+  "MP_4924": {
+    "MPC_CONTACT_FORCE_X": [
+      -40190.929857290845
+    ],
+    "MPC_CONTACT_FORCE_Y": [
+      -937.9113681300851
+    ],
+    "MPC_CONTACT_FORCE_Z": [
+      -0.0
+    ],
+    "MPC_AREA": [
+      0.025
+    ]
+  },
+  "MP_4925": {
+    "MPC_CONTACT_FORCE_X": [
+      -38795.78552311195
+    ],
+    "MPC_CONTACT_FORCE_Y": [
+      -1113.9749363361266
+    ],
+    "MPC_CONTACT_FORCE_Z": [
+      -0.0
+    ],
+    "MPC_AREA": [
+      0.024999999999999998
+    ]
+  },
+  "MP_4926": {
+    "MPC_CONTACT_FORCE_X": [
+      -35595.16617166728
+    ],
+    "MPC_CONTACT_FORCE_Y": [
+      -1364.829050513415
+    ],
+    "MPC_CONTACT_FORCE_Z": [
+      -0.0
+    ],
+    "MPC_AREA": [
+      0.024999999999999994
+    ]
+  },
+  "MP_4927": {
+    "MPC_CONTACT_FORCE_X": [
+      -32513.282508237862
+    ],
+    "MPC_CONTACT_FORCE_Y": [
+      -1600.6990312263601
+    ],
+    "MPC_CONTACT_FORCE_Z": [
+      -0.0
+    ],
+    "MPC_AREA": [
+      0.025
+    ]
+  },
+  "MP_4928": {
+    "MPC_CONTACT_FORCE_X": [
+      -29431.398844808427
+    ],
+    "MPC_CONTACT_FORCE_Y": [
+      -1836.5690119393046
+    ],
+    "MPC_CONTACT_FORCE_Z": [
+      -0.0
+    ],
+    "MPC_AREA": [
+      0.02500000000000001
+    ]
+  },
+  "MP_4929": {
+    "MPC_CONTACT_FORCE_X": [
+      -26591.231521630798
+    ],
+    "MPC_CONTACT_FORCE_Y": [
+      -2053.9393895407857
+    ],
+    "MPC_CONTACT_FORCE_Z": [
+      -0.0
+    ],
+    "MPC_AREA": [
+      0.025
+    ]
+  },
+  "MP_4930": {
+    "MPC_CONTACT_FORCE_X": [
+      -24318.02379207652
+    ],
+    "MPC_CONTACT_FORCE_Y": [
+      -2033.8294604130972
+    ],
+    "MPC_CONTACT_FORCE_Z": [
+      -0.0
+    ],
+    "MPC_AREA": [
+      0.024999999999999994
+    ]
+  },
+  "MP_4931": {
+    "MPC_CONTACT_FORCE_X": [
+      -22286.532402774046
+    ],
+    "MPC_CONTACT_FORCE_Y": [
+      -1995.2199281739463
+    ],
+    "MPC_CONTACT_FORCE_Z": [
+      -0.0
+    ],
+    "MPC_AREA": [
+      0.024999999999999994
+    ]
+  },
+  "MP_4932": {
+    "MPC_CONTACT_FORCE_X": [
+      -20255.04101347158
+    ],
+    "MPC_CONTACT_FORCE_Y": [
+      -1956.610395934795
+    ],
+    "MPC_CONTACT_FORCE_Z": [
+      -0.0
+    ],
+    "MPC_AREA": [
+      0.024999999999999994
+    ]
+  },
+  "MP_4933": {
+    "MPC_CONTACT_FORCE_X": [
+      -18382.882267601002
+    ],
+    "MPC_CONTACT_FORCE_Y": [
+      -1921.0290604335023
+    ],
+    "MPC_CONTACT_FORCE_Z": [
+      -0.0
+    ],
+    "MPC_AREA": [
+      0.024999999999999994
+    ]
+  },
+  "MP_4934": {
+    "MPC_CONTACT_FORCE_X": [
+      -15795.092849146095
+    ],
+    "MPC_CONTACT_FORCE_Y": [
+      -2032.810161279148
+    ],
+    "MPC_CONTACT_FORCE_Z": [
+      -0.0
+    ],
+    "MPC_AREA": [
+      0.024999999999999994
+    ]
+  },
+  "MP_4935": {
+    "MPC_CONTACT_FORCE_X": [
+      -13366.636074123086
+    ],
+    "MPC_CONTACT_FORCE_Y": [
+      -2147.619458862653
+    ],
+    "MPC_CONTACT_FORCE_Z": [
+      -0.0
+    ],
+    "MPC_AREA": [
+      0.02500000000000001
+    ]
+  },
+  "MP_4936": {
+    "MPC_CONTACT_FORCE_X": [
+      -10938.179299100073
+    ],
+    "MPC_CONTACT_FORCE_Y": [
+      -2262.428756446158
+    ],
+    "MPC_CONTACT_FORCE_Z": [
+      -0.0
+    ],
+    "MPC_AREA": [
+      0.025000000000000022
+    ]
+  },
+  "MP_4937": {
+    "MPC_CONTACT_FORCE_X": [
+      -8700.189696687194
+    ],
+    "MPC_CONTACT_FORCE_Y": [
+      -2368.2334053549303
+    ],
+    "MPC_CONTACT_FORCE_Z": [
+      -0.0
+    ],
+    "MPC_AREA": [
+      0.02500000000000001
+    ]
+  },
+  "MP_4938": {
+    "MPC_CONTACT_FORCE_X": [
+      -6411.285886550955
+    ],
+    "MPC_CONTACT_FORCE_Y": [
+      -2364.22681670509
+    ],
+    "MPC_CONTACT_FORCE_Z": [
+      -0.0
+    ],
+    "MPC_AREA": [
+      0.024999999999999994
+    ]
+  },
+  "MP_4939": {
+    "MPC_CONTACT_FORCE_X": [
+      -4312.849249024886
+    ],
+    "MPC_CONTACT_FORCE_Y": [
+      -2351.2155793805214
+    ],
+    "MPC_CONTACT_FORCE_Z": [
+      -0.0
+    ],
+    "MPC_AREA": [
+      0.024999999999999994
+    ]
+  },
+  "MP_4940": {
+    "MPC_CONTACT_FORCE_X": [
+      -2214.412611498802
+    ],
+    "MPC_CONTACT_FORCE_Y": [
+      -2338.2043420559526
+    ],
+    "MPC_CONTACT_FORCE_Z": [
+      -0.0
+    ],
+    "MPC_AREA": [
+      0.024999999999999994
+    ]
+  },
+  "MP_4941": {
+    "MPC_CONTACT_FORCE_X": [
+      -280.55922237534617
+    ],
+    "MPC_CONTACT_FORCE_Y": [
+      -2326.21359325889
+    ],
+    "MPC_CONTACT_FORCE_Z": [
+      -0.0
+    ],
+    "MPC_AREA": [
+      0.02500000000000001
+    ]
+  },
+  "MP_4942": {
+    "MPC_CONTACT_FORCE_X": [
+      2163.2060347685
+    ],
+    "MPC_CONTACT_FORCE_Y": [
+      -2358.836357318569
+    ],
+    "MPC_CONTACT_FORCE_Z": [
+      -0.0
+    ],
+    "MPC_AREA": [
+      0.025000000000000022
+    ]
+  },
+  "MP_4943": {
+    "MPC_CONTACT_FORCE_X": [
+      4442.388043509728
+    ],
+    "MPC_CONTACT_FORCE_Y": [
+      -2392.479609905749
+    ],
+    "MPC_CONTACT_FORCE_Z": [
+      -0.0
+    ],
+    "MPC_AREA": [
+      0.024999999999999994
+    ]
+  },
+  "MP_4944": {
+    "MPC_CONTACT_FORCE_X": [
+      6721.570052250931
+    ],
+    "MPC_CONTACT_FORCE_Y": [
+      -2426.1228624929286
+    ],
+    "MPC_CONTACT_FORCE_Z": [
+      -0.0
+    ],
+    "MPC_AREA": [
+      0.024999999999999967
+    ]
+  },
+  "MP_4945": {
+    "MPC_CONTACT_FORCE_X": [
+      8821.992710348153
+    ],
+    "MPC_CONTACT_FORCE_Y": [
+      -2457.1274293885035
+    ],
+    "MPC_CONTACT_FORCE_Z": [
+      -0.0
+    ],
+    "MPC_AREA": [
+      0.024999999999999994
+    ]
+  },
+  "MP_4946": {
+    "MPC_CONTACT_FORCE_X": [
+      11203.721126639522
+    ],
+    "MPC_CONTACT_FORCE_Y": [
+      -2433.8753911540584
+    ],
+    "MPC_CONTACT_FORCE_Z": [
+      -0.0
+    ],
+    "MPC_AREA": [
+      0.025000000000000022
+    ]
+  },
+  "MP_4947": {
+    "MPC_CONTACT_FORCE_X": [
+      13406.690192286851
+    ],
+    "MPC_CONTACT_FORCE_Y": [
+      -2407.984667227998
+    ],
+    "MPC_CONTACT_FORCE_Z": [
+      -0.0
+    ],
+    "MPC_AREA": [
+      0.024999999999999994
+    ]
+  },
+  "MP_4948": {
+    "MPC_CONTACT_FORCE_X": [
+      15609.659257934189
+    ],
+    "MPC_CONTACT_FORCE_Y": [
+      -2382.0939433019375
+    ],
+    "MPC_CONTACT_FORCE_Z": [
+      -0.0
+    ],
+    "MPC_AREA": [
+      0.024999999999999967
+    ]
+  },
+  "MP_4949": {
+    "MPC_CONTACT_FORCE_X": [
+      17639.84645438744
+    ],
+    "MPC_CONTACT_FORCE_Y": [
+      -2358.2338639215754
+    ],
+    "MPC_CONTACT_FORCE_Z": [
+      -0.0
+    ],
+    "MPC_AREA": [
+      0.024999999999999994
+    ]
+  },
+  "MP_4950": {
+    "MPC_CONTACT_FORCE_X": [
+      20143.570902789845
+    ],
+    "MPC_CONTACT_FORCE_Y": [
+      -2325.1737725276384
+    ],
+    "MPC_CONTACT_FORCE_Z": [
+      -0.0
+    ],
+    "MPC_AREA": [
+      0.025000000000000022
+    ]
+  },
+  "MP_4951": {
+    "MPC_CONTACT_FORCE_X": [
+      22474.51348199812
+    ],
+    "MPC_CONTACT_FORCE_Y": [
+      -2294.1443256793923
+    ],
+    "MPC_CONTACT_FORCE_Z": [
+      -0.0
+    ],
+    "MPC_AREA": [
+      0.025000000000000022
+    ]
+  },
+  "MP_4952": {
+    "MPC_CONTACT_FORCE_X": [
+      24805.4560612064
+    ],
+    "MPC_CONTACT_FORCE_Y": [
+      -2263.1148788311457
+    ],
+    "MPC_CONTACT_FORCE_Z": [
+      -0.0
+    ],
+    "MPC_AREA": [
+      0.025000000000000022
+    ]
+  },
+  "MP_4953": {
+    "MPC_CONTACT_FORCE_X": [
+      26953.579638047722
+    ],
+    "MPC_CONTACT_FORCE_Y": [
+      -2234.5191142258864
+    ],
+    "MPC_CONTACT_FORCE_Z": [
+      -0.0
+    ],
+    "MPC_AREA": [
+      0.024999999999999994
+    ]
+  },
+  "MP_4954": {
+    "MPC_CONTACT_FORCE_X": [
+      29723.054090708272
+    ],
+    "MPC_CONTACT_FORCE_Y": [
+      -2125.2642234211808
+    ],
+    "MPC_CONTACT_FORCE_Z": [
+      -0.0
+    ],
+    "MPC_AREA": [
+      0.024999999999999967
+    ]
+  },
+  "MP_4955": {
+    "MPC_CONTACT_FORCE_X": [
+      32309.709541001972
+    ],
+    "MPC_CONTACT_FORCE_Y": [
+      -2018.4430148594697
+    ],
+    "MPC_CONTACT_FORCE_Z": [
+      -0.0
+    ],
+    "MPC_AREA": [
+      0.024999999999999994
+    ]
+  },
+  "MP_4956": {
+    "MPC_CONTACT_FORCE_X": [
+      34896.36499129569
+    ],
+    "MPC_CONTACT_FORCE_Y": [
+      -1911.6218062977568
+    ],
+    "MPC_CONTACT_FORCE_Z": [
+      -0.0
+    ],
+    "MPC_AREA": [
+      0.025000000000000022
+    ]
+  },
+  "MP_4957": {
+    "MPC_CONTACT_FORCE_X": [
+      37280.14552246398
+    ],
+    "MPC_CONTACT_FORCE_Y": [
+      -1813.1787307656086
+    ],
+    "MPC_CONTACT_FORCE_Z": [
+      -0.0
+    ],
+    "MPC_AREA": [
+      0.024999999999999994
+    ]
+  },
+  "MP_4958": {
+    "MPC_CONTACT_FORCE_X": [
+      39721.977725140154
+    ],
+    "MPC_CONTACT_FORCE_Y": [
+      -1737.3278916417926
+    ],
+    "MPC_CONTACT_FORCE_Z": [
+      -0.0
+    ],
+    "MPC_AREA": [
+      0.024999999999999967
+    ]
+  },
+  "MP_4959": {
+    "MPC_CONTACT_FORCE_X": [
+      41960.93500869107
+    ],
+    "MPC_CONTACT_FORCE_Y": [
+      -1669.8551855475487
+    ],
+    "MPC_CONTACT_FORCE_Z": [
+      -0.0
+    ],
+    "MPC_AREA": [
+      0.024999999999999994
+    ]
+  },
+  "MP_4960": {
+    "MPC_CONTACT_FORCE_X": [
+      44199.89229224199
+    ],
+    "MPC_CONTACT_FORCE_Y": [
+      -1602.3824794533043
+    ],
+    "MPC_CONTACT_FORCE_Z": [
+      -0.0
+    ],
+    "MPC_AREA": [
+      0.025000000000000022
+    ]
+  },
+  "MP_4961": {
+    "MPC_CONTACT_FORCE_X": [
+      23131.622549805612
+    ],
+    "MPC_CONTACT_FORCE_Y": [
+      -770.1008749029953
+    ],
+    "MPC_CONTACT_FORCE_Z": [
+      -0.0
+    ],
+    "MPC_AREA": [
+      0.012500000000000011
+    ]
+  }
+}

@@ -62,7 +62,6 @@ class AnalysisStage(object):
         while self.KeepAdvancingSolutionLoop():
             self.time = self._AdvanceTime()
             self.InitializeSolutionStep()
-            self._GetSolver().Predict()
             is_converged = self._GetSolver().SolveSolutionStep()
             self.FinalizeSolutionStep()
             self.OutputSolutionStep()
@@ -142,6 +141,7 @@ class AnalysisStage(object):
 
         self.ApplyBoundaryConditions() #here the processes are called
         self.ChangeMaterialProperties() #this is normally empty
+        self._GetSolver().Predict()
         self._GetSolver().InitializeSolutionStep()
 
 

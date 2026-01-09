@@ -1,7 +1,7 @@
 cmake_minimum_required (VERSION 3.15.0)
 
 project (KratosMultiphysics)
-set (CMAKE_CXX_STANDARD 17)
+set (CMAKE_CXX_STANDARD 20)
 set (CMAKE_CXX_STANDARD_REQUIRED ON)
 set (CMAKE_CXX_EXTENSIONS OFF)
 
@@ -50,7 +50,7 @@ endif(POLICY CMP0167)
 
 # Set here the version number **** only update upon tagging a release!
 set (KratosMultiphysics_MAJOR_VERSION 10)
-set (KratosMultiphysics_MINOR_VERSION 3)
+set (KratosMultiphysics_MINOR_VERSION 4)
 set (KratosMultiphysics_PATCH_VERSION 0)
 
 # If KRATOS_SOURCE_DIR is not defined use the CMAKE_SOURCE_DIR
@@ -79,7 +79,7 @@ if (APPLE)
   cmake_policy(SET CMP0042 NEW)
   set(CMAKE_INSTALL_RPATH "${CMAKE_INSTALL_PREFIX}/libs")
 else()
-  set(CMAKE_INSTALL_RPATH "$ORIGIN/../libs")
+  set(CMAKE_INSTALL_RPATH "$ORIGIN")
 endif()
 
 # If no test policy enable by default
@@ -169,6 +169,11 @@ ELSE(CMAKE_VERSION VERSION_LESS "3.16.0")
         ENDIF(${MSVC})
     ENDIF(CMAKE_UNITY_BUILD MATCHES ON)
 ENDIF(CMAKE_VERSION VERSION_LESS "3.16.0")
+
+# Add /utf-8 as a source file encoding flag for MSVC
+if(MSVC)
+    add_compile_options("/utf-8")
+endif()
 
 # Get subversion data. This is done automagically by the cmakes
 include (GenerateExportHeader)
@@ -722,12 +727,6 @@ endforeach()
 message("\n***********************************************************************\n")
 
 message("\nList of upcoming API-breaking and behavior changes:")
-message("\t Geometry 'Dimension' removed: https://github.com/KratosMultiphysics/Kratos/pull/10977")
-message("\t Geometry old projection methods deprecation: https://github.com/KratosMultiphysics/Kratos/pull/9024")
-message("\t Geometry old closest point methods deprecation: https://github.com/KratosMultiphysics/Kratos/pull/9243")
-message("\t Model 'CreateModelPart' behavior change (no error thrown if model part exists): https://github.com/KratosMultiphysics/Kratos/pull/9598")
-message("\t Make GetIntegrationMethod method of Condition const: https://github.com/KratosMultiphysics/Kratos/pull/9769")
-message("\t Behavior change of ModelPart.GetProperties (MeshIndex removed): https://github.com/KratosMultiphysics/Kratos/pull/9774")
 message("\t Behavior change of Testing. Please ensure you use KRATOS_EXPECT for testing instead of KRATOS_CHECK")
 message("\t Removal of misused EXTENDED_GAUSS integration rules and unification across geometries: https://github.com/KratosMultiphysics/Kratos/pull/13444")
 
@@ -759,6 +758,7 @@ kratos_python_install(${INSTALL_PYTHON_USING_LINKS} "${KRATOS_SOURCE_DIR}/kratos
 # Install the libraries in the libs folder
 install(FILES ${Boost_LIBRARIES} DESTINATION libs)
 install(FILES ${EXTRA_INSTALL_LIBS} DESTINATION libs)
+install(FILES ${KRATOS_SOURCE_DIR}/kratos/pyproject.toml DESTINATION .)
 
 # Perform post-install tasks (add_subdirectory commands are guaranteed to be executed in order)
 add_subdirectory("scripts/post_install")

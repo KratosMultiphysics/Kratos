@@ -1,8 +1,8 @@
 import sys
 import os
 import json
-
 import KratosMultiphysics.KratosUnittest as KratosUnittest
+from KratosMultiphysics.GeoMechanicsApplication.gid_output_file_reader import GiDOutputFileReader
 import test_helper
 
 class KratosGeoMechanicsElementTypeTests(KratosUnittest.TestCase):
@@ -169,7 +169,6 @@ class KratosGeoMechanicsElementTypeTests(KratosUnittest.TestCase):
         n_dim = 3
         self.assert_linear_elastic_block(simulation, output_data, top_node_nbrs, n_dim)
 
-
     def assert_linear_elastic_block(self, simulation, output_data, top_node_nbrs, n_dim):
         """
         Assert results of a linear elastic block. The sides of the block can move freely in vertical direction and are
@@ -196,7 +195,7 @@ class KratosGeoMechanicsElementTypeTests(KratosUnittest.TestCase):
             effective_stresses_zz = [integration_point[2,2] for element in effective_stresses for integration_point in element]
 
         end_time = 1.0
-        displacements = test_helper.GiDOutputFileReader.nodal_values_at_time("DISPLACEMENT", end_time, output_data)
+        displacements = GiDOutputFileReader.nodal_values_at_time("DISPLACEMENT", end_time, output_data)
         x_displacements = [displacement[0] for displacement in displacements]
         if n_dim >= 2:
             y_displacements = [displacement[1] for displacement in displacements]
@@ -244,13 +243,16 @@ class KratosGeoMechanicsElementTypeTests(KratosUnittest.TestCase):
                 self.assertAlmostEqual(0.0, z_displacement)
 
     def fetchOutputFromFile(self, output_file_path):
-        reader = test_helper.GiDOutputFileReader()
+        reader = GiDOutputFileReader()
         return reader.read_output_from(output_file_path)
 
     def assertVerticalStressAtBottomNodes(self, output_data, bottom_node_ids):
         end_time = 1.0
-        nodal_stress_tensors = test_helper.GiDOutputFileReader.nodal_values_at_time("NODAL_CAUCHY_STRESS_TENSOR", end_time, output_data, bottom_node_ids)
+        nodal_stress_tensors = GiDOutputFileReader.nodal_values_at_time(
+            "CAUCHY_STRESS_TENSOR", end_time, output_data, bottom_node_ids
+        )
         expected_stress_yy = -1e4
+        self.assertEqual(len(bottom_node_ids), len(nodal_stress_tensors))
         for stress_tensor in nodal_stress_tensors:
             self.assertAlmostEqual(stress_tensor[1], expected_stress_yy)
 

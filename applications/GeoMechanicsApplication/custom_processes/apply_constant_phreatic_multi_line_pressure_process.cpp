@@ -41,7 +41,7 @@ ApplyConstantPhreaticMultiLinePressureProcess::ApplyConstantPhreaticMultiLinePre
     KRATOS_CATCH("")
 }
 
-void ApplyConstantPhreaticMultiLinePressureProcess::InitializeParameters(Parameters& rParameters) const
+void ApplyConstantPhreaticMultiLinePressureProcess::InitializeParameters(Parameters& rParameters)
 {
     Parameters default_parameters(R"(
             {

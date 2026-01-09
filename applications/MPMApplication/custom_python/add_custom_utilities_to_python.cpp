@@ -72,6 +72,7 @@ namespace Python{
         m.def("SearchElement", SearchElementAccordingToDimension);
         m.def("GenerateMaterialPointElement", GenerateMaterialPointElementAccordingToDimension);
         m.def("GenerateMaterialPointCondition", GenerateMaterialPointConditionAccordingToDimension);
+        m.def("GenerateLagrangeNodes", MaterialPointGeneratorUtility::GenerateLagrangeNodes);
 
         // Brute force material point (element/condition) locator
         py::class_<BruteForceMaterialPointLocator> (m, "BruteForceMaterialPointLocator")
@@ -79,6 +80,7 @@ namespace Python{
             .def("FindElement", &BruteForceMaterialPointLocator::FindElement)
             .def("FindCondition", &BruteForceMaterialPointLocator::FindCondition)
             ;
+
     }
 
 }  // namespace Python.

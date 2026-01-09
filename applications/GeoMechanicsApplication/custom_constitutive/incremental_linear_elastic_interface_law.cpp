@@ -12,12 +12,19 @@
 //
 
 #include "incremental_linear_elastic_interface_law.h"
+#include "constitutive_law_dimension.h"
 #include "custom_utilities/check_utilities.h"
-#include "geo_mechanics_application_constants.h"
 #include "geo_mechanics_application_variables.h"
 
 namespace Kratos
 {
+
+GeoIncrementalLinearElasticInterfaceLaw::~GeoIncrementalLinearElasticInterfaceLaw() = default;
+
+GeoIncrementalLinearElasticInterfaceLaw::GeoIncrementalLinearElasticInterfaceLaw(std::unique_ptr<ConstitutiveLawDimension> pConstitutiveLawDimension)
+    : mpConstitutiveLawDimension(std::move(pConstitutiveLawDimension))
+{
+}
 
 ConstitutiveLaw::Pointer GeoIncrementalLinearElasticInterfaceLaw::Clone() const
 {
@@ -36,9 +43,9 @@ ConstitutiveLaw::SizeType GeoIncrementalLinearElasticInterfaceLaw::GetStrainSize
 
 Vector& GeoIncrementalLinearElasticInterfaceLaw::GetValue(const Variable<Vector>& rThisVariable, Vector& rValue)
 {
-    if (rThisVariable == STRAIN) {
+    if (rThisVariable == GEO_RELATIVE_DISPLACEMENT_VECTOR) {
         rValue = mPreviousRelativeDisplacement;
-    } else if (rThisVariable == CAUCHY_STRESS_VECTOR) {
+    } else if (rThisVariable == GEO_EFFECTIVE_TRACTION_VECTOR) {
         rValue = mPreviousTraction;
     } else {
         KRATOS_ERROR << "Can't get value of " << rThisVariable.Name() << ": unsupported variable\n";

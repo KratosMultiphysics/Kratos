@@ -23,16 +23,17 @@ using namespace Kratos;
 double GetValueOfUMatParameter(const Properties& rProperties, const Variable<int>& rIndexVariable)
 {
     KRATOS_ERROR_IF_NOT(rProperties.Has(UMAT_PARAMETERS))
-        << "Material " << rProperties.Id() << " does not have UMAT_PARAMETERS\n";
+        << "There is no UMAT_PARAMETERS for material " << rProperties.Id() << "." << std::endl;
 
     KRATOS_ERROR_IF_NOT(rProperties.Has(rIndexVariable))
-        << "Material " << rProperties.Id() << " does not have " << rIndexVariable.Name() << "\n";
+        << "There is no " << rIndexVariable.Name() << " for material " << rProperties.Id() << "."
+        << std::endl;
 
     const auto index = rProperties[rIndexVariable]; // 1-based index
     KRATOS_DEBUG_ERROR_IF(index < 1 ||
                           static_cast<std::size_t>(index) > rProperties[UMAT_PARAMETERS].size())
         << "Got out-of-bounds " << rIndexVariable.Name() << " (material ID: " << rProperties.Id()
-        << "): " << index << " is not in range [1, " << rProperties[UMAT_PARAMETERS].size() << "]\n";
+        << "): " << index << " is not in range [1, " << rProperties[UMAT_PARAMETERS].size() << "].\n";
 
     return rProperties[UMAT_PARAMETERS][index - 1];
 }
@@ -70,15 +71,32 @@ void ConstitutiveLawUtilities::SetConstitutiveParameters(ConstitutiveLaw::Parame
 
 double ConstitutiveLawUtilities::GetCohesion(const Properties& rProperties)
 {
-    return rProperties.Has(GEO_COHESION) ? rProperties[GEO_COHESION]
-                                         : GetValueOfUMatParameter(rProperties, INDEX_OF_UMAT_C_PARAMETER);
+    if (rProperties.Has(GEO_COHESION)) return rProperties[GEO_COHESION];
+
+    try {
+        return GetValueOfUMatParameter(rProperties, INDEX_OF_UMAT_C_PARAMETER);
+    } catch (const std::exception& e) {
+        KRATOS_ERROR
+            << "ConstitutiveLawUtilities::GetCohesion failed. There is no GEO_COHESION available "
+               "and attempting to get the cohesion from UMAT parameters resulted in the following "
+            << e.what() << "." << std::endl;
+    }
 }
 
 double ConstitutiveLawUtilities::GetFrictionAngleInDegrees(const Properties& rProperties)
 {
-    return rProperties.Has(GEO_FRICTION_ANGLE)
-               ? rProperties[GEO_FRICTION_ANGLE]
-               : GetValueOfUMatParameter(rProperties, INDEX_OF_UMAT_PHI_PARAMETER);
+    if (rProperties.Has(GEO_FRICTION_ANGLE)) {
+        return rProperties[GEO_FRICTION_ANGLE];
+    }
+
+    try {
+        return GetValueOfUMatParameter(rProperties, INDEX_OF_UMAT_PHI_PARAMETER);
+    } catch (const std::exception& e) {
+        KRATOS_ERROR << "ConstitutiveLawUtilities::GetFrictionAngleInDegrees failed. There is no "
+                        "GEO_FRICTION_ANGLE available and attempting to get the cohesion from UMAT "
+                        "parameters resulted in the following "
+                     << e.what() << "." << std::endl;
+    }
 }
 
 double ConstitutiveLawUtilities::GetFrictionAngleInRadians(const Properties& rProperties)
@@ -97,6 +115,29 @@ Matrix ConstitutiveLawUtilities::MakeInterfaceConstitutiveMatrix(double      Nor
     for (auto i = NumberOfNormalComponents; i < TractionSize; ++i)
         result(i, i) = ShearStiffness;
     return result;
+}
+
+void ConstitutiveLawUtilities::CheckStrainSize(const Properties& rProperties, std::size_t ExpectedSize, std::size_t ElementId)
+{
+    const std::size_t strain_size = rProperties[CONSTITUTIVE_LAW]->GetStrainSize();
+    KRATOS_ERROR_IF_NOT(strain_size == ExpectedSize)
+        << "Wrong constitutive law is used: strain size is " << strain_size << " when it is expected to be "
+        << ExpectedSize << " at element Id = " << ElementId << "." << std::endl;
+}
+
+void ConstitutiveLawUtilities::CheckHasStrainMeasure_Infinitesimal(const Properties& rProperties, std::size_t ElementId)
+{
+    ConstitutiveLaw::Features LawFeatures;
+    rProperties[CONSTITUTIVE_LAW]->GetLawFeatures(LawFeatures);
+    const auto correct_strain_measure = std::any_of(
+        LawFeatures.mStrainMeasures.begin(), LawFeatures.mStrainMeasures.end(), [](auto& strain_measure) {
+        return strain_measure == ConstitutiveLaw::StrainMeasure_Infinitesimal;
+    });
+
+    KRATOS_ERROR_IF_NOT(correct_strain_measure)
+        << "Constitutive law is not compatible with the strain type "
+           "StrainMeasure_Infinitesimal at element "
+        << ElementId << "." << std::endl;
 }
 
 } // namespace Kratos

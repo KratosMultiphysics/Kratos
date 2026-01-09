@@ -14,12 +14,14 @@
 #include "custom_constitutive/plane_strain.h"
 #include "custom_elements/plane_strain_stress_state.h"
 #include "custom_elements/small_strain_U_Pw_diff_order_element.hpp"
+#include "custom_retention/saturated_law.h"
 #include "custom_utilities/registration_utilities.h"
+#include "custom_utilities/ublas_utilities.h"
 #include "geo_mechanics_application_variables.h"
+#include "test_setup_utilities/element_setup_utilities.h"
 #include "tests/cpp_tests/geo_mechanics_fast_suite.h"
 #include "tests/cpp_tests/stub_constitutive_law.h"
 #include "tests/cpp_tests/test_utilities.h"
-#include "tests/cpp_tests/test_utilities/element_setup_utilities.h"
 
 #include <boost/numeric/ublas/assignment.hpp>
 #include <string>
@@ -139,6 +141,12 @@ Matrix ExpectedLeftHandSide()
     return result;
 }
 
+Vector RightHandSideRegressionValues()
+{
+    return UblasUtilities::CreateVector({127876, -41008.2, -35286.7, 15096.6, -13055.6, -67314.3, 62688.2, -65544.4,
+                                         -23942.7, 136350, -118280, 9166.82, -116.855, 97.39, 154.882});
+}
+
 } // namespace
 
 namespace Kratos::Testing
@@ -211,6 +219,77 @@ KRATOS_TEST_CASE_IN_SUITE(SmallStrainUPwDiffOrderElement_CalculateLHS_WithSaveAn
     p_loaded_element->CalculateLeftHandSide(actual_lhs_values, dummy_process_info);
 
     KRATOS_EXPECT_MATRIX_NEAR(ExpectedLeftHandSide(), actual_lhs_values, Defaults::absolute_tolerance);
+}
+
+KRATOS_TEST_CASE_IN_SUITE(SmallStrainUPwDiffOrderElement_CalculateRHS, KratosGeoMechanicsFastSuiteWithoutKernel)
+{
+    // Arrange
+    auto p_properties = CreateProperties();
+    p_properties->SetValue(BIOT_COEFFICIENT, 1.0); // to get RHS contributions of coupling
+    auto p_element = CreateSmallStrainUPwDiffOrderElementWithUPwDofs(p_properties);
+
+    SetSolutionStepValuesForGeneralCheck(p_element);
+
+    const auto dummy_process_info = ProcessInfo{};
+    p_element->Initialize(dummy_process_info);
+
+    auto& r_geometry = p_element->GetGeometry();
+    for (int counter = 0; auto& node : r_geometry) {
+        node.FastGetSolutionStepValue(WATER_PRESSURE)    = counter * 1.0e5;
+        node.FastGetSolutionStepValue(DT_WATER_PRESSURE) = counter * 5.0e5;
+        ++counter;
+    }
+
+    // Act
+    auto actual_rhs_values = Vector{};
+    p_element->CalculateRightHandSide(actual_rhs_values, dummy_process_info);
+
+    KRATOS_EXPECT_VECTOR_RELATIVE_NEAR(RightHandSideRegressionValues(), actual_rhs_values, 1e-5);
+}
+
+KRATOS_TEST_CASE_IN_SUITE(SmallStrainUPwDiffOrderElement_RHSEqualsUnbalanceVector, KratosGeoMechanicsFastSuiteWithoutKernel)
+{
+    // Arrange
+    auto p_properties = CreateProperties();
+    p_properties->SetValue(BIOT_COEFFICIENT, 1.0); // to get RHS contributions of coupling
+    auto p_element = CreateSmallStrainUPwDiffOrderElementWithUPwDofs(p_properties);
+
+    SetSolutionStepValuesForGeneralCheck(p_element);
+
+    const auto dummy_process_info = ProcessInfo{};
+    p_element->Initialize(dummy_process_info);
+
+    auto& r_geometry = p_element->GetGeometry();
+    for (int counter = 0; auto& node : r_geometry) {
+        node.FastGetSolutionStepValue(WATER_PRESSURE)    = counter * 1.0e5;
+        node.FastGetSolutionStepValue(DT_WATER_PRESSURE) = counter * 5.0e5;
+        ++counter;
+    }
+
+    // Act
+    auto actual_rhs_values = Vector{};
+    p_element->CalculateRightHandSide(actual_rhs_values, dummy_process_info);
+
+    auto internal_forces = Vector{};
+    p_element->Calculate(INTERNAL_FORCES_VECTOR, internal_forces, dummy_process_info);
+
+    auto external_forces = Vector{};
+    p_element->Calculate(EXTERNAL_FORCES_VECTOR, external_forces, dummy_process_info);
+
+    KRATOS_EXPECT_VECTOR_RELATIVE_NEAR(actual_rhs_values, (external_forces - internal_forces), 1e-5);
+}
+
+KRATOS_TEST_CASE_IN_SUITE(SmallStrainUPwDiffOrderElement_CalculateThrowsDebugErrorForUnknownVectorVariable,
+                          KratosGeoMechanicsFastSuiteWithoutKernel)
+{
+    auto p_properties = CreateProperties();
+    p_properties->SetValue(BIOT_COEFFICIENT, 1.0); // to get RHS contributions of coupling
+    auto p_element = CreateSmallStrainUPwDiffOrderElementWithUPwDofs(p_properties);
+
+    Vector output;
+    KRATOS_EXPECT_EXCEPTION_IS_THROWN(
+        p_element->Calculate(CAUCHY_STRAIN_VECTOR, output, ProcessInfo{}),
+        "Variable CAUCHY_STRAIN_VECTOR is unknown for element with Id 1.");
 }
 
 } // namespace Kratos::Testing
