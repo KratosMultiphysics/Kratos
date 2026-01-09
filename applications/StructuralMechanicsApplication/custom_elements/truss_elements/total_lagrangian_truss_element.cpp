@@ -352,7 +352,7 @@ array_1d<double, 3> TotalLagrangianTrussElement<TDimension>::GetLocalAxesBodyFor
 /***********************************************************************************/
 
 template <SizeType TDimension>
-TotalLagrangianTrussElement<TDimension>::MatrixType TotalLagrangianTrussElement<TDimension>::
+typename TotalLagrangianTrussElement<TDimension>::MatrixType TotalLagrangianTrussElement<TDimension>::
 CalculateGeometricStiffnessMatrix(
     const double Stress_x,
     const double Ref_Length
@@ -927,7 +927,7 @@ Vector TotalLagrangianTrussElement<TDimension>::GetBaseShapeFunctions(const doub
 /***********************************************************************************/
 
 template <SizeType TDimension>
-TotalLagrangianTrussElement<TDimension>::MatrixType TotalLagrangianTrussElement<TDimension>::
+typename TotalLagrangianTrussElement<TDimension>::MatrixType TotalLagrangianTrussElement<TDimension>::
 CalculateClosedFormK(
     const double Sxx
 )
