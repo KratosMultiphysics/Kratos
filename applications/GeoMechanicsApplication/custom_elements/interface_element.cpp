@@ -15,7 +15,7 @@
 #include "custom_utilities/constitutive_law_utilities.h"
 #include "custom_utilities/dof_utilities.hpp"
 #include "custom_utilities/element_utilities.hpp"
-#include "custom_utilities/equation_of_motion_utilities.h"
+#include "custom_utilities/equation_of_motion_utilities.hpp"
 #include "custom_utilities/extrapolation_utilities.h"
 #include "custom_utilities/generic_utilities.h"
 #include "custom_utilities/geometry_utilities.h"
