@@ -11,3 +11,7 @@ def days_to_seconds(duration_in_days):
 
 def Pa_to_kPa(stress_in_Pa):
     return stress_in_Pa / 1000.0
+
+
+def unit_to_k_unit(unit_value):
+    return unit_value / 1000.0

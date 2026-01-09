@@ -182,16 +182,13 @@ public:
     static Vector CalculateNodalHydraulicHeadFromWaterPressures(const GeometryType& rGeom,
                                                                 const Properties&   rProp);
 
+    static std::size_t                     GetNumberOfIntegrationPointsOf(const Element& rElement);
+    static Geo::IntegrationPointVectorType GetIntegrationPointsOf(const Element& rElement);
     static std::vector<Vector> EvaluateShapeFunctionsAtIntegrationPoints(const Geo::IntegrationPointVectorType& rIntegrationPoints,
                                                                          const Geometry<Node>& rGeometry);
 
-private:
-    template <typename VectorType1, typename VectorType2>
-    static void AddVectorAtPosition(const VectorType1& rSourceVector, VectorType2& rDestinationVector, std::size_t Offset)
-    {
-        auto pos = std::begin(rDestinationVector) + Offset;
-        std::transform(std::begin(rSourceVector), std::end(rSourceVector), pos, pos, std::plus<double>{});
-    }
+    static Vector EvaluateDeterminantsOfJacobiansAtIntegrationPoints(const Geo::IntegrationPointVectorType& rIntegrationPoints,
+                                                                     const Geometry<Node>& rGeometry);
 
     template <typename MatrixType1, typename MatrixType2>
     static inline void AddMatrixAtPosition(const MatrixType1& rSourceMatrix,
@@ -209,6 +206,14 @@ private:
                 rDestinationMatrix(di, j + ColumnOffset) += rSourceMatrix(i, j);
             }
         }
+    }
+
+private:
+    template <typename VectorType1, typename VectorType2>
+    static void AddVectorAtPosition(const VectorType1& rSourceVector, VectorType2& rDestinationVector, std::size_t Offset)
+    {
+        auto pos = std::begin(rDestinationVector) + Offset;
+        std::transform(std::begin(rSourceVector), std::end(rSourceVector), pos, pos, std::plus<double>{});
     }
 
 }; /* Class GeoElementUtilities*/

@@ -36,9 +36,20 @@ public:
     static std::vector<Point> CreatePointsFor3D20NElement();
     static std::vector<Point> CreatePointsFor3D6NInterfaceElement();
 
+    static PointerVector<Node> GenerateNodes(const std::vector<Point>& rPoints);
+
     static Element::Pointer Create2D3NElement(const PointerVector<Node>& rNodes,
                                               const Properties::Pointer& rProperties);
+    static Element::Pointer Create2D3NElement(const PointerVector<Node>& rNodes,
+                                              const Properties::Pointer& rProperties,
+                                              std::size_t                Id);
     static Element::Pointer Create2D3NElement();
+    static Element::Pointer Create2D4NElement(const PointerVector<Node>& rNodes,
+                                              const Properties::Pointer& rProperties);
+    static Element::Pointer Create2D8NElement(const PointerVector<Node>& rNodes,
+                                              const Properties::Pointer& rProperties);
+    static Element::Pointer Create2D3NLineElement(const PointerVector<Node>& rNodes,
+                                                  const Properties::Pointer& rProperties);
     static Element::Pointer Create2D2NElement(const PointerVector<Node>& rNodes,
                                               const Properties::Pointer& rProperties);
 
@@ -70,8 +81,18 @@ public:
                                                const Properties::Pointer& rProperties);
     static Element::Pointer Create2D15NElement();
 
+    static Element::Pointer Create2D4NInterfaceElement(const PointerVector<Node>& rNodes,
+                                                       const Properties::Pointer& rProperties);
+    static Element::Pointer Create2D6NInterfaceElement(const PointerVector<Node>& rNodes,
+                                                       const Properties::Pointer& rProperties);
     static Element::Pointer Create3D6NInterfaceElement(const PointerVector<Node>& rNodes,
                                                        const Properties::Pointer& rProperties);
+    static Element::Pointer Create3D12NInterfaceElement(const PointerVector<Node>& rNodes,
+                                                        const Properties::Pointer& rProperties);
+
+    static Element::Pointer Create3D8NInterfaceElement(const PointerVector<Node>& rNodes,
+                                                       const Properties::Pointer& rProperties,
+                                                       std::size_t Id = std::size_t{0});
 
     static Element::Pointer Create3D4NElement(const PointerVector<Node>& rNodes,
                                               const Properties::Pointer& rProperties);
@@ -81,6 +102,9 @@ public:
     static Element::Pointer Create3D10NElement();
     static Element::Pointer Create3D8NElement(const PointerVector<Node>& rNodes,
                                               const Properties::Pointer& rProperties);
+    static Element::Pointer Create3D8NElement(const PointerVector<Node>& rNodes,
+                                              const Properties::Pointer& rProperties,
+                                              std::size_t                Id);
     static Element::Pointer Create3D20NElement(const PointerVector<Node>& rNodes,
                                                const Properties::Pointer& rProperties);
 

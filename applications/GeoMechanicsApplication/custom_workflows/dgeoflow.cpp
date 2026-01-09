@@ -222,13 +222,13 @@ int KratosExecute::MainExecution(ModelPart& rModelPart,
         Time += DeltaTime;
         rModelPart.CloneTimeStep(Time);
         rpSolvingStrategy->Initialize();
+        rpSolvingStrategy->Predict();
         rpSolvingStrategy->InitializeSolutionStep();
 
         for (const auto& process : mProcesses) {
             process->ExecuteInitializeSolutionStep();
         }
 
-        rpSolvingStrategy->Predict();
         rpSolvingStrategy->SolveSolutionStep();
 
         for (const auto& process : mProcesses) {
@@ -360,7 +360,7 @@ void KratosExecute::ExecuteWithoutPiping(ModelPart&                rModelPart,
 int KratosExecute::ExecuteWithPiping(ModelPart&                rModelPart,
                                      const Kratos::Parameters& rGidOutputSettings,
                                      const CriticalHeadInfo&   rCriticalHeadInfo,
-                                     const LoggerOutput::Pointer& rpOutput,
+                                     LoggerOutput::Pointer     pOutput,
                                      const std::stringstream&  rKratosLogBuffer,
                                      const CallBackFunctions&  rCallBackFunctions,
                                      const GeoMechanicsNewtonRaphsonErosionProcessStrategyType::Pointer pSolvingStrategy)
@@ -384,7 +384,7 @@ int KratosExecute::ExecuteWithPiping(ModelPart&                rModelPart,
         KRATOS_ERROR << "No river boundary found.";
     }
 
-    FindCriticalHead(rModelPart, rGidOutputSettings, rCriticalHeadInfo, std::move(rpOutput),
+    FindCriticalHead(rModelPart, rGidOutputSettings, rCriticalHeadInfo, std::move(pOutput),
                      rKratosLogBuffer, p_river_boundary, pSolvingStrategy, rCallBackFunctions);
 
     WriteCriticalHeadResultToFile();

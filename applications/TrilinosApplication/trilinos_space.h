@@ -873,6 +873,32 @@ public:
     /**
      * @brief Returns a list of the fastest direct solvers.
      * @details This function returns a vector of strings representing the names of the fastest direct solvers. The order of the solvers in the list may need to be updated and reordered depending on the size of the equation system.
+     * In Trilinos, the speed of direct solvers like MUMPS, SuperLU_DIST, KLU, and Basker can depend on various factors including the size and sparsity of the matrix, the architecture of the computer system, and the specific characteristics of the problem being solved. Below are some general observations about these solvers:
+     *
+     * 1. MUMPS (MUltifrontal Massively Parallel Sparse Direct Solver):
+     * - Parallel solver, handles large problems well.
+     * - Can be used on distributed-memory machines.
+     * - May have higher memory requirements.
+     *
+     * 2. SuperLU_DIST:
+     * - Parallel solver, also designed for distributed-memory machines.
+     * - Often used for large, sparse linear systems.
+     * - Has good performance on a wide range of problems.
+     *
+     * 3. KLU:
+     * - A serial solver, typically used for smaller problems.
+     * - Works well for circuit simulation problems and other problems with a similar structure.
+     * - Generally not suitable for large distributed-memory parallel computations.
+     * 4. Basker:
+     * - Also a serial solver, suitable for smaller problems.
+     * - May not perform as well on larger problems or on distributed-memory systems.
+     *
+     * Here are some considerations for choosing a solver:
+     *
+     * - If you are working on a distributed-memory parallel machine and dealing with large problems, you might want to consider MUMPS or SuperLU_DIST.
+     * - For smaller problems or problems with structure similar to circuit simulation problems, KLU might be a good choice.
+     * - Basker might be suitable for smaller problems where other solvers are not performing well.
+     * @todo A proper study of speed must be done, particularly depending of system size would be interesting  
      * @return A vector of strings containing the names of the fastest direct solvers.
      */
     inline static std::vector<std::string> FastestDirectSolverList()

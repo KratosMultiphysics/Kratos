@@ -108,10 +108,13 @@ def MoveKratosModuleStubFilesToPythonModule(stub_file_path: Path, list_of_python
         if not Path(stub_source_file_name).is_file():
             # it is not a single stub file, it has multiple nested packages.
             # hence it is a directory
-            stub_source_file_name = stub_source_file_name.parent / stub_source_file_name.name[:-4]
-            stub_dest_file_name = kratos_module.GetPythonPath().parent
-            shutil.copytree(stub_source_file_name, stub_dest_file_name, dirs_exist_ok=True)
-            shutil.rmtree(stub_source_file_name)
+            try:
+                stub_source_file_name = stub_source_file_name.parent / stub_source_file_name.name[:-4]
+                stub_dest_file_name = kratos_module.GetPythonPath().parent
+                shutil.copytree(stub_source_file_name, stub_dest_file_name, dirs_exist_ok=True)
+                shutil.rmtree(stub_source_file_name)
+            except Exception as e:
+                print("Error at MoveKratosModuleStubFilesToPythonModule:", e)
         else:
             # it is a single stub file.
             if kratos_module.GetPythonPath().name == "__init__.py":
