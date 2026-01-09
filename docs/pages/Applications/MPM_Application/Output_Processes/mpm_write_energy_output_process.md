@@ -47,9 +47,21 @@ Defines the settings for the [`TimeBasesAsciiFileWriterUtility`](https://github.
     "file_extension"    : "dat"
 }
 ```
-- `"file_name"`: name of the output file.
+- `"file_name"`: name of the output file. If the name is not specified, the file name is `<model_part_name>_energy.dat`.
 - `"output_path"`: path of the output file.
 - `"file_extension"`: extension of the output file.
+
+## Example
+Ouput example:
+
+```
+# Energy model part 'MPMModelPart'
+# time potential_energy kinetic_energy strain_energy total_energy
+0.0 0.00000000 0.14000000 4.55000000 4.69000000
+0.2 0.41700000 1.27500000 13.21320000 14.90520000
+0.4 1.20195000 7.48890000 25.98960000 34.68045000
+0.6 2.70489915 27.29754000 43.53440000 73.53683915
+```
 
 ## Source Code
 
