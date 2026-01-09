@@ -9,6 +9,13 @@
 */
 
 #pragma once
+
+#if defined(_MSC_VER)
+#ifndef _BACKUP_ITERATOR_DEBUG_LEVEL
+#define _BACKUP_ITERATOR_DEBUG_LEVEL 0
+#endif
+#endif
+
 #include "detail/class.h"
 #include "detail/dynamic_raw_ptr_cast_if_possible.h"
 #include "detail/exception_translation.h"
