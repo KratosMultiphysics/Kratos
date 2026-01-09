@@ -15,7 +15,7 @@
 #include <numeric>
 
 #include "custom_utilities/check_utilities.hpp"
-#include "custom_utilities/dof_utilities.h"
+#include "custom_utilities/dof_utilities.hpp"
 #include "custom_utilities/element_utilities.hpp"
 #include "custom_utilities/math_utilities.h"
 #include "custom_utilities/transport_equation_utilities.hpp"

@@ -13,7 +13,7 @@
 // Application includes
 #include "custom_elements/transient_Pw_element.hpp"
 #include "custom_utilities/check_utilities.hpp"
-#include "custom_utilities/dof_utilities.h"
+#include "custom_utilities/dof_utilities.hpp"
 #include "custom_utilities/transport_equation_utilities.hpp"
 #include "includes/cfd_variables.h"
 
