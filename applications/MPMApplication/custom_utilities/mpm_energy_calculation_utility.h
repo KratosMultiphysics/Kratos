@@ -101,7 +101,7 @@ public:
      * @param rStrainEnergy The strain energy of the input model part
      * @param rTotallEnergy The total energy of the input model part
      */
-    void CalculateTotalEnergy(
+    void CalculateAllEnergies(
         ModelPart& rModelPart,
         double& rPotentialEnergy,
         double& rKineticEnergy,

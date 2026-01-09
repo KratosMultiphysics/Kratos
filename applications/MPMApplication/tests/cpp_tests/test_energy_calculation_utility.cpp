@@ -195,7 +195,7 @@ namespace Kratos::Testing
         double s_energy{0};
         double t_energy{0};
 
-        MPMEnergyCalculationUtility().CalculateTotalEnergy(r_model_part, p_energy, k_energy, s_energy, t_energy);
+        MPMEnergyCalculationUtility().CalculateAllEnergies(r_model_part, p_energy, k_energy, s_energy, t_energy);
 
         KRATOS_EXPECT_NEAR(p_energy, 20.13  , 1e-6);
         KRATOS_EXPECT_NEAR(k_energy, 19.472 , 1e-6);

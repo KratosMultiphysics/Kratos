@@ -113,7 +113,7 @@ namespace Kratos
                 [&](auto& r_element) { return this->CalculateTotalEnergy(r_element); });
     }
 
-    void MPMEnergyCalculationUtility::CalculateTotalEnergy(
+    void MPMEnergyCalculationUtility::CalculateAllEnergies(
         ModelPart& rModelPart,
         double& rPotentialEnergy,
         double& rKineticEnergy,

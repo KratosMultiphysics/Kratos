@@ -49,7 +49,7 @@ class MPMWriteEnergyOutputProcess(KratosMultiphysics.OutputProcess):
 
         # if output file name is not specified, use default value: model_part_name_energy.dat
         if not file_handler_params.Has("file_name"):
-            output_file_name = f"{self.model_part_name}_energy.dat"
+            output_file_name = f"{self.model_part_name}_energy"
             wrn_msg = f"File name not specified, using the default name: {output_file_name}"
             KratosMultiphysics.Logger.PrintWarning(self.__class__.__name__,wrn_msg)
             file_handler_params.AddString("file_name",output_file_name)
@@ -57,7 +57,7 @@ class MPMWriteEnergyOutputProcess(KratosMultiphysics.OutputProcess):
         file_header = self._GetFileHeader()
         self.output_file = TimeBasedAsciiFileWriterUtility(self.model_part, file_handler_params, file_header).file
         if self.output_file:
-            self.output_file.flush()
+            self.PrintOutput()
 
     def IsOutputStep(self):
         time = self.model_part.ProcessInfo[KratosMultiphysics.TIME]
@@ -66,8 +66,7 @@ class MPMWriteEnergyOutputProcess(KratosMultiphysics.OutputProcess):
     def PrintOutput(self):
         time = self.model_part.ProcessInfo[KratosMultiphysics.TIME]
         if self.output_file:
-            p_energy = k_energy = s_energy = t_energy = 0.0
-            KratosMPM.EnergyCalculationUtility().CalculateTotalEnergy(self.model_part,p_energy,k_energy,s_energy,t_energy)
+            p_energy, k_energy, s_energy, t_energy = KratosMPM.EnergyCalculationUtility().CalculateAllEnergies(self.model_part)
             out = f"{str(time)} {p_energy:{self.format}} {k_energy:{self.format}} {s_energy:{self.format}} {t_energy:{self.format}}\n"
             self.output_file.write(out)
             self.output_file.flush()
