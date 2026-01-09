@@ -1998,7 +1998,7 @@ class FluidTopologyOptimizationAnalysis(FluidDynamicsAnalysis):
             "solution_stabilization_settings": {
                 "adjoint_viscosity_adaptation_settings": {
                     "use_adjoint_viscosity_adaptation": false,
-                    "adjoint_viscosity_adaptation_factor": 10                                                  
+                    "adjoint_viscosity_adaptation_factor": 1.0                                                  
                 }
             },                                                       
             "remeshing_settings": {
