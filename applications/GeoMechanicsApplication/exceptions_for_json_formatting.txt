@@ -1,6 +1,4 @@
 GeoMechanicsApplication.json
-tests\apply_initial_uniform_stress_field\MaterialParameters.json
-tests\apply_initial_uniform_stress_field\ProjectParameters.json
 tests\Biaxialshearstresswithlinearelasticmodel.gid\MaterialParameters.json
 tests\Biaxialshearstresswithlinearelasticmodel.gid\ProjectParameters.json
 tests\C-Phi_reduction_process\MaterialParameters_stage1.json
