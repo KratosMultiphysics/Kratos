@@ -35,24 +35,24 @@ class KRATOS_API(GEO_MECHANICS_APPLICATION) GeoStaticCondensationUtility
 public:
     /**
      * @brief This function is the main operation of this utility. It sorts the reference matrix w.r.t. the given dofs and condenses the reference matrix by using the following inputs:
-     * @param rTheElement The current element
+     * @param rElement The current element
      * @param rLeftHandSideMatrix The matrix which will be condensed
      * @param rDofList The list containing the dofs to be condensed
      */
 
-    static void CondenseLeftHandSide(Element&                rTheElement,
+    static void CondenseLeftHandSide(const Element&          rElement,
                                      Matrix&                 rLeftHandSideMatrix,
                                      const std::vector<int>& rDofList);
 
     /**
      * @brief This function calculates the 4 schur-complements linking the dofs to be condensed to the dofs to remain by using the following inputs:
-     * @param rTheElement The current element
+     * @param rElement The current element
      * @param rLeftHandSideMatrix The matrix which will be condensed
      * @param rDofList The list containing the dofs to be condensed
      */
 
-    static std::vector<Matrix> CalculateSchurComplements(Element&      rTheElement,
-                                                         const Matrix& rLeftHandSideMatrix,
+    static std::vector<Matrix> CalculateSchurComplements(const Element& rElement,
+                                                         const Matrix&  rLeftHandSideMatrix,
                                                          const std::vector<int>& rDofList);
 
     /**
@@ -82,15 +82,15 @@ public:
 
     /**
      * @brief This function re-calculates the condensed degree of freedom in relation to the remaining dofs by using the following inputs:
-     * @param rTheElement The current element
+     * @param rElement The current element
      * @param rLocalizedDofVector The localized remaining dof values
      * @rValues rValues The complete localized dof values after re-calculation
      * @rDofList rValues The list containing the dofs to be condensed
      * @rLeftHandSideMatrix The matrix which will be condensed
      */
 
-    static void ConvertingCondensation(Element&                rTheElement,
-                                       Vector&                 rLocalizedDofVector,
+    static void ConvertingCondensation(const Element&          rElement,
+                                       const Vector&           rLocalizedDofVector,
                                        Vector&                 rValues,
                                        const std::vector<int>& rDofList,
                                        const Matrix&           rLeftHandSideMatrix);
