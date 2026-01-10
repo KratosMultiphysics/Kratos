@@ -57,11 +57,11 @@ public:
 
     /**
      * @brief This function creates a list containing all dofs to remain by using the following inputs:
-     * @param rTheElement The current element
+     * @param rElement The current element
      * @param rDofList The list containing the dofs to be condensed
      */
 
-    static std::vector<int> CreateRemainingDofList(Element& rTheElement, const std::vector<int>& rDofList);
+    static std::vector<int> CreateRemainingDofList(const Element& rElement, const std::vector<int>& rDofList);
 
     /**
      * @brief This function creates the single schur-complements, called by CalculateSchurComplements, by using the following inputs:

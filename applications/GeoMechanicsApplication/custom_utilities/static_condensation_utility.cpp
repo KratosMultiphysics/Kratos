@@ -99,7 +99,7 @@ std::vector<Matrix> GeoStaticCondensationUtility::CalculateSchurComplements(Elem
     KRATOS_CATCH("")
 }
 
-std::vector<int> GeoStaticCondensationUtility::CreateRemainingDofList(Element& rTheElement,
+std::vector<int> GeoStaticCondensationUtility::CreateRemainingDofList(const Element& rElement,
                                                                       const std::vector<int>& rDofList)
 {
     KRATOS_TRY
@@ -107,8 +107,8 @@ std::vector<int> GeoStaticCondensationUtility::CreateRemainingDofList(Element& r
 
     // fill remaining dofs
     std::vector<int> remaining_dofs_vec(0);
-    for (std::size_t i = 0; i < GetNumDofsElement(rTheElement); ++i) {
-        int  current_dof = static_cast<int>(i);
+    for (std::size_t i = 0; i < GetNumDofsElement(rElement); ++i) {
+        auto current_dof = static_cast<int>(i);
         bool check       = false;
         for (std::size_t j = 0; j < num_dofs_condensed; ++j) {
             if (current_dof == rDofList[j]) check = true;
