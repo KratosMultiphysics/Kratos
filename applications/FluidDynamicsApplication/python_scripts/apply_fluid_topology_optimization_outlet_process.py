@@ -55,13 +55,15 @@ class ApplyFluidTopologyOptimizationOutletProcess(KratosMultiphysics.Process):
         model_part_name = settings["model_part_name"].GetString()
         constrained = settings["constrained"].GetBool()
         if (settings["pressure_value"].IsString()):
-            pressure_value = settings["pressure_value"].GetString()
+            pressure_value = "\"" + settings["pressure_value"].GetString() + "\""
+        elif (settings["pressure_value"].IsNumber()):
+            pressure_value = "\"" + str(settings["pressure_value"].GetDouble()) + "\""
         else:
-            pressure_value = str(settings["pressure_value"].GetDouble())
+            pressure_value = settings["pressure_value"].PrettyPrintJsonString()
         if (settings["adjoint_pressure_value"].IsString()):
-            adjoint_pressure_value = settings["adjoint_pressure_value"].GetString()
+            adjoint_pressure_value = "\"" + settings["adjoint_pressure_value"].GetString() + "\""
         else:
-            adjoint_pressure_value = str(settings["adjoint_pressure_value"].GetDouble())
+            adjoint_pressure_value = "\"" + str(settings["adjoint_pressure_value"].GetDouble()) + "\""
         interval = settings["interval"].PrettyPrintJsonString()
         outlet_inflow_contribution = settings["outlet_inflow_contribution"].GetBool()
         outlet_inflow_contribution_characteristic_velocity_calculation = settings["outlet_inflow_contribution_characteristic_velocity_calculation"].GetString()
@@ -72,7 +74,7 @@ class ApplyFluidTopologyOptimizationOutletProcess(KratosMultiphysics.Process):
             "model_part_name"    : \"""" + model_part_name + """\",
             "variable_name"      : "PRESSURE",
             "constrained"        : """ + str(constrained).lower() + """,
-            "value"              : \"""" + pressure_value + """\",
+            "value"              : """ + pressure_value + """,
             "interval"           : """ + interval + """,
             "outlet_inflow_contribution" : """ + str(outlet_inflow_contribution).lower() + """,
             "outlet_inflow_contribution_characteristic_velocity_calculation" : \"""" + outlet_inflow_contribution_characteristic_velocity_calculation + """\"
@@ -85,7 +87,7 @@ class ApplyFluidTopologyOptimizationOutletProcess(KratosMultiphysics.Process):
             "model_part_name"    : \"""" + model_part_name + """\",
             "variable_name"      : "PRESSURE_ADJ",
             "constrained"        : """ + str(constrained).lower() + """,
-            "value"              : \"""" + adjoint_pressure_value + """\",
+            "value"              : """ + adjoint_pressure_value + """,
             "interval"           : """ + interval + """,
             "outlet_inflow_contribution" : """ + str(outlet_inflow_contribution).lower() + """,
             "outlet_inflow_contribution_characteristic_velocity_calculation" : \"""" + outlet_inflow_contribution_characteristic_velocity_calculation + """\"
