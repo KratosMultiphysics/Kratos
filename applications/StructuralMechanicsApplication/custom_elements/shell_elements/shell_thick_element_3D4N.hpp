@@ -7,6 +7,7 @@
 //                   license: StructuralMechanicsApplication/license.txt
 //
 //  Main authors:    Massimo Petracca
+//                   Alejandro Cornejo
 //
 
 

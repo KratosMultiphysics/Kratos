@@ -7,6 +7,7 @@
 //                   license: StructuralMechanicsApplication/license.txt
 //
 //  Main authors:    Massimo Petracca
+//                   Alejandro Cornejo
 //
 
 #include "shell_thick_element_3D4N.hpp"
@@ -16,6 +17,7 @@
 
 namespace Kratos
 {
+
 // =====================================================================================
 //
 // Class MITC4Params
@@ -28,14 +30,14 @@ ShellThickElement3D4N<TKinematics>::MITC4Params::MITC4Params(const ShellQ4_Local
     , ShearStrains(4, 24, 0.0)
 {
 
-    double x21 = LCS.X2() - LCS.X1();
-    double y21 = LCS.Y2() - LCS.Y1();
-    double x34 = LCS.X3() - LCS.X4();
-    double y34 = LCS.Y3() - LCS.Y4();
-    double x41 = LCS.X4() - LCS.X1();
-    double y41 = LCS.Y4() - LCS.Y1();
-    double x32 = LCS.X3() - LCS.X2();
-    double y32 = LCS.Y3() - LCS.Y2();
+    const double x21 = LCS.X2() - LCS.X1();
+    const double y21 = LCS.Y2() - LCS.Y1();
+    const double x34 = LCS.X3() - LCS.X4();
+    const double y34 = LCS.Y3() - LCS.Y4();
+    const double x41 = LCS.X4() - LCS.X1();
+    const double y41 = LCS.Y4() - LCS.Y1();
+    const double x32 = LCS.X3() - LCS.X2();
+    const double y32 = LCS.Y3() - LCS.Y2();
 
     Ax = - LCS.X1() + LCS.X2() + LCS.X3() - LCS.X4();
     Bx =   LCS.X1() - LCS.X2() + LCS.X3() - LCS.X4();
@@ -52,37 +54,37 @@ ShellThickElement3D4N<TKinematics>::MITC4Params::MITC4Params(const ShellQ4_Local
     Transformation(1, 0) = - std::cos(Beta);
     Transformation(1, 1) =   std::cos(Alpha);
 
-    ShearStrains(0,  2)  = - 0.5;
-    ShearStrains(0,  3)  = - y41 * 0.25;
-    ShearStrains(0,  4)  =   x41 * 0.25;
+    ShearStrains(0, 2) = -0.5;
+    ShearStrains(0, 3) = -y41 * 0.25;
+    ShearStrains(0, 4) = x41 * 0.25;
 
-    ShearStrains(0, 20) =   0.5;
-    ShearStrains(0, 21) = - y41 * 0.25;
-    ShearStrains(0, 22) =   x41 * 0.25;
+    ShearStrains(0, 20) = 0.5;
+    ShearStrains(0, 21) = ShearStrains(0, 3);
+    ShearStrains(0, 22) = ShearStrains(0, 4);
 
-    ShearStrains(1,  2)  = - 0.5;
-    ShearStrains(1,  3)  = - y21 * 0.25;
-    ShearStrains(1,  4)  =   x21 * 0.25;
+    ShearStrains(1, 2) = -0.5;
+    ShearStrains(1, 3) = -y21 * 0.25;
+    ShearStrains(1, 4) = x21 * 0.25;
 
-    ShearStrains(1,  8)  =   0.5;
-    ShearStrains(1,  9) = - y21 * 0.25;
-    ShearStrains(1, 10) =   x21 * 0.25;
+    ShearStrains(1, 8) = 0.5;
+    ShearStrains(1, 9) = ShearStrains(1, 3);
+    ShearStrains(1, 10) = ShearStrains(1, 4);
 
-    ShearStrains(2,  8)  = - 0.5;
-    ShearStrains(2,  9) = - y32 * 0.25;
-    ShearStrains(2, 10) =   x32 * 0.25;
+    ShearStrains(2, 8) = -0.5;
+    ShearStrains(2, 9) = -y32 * 0.25;
+    ShearStrains(2, 10) = x32 * 0.25;
 
-    ShearStrains(2, 14) =   0.5;
-    ShearStrains(2, 15) = - y32 * 0.25;
-    ShearStrains(2, 16) =   x32 * 0.25;
+    ShearStrains(2, 14) = 0.5;
+    ShearStrains(2, 15) = ShearStrains(2, 9);
+    ShearStrains(2, 16) = ShearStrains(2, 10);
 
-    ShearStrains(3, 14) =   0.5;
-    ShearStrains(3, 15) = - y34 * 0.25;
-    ShearStrains(3, 16) =   x34 * 0.25;
+    ShearStrains(3, 14) = 0.5;
+    ShearStrains(3, 15) = -y34 * 0.25;
+    ShearStrains(3, 16) = x34 * 0.25;
 
-    ShearStrains(3, 20) = - 0.5;
-    ShearStrains(3, 21) = - y34 * 0.25;
-    ShearStrains(3, 22) =   x34 * 0.25;
+    ShearStrains(3, 20) = -0.5;
+    ShearStrains(3, 21) = ShearStrains(3, 15);
+    ShearStrains(3, 22) = ShearStrains(3, 16);
 }
 
 // =====================================================================================
@@ -146,7 +148,7 @@ void ShellThickElement3D4N<TKinematics>::EASOperatorStorage::FinalizeSolutionSte
 template <ShellKinematics TKinematics>
 void ShellThickElement3D4N<TKinematics>::EASOperatorStorage::FinalizeNonLinearIteration(const Vector& displacementVector)
 {
-    Vector incrementalDispl(24);
+    array_1d<double, 24> incrementalDispl;
     noalias(incrementalDispl) = displacementVector - displ;
     noalias(displ) = displacementVector;
 
@@ -210,27 +212,25 @@ ShellThickElement3D4N<TKinematics>::EASOperator::EASOperator(const ShellQ4_Local
     Jac0(1, 1) = dN(0, 1) * LCS.Y1() + dN(1, 1) * LCS.Y2() + dN(2, 1) * LCS.Y3() + dN(3, 1) * LCS.Y4();
 
     // save the jacobian determinant at center
-
     mJ0 = Jac0(0, 0) * Jac0(1, 1) - Jac0(1, 0) * Jac0(0, 1);
 
     // compute the transformation matrix used in the implementation of the EAS method
     // which operates in the natural coordinate system
+    const double j11 = Jac0(0, 0);
+    const double j22 = Jac0(1, 1);
+    const double j12 = Jac0(0, 1);
+    const double j21 = Jac0(1, 0);
 
-    double j11 = Jac0(0,0);
-    double j22 = Jac0(1,1);
-    double j12 = Jac0(0,1);
-    double j21 = Jac0(1,0);
-
-    Matrix F0(3,3);
-    F0(0,0) = j11*j11;
-    F0(0,1) = j21*j12;
-    F0(0,2) = 2.0*j11*j12;
-    F0(1,0) = j12*j21;
-    F0(1,1) = j22*j22;
-    F0(1,2) = 2.0*j21*j22;
-    F0(2,0) = j11*j21;
-    F0(2,1) = j12*j22;
-    F0(2,2) = j11*j22 + j12*j21;
+    Matrix F0(3, 3);
+    F0(0, 0) = j11 * j11;
+    F0(0, 1) = j21 * j12;
+    F0(0, 2) = 2.0 * j11 * j12;
+    F0(1, 0) = j12 * j21;
+    F0(1, 1) = j22 * j22;
+    F0(1, 2) = 2.0 * j21 * j22;
+    F0(2, 0) = j11 * j21;
+    F0(2, 1) = j12 * j22;
+    F0(2, 2) = j11 * j22 + j12 * j21;
 
     double dummyDet;
     MathUtils<double>::InvertMatrix3(F0, mF0inv, dummyDet);
