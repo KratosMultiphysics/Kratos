@@ -26,7 +26,7 @@ namespace Kratos
 
 Matrix ExtrapolationUtilities::CalculateExtrapolationMatrix(const Element& rElement)
 {
-    auto        p_interface_element = dynamic_cast<const InterfaceElement*>(&rElement);
+    auto        p_interface_element = dynamic_cast<const UPwInterfaceElement*>(&rElement);
     const auto& r_geometry_for_extrapolation =
         p_interface_element ? p_interface_element->GetMidGeometry() : rElement.GetGeometry();
     const auto integration_points = GeoElementUtilities::GetIntegrationPointsOf(rElement);
