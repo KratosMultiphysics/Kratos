@@ -169,21 +169,21 @@ inline void AtomicSubMatrix(TMatrixType1& target, const TMatrixType2& value)
  * @param factor vector value being multiplied
  */
 template<class T>
-T atomic_mul(std::atomic_ref<T>& ref, T factor)
+inline T atomic_mul(std::atomic_ref<T>& ref, T factor)
 {
     T old = ref.load(std::memory_order_relaxed);
     T result;
     do {
         result = old * result;
-    } while (!ref.compare_exchange_weak(
-                 old, desired,
-                 std::memory_order_acq_rel,
-                 std::memory_order_relaxed));
-    return result; // or return old, depending on semantics you want
+    } while (!ref.compare_exchange_weak(old, desired, std::memory_order_acq_rel, std::memory_order_relaxed));
+
+    return result;
 }
 
 /** @param target vector variable being atomically updated by doing target *= value
  * @param value vector value being multiplied
+ * Note that "=*" compound operator is --> **NOT** <-- defined for multiplication in boost::atomic//std::atomic,
+ * so we need to implement it ourselves
  */
 template<class TDataType>
 inline void AtomicMult(TDataType& target, const TDataType& value)
