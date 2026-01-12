@@ -104,24 +104,25 @@ void ShellThickElement3D4N<TKinematics>::EASOperatorStorage::Initialize(const Ge
         noalias(alpha) = ZeroVector(5);
         noalias(alpha_converged) = ZeroVector(5);
 
+        array_1d<double, 3> initial_displacement, initial_rotation;
+
         for (SizeType i = 0; i < 4; i++) {
             SizeType ii = i * 6;
-            const array_1d<double, 3>& initialDispl = geom[i].FastGetSolutionStepValue(DISPLACEMENT);
-            const array_1d<double, 3>& initialRot = geom[i].FastGetSolutionStepValue(ROTATION);
+            noalias(initial_displacement) = geom[i].FastGetSolutionStepValue(DISPLACEMENT);
+            noalias(initial_rotation) = geom[i].FastGetSolutionStepValue(ROTATION);
 
-            displ(ii) = initialDispl(0);
-            displ(ii + 1) = initialDispl(1);
-            displ(ii + 2) = initialDispl(2);
-            displ_converged(ii) = initialDispl(0);
-            displ_converged(ii + 1) = initialDispl(1);
-            displ_converged(ii + 2) = initialDispl(2);
-
-            displ(ii + 3) = initialRot(0);
-            displ(ii + 4) = initialRot(1);
-            displ(ii + 5) = initialRot(2);
-            displ_converged(ii + 3) = initialRot(0);
-            displ_converged(ii + 4) = initialRot(1);
-            displ_converged(ii + 5) = initialRot(2);
+            displ(ii) = initial_displacement[0];
+            displ(ii + 1) = initial_displacement[1];
+            displ(ii + 2) = initial_displacement[2];
+            displ_converged(ii) = initial_displacement[0];
+            displ_converged(ii + 1) = initial_displacement[1];
+            displ_converged(ii + 2) = initial_displacement[2];
+            displ(ii + 3) = initial_rotation[0];
+            displ(ii + 4) = initial_rotation[1];
+            displ(ii + 5) = initial_rotation[2];
+            displ_converged(ii + 3) = initial_rotation[0];
+            displ_converged(ii + 4) = initial_rotation[1];
+            displ_converged(ii + 5) = initial_rotation[2];
         }
 
         mInitialized = true;
@@ -131,15 +132,15 @@ void ShellThickElement3D4N<TKinematics>::EASOperatorStorage::Initialize(const Ge
 template <ShellKinematics TKinematics>
 void ShellThickElement3D4N<TKinematics>::EASOperatorStorage::InitializeSolutionStep()
 {
-    displ = displ_converged;
-    alpha = alpha_converged;
+    noalias(displ) = displ_converged;
+    noalias(alpha) = alpha_converged;
 }
 
 template <ShellKinematics TKinematics>
 void ShellThickElement3D4N<TKinematics>::EASOperatorStorage::FinalizeSolutionStep()
 {
-    displ_converged = displ;
-    alpha_converged = alpha;
+    noalias(displ_converged) = displ;
+    noalias(alpha_converged) = alpha;
 }
 
 template <ShellKinematics TKinematics>
