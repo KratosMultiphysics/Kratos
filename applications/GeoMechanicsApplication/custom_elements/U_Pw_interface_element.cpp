@@ -271,8 +271,7 @@ const Geometry<Node>& UPwInterfaceElement::GetMidGeometry() const
 
 Element::DofsVectorType UPwInterfaceElement::GetDofs() const
 {
-    const auto no_Pw_geometry_yet = Geometry<Node>{};
-    return Geo::DofUtilities::ExtractUPwDofsFromNodes(GetGeometry(), no_Pw_geometry_yet,
+    return Geo::DofUtilities::ExtractUPwDofsFromNodes(GetGeometry(), GetGeometry(),
                                                       GetGeometry().WorkingSpaceDimension());
 }
 

@@ -78,32 +78,34 @@ std::shared_ptr<Properties> CreateElasticMaterialProperties(double NormalStiffne
     return result;
 }
 
-ModelPart& CreateModelPartWithDisplacementVariable(Model& rModel)
+ModelPart& CreateModelPartWithUPwVariables(Model& rModel)
 {
     auto& r_result = rModel.CreateModelPart("Main");
     r_result.AddNodalSolutionStepVariable(DISPLACEMENT);
+    r_result.AddNodalSolutionStepVariable(WATER_PRESSURE);
 
     return r_result;
 }
 
 template <typename TInterfaceDimension>
-UPwInterfaceElement CreateInterfaceElementWithUDofs(const Properties::Pointer&     rProperties,
-                                                    const Geometry<Node>::Pointer& rGeometry)
+UPwInterfaceElement CreateInterfaceElementWithUPwDofs(const Properties::Pointer&     rProperties,
+                                                      const Geometry<Node>::Pointer& rGeometry)
 {
     auto result = UPwInterfaceElement{1, rGeometry, rProperties, std::make_unique<TInterfaceDimension>()};
     for (auto& node : result.GetGeometry()) {
         node.AddDof(DISPLACEMENT_X);
         node.AddDof(DISPLACEMENT_Y);
         node.AddDof(DISPLACEMENT_Z);
+        node.AddDof(WATER_PRESSURE);
     }
 
     return result;
 }
 
-UPwInterfaceElement CreateHorizontalUnitLength2Plus2NodedLineInterfaceElementWithUDofs(Model& rModel,
-                                                                                       const Properties::Pointer& rProperties)
+UPwInterfaceElement CreateHorizontalUnitLength2Plus2NodedLineInterfaceElementWithUPwDofs(
+    Model& rModel, const Properties::Pointer& rProperties)
 {
-    auto& r_model_part = CreateModelPartWithDisplacementVariable(rModel);
+    auto& r_model_part = CreateModelPartWithUPwVariables(rModel);
 
     PointerVector<Node> nodes;
     nodes.push_back(r_model_part.CreateNewNode(0, 0.0, 0.0, 0.0));
@@ -111,13 +113,13 @@ UPwInterfaceElement CreateHorizontalUnitLength2Plus2NodedLineInterfaceElementWit
     nodes.push_back(r_model_part.CreateNewNode(2, 0.0, 0.0, 0.0));
     nodes.push_back(r_model_part.CreateNewNode(3, 1.0, 0.0, 0.0));
     const auto p_geometry = std::make_shared<LineInterfaceGeometry2D2Plus2Noded>(nodes);
-    return CreateInterfaceElementWithUDofs<Interface2D>(rProperties, p_geometry);
+    return CreateInterfaceElementWithUPwDofs<Interface2D>(rProperties, p_geometry);
 }
 
-UPwInterfaceElement CreateHorizontalUnitLength3Plus3NodedLineInterfaceElementWithDisplacementDoF(
-    Model& rModel, const Properties::Pointer& rProperties)
+UPwInterfaceElement CreateHorizontalUnitLength3Plus3NodedLineInterfaceElementWithUPwDoF(Model& rModel,
+                                                                                        const Properties::Pointer& rProperties)
 {
-    auto& r_model_part = CreateModelPartWithDisplacementVariable(rModel);
+    auto& r_model_part = CreateModelPartWithUPwVariables(rModel);
 
     PointerVector<Node> nodes;
     nodes.push_back(r_model_part.CreateNewNode(0, 0.0, 0.0, 0.0));
@@ -127,13 +129,13 @@ UPwInterfaceElement CreateHorizontalUnitLength3Plus3NodedLineInterfaceElementWit
     nodes.push_back(r_model_part.CreateNewNode(4, 1.0, 0.0, 0.0));
     nodes.push_back(r_model_part.CreateNewNode(5, 0.5, 0.0, 0.0));
     const auto p_geometry = std::make_shared<LineInterfaceGeometry2D3Plus3Noded>(nodes);
-    return CreateInterfaceElementWithUDofs<Interface2D>(rProperties, p_geometry);
+    return CreateInterfaceElementWithUPwDofs<Interface2D>(rProperties, p_geometry);
 }
 
-UPwInterfaceElement CreateUnitLengthLineInterfaceElementRotatedBy30DegreesWithDisplacementDoF(
-    Model& rModel, const Properties::Pointer& rProperties)
+UPwInterfaceElement CreateUnitLengthLineInterfaceElementRotatedBy30DegreesWithUPwDoF(Model& rModel,
+                                                                                     const Properties::Pointer& rProperties)
 {
-    auto& r_model_part = CreateModelPartWithDisplacementVariable(rModel);
+    auto& r_model_part = CreateModelPartWithUPwVariables(rModel);
 
     PointerVector<Node> nodes;
     nodes.push_back(r_model_part.CreateNewNode(0, 0.0, 0.0, 0.0));
@@ -141,7 +143,7 @@ UPwInterfaceElement CreateUnitLengthLineInterfaceElementRotatedBy30DegreesWithDi
     nodes.push_back(r_model_part.CreateNewNode(2, 0.0, 0.0, 0.0));
     nodes.push_back(r_model_part.CreateNewNode(3, 0.5 * std::sqrt(3.0), 0.5, 0.0));
     const auto p_geometry = std::make_shared<LineInterfaceGeometry2D2Plus2Noded>(nodes);
-    return CreateInterfaceElementWithUDofs<Interface2D>(rProperties, p_geometry);
+    return CreateInterfaceElementWithUPwDofs<Interface2D>(rProperties, p_geometry);
 }
 
 Matrix CreateExpectedStiffnessMatrixForHorizontal2Plus2NodedElement(double NormalStiffness, double ShearStiffness)
@@ -167,10 +169,10 @@ Matrix CreateExpectedStiffnessMatrixForHorizontal2Plus2NodedElement(double Norma
     return expected_left_hand_side;
 }
 
-UPwInterfaceElement CreateHorizontal3Plus3NodedTriangleInterfaceElementWithUDofs(Model& rModel,
-                                                                                 const Properties::Pointer& rProperties)
+UPwInterfaceElement CreateHorizontal3Plus3NodedTriangleInterfaceElementWithUPwDofs(Model& rModel,
+                                                                                   const Properties::Pointer& rProperties)
 {
-    auto& r_model_part = CreateModelPartWithDisplacementVariable(rModel);
+    auto& r_model_part = CreateModelPartWithUPwVariables(rModel);
 
     PointerVector<Node> nodes;
     nodes.push_back(r_model_part.CreateNewNode(0, 0.0, 0.0, 0.0));
@@ -180,13 +182,13 @@ UPwInterfaceElement CreateHorizontal3Plus3NodedTriangleInterfaceElementWithUDofs
     nodes.push_back(r_model_part.CreateNewNode(4, 1.0, 0.0, 0.0));
     nodes.push_back(r_model_part.CreateNewNode(5, 0.0, 1.0, 0.0));
     const auto p_geometry = std::make_shared<TriangleInterfaceGeometry3D3Plus3Noded>(nodes);
-    return CreateInterfaceElementWithUDofs<Interface3D>(rProperties, p_geometry);
+    return CreateInterfaceElementWithUPwDofs<Interface3D>(rProperties, p_geometry);
 }
 
-UPwInterfaceElement CreateHorizontal3Plus3NodedTriangleInterfaceYZPlaneElementWithUDofs(Model& rModel,
-                                                                                        const Properties::Pointer& rProperties)
+UPwInterfaceElement CreateHorizontal3Plus3NodedTriangleInterfaceYZPlaneElementWithUPwDofs(
+    Model& rModel, const Properties::Pointer& rProperties)
 {
-    auto& r_model_part = CreateModelPartWithDisplacementVariable(rModel);
+    auto& r_model_part = CreateModelPartWithUPwVariables(rModel);
 
     PointerVector<Node> nodes;
     nodes.push_back(r_model_part.CreateNewNode(0, 0.0, 0.0, 0.0));
@@ -196,13 +198,13 @@ UPwInterfaceElement CreateHorizontal3Plus3NodedTriangleInterfaceYZPlaneElementWi
     nodes.push_back(r_model_part.CreateNewNode(4, 0.0, 0.0, -1.0));
     nodes.push_back(r_model_part.CreateNewNode(5, 0.0, 1.0, 0.0));
     const auto p_geometry = std::make_shared<TriangleInterfaceGeometry3D3Plus3Noded>(nodes);
-    return CreateInterfaceElementWithUDofs<Interface3D>(rProperties, p_geometry);
+    return CreateInterfaceElementWithUPwDofs<Interface3D>(rProperties, p_geometry);
 }
 
-UPwInterfaceElement CreateHorizontal3Plus3NodedTriangleInterfaceXZPlaneElementWithUDofs(Model& rModel,
-                                                                                        const Properties::Pointer& rProperties)
+UPwInterfaceElement CreateHorizontal3Plus3NodedTriangleInterfaceXZPlaneElementWithUPwDofs(
+    Model& rModel, const Properties::Pointer& rProperties)
 {
-    auto& r_model_part = CreateModelPartWithDisplacementVariable(rModel);
+    auto& r_model_part = CreateModelPartWithUPwVariables(rModel);
 
     PointerVector<Node> nodes;
     nodes.push_back(r_model_part.CreateNewNode(0, 0.0, 0.0, 0.0));
@@ -212,13 +214,13 @@ UPwInterfaceElement CreateHorizontal3Plus3NodedTriangleInterfaceXZPlaneElementWi
     nodes.push_back(r_model_part.CreateNewNode(4, 1.0, 0.0, 0.0));
     nodes.push_back(r_model_part.CreateNewNode(5, 0.0, 0.0, 1.0));
     const auto p_geometry = std::make_shared<TriangleInterfaceGeometry3D3Plus3Noded>(nodes);
-    return CreateInterfaceElementWithUDofs<Interface3D>(rProperties, p_geometry);
+    return CreateInterfaceElementWithUPwDofs<Interface3D>(rProperties, p_geometry);
 }
 
-UPwInterfaceElement CreateHorizontal6Plus6NodedTriangleInterfaceElementWithDisplacementDoF(
-    Model& rModel, const Properties::Pointer& rProperties)
+UPwInterfaceElement CreateHorizontal6Plus6NodedTriangleInterfaceElementWithUPwDoF(Model& rModel,
+                                                                                  const Properties::Pointer& rProperties)
 {
-    auto& r_model_part = CreateModelPartWithDisplacementVariable(rModel);
+    auto& r_model_part = CreateModelPartWithUPwVariables(rModel);
 
     PointerVector<Node> nodes;
     nodes.push_back(r_model_part.CreateNewNode(0, 0.0, 0.0, 0.0));
@@ -234,13 +236,13 @@ UPwInterfaceElement CreateHorizontal6Plus6NodedTriangleInterfaceElementWithDispl
     nodes.push_back(r_model_part.CreateNewNode(10, 1.0, 0.5, 0.0));
     nodes.push_back(r_model_part.CreateNewNode(11, 0.5, 0.5, 0.0));
     const auto p_geometry = std::make_shared<TriangleInterfaceGeometry3D6Plus6Noded>(nodes);
-    return CreateInterfaceElementWithUDofs<Interface3D>(rProperties, p_geometry);
+    return CreateInterfaceElementWithUPwDofs<Interface3D>(rProperties, p_geometry);
 }
 
-UPwInterfaceElement CreateTriangleInterfaceElementRotatedBy30DegreesWithDisplacementDoF(Model& rModel,
-                                                                                        const Properties::Pointer& rProperties)
+UPwInterfaceElement CreateTriangleInterfaceElementRotatedBy30DegreesWithUPwDoF(Model& rModel,
+                                                                               const Properties::Pointer& rProperties)
 {
-    auto& r_model_part = CreateModelPartWithDisplacementVariable(rModel);
+    auto& r_model_part = CreateModelPartWithUPwVariables(rModel);
 
     PointerVector<Node> nodes;
     nodes.push_back(r_model_part.CreateNewNode(0, 0.0, 0.0, 0.0));
@@ -250,13 +252,13 @@ UPwInterfaceElement CreateTriangleInterfaceElementRotatedBy30DegreesWithDisplace
     nodes.push_back(r_model_part.CreateNewNode(4, 0.5 * std::sqrt(3.0), 0.5, 0.0));
     nodes.push_back(r_model_part.CreateNewNode(5, -0.5, 0.5 * std::sqrt(3.0), 0.0));
     const auto p_geometry = std::make_shared<TriangleInterfaceGeometry3D3Plus3Noded>(nodes);
-    return CreateInterfaceElementWithUDofs<Interface3D>(rProperties, p_geometry);
+    return CreateInterfaceElementWithUPwDofs<Interface3D>(rProperties, p_geometry);
 }
 
-UPwInterfaceElement CreateTriangleInterfaceElementRotatedBy30DegreesAboutYAxisWithDisplacementDoF(
+UPwInterfaceElement CreateTriangleInterfaceElementRotatedBy30DegreesAboutYAxisWithUPwDoF(
     Model& rModel, const Properties::Pointer& rProperties)
 {
-    auto& r_model_part = CreateModelPartWithDisplacementVariable(rModel);
+    auto& r_model_part = CreateModelPartWithUPwVariables(rModel);
 
     PointerVector<Node> nodes;
     nodes.push_back(r_model_part.CreateNewNode(0, 0.0, 0.0, 0.0));
@@ -266,7 +268,7 @@ UPwInterfaceElement CreateTriangleInterfaceElementRotatedBy30DegreesAboutYAxisWi
     nodes.push_back(r_model_part.CreateNewNode(4, 0.5 * std::sqrt(3.0), 0.0, -0.5));
     nodes.push_back(r_model_part.CreateNewNode(5, 0.0, 1.0, 0.0));
     const auto p_geometry = std::make_shared<TriangleInterfaceGeometry3D3Plus3Noded>(nodes);
-    return CreateInterfaceElementWithUDofs<Interface3D>(rProperties, p_geometry);
+    return CreateInterfaceElementWithUPwDofs<Interface3D>(rProperties, p_geometry);
 }
 
 template <typename TElementFactory>
@@ -388,7 +390,7 @@ namespace Kratos::Testing
 
 using namespace Kratos;
 
-KRATOS_TEST_CASE_IN_SUITE(InterfaceElement_IsAnElement, KratosGeoMechanicsFastSuiteWithoutKernel)
+KRATOS_TEST_CASE_IN_SUITE(UPwInterfaceElement_IsAnElement, KratosGeoMechanicsFastSuiteWithoutKernel)
 {
     const UPwInterfaceElement element(
         0, std::make_shared<LineInterfaceGeometry2D2Plus2Noded>(CreateNodesFor2Plus2LineInterfaceGeometry()),
@@ -397,7 +399,7 @@ KRATOS_TEST_CASE_IN_SUITE(InterfaceElement_IsAnElement, KratosGeoMechanicsFastSu
     EXPECT_NE(p_casted_element, nullptr);
 }
 
-KRATOS_TEST_CASE_IN_SUITE(LineInterfaceElement_CreatesInstanceWithGeometryInput, KratosGeoMechanicsFastSuiteWithoutKernel)
+KRATOS_TEST_CASE_IN_SUITE(UPwLineInterfaceElement_CreatesInstanceWithGeometryInput, KratosGeoMechanicsFastSuiteWithoutKernel)
 {
     // Arrange
     const UPwInterfaceElement element(
@@ -417,7 +419,7 @@ KRATOS_TEST_CASE_IN_SUITE(LineInterfaceElement_CreatesInstanceWithGeometryInput,
     EXPECT_NE(p_created_element->pGetProperties(), nullptr);
 }
 
-KRATOS_TEST_CASE_IN_SUITE(LineInterfaceElement_CreatesInstanceWithNodeInput, KratosGeoMechanicsFastSuiteWithoutKernel)
+KRATOS_TEST_CASE_IN_SUITE(UPwLineInterfaceElement_CreatesInstanceWithNodeInput, KratosGeoMechanicsFastSuiteWithoutKernel)
 {
     // Arrange
     const auto nodes        = CreateNodesFor2Plus2LineInterfaceGeometry();
@@ -439,13 +441,14 @@ KRATOS_TEST_CASE_IN_SUITE(LineInterfaceElement_CreatesInstanceWithNodeInput, Kra
     EXPECT_NE(p_created_element->pGetProperties(), nullptr);
 }
 
-KRATOS_TEST_CASE_IN_SUITE(LineInterfaceElement_ReturnsTheExpectedDoFList, KratosGeoMechanicsFastSuiteWithoutKernel)
+KRATOS_TEST_CASE_IN_SUITE(UPwLineInterfaceElement_ReturnsTheExpectedDoFList, KratosGeoMechanicsFastSuiteWithoutKernel)
 {
     // Arrange
     const auto p_properties = std::make_shared<Properties>();
 
-    Model model;
-    const auto element = CreateHorizontalUnitLength2Plus2NodedLineInterfaceElementWithUDofs(model, p_properties);
+    Model      model;
+    const auto element =
+        CreateHorizontalUnitLength2Plus2NodedLineInterfaceElementWithUPwDofs(model, p_properties);
 
     // Act
     const auto              dummy_process_info = ProcessInfo{};
@@ -453,20 +456,23 @@ KRATOS_TEST_CASE_IN_SUITE(LineInterfaceElement_ReturnsTheExpectedDoFList, Kratos
     element.GetDofList(degrees_of_freedom, dummy_process_info);
 
     // Assert
-    KRATOS_EXPECT_EQ(degrees_of_freedom.size(), 8);
-    for (std::size_t i = 0; i < degrees_of_freedom.size(); i += 2) {
+    ASSERT_EQ(degrees_of_freedom.size(), 12);
+    for (auto i = std::size_t{0}; i < std::size_t{8}; i += 2) {
         KRATOS_EXPECT_EQ(degrees_of_freedom[i]->GetVariable(), DISPLACEMENT_X);
         KRATOS_EXPECT_EQ(degrees_of_freedom[i + 1]->GetVariable(), DISPLACEMENT_Y);
     }
+    for (auto i = std::size_t{8}; i < std::size_t{12}; ++i) {
+        KRATOS_EXPECT_EQ(degrees_of_freedom[i]->GetVariable(), WATER_PRESSURE);
+    }
 }
 
-KRATOS_TEST_CASE_IN_SUITE(LineInterfaceElement_ReturnsTheExpectedEquationIdVector, KratosGeoMechanicsFastSuiteWithoutKernel)
+KRATOS_TEST_CASE_IN_SUITE(UPwLineInterfaceElement_ReturnsTheExpectedEquationIdVector, KratosGeoMechanicsFastSuiteWithoutKernel)
 {
     // Arrange
     const auto p_properties = std::make_shared<Properties>();
 
     Model model;
-    auto element = CreateHorizontalUnitLength2Plus2NodedLineInterfaceElementWithUDofs(model, p_properties);
+    auto element = CreateHorizontalUnitLength2Plus2NodedLineInterfaceElementWithUPwDofs(model, p_properties);
 
     int i = 0;
     for (const auto& node : element.GetGeometry()) {
@@ -475,6 +481,9 @@ KRATOS_TEST_CASE_IN_SUITE(LineInterfaceElement_ReturnsTheExpectedEquationIdVecto
 
         ++i;
         node.pGetDof(DISPLACEMENT_Y)->SetEquationId(i);
+
+        ++i;
+        node.pGetDof(WATER_PRESSURE)->SetEquationId(i);
     }
 
     // Act
@@ -483,11 +492,11 @@ KRATOS_TEST_CASE_IN_SUITE(LineInterfaceElement_ReturnsTheExpectedEquationIdVecto
     element.EquationIdVector(equation_id_vector, dummy_process_info);
 
     // Assert
-    const Element::EquationIdVectorType expected_ids = {1, 2, 3, 4, 5, 6, 7, 8};
+    const Element::EquationIdVectorType expected_ids = {1, 2, 4, 5, 7, 8, 10, 11, 3, 6, 9, 12};
     KRATOS_EXPECT_VECTOR_EQ(equation_id_vector, expected_ids)
 }
 
-KRATOS_TEST_CASE_IN_SUITE(LineInterfaceElement_LeftHandSideContainsMaterialStiffnessContributions,
+KRATOS_TEST_CASE_IN_SUITE(UPwLineInterfaceElement_LeftHandSideContainsMaterialStiffnessContributions,
                           KratosGeoMechanicsFastSuiteWithoutKernel)
 {
     // Arrange
@@ -496,7 +505,7 @@ KRATOS_TEST_CASE_IN_SUITE(LineInterfaceElement_LeftHandSideContainsMaterialStiff
     const auto     p_properties =
         CreateElasticMaterialProperties<InterfacePlaneStrain>(normal_stiffness, shear_stiffness);
     auto element = CreateAndInitializeElement(
-        CreateHorizontalUnitLength2Plus2NodedLineInterfaceElementWithUDofs, p_properties);
+        CreateHorizontalUnitLength2Plus2NodedLineInterfaceElementWithUPwDofs, p_properties);
 
     // Act
     Matrix actual_left_hand_side;
@@ -508,7 +517,7 @@ KRATOS_TEST_CASE_IN_SUITE(LineInterfaceElement_LeftHandSideContainsMaterialStiff
     KRATOS_EXPECT_MATRIX_RELATIVE_NEAR(actual_left_hand_side, expected_left_hand_side, Defaults::relative_tolerance)
 }
 
-KRATOS_TEST_CASE_IN_SUITE(LineInterfaceElement_LeftHandSideContainsMaterialStiffnessContributions_Rotated,
+KRATOS_TEST_CASE_IN_SUITE(UPwLineInterfaceElement_LeftHandSideContainsMaterialStiffnessContributions_Rotated,
                           KratosGeoMechanicsFastSuiteWithoutKernel)
 {
     // Arrange
@@ -518,7 +527,7 @@ KRATOS_TEST_CASE_IN_SUITE(LineInterfaceElement_LeftHandSideContainsMaterialStiff
         CreateElasticMaterialProperties<InterfacePlaneStrain>(normal_stiffness, shear_stiffness);
 
     auto element = CreateAndInitializeElement(
-        CreateUnitLengthLineInterfaceElementRotatedBy30DegreesWithDisplacementDoF, p_properties);
+        CreateUnitLengthLineInterfaceElementRotatedBy30DegreesWithUPwDoF, p_properties);
 
     // Act
     Matrix actual_left_hand_side;
@@ -540,7 +549,7 @@ KRATOS_TEST_CASE_IN_SUITE(LineInterfaceElement_LeftHandSideContainsMaterialStiff
     KRATOS_EXPECT_MATRIX_NEAR(actual_left_hand_side, expected_left_hand_side, Defaults::relative_tolerance)
 }
 
-KRATOS_TEST_CASE_IN_SUITE(LineInterfaceElement_RightHandSideEqualsMinusInternalForceVector,
+KRATOS_TEST_CASE_IN_SUITE(UPwLineInterfaceElement_RightHandSideEqualsMinusInternalForceVector,
                           KratosGeoMechanicsFastSuiteWithoutKernel)
 {
     // Arrange
@@ -551,7 +560,7 @@ KRATOS_TEST_CASE_IN_SUITE(LineInterfaceElement_RightHandSideEqualsMinusInternalF
 
     const auto prescribed_displacements = PrescribedDisplacements{
         {2, array_1d<double, 3>{0.2, 0.5, 0.0}}, {3, array_1d<double, 3>{0.2, 0.5, 0.0}}};
-    auto element = CreateAndInitializeElement(CreateHorizontalUnitLength2Plus2NodedLineInterfaceElementWithUDofs,
+    auto element = CreateAndInitializeElement(CreateHorizontalUnitLength2Plus2NodedLineInterfaceElementWithUPwDofs,
                                               p_properties, prescribed_displacements);
 
     // Act
@@ -579,7 +588,7 @@ KRATOS_TEST_CASE_IN_SUITE(LineInterfaceElement_RightHandSideEqualsMinusInternalF
                                        expected_internal_forces_vector, Defaults::relative_tolerance)
 }
 
-KRATOS_TEST_CASE_IN_SUITE(LineInterfaceElement_RightHandSideEqualsMinusInternalForceVector_Rotated,
+KRATOS_TEST_CASE_IN_SUITE(UPwLineInterfaceElement_RightHandSideEqualsMinusInternalForceVector_Rotated,
                           KratosGeoMechanicsFastSuiteWithoutKernel)
 {
     // Arrange
@@ -591,7 +600,7 @@ KRATOS_TEST_CASE_IN_SUITE(LineInterfaceElement_RightHandSideEqualsMinusInternalF
     const auto prescribed_displacements =
         PrescribedDisplacements{{2, array_1d<double, 3>{-0.07679492, 0.5330127, 0.0}},
                                 {3, array_1d<double, 3>{-0.07679492, 0.5330127, 0.0}}};
-    auto element = CreateAndInitializeElement(CreateUnitLengthLineInterfaceElementRotatedBy30DegreesWithDisplacementDoF,
+    auto element = CreateAndInitializeElement(CreateUnitLengthLineInterfaceElementRotatedBy30DegreesWithUPwDoF,
                                               p_properties, prescribed_displacements);
 
     // Act
@@ -615,7 +624,7 @@ KRATOS_TEST_CASE_IN_SUITE(GetInitializedConstitutiveLawsAfterElementInitializati
         std::make_shared<GeoIncrementalLinearElasticInterfaceLaw>(std::make_unique<InterfacePlaneStrain>());
 
     auto element = CreateAndInitializeElement(
-        CreateHorizontalUnitLength2Plus2NodedLineInterfaceElementWithUDofs, p_properties);
+        CreateHorizontalUnitLength2Plus2NodedLineInterfaceElementWithUPwDofs, p_properties);
     // Act
     auto constitutive_laws = std::vector<ConstitutiveLaw::Pointer>{};
     element.CalculateOnIntegrationPoints(CONSTITUTIVE_LAW, constitutive_laws, ProcessInfo{});
@@ -629,7 +638,7 @@ KRATOS_TEST_CASE_IN_SUITE(GetInitializedConstitutiveLawsAfterElementInitializati
     }
 }
 
-KRATOS_TEST_CASE_IN_SUITE(InterfaceElement_HasCorrectNumberOfConstitutiveLawsAfterMultipleInitializations,
+KRATOS_TEST_CASE_IN_SUITE(UPwInterfaceElement_HasCorrectNumberOfConstitutiveLawsAfterMultipleInitializations,
                           KratosGeoMechanicsFastSuiteWithoutKernel)
 {
     // Arrange
@@ -638,7 +647,7 @@ KRATOS_TEST_CASE_IN_SUITE(InterfaceElement_HasCorrectNumberOfConstitutiveLawsAft
         std::make_shared<GeoIncrementalLinearElasticInterfaceLaw>(std::make_unique<InterfacePlaneStrain>());
 
     Model model;
-    auto element = CreateHorizontalUnitLength2Plus2NodedLineInterfaceElementWithUDofs(model, p_properties);
+    auto element = CreateHorizontalUnitLength2Plus2NodedLineInterfaceElementWithUPwDofs(model, p_properties);
 
     const auto dummy_process_info = ProcessInfo{};
 
@@ -653,7 +662,7 @@ KRATOS_TEST_CASE_IN_SUITE(InterfaceElement_HasCorrectNumberOfConstitutiveLawsAft
     KRATOS_EXPECT_EQ(constitutive_laws.size(), 2);
 }
 
-KRATOS_TEST_CASE_IN_SUITE(LineInterfaceElement_ReturnsExpectedLeftAndRightHandSide, KratosGeoMechanicsFastSuiteWithoutKernel)
+KRATOS_TEST_CASE_IN_SUITE(UPwLineInterfaceElement_ReturnsExpectedLeftAndRightHandSide, KratosGeoMechanicsFastSuiteWithoutKernel)
 {
     // Arrange
     constexpr auto normal_stiffness = 20.0;
@@ -663,7 +672,7 @@ KRATOS_TEST_CASE_IN_SUITE(LineInterfaceElement_ReturnsExpectedLeftAndRightHandSi
 
     const auto prescribed_displacements = PrescribedDisplacements{
         {2, array_1d<double, 3>{0.2, 0.5, 0.0}}, {3, array_1d<double, 3>{0.2, 0.5, 0.0}}};
-    auto element = CreateAndInitializeElement(CreateHorizontalUnitLength2Plus2NodedLineInterfaceElementWithUDofs,
+    auto element = CreateAndInitializeElement(CreateHorizontalUnitLength2Plus2NodedLineInterfaceElementWithUPwDofs,
                                               p_properties, prescribed_displacements);
 
     // Act
@@ -681,7 +690,7 @@ KRATOS_TEST_CASE_IN_SUITE(LineInterfaceElement_ReturnsExpectedLeftAndRightHandSi
     KRATOS_EXPECT_VECTOR_RELATIVE_NEAR(actual_right_hand_side, expected_right_hand_side, Defaults::relative_tolerance)
 }
 
-KRATOS_TEST_CASE_IN_SUITE(LineInterfaceElement_CalculateRelativeDisplacementVector, KratosGeoMechanicsFastSuiteWithoutKernel)
+KRATOS_TEST_CASE_IN_SUITE(UPwLineInterfaceElement_CalculateRelativeDisplacementVector, KratosGeoMechanicsFastSuiteWithoutKernel)
 {
     // Arrange
     constexpr auto normal_stiffness = 20.0;
@@ -692,7 +701,7 @@ KRATOS_TEST_CASE_IN_SUITE(LineInterfaceElement_CalculateRelativeDisplacementVect
     const auto prescribed_displacements =
         PrescribedDisplacements{{2, array_1d<double, 3>{-0.07679492, 0.5330127, 0.0}},
                                 {3, array_1d<double, 3>{-0.07679492, 0.5330127, 0.0}}};
-    auto element = CreateAndInitializeElement(CreateUnitLengthLineInterfaceElementRotatedBy30DegreesWithDisplacementDoF,
+    auto element = CreateAndInitializeElement(CreateUnitLengthLineInterfaceElementRotatedBy30DegreesWithUPwDoF,
                                               p_properties, prescribed_displacements);
 
     // Act
@@ -710,7 +719,7 @@ KRATOS_TEST_CASE_IN_SUITE(LineInterfaceElement_CalculateRelativeDisplacementVect
     }
 }
 
-KRATOS_TEST_CASE_IN_SUITE(LineInterfaceElement_CalculateEffectiveTractionVector, KratosGeoMechanicsFastSuiteWithoutKernel)
+KRATOS_TEST_CASE_IN_SUITE(UPwLineInterfaceElement_CalculateEffectiveTractionVector, KratosGeoMechanicsFastSuiteWithoutKernel)
 {
     // Arrange
     constexpr auto normal_stiffness = 20.0;
@@ -721,7 +730,7 @@ KRATOS_TEST_CASE_IN_SUITE(LineInterfaceElement_CalculateEffectiveTractionVector,
     const auto prescribed_displacements =
         PrescribedDisplacements{{2, array_1d<double, 3>{-0.07679492, 0.5330127, 0.0}},
                                 {3, array_1d<double, 3>{-0.07679492, 0.5330127, 0.0}}};
-    auto element = CreateAndInitializeElement(CreateUnitLengthLineInterfaceElementRotatedBy30DegreesWithDisplacementDoF,
+    auto element = CreateAndInitializeElement(CreateUnitLengthLineInterfaceElementRotatedBy30DegreesWithUPwDoF,
                                               p_properties, prescribed_displacements);
 
     // Act
@@ -738,7 +747,7 @@ KRATOS_TEST_CASE_IN_SUITE(LineInterfaceElement_CalculateEffectiveTractionVector,
     }
 }
 
-KRATOS_TEST_CASE_IN_SUITE(LineInterfaceElement_3Plus3NodedElement_ReturnsExpectedLeftAndRightHandSide,
+KRATOS_TEST_CASE_IN_SUITE(UPwLineInterfaceElement_3Plus3NodedElement_ReturnsExpectedLeftAndRightHandSide,
                           KratosGeoMechanicsFastSuiteWithoutKernel)
 {
     // Arrange
@@ -751,7 +760,7 @@ KRATOS_TEST_CASE_IN_SUITE(LineInterfaceElement_3Plus3NodedElement_ReturnsExpecte
         PrescribedDisplacements{{3, array_1d<double, 3>{0.2, 0.5, 0.0}},
                                 {4, array_1d<double, 3>{0.2, 0.5, 0.0}},
                                 {5, array_1d<double, 3>{0.2, 0.5, 0.0}}};
-    auto element = CreateAndInitializeElement(CreateHorizontalUnitLength3Plus3NodedLineInterfaceElementWithDisplacementDoF,
+    auto element = CreateAndInitializeElement(CreateHorizontalUnitLength3Plus3NodedLineInterfaceElementWithUPwDoF,
                                               p_properties, prescribed_displacements);
 
     // Act
@@ -796,7 +805,8 @@ KRATOS_TEST_CASE_IN_SUITE(LineInterfaceElement_3Plus3NodedElement_ReturnsExpecte
     KRATOS_EXPECT_VECTOR_RELATIVE_NEAR(actual_right_hand_side, expected_right_hand_side, Defaults::relative_tolerance)
 }
 
-KRATOS_TEST_CASE_IN_SUITE(TriangleInterfaceElement_CreatesInstanceWithGeometryInput, KratosGeoMechanicsFastSuiteWithoutKernel)
+KRATOS_TEST_CASE_IN_SUITE(UPwTriangleInterfaceElement_CreatesInstanceWithGeometryInput,
+                          KratosGeoMechanicsFastSuiteWithoutKernel)
 {
     // Arrange
     const UPwInterfaceElement element(
@@ -816,7 +826,7 @@ KRATOS_TEST_CASE_IN_SUITE(TriangleInterfaceElement_CreatesInstanceWithGeometryIn
     EXPECT_NE(p_created_element->pGetProperties(), nullptr);
 }
 
-KRATOS_TEST_CASE_IN_SUITE(TriangleInterfaceElement_CreatesInstanceWithNodeInput, KratosGeoMechanicsFastSuiteWithoutKernel)
+KRATOS_TEST_CASE_IN_SUITE(UPwTriangleInterfaceElement_CreatesInstanceWithNodeInput, KratosGeoMechanicsFastSuiteWithoutKernel)
 {
     // Arrange
     const auto nodes        = CreateNodesFor3Plus3SurfaceInterfaceGeometry();
@@ -838,13 +848,13 @@ KRATOS_TEST_CASE_IN_SUITE(TriangleInterfaceElement_CreatesInstanceWithNodeInput,
     EXPECT_NE(p_created_element->pGetProperties(), nullptr);
 }
 
-KRATOS_TEST_CASE_IN_SUITE(TriangleInterfaceElement_ReturnsTheExpectedDoFList, KratosGeoMechanicsFastSuiteWithoutKernel)
+KRATOS_TEST_CASE_IN_SUITE(UPwTriangleInterfaceElement_ReturnsTheExpectedDoFList, KratosGeoMechanicsFastSuiteWithoutKernel)
 {
     // Arrange
     const auto p_properties = std::make_shared<Properties>();
 
     Model model;
-    const auto element = CreateHorizontal3Plus3NodedTriangleInterfaceElementWithUDofs(model, p_properties);
+    const auto element = CreateHorizontal3Plus3NodedTriangleInterfaceElementWithUPwDofs(model, p_properties);
 
     // Act
     const auto              dummy_process_info = ProcessInfo{};
@@ -852,21 +862,25 @@ KRATOS_TEST_CASE_IN_SUITE(TriangleInterfaceElement_ReturnsTheExpectedDoFList, Kr
     element.GetDofList(degrees_of_freedom, dummy_process_info);
 
     // Assert
-    KRATOS_EXPECT_EQ(degrees_of_freedom.size(), 18);
-    for (std::size_t i = 0; i < degrees_of_freedom.size(); i += 3) {
+    ASSERT_EQ(degrees_of_freedom.size(), 24);
+    for (auto i = std::size_t{0}; i < std::size_t{18}; i += 3) {
         KRATOS_EXPECT_EQ(degrees_of_freedom[i]->GetVariable(), DISPLACEMENT_X);
         KRATOS_EXPECT_EQ(degrees_of_freedom[i + 1]->GetVariable(), DISPLACEMENT_Y);
         KRATOS_EXPECT_EQ(degrees_of_freedom[i + 2]->GetVariable(), DISPLACEMENT_Z);
     }
+    for (auto i = std::size_t{18}; i < std::size_t{24}; ++i) {
+        KRATOS_EXPECT_EQ(degrees_of_freedom[i]->GetVariable(), WATER_PRESSURE);
+    }
 }
 
-KRATOS_TEST_CASE_IN_SUITE(TriangleInterfaceElement_ReturnsTheExpectedEquationIdVector, KratosGeoMechanicsFastSuiteWithoutKernel)
+KRATOS_TEST_CASE_IN_SUITE(UPwTriangleInterfaceElement_ReturnsTheExpectedEquationIdVector,
+                          KratosGeoMechanicsFastSuiteWithoutKernel)
 {
     // Arrange
     const auto p_properties = std::make_shared<Properties>();
 
     Model model;
-    auto element = CreateHorizontal3Plus3NodedTriangleInterfaceElementWithUDofs(model, p_properties);
+    auto element = CreateHorizontal3Plus3NodedTriangleInterfaceElementWithUPwDofs(model, p_properties);
 
     int i = 0;
     for (const auto& node : element.GetGeometry()) {
@@ -878,6 +892,9 @@ KRATOS_TEST_CASE_IN_SUITE(TriangleInterfaceElement_ReturnsTheExpectedEquationIdV
 
         ++i;
         node.pGetDof(DISPLACEMENT_Z)->SetEquationId(i);
+
+        ++i;
+        node.pGetDof(WATER_PRESSURE)->SetEquationId(i);
     }
 
     // Act
@@ -886,12 +903,12 @@ KRATOS_TEST_CASE_IN_SUITE(TriangleInterfaceElement_ReturnsTheExpectedEquationIdV
     element.EquationIdVector(equation_id_vector, dummy_process_info);
 
     // Assert
-    const Element::EquationIdVectorType expected_ids = {1,  2,  3,  4,  5,  6,  7,  8,  9,
-                                                        10, 11, 12, 13, 14, 15, 16, 17, 18};
+    const Element::EquationIdVectorType expected_ids = {
+        1, 2, 3, 5, 6, 7, 9, 10, 11, 13, 14, 15, 17, 18, 19, 21, 22, 23, 4, 8, 12, 16, 20, 24};
     KRATOS_EXPECT_VECTOR_EQ(equation_id_vector, expected_ids)
 }
 
-KRATOS_TEST_CASE_IN_SUITE(TriangleInterfaceElement_LeftHandSideContainsMaterialStiffnessContributions,
+KRATOS_TEST_CASE_IN_SUITE(UPwTriangleInterfaceElement_LeftHandSideContainsMaterialStiffnessContributions,
                           KratosGeoMechanicsFastSuiteWithoutKernel)
 {
     // Arrange
@@ -901,7 +918,7 @@ KRATOS_TEST_CASE_IN_SUITE(TriangleInterfaceElement_LeftHandSideContainsMaterialS
         normal_stiffness, shear_stiffness);
 
     auto element = CreateAndInitializeElement(
-        CreateHorizontal3Plus3NodedTriangleInterfaceElementWithUDofs, p_properties);
+        CreateHorizontal3Plus3NodedTriangleInterfaceElementWithUPwDofs, p_properties);
 
     // Act
     Matrix actual_left_hand_side;
@@ -912,7 +929,7 @@ KRATOS_TEST_CASE_IN_SUITE(TriangleInterfaceElement_LeftHandSideContainsMaterialS
     KRATOS_EXPECT_MATRIX_RELATIVE_NEAR(actual_left_hand_side, expected_left_hand_side, Defaults::relative_tolerance)
 }
 
-KRATOS_TEST_CASE_IN_SUITE(TriangleInterfaceElement_LeftHandSideContainsMaterialStiffnessContributions_Rotated,
+KRATOS_TEST_CASE_IN_SUITE(UPwTriangleInterfaceElement_LeftHandSideContainsMaterialStiffnessContributions_Rotated,
                           KratosGeoMechanicsFastSuiteWithoutKernel)
 {
     // Arrange
@@ -922,7 +939,7 @@ KRATOS_TEST_CASE_IN_SUITE(TriangleInterfaceElement_LeftHandSideContainsMaterialS
         normal_stiffness, shear_stiffness);
 
     auto element = CreateAndInitializeElement(
-        CreateTriangleInterfaceElementRotatedBy30DegreesWithDisplacementDoF, p_properties);
+        CreateTriangleInterfaceElementRotatedBy30DegreesWithUPwDoF, p_properties);
 
     // Act
     Matrix actual_left_hand_side;
@@ -938,7 +955,7 @@ KRATOS_TEST_CASE_IN_SUITE(TriangleInterfaceElement_LeftHandSideContainsMaterialS
     KRATOS_EXPECT_MATRIX_NEAR(actual_left_hand_side, ExpectedLeftHandSideForTriangleElement(), Defaults::relative_tolerance)
 }
 
-KRATOS_TEST_CASE_IN_SUITE(TriangleInterfaceElement_LeftHandSideContainsMaterialStiffnessContributions_RotatedAboutYAxis,
+KRATOS_TEST_CASE_IN_SUITE(UPwTriangleInterfaceElement_LeftHandSideContainsMaterialStiffnessContributions_RotatedAboutYAxis,
                           KratosGeoMechanicsFastSuiteWithoutKernel)
 {
     // Arrange
@@ -948,7 +965,7 @@ KRATOS_TEST_CASE_IN_SUITE(TriangleInterfaceElement_LeftHandSideContainsMaterialS
         normal_stiffness, shear_stiffness);
 
     auto element = CreateAndInitializeElement(
-        CreateTriangleInterfaceElementRotatedBy30DegreesAboutYAxisWithDisplacementDoF, p_properties);
+        CreateTriangleInterfaceElementRotatedBy30DegreesAboutYAxisWithUPwDoF, p_properties);
 
     // Act
     Matrix actual_left_hand_side;
@@ -980,7 +997,7 @@ KRATOS_TEST_CASE_IN_SUITE(TriangleInterfaceElement_LeftHandSideContainsMaterialS
     KRATOS_EXPECT_MATRIX_NEAR(actual_left_hand_side, expected_left_hand_side, Defaults::relative_tolerance)
 }
 
-KRATOS_TEST_CASE_IN_SUITE(TriangleInterfaceElement_RightHandSideEqualsMinusInternalForceVector,
+KRATOS_TEST_CASE_IN_SUITE(UPwTriangleInterfaceElement_RightHandSideEqualsMinusInternalForceVector,
                           KratosGeoMechanicsFastSuiteWithoutKernel)
 {
     // Arrange
@@ -991,7 +1008,7 @@ KRATOS_TEST_CASE_IN_SUITE(TriangleInterfaceElement_RightHandSideEqualsMinusInter
 
     const auto prescribed_displacements = PrescribedDisplacements{
         {2, array_1d<double, 3>{0.2, 0.5, 0.0}}, {3, array_1d<double, 3>{0.2, 0.5, 0.0}}};
-    auto element = CreateAndInitializeElement(CreateHorizontal3Plus3NodedTriangleInterfaceElementWithUDofs,
+    auto element = CreateAndInitializeElement(CreateHorizontal3Plus3NodedTriangleInterfaceElementWithUPwDofs,
                                               p_properties, prescribed_displacements);
 
     // Act
@@ -1005,7 +1022,7 @@ KRATOS_TEST_CASE_IN_SUITE(TriangleInterfaceElement_RightHandSideEqualsMinusInter
     KRATOS_EXPECT_VECTOR_RELATIVE_NEAR(actual_right_hand_side, expected_right_hand_side, tolerance)
 }
 
-KRATOS_TEST_CASE_IN_SUITE(TriangleInterfaceElement_RightHandSideEqualsMinusInternalForceVector_Rotated,
+KRATOS_TEST_CASE_IN_SUITE(UPwTriangleInterfaceElement_RightHandSideEqualsMinusInternalForceVector_Rotated,
                           KratosGeoMechanicsFastSuiteWithoutKernel)
 {
     // Arrange
@@ -1018,7 +1035,7 @@ KRATOS_TEST_CASE_IN_SUITE(TriangleInterfaceElement_RightHandSideEqualsMinusInter
         PrescribedDisplacements{{3, array_1d<double, 3>{1.0, 2.0, 3.0}},
                                 {4, array_1d<double, 3>{1.0, 2.0, 3.0}},
                                 {5, array_1d<double, 3>{1.0, 2.0, 3.0}}};
-    auto element = CreateAndInitializeElement(CreateTriangleInterfaceElementRotatedBy30DegreesWithDisplacementDoF,
+    auto element = CreateAndInitializeElement(CreateTriangleInterfaceElementRotatedBy30DegreesWithUPwDoF,
                                               p_properties, prescribed_displacements);
 
     // Act
@@ -1034,7 +1051,7 @@ KRATOS_TEST_CASE_IN_SUITE(TriangleInterfaceElement_RightHandSideEqualsMinusInter
     KRATOS_EXPECT_VECTOR_RELATIVE_NEAR(actual_right_hand_side, expected_right_hand_side, tolerance)
 }
 
-KRATOS_TEST_CASE_IN_SUITE(TriangleIntrfaceElement_GetInitializedConstitutiveLawsAfterElementInitialization,
+KRATOS_TEST_CASE_IN_SUITE(UPwTriangleInterfaceElement_GetInitializedConstitutiveLawsAfterElementInitialization,
                           KratosGeoMechanicsFastSuiteWithoutKernel)
 {
     // Arrange
@@ -1043,7 +1060,7 @@ KRATOS_TEST_CASE_IN_SUITE(TriangleIntrfaceElement_GetInitializedConstitutiveLaws
         std::make_shared<GeoIncrementalLinearElasticInterfaceLaw>(std::make_unique<InterfacePlaneStrain>());
 
     auto element = CreateAndInitializeElement(
-        CreateHorizontal3Plus3NodedTriangleInterfaceElementWithUDofs, p_properties);
+        CreateHorizontal3Plus3NodedTriangleInterfaceElementWithUPwDofs, p_properties);
 
     // Act
     auto constitutive_laws = std::vector<ConstitutiveLaw::Pointer>{};
@@ -1058,7 +1075,7 @@ KRATOS_TEST_CASE_IN_SUITE(TriangleIntrfaceElement_GetInitializedConstitutiveLaws
     }
 }
 
-KRATOS_TEST_CASE_IN_SUITE(TriangleInterfaceElement_HasCorrectNumberOfConstitutiveLawsAfterMultipleInitializations,
+KRATOS_TEST_CASE_IN_SUITE(UPwTriangleInterfaceElement_HasCorrectNumberOfConstitutiveLawsAfterMultipleInitializations,
                           KratosGeoMechanicsFastSuiteWithoutKernel)
 {
     // Arrange
@@ -1067,7 +1084,7 @@ KRATOS_TEST_CASE_IN_SUITE(TriangleInterfaceElement_HasCorrectNumberOfConstitutiv
         std::make_shared<GeoIncrementalLinearElasticInterfaceLaw>(std::make_unique<InterfacePlaneStrain>());
 
     Model model;
-    auto element = CreateHorizontal3Plus3NodedTriangleInterfaceElementWithUDofs(model, p_properties);
+    auto element = CreateHorizontal3Plus3NodedTriangleInterfaceElementWithUPwDofs(model, p_properties);
 
     const auto dummy_process_info = ProcessInfo{};
 
@@ -1082,7 +1099,7 @@ KRATOS_TEST_CASE_IN_SUITE(TriangleInterfaceElement_HasCorrectNumberOfConstitutiv
     KRATOS_EXPECT_EQ(constitutive_laws.size(), 3);
 }
 
-KRATOS_TEST_CASE_IN_SUITE(TriangleInterfaceElement_ReturnsExpectedLeftAndRightHandSide,
+KRATOS_TEST_CASE_IN_SUITE(UPwTriangleInterfaceElement_ReturnsExpectedLeftAndRightHandSide,
                           KratosGeoMechanicsFastSuiteWithoutKernel)
 {
     // Arrange
@@ -1093,7 +1110,7 @@ KRATOS_TEST_CASE_IN_SUITE(TriangleInterfaceElement_ReturnsExpectedLeftAndRightHa
 
     const auto prescribed_displacements = PrescribedDisplacements{
         {2, array_1d<double, 3>{0.2, 0.5, 0.0}}, {3, array_1d<double, 3>{0.2, 0.5, 0.0}}};
-    auto element = CreateAndInitializeElement(CreateHorizontal3Plus3NodedTriangleInterfaceElementWithUDofs,
+    auto element = CreateAndInitializeElement(CreateHorizontal3Plus3NodedTriangleInterfaceElementWithUPwDofs,
                                               p_properties, prescribed_displacements);
 
     // Act
@@ -1112,7 +1129,7 @@ KRATOS_TEST_CASE_IN_SUITE(TriangleInterfaceElement_ReturnsExpectedLeftAndRightHa
     KRATOS_EXPECT_VECTOR_NEAR(actual_right_hand_side, expected_right_hand_side, tolerance)
 }
 
-KRATOS_TEST_CASE_IN_SUITE(TriangleInterfaceElement_CalculateRelativeDisplacementVector,
+KRATOS_TEST_CASE_IN_SUITE(UPwTriangleInterfaceElement_CalculateRelativeDisplacementVector,
                           KratosGeoMechanicsFastSuiteWithoutKernel)
 {
     // Arrange
@@ -1125,7 +1142,7 @@ KRATOS_TEST_CASE_IN_SUITE(TriangleInterfaceElement_CalculateRelativeDisplacement
         PrescribedDisplacements{{0, array_1d<double, 3>{1.0, 2.0, 3.0}},
                                 {1, array_1d<double, 3>{1.0, 2.0, 3.0}},
                                 {2, array_1d<double, 3>{1.0, 2.0, 3.0}}};
-    auto element = CreateAndInitializeElement(CreateTriangleInterfaceElementRotatedBy30DegreesWithDisplacementDoF,
+    auto element = CreateAndInitializeElement(CreateTriangleInterfaceElementRotatedBy30DegreesWithUPwDoF,
                                               p_properties, prescribed_displacements);
 
     // Act
@@ -1144,7 +1161,7 @@ KRATOS_TEST_CASE_IN_SUITE(TriangleInterfaceElement_CalculateRelativeDisplacement
     }
 }
 
-KRATOS_TEST_CASE_IN_SUITE(TriangleInterfaceElementHorizontal_CalculateRelativeDisplacementVector,
+KRATOS_TEST_CASE_IN_SUITE(UPwTriangleInterfaceElementHorizontal_CalculateRelativeDisplacementVector,
                           KratosGeoMechanicsFastSuiteWithoutKernel)
 {
     // Arrange
@@ -1157,7 +1174,7 @@ KRATOS_TEST_CASE_IN_SUITE(TriangleInterfaceElementHorizontal_CalculateRelativeDi
         PrescribedDisplacements{{0, array_1d<double, 3>{0.0, 0.0, 1.0}},
                                 {1, array_1d<double, 3>{0.0, 0.0, 1.0}},
                                 {2, array_1d<double, 3>{0.0, 0.0, 1.0}}};
-    auto element = CreateAndInitializeElement(CreateHorizontal3Plus3NodedTriangleInterfaceElementWithUDofs,
+    auto element = CreateAndInitializeElement(CreateHorizontal3Plus3NodedTriangleInterfaceElementWithUPwDofs,
                                               p_properties, prescribed_displacements);
 
     // Act
@@ -1176,7 +1193,7 @@ KRATOS_TEST_CASE_IN_SUITE(TriangleInterfaceElementHorizontal_CalculateRelativeDi
     }
 }
 
-KRATOS_TEST_CASE_IN_SUITE(TriangleInterfaceElementInYZPlane_CalculateRelativeDisplacementVector,
+KRATOS_TEST_CASE_IN_SUITE(UPwTriangleInterfaceElementInYZPlane_CalculateRelativeDisplacementVector,
                           KratosGeoMechanicsFastSuiteWithoutKernel)
 {
     // Arrange
@@ -1189,7 +1206,7 @@ KRATOS_TEST_CASE_IN_SUITE(TriangleInterfaceElementInYZPlane_CalculateRelativeDis
         PrescribedDisplacements{{3, array_1d<double, 3>{1.0, 0.0, 0.0}},
                                 {4, array_1d<double, 3>{1.0, 0.0, 0.0}},
                                 {5, array_1d<double, 3>{1.0, 0.0, 0.0}}};
-    auto element = CreateAndInitializeElement(CreateHorizontal3Plus3NodedTriangleInterfaceYZPlaneElementWithUDofs,
+    auto element = CreateAndInitializeElement(CreateHorizontal3Plus3NodedTriangleInterfaceYZPlaneElementWithUPwDofs,
                                               p_properties, prescribed_displacements);
 
     // Act
@@ -1208,7 +1225,7 @@ KRATOS_TEST_CASE_IN_SUITE(TriangleInterfaceElementInYZPlane_CalculateRelativeDis
     }
 }
 
-KRATOS_TEST_CASE_IN_SUITE(TriangleInterfaceElementInXZPlane_CalculateRelativeDisplacementVector,
+KRATOS_TEST_CASE_IN_SUITE(UPwTriangleInterfaceElementInXZPlane_CalculateRelativeDisplacementVector,
                           KratosGeoMechanicsFastSuiteWithoutKernel)
 {
     // Arrange
@@ -1224,7 +1241,7 @@ KRATOS_TEST_CASE_IN_SUITE(TriangleInterfaceElementInXZPlane_CalculateRelativeDis
         PrescribedDisplacements{{3, array_1d<double, 3>{0.0, -1.0, 0.0}},
                                 {4, array_1d<double, 3>{0.0, -1.0, 0.0}},
                                 {5, array_1d<double, 3>{0.0, -1.0, 0.0}}};
-    auto element = CreateAndInitializeElement(CreateHorizontal3Plus3NodedTriangleInterfaceXZPlaneElementWithUDofs,
+    auto element = CreateAndInitializeElement(CreateHorizontal3Plus3NodedTriangleInterfaceXZPlaneElementWithUPwDofs,
                                               p_properties, prescribed_displacements);
 
     // Act
@@ -1243,7 +1260,8 @@ KRATOS_TEST_CASE_IN_SUITE(TriangleInterfaceElementInXZPlane_CalculateRelativeDis
     }
 }
 
-KRATOS_TEST_CASE_IN_SUITE(TriangleInterfaceElement_CalculateEffectiveTractionVector, KratosGeoMechanicsFastSuiteWithoutKernel)
+KRATOS_TEST_CASE_IN_SUITE(UPwTriangleInterfaceElement_CalculateEffectiveTractionVector,
+                          KratosGeoMechanicsFastSuiteWithoutKernel)
 {
     // Arrange
     constexpr auto normal_stiffness = 20.0;
@@ -1255,7 +1273,7 @@ KRATOS_TEST_CASE_IN_SUITE(TriangleInterfaceElement_CalculateEffectiveTractionVec
         PrescribedDisplacements{{0, array_1d<double, 3>{1.0, 2.0, 3.0}},
                                 {1, array_1d<double, 3>{1.0, 2.0, 3.0}},
                                 {2, array_1d<double, 3>{1.0, 2.0, 3.0}}};
-    auto element = CreateAndInitializeElement(CreateTriangleInterfaceElementRotatedBy30DegreesWithDisplacementDoF,
+    auto element = CreateAndInitializeElement(CreateTriangleInterfaceElementRotatedBy30DegreesWithUPwDoF,
                                               p_properties, prescribed_displacements);
 
     // Act
@@ -1273,7 +1291,7 @@ KRATOS_TEST_CASE_IN_SUITE(TriangleInterfaceElement_CalculateEffectiveTractionVec
     }
 }
 
-KRATOS_TEST_CASE_IN_SUITE(TriangleInterfaceElement_6Plus6NodedElement_ReturnsExpectedLeftAndRightHandSide,
+KRATOS_TEST_CASE_IN_SUITE(UPwTriangleInterfaceElement_6Plus6NodedElement_ReturnsExpectedLeftAndRightHandSide,
                           KratosGeoMechanicsFastSuiteWithoutKernel)
 {
     // Arrange
@@ -1286,7 +1304,7 @@ KRATOS_TEST_CASE_IN_SUITE(TriangleInterfaceElement_6Plus6NodedElement_ReturnsExp
         PrescribedDisplacements{{3, array_1d<double, 3>{0.2, 0.5, 0.0}},
                                 {4, array_1d<double, 3>{0.2, 0.5, 0.0}},
                                 {5, array_1d<double, 3>{0.2, 0.5, 0.0}}};
-    auto element = CreateAndInitializeElement(CreateHorizontal6Plus6NodedTriangleInterfaceElementWithDisplacementDoF,
+    auto element = CreateAndInitializeElement(CreateHorizontal6Plus6NodedTriangleInterfaceElementWithUPwDoF,
                                               p_properties, prescribed_displacements);
 
     // Act
@@ -1346,7 +1364,7 @@ KRATOS_TEST_CASE_IN_SUITE(TriangleInterfaceElement_6Plus6NodedElement_ReturnsExp
     KRATOS_EXPECT_VECTOR_NEAR(actual_right_hand_side, expected_right_hand_side, tolerance)
 }
 
-KRATOS_TEST_CASE_IN_SUITE(InterfaceElement_CheckThrowsWhenElementIsNotInitialized, KratosGeoMechanicsFastSuiteWithoutKernel)
+KRATOS_TEST_CASE_IN_SUITE(UPwInterfaceElement_CheckThrowsWhenElementIsNotInitialized, KratosGeoMechanicsFastSuiteWithoutKernel)
 {
     constexpr auto normal_stiffness = 20.0;
     constexpr auto shear_stiffness  = 10.0;
@@ -1354,7 +1372,7 @@ KRATOS_TEST_CASE_IN_SUITE(InterfaceElement_CheckThrowsWhenElementIsNotInitialize
         CreateElasticMaterialProperties<InterfacePlaneStrain>(normal_stiffness, shear_stiffness);
 
     Model model;
-    auto element = CreateHorizontalUnitLength3Plus3NodedLineInterfaceElementWithDisplacementDoF(model, p_properties);
+    auto element = CreateHorizontalUnitLength3Plus3NodedLineInterfaceElementWithUPwDoF(model, p_properties);
 
     const auto dummy_process_info = ProcessInfo{};
     KRATOS_EXPECT_EXCEPTION_IS_THROWN(
@@ -1366,7 +1384,7 @@ KRATOS_TEST_CASE_IN_SUITE(InterfaceElement_CheckThrowsWhenElementIsNotInitialize
     KRATOS_EXPECT_EQ(element.Check(dummy_process_info), 0);
 }
 
-KRATOS_TEST_CASE_IN_SUITE(InterfaceElement_CheckDoesNotThrowWhenElementIsNotActive, KratosGeoMechanicsFastSuiteWithoutKernel)
+KRATOS_TEST_CASE_IN_SUITE(UPwInterfaceElement_CheckDoesNotThrowWhenElementIsNotActive, KratosGeoMechanicsFastSuiteWithoutKernel)
 {
     constexpr auto normal_stiffness = 20.0;
     constexpr auto shear_stiffness  = 10.0;
@@ -1374,7 +1392,7 @@ KRATOS_TEST_CASE_IN_SUITE(InterfaceElement_CheckDoesNotThrowWhenElementIsNotActi
         CreateElasticMaterialProperties<InterfacePlaneStrain>(normal_stiffness, shear_stiffness);
 
     Model model;
-    auto element = CreateHorizontalUnitLength3Plus3NodedLineInterfaceElementWithDisplacementDoF(model, p_properties);
+    auto element = CreateHorizontalUnitLength3Plus3NodedLineInterfaceElementWithUPwDoF(model, p_properties);
 
     // In the integrated workflow, the elements are not initialized, when they are not active.
     // However, the Check method is always called on all elements, even if they are not active.
@@ -1386,12 +1404,13 @@ KRATOS_TEST_CASE_IN_SUITE(InterfaceElement_CheckDoesNotThrowWhenElementIsNotActi
     KRATOS_EXPECT_EQ(element.Check(dummy_process_info), 0);
 }
 
-KRATOS_TEST_CASE_IN_SUITE(LineInterfaceElement_InterpolatesNodalStresses, KratosGeoMechanicsFastSuiteWithoutKernel)
+KRATOS_TEST_CASE_IN_SUITE(UPwLineInterfaceElement_InterpolatesNodalStresses, KratosGeoMechanicsFastSuiteWithoutKernel)
 {
     // Arrange
     Model model;
     auto& r_model_part = model.CreateModelPart("Main");
     r_model_part.AddNodalSolutionStepVariable(DISPLACEMENT);
+    r_model_part.AddNodalSolutionStepVariable(WATER_PRESSURE);
     PointerVector<Node> nodes;
     nodes.push_back(r_model_part.CreateNewNode(1, 0.0, 0.0, 0.0));
     nodes.push_back(r_model_part.CreateNewNode(2, 0.0, -1.0, 0.0));
@@ -1428,7 +1447,7 @@ KRATOS_TEST_CASE_IN_SUITE(LineInterfaceElement_InterpolatesNodalStresses, Kratos
     constexpr auto shear_stiffness  = 10.0;
     const auto     p_interface_properties =
         CreateElasticMaterialProperties<InterfacePlaneStrain>(normal_stiffness, shear_stiffness);
-    auto interface_element = CreateInterfaceElementWithUDofs<Interface2D>(p_interface_properties, p_geometry);
+    auto interface_element = CreateInterfaceElementWithUPwDofs<Interface2D>(p_interface_properties, p_geometry);
     interface_element.SetValue(NEIGHBOUR_ELEMENTS, MakeElementGlobalPtrContainerWith(p_neighbour_element));
 
     // Act
@@ -1478,12 +1497,13 @@ KRATOS_TEST_CASE_IN_SUITE(LineInterfaceElement_InterpolatesNodalStresses, Kratos
         actual_traction_vectors[1], UblasUtilities::CreateVector({4.0, 5.0}), Defaults::relative_tolerance)
 }
 
-KRATOS_TEST_CASE_IN_SUITE(PlaneInterfaceElement_InterpolatesNodalStresses, KratosGeoMechanicsFastSuiteWithoutKernel)
+KRATOS_TEST_CASE_IN_SUITE(UPwPlaneInterfaceElement_InterpolatesNodalStresses, KratosGeoMechanicsFastSuiteWithoutKernel)
 {
     // Arrange
     Model model;
     auto& r_model_part = model.CreateModelPart("Main");
     r_model_part.AddNodalSolutionStepVariable(DISPLACEMENT);
+    r_model_part.AddNodalSolutionStepVariable(WATER_PRESSURE);
     PointerVector<Node> nodes;
     nodes.push_back(r_model_part.CreateNewNode(1, 0.5, -1.5, 0.0));
     nodes.push_back(r_model_part.CreateNewNode(2, 0.5, -0.5, 0.0));
@@ -1534,7 +1554,7 @@ KRATOS_TEST_CASE_IN_SUITE(PlaneInterfaceElement_InterpolatesNodalStresses, Krato
     constexpr auto shear_stiffness  = 10.0;
     const auto     p_interface_properties =
         CreateElasticMaterialProperties<InterfaceThreeDimensionalSurface>(normal_stiffness, shear_stiffness);
-    auto interface_element = CreateInterfaceElementWithUDofs<Interface3D>(p_interface_properties, p_geometry);
+    auto interface_element = CreateInterfaceElementWithUPwDofs<Interface3D>(p_interface_properties, p_geometry);
     interface_element.SetValue(NEIGHBOUR_ELEMENTS, MakeElementGlobalPtrContainerWith(p_neighbour_element));
 
     // Act
