@@ -56,7 +56,7 @@ inline void AtomicAdd(TDataType& target, const TDataType& value)
 {
 #if defined(KRATOS_SMP_CXX11) || defined(KRATOS_COMPILED_IN_OS)
     AtomicRef<TDataType>{target} += value;
-#elif defined(KRATOS_SMP_CXX11)
+#elif defined(KRATOS_SMP_OPENMP)
     #pragma omp atomic
     target += value;
 #else
