@@ -1459,6 +1459,9 @@ void ShellThickElement3D4N<TKinematics>::AddBodyForces(const array_1d<double,4>&
     KRATOS_CATCH("ShellThickElement3D4N::AddBodyForces")
 }
 
+/***********************************************************************************/
+/***********************************************************************************/
+
 template <ShellKinematics TKinematics>
 bool ShellThickElement3D4N<TKinematics>::TryCalculateOnIntegrationPoints_GeneralizedStrainsOrStresses(const Variable<Matrix>& rVariable,
         std::vector<Matrix>& rValues,
@@ -1729,34 +1732,44 @@ bool ShellThickElement3D4N<TKinematics>::TryCalculateOnIntegrationPoints_General
     return true;
 }
 
+/***********************************************************************************/
+/***********************************************************************************/
+
 template <ShellKinematics TKinematics>
 ShellCrossSection::SectionBehaviorType ShellThickElement3D4N<TKinematics>::GetSectionBehavior() const
 {
     return ShellCrossSection::Thick;
 }
 
-
-// =====================================================================================
-//
-// Class ShellThickElement3D4N - Serialization
-//
-// =====================================================================================
+/***********************************************************************************/
+/***********************************************************************************/
 
 template <ShellKinematics TKinematics>
 void ShellThickElement3D4N<TKinematics>::save(Serializer& rSerializer) const
 {
     KRATOS_SERIALIZE_SAVE_BASE_CLASS(rSerializer, BaseType);
     rSerializer.save("EAS", mEASStorage);
+    rSerializer.save("ConstitutiveLawVector", mConstitutiveLawVector);
 }
+
+/***********************************************************************************/
+/***********************************************************************************/
 
 template <ShellKinematics TKinematics>
 void ShellThickElement3D4N<TKinematics>::load(Serializer& rSerializer)
 {
     KRATOS_SERIALIZE_LOAD_BASE_CLASS(rSerializer, BaseType);
     rSerializer.load("EAS", mEASStorage);
+    rSerializer.load("ConstitutiveLawVector", mConstitutiveLawVector);
 }
+
+/***********************************************************************************/
+/***********************************************************************************/
 
 template class ShellThickElement3D4N<ShellKinematics::LINEAR>;
 template class ShellThickElement3D4N<ShellKinematics::NONLINEAR_COROTATIONAL>;
+
+/***********************************************************************************/
+/***********************************************************************************/
 
 }
