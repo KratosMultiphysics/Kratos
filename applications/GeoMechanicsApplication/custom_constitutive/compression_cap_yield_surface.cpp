@@ -84,15 +84,9 @@ CompressionCapYieldSurface::CompressionCapYieldSurface(const Properties& rMateri
     InitializeKappaDependentFunctions();
 }
 
-double CompressionCapYieldSurface::GetCapSize() const
-{
-    return mCapSizeCalculator(mKappa);
-}
+double CompressionCapYieldSurface::GetCapSize() const { return mCapSizeCalculator(mKappa); }
 
-double CompressionCapYieldSurface::GetCapLocation() const
-{
-    return mCapLocationCalculator(mKappa);
-}
+double CompressionCapYieldSurface::GetCapLocation() const { return mCapLocationCalculator(mKappa); }
 
 double CompressionCapYieldSurface::GetKappa() const { return mKappa; }
 
@@ -100,13 +94,13 @@ void CompressionCapYieldSurface::SetKappa(double kappa) { mKappa = kappa; }
 
 double CompressionCapYieldSurface::YieldFunctionValue(const Vector& rSigmaTau) const
 {
-    return std::pow(rSigmaTau[1] / GetCapSize(), 2)
-        + (rSigmaTau[0] + GetCapLocation()) * (rSigmaTau[0] - GetCapLocation());
+    return std::pow(rSigmaTau[1] / GetCapSize(), 2) +
+           (rSigmaTau[0] + GetCapLocation()) * (rSigmaTau[0] - GetCapLocation());
 }
 
 Vector CompressionCapYieldSurface::DerivativeOfFlowFunction(const Vector& rSigmaTau) const
 {
-    Vector     result(2);
+    Vector result(2);
     result <<= 2.0 * rSigmaTau[0], 2.0 * rSigmaTau[1] / std::pow(GetCapSize(), 2);
     return result;
 }
@@ -118,8 +112,8 @@ double CompressionCapYieldSurface::CalculateApex() const
 
 void CompressionCapYieldSurface::InitializeKappaDependentFunctions()
 {
-    mCapSizeCalculator  = MakeCapSizeCalculator(mMaterialProperties);
-    mCapLocationCalculator       = MakeCapLocationCalculator(mMaterialProperties);
+    mCapSizeCalculator     = MakeCapSizeCalculator(mMaterialProperties);
+    mCapLocationCalculator = MakeCapLocationCalculator(mMaterialProperties);
 }
 
 void CompressionCapYieldSurface::CheckMaterialProperties() const
