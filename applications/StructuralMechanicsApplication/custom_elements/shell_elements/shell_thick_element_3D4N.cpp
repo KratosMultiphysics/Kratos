@@ -478,281 +478,281 @@ void ShellThickElement3D4N<TKinematics>::CalculateOnIntegrationPoints(
     std::vector<double>& rValues,
     const ProcessInfo& rCurrentProcessInfo)
 {
-    SizeType size = GetGeometry().size();
-    if (rValues.size() != size) {
-        rValues.resize(size);
-    }
+    // SizeType size = GetGeometry().size();
+    // if (rValues.size() != size) {
+    //     rValues.resize(size);
+    // }
 
-    // The membrane formulation needs to iterate to find the correct
-    // mid-surface strain values.
-    // Check if we are doing a non-linear analysis type. If not, print warning
+    // // The membrane formulation needs to iterate to find the correct
+    // // mid-surface strain values.
+    // // Check if we are doing a non-linear analysis type. If not, print warning
 
-    if (!rCurrentProcessInfo.Has(NL_ITERATION_NUMBER)) {
-        KRATOS_WARNING_ONCE("ShellThickElement3D4N") << "Warning: Gauss point results have "
-                << "been requested for a linear analysis.\nThe membrane formulation used "
-                << "requires iteration to accurately determine recovered "
-                << "quantities (strain, stress, etc...)." << std::endl;
-    }
+    // if (!rCurrentProcessInfo.Has(NL_ITERATION_NUMBER)) {
+    //     KRATOS_WARNING_ONCE("ShellThickElement3D4N") << "Warning: Gauss point results have "
+    //             << "been requested for a linear analysis.\nThe membrane formulation used "
+    //             << "requires iteration to accurately determine recovered "
+    //             << "quantities (strain, stress, etc...)." << std::endl;
+    // }
 
-    if (rVariable == VON_MISES_STRESS ||
-            rVariable == VON_MISES_STRESS_TOP_SURFACE ||
-            rVariable == VON_MISES_STRESS_MIDDLE_SURFACE ||
-            rVariable == VON_MISES_STRESS_BOTTOM_SURFACE) {
-        // Von mises calcs
+    // if (rVariable == VON_MISES_STRESS ||
+    //         rVariable == VON_MISES_STRESS_TOP_SURFACE ||
+    //         rVariable == VON_MISES_STRESS_MIDDLE_SURFACE ||
+    //         rVariable == VON_MISES_STRESS_BOTTOM_SURFACE) {
+    //     // Von mises calcs
 
-        // Get some references.
-        const PropertiesType& props = GetProperties();
-        const GeometryType& geom = GetGeometry();
-        const Matrix& shapeFunctions = geom.ShapeFunctionsValues();
-        Vector iN(shapeFunctions.size2());
+    //     // Get some references.
+    //     const PropertiesType& props = GetProperties();
+    //     const GeometryType& geom = GetGeometry();
+    //     const Matrix& shapeFunctions = geom.ShapeFunctionsValues();
+    //     Vector iN(shapeFunctions.size2());
 
-        // Compute the local coordinate system.
-        ShellQ4_LocalCoordinateSystem localCoordinateSystem(
-            this->mpCoordinateTransformation->CreateLocalCoordinateSystem());
+    //     // Compute the local coordinate system.
+    //     ShellQ4_LocalCoordinateSystem localCoordinateSystem(
+    //         this->mpCoordinateTransformation->CreateLocalCoordinateSystem());
 
-        ShellQ4_LocalCoordinateSystem referenceCoordinateSystem(
-            this->mpCoordinateTransformation->CreateReferenceCoordinateSystem());
+    //     ShellQ4_LocalCoordinateSystem referenceCoordinateSystem(
+    //         this->mpCoordinateTransformation->CreateReferenceCoordinateSystem());
 
-        // Prepare all the parameters needed for the MITC formulation.
-        // This is to be done here outside the Gauss Loop.
-        MITC4Params shearParameters(referenceCoordinateSystem);
+    //     // Prepare all the parameters needed for the MITC formulation.
+    //     // This is to be done here outside the Gauss Loop.
+    //     MITC4Params shearParameters(referenceCoordinateSystem);
 
-        // Instantiate the Jacobian Operator.
-        // This will store:
-        // the jacobian matrix, its inverse, its determinant
-        // and the derivatives of the shape functions in the local
-        // coordinate system
-        ShellUtilities::JacobianOperator jacOp;
+    //     // Instantiate the Jacobian Operator.
+    //     // This will store:
+    //     // the jacobian matrix, its inverse, its determinant
+    //     // and the derivatives of the shape functions in the local
+    //     // coordinate system
+    //     ShellUtilities::JacobianOperator jacOp;
 
-        // Instantiate all strain-displacement matrices.
-        Matrix B(8, 24, 0.0);
-        Vector Bdrilling(24, 0.0);
+    //     // Instantiate all strain-displacement matrices.
+    //     Matrix B(8, 24, 0.0);
+    //     Vector Bdrilling(24, 0.0);
 
-        // Instantiate all section tangent matrices.
-        Matrix D(8, 8, 0.0);
+    //     // Instantiate all section tangent matrices.
+    //     Matrix D(8, 8, 0.0);
 
-        // Instantiate strain and stress-resultant vectors
-        Vector generalizedStrains(8);
-        Vector generalizedStresses(8);
+    //     // Instantiate strain and stress-resultant vectors
+    //     Vector generalizedStrains(8);
+    //     Vector generalizedStresses(8);
 
-        // Get the current displacements in global coordinate system
-        Vector globalDisplacements(24);
-        this->GetValuesVector(globalDisplacements, 0);
+    //     // Get the current displacements in global coordinate system
+    //     Vector globalDisplacements(24);
+    //     this->GetValuesVector(globalDisplacements, 0);
 
-        // Get the current displacements in local coordinate system
-        Vector localDisplacements(
-            this->mpCoordinateTransformation->CalculateLocalDisplacements(localCoordinateSystem, globalDisplacements));
+    //     // Get the current displacements in local coordinate system
+    //     Vector localDisplacements(
+    //         this->mpCoordinateTransformation->CalculateLocalDisplacements(localCoordinateSystem, globalDisplacements));
 
-        // Instantiate the EAS Operator.
-        // This will apply the Enhanced Assumed Strain Method for the calculation
-        // of the membrane contribution.
-        EASOperator EASOp(referenceCoordinateSystem, mEASStorage);
+    //     // Instantiate the EAS Operator.
+    //     // This will apply the Enhanced Assumed Strain Method for the calculation
+    //     // of the membrane contribution.
+    //     EASOperator EASOp(referenceCoordinateSystem, mEASStorage);
 
-        // Just to store the rotation matrix for visualization purposes
-        Matrix R(8, 8);
-        Matrix aux33(3, 3);
+    //     // Just to store the rotation matrix for visualization purposes
+    //     Matrix R(8, 8);
+    //     Matrix aux33(3, 3);
 
-        // Initialize parameters for the cross section calculation
-        ShellCrossSection::SectionParameters parameters(geom, props, rCurrentProcessInfo);
-        parameters.SetGeneralizedStrainVector(generalizedStrains);
-        parameters.SetGeneralizedStressVector(generalizedStresses);
-        parameters.SetConstitutiveMatrix(D);
-        Flags& options = parameters.GetOptions();
-        options.Set(ConstitutiveLaw::COMPUTE_STRESS, true);
-        options.Set(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR, true);
+    //     // Initialize parameters for the cross section calculation
+    //     ShellCrossSection::SectionParameters parameters(geom, props, rCurrentProcessInfo);
+    //     parameters.SetGeneralizedStrainVector(generalizedStrains);
+    //     parameters.SetGeneralizedStressVector(generalizedStresses);
+    //     parameters.SetConstitutiveMatrix(D);
+    //     Flags& options = parameters.GetOptions();
+    //     options.Set(ConstitutiveLaw::COMPUTE_STRESS, true);
+    //     options.Set(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR, true);
 
-        // Gauss Loop
-        for (unsigned int i = 0; i < size; i++) {
-            // get a reference of the current integration point and shape functions
-            const GeometryType::IntegrationPointType& ip = geom.IntegrationPoints()[i];
+    //     // Gauss Loop
+    //     for (unsigned int i = 0; i < size; i++) {
+    //         // get a reference of the current integration point and shape functions
+    //         const GeometryType::IntegrationPointType& ip = geom.IntegrationPoints()[i];
 
-            noalias(iN) = row(shapeFunctions, i);
+    //         noalias(iN) = row(shapeFunctions, i);
 
-            // Compute Jacobian, Inverse of Jacobian, Determinant of Jacobian
-            // and Shape functions derivatives in the local coordinate system
-            jacOp.Calculate(referenceCoordinateSystem, geom.ShapeFunctionLocalGradient(i));
+    //         // Compute Jacobian, Inverse of Jacobian, Determinant of Jacobian
+    //         // and Shape functions derivatives in the local coordinate system
+    //         jacOp.Calculate(referenceCoordinateSystem, geom.ShapeFunctionLocalGradient(i));
 
-            // Compute all strain-displacement matrices
-            CalculateBMatrix(ip.X(), ip.Y(), jacOp, shearParameters, iN, B, Bdrilling);
+    //         // Compute all strain-displacement matrices
+    //         CalculateBMatrix(ip.X(), ip.Y(), jacOp, shearParameters, iN, B, Bdrilling);
 
-            // Calculate strain vectors in local coordinate system
-            noalias(generalizedStrains) = prod(B, localDisplacements);
+    //         // Calculate strain vectors in local coordinate system
+    //         noalias(generalizedStrains) = prod(B, localDisplacements);
 
-            // Apply the EAS method to modify the membrane part of the strains computed above.
-            EASOp.GaussPointComputation_Step1(ip.X(), ip.Y(), jacOp, generalizedStrains, mEASStorage);
+    //         // Apply the EAS method to modify the membrane part of the strains computed above.
+    //         EASOp.GaussPointComputation_Step1(ip.X(), ip.Y(), jacOp, generalizedStrains, mEASStorage);
 
-            // Calculate the response of the Cross Section
-            // ShellCrossSection::Pointer& section = this->mSections[i];
+    //         // Calculate the response of the Cross Section
+    //         // ShellCrossSection::Pointer& section = this->mSections[i];
 
-            //add in shear stabilization
-            double shearStabilisation = CalculateStenbergShearStabilization(referenceCoordinateSystem, GetProperties()[THICKNESS]);
-            parameters.SetStenbergShearStabilization(shearStabilisation);
-            //double shearStabilisation = (hMean*hMean) / (hMean*hMean + 0.1*h_e*h_e);
+    //         //add in shear stabilization
+    //         double shearStabilisation = CalculateStenbergShearStabilization(referenceCoordinateSystem, GetProperties()[THICKNESS]);
+    //         parameters.SetStenbergShearStabilization(shearStabilisation);
+    //         //double shearStabilisation = (hMean*hMean) / (hMean*hMean + 0.1*h_e*h_e);
 
-            // calculate force resultants
-            parameters.SetShapeFunctionsValues(iN);
-            parameters.SetShapeFunctionsDerivatives(jacOp.XYDerivatives());
-            // section->CalculateSectionResponse(parameters, ConstitutiveLaw::StressMeasure_PK2);
-            CalculateMaterialResponse(parameters, i, true, false, rCurrentProcessInfo);
+    //         // calculate force resultants
+    //         parameters.SetShapeFunctionsValues(iN);
+    //         parameters.SetShapeFunctionsDerivatives(jacOp.XYDerivatives());
+    //         // section->CalculateSectionResponse(parameters, ConstitutiveLaw::StressMeasure_PK2);
+    //         CalculateMaterialResponse(parameters, i, true, false, rCurrentProcessInfo);
 
-            // Compute stresses
-            CalculateStressesFromForceResultants(generalizedStresses,
-                                                 GetProperties()[THICKNESS]);
+    //         // Compute stresses
+    //         CalculateStressesFromForceResultants(generalizedStresses,
+    //                                              GetProperties()[THICKNESS]);
 
-            // Calculate von mises results
-            CalculateVonMisesStress(generalizedStresses, rVariable, rValues[i]);
+    //         // Calculate von mises results
+    //         CalculateVonMisesStress(generalizedStresses, rVariable, rValues[i]);
 
-        } // end gauss loop
-    } else if (rVariable == TSAI_WU_RESERVE_FACTOR) {
-        // resize output
-        SizeType size = 4;
-        if (rValues.size() != size) {
-            rValues.resize(size);
-        }
+    //     } // end gauss loop
+    // } else if (rVariable == TSAI_WU_RESERVE_FACTOR) {
+    //     // resize output
+    //     SizeType size = 4;
+    //     if (rValues.size() != size) {
+    //         rValues.resize(size);
+    //     }
 
-        // Get some references.
-        const PropertiesType& props = GetProperties();
-        const GeometryType& geom = GetGeometry();
-        const Matrix& shapeFunctions = geom.ShapeFunctionsValues();
-        Vector iN(shapeFunctions.size2());
+    //     // Get some references.
+    //     const PropertiesType& props = GetProperties();
+    //     const GeometryType& geom = GetGeometry();
+    //     const Matrix& shapeFunctions = geom.ShapeFunctionsValues();
+    //     Vector iN(shapeFunctions.size2());
 
-        // Compute the local coordinate system.
-        ShellQ4_LocalCoordinateSystem localCoordinateSystem(
-            this->mpCoordinateTransformation->CreateLocalCoordinateSystem());
-        ShellQ4_LocalCoordinateSystem referenceCoordinateSystem(
-            this->mpCoordinateTransformation->CreateReferenceCoordinateSystem());
+    //     // Compute the local coordinate system.
+    //     ShellQ4_LocalCoordinateSystem localCoordinateSystem(
+    //         this->mpCoordinateTransformation->CreateLocalCoordinateSystem());
+    //     ShellQ4_LocalCoordinateSystem referenceCoordinateSystem(
+    //         this->mpCoordinateTransformation->CreateReferenceCoordinateSystem());
 
-        // Prepare all the parameters needed for the MITC formulation.
-        // This is to be done here outside the Gauss Loop.
-        MITC4Params shearParameters(referenceCoordinateSystem);
+    //     // Prepare all the parameters needed for the MITC formulation.
+    //     // This is to be done here outside the Gauss Loop.
+    //     MITC4Params shearParameters(referenceCoordinateSystem);
 
-        // Instantiate the Jacobian Operator.
-        ShellUtilities::JacobianOperator jacOp;
+    //     // Instantiate the Jacobian Operator.
+    //     ShellUtilities::JacobianOperator jacOp;
 
-        // Instantiate all strain-displacement matrices.
-        Matrix B(8, 24, 0.0);
-        Vector Bdrilling(24, 0.0);
+    //     // Instantiate all strain-displacement matrices.
+    //     Matrix B(8, 24, 0.0);
+    //     Vector Bdrilling(24, 0.0);
 
-        // Instantiate all section tangent matrices.
-        Matrix D(8, 8, 0.0);
+    //     // Instantiate all section tangent matrices.
+    //     Matrix D(8, 8, 0.0);
 
-        // Instantiate strain and stress-resultant vectors
-        Vector generalizedStrains(8);
-        Vector generalizedStresses(8);
-        std::vector<VectorType> rlaminateStrains;
-        std::vector<VectorType> rlaminateStresses;
+    //     // Instantiate strain and stress-resultant vectors
+    //     Vector generalizedStrains(8);
+    //     Vector generalizedStresses(8);
+    //     std::vector<VectorType> rlaminateStrains;
+    //     std::vector<VectorType> rlaminateStresses;
 
-        // Get the current displacements in global coordinate system
-        Vector globalDisplacements(24);
-        this->GetValuesVector(globalDisplacements, 0);
+    //     // Get the current displacements in global coordinate system
+    //     Vector globalDisplacements(24);
+    //     this->GetValuesVector(globalDisplacements, 0);
 
-        // Get the current displacements in local coordinate system
-        Vector localDisplacements(
-            this->mpCoordinateTransformation->CalculateLocalDisplacements(localCoordinateSystem, globalDisplacements));
+    //     // Get the current displacements in local coordinate system
+    //     Vector localDisplacements(
+    //         this->mpCoordinateTransformation->CalculateLocalDisplacements(localCoordinateSystem, globalDisplacements));
 
-        // Instantiate the EAS Operator.
-        EASOperator EASOp(referenceCoordinateSystem, mEASStorage);
+    //     // Instantiate the EAS Operator.
+    //     EASOperator EASOp(referenceCoordinateSystem, mEASStorage);
 
-        // Initialize parameters for the cross section calculation
-        ShellCrossSection::SectionParameters parameters(geom, props, rCurrentProcessInfo);
-        parameters.SetGeneralizedStrainVector(generalizedStrains);
-        parameters.SetGeneralizedStressVector(generalizedStresses);
-        parameters.SetConstitutiveMatrix(D);
-        Flags& options = parameters.GetOptions();
-        options.Set(ConstitutiveLaw::COMPUTE_STRESS, true);
-        options.Set(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR, true);
+    //     // Initialize parameters for the cross section calculation
+    //     ShellCrossSection::SectionParameters parameters(geom, props, rCurrentProcessInfo);
+    //     parameters.SetGeneralizedStrainVector(generalizedStrains);
+    //     parameters.SetGeneralizedStressVector(generalizedStresses);
+    //     parameters.SetConstitutiveMatrix(D);
+    //     Flags& options = parameters.GetOptions();
+    //     options.Set(ConstitutiveLaw::COMPUTE_STRESS, true);
+    //     options.Set(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR, true);
 
-        // Get all laminae strengths
-        ShellCrossSection::Pointer& section = this->mSections[0];
-        std::vector<Matrix> Laminae_Strengths =
-            std::vector<Matrix>(section->NumberOfPlies());
-        for (unsigned int ply = 0; ply < section->NumberOfPlies(); ply++) {
-            Laminae_Strengths[ply].resize(3, 3, 0.0);
-            Laminae_Strengths[ply].clear();
-        }
-        section->GetLaminaeStrengths(Laminae_Strengths, props);
+    //     // Get all laminae strengths
+    //     ShellCrossSection::Pointer& section = this->mSections[0];
+    //     std::vector<Matrix> Laminae_Strengths =
+    //         std::vector<Matrix>(section->NumberOfPlies());
+    //     for (unsigned int ply = 0; ply < section->NumberOfPlies(); ply++) {
+    //         Laminae_Strengths[ply].resize(3, 3, 0.0);
+    //         Laminae_Strengths[ply].clear();
+    //     }
+    //     section->GetLaminaeStrengths(Laminae_Strengths, props);
 
-        // Define variables
-        Matrix R(8, 8);
-        double total_rotation = 0.0;
+    //     // Define variables
+    //     Matrix R(8, 8);
+    //     double total_rotation = 0.0;
 
-        // Gauss Loop
-        for (unsigned int i = 0; i < size; i++) {
-            // get a reference of the current integration point and shape functions
-            const GeometryType::IntegrationPointType& ip = geom.IntegrationPoints()[i];
-            noalias(iN) = row(shapeFunctions, i);
+    //     // Gauss Loop
+    //     for (unsigned int i = 0; i < size; i++) {
+    //         // get a reference of the current integration point and shape functions
+    //         const GeometryType::IntegrationPointType& ip = geom.IntegrationPoints()[i];
+    //         noalias(iN) = row(shapeFunctions, i);
 
-            // Compute Jacobian, Inverse of Jacobian, Determinant of Jacobian
-            // and Shape functions derivatives in the local coordinate system
-            jacOp.Calculate(referenceCoordinateSystem, geom.ShapeFunctionLocalGradient(i));
+    //         // Compute Jacobian, Inverse of Jacobian, Determinant of Jacobian
+    //         // and Shape functions derivatives in the local coordinate system
+    //         jacOp.Calculate(referenceCoordinateSystem, geom.ShapeFunctionLocalGradient(i));
 
-            // Compute all strain-displacement matrices
-            CalculateBMatrix(ip.X(), ip.Y(), jacOp, shearParameters, iN, B, Bdrilling);
+    //         // Compute all strain-displacement matrices
+    //         CalculateBMatrix(ip.X(), ip.Y(), jacOp, shearParameters, iN, B, Bdrilling);
 
-            // Calculate strain vectors in local coordinate system
-            noalias(generalizedStrains) = prod(B, localDisplacements);
+    //         // Calculate strain vectors in local coordinate system
+    //         noalias(generalizedStrains) = prod(B, localDisplacements);
 
-            // Apply the EAS method to modify the membrane part of the strains computed above.
-            EASOp.GaussPointComputation_Step1(ip.X(), ip.Y(), jacOp, generalizedStrains, mEASStorage);
+    //         // Apply the EAS method to modify the membrane part of the strains computed above.
+    //         EASOp.GaussPointComputation_Step1(ip.X(), ip.Y(), jacOp, generalizedStrains, mEASStorage);
 
-            // Calculate the response of the Cross Section
-            ShellCrossSection::Pointer& section = this->mSections[i];
+    //         // Calculate the response of the Cross Section
+    //         ShellCrossSection::Pointer& section = this->mSections[i];
 
-            //Calculate lamina stresses
-            CalculateLaminaStrains(section, generalizedStrains, rlaminateStrains);
-            CalculateLaminaStresses(section, parameters, rlaminateStrains, rlaminateStresses);
+    //         //Calculate lamina stresses
+    //         CalculateLaminaStrains(section, generalizedStrains, rlaminateStrains);
+    //         CalculateLaminaStresses(section, parameters, rlaminateStrains, rlaminateStresses);
 
-            // Retrieve ply orientations
-            section = this->mSections[i];
-            Vector ply_orientation(section->NumberOfPlies());
-            section->GetLaminaeOrientation(GetProperties(), ply_orientation);
+    //         // Retrieve ply orientations
+    //         section = this->mSections[i];
+    //         Vector ply_orientation(section->NumberOfPlies());
+    //         section->GetLaminaeOrientation(GetProperties(), ply_orientation);
 
-            // Rotate lamina stress from element CS to section CS, and then
-            // to lamina angle to lamina material principal directions
-            for (unsigned int ply = 0; ply < section->NumberOfPlies(); ply++) {
-                total_rotation = -ply_orientation[ply] - (section->GetOrientationAngle());
-                section->GetRotationMatrixForGeneralizedStresses(total_rotation, R);
-                //top surface of current ply
-                rlaminateStresses[2 * ply] = prod(R, rlaminateStresses[2 * ply]);
-                //bottom surface of current ply
-                rlaminateStresses[2 * ply + 1] = prod(R, rlaminateStresses[2 * ply + 1]);
-            }
+    //         // Rotate lamina stress from element CS to section CS, and then
+    //         // to lamina angle to lamina material principal directions
+    //         for (unsigned int ply = 0; ply < section->NumberOfPlies(); ply++) {
+    //             total_rotation = -ply_orientation[ply] - (section->GetOrientationAngle());
+    //             section->GetRotationMatrixForGeneralizedStresses(total_rotation, R);
+    //             //top surface of current ply
+    //             rlaminateStresses[2 * ply] = prod(R, rlaminateStresses[2 * ply]);
+    //             //bottom surface of current ply
+    //             rlaminateStresses[2 * ply + 1] = prod(R, rlaminateStresses[2 * ply + 1]);
+    //         }
 
-            // Calculate Tsai-Wu criterion for each ply, take min of all plies
-            double min_tsai_wu = 0.0;
-            double temp_tsai_wu = 0.0;
-            for (unsigned int ply = 0; ply < section->NumberOfPlies(); ply++) {
-                temp_tsai_wu = CalculateTsaiWuPlaneStress(rlaminateStresses, Laminae_Strengths[ply], ply);
-                if (ply == 0) {
-                    min_tsai_wu = temp_tsai_wu;
-                } else if (temp_tsai_wu < min_tsai_wu) {
-                    min_tsai_wu = temp_tsai_wu;
-                }
-            }
+    //         // Calculate Tsai-Wu criterion for each ply, take min of all plies
+    //         double min_tsai_wu = 0.0;
+    //         double temp_tsai_wu = 0.0;
+    //         for (unsigned int ply = 0; ply < section->NumberOfPlies(); ply++) {
+    //             temp_tsai_wu = CalculateTsaiWuPlaneStress(rlaminateStresses, Laminae_Strengths[ply], ply);
+    //             if (ply == 0) {
+    //                 min_tsai_wu = temp_tsai_wu;
+    //             } else if (temp_tsai_wu < min_tsai_wu) {
+    //                 min_tsai_wu = temp_tsai_wu;
+    //             }
+    //         }
 
-            // Output min Tsai-Wu result
-            rValues[i] = min_tsai_wu;
+    //         // Output min Tsai-Wu result
+    //         rValues[i] = min_tsai_wu;
 
-        }//Gauss loop
-    } else {
-        std::vector<double> temp(size);
+    //     }//Gauss loop
+    // } else {
+    //     std::vector<double> temp(size);
 
-        for (SizeType i = 0; i < size; i++) {
-            this->mSections[i]->GetValue(rVariable, GetProperties(), temp[i]);
-        }
+    //     for (SizeType i = 0; i < size; i++) {
+    //         this->mSections[i]->GetValue(rVariable, GetProperties(), temp[i]);
+    //     }
 
-        const Matrix& shapeFunctions = GetGeometry().ShapeFunctionsValues();
-        Vector N(size);
+    //     const Matrix& shapeFunctions = GetGeometry().ShapeFunctionsValues();
+    //     Vector N(size);
 
-        for (SizeType i = 0; i < size; i++) {
-            noalias(N) = row(shapeFunctions, i);
-            double& ival = rValues[i];
-            ival = 0.0;
-            for (SizeType j = 0; j < size; j++) {
-                ival += N(j) * temp[j];
-            }
-        }
-    }
+    //     for (SizeType i = 0; i < size; i++) {
+    //         noalias(N) = row(shapeFunctions, i);
+    //         double& ival = rValues[i];
+    //         ival = 0.0;
+    //         for (SizeType j = 0; j < size; j++) {
+    //             ival += N(j) * temp[j];
+    //         }
+    //     }
+    // }
 }
 
 /***********************************************************************************/
@@ -764,21 +764,21 @@ void ShellThickElement3D4N<TKinematics>::CalculateOnIntegrationPoints(
     std::vector<Matrix>& rValues,
     const ProcessInfo& rCurrentProcessInfo)
 {
-    // The membrane formulation needs to iterate to find the correct
-    // mid-surface strain values.
-    // Check if we are doing a non-linear analysis type. If not, print warning
+    // // The membrane formulation needs to iterate to find the correct
+    // // mid-surface strain values.
+    // // Check if we are doing a non-linear analysis type. If not, print warning
 
-    if (!rCurrentProcessInfo.Has(NL_ITERATION_NUMBER)) {
-        KRATOS_WARNING_ONCE("ShellThickElement3D4N") << "Warning: Gauss point results have "
-                << "been requested for a linear analysis.\nThe membrane formulation used "
-                << "requires iteration to accurately determine recovered "
-                << "quantities (strain, stress, etc...)." << std::endl;
-    }
+    // if (!rCurrentProcessInfo.Has(NL_ITERATION_NUMBER)) {
+    //     KRATOS_WARNING_ONCE("ShellThickElement3D4N") << "Warning: Gauss point results have "
+    //             << "been requested for a linear analysis.\nThe membrane formulation used "
+    //             << "requires iteration to accurately determine recovered "
+    //             << "quantities (strain, stress, etc...)." << std::endl;
+    // }
 
 
-    if (TryCalculateOnIntegrationPoints_GeneralizedStrainsOrStresses(rVariable, rValues, rCurrentProcessInfo)) {
-        return;
-    }
+    // if (TryCalculateOnIntegrationPoints_GeneralizedStrainsOrStresses(rVariable, rValues, rCurrentProcessInfo)) {
+    //     return;
+    // }
 }
 
 /***********************************************************************************/
@@ -818,21 +818,21 @@ void ShellThickElement3D4N<TKinematics>::CalculateStressesFromForceResultants(
     VectorType& rstresses,
     const double& rthickness)
 {
-    // Refer http://www.colorado.edu/engineering/CAS/courses.d/AFEM.d/AFEM.Ch20.d/AFEM.Ch20.pdf
+    // // Refer http://www.colorado.edu/engineering/CAS/courses.d/AFEM.d/AFEM.Ch20.d/AFEM.Ch20.pdf
 
-    // membrane forces -> in-plane stresses (av. across whole thickness)
-    rstresses[0] /= rthickness;
-    rstresses[1] /= rthickness;
-    rstresses[2] /= rthickness;
+    // // membrane forces -> in-plane stresses (av. across whole thickness)
+    // rstresses[0] /= rthickness;
+    // rstresses[1] /= rthickness;
+    // rstresses[2] /= rthickness;
 
-    // bending moments -> peak in-plane stresses (@ top and bottom surface)
-    rstresses[3] *= 6.0 / (rthickness*rthickness);
-    rstresses[4] *= 6.0 / (rthickness*rthickness);
-    rstresses[5] *= 6.0 / (rthickness*rthickness);
+    // // bending moments -> peak in-plane stresses (@ top and bottom surface)
+    // rstresses[3] *= 6.0 / (rthickness*rthickness);
+    // rstresses[4] *= 6.0 / (rthickness*rthickness);
+    // rstresses[5] *= 6.0 / (rthickness*rthickness);
 
-    // shear forces -> peak shear stresses (@ midsurface)
-    rstresses[6] *= 1.5 / rthickness;
-    rstresses[7] *= 1.5 / rthickness;
+    // // shear forces -> peak shear stresses (@ midsurface)
+    // rstresses[6] *= 1.5 / rthickness;
+    // rstresses[7] *= 1.5 / rthickness;
 }
 
 /***********************************************************************************/
@@ -844,58 +844,58 @@ void ShellThickElement3D4N<TKinematics>::CalculateLaminaStrains(
     const Vector& generalizedStrains,
     std::vector<VectorType>& rlaminateStrains)
 {
-    // Get laminate properties
-    const auto& r_props = GetProperties();
-    const double thickness = r_props[THICKNESS];
-    double z_current = thickness / -2.0; // start from the top of the 1st layer
+    // // Get laminate properties
+    // const auto& r_props = GetProperties();
+    // const double thickness = r_props[THICKNESS];
+    // double z_current = thickness / -2.0; // start from the top of the 1st layer
 
-    // Establish current strains at the midplane
-    // (element coordinate system)
-    double e_x = generalizedStrains[0];
-    double e_y = generalizedStrains[1];
-    double e_xy = generalizedStrains[2];	//this is still engineering
-    //strain (2xtensorial shear)
-    double kap_x = generalizedStrains[3];
-    double kap_y = generalizedStrains[4];
-    double kap_xy = generalizedStrains[5];	//this is still engineering
+    // // Establish current strains at the midplane
+    // // (element coordinate system)
+    // double e_x = generalizedStrains[0];
+    // double e_y = generalizedStrains[1];
+    // double e_xy = generalizedStrains[2];	//this is still engineering
+    // //strain (2xtensorial shear)
+    // double kap_x = generalizedStrains[3];
+    // double kap_y = generalizedStrains[4];
+    // double kap_xy = generalizedStrains[5];	//this is still engineering
 
-    // Get ply thicknesses
-    Vector ply_thicknesses = Vector(section->NumberOfPlies(), 0.0);
-    section->GetPlyThicknesses(r_props, ply_thicknesses);
+    // // Get ply thicknesses
+    // Vector ply_thicknesses = Vector(section->NumberOfPlies(), 0.0);
+    // section->GetPlyThicknesses(r_props, ply_thicknesses);
 
-    // Resize output vector. 2 Surfaces for each ply
-    rlaminateStrains.resize(2 * section->NumberOfPlies());
-    for (unsigned int i = 0; i < 2 * section->NumberOfPlies(); i++) {
-        rlaminateStrains[i].resize(8, false);
-        rlaminateStrains[i].clear();
-    }
+    // // Resize output vector. 2 Surfaces for each ply
+    // rlaminateStrains.resize(2 * section->NumberOfPlies());
+    // for (unsigned int i = 0; i < 2 * section->NumberOfPlies(); i++) {
+    //     rlaminateStrains[i].resize(8, false);
+    //     rlaminateStrains[i].clear();
+    // }
 
-    // Loop over all plies - start from bottom ply, bottom surface
-    for (unsigned int plyNumber = 0;
-            plyNumber < section->NumberOfPlies(); ++plyNumber) {
-        // Calculate strains at top surface, arranged in columns.
-        // (element coordinate system)
-        rlaminateStrains[2 * plyNumber][0] = e_x + z_current*kap_x;
-        rlaminateStrains[2 * plyNumber][1] = e_y + z_current*kap_y;
-        rlaminateStrains[2 * plyNumber][2] = e_xy + z_current*kap_xy;
+    // // Loop over all plies - start from bottom ply, bottom surface
+    // for (unsigned int plyNumber = 0;
+    //         plyNumber < section->NumberOfPlies(); ++plyNumber) {
+    //     // Calculate strains at top surface, arranged in columns.
+    //     // (element coordinate system)
+    //     rlaminateStrains[2 * plyNumber][0] = e_x + z_current*kap_x;
+    //     rlaminateStrains[2 * plyNumber][1] = e_y + z_current*kap_y;
+    //     rlaminateStrains[2 * plyNumber][2] = e_xy + z_current*kap_xy;
 
-        // constant transverse shear strain dist
-        rlaminateStrains[2 * plyNumber][6] = generalizedStrains[6];
-        rlaminateStrains[2 * plyNumber][7] = generalizedStrains[7];
+    //     // constant transverse shear strain dist
+    //     rlaminateStrains[2 * plyNumber][6] = generalizedStrains[6];
+    //     rlaminateStrains[2 * plyNumber][7] = generalizedStrains[7];
 
-        // Move to bottom surface of current layer
-        z_current += ply_thicknesses[plyNumber];
+    //     // Move to bottom surface of current layer
+    //     z_current += ply_thicknesses[plyNumber];
 
-        // Calculate strains at bottom surface, arranged in columns
-        // (element coordinate system)
-        rlaminateStrains[2 * plyNumber + 1][0] = e_x + z_current*kap_x;
-        rlaminateStrains[2 * plyNumber + 1][1] = e_y + z_current*kap_y;
-        rlaminateStrains[2 * plyNumber + 1][2] = e_xy + z_current*kap_xy;
+    //     // Calculate strains at bottom surface, arranged in columns
+    //     // (element coordinate system)
+    //     rlaminateStrains[2 * plyNumber + 1][0] = e_x + z_current*kap_x;
+    //     rlaminateStrains[2 * plyNumber + 1][1] = e_y + z_current*kap_y;
+    //     rlaminateStrains[2 * plyNumber + 1][2] = e_xy + z_current*kap_xy;
 
-        // constant transverse shear strain dist
-        rlaminateStrains[2 * plyNumber + 1][6] = generalizedStrains[6];
-        rlaminateStrains[2 * plyNumber + 1][7] = generalizedStrains[7];
-    }
+    //     // constant transverse shear strain dist
+    //     rlaminateStrains[2 * plyNumber + 1][6] = generalizedStrains[6];
+    //     rlaminateStrains[2 * plyNumber + 1][7] = generalizedStrains[7];
+    // }
 }
 
 /***********************************************************************************/
@@ -950,74 +950,76 @@ double ShellThickElement3D4N<TKinematics>::CalculateTsaiWuPlaneStress(
     const Matrix& rLamina_Strengths,
     const unsigned int& rPly)
 {
-    // Incoming lamina strengths are organized as follows:
-    // Refer to 'shell_cross_section.cpp' for details.
-    //
-    //	|	T1,		C1,		T2	|
-    //	|	C2,		S12,	S13	|
-    //	|   S23		0		0	|
+    // // Incoming lamina strengths are organized as follows:
+    // // Refer to 'shell_cross_section.cpp' for details.
+    // //
+    // //	|	T1,		C1,		T2	|
+    // //	|	C2,		S12,	S13	|
+    // //	|   S23		0		0	|
 
-    // Convert raw lamina strengths into tsai strengths F_i and F_ij.
-    // Refer Reddy (2003) Section 10.9.4 (re-ordered for kratos DOFs).
-    // All F_i3 components ignored - thin shell theory.
-    //
+    // // Convert raw lamina strengths into tsai strengths F_i and F_ij.
+    // // Refer Reddy (2003) Section 10.9.4 (re-ordered for kratos DOFs).
+    // // All F_i3 components ignored - thin shell theory.
+    // //
 
-    // Controls F_12
-    // Should be FALSE unless testing against other programs that ignore it.
-    bool disable_in_plane_interaction = false;
+    // // Controls F_12
+    // // Should be FALSE unless testing against other programs that ignore it.
+    // bool disable_in_plane_interaction = false;
 
-    // First, F_i
-    Vector F_i = Vector(3, 0.0);
-    F_i[0] = 1.0 / rLamina_Strengths(0, 0) - 1.0 / rLamina_Strengths(0, 1);
-    F_i[1] = 1.0 / rLamina_Strengths(0, 2) - 1.0 / rLamina_Strengths(1, 0);
-    F_i[2] = 0.0;
+    // // First, F_i
+    // Vector F_i = Vector(3, 0.0);
+    // F_i[0] = 1.0 / rLamina_Strengths(0, 0) - 1.0 / rLamina_Strengths(0, 1);
+    // F_i[1] = 1.0 / rLamina_Strengths(0, 2) - 1.0 / rLamina_Strengths(1, 0);
+    // F_i[2] = 0.0;
 
-    // Second, F_ij
-    Matrix F_ij = Matrix(5, 5, 0.0);
-    F_ij.clear();
-    F_ij(0, 0) = 1.0 / rLamina_Strengths(0, 0) / rLamina_Strengths(0, 1);	// 11
-    F_ij(1, 1) = 1.0 / rLamina_Strengths(0, 2) / rLamina_Strengths(1, 0);	// 22
-    F_ij(2, 2) = 1.0 / rLamina_Strengths(1, 1) / rLamina_Strengths(1, 1);	// 12
-    F_ij(0, 1) = F_ij(1, 0) = -0.5 / std::sqrt(rLamina_Strengths(0, 0)*rLamina_Strengths(0, 1)*rLamina_Strengths(0, 2)*rLamina_Strengths(1, 0));
+    // // Second, F_ij
+    // Matrix F_ij = Matrix(5, 5, 0.0);
+    // F_ij.clear();
+    // F_ij(0, 0) = 1.0 / rLamina_Strengths(0, 0) / rLamina_Strengths(0, 1);	// 11
+    // F_ij(1, 1) = 1.0 / rLamina_Strengths(0, 2) / rLamina_Strengths(1, 0);	// 22
+    // F_ij(2, 2) = 1.0 / rLamina_Strengths(1, 1) / rLamina_Strengths(1, 1);	// 12
+    // F_ij(0, 1) = F_ij(1, 0) = -0.5 / std::sqrt(rLamina_Strengths(0, 0)*rLamina_Strengths(0, 1)*rLamina_Strengths(0, 2)*rLamina_Strengths(1, 0));
 
-    if (disable_in_plane_interaction) {
-        F_ij(0, 1) = F_ij(1, 0) = 0.0;
-    }
+    // if (disable_in_plane_interaction) {
+    //     F_ij(0, 1) = F_ij(1, 0) = 0.0;
+    // }
 
-    // Third, addditional transverse shear terms
-    F_ij(3, 3) = 1.0 / rLamina_Strengths(1, 2) / rLamina_Strengths(1, 2);	// 13
-    F_ij(4, 4) = 1.0 / rLamina_Strengths(2, 0) / rLamina_Strengths(2, 0);	// 23
+    // // Third, addditional transverse shear terms
+    // F_ij(3, 3) = 1.0 / rLamina_Strengths(1, 2) / rLamina_Strengths(1, 2);	// 13
+    // F_ij(4, 4) = 1.0 / rLamina_Strengths(2, 0) / rLamina_Strengths(2, 0);	// 23
 
-    // Evaluate Tsai-Wu @ top surface of current layer
-    double var_a = 0.0;
-    double var_b = 0.0;
-    for (SizeType i = 0; i < 3; i++) {
-        var_b += F_i[i] * rlaminateStresses[2 * rPly][i];
-        for (SizeType j = 0; j < 3; j++) {
-            var_a += F_ij(i, j)*rlaminateStresses[2 * rPly][i] * rlaminateStresses[2 * rPly][j];
-        }
-    }
-    var_a += F_ij(3, 3)*rlaminateStresses[2 * rPly][6] * rlaminateStresses[2 * rPly][6]; // Transverse shear 13
-    var_a += F_ij(4, 4)*rlaminateStresses[2 * rPly][7] * rlaminateStresses[2 * rPly][7]; // Transverse shear 23
+    // // Evaluate Tsai-Wu @ top surface of current layer
+    // double var_a = 0.0;
+    // double var_b = 0.0;
+    // for (SizeType i = 0; i < 3; i++) {
+    //     var_b += F_i[i] * rlaminateStresses[2 * rPly][i];
+    //     for (SizeType j = 0; j < 3; j++) {
+    //         var_a += F_ij(i, j)*rlaminateStresses[2 * rPly][i] * rlaminateStresses[2 * rPly][j];
+    //     }
+    // }
+    // var_a += F_ij(3, 3)*rlaminateStresses[2 * rPly][6] * rlaminateStresses[2 * rPly][6]; // Transverse shear 13
+    // var_a += F_ij(4, 4)*rlaminateStresses[2 * rPly][7] * rlaminateStresses[2 * rPly][7]; // Transverse shear 23
 
-    double tsai_reserve_factor_top = (-1.0*var_b + std::sqrt(var_b*var_b + 4.0 * var_a)) / 2.0 / var_a;
+    // double tsai_reserve_factor_top = (-1.0*var_b + std::sqrt(var_b*var_b + 4.0 * var_a)) / 2.0 / var_a;
 
-    // Evaluate Tsai-Wu @ bottom surface of current layer
-    var_a = 0.0;
-    var_b = 0.0;
-    for (SizeType i = 0; i < 3; i++) {
-        var_b += F_i[i] * rlaminateStresses[2 * rPly + 1][i];
-        for (SizeType j = 0; j < 3; j++) {
-            var_a += F_ij(i, j)*rlaminateStresses[2 * rPly + 1][i] * rlaminateStresses[2 * rPly + 1][j];
-        }
-    }
-    var_a += F_ij(3, 3)*rlaminateStresses[2 * rPly + 1][6] * rlaminateStresses[2 * rPly + 1][6]; // Transverse shear 13
-    var_a += F_ij(4, 4)*rlaminateStresses[2 * rPly + 1][7] * rlaminateStresses[2 * rPly + 1][7]; // Transverse shear 23
+    // // Evaluate Tsai-Wu @ bottom surface of current layer
+    // var_a = 0.0;
+    // var_b = 0.0;
+    // for (SizeType i = 0; i < 3; i++) {
+    //     var_b += F_i[i] * rlaminateStresses[2 * rPly + 1][i];
+    //     for (SizeType j = 0; j < 3; j++) {
+    //         var_a += F_ij(i, j)*rlaminateStresses[2 * rPly + 1][i] * rlaminateStresses[2 * rPly + 1][j];
+    //     }
+    // }
+    // var_a += F_ij(3, 3)*rlaminateStresses[2 * rPly + 1][6] * rlaminateStresses[2 * rPly + 1][6]; // Transverse shear 13
+    // var_a += F_ij(4, 4)*rlaminateStresses[2 * rPly + 1][7] * rlaminateStresses[2 * rPly + 1][7]; // Transverse shear 23
 
-    double tsai_reserve_factor_bottom = (-1.0*var_b + std::sqrt(var_b*var_b + 4.0 * var_a)) / 2.0 / var_a;
+    // double tsai_reserve_factor_bottom = (-1.0*var_b + std::sqrt(var_b*var_b + 4.0 * var_a)) / 2.0 / var_a;
 
-    // Return min of both surfaces as the result for the whole ply
-    return std::min(tsai_reserve_factor_bottom, tsai_reserve_factor_top);
+    // // Return min of both surfaces as the result for the whole ply
+    // return std::min(tsai_reserve_factor_bottom, tsai_reserve_factor_top);
+
+    return 0.0;
 }
 
 /***********************************************************************************/
@@ -1029,47 +1031,47 @@ void ShellThickElement3D4N<TKinematics>::CalculateVonMisesStress(
     const Variable<double>& rVariable,
     double& rVon_Mises_Result)
 {
-    // calc von mises stresses at top, mid and bottom surfaces for
-    // thick shell
-    double sxx, syy, sxy, sxz, syz;
-    double von_mises_top, von_mises_mid, von_mises_bottom;
-    // top surface: membrane and +bending contributions
-    //				(no transverse shear)
-    sxx = generalizedStresses[0] + generalizedStresses[3];
-    syy = generalizedStresses[1] + generalizedStresses[4];
-    sxy = generalizedStresses[2] + generalizedStresses[5];
-    von_mises_top = sxx*sxx - sxx*syy + syy*syy + 3.0*sxy*sxy;
+    // // calc von mises stresses at top, mid and bottom surfaces for
+    // // thick shell
+    // double sxx, syy, sxy, sxz, syz;
+    // double von_mises_top, von_mises_mid, von_mises_bottom;
+    // // top surface: membrane and +bending contributions
+    // //				(no transverse shear)
+    // sxx = generalizedStresses[0] + generalizedStresses[3];
+    // syy = generalizedStresses[1] + generalizedStresses[4];
+    // sxy = generalizedStresses[2] + generalizedStresses[5];
+    // von_mises_top = sxx*sxx - sxx*syy + syy*syy + 3.0*sxy*sxy;
 
-    // mid surface: membrane and transverse shear contributions
-    //				(no bending)
-    sxx = generalizedStresses[0];
-    syy = generalizedStresses[1];
-    sxy = generalizedStresses[2];
-    sxz = generalizedStresses[6];
-    syz = generalizedStresses[7];
-    von_mises_mid = sxx*sxx - sxx*syy + syy*syy +
-                    3.0*(sxy*sxy + sxz*sxz + syz*syz);
+    // // mid surface: membrane and transverse shear contributions
+    // //				(no bending)
+    // sxx = generalizedStresses[0];
+    // syy = generalizedStresses[1];
+    // sxy = generalizedStresses[2];
+    // sxz = generalizedStresses[6];
+    // syz = generalizedStresses[7];
+    // von_mises_mid = sxx*sxx - sxx*syy + syy*syy +
+    //                 3.0*(sxy*sxy + sxz*sxz + syz*syz);
 
-    // bottom surface:	membrane and -bending contributions
-    //					(no transverse shear)
-    sxx = generalizedStresses[0] - generalizedStresses[3];
-    syy = generalizedStresses[1] - generalizedStresses[4];
-    sxy = generalizedStresses[2] - generalizedStresses[5];
-    von_mises_bottom = sxx*sxx - sxx*syy + syy*syy + 3.0*sxy*sxy;
+    // // bottom surface:	membrane and -bending contributions
+    // //					(no transverse shear)
+    // sxx = generalizedStresses[0] - generalizedStresses[3];
+    // syy = generalizedStresses[1] - generalizedStresses[4];
+    // sxy = generalizedStresses[2] - generalizedStresses[5];
+    // von_mises_bottom = sxx*sxx - sxx*syy + syy*syy + 3.0*sxy*sxy;
 
-    // Output requested quantity
-    if (rVariable == VON_MISES_STRESS_TOP_SURFACE) {
-        rVon_Mises_Result = std::sqrt(von_mises_top);
-    } else if (rVariable == VON_MISES_STRESS_MIDDLE_SURFACE) {
-        rVon_Mises_Result = std::sqrt(von_mises_mid);
-    } else if (rVariable == VON_MISES_STRESS_BOTTOM_SURFACE) {
-        rVon_Mises_Result = std::sqrt(von_mises_bottom);
-    } else if (rVariable == VON_MISES_STRESS) {
-        // take the greatest value and output
-        rVon_Mises_Result =
-            std::sqrt(std::max(von_mises_top,
-                               std::max(von_mises_mid, von_mises_bottom)));
-    }
+    // // Output requested quantity
+    // if (rVariable == VON_MISES_STRESS_TOP_SURFACE) {
+    //     rVon_Mises_Result = std::sqrt(von_mises_top);
+    // } else if (rVariable == VON_MISES_STRESS_MIDDLE_SURFACE) {
+    //     rVon_Mises_Result = std::sqrt(von_mises_mid);
+    // } else if (rVariable == VON_MISES_STRESS_BOTTOM_SURFACE) {
+    //     rVon_Mises_Result = std::sqrt(von_mises_bottom);
+    // } else if (rVariable == VON_MISES_STRESS) {
+    //     // take the greatest value and output
+    //     rVon_Mises_Result =
+    //         std::sqrt(std::max(von_mises_top,
+    //                            std::max(von_mises_mid, von_mises_bottom)));
+    // }
 }
 
 /***********************************************************************************/
@@ -1081,52 +1083,52 @@ void ShellThickElement3D4N<TKinematics>::CheckGeneralizedStressOrStrainOutput(
     int& ijob,
     bool& bGlobal)
 {
-    if (rVariable == SHELL_STRAIN) {
-        ijob = 1;
-    } else if (rVariable == SHELL_STRAIN_GLOBAL) {
-        ijob = 1;
-        bGlobal = true;
-    } else if (rVariable == SHELL_CURVATURE) {
-        ijob = 2;
-    } else if (rVariable == SHELL_CURVATURE_GLOBAL) {
-        ijob = 2;
-        bGlobal = true;
-    } else if (rVariable == SHELL_FORCE) {
-        ijob = 3;
-    } else if (rVariable == SHELL_FORCE_GLOBAL) {
-        ijob = 3;
-        bGlobal = true;
-    } else if (rVariable == SHELL_MOMENT) {
-        ijob = 4;
-    } else if (rVariable == SHELL_MOMENT_GLOBAL) {
-        ijob = 4;
-        bGlobal = true;
-    } else if (rVariable == SHELL_STRESS_TOP_SURFACE) {
-        ijob = 5;
-    } else if (rVariable == SHELL_STRESS_TOP_SURFACE_GLOBAL) {
-        ijob = 5;
-        bGlobal = true;
-    } else if (rVariable == SHELL_STRESS_MIDDLE_SURFACE) {
-        ijob = 6;
-    } else if (rVariable == SHELL_STRESS_MIDDLE_SURFACE_GLOBAL) {
-        ijob = 6;
-        bGlobal = true;
-    } else if (rVariable == SHELL_STRESS_BOTTOM_SURFACE) {
-        ijob = 7;
-    } else if (rVariable == SHELL_STRESS_BOTTOM_SURFACE_GLOBAL) {
-        ijob = 7;
-        bGlobal = true;
-    } else if (rVariable == SHELL_ORTHOTROPIC_STRESS_BOTTOM_SURFACE) {
-        ijob = 8;
-    } else if (rVariable == SHELL_ORTHOTROPIC_STRESS_BOTTOM_SURFACE_GLOBAL) {
-        ijob = 8;
-        bGlobal = true;
-    } else if (rVariable == SHELL_ORTHOTROPIC_STRESS_TOP_SURFACE) {
-        ijob = 9;
-    } else if (rVariable == SHELL_ORTHOTROPIC_STRESS_TOP_SURFACE_GLOBAL) {
-        ijob = 9;
-        bGlobal = true;
-    }
+    // if (rVariable == SHELL_STRAIN) {
+    //     ijob = 1;
+    // } else if (rVariable == SHELL_STRAIN_GLOBAL) {
+    //     ijob = 1;
+    //     bGlobal = true;
+    // } else if (rVariable == SHELL_CURVATURE) {
+    //     ijob = 2;
+    // } else if (rVariable == SHELL_CURVATURE_GLOBAL) {
+    //     ijob = 2;
+    //     bGlobal = true;
+    // } else if (rVariable == SHELL_FORCE) {
+    //     ijob = 3;
+    // } else if (rVariable == SHELL_FORCE_GLOBAL) {
+    //     ijob = 3;
+    //     bGlobal = true;
+    // } else if (rVariable == SHELL_MOMENT) {
+    //     ijob = 4;
+    // } else if (rVariable == SHELL_MOMENT_GLOBAL) {
+    //     ijob = 4;
+    //     bGlobal = true;
+    // } else if (rVariable == SHELL_STRESS_TOP_SURFACE) {
+    //     ijob = 5;
+    // } else if (rVariable == SHELL_STRESS_TOP_SURFACE_GLOBAL) {
+    //     ijob = 5;
+    //     bGlobal = true;
+    // } else if (rVariable == SHELL_STRESS_MIDDLE_SURFACE) {
+    //     ijob = 6;
+    // } else if (rVariable == SHELL_STRESS_MIDDLE_SURFACE_GLOBAL) {
+    //     ijob = 6;
+    //     bGlobal = true;
+    // } else if (rVariable == SHELL_STRESS_BOTTOM_SURFACE) {
+    //     ijob = 7;
+    // } else if (rVariable == SHELL_STRESS_BOTTOM_SURFACE_GLOBAL) {
+    //     ijob = 7;
+    //     bGlobal = true;
+    // } else if (rVariable == SHELL_ORTHOTROPIC_STRESS_BOTTOM_SURFACE) {
+    //     ijob = 8;
+    // } else if (rVariable == SHELL_ORTHOTROPIC_STRESS_BOTTOM_SURFACE_GLOBAL) {
+    //     ijob = 8;
+    //     bGlobal = true;
+    // } else if (rVariable == SHELL_ORTHOTROPIC_STRESS_TOP_SURFACE) {
+    //     ijob = 9;
+    // } else if (rVariable == SHELL_ORTHOTROPIC_STRESS_TOP_SURFACE_GLOBAL) {
+    //     ijob = 9;
+    //     bGlobal = true;
+    // }
 }
 
 /***********************************************************************************/
@@ -1137,27 +1139,29 @@ double ShellThickElement3D4N<TKinematics>::CalculateStenbergShearStabilization(
     const ShellQ4_LocalCoordinateSystem& referenceCoordinateSystem,
     const double& hMean)
 {
-    // Calculate Stenberg shear stabilisation as per
-    // https://doi.org/10.1016/j.cma.2003.12.036 section 3.1
+    // // Calculate Stenberg shear stabilisation as per
+    // // https://doi.org/10.1016/j.cma.2003.12.036 section 3.1
 
-    // Determine longest element edge
-    Vector edge_1 = Vector(referenceCoordinateSystem.P1() - referenceCoordinateSystem.P2());
-    Vector edge_2 = Vector(referenceCoordinateSystem.P2() - referenceCoordinateSystem.P3());
-    Vector edge_3 = Vector(referenceCoordinateSystem.P3() - referenceCoordinateSystem.P4());
-    Vector edge_4 = Vector(referenceCoordinateSystem.P4() - referenceCoordinateSystem.P1());
-    double h_e = inner_prod(edge_1, edge_1);
-    if (inner_prod(edge_2, edge_2) > h_e) {
-        h_e = inner_prod(edge_2, edge_2);
-    }
-    if (inner_prod(edge_3, edge_3) > h_e) {
-        h_e = inner_prod(edge_3, edge_3);
-    }
-    if (inner_prod(edge_4, edge_4) > h_e) {
-        h_e = inner_prod(edge_4, edge_4);
-    }
-    h_e = std::sqrt(h_e);
+    // // Determine longest element edge
+    // Vector edge_1 = Vector(referenceCoordinateSystem.P1() - referenceCoordinateSystem.P2());
+    // Vector edge_2 = Vector(referenceCoordinateSystem.P2() - referenceCoordinateSystem.P3());
+    // Vector edge_3 = Vector(referenceCoordinateSystem.P3() - referenceCoordinateSystem.P4());
+    // Vector edge_4 = Vector(referenceCoordinateSystem.P4() - referenceCoordinateSystem.P1());
+    // double h_e = inner_prod(edge_1, edge_1);
+    // if (inner_prod(edge_2, edge_2) > h_e) {
+    //     h_e = inner_prod(edge_2, edge_2);
+    // }
+    // if (inner_prod(edge_3, edge_3) > h_e) {
+    //     h_e = inner_prod(edge_3, edge_3);
+    // }
+    // if (inner_prod(edge_4, edge_4) > h_e) {
+    //     h_e = inner_prod(edge_4, edge_4);
+    // }
+    // h_e = std::sqrt(h_e);
 
-    return ((hMean*hMean) / (hMean*hMean + 0.1*h_e*h_e));
+    // return ((hMean*hMean) / (hMean*hMean + 0.1*h_e*h_e));
+
+    return 0.0;
 }
 
 /***********************************************************************************/
