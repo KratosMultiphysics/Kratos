@@ -24,6 +24,9 @@ namespace Kratos
 //
 // =====================================================================================
 
+/***********************************************************************************/
+/***********************************************************************************/
+
 template <ShellKinematics TKinematics>
 ShellThickElement3D4N<TKinematics>::MITC4Params::MITC4Params(const ShellQ4_LocalCoordinateSystem& LCS)
     : Transformation(2, 2)
@@ -93,11 +96,17 @@ ShellThickElement3D4N<TKinematics>::MITC4Params::MITC4Params(const ShellQ4_Local
 //
 // =====================================================================================
 
+/***********************************************************************************/
+/***********************************************************************************/
+
 template <ShellKinematics TKinematics>
 ShellThickElement3D4N<TKinematics>::EASOperatorStorage::EASOperatorStorage()
     : mInitialized(false)
 {
 }
+
+/***********************************************************************************/
+/***********************************************************************************/
 
 template <ShellKinematics TKinematics>
 void ShellThickElement3D4N<TKinematics>::EASOperatorStorage::Initialize(const GeometryType& geom)
@@ -131,6 +140,9 @@ void ShellThickElement3D4N<TKinematics>::EASOperatorStorage::Initialize(const Ge
     }
 }
 
+/***********************************************************************************/
+/***********************************************************************************/
+
 template <ShellKinematics TKinematics>
 void ShellThickElement3D4N<TKinematics>::EASOperatorStorage::InitializeSolutionStep()
 {
@@ -138,12 +150,18 @@ void ShellThickElement3D4N<TKinematics>::EASOperatorStorage::InitializeSolutionS
     noalias(alpha) = alpha_converged;
 }
 
+/***********************************************************************************/
+/***********************************************************************************/
+
 template <ShellKinematics TKinematics>
 void ShellThickElement3D4N<TKinematics>::EASOperatorStorage::FinalizeSolutionStep()
 {
     noalias(displ_converged) = displ;
     noalias(alpha_converged) = alpha;
 }
+
+/***********************************************************************************/
+/***********************************************************************************/
 
 template <ShellKinematics TKinematics>
 void ShellThickElement3D4N<TKinematics>::EASOperatorStorage::FinalizeNonLinearIteration(const Vector& displacementVector)
@@ -158,6 +176,9 @@ void ShellThickElement3D4N<TKinematics>::EASOperatorStorage::FinalizeNonLinearIt
     noalias(alpha) -= prod(Hinv, temp);
 }
 
+/***********************************************************************************/
+/***********************************************************************************/
+
 template <ShellKinematics TKinematics>
 void ShellThickElement3D4N<TKinematics>::EASOperatorStorage::save(Serializer& rSerializer) const
 {
@@ -170,6 +191,9 @@ void ShellThickElement3D4N<TKinematics>::EASOperatorStorage::save(Serializer& rS
     rSerializer.save("mL", L);
     rSerializer.save("init", mInitialized);
 }
+
+/***********************************************************************************/
+/***********************************************************************************/
 
 template <ShellKinematics TKinematics>
 void ShellThickElement3D4N<TKinematics>::EASOperatorStorage::load(Serializer& rSerializer)
@@ -189,6 +213,9 @@ void ShellThickElement3D4N<TKinematics>::EASOperatorStorage::load(Serializer& rS
 // Class EASOperator
 //
 // =====================================================================================
+
+/***********************************************************************************/
+/***********************************************************************************/
 
 template <ShellKinematics TKinematics>
 ShellThickElement3D4N<TKinematics>::EASOperator::EASOperator(const ShellQ4_LocalCoordinateSystem& LCS, EASOperatorStorage& storage)
@@ -242,6 +269,9 @@ ShellThickElement3D4N<TKinematics>::EASOperator::EASOperator(const ShellQ4_Local
     storage.residual.clear();
 }
 
+/***********************************************************************************/
+/***********************************************************************************/
+
 template <ShellKinematics TKinematics>
 void ShellThickElement3D4N<TKinematics>::EASOperator::GaussPointComputation_Step1(double xi, double eta, const ShellUtilities::JacobianOperator& jac,
         Vector& generalizedStrains,
@@ -269,6 +299,9 @@ void ShellThickElement3D4N<TKinematics>::EASOperator::GaussPointComputation_Step
     generalizedStrains[2] += mEnhancedStrains[2]; // e.xy
 }
 
+/***********************************************************************************/
+/***********************************************************************************/
+
 template <ShellKinematics TKinematics>
 void ShellThickElement3D4N<TKinematics>::EASOperator::GaussPointComputation_Step2(const Matrix& D,
         const Matrix& B,
@@ -290,6 +323,9 @@ void ShellThickElement3D4N<TKinematics>::EASOperator::GaussPointComputation_Step
     }
     noalias(storage.L) += prod(GTD, B);
 }
+
+/***********************************************************************************/
+/***********************************************************************************/
 
 template <ShellKinematics TKinematics>
 void ShellThickElement3D4N<TKinematics>::EASOperator::ComputeModfiedTangentAndResidual(Matrix& rLeftHandSideMatrix,
