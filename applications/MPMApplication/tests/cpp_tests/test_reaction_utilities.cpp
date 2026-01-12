@@ -86,7 +86,7 @@ namespace Kratos::Testing {
     }
 
     /**
-     * Checks the embedded drag computation utility.
+     * Compute sum of MPC_CONTACT_FORCE over set of material point conditions
      */
     KRATOS_TEST_CASE_IN_SUITE(MPMComputeNonConformingReaction, KratosMPMFastSuite)
     {
