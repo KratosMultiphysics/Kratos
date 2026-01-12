@@ -54,11 +54,11 @@ namespace Kratos {
 template<class TDataType>
 inline void AtomicAdd(TDataType& target, const TDataType& value)
 {
-#ifdef KRATOS_SMP_OPENMP
+#if defined(KRATOS_SMP_CXX11) || (KRATOS_COMPILED_IN_OS)
+    AtomicRef<TDataType>{target} += value;
+#elif defined(KRATOS_SMP_CXX11)
     #pragma omp atomic
     target += value;
-#elif defined(KRATOS_SMP_CXX11)
-    AtomicRef<TDataType>{target} += value;
 #else
     target += value;
 #endif
@@ -117,11 +117,11 @@ inline void AtomicAddMatrix(TMatrixType1& target, const TMatrixType2& value)
 template<class TDataType>
 inline void AtomicSub(TDataType& target, const TDataType& value)
 {
-#ifdef KRATOS_SMP_OPENMP
+#if defined(KRATOS_SMP_CXX11) || (KRATOS_COMPILED_IN_OS)
+    AtomicRef<TDataType>{target} -= value;
+#elif defined(KRATOS_SMP_OPENMP)
     #pragma omp atomic
     target -= value;
-#elif defined(KRATOS_SMP_CXX11)
-    AtomicRef<TDataType>{target} -= value;
 #else
     target -= value;
 #endif
@@ -178,12 +178,12 @@ inline void AtomicSubMatrix(TMatrixType1& target, const TMatrixType2& value)
 template<class TDataType>
 inline void AtomicMult(TDataType& target, const TDataType& value)
 {
-#ifdef KRATOS_SMP_OPENMP
+#ifdef defined(KRATOS_SMP_CXX11) || (KRATOS_COMPILED_IN_OS)
+    AtomicRef<TDataType> at_ref{target};
+    at_ref = atref*value;
+#elif defined(KRATOS_SMP_OPENMP)
     #pragma omp atomic
     target *= value;
-#elif defined(KRATOS_SMP_CXX11)
-    AtomicRef<TDataType> at_ref{target};
-    at_ref = at_ref*value;
 #else
     target *= value;
 #endif
