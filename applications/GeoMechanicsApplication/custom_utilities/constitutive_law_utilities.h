@@ -37,6 +37,8 @@ public:
     static double GetCohesion(const Properties& rProperties);
     static double GetFrictionAngleInDegrees(const Properties& rProperties);
     static double GetFrictionAngleInRadians(const Properties& rProperties);
+    static double GetCapSize(const Properties& rProperties);
+    static double GetCapLocation(const Properties& rProperties);
 
     static Matrix MakeInterfaceConstitutiveMatrix(double      NormalStiffness,
                                                   double      ShearStiffness,

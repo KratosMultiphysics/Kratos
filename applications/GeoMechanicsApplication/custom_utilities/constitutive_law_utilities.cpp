@@ -104,6 +104,30 @@ double ConstitutiveLawUtilities::GetFrictionAngleInRadians(const Properties& rPr
     return MathUtils<>::DegreesToRadians(GetFrictionAngleInDegrees(rProperties));
 }
 
+double ConstitutiveLawUtilities::GetCapSize(const Properties& rProperties)
+{
+    if (rProperties.Has(GEO_COMPRESSION_CAP_SIZE)) {
+        return rProperties[GEO_COMPRESSION_CAP_SIZE];
+    }
+    else {
+        KRATOS_ERROR << "ConstitutiveLawUtilities::GetCapSize failed. There is no "
+                            "GEO_COMPRESSION_CAP_SIZE available " << std::endl;
+    }
+
+}
+
+double ConstitutiveLawUtilities::GetCapLocation(const Properties& rProperties)
+{
+    if (rProperties.Has(GEO_COMPRESSION_CAP_LOCATION)) {
+        return rProperties[GEO_COMPRESSION_CAP_LOCATION];
+    }
+    else {
+        KRATOS_ERROR << "ConstitutiveLawUtilities::GetCapLocation failed. There is no "
+                            "GEO_COMPRESSION_CAP_LOCATION available " << std::endl;
+    }
+
+}
+
 Matrix ConstitutiveLawUtilities::MakeInterfaceConstitutiveMatrix(double      NormalStiffness,
                                                                  double      ShearStiffness,
                                                                  std::size_t TractionSize,

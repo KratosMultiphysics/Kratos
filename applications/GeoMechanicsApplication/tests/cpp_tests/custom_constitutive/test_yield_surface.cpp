@@ -12,6 +12,7 @@
 
 #include "custom_constitutive/coulomb_yield_surface.h"
 #include "custom_constitutive/tension_cutoff.h"
+#include "custom_constitutive/compression_cap_yield_surface.h"
 #include "custom_utilities/registration_utilities.h"
 #include "custom_utilities/stress_strain_utilities.h"
 #include "custom_utilities/ublas_utilities.h"
@@ -191,6 +192,29 @@ KRATOS_TEST_CASE_IN_SUITE(CoulombYieldSurface_Check, KratosGeoMechanicsFastSuite
     KRATOS_EXPECT_EXCEPTION_IS_THROWN(
         CoulombYieldSurface{properties},
         "Error: Entry 0 in GEO_DILATANCY_ANGLE_FUNCTION_COEFFICIENTS out of range. Value: -1")
+}
+
+KRATOS_TEST_CASE_IN_SUITE(TestCompressionCapYieldSurface, KratosGeoMechanicsFastSuiteWithoutKernel)
+{
+    auto material_properties                 = Properties{};
+    material_properties[GEO_CAP_HARDENING_TYPE] = "None";
+    material_properties[GEO_COMPRESSION_CAP_SIZE]     = 4.0;
+    material_properties[GEO_COMPRESSION_CAP_LOCATION] = 20.0;
+
+    const auto cap_yield_surface = CompressionCapYieldSurface{material_properties};
+
+    Vector principal_stress(3);
+    principal_stress <<= 30.0, 20.0, 10.0;
+    auto p_q = StressStrainUtilities::TransformPrincipalStressesToPandQ(principal_stress);
+    KRATOS_EXPECT_NEAR(cap_yield_surface.YieldFunctionValue(p_q), 18.75, Defaults::absolute_tolerance);
+
+    //principal_stress <<= 1.7071067811865475, 1.0, 0.2928932188134525;
+    //p_q = StressStrainUtilities::TransformPrincipalStressesToPandQ(principal_stress);
+    //KRATOS_EXPECT_NEAR(cap_yield_surface.YieldFunctionValue(p_q), 0.0, Defaults::absolute_tolerance);
+
+    //principal_stress <<= 0.1715728752538099, -1.0, -1.8284271247461901;
+    //p_q = StressStrainUtilities::TransformPrincipalStressesToPandQ(principal_stress);
+    //KRATOS_EXPECT_NEAR(cap_yield_surface.YieldFunctionValue(p_q), -1.0, Defaults::absolute_tolerance);
 }
 
 } // namespace Kratos::Testing

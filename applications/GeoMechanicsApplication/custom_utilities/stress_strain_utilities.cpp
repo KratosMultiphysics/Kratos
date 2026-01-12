@@ -237,4 +237,17 @@ Vector StressStrainUtilities::TransformSigmaTauToPrincipalStresses(const Vector&
     return result;
 }
 
+Vector StressStrainUtilities::TransformPrincipalStressesToPandQ(const Vector& rPrincipalStresses)
+{
+    auto result = Vector{2};
+    const auto p = std::accumulate(rPrincipalStresses.begin(), rPrincipalStresses.end(), 0.0) / 3.0;
+    result[0]   = p;
+    result[1] = std::sqrt(std::accumulate(rPrincipalStresses.begin(), rPrincipalStresses.end(), 0.0,
+            [p](double acc, double sigma) {
+                const double diff = sigma - p;
+                return acc + diff * diff;
+            }) * 3.0 / 2.0);
+    return result;
+}
+
 } // namespace Kratos
