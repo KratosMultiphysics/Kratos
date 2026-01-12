@@ -54,7 +54,7 @@ namespace Kratos {
 template<class TDataType>
 inline void AtomicAdd(TDataType& target, const TDataType& value)
 {
-#if defined(KRATOS_SMP_CXX11) || (KRATOS_COMPILED_IN_OS)
+#if defined(KRATOS_SMP_CXX11) || defined(KRATOS_COMPILED_IN_OS)
     AtomicRef<TDataType>{target} += value;
 #elif defined(KRATOS_SMP_CXX11)
     #pragma omp atomic
@@ -188,7 +188,7 @@ inline T atomic_mul(std::atomic_ref<T>& ref, T factor)
 template<class TDataType>
 inline void AtomicMult(TDataType& target, const TDataType& value)
 {
-#ifdef defined(KRATOS_SMP_CXX11) || (KRATOS_COMPILED_IN_OS)
+#ifdef defined(KRATOS_SMP_CXX11) || defined(KRATOS_COMPILED_IN_OS)
     AtomicRef<TDataType> at_ref{target};
     atomic_mul(at_ref, value);
 #elif defined(KRATOS_SMP_OPENMP)
