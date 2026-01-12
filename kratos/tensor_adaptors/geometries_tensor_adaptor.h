@@ -112,6 +112,13 @@ public:
     ///@}
 
 private:
+    // Helper templates scoped to the class to avoid unity-build collisions
+    template <class TContainerType>
+    static constexpr bool IsSupportedContainer();
+
+    template <class TEntity>
+    static const auto& GetGeometry(const TEntity& rEntity);
+
     DatumType mDatum;
     GeometryData::IntegrationMethod mIntegrationMethod;
 };
