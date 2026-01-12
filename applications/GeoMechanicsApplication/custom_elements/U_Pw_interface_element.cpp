@@ -10,7 +10,7 @@
 //  Main authors:    Richard Faasse
 //                   Gennady Markelov
 //
-#include "interface_element.h"
+#include "U_Pw_interface_element.h"
 
 #include "custom_utilities/constitutive_law_utilities.h"
 #include "custom_utilities/dof_utilities.hpp"

@@ -17,7 +17,7 @@
 #include "custom_constitutive/interface_three_dimensional_surface.h"
 #include "custom_constitutive/plane_strain.h"
 #include "custom_constitutive/three_dimensional.h"
-#include "custom_elements/interface_element.h"
+#include "custom_elements/U_Pw_interface_element.h"
 #include "custom_elements/interface_stress_state.h"
 #include "custom_geometries/interface_geometry.hpp"
 #include "custom_utilities/ublas_utilities.h"
