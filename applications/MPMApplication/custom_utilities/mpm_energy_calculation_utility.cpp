@@ -46,7 +46,7 @@ namespace Kratos
     double MPMEnergyCalculationUtility::CalculatePotentialEnergy(ModelPart& rModelPart)
     {
         return block_for_each<SumReduction<double>>(rModelPart.Elements(),
-                [&](auto& r_element) { return MPMEnergyCalculationUtility::CalculatePotentialEnergy(r_element); });
+                [](auto& r_element) { return MPMEnergyCalculationUtility::CalculatePotentialEnergy(r_element); });
     }
 
     double MPMEnergyCalculationUtility::CalculateKineticEnergy(Element& rElement)
@@ -69,7 +69,7 @@ namespace Kratos
     double MPMEnergyCalculationUtility::CalculateKineticEnergy(ModelPart& rModelPart)
     {
         return block_for_each<SumReduction<double>>(rModelPart.Elements(),
-                [&](auto& r_element) { return MPMEnergyCalculationUtility::CalculateKineticEnergy(r_element); });
+                [](auto& r_element) { return MPMEnergyCalculationUtility::CalculateKineticEnergy(r_element); });
     }
 
     double MPMEnergyCalculationUtility::CalculateStrainEnergy(Element& rElement)
@@ -95,7 +95,7 @@ namespace Kratos
     double MPMEnergyCalculationUtility::CalculateStrainEnergy(ModelPart& rModelPart)
     {
         return block_for_each<SumReduction<double>>(rModelPart.Elements(),
-                [&](auto& r_element) { return MPMEnergyCalculationUtility::CalculateStrainEnergy(r_element); });
+                [](auto& r_element) { return MPMEnergyCalculationUtility::CalculateStrainEnergy(r_element); });
     }
 
     double MPMEnergyCalculationUtility::CalculateTotalEnergy(Element& rElement)
@@ -110,7 +110,7 @@ namespace Kratos
     double MPMEnergyCalculationUtility::CalculateTotalEnergy(ModelPart& rModelPart)
     {
         return block_for_each<SumReduction<double>>(rModelPart.Elements(),
-                [&](auto& r_element) { return MPMEnergyCalculationUtility::CalculateTotalEnergy(r_element); });
+                [](auto& r_element) { return MPMEnergyCalculationUtility::CalculateTotalEnergy(r_element); });
     }
 
     void MPMEnergyCalculationUtility::CalculateAllEnergies(
@@ -125,7 +125,7 @@ namespace Kratos
 
         std::tie(rPotentialEnergy,rKineticEnergy,rStrainEnergy) =
         block_for_each<MultipleReduction>(rModelPart.Elements(),
-        [&](auto& r_element) {
+        [](auto& r_element) {
             auto p_energy = MPMEnergyCalculationUtility::CalculatePotentialEnergy(r_element);
             auto k_energy = MPMEnergyCalculationUtility::CalculateKineticEnergy(r_element);
             auto s_energy = MPMEnergyCalculationUtility::CalculateStrainEnergy(r_element);
