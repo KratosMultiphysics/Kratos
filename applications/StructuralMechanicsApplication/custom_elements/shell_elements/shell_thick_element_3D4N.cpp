@@ -264,9 +264,9 @@ void ShellThickElement3D4N<TKinematics>::EASOperator::GaussPointComputation_Step
     // integration point, we just need to add the contribution of the enhanced strains
     noalias(mEnhancedStrains) = prod(mG, storage.alpha);
 
-    generalizedStrains(0) += mEnhancedStrains(0); // e.xx
-    generalizedStrains(1) += mEnhancedStrains(1); // e.yy
-    generalizedStrains(2) += mEnhancedStrains(2); // e.xy
+    generalizedStrains[0] += mEnhancedStrains[0]; // e.xx
+    generalizedStrains[1] += mEnhancedStrains[1]; // e.yy
+    generalizedStrains[2] += mEnhancedStrains[2]; // e.xy
 }
 
 template <ShellKinematics TKinematics>
@@ -283,10 +283,10 @@ void ShellThickElement3D4N<TKinematics>::EASOperator::GaussPointComputation_Step
     // compute L: [G'*Dmm, G'*Dmb, G'*Dms]*[Bm; Bm; Bs]
     int num_stress = D.size2(); // it can be 6 for thin shells or 8 for thick  shells
     Matrix GTD(5, num_stress, 0.0);
-    noalias(project(GTD, range::all(), range(0,3))) = GTC;
-    noalias(project(GTD, range::all(), range(3,6))) = prod(trans(mG), project(D, range(0,3), range(3,6)));
+    noalias(project(GTD, range::all(), range(0, 3))) = GTC;
+    noalias(project(GTD, range::all(), range(3, 6))) = prod(trans(mG), project(D, range(0, 3), range(3, 6)));
     if (num_stress == 8) {
-        noalias(project(GTD, range::all(), range(6,8))) = prod(trans(mG), project(D, range(0,3), range(6,8)));
+        noalias(project(GTD, range::all(), range(6, 8))) = prod(trans(mG), project(D, range(0, 3), range(6, 8)));
     }
     noalias(storage.L) += prod(GTD, B);
 }
@@ -319,12 +319,18 @@ void ShellThickElement3D4N<TKinematics>::EASOperator::ComputeModfiedTangentAndRe
 //
 // =====================================================================================
 
+/***********************************************************************************/
+/***********************************************************************************/
+
 template <ShellKinematics TKinematics>
 ShellThickElement3D4N<TKinematics>::ShellThickElement3D4N(IndexType NewId,
         GeometryType::Pointer pGeometry)
     : BaseType(NewId, pGeometry)
 {
 }
+
+/***********************************************************************************/
+/***********************************************************************************/
 
 template <ShellKinematics TKinematics>
 ShellThickElement3D4N<TKinematics>::ShellThickElement3D4N(IndexType NewId,
@@ -336,12 +342,18 @@ ShellThickElement3D4N<TKinematics>::ShellThickElement3D4N(IndexType NewId,
 
 // TODO are the GetIntegrationMethod methods needed (implemented in the other 3 shells)
 
+/***********************************************************************************/
+/***********************************************************************************/
+
 template <ShellKinematics TKinematics>
 Element::Pointer ShellThickElement3D4N<TKinematics>::Create(IndexType NewId, NodesArrayType const& ThisNodes, PropertiesType::Pointer pProperties) const
 {
     GeometryType::Pointer newGeom(GetGeometry().Create(ThisNodes));
     return Kratos::make_intrusive< ShellThickElement3D4N >(NewId, newGeom, pProperties);
 }
+
+/***********************************************************************************/
+/***********************************************************************************/
 
 template <ShellKinematics TKinematics>
 Element::Pointer ShellThickElement3D4N<TKinematics>::Create(IndexType NewId, GeometryType::Pointer pGeom, PropertiesType::Pointer pProperties) const
@@ -380,7 +392,7 @@ void ShellThickElement3D4N<TKinematics>::Initialize(const ProcessInfo& rCurrentP
         }
     }
 
-    KRATOS_CATCH("")
+    KRATOS_CATCH("Initialize")
 }
 
 /***********************************************************************************/
@@ -775,7 +787,7 @@ int ShellThickElement3D4N<TKinematics>::Check(const ProcessInfo& rCurrentProcess
     // BaseType::Check(rCurrentProcessInfo);
 
     const auto& r_geom = GetGeometry();
-
+    mConstitutiveLawVector[0]->Check(GetProperties(), r_geom, rCurrentProcessInfo);
     KRATOS_ERROR_IF_NOT((r_geom.IntegrationPoints(this->GetIntegrationMethod())).size() == 4) << "ShellThickElement3D4N - needs a full integration scheme" << std::endl;
 
     const int points_number = r_geom.PointsNumber();
@@ -822,7 +834,8 @@ template <ShellKinematics TKinematics>
 void ShellThickElement3D4N<TKinematics>::CalculateLaminaStrains(ShellCrossSection::Pointer& section, const Vector& generalizedStrains, std::vector<VectorType>& rlaminateStrains)
 {
     // Get laminate properties
-    double thickness = section->GetThickness(GetProperties());
+    const auto& r_props = GetProperties();
+    const double thickness = r_props[THICKNESS];
     double z_current = thickness / -2.0; // start from the top of the 1st layer
 
     // Establish current strains at the midplane
@@ -837,7 +850,7 @@ void ShellThickElement3D4N<TKinematics>::CalculateLaminaStrains(ShellCrossSectio
 
     // Get ply thicknesses
     Vector ply_thicknesses = Vector(section->NumberOfPlies(), 0.0);
-    section->GetPlyThicknesses(GetProperties(), ply_thicknesses);
+    section->GetPlyThicknesses(r_props, ply_thicknesses);
 
     // Resize output vector. 2 Surfaces for each ply
     rlaminateStrains.resize(2 * section->NumberOfPlies());
@@ -1130,11 +1143,9 @@ void ShellThickElement3D4N<TKinematics>::CalculateBMatrix(double xi, double eta,
         const Vector& N,
         Matrix& B, Vector& Bdrill)
 {
-    // some data
-
     const Matrix& dNxy = Jac.XYDerivatives();
 
-    // membrane ************************************************************************************************
+    // Membrane ************************************************************************************************
 
     B(0,  0) =  dNxy(0, 0);
     B(0,  6) =  dNxy(1, 0);
@@ -1153,7 +1164,7 @@ void ShellThickElement3D4N<TKinematics>::CalculateBMatrix(double xi, double eta,
     B(2, 13) =  dNxy(2, 0);
     B(2, 19) =  dNxy(3, 0);
 
-    // bending *************************************************************************************************
+    // Bending *************************************************************************************************
 
     B(3,  4) =  dNxy(0, 0);
     B(3, 10) =  dNxy(1, 0);
@@ -1172,22 +1183,22 @@ void ShellThickElement3D4N<TKinematics>::CalculateBMatrix(double xi, double eta,
     B(5, 16) =  dNxy(2, 1);
     B(5, 22) =  dNxy(3, 1);
 
-    // drilling ************************************************************************************************
+    // Drilling ************************************************************************************************
 
-    Bdrill(0) = -0.5 * dNxy(0, 1);
-    Bdrill(1) =  0.5 * dNxy(0, 0);
-    Bdrill(5) = -N(0);
-    Bdrill(6) = -0.5 * dNxy(1, 1);
-    Bdrill(7) =  0.5 * dNxy(1, 0);
-    Bdrill(11) = -N(1);
-    Bdrill(12) = -0.5 * dNxy(2, 1);
-    Bdrill(13) =  0.5 * dNxy(2, 0);
-    Bdrill(17) = -N(2);
-    Bdrill(18) = -0.5 * dNxy(3, 1);
-    Bdrill(19) =  0.5 * dNxy(3, 0);
-    Bdrill(23) = -N(3);
+    Bdrill[0] = -0.5 * dNxy(0, 1);
+    Bdrill[1] =  0.5 * dNxy(0, 0);
+    Bdrill[5] = -N[0];
+    Bdrill[6] = -0.5 * dNxy(1, 1);
+    Bdrill[7] =  0.5 * dNxy(1, 0);
+    Bdrill[11] = -N[1];
+    Bdrill[12] = -0.5 * dNxy(2, 1);
+    Bdrill[13] =  0.5 * dNxy(2, 0);
+    Bdrill[17] = -N[2];
+    Bdrill[18] = -0.5 * dNxy(3, 1);
+    Bdrill[19] =  0.5 * dNxy(3, 0);
+    Bdrill[23] = -N[3];
 
-    // shear ***************************************************************************************************
+    // Shear ***************************************************************************************************
 
     // MITC modified shape functions
     Matrix MITCShapeFunctions(2, 4, 0.0);
@@ -1240,32 +1251,24 @@ void ShellThickElement3D4N<TKinematics>::CalculateAll(MatrixType& rLeftHandSideM
         const bool CalculateStiffnessMatrixFlag,
         const bool CalculateResidualVectorFlag)
 {
-    // Resize the Left Hand Side if necessary,
-    // and initialize it to Zero
-
     if ((rLeftHandSideMatrix.size1() != 24) || (rLeftHandSideMatrix.size2() != 24)) {
         rLeftHandSideMatrix.resize(24, 24, false);
     }
-    noalias(rLeftHandSideMatrix) = ZeroMatrix(24, 24);
-
-    // Resize the Right Hand Side if necessary,
-    // and initialize it to Zero
+    rLeftHandSideMatrix.clear();
 
     if (rRightHandSideVector.size() != 24) {
         rRightHandSideVector.resize(24, false);
     }
-    noalias(rRightHandSideVector) = ZeroVector(24);
+    rRightHandSideVector.clear();
 
     // Get some references.
-
-    const PropertiesType& props = GetProperties();
-    const GeometryType& geom = GetGeometry();
-    const Matrix& shapeFunctions = geom.ShapeFunctionsValues();
-    const double thickness = props[THICKNESS];
+    const auto& r_props = GetProperties();
+    const auto& r_geom = GetGeometry();
+    const Matrix& shapeFunctions = r_geom.ShapeFunctionsValues();
+    const double thickness = r_props[THICKNESS];
     Vector iN(shapeFunctions.size2());
 
     // Compute the local coordinate system.
-
     ShellQ4_LocalCoordinateSystem localCoordinateSystem(
         this->mpCoordinateTransformation->CreateLocalCoordinateSystem());
 
@@ -1274,7 +1277,6 @@ void ShellThickElement3D4N<TKinematics>::CalculateAll(MatrixType& rLeftHandSideM
 
     // Prepare all the parameters needed for the MITC formulation.
     // This is to be done here outside the Gauss Loop.
-
     MITC4Params shearParameters(referenceCoordinateSystem);
 
     // Instantiate the Jacobian Operator.
@@ -1282,7 +1284,6 @@ void ShellThickElement3D4N<TKinematics>::CalculateAll(MatrixType& rLeftHandSideM
     // the jacobian matrix, its inverse, its determinant
     // and the derivatives of the shape functions in the local
     // coordinate system
-
     ShellUtilities::JacobianOperator jacOp;
     array_1d<double, 4> dArea;
 
@@ -1292,12 +1293,10 @@ void ShellThickElement3D4N<TKinematics>::CalculateAll(MatrixType& rLeftHandSideM
     Vector Bdrilling(24, 0.0);
 
     // Instantiate all section tangent matrices.
-
     Matrix D(8, 8, 0.0);
-    double Ddrilling(0.0);
+    double Ddrilling = 0.0;
 
     // Instantiate strain and stress-resultant vectors
-
     Vector generalizedStrains(8);
     Vector generalizedStresses(8);
 
@@ -1307,48 +1306,44 @@ void ShellThickElement3D4N<TKinematics>::CalculateAll(MatrixType& rLeftHandSideM
     this->GetValuesVector(globalDisplacements, 0);
 
     // Get the current displacements in local coordinate system
-
-    Vector localDisplacements(
-        this->mpCoordinateTransformation->CalculateLocalDisplacements(localCoordinateSystem, globalDisplacements));
+    Vector localDisplacements(this->mpCoordinateTransformation->CalculateLocalDisplacements(localCoordinateSystem, globalDisplacements));
 
     // Instantiate the EAS Operator.
     // This will apply the Enhanced Assumed Strain Method for the calculation
     // of the membrane contribution.
-
     EASOperator EASOp(referenceCoordinateSystem, mEASStorage);
 
     // auxiliary data
 
     Matrix BTD(24, 8); // auxiliary matrix to store the product B'*D
-
     // Initialize parameters for the cross section calculation
 
-    ShellCrossSection::SectionParameters parameters(geom, props, rCurrentProcessInfo);
+    ShellCrossSection::SectionParameters parameters(r_geom, r_props, rCurrentProcessInfo);
     parameters.SetGeneralizedStrainVector(generalizedStrains);
     parameters.SetGeneralizedStressVector(generalizedStresses);
     parameters.SetConstitutiveMatrix(D);
-    Flags& options = parameters.GetOptions();
-    options.Set(ConstitutiveLaw::COMPUTE_STRESS, CalculateResidualVectorFlag);
-    options.Set(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR, CalculateStiffnessMatrixFlag);
+    Flags& r_options = parameters.GetOptions();
+    r_options.Set(ConstitutiveLaw::COMPUTE_STRESS, CalculateResidualVectorFlag);
+    r_options.Set(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR, CalculateStiffnessMatrixFlag);
 
     // Gauss Loop.
-    for (int i = 0; i < 4; i++) {
+    for (SizeType integration_point = 0; integration_point < 4; integration_point++) {
 
         // get a reference of the current integration point and shape functions
 
-        const GeometryType::IntegrationPointType& ip = geom.IntegrationPoints()[i];
+        const GeometryType::IntegrationPointType& ip = r_geom.IntegrationPoints()[integration_point];
 
-        noalias(iN) = row(shapeFunctions, i);
+        noalias(iN) = row(shapeFunctions, integration_point);
 
         // Compute Jacobian, Inverse of Jacobian, Determinant of Jacobian
         // and Shape functions derivatives in the local coordinate system
 
-        jacOp.Calculate(referenceCoordinateSystem, geom.ShapeFunctionLocalGradient(i));
+        jacOp.Calculate(referenceCoordinateSystem, r_geom.ShapeFunctionLocalGradient(integration_point));
 
         // compute the 'area' of the current integration point
 
-        double dA = ip.Weight() * jacOp.Determinant();
-        dArea[i] = dA;
+        const double dA = ip.Weight() * jacOp.Determinant();
+        dArea[integration_point] = dA;
 
         // Compute all strain-displacement matrices
 
@@ -1357,47 +1352,39 @@ void ShellThickElement3D4N<TKinematics>::CalculateAll(MatrixType& rLeftHandSideM
         // Calculate strain vectors in local coordinate system
 
         noalias(generalizedStrains) = prod(B, localDisplacements);
-        double drillingStrain = inner_prod(Bdrilling, localDisplacements);
+        const double drillingStrain = inner_prod(Bdrilling, localDisplacements);
 
         // Apply the EAS method to modify the membrane part of the strains computed above.
 
         EASOp.GaussPointComputation_Step1(ip.X(), ip.Y(), jacOp, generalizedStrains, mEASStorage);
 
         // Calculate the response of the Cross Section
-
-        // ShellCrossSection::Pointer& section = this->mSections[i];
-
         parameters.SetShapeFunctionsValues(iN);
         parameters.SetShapeFunctionsDerivatives(jacOp.XYDerivatives());
         //add in shear stabilization
-        double shearStabilisation = CalculateStenbergShearStabilization(referenceCoordinateSystem, thickness);
-        parameters.SetStenbergShearStabilization(shearStabilisation);
-        // section->CalculateSectionResponse(parameters, ConstitutiveLaw::StressMeasure_PK2);
-        CalculateMaterialResponse(parameters, i, rCurrentProcessInfo);
+        const double shear_stabilisation = CalculateStenbergShearStabilization(referenceCoordinateSystem, thickness);
+        parameters.SetStenbergShearStabilization(shear_stabilisation);
+        CalculateMaterialResponse(parameters, integration_point, rCurrentProcessInfo);
         // Ddrilling = section->GetDrillingStiffness();
         Ddrilling = D(2, 2);
 
         // multiply the section tangent matrices and stress resultants by 'dA'
-
         D *= dA;
         Ddrilling *= dA;
         generalizedStresses *= dA;
-        double drillingStress = Ddrilling * drillingStrain; // already multiplied by 'dA'
+        const double drillingStress = Ddrilling * drillingStrain; // already multiplied by 'dA'
 
         // Add all contributions to the Stiffness Matrix
-
         noalias(BTD) = prod(trans(B), D);
         noalias(rLeftHandSideMatrix) += prod(BTD, B);
         noalias(rLeftHandSideMatrix) += outer_prod(Ddrilling * Bdrilling, Bdrilling);
 
         // Add all contributions to the residual vector
-
         noalias(rRightHandSideVector) -= prod(trans(B), generalizedStresses);
         noalias(rRightHandSideVector) -= Bdrilling * drillingStress;
 
         // Continue the calculation of the EAS method now that the contitutive response
         // has been computed
-
         EASOp.GaussPointComputation_Step2(D, B, generalizedStresses, mEASStorage);
     }
 
@@ -1405,13 +1392,11 @@ void ShellThickElement3D4N<TKinematics>::CalculateAll(MatrixType& rLeftHandSideM
     // the local stiffness matrix and residual vector.
     // It will perform a static condensation to remove the enhanced strain parameters
     // at the element level
-
     EASOp.ComputeModfiedTangentAndResidual(rLeftHandSideMatrix, rRightHandSideVector, mEASStorage);
 
     // Let the CoordinateTransformation finalize the calculation.
     // This will handle the transformation of the local matrices/vectors to
     // the global coordinate system.
-
     this->mpCoordinateTransformation->FinalizeCalculations(localCoordinateSystem,
             globalDisplacements,
             localDisplacements,
@@ -1419,7 +1404,6 @@ void ShellThickElement3D4N<TKinematics>::CalculateAll(MatrixType& rLeftHandSideM
             rRightHandSideVector,
             CalculateResidualVectorFlag,
             CalculateStiffnessMatrixFlag);
-
     // Add body forces contributions. This doesn't depend on the coordinate system
     AddBodyForces(dArea, rRightHandSideVector);
 }
@@ -1430,38 +1414,49 @@ void ShellThickElement3D4N<TKinematics>::CalculateAll(MatrixType& rLeftHandSideM
 template <ShellKinematics TKinematics>
 void ShellThickElement3D4N<TKinematics>::AddBodyForces(const array_1d<double,4>& dA, VectorType& rRightHandSideVector)
 {
-    const GeometryType& geom = GetGeometry();
+    KRATOS_TRY
+    const auto& r_geometry = GetGeometry();
+    const auto& r_props = GetProperties();
 
     // Get shape functions
-    const Matrix& N = geom.ShapeFunctionsValues();
+    const Matrix& N = r_geometry.ShapeFunctionsValues();
 
     // auxiliary
     array_1d<double, 3> bf;
 
+    double density = 0.0;
+    if (r_props.Has(DENSITY)) {
+        density = r_props[DENSITY];
+    } else {
+        // In composite shells the density is to be retrieved from the CL
+        mConstitutiveLawVector[0]->GetValue(DENSITY, density);
+        KRATOS_ERROR_IF(density <= 0.0) << "DENSITY is null as far as the shell CL is concerned... Please implement the GetValue(DENSITY) " <<  std::endl;
+    }
+    const double mass_per_unit_area = density * r_props[THICKNESS];
+
     // gauss loop to integrate the external force vector
-    for (unsigned int igauss = 0; igauss < 4; igauss++) {
-        // get mass per unit area
-        double mass_per_unit_area = this->mSections[igauss]->CalculateMassPerUnitArea(GetProperties());
+    for (SizeType igauss = 0; igauss < 4; igauss++) {
 
         // interpolate nodal volume accelerations to this gauss point
         // and obtain the body force vector
         bf.clear();
-        for (unsigned int inode = 0; inode < 4; inode++) {
-            if (geom[inode].SolutionStepsDataHas(VOLUME_ACCELERATION)) { //temporary, will be checked once at the beginning only
-                bf += N(igauss,inode) * geom[inode].FastGetSolutionStepValue(VOLUME_ACCELERATION);
+        for (SizeType inode = 0; inode < 4; inode++) {
+            if (r_geometry[inode].SolutionStepsDataHas(VOLUME_ACCELERATION)) { //temporary, will be checked once at the beginning only
+                bf += N(igauss,inode) * r_geometry[inode].FastGetSolutionStepValue(VOLUME_ACCELERATION);
             }
         }
         bf *= (mass_per_unit_area * dA[igauss]);
 
         // add it to the RHS vector
-        for (unsigned int inode = 0; inode < 4; inode++) {
-            unsigned int index = inode*6;
+        for (SizeType inode = 0; inode < 4; inode++) {
+            SizeType index = inode*6;
             double iN = N(igauss,inode);
             rRightHandSideVector[index + 0] += iN * bf[0];
             rRightHandSideVector[index + 1] += iN * bf[1];
             rRightHandSideVector[index + 2] += iN * bf[2];
         }
     }
+    KRATOS_CATCH("ShellThickElement3D4N::AddBodyForces")
 }
 
 template <ShellKinematics TKinematics>
