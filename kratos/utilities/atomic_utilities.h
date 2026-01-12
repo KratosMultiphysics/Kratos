@@ -32,7 +32,7 @@
 
 namespace Kratos {
 
-#if defined(KRATOS_SMP_CXX11)
+#if defined(KRATOS_SMP_CXX11) || defined(KRATOS_COMPILED_IN_OS)
     #if defined(__cpp_lib_atomic_ref) // C++20
         template <class T>
         using AtomicRef = std::atomic_ref<T>;
