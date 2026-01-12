@@ -23,4 +23,4 @@ class ComputeNonConformingReactionProcess(ComputeReactionProcess):
         return header
 
     def _GetReaction(self):
-        return KratosMPM.ReactionUtilities().CalculateNonConformingReaction(self.model_part)
+        return KratosMPM.ReactionUtilities.CalculateNonConformingReaction(self.model_part)

@@ -22,4 +22,4 @@ class ComputeGridConformingReactionProcess(ComputeReactionProcess):
         return header
 
     def _GetReaction(self):
-        return KratosMPM.ReactionUtilities().CalculateGridConformingReaction(self.model_part)
+        return KratosMPM.ReactionUtilities.CalculateGridConformingReaction(self.model_part)

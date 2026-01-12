@@ -12,14 +12,10 @@
 #pragma once
 
 // System includes
-#include <string>
-#include <iostream>
 
 // External includes
 
 // Project includes
-#include "includes/define.h"
-#include "includes/model_part.h"
 
 namespace Kratos
 {
@@ -45,14 +41,14 @@ namespace Kratos
     * @param rModelPart reference to the model part where the force is to be computed
     * @return An array containing the force value
     */
-    array_1d<double, 3> CalculateGridConformingReaction(ModelPart &rModelPart);
+    static array_1d<double, 3> CalculateGridConformingReaction(ModelPart &rModelPart);
 
     /**
     * @brief Computes the sum of the reaction over the material point conditions of the given modelpart
     * @param rModelPart reference to the model part where the force is to be computed
     * @return An array containing the force value
     */
-    array_1d<double, 3> CalculateNonConformingReaction(ModelPart &rModelPart);
+    static array_1d<double, 3> CalculateNonConformingReaction(ModelPart &rModelPart);
 
 }; // Class ReactionUtilities
 

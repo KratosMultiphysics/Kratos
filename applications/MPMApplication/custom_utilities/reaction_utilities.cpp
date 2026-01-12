@@ -14,8 +14,6 @@
 // External includes
 
 // Project includes
-#include "geometries/geometry.h"
-#include "geometries/geometry_data.h"
 #include "utilities/openmp_utils.h"
 #include "utilities/variable_utils.h"
 
@@ -26,21 +24,16 @@
 namespace Kratos
 {
     array_1d<double,3> ReactionUtilities::CalculateGridConformingReaction(ModelPart& rModelPart) {
-        VariableUtils variable_utils;
-        return variable_utils.SumHistoricalVariable<array_1d<double,3>>(REACTION, rModelPart, 0);
+        return VariableUtils().SumHistoricalVariable<array_1d<double,3>>(REACTION, rModelPart, 0);
     }
 
     array_1d<double,3> ReactionUtilities::CalculateNonConformingReaction(ModelPart& rModelPart) {
-
         const ProcessInfo& r_current_process_info = rModelPart.GetProcessInfo();
         return block_for_each<SumReduction<array_1d<double,3>>>(rModelPart.Conditions(),
-                [&](auto& condition)
-                {
-                    std::vector<array_1d<double,3>> mpc_reaction{ ZeroVector(3) };
-                    condition.CalculateOnIntegrationPoints(MPC_CONTACT_FORCE, mpc_reaction, r_current_process_info);
-                    return mpc_reaction[0];
-                }
-                );
+            [&r_current_process_info](auto& condition) {
+                std::vector<array_1d<double,3>> mpc_reaction{ ZeroVector(3) };
+                condition.CalculateOnIntegrationPoints(MPC_CONTACT_FORCE, mpc_reaction, r_current_process_info);
+                return mpc_reaction[0];
+            });
     }
-
 }

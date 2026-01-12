@@ -78,8 +78,8 @@ namespace Python{
         // Calculate reaction forces
         py::class_<ReactionUtilities> (m,"ReactionUtilities")
             .def(py::init<>())
-            .def("CalculateGridConformingReaction", &ReactionUtilities::CalculateGridConformingReaction)
-            .def("CalculateNonConformingReaction", &ReactionUtilities::CalculateNonConformingReaction)
+            .def_static("CalculateGridConformingReaction", &ReactionUtilities::CalculateGridConformingReaction)
+            .def_static("CalculateNonConformingReaction", &ReactionUtilities::CalculateNonConformingReaction)
             ;
 
     }
