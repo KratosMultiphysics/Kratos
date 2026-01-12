@@ -1564,16 +1564,16 @@ void MPMUpdatedLagrangian::CalculateOnIntegrationPoints(const Variable<double>& 
         rValues[0] = mMP.volume;
     }
     else if (rVariable == MP_POTENTIAL_ENERGY) {
-        rValues[0] = MPMEnergyCalculationUtility().CalculatePotentialEnergy(*this);
+        rValues[0] = MPMEnergyCalculationUtility::CalculatePotentialEnergy(*this);
     }
     else if (rVariable == MP_KINETIC_ENERGY) {
-        rValues[0] = MPMEnergyCalculationUtility().CalculateKineticEnergy(*this);
+        rValues[0] = MPMEnergyCalculationUtility::CalculateKineticEnergy(*this);
     }
     else if (rVariable == MP_STRAIN_ENERGY) {
-        rValues[0] = MPMEnergyCalculationUtility().CalculateStrainEnergy(*this);
+        rValues[0] = MPMEnergyCalculationUtility::CalculateStrainEnergy(*this);
     }
     else if (rVariable == MP_TOTAL_ENERGY) {
-        rValues[0] = MPMEnergyCalculationUtility().CalculateTotalEnergy(*this);
+        rValues[0] = MPMEnergyCalculationUtility::CalculateTotalEnergy(*this);
     }
     else if (rVariable == MP_HARDENING_RATIO || rVariable == MP_EQUIVALENT_STRESS ||
         rVariable == MP_EQUIVALENT_PLASTIC_STRAIN || rVariable == MP_EQUIVALENT_PLASTIC_STRAIN_RATE ||

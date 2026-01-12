@@ -65,7 +65,7 @@ class MPMWriteEnergyOutputProcess(KratosMultiphysics.OutputProcess):
     def PrintOutput(self):
         time = self.model_part.ProcessInfo[KratosMultiphysics.TIME]
         if self.output_file:
-            p_energy, k_energy, s_energy, t_energy = KratosMPM.EnergyCalculationUtility().CalculateAllEnergies(self.model_part)
+            p_energy, k_energy, s_energy, t_energy = KratosMPM.EnergyCalculationUtility.CalculateAllEnergies(self.model_part)
             out = f"{str(time)} {p_energy:{self.format}} {k_energy:{self.format}} {s_energy:{self.format}} {t_energy:{self.format}}\n"
             self.output_file.write(out)
             self.output_file.flush()

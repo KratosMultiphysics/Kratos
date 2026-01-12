@@ -180,10 +180,10 @@ namespace Kratos::Testing
         KRATOS_EXPECT_NEAR(r_MP_TotalEnergy[0]    ,  4.613 , 1e-6);
 
         // Check energy
-        const double potential_energy_model_part = MPMEnergyCalculationUtility().CalculatePotentialEnergy(r_model_part);
-        const double kinetic_energy_model_part = MPMEnergyCalculationUtility().CalculateKineticEnergy(r_model_part);
-        const double strain_energy_model_part = MPMEnergyCalculationUtility().CalculateStrainEnergy(r_model_part);
-        const double total_energy_model_part = MPMEnergyCalculationUtility().CalculateTotalEnergy(r_model_part);
+        const double potential_energy_model_part = MPMEnergyCalculationUtility::CalculatePotentialEnergy(r_model_part);
+        const double kinetic_energy_model_part = MPMEnergyCalculationUtility::CalculateKineticEnergy(r_model_part);
+        const double strain_energy_model_part = MPMEnergyCalculationUtility::CalculateStrainEnergy(r_model_part);
+        const double total_energy_model_part = MPMEnergyCalculationUtility::CalculateTotalEnergy(r_model_part);
 
         KRATOS_EXPECT_NEAR(potential_energy_model_part, 20.13  , 1e-6);
         KRATOS_EXPECT_NEAR(kinetic_energy_model_part,   19.472 , 1e-6);
@@ -195,7 +195,7 @@ namespace Kratos::Testing
         double s_energy{0};
         double t_energy{0};
 
-        MPMEnergyCalculationUtility().CalculateAllEnergies(r_model_part, p_energy, k_energy, s_energy, t_energy);
+        MPMEnergyCalculationUtility::CalculateAllEnergies(r_model_part, p_energy, k_energy, s_energy, t_energy);
 
         KRATOS_EXPECT_NEAR(p_energy, 20.13  , 1e-6);
         KRATOS_EXPECT_NEAR(k_energy, 19.472 , 1e-6);

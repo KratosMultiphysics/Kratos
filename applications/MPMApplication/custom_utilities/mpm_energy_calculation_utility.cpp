@@ -17,9 +17,9 @@
 // External includes
 
 // Project includes
+#include "mpm_energy_calculation_utility.h"
 #include "utilities/parallel_utilities.h"
 #include "utilities/reduction_utilities.h"
-#include "mpm_energy_calculation_utility.h"
 
 namespace Kratos
 {
@@ -46,7 +46,7 @@ namespace Kratos
     double MPMEnergyCalculationUtility::CalculatePotentialEnergy(ModelPart& rModelPart)
     {
         return block_for_each<SumReduction<double>>(rModelPart.Elements(),
-                [&](auto& r_element) { return this->CalculatePotentialEnergy(r_element); });
+                [&](auto& r_element) { return MPMEnergyCalculationUtility::CalculatePotentialEnergy(r_element); });
     }
 
     double MPMEnergyCalculationUtility::CalculateKineticEnergy(Element& rElement)
@@ -60,7 +60,7 @@ namespace Kratos
         std::vector<array_1d<double, 3>> mp_velocity = { ZeroVector(3) };
         rElement.CalculateOnIntegrationPoints(MP_VELOCITY, mp_velocity, process_info);
 
-        for(SizeType k = 0; k<3; ++k)
+        for(std::size_t k = 0; k<3; ++k)
             MP_kinetic_energy   += 0.5 * mp_mass[0] * mp_velocity[0][k] * mp_velocity[0][k];
 
         return MP_kinetic_energy;
@@ -69,7 +69,7 @@ namespace Kratos
     double MPMEnergyCalculationUtility::CalculateKineticEnergy(ModelPart& rModelPart)
     {
         return block_for_each<SumReduction<double>>(rModelPart.Elements(),
-                [&](auto& r_element) { return this->CalculateKineticEnergy(r_element); });
+                [&](auto& r_element) { return MPMEnergyCalculationUtility::CalculateKineticEnergy(r_element); });
     }
 
     double MPMEnergyCalculationUtility::CalculateStrainEnergy(Element& rElement)
@@ -86,7 +86,7 @@ namespace Kratos
         std::vector<Vector> mp_almansi_strain(1);
         rElement.CalculateOnIntegrationPoints(MP_ALMANSI_STRAIN_VECTOR, mp_almansi_strain, process_info);
 
-        for(SizeType j = 0; j < mp_cauchy_stress[0].size(); ++j)
+        for(std::size_t j = 0; j < mp_cauchy_stress[0].size(); ++j)
             mp_strain_energy +=  0.5 * mp_volume[0] * mp_cauchy_stress[0][j] * mp_almansi_strain[0][j];
 
         return mp_strain_energy;
@@ -95,14 +95,14 @@ namespace Kratos
     double MPMEnergyCalculationUtility::CalculateStrainEnergy(ModelPart& rModelPart)
     {
         return block_for_each<SumReduction<double>>(rModelPart.Elements(),
-                [&](auto& r_element) { return this->CalculateStrainEnergy(r_element); });
+                [&](auto& r_element) { return MPMEnergyCalculationUtility::CalculateStrainEnergy(r_element); });
     }
 
     double MPMEnergyCalculationUtility::CalculateTotalEnergy(Element& rElement)
     {
-        const double r_MP_potential_energy = CalculatePotentialEnergy(rElement);
-        const double r_MP_kinetic_energy   = CalculateKineticEnergy(rElement);
-        const double r_MP_strain_energy    = CalculateStrainEnergy(rElement);
+        const double r_MP_potential_energy = MPMEnergyCalculationUtility::CalculatePotentialEnergy(rElement);
+        const double r_MP_kinetic_energy   = MPMEnergyCalculationUtility::CalculateKineticEnergy(rElement);
+        const double r_MP_strain_energy    = MPMEnergyCalculationUtility::CalculateStrainEnergy(rElement);
 
         return (r_MP_potential_energy + r_MP_kinetic_energy + r_MP_strain_energy);
     }
@@ -110,7 +110,7 @@ namespace Kratos
     double MPMEnergyCalculationUtility::CalculateTotalEnergy(ModelPart& rModelPart)
     {
         return block_for_each<SumReduction<double>>(rModelPart.Elements(),
-                [&](auto& r_element) { return this->CalculateTotalEnergy(r_element); });
+                [&](auto& r_element) { return MPMEnergyCalculationUtility::CalculateTotalEnergy(r_element); });
     }
 
     void MPMEnergyCalculationUtility::CalculateAllEnergies(
@@ -126,9 +126,9 @@ namespace Kratos
         std::tie(rPotentialEnergy,rKineticEnergy,rStrainEnergy) =
         block_for_each<MultipleReduction>(rModelPart.Elements(),
         [&](auto& r_element) {
-            auto p_energy = this->CalculatePotentialEnergy(r_element);
-            auto k_energy = this->CalculateKineticEnergy(r_element);
-            auto s_energy = this->CalculateStrainEnergy(r_element);
+            auto p_energy = MPMEnergyCalculationUtility::CalculatePotentialEnergy(r_element);
+            auto k_energy = MPMEnergyCalculationUtility::CalculateKineticEnergy(r_element);
+            auto s_energy = MPMEnergyCalculationUtility::CalculateStrainEnergy(r_element);
             return std::make_tuple(p_energy, k_energy, s_energy);
         });
 
