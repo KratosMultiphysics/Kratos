@@ -21,30 +21,30 @@
 
 namespace Kratos
 {
-class KRATOS_API(GEO_MECHANICS_APPLICATION) InterfaceElement : public Element
+class KRATOS_API(GEO_MECHANICS_APPLICATION) UPwInterfaceElement : public Element
 {
 public:
-    KRATOS_CLASS_INTRUSIVE_POINTER_DEFINITION(InterfaceElement);
+    KRATOS_CLASS_INTRUSIVE_POINTER_DEFINITION(UPwInterfaceElement);
 
     using Element::GeometryType;
     using Element::PropertiesType;
 
     // Following the UPwBaseElement example, we will follow the rule of 5
     // to avoid the noexcept code smell.
-    ~InterfaceElement() override                             = default;
-    InterfaceElement(const InterfaceElement&)                = delete;
-    InterfaceElement& operator=(const InterfaceElement&)     = delete;
-    InterfaceElement(InterfaceElement&&) noexcept            = default;
-    InterfaceElement& operator=(InterfaceElement&&) noexcept = default;
+    ~UPwInterfaceElement() override                                = default;
+    UPwInterfaceElement(const UPwInterfaceElement&)                = delete;
+    UPwInterfaceElement& operator=(const UPwInterfaceElement&)     = delete;
+    UPwInterfaceElement(UPwInterfaceElement&&) noexcept            = default;
+    UPwInterfaceElement& operator=(UPwInterfaceElement&&) noexcept = default;
 
-    InterfaceElement(IndexType                          NewId,
-                     const GeometryType::Pointer&       rGeometry,
-                     const PropertiesType::Pointer&     rProperties,
-                     std::unique_ptr<StressStatePolicy> pStressStatePolicy);
+    UPwInterfaceElement(IndexType                          NewId,
+                        const GeometryType::Pointer&       rGeometry,
+                        const PropertiesType::Pointer&     rProperties,
+                        std::unique_ptr<StressStatePolicy> pStressStatePolicy);
 
-    InterfaceElement(IndexType                          NewId,
-                     const GeometryType::Pointer&       rGeometry,
-                     std::unique_ptr<StressStatePolicy> pStressStatePolicy);
+    UPwInterfaceElement(IndexType                          NewId,
+                        const GeometryType::Pointer&       rGeometry,
+                        std::unique_ptr<StressStatePolicy> pStressStatePolicy);
     Element::Pointer Create(IndexType NewId, const NodesArrayType& rNodes, PropertiesType::Pointer pProperties) const override;
     Element::Pointer Create(IndexType NewId, GeometryType::Pointer pGeom, PropertiesType::Pointer pProperties) const override;
 
@@ -75,7 +75,7 @@ public:
     const Geometry<Node>& GetMidGeometry() const;
 
 private:
-    InterfaceElement() = default;
+    UPwInterfaceElement() = default;
 
     Element::DofsVectorType GetDofs() const;
 
