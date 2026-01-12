@@ -395,6 +395,8 @@ private:
     void CalculateMaterialResponse(
         ShellCrossSection::SectionParameters& rSectionParameters,
         const SizeType& rPointNumber,
+        const bool CalculateStress,
+        const bool CalculateConstitutive,
         const ProcessInfo& rProcessInfo);
 
     ///@}
