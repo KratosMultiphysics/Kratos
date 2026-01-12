@@ -175,7 +175,7 @@ inline T atomic_mul(std::atomic_ref<T>& ref, T factor)
     T result;
     do {
         result = old * result;
-    } while (!ref.compare_exchange_weak(old, desired, std::memory_order_acq_rel, std::memory_order_relaxed));
+    } while (!ref.compare_exchange_weak(old, result, std::memory_order_acq_rel, std::memory_order_relaxed));
 
     return result;
 }
