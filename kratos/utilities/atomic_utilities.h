@@ -172,6 +172,23 @@ inline void AtomicSubMatrix(TMatrixType1& target, const TMatrixType2& value)
     }
 }
 
+/** @param ref scalar variable being atomically updated by doing ref *= factor
+ * @param factor vector value being multiplied
+ */
+template<class T>
+T atomic_mul(std::atomic_ref<T>& ref, T factor)
+{
+    T old = ref.load(std::memory_order_relaxed);
+    T result;
+    do {
+        result = old * result;
+    } while (!ref.compare_exchange_weak(
+                 old, desired,
+                 std::memory_order_acq_rel,
+                 std::memory_order_relaxed));
+    return result; // or return old, depending on semantics you want
+}
+
 /** @param target vector variable being atomically updated by doing target *= value
  * @param value vector value being multiplied
  */
@@ -180,7 +197,7 @@ inline void AtomicMult(TDataType& target, const TDataType& value)
 {
 #ifdef defined(KRATOS_SMP_CXX11) || (KRATOS_COMPILED_IN_OS)
     AtomicRef<TDataType> at_ref{target};
-    at_ref = atref*value;
+    atomic_mul(at_ref, value);
 #elif defined(KRATOS_SMP_OPENMP)
     #pragma omp atomic
     target *= value;
