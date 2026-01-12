@@ -117,14 +117,7 @@ inline void AtomicAddMatrix(TMatrixType1& target, const TMatrixType2& value)
 template<class TDataType>
 inline void AtomicSub(TDataType& target, const TDataType& value)
 {
-#if defined(KRATOS_SMP_CXX11) || (KRATOS_COMPILED_IN_OS)
-    AtomicRef<TDataType>{target} -= value;
-#elif defined(KRATOS_SMP_OPENMP)
-    #pragma omp atomic
-    target -= value;
-#else
-    target -= value;
-#endif
+    AtomicAdd(target, -value);
 }
 
 /**
