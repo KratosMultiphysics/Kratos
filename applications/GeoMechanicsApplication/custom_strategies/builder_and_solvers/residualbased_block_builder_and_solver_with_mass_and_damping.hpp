@@ -520,11 +520,11 @@ protected:
 
         // assemble all elements
 
-        const auto nelements = static_cast<int>(r_elements.size());
-#pragma omp parallel firstprivate(nelements, rhs_contribution, equation_ids)
+        const auto n_elements = static_cast<int>(r_elements.size());
+#pragma omp parallel firstprivate(n_elements, rhs_contribution, equation_ids)
         {
 #pragma omp for schedule(guided, 512) nowait
-            for (int i = 0; i < nelements; i++) {
+            for (int i = 0; i < n_elements; i++) {
                 typename ElementsArrayType::iterator it = r_elements.begin() + i;
                 // If the element is active
                 if (it->IsActive()) {
@@ -540,9 +540,9 @@ protected:
             rhs_contribution.resize(0, false);
 
             // assemble all conditions
-            const auto nconditions = static_cast<int>(r_conditions.size());
+            const auto n_conditions = static_cast<int>(r_conditions.size());
 #pragma omp for schedule(guided, 512)
-            for (int i = 0; i < nconditions; i++) {
+            for (int i = 0; i < n_conditions; i++) {
                 auto it = r_conditions.begin() + i;
                 // If the condition is active
                 if (it->IsActive()) {
