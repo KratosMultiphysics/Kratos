@@ -24,7 +24,7 @@
 #include "solving_strategies/strategies/solving_strategy.h"
 
 // builders and solvers
-#include "custom_strategies/builder_and_solvers/residualbased_block_builder_and_solver_with_mass_and_damping.h"
+#include "custom_strategies/builder_and_solvers/residualbased_block_builder_and_solver_with_mass_and_damping.hpp"
 
 // schemes
 #include "custom_strategies/schemes/backward_euler_T_scheme.hpp"
