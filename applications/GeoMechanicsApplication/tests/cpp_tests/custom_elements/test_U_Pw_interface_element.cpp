@@ -612,15 +612,20 @@ KRATOS_TEST_CASE_IN_SUITE(UPwLineInterfaceElement_RightHandSideEqualsMinusIntern
     expected_stiffness_force <<= 1.0, 5.0, 1.0, 5.0, -1.0, -5.0, -1.0, -5.0;
     KRATOS_EXPECT_VECTOR_RELATIVE_NEAR(subrange(actual_right_hand_side, 0, 0 + number_of_u_dofs),
                                        expected_stiffness_force, Defaults::relative_tolerance)
+    KRATOS_EXPECT_VECTOR_NEAR(subrange(actual_right_hand_side, number_of_u_dofs, expected_number_of_dofs),
+                              (Vector{expected_number_of_dofs - number_of_u_dofs, 0.0}), Defaults::absolute_tolerance)
 
     // Act
     Vector actual_external_forces_vector;
     element.Calculate(EXTERNAL_FORCES_VECTOR, actual_external_forces_vector, ProcessInfo{});
 
     // Assert
-    const auto expected_external_forces_vector = Vector{8, 0.0};
+    const auto expected_external_forces_vector = Vector{number_of_u_dofs, 0.0};
     KRATOS_EXPECT_VECTOR_RELATIVE_NEAR(subrange(actual_external_forces_vector, 0, 0 + number_of_u_dofs),
                                        expected_external_forces_vector, Defaults::relative_tolerance)
+    KRATOS_EXPECT_VECTOR_NEAR(
+        subrange(actual_external_forces_vector, number_of_u_dofs, expected_number_of_dofs),
+        (Vector{expected_number_of_dofs - number_of_u_dofs, 0.0}), Defaults::absolute_tolerance)
 
     // Act
     Vector actual_internal_forces_vector;
@@ -630,6 +635,9 @@ KRATOS_TEST_CASE_IN_SUITE(UPwLineInterfaceElement_RightHandSideEqualsMinusIntern
     const auto expected_internal_forces_vector = Vector{-1.0 * expected_stiffness_force};
     KRATOS_EXPECT_VECTOR_RELATIVE_NEAR(subrange(actual_internal_forces_vector, 0, 0 + number_of_u_dofs),
                                        expected_internal_forces_vector, Defaults::relative_tolerance)
+    KRATOS_EXPECT_VECTOR_NEAR(
+        subrange(actual_internal_forces_vector, number_of_u_dofs, expected_number_of_dofs),
+        (Vector{expected_number_of_dofs - number_of_u_dofs, 0.0}), Defaults::absolute_tolerance)
 }
 
 KRATOS_TEST_CASE_IN_SUITE(UPwLineInterfaceElement_RightHandSideEqualsMinusInternalForceVector_Rotated,
@@ -663,6 +671,8 @@ KRATOS_TEST_CASE_IN_SUITE(UPwLineInterfaceElement_RightHandSideEqualsMinusIntern
     // clang-format on
     KRATOS_EXPECT_VECTOR_RELATIVE_NEAR(subrange(actual_right_hand_side, 0, 0 + number_of_u_dofs),
                                        expected_stiffness_force, Defaults::relative_tolerance)
+    KRATOS_EXPECT_VECTOR_NEAR(subrange(actual_right_hand_side, number_of_u_dofs, expected_number_of_dofs),
+                              (Vector{expected_number_of_dofs - number_of_u_dofs, 0.0}), Defaults::absolute_tolerance)
 }
 
 KRATOS_TEST_CASE_IN_SUITE(GetInitializedConstitutiveLawsAfterElementInitialization, KratosGeoMechanicsFastSuiteWithoutKernel)
@@ -756,6 +766,8 @@ KRATOS_TEST_CASE_IN_SUITE(UPwLineInterfaceElement_ReturnsExpectedLeftAndRightHan
     expected_stiffness_force <<= 1.0, 5.0, 1.0, 5.0, -1.0, -5.0, -1.0, -5.0;
     KRATOS_EXPECT_VECTOR_RELATIVE_NEAR(subrange(actual_right_hand_side, 0, 0 + number_of_u_dofs),
                                        expected_stiffness_force, Defaults::relative_tolerance)
+    KRATOS_EXPECT_VECTOR_NEAR(subrange(actual_right_hand_side, number_of_u_dofs, expected_number_of_dofs),
+                              (Vector{expected_number_of_dofs - number_of_u_dofs, 0.0}), Defaults::absolute_tolerance)
 }
 
 KRATOS_TEST_CASE_IN_SUITE(UPwLineInterfaceElement_CalculateRelativeDisplacementVector, KratosGeoMechanicsFastSuiteWithoutKernel)
@@ -890,6 +902,8 @@ KRATOS_TEST_CASE_IN_SUITE(UPwLineInterfaceElement_3Plus3NodedElement_ReturnsExpe
         6.66666667, -0.33333333, -1.66666667, -0.33333333, -1.66666667, -1.33333333, -6.66666667;
     KRATOS_EXPECT_VECTOR_RELATIVE_NEAR(subrange(actual_right_hand_side, 0, 0 + number_of_u_dofs),
                                        expected_stiffness_force, Defaults::relative_tolerance)
+    KRATOS_EXPECT_VECTOR_NEAR(subrange(actual_right_hand_side, number_of_u_dofs, expected_number_of_dofs),
+                              (Vector{expected_number_of_dofs - number_of_u_dofs, 0.0}), Defaults::absolute_tolerance)
 }
 
 KRATOS_TEST_CASE_IN_SUITE(UPwTriangleInterfaceElement_CreatesInstanceWithGeometryInput,
@@ -1158,6 +1172,8 @@ KRATOS_TEST_CASE_IN_SUITE(UPwTriangleInterfaceElement_RightHandSideEqualsMinusIn
     expected_stiffness_force <<= 0.333333,0.833333,0,0,0,0,-0.333333,-0.833333,0,-0.333333,-0.833333,0,0,0,0,0.333333,0.833333,0;
     constexpr auto tolerance=1e-5;
     KRATOS_EXPECT_VECTOR_RELATIVE_NEAR(subrange(actual_right_hand_side, 0, 0 + number_of_u_dofs), expected_stiffness_force, tolerance)
+    KRATOS_EXPECT_VECTOR_NEAR(subrange(actual_right_hand_side, number_of_u_dofs, expected_number_of_dofs),
+                          (Vector{expected_number_of_dofs - number_of_u_dofs, 0.0}), Defaults::absolute_tolerance)
 }
 
 KRATOS_TEST_CASE_IN_SUITE(UPwTriangleInterfaceElement_RightHandSideEqualsMinusInternalForceVector_Rotated,
@@ -1192,6 +1208,8 @@ KRATOS_TEST_CASE_IN_SUITE(UPwTriangleInterfaceElement_RightHandSideEqualsMinusIn
     constexpr auto tolerance = 1e-5;
     KRATOS_EXPECT_VECTOR_RELATIVE_NEAR(subrange(actual_right_hand_side, 0, 0 + number_of_u_dofs),
                                        expected_stiffness_force, tolerance)
+    KRATOS_EXPECT_VECTOR_NEAR(subrange(actual_right_hand_side, number_of_u_dofs, expected_number_of_dofs),
+                              (Vector{expected_number_of_dofs - number_of_u_dofs, 0.0}), Defaults::absolute_tolerance)
 }
 
 KRATOS_TEST_CASE_IN_SUITE(UPwTriangleInterfaceElement_GetInitializedConstitutiveLawsAfterElementInitialization,
@@ -1289,6 +1307,8 @@ KRATOS_TEST_CASE_IN_SUITE(UPwTriangleInterfaceElement_ReturnsExpectedLeftAndRigh
     constexpr auto tolerance = 1e-5;
     KRATOS_EXPECT_VECTOR_NEAR(subrange(actual_right_hand_side, 0, 0 + number_of_u_dofs),
                               expected_stiffness_force, tolerance)
+    KRATOS_EXPECT_VECTOR_NEAR(subrange(actual_right_hand_side, number_of_u_dofs, expected_number_of_dofs),
+                              (Vector{expected_number_of_dofs - number_of_u_dofs, 0.0}), Defaults::absolute_tolerance)
 }
 
 KRATOS_TEST_CASE_IN_SUITE(UPwTriangleInterfaceElement_CalculateRelativeDisplacementVector,
@@ -1544,6 +1564,8 @@ KRATOS_TEST_CASE_IN_SUITE(UPwTriangleInterfaceElement_6Plus6NodedElement_Returns
     constexpr auto tolerance = 1e-5;
     KRATOS_EXPECT_VECTOR_NEAR(subrange(actual_right_hand_side, 0, 0 + number_of_u_dofs),
                               expected_stiffness_force, tolerance)
+    KRATOS_EXPECT_VECTOR_NEAR(subrange(actual_right_hand_side, number_of_u_dofs, expected_number_of_dofs),
+                              (Vector{expected_number_of_dofs - number_of_u_dofs, 0.0}), Defaults::absolute_tolerance)
 }
 
 KRATOS_TEST_CASE_IN_SUITE(UPwInterfaceElement_CheckThrowsWhenElementIsNotInitialized, KratosGeoMechanicsFastSuiteWithoutKernel)
