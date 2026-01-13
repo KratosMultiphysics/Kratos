@@ -42,7 +42,7 @@ public:
     [[nodiscard]] double YieldFunctionValue(const Vector& rSigmaTau) const override;
     [[nodiscard]] Vector DerivativeOfFlowFunction(const Vector&) const override;
 
-    [[nodiscard]] double CalculateApex() const;
+    [[nodiscard]] double CalculateCapCornerPoint() const;
 
 private:
     void InitializeKappaDependentFunctions();
@@ -57,6 +57,6 @@ private:
     KappaDependentFunction mCapSizeCalculator;
     KappaDependentFunction mCapLocationCalculator;
 
-}; // Class CoulombYieldSurface
+}; // Class CompressionCapYieldSurface
 
 } // namespace Kratos

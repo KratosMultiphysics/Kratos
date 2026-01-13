@@ -105,7 +105,7 @@ Vector CompressionCapYieldSurface::DerivativeOfFlowFunction(const Vector& rSigma
     return result;
 }
 
-double CompressionCapYieldSurface::CalculateApex() const
+double CompressionCapYieldSurface::CalculateCapCornerPoint() const
 {
     return 0; // TODO: implement this
 }

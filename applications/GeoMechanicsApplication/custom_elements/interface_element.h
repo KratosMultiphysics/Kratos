@@ -18,6 +18,7 @@
 #include "integration_coefficients_calculator.h"
 #include "integration_scheme.h"
 #include "stress_state_policy.h"
+#include <optional>
 
 namespace Kratos
 {
