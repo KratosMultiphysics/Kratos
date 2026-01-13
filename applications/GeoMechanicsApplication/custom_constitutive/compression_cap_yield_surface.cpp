@@ -26,7 +26,7 @@ namespace
 
 using namespace Kratos;
 
-CompressionCapYieldSurface::KappaDependentFunction MakeConstantFunction(double Value)
+CompressionCapYieldSurface::KappaDependentFunction MakeConstantCapFunction(double Value)
 {
     return [Value](double /* unused kappa */) { return Value; };
 }
@@ -43,7 +43,7 @@ CompressionCapYieldSurface::KappaDependentFunction MakeCapSizeCalculator(const P
 {
     const auto hardening_type = GetCapHardeningTypeFrom(rMaterialProperties);
     if (hardening_type == "none") {
-        return MakeConstantFunction(ConstitutiveLawUtilities::GetCapSize(rMaterialProperties));
+        return MakeConstantCapFunction(ConstitutiveLawUtilities::GetCapSize(rMaterialProperties));
     }
     KRATOS_ERROR << "Cannot create a kappa-dependent function for the cap size of material "
                  << rMaterialProperties.Id() << ": unknown hardening type '" << hardening_type << "'\n";
@@ -53,7 +53,7 @@ CompressionCapYieldSurface::KappaDependentFunction MakeCapLocationCalculator(con
 {
     const auto hardening_type = GetCapHardeningTypeFrom(rMaterialProperties);
     if (hardening_type == "none") {
-        return MakeConstantFunction(ConstitutiveLawUtilities::GetCapLocation(rMaterialProperties));
+        return MakeConstantCapFunction(ConstitutiveLawUtilities::GetCapLocation(rMaterialProperties));
     }
     KRATOS_ERROR << "Cannot create a kappa-dependent function for the cap location of material "
                  << rMaterialProperties.Id() << ": unknown hardening type '" << hardening_type << "'\n";
