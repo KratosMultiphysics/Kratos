@@ -204,7 +204,7 @@ void KratosExecute::ParseProcesses(ModelPart& rModelPart, Parameters projFile)
 }
 
 int KratosExecute::MainExecution(ModelPart& rModelPart,
-                                 const GeoMechanicsNewtonRaphsonErosionProcessStrategyType::Pointer rpSolvingStrategy,
+                                 const GeoMechanicsNewtonRaphsonErosionProcessStrategyType::Pointer& rpSolvingStrategy,
                                  double       Time,
                                  double       DeltaTime,
                                  unsigned int NumberOfIterations) const
@@ -349,9 +349,9 @@ int KratosExecute::ExecuteFlowAnalysis(std::string_view         WorkingDirectory
 
 void KratosExecute::ExecuteWithoutPiping(ModelPart&                rModelPart,
                                          const Kratos::Parameters& rGidOutputSettings,
-                                         const GeoMechanicsNewtonRaphsonErosionProcessStrategyType::Pointer pSolvingStrategy) const
+                                         const GeoMechanicsNewtonRaphsonErosionProcessStrategyType::Pointer& rpSolvingStrategy) const
 {
-    MainExecution(rModelPart, pSolvingStrategy, 0.0, 1.0, 1);
+    MainExecution(rModelPart, rpSolvingStrategy, 0.0, 1.0, 1);
 
     GeoOutputWriter writer{rGidOutputSettings, mWorkingDirectory, rModelPart};
     writer.WriteGiDOutput(rModelPart, rGidOutputSettings);
@@ -363,7 +363,7 @@ int KratosExecute::ExecuteWithPiping(ModelPart&                rModelPart,
                                      LoggerOutput::Pointer     pOutput,
                                      const std::stringstream&  rKratosLogBuffer,
                                      const CallBackFunctions&  rCallBackFunctions,
-                                     const GeoMechanicsNewtonRaphsonErosionProcessStrategyType::Pointer pSolvingStrategy)
+                                     const GeoMechanicsNewtonRaphsonErosionProcessStrategyType::Pointer& rpSolvingStrategy)
 {
     KRATOS_INFO_IF("GeoFlowKernel", this->GetEchoLevel() > 0) << "Critical head search started." << std::endl;
     KRATOS_INFO_IF("GeoFlowKernel", this->GetEchoLevel() > 0)
@@ -375,7 +375,7 @@ int KratosExecute::ExecuteWithPiping(ModelPart&                rModelPart,
 
     shared_ptr<Process> p_river_boundary;
     if (mCriticalHeadBoundaryModelPartName.empty()) {
-        p_river_boundary = FindRiverBoundaryAutomatically(pSolvingStrategy);
+        p_river_boundary = FindRiverBoundaryAutomatically(rpSolvingStrategy);
     } else {
         p_river_boundary = FindRiverBoundaryByName(mCriticalHeadBoundaryModelPartName);
     }
@@ -385,7 +385,7 @@ int KratosExecute::ExecuteWithPiping(ModelPart&                rModelPart,
     }
 
     FindCriticalHead(rModelPart, rGidOutputSettings, rCriticalHeadInfo, std::move(pOutput),
-                     rKratosLogBuffer, p_river_boundary, pSolvingStrategy, rCallBackFunctions);
+                     rKratosLogBuffer, p_river_boundary, rpSolvingStrategy, rCallBackFunctions);
 
     WriteCriticalHeadResultToFile();
 
@@ -430,13 +430,13 @@ void KratosExecute::AddNodalSolutionStepVariables(ModelPart& rModelPart)
     rModelPart.AddNodalSolutionStepVariable(HYDRAULIC_DISCHARGE);
 }
 
-int KratosExecute::FindCriticalHead(ModelPart&                 rModelPart,
-                                    const Kratos::Parameters&  rGidOutputSettings,
-                                    const CriticalHeadInfo&    rCriticalHeadInfo,
-                                    LoggerOutput::Pointer      pOutput,
-                                    const std::stringstream&   rKratosLogBuffer,
-                                    const shared_ptr<Process>& pRiverBoundary,
-                                    const GeoMechanicsNewtonRaphsonErosionProcessStrategyType::Pointer pSolvingStrategy,
+int KratosExecute::FindCriticalHead(ModelPart&                   rModelPart,
+                                    const Kratos::Parameters&    rGidOutputSettings,
+                                    const CriticalHeadInfo&      rCriticalHeadInfo,
+                                    const LoggerOutput::Pointer& rpOutput,
+                                    const std::stringstream&     rKratosLogBuffer,
+                                    const shared_ptr<Process>&   pRiverBoundary,
+                                    const GeoMechanicsNewtonRaphsonErosionProcessStrategyType::Pointer& rpSolvingStrategy,
                                     const CallBackFunctions& rCallBackFunctions)
 {
     auto current_process =
@@ -449,7 +449,7 @@ int KratosExecute::FindCriticalHead(ModelPart&                 rModelPart,
     mCriticalHead = mCurrentHead;
 
     std::vector<Element*> pipe_elements;
-    pipe_elements             = pSolvingStrategy->GetPipingElements();
+    pipe_elements             = rpSolvingStrategy->GetPipingElements();
     const auto noPipeElements = pipe_elements.size();
 
     int        step = 1;
@@ -471,7 +471,7 @@ int KratosExecute::FindCriticalHead(ModelPart&                 rModelPart,
         rCallBackFunctions.ReportTextualProgress(progress.data());
         rCallBackFunctions.ReportProgress(((double)step) / ((double)max_steps));
 
-        MainExecution(rModelPart, pSolvingStrategy, 0.0, 1.0, 1);
+        MainExecution(rModelPart, rpSolvingStrategy, 0.0, 1.0, 1);
 
         auto count = std::size_t{0};
         for (Element* element : pipe_elements) {
@@ -503,7 +503,7 @@ int KratosExecute::FindCriticalHead(ModelPart&                 rModelPart,
         }
 
         if (rCallBackFunctions.ShouldCancel()) {
-            HandleCleanUp(rCallBackFunctions, pOutput, rKratosLogBuffer);
+            HandleCleanUp(rCallBackFunctions, rpOutput, rKratosLogBuffer);
 
             return 0;
         }
@@ -564,7 +564,7 @@ shared_ptr<Process> KratosExecute::FindRiverBoundaryByName(const std::string& Cr
 }
 
 shared_ptr<Process> KratosExecute::FindRiverBoundaryAutomatically(
-    const KratosExecute::GeoMechanicsNewtonRaphsonErosionProcessStrategyType::Pointer rpSolvingStrategy) const
+    const GeoMechanicsNewtonRaphsonErosionProcessStrategyType::Pointer& rpSolvingStrategy) const
 {
     shared_ptr<Process> p_river_boundary;
 
