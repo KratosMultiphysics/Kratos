@@ -432,6 +432,8 @@ namespace Kratos
                 }
             }
 
+            T = trans(T);
+
             // KRATOS_WATCH(T)
             // exit(0);
            
@@ -501,8 +503,11 @@ namespace Kratos
                     Nstress,
                     integration_weight);
 
-                noalias(rLeftHandSideMatrix) = prod(rLeftHandSideMatrix,T);
-                noalias(rLeftHandSideMatrix) = prod(trans(T),rLeftHandSideMatrix);
+                
+                Matrix temp(rLeftHandSideMatrix.size1(), T.size2());
+                noalias(temp) = prod(rLeftHandSideMatrix, T);
+                noalias(rLeftHandSideMatrix) = prod(trans(T), temp);
+
 
                         
                 // adding  non-linear-contribution to Stiffness-Matrix
