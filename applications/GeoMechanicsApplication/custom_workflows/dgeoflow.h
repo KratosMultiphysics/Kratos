@@ -15,36 +15,27 @@
 // System includes
 
 /* External includes */
-
 #include "includes/kernel.h"
 #include <geo_mechanics_application.h>
 
 /* Utility includes */
-#include "includes/model_part.h"
 #include "spaces/ublas_space.h"
 
-// Linear solvers
 #include "linear_solvers/linear_solver.h"
-
-// The most basic scheme (static)
-#include "custom_strategies/schemes/backward_euler_quasistatic_Pw_scheme.hpp"
-
-// The most builder and solver (the block builder and solver)
 #include "solving_strategies/builder_and_solvers/residualbased_block_builder_and_solver.h"
 
 // The strategies to test
 #include <custom_processes/apply_component_table_process.h>
-#include <custom_processes/apply_constant_hydrostatic_pressure_process.hpp>
 #include <linear_solvers/skyline_lu_factorization_solver.h>
 
 #include <solving_strategies/convergencecriterias/mixed_generic_criteria.h>
-#include <solving_strategies/strategies/implicit_solving_strategy.h>
 #include <solving_strategies/strategies/residualbased_newton_raphson_strategy.h>
 
 #include "custom_strategies/strategies/geo_mechanics_newton_raphson_erosion_process_strategy.hpp"
 
 namespace Kratos
 {
+class ModelPart;
 
 class KRATOS_API(GEO_MECHANICS_APPLICATION) KratosExecute
 {
@@ -72,15 +63,18 @@ public:
     static GeoMechanicsNewtonRaphsonErosionProcessStrategyType::Pointer setup_strategy_dgeoflow(ModelPart& rModelPart);
     void ParseProcesses(ModelPart& rModelPart, Parameters projFile);
 
-    struct KRATOS_API(GEO_MECHANICS_APPLICATION) CriticalHeadInfo {
+    struct CriticalHeadInfo {
         double minCriticalHead  = 0.0;
         double maxCriticalHead  = 0.0;
         double stepCriticalHead = 0.0;
 
-        CriticalHeadInfo(double minCriticalHead, double maxCriticalHead, double stepCriticalHead);
+        CriticalHeadInfo(double minCriticalHead, double maxCriticalHead, double stepCriticalHead)
+            : minCriticalHead(minCriticalHead), maxCriticalHead(maxCriticalHead), stepCriticalHead(stepCriticalHead)
+        {
+        }
     };
 
-    struct KRATOS_API(GEO_MECHANICS_APPLICATION) CallBackFunctions {
+    struct CallBackFunctions {
         std::function<void(const char*)> LogCallback;
         std::function<void(double)>      ReportProgress;
         std::function<void(const char*)> ReportTextualProgress;
@@ -89,7 +83,13 @@ public:
         CallBackFunctions(std::function<void(const char*)> LogCallback,
                           std::function<void(double)>      ReportProgress,
                           std::function<void(const char*)> ReportTextualProgress,
-                          std::function<bool()>            ShouldCancel);
+                          std::function<bool()>            ShouldCancel)
+            : LogCallback(std::move(LogCallback)),
+              ReportProgress(std::move(ReportProgress)),
+              ReportTextualProgress(std::move(ReportTextualProgress)),
+              ShouldCancel(std::move(ShouldCancel))
+        {
+        }
     };
 
     int ExecuteFlowAnalysis(std::string_view         WorkingDirectory,

@@ -15,7 +15,7 @@
 #include "custom_workflows/adaptive_time_incrementor.h"
 #include "custom_workflows/prescribed_time_incrementor.h"
 #include "custom_workflows/time_loop_executor.h"
-#include "custom_workflows/time_step_end_state.h"
+#include "custom_workflows/time_step_end_state.hpp"
 #include "solving_strategies/strategies/solving_strategy.h"
 #include "tests/cpp_tests/geo_mechanics_fast_suite.h"
 #include "tests/cpp_tests/test_utilities.h"

@@ -18,7 +18,7 @@
 #include <memory>
 #include <vector>
 
-#include "time_step_end_state.h"
+#include "time_step_end_state.hpp"
 
 namespace Kratos
 {

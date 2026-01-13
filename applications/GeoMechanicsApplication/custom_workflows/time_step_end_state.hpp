@@ -15,13 +15,12 @@
 
 #pragma once
 
-#include "includes/kratos_export_api.h"
 #include <cstddef>
 
 namespace Kratos
 {
 
-struct KRATOS_API(GEO_MECHANICS_APPLICATION) TimeStepEndState {
+struct TimeStepEndState {
     enum class ConvergenceState { converged, non_converged };
 
     double           time              = 0.0;
@@ -29,9 +28,15 @@ struct KRATOS_API(GEO_MECHANICS_APPLICATION) TimeStepEndState {
     std::size_t      num_of_cycles     = 0;
     std::size_t      num_of_iterations = 0;
 
-    [[nodiscard]] bool Converged() const;
+    [[nodiscard]] bool Converged() const
+    {
+        return convergence_state == ConvergenceState::converged;
+    }
 
-    [[nodiscard]] bool NonConverged() const;
+    [[nodiscard]] bool NonConverged() const
+    {
+        return convergence_state == ConvergenceState::non_converged;
+    }
 };
 
 } // namespace Kratos

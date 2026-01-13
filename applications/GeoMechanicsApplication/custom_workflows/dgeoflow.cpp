@@ -12,12 +12,15 @@
 
 #include "dgeoflow.h"
 #include "custom_processes/geo_apply_constant_scalar_value_process.h"
+#include "custom_strategies/schemes/backward_euler_quasistatic_Pw_scheme.hpp"
 #include "custom_utilities/file_input_utility.h"
 #include "geo_output_writer.h"
+#include "includes/model_part.h"
 #include "includes/model_part_io.h"
 #include "input_output/logger.h"
 #include "input_output/logger_output.h"
 #include "input_output/logger_table_output.h"
+#include <custom_processes/apply_constant_hydrostatic_pressure_process.hpp>
 
 #include <filesystem>
 #include <iomanip>
@@ -609,22 +612,6 @@ shared_ptr<Process> KratosExecute::FindRiverBoundaryAutomatically(
         << "No boundary found on the river side at node " << RiverNode << "." << std::endl;
 
     return p_river_boundary;
-}
-
-KratosExecute::CriticalHeadInfo::CriticalHeadInfo(double minCriticalHead, double maxCriticalHead, double stepCriticalHead)
-    : minCriticalHead(minCriticalHead), maxCriticalHead(maxCriticalHead), stepCriticalHead(stepCriticalHead)
-{
-}
-
-KratosExecute::CallBackFunctions::CallBackFunctions(std::function<void(const char*)> LogCallback,
-                                                    std::function<void(double)>      ReportProgress,
-                                                    std::function<void(const char*)> ReportTextualProgress,
-                                                    std::function<bool()> ShouldCancel)
-    : LogCallback(std::move(LogCallback)),
-      ReportProgress(std::move(ReportProgress)),
-      ReportTextualProgress(std::move(ReportTextualProgress)),
-      ShouldCancel(std::move(ShouldCancel))
-{
 }
 
 } // namespace Kratos

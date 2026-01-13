@@ -18,7 +18,7 @@
 #include <vector>
 
 #include "time_loop_executor_interface.h"
-#include "time_step_end_state.h"
+#include "time_step_end_state.hpp"
 #include "time_step_executor.h"
 
 namespace Kratos
