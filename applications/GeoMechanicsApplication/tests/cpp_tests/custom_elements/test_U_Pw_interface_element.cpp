@@ -441,7 +441,7 @@ KRATOS_TEST_CASE_IN_SUITE(UPwLineInterfaceElement_CreatesInstanceWithNodeInput, 
     EXPECT_NE(p_created_element->pGetProperties(), nullptr);
 }
 
-KRATOS_TEST_CASE_IN_SUITE(UPwLineInterfaceElement_ReturnsTheExpectedDoFList, KratosGeoMechanicsFastSuiteWithoutKernel)
+KRATOS_TEST_CASE_IN_SUITE(UPwLineInterfaceElement_KeepsUDofsFirstThenPwDofs, KratosGeoMechanicsFastSuiteWithoutKernel)
 {
     // Arrange
     const auto p_properties = std::make_shared<Properties>();
@@ -456,13 +456,15 @@ KRATOS_TEST_CASE_IN_SUITE(UPwLineInterfaceElement_ReturnsTheExpectedDoFList, Kra
     element.GetDofList(degrees_of_freedom, dummy_process_info);
 
     // Assert
-    ASSERT_EQ(degrees_of_freedom.size(), 12);
-    for (auto i = std::size_t{0}; i < std::size_t{8}; i += 2) {
+    constexpr auto expected_number_of_u_dofs  = std::size_t{8};
+    constexpr auto expected_number_of_pw_dofs = std::size_t{4};
+    ASSERT_EQ(degrees_of_freedom.size(), expected_number_of_u_dofs + expected_number_of_pw_dofs);
+    for (auto i = std::size_t{0}; i < expected_number_of_u_dofs; i += 2) {
         KRATOS_EXPECT_EQ(degrees_of_freedom[i]->GetVariable(), DISPLACEMENT_X);
         KRATOS_EXPECT_EQ(degrees_of_freedom[i + 1]->GetVariable(), DISPLACEMENT_Y);
     }
-    for (auto i = std::size_t{8}; i < std::size_t{12}; ++i) {
-        KRATOS_EXPECT_EQ(degrees_of_freedom[i]->GetVariable(), WATER_PRESSURE);
+    for (auto i = std::size_t{0}; i < expected_number_of_pw_dofs; ++i) {
+        KRATOS_EXPECT_EQ(degrees_of_freedom[expected_number_of_u_dofs + i]->GetVariable(), WATER_PRESSURE);
     }
 }
 
