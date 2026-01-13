@@ -15,8 +15,8 @@
 // System includes
 
 /* External includes */
+#include "geo_mechanics_application.h"
 #include "includes/kernel.h"
-#include <geo_mechanics_application.h>
 
 /* Utility includes */
 #include "spaces/ublas_space.h"
@@ -25,11 +25,11 @@
 #include "solving_strategies/builder_and_solvers/residualbased_block_builder_and_solver.h"
 
 // The strategies to test
-#include <custom_processes/apply_component_table_process.h>
-#include <linear_solvers/skyline_lu_factorization_solver.h>
+#include "custom_processes/apply_component_table_process.h"
+#include "linear_solvers/skyline_lu_factorization_solver.h"
 
-#include <solving_strategies/convergencecriterias/mixed_generic_criteria.h>
-#include <solving_strategies/strategies/residualbased_newton_raphson_strategy.h>
+#include "solving_strategies/convergencecriterias/mixed_generic_criteria.h"
+#include "solving_strategies/strategies/residualbased_newton_raphson_strategy.h"
 
 #include "custom_strategies/strategies/geo_mechanics_newton_raphson_erosion_process_strategy.hpp"
 
