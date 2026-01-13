@@ -142,14 +142,19 @@ void UPwInterfaceElement::CalculateLeftHandSide(MatrixType& rLeftHandSideMatrix,
 void UPwInterfaceElement::CalculateRightHandSide(Element::VectorType& rRightHandSideVector,
                                                  const ProcessInfo&   rProcessInfo)
 {
+    rRightHandSideVector = ZeroVector{GetDofs().size()};
+
     // Currently, the right-hand side only includes the internal force vector. In the future, it
     // will also include water pressure contributions and coupling terms.
     const auto local_b_matrices = CalculateLocalBMatricesAtIntegrationPoints();
     const auto relative_displacements = CalculateRelativeDisplacementsAtIntegrationPoints(local_b_matrices);
     const auto tractions = CalculateTractionsAtIntegrationPoints(relative_displacements, rProcessInfo);
     const auto integration_coefficients = CalculateIntegrationCoefficients();
-    rRightHandSideVector = -GeoEquationOfMotionUtilities::CalculateInternalForceVector(
-        local_b_matrices, tractions, integration_coefficients);
+    const auto number_of_u_dofs =
+        GetDisplacementGeometry().size() * GetDisplacementGeometry().WorkingSpaceDimension();
+    subrange(rRightHandSideVector, 0, 0 + number_of_u_dofs) =
+        -1.0 * GeoEquationOfMotionUtilities::CalculateInternalForceVector(
+                   local_b_matrices, tractions, integration_coefficients);
 }
 
 void UPwInterfaceElement::CalculateLocalSystem(MatrixType&        rLeftHandSideMatrix,
@@ -191,17 +196,21 @@ void UPwInterfaceElement::Calculate(const Variable<Vector>& rVariable, Vector& r
     KRATOS_ERROR_IF_NOT(rVariable == INTERNAL_FORCES_VECTOR || rVariable == EXTERNAL_FORCES_VECTOR)
         << "Variable " << rVariable.Name() << " is unknown for element with Id " << this->GetId() << ".";
 
+    rOutput = ZeroVector{GetDofs().size()};
+
     // Currently, the right-hand side only includes the internal force vector. In the future, it
     // will also include water pressure contributions and coupling terms.
     const auto local_b_matrices = CalculateLocalBMatricesAtIntegrationPoints();
     const auto relative_displacements = CalculateRelativeDisplacementsAtIntegrationPoints(local_b_matrices);
     const auto tractions = CalculateTractionsAtIntegrationPoints(relative_displacements, rProcessInfo);
     const auto integration_coefficients = CalculateIntegrationCoefficients();
+    const auto number_of_u_dofs =
+        GetDisplacementGeometry().size() * GetDisplacementGeometry().WorkingSpaceDimension();
     if (rVariable == INTERNAL_FORCES_VECTOR) {
-        rOutput = GeoEquationOfMotionUtilities::CalculateInternalForceVector(
+        subrange(rOutput, 0, 0 + number_of_u_dofs) = GeoEquationOfMotionUtilities::CalculateInternalForceVector(
             local_b_matrices, tractions, integration_coefficients);
     } else if (rVariable == EXTERNAL_FORCES_VECTOR) {
-        rOutput = Vector{ZeroVector{local_b_matrices.front().size2()}};
+        subrange(rOutput, 0, 0 + number_of_u_dofs) = Vector{ZeroVector{number_of_u_dofs}};
     }
 }
 
