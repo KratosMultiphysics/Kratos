@@ -72,12 +72,15 @@ public:
 
     const IntegrationScheme& GetIntegrationScheme() const;
 
-    const Geometry<Node>& GetMidGeometry() const;
+    const Geometry<Node>& GetDisplacementMidGeometry() const;
 
 private:
     UPwInterfaceElement() = default;
 
     Element::DofsVectorType GetDofs() const;
+
+    const GeometryType& GetDisplacementGeometry() const;
+    const GeometryType& GetWaterPressureGeometry() const;
 
     std::vector<Matrix> CalculateLocalBMatricesAtIntegrationPoints() const;
     std::vector<double> CalculateIntegrationCoefficients() const;

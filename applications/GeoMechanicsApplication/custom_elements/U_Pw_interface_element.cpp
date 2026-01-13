@@ -91,11 +91,13 @@ UPwInterfaceElement::UPwInterfaceElement(IndexType                          NewI
 
 void UPwInterfaceElement::MakeIntegrationSchemeAndAssignFunction()
 {
-    if (GetGeometry().LocalSpaceDimension() == 1) {
-        mpIntegrationScheme = std::make_unique<LobattoIntegrationScheme>(GetGeometry().PointsNumber() / 2);
+    if (GetDisplacementGeometry().GetGeometryFamily() == GeometryData::KratosGeometryFamily::Kratos_Linear) {
+        mpIntegrationScheme =
+            std::make_unique<LobattoIntegrationScheme>(GetDisplacementMidGeometry().PointsNumber());
         mfpCalculateRotationMatrix = GeometryUtilities::Calculate2DRotationMatrixForLineGeometry;
     } else {
-        mpIntegrationScheme = std::make_unique<LumpedIntegrationScheme>(GetGeometry().PointsNumber() / 2);
+        mpIntegrationScheme =
+            std::make_unique<LumpedIntegrationScheme>(GetDisplacementMidGeometry().PointsNumber());
         mfpCalculateRotationMatrix = GeometryUtilities::Calculate3DRotationMatrixForPlaneGeometry;
     }
 }
@@ -104,7 +106,7 @@ Element::Pointer UPwInterfaceElement::Create(IndexType               NewId,
                                              const NodesArrayType&   rNodes,
                                              PropertiesType::Pointer pProperties) const
 {
-    return Create(NewId, this->GetGeometry().Create(rNodes), pProperties);
+    return Create(NewId, this->GetDisplacementGeometry().Create(rNodes), pProperties);
 }
 
 Element::Pointer UPwInterfaceElement::Create(IndexType               NewId,
@@ -127,7 +129,8 @@ void UPwInterfaceElement::CalculateLeftHandSide(MatrixType& rLeftHandSideMatrix,
     rLeftHandSideMatrix       = ZeroMatrix(number_of_dofs, number_of_dofs);
 
     const auto local_b_matrices = CalculateLocalBMatricesAtIntegrationPoints();
-    const auto number_of_u_dofs = number_of_dofs - GetGeometry().size();
+    const auto number_of_u_dofs =
+        GetDisplacementGeometry().size() * GetDisplacementGeometry().WorkingSpaceDimension();
     subrange(rLeftHandSideMatrix, 0, number_of_u_dofs, 0, number_of_u_dofs) =
         GeoEquationOfMotionUtilities::CalculateStiffnessMatrix(
             local_b_matrices,
@@ -220,7 +223,8 @@ void UPwInterfaceElement::Initialize(const ProcessInfo& rCurrentProcessInfo)
         // interface element can at maximum have 2 neighbours
         KRATOS_DEBUG_ERROR_IF(this->GetValue(NEIGHBOUR_ELEMENTS).size() > 2)
             << "Too many neighbour elements for interface element " << this->Id() << std::endl;
-        const auto interface_node_ids = GenericUtilities::GetIdsFromEntityContents(GetGeometry());
+        const auto interface_node_ids =
+            GenericUtilities::GetIdsFromEntityContents(GetDisplacementGeometry());
         std::vector<std::optional<Vector>> interface_nodal_cauchy_stresses(interface_node_ids.size());
         auto&               r_neighbour_element = this->GetValue(NEIGHBOUR_ELEMENTS).front();
         std::vector<Vector> neighbour_cauchy_stresses;
@@ -235,9 +239,9 @@ void UPwInterfaceElement::Initialize(const ProcessInfo& rCurrentProcessInfo)
     }
     const auto shape_function_values_at_integration_points =
         GeoElementUtilities::EvaluateShapeFunctionsAtIntegrationPoints(
-            mpIntegrationScheme->GetIntegrationPoints(), GetGeometry());
+            mpIntegrationScheme->GetIntegrationPoints(), GetDisplacementGeometry());
     for (auto i = std::size_t{0}; i < mConstitutiveLaws.size(); ++i) {
-        mConstitutiveLaws[i]->InitializeMaterial(GetProperties(), GetGeometry(),
+        mConstitutiveLaws[i]->InitializeMaterial(GetProperties(), GetDisplacementGeometry(),
                                                  shape_function_values_at_integration_points[i]);
     }
 }
@@ -256,7 +260,7 @@ int UPwInterfaceElement::Check(const ProcessInfo& rCurrentProcessInfo) const
         const auto expected_size = mpStressStatePolicy->GetVoigtSize();
         ConstitutiveLawUtilities::CheckStrainSize(r_properties, expected_size, Id());
 
-        error = r_properties[CONSTITUTIVE_LAW]->Check(r_properties, GetGeometry(), rCurrentProcessInfo);
+        error = r_properties[CONSTITUTIVE_LAW]->Check(r_properties, GetDisplacementGeometry(), rCurrentProcessInfo);
         return error;
     }
 
@@ -268,28 +272,41 @@ const IntegrationScheme& UPwInterfaceElement::GetIntegrationScheme() const
     return *mpIntegrationScheme;
 }
 
-const Geometry<Node>& UPwInterfaceElement::GetMidGeometry() const
+const Geometry<Node>& UPwInterfaceElement::GetDisplacementMidGeometry() const
 {
     constexpr auto unused_part_index = std::size_t{0};
-    return GetGeometry().GetGeometryPart(unused_part_index);
+    return GetDisplacementGeometry().GetGeometryPart(unused_part_index);
 }
 
 Element::DofsVectorType UPwInterfaceElement::GetDofs() const
 {
-    return Geo::DofUtilities::ExtractUPwDofsFromNodes(GetGeometry(), GetGeometry(),
-                                                      GetGeometry().WorkingSpaceDimension());
+    return Geo::DofUtilities::ExtractUPwDofsFromNodes(GetDisplacementGeometry(), GetWaterPressureGeometry(),
+                                                      GetDisplacementGeometry().WorkingSpaceDimension());
+}
+
+const Element::GeometryType& UPwInterfaceElement::GetDisplacementGeometry() const
+{
+    return GetGeometry();
+}
+
+const Element::GeometryType& UPwInterfaceElement::GetWaterPressureGeometry() const
+{
+    // For now, we assume that the displacement geometry and the water pressure geometry are the same thing
+    return GetGeometry();
 }
 
 std::vector<Matrix> UPwInterfaceElement::CalculateLocalBMatricesAtIntegrationPoints() const
 {
     const auto& r_integration_points = mpIntegrationScheme->GetIntegrationPoints();
     const auto  shape_function_values_at_integration_points =
-        GeoElementUtilities::EvaluateShapeFunctionsAtIntegrationPoints(r_integration_points, GetGeometry());
+        GeoElementUtilities::EvaluateShapeFunctionsAtIntegrationPoints(r_integration_points,
+                                                                       GetDisplacementGeometry());
 
     auto result = std::vector<Matrix>{};
     result.reserve(shape_function_values_at_integration_points.size());
-    auto calculate_local_b_matrix = [&r_geometry = GetGeometry(), this](const auto& rShapeFunctionValuesAtIntegrationPoint,
-                                                                        const auto& rIntegrationPoint) {
+    auto calculate_local_b_matrix = [&r_geometry = GetDisplacementGeometry(), this](
+                                        const auto& rShapeFunctionValuesAtIntegrationPoint,
+                                        const auto& rIntegrationPoint) {
         // For interface elements, the shape function gradients are not used, since these are
         // non-continuum elements. Therefore, we pass an empty matrix.
         const auto dummy_gradients = Matrix{};
@@ -308,7 +325,7 @@ std::vector<Matrix> UPwInterfaceElement::CalculateLocalBMatricesAtIntegrationPoi
 std::vector<double> UPwInterfaceElement::CalculateIntegrationCoefficients() const
 {
     const auto determinants_of_jacobian = CalculateDeterminantsOfJacobiansAtIntegrationPoints(
-        mpIntegrationScheme->GetIntegrationPoints(), GetGeometry());
+        mpIntegrationScheme->GetIntegrationPoints(), GetDisplacementGeometry());
     return mIntegrationCoefficientsCalculator.Run<>(mpIntegrationScheme->GetIntegrationPoints(),
                                                     determinants_of_jacobian, this);
 }
@@ -323,9 +340,12 @@ std::vector<Matrix> UPwInterfaceElement::CalculateConstitutiveMatricesAtIntegrat
 std::vector<Vector> UPwInterfaceElement::CalculateRelativeDisplacementsAtIntegrationPoints(
     const std::vector<Matrix>& rLocalBMatrices) const
 {
+    // We feel that we'd better have two extra member functions: one that returns the displacement
+    // degrees of freedom, and another one that returns the water pressure degrees of freedom. That
+    // would make this function body easier to understand.
     const Geometry<Node> no_Pw_geometry;
     const auto           dofs = Geo::DofUtilities::ExtractUPwDofsFromNodes(
-        GetGeometry(), no_Pw_geometry, GetGeometry().WorkingSpaceDimension());
+        GetDisplacementGeometry(), no_Pw_geometry, GetDisplacementGeometry().WorkingSpaceDimension());
     auto nodal_displacement_vector = Vector{dofs.size()};
     std::transform(dofs.begin(), dofs.end(), nodal_displacement_vector.begin(),
                    [](auto p_dof) { return p_dof->GetSolutionStepValue(); });
@@ -368,7 +388,7 @@ std::vector<Vector> UPwInterfaceElement::CalculateTractionsAtIntegrationPoints(c
 
 void UPwInterfaceElement::ApplyRotationToBMatrix(Matrix& rBMatrix, const Matrix& rRotationMatrix) const
 {
-    const auto dim = GetGeometry().WorkingSpaceDimension();
+    const auto dim = GetDisplacementGeometry().WorkingSpaceDimension();
     for (auto i = std::size_t{0}; i + dim <= rBMatrix.size2(); i += dim) {
         auto sub_matrix = subrange(rBMatrix, 0, rBMatrix.size1(), i, i + dim);
         sub_matrix.assign(Matrix{prod(sub_matrix, trans(rRotationMatrix))});
@@ -379,8 +399,7 @@ void UPwInterfaceElement::InterpolateNodalStressesToInitialTractions(
     const std::vector<std::optional<Vector>>& rInterfaceNodalCauchyStresses) const
 {
     // interpolate nodal stresses on a chosen side
-    auto&      r_interface_geometry    = GetGeometry();
-    const auto number_of_nodes_on_side = r_interface_geometry.PointsNumber() / 2;
+    const auto number_of_nodes_on_side = GetDisplacementGeometry().PointsNumber() / 2;
     // check which side is shared with the neighbour geometry, by checking for the first nodes of the first side
     auto in_first_side = rInterfaceNodalCauchyStresses[0].has_value();
 
@@ -411,8 +430,8 @@ Vector UPwInterfaceElement::InterpolateNodalStressToIntegrationPoints(const Geo:
 {
     auto result                                  = Vector(rNodalStresses[0].size(), 0.0);
     auto integration_point_shape_function_values = Vector{};
-    GetGeometry().ShapeFunctionsValues(integration_point_shape_function_values, rIntegrationPoint);
-    for (auto i = std::size_t{0}; i < GetGeometry().PointsNumber() / 2; ++i) {
+    GetDisplacementMidGeometry().ShapeFunctionsValues(integration_point_shape_function_values, rIntegrationPoint);
+    for (auto i = std::size_t{0}; i < GetDisplacementMidGeometry().PointsNumber(); ++i) {
         result += integration_point_shape_function_values[i] * rNodalStresses[i];
     }
     return result;
@@ -422,12 +441,13 @@ Matrix UPwInterfaceElement::RotateStressToLocalCoordinates(const Geo::Integratio
                                                            const Vector& rGlobalStressVector) const
 {
     auto rotation_tensor = Matrix(3, 3, 0.0);
-    if (GetGeometry().LocalSpaceDimension() == 1) {
-        const auto two_d_rotation_tensor = mfpCalculateRotationMatrix(GetGeometry(), rIntegrationPoint);
+    if (GetDisplacementGeometry().GetGeometryFamily() == GeometryData::KratosGeometryFamily::Kratos_Linear) {
+        const auto two_d_rotation_tensor =
+            mfpCalculateRotationMatrix(GetDisplacementGeometry(), rIntegrationPoint);
         GeoElementUtilities::AddMatrixAtPosition(two_d_rotation_tensor, rotation_tensor, 0, 0);
         rotation_tensor(2, 2) = 1.0;
     } else {
-        rotation_tensor = mfpCalculateRotationMatrix(GetGeometry(), rIntegrationPoint);
+        rotation_tensor = mfpCalculateRotationMatrix(GetDisplacementGeometry(), rIntegrationPoint);
     }
     return GeoMechanicsMathUtilities::RotateSecondOrderTensor(
         MathUtils<>::StressVectorToTensor(rGlobalStressVector), rotation_tensor);
@@ -437,7 +457,7 @@ Vector UPwInterfaceElement::ConvertLocalStressToTraction(const Matrix& rLocalStr
 {
     // extract normal and shear components to form initial traction
     auto result = Vector(mConstitutiveLaws[0]->GetStrainSize());
-    if (GetGeometry().LocalSpaceDimension() == 1) {
+    if (GetDisplacementGeometry().GetGeometryFamily() == GeometryData::KratosGeometryFamily::Kratos_Linear) {
         result[0] = rLocalStress(1, 1);
         result[1] = rLocalStress(0, 1);
     } else {
