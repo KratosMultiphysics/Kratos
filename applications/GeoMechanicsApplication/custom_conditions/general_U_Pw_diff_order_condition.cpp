@@ -28,14 +28,14 @@ GeneralUPwDiffOrderCondition::GeneralUPwDiffOrderCondition()
     : GeneralUPwDiffOrderCondition(0, nullptr, nullptr) {};
 
 GeneralUPwDiffOrderCondition::GeneralUPwDiffOrderCondition(IndexType NewId, GeometryType::Pointer pGeometry)
-    : GeneralUPwDiffOrderCondition(NewId, pGeometry, nullptr)
+    : GeneralUPwDiffOrderCondition(NewId, std::move(pGeometry), nullptr)
 {
 }
 
 GeneralUPwDiffOrderCondition::GeneralUPwDiffOrderCondition(IndexType               NewId,
                                                            GeometryType::Pointer   pGeometry,
                                                            PropertiesType::Pointer pProperties)
-    : Condition(NewId, pGeometry, pProperties)
+    : Condition(NewId, std::move(pGeometry), std::move(pProperties))
 {
 }
 
