@@ -123,12 +123,17 @@ void UPwInterfaceElement::CalculateLeftHandSide(MatrixType& rLeftHandSideMatrix,
 {
     // Currently, the left-hand side matrix only includes the stiffness matrix. In the future, it
     // will also include water pressure contributions and coupling terms.
+    const auto number_of_dofs = GetDofs().size();
+    rLeftHandSideMatrix       = ZeroMatrix(number_of_dofs, number_of_dofs);
+
     const auto local_b_matrices = CalculateLocalBMatricesAtIntegrationPoints();
-    rLeftHandSideMatrix         = GeoEquationOfMotionUtilities::CalculateStiffnessMatrix(
-        local_b_matrices,
-        CalculateConstitutiveMatricesAtIntegrationPoints(
-            CalculateRelativeDisplacementsAtIntegrationPoints(local_b_matrices), rProcessInfo),
-        CalculateIntegrationCoefficients());
+    const auto number_of_u_dofs = number_of_dofs - GetGeometry().size();
+    subrange(rLeftHandSideMatrix, 0, number_of_u_dofs, 0, number_of_u_dofs) =
+        GeoEquationOfMotionUtilities::CalculateStiffnessMatrix(
+            local_b_matrices,
+            CalculateConstitutiveMatricesAtIntegrationPoints(
+                CalculateRelativeDisplacementsAtIntegrationPoints(local_b_matrices), rProcessInfo),
+            CalculateIntegrationCoefficients());
 }
 
 void UPwInterfaceElement::CalculateRightHandSide(Element::VectorType& rRightHandSideVector,

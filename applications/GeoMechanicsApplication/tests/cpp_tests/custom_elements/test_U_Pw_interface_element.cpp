@@ -285,7 +285,7 @@ UPwInterfaceElement CreateAndInitializeElement(TElementFactory                Fa
     return element;
 }
 
-Matrix ExpectedLeftHandSideForTriangleElement()
+Matrix ExpectedStiffnessMatrixOfLinearTrianglularInterfaceElement()
 {
     // The function provides values taken from the element
     auto expected_left_hand_side = Matrix(18, 18);
@@ -514,9 +514,16 @@ KRATOS_TEST_CASE_IN_SUITE(UPwLineInterfaceElement_LeftHandSideContainsMaterialSt
     element.CalculateLeftHandSide(actual_left_hand_side, ProcessInfo{});
 
     // Assert
-    const auto expected_left_hand_side =
+    constexpr auto expected_number_of_dofs = std::size_t{4 * 2 + 4};
+    ASSERT_EQ(actual_left_hand_side.size1(), expected_number_of_dofs);
+    ASSERT_EQ(actual_left_hand_side.size2(), expected_number_of_dofs);
+
+    constexpr auto number_of_u_dofs = std::size_t{4 * 2};
+    const auto     expected_stiffness_matrix =
         CreateExpectedStiffnessMatrixForHorizontal2Plus2NodedElement(normal_stiffness, shear_stiffness);
-    KRATOS_EXPECT_MATRIX_RELATIVE_NEAR(actual_left_hand_side, expected_left_hand_side, Defaults::relative_tolerance)
+    KRATOS_EXPECT_MATRIX_RELATIVE_NEAR(
+        subrange(actual_left_hand_side, 0, 0 + number_of_u_dofs, 0, 0 + number_of_u_dofs),
+        expected_stiffness_matrix, Defaults::relative_tolerance)
 }
 
 KRATOS_TEST_CASE_IN_SUITE(UPwLineInterfaceElement_LeftHandSideContainsMaterialStiffnessContributions_Rotated,
@@ -536,9 +543,14 @@ KRATOS_TEST_CASE_IN_SUITE(UPwLineInterfaceElement_LeftHandSideContainsMaterialSt
     element.CalculateLeftHandSide(actual_left_hand_side, ProcessInfo{});
 
     // Assert
-    auto expected_left_hand_side = Matrix{8, 8};
+    constexpr auto expected_number_of_dofs = std::size_t{4 * 2 + 4};
+    ASSERT_EQ(actual_left_hand_side.size1(), expected_number_of_dofs);
+    ASSERT_EQ(actual_left_hand_side.size2(), expected_number_of_dofs);
+
+    constexpr auto number_of_u_dofs          = std::size_t{4 * 2};
+    auto           expected_stiffness_matrix = Matrix{number_of_u_dofs, number_of_u_dofs};
     // clang-format off
-    expected_left_hand_side <<=
+    expected_stiffness_matrix <<=
          6.25,       -2.16506351,  0.0,         0.0,        -6.25,        2.16506351,  0.0,         0.0,
         -2.16506351,  8.75,        0.0,         0.0,         2.16506351, -8.75,        0.0,         0.0,
          0.0,         0.0,         6.25,       -2.16506351,  0.0,         0.0,        -6.25,        2.16506351,
@@ -548,7 +560,8 @@ KRATOS_TEST_CASE_IN_SUITE(UPwLineInterfaceElement_LeftHandSideContainsMaterialSt
          0.0,         0.0,        -6.25,        2.16506351,  0.0,         0.0,         6.25,       -2.16506351,
          0.0,         0.0,         2.16506351, -8.75,        0.0,         0.0,        -2.16506351,  8.75;
     // clang-format on
-    KRATOS_EXPECT_MATRIX_NEAR(actual_left_hand_side, expected_left_hand_side, Defaults::relative_tolerance)
+    KRATOS_EXPECT_MATRIX_NEAR(subrange(actual_left_hand_side, 0, 0 + number_of_u_dofs, 0, 0 + number_of_u_dofs),
+                              expected_stiffness_matrix, Defaults::relative_tolerance)
 }
 
 KRATOS_TEST_CASE_IN_SUITE(UPwLineInterfaceElement_RightHandSideEqualsMinusInternalForceVector,
@@ -683,9 +696,16 @@ KRATOS_TEST_CASE_IN_SUITE(UPwLineInterfaceElement_ReturnsExpectedLeftAndRightHan
     element.CalculateLocalSystem(actual_left_hand_side, actual_right_hand_side, ProcessInfo{});
 
     // Assert
-    const auto expected_left_hand_side =
+    constexpr auto expected_number_of_dofs = std::size_t{4 * 2 + 4};
+    ASSERT_EQ(actual_left_hand_side.size1(), expected_number_of_dofs);
+    ASSERT_EQ(actual_left_hand_side.size2(), expected_number_of_dofs);
+
+    constexpr auto number_of_u_dofs = std::size_t{4 * 2};
+    const auto     expected_stiffness_matrix =
         CreateExpectedStiffnessMatrixForHorizontal2Plus2NodedElement(normal_stiffness, shear_stiffness);
-    KRATOS_EXPECT_MATRIX_RELATIVE_NEAR(actual_left_hand_side, expected_left_hand_side, Defaults::relative_tolerance)
+    KRATOS_EXPECT_MATRIX_RELATIVE_NEAR(
+        subrange(actual_left_hand_side, 0, 0 + number_of_u_dofs, 0, 0 + number_of_u_dofs),
+        expected_stiffness_matrix, Defaults::relative_tolerance)
 
     auto expected_right_hand_side = Vector{8};
     expected_right_hand_side <<= 1.0, 5.0, 1.0, 5.0, -1.0, -5.0, -1.0, -5.0;
@@ -771,35 +791,42 @@ KRATOS_TEST_CASE_IN_SUITE(UPwLineInterfaceElement_3Plus3NodedElement_ReturnsExpe
     element.CalculateLocalSystem(actual_left_hand_side, actual_right_hand_side, ProcessInfo{});
 
     // Assert
-    auto expected_left_hand_side    = Matrix{ZeroMatrix{12, 12}};
-    expected_left_hand_side(0, 0)   = shear_stiffness * (1.0 / 6.0);
-    expected_left_hand_side(1, 1)   = normal_stiffness * (1.0 / 6.0);
-    expected_left_hand_side(2, 2)   = shear_stiffness * (1.0 / 6.0);
-    expected_left_hand_side(3, 3)   = normal_stiffness * (1.0 / 6.0);
-    expected_left_hand_side(4, 4)   = shear_stiffness * (2.0 / 3.0);
-    expected_left_hand_side(5, 5)   = normal_stiffness * (2.0 / 3.0);
-    expected_left_hand_side(6, 6)   = shear_stiffness * (1.0 / 6.0);
-    expected_left_hand_side(7, 7)   = normal_stiffness * (1.0 / 6.0);
-    expected_left_hand_side(8, 8)   = shear_stiffness * (1.0 / 6.0);
-    expected_left_hand_side(9, 9)   = normal_stiffness * (1.0 / 6.0);
-    expected_left_hand_side(10, 10) = shear_stiffness * (2.0 / 3.0);
-    expected_left_hand_side(11, 11) = normal_stiffness * (2.0 / 3.0);
+    constexpr auto expected_number_of_dofs = std::size_t{6 * 2 + 6};
+    ASSERT_EQ(actual_left_hand_side.size1(), expected_number_of_dofs);
+    ASSERT_EQ(actual_left_hand_side.size2(), expected_number_of_dofs);
 
-    expected_left_hand_side(0, 6)  = -shear_stiffness * (1.0 / 6.0);
-    expected_left_hand_side(1, 7)  = -normal_stiffness * (1.0 / 6.0);
-    expected_left_hand_side(2, 8)  = -shear_stiffness * (1.0 / 6.0);
-    expected_left_hand_side(3, 9)  = -normal_stiffness * (1.0 / 6.0);
-    expected_left_hand_side(4, 10) = -shear_stiffness * (2.0 / 3.0);
-    expected_left_hand_side(5, 11) = -normal_stiffness * (2.0 / 3.0);
+    constexpr auto number_of_u_dofs   = std::size_t{6 * 2};
+    auto expected_stiffness_matrix    = Matrix{ZeroMatrix{number_of_u_dofs, number_of_u_dofs}};
+    expected_stiffness_matrix(0, 0)   = shear_stiffness * (1.0 / 6.0);
+    expected_stiffness_matrix(1, 1)   = normal_stiffness * (1.0 / 6.0);
+    expected_stiffness_matrix(2, 2)   = shear_stiffness * (1.0 / 6.0);
+    expected_stiffness_matrix(3, 3)   = normal_stiffness * (1.0 / 6.0);
+    expected_stiffness_matrix(4, 4)   = shear_stiffness * (2.0 / 3.0);
+    expected_stiffness_matrix(5, 5)   = normal_stiffness * (2.0 / 3.0);
+    expected_stiffness_matrix(6, 6)   = shear_stiffness * (1.0 / 6.0);
+    expected_stiffness_matrix(7, 7)   = normal_stiffness * (1.0 / 6.0);
+    expected_stiffness_matrix(8, 8)   = shear_stiffness * (1.0 / 6.0);
+    expected_stiffness_matrix(9, 9)   = normal_stiffness * (1.0 / 6.0);
+    expected_stiffness_matrix(10, 10) = shear_stiffness * (2.0 / 3.0);
+    expected_stiffness_matrix(11, 11) = normal_stiffness * (2.0 / 3.0);
 
-    expected_left_hand_side(6, 0)  = -shear_stiffness * (1.0 / 6.0);
-    expected_left_hand_side(7, 1)  = -normal_stiffness * (1.0 / 6.0);
-    expected_left_hand_side(8, 2)  = -shear_stiffness * (1.0 / 6.0);
-    expected_left_hand_side(9, 3)  = -normal_stiffness * (1.0 / 6.0);
-    expected_left_hand_side(10, 4) = -shear_stiffness * (2.0 / 3.0);
-    expected_left_hand_side(11, 5) = -normal_stiffness * (2.0 / 3.0);
+    expected_stiffness_matrix(0, 6)  = -shear_stiffness * (1.0 / 6.0);
+    expected_stiffness_matrix(1, 7)  = -normal_stiffness * (1.0 / 6.0);
+    expected_stiffness_matrix(2, 8)  = -shear_stiffness * (1.0 / 6.0);
+    expected_stiffness_matrix(3, 9)  = -normal_stiffness * (1.0 / 6.0);
+    expected_stiffness_matrix(4, 10) = -shear_stiffness * (2.0 / 3.0);
+    expected_stiffness_matrix(5, 11) = -normal_stiffness * (2.0 / 3.0);
 
-    KRATOS_EXPECT_MATRIX_RELATIVE_NEAR(actual_left_hand_side, expected_left_hand_side, Defaults::relative_tolerance)
+    expected_stiffness_matrix(6, 0)  = -shear_stiffness * (1.0 / 6.0);
+    expected_stiffness_matrix(7, 1)  = -normal_stiffness * (1.0 / 6.0);
+    expected_stiffness_matrix(8, 2)  = -shear_stiffness * (1.0 / 6.0);
+    expected_stiffness_matrix(9, 3)  = -normal_stiffness * (1.0 / 6.0);
+    expected_stiffness_matrix(10, 4) = -shear_stiffness * (2.0 / 3.0);
+    expected_stiffness_matrix(11, 5) = -normal_stiffness * (2.0 / 3.0);
+
+    KRATOS_EXPECT_MATRIX_RELATIVE_NEAR(
+        subrange(actual_left_hand_side, 0, 0 + number_of_u_dofs, 0, 0 + number_of_u_dofs),
+        expected_stiffness_matrix, Defaults::relative_tolerance)
 
     auto expected_right_hand_side = Vector{ZeroVector{12}};
     expected_right_hand_side <<= 0.33333333, 1.66666667, 0.33333333, 1.66666667, 1.33333333,
@@ -927,8 +954,15 @@ KRATOS_TEST_CASE_IN_SUITE(UPwTriangleInterfaceElement_LeftHandSideContainsMateri
     element.CalculateLeftHandSide(actual_left_hand_side, ProcessInfo{});
 
     // Assert
-    const auto expected_left_hand_side = ExpectedLeftHandSideForTriangleElement();
-    KRATOS_EXPECT_MATRIX_RELATIVE_NEAR(actual_left_hand_side, expected_left_hand_side, Defaults::relative_tolerance)
+    constexpr auto expected_number_of_dofs = std::size_t{6 * 3 + 6};
+    ASSERT_EQ(actual_left_hand_side.size1(), expected_number_of_dofs);
+    ASSERT_EQ(actual_left_hand_side.size2(), expected_number_of_dofs);
+
+    constexpr auto number_of_u_dofs = std::size_t{6 * 3};
+    const auto expected_stiffness_matrix = ExpectedStiffnessMatrixOfLinearTrianglularInterfaceElement();
+    KRATOS_EXPECT_MATRIX_RELATIVE_NEAR(
+        subrange(actual_left_hand_side, 0, 0 + number_of_u_dofs, 0, 0 + number_of_u_dofs),
+        expected_stiffness_matrix, Defaults::relative_tolerance)
 }
 
 KRATOS_TEST_CASE_IN_SUITE(UPwTriangleInterfaceElement_LeftHandSideContainsMaterialStiffnessContributions_Rotated,
@@ -948,13 +982,18 @@ KRATOS_TEST_CASE_IN_SUITE(UPwTriangleInterfaceElement_LeftHandSideContainsMateri
     element.CalculateLeftHandSide(actual_left_hand_side, ProcessInfo{});
 
     // Assert
-    auto expected_left_hand_side = Matrix{18, 18};
+    constexpr auto expected_number_of_dofs = std::size_t{6 * 3 + 6};
+    ASSERT_EQ(actual_left_hand_side.size1(), expected_number_of_dofs);
+    ASSERT_EQ(actual_left_hand_side.size2(), expected_number_of_dofs);
+
+    constexpr auto number_of_u_dofs          = std::size_t{6 * 3};
+    auto           expected_stiffness_matrix = Matrix{number_of_u_dofs, number_of_u_dofs};
     // clang-format off
 
     // Since the rotation is about the z-axis (the normal of the triangle) and the two shear
-    // stiffnesses are equal, the left-hand side matrix is equal to the left-hand side of a
+    // stiffnesses are equal, the stiffness matrix is equal to the stiffness matrix of a
     // non-rotated surface interface element.
-    KRATOS_EXPECT_MATRIX_NEAR(actual_left_hand_side, ExpectedLeftHandSideForTriangleElement(), Defaults::relative_tolerance)
+    KRATOS_EXPECT_MATRIX_NEAR(subrange(actual_left_hand_side, 0, 0 + number_of_u_dofs, 0, 0 + number_of_u_dofs), ExpectedStiffnessMatrixOfLinearTrianglularInterfaceElement(), Defaults::relative_tolerance)
 }
 
 KRATOS_TEST_CASE_IN_SUITE(UPwTriangleInterfaceElement_LeftHandSideContainsMaterialStiffnessContributions_RotatedAboutYAxis,
@@ -974,8 +1013,13 @@ KRATOS_TEST_CASE_IN_SUITE(UPwTriangleInterfaceElement_LeftHandSideContainsMateri
     element.CalculateLeftHandSide(actual_left_hand_side, ProcessInfo{});
 
     // Assert
-    auto expected_left_hand_side = Matrix{18, 18};
-    expected_left_hand_side <<=
+    constexpr auto expected_number_of_dofs = std::size_t{6 * 3 + 6};
+    ASSERT_EQ(actual_left_hand_side.size1(), expected_number_of_dofs);
+    ASSERT_EQ(actual_left_hand_side.size2(), expected_number_of_dofs);
+
+    constexpr auto number_of_u_dofs          = std::size_t{6 * 3};
+    auto expected_stiffness_matrix = Matrix{number_of_u_dofs, number_of_u_dofs};
+    expected_stiffness_matrix <<=
     2.083333333333333,0,0.72168783648703216,0,0,0,0,0,0,-2.083333333333333,0,-0.72168783648703216,0,0,0,0,0,0,
     0,1.6666666666666661,0,0,0,0,0,0,0,0,-1.6666666666666661,0,0,0,0,0,0,0,
     0.72168783648703216,0,2.9166666666666661,0,0,0,0,0,0,-0.72168783648703216,0,-2.9166666666666661,0,0,0,0,0,0,
@@ -996,7 +1040,7 @@ KRATOS_TEST_CASE_IN_SUITE(UPwTriangleInterfaceElement_LeftHandSideContainsMateri
     0,0,0,0,0,0,-0.72168783648703216,0,-2.9166666666666661,0,0,0,0,0,0,0.72168783648703216,0,2.9166666666666661;
     // clang-format off
 
-    KRATOS_EXPECT_MATRIX_NEAR(actual_left_hand_side, expected_left_hand_side, Defaults::relative_tolerance)
+    KRATOS_EXPECT_MATRIX_NEAR(subrange(actual_left_hand_side, 0, 0 + number_of_u_dofs, 0, 0 + number_of_u_dofs), expected_stiffness_matrix, Defaults::relative_tolerance)
 }
 
 KRATOS_TEST_CASE_IN_SUITE(UPwTriangleInterfaceElement_RightHandSideEqualsMinusInternalForceVector,
@@ -1121,8 +1165,15 @@ KRATOS_TEST_CASE_IN_SUITE(UPwTriangleInterfaceElement_ReturnsExpectedLeftAndRigh
     element.CalculateLocalSystem(actual_left_hand_side, actual_right_hand_side, ProcessInfo{});
 
     // Assert
-    const auto expected_left_hand_side = ExpectedLeftHandSideForTriangleElement();
-    KRATOS_EXPECT_MATRIX_RELATIVE_NEAR(actual_left_hand_side, expected_left_hand_side, Defaults::relative_tolerance)
+    constexpr auto expected_number_of_dofs = std::size_t{6 * 3 + 6};
+    ASSERT_EQ(actual_left_hand_side.size1(), expected_number_of_dofs);
+    ASSERT_EQ(actual_left_hand_side.size2(), expected_number_of_dofs);
+
+    constexpr auto number_of_u_dofs = std::size_t{6 * 3};
+    const auto expected_stiffness_matrix = ExpectedStiffnessMatrixOfLinearTrianglularInterfaceElement();
+    KRATOS_EXPECT_MATRIX_RELATIVE_NEAR(
+        subrange(actual_left_hand_side, 0, 0 + number_of_u_dofs, 0, 0 + number_of_u_dofs),
+        expected_stiffness_matrix, Defaults::relative_tolerance)
 
     auto expected_right_hand_side = Vector{18};
     expected_right_hand_side <<= 0.333333, 0.833333, 0, 0, 0, 0, -0.333333, -0.833333, 0, -0.333333,
@@ -1315,9 +1366,15 @@ KRATOS_TEST_CASE_IN_SUITE(UPwTriangleInterfaceElement_6Plus6NodedElement_Returns
     element.CalculateLocalSystem(actual_left_hand_side, actual_right_hand_side, ProcessInfo{});
 
     // Assert
-    auto expected_left_hand_side = Matrix(36, 36); // the values are taken from the element
+    constexpr auto expected_number_of_dofs = std::size_t{12 * 3 + 12};
+    ASSERT_EQ(actual_left_hand_side.size1(), expected_number_of_dofs);
+    ASSERT_EQ(actual_left_hand_side.size2(), expected_number_of_dofs);
+
+    constexpr auto number_of_u_dofs = std::size_t{12 * 3};
+    auto           expected_stiffness_matrix =
+        Matrix(number_of_u_dofs, number_of_u_dofs); // the values are taken from the element
     // clang-format off
-    expected_left_hand_side <<=
+    expected_stiffness_matrix <<=
     0.16431924882629123,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,-0.16431924882629123,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
     0,0.16431924882629123,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,-0.16431924882629123,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
     0,0,0.32863849765258246,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,-0.32863849765258246,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
@@ -1356,7 +1413,9 @@ KRATOS_TEST_CASE_IN_SUITE(UPwTriangleInterfaceElement_6Plus6NodedElement_Returns
     0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,-3.0046948356807506,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,3.0046948356807506;
     // clang-format on
 
-    KRATOS_EXPECT_MATRIX_RELATIVE_NEAR(actual_left_hand_side, expected_left_hand_side, Defaults::relative_tolerance)
+    KRATOS_EXPECT_MATRIX_RELATIVE_NEAR(
+        subrange(actual_left_hand_side, 0, 0 + number_of_u_dofs, 0, 0 + number_of_u_dofs),
+        expected_stiffness_matrix, Defaults::relative_tolerance)
 
     auto expected_right_hand_side = Vector(36);
     expected_right_hand_side <<= 0, 0, 0, 0, 0, 0, 0, 0, 0, -0.300469, -0.751174, 0, -0.300469,
