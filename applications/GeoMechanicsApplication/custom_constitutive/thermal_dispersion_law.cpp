@@ -62,4 +62,13 @@ Matrix GeoThermalDispersionLaw::CalculateThermalDispersionMatrix(const Propertie
     return result;
 }
 
+void GeoThermalDispersionLaw::save(Serializer& rSerializer) const
+{
+    rSerializer.save("NumberOfDimensions", mNumberOfDimensions);
+}
+
+void GeoThermalDispersionLaw::load(Serializer& rSerializer)
+{
+    rSerializer.load("NumberOfDimensions", mNumberOfDimensions);
+}
 } // Namespace Kratos
