@@ -187,7 +187,7 @@ public:
         const ProcessInfo& rCurrentProcessInfo) override
     {
         const SizeType number_of_nodes = GetGeometry().size();
-        const SizeType mat_size = number_of_nodes * 3;
+        const SizeType mat_size = number_of_nodes * 9;
 
         if (rRightHandSideVector.size() != mat_size)
             rRightHandSideVector.resize(mat_size);

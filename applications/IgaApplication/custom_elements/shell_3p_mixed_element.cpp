@@ -321,17 +321,17 @@ namespace Kratos
         KRATOS_TRY
 
         KRATOS_WATCH("checkpoint")
-        double detJ = GetGeometry().DeterminantOfJacobian(0); // Check first gauss point
-        KRATOS_WATCH(detJ)
-    // 2. Detect Zero-Area (Inactive) IGA Spans
-    if (std::abs(detJ) < 1.0e-12) {
-        // This is a degenerate/empty element. Do nothing.
-        // We set the LHS to zero so it doesn't corrupt the system matrix.
-        if (CalculateStiffnessMatrixFlag) rLeftHandSideMatrix.clear();
-        if (CalculateResidualVectorFlag) rRightHandSideVector.clear();
-        return; 
+    //     double detJ = GetGeometry().DeterminantOfJacobian(0); // Check first gauss point
+    //     KRATOS_WATCH(detJ)
+    // // 2. Detect Zero-Area (Inactive) IGA Spans
+    // if (std::abs(detJ) < 1.0e-12) {
+    //     // This is a degenerate/empty element. Do nothing.
+    //     // We set the LHS to zero so it doesn't corrupt the system matrix.
+    //     if (CalculateStiffnessMatrixFlag) rLeftHandSideMatrix.clear();
+    //     if (CalculateResidualVectorFlag) rRightHandSideVector.clear();
+    //     return; 
        
-    }
+    // }
    
         const auto& r_geometry = GetGeometry();
 
@@ -369,8 +369,6 @@ namespace Kratos
             Matrix BMembrane = ZeroMatrix(3, mat_size);
             Matrix BCurvature = ZeroMatrix(3, mat_size);
             Matrix Nstress = ZeroMatrix(3, mat_size);
-            
-   
 
             CalculateBMembrane(
                 point_number,
@@ -386,6 +384,11 @@ namespace Kratos
                 Nstress,
                 kinematic_variables);
            double detJ = GetGeometry().DeterminantOfJacobian(point_number);
+
+           KRATOS_WATCH(BMembrane)
+           KRATOS_WATCH(BCurvature)
+           KRATOS_WATCH(Nstress) 
+
           for(IndexType i=0; i<BMembrane.size1(); i++)
           for(IndexType j=0; j<BMembrane.size2(); j++)
           BMembrane(i,j) *= 1.0 / detJ;  // SCALE MEMBRANE
@@ -412,9 +415,30 @@ namespace Kratos
             
             KRATOS_WATCH("checkpoint 4")
 
+
+            //Transformation Matrix
+            Matrix T = ZeroMatrix(mat_size*3, mat_size*3);
+            for (SizeType b = 0; b < 3; ++b)
+            {
+                for (SizeType i = 0; i < number_of_nodes; ++i)
+                {
+                    for (SizeType c = 0; c < 3; ++c)
+                    {
+                        SizeType j = b * (number_of_nodes * 3) + i * 3 + c;  // input index
+                        SizeType k = i * (3 * 3) + b * 3 + c;  // output index
+
+                        T(k, j) = 1.0;
+                    }
+                }
+            }
+
+            // KRATOS_WATCH(T)
+            // exit(0);
+           
             // LEFT HAND SIDE MATRIX
             if (CalculateStiffnessMatrixFlag == true)
             {
+
                 //adding membrane contributions to the stiffness matrix
                 CalculateAndAddKm(
                     rLeftHandSideMatrix,
@@ -431,8 +455,8 @@ namespace Kratos
          KRATOS_WATCH("checkpoint 5")
     const Matrix& C_m = m_C_membrane_matrix_vector[point_number];
     const Matrix& C_b = m_C_bending_matrix_vector[point_number];
-     std::cout << "C=" << C_b << std::endl;
-                
+    //  std::cout << "C=" << C_b << std::endl;
+
                 CalculateAndAddK12(
                     rLeftHandSideMatrix,
                     BMembrane,
@@ -440,9 +464,9 @@ namespace Kratos
                     Nstress,
                     integration_weight);
         KRATOS_WATCH("checkpoint 6")
-         KRATOS_WATCH(BMembrane)
-            KRATOS_WATCH(C_m)
-            KRATOS_WATCH(Nstress)
+        //  KRATOS_WATCH(BMembrane)
+        //     KRATOS_WATCH(C_m)
+        //     KRATOS_WATCH(Nstress)
                 CalculateAndAddK21(
                     rLeftHandSideMatrix,
                     BMembrane,
@@ -463,7 +487,7 @@ namespace Kratos
                     Nstress,
                     integration_weight);
                     KRATOS_WATCH("checkpoint 9")
-                    KRATOS_WATCH(BCurvature)
+                    // KRATOS_WATCH(BCurvature)
                 CalculateAndAddK31(
                     rLeftHandSideMatrix,
                     BCurvature,
@@ -476,8 +500,10 @@ namespace Kratos
                     C_b,
                     Nstress,
                     integration_weight);
-                   
-                    
+
+                noalias(rLeftHandSideMatrix) = prod(rLeftHandSideMatrix,T);
+                noalias(rLeftHandSideMatrix) = prod(trans(T),rLeftHandSideMatrix);
+
                         
                 // adding  non-linear-contribution to Stiffness-Matrix
                 // CalculateAndAddNonlinearKm(
@@ -499,11 +525,15 @@ namespace Kratos
                 // operation performed: rRightHandSideVector -= Weight*IntForce
                 noalias(rRightHandSideVector) -= integration_weight * prod(trans(BMembrane), constitutive_variables_membrane.StressVector);
                 noalias(rRightHandSideVector) -= integration_weight * prod(trans(BCurvature), constitutive_variables_curvature.StressVector);
+                noalias(rRightHandSideVector) = prod(trans(T),rRightHandSideVector);
                 
             }
         }   KRATOS_WATCH("checkpoint 14")
         KRATOS_CATCH("");
-      #
+
+        // KRATOS_WATCH(rLeftHandSideMatrix)
+        // exit(0);
+        // KRATOS_WATCH(rRightHandSideVector)
     }
 
 
@@ -779,14 +809,14 @@ namespace Kratos
     
     
     m_C_membrane_matrix_vector[IntegrationPointIndex] = C_membrane;
-    KRATOS_INFO("Membrane") << "C_membrane " << C_membrane << std::endl; // printing
+    // KRATOS_INFO("Membrane") << "C_membrane " << C_membrane << std::endl; // printing
         double thickness = this->GetProperties().GetValue(THICKNESS);
         noalias(rThisConstitutiveVariablesCurvature.ConstitutiveMatrix) = rThisConstitutiveVariablesMembrane.ConstitutiveMatrix * (pow(thickness, 2) / 12);
    
     Matrix& D_bending = rThisConstitutiveVariablesCurvature.ConstitutiveMatrix;
     Matrix C_bending = ZeroMatrix(3, 3);;
     double det_bending;
-    KRATOS_WATCH(C_bending)
+    // KRATOS_WATCH(C_bending)
     MathUtils<double>::InvertMatrix(D_bending, C_bending, det_bending);
     
    
@@ -1070,7 +1100,16 @@ namespace Kratos
         const double IntegrationWeight
     ) const
     {   
-        noalias(rLeftHandSideMatrix) += IntegrationWeight * prod(trans(rB), Matrix(prod(rD, rB)));
+        Matrix temp = ZeroMatrix(rB.size2(), rB.size2());
+        noalias(temp) = IntegrationWeight * prod(trans(rB), Matrix(prod(rD, rB)));
+
+        for (IndexType i = 0; i < rB.size2(); i++)
+        {
+            for (IndexType j= 0; j < rB.size2(); j++)
+            {
+                rLeftHandSideMatrix(i, j) += temp(i,j);
+            }
+        }
     }
     inline void Shell3pMixedElement::CalculateAndAddK12(
         MatrixType& rLeftHandSideMatrix,
@@ -1083,14 +1122,14 @@ namespace Kratos
     { 
        Matrix temp = ZeroMatrix(rN_sigma.size1(), rN_sigma.size2());
        Matrix temp2 = ZeroMatrix(rN_sigma.size2(), rN_sigma.size2());
-       KRATOS_WATCH(rLeftHandSideMatrix.size1())
-       KRATOS_WATCH(rC_m.size1())
+    //    KRATOS_WATCH(rLeftHandSideMatrix.size1())
+    //    KRATOS_WATCH(rC_m.size1())
 
-       KRATOS_WATCH(rN_sigma.size1())
-       KRATOS_WATCH(rN_sigma.size2())
+    //    KRATOS_WATCH(rN_sigma.size1())
+    //    KRATOS_WATCH(rN_sigma.size2())
 
-       KRATOS_WATCH(rB_m.size1())
-       KRATOS_WATCH(rB_m.size2())
+    //    KRATOS_WATCH(rB_m.size1())
+    //    KRATOS_WATCH(rB_m.size2())
 
 
        noalias(temp) = prod(rC_m, rN_sigma);
@@ -1101,11 +1140,11 @@ namespace Kratos
       
 
     //    noalias(rLeftHandSideMatrix) += IntegrationWeight * prod(trans(rB_m), temp); // wrong
-       for (IndexType i = 0; i < 48; i++)
+       for (IndexType i = 0; i < rN_sigma.size2(); i++)
         {
-            for (IndexType j= 0; j < 48; j++)
+            for (IndexType j= 0; j < rN_sigma.size2(); j++)
             {
-                rLeftHandSideMatrix(i, 48+j) = temp2(i,j);
+                rLeftHandSideMatrix(i, rN_sigma.size2()+j) += temp2(i,j);
             }
         }
     }
@@ -1121,11 +1160,11 @@ namespace Kratos
        Matrix temp2 = ZeroMatrix(rN_sigma.size2(), rN_sigma.size2());
        noalias(temp) = prod(rC_m, rB_m);
        noalias(temp2) += IntegrationWeight * prod(trans(rN_sigma), temp);
-       for (IndexType i = 0; i < 48; i++)
+       for (IndexType i = 0; i < rN_sigma.size2(); i++)
         {
-            for (IndexType j= 0; j < 48; j++)
+            for (IndexType j= 0; j < rN_sigma.size2(); j++)
             {
-                rLeftHandSideMatrix(48+ i, j) = temp2(i,j);
+                rLeftHandSideMatrix(rN_sigma.size2()+ i, j) += temp2(i,j);
             }
         }
     }
@@ -1143,11 +1182,11 @@ namespace Kratos
        Matrix temp2 = ZeroMatrix(rN_sigma.size2(), rN_sigma.size2());
        noalias(temp) = prod(rC_m, rN_sigma);
        noalias(temp2) += IntegrationWeight * prod(trans(rN_sigma), temp);
-        for (IndexType i = 0; i < 48; i++)
+        for (IndexType i = 0; i < rN_sigma.size2(); i++)
         {
-            for (IndexType j= 0; j < 48; j++)
+            for (IndexType j= 0; j < rN_sigma.size2(); j++)
             {
-                rLeftHandSideMatrix(48+ i, 48+ j) = temp2(i,j);
+                rLeftHandSideMatrix(rN_sigma.size2()+ i, rN_sigma.size2()+ j) += temp2(i,j);
             }
         }
     }
@@ -1163,11 +1202,11 @@ namespace Kratos
        Matrix temp2 = ZeroMatrix(rN_sigma.size2(), rN_sigma.size2());
        noalias(temp) = prod(rC_b, rN_sigma);
        noalias(temp2) += IntegrationWeight * prod(trans(rB_c), temp);
-        for (IndexType i = 0; i < 48; i++)
+        for (IndexType i = 0; i < rN_sigma.size2(); i++)
         {
-            for (IndexType j= 0; j < 48; j++)
+            for (IndexType j= 0; j < rN_sigma.size2(); j++)
             {
-                rLeftHandSideMatrix(i, 96 + j) = temp2(i,j);
+                rLeftHandSideMatrix(i, rN_sigma.size2()*2 + j) += temp2(i,j);
             }
         }
     } inline void Shell3pMixedElement::CalculateAndAddK31(
@@ -1181,11 +1220,11 @@ namespace Kratos
        Matrix temp2 = ZeroMatrix(rN_sigma.size2(), rN_sigma.size2());
        noalias(temp) = prod(rC_b, rB_c);
        noalias(temp2) += IntegrationWeight * prod(trans(rN_sigma), temp);
-        for (IndexType i = 0; i < 48; i++)
+        for (IndexType i = 0; i < rN_sigma.size2(); i++)
         {
-            for (IndexType j= 0; j < 48; j++)
+            for (IndexType j= 0; j < rN_sigma.size2(); j++)
             {
-                rLeftHandSideMatrix(96+ i, j) = temp2(i,j);
+                rLeftHandSideMatrix(rN_sigma.size2()*2 + i, j) += temp2(i,j);
             }
         }
     } inline void Shell3pMixedElement::CalculateAndAddK33(
@@ -1198,11 +1237,11 @@ namespace Kratos
        Matrix temp2 = ZeroMatrix(rN_sigma.size2(), rN_sigma.size2());
        noalias(temp) = prod(rC_b, rN_sigma);
        noalias(temp2) += IntegrationWeight * prod(trans(rN_sigma), temp);
-        for (IndexType i = 0; i < 48; i++)
+        for (IndexType i = 0; i < rN_sigma.size2(); i++)
         {
-            for (IndexType j= 0; j < 48; j++)
+            for (IndexType j= 0; j < rN_sigma.size2(); j++)
             {
-                rLeftHandSideMatrix(96+ i,96+ j) = temp2(i,j);
+                rLeftHandSideMatrix(rN_sigma.size2()*2 + i, rN_sigma.size2()*2 + j) += temp2(i,j);
                 
             }  
             
@@ -1501,7 +1540,7 @@ namespace Kratos
             DDa2_DD21 += rDDDN_DDDe(k, 2) * coords;
             DDa2_DD22 += rDDDN_DDDe(k, 3) * coords;
         } 
-        KRATOS_WATCH(a3)
+        // KRATOS_WATCH(a3)
         // derivative of the curvature
         array_1d<double, 3> cross1;
         array_1d<double, 3> cross2;
