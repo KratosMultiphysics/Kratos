@@ -203,23 +203,27 @@ KRATOS_TEST_CASE_IN_SUITE(TestCompressionCapYieldSurface, KratosGeoMechanicsFast
 
     const auto cap_yield_surface = CompressionCapYieldSurface{material_properties};
 
-    Vector principal_stress(3);
-    principal_stress <<= 30.0, 20.0, 10.0;
+    auto principal_stress = UblasUtilities::CreateVector({30.0, 20.0, 10.0});
     auto p_q = StressStrainUtilities::TransformPrincipalStressesToPandQ(principal_stress);
     KRATOS_EXPECT_NEAR(cap_yield_surface.YieldFunctionValue(p_q), 18.75, Defaults::absolute_tolerance);
 
-    principal_stress <<= 20.0, 15.0, 10.0;
-    p_q = StressStrainUtilities::TransformPrincipalStressesToPandQ(principal_stress);
+    principal_stress = UblasUtilities::CreateVector({20.0, 15.0, 10.0});
+    p_q              = StressStrainUtilities::TransformPrincipalStressesToPandQ(principal_stress);
     KRATOS_EXPECT_NEAR(cap_yield_surface.YieldFunctionValue(p_q), -170.3125, Defaults::absolute_tolerance);
 
-    principal_stress <<= 46.1880215351700611607, 0.0, -46.1880215351700611607;
+    principal_stress = UblasUtilities::CreateVector({46.1880215351700611607, 0.0, -46.1880215351700611607});
     p_q = StressStrainUtilities::TransformPrincipalStressesToPandQ(principal_stress);
     KRATOS_EXPECT_NEAR(cap_yield_surface.YieldFunctionValue(p_q), 0.0, Defaults::absolute_tolerance);
 
-    auto expected_derivative = Vector(2);
-    expected_derivative <<= 0.0, 10.0;
-    KRATOS_EXPECT_VECTOR_NEAR(cap_yield_surface.DerivativeOfFlowFunction(p_q),
-                              expected_derivative, Defaults::absolute_tolerance);
+    auto expected_derivative = UblasUtilities::CreateVector({0.0, 10.0});
+    KRATOS_EXPECT_VECTOR_NEAR(cap_yield_surface.DerivativeOfFlowFunction(p_q), expected_derivative,
+                              Defaults::absolute_tolerance);
+
+    principal_stress = UblasUtilities::CreateVector({51.9615242270663, 0.0, -51.9615242270663});
+    p_q              = StressStrainUtilities::TransformPrincipalStressesToPandQ(principal_stress);
+    expected_derivative = UblasUtilities::CreateVector({0.0, 11.25});
+    KRATOS_EXPECT_VECTOR_NEAR(cap_yield_surface.DerivativeOfFlowFunction(p_q), expected_derivative,
+                              Defaults::absolute_tolerance);
 }
 
 } // namespace Kratos::Testing
