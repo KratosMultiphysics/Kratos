@@ -608,6 +608,11 @@ public:
 
             rModelPart.GetProcessInfo()[EIGENVALUE_NITSCHE_STABILIZATION_ROTATION_VECTOR] = Eigenvaluesrotation;
         }
+        else
+        {
+            DenseVectorType Eigenvaluesrotation(1, 0.0);
+            rModelPart.GetProcessInfo()[EIGENVALUE_NITSCHE_STABILIZATION_ROTATION_VECTOR] = Eigenvaluesrotation;
+        }
 
         return true;
     }
