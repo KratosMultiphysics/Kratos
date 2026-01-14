@@ -72,6 +72,7 @@ from test_dsettlement_validation import  KratosGeoMechanicsDSettlementValidation
 from test_dirichlet_u_constant import KratosGeoMechanicsDirichletUConstantTests
 from interface_prestress import KratosGeoMechanicsInterfacePreStressTests
 from test_submerged_construction_of_excavation import KratosGeoMechanicsSubmergedConstructionOfExcavation
+from test_case_sensitive_UMATs import KratosGeoMechanicsCaseSensitivityInUMATTests
 
 def AssembleTestSuites():
     ''' Populates the test suites to run.
@@ -128,6 +129,7 @@ def AssembleTestSuites():
                         KratosGeoMechanicsAvoidSmallEndStepTests,
                         KratosGeoMechanicsDirichletUConstantTests,
                         KratosGeoMechanicsInterfacePreStressTests,
+                        KratosGeoMechanicsCaseSensitivityInUMATTests,
                         ]
 
     night_test_cases = [
