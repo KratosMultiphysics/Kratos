@@ -388,7 +388,7 @@ public:
             }
 
             // Assemble conditions
-            # pragma omp for schedule(guided, 512) nowait
+            # pragma omp for schedule(guided, 512)
             for (int k = 0; k < n_conds; ++k) {
                 // Calculate local LHS and RHS contributions
                 auto it_cond = conds_begin + k;
