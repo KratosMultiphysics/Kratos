@@ -164,7 +164,7 @@ intrusive_ptr<PwElement<2, 3>> CreateTriangleTransientPwLineElementWithoutPWDofs
 }
 
 template <unsigned int TDim, unsigned int TNumNodes>
-void SetBasicPropertiesAndVariables(intrusive_ptr<PwElement<TDim, TNumNodes>> rElement)
+void SetBasicPropertiesAndVariables(const intrusive_ptr<PwElement<TDim, TNumNodes>>& rElement)
 {
     rElement->GetProperties().SetValue(DENSITY_WATER, 1.0E3);
     rElement->GetProperties().SetValue(DYNAMIC_VISCOSITY, 1.0E-2);
@@ -266,103 +266,103 @@ KRATOS_TEST_CASE_IN_SUITE(TransientPwLineElement_ReturnsTheExpectedLeftHandSideA
                                        Defaults::relative_tolerance)
 }
 
-void CommonChecksForLineAndDomainElements(intrusive_ptr<Element> pElement,
-                                          const ProcessInfo&     dummy_process_info = ProcessInfo{})
+void CommonChecksForLineAndDomainElements(const intrusive_ptr<Element>& rpElement,
+                                          const ProcessInfo& dummy_process_info = ProcessInfo{})
 {
-    KRATOS_EXPECT_EXCEPTION_IS_THROWN(pElement->Check(dummy_process_info),
+    KRATOS_EXPECT_EXCEPTION_IS_THROWN(rpElement->Check(dummy_process_info),
                                       "DENSITY_WATER does not exist in the material properties at "
                                       "element with Id 0 at element with Id 4.")
 
-    pElement->GetProperties().SetValue(DENSITY_WATER, -1.0E3);
+    rpElement->GetProperties().SetValue(DENSITY_WATER, -1.0E3);
     KRATOS_EXPECT_EXCEPTION_IS_THROWN(
-        pElement->Check(dummy_process_info),
+        rpElement->Check(dummy_process_info),
         "DENSITY_WATER in the material properties at element with Id 0 at element with Id 4 has an "
         "invalid value: -1000 is out of the range [0, -).")
 
-    pElement->GetProperties().SetValue(DENSITY_WATER, 1.0E3);
-    KRATOS_EXPECT_EXCEPTION_IS_THROWN(pElement->Check(dummy_process_info),
+    rpElement->GetProperties().SetValue(DENSITY_WATER, 1.0E3);
+    KRATOS_EXPECT_EXCEPTION_IS_THROWN(rpElement->Check(dummy_process_info),
                                       "DENSITY_SOLID does not exist in the material properties at "
                                       "element with Id 0 at element with Id 4.")
 
-    pElement->GetProperties().SetValue(DENSITY_SOLID, -1.0E3);
+    rpElement->GetProperties().SetValue(DENSITY_SOLID, -1.0E3);
     KRATOS_EXPECT_EXCEPTION_IS_THROWN(
-        pElement->Check(dummy_process_info),
+        rpElement->Check(dummy_process_info),
         "DENSITY_SOLID in the material properties at element with Id 0 at element with Id 4 has an "
         "invalid value: -1000 is out of the range [0, -).")
 
-    pElement->GetProperties().SetValue(DENSITY_SOLID, 1.0E3);
-    KRATOS_EXPECT_EXCEPTION_IS_THROWN(pElement->Check(dummy_process_info),
+    rpElement->GetProperties().SetValue(DENSITY_SOLID, 1.0E3);
+    KRATOS_EXPECT_EXCEPTION_IS_THROWN(rpElement->Check(dummy_process_info),
                                       "POROSITY does not exist in the material properties at "
                                       "element with Id 0 at element with Id 4.")
 
-    pElement->GetProperties().SetValue(POROSITY, -1.0);
+    rpElement->GetProperties().SetValue(POROSITY, -1.0);
     KRATOS_EXPECT_EXCEPTION_IS_THROWN(
-        pElement->Check(dummy_process_info),
+        rpElement->Check(dummy_process_info),
         "POROSITY in the material properties at element with Id 0 at element with Id 4 has an "
         "invalid value: -1 is out of the range [0, 1].")
 
-    pElement->GetProperties().SetValue(POROSITY, 2.0);
+    rpElement->GetProperties().SetValue(POROSITY, 2.0);
     KRATOS_EXPECT_EXCEPTION_IS_THROWN(
-        pElement->Check(dummy_process_info),
+        rpElement->Check(dummy_process_info),
         "POROSITY in the material properties at element with Id 0 at element with Id 4 has an "
         "invalid value: 2 is out of the range [0, 1].")
 
-    pElement->GetProperties().SetValue(POROSITY, 0.5);
-    KRATOS_EXPECT_EXCEPTION_IS_THROWN(pElement->Check(dummy_process_info),
+    rpElement->GetProperties().SetValue(POROSITY, 0.5);
+    KRATOS_EXPECT_EXCEPTION_IS_THROWN(rpElement->Check(dummy_process_info),
                                       "BULK_MODULUS_SOLID does not exist in the material "
                                       "properties at element with Id 0 at element with Id 4.")
 
-    pElement->GetProperties().SetValue(BULK_MODULUS_SOLID, -1.0E6);
+    rpElement->GetProperties().SetValue(BULK_MODULUS_SOLID, -1.0E6);
     KRATOS_EXPECT_EXCEPTION_IS_THROWN(
-        pElement->Check(dummy_process_info),
+        rpElement->Check(dummy_process_info),
         "BULK_MODULUS_SOLID in the material properties at element with Id 0 at element with Id 4 "
         "has an invalid value: -1e+06 is out of the range [0, -).")
 
-    pElement->GetProperties().SetValue(BULK_MODULUS_SOLID, 1.0E6);
-    KRATOS_EXPECT_EXCEPTION_IS_THROWN(pElement->Check(dummy_process_info),
+    rpElement->GetProperties().SetValue(BULK_MODULUS_SOLID, 1.0E6);
+    KRATOS_EXPECT_EXCEPTION_IS_THROWN(rpElement->Check(dummy_process_info),
                                       "BULK_MODULUS_FLUID does not exist in the material "
                                       "properties at element with Id 0 at element with Id 4.")
 
-    pElement->GetProperties().SetValue(BULK_MODULUS_FLUID, -1.0E6);
+    rpElement->GetProperties().SetValue(BULK_MODULUS_FLUID, -1.0E6);
     KRATOS_EXPECT_EXCEPTION_IS_THROWN(
-        pElement->Check(dummy_process_info),
+        rpElement->Check(dummy_process_info),
         "BULK_MODULUS_FLUID in the material properties at element with Id 0 at element with Id 4 "
         "has an invalid value: -1e+06 is out of the range [0, -).")
 
-    pElement->GetProperties().SetValue(BULK_MODULUS_FLUID, 1.0E6);
-    KRATOS_EXPECT_EXCEPTION_IS_THROWN(pElement->Check(dummy_process_info),
+    rpElement->GetProperties().SetValue(BULK_MODULUS_FLUID, 1.0E6);
+    KRATOS_EXPECT_EXCEPTION_IS_THROWN(rpElement->Check(dummy_process_info),
                                       "DYNAMIC_VISCOSITY does not exist in the material properties "
                                       "at element with Id 0 at element with Id 4.")
 
-    pElement->GetProperties().SetValue(DYNAMIC_VISCOSITY, -1.0E6);
+    rpElement->GetProperties().SetValue(DYNAMIC_VISCOSITY, -1.0E6);
     KRATOS_EXPECT_EXCEPTION_IS_THROWN(
-        pElement->Check(dummy_process_info),
+        rpElement->Check(dummy_process_info),
         "DYNAMIC_VISCOSITY in the material properties at element with Id 0 at element with Id 4 "
         "has an invalid value: -1e+06 is out of the range [0, -).")
 
-    pElement->GetProperties().SetValue(DYNAMIC_VISCOSITY, 1.0E6);
-    KRATOS_EXPECT_EXCEPTION_IS_THROWN(pElement->Check(dummy_process_info),
+    rpElement->GetProperties().SetValue(DYNAMIC_VISCOSITY, 1.0E6);
+    KRATOS_EXPECT_EXCEPTION_IS_THROWN(rpElement->Check(dummy_process_info),
                                       "BIOT_COEFFICIENT does not exist in the material properties "
                                       "at element with Id 0 at element with Id 4.")
 
-    pElement->GetProperties().SetValue(BIOT_COEFFICIENT, -1.0);
+    rpElement->GetProperties().SetValue(BIOT_COEFFICIENT, -1.0);
     KRATOS_EXPECT_EXCEPTION_IS_THROWN(
-        pElement->Check(dummy_process_info),
+        rpElement->Check(dummy_process_info),
         "BIOT_COEFFICIENT in the material properties at element with Id 0 at element with Id 4 has "
         "an invalid value: -1 is out of the range [0, -).")
 
-    pElement->GetProperties().SetValue(BIOT_COEFFICIENT, 1.0);
-    KRATOS_EXPECT_EXCEPTION_IS_THROWN(pElement->Check(dummy_process_info),
+    rpElement->GetProperties().SetValue(BIOT_COEFFICIENT, 1.0);
+    KRATOS_EXPECT_EXCEPTION_IS_THROWN(rpElement->Check(dummy_process_info),
                                       "PERMEABILITY_XX does not exist in the material properties "
                                       "at element with Id 0 at element with Id 4.")
 
-    pElement->GetProperties().SetValue(PERMEABILITY_XX, -1.0);
+    rpElement->GetProperties().SetValue(PERMEABILITY_XX, -1.0);
     KRATOS_EXPECT_EXCEPTION_IS_THROWN(
-        pElement->Check(dummy_process_info),
+        rpElement->Check(dummy_process_info),
         "PERMEABILITY_XX in the material properties at element with Id 0 at element with Id 4 has "
         "an invalid value: -1 is out of the range [0, -).")
 
-    pElement->GetProperties().SetValue(PERMEABILITY_XX, 1.0);
+    rpElement->GetProperties().SetValue(PERMEABILITY_XX, 1.0);
 }
 
 KRATOS_TEST_CASE_IN_SUITE(TransientPwLineElement_CheckThrowsOnFaultyInput, KratosGeoMechanicsFastSuiteWithoutKernel)
