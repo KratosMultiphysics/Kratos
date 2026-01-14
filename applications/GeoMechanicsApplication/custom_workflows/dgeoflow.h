@@ -111,12 +111,12 @@ public:
                               const Kratos::Parameters& rGidOutputSettings,
                               const GeoMechanicsNewtonRaphsonErosionProcessStrategyType::Pointer& rpSolvingStrategy) const;
 
-    int ExecuteWithPiping(ModelPart&                rModelPart,
-                          const Kratos::Parameters& rGidOutputSettings,
-                          const CriticalHeadInfo&   rCriticalHeadInfo,
-                          LoggerOutput::Pointer     rpOutput,
-                          const std::stringstream&  rKratosLogBuffer,
-                          const CallBackFunctions&  rCallBackFunctions,
+    int ExecuteWithPiping(ModelPart&                   rModelPart,
+                          const Kratos::Parameters&    rGidOutputSettings,
+                          const CriticalHeadInfo&      rCriticalHeadInfo,
+                          const LoggerOutput::Pointer& rpOutput,
+                          const std::stringstream&     rKratosLogBuffer,
+                          const CallBackFunctions&     rCallBackFunctions,
                           const GeoMechanicsNewtonRaphsonErosionProcessStrategyType::Pointer& rpSolvingStrategy);
 
     void WriteCriticalHeadResultToFile() const;
