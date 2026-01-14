@@ -28,14 +28,14 @@ GeneralUPwDiffOrderCondition::GeneralUPwDiffOrderCondition()
     : GeneralUPwDiffOrderCondition(0, nullptr, nullptr) {};
 
 GeneralUPwDiffOrderCondition::GeneralUPwDiffOrderCondition(IndexType NewId, GeometryType::Pointer pGeometry)
-    : GeneralUPwDiffOrderCondition(NewId, pGeometry, nullptr)
+    : GeneralUPwDiffOrderCondition(NewId, std::move(pGeometry), nullptr)
 {
 }
 
 GeneralUPwDiffOrderCondition::GeneralUPwDiffOrderCondition(IndexType               NewId,
                                                            GeometryType::Pointer   pGeometry,
                                                            PropertiesType::Pointer pProperties)
-    : Condition(NewId, pGeometry, pProperties)
+    : Condition(NewId, std::move(pGeometry), std::move(pProperties))
 {
 }
 
@@ -43,14 +43,14 @@ Condition::Pointer GeneralUPwDiffOrderCondition::Create(IndexType               
                                                         NodesArrayType const&   ThisNodes,
                                                         PropertiesType::Pointer pProperties) const
 {
-    return Create(NewId, GetGeometry().Create(ThisNodes), pProperties);
+    return Create(NewId, GetGeometry().Create(ThisNodes), std::move(pProperties));
 }
 
 Condition::Pointer GeneralUPwDiffOrderCondition::Create(IndexType               NewId,
                                                         GeometryType::Pointer   pGeom,
                                                         PropertiesType::Pointer pProperties) const
 {
-    return make_intrusive<GeneralUPwDiffOrderCondition>(NewId, pGeom, pProperties);
+    return make_intrusive<GeneralUPwDiffOrderCondition>(NewId, std::move(pGeom), std::move(pProperties));
 }
 
 void GeneralUPwDiffOrderCondition::Initialize(const ProcessInfo& rCurrentProcessInfo)
