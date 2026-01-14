@@ -14,6 +14,7 @@
 #include "stress_strain_utilities.h"
 #include "custom_utilities/generic_utilities.h"
 #include "custom_utilities/math_utilities.h"
+#include "custom_utilities/ublas_utilities.h"
 #include "geo_mechanics_application_constants.h"
 #include "utilities/math_utils.h"
 #include <cmath>
@@ -240,12 +241,9 @@ Vector StressStrainUtilities::TransformSigmaTauToPrincipalStresses(const Vector&
 Vector StressStrainUtilities::TransformPrincipalStressesToPandQ(const Vector& rPrincipalStresses)
 {
     Vector local_stress_vector = Vector(6, 0.0);
-    std::copy(rPrincipalStresses.begin(), rPrincipalStresses.end(), local_stress_vector.begin());
-
-    auto result = Vector{2};
-    result[0]   = CalculateMeanStress(local_stress_vector);
-    result[1]   = CalculateVonMisesStress(local_stress_vector);
-    return result;
+    std::ranges::copy(rPrincipalStresses, local_stress_vector.begin());
+    return UblasUtilities::CreateVector(
+        {CalculateMeanStress(local_stress_vector), CalculateVonMisesStress(local_stress_vector)});
 }
 
 } // namespace Kratos

@@ -226,4 +226,34 @@ KRATOS_TEST_CASE_IN_SUITE(TestCompressionCapYieldSurface, KratosGeoMechanicsFast
                               Defaults::absolute_tolerance);
 }
 
+KRATOS_TEST_CASE_IN_SUITE(CompressionCapYieldSurface_CanBeSavedAndLoadedThroughInterface,
+                          KratosGeoMechanicsFastSuiteWithoutKernel)
+{
+    // Arrange
+    const auto scoped_registration = ScopedSerializerRegistration{
+        std::make_pair("CompressionCapYieldSurface"s, CompressionCapYieldSurface{})};
+
+    auto material_properties                          = Properties{};
+    material_properties[GEO_COMPRESSION_CAP_LOCATION] = 20.0;
+    material_properties[GEO_COMPRESSION_CAP_SIZE]     = 4.0;
+    auto p_cap_yield_surface =
+        std::unique_ptr<YieldSurface>{std::make_unique<CompressionCapYieldSurface>(material_properties)};
+    auto serializer = StreamSerializer{};
+
+    // Act
+    serializer.save("test_tag"s, p_cap_yield_surface);
+    auto p_loaded_cap_yield_surface = std::unique_ptr<YieldSurface>{};
+    serializer.load("test_tag"s, p_loaded_cap_yield_surface);
+
+    // Assert
+    ASSERT_NE(p_loaded_cap_yield_surface, nullptr);
+    auto       principal_stresses = UblasUtilities::CreateVector({30.0, 20.0, 10.0});
+    const auto p_q = StressStrainUtilities::TransformPrincipalStressesToPandQ(principal_stresses);
+    KRATOS_EXPECT_NEAR(p_loaded_cap_yield_surface->YieldFunctionValue(p_q), 18.75, Defaults::absolute_tolerance);
+
+    auto expected_derivative = UblasUtilities::CreateVector({40.0, 2.1650635094610966169});
+    KRATOS_EXPECT_VECTOR_NEAR(p_loaded_cap_yield_surface->DerivativeOfFlowFunction(p_q),
+                              expected_derivative, Defaults::absolute_tolerance);
+}
+
 } // namespace Kratos::Testing

@@ -66,7 +66,8 @@ std::string GetCapHardeningTypeFrom(const Properties& rMaterialProperties)
 
 CompressionCapYieldSurface::KappaDependentFunction MakeCapSizeCalculator(const Properties& rMaterialProperties)
 {
-    const auto hardening_type = GetCapHardeningTypeFrom(rMaterialProperties);
+    const auto hardening_type =
+        StringUtilities::ConvertCamelCaseToSnakeCase(rMaterialProperties[GEO_CAP_HARDENING_TYPE]);
     if (hardening_type == "none") {
         return MakeConstantCapFunction(GetCapSize(rMaterialProperties));
     }
@@ -76,7 +77,8 @@ CompressionCapYieldSurface::KappaDependentFunction MakeCapSizeCalculator(const P
 
 CompressionCapYieldSurface::KappaDependentFunction MakeCapLocationCalculator(const Properties& rMaterialProperties)
 {
-    const auto hardening_type = GetCapHardeningTypeFrom(rMaterialProperties);
+    const auto hardening_type =
+        StringUtilities::ConvertCamelCaseToSnakeCase(rMaterialProperties[GEO_CAP_HARDENING_TYPE]);
     if (hardening_type == "none") {
         return MakeConstantCapFunction(GetCapLocation(rMaterialProperties));
     }
@@ -115,12 +117,14 @@ double CompressionCapYieldSurface::GetCapLocation() const { return mCapLocationC
 
 double CompressionCapYieldSurface::YieldFunctionValue(const Vector& rSigmaTau) const
 {
+    // rSigmaTau here contains the values of p and q
     return std::pow(rSigmaTau[1] / GetCapSize(), 2) +
            (rSigmaTau[0] + GetCapLocation()) * (rSigmaTau[0] - GetCapLocation());
 }
 
 Vector CompressionCapYieldSurface::DerivativeOfFlowFunction(const Vector& rSigmaTau) const
 {
+    // rSigmaTau here contains the values of p and q
     return UblasUtilities::CreateVector({2.0 * rSigmaTau[0], 2.0 * rSigmaTau[1] / std::pow(GetCapSize(), 2)});
 }
 
