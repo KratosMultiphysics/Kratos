@@ -11,9 +11,11 @@
 //
 
 // System includes
-#include <ranges>
-#include <execution>
-#include <algorithm>
+#ifdef KRATOS_USE_TBB
+    #include <ranges>
+    #include <execution>
+    #include <algorithm>
+#endif
 
 // External includes
 
