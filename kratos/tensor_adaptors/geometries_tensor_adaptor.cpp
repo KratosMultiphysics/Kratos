@@ -26,55 +26,30 @@
 namespace Kratos
 {
 
-namespace
-{
-
-template <class TContainerType> constexpr bool IsSupportedContainer()
-{
-    return IsInList<TContainerType, ModelPart::GeometryContainerType,
-           ModelPart::ElementsContainerType,
-           ModelPart::ConditionsContainerType>;
-}
-
-template <class TEntity> const auto &GetGeometry(const TEntity &rEntity)
-{
-    if constexpr (std::is_same_v<TEntity, Geometry<Node>>)
-    {
-        return rEntity;
-    }
-    else
-    {
-        return rEntity.GetGeometry();
-    }
-}
-
 template <class TContainerType>
-GeometryData::IntegrationMethod
-GetIntegrationMethod(const TContainerType &rContainer,
-                     GeometryData::IntegrationMethod UserMethod)
+GeometryData::IntegrationMethod GeometriesTensorAdaptor::GetIntegrationMethod(
+    const TContainerType& rContainer,
+    GeometryData::IntegrationMethod UserMethod)
 {
     if (UserMethod !=
-            GeometryData::IntegrationMethod::NumberOfIntegrationMethods)
-    {
+        GeometryData::IntegrationMethod::NumberOfIntegrationMethods) {
         return UserMethod;
     }
 
-    if (rContainer.empty())
-    {
+    if (rContainer.empty()) {
         return GeometryData::IntegrationMethod::GI_GAUSS_1; // Fallback for empty
     }
 
-    const auto &r_first = *rContainer.begin();
+    const auto& r_first = *rContainer.begin();
     return GetGeometry(r_first).GetDefaultIntegrationMethod();
 }
 
 template <class TContainerType>
-DenseVector<unsigned int> GetShape(const TContainerType &rContainer,
-                                   GeometriesTensorAdaptor::DatumType Datum,
-                                   GeometryData::IntegrationMethod Method)
+DenseVector<unsigned int> GeometriesTensorAdaptor::GetShape(
+    const TContainerType& rContainer, GeometriesTensorAdaptor::DatumType Datum,
+    GeometryData::IntegrationMethod Method)
 {
-    if (rContainer.empty())
-    {
+    if (rContainer.empty()) {
         if (Datum == GeometriesTensorAdaptor::DatumType::ShapeFunctions)
             return ZeroVector(3); // N_elem, N_gauss, N_node
         if (Datum == GeometriesTensorAdaptor::DatumType::ShapeFunctionDerivatives)
@@ -86,11 +61,11 @@ DenseVector<unsigned int> GetShape(const TContainerType &rContainer,
         return ZeroVector(0);
     }
 
-    const auto &r_first = *rContainer.begin();
-    const auto &r_geometry = GetGeometry(r_first);
+    const auto& r_first = *rContainer.begin();
+    const auto& r_geometry = GetGeometry(r_first);
 
     // Integration points
-    const auto &integration_points = r_geometry.IntegrationPoints(Method);
+    const auto& integration_points = r_geometry.IntegrationPoints(Method);
     unsigned int n_gauss = static_cast<unsigned int>(integration_points.size());
     unsigned int n_node = static_cast<unsigned int>(r_geometry.size());
     unsigned int n_elem = static_cast<unsigned int>(rContainer.size());
@@ -99,18 +74,15 @@ DenseVector<unsigned int> GetShape(const TContainerType &rContainer,
     unsigned int local_dim =
         static_cast<unsigned int>(r_geometry.LocalSpaceDimension());
 
-    if (Datum == GeometriesTensorAdaptor::DatumType::ShapeFunctions)
-    {
+    if (Datum == GeometriesTensorAdaptor::DatumType::ShapeFunctions) {
         // [N_elem, N_gauss, N_node]
         DenseVector<unsigned int> shape(3);
         shape[0] = n_elem;
         shape[1] = n_gauss;
         shape[2] = n_node;
         return shape;
-    }
-    else if (Datum ==
-             GeometriesTensorAdaptor::DatumType::ShapeFunctionDerivatives)
-    {
+    } else if (Datum ==
+               GeometriesTensorAdaptor::DatumType::ShapeFunctionDerivatives) {
         // [N_elem, N_gauss, N_node, WorkingDim]
         DenseVector<unsigned int> shape(4);
         shape[0] = n_elem;
@@ -118,9 +90,7 @@ DenseVector<unsigned int> GetShape(const TContainerType &rContainer,
         shape[2] = n_node;
         shape[3] = working_dim;
         return shape;
-    }
-    else if (Datum == GeometriesTensorAdaptor::DatumType::Jacobians)
-    {
+    } else if (Datum == GeometriesTensorAdaptor::DatumType::Jacobians) {
         // [N_elem, N_gauss, WorkingDim, LocalDim]
         DenseVector<unsigned int> shape(4);
         shape[0] = n_elem;
@@ -128,9 +98,7 @@ DenseVector<unsigned int> GetShape(const TContainerType &rContainer,
         shape[2] = working_dim;
         shape[3] = local_dim;
         return shape;
-    }
-    else if (Datum == GeometriesTensorAdaptor::DatumType::IntegrationWeights)
-    {
+    } else if (Datum == GeometriesTensorAdaptor::DatumType::IntegrationWeights) {
         // [N_elem, N_gauss]
         DenseVector<unsigned int> shape(2);
         shape[0] = n_elem;
@@ -142,48 +110,46 @@ DenseVector<unsigned int> GetShape(const TContainerType &rContainer,
 }
 
 template <class TContainerType>
-void CollectIntegrationWeights(double *pData, const TContainerType &rContainer,
-                               GeometryData::IntegrationMethod Method,
-                               const DenseVector<unsigned int> &Shape)
+void GeometriesTensorAdaptor::CollectIntegrationWeights(
+    double* pData, const TContainerType& rContainer,
+    GeometryData::IntegrationMethod Method,
+    const DenseVector<unsigned int>& Shape)
 {
     const std::size_t n_elem = Shape[0];
     const std::size_t n_gauss = Shape[1];
 
-    IndexPartition<std::size_t>(n_elem).for_each([&](std::size_t i)
-    {
-        const auto &r_geometry = GetGeometry(*(rContainer.begin() + i));
-        const auto &integration_points = r_geometry.IntegrationPoints(Method);
+    IndexPartition<std::size_t>(n_elem).for_each([&](std::size_t i) {
+        const auto& r_geometry = GetGeometry(*(rContainer.begin() + i));
+        const auto& integration_points = r_geometry.IntegrationPoints(Method);
 
-        for (std::size_t g = 0; g < n_gauss; ++g)
-        {
+        for (std::size_t g = 0; g < n_gauss; ++g) {
             pData[i * n_gauss + g] = integration_points[g].Weight();
         }
     });
 }
 
 template <class TContainerType>
-void CollectShapeFunctions(double *pData, const TContainerType &rContainer,
-                           GeometryData::IntegrationMethod Method,
-                           const DenseVector<unsigned int> &Shape)
+void GeometriesTensorAdaptor::CollectShapeFunctions(
+    double* pData, const TContainerType& rContainer,
+    GeometryData::IntegrationMethod Method,
+    const DenseVector<unsigned int>& Shape)
 {
     const std::size_t n_elem = Shape[0];
     const std::size_t n_gauss = Shape[1];
     const std::size_t n_node = Shape[2];
 
-    IndexPartition<std::size_t>(n_elem).for_each([&](std::size_t i)
-    {
-        const auto &r_entity = *(rContainer.begin() + i);
-        const auto &r_geometry = GetGeometry(r_entity);
+    IndexPartition<std::size_t>(n_elem).for_each([&](std::size_t i) {
+        const auto& r_entity = *(rContainer.begin() + i);
+        const auto& r_geometry = GetGeometry(r_entity);
 
-        const Matrix &N = r_geometry.ShapeFunctionsValues(Method);
+        const Matrix& N = r_geometry.ShapeFunctionsValues(Method);
 
         KRATOS_DEBUG_ERROR_IF(N.size1() != n_gauss || N.size2() != n_node)
-                << "Shape function mismatch for entity " << r_entity.Id() << std::endl;
+            << "Shape function mismatch for entity " << r_entity.Id()
+            << std::endl;
 
-        for (std::size_t g = 0; g < n_gauss; ++g)
-        {
-            for (std::size_t n = 0; n < n_node; ++n)
-            {
+        for (std::size_t g = 0; g < n_gauss; ++g) {
+            for (std::size_t n = 0; n < n_node; ++n) {
                 pData[i * n_gauss * n_node + g * n_node + n] = N(g, n);
             }
         }
@@ -191,19 +157,18 @@ void CollectShapeFunctions(double *pData, const TContainerType &rContainer,
 }
 
 template <class TContainerType>
-void CollectShapeFunctionsDerivatives(double *pData,
-                                      const TContainerType &rContainer,
-                                      GeometryData::IntegrationMethod Method,
-                                      const DenseVector<unsigned int> &Shape)
+void GeometriesTensorAdaptor::CollectShapeFunctionsDerivatives(
+    double* pData, const TContainerType& rContainer,
+    GeometryData::IntegrationMethod Method,
+    const DenseVector<unsigned int>& Shape)
 {
     const std::size_t n_elem = Shape[0];
     const std::size_t n_gauss = Shape[1];
     const std::size_t n_node = Shape[2];
     const std::size_t dim = Shape[3];
 
-    IndexPartition<std::size_t>(n_elem).for_each([&](std::size_t i)
-    {
-        const auto &r_geometry = GetGeometry(*(rContainer.begin() + i));
+    IndexPartition<std::size_t>(n_elem).for_each([&](std::size_t i) {
+        const auto& r_geometry = GetGeometry(*(rContainer.begin() + i));
 
         Geometry<Node>::ShapeFunctionsGradientsType DN_De;
         r_geometry.ShapeFunctionsIntegrationPointsGradients(DN_De, Method);
@@ -211,22 +176,19 @@ void CollectShapeFunctionsDerivatives(double *pData,
         Geometry<Node>::JacobiansType J;
         r_geometry.Jacobian(J, Method);
 
-        for (std::size_t g = 0; g < n_gauss; ++g)
-        {
+        for (std::size_t g = 0; g < n_gauss; ++g) {
             Matrix InvJ;
             double DetJ;
-            const Matrix &J_g = J[g];
+            const Matrix& J_g = J[g];
             MathUtils<double>::GeneralizedInvertMatrix(J_g, InvJ, DetJ);
 
-            const Matrix &DN_De_g = DN_De[g];
+            const Matrix& DN_De_g = DN_De[g];
             Matrix DN_DX_g = prod(DN_De_g, InvJ);
 
-            for (std::size_t n = 0; n < n_node; ++n)
-            {
-                for (std::size_t k = 0; k < dim; ++k)
-                {
-                    pData[i * n_gauss * n_node * dim + g * n_node * dim + n * dim + k] =
-                        DN_DX_g(n, k);
+            for (std::size_t n = 0; n < n_node; ++n) {
+                for (std::size_t k = 0; k < dim; ++k) {
+                    pData[i * n_gauss * n_node * dim + g * n_node * dim +
+                          n * dim + k] = DN_DX_g(n, k);
                 }
             }
         }
@@ -234,30 +196,28 @@ void CollectShapeFunctionsDerivatives(double *pData,
 }
 
 template <class TContainerType>
-void CollectJacobians(double *pData, const TContainerType &rContainer,
-                      GeometryData::IntegrationMethod Method,
-                      const DenseVector<unsigned int> &Shape)
+void GeometriesTensorAdaptor::CollectJacobians(
+    double* pData, const TContainerType& rContainer,
+    GeometryData::IntegrationMethod Method,
+    const DenseVector<unsigned int>& Shape)
 {
     const std::size_t n_elem = Shape[0];
     const std::size_t n_gauss = Shape[1];
     const std::size_t working_dim = Shape[2];
     const std::size_t local_dim = Shape[3];
 
-    IndexPartition<std::size_t>(n_elem).for_each([&](std::size_t i)
-    {
-        const auto &r_geometry = GetGeometry(*(rContainer.begin() + i));
+    IndexPartition<std::size_t>(n_elem).for_each([&](std::size_t i) {
+        const auto& r_geometry = GetGeometry(*(rContainer.begin() + i));
         Geometry<Node>::JacobiansType J;
         r_geometry.Jacobian(J, Method);
 
-        for (std::size_t g = 0; g < n_gauss; ++g)
-        {
-            const Matrix &J_g = J[g];
-            for (std::size_t r = 0; r < working_dim; ++r)
-            {
-                for (std::size_t c = 0; c < local_dim; ++c)
-                {
+        for (std::size_t g = 0; g < n_gauss; ++g) {
+            const Matrix& J_g = J[g];
+            for (std::size_t r = 0; r < working_dim; ++r) {
+                for (std::size_t c = 0; c < local_dim; ++c) {
                     pData[i * n_gauss * working_dim * local_dim +
-                            g * working_dim * local_dim + r * local_dim + c] = J_g(r, c);
+                          g * working_dim * local_dim + r * local_dim + c] =
+                        J_g(r, c);
                 }
             }
         }
@@ -265,33 +225,26 @@ void CollectJacobians(double *pData, const TContainerType &rContainer,
 }
 
 template <class TContainerType>
-void FillData(double *pData, const TContainerType &rContainer,
-              GeometriesTensorAdaptor::DatumType Datum,
-              GeometryData::IntegrationMethod Method,
-              const DenseVector<unsigned int> &Shape)
+void GeometriesTensorAdaptor::FillData(double* pData,
+                                       const TContainerType& rContainer,
+                                       GeometriesTensorAdaptor::DatumType Datum,
+                                       GeometryData::IntegrationMethod Method,
+                                       const DenseVector<unsigned int>& Shape)
 {
     if (rContainer.empty())
         return;
 
-    if (Datum == GeometriesTensorAdaptor::DatumType::ShapeFunctions)
-    {
+    if (Datum == GeometriesTensorAdaptor::DatumType::ShapeFunctions) {
         CollectShapeFunctions(pData, rContainer, Method, Shape);
-    }
-    else if (Datum ==
-             GeometriesTensorAdaptor::DatumType::ShapeFunctionDerivatives)
-    {
+    } else if (Datum ==
+               GeometriesTensorAdaptor::DatumType::ShapeFunctionDerivatives) {
         CollectShapeFunctionsDerivatives(pData, rContainer, Method, Shape);
-    }
-    else if (Datum == GeometriesTensorAdaptor::DatumType::Jacobians)
-    {
+    } else if (Datum == GeometriesTensorAdaptor::DatumType::Jacobians) {
         CollectJacobians(pData, rContainer, Method, Shape);
-    }
-    else if (Datum == GeometriesTensorAdaptor::DatumType::IntegrationWeights)
-    {
+    } else if (Datum == GeometriesTensorAdaptor::DatumType::IntegrationWeights) {
         CollectIntegrationWeights(pData, rContainer, Method, Shape);
     }
 }
-} // namespace
 
 GeometriesTensorAdaptor::GeometriesTensorAdaptor(
     ContainerPointerType pContainer, DatumType Datum,

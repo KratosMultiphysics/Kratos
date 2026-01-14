@@ -20,6 +20,8 @@
 // Project includes
 #include "geometries/geometry_data.h"
 #include "tensor_adaptor.h"
+#include "includes/ublas_interface.h"
+#include "utilities/data_type_traits.h"
 
 namespace Kratos
 {
@@ -114,10 +116,63 @@ public:
 private:
     // Helper templates scoped to the class to avoid unity-build collisions
     template <class TContainerType>
-    static constexpr bool IsSupportedContainer();
+    static constexpr bool IsSupportedContainer()
+    {
+        return IsInList<TContainerType, ModelPart::GeometryContainerType,
+                        ModelPart::ElementsContainerType,
+                        ModelPart::ConditionsContainerType>;
+    }
 
     template <class TEntity>
-    static const auto& GetGeometry(const TEntity& rEntity);
+    static const auto& GetGeometry(const TEntity& rEntity)
+    {
+        if constexpr (std::is_same_v<TEntity, Geometry<Node>>) {
+            return rEntity;
+        } else {
+            return rEntity.GetGeometry();
+        }
+    }
+
+    template <class TContainerType>
+    static GeometryData::IntegrationMethod GetIntegrationMethod(
+        const TContainerType& rContainer,
+        GeometryData::IntegrationMethod UserMethod);
+
+    template <class TContainerType>
+    static DenseVector<unsigned int> GetShape(
+        const TContainerType& rContainer,
+        GeometriesTensorAdaptor::DatumType Datum,
+        GeometryData::IntegrationMethod Method);
+
+    template <class TContainerType>
+    static void CollectIntegrationWeights(
+        double* pData, const TContainerType& rContainer,
+        GeometryData::IntegrationMethod Method,
+        const DenseVector<unsigned int>& Shape);
+
+    template <class TContainerType>
+    static void CollectShapeFunctions(double* pData,
+                                      const TContainerType& rContainer,
+                                      GeometryData::IntegrationMethod Method,
+                                      const DenseVector<unsigned int>& Shape);
+
+    template <class TContainerType>
+    static void CollectShapeFunctionsDerivatives(
+        double* pData, const TContainerType& rContainer,
+        GeometryData::IntegrationMethod Method,
+        const DenseVector<unsigned int>& Shape);
+
+    template <class TContainerType>
+    static void CollectJacobians(double* pData,
+                                 const TContainerType& rContainer,
+                                 GeometryData::IntegrationMethod Method,
+                                 const DenseVector<unsigned int>& Shape);
+
+    template <class TContainerType>
+    static void FillData(double* pData, const TContainerType& rContainer,
+                         GeometriesTensorAdaptor::DatumType Datum,
+                         GeometryData::IntegrationMethod Method,
+                         const DenseVector<unsigned int>& Shape);
 
     DatumType mDatum;
     GeometryData::IntegrationMethod mIntegrationMethod;

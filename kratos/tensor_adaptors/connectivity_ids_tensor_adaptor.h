@@ -19,6 +19,8 @@
 
 // Project includes
 #include "tensor_adaptor.h"
+#include "includes/ublas_interface.h"
+#include "utilities/data_type_traits.h"
 
 namespace Kratos {
 
@@ -97,12 +99,31 @@ public:
   ///@}
 
 private:
-  // Helper templates scoped to the class to avoid unity-build collisions
   template <class TContainerType>
-  static constexpr bool IsSupportedContainer();
+  static DenseVector<unsigned int> GetShape(const TContainerType &rContainer);
+
+  template <class TContainerType>
+  static void CheckContainer(const TContainerType &rContainer);
+
+  template <class TContainerType>
+  static void CollectIds(Kratos::span<int> Span,
+                         const TContainerType &rContainer,
+                         const std::size_t NumNodes);
+
+  template <class TContainerType> static constexpr bool IsSupportedContainer() {
+    return IsInList<TContainerType, ModelPart::GeometryContainerType,
+                    ModelPart::ElementsContainerType,
+                    ModelPart::ConditionsContainerType>;
+  }
 
   template <class TEntity>
-  static const auto& GetGeometry(const TEntity& rEntity);
+  static const auto &GetGeometry(const TEntity &rEntity) {
+    if constexpr (std::is_same_v<TEntity, Geometry<Node>>) {
+      return rEntity;
+    } else {
+      return rEntity.GetGeometry();
+    }
+  }
 };
 
 /// @}
