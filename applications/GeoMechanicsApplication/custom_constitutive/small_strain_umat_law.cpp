@@ -398,7 +398,11 @@ bool SmallStrainUMATLaw<TVoigtSize>::loadUMATWindows(const Properties& rMaterial
         KRATOS_ERROR << "cannot load the specified UMAT " << rMaterialProperties[UDSM_NAME] << std::endl;
     }
 
-    mpUserMod = (f_UMATMod)GetProcAddress(hGetProcIDDLL, "umat");
+    auto names = {"umat", "UMAT", "Umat"};
+    for (const auto& r_name : names) {
+        mpUserMod = (f_UMATMod)GetProcAddress(hGetProcIDDLL, r_name);
+        if (mpUserMod) break;
+    }
     if (!mpUserMod) {
         KRATOS_INFO("Error in loadUMATWindows")
             << "cannot load function umat in the specified UMAT: " << rMaterialProperties[UDSM_NAME]

@@ -1,0 +1,30 @@
+{
+    "properties": [
+        {
+            "model_part_name": "PorousDomain.Soil_drained-auto-1",
+            "properties_id": 1,
+            "Material": {
+                "constitutive_law": {
+                    "name": "SmallStrainUMAT2DPlaneStrainLaw"
+                },
+                "Variables": {
+                    "IGNORE_UNDRAINED": true,
+                    "DENSITY_SOLID": 2.65e+03,
+                    "DENSITY_WATER": 1e+03,
+                    "POROSITY": 0.395,
+                    "BULK_MODULUS_SOLID": 1e+12,
+                    "BULK_MODULUS_FLUID": 2e-30,
+                    "PERMEABILITY_XX": 4.5e-30,
+                    "PERMEABILITY_YY": 4.5e-30,
+                    "PERMEABILITY_XY": 0.0,
+                    "K0_MAIN_DIRECTION": 1,
+                    "DYNAMIC_VISCOSITY": 1e-03,
+                    "UDSM_NAME": "MockUMAT_entry_function_all_caps_UMAT.dll",
+                    "IS_FORTRAN_UDSM": false,
+                    "UMAT_PARAMETERS": [0.0],
+                    "STATE_VARIABLES": [0.0]
+                }
+            }
+        }
+    ]
+}
