@@ -294,7 +294,6 @@ void IgaMappingIntersectionUtilities::CreateIgaFEMQuadraturePointsCoupling2DGeom
 
         auto geom_master = geometry_itr->pGetGeometryPart(0); // IGA Surface
         auto geom_slave = geometry_itr->pGetGeometryPart(1);  // Finite element
-        auto& r_geom_master = *geom_master;
         auto& r_geom_slave = *geom_slave;
 
         // Get the Brep surface representing the IGA patch (NURBS surface + boundary loops)
