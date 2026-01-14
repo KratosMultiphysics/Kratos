@@ -9,6 +9,7 @@
 //
 //  Main authors:    Mohamed Nabi
 //                   Wijtze Pieter Kikstra
+//                   Anne van de Graaf
 //
 
 #include "custom_constitutive/compression_cap_yield_surface.h"
@@ -17,6 +18,7 @@
 #include "custom_utilities/ublas_utilities.h"
 #include "geo_mechanics_application_variables.h"
 #include "includes/serializer.h"
+#include "utilities/string_utilities.h"
 
 #include <cmath>
 
@@ -27,15 +29,15 @@ using namespace Kratos;
 
 double GetCapSize(const Properties& rProperties)
 {
+    if (rProperties.Has(GEO_COMPRESSION_CAP_SIZE)) {
+        return rProperties[GEO_COMPRESSION_CAP_SIZE];
+    }
     if (rProperties.Has(K0_NC)) {
         return 4.5 * (1.0 - rProperties[K0_NC]) / (1.0 + 2.0 * rProperties[K0_NC]);
     }
     if (rProperties.Has(GEO_FRICTION_ANGLE)) {
         auto k0_nc = 1.0 - std::sin(ConstitutiveLawUtilities::GetFrictionAngleInRadians(rProperties));
         return 4.5 * (1.0 - k0_nc) / (1.0 + 2.0 * k0_nc);
-    }
-    if (rProperties.Has(GEO_COMPRESSION_CAP_SIZE)) {
-        return rProperties[GEO_COMPRESSION_CAP_SIZE];
     }
     KRATOS_ERROR << "ConstitutiveLawUtilities::GetCapSize failed. There is no "
                     "GEO_COMPRESSION_CAP_SIZE available "
@@ -46,11 +48,10 @@ double GetCapLocation(const Properties& rProperties)
 {
     if (rProperties.Has(GEO_COMPRESSION_CAP_LOCATION)) {
         return rProperties[GEO_COMPRESSION_CAP_LOCATION];
-    } else {
-        KRATOS_ERROR << "ConstitutiveLawUtilities::GetCapLocation failed. There is no "
-                        "GEO_COMPRESSION_CAP_LOCATION available "
-                     << std::endl;
     }
+    KRATOS_ERROR << "ConstitutiveLawUtilities::GetCapLocation failed. There is no "
+                    "GEO_COMPRESSION_CAP_LOCATION available "
+                 << std::endl;
 }
 
 CompressionCapYieldSurface::KappaDependentFunction MakeConstantCapFunction(double Value)
@@ -60,10 +61,7 @@ CompressionCapYieldSurface::KappaDependentFunction MakeConstantCapFunction(doubl
 
 std::string GetCapHardeningTypeFrom(const Properties& rMaterialProperties)
 {
-    auto result   = rMaterialProperties[GEO_CAP_HARDENING_TYPE];
-    auto to_lower = [](auto character) { return std::tolower(character); };
-    std::ranges::transform(result, result.begin(), to_lower);
-    return result;
+    return StringUtilities::ConvertCamelCaseToSnakeCase(rMaterialProperties[GEO_CAP_HARDENING_TYPE]);
 }
 
 CompressionCapYieldSurface::KappaDependentFunction MakeCapSizeCalculator(const Properties& rMaterialProperties)
@@ -114,10 +112,6 @@ CompressionCapYieldSurface::CompressionCapYieldSurface(const Properties& rMateri
 double CompressionCapYieldSurface::GetCapSize() const { return mCapSizeCalculator(mKappa); }
 
 double CompressionCapYieldSurface::GetCapLocation() const { return mCapLocationCalculator(mKappa); }
-
-double CompressionCapYieldSurface::GetKappa() const { return mKappa; }
-
-void CompressionCapYieldSurface::SetKappa(double kappa) { mKappa = kappa; }
 
 double CompressionCapYieldSurface::YieldFunctionValue(const Vector& rSigmaTau) const
 {

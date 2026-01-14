@@ -10,6 +10,7 @@
 //
 //  Main authors:    Mohamed Nabi,
 //                   Wijtze Pieter Kikstra
+//                   Anne van de Graaf
 //
 
 #pragma once
@@ -36,8 +37,6 @@ public:
 
     [[nodiscard]] double GetCapSize() const;
     [[nodiscard]] double GetCapLocation() const;
-    [[nodiscard]] double GetKappa() const;
-    void                 SetKappa(double kappa);
 
     [[nodiscard]] double YieldFunctionValue(const Vector& rSigmaTau) const override;
     [[nodiscard]] Vector DerivativeOfFlowFunction(const Vector&) const override;

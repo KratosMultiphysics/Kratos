@@ -9,6 +9,7 @@
 //
 //  Main authors:    Mohamed Nabi
 //                   Wijtze Pieter Kikstra
+//                   Anne van de Graaf
 //
 
 #include "custom_constitutive/coulomb_yield_surface.h"
@@ -17,6 +18,7 @@
 #include "custom_utilities/ublas_utilities.h"
 #include "geo_mechanics_application_variables.h"
 #include "includes/serializer.h"
+#include "utilities/string_utilities.h"
 
 #include <boost/numeric/ublas/assignment.hpp>
 #include <cmath>
@@ -38,10 +40,7 @@ CoulombYieldSurface::KappaDependentFunction MakeLinearFunction(double Value, dou
 
 std::string GetCoulombHardeningTypeFrom(const Properties& rMaterialProperties)
 {
-    auto result   = rMaterialProperties[GEO_COULOMB_HARDENING_TYPE];
-    auto to_lower = [](auto character) { return std::tolower(character); };
-    std::ranges::transform(result, result.begin(), to_lower);
-    return result;
+    return StringUtilities::ConvertCamelCaseToSnakeCase(rMaterialProperties[GEO_COULOMB_HARDENING_TYPE]);
 }
 
 CoulombYieldSurface::KappaDependentFunction MakeFrictionAngleCalculator(const Properties& rMaterialProperties)

@@ -10,6 +10,7 @@
 //
 //  Main authors:    Mohamed Nabi,
 //                   Wijtze Pieter Kikstra
+//                   Anne van de Graaf
 //
 
 #pragma once
