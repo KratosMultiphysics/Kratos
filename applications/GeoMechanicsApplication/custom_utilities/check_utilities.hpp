@@ -53,29 +53,17 @@ public:
         ExclusiveLowerAndInclusiveUpper
     };
 
-    CheckProperties(const Properties& rProperties, const std::string& rPrintName, Bounds RangeBoundsType)
-        : mrProperties(rProperties), mrPrintName(rPrintName), mRangeBoundsType(RangeBoundsType)
-    {
-    }
+    CheckProperties(const Properties& rProperties, const std::string& rPrintName, Bounds RangeBoundsType);
 
-    CheckProperties(const Properties& rProperties, const std::string& rPrintName, std::size_t ElementId, Bounds RangeBoundsType)
-        : mrProperties(rProperties), mrPrintName(rPrintName), mElementId(ElementId), mRangeBoundsType(RangeBoundsType)
-    {
-    }
+    CheckProperties(const Properties& rProperties, const std::string& rPrintName, std::size_t ElementId, Bounds RangeBoundsType);
 
     CheckProperties(const CheckProperties&) = delete;
 
     CheckProperties(CheckProperties&&) = default;
 
-    CheckProperties SingleUseBounds(Bounds RangeBoundsType) const
-    {
-        if (mElementId) {
-            return CheckProperties(mrProperties, mrPrintName, *mElementId, RangeBoundsType);
-        }
-        return CheckProperties(mrProperties, mrPrintName, RangeBoundsType);
-    }
+    CheckProperties SingleUseBounds(Bounds RangeBoundsType) const;
 
-    void SetNewRangeBounds(Bounds RangeBoundsType) const { mRangeBoundsType = RangeBoundsType; }
+    void SetNewRangeBounds(Bounds RangeBoundsType) const;
 
     template <typename T>
     void Check(const Variable<T>& rVariable) const
@@ -187,26 +175,11 @@ private:
         }
     }
 
-    std::string double_to_string(double value) const
-    {
-        std::ostringstream oss;
-        oss << std::defaultfloat << value;
-        return oss.str();
-    }
+    std::string double_to_string(double value) const;
 
-    std::string print_property_id() const
-    {
-        std::ostringstream oss;
-        oss << " in the " << mrPrintName << " with Id " << mrProperties.Id();
-        return oss.str();
-    }
+    std::string print_property_id() const;
 
-    std::string print_element_id() const
-    {
-        std::ostringstream oss;
-        if (mElementId) oss << " at element with Id " << *mElementId;
-        return oss.str();
-    }
+    std::string print_element_id() const;
 };
 
 } /* namespace Kratos.*/

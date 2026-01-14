@@ -14,7 +14,7 @@
 
 // Project includes
 #include "custom_elements/updated_lagrangian_U_Pw_diff_order_element.hpp"
-#include "custom_utilities/math_utilities.h"
+#include "custom_utilities/math_utilities.hpp"
 #include "custom_utilities/transport_equation_utilities.hpp"
 #include "utilities/math_utils.h"
 
