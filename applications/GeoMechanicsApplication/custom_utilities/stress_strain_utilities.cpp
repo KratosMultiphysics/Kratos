@@ -239,14 +239,12 @@ Vector StressStrainUtilities::TransformSigmaTauToPrincipalStresses(const Vector&
 
 Vector StressStrainUtilities::TransformPrincipalStressesToPandQ(const Vector& rPrincipalStresses)
 {
-    auto       result = Vector{2};
-    const auto p = std::accumulate(rPrincipalStresses.begin(), rPrincipalStresses.end(), 0.0) / 3.0;
-    result[0]    = p;
-    result[1] = std::sqrt(std::accumulate(rPrincipalStresses.begin(), rPrincipalStresses.end(), 0.0,
-                                          [p](double acc, double sigma) {
-        const double diff = sigma - p;
-        return acc + diff * diff;
-    }) * 3.0 / 2.0);
+    Vector local_stress_vector = Vector(6, 0.0);
+    std::copy(rPrincipalStresses.begin(), rPrincipalStresses.end(), local_stress_vector.begin());
+
+    auto result = Vector{2};
+    result[0]   = CalculateMeanStress(local_stress_vector);
+    result[1]   = CalculateVonMisesStress(local_stress_vector);
     return result;
 }
 

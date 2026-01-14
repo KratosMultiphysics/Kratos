@@ -18,13 +18,40 @@
 #include "geo_mechanics_application_variables.h"
 #include "includes/serializer.h"
 
-#include <boost/numeric/ublas/assignment.hpp>
 #include <cmath>
 
 namespace
 {
 
 using namespace Kratos;
+
+double GetCapSize(const Properties& rProperties)
+{
+    if (rProperties.Has(K0_NC)) {
+        return 4.5 * (1.0 - rProperties[K0_NC]) / (1.0 + 2.0 * rProperties[K0_NC]);
+    }
+    if (rProperties.Has(GEO_FRICTION_ANGLE)) {
+        auto k0_nc = 1.0 - std::sin(ConstitutiveLawUtilities::GetFrictionAngleInRadians(rProperties));
+        return 4.5 * (1.0 - k0_nc) / (1.0 + 2.0 * k0_nc);
+    }
+    if (rProperties.Has(GEO_COMPRESSION_CAP_SIZE)) {
+        return rProperties[GEO_COMPRESSION_CAP_SIZE];
+    }
+    KRATOS_ERROR << "ConstitutiveLawUtilities::GetCapSize failed. There is no "
+                    "GEO_COMPRESSION_CAP_SIZE available "
+                 << std::endl;
+}
+
+double GetCapLocation(const Properties& rProperties)
+{
+    if (rProperties.Has(GEO_COMPRESSION_CAP_LOCATION)) {
+        return rProperties[GEO_COMPRESSION_CAP_LOCATION];
+    } else {
+        KRATOS_ERROR << "ConstitutiveLawUtilities::GetCapLocation failed. There is no "
+                        "GEO_COMPRESSION_CAP_LOCATION available "
+                     << std::endl;
+    }
+}
 
 CompressionCapYieldSurface::KappaDependentFunction MakeConstantCapFunction(double Value)
 {
@@ -43,7 +70,7 @@ CompressionCapYieldSurface::KappaDependentFunction MakeCapSizeCalculator(const P
 {
     const auto hardening_type = GetCapHardeningTypeFrom(rMaterialProperties);
     if (hardening_type == "none") {
-        return MakeConstantCapFunction(ConstitutiveLawUtilities::GetCapSize(rMaterialProperties));
+        return MakeConstantCapFunction(GetCapSize(rMaterialProperties));
     }
     KRATOS_ERROR << "Cannot create a kappa-dependent function for the cap size of material "
                  << rMaterialProperties.Id() << ": unknown hardening type '" << hardening_type << "'\n";
@@ -53,7 +80,7 @@ CompressionCapYieldSurface::KappaDependentFunction MakeCapLocationCalculator(con
 {
     const auto hardening_type = GetCapHardeningTypeFrom(rMaterialProperties);
     if (hardening_type == "none") {
-        return MakeConstantCapFunction(ConstitutiveLawUtilities::GetCapLocation(rMaterialProperties));
+        return MakeConstantCapFunction(GetCapLocation(rMaterialProperties));
     }
     KRATOS_ERROR << "Cannot create a kappa-dependent function for the cap location of material "
                  << rMaterialProperties.Id() << ": unknown hardening type '" << hardening_type << "'\n";
@@ -100,14 +127,7 @@ double CompressionCapYieldSurface::YieldFunctionValue(const Vector& rSigmaTau) c
 
 Vector CompressionCapYieldSurface::DerivativeOfFlowFunction(const Vector& rSigmaTau) const
 {
-    Vector result(2);
-    result <<= 2.0 * rSigmaTau[0], 2.0 * rSigmaTau[1] / std::pow(GetCapSize(), 2);
-    return result;
-}
-
-double CompressionCapYieldSurface::CalculateCapCornerPoint() const
-{
-    return 0; // TODO: implement this
+    return UblasUtilities::CreateVector({2.0 * rSigmaTau[0], 2.0 * rSigmaTau[1] / std::pow(GetCapSize(), 2)});
 }
 
 void CompressionCapYieldSurface::InitializeKappaDependentFunctions()

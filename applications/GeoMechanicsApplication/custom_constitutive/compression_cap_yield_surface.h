@@ -42,11 +42,11 @@ public:
     [[nodiscard]] double YieldFunctionValue(const Vector& rSigmaTau) const override;
     [[nodiscard]] Vector DerivativeOfFlowFunction(const Vector&) const override;
 
-    [[nodiscard]] double CalculateCapCornerPoint() const;
-
 private:
-    void InitializeKappaDependentFunctions();
-    void CheckMaterialProperties() const;
+    void   InitializeKappaDependentFunctions();
+    void   CheckMaterialProperties() const;
+    double GetCapSize(const Properties& rProperties);
+    double GetCapLocation(const Properties& rProperties);
 
     friend class Serializer;
     void save(Serializer& rSerializer) const override;

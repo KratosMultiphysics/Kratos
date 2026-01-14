@@ -92,38 +92,17 @@ double ConstitutiveLawUtilities::GetFrictionAngleInDegrees(const Properties& rPr
     try {
         return GetValueOfUMatParameter(rProperties, INDEX_OF_UMAT_PHI_PARAMETER);
     } catch (const std::exception& e) {
-        KRATOS_ERROR << "ConstitutiveLawUtilities::GetFrictionAngleInDegrees failed. There is no "
-                        "GEO_FRICTION_ANGLE available and attempting to get the cohesion from UMAT "
-                        "parameters resulted in the following "
-                     << e.what() << "." << std::endl;
+        KRATOS_ERROR
+            << "ConstitutiveLawUtilities::GetFrictionAngleInDegrees failed. There is no "
+               "GEO_FRICTION_ANGLE available and attempting to get the friction angle from UMAT "
+               "parameters resulted in the following "
+            << e.what() << "." << std::endl;
     }
 }
 
 double ConstitutiveLawUtilities::GetFrictionAngleInRadians(const Properties& rProperties)
 {
     return MathUtils<>::DegreesToRadians(GetFrictionAngleInDegrees(rProperties));
-}
-
-double ConstitutiveLawUtilities::GetCapSize(const Properties& rProperties)
-{
-    if (rProperties.Has(GEO_COMPRESSION_CAP_SIZE)) {
-        return rProperties[GEO_COMPRESSION_CAP_SIZE];
-    } else {
-        KRATOS_ERROR << "ConstitutiveLawUtilities::GetCapSize failed. There is no "
-                        "GEO_COMPRESSION_CAP_SIZE available "
-                     << std::endl;
-    }
-}
-
-double ConstitutiveLawUtilities::GetCapLocation(const Properties& rProperties)
-{
-    if (rProperties.Has(GEO_COMPRESSION_CAP_LOCATION)) {
-        return rProperties[GEO_COMPRESSION_CAP_LOCATION];
-    } else {
-        KRATOS_ERROR << "ConstitutiveLawUtilities::GetCapLocation failed. There is no "
-                        "GEO_COMPRESSION_CAP_LOCATION available "
-                     << std::endl;
-    }
 }
 
 Matrix ConstitutiveLawUtilities::MakeInterfaceConstitutiveMatrix(double      NormalStiffness,
