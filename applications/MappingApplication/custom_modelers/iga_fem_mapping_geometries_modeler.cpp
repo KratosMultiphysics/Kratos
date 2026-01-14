@@ -40,6 +40,13 @@ namespace Kratos
         const bool is_origin_iga = mParameters["is_origin_iga"].GetBool();
         const bool is_surface_mapping = mParameters["is_surface_mapping"].GetBool();
 
+        KRATOS_ERROR_IF(is_surface_mapping && !is_origin_iga)
+            << "Surface mapping with this modeler requires the origin ModelPart to be IGA.\n"
+            << "Got is_origin_iga = false." << std::endl;
+
+        KRATOS_ERROR_IF_NOT(mParameters.Has("search_radius")) << "'search_radius' was not specified in the CoSim parameters file\n";
+        const double search_radius = mParameters["search_radius"].GetDouble();
+       
         if (is_origin_iga && !is_surface_mapping)
         {
             IgaFEMMappingGeometriesModeler::CreateIgaInterfaceBrepCurveOnSurfaceConditions(mpModels[0]->GetModelPart(origin_interface_sub_model_part_name));
@@ -49,8 +56,6 @@ namespace Kratos
         {
             IgaFEMMappingGeometriesModeler::CreateIgaInterfaceBrepCurveOnSurfaceConditions(mpModels.back()->GetModelPart(destination_interface_sub_model_part_name));
             IgaFEMMappingGeometriesModeler::CreateFEMInterfaceNurbsCurveConditions(mpModels[0]->GetModelPart(origin_interface_sub_model_part_name));
-        } else {
-            KRATOS_ERROR << "Not implemented yet" << std::endl; 
         }
         
         // Transfer everything into the coupling modelpart
@@ -60,19 +65,27 @@ namespace Kratos
         ModelPart& coupling_interface_destination = (coupling_model_part.HasSubModelPart("interface_destination"))
             ? coupling_model_part.GetSubModelPart("interface_destination")
             : coupling_model_part.CreateSubModelPart("interface_destination");
-        if (is_origin_iga){
+
+        if (is_origin_iga && !is_surface_mapping) {
             CopySubModelPartIgaInterface(coupling_interface_origin,
                 mpModels[0]->GetModelPart(origin_interface_sub_model_part_name));
             CopySubModelPartFEMInterface(coupling_interface_destination,
                 mpModels[1]->GetModelPart(destination_interface_sub_model_part_name));
-        } else {
+        } else if (!is_origin_iga && !is_surface_mapping){
             CopySubModelPartFEMInterface(coupling_interface_origin,
                 mpModels[0]->GetModelPart(origin_interface_sub_model_part_name));
             CopySubModelPartIgaInterface(coupling_interface_destination,
                 mpModels[1]->GetModelPart(destination_interface_sub_model_part_name));
+        } else if (is_origin_iga && is_surface_mapping){
+            KRATOS_ERROR_IF(mpModels[1]->GetModelPart(destination_interface_sub_model_part_name).NumberOfConditions() == 0) << "the destination model part has no conditions for the mapping. Please change the elements to conditions";
+
+            CopySubModelPartSurfaceInterface(coupling_interface_origin,
+                mpModels[0]->GetModelPart(origin_interface_sub_model_part_name), true);
+            CopySubModelPartSurfaceInterface(coupling_interface_destination,
+                mpModels[1]->GetModelPart(destination_interface_sub_model_part_name), false);
         }
 
-        KRATOS_ERROR_IF(coupling_interface_origin.NumberOfConditions() == 0 || coupling_interface_destination.NumberOfConditions() == 0)
+        KRATOS_ERROR_IF(!is_surface_mapping && (coupling_interface_origin.NumberOfConditions() == 0 || coupling_interface_destination.NumberOfConditions() == 0))
             << "Coupling geometries are currently determined by conditions in the coupling sub model parts,"
             << " but there are currently not conditions in the coupling interface origin sub model part. Please specify some."
             << std::endl;
@@ -87,7 +100,23 @@ namespace Kratos
             IgaMappingIntersectionUtilities::CreateIgaFEMQuadraturePointsCouplingInterface(
                 coupling_model_part, 1e-6);
         } else {
-            KRATOS_ERROR << "Creation of coupling quadrature points not yet supported for IGA-FEM surface mapping" << std::endl;
+            IgaMappingIntersectionUtilities::PatchCacheMap patch_cache;
+
+            // Create coupling geometries connecting each finite element with the IGA surface 
+            IgaMappingIntersectionUtilities::CreateIgaFEMSurfaceCouplingGeometries(
+                coupling_interface_origin,
+                coupling_interface_destination,
+                coupling_model_part, 
+                is_origin_iga,
+                search_radius,
+                patch_cache);
+            
+             // Create quadrature point geometries in the origin and destination domain
+            IgaMappingIntersectionUtilities::CreateIgaFEMQuadraturePointsCoupling2DGeometries3D(
+                coupling_model_part, 
+                is_origin_iga,
+                patch_cache,
+                search_radius);
         }
     }
 
