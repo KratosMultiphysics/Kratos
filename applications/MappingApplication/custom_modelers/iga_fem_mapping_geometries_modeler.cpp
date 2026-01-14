@@ -77,7 +77,19 @@ namespace Kratos
             CopySubModelPartIgaInterface(coupling_interface_destination,
                 mpModels[1]->GetModelPart(destination_interface_sub_model_part_name));
         } else if (is_origin_iga && is_surface_mapping){
-            KRATOS_ERROR_IF(mpModels[1]->GetModelPart(destination_interface_sub_model_part_name).NumberOfConditions() == 0) << "the destination model part has no conditions for the mapping. Please change the elements to conditions";
+            KRATOS_ERROR_IF(mpModels[1]->GetModelPart(destination_interface_sub_model_part_name).NumberOfConditions() == 0) 
+                << "the destination model part has no conditions for the mapping. Please change the elements to conditions";
+            
+            for (const auto& r_cond : mpModels[1]->GetModelPart(destination_interface_sub_model_part_name).Conditions())
+            {
+                const auto& r_geom = r_cond.GetGeometry();
+
+                KRATOS_ERROR_IF(r_geom.PointsNumber() != 3)
+                    << "Surface mapping currently supports only TRIANGULAR interface conditions.\n"
+                    << "Condition Id: " << r_cond.Id() << "\n"
+                    << "Geometry: " << r_geom.Info() << "\n"
+                    << "PointsNumber(): " << r_geom.PointsNumber() << "\n";
+            }
 
             CopySubModelPartSurfaceInterface(coupling_interface_origin,
                 mpModels[0]->GetModelPart(origin_interface_sub_model_part_name), true);
