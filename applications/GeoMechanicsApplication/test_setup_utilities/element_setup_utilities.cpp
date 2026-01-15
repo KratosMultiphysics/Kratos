@@ -283,7 +283,7 @@ Element::Pointer ElementSetupUtilities::Create2D4NInterfaceElement(const Pointer
 {
     return make_intrusive<UPwInterfaceElement>(
         1, std::make_shared<InterfaceGeometry<Line2D2<Node>>>(rNodes), rProperties,
-        std::make_unique<Line2DInterfaceStressState>(), false);
+        std::make_unique<Line2DInterfaceStressState>(), IsDiffOrderElement::No);
 }
 
 Element::Pointer ElementSetupUtilities::Create2D6NInterfaceElement(const PointerVector<Node>& rNodes,
@@ -291,7 +291,7 @@ Element::Pointer ElementSetupUtilities::Create2D6NInterfaceElement(const Pointer
 {
     return make_intrusive<UPwInterfaceElement>(
         1, std::make_shared<InterfaceGeometry<Line2D3<Node>>>(rNodes), rProperties,
-        std::make_unique<Line2DInterfaceStressState>(), false);
+        std::make_unique<Line2DInterfaceStressState>(), IsDiffOrderElement::No);
 }
 
 Element::Pointer ElementSetupUtilities::Create3D6NInterfaceElement(const PointerVector<Node>& rNodes,
@@ -299,7 +299,7 @@ Element::Pointer ElementSetupUtilities::Create3D6NInterfaceElement(const Pointer
 {
     return make_intrusive<UPwInterfaceElement>(
         1, std::make_shared<InterfaceGeometry<Triangle3D3<Node>>>(rNodes), rProperties,
-        std::make_unique<SurfaceInterfaceStressState>(), false);
+        std::make_unique<SurfaceInterfaceStressState>(), IsDiffOrderElement::No);
 }
 
 Element::Pointer ElementSetupUtilities::Create3D12NInterfaceElement(const PointerVector<Node>& rNodes,
@@ -307,7 +307,7 @@ Element::Pointer ElementSetupUtilities::Create3D12NInterfaceElement(const Pointe
 {
     return make_intrusive<UPwInterfaceElement>(
         1, std::make_shared<InterfaceGeometry<Triangle3D6<Node>>>(rNodes), rProperties,
-        std::make_unique<SurfaceInterfaceStressState>(), false);
+        std::make_unique<SurfaceInterfaceStressState>(), IsDiffOrderElement::No);
 }
 
 Element::Pointer ElementSetupUtilities::Create3D8NInterfaceElement(const PointerVector<Node>& rNodes,
@@ -316,7 +316,7 @@ Element::Pointer ElementSetupUtilities::Create3D8NInterfaceElement(const Pointer
 {
     return make_intrusive<UPwInterfaceElement>(
         Id, std::make_shared<InterfaceGeometry<Quadrilateral3D4<Node>>>(rNodes), rProperties,
-        std::make_unique<SurfaceInterfaceStressState>(), false);
+        std::make_unique<SurfaceInterfaceStressState>(), IsDiffOrderElement::No);
 }
 
 Element::Pointer ElementSetupUtilities::Create3D4NElement(const PointerVector<Node>& rNodes,

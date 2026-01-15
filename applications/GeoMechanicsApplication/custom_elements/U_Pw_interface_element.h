@@ -41,12 +41,12 @@ public:
                         const GeometryType::Pointer&       rGeometry,
                         const PropertiesType::Pointer&     rProperties,
                         std::unique_ptr<StressStatePolicy> pStressStatePolicy,
-                        bool                               DiffOrderElement);
+                        IsDiffOrderElement                 IsDiffOrder);
 
     UPwInterfaceElement(IndexType                          NewId,
                         const GeometryType::Pointer&       rGeometry,
                         std::unique_ptr<StressStatePolicy> pStressStatePolicy,
-                        bool                               DiffOrderElement);
+                        IsDiffOrderElement                 IsDiffOrder);
     Element::Pointer Create(IndexType NewId, const NodesArrayType& rNodes, PropertiesType::Pointer pProperties) const override;
     Element::Pointer Create(IndexType NewId, GeometryType::Pointer pGeom, PropertiesType::Pointer pProperties) const override;
 
@@ -94,7 +94,7 @@ private:
     void ApplyRotationToBMatrix(Matrix& rBMatrix, const Matrix& rRotationMatrix) const;
     void MakeIntegrationSchemeAndAssignFunction();
     std::unique_ptr<Geometry<Node>> MakeWaterPressureGeometry(const GeometryType& rDisplacementGeometry,
-                                                              bool DiffOrderElement);
+                                                              IsDiffOrderElement IsDiffOrder);
     void InterpolateNodalStressesToInitialTractions(const std::vector<std::optional<Vector>>& rInterfaceNodalCauchyStresses) const;
     Vector InterpolateNodalStressToIntegrationPoints(const Geo::IntegrationPointType& rIntegrationPoint,
                                                      const std::vector<Vector>& rNodalStresses) const;

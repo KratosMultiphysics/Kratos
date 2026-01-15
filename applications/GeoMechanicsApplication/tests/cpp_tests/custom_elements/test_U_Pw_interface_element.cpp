@@ -90,10 +90,10 @@ ModelPart& CreateModelPartWithUPwVariables(Model& rModel)
 template <typename TInterfaceDimension>
 UPwInterfaceElement CreateInterfaceElementWithUPwDofs(const Properties::Pointer&     rProperties,
                                                       const Geometry<Node>::Pointer& rGeometry,
-                                                      bool DiffOrderElement = false)
+                                                      IsDiffOrderElement IsDiffOrder = IsDiffOrderElement::No)
 {
     auto       result = UPwInterfaceElement{1, rGeometry, rProperties,
-                                      std::make_unique<TInterfaceDimension>(), DiffOrderElement};
+                                      std::make_unique<TInterfaceDimension>(), IsDiffOrder};
     const auto solution_step_variables =
         Geo::ConstVariableDataRefs{std::cref(WATER_PRESSURE), std::cref(DISPLACEMENT)};
     const auto degrees_of_freedom =
@@ -398,7 +398,7 @@ KRATOS_TEST_CASE_IN_SUITE(UPwInterfaceElement_IsAnElement, KratosGeoMechanicsFas
 {
     const UPwInterfaceElement element(
         0, std::make_shared<LineInterfaceGeometry2D2Plus2Noded>(CreateNodesFor2Plus2LineInterfaceGeometry()),
-        std::make_unique<Line2DInterfaceStressState>(), false);
+        std::make_unique<Line2DInterfaceStressState>(), IsDiffOrderElement::No);
     auto p_casted_element = dynamic_cast<const Element*>(&element);
     EXPECT_NE(p_casted_element, nullptr);
 }
@@ -408,7 +408,7 @@ KRATOS_TEST_CASE_IN_SUITE(UPwLineInterfaceElement_CreatesInstanceWithGeometryInp
     // Arrange
     const UPwInterfaceElement element(
         0, std::make_shared<LineInterfaceGeometry2D2Plus2Noded>(CreateNodesFor2Plus2LineInterfaceGeometry()),
-        std::make_unique<Line2DInterfaceStressState>(), false);
+        std::make_unique<Line2DInterfaceStressState>(), IsDiffOrderElement::No);
     const auto p_geometry =
         std::make_shared<LineInterfaceGeometry2D2Plus2Noded>(CreateNodesFor2Plus2LineInterfaceGeometry());
     const auto p_properties = std::make_shared<Properties>();
@@ -432,8 +432,8 @@ KRATOS_TEST_CASE_IN_SUITE(UPwLineInterfaceElement_CreatesInstanceWithNodeInput, 
     // The source element needs to have a geometry, otherwise the version of the
     // Create method with a node input will fail.
     const auto p_geometry = std::make_shared<LineInterfaceGeometry2D2Plus2Noded>(nodes);
-    const UPwInterfaceElement element(0, p_geometry, p_properties,
-                                      std::make_unique<Line2DInterfaceStressState>(), false);
+    const UPwInterfaceElement element(
+        0, p_geometry, p_properties, std::make_unique<Line2DInterfaceStressState>(), IsDiffOrderElement::No);
 
     // Act
     const auto p_created_element = element.Create(1, nodes, p_properties);
@@ -916,7 +916,7 @@ KRATOS_TEST_CASE_IN_SUITE(UPwTriangleInterfaceElement_CreatesInstanceWithGeometr
     // Arrange
     const UPwInterfaceElement element(
         0, std::make_shared<TriangleInterfaceGeometry3D3Plus3Noded>(CreateNodesFor3Plus3SurfaceInterfaceGeometry()),
-        std::make_unique<SurfaceInterfaceStressState>(), false);
+        std::make_unique<SurfaceInterfaceStressState>(), IsDiffOrderElement::No);
     const auto p_geometry = std::make_shared<TriangleInterfaceGeometry3D3Plus3Noded>(
         CreateNodesFor3Plus3SurfaceInterfaceGeometry());
     const auto p_properties = std::make_shared<Properties>();
@@ -940,8 +940,8 @@ KRATOS_TEST_CASE_IN_SUITE(UPwTriangleInterfaceElement_CreatesInstanceWithNodeInp
     // The source element needs to have a geometry, otherwise the version of the
     // Create method with a node input will fail.
     const auto p_geometry = std::make_shared<TriangleInterfaceGeometry3D3Plus3Noded>(nodes);
-    const UPwInterfaceElement element(0, p_geometry, p_properties,
-                                      std::make_unique<SurfaceInterfaceStressState>(), false);
+    const UPwInterfaceElement element(
+        0, p_geometry, p_properties, std::make_unique<SurfaceInterfaceStressState>(), IsDiffOrderElement::No);
 
     // Act
     const auto p_created_element = element.Create(1, nodes, p_properties);
@@ -1847,9 +1847,8 @@ KRATOS_TEST_CASE_IN_SUITE(ThreePlusThreeDiffOrderLineInterfaceHasCorrectNumberOf
     const auto     p_interface_properties =
         CreateElasticMaterialProperties<InterfacePlaneStrain>(normal_stiffness, shear_stiffness);
 
-    constexpr auto diff_order_element = true;
-    auto           interface_element  = CreateInterfaceElementWithUPwDofs<Interface2D>(
-        p_interface_properties, p_line_interface_displacement_geometry, diff_order_element);
+    auto interface_element = CreateInterfaceElementWithUPwDofs<Interface2D>(
+        p_interface_properties, p_line_interface_displacement_geometry, IsDiffOrderElement::Yes);
 
     Element::DofsVectorType element_dofs;
     ProcessInfo             dummy_process_info;

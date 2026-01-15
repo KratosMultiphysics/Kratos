@@ -80,21 +80,21 @@ UPwInterfaceElement::UPwInterfaceElement(IndexType NewId,
                                          const Geometry<GeometricalObject::NodeType>::Pointer& rGeometry,
                                          const Properties::Pointer&         rProperties,
                                          std::unique_ptr<StressStatePolicy> pStressStatePolicy,
-                                         bool                               DiffOrderElement)
+                                         IsDiffOrderElement                 IsDiffOrder)
     : Element(NewId, rGeometry, rProperties), mpStressStatePolicy(std::move(pStressStatePolicy))
 {
     MakeIntegrationSchemeAndAssignFunction();
-    mpPressureGeometry = MakeWaterPressureGeometry(GetDisplacementGeometry(), DiffOrderElement);
+    mpPressureGeometry = MakeWaterPressureGeometry(GetDisplacementGeometry(), IsDiffOrder);
 }
 
 UPwInterfaceElement::UPwInterfaceElement(IndexType                          NewId,
                                          const GeometryType::Pointer&       rGeometry,
                                          std::unique_ptr<StressStatePolicy> pStressStatePolicy,
-                                         bool                               DiffOrderElement)
+                                         IsDiffOrderElement                 IsDiffOrder)
     : Element(NewId, rGeometry), mpStressStatePolicy(std::move(pStressStatePolicy))
 {
     MakeIntegrationSchemeAndAssignFunction();
-    mpPressureGeometry = MakeWaterPressureGeometry(GetDisplacementGeometry(), DiffOrderElement);
+    mpPressureGeometry = MakeWaterPressureGeometry(GetDisplacementGeometry(), IsDiffOrder);
 }
 
 void UPwInterfaceElement::MakeIntegrationSchemeAndAssignFunction()
@@ -111,9 +111,9 @@ void UPwInterfaceElement::MakeIntegrationSchemeAndAssignFunction()
 }
 
 std::unique_ptr<Geometry<Node>> UPwInterfaceElement::MakeWaterPressureGeometry(const GeometryType& rDisplacementGeometry,
-                                                                               bool DiffOrderElement)
+                                                                               IsDiffOrderElement IsDiffOrder)
 {
-    if (DiffOrderElement) {
+    if (IsDiffOrder == IsDiffOrderElement::Yes) {
         KRATOS_ERROR_IF(rDisplacementGeometry.GetGeometryOrderType() != GeometryData::Kratos_Quadratic_Order) << "Only quadratic order interface elements can create a linear order pressure geometry. \n";
         switch (rDisplacementGeometry.GetGeometryFamily()) {
             using enum GeometryData::KratosGeometryFamily;
@@ -166,8 +166,8 @@ Element::Pointer UPwInterfaceElement::Create(IndexType               NewId,
                                              GeometryType::Pointer   pGeometry,
                                              PropertiesType::Pointer pProperties) const
 {
-    return make_intrusive<UPwInterfaceElement>(NewId, pGeometry, pProperties,
-                                               mpStressStatePolicy->Clone(), false);
+    return make_intrusive<UPwInterfaceElement>(
+        NewId, pGeometry, pProperties, mpStressStatePolicy->Clone(), IsDiffOrderElement::No);
 }
 
 void UPwInterfaceElement::EquationIdVector(EquationIdVectorType& rResult, const ProcessInfo&) const
