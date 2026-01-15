@@ -80,33 +80,17 @@ Geo::OptionalGeometryUniquePtr MakeOptionalWaterPressureGeometry(const Geometry<
         switch (rDisplacementGeometry.GetGeometryFamily()) {
             using enum GeometryData::KratosGeometryFamily;
         case Kratos_Linear: {
-            PointerVector<Node> nodes;
-            nodes.push_back(rDisplacementGeometry.pGetPoint(0));
-            nodes.push_back(rDisplacementGeometry.pGetPoint(1));
-            nodes.push_back(rDisplacementGeometry.pGetPoint(3));
-            nodes.push_back(rDisplacementGeometry.pGetPoint(4));
+            const auto nodes = GeometryUtilities::GetNodesByIndex(rDisplacementGeometry, {0, 1, 3, 4});
             return std::make_unique<InterfaceGeometry<Line2D2<Node>>>(nodes);
         }
         case Kratos_Triangle: {
-            PointerVector<Node> nodes;
-            nodes.push_back(rDisplacementGeometry.pGetPoint(0));
-            nodes.push_back(rDisplacementGeometry.pGetPoint(1));
-            nodes.push_back(rDisplacementGeometry.pGetPoint(2));
-            nodes.push_back(rDisplacementGeometry.pGetPoint(6));
-            nodes.push_back(rDisplacementGeometry.pGetPoint(7));
-            nodes.push_back(rDisplacementGeometry.pGetPoint(8));
+            const auto nodes =
+                GeometryUtilities::GetNodesByIndex(rDisplacementGeometry, {0, 1, 2, 6, 7, 8});
             return std::make_unique<InterfaceGeometry<Triangle3D3<Node>>>(nodes);
         }
         case Kratos_Quadrilateral: {
-            PointerVector<Node> nodes;
-            nodes.push_back(rDisplacementGeometry.pGetPoint(0));
-            nodes.push_back(rDisplacementGeometry.pGetPoint(1));
-            nodes.push_back(rDisplacementGeometry.pGetPoint(2));
-            nodes.push_back(rDisplacementGeometry.pGetPoint(3));
-            nodes.push_back(rDisplacementGeometry.pGetPoint(8));
-            nodes.push_back(rDisplacementGeometry.pGetPoint(9));
-            nodes.push_back(rDisplacementGeometry.pGetPoint(10));
-            nodes.push_back(rDisplacementGeometry.pGetPoint(11));
+            const auto nodes =
+                GeometryUtilities::GetNodesByIndex(rDisplacementGeometry, {0, 1, 2, 3, 8, 9, 10, 11});
             return std::make_unique<InterfaceGeometry<Quadrilateral3D4<Node>>>(nodes);
         }
         default:
