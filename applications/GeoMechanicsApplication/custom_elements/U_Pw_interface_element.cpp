@@ -166,7 +166,7 @@ void UPwInterfaceElement::CalculateLeftHandSide(MatrixType& rLeftHandSideMatrix,
     // Currently, the left-hand side matrix only includes the stiffness matrix. In the future, it
     // will also include water pressure contributions and coupling terms.
     const auto number_of_dofs = GetDofs().size();
-    rLeftHandSideMatrix       = ZeroMatrix(number_of_dofs, number_of_dofs);
+    rLeftHandSideMatrix       = ZeroMatrix{number_of_dofs, number_of_dofs};
 
     const auto local_b_matrices = CalculateLocalBMatricesAtIntegrationPoints();
     const auto number_of_u_dofs =
