@@ -40,11 +40,13 @@ public:
     UPwInterfaceElement(IndexType                          NewId,
                         const GeometryType::Pointer&       rGeometry,
                         const PropertiesType::Pointer&     rProperties,
-                        std::unique_ptr<StressStatePolicy> pStressStatePolicy);
+                        std::unique_ptr<StressStatePolicy> pStressStatePolicy,
+                        bool                               DiffOrderElement);
 
     UPwInterfaceElement(IndexType                          NewId,
                         const GeometryType::Pointer&       rGeometry,
-                        std::unique_ptr<StressStatePolicy> pStressStatePolicy);
+                        std::unique_ptr<StressStatePolicy> pStressStatePolicy,
+                        bool                               DiffOrderElement);
     Element::Pointer Create(IndexType NewId, const NodesArrayType& rNodes, PropertiesType::Pointer pProperties) const override;
     Element::Pointer Create(IndexType NewId, GeometryType::Pointer pGeom, PropertiesType::Pointer pProperties) const override;
 
@@ -91,6 +93,8 @@ private:
                                                               const ProcessInfo& rProcessInfo);
     void ApplyRotationToBMatrix(Matrix& rBMatrix, const Matrix& rRotationMatrix) const;
     void MakeIntegrationSchemeAndAssignFunction();
+    std::unique_ptr<Geometry<Node>> MakeWaterPressureGeometry(const GeometryType& rDisplacementGeometry,
+                                                              bool DiffOrderElement);
     void InterpolateNodalStressesToInitialTractions(const std::vector<std::optional<Vector>>& rInterfaceNodalCauchyStresses) const;
     Vector InterpolateNodalStressToIntegrationPoints(const Geo::IntegrationPointType& rIntegrationPoint,
                                                      const std::vector<Vector>& rNodalStresses) const;
@@ -103,6 +107,7 @@ private:
     std::unique_ptr<StressStatePolicy>    mpStressStatePolicy;
     std::vector<ConstitutiveLaw::Pointer> mConstitutiveLaws;
     IntegrationCoefficientsCalculator     mIntegrationCoefficientsCalculator;
+    std::unique_ptr<Geometry<Node>>       mpPressureGeometry;
 
     friend class Serializer;
 };

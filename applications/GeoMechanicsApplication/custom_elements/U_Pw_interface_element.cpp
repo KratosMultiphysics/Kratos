@@ -12,6 +12,7 @@
 //
 #include "U_Pw_interface_element.h"
 
+#include "custom_geometries/interface_geometry.hpp"
 #include "custom_utilities/constitutive_law_utilities.h"
 #include "custom_utilities/dof_utilities.hpp"
 #include "custom_utilities/element_utilities.hpp"
@@ -21,6 +22,9 @@
 #include "custom_utilities/geometry_utilities.h"
 #include "custom_utilities/math_utilities.hpp"
 #include "geo_aliases.h"
+#include "geometries/line_2d_2.h"
+#include "geometries/quadrilateral_3d_4.h"
+#include "geometries/triangle_3d_3.h"
 #include "interface_stress_state.h"
 #include "lobatto_integration_scheme.h"
 #include "lumped_integration_scheme.h"
@@ -75,18 +79,22 @@ namespace Kratos
 UPwInterfaceElement::UPwInterfaceElement(IndexType NewId,
                                          const Geometry<GeometricalObject::NodeType>::Pointer& rGeometry,
                                          const Properties::Pointer&         rProperties,
-                                         std::unique_ptr<StressStatePolicy> pStressStatePolicy)
+                                         std::unique_ptr<StressStatePolicy> pStressStatePolicy,
+                                         bool                               DiffOrderElement)
     : Element(NewId, rGeometry, rProperties), mpStressStatePolicy(std::move(pStressStatePolicy))
 {
     MakeIntegrationSchemeAndAssignFunction();
+    mpPressureGeometry = MakeWaterPressureGeometry(GetDisplacementGeometry(), DiffOrderElement);
 }
 
 UPwInterfaceElement::UPwInterfaceElement(IndexType                          NewId,
                                          const GeometryType::Pointer&       rGeometry,
-                                         std::unique_ptr<StressStatePolicy> pStressStatePolicy)
+                                         std::unique_ptr<StressStatePolicy> pStressStatePolicy,
+                                         bool                               DiffOrderElement)
     : Element(NewId, rGeometry), mpStressStatePolicy(std::move(pStressStatePolicy))
 {
     MakeIntegrationSchemeAndAssignFunction();
+    mpPressureGeometry = MakeWaterPressureGeometry(GetDisplacementGeometry(), DiffOrderElement);
 }
 
 void UPwInterfaceElement::MakeIntegrationSchemeAndAssignFunction()
@@ -102,6 +110,51 @@ void UPwInterfaceElement::MakeIntegrationSchemeAndAssignFunction()
     }
 }
 
+std::unique_ptr<Geometry<Node>> UPwInterfaceElement::MakeWaterPressureGeometry(const GeometryType& rDisplacementGeometry,
+                                                                               bool DiffOrderElement)
+{
+    if (DiffOrderElement) {
+        KRATOS_ERROR_IF(rDisplacementGeometry.GetGeometryOrderType() != GeometryData::Kratos_Quadratic_Order) << "Only quadratic order interface elements can create a linear order pressure geometry. \n";
+        switch (rDisplacementGeometry.GetGeometryFamily()) {
+            using enum GeometryData::KratosGeometryFamily;
+        case Kratos_Linear: {
+            PointerVector<Node> nodes;
+            nodes.push_back(rDisplacementGeometry.pGetPoint(0));
+            nodes.push_back(rDisplacementGeometry.pGetPoint(1));
+            nodes.push_back(rDisplacementGeometry.pGetPoint(3));
+            nodes.push_back(rDisplacementGeometry.pGetPoint(4));
+            return std::make_unique<InterfaceGeometry<Line2D2<Node>>>(nodes);
+        }
+        case Kratos_Triangle: {
+            PointerVector<Node> nodes;
+            nodes.push_back(rDisplacementGeometry.pGetPoint(0));
+            nodes.push_back(rDisplacementGeometry.pGetPoint(1));
+            nodes.push_back(rDisplacementGeometry.pGetPoint(2));
+            nodes.push_back(rDisplacementGeometry.pGetPoint(6));
+            nodes.push_back(rDisplacementGeometry.pGetPoint(7));
+            nodes.push_back(rDisplacementGeometry.pGetPoint(8));
+            return std::make_unique<InterfaceGeometry<Triangle3D3<Node>>>(nodes);
+        }
+        case Kratos_Quadrilateral: {
+            PointerVector<Node> nodes;
+            nodes.push_back(rDisplacementGeometry.pGetPoint(0));
+            nodes.push_back(rDisplacementGeometry.pGetPoint(1));
+            nodes.push_back(rDisplacementGeometry.pGetPoint(2));
+            nodes.push_back(rDisplacementGeometry.pGetPoint(3));
+            nodes.push_back(rDisplacementGeometry.pGetPoint(8));
+            nodes.push_back(rDisplacementGeometry.pGetPoint(9));
+            nodes.push_back(rDisplacementGeometry.pGetPoint(10));
+            nodes.push_back(rDisplacementGeometry.pGetPoint(11));
+            return std::make_unique<InterfaceGeometry<Quadrilateral3D4<Node>>>(nodes);
+        }
+        default:
+            KRATOS_ERROR << "The specified geometry family is not supported for creating a water "
+                            "pressure geometry.\n";
+        }
+    }
+    return std::make_unique<GeometryType>(rDisplacementGeometry);
+}
+
 Element::Pointer UPwInterfaceElement::Create(IndexType               NewId,
                                              const NodesArrayType&   rNodes,
                                              PropertiesType::Pointer pProperties) const
@@ -113,7 +166,8 @@ Element::Pointer UPwInterfaceElement::Create(IndexType               NewId,
                                              GeometryType::Pointer   pGeometry,
                                              PropertiesType::Pointer pProperties) const
 {
-    return make_intrusive<UPwInterfaceElement>(NewId, pGeometry, pProperties, mpStressStatePolicy->Clone());
+    return make_intrusive<UPwInterfaceElement>(NewId, pGeometry, pProperties,
+                                               mpStressStatePolicy->Clone(), false);
 }
 
 void UPwInterfaceElement::EquationIdVector(EquationIdVectorType& rResult, const ProcessInfo&) const
@@ -300,8 +354,7 @@ const Element::GeometryType& UPwInterfaceElement::GetDisplacementGeometry() cons
 
 const Element::GeometryType& UPwInterfaceElement::GetWaterPressureGeometry() const
 {
-    // For now, we assume that the displacement geometry and the water pressure geometry are the same thing
-    return GetGeometry();
+    return *mpPressureGeometry;
 }
 
 std::vector<Matrix> UPwInterfaceElement::CalculateLocalBMatricesAtIntegrationPoints() const
