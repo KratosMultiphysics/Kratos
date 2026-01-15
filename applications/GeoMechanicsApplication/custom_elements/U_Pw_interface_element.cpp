@@ -81,7 +81,9 @@ UPwInterfaceElement::UPwInterfaceElement(IndexType NewId,
                                          const Properties::Pointer&         rProperties,
                                          std::unique_ptr<StressStatePolicy> pStressStatePolicy,
                                          IsDiffOrderElement                 IsDiffOrder)
-    : Element(NewId, rGeometry, rProperties), mpStressStatePolicy(std::move(pStressStatePolicy))
+    : Element(NewId, rGeometry, rProperties),
+      mpStressStatePolicy(std::move(pStressStatePolicy)),
+      mIsDiffOrder(IsDiffOrder)
 {
     MakeIntegrationSchemeAndAssignFunction();
     mpPressureGeometry = MakeWaterPressureGeometry(GetDisplacementGeometry(), IsDiffOrder);
@@ -91,7 +93,7 @@ UPwInterfaceElement::UPwInterfaceElement(IndexType                          NewI
                                          const GeometryType::Pointer&       rGeometry,
                                          std::unique_ptr<StressStatePolicy> pStressStatePolicy,
                                          IsDiffOrderElement                 IsDiffOrder)
-    : Element(NewId, rGeometry), mpStressStatePolicy(std::move(pStressStatePolicy))
+    : Element(NewId, rGeometry), mpStressStatePolicy(std::move(pStressStatePolicy)), mIsDiffOrder(IsDiffOrder)
 {
     MakeIntegrationSchemeAndAssignFunction();
     mpPressureGeometry = MakeWaterPressureGeometry(GetDisplacementGeometry(), IsDiffOrder);
@@ -166,8 +168,8 @@ Element::Pointer UPwInterfaceElement::Create(IndexType               NewId,
                                              GeometryType::Pointer   pGeometry,
                                              PropertiesType::Pointer pProperties) const
 {
-    return make_intrusive<UPwInterfaceElement>(
-        NewId, pGeometry, pProperties, mpStressStatePolicy->Clone(), IsDiffOrderElement::No);
+    return make_intrusive<UPwInterfaceElement>(NewId, pGeometry, pProperties,
+                                               mpStressStatePolicy->Clone(), mIsDiffOrder);
 }
 
 void UPwInterfaceElement::EquationIdVector(EquationIdVectorType& rResult, const ProcessInfo&) const
