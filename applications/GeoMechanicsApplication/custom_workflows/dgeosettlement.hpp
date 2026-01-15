@@ -20,7 +20,7 @@
 #include "includes/kratos_export_api.h"
 
 #include "custom_utilities/node_utilities.h"
-#include "custom_utilities/process_factory.hpp"
+#include "custom_utilities/process_factory.h"
 
 namespace Kratos
 {
