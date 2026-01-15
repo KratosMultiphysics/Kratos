@@ -81,9 +81,7 @@ UPwInterfaceElement::UPwInterfaceElement(IndexType NewId,
                                          const Properties::Pointer&         rProperties,
                                          std::unique_ptr<StressStatePolicy> pStressStatePolicy,
                                          IsDiffOrderElement                 IsDiffOrder)
-    : Element(NewId, rGeometry, rProperties),
-      mpStressStatePolicy(std::move(pStressStatePolicy)),
-      mIsDiffOrder(IsDiffOrder)
+    : Element(NewId, rGeometry, rProperties), mpStressStatePolicy(std::move(pStressStatePolicy))
 {
     MakeIntegrationSchemeAndAssignFunction();
     mpOptionalPressureGeometry = MakeOptionalWaterPressureGeometry(GetDisplacementGeometry(), IsDiffOrder);
@@ -93,7 +91,7 @@ UPwInterfaceElement::UPwInterfaceElement(IndexType                          NewI
                                          const GeometryType::Pointer&       rGeometry,
                                          std::unique_ptr<StressStatePolicy> pStressStatePolicy,
                                          IsDiffOrderElement                 IsDiffOrder)
-    : Element(NewId, rGeometry), mpStressStatePolicy(std::move(pStressStatePolicy)), mIsDiffOrder(IsDiffOrder)
+    : Element(NewId, rGeometry), mpStressStatePolicy(std::move(pStressStatePolicy))
 {
     MakeIntegrationSchemeAndAssignFunction();
     mpOptionalPressureGeometry = MakeOptionalWaterPressureGeometry(GetDisplacementGeometry(), IsDiffOrder);
@@ -169,8 +167,9 @@ Element::Pointer UPwInterfaceElement::Create(IndexType               NewId,
                                              GeometryType::Pointer   pGeometry,
                                              PropertiesType::Pointer pProperties) const
 {
+    const auto is_diff_order = mpOptionalPressureGeometry ? IsDiffOrderElement::Yes : IsDiffOrderElement::No;
     return make_intrusive<UPwInterfaceElement>(NewId, pGeometry, pProperties,
-                                               mpStressStatePolicy->Clone(), mIsDiffOrder);
+                                               mpStressStatePolicy->Clone(), is_diff_order);
 }
 
 void UPwInterfaceElement::EquationIdVector(EquationIdVectorType& rResult, const ProcessInfo&) const

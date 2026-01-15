@@ -108,7 +108,6 @@ private:
     std::unique_ptr<StressStatePolicy>    mpStressStatePolicy;
     std::vector<ConstitutiveLaw::Pointer> mConstitutiveLaws;
     IntegrationCoefficientsCalculator     mIntegrationCoefficientsCalculator;
-    IsDiffOrderElement                    mIsDiffOrder = IsDiffOrderElement::No;
     Geo::OptionalGeometryUniquePtr        mpOptionalPressureGeometry;
 
     friend class Serializer;
