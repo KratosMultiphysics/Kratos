@@ -23,6 +23,7 @@
 #include "testing/testing.h"
 
 #ifdef KRATOS_USE_FUTURE
+#include "future/containers/define_linear_algebra_serial.h"
 #include "future/linear_solvers/amgcl_solver.h"
 #include "future/linear_solvers/skyline_lu_factorization_solver.h"
 #include "future/solving_strategies/schemes/static_scheme.h"
@@ -49,19 +50,19 @@ KRATOS_TEST_CASE_IN_SUITE(LinearStrategyEliminationBuild, KratosCoreFastSuite)
             "name" : "elimination_builder"
         }
     })");
-    auto p_scheme = Kratos::make_shared<Future::StaticScheme<CsrMatrix<>, SystemVector<>, SparseContiguousRowGraph<>>>(r_test_model_part, scheme_settings);
+    auto p_scheme = Kratos::make_shared<Future::StaticScheme<Future::SerialLinearAlgebraTraits>>(r_test_model_part, scheme_settings);
 
     // Create the linear solver
     Parameters amgcl_settings = Parameters(R"({
     })");
-    using AMGCLSolverType = Future::AMGCLSolver<CsrMatrix<>, SystemVector<>>;
-    using LinearSolverType = Future::LinearSolver<CsrMatrix<>, SystemVector<>>;
+    using AMGCLSolverType = Future::AMGCLSolver<Future::SerialLinearAlgebraTraits>;
+    using LinearSolverType = Future::LinearSolver<Future::SerialLinearAlgebraTraits>;
     typename LinearSolverType::Pointer p_amgcl_solver = Kratos::make_shared<AMGCLSolverType>(amgcl_settings);
 
     // Create the strategy
     Parameters strategy_settings = Parameters(R"({
     })");
-    auto p_strategy = Kratos::make_unique<Future::LinearStrategy<CsrMatrix<>, SystemVector<>, SparseContiguousRowGraph<>>>(r_test_model_part, p_scheme, p_amgcl_solver);
+    auto p_strategy = Kratos::make_unique<Future::LinearStrategy<Future::SerialLinearAlgebraTraits>>(r_test_model_part, p_scheme, p_amgcl_solver);
 
     // Apply Dirichlet BCs
     auto p_node_1 = r_test_model_part.pGetNode(1);
@@ -77,13 +78,13 @@ KRATOS_TEST_CASE_IN_SUITE(LinearStrategyEliminationBuild, KratosCoreFastSuite)
     p_strategy->FinalizeSolutionStep();
 
     // Check array sizes
-    const auto& r_linear_system_container = p_strategy->GetLinearSystemContainer();
-    KRATOS_CHECK_EQUAL(r_linear_system_container.pRhs->size(), 3);
-    KRATOS_CHECK_EQUAL(r_linear_system_container.pLhs->size1(), 3);
-    KRATOS_CHECK_EQUAL(r_linear_system_container.pLhs->size2(), 3);
-    KRATOS_CHECK_EQUAL(r_linear_system_container.pEffectiveRhs->size(), 2);
-    KRATOS_CHECK_EQUAL(r_linear_system_container.pEffectiveLhs->size1(), 2);
-    KRATOS_CHECK_EQUAL(r_linear_system_container.pEffectiveLhs->size2(), 2);
+    const auto& r_strategy_data_container = p_strategy->GetImplicitStrategyDataContainer();
+    KRATOS_CHECK_EQUAL(r_strategy_data_container.pRhs->size(), 3);
+    KRATOS_CHECK_EQUAL(r_strategy_data_container.pLhs->size1(), 3);
+    KRATOS_CHECK_EQUAL(r_strategy_data_container.pLhs->size2(), 3);
+    KRATOS_CHECK_EQUAL(r_strategy_data_container.pEffectiveRhs->size(), 2);
+    KRATOS_CHECK_EQUAL(r_strategy_data_container.pEffectiveLhs->size1(), 2);
+    KRATOS_CHECK_EQUAL(r_strategy_data_container.pEffectiveLhs->size2(), 2);
 
     // Check results
     KRATOS_CHECK_NEAR(r_test_model_part.GetNode(1).FastGetSolutionStepValue(DISTANCE), 1.0, 1.0e-12);
@@ -108,19 +109,19 @@ KRATOS_TEST_CASE_IN_SUITE(LinearStrategyBlockBuild, KratosCoreFastSuite)
             "name" : "block_builder"
         }
     })");
-    auto p_scheme = Kratos::make_shared<Future::StaticScheme<CsrMatrix<>, SystemVector<>, SparseContiguousRowGraph<>>>(r_test_model_part, scheme_settings);
+    auto p_scheme = Kratos::make_shared<Future::StaticScheme<Future::SerialLinearAlgebraTraits>>(r_test_model_part, scheme_settings);
 
     // Create the linear solver
     Parameters amgcl_settings = Parameters(R"({
     })");
-    using AMGCLSolverType = Future::AMGCLSolver<CsrMatrix<>, SystemVector<>>;
-    using LinearSolverType = Future::LinearSolver<CsrMatrix<>, SystemVector<>>;
+    using AMGCLSolverType = Future::AMGCLSolver<Future::SerialLinearAlgebraTraits>;
+    using LinearSolverType = Future::LinearSolver<Future::SerialLinearAlgebraTraits>;
     typename LinearSolverType::Pointer p_amgcl_solver = Kratos::make_shared<AMGCLSolverType>(amgcl_settings);
 
     // Create the strategy
     Parameters strategy_settings = Parameters(R"({
     })");
-    auto p_strategy = Kratos::make_unique<Future::LinearStrategy<CsrMatrix<>, SystemVector<>, SparseContiguousRowGraph<>>>(r_test_model_part, p_scheme, p_amgcl_solver);
+    auto p_strategy = Kratos::make_unique<Future::LinearStrategy<Future::SerialLinearAlgebraTraits>>(r_test_model_part, p_scheme, p_amgcl_solver);
 
     // Apply Dirichlet BCs
     auto p_node_1 = r_test_model_part.pGetNode(1);
@@ -136,13 +137,13 @@ KRATOS_TEST_CASE_IN_SUITE(LinearStrategyBlockBuild, KratosCoreFastSuite)
     p_strategy->FinalizeSolutionStep();
 
     // Check array sizes
-    const auto &r_linear_system_container = p_strategy->GetLinearSystemContainer();
-    KRATOS_CHECK_EQUAL(r_linear_system_container.pRhs->size(), 3);
-    KRATOS_CHECK_EQUAL(r_linear_system_container.pLhs->size1(), 3);
-    KRATOS_CHECK_EQUAL(r_linear_system_container.pLhs->size2(), 3);
-    KRATOS_CHECK_EQUAL(r_linear_system_container.pEffectiveRhs->size(), 3);
-    KRATOS_CHECK_EQUAL(r_linear_system_container.pEffectiveLhs->size1(), 3);
-    KRATOS_CHECK_EQUAL(r_linear_system_container.pEffectiveLhs->size2(), 3);
+    const auto &r_strategy_data_container = p_strategy->GetImplicitStrategyDataContainer();
+    KRATOS_CHECK_EQUAL(r_strategy_data_container.pRhs->size(), 3);
+    KRATOS_CHECK_EQUAL(r_strategy_data_container.pLhs->size1(), 3);
+    KRATOS_CHECK_EQUAL(r_strategy_data_container.pLhs->size2(), 3);
+    KRATOS_CHECK_EQUAL(r_strategy_data_container.pEffectiveRhs->size(), 3);
+    KRATOS_CHECK_EQUAL(r_strategy_data_container.pEffectiveLhs->size1(), 3);
+    KRATOS_CHECK_EQUAL(r_strategy_data_container.pEffectiveLhs->size2(), 3);
 
     // Check results
     KRATOS_CHECK_NEAR(r_test_model_part.GetNode(1).FastGetSolutionStepValue(DISTANCE), 1.0, 1.0e-12);
@@ -179,19 +180,19 @@ KRATOS_TEST_CASE_IN_SUITE(LinearStrategyWithJumpConstraintEliminationBuild, Krat
             "name" : "elimination_builder"
         }
     })");
-    auto p_scheme = Kratos::make_shared<Future::StaticScheme<CsrMatrix<>, SystemVector<>, SparseContiguousRowGraph<>>>(r_test_model_part, scheme_settings);
+    auto p_scheme = Kratos::make_shared<Future::StaticScheme<Future::SerialLinearAlgebraTraits>>(r_test_model_part, scheme_settings);
 
     // Create the linear solver
     Parameters amgcl_settings = Parameters(R"({
     })");
-    using AMGCLSolverType = Future::AMGCLSolver<CsrMatrix<>, SystemVector<>>;
-    using LinearSolverType = Future::LinearSolver<CsrMatrix<>, SystemVector<>>;
+    using AMGCLSolverType = Future::AMGCLSolver<Future::SerialLinearAlgebraTraits>;
+    using LinearSolverType = Future::LinearSolver<Future::SerialLinearAlgebraTraits>;
     typename LinearSolverType::Pointer p_amgcl_solver = Kratos::make_shared<AMGCLSolverType>(amgcl_settings);
 
     // Create the strategy
     Parameters strategy_settings = Parameters(R"({
     })");
-    auto p_strategy = Kratos::make_unique<Future::LinearStrategy<CsrMatrix<>, SystemVector<>, SparseContiguousRowGraph<>>>(r_test_model_part, p_scheme, p_amgcl_solver);
+    auto p_strategy = Kratos::make_unique<Future::LinearStrategy<Future::SerialLinearAlgebraTraits>>(r_test_model_part, p_scheme, p_amgcl_solver);
 
     // Apply Dirichlet BCs
     auto p_node_1 = r_test_model_part.pGetNode(1);
@@ -207,13 +208,13 @@ KRATOS_TEST_CASE_IN_SUITE(LinearStrategyWithJumpConstraintEliminationBuild, Krat
     p_strategy->FinalizeSolutionStep();
 
     // Check array sizes
-    const auto &r_linear_system_container = p_strategy->GetLinearSystemContainer();
-    KRATOS_CHECK_EQUAL(r_linear_system_container.pRhs->size(), 3);
-    KRATOS_CHECK_EQUAL(r_linear_system_container.pLhs->size1(), 3);
-    KRATOS_CHECK_EQUAL(r_linear_system_container.pLhs->size2(), 3);
-    KRATOS_CHECK_EQUAL(r_linear_system_container.pEffectiveRhs->size(), 1);
-    KRATOS_CHECK_EQUAL(r_linear_system_container.pEffectiveLhs->size1(), 1);
-    KRATOS_CHECK_EQUAL(r_linear_system_container.pEffectiveLhs->size2(), 1);
+    const auto &r_strategy_data_container = p_strategy->GetImplicitStrategyDataContainer();
+    KRATOS_CHECK_EQUAL(r_strategy_data_container.pRhs->size(), 3);
+    KRATOS_CHECK_EQUAL(r_strategy_data_container.pLhs->size1(), 3);
+    KRATOS_CHECK_EQUAL(r_strategy_data_container.pLhs->size2(), 3);
+    KRATOS_CHECK_EQUAL(r_strategy_data_container.pEffectiveRhs->size(), 1);
+    KRATOS_CHECK_EQUAL(r_strategy_data_container.pEffectiveLhs->size1(), 1);
+    KRATOS_CHECK_EQUAL(r_strategy_data_container.pEffectiveLhs->size2(), 1);
 
     // Check results
     KRATOS_CHECK_NEAR(r_test_model_part.GetNode(1).FastGetSolutionStepValue(DISTANCE), 1.0, 1.0e-12);
@@ -250,19 +251,19 @@ KRATOS_TEST_CASE_IN_SUITE(LinearStrategyWithJumpConstraintBlockBuild, KratosCore
             "name" : "block_builder"
         }
     })");
-    auto p_scheme = Kratos::make_shared<Future::StaticScheme<CsrMatrix<>, SystemVector<>, SparseContiguousRowGraph<>>>(r_test_model_part, scheme_settings);
+    auto p_scheme = Kratos::make_shared<Future::StaticScheme<Future::SerialLinearAlgebraTraits>>(r_test_model_part, scheme_settings);
 
     // Create the linear solver
     Parameters amgcl_settings = Parameters(R"({
     })");
-    using AMGCLSolverType = Future::AMGCLSolver<CsrMatrix<>, SystemVector<>>;
-    using LinearSolverType = Future::LinearSolver<CsrMatrix<>, SystemVector<>>;
+    using AMGCLSolverType = Future::AMGCLSolver<Future::SerialLinearAlgebraTraits>;
+    using LinearSolverType = Future::LinearSolver<Future::SerialLinearAlgebraTraits>;
     typename LinearSolverType::Pointer p_amgcl_solver = Kratos::make_shared<AMGCLSolverType>(amgcl_settings);
 
     // Create the strategy
     Parameters strategy_settings = Parameters(R"({
     })");
-    auto p_strategy = Kratos::make_unique<Future::LinearStrategy<CsrMatrix<>, SystemVector<>, SparseContiguousRowGraph<>>>(r_test_model_part, p_scheme, p_amgcl_solver);
+    auto p_strategy = Kratos::make_unique<Future::LinearStrategy<Future::SerialLinearAlgebraTraits>>(r_test_model_part, p_scheme, p_amgcl_solver);
 
     // Apply Dirichlet BCs
     auto p_node_1 = r_test_model_part.pGetNode(1);
@@ -278,13 +279,13 @@ KRATOS_TEST_CASE_IN_SUITE(LinearStrategyWithJumpConstraintBlockBuild, KratosCore
     p_strategy->FinalizeSolutionStep();
 
     // Check array sizes
-    const auto &r_linear_system_container = p_strategy->GetLinearSystemContainer();
-    KRATOS_CHECK_EQUAL(r_linear_system_container.pRhs->size(), 3);
-    KRATOS_CHECK_EQUAL(r_linear_system_container.pLhs->size1(), 3);
-    KRATOS_CHECK_EQUAL(r_linear_system_container.pLhs->size2(), 3);
-    KRATOS_CHECK_EQUAL(r_linear_system_container.pEffectiveRhs->size(), 2);
-    KRATOS_CHECK_EQUAL(r_linear_system_container.pEffectiveLhs->size1(), 2);
-    KRATOS_CHECK_EQUAL(r_linear_system_container.pEffectiveLhs->size2(), 2);
+    const auto &r_strategy_data_container = p_strategy->GetImplicitStrategyDataContainer();
+    KRATOS_CHECK_EQUAL(r_strategy_data_container.pRhs->size(), 3);
+    KRATOS_CHECK_EQUAL(r_strategy_data_container.pLhs->size1(), 3);
+    KRATOS_CHECK_EQUAL(r_strategy_data_container.pLhs->size2(), 3);
+    KRATOS_CHECK_EQUAL(r_strategy_data_container.pEffectiveRhs->size(), 2);
+    KRATOS_CHECK_EQUAL(r_strategy_data_container.pEffectiveLhs->size1(), 2);
+    KRATOS_CHECK_EQUAL(r_strategy_data_container.pEffectiveLhs->size2(), 2);
 
     // Check results
     KRATOS_CHECK_NEAR(r_test_model_part.GetNode(1).FastGetSolutionStepValue(DISTANCE), 1.0, 1.0e-12);
@@ -319,19 +320,19 @@ KRATOS_TEST_CASE_IN_SUITE(LinearStrategyWithPeriodicityConstraintEliminationBuil
             "name" : "elimination_builder"
         }
     })");
-    auto p_scheme = Kratos::make_shared<Future::StaticScheme<CsrMatrix<>, SystemVector<>, SparseContiguousRowGraph<>>>(r_test_model_part, scheme_settings);
+    auto p_scheme = Kratos::make_shared<Future::StaticScheme<Future::SerialLinearAlgebraTraits>>(r_test_model_part, scheme_settings);
 
     // Create the linear solver
     Parameters amgcl_settings = Parameters(R"({
     })");
-    using AMGCLSolverType = Future::AMGCLSolver<CsrMatrix<>, SystemVector<>>;
-    using LinearSolverType = Future::LinearSolver<CsrMatrix<>, SystemVector<>>;
+    using AMGCLSolverType = Future::AMGCLSolver<Future::SerialLinearAlgebraTraits>;
+    using LinearSolverType = Future::LinearSolver<Future::SerialLinearAlgebraTraits>;
     typename LinearSolverType::Pointer p_amgcl_solver = Kratos::make_shared<AMGCLSolverType>(amgcl_settings);
 
     // Create the strategy
     Parameters strategy_settings = Parameters(R"({
     })");
-    auto p_strategy = Kratos::make_unique<Future::LinearStrategy<CsrMatrix<>, SystemVector<>, SparseContiguousRowGraph<>>>(r_test_model_part, p_scheme, p_amgcl_solver);
+    auto p_strategy = Kratos::make_unique<Future::LinearStrategy<Future::SerialLinearAlgebraTraits>>(r_test_model_part, p_scheme, p_amgcl_solver);
 
     // Apply Dirichlet BCs
     auto p_node_1 = r_test_model_part.pGetNode(1);
@@ -347,13 +348,13 @@ KRATOS_TEST_CASE_IN_SUITE(LinearStrategyWithPeriodicityConstraintEliminationBuil
     p_strategy->FinalizeSolutionStep();
 
     // Check array sizes
-    const auto &r_linear_system_container = p_strategy->GetLinearSystemContainer();
-    KRATOS_CHECK_EQUAL(r_linear_system_container.pRhs->size(), 4);
-    KRATOS_CHECK_EQUAL(r_linear_system_container.pLhs->size1(), 4);
-    KRATOS_CHECK_EQUAL(r_linear_system_container.pLhs->size2(), 4);
-    KRATOS_CHECK_EQUAL(r_linear_system_container.pEffectiveRhs->size(), 2);
-    KRATOS_CHECK_EQUAL(r_linear_system_container.pEffectiveLhs->size1(), 2);
-    KRATOS_CHECK_EQUAL(r_linear_system_container.pEffectiveLhs->size2(), 2);
+    const auto &r_strategy_data_container = p_strategy->GetImplicitStrategyDataContainer();
+    KRATOS_CHECK_EQUAL(r_strategy_data_container.pRhs->size(), 4);
+    KRATOS_CHECK_EQUAL(r_strategy_data_container.pLhs->size1(), 4);
+    KRATOS_CHECK_EQUAL(r_strategy_data_container.pLhs->size2(), 4);
+    KRATOS_CHECK_EQUAL(r_strategy_data_container.pEffectiveRhs->size(), 2);
+    KRATOS_CHECK_EQUAL(r_strategy_data_container.pEffectiveLhs->size1(), 2);
+    KRATOS_CHECK_EQUAL(r_strategy_data_container.pEffectiveLhs->size2(), 2);
 
     // Check results
     KRATOS_CHECK_NEAR(r_test_model_part.GetNode(1).FastGetSolutionStepValue(DISTANCE), 0.0, 1.0e-12);
@@ -389,19 +390,19 @@ KRATOS_TEST_CASE_IN_SUITE(LinearStrategyWithPeriodicityConstraintBlockBuild, Kra
             "name" : "block_builder"
         }
     })");
-    auto p_scheme = Kratos::make_shared<Future::StaticScheme<CsrMatrix<>, SystemVector<>, SparseContiguousRowGraph<>>>(r_test_model_part, scheme_settings);
+    auto p_scheme = Kratos::make_shared<Future::StaticScheme<Future::SerialLinearAlgebraTraits>>(r_test_model_part, scheme_settings);
 
     // Create the linear solver
     Parameters amgcl_settings = Parameters(R"({
     })");
-    using AMGCLSolverType = Future::AMGCLSolver<CsrMatrix<>, SystemVector<>>;
-    using LinearSolverType = Future::LinearSolver<CsrMatrix<>, SystemVector<>>;
+    using AMGCLSolverType = Future::AMGCLSolver<Future::SerialLinearAlgebraTraits>;
+    using LinearSolverType = Future::LinearSolver<Future::SerialLinearAlgebraTraits>;
     typename LinearSolverType::Pointer p_amgcl_solver = Kratos::make_shared<AMGCLSolverType>(amgcl_settings);
 
     // Create the strategy
     Parameters strategy_settings = Parameters(R"({
     })");
-    auto p_strategy = Kratos::make_unique<Future::LinearStrategy<CsrMatrix<>, SystemVector<>, SparseContiguousRowGraph<>>>(r_test_model_part, p_scheme, p_amgcl_solver);
+    auto p_strategy = Kratos::make_unique<Future::LinearStrategy<Future::SerialLinearAlgebraTraits>>(r_test_model_part, p_scheme, p_amgcl_solver);
 
     // Apply Dirichlet BCs
     auto p_node_1 = r_test_model_part.pGetNode(1);
@@ -417,13 +418,13 @@ KRATOS_TEST_CASE_IN_SUITE(LinearStrategyWithPeriodicityConstraintBlockBuild, Kra
     p_strategy->FinalizeSolutionStep();
 
     // Check array sizes
-    const auto &r_linear_system_container = p_strategy->GetLinearSystemContainer();
-    KRATOS_CHECK_EQUAL(r_linear_system_container.pRhs->size(), 4);
-    KRATOS_CHECK_EQUAL(r_linear_system_container.pLhs->size1(), 4);
-    KRATOS_CHECK_EQUAL(r_linear_system_container.pLhs->size2(), 4);
-    KRATOS_CHECK_EQUAL(r_linear_system_container.pEffectiveRhs->size(), 3);
-    KRATOS_CHECK_EQUAL(r_linear_system_container.pEffectiveLhs->size1(), 3);
-    KRATOS_CHECK_EQUAL(r_linear_system_container.pEffectiveLhs->size2(), 3);
+    const auto &r_strategy_data_container = p_strategy->GetImplicitStrategyDataContainer();
+    KRATOS_CHECK_EQUAL(r_strategy_data_container.pRhs->size(), 4);
+    KRATOS_CHECK_EQUAL(r_strategy_data_container.pLhs->size1(), 4);
+    KRATOS_CHECK_EQUAL(r_strategy_data_container.pLhs->size2(), 4);
+    KRATOS_CHECK_EQUAL(r_strategy_data_container.pEffectiveRhs->size(), 3);
+    KRATOS_CHECK_EQUAL(r_strategy_data_container.pEffectiveLhs->size1(), 3);
+    KRATOS_CHECK_EQUAL(r_strategy_data_container.pEffectiveLhs->size2(), 3);
 
     // Check results
     KRATOS_CHECK_NEAR(r_test_model_part.GetNode(1).FastGetSolutionStepValue(DISTANCE), 0.0, 1.0e-12);
@@ -468,19 +469,19 @@ KRATOS_TEST_CASE_IN_SUITE(LinearStrategyWithMultipleDofsConstraintsEliminationBu
             "name" : "elimination_builder"
         }
     })");
-    auto p_scheme = Kratos::make_shared<Future::StaticScheme<CsrMatrix<>, SystemVector<>, SparseContiguousRowGraph<>>>(r_test_model_part, scheme_settings);
+    auto p_scheme = Kratos::make_shared<Future::StaticScheme<Future::SerialLinearAlgebraTraits>>(r_test_model_part, scheme_settings);
 
     // Create the linear solver
     Parameters amgcl_settings = Parameters(R"({
     })");
-    using AMGCLSolverType = Future::AMGCLSolver<CsrMatrix<>, SystemVector<>>;
-    using LinearSolverType = Future::LinearSolver<CsrMatrix<>, SystemVector<>>;
+    using AMGCLSolverType = Future::AMGCLSolver<Future::SerialLinearAlgebraTraits>;
+    using LinearSolverType = Future::LinearSolver<Future::SerialLinearAlgebraTraits>;
     typename LinearSolverType::Pointer p_amgcl_solver = Kratos::make_shared<AMGCLSolverType>(amgcl_settings);
 
     // Create the strategy
     Parameters strategy_settings = Parameters(R"({
     })");
-    auto p_strategy = Kratos::make_unique<Future::LinearStrategy<CsrMatrix<>, SystemVector<>, SparseContiguousRowGraph<>>>(r_test_model_part, p_scheme, p_amgcl_solver);
+    auto p_strategy = Kratos::make_unique<Future::LinearStrategy<Future::SerialLinearAlgebraTraits>>(r_test_model_part, p_scheme, p_amgcl_solver);
 
     // Apply Dirichlet BCs
     auto p_node_1 = r_test_model_part.pGetNode(1);
@@ -496,13 +497,13 @@ KRATOS_TEST_CASE_IN_SUITE(LinearStrategyWithMultipleDofsConstraintsEliminationBu
     p_strategy->FinalizeSolutionStep();
 
     // Check array sizes
-    const auto &r_linear_system_container = p_strategy->GetLinearSystemContainer();
-    KRATOS_CHECK_EQUAL(r_linear_system_container.pRhs->size(), 4);
-    KRATOS_CHECK_EQUAL(r_linear_system_container.pLhs->size1(), 4);
-    KRATOS_CHECK_EQUAL(r_linear_system_container.pLhs->size2(), 4);
-    KRATOS_CHECK_EQUAL(r_linear_system_container.pEffectiveRhs->size(), 2);
-    KRATOS_CHECK_EQUAL(r_linear_system_container.pEffectiveLhs->size1(), 2);
-    KRATOS_CHECK_EQUAL(r_linear_system_container.pEffectiveLhs->size2(), 2);
+    const auto &r_strategy_data_container = p_strategy->GetImplicitStrategyDataContainer();
+    KRATOS_CHECK_EQUAL(r_strategy_data_container.pRhs->size(), 4);
+    KRATOS_CHECK_EQUAL(r_strategy_data_container.pLhs->size1(), 4);
+    KRATOS_CHECK_EQUAL(r_strategy_data_container.pLhs->size2(), 4);
+    KRATOS_CHECK_EQUAL(r_strategy_data_container.pEffectiveRhs->size(), 2);
+    KRATOS_CHECK_EQUAL(r_strategy_data_container.pEffectiveLhs->size1(), 2);
+    KRATOS_CHECK_EQUAL(r_strategy_data_container.pEffectiveLhs->size2(), 2);
 
     // Check results
     KRATOS_CHECK_NEAR(r_test_model_part.GetNode(1).FastGetSolutionStepValue(DISTANCE), 1.0, 1.0e-12);
@@ -547,19 +548,19 @@ KRATOS_TEST_CASE_IN_SUITE(LinearStrategyWithMultipleDofsConstraintsBlockBuild, K
             "name" : "block_builder"
         }
     })");
-    auto p_scheme = Kratos::make_shared<Future::StaticScheme<CsrMatrix<>, SystemVector<>, SparseContiguousRowGraph<>>>(r_test_model_part, scheme_settings);
+    auto p_scheme = Kratos::make_shared<Future::StaticScheme<Future::SerialLinearAlgebraTraits>>(r_test_model_part, scheme_settings);
 
     // Create the linear solver
     Parameters amgcl_settings = Parameters(R"({
     })");
-    using AMGCLSolverType = Future::AMGCLSolver<CsrMatrix<>, SystemVector<>>;
-    using LinearSolverType = Future::LinearSolver<CsrMatrix<>, SystemVector<>>;
+    using AMGCLSolverType = Future::AMGCLSolver<Future::SerialLinearAlgebraTraits>;
+    using LinearSolverType = Future::LinearSolver<Future::SerialLinearAlgebraTraits>;
     typename LinearSolverType::Pointer p_amgcl_solver = Kratos::make_shared<AMGCLSolverType>(amgcl_settings);
 
     // Create the strategy
     Parameters strategy_settings = Parameters(R"({
     })");
-    auto p_strategy = Kratos::make_unique<Future::LinearStrategy<CsrMatrix<>, SystemVector<>, SparseContiguousRowGraph<>>>(r_test_model_part, p_scheme, p_amgcl_solver);
+    auto p_strategy = Kratos::make_unique<Future::LinearStrategy<Future::SerialLinearAlgebraTraits>>(r_test_model_part, p_scheme, p_amgcl_solver);
 
     // Apply Dirichlet BCs
     auto p_node_1 = r_test_model_part.pGetNode(1);
@@ -575,13 +576,13 @@ KRATOS_TEST_CASE_IN_SUITE(LinearStrategyWithMultipleDofsConstraintsBlockBuild, K
     p_strategy->FinalizeSolutionStep();
 
     // Check array sizes
-    const auto &r_linear_system_container = p_strategy->GetLinearSystemContainer();
-    KRATOS_CHECK_EQUAL(r_linear_system_container.pRhs->size(), 4);
-    KRATOS_CHECK_EQUAL(r_linear_system_container.pLhs->size1(), 4);
-    KRATOS_CHECK_EQUAL(r_linear_system_container.pLhs->size2(), 4);
-    KRATOS_CHECK_EQUAL(r_linear_system_container.pEffectiveRhs->size(), 3);
-    KRATOS_CHECK_EQUAL(r_linear_system_container.pEffectiveLhs->size1(), 3);
-    KRATOS_CHECK_EQUAL(r_linear_system_container.pEffectiveLhs->size2(), 3);
+    const auto &r_strategy_data_container = p_strategy->GetImplicitStrategyDataContainer();
+    KRATOS_CHECK_EQUAL(r_strategy_data_container.pRhs->size(), 4);
+    KRATOS_CHECK_EQUAL(r_strategy_data_container.pLhs->size1(), 4);
+    KRATOS_CHECK_EQUAL(r_strategy_data_container.pLhs->size2(), 4);
+    KRATOS_CHECK_EQUAL(r_strategy_data_container.pEffectiveRhs->size(), 3);
+    KRATOS_CHECK_EQUAL(r_strategy_data_container.pEffectiveLhs->size1(), 3);
+    KRATOS_CHECK_EQUAL(r_strategy_data_container.pEffectiveLhs->size2(), 3);
 
     // Check results
     KRATOS_CHECK_NEAR(r_test_model_part.GetNode(1).FastGetSolutionStepValue(DISTANCE), 1.0, 1.0e-12);
@@ -630,19 +631,19 @@ KRATOS_TEST_CASE_IN_SUITE(LinearStrategyWithTieConstraintsEliminationBuild, Krat
             "name" : "elimination_builder"
         }
     })");
-    auto p_scheme = Kratos::make_shared<Future::StaticScheme<CsrMatrix<>, SystemVector<>, SparseContiguousRowGraph<>>>(r_test_model_part, scheme_settings);
+    auto p_scheme = Kratos::make_shared<Future::StaticScheme<Future::SerialLinearAlgebraTraits>>(r_test_model_part, scheme_settings);
 
     // Create the linear solver
     Parameters amgcl_settings = Parameters(R"({
     })");
-    using AMGCLSolverType = Future::AMGCLSolver<CsrMatrix<>, SystemVector<>>;
-    using LinearSolverType = Future::LinearSolver<CsrMatrix<>, SystemVector<>>;
+    using AMGCLSolverType = Future::AMGCLSolver<Future::SerialLinearAlgebraTraits>;
+    using LinearSolverType = Future::LinearSolver<Future::SerialLinearAlgebraTraits>;
     typename LinearSolverType::Pointer p_amgcl_solver = Kratos::make_shared<AMGCLSolverType>(amgcl_settings);
 
     // Create the strategy
     Parameters strategy_settings = Parameters(R"({
     })");
-    auto p_strategy = Kratos::make_unique<Future::LinearStrategy<CsrMatrix<>, SystemVector<>, SparseContiguousRowGraph<>>>(r_test_model_part, p_scheme, p_amgcl_solver);
+    auto p_strategy = Kratos::make_unique<Future::LinearStrategy<Future::SerialLinearAlgebraTraits>>(r_test_model_part, p_scheme, p_amgcl_solver);
 
     // Apply Dirichlet BCs to the tying ("flying") nodes
     p_node_5->FastGetSolutionStepValue(DISTANCE, 0) = 1.0;
@@ -660,13 +661,13 @@ KRATOS_TEST_CASE_IN_SUITE(LinearStrategyWithTieConstraintsEliminationBuild, Krat
     p_strategy->FinalizeSolutionStep();
 
     // Check array sizes
-    const auto &r_linear_system_container = p_strategy->GetLinearSystemContainer();
-    KRATOS_CHECK_EQUAL(r_linear_system_container.pRhs->size(), 4);
-    KRATOS_CHECK_EQUAL(r_linear_system_container.pLhs->size1(), 4);
-    KRATOS_CHECK_EQUAL(r_linear_system_container.pLhs->size2(), 4);
-    KRATOS_CHECK_EQUAL(r_linear_system_container.pEffectiveRhs->size(), 2);
-    KRATOS_CHECK_EQUAL(r_linear_system_container.pEffectiveLhs->size1(), 2);
-    KRATOS_CHECK_EQUAL(r_linear_system_container.pEffectiveLhs->size2(), 2);
+    const auto &r_strategy_data_container = p_strategy->GetImplicitStrategyDataContainer();
+    KRATOS_CHECK_EQUAL(r_strategy_data_container.pRhs->size(), 4);
+    KRATOS_CHECK_EQUAL(r_strategy_data_container.pLhs->size1(), 4);
+    KRATOS_CHECK_EQUAL(r_strategy_data_container.pLhs->size2(), 4);
+    KRATOS_CHECK_EQUAL(r_strategy_data_container.pEffectiveRhs->size(), 2);
+    KRATOS_CHECK_EQUAL(r_strategy_data_container.pEffectiveLhs->size1(), 2);
+    KRATOS_CHECK_EQUAL(r_strategy_data_container.pEffectiveLhs->size2(), 2);
 
     // Check results
     KRATOS_CHECK_NEAR(r_test_model_part.GetNode(1).FastGetSolutionStepValue(DISTANCE), 1.0, 1.0e-12);
@@ -715,19 +716,19 @@ KRATOS_TEST_CASE_IN_SUITE(LinearStrategyWithTieConstraintsBlockBuild, KratosCore
             "name" : "block_builder"
         }
     })");
-    auto p_scheme = Kratos::make_shared<Future::StaticScheme<CsrMatrix<>, SystemVector<>, SparseContiguousRowGraph<>>>(r_test_model_part, scheme_settings);
+    auto p_scheme = Kratos::make_shared<Future::StaticScheme<Future::SerialLinearAlgebraTraits>>(r_test_model_part, scheme_settings);
 
     // Create the linear solver
     Parameters amgcl_settings = Parameters(R"({
     })");
-    using AMGCLSolverType = Future::AMGCLSolver<CsrMatrix<>, SystemVector<>>;
-    using LinearSolverType = Future::LinearSolver<CsrMatrix<>, SystemVector<>>;
+    using AMGCLSolverType = Future::AMGCLSolver<Future::SerialLinearAlgebraTraits>;
+    using LinearSolverType = Future::LinearSolver<Future::SerialLinearAlgebraTraits>;
     typename LinearSolverType::Pointer p_amgcl_solver = Kratos::make_shared<AMGCLSolverType>(amgcl_settings);
 
     // Create the strategy
     Parameters strategy_settings = Parameters(R"({
     })");
-    auto p_strategy = Kratos::make_unique<Future::LinearStrategy<CsrMatrix<>, SystemVector<>, SparseContiguousRowGraph<>>>(r_test_model_part, p_scheme, p_amgcl_solver);
+    auto p_strategy = Kratos::make_unique<Future::LinearStrategy<Future::SerialLinearAlgebraTraits>>(r_test_model_part, p_scheme, p_amgcl_solver);
 
     // Apply Dirichlet BCs to the tying ("flying") nodes
     p_node_5->FastGetSolutionStepValue(DISTANCE, 0) = 1.0;
@@ -745,13 +746,13 @@ KRATOS_TEST_CASE_IN_SUITE(LinearStrategyWithTieConstraintsBlockBuild, KratosCore
     p_strategy->FinalizeSolutionStep();
 
     // Check array sizes
-    const auto &r_linear_system_container = p_strategy->GetLinearSystemContainer();
-    KRATOS_CHECK_EQUAL(r_linear_system_container.pRhs->size(), 4);
-    KRATOS_CHECK_EQUAL(r_linear_system_container.pLhs->size1(), 4);
-    KRATOS_CHECK_EQUAL(r_linear_system_container.pLhs->size2(), 4);
-    KRATOS_CHECK_EQUAL(r_linear_system_container.pEffectiveRhs->size(), 4);
-    KRATOS_CHECK_EQUAL(r_linear_system_container.pEffectiveLhs->size1(), 4);
-    KRATOS_CHECK_EQUAL(r_linear_system_container.pEffectiveLhs->size2(), 4);
+    const auto &r_strategy_data_container = p_strategy->GetImplicitStrategyDataContainer();
+    KRATOS_CHECK_EQUAL(r_strategy_data_container.pRhs->size(), 4);
+    KRATOS_CHECK_EQUAL(r_strategy_data_container.pLhs->size1(), 4);
+    KRATOS_CHECK_EQUAL(r_strategy_data_container.pLhs->size2(), 4);
+    KRATOS_CHECK_EQUAL(r_strategy_data_container.pEffectiveRhs->size(), 4);
+    KRATOS_CHECK_EQUAL(r_strategy_data_container.pEffectiveLhs->size1(), 4);
+    KRATOS_CHECK_EQUAL(r_strategy_data_container.pEffectiveLhs->size2(), 4);
 
     // Check results
     KRATOS_CHECK_NEAR(r_test_model_part.GetNode(1).FastGetSolutionStepValue(DISTANCE), 1.0, 1.0e-12);
@@ -795,19 +796,19 @@ KRATOS_TEST_CASE_IN_SUITE(LinearStrategyWithRigidBodyMotionConstraintElimination
             "name" : "block_builder"
         }
     })");
-    auto p_scheme = Kratos::make_shared<Future::StaticScheme<CsrMatrix<>, SystemVector<>, SparseContiguousRowGraph<>>>(r_test_model_part, scheme_settings);
+    auto p_scheme = Kratos::make_shared<Future::StaticScheme<Future::SerialLinearAlgebraTraits>>(r_test_model_part, scheme_settings);
 
     // Create the linear solver
     Parameters amgcl_settings = Parameters(R"({
     })");
-    using AMGCLSolverType = Future::AMGCLSolver<CsrMatrix<>, SystemVector<>>;
-    using LinearSolverType = Future::LinearSolver<CsrMatrix<>, SystemVector<>>;
+    using AMGCLSolverType = Future::AMGCLSolver<Future::SerialLinearAlgebraTraits>;
+    using LinearSolverType = Future::LinearSolver<Future::SerialLinearAlgebraTraits>;
     typename LinearSolverType::Pointer p_amgcl_solver = Kratos::make_shared<AMGCLSolverType>(amgcl_settings);
 
     // Create the strategy
     Parameters strategy_settings = Parameters(R"({
     })");
-    auto p_strategy = Kratos::make_unique<Future::LinearStrategy<CsrMatrix<>, SystemVector<>, SparseContiguousRowGraph<>>>(r_test_model_part, p_scheme, p_amgcl_solver);
+    auto p_strategy = Kratos::make_unique<Future::LinearStrategy<Future::SerialLinearAlgebraTraits>>(r_test_model_part, p_scheme, p_amgcl_solver);
 
     // Solve the problem
     p_strategy->Initialize();
@@ -860,19 +861,19 @@ KRATOS_TEST_CASE_IN_SUITE(LinearStrategyWithRigidBodyMotionConstraintBlockBuild,
             "name" : "block_builder"
         }
     })");
-    auto p_scheme = Kratos::make_shared<Future::StaticScheme<CsrMatrix<>, SystemVector<>, SparseContiguousRowGraph<>>>(r_test_model_part, scheme_settings);
+    auto p_scheme = Kratos::make_shared<Future::StaticScheme<Future::SerialLinearAlgebraTraits>>(r_test_model_part, scheme_settings);
 
     // Create the linear solver
     Parameters amgcl_settings = Parameters(R"({
     })");
-    using AMGCLSolverType = Future::AMGCLSolver<CsrMatrix<>, SystemVector<>>;
-    using LinearSolverType = Future::LinearSolver<CsrMatrix<>, SystemVector<>>;
+    using AMGCLSolverType = Future::AMGCLSolver<Future::SerialLinearAlgebraTraits>;
+    using LinearSolverType = Future::LinearSolver<Future::SerialLinearAlgebraTraits>;
     typename LinearSolverType::Pointer p_amgcl_solver = Kratos::make_shared<AMGCLSolverType>(amgcl_settings);
 
     // Create the strategy
     Parameters strategy_settings = Parameters(R"({
     })");
-    auto p_strategy = Kratos::make_unique<Future::LinearStrategy<CsrMatrix<>, SystemVector<>, SparseContiguousRowGraph<>>>(r_test_model_part, p_scheme, p_amgcl_solver);
+    auto p_strategy = Kratos::make_unique<Future::LinearStrategy<Future::SerialLinearAlgebraTraits>>(r_test_model_part, p_scheme, p_amgcl_solver);
 
     // Solve the problem
     p_strategy->Initialize();

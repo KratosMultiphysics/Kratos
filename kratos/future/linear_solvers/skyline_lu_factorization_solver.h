@@ -16,9 +16,10 @@
 // External includes
 
 // Project includes
-#include "future/linear_solvers/direct_solver.h"
 #include "includes/define.h"
 #include "includes/kratos_parameters.h"
+#include "future/linear_operators/linear_operator.h"
+#include "future/linear_solvers/direct_solver.h"
 
 namespace Kratos::Future
 {
@@ -27,10 +28,6 @@ template< class TMatrixType, class TVectorType >
 class LUSkylineFactorization
 {
 public:
-
-    using VectorType = TVectorType;
-
-    using SparseMatrixType = TMatrixType;
 
     using DataType = typename TMatrixType::DataType;
 
@@ -64,7 +61,7 @@ public:
     //**********************************************************************************
     //**********************************************************************************
 
-    void copyFromCSRMatrix(SparseMatrixType& A)
+    void copyFromCSRMatrix(const TMatrixType& A)
     {
         int i, j, newi, newj, indexj, ordering, *invperm;
         double entry;
@@ -424,8 +421,8 @@ public:
     /* bugfix janosch void backForwardSolve(int vector_size, Vector<double>& b, Vector<double>& x) // n, b, x*/
     void backForwardSolve(
         int vector_size,
-        const VectorType& b,
-        VectorType& x) // n, b, x
+        const TVectorType& b,
+        TVectorType& x) // n, b, x
     {
         // y = L^-1 * perm[b] ;
         // y = U^-1 * y ;
@@ -487,21 +484,27 @@ public:
 
 
 
-template<class TMatrixType, class TVectorType>
-class SkylineLUFactorizationSolver : public Future::DirectSolver<TMatrixType, TVectorType>
+template<class TLinearAlgebra>
+class SkylineLUFactorizationSolver : public Future::DirectSolver<TLinearAlgebra>
 {
 public:
 
     /// Counted pointer of SkylineLUFactorizationSolver
     KRATOS_CLASS_POINTER_DEFINITION(SkylineLUFactorizationSolver);
 
-    typedef Future::DirectSolver<TMatrixType, TVectorType> BaseType;
-
-    using VectorType = TVectorType;
-
-    using SparseMatrixType = TMatrixType;
+    using BaseType = Future::DirectSolver<TLinearAlgebra>;
 
     using DenseMatrixType = typename BaseType::DenseMatrixType;
+
+    using CsrMatrixType = TLinearAlgebra::MatrixType;
+
+    using VectorType = typename TLinearAlgebra::VectorType;
+
+    using DataType = typename VectorType::DataType;
+
+    using IndexType = typename VectorType::IndexType;
+
+    using LinearOperatorPointerType = typename LinearOperator<TLinearAlgebra>::Pointer;
 
     /// Default constructor
     SkylineLUFactorizationSolver() = default;
@@ -520,28 +523,24 @@ public:
     /// Destructor.
     ~SkylineLUFactorizationSolver() override = default;
 
-    /** Normal solve method.
-    Solves the linear system Ax=b and puts the result on SystemVector& rX.
-    rX is also th initial guess for iterative methods.
-    @param rA. System matrix
-    @param rX. Solution vector.
-    @param rB. Right hand side vector.
-    */
+    //TODO: This Solve method should be split into Initialize, InitializeSolutionStep, SolveSolutionStep, FinalizeSolutionStep, ...
     bool Solve(
-        SparseMatrixType& rA,
+        LinearOperatorPointerType pLinearOperator,
         VectorType& rX,
         VectorType& rB) override
     {
-        if(this->IsNotConsistent(rA, rX, rB))
+        if(this->IsNotConsistent(pLinearOperator, rX, rB))
             return false;
 
         const int size = rX.size();
 
         // define an object to store skyline matrix and factorization
-        LUSkylineFactorization<TMatrixType, TVectorType> myFactorization;
+        LUSkylineFactorization<CsrMatrixType, VectorType> myFactorization;
 
         // copy myMatrix into skyline format
-        myFactorization.copyFromCSRMatrix(rA);
+        KRATOS_ERROR_IF(pLinearOperator->IsMatrixFree()) << "SkylineLUFactorizationSolver cannot be used with matrix-free linear operators." << std::endl;
+        const auto& r_A = pLinearOperator->template GetMatrix<CsrMatrixType>();
+        myFactorization.copyFromCSRMatrix(r_A);
 
         // factorize it
         myFactorization.factorize();
@@ -552,15 +551,9 @@ public:
         return true;
     }
 
-    /** Multi solve method for solving a set of linear systems with same coefficient matrix.
-    Solves the linear system Ax=b and puts the result on SystemVector& rX.
-    rX is also th initial guess for iterative methods.
-    @param rA. System matrix
-    @param rX. Solution vector.
-    @param rB. Right hand side vector.
-    */
+    //TODO: This Solve method should be split into Initialize, InitializeSolutionStep, SolveSolutionStep, FinalizeSolutionStep, ...
     bool Solve(
-        SparseMatrixType& rA,
+        LinearOperatorPointerType pLinearOperator,
         DenseMatrixType& rX,
         DenseMatrixType& rB) override
     {
@@ -573,9 +566,12 @@ public:
         VectorType b(size1);
 
         // define an object to store skyline matrix and factorization
-        LUSkylineFactorization<TMatrixType, TVectorType> myFactorization;
+        LUSkylineFactorization<CsrMatrixType, VectorType> myFactorization;
+
         // copy myMatrix into skyline format
-        myFactorization.copyFromCSRMatrix(rA);
+        KRATOS_ERROR_IF(pLinearOperator->IsMatrixFree()) << "SkylineLUFactorizationSolver cannot be used with matrix-free linear operators." << std::endl;
+        const auto& r_A = pLinearOperator->template GetMatrix<CsrMatrixType>();
+        myFactorization.copyFromCSRMatrix(r_A);
         // factorize it
         myFactorization.factorize();
 
@@ -613,19 +609,19 @@ public:
 
 
 /// input stream function
-template<class TMatrixType, class TVectorType>
+template<class TLinearAlgebra>
 inline std::istream& operator >> (
     std::istream& rIStream,
-    SkylineLUFactorizationSolver<TMatrixType,TVectorType>& rThis)
+    SkylineLUFactorizationSolver<TLinearAlgebra>& rThis)
 {
     return rIStream;
 }
 
 /// output stream function
-template<class TMatrixType, class TVectorType>
+template<class TLinearAlgebra>
 inline std::ostream& operator << (
     std::ostream& rOStream,
-    const SkylineLUFactorizationSolver<TMatrixType, TVectorType>& rThis)
+    const SkylineLUFactorizationSolver<TLinearAlgebra>& rThis)
 {
     rThis.PrintInfo(rOStream);
     rOStream << std::endl;

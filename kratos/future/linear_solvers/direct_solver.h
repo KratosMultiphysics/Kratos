@@ -29,28 +29,19 @@ namespace Kratos::Future
 // Base class for all direct solvers in Kratos.
 /* This class define the general interface for direct solvers in Kratos.
    direct solver is a template class with this parameter:
-   - TMatrixType which specify type
-     of the unknowns, coefficients, sparse matrix, vector of
-   unknowns, right hand side vector and their respective operators.
    - TDenseMatrixType which specify type of the
      matrices used as temporary matrices or multi solve unknowns and
    right hand sides and their operators.
 */
-template<class TMatrixType = CsrMatrix<>, class TVectorType = SystemVector<>>
-class DirectSolver : public Future::LinearSolver<TMatrixType, TVectorType>
+template<class TVectorType = SystemVector<>>
+class DirectSolver : public Future::LinearSolver<TVectorType>
 {
 public:
 
     /// Counted pointer of DirectSolver
     KRATOS_CLASS_POINTER_DEFINITION(DirectSolver);
 
-    using BaseType = Future::LinearSolver<TMatrixType, TVectorType>;
-
-    using VectorType = TVectorType;
-
-    using SparseMatrixType = TMatrixType;
-
-    using DenseMatrixType = typename BaseType::DenseMatrixType;
+    using BaseType = Future::LinearSolver<TVectorType>;
 
     /// Default constructor.
     DirectSolver() = default;
@@ -82,19 +73,19 @@ private:
 }; // Class DirectSolver
 
 /// input stream function
-template<class TMatrixType, class TVectorType>
+template<class TVectorType>
 inline std::istream& operator >> (
     std::istream& rIStream,
-    DirectSolver<TMatrixType, TVectorType>& rThis)
+    DirectSolver<TVectorType>& rThis)
 {
     return rIStream;
 }
 
 /// output stream function
-template<class TMatrixType, class TVectorType>
+template<class TVectorType>
 inline std::ostream& operator << (
     std::ostream& rOStream,
-    const DirectSolver<TMatrixType,TVectorType>& rThis)
+    const DirectSolver<TVectorType>& rThis)
 {
     rThis.PrintInfo(rOStream);
     rOStream << std::endl;

@@ -12,6 +12,8 @@
 
 // Project includes
 #include "testing/testing.h"
+#include "future/containers/define_linear_algebra_serial.h"
+#include "future/linear_operators/linear_operator.h"
 #include "future/linear_solvers/amgcl_solver.h"
 #include "future/linear_solvers/skyline_lu_factorization_solver.h"
 
@@ -57,11 +59,12 @@ KRATOS_TEST_CASE_IN_SUITE(FutureLinearSolversSkylineLUFactorizationSolver, Krato
     // Set the linear solver to be tested
     Parameters skyline_lu_settings(R"({
     })");
-    auto p_linear_solver = Kratos::make_unique<Future::SkylineLUFactorizationSolver<CsrMatrix<>, SystemVector<>>>(skyline_lu_settings);
+    Future::LinearSolver<Future::SerialLinearAlgebraTraits>::Pointer p_linear_solver = Kratos::make_unique<Future::SkylineLUFactorizationSolver<Future::SerialLinearAlgebraTraits>>(skyline_lu_settings);
 
     // Solve the problem
     SystemVector<> sol(system_size);
-    p_linear_solver->Solve(LHS, sol, RHS);
+    Future::LinearOperator<Future::SerialLinearAlgebraTraits>::Pointer p_linear_operator = Kratos::make_shared<Future::SparseMatrixLinearOperator<Future::SerialLinearAlgebraTraits>>(LHS);
+    p_linear_solver->Solve(p_linear_operator, sol, RHS);
 
     // Check the obtained results
     std::vector<double> ref_sol = {0.487946221604, 0.979601298099, 0.836810384794, 0.93973110802, 0.602225312935};
@@ -82,11 +85,12 @@ KRATOS_TEST_CASE_IN_SUITE(FutureLinearSolversAmgcl, KratosCoreFutureSuite)
         "verbosity"                      : 1,
         "tolerance"                      : 1e-6
     })");
-    auto p_linear_solver = Kratos::make_unique<Future::AMGCLSolver<CsrMatrix<>, SystemVector<>>>(amgcl_settings);
+    Future::LinearSolver<Future::SerialLinearAlgebraTraits>::Pointer p_linear_solver = Kratos::make_unique<Future::AMGCLSolver<Future::SerialLinearAlgebraTraits>>(amgcl_settings);
 
     // Solve the problem
     SystemVector<> sol(system_size);
-    p_linear_solver->Solve(LHS, sol, RHS);
+    Future::LinearOperator<Future::SerialLinearAlgebraTraits>::Pointer p_linear_operator = Kratos::make_shared<Future::SparseMatrixLinearOperator<Future::SerialLinearAlgebraTraits>>(LHS);
+    p_linear_solver->Solve(p_linear_operator, sol, RHS);
 
     // Check the obtained results
     std::vector<double> ref_sol = {0.487946221604, 0.979601298099, 0.836810384794, 0.93973110802, 0.602225312935};

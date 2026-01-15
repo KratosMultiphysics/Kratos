@@ -7,9 +7,8 @@
 //  License:         BSD License
 //                   Kratos default license: kratos/license.txt
 //
-//  Main authors:    Pooyan Dadvand
+//  Main authors:    Ruben Zorrilla
 //                   Riccardo Rossi
-//                   Ruben Zorrilla
 //
 
 #pragma once
@@ -23,6 +22,7 @@
 // Project includes
 #include "includes/define.h"
 #include "includes/kratos_parameters.h"
+#include "future/linear_operators/linear_operator.h"
 #include "future/linear_solvers/linear_solver.h"
 #include "future/linear_solvers/preconditioner.h"
 
@@ -61,8 +61,9 @@ namespace Kratos::Future
     - TStopCriteriaType for specifying type of the object which control the stop criteria for iteration loop.
 */
 template<
-    class TMatrixType = CsrMatrix<>, class TVectorType = SystemVector<>, class TPreconditionerType = Preconditioner<TMatrixType, TMatrixType>>
-class IterativeSolver : public Future::LinearSolver<TMatrixType, TVectorType>
+    class TVectorType = SystemVector<>,
+    class TPreconditionerType = Preconditioner<TVectorType>>
+class IterativeSolver : public Future::LinearSolver<TVectorType>
 {
 public:
     ///@name Type Definitions
@@ -71,17 +72,23 @@ public:
     /// Pointer definition of IterativeSolver
     KRATOS_CLASS_POINTER_DEFINITION(IterativeSolver);
 
-    using BaseType = Future::LinearSolver<TMatrixType, TVectorType>;
+    /// The base class definition
+    using BaseType = Future::LinearSolver<TVectorType>;
 
-    using SparseMatrixType = TMatrixType;
-
-    using VectorType = TVectorType;
-
+    /// Preconditioner type definition
     using PreconditionerType = TPreconditionerType;
 
-    using IndexType = typename BaseType::IndexType;
+    /// Type definition for data
+    using DataType = typename TVectorType::DataType;
 
-    using DenseMatrixType = typename BaseType::DenseMatrixType;
+    /// Type definition for index
+    using IndexType = typename TVectorType::IndexType;
+
+    /// Local system matrix type definition
+    using DenseMatrixType = DenseMatrix<DataType>;
+
+    /// Linear operator pointer type definition
+    using LinearOperatorPointerType = typename LinearOperator<TVectorType>::Pointer;
 
     ///@}
     ///@name Life Cycle
@@ -180,6 +187,10 @@ public:
         return *this;
     }
 
+    ///@}
+    ///@name Operations
+    ///@{
+
     /** This function is designed to be called every time the coefficients change in the system
     		 * that is, normally at the beginning of each solve.
     		 * For example if we are implementing a direct solver, this is the place to do the factorization
@@ -188,9 +199,12 @@ public:
     		@param rX. Solution vector. it's also the initial guess for iterative linear solvers.
     		@param rB. Right hand side vector.
     		*/
-    void InitializeSolutionStep (SparseMatrixType& rA, VectorType& rX, VectorType& rB) override
+    void InitializeSolutionStep(
+        LinearOperatorPointerType pLinearOperator,
+        TVectorType& rX,
+        TVectorType& rB) override
     {
-        GetPreconditioner()->InitializeSolutionStep(rA,rX,rB);
+        GetPreconditioner()->InitializeSolutionStep(pLinearOperator,rX,rB);
     }
 
     /** This function is designed to be called at the end of the solve step.
@@ -199,9 +213,12 @@ public:
     @param rX. Solution vector. it's also the initial guess for iterative linear solvers.
     @param rB. Right hand side vector.
     */
-    void FinalizeSolutionStep (SparseMatrixType& rA, VectorType& rX, VectorType& rB) override
+    void FinalizeSolutionStep(
+        LinearOperatorPointerType pLinearOperator,
+        TVectorType& rX,
+        TVectorType& rB) override
     {
-        GetPreconditioner()->FinalizeSolutionStep(rA,rX,rB);
+        GetPreconditioner()->FinalizeSolutionStep(pLinearOperator,rX,rB);
     }
 
     /** This function is designed to clean up all internal data in the solver.
@@ -233,33 +250,28 @@ public:
      * which require knowledge on the spatial position of the nodes associated to a given dof.
      * This function is the place to eventually provide such data
      */
-    void ProvideAdditionalData (
-        SparseMatrixType& rA,
-        VectorType& rX,
-        VectorType& rB,
-        typename ModelPart::DofsArrayType& rdof_set,
-        ModelPart& r_model_part
-    ) override
+    void ProvideAdditionalData(
+        LinearOperatorPointerType pLinearOperator,
+        TVectorType& rX,
+        TVectorType& rB,
+        typename ModelPart::DofsArrayType& rDofSet,
+        ModelPart& rModelPart) override
     {
-        if (GetPreconditioner()->AdditionalPhysicalDataIsNeeded())
-            GetPreconditioner()->ProvideAdditionalData(rA,rX,rB,rdof_set,r_model_part);
+        if (GetPreconditioner()->AdditionalPhysicalDataIsNeeded()) {
+            GetPreconditioner()->ProvideAdditionalData(pLinearOperator,rX,rB,rDofSet,rModelPart);
+        }
     }
-
-    ///@}
-    ///@name Operations
-    ///@{
-
 
     ///@}
     ///@name Access
     ///@{
 
-    virtual typename TPreconditionerType::Pointer GetPreconditioner(void)
+    virtual typename TPreconditionerType::Pointer GetPreconditioner()
     {
         return mpPreconditioner;
     }
 
-    virtual const typename TPreconditionerType::Pointer GetPreconditioner(void) const
+    virtual const typename TPreconditionerType::Pointer GetPreconditioner() const
     {
         return mpPreconditioner;
     }
@@ -410,14 +422,20 @@ protected:
     ///@name Protected Operations
     ///@{
 
-    void PreconditionedMult(SparseMatrixType& rA, VectorType& rX, VectorType& rY)
+    void PreconditionedMult(
+        LinearOperatorPointerType pLinearOperator,
+        TVectorType& rX,
+        TVectorType& rY)
     {
-        GetPreconditioner()->Mult(rA, rX, rY);
+        GetPreconditioner()->Mult(pLinearOperator, rX, rY);
     }
 
-    void PreconditionedTransposeMult(SparseMatrixType& rA, VectorType& rX, VectorType& rY)
+    void PreconditionedTransposeMult(
+        LinearOperatorPointerType pLinearOperator,
+        TVectorType& rX,
+        TVectorType& rY)
     {
-        GetPreconditioner()->TransposeMult(rA, rX, rY);
+        GetPreconditioner()->TransposeMult(pLinearOperator, rX, rY);
     }
 
     ///@}
@@ -446,11 +464,7 @@ private:
     ///@name Member Variables
     ///@{
 
-    /// A counted pointer to the preconditioner object.
     typename TPreconditionerType::Pointer mpPreconditioner;
-
-    /// A counted pointer to the preconditioner object.
-    //      typename TStopCriteriaType::Pointer mpStopCriteria;
 
     double mTolerance;
 
@@ -497,19 +511,19 @@ private:
 
 
 /// input stream function
-template<class TSparseSpaceType, class TDenseSpaceType, class TPreconditionerType>
+template<class TVectorType, class TPreconditionerType>
 inline std::istream& operator >> (
     std::istream& IStream,
-    IterativeSolver<TSparseSpaceType, TDenseSpaceType, TPreconditionerType>& rThis)
+    IterativeSolver<TVectorType, TPreconditionerType>& rThis)
 {
     return IStream;
 }
 
 /// output stream function
-template<class TSparseSpaceType, class TDenseSpaceType, class TPreconditionerType>
+template<class TVectorType, class TPreconditionerType>
 inline std::ostream& operator << (
     std::ostream& OStream,
-    const IterativeSolver<TSparseSpaceType, TDenseSpaceType, TPreconditionerType>& rThis)
+    const IterativeSolver<TVectorType, TPreconditionerType>& rThis)
 {
     rThis.PrintInfo(OStream);
     OStream << std::endl;
