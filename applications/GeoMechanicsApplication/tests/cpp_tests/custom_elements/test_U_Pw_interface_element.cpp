@@ -23,6 +23,7 @@
 #include "custom_utilities/ublas_utilities.h"
 #include "geo_mechanics_application_variables.h"
 #include "test_setup_utilities/element_setup_utilities.hpp"
+#include "test_setup_utilities/model_setup_utilities.h"
 #include "tests/cpp_tests/geo_mechanics_fast_suite.h"
 #include "tests/cpp_tests/test_utilities.h"
 
@@ -1830,16 +1831,15 @@ KRATOS_TEST_CASE_IN_SUITE(UPwPlaneInterfaceElement_InterpolatesNodalStresses, Kr
         actual_traction_vectors[3], UblasUtilities::CreateVector({4.0, -2.0, 1.0}), Defaults::relative_tolerance)
 }
 
-KRATOS_TEST_CASE_IN_SUITE(ThreePlusThreeDiffOrderLineInterface_ReturnsExpectedLeftAndRightHandSide,
+KRATOS_TEST_CASE_IN_SUITE(ThreePlusThreeUPwDiffOrderLineInterfaceElement_KeepsUDofsFirstThenPwDofs,
                           KratosGeoMechanicsFastSuiteWithoutKernel)
 {
-    PointerVector<Node> nodes;
-    nodes.push_back(Kratos::make_intrusive<Node>(1, 0.0, 0.0, 0.0));
-    nodes.push_back(Kratos::make_intrusive<Node>(2, 1.0, 0.0, 0.0));
-    nodes.push_back(Kratos::make_intrusive<Node>(3, 0.5, 0.0, 0.0));
-    nodes.push_back(Kratos::make_intrusive<Node>(4, 0.0, 0.0, 0.0));
-    nodes.push_back(Kratos::make_intrusive<Node>(5, 1.0, 0.0, 0.0));
-    nodes.push_back(Kratos::make_intrusive<Node>(6, 0.5, 0.0, 0.0));
+    const auto nodes = ModelSetupUtilities::CreateNodes({{1, {0.0, 0.0, 0.0}},
+                                                         {2, {1.0, 0.0, 0.0}},
+                                                         {3, {0.5, 0.0, 0.0}},
+                                                         {4, {0.0, 0.0, 0.0}},
+                                                         {5, {1.0, 0.0, 0.0}},
+                                                         {6, {0.5, 0.0, 0.0}}});
 
     auto p_line_interface_displacement_geometry = std::make_shared<InterfaceGeometry<Line2D3<Node>>>(1, nodes);
 
@@ -1855,10 +1855,39 @@ KRATOS_TEST_CASE_IN_SUITE(ThreePlusThreeDiffOrderLineInterface_ReturnsExpectedLe
     Element::DofsVectorType element_dofs;
     ProcessInfo             dummy_process_info;
     interface_element.GetDofList(element_dofs, dummy_process_info);
-    constexpr auto expected_number_of_dofs = std::size_t{6 * 2 + 4};
 
     // Assert
-    KRATOS_EXPECT_EQ(element_dofs.size(), expected_number_of_dofs);
+    constexpr auto expected_number_of_u_dofs  = std::size_t{6 * 2};
+    constexpr auto expected_number_of_pw_dofs = std::size_t{4};
+    ASSERT_EQ(element_dofs.size(), expected_number_of_u_dofs + expected_number_of_pw_dofs);
+    for (auto i = std::size_t{0}; i < expected_number_of_u_dofs; i += 2) {
+        KRATOS_EXPECT_EQ(element_dofs[i]->GetVariable(), DISPLACEMENT_X);
+        KRATOS_EXPECT_EQ(element_dofs[i + 1]->GetVariable(), DISPLACEMENT_Y);
+    }
+    for (auto i = std::size_t{0}; i < expected_number_of_pw_dofs; ++i) {
+        KRATOS_EXPECT_EQ(element_dofs[expected_number_of_u_dofs + i]->GetVariable(), WATER_PRESSURE);
+    }
+}
+
+KRATOS_TEST_CASE_IN_SUITE(ThreePlusThreeDiffOrderLineInterface_ReturnsExpectedLeftAndRightHandSide,
+                          KratosGeoMechanicsFastSuiteWithoutKernel)
+{
+    const auto nodes = ModelSetupUtilities::CreateNodes({{1, {0.0, 0.0, 0.0}},
+                                                         {2, {1.0, 0.0, 0.0}},
+                                                         {3, {0.5, 0.0, 0.0}},
+                                                         {4, {0.0, 0.0, 0.0}},
+                                                         {5, {1.0, 0.0, 0.0}},
+                                                         {6, {0.5, 0.0, 0.0}}});
+
+    auto p_line_interface_displacement_geometry = std::make_shared<InterfaceGeometry<Line2D3<Node>>>(1, nodes);
+
+    constexpr auto normal_stiffness = 20.0;
+    constexpr auto shear_stiffness  = 10.0;
+    const auto     p_interface_properties =
+        CreateElasticMaterialProperties<InterfacePlaneStrain>(normal_stiffness, shear_stiffness);
+
+    auto interface_element = CreateInterfaceElementWithUPwDofs<Interface2D>(
+        p_interface_properties, p_line_interface_displacement_geometry, IsDiffOrderElement::Yes);
 
     // Act
     interface_element.Initialize(ProcessInfo{});
@@ -1875,6 +1904,7 @@ KRATOS_TEST_CASE_IN_SUITE(ThreePlusThreeDiffOrderLineInterface_ReturnsExpectedLe
     interface_element.CalculateLocalSystem(actual_left_hand_side, actual_right_hand_side, ProcessInfo{});
 
     // Assert
+    constexpr auto expected_number_of_dofs = std::size_t{6 * 2 + 4};
     ASSERT_EQ(actual_left_hand_side.size1(), expected_number_of_dofs);
     ASSERT_EQ(actual_left_hand_side.size2(), expected_number_of_dofs);
     ASSERT_EQ(actual_right_hand_side.size(), expected_number_of_dofs);
