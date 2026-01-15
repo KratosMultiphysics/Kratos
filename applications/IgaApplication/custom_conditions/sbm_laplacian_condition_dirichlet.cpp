@@ -75,6 +75,7 @@ void SbmLaplacianConditionDirichlet::InitializeMemberVariables()
     } else {
         mBasisFunctionsOrder = std::sqrt(r_DN_De[0].size1()) - 1;
     }
+    mBasisFunctionsOrder *= 2;
 
     double penalty = GetProperties()[PENALTY_FACTOR];
     // Modify the penalty factor: p^2 * penalty / h (NITSCHE APPROACH)
