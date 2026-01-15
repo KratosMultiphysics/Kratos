@@ -1830,15 +1830,16 @@ KRATOS_TEST_CASE_IN_SUITE(UPwPlaneInterfaceElement_InterpolatesNodalStresses, Kr
         actual_traction_vectors[3], UblasUtilities::CreateVector({4.0, -2.0, 1.0}), Defaults::relative_tolerance)
 }
 
-KRATOS_TEST_CASE_IN_SUITE(ThreePlusThreeDiffOrderLineInterfaceHasCorrectNumberOfDoF, KratosGeoMechanicsFastSuiteWithoutKernel)
+KRATOS_TEST_CASE_IN_SUITE(ThreePlusThreeDiffOrderLineInterface_ReturnsExpectedLeftAndRightHandSide,
+                          KratosGeoMechanicsFastSuiteWithoutKernel)
 {
     PointerVector<Node> nodes;
     nodes.push_back(Kratos::make_intrusive<Node>(1, 0.0, 0.0, 0.0));
-    nodes.push_back(Kratos::make_intrusive<Node>(2, 5.0, 0.0, 0.0));
-    nodes.push_back(Kratos::make_intrusive<Node>(3, 2.5, 0.0, 0.0));
-    nodes.push_back(Kratos::make_intrusive<Node>(4, -1.0, 0.2, 0.0));
-    nodes.push_back(Kratos::make_intrusive<Node>(5, 7.0, 0.2, 0.0));
-    nodes.push_back(Kratos::make_intrusive<Node>(6, 3.5, 0.4, 0.0));
+    nodes.push_back(Kratos::make_intrusive<Node>(2, 1.0, 0.0, 0.0));
+    nodes.push_back(Kratos::make_intrusive<Node>(3, 0.5, 0.0, 0.0));
+    nodes.push_back(Kratos::make_intrusive<Node>(4, 0.0, 0.0, 0.0));
+    nodes.push_back(Kratos::make_intrusive<Node>(5, 1.0, 0.0, 0.0));
+    nodes.push_back(Kratos::make_intrusive<Node>(6, 0.5, 0.0, 0.0));
 
     auto p_line_interface_displacement_geometry = std::make_shared<InterfaceGeometry<Line2D3<Node>>>(1, nodes);
 
@@ -1850,10 +1851,84 @@ KRATOS_TEST_CASE_IN_SUITE(ThreePlusThreeDiffOrderLineInterfaceHasCorrectNumberOf
     auto interface_element = CreateInterfaceElementWithUPwDofs<Interface2D>(
         p_interface_properties, p_line_interface_displacement_geometry, IsDiffOrderElement::Yes);
 
+    // Act
     Element::DofsVectorType element_dofs;
     ProcessInfo             dummy_process_info;
     interface_element.GetDofList(element_dofs, dummy_process_info);
-    KRATOS_EXPECT_EQ(element_dofs.size(), 6 * 2 + 4);
+    constexpr auto expected_number_of_dofs = std::size_t{6 * 2 + 4};
+
+    // Assert
+    KRATOS_EXPECT_EQ(element_dofs.size(), expected_number_of_dofs);
+
+    // Act
+    interface_element.Initialize(ProcessInfo{});
+    const auto prescribed_displacements =
+        PrescribedDisplacements{{3, array_1d<double, 3>{0.2, 0.5, 0.0}},
+                                {4, array_1d<double, 3>{0.2, 0.5, 0.0}},
+                                {5, array_1d<double, 3>{0.2, 0.5, 0.0}}};
+    for (const auto& [idx, disp] : prescribed_displacements) {
+        interface_element.GetGeometry()[idx].FastGetSolutionStepValue(DISPLACEMENT) = disp;
+    }
+
+    Matrix actual_left_hand_side;
+    Vector actual_right_hand_side;
+    interface_element.CalculateLocalSystem(actual_left_hand_side, actual_right_hand_side, ProcessInfo{});
+
+    // Assert
+    ASSERT_EQ(actual_left_hand_side.size1(), expected_number_of_dofs);
+    ASSERT_EQ(actual_left_hand_side.size2(), expected_number_of_dofs);
+    ASSERT_EQ(actual_right_hand_side.size(), expected_number_of_dofs);
+
+    constexpr auto number_of_u_dofs   = std::size_t{6 * 2};
+    auto expected_stiffness_matrix    = Matrix{ZeroMatrix{number_of_u_dofs, number_of_u_dofs}};
+    expected_stiffness_matrix(0, 0)   = shear_stiffness * (1.0 / 6.0);
+    expected_stiffness_matrix(1, 1)   = normal_stiffness * (1.0 / 6.0);
+    expected_stiffness_matrix(2, 2)   = shear_stiffness * (1.0 / 6.0);
+    expected_stiffness_matrix(3, 3)   = normal_stiffness * (1.0 / 6.0);
+    expected_stiffness_matrix(4, 4)   = shear_stiffness * (2.0 / 3.0);
+    expected_stiffness_matrix(5, 5)   = normal_stiffness * (2.0 / 3.0);
+    expected_stiffness_matrix(6, 6)   = shear_stiffness * (1.0 / 6.0);
+    expected_stiffness_matrix(7, 7)   = normal_stiffness * (1.0 / 6.0);
+    expected_stiffness_matrix(8, 8)   = shear_stiffness * (1.0 / 6.0);
+    expected_stiffness_matrix(9, 9)   = normal_stiffness * (1.0 / 6.0);
+    expected_stiffness_matrix(10, 10) = shear_stiffness * (2.0 / 3.0);
+    expected_stiffness_matrix(11, 11) = normal_stiffness * (2.0 / 3.0);
+
+    expected_stiffness_matrix(0, 6)  = -shear_stiffness * (1.0 / 6.0);
+    expected_stiffness_matrix(1, 7)  = -normal_stiffness * (1.0 / 6.0);
+    expected_stiffness_matrix(2, 8)  = -shear_stiffness * (1.0 / 6.0);
+    expected_stiffness_matrix(3, 9)  = -normal_stiffness * (1.0 / 6.0);
+    expected_stiffness_matrix(4, 10) = -shear_stiffness * (2.0 / 3.0);
+    expected_stiffness_matrix(5, 11) = -normal_stiffness * (2.0 / 3.0);
+
+    expected_stiffness_matrix(6, 0)  = -shear_stiffness * (1.0 / 6.0);
+    expected_stiffness_matrix(7, 1)  = -normal_stiffness * (1.0 / 6.0);
+    expected_stiffness_matrix(8, 2)  = -shear_stiffness * (1.0 / 6.0);
+    expected_stiffness_matrix(9, 3)  = -normal_stiffness * (1.0 / 6.0);
+    expected_stiffness_matrix(10, 4) = -shear_stiffness * (2.0 / 3.0);
+    expected_stiffness_matrix(11, 5) = -normal_stiffness * (2.0 / 3.0);
+
+    KRATOS_EXPECT_MATRIX_RELATIVE_NEAR(
+        subrange(actual_left_hand_side, 0, 0 + number_of_u_dofs, 0, 0 + number_of_u_dofs),
+        expected_stiffness_matrix, Defaults::relative_tolerance)
+    KRATOS_EXPECT_MATRIX_NEAR(
+        subrange(actual_left_hand_side, 0, number_of_u_dofs, number_of_u_dofs, expected_number_of_dofs),
+        (Matrix{number_of_u_dofs, expected_number_of_dofs - number_of_u_dofs, 0.0}), Defaults::absolute_tolerance)
+    KRATOS_EXPECT_MATRIX_NEAR(
+        subrange(actual_left_hand_side, number_of_u_dofs, expected_number_of_dofs, 0, number_of_u_dofs),
+        (Matrix{expected_number_of_dofs - number_of_u_dofs, number_of_u_dofs, 0.0}), Defaults::absolute_tolerance)
+    KRATOS_EXPECT_MATRIX_NEAR(
+        subrange(actual_left_hand_side, number_of_u_dofs, expected_number_of_dofs, number_of_u_dofs, expected_number_of_dofs),
+        (Matrix{expected_number_of_dofs - number_of_u_dofs, expected_number_of_dofs - number_of_u_dofs, 0.0}),
+        Defaults::absolute_tolerance)
+
+    auto expected_stiffness_force = Vector{ZeroVector{number_of_u_dofs}};
+    expected_stiffness_force <<= 0.33333333, 1.66666667, 0.33333333, 1.66666667, 1.33333333,
+        6.66666667, -0.33333333, -1.66666667, -0.33333333, -1.66666667, -1.33333333, -6.66666667;
+    KRATOS_EXPECT_VECTOR_RELATIVE_NEAR(subrange(actual_right_hand_side, 0, 0 + number_of_u_dofs),
+                                       expected_stiffness_force, Defaults::relative_tolerance)
+    KRATOS_EXPECT_VECTOR_NEAR(subrange(actual_right_hand_side, number_of_u_dofs, expected_number_of_dofs),
+                              (Vector{expected_number_of_dofs - number_of_u_dofs, 0.0}), Defaults::absolute_tolerance)
 }
 
 } // namespace Kratos::Testing
