@@ -7,6 +7,6 @@ repeat
   :Update plastic strain increment;
   :Update equivalent plastic strain κ;
   :Update yield surface;
-repeat while(|F_MC(σ, κ)| > ε, n_iter < max_iter) is (yes) not (no)
+repeat while(|F_MC(σ, κ)| > ε_tol, n_iter < max_iter) is (yes) not (no)
 stop
 @enduml

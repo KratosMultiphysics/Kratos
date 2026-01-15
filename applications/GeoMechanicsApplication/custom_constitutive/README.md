@@ -61,10 +61,24 @@ Where:
 * $`\Delta \Delta u`$: The incremental relative displacement vector.
 
 
-## Mohr-Coulomb with tension cutoff
+## 2. Mohr-Coulomb with tension cutoff
 
-The Mohr-Coulomb failure criterion is defined as:
+### 2.1 Introduction
 
+The Mohr-Coulomb failure criterion is defined as,
+```math
+    F_{MC}(\sigma) = \tau + \sigma \sin⁡{\phi} - c \cos⁡{\phi} = 0
+```
+
+where,
+```math
+    \sigma = \frac{\sigma_1 + \sigma_3}{2}
+```
+```math
+    \tau = \frac{\sigma_1 - \sigma_3}{2}
+```
+
+Then the Mohr-Coulomb failure criterion can be written in the following form.
 ```math
     F_{MC}(\sigma) = \frac{\sigma_1 - \sigma_3}{2} + \frac{\sigma_1 + \sigma_3}{2} \sin⁡{\phi} - c \cos⁡{\phi} = 0
 ```
@@ -76,7 +90,8 @@ where:
 - $`c`$ = cohesion
 - $`\phi`$ = Internal friction angle.
 
-This criterion represents a linear envelope in the Mohr stress space, approximating the shear strength of a material under different stress states.
+This criterion represents a linear envelope in the Mohr stress space, approximating the shear strength of a material under different stress states. For $`F_{MC} \le 0`$ we have elastic behavior, while $`F_{MC} \gt 0`$ corresponds to plastic behavior.
+
 
 Since the Mohr-Coulomb criterion primarily accounts for shear failure, it does not limit tensile stresses. In geomechanical applications, materials such as rocks and soils have a limited tensile strength . A tension cutoff is imposed as:
 
@@ -84,14 +99,14 @@ Since the Mohr-Coulomb criterion primarily accounts for shear failure, it does n
     F_{tc}(\sigma) = \sigma_1 - t_c = 0
 ```
 
-where $t_c$ is the tensile strength. If $`\sigma_1`$ exceeds $`t_c`$, failure occurs regardless of the shear strength condition.
+where $`t_c`$ is the tensile strength. If $`\sigma_1`$ exceeds $`t_c`$, failure occurs regardless of the shear strength condition.
 
-The combination of these two, yiels to the following figure:
+The combination of these two, yields to the following figure:
 
 <img src="documentation_data/mohr-coulomb-with-tension-cutoff-zones.svg" alt="Mohr-Coulomb with tension cutoff" title="Mohr-Coulomb with tension cutoff" width="800">
 
 
-### Implementation
+### 2.2 Implementation Mohr-Coulomb with tension cutoff
 
 To incorporate the Mohr-Coulomb model with tension cutoff in numerical simulations, the following steps are followed:
 
@@ -105,27 +120,26 @@ To incorporate the Mohr-Coulomb model with tension cutoff in numerical simulatio
 
 3. Calculate the values of $`F_{MC}`$ and $`F_{tc}`$ for the calculated principal stresses.
 
-4. Evaluate the condition and mapping
-  - If the trial stress falls in the elastic zone, it stays unchanged. No mapping is applied.
-  - If the trial stress falls in the tensile apex return zone. The trial stress then needs to be mapped back to the apex.
-  - If the trial stress falls in the tension cutoff zone. The trial stress then needs to be mapped back to the tension cutoff yield surface.
-  - If it falls in the tensile corner return zone, then it needs to be mapped to the corner point.
-  - In the case of regular failure zone, then it is mapped back to the Mohr-Coulomb yield surface along the normal direction of flow function. The flow function is defined by
-  
+4. Evaluate the condition and mapping  
+        4.1. If the trial stress falls in the elastic zone, it stays unchanged. No mapping is applied.  
+        4.2. If the trial stress falls in the tensile apex return zone. The trial stress then needs to be mapped back to the apex.  
+        4.3. If the trial stress falls in the tension cutoff zone. The trial stress then needs to be mapped back to the tension cutoff yield surface.  
+        4.4. If it falls in the tensile corner return zone, then it needs to be mapped to the corner point.  
+        4.5. In the case of regular failure zone, then it is mapped back to the Mohr-Coulomb yield surface along the normal direction of flow function. The flow function is defined by  
 ```math
-    G(\sigma) = \frac{\sigma_1 - \sigma_3}{2} + \frac{\sigma_1 + \sigma_3}{2} \sin⁡{\psi}
+    G_{MC}(\sigma) = \frac{\sigma_1 - \sigma_3}{2} + \frac{\sigma_1 + \sigma_3}{2} \sin⁡{\psi}
 ```
   where $`\psi`$ is the dilatancy angle.
 
-5. If after mapping, the condidition $`\sigma_1 \ge \sigma_2 \ge \sigma_3`$ is not valid, average the principal stresses of stage 2 and the direction of the mapping and map the principal stresses again.
-  - if $`\sigma_1 \le \sigma_2`$ set:
+5. If after mapping, the condidition $`\sigma_1 \ge \sigma_2 \ge \sigma_3`$ is not valid, average the principal stresses of stage 2 and the direction of the mapping and map the principal stresses again.  
+        5.1. If $`\sigma_1 \le \sigma_2`$ set:
 ```math
        \sigma_1 = \sigma_2 = \frac{\sigma_1 + \sigma_2}{2}
 ```
 ```math
        \frac{\partial G}{\partial \sigma_1} = \frac{\partial G}{\partial \sigma_2} = \frac{1}{2} \left( \frac{\partial G}{\partial \sigma_1} + \frac{\partial G}{\partial \sigma_2} \right)
-```
-  - if $`\sigma_2 \le \sigma_3`$ set:
+```  
+        5.2. if $`\sigma_2 \le \sigma_3`$ set:
 ```math
        \sigma_3 = \sigma_2 = \frac{\sigma_3 + \sigma_2}{2}
 ```
@@ -135,6 +149,9 @@ To incorporate the Mohr-Coulomb model with tension cutoff in numerical simulatio
 This mapping is based on a new Mohr-Coulomb diagram with modified zones, based on the averaged of the derivatives of flow functions $`\frac{\partial G}{\partial \boldsymbol{\sigma}}`$.
 
 6. Rotate the mapped stress tensor back, by applying the rotation matrix.
+```math
+   \boldsymbol{\sigma} = \boldsymbol{R \sigma_p R^{-1}}
+```
 
 ### Detailed formulations
 We define the Coulomb yield surface $`F_{MC}`$ and the tension cut off yield surface $`F_{tc}`$ based on $`(\sigma,\tau)`$ coordinates. as:
@@ -208,6 +225,16 @@ Where
     \end{bmatrix}
 ```
 
+The rotation matrix is derived from the eigenvectors of the Cauchy stresses. Having three eigenvectors related to the principal stresses
+```math
+    \begin{bmatrix} v_1 & v_2 & v_3 \end{bmatrix}
+```
+
+Normalizing the vectors, it results in rotation matrix
+```math
+    \boldsymbol{R} = \begin{bmatrix} \frac{v_1}{\lVert v_1 \rVert} & \frac{v_2}{\lVert v_2 \rVert} & \frac{v_3}{\lVert v_3 \rVert} \end{bmatrix}
+```
+
 #### Tension cutoff return zone
 
 We need to find the shear at the intersection point. Setting  $`\sigma_1 = t_c`$ in the yield function (if $`t_c < \sigma_{MC}`$):
@@ -223,7 +250,7 @@ Then
     \sigma_{corner} = \frac{t_c - c \cos⁡{\phi}}{1 - \sin⁡{ϕ}}
 ```
 
-A perpendicular to the tension cutoff yield surface, passing through the corner point is:
+Perpendicular to the tension cutoff yield surface, passing through the corner point is:
 ```math
     \tau - \tau_{corner} = \sigma - \sigma_{corner}
 ```
@@ -251,14 +278,14 @@ We move perpendicular to the tension cutoff yield surface by using the derivativ
 ```math
     \sigma^{map} = \sigma^{trial} + \dot{\lambda} \frac{\partial G_{tc}}{\partial \sigma}
 ```
-Then update the principal stresses based on the mapped values. They updated principal stresses need to be rotated back to the element axes system.
+Where $`G_{tc}`$ is the flow function related to tension cutoff surface. Then update the principal stresses based on the mapped values. The updated principal stresses need to be rotated back to the element axes system.
 
 
 #### Tensile corner return zone
 
 This zone is located under the line which is perpendicular to the flow function and passes through the intersection point of Mohr-Coulomb yield surface and tension cutoff yield surface. 
 
-First we find the intersection point. The intersection point is related whether the tension cutoff yield surface intersects the Mohr-Coulomb yield surface. 
+First we find the intersection point. The intersection point relates to the point of intersection between the tension cutoff yield surface and the Mohr-Coulomb yield surface. 
 
 - The tension cutoff yield surface intersects the Mohr-Coulomb yield surface:
 In this case of intersecting the shear stress can be found like the previous region:
@@ -356,18 +383,7 @@ Solving this 3 equations:
     \dot{\lambda} = \frac{c \cos{\phi} - \sigma^{trial} \sin{\phi} - \tau^{trial}}{\sin(\psi) \sin(\phi) + 1}
 ```
 
-Then update the principal stresses based on the mapped values. They updated principal stresses need to be rotated back to the element axes system.
-
-### Rotation matrix
-The rotation matrix is derived from the eigenvectors of the Cauchy stresses. Having three eigenvectors related to the principal stresses
-```math
-    \begin{bmatrix} v_1 & v_2 & v_3 \end{bmatrix}
-```
-
-Normalizing the vectors, it results in rotation matrix
-```math
-    \boldsymbol{R} = \begin{bmatrix} \frac{v_1}{\lVert v_1 \rVert} & \frac{v_2}{\lVert v_2 \rVert} & \frac{v_3}{\lVert v_3 \rVert} \end{bmatrix}
-```
+Then update the principal stresses based on the mapped values. The updated principal stresses need to be rotated back to the element axes system.
 
 ### Reordering
 It can happen that, after mapping, the roles of the principal stresses change, and the condition $`\sigma_1 \ge \sigma_2 \ge \sigma_3`$ is no longer valid. In such a case, we apply averaging to the principal stresses and their associated mapping directions.
@@ -434,7 +450,7 @@ Note that after averaging the mapping direction, we modify the direction of the 
 The mapping direction for tension cutoff stays unchanged because applying such averaging leads to the same form of mapping. After averaging the mapping for tension cutoff stays unchanged.
 
 
-### Hardening and softening
+### 2.3 Implementation Mohr-Coulomb with hardening/softening
 During hardening or softening of a yield surface, the yield surface may change in location, and it will be a function of equivalent plastic strain $`\kappa`$. The increment of equivalent plastic strain is defined by:
 ```math
     \Delta \kappa = \sqrt{2/3} \lVert \Delta \epsilon^p \rVert
@@ -482,7 +498,7 @@ The deviatoric flow tensor is then calculated:
     \boldsymbol{m_{dev}} = \boldsymbol{m} - \bar{m} \boldsymbol{I}
 ```
 
-Then
+Then the second norm of the deviatoric flow tensor is calculated.
 ```math
     \lVert \boldsymbol{m_{dev}} \rVert = \sqrt{(G,_{\sigma_1} - \bar{m})^2 + (G,_{\sigma_2} - \bar{m})^2 + (G,_{\sigma_3} - \bar{m})^2}
 ```
@@ -556,9 +572,9 @@ Note: These formulations will be extended for more physics-based form.
 
 The convergence criterion is defined as:
 ```math
-    \lvert F_{MC}(\boldsymbol{\sigma}, \kappa_{n+1}) \rvert < \epsilon
+    \lvert F_{MC}(\boldsymbol{\sigma}, \kappa_{n+1}) \rvert < \epsilon_{tol}
 ```
 
-Where $\epsilon$ is a tolerance.
+Where $\epsilon_{tol}$ is a tolerance.
 
 <img src="documentation_data/hardening_flowchart.svg" alt="Hardening flowchart" title="Hardening flowchart" width="400">
