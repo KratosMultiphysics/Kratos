@@ -94,9 +94,11 @@ Geo::OptionalGeometryUniquePtr MakeOptionalWaterPressureGeometry(const Geometry<
             return std::make_unique<InterfaceGeometry<Quadrilateral3D4<Node>>>(nodes);
         }
         default:
-            KRATOS_ERROR << "The specified geometry family is not supported for creating a water "
-                            "pressure geometry.\n";
+            break;
         }
+
+        KRATOS_DEBUG_ERROR << "The specified geometry family is not supported for creating a water "
+                              "pressure geometry.\n";
     }
 
     return std::nullopt;
