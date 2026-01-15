@@ -155,10 +155,9 @@ void GeometryUtilities::ReverseNodes(std::vector<std::size_t>&             rNode
 PointerVector<Node> GeometryUtilities::GetNodesByIndex(const Geometry<Node>& rGeometry,
                                                        const std::initializer_list<int>& rNodeIndices)
 {
-    auto result = PointerVector<Node>{};
-    for (auto index : rNodeIndices) {
-        result.push_back(rGeometry.pGetPoint(index));
-    }
+    auto result = PointerVector<Node>{rNodeIndices.size()};
+    std::ranges::transform(rNodeIndices, result.ptr_begin(),
+                           [&rGeometry](auto NodeIndex) { return rGeometry.pGetPoint(NodeIndex); });
     return result;
 }
 
