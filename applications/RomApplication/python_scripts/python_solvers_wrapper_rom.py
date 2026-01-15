@@ -55,6 +55,21 @@ def CreateSolverByParameters(model, solver_settings, parallelism, analysis_stage
     aux_solver_settings.RemoveValue("projection_strategy")
     aux_solver_settings.RemoveValue("assembling_strategy")
     aux_solver_settings.RemoveValue("monotonicity_preserving")
+
+    keys_to_remove = [
+        "rom_settings", 
+        "projection_strategy", 
+        "assembling_strategy", 
+        "monotonicity_preserving"
+    ]
+
+    if aux_solver_settings.Has("fluid_solver_settings") or aux_solver_settings.Has("thermal_solver_settings"):
+        for key in keys_to_remove:
+            if aux_solver_settings["fluid_solver_settings"].Has(key):
+                aux_solver_settings["fluid_solver_settings"].RemoveValue(key)
+            if aux_solver_settings["thermal_solver_settings"].Has(key):
+                aux_solver_settings["thermal_solver_settings"].RemoveValue(key)                
+                
     aux_base_solver_instance = solvers_wrapper_module.CreateSolverByParameters(KratosMultiphysics.Model(), aux_solver_settings, parallelism)
 
     # Create the ROM solver from the base solver

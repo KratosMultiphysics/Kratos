@@ -163,7 +163,8 @@ class HRomTrainingUtility(object):
             self.__rom_residuals_utility = KratosROM.RomResidualsUtility(
                 computing_model_part,
                 self.rom_settings,
-                self.solver._GetScheme())
+                self.solver.fluid_solver._GetScheme())   #asking for fluid dofs first. It seems it is enough?
+
 
             if self.echo_level > 0 : KratosMultiphysics.Logger.PrintInfo("HRomTrainingUtility","RomResidualsUtility created.")
 
@@ -214,68 +215,8 @@ class HRomTrainingUtility(object):
         self.AppendHRomWeightsToRomParameters()
 
     def CreateHRomModelParts(self):
-        # Get solver data
-        model_part_name = self.solver.settings["model_part_name"].GetString()
-        model_part_output_name = self.solver.settings["model_import_settings"]["input_filename"].GetString()
-        # computing_model_part = self.solver.GetComputingModelPart()
-        #computing_model_part = self.solver.GetComputingModelPart().GetRootModelPart() #TODO: DECIDE WHICH ONE WE SHOULD USE?¿?¿ MOST PROBABLY THE ROOT FOR THOSE CASES IN WHICH THE COMPUTING IS CUSTOM (e.g. CFD)
-        aux_model = KratosMultiphysics.Model()
-        computing_model_part = aux_model.CreateModelPart("main")
-        model_part_io = KratosMultiphysics.ModelPartIO(model_part_output_name)
-        model_part_io.ReadModelPart(computing_model_part)
-
-        # Create a new model with the HROM main model part
-        # This is intentionally done in order to completely emulate the origin model part
-        aux_model = KratosMultiphysics.Model()
-        hrom_main_model_part = aux_model.CreateModelPart(model_part_name)
-
-        if self.hrom_output_format == "numpy":
-            element_ids_list, condition_ids_list = self.__CreateListsWithRomElements()
-        elif self.hrom_output_format == "json":
-            with (self.rom_basis_output_folder / self.rom_basis_output_name).with_suffix('.json').open('r') as f:
-                rom_parameters = KratosMultiphysics.Parameters(f.read())
-                hrom_info = rom_parameters["elements_and_weights"]
-
-        # Get the weights and fill the HROM computing model part
-        if (self.projection_strategy=="lspg"):
-            hrom_info = KratosMultiphysics.Parameters(json.JSONEncoder().encode(self.__CreateDictionaryWithRomElementsAndWeights())) #TODO: Adapt SetHRomComputingModelPartWithNeighbours to work with lists (i.e. self.__CreateListsWithRomElements()). Dictionaries are very slow for bigger problems.
-            KratosROM.RomAuxiliaryUtilities.SetHRomComputingModelPartWithNeighbours(hrom_info,computing_model_part,hrom_main_model_part)
-        else:
-            if self.hrom_output_format == "numpy":
-                KratosROM.RomAuxiliaryUtilities.SetHRomComputingModelPartWithLists(element_ids_list, condition_ids_list, computing_model_part, hrom_main_model_part)
-            elif self.hrom_output_format == "json":
-                KratosROM.RomAuxiliaryUtilities.SetHRomComputingModelPart(hrom_info,computing_model_part,hrom_main_model_part) #TODO: Adapt SetHRomComputingModelPart to work with lists (i.e. self.__CreateListsWithRomElements()). Dictionaries are very slow for bigger problems.
-        if self.echo_level > 0:
-            KratosMultiphysics.Logger.PrintInfo("HRomTrainingUtility","HROM computing model part \'{}\' created.".format(hrom_main_model_part.FullName()))
-
-        # Output the HROM model part in mdpa format
-        hrom_output_name = "{}HROM".format(model_part_output_name)
-        model_part_io = KratosMultiphysics.ModelPartIO(hrom_output_name, KratosMultiphysics.IO.WRITE | KratosMultiphysics.IO.MESH_ONLY | KratosMultiphysics.IO.SCIENTIFIC_PRECISION)
-        model_part_io.WriteModelPart(hrom_main_model_part)
-        KratosMultiphysics.kratos_utilities.DeleteFileIfExisting("{}.time".format(hrom_output_name))
-        if self.echo_level > 0:
-            KratosMultiphysics.Logger.PrintInfo("HRomTrainingUtility","HROM mesh written in \'{}.mdpa\'".format(hrom_output_name))
-
-        #TODO: Make this optional
-        #TODO: Move this out of here
-        # Create the HROM visualization model parts
-        if self.hrom_visualization_model_part:
-            # Create the HROM visualization mesh from the origin model part
-            hrom_visualization_model_part_name = "{}Visualization".format(hrom_main_model_part.Name)
-            hrom_visualization_model_part = aux_model.CreateModelPart(hrom_visualization_model_part_name)
-            KratosROM.RomAuxiliaryUtilities.SetHRomVolumetricVisualizationModelPart(computing_model_part, hrom_visualization_model_part)
-            if self.echo_level > 0:
-                KratosMultiphysics.Logger.PrintInfo("HRomTrainingUtility","HROM visualization model part \'{}\' created.".format(hrom_visualization_model_part.FullName()))
-
-            print(hrom_visualization_model_part)
-
-            # Write the HROM visualization mesh
-            hrom_vis_output_name = "{}HROMVisualization".format(model_part_output_name)
-            model_part_io = KratosMultiphysics.ModelPartIO(hrom_vis_output_name, KratosMultiphysics.IO.WRITE | KratosMultiphysics.IO.MESH_ONLY | KratosMultiphysics.IO.SCIENTIFIC_PRECISION)
-            model_part_io.WriteModelPart(hrom_visualization_model_part)
-            KratosMultiphysics.kratos_utilities.DeleteFileIfExisting("{}.time".format(hrom_vis_output_name))
-            if self.echo_level > 0:
-                KratosMultiphysics.Logger.PrintInfo("HRomTrainingUtility","HROM visualization mesh written in \'{}.mdpa\'".format(hrom_vis_output_name))
+        #no HROM creation for now, how to create an HROM MED file?
+        pass
 
     @classmethod
     def __GetHRomTrainingDefaultSettings(cls):

@@ -4,6 +4,7 @@ import KratosMultiphysics
 # Import applications modules
 from KratosMultiphysics.FluidDynamicsApplication import python_solvers_wrapper_fluid
 from KratosMultiphysics.ConvectionDiffusionApplication import python_solvers_wrapper_convection_diffusion
+from KratosMultiphysics.RomApplication import python_solvers_wrapper_rom
 
 # Importing the base class
 from KratosMultiphysics.python_solver import PythonSolver
@@ -51,9 +52,12 @@ class CoupledFluidThermalSolver(PythonSolver):
         ## Get domain size
         self.domain_size = self.settings["domain_size"].GetInt()
 
-        ## Create subdomain solvers
-        self.fluid_solver = python_solvers_wrapper_fluid.CreateSolverByParameters(self.model, self.settings["fluid_solver_settings"],"OpenMP")
-        self.thermal_solver = python_solvers_wrapper_convection_diffusion.CreateSolverByParameters(self.model,self.settings["thermal_solver_settings"],"OpenMP")
+        if type(self).__name__=='ROMSolver': 
+            self.fluid_solver = python_solvers_wrapper_rom.CreateSolverByParameters(self.model, self.settings["fluid_solver_settings"],"OpenMP", 'KratosMultiphysics.FluidDynamicsApplication.fluid_dynamics_analysis')  
+            self.thermal_solver = python_solvers_wrapper_rom.CreateSolverByParameters(self.model,self.settings["thermal_solver_settings"],"OpenMP", 'KratosMultiphysics.ConvectionDiffusionApplication.convection_difussion_analysis')        
+        else:
+            self.fluid_solver = python_solvers_wrapper_fluid.CreateSolverByParameters(self.model, self.settings["fluid_solver_settings"],"OpenMP")
+            self.thermal_solver = python_solvers_wrapper_convection_diffusion.CreateSolverByParameters(self.model,self.settings["thermal_solver_settings"],"OpenMP")
 
     def AddVariables(self):
         # Import the fluid and thermal solver variables. Then merge them to have them in both fluid and thermal solvers.
