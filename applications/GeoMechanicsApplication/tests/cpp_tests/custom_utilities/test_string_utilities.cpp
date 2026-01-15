@@ -19,13 +19,13 @@ namespace Kratos::Testing
 KRATOS_TEST_CASE_IN_SUITE(GeoStringUtilities_ConvertStringToLower, KratosGeoMechanicsFastSuiteWithoutKernel)
 {
     // Arrange
-    std::string str = "ConvertMeToLowerCase";
+    const auto str = "ConvertMeToLowerCase";
 
     // Act
     const auto lower_case_string = GeoStringUtilities::ToLower(str);
 
     // Assert
-    std::string expected_string = "convertmetolowercase";
+    const auto expected_string = "convertmetolowercase";
     KRATOS_CHECK_STRING_EQUAL(lower_case_string, expected_string);
 }
 
