@@ -13,6 +13,7 @@
 #pragma once
 
 #include <algorithm>
+#include <iterator>
 #include <vector>
 
 #include "geo_aliases.h"
@@ -27,7 +28,7 @@ namespace Kratos::Geo::DofUtilities
 std::vector<std::size_t> KRATOS_API(GEO_MECHANICS_APPLICATION)
     ExtractEquationIdsFrom(const std::vector<Dof<double>*>& rDofs);
 
-template <typename InputIt, typename OutputIt>
+template <std::input_iterator InputIt, typename OutputIt>
 OutputIt ExtractDofsFromNodes(InputIt                 NodeRangeBegin,
                               InputIt                 NodeRangeEnd,
                               OutputIt                DofPtrRangeBegin,
@@ -38,7 +39,7 @@ OutputIt ExtractDofsFromNodes(InputIt                 NodeRangeBegin,
     });
 }
 
-template <typename InputIt>
+template <std::input_iterator InputIt>
 std::vector<Dof<double>*> ExtractDofsFromNodes(InputIt                 NodeRangeBegin,
                                                InputIt                 NodeRangeEnd,
                                                const Variable<double>& rDofVariable)
