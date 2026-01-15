@@ -75,7 +75,8 @@ Geo::OptionalGeometryUniquePtr MakeOptionalWaterPressureGeometry(const Geometry<
                                                                  IsDiffOrderElement IsDiffOrder)
 {
     if (IsDiffOrder == IsDiffOrderElement::Yes) {
-        KRATOS_ERROR_IF(rDisplacementGeometry.GetGeometryOrderType() != GeometryData::Kratos_Quadratic_Order) << "Only quadratic order interface elements can create a linear order pressure geometry. \n";
+        KRATOS_DEBUG_ERROR_IF(rDisplacementGeometry.GetGeometryOrderType() != GeometryData::Kratos_Quadratic_Order) << "Only quadratic order interface elements can create a linear order pressure geometry. \n";
+
         switch (rDisplacementGeometry.GetGeometryFamily()) {
             using enum GeometryData::KratosGeometryFamily;
         case Kratos_Linear: {
