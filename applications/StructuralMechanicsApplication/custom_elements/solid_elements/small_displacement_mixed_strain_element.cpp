@@ -191,6 +191,13 @@ void SmallDisplacementMixedStrainElement::Initialize(
 {
     KRATOS_TRY
 
+    if (GetProperties().Has(INTEGRATION_ORDER)) {
+        const SizeType integration_order = GetProperties()[INTEGRATION_ORDER];
+        mThisIntegrationMethod = GeometryData::IntegrationMethod::GI_GAUSS_2;
+    } else {
+        mThisIntegrationMethod = GeometryData::IntegrationMethod::GI_LOBATTO_1;
+    }
+
     // Initialization should not be done again in a restart!
     if (!rCurrentProcessInfo[IS_RESTARTED]) {
         // Constitutive Law Vector initialisation
@@ -781,6 +788,28 @@ void SmallDisplacementMixedStrainElement::AssembleLHS(
     const SizeType n_nodes = r_geometry.PointsNumber();
     const SizeType displ_size = n_nodes * dim;
 
+    Matrix M(rM.size1(), rM.size2());
+    noalias(M) = rM;
+    if (GetProperties().Has(COMPUTE_LUMPED_MASS_MATRIX)) {
+        if (GetProperties()[COMPUTE_LUMPED_MASS_MATRIX]) {
+            Vector lumped_mass_vector = ZeroVector(rM.size1());
+            Matrix lumped_M = ZeroMatrix(rM.size1(), rM.size2());
+            
+            double row_sum;
+            for (IndexType i = 0; i < rM.size1(); ++i) {
+                row_sum = 0.0;
+                for (IndexType j = 0; j < rM.size2(); ++j) {
+                    row_sum += rM(i, j);
+                }
+                lumped_mass_vector[i] = row_sum;
+            }
+            for (IndexType i = 0; i < rM.size1(); ++i) {
+                lumped_M(i, i) = lumped_mass_vector[i];
+            }
+            noalias(M) = lumped_M;
+        }
+    }
+
     // Assemble K
     for (IndexType i = 0; i < rK.size1(); ++i)
         for (IndexType j = 0; j < rK.size2(); ++j)
@@ -789,7 +818,7 @@ void SmallDisplacementMixedStrainElement::AssembleLHS(
     // Assemble M
     for (IndexType i = 0; i < rM.size1(); ++i)
         for (IndexType j = 0; j < rM.size2(); ++j)
-            rLHS(i + displ_size, j + displ_size) = rM(i, j);
+            rLHS(i + displ_size, j + displ_size) = M(i, j);
 
     // Assemble Q
     for (IndexType i = 0; i < rQ.size1(); ++i)
