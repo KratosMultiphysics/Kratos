@@ -144,20 +144,20 @@ public:
         };
 
         // Create functions that check if the previously mentioned functions have been called
-        auto finalize_function_check = [](const Kratos::intrusive_ptr<T> rElement) {
-            return rElement->IsSolutionStepFinalized();
+        auto finalize_function_check = [](const intrusive_ptr<T>& rpElement) {
+            return rpElement->IsSolutionStepFinalized();
         };
 
-        auto initialize_function_check = [](const Kratos::intrusive_ptr<T> rElement) {
-            return rElement->IsSolutionStepInitialized();
+        auto initialize_function_check = [](const intrusive_ptr<T>& rpElement) {
+            return rpElement->IsSolutionStepInitialized();
         };
 
-        auto initialize_non_linear_iteration_check = [](const Kratos::intrusive_ptr<T> rCondition) {
-            return rCondition->IsNonLinIterationInitialized();
+        auto initialize_non_linear_iteration_check = [](const intrusive_ptr<T>& rpCondition) {
+            return rpCondition->IsNonLinIterationInitialized();
         };
 
-        auto finalize_non_linear_iteration_check = [](const Kratos::intrusive_ptr<T> rCondition) {
-            return rCondition->IsNonLinIterationFinalized();
+        auto finalize_non_linear_iteration_check = [](const intrusive_ptr<T>& rpCondition) {
+            return rpCondition->IsNonLinIterationFinalized();
         };
 
         functions_and_checks.push_back({finalize_solution_step, finalize_function_check});
