@@ -44,8 +44,10 @@ namespace Kratos
             << "Surface mapping with this modeler requires the origin ModelPart to be IGA.\n"
             << "Got is_origin_iga = false." << std::endl;
 
-        KRATOS_ERROR_IF_NOT(mParameters.Has("search_radius")) << "'search_radius' was not specified in the CoSim parameters file\n";
-        const double search_radius = mParameters["search_radius"].GetDouble();
+        if (is_surface_mapping){
+            KRATOS_ERROR_IF_NOT(mParameters.Has("search_radius")) << "'search_radius' was not specified in the CoSim parameters file\n";
+            const double search_radius = mParameters["search_radius"].GetDouble();
+        }
        
         if (is_origin_iga && !is_surface_mapping)
         {
