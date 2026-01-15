@@ -187,9 +187,6 @@ KRATOS_TEST_CASE_IN_SUITE(
     const IndexType patch_id_1 = 1;
     const IndexType patch_id_2 = 2;
 
-    // No gap: patch2 starts at x = 1.0
-    const double patch2_offset_x = 1.0;
-
     IndexType next_node_id = 1;
 
     auto p_patch_1 = CreateTestBrepSurface_NoTrim(
