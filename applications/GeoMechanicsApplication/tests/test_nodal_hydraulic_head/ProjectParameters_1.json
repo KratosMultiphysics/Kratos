@@ -63,17 +63,8 @@
             "solver_type": "LinearSolversApplication.skyline_lu_factorization",
             "scaling": true
         },
-        "problem_domain_sub_model_part_list": [
-            "Soil"
-        ],
-        "processes_sub_model_part_list": [
-            "Top_pressure",
-            "Bottom_pressure",
-            "gravity"
-        ],
-        "body_domain_sub_model_part_list": [
-            "Soil"
-        ],
+        "problem_domain_sub_model_part_list": ["Soil"],
+        "body_domain_sub_model_part_list"   : ["Soil"],
         "max_piping_iterations": 500
     },
     "output_processes": {

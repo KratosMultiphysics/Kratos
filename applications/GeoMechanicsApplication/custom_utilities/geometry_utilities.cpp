@@ -11,7 +11,7 @@
 //
 #include "geometry_utilities.h"
 #include "geometries/geometry_data.h"
-#include "math_utilities.h"
+#include "math_utilities.hpp"
 
 #include <boost/numeric/ublas/assignment.hpp>
 
@@ -135,15 +135,6 @@ Matrix GeometryUtilities::Calculate3DRotationMatrixForPlaneGeometry(const Geomet
                tangential_vector_1[2], tangential_vector_2[2], normal_vector[2];
     // clang-format on
 
-    return result;
-}
-
-std::vector<std::size_t> GeometryUtilities::GetNodeIdsFromGeometry(const Geometry<Node>& rGeometry)
-{
-    std::vector<std::size_t> result;
-    result.reserve(rGeometry.size());
-    std::ranges::transform(rGeometry, std::back_inserter(result),
-                           [](const auto& rNode) { return rNode.Id(); });
     return result;
 }
 

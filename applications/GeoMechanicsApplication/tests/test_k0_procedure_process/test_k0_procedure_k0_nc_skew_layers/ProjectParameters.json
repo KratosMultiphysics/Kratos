@@ -49,7 +49,6 @@
           "scaling": true
         },
         "problem_domain_sub_model_part_list": ["Sand","Clay","Peat"],
-        "processes_sub_model_part_list":      ["Base","Sides","Bottom_Drainage","Gravity","Fluid_Pressure-Initial_saturated"],
         "body_domain_sub_model_part_list":    ["Sand","Clay","Peat"]
     },
     "output_processes": {

@@ -13,17 +13,16 @@
 
 // Application includes
 #include "custom_elements/U_Pw_small_strain_FIC_element.hpp"
-#include "custom_utilities/equation_of_motion_utilities.h"
+#include "custom_utilities/equation_of_motion_utilities.hpp"
 #include "custom_utilities/extrapolation_utilities.h"
-#include "custom_utilities/math_utilities.h"
+#include "custom_utilities/math_utilities.hpp"
 #include "custom_utilities/transport_equation_utilities.hpp"
 
 namespace
 {
 auto CalculateSquareExtrapolationMatrix(const Kratos::Element* pElement)
 {
-    const auto extrapolation_matrix = Kratos::ExtrapolationUtilities::CalculateExtrapolationMatrix(
-        pElement->GetGeometry(), pElement->GetIntegrationMethod(), pElement->Id());
+    const auto extrapolation_matrix = Kratos::ExtrapolationUtilities::CalculateExtrapolationMatrix(*pElement);
     if (extrapolation_matrix.size1() != extrapolation_matrix.size2()) {
         KRATOS_ERROR << "Extrapolation matrix is not square for element id " << pElement->Id() << std::endl;
     }

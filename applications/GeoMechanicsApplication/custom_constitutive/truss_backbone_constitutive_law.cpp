@@ -18,6 +18,8 @@
 
 namespace Kratos
 {
+using namespace std::string_literals;
+
 ConstitutiveLaw::Pointer TrussBackboneConstitutiveLaw::Clone() const
 {
     return make_shared<TrussBackboneConstitutiveLaw>(*this);
@@ -176,7 +178,7 @@ void TrussBackboneConstitutiveLaw::InitializeMaterial(const Properties& rMateria
     }
 }
 
-std::string TrussBackboneConstitutiveLaw::Info() const { return "TrussBackboneConstitutiveLaw"; }
+std::string TrussBackboneConstitutiveLaw::Info() const { return "TrussBackboneConstitutiveLaw"s; }
 
 void TrussBackboneConstitutiveLaw::CheckStressStrainDiagram(const Properties& rMaterialProperties)
 {
