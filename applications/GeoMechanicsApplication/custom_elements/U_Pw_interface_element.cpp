@@ -86,7 +86,7 @@ UPwInterfaceElement::UPwInterfaceElement(IndexType NewId,
       mIsDiffOrder(IsDiffOrder)
 {
     MakeIntegrationSchemeAndAssignFunction();
-    mpPressureGeometry = MakeWaterPressureGeometry(GetDisplacementGeometry(), IsDiffOrder);
+    mpOptionalPressureGeometry = MakeOptionalWaterPressureGeometry(GetDisplacementGeometry(), IsDiffOrder);
 }
 
 UPwInterfaceElement::UPwInterfaceElement(IndexType                          NewId,
@@ -96,7 +96,7 @@ UPwInterfaceElement::UPwInterfaceElement(IndexType                          NewI
     : Element(NewId, rGeometry), mpStressStatePolicy(std::move(pStressStatePolicy)), mIsDiffOrder(IsDiffOrder)
 {
     MakeIntegrationSchemeAndAssignFunction();
-    mpPressureGeometry = MakeWaterPressureGeometry(GetDisplacementGeometry(), IsDiffOrder);
+    mpOptionalPressureGeometry = MakeOptionalWaterPressureGeometry(GetDisplacementGeometry(), IsDiffOrder);
 }
 
 void UPwInterfaceElement::MakeIntegrationSchemeAndAssignFunction()
@@ -112,8 +112,8 @@ void UPwInterfaceElement::MakeIntegrationSchemeAndAssignFunction()
     }
 }
 
-std::unique_ptr<Geometry<Node>> UPwInterfaceElement::MakeWaterPressureGeometry(const GeometryType& rDisplacementGeometry,
-                                                                               IsDiffOrderElement IsDiffOrder)
+Geo::OptionalGeometryUniquePtr UPwInterfaceElement::MakeOptionalWaterPressureGeometry(
+    const GeometryType& rDisplacementGeometry, IsDiffOrderElement IsDiffOrder)
 {
     if (IsDiffOrder == IsDiffOrderElement::Yes) {
         KRATOS_ERROR_IF(rDisplacementGeometry.GetGeometryOrderType() != GeometryData::Kratos_Quadratic_Order) << "Only quadratic order interface elements can create a linear order pressure geometry. \n";
@@ -154,7 +154,8 @@ std::unique_ptr<Geometry<Node>> UPwInterfaceElement::MakeWaterPressureGeometry(c
                             "pressure geometry.\n";
         }
     }
-    return std::make_unique<GeometryType>(rDisplacementGeometry);
+
+    return std::nullopt;
 }
 
 Element::Pointer UPwInterfaceElement::Create(IndexType               NewId,
@@ -356,7 +357,7 @@ const Element::GeometryType& UPwInterfaceElement::GetDisplacementGeometry() cons
 
 const Element::GeometryType& UPwInterfaceElement::GetWaterPressureGeometry() const
 {
-    return *mpPressureGeometry;
+    return mpOptionalPressureGeometry ? *(mpOptionalPressureGeometry.value()) : GetDisplacementGeometry();
 }
 
 std::vector<Matrix> UPwInterfaceElement::CalculateLocalBMatricesAtIntegrationPoints() const

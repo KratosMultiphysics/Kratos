@@ -13,9 +13,13 @@
 #pragma once
 
 #include <functional>
+#include <memory>
+#include <optional>
 #include <vector>
 
 #include "containers/variable.h"
+#include "geometries/geometry.h"
+#include "includes/node.h"
 #include "integration/integration_point.h"
 
 namespace Kratos::Geo
@@ -26,5 +30,8 @@ using ConstVariableDataRefs = std::vector<std::reference_wrapper<const VariableD
 
 using IntegrationPointType       = IntegrationPoint<3>;
 using IntegrationPointVectorType = std::vector<IntegrationPointType>;
+
+using GeometryUniquePtr         = std::unique_ptr<Geometry<Node>>;
+using OptionalGeometryUniquePtr = std::optional<GeometryUniquePtr>;
 
 } // namespace Kratos::Geo

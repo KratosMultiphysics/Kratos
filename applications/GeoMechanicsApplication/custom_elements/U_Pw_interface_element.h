@@ -13,6 +13,7 @@
 
 #pragma once
 
+#include "geo_aliases.h"
 #include "includes/element.h"
 #include "includes/ublas_interface.h"
 #include "integration_coefficients_calculator.h"
@@ -93,8 +94,8 @@ private:
                                                               const ProcessInfo& rProcessInfo);
     void ApplyRotationToBMatrix(Matrix& rBMatrix, const Matrix& rRotationMatrix) const;
     void MakeIntegrationSchemeAndAssignFunction();
-    std::unique_ptr<Geometry<Node>> MakeWaterPressureGeometry(const GeometryType& rDisplacementGeometry,
-                                                              IsDiffOrderElement IsDiffOrder);
+    Geo::OptionalGeometryUniquePtr MakeOptionalWaterPressureGeometry(const GeometryType& rDisplacementGeometry,
+                                                                     IsDiffOrderElement IsDiffOrder);
     void InterpolateNodalStressesToInitialTractions(const std::vector<std::optional<Vector>>& rInterfaceNodalCauchyStresses) const;
     Vector InterpolateNodalStressToIntegrationPoints(const Geo::IntegrationPointType& rIntegrationPoint,
                                                      const std::vector<Vector>& rNodalStresses) const;
@@ -108,7 +109,7 @@ private:
     std::vector<ConstitutiveLaw::Pointer> mConstitutiveLaws;
     IntegrationCoefficientsCalculator     mIntegrationCoefficientsCalculator;
     IsDiffOrderElement                    mIsDiffOrder = IsDiffOrderElement::No;
-    std::unique_ptr<Geometry<Node>>       mpPressureGeometry;
+    Geo::OptionalGeometryUniquePtr        mpOptionalPressureGeometry;
 
     friend class Serializer;
 };
