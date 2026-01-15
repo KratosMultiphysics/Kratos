@@ -12,7 +12,7 @@
 
 #include "utilities/variable_utils.h"
 
-#include "dgeosettlement.h"
+#include "dgeosettlement.hpp"
 #include "geo_mechanics_application.h"
 #include "input_output/logger.h"
 #include "linear_solvers_application.h"
