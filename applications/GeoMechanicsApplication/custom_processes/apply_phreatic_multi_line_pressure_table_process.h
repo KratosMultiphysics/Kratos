@@ -45,17 +45,4 @@ private:
     double                          mTimeUnitConverter;
 }; // Class ApplyPhreaticMultiLinePressureTableProcess
 
-/// input stream function
-inline std::istream& operator>>(std::istream& rIStream, ApplyPhreaticMultiLinePressureTableProcess& rThis);
-
-/// output stream function
-inline std::ostream& operator<<(std::ostream& rOStream, const ApplyPhreaticMultiLinePressureTableProcess& rThis)
-{
-    rThis.PrintInfo(rOStream);
-    rOStream << std::endl;
-    rThis.PrintData(rOStream);
-
-    return rOStream;
-}
-
 } // namespace Kratos.
