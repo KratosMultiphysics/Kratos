@@ -13,13 +13,13 @@
 #include "interface_element.h"
 
 #include "custom_utilities/constitutive_law_utilities.h"
-#include "custom_utilities/dof_utilities.h"
+#include "custom_utilities/dof_utilities.hpp"
 #include "custom_utilities/element_utilities.hpp"
-#include "custom_utilities/equation_of_motion_utilities.h"
+#include "custom_utilities/equation_of_motion_utilities.hpp"
 #include "custom_utilities/extrapolation_utilities.h"
-#include "custom_utilities/generic_utilities.h"
+#include "custom_utilities/generic_utilities.hpp"
 #include "custom_utilities/geometry_utilities.h"
-#include "custom_utilities/math_utilities.h"
+#include "custom_utilities/math_utilities.hpp"
 #include "geo_aliases.h"
 #include "interface_stress_state.h"
 #include "lobatto_integration_scheme.h"
@@ -175,6 +175,25 @@ void InterfaceElement::CalculateOnIntegrationPoints(const Variable<ConstitutiveL
         << "Cannot calculate on integration points: got unexpected variable " << rVariable.Name() << "\n";
 
     rOutput = mConstitutiveLaws;
+}
+
+void InterfaceElement::Calculate(const Variable<Vector>& rVariable, Vector& rOutput, const ProcessInfo& rProcessInfo)
+{
+    KRATOS_ERROR_IF_NOT(rVariable == INTERNAL_FORCES_VECTOR || rVariable == EXTERNAL_FORCES_VECTOR)
+        << "Variable " << rVariable.Name() << " is unknown for element with Id " << this->GetId() << ".";
+
+    // Currently, the right-hand side only includes the internal force vector. In the future, it
+    // will also include water pressure contributions and coupling terms.
+    const auto local_b_matrices = CalculateLocalBMatricesAtIntegrationPoints();
+    const auto relative_displacements = CalculateRelativeDisplacementsAtIntegrationPoints(local_b_matrices);
+    const auto tractions = CalculateTractionsAtIntegrationPoints(relative_displacements, rProcessInfo);
+    const auto integration_coefficients = CalculateIntegrationCoefficients();
+    if (rVariable == INTERNAL_FORCES_VECTOR) {
+        rOutput = GeoEquationOfMotionUtilities::CalculateInternalForceVector(
+            local_b_matrices, tractions, integration_coefficients);
+    } else if (rVariable == EXTERNAL_FORCES_VECTOR) {
+        rOutput = Vector{ZeroVector{local_b_matrices.front().size2()}};
+    }
 }
 
 void InterfaceElement::GetDofList(DofsVectorType& rElementalDofList, const ProcessInfo&) const

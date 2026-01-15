@@ -10,7 +10,7 @@
 //  Main authors:    Richard Faasse
 //
 
-#include "element_setup_utilities.h"
+#include "element_setup_utilities.hpp"
 #include "custom_conditions/Pw_point_flux_condition.h"
 #include "custom_conditions/U_Pw_normal_face_load_condition.h"
 #include "custom_conditions/line_load_2D_diff_order_condition.h"

@@ -14,6 +14,7 @@
 
 // Application includes
 #include "geo_mechanics_application.h"
+#include "custom_retention/saturated_below_phreatic_level_law.h"
 
 namespace Kratos
 {

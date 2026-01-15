@@ -86,13 +86,13 @@ public:
      * @brief Dimension of the law:
      * @return The dimension were the law is working
      */
-    SizeType WorkingSpaceDimension() override { return N_DIM_2D; }
+    SizeType WorkingSpaceDimension() override;
 
     /**
      * @brief Voigt tensor size:
      * @return The size of the strain vector in Voigt notation
      */
-    SizeType GetStrainSize() const override { return VOIGT_SIZE_2D_PLANE_STRESS; }
+    SizeType GetStrainSize() const override;
 
     ///@}
     ///@name Access
@@ -168,15 +168,10 @@ private:
     ///@{
     friend class Serializer;
 
-    void save(Serializer& rSerializer) const override
-    {
-        KRATOS_SERIALIZE_SAVE_BASE_CLASS(rSerializer, BaseType)
-    }
+    void save(Serializer& rSerializer) const override;
 
-    void load(Serializer& rSerializer) override
-    {
-        KRATOS_SERIALIZE_LOAD_BASE_CLASS(rSerializer, BaseType)
-    }
+    void load(Serializer& rSerializer) override;
+
 }; // Class LinearElastic2DBeamLaw
 
 } // namespace Kratos

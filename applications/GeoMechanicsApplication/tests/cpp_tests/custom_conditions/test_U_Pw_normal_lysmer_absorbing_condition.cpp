@@ -180,16 +180,16 @@ static Element::GeometryType::Pointer CreateMockGeometry3D20N(Kratos::PointerVec
 /// <summary>
 /// Sets properties of the condition and the neighbour element. And initializes the condition.
 /// </summary>
-static void SetPropertiesAndInitialize(ModelPart::ConditionType::Pointer pCondition,
-                                       Element::GeometryType::Pointer    pNeighbourGeometry,
-                                       ModelPart&                        rModelPart)
+static void SetPropertiesAndInitialize(const ModelPart::ConditionType::Pointer& rpCondition,
+                                       const Element::GeometryType::Pointer&    rpNeighbourGeometry,
+                                       ModelPart&                               rModelPart)
 {
     // set properties of the condition
     Vector absorbing_factors = ZeroVector(2);
     absorbing_factors[0]     = 1.0;
     absorbing_factors[1]     = 1.0;
-    pCondition->SetValue(ABSORBING_FACTORS, absorbing_factors);
-    pCondition->SetValue(VIRTUAL_THICKNESS, 100.0);
+    rpCondition->SetValue(ABSORBING_FACTORS, absorbing_factors);
+    rpCondition->SetValue(VIRTUAL_THICKNESS, 100.0);
     // add neighbour element to condition
 
     auto p_neighbour_prop = rModelPart.CreateNewProperties(1);
@@ -198,12 +198,12 @@ static void SetPropertiesAndInitialize(ModelPart::ConditionType::Pointer pCondit
     p_neighbour_prop->SetValue(DENSITY_SOLID, 2000);
 
     const auto p_neighbour_element =
-        Kratos::make_intrusive<MockElement>(1, pNeighbourGeometry, p_neighbour_prop);
+        Kratos::make_intrusive<MockElement>(1, rpNeighbourGeometry, p_neighbour_prop);
     rModelPart.AddElement(p_neighbour_element);
 
     GlobalPointersVector<Element> vector_of_neighbours;
     vector_of_neighbours.push_back(Kratos::GlobalPointer<Kratos::Element>(p_neighbour_element.get()));
-    pCondition->SetValue(NEIGHBOUR_ELEMENTS, vector_of_neighbours);
+    rpCondition->SetValue(NEIGHBOUR_ELEMENTS, vector_of_neighbours);
 
     p_neighbour_element->SetValue(POROSITY, 0.0);
     p_neighbour_element->SetValue(DENSITY_WATER, 1000);
@@ -211,7 +211,7 @@ static void SetPropertiesAndInitialize(ModelPart::ConditionType::Pointer pCondit
 
     // Initialize the element
     const auto& r_process_info = rModelPart.GetProcessInfo();
-    pCondition->Initialize(r_process_info);
+    rpCondition->Initialize(r_process_info);
 }
 
 /// <summary>

@@ -23,7 +23,7 @@ jobs:
     outputs:
       files: ${{ steps.get_files.outputs.changed_files }}
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
 
       - id: get_files
         run: |
@@ -53,7 +53,7 @@ jobs:
       options: --user 1001
 
     steps:
-    - uses: actions/checkout@v4
+    - uses: actions/checkout@v6
 
     # - name: Installing dependencies
     # => must be added to the docker container to avoid reinstalling it in every CI run
@@ -254,7 +254,7 @@ jobs:
       KRATOS_CI_APPLICATIONS: ".github/workflows/ci_apps_windows.json"
 
     steps:
-    - uses: actions/checkout@v4
+    - uses: actions/checkout@v6
     - uses: actions/setup-python@v6
       with:
         python-version: '3.8'
@@ -315,7 +315,7 @@ jobs:
       options: --user 1001
 
     steps:
-    - uses: actions/checkout@v3
+    - uses: actions/checkout@v6
 
     # - name: Installing dependencies
     # => must be added to the docker container to avoid reinstalling it in every CI run
@@ -360,7 +360,7 @@ jobs:
       options: --user 1001
 
     steps:
-    - uses: actions/checkout@v4
+    - uses: actions/checkout@v6
 
     - name: CI configuration
       shell: bash
@@ -472,7 +472,7 @@ jobs:
       KRATOS_CI_APPLICATIONS: "ONLY_CORE"
 
     steps:
-    - uses: actions/checkout@v4
+    - uses: actions/checkout@v6
     - uses: actions/setup-python@v6
       with:
         python-version: '3.8'
@@ -562,7 +562,7 @@ jobs:
       options: --user 1001
 
     steps:
-    - uses: actions/checkout@v4
+    - uses: actions/checkout@v6
 
     # - name: Installing dependencies
     # => must be added to the docker container to avoid reinstalling it in every CI run
