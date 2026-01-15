@@ -15,10 +15,11 @@
 #include "custom_constitutive/compression_cap_yield_surface.h"
 #include "custom_utilities/check_utilities.h"
 #include "custom_utilities/constitutive_law_utilities.h"
+#include "custom_utilities/function_object_utilities.h"
+#include "custom_utilities/string_utilities.h"
 #include "custom_utilities/ublas_utilities.h"
 #include "geo_mechanics_application_variables.h"
 #include "includes/serializer.h"
-#include "utilities/string_utilities.h"
 
 #include <cmath>
 
@@ -54,33 +55,26 @@ double GetCapLocation(const Properties& rProperties)
                  << std::endl;
 }
 
-CompressionCapYieldSurface::KappaDependentFunction MakeConstantCapFunction(double Value)
-{
-    return [Value](double /* unused kappa */) { return Value; };
-}
-
 std::string GetCapHardeningTypeFrom(const Properties& rMaterialProperties)
 {
-    return StringUtilities::ConvertCamelCaseToSnakeCase(rMaterialProperties[GEO_CAP_HARDENING_TYPE]);
+    return GeoStringUtilities::ToLower(rMaterialProperties[GEO_CAP_HARDENING_TYPE]);
 }
 
-CompressionCapYieldSurface::KappaDependentFunction MakeCapSizeCalculator(const Properties& rMaterialProperties)
+Geo::KappaDependentFunction MakeCapSizeCalculator(const Properties& rMaterialProperties)
 {
-    const auto hardening_type =
-        StringUtilities::ConvertCamelCaseToSnakeCase(rMaterialProperties[GEO_CAP_HARDENING_TYPE]);
+    const auto hardening_type = GeoStringUtilities::ToLower(rMaterialProperties[GEO_CAP_HARDENING_TYPE]);
     if (hardening_type == "none") {
-        return MakeConstantCapFunction(GetCapSize(rMaterialProperties));
+        return FunctionObjectUtilities::MakeConstantFunction(GetCapSize(rMaterialProperties));
     }
     KRATOS_ERROR << "Cannot create a kappa-dependent function for the cap size of material "
                  << rMaterialProperties.Id() << ": unknown hardening type '" << hardening_type << "'\n";
 }
 
-CompressionCapYieldSurface::KappaDependentFunction MakeCapLocationCalculator(const Properties& rMaterialProperties)
+Geo::KappaDependentFunction MakeCapLocationCalculator(const Properties& rMaterialProperties)
 {
-    const auto hardening_type =
-        StringUtilities::ConvertCamelCaseToSnakeCase(rMaterialProperties[GEO_CAP_HARDENING_TYPE]);
+    const auto hardening_type = GeoStringUtilities::ToLower(rMaterialProperties[GEO_CAP_HARDENING_TYPE]);
     if (hardening_type == "none") {
-        return MakeConstantCapFunction(GetCapLocation(rMaterialProperties));
+        return FunctionObjectUtilities::MakeConstantFunction(GetCapLocation(rMaterialProperties));
     }
     KRATOS_ERROR << "Cannot create a kappa-dependent function for the cap location of material "
                  << rMaterialProperties.Id() << ": unknown hardening type '" << hardening_type << "'\n";

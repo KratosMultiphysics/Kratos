@@ -16,9 +16,8 @@
 #pragma once
 
 #include "custom_constitutive/yield_surface.h"
+#include "geo_aliases.h"
 #include "includes/properties.h"
-
-#include <functional>
 
 namespace Kratos
 {
@@ -29,8 +28,6 @@ class KRATOS_API(GEO_MECHANICS_APPLICATION) CompressionCapYieldSurface : public 
 {
 public:
     KRATOS_CLASS_POINTER_DEFINITION(CompressionCapYieldSurface);
-
-    using KappaDependentFunction = std::function<double(double)>;
 
     CompressionCapYieldSurface();
     explicit CompressionCapYieldSurface(const Properties& rMaterialProperties);
@@ -51,10 +48,10 @@ private:
     void save(Serializer& rSerializer) const override;
     void load(Serializer& rSerializer) override;
 
-    double                 mKappa = 0.0;
-    Properties             mMaterialProperties;
-    KappaDependentFunction mCapSizeCalculator;
-    KappaDependentFunction mCapLocationCalculator;
+    double                      mKappa = 0.0;
+    Properties                  mMaterialProperties;
+    Geo::KappaDependentFunction mCapSizeCalculator;
+    Geo::KappaDependentFunction mCapLocationCalculator;
 
 }; // Class CompressionCapYieldSurface
 
