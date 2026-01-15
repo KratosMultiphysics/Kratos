@@ -71,47 +71,8 @@ std::vector<Matrix> CalculateConstitutiveMatricesAtIntegrationPoints(const std::
     return result;
 }
 
-} // namespace
-
-namespace Kratos
-{
-
-UPwInterfaceElement::UPwInterfaceElement(IndexType NewId,
-                                         const Geometry<GeometricalObject::NodeType>::Pointer& rGeometry,
-                                         const Properties::Pointer&         rProperties,
-                                         std::unique_ptr<StressStatePolicy> pStressStatePolicy,
-                                         IsDiffOrderElement                 IsDiffOrder)
-    : Element(NewId, rGeometry, rProperties), mpStressStatePolicy(std::move(pStressStatePolicy))
-{
-    MakeIntegrationSchemeAndAssignFunction();
-    mpOptionalPressureGeometry = MakeOptionalWaterPressureGeometry(GetDisplacementGeometry(), IsDiffOrder);
-}
-
-UPwInterfaceElement::UPwInterfaceElement(IndexType                          NewId,
-                                         const GeometryType::Pointer&       rGeometry,
-                                         std::unique_ptr<StressStatePolicy> pStressStatePolicy,
-                                         IsDiffOrderElement                 IsDiffOrder)
-    : Element(NewId, rGeometry), mpStressStatePolicy(std::move(pStressStatePolicy))
-{
-    MakeIntegrationSchemeAndAssignFunction();
-    mpOptionalPressureGeometry = MakeOptionalWaterPressureGeometry(GetDisplacementGeometry(), IsDiffOrder);
-}
-
-void UPwInterfaceElement::MakeIntegrationSchemeAndAssignFunction()
-{
-    if (GetDisplacementGeometry().GetGeometryFamily() == GeometryData::KratosGeometryFamily::Kratos_Linear) {
-        mpIntegrationScheme =
-            std::make_unique<LobattoIntegrationScheme>(GetDisplacementMidGeometry().PointsNumber());
-        mfpCalculateRotationMatrix = GeometryUtilities::Calculate2DRotationMatrixForLineGeometry;
-    } else {
-        mpIntegrationScheme =
-            std::make_unique<LumpedIntegrationScheme>(GetDisplacementMidGeometry().PointsNumber());
-        mfpCalculateRotationMatrix = GeometryUtilities::Calculate3DRotationMatrixForPlaneGeometry;
-    }
-}
-
-Geo::OptionalGeometryUniquePtr UPwInterfaceElement::MakeOptionalWaterPressureGeometry(
-    const GeometryType& rDisplacementGeometry, IsDiffOrderElement IsDiffOrder)
+Geo::OptionalGeometryUniquePtr MakeOptionalWaterPressureGeometry(const Geometry<Node>& rDisplacementGeometry,
+                                                                 IsDiffOrderElement IsDiffOrder)
 {
     if (IsDiffOrder == IsDiffOrderElement::Yes) {
         KRATOS_ERROR_IF(rDisplacementGeometry.GetGeometryOrderType() != GeometryData::Kratos_Quadratic_Order) << "Only quadratic order interface elements can create a linear order pressure geometry. \n";
@@ -154,6 +115,45 @@ Geo::OptionalGeometryUniquePtr UPwInterfaceElement::MakeOptionalWaterPressureGeo
     }
 
     return std::nullopt;
+}
+
+} // namespace
+
+namespace Kratos
+{
+
+UPwInterfaceElement::UPwInterfaceElement(IndexType NewId,
+                                         const Geometry<GeometricalObject::NodeType>::Pointer& rGeometry,
+                                         const Properties::Pointer&         rProperties,
+                                         std::unique_ptr<StressStatePolicy> pStressStatePolicy,
+                                         IsDiffOrderElement                 IsDiffOrder)
+    : Element(NewId, rGeometry, rProperties), mpStressStatePolicy(std::move(pStressStatePolicy))
+{
+    MakeIntegrationSchemeAndAssignFunction();
+    mpOptionalPressureGeometry = MakeOptionalWaterPressureGeometry(GetDisplacementGeometry(), IsDiffOrder);
+}
+
+UPwInterfaceElement::UPwInterfaceElement(IndexType                          NewId,
+                                         const GeometryType::Pointer&       rGeometry,
+                                         std::unique_ptr<StressStatePolicy> pStressStatePolicy,
+                                         IsDiffOrderElement                 IsDiffOrder)
+    : Element(NewId, rGeometry), mpStressStatePolicy(std::move(pStressStatePolicy))
+{
+    MakeIntegrationSchemeAndAssignFunction();
+    mpOptionalPressureGeometry = MakeOptionalWaterPressureGeometry(GetDisplacementGeometry(), IsDiffOrder);
+}
+
+void UPwInterfaceElement::MakeIntegrationSchemeAndAssignFunction()
+{
+    if (GetDisplacementGeometry().GetGeometryFamily() == GeometryData::KratosGeometryFamily::Kratos_Linear) {
+        mpIntegrationScheme =
+            std::make_unique<LobattoIntegrationScheme>(GetDisplacementMidGeometry().PointsNumber());
+        mfpCalculateRotationMatrix = GeometryUtilities::Calculate2DRotationMatrixForLineGeometry;
+    } else {
+        mpIntegrationScheme =
+            std::make_unique<LumpedIntegrationScheme>(GetDisplacementMidGeometry().PointsNumber());
+        mfpCalculateRotationMatrix = GeometryUtilities::Calculate3DRotationMatrixForPlaneGeometry;
+    }
 }
 
 Element::Pointer UPwInterfaceElement::Create(IndexType               NewId,
