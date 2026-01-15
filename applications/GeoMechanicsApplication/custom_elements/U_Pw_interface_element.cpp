@@ -74,34 +74,31 @@ std::vector<Matrix> CalculateConstitutiveMatricesAtIntegrationPoints(const std::
 Geo::OptionalGeometryUniquePtr MakeOptionalWaterPressureGeometry(const Geometry<Node>& rDisplacementGeometry,
                                                                  IsDiffOrderElement IsDiffOrder)
 {
-    if (IsDiffOrder == IsDiffOrderElement::Yes) {
-        KRATOS_DEBUG_ERROR_IF(rDisplacementGeometry.GetGeometryOrderType() != GeometryData::Kratos_Quadratic_Order) << "Only quadratic order interface elements can create a linear order pressure geometry. \n";
+    if (IsDiffOrder == IsDiffOrderElement::No) return std::nullopt;
 
-        switch (rDisplacementGeometry.GetGeometryFamily()) {
-            using enum GeometryData::KratosGeometryFamily;
-        case Kratos_Linear: {
-            const auto nodes = GeometryUtilities::GetNodesByIndex(rDisplacementGeometry, {0, 1, 3, 4});
-            return std::make_unique<InterfaceGeometry<Line2D2<Node>>>(nodes);
-        }
-        case Kratos_Triangle: {
-            const auto nodes =
-                GeometryUtilities::GetNodesByIndex(rDisplacementGeometry, {0, 1, 2, 6, 7, 8});
-            return std::make_unique<InterfaceGeometry<Triangle3D3<Node>>>(nodes);
-        }
-        case Kratos_Quadrilateral: {
-            const auto nodes =
-                GeometryUtilities::GetNodesByIndex(rDisplacementGeometry, {0, 1, 2, 3, 8, 9, 10, 11});
-            return std::make_unique<InterfaceGeometry<Quadrilateral3D4<Node>>>(nodes);
-        }
-        default:
-            break;
-        }
+    KRATOS_DEBUG_ERROR_IF(rDisplacementGeometry.GetGeometryOrderType() != GeometryData::Kratos_Quadratic_Order) << "Only quadratic order interface elements can create a linear order pressure geometry. \n";
 
-        KRATOS_DEBUG_ERROR << "The specified geometry family is not supported for creating a water "
-                              "pressure geometry.\n";
+    switch (rDisplacementGeometry.GetGeometryFamily()) {
+        using enum GeometryData::KratosGeometryFamily;
+    case Kratos_Linear: {
+        const auto nodes = GeometryUtilities::GetNodesByIndex(rDisplacementGeometry, {0, 1, 3, 4});
+        return std::make_unique<InterfaceGeometry<Line2D2<Node>>>(nodes);
+    }
+    case Kratos_Triangle: {
+        const auto nodes = GeometryUtilities::GetNodesByIndex(rDisplacementGeometry, {0, 1, 2, 6, 7, 8});
+        return std::make_unique<InterfaceGeometry<Triangle3D3<Node>>>(nodes);
+    }
+    case Kratos_Quadrilateral: {
+        const auto nodes =
+            GeometryUtilities::GetNodesByIndex(rDisplacementGeometry, {0, 1, 2, 3, 8, 9, 10, 11});
+        return std::make_unique<InterfaceGeometry<Quadrilateral3D4<Node>>>(nodes);
+    }
+    default:
+        break;
     }
 
-    return std::nullopt;
+    KRATOS_DEBUG_ERROR << "The specified geometry family is not supported for creating a water "
+                          "pressure geometry.\n";
 }
 
 } // namespace
