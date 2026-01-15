@@ -104,16 +104,4 @@ private:
 
 }; // Class ApplyConstantInterpolateLinePressureProcess
 
-/// input stream function
-inline std::istream& operator>>(std::istream& rIStream, ApplyConstantInterpolateLinePressureProcess& rThis);
-
-/// output stream function
-inline std::ostream& operator<<(std::ostream& rOStream, const ApplyConstantInterpolateLinePressureProcess& rThis)
-{
-    rThis.PrintInfo(rOStream);
-    rOStream << std::endl;
-    rThis.PrintData(rOStream);
-
-    return rOStream;
-}
 } // namespace Kratos
