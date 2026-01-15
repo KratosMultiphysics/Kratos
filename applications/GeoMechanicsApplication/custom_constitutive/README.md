@@ -134,8 +134,9 @@ To incorporate the Mohr-Coulomb model with tension cutoff in numerical simulatio
 5. If after mapping, the condidition $`\sigma_1 \ge \sigma_2 \ge \sigma_3`$ is not valid, average the principal stresses of stage 2 and the direction of the mapping and map the principal stresses again.
 
     5.1. $`\sigma_1 \le \sigma_2`$ set:
-    $$\sigma_1 = \sigma_2 = \frac{\sigma_1 + \sigma_2}{2}$$
     
+    $$\sigma_1 = \sigma_2 = \frac{\sigma_1 + \sigma_2}{2}$$
+
     $$\frac{\partial G}{\partial \sigma_1} = \frac{\partial G}{\partial \sigma_2} = \frac{1}{2} \left( \frac{\partial G}{\partial \sigma_1} + \frac{\partial G}{\partial \sigma_2} \right) $$
 
     5.2. $`\sigma_2 \le \sigma_3`$ set:
