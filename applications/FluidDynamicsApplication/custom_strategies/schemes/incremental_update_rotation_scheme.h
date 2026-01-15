@@ -34,8 +34,6 @@ namespace Kratos
 ///@{
 
 ///@}
-
-
 ///@name  Enum's
 ///@{
 
@@ -45,17 +43,19 @@ namespace Kratos
 ///@{
 
 
-
 ///@}
 ///@name Kratos Classes
 ///@{
 
-/// Scheme for the solution of problems involving a slip condition.
-/** This Scheme is a reimplementation of ResidualBasedIncrementalUpdateStaticScheme that can be used to
-  * apply slip conditions along the edges of the model. The problem is solved using rotated coordinate axes on
-  * the nodes where this condition will be applied, with the first coordinate of the rotated system aligned with the
-  * normal to the boundary on each of these nodes.
-  */
+/**
+ * @brief IncrementalUpdateRotationScheme Scheme for the solution of CFD problems with slip conditions.
+ * This scheme is an extension of the ResidualBasedIncrementalUpdateStaticSchemeSlip that can be used to customize
+ * the application of slip conditions along the edges of the model. The base class enables the solution of the
+ * problem using rotated coordinate axes on the nodes where this condition will be applied, with the first coordinate
+ * of the rotated system aligned with the normal to the boundary on each of these nodes.
+ * @tparam TSparseSpace Sparse linear algebra space
+ * @tparam TDenseSpace  Dense linear algebra space
+ */
 template<class TSparseSpace, class TDenseSpace>
 class IncrementalUpdateRotationScheme : public ResidualBasedIncrementalUpdateStaticSchemeSlip<TSparseSpace,TDenseSpace>
 {
@@ -69,14 +69,6 @@ public:
     using BaseSchemeType = Scheme<TSparseSpace,TDenseSpace>;
 
     using BaseType = ResidualBasedIncrementalUpdateStaticSchemeSlip<TSparseSpace,TDenseSpace>;
-
-    using TDataType = typename BaseType::TDataType;
-
-    using DofsArrayType = typename BaseType::DofsArrayType;
-
-    using TSystemMatrixType = typename BaseType::TSystemMatrixType;
-
-    using TSystemVectorType = typename BaseType::TSystemVectorType;
 
     using LocalSystemVectorType = typename BaseType::LocalSystemVectorType;
 
@@ -192,15 +184,13 @@ public:
 
     ///@}
 
-}; // class
+}; // class IncrementalUpdateRotationScheme
 
 ///@}
 ///@name Type Definitions
 ///@{
 
 ///@}
-
-///@} // group
 
 }  // namespace Kratos
 
