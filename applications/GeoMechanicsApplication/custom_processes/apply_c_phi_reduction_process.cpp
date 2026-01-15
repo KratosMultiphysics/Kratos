@@ -15,7 +15,7 @@
 // Project includes
 #include "custom_processes/apply_c_phi_reduction_process.h"
 #include "containers/model.h"
-#include "custom_utilities/check_utilities.h"
+#include "custom_utilities/check_utilities.hpp"
 #include "custom_utilities/constitutive_law_utilities.h"
 #include "custom_utilities/process_utilities.h"
 #include "geo_mechanics_application_variables.h"

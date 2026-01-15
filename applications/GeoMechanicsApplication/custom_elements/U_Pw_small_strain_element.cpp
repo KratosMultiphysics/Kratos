@@ -13,11 +13,11 @@
 
 // Application includes
 #include "custom_elements/U_Pw_small_strain_element.hpp"
-#include "custom_utilities/check_utilities.h"
+#include "custom_utilities/check_utilities.hpp"
 #include "custom_utilities/constitutive_law_utilities.h"
-#include "custom_utilities/equation_of_motion_utilities.h"
+#include "custom_utilities/equation_of_motion_utilities.hpp"
 #include "custom_utilities/hydraulic_discharge.h"
-#include "custom_utilities/math_utilities.h"
+#include "custom_utilities/math_utilities.hpp"
 #include "custom_utilities/node_utilities.h"
 #include "custom_utilities/output_utilities.hpp"
 #include "custom_utilities/transport_equation_utilities.hpp"
