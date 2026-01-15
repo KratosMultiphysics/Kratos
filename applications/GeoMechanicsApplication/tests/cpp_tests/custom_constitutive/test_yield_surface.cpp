@@ -13,7 +13,7 @@
 #include "custom_constitutive/compression_cap_yield_surface.h"
 #include "custom_constitutive/coulomb_yield_surface.h"
 #include "custom_constitutive/tension_cutoff.h"
-#include "custom_utilities/registration_utilities.h"
+#include "custom_utilities/registration_utilities.hpp"
 #include "custom_utilities/stress_strain_utilities.h"
 #include "custom_utilities/ublas_utilities.h"
 #include "geo_mechanics_application_variables.h"
