@@ -2,6 +2,7 @@ import os
 import KratosMultiphysics as KMP
 import KratosMultiphysics.HDF5Application as HDF5App
 import KratosMultiphysics.KratosUnittest as KratosUnittest
+
 import random
 
 class ControlledExecutionScope:
@@ -154,14 +155,14 @@ class TestCase(KratosUnittest.TestCase):
             new_sub_prop.SetValue(KMP.ACCELERATION, KMP.Vector([random.random(), random.random(), random.random()]))
             prop.AddSubProperties(new_sub_prop)
 
-    def _get_file(self):
+    def _get_file(self, communicator: KMP.DataCommunicator):
         params = KMP.Parameters("""
         {
             "file_name" : "test_hdf5_model_part_io.h5",
             "file_access_mode" : "exclusive",
             "file_driver" : "core"
         }""")
-        return HDF5App.HDF5File(params)
+        return HDF5App.HDF5File(communicator, params)
 
     def _get_model_part_io(self, hdf5_file):
         return HDF5App.HDF5ModelPartIO(hdf5_file, "/ModelData")
@@ -227,7 +228,7 @@ class TestCase(KratosUnittest.TestCase):
             model = KMP.Model()
             write_model_part = model.CreateModelPart("write", 2)
             self._initialize_model_part(write_model_part)
-            hdf5_file = self._get_file()
+            hdf5_file = self._get_file(write_model_part.GetCommunicator().GetDataCommunicator())
             hdf5_model_part_io = self._get_model_part_io(hdf5_file)
             hdf5_model_part_io.WriteModelPart(write_model_part)
             read_model_part = model.CreateModelPart("read", 2)
@@ -346,7 +347,7 @@ class TestCase(KratosUnittest.TestCase):
             sub_sub_model_part = sub_model_part.CreateSubModelPart("section_2")
             create_entities(sub_sub_model_part, 3)
 
-            hdf5_file = self._get_file()
+            hdf5_file = self._get_file(write_model_part.GetCommunicator().GetDataCommunicator())
             hdf5_model_part_io = self._get_model_part_io(hdf5_file)
             hdf5_model_part_io.WriteModelPart(write_model_part)
 
@@ -387,7 +388,7 @@ class TestCase(KratosUnittest.TestCase):
             model = KMP.Model()
             write_model_part = model.CreateModelPart("write", 2)
             self._initialize_model_part(write_model_part)
-            hdf5_file = self._get_file()
+            hdf5_file = self._get_file(write_model_part.GetCommunicator().GetDataCommunicator())
             hdf5_model_part_io = self._get_model_part_io(hdf5_file)
             hdf5_nodal_solution_step_data_io = self._get_nodal_solution_step_data_io(hdf5_file)
             hdf5_model_part_io.WriteModelPart(write_model_part)
@@ -410,7 +411,7 @@ class TestCase(KratosUnittest.TestCase):
             model = KMP.Model()
             write_model_part = model.CreateModelPart("write", 2)
             self._initialize_model_part(write_model_part)
-            hdf5_file = self._get_file()
+            hdf5_file = self._get_file(write_model_part.GetCommunicator().GetDataCommunicator())
             hdf5_model_part_io = self._get_model_part_io(hdf5_file)
             hdf5_element_data_value_io = self._get_element_data_value_io(hdf5_file)
             hdf5_model_part_io.WriteModelPart(write_model_part)
@@ -435,7 +436,7 @@ class TestCase(KratosUnittest.TestCase):
             model = KMP.Model()
             write_model_part = model.CreateModelPart("write", 2)
             self._initialize_model_part(write_model_part)
-            hdf5_file = self._get_file()
+            hdf5_file = self._get_file(write_model_part.GetCommunicator().GetDataCommunicator())
             hdf5_model_part_io = self._get_model_part_io(hdf5_file)
             hdf5_element_flag_value_io = self._get_element_flag_value_io(hdf5_file)
             hdf5_model_part_io.WriteModelPart(write_model_part)
@@ -460,7 +461,7 @@ class TestCase(KratosUnittest.TestCase):
             model = KMP.Model()
             write_model_part = model.CreateModelPart("write", 2)
             self._initialize_model_part(write_model_part)
-            hdf5_file = self._get_file()
+            hdf5_file = self._get_file(write_model_part.GetCommunicator().GetDataCommunicator())
             hdf5_model_part_io = self._get_model_part_io(hdf5_file)
             hdf5_condition_data_value_io = self._get_condition_data_value_io(hdf5_file)
             hdf5_model_part_io.WriteModelPart(write_model_part)
@@ -481,7 +482,7 @@ class TestCase(KratosUnittest.TestCase):
             model = KMP.Model()
             write_model_part = model.CreateModelPart("write", 2)
             self._initialize_model_part(write_model_part)
-            hdf5_file = self._get_file()
+            hdf5_file = self._get_file(write_model_part.GetCommunicator().GetDataCommunicator())
             hdf5_model_part_io = self._get_model_part_io(hdf5_file)
             hdf5_condition_flag_value_io = self._get_condition_flag_value_io(hdf5_file)
             hdf5_model_part_io.WriteModelPart(write_model_part)
@@ -502,7 +503,7 @@ class TestCase(KratosUnittest.TestCase):
             model = KMP.Model()
             write_model_part = model.CreateModelPart("write", 2)
             self._initialize_model_part(write_model_part)
-            hdf5_file = self._get_file()
+            hdf5_file = self._get_file(write_model_part.GetCommunicator().GetDataCommunicator())
             hdf5_model_part_io = self._get_model_part_io(hdf5_file)
             hdf5_nodal_data_value_io = self._get_nodal_data_value_io(hdf5_file)
             hdf5_model_part_io.WriteModelPart(write_model_part)
@@ -525,7 +526,7 @@ class TestCase(KratosUnittest.TestCase):
             model = KMP.Model()
             write_model_part = model.CreateModelPart("write", 2)
             self._initialize_model_part(write_model_part)
-            hdf5_file = self._get_file()
+            hdf5_file = self._get_file(write_model_part.GetCommunicator().GetDataCommunicator())
             hdf5_model_part_io = self._get_model_part_io(hdf5_file)
             hdf5_nodal_flag_value_io = self._get_nodal_flag_value_io(hdf5_file)
             hdf5_model_part_io.WriteModelPart(write_model_part)
