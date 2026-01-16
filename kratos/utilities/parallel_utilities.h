@@ -147,7 +147,7 @@ class BlockPartition
 public:
     /** @param it_begin - iterator pointing at the beginning of the container
      *  @param it_end - iterator pointing to the end of the container
-     *  @param Nchunks - number of threads to be used in the loop (must be lower than TMaxThreads)
+     *  @param Nchunks - number of threads to be used in the loop
      */
     BlockPartition(TIterator it_begin,
                    TIterator it_end,
@@ -164,8 +164,7 @@ public:
         if (size_container == 0) {
             mNchunks = Nchunks;
         } else {
-            // in case the container is smaller than the number of chunks
-            mNchunks = std::min(static_cast<int>(size_container), Nchunks);
+            mNchunks = std::min(static_cast<int>(size_container), std::min(TMaxThreads, Nchunks));
         }
         const std::ptrdiff_t block_partition_size = size_container / mNchunks;
         mBlockPartition[0] = it_begin;
@@ -457,7 +456,7 @@ public:
 
 /** @brief constructor using the size of the partition to be used
  *  @param Size - the size of the partition
- *  @param Nchunks - number of threads to be used in the loop (must be lower than TMaxThreads)
+ *  @param Nchunks - number of threads to be used in the loop
  */
     IndexPartition(TIndexType Size,
                    int Nchunks = ParallelUtilities::GetNumThreads())
@@ -467,8 +466,7 @@ public:
         if (Size == 0) {
             mNchunks = Nchunks;
         } else {
-            // in case the container is smaller than the number of chunks
-            mNchunks = std::min(static_cast<int>(Size), Nchunks);
+            mNchunks = std::min(static_cast<int>(Size), std::min(TMaxThreads, Nchunks));
         }
 
         const int block_partition_size = Size / mNchunks;
