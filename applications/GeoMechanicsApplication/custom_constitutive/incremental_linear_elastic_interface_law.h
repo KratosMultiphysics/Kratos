@@ -13,6 +13,7 @@
 
 #pragma once
 
+#include "constitutive_law_dimension.h"
 #include "includes/constitutive_law.h"
 #include "includes/kratos_export_api.h"
 
@@ -23,6 +24,17 @@ class KRATOS_API(GEO_MECHANICS_APPLICATION) GeoIncrementalLinearElasticInterface
 {
 public:
     using BaseType = ConstitutiveLaw;
+
+    explicit GeoIncrementalLinearElasticInterfaceLaw(std::unique_ptr<ConstitutiveLawDimension> pConstitutiveLawDimension)
+        : mpConstitutiveLawDimension(std::move(pConstitutiveLawDimension))
+    {
+    }
+
+    ~GeoIncrementalLinearElasticInterfaceLaw() override = default;
+    GeoIncrementalLinearElasticInterfaceLaw(const GeoIncrementalLinearElasticInterfaceLaw&) = delete;
+    GeoIncrementalLinearElasticInterfaceLaw& operator=(const GeoIncrementalLinearElasticInterfaceLaw&) = delete;
+    GeoIncrementalLinearElasticInterfaceLaw(GeoIncrementalLinearElasticInterfaceLaw&&) noexcept = default;
+    GeoIncrementalLinearElasticInterfaceLaw& operator=(GeoIncrementalLinearElasticInterfaceLaw&&) noexcept = default;
 
     [[nodiscard]] Pointer  Clone() const override;
     SizeType               WorkingSpaceDimension() override;
@@ -42,14 +54,15 @@ public:
                const ProcessInfo&  rCurrentProcessInfo) const override;
 
 private:
+    GeoIncrementalLinearElasticInterfaceLaw() = default;
+
     friend class Serializer;
     void save(Serializer& rSerializer) const override;
     void load(Serializer& rSerializer) override;
 
-    [[nodiscard]] Matrix MakeConstitutiveMatrix(double NormalStiffness, double ShearStiffness) const;
-
-    Vector mPreviousRelativeDisplacement;
-    Vector mPreviousTraction;
+    Vector                                    mPreviousRelativeDisplacement;
+    Vector                                    mPreviousTraction;
+    std::unique_ptr<ConstitutiveLawDimension> mpConstitutiveLawDimension;
 };
 
 } // namespace Kratos

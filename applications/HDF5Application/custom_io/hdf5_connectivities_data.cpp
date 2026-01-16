@@ -1,9 +1,29 @@
-#include "custom_io/hdf5_connectivities_data.h"
+//    |  /           |
+//    ' /   __| _` | __|  _ \   __|
+//    . \  |   (   | |   (   |\__ `
+//   _|\_\_|  \__,_|\__|\___/ ____/
+//                   Multi-Physics
+//
+//  License:        BSD License
+//                  license: HDF5Application/license.txt
+//
+//  Main author:    Michael Andre, https://github.com/msandre
+//                  Suneth Warnakulasuriya
+//
 
+// System includes
+
+// Project includes
 #include "includes/kratos_components.h"
-#include "utilities/openmp_utils.h"
 #include "utilities/compare_elements_and_conditions_utility.h"
+#include "utilities/parallel_utilities.h"
+
+// Application includes
 #include "custom_io/hdf5_file.h"
+#include "custom_utilities/hdf5_data_set_partition_utility.h"
+
+// Include base h
+#include "custom_io/hdf5_connectivities_data.h"
 
 namespace Kratos
 {
@@ -11,253 +31,185 @@ namespace HDF5
 {
 namespace Internals
 {
-void ConnectivitiesData::ReadData(File& rFile, const std::string& rPath, unsigned StartIndex, unsigned BlockSize)
+
+template<class TContainerType>
+ConnectivitiesData<TContainerType>::ConnectivitiesData(
+    const std::string& rPrefix,
+    File::Pointer pFile)
+    : mpFile(pFile),
+      mPrefix(rPrefix)
 {
-    KRATOS_TRY;
-    Clear();
-    rFile.ReadAttribute(rPath, "Name", mName);
-    rFile.ReadDataSet(rPath + "/Ids", mIds, StartIndex, BlockSize);
-    rFile.ReadDataSet(rPath + "/PropertiesIds", mPropertiesIds, StartIndex, BlockSize);
-    rFile.ReadDataSet(rPath + "/Connectivities", mConnectivities, StartIndex, BlockSize);
-    if (KratosComponents<ElementType>::Has(mName))
-    {
-        const ElementType& r_elem = KratosComponents<ElementType>::Get(mName);
-        KRATOS_ERROR_IF(r_elem.GetGeometry().size() != mConnectivities.size2())
-            << "Element \"" << mName << "\""
-            << " has a different connectivities size than the file data." << std::endl;
-    }
-    else if (KratosComponents<ConditionType>::Has(mName))
-    {
-        const ConditionType& r_cond = KratosComponents<ConditionType>::Get(mName);
-        KRATOS_ERROR_IF(r_cond.GetGeometry().size() != mConnectivities.size2())
-            << "Condition \"" << mName << "\""
-            << " has a different connectivities size than the file data." << std::endl;
-    }
-    else
-    {
-        KRATOS_ERROR << "Invalid name \"" << mName << "\"!" << std::endl;
-    }
-    KRATOS_CATCH("");
 }
 
-void ConnectivitiesData::WriteData(File& rFile, const std::string& rPath, WriteInfo& rInfo)
+
+template<class TContainerType>
+void ConnectivitiesData<TContainerType>::Read(
+    const std::string& rEntityName,
+    NodesContainerType& rNodes,
+    PropertiesContainerType& rProperties,
+    TContainerType& rEntities)
 {
     KRATOS_TRY;
-    KRATOS_ERROR_IF(mName == "") << "Cannot write an empty data." << std::endl;
-    rFile.WriteDataSet(rPath + "/Ids", mIds, rInfo);
-    rFile.WriteDataSet(rPath + "/PropertiesIds", mPropertiesIds, rInfo);
-    rFile.WriteDataSet(rPath + "/Connectivities", mConnectivities, rInfo);
-    int ws_dim, num_nodes;
-    if (KratosComponents<ElementType>::Has(mName))
-    {
-        const auto& r_geom = KratosComponents<ElementType>::Get(mName).GetGeometry();
-        ws_dim = r_geom.WorkingSpaceDimension();
-        num_nodes = r_geom.size();
-    }
-    else
-    {
-        const auto& r_geom = KratosComponents<ConditionType>::Get(mName).GetGeometry();
-        ws_dim = r_geom.WorkingSpaceDimension();
-        num_nodes = r_geom.size();
-    }
-    rFile.WriteAttribute(rPath, "Name", mName);
-    rFile.WriteAttribute(rPath, "WorkingSpaceDimension", ws_dim);
-    rFile.WriteAttribute(rPath, "NumberOfNodes", num_nodes);
-    KRATOS_CATCH("");
-}
 
-void ConnectivitiesData::CreateEntities(NodesContainerType& rNodes,
-                                        PropertiesContainerType& rProperties,
-                                        ElementsContainerType& rElements) const
-{
-    KRATOS_TRY;
-    if (mName == "")
-        return; // Do not append any new elements.
-    const ElementType& r_elem = KratosComponents<ElementType>::Get(mName);
-    const unsigned num_new_elems = mIds.size();
-    const unsigned geometry_size = r_elem.GetGeometry().size();
-    KRATOS_ERROR_IF(geometry_size != mConnectivities.size2())
-        << "Non-matching geometry and connectivity sizes." << std::endl;
-    rElements.reserve(rElements.size() + num_new_elems);
-    ElementType::NodesArrayType nodes(geometry_size);
+    KRATOS_ERROR_IF_NOT(KratosComponents<EntityType>::Has(rEntityName))
+        << "Entity \"" << rEntityName << "\" not found in registered entities.\n";
 
-    for (unsigned i = 0; i < num_new_elems; ++i)
-    {
-        for (unsigned j = 0; j < geometry_size; ++j)
-        {
-            const int node_id = mConnectivities(i, j);
+    const auto& entity_group_path = mPrefix + "/" + rEntityName;
+
+    KRATOS_ERROR_IF_NOT(mpFile->HasPath(entity_group_path))
+        << "Entity data for \"" << rEntityName << "\" not found in file [ expected path in file = "
+        << entity_group_path << " ].\n";
+
+    IndexType start_index, block_size;
+    std::tie(start_index, block_size) = StartIndexAndBlockSize(*mpFile, entity_group_path);
+
+    Vector<int> entity_ids, entity_property_ids;
+    Matrix<int> connectivities;
+
+    std::string file_entity_name;
+    mpFile->ReadAttribute(entity_group_path, "Name", file_entity_name);
+
+    KRATOS_ERROR_IF_NOT(file_entity_name == rEntityName)
+        << "Entity name mismatch [ expected entity name = "
+        << rEntityName << ", entity name in file = " << file_entity_name << " ].\n";
+
+    mpFile->ReadDataSet(entity_group_path + "/Ids", entity_ids, start_index, block_size);
+    mpFile->ReadDataSet(entity_group_path + "/PropertiesIds", entity_property_ids, start_index, block_size);
+    mpFile->ReadDataSet(entity_group_path + "/Connectivities", connectivities, start_index, block_size);
+
+    const auto& r_entity = KratosComponents<EntityType>::Get(rEntityName);
+    const unsigned geometry_size = r_entity.GetGeometry().size();
+
+    KRATOS_ERROR_IF(geometry_size != connectivities.size2())
+        << "Entity \"" << rEntityName << "\""
+        << " has a different connectivities size than the file data [ expected connectivity size = "
+        << geometry_size << ", connectivity size in file = " << connectivities.size2() << " ].\n";
+
+    const unsigned num_new_elems = entity_ids.size();
+
+    rEntities.reserve(rEntities.size() + num_new_elems);
+    typename EntityType::NodesArrayType nodes(geometry_size);
+
+    for (unsigned i = 0; i < num_new_elems; ++i) {
+        for (unsigned j = 0; j < geometry_size; ++j) {
+            const int node_id = connectivities(i, j);
             nodes(j) = rNodes(node_id);
         }
-        ElementType::Pointer p_elem =
-            r_elem.Create(mIds[i], nodes, rProperties(mPropertiesIds[i]));
-        // here we can safely use the insert with the rElements.end() as the hint
-        // because, when reading, we can assume that it was written in the
-        // sorted order within HDF5.
-        rElements.insert(rElements.end(), p_elem);
+        auto p_elem = r_entity.Create(entity_ids[i], nodes, rProperties(entity_property_ids[i]));
+        rEntities.push_back(p_elem);
     }
-    KRATOS_CATCH("");
-}
-
-void ConnectivitiesData::CreateEntities(NodesContainerType& rNodes,
-                                        PropertiesContainerType& rProperties,
-                                        ConditionsContainerType& rConditions) const
-{
-    KRATOS_TRY;
-    if (mName == "")
-        return; // Do not append any new conditions.
-    const ConditionType& r_cond = KratosComponents<ConditionType>::Get(mName);
-    const unsigned num_new_conds = mIds.size();
-    const unsigned geometry_size = r_cond.GetGeometry().size();
-    KRATOS_ERROR_IF(geometry_size != mConnectivities.size2())
-        << "Non-matching geometry and connectivity sizes." << std::endl;
-    rConditions.reserve(rConditions.size() + num_new_conds);
-    ConditionType::NodesArrayType nodes(geometry_size);
-
-    for (unsigned i = 0; i < num_new_conds; ++i)
-    {
-        for (unsigned j = 0; j < geometry_size; ++j)
-        {
-            const int node_id = mConnectivities(i, j);
-            nodes(j) = rNodes(node_id);
-        }
-        Condition::Pointer p_cond =
-            r_cond.Create(mIds[i], nodes, rProperties(mPropertiesIds[i]));
-        // here we can safely use the insert with the rConditions.end() as the hint
-        // because, when reading, we can assume that it was written in the
-        // sorted order within HDF5.
-        rConditions.insert(rConditions.end(), p_cond);
-    }
-    KRATOS_CATCH("");
-}
-
-void ConnectivitiesData::SetData(ElementsContainerType const& rElements)
-{
-    KRATOS_TRY;
-
-    KRATOS_ERROR_IF(rElements.empty())
-        << "Must pass non-empty container to this function." << std::endl;
-
-    std::string name;
-    CompareElementsAndConditionsUtility::GetRegisteredName(rElements.front(), name);
-    SetData(name, rElements);
 
     KRATOS_CATCH("");
 }
 
-void ConnectivitiesData::SetData(const std::string& rName, ElementsContainerType const& rElements)
+template<class TContainerType>
+void ConnectivitiesData<TContainerType>::Write(
+    const TContainerType& rEntities,
+    const bool WriteProperties)
 {
     KRATOS_TRY;
 
-    KRATOS_ERROR_IF_NOT(KratosComponents<ElementType>::Has(rName))
-        << "Name \"" << rName << "\" is not registered as an element." << std::endl;
-
-    if (rElements.empty())
-    {
-        Clear();
-        // Correctly set the name and array sizes. Otherwise, MPI collective write
-        // can fail due to inconsistent data across processes.
-        mName = rName;
-        const Element& r_elem = KratosComponents<ElementType>::Get(mName);
-        mConnectivities.resize(0, r_elem.GetGeometry().size());
+    if (mpFile->GetDataCommunicator().SumAll(rEntities.size()) == 0) {
+        // do nothing if the all the ranks have no entities.
         return;
     }
 
-    CompareElementsAndConditionsUtility::GetRegisteredName(rElements.front(), mName);
-    KRATOS_ERROR_IF(mName != rName) << "Name \"" << rName << "\" is not the same as \"" << mName << "\"." << std::endl;
-    const int num_elems = rElements.size();
-    mIds.resize(num_elems, false);
-    mPropertiesIds.resize(num_elems, false);
-    const unsigned geometry_size = rElements.front().GetGeometry().size();
-    mConnectivities.resize(num_elems, geometry_size, false);
+    std::string entity_name = "";
+    unsigned int geometry_size = 0;
+    if (!rEntities.empty()) {
+        CompareElementsAndConditionsUtility::GetRegisteredName(rEntities.front(), entity_name);
+        // no need of doing communication to get the correct geometry size
+        // for all ranks, because the connectivity matrix will be correctly
+        // sized in the HDF5File write call by MPI Communication.
+        // Otherwise, this will be done twice which is redundant.
+        geometry_size = rEntities.front().GetGeometry().size();
+    }
+
+    const auto& r_data_communicator = mpFile->GetDataCommunicator();
+
+    // now do the communication between ranks to find the name, because there may be ranks which
+    // are empty, but every rank still need the entity name to proceed further.
+    std::vector<char> char_entity_name(entity_name.begin(), entity_name.end());
+    const auto& global_char_entity_names = r_data_communicator.AllGatherv(char_entity_name);
+    if (entity_name.empty()) {
+        for (const auto& rank_char_entity_name : global_char_entity_names) {
+            if (!rank_char_entity_name.empty()) {
+                entity_name = std::string(rank_char_entity_name.begin(), rank_char_entity_name.end());
+                break;
+            }
+        }
+    }
+
+    // now cross check all names
+    for (const auto& rank_char_entity_name : global_char_entity_names) {
+        std::string rank_name(rank_char_entity_name.begin(), rank_char_entity_name.end());
+        // here we have to check current entity name is equal to other ranks entity names.
+        // but if a rank has not entities, then the AllGatherv above will have an empty string, but
+        // in the above if block, we will make the empty rank's entity_name also non emtpy. Therefore
+        // an additional check is included to check whether the rank_name is also empty.
+        KRATOS_ERROR_IF(entity_name != rank_name && !rank_name.empty()) << "All the ranks should have the same entities.";
+    }
+
+    const auto& entity_group_path = mPrefix + "/" + entity_name;
+
+    const unsigned int num_entities = rEntities.size();
+
+    Vector<int> entity_ids, entity_property_ids;
+    Matrix<int> connectivities;
+
+    entity_ids.resize(num_entities, false);
+    entity_property_ids.resize(num_entities, false);
+    connectivities.resize(num_entities, geometry_size, false);
 
     // Fill arrays and perform checks.
-    #pragma omp parallel for
-    for (int i = 0; i < num_elems; ++i)
-    {
-        ElementsContainerType::const_iterator it = rElements.begin() + i;
+    IndexPartition<IndexType>(num_entities).for_each([&rEntities, &entity_ids, &entity_property_ids, &connectivities, geometry_size](const auto Index) {
+        const auto& r_entity = *(rEntities.begin() + Index);
+
         // Check that the element and geometry types are the same.
-        KRATOS_ERROR_IF_NOT(GeometricalObject::IsSame(*it, rElements.front()))
-            << "Element #" << it->Id() << " is not the same as #" << rElements.front().Id() << '!' << std::endl;
+        KRATOS_ERROR_IF_NOT(GeometricalObject::IsSame(r_entity, rEntities.front()))
+            << "Element #" << r_entity.Id() << " is not the same as #" << rEntities.front().Id() << '!' << std::endl;
+
         // Fill ids.
-        mIds[i] = it->Id();
-        mPropertiesIds[i] = it->GetProperties().Id();
-        const ElementType::GeometryType& r_geom = it->GetGeometry();
+        entity_ids[Index] = r_entity.Id();
+        entity_property_ids[Index] = r_entity.GetProperties().Id();
+
         // Fill connectivities.
-        for (unsigned k = 0; k < geometry_size; ++k)
-            mConnectivities(i, k) = r_geom[k].Id();
+        const auto& r_geom = r_entity.GetGeometry();
+        for (unsigned k = 0; k < geometry_size; ++k) {
+            connectivities(Index, k) = r_geom[k].Id();
+        }
+    });
+
+    int ws_dim, num_nodes;
+    if (KratosComponents<EntityType>::Has(entity_name)) {
+        const auto& r_geom = KratosComponents<EntityType>::Get(entity_name).GetGeometry();
+        ws_dim = r_geom.WorkingSpaceDimension();
+        num_nodes = r_geom.size();
+    } else {
+        KRATOS_ERROR << "Invalid name \"" << entity_name << "\"!" << std::endl;
     }
+
+    WriteInfo info;
+
+    mpFile->WriteDataSet(entity_group_path + "/Ids", entity_ids, info);
+    mpFile->WriteDataSet(entity_group_path + "/Connectivities", connectivities, info);
+    if (WriteProperties) {
+        mpFile->WriteDataSet(entity_group_path + "/PropertiesIds", entity_property_ids, info);
+    }
+
+    mpFile->WriteAttribute(entity_group_path, "Name", entity_name);
+    mpFile->WriteAttribute(entity_group_path, "WorkingSpaceDimension", ws_dim);
+    mpFile->WriteAttribute(entity_group_path, "NumberOfNodes", num_nodes);
+
+    WritePartitionTable(*mpFile, entity_group_path, info);
 
     KRATOS_CATCH("");
 }
 
-// Fill data from conditions of a single condition type.
-void ConnectivitiesData::SetData(ConditionsContainerType const& rConditions)
-{
-    KRATOS_TRY;
+// template instantiations
+template class KRATOS_API(HDF5_APPLICATION) ConnectivitiesData<ModelPart::ConditionsContainerType>;
+template class KRATOS_API(HDF5_APPLICATION) ConnectivitiesData<ModelPart::ElementsContainerType>;
 
-    KRATOS_ERROR_IF(rConditions.empty())
-        << "Must pass non-empty container to this function." << std::endl;
-
-    std::string name;
-    CompareElementsAndConditionsUtility::GetRegisteredName(rConditions.front(), name);
-    SetData(name, rConditions);
-
-    KRATOS_CATCH("");
-}
-
-void ConnectivitiesData::SetData(const std::string& rName, ConditionsContainerType const& rConditions)
-{
-    KRATOS_TRY;
-
-    KRATOS_ERROR_IF_NOT(KratosComponents<ConditionType>::Has(rName))
-        << "Name \"" << rName << "\" is not registered as a condition." << std::endl;
-
-    if (rConditions.empty())
-    {
-        Clear();
-        // Correctly set the name and array sizes. Otherwise, MPI collective write
-        // can fail due to inconsistent data across processes.
-        mName = rName;
-        const Condition& r_cond = KratosComponents<ConditionType>::Get(mName);
-        mConnectivities.resize(0, r_cond.GetGeometry().size());
-        return;
-    }
-
-    CompareElementsAndConditionsUtility::GetRegisteredName(rConditions.front(), mName);
-    KRATOS_ERROR_IF(mName != rName) << "Name \"" << rName << "\" is not the same as \"" << mName << "\"." << std::endl;
-    const int num_conds = rConditions.size();
-    mIds.resize(num_conds, false);
-    mPropertiesIds.resize(num_conds, false);
-    const unsigned geometry_size = rConditions.front().GetGeometry().size();
-    mConnectivities.resize(num_conds, geometry_size, false);
-
-    // Fill arrays and perform checks.
-    #pragma omp parallel for
-    for (int i = 0; i < num_conds; ++i)
-    {
-        ConditionsContainerType::const_iterator it = rConditions.begin() + i;
-        // Check that the condition and geometry types are the same.
-        KRATOS_ERROR_IF_NOT(GeometricalObject::IsSame(*it, rConditions.front()))
-            << "Condition #" << it->Id() << " is not the same as #" << rConditions.front().Id() << '!' << std::endl;
-        // Fill ids.
-        mIds[i] = it->Id();
-        mPropertiesIds[i] = it->GetProperties().Id();
-        const ConditionType::GeometryType& r_geom = it->GetGeometry();
-        // Fill connectivities.
-        for (unsigned k = 0; k < geometry_size; ++k)
-            mConnectivities(i, k) = r_geom[k].Id();
-    }
-
-    KRATOS_CATCH("");
-}
-
-void ConnectivitiesData::Clear()
-{
-    mName = "";
-    mIds.resize(0);
-    mPropertiesIds.resize(0);
-    mConnectivities.resize(0,0);
-}
 } // namespace Internals.
 } // namespace HDF5.
 } // namespace Kratos.

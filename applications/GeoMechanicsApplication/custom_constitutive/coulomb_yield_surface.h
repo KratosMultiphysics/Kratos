@@ -15,6 +15,9 @@
 #pragma once
 
 #include "custom_constitutive/yield_surface.h"
+#include "includes/properties.h"
+
+#include <functional>
 
 namespace Kratos
 {
@@ -24,21 +27,37 @@ class KRATOS_API(GEO_MECHANICS_APPLICATION) CoulombYieldSurface : public YieldSu
 public:
     KRATOS_CLASS_POINTER_DEFINITION(CoulombYieldSurface);
 
-    CoulombYieldSurface() = default;
+    using KappaDependentFunction = std::function<double(double)>;
 
-    CoulombYieldSurface(double FrictionAngleInRad, double Cohesion, double DilatationAngleInRad);
+    enum class CoulombAveragingType {
+        NO_AVERAGING,
+        LOWEST_PRINCIPAL_STRESSES,
+        HIGHEST_PRINCIPAL_STRESSES
+    };
 
-    [[nodiscard]] double YieldFunctionValue(const Vector& rPrincipalStress) const override;
-    [[nodiscard]] Vector DerivativeOfFlowFunction(const Vector& rPrincipalStress) const override;
+    CoulombYieldSurface();
+    explicit CoulombYieldSurface(Properties MaterialProperties);
+
+    [[nodiscard]] double GetFrictionAngleInRadians() const;
+    [[nodiscard]] double GetCohesion() const;
+    [[nodiscard]] double GetDilatancyAngleInRadians() const;
+
+    [[nodiscard]] double YieldFunctionValue(const Vector& rSigmaTau) const override;
+    [[nodiscard]] Vector DerivativeOfFlowFunction(const Vector&) const override;
+    [[nodiscard]] Vector DerivativeOfFlowFunction(const Vector&, CoulombAveragingType AveragingType) const;
 
 private:
+    void InitializeKappaDependentFunctions();
+
     friend class Serializer;
     void save(Serializer& rSerializer) const override;
     void load(Serializer& rSerializer) override;
 
-    double mFrictionAngle   = 0.0;
-    double mCohesion        = 0.0;
-    double mDilatationAngle = 0.0;
+    double                 mKappa = 0.0;
+    Properties             mMaterialProperties;
+    KappaDependentFunction mFrictionAngleCalculator;
+    KappaDependentFunction mCohesionCalculator;
+    KappaDependentFunction mDilatancyAngleCalculator;
 
 }; // Class CoulombYieldSurface
 

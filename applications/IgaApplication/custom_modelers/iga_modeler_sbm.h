@@ -24,6 +24,7 @@
 
 #include "integration/integration_info.h"
 #include "spatial_containers/bins_dynamic.h"
+#include "includes/global_pointer_variables.h"
 
 namespace Kratos
 {
@@ -64,6 +65,7 @@ public:
     using DistanceIterator = std::vector<double>::iterator;
     using DynamicBins = BinsDynamic<3, PointType, PointVector, PointTypePointer, PointIterator, DistanceIterator>;
     using PointerType = DynamicBins::PointerType;
+    using NodePointerVector = GlobalPointersVector<NodeType>;
 
     ///@}
     ///@name Life Cycle
@@ -146,14 +148,32 @@ private:
         GeometriesArrayType& rQuadraturePointGeometryList,
         ModelPart& rModelPart,
         const Parameters rParameters,
-        std::string GeometryType) const;
+        std::string geometry_type) const;
     
     /// Creates list of rQuadraturePointGeometryList for Sbm
     void CreateQuadraturePointGeometriesSbm(
         GeometriesArrayType& rQuadraturePointGeometryList,
         ModelPart& rModelPart,
         const Parameters rParameters,
-        std::string GeometryType) const;
+        std::string geometry_type) const;
+
+    
+    /// Creates list of rQuadraturePointGeometryList for Sbm 
+    /// using the condition name of the associated projection on the skin boundary layer
+    void CreateQuadraturePointGeometriesSbmByProjectionLayer(
+        GeometriesArrayType& rQuadraturePointGeometryList,
+        ModelPart& rModelPart,
+        const Parameters rParameters,
+        std::string geometry_type) const;
+
+    /// Creates list of rQuadraturePointGeometryList for Sbm 
+    /// using a fixed condition name for the whole surrogate boundary loop
+    void CreateQuadraturePointGeometriesSbmByFixedConditionName(
+        GeometriesArrayType& rQuadraturePointGeometryList,
+        ModelPart& rModelPart,
+        const Parameters rParameters,
+        std::string geometry_type,
+        std::string ConditionName) const;
 
     ///@}
     ///@name CAD functionalities
@@ -176,7 +196,8 @@ private:
         ModelPart& rDestinationModelPart,
         std::string& rElementName,
         SizeType& rIdCounter,
-        PropertiesPointerType pProperties) const;
+        PropertiesPointerType pProperties,
+        const Vector KnotSpanSizes) const;
 
     /// Creates conditions from geometries
     void CreateConditions(
@@ -185,7 +206,8 @@ private:
         ModelPart& rDestinationModelPart,
         std::string& rConditionName,
         SizeType& rIdCounter,
-        PropertiesPointerType pProperties) const;
+        PropertiesPointerType pProperties,
+        const Vector KnotSpanSizes) const;
 
     /// Creates conditions from geometries
     void CreateConditions(
@@ -198,11 +220,35 @@ private:
         SizeType& rIdCounter,
         PropertiesPointerType pProperties,
         bool IsInner,
-        Vector KnotSpanSizes) const;
+        const Vector KnotSpanSizes) const;
+
+    void PrepareIntegrationOnTrueBoundary(ModelPart& analysis_model_part) const;
+    
+    /// Creates conditions from geometries (from skin projection)
+    void CreateConditions(
+        typename GeometriesArrayType::ptr_iterator rGeometriesBegin,
+        typename GeometriesArrayType::ptr_iterator rGeometriesEnd,
+        ModelPart& rModelPart,
+        ModelPart& rSkinModelPart,
+        std::vector<int>& rListIdClosestCondition,
+        std::vector<int>& rListIdSecondClosestCondition,
+        SizeType& rIdCounter,
+        PropertiesPointerType pProperties,
+        const bool IsInner,
+        const Vector KnotSpanSizes) const;
 
     ///@}
     ///@name Utility
     ///@{
+
+    void CreateConditionsWithAdditionalData(
+        GeometriesArrayType& rGeometries,
+        ModelPart& rModelPart,
+        const Parameters rAdditionalData,
+        std::string& rDefaultConditionName,
+        SizeType& rIdCounter,
+        PropertiesPointerType pProperties,
+        const Vector KnotSpanSizes) const;
 
 
     ///@}

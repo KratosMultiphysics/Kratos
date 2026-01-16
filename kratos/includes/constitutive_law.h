@@ -13,9 +13,7 @@
 //                   Josep Maria Carbonell
 //
 
-
-#if !defined(KRATOS_CONSTITUTIVE_LAW )
-#define  KRATOS_CONSTITUTIVE_LAW
+#pragma once
 
 /* System includes */
 
@@ -1605,4 +1603,3 @@ KRATOS_DEFINE_VARIABLE(ConstitutiveLaw::Pointer, CONSTITUTIVE_LAW)
 
 
 } /* namespace Kratos.*/
-#endif /* KRATOS_CONSTITUTIVE_LAW  defined */

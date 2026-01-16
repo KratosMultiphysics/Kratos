@@ -46,7 +46,6 @@ const std::string testParameters = R"(
         "compute_reactions":                  true,
         "move_mesh_flag":                     true,
         "reform_dofs_at_each_step":           false,
-        "nodal_smoothing":                    false,
         "block_builder":                      true,
         "solution_type":                      "Quasi-Static",
         "scheme_type":                        "Backward_Euler",

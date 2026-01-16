@@ -52,7 +52,7 @@ KRATOS_TEST_CASE_IN_SUITE(TetrahedraMeshEdgeSwappingProcess, KratosCoreFastSuite
 
     StructuredMeshGeneratorProcess(geometry, model_part, mesher_parameters).Execute();
 
-    GidIO<> gid_io("/home/pooyan/kratos/tests/edge_swapping", GiD_PostAscii, SingleFile, WriteDeformed, WriteConditions);
+    GidIO<> gid_io("TEST_EDGE_SWAPPING", GiD_PostAscii, SingleFile, WriteDeformed, WriteConditions);
     gid_io.InitializeMesh(0.00);
     gid_io.WriteMesh(model_part.GetMesh());
     gid_io.FinalizeMesh();

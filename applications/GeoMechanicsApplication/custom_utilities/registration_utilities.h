@@ -13,17 +13,47 @@
 #pragma once
 
 #include "includes/kratos_export_api.h"
+#include "includes/serializer.h"
+
+#include <string>
 
 namespace Kratos
 {
 
-class KRATOS_API(GEO_MECHANICS_APPLICATION) RegistrationUtilities
+class KRATOS_API(GEO_MECHANICS_APPLICATION) ScopedSerializerRegistration
 {
 public:
-    static void RegisterStressStatePolicies();
-    static void DeregisterStressStatePolicies();
-    static void RegisterYieldSurfaces();
-    static void DeregisterYieldSurfaces();
+    template <typename... Pairs>
+    explicit ScopedSerializerRegistration(const Pairs&... PackedNameAndInstancePairs)
+    {
+        Register(PackedNameAndInstancePairs...);
+    }
+
+    ~ScopedSerializerRegistration();
+
+    ScopedSerializerRegistration(const ScopedSerializerRegistration&)            = delete;
+    ScopedSerializerRegistration& operator=(const ScopedSerializerRegistration&) = delete;
+
+    ScopedSerializerRegistration(ScopedSerializerRegistration&&) noexcept            = default;
+    ScopedSerializerRegistration& operator=(ScopedSerializerRegistration&&) noexcept = default;
+
+private:
+    std::vector<std::string> mNames;
+
+    template <typename Pair>
+    void Register(const Pair& rNameAndInstance)
+    {
+        const auto& [name, instance] = rNameAndInstance;
+        Serializer::Register(name, instance);
+        mNames.push_back(name);
+    }
+
+    template <typename Pair, typename... Pairs>
+    void Register(const Pair& rNameAndInstance, const Pairs&... PackedNameAndInstancePairs)
+    {
+        Register(rNameAndInstance);
+        Register(PackedNameAndInstancePairs...);
+    }
 };
 
 } // namespace Kratos

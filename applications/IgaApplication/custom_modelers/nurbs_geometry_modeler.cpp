@@ -233,9 +233,10 @@ namespace Kratos
                 WeightsRefined);
         }
 
+        ModelPart& r_root_model_part = r_model_part.GetRootModelPart();
         IndexType node_id = 1;
-        if( r_model_part.NumberOfNodes() > 0 ){
-            node_id = (r_model_part.NodesEnd() - 1)->Id() + 1;
+        if (r_root_model_part.NumberOfNodes() > 0) {
+            node_id = (r_root_model_part.NodesEnd() - 1)->Id() + 1;
         }
 
         for (IndexType i = 0; i < PointsRefined.size(); ++i) {
@@ -359,7 +360,7 @@ namespace Kratos
             insert_knots_w[i] = knot_w;
         }
 
-        // In some cases there is no need of add the surface geometry, AddSurfaceToModelPart is true by default
+        // In some cases there is no need of add the volume geometry, AddSurfaceToModelPart is true by default
         if (AddVolumeToModelPart) {
             // Add geometry to model part
             if( mParameters.Has("geometry_name") ){
@@ -421,9 +422,10 @@ namespace Kratos
         }
 
         // Add nodes to model part
+        ModelPart& r_root_model_part = r_model_part.GetRootModelPart();
         IndexType node_id = 1;
-        if( r_model_part.NumberOfNodes() > 0 ){
-            node_id = (r_model_part.NodesEnd() - 1)->Id() + 1;
+        if (r_root_model_part.NumberOfNodes() > 0) {
+            node_id = (r_root_model_part.NodesEnd() - 1)->Id() + 1;
         }
         for (IndexType i = 0; i < PointsRefined.size(); ++i) {
             if (PointsRefined(i)->Id() == 0) {
@@ -435,11 +437,6 @@ namespace Kratos
         p_volume_geometry->SetInternals(PointsRefined,
             p_volume_geometry->PolynomialDegreeU(), p_volume_geometry->PolynomialDegreeV(), p_volume_geometry->PolynomialDegreeW(),
             p_volume_geometry->KnotsU(), p_volume_geometry->KnotsV(), p_volume_geometry->KnotsW());
-
-        // KRATOS_WATCH(PointsRefined)
-
-        // exit(0);
-        
 
         // assign the value p_volume_geometry to the class member mpVolume for derived classes
         mpVolume = p_volume_geometry;

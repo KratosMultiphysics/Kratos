@@ -20,7 +20,11 @@
 #include "includes/define_python.h"
 
 // Future Extensions
+#include "future/python/add_containers_to_python.h"
+#include "future/python/add_io_to_python.h"
+#include "future/python/add_linear_solvers_to_python.h"
 #include "future/python/add_processes_to_python.h"
+#include "future/python/add_strategies_to_python.h"
 
 namespace Kratos::Future::Python
 {
@@ -29,7 +33,15 @@ namespace py = pybind11;
 
 void AddFutureToPython(py::module& m)
 {
+    AddContainersToPython(m);
+
+    AddIOToPython(m);
+
+    AddLinearSolversToPython(m);
+
     AddProcessesToPython(m);
+
+    AddStrategiesToPython(m);
 }
 
 }  // namespace Kratos::Future::Python.

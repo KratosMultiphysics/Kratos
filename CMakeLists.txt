@@ -50,8 +50,8 @@ endif(POLICY CMP0167)
 
 # Set here the version number **** only update upon tagging a release!
 set (KratosMultiphysics_MAJOR_VERSION 10)
-set (KratosMultiphysics_MINOR_VERSION 2)
-set (KratosMultiphysics_PATCH_VERSION 1)
+set (KratosMultiphysics_MINOR_VERSION 3)
+set (KratosMultiphysics_PATCH_VERSION 0)
 
 # If KRATOS_SOURCE_DIR is not defined use the CMAKE_SOURCE_DIR
 if(NOT DEFINED KRATOS_SOURCE_DIR)
@@ -79,7 +79,7 @@ if (APPLE)
   cmake_policy(SET CMP0042 NEW)
   set(CMAKE_INSTALL_RPATH "${CMAKE_INSTALL_PREFIX}/libs")
 else()
-  set(CMAKE_INSTALL_RPATH "$ORIGIN/../libs")
+  set(CMAKE_INSTALL_RPATH "$ORIGIN")
 endif()
 
 # If no test policy enable by default
@@ -211,7 +211,7 @@ endif( ${CMAKE_BUILD_TYPE} MATCHES "Release" )
 
 # Set compiler flags
 if(${CMAKE_COMPILER_IS_GNUCXX})
-  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -funroll-loops -Wall -Wl,--no-as-needed -ldl -Wsuggest-override")
+  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -funroll-loops -Wall -Wl,--no-as-needed -ldl -Wsuggest-override -Wno-template-id-cdtor")
   if(CMAKE_CXX_COMPILER_VERSION VERSION_LESS 8.0)
     message(STATUS "DEPRECATED: detected compiler as GCC " ${CMAKE_CXX_COMPILER_VERSION} )
     message(FATAL_ERROR "Please use Version 8 or greater")
@@ -235,6 +235,18 @@ if(NOT ${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
         set(CMAKE_C_FLAGS   "${CMAKE_C_FLAGS} -funroll-loops -Wall -Wno-unknown-pragmas  ")
         set(CMAKE_SHARED_LINKER_FLAGS "-Wl,--no-undefined")
         message(STATUS "Additional default options were set for LLVM/Clang compiler")
+      elseif(${CMAKE_CXX_COMPILER_ID} MATCHES Intel)
+        if (CMAKE_CXX_COMPILER_ID STREQUAL "IntelLLVM")
+          # "IntelLLVM": Intel's NextGen LLVM compiler (icx)
+          set(CMAKE_WINDOWS_EXPORT_ALL_SYMBOLS ON)
+          set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS}")
+        else (CMAKE_CXX_COMPILER_ID STREQUAL "IntelLLVM")
+          # "Intel": Intel's Classic compiler (icc)
+          message(FATAL_ERROR "Intel Classic compiler is not supported on Windows")
+        endif()
+        set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS}")
+        set(CMAKE_SHARED_LINKER_FLAGS "-Wl,--no-undefined")
+        message(STATUS "Additional default options were set for Intel Compiler")
       endif(${CMAKE_CXX_COMPILER_ID} MATCHES Clang)
   else(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
     if(${CMAKE_CXX_COMPILER_ID} MATCHES Clang)
@@ -284,9 +296,13 @@ endif(${MSVC})
 
 # Common flags for MSVC
 if(${MSVC})
-  message(STATUS "Detected compiler as MSVC")
-  SET (CMAKE_C_FLAGS "${CMAKE_C_FLAGS} /W1 /bigobj /EHsc -DBOOST_ALL_NO_LIB -D_SCL_SECURE_NO_WARNINGS")
-  SET (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /W1 /bigobj /EHsc /Zc:__cplusplus -DBOOST_ALL_NO_LIB -D_SCL_SECURE_NO_WARNINGS")
+  if (CMAKE_CXX_COMPILER_ID STREQUAL "IntelLLVM")
+      message(STATUS "Detected compiler as IntelLLVM with MSVC backend")
+  else (CMAKE_CXX_COMPILER_ID STREQUAL "IntelLLVM")
+      message(STATUS "Detected compiler as MSVC")
+  endif(CMAKE_CXX_COMPILER_ID STREQUAL "IntelLLVM")
+  SET (CMAKE_C_FLAGS "${CMAKE_C_FLAGS} /W1 /bigobj /EHsc /DNOMINMAX -DBOOST_ALL_NO_LIB -D_SCL_SECURE_NO_WARNINGS")
+  SET (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /W1 /bigobj /EHsc /DNOMINMAX /Zc:__cplusplus -DBOOST_ALL_NO_LIB -D_SCL_SECURE_NO_WARNINGS")
   string( REPLACE "/W3" "" CMAKE_C_FLAGS ${CMAKE_C_FLAGS} )
   string( REPLACE "/W3" "" CMAKE_CXX_FLAGS ${CMAKE_CXX_FLAGS} )
   # CMake does not select the correct runtime library for FullDebug now, no idea why
@@ -344,7 +360,7 @@ if(KRATOS_BUILD_TESTING MATCHES ON)
 
   # restore the current directory's old `COMPILE_OPTIONS`
   set_directory_properties(PROPERTIES COMPILE_OPTIONS "${kratos_root_compile_options}")
-endif(KRATOS_BUILD_TESTING MATCHES ON) 
+endif(KRATOS_BUILD_TESTING MATCHES ON)
 
 # Benchmarking
 if(KRATOS_BUILD_BENCHMARK MATCHES ON)
@@ -377,6 +393,11 @@ endif(KRATOS_BUILD_BENCHMARK MATCHES ON)
 if(DEFINED ENV{PYTHON_EXECUTABLE})
   set(PYTHON_EXECUTABLE $ENV{PYTHON_EXECUTABLE})
 endif(DEFINED ENV{PYTHON_EXECUTABLE})
+
+# Try to use python library from env variable
+if(DEFINED ENV{PYTHON_LIBRARY})
+  set(PYTHON_LIBRARY $ENV{PYTHON_LIBRARY})
+endif(DEFINED ENV{PYTHON_LIBRARY})
 
 include(pybind11Tools)
 
@@ -463,8 +484,16 @@ elseif (KRATOS_SHARED_MEMORY_PARALLELIZATION STREQUAL "None")
   message(STATUS "Shared memory parallelization is disabled!")
 
 else()
-  message(FATAL_ERROR "Invalid option choosen for \"KRATOS_SHARED_MEMORY_PARALLELIZATION\"! Available options are: \"OpenMP\", \"C++11\", \"None\"")
+  message(FATAL_ERROR "Invalid option chosen for \"KRATOS_SHARED_MEMORY_PARALLELIZATION\"! Available options are: \"OpenMP\", \"C++11\", \"None\"")
 endif ()
+
+option(KRATOS_USE_TBB "Enable Intel Threading Building Blocks (TBB) support" OFF)
+
+if(KRATOS_USE_TBB)
+    find_package(TBB REQUIRED)
+    add_compile_definitions(KRATOS_USE_TBB)
+    message(STATUS "TBB support enabled")
+endif()
 
 OPTION(KRATOS_NO_TRY_CATCH "Disabled the use of try/catch through the code" OFF)
 if( KRATOS_NO_TRY_CATCH MATCHES ON )
@@ -561,7 +590,7 @@ endif(${USE_TETGEN_NONFREE_TPL} MATCHES ON)
 # Setting MPI
 if(${USE_MPI} MATCHES ON )
   find_package(MPI REQUIRED)
-  # supress anoying warnings from trilinos due to not having the same package name as the lib name.
+  # suppress annoying warnings from trilinos due to not having the same package name as the lib name.
   if(NOT DEFINED CMAKE_SUPPRESS_DEVELOPER_WARNINGS)
     set(CMAKE_SUPPRESS_DEVELOPER_WARNINGS 1 CACHE INTERNAL "No dev warnings")
   endif()
@@ -590,7 +619,7 @@ if( FORCE_LOCAL_ZLIB_COMPILATION MATCHES OFF )
     endif( ZLIB_FOUND )
 endif( FORCE_LOCAL_ZLIB_COMPILATION MATCHES OFF )
 
-# We local compilate ZLIB
+# We compile ZLIB locally
 if( FORCE_LOCAL_ZLIB_COMPILATION MATCHES ON )
   message(STATUS "Preparing local ZLIB compilation.")
   include_directories( ${KRATOS_SOURCE_DIR}/external_libraries/zlib )
@@ -623,7 +652,7 @@ if (${KRATOS_ENABLE_PROFILING} MATCHES ON)
 endif()
 
 # Build exclusions and linking dirs.
-# The intended usage of this flags is to allow a defered/incremental compilation of core/applications.
+# The intended usage of this flags is to allow a deferred/incremental compilation of core/applications.
 # Please do not use this options for regular development and never use this with REMOVE_INSTALL_DIRECTORIES=ON
 OPTION ( EXCLUDE_KRATOS_CORE "Force exclusion of the core" OFF )
 OPTION ( EXCLUDE_AUTOMATIC_DEPENDENCIES "Force exclusion of automatically added app dependencies" OFF )
@@ -638,6 +667,16 @@ endif()
 
 # Compile Kratos Core
 if(${EXCLUDE_KRATOS_CORE} MATCHES OFF)
+  # Add the definitions if required for gidpost
+  set(HDF5_FOUND FALSE)
+  set(ENABLE_PARALLEL_EXAMPLE OFF)
+  set(ENABLE_HDF5 OFF)
+  set(ZLIB_FOUND TRUE)
+
+  # (for gidpost )Disable examples and fortran examples.
+  set(ENABLE_EXAMPLES OFF)
+  set(ENABLE_FORTRAN_EXAMPLES OFF)
+
   add_subdirectory(external_libraries/gidpost)
   add_subdirectory(kratos)
 endif()
@@ -690,6 +729,7 @@ message("\t Model 'CreateModelPart' behavior change (no error thrown if model pa
 message("\t Make GetIntegrationMethod method of Condition const: https://github.com/KratosMultiphysics/Kratos/pull/9769")
 message("\t Behavior change of ModelPart.GetProperties (MeshIndex removed): https://github.com/KratosMultiphysics/Kratos/pull/9774")
 message("\t Behavior change of Testing. Please ensure you use KRATOS_EXPECT for testing instead of KRATOS_CHECK")
+message("\t Removal of misused EXTENDED_GAUSS integration rules and unification across geometries: https://github.com/KratosMultiphysics/Kratos/pull/13444")
 
 # Compiling the clipper library
 add_subdirectory(${KRATOS_SOURCE_DIR}/external_libraries/clipper)
@@ -719,6 +759,7 @@ kratos_python_install(${INSTALL_PYTHON_USING_LINKS} "${KRATOS_SOURCE_DIR}/kratos
 # Install the libraries in the libs folder
 install(FILES ${Boost_LIBRARIES} DESTINATION libs)
 install(FILES ${EXTRA_INSTALL_LIBS} DESTINATION libs)
+install(FILES ${KRATOS_SOURCE_DIR}/kratos/pyproject.toml DESTINATION .)
 
 # Perform post-install tasks (add_subdirectory commands are guaranteed to be executed in order)
 add_subdirectory("scripts/post_install")

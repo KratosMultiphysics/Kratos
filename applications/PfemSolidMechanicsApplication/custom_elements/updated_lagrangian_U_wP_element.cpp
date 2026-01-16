@@ -397,7 +397,7 @@ namespace Kratos
          }
 
          // CONSTITUTIVE PARAMETERS
-         double Permeability = GetProperties()[PERMEABILITY];
+         double Permeability = GetProperties()[PERMEABILITY_WATER];
          double WaterDensity = GetProperties()[DENSITY_WATER];
 
          // GEOMETRY PARAMETERS

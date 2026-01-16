@@ -19,15 +19,13 @@
       "materials_filename"             : "../Common/MaterialParameters_stage1.json"
     },
     "time_stepping": {
-      "time_step"                      : 0.1,
-      "max_delta_time_factor"          : 1.0
+      "time_step"                      : 0.1
     },
     "buffer_size"                      : 2,
     "echo_level"                       : 1,
     "clear_storage"                    : false,
     "compute_reactions"                : true,
     "reform_dofs_at_each_step"         : false,
-    "nodal_smoothing"                  : false,
     "block_builder"                    : true,
     "solution_type"                    : "Quasi-Static",
     "scheme_type"                      : "Newmark",
@@ -120,7 +118,8 @@
           "x_coordinates"              : [ 0.0,  1.0],
           "y_coordinates"              : [-2.0, -2.0],
           "z_coordinates"              : [ 0.0,  0.0],
-          "specific_weight"            : 10000.0
+          "specific_weight"            : 10000.0,
+          "pressure_tension_cut_off"  : 1.0E-03
         }
       },
       {
@@ -138,7 +137,8 @@
           "x_coordinates"              : [ 0.0,  1.0],
           "y_coordinates"              : [-2.0, -2.0],
           "z_coordinates"              : [ 0.0,  0.0],
-          "specific_weight"            : 10000.0
+          "specific_weight"            : 10000.0,
+          "pressure_tension_cut_off"   : 1.0E-03
         }
       },
       {
@@ -156,7 +156,8 @@
           "x_coordinates"              : [ 0.0,  1.0],
           "y_coordinates"              : [-2.0, -2.0],
           "z_coordinates"              : [ 0.0,  0.0],
-          "specific_weight"            : 10000.0
+          "specific_weight"            : 10000.0,
+          "pressure_tension_cut_off"   : 1.0E-03
         }
       },
 	  {

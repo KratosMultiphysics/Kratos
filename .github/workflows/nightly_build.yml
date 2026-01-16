@@ -42,10 +42,12 @@ jobs:
     steps:
     - uses: actions/checkout@v4
 
-    - name: Installing dependencies
+    - name: CI configuration
       shell: bash
       run: |
+        python3 kratos/python_scripts/testing/ci_utilities.py
         python3 -m pip install parameterized
+        python3 -m pip install --upgrade numpy==1.26.4
 
     - name: Build
       shell: bash
@@ -132,8 +134,11 @@ jobs:
         rm -r ${GITHUB_WORKSPACE}/build       
 
     - name: Running C++ tests
+      shell: bash
       run: |
-        source /opt/intel/oneapi/setvars.sh
+        if [ ${{ matrix.compiler }} = gcc ]; then
+          source /opt/intel/oneapi/setvars.sh
+        fi
         export PYTHONPATH=${PYTHONPATH}:${GITHUB_WORKSPACE}/bin/${KRATOS_BUILD_TYPE}
         export LD_LIBRARY_PATH=${LD_LIBRARY_PATH}:${GITHUB_WORKSPACE}/bin/${KRATOS_BUILD_TYPE}/libs
         python3 kratos/python_scripts/testing/run_cpp_tests.py
@@ -141,15 +146,57 @@ jobs:
     - name: Running tests
       shell: bash
       run: |
-        source /opt/intel/oneapi/setvars.sh
+        if [ ${{ matrix.compiler }} = gcc ]; then
+          source /opt/intel/oneapi/setvars.sh
+        fi
         export PYTHONPATH=${PYTHONPATH}:${GITHUB_WORKSPACE}/bin/${KRATOS_BUILD_TYPE}
         export LD_LIBRARY_PATH=${LD_LIBRARY_PATH}:${GITHUB_WORKSPACE}/bin/${KRATOS_BUILD_TYPE}/libs
         python3 kratos/python_scripts/testing/run_python_tests.py -l nightly -c python3
 
+    - name: Prepare Parallel Env
+      shell: bash
+      run: |
+        echo "localhost slots=2" >> ${GITHUB_WORKSPACE}/ci_hostfile
+
+    - name: Running MPI C++ tests (2 Cores)
+      shell: bash
+      timeout-minutes : 10
+      run: |
+        if [ ${{ matrix.compiler }} = gcc ]; then
+          source /opt/intel/oneapi/setvars.sh
+        fi
+        export PYTHONPATH=${PYTHONPATH}:${GITHUB_WORKSPACE}/bin/${KRATOS_BUILD_TYPE}
+        export LD_LIBRARY_PATH=${LD_LIBRARY_PATH}:${GITHUB_WORKSPACE}/bin/${KRATOS_BUILD_TYPE}/libs
+        python3 kratos/python_scripts/testing/run_cpp_mpi_tests.py --mpi_flags "--hostfile ${GITHUB_WORKSPACE}/ci_hostfile" -n 2
+
+    - name: Running MPI C++ tests (3 Cores)
+      shell: bash
+      timeout-minutes : 10
+      run: |
+        if [ ${{ matrix.compiler }} = gcc ]; then
+          source /opt/intel/oneapi/setvars.sh
+        fi
+        export PYTHONPATH=${PYTHONPATH}:${GITHUB_WORKSPACE}/bin/${KRATOS_BUILD_TYPE}
+        export LD_LIBRARY_PATH=${LD_LIBRARY_PATH}:${GITHUB_WORKSPACE}/bin/${KRATOS_BUILD_TYPE}/libs
+        python3 kratos/python_scripts/testing/run_cpp_mpi_tests.py --mpi_flags "--hostfile ${GITHUB_WORKSPACE}/ci_hostfile" -n 3
+
+    - name: Running MPI C++ tests (4 Cores)
+      shell: bash
+      timeout-minutes : 10
+      run: |
+        if [ ${{ matrix.compiler }} = gcc ]; then
+          source /opt/intel/oneapi/setvars.sh
+        fi
+        export PYTHONPATH=${PYTHONPATH}:${GITHUB_WORKSPACE}/bin/${KRATOS_BUILD_TYPE}
+        export LD_LIBRARY_PATH=${LD_LIBRARY_PATH}:${GITHUB_WORKSPACE}/bin/${KRATOS_BUILD_TYPE}/libs
+        python3 kratos/python_scripts/testing/run_cpp_mpi_tests.py --mpi_flags "--hostfile ${GITHUB_WORKSPACE}/ci_hostfile" -n 4
+
     - name: Running Python MPI tests (2 Cores)
       shell: bash
       run: |
-        source /opt/intel/oneapi/setvars.sh
+        if [ ${{ matrix.compiler }} = gcc ]; then
+          source /opt/intel/oneapi/setvars.sh
+        fi
         export OMP_NUM_THREADS=1
         export PYTHONPATH=${PYTHONPATH}:${GITHUB_WORKSPACE}/bin/${KRATOS_BUILD_TYPE}
         export LD_LIBRARY_PATH=${LD_LIBRARY_PATH}:${GITHUB_WORKSPACE}/bin/${KRATOS_BUILD_TYPE}/libs
@@ -158,7 +205,9 @@ jobs:
     - name: Running Python MPI tests (3 Cores)
       shell: bash
       run: |
-        source /opt/intel/oneapi/setvars.sh
+        if [ ${{ matrix.compiler }} = gcc ]; then
+          source /opt/intel/oneapi/setvars.sh
+        fi
         export OMP_NUM_THREADS=1
         export PYTHONPATH=${PYTHONPATH}:${GITHUB_WORKSPACE}/bin/${KRATOS_BUILD_TYPE}
         export LD_LIBRARY_PATH=${LD_LIBRARY_PATH}:${GITHUB_WORKSPACE}/bin/${KRATOS_BUILD_TYPE}/libs
@@ -167,7 +216,9 @@ jobs:
     - name: Running Python MPI tests (4 Cores)
       shell: bash
       run: |
-        source /opt/intel/oneapi/setvars.sh
+        if [ ${{ matrix.compiler }} = gcc ]; then
+          source /opt/intel/oneapi/setvars.sh
+        fi
         export OMP_NUM_THREADS=1
         export PYTHONPATH=${PYTHONPATH}:${GITHUB_WORKSPACE}/bin/${KRATOS_BUILD_TYPE}
         export LD_LIBRARY_PATH=${LD_LIBRARY_PATH}:${GITHUB_WORKSPACE}/bin/${KRATOS_BUILD_TYPE}/libs
@@ -175,20 +226,19 @@ jobs:
 
 
   windows-nightly:
-    runs-on: windows-2019
+    runs-on: windows-2022
     env:
       KRATOS_BUILD_TYPE: Custom
 
     steps:
     - uses: actions/checkout@v4
-
-    - uses: actions/setup-python@v5
+    - uses: actions/setup-python@v6
       with:
         python-version: '3.8'
 
     - name: Download boost
       run: |
-        $url = "https://archives.boost.io/release/1.74.0/source/boost_1_74_0.tar.gz"
+        $url = "https://archives.boost.io/release/1.87.0/source/boost_1_87_0.tar.gz"
         (New-Object System.Net.WebClient).DownloadFile($url, "$env:TEMP\boost.tar.gz")
         7z.exe x "$env:TEMP\boost.tar.gz" -o"$env:TEMP\boostArchive" -y | Out-Null
         7z.exe x "$env:TEMP\boostArchive" -o"$env:TEMP\boost" -y | Out-Null
@@ -209,6 +259,7 @@ jobs:
         configure.cmd
 
     - name: Running C++ tests
+      shell: cmd
       run: |
         set PYTHONPATH=%PYTHONPATH%;%GITHUB_WORKSPACE%/bin/%KRATOS_BUILD_TYPE%
         set PATH=%PATH%;%GITHUB_WORKSPACE%/bin/%KRATOS_BUILD_TYPE%/libs

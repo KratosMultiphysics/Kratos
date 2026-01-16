@@ -5,8 +5,9 @@ This folder contains the custom processes that are used in the GeoMechanicsAppli
 Documented processes:
 - [$c-\phi$ reduction process](#c-phi-reduction-process)
 - [GeoExtrapolateIntegrationPointValuesToNodesProcess](#extrapolation-of-integration-values-to-nodes)
-- [ResetDisplacementProcess](#reset-displacement-process)
+- [ApplyFinalStressesOfPreviousStageToInitialState](#apply-final-stresses-of-previous-stage-to-initial-state-process)
 - [$K_0$ procedure process](#K_0-procedure-process)
+- [ApplyInitialUniformStress](#apply-initial-uniform-stress)
 
 ## $c-\phi$ reduction process
 For the assessment of a safety factor to characterize slope stability, a Mohr-Coulomb material based $c-\phi$ reduction 
@@ -64,14 +65,13 @@ Where the `model_part_name` should contain the name of the model part where the 
 
 When this process is added to the `ProjectParameters.json`, the variables specified in `list_of_variables` can be exported as nodal output (e.g. as `nodal_results` in the `GiDOutputProcess`). 
 
-## Reset displacement process
-The `ResetDisplacementProcess` can be used to change the reference point of the displacements to the displacement at the start of that stage.
+## Apply Final Stresses Of Previous Stage To Initial State Process
+The `ApplyFinalStressesOfPreviousStageToInitialState` process can be used to change the reference point of the displacements to the displacement at the start of that stage. This process only needs to be applied to structural and interface elements, to convert the displacements from a total displacement to a staged displacement.
 
 ### Requirements
 For this process to work, the following requirements have to be met:
 1. The elements in the model part that the process is applied to should have an implementation for `CalculateOnIntegrationPoints` that calculates the PK2_STRESS_VECTOR as well as an overload of `CalculateOnIntegrationPoints` that returns a list of ConstitutiveLaw::Pointer objects for each integration point.
-2. The input type of the model can only be "rest" (short for restarted), to ensure that the state of the model is retained from the previous stage. The reason for this, is that the constitutive laws are used at the start of a state to calculate the initial stresses based on the history. If the model is not 'restarted', the constitutive laws will be cleared and the initial stresses can not be calculated correctly.
-3. The ConstitutiveLaw used in the elements this process is applied to should use the `InitialState` to apply the initial stresses to the calculated stresses.
+2. The ConstitutiveLaw used in the elements this process is applied to should use the `InitialState` to apply the initial stresses to the calculated stresses.
 
 
 ## $K_0$ procedure process
@@ -122,13 +122,29 @@ The process is defined as follows in "ProjectParameters.json" (also found in som
       "process_name": "ApplyK0ProcedureProcess",
       "Parameters": {
         "model_part_name": "PorousDomain.porous_computational_model_part",
-        "variable_name": "CAUCHY_STRESS_TENSOR",
         "use_standard_procedure": true
       }
     }
   ]
 }
 ```
+Next to specifying a single model part, it is also possible to provide a list:
+```json
+{
+  "auxiliary_process_list": [
+    {
+      "python_module": "apply_k0_procedure_process",
+      "kratos_module": "KratosMultiphysics.GeoMechanicsApplication",
+      "process_name": "ApplyK0ProcedureProcess",
+      "Parameters": {
+        "model_part_name_list": ["PorousDomain.Clay", "PorousDomain.Sand"],
+        "use_standard_procedure": true
+      }
+    }
+  ]
+}
+```
+
 The "apply_k0_procedure_process" needs the following material parameter input to be added in the "MaterialParameters.json".
 ```json
 {
@@ -148,6 +164,32 @@ The "apply_k0_procedure_process" needs the following material parameter input to
     "POISSON_UNLOADING_RELOADING": 0.35,
     "POP":                         800.0
   }
+}
+```
+
+## Apply Initial Uniform Stress
+
+This process applies an initial uniform stress field to all elements in a model part.
+The elements in the model part need to be able to calculate and set the CAUCHY_STRESS_VECTOR variable.
+The Parameters object should contain a "value" field, which is a vector representing the stress components.
+The vector should have a length equal to the strain size (e.g. 4 for plane strain and axisymmetric cases, 6 for 3D).
+Note that this means that if you want to apply a uniform stress field to 
+elements with different strain sizes, you will need to apply the process multiple times with separate model parts.
+
+Example usage for a case with 3D elements in a ProjectParameters.json file:
+```json
+{
+    "loads_process_list": [
+      {
+        "python_module": "apply_initial_uniform_stress_field",
+        "kratos_module": "KratosMultiphysics.GeoMechanicsApplication",
+        "process_name":  "ApplyInitialUniformStressField",
+        "Parameters":    {
+        "model_part_name": "PorousDomain.Soil",
+        "value": [1.0, 2.0, 3.0, 4.0, 5.0, 6.0]
+        }
+      }
+    ]
 }
 ```
 

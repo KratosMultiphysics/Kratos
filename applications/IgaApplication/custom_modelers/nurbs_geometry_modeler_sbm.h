@@ -30,21 +30,12 @@ public:
     ///@{
     KRATOS_CLASS_POINTER_DEFINITION( NurbsGeometryModelerSbm );
 
-    using IndexType = std::size_t;
-    using SizeType = std::size_t;
-    using NodeType = Node;
+    using IndexType = NurbsGeometryModeler::IndexType;
+    using SizeType = NurbsGeometryModeler::SizeType;
+    using NodeType = NurbsGeometryModeler::NodeType;
 
-    using GeometryType = Geometry<NodeType>;
-    using GeometryPointerType = GeometryType::Pointer;
-
-    using NurbsSurfaceGeometryType = NurbsSurfaceGeometry<3, PointerVector<NodeType>>;
-    using NurbsSurfaceGeometryPointerType = NurbsSurfaceGeometryType::Pointer;
-
-    using NurbsVolumeGeometryType = NurbsVolumeGeometry<PointerVector<NodeType>>;
-    using NurbsVolumeGeometryPointerType = NurbsVolumeGeometryType::Pointer;
-
-    using ContainerNodeType = PointerVector<Node>;
-    using ContainerEmbeddedNodeType = PointerVector<Point>;
+    using GeometryType = NurbsGeometryModeler::GeometryType;
+    using GeometryPointerType = NurbsGeometryModeler::GeometryPointerType;
 
     ///@}
     ///@name Life Cycle
@@ -59,8 +50,9 @@ public:
         Model & rModel,
         const Parameters ModelerParameters = Parameters())
         : NurbsGeometryModeler(rModel, ModelerParameters)
-        , mpModel(&rModel)
     {
+        mParameters.ValidateDefaults(this->GetValidParameters());
+        mParameters.AddMissingParameters(this->GetDefaultParameters());
     }
 
     /// Destructor.
@@ -74,11 +66,13 @@ public:
         return Kratos::make_shared<NurbsGeometryModelerSbm>(rModel, ModelParameters);
     }
 
+    // Get the default parameters
+    const Parameters GetDefaultParameters() const override;
+    const Parameters GetValidParameters() const;
+
     ///@}
     ///@name Stages
     ///@{
-
-    void SetupGeometryModel() override;
 
     ///@}
 
@@ -136,12 +130,32 @@ protected:
         const SizeType NumKnotSpansW, 
         const bool AddVolumeToModelPart) override;
 
+    /**
+     * @brief Creates a regular grid composed out of bivariant B-splines.
+     * @param PointA Lower point of bounding 3D box.
+     * @param PointB Upper point of bounding 3D box.
+     * @param Order  Polynomial degree in each direction u,v,w.
+     * @param NumKnotSpans Number of equidistant elements/knot spans in each direction u,v,w.
+     * @note The CP'S are defined as nodes and added to the rModelPart.
+     **/
+    void CreateAndAddRegularGrid3D(
+        ModelPart& rModelPart, 
+        const Point& A_xyz, 
+        const Point& B_xyz, 
+        const Point& A_uvw, 
+        const Point& B_uvw,
+        const SizeType OrderU, 
+        const SizeType OrderV, 
+        const SizeType OrderW, 
+        const SizeType NumKnotSpansU, 
+        const SizeType NumKnotSpansV, 
+        const SizeType NumKnotSpansW, 
+        const bool AddVolumeToModelPart) override;
+
 private:
 
     ///@name Private Member Variables
     ///@{
-
-    Model* mpModel;
 
     ///@}
     ///@name Private Operations

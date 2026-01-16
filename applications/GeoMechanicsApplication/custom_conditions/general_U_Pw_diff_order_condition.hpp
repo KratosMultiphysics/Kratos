@@ -14,19 +14,17 @@
 
 #pragma once
 
-// System includes
 #include <cmath>
 
-// Project includes
+#include "geo_mechanics_application_variables.h"
 #include "includes/condition.h"
 #include "includes/define.h"
 #include "includes/process_info.h"
-#include "includes/serializer.h"
-
-#include "geo_mechanics_application_variables.h"
 
 namespace Kratos
 {
+
+class Serializer;
 
 class KRATOS_API(GEO_MECHANICS_APPLICATION) GeneralUPwDiffOrderCondition : public Condition
 {
@@ -59,13 +57,9 @@ public:
 
     void GetDofList(DofsVectorType& rConditionDofList, const ProcessInfo&) const override;
 
-    void CalculateLocalSystem(Matrix&            rLeftHandSideMatrix,
-                              Vector&            rRightHandSideVector,
-                              const ProcessInfo& rCurrentProcessInfo) override;
+    void CalculateLocalSystem(Matrix& rLeftHandSideMatrix, Vector& rRightHandSideVector, const ProcessInfo&) override;
 
-    void CalculateLeftHandSide(Matrix& rLeftHandSideMatrix, const ProcessInfo& rCurrentProcessInfo) override;
-
-    void CalculateRightHandSide(Vector& rRightHandSideVector, const ProcessInfo& rCurrentProcessInfo) override;
+    void CalculateRightHandSide(Vector& rRightHandSideVector, const ProcessInfo&) override;
 
     void EquationIdVector(EquationIdVectorType& rResult, const ProcessInfo&) const override;
 
@@ -90,15 +84,11 @@ protected:
     // Member Variables
     Geometry<Node>::Pointer mpPressureGeometry;
 
-    void CalculateAll(const Matrix&,
-                      Vector&            rRightHandSideVector,
-                      const ProcessInfo& rCurrentProcessInfo,
-                      bool,
-                      bool CalculateResidualVectorFlag);
+    void CalculateAll(Vector& rRightHandSideVector, bool CalculateResidualVectorFlag);
 
-    void InitializeConditionVariables(ConditionVariables& rVariables, const ProcessInfo& rCurrentProcessInfo);
+    void InitializeConditionVariables(ConditionVariables& rVariables);
 
-    void CalculateKinematics(ConditionVariables& rVariables, unsigned int PointNumber);
+    void CalculateKinematics(ConditionVariables& rVariables, unsigned int PointNumber) const;
 
     virtual void CalculateConditionVector(ConditionVariables& rVariables, unsigned int PointNumber);
 
@@ -114,17 +104,8 @@ private:
     [[nodiscard]] DofsVectorType GetDofs() const;
 
     friend class Serializer;
-
-    void save(Serializer& rSerializer) const override
-    {
-        KRATOS_SERIALIZE_SAVE_BASE_CLASS(rSerializer, Condition)
-    }
-
-    void load(Serializer& rSerializer) override
-    {
-        KRATOS_SERIALIZE_LOAD_BASE_CLASS(rSerializer, Condition)
-    }
-
+    void save(Serializer& rSerializer) const override;
+    void load(Serializer& rSerializer) override;
 }; // class GeneralUPwDiffOrderCondition.
 
 } // namespace Kratos.

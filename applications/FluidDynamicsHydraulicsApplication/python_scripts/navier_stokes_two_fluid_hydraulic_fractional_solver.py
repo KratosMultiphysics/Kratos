@@ -30,6 +30,7 @@ class NavierStokesTwoFluidsHydraulicFractionalSolver(FluidSolver):
                 "input_filename": "unknown_name",
                 "reorder": false
             },
+            "enforce_element_and_conditions_replacement": true,
             "material_import_settings": {
                 "materials_filename": ""
             },
@@ -79,7 +80,7 @@ class NavierStokesTwoFluidsHydraulicFractionalSolver(FluidSolver):
                     "dynamic_tau" : 1.0,
                     "tau_nodal":true
                 }
-            },                                                                       
+            },
             "distance_reinitialization_type" :"variational",
             "distance_reinitialization_settings":{
             },
@@ -105,7 +106,7 @@ class NavierStokesTwoFluidsHydraulicFractionalSolver(FluidSolver):
         self.condition_name = "TwoFluidNavierStokesWallCondition"
         self.element_integrates_in_time = True
         self.element_has_nodal_properties = True
-        
+
         # Set the levelset characteristic variables and add them to the convection settings
         # These are required to be set as some of the auxiliary processes admit user-defined variables
         self._levelset_variable = KratosMultiphysics.DISTANCE
@@ -115,10 +116,10 @@ class NavierStokesTwoFluidsHydraulicFractionalSolver(FluidSolver):
         self.settings["levelset_convection_settings"].AddEmptyValue("levelset_gradient_variable_name").SetString("DISTANCE_GRADIENT")
         self.settings["levelset_convection_settings"].AddEmptyValue("levelset_convection_variable_name").SetString("VELOCITY")
         self.settings["levelset_convection_settings"].AddEmptyValue("convection_model_part_name").SetString("LevelSetConvectionModelPart")
-       
+
         self.settings["fractional_splitting_settings"].AddEmptyValue("model_part_name").SetString(self.main_model_part.Name )
-               
-       
+
+
         dynamic_tau = self.settings["formulation"]["dynamic_tau"].GetDouble()
         self.main_model_part.ProcessInfo.SetValue(KratosMultiphysics.DYNAMIC_TAU, dynamic_tau)
 
@@ -220,17 +221,17 @@ class NavierStokesTwoFluidsHydraulicFractionalSolver(FluidSolver):
         # Inlet and outlet water discharge is calculated for current time step, first discharge and the considering the time step inlet and outlet volume is calculated
         if self.mass_source:
             self._ComputeStepInitialWaterVolume()
-        
+
         # Recompute the BDF2 coefficients
         (self.time_discretization).ComputeAndSaveBDFCoefficients(self.GetComputingModelPart().ProcessInfo)
 
         # STEP I: NS Fractional part 1
-        # Perform the pure convection of the fractional velocity which corresponds to the first part of the NS fractional splitting. 
+        # Perform the pure convection of the fractional velocity which corresponds to the first part of the NS fractional splitting.
         self.__PerformNSFractionalSplitting()
         KratosMultiphysics.Logger.PrintInfo(self.__class__.__name__, "Navier Stokes fractional convection part is performed.")
-       
-        # STEP II: Convect the free surface according to the fractional velocity 
-        # Before doing this second step, the fractional velocity data is copied to the velocity data since the level set convection process takes velocity variable as convection variable. 
+
+        # STEP II: Convect the free surface according to the fractional velocity
+        # Before doing this second step, the fractional velocity data is copied to the velocity data since the level set convection process takes velocity variable as convection variable.
         # And the previous previous velocity is copied in an auxiliar variable
         KratosMultiphysics.VariableUtils().CopyModelPartNodalVar(KratosCFD.FRACTIONAL_VELOCITY,KratosMultiphysics.VELOCITY, self.main_model_part, self.main_model_part, 0, 0)
         KratosMultiphysics.VariableUtils().CopyModelPartNodalVar(KratosMultiphysics.VELOCITY,KratosCFD.AUXILIAR_VECTOR_VELOCITY, self.main_model_part, self.main_model_part, 0, 0)
@@ -238,7 +239,7 @@ class NavierStokesTwoFluidsHydraulicFractionalSolver(FluidSolver):
         self.__PerformLevelSetConvection()
         KratosMultiphysics.Logger.PrintInfo(self.__class__.__name__, "Level-set convection is performed.")
 
-        # After the convection process, the velocity is copied back to the original state. 
+        # After the convection process, the velocity is copied back to the original state.
         KratosMultiphysics.VariableUtils().CopyModelPartNodalVar(KratosCFD.AUXILIAR_VECTOR_VELOCITY,KratosMultiphysics.VELOCITY, self.main_model_part, self.main_model_part, 0, 0)
 
         # Perform distance correction to prevent ill-conditioned cuts
@@ -272,14 +273,14 @@ class NavierStokesTwoFluidsHydraulicFractionalSolver(FluidSolver):
 
         # Prepare distance correction for next step
         self._GetDistanceModificationProcess().ExecuteFinalizeSolutionStep()
-        
-        # FinalizeSolutionStep of Navier-Stokes strategy 
+
+        # FinalizeSolutionStep of Navier-Stokes strategy
         self._GetSolutionStrategy().FinalizeSolutionStep()
 
     def _ComputeStepInitialWaterVolume(self):
-      
-        # This function calculates the theoretical water volume at each time step. 
-        # Reminder: Despite adding the source term to both air and water, the absolute volume error 
+
+        # This function calculates the theoretical water volume at each time step.
+        # Reminder: Despite adding the source term to both air and water, the absolute volume error
         # is referenced to the water volume, since what is lost from water is gained by air and vice versa.
 
         # Here the initial water volume of the system is calculated without considering inlet and outlet flow rate
@@ -299,8 +300,8 @@ class NavierStokesTwoFluidsHydraulicFractionalSolver(FluidSolver):
         self.__initial_water_system_volume = system_water_volume
 
     def _ComputeVolumeError(self):
-        # In this function, the volume of the cut elements is calculated, 
-        # corresponding to the portions of water and air volumes, as this is the domain where the source term will be added. 
+        # In this function, the volume of the cut elements is calculated,
+        # corresponding to the portions of water and air volumes, as this is the domain where the source term will be added.
         # Meanwhile, the absolute error is calculated within the water domain
 
         if self.mass_source:
@@ -336,7 +337,7 @@ class NavierStokesTwoFluidsHydraulicFractionalSolver(FluidSolver):
         self._GetNSFractionalSplittingProcess().Execute()
         # Trasfer velocity slip condition to fractional velocity
         self.__SlipConditonFractionalFixity()
-    # TODO: Remove those methods as soon as a new  hydraulic slip process is done. 
+    # TODO: Remove those methods as soon as a new  hydraulic slip process is done.
     def __SlipConditonFractionalFixity(self):
         for node in self.GetComputingModelPart().Nodes:
             if node.Is(KratosMultiphysics.SLIP):
@@ -345,7 +346,7 @@ class NavierStokesTwoFluidsHydraulicFractionalSolver(FluidSolver):
                 v= node.GetSolutionStepValue(KratosCFD.FRACTIONAL_VELOCITY)
                 v_prooj = self.DotProduct(v,n)
                 v-= v_prooj*n
-                node.SetSolutionStepValue(KratosCFD.FRACTIONAL_VELOCITY,v) 
+                node.SetSolutionStepValue(KratosCFD.FRACTIONAL_VELOCITY,v)
     def VelocityBoundaryConditionFractional(self, fractional_velocity_componentes, velocity_components):
         for node in self.GetComputingModelPart().Nodes:
             if node.IsFixed(velocity_components):
@@ -381,7 +382,7 @@ class NavierStokesTwoFluidsHydraulicFractionalSolver(FluidSolver):
 
             if data_comm.Rank() == 0:
                 # Create and read an auxiliary materials file for each one of the fields (only on one rank)
-                for i_material in materials["properties"]:
+                for i_material in materials["properties"].values():
                     aux_materials = KratosMultiphysics.Parameters()
                     aux_materials.AddEmptyArray("properties")
                     aux_materials["properties"].Append(i_material)
@@ -393,7 +394,7 @@ class NavierStokesTwoFluidsHydraulicFractionalSolver(FluidSolver):
             data_comm.Barrier()
 
             # read the files on all ranks
-            for i_material in materials["properties"]:
+            for i_material in materials["properties"].values():
                 aux_materials_filename = GetAuxMaterialsFileName(materials_filename, i_material["properties_id"].GetInt())
                 aux_material_settings = KratosMultiphysics.Parameters("""{"Parameters": {"materials_filename": ""}} """)
                 aux_material_settings["Parameters"]["materials_filename"].SetString(aux_materials_filename)
@@ -403,7 +404,7 @@ class NavierStokesTwoFluidsHydraulicFractionalSolver(FluidSolver):
 
             if data_comm.Rank() == 0:
                 # remove aux files after every rank read them
-                for i_material in materials["properties"]:
+                for i_material in materials["properties"].values():
                     aux_materials_filename = GetAuxMaterialsFileName(materials_filename, i_material["properties_id"].GetInt())
                     KratosUtilities.DeleteFileIfExisting(aux_materials_filename)
 

@@ -335,8 +335,8 @@ class ConvectionDiffusionSolver(PythonSolver):
         if _CheckIsDistributed():
             self.distributed_model_part_importer.CreateCommunicators()
 
-        if (self.settings["echo_level"].GetInt() > 0):
-            KratosMultiphysics.Logger.PrintInfo(self.model)
+        # if (self.settings["echo_level"].GetInt() > 0):
+        #     KratosMultiphysics.Logger.PrintInfo(self.model)
 
         KratosMultiphysics.Logger.PrintInfo("::[ConvectionDiffusionSolver]::", "ModelPart prepared for Solver.")
 
@@ -409,8 +409,8 @@ class ConvectionDiffusionSolver(PythonSolver):
         self._GetSolutionStrategy().Clear()
 
     def Check(self):
+        print("check")
         # self._GetSolutionStrategy().Check()
-        print("............... convection diffusion solver check ...............")
 
     #### Specific internal functions ####
 

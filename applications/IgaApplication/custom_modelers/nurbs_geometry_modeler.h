@@ -85,6 +85,8 @@ public:
 protected:
 ///@{
 
+    Model* mpModel;
+
     /**
      * @brief Creates a regular grid composed out of bivariant B-splines.
      * @param PointA Lower point of bounding box.
@@ -128,6 +130,25 @@ private:
     ///@}
     ///@name Private Operations    
 
+
+    NurbsSurfaceGeometryPointerType mpSurface;
+    NurbsVolumeGeometryPointerType mpVolume;
+
+    Vector mKnotVectorU;
+    Vector mKnotVectorV;
+    Vector mKnotVectorW;
+    std::vector<double> mInsertKnotsU;
+    std::vector<double> mInsertKnotsV;
+    std::vector<double> mInsertKnotsW;
+    
+
+private:
+    ///@name Private Member Variables
+    ///@{
+
+    ///@}
+    ///@name Private Operations
+    
 };
 
 } // End namesapce Kratos

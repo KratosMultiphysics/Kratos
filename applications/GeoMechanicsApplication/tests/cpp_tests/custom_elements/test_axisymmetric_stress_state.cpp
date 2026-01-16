@@ -14,15 +14,17 @@
 #include "containers/model.h"
 #include "custom_elements/axisymmetric_stress_state.h"
 #include "custom_elements/stress_state_policy.h"
+#include "custom_utilities/registration_utilities.h"
 #include "geometries/geometry.h"
 #include "includes/checks.h"
 #include "includes/stream_serializer.h"
+#include "test_setup_utilities/model_setup_utilities.h"
 #include "tests/cpp_tests/geo_mechanics_fast_suite.h"
 #include "tests/cpp_tests/test_utilities.h"
-#include "tests/cpp_tests/test_utilities/model_setup_utilities.h"
 
 #include <boost/numeric/ublas/assignment.hpp>
 #include <string>
+#include <type_traits>
 
 using namespace Kratos;
 using namespace std::string_literals;
@@ -59,21 +61,12 @@ KRATOS_TEST_CASE_IN_SUITE(CalculateBMatrixWithValidGeometryReturnsCorrectResults
     KRATOS_CHECK_MATRIX_NEAR(calculated_matrix, expected_matrix, 1e-12)
 }
 
-KRATOS_TEST_CASE_IN_SUITE(ReturnCorrectIntegrationCoefficient, KratosGeoMechanicsFastSuiteWithoutKernel)
+KRATOS_TEST_CASE_IN_SUITE(AxisymmetricStressState_CannotBeCopiedButItCanBeMoved, KratosGeoMechanicsFastSuiteWithoutKernel)
 {
-    const std::unique_ptr<StressStatePolicy> p_stress_state_policy =
-        std::make_unique<AxisymmetricStressState>();
-
-    // The shape function values for this integration point are 0.2, 0.5 and 0.3 for nodes 1, 2 and 3 respectively
-    Geometry<Node>::IntegrationPointType integration_point(0.5, 0.3, 0.0, 0.5);
-
-    const double detJ                   = 2.0;
-    const double calculated_coefficient = p_stress_state_policy->CalculateIntegrationCoefficient(
-        integration_point, detJ, ModelSetupUtilities::Create2D3NTriangleGeometry());
-
-    // The expected number is calculated as follows:
-    // 2.0 * pi * 0.8 (radius) * 2.0 (detJ) * 0.5 (weight) = 5.02655
-    KRATOS_EXPECT_NEAR(calculated_coefficient, 5.02655, 1e-5);
+    EXPECT_FALSE(std::is_copy_constructible_v<AxisymmetricStressState>);
+    EXPECT_FALSE(std::is_copy_assignable_v<AxisymmetricStressState>);
+    EXPECT_TRUE(std::is_move_constructible_v<AxisymmetricStressState>);
+    EXPECT_TRUE(std::is_move_assignable_v<AxisymmetricStressState>);
 }
 
 KRATOS_TEST_CASE_IN_SUITE(TestCloneReturnsCorrectType, KratosGeoMechanicsFastSuiteWithoutKernel)
@@ -83,6 +76,7 @@ KRATOS_TEST_CASE_IN_SUITE(TestCloneReturnsCorrectType, KratosGeoMechanicsFastSui
     const auto p_cloned_stress_state_policy = p_stress_state_policy->Clone();
 
     KRATOS_EXPECT_NE(dynamic_cast<AxisymmetricStressState*>(p_cloned_stress_state_policy.get()), nullptr);
+    KRATOS_EXPECT_NE(p_cloned_stress_state_policy.get(), p_stress_state_policy.get());
 }
 
 KRATOS_TEST_CASE_IN_SUITE(TestCalculateGreenLagrangeStrainThrows, KratosGeoMechanicsFastSuiteWithoutKernel)
@@ -127,7 +121,8 @@ KRATOS_TEST_CASE_IN_SUITE(AxisymmetricStressState_GivesCorrectStressTensorSize, 
 KRATOS_TEST_CASE_IN_SUITE(AxisymmetricStressState_CanBeSavedAndLoadedThroughInterface, KratosGeoMechanicsFastSuiteWithoutKernel)
 {
     // Arrange
-    const auto scoped_registration = ScopedSerializerRegistrationOfAllStressStatePolicies{};
+    const auto scoped_registration =
+        ScopedSerializerRegistration{std::make_pair("AxisymmetricStressState"s, AxisymmetricStressState{})};
     const auto p_policy = std::unique_ptr<StressStatePolicy>{std::make_unique<AxisymmetricStressState>()};
     auto serializer = StreamSerializer{};
 

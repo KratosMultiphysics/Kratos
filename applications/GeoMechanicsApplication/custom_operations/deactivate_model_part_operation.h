@@ -80,7 +80,7 @@ public:
     ///@name Operations
     ///@{
 
-    Operation::Pointer Create(Model& rModel, Parameters ThisParameters) const override;
+    Operation::Pointer Create(Model& rModel, Parameters Settings) const override;
 
     void Execute() override;
 
@@ -90,7 +90,7 @@ private:
     ///@name Member Variables
     ///@{
 
-    const ModelPart* mpModelPart = nullptr; // Reference to the model part to which the operation is applied
+    std::vector<std::reference_wrapper<ModelPart>> mrModelParts;
 
     ///@}
 }; // Class DeactivateModelPartOperation

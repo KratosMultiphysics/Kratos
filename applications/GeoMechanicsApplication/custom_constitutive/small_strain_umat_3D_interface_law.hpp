@@ -16,7 +16,7 @@
 #include "includes/define.h"
 
 // Project includes
-#include "small_strain_umat_3D_law.hpp"
+#include "small_strain_umat_law.hpp"
 
 namespace Kratos
 {
@@ -42,10 +42,13 @@ namespace Kratos
 ///@name Kratos Classes
 ///@{
 
-/// Short class definition.
-/** Detail class definition.
- */
-class KRATOS_API(GEO_MECHANICS_APPLICATION) SmallStrainUMAT3DInterfaceLaw : public SmallStrainUMAT3DLaw
+// Currently, these UMAT constititutive laws are based on the 3D version of the SmallStrainUMAT law
+// (using VOIGT_SIZE_3D). This seems counter-intuitive, for 2D laws, but currently this is needed
+// because our UMATs are not implemented for 2D plane strain and interface conditions (but expect
+// matrix/vector sizes to be consistent with a 3D model). Be careful with changing this, as it may
+// lead to UMATs writing to out-of-bounds memory locations. Locally, the static definition of
+// VoigtSize is used to ensure copying/using only the necessary data
+class KRATOS_API(GEO_MECHANICS_APPLICATION) SmallStrainUMAT3DInterfaceLaw : public SmallStrainUMATLaw<VOIGT_SIZE_3D>
 {
 public:
     // The process info type definition
@@ -66,6 +69,8 @@ public:
     /// Pointer definition of SmallStrainUMAT3DInterfaceLaw
     KRATOS_CLASS_POINTER_DEFINITION(SmallStrainUMAT3DInterfaceLaw);
 
+    explicit SmallStrainUMAT3DInterfaceLaw(std::unique_ptr<ConstitutiveLawDimension> pConstitutiveDimension);
+
     //@}
     //@name Life Cycle
     //@{
@@ -74,10 +79,10 @@ public:
      * @brief Clone method
      */
     ConstitutiveLaw::Pointer Clone() const override;
-    using SmallStrainUMAT3DLaw::GetValue;
+    using SmallStrainUMATLaw::GetValue;
     Vector& GetValue(const Variable<Vector>& rThisVariable, Vector& rValue) override;
 
-    using SmallStrainUMAT3DLaw::SetValue;
+    using SmallStrainUMATLaw::SetValue;
     void SetValue(const Variable<Vector>& rVariable, const Vector& rValue, const ProcessInfo& rCurrentProcessInfo) override;
 
     /**
@@ -190,15 +195,11 @@ private:
     ///@{
     friend class Serializer;
 
-    void save(Serializer& rSerializer) const override
-    {
-        KRATOS_SERIALIZE_SAVE_BASE_CLASS(rSerializer, ConstitutiveLaw)
-    }
+    SmallStrainUMAT3DInterfaceLaw();
 
-    void load(Serializer& rSerializer) override
-    {
-        KRATOS_SERIALIZE_LOAD_BASE_CLASS(rSerializer, ConstitutiveLaw)
-    }
+    void save(Serializer& rSerializer) const override;
+
+    void load(Serializer& rSerializer) override;
 
     ///@}
     ///@name Private Inquiry
@@ -210,7 +211,7 @@ private:
 
     ///@}
 
-}; // Class SmallStrainUMAT3DLaw
+}; // Class SmallStrainUMAT3DInterfaceLaw
 
 ///@}
 

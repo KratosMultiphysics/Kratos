@@ -10,6 +10,14 @@ import KratosMultiphysics.KratosUnittest as KratosUnittest
 from iga_test_factory import SinglePatchTest as SinglePatchTest
 # Truss tests - python based
 from truss_element_tests import TrussElementTests as TTrussElementTests
+# Beam Elements tests - python based
+from test_beam_IGA_element import BeamIGAElementTests as TBeamIGAElementTests
+# Structural Elements test - python based
+from test_solid_IGA_element import SolidIGAElementTests as TSolidIGAElementTests
+# Sbm Structural Elements test
+from sbm_solid_tests import SbmSolidTests as TSbmSolidTests
+from test_gap_sbm_modeler import GapSbmModelerTests as TGapSbmModelerTests
+
 # Membrane tests
 from iga_test_factory import MembraneSinglePatchFourPointSailLinearStatic as MembraneSinglePatchFourPointSailLinearStatic
 from iga_test_factory import MembraneSinglePatchFourPointSailNonLinearStatic as MembraneSinglePatchFourPointSailNonLinearStatic
@@ -45,9 +53,14 @@ from iga_test_factory import TwoPatchCantileverRefinedCouplingPenaltyTest as Two
 from test_nurbs_volume_element import TestNurbsVolumeElement as TTestNurbsVolumeElements
 # Modelers tests
 from test_modelers import TestModelers as TTestModelers
+from test_modelers_sbm import TestModelersSbm as TTestModelersSbm
 from test_import_nurbs_modeler import TestImportNurbsModeler as TTestImportNurbsModeler
+from test_nurbs_geometry_modeler_gap_sbm import TestNurbsGeometryModelerGapSbm as TTestNurbsGeometryModelerGapSbm
 # Processes tests
 from test_map_nurbs_volume_results_to_embedded_geometry_process import TestMapNurbsVolumeResultsToEmbeddedGeometryProcess as TTestMapNurbsVolumeResultsToEmbeddedGeometryProcess
+# Fluid Element and Conditions tests
+from applications.IgaApplication.tests.test_stokes_elements_and_conditions import FluidTests as TTestFluid
+from applications.IgaApplication.tests.test_stokes_sbm_conditions import SbmStokesTests as TTestSbmStokes
 
 has_linear_solvers_application = kratos_utilities.CheckIfApplicationsAvailable("LinearSolversApplication")
 
@@ -69,6 +82,13 @@ def AssembleTestSuites():
         SinglePatchTest,
         # Truss tests
         TTrussElementTests,
+        # Beam Elements tests
+        TBeamIGAElementTests,
+        # Structural Elements tests
+        TSolidIGAElementTests,
+        # Sbm Elements tests
+        TSbmSolidTests,
+        TGapSbmModelerTests,
         # Membrane tests
         MembraneSinglePatchFourPointSailLinearStatic,
         MembraneSinglePatchFourPointSailNonLinearStatic,
@@ -95,7 +115,11 @@ def AssembleTestSuites():
         # Modelers
         TTestModelers,
         TTestModelersSbm,
-        TTestMapNurbsVolumeResultsToEmbeddedGeometryProcess
+        TTestNurbsGeometryModelerGapSbm,
+        TTestMapNurbsVolumeResultsToEmbeddedGeometryProcess,
+        # Fluids
+        TTestFluid,
+        TTestSbmStokes
     ]))
 
     if has_linear_solvers_application:

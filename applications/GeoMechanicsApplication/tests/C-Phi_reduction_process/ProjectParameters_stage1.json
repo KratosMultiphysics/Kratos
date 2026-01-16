@@ -48,7 +48,6 @@
         "newmark_beta": 0.25,
         "newmark_gamma": 0.5,
         "newmark_theta": 0.5,
-        "nodal_smoothing": false,
         "number_cycles": 1,
         "problem_domain_sub_model_part_list": [
             "Material_1"
@@ -83,8 +82,7 @@
         "auxiliary_process_list": [
             {
                 "Parameters": {
-                    "model_part_name": "PorousDomain.porous_computational_model_part",
-                    "variable_name": "CAUCHY_STRESS_TENSOR"
+                    "model_part_name": "PorousDomain.porous_computational_model_part"
                 },
                 "kratos_module": "KratosMultiphysics.GeoMechanicsApplication",
                 "process_name": "ApplyK0ProcedureProcess",

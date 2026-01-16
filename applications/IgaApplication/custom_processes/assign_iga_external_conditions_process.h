@@ -7,7 +7,8 @@
 //  License:         BSD License
 //                   Kratos default license: kratos/license.txt
 //
-//  Main authors:   Andrea Gorgi, Polytimi Zisimoupoulu
+//  Main authors:   Andrea Gorgi, 
+//                  Polytimi Zisimoupoulu
 
 #pragma once
 
@@ -17,9 +18,7 @@
 
 // Project includes
 #include "containers/model.h"
-
 #include "processes/process.h"
-
 #include "utilities/function_parser_utility.h"
 
 namespace Kratos
@@ -38,10 +37,11 @@ public:
     ///@name Type Definitions
     ///@{
 
-    typedef std::size_t IndexType;
-    typedef std::size_t SizeType;
-
-
+    using IndexType = std::size_t;
+    using SizeType = std::size_t;
+    typedef Node                                             NodeType;
+    typedef Geometry<NodeType>                                  GeometryType;
+    typedef GeometryType::Pointer                               GeometryPointerType;
 
     /// Pointer definition of AssignIgaExternalConditionsProcess
     KRATOS_CLASS_POINTER_DEFINITION(AssignIgaExternalConditionsProcess);
@@ -62,18 +62,16 @@ public:
     ///@name Operations
     ///@{
 
-    void Execute() override;
+    void ExecuteInitialize() override;
 
-    void ExecuteInitializeSolutionStep() override {
-        Execute();
-    };
+    void ExecuteInitializeSolutionStep() override;
 
     const Parameters GetDefaultParameters() const override
     {
         const Parameters default_parameters = Parameters(R"(
         {
           "echo_level": 0,
-          "analysis_model_part_name": "IgaModelPart",
+          "model_part_name": "IgaModelPart",
           "element_condition_list": []
         })" );
 
@@ -107,8 +105,7 @@ private:
 
     Model* mpModel = nullptr;
     Parameters mParameters;
-    SizeType mEchoLevel;
-    Parameters mIgaPhysicsParameters;
+    Parameters mElementConditionList;
 
     ///@}
     ///@name Iga functionalities
@@ -121,15 +118,59 @@ private:
     ///@name Utility
     ///@{
 
-    Parameters ReadParamatersFile(
-        const std::string& rDataFileName) const;
+    /**
+     * @brief Set the External Condition To Elements And Conditions object
+     * 
+     * @param sub_model_part 
+     * @param variable_name 
+     * @param variable_component_name 
+     * @param values_string 
+     * @param r_process_info 
+     * @param time 
+     */
+    void SetExternalConditionToElementsAndConditions(
+        ModelPart& sub_model_part,
+        const std::string& variable_name,
+        const std::vector<std::string>& variable_component_name,
+        const std::vector<std::string>& values_string,
+        const ProcessInfo& r_process_info,
+        const double time);
+
+    /**
+     * @brief Set the Variable Value To Element object
+     * 
+     * @param rVariableName 
+     * @param value 
+     * @param p_element 
+     */
+    void SetVariableValueToElement(
+        const std::string& rVariableName,
+        const double& value,
+        Element::Pointer p_element);
+
+    
+    /**
+     * @brief Set the variable value to condition
+     * 
+     * @param rVariableName 
+     * @param value
+     * @param p_condition 
+     */
+    void SetVariableValueToCondition(
+        const std::string& rVariableName,
+        const double& value,
+        Condition::Pointer p_condition);
+
+    
+    /** Expands entries with "apply_to_all_patches": true into one
+     *  concrete entry per existing Patch* submodelpart, replacing
+     *  iga_model_part with "<root>.<PatchN>.<iga_model_part_suffix>".
+     */
+    void ExpandElementConditionList();
 
     ///@}
     ///@name Input and output
     ///@{
-
-
-   
 
     ///@}
 

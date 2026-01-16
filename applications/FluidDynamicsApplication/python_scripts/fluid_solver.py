@@ -45,7 +45,7 @@ class FluidSolver(PythonSolver):
         self.element_name = None
         self.condition_name = None
         self.min_buffer_size = 3
-        self._enforce_element_and_conditions_replacement = False #TODO: Remove once we remove the I/O from the solver
+        self._enforce_element_and_conditions_replacement = self.settings["enforce_element_and_conditions_replacement"].GetBool() #TODO: Remove once we remove the I/O from the solver
 
         # Either retrieve the model part from the model or create a new one
         model_part_name = self.settings["model_part_name"].GetString()
@@ -94,14 +94,13 @@ class FluidSolver(PythonSolver):
             if not materials_imported:
                 KratosMultiphysics.Logger.PrintWarning(self.__class__.__name__, "Material properties have not been imported. Check \'material_import_settings\' in your ProjectParameters.json.")
             ## Replace default elements and conditions
-            use_input_model_part = self.settings["model_import_settings"]["input_type"].GetString() == "use_input_model_part"
-            if not (use_input_model_part and self._enforce_element_and_conditions_replacement):
+            if self._enforce_element_and_conditions_replacement:
                 self._ReplaceElementsAndConditions()
             ## Set and fill buffer
             self._SetAndFillBuffer()
 
         ## Executes the check and prepare model process. Always executed as it also assigns neighbors which are not saved in a restart
-        self._ExecuteCheckAndPrepare()
+        # self._ExecuteCheckAndPrepare()
 
         KratosMultiphysics.Logger.PrintInfo(self.__class__.__name__, "Model reading finished.")
 
@@ -128,6 +127,17 @@ class FluidSolver(PythonSolver):
         return new_time
 
     def InitializeSolutionStep(self):
+        # main_model_part = self.GetComputingModelPart()
+        # numero = 0
+        # for node in main_model_part.Nodes :
+        #     # print(node.X, node.Y)
+        #     numero = numero + 1
+        #     # node.SetSolutionStepValue(KratosMultiphysics.VELOCITY_Y , 0 , 0.0)
+        #     # node.Fix(KratosMultiphysics.VELOCITY_Y)
+        #     if (node.X==0.0 and node.Y==0.0):
+        #         node.SetSolutionStepValue(KratosMultiphysics.PRESSURE , 0 , 2000)
+        #         node.Fix(KratosMultiphysics.PRESSURE)
+
         self._GetSolutionStrategy().InitializeSolutionStep()
 
     def Predict(self):
@@ -151,9 +161,10 @@ class FluidSolver(PythonSolver):
         self._GetSolutionStrategy().Clear()
 
     def GetComputingModelPart(self):
-        if not self.main_model_part.HasSubModelPart("fluid_computational_model_part"):
-            raise Exception("The ComputingModelPart was not created yet!")
-        return self.main_model_part.GetSubModelPart("fluid_computational_model_part")
+        # if not self.main_model_part.HasSubModelPart("fluid_computational_model_part"):
+        #     raise Exception("The ComputingModelPart was not created yet!")
+        # return self.main_model_part.GetSubModelPart("fluid_computational_model_part")
+        return self.main_model_part
 
     ## FluidSolver specific methods.
     def _ReplaceElementsAndConditions(self):
@@ -339,6 +350,9 @@ class FluidSolver(PythonSolver):
             # BDF2 time integration scheme
             elif self.settings["time_scheme"].GetString() == "bdf2":
                 scheme = KratosCFD.BDF2TurbulentScheme()
+            # BDF2 time integration scheme for higher order VMS
+            elif self.settings["time_scheme"].GetString() == "bdf2_higher_order_vms":
+                scheme = KratosCFD.BDF2HigherOrderVMSScheme()
             # Time scheme for steady state fluid solver
             elif self.settings["time_scheme"].GetString() == "steady":
                 scheme = KratosCFD.ResidualBasedSimpleSteadyScheme(

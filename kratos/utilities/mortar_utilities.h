@@ -4,14 +4,13 @@
 //   _|\_\_|  \__,_|\__|\___/ ____/
 //                   Multi-Physics
 //
-//  License:		 BSD License
-//					 Kratos default license: kratos/license.txt
+//  License:         BSD License
+//                   Kratos default license: kratos/license.txt
 //
 //  Main authors:    Vicente Mataix Ferrandiz
 //
 
-#if !defined(KRATOS_MORTAR_UTILITIES)
-#define KRATOS_MORTAR_UTILITIES
+#pragma once
 
 // System includes
 #include <numeric>
@@ -73,12 +72,12 @@ namespace MortarUtilities
     ///@{
 
     // Some geometrical definitions
-    typedef Node                                              NodeType;
+    typedef Node                                              Node;
     typedef Point                                               PointType;
     typedef PointType::CoordinatesArrayType          CoordinatesArrayType;
 
     /// Definition of geometries
-    typedef Geometry<NodeType>                               GeometryType;
+    typedef Geometry<Node>                               GeometryType;
     typedef Geometry<PointType>                         GeometryPointType;
 
     /// Index type definition
@@ -207,7 +206,7 @@ namespace MortarUtilities
      * @param Dimension The current working dimension
      */
     void KRATOS_API(KRATOS_CORE) ComputeTangentsFromNormal(
-        NodeType& rNode,
+        Node& rNode,
         const array_1d<double, 3>& rNormal,
         const std::size_t Dimension = 3
         );
@@ -221,7 +220,7 @@ namespace MortarUtilities
      * @param Dimension The current working dimension
      */
     void KRATOS_API(KRATOS_CORE) ComputeTangentNodeWithLMAndSlip(
-        NodeType& rNode,
+        Node& rNode,
         const std::size_t StepLM = 0,
         const Variable<array_1d<double, 3>>* pSlipVariable = NULL,
         const double SlipCoefficient = 1.0,
@@ -237,7 +236,7 @@ namespace MortarUtilities
      * @param Dimension The current working dimension
      */
     void KRATOS_API(KRATOS_CORE) ComputeTangentNodeWithSlip(
-        NodeType& rNode,
+        Node& rNode,
         const std::size_t StepLM = 0,
         const Variable<array_1d<double, 3>>* pSlipVariable = NULL,
         const double SlipCoefficient = 1.0,
@@ -533,7 +532,7 @@ namespace MortarUtilities
      */
     template< class TVarType>
     double KRATOS_API(KRATOS_CORE) GetAuxiliarValue(
-        NodeType& rThisNode,
+        Node& rThisNode,
         const std::size_t iSize
         );
 
@@ -571,7 +570,7 @@ namespace MortarUtilities
      */
     template< class TVarType, bool THistorical>
     void KRATOS_API(KRATOS_CORE) AddAreaWeightedNodalValue(
-        NodeType& rThisNode,
+        Node& rThisNode,
         const TVarType& rThisVariable,
         const double RefArea = 1.0,
         const double Tolerance = 1.0e-4
@@ -595,4 +594,3 @@ namespace MortarUtilities
         );
 };// namespace MortarUtilities
 } // namespace Kratos
-#endif /* KRATOS_MORTAR_UTILITIES defined */

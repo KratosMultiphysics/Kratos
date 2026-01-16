@@ -468,11 +468,11 @@ public:
                 
                 // Call  "BrepSBMUtilities::CreateBrepSurfaceSBMIntegrationPoints"
                 BrepSbmUtilitiesType::CreateBrepSurfaceSbmIntegrationPoints(
-                    rIntegrationPoints,
                     spans_u, 
                     spans_v,
                     *mpSurrogateOuterLoopGeometries,
                     *mpSurrogateInnerLoopGeometries,
+                    rIntegrationPoints,
                     rIntegrationInfo);
             }
             // body-fitted case
@@ -652,9 +652,9 @@ private:
 
     BrepCurveOnSurfaceArrayType mEmbeddedEdgesArray;
 
-    // For Sbm
-    Kratos::shared_ptr<GeometrySurrogateArrayType> mpSurrogateOuterLoopGeometries;
-    Kratos::shared_ptr<GeometrySurrogateArrayType> mpSurrogateInnerLoopGeometries;
+    // For SBM
+    Kratos::shared_ptr<GeometrySurrogateArrayType> mpSurrogateOuterLoopGeometries = nullptr;
+    Kratos::shared_ptr<GeometrySurrogateArrayType> mpSurrogateInnerLoopGeometries = nullptr;
     
     /** IsTrimmed is used to optimize processes as
     *   e.g. creation of integration domain.

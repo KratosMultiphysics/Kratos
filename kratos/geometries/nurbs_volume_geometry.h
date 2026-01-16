@@ -794,7 +794,7 @@ public:
         // Makes sure we use assembly Option 2 in CreateQuadraturePointGeometries().
         IntegrationInfo integration_info(
             { PolynomialDegreeU() + 1, PolynomialDegreeV() + 1, PolynomialDegreeW() + 1 },
-            { IntegrationInfo::QuadratureMethod::EXTENDED_GAUSS, IntegrationInfo::QuadratureMethod::EXTENDED_GAUSS, IntegrationInfo::QuadratureMethod::EXTENDED_GAUSS });
+            { IntegrationInfo::QuadratureMethod::CUSTOM, IntegrationInfo::QuadratureMethod::CUSTOM, IntegrationInfo::QuadratureMethod::CUSTOM });
 
         this->CreateQuadraturePointGeometries(
             rResultGeometries,

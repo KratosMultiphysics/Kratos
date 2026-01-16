@@ -4,12 +4,12 @@ import KratosMultiphysics.DelaunayMeshingApplication as KratosDelaunay
 import KratosMultiphysics.ContactMechanicsApplication as KratosContact
 
 # Import the meshing domain (the base class for the mesher derivation)
-import meshing_domain
+import KratosMultiphysics.DelaunayMeshingApplication.meshing_domain as Meshing
 
 def CreateMeshingDomain(Model, custom_settings):
     return ContactDomain(Model, custom_settings)
 
-class ContactDomain(meshing_domain.MeshingDomain):
+class ContactDomain(Meshing.MeshingDomain):
 
     ##constructor. the constructor shall only take care of storing the settings
     ##and the pointer to the main_model part.

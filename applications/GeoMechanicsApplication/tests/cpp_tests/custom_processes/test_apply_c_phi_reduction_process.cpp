@@ -23,8 +23,8 @@ namespace
 {
 ModelPart& CreateModelPartWithElements(Model& rModel)
 {
-    auto& result = rModel.CreateModelPart("dummy");
-    auto p_properties = result.CreateNewProperties(0);
+    auto& result       = rModel.CreateModelPart("dummy");
+    auto  p_properties = result.CreateNewProperties(0);
 
     const auto p_node1 = make_intrusive<Node>(1, 0.0, 0.0, 0.0);
     const auto p_node2 = make_intrusive<Node>(2, 1.0, 0.0, 0.0);
@@ -79,21 +79,24 @@ namespace Kratos::Testing
 {
 KRATOS_TEST_CASE_IN_SUITE(CheckCAndPhiReducedAfterCallingApplyCPhiReductionProcess, KratosGeoMechanicsFastSuiteWithoutKernel)
 {
-    Model model;
-    auto& r_model_part = PrepareCPhiTestModelPart(model);
+    Model       model;
+    const auto& r_model_part = PrepareCPhiTestModelPart(model);
 
-    ApplyCPhiReductionProcess process{r_model_part, {}};
+    const auto                parameters = Parameters{R"({"model_part_name" : "dummy"})"};
+    ApplyCPhiReductionProcess process{model, parameters};
     process.ExecuteInitializeSolutionStep();
 
     CheckReducedCPhi(r_model_part, 10.0, 25.0, 0.9);
 }
 
-KRATOS_TEST_CASE_IN_SUITE(CheckCAndPhiTwiceReducedAfterCallingApplyCPhiReductionProcessTwice, KratosGeoMechanicsFastSuiteWithoutKernel)
+KRATOS_TEST_CASE_IN_SUITE(CheckCAndPhiTwiceReducedAfterCallingApplyCPhiReductionProcessTwice,
+                          KratosGeoMechanicsFastSuiteWithoutKernel)
 {
-    Model model;
-    auto& r_model_part = PrepareCPhiTestModelPart(model);
+    Model       model;
+    const auto& r_model_part = PrepareCPhiTestModelPart(model);
 
-    ApplyCPhiReductionProcess process{r_model_part, {}};
+    const auto                parameters = Parameters{R"({"model_part_name" : "dummy"})"};
+    ApplyCPhiReductionProcess process{model, parameters};
     process.ExecuteInitializeSolutionStep();
     process.ExecuteFinalizeSolutionStep();
     process.ExecuteInitializeSolutionStep();
@@ -109,9 +112,11 @@ KRATOS_TEST_CASE_IN_SUITE(CheckFailureUmatInputsApplyCPhiReductionProcess, Krato
     auto& r_model_part_properties = r_model_part.GetProperties(0);
     auto  p_dummy_law             = std::make_shared<Testing::StubLinearElasticLaw>();
     r_model_part_properties.SetValue(CONSTITUTIVE_LAW, p_dummy_law);
+    const auto parameters = Parameters{R"({"model_part_name" : "dummy"})"};
+
     KRATOS_EXPECT_EXCEPTION_IS_THROWN(
-        (ApplyCPhiReductionProcess{r_model_part, {}}.ExecuteInitializeSolutionStep()),
-        "Missing required item UMAT_PARAMETERS")
+        (ApplyCPhiReductionProcess{model, parameters}.ExecuteInitializeSolutionStep()),
+        "UMAT_PARAMETERS does not exist in the model part property with Id 0.")
 
     Vector umat_parameters(6);
     umat_parameters <<= 10000000, 0.2, 10.0, 25.0, 25.0, 1000;
@@ -119,80 +124,81 @@ KRATOS_TEST_CASE_IN_SUITE(CheckFailureUmatInputsApplyCPhiReductionProcess, Krato
 
     // checking of Phi
     KRATOS_EXPECT_EXCEPTION_IS_THROWN(
-        (ApplyCPhiReductionProcess{r_model_part, {}}.ExecuteInitializeSolutionStep()),
-        "Missing required item INDEX_OF_UMAT_PHI_PARAMETER")
+        (ApplyCPhiReductionProcess{model, parameters}.ExecuteInitializeSolutionStep()),
+        "INDEX_OF_UMAT_PHI_PARAMETER does not exist in the model part property with Id 0.")
 
     r_model_part_properties.SetValue(INDEX_OF_UMAT_PHI_PARAMETER, 0);
-    KRATOS_EXPECT_EXCEPTION_IS_THROWN(
-        (ApplyCPhiReductionProcess{r_model_part, {}}.ExecuteInitializeSolutionStep()),
-        "Invalid INDEX_OF_UMAT_PHI_PARAMETER: 0 (out-of-bounds index)")
+    KRATOS_EXPECT_EXCEPTION_IS_THROWN((ApplyCPhiReductionProcess{model, parameters}.ExecuteInitializeSolutionStep()), "INDEX_OF_UMAT_PHI_PARAMETER in the model part property with Id 0 has an invalid value: 0 is out of the range [1, 6].")
 
     r_model_part_properties.SetValue(INDEX_OF_UMAT_PHI_PARAMETER, 7);
-    KRATOS_EXPECT_EXCEPTION_IS_THROWN(
-        (ApplyCPhiReductionProcess{r_model_part, {}}.ExecuteInitializeSolutionStep()),
-        "Invalid INDEX_OF_UMAT_PHI_PARAMETER: 7 (out-of-bounds index)")
+    KRATOS_EXPECT_EXCEPTION_IS_THROWN((ApplyCPhiReductionProcess{model, parameters}.ExecuteInitializeSolutionStep()), "INDEX_OF_UMAT_PHI_PARAMETER in the model part property with Id 0 has an invalid value: 7 is out of the range [1, 6].")
 
     r_model_part_properties.SetValue(INDEX_OF_UMAT_PHI_PARAMETER, 4);
     umat_parameters(3) = -0.0001;
     r_model_part_properties.SetValue(UMAT_PARAMETERS, umat_parameters);
 
-    KRATOS_EXPECT_EXCEPTION_IS_THROWN(
-        (ApplyCPhiReductionProcess{r_model_part, {}}.ExecuteInitializeSolutionStep()),
-        "Friction angle Phi out of range: -0.0001")
+    KRATOS_EXPECT_EXCEPTION_IS_THROWN((ApplyCPhiReductionProcess{model, parameters}.ExecuteInitializeSolutionStep()), "Friction angle Phi in the model part property with Id 0 has an invalid value: -0.0001 is out of range [0,90] (degrees).")
 
-    umat_parameters(3) = 90.00001;
+    umat_parameters(3) = 90.0001;
     r_model_part_properties.SetValue(UMAT_PARAMETERS, umat_parameters);
-    KRATOS_EXPECT_EXCEPTION_IS_THROWN(
-        (ApplyCPhiReductionProcess{r_model_part, {}}.ExecuteInitializeSolutionStep()),
-        "Friction angle Phi out of range: 90")
+    KRATOS_EXPECT_EXCEPTION_IS_THROWN((ApplyCPhiReductionProcess{model, parameters}.ExecuteInitializeSolutionStep()), "Friction angle Phi in the model part property with Id 0 has an invalid value: 90.0001 is out of range [0,90] (degrees).")
 
     umat_parameters(3) = 25.0;
     r_model_part_properties.SetValue(UMAT_PARAMETERS, umat_parameters);
     // checking of c
     KRATOS_EXPECT_EXCEPTION_IS_THROWN(
-        (ApplyCPhiReductionProcess{r_model_part, {}}.ExecuteInitializeSolutionStep()),
+        (ApplyCPhiReductionProcess{model, parameters}.ExecuteInitializeSolutionStep()),
         "Missing required item INDEX_OF_UMAT_C_PARAMETER")
 
     r_model_part_properties.SetValue(INDEX_OF_UMAT_C_PARAMETER, 0);
     KRATOS_EXPECT_EXCEPTION_IS_THROWN(
-        (ApplyCPhiReductionProcess{r_model_part, {}}.ExecuteInitializeSolutionStep()),
+        (ApplyCPhiReductionProcess{model, parameters}.ExecuteInitializeSolutionStep()),
         "invalid INDEX_OF_UMAT_C_PARAMETER: 0 (out-of-bounds index)")
 
     r_model_part_properties.SetValue(INDEX_OF_UMAT_C_PARAMETER, 7);
     KRATOS_EXPECT_EXCEPTION_IS_THROWN(
-        (ApplyCPhiReductionProcess{r_model_part, {}}.ExecuteInitializeSolutionStep()),
+        (ApplyCPhiReductionProcess{model, parameters}.ExecuteInitializeSolutionStep()),
         "invalid INDEX_OF_UMAT_C_PARAMETER: 7 (out-of-bounds index)")
 
     r_model_part_properties.SetValue(INDEX_OF_UMAT_C_PARAMETER, 3);
     umat_parameters(2) = -0.00001;
     r_model_part_properties.SetValue(UMAT_PARAMETERS, umat_parameters);
     KRATOS_EXPECT_EXCEPTION_IS_THROWN(
-        (ApplyCPhiReductionProcess{r_model_part, {}}.ExecuteInitializeSolutionStep()),
+        (ApplyCPhiReductionProcess{model, parameters}.ExecuteInitializeSolutionStep()),
         "Cohesion C out of range: -1e-05")
 }
 
 KRATOS_TEST_CASE_IN_SUITE(CheckFailureEmptyModelPartApplyCPhiReductionProcess, KratosGeoMechanicsFastSuiteWithoutKernel)
 {
     Model model;
-    auto& r_modelpart = model.CreateModelPart("dummy");
-    KRATOS_EXPECT_EXCEPTION_IS_THROWN((ApplyCPhiReductionProcess{r_modelpart, {}}.Check()),
-                                      "ApplyCPhiReductionProces has no elements in modelpart dummy")
+    model.CreateModelPart("dummy");
+    const auto parameters = Parameters{R"({"model_part_name" : "dummy"})"};
+
+    KRATOS_EXPECT_EXCEPTION_IS_THROWN(
+        (ApplyCPhiReductionProcess{model, parameters}.Check()),
+        "None of the provided model parts contains at least one element. A c-phi reduction "
+        "analysis requires at least one element.")
 }
 
 KRATOS_TEST_CASE_IN_SUITE(CheckReturnsZeroForValidModelPartApplyCPhiReductionProcess, KratosGeoMechanicsFastSuiteWithoutKernel)
 {
-    Model                     model;
-    auto&                     r_model_part = PrepareCPhiTestModelPart(model);
-    ApplyCPhiReductionProcess process{r_model_part, {}};
+    Model model;
+    PrepareCPhiTestModelPart(model);
+    const auto parameters = Parameters{R"({"model_part_name_list" : ["dummy"]})"};
+
+    ApplyCPhiReductionProcess process{model, parameters};
     KRATOS_CHECK_EQUAL(process.Check(), 0);
 }
 
-KRATOS_TEST_CASE_IN_SUITE(CheckFailureNegativeReductionFactorApplyCPhiReductionProcess, KratosGeoMechanicsFastSuiteWithoutKernel)
+KRATOS_TEST_CASE_IN_SUITE(CheckFailureNegativeReductionFactorApplyCPhiReductionProcess,
+                          KratosGeoMechanicsFastSuiteWithoutKernel)
 {
     Model model;
-    auto& r_model_part = PrepareCPhiTestModelPart(model);
+    PrepareCPhiTestModelPart(model);
 
-    ApplyCPhiReductionProcess process{r_model_part, {}};
+    const auto parameters = Parameters{R"({"model_part_name_list" : ["dummy"]})"};
+
+    ApplyCPhiReductionProcess process{model, parameters};
     for (size_t i = 0; i < 9; ++i) {
         process.ExecuteInitializeSolutionStep();
         process.ExecuteFinalizeSolutionStep();
@@ -202,14 +208,17 @@ KRATOS_TEST_CASE_IN_SUITE(CheckFailureNegativeReductionFactorApplyCPhiReductionP
         "Reduction factor should not drop below 0.01, calculation stopped.");
 }
 
-KRATOS_TEST_CASE_IN_SUITE(CheckFailureTooSmallReductionIncrementApplyCPhiReductionProcess, KratosGeoMechanicsFastSuiteWithoutKernel)
+KRATOS_TEST_CASE_IN_SUITE(CheckFailureTooSmallReductionIncrementApplyCPhiReductionProcess,
+                          KratosGeoMechanicsFastSuiteWithoutKernel)
 {
     Model model;
     auto& r_model_part = PrepareCPhiTestModelPart(model);
     // Number of cycles should be larger than one to trigger the step halving of the
     // reduction increment
     r_model_part.GetProcessInfo().GetValue(NUMBER_OF_CYCLES) = 10;
-    ApplyCPhiReductionProcess process{r_model_part, {}};
+    const auto parameters = Parameters{R"({"model_part_name_list" : ["dummy"]})"};
+
+    ApplyCPhiReductionProcess process{model, parameters};
     for (size_t i = 0; i < 6; ++i) {
         process.ExecuteInitializeSolutionStep();
         process.ExecuteFinalizeSolutionStep();
@@ -221,6 +230,18 @@ KRATOS_TEST_CASE_IN_SUITE(CheckFailureTooSmallReductionIncrementApplyCPhiReducti
     KRATOS_EXPECT_EXCEPTION_IS_THROWN(process.ExecuteInitializeSolutionStep(),
                                       "Reduction increment should not drop below 0.001, "
                                       "calculation stopped. Final safety factor = 1.10919");
+}
+
+KRATOS_TEST_CASE_IN_SUITE(CheckInfoApplyCPhiReductionProcess, KratosGeoMechanicsFastSuiteWithoutKernel)
+{
+    // Arrange
+    Model model;
+    model.CreateModelPart("foo");
+    const auto                      parameters = Parameters{R"({"model_part_name" : "foo"})"};
+    const ApplyCPhiReductionProcess process{model, parameters};
+
+    // Act & Assert
+    KRATOS_EXPECT_EQ(process.Info(), "ApplyCPhiReductionProcess");
 }
 
 } // namespace Kratos::Testing

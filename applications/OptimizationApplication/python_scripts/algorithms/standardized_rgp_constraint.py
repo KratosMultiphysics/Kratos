@@ -21,8 +21,8 @@ class ConstraintType(Enum):
 class StandardizedRGPConstraint(ResponseRoutine):
     """Standardized RGP constraint response function
 
-    This class creates instances to standardize any response function for the specified type of the contraint.
-    Supported contraint types:
+    This class creates instances to standardize any response function for the specified type of the constraint.
+    Supported constraint types:
         "=",
         "<",
         "<=,
@@ -31,7 +31,7 @@ class StandardizedRGPConstraint(ResponseRoutine):
 
     The reference value for the constraint either can be the "initial_value" or a specified value.
 
-    It can be used only with relaxed_gradient_projection_algorithm. The class contains neccessary functions to compute critical zones.
+    It can be used only with relaxed_gradient_projection_algorithm. The class contains necessary functions to compute critical zones.
 
     """
     def __init__(self, parameters: Kratos.Parameters, master_control: MasterControl, optimization_problem: OptimizationProblem, required_buffer_size: int = 4):
@@ -210,7 +210,9 @@ class StandardizedRGPConstraint(ResponseRoutine):
 
             if save_value:
                 if self.__buffered_data.HasValue("value"): del self.__buffered_data["value"]
+                if self.__buffered_data.HasValue("std_value"): del self.__buffered_data["std_value"]
                 self.__buffered_data["value"] = response_value
+                self.__buffered_data["std_value"] = standardized_response_value
 
             DictLogger("Constraint info",self.GetInfo())
 
