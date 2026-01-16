@@ -260,12 +260,12 @@ bool ContainerComponentIO<TContainerType, TContainerDataIO, TComponents...>::Wri
         if constexpr(TContainerDataIO::DataAvailability == Internals::DataAvailabilityStatesList::INCONCLUSIVE) {
             // the entities in the rContainer may or may not contain the rComponent. Hence, for this
             // type we need to compute the availability.
-            const std::tuple<char, char> availability_local_counts_pair = IndexPartition<IndexType>(rLocalContainer.size()).for_each<CombinedReduction<SumReduction<IndexType>, SumReduction<IndexType>>>([&rContainerDataIO, &rLocalContainer, &r_component, &availability](const auto Index) {
+            const std::tuple<unsigned char, unsigned char> availability_local_counts_pair = IndexPartition<IndexType>(rLocalContainer.size()).for_each<CombinedReduction<SumReduction<IndexType>, SumReduction<IndexType>>>([&rContainerDataIO, &rLocalContainer, &r_component, &availability](const auto Index) {
                 availability[Index] = rContainerDataIO.HasValue(*(rLocalContainer.begin() + Index), r_component);
-                return std::make_tuple<char, char>(static_cast<char>(availability[Index] == 1), static_cast<char>(availability[Index] == 0));
+                return std::make_tuple<unsigned char, unsigned char>(static_cast<unsigned char>(availability[Index] == 1), static_cast<unsigned char>(availability[Index] == 0));
             });
 
-            const auto& availability_global_counts_pair = mpFile->GetDataCommunicator().SumAll(std::vector<char>{std::get<0>(availability_local_counts_pair), std::get<1>(availability_local_counts_pair)});
+            const auto& availability_global_counts_pair = mpFile->GetDataCommunicator().SumAll(std::vector<unsigned char>{std::get<0>(availability_local_counts_pair), std::get<1>(availability_local_counts_pair)});
 
             KRATOS_ERROR_IF(availability_global_counts_pair[1] == availability_global_counts_pair[2])
                 << "None of the entities in the container have \"" << rComponentName << "\" defined.";
