@@ -1,6 +1,6 @@
 import os
-from KratosMultiphysics import *
-from KratosMultiphysics.HDF5Application import *
+import KratosMultiphysics as KMP
+import KratosMultiphysics.HDF5Application as HDF5App
 import KratosMultiphysics.KratosUnittest as KratosUnittest
 import random
 
@@ -20,20 +20,20 @@ class TestCase(KratosUnittest.TestCase):
     def setUp(self):
         pass
 
-    def _initialize_model_part(self, model_part: ModelPart):
+    def _initialize_model_part(self, model_part: KMP.ModelPart):
         num_tri_elems = 10 # Use enough elements for detecting possible openmp issues.
         num_quad_elems = 15
         num_tri_conds = 5
         num_quad_conds = 10
         num_nodes = (num_tri_elems + 2) + (num_quad_elems + 2)
         # Add variables.
-        model_part.AddNodalSolutionStepVariable(DISPLACEMENT) # array_1d
-        model_part.AddNodalSolutionStepVariable(VELOCITY)
-        model_part.AddNodalSolutionStepVariable(ACCELERATION)
-        model_part.AddNodalSolutionStepVariable(PRESSURE) # double
-        model_part.AddNodalSolutionStepVariable(VISCOSITY)
-        model_part.AddNodalSolutionStepVariable(DENSITY)
-        model_part.AddNodalSolutionStepVariable(ACTIVATION_LEVEL) # int
+        model_part.AddNodalSolutionStepVariable(KMP.DISPLACEMENT) # array_1d
+        model_part.AddNodalSolutionStepVariable(KMP.VELOCITY)
+        model_part.AddNodalSolutionStepVariable(KMP.ACCELERATION)
+        model_part.AddNodalSolutionStepVariable(KMP.PRESSURE) # double
+        model_part.AddNodalSolutionStepVariable(KMP.VISCOSITY)
+        model_part.AddNodalSolutionStepVariable(KMP.DENSITY)
+        model_part.AddNodalSolutionStepVariable(KMP.ACTIVATION_LEVEL) # int
         # Create nodes.
         for i in range(num_nodes):
             x = random.random()
@@ -71,160 +71,160 @@ class TestCase(KratosUnittest.TestCase):
         model_part.SetBufferSize(2)
         for node in model_part.Nodes:
             # Write some data to the nodal solution steps variables.
-            node.SetSolutionStepValue(DISPLACEMENT_X, random.random())
-            node.SetSolutionStepValue(DISPLACEMENT_Y, random.random())
-            node.SetSolutionStepValue(DISPLACEMENT_Z, random.random())
-            node.SetSolutionStepValue(VELOCITY_X, random.random())
-            node.SetSolutionStepValue(VELOCITY_Y, random.random())
-            node.SetSolutionStepValue(VELOCITY_Z, random.random())
-            node.SetSolutionStepValue(ACCELERATION_X, random.random())
-            node.SetSolutionStepValue(ACCELERATION_Y, random.random())
-            node.SetSolutionStepValue(ACCELERATION_Z, random.random())
-            node.SetSolutionStepValue(PRESSURE, random.random())
-            node.SetSolutionStepValue(VISCOSITY, random.random())
-            node.SetSolutionStepValue(DENSITY, random.random())
-            node.SetSolutionStepValue(ACTIVATION_LEVEL, random.randint(-100, 100))
+            node.SetSolutionStepValue(KMP.DISPLACEMENT_X, random.random())
+            node.SetSolutionStepValue(KMP.DISPLACEMENT_Y, random.random())
+            node.SetSolutionStepValue(KMP.DISPLACEMENT_Z, random.random())
+            node.SetSolutionStepValue(KMP.VELOCITY_X, random.random())
+            node.SetSolutionStepValue(KMP.VELOCITY_Y, random.random())
+            node.SetSolutionStepValue(KMP.VELOCITY_Z, random.random())
+            node.SetSolutionStepValue(KMP.ACCELERATION_X, random.random())
+            node.SetSolutionStepValue(KMP.ACCELERATION_Y, random.random())
+            node.SetSolutionStepValue(KMP.ACCELERATION_Z, random.random())
+            node.SetSolutionStepValue(KMP.PRESSURE, random.random())
+            node.SetSolutionStepValue(KMP.VISCOSITY, random.random())
+            node.SetSolutionStepValue(KMP.DENSITY, random.random())
+            node.SetSolutionStepValue(KMP.ACTIVATION_LEVEL, random.randint(-100, 100))
             # Write some data to the nodal data container variables.
-            node.SetValue(DISPLACEMENT_X, random.random())
-            node.SetValue(DISPLACEMENT_Y, random.random())
-            node.SetValue(DISPLACEMENT_Z, random.random())
-            node.SetValue(VELOCITY_X, random.random())
-            node.SetValue(VELOCITY_Y, random.random())
-            node.SetValue(VELOCITY_Z, random.random())
-            node.SetValue(ACCELERATION_X, random.random())
-            node.SetValue(ACCELERATION_Y, random.random())
-            node.SetValue(ACCELERATION_Z, random.random())
-            node.SetValue(PRESSURE, random.random())
-            node.SetValue(VISCOSITY, random.random())
-            node.SetValue(DENSITY, random.random())
-            node.SetValue(ACTIVATION_LEVEL, random.randint(-100, 100))
+            node.SetValue(KMP.DISPLACEMENT_X, random.random())
+            node.SetValue(KMP.DISPLACEMENT_Y, random.random())
+            node.SetValue(KMP.DISPLACEMENT_Z, random.random())
+            node.SetValue(KMP.VELOCITY_X, random.random())
+            node.SetValue(KMP.VELOCITY_Y, random.random())
+            node.SetValue(KMP.VELOCITY_Z, random.random())
+            node.SetValue(KMP.ACCELERATION_X, random.random())
+            node.SetValue(KMP.ACCELERATION_Y, random.random())
+            node.SetValue(KMP.ACCELERATION_Z, random.random())
+            node.SetValue(KMP.PRESSURE, random.random())
+            node.SetValue(KMP.VISCOSITY, random.random())
+            node.SetValue(KMP.DENSITY, random.random())
+            node.SetValue(KMP.ACTIVATION_LEVEL, random.randint(-100, 100))
             # Write some flags
-            node.Set(SLIP, bool(random.randint(-100, 100) % 2))
-            node.Set(ACTIVE, bool(random.randint(-100, 100) % 2))
-            node.Set(STRUCTURE, bool(random.randint(-100, 100) % 2))
+            node.Set(KMP.SLIP, bool(random.randint(-100, 100) % 2))
+            node.Set(KMP.ACTIVE, bool(random.randint(-100, 100) % 2))
+            node.Set(KMP.STRUCTURE, bool(random.randint(-100, 100) % 2))
 
         for element in model_part.Elements:
             if (element.Id % 2 == 0):
-                element.SetValue(DISPLACEMENT, Vector([random.random(), random.random(), random.random()]))
-            element.SetValue(VELOCITY, Vector([random.random(), random.random(), random.random()]))
+                element.SetValue(KMP.DISPLACEMENT, KMP.Vector([random.random(), random.random(), random.random()]))
+            element.SetValue(KMP.VELOCITY, KMP.Vector([random.random(), random.random(), random.random()]))
             if (element.Id % 3 == 0):
-                element.SetValue(ACCELERATION, Vector([random.random(), random.random(), random.random()]))
-            element.SetValue(PRESSURE, random.random())
-            element.SetValue(VISCOSITY, random.random())
+                element.SetValue(KMP.ACCELERATION, KMP.Vector([random.random(), random.random(), random.random()]))
+            element.SetValue(KMP.PRESSURE, random.random())
+            element.SetValue(KMP.VISCOSITY, random.random())
             if (element.Id % 4 == 0):
-                element.SetValue(DENSITY, random.random())
-            element.SetValue(ACTIVATION_LEVEL, random.randint(-100, 100))
+                element.SetValue(KMP.DENSITY, random.random())
+            element.SetValue(KMP.ACTIVATION_LEVEL, random.randint(-100, 100))
 
-            element.Set(SLIP, bool(random.randint(-100, 100) % 2))
-            element.Set(ACTIVE, bool(random.randint(-100, 100) % 2))
+            element.Set(KMP.SLIP, bool(random.randint(-100, 100) % 2))
+            element.Set(KMP.ACTIVE, bool(random.randint(-100, 100) % 2))
             if (element.Id % 3 == 0):
-                element.Set(STRUCTURE, bool(random.randint(-100, 100) % 2))
+                element.Set(KMP.STRUCTURE, bool(random.randint(-100, 100) % 2))
 
         for condition in model_part.Conditions:
-            condition.SetValue(DISPLACEMENT, Vector([random.random(), random.random(), random.random()]))
-            condition.SetValue(VELOCITY, Vector([random.random(), random.random(), random.random()]))
-            condition.SetValue(ACCELERATION, Vector([random.random(), random.random(), random.random()]))
-            condition.SetValue(PRESSURE, random.random())
-            condition.SetValue(VISCOSITY, random.random())
-            condition.SetValue(DENSITY, random.random())
-            condition.SetValue(ACTIVATION_LEVEL, random.randint(-100, 100))
+            condition.SetValue(KMP.DISPLACEMENT, KMP.Vector([random.random(), random.random(), random.random()]))
+            condition.SetValue(KMP.VELOCITY, KMP.Vector([random.random(), random.random(), random.random()]))
+            condition.SetValue(KMP.ACCELERATION, KMP.Vector([random.random(), random.random(), random.random()]))
+            condition.SetValue(KMP.PRESSURE, random.random())
+            condition.SetValue(KMP.VISCOSITY, random.random())
+            condition.SetValue(KMP.DENSITY, random.random())
+            condition.SetValue(KMP.ACTIVATION_LEVEL, random.randint(-100, 100))
 
-            condition.Set(SLIP, bool(random.randint(-100, 100) % 2))
-            condition.Set(ACTIVE, bool(random.randint(-100, 100) % 2))
-            condition.Set(STRUCTURE, bool(random.randint(-100, 100) % 2))
+            condition.Set(KMP.SLIP, bool(random.randint(-100, 100) % 2))
+            condition.Set(KMP.ACTIVE, bool(random.randint(-100, 100) % 2))
+            condition.Set(KMP.STRUCTURE, bool(random.randint(-100, 100) % 2))
         # Set some process info variables.
-        model_part.ProcessInfo[DOMAIN_SIZE] = 3 # int
-        model_part.ProcessInfo[TIME] = random.random() # float
-        initial_strain = Vector(6)
+        model_part.ProcessInfo[KMP.DOMAIN_SIZE] = 3 # int
+        model_part.ProcessInfo[KMP.TIME] = random.random() # float
+        initial_strain = KMP.Vector(6)
         for i in range(6):
             initial_strain[i] = random.random()
-        model_part.ProcessInfo[INITIAL_STRAIN] = initial_strain # vector
-        gl_strain_tensor = Matrix(5,5)
+        model_part.ProcessInfo[KMP.INITIAL_STRAIN] = initial_strain # vector
+        gl_strain_tensor = KMP.Matrix(5,5)
         for i in range(5):
             for j in range(5):
                 gl_strain_tensor[i,j] = random.random()
-        model_part.ProcessInfo[GREEN_LAGRANGE_STRAIN_TENSOR] = gl_strain_tensor # matrix
+        model_part.ProcessInfo[KMP.GREEN_LAGRANGE_STRAIN_TENSOR] = gl_strain_tensor # matrix
 
         for i in range(4):
             prop = model_part.GetProperties()[i]
-            prop.SetValue(DISTANCE, random.random())
-            prop.SetValue(PRESSURE, random.random())
-            new_sub_prop: Properties = model_part.CreateNewProperties(5 + i)
-            new_sub_prop.SetValue(DISTANCE, random.random())
-            new_sub_prop.SetValue(ACCELERATION, Vector([random.random(), random.random(), random.random()]))
+            prop.SetValue(KMP.DISTANCE, random.random())
+            prop.SetValue(KMP.PRESSURE, random.random())
+            new_sub_prop: KMP.Properties = model_part.CreateNewProperties(5 + i)
+            new_sub_prop.SetValue(KMP.DISTANCE, random.random())
+            new_sub_prop.SetValue(KMP.ACCELERATION, KMP.Vector([random.random(), random.random(), random.random()]))
             prop.AddSubProperties(new_sub_prop)
 
     def _get_file(self):
-        params = Parameters("""
+        params = KMP.Parameters("""
         {
             "file_name" : "test_hdf5_model_part_io.h5",
             "file_access_mode" : "exclusive",
             "file_driver" : "core"
         }""")
-        return HDF5File(params)
+        return HDF5App.HDF5File(params)
 
     def _get_model_part_io(self, hdf5_file):
-        return HDF5ModelPartIO(hdf5_file, "/ModelData")
+        return HDF5App.HDF5ModelPartIO(hdf5_file, "/ModelData")
 
     def _get_nodal_solution_step_data_io(self, hdf5_file):
-        params = Parameters("""
+        params = KMP.Parameters("""
         {
             "prefix" : "/ResultsData",
             "list_of_variables" : ["DISPLACEMENT", "VELOCITY", "ACCELERATION", "PRESSURE", "VISCOSITY", "DENSITY", "ACTIVATION_LEVEL"]
         }""")
-        return HDF5NodalSolutionStepDataIO(params, hdf5_file)
+        return HDF5App.HDF5NodalSolutionStepDataIO(params, hdf5_file)
 
     def _get_element_data_value_io(self, hdf5_file):
-        params = Parameters("""
+        params = KMP.Parameters("""
         {
             "prefix" : "/ResultsData",
             "list_of_variables" : ["DISPLACEMENT", "VELOCITY", "ACCELERATION", "PRESSURE", "VISCOSITY", "DENSITY", "ACTIVATION_LEVEL"]
         }""")
-        return HDF5ElementDataValueIO(params, hdf5_file)
+        return HDF5App.HDF5ElementDataValueIO(params, hdf5_file)
 
     def _get_element_flag_value_io(self, hdf5_file):
-        params = Parameters("""
+        params = KMP.Parameters("""
         {
             "prefix" : "/ResultsData",
             "list_of_variables" : ["SLIP", "ACTIVE", "STRUCTURE"]
         }""")
-        return HDF5ElementFlagValueIO(params, hdf5_file)
+        return HDF5App.HDF5ElementFlagValueIO(params, hdf5_file)
 
     def _get_condition_data_value_io(self, hdf5_file):
-        params = Parameters("""
+        params = KMP.Parameters("""
         {
             "prefix" : "/ResultsData",
             "list_of_variables" : ["DISPLACEMENT", "VELOCITY", "ACCELERATION", "PRESSURE", "VISCOSITY", "DENSITY", "ACTIVATION_LEVEL"]
         }""")
-        return HDF5ConditionDataValueIO(params, hdf5_file)
+        return HDF5App.HDF5ConditionDataValueIO(params, hdf5_file)
 
     def _get_condition_flag_value_io(self, hdf5_file):
-        params = Parameters("""
+        params = KMP.Parameters("""
         {
             "prefix" : "/ResultsData",
             "list_of_variables" : ["SLIP", "ACTIVE", "STRUCTURE"]
         }""")
-        return HDF5ConditionFlagValueIO(params, hdf5_file)
+        return HDF5App.HDF5ConditionFlagValueIO(params, hdf5_file)
 
     def _get_nodal_data_value_io(self, hdf5_file):
-        params = Parameters("""
+        params = KMP.Parameters("""
         {
             "prefix" : "/ResultsData",
             "list_of_variables" : ["DISPLACEMENT", "VELOCITY", "ACCELERATION", "PRESSURE", "VISCOSITY", "DENSITY", "ACTIVATION_LEVEL"]
         }""")
-        return HDF5NodalDataValueIO(params, hdf5_file)
+        return HDF5App.HDF5NodalDataValueIO(params, hdf5_file)
 
     def _get_nodal_flag_value_io(self, hdf5_file):
-        params = Parameters("""
+        params = KMP.Parameters("""
         {
             "prefix" : "/ResultsData",
             "list_of_variables" : ["SLIP", "ACTIVE", "STRUCTURE"]
         }""")
-        return HDF5NodalFlagValueIO(params, hdf5_file)
+        return HDF5App.HDF5NodalFlagValueIO(params, hdf5_file)
 
     def test_HDF5ModelPartIO(self):
         with ControlledExecutionScope(os.path.dirname(os.path.realpath(__file__))):
-            model = Model()
+            model = KMP.Model()
             write_model_part = model.CreateModelPart("write", 2)
             self._initialize_model_part(write_model_part)
             hdf5_file = self._get_file()
@@ -258,15 +258,15 @@ class TestCase(KratosUnittest.TestCase):
                 for read_cond_node, write_cond_node in zip(read_cond.GetNodes(), write_cond.GetNodes()):
                     self.assertEqual(read_cond_node.Id, write_cond_node.Id)
             # Check process info
-            self.assertEqual(read_model_part.ProcessInfo[DOMAIN_SIZE], write_model_part.ProcessInfo[DOMAIN_SIZE])
-            self.assertEqual(read_model_part.ProcessInfo[TIME], write_model_part.ProcessInfo[TIME])
-            read_vector = read_model_part.ProcessInfo[INITIAL_STRAIN]
-            write_vector = write_model_part.ProcessInfo[INITIAL_STRAIN]
+            self.assertEqual(read_model_part.ProcessInfo[KMP.DOMAIN_SIZE], write_model_part.ProcessInfo[KMP.DOMAIN_SIZE])
+            self.assertEqual(read_model_part.ProcessInfo[KMP.TIME], write_model_part.ProcessInfo[KMP.TIME])
+            read_vector = read_model_part.ProcessInfo[KMP.INITIAL_STRAIN]
+            write_vector = write_model_part.ProcessInfo[KMP.INITIAL_STRAIN]
             self.assertEqual(read_vector.Size(), write_vector.Size())
             for i in range(len(read_vector)):
                 self.assertEqual(read_vector[i], write_vector[i])
-            read_matrix = read_model_part.ProcessInfo[GREEN_LAGRANGE_STRAIN_TENSOR]
-            write_matrix = write_model_part.ProcessInfo[GREEN_LAGRANGE_STRAIN_TENSOR]
+            read_matrix = read_model_part.ProcessInfo[KMP.GREEN_LAGRANGE_STRAIN_TENSOR]
+            write_matrix = write_model_part.ProcessInfo[KMP.GREEN_LAGRANGE_STRAIN_TENSOR]
             self.assertEqual(read_matrix.Size1(), write_matrix.Size1())
             self.assertEqual(read_matrix.Size2(), write_matrix.Size2())
             for i in range(read_matrix.Size1()):
@@ -274,20 +274,20 @@ class TestCase(KratosUnittest.TestCase):
                     self.assertEqual(read_matrix[i,j], write_matrix[i,j])
 
             # check properties
-            prop_write: Properties
-            prop_read: Properties
+            prop_write: KMP.Properties
+            prop_read: KMP.Properties
             for i in range(4):
                 prop_write = write_model_part.GetProperties()[i]
                 prop_read = read_model_part.GetProperties()[i]
-                self.assertEqual(prop_write.GetValue(DISTANCE), prop_read.GetValue(DISTANCE))
-                self.assertEqual(prop_write.GetValue(PRESSURE), prop_read.GetValue(PRESSURE))
-                self.assertEqual(prop_write.GetSubProperties(5 + i).GetValue(DISTANCE), prop_read.GetSubProperties(5 + i).GetValue(DISTANCE))
-                self.assertVectorAlmostEqual(prop_write.GetSubProperties(5 + i).GetValue(ACCELERATION), prop_read.GetSubProperties(5 + i).GetValue(ACCELERATION))
+                self.assertEqual(prop_write.GetValue(KMP.DISTANCE), prop_read.GetValue(KMP.DISTANCE))
+                self.assertEqual(prop_write.GetValue(KMP.PRESSURE), prop_read.GetValue(KMP.PRESSURE))
+                self.assertEqual(prop_write.GetSubProperties(5 + i).GetValue(KMP.DISTANCE), prop_read.GetSubProperties(5 + i).GetValue(KMP.DISTANCE))
+                self.assertVectorAlmostEqual(prop_write.GetSubProperties(5 + i).GetValue(KMP.ACCELERATION), prop_read.GetSubProperties(5 + i).GetValue(KMP.ACCELERATION))
 
 
     def test_RecursiveSubModelParts(self):
         with ControlledExecutionScope(os.path.dirname(os.path.realpath(__file__))):
-            model = Model()
+            model = KMP.Model()
 
             write_model_part = model.CreateModelPart("write_model_part")
             def create_entities(model_part, num_nodes):
@@ -384,7 +384,7 @@ class TestCase(KratosUnittest.TestCase):
 
     def test_HDF5NodalSolutionStepDataIO(self):
         with ControlledExecutionScope(os.path.dirname(os.path.realpath(__file__))):
-            model = Model()
+            model = KMP.Model()
             write_model_part = model.CreateModelPart("write", 2)
             self._initialize_model_part(write_model_part)
             hdf5_file = self._get_file()
@@ -396,10 +396,10 @@ class TestCase(KratosUnittest.TestCase):
             hdf5_model_part_io.ReadModelPart(read_model_part)
             hdf5_nodal_solution_step_data_io.ReadNodalResults(read_model_part, 0)
 
-            assert_variables_list = [DISPLACEMENT_X, DISPLACEMENT_Y, DISPLACEMENT_Z,
-                                     VELOCITY_X, VELOCITY_Y, VELOCITY_Z,
-                                     ACCELERATION_X, ACCELERATION_Y, ACCELERATION_Z,
-                                     PRESSURE, VISCOSITY, DENSITY, ACTIVATION_LEVEL]
+            assert_variables_list = [KMP.DISPLACEMENT_X, KMP.DISPLACEMENT_Y, KMP.DISPLACEMENT_Z,
+                                     KMP.VELOCITY_X, KMP.VELOCITY_Y, KMP.VELOCITY_Z,
+                                     KMP.ACCELERATION_X, KMP.ACCELERATION_Y, KMP.ACCELERATION_Z,
+                                     KMP.PRESSURE, KMP.VISCOSITY, KMP.DENSITY, KMP.ACTIVATION_LEVEL]
             # Check data.
             for read_node, write_node in zip(read_model_part.Nodes, write_model_part.Nodes):
                 for var in assert_variables_list:
@@ -407,20 +407,20 @@ class TestCase(KratosUnittest.TestCase):
 
     def test_HDF5ElementDataValueIO(self):
         with ControlledExecutionScope(os.path.dirname(os.path.realpath(__file__))):
-            model = Model()
+            model = KMP.Model()
             write_model_part = model.CreateModelPart("write", 2)
             self._initialize_model_part(write_model_part)
             hdf5_file = self._get_file()
             hdf5_model_part_io = self._get_model_part_io(hdf5_file)
             hdf5_element_data_value_io = self._get_element_data_value_io(hdf5_file)
             hdf5_model_part_io.WriteModelPart(write_model_part)
-            hdf5_element_data_value_io.WriteElementResults(write_model_part.Elements)
+            hdf5_element_data_value_io.Write(write_model_part)
             read_model_part = model.CreateModelPart("read", 2)
             hdf5_model_part_io.ReadModelPart(read_model_part)
             hdf5_element_data_value_io.ReadElementResults(read_model_part.Elements,
                                                           read_model_part.GetCommunicator())
 
-            assert_variables_list = [PRESSURE, VISCOSITY, DENSITY, ACTIVATION_LEVEL]
+            assert_variables_list = [KMP.PRESSURE, KMP.VISCOSITY, KMP.DENSITY, KMP.ACTIVATION_LEVEL]
             # Check data.
             for read_element, write_element in zip(read_model_part.Elements, write_model_part.Elements):
                 for var in assert_variables_list:
@@ -432,7 +432,7 @@ class TestCase(KratosUnittest.TestCase):
 
     def test_HDF5ElementFlagValueIO(self):
         with ControlledExecutionScope(os.path.dirname(os.path.realpath(__file__))):
-            model = Model()
+            model = KMP.Model()
             write_model_part = model.CreateModelPart("write", 2)
             self._initialize_model_part(write_model_part)
             hdf5_file = self._get_file()
@@ -445,7 +445,7 @@ class TestCase(KratosUnittest.TestCase):
             hdf5_element_flag_value_io.ReadElementFlags(read_model_part.Elements,
                                                         read_model_part.GetCommunicator())
 
-            assert_variables_list = [SLIP, ACTIVE, STRUCTURE]
+            assert_variables_list = [KMP.SLIP, KMP.ACTIVE, KMP.STRUCTURE]
             # Check data.
             for read_element, write_element in zip(read_model_part.Elements, write_model_part.Elements):
                 for var in assert_variables_list:
@@ -457,7 +457,7 @@ class TestCase(KratosUnittest.TestCase):
 
     def test_HDF5ConditionDataValueIO(self):
         with ControlledExecutionScope(os.path.dirname(os.path.realpath(__file__))):
-            model = Model()
+            model = KMP.Model()
             write_model_part = model.CreateModelPart("write", 2)
             self._initialize_model_part(write_model_part)
             hdf5_file = self._get_file()
@@ -470,7 +470,7 @@ class TestCase(KratosUnittest.TestCase):
             hdf5_condition_data_value_io.ReadConditionResults(read_model_part.Conditions,
                                                               read_model_part.GetCommunicator())
 
-            assert_variables_list = [PRESSURE, VISCOSITY, DENSITY, ACTIVATION_LEVEL]
+            assert_variables_list = [KMP.PRESSURE, KMP.VISCOSITY, KMP.DENSITY, KMP.ACTIVATION_LEVEL]
             # Check data.
             for read_condition, write_condition in zip(read_model_part.Conditions, write_model_part.Conditions):
                 for var in assert_variables_list:
@@ -478,7 +478,7 @@ class TestCase(KratosUnittest.TestCase):
 
     def test_HDF5ConditionFlagValueIO(self):
         with ControlledExecutionScope(os.path.dirname(os.path.realpath(__file__))):
-            model = Model()
+            model = KMP.Model()
             write_model_part = model.CreateModelPart("write", 2)
             self._initialize_model_part(write_model_part)
             hdf5_file = self._get_file()
@@ -491,7 +491,7 @@ class TestCase(KratosUnittest.TestCase):
             hdf5_condition_flag_value_io.ReadConditionFlags(read_model_part.Conditions,
                                                             read_model_part.GetCommunicator())
 
-            assert_variables_list = [SLIP, ACTIVE, STRUCTURE]
+            assert_variables_list = [KMP.SLIP, KMP.ACTIVE, KMP.STRUCTURE]
             # Check data.
             for read_condition, write_condition in zip(read_model_part.Conditions, write_model_part.Conditions):
                 for var in assert_variables_list:
@@ -499,7 +499,7 @@ class TestCase(KratosUnittest.TestCase):
 
     def test_HDF5NodalDataValueIO(self):
         with ControlledExecutionScope(os.path.dirname(os.path.realpath(__file__))):
-            model = Model()
+            model = KMP.Model()
             write_model_part = model.CreateModelPart("write", 2)
             self._initialize_model_part(write_model_part)
             hdf5_file = self._get_file()
@@ -511,10 +511,10 @@ class TestCase(KratosUnittest.TestCase):
             hdf5_model_part_io.ReadModelPart(read_model_part)
             hdf5_nodal_data_value_io.ReadNodalResults(read_model_part.Nodes, read_model_part.GetCommunicator())
 
-            assert_variables_list = [DISPLACEMENT_X, DISPLACEMENT_Y, DISPLACEMENT_Z,
-                                     VELOCITY_X, VELOCITY_Y, VELOCITY_Z,
-                                     ACCELERATION_X, ACCELERATION_Y, ACCELERATION_Z,
-                                     PRESSURE, VISCOSITY, DENSITY, ACTIVATION_LEVEL]
+            assert_variables_list = [KMP.DISPLACEMENT_X, KMP.DISPLACEMENT_Y, KMP.DISPLACEMENT_Z,
+                                     KMP.VELOCITY_X, KMP.VELOCITY_Y, KMP.VELOCITY_Z,
+                                     KMP.ACCELERATION_X, KMP.ACCELERATION_Y, KMP.ACCELERATION_Z,
+                                     KMP.PRESSURE, KMP.VISCOSITY, KMP.DENSITY, KMP.ACTIVATION_LEVEL]
             # Check data.
             for read_node, write_node in zip(read_model_part.Nodes, write_model_part.Nodes):
                 for var in assert_variables_list:
@@ -522,7 +522,7 @@ class TestCase(KratosUnittest.TestCase):
 
     def test_HDF5NodalFlagValueIO(self):
         with ControlledExecutionScope(os.path.dirname(os.path.realpath(__file__))):
-            model = Model()
+            model = KMP.Model()
             write_model_part = model.CreateModelPart("write", 2)
             self._initialize_model_part(write_model_part)
             hdf5_file = self._get_file()
@@ -534,7 +534,7 @@ class TestCase(KratosUnittest.TestCase):
             hdf5_model_part_io.ReadModelPart(read_model_part)
             hdf5_nodal_flag_value_io.ReadNodalFlags(read_model_part.Nodes, read_model_part.GetCommunicator())
 
-            assert_variables_list = [SLIP, ACTIVE, STRUCTURE]
+            assert_variables_list = [KMP.SLIP, KMP.ACTIVE, KMP.STRUCTURE]
             # Check flag.
             for read_node, write_node in zip(read_model_part.Nodes, write_model_part.Nodes):
                 for var in assert_variables_list:
