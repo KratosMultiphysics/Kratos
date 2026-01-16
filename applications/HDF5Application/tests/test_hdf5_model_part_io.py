@@ -392,10 +392,10 @@ class TestCase(KratosUnittest.TestCase):
             hdf5_model_part_io = self._get_model_part_io(hdf5_file)
             hdf5_nodal_solution_step_data_io = self._get_nodal_solution_step_data_io(hdf5_file)
             hdf5_model_part_io.WriteModelPart(write_model_part)
-            hdf5_nodal_solution_step_data_io.WriteNodalResults(write_model_part, 0)
+            hdf5_nodal_solution_step_data_io.Write(write_model_part, KMP.Parameters(), 0)
             read_model_part = model.CreateModelPart("read", 2)
             hdf5_model_part_io.ReadModelPart(read_model_part)
-            hdf5_nodal_solution_step_data_io.ReadNodalResults(read_model_part, 0)
+            hdf5_nodal_solution_step_data_io.Read(read_model_part, 0)
 
             assert_variables_list = [KMP.DISPLACEMENT_X, KMP.DISPLACEMENT_Y, KMP.DISPLACEMENT_Z,
                                      KMP.VELOCITY_X, KMP.VELOCITY_Y, KMP.VELOCITY_Z,
@@ -418,8 +418,7 @@ class TestCase(KratosUnittest.TestCase):
             hdf5_element_data_value_io.Write(write_model_part)
             read_model_part = model.CreateModelPart("read", 2)
             hdf5_model_part_io.ReadModelPart(read_model_part)
-            hdf5_element_data_value_io.ReadElementResults(read_model_part.Elements,
-                                                          read_model_part.GetCommunicator())
+            hdf5_element_data_value_io.Read(read_model_part)
 
             assert_variables_list = [KMP.PRESSURE, KMP.VISCOSITY, KMP.DENSITY, KMP.ACTIVATION_LEVEL]
             # Check data.
@@ -440,11 +439,10 @@ class TestCase(KratosUnittest.TestCase):
             hdf5_model_part_io = self._get_model_part_io(hdf5_file)
             hdf5_element_flag_value_io = self._get_element_flag_value_io(hdf5_file)
             hdf5_model_part_io.WriteModelPart(write_model_part)
-            hdf5_element_flag_value_io.WriteElementFlags(write_model_part.Elements)
+            hdf5_element_flag_value_io.Write(write_model_part)
             read_model_part = model.CreateModelPart("read", 2)
             hdf5_model_part_io.ReadModelPart(read_model_part)
-            hdf5_element_flag_value_io.ReadElementFlags(read_model_part.Elements,
-                                                        read_model_part.GetCommunicator())
+            hdf5_element_flag_value_io.Read(read_model_part)
 
             assert_variables_list = [KMP.SLIP, KMP.ACTIVE, KMP.STRUCTURE]
             # Check data.
@@ -465,11 +463,10 @@ class TestCase(KratosUnittest.TestCase):
             hdf5_model_part_io = self._get_model_part_io(hdf5_file)
             hdf5_condition_data_value_io = self._get_condition_data_value_io(hdf5_file)
             hdf5_model_part_io.WriteModelPart(write_model_part)
-            hdf5_condition_data_value_io.WriteConditionResults(write_model_part.Conditions)
+            hdf5_condition_data_value_io.Write(write_model_part)
             read_model_part = model.CreateModelPart("read", 2)
             hdf5_model_part_io.ReadModelPart(read_model_part)
-            hdf5_condition_data_value_io.ReadConditionResults(read_model_part.Conditions,
-                                                              read_model_part.GetCommunicator())
+            hdf5_condition_data_value_io.Read(read_model_part)
 
             assert_variables_list = [KMP.PRESSURE, KMP.VISCOSITY, KMP.DENSITY, KMP.ACTIVATION_LEVEL]
             # Check data.
@@ -486,11 +483,10 @@ class TestCase(KratosUnittest.TestCase):
             hdf5_model_part_io = self._get_model_part_io(hdf5_file)
             hdf5_condition_flag_value_io = self._get_condition_flag_value_io(hdf5_file)
             hdf5_model_part_io.WriteModelPart(write_model_part)
-            hdf5_condition_flag_value_io.WriteConditionFlags(write_model_part.Conditions)
+            hdf5_condition_flag_value_io.Write(write_model_part)
             read_model_part = model.CreateModelPart("read", 2)
             hdf5_model_part_io.ReadModelPart(read_model_part)
-            hdf5_condition_flag_value_io.ReadConditionFlags(read_model_part.Conditions,
-                                                            read_model_part.GetCommunicator())
+            hdf5_condition_flag_value_io.Read(read_model_part)
 
             assert_variables_list = [KMP.SLIP, KMP.ACTIVE, KMP.STRUCTURE]
             # Check data.
@@ -507,10 +503,10 @@ class TestCase(KratosUnittest.TestCase):
             hdf5_model_part_io = self._get_model_part_io(hdf5_file)
             hdf5_nodal_data_value_io = self._get_nodal_data_value_io(hdf5_file)
             hdf5_model_part_io.WriteModelPart(write_model_part)
-            hdf5_nodal_data_value_io.WriteNodalResults(write_model_part.Nodes)
+            hdf5_nodal_data_value_io.Write(write_model_part)
             read_model_part = model.CreateModelPart("read", 2)
             hdf5_model_part_io.ReadModelPart(read_model_part)
-            hdf5_nodal_data_value_io.ReadNodalResults(read_model_part.Nodes, read_model_part.GetCommunicator())
+            hdf5_nodal_data_value_io.Read(read_model_part)
 
             assert_variables_list = [KMP.DISPLACEMENT_X, KMP.DISPLACEMENT_Y, KMP.DISPLACEMENT_Z,
                                      KMP.VELOCITY_X, KMP.VELOCITY_Y, KMP.VELOCITY_Z,
@@ -530,10 +526,10 @@ class TestCase(KratosUnittest.TestCase):
             hdf5_model_part_io = self._get_model_part_io(hdf5_file)
             hdf5_nodal_flag_value_io = self._get_nodal_flag_value_io(hdf5_file)
             hdf5_model_part_io.WriteModelPart(write_model_part)
-            hdf5_nodal_flag_value_io.WriteNodalFlags(write_model_part.Nodes)
+            hdf5_nodal_flag_value_io.Write(write_model_part)
             read_model_part = model.CreateModelPart("read", 2)
             hdf5_model_part_io.ReadModelPart(read_model_part)
-            hdf5_nodal_flag_value_io.ReadNodalFlags(read_model_part.Nodes, read_model_part.GetCommunicator())
+            hdf5_nodal_flag_value_io.Read(read_model_part)
 
             assert_variables_list = [KMP.SLIP, KMP.ACTIVE, KMP.STRUCTURE]
             # Check flag.
