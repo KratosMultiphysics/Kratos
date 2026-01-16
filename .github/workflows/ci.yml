@@ -200,7 +200,6 @@ jobs:
       run: |
         pip install numpy
         pip install sympy
-        pip install scipy
         pip install h5py
         pip install parameterized
         pip install orjson==3.11.3
