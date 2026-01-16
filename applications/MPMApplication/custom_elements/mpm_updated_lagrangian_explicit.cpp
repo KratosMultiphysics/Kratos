@@ -25,7 +25,6 @@
 #include "includes/checks.h"
 #include "custom_utilities/mpm_energy_calculation_utility.h"
 #include "custom_utilities/mpm_explicit_utilities.h"
-#include "custom_utilities/mpm_math_utilities.h"
 
 namespace Kratos
 {
