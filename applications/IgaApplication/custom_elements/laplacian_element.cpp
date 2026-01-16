@@ -136,7 +136,7 @@ void LaplacianElement::CalculateLeftHandSide(MatrixType& rLeftHandSideMatrix, co
 }
 
 // From modification of lefthandside
-void LaplacianIGAElement::CalculateMassMatrix(MatrixType& rMassMatrix, const ProcessInfo& rCurrentProcessInfo)
+void LaplacianElement::CalculateMassMatrix(MatrixType& rMassMatrix, const ProcessInfo& rCurrentProcessInfo)
 {   
     KRATOS_TRY
     ConvectionDiffusionSettings::Pointer p_settings = rCurrentProcessInfo[CONVECTION_DIFFUSION_SETTINGS];
@@ -256,6 +256,9 @@ void LaplacianElement::FinalizeSolutionStep(const ProcessInfo& rCurrentProcessIn
 
     r_geometry.SetValue(r_gradient_var, grad_unknown);
 
+    const GeometryType::IntegrationPointsArrayType& integration_points = GetGeometry().IntegrationPoints();
+    SetValue(INTEGRATION_WEIGHT, integration_points[0].Weight());
+
     KRATOS_CATCH("")
 }
 
@@ -328,9 +331,4 @@ Element::IntegrationMethod LaplacianElement::GetIntegrationMethod() const
     return GeometryData::IntegrationMethod::GI_GAUSS_1;
 }
 
-void LaplacianIGAElement::FinalizeSolutionStep(const ProcessInfo& rCurrentProcessInfo)
-{
-    const GeometryType::IntegrationPointsArrayType& integration_points = GetGeometry().IntegrationPoints();
-    SetValue(INTEGRATION_WEIGHT, integration_points[0].Weight());
-}
 } // Namespace Kratos
