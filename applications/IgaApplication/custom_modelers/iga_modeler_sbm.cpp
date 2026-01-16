@@ -427,9 +427,7 @@ void IgaModelerSbm::CreateQuadraturePointGeometriesSbmByProjectionLayer(
     if (domain_size == 2) {
         search_radius = std::sqrt(2.0) * knot_span_reference_size;
     } else {
-        search_radius = std::sqrt(2.0) * knot_span_reference_size; // TODO:
-        // KRATOS_ERROR << "This method is only implemented for 2D (DOMAIN_SIZE == 2). "
-        //             << "Current DOMAIN_SIZE: " << domain_size << std::endl;
+        search_radius = std::sqrt(3.0) * knot_span_reference_size; // TODO:
     }
 
     DynamicBins testBins(points.begin(), points.end());
@@ -718,8 +716,7 @@ void IgaModelerSbm::CreateQuadraturePointGeometriesSbmByFixedConditionName(
     if (domain_size == 2) {
         search_radius = 2*std::sqrt(2.0) * knot_span_reference_size;
     } else {
-        KRATOS_ERROR << "This method is only implemented for 2D (DOMAIN_SIZE == 2). "
-                    << "Current DOMAIN_SIZE: " << domain_size << std::endl;
+        search_radius = std::sqrt(3.0) * knot_span_reference_size; // TODO:
     }
 
     DynamicBins testBins(points.begin(), points.end());
@@ -943,18 +940,18 @@ void IgaModelerSbm::CreateConditions(
         for (auto it = rGeometriesBegin; it != rGeometriesEnd; ++it) {
             new_condition_list.push_back(reference_condition.Create(rIdCounter, (*it), pProperties));
 
-            IndexType condId = listIdClosestCondition[countListClosestCondition];
+            IndexType condId = listIdClosestCondition[count_list_closest_condition];
             Condition::Pointer cond1 = &rSkinModelPart.GetCondition(condId);
 
-            new_condition_list.GetContainer()[countListClosestCondition]->SetValue(NEIGHBOUR_CONDITIONS, GlobalPointersVector<Condition>({cond1}));
+            new_condition_list.GetContainer()[count_list_closest_condition]->SetValue(NEIGHBOUR_CONDITIONS, GlobalPointersVector<Condition>({cond1}));
             if (IsInner) {
-                new_condition_list.GetContainer()[countListClosestCondition]->SetValue(IDENTIFIER, "inner");
+                new_condition_list.GetContainer()[count_list_closest_condition]->SetValue(IDENTIFIER, "inner");
             } else {
-                new_condition_list.GetContainer()[countListClosestCondition]->SetValue(IDENTIFIER, "outer");
+                new_condition_list.GetContainer()[count_list_closest_condition]->SetValue(IDENTIFIER, "outer");
             }
-            new_condition_list.GetContainer()[countListClosestCondition]->SetValue(KNOT_SPAN_SIZES, KnotSpanSizes);
+            new_condition_list.GetContainer()[count_list_closest_condition]->SetValue(KNOT_SPAN_SIZES, KnotSpanSizes);
             rIdCounter++;
-            countListClosestCondition++;
+            count_list_closest_condition++;
         }
     }
     

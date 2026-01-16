@@ -66,14 +66,14 @@ void SnakeSbmProcess::CreateTheSnakeCoordinates(bool RemoveIslands)
     // Vector know_w = mpIgaModelPart->GetValue(KNOT_VECTOR_W);
     if (mpIgaModelPart->GetValue(KNOT_VECTOR_W).size() == 0) {
         // 2D case
-        CreateTheSnakeCoordinates2D();
+        CreateTheSnakeCoordinates2D(RemoveIslands);
     } else {
         // 3D case
         CreateTheSnakeCoordinates3D();
     }
 }   
 
-void SnakeSbmProcess::CreateTheSnakeCoordinates2D()
+void SnakeSbmProcess::CreateTheSnakeCoordinates2D(bool RemoveIslands)
 {   
     // Initilize the property of skin_model_part_in and out
     // skin model part may have nodes if imported from an stl file or geometries if imported from a nurbs file

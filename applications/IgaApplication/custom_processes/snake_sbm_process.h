@@ -110,7 +110,7 @@ protected:
      * @brief Create a The Snake Coordinates 2 D object
      * 
      */
-   void CreateTheSnakeCoordinates2D();
+   void CreateTheSnakeCoordinates2D(bool RemoveIslands);
 
     /**
      * @brief Create a The Snake Coordinates object

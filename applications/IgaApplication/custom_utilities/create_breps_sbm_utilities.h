@@ -64,8 +64,8 @@ class CreateBrepsSbmUtilities : public IO
     using NurbsVolumeGeometryType = NurbsVolumeGeometry<PointerVector<TNodeType>>;
     using NurbsVolumeGeometryPointerType = typename NurbsVolumeGeometryType::Pointer;
 
-    using BrepSurfaceType = BrepSurface<ContainerNodeType, true, ContainerEmbeddedNodeType>;
-    using BrepCurveOnSurfaceType = BrepCurveOnSurface<ContainerNodeType, true, ContainerEmbeddedNodeType>;
+    using BrepSurfaceType = BrepSurface<ContainerNodeType, TShiftedBoundary, ContainerEmbeddedNodeType>;
+    using BrepCurveOnSurfaceType = BrepCurveOnSurface<ContainerNodeType, TShiftedBoundary, ContainerEmbeddedNodeType>;
     using BrepVolumeType = BrepVolume<ContainerNodeType, false, ContainerEmbeddedNodeType>;
     using BrepSurfaceOnVolumeType = BrepSurfaceOnVolume<ContainerNodeType, false, ContainerEmbeddedNodeType>;
     using BrepVolumeTypeSbm = BrepVolume<ContainerNodeType, true, ContainerEmbeddedNodeType>;
@@ -195,7 +195,7 @@ private:
 
         // Set to FALSE the TShiftedBoundary flag
         auto p_brep_surface =
-            Kratos::make_shared<BrepSurface<ContainerNodeType, false, ContainerEmbeddedNodeType>>(
+            Kratos::make_shared<BrepSurfaceType>(
                 pSurface, 
                 outer_loops,
                 inner_loops,

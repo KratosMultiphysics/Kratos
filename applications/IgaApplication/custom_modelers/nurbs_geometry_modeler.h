@@ -125,29 +125,8 @@ private:
     ///@name Private Member Variables
     ///@{
 
-    Model* mpModel;
-
     ///@}
     ///@name Private Operations    
-
-
-    NurbsSurfaceGeometryPointerType mpSurface;
-    NurbsVolumeGeometryPointerType mpVolume;
-
-    Vector mKnotVectorU;
-    Vector mKnotVectorV;
-    Vector mKnotVectorW;
-    std::vector<double> mInsertKnotsU;
-    std::vector<double> mInsertKnotsV;
-    std::vector<double> mInsertKnotsW;
-    
-
-private:
-    ///@name Private Member Variables
-    ///@{
-
-    ///@}
-    ///@name Private Operations
     
 };
 
