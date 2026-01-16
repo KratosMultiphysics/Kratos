@@ -250,7 +250,7 @@ bool ContainerComponentIO<TContainerType, TContainerDataIO, TComponents...>::Wri
         std::vector<int> shape(value_type_traits::Dimension);
 
         // first we have to check the availability
-        Vector<char> availability(rLocalContainer.size(), 1);
+        Vector<unsigned char> availability(rLocalContainer.size(), 1);
         Internals::DataAvailabilityStatesList container_data_availability = TContainerDataIO::DataAvailability;
 
         // check for the availability. Here we do not check for the case CONSISTENTLY_UNAVAILABLE
