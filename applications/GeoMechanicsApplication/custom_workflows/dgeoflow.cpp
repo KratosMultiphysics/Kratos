@@ -11,7 +11,7 @@
 //
 
 #include "dgeoflow.h"
-#include "custom_processes/apply_constant_hydrostatic_pressure_process.hpp"
+#include "custom_processes/apply_constant_hydrostatic_pressure_process.h"
 #include "custom_processes/geo_apply_constant_scalar_value_process.h"
 #include "custom_strategies/schemes/backward_euler_quasistatic_Pw_scheme.hpp"
 #include "custom_utilities/file_input_utility.h"

@@ -28,9 +28,9 @@
 #include "custom_processes/set_parameter_field_process.hpp"
 
 #include "adaptive_time_incrementor.h"
-#include "custom_processes/deactivate_conditions_on_inactive_elements_process.hpp"
+#include "custom_processes/deactivate_conditions_on_inactive_elements_process.h"
 #include "custom_processes/find_neighbour_elements_of_conditions_process.h"
-#include "custom_processes/geo_extrapolate_integration_point_values_to_nodes_process.h"
+#include "custom_processes/geo_extrapolate_integration_point_values_to_nodes_process.hpp"
 #include "custom_utilities/generic_utilities.hpp"
 #include "custom_utilities/input_utility.h"
 #include "custom_utilities/process_info_parser.h"
