@@ -27,6 +27,7 @@ class TestCase(KratosUnittest.TestCase):
         num_tri_conds = 5
         num_quad_conds = 10
         num_nodes = (num_tri_elems + 2) + (num_quad_elems + 2)
+
         # Add variables.
         model_part.AddNodalSolutionStepVariable(KMP.DISPLACEMENT) # array_1d
         model_part.AddNodalSolutionStepVariable(KMP.VELOCITY)
@@ -35,6 +36,7 @@ class TestCase(KratosUnittest.TestCase):
         model_part.AddNodalSolutionStepVariable(KMP.VISCOSITY)
         model_part.AddNodalSolutionStepVariable(KMP.DENSITY)
         model_part.AddNodalSolutionStepVariable(KMP.ACTIVATION_LEVEL) # int
+        
         # Create nodes.
         for i in range(num_nodes):
             x = random.random()
@@ -69,7 +71,9 @@ class TestCase(KratosUnittest.TestCase):
             prop_id = random.randint(0,4)
             prop = model_part.GetProperties()[prop_id]
             model_part.CreateNewCondition("SurfaceCondition3D4N", cond_id, node_ids, prop)
+        
         model_part.SetBufferSize(2)
+        
         for node in model_part.Nodes:
             # Write some data to the nodal solution steps variables.
             node.SetSolutionStepValue(KMP.DISPLACEMENT_X, random.random())
@@ -99,9 +103,10 @@ class TestCase(KratosUnittest.TestCase):
             node.SetValue(KMP.VISCOSITY, random.random())
             node.SetValue(KMP.DENSITY, random.random())
             node.SetValue(KMP.ACTIVATION_LEVEL, random.randint(-100, 100))
+            
             # Write some flags
             node.Set(KMP.SLIP, bool(random.randint(-100, 100) % 2))
-            node.Set(KMP.ACTIVE, bool(random.randint(-100, 100) % 2))
+            node.Set(KMP.ACTIVE, node.Id % 3 != 0)
             node.Set(KMP.STRUCTURE, bool(random.randint(-100, 100) % 2))
 
         for element in model_part.Elements:
@@ -117,7 +122,7 @@ class TestCase(KratosUnittest.TestCase):
             element.SetValue(KMP.ACTIVATION_LEVEL, random.randint(-100, 100))
 
             element.Set(KMP.SLIP, bool(random.randint(-100, 100) % 2))
-            element.Set(KMP.ACTIVE, bool(random.randint(-100, 100) % 2))
+            element.Set(KMP.ACTIVE, element.Id % 3 != 0)
             if (element.Id % 3 == 0):
                 element.Set(KMP.STRUCTURE, bool(random.randint(-100, 100) % 2))
 
@@ -131,8 +136,9 @@ class TestCase(KratosUnittest.TestCase):
             condition.SetValue(KMP.ACTIVATION_LEVEL, random.randint(-100, 100))
 
             condition.Set(KMP.SLIP, bool(random.randint(-100, 100) % 2))
-            condition.Set(KMP.ACTIVE, bool(random.randint(-100, 100) % 2))
+            condition.Set(KMP.ACTIVE, condition.Id % 3 != 0)
             condition.Set(KMP.STRUCTURE, bool(random.randint(-100, 100) % 2))
+
         # Set some process info variables.
         model_part.ProcessInfo[KMP.DOMAIN_SIZE] = 3 # int
         model_part.ProcessInfo[KMP.TIME] = random.random() # float
