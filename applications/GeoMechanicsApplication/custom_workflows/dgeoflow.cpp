@@ -23,6 +23,7 @@
 #include "input_output/logger_table_output.h"
 
 #include <filesystem>
+#include <format>
 #include <iomanip>
 #include <sstream>
 
@@ -411,7 +412,7 @@ void KratosExecute::WriteCriticalHeadResultToFile() const
     out_stream << "\t \"PipeData\":\t{\n";
     if (mPipingSuccess) {
         out_stream << "\t\t \"Success\": \"True\",\n";
-        out_stream << "\t\t \"CriticalHead\": \"" + std::to_string(mCriticalHead) + "\"\n";
+        out_stream << std::format("\t\t \"CriticalHead\": \"{}\"\n", mCriticalHead);
     } else {
         out_stream << "\t\t \"Success\": \"False\"\n";
     }
@@ -465,12 +466,8 @@ int KratosExecute::FindCriticalHead(ModelPart&                   rModelPart,
         KRATOS_INFO_IF("GeoFlowKernel", this->GetEchoLevel() > 0)
             << "Searching at head: " << mCurrentHead << std::endl;
 
-        std::ostringstream current_head_stream;
-        current_head_stream << std::setprecision(8) << std::noshowpoint << mCurrentHead;
-        std::string current_head_string = current_head_stream.str();
-
-        std::string progress = "Calculating head level " + current_head_string + "m (" +
-                               std::to_string(step) + "/" + std::to_string(max_steps) + ")";
+        const auto progress =
+            std::format("Calculating head level {:.8}m ({}/{})", mCurrentHead, step, max_steps);
         rCallBackFunctions.ReportTextualProgress(progress.data());
         rCallBackFunctions.ReportProgress(((double)step) / ((double)max_steps));
 

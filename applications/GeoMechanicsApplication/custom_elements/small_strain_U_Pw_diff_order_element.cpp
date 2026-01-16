@@ -825,6 +825,13 @@ void SmallStrainUPwDiffOrderElement::Calculate(const Variable<Vector>& rVariable
     }
 }
 
+std::string SmallStrainUPwDiffOrderElement::Info() const
+{
+    const std::string constitutive_info =
+        !mConstitutiveLawVector.empty() ? mConstitutiveLawVector[0]->Info() : "not defined";
+    return std::format("U-Pw small strain different order Element #{}\nConstitutive law: {}", Id(), constitutive_info);
+}
+
 Vector SmallStrainUPwDiffOrderElement::CalculateInternalForces(ElementVariables& rVariables,
                                                                const std::vector<Matrix>& rBMatrices,
                                                                const std::vector<double>& rIntegrationCoefficients,

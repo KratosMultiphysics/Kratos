@@ -19,6 +19,8 @@
 #include "includes/serializer.h"
 #include "utilities/geometry_utilities.h"
 
+#include <format>
+
 namespace Kratos
 {
 
@@ -253,6 +255,13 @@ void UPwBaseElement::SetValuesOnIntegrationPoints(const Variable<Matrix>&    rVa
     }
 
     KRATOS_CATCH("")
+}
+
+std::string UPwBaseElement::Info() const
+{
+    const std::string constitutive_info =
+        !mConstitutiveLawVector.empty() ? mConstitutiveLawVector[0]->Info() : "not defined";
+    return std::format("U-Pw Base class Element #{}\nConstitutive law: {}", Id(), constitutive_info);
 }
 
 void UPwBaseElement::SetValuesOnIntegrationPoints(const Variable<double>&    rVariable,

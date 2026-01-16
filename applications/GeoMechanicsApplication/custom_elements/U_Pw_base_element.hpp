@@ -148,12 +148,7 @@ public:
 
     using Element::SetValuesOnIntegrationPoints;
 
-    std::string Info() const override
-    {
-        const std::string constitutive_info =
-            !mConstitutiveLawVector.empty() ? mConstitutiveLawVector[0]->Info() : "not defined";
-        return "U-Pw Base class Element #" + std::to_string(Id()) + "\nConstitutive law: " + constitutive_info;
-    }
+    std::string Info() const override;
 
     void PrintInfo(std::ostream& rOStream) const override { rOStream << Info(); }
 
