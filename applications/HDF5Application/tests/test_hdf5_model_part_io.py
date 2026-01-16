@@ -165,7 +165,12 @@ class TestCase(KratosUnittest.TestCase):
         return HDF5App.HDF5File(communicator, params)
 
     def _get_model_part_io(self, hdf5_file):
-        return HDF5App.HDF5ModelPartIO(hdf5_file, "/ModelData")
+        params = KMP.Parameters("""{
+            "prefix"        : "/ModelData",
+            "time_format"   : "0.4f",
+            "operation_type": ""
+        }""")
+        return HDF5App.HDF5ModelPartIO(params, hdf5_file)
 
     def _get_nodal_solution_step_data_io(self, hdf5_file):
         params = KMP.Parameters("""
