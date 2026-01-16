@@ -629,22 +629,14 @@ void ShellThickElement3D4N<TKinematics>::FinalizeSolutionStep(
 
             // Compute Jacobian, Inverse of Jacobian, Determinant of Jacobian
             // and Shape functions derivatives in the local coordinate system
-
             jacOp.Calculate(referenceCoordinateSystem, r_geom.ShapeFunctionLocalGradient(integration_point));
 
-            // compute the 'area' of the current integration point
-
-            // const double dA = ip.Weight() * jacOp.Determinant();
-            // dArea[integration_point] = dA;
-
             // Compute all strain-displacement matrices
-
             CalculateBMatrix(ip.X(), ip.Y(), jacOp, shearParameters, iN, B, Bdrilling);
 
             // Calculate strain vectors in local coordinate system
 
             noalias(generalizedStrains) = prod(B, localDisplacements);
-            // const double drillingStrain = inner_prod(Bdrilling, localDisplacements);
 
             // Apply the EAS method to modify the membrane part of the strains computed above.
             EASOp.GaussPointComputation_Step1(ip.X(), ip.Y(), jacOp, generalizedStrains, mEASStorage);
@@ -656,33 +648,7 @@ void ShellThickElement3D4N<TKinematics>::FinalizeSolutionStep(
             const double shear_stabilisation = CalculateStenbergShearStabilization(referenceCoordinateSystem, thickness);
             parameters.SetStenbergShearStabilization(shear_stabilisation);
             FinalizeMaterialResponse(parameters, integration_point, rCurrentProcessInfo);
-            // Ddrilling = section->GetDrillingStiffness();
-            // Ddrilling = D(2, 2);
-
-            // // multiply the section tangent matrices and stress resultants by 'dA'
-            // D *= dA;
-            // Ddrilling *= dA;
-            // generalizedStresses *= dA;
-            // const double drillingStress = Ddrilling * drillingStrain; // already multiplied by 'dA'
-
-            // // Add all contributions to the Stiffness Matrix
-            // noalias(BTD) = prod(trans(B), D);
-            // noalias(rLeftHandSideMatrix) += prod(BTD, B);
-            // noalias(rLeftHandSideMatrix) += outer_prod(Ddrilling * Bdrilling, Bdrilling);
-
-            // // Add all contributions to the residual vector
-            // noalias(rRightHandSideVector) -= prod(trans(B), generalizedStresses);
-            // noalias(rRightHandSideVector) -= Bdrilling * drillingStress;
-
-            // // Continue the calculation of the EAS method now that the contitutive response
-            // // has been computed
-            // EASOp.GaussPointComputation_Step2(D, B, generalizedStresses, mEASStorage);
         }
-
-
-
-
-
     }
 }
 
