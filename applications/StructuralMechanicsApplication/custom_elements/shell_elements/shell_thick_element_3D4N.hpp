@@ -399,6 +399,17 @@ private:
         const bool CalculateConstitutive,
         const ProcessInfo& rProcessInfo);
 
+    void FinalizeMaterialResponse(
+        ShellCrossSection::SectionParameters& rSectionParameters,
+        const SizeType& rPointNumber,
+        const ProcessInfo& rProcessInfo);
+
+
+    void InitializeMaterialResponse(
+        ShellCrossSection::SectionParameters& rSectionParameters,
+        const SizeType& rPointNumber,
+        const ProcessInfo& rProcessInfo);
+
     ///@}
 
     ///@name Static Member Variables
