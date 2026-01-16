@@ -24,6 +24,7 @@
 #include "interface_stress_state.h"
 #include "lobatto_integration_scheme.h"
 #include "lumped_integration_scheme.h"
+#include "contribution_calculators/interface_stiffness_calculator.hpp"
 
 namespace
 {
