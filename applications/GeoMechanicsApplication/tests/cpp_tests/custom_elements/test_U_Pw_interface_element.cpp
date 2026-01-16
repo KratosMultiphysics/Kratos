@@ -392,7 +392,6 @@ GlobalPointersVector<Element> MakeElementGlobalPtrContainerWith(const DerivedEle
 
 namespace Kratos::Testing
 {
-
 using namespace Kratos;
 
 KRATOS_TEST_CASE_IN_SUITE(UPwInterfaceElement_IsAnElement, KratosGeoMechanicsFastSuiteWithoutKernel)
@@ -1147,7 +1146,7 @@ KRATOS_TEST_CASE_IN_SUITE(UPwTriangleInterfaceElement_RightHandSideEqualsMinusIn
         normal_stiffness, shear_stiffness);
 
     const auto prescribed_displacements = PrescribedDisplacements{
-        {2, array_1d<double, 3>{0.2, 0.5, 0.0}}, {3, array_1d<double, 3>{0.2, 0.5, 0.0}}};
+            {2, array_1d<double, 3>{0.2, 0.5, 0.0}}, {3, array_1d<double, 3>{0.2, 0.5, 0.0}}};
     auto element = CreateAndInitializeElement(CreateHorizontal3Plus3NodedTriangleInterfaceElementWithUPwDofs,
                                               p_properties, prescribed_displacements);
 
@@ -1931,6 +1930,119 @@ KRATOS_TEST_CASE_IN_SUITE(ThreePlusThreeDiffOrderLineInterface_ReturnsExpectedLe
          -1.0 / 3.0, -5.0 / 3.0, -4.0 / 3.0, -20.0 / 3.0});
     KRATOS_EXPECT_VECTOR_NEAR(subrange(actual_right_hand_side, 0, 0 + number_of_u_dofs),
                               expected_stiffness_force, Defaults::absolute_tolerance)
+    KRATOS_EXPECT_VECTOR_NEAR(subrange(actual_right_hand_side, number_of_u_dofs, expected_number_of_dofs),
+                              (Vector{expected_number_of_dofs - number_of_u_dofs, 0.0}), Defaults::absolute_tolerance)
+}
+
+KRATOS_TEST_CASE_IN_SUITE(UPwDiffOrderTriangleInterfaceElement_6Plus6NodedElement_ReturnsExpectedLeftAndRightHandSide,
+                          KratosGeoMechanicsFastSuiteWithoutKernel)
+{
+    // Arrange
+    const auto nodes = ModelSetupUtilities::CreateNodes({{1, {0.0, 0.0, 0.0}},
+                                                         {2, {1.0, 0.0, 0.0}},
+                                                         {3, {1.0, 1.0, 0.0}},
+                                                         {4, {0.5, 0.0, 0.0}},
+                                                         {5, {1.0, 0.5, 0.0}},
+                                                         {6, {0.5, 0.5, 0.0}},
+                                                         {7, {0.0, 0.0, 0.0}},
+                                                         {8, {1.0, 0.0, 0.0}},
+                                                         {9, {1.0, 1.0, 0.0}},
+                                                         {10, {0.5, 0.0, 0.0}},
+                                                         {11, {1.0, 0.5, 0.0}},
+                                                         {12, {0.5, 0.5, 0.0}}});
+
+    auto p_triangle_interface_displacement_geometry =
+        std::make_shared<InterfaceGeometry<Triangle3D6<Node>>>(1, nodes);
+
+    constexpr auto normal_stiffness = 20.0;
+    constexpr auto shear_stiffness  = 10.0;
+    const auto     p_properties = CreateElasticMaterialProperties<InterfaceThreeDimensionalSurface>(
+        normal_stiffness, shear_stiffness);
+
+    auto interface_element = CreateInterfaceElementWithUPwDofs<Interface3D>(
+        p_properties, p_triangle_interface_displacement_geometry, IsDiffOrderElement::Yes);
+    interface_element.Initialize(ProcessInfo{});
+
+    const auto prescribed_displacements = PrescribedDisplacements{
+        {6, array_1d<double, 3>{0.2, 0.5, 0.0}},  {7, array_1d<double, 3>{0.2, 0.5, 0.0}},
+        {8, array_1d<double, 3>{0.2, 0.5, 0.0}},  {9, array_1d<double, 3>{0.2, 0.5, 0.0}},
+        {10, array_1d<double, 3>{0.2, 0.5, 0.0}}, {11, array_1d<double, 3>{0.2, 0.5, 0.0}}};
+    for (const auto& [idx, disp] : prescribed_displacements) {
+        interface_element.GetGeometry()[idx].FastGetSolutionStepValue(DISPLACEMENT) = disp;
+    }
+
+    // Act
+    Vector actual_right_hand_side;
+    Matrix actual_left_hand_side;
+    interface_element.CalculateLocalSystem(actual_left_hand_side, actual_right_hand_side, ProcessInfo{});
+    // interface_element.CalculateLeftHandSide(actual_left_hand_side, ProcessInfo{});
+
+    // Assert
+    constexpr auto expected_number_of_dofs = std::size_t{12 * 3 + 6};
+    ASSERT_EQ(actual_left_hand_side.size1(), expected_number_of_dofs);
+    ASSERT_EQ(actual_left_hand_side.size2(), expected_number_of_dofs);
+    ASSERT_EQ(actual_right_hand_side.size(), expected_number_of_dofs);
+
+    constexpr auto number_of_u_dofs = std::size_t{12 * 3};
+    // clang-format off
+    const auto     expected_stiffness_matrix = UblasUtilities::CreateMatrix(
+        {{0.16431924882629123,  0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, -0.16431924882629123, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0},
+         {0, 0.16431924882629123,  0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, -0.16431924882629123, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0},
+         {0, 0, 0.32863849765258246,  0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, -0.32863849765258246, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0},
+         {0, 0, 0, 0.16431924882629123,  0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, -0.16431924882629123, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0},
+         {0, 0, 0, 0, 0.16431924882629123,  0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, -0.16431924882629123, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0},
+         {0, 0, 0, 0, 0, 0.32863849765258246,  0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, -0.32863849765258246, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0},
+         {0, 0, 0, 0, 0, 0, 0.16431924882629123,  0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, -0.16431924882629123, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0},
+         {0, 0, 0, 0, 0, 0, 0, 0.16431924882629123,  0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, -0.16431924882629123, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0},
+         {0, 0, 0, 0, 0, 0, 0, 0, 0.32863849765258246,  0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, -0.32863849765258246, 0, 0, 0, 0, 0, 0, 0, 0, 0},
+         {0, 0, 0, 0, 0, 0, 0, 0, 0, 1.5023474178403748,  0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, -1.5023474178403748, 0, 0, 0, 0, 0, 0, 0, 0},
+         {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1.5023474178403748,  0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, -1.5023474178403748, 0, 0, 0, 0, 0, 0, 0},
+         {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 3.0046948356807497,  0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, -3.0046948356807497, 0, 0, 0, 0, 0, 0},
+         {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1.502347417840376,  0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, -1.502347417840376, 0, 0, 0, 0, 0},
+         {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1.502347417840376,  0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, -1.502347417840376, 0, 0, 0, 0},
+         {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 3.0046948356807519,  0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, -3.0046948356807519, 0, 0, 0},
+         {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1.5023474178403753,  0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, -1.5023474178403753, 0, 0},
+         {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1.5023474178403753,  0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, -1.5023474178403753, 0},
+         {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 3.0046948356807506, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, -3.0046948356807506},
+         {-0.16431924882629123, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0.16431924882629123,  0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0},
+         {0, -0.16431924882629123, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0.16431924882629123,  0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0},
+         {0, 0, -0.32863849765258246, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0.32863849765258246,  0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0},
+         {0, 0, 0, -0.16431924882629123, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0.16431924882629123,  0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0},
+         {0, 0, 0, 0, -0.16431924882629123, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0.16431924882629123,  0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0},
+         {0, 0, 0, 0, 0, -0.32863849765258246, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0.32863849765258246,  0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0},
+         {0, 0, 0, 0, 0, 0, -0.16431924882629123, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0.16431924882629123,  0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0},
+         {0, 0, 0, 0, 0, 0, 0, -0.16431924882629123, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0.16431924882629123,  0, 0, 0, 0, 0, 0, 0, 0, 0, 0},
+         {0, 0, 0, 0, 0, 0, 0, 0, -0.32863849765258246, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0.32863849765258246,  0, 0, 0, 0, 0, 0, 0, 0, 0},
+         {0, 0, 0, 0, 0, 0, 0, 0, 0, -1.5023474178403748, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1.5023474178403748,  0, 0, 0, 0, 0, 0, 0, 0},
+         {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, -1.5023474178403748, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1.5023474178403748,  0, 0, 0, 0, 0, 0, 0},
+         {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, -3.0046948356807497, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 3.0046948356807497,  0, 0, 0, 0, 0, 0},
+         {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, -1.502347417840376, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1.502347417840376,  0, 0, 0, 0, 0},
+         {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, -1.502347417840376, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1.502347417840376,  0, 0, 0, 0},
+         {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, -3.0046948356807519, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 3.0046948356807519,  0, 0, 0},
+         {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, -1.5023474178403753, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1.5023474178403753,  0, 0},
+         {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, -1.5023474178403753, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1.5023474178403753,  0},
+         {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, -3.0046948356807506, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 3.0046948356807506}});
+    // clang-format on
+
+    KRATOS_EXPECT_MATRIX_RELATIVE_NEAR(
+        subrange(actual_left_hand_side, 0, 0 + number_of_u_dofs, 0, 0 + number_of_u_dofs),
+        expected_stiffness_matrix, Defaults::relative_tolerance)
+    KRATOS_EXPECT_MATRIX_NEAR(
+        subrange(actual_left_hand_side, 0, number_of_u_dofs, number_of_u_dofs, expected_number_of_dofs),
+        (Matrix{number_of_u_dofs, expected_number_of_dofs - number_of_u_dofs, 0.0}), Defaults::absolute_tolerance)
+    KRATOS_EXPECT_MATRIX_NEAR(
+        subrange(actual_left_hand_side, number_of_u_dofs, expected_number_of_dofs, 0, number_of_u_dofs),
+        (Matrix{expected_number_of_dofs - number_of_u_dofs, number_of_u_dofs, 0.0}), Defaults::absolute_tolerance)
+    KRATOS_EXPECT_MATRIX_NEAR(
+        subrange(actual_left_hand_side, number_of_u_dofs, expected_number_of_dofs, number_of_u_dofs, expected_number_of_dofs),
+        (Matrix{expected_number_of_dofs - number_of_u_dofs, expected_number_of_dofs - number_of_u_dofs, 0.0}),
+        Defaults::absolute_tolerance)
+
+    auto expected_stiffness_force = UblasUtilities::CreateVector(
+        {0.0328638,0.0821596,-0,0.0328638,0.0821596,-0,0.0328638,0.0821596,-0,0.300469,0.751174,-0,0.300469,0.751174,-0,0.300469,0.751174,-0,-0.0328638,-0.0821596,-0,-0.0328638,-0.0821596,-0,-0.0328638,-0.0821596,-0,-0.300469,-0.751174,-0,-0.300469,-0.751174,-0,-0.300469,-0.751174,-0});
+    constexpr auto tolerance = 1e-5;
+    KRATOS_EXPECT_VECTOR_NEAR(subrange(actual_right_hand_side, 0, 0 + number_of_u_dofs),
+                              expected_stiffness_force, tolerance)
     KRATOS_EXPECT_VECTOR_NEAR(subrange(actual_right_hand_side, number_of_u_dofs, expected_number_of_dofs),
                               (Vector{expected_number_of_dofs - number_of_u_dofs, 0.0}), Defaults::absolute_tolerance)
 }
