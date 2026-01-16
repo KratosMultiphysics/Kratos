@@ -17,7 +17,7 @@
 #include "custom_constitutive/interface_three_dimensional_surface.h"
 #include "custom_constitutive/plane_strain.h"
 #include "custom_constitutive/three_dimensional.h"
-#include "custom_elements/interface_element.h"
+#include "custom_elements/U_Pw_interface_element.h"
 #include "custom_elements/interface_stress_state.h"
 #include "custom_geometries/interface_geometry.hpp"
 #include "custom_utilities/ublas_utilities.h"
@@ -87,10 +87,10 @@ ModelPart& CreateModelPartWithDisplacementVariable(Model& rModel)
 }
 
 template <typename TInterfaceDimension>
-InterfaceElement CreateInterfaceElementWithUDofs(const Properties::Pointer&     rProperties,
-                                                 const Geometry<Node>::Pointer& rGeometry)
+UPwInterfaceElement CreateInterfaceElementWithUDofs(const Properties::Pointer&     rProperties,
+                                                    const Geometry<Node>::Pointer& rGeometry)
 {
-    auto result = InterfaceElement{1, rGeometry, rProperties, std::make_unique<TInterfaceDimension>()};
+    auto result = UPwInterfaceElement{1, rGeometry, rProperties, std::make_unique<TInterfaceDimension>()};
     for (auto& node : result.GetGeometry()) {
         node.AddDof(DISPLACEMENT_X);
         node.AddDof(DISPLACEMENT_Y);
@@ -100,8 +100,8 @@ InterfaceElement CreateInterfaceElementWithUDofs(const Properties::Pointer&     
     return result;
 }
 
-InterfaceElement CreateHorizontalUnitLength2Plus2NodedLineInterfaceElementWithUDofs(Model& rModel,
-                                                                                    const Properties::Pointer& rProperties)
+UPwInterfaceElement CreateHorizontalUnitLength2Plus2NodedLineInterfaceElementWithUDofs(Model& rModel,
+                                                                                       const Properties::Pointer& rProperties)
 {
     auto& r_model_part = CreateModelPartWithDisplacementVariable(rModel);
 
@@ -114,7 +114,7 @@ InterfaceElement CreateHorizontalUnitLength2Plus2NodedLineInterfaceElementWithUD
     return CreateInterfaceElementWithUDofs<Interface2D>(rProperties, p_geometry);
 }
 
-InterfaceElement CreateHorizontalUnitLength3Plus3NodedLineInterfaceElementWithDisplacementDoF(
+UPwInterfaceElement CreateHorizontalUnitLength3Plus3NodedLineInterfaceElementWithDisplacementDoF(
     Model& rModel, const Properties::Pointer& rProperties)
 {
     auto& r_model_part = CreateModelPartWithDisplacementVariable(rModel);
@@ -130,7 +130,7 @@ InterfaceElement CreateHorizontalUnitLength3Plus3NodedLineInterfaceElementWithDi
     return CreateInterfaceElementWithUDofs<Interface2D>(rProperties, p_geometry);
 }
 
-InterfaceElement CreateUnitLengthLineInterfaceElementRotatedBy30DegreesWithDisplacementDoF(
+UPwInterfaceElement CreateUnitLengthLineInterfaceElementRotatedBy30DegreesWithDisplacementDoF(
     Model& rModel, const Properties::Pointer& rProperties)
 {
     auto& r_model_part = CreateModelPartWithDisplacementVariable(rModel);
@@ -167,8 +167,8 @@ Matrix CreateExpectedStiffnessMatrixForHorizontal2Plus2NodedElement(double Norma
     return expected_left_hand_side;
 }
 
-InterfaceElement CreateHorizontal3Plus3NodedTriangleInterfaceElementWithUDofs(Model& rModel,
-                                                                              const Properties::Pointer& rProperties)
+UPwInterfaceElement CreateHorizontal3Plus3NodedTriangleInterfaceElementWithUDofs(Model& rModel,
+                                                                                 const Properties::Pointer& rProperties)
 {
     auto& r_model_part = CreateModelPartWithDisplacementVariable(rModel);
 
@@ -183,8 +183,8 @@ InterfaceElement CreateHorizontal3Plus3NodedTriangleInterfaceElementWithUDofs(Mo
     return CreateInterfaceElementWithUDofs<Interface3D>(rProperties, p_geometry);
 }
 
-InterfaceElement CreateHorizontal3Plus3NodedTriangleInterfaceYZPlaneElementWithUDofs(Model& rModel,
-                                                                                     const Properties::Pointer& rProperties)
+UPwInterfaceElement CreateHorizontal3Plus3NodedTriangleInterfaceYZPlaneElementWithUDofs(Model& rModel,
+                                                                                        const Properties::Pointer& rProperties)
 {
     auto& r_model_part = CreateModelPartWithDisplacementVariable(rModel);
 
@@ -199,8 +199,8 @@ InterfaceElement CreateHorizontal3Plus3NodedTriangleInterfaceYZPlaneElementWithU
     return CreateInterfaceElementWithUDofs<Interface3D>(rProperties, p_geometry);
 }
 
-InterfaceElement CreateHorizontal3Plus3NodedTriangleInterfaceXZPlaneElementWithUDofs(Model& rModel,
-                                                                                     const Properties::Pointer& rProperties)
+UPwInterfaceElement CreateHorizontal3Plus3NodedTriangleInterfaceXZPlaneElementWithUDofs(Model& rModel,
+                                                                                        const Properties::Pointer& rProperties)
 {
     auto& r_model_part = CreateModelPartWithDisplacementVariable(rModel);
 
@@ -215,8 +215,8 @@ InterfaceElement CreateHorizontal3Plus3NodedTriangleInterfaceXZPlaneElementWithU
     return CreateInterfaceElementWithUDofs<Interface3D>(rProperties, p_geometry);
 }
 
-InterfaceElement CreateHorizontal6Plus6NodedTriangleInterfaceElementWithDisplacementDoF(Model& rModel,
-                                                                                        const Properties::Pointer& rProperties)
+UPwInterfaceElement CreateHorizontal6Plus6NodedTriangleInterfaceElementWithDisplacementDoF(
+    Model& rModel, const Properties::Pointer& rProperties)
 {
     auto& r_model_part = CreateModelPartWithDisplacementVariable(rModel);
 
@@ -237,8 +237,8 @@ InterfaceElement CreateHorizontal6Plus6NodedTriangleInterfaceElementWithDisplace
     return CreateInterfaceElementWithUDofs<Interface3D>(rProperties, p_geometry);
 }
 
-InterfaceElement CreateTriangleInterfaceElementRotatedBy30DegreesWithDisplacementDoF(Model& rModel,
-                                                                                     const Properties::Pointer& rProperties)
+UPwInterfaceElement CreateTriangleInterfaceElementRotatedBy30DegreesWithDisplacementDoF(Model& rModel,
+                                                                                        const Properties::Pointer& rProperties)
 {
     auto& r_model_part = CreateModelPartWithDisplacementVariable(rModel);
 
@@ -253,7 +253,7 @@ InterfaceElement CreateTriangleInterfaceElementRotatedBy30DegreesWithDisplacemen
     return CreateInterfaceElementWithUDofs<Interface3D>(rProperties, p_geometry);
 }
 
-InterfaceElement CreateTriangleInterfaceElementRotatedBy30DegreesAboutYAxisWithDisplacementDoF(
+UPwInterfaceElement CreateTriangleInterfaceElementRotatedBy30DegreesAboutYAxisWithDisplacementDoF(
     Model& rModel, const Properties::Pointer& rProperties)
 {
     auto& r_model_part = CreateModelPartWithDisplacementVariable(rModel);
@@ -270,9 +270,9 @@ InterfaceElement CreateTriangleInterfaceElementRotatedBy30DegreesAboutYAxisWithD
 }
 
 template <typename TElementFactory>
-InterfaceElement CreateAndInitializeElement(TElementFactory                Factory,
-                                            const Properties::Pointer&     rProperties,
-                                            const PrescribedDisplacements& rDisplacements = {})
+UPwInterfaceElement CreateAndInitializeElement(TElementFactory                Factory,
+                                               const Properties::Pointer&     rProperties,
+                                               const PrescribedDisplacements& rDisplacements = {})
 {
     Model model;
     auto  element = Factory(model, rProperties);
@@ -390,7 +390,7 @@ using namespace Kratos;
 
 KRATOS_TEST_CASE_IN_SUITE(InterfaceElement_IsAnElement, KratosGeoMechanicsFastSuiteWithoutKernel)
 {
-    const InterfaceElement element(
+    const UPwInterfaceElement element(
         0, std::make_shared<LineInterfaceGeometry2D2Plus2Noded>(CreateNodesFor2Plus2LineInterfaceGeometry()),
         std::make_unique<Line2DInterfaceStressState>());
     auto p_casted_element = dynamic_cast<const Element*>(&element);
@@ -400,7 +400,7 @@ KRATOS_TEST_CASE_IN_SUITE(InterfaceElement_IsAnElement, KratosGeoMechanicsFastSu
 KRATOS_TEST_CASE_IN_SUITE(LineInterfaceElement_CreatesInstanceWithGeometryInput, KratosGeoMechanicsFastSuiteWithoutKernel)
 {
     // Arrange
-    const InterfaceElement element(
+    const UPwInterfaceElement element(
         0, std::make_shared<LineInterfaceGeometry2D2Plus2Noded>(CreateNodesFor2Plus2LineInterfaceGeometry()),
         std::make_unique<Line2DInterfaceStressState>());
     const auto p_geometry =
@@ -425,9 +425,9 @@ KRATOS_TEST_CASE_IN_SUITE(LineInterfaceElement_CreatesInstanceWithNodeInput, Kra
 
     // The source element needs to have a geometry, otherwise the version of the
     // Create method with a node input will fail.
-    const auto             p_geometry = std::make_shared<LineInterfaceGeometry2D2Plus2Noded>(nodes);
-    const InterfaceElement element(0, p_geometry, p_properties,
-                                   std::make_unique<Line2DInterfaceStressState>());
+    const auto p_geometry = std::make_shared<LineInterfaceGeometry2D2Plus2Noded>(nodes);
+    const UPwInterfaceElement element(0, p_geometry, p_properties,
+                                      std::make_unique<Line2DInterfaceStressState>());
 
     // Act
     const auto p_created_element = element.Create(1, nodes, p_properties);
@@ -799,7 +799,7 @@ KRATOS_TEST_CASE_IN_SUITE(LineInterfaceElement_3Plus3NodedElement_ReturnsExpecte
 KRATOS_TEST_CASE_IN_SUITE(TriangleInterfaceElement_CreatesInstanceWithGeometryInput, KratosGeoMechanicsFastSuiteWithoutKernel)
 {
     // Arrange
-    const InterfaceElement element(
+    const UPwInterfaceElement element(
         0, std::make_shared<TriangleInterfaceGeometry3D3Plus3Noded>(CreateNodesFor3Plus3SurfaceInterfaceGeometry()),
         std::make_unique<SurfaceInterfaceStressState>());
     const auto p_geometry = std::make_shared<TriangleInterfaceGeometry3D3Plus3Noded>(
@@ -825,8 +825,8 @@ KRATOS_TEST_CASE_IN_SUITE(TriangleInterfaceElement_CreatesInstanceWithNodeInput,
     // The source element needs to have a geometry, otherwise the version of the
     // Create method with a node input will fail.
     const auto p_geometry = std::make_shared<TriangleInterfaceGeometry3D3Plus3Noded>(nodes);
-    const InterfaceElement element(0, p_geometry, p_properties,
-                                   std::make_unique<SurfaceInterfaceStressState>());
+    const UPwInterfaceElement element(0, p_geometry, p_properties,
+                                      std::make_unique<SurfaceInterfaceStressState>());
 
     // Act
     const auto p_created_element = element.Create(1, nodes, p_properties);

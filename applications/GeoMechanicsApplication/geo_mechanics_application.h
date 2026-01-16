@@ -83,6 +83,7 @@
 
 // elements
 #include "custom_elements/Pw_element.hpp"
+#include "custom_elements/U_Pw_interface_element.h"
 #include "custom_elements/U_Pw_small_strain_FIC_element.h"
 #include "custom_elements/U_Pw_small_strain_element.h"
 #include "custom_elements/U_Pw_small_strain_interface_element.h"
@@ -90,7 +91,6 @@
 #include "custom_elements/U_Pw_updated_lagrangian_element.h"
 #include "custom_elements/calculation_contribution.h"
 #include "custom_elements/geo_steady_state_Pw_piping_element.h"
-#include "custom_elements/interface_element.h"
 #include "custom_elements/small_strain_U_Pw_diff_order_element.h"
 #include "custom_elements/steady_state_Pw_element.h"
 #include "custom_elements/transient_Pw_element.h"
@@ -516,22 +516,22 @@ private:
         0, Kratos::make_shared<HexahedraInterface3D8<NodeType>>(Element::GeometryType::PointsArrayType(8)),
         std::make_unique<ThreeDimensionalStressState>()};
 
-    const InterfaceElement mULineInterfacePlaneStrainElement2Plus2N{
+    const UPwInterfaceElement mULineInterfacePlaneStrainElement2Plus2N{
         0, Kratos::make_shared<InterfaceGeometry<Line2D2<NodeType>>>(Element::GeometryType::PointsArrayType(4)),
         std::make_unique<Line2DInterfaceStressState>()};
-    const InterfaceElement mULineInterfacePlaneStrainElement3Plus3N{
+    const UPwInterfaceElement mULineInterfacePlaneStrainElement3Plus3N{
         0, Kratos::make_shared<InterfaceGeometry<Line2D3<NodeType>>>(Element::GeometryType::PointsArrayType(6)),
         std::make_unique<Line2DInterfaceStressState>()};
-    const InterfaceElement mUSurfaceInterfaceElement3Plus3N{
+    const UPwInterfaceElement mUSurfaceInterfaceElement3Plus3N{
         0, Kratos::make_shared<InterfaceGeometry<Triangle3D3<NodeType>>>(Element::GeometryType::PointsArrayType(6)),
         std::make_unique<SurfaceInterfaceStressState>()};
-    const InterfaceElement mUSurfaceInterfaceElement4Plus4N{
+    const UPwInterfaceElement mUSurfaceInterfaceElement4Plus4N{
         0, Kratos::make_shared<InterfaceGeometry<Quadrilateral3D4<NodeType>>>(Element::GeometryType::PointsArrayType(8)),
         std::make_unique<SurfaceInterfaceStressState>()};
-    const InterfaceElement mUSurfaceInterfaceElement6Plus6N{
+    const UPwInterfaceElement mUSurfaceInterfaceElement6Plus6N{
         0, Kratos::make_shared<InterfaceGeometry<Triangle3D6<NodeType>>>(Element::GeometryType::PointsArrayType(12)),
         std::make_unique<SurfaceInterfaceStressState>()};
-    const InterfaceElement mUSurfaceInterfaceElement8Plus8N{
+    const UPwInterfaceElement mUSurfaceInterfaceElement8Plus8N{
         0, Kratos::make_shared<InterfaceGeometry<Quadrilateral3D8<NodeType>>>(Element::GeometryType::PointsArrayType(16)),
         std::make_unique<SurfaceInterfaceStressState>()};
 
