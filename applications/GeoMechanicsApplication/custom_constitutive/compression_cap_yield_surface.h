@@ -39,10 +39,8 @@ public:
     [[nodiscard]] Vector DerivativeOfFlowFunction(const Vector&) const override;
 
 private:
-    void   InitializeKappaDependentFunctions();
-    void   CheckMaterialProperties() const;
-    double GetCapSize(const Properties& rProperties);
-    double GetCapLocation(const Properties& rProperties);
+    void InitializeKappaDependentFunctions();
+    void CheckMaterialProperties() const;
 
     friend class Serializer;
     void save(Serializer& rSerializer) const override;

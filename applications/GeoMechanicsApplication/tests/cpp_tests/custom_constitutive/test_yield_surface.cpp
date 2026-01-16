@@ -251,7 +251,7 @@ KRATOS_TEST_CASE_IN_SUITE(CompressionCapYieldSurface_CanBeSavedAndLoadedThroughI
     const auto p_q = StressStrainUtilities::TransformPrincipalStressesToPandQ(principal_stresses);
     KRATOS_EXPECT_NEAR(p_loaded_cap_yield_surface->YieldFunctionValue(p_q), 18.75, Defaults::absolute_tolerance);
 
-    auto expected_derivative = UblasUtilities::CreateVector({40.0, 2.1650635094610966169});
+    const auto expected_derivative = UblasUtilities::CreateVector({40.0, 2.1650635094610966169});
     KRATOS_EXPECT_VECTOR_NEAR(p_loaded_cap_yield_surface->DerivativeOfFlowFunction(p_q),
                               expected_derivative, Defaults::absolute_tolerance);
 }

@@ -14,7 +14,7 @@
 #pragma once
 
 #include "geo_aliases.h"
-#include "includes/kratos_parameters.h"
+#include "includes/kratos_export_api.h"
 
 namespace Kratos
 {

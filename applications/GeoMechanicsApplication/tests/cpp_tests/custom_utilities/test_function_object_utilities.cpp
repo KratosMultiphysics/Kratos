@@ -22,35 +22,33 @@ namespace Kratos::Testing
 KRATOS_TEST_CASE_IN_SUITE(FunctionObjectUtilities_MakeConstantFunction, KratosGeoMechanicsFastSuiteWithoutKernel)
 {
     // Arrange
-    constexpr double value = 3.0;
+    constexpr auto value = 3.0;
 
     // Act
-    auto       kappa = 0.0;
-    const auto cf    = FunctionObjectUtilities::MakeConstantFunction(value);
+    auto kappa = 0.0;
+    auto cf    = FunctionObjectUtilities::MakeConstantFunction(value);
 
     // Assert
-    KRATOS_CHECK_NEAR(cf(kappa), value, Defaults::absolute_tolerance);
+    KRATOS_EXPECT_NEAR(cf(kappa), value, Defaults::absolute_tolerance);
 
     // Act
-    // kappa = 10.0;
-    // cf = FunctionObjectUtilities::MakeConstantFunction(value);
+    kappa = 10.0;
+    cf    = FunctionObjectUtilities::MakeConstantFunction(value);
 
     // Assert
-    // KRATOS_CHECK_NEAR(cf(kappa), value, Defaults::absolute_tolerance);
+    KRATOS_EXPECT_NEAR(cf(kappa), value, Defaults::absolute_tolerance);
 }
 
 KRATOS_TEST_CASE_IN_SUITE(FunctionObjectUtilities_MakeLinearFunction, KratosGeoMechanicsFastSuiteWithoutKernel)
 {
     // Arrange
-    constexpr double value = 3.0;
-    const auto       array = UblasUtilities::CreateVector({30.0});
+    constexpr auto value       = 3.0;
+    const auto     coefficient = 30.0;
+    const auto     cf          = FunctionObjectUtilities::MakeLinearFunction(value, coefficient);
 
-    // Act
-    auto       kappa = 4.0;
-    const auto cf    = FunctionObjectUtilities::MakeLinearFunction(value, array[0]);
-
-    // Assert
-    KRATOS_CHECK_NEAR(cf(kappa), 123.0, Defaults::absolute_tolerance);
+    // Act & Assert
+    auto kappa = 4.0;
+    KRATOS_EXPECT_NEAR(cf(kappa), 123.0, Defaults::absolute_tolerance);
 }
 
 } // namespace Kratos::Testing

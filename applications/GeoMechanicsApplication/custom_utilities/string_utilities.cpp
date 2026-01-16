@@ -11,6 +11,8 @@
 //
 
 #include "string_utilities.h"
+#include <algorithm>
+#include <cctype>
 
 namespace Kratos
 {
@@ -18,7 +20,7 @@ namespace Kratos
 std::string GeoStringUtilities::ToLower(const std::string& rString)
 {
     auto result = rString;
-    std::ranges::transform(result, result.begin(), [](unsigned char c) { return std::tolower(c); });
+    std::ranges::transform(result, result.begin(), [](auto c) { return std::tolower(c); });
     return result;
 }
 

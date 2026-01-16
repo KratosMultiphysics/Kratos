@@ -240,7 +240,7 @@ Vector StressStrainUtilities::TransformSigmaTauToPrincipalStresses(const Vector&
 
 Vector StressStrainUtilities::TransformPrincipalStressesToPandQ(const Vector& rPrincipalStresses)
 {
-    Vector local_stress_vector = Vector(6, 0.0);
+    auto local_stress_vector = Vector(6, 0.0);
     std::ranges::copy(rPrincipalStresses, local_stress_vector.begin());
     return UblasUtilities::CreateVector(
         {CalculateMeanStress(local_stress_vector), CalculateVonMisesStress(local_stress_vector)});

@@ -12,7 +12,7 @@
 
 #pragma once
 
-#include "includes/kratos_parameters.h"
+#include "includes/kratos_export_api.h"
 #include <string>
 
 namespace Kratos
