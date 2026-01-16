@@ -240,10 +240,10 @@ Vector StressStrainUtilities::TransformSigmaTauToPrincipalStresses(const Vector&
 
 Vector StressStrainUtilities::TransformPrincipalStressesToPandQ(const Vector& rPrincipalStresses)
 {
-    auto local_stress_vector = Vector(6, 0.0);
-    std::ranges::copy(rPrincipalStresses, local_stress_vector.begin());
+    auto stress_vector = Vector(6, 0.0);
+    std::ranges::copy(rPrincipalStresses, stress_vector.begin());
     return UblasUtilities::CreateVector(
-        {CalculateMeanStress(local_stress_vector), CalculateVonMisesStress(local_stress_vector)});
+        {CalculateMeanStress(stress_vector), CalculateVonMisesStress(stress_vector)});
 }
 
 } // namespace Kratos

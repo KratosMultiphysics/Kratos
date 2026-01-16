@@ -33,16 +33,17 @@ double GetCapSize(const Properties& rProperties)
     if (rProperties.Has(GEO_COMPRESSION_CAP_SIZE)) {
         return rProperties[GEO_COMPRESSION_CAP_SIZE];
     }
+    double k0_nc;
     if (rProperties.Has(K0_NC)) {
-        return 4.5 * (1.0 - rProperties[K0_NC]) / (1.0 + 2.0 * rProperties[K0_NC]);
+        k0_nc = 4.5 * (1.0 - rProperties[K0_NC]) / (1.0 + 2.0 * rProperties[K0_NC]);
+    } else if (rProperties.Has(GEO_FRICTION_ANGLE)) {
+        k0_nc = 1.0 - std::sin(ConstitutiveLawUtilities::GetFrictionAngleInRadians(rProperties));
+    } else {
+        KRATOS_ERROR
+            << "Failed to determine the compression cap size. Neither of the following material "
+               "properties was provided: GEO_COMPRESSION_CAP_SIZE, K0_NC, or GEO_FRICTION_ANGLE\n ";
     }
-    if (rProperties.Has(GEO_FRICTION_ANGLE)) {
-        const auto k0_nc = 1.0 - std::sin(ConstitutiveLawUtilities::GetFrictionAngleInRadians(rProperties));
-        return 4.5 * (1.0 - k0_nc) / (1.0 + 2.0 * k0_nc);
-    }
-    KRATOS_ERROR
-        << "Failed to determine the compression cap size. Neither of the following material "
-           "properties was provided: GEO_COMPRESSION_CAP_SIZE, K0_NC, or GEO_FRICTION_ANGLE\n ";
+    return 4.5 * (1.0 - k0_nc) / (1.0 + 2.0 * k0_nc);
 }
 
 double GetCapLocation(const Properties& rProperties)
@@ -112,8 +113,8 @@ double CompressionCapYieldSurface::GetCapLocation() const { return mCapLocationC
 double CompressionCapYieldSurface::YieldFunctionValue(const Vector& rSigmaTau) const
 {
     // rSigmaTau here contains the values of p and q
-    return std::pow(rSigmaTau[1] / GetCapSize(), 2) +
-           (rSigmaTau[0] + GetCapLocation()) * (rSigmaTau[0] - GetCapLocation());
+    return std::pow(rSigmaTau[1] / GetCapSize(), 2) + rSigmaTau[0] * rSigmaTau[0] -
+           std::pow(GetCapLocation(), 2);
 }
 
 Vector CompressionCapYieldSurface::DerivativeOfFlowFunction(const Vector& rSigmaTau) const
@@ -131,8 +132,18 @@ void CompressionCapYieldSurface::InitializeKappaDependentFunctions()
 void CompressionCapYieldSurface::CheckMaterialProperties() const
 {
     const CheckProperties check_properties(mMaterialProperties, "property", CheckProperties::Bounds::AllInclusive);
-    check_properties.Check(GEO_COMPRESSION_CAP_SIZE);
     check_properties.Check(GEO_COMPRESSION_CAP_LOCATION);
+    if (mMaterialProperties.Has(GEO_COMPRESSION_CAP_SIZE)) {
+        check_properties.Check(GEO_COMPRESSION_CAP_SIZE);
+    } else if (mMaterialProperties.Has(K0_NC)) {
+        check_properties.Check(K0_NC);
+    } else if (mMaterialProperties.Has(GEO_FRICTION_ANGLE)) {
+        check_properties.Check(GEO_FRICTION_ANGLE);
+    } else {
+        KRATOS_ERROR << "Invalid material properties: cap size determination requires one of "
+                        "GEO_COMPRESSION_CAP_SIZE, K0_NC, or GEO_FRICTION_ANGLE to be defined."
+                     << std::endl;
+    }
 }
 
 void CompressionCapYieldSurface::save(Serializer& rSerializer) const
