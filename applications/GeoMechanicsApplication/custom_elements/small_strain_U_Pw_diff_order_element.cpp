@@ -20,11 +20,13 @@
 #include "geometries/triangle_2d_3.h"
 #include "geometries/triangle_2d_6.h"
 #include "includes/cfd_variables.h"
+#include "includes/constitutive_law.h"
 #include "includes/serializer.h"
 #include "utilities/math_utils.h"
 
 // Application includes
-#include "custom_elements/small_strain_U_Pw_diff_order_element.hpp"
+#include "custom_elements/small_strain_U_Pw_diff_order_element.h"
+#include "custom_retention/retention_law.h"
 #include "custom_utilities/check_utilities.hpp"
 #include "custom_utilities/constitutive_law_utilities.h"
 #include "custom_utilities/dof_utilities.hpp"
@@ -41,6 +43,25 @@
 
 namespace Kratos
 {
+SmallStrainUPwDiffOrderElement::SmallStrainUPwDiffOrderElement(IndexType             NewId,
+                                                               GeometryType::Pointer pGeometry,
+                                                               std::unique_ptr<StressStatePolicy> pStressStatePolicy,
+                                                               std::unique_ptr<IntegrationCoefficientModifier> pCoefficientModifier)
+    : UPwBaseElement(NewId, pGeometry, std::move(pStressStatePolicy), std::move(pCoefficientModifier))
+{
+    SetUpPressureGeometryPointer();
+}
+
+SmallStrainUPwDiffOrderElement::SmallStrainUPwDiffOrderElement(IndexType               NewId,
+                                                               GeometryType::Pointer   pGeometry,
+                                                               PropertiesType::Pointer pProperties,
+                                                               std::unique_ptr<StressStatePolicy> pStressStatePolicy,
+                                                               std::unique_ptr<IntegrationCoefficientModifier> pCoefficientModifier)
+    : UPwBaseElement(NewId, pGeometry, pProperties, std::move(pStressStatePolicy), std::move(pCoefficientModifier))
+{
+    SetUpPressureGeometryPointer();
+}
+
 Element::Pointer SmallStrainUPwDiffOrderElement::Create(IndexType               NewId,
                                                         NodesArrayType const&   ThisNodes,
                                                         PropertiesType::Pointer pProperties) const
@@ -1656,5 +1677,17 @@ void SmallStrainUPwDiffOrderElement::CalculateAnyOfMaterialResponse(
         mConstitutiveLawVector[GPoint]->CalculateMaterialResponseCauchy(rConstitutiveParameters);
     }
 }
+
+std::string SmallStrainUPwDiffOrderElement::Info() const
+{
+    const std::string constitutive_info =
+        !mConstitutiveLawVector.empty() ? mConstitutiveLawVector[0]->Info() : "not defined";
+    std::ostringstream oss;
+    oss << "U-Pw small strain different order Element #" << Id() << "\nConstitutive law: " << constitutive_info;
+
+    return oss.str();
+}
+
+void SmallStrainUPwDiffOrderElement::PrintInfo(std::ostream& rOStream) const { rOStream << Info(); }
 
 } // Namespace Kratos

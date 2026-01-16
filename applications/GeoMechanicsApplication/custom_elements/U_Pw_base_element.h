@@ -16,16 +16,13 @@
 // Project includes
 #include "containers/array_1d.h"
 #include "custom_retention/retention_law.h"
-#include "custom_retention/retention_law_factory.h"
 #include "geometries/geometry.h"
 #include "includes/constitutive_law.h"
 #include "includes/define.h"
 #include "includes/element.h"
-#include "utilities/math_utils.h"
 
 // Application includes
-#include "custom_utilities/element_utilities.hpp"
-#include "integration_coefficients_calculator.h"
+#include "integration_coefficients_calculator.hpp"
 #include "stress_state_policy.h"
 
 namespace Kratos
@@ -44,37 +41,18 @@ public:
     UPwBaseElement(IndexType                                       NewId,
                    const NodesArrayType&                           ThisNodes,
                    std::unique_ptr<StressStatePolicy>              pStressStatePolicy,
-                   std::unique_ptr<IntegrationCoefficientModifier> pCoefficientModifier = nullptr)
-        : Element(NewId, ThisNodes),
-          mpStressStatePolicy{std::move(pStressStatePolicy)},
-          mIntegrationCoefficientsCalculator{std::move(pCoefficientModifier)}
-    {
-    }
+                   std::unique_ptr<IntegrationCoefficientModifier> pCoefficientModifier = nullptr);
 
-    /// Constructor using Geometry
     UPwBaseElement(IndexType                                       NewId,
                    GeometryType::Pointer                           pGeometry,
                    std::unique_ptr<StressStatePolicy>              pStressStatePolicy,
-                   std::unique_ptr<IntegrationCoefficientModifier> pCoefficientModifier = nullptr)
-        : Element(NewId, pGeometry),
-          mpStressStatePolicy{std::move(pStressStatePolicy)},
-          mIntegrationCoefficientsCalculator{std::move(pCoefficientModifier)}
-    {
-    }
+                   std::unique_ptr<IntegrationCoefficientModifier> pCoefficientModifier = nullptr);
 
-    /// Constructor using Properties
     UPwBaseElement(IndexType                                       NewId,
                    GeometryType::Pointer                           pGeometry,
                    PropertiesType::Pointer                         pProperties,
                    std::unique_ptr<StressStatePolicy>              pStressStatePolicy,
-                   std::unique_ptr<IntegrationCoefficientModifier> pCoefficientModifier = nullptr)
-        : Element(NewId, pGeometry, pProperties),
-          mpStressStatePolicy{std::move(pStressStatePolicy)},
-          mIntegrationCoefficientsCalculator{std::move(pCoefficientModifier)}
-    {
-        // this is needed for interface elements
-        mThisIntegrationMethod = this->GetIntegrationMethod();
-    }
+                   std::unique_ptr<IntegrationCoefficientModifier> pCoefficientModifier = nullptr);
 
     ~UPwBaseElement() override                           = default;
     UPwBaseElement(const UPwBaseElement&)                = delete;
@@ -148,14 +126,9 @@ public:
 
     using Element::SetValuesOnIntegrationPoints;
 
-    std::string Info() const override
-    {
-        const std::string constitutive_info =
-            !mConstitutiveLawVector.empty() ? mConstitutiveLawVector[0]->Info() : "not defined";
-        return "U-Pw Base class Element #" + std::to_string(Id()) + "\nConstitutive law: " + constitutive_info;
-    }
+    std::string Info() const override;
 
-    void PrintInfo(std::ostream& rOStream) const override { rOStream << Info(); }
+    void PrintInfo(std::ostream& rOStream) const override;
 
 protected:
     /// Member Variables
