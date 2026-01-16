@@ -123,7 +123,7 @@ void GapSbmSolidCondition::InitializeSbmMemberVariables()
     mDistanceVectorSkin.resize(3);
     noalias(mDistanceVectorSkin) = mpSkinProjectionNode->Coordinates() - r_surrogate_geometry.Center().Coordinates();
 
-    mDistanceVectorSkin = mDistanceVector; //FIXME:
+    // mDistanceVectorSkin = mDistanceVector; //FIXME:
 
     const Point&  p_true = r_geometry.Center();            // true boundary
     const Point&  p_sur  = r_surrogate_geometry.Center();  // surrogate

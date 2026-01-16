@@ -117,13 +117,13 @@ void GapSbmLoadSolidCondition::InitializeSbmMemberVariables()
         
     mDistanceVectorSkin.resize(3);
     noalias(mDistanceVectorSkin) = mpSkinProjectionNode->Coordinates() - r_surrogate_geometry.Center().Coordinates();
-    mDistanceVectorSkin = mDistanceVectorGap; //FIXME:
+    // mDistanceVectorSkin = mDistanceVectorGap; //FIXME:
 
     this->SetValue(PROJECTION_NODE_COORDINATES, mpSkinProjectionNode->Coordinates());
 
     // dot product n dot n_tilde
     mTrueDotSurrogateNormal = inner_prod(mNormalPhysicalSpace, mTrueNormal);
-    mTrueDotSurrogateNormal = 1; //FIXME:
+    // mTrueDotSurrogateNormal = 1; //FIXME:
 
     const Point&  p_true = r_geometry.Center();            // true boundary
     const Point&  p_sur  = r_surrogate_geometry.Center();  // surrogate

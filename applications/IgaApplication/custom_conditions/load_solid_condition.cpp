@@ -199,7 +199,20 @@ void LoadSolidCondition::CalculateRightHandSide(
     sub_inv_jacobian(0,1) = InvJ0(0,1);
     sub_inv_jacobian(1,1) = InvJ0(1,1);
 
-    Vector g_N = this->GetValue(FORCE); 
+    // Vector g_N = this->GetValue(FORCE); 
+
+    double nu = this->GetProperties().GetValue(POISSON_RATIO);
+    double E = this->GetProperties().GetValue(YOUNG_MODULUS);
+    Vector g_N = ZeroVector(3);
+
+    const double x = r_geometry.Center().X();
+    const double y = r_geometry.Center().Y();
+    // // cosinusoidal
+    // g_N[0] = E/(1-nu)*(sin(x)*sinh(y-0.5)) * normal_physical_space[0]; 
+    // g_N[1] = E/(1-nu)*(sin(x)*sinh(y-0.5)) * normal_physical_space[1]; 
+
+    g_N[0] = E/(1-nu)*(sin(x/2)*sinh(y/2)) * normal_physical_space[0]/2; 
+    g_N[1] = E/(1-nu)*(sin(x/2)*sinh(y/2)) * normal_physical_space[1]/2; 
 
     for (IndexType i = 0; i < number_of_control_points; i++) {
         for (IndexType zdim = 0; zdim < 2; zdim++) {
