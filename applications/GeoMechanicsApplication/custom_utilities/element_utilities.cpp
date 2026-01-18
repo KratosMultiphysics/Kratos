@@ -11,7 +11,7 @@
 //
 
 #include "element_utilities.hpp"
-#include "custom_elements/interface_element.h"
+#include "custom_elements/U_Pw_interface_element.h"
 
 #include <cstddef>
 
@@ -145,7 +145,7 @@ Vector GeoElementUtilities::CalculateNodalHydraulicHeadFromWaterPressures(const 
 
 std::size_t GeoElementUtilities::GetNumberOfIntegrationPointsOf(const Element& rElement)
 {
-    auto p_interface_element = dynamic_cast<const InterfaceElement*>(&rElement);
+    auto p_interface_element = dynamic_cast<const UPwInterfaceElement*>(&rElement);
     return p_interface_element
                ? p_interface_element->GetIntegrationScheme().GetNumberOfIntegrationPoints()
                : rElement.GetGeometry().IntegrationPointsNumber(rElement.GetIntegrationMethod());
@@ -153,7 +153,7 @@ std::size_t GeoElementUtilities::GetNumberOfIntegrationPointsOf(const Element& r
 
 Geo::IntegrationPointVectorType GeoElementUtilities::GetIntegrationPointsOf(const Element& rElement)
 {
-    auto p_interface_element = dynamic_cast<const InterfaceElement*>(&rElement);
+    auto p_interface_element = dynamic_cast<const UPwInterfaceElement*>(&rElement);
     return p_interface_element
                ? p_interface_element->GetIntegrationScheme().GetIntegrationPoints()
                : rElement.GetGeometry().IntegrationPoints(rElement.GetIntegrationMethod());

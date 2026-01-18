@@ -12,7 +12,7 @@
 //
 
 #include "custom_constitutive/interface_coulomb_with_tension_cut_off.h"
-#include "custom_utilities/registration_utilities.h"
+#include "custom_utilities/registration_utilities.hpp"
 #include "geo_mechanics_application_variables.h"
 #include "includes/stream_serializer.h"
 #include "tests/cpp_tests/geo_mechanics_fast_suite.h"
