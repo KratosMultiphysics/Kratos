@@ -14,15 +14,17 @@
 
 #pragma once
 
-#include "geo_mechanics_application_variables.h"
 #include "includes/element.h"
 #include "includes/kratos_export_api.h"
 #include "processes/process.h"
+
+#include <string>
 
 namespace Kratos
 {
 
 class Model;
+class Parameters;
 
 class KRATOS_API(GEO_MECHANICS_APPLICATION) ApplyCPhiReductionProcess : public Process
 {

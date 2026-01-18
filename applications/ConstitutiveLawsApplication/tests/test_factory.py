@@ -146,7 +146,8 @@ class TractionSeparationLawTest(TestFactory):
 class CurveByPointsPlasticityTest(TestFactory):
     file_name = "CurveByPointsPlasticity/plastic_test"
 
-
+class ThicknessIntegratedShellConstitutiveLawTest(TestFactory):
+    file_name = "ThicknessIntegratedShellConstitutiveLaw/thickness_integrated_cl_test"
 
 if __name__ == '__main__':
     KratosUnittest.main()

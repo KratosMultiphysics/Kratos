@@ -77,13 +77,13 @@ public:
     /// Pointer definition of NavierStokesWallCondition
     KRATOS_CLASS_INTRUSIVE_POINTER_DEFINITION(LowMachNavierStokesWallCondition);
 
-    // struct ConditionDataStruct
-    // {
-    //     double wGauss;                                  // Gauss point weight
-    //     array_1d<double, 3> Normal;                     // Condition normal
-    //     array_1d<double, TNumNodes> N;                  // Gauss point shape functions values
-    //     Vector ViscousStress;                           // Viscous stresses that are retrieved from parent
-    // };
+    struct ConditionDataStruct
+    {
+        double wGauss;                                  // Gauss point weight
+        array_1d<double, 3> Normal;                     // Condition normal
+        array_1d<double, TNumNodes> N;                  // Gauss point shape functions values
+        // Vector ViscousStress;                           // Viscous stresses that are retrieved from parent
+    };
 
     using SizeType = Condition::SizeType;
 
@@ -279,13 +279,6 @@ protected:
     ///@name Protected Operations
     ///@{
 
-    /**
-     * @brief Calculate the condition area normal
-     * This method calculates the current condition area normal
-     * @param rAreaNormal Reference to the current condition area normal
-     */
-    void CalculateNormal(array_1d<double,3>& rAreaNormal);
-
     // /**
     //  * @brief Calculates the Gauss point LHS contribution
     //  * This method calculates the current Gauss point LHS contribution and saves it
@@ -300,31 +293,31 @@ protected:
     //     const ConditionDataStruct& rData,
     //     const ProcessInfo& rProcessInfo);
 
-    // /**
-    //  * @brief Calculates the Gauss point RHS contribution
-    //  * This method calculates the current Gauss point RHS contribution and saves it
-    //  * in the provided array. Note that the input data container is expected to
-    //  * already contain the data at the Gauss point of interest.
-    //  * @param rLHS Reference to the RHS output vector
-    //  * @param rData Condition data container
-    //  * @param rProcessInfo Reference to the ProcessInfo container
-    //  */
-    // void ComputeGaussPointRHSContribution(
-    //     array_1d<double, LocalSize>& rRHS,
-    //     const ConditionDataStruct& rData,
-    //     const ProcessInfo& rProcessInfo);
+    /**
+     * @brief Calculates the Gauss point RHS contribution
+     * This method calculates the current Gauss point RHS contribution and saves it
+     * in the provided array. Note that the input data container is expected to
+     * already contain the data at the Gauss point of interest.
+     * @param rLHS Reference to the RHS output vector
+     * @param rData Condition data container
+     * @param rProcessInfo Reference to the ProcessInfo container
+     */
+    void ComputeGaussPointRHSContribution(
+        array_1d<double, LocalSize>& rRHS,
+        const ConditionDataStruct& rData,
+        const ProcessInfo& rProcessInfo);
 
-    // /**
-    //  * @brief Calculates the RHS Neumann BC contribution
-    //  * This method calculates the Neumann BC pressure flux contribution
-    //  * Note that the Neumann BC value is expected to be stored in the historical
-    //  * database within the EXTERNAL_PRESSURE variable.
-    //  * @param rRHS Reference to the RHS output vector
-    //  * @param data Condition data container
-    //  */
-    // void ComputeRHSNeumannContribution(
-    //     array_1d<double,LocalSize>& rRHS,
-    //     const ConditionDataStruct& data);
+    /**
+     * @brief Calculates the RHS Neumann BC contribution
+     * This method calculates the Neumann BC pressure flux contribution
+     * Note that the Neumann BC value is expected to be stored in the historical
+     * database within the EXTERNAL_PRESSURE variable.
+     * @param rRHS Reference to the RHS output vector
+     * @param data Condition data container
+     */
+    void ComputeRHSNeumannContribution(
+        array_1d<double,LocalSize>& rRHS,
+        const ConditionDataStruct& data);
 
     // /**
     //  * @brief Calculates and adds the RHS outlet inflow prevention contribution
