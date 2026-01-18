@@ -1,0 +1,106 @@
+node('mmg-sonnar-new') {
+    withEnv(['version_mmg=develop']) {
+        def list = ['OFF','ON']
+        stage('GitClone'){
+            checkout([$class: 'GitSCM', branches: [[name: '*/develop']], doGenerateSubmoduleConfigurations: false, extensions: [], submoduleCfg: [], userRemoteConfigs: [[url: 'https://github.com/MmgTools/mmg.git']]])
+            step([$class: 'LastChangesPublisher', since:'PREVIOUS_REVISION',specificRevision: '', format: 'LINE', matchWordsThreshold: '0.25', matching: 'NONE', matchingMaxComparisons: '1000', showFiles: true, synchronisedScroll: true])
+        }
+
+        for ( i=0; i<list.size(); i++ ) {
+            stage('buildPattern'+list[i]+'useScotch'+list[i]){
+                sh '''#!/bin/bash -l
+          mkdir -p buildPattern'''+list[i]+'''useScotch'''+list[i]+'''
+          cd buildPattern'''+list[i]+'''useScotch'''+list[i]+'''
+          rm -rf *
+          export CFLAGS="-O0 -g -fPIC --coverage"
+          export LDFLAGS="--coverage"
+          cmake .. -DCMAKE_BUILD_TYPE=Debug -DUSE_VTK='''+list[i]+'''\
+                -DUSE_POINTMAP='''+list[i]+''' -DCMAKE_Fortran_COMPILER="gfortran"\
+                -DMMG_PATTERN='''+list[i]+''' -DBUILD_TESTING=ON -DCMAKE_C_FLAGS="$CFLAGS"\
+                -DCMAKE_CXX_FLAGS="$CFLAGS" -DCMAKE_EXE_LINKER_FLAGS="$LDFLAGS"\
+                -DCMAKE_INSTALL_PREFIX=$PWD/../install\
+                -DBUILD_TESTING=ON -DLONG_TESTS=OFF -DRUN_AGAIN=ON\
+                -DLIBMMG2D_STATIC=ON -DLIBMMG3D_STATIC=ON -DLIBMMG_STATIC=ON\
+                -DLIBMMG2D_STATIC=ON -DLIBMMGS_STATIC=ON -DTEST_LIBMMG=ON\
+                -DTEST_LIBMMG2D=ON -DTEST_LIBMMG3D=ON -DTEST_LIBMMGS=ON\
+                -DSCOTCH_DIR=/builds/scotch_6.0.6 -DUSE_SCOTCH='''+list[i]+'''\
+                -DELAS_DIR=/builds/LinearElasticity -DUSE_ELAS='''+list[i]+'''
+           make clean
+           scan-build -plist --intercept-first --analyze-headers -o analyzer_reports make 2>&1 |tee mmg-build.log
+           make install |tee -a mmg-build.log
+           '''
+            }
+            try {
+                stage('Test'+list[i]){
+                    sh '''#!/bin/bash -l
+              cd buildPattern'''+list[i]+'''useScotch'''+list[i]+'''
+              ctest --no-compress-output -T Test -V || /usr/bin/true
+              lcov --directory /builds/workspace/mmg-sonarqube-$version_mmg/buildPattern'''+list[i]+'''useScotch'''+list[i]+''' --capture --output-file /builds/workspace/mmg-sonarqube-$version_mmg/buildPattern'''+list[i]+'''useScotch'''+list[i]+'''/mmg-pattern'''+list[i]+'''-use-scotch'''+list[i]+'''.lcov
+              valgrind --xml=yes --xml-file=valgrind-mmg2d.xml ./bin/mmg2d_debug ../libexamples/mmg2d/adaptation_example0/example0_a/init.mesh
+              valgrind --xml=yes --xml-file=valgrind-mmgs.xml ./bin/mmgs_debug ../libexamples/mmgs/adaptation_example0/example0_a/cube.mesh
+              valgrind --xml=yes --xml-file=valgrind-mmg3d.xml ./bin/mmg3d_debug ../libexamples/mmg3d/adaptation_example0/example0_a/cube.mesh
+              '''
+                }
+            } catch (Exception err) {
+                echo "Tests failed..."
+            }
+        }
+
+        stage('Analysis'){
+            sh '''#!/bin/bash -l
+        lcov -a /builds/workspace/mmg-sonarqube-$version_mmg/buildPatternONuseScotchON/mmg-patternON-use-scotchON.lcov -a /builds/workspace/mmg-sonarqube-$version_mmg/buildPatternOFFuseScotchOFF/mmg-patternOFF-use-scotchOFF.lcov -o /builds/workspace/mmg-sonarqube-$version_mmg/mmg.lcov
+        python /builds/sonar/lcov-to-cobertura-xml-1.6/lcov_cobertura/lcov_cobertura.py /builds/workspace/mmg-sonarqube-$version_mmg/mmg.lcov --output /builds/workspace/mmg-sonarqube-$version_mmg/mmg-coverage.xml
+        export CPPCHECK_INCLUDES="-IbuildPatternONuseScotchON/include -IbuildPatternOFFuseScotchOFF/include -IbuildPatternONuseScotchON/src/common -IbuildPatternOFFuseScotchOFF/src/common"
+        export SOURCES_TO_ANALYZE="./src"
+        cppcheck  -v -f --language=c --platform=unix64 --check-config --enable=all --xml --xml-version=2 --suppress=missingIncludeSystem ${CPPCHECK_INCLUDES} ${SOURCES_TO_ANALYZE} 2> mmg-cppcheck.xml
+        /usr/local/bin/rats -w 3 --xml ${SOURCES_TO_ANALYZE} > mmg-rats.xml
+        export JAVA_HOME=/usr/lib/jvm/java-8-openjdk-amd64/
+        export SONAR_SCANNER_OPTS="-Xms512m -Xmx1024m"
+        cat > sonar-project.properties << EOF
+sonar.host.url=https://sonarqube.inria.fr/sonarqube
+sonar.links.homepage=http://www.mmgtools.org/
+#sonar.links.ci=
+sonar.links.scm=https://github.com/MmgTools/mmg.git
+sonar.links.issue=https://github.com/MmgTools/mmg/issues
+sonar.projectKey=cardamom:mmg:github:$version_mmg
+sonar.projectDescription=open source software for bidimensional and tridimensional remeshing
+sonar.projectVersion=$version_mmg
+sonar.sources=./src
+sonar.tests=./cmake/testing/code,./libexamples
+sonar.sourceEncoding=UTF-8
+sonar.cxx.file.suffixes=.h,.c,.hpp,.cpp
+sonar.lang.patterns.c++ : **/*.cxx,**/*.cpp,**/*.hxx,**/*.hpp
+sonar.cxx.errorRecoveryEnabled=True
+sonar.cxx.includeDirectories=\
+   /builds/workspace/mmg-sonarqube-$version_mmg/src/common,\
+   /builds/workspace/mmg-sonarqube-$version_mmg/src/mmg,\
+   /builds/workspace/mmg-sonarqube-$version_mmg/src/mmg3d,\
+   /builds/workspace/mmg-sonarqube-$version_mmg/src/mmg2d,\
+   /builds/workspace/mmg-sonarqube-$version_mmg/src/mmgs,\
+   /builds/workspace/mmg-sonarqube-$version_mmg/buildPatternONuseScotchON/src/mmg2d,\
+   /builds/workspace/mmg-sonarqube-$version_mmg/buildPatternONuseScotchON/src/mmg3d,\
+   /builds/workspace/mmg-sonarqube-$version_mmg/buildPatternONuseScotchON/src/mmgs,\
+   /builds/workspace/mmg-sonarqube-$version_mmg/buildPatternONuseScotchON/src/common,\
+   /builds/workspace/mmg-sonarqube-$version_mmg/buildPatternONuseScotchON/include,\
+   /builds/workspace/mmg-sonarqube-$version_mmg/buildPatternONuseScotchON/src,\
+   /builds/workspace/mmg-sonarqube-$version_mmg/buildPatternOFFuseScotchOFF/src/mmg2d,\
+   /builds/workspace/mmg-sonarqube-$version_mmg/buildPatternOFFuseScotchOFF/src/mmg3d,\
+   /builds/workspace/mmg-sonarqube-$version_mmg/buildPatternOFFuseScotchOFF/src/mmgs,\
+   /builds/workspace/mmg-sonarqube-$version_mmg/buildPatternOFFuseScotchOFF/src/common,\
+   /builds/workspace/mmg-sonarqube-$version_mmg/buildPatternOFFuseScotchOFF/include,\
+   /builds/workspace/mmg-sonarqube-$version_mmg/buildPatternOFFuseScotchOFF/src,
+sonar.cxx.gcc.encoding=UTF-8
+sonar.cxx.gcc.regex=^(.*):(\\\\d+):\\\\d+: warning: (.*)\\\\[(.*)\\\\]$
+sonar.cxx.gcc.reportPaths=mmg-build.log
+sonar.cxx.cobertura.reportPaths=mmg-coverage.xml
+sonar.cxx.cppcheck.reportPaths=mmg-cppcheck.xml
+sonar.cxx.rats.reportPaths=mmg-rats.xml
+sonar.cxx.clangsa.reportPaths=*/analyzer_reports/*/*.plist
+sonar.cxx.valgrind.reportPaths=valgrind-*.xml
+#sonar.cxx.vera.reportPaths=mmg-vera.xml
+EOF
+        /builds/sonar/sonar-scanner-4.7.0.2747-linux/bin/sonar-scanner -Dsonar.login=`cat /builds/mmg-token`
+        '''
+        }
+    }
+}

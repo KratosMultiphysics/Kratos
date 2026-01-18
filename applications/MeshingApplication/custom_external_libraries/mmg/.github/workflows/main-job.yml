@@ -1,0 +1,390 @@
+on:
+  workflow_call:
+    inputs:
+      cmake_build_type:
+        description: 'Value for CMAKE_BUILD_TYPE'
+        type: string
+        default: Release
+        required: true
+
+      add_cmake_cfg_args:
+        description: 'Additional arguments for configuration step'
+        required: false
+        type: string
+
+      branch_name:
+        description: 'Branch to checkout when tests are manually triggered'
+        required: false
+        type: string
+
+      code_coverage:
+        description: 'Code coverage'
+        required: false
+        default: true
+        type: boolean
+
+# job
+jobs:
+  ci:
+    if: "! contains(github.event.head_commit.message, '[skip ci]')"
+    runs-on: ${{ matrix.os }}
+
+    # Launch a matrix of jobs
+    strategy:
+        fail-fast: false
+        matrix:
+            os: [ubuntu-20.04,macos-12]
+            pattern: [on,off]
+            pointmap: [off]
+            scotch: [on,off]
+            vtk: [off]
+            int: [int32_t]
+
+            include:
+              # test vtk only without scotch and with delaunay insertion (more
+              # tests are useless)
+              - os: ubuntu-20.04
+                pattern: off
+                pointmap: off
+                scotch: off
+                vtk: on
+                int: int32_t
+
+              - os: macos-14
+                pattern: off
+                pointmap: off
+                scotch: off
+                vtk: on
+                int: int32_t
+
+              # Test pointmap with scotch except on windows
+              - os: ubuntu-20.04
+                pattern: off
+                pointmap: on
+                scotch: on
+                vtk: off
+                int: int32_t
+
+              - os: macos-12
+                pattern: off
+                pointmap: on
+                scotch: on
+                vtk: off
+                int: int32_t
+
+              # Add windows basic test (matrix is not testable as dependencies
+              # don't build with MSVC)
+              - os: windows-2022
+                pattern: off
+                pointmap: off
+                scotch: off
+                vtk: off
+                int: int32_t
+
+              - os: windows-2022
+                pattern: on
+                pointmap: off
+                scotch: off
+                vtk: off
+                int: int32_t
+
+              # Add test for pointmap only if pattern off
+              - os: windows-2022
+                pattern: off
+                pointmap: on
+                scotch: off
+                vtk: off
+                int: int32_t
+
+              # Test int64_t build on all archi, and try to cover all code
+              - os: ubuntu-20.04
+                pattern: on
+                pointmap: on
+                scotch: on
+                vtk: on
+                int: int64_t
+
+              - os: ubuntu-20.04
+                pattern: off
+                pointmap: off
+                scotch: on
+                vtk: on
+                int: int64_t
+
+              - os: ubuntu-20.04
+                pattern: off
+                pointmap: off
+                scotch: off
+                vtk: off
+                int: int64_t
+
+              - os: macos-14
+                pattern: on
+                pointmap: on
+                scotch: on
+                vtk: on
+                int: int64_t
+
+              - os: macos-12
+                pattern: off
+                pointmap: off
+                scotch: off
+                vtk: off
+                int: int64_t
+
+              - os: windows-2022
+                pattern: on
+                pointmap: on
+                scotch: off
+                vtk: off
+                int: int64_t
+
+              - os: windows-2022
+                pattern: off
+                pointmap: off
+                scotch: off
+                vtk: off
+                int: int64_t
+
+    steps:
+      - name: Set cmake_build_type and export coverage flags
+        run: |
+          if ${{ matrix.os == 'ubuntu-20.04' && inputs.code_coverage == true }}; then
+            # if code coverage is enabled, linux build is runned in Debug mode
+
+            if [[ ${{ inputs.cmake_build_type }} != Debug ]]; then
+              echo "WARNING: build type is forced to debug mode on ubuntu to allow coverage."
+            fi
+
+            echo "BUILD_TYPE=Debug" >> "$GITHUB_ENV"
+            echo "C_FLG_PROF=-fprofile-arcs -ftest-coverage" >> "$GITHUB_ENV"
+
+          else
+            echo "BUILD_TYPE=${{ inputs.cmake_build_type }}" >> "$GITHUB_ENV"
+          fi
+
+        shell: bash
+
+      - name: Print options and set environment variables
+        run: |
+          echo "${{ github.event.inputs.name }}:
+            Os:      ${{ matrix.os }},
+            Pattern: ${{ matrix.pattern }},
+            Scotch:  ${{ matrix.scotch }},
+            VTK:     ${{ matrix.vtk }},
+            int:     ${{ matrix.int }},
+            Build:   ${{ env.BUILD_TYPE }}"
+
+          # gfortran compiler and scotch makefile depends on the os
+          if [ "$RUNNER_OS" == "macOS" ]; then
+             echo "SCOTCH_MAKE=Make.inc/Makefile.inc.i686_mac_darwin10" >> "$GITHUB_ENV"
+             echo "FORT_FLG=\"-DCMAKE_Fortran_COMPILER=gfortran-14\"" >> "$GITHUB_ENV"
+
+          elif [ "$RUNNER_OS" == "Linux" ]; then
+             echo "SCOTCH_MAKE=Make.inc/Makefile.inc.x86-64_pc_linux2" >> "$GITHUB_ENV"
+             echo "FORT_FLG=\"-DCMAKE_Fortran_COMPILER=gfortran-9\"" >> "$GITHUB_ENV"
+          fi
+          echo "NJOBS=$NJOBS" >> "$GITHUB_ENV"
+          # Remark: variable values are still empty inside this context
+
+        shell: bash
+        env:
+          NJOBS: "2"
+
+      - name: Set environment variables for output comparison
+        if: "! contains(github.event.head_commit.message, '[skip output comparison]')"
+        run: |
+          echo "C_FLG=-DMMG_COMPARABLE_OUTPUT" >> "$GITHUB_ENV"
+          echo "MMG_ERROR_RULE=\"COMMAND_ERROR_IS_FATAL ANY\"" >> "$GITHUB_ENV"
+
+      - name: Assign CMAKE_C_FLAGS if needed
+        if: ${{ env.C_FLG || env.C_FLG_PROF }}
+        run: |
+          echo "CMAKE_C_FLG=-DCMAKE_C_FLAGS=\"${{ env.C_FLG }} ${{ env.C_FLG_PROF }}\"" >> "$GITHUB_ENV"
+
+      - name: Install VTK
+        # Download vtk only if used
+        if: matrix.vtk == 'on'
+        run: |
+          if [ "$RUNNER_OS" == "macOS" ]; then
+            brew install vtk
+          elif [ "$RUNNER_OS" == "Linux" ]; then
+            sudo sed -i 's/azure\.//' /etc/apt/sources.list
+            sudo apt-get update
+            sudo apt-get install -y libvtk7-dev
+          fi
+
+      - name: Install Sctoch
+        # Download scotch only if used
+        if: matrix.scotch == 'on'
+        run: |
+          git clone https://gitlab.inria.fr/scotch/scotch.git
+          cd scotch
+          git checkout v6.1.3
+          cd src
+          cp ${{ env.SCOTCH_MAKE }} Makefile.inc
+          make scotch -j ${{ env.NJOBS }}
+          make prefix=../../scotch-install install -j ${{ env.NJOBS }}
+
+      - name: Install LibCommons
+        # LinearElasticity don't build with MSVC
+        if: runner.os != 'windows'
+        run: |
+          git clone https://github.com/ISCDtoolbox/Commons.git
+          cd Commons
+          mkdir build
+          cd build
+          cmake ..
+          make install
+
+      - name: Install LinearElasticity
+        # LinearElasticity don't build with MSVC
+        if: runner.os != 'windows'
+        run: |
+          git clone https://github.com/ISCDtoolbox/LinearElasticity.git
+          cd LinearElasticity
+          mkdir build
+          cd build
+          cmake ..
+          make install
+
+      # checkout the provided branch name if workflow is manually run
+      - uses: actions/checkout@v4
+        if: inputs.branch_name
+        with:
+          ref: ${{github.event.inputs.branch}}
+          path: mmg
+
+      # checkout the event branch for automatic workflows
+      - uses: actions/checkout@v4
+        if: inputs.branch_name == ''
+        with:
+          path: mmg
+
+      - name: Test compilation with shared libs linkage
+        run: |
+          cmake -Smmg -Bbuild_shared \
+          ${{ env.CMAKE_C_FLG }} \
+          ${{ env.FORT_FLG }} \
+            -DCI_CONTEXT=ON \
+            -DBUILD_TESTING=ON \
+            -DUSE_POINTMAP=${{ matrix.pointmap }} \
+            -DCMAKE_BUILD_TYPE=${{ env.BUILD_TYPE }} \
+            -DMMG_PATTERN=${{ matrix.pattern }} \
+            -DUSE_SCOTCH=${{ matrix.scotch }} \
+            -DSCOTCH_DIR=scotch-install \
+            -DUSE_VTK=${{ matrix.vtk }} \
+            -DMMG5_INT=${{ matrix.int }} \
+            -DBUILD_SHARED_LIBS=ON \
+            -DTEST_LIBMMG=ON \
+            -DTEST_LIBMMGS=ON \
+            -DTEST_LIBMMG2D=ON \
+            -DTEST_LIBMMG3D=ON \
+            ${{ inputs.add_cmake_cfg_args }}
+            cmake --build build_shared --config ${{ env.BUILD_TYPE }} -j ${{ env.NJOBS }}
+        shell: bash
+
+      - name: Test compilation without library linkage
+        run: |
+          cmake -Smmg -Bbuild_nolibs \
+          ${{ env.CMAKE_C_FLG }} \
+          ${{ env.FORT_FLG }} \
+            -DCI_CONTEXT=ON \
+            -DBUILD_TESTING=ON \
+            -DUSE_POINTMAP=${{ matrix.pointmap }} \
+            -DCMAKE_BUILD_TYPE=${{ env.BUILD_TYPE }} \
+            -DMMG_PATTERN=${{ matrix.pattern }} \
+            -DUSE_SCOTCH=${{ matrix.scotch }} \
+            -DSCOTCH_DIR=scotch-install \
+            -DUSE_VTK=${{ matrix.vtk }} \
+            -DMMG5_INT=${{ matrix.int }} \
+            -DLIBMMG_STATIC=OFF \
+            -DLIBMMGS_STATIC=OFF \
+            -DLIBMMG2D_STATIC=OFF \
+            -DLIBMMG3D_STATIC=OFF \
+            ${{ inputs.add_cmake_cfg_args }}
+            cmake --build build_nolibs --config ${{ env.BUILD_TYPE }} -j ${{ env.NJOBS }}
+        shell: bash
+
+      - name: Configure Mmg with static libs (default behaviour)
+        run: |
+          cmake -Smmg -Bbuild \
+          ${{ env.CMAKE_C_FLG }} \
+          ${{ env.FORT_FLG }} \
+            -DCMAKE_INSTALL_PREFIX=mmg-install \
+            -DCI_CONTEXT=ON \
+            -DBUILD_TESTING=ON \
+            -DUSE_POINTMAP=${{ matrix.pointmap }} \
+            -DCMAKE_BUILD_TYPE=${{ env.BUILD_TYPE }} \
+            -DMMG_PATTERN=${{ matrix.pattern }} \
+            -DUSE_SCOTCH=${{ matrix.scotch }} \
+            -DSCOTCH_DIR=scotch-install \
+            -DUSE_VTK=${{ matrix.vtk }} \
+            -DMMG5_INT=${{ matrix.int }} \
+            -DTEST_LIBMMG=ON \
+            -DTEST_LIBMMGS=ON \
+            -DTEST_LIBMMG2D=ON \
+            -DTEST_LIBMMG3D=ON \
+            ${{ inputs.add_cmake_cfg_args }}
+        shell: bash
+
+      - name: Build Mmg
+        run: |
+          cmake --build build --config ${{ env.BUILD_TYPE }} -j ${{ env.NJOBS }}
+      - name: Install Mmg
+        run: |
+          cmake --build build --target install --config ${{ env.BUILD_TYPE }} -j ${{ env.NJOBS }}
+
+      - name: Test Mmg with in32_t integers
+        # Run long tests only with vtk off and int32_t integers
+        if: matrix.vtk == 'off' && matrix.int == 'int32_t'
+        run: |
+          cd build
+          ctest --timeout 7200 -VV -C ${{ env.BUILD_TYPE }} -j ${{ env.NJOBS }}
+
+      - name: Test Mmg with int64_t integers
+        # Run long tests only on ubuntu with pattern off, scotch on, vtk on and int64_t integers
+        if: matrix.os == 'ubuntu-20.04' && matrix.pattern == 'off' && matrix.scotch == 'on' && matrix.vtk == 'on' && matrix.int == 'int64_t'
+        run: |
+          cd build
+          ctest --timeout 7200 -VV -C ${{ env.BUILD_TYPE }} -j ${{ env.NJOBS }}
+
+      - name: Test non native I/Os of Mmg
+        if: matrix.vtk == 'on'
+        run: |
+          cd build
+          ctest -R "msh|vtk" -VV -C ${{ env.BUILD_TYPE }} -j ${{ env.NJOBS }}
+
+      - name: Archive production artifacts
+        if: success() || failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: build-${{ matrix.os }}-${{ matrix.pattern }}-${{ matrix.pointmap }}-${{ matrix.scotch }}-${{ matrix.vtk }}-${{ matrix.int }}
+          path: |
+            build
+
+  upload_coverage:
+    runs-on: ubuntu-latest
+    needs: ci
+
+    steps:
+    - name: Checkout repository
+      # Codecov need the source code to pair with coverage
+      uses: actions/checkout@v4
+      with:
+        path: mmg
+
+    - name: Download coverage artifact
+      uses: actions/download-artifact@v4
+      with:
+        pattern: build-ubuntu-*
+
+    - name: Upload coverage to Codecov
+      if: inputs.code_coverage == true
+      uses: codecov/codecov-action@v4
+      with:
+        fail_ci_if_error: true
+        root_dir: .
+        verbose: true
+      env:
+        CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}

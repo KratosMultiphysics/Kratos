@@ -1,0 +1,207 @@
+name: Dbg
+
+on:
+  workflow_dispatch:
+  # Inputs the workflow accepts.
+    inputs:
+      cmake_build_type:
+        description: 'Value for CMAKE_BUILD_TYPE'
+        type: string
+        default: Debug
+        required: true
+
+      add_cmake_cfg_args:
+        description: 'Additional arguments for configuration step'
+        default: -D LONG_TESTS=ON
+        required: false
+        type: string
+
+      add_ctest_args:
+        description: 'Additional arguments for test step'
+        required: false
+        type: string
+
+      branch_name:
+        description: 'Branch to checkout when tests are manually triggered'
+        required: false
+        type: string
+
+      os:
+        description: 'os'
+        required: true
+        default: 'windows-2019'
+        options:
+          - 'ubuntu-20.04'
+          - 'macos-10.15'
+          - 'windows-2022'
+
+      pattern:
+        description: 'pattern'
+        required: true
+        default: 'off'
+        options:
+          - 'on'
+          - 'off'
+
+      scotch:
+        description: 'scotch'
+        required: true
+        default: 'off'
+        options:
+          - 'on'
+          - 'off'
+
+      vtk:
+        description: 'vtk'
+        required: true
+        default: 'off'
+        options:
+          - 'on'
+          - 'off'
+
+      debug_enabled:
+        description: 'Run the build with tmate debugging enabled (https://github.com/marketplace/actions/debugging-with-tmate)'
+        required: false
+        default: false
+# job
+jobs:
+  ci:
+    runs-on: ${{ github.event.inputs.os }}
+
+    steps:
+      - name: Setup tmate session
+        uses: mxschmitt/action-tmate@v3
+        if: ${{ github.event_name == 'workflow_dispatch' && github.event.inputs.debug_enabled }}
+        timeout-minutes: 150
+
+      - name: Print options and set environment variables
+        run: |
+          echo "${{ github.event.inputs.name }}:
+            Os:      ${{ github.event.inputs.os }},
+            Pattern: ${{ github.event.inputs.pattern }},
+            Scotch:  ${{ github.event.inputs.scotch }},
+            VTK:     ${{ github.event.inputs.vtk }},
+            Build:   ${{ github.event.inputs.cmake_build_type }}"
+
+
+          if [ "$RUNNER_OS" == "macOS" ]; then
+             echo "SCOTCH_MAKE=Make.inc/Makefile.inc.i686_mac_darwin10" >> "$GITHUB_ENV"
+             echo "FORT_FLG=\"-DCMAKE_Fortran_COMPILER=gfortran-11\"" >> "$GITHUB_ENV"
+             echo "BUILD_CMD=make -j $NJOBS" >> "$GITHUB_ENV"
+             echo "TEST_FLG= ${{ github.event.inputs.add_ctest_args }}" >> "$GITHUB_ENV"
+          elif [ "$RUNNER_OS" == "Linux" ]; then
+             echo "SCOTCH_MAKE=Make.inc/Makefile.inc.x86-64_pc_linux2" >> "$GITHUB_ENV"
+             echo "FORT_FLG=\"-DCMAKE_Fortran_COMPILER=gfortran-9\"" >> "$GITHUB_ENV"
+             echo "BUILD_CMD=make -j $NJOBS" >> "$GITHUB_ENV"
+             echo "TEST_FLG= ${{ github.event.inputs.add_ctest_args }}" >> "$GITHUB_ENV"
+          else
+             echo "BUILD_CMD=cmake --build . --config ${{ github.event.inputs.cmake_build_type }}" >> "$GITHUB_ENV"
+             echo "TEST_FLG=-C  ${{ github.event.inputs.cmake_build_type }} ${{ github.event.inputs.add_ctest_args }}" >> "$GITHUB_ENV"
+          fi
+          echo "CMAKE_FLG: ${{ github.event.inputs.add_cmake_cfg_args }} "
+          # Remark: we can't print env variable value in this context
+        env:
+          NJOBS: "2"
+
+        shell: bash
+
+      # checkout the provided branch name if workflow is manually run
+      - uses: actions/checkout@v3
+        if: inputs.branch_name
+        with:
+          ref: ${{ github.event.inputs.branch }}
+
+      # checkout the event branch for automatic workflows
+      - uses: actions/checkout@v3
+        if: inputs.branch_name == ''
+
+      - name: Print windows arch info
+        if: runner.os == 'windows'
+        run: |
+          WMIC CPU Get DeviceID, NumberOfCores, NumberOfLogicalProcessors
+          wmic OS get Caption,CSDVersion,OSArchitecture,Version
+
+      - name: Install VTK
+        # Download vtk only if used
+        if: github.event.inputs.vtk == 'on'
+        run: |
+          if [ "$RUNNER_OS" == "macOS" ]; then
+            brew install vtk@8.2
+            brew link vtk@8.2
+          elif [ "$RUNNER_OS" == "Linux" ]; then
+            sudo sed -i 's/azure\.//' /etc/apt/sources.list
+            sudo apt-get update
+            sudo apt-get install -y libvtk7-dev
+          fi
+
+      - name: Install Sctoch
+        # Download scotch only if used
+        if: github.event.inputs.scotch == 'on'
+        run: |
+          git clone https://gitlab.inria.fr/scotch/scotch.git
+          cd scotch
+          git checkout v6.1.3
+          cd src
+          cp ${{ env.SCOTCH_MAKE }} Makefile.inc
+          make scotch -j "$NJOBS"
+          make install scotch -j "$NJOBS"
+        env:
+          NJOBS: "2"
+
+      - name: Install LibCommons
+        # LinearElasticity don't build with MSVC
+        if: runner.os != 'windows'
+        run: |
+          git clone https://github.com/ISCDtoolbox/Commons.git
+          cd Commons
+          mkdir build
+          cd build
+          cmake ..
+          make install
+
+      - name: Install LinearElasticity
+        # LinearElasticity don't build with MSVC
+        if: runner.os != 'windows'
+        run: |
+          git clone https://github.com/ISCDtoolbox/LinearElasticity.git
+          cd LinearElasticity
+          mkdir build
+          cd build
+          cmake ..
+          make install
+
+      - name: Configure Mmg
+        run: |
+          mkdir build
+          cd build
+          # gfortran compiler depends on the os
+          cmake ${{ env.FORT_FLG }} \
+            -DCI_CONTEXT=ON \
+            -DBUILD_TESTING=ON \
+            -DCMAKE_BUILD_TYPE=${{ github.event.inputs.cmake_build_type }} \
+            -DMMG_PATTERN=${{ github.event.inputs.pattern }} \
+            -DUSE_SCOTCH=${{ github.event.inputs.scotch }} \
+            -DUSE_VTK=${{ github.event.inputs.vtk }} \
+            -DTEST_LIBMMG=ON \
+            -DTEST_LIBMMGS=ON \
+            -DTEST_LIBMMG2D=ON \
+            -DTEST_LIBMMG3D=ON \
+            ${{ github.event.inputs.add_cmake_cfg_args }} ..
+        shell: bash
+
+      - name: Build Mmg
+        run: |
+          cd build
+          ${{env.BUILD_CMD}}
+
+      - name: Archive production artifacts
+        uses: actions/upload-artifact@v3
+        with:
+          name: Mmg-bin
+          path: |
+            build/bin
+
+      - name: Test Mmg
+        run: |
+          cd build
+          ctest ${{ env.TEST_FLG }}
