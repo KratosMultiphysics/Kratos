@@ -13,8 +13,8 @@
 
 #include "custom_utilities/extrapolation_utilities.h"
 
-#include "custom_elements/interface_element.h"
-#include "custom_utilities/generic_utilities.h"
+#include "custom_elements/U_Pw_interface_element.h"
+#include "custom_utilities/generic_utilities.hpp"
 #include "custom_utilities/linear_nodal_extrapolator.h"
 #include "element_utilities.hpp"
 #include "geometries/geometry.h"
@@ -26,7 +26,7 @@ namespace Kratos
 
 Matrix ExtrapolationUtilities::CalculateExtrapolationMatrix(const Element& rElement)
 {
-    auto        p_interface_element = dynamic_cast<const InterfaceElement*>(&rElement);
+    auto        p_interface_element = dynamic_cast<const UPwInterfaceElement*>(&rElement);
     const auto& r_geometry_for_extrapolation =
         p_interface_element ? p_interface_element->GetMidGeometry() : rElement.GetGeometry();
     const auto integration_points = GeoElementUtilities::GetIntegrationPointsOf(rElement);
