@@ -598,7 +598,7 @@ class RomManager(object):
         """
         This method should be parallel capable
         """
-        if self.relaunch_TrainHROM:
+        if self.relaunch_HROM:
             self.data_base.delete_if_in_database("HROM_Elements", mu_train)
             self.data_base.delete_if_in_database("HROM_Weights", mu_train)
         in_database_elems, hash_z =  self.data_base.check_if_in_database("HROM_Elements", mu_train)
