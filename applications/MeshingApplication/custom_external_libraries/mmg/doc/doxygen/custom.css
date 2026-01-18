@@ -1,0 +1,14 @@
+/* -*- mode:css; css-indent-offset:2 -*-
+ * Style customizations for the Doxygen documentation of Mmgtools
+ * initial version by Mark Potse 03/2024
+ */
+
+
+div.contents {
+
+}
+
+p {
+  max-width: 800px;               /* limit text line width, for readability */
+}
+

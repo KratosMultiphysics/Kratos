@@ -1,0 +1,18 @@
+sudo: required
+
+language: cpp
+
+services:
+  - docker
+
+before_install:
+  - travis_retry docker build -t mmgtools/mmg-dev .
+
+script:
+  - |
+    docker run -v $PWD:/home/travis/src --name mmg-dev mmgtools/mmg-dev bash -c \
+      "mkdir -p $HOME/src/build && \
+       cd $HOME/src/build && \
+       cmake -D CMAKE_BUILD_TYPE=Debug -D BUILD_TESTING=ON .. && \
+       make && \
+       ctest"
