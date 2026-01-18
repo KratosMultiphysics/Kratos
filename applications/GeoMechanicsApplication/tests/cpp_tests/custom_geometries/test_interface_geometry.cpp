@@ -11,7 +11,7 @@
 //                   Anne van de Graaf
 //
 
-#include "custom_geometries/interface_geometry.h"
+#include "custom_geometries/interface_geometry.hpp"
 #include "geometries/geometry_data.h"
 #include "geometries/line_2d_2.h"
 #include "geometries/line_2d_3.h"
@@ -19,7 +19,7 @@
 #include "geometries/quadrilateral_3d_8.h"
 #include "geometries/triangle_3d_3.h"
 #include "geometries/triangle_3d_6.h"
-#include "test_setup_utilities/element_setup_utilities.h"
+#include "test_setup_utilities/element_setup_utilities.hpp"
 #include "tests/cpp_tests/geo_mechanics_fast_suite.h"
 #include "tests/cpp_tests/test_utilities.h"
 
