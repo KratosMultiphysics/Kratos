@@ -39,13 +39,13 @@ public:
     UPwInterfaceElement& operator=(UPwInterfaceElement&&) noexcept = default;
 
     UPwInterfaceElement(IndexType                          NewId,
-                        const GeometryType::Pointer&       rGeometry,
-                        const PropertiesType::Pointer&     rProperties,
+                        const GeometryType::Pointer&       rpGeometry,
+                        const PropertiesType::Pointer&     rpProperties,
                         std::unique_ptr<StressStatePolicy> pStressStatePolicy,
                         IsDiffOrderElement                 IsDiffOrder);
 
     UPwInterfaceElement(IndexType                          NewId,
-                        const GeometryType::Pointer&       rGeometry,
+                        const GeometryType::Pointer&       rpGeometry,
                         std::unique_ptr<StressStatePolicy> pStressStatePolicy,
                         IsDiffOrderElement                 IsDiffOrder);
     Element::Pointer Create(IndexType NewId, const NodesArrayType& rNodes, PropertiesType::Pointer pProperties) const override;

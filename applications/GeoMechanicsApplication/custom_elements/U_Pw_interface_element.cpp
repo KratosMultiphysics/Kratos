@@ -74,6 +74,7 @@ std::vector<Matrix> CalculateConstitutiveMatricesAtIntegrationPoints(const std::
 Geo::OptionalGeometryUniquePtr MakeOptionalWaterPressureGeometry(const Geometry<Node>& rDisplacementGeometry,
                                                                  IsDiffOrderElement IsDiffOrder)
 {
+    // Create a water pressure geometry only if it differs from the displacement geometry
     if (IsDiffOrder == IsDiffOrderElement::No) return std::nullopt;
 
     KRATOS_DEBUG_ERROR_IF(rDisplacementGeometry.GetGeometryOrderType() != GeometryData::Kratos_Quadratic_Order) << "Only quadratic order interface elements can create a linear order pressure geometry. \n";
@@ -106,25 +107,23 @@ Geo::OptionalGeometryUniquePtr MakeOptionalWaterPressureGeometry(const Geometry<
 namespace Kratos
 {
 
-UPwInterfaceElement::UPwInterfaceElement(IndexType NewId,
-                                         const Geometry<GeometricalObject::NodeType>::Pointer& rGeometry,
-                                         const Properties::Pointer&         rProperties,
+UPwInterfaceElement::UPwInterfaceElement(IndexType                          NewId,
+                                         const GeometryType::Pointer&       rpGeometry,
+                                         const Properties::Pointer&         rpProperties,
                                          std::unique_ptr<StressStatePolicy> pStressStatePolicy,
                                          IsDiffOrderElement                 IsDiffOrder)
-    : Element(NewId, rGeometry, rProperties), mpStressStatePolicy(std::move(pStressStatePolicy))
+    : Element(NewId, rpGeometry, rpProperties), mpStressStatePolicy(std::move(pStressStatePolicy))
 {
     MakeIntegrationSchemeAndAssignFunction();
     mpOptionalPressureGeometry = MakeOptionalWaterPressureGeometry(GetDisplacementGeometry(), IsDiffOrder);
 }
 
 UPwInterfaceElement::UPwInterfaceElement(IndexType                          NewId,
-                                         const GeometryType::Pointer&       rGeometry,
+                                         const GeometryType::Pointer&       rpGeometry,
                                          std::unique_ptr<StressStatePolicy> pStressStatePolicy,
                                          IsDiffOrderElement                 IsDiffOrder)
-    : Element(NewId, rGeometry), mpStressStatePolicy(std::move(pStressStatePolicy))
+    : UPwInterfaceElement(NewId, rpGeometry, nullptr /* no properties */, std::move(pStressStatePolicy), IsDiffOrder)
 {
-    MakeIntegrationSchemeAndAssignFunction();
-    mpOptionalPressureGeometry = MakeOptionalWaterPressureGeometry(GetDisplacementGeometry(), IsDiffOrder);
 }
 
 void UPwInterfaceElement::MakeIntegrationSchemeAndAssignFunction()
