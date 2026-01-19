@@ -100,6 +100,7 @@ Geo::OptionalGeometryUniquePtr MakeOptionalWaterPressureGeometry(const Geometry<
 
     KRATOS_DEBUG_ERROR << "The specified geometry family is not supported for creating a water "
                           "pressure geometry.\n";
+    return std::nullopt; // required for release builds
 }
 
 } // namespace
