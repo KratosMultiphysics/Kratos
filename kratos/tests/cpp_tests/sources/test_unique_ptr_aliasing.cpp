@@ -7,12 +7,12 @@
 namespace Kratos::Testing 
 {
 
-class TestClass {
+class SerializerUniquePtrAliasingTestClass {
 public:
     int mValue;
-    TestClass() : mValue(0) {}
-    TestClass(int v) : mValue(v) {}
-    virtual ~TestClass() = default;
+    SerializerUniquePtrAliasingTestClass() : mValue(0) {}
+    SerializerUniquePtrAliasingTestClass(int v) : mValue(v) {}
+    virtual ~SerializerUniquePtrAliasingTestClass() = default;
 private:
     friend class Kratos::Serializer;
     void save(Serializer& rSerializer) const {
@@ -28,12 +28,12 @@ class ScopedTestClassRegistration
 public:
     ScopedTestClassRegistration()
     {
-        Serializer::Register("TestClass", TestClass{});
+        Serializer::Register("SerializerUniquePtrAliasingTestClass", SerializerUniquePtrAliasingTestClass{});
     }
 
     ~ScopedTestClassRegistration()
     {
-        Serializer::Deregister("TestClass");
+        Serializer::Deregister("SerializerUniquePtrAliasingTestClass");
     }
 
     ScopedTestClassRegistration(const ScopedTestClassRegistration&) = delete;
@@ -50,8 +50,8 @@ KRATOS_TEST_CASE_IN_SUITE(SerializerUniquePtrAliasing, KratosCoreFastSuite)
 
     // Save: RawPtr first, then UniquePtr
     {
-        auto p_unique = Kratos::make_unique<TestClass>(42);
-        TestClass* p_raw = p_unique.get();
+        auto p_unique = Kratos::make_unique<SerializerUniquePtrAliasingTestClass>(42);
+        SerializerUniquePtrAliasingTestClass* p_raw = p_unique.get();
         
         serializer.save("raw", p_raw);
         serializer.save("unique", p_unique);
@@ -59,8 +59,8 @@ KRATOS_TEST_CASE_IN_SUITE(SerializerUniquePtrAliasing, KratosCoreFastSuite)
 
     // Load
     {
-        Kratos::unique_ptr<TestClass> p_unique_loaded;
-        TestClass* p_raw_loaded = nullptr;
+        Kratos::unique_ptr<SerializerUniquePtrAliasingTestClass> p_unique_loaded;
+        SerializerUniquePtrAliasingTestClass* p_raw_loaded = nullptr;
 
         serializer.SetLoadState(); // Reset for loading
         
