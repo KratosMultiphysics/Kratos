@@ -138,7 +138,6 @@ private:
     array_1d<double,3> mMomentReferencePoint = ZeroVector(3);
     double mAngleOfAttack = 0.0;
     double mSideslipAngle = 0.0;
-    std::function<double(const NodeType&)> mGetPressureCoefficient;
 
     ///@}
     ///@name Private Operators
