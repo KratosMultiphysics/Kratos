@@ -148,7 +148,7 @@ private:
     ///@name Private Operations
     ///@{
 
-    void ReadFreestreamValues(const Parameters& Params);
+    void ReadProcessParameters(const Parameters& Params);
 
     ///@}
     ///@name Private  Access

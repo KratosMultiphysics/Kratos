@@ -37,7 +37,7 @@ ComputeAerodynamicCoefficientsProcess::ComputeAerodynamicCoefficientsProcess(
     
     Params.ValidateAndAssignDefaults(GetDefaultParameters());
 
-    ReadFreestreamValues(Params);
+    ReadProcessParameters(Params);
 
     KRATOS_CATCH("")
 }
@@ -58,7 +58,7 @@ const Parameters ComputeAerodynamicCoefficientsProcess::GetDefaultParameters() c
     })" );
 }
 
-void ComputeAerodynamicCoefficientsProcess::ReadFreestreamValues(const Parameters& rParams)
+void ComputeAerodynamicCoefficientsProcess::ReadProcessParameters(const Parameters& rParams)
 {
     constexpr double tol = 1e-12;
 
