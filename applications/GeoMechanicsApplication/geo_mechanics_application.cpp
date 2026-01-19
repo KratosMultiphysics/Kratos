@@ -134,12 +134,12 @@ void KratosGeoMechanicsApplication::Register()
     KRATOS_REGISTER_ELEMENT("UPwSmallStrainInterfaceElement3D6N", mUPwSmallStrainInterfaceElement3D6N)
     KRATOS_REGISTER_ELEMENT("UPwSmallStrainInterfaceElement3D8N", mUPwSmallStrainInterfaceElement3D8N)
 
-    KRATOS_REGISTER_ELEMENT("Geo_ULineInterfacePlaneStrainElement2Plus2N", mULineInterfacePlaneStrainElement2Plus2N)
-    KRATOS_REGISTER_ELEMENT("Geo_ULineInterfacePlaneStrainElement3Plus3N", mULineInterfacePlaneStrainElement3Plus3N)
-    KRATOS_REGISTER_ELEMENT("Geo_USurfaceInterfaceElement3Plus3N", mUSurfaceInterfaceElement3Plus3N)
-    KRATOS_REGISTER_ELEMENT("Geo_USurfaceInterfaceElement4Plus4N", mUSurfaceInterfaceElement4Plus4N)
-    KRATOS_REGISTER_ELEMENT("Geo_USurfaceInterfaceElement6Plus6N", mUSurfaceInterfaceElement6Plus6N)
-    KRATOS_REGISTER_ELEMENT("Geo_USurfaceInterfaceElement8Plus8N", mUSurfaceInterfaceElement8Plus8N)
+    KRATOS_REGISTER_ELEMENT("Geo_ULineInterfacePlaneStrainElement2Plus2N", mUPwLineInterfacePlaneStrainElement2Plus2N)
+    KRATOS_REGISTER_ELEMENT("Geo_ULineInterfacePlaneStrainElement3Plus3N", mUPwLineInterfacePlaneStrainElement3Plus3N)
+    KRATOS_REGISTER_ELEMENT("Geo_USurfaceInterfaceElement3Plus3N", mUPwSurfaceInterfaceElement3Plus3N)
+    KRATOS_REGISTER_ELEMENT("Geo_USurfaceInterfaceElement4Plus4N", mUPwSurfaceInterfaceElement4Plus4N)
+    KRATOS_REGISTER_ELEMENT("Geo_USurfaceInterfaceElement6Plus6N", mUPwSurfaceInterfaceElement6Plus6N)
+    KRATOS_REGISTER_ELEMENT("Geo_USurfaceInterfaceElement8Plus8N", mUPwSurfaceInterfaceElement8Plus8N)
 
     // Updated-Lagrangian elements
     KRATOS_REGISTER_ELEMENT("UPwUpdatedLagrangianElement2D3N", mUPwUpdatedLagrangianElement2D3N)

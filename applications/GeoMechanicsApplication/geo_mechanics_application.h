@@ -516,22 +516,22 @@ private:
         0, Kratos::make_shared<HexahedraInterface3D8<NodeType>>(Element::GeometryType::PointsArrayType(8)),
         std::make_unique<ThreeDimensionalStressState>()};
 
-    const UPwInterfaceElement mULineInterfacePlaneStrainElement2Plus2N{
+    const UPwInterfaceElement mUPwLineInterfacePlaneStrainElement2Plus2N{
         0, Kratos::make_shared<InterfaceGeometry<Line2D2<NodeType>>>(Element::GeometryType::PointsArrayType(4)),
         std::make_unique<Line2DInterfaceStressState>(), IsDiffOrderElement::No};
-    const UPwInterfaceElement mULineInterfacePlaneStrainElement3Plus3N{
+    const UPwInterfaceElement mUPwLineInterfacePlaneStrainElement3Plus3N{
         0, Kratos::make_shared<InterfaceGeometry<Line2D3<NodeType>>>(Element::GeometryType::PointsArrayType(6)),
         std::make_unique<Line2DInterfaceStressState>(), IsDiffOrderElement::No};
-    const UPwInterfaceElement mUSurfaceInterfaceElement3Plus3N{
+    const UPwInterfaceElement mUPwSurfaceInterfaceElement3Plus3N{
         0, Kratos::make_shared<InterfaceGeometry<Triangle3D3<NodeType>>>(Element::GeometryType::PointsArrayType(6)),
         std::make_unique<SurfaceInterfaceStressState>(), IsDiffOrderElement::No};
-    const UPwInterfaceElement mUSurfaceInterfaceElement4Plus4N{
+    const UPwInterfaceElement mUPwSurfaceInterfaceElement4Plus4N{
         0, Kratos::make_shared<InterfaceGeometry<Quadrilateral3D4<NodeType>>>(Element::GeometryType::PointsArrayType(8)),
         std::make_unique<SurfaceInterfaceStressState>(), IsDiffOrderElement::No};
-    const UPwInterfaceElement mUSurfaceInterfaceElement6Plus6N{
+    const UPwInterfaceElement mUPwSurfaceInterfaceElement6Plus6N{
         0, Kratos::make_shared<InterfaceGeometry<Triangle3D6<NodeType>>>(Element::GeometryType::PointsArrayType(12)),
         std::make_unique<SurfaceInterfaceStressState>(), IsDiffOrderElement::No};
-    const UPwInterfaceElement mUSurfaceInterfaceElement8Plus8N{
+    const UPwInterfaceElement mUPwSurfaceInterfaceElement8Plus8N{
         0, Kratos::make_shared<InterfaceGeometry<Quadrilateral3D8<NodeType>>>(Element::GeometryType::PointsArrayType(16)),
         std::make_unique<SurfaceInterfaceStressState>(), IsDiffOrderElement::No};
 
