@@ -23,13 +23,13 @@
 namespace Kratos
 {
 template <unsigned int TNumNodes>
-class InterfaceStiffnessCalculator : public ContributionCalculator<TNumNodes>
+class StiffnessCalculator : public ContributionCalculator<TNumNodes>
 {
 public:
     struct InputProvider {
     };
 
-    explicit InterfaceStiffnessCalculator(InputProvider AnInputProvider)
+    explicit StiffnessCalculator(InputProvider AnInputProvider)
         : mInputProvider(std::move(AnInputProvider))
     {
     }

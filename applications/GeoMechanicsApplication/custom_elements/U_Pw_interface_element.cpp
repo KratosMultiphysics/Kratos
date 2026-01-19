@@ -12,6 +12,7 @@
 //
 #include "U_Pw_interface_element.h"
 
+#include "contribution_calculators/stiffness_calculator.hpp"
 #include "custom_utilities/constitutive_law_utilities.h"
 #include "custom_utilities/dof_utilities.hpp"
 #include "custom_utilities/element_utilities.hpp"
@@ -24,7 +25,6 @@
 #include "interface_stress_state.h"
 #include "lobatto_integration_scheme.h"
 #include "lumped_integration_scheme.h"
-#include "contribution_calculators/interface_stiffness_calculator.hpp"
 
 namespace
 {
