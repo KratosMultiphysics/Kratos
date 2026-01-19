@@ -42,8 +42,9 @@ rem set KRATOS_PARALLEL_BUILD_FLAG=/MP4
 rem Configure
 @echo on
 cmake -G"Visual Studio 17 2022" -H"%KRATOS_SOURCE%" -B"%KRATOS_BUILD%\%KRATOS_BUILD_TYPE%"          ^
--DUSE_EIGEN_MKL=OFF                                                                                 ^
 -DCMAKE_CXX_FLAGS=" %KRATOS_PARALLEL_BUILD_FLAG% "                                                  ^
+-DCMAKE_POLICY_VERSION_MINIMUM=3.5                                                                  ^
+-DUSE_EIGEN_MKL=OFF                                                                                 ^
 -DKRATOS_GENERATE_PYTHON_STUBS=ON
 
 rem Build

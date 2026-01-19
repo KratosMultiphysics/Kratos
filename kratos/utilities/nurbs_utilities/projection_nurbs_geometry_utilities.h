@@ -87,9 +87,18 @@ public:
 
             // Compute the increment
             delta_t = residual / (inner_prod(derivatives[2], distance_vector) + pow(norm_2(derivatives[1]), 2));
+            
+            // Compute the update vector and correct direction if needed
+            const array_1d<double, 3> update_vector = delta_t * derivatives[1];
+            const double alignment = inner_prod(update_vector, distance_vector);
+            
+            // If the update vector is not aligned with the distance vector, invert the sign to ensure moving towards the right point
+            if (alignment > 0.0) {
+                delta_t *= -1.0;
+            }
 
             // Increment the parametric coordinate
-            rProjectedPointLocalCoordinates[0] -= delta_t;
+            rProjectedPointLocalCoordinates[0] += delta_t;
 
             // Check if the increment is too small and if yes return true
             if (norm_2(delta_t * derivatives[1]) < Accuracy)
@@ -100,8 +109,10 @@ public:
             int check = rGeometry.ClosestPointLocalToLocalSpace(
                 rProjectedPointLocalCoordinates, rProjectedPointLocalCoordinates);
             if (check == 0) {
-                if (projection_reset_to_boundary) { return false; }
-                else { projection_reset_to_boundary = true; }
+                if (projection_reset_to_boundary)
+                    return false;
+                else
+                    projection_reset_to_boundary = true;
             }
         }
 

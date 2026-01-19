@@ -104,7 +104,8 @@ class MeshingDomain(object):
         self.dimension = self.main_model_part.ProcessInfo[KratosMultiphysics.SPACE_DIMENSION]
 
         # Construct the meshing strategy
-        meshing_module = __import__(self.settings["meshing_strategy"]["python_module"].GetString())
+        import importlib
+        meshing_module = importlib.import_module(self.settings["meshing_strategy"]["python_module"].GetString())
         self.MeshingStrategy = meshing_module.CreateMeshingStrategy(self.main_model_part, self.settings["meshing_strategy"])
 
         # Set MeshingParameters

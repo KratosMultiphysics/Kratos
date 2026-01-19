@@ -56,6 +56,16 @@ class KRATOS_API(KRATOS_CORE) ApplyPeriodicConditionProcess : public Process
      */
     ~ApplyPeriodicConditionProcess();
 
+    ///@}
+    ///@name Operations
+    ///@{
+
+    /// @copydoc Process::Create
+    Process::Pointer Create(
+        Model& rModel,
+        Parameters ThisParameters
+        ) override;
+
     /**
      * @brief Function initializes the process
      */

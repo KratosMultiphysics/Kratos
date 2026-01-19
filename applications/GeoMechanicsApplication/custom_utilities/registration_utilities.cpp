@@ -9,11 +9,15 @@
 //
 //  Main authors:    Anne van de Graaf
 //
-#include "registration_utilities.h"
+#include "registration_utilities.hpp"
 
 namespace Kratos
 {
 
-ScopedSerializerRegistration::~ScopedSerializerRegistration() { Serializer::Deregister(mName); }
-
+ScopedSerializerRegistration::~ScopedSerializerRegistration()
+{
+    for (const auto& r_name : mNames) {
+        Serializer::Deregister(r_name);
+    }
+}
 } // namespace Kratos

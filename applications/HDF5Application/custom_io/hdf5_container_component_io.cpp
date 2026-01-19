@@ -17,6 +17,8 @@
 
 // Project includes
 #include "expression/container_data_io.h"
+#include "utilities/parallel_utilities.h"
+#include "utilities/reduction_utilities.h"
 
 // Application includes
 #include "custom_utilities/container_io_utils.h"
@@ -246,19 +248,55 @@ bool ContainerComponentIO<TContainerType, TContainerDataIO, TComponents...>::Wri
         const auto& r_component = KratosComponents<TComponentType>::Get(rComponentName);
 
         std::vector<int> shape(value_type_traits::Dimension);
+
+        // first we have to check the availability
+        Vector<unsigned char> availability(rLocalContainer.size(), 1);
+        Internals::DataAvailabilityStatesList container_data_availability = TContainerDataIO::DataAvailability;
+
+        // check for the availability. Here we do not check for the case CONSISTENTLY_UNAVAILABLE
+        // because there is no point hence, the HasValue method will always return zeros.
+        // These cases are used in GaussPointIO or VertexIO where the values
+        // are always computed on the fly. Not retrieved from a memory location.
+        if constexpr(TContainerDataIO::DataAvailability == Internals::DataAvailabilityStatesList::INCONCLUSIVE) {
+            // the entities in the rContainer may or may not contain the rComponent. Hence, for this
+            // type we need to compute the availability.
+            const auto availability_local_counts_pair = IndexPartition<IndexType>(rLocalContainer.size()).for_each<CombinedReduction<SumReduction<IndexType>, SumReduction<IndexType>>>([&rContainerDataIO, &rLocalContainer, &r_component, &availability](const auto Index) {
+                availability[Index] = rContainerDataIO.HasValue(*(rLocalContainer.begin() + Index), r_component);
+                return std::make_tuple<IndexType, IndexType>(availability[Index] == true, availability[Index] == false);
+            });
+            const auto& availability_global_counts_pair = mpFile->GetDataCommunicator().SumAll(std::vector<IndexType>{std::get<0>(availability_local_counts_pair), std::get<1>(availability_local_counts_pair), rLocalContainer.size()});
+
+            KRATOS_ERROR_IF(availability_global_counts_pair[1] == availability_global_counts_pair[2])
+                << "None of the entities in the container have \"" << rComponentName << "\" defined.";
+
+            if (availability_global_counts_pair[0] == availability_global_counts_pair[2]) {
+                // even though the container type may or may not have entities without the component, all the entities
+                // of this container has the component. Hence, this is no longer inconclusive, rather CONSISTENTLY_AVAILABLE.
+                container_data_availability = Internals::DataAvailabilityStatesList::CONSISTENTLY_AVAILABLE;
+            }
+        } else if constexpr(TContainerDataIO::DataAvailability == Internals::DataAvailabilityStatesList::CONSISTENTLY_AVAILABLE) {
+            // the component should be consistently available through out the rContainer. Hence, we only check the first entity.
+            KRATOS_ERROR_IF_NOT(mpFile->GetDataCommunicator().AndReduceAll(rLocalContainer.empty() || (!rLocalContainer.empty() && rContainerDataIO.HasValue(rLocalContainer.front(), r_component))))
+                << "None of the entities in the container have \"" << rComponentName << "\" defined.";
+        }
+
         if constexpr(value_type_traits::Dimension == 0) {
+            // here the data stride is 1.
             Vector<value_type> values(rLocalContainer.size());
-            Internals::CopyToContiguousArray(rLocalContainer, r_component, rContainerDataIO, DataTypeTraits<Vector<value_type>>::GetContiguousData(values), values.size());
+            Internals::CopyToContiguousArray(rLocalContainer, r_component, rContainerDataIO, DataTypeTraits<Vector<value_type>>::GetContiguousData(values), values.size(), 1, availability);
             mpFile->WriteDataSet(r_data_set_path, values, rInfo);
         } else {
             // get the correct size
             value_type value_prototype{};
-            if (!rLocalContainer.empty()) {
+
+            // identifying the shape of the component by looking at the first entity which has the component defined.
+            auto first_available_pos = std::find(availability.begin(), availability.end(), true);
+            if (first_available_pos != availability.end()) {
                 // if the value type is not static, then we need to get the shape
                 // of the first element assuming all the entities will have the same
                 // shape.
                 typename TContainerDataIO::template TLSType<component_type> tls;
-                value_prototype = rContainerDataIO.GetValue(rLocalContainer.front(), r_component, tls);
+                value_prototype = rContainerDataIO.GetValue(*(rLocalContainer.begin() + std::distance(availability.begin(), first_available_pos)), r_component, tls);
             }
 
             // now retrieve the shape
@@ -268,8 +306,9 @@ bool ContainerComponentIO<TContainerType, TContainerDataIO, TComponents...>::Wri
             shape = mpFile->GetDataCommunicator().MaxAll(shape);
 
             Matrix<value_primitive_type> values;
-            values.resize(rLocalContainer.size(), std::accumulate(shape.begin(), shape.end(), 1, std::multiplies<int>{}));
-            Internals::CopyToContiguousArray(rLocalContainer, r_component, rContainerDataIO, DataTypeTraits<Matrix<value_primitive_type>>::GetContiguousData(values), values.size1() * values.size2());
+            const int stride = std::accumulate(shape.begin(), shape.end(), 1, std::multiplies<int>{});
+            values.resize(rLocalContainer.size(), stride);
+            Internals::CopyToContiguousArray(rLocalContainer, r_component, rContainerDataIO, DataTypeTraits<Matrix<value_primitive_type>>::GetContiguousData(values), values.size1() * values.size2(),  stride, availability);
             mpFile->WriteDataSet(r_data_set_path, values, rInfo);
         }
 
@@ -286,6 +325,15 @@ bool ContainerComponentIO<TContainerType, TContainerDataIO, TComponents...>::Wri
         Attributes.AddString("__container_type", Internals::GetContainerName<TContainerType>());
         Attributes.AddString("__data_location", Internals::GetContainerIOName<TContainerDataIO>());
         Attributes.AddString("__data_name", rComponentName);
+
+        // now writing the availability of each value
+        if (container_data_availability == Internals::DataAvailabilityStatesList::INCONCLUSIVE) {
+            // it is only required to write the availability, if they are having some optional availabilities.
+            mpFile->WriteDataSet(r_data_set_path + "_availability", availability, rInfo);
+            Attributes.AddString("__data_availability", "inconclusive");
+        } else {
+            Attributes.AddString("__data_availability", (container_data_availability == Internals::DataAvailabilityStatesList::CONSISTENTLY_AVAILABLE ? "consistently_available" : "CONSISTENTLY_UNAVAILABLE "));
+        }
 
         // now write the attributes
         mpFile->WriteAttribute(r_data_set_path, Attributes);
@@ -334,22 +382,36 @@ bool ContainerComponentIO<TContainerType, TContainerDataIO, TComponents...>::Rea
 
         auto attributes = mpFile->ReadAttribute(r_data_set_path);
 
-        if constexpr(value_type_traits::IsDynamic) {
-            std::vector<unsigned int> shape;
-            Internals::GetShapeFromAttributes(shape, attributes);
+        const auto data_availability = attributes["__data_availability"].GetString();
 
-            Matrix<value_primitive_type> values;
-            values.resize(BlockSize, std::accumulate(shape.begin(), shape.end(), 1U, std::multiplies<unsigned int>{}));
-            mpFile->ReadDataSet(r_data_set_path, values, StartIndex, BlockSize);
-            Internals::CopyFromContiguousDataArray(rLocalContainer, r_component, rContainerDataIO, DataTypeTraits<Matrix<value_primitive_type>>::GetContiguousData(values), shape);
-        } else {
-            Vector<value_type> values;
-            values.resize(BlockSize);
-            mpFile->ReadDataSet(r_data_set_path, values, StartIndex, BlockSize);
-            Internals::CopyFromContiguousDataArray(rLocalContainer, r_component, rContainerDataIO, DataTypeTraits<Vector<value_type>>::GetContiguousData(values), value_type_traits::Shape(value_type{}));
+        // there is no need to read data sets which cannot be set, hence can ignore the whole block
+        Vector<unsigned char> availability(BlockSize, 1);
+        if (data_availability != "CONSISTENTLY_UNAVAILABLE ") {
+            if constexpr(value_type_traits::IsDynamic) {
+                std::vector<unsigned int> shape;
+                Internals::GetShapeFromAttributes(shape, attributes);
+
+                Matrix<value_primitive_type> values;
+                values.resize(BlockSize, std::accumulate(shape.begin(), shape.end(), 1U, std::multiplies<unsigned int>{}));
+                mpFile->ReadDataSet(r_data_set_path, values, StartIndex, BlockSize);
+
+                if (data_availability == "inconclusive") {
+                    mpFile->ReadDataSet(r_data_set_path + "_availability", availability, StartIndex, BlockSize);
+                }
+                Internals::CopyFromContiguousDataArray(rLocalContainer, r_component, rContainerDataIO, DataTypeTraits<Matrix<value_primitive_type>>::GetContiguousData(values), shape, availability);
+            } else {
+                Vector<value_type> values;
+                values.resize(BlockSize);
+                mpFile->ReadDataSet(r_data_set_path, values, StartIndex, BlockSize);
+
+                if (data_availability == "inconclusive") {
+                    mpFile->ReadDataSet(r_data_set_path + "_availability", availability, StartIndex, BlockSize);
+                }
+                Internals::CopyFromContiguousDataArray(rLocalContainer, r_component, rContainerDataIO, DataTypeTraits<Vector<value_type>>::GetContiguousData(values), value_type_traits::Shape(value_type{}), availability);
+            }
+
+            NewContainerComponentIOUtilities::SynchronizeComponent<TContainerType>::template Execute<TContainerDataIO>(rCommunicator, r_component);
         }
-
-        NewContainerComponentIOUtilities::SynchronizeComponent<TContainerType>::template Execute<TContainerDataIO>(rCommunicator, r_component);
 
         RemoveReservedAttributes(attributes);
         rAttributesMap[rComponentName] = attributes;
@@ -418,9 +480,11 @@ KRATOS_HDF5_INSTANTIATE_VARIABLE_CONTAINER_COMPONENT_IO(CONTAINER_TYPE, Internal
 
 KRATOS_HDF5_INSTANTIATE_VARIABLE_CONTAINER_COMPONENT_IO(ModelPart::NodesContainerType, Internals::HistoricalIO);
 KRATOS_HDF5_INSTANTIATE_VARIABLE_CONTAINER_COMPONENT_IO(ModelPart::NodesContainerType, Internals::BossakIO);
-KRATOS_HDF5_INSTANTIATE_VARIABLE_CONTAINER_COMPONENT_IO(Detail::VertexContainerType, Internals::VertexValueIO);
+KRATOS_HDF5_INSTANTIATE_VARIABLE_CONTAINER_COMPONENT_IO(Detail::VertexContainerType, Internals::VertexHistoricalValueIO);
+KRATOS_HDF5_INSTANTIATE_VARIABLE_CONTAINER_COMPONENT_IO(Detail::VertexContainerType, Internals::VertexNonHistoricalValueIO);
 KRATOS_HDF5_INSTANTIATE_VARIABLE_CONTAINER_COMPONENT_IO(ModelPart::ConditionsContainerType, Internals::GaussPointIO);
 KRATOS_HDF5_INSTANTIATE_VARIABLE_CONTAINER_COMPONENT_IO(ModelPart::ElementsContainerType, Internals::GaussPointIO);
+KRATOS_HDF5_INSTANTIATE_VARIABLE_CONTAINER_COMPONENT_IO(ModelPart::PropertiesContainerType, Internals::NonHistoricalIO);
 KRATOS_HDF5_INSTANTIATE_GENERIC_CONTAINER_COMPONENT_IO(ModelPart::NodesContainerType);
 KRATOS_HDF5_INSTANTIATE_GENERIC_CONTAINER_COMPONENT_IO(ModelPart::ConditionsContainerType);
 KRATOS_HDF5_INSTANTIATE_GENERIC_CONTAINER_COMPONENT_IO(ModelPart::ElementsContainerType);

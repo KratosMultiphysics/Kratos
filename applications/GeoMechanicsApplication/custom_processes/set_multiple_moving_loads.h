@@ -13,15 +13,16 @@
 #pragma once
 
 #include "includes/define.h"
-#include "includes/kratos_parameters.h"
-#include "includes/model_part.h"
 #include "processes/process.h"
-#include "utilities/function_parser_utility.h"
+
+#include <string>
 
 #include "../../StructuralMechanicsApplication/custom_processes/set_moving_load_process.h"
 
 namespace Kratos
 {
+class ModelPart;
+class Parameters;
 
 /**
  * @class SetMultipleMovingLoadsProcess
@@ -105,7 +106,8 @@ private:
     /**
      * \brief Remove cloned conditions as they are not executed
      */
-    void RemoveClonedConditions();
+    void                      RemoveClonedConditions();
+    [[nodiscard]] std::string Info() const override;
 
     ///@}
 };

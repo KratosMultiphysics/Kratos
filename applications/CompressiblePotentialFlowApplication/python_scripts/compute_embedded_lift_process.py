@@ -32,8 +32,9 @@ class ComputeEmbeddedLiftProcess(ComputeLiftProcess):
         self.reference_area =  self.fluid_model_part.ProcessInfo.GetValue(CPFApp.REFERENCE_CHORD)
         self.moment_reference_point = settings["moment_reference_point"].GetVector()
         self.is_infinite_wing = settings["is_infinite_wing"].GetBool()
+        self.epsilon = 1e-12
 
-        if not self.reference_area > 0.0:
+        if not self.reference_area > self.epsilon:
             raise Exception('The reference area should be larger than 0.')
 
     def _ComputeLiftFromPressure(self):

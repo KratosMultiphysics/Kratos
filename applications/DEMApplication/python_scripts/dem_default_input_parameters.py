@@ -56,6 +56,7 @@ def GetDefaultInputParameters():
             "UseMeshRepairOption"              : false,
             "RadiusExpansionOption"            : false,
             "RadiusExpansionRate"              : 0.0,
+            "RadiusMultiplierStartTime"        : 0.0,
             "RadiusMultiplierMax"              : 0.0,
             "RadiusExpansionRateChangeOption"  : false,
             "RadiusExpansionAcceleration"      : 0.0,
@@ -131,6 +132,15 @@ def GetDefaultInputParameters():
             "FinalTime"                        : 0.05,
             "ControlTime"                      : 4.0,
             "NeighbourSearchFrequency"         : 50,
+            "rve_analysis_settings" : {
+                "RVEAnalysis"                      : false,
+                "RVEEvaluationFrequency"           : 0,
+                "RVEWriteFrequency"                : 0,
+                "RVEConsolidationVelocity"         : [0.0,0.0,0.0],
+                "RVEConsolidationStopCriterion"    : "time",
+                "RVEConsolidationLimitValue"       : 0.0,
+                "RVEInnerVolumeOffset"             : 0.7
+            },
             "virtual_sea_surface_settings"     : {
                 "print_sea_surface"            : false,
                 "PostVirtualSeaSurfaceX1"      : 0.0,

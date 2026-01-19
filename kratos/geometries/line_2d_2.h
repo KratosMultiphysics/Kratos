@@ -24,6 +24,7 @@
 // Project includes
 #include "geometries/geometry.h"
 #include "integration/line_gauss_legendre_integration_points.h"
+#include "integration/line_gauss_lobatto_integration_points.h"
 #include "utilities/geometrical_projection_utilities.h"
 
 namespace Kratos
@@ -68,95 +69,95 @@ public:
     ///@{
 
     /// Geometry as base class.
-    typedef Geometry<TPointType> BaseType;
+    using BaseType = Geometry<TPointType>;
     using Geometry<TPointType>::ShapeFunctionsValues;
 
     /// Pointer definition of Line2D2
     KRATOS_CLASS_POINTER_DEFINITION( Line2D2 );
 
     /// Type of edge geometry
-    typedef Line2D2<TPointType> EdgeType;
+    using EdgeType = Line2D2<TPointType>;
 
     /** Integration methods implemented in geometry.
     */
-    typedef GeometryData::IntegrationMethod IntegrationMethod;
+    using IntegrationMethod = GeometryData::IntegrationMethod;
 
     /** A Vector of counted pointers to Geometries. Used for
     returning edges of the geometry.
      */
-    typedef typename BaseType::GeometriesArrayType GeometriesArrayType;
+    using GeometriesArrayType = typename BaseType::GeometriesArrayType;
 
     /** Redefinition of template parameter TPointType.
      */
-    typedef TPointType PointType;
+    using PointType = TPointType;
 
     /** Type used for indexing in geometry class.std::size_t used for indexing
     point or integration point access methods and also all other
     methods which need point or integration point index.
     */
-    typedef typename BaseType::IndexType IndexType;
+    using IndexType = typename BaseType::IndexType;
 
 
     /** This typed used to return size or dimension in
     geometry. Dimension, WorkingDimension, PointsNumber and
     ... return this type as their results.
     */
-    typedef typename BaseType::SizeType SizeType;
+    using SizeType = typename BaseType::SizeType;
 
     /** Array of counted pointers to point. This type used to hold
     geometry's points.
     */
-    typedef  typename BaseType::PointsArrayType PointsArrayType;
+    using PointsArrayType = typename BaseType::PointsArrayType;
 
     /** This type used for representing an integration point in
     geometry. This integration point is a point with an
     additional weight component.
     */
-    typedef typename BaseType::IntegrationPointType IntegrationPointType;
+    using IntegrationPointType = typename BaseType::IntegrationPointType;
 
     /** A Vector of IntegrationPointType which used to hold
     integration points related to an integration
     method. IntegrationPoints functions used this type to return
     their results.
     */
-    typedef typename BaseType::IntegrationPointsArrayType IntegrationPointsArrayType;
+    using IntegrationPointsArrayType = typename BaseType::IntegrationPointsArrayType;
 
     /** A Vector of IntegrationPointsArrayType which used to hold
     integration points related to different integration method
     implemented in geometry.
     */
-    typedef typename BaseType::IntegrationPointsContainerType IntegrationPointsContainerType;
+    using IntegrationPointsContainerType = typename BaseType::IntegrationPointsContainerType;
 
     /** A third order tensor used as shape functions' values
     container.
     */
-    typedef typename BaseType::ShapeFunctionsValuesContainerType ShapeFunctionsValuesContainerType;
+    using ShapeFunctionsValuesContainerType = typename BaseType::ShapeFunctionsValuesContainerType;
 
     /** A fourth order tensor used as shape functions' local
     gradients container in geometry.
     */
-    typedef typename BaseType::ShapeFunctionsLocalGradientsContainerType ShapeFunctionsLocalGradientsContainerType;
+    using ShapeFunctionsLocalGradientsContainerType = typename BaseType::ShapeFunctionsLocalGradientsContainerType;
 
     /** A third order tensor to hold jacobian matrices evaluated at
     integration points. Jacobian and InverseOfJacobian functions
     return this type as their result.
     */
-    typedef typename BaseType::JacobiansType JacobiansType;
+    using JacobiansType = typename BaseType::JacobiansType;
 
     /** A third order tensor to hold shape functions' local
     gradients. ShapefunctionsLocalGradients function return this
     type as its result.
     */
-    typedef typename BaseType::ShapeFunctionsGradientsType ShapeFunctionsGradientsType;
+    using ShapeFunctionsGradientsType = typename BaseType::ShapeFunctionsGradientsType;
 
     /** Type of the normal vector used for normal to edges in geometry.
      */
-    typedef typename BaseType::NormalType NormalType;
+    using NormalType = typename BaseType::NormalType;
 
     /**
      * Type of coordinates array
      */
-    typedef typename BaseType::CoordinatesArrayType CoordinatesArrayType;
+    using CoordinatesArrayType = typename BaseType::CoordinatesArrayType;
 
     ///@}
     ///@name Life Cycle
@@ -674,30 +675,13 @@ public:
     ///@name Edge
     ///@{
 
-    /**
-     * @brief This method gives you number of all edges of this geometry.
-     * @details For example, for a hexahedron, this would be 12
-     * @return SizeType contains number of this geometry edges.
-     * @see EdgesNumber()
-     * @see Edges()
-     * @see GenerateEdges()
-     * @see FacesNumber()
-     * @see Faces()
-     * @see GenerateFaces()
-     */
+    /// @copydoc Geometry::EdgesNumber
     SizeType EdgesNumber() const override
     {
         return 1;
     }
 
-    /**
-     * @brief This method gives you all edges of this geometry.
-     * @details This method will gives you all the edges with one dimension less than this geometry.
-     * For example a triangle would return three lines as its edges or a tetrahedral would return four triangle as its edges but won't return its six edge lines by this method.
-     * @return GeometriesArrayType contains this geometry edges.
-     * @see EdgesNumber()
-     * @see Edge()
-     */
+    /// @copydoc Geometry::GenerateEdges
     GeometriesArrayType GenerateEdges() const override
     {
         GeometriesArrayType edges = GeometriesArrayType();
@@ -1091,28 +1075,18 @@ public:
         const TPointType& r_first_point  = BaseType::GetPoint(0);
         const TPointType& r_second_point = BaseType::GetPoint(1);
 
-        // Project point
-        const double tolerance = 1e-14; // Tolerance
-
         const double length = Length();
 
-        const double length_1 = std::sqrt( std::pow(rPoint[0] - r_first_point[0], 2)
-                    + std::pow(rPoint[1] - r_first_point[1], 2));
+        // Project the point on the line in global space
+        const array_1d<double, 3> vector_from_first_point_to_input = rPoint - r_first_point;
+        const array_1d<double, 3> unity_line_direction             = (r_second_point - r_first_point) / length;
+        const auto projection_on_line                              = inner_prod(vector_from_first_point_to_input, unity_line_direction);
 
-        const double length_2 = std::sqrt( std::pow(rPoint[0] - r_second_point[0], 2)
-                    + std::pow(rPoint[1] - r_second_point[1], 2));
+        // Conversion to local space
+        constexpr double tolerance = 1e-14;
+        rResult[0] = 2.0 * projection_on_line/(length + tolerance) - 1.0;
 
-        if (length_1 <= (length + tolerance) && length_2 <= (length + tolerance)) {
-            rResult[0] = 2.0 * length_1/(length + tolerance) - 1.0;
-        } else {
-            if (length_1 > length_2) {
-                rResult[0] = 2.0 * length_1/(length + tolerance) - 1.0;
-            } else {
-                rResult[0] = -2.0 * length_1/(length + tolerance) - 1.0;
-            }
-        }
-
-        return rResult ;
+        return rResult;
     }
 
     ///@}
@@ -1319,7 +1293,8 @@ private:
                 Quadrature<LineGaussLegendreIntegrationPoints2, 1, IntegrationPoint<3> >::GenerateIntegrationPoints(),
                 Quadrature<LineGaussLegendreIntegrationPoints3, 1, IntegrationPoint<3> >::GenerateIntegrationPoints(),
                 Quadrature<LineGaussLegendreIntegrationPoints4, 1, IntegrationPoint<3> >::GenerateIntegrationPoints(),
-                Quadrature<LineGaussLegendreIntegrationPoints5, 1, IntegrationPoint<3> >::GenerateIntegrationPoints()
+                Quadrature<LineGaussLegendreIntegrationPoints5, 1, IntegrationPoint<3> >::GenerateIntegrationPoints(),
+                Quadrature<LineGaussLobattoIntegrationPoints1, 1, IntegrationPoint<3> >::GenerateIntegrationPoints()
             }
         };
         return integration_points;
@@ -1332,7 +1307,8 @@ private:
                 Line2D2<TPointType>::CalculateShapeFunctionsIntegrationPointsValues( GeometryData::IntegrationMethod::GI_GAUSS_2 ),
                 Line2D2<TPointType>::CalculateShapeFunctionsIntegrationPointsValues( GeometryData::IntegrationMethod::GI_GAUSS_3 ),
                 Line2D2<TPointType>::CalculateShapeFunctionsIntegrationPointsValues( GeometryData::IntegrationMethod::GI_GAUSS_4 ),
-                Line2D2<TPointType>::CalculateShapeFunctionsIntegrationPointsValues( GeometryData::IntegrationMethod::GI_GAUSS_5 )
+                Line2D2<TPointType>::CalculateShapeFunctionsIntegrationPointsValues( GeometryData::IntegrationMethod::GI_GAUSS_5 ),
+                Line2D2<TPointType>::CalculateShapeFunctionsIntegrationPointsValues( GeometryData::IntegrationMethod::GI_LOBATTO_1 )
             }
         };
         return shape_functions_values;
@@ -1345,7 +1321,8 @@ private:
                 Line2D2<TPointType>::CalculateShapeFunctionsIntegrationPointsLocalGradients( GeometryData::IntegrationMethod::GI_GAUSS_2 ),
                 Line2D2<TPointType>::CalculateShapeFunctionsIntegrationPointsLocalGradients( GeometryData::IntegrationMethod::GI_GAUSS_3 ),
                 Line2D2<TPointType>::CalculateShapeFunctionsIntegrationPointsLocalGradients( GeometryData::IntegrationMethod::GI_GAUSS_4 ),
-                Line2D2<TPointType>::CalculateShapeFunctionsIntegrationPointsLocalGradients( GeometryData::IntegrationMethod::GI_GAUSS_5 )
+                Line2D2<TPointType>::CalculateShapeFunctionsIntegrationPointsLocalGradients( GeometryData::IntegrationMethod::GI_GAUSS_5 ),
+                Line2D2<TPointType>::CalculateShapeFunctionsIntegrationPointsLocalGradients( GeometryData::IntegrationMethod::GI_LOBATTO_1 )
             }
         };
         return shape_functions_local_gradients;

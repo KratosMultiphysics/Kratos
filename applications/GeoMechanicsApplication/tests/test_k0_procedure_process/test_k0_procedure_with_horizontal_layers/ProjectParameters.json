@@ -37,13 +37,12 @@
                 }
             }
         }]
-    },	
+    },
     "processes": {
         "auxiliary_process_list": [
             {
                 "Parameters": {
                     "model_part_name": "PorousDomain.porous_computational_model_part",
-                    "variable_name": "CAUCHY_STRESS_TENSOR",
                     "use_standard_procedure": true
                 },
                 "kratos_module": "KratosMultiphysics.GeoMechanicsApplication",
@@ -155,18 +154,11 @@
         "newmark_beta": 0.25,
         "newmark_gamma": 0.5,
         "newmark_theta": 0.5,
-        "nodal_smoothing": false,
         "number_cycles": 100,
         "problem_domain_sub_model_part_list": [
             "Soil1",
             "Soil2",
             "Soil3"
-        ],
-        "processes_sub_model_part_list": [
-            "Main",
-            "All_Nodes",
-            "Side_Nodes",
-            "Base_Nodes"
         ],
         "rayleigh_k": 0.0,
         "rayleigh_m": 0.0,

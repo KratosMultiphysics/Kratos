@@ -11,7 +11,6 @@
 //                   Richard Faasse
 
 #include "custom_constitutive/incremental_linear_elastic_law.h"
-#include "constitutive_law_dimension.h"
 #include "geo_mechanics_application_variables.h"
 
 namespace
@@ -49,8 +48,6 @@ void SetShearEntriesToZero(Matrix& rMatrix, std::size_t NumberOfNormalComponents
 namespace Kratos
 {
 
-GeoIncrementalLinearElasticLaw::GeoIncrementalLinearElasticLaw() = default;
-
 GeoIncrementalLinearElasticLaw::GeoIncrementalLinearElasticLaw(std::unique_ptr<ConstitutiveLawDimension> pConstitutiveDimension)
     : GeoLinearElasticLaw{},
       mpConstitutiveDimension(std::move(pConstitutiveDimension)),
@@ -86,10 +83,6 @@ GeoIncrementalLinearElasticLaw& GeoIncrementalLinearElasticLaw::operator=(const 
 
     return *this;
 }
-
-GeoIncrementalLinearElasticLaw::GeoIncrementalLinearElasticLaw(GeoIncrementalLinearElasticLaw&& rOther) noexcept = default;
-GeoIncrementalLinearElasticLaw& GeoIncrementalLinearElasticLaw::operator=(GeoIncrementalLinearElasticLaw&& rOther) noexcept = default;
-GeoIncrementalLinearElasticLaw::~GeoIncrementalLinearElasticLaw() = default;
 
 ConstitutiveLaw::Pointer GeoIncrementalLinearElasticLaw::Clone() const
 {
@@ -132,9 +125,7 @@ void GeoIncrementalLinearElasticLaw::CalculateElasticMatrix(Matrix& C, Constitut
 {
     KRATOS_TRY
 
-    const Properties& r_material_properties = rValues.GetMaterialProperties();
-    C = mpConstitutiveDimension->CalculateElasticMatrix(r_material_properties[YOUNG_MODULUS],
-                                                        r_material_properties[POISSON_RATIO]);
+    C = mpConstitutiveDimension->CalculateElasticMatrix(rValues.GetMaterialProperties());
 
     if (this->GetConsiderDiagonalEntriesOnlyAndNoShear()) {
         SetEntriesAboveDiagonalToZero(C);
@@ -211,7 +202,8 @@ void GeoIncrementalLinearElasticLaw::save(Serializer& rSerializer) const
     rSerializer.save("StressVectorFinalized", mStressVectorFinalized);
     rSerializer.save("DeltaStrainVector", mDeltaStrainVector);
     rSerializer.save("StrainVectorFinalized", mStrainVectorFinalized);
-    rSerializer.save("mIsModelInitialized", mIsModelInitialized);
+    rSerializer.save("IsModelInitialized", mIsModelInitialized);
+    rSerializer.save("ConstitutiveDimension", mpConstitutiveDimension);
 }
 
 void GeoIncrementalLinearElasticLaw::load(Serializer& rSerializer)
@@ -221,7 +213,8 @@ void GeoIncrementalLinearElasticLaw::load(Serializer& rSerializer)
     rSerializer.load("StressVectorFinalized", mStressVectorFinalized);
     rSerializer.load("DeltaStrainVector", mDeltaStrainVector);
     rSerializer.load("StrainVectorFinalized", mStrainVectorFinalized);
-    rSerializer.load("mIsModelInitialized", mIsModelInitialized);
+    rSerializer.load("IsModelInitialized", mIsModelInitialized);
+    rSerializer.load("ConstitutiveDimension", mpConstitutiveDimension);
 }
 
 } // Namespace Kratos

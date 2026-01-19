@@ -13,6 +13,7 @@
 #include "custom_utilities/constitutive_law_utilities.h"
 #include "geo_mechanics_application_variables.h"
 #include "includes/checks.h"
+#include "tests/cpp_tests/custom_constitutive/mock_constitutive_law.hpp"
 #include "tests/cpp_tests/geo_mechanics_fast_suite.h"
 
 #include <boost/numeric/ublas/assignment.hpp>
@@ -71,13 +72,19 @@ KRATOS_TEST_CASE_IN_SUITE(CohesionCanBeFetchedFromUMatParameters, KratosGeoMecha
     KRATOS_EXPECT_DOUBLE_EQ(ConstitutiveLawUtilities::GetCohesion(properties), 2.0);
 
     properties.Erase(INDEX_OF_UMAT_C_PARAMETER);
-    KRATOS_EXPECT_EXCEPTION_IS_THROWN(ConstitutiveLawUtilities::GetCohesion(properties),
-                                      "Material 0 does not have INDEX_OF_UMAT_C_PARAMETER");
+    KRATOS_EXPECT_EXCEPTION_IS_THROWN(
+        ConstitutiveLawUtilities::GetCohesion(properties),
+        "Error: ConstitutiveLawUtilities::GetCohesion failed. There is no GEO_COHESION available "
+        "and attempting to get the cohesion from UMAT parameters resulted in the following Error: "
+        "There is no INDEX_OF_UMAT_C_PARAMETER for material 0.");
 
     properties.SetValue(INDEX_OF_UMAT_C_PARAMETER, 1);
     properties.Erase(UMAT_PARAMETERS);
-    KRATOS_EXPECT_EXCEPTION_IS_THROWN(ConstitutiveLawUtilities::GetCohesion(properties),
-                                      "Material 0 does not have UMAT_PARAMETERS");
+    KRATOS_EXPECT_EXCEPTION_IS_THROWN(
+        ConstitutiveLawUtilities::GetCohesion(properties),
+        "ConstitutiveLawUtilities::GetCohesion failed. There is no GEO_COHESION available and "
+        "attempting to get the cohesion from UMAT parameters resulted in the following Error: "
+        "There is no UMAT_PARAMETERS for material 0.");
 }
 
 KRATOS_TEST_CASE_IN_SUITE(FrictionAngleCanBeFetchedFromGeoFrictionAngleProperty, KratosGeoMechanicsFastSuiteWithoutKernel)
@@ -99,20 +106,19 @@ KRATOS_TEST_CASE_IN_SUITE(FrictionAngleCanBeFetchedFromUMatParameters, KratosGeo
     KRATOS_EXPECT_DOUBLE_EQ(ConstitutiveLawUtilities::GetFrictionAngleInDegrees(properties), 30.0);
 
     properties.Erase(INDEX_OF_UMAT_PHI_PARAMETER);
-    KRATOS_EXPECT_EXCEPTION_IS_THROWN(ConstitutiveLawUtilities::GetFrictionAngleInDegrees(properties),
-                                      "Material 0 does not have INDEX_OF_UMAT_PHI_PARAMETER");
+    KRATOS_EXPECT_EXCEPTION_IS_THROWN(ConstitutiveLawUtilities::GetFrictionAngleInDegrees(properties), "ConstitutiveLawUtilities::GetFrictionAngleInDegrees failed. There is no GEO_FRICTION_ANGLE available and attempting to get the cohesion from UMAT parameters resulted in the following Error: There is no INDEX_OF_UMAT_PHI_PARAMETER for material 0.");
 
     properties.SetValue(INDEX_OF_UMAT_PHI_PARAMETER, 2);
     properties.Erase(UMAT_PARAMETERS);
-    KRATOS_EXPECT_EXCEPTION_IS_THROWN(ConstitutiveLawUtilities::GetFrictionAngleInDegrees(properties),
-                                      "Material 0 does not have UMAT_PARAMETERS");
+    KRATOS_EXPECT_EXCEPTION_IS_THROWN(ConstitutiveLawUtilities::GetFrictionAngleInDegrees(properties), "ConstitutiveLawUtilities::GetFrictionAngleInDegrees failed. There is no GEO_FRICTION_ANGLE available and attempting to get the cohesion from UMAT parameters resulted in the following Error: There is no UMAT_PARAMETERS for material 0.");
 }
 
-// The following test only raises errors when using debug builds
-#ifdef KRATOS_DEBUG
-
-KRATOS_TEST_CASE_IN_SUITE(ThrowExceptionWhenIndexInUMatParametersIsOutOfBounds, KratosGeoMechanicsFastSuiteWithoutKernel)
+KRATOS_TEST_CASE_IN_SUITE(RaiseADebugErrorWhenIndexInUMatParametersIsOutOfBounds, KratosGeoMechanicsFastSuiteWithoutKernel)
 {
+#ifndef KRATOS_DEBUG
+    GTEST_SKIP() << "This test requires a debug build";
+#endif
+
     auto properties      = Properties{};
     auto umat_parameters = Vector{2};
     umat_parameters <<= 2.0, 30.0;
@@ -121,14 +127,54 @@ KRATOS_TEST_CASE_IN_SUITE(ThrowExceptionWhenIndexInUMatParametersIsOutOfBounds, 
 
     KRATOS_EXPECT_EXCEPTION_IS_THROWN(
         ConstitutiveLawUtilities::GetCohesion(properties),
-        "Got out-of-bounds INDEX_OF_UMAT_C_PARAMETER (material ID: 0): 0 is not in range [1, 2]");
+        "ConstitutiveLawUtilities::GetCohesion failed. There is no GEO_COHESION available and "
+        "attempting to get the cohesion from UMAT parameters resulted in the following Error: Got "
+        "out-of-bounds INDEX_OF_UMAT_C_PARAMETER (material ID: 0): 0 is not in range [1, 2].");
 
     properties.SetValue(INDEX_OF_UMAT_C_PARAMETER, 3); // 1-based index
     KRATOS_EXPECT_EXCEPTION_IS_THROWN(
         ConstitutiveLawUtilities::GetCohesion(properties),
-        "Got out-of-bounds INDEX_OF_UMAT_C_PARAMETER (material ID: 0): 3 is not in range [1, 2]");
+        "ConstitutiveLawUtilities::GetCohesion failed. There is no GEO_COHESION available and "
+        "attempting to get the cohesion from UMAT parameters resulted in the following Error: Got "
+        "out-of-bounds INDEX_OF_UMAT_C_PARAMETER (material ID: 0): 3 is not in range [1, 2].");
 }
 
-#endif
+KRATOS_TEST_CASE_IN_SUITE(ConstitutiveLawUtilities_GetStateVariableIndex, KratosGeoMechanicsFastSuiteWithoutKernel)
+{
+    // Act and Assert
+    constexpr auto expected_index = 1;
+    KRATOS_EXPECT_EQ(ConstitutiveLawUtilities::GetStateVariableIndex(STATE_VARIABLE_2), expected_index);
+}
+
+KRATOS_TEST_CASE_IN_SUITE(ConstitutiveLawUtilities_CheckStrainSize, KratosGeoMechanicsFastSuiteWithoutKernel)
+{
+    // Arrange
+    auto properties                       = Properties{};
+    properties.GetValue(CONSTITUTIVE_LAW) = Kratos::make_shared<MockConstitutiveLaw>();
+
+    // Act and Assert
+    std::size_t           expected_size = 2;
+    constexpr std::size_t element_id    = 1;
+    KRATOS_EXPECT_EXCEPTION_IS_THROWN(ConstitutiveLawUtilities::CheckStrainSize(properties, expected_size, element_id), "Wrong constitutive law is used: strain size is 4 when it is expected to be 2 at element Id = 1.");
+
+    expected_size = properties[CONSTITUTIVE_LAW]->GetStrainSize();
+    EXPECT_NO_THROW(ConstitutiveLawUtilities::CheckStrainSize(properties, expected_size, element_id));
+}
+
+KRATOS_TEST_CASE_IN_SUITE(ConstitutiveLawUtilities_CheckStrainMeasures, KratosGeoMechanicsFastSuiteWithoutKernel)
+{
+    // Arrange
+    auto properties                       = Properties{};
+    auto constitutive_law                 = Kratos::make_shared<MockConstitutiveLaw>();
+    properties.GetValue(CONSTITUTIVE_LAW) = constitutive_law;
+
+    // Act and Assert
+    constexpr std::size_t element_id = 1;
+    constitutive_law->AddStrainMeasure_Infinitesimal(false);
+    KRATOS_EXPECT_EXCEPTION_IS_THROWN(ConstitutiveLawUtilities::CheckHasStrainMeasure_Infinitesimal(properties, element_id), " Constitutive law is not compatible with the strain type StrainMeasure_Infinitesimal at element 1.");
+
+    constitutive_law->AddStrainMeasure_Infinitesimal(true);
+    EXPECT_NO_THROW(ConstitutiveLawUtilities::CheckHasStrainMeasure_Infinitesimal(properties, element_id));
+}
 
 } // namespace Kratos::Testing
