@@ -50,13 +50,13 @@ double GetCapSize(const Properties& rProperties)
            "properties was provided: GEO_COMPRESSION_CAP_SIZE, K0_NC, or GEO_FRICTION_ANGLE\n ";
 }
 
-double GetCapLocation(const Properties& rProperties)
+double GetPreconsolidationStress(const Properties& rProperties)
 {
-    if (rProperties.Has(GEO_COMPRESSION_CAP_LOCATION)) {
-        return rProperties[GEO_COMPRESSION_CAP_LOCATION];
+    if (rProperties.Has(GEO_PRECONSOLIDATION_STRESS)) {
+        return rProperties[GEO_PRECONSOLIDATION_STRESS];
     }
-    KRATOS_ERROR << "ConstitutiveLawUtilities::GetCapLocation failed. There is no "
-                    "GEO_COMPRESSION_CAP_LOCATION available "
+    KRATOS_ERROR << "Failed to determine the preconsolidation stress. There is no "
+                    "GEO_PRECONSOLIDATION_STRESS available "
                  << std::endl;
 }
 
@@ -74,7 +74,7 @@ Geo::KappaDependentFunction MakeCapLocationCalculator(const Properties& rMateria
 {
     const auto hardening_type = GeoStringUtilities::ToLower(rMaterialProperties[GEO_CAP_HARDENING_TYPE]);
     if (hardening_type == "none") {
-        return FunctionObjectUtilities::MakeConstantFunction(GetCapLocation(rMaterialProperties));
+        return FunctionObjectUtilities::MakeConstantFunction(GetPreconsolidationStress(rMaterialProperties));
     }
     KRATOS_ERROR << "Cannot create a kappa-dependent function for the cap location of material "
                  << rMaterialProperties.Id() << ": unknown hardening type '" << hardening_type << "'\n";
@@ -89,7 +89,7 @@ CompressionCapYieldSurface::CompressionCapYieldSurface()
 {
     mMaterialProperties.SetValue(GEO_CAP_HARDENING_TYPE, "None");
     mMaterialProperties.SetValue(GEO_COMPRESSION_CAP_SIZE, 0.0);
-    mMaterialProperties.SetValue(GEO_COMPRESSION_CAP_LOCATION, 0.0);
+    mMaterialProperties.SetValue(GEO_PRECONSOLIDATION_STRESS, 0.0);
 
     InitializeKappaDependentFunctions();
 }
@@ -107,13 +107,16 @@ CompressionCapYieldSurface::CompressionCapYieldSurface(const Properties& rMateri
 
 double CompressionCapYieldSurface::GetCapSize() const { return mCapSizeCalculator(mKappa); }
 
-double CompressionCapYieldSurface::GetCapLocation() const { return mCapLocationCalculator(mKappa); }
+double CompressionCapYieldSurface::GetPreconsolidationStress() const
+{
+    return mPreconsolidationStressCalculator(mKappa);
+}
 
 double CompressionCapYieldSurface::YieldFunctionValue(const Vector& rSigmaTau) const
 {
     // rSigmaTau here contains the values of p and q
     return std::pow(rSigmaTau[1] / GetCapSize(), 2) + rSigmaTau[0] * rSigmaTau[0] -
-           std::pow(GetCapLocation(), 2);
+           std::pow(GetPreconsolidationStress(), 2);
 }
 
 Vector CompressionCapYieldSurface::DerivativeOfFlowFunction(const Vector& rSigmaTau) const
@@ -124,14 +127,14 @@ Vector CompressionCapYieldSurface::DerivativeOfFlowFunction(const Vector& rSigma
 
 void CompressionCapYieldSurface::InitializeKappaDependentFunctions()
 {
-    mCapSizeCalculator     = MakeCapSizeCalculator(mMaterialProperties);
-    mCapLocationCalculator = MakeCapLocationCalculator(mMaterialProperties);
+    mCapSizeCalculator                = MakeCapSizeCalculator(mMaterialProperties);
+    mPreconsolidationStressCalculator = MakeCapLocationCalculator(mMaterialProperties);
 }
 
 void CompressionCapYieldSurface::CheckMaterialProperties() const
 {
     const CheckProperties check_properties(mMaterialProperties, "property", CheckProperties::Bounds::AllInclusive);
-    check_properties.Check(GEO_COMPRESSION_CAP_LOCATION);
+    check_properties.Check(GEO_PRECONSOLIDATION_STRESS);
     if (mMaterialProperties.Has(GEO_COMPRESSION_CAP_SIZE)) {
         check_properties.Check(GEO_COMPRESSION_CAP_SIZE);
     } else if (mMaterialProperties.Has(K0_NC)) {

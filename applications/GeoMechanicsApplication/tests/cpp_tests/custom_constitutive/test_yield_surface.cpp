@@ -200,7 +200,7 @@ KRATOS_TEST_CASE_IN_SUITE(TestCompressionCapYieldSurface, KratosGeoMechanicsFast
     auto material_properties                    = Properties{};
     material_properties[GEO_CAP_HARDENING_TYPE] = "None";
     material_properties[GEO_FRICTION_ANGLE] = (180.0 / std::numbers::pi) * std::asin(24.0 / 25.0);
-    material_properties[GEO_COMPRESSION_CAP_LOCATION] = 20.0;
+    material_properties[GEO_PRECONSOLIDATION_STRESS] = 20.0;
 
     auto principal_stress = UblasUtilities::CreateVector({30.0, 20.0, 10.0});
     auto p_q = StressStrainUtilities::TransformPrincipalStressesToPandQ(principal_stress);
@@ -237,9 +237,9 @@ KRATOS_TEST_CASE_IN_SUITE(CompressionCapYieldSurface_CanBeSavedAndLoadedThroughI
     const auto scoped_registration = ScopedSerializerRegistration{
         std::make_pair("CompressionCapYieldSurface"s, CompressionCapYieldSurface{})};
 
-    auto material_properties                          = Properties{};
-    material_properties[GEO_COMPRESSION_CAP_LOCATION] = 20.0;
-    material_properties[GEO_COMPRESSION_CAP_SIZE]     = 4.0;
+    auto material_properties                         = Properties{};
+    material_properties[GEO_PRECONSOLIDATION_STRESS] = 20.0;
+    material_properties[GEO_COMPRESSION_CAP_SIZE]    = 4.0;
     auto p_cap_yield_surface =
         std::unique_ptr<YieldSurface>{std::make_unique<CompressionCapYieldSurface>(material_properties)};
     auto serializer = StreamSerializer{};

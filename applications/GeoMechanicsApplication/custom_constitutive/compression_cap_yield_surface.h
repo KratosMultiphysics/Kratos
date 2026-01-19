@@ -33,7 +33,7 @@ public:
     explicit CompressionCapYieldSurface(const Properties& rMaterialProperties);
 
     [[nodiscard]] double GetCapSize() const;
-    [[nodiscard]] double GetCapLocation() const;
+    [[nodiscard]] double GetPreconsolidationStress() const;
 
     [[nodiscard]] double YieldFunctionValue(const Vector& rSigmaTau) const override;
     [[nodiscard]] Vector DerivativeOfFlowFunction(const Vector&) const override;
@@ -49,7 +49,7 @@ private:
     double                      mKappa = 0.0;
     Properties                  mMaterialProperties;
     Geo::KappaDependentFunction mCapSizeCalculator;
-    Geo::KappaDependentFunction mCapLocationCalculator;
+    Geo::KappaDependentFunction mPreconsolidationStressCalculator;
 
 }; // Class CompressionCapYieldSurface
 
