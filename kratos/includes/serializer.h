@@ -241,12 +241,12 @@ public:
                 }
 
                 // Load the pointer address before loading the content
-                mLoadedPointers[p_pointer]=&pValue;
+                mLoadedPointers[p_pointer]=pValue.get();
                 load(rTag, *pValue);
             }
             else
             {
-                pValue = *static_cast<Kratos::shared_ptr<TDataType>*>((i_pointer->second));
+                pValue.reset(static_cast<TDataType*>((i_pointer->second)));
             }
         }
     }
@@ -291,12 +291,12 @@ public:
                 }
 
                 // Load the pointer address before loading the content
-                mLoadedPointers[p_pointer]=&pValue;
+                mLoadedPointers[p_pointer]=pValue.get();
                 load(rTag, *pValue);
             }
             else
             {
-                pValue = *static_cast<Kratos::intrusive_ptr<TDataType>*>((i_pointer->second));
+                pValue.reset(static_cast<TDataType*>((i_pointer->second)));
             }
         }
     }
@@ -346,7 +346,7 @@ public:
             }
             else
             {
-                pValue = Kratos::unique_ptr<TDataType>(static_cast<TDataType*>((i_pointer->second)));
+                pValue.reset(static_cast<TDataType*>((i_pointer->second)));
             }
         }
     }
@@ -392,12 +392,12 @@ public:
                 }
 
                 // Load the pointer address before loading the content
-                mLoadedPointers[p_pointer]=&pValue;
+                mLoadedPointers[p_pointer]=pValue;
                 load(rTag, *pValue);
             }
             else
             {
-                pValue = *static_cast<TDataType**>((i_pointer->second));
+                pValue = static_cast<TDataType*>((i_pointer->second));
             }
         }
     }
