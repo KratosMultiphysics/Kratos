@@ -19,6 +19,7 @@
 
 // Project includes
 #include "future/linear_operators/linear_operator.h"
+#include "future/linear_operators/sparse_matrix_linear_operator.h"
 
 namespace Kratos::Future
 {
@@ -30,7 +31,7 @@ namespace Kratos::Future
 ///@{
 
 template <class TLinearAlgebra>
-class LinearSystem final
+class LinearSystem
 {
 public:
 
@@ -59,18 +60,24 @@ public:
     /// Constructor with matrix
     LinearSystem(
         typename MatrixType::Pointer pLhs,
-        typename VectorType::Pointer pRhs)
+        typename VectorType::Pointer pRhs,
+        typename VectorType::Pointer pSol,
+        std::string system_name = "")
         : mpLhs(pLhs)
         , mpRhs(pRhs)
+        , mpSol(pSol)
     {
+        mpLinearOperator = Kratos::make_shared<SparseMatrixLinearOperator<TLinearAlgebra>>(*pLhs);
     }
 
     /// Constructor with linear operator
     LinearSystem(
         typename LinearOperatorType::Pointer pLinearOperator,
-        typename VectorType::Pointer pRhs)
+        typename VectorType::Pointer pRhs,
+        typename VectorType::Pointer pSol)
         : mpLinearOperator(pLinearOperator)
         , mpRhs(pRhs)
+        , mpSol(pSol)
     {
     }
 
@@ -119,41 +126,6 @@ public:
     ///@name Operations
     ///@{
 
-    /**
-     * @brief Performs the matrix-vector product y = A * x.
-     * @param rX Input vector x
-     * @param rY Output vector y
-     */
-    void SpMV(
-        const VectorType& rX,
-        VectorType& rY) const
-    {
-        if (mpLinearOperator) {
-            mpLinearOperator->SpMV(rX, rY);
-        } else if (mpLhs) {
-            mpLhs->SpMV(rX, rY);
-        } else {
-            KRATOS_ERROR << "Linear system has no matrix or linear operator." << std::endl;
-        }
-    }
-
-    /**
-     * @brief Performs the transposed matrix-vector product y = A^T * x.
-     * @param rX Input vector x
-     * @param rY Output vector y
-     */
-    void TransposeSpMV(
-        const VectorType& rX,
-        VectorType& rY) const
-    {
-        if (mpLinearOperator) {
-            mpLinearOperator->TransposeSpMV(rX, rY);
-        } else if (mpLhs) {
-            mpLhs->TransposeSpMV(rX, rY);
-        } else {
-            KRATOS_ERROR << "Linear system has no matrix or linear operator." << std::endl;
-        }
-    }
 
     ///@}
     ///@name Access
@@ -163,7 +135,7 @@ public:
     * @brief Get a reference to the left-hand side matrix.
     * @return Reference to the left-hand side matrix
     */
-    MatrixType& GetLeftHandSide()
+    virtual MatrixType& GetLeftHandSide()
     {
         KRATOS_ERROR_IF(!mpLhs) << "Left-hand side matrix is not initialized." << std::endl;
         return *mpLhs;
@@ -173,7 +145,7 @@ public:
     * @brief Get a const reference to the left-hand side matrix.
     * @return Const reference to the left-hand side matrix
     */
-    const MatrixType& GetLeftHandSide() const
+    virtual const MatrixType& GetLeftHandSide() const
     {
         KRATOS_ERROR_IF(!mpLhs) << "Left-hand side matrix is not initialized." << std::endl;
         return *mpLhs;
@@ -183,7 +155,7 @@ public:
     * @brief Get a reference to the right-hand side vector.
     * @return Reference to the right-hand side vector
     */
-    MatrixType& GetRightHandSide()
+    virtual VectorType& GetRightHandSide()
     {
         KRATOS_ERROR_IF(!mpRhs) << "Right-hand side vector is not initialized." << std::endl;
         return *mpRhs;
@@ -193,10 +165,30 @@ public:
     * @brief Get a const reference to the right-hand side vector.
     * @return Const reference to the right-hand side vector
     */
-    const MatrixType& GetRightHandSide() const
+    virtual const VectorType& GetRightHandSide() const
     {
         KRATOS_ERROR_IF(!mpRhs) << "Right-hand side vector is not initialized." << std::endl;
         return *mpRhs;
+    }
+
+    /**
+    * @brief Get a reference to the solution vector.
+    * @return Reference to the solution vector
+    */
+    virtual VectorType& GetSolution()
+    {
+        KRATOS_ERROR_IF(!mpSol) << "Solution vector is not initialized." << std::endl;
+        return *mpSol;
+    }
+
+    /**
+    * @brief Get a const reference to the solution vector.
+    * @return Const reference to the solution vector
+    */
+    virtual const VectorType& GetSolution() const
+    {
+        KRATOS_ERROR_IF(!mpSol) << "Solution vector is not initialized." << std::endl;
+        return *mpSol;
     }
 
     ///@}
@@ -207,7 +199,7 @@ public:
     * @brief Check if the linear system is matrix-free.
     * @return True if the linear system is matrix-free, false if it is not
     */
-    bool IsMatrixFree() const
+    virtual bool IsMatrixFree() const
     {
         if (mpLhs) {
             return false;
@@ -223,6 +215,8 @@ private:
 
     ///@name Member Variables
     ///@{
+
+    typename VectorType::Pointer mpSol = nullptr;
 
     typename VectorType::Pointer mpRhs = nullptr;
 

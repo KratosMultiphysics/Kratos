@@ -74,17 +74,14 @@ public:
     /// Vector type definition from linear algebra template parameter
     using VectorType = typename TLinearAlgebra::VectorType;
 
+    /// Multiple vector type definition from linear algebra template parameter
+    using MultipleVectorType = typename TLinearAlgebra::MultipleVectorType;
+
     /// Type definition for data
     using DataType = typename VectorType::DataType;
 
     /// Type definition for index
     using IndexType = typename VectorType::IndexType;
-
-    /// Local system matrix type definition
-    using DenseMatrixType = DenseMatrix<DataType>;
-
-    /// Local system vector type definition
-    using DenseVectorType = DenseVector<DataType>;
 
     ///@}
     ///@name Life Cycle
@@ -116,42 +113,27 @@ public:
     /**
      * @brief This function is designed to be called as few times as possible.
      * @details It creates the data structures that only depend on the connectivity of the matrix (and not on its coefficients) so that the memory can be allocated once and expensive operations can be done only when strictly  needed
-     * @param pLinearOperator System matrix linear operator pointer.
-     * @param rX Solution vector. it's also the initial guess for iterative linear solvers.
-     * @param rB Right hand side vector.
+     * @param rLinearSystem The linear system to be solved
      */
-    virtual void Initialize(
-        LinearOperatorPointerType pLinearOperator,
-        VectorType& rX,
-        VectorType& rB)
+    virtual void Initialize(LinearSystem<TLinearAlgebra>& rLinearSystem)
     {
     }
 
     /**
      * @brief This function is designed to be called every time the coefficients change in the system that is, normally at the beginning of each solve.
      * @details For example if we are implementing a direct solver, this is the place to do the factorization so that then the backward substitution can be performed effectively more than once
-     * @param pLinearOperator System matrix linear operator pointer.
-     * @param rX Solution vector. it's also the initial guess for iterative linear solvers.
-     * @param rB Right hand side vector.
+     * @param rLinearSystem The linear system to be solved
      */
-    virtual void InitializeSolutionStep(
-        LinearOperatorPointerType pLinearOperator,
-        VectorType& rX,
-        VectorType& rB)
+    virtual void InitializeSolutionStep(LinearSystem<TLinearAlgebra>& rLinearSystem)
     {
     }
 
     /**
      * @brief This function actually performs the solution work, eventually taking advantage of what was done before in the Initialize and InitializeSolutionStep functions.
-     * @param pLinearOperator System matrix linear operator pointer.
-     * @param rX Solution vector. it's also the initial guess for iterative linear solvers.
-     * @param rB Right hand side vector.
+     * @param rLinearSystem The linear system to be solved.
      * @return @p true if the provided system was solved successfully satisfying the given requirements, @p false otherwise.
      */
-    virtual bool PerformSolutionStep(
-        LinearOperatorPointerType pLinearOperator,
-        VectorType& rX,
-        VectorType& rB)
+    virtual bool PerformSolutionStep(LinearSystem<TLinearAlgebra>& rLinearSystem)
     {
         KRATOS_ERROR << "Calling linear solver base class" << std::endl;
         return false;
@@ -160,14 +142,9 @@ public:
     /**
      * @brief This function is designed to be called at the end of the solve step.
      * @details for example this is the place to remove any data that we do not want to save for later
-     * @param pLinearOperator System matrix linear operator pointer.
-     * @param rX Solution vector. it's also the initial guess for iterative linear solvers.
-     * @param rB Right hand side vector.
+     * @param rLinearSystem The linear system to be solved.
      */
-    virtual void FinalizeSolutionStep(
-        LinearOperatorPointerType pLinearOperator,
-        VectorType& rX,
-        VectorType& rB)
+    virtual void FinalizeSolutionStep(LinearSystem<TLinearAlgebra>& rLinearSystem)
     {
     }
 
@@ -182,19 +159,16 @@ public:
     /**
      * @brief Solve method with linear operator as input.
      * @details Solves the linear system Ax=b and puts the result on SystemVector& rX. rX is also th initial guess for iterative methods.
-     * @param pLinearOperator System matrix linear operator pointer
-     * @param rX Solution vector
-     * @param rB Right hand side vector
+     * @param rLinearSystem The linear system to be solved.
      * @return true if the system was solved successfully, false otherwise
      */
-    virtual bool Solve(
-        LinearOperatorPointerType pLinearOperator,
-        VectorType& rX,
-        VectorType& rB)
+    KRATOS_DEPRECATED_MESSAGE("This is deprecated (use the InitializeSolutionStep, PerformSolutionStep, FinalizeSolutionStep and Clear sequence instead.)")
+    virtual bool Solve(LinearSystem<TLinearAlgebra>& rLinearSystem)
     {
-        this->InitializeSolutionStep(pLinearOperator, rX, rB);
-        const auto status = this->PerformSolutionStep(pLinearOperator, rX, rB);
-        this->FinalizeSolutionStep(pLinearOperator, rX, rB);
+        KRATOS_WARNING("LinearSolver") << "Using the deprecated Solve method. Use the InitializeSolutionStep, PerformSolutionStep, FinalizeSolutionStep and Clear methods in sequence." << std::endl;
+        this->InitializeSolutionStep(rLinearSystem);
+        const auto status = this->PerformSolutionStep(rLinearSystem);
+        this->FinalizeSolutionStep(rLinearSystem);
         this->Clear();
         return status;
     }
@@ -203,14 +177,14 @@ public:
      * @brief Multi solve method for solving a set of linear systems with same coefficient matrix.
      * @details Solves the linear system Ax=b and puts the result on SystemVector& rX. rX is also th initial guess for iterative methods.
      * @param pLinearOperator System matrix linear operator pointer
-     * @param rX Solution vector
-     * @param rB Right hand side vector
+     * @param rX Solution vectors
+     * @param rB Right hand side vectors
      * @return true if the system was solved successfully, false otherwise
      */
     virtual bool Solve(
         LinearOperatorPointerType pLinearOperator,
-        DenseMatrixType& rX,
-        DenseMatrixType& rB)
+        MultipleVectorType& rX,
+        MultipleVectorType& rB)
     {
         KRATOS_ERROR << "Calling linear solver base class" << std::endl;
         return false;
@@ -226,8 +200,8 @@ public:
     virtual void Solve(
         LinearOperatorPointerType pLinearOperatorK,
         LinearOperatorPointerType pLinearOperatorM,
-        DenseVectorType& Eigenvalues,
-        DenseMatrixType& Eigenvectors)
+        VectorType& Eigenvalues,
+        MultipleVectorType& Eigenvectors)
     {
         KRATOS_ERROR << "Calling linear solver base class" << std::endl;
     }

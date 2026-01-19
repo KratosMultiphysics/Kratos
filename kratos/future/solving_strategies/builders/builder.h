@@ -68,7 +68,7 @@ public:
     using VectorType = typename TLinearAlgebra::VectorType;
 
     /// Sparse graph type definition
-    using SparseGraphType = TLinearAlgebra::SparseGraphType;
+    using SparseGraphType = typename TLinearAlgebra::SparseGraphType;
 
     /// DOF type definition
     using DofType = Dof<DataType>;

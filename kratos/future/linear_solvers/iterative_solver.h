@@ -61,9 +61,9 @@ namespace Kratos::Future
     - TStopCriteriaType for specifying type of the object which control the stop criteria for iteration loop.
 */
 template<
-    class TVectorType = SystemVector<>,
-    class TPreconditionerType = Preconditioner<TVectorType>>
-class IterativeSolver : public Future::LinearSolver<TVectorType>
+    class TLinearAlgebra,
+    class TPreconditionerType>
+class IterativeSolver : public Future::LinearSolver<TLinearAlgebra>
 {
 public:
     ///@name Type Definitions
@@ -73,22 +73,25 @@ public:
     KRATOS_CLASS_POINTER_DEFINITION(IterativeSolver);
 
     /// The base class definition
-    using BaseType = Future::LinearSolver<TVectorType>;
-
-    /// Preconditioner type definition
-    using PreconditionerType = TPreconditionerType;
+    using BaseType = Future::LinearSolver<TLinearAlgebra>;
 
     /// Type definition for data
-    using DataType = typename TVectorType::DataType;
+    using DataType = typename TLinearAlgebra::DataType;
 
     /// Type definition for index
-    using IndexType = typename TVectorType::IndexType;
+    using IndexType = typename TLinearAlgebra::IndexType;
+
+    /// Vector type definition from linear algebra template parameter
+    using VectorType = typename TLinearAlgebra::VectorType;
 
     /// Local system matrix type definition
     using DenseMatrixType = DenseMatrix<DataType>;
 
+    /// Preconditions pointer type definition
+    using PreconditionerPointerType = typename TPreconditionerType::Pointer;
+
     /// Linear operator pointer type definition
-    using LinearOperatorPointerType = typename LinearOperator<TVectorType>::Pointer;
+    using LinearOperatorPointerType = typename LinearOperator<TLinearAlgebra>::Pointer;
 
     ///@}
     ///@name Life Cycle
@@ -105,68 +108,68 @@ public:
     {
     }
 
-    IterativeSolver(double NewTolerance)
-        : mResidualNorm(0)
-        , mIterationsNumber(0)
-        , mBNorm(0)
-        , mpPreconditioner(new TPreconditionerType())
-        ,	mTolerance(NewTolerance)
-        , mMaxIterationsNumber(0)
-    {
-    }
+    // IterativeSolver(double NewTolerance)
+    //     : mResidualNorm(0)
+    //     , mIterationsNumber(0)
+    //     , mBNorm(0)
+    //     , mpPreconditioner(new TPreconditionerType())
+    //     ,	mTolerance(NewTolerance)
+    //     , mMaxIterationsNumber(0)
+    // {
+    // }
 
-    IterativeSolver(double NewTolerance, unsigned int NewMaxIterationsNumber)
-        : mResidualNorm(0)
-        , mIterationsNumber(0)
-        , mBNorm(0)
-        , mpPreconditioner(new TPreconditionerType())
-        , mTolerance(NewTolerance)
-        , mMaxIterationsNumber(NewMaxIterationsNumber) {}
+    // IterativeSolver(double NewTolerance, unsigned int NewMaxIterationsNumber)
+    //     : mResidualNorm(0)
+    //     , mIterationsNumber(0)
+    //     , mBNorm(0)
+    //     , mpPreconditioner(new TPreconditionerType())
+    //     , mTolerance(NewTolerance)
+    //     , mMaxIterationsNumber(NewMaxIterationsNumber) {}
 
-    IterativeSolver(double NewTolerance, unsigned int NewMaxIterationsNumber, typename TPreconditionerType::Pointer pNewPreconditioner) :
-        mResidualNorm(0), mIterationsNumber(0), mBNorm(0),
-        mpPreconditioner(pNewPreconditioner),
-        mTolerance(NewTolerance),
-        mMaxIterationsNumber(NewMaxIterationsNumber) {}
+    // IterativeSolver(double NewTolerance, unsigned int NewMaxIterationsNumber, typename TPreconditionerType::Pointer pNewPreconditioner) :
+    //     mResidualNorm(0), mIterationsNumber(0), mBNorm(0),
+    //     mpPreconditioner(pNewPreconditioner),
+    //     mTolerance(NewTolerance),
+    //     mMaxIterationsNumber(NewMaxIterationsNumber) {}
 
-    IterativeSolver(Parameters settings,
-                    typename TPreconditionerType::Pointer pNewPreconditioner = Kratos::make_shared<TPreconditionerType>()
-                   ):
-        mResidualNorm(0),
-        mIterationsNumber(0),
-        mBNorm(0),
-        mpPreconditioner(pNewPreconditioner)
-    {
-        KRATOS_TRY
+    // IterativeSolver(Parameters settings,
+    //                 typename TPreconditionerType::Pointer pNewPreconditioner = Kratos::make_shared<TPreconditionerType>()
+    //                ):
+    //     mResidualNorm(0),
+    //     mIterationsNumber(0),
+    //     mBNorm(0),
+    //     mpPreconditioner(pNewPreconditioner)
+    // {
+    //     KRATOS_TRY
 
-        Parameters default_parameters( R"(
-        {
-        "solver_type": "IterativeSolver",
-        "tolerance" : 1.0e-6,
-        "max_iteration" : 200,
-        "preconditioner_type": "none",
-        "scaling":false
-        }  )" );
+    //     Parameters default_parameters( R"(
+    //     {
+    //     "solver_type": "IterativeSolver",
+    //     "tolerance" : 1.0e-6,
+    //     "max_iteration" : 200,
+    //     "preconditioner_type": "none",
+    //     "scaling":false
+    //     }  )" );
 
-        //now validate agains defaults -- this also ensures no type mismatch
-        settings.ValidateAndAssignDefaults(default_parameters);
+    //     //now validate agains defaults -- this also ensures no type mismatch
+    //     settings.ValidateAndAssignDefaults(default_parameters);
 
-        this->SetTolerance( settings["tolerance"].GetDouble() );
-        this->SetMaxIterationsNumber( settings["max_iteration"].GetInt() );
+    //     this->SetTolerance( settings["tolerance"].GetDouble() );
+    //     this->SetMaxIterationsNumber( settings["max_iteration"].GetInt() );
 
 
-        KRATOS_CATCH("")
-    }
+    //     KRATOS_CATCH("")
+    // }
 
-    /// Copy constructor.
-    IterativeSolver(const IterativeSolver& Other) : BaseType(Other),
-        mResidualNorm(Other.mResidualNorm), mIterationsNumber(Other.mIterationsNumber), mBNorm(Other.mBNorm),
-        mpPreconditioner(Other.mpPreconditioner),
-        mTolerance(Other.mTolerance),
-        mMaxIterationsNumber(Other.mMaxIterationsNumber)
-    {
+    // /// Copy constructor.
+    // IterativeSolver(const IterativeSolver& Other) : BaseType(Other),
+    //     mResidualNorm(Other.mResidualNorm), mIterationsNumber(Other.mIterationsNumber), mBNorm(Other.mBNorm),
+    //     mpPreconditioner(Other.mpPreconditioner),
+    //     mTolerance(Other.mTolerance),
+    //     mMaxIterationsNumber(Other.mMaxIterationsNumber)
+    // {
 
-    }
+    // }
 
     /// Destructor.
     ~IterativeSolver() override {}
@@ -176,16 +179,16 @@ public:
     ///@name Operators
     ///@{
 
-    /// Assignment operator.
-    IterativeSolver& operator=(const IterativeSolver& Other)
-    {
-        BaseType::operator=(Other);
-        mResidualNorm = Other.mResidualNorm;
-        mFirstResidualNorm = Other.mFirstResidualNorm;
-        mIterationsNumber = Other.mIterationsNumber;
-        mBNorm = Other.mBNorm;
-        return *this;
-    }
+    // /// Assignment operator.
+    // IterativeSolver& operator=(const IterativeSolver& Other)
+    // {
+    //     BaseType::operator=(Other);
+    //     mResidualNorm = Other.mResidualNorm;
+    //     mFirstResidualNorm = Other.mFirstResidualNorm;
+    //     mIterationsNumber = Other.mIterationsNumber;
+    //     mBNorm = Other.mBNorm;
+    //     return *this;
+    // }
 
     ///@}
     ///@name Operations
@@ -199,12 +202,9 @@ public:
     		@param rX. Solution vector. it's also the initial guess for iterative linear solvers.
     		@param rB. Right hand side vector.
     		*/
-    void InitializeSolutionStep(
-        LinearOperatorPointerType pLinearOperator,
-        TVectorType& rX,
-        TVectorType& rB) override
+    void InitializeSolutionStep(LinearSystem<TLinearAlgebra>& rLinearSystem) override
     {
-        GetPreconditioner()->InitializeSolutionStep(pLinearOperator,rX,rB);
+        GetPreconditioner()->InitializeSolutionStep(rLinearSystem);
     }
 
     /** This function is designed to be called at the end of the solve step.
@@ -213,12 +213,9 @@ public:
     @param rX. Solution vector. it's also the initial guess for iterative linear solvers.
     @param rB. Right hand side vector.
     */
-    void FinalizeSolutionStep(
-        LinearOperatorPointerType pLinearOperator,
-        TVectorType& rX,
-        TVectorType& rB) override
+    void FinalizeSolutionStep(TLinearSystem& rLinearSystem) override
     {
-        GetPreconditioner()->FinalizeSolutionStep(pLinearOperator,rX,rB);
+        GetPreconditioner()->FinalizeSolutionStep(rLinearSystem);
     }
 
     /** This function is designed to clean up all internal data in the solver.
@@ -251,9 +248,7 @@ public:
      * This function is the place to eventually provide such data
      */
     void ProvideAdditionalData(
-        LinearOperatorPointerType pLinearOperator,
-        TVectorType& rX,
-        TVectorType& rB,
+        
         typename ModelPart::DofsArrayType& rDofSet,
         ModelPart& rModelPart) override
     {
@@ -424,16 +419,16 @@ protected:
 
     void PreconditionedMult(
         LinearOperatorPointerType pLinearOperator,
-        TVectorType& rX,
-        TVectorType& rY)
+        VectorType& rX,
+        VectorType& rY)
     {
         GetPreconditioner()->Mult(pLinearOperator, rX, rY);
     }
 
     void PreconditionedTransposeMult(
         LinearOperatorPointerType pLinearOperator,
-        TVectorType& rX,
-        TVectorType& rY)
+        VectorType& rX,
+        VectorType& rY)
     {
         GetPreconditioner()->TransposeMult(pLinearOperator, rX, rY);
     }
@@ -511,19 +506,19 @@ private:
 
 
 /// input stream function
-template<class TVectorType, class TPreconditionerType>
+template<class TLinearAlgebra, class TPreconditionerType>
 inline std::istream& operator >> (
     std::istream& IStream,
-    IterativeSolver<TVectorType, TPreconditionerType>& rThis)
+    IterativeSolver<TLinearAlgebra, TPreconditionerType>& rThis)
 {
     return IStream;
 }
 
 /// output stream function
-template<class TVectorType, class TPreconditionerType>
+template<class TLinearAlgebra, class TPreconditionerType>
 inline std::ostream& operator << (
     std::ostream& OStream,
-    const IterativeSolver<TVectorType, TPreconditionerType>& rThis)
+    const IterativeSolver<TLinearAlgebra, TPreconditionerType>& rThis)
 {
     rThis.PrintInfo(OStream);
     OStream << std::endl;

@@ -40,6 +40,8 @@ struct SerialLinearAlgebraTraits
 
     using VectorType = SystemVector<DataType, IndexType>;
 
+    using DenseMatrixType = DenseMatrix<DataType>; //TODO: think about this one (could it be std::vector<VectorType> ?)
+
     using SparseGraphType = SparseContiguousRowGraph<IndexType>;
 };
 
