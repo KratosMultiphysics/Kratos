@@ -27,6 +27,18 @@ class StiffnessCalculator : public ContributionCalculator<TNumNodes>
 {
 public:
     struct InputProvider {
+        InputProvider(std::function<std::vector<Matrix>()> GetBMatrices,
+                      std::function<std::vector<Vector>()> GetRelativeDisplacements,
+                      std::function<Vector()>              GetIntegrationCoefficients)
+            : GetBMatrices(std::move(GetBMatrices)),
+              GetRelativeDisplacements(std::move(GetRelativeDisplacements)),
+              GetIntegrationCoefficients(std::move(GetIntegrationCoefficients))
+        {
+        }
+
+        std::function<std::vector<Vector>()> GetRelativeDisplacements;
+        std::function<std::vector<Matrix>()> GetBMatrices;
+        std::function<Vector()>              GetIntegrationCoefficients;
     };
 
     explicit StiffnessCalculator(InputProvider AnInputProvider)
