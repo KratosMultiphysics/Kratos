@@ -11,13 +11,43 @@
 //
 
 // Application includes
-#include "custom_elements/steady_state_Pw_element.hpp"
+#include "custom_elements/steady_state_Pw_element.h"
 #include "custom_utilities/check_utilities.hpp"
+#include "custom_utilities/element_utilities.hpp"
+#include "custom_utilities/stress_strain_utilities.h"
 #include "custom_utilities/transport_equation_utilities.hpp"
+#include "geo_mechanics_application_variables.h"
 #include "includes/cfd_variables.h"
 
 namespace Kratos
 {
+template <unsigned int TDim, unsigned int TNumNodes>
+SteadyStatePwElement<TDim, TNumNodes>::SteadyStatePwElement(IndexType             NewId,
+                                                            const NodesArrayType& ThisNodes,
+                                                            std::unique_ptr<StressStatePolicy> pStressStatePolicy,
+                                                            std::unique_ptr<IntegrationCoefficientModifier> pCoefficientModifier)
+    : BaseType(NewId, ThisNodes, std::move(pStressStatePolicy), std::move(pCoefficientModifier))
+{
+}
+
+template <unsigned int TDim, unsigned int TNumNodes>
+SteadyStatePwElement<TDim, TNumNodes>::SteadyStatePwElement(IndexType             NewId,
+                                                            GeometryType::Pointer pGeometry,
+                                                            std::unique_ptr<StressStatePolicy> pStressStatePolicy,
+                                                            std::unique_ptr<IntegrationCoefficientModifier> pCoefficientModifier)
+    : BaseType(NewId, pGeometry, std::move(pStressStatePolicy), std::move(pCoefficientModifier))
+{
+}
+
+template <unsigned int TDim, unsigned int TNumNodes>
+SteadyStatePwElement<TDim, TNumNodes>::SteadyStatePwElement(IndexType               NewId,
+                                                            GeometryType::Pointer   pGeometry,
+                                                            PropertiesType::Pointer pProperties,
+                                                            std::unique_ptr<StressStatePolicy> pStressStatePolicy,
+                                                            std::unique_ptr<IntegrationCoefficientModifier> pCoefficientModifier)
+    : BaseType(NewId, pGeometry, pProperties, std::move(pStressStatePolicy), std::move(pCoefficientModifier))
+{
+}
 
 template <unsigned int TDim, unsigned int TNumNodes>
 Element::Pointer SteadyStatePwElement<TDim, TNumNodes>::Create(IndexType             NewId,
@@ -145,6 +175,31 @@ void SteadyStatePwElement<TDim, TNumNodes>::CalculateAndAddRHS(VectorType& rRigh
     this->CalculateAndAddFluidBodyFlow(rRightHandSideVector, rVariables);
 
     KRATOS_CATCH("")
+}
+
+template <unsigned int TDim, unsigned int TNumNodes>
+std::string SteadyStatePwElement<TDim, TNumNodes>::Info() const
+{
+    const std::string retention_info = !mRetentionLawVector.empty() ? mRetentionLawVector[0]->Info() : "not defined";
+    return "steady-state Pw flow Element #" + std::to_string(this->Id()) + "\nRetention law: " + retention_info;
+}
+
+template <unsigned int TDim, unsigned int TNumNodes>
+void SteadyStatePwElement<TDim, TNumNodes>::PrintInfo(std::ostream& rOStream) const
+{
+    rOStream << this->Info();
+}
+
+template <unsigned int TDim, unsigned int TNumNodes>
+void SteadyStatePwElement<TDim, TNumNodes>::save(Serializer& rSerializer) const
+{
+    KRATOS_SERIALIZE_SAVE_BASE_CLASS(rSerializer, Element)
+}
+
+template <unsigned int TDim, unsigned int TNumNodes>
+void SteadyStatePwElement<TDim, TNumNodes>::load(Serializer& rSerializer)
+{
+    KRATOS_SERIALIZE_LOAD_BASE_CLASS(rSerializer, Element)
 }
 
 template class SteadyStatePwElement<2, 3>;
