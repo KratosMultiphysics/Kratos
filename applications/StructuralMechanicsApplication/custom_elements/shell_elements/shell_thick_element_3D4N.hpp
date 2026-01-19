@@ -423,6 +423,8 @@ private:
 
     std::vector<ConstitutiveLaw::Pointer> mConstitutiveLawVector; /// The vector containing the constitutive laws
 
+    double mDrillingStiffness = 0.0;
+
     ///@}
 
     ///@name Serialization

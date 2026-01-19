@@ -579,7 +579,7 @@ void ShellThickElement3D4N<TKinematics>::InitializeSolutionStep(
 
         // // Instantiate all section tangent matrices.
         Matrix D(8, 8, 0.0);
-        // double Ddrilling = 0.0;
+        // double Ddrilling = mDrillingStiffness;
 
         // Instantiate strain and stress-resultant vectors
         Vector generalizedStrains(8);
@@ -1693,8 +1693,10 @@ void ShellThickElement3D4N<TKinematics>::CalculateAll(MatrixType& rLeftHandSideM
         const double shear_stabilisation = CalculateStenbergShearStabilization(referenceCoordinateSystem, thickness);
         parameters.SetStenbergShearStabilization(shear_stabilisation);
         CalculateMaterialResponse(parameters, integration_point, CalculateResidualVectorFlag, CalculateStiffnessMatrixFlag, rCurrentProcessInfo);
-        // Ddrilling = section->GetDrillingStiffness();
-        Ddrilling = D(2, 2);
+        if (mDrillingStiffness == 0.0) {
+            mDrillingStiffness = D(2, 2) / 1.0e3;
+        }
+        Ddrilling = mDrillingStiffness;
 
         // multiply the section tangent matrices and stress resultants by 'dA'
         D *= dA;
