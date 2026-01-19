@@ -536,10 +536,6 @@ template <ShellKinematics TKinematics>
 void ShellThickElement3D4N<TKinematics>::InitializeSolutionStep(
     const ProcessInfo& rCurrentProcessInfo)
 {
-    BaseType::InitializeSolutionStep(rCurrentProcessInfo);  // TODO remove in the future and move mpCoordinateTransformation->FinalizeSolutionStep();
-
-    mEASStorage.InitializeSolutionStep();
-
     bool required = false;
     for (IndexType point_number = 0; point_number < mConstitutiveLawVector.size(); ++point_number) {
         if (mConstitutiveLawVector[point_number]->RequiresInitializeMaterialResponse()) {
@@ -642,6 +638,8 @@ void ShellThickElement3D4N<TKinematics>::InitializeSolutionStep(
             InitializeMaterialResponse(parameters, integration_point, rCurrentProcessInfo);
         }
     }
+    BaseType::InitializeSolutionStep(rCurrentProcessInfo);  // TODO remove in the future and move mpCoordinateTransformation->FinalizeSolutionStep();
+    mEASStorage.InitializeSolutionStep();
 }
 
 /***********************************************************************************/
@@ -651,10 +649,6 @@ template <ShellKinematics TKinematics>
 void ShellThickElement3D4N<TKinematics>::FinalizeSolutionStep(
     const ProcessInfo& rCurrentProcessInfo)
 {
-    BaseType::FinalizeSolutionStep(rCurrentProcessInfo); // TODO remove in the future and move mpCoordinateTransformation->FinalizeSolutionStep();
-
-    mEASStorage.FinalizeSolutionStep();
-
     bool required = false;
     for (IndexType point_number = 0; point_number < mConstitutiveLawVector.size(); ++point_number) {
         if (mConstitutiveLawVector[point_number]->RequiresFinalizeMaterialResponse()) {
@@ -758,6 +752,9 @@ void ShellThickElement3D4N<TKinematics>::FinalizeSolutionStep(
             FinalizeMaterialResponse(parameters, integration_point, rCurrentProcessInfo);
         }
     }
+
+    BaseType::FinalizeSolutionStep(rCurrentProcessInfo); // TODO remove in the future and move mpCoordinateTransformation->FinalizeSolutionStep();
+    mEASStorage.FinalizeSolutionStep();
 }
 
 /***********************************************************************************/
