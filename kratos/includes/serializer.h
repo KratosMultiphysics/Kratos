@@ -335,8 +335,8 @@ public:
                         << "There is no object registered in Kratos with name : "
                         << object_name << std::endl;
 
-                    if(!pValue) {
-                        pValue = Kratos::make_unique<TDataType>((i_prototype->second)());
+                    if(!pValue) {                        
+                        pValue = std::move(Kratos::unique_ptr<TDataType>(static_cast<TDataType*>((i_prototype->second)())));
                     }
                 }
 
