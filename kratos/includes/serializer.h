@@ -14,14 +14,18 @@
 #pragma once
 
 // System includes
+#include <iostream>
+#include <vector>
 #include <map>
 #include <set>
 #include <string>
 #include <cstring>
 #include <sstream>
+#include <typeinfo>
 #include <fstream>
-#include <iostream>
+#include <functional>
 #include <unordered_map>
+#include <filesystem>
 #include <unordered_set>
 
 // External includes
@@ -314,7 +318,7 @@ public:
                 {
                     if constexpr (!std::is_abstract_v<TDataType>) {
                         if(!pValue) {
-                            pValue = Kratos::unique_ptr<TDataType>(new TDataType);
+                            pValue = Kratos::make_unique<TDataType>();
                         }
                     }
                     else {
@@ -332,7 +336,7 @@ public:
                         << object_name << std::endl;
 
                     if(!pValue) {
-                        pValue = std::move(Kratos::unique_ptr<TDataType>(static_cast<TDataType*>((i_prototype->second)())));
+                        pValue = Kratos::make_unique<TDataType>((i_prototype->second)());
                     }
                 }
 
@@ -342,7 +346,7 @@ public:
             }
             else
             {
-                pValue = std::move(Kratos::unique_ptr<TDataType>(static_cast<TDataType*>((i_pointer->second))));
+                pValue = Kratos::unique_ptr<TDataType>(static_cast<TDataType*>((i_pointer->second)));
             }
         }
     }
