@@ -56,11 +56,6 @@ double GetCapLocation(const Properties& rProperties)
                  << std::endl;
 }
 
-std::string GetCapHardeningTypeFrom(const Properties& rMaterialProperties)
-{
-    return GeoStringUtilities::ToLower(rMaterialProperties[GEO_CAP_HARDENING_TYPE]);
-}
-
 Geo::KappaDependentFunction MakeCapSizeCalculator(const Properties& rMaterialProperties)
 {
     const auto hardening_type = GeoStringUtilities::ToLower(rMaterialProperties[GEO_CAP_HARDENING_TYPE]);
