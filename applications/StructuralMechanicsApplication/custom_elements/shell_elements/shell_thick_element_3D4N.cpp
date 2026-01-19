@@ -273,9 +273,12 @@ ShellThickElement3D4N<TKinematics>::EASOperator::EASOperator(const ShellQ4_Local
 /***********************************************************************************/
 
 template <ShellKinematics TKinematics>
-void ShellThickElement3D4N<TKinematics>::EASOperator::GaussPointComputation_Step1(double xi, double eta, const ShellUtilities::JacobianOperator& jac,
-        Vector& generalizedStrains,
-        EASOperatorStorage& storage)
+void ShellThickElement3D4N<TKinematics>::EASOperator::GaussPointComputation_Step1(
+    double xi,
+    double eta,
+    const ShellUtilities::JacobianOperator& jac,
+    Vector& generalizedStrains,
+    EASOperatorStorage& storage)
 {
     // construct the interpolation matrix in natural coordinate system
     Matrix E(3, 5, 0.0);
@@ -303,10 +306,11 @@ void ShellThickElement3D4N<TKinematics>::EASOperator::GaussPointComputation_Step
 /***********************************************************************************/
 
 template <ShellKinematics TKinematics>
-void ShellThickElement3D4N<TKinematics>::EASOperator::GaussPointComputation_Step2(const Matrix& D,
-        const Matrix& B,
-        const Vector& S,
-        EASOperatorStorage& storage)
+void ShellThickElement3D4N<TKinematics>::EASOperator::GaussPointComputation_Step2(
+    const Matrix& D,
+    const Matrix& B,
+    const Vector& S,
+    EASOperatorStorage& storage)
 {
     Matrix GTC(5, 3);
     noalias(GTC)                = prod(trans(mG), project(D, range(0,3), range(0,3)));
@@ -658,6 +662,7 @@ void ShellThickElement3D4N<TKinematics>::FinalizeSolutionStep(
             break;
         }
     }
+    KRATOS_WATCH(required)
     // Finalize material response if required
     if (required) {
 
