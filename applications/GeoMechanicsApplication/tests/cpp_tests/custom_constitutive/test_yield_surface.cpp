@@ -23,6 +23,7 @@
 #include "utilities/math_utils.h"
 
 #include <boost/numeric/ublas/assignment.hpp>
+#include <numbers>
 #include <string>
 
 using namespace std::string_literals;
@@ -196,21 +197,24 @@ KRATOS_TEST_CASE_IN_SUITE(CoulombYieldSurface_Check, KratosGeoMechanicsFastSuite
 
 KRATOS_TEST_CASE_IN_SUITE(TestCompressionCapYieldSurface, KratosGeoMechanicsFastSuiteWithoutKernel)
 {
-    auto material_properties                          = Properties{};
-    material_properties[GEO_CAP_HARDENING_TYPE]       = "None";
-    material_properties[GEO_COMPRESSION_CAP_SIZE]     = 4.0;
+    auto material_properties                    = Properties{};
+    material_properties[GEO_CAP_HARDENING_TYPE] = "None";
+    material_properties[GEO_FRICTION_ANGLE] = (180.0 / std::numbers::pi) * std::asin(24.0 / 25.0);
     material_properties[GEO_COMPRESSION_CAP_LOCATION] = 20.0;
-
-    const auto cap_yield_surface = CompressionCapYieldSurface{material_properties};
 
     auto principal_stress = UblasUtilities::CreateVector({30.0, 20.0, 10.0});
     auto p_q = StressStrainUtilities::TransformPrincipalStressesToPandQ(principal_stress);
-    KRATOS_EXPECT_NEAR(cap_yield_surface.YieldFunctionValue(p_q), 18.75, Defaults::absolute_tolerance);
+    KRATOS_EXPECT_NEAR(CompressionCapYieldSurface{material_properties}.YieldFunctionValue(p_q),
+                       18.75, Defaults::absolute_tolerance);
 
+    material_properties[K0_NC] = 1.0 / 25.0; // overrule the compression cap size calculated from the friction angle
     principal_stress = UblasUtilities::CreateVector({20.0, 15.0, 10.0});
     p_q              = StressStrainUtilities::TransformPrincipalStressesToPandQ(principal_stress);
-    KRATOS_EXPECT_NEAR(cap_yield_surface.YieldFunctionValue(p_q), -170.3125, Defaults::absolute_tolerance);
+    KRATOS_EXPECT_NEAR(CompressionCapYieldSurface{material_properties}.YieldFunctionValue(p_q),
+                       -170.3125, Defaults::absolute_tolerance);
 
+    material_properties[GEO_COMPRESSION_CAP_SIZE] = 4.0; // overrule the compression cap size calculated from K0_NC
+    const auto cap_yield_surface = CompressionCapYieldSurface{material_properties};
     principal_stress = UblasUtilities::CreateVector({46.1880215351700611607, 0.0, -46.1880215351700611607});
     p_q = StressStrainUtilities::TransformPrincipalStressesToPandQ(principal_stress);
     KRATOS_EXPECT_NEAR(cap_yield_surface.YieldFunctionValue(p_q), 0.0, Defaults::absolute_tolerance);

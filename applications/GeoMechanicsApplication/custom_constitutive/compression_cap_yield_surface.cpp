@@ -28,22 +28,26 @@ namespace
 
 using namespace Kratos;
 
+double CalculateCapSizeFromK0NC(double K0_nc) { return 4.5 * (1.0 - K0_nc) / (1.0 + 2.0 * K0_nc); }
+
 double GetCapSize(const Properties& rProperties)
 {
     if (rProperties.Has(GEO_COMPRESSION_CAP_SIZE)) {
         return rProperties[GEO_COMPRESSION_CAP_SIZE];
     }
-    double k0_nc;
+
     if (rProperties.Has(K0_NC)) {
-        k0_nc = 4.5 * (1.0 - rProperties[K0_NC]) / (1.0 + 2.0 * rProperties[K0_NC]);
-    } else if (rProperties.Has(GEO_FRICTION_ANGLE)) {
-        k0_nc = 1.0 - std::sin(ConstitutiveLawUtilities::GetFrictionAngleInRadians(rProperties));
-    } else {
-        KRATOS_ERROR
-            << "Failed to determine the compression cap size. Neither of the following material "
-               "properties was provided: GEO_COMPRESSION_CAP_SIZE, K0_NC, or GEO_FRICTION_ANGLE\n ";
+        return CalculateCapSizeFromK0NC(rProperties[K0_NC]);
     }
-    return 4.5 * (1.0 - k0_nc) / (1.0 + 2.0 * k0_nc);
+
+    if (rProperties.Has(GEO_FRICTION_ANGLE)) {
+        const auto k0_nc = 1.0 - std::sin(ConstitutiveLawUtilities::GetFrictionAngleInRadians(rProperties));
+        return CalculateCapSizeFromK0NC(k0_nc);
+    }
+
+    KRATOS_ERROR
+        << "Failed to determine the compression cap size. Neither of the following material "
+           "properties was provided: GEO_COMPRESSION_CAP_SIZE, K0_NC, or GEO_FRICTION_ANGLE\n ";
 }
 
 double GetCapLocation(const Properties& rProperties)
