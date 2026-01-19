@@ -27,8 +27,8 @@ public:
     using LHSMatrixType = BoundedMatrix<double, NumberOfRows, NumberOfColumns>;
     using RHSVectorType = BoundedVector<double, NumberOfRows>;
 
-    virtual std::optional<LHSMatrixType> LHSContribution() = 0;
-    virtual RHSVectorType RHSContribution() = 0;
+    virtual std::optional<LHSMatrixType>                           LHSContribution()         = 0;
+    virtual RHSVectorType                                          RHSContribution()         = 0;
     virtual std::pair<std::optional<LHSMatrixType>, RHSVectorType> LocalSystemContribution() = 0;
 };
 
