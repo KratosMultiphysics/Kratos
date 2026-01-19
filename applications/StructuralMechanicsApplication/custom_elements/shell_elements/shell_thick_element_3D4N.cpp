@@ -662,7 +662,7 @@ void ShellThickElement3D4N<TKinematics>::FinalizeSolutionStep(
             break;
         }
     }
-    KRATOS_WATCH(required)
+
     // Finalize material response if required
     if (required) {
 
