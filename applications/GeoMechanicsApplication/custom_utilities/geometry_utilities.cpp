@@ -11,7 +11,7 @@
 //
 #include "geometry_utilities.h"
 #include "geometries/geometry_data.h"
-#include "math_utilities.h"
+#include "math_utilities.hpp"
 
 #include <boost/numeric/ublas/assignment.hpp>
 

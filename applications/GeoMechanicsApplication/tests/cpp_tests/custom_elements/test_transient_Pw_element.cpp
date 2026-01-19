@@ -13,7 +13,9 @@
 
 #include "custom_elements/plane_strain_stress_state.h"
 #include "custom_elements/three_dimensional_stress_state.h"
-#include "custom_elements/transient_Pw_element.hpp"
+#include "custom_elements/transient_Pw_element.h"
+#include "custom_retention/saturated_law.h"
+#include "geo_mechanics_application_variables.h"
 #include "tests/cpp_tests/geo_mechanics_fast_suite.h"
 #include "tests/cpp_tests/test_utilities.h"
 
@@ -112,7 +114,7 @@ intrusive_ptr<TransientPwElement<2, 3>> CreateTriangleTransientPwElementWithoutP
 }
 
 template <unsigned int TDim, unsigned int TNumNodes>
-void SetBasicPropertiesAndVariables(intrusive_ptr<TransientPwElement<TDim, TNumNodes>> rElement)
+void SetBasicPropertiesAndVariables(const intrusive_ptr<TransientPwElement<TDim, TNumNodes>>& rElement)
 {
     rElement->GetProperties().SetValue(DENSITY_WATER, 1.0E3);
     rElement->GetProperties().SetValue(DYNAMIC_VISCOSITY, 1.0E-2);
@@ -446,8 +448,9 @@ KRATOS_TEST_CASE_IN_SUITE(TransientPwElement_Initialize, KratosGeoMechanicsFastS
 
     const auto& r_retention_law_vector = element.mRetentionLawVector;
     KRATOS_EXPECT_EQ(r_retention_law_vector.size(), number_of_integration_points);
-    KRATOS_EXPECT_TRUE(std::none_of(r_retention_law_vector.begin(), r_retention_law_vector.end(), [](auto p_retention_law) {
-        return dynamic_cast<SaturatedLaw*>(p_retention_law.get()) == nullptr;
+    KRATOS_EXPECT_TRUE(std::none_of(r_retention_law_vector.begin(), r_retention_law_vector.end(),
+                                    [](const auto& rp_retention_law) {
+        return dynamic_cast<SaturatedLaw*>(rp_retention_law.get()) == nullptr;
     }))
 }
 

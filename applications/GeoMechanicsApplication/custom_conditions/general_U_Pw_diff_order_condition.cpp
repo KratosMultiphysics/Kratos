@@ -12,8 +12,8 @@
 //                   Vahid Galavi
 //
 
-#include "custom_conditions/general_U_Pw_diff_order_condition.hpp"
-#include "custom_utilities/dof_utilities.h"
+#include "custom_conditions/general_U_Pw_diff_order_condition.h"
+#include "custom_utilities/dof_utilities.hpp"
 #include "geometries/line_2d_2.h"
 #include "geometries/line_2d_3.h"
 #include "geometries/line_2d_4.h"
@@ -24,18 +24,33 @@
 namespace Kratos
 {
 
+GeneralUPwDiffOrderCondition::GeneralUPwDiffOrderCondition()
+    : GeneralUPwDiffOrderCondition(0, nullptr, nullptr) {};
+
+GeneralUPwDiffOrderCondition::GeneralUPwDiffOrderCondition(IndexType NewId, GeometryType::Pointer pGeometry)
+    : GeneralUPwDiffOrderCondition(NewId, std::move(pGeometry), nullptr)
+{
+}
+
+GeneralUPwDiffOrderCondition::GeneralUPwDiffOrderCondition(IndexType               NewId,
+                                                           GeometryType::Pointer   pGeometry,
+                                                           PropertiesType::Pointer pProperties)
+    : Condition(NewId, std::move(pGeometry), std::move(pProperties))
+{
+}
+
 Condition::Pointer GeneralUPwDiffOrderCondition::Create(IndexType               NewId,
                                                         NodesArrayType const&   ThisNodes,
                                                         PropertiesType::Pointer pProperties) const
 {
-    return Create(NewId, GetGeometry().Create(ThisNodes), pProperties);
+    return Create(NewId, GetGeometry().Create(ThisNodes), std::move(pProperties));
 }
 
 Condition::Pointer GeneralUPwDiffOrderCondition::Create(IndexType               NewId,
                                                         GeometryType::Pointer   pGeom,
                                                         PropertiesType::Pointer pProperties) const
 {
-    return make_intrusive<GeneralUPwDiffOrderCondition>(NewId, pGeom, pProperties);
+    return make_intrusive<GeneralUPwDiffOrderCondition>(NewId, std::move(pGeom), std::move(pProperties));
 }
 
 void GeneralUPwDiffOrderCondition::Initialize(const ProcessInfo& rCurrentProcessInfo)

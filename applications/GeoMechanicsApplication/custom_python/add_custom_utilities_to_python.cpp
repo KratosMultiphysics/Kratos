@@ -20,7 +20,7 @@
 #include "custom_utilities/process_utilities.h"
 #include "custom_workflows/custom_workflow_factory.h"
 #include "custom_workflows/dgeoflow.h"
-#include "custom_workflows/dgeosettlement.h"
+#include "custom_workflows/dgeosettlement.hpp"
 
 namespace Kratos::Python
 {

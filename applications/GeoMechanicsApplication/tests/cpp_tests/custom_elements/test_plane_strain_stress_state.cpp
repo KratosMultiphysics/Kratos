@@ -12,7 +12,7 @@
 
 #include "containers/model.h"
 #include "custom_elements/plane_strain_stress_state.h"
-#include "custom_utilities/registration_utilities.h"
+#include "custom_utilities/registration_utilities.hpp"
 #include "includes/checks.h"
 #include "includes/stream_serializer.h"
 #include "test_setup_utilities/model_setup_utilities.h"

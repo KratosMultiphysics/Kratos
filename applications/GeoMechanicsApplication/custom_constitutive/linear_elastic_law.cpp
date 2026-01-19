@@ -11,7 +11,7 @@
 //
 
 #include "linear_elastic_law.h"
-#include "custom_utilities/check_utilities.h"
+#include "custom_utilities/check_utilities.hpp"
 #include "includes/mat_variables.h"
 
 namespace Kratos
