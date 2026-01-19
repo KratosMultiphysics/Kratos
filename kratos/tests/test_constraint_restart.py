@@ -44,9 +44,7 @@ class TestConstraintRestart(KratosUnittest.TestCase):
         
         c1 = KratosMultiphysics.LinearMasterSlaveConstraint(1, master_dofs, slave_dofs, relation_matrix, constant_vector)
         model_part.AddMasterSlaveConstraint(c1)
-        print("master",c1.GetMasterDofsVector())
-        print("slave",c1.GetSlaveDofsVector())
-        
+
         # 2. SlipConstraint
         # Normal: [1.0, 0.0, 0.0] -> Block X movement
         # normal = KratosMultiphysics.Array3([1.0, 0.0, 0.0])
@@ -57,75 +55,32 @@ class TestConstraintRestart(KratosUnittest.TestCase):
         serializer = KratosMultiphysics.FileSerializer("aaaa", KratosMultiphysics.SerializerTraceType.SERIALIZER_TRACE_ALL)
         serializer.Save(model_part.Name, model_part)
 
-        
         del model_part
 
-
-        
         # Load into new ModelPart
         loaded_model = KratosMultiphysics.Model()
         loaded_model_part = loaded_model.CreateModelPart("Main")
         
         serializer.LoadFromBeginning(loaded_model_part.Name, loaded_model_part)
-        print(loaded_model_part)
         
         # Verify
         self.assertEqual(loaded_model_part.NumberOfMasterSlaveConstraints(), 1)
         
         # Check C1
         c1_loaded = loaded_model_part.GetMasterSlaveConstraint(1)
-        for node in loaded_model_part.Nodes:
-            print("node",node)
-        print("master",c1_loaded.GetMasterDofsVector())
-
-        # We need to verify properties. 
-        # LinearMSC exposes GetMasterDofsVector, GetSlaveDofsVector via base class method in Python binding?
-        # Binding had: .def("GetMasterDofsVector", ...)
-
         
         # Verify Master Dof
         masters = c1_loaded.GetMasterDofsVector()
-        print("masters",masters)
-        for master in masters:
-            print("master id",master.Id())
-        # self.assertEqual(len(masters), 1)
-        # self.assertEqual(masters[0].Id(), 1)
-        # self.assertEqual(masters[0].GetVariable(), KratosMultiphysics.DISPLACEMENT_X)
+        self.assertEqual(len(masters), 1)
+        self.assertEqual(masters[0].Id(), master_dofs[0].Id())
+        self.assertEqual(masters[0].GetVariable(), KratosMultiphysics.DISPLACEMENT_X)
         
         # Verify Slave Dof
         slaves = c1_loaded.GetSlaveDofsVector()
-        print("slaves",slaves)
-        for s in slaves:
-            print("slave id",s.Id())
-        # self.assertEqual(len(slaves), 1)
-        # self.assertEqual(slaves[0].Id(), node2.Id())
-        # self.assertEqual(slaves[0].GetVariable(), KratosMultiphysics.DISPLACEMENT_X)
+        self.assertEqual(len(slaves), 1)
+        self.assertEqual(slaves[0].Id(), slave_dofs[0].Id())
+        self.assertEqual(slaves[0].GetVariable(), KratosMultiphysics.DISPLACEMENT_X)
 
-        # Check C2 (Slip)
-        #c2_loaded = loaded_model_part.GetMasterSlaveConstraint(2)
-        # SlipConstraint is a LinearMasterSlaveConstraint, so it has relations.
-        # Normal = [1,0,0], highest component is index 0.
-        # Algorithm: 
-        # max_n_component_index = 0
-        # Slave = Dof[0] (X)
-        # Master = Dof[1] (Y)
-        # Relation: (0,0) = -n[1]/n[0] = -0/1 = 0.
-        # But wait, constructor logic:
-        # for i=1 to dim: ...
-        # if counter == max_index, slave.
-        # else master.
-        
-        # slaves2 = c2_loaded.GetSlaveDofsVector()
-        # self.assertEqual(len(slaves2), 1)
-        
-        # masters2 = c2_loaded.GetMasterDofsVector()
-        # self.assertEqual(len(masters2), 1)
-        
-        # # We validated logic in C++, just ensure it survived round trip.
-        # # Normal 1,0,0 => X is slave (index 0). Y is master.
-        # self.assertEqual(slaves2[0].GetVariable(), KratosMultiphysics.DISPLACEMENT_X)
-        # self.assertEqual(masters2[0].GetVariable(), KratosMultiphysics.DISPLACEMENT_Y)
-        
         print("Constraint serialization test passed.")
 
 if __name__ == '__main__':
