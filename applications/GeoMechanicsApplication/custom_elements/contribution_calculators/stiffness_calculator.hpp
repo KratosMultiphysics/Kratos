@@ -48,7 +48,7 @@ public:
 
     std::optional<BoundedMatrix<double, TNumNodes, TNumNodes>> LHSContribution() override
     {
-        return BoundedMatrix<double, TNumNodes, TNumNodes>{};
+        return std::make_optional(BoundedMatrix<double, TNumNodes, TNumNodes>{});
     }
 
     BoundedVector<double, TNumNodes> RHSContribution() override
@@ -58,7 +58,7 @@ public:
 
     std::pair<std::optional<BoundedMatrix<double, TNumNodes, TNumNodes>>, BoundedVector<double, TNumNodes>> LocalSystemContribution() override
     {
-        return {std::make_optional(LHSContribution()), RHSContribution()};
+        return {LHSContribution(), RHSContribution()};
     }
 
 private:
