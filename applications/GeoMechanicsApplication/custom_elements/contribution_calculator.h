@@ -18,15 +18,18 @@
 namespace Kratos
 {
 
-template <unsigned int TNumNodes>
+template <unsigned int NumberOfRows, unsigned int NumberOfColumns = NumberOfRows>
 class ContributionCalculator
 {
 public:
     virtual ~ContributionCalculator() = default;
 
-    virtual std::optional<BoundedMatrix<double, TNumNodes, TNumNodes>> LHSContribution() = 0;
-    virtual BoundedVector<double, TNumNodes>                           RHSContribution() = 0;
-    virtual std::pair<std::optional<BoundedMatrix<double, TNumNodes, TNumNodes>>, BoundedVector<double, TNumNodes>> LocalSystemContribution() = 0;
+    using LHSMatrixType = BoundedMatrix<double, NumberOfRows, NumberOfColumns>;
+    using RHSVectorType = BoundedVector<double, NumberOfRows>;
+
+    virtual std::optional<LHSMatrixType> LHSContribution() = 0;
+    virtual RHSVectorType RHSContribution() = 0;
+    virtual std::pair<std::optional<LHSMatrixType>, RHSVectorType> LocalSystemContribution() = 0;
 };
 
 } // namespace Kratos
