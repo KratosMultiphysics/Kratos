@@ -25,8 +25,7 @@
 
 #include "includes/stream_serializer.h"
 
-namespace Kratos {
-namespace Testing {
+namespace Kratos::Testing {
 
 KRATOS_TEST_CASE_IN_SUITE(LinearMasterSlaveConstraintTests, KratosCoreFastSuite)
 {
@@ -80,6 +79,11 @@ KRATOS_TEST_CASE_IN_SUITE(LinearMasterSlaveConstraintSerialization, KratosCoreFa
     p_node_2->AddDof(DISPLACEMENT_X, REACTION_X);
     
     auto p_constraint = model_part.CreateNewMasterSlaveConstraint("LinearMasterSlaveConstraint", 1, *p_node_1, DISPLACEMENT_X, *p_node_2, DISPLACEMENT_X, 2.0, 5.0);
+    const auto& r_preload_master_dofs = p_constraint->GetMasterDofsVector();
+
+    // Verify Dof Pointers before storing
+    KRATOS_EXPECT_EQ(r_preload_master_dofs.size(), 1);
+    KRATOS_EXPECT_NE(r_preload_master_dofs[0], nullptr);
 
     // Serialize
     StreamSerializer serializer;
@@ -104,9 +108,14 @@ KRATOS_TEST_CASE_IN_SUITE(LinearMasterSlaveConstraintSerialization, KratosCoreFa
     KRATOS_EXPECT_DOUBLE_EQ(transformation_matrix(0,0), 2.0);
     KRATOS_EXPECT_DOUBLE_EQ(constant_vector(0), 5.0);
     KRATOS_EXPECT_EQ(p_loaded_constraint->Id(), 1);
+
+    // Verify Dof Pointers
+    const auto& r_master_dofs = p_loaded_constraint->GetMasterDofsVector();
+
+    KRATOS_EXPECT_EQ(r_master_dofs.size(), 1);
+    KRATOS_EXPECT_NE(r_master_dofs[0], nullptr);
 }
 
-}
-}  // namespace Kratos.
+} // namespace Kratos::Testing.
 
 
