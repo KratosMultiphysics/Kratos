@@ -260,4 +260,51 @@ KRATOS_TEST_CASE_IN_SUITE(CompressionCapYieldSurface_CanBeSavedAndLoadedThroughI
                               expected_derivative, Defaults::absolute_tolerance);
 }
 
+KRATOS_TEST_CASE_IN_SUITE(CompressionCapYieldSurface_Check, KratosGeoMechanicsFastSuiteWithoutKernel)
+{
+    // Arrange
+    Properties material_properties(3);
+
+    // Act & Assert
+    KRATOS_EXPECT_EXCEPTION_IS_THROWN(
+        CompressionCapYieldSurface{material_properties},
+        "GEO_PRECONSOLIDATION_STRESS does not exist in the property with Id 3.")
+    material_properties.SetValue(GEO_PRECONSOLIDATION_STRESS, -1.0);
+
+    // Act & Assert
+    KRATOS_EXPECT_EXCEPTION_IS_THROWN(CompressionCapYieldSurface{material_properties},
+                                      "GEO_PRECONSOLIDATION_STRESS in the property with Id 3 has "
+                                      "an invalid value: -1 is out of the range [0, -).")
+    material_properties.SetValue(GEO_PRECONSOLIDATION_STRESS, 1.0);
+
+    KRATOS_EXPECT_EXCEPTION_IS_THROWN(
+        CompressionCapYieldSurface{material_properties},
+        "Invalid material properties: cap size determination requires one of "
+        "GEO_COMPRESSION_CAP_SIZE, K0_NC, or GEO_FRICTION_ANGLE to be defined.")
+    material_properties.SetValue(GEO_FRICTION_ANGLE, -30.0);
+
+    KRATOS_EXPECT_EXCEPTION_IS_THROWN(CompressionCapYieldSurface{material_properties},
+                                      "GEO_FRICTION_ANGLE in the property with Id 3 has an invalid "
+                                      "value: -30 is out of the range [0, -).")
+    material_properties.SetValue(GEO_FRICTION_ANGLE, 30.0);
+
+    EXPECT_NO_THROW(CompressionCapYieldSurface{material_properties});
+    material_properties.SetValue(K0_NC, -2.0);
+
+    KRATOS_EXPECT_EXCEPTION_IS_THROWN(
+        CompressionCapYieldSurface{material_properties},
+        "K0_NC in the property with Id 3 has an invalid value: -2 is out of the range [0, -).")
+    material_properties.SetValue(K0_NC, 2.0);
+
+    EXPECT_NO_THROW(CompressionCapYieldSurface{material_properties});
+    material_properties.SetValue(GEO_COMPRESSION_CAP_SIZE, -20.0);
+
+    KRATOS_EXPECT_EXCEPTION_IS_THROWN(CompressionCapYieldSurface{material_properties},
+                                      "GEO_COMPRESSION_CAP_SIZE in the property with Id 3 has an "
+                                      "invalid value: -20 is out of the range [0, -).")
+    material_properties.SetValue(GEO_COMPRESSION_CAP_SIZE, 20.0);
+
+    EXPECT_NO_THROW(CompressionCapYieldSurface{material_properties});
+}
+
 } // namespace Kratos::Testing
