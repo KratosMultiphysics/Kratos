@@ -1,6 +1,8 @@
 import os
 import tempfile
 import shutil
+from pathlib import Path
+
 import numpy as np
 
 import KratosMultiphysics as Kratos
@@ -9,7 +11,7 @@ import KratosMultiphysics.GeoMechanicsApplication.geomechanics_analysis as analy
 import KratosMultiphysics.GeoMechanicsApplication.test_helper as test_helper
 
 class prob_analysis:
-    def __init__(self, template_project_path, input_material_parameters, output_parameters):
+    def __init__(self, template_project_path, input_material_parameters, output_parameters, custom_project_file_names = None):
         """
         Create and initialize model - all construction stages
 
@@ -35,7 +37,8 @@ class prob_analysis:
 
         # get names of files with template 'ProjectParameters_stageX.json' where X is the stage number and is automatically found in a sorted list
         parameter_file_names = sorted([f for f in os.listdir(template_project_path)
-                                       if f.startswith('ProjectParameters_stage') and f.endswith('.json')])
+                                       if f.startswith('ProjectParameters_stage') and f.endswith('.json')]) \
+            if not custom_project_file_names else [Path(template_project_path) / custom_project_file_name for custom_project_file_name in custom_project_file_names]
 
         # set stage parameters
         parameters_stages = []
@@ -116,20 +119,19 @@ if __name__ == "__main__":
     min_displacements = []
     displacements_at_node_13 = []
     for young_modulus in input_young_moduli:
-        template_project_path = r"C:\tmp\FEA-Tools\Quay_Wall\Quay_Wall_4Stage_quadratic_master_slave_interface_with_anchor_reset_displacement_and_prestress_truss_anchor"
-        input_parameters = [[0, "PorousDomain.Parts_Solid_layer_1|1", Kratos.YOUNG_MODULUS],
-                            [0, "PorousDomain.Parts_Solid_layer_1|2", Kratos.YOUNG_MODULUS],
-                            [0, "PorousDomain.Parts_Solid_layer_2|1", Kratos.YOUNG_MODULUS],
-                            [0, "PorousDomain.Parts_Solid_layer_2|2", Kratos.YOUNG_MODULUS],
-                            [0, "PorousDomain.Parts_Solid_layer_3|1", Kratos.YOUNG_MODULUS],
-                            [0, "PorousDomain.Parts_Solid_layer_3|2", Kratos.YOUNG_MODULUS],
-                            [0, "PorousDomain.Parts_Solid_layer_4|1", Kratos.YOUNG_MODULUS]]
+        template_project_path = r"C:\checkouts\KratosProjects\dev\applications\GeoMechanicsApplication\tests\submerged_construction_of_excavation\linear_elastic"
+        input_parameters = [[0, "PorousDomain.Clay_Left", Kratos.YOUNG_MODULUS],
+                            [0, "PorousDomain.Clay_Upper_Right", Kratos.YOUNG_MODULUS],
+                            [0, "PorousDomain.Clay_Middle_Right", Kratos.YOUNG_MODULUS],
+                            [0, "PorousDomain.Clay_Lower_Right", Kratos.YOUNG_MODULUS],
+                            [0, "PorousDomain.Sand_Left", Kratos.YOUNG_MODULUS],
+                            [0, "PorousDomain.Sand_Right", Kratos.YOUNG_MODULUS]]
         input_values = [young_modulus] * len(input_parameters)
         output_parameters = [[0, np.min, test_helper.get_nodal_variable, "PorousDomain.porous_computational_model_part", Kratos.DISPLACEMENT_Y],
                              [1, None, test_helper.get_nodal_variable, "PorousDomain.porous_computational_model_part", Kratos.DISPLACEMENT_Y, 13]]
 
         try:
-            prob_analysis_instance = prob_analysis(template_project_path, input_parameters, output_parameters)
+            prob_analysis_instance = prob_analysis(template_project_path, input_parameters, output_parameters, ["1_Initial_stage.json", "2_Null_step.json"])
             output_values = prob_analysis_instance.calculate(input_values)
             min_displacements.append(output_values[0])
             displacements_at_node_13.append(output_values[1])
