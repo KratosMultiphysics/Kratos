@@ -392,23 +392,19 @@ std::vector<Matrix> UPwInterfaceElement::CalculateConstitutiveMatricesAtIntegrat
 std::vector<Vector> UPwInterfaceElement::CalculateRelativeDisplacementsAtIntegrationPoints(
     const std::vector<Matrix>& rLocalBMatrices) const
 {
-    // We feel that we'd better have two extra member functions: one that returns the displacement
-    // degrees of freedom, and another one that returns the water pressure degrees of freedom. That
-    // would make this function body easier to understand.
     const Geometry<Node> no_Pw_geometry;
-    const auto           dofs = Geo::DofUtilities::ExtractUPwDofsFromNodes(
+    const auto           u_dofs = Geo::DofUtilities::ExtractUPwDofsFromNodes(
         GetDisplacementGeometry(), no_Pw_geometry, GetDisplacementGeometry().WorkingSpaceDimension());
-    auto nodal_displacement_vector = Vector{dofs.size()};
-    std::transform(dofs.begin(), dofs.end(), nodal_displacement_vector.begin(),
-                   [](auto p_dof) { return p_dof->GetSolutionStepValue(); });
+    auto nodal_displacement_vector = Vector{u_dofs.size()};
+    std::ranges::transform(u_dofs, nodal_displacement_vector.begin(),
+                           [](auto p_dof) { return p_dof->GetSolutionStepValue(); });
 
     auto result = std::vector<Vector>{};
     result.reserve(rLocalBMatrices.size());
     auto calculate_relative_displacement_vector = [&nodal_displacement_vector](const auto& rLocalB) {
         return Vector{prod(rLocalB, nodal_displacement_vector)};
     };
-    std::transform(rLocalBMatrices.begin(), rLocalBMatrices.end(), std::back_inserter(result),
-                   calculate_relative_displacement_vector);
+    std::ranges::transform(rLocalBMatrices, std::back_inserter(result), calculate_relative_displacement_vector);
 
     return result;
 }
