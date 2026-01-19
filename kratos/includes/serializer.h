@@ -1292,7 +1292,7 @@ private:
 
         for(; First != Last ; First++)
         {
-            mpBuffer->read((char *)First,sizeof(size));
+            mpBuffer->read(reinterpret_cast<char*>(&(*First)), size);
         }
 
         KRATOS_SERIALIZER_MODE_ASCII
@@ -1313,8 +1313,7 @@ private:
 
         for(; First != Last ; First++)
         {
-            const char * data = reinterpret_cast<const char *>(First);
-            mpBuffer->write(data,sizeof(size));
+            mpBuffer->write(reinterpret_cast<const char*>(&(*First)), size);
         }
 
         KRATOS_SERIALIZER_MODE_ASCII
