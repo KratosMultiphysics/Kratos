@@ -461,7 +461,7 @@ KRATOS_TEST_CASE_IN_SUITE(UPwLineInterfaceElement_KeepsUDofsFirstThenPwDofs, Kra
     element.GetDofList(degrees_of_freedom, dummy_process_info);
 
     // Assert
-    constexpr auto expected_number_of_u_dofs  = std::size_t{8};
+    constexpr auto expected_number_of_u_dofs  = std::size_t{4 * 2};
     constexpr auto expected_number_of_pw_dofs = std::size_t{4};
     ASSERT_EQ(degrees_of_freedom.size(), expected_number_of_u_dofs + expected_number_of_pw_dofs);
     for (auto i = std::size_t{0}; i < expected_number_of_u_dofs; i += 2) {
@@ -526,9 +526,8 @@ KRATOS_TEST_CASE_IN_SUITE(UPwLineInterfaceElement_LeftHandSideContainsMaterialSt
     constexpr auto number_of_u_dofs = std::size_t{4 * 2};
     const auto     expected_stiffness_matrix =
         CreateExpectedStiffnessMatrixForHorizontal2Plus2NodedElement(normal_stiffness, shear_stiffness);
-    KRATOS_EXPECT_MATRIX_RELATIVE_NEAR(
-        subrange(actual_left_hand_side, 0, 0 + number_of_u_dofs, 0, 0 + number_of_u_dofs),
-        expected_stiffness_matrix, Defaults::relative_tolerance)
+    KRATOS_EXPECT_MATRIX_NEAR(subrange(actual_left_hand_side, 0, 0 + number_of_u_dofs, 0, 0 + number_of_u_dofs),
+                              expected_stiffness_matrix, Defaults::absolute_tolerance)
     KRATOS_EXPECT_MATRIX_NEAR(
         subrange(actual_left_hand_side, 0, number_of_u_dofs, number_of_u_dofs, expected_number_of_dofs),
         (Matrix{number_of_u_dofs, expected_number_of_dofs - number_of_u_dofs, 0.0}), Defaults::absolute_tolerance)
@@ -615,8 +614,8 @@ KRATOS_TEST_CASE_IN_SUITE(UPwLineInterfaceElement_RightHandSideEqualsMinusIntern
     constexpr auto number_of_u_dofs         = std::size_t{4 * 2};
     auto           expected_stiffness_force = Vector{number_of_u_dofs};
     expected_stiffness_force <<= 1.0, 5.0, 1.0, 5.0, -1.0, -5.0, -1.0, -5.0;
-    KRATOS_EXPECT_VECTOR_RELATIVE_NEAR(subrange(actual_right_hand_side, 0, 0 + number_of_u_dofs),
-                                       expected_stiffness_force, Defaults::relative_tolerance)
+    KRATOS_EXPECT_VECTOR_NEAR(subrange(actual_right_hand_side, 0, 0 + number_of_u_dofs),
+                              expected_stiffness_force, Defaults::absolute_tolerance)
     KRATOS_EXPECT_VECTOR_NEAR(subrange(actual_right_hand_side, number_of_u_dofs, expected_number_of_dofs),
                               (Vector{expected_number_of_dofs - number_of_u_dofs, 0.0}), Defaults::absolute_tolerance)
 
@@ -626,8 +625,8 @@ KRATOS_TEST_CASE_IN_SUITE(UPwLineInterfaceElement_RightHandSideEqualsMinusIntern
 
     // Assert
     const auto expected_external_forces_vector = Vector{number_of_u_dofs, 0.0};
-    KRATOS_EXPECT_VECTOR_RELATIVE_NEAR(subrange(actual_external_forces_vector, 0, 0 + number_of_u_dofs),
-                                       expected_external_forces_vector, Defaults::relative_tolerance)
+    KRATOS_EXPECT_VECTOR_NEAR(subrange(actual_external_forces_vector, 0, 0 + number_of_u_dofs),
+                              expected_external_forces_vector, Defaults::absolute_tolerance)
     KRATOS_EXPECT_VECTOR_NEAR(
         subrange(actual_external_forces_vector, number_of_u_dofs, expected_number_of_dofs),
         (Vector{expected_number_of_dofs - number_of_u_dofs, 0.0}), Defaults::absolute_tolerance)
@@ -638,8 +637,8 @@ KRATOS_TEST_CASE_IN_SUITE(UPwLineInterfaceElement_RightHandSideEqualsMinusIntern
 
     // Assert
     const auto expected_internal_forces_vector = Vector{-1.0 * expected_stiffness_force};
-    KRATOS_EXPECT_VECTOR_RELATIVE_NEAR(subrange(actual_internal_forces_vector, 0, 0 + number_of_u_dofs),
-                                       expected_internal_forces_vector, Defaults::relative_tolerance)
+    KRATOS_EXPECT_VECTOR_NEAR(subrange(actual_internal_forces_vector, 0, 0 + number_of_u_dofs),
+                              expected_internal_forces_vector, Defaults::absolute_tolerance)
     KRATOS_EXPECT_VECTOR_NEAR(
         subrange(actual_internal_forces_vector, number_of_u_dofs, expected_number_of_dofs),
         (Vector{expected_number_of_dofs - number_of_u_dofs, 0.0}), Defaults::absolute_tolerance)
