@@ -82,8 +82,9 @@ private:
 
     Element::DofsVectorType GetDofs() const;
 
-    const GeometryType& GetDisplacementGeometry() const;
-    const GeometryType& GetWaterPressureGeometry() const;
+    const GeometryType&       GetDisplacementGeometry() const;
+    const GeometryType&       GetWaterPressureGeometry() const;
+    [[nodiscard]] std::size_t NumberOfUDofs() const;
 
     std::vector<Matrix> CalculateLocalBMatricesAtIntegrationPoints() const;
     std::vector<double> CalculateIntegrationCoefficients() const;

@@ -167,13 +167,11 @@ void UPwInterfaceElement::CalculateLeftHandSide(MatrixType& rLeftHandSideMatrix,
     const auto number_of_dofs = GetDofs().size();
     rLeftHandSideMatrix       = ZeroMatrix{number_of_dofs, number_of_dofs};
 
-    const auto local_b_matrices = CalculateLocalBMatricesAtIntegrationPoints();
-    const auto number_of_u_dofs =
-        GetDisplacementGeometry().size() * GetDisplacementGeometry().WorkingSpaceDimension();
+    const auto     local_b_matrices   = CalculateLocalBMatricesAtIntegrationPoints();
     constexpr auto start_row_index    = 0;
     constexpr auto start_column_index = 0;
-    subrange(rLeftHandSideMatrix, start_row_index, start_row_index + number_of_u_dofs,
-             start_column_index, start_column_index + number_of_u_dofs) =
+    subrange(rLeftHandSideMatrix, start_row_index, start_row_index + NumberOfUDofs(),
+             start_column_index, start_column_index + NumberOfUDofs()) =
         GeoEquationOfMotionUtilities::CalculateStiffnessMatrix(
             local_b_matrices,
             CalculateConstitutiveMatricesAtIntegrationPoints(
@@ -191,11 +189,9 @@ void UPwInterfaceElement::CalculateRightHandSide(Element::VectorType& rRightHand
     const auto local_b_matrices = CalculateLocalBMatricesAtIntegrationPoints();
     const auto relative_displacements = CalculateRelativeDisplacementsAtIntegrationPoints(local_b_matrices);
     const auto tractions = CalculateTractionsAtIntegrationPoints(relative_displacements, rProcessInfo);
-    const auto integration_coefficients = CalculateIntegrationCoefficients();
-    const auto number_of_u_dofs =
-        GetDisplacementGeometry().size() * GetDisplacementGeometry().WorkingSpaceDimension();
-    constexpr auto start_index = 0;
-    subrange(rRightHandSideVector, start_index, start_index + number_of_u_dofs) =
+    const auto     integration_coefficients = CalculateIntegrationCoefficients();
+    constexpr auto start_index              = 0;
+    subrange(rRightHandSideVector, start_index, start_index + NumberOfUDofs()) =
         -1.0 * GeoEquationOfMotionUtilities::CalculateInternalForceVector(
                    local_b_matrices, tractions, integration_coefficients);
 }
@@ -246,14 +242,14 @@ void UPwInterfaceElement::Calculate(const Variable<Vector>& rVariable, Vector& r
     const auto local_b_matrices = CalculateLocalBMatricesAtIntegrationPoints();
     const auto relative_displacements = CalculateRelativeDisplacementsAtIntegrationPoints(local_b_matrices);
     const auto tractions = CalculateTractionsAtIntegrationPoints(relative_displacements, rProcessInfo);
-    const auto integration_coefficients = CalculateIntegrationCoefficients();
-    const auto number_of_u_dofs =
-        GetDisplacementGeometry().size() * GetDisplacementGeometry().WorkingSpaceDimension();
+    const auto     integration_coefficients = CalculateIntegrationCoefficients();
+    constexpr auto start_index              = 0;
     if (rVariable == INTERNAL_FORCES_VECTOR) {
-        subrange(rOutput, 0, 0 + number_of_u_dofs) = GeoEquationOfMotionUtilities::CalculateInternalForceVector(
-            local_b_matrices, tractions, integration_coefficients);
+        subrange(rOutput, start_index, start_index + NumberOfUDofs()) =
+            GeoEquationOfMotionUtilities::CalculateInternalForceVector(local_b_matrices, tractions,
+                                                                       integration_coefficients);
     } else if (rVariable == EXTERNAL_FORCES_VECTOR) {
-        subrange(rOutput, 0, 0 + number_of_u_dofs) = Vector{ZeroVector{number_of_u_dofs}};
+        subrange(rOutput, start_index, start_index + NumberOfUDofs()) = Vector{NumberOfUDofs(), 0.0};
     }
 }
 
@@ -344,6 +340,11 @@ const Element::GeometryType& UPwInterfaceElement::GetDisplacementGeometry() cons
 const Element::GeometryType& UPwInterfaceElement::GetWaterPressureGeometry() const
 {
     return mpOptionalPressureGeometry ? *(mpOptionalPressureGeometry.value()) : GetDisplacementGeometry();
+}
+
+std::size_t UPwInterfaceElement::NumberOfUDofs() const
+{
+    return GetDisplacementGeometry().size() * GetDisplacementGeometry().WorkingSpaceDimension();
 }
 
 std::vector<Matrix> UPwInterfaceElement::CalculateLocalBMatricesAtIntegrationPoints() const
