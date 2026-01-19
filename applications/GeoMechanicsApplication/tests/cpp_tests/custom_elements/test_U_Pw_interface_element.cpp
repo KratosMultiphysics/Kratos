@@ -89,11 +89,11 @@ ModelPart& CreateModelPartWithUPwVariables(Model& rModel)
 }
 
 template <typename TInterfaceDimension>
-UPwInterfaceElement CreateInterfaceElementWithUPwDofs(const Properties::Pointer&     rProperties,
-                                                      const Geometry<Node>::Pointer& rGeometry,
-                                                      IsDiffOrderElement IsDiffOrder = IsDiffOrderElement::No)
+UPwInterfaceElement CreateInterfaceElementWithUPwDofs(const Properties::Pointer&     rpProperties,
+                                                      const Geometry<Node>::Pointer& rpGeometry,
+                                                      IsDiffOrderElement             IsDiffOrder)
 {
-    auto       result = UPwInterfaceElement{1, rGeometry, rProperties,
+    auto       result = UPwInterfaceElement{1, rpGeometry, rpProperties,
                                       std::make_unique<TInterfaceDimension>(), IsDiffOrder};
     const auto solution_step_variables =
         Geo::ConstVariableDataRefs{std::cref(WATER_PRESSURE), std::cref(DISPLACEMENT)};
@@ -118,7 +118,7 @@ UPwInterfaceElement CreateHorizontalUnitLength2Plus2NodedLineInterfaceElementWit
     nodes.push_back(r_model_part.CreateNewNode(2, 0.0, 0.0, 0.0));
     nodes.push_back(r_model_part.CreateNewNode(3, 1.0, 0.0, 0.0));
     const auto p_geometry = std::make_shared<LineInterfaceGeometry2D2Plus2Noded>(nodes);
-    return CreateInterfaceElementWithUPwDofs<Interface2D>(rProperties, p_geometry);
+    return CreateInterfaceElementWithUPwDofs<Interface2D>(rProperties, p_geometry, IsDiffOrderElement::No);
 }
 
 UPwInterfaceElement CreateHorizontalUnitLength3Plus3NodedLineInterfaceElementWithUPwDoF(Model& rModel,
@@ -134,7 +134,7 @@ UPwInterfaceElement CreateHorizontalUnitLength3Plus3NodedLineInterfaceElementWit
     nodes.push_back(r_model_part.CreateNewNode(4, 1.0, 0.0, 0.0));
     nodes.push_back(r_model_part.CreateNewNode(5, 0.5, 0.0, 0.0));
     const auto p_geometry = std::make_shared<LineInterfaceGeometry2D3Plus3Noded>(nodes);
-    return CreateInterfaceElementWithUPwDofs<Interface2D>(rProperties, p_geometry);
+    return CreateInterfaceElementWithUPwDofs<Interface2D>(rProperties, p_geometry, IsDiffOrderElement::No);
 }
 
 UPwInterfaceElement CreateUnitLengthLineInterfaceElementRotatedBy30DegreesWithUPwDoF(Model& rModel,
@@ -148,7 +148,7 @@ UPwInterfaceElement CreateUnitLengthLineInterfaceElementRotatedBy30DegreesWithUP
     nodes.push_back(r_model_part.CreateNewNode(2, 0.0, 0.0, 0.0));
     nodes.push_back(r_model_part.CreateNewNode(3, 0.5 * std::sqrt(3.0), 0.5, 0.0));
     const auto p_geometry = std::make_shared<LineInterfaceGeometry2D2Plus2Noded>(nodes);
-    return CreateInterfaceElementWithUPwDofs<Interface2D>(rProperties, p_geometry);
+    return CreateInterfaceElementWithUPwDofs<Interface2D>(rProperties, p_geometry, IsDiffOrderElement::No);
 }
 
 Matrix CreateExpectedStiffnessMatrixForHorizontal2Plus2NodedElement(double NormalStiffness, double ShearStiffness)
@@ -187,7 +187,7 @@ UPwInterfaceElement CreateHorizontal3Plus3NodedTriangleInterfaceElementWithUPwDo
     nodes.push_back(r_model_part.CreateNewNode(4, 1.0, 0.0, 0.0));
     nodes.push_back(r_model_part.CreateNewNode(5, 0.0, 1.0, 0.0));
     const auto p_geometry = std::make_shared<TriangleInterfaceGeometry3D3Plus3Noded>(nodes);
-    return CreateInterfaceElementWithUPwDofs<Interface3D>(rProperties, p_geometry);
+    return CreateInterfaceElementWithUPwDofs<Interface3D>(rProperties, p_geometry, IsDiffOrderElement::No);
 }
 
 UPwInterfaceElement CreateHorizontal3Plus3NodedTriangleInterfaceYZPlaneElementWithUPwDofs(
@@ -203,7 +203,7 @@ UPwInterfaceElement CreateHorizontal3Plus3NodedTriangleInterfaceYZPlaneElementWi
     nodes.push_back(r_model_part.CreateNewNode(4, 0.0, 0.0, -1.0));
     nodes.push_back(r_model_part.CreateNewNode(5, 0.0, 1.0, 0.0));
     const auto p_geometry = std::make_shared<TriangleInterfaceGeometry3D3Plus3Noded>(nodes);
-    return CreateInterfaceElementWithUPwDofs<Interface3D>(rProperties, p_geometry);
+    return CreateInterfaceElementWithUPwDofs<Interface3D>(rProperties, p_geometry, IsDiffOrderElement::No);
 }
 
 UPwInterfaceElement CreateHorizontal3Plus3NodedTriangleInterfaceXZPlaneElementWithUPwDofs(
@@ -219,7 +219,7 @@ UPwInterfaceElement CreateHorizontal3Plus3NodedTriangleInterfaceXZPlaneElementWi
     nodes.push_back(r_model_part.CreateNewNode(4, 1.0, 0.0, 0.0));
     nodes.push_back(r_model_part.CreateNewNode(5, 0.0, 0.0, 1.0));
     const auto p_geometry = std::make_shared<TriangleInterfaceGeometry3D3Plus3Noded>(nodes);
-    return CreateInterfaceElementWithUPwDofs<Interface3D>(rProperties, p_geometry);
+    return CreateInterfaceElementWithUPwDofs<Interface3D>(rProperties, p_geometry, IsDiffOrderElement::No);
 }
 
 UPwInterfaceElement CreateHorizontal6Plus6NodedTriangleInterfaceElementWithUPwDoF(Model& rModel,
@@ -241,7 +241,7 @@ UPwInterfaceElement CreateHorizontal6Plus6NodedTriangleInterfaceElementWithUPwDo
     nodes.push_back(r_model_part.CreateNewNode(10, 1.0, 0.5, 0.0));
     nodes.push_back(r_model_part.CreateNewNode(11, 0.5, 0.5, 0.0));
     const auto p_geometry = std::make_shared<TriangleInterfaceGeometry3D6Plus6Noded>(nodes);
-    return CreateInterfaceElementWithUPwDofs<Interface3D>(rProperties, p_geometry);
+    return CreateInterfaceElementWithUPwDofs<Interface3D>(rProperties, p_geometry, IsDiffOrderElement::No);
 }
 
 UPwInterfaceElement CreateTriangleInterfaceElementRotatedBy30DegreesWithUPwDoF(Model& rModel,
@@ -257,7 +257,7 @@ UPwInterfaceElement CreateTriangleInterfaceElementRotatedBy30DegreesWithUPwDoF(M
     nodes.push_back(r_model_part.CreateNewNode(4, 0.5 * std::sqrt(3.0), 0.5, 0.0));
     nodes.push_back(r_model_part.CreateNewNode(5, -0.5, 0.5 * std::sqrt(3.0), 0.0));
     const auto p_geometry = std::make_shared<TriangleInterfaceGeometry3D3Plus3Noded>(nodes);
-    return CreateInterfaceElementWithUPwDofs<Interface3D>(rProperties, p_geometry);
+    return CreateInterfaceElementWithUPwDofs<Interface3D>(rProperties, p_geometry, IsDiffOrderElement::No);
 }
 
 UPwInterfaceElement CreateTriangleInterfaceElementRotatedBy30DegreesAboutYAxisWithUPwDoF(
@@ -273,7 +273,7 @@ UPwInterfaceElement CreateTriangleInterfaceElementRotatedBy30DegreesAboutYAxisWi
     nodes.push_back(r_model_part.CreateNewNode(4, 0.5 * std::sqrt(3.0), 0.0, -0.5));
     nodes.push_back(r_model_part.CreateNewNode(5, 0.0, 1.0, 0.0));
     const auto p_geometry = std::make_shared<TriangleInterfaceGeometry3D3Plus3Noded>(nodes);
-    return CreateInterfaceElementWithUPwDofs<Interface3D>(rProperties, p_geometry);
+    return CreateInterfaceElementWithUPwDofs<Interface3D>(rProperties, p_geometry, IsDiffOrderElement::No);
 }
 
 template <typename TElementFactory>
@@ -1642,7 +1642,8 @@ KRATOS_TEST_CASE_IN_SUITE(UPwLineInterfaceElement_InterpolatesNodalStresses, Kra
     constexpr auto shear_stiffness  = 10.0;
     const auto     p_interface_properties =
         CreateElasticMaterialProperties<InterfacePlaneStrain>(normal_stiffness, shear_stiffness);
-    auto interface_element = CreateInterfaceElementWithUPwDofs<Interface2D>(p_interface_properties, p_geometry);
+    auto interface_element = CreateInterfaceElementWithUPwDofs<Interface2D>(
+        p_interface_properties, p_geometry, IsDiffOrderElement::No);
     interface_element.SetValue(NEIGHBOUR_ELEMENTS, MakeElementGlobalPtrContainerWith(p_neighbour_element));
 
     // Act
@@ -1749,7 +1750,8 @@ KRATOS_TEST_CASE_IN_SUITE(UPwPlaneInterfaceElement_InterpolatesNodalStresses, Kr
     constexpr auto shear_stiffness  = 10.0;
     const auto     p_interface_properties =
         CreateElasticMaterialProperties<InterfaceThreeDimensionalSurface>(normal_stiffness, shear_stiffness);
-    auto interface_element = CreateInterfaceElementWithUPwDofs<Interface3D>(p_interface_properties, p_geometry);
+    auto interface_element = CreateInterfaceElementWithUPwDofs<Interface3D>(
+        p_interface_properties, p_geometry, IsDiffOrderElement::No);
     interface_element.SetValue(NEIGHBOUR_ELEMENTS, MakeElementGlobalPtrContainerWith(p_neighbour_element));
 
     // Act
