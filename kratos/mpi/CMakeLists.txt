@@ -63,21 +63,19 @@ get_filename_component (CURRENT_DIR_NAME ${CMAKE_CURRENT_SOURCE_DIR} NAME)
 kratos_python_install_directory(${INSTALL_PYTHON_USING_LINKS} ${CMAKE_CURRENT_SOURCE_DIR}/python_scripts KratosMultiphysics/${CURRENT_DIR_NAME} )
 
 if(${INSTALL_TESTING_FILES} MATCHES ON )
-  install(DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/tests DESTINATION kratos/mpi
-    PATTERN "*.git" EXCLUDE
-    PATTERN "*.c" EXCLUDE
-    PATTERN "*.h" EXCLUDE
-    PATTERN "*.cpp" EXCLUDE
-    PATTERN "*.hpp" EXCLUDE
+  kratos_python_install_tests(
+    DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}/tests"
+    DESTINATION "kratos/mpi" 
+    INSTALL_PYTHON_USING_LINKS "${INSTALL_PYTHON_USING_LINKS}"
+    EXCLUSION_PATTERNS "\.git$" "\.c$" "\.h$" "\.cpp$" "\.hpp$"
   )
 
   if(${KRATOS_USE_FUTURE} MATCHES ON)
-    install(DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/future/tests DESTINATION kratos/future/mpi
-      PATTERN "*.git" EXCLUDE
-      PATTERN "*.c" EXCLUDE
-      PATTERN "*.h" EXCLUDE
-      PATTERN "*.cpp" EXCLUDE
-      PATTERN "*.hpp" EXCLUDE
+    kratos_python_install_tests(
+      DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}/future/tests"
+      DESTINATION "kratos/future/mpi" 
+      INSTALL_PYTHON_USING_LINKS "${INSTALL_PYTHON_USING_LINKS}"
+      EXCLUSION_PATTERNS "\.git$" "\.c$" "\.h$" "\.cpp$" "\.hpp$"
     )
   endif(${KRATOS_USE_FUTURE} MATCHES ON)
 endif(${INSTALL_TESTING_FILES} MATCHES ON)
