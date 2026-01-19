@@ -170,7 +170,10 @@ void UPwInterfaceElement::CalculateLeftHandSide(MatrixType& rLeftHandSideMatrix,
     const auto local_b_matrices = CalculateLocalBMatricesAtIntegrationPoints();
     const auto number_of_u_dofs =
         GetDisplacementGeometry().size() * GetDisplacementGeometry().WorkingSpaceDimension();
-    subrange(rLeftHandSideMatrix, 0, number_of_u_dofs, 0, number_of_u_dofs) =
+    constexpr auto start_row_index    = 0;
+    constexpr auto start_column_index = 0;
+    subrange(rLeftHandSideMatrix, start_row_index, start_row_index + number_of_u_dofs,
+             start_column_index, start_column_index + number_of_u_dofs) =
         GeoEquationOfMotionUtilities::CalculateStiffnessMatrix(
             local_b_matrices,
             CalculateConstitutiveMatricesAtIntegrationPoints(
@@ -191,7 +194,8 @@ void UPwInterfaceElement::CalculateRightHandSide(Element::VectorType& rRightHand
     const auto integration_coefficients = CalculateIntegrationCoefficients();
     const auto number_of_u_dofs =
         GetDisplacementGeometry().size() * GetDisplacementGeometry().WorkingSpaceDimension();
-    subrange(rRightHandSideVector, 0, 0 + number_of_u_dofs) =
+    constexpr auto start_index = 0;
+    subrange(rRightHandSideVector, start_index, start_index + number_of_u_dofs) =
         -1.0 * GeoEquationOfMotionUtilities::CalculateInternalForceVector(
                    local_b_matrices, tractions, integration_coefficients);
 }
