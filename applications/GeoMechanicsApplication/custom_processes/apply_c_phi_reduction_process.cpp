@@ -18,11 +18,13 @@
 #include "custom_utilities/check_utilities.hpp"
 #include "custom_utilities/constitutive_law_utilities.h"
 #include "custom_utilities/process_utilities.h"
+#include "geo_mechanics_application_variables.h"
 #include "includes/model_part.h"
 #include "utilities/math_utils.h"
 
 namespace Kratos
 {
+using namespace std::string_literals;
 
 ApplyCPhiReductionProcess::ApplyCPhiReductionProcess(Model& rModel, const Parameters& rProcessSettings)
 {
@@ -169,6 +171,6 @@ bool ApplyCPhiReductionProcess::IsStepRestarted() const
     return mrModelParts[0].get().GetProcessInfo().GetValue(NUMBER_OF_CYCLES) > 1;
 }
 
-std::string ApplyCPhiReductionProcess::Info() const { return "ApplyCPhiReductionProcess"; }
+std::string ApplyCPhiReductionProcess::Info() const { return "ApplyCPhiReductionProcess"s; }
 
 } // namespace Kratos

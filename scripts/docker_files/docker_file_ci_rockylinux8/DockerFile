@@ -4,8 +4,8 @@ USER root
 
 ENV HOME /root
 
-# Install devtools 11
-RUN dnf -y install gcc-toolset-11
+# Install devtools 13
+RUN dnf -y install gcc-toolset-13
 
 # Enable devtools 11 every time a shell is started
 # TODO: /etc/bashrc is never executed so this line does not fulfill its purpose => fix it.
