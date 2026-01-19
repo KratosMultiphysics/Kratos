@@ -28,7 +28,7 @@
 #include "custom_processes/boussinesq_force_process.h"
 #include "custom_processes/calculate_levelset_consistent_nodal_gradient_process.h"
 #include "custom_processes/compute_pressure_coefficient_process.h"
-#include "custom_processes/compute_lift_coefficient_process.h"
+#include "custom_processes/compute_aerodynamic_coefficients_process.h"
 #include "custom_processes/distance_modification_process.h"
 #include "custom_processes/distance_smoothing_process.h"
 #include "custom_processes/embedded_nodes_initialization_process.h"
@@ -182,7 +182,7 @@ void AddCustomProcessesToPython(pybind11::module& m)
     .def(py::init<Model&, Parameters>())
     ;
 
-    py::class_<ComputeLiftCoefficientProcess, ComputeLiftCoefficientProcess::Pointer, Process>(m, "ComputeLiftCoefficientProcess")
+    py::class_<ComputeAerodynamicCoefficientsProcess, ComputeAerodynamicCoefficientsProcess::Pointer, Process>(m, "ComputeAerodynamicCoefficientsProcess")
     .def(py::init<Model&, Parameters>())
     ;
 
