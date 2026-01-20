@@ -131,7 +131,7 @@ private:
     }
 
     template <unsigned int MatrixSize>
-    StiffnessCalculator<MatrixSize>::InputProvider CreateStiffnessInputProvider(const ProcessInfo& rProcessInfo)
+    typename StiffnessCalculator<MatrixSize>::InputProvider CreateStiffnessInputProvider(const ProcessInfo& rProcessInfo)
     {
         return typename StiffnessCalculator<MatrixSize>::InputProvider(
             CreateBMatricesGetter(), CreateRelativeDisplacementsGetter(),
