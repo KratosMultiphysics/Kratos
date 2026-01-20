@@ -13,6 +13,7 @@
 
 #include "custom_utilities/math_utilities.hpp"
 #include "custom_utilities/stress_strain_utilities.h"
+#include "custom_utilities/ublas_utilities.h"
 #include "tests/cpp_tests/geo_mechanics_fast_suite.h"
 #include "tests/cpp_tests/test_utilities.h"
 #include "utilities/math_utils.h"
@@ -243,6 +244,14 @@ KRATOS_TEST_CASE_IN_SUITE(CheckCalculatePrincipalStresses, KratosGeoMechanicsFas
         0.5210391553001751, 0.7890961797761399, -0.3253389274384210, 0.4415695796102967,
         0.0769883706270019, 0.8939178357941993;
     KRATOS_EXPECT_MATRIX_NEAR(rotation_matrix, expected_solution_matrix, Defaults::absolute_tolerance)
+}
+
+KRATOS_TEST_CASE_IN_SUITE(CheckTransformPrincipalStressesToPandQ, KratosGeoMechanicsFastSuiteWithoutKernel)
+{
+    const auto stress_vector = UblasUtilities::CreateVector({30.0, 20.0, 10.0});
+    const auto p_q = StressStrainUtilities::TransformPrincipalStressesToPandQ(stress_vector);
+    const auto expected_solution_vector = UblasUtilities::CreateVector({20.0, std::sqrt(300.0)});
+    KRATOS_EXPECT_VECTOR_NEAR(p_q, expected_solution_vector, Defaults::absolute_tolerance)
 }
 
 } // namespace Kratos::Testing
