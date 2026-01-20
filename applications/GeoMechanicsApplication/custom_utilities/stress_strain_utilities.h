@@ -16,8 +16,11 @@
 #pragma once
 
 /* Project includes */
+#include "includes/constitutive_law.h"
 #include "includes/define.h"
 #include "includes/ublas_interface.h"
+
+#include <complex.h>
 
 namespace Kratos
 {
@@ -50,6 +53,11 @@ public:
 
     static Vector TransformPrincipalStressesToSigmaTau(const Vector& rPrincipalStresses);
     static Vector TransformSigmaTauToPrincipalStresses(const Vector& rSigmaTau, const Vector& rPrincipalStresses);
+    static std::vector<Vector> CalculateTractionsAtIntegrationPoints(
+        const std::vector<Vector>&                   rRelativeDisplacements,
+        const ProcessInfo&                           rProcessInfo,
+        const Properties&                            rProperties,
+        const std::vector<ConstitutiveLaw::Pointer>& rConstitutiveLaws);
 
 private:
     static double CalculateQMohrCoulomb(const Vector& rStressVector, double C, double PhiInRadians);

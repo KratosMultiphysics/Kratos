@@ -15,6 +15,8 @@
 #include "custom_utilities/generic_utilities.hpp"
 #include "custom_utilities/math_utilities.hpp"
 #include "geo_mechanics_application_constants.h"
+#include "includes/constitutive_law.h"
+#include "includes/process_info.h"
 #include "utilities/math_utils.h"
 #include <cmath>
 
@@ -234,6 +236,33 @@ Vector StressStrainUtilities::TransformSigmaTauToPrincipalStresses(const Vector&
     result[0]   = rSigmaTau[0] + rSigmaTau[1];
     result[1]   = rPrincipalStresses[1];
     result[2]   = rSigmaTau[0] - rSigmaTau[1];
+    return result;
+}
+
+std::vector<Vector> StressStrainUtilities::CalculateTractionsAtIntegrationPoints(
+    const std::vector<Vector>&                   rRelativeDisplacements,
+    const ProcessInfo&                           rProcessInfo,
+    const Properties&                            rProperties,
+    const std::vector<ConstitutiveLaw::Pointer>& rConstitutiveLaws)
+{
+    // We have to make a copy of each relative displacement vector, since setting it at the
+    // constitutive law parameters requires a reference to a _mutable_ object!
+    auto calculate_traction = [&properties = rProperties, &rProcessInfo](auto RelativeDisplacement, auto& p_law) {
+        auto law_parameters = ConstitutiveLaw::Parameters{};
+        law_parameters.SetStrainVector(RelativeDisplacement);
+        auto result = Vector{};
+        result.resize(p_law->GetStrainSize());
+        law_parameters.SetStressVector(result);
+        law_parameters.SetMaterialProperties(properties);
+        law_parameters.Set(ConstitutiveLaw::COMPUTE_STRESS);
+        law_parameters.SetProcessInfo(rProcessInfo);
+        p_law->CalculateMaterialResponseCauchy(law_parameters);
+        return result;
+    };
+    auto result = std::vector<Vector>{};
+    result.reserve(rRelativeDisplacements.size());
+    std::ranges::transform(rRelativeDisplacements, rConstitutiveLaws, std::back_inserter(result), calculate_traction);
+
     return result;
 }
 

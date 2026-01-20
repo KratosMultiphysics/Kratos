@@ -21,6 +21,7 @@
 #include "custom_utilities/generic_utilities.hpp"
 #include "custom_utilities/geometry_utilities.h"
 #include "custom_utilities/math_utilities.hpp"
+#include "custom_utilities/stress_strain_utilities.h"
 #include "geo_aliases.h"
 #include "interface_stress_state.h"
 #include "lobatto_integration_scheme.h"
@@ -166,7 +167,8 @@ void UPwInterfaceElement::CalculateOnIntegrationPoints(const Variable<Vector>& r
     } else if (rVariable == GEO_EFFECTIVE_TRACTION_VECTOR) {
         const auto local_b_matrices = CalculateLocalBMatricesAtIntegrationPoints();
         const auto relative_displacements = CalculateRelativeDisplacementsAtIntegrationPoints(local_b_matrices);
-        rOutput = CalculateTractionsAtIntegrationPoints(relative_displacements, rCurrentProcessInfo);
+        rOutput = StressStrainUtilities::CalculateTractionsAtIntegrationPoints(
+            relative_displacements, rCurrentProcessInfo, GetProperties(), mConstitutiveLaws);
     } else {
         Element::CalculateOnIntegrationPoints(rVariable, rOutput, rCurrentProcessInfo);
     }
