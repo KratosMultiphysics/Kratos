@@ -130,6 +130,7 @@ public:
     typedef void* (*ObjectFactoryType)();
 
     typedef std::map<void*, void*> LoadedPointersContainerType;
+    typedef std::map<void*, std::shared_ptr<void>> LoadedSharedPointersContainerType;
 
     typedef std::map<std::string, ObjectFactoryType> RegisteredObjectsContainerType;
 
@@ -242,11 +243,18 @@ public:
 
                 // Load the pointer address before loading the content
                 mLoadedPointers[p_pointer]=pValue.get();
+                mLoadedSharedPointers[p_pointer] = pValue;
+
                 load(rTag, *pValue);
             }
             else
             {
-                pValue.reset(static_cast<TDataType*>((i_pointer->second)));
+                auto it_shared = mLoadedSharedPointers.find(p_pointer);
+                if(it_shared != mLoadedSharedPointers.end()) {
+                    pValue = std::static_pointer_cast<TDataType>(it_shared->second);
+                } else {
+                    pValue.reset(static_cast<TDataType*>((i_pointer->second)));
+                }
             }
         }
     }
@@ -1016,6 +1024,7 @@ private:
 
     SavedPointersContainerType mSavedPointers;
     LoadedPointersContainerType mLoadedPointers;
+    LoadedSharedPointersContainerType mLoadedSharedPointers;
 
     ///@}
     ///@name Private Operators
