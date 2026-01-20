@@ -122,14 +122,20 @@ void UPwInterfaceElement::EquationIdVector(EquationIdVectorType& rResult, const 
 
 void UPwInterfaceElement::CalculateLeftHandSide(MatrixType& rLeftHandSideMatrix, const ProcessInfo& rProcessInfo)
 {
-    StiffnessCalculator<2>::InputProvider input_provider(
-        [this]() { return this->CalculateLocalBMatricesAtIntegrationPoints(); }, [this]() {
+    auto lambda = [this]() -> const std::vector<ConstitutiveLaw::Pointer>& {
+        return this->mConstitutiveLaws;
+    };
+    auto lambda1 = [this]() { return this->CalculateLocalBMatricesAtIntegrationPoints(); };
+    auto lambda2 = [this]() {
         return this->CalculateRelativeDisplacementsAtIntegrationPoints(
             this->CalculateLocalBMatricesAtIntegrationPoints());
-    }, [this]() { return this->CalculateIntegrationCoefficients(); }, [this]() {
-        return this->GetProperties();
-    }, [&rProcessInfo]() { return rProcessInfo; }, [this]() { return this->mConstitutiveLaws; });
+    };
+    auto lambda3 = [this]() { return this->CalculateIntegrationCoefficients(); };
+    auto lambda4 = [&rProcessInfo]() -> const ProcessInfo& { return rProcessInfo; };
+    auto lambda5 = [this]() -> const Properties& { return this->GetProperties(); };
+    StiffnessCalculator<2>::InputProvider input_provider(lambda1, lambda2, lambda3, lambda5, lambda4, lambda);
     StiffnessCalculator<2> calculator(input_provider);
+    const auto             test = calculator.LHSContribution();
 
     // Currently, the left-hand side matrix only includes the stiffness matrix. In the future, it
     // will also include water pressure contributions and coupling terms.
