@@ -95,23 +95,54 @@ private:
                                           const Vector& rGlobalStressVector) const;
     Vector ConvertLocalStressToTraction(const Matrix& rLocalStress) const;
 
-    template <unsigned int MatrixSize>
-    auto CreateStiffnessCalculator(const ProcessInfo& rProcessInfo)
+    auto CreateConstitutiveLawGetter()
     {
-        auto lambda = [this]() -> const std::vector<ConstitutiveLaw::Pointer>& {
+        return [this]() -> const std::vector<ConstitutiveLaw::Pointer>& {
             return this->mConstitutiveLaws;
         };
-        auto lambda1 = [this]() { return this->CalculateLocalBMatricesAtIntegrationPoints(); };
-        auto lambda2 = [this]() {
+    }
+
+    auto CreateBMatricesGetter()
+    {
+        return [this]() { return this->CalculateLocalBMatricesAtIntegrationPoints(); };
+    }
+
+    auto CreateRelativeDisplacementsGetter()
+    {
+        return [this]() {
             return this->CalculateRelativeDisplacementsAtIntegrationPoints(
                 this->CalculateLocalBMatricesAtIntegrationPoints());
         };
-        auto lambda3 = [this]() { return this->CalculateIntegrationCoefficients(); };
-        auto lambda4 = [&rProcessInfo]() -> const ProcessInfo& { return rProcessInfo; };
-        auto lambda5 = [this]() -> const Properties& { return this->GetProperties(); };
+    }
 
-        typename StiffnessCalculator<MatrixSize>::InputProvider input_provider(
-            lambda1, lambda2, lambda3, lambda5, lambda4, lambda);
+    auto CreateIntegrationCoefficientsGetter()
+    {
+        return [this]() { return this->CalculateIntegrationCoefficients(); };
+    }
+
+    static auto CreateProcessInfoGetter(const ProcessInfo& rProcessInfo)
+    {
+        return [&rProcessInfo]() -> const ProcessInfo& { return rProcessInfo; };
+    }
+
+    auto CreatePropertiesGetter()
+    {
+        return [this]() -> const Properties& { return this->GetProperties(); };
+    }
+
+    template <unsigned int MatrixSize>
+    StiffnessCalculator<MatrixSize>::InputProvider CreateStiffnessInputProvider(const ProcessInfo& rProcessInfo)
+    {
+        return typename StiffnessCalculator<MatrixSize>::InputProvider(
+            CreateBMatricesGetter(), CreateRelativeDisplacementsGetter(),
+            CreateIntegrationCoefficientsGetter(), CreatePropertiesGetter(),
+            CreateProcessInfoGetter(rProcessInfo), CreateConstitutiveLawGetter());
+    }
+
+    template <unsigned int MatrixSize>
+    auto CreateStiffnessCalculator(const ProcessInfo& rProcessInfo)
+    {
+        const auto input_provider = CreateStiffnessInputProvider<MatrixSize>(rProcessInfo);
         StiffnessCalculator<MatrixSize> calculator(input_provider);
         return calculator;
     }
