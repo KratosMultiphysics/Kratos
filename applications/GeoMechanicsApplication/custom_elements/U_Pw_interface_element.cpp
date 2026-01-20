@@ -45,29 +45,6 @@ Vector CalculateDeterminantsOfJacobiansAtIntegrationPoints(const Geo::Integratio
     return result;
 }
 
-std::vector<Matrix> CalculateConstitutiveMatricesAtIntegrationPoints(const std::vector<ConstitutiveLaw::Pointer>& rConstitutiveLaws,
-                                                                     const Properties& rProperties,
-                                                                     const std::vector<Vector>& rRelativeDisplacements,
-                                                                     const ProcessInfo& rProcessInfo)
-{
-    auto get_constitutive_matrix = [&rProperties, &rProcessInfo](const auto& p_constitutive_law,
-                                                                 auto rRelativeDisplacement) {
-        auto result = Matrix{p_constitutive_law->GetStrainSize(), p_constitutive_law->GetStrainSize()};
-        auto law_parameters = ConstitutiveLaw::Parameters{};
-        law_parameters.SetMaterialProperties(rProperties);
-        law_parameters.SetStrainVector(rRelativeDisplacement);
-        law_parameters.SetProcessInfo(rProcessInfo);
-        p_constitutive_law->CalculateValue(law_parameters, CONSTITUTIVE_MATRIX, result);
-        return result;
-    };
-    auto result = std::vector<Matrix>{};
-    result.reserve(rConstitutiveLaws.size());
-    std::transform(rConstitutiveLaws.begin(), rConstitutiveLaws.end(), rRelativeDisplacements.begin(),
-                   std::back_inserter(result), get_constitutive_matrix);
-
-    return result;
-}
-
 } // namespace
 
 namespace Kratos
@@ -127,16 +104,22 @@ void UPwInterfaceElement::CalculateLeftHandSide(MatrixType& rLeftHandSideMatrix,
     case 8:
         rLeftHandSideMatrix = CreateStiffnessCalculator<8>(rProcessInfo).LHSContribution().value();
         return;
+    case 12:
+        rLeftHandSideMatrix = CreateStiffnessCalculator<12>(rProcessInfo).LHSContribution().value();
+        return;
+    case 18:
+        rLeftHandSideMatrix = CreateStiffnessCalculator<18>(rProcessInfo).LHSContribution().value();
+        return;
+    case 36:
+        rLeftHandSideMatrix = CreateStiffnessCalculator<36>(rProcessInfo).LHSContribution().value();
+        return;
+    case 24:
+        rLeftHandSideMatrix = CreateStiffnessCalculator<24>(rProcessInfo).LHSContribution().value();
+        return;
+    case 48:
+        rLeftHandSideMatrix = CreateStiffnessCalculator<48>(rProcessInfo).LHSContribution().value();
+        return;
     }
-
-    // Currently, the left-hand side matrix only includes the stiffness matrix. In the future, it
-    // will also include water pressure contributions and coupling terms.
-    const auto local_b_matrices = CalculateLocalBMatricesAtIntegrationPoints();
-    rLeftHandSideMatrix         = GeoEquationOfMotionUtilities::CalculateStiffnessMatrix(
-        local_b_matrices,
-        CalculateConstitutiveMatricesAtIntegrationPoints(
-            CalculateRelativeDisplacementsAtIntegrationPoints(local_b_matrices), rProcessInfo),
-        CalculateIntegrationCoefficients());
 }
 
 void UPwInterfaceElement::CalculateRightHandSide(Element::VectorType& rRightHandSideVector,
@@ -147,16 +130,22 @@ void UPwInterfaceElement::CalculateRightHandSide(Element::VectorType& rRightHand
     case 8:
         rRightHandSideVector = CreateStiffnessCalculator<8>(rProcessInfo).RHSContribution();
         return;
+    case 12:
+        rRightHandSideVector = CreateStiffnessCalculator<12>(rProcessInfo).RHSContribution();
+        return;
+    case 18:
+        rRightHandSideVector = CreateStiffnessCalculator<18>(rProcessInfo).RHSContribution();
+        return;
+    case 36:
+        rRightHandSideVector = CreateStiffnessCalculator<36>(rProcessInfo).RHSContribution();
+        return;
+    case 24:
+        rRightHandSideVector = CreateStiffnessCalculator<24>(rProcessInfo).RHSContribution();
+        return;
+    case 48:
+        rRightHandSideVector = CreateStiffnessCalculator<48>(rProcessInfo).RHSContribution();
+        return;
     }
-
-    // Currently, the right-hand side only includes the internal force vector. In the future, it
-    // will also include water pressure contributions and coupling terms.
-    const auto local_b_matrices = CalculateLocalBMatricesAtIntegrationPoints();
-    const auto relative_displacements = CalculateRelativeDisplacementsAtIntegrationPoints(local_b_matrices);
-    const auto tractions = CalculateTractionsAtIntegrationPoints(relative_displacements, rProcessInfo);
-    const auto integration_coefficients = CalculateIntegrationCoefficients();
-    rRightHandSideVector = -GeoEquationOfMotionUtilities::CalculateInternalForceVector(
-        local_b_matrices, tractions, integration_coefficients);
 }
 
 void UPwInterfaceElement::CalculateLocalSystem(MatrixType&        rLeftHandSideMatrix,
@@ -322,13 +311,6 @@ std::vector<double> UPwInterfaceElement::CalculateIntegrationCoefficients() cons
         mpIntegrationScheme->GetIntegrationPoints(), GetGeometry());
     return mIntegrationCoefficientsCalculator.Run<>(mpIntegrationScheme->GetIntegrationPoints(),
                                                     determinants_of_jacobian, this);
-}
-
-std::vector<Matrix> UPwInterfaceElement::CalculateConstitutiveMatricesAtIntegrationPoints(
-    const std::vector<Vector>& rRelativeDisplacements, const ProcessInfo& rProcessInfo)
-{
-    return ::CalculateConstitutiveMatricesAtIntegrationPoints(mConstitutiveLaws, GetProperties(),
-                                                              rRelativeDisplacements, rProcessInfo);
 }
 
 std::vector<Vector> UPwInterfaceElement::CalculateRelativeDisplacementsAtIntegrationPoints(
