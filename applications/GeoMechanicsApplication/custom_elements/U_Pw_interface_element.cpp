@@ -193,7 +193,8 @@ void UPwInterfaceElement::Calculate(const Variable<Vector>& rVariable, Vector& r
     // will also include water pressure contributions and coupling terms.
     const auto local_b_matrices = CalculateLocalBMatricesAtIntegrationPoints();
     const auto relative_displacements = CalculateRelativeDisplacementsAtIntegrationPoints(local_b_matrices);
-    const auto tractions = CalculateTractionsAtIntegrationPoints(relative_displacements, rProcessInfo);
+    const auto tractions = StressStrainUtilities::CalculateTractionsAtIntegrationPoints(
+        relative_displacements, rProcessInfo, GetProperties(), mConstitutiveLaws);
     const auto integration_coefficients = CalculateIntegrationCoefficients();
     if (rVariable == INTERNAL_FORCES_VECTOR) {
         rOutput = GeoEquationOfMotionUtilities::CalculateInternalForceVector(
@@ -332,31 +333,6 @@ std::vector<Vector> UPwInterfaceElement::CalculateRelativeDisplacementsAtIntegra
     };
     std::transform(rLocalBMatrices.begin(), rLocalBMatrices.end(), std::back_inserter(result),
                    calculate_relative_displacement_vector);
-
-    return result;
-}
-
-std::vector<Vector> UPwInterfaceElement::CalculateTractionsAtIntegrationPoints(const std::vector<Vector>& rRelativeDisplacements,
-                                                                               const ProcessInfo& rProcessInfo)
-{
-    // We have to make a copy of each relative displacement vector, since setting it at the
-    // constitutive law parameters requires a reference to a _mutable_ object!
-    auto calculate_traction = [&properties = GetProperties(), &rProcessInfo](
-                                  auto RelativeDisplacement, auto& p_law) {
-        auto law_parameters = ConstitutiveLaw::Parameters{};
-        law_parameters.SetStrainVector(RelativeDisplacement);
-        auto result = Vector{};
-        result.resize(p_law->GetStrainSize());
-        law_parameters.SetStressVector(result);
-        law_parameters.SetMaterialProperties(properties);
-        law_parameters.Set(ConstitutiveLaw::COMPUTE_STRESS);
-        law_parameters.SetProcessInfo(rProcessInfo);
-        p_law->CalculateMaterialResponseCauchy(law_parameters);
-        return result;
-    };
-    auto result = std::vector<Vector>{};
-    result.reserve(rRelativeDisplacements.size());
-    std::ranges::transform(rRelativeDisplacements, mConstitutiveLaws, std::back_inserter(result), calculate_traction);
 
     return result;
 }
