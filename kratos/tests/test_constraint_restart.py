@@ -52,7 +52,7 @@ class TestConstraintRestart(KratosUnittest.TestCase):
         # model_part.AddMasterSlaveConstraint(c2)
         
         # Save
-        serializer = KratosMultiphysics.FileSerializer("aaaa", KratosMultiphysics.SerializerTraceType.SERIALIZER_TRACE_ALL)
+        serializer = KratosMultiphysics.StreamSerializer(KratosMultiphysics.SerializerTraceType.SERIALIZER_TRACE_ALL)
         serializer.Save(model_part.Name, model_part)
 
         del model_part
