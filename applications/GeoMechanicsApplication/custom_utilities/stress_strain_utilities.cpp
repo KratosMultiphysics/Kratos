@@ -248,11 +248,10 @@ Vector StressStrainUtilities::TransformPrincipalStressesToPandQ(const Vector& rP
         {CalculateMeanStress(stress_vector), CalculateVonMisesStress(stress_vector)});
 }
 
-std::vector<Vector> StressStrainUtilities::CalculateStressFromStrain(
-    const std::vector<Vector>&                   rStrains,
-    const ProcessInfo&                           rProcessInfo,
-    const Properties&                            rProperties,
-    const std::vector<ConstitutiveLaw::Pointer>& rConstitutiveLaws)
+std::vector<Vector> StressStrainUtilities::CalculateStressFromStrain(const std::vector<Vector>& rStrains,
+                                                                     const ProcessInfo& rProcessInfo,
+                                                                     const Properties& rProperties,
+                                                                     const std::vector<ConstitutiveLaw::Pointer>& rConstitutiveLaws)
 {
     // We have to make a copy of each strain vector, since setting it at the
     // constitutive law parameters requires a reference to a _mutable_ object!
