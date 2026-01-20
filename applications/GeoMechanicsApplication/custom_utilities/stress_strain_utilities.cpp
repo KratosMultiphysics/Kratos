@@ -240,13 +240,21 @@ Vector StressStrainUtilities::TransformSigmaTauToPrincipalStresses(const Vector&
     return result;
 }
 
-std::vector<Vector> StressStrainUtilities::CalculateTractionsAtIntegrationPoints(
-    const std::vector<Vector>&                   rRelativeDisplacements,
+Vector StressStrainUtilities::TransformPrincipalStressesToPandQ(const Vector& rPrincipalStresses)
+{
+    auto stress_vector = Vector(6, 0.0);
+    std::ranges::copy(rPrincipalStresses, stress_vector.begin());
+    return UblasUtilities::CreateVector(
+        {CalculateMeanStress(stress_vector), CalculateVonMisesStress(stress_vector)});
+}
+
+std::vector<Vector> StressStrainUtilities::CalculateStressFromStrain(
+    const std::vector<Vector>&                   rStrains,
     const ProcessInfo&                           rProcessInfo,
     const Properties&                            rProperties,
     const std::vector<ConstitutiveLaw::Pointer>& rConstitutiveLaws)
 {
-    // We have to make a copy of each relative displacement vector, since setting it at the
+    // We have to make a copy of each strain vector, since setting it at the
     // constitutive law parameters requires a reference to a _mutable_ object!
     auto calculate_traction = [&properties = rProperties, &rProcessInfo](auto RelativeDisplacement, auto& p_law) {
         auto law_parameters = ConstitutiveLaw::Parameters{};
@@ -261,18 +269,10 @@ std::vector<Vector> StressStrainUtilities::CalculateTractionsAtIntegrationPoints
         return result;
     };
     auto result = std::vector<Vector>{};
-    result.reserve(rRelativeDisplacements.size());
-    std::ranges::transform(rRelativeDisplacements, rConstitutiveLaws, std::back_inserter(result), calculate_traction);
+    result.reserve(rStrains.size());
+    std::ranges::transform(rStrains, rConstitutiveLaws, std::back_inserter(result), calculate_traction);
 
     return result;
-}
-
-Vector StressStrainUtilities::TransformPrincipalStressesToPandQ(const Vector& rPrincipalStresses)
-{
-    auto stress_vector = Vector(6, 0.0);
-    std::ranges::copy(rPrincipalStresses, stress_vector.begin());
-    return UblasUtilities::CreateVector(
-        {CalculateMeanStress(stress_vector), CalculateVonMisesStress(stress_vector)});
 }
 
 } // namespace Kratos

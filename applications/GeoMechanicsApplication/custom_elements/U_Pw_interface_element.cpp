@@ -188,7 +188,7 @@ void UPwInterfaceElement::CalculateOnIntegrationPoints(const Variable<Vector>& r
     } else if (rVariable == GEO_EFFECTIVE_TRACTION_VECTOR) {
         const auto local_b_matrices = CalculateLocalBMatricesAtIntegrationPoints();
         const auto relative_displacements = CalculateRelativeDisplacementsAtIntegrationPoints(local_b_matrices);
-        rOutput = StressStrainUtilities::CalculateTractionsAtIntegrationPoints(
+        rOutput = StressStrainUtilities::CalculateStressFromStrain(
             relative_displacements, rCurrentProcessInfo, GetProperties(), mConstitutiveLaws);
     } else {
         Element::CalculateOnIntegrationPoints(rVariable, rOutput, rCurrentProcessInfo);
@@ -214,7 +214,7 @@ void UPwInterfaceElement::Calculate(const Variable<Vector>& rVariable, Vector& r
     // will also include water pressure contributions and coupling terms.
     const auto local_b_matrices = CalculateLocalBMatricesAtIntegrationPoints();
     const auto relative_displacements = CalculateRelativeDisplacementsAtIntegrationPoints(local_b_matrices);
-    const auto tractions = StressStrainUtilities::CalculateTractionsAtIntegrationPoints(
+    const auto tractions = StressStrainUtilities::CalculateStressFromStrain(
         relative_displacements, rProcessInfo, GetProperties(), mConstitutiveLaws);
     const auto integration_coefficients = CalculateIntegrationCoefficients();
     if (rVariable == INTERNAL_FORCES_VECTOR) {
