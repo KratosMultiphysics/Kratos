@@ -23,8 +23,8 @@
 
 namespace Kratos
 {
-template <unsigned int TNumNodes>
-class StiffnessCalculator : public ContributionCalculator<TNumNodes>
+template <unsigned int MatrixSize>
+class StiffnessCalculator : public ContributionCalculator<MatrixSize>
 {
 public:
     struct InputProvider {
@@ -43,8 +43,8 @@ public:
         {
         }
 
-        std::function<std::vector<Vector>()>                          GetRelativeDisplacements;
         std::function<std::vector<Matrix>()>                          GetBMatrices;
+        std::function<std::vector<Vector>()>                          GetRelativeDisplacements;
         std::function<std::vector<double>()>                          GetIntegrationCoefficients;
         std::function<const Properties&()>                            GetElementProperties;
         std::function<const ProcessInfo&()>                           GetProcessInfo;
@@ -56,7 +56,7 @@ public:
     {
     }
 
-    std::optional<BoundedMatrix<double, TNumNodes, TNumNodes>> LHSContribution() override
+    std::optional<BoundedMatrix<double, MatrixSize, MatrixSize>> LHSContribution() override
     {
         return std::make_optional(GeoEquationOfMotionUtilities::CalculateStiffnessMatrix(
             mInputProvider.GetBMatrices(),
@@ -66,7 +66,7 @@ public:
             mInputProvider.GetIntegrationCoefficients()));
     }
 
-    BoundedVector<double, TNumNodes> RHSContribution() override
+    BoundedVector<double, MatrixSize> RHSContribution() override
     {
         const auto local_b_matrices       = mInputProvider.GetBMatrices();
         const auto relative_displacements = mInputProvider.GetRelativeDisplacements();
@@ -74,11 +74,11 @@ public:
             relative_displacements, mInputProvider.GetProcessInfo(),
             mInputProvider.GetElementProperties(), mInputProvider.GetConstitutiveLaws());
         const auto integration_coefficients = mInputProvider.GetIntegrationCoefficients();
-        return BoundedVector<double, TNumNodes>{-GeoEquationOfMotionUtilities::CalculateInternalForceVector(
+        return BoundedVector<double, MatrixSize>{-GeoEquationOfMotionUtilities::CalculateInternalForceVector(
             local_b_matrices, tractions, integration_coefficients)};
     }
 
-    std::pair<std::optional<BoundedMatrix<double, TNumNodes, TNumNodes>>, BoundedVector<double, TNumNodes>> LocalSystemContribution() override
+    std::pair<std::optional<BoundedMatrix<double, MatrixSize, MatrixSize>>, BoundedVector<double, MatrixSize>> LocalSystemContribution() override
     {
         return {LHSContribution(), RHSContribution()};
     }
