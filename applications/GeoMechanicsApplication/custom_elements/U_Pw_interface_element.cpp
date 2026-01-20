@@ -122,24 +122,10 @@ void UPwInterfaceElement::EquationIdVector(EquationIdVectorType& rResult, const 
 
 void UPwInterfaceElement::CalculateLeftHandSide(MatrixType& rLeftHandSideMatrix, const ProcessInfo& rProcessInfo)
 {
-    auto lambda = [this]() -> const std::vector<ConstitutiveLaw::Pointer>& {
-        return this->mConstitutiveLaws;
-    };
-    auto lambda1 = [this]() { return this->CalculateLocalBMatricesAtIntegrationPoints(); };
-    auto lambda2 = [this]() {
-        return this->CalculateRelativeDisplacementsAtIntegrationPoints(
-            this->CalculateLocalBMatricesAtIntegrationPoints());
-    };
-    auto lambda3 = [this]() { return this->CalculateIntegrationCoefficients(); };
-    auto lambda4 = [&rProcessInfo]() -> const ProcessInfo& { return rProcessInfo; };
-    auto lambda5 = [this]() -> const Properties& { return this->GetProperties(); };
-
     const auto matrix_size = GetGeometry().WorkingSpaceDimension() * GetGeometry().PointsNumber();
     switch (matrix_size) {
     case 8:
-        StiffnessCalculator<8>::InputProvider input_provider(lambda1, lambda2, lambda3, lambda5, lambda4, lambda);
-        StiffnessCalculator<8> calculator(input_provider);
-        rLeftHandSideMatrix = calculator.LHSContribution().value();
+        rLeftHandSideMatrix = CreateStiffnessCalculator<8>(rProcessInfo).LHSContribution().value();
         return;
     }
 
@@ -156,24 +142,10 @@ void UPwInterfaceElement::CalculateLeftHandSide(MatrixType& rLeftHandSideMatrix,
 void UPwInterfaceElement::CalculateRightHandSide(Element::VectorType& rRightHandSideVector,
                                                  const ProcessInfo&   rProcessInfo)
 {
-    auto lambda = [this]() -> const std::vector<ConstitutiveLaw::Pointer>& {
-        return this->mConstitutiveLaws;
-    };
-    auto lambda1 = [this]() { return this->CalculateLocalBMatricesAtIntegrationPoints(); };
-    auto lambda2 = [this]() {
-        return this->CalculateRelativeDisplacementsAtIntegrationPoints(
-            this->CalculateLocalBMatricesAtIntegrationPoints());
-    };
-    auto lambda3 = [this]() { return this->CalculateIntegrationCoefficients(); };
-    auto lambda4 = [&rProcessInfo]() -> const ProcessInfo& { return rProcessInfo; };
-    auto lambda5 = [this]() -> const Properties& { return this->GetProperties(); };
-
     const auto matrix_size = GetGeometry().WorkingSpaceDimension() * GetGeometry().PointsNumber();
     switch (matrix_size) {
     case 8:
-        StiffnessCalculator<8>::InputProvider input_provider(lambda1, lambda2, lambda3, lambda5, lambda4, lambda);
-        StiffnessCalculator<8> calculator(input_provider);
-        rRightHandSideVector = calculator.RHSContribution();
+        rRightHandSideVector = CreateStiffnessCalculator<8>(rProcessInfo).RHSContribution();
         return;
     }
 

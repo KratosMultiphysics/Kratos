@@ -15,6 +15,7 @@
 #include "contribution_calculator.h"
 #include "custom_utilities/equation_of_motion_utilities.hpp"
 #include "geo_mechanics_application_variables.h"
+#include "includes/constitutive_law.h"
 #include "includes/properties.h"
 #include "includes/ublas_interface.h"
 

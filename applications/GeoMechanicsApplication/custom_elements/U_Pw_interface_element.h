@@ -13,6 +13,7 @@
 
 #pragma once
 
+#include "contribution_calculators/stiffness_calculator.hpp"
 #include "includes/element.h"
 #include "includes/ublas_interface.h"
 #include "integration_coefficients_calculator.hpp"
@@ -94,6 +95,28 @@ private:
     Matrix RotateStressToLocalCoordinates(const Geo::IntegrationPointType& rIntegrationPoint,
                                           const Vector& rGlobalStressVector) const;
     Vector ConvertLocalStressToTraction(const Matrix& rLocalStress) const;
+
+    template <unsigned int MatrixSize>
+    auto CreateStiffnessCalculator(const ProcessInfo& rProcessInfo)
+    {
+        auto lambda = [this]() -> const std::vector<ConstitutiveLaw::Pointer>& {
+            return this->mConstitutiveLaws;
+        };
+        auto lambda1 = [this]() { return this->CalculateLocalBMatricesAtIntegrationPoints(); };
+        auto lambda2 = [this]() {
+            return this->CalculateRelativeDisplacementsAtIntegrationPoints(
+                this->CalculateLocalBMatricesAtIntegrationPoints());
+        };
+        auto lambda3 = [this]() { return this->CalculateIntegrationCoefficients(); };
+        auto lambda4 = [&rProcessInfo]() -> const ProcessInfo& { return rProcessInfo; };
+        auto lambda5 = [this]() -> const Properties& { return this->GetProperties(); };
+
+        typename StiffnessCalculator<MatrixSize>::InputProvider input_provider(
+            lambda1, lambda2, lambda3, lambda5, lambda4, lambda);
+        StiffnessCalculator<MatrixSize> calculator(input_provider);
+        return calculator;
+    }
+
     std::function<Matrix(const Geometry<Node>&, const array_1d<double, 3>&)> mfpCalculateRotationMatrix;
 
     std::unique_ptr<IntegrationScheme>    mpIntegrationScheme;
