@@ -59,10 +59,7 @@ public:
     std::optional<BoundedMatrix<double, MatrixSize, MatrixSize>> LHSContribution() override
     {
         return std::make_optional(GeoEquationOfMotionUtilities::CalculateStiffnessMatrix(
-            mInputProvider.GetBMatrices(),
-            CalculateConstitutiveMatricesAtIntegrationPoints(
-                mInputProvider.GetConstitutiveLaws(), mInputProvider.GetElementProperties(),
-                mInputProvider.GetRelativeDisplacements(), mInputProvider.GetProcessInfo()),
+            mInputProvider.GetBMatrices(), CalculateConstitutiveMatricesAtIntegrationPoints(),
             mInputProvider.GetIntegrationCoefficients()));
     }
 
@@ -70,7 +67,7 @@ public:
     {
         const auto local_b_matrices       = mInputProvider.GetBMatrices();
         const auto relative_displacements = mInputProvider.GetRelativeDisplacements();
-        const auto tractions = StressStrainUtilities::CalculateStressFromStrain(
+        const auto tractions              = StressStrainUtilities::CalculateStressFromStrain(
             relative_displacements, mInputProvider.GetProcessInfo(),
             mInputProvider.GetElementProperties(), mInputProvider.GetConstitutiveLaws());
         const auto integration_coefficients = mInputProvider.GetIntegrationCoefficients();
@@ -84,26 +81,26 @@ public:
     }
 
 private:
-    std::vector<Matrix> CalculateConstitutiveMatricesAtIntegrationPoints(
-        const std::vector<ConstitutiveLaw::Pointer>& rConstitutiveLaws,
-        const Properties&                            rProperties,
-        const std::vector<Vector>&                   rRelativeDisplacements,
-        const ProcessInfo&                           rProcessInfo)
+    std::vector<Matrix> CalculateConstitutiveMatricesAtIntegrationPoints()
     {
-        auto get_constitutive_matrix = [&rProperties, &rProcessInfo](const auto& p_constitutive_law,
-                                                                     auto rRelativeDisplacement) {
+        const auto& r_properties   = mInputProvider.GetElementProperties();
+        const auto& r_process_info = mInputProvider.GetProcessInfo();
+        auto get_constitutive_matrix = [&r_properties, &r_process_info](const auto& p_constitutive_law,
+                                                                        auto rRelativeDisplacement) {
             auto result = Matrix{p_constitutive_law->GetStrainSize(), p_constitutive_law->GetStrainSize()};
             auto law_parameters = ConstitutiveLaw::Parameters{};
-            law_parameters.SetMaterialProperties(rProperties);
+            law_parameters.SetMaterialProperties(r_properties);
             law_parameters.SetStrainVector(rRelativeDisplacement);
-            law_parameters.SetProcessInfo(rProcessInfo);
+            law_parameters.SetProcessInfo(r_process_info);
             p_constitutive_law->CalculateValue(law_parameters, CONSTITUTIVE_MATRIX, result);
             return result;
         };
-        auto result = std::vector<Matrix>{};
-        result.reserve(rConstitutiveLaws.size());
-        std::transform(rConstitutiveLaws.begin(), rConstitutiveLaws.end(), rRelativeDisplacements.begin(),
-                       std::back_inserter(result), get_constitutive_matrix);
+        auto       result                 = std::vector<Matrix>{};
+        const auto constitutive_laws      = mInputProvider.GetConstitutiveLaws();
+        const auto relative_displacements = mInputProvider.GetRelativeDisplacements();
+        result.reserve(constitutive_laws.size());
+        std::ranges::transform(constitutive_laws, relative_displacements,
+                               std::back_inserter(result), get_constitutive_matrix);
 
         return result;
     }
