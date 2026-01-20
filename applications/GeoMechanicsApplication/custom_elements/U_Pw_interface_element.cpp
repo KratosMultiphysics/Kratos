@@ -12,6 +12,7 @@
 //
 #include "U_Pw_interface_element.h"
 
+#include "contribution_calculators/calculation_contribution.h"
 #include "contribution_calculators/stiffness_calculator.hpp"
 #include "custom_utilities/constitutive_law_utilities.h"
 #include "custom_utilities/dof_utilities.hpp"
@@ -101,25 +102,35 @@ void UPwInterfaceElement::EquationIdVector(EquationIdVectorType& rResult, const 
 void UPwInterfaceElement::CalculateLeftHandSide(MatrixType& rLeftHandSideMatrix, const ProcessInfo& rProcessInfo)
 {
     const auto matrix_size = GetGeometry().WorkingSpaceDimension() * GetGeometry().PointsNumber();
-    switch (matrix_size) {
-    case 8:
-        rLeftHandSideMatrix = CreateStiffnessCalculator<8>(rProcessInfo).LHSContribution().value();
-        return;
-    case 12:
-        rLeftHandSideMatrix = CreateStiffnessCalculator<12>(rProcessInfo).LHSContribution().value();
-        return;
-    case 18:
-        rLeftHandSideMatrix = CreateStiffnessCalculator<18>(rProcessInfo).LHSContribution().value();
-        return;
-    case 36:
-        rLeftHandSideMatrix = CreateStiffnessCalculator<36>(rProcessInfo).LHSContribution().value();
-        return;
-    case 24:
-        rLeftHandSideMatrix = CreateStiffnessCalculator<24>(rProcessInfo).LHSContribution().value();
-        return;
-    case 48:
-        rLeftHandSideMatrix = CreateStiffnessCalculator<48>(rProcessInfo).LHSContribution().value();
-        return;
+
+    const std::vector contributions = {CalculationContribution::Stiffness};
+
+    for (auto contribution : contributions) {
+        switch (contribution) {
+        case CalculationContribution::Stiffness:
+            switch (matrix_size) {
+            case 8:
+                rLeftHandSideMatrix = CreateStiffnessCalculator<8>(rProcessInfo).LHSContribution().value();
+                return;
+            case 12:
+                rLeftHandSideMatrix = CreateStiffnessCalculator<12>(rProcessInfo).LHSContribution().value();
+                return;
+            case 18:
+                rLeftHandSideMatrix = CreateStiffnessCalculator<18>(rProcessInfo).LHSContribution().value();
+                return;
+            case 36:
+                rLeftHandSideMatrix = CreateStiffnessCalculator<36>(rProcessInfo).LHSContribution().value();
+                return;
+            case 24:
+                rLeftHandSideMatrix = CreateStiffnessCalculator<24>(rProcessInfo).LHSContribution().value();
+                return;
+            case 48:
+                rLeftHandSideMatrix = CreateStiffnessCalculator<48>(rProcessInfo).LHSContribution().value();
+                return;
+            }
+        default:
+            KRATOS_ERROR << "This contribution is not supported \n";
+        }
     }
 }
 
@@ -127,25 +138,35 @@ void UPwInterfaceElement::CalculateRightHandSide(Element::VectorType& rRightHand
                                                  const ProcessInfo&   rProcessInfo)
 {
     const auto matrix_size = GetGeometry().WorkingSpaceDimension() * GetGeometry().PointsNumber();
-    switch (matrix_size) {
-    case 8:
-        rRightHandSideVector = CreateStiffnessCalculator<8>(rProcessInfo).RHSContribution();
-        return;
-    case 12:
-        rRightHandSideVector = CreateStiffnessCalculator<12>(rProcessInfo).RHSContribution();
-        return;
-    case 18:
-        rRightHandSideVector = CreateStiffnessCalculator<18>(rProcessInfo).RHSContribution();
-        return;
-    case 36:
-        rRightHandSideVector = CreateStiffnessCalculator<36>(rProcessInfo).RHSContribution();
-        return;
-    case 24:
-        rRightHandSideVector = CreateStiffnessCalculator<24>(rProcessInfo).RHSContribution();
-        return;
-    case 48:
-        rRightHandSideVector = CreateStiffnessCalculator<48>(rProcessInfo).RHSContribution();
-        return;
+
+    const std::vector contributions = {CalculationContribution::Stiffness};
+
+    for (auto contribution : contributions) {
+        switch (contribution) {
+        case CalculationContribution::Stiffness:
+            switch (matrix_size) {
+            case 8:
+                rRightHandSideVector = CreateStiffnessCalculator<8>(rProcessInfo).RHSContribution();
+                return;
+            case 12:
+                rRightHandSideVector = CreateStiffnessCalculator<12>(rProcessInfo).RHSContribution();
+                return;
+            case 18:
+                rRightHandSideVector = CreateStiffnessCalculator<18>(rProcessInfo).RHSContribution();
+                return;
+            case 36:
+                rRightHandSideVector = CreateStiffnessCalculator<36>(rProcessInfo).RHSContribution();
+                return;
+            case 24:
+                rRightHandSideVector = CreateStiffnessCalculator<24>(rProcessInfo).RHSContribution();
+                return;
+            case 48:
+                rRightHandSideVector = CreateStiffnessCalculator<48>(rProcessInfo).RHSContribution();
+                return;
+            }
+        default:
+            KRATOS_ERROR << "This contribution is not supported \n";
+        }
     }
 }
 

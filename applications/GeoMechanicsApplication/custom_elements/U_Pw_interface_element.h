@@ -13,12 +13,14 @@
 
 #pragma once
 
+#include "contribution_calculators/calculation_contribution.h"
 #include "contribution_calculators/stiffness_calculator.hpp"
 #include "includes/element.h"
 #include "includes/ublas_interface.h"
 #include "integration_coefficients_calculator.hpp"
 #include "integration_scheme.h"
 #include "stress_state_policy.h"
+
 #include <optional>
 
 namespace Kratos
