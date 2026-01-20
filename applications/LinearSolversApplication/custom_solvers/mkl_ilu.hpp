@@ -34,6 +34,10 @@ class KRATOS_API(LINEARSOLVERS_APPLICATION) MKLILUSmootherBase
 private:
     using Base = MKLSmootherBase<TSparse,TDense>;
 
+    using BaseLinearSolver = LinearSolver<TSparse,TDense>;
+
+    using BaseLinearSolver::Solve;
+
 public:
     MKLILUSmootherBase();
 

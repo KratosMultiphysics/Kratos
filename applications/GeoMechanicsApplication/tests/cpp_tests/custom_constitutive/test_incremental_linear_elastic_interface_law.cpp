@@ -15,7 +15,7 @@
 #include "custom_constitutive/interface_plane_strain.h"
 #include "custom_constitutive/interface_three_dimensional_surface.h"
 #include "custom_geometries/interface_geometry.hpp"
-#include "custom_utilities/registration_utilities.h"
+#include "custom_utilities/registration_utilities.hpp"
 #include "geo_mechanics_application_variables.h"
 #include "geometries/line_2d_2.h"
 #include "includes/checks.h"

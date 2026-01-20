@@ -11,7 +11,7 @@
 //
 
 #include "containers/model.h"
-#include "custom_processes/geo_extrapolate_integration_point_values_to_nodes_process.h"
+#include "custom_processes/geo_extrapolate_integration_point_values_to_nodes_process.hpp"
 #include "geo_mechanics_application_variables.h"
 #include "geometries/quadrilateral_2d_4.h"
 #include "test_setup_utilities/model_setup_utilities.h"
