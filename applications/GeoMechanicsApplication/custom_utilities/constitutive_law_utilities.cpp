@@ -141,4 +141,9 @@ void ConstitutiveLawUtilities::CheckHasStrainMeasure_Infinitesimal(const Propert
         << ElementId << "." << std::endl;
 }
 
+double ConstitutiveLawUtilities::CalculateK0NCFromFrictionAngleInDegrees(double FrictionAngleInDegrees)
+{
+    return 1.0 - std::sin(MathUtils<>::DegreesToRadians(FrictionAngleInDegrees));
+}
+
 } // namespace Kratos
