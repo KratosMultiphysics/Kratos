@@ -318,7 +318,7 @@ public:
                 {
                     if constexpr (!std::is_abstract_v<TDataType>) {
                         if(!pValue) {
-                            pValue = Kratos::make_unique<TDataType>();
+                            pValue = Kratos::unique_ptr<TDataType>(new TDataType);
                         }
                     }
                     else {
