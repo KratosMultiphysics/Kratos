@@ -3,7 +3,7 @@
 namespace Kratos::Testing
 {
 
-class KRATOS_API(KRATOS_CORE) TestClass 
+class KRATOS_API(KRATOS_TEST_UTILS) TestClass 
 {
 public:
     int mValue;
@@ -22,7 +22,7 @@ private:
 
 // Two dummy classes for testing (de)serialization of a derived class through
 // a pointer to an abstract base class
-class KRATOS_API(KRATOS_CORE) AbstractTestClass
+class KRATOS_API(KRATOS_TEST_UTILS) AbstractTestClass
 {
 public:
     virtual ~AbstractTestClass() = default;
@@ -50,7 +50,7 @@ private:
     mutable std::size_t mRefCount = 0; // Must be mutable, since previous two members receive a pointer-to-const
 };
 
-class KRATOS_API(KRATOS_CORE) DerivedTestClass : public AbstractTestClass
+class KRATOS_API(KRATOS_TEST_UTILS) DerivedTestClass : public AbstractTestClass
 {
 public:
     explicit DerivedTestClass(int FooNumber = 0) : mFooNumber(FooNumber) {}
@@ -73,7 +73,7 @@ private:
     int mFooNumber;
 };
 
-class KRATOS_API(KRATOS_CORE) ScopedTestClassRegistration
+class KRATOS_API(KRATOS_TEST_UTILS) ScopedTestClassRegistration
 {
 public:
     ScopedTestClassRegistration()
