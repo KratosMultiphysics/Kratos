@@ -14,6 +14,7 @@
 
 #include "contribution_calculator.h"
 #include "custom_utilities/equation_of_motion_utilities.hpp"
+#include "custom_utilities/stress_strain_utilities.h"
 #include "geo_mechanics_application_variables.h"
 #include "includes/constitutive_law.h"
 #include "includes/properties.h"
@@ -70,8 +71,9 @@ public:
     {
         const auto local_b_matrices       = mInputProvider.GetBMatrices();
         const auto relative_displacements = mInputProvider.GetRelativeDisplacements();
-        const auto tractions              = CalculateTractionsAtIntegrationPoints(
-            relative_displacements, mInputProvider.GetProcessInfo());
+        const auto tractions = StressStrainUtilities::CalculateTractionsAtIntegrationPoints(
+            relative_displacements, mInputProvider.GetProcessInfo(),
+            mInputProvider.GetElementProperties(), mInputProvider.GetConstitutiveLaws());
         const auto integration_coefficients = mInputProvider.GetIntegrationCoefficients();
         return BoundedVector<double, TNumNodes>{-GeoEquationOfMotionUtilities::CalculateInternalForceVector(
             local_b_matrices, tractions, integration_coefficients)};
