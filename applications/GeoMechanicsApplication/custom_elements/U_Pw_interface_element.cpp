@@ -133,9 +133,15 @@ void UPwInterfaceElement::CalculateLeftHandSide(MatrixType& rLeftHandSideMatrix,
     auto lambda3 = [this]() { return this->CalculateIntegrationCoefficients(); };
     auto lambda4 = [&rProcessInfo]() -> const ProcessInfo& { return rProcessInfo; };
     auto lambda5 = [this]() -> const Properties& { return this->GetProperties(); };
-    StiffnessCalculator<2>::InputProvider input_provider(lambda1, lambda2, lambda3, lambda5, lambda4, lambda);
-    StiffnessCalculator<2> calculator(input_provider);
-    const auto             test = calculator.LHSContribution();
+
+    const auto matrix_size = GetGeometry().WorkingSpaceDimension() * GetGeometry().PointsNumber();
+    switch (matrix_size) {
+    case 8:
+        StiffnessCalculator<8>::InputProvider input_provider(lambda1, lambda2, lambda3, lambda5, lambda4, lambda);
+        StiffnessCalculator<8> calculator(input_provider);
+        rLeftHandSideMatrix = calculator.LHSContribution().value();
+        return;
+    }
 
     // Currently, the left-hand side matrix only includes the stiffness matrix. In the future, it
     // will also include water pressure contributions and coupling terms.

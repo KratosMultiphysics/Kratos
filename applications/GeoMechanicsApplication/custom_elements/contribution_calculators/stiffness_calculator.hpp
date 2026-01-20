@@ -57,13 +57,12 @@ public:
 
     std::optional<BoundedMatrix<double, TNumNodes, TNumNodes>> LHSContribution() override
     {
-        GeoEquationOfMotionUtilities::CalculateStiffnessMatrix(
+        return std::make_optional(GeoEquationOfMotionUtilities::CalculateStiffnessMatrix(
             mInputProvider.GetBMatrices(),
             CalculateConstitutiveMatricesAtIntegrationPoints(
                 mInputProvider.GetConstitutiveLaws(), mInputProvider.GetElementProperties(),
                 mInputProvider.GetRelativeDisplacements(), mInputProvider.GetProcessInfo()),
-            mInputProvider.GetIntegrationCoefficients());
-        return std::make_optional(BoundedMatrix<double, TNumNodes, TNumNodes>{});
+            mInputProvider.GetIntegrationCoefficients()));
     }
 
     BoundedVector<double, TNumNodes> RHSContribution() override
