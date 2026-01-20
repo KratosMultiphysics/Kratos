@@ -7,8 +7,8 @@
 //
 //  License:         geo_mechanics_application/license.txt
 //
-//  Main authors:    Mohamed Nabi
-//                   Richard Faasse
+//  Main authors:    Richard Faasse
+//
 
 #pragma once
 
