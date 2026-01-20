@@ -53,6 +53,7 @@ public:
 
     static Vector TransformPrincipalStressesToSigmaTau(const Vector& rPrincipalStresses);
     static Vector TransformSigmaTauToPrincipalStresses(const Vector& rSigmaTau, const Vector& rPrincipalStresses);
+    static Vector TransformPrincipalStressesToPandQ(const Vector& rPrincipalStresses);
     static std::vector<Vector> CalculateTractionsAtIntegrationPoints(
         const std::vector<Vector>&                   rRelativeDisplacements,
         const ProcessInfo&                           rProcessInfo,

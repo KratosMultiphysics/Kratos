@@ -14,6 +14,7 @@
 #include "stress_strain_utilities.h"
 #include "custom_utilities/generic_utilities.hpp"
 #include "custom_utilities/math_utilities.hpp"
+#include "custom_utilities/ublas_utilities.h"
 #include "geo_mechanics_application_constants.h"
 #include "includes/constitutive_law.h"
 #include "includes/process_info.h"
@@ -264,6 +265,14 @@ std::vector<Vector> StressStrainUtilities::CalculateTractionsAtIntegrationPoints
     std::ranges::transform(rRelativeDisplacements, rConstitutiveLaws, std::back_inserter(result), calculate_traction);
 
     return result;
+}
+
+Vector StressStrainUtilities::TransformPrincipalStressesToPandQ(const Vector& rPrincipalStresses)
+{
+    auto stress_vector = Vector(6, 0.0);
+    std::ranges::copy(rPrincipalStresses, stress_vector.begin());
+    return UblasUtilities::CreateVector(
+        {CalculateMeanStress(stress_vector), CalculateVonMisesStress(stress_vector)});
 }
 
 } // namespace Kratos

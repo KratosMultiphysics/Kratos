@@ -27,4 +27,6 @@ using ConstVariableDataRefs = std::vector<std::reference_wrapper<const VariableD
 using IntegrationPointType       = IntegrationPoint<3>;
 using IntegrationPointVectorType = std::vector<IntegrationPointType>;
 
+using KappaDependentFunction = std::function<double(double)>;
+
 } // namespace Kratos::Geo
