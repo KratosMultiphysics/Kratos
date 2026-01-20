@@ -126,7 +126,9 @@ void UPwInterfaceElement::CalculateLeftHandSide(MatrixType& rLeftHandSideMatrix,
         [this]() { return this->CalculateLocalBMatricesAtIntegrationPoints(); }, [this]() {
         return this->CalculateRelativeDisplacementsAtIntegrationPoints(
             this->CalculateLocalBMatricesAtIntegrationPoints());
-    }, [this]() { return this->CalculateIntegrationCoefficients(); });
+    }, [this]() { return this->CalculateIntegrationCoefficients(); }, [this]() {
+        return this->GetProperties();
+    }, [&rProcessInfo]() { return rProcessInfo; }, [this]() { return this->mConstitutiveLaws; });
     StiffnessCalculator<2> calculator(input_provider);
 
     // Currently, the left-hand side matrix only includes the stiffness matrix. In the future, it

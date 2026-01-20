@@ -29,16 +29,25 @@ public:
     struct InputProvider {
         InputProvider(std::function<std::vector<Matrix>()> GetBMatrices,
                       std::function<std::vector<Vector>()> GetRelativeDisplacements,
-                      std::function<std::vector<double>()> GetIntegrationCoefficients)
+                      std::function<std::vector<double>()> GetIntegrationCoefficients,
+                      std::function<const Properties&()>   GetElementProperties,
+                      std::function<const ProcessInfo&()>  GetProcessInfo,
+                      std::function<const std::vector<ConstitutiveLaw::Pointer>&()> GetConstitutiveLaws)
             : GetBMatrices(std::move(GetBMatrices)),
               GetRelativeDisplacements(std::move(GetRelativeDisplacements)),
-              GetIntegrationCoefficients(std::move(GetIntegrationCoefficients))
+              GetIntegrationCoefficients(std::move(GetIntegrationCoefficients)),
+              GetElementProperties(std::move(GetElementProperties)),
+              GetProcessInfo(std::move(GetProcessInfo)),
+              GetConstitutiveLaws(std::move(GetConstitutiveLaws))
         {
         }
 
-        std::function<std::vector<Vector>()> GetRelativeDisplacements;
-        std::function<std::vector<Matrix>()> GetBMatrices;
-        std::function<std::vector<double>()> GetIntegrationCoefficients;
+        std::function<std::vector<Vector>()>                          GetRelativeDisplacements;
+        std::function<std::vector<Matrix>()>                          GetBMatrices;
+        std::function<std::vector<double>()>                          GetIntegrationCoefficients;
+        std::function<const Properties&()>                            GetElementProperties;
+        std::function<const ProcessInfo&()>                           GetProcessInfo;
+        std::function<const std::vector<ConstitutiveLaw::Pointer>&()> GetConstitutiveLaws;
     };
 
     explicit StiffnessCalculator(InputProvider AnInputProvider)
@@ -51,7 +60,8 @@ public:
         GeoEquationOfMotionUtilities::CalculateStiffnessMatrix(
             mInputProvider.GetBMatrices(),
             CalculateConstitutiveMatricesAtIntegrationPoints(
-                {}, Properties{}, mInputProvider.GetRelativeDisplacements(), ProcessInfo{}),
+                mInputProvider.GetConstitutiveLaws(), mInputProvider.GetElementProperties(),
+                mInputProvider.GetRelativeDisplacements(), mInputProvider.GetProcessInfo()),
             mInputProvider.GetIntegrationCoefficients());
         return std::make_optional(BoundedMatrix<double, TNumNodes, TNumNodes>{});
     }
