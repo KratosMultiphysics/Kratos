@@ -108,32 +108,6 @@ private:
         return result;
     }
 
-    std::vector<Vector> CalculateTractionsAtIntegrationPoints(const std::vector<Vector>& rRelativeDisplacements,
-                                                              const ProcessInfo& rProcessInfo)
-    {
-        // We have to make a copy of each relative displacement vector, since setting it at the
-        // constitutive law parameters requires a reference to a _mutable_ object!
-        auto calculate_traction = [&properties = mInputProvider.GetElementProperties(),
-                                   &rProcessInfo](auto RelativeDisplacement, auto& p_law) {
-            auto law_parameters = ConstitutiveLaw::Parameters{};
-            law_parameters.SetStrainVector(RelativeDisplacement);
-            auto result = Vector{};
-            result.resize(p_law->GetStrainSize());
-            law_parameters.SetStressVector(result);
-            law_parameters.SetMaterialProperties(properties);
-            law_parameters.Set(ConstitutiveLaw::COMPUTE_STRESS);
-            law_parameters.SetProcessInfo(rProcessInfo);
-            p_law->CalculateMaterialResponseCauchy(law_parameters);
-            return result;
-        };
-        auto result = std::vector<Vector>{};
-        result.reserve(rRelativeDisplacements.size());
-        std::ranges::transform(rRelativeDisplacements, mInputProvider.GetConstitutiveLaws(),
-                               std::back_inserter(result), calculate_traction);
-
-        return result;
-    }
-
     InputProvider mInputProvider;
 };
 
