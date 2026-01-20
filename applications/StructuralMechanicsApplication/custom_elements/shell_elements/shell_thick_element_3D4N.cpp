@@ -1711,7 +1711,7 @@ void ShellThickElement3D4N<TKinematics>::CalculateAll(MatrixType& rLeftHandSideM
 
         // Add all contributions to the residual vector
         noalias(rRightHandSideVector) -= prod(trans(B), generalizedStresses);
-        noalias(rRightHandSideVector) -= Bdrilling * drillingStress;
+        // noalias(rRightHandSideVector) -= Bdrilling * drillingStress;
 
         // Continue the calculation of the EAS method now that the contitutive response
         // has been computed
