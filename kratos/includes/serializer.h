@@ -254,6 +254,7 @@ public:
                     pValue = std::static_pointer_cast<TDataType>(it_shared->second);
                 } else {
                     pValue.reset(static_cast<TDataType*>((i_pointer->second)));
+                    mLoadedSharedPointers[p_pointer] = pValue;
                 }
             }
         }
