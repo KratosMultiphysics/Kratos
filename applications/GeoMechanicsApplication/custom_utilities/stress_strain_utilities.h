@@ -20,8 +20,6 @@
 #include "includes/define.h"
 #include "includes/ublas_interface.h"
 
-#include <complex.h>
-
 namespace Kratos
 {
 
