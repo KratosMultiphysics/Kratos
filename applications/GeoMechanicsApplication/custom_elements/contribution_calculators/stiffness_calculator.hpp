@@ -29,7 +29,7 @@ public:
     struct InputProvider {
         InputProvider(std::function<std::vector<Matrix>()> GetBMatrices,
                       std::function<std::vector<Vector>()> GetRelativeDisplacements,
-                      std::function<Vector()>              GetIntegrationCoefficients)
+                      std::function<std::vector<double>()> GetIntegrationCoefficients)
             : GetBMatrices(std::move(GetBMatrices)),
               GetRelativeDisplacements(std::move(GetRelativeDisplacements)),
               GetIntegrationCoefficients(std::move(GetIntegrationCoefficients))
@@ -38,7 +38,7 @@ public:
 
         std::function<std::vector<Vector>()> GetRelativeDisplacements;
         std::function<std::vector<Matrix>()> GetBMatrices;
-        std::function<Vector()>              GetIntegrationCoefficients;
+        std::function<std::vector<double>()> GetIntegrationCoefficients;
     };
 
     explicit StiffnessCalculator(InputProvider AnInputProvider)

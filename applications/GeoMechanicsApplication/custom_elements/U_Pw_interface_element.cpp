@@ -122,8 +122,12 @@ void UPwInterfaceElement::EquationIdVector(EquationIdVectorType& rResult, const 
 
 void UPwInterfaceElement::CalculateLeftHandSide(MatrixType& rLeftHandSideMatrix, const ProcessInfo& rProcessInfo)
 {
-    StiffnessCalculator<2>::InputProvider input_provider({}, {}, {});
-    StiffnessCalculator<2>                calculator(input_provider);
+    StiffnessCalculator<2>::InputProvider input_provider(
+        [this]() { return this->CalculateLocalBMatricesAtIntegrationPoints(); }, [this]() {
+        return this->CalculateRelativeDisplacementsAtIntegrationPoints(
+            this->CalculateLocalBMatricesAtIntegrationPoints());
+    }, [this]() { return this->CalculateIntegrationCoefficients(); });
+    StiffnessCalculator<2> calculator(input_provider);
 
     // Currently, the left-hand side matrix only includes the stiffness matrix. In the future, it
     // will also include water pressure contributions and coupling terms.
