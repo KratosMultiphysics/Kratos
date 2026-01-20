@@ -70,7 +70,7 @@ public:
     {
         const auto local_b_matrices       = mInputProvider.GetBMatrices();
         const auto relative_displacements = mInputProvider.GetRelativeDisplacements();
-        const auto tractions = StressStrainUtilities::CalculateTractionsAtIntegrationPoints(
+        const auto tractions = StressStrainUtilities::CalculateStressFromStrain(
             relative_displacements, mInputProvider.GetProcessInfo(),
             mInputProvider.GetElementProperties(), mInputProvider.GetConstitutiveLaws());
         const auto integration_coefficients = mInputProvider.GetIntegrationCoefficients();
