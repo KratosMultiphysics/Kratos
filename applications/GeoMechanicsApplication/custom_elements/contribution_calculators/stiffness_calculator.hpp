@@ -13,7 +13,7 @@
 #pragma once
 
 #include "contribution_calculator.h"
-#include "custom_utilities/transport_equation_utilities.hpp"
+#include "custom_utilities/equation_of_motion_utilities.hpp"
 #include "geo_mechanics_application_variables.h"
 #include "includes/properties.h"
 #include "includes/ublas_interface.h"
@@ -48,6 +48,11 @@ public:
 
     std::optional<BoundedMatrix<double, TNumNodes, TNumNodes>> LHSContribution() override
     {
+        GeoEquationOfMotionUtilities::CalculateStiffnessMatrix(
+            mInputProvider.GetBMatrices(),
+            CalculateConstitutiveMatricesAtIntegrationPoints(
+                {}, Properties{}, mInputProvider.GetRelativeDisplacements(), ProcessInfo{}),
+            mInputProvider.GetIntegrationCoefficients());
         return std::make_optional(BoundedMatrix<double, TNumNodes, TNumNodes>{});
     }
 
@@ -62,6 +67,30 @@ public:
     }
 
 private:
+    std::vector<Matrix> CalculateConstitutiveMatricesAtIntegrationPoints(
+        const std::vector<ConstitutiveLaw::Pointer>& rConstitutiveLaws,
+        const Properties&                            rProperties,
+        const std::vector<Vector>&                   rRelativeDisplacements,
+        const ProcessInfo&                           rProcessInfo)
+    {
+        auto get_constitutive_matrix = [&rProperties, &rProcessInfo](const auto& p_constitutive_law,
+                                                                     auto rRelativeDisplacement) {
+            auto result = Matrix{p_constitutive_law->GetStrainSize(), p_constitutive_law->GetStrainSize()};
+            auto law_parameters = ConstitutiveLaw::Parameters{};
+            law_parameters.SetMaterialProperties(rProperties);
+            law_parameters.SetStrainVector(rRelativeDisplacement);
+            law_parameters.SetProcessInfo(rProcessInfo);
+            p_constitutive_law->CalculateValue(law_parameters, CONSTITUTIVE_MATRIX, result);
+            return result;
+        };
+        auto result = std::vector<Matrix>{};
+        result.reserve(rConstitutiveLaws.size());
+        std::transform(rConstitutiveLaws.begin(), rConstitutiveLaws.end(), rRelativeDisplacements.begin(),
+                       std::back_inserter(result), get_constitutive_matrix);
+
+        return result;
+    }
+
     InputProvider mInputProvider;
 };
 
