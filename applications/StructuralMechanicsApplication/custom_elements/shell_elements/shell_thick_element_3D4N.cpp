@@ -1696,7 +1696,7 @@ void ShellThickElement3D4N<TKinematics>::CalculateAll(MatrixType& rLeftHandSideM
         if (mDrillingStiffness == 0.0) {
             mDrillingStiffness = D(2, 2) / 1.0e3;
         }
-        Ddrilling = mDrillingStiffness;
+        Ddrilling = D(2, 2) * 1.0e-6;
 
         // multiply the section tangent matrices and stress resultants by 'dA'
         D *= dA;
@@ -1711,7 +1711,7 @@ void ShellThickElement3D4N<TKinematics>::CalculateAll(MatrixType& rLeftHandSideM
 
         // Add all contributions to the residual vector
         noalias(rRightHandSideVector) -= prod(trans(B), generalizedStresses);
-        // noalias(rRightHandSideVector) -= Bdrilling * drillingStress;
+        noalias(rRightHandSideVector) -= Bdrilling * drillingStress;
 
         // Continue the calculation of the EAS method now that the contitutive response
         // has been computed
