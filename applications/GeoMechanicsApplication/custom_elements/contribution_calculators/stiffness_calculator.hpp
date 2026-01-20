@@ -67,9 +67,10 @@ public:
 
     BoundedVector<double, TNumNodes> RHSContribution() override
     {
-        const auto local_b_matrices = mInputProvider.GetBMatrices();
+        const auto local_b_matrices       = mInputProvider.GetBMatrices();
         const auto relative_displacements = mInputProvider.GetRelativeDisplacements();
-        const auto tractions = CalculateTractionsAtIntegrationPoints(relative_displacements, mInputProvider.GetProcessInfo());
+        const auto tractions              = CalculateTractionsAtIntegrationPoints(
+            relative_displacements, mInputProvider.GetProcessInfo());
         const auto integration_coefficients = mInputProvider.GetIntegrationCoefficients();
         return BoundedVector<double, TNumNodes>{-GeoEquationOfMotionUtilities::CalculateInternalForceVector(
             local_b_matrices, tractions, integration_coefficients)};
@@ -105,8 +106,8 @@ private:
         return result;
     }
 
-    std::vector<Vector> CalculateTractionsAtIntegrationPoints(
-        const std::vector<Vector>& rRelativeDisplacements, const ProcessInfo& rProcessInfo)
+    std::vector<Vector> CalculateTractionsAtIntegrationPoints(const std::vector<Vector>& rRelativeDisplacements,
+                                                              const ProcessInfo& rProcessInfo)
     {
         // We have to make a copy of each relative displacement vector, since setting it at the
         // constitutive law parameters requires a reference to a _mutable_ object!
