@@ -489,12 +489,12 @@ Vector UPwInterfaceElement::InterpolateNodalStressToIntegrationPoints(const Geo:
 Matrix UPwInterfaceElement::RotateStressToLocalCoordinates(const Geo::IntegrationPointType& rIntegrationPoint,
                                                            const Vector& rGlobalStressVector) const
 {
-    auto rotation_tensor = Matrix(3, 3, 0.0);
+    auto rotation_tensor = Matrix{IdentityMatrix(3, 3)};
     if (GetDisplacementGeometry().GetGeometryFamily() == GeometryData::KratosGeometryFamily::Kratos_Linear) {
         const auto two_d_rotation_tensor =
             mfpCalculateRotationMatrix(GetDisplacementGeometry(), rIntegrationPoint);
-        GeoElementUtilities::AddMatrixAtPosition(two_d_rotation_tensor, rotation_tensor, 0, 0);
-        rotation_tensor(2, 2) = 1.0;
+        subrange(rotation_tensor, 0, 0 + two_d_rotation_tensor.size1(), 0,
+                 0 + two_d_rotation_tensor.size2()) = two_d_rotation_tensor;
     } else {
         rotation_tensor = mfpCalculateRotationMatrix(GetDisplacementGeometry(), rIntegrationPoint);
     }
