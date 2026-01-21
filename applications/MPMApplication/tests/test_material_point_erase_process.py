@@ -35,7 +35,7 @@ class TestMaterialPointEraseProcess(KratosUnittest.TestCase):
         # Create background element and nodes
         background_sub_mp = grid_model_part.CreateSubModelPart("test2")
         self._create_nodes(background_sub_mp)
-        self._create_elements(background_sub_mp)
+        self._create_hexahedra_element(background_sub_mp)
         self._create_conditions(background_sub_mp)
 
         # Generate MP Elements and Conditions
@@ -52,7 +52,7 @@ class TestMaterialPointEraseProcess(KratosUnittest.TestCase):
         initial_mp.CreateNewNode(7,  0.5,  0.5, 1.0)
         initial_mp.CreateNewNode(8, -0.5,  0.5, 1.0)
 
-    def _create_elements(self, initial_mp):
+    def _create_hexahedra_element(self, initial_mp):
         initial_mp.CreateNewElement("Element3D8N", 1, [1,2,3,4,5,6,7,8], initial_mp.GetProperties()[1])
         KratosMultiphysics.VariableUtils().SetFlag(KratosMultiphysics.ACTIVE, True, initial_mp.Elements)
 
