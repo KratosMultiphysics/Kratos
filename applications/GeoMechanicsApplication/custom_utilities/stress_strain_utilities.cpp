@@ -256,13 +256,13 @@ std::vector<Vector> StressStrainUtilities::CalculateStressVectorsFromStrainVecto
 {
     // We have to make a copy of each strain vector, since setting it at the
     // constitutive law parameters requires a reference to a _mutable_ object!
-    auto calculate_traction = [&properties = rProperties, &rProcessInfo](auto RelativeDisplacement, auto& p_law) {
+    auto calculate_traction = [&rProperties, &rProcessInfo](auto RelativeDisplacement, auto& p_law) {
         auto law_parameters = ConstitutiveLaw::Parameters{};
         law_parameters.SetStrainVector(RelativeDisplacement);
         auto result = Vector{};
         result.resize(p_law->GetStrainSize());
         law_parameters.SetStressVector(result);
-        law_parameters.SetMaterialProperties(properties);
+        law_parameters.SetMaterialProperties(rProperties);
         law_parameters.Set(ConstitutiveLaw::COMPUTE_STRESS);
         law_parameters.SetProcessInfo(rProcessInfo);
         p_law->CalculateMaterialResponseCauchy(law_parameters);
