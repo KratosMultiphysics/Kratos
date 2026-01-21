@@ -491,10 +491,10 @@ Matrix UPwInterfaceElement::RotateStressToLocalCoordinates(const Geo::Integratio
 {
     auto rotation_tensor = Matrix{IdentityMatrix(3, 3)};
     if (GetDisplacementGeometry().GetGeometryFamily() == GeometryData::KratosGeometryFamily::Kratos_Linear) {
-        const auto two_d_rotation_tensor =
+        const auto rotation_tensor_in_2d =
             mfpCalculateRotationMatrix(GetDisplacementGeometry(), rIntegrationPoint);
-        subrange(rotation_tensor, 0, 0 + two_d_rotation_tensor.size1(), 0,
-                 0 + two_d_rotation_tensor.size2()) = two_d_rotation_tensor;
+        subrange(rotation_tensor, 0, 0 + rotation_tensor_in_2d.size1(), 0,
+                 0 + rotation_tensor_in_2d.size2()) = rotation_tensor_in_2d;
     } else {
         rotation_tensor = mfpCalculateRotationMatrix(GetDisplacementGeometry(), rIntegrationPoint);
     }

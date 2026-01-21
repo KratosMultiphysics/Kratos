@@ -521,22 +521,14 @@ KRATOS_TEST_CASE_IN_SUITE(UPwLineInterfaceElement_LeftHandSideContainsMaterialSt
     // Assert
     constexpr auto number_of_u_dofs  = std::size_t{4 * 2};
     constexpr auto number_of_pw_dofs = std::size_t{4};
-    ASSERT_EQ(actual_left_hand_side.size1(), number_of_u_dofs + number_of_pw_dofs);
-    ASSERT_EQ(actual_left_hand_side.size2(), number_of_u_dofs + number_of_pw_dofs);
-
-    const auto expected_stiffness_matrix =
+    const auto     expected_uu_block_matrix =
         CreateExpectedStiffnessMatrixForHorizontal2Plus2NodedElement(normal_stiffness, shear_stiffness);
-    KRATOS_EXPECT_MATRIX_NEAR(subrange(actual_left_hand_side, 0, 0 + number_of_u_dofs, 0, 0 + number_of_u_dofs),
-                              expected_stiffness_matrix, Defaults::absolute_tolerance)
-    KRATOS_EXPECT_MATRIX_NEAR(subrange(actual_left_hand_side, 0, 0 + number_of_u_dofs,
-                                       number_of_u_dofs, number_of_u_dofs + number_of_pw_dofs),
-                              (Matrix{number_of_u_dofs, number_of_pw_dofs, 0.0}), Defaults::absolute_tolerance)
-    KRATOS_EXPECT_MATRIX_NEAR(subrange(actual_left_hand_side, number_of_u_dofs,
-                                       number_of_u_dofs + number_of_pw_dofs, 0, 0 + number_of_u_dofs),
-                              (Matrix{number_of_pw_dofs, number_of_u_dofs, 0.0}), Defaults::absolute_tolerance)
-    KRATOS_EXPECT_MATRIX_NEAR(subrange(actual_left_hand_side, number_of_u_dofs, number_of_u_dofs + number_of_pw_dofs,
-                                       number_of_u_dofs, number_of_u_dofs + number_of_pw_dofs),
-                              (Matrix{number_of_pw_dofs, number_of_pw_dofs, 0.0}), Defaults::absolute_tolerance)
+    const auto expected_up_block_matrix = Matrix{number_of_u_dofs, number_of_pw_dofs, 0.0};
+    const auto expected_pu_block_matrix = Matrix{number_of_pw_dofs, number_of_u_dofs, 0.0};
+    const auto expected_pp_block_matrix = Matrix{number_of_pw_dofs, number_of_pw_dofs, 0.0};
+    AssertLHSMatrixBlocksAreNear(actual_left_hand_side, expected_uu_block_matrix,
+                                 expected_up_block_matrix, expected_pu_block_matrix,
+                                 expected_pp_block_matrix, number_of_u_dofs, number_of_pw_dofs);
 }
 
 KRATOS_TEST_CASE_IN_SUITE(UPwLineInterfaceElement_LeftHandSideContainsMaterialStiffnessContributions_Rotated,
@@ -576,15 +568,12 @@ KRATOS_TEST_CASE_IN_SUITE(UPwLineInterfaceElement_LeftHandSideContainsMaterialSt
     KRATOS_EXPECT_MATRIX_RELATIVE_NEAR(
         subrange(actual_left_hand_side, 0, 0 + number_of_u_dofs, 0, 0 + number_of_u_dofs),
         expected_stiffness_matrix, Defaults::relative_tolerance)
-    KRATOS_EXPECT_MATRIX_NEAR(subrange(actual_left_hand_side, 0, 0 + number_of_u_dofs,
-                                       number_of_u_dofs, number_of_u_dofs + number_of_pw_dofs),
-                              (Matrix{number_of_u_dofs, number_of_pw_dofs, 0.0}), Defaults::absolute_tolerance)
-    KRATOS_EXPECT_MATRIX_NEAR(subrange(actual_left_hand_side, number_of_u_dofs,
-                                       number_of_u_dofs + number_of_pw_dofs, 0, 0 + number_of_u_dofs),
-                              (Matrix{number_of_pw_dofs, number_of_u_dofs, 0.0}), Defaults::absolute_tolerance)
-    KRATOS_EXPECT_MATRIX_NEAR(subrange(actual_left_hand_side, number_of_u_dofs, number_of_u_dofs + number_of_pw_dofs,
-                                       number_of_u_dofs, number_of_u_dofs + number_of_pw_dofs),
-                              (Matrix{number_of_pw_dofs, number_of_pw_dofs, 0.0}), Defaults::absolute_tolerance)
+    const auto expected_up_block_matrix = Matrix{number_of_u_dofs, number_of_pw_dofs, 0.0};
+    AssertUPBlockMatrixIsNear(actual_left_hand_side, expected_up_block_matrix, number_of_u_dofs, number_of_pw_dofs);
+    const auto expected_pu_block_matrix = Matrix{number_of_pw_dofs, number_of_u_dofs, 0.0};
+    AssertPUBlockMatrixIsNear(actual_left_hand_side, expected_pu_block_matrix, number_of_u_dofs, number_of_pw_dofs);
+    const auto expected_pp_block_matrix = Matrix{number_of_pw_dofs, number_of_pw_dofs, 0.0};
+    AssertPPBlockMatrixIsNear(actual_left_hand_side, expected_pp_block_matrix, number_of_u_dofs, number_of_pw_dofs);
 }
 
 KRATOS_TEST_CASE_IN_SUITE(UPwLineInterfaceElement_RightHandSideEqualsMinusInternalForceVector,
@@ -608,38 +597,29 @@ KRATOS_TEST_CASE_IN_SUITE(UPwLineInterfaceElement_RightHandSideEqualsMinusIntern
     // Assert
     constexpr auto number_of_u_dofs  = std::size_t{4 * 2};
     constexpr auto number_of_pw_dofs = std::size_t{4};
-    ASSERT_EQ(actual_right_hand_side.size(), number_of_u_dofs + number_of_pw_dofs);
-
-    auto expected_stiffness_force = Vector{number_of_u_dofs};
-    expected_stiffness_force <<= 1.0, 5.0, 1.0, 5.0, -1.0, -5.0, -1.0, -5.0;
-    KRATOS_EXPECT_VECTOR_NEAR(subrange(actual_right_hand_side, 0, 0 + number_of_u_dofs),
-                              expected_stiffness_force, Defaults::absolute_tolerance)
-    KRATOS_EXPECT_VECTOR_NEAR(subrange(actual_right_hand_side, number_of_u_dofs, number_of_u_dofs + number_of_pw_dofs),
-                              (Vector{number_of_pw_dofs, 0.0}), Defaults::absolute_tolerance)
+    const auto     expected_stiffness_force =
+        UblasUtilities::CreateVector({1.0, 5.0, 1.0, 5.0, -1.0, -5.0, -1.0, -5.0});
+    const auto expected_p_block_vector = Vector{number_of_pw_dofs, 0.0};
+    AssertRHSVectorBlocksAreNear(actual_right_hand_side, expected_stiffness_force,
+                                 expected_p_block_vector, number_of_u_dofs, number_of_pw_dofs);
 
     // Act
     Vector actual_external_forces_vector;
     element.Calculate(EXTERNAL_FORCES_VECTOR, actual_external_forces_vector, ProcessInfo{});
 
     // Assert
-    const auto expected_external_forces_vector = Vector{number_of_u_dofs, 0.0};
-    KRATOS_EXPECT_VECTOR_NEAR(subrange(actual_external_forces_vector, 0, 0 + number_of_u_dofs),
-                              expected_external_forces_vector, Defaults::absolute_tolerance)
-    KRATOS_EXPECT_VECTOR_NEAR(
-        subrange(actual_external_forces_vector, number_of_u_dofs, number_of_u_dofs + number_of_pw_dofs),
-        (Vector{number_of_pw_dofs, 0.0}), Defaults::absolute_tolerance)
+    auto expected_u_block_vector = Vector{number_of_u_dofs, 0.0};
+    AssertRHSVectorBlocksAreNear(actual_external_forces_vector, expected_u_block_vector,
+                                 expected_p_block_vector, number_of_u_dofs, number_of_pw_dofs);
 
     // Act
     Vector actual_internal_forces_vector;
     element.Calculate(INTERNAL_FORCES_VECTOR, actual_internal_forces_vector, ProcessInfo{});
 
     // Assert
-    const auto expected_internal_forces_vector = Vector{-1.0 * expected_stiffness_force};
-    KRATOS_EXPECT_VECTOR_NEAR(subrange(actual_internal_forces_vector, 0, 0 + number_of_u_dofs),
-                              expected_internal_forces_vector, Defaults::absolute_tolerance)
-    KRATOS_EXPECT_VECTOR_NEAR(
-        subrange(actual_internal_forces_vector, number_of_u_dofs, number_of_u_dofs + number_of_pw_dofs),
-        (Vector{number_of_pw_dofs, 0.0}), Defaults::absolute_tolerance)
+    expected_u_block_vector = Vector{-1.0 * expected_stiffness_force};
+    AssertRHSVectorBlocksAreNear(actual_internal_forces_vector, expected_u_block_vector,
+                                 expected_p_block_vector, number_of_u_dofs, number_of_pw_dofs);
 }
 
 KRATOS_TEST_CASE_IN_SUITE(UPwLineInterfaceElement_RightHandSideEqualsMinusInternalForceVector_Rotated,
@@ -673,8 +653,8 @@ KRATOS_TEST_CASE_IN_SUITE(UPwLineInterfaceElement_RightHandSideEqualsMinusIntern
     // clang-format on
     KRATOS_EXPECT_VECTOR_RELATIVE_NEAR(subrange(actual_right_hand_side, 0, 0 + number_of_u_dofs),
                                        expected_stiffness_force, Defaults::relative_tolerance)
-    KRATOS_EXPECT_VECTOR_NEAR(subrange(actual_right_hand_side, number_of_u_dofs, number_of_u_dofs + number_of_pw_dofs),
-                              (Vector{number_of_pw_dofs, 0.0}), Defaults::absolute_tolerance)
+    const auto expected_p_block_vector = Vector{number_of_pw_dofs, 0.0};
+    AssertPBlockVectorIsNear(actual_right_hand_side, expected_p_block_vector, number_of_u_dofs, number_of_pw_dofs);
 }
 
 KRATOS_TEST_CASE_IN_SUITE(GetInitializedConstitutiveLawsAfterElementInitialization, KratosGeoMechanicsFastSuiteWithoutKernel)
@@ -744,30 +724,20 @@ KRATOS_TEST_CASE_IN_SUITE(UPwLineInterfaceElement_ReturnsExpectedLeftAndRightHan
     // Assert
     constexpr auto number_of_u_dofs  = std::size_t{4 * 2};
     constexpr auto number_of_pw_dofs = std::size_t{4};
-    ASSERT_EQ(actual_left_hand_side.size1(), number_of_u_dofs + number_of_pw_dofs);
-    ASSERT_EQ(actual_left_hand_side.size2(), number_of_u_dofs + number_of_pw_dofs);
-    ASSERT_EQ(actual_right_hand_side.size(), number_of_u_dofs + number_of_pw_dofs);
-
-    const auto expected_stiffness_matrix =
+    const auto     expected_uu_block_matrix =
         CreateExpectedStiffnessMatrixForHorizontal2Plus2NodedElement(normal_stiffness, shear_stiffness);
-    KRATOS_EXPECT_MATRIX_NEAR(subrange(actual_left_hand_side, 0, 0 + number_of_u_dofs, 0, 0 + number_of_u_dofs),
-                              expected_stiffness_matrix, Defaults::absolute_tolerance)
-    KRATOS_EXPECT_MATRIX_NEAR(subrange(actual_left_hand_side, 0, 0 + number_of_u_dofs,
-                                       number_of_u_dofs, number_of_u_dofs + number_of_pw_dofs),
-                              (Matrix{number_of_u_dofs, number_of_pw_dofs, 0.0}), Defaults::absolute_tolerance)
-    KRATOS_EXPECT_MATRIX_NEAR(subrange(actual_left_hand_side, number_of_u_dofs,
-                                       number_of_u_dofs + number_of_pw_dofs, 0, 0 + number_of_u_dofs),
-                              (Matrix{number_of_pw_dofs, number_of_u_dofs, 0.0}), Defaults::absolute_tolerance)
-    KRATOS_EXPECT_MATRIX_NEAR(subrange(actual_left_hand_side, number_of_u_dofs, number_of_u_dofs + number_of_pw_dofs,
-                                       number_of_u_dofs, number_of_u_dofs + number_of_pw_dofs),
-                              (Matrix{number_of_pw_dofs, number_of_pw_dofs, 0.0}), Defaults::absolute_tolerance)
+    const auto expected_up_block_matrix = Matrix{number_of_u_dofs, number_of_pw_dofs, 0.0};
+    const auto expected_pu_block_matrix = Matrix{number_of_pw_dofs, number_of_u_dofs, 0.0};
+    const auto expected_pp_block_matrix = Matrix{number_of_pw_dofs, number_of_pw_dofs, 0.0};
+    AssertLHSMatrixBlocksAreNear(actual_left_hand_side, expected_uu_block_matrix,
+                                 expected_up_block_matrix, expected_pu_block_matrix,
+                                 expected_pp_block_matrix, number_of_u_dofs, number_of_pw_dofs);
 
-    auto expected_stiffness_force = Vector{number_of_u_dofs};
-    expected_stiffness_force <<= 1.0, 5.0, 1.0, 5.0, -1.0, -5.0, -1.0, -5.0;
-    KRATOS_EXPECT_VECTOR_NEAR(subrange(actual_right_hand_side, 0, 0 + number_of_u_dofs),
-                              expected_stiffness_force, Defaults::absolute_tolerance)
-    KRATOS_EXPECT_VECTOR_NEAR(subrange(actual_right_hand_side, number_of_u_dofs, number_of_u_dofs + number_of_pw_dofs),
-                              (Vector{number_of_pw_dofs, 0.0}), Defaults::absolute_tolerance)
+    const auto expected_u_block_vector =
+        UblasUtilities::CreateVector({1.0, 5.0, 1.0, 5.0, -1.0, -5.0, -1.0, -5.0});
+    const auto expected_p_block_vector = Vector{number_of_pw_dofs, 0.0};
+    AssertRHSVectorBlocksAreNear(actual_right_hand_side, expected_u_block_vector,
+                                 expected_p_block_vector, number_of_u_dofs, number_of_pw_dofs);
 }
 
 KRATOS_TEST_CASE_IN_SUITE(UPwLineInterfaceElement_CalculateRelativeDisplacementVector, KratosGeoMechanicsFastSuiteWithoutKernel)
@@ -855,9 +825,9 @@ KRATOS_TEST_CASE_IN_SUITE(UPwLineInterfaceElement_3Plus3NodedElement_ReturnsExpe
     ASSERT_EQ(actual_left_hand_side.size2(), number_of_u_dofs + number_of_pw_dofs);
     ASSERT_EQ(actual_right_hand_side.size(), number_of_u_dofs + number_of_pw_dofs);
 
-    constexpr auto cs                        = shear_stiffness / 6.0;
-    constexpr auto cn                        = normal_stiffness / 6.0;
-    const auto     expected_stiffness_matrix = UblasUtilities::CreateMatrix(
+    constexpr auto cs                       = shear_stiffness / 6.0;
+    constexpr auto cn                       = normal_stiffness / 6.0;
+    const auto     expected_uu_block_matrix = UblasUtilities::CreateMatrix(
         {{cs, 0.0, 0.0, 0.0, 0.0, 0.0, -cs, 0.0, 0.0, 0.0, 0.0, 0.0},
              {0.0, cn, 0.0, 0.0, 0.0, 0.0, 0.0, -cn, 0.0, 0.0, 0.0, 0.0},
              {0.0, 0.0, cs, 0.0, 0.0, 0.0, 0.0, 0.0, -cs, 0.0, 0.0, 0.0},
@@ -870,26 +840,19 @@ KRATOS_TEST_CASE_IN_SUITE(UPwLineInterfaceElement_3Plus3NodedElement_ReturnsExpe
              {0.0, 0.0, 0.0, -cn, 0.0, 0.0, 0.0, 0.0, 0.0, cn, 0.0, 0.0},
              {0.0, 0.0, 0.0, 0.0, -4.0 * cs, 0.0, 0.0, 0.0, 0.0, 0.0, 4.0 * cs, 0.0},
              {0.0, 0.0, 0.0, 0.0, 0.0, -4.0 * cn, 0.0, 0.0, 0.0, 0.0, 0.0, 4.0 * cn}});
+    const auto expected_up_block_matrix = Matrix{number_of_u_dofs, number_of_pw_dofs, 0.0};
+    const auto expected_pu_block_matrix = Matrix{number_of_pw_dofs, number_of_u_dofs, 0.0};
+    const auto expected_pp_block_matrix = Matrix{number_of_pw_dofs, number_of_pw_dofs, 0.0};
+    AssertLHSMatrixBlocksAreNear(actual_left_hand_side, expected_uu_block_matrix,
+                                 expected_up_block_matrix, expected_pu_block_matrix,
+                                 expected_pp_block_matrix, number_of_u_dofs, number_of_pw_dofs);
 
-    KRATOS_EXPECT_MATRIX_NEAR(subrange(actual_left_hand_side, 0, 0 + number_of_u_dofs, 0, 0 + number_of_u_dofs),
-                              expected_stiffness_matrix, Defaults::absolute_tolerance)
-    KRATOS_EXPECT_MATRIX_NEAR(subrange(actual_left_hand_side, 0, 0 + number_of_u_dofs,
-                                       number_of_u_dofs, number_of_u_dofs + number_of_pw_dofs),
-                              (Matrix{number_of_u_dofs, number_of_pw_dofs, 0.0}), Defaults::absolute_tolerance)
-    KRATOS_EXPECT_MATRIX_NEAR(subrange(actual_left_hand_side, number_of_u_dofs,
-                                       number_of_u_dofs + number_of_pw_dofs, 0, 0 + number_of_u_dofs),
-                              (Matrix{number_of_pw_dofs, number_of_u_dofs, 0.0}), Defaults::absolute_tolerance)
-    KRATOS_EXPECT_MATRIX_NEAR(subrange(actual_left_hand_side, number_of_u_dofs, number_of_u_dofs + number_of_pw_dofs,
-                                       number_of_u_dofs, number_of_u_dofs + number_of_pw_dofs),
-                              (Matrix{number_of_pw_dofs, number_of_pw_dofs, 0.0}), Defaults::absolute_tolerance)
-
-    const auto expected_stiffness_force = UblasUtilities::CreateVector(
+    const auto expected_u_block_vector = UblasUtilities::CreateVector(
         {1.0 / 3.0, 5.0 / 3.0, 1.0 / 3.0, 5.0 / 3.0, 4.0 / 3.0, 20.0 / 3.0, -1.0 / 3.0, -5.0 / 3.0,
          -1.0 / 3.0, -5.0 / 3.0, -4.0 / 3.0, -20.0 / 3.0});
-    KRATOS_EXPECT_VECTOR_NEAR(subrange(actual_right_hand_side, 0, 0 + number_of_u_dofs),
-                              expected_stiffness_force, Defaults::absolute_tolerance)
-    KRATOS_EXPECT_VECTOR_NEAR(subrange(actual_right_hand_side, number_of_u_dofs, number_of_u_dofs + number_of_pw_dofs),
-                              (Vector{number_of_pw_dofs, 0.0}), Defaults::absolute_tolerance)
+    const auto expected_p_block_vector = Vector{number_of_pw_dofs, 0.0};
+    AssertRHSVectorBlocksAreNear(actual_right_hand_side, expected_u_block_vector,
+                                 expected_p_block_vector, number_of_u_dofs, number_of_pw_dofs);
 }
 
 KRATOS_TEST_CASE_IN_SUITE(UPwTriangleInterfaceElement_CreatesInstanceWithGeometryInput,
@@ -1019,19 +982,16 @@ KRATOS_TEST_CASE_IN_SUITE(UPwTriangleInterfaceElement_LeftHandSideContainsMateri
     ASSERT_EQ(actual_left_hand_side.size1(), number_of_u_dofs + number_of_pw_dofs);
     ASSERT_EQ(actual_left_hand_side.size2(), number_of_u_dofs + number_of_pw_dofs);
 
-    const auto expected_stiffness_matrix = ExpectedStiffnessMatrixOfLinearTrianglularInterfaceElement();
+    const auto expected_uu_block_matrix = ExpectedStiffnessMatrixOfLinearTrianglularInterfaceElement();
     KRATOS_EXPECT_MATRIX_RELATIVE_NEAR(
         subrange(actual_left_hand_side, 0, 0 + number_of_u_dofs, 0, 0 + number_of_u_dofs),
-        expected_stiffness_matrix, Defaults::relative_tolerance)
-    KRATOS_EXPECT_MATRIX_NEAR(subrange(actual_left_hand_side, 0, 0 + number_of_u_dofs,
-                                       number_of_u_dofs, number_of_u_dofs + number_of_pw_dofs),
-                              (Matrix{number_of_u_dofs, number_of_pw_dofs, 0.0}), Defaults::absolute_tolerance)
-    KRATOS_EXPECT_MATRIX_NEAR(subrange(actual_left_hand_side, number_of_u_dofs,
-                                       number_of_u_dofs + number_of_pw_dofs, 0, 0 + number_of_u_dofs),
-                              (Matrix{number_of_pw_dofs, number_of_u_dofs, 0.0}), Defaults::absolute_tolerance)
-    KRATOS_EXPECT_MATRIX_NEAR(subrange(actual_left_hand_side, number_of_u_dofs, number_of_u_dofs + number_of_pw_dofs,
-                                       number_of_u_dofs, number_of_u_dofs + number_of_pw_dofs),
-                              (Matrix{number_of_pw_dofs, number_of_pw_dofs, 0.0}), Defaults::absolute_tolerance)
+        expected_uu_block_matrix, Defaults::relative_tolerance)
+    const auto expected_up_block_matrix = Matrix{number_of_u_dofs, number_of_pw_dofs, 0.0};
+    AssertUPBlockMatrixIsNear(actual_left_hand_side, expected_up_block_matrix, number_of_u_dofs, number_of_pw_dofs);
+    const auto expected_pu_block_matrix = Matrix{number_of_pw_dofs, number_of_u_dofs, 0.0};
+    AssertPUBlockMatrixIsNear(actual_left_hand_side, expected_pu_block_matrix, number_of_u_dofs, number_of_pw_dofs);
+    const auto expected_pp_block_matrix = Matrix{number_of_pw_dofs, number_of_pw_dofs, 0.0};
+    AssertPPBlockMatrixIsNear(actual_left_hand_side, expected_pp_block_matrix, number_of_u_dofs, number_of_pw_dofs);
 }
 
 KRATOS_TEST_CASE_IN_SUITE(UPwTriangleInterfaceElement_LeftHandSideContainsMaterialStiffnessContributions_Rotated,
@@ -1056,23 +1016,20 @@ KRATOS_TEST_CASE_IN_SUITE(UPwTriangleInterfaceElement_LeftHandSideContainsMateri
     ASSERT_EQ(actual_left_hand_side.size1(), number_of_u_dofs + number_of_pw_dofs);
     ASSERT_EQ(actual_left_hand_side.size2(), number_of_u_dofs + number_of_pw_dofs);
 
-    const auto expected_stiffness_matrix = ExpectedStiffnessMatrixOfLinearTrianglularInterfaceElement();
+    const auto expected_uu_block_matrix = ExpectedStiffnessMatrixOfLinearTrianglularInterfaceElement();
 
     // Since the rotation is about the z-axis (the normal of the triangle) and the two shear
     // stiffnesses are equal, the stiffness matrix is equal to the stiffness matrix of a
     // non-rotated surface interface element.
     KRATOS_EXPECT_MATRIX_RELATIVE_NEAR(
         subrange(actual_left_hand_side, 0, 0 + number_of_u_dofs, 0, 0 + number_of_u_dofs),
-        expected_stiffness_matrix, Defaults::relative_tolerance)
-    KRATOS_EXPECT_MATRIX_NEAR(subrange(actual_left_hand_side, 0, 0 + number_of_u_dofs,
-                                       number_of_u_dofs, number_of_u_dofs + number_of_pw_dofs),
-                              (Matrix{number_of_u_dofs, number_of_pw_dofs, 0.0}), Defaults::absolute_tolerance)
-    KRATOS_EXPECT_MATRIX_NEAR(subrange(actual_left_hand_side, number_of_u_dofs,
-                                       number_of_u_dofs + number_of_pw_dofs, 0, 0 + number_of_u_dofs),
-                              (Matrix{number_of_pw_dofs, number_of_u_dofs, 0.0}), Defaults::absolute_tolerance)
-    KRATOS_EXPECT_MATRIX_NEAR(subrange(actual_left_hand_side, number_of_u_dofs, number_of_u_dofs + number_of_pw_dofs,
-                                       number_of_u_dofs, number_of_u_dofs + number_of_pw_dofs),
-                              (Matrix{number_of_pw_dofs, number_of_pw_dofs, 0.0}), Defaults::absolute_tolerance)
+        expected_uu_block_matrix, Defaults::relative_tolerance)
+    const auto expected_up_block_matrix = Matrix{number_of_u_dofs, number_of_pw_dofs, 0.0};
+    AssertUPBlockMatrixIsNear(actual_left_hand_side, expected_up_block_matrix, number_of_u_dofs, number_of_pw_dofs);
+    const auto expected_pu_block_matrix = Matrix{number_of_pw_dofs, number_of_u_dofs, 0.0};
+    AssertPUBlockMatrixIsNear(actual_left_hand_side, expected_pu_block_matrix, number_of_u_dofs, number_of_pw_dofs);
+    const auto expected_pp_block_matrix = Matrix{number_of_pw_dofs, number_of_pw_dofs, 0.0};
+    AssertPPBlockMatrixIsNear(actual_left_hand_side, expected_pp_block_matrix, number_of_u_dofs, number_of_pw_dofs);
 }
 
 KRATOS_TEST_CASE_IN_SUITE(UPwTriangleInterfaceElement_LeftHandSideContainsMaterialStiffnessContributions_RotatedAboutYAxis,
@@ -1097,8 +1054,8 @@ KRATOS_TEST_CASE_IN_SUITE(UPwTriangleInterfaceElement_LeftHandSideContainsMateri
     ASSERT_EQ(actual_left_hand_side.size1(), number_of_u_dofs + number_of_pw_dofs);
     ASSERT_EQ(actual_left_hand_side.size2(), number_of_u_dofs + number_of_pw_dofs);
 
-    auto expected_stiffness_matrix = Matrix{number_of_u_dofs, number_of_u_dofs};
-    expected_stiffness_matrix <<= 2.083333333333333, 0, 0.72168783648703216, 0, 0, 0, 0, 0, 0,
+    auto expected_uu_block_matrix = Matrix{number_of_u_dofs, number_of_u_dofs};
+    expected_uu_block_matrix <<= 2.083333333333333, 0, 0.72168783648703216, 0, 0, 0, 0, 0, 0,
         -2.083333333333333, 0, -0.72168783648703216, 0, 0, 0, 0, 0, 0, 0, 1.6666666666666661, 0, 0,
         0, 0, 0, 0, 0, 0, -1.6666666666666661, 0, 0, 0, 0, 0, 0, 0, 0.72168783648703216, 0,
         2.9166666666666661, 0, 0, 0, 0, 0, 0, -0.72168783648703216, 0, -2.9166666666666661, 0, 0, 0,
@@ -1125,16 +1082,13 @@ KRATOS_TEST_CASE_IN_SUITE(UPwTriangleInterfaceElement_LeftHandSideContainsMateri
 
     KRATOS_EXPECT_MATRIX_RELATIVE_NEAR(
         subrange(actual_left_hand_side, 0, 0 + number_of_u_dofs, 0, 0 + number_of_u_dofs),
-        expected_stiffness_matrix, Defaults::relative_tolerance)
-    KRATOS_EXPECT_MATRIX_NEAR(subrange(actual_left_hand_side, 0, 0 + number_of_u_dofs,
-                                       number_of_u_dofs, number_of_u_dofs + number_of_pw_dofs),
-                              (Matrix{number_of_u_dofs, number_of_pw_dofs, 0.0}), Defaults::absolute_tolerance)
-    KRATOS_EXPECT_MATRIX_NEAR(subrange(actual_left_hand_side, number_of_u_dofs,
-                                       number_of_u_dofs + number_of_pw_dofs, 0, 0 + number_of_u_dofs),
-                              (Matrix{number_of_pw_dofs, number_of_u_dofs, 0.0}), Defaults::absolute_tolerance)
-    KRATOS_EXPECT_MATRIX_NEAR(subrange(actual_left_hand_side, number_of_u_dofs, number_of_u_dofs + number_of_pw_dofs,
-                                       number_of_u_dofs, number_of_u_dofs + number_of_pw_dofs),
-                              (Matrix{number_of_pw_dofs, number_of_pw_dofs, 0.0}), Defaults::absolute_tolerance)
+        expected_uu_block_matrix, Defaults::relative_tolerance)
+    const auto expected_up_block_matrix = Matrix{number_of_u_dofs, number_of_pw_dofs, 0.0};
+    AssertUPBlockMatrixIsNear(actual_left_hand_side, expected_up_block_matrix, number_of_u_dofs, number_of_pw_dofs);
+    const auto expected_pu_block_matrix = Matrix{number_of_pw_dofs, number_of_u_dofs, 0.0};
+    AssertPUBlockMatrixIsNear(actual_left_hand_side, expected_pu_block_matrix, number_of_u_dofs, number_of_pw_dofs);
+    const auto expected_pp_block_matrix = Matrix{number_of_pw_dofs, number_of_pw_dofs, 0.0};
+    AssertPPBlockMatrixIsNear(actual_left_hand_side, expected_pp_block_matrix, number_of_u_dofs, number_of_pw_dofs);
 }
 
 KRATOS_TEST_CASE_IN_SUITE(UPwTriangleInterfaceElement_RightHandSideEqualsMinusInternalForceVector,
@@ -1166,8 +1120,8 @@ KRATOS_TEST_CASE_IN_SUITE(UPwTriangleInterfaceElement_RightHandSideEqualsMinusIn
     constexpr auto tolerance = 1e-5;
     KRATOS_EXPECT_VECTOR_RELATIVE_NEAR(subrange(actual_right_hand_side, 0, 0 + number_of_u_dofs),
                                        expected_stiffness_force, tolerance)
-    KRATOS_EXPECT_VECTOR_NEAR(subrange(actual_right_hand_side, number_of_u_dofs, number_of_u_dofs + number_of_pw_dofs),
-                              (Vector{number_of_pw_dofs, 0.0}), Defaults::absolute_tolerance)
+    const auto expected_p_block_vector = Vector{number_of_pw_dofs, 0.0};
+    AssertPBlockVectorIsNear(actual_right_hand_side, expected_p_block_vector, number_of_u_dofs, number_of_pw_dofs);
 }
 
 KRATOS_TEST_CASE_IN_SUITE(UPwTriangleInterfaceElement_RightHandSideEqualsMinusInternalForceVector_Rotated,
@@ -1195,15 +1149,14 @@ KRATOS_TEST_CASE_IN_SUITE(UPwTriangleInterfaceElement_RightHandSideEqualsMinusIn
     constexpr auto number_of_pw_dofs = std::size_t{6};
     ASSERT_EQ(actual_right_hand_side.size(), number_of_u_dofs + number_of_pw_dofs);
 
-    auto expected_stiffness_force = Vector{number_of_u_dofs};
-    // clang-format off
-    expected_stiffness_force <<= 1.66667,3.33333,10,1.66667,3.33333,10,1.66667,3.33333,10,-1.66667,-3.33333,-10,-1.66667,-3.33333,-10,-1.66667,-3.33333,-10;
-    // clang-format on
+    const auto expected_u_block_vector = UblasUtilities::CreateVector(
+        {1.66667, 3.33333, 10, 1.66667, 3.33333, 10, 1.66667, 3.33333, 10, -1.66667, -3.33333, -10,
+         -1.66667, -3.33333, -10, -1.66667, -3.33333, -10});
     constexpr auto tolerance = 1e-5;
     KRATOS_EXPECT_VECTOR_RELATIVE_NEAR(subrange(actual_right_hand_side, 0, 0 + number_of_u_dofs),
-                                       expected_stiffness_force, tolerance)
-    KRATOS_EXPECT_VECTOR_NEAR(subrange(actual_right_hand_side, number_of_u_dofs, number_of_u_dofs + number_of_pw_dofs),
-                              (Vector{number_of_pw_dofs, 0.0}), Defaults::absolute_tolerance)
+                                       expected_u_block_vector, tolerance)
+    const auto expected_p_block_vector = Vector{number_of_pw_dofs, 0.0};
+    AssertPBlockVectorIsNear(actual_right_hand_side, expected_p_block_vector, number_of_u_dofs, number_of_pw_dofs);
 }
 
 KRATOS_TEST_CASE_IN_SUITE(UPwTriangleInterfaceElement_GetInitializedConstitutiveLawsAfterElementInitialization,
@@ -1280,28 +1233,25 @@ KRATOS_TEST_CASE_IN_SUITE(UPwTriangleInterfaceElement_ReturnsExpectedLeftAndRigh
     ASSERT_EQ(actual_left_hand_side.size2(), number_of_u_dofs + number_of_pw_dofs);
     ASSERT_EQ(actual_right_hand_side.size(), number_of_u_dofs + number_of_pw_dofs);
 
-    const auto expected_stiffness_matrix = ExpectedStiffnessMatrixOfLinearTrianglularInterfaceElement();
+    const auto expected_uu_block_matrix = ExpectedStiffnessMatrixOfLinearTrianglularInterfaceElement();
     KRATOS_EXPECT_MATRIX_RELATIVE_NEAR(
         subrange(actual_left_hand_side, 0, 0 + number_of_u_dofs, 0, 0 + number_of_u_dofs),
-        expected_stiffness_matrix, Defaults::relative_tolerance)
-    KRATOS_EXPECT_MATRIX_NEAR(subrange(actual_left_hand_side, 0, 0 + number_of_u_dofs,
-                                       number_of_u_dofs, number_of_u_dofs + number_of_pw_dofs),
-                              (Matrix{number_of_u_dofs, number_of_pw_dofs, 0.0}), Defaults::absolute_tolerance)
-    KRATOS_EXPECT_MATRIX_NEAR(subrange(actual_left_hand_side, number_of_u_dofs,
-                                       number_of_u_dofs + number_of_pw_dofs, 0, 0 + number_of_u_dofs),
-                              (Matrix{number_of_pw_dofs, number_of_u_dofs, 0.0}), Defaults::absolute_tolerance)
-    KRATOS_EXPECT_MATRIX_NEAR(subrange(actual_left_hand_side, number_of_u_dofs, number_of_u_dofs + number_of_pw_dofs,
-                                       number_of_u_dofs, number_of_u_dofs + number_of_pw_dofs),
-                              (Matrix{number_of_pw_dofs, number_of_pw_dofs, 0.0}), Defaults::absolute_tolerance)
+        expected_uu_block_matrix, Defaults::relative_tolerance)
+    const auto expected_up_block_matrix = Matrix{number_of_u_dofs, number_of_pw_dofs, 0.0};
+    AssertUPBlockMatrixIsNear(actual_left_hand_side, expected_up_block_matrix, number_of_u_dofs, number_of_pw_dofs);
+    const auto expected_pu_block_matrix = Matrix{number_of_pw_dofs, number_of_u_dofs, 0.0};
+    AssertPUBlockMatrixIsNear(actual_left_hand_side, expected_pu_block_matrix, number_of_u_dofs, number_of_pw_dofs);
+    const auto expected_pp_block_matrix = Matrix{number_of_pw_dofs, number_of_pw_dofs, 0.0};
+    AssertPPBlockMatrixIsNear(actual_left_hand_side, expected_pp_block_matrix, number_of_u_dofs, number_of_pw_dofs);
 
-    auto expected_stiffness_force = Vector{number_of_u_dofs};
-    expected_stiffness_force <<= 0.333333, 0.833333, 0, 0, 0, 0, -0.333333, -0.833333, 0, -0.333333,
-        -0.833333, 0, 0, 0, 0, 0.333333, 0.833333, 0;
+    const auto expected_stiffness_force =
+        UblasUtilities::CreateVector({0.333333, 0.833333, 0, 0, 0, 0, -0.333333, -0.833333, 0,
+                                      -0.333333, -0.833333, 0, 0, 0, 0, 0.333333, 0.833333, 0});
     constexpr auto tolerance = 1e-5;
     KRATOS_EXPECT_VECTOR_NEAR(subrange(actual_right_hand_side, 0, 0 + number_of_u_dofs),
                               expected_stiffness_force, tolerance)
-    KRATOS_EXPECT_VECTOR_NEAR(subrange(actual_right_hand_side, number_of_u_dofs, number_of_u_dofs + number_of_pw_dofs),
-                              (Vector{number_of_pw_dofs, 0.0}), Defaults::absolute_tolerance)
+    const auto expected_p_block_vector = Vector{number_of_pw_dofs, 0.0};
+    AssertPBlockVectorIsNear(actual_right_hand_side, expected_p_block_vector, number_of_u_dofs, number_of_pw_dofs);
 }
 
 KRATOS_TEST_CASE_IN_SUITE(UPwTriangleInterfaceElement_CalculateRelativeDisplacementVector,
@@ -1494,10 +1444,10 @@ KRATOS_TEST_CASE_IN_SUITE(UPwTriangleInterfaceElement_6Plus6NodedElement_Returns
     ASSERT_EQ(actual_left_hand_side.size2(), number_of_u_dofs + number_of_pw_dofs);
     ASSERT_EQ(actual_right_hand_side.size(), number_of_u_dofs + number_of_pw_dofs);
 
-    auto expected_stiffness_matrix =
+    auto expected_uu_block_matrix =
         Matrix(number_of_u_dofs, number_of_u_dofs); // the values are taken from the element
     // clang-format off
-    expected_stiffness_matrix <<=
+    expected_uu_block_matrix <<=
     0.16431924882629123,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,-0.16431924882629123,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
     0,0.16431924882629123,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,-0.16431924882629123,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
     0,0,0.32863849765258246,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,-0.32863849765258246,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
@@ -1538,26 +1488,24 @@ KRATOS_TEST_CASE_IN_SUITE(UPwTriangleInterfaceElement_6Plus6NodedElement_Returns
 
     KRATOS_EXPECT_MATRIX_RELATIVE_NEAR(
         subrange(actual_left_hand_side, 0, 0 + number_of_u_dofs, 0, 0 + number_of_u_dofs),
-        expected_stiffness_matrix, Defaults::relative_tolerance)
-    KRATOS_EXPECT_MATRIX_NEAR(subrange(actual_left_hand_side, 0, 0 + number_of_u_dofs,
-                                       number_of_u_dofs, number_of_u_dofs + number_of_pw_dofs),
-                              (Matrix{number_of_u_dofs, number_of_pw_dofs, 0.0}), Defaults::absolute_tolerance)
-    KRATOS_EXPECT_MATRIX_NEAR(subrange(actual_left_hand_side, number_of_u_dofs,
-                                       number_of_u_dofs + number_of_pw_dofs, 0, 0 + number_of_u_dofs),
-                              (Matrix{number_of_pw_dofs, number_of_u_dofs, 0.0}), Defaults::absolute_tolerance)
-    KRATOS_EXPECT_MATRIX_NEAR(subrange(actual_left_hand_side, number_of_u_dofs, number_of_u_dofs + number_of_pw_dofs,
-                                       number_of_u_dofs, number_of_u_dofs + number_of_pw_dofs),
-                              (Matrix{number_of_pw_dofs, number_of_pw_dofs, 0.0}), Defaults::absolute_tolerance)
+        expected_uu_block_matrix, Defaults::relative_tolerance)
+    const auto expected_up_block_matrix = Matrix{number_of_u_dofs, number_of_pw_dofs, 0.0};
+    AssertUPBlockMatrixIsNear(actual_left_hand_side, expected_up_block_matrix, number_of_u_dofs, number_of_pw_dofs);
+    const auto expected_pu_block_matrix = Matrix{number_of_pw_dofs, number_of_u_dofs, 0.0};
+    AssertPUBlockMatrixIsNear(actual_left_hand_side, expected_pu_block_matrix, number_of_u_dofs, number_of_pw_dofs);
+    const auto expected_pp_block_matrix = Matrix{number_of_pw_dofs, number_of_pw_dofs, 0.0};
+    AssertPPBlockMatrixIsNear(actual_left_hand_side, expected_pp_block_matrix, number_of_u_dofs, number_of_pw_dofs);
 
-    auto expected_stiffness_force = Vector(number_of_u_dofs);
-    expected_stiffness_force <<= 0, 0, 0, 0, 0, 0, 0, 0, 0, -0.300469, -0.751174, 0, -0.300469,
-        -0.751174, 0, -0.300469, -0.751174, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0.300469, 0.751174, 0,
-        0.300469, 0.751174, 0, 0.300469, 0.751174, 0;
+    const auto expected_stiffness_force = UblasUtilities::CreateVector(
+        {0,         0,         0, 0,         0,         0, 0,         0,         0,
+         -0.300469, -0.751174, 0, -0.300469, -0.751174, 0, -0.300469, -0.751174, 0,
+         0,         0,         0, 0,         0,         0, 0,         0,         0,
+         0.300469,  0.751174,  0, 0.300469,  0.751174,  0, 0.300469,  0.751174,  0});
     constexpr auto tolerance = 1e-5;
     KRATOS_EXPECT_VECTOR_NEAR(subrange(actual_right_hand_side, 0, 0 + number_of_u_dofs),
                               expected_stiffness_force, tolerance)
-    KRATOS_EXPECT_VECTOR_NEAR(subrange(actual_right_hand_side, number_of_u_dofs, number_of_u_dofs + number_of_pw_dofs),
-                              (Vector{number_of_pw_dofs, 0.0}), Defaults::absolute_tolerance)
+    const auto expected_p_block_vector = Vector{number_of_pw_dofs, 0.0};
+    AssertPBlockVectorIsNear(actual_right_hand_side, expected_p_block_vector, number_of_u_dofs, number_of_pw_dofs);
 }
 
 KRATOS_TEST_CASE_IN_SUITE(UPwInterfaceElement_CheckThrowsWhenElementIsNotInitialized, KratosGeoMechanicsFastSuiteWithoutKernel)
@@ -1893,15 +1841,11 @@ KRATOS_TEST_CASE_IN_SUITE(ThreePlusThreeDiffOrderLineInterface_ReturnsExpectedLe
     interface_element.CalculateLocalSystem(actual_left_hand_side, actual_right_hand_side, ProcessInfo{});
 
     // Assert
-    constexpr auto number_of_u_dofs  = std::size_t{6 * 2};
-    constexpr auto number_of_pw_dofs = std::size_t{4};
-    ASSERT_EQ(actual_left_hand_side.size1(), number_of_u_dofs + number_of_pw_dofs);
-    ASSERT_EQ(actual_left_hand_side.size2(), number_of_u_dofs + number_of_pw_dofs);
-    ASSERT_EQ(actual_right_hand_side.size(), number_of_u_dofs + number_of_pw_dofs);
-
-    constexpr auto cs                        = shear_stiffness / 6.0;
-    constexpr auto cn                        = normal_stiffness / 6.0;
-    const auto     expected_stiffness_matrix = UblasUtilities::CreateMatrix(
+    constexpr auto number_of_u_dofs         = std::size_t{6 * 2};
+    constexpr auto number_of_pw_dofs        = std::size_t{4};
+    constexpr auto cs                       = shear_stiffness / 6.0;
+    constexpr auto cn                       = normal_stiffness / 6.0;
+    const auto     expected_uu_block_matrix = UblasUtilities::CreateMatrix(
         {{cs, 0.0, 0.0, 0.0, 0.0, 0.0, -cs, 0.0, 0.0, 0.0, 0.0, 0.0},
              {0.0, cn, 0.0, 0.0, 0.0, 0.0, 0.0, -cn, 0.0, 0.0, 0.0, 0.0},
              {0.0, 0.0, cs, 0.0, 0.0, 0.0, 0.0, 0.0, -cs, 0.0, 0.0, 0.0},
@@ -1914,26 +1858,19 @@ KRATOS_TEST_CASE_IN_SUITE(ThreePlusThreeDiffOrderLineInterface_ReturnsExpectedLe
              {0.0, 0.0, 0.0, -cn, 0.0, 0.0, 0.0, 0.0, 0.0, cn, 0.0, 0.0},
              {0.0, 0.0, 0.0, 0.0, -4.0 * cs, 0.0, 0.0, 0.0, 0.0, 0.0, 4.0 * cs, 0.0},
              {0.0, 0.0, 0.0, 0.0, 0.0, -4.0 * cn, 0.0, 0.0, 0.0, 0.0, 0.0, 4.0 * cn}});
+    const auto expected_up_block_matrix = Matrix{number_of_u_dofs, number_of_pw_dofs, 0.0};
+    const auto expected_pu_block_matrix = Matrix{number_of_pw_dofs, number_of_u_dofs, 0.0};
+    const auto expected_pp_block_matrix = Matrix{number_of_pw_dofs, number_of_pw_dofs, 0.0};
+    AssertLHSMatrixBlocksAreNear(actual_left_hand_side, expected_uu_block_matrix,
+                                 expected_up_block_matrix, expected_pu_block_matrix,
+                                 expected_pp_block_matrix, number_of_u_dofs, number_of_pw_dofs);
 
-    KRATOS_EXPECT_MATRIX_NEAR(subrange(actual_left_hand_side, 0, 0 + number_of_u_dofs, 0, 0 + number_of_u_dofs),
-                              expected_stiffness_matrix, Defaults::absolute_tolerance)
-    KRATOS_EXPECT_MATRIX_NEAR(subrange(actual_left_hand_side, 0, 0 + number_of_u_dofs,
-                                       number_of_u_dofs, number_of_u_dofs + number_of_pw_dofs),
-                              (Matrix{number_of_u_dofs, number_of_pw_dofs, 0.0}), Defaults::absolute_tolerance)
-    KRATOS_EXPECT_MATRIX_NEAR(subrange(actual_left_hand_side, number_of_u_dofs,
-                                       number_of_u_dofs + number_of_pw_dofs, 0, 0 + number_of_u_dofs),
-                              (Matrix{number_of_pw_dofs, number_of_u_dofs, 0.0}), Defaults::absolute_tolerance)
-    KRATOS_EXPECT_MATRIX_NEAR(subrange(actual_left_hand_side, number_of_u_dofs, number_of_u_dofs + number_of_pw_dofs,
-                                       number_of_u_dofs, number_of_u_dofs + number_of_pw_dofs),
-                              (Matrix{number_of_pw_dofs, number_of_pw_dofs, 0.0}), Defaults::absolute_tolerance)
-
-    const auto expected_stiffness_force = UblasUtilities::CreateVector(
+    const auto expected_u_block_vector = UblasUtilities::CreateVector(
         {1.0 / 3.0, 5.0 / 3.0, 1.0 / 3.0, 5.0 / 3.0, 4.0 / 3.0, 20.0 / 3.0, -1.0 / 3.0, -5.0 / 3.0,
          -1.0 / 3.0, -5.0 / 3.0, -4.0 / 3.0, -20.0 / 3.0});
-    KRATOS_EXPECT_VECTOR_NEAR(subrange(actual_right_hand_side, 0, 0 + number_of_u_dofs),
-                              expected_stiffness_force, Defaults::absolute_tolerance)
-    KRATOS_EXPECT_VECTOR_NEAR(subrange(actual_right_hand_side, number_of_u_dofs, number_of_u_dofs + number_of_pw_dofs),
-                              (Vector{number_of_pw_dofs, 0.0}), Defaults::absolute_tolerance)
+    const auto expected_p_block_vector = Vector{number_of_pw_dofs, 0.0};
+    AssertRHSVectorBlocksAreNear(actual_right_hand_side, expected_u_block_vector,
+                                 expected_p_block_vector, number_of_u_dofs, number_of_pw_dofs);
 }
 
 KRATOS_TEST_CASE_IN_SUITE(UPwDiffOrderTriangleInterfaceElement_6Plus6NodedElement_ReturnsExpectedLeftAndRightHandSide,
@@ -1986,7 +1923,7 @@ KRATOS_TEST_CASE_IN_SUITE(UPwDiffOrderTriangleInterfaceElement_6Plus6NodedElemen
     ASSERT_EQ(actual_right_hand_side.size(), number_of_u_dofs + number_of_pw_dofs);
 
     // clang-format off
-    const auto expected_stiffness_matrix = UblasUtilities::CreateMatrix(
+    const auto expected_uu_block_matrix = UblasUtilities::CreateMatrix(
         {{0.16431924882629123,  0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, -0.16431924882629123, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0},
          {0, 0.16431924882629123,  0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, -0.16431924882629123, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0},
          {0, 0, 0.32863849765258246,  0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, -0.32863849765258246, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0},
@@ -2027,27 +1964,24 @@ KRATOS_TEST_CASE_IN_SUITE(UPwDiffOrderTriangleInterfaceElement_6Plus6NodedElemen
 
     KRATOS_EXPECT_MATRIX_RELATIVE_NEAR(
         subrange(actual_left_hand_side, 0, 0 + number_of_u_dofs, 0, 0 + number_of_u_dofs),
-        expected_stiffness_matrix, Defaults::relative_tolerance)
-    KRATOS_EXPECT_MATRIX_NEAR(subrange(actual_left_hand_side, 0, 0 + number_of_u_dofs,
-                                       number_of_u_dofs, number_of_u_dofs + number_of_pw_dofs),
-                              (Matrix{number_of_u_dofs, number_of_pw_dofs, 0.0}), Defaults::absolute_tolerance)
-    KRATOS_EXPECT_MATRIX_NEAR(subrange(actual_left_hand_side, number_of_u_dofs,
-                                       number_of_u_dofs + number_of_pw_dofs, 0, 0 + number_of_u_dofs),
-                              (Matrix{number_of_pw_dofs, number_of_u_dofs, 0.0}), Defaults::absolute_tolerance)
-    KRATOS_EXPECT_MATRIX_NEAR(subrange(actual_left_hand_side, number_of_u_dofs, number_of_u_dofs + number_of_pw_dofs,
-                                       number_of_u_dofs, number_of_u_dofs + number_of_pw_dofs),
-                              (Matrix{number_of_pw_dofs, number_of_pw_dofs, 0.0}), Defaults::absolute_tolerance)
+        expected_uu_block_matrix, Defaults::relative_tolerance)
+    const auto expected_up_block_matrix = Matrix{number_of_u_dofs, number_of_pw_dofs, 0.0};
+    AssertUPBlockMatrixIsNear(actual_left_hand_side, expected_up_block_matrix, number_of_u_dofs, number_of_pw_dofs);
+    const auto expected_pu_block_matrix = Matrix{number_of_pw_dofs, number_of_u_dofs, 0.0};
+    AssertPUBlockMatrixIsNear(actual_left_hand_side, expected_pu_block_matrix, number_of_u_dofs, number_of_pw_dofs);
+    const auto expected_pp_block_matrix = Matrix{number_of_pw_dofs, number_of_pw_dofs, 0.0};
+    AssertPPBlockMatrixIsNear(actual_left_hand_side, expected_pp_block_matrix, number_of_u_dofs, number_of_pw_dofs);
 
-    auto expected_stiffness_force = UblasUtilities::CreateVector(
+    const auto expected_u_block_vector = UblasUtilities::CreateVector(
         {0.0328638,  0.0821596,  -0, 0.0328638,  0.0821596,  -0, 0.0328638,  0.0821596,  -0,
          0.300469,   0.751174,   -0, 0.300469,   0.751174,   -0, 0.300469,   0.751174,   -0,
          -0.0328638, -0.0821596, -0, -0.0328638, -0.0821596, -0, -0.0328638, -0.0821596, -0,
          -0.300469,  -0.751174,  -0, -0.300469,  -0.751174,  -0, -0.300469,  -0.751174,  -0});
     constexpr auto tolerance = 1e-5;
     KRATOS_EXPECT_VECTOR_NEAR(subrange(actual_right_hand_side, 0, 0 + number_of_u_dofs),
-                              expected_stiffness_force, tolerance)
-    KRATOS_EXPECT_VECTOR_NEAR(subrange(actual_right_hand_side, number_of_u_dofs, number_of_u_dofs + number_of_pw_dofs),
-                              (Vector{number_of_pw_dofs, 0.0}), Defaults::absolute_tolerance)
+                              expected_u_block_vector, tolerance)
+    const auto expected_p_block_vector = Vector{number_of_pw_dofs, 0.0};
+    AssertPBlockVectorIsNear(actual_right_hand_side, expected_p_block_vector, number_of_u_dofs, number_of_pw_dofs);
 }
 
 KRATOS_TEST_CASE_IN_SUITE(UPwDiffOrderQuadrilateraleInterfaceElement_8Plus8NodedElement_ReturnsExpectedLeftAndRightHandSide,
@@ -2105,7 +2039,7 @@ KRATOS_TEST_CASE_IN_SUITE(UPwDiffOrderQuadrilateraleInterfaceElement_8Plus8Noded
     ASSERT_EQ(actual_right_hand_side.size(), number_of_u_dofs + number_of_pw_dofs);
 
     // clang-format off
-    const auto expected_stiffness_matrix = UblasUtilities::CreateMatrix(
+    const auto expected_uu_block_matrix = UblasUtilities::CreateMatrix(
            {{0.39473684210526316,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,-0.39473684210526316,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0},
             {0,0.39473684210526316,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,-0.39473684210526316,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0},
             {0,0,0.78947368421052633,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,-0.78947368421052633,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0},
@@ -2158,18 +2092,15 @@ KRATOS_TEST_CASE_IN_SUITE(UPwDiffOrderQuadrilateraleInterfaceElement_8Plus8Noded
 
     KRATOS_EXPECT_MATRIX_RELATIVE_NEAR(
         subrange(actual_left_hand_side, 0, 0 + number_of_u_dofs, 0, 0 + number_of_u_dofs),
-        expected_stiffness_matrix, Defaults::relative_tolerance)
-    KRATOS_EXPECT_MATRIX_NEAR(subrange(actual_left_hand_side, 0, 0 + number_of_u_dofs,
-                                       number_of_u_dofs, number_of_u_dofs + number_of_pw_dofs),
-                              (Matrix{number_of_u_dofs, number_of_pw_dofs, 0.0}), Defaults::absolute_tolerance)
-    KRATOS_EXPECT_MATRIX_NEAR(subrange(actual_left_hand_side, number_of_u_dofs,
-                                       number_of_u_dofs + number_of_pw_dofs, 0, 0 + number_of_u_dofs),
-                              (Matrix{number_of_pw_dofs, number_of_u_dofs, 0.0}), Defaults::absolute_tolerance)
-    KRATOS_EXPECT_MATRIX_NEAR(subrange(actual_left_hand_side, number_of_u_dofs, number_of_u_dofs + number_of_pw_dofs,
-                                       number_of_u_dofs, number_of_u_dofs + number_of_pw_dofs),
-                              (Matrix{number_of_pw_dofs, number_of_pw_dofs, 0.0}), Defaults::absolute_tolerance)
+        expected_uu_block_matrix, Defaults::relative_tolerance)
+    const auto expected_up_block_matrix = Matrix{number_of_u_dofs, number_of_pw_dofs, 0.0};
+    AssertUPBlockMatrixIsNear(actual_left_hand_side, expected_up_block_matrix, number_of_u_dofs, number_of_pw_dofs);
+    const auto expected_pu_block_matrix = Matrix{number_of_pw_dofs, number_of_u_dofs, 0.0};
+    AssertPUBlockMatrixIsNear(actual_left_hand_side, expected_pu_block_matrix, number_of_u_dofs, number_of_pw_dofs);
+    const auto expected_pp_block_matrix = Matrix{number_of_pw_dofs, number_of_pw_dofs, 0.0};
+    AssertPPBlockMatrixIsNear(actual_left_hand_side, expected_pp_block_matrix, number_of_u_dofs, number_of_pw_dofs);
 
-    auto expected_stiffness_force = UblasUtilities::CreateVector(
+    const auto expected_u_block_vector = UblasUtilities::CreateVector(
         {0.0789474,  0.197368,   -0,        0.0789474,  0.197368,  -0,        0.0789474,  0.197368,
          -0,         0.0789474,  0.197368,  -0,         0.421053,  1.05263,   -0,         0.421053,
          1.05263,    -0,         0.421053,  1.05263,    -0,        0.421053,  1.05263,    -0,
@@ -2178,9 +2109,9 @@ KRATOS_TEST_CASE_IN_SUITE(UPwDiffOrderQuadrilateraleInterfaceElement_8Plus8Noded
          -1.05263,   -0,         -0.421053, -1.05263,   -0,        -0.421053, -1.05263,   -0});
     constexpr auto tolerance = 1e-5;
     KRATOS_EXPECT_VECTOR_NEAR(subrange(actual_right_hand_side, 0, 0 + number_of_u_dofs),
-                              expected_stiffness_force, tolerance)
-    KRATOS_EXPECT_VECTOR_NEAR(subrange(actual_right_hand_side, number_of_u_dofs, number_of_u_dofs + number_of_pw_dofs),
-                              (Vector{number_of_pw_dofs, 0.0}), Defaults::absolute_tolerance)
+                              expected_u_block_vector, tolerance)
+    const auto expected_p_block_vector = Vector{number_of_pw_dofs, 0.0};
+    AssertPBlockVectorIsNear(actual_right_hand_side, expected_p_block_vector, number_of_u_dofs, number_of_pw_dofs);
 }
 
 } // namespace Kratos::Testing
