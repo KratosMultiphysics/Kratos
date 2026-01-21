@@ -132,6 +132,26 @@ public:
     ///@{
 
     /**
+    * @brief Get a pointer to the linear operator.
+    * @return Pointer to the linear operator
+    */
+    virtual typename LinearOperatorType::Pointer GetLinearOperator()
+    {
+        KRATOS_ERROR_IF(!mpLinearOperator) << "Linear operator is not initialized." << std::endl;
+        return mpLinearOperator;
+    }
+
+    /**
+    * @brief Get a pointer to the linear operator.
+    * @return Pointer to the linear operator
+    */
+    virtual typename LinearOperatorType::Pointer GetLinearOperator() const
+    {
+        KRATOS_ERROR_IF(!mpLinearOperator) << "Linear operator is not initialized." << std::endl;
+        return mpLinearOperator;
+    }
+
+    /**
     * @brief Get a reference to the left-hand side matrix.
     * @return Reference to the left-hand side matrix
     */

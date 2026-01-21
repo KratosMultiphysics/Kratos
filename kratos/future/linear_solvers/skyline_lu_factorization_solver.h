@@ -539,7 +539,7 @@ public:
 
         // copy myMatrix into skyline format
         KRATOS_ERROR_IF(pLinearOperator->IsMatrixFree()) << "SkylineLUFactorizationSolver cannot be used with matrix-free linear operators." << std::endl;
-        const auto& r_A = pLinearOperator->template GetMatrix<CsrMatrixType>();
+        const auto& r_A = pLinearOperator->GetMatrix();
         myFactorization.copyFromCSRMatrix(r_A);
 
         // factorize it
@@ -570,7 +570,7 @@ public:
 
         // copy myMatrix into skyline format
         KRATOS_ERROR_IF(pLinearOperator->IsMatrixFree()) << "SkylineLUFactorizationSolver cannot be used with matrix-free linear operators." << std::endl;
-        const auto& r_A = pLinearOperator->template GetMatrix<CsrMatrixType>();
+        const auto& r_A = pLinearOperator->GetMatrix();
         myFactorization.copyFromCSRMatrix(r_A);
         // factorize it
         myFactorization.factorize();

@@ -54,6 +54,9 @@ public:
     /// Vector type definition from template parameter
     using VectorType = typename TLinearAlgebra::VectorType;
 
+    /// Matrix type definition from template parameter
+    using MatrixType = typename TLinearAlgebra::MatrixType;
+
     /// Data type stored in the system vector
     using DataType = typename VectorType::DataType;
 
@@ -141,6 +144,16 @@ public:
     ///@name Access
     ///@{
 
+    virtual MatrixType& GetMatrix()
+    {
+        KRATOS_ERROR << "GetMatrix() is not implemented in base LinearOperator class." << std::endl;
+    }
+
+    virtual const MatrixType& GetMatrix() const
+    {
+        KRATOS_ERROR << "GetMatrix() is not implemented in base LinearOperator class." << std::endl;
+    }
+
     /**
      * @brief Set the number of rows.
      * @param NumRows Number of rows
@@ -179,6 +192,15 @@ public:
     std::size_t NumCols() const
     {
         return mNumCols;
+    }
+
+    /**
+     * @brief Check if the operator is matrix-free.
+     * @return True if the operator is matrix-free, false otherwise
+     */
+    virtual bool IsMatrixFree() const
+    {
+        return true;
     }
 
     ///@}

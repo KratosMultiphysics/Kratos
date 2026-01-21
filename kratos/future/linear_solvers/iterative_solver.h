@@ -213,7 +213,7 @@ public:
     @param rX. Solution vector. it's also the initial guess for iterative linear solvers.
     @param rB. Right hand side vector.
     */
-    void FinalizeSolutionStep(TLinearSystem& rLinearSystem) override
+    void FinalizeSolutionStep(LinearSystem<TLinearAlgebra>& rLinearSystem) override
     {
         GetPreconditioner()->FinalizeSolutionStep(rLinearSystem);
     }
@@ -248,12 +248,15 @@ public:
      * This function is the place to eventually provide such data
      */
     void ProvideAdditionalData(
-        
+        LinearSystem<TLinearAlgebra>& rLinearSystem,
         typename ModelPart::DofsArrayType& rDofSet,
         ModelPart& rModelPart) override
     {
         if (GetPreconditioner()->AdditionalPhysicalDataIsNeeded()) {
-            GetPreconditioner()->ProvideAdditionalData(pLinearOperator,rX,rB,rDofSet,rModelPart);
+            auto p_lin_op = rLinearSystem.GetLinearOperator();
+            auto& r_X = rLinearSystem.GetSolutionVector();
+            auto& r_B = rLinearSystem.GetRightHandSideVector();
+            GetPreconditioner()->ProvideAdditionalData(p_lin_op, r_X, r_B, rDofSet, rModelPart);
         }
     }
 

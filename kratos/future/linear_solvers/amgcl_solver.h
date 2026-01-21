@@ -323,12 +323,12 @@ public:
      * @param rB Right hand side vector.
      */
     bool Solve(
-        LinearOperatorPointerType pLinearOperatorType,
+        LinearOperatorPointerType pLinearOperator,
         VectorType& rX,
         VectorType& rB) override
     {
-        // Get CSR matrix from linear operator
-        auto& r_A = pLinearOperatorType->template GetMatrix<CsrMatrix<>>();
+        // Get CSR matrix from CSR matrix linear operator
+        auto& r_A = (*pLinearOperator).GetMatrix();
 
         // Initial checks
         KRATOS_ERROR_IF(r_A.size1() != r_A.size2()) << "matrix A is not square! sizes are " << r_A.size1() << " and " << r_A.size2() << std::endl;
@@ -491,7 +491,8 @@ public:
         typename ModelPart::DofsArrayType& rDofSet,
         ModelPart& rModelPart) override
     {
-        const auto& r_A = pLinearOperator->template GetMatrix<CsrMatrix<>>();
+        // Get CSR matrix from CSR matrix linear operator
+        auto& r_A = (*pLinearOperator).GetMatrix();
 
         int old_ndof = -1;
         int ndof=0;

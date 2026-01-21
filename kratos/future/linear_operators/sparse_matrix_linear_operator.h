@@ -76,8 +76,8 @@ public:
      */
     SparseMatrixLinearOperator(MatrixType& rA)
         : LinearOperator<TLinearAlgebra>()
+        , mrCsrMatrix(rA)
     {
-        mrCsrMatrix = rA;
         this->SetNumRows(rA.size1());
         this->SetNumCols(rA.size2());
     }
@@ -123,12 +123,12 @@ public:
     ///@name Access
     ///@{
 
-    MatrixType& GetMatrix()
+    MatrixType& GetMatrix() override
     {
         return mrCsrMatrix;
     }
 
-    const MatrixType& GetMatrix() const
+    const MatrixType& GetMatrix() const override
     {
         return mrCsrMatrix;
     }
@@ -143,11 +143,15 @@ public:
     }
 
     ///@}
-private:
+    private:
 
-    /// Reference to the CSR matrix (of type MatrixType& handled as std::any)
+    ///@name Member Variables
+    ///@{
+
+    /// Reference to the CSR matrix
     MatrixType& mrCsrMatrix;
 
+    ///@}
 }; // class SparseMatrixLinearOperator
 
 ///@}

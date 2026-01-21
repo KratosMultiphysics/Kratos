@@ -20,6 +20,7 @@
 // Project includes
 #include "containers/csr_matrix.h"
 #include "future/containers/define_linear_algebra_serial.h"
+#include "future/containers/linear_system.h"
 #include "includes/model_part.h"
 #include "future/linear_operators/sparse_matrix_linear_operator.h"
 
@@ -74,8 +75,8 @@ public:
     /// Vector type definition from linear algebra template parameter
     using VectorType = typename TLinearAlgebra::VectorType;
 
-    /// Multiple vector type definition from linear algebra template parameter
-    using MultipleVectorType = typename TLinearAlgebra::MultipleVectorType;
+    /// Dense matrix type definition from linear algebra template parameter used for multi-solve and eigenvector storage
+    using DenseMatrixType = typename TLinearAlgebra::DenseMatrixType;
 
     /// Type definition for data
     using DataType = typename VectorType::DataType;
@@ -115,7 +116,10 @@ public:
      * @details It creates the data structures that only depend on the connectivity of the matrix (and not on its coefficients) so that the memory can be allocated once and expensive operations can be done only when strictly  needed
      * @param rLinearSystem The linear system to be solved
      */
-    virtual void Initialize(LinearSystem<TLinearAlgebra>& rLinearSystem)
+    virtual void Initialize(
+        LinearOperatorPointerType pLinearOperator,
+        VectorType& rX,
+        VectorType& rB)
     {
     }
 
@@ -124,7 +128,10 @@ public:
      * @details For example if we are implementing a direct solver, this is the place to do the factorization so that then the backward substitution can be performed effectively more than once
      * @param rLinearSystem The linear system to be solved
      */
-    virtual void InitializeSolutionStep(LinearSystem<TLinearAlgebra>& rLinearSystem)
+    virtual void InitializeSolutionStep(
+        LinearOperatorPointerType pLinearOperator,
+        VectorType& rX,
+        VectorType& rB)
     {
     }
 
@@ -133,7 +140,10 @@ public:
      * @param rLinearSystem The linear system to be solved.
      * @return @p true if the provided system was solved successfully satisfying the given requirements, @p false otherwise.
      */
-    virtual bool PerformSolutionStep(LinearSystem<TLinearAlgebra>& rLinearSystem)
+    virtual bool PerformSolutionStep(
+        LinearOperatorPointerType pLinearOperator,
+        VectorType& rX,
+        VectorType& rB)
     {
         KRATOS_ERROR << "Calling linear solver base class" << std::endl;
         return false;
@@ -144,7 +154,10 @@ public:
      * @details for example this is the place to remove any data that we do not want to save for later
      * @param rLinearSystem The linear system to be solved.
      */
-    virtual void FinalizeSolutionStep(LinearSystem<TLinearAlgebra>& rLinearSystem)
+    virtual void FinalizeSolutionStep(
+        LinearOperatorPointerType pLinearOperator,
+        VectorType& rX,
+        VectorType& rB)
     {
     }
 
@@ -163,12 +176,15 @@ public:
      * @return true if the system was solved successfully, false otherwise
      */
     KRATOS_DEPRECATED_MESSAGE("This is deprecated (use the InitializeSolutionStep, PerformSolutionStep, FinalizeSolutionStep and Clear sequence instead.)")
-    virtual bool Solve(LinearSystem<TLinearAlgebra>& rLinearSystem)
+    virtual bool Solve(
+        LinearOperatorPointerType pLinearOperator,
+        VectorType& rX,
+        VectorType& rB)
     {
         KRATOS_WARNING("LinearSolver") << "Using the deprecated Solve method. Use the InitializeSolutionStep, PerformSolutionStep, FinalizeSolutionStep and Clear methods in sequence." << std::endl;
-        this->InitializeSolutionStep(rLinearSystem);
-        const auto status = this->PerformSolutionStep(rLinearSystem);
-        this->FinalizeSolutionStep(rLinearSystem);
+        this->InitializeSolutionStep(pLinearOperator, rX, rB);
+        const auto status = this->PerformSolutionStep(pLinearOperator, rX, rB);
+        this->FinalizeSolutionStep(pLinearOperator, rX, rB);
         this->Clear();
         return status;
     }
@@ -183,8 +199,8 @@ public:
      */
     virtual bool Solve(
         LinearOperatorPointerType pLinearOperator,
-        MultipleVectorType& rX,
-        MultipleVectorType& rB)
+        DenseMatrixType& rX,
+        DenseMatrixType& rB)
     {
         KRATOS_ERROR << "Calling linear solver base class" << std::endl;
         return false;
@@ -201,7 +217,7 @@ public:
         LinearOperatorPointerType pLinearOperatorK,
         LinearOperatorPointerType pLinearOperatorM,
         VectorType& Eigenvalues,
-        MultipleVectorType& Eigenvectors)
+        DenseMatrixType& Eigenvectors)
     {
         KRATOS_ERROR << "Calling linear solver base class" << std::endl;
     }
