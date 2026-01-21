@@ -7,7 +7,7 @@
 //  License:         BSD License
 //                     Kratos default license: kratos/IGAStructuralMechanicsApplication/license.txt
 //
-//  Main author:    Leonhard Rieder                 
+//  Main author:     Leonhard Rieder                 
 
 
 // System includes
@@ -314,6 +314,8 @@ namespace Kratos
     {
         // KRATOS_WATCH(GetGeometry())
         // KRATOS_WATCH(GetGeometry().GetGeometryParent(0))
+
+        // Read actuation DOFs from the parent-geometry actuation node (created by ActiveShellElementDofAssignmentProcess).
         const Node& r_active_shell_node = GetGeometry().GetGeometryParent(0).GetValue(ACTIVE_SHELL_NODE_GP)[0];
 
         mACTUATION_ALPHA = r_active_shell_node.FastGetSolutionStepValue(ACTIVE_SHELL_ALPHA);
@@ -346,23 +348,29 @@ namespace Kratos
 
         // definition of problem size
         const SizeType number_of_nodes = r_geometry.size();
-        const SizeType u = number_of_nodes * 3; // displacement dofs
-        const SizeType mat_size = u; // original system size
+        const SizeType mat_size_d = number_of_nodes * 3; // displacement dofs
+        const SizeType mat_size = mat_size_d; // original system size
         const auto& r_integration_points = r_geometry.IntegrationPoints();
 
-        VectorType r_1(u, 0.0), r_2(6, 0.0);
-        MatrixType r_1_u(u, u, 0.0), r_1_alpha(u, 6, 0), r_2_u(6, u, 0.0), r_2_alpha(6, 6, 0.0);
+        // Initialize left-hand side (LHS)
+        //    Stiffness matrix block for standard DOFs (d)
+        //    Coupling stiffness matrix between standard DOFs (d) and actuation DOFs (a)
+        //    Stiffness matrix block for actuation DOFs (a)
+        MatrixType k_dd(mat_size_d, mat_size_d, 0.0);
+        MatrixType k_da(mat_size_d, 6, 0.0);
+        MatrixType k_aa(6, 6, 0.0);
 
-        // === ColumnMatrix initialisieren ===
-        MatrixType k_act_col(u, 6, 0.0);
+        // Initialize right-hand side (RHS)
+        //    Internal residual vector for standard DOFs (d)
+        //    Internal residual vector contribution from actuation DOFs (a)
+        VectorType f_int_d(mat_size_d, 0.0);
+        VectorType f_int_a(6, 0.0);
 
-        // === DiagonalMatrix initialisieren ===
-        MatrixType k_act_diag(6, 6, 0.0);
-
-        // === Aktuierter Load-Vector initialisieren ===
-        VectorType f_int_act(6, 0.0);
+        // KRATOS_WATCH(r_integration_points.size()); CKECKLEO
+        // int counter = 0;
 
         for (IndexType point_number = 0; point_number < r_integration_points.size(); ++point_number) {
+            // counter++;CHECKLEO
             // Compute Kinematics and Metric
             KinematicVariables kinematic_variables(
                 GetGeometry().WorkingSpaceDimension());
@@ -409,8 +417,6 @@ namespace Kratos
                 second_variations_curvature,
                 kinematic_variables);
 
-            // Nonlinear actuation Part - Initial stress stiffness integrand CHECKLEO
-            // === Aktuierter Load-Vector initialisieren ===
             std::vector<Matrix> second_variation_actuated_strain(3, ZeroMatrix(6,6));
             CalculateSecondVariationActuatedStrain(
                 point_number, 
@@ -425,42 +431,42 @@ namespace Kratos
             // LEFT HAND SIDE MATRIX
             if (CalculateStiffnessMatrixFlag == true)
             {
-                //adding membrane contributions to the stiffness matrix
+                // adding membrane contributions to the stiffness matrix
                 CalculateAndAddKm(
-                    r_1_u,
+                    k_dd,
                     BMembrane,
                     constitutive_variables_membrane.ConstitutiveMatrix,
                     integration_weight);
-                //adding curvature contributions to the stiffness matrix
+                // adding curvature contributions to the stiffness matrix
                 CalculateAndAddKm(
-                    r_1_u,
+                    k_dd,
                     BCurvature,
                     constitutive_variables_curvature.ConstitutiveMatrix,
                     integration_weight);
 
                 // adding  non-linear-contribution to Stiffness-Matrix
                 CalculateAndAddNonlinearKm(
-                    r_1_u,
+                    k_dd,
                     second_variations_strain,
                     constitutive_variables_membrane.StressVector,
                     integration_weight);
 
-                CalculateAndAddNonlinearKm(r_1_u,
+                CalculateAndAddNonlinearKm(k_dd,
                     second_variations_curvature,
                     constitutive_variables_curvature.StressVector,
                     integration_weight);
             
-                // === ColumnMatrix berechnen und ABZIEHEN ===
-                // k_act_col -= B^T * D * B_act * weight (membrane and curvature blocks)
+                // adding actuation contributions membrane and curvature to coupling matrix k_da
+                // k_da -= B^T * D * B_act * weight (membrane and curvature blocks)
                 Matrix D_times_B_act_membrane = prod(constitutive_variables_membrane.ConstitutiveMatrix, ActuatedBMembrane);
                 Matrix D_times_B_act_curvature = prod(constitutive_variables_curvature.ConstitutiveMatrix, ActuatedBCurvature);
 
-                noalias(k_act_col) += integration_weight * prod(trans(BMembrane), D_times_B_act_membrane);
-                noalias(k_act_col) += integration_weight * prod(trans(BCurvature), D_times_B_act_curvature);
+                noalias(k_da) += integration_weight * prod(trans(BMembrane), D_times_B_act_membrane);
+                noalias(k_da) += integration_weight * prod(trans(BCurvature), D_times_B_act_curvature);
                 
-                // === DiagonalMatrix berechnen und hinzufügen ===
-                CalculateActuationDiagonalMatrix(
-                    k_act_diag,
+                // adding actuation contributions membrane and curvature to actuation diagonal matrix k_aa 
+                CalculateActuationStiffnessMatrix(
+                    k_aa,
                     second_variation_actuated_strain,
                     constitutive_variables_membrane.StressVector,
                     ActuatedBMembrane,
@@ -473,11 +479,11 @@ namespace Kratos
             //Output Block for Unit Test stiffness matrix bart
 
             // KRATOS_WATCH(number_of_nodes)
-            // KRATOS_WATCH(u)
+            // KRATOS_WATCH(mat_size_d)
             // KRATOS_WATCH(mat_size)
             // KRATOS_WATCH(rLeftHandSideMatrix)
-            // KRATOS_WATCH(k_act_diag)
-            // KRATOS_WATCH(k_act_col)
+            // KRATOS_WATCH(k_aa)
+            // KRATOS_WATCH(k_da)
 
             //  std::cout << "================================================================================================" << std::endl;
             // std::cout << "UNIT TEST: ActiveShell3pElement::CalculateAll - Stiffness Matrix after contribution of the first Integration point" << std::endl;
@@ -487,17 +493,17 @@ namespace Kratos
             //     KRATOS_WATCH(r_integration_points[point_number][2]);
             // }
             // KRATOS_WATCH(r_integration_points[point_number].Weight());
-            // std::cout << "----Start Rechenwerte-----:" << std::endl;
-            // KRATOS_WATCH(constitutive_variables_membrane.ConstitutiveMatrix);
-            // KRATOS_WATCH(constitutive_variables_curvature.ConstitutiveMatrix);
-            // KRATOS_WATCH(constitutive_variables_membrane.StressVector);
-            // KRATOS_WATCH(constitutive_variables_curvature.StressVector);
+            // // std::cout << "----Start debug values-----:" << std::endl;
+            // // KRATOS_WATCH(constitutive_variables_membrane.ConstitutiveMatrix);
+            // // KRATOS_WATCH(constitutive_variables_curvature.ConstitutiveMatrix);
+            // // KRATOS_WATCH(constitutive_variables_membrane.StressVector);
+            // // KRATOS_WATCH(constitutive_variables_curvature.StressVector);
             // KRATOS_WATCH(BMembrane);
             // KRATOS_WATCH(BCurvature);
-            // KRATOS_WATCH(ActuatedBMembrane);
-            // KRATOS_WATCH(ActuatedBCurvature);
-            // KRATOS_WATCH(k_act_col);
-            // KRATOS_WATCH(k_act_diag);
+            // // KRATOS_WATCH(ActuatedBMembrane);
+            // // KRATOS_WATCH(ActuatedBCurvature);
+            // // KRATOS_WATCH(k_da);
+            // KRATOS_WATCH(k_aa);
 
             //KRATOS_ERROR << "UNIT TEST: stopped after contribution of the first Integration point" << std::endl;
             
@@ -512,63 +518,64 @@ namespace Kratos
                 // KRATOS_WATCH(constitutive_variables_membrane.StressVector)
                 // KRATOS_WATCH(rRightHandSideVector)
 
-                noalias(r_1) -= integration_weight * prod(trans(BMembrane), constitutive_variables_membrane.StressVector);
-                noalias(r_1) -= integration_weight * prod(trans(BCurvature), constitutive_variables_curvature.StressVector);
+                noalias(f_int_d) -= integration_weight * prod(trans(BMembrane), constitutive_variables_membrane.StressVector);
+                noalias(f_int_d) -= integration_weight * prod(trans(BCurvature), constitutive_variables_curvature.StressVector);
                 
                 
                 // Actuated contribution: add membrane and curvature actuator loads separately
                 Vector membrane_force = prod(trans(ActuatedBMembrane), constitutive_variables_membrane.StressVector);
                 Vector curvature_force = prod(trans(ActuatedBCurvature), constitutive_variables_curvature.StressVector);
 
-                noalias(f_int_act) -= integration_weight * membrane_force;
-                noalias(f_int_act) -= integration_weight * curvature_force;
+                noalias(f_int_a) -= integration_weight * membrane_force;
+                noalias(f_int_a) -= integration_weight * curvature_force;
                 
                 // KRATOS_WATCH(ActuatedBMembrane)
                 // KRATOS_WATCH(ActuatedBCurvature)
                 // KRATOS_WATCH(constitutive_variables_membrane.StressVector)
                 // KRATOS_WATCH(integration_weight)
-                // KRATOS_WATCH(f_int_act)
+                // KRATOS_WATCH(f_int_a)
             }
-            // KRATOS_WATCH(f_int_act);
-            // KRATOS_ERROR << "UNIT TEST: stopped after contribution of the first Integration point" << std::endl;
+            // KRATOS_WATCH(f_int_d);
+            // KRATOS_WATCH(f_int_a);
+            // if (counter == 2) KRATOS_ERROR << "UNIT TEST: stopped after Integration point:" << counter << std::endl;
         }
 
-        // Assembly of LHS with active components
+        // Assembly of LHS with active components from k_dd, k_da, k_aa
         if (CalculateStiffnessMatrixFlag == true) {
-            if (r_1_u.size1() != u + 6 || r_1_u.size2() != u + 6) {
+            if (k_dd.size1() != mat_size_d + 6 || k_dd.size2() != mat_size_d + 6) {
 
                 // Copy the existing matrix into the top-left block
-                for (SizeType i = 0; i < u; ++i)
-                    for (SizeType j = 0; j < u; ++j)
-                        rLeftHandSideMatrix(i, j) = r_1_u(i, j);
+                for (SizeType i = 0; i < mat_size_d; ++i)
+                    for (SizeType j = 0; j < mat_size_d; ++j)
+                        rLeftHandSideMatrix(i, j) = k_dd(i, j);
 
-                // Top-right block: k_act_col
-                for (SizeType i = 0; i < u; ++i)
+                // Top-right block: k_da
+                for (SizeType i = 0; i < mat_size_d; ++i)
                     for (SizeType j = 0; j < 6; ++j)
-                        rLeftHandSideMatrix(i, u + j) = k_act_col(i, j);
+                        rLeftHandSideMatrix(i, mat_size_d + j) = k_da(i, j);
                 
-                // Bottom-left block: k_act_col^T
+                // Bottom-left block: k_da^T
                 for (SizeType i = 0; i < 6; ++i)
-                    for (SizeType j = 0; j < u; ++j)
-                        rLeftHandSideMatrix(u + i, j) = k_act_col(j, i); // Transposed
+                    for (SizeType j = 0; j < mat_size_d; ++j)
+                        rLeftHandSideMatrix(mat_size_d + i, j) = k_da(j, i); // Transposed
 
-                // Bottom-right block: k_act_diag
+                // Bottom-right block: k_aa
                 for (SizeType i = 0; i < 6; ++i)
                     for (SizeType j = 0; j < 6; ++j)
-                        rLeftHandSideMatrix(u + i, u + j) = k_act_diag(i, j);
+                        rLeftHandSideMatrix(mat_size_d + i, mat_size_d + j) = k_aa(i, j);
             }
         }
 
         // Assembly of RHS with active components
         if (CalculateResidualVectorFlag == true) {
-            if (r_1.size() != u + 6) {
+            if (f_int_d.size() != mat_size_d + 6) {
 
-                for (SizeType i = 0; i < u; ++i)
-                    rRightHandSideVector[i] = r_1[i];
+                for (SizeType i = 0; i < mat_size_d; ++i)
+                    rRightHandSideVector[i] = f_int_d[i];
 
                 // Bottom entries: insert actuated RHS
                 for (SizeType i = 0; i < 6; ++i)
-                    rRightHandSideVector[u + i] = f_int_act[i];
+                    rRightHandSideVector[mat_size_d + i] = f_int_a[i];
             }
         }
 
@@ -703,7 +710,7 @@ namespace Kratos
         //base vector 3 normalized
         noalias(rKinematicVariables.a3) = rKinematicVariables.a3_tilde / rKinematicVariables.dA;
 
-        //GetCovariantMetric  /CHECKLEO Meric ab= [a1a1, a2a2, a1a2]
+        // Covariant metric coefficients a_ab = [a1·a1, a2·a2, a1·a2]
         rKinematicVariables.a_ab_covariant[0] = pow(rKinematicVariables.a1[0], 2) + pow(rKinematicVariables.a1[1], 2) + pow(rKinematicVariables.a1[2], 2);
         rKinematicVariables.a_ab_covariant[1] = pow(rKinematicVariables.a2[0], 2) + pow(rKinematicVariables.a2[1], 2) + pow(rKinematicVariables.a2[2], 2);
         rKinematicVariables.a_ab_covariant[2] = rKinematicVariables.a1[0] * rKinematicVariables.a2[0] + rKinematicVariables.a1[1] * rKinematicVariables.a2[1] + rKinematicVariables.a1[2] * rKinematicVariables.a2[2];
@@ -822,7 +829,7 @@ namespace Kratos
         rTCovToCar(2, 2) = G_00 * G_11;
     }
 
-    //CHECKLEO Constitutive Variables with actuation
+    // Constitutive variables including the actuation contribution
     void ActiveShell3pElement::CalculateConstitutiveVariables(
         const IndexType IntegrationPointIndex,
         KinematicVariables& rActualKinematic,
@@ -836,25 +843,25 @@ namespace Kratos
         rValues.GetOptions().Set(ConstitutiveLaw::COMPUTE_STRESS);
         rValues.GetOptions().Set(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR);
 
-        //Strain - Membrane Part
+        // Strain - membrane part
         array_1d<double, 3> total_strain_vector = 0.5 * (rActualKinematic.a_ab_covariant - m_A_ab_covariant_vector[IntegrationPointIndex]);
 
         array_1d<double, 3> actuated_strain_vector;   
-        //CHECKLEO strain part -> Vektor (E11,E22;E12)
+        //  actuation strain contribution in curvilinear components (E11, E22, E12)
         actuated_strain_vector[0] = (mACTUATION_ALPHA + 0.5 * std::pow(mACTUATION_ALPHA, 2)) * m_A_ab_covariant_vector[IntegrationPointIndex][0];
         actuated_strain_vector[1] = (mACTUATION_BETA + 0.5 * std::pow(mACTUATION_BETA, 2)) * m_A_ab_covariant_vector[IntegrationPointIndex][1]; 
         actuated_strain_vector[2] = 0.5 * (mACTUATION_ALPHA + mACTUATION_BETA + mACTUATION_ALPHA*mACTUATION_BETA) * m_A_ab_covariant_vector[IntegrationPointIndex][2];
-        //shear part
+        //  shear part
         actuated_strain_vector[2] += 0.5 * (m_A_ab_covariant_vector[IntegrationPointIndex][2] * cos(mACTUATION_GAMMA) + m_dA_vector[IntegrationPointIndex] * sin(mACTUATION_GAMMA) - m_A_ab_covariant_vector[IntegrationPointIndex][2] );
         
         array_1d<double, 3> strain_vector = total_strain_vector - actuated_strain_vector;
         noalias(rThisConstitutiveVariablesMembrane.StrainVector) = prod(m_T_vector[IntegrationPointIndex], strain_vector);
 
-        // Strain - Curvature Part
+        // Strain - curvature part
         array_1d<double, 3> total_curvature_vector = rActualKinematic.b_ab_covariant - m_B_ab_covariant_vector[IntegrationPointIndex];
 
         array_1d<double, 3> actuated_curvature_vector;
-        actuated_curvature_vector[0] = mACTUATION_KAPPA_1;     //CHECK: multiplication with the zeta is covered by the preintegration 
+        actuated_curvature_vector[0] = mACTUATION_KAPPA_1;     //CHECKLEO: multiplication with the zeta is covered by the preintegration 
         actuated_curvature_vector[1] = mACTUATION_KAPPA_2;
         actuated_curvature_vector[2] = mACTUATION_KAPPA_12;
 
@@ -874,17 +881,17 @@ namespace Kratos
         // KRATOS_WATCH(rThisConstitutiveVariablesMembrane.StrainVector);
         // KRATOS_WATCH(rThisConstitutiveVariablesCurvature.StrainVector);
 
-        // Constitive Matrices DMembrane and DCurvature
+        // Constitutive matrices D_membrane and D_curvature
         rValues.SetStrainVector(rThisConstitutiveVariablesMembrane.StrainVector); //this is the input parameter
-        rValues.SetStressVector(rThisConstitutiveVariablesMembrane.StressVector); //this is an ouput parameter
-        rValues.SetConstitutiveMatrix(rThisConstitutiveVariablesMembrane.ConstitutiveMatrix); //this is an ouput parameter
+        rValues.SetStressVector(rThisConstitutiveVariablesMembrane.StressVector); // this is an output parameter
+        rValues.SetConstitutiveMatrix(rThisConstitutiveVariablesMembrane.ConstitutiveMatrix); // this is an output parameter
 
         mConstitutiveLawVector[IntegrationPointIndex]->CalculateMaterialResponse(rValues, ThisStressMeasure);
 
         double thickness = this->GetProperties().GetValue(THICKNESS);
         noalias(rThisConstitutiveVariablesCurvature.ConstitutiveMatrix) = rThisConstitutiveVariablesMembrane.ConstitutiveMatrix * (pow(thickness, 2) / 12);
 
-        //Local Cartesian Forces and Moments   //CHECKLEO S= C*(E-E_act)
+        // Local Cartesian forces and moments: S = C * (E - E_act)
         noalias(rThisConstitutiveVariablesMembrane.StressVector) = prod(
             trans(rThisConstitutiveVariablesMembrane.ConstitutiveMatrix), rThisConstitutiveVariablesMembrane.StrainVector);
         noalias(rThisConstitutiveVariablesCurvature.StressVector) = prod(
@@ -1158,13 +1165,12 @@ namespace Kratos
         }
     }
 
-    //CHECKLEO
     void ActiveShell3pElement::CalculateSecondVariationActuatedStrain(
         const IndexType IntegrationPointIndex,
-        std::vector<Matrix>& rSecondVariationActuatedStrain, // one 6x6 block per actuator direction
+        std::vector<Matrix>& rSecondVariationActuatedStrain, // one 6x6 block per strain component
         const KinematicVariables& rActualKinematic) const
     {
-    // rSecondVariationActuatedStrain stores 3 actuator blocks (each 6x6)
+        // rSecondVariationActuatedStrain stores 3 blocks (each 6x6 for the second derivative of the corresponding strain component)
         for (int i = 0; i < 3; ++i) {
             if (rSecondVariationActuatedStrain[i].size1() != 6 || rSecondVariationActuatedStrain[i].size2() != 6)
                 rSecondVariationActuatedStrain[i].resize(6, 6, false);
@@ -1259,7 +1265,7 @@ namespace Kratos
         }
     }
 
-    void ActiveShell3pElement::CalculateActuationDiagonalMatrix(
+    void ActiveShell3pElement::CalculateActuationStiffnessMatrix(
         MatrixType& rKActDiag,                    // 6x6 diagonal matrix (accumulated result)
         const std::vector<Matrix>& rSecondVariationActuatedStrain, // 3 tensors (6x6) from CalculateSecondVariationActuatedStrain
         const Vector& rMembraneStressVector,      // [S11, S22, S12] (Kratos ordering, membrane)
@@ -1874,7 +1880,7 @@ namespace Kratos
             rResult[index + 2] = GetGeometry()[i].GetDof(DISPLACEMENT_Z, pos + 2).EquationId();
         }
 
-        // Globale Aktivierungs-Dofs vom Hintergrund-Knoten
+        // Global actuation-dofs from the parent-geometry actuation node
         const NodeType& r_global_node = GetGeometry().GetGeometryParent(0).GetValue(ACTIVE_SHELL_NODE_GP)[0];
         IndexType offset = 3 * number_of_control_points;
         rResult[offset + 0] = r_global_node.GetDof(ACTIVE_SHELL_ALPHA).EquationId();
@@ -1906,7 +1912,7 @@ namespace Kratos
             rElementalDofList.push_back(GetGeometry()[i].pGetDof(DISPLACEMENT_Z));
         }
 
-        // add global actuation-Dofs from Global-Point:
+        // add global actuation-dofs from parent-geometry actuation node:
         const NodeType& r_global_node = GetGeometry().GetGeometryParent(0).GetValue(ACTIVE_SHELL_NODE_GP)[0];
         rElementalDofList.push_back(r_global_node.pGetDof(ACTIVE_SHELL_ALPHA));
         rElementalDofList.push_back(r_global_node.pGetDof(ACTIVE_SHELL_BETA));

@@ -36,25 +36,24 @@ ActiveShellElementDofAssignmentProcess::ActiveShellElementDofAssignmentProcess(
     mUnfixedActuationList = ThisParameters["unfixed_actuation_list"].GetStringArray();    
 
 
-    // Security: Check consitency of lists lengths
+    // Safety: Check consistency of list lengths
     if (mAppliedActuationList.size() != mAppliedActuationValue.size() ||
         mAppliedActuationList.size() != mUnfixedActuationList.size())
     {
         std::stringstream msg;
         msg << "ERROR in ActiveShellElementDofAssignmentProcess:\n"
-            << "Die Listen 'applied_actuation_list', 'applied_actuation_value' und 'unfixed_actuation_list' müssen gleich lang sein!\n"
-            << "Beispiel:\n"
+            << "The lists 'applied_actuation_list', 'applied_actuation_value', and 'unfixed_actuation_list' must have equal length.\n"
+            << "example:\n"
             << "\"applied_actuation_list\": [\"alpha\", \"beta\", \"gamma\"],\n"
             << "\"applied_actuation_value\": [0.5, 0.0, 0.0],\n"
             << "\"unfixed_actuation_list\": [\"fix\", \"free\", \"fix\"]\n"
-            << "Aktuelle Längen: "
             << mAppliedActuationList.size() << ", "
             << mAppliedActuationValue.size() << ", "
             << mUnfixedActuationList.size() << std::endl;
         KRATOS_ERROR << msg.str();
     }
 
-    // Security: Allowed keys
+    // Safety: Allowed keys
     static const std::set<std::string> allowed_keys = {
         "alpha", "beta", "gamma", "kappa_1", "kappa_2", "kappa_12"
     };
@@ -63,7 +62,7 @@ ActiveShellElementDofAssignmentProcess::ActiveShellElementDofAssignmentProcess(
             << "Invalid actuation key: " << key << ". Allowed: alpha, beta, gamma, kappa_1, kappa_2, kappa_12\n";
     }
 
-    // Security: Only "fix" oder "free" allowed
+    // Safety: Only "fix" or "free" allowed
     for (const auto& flag : mUnfixedActuationList) {
         KRATOS_ERROR_IF(flag != "fix" && flag != "free")
             << "Invalid entry in 'unfixed_actuation_list': " << flag << ". Allowed: \"fix\" or \"free\"\n";
@@ -81,11 +80,13 @@ void ActiveShellElementDofAssignmentProcess::ExecuteInitialize()
 {
     KRATOS_TRY
 
+    // Get the model part containing the shell elements to be actuated.
     auto& r_iga_model_part = mrModel.GetModelPart(mIgaModelPartName); //actuation10
 
     KRATOS_ERROR_IF(mrModel.HasModelPart(mActiveShellDofModelPartName))
         << "Already have a model part named " << mActiveShellDofModelPartName << ".\n";
 
+    // Create the model part that will hold the generated actuation nodes.
     auto& r_active_shell_mp = mrModel.CreateModelPart(mActiveShellDofModelPartName); //__test10__
     r_active_shell_mp.AddNodalSolutionStepVariable(ACTIVE_SHELL_ALPHA);
     r_active_shell_mp.AddNodalSolutionStepVariable(ACTIVE_SHELL_BETA);
@@ -126,6 +127,7 @@ void ActiveShellElementDofAssignmentProcess::ExecuteInitialize()
     // KRATOS_INFO("Tag") << "Process info: " << this->Info() << std::endl; //CHECK LEO
     //exit(0);//CHECK LEO
 
+    // Assign the input values to the actuation variables.
     for (auto& r_element : r_iga_model_part.Elements()) {
         auto& r_geometry = r_element.GetGeometry().GetGeometryParent(0);
         //KRATOS_WATCH(r_element.GetGeometry().GetGeometryParent(0)) //CHECK LEO
@@ -194,7 +196,9 @@ void ActiveShellElementDofAssignmentProcess::ExecuteInitialize()
         }
     }
 
+    // Add actuation DOFs to the created nodes and optionally constrain them.
     for (auto& r_node : r_active_shell_mp.Nodes()) {
+        // Actuation DOFs
         r_node.AddDof(ACTIVE_SHELL_ALPHA, REACTION_ACTIVE_SHELL_ALPHA);
         r_node.AddDof(ACTIVE_SHELL_BETA, REACTION_ACTIVE_SHELL_BETA);
         r_node.AddDof(ACTIVE_SHELL_GAMMA, REACTION_ACTIVE_SHELL_GAMMA);
@@ -202,7 +206,7 @@ void ActiveShellElementDofAssignmentProcess::ExecuteInitialize()
         r_node.AddDof(ACTIVE_SHELL_KAPPA_2, REACTION_ACTIVE_SHELL_KAPPA_2);
         r_node.AddDof(ACTIVE_SHELL_KAPPA_12, REACTION_ACTIVE_SHELL_KAPPA_12);
 
-        // Adjoint DOFs
+        // Adjoint actuation DOFs
         r_node.AddDof(ADJOINT_ACTIVE_SHELL_ALPHA, ADJOINT_REACTION_ACTIVE_SHELL_ALPHA);
         r_node.AddDof(ADJOINT_ACTIVE_SHELL_BETA, ADJOINT_REACTION_ACTIVE_SHELL_BETA);
         r_node.AddDof(ADJOINT_ACTIVE_SHELL_GAMMA, ADJOINT_REACTION_ACTIVE_SHELL_GAMMA);
@@ -210,7 +214,7 @@ void ActiveShellElementDofAssignmentProcess::ExecuteInitialize()
         r_node.AddDof(ADJOINT_ACTIVE_SHELL_KAPPA_2, ADJOINT_REACTION_ACTIVE_SHELL_KAPPA_2);
         r_node.AddDof(ADJOINT_ACTIVE_SHELL_KAPPA_12, ADJOINT_REACTION_ACTIVE_SHELL_KAPPA_12);
 
-        // Überprüfe die Werte der Dofs
+        // Check actuation dof values
         KRATOS_WATCH(r_node.FastGetSolutionStepValue(ACTIVE_SHELL_ALPHA));
         KRATOS_WATCH(r_node.FastGetSolutionStepValue(ACTIVE_SHELL_BETA));
         KRATOS_WATCH(r_node.FastGetSolutionStepValue(ACTIVE_SHELL_GAMMA));
@@ -218,7 +222,7 @@ void ActiveShellElementDofAssignmentProcess::ExecuteInitialize()
         KRATOS_WATCH(r_node.FastGetSolutionStepValue(ACTIVE_SHELL_KAPPA_2));
         KRATOS_WATCH(r_node.FastGetSolutionStepValue(ACTIVE_SHELL_KAPPA_12));
 
-        // Fixiere die DOFs nur, wenn nicht "free" angegeben ist
+        // Fix actuation DOFs by default (Dirichlet). Keep them free only if explicitly marked as "free".
         for (std::size_t i = 0; i < mAppliedActuationList.size(); ++i) {
             const std::string& dof_name = mAppliedActuationList[i];
             const std::string& fix_flag = mUnfixedActuationList[i];

@@ -46,12 +46,26 @@ namespace Kratos
 ///@name Kratos Classes
 ///@{
 
-/** \brief AdjointFiniteDifferencingBaseElement
+/**
+ * @brief Finite-difference adjoint wrapper for active-shell designs (ActiveAdjointFiniteDifferencingBaseElement)
  *
- * This element a wrapper for a primal element to calculate element derivatives using
- * finite differencing  (adjoint semi analytic approach). It is designed to be used in adjoint
- * sensitivity analysis
+ * @details This element wraps a primal element of type `TPrimalElement` and computes design
+ *          sensitivities via finite differences (semi-analytic adjoint approach). Most element
+ *          operations are delegated to the wrapped primal element.
+ *
+ * @par Key extensions w.r.t. @ref AdjointFiniteDifferencingBaseElement
+ * - Extends the DOF layout by appending adjoint actuation DOFs stored on the parent-geometry
+ *   actuation node (`ACTIVE_SHELL_NODE_GP`) in `EquationIdVector`, `GetDofList`, and `GetValuesVector`.
+ * - Adds finite-difference pseudo-load contributions w.r.t. the active shell actuation variables
+ *   (`ACTIVE_SHELL_ALPHA/BETA/GAMMA/KAPPA_1/KAPPA_2/KAPPA_12`) in `CalculateSensitivityMatrix`.
+ *
+ * @tparam TPrimalElement Primal element type being wrapped (e.g. `ActiveShell3pElement`).
+ *
+ * @note This implementation is intended for Kirchhoff-Love shells and, in the active-shell use case,
+ *       typically uses translational DOFs only.
+ *            
  */
+
 template <typename TPrimalElement>
 class ActiveAdjointFiniteDifferencingBaseElement : public Element
 {
@@ -94,7 +108,8 @@ public:
     : Element(NewId, pGeometry, pProperties),
       mpPrimalElement(Kratos::make_intrusive<TPrimalElement>(NewId, pGeometry, pProperties)),
       mHasRotationDofs(HasRotationDofs)
-    {
+    {       
+            //CECKLEO was davon war schon da davor? lomplett neu nur klammern lassen
             KRATOS_WATCH(pGeometry);
             if (pGeometry) {
                 KRATOS_WATCH(pGeometry->PointsNumber());
@@ -126,7 +141,7 @@ public:
     ///@}
 
     ///@}
-    ///@name Informations
+    ///@name Information
     ///@{
 
     ///@name Operations
@@ -162,7 +177,7 @@ public:
 
     void Initialize(const ProcessInfo& rCurrentProcessInfo) override
     {
-        mpPrimalElement->SetProperties(pGetProperties());
+        mpPrimalElement->SetProperties(pGetProperties()); //CHECKLEO das ist neu -braucht man das?
         mpPrimalElement->Initialize(rCurrentProcessInfo);
     }
 
@@ -381,7 +396,7 @@ public:
     /**
      * Calculates the pseudo-load contribution of the element w.r.t. all properties which are available at the element.
      * This is done by finite differencing of the RHS of the primal element when perturbing a property value.
-     * This operation is thread-save, because the property pointer is exchanged by a local one before pertubation.
+        * This operation is thread-safe, because the property pointer is exchanged by a local one before perturbation.
      */
     void CalculateSensitivityMatrix(const Variable<double>& rDesignVariable, Matrix& rOutput,
                                             const ProcessInfo& rCurrentProcessInfo) override;
@@ -389,7 +404,7 @@ public:
     /**
      * Calculates the pseudo-load of the design variable SHAPE_SENSITIVITY (coordinates of nodes) contribution of the element.
      * This is done by finite differencing of the RHS of the primal element when perturbing a nodal coordinate.
-     * This operation is currently NOT thread-save!
+        * This operation is currently NOT thread-safe!
      */
     void CalculateSensitivityMatrix(const Variable<array_1d<double,3>>& rDesignVariable, Matrix& rOutput,
                                             const ProcessInfo& rCurrentProcessInfo) override;
@@ -402,13 +417,13 @@ public:
                                     Matrix& rOutput, const ProcessInfo& rCurrentProcessInfo);
     /**
      * Calculates the stress-design variable derivative of the given rStressVariable.
-     * this is done by finite differencing of the Calculate function of the primal element
+        * This is done by finite differencing of the Calculate function of the primal element.
      */
     void CalculateStressDesignVariableDerivative(const Variable<double>& rDesignVariable, const Variable<Vector>& rStressVariable,
                                         Matrix& rOutput, const ProcessInfo& rCurrentProcessInfo);
     /**
      * Calculates the stress-design variable derivative of the given rStressVariable.
-     * this is done by finite differencing of the Calculate function of the primal element
+        * This is done by finite differencing of the Calculate function of the primal element.
      */
     void CalculateStressDesignVariableDerivative(const Variable<array_1d<double,3>>& rDesignVariable,
                                             const Variable<Vector>& rStressVariable,
@@ -431,8 +446,8 @@ public:
     ///@}
 
 protected:
-    ///@name Property/Material Checks (SMA-like)
-    void CheckProperties(const ProcessInfo& rCurrentProcessInfo) const;
+    ///@name Property/Material Checks (SMA-like) //CHECKLEO das ist neu
+    void CheckProperties(const ProcessInfo& rCurrentProcessInfo) const; //CHECKLEO das ist neu
 
     ///@name Protected Lyfe Cycle
     ///@{
@@ -494,6 +509,7 @@ protected:
         KRATOS_CATCH("")
     }
 
+    //CHECKLEO das ist neu
     void PrintInfo(std::ostream& rOStream) const override
     {
         rOStream << Info() << std::endl;

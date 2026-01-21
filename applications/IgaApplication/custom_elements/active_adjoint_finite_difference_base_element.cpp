@@ -48,7 +48,7 @@ void CalculateOnIntegrationPoints(
         const auto& output_value = rAdjointElement.GetValue(rVariable);
 
         // Resize Output
-        const std::size_t gauss_points_number = rAdjointElement.GetGeometry().IntegrationPointsNumber(rAdjointElement.GetIntegrationMethod());
+        const std::size_t gauss_points_number = rAdjointElement.GetGeometry().IntegrationPointsNumber(rAdjointElement.GetIntegrationMethod()); //CHECKLEO neu
         if (rValues.size() != gauss_points_number) {
             rValues.resize(gauss_points_number);
         }
@@ -71,6 +71,7 @@ void ActiveAdjointFiniteDifferencingBaseElement<TPrimalElement>::EquationIdVecto
     const ProcessInfo& rCurrentProcessInfo) const
 {
     KRATOS_TRY
+    //CHECKLEO--
     // const GeometryType& geom = this->GetGeometry();
 
     // const SizeType number_of_nodes = geom.PointsNumber();
@@ -112,7 +113,8 @@ void ActiveAdjointFiniteDifferencingBaseElement<TPrimalElement>::EquationIdVecto
     // rResult[offset + 3] = r_global_node.GetDof(ADJOINT_ACTIVE_SHELL_KAPPA_1).EquationId();
     // rResult[offset + 4] = r_global_node.GetDof(ADJOINT_ACTIVE_SHELL_KAPPA_2).EquationId();
     // rResult[offset + 5] = r_global_node.GetDof(ADJOINT_ACTIVE_SHELL_KAPPA_12).EquationId();
-
+    //--CHECKLEO
+    //CHECKLEO neu
     const SizeType number_of_control_points = GetGeometry().size();
 
     if (rResult.size() != 3 * number_of_control_points + 6)
@@ -127,7 +129,7 @@ void ActiveAdjointFiniteDifferencingBaseElement<TPrimalElement>::EquationIdVecto
         rResult[index + 2] = GetGeometry()[i].GetDof(ADJOINT_DISPLACEMENT_Z, pos + 2).EquationId();
     }
 
-    // Globale Aktivierungs-Dofs vom Hintergrund-Knoten
+    // Global actuation-dofs from the parent-geometry actuation node
     const NodeType& r_global_node = GetGeometry().GetGeometryParent(0).GetValue(ACTIVE_SHELL_NODE_GP)[0];
     IndexType offset = 3 * number_of_control_points;
     rResult[offset + 0] = r_global_node.GetDof(ADJOINT_ACTIVE_SHELL_ALPHA).EquationId();
@@ -145,7 +147,7 @@ void ActiveAdjointFiniteDifferencingBaseElement<TPrimalElement>::GetDofList(Dofs
     const ProcessInfo& rCurrentProcessInfo) const
 {
     KRATOS_TRY
-
+    //CHECKLEO---
     // const GeometryType & geom = this->GetGeometry();
 
     // const SizeType number_of_nodes = geom.PointsNumber();
@@ -183,20 +185,21 @@ void ActiveAdjointFiniteDifferencingBaseElement<TPrimalElement>::GetDofList(Dofs
     // rElementalDofList.push_back(r_global_node.pGetDof(ADJOINT_ACTIVE_SHELL_KAPPA_1));
     // rElementalDofList.push_back(r_global_node.pGetDof(ADJOINT_ACTIVE_SHELL_KAPPA_2));
     // rElementalDofList.push_back(r_global_node.pGetDof(ADJOINT_ACTIVE_SHELL_KAPPA_12));
-
+    //--CHECKLEO
 
     const SizeType number_of_control_points = GetGeometry().size();
 
     rElementalDofList.resize(0);
     rElementalDofList.reserve(3 * number_of_control_points + 6);
 
+    // add adjoint displacements, but no rotations (-> Kirchhoff-Love shell theory)
     for (IndexType i = 0; i < number_of_control_points; ++i) {
         rElementalDofList.push_back(GetGeometry()[i].pGetDof(ADJOINT_DISPLACEMENT_X));
         rElementalDofList.push_back(GetGeometry()[i].pGetDof(ADJOINT_DISPLACEMENT_Y));
         rElementalDofList.push_back(GetGeometry()[i].pGetDof(ADJOINT_DISPLACEMENT_Z));
     }
 
-    // add global actuation-Dofs from Global-Point:
+    // add global actuation-dofs from parent-geometry actuation node:
     const NodeType& r_global_node = GetGeometry().GetGeometryParent(0).GetValue(ACTIVE_SHELL_NODE_GP)[0];
     rElementalDofList.push_back(r_global_node.pGetDof(ADJOINT_ACTIVE_SHELL_ALPHA));
     rElementalDofList.push_back(r_global_node.pGetDof(ADJOINT_ACTIVE_SHELL_BETA));
@@ -212,18 +215,20 @@ template <class TPrimalElement>
 void ActiveAdjointFiniteDifferencingBaseElement<TPrimalElement>::GetValuesVector(Vector& rValues, int Step) const
 {
     KRATOS_TRY
-
+    //CHECKLEO
     // const GeometryType & geom = this->GetGeometry();
 
     // const SizeType number_of_nodes = geom.PointsNumber();
     // const SizeType dimension =  geom.WorkingSpaceDimension();
     // const SizeType num_dofs_per_node = (mHasRotationDofs) ?  2 * dimension : dimension;
     // const SizeType num_dofs = number_of_nodes * num_dofs_per_node;
+    //--CHECKLEO
 
     const SizeType number_of_control_points = GetGeometry().size();
 
     rValues.resize(3 * number_of_control_points + 6);
 
+    // set values to adjoint displacements, but no rotations (-> Kirchhoff-Love shell theory)
     IndexType local_index = 0;
     for (IndexType i = 0; i < number_of_control_points; ++i) {
         rValues[local_index++] = GetGeometry()[i].FastGetSolutionStepValue(ADJOINT_DISPLACEMENT_X);
@@ -231,6 +236,7 @@ void ActiveAdjointFiniteDifferencingBaseElement<TPrimalElement>::GetValuesVector
         rValues[local_index++] = GetGeometry()[i].FastGetSolutionStepValue(ADJOINT_DISPLACEMENT_Z);
     }
 
+    //CHECKLEO set values for adjoint actuation dofs
     const NodeType& r_global_node = GetGeometry().GetGeometryParent(0).GetValue(ACTIVE_SHELL_NODE_GP)[0];
     rValues[local_index++] = r_global_node.FastGetSolutionStepValue(ADJOINT_ACTIVE_SHELL_ALPHA);
     rValues[local_index++] = r_global_node.FastGetSolutionStepValue(ADJOINT_ACTIVE_SHELL_BETA);
@@ -375,6 +381,7 @@ void ActiveAdjointFiniteDifferencingBaseElement<TPrimalElement>::CalculateOnInte
     AdjointFiniteDifferenceBaseElementHelperUtils::CalculateOnIntegrationPoints(*mpPrimalElement, *this, rVariable, rOutput, rCurrentProcessInfo);
 }
 
+//Temporarily commented out Check function to facilitate debugging. Re-enable once debugging is complete, (checking of rotations should be removed))
 // template <class TPrimalElement>
 // int ActiveAdjointFiniteDifferencingBaseElement<TPrimalElement>::Check(const ProcessInfo& rCurrentProcessInfo) const
 // {
@@ -413,8 +420,7 @@ void ActiveAdjointFiniteDifferencingBaseElement<TPrimalElement>::CalculateOnInte
 //     KRATOS_CATCH("")
 // }
 
-
-// Check-Override: ruft Property-Check auf
+// Check-Override: Reused Check() for property validation
 template <typename TPrimalElement>
 int ActiveAdjointFiniteDifferencingBaseElement<TPrimalElement>::Check(const ProcessInfo& rCurrentProcessInfo) const
 {
@@ -423,7 +429,8 @@ int ActiveAdjointFiniteDifferencingBaseElement<TPrimalElement>::Check(const Proc
     return return_value;
 }
 
-// Property/Material check analog zu SMA-Adjoint-Element
+// Property/material check analog to SMA-adjoint-element
+// introduced temporarily for debugging and to clarify property usage; it is no longer required. ToDo remove it safe
 template <typename TPrimalElement>
 void ActiveAdjointFiniteDifferencingBaseElement<TPrimalElement>::CheckProperties(const ProcessInfo& rCurrentProcessInfo) const
 {
@@ -493,6 +500,8 @@ void ActiveAdjointFiniteDifferencingBaseElement<TPrimalElement>::CalculateSensit
                 rOutput(i_node, i) = derived_RHS[i];
         }
     }
+
+    // FD derivative of primal RHS wrt global actuation variable on ACTIVE_SHELL_NODE_GP[0] (perturb +delta, recompute RHS, difference/ delta, restore).
     else if (
         rDesignVariable == ACTIVE_SHELL_ALPHA || 
         rDesignVariable == ACTIVE_SHELL_BETA || 
@@ -870,7 +879,7 @@ void ActiveAdjointFiniteDifferencingBaseElement<TPrimalElement>::load(Serializer
 
 }
 
-// template instantiations
+// template instantiations - other templates where removed (see adjoint-base element)
 template class ActiveAdjointFiniteDifferencingBaseElement<ActiveShell3pElement>;
 
 

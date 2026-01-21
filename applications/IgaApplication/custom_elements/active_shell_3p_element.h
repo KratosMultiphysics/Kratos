@@ -16,10 +16,29 @@ namespace Kratos
 {
 ///@name Kratos Classes
 ///@{
-/// Short class definition.
-/** Kirchhoff-Love Shell. Optimized for Isogeometric Analysis by Kiendl et al. .
-*/
-class KRATOS_API(IGA_APPLICATION) ActiveShell3pElement
+/**
+ * @class ActiveShell3pElement
+ * @ingroup IgaApplication
+ * @brief Kirchhoff-Love shell element with additional actuation DOFs.
+ * @details This element extends @ref Shell3pElement by introducing 6 actuation degrees of freedom
+ *          ($\alpha$, $\beta$, $\gamma$, $\kappa_1$, $\kappa_2$, $\kappa_{12}$) that prescribe an "active" strain/curvature
+ *          contribution.
+ *
+ *          The actuation DOFs live on an auxiliary actuation node stored in the parent geometry under
+ *          ACTIVE_SHELL_NODE_GP. The node and its DOFs are created by
+ *          @ref ActiveShellElementDofAssignmentProcess and read by the element in @ref InitializeActiveShellDofs.
+ *
+ *
+ * @par Key extensions compared to Shell3pElement
+ * - Initializes actuation variables via InitializeActiveShellDofs.
+ * - Adds 6 actuation DOFs and extends EquationIdVector and GetDofList accordingly.
+ * - Includes the actuation strain/curvature contribution in CalculateConstitutiveVariables.
+ * - Computes actuation B-operators in CalculateActuatedB.
+ * - Computes second variations w.r.t. actuation DOFs in CalculateSecondVariationActuatedStrain.
+ * - Assembles actuation stiffness contributions in CalculateActuationStiffnessMatrix.
+ * - Resizes and assembles the local LHS/RHS in CalculateAll.
+ */
+ class KRATOS_API(IGA_APPLICATION) ActiveShell3pElement
     : public Element
 {
 protected:
@@ -44,9 +63,9 @@ protected:
         double dA;
 
         /**
-        * The default constructor
-        * @param Dimension: The size of working space dimension
-        */
+         * @brief Default constructor to construct a new KinematicVariables object.
+         * @param Dimension Working space dimension.
+         */
         KinematicVariables(SizeType Dimension)
         {
             noalias(a_ab_covariant) = ZeroVector(Dimension);
@@ -72,8 +91,9 @@ protected:
         Matrix ConstitutiveMatrix;
 
         /**
-        * @param StrainSize: The size of the strain vector in Voigt notation
-        */
+         * @brief Construct a new ConstitutiveVariables object.
+         * @param StrainSize Strain vector size in Voigt notation.
+         */
         ConstitutiveVariables(SizeType StrainSize)
         {
             StrainVector = ZeroVector(StrainSize);
@@ -92,9 +112,9 @@ protected:
         Matrix B12;
 
         /**
-        * The default constructor
-        * @param StrainSize: The size of the strain vector in Voigt notation
-        */
+         * @brief Construct a new SecondVariations object.
+         * @param mat_size Number of element DOFs for the second-variation matrices.
+         */
         SecondVariations(const int& mat_size)
         {
             B11 = ZeroMatrix(mat_size, mat_size);
@@ -114,7 +134,7 @@ public:
     typedef std::size_t SizeType;
     typedef std::size_t IndexType;
 
-    // GometryType
+    // GeometryType
     typedef Geometry<Node> GeometryType;
 
     ///@}
@@ -210,7 +230,7 @@ public:
         const ProcessInfo& rCurrentProcessInfo) override
     {
         const SizeType number_of_nodes = GetGeometry().size();
-        const SizeType mat_size = number_of_nodes * 3 + 6;
+        const SizeType mat_size = number_of_nodes * 3 + 6; // +6 for the actuation dofs
 
         VectorType right_hand_side_vector;
 
@@ -251,7 +271,7 @@ public:
     }
 
     /**
-    * @brief This is called during the assembling process in order to calculate the elemental mass matrix
+    * @brief This is called during the assembling process in order to calculate the elemental mass matrix, but is deactivated for the active shell element
     * @param rMassMatrix The elemental mass matrix
     * @param rCurrentProcessInfo The current process info instance
     */
@@ -261,7 +281,7 @@ public:
     ) override;
 
     /**
-    * @brief This is called during the assembling process in order to calculate the elemental damping matrix
+    * @brief This is called during the assembling process in order to calculate the elemental damping matrix, but is deactivated for the active shell element
     * @param rDampingMatrix The elemental damping matrix
     * @param rCurrentProcessInfo The current process info instance
     */
@@ -441,12 +461,17 @@ private:
         Matrix& rB,
         const KinematicVariables& rActualKinematic) const;
 
-    //CKECKLEO funktions Beschreibung
+    /**
+     * @brief Computes the B-operators for the actuation DOFs.
+     * @details Fills membrane and curvature B-matrices (each $3\times6$) that map the actuation DOFs
+     *          ($\alpha$, $\beta$, $\gamma$, $\kappa_1$, $\kappa_2$, $\kappa_{12}$) to generalized strains
+     *          in the element's local Cartesian basis.
+     */
     void CalculateActuatedB(
-    const IndexType IntegrationPointIndex,
-    Matrix& rBMembrane,
-    Matrix& rBCurvature,
-    const KinematicVariables& rActualKinematic) const;
+        const IndexType IntegrationPointIndex,
+        Matrix& rBMembrane,
+        Matrix& rBCurvature,
+        const KinematicVariables& rActualKinematic) const;
 
     void CalculateSecondVariationStrainCurvature(
         const IndexType IntegrationPointIndex,
@@ -454,19 +479,29 @@ private:
         SecondVariations& rSecondVariationsCurvature,
         const KinematicVariables& rActualKinematic) const;
     
-    //CHECKLEO Funktionsbeschreibung
+    /**
+     * @brief Computes second variations of the actuation strain w.r.t. actuation DOFs.
+     * @details These second derivatives are used for assembling nonlinear contributions related to the
+     *          actuation DOFs.
+     */
     void CalculateSecondVariationActuatedStrain(
         const IndexType IntegrationPointIndex,
         std::vector<Matrix>& rSecondVariationActuatedStrain,
         const KinematicVariables& rActualKinematic) const;
 
     /**
-    * This functions updates the constitutive variables
-    * @param rActualMetric: The actual metric
-    * @param rThisConstitutiveVariables: The constitutive variables to be calculated
-    * @param rValues: The CL parameters
-    * @param ThisStressMeasure: The stress measure considered
-    */
+     * @brief This function updates membrane and curvature constitutive responses at one integration point including actuation.
+     * @details The membrane strain and curvature of the current configuration are modified by subtracting
+     *          the prescribed actuation contribution. The resulting strains are passed to the constitutive law
+     *          to compute stresses and constitutive tensors. The standard membrane/bending stiffness computation
+     *          (the $K_{dd}$ block) therefore remains structurally identical to @ref Shell3pElement.
+     * @param IntegrationPointIndex Local Gauss point element index.
+     * @param rActualMetric Surface kinematics (covariant metrics, base vectors) in place of the actual state.
+     * @param rThisConstitutiveVariablesMembrane Membrane strain/stresses container to fill.
+     * @param rThisConstitutiveVariablesCurvature Bending strain/stresses container to fill.
+     * @param rValues Constitutive law parameters (strain measures, material props).
+     * @param ThisStressMeasure Stress measure requested from the constitutive law.
+     */
     void CalculateConstitutiveVariables(
         const IndexType IntegrationPointIndex,
         KinematicVariables& rActualMetric,
@@ -505,7 +540,7 @@ private:
         const Vector& rSD,
         const double IntegrationWeight) const;
 
-    void CalculateActuationDiagonalMatrix(
+    void CalculateActuationStiffnessMatrix(
         MatrixType& rKActDiag,
         const std::vector<Matrix>& rSecondVariationActuatedStrain,
         const Vector& rMembraneStressVector,
@@ -580,6 +615,10 @@ private:
     ///@name Geometrical Functions
     ///@{
 
+    /**
+     * @brief Initializes the cached actuation parameter variables.
+     * @details Reads alpha, beta, gamma, kappa_1, kappa_2, and kappa_12 from the parent geometry's global point and stores them in the element-level member variables so they are available during assembly.
+     */
     void InitializeActiveShellDofs();
 
     void CalculateHessian(
