@@ -10,12 +10,12 @@
 //  Main authors:    Gennady Markelov
 //
 
-#include "custom_elements/U_Pw_small_strain_element.hpp"
+#include "custom_elements/U_Pw_small_strain_element.h"
 #include "custom_utilities/extrapolation_utilities.h"
 #include "custom_utilities/nodal_extrapolator.h"
 #include "custom_utilities/ublas_utilities.h"
 #include "includes/checks.h"
-#include "test_setup_utilities/element_setup_utilities.h"
+#include "test_setup_utilities/element_setup_utilities.hpp"
 #include "tests/cpp_tests/geo_mechanics_fast_suite.h"
 #include "tests/cpp_tests/test_utilities.h"
 
