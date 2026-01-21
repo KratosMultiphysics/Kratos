@@ -40,8 +40,7 @@ Vector CalculateDeterminantsOfJacobiansAtIntegrationPoints(const Geo::Integratio
                                                            const Geometry<Node>& rGeometry)
 {
     auto result = Vector(rIntegrationPoints.size());
-    std::transform(rIntegrationPoints.begin(), rIntegrationPoints.end(), result.begin(),
-                   [&rGeometry](const auto& rIntegrationPoint) {
+    std::ranges::transform(rIntegrationPoints, result.begin(), [&rGeometry](const auto& rIntegrationPoint) {
         return rGeometry.DeterminantOfJacobian(rIntegrationPoint);
     });
 
