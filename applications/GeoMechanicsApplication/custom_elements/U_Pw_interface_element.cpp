@@ -245,8 +245,7 @@ void UPwInterfaceElement::Calculate(const Variable<Vector>& rVariable, Vector& r
     const auto local_b_matrices = CalculateLocalBMatricesAtIntegrationPoints();
     const auto relative_displacements = CalculateRelativeDisplacementsAtIntegrationPoints(local_b_matrices);
     const auto tractions = CalculateTractionsAtIntegrationPoints(relative_displacements, rProcessInfo);
-    const auto     integration_coefficients = CalculateIntegrationCoefficients();
-    constexpr auto start_index              = 0;
+    const auto integration_coefficients = CalculateIntegrationCoefficients();
     if (rVariable == INTERNAL_FORCES_VECTOR) {
         GeoElementUtilities::AssignUBlockVector(
             rOutput, GeoEquationOfMotionUtilities::CalculateInternalForceVector(
