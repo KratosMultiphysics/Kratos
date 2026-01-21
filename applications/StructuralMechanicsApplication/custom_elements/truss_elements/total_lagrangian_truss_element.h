@@ -70,7 +70,9 @@ public:
     static constexpr SizeType Dimension   = TDimension;
     static constexpr SizeType DofsPerNode = TDimension;
     static constexpr SizeType SystemSize  = TDimension * 2;
-    using SystemSizeBoundedArrayType      = array_1d<double, SystemSize>;
+    using array_dim = array_1d<double, Dimension>;
+    using bounded_matrix_dim = BoundedMatrix<double, Dimension, Dimension>;
+    using SystemSizeBoundedArrayType = array_1d<double, SystemSize>;
 
     // Counted pointer of BaseSolidElement
     KRATOS_CLASS_INTRUSIVE_POINTER_DEFINITION(TotalLagrangianTrussElement);
