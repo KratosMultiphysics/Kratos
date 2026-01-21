@@ -71,11 +71,11 @@ std::vector<Matrix> CalculateConstitutiveMatricesAtIntegrationPoints(const std::
     return result;
 }
 
-Geo::OptionalGeometryUniquePtr MakeOptionalWaterPressureGeometry(const Geometry<Node>& rDisplacementGeometry,
-                                                                 IsDiffOrderElement IsDiffOrder)
+Geo::GeometryUniquePtr MakeOptionalWaterPressureGeometry(const Geometry<Node>& rDisplacementGeometry,
+                                                         IsDiffOrderElement IsDiffOrder)
 {
     // Create a water pressure geometry only if it differs from the displacement geometry
-    if (IsDiffOrder == IsDiffOrderElement::No) return std::nullopt;
+    if (IsDiffOrder == IsDiffOrderElement::No) return nullptr;
 
     KRATOS_DEBUG_ERROR_IF(rDisplacementGeometry.GetGeometryOrderType() != GeometryData::Kratos_Quadratic_Order) << "Only quadratic order interface elements can create a linear order pressure geometry. \n";
 
@@ -100,7 +100,7 @@ Geo::OptionalGeometryUniquePtr MakeOptionalWaterPressureGeometry(const Geometry<
 
     KRATOS_DEBUG_ERROR << "The specified geometry family is not supported for creating a water "
                           "pressure geometry.\n";
-    return std::nullopt; // required for release builds
+    return nullptr; // required for release builds
 }
 
 } // namespace
@@ -340,7 +340,7 @@ const Element::GeometryType& UPwInterfaceElement::GetDisplacementGeometry() cons
 
 const Element::GeometryType& UPwInterfaceElement::GetWaterPressureGeometry() const
 {
-    return mpOptionalPressureGeometry ? *(mpOptionalPressureGeometry.value()) : GetDisplacementGeometry();
+    return mpOptionalPressureGeometry ? *mpOptionalPressureGeometry : GetDisplacementGeometry();
 }
 
 std::size_t UPwInterfaceElement::NumberOfUDofs() const

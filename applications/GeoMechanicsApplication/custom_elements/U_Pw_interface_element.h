@@ -108,7 +108,7 @@ private:
     std::unique_ptr<StressStatePolicy>    mpStressStatePolicy;
     std::vector<ConstitutiveLaw::Pointer> mConstitutiveLaws;
     IntegrationCoefficientsCalculator     mIntegrationCoefficientsCalculator;
-    Geo::OptionalGeometryUniquePtr        mpOptionalPressureGeometry;
+    Geo::GeometryUniquePtr                mpOptionalPressureGeometry;
 
     friend class Serializer;
 };

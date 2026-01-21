@@ -14,7 +14,6 @@
 
 #include <functional>
 #include <memory>
-#include <optional>
 #include <vector>
 
 #include "containers/variable.h"
@@ -33,7 +32,6 @@ using IntegrationPointVectorType = std::vector<IntegrationPointType>;
 
 using KappaDependentFunction = std::function<double(double)>;
 
-using GeometryUniquePtr         = std::unique_ptr<Geometry<Node>>;
-using OptionalGeometryUniquePtr = std::optional<GeometryUniquePtr>;
+using GeometryUniquePtr = std::unique_ptr<Geometry<Node>>;
 
 } // namespace Kratos::Geo
