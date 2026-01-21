@@ -86,6 +86,7 @@ public:
             "skin_model_part_inner_initial_name" : "SkinModelPartInnerInitial",
             "skin_model_part_outer_initial_name" : "SkinModelPartOuterInitial",
             "skin_model_part_name" : "SkinModelPart",
+            "create_surr_outer_from_surr_inner": false,
             "echo_level" : 0,
             "lambda_inner" : 0.5,
             "lambda_outer" : 0.5,
@@ -100,7 +101,10 @@ protected:
     /**
     * @brief Creates the initial snake coordinates for 2D skin.
     */
-    void CreateTheSnakeCoordinates();
+    void CreateTheSnakeCoordinates(bool RemoveIslands = false);
+
+    // Helper to generate the outer-initial skin from the surrogate inner
+    void GenerateOuterInitialFromSurrogateInner();
 
     /**
      * @brief Create a The Snake Coordinates object
@@ -132,6 +136,7 @@ protected:
     double mLambdaOuter;
     std::size_t mNumberOfInnerLoops;
     int mNumberInitialPointsIfImportingNurbs;
+    bool mCreateSurrOuterFromSurrInner;
     ModelPart* mpIgaModelPart = nullptr; 
     ModelPart* mpSkinModelPartInnerInitial = nullptr; 
     ModelPart* mpSkinModelPartOuterInitial = nullptr; 
