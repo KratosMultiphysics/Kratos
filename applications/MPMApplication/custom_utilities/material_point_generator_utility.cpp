@@ -80,10 +80,8 @@ namespace Kratos::MaterialPointGeneratorUtility
                         material_points_per_element = i->GetProperties()[MATERIAL_POINTS_PER_ELEMENT];
                     }
                     else {
-                        std::string warning_msg = "MATERIAL_POINTS_PER_ELEMENT is not specified in Properties, ";
-                        warning_msg += "1 material point per element is assumed.";
-                        KRATOS_WARNING("MaterialPointGeneratorUtility") << warning_msg << std::endl;
-                        material_points_per_element = 1;
+                        std::string error_msg = "\"MATERIAL_POINTS_PER_ELEMENT\" is not specified in Properties";
+                        KRATOS_ERROR << error_msg << std::endl;
                     }
 
                     // Get geometry and dimension of the background grid
@@ -309,8 +307,9 @@ namespace Kratos::MaterialPointGeneratorUtility
                             material_points_per_condition = r_cond.GetValue(MATERIAL_POINTS_PER_CONDITION);
                         }
                         else{
-                            material_points_per_condition = 1;
-                            KRATOS_WARNING("MaterialPointGeneratorUtility") << "MATERIAL_POINTS_PER_CONDITION is not specified. Only one material point is assumed." << std::endl;
+                            std::string error_msg = "Variable \"MATERIAL_POINTS_PER_CONDITION\" is not specified ";
+                            error_msg += "for conditions of submodelpart \"" + submodelpart_name + "\".";
+                            KRATOS_ERROR << error_msg << std::endl;
                         }
 
                         // Get condition variables:
@@ -339,12 +338,12 @@ namespace Kratos::MaterialPointGeneratorUtility
                             {
                                 number_of_points_per_span = material_points_per_condition;
                                 std::vector<double> spans = {-1, 1};
-                                
+
                                 auto integration_info = IntegrationInfo(r_geometry.LocalSpaceDimension(), number_of_points_per_span, IntegrationInfo::QuadratureMethod::GRID);
 
                                 IntegrationPointUtilities::CreateIntegrationPoints1D(
                                             integration_points, spans, integration_info);
-                               
+
                             }
                             else{
                                 KRATOS_WARNING("MaterialPointGeneratorUtility") << "Equal distribution of material point conditions only available for line segments:  "  << std::endl;
@@ -393,9 +392,9 @@ namespace Kratos::MaterialPointGeneratorUtility
                                 const GeometryData::KratosGeometryType background_geo_type = rBackgroundGridModelPart.ElementsBegin()->GetGeometry().GetGeometryType();
                                 if(background_geo_type == GeometryData::KratosGeometryType::Kratos_Triangle2D3 || background_geo_type == GeometryData::KratosGeometryType::Kratos_Tetrahedra3D4)
                                     KRATOS_ERROR << "Lagrange multiplier condition is currently only suitable for quadrilateral/hexahedral elements. Boundary locking effect in case of triangular/tetrahedral background grid elements"  << std::endl;
-                            } 
+                            }
                             else if(boundary_condition_type==3)
-                                condition_type_name = "MPMParticleLagrangeDirichletCondition"; 
+                                condition_type_name = "MPMParticleLagrangeDirichletCondition";
                             else{
                                 KRATOS_ERROR << "boundary_condition_type in material_point_generator_utility.cpp is not correctly defined." << std::endl;
                             }
@@ -475,7 +474,7 @@ namespace Kratos::MaterialPointGeneratorUtility
                                 r_geometry.GlobalCoordinates(mpc_xg[0], local_coordinates);
 
                                 mpc_area[0] = integration_points[i_integration_point].Weight() * r_geometry.DeterminantOfJacobian(i_integration_point, integration_method);
-                                
+
                                 typename BinBasedFastPointLocator<TDimension>::ResultIteratorType result_begin = results.begin();
                                 Element::Pointer pelem;
                                 Vector N;
