@@ -23,7 +23,7 @@ class MPMWriteEnergyOutputProcess(KratosMultiphysics.OutputProcess):
         self.params = params
         self.params.ValidateAndAssignDefaults(self.GetDefaultParameters())
 
-        self.interval = KratosMultiphysics.IntervalUtility(params)
+        self.interval = KratosMultiphysics.IntervalUtility(self.params)
         self.output_file = None
         self.format = self.params["print_format"].GetString()
 
@@ -32,7 +32,7 @@ class MPMWriteEnergyOutputProcess(KratosMultiphysics.OutputProcess):
         if not self.model_part_name:
             raise Exception('No "model_part_name" was specified!')
         elif self.model_part_name.startswith('Background_Grid'):
-            self.model_part_name = self.full_model_part_name.replace('Background_Grid','MPM_Material')
+            self.model_part_name = self.model_part_name.replace('Background_Grid','MPM_Material')
 
     @staticmethod
     def GetDefaultParameters():
