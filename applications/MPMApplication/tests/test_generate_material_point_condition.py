@@ -82,141 +82,161 @@ class TestGenerateMaterialPointCondition(KratosUnittest.TestCase):
 
         KratosMultiphysics.VariableUtils().SetFlag(KratosMultiphysics.BOUNDARY, True, initial_mp.Conditions)
 
+    ###########################################################
     ## Point2D - automatic, 1, and default
-    def test_GenerateMaterialPointConditionConditionPoint2DAutomatic(self):
+
+    def test_GenerateMaterialPointConditionPoint2DAutomatic(self):
         current_model = KratosMultiphysics.Model()
         self._generate_material_point_condition_and_check(current_model, dimension=2, geometry_element="Point", num_material_points=0, expected_num_material_points=1)
 
-    def test_GenerateMaterialPointConditionConditionPoint2D1P(self):
+    def test_GenerateMaterialPointConditionPoint2D1P(self):
         current_model = KratosMultiphysics.Model()
         self._generate_material_point_condition_and_check(current_model, dimension=2, geometry_element="Point", num_material_points=1, expected_num_material_points=1)
 
-    def test_GenerateMaterialPointConditionConditionPoint2DDefault(self):
+    def test_GenerateMaterialPointConditionPoint2DDefault(self):
         current_model = KratosMultiphysics.Model()
         self._generate_material_point_condition_and_check(current_model, dimension=2, geometry_element="Point", num_material_points=50, expected_num_material_points=1)
 
-    ## Line2D - 1 and 2, 3, 4, 5, and default
-    @KratosUnittest.expectedFailure
-    def test_GenerateMaterialPointConditionConditionLine2DAutomatic(self):
-        current_model = KratosMultiphysics.Model()
-        self._generate_material_point_condition_and_check(current_model, dimension=2, geometry_element="Line", num_material_points=0, expected_num_material_points=1)
+    ###########################################################
+    ## Line2D - 1 and 2, 3, 4, 5, and wrong number
 
-    def test_GenerateMaterialPointConditionConditionLine2D1P(self):
+    def test_GenerateMaterialPointConditionLine2D1P(self):
         current_model = KratosMultiphysics.Model()
         self._generate_material_point_condition_and_check(current_model, dimension=2, geometry_element="Line", num_material_points=1, expected_num_material_points=1)
 
-    def test_GenerateMaterialPointConditionConditionLine2D2P(self):
+    def test_GenerateMaterialPointConditionLine2D2P(self):
         current_model = KratosMultiphysics.Model()
         self._generate_material_point_condition_and_check(current_model, dimension=2, geometry_element="Line", num_material_points=2, expected_num_material_points=2)
 
-    def test_GenerateMaterialPointConditionConditionLine2D3P(self):
+    def test_GenerateMaterialPointConditionLine2D3P(self):
         current_model = KratosMultiphysics.Model()
         self._generate_material_point_condition_and_check(current_model, dimension=2, geometry_element="Line", num_material_points=3, expected_num_material_points=3)
 
-    def test_GenerateMaterialPointConditionConditionLine2D4P(self):
+    def test_GenerateMaterialPointConditionLine2D4P(self):
         current_model = KratosMultiphysics.Model()
         self._generate_material_point_condition_and_check(current_model, dimension=2, geometry_element="Line", num_material_points=4, expected_num_material_points=4)
 
-    def test_GenerateMaterialPointConditionConditionLine2D5P(self):
+    def test_GenerateMaterialPointConditionLine2D5P(self):
         current_model = KratosMultiphysics.Model()
         self._generate_material_point_condition_and_check(current_model, dimension=2, geometry_element="Line", num_material_points=5, expected_num_material_points=5)
 
+    # Expected failure: removed default behaviour (which consisted of using 1 material point per line condition)
     @KratosUnittest.expectedFailure
-    def test_GenerateMaterialPointConditionConditionLine2DDefault(self):
+    def test_GenerateMaterialPointConditionLine2DWrongNumber0P(self):
+        current_model = KratosMultiphysics.Model()
+        self._generate_material_point_condition_and_check(current_model, dimension=2, geometry_element="Line", num_material_points=0, expected_num_material_points=1)
+
+    # Expected failure: removed default behaviour (which consisted of using 1 material point per line condition)
+    @KratosUnittest.expectedFailure
+    def test_GenerateMaterialPointConditionLine2DWrongNumber50P(self):
         current_model = KratosMultiphysics.Model()
         self._generate_material_point_condition_and_check(current_model, dimension=2, geometry_element="Line", num_material_points=50, expected_num_material_points=1)
 
+    ###########################################################
     ## Point3D - automatic, 1, and default
-    def test_GenerateMaterialPointConditionConditionPoint3DAutomatic(self):
+
+    def test_GenerateMaterialPointConditionPoint3DAutomatic(self):
         current_model = KratosMultiphysics.Model()
         self._generate_material_point_condition_and_check(current_model, dimension=3, geometry_element="Point", num_material_points=0, expected_num_material_points=1)
 
-    def test_GenerateMaterialPointConditionConditionPoint3D1P(self):
+    def test_GenerateMaterialPointConditionPoint3D1P(self):
         current_model = KratosMultiphysics.Model()
         self._generate_material_point_condition_and_check(current_model, dimension=3, geometry_element="Point", num_material_points=1, expected_num_material_points=1)
 
-    def test_GenerateMaterialPointConditionConditionPoint3DDefault(self):
+    def test_GenerateMaterialPointConditionPoint3DDefault(self):
         current_model = KratosMultiphysics.Model()
         self._generate_material_point_condition_and_check(current_model, dimension=3, geometry_element="Point", num_material_points=50, expected_num_material_points=1)
 
-    ## Line3D - automatic and 2, 3, 4, 5, and default
-    @KratosUnittest.expectedFailure
-    def test_GenerateMaterialPointConditionConditionLine3DAutomatic(self):
-        current_model = KratosMultiphysics.Model()
-        self._generate_material_point_condition_and_check(current_model, dimension=3, geometry_element="Line", num_material_points=0, expected_num_material_points=1)
+    ###########################################################
+    ## Line3D - 1, 2, 3, 4, 5, and wrong number
 
-    def test_GenerateMaterialPointConditionConditionLine3D1P(self):
+    def test_GenerateMaterialPointConditionLine3D1P(self):
         current_model = KratosMultiphysics.Model()
         self._generate_material_point_condition_and_check(current_model, dimension=3, geometry_element="Line", num_material_points=1, expected_num_material_points=1)
 
-    def test_GenerateMaterialPointConditionConditionLine3D2P(self):
+    def test_GenerateMaterialPointConditionLine3D2P(self):
         current_model = KratosMultiphysics.Model()
         self._generate_material_point_condition_and_check(current_model, dimension=3, geometry_element="Line", num_material_points=2, expected_num_material_points=2)
 
-    def test_GenerateMaterialPointConditionConditionLine3D3P(self):
+    def test_GenerateMaterialPointConditionLine3D3P(self):
         current_model = KratosMultiphysics.Model()
         self._generate_material_point_condition_and_check(current_model, dimension=3, geometry_element="Line", num_material_points=3, expected_num_material_points=3)
 
-    def test_GenerateMaterialPointConditionConditionLine3D4P(self):
+    def test_GenerateMaterialPointConditionLine3D4P(self):
         current_model = KratosMultiphysics.Model()
         self._generate_material_point_condition_and_check(current_model, dimension=3, geometry_element="Line", num_material_points=4, expected_num_material_points=4)
 
-    def test_GenerateMaterialPointConditionConditionLine3D5P(self):
+    def test_GenerateMaterialPointConditionLine3D5P(self):
         current_model = KratosMultiphysics.Model()
         self._generate_material_point_condition_and_check(current_model, dimension=3, geometry_element="Line", num_material_points=5, expected_num_material_points=5)
 
+    # Expected failure: removed default behaviour (which consisted of using 1 material point per line condition)
     @KratosUnittest.expectedFailure
-    def test_GenerateMaterialPointConditionConditionLine3DDefault(self):
+    def test_GenerateMaterialPointConditionLine3DWrongNumber0P(self):
+        current_model = KratosMultiphysics.Model()
+        self._generate_material_point_condition_and_check(current_model, dimension=3, geometry_element="Line", num_material_points=0, expected_num_material_points=1)
+
+    # Expected failure: removed default behaviour (which consisted of using 1 material point per line condition)
+    @KratosUnittest.expectedFailure
+    def test_GenerateMaterialPointConditionLine3DWrongNumber50P(self):
         current_model = KratosMultiphysics.Model()
         self._generate_material_point_condition_and_check(current_model, dimension=3, geometry_element="Line", num_material_points=50, expected_num_material_points=1)
 
-    ## Triangle3D - automatic, 1, 3, 6, 12, and default
-    @KratosUnittest.expectedFailure
-    def test_GenerateMaterialPointConditionConditionTriangle3DAutomatic(self):
-        current_model = KratosMultiphysics.Model()
-        self._generate_material_point_condition_and_check(current_model, dimension=3, geometry_element="Triangle", num_material_points=0, expected_num_material_points=1)
+    ###########################################################
+    ## Triangle3D - 1, 3, 6, 12, and wrong number
 
-    def test_GenerateMaterialPointConditionConditionTriangle3D1P(self):
+    def test_GenerateMaterialPointConditionTriangle3D1P(self):
         current_model = KratosMultiphysics.Model()
         self._generate_material_point_condition_and_check(current_model, dimension=3, geometry_element="Triangle", num_material_points=1, expected_num_material_points=1)
 
-    def test_GenerateMaterialPointConditionConditionTriangle3D3P(self):
+    def test_GenerateMaterialPointConditionTriangle3D3P(self):
         current_model = KratosMultiphysics.Model()
         self._generate_material_point_condition_and_check(current_model, dimension=3, geometry_element="Triangle", num_material_points=3, expected_num_material_points=3)
 
-    def test_GenerateMaterialPointConditionConditionTriangle3D6P(self):
+    def test_GenerateMaterialPointConditionTriangle3D6P(self):
         current_model = KratosMultiphysics.Model()
         self._generate_material_point_condition_and_check(current_model, dimension=3, geometry_element="Triangle", num_material_points=6, expected_num_material_points=6)
 
-    def test_GenerateMaterialPointConditionConditionTriangle3D12P(self):
+    def test_GenerateMaterialPointConditionTriangle3D12P(self):
         current_model = KratosMultiphysics.Model()
         self._generate_material_point_condition_and_check(current_model, dimension=3, geometry_element="Triangle", num_material_points=12, expected_num_material_points=12)
 
+    # Expected failure: removed default behaviour (which consisted of using 1 material point condition per triangle)
     @KratosUnittest.expectedFailure
-    def test_GenerateMaterialPointConditionConditionTriangle3DDefault(self):
+    def test_GenerateMaterialPointConditionTriangle3DWrongNumber0P(self):
+        current_model = KratosMultiphysics.Model()
+        self._generate_material_point_condition_and_check(current_model, dimension=3, geometry_element="Triangle", num_material_points=0, expected_num_material_points=1)
+
+    # Expected failure: removed default behaviour (which consisted of using 1 material point condition per triangle)
+    @KratosUnittest.expectedFailure
+    def test_GenerateMaterialPointConditionTriangle3DWrongNumber50P(self):
         current_model = KratosMultiphysics.Model()
         self._generate_material_point_condition_and_check(current_model, dimension=3, geometry_element="Triangle", num_material_points=50, expected_num_material_points=1)
 
-    ## Quadrilateral3D - automatic, 1 ,4, 9, 16 and default
-    @KratosUnittest.expectedFailure
-    def test_GenerateMaterialPointConditionConditionQuadrilateral3DAutomatic(self):
-        current_model = KratosMultiphysics.Model()
-        self._generate_material_point_condition_and_check(current_model, dimension=3, geometry_element="Quadrilateral", num_material_points=0, expected_num_material_points=1)
+    ###########################################################
+    ## Quadrilateral3D - 1 ,4, 9, 16 and wrong number
 
-    def test_GenerateMaterialPointConditionConditionQuadrilateral3D4N(self):
+    def test_GenerateMaterialPointConditionQuadrilateral3D4N(self):
         current_model = KratosMultiphysics.Model()
         self._generate_material_point_condition_and_check(current_model, dimension=3, geometry_element="Quadrilateral", num_material_points=4, expected_num_material_points=4)
 
-    def test_GenerateMaterialPointConditionConditionQuadrilateral3D9N(self):
+    def test_GenerateMaterialPointConditionQuadrilateral3D9N(self):
         current_model = KratosMultiphysics.Model()
         self._generate_material_point_condition_and_check(current_model, dimension=3, geometry_element="Quadrilateral", num_material_points=9, expected_num_material_points=9)
 
-    def test_GenerateMaterialPointConditionConditionQuadrilateral3D16N(self):
+    def test_GenerateMaterialPointConditionQuadrilateral3D16N(self):
         current_model = KratosMultiphysics.Model()
         self._generate_material_point_condition_and_check(current_model, dimension=3, geometry_element="Quadrilateral", num_material_points=16, expected_num_material_points=16)
 
+    # Expected failure: removed default behaviour (which consisted of using 1 material point condition per quadrilateral)
     @KratosUnittest.expectedFailure
-    def test_GenerateMaterialPointConditionConditionQuadrilateral3DDefault(self):
+    def test_GenerateMaterialPointConditionQuadrilateral3DWrongNumber0P(self):
+        current_model = KratosMultiphysics.Model()
+        self._generate_material_point_condition_and_check(current_model, dimension=3, geometry_element="Quadrilateral", num_material_points=0, expected_num_material_points=1)
+
+    # Expected failure: removed default behaviour (which consisted of using 1 material point condition per quadrilateral)
+    @KratosUnittest.expectedFailure
+    def test_GenerateMaterialPointConditionQuadrilateral3DWrongNumber50P(self):
         current_model = KratosMultiphysics.Model()
         self._generate_material_point_condition_and_check(current_model, dimension=3, geometry_element="Quadrilateral", num_material_points=50, expected_num_material_points=1)
 
