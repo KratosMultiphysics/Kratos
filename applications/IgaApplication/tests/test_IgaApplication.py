@@ -34,6 +34,9 @@ from iga_test_factory import Shell5pHierarchicLinearScordelisTest as TShell5pHie
 from iga_test_factory import Shell5pHierarchicNonLinearThickBeamTest as TShell5pHierarchicNonLinearThickBeamTest
 # 5p Shell
 from iga_test_factory import ScordelisRoofShell5pTest as ScordelisRoofShell5pTest
+# 6p Shell RM - python based
+from shell_6p_element_tests import Shell6pElementTests as TShell6pElementTests
+
 # Weak support tests
 from iga_test_factory import SinglePatchRefinedSupportPenaltyTest as SinglePatchRefinedSupportPenaltyTest
 from iga_test_factory import SinglePatchRefinedSupportLagrangeTest as SinglePatchRefinedSupportLagrangeTest
@@ -96,6 +99,8 @@ def AssembleTestSuites():
         LinearBeamShell3pAdditiveSchwarzTest,
         # 5p Shell Director
         ScordelisRoofShell5pTest,
+        # 6p Shell
+        TShell6pElementTests,
         # Weak support tests
         SinglePatchRefinedSupportPenaltyTest,
         SinglePatchRefinedSupportLagrangeTest,
