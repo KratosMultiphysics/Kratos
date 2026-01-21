@@ -17,7 +17,7 @@
 // External includes
 
 // Project includes
-#include "mpm_energy_calculation_utility.h"
+#include "custom_utilities/mpm_energy_calculation_utility.h"
 #include "utilities/parallel_utilities.h"
 #include "utilities/reduction_utilities.h"
 
