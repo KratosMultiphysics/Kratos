@@ -16,7 +16,7 @@
 // External includes
 
 // Project includes
-#include "tests/test_utilities/serializer_test_utilities.h"
+#include "tests/test_utilities/serializer_testing_utilities.h"
 
 namespace Kratos::Testing 
 {
