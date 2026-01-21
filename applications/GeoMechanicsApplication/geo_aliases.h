@@ -16,7 +16,14 @@
 #include <vector>
 
 #include "containers/variable.h"
+#include "includes/constitutive_law.h"
 #include "integration/integration_point.h"
+
+namespace Kratos
+{
+class ProcessInfo;
+class Properties;
+} // namespace Kratos
 
 namespace Kratos::Geo
 {
@@ -29,4 +36,10 @@ using IntegrationPointVectorType = std::vector<IntegrationPointType>;
 
 using KappaDependentFunction = std::function<double(double)>;
 
+using BMatrixVectorGetter           = std::function<std::vector<Matrix>()>;
+using StrainVectorsGetter           = std::function<std::vector<Vector>()>;
+using IntegrationCoefficientsGetter = std::function<std::vector<double>()>;
+using PropertiesGetter              = std::function<const Properties&()>;
+using ProcessInfoGetter             = std::function<const ProcessInfo&()>;
+using ConstitutiveLawVectorGetter   = std::function<const std::vector<ConstitutiveLaw::Pointer>&()>;
 } // namespace Kratos::Geo

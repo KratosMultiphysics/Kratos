@@ -13,7 +13,6 @@
 
 #pragma once
 
-#include "contribution_calculators/calculation_contribution.h"
 #include "contribution_calculators/stiffness_calculator.hpp"
 #include "includes/element.h"
 #include "includes/ublas_interface.h"
@@ -95,40 +94,12 @@ private:
                                           const Vector& rGlobalStressVector) const;
     Vector ConvertLocalStressToTraction(const Matrix& rLocalStress) const;
 
-    auto CreateConstitutiveLawGetter()
-    {
-        return [this]() -> const std::vector<ConstitutiveLaw::Pointer>& {
-            return this->mConstitutiveLaws;
-        };
-    }
-
-    auto CreateBMatricesGetter()
-    {
-        return [this]() { return this->CalculateLocalBMatricesAtIntegrationPoints(); };
-    }
-
-    auto CreateRelativeDisplacementsGetter()
-    {
-        return [this]() {
-            return this->CalculateRelativeDisplacementsAtIntegrationPoints(
-                this->CalculateLocalBMatricesAtIntegrationPoints());
-        };
-    }
-
-    auto CreateIntegrationCoefficientsGetter()
-    {
-        return [this]() { return this->CalculateIntegrationCoefficients(); };
-    }
-
-    static auto CreateProcessInfoGetter(const ProcessInfo& rProcessInfo)
-    {
-        return [&rProcessInfo]() -> const ProcessInfo& { return rProcessInfo; };
-    }
-
-    auto CreatePropertiesGetter()
-    {
-        return [this]() -> const Properties& { return this->GetProperties(); };
-    }
+    Geo::BMatrixVectorGetter           CreateBMatricesGetter() const;
+    Geo::StrainVectorsGetter           CreateRelativeDisplacementsGetter() const;
+    Geo::IntegrationCoefficientsGetter CreateIntegrationCoefficientsGetter() const;
+    Geo::PropertiesGetter              CreatePropertiesGetter();
+    Geo::ProcessInfoGetter             CreateProcessInfoGetter(const ProcessInfo& rProcessInfo);
+    Geo::ConstitutiveLawVectorGetter   CreateConstitutiveLawGetter();
 
     template <unsigned int MatrixSize>
     typename StiffnessCalculator<MatrixSize>::InputProvider CreateStiffnessInputProvider(const ProcessInfo& rProcessInfo)

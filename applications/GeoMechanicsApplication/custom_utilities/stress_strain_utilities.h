@@ -57,10 +57,11 @@ public:
     /// However, it can also be used to calculate tractions from relative displacements.
     /// In that case, the relative displacements should be input as strains, and the return
     /// is a vector with tractions
-    static std::vector<Vector> CalculateStressFromStrain(const std::vector<Vector>& rStrains,
-                                                         const ProcessInfo&         rProcessInfo,
-                                                         const Properties&          rProperties,
-                                                         const std::vector<ConstitutiveLaw::Pointer>& rConstitutiveLaws);
+    static std::vector<Vector> CalculateStressVectorsFromStrainVectors(
+        const std::vector<Vector>&                   rStrains,
+        const ProcessInfo&                           rProcessInfo,
+        const Properties&                            rProperties,
+        const std::vector<ConstitutiveLaw::Pointer>& rConstitutiveLaws);
 
 private:
     static double CalculateQMohrCoulomb(const Vector& rStressVector, double C, double PhiInRadians);

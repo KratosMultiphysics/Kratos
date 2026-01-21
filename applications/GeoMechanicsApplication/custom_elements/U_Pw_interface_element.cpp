@@ -101,33 +101,36 @@ void UPwInterfaceElement::EquationIdVector(EquationIdVectorType& rResult, const 
 
 void UPwInterfaceElement::CalculateLeftHandSide(MatrixType& rLeftHandSideMatrix, const ProcessInfo& rProcessInfo)
 {
-    const auto matrix_size = GetGeometry().WorkingSpaceDimension() * GetGeometry().PointsNumber();
+    const auto stiffness_matrix_size = GetGeometry().WorkingSpaceDimension() * GetGeometry().PointsNumber();
 
     const std::vector contributions = {CalculationContribution::Stiffness};
 
     for (auto contribution : contributions) {
         switch (contribution) {
         case CalculationContribution::Stiffness:
-            switch (matrix_size) {
+            switch (stiffness_matrix_size) {
             case 8:
                 rLeftHandSideMatrix = CreateStiffnessCalculator<8>(rProcessInfo).LHSContribution().value();
-                return;
+                break;
             case 12:
                 rLeftHandSideMatrix = CreateStiffnessCalculator<12>(rProcessInfo).LHSContribution().value();
-                return;
+                break;
             case 18:
                 rLeftHandSideMatrix = CreateStiffnessCalculator<18>(rProcessInfo).LHSContribution().value();
-                return;
+                break;
             case 36:
                 rLeftHandSideMatrix = CreateStiffnessCalculator<36>(rProcessInfo).LHSContribution().value();
-                return;
+                break;
             case 24:
                 rLeftHandSideMatrix = CreateStiffnessCalculator<24>(rProcessInfo).LHSContribution().value();
-                return;
+                break;
             case 48:
                 rLeftHandSideMatrix = CreateStiffnessCalculator<48>(rProcessInfo).LHSContribution().value();
-                return;
+                break;
+            default:
+                KRATOS_ERROR << "This stiffness matrix size is not supported \n";
             }
+            break;
         default:
             KRATOS_ERROR << "This contribution is not supported \n";
         }
@@ -137,33 +140,36 @@ void UPwInterfaceElement::CalculateLeftHandSide(MatrixType& rLeftHandSideMatrix,
 void UPwInterfaceElement::CalculateRightHandSide(Element::VectorType& rRightHandSideVector,
                                                  const ProcessInfo&   rProcessInfo)
 {
-    const auto matrix_size = GetGeometry().WorkingSpaceDimension() * GetGeometry().PointsNumber();
+    const auto stiffness_matrix_size = GetGeometry().WorkingSpaceDimension() * GetGeometry().PointsNumber();
 
     const std::vector contributions = {CalculationContribution::Stiffness};
 
     for (auto contribution : contributions) {
         switch (contribution) {
         case CalculationContribution::Stiffness:
-            switch (matrix_size) {
+            switch (stiffness_matrix_size) {
             case 8:
                 rRightHandSideVector = CreateStiffnessCalculator<8>(rProcessInfo).RHSContribution();
-                return;
+                break;
             case 12:
                 rRightHandSideVector = CreateStiffnessCalculator<12>(rProcessInfo).RHSContribution();
-                return;
+                break;
             case 18:
                 rRightHandSideVector = CreateStiffnessCalculator<18>(rProcessInfo).RHSContribution();
-                return;
+                break;
             case 36:
                 rRightHandSideVector = CreateStiffnessCalculator<36>(rProcessInfo).RHSContribution();
-                return;
+                break;
             case 24:
                 rRightHandSideVector = CreateStiffnessCalculator<24>(rProcessInfo).RHSContribution();
-                return;
+                break;
             case 48:
                 rRightHandSideVector = CreateStiffnessCalculator<48>(rProcessInfo).RHSContribution();
-                return;
+                break;
+            default:
+                KRATOS_ERROR << "This stiffness matrix size is not supported \n";
             }
+            break;
         default:
             KRATOS_ERROR << "This contribution is not supported \n";
         }
@@ -188,7 +194,7 @@ void UPwInterfaceElement::CalculateOnIntegrationPoints(const Variable<Vector>& r
     } else if (rVariable == GEO_EFFECTIVE_TRACTION_VECTOR) {
         const auto local_b_matrices = CalculateLocalBMatricesAtIntegrationPoints();
         const auto relative_displacements = CalculateRelativeDisplacementsAtIntegrationPoints(local_b_matrices);
-        rOutput = StressStrainUtilities::CalculateStressFromStrain(
+        rOutput = StressStrainUtilities::CalculateStressVectorsFromStrainVectors(
             relative_displacements, rCurrentProcessInfo, GetProperties(), mConstitutiveLaws);
     } else {
         Element::CalculateOnIntegrationPoints(rVariable, rOutput, rCurrentProcessInfo);
@@ -214,7 +220,7 @@ void UPwInterfaceElement::Calculate(const Variable<Vector>& rVariable, Vector& r
     // will also include water pressure contributions and coupling terms.
     const auto local_b_matrices = CalculateLocalBMatricesAtIntegrationPoints();
     const auto relative_displacements = CalculateRelativeDisplacementsAtIntegrationPoints(local_b_matrices);
-    const auto tractions = StressStrainUtilities::CalculateStressFromStrain(
+    const auto tractions = StressStrainUtilities::CalculateStressVectorsFromStrainVectors(
         relative_displacements, rProcessInfo, GetProperties(), mConstitutiveLaws);
     const auto integration_coefficients = CalculateIntegrationCoefficients();
     if (rVariable == INTERNAL_FORCES_VECTOR) {
@@ -438,6 +444,40 @@ Vector UPwInterfaceElement::ConvertLocalStressToTraction(const Matrix& rLocalStr
         result[2] = rLocalStress(1, 2);
     }
     return result;
+}
+
+Geo::BMatrixVectorGetter UPwInterfaceElement::CreateBMatricesGetter() const
+{
+    return [this]() { return this->CalculateLocalBMatricesAtIntegrationPoints(); };
+}
+
+Geo::ConstitutiveLawVectorGetter UPwInterfaceElement::CreateConstitutiveLawGetter()
+{
+    return
+        [this]() -> const std::vector<ConstitutiveLaw::Pointer>& { return this->mConstitutiveLaws; };
+}
+
+Geo::StrainVectorsGetter UPwInterfaceElement::CreateRelativeDisplacementsGetter() const
+{
+    return [this]() {
+        return this->CalculateRelativeDisplacementsAtIntegrationPoints(
+            this->CalculateLocalBMatricesAtIntegrationPoints());
+    };
+}
+
+Geo::IntegrationCoefficientsGetter UPwInterfaceElement::CreateIntegrationCoefficientsGetter() const
+{
+    return [this]() { return this->CalculateIntegrationCoefficients(); };
+}
+
+Geo::ProcessInfoGetter UPwInterfaceElement::CreateProcessInfoGetter(const ProcessInfo& rProcessInfo)
+{
+    return [&rProcessInfo]() -> const ProcessInfo& { return rProcessInfo; };
+}
+
+Geo::PropertiesGetter UPwInterfaceElement::CreatePropertiesGetter()
+{
+    return [this]() -> const Properties& { return this->GetProperties(); };
 }
 
 // Instances of this class can not be copied but can be moved. Check that at compile time.
