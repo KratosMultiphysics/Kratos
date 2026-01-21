@@ -11,13 +11,14 @@
 //
 //
 
+#pragma once
 
 #include "includes/serializer.h"
 
 namespace Kratos::Testing
 {
 
-class KRATOS_API(KRATOS_TEST_UTILS) TestClass 
+class TestClass 
 {
 public:
     int mValue;
@@ -36,7 +37,7 @@ private:
 
 // Two dummy classes for testing (de)serialization of a derived class through
 // a pointer to an abstract base class
-class KRATOS_API(KRATOS_TEST_UTILS) AbstractTestClass
+class AbstractTestClass
 {
 public:
     virtual ~AbstractTestClass() = default;
@@ -64,7 +65,7 @@ private:
     mutable std::size_t mRefCount = 0; // Must be mutable, since previous two members receive a pointer-to-const
 };
 
-class KRATOS_API(KRATOS_TEST_UTILS) DerivedTestClass : public AbstractTestClass
+class DerivedTestClass : public AbstractTestClass
 {
 public:
     explicit DerivedTestClass(int FooNumber = 0) : mFooNumber(FooNumber) {}
@@ -87,7 +88,7 @@ private:
     int mFooNumber;
 };
 
-class KRATOS_API(KRATOS_TEST_UTILS) ScopedTestClassRegistration
+class ScopedTestClassRegistration
 {
 public:
     ScopedTestClassRegistration()
