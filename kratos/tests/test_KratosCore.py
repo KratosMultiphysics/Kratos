@@ -106,6 +106,7 @@ import test_nd_data
 import test_tensor_adaptors
 import test_geometries_tensor_adaptor
 import test_connectivity_ids_tensor_adaptor
+import test_parallel_spatial_search
 
 # Import modules required for sequential orchestrator test
 from test_sequential_orchestrator import EmptyAnalysisStage
@@ -239,6 +240,7 @@ def AssembleTestSuites():
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([test_tensor_adaptors.TestTensorAdaptors]))
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([test_geometries_tensor_adaptor.TestGeometriesTensorAdaptor]))
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([test_connectivity_ids_tensor_adaptor.TestConnectivityIdsTensorAdaptor]))
+    smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([test_parallel_spatial_search.TestParallelSpatialSearch]))
 
 
     if sympy_available:
