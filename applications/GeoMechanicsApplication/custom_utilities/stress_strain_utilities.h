@@ -50,6 +50,7 @@ public:
 
     static Vector TransformPrincipalStressesToSigmaTau(const Vector& rPrincipalStresses);
     static Vector TransformSigmaTauToPrincipalStresses(const Vector& rSigmaTau, const Vector& rPrincipalStresses);
+    static Vector TransformPrincipalStressesToPandQ(const Vector& rPrincipalStresses);
 
 private:
     static double CalculateQMohrCoulomb(const Vector& rStressVector, double C, double PhiInRadians);
