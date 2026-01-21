@@ -18,15 +18,18 @@ class ComputeReactionProcess(KratosMultiphysics.OutputProcess):
     as calling the base class alone is not enough.
     """
     def __init__(self, model: KratosMultiphysics.Model, settings: KratosMultiphysics.Parameters) -> None:
-
         super().__init__()
 
+        self.model = model
         self.params = settings
         self.params.ValidateAndAssignDefaults(self.GetDefaultParameters())
 
-        self.model = model
+        self.output_file = None
+        self.controller = KratosMultiphysics.OutputController(self.model, self.params)
+        self.format = self.params["print_format"].GetString()
+
         self.model_part_name = self.params["model_part_name"].GetString()
-        if self.model_part_name == "":
+        if not self.model_part_name:
             raise Exception('No "model_part_name" was specified!')
         elif self.model_part_name.startswith('Background_Grid'):
             self.model_part_name = self.model_part_name.replace('Background_Grid','MPM_Material')
@@ -36,7 +39,6 @@ class ComputeReactionProcess(KratosMultiphysics.OutputProcess):
         return KratosMultiphysics.Parameters("""
             {
                 "model_part_name"           : "",
-                "interval"                  : [0.0, 1e30],
                 "output_interval"           : 1.0,
                 "output_control_type"       : "step",
                 "print_format"              : ".8f",
@@ -46,21 +48,14 @@ class ComputeReactionProcess(KratosMultiphysics.OutputProcess):
 
     def ExecuteBeforeSolutionLoop(self):
         self.model_part = self.model[self.model_part_name]
-
-        self.format = self.params["print_format"].GetString()
-        self.interval = KratosMultiphysics.IntervalUtility(self.params)
-        self.controller = KratosMultiphysics.OutputController(self.model, self.params)
-
         file_handler_params = KratosMultiphysics.Parameters(self.params["output_file_settings"])
-        output_file_name = self.params["model_part_name"].GetString() + "_reaction.dat"
-        if file_handler_params.Has("file_name"):
-            warn_msg  = 'Unexpected user-specified entry found in "output_file_settings": {"file_name": '
-            warn_msg += '"' + file_handler_params["file_name"].GetString() + '"}\n'
-            warn_msg += 'Using this specified file name instead of the default "' + output_file_name + '"'
-            KratosMultiphysics.Logger.PrintWarning("ComputeReactionProcess", warn_msg)
-        else:
-            file_handler_params.AddEmptyValue("file_name")
-            file_handler_params["file_name"].SetString(output_file_name)
+
+        # If output file name is not specified, use default value: <model_part_name>_reaction.dat
+        if not file_handler_params.Has("file_name"):
+            output_file_name = f"{self.model_part_name}_reaction"
+            wrn_msg = f"File name not specified, using the default name: {output_file_name}"
+            KratosMultiphysics.Logger.PrintWarning(self.__class__.__name__,wrn_msg)
+
         self.output_file = TimeBasedAsciiFileWriterUtility(self.model_part, file_handler_params, self._GetFileHeader()).file
         self.output_file.flush()
 
@@ -73,7 +68,7 @@ class ComputeReactionProcess(KratosMultiphysics.OutputProcess):
 
     def IsOutputStep(self) -> bool:
         current_time = self.model_part.ProcessInfo[KratosMultiphysics.TIME]
-        return self.interval.IsInInterval(current_time) and self.controller.Evaluate()
+        return self.controller.Evaluate()
 
     def ExecuteFinalize(self):
         self.output_file.close()

@@ -1,8 +1,5 @@
-# Importing the Kratos Library
 import KratosMultiphysics
-# Import applications
 import KratosMultiphysics.MPMApplication as KratosMPM
-# Import base class file
 from KratosMultiphysics.MPMApplication.compute_reaction_process import ComputeReactionProcess
 
 def Factory(settings: KratosMultiphysics.Parameters, model: KratosMultiphysics.Model) -> KratosMultiphysics.OutputProcess:
@@ -17,7 +14,7 @@ class ComputeGridConformingReactionProcess(ComputeReactionProcess):
     The specific implementation for the output of reaction on grid conforming boundaries
     """
     def _GetFileHeader(self):
-        header  = f'# Grid conforming reaction for model part {self.params["model_part_name"].GetString()}\n'
+        header  = f'# Grid conforming reaction for model part {self.model_part_name}\n'
         header +=  '# Time Fx Fy Fz\n'
         return header
 
