@@ -71,7 +71,8 @@ public:
     static constexpr SizeType DofsPerNode = TDimension;
     static constexpr SizeType SystemSize  = TDimension * 2;
     using array_dim = array_1d<double, Dimension>;
-    using bounded_matrix_dim = BoundedMatrix<double, Dimension, Dimension>;
+    using array_3 = array_1d<double, 3>;
+    using bounded_matrix_3 = BoundedMatrix<double, 3, 3>;
     using SystemSizeBoundedArrayType = array_1d<double, SystemSize>;
 
     // Counted pointer of BaseSolidElement
