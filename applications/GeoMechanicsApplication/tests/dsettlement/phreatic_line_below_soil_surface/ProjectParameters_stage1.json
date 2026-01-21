@@ -20,7 +20,7 @@
         },
         "time_stepping": {
             "time_step": 1,
-            "max_delta_time_factor": 86400000000
+            "max_delta_time_factor": 8.64e+10
         },
         "buffer_size": 2,
         "echo_level": 1,
@@ -32,7 +32,7 @@
         "reset_displacements": false,
         "strategy_type": "line_search",
         "convergence_criterion": "displacement_criterion",
-        "displacement_relative_tolerance": 0.001,
+        "displacement_relative_tolerance": 1e-03,
         "displacement_absolute_tolerance": 1e-09,
         "min_iterations": 6,
         "max_iterations": 30,
@@ -106,7 +106,7 @@
                 "kratos_module": "KratosMultiphysics.GeoMechanicsApplication",
                 "process_name": "ApplyVectorConstraintTableProcess",
                 "Parameters": {
-                    "model_part_name_list": ["PorousDomain.LeftSide","PorousDomain.RightSide"],
+                    "model_part_name_list": ["PorousDomain.LeftSide", "PorousDomain.RightSide"],
                     "variable_name": "DISPLACEMENT",
                     "active": [true, false, false],
                     "is_fixed": [true, false, false],
@@ -129,7 +129,7 @@
                     "x_coordinates": [0, 1],
                     "y_coordinates": [40, 40],
                     "z_coordinates": [0, 0],
-                    "specific_weight": 10000
+                    "specific_weight": 1e+04
                 }
             },
             {
@@ -147,7 +147,7 @@
                     "x_coordinates": [0, 1],
                     "y_coordinates": [40, 40],
                     "z_coordinates": [0, 0],
-                    "specific_weight": 10000
+                    "specific_weight": 1e+04
                 }
             },
             {
@@ -165,7 +165,7 @@
                     "x_coordinates": [0, 1],
                     "y_coordinates": [40, 40],
                     "z_coordinates": [0, 0],
-                    "specific_weight": 10000
+                    "specific_weight": 1e+04
                 }
             }
         ],
