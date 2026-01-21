@@ -163,21 +163,25 @@ void UPwInterfaceElement::EquationIdVector(EquationIdVectorType& rResult, const 
 
 void UPwInterfaceElement::CalculateLeftHandSide(MatrixType& rLeftHandSideMatrix, const ProcessInfo& rProcessInfo)
 {
-    // Currently, the left-hand side matrix only includes the stiffness matrix. In the future, it
-    // will also include water pressure contributions and coupling terms.
     const auto number_of_dofs = GetDofs().size();
     rLeftHandSideMatrix       = ZeroMatrix{number_of_dofs, number_of_dofs};
 
-    const auto     local_b_matrices   = CalculateLocalBMatricesAtIntegrationPoints();
-    constexpr auto start_row_index    = 0;
-    constexpr auto start_column_index = 0;
-    subrange(rLeftHandSideMatrix, start_row_index, start_row_index + NumberOfUDofs(),
-             start_column_index, start_column_index + NumberOfUDofs()) =
-        GeoEquationOfMotionUtilities::CalculateStiffnessMatrix(
-            local_b_matrices,
-            CalculateConstitutiveMatricesAtIntegrationPoints(
-                CalculateRelativeDisplacementsAtIntegrationPoints(local_b_matrices), rProcessInfo),
-            CalculateIntegrationCoefficients());
+    // Currently, the left-hand side matrix only includes the stiffness matrix. In the future, it
+    // will also include water pressure contributions and coupling terms.
+    const auto local_b_matrices = CalculateLocalBMatricesAtIntegrationPoints();
+    const auto stiffness_matrix = GeoEquationOfMotionUtilities::CalculateStiffnessMatrix(
+        local_b_matrices,
+        CalculateConstitutiveMatricesAtIntegrationPoints(
+            CalculateRelativeDisplacementsAtIntegrationPoints(local_b_matrices), rProcessInfo),
+        CalculateIntegrationCoefficients());
+    KRATOS_DEBUG_ERROR_IF(stiffness_matrix.size1() != NumberOfUDofs())
+        << "Stiffness matrix of interface element " << Id() << " has unexpected number of rows: got "
+        << stiffness_matrix.size1() << ", but expected " << NumberOfUDofs() << "\n";
+    KRATOS_DEBUG_ERROR_IF(stiffness_matrix.size2() != NumberOfUDofs())
+        << "Stiffness matrix of interface element " << Id() << " has unexpected number of columns: got "
+        << stiffness_matrix.size2() << ", but expected " << NumberOfUDofs() << "\n";
+
+    GeoElementUtilities::AssignUUBlockMatrix(rLeftHandSideMatrix, stiffness_matrix);
 }
 
 void UPwInterfaceElement::CalculateRightHandSide(Element::VectorType& rRightHandSideVector,
@@ -190,11 +194,9 @@ void UPwInterfaceElement::CalculateRightHandSide(Element::VectorType& rRightHand
     const auto local_b_matrices = CalculateLocalBMatricesAtIntegrationPoints();
     const auto relative_displacements = CalculateRelativeDisplacementsAtIntegrationPoints(local_b_matrices);
     const auto tractions = CalculateTractionsAtIntegrationPoints(relative_displacements, rProcessInfo);
-    const auto     integration_coefficients = CalculateIntegrationCoefficients();
-    constexpr auto start_index              = 0;
-    subrange(rRightHandSideVector, start_index, start_index + NumberOfUDofs()) =
-        -1.0 * GeoEquationOfMotionUtilities::CalculateInternalForceVector(
-                   local_b_matrices, tractions, integration_coefficients);
+    GeoElementUtilities::AssignUBlockVector(
+        rRightHandSideVector, -1.0 * GeoEquationOfMotionUtilities::CalculateInternalForceVector(
+                                         local_b_matrices, tractions, CalculateIntegrationCoefficients()));
 }
 
 void UPwInterfaceElement::CalculateLocalSystem(MatrixType&        rLeftHandSideMatrix,
@@ -246,11 +248,11 @@ void UPwInterfaceElement::Calculate(const Variable<Vector>& rVariable, Vector& r
     const auto     integration_coefficients = CalculateIntegrationCoefficients();
     constexpr auto start_index              = 0;
     if (rVariable == INTERNAL_FORCES_VECTOR) {
-        subrange(rOutput, start_index, start_index + NumberOfUDofs()) =
-            GeoEquationOfMotionUtilities::CalculateInternalForceVector(local_b_matrices, tractions,
-                                                                       integration_coefficients);
+        GeoElementUtilities::AssignUBlockVector(
+            rOutput, GeoEquationOfMotionUtilities::CalculateInternalForceVector(
+                         local_b_matrices, tractions, integration_coefficients));
     } else if (rVariable == EXTERNAL_FORCES_VECTOR) {
-        subrange(rOutput, start_index, start_index + NumberOfUDofs()) = Vector{NumberOfUDofs(), 0.0};
+        GeoElementUtilities::AssignUBlockVector(rOutput, Vector{NumberOfUDofs(), 0.0});
     }
 }
 
@@ -491,10 +493,8 @@ Matrix UPwInterfaceElement::RotateStressToLocalCoordinates(const Geo::Integratio
 {
     auto rotation_tensor = Matrix{IdentityMatrix(3, 3)};
     if (GetDisplacementGeometry().GetGeometryFamily() == GeometryData::KratosGeometryFamily::Kratos_Linear) {
-        const auto rotation_tensor_in_2d =
-            mfpCalculateRotationMatrix(GetDisplacementGeometry(), rIntegrationPoint);
-        subrange(rotation_tensor, 0, 0 + rotation_tensor_in_2d.size1(), 0,
-                 0 + rotation_tensor_in_2d.size2()) = rotation_tensor_in_2d;
+        GeoElementUtilities::AssignMatrixAtPosition(
+            rotation_tensor, mfpCalculateRotationMatrix(GetDisplacementGeometry(), rIntegrationPoint), 0, 0);
     } else {
         rotation_tensor = mfpCalculateRotationMatrix(GetDisplacementGeometry(), rIntegrationPoint);
     }

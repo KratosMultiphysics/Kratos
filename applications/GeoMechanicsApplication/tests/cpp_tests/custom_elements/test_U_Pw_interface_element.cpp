@@ -101,7 +101,8 @@ UPwInterfaceElement CreateInterfaceElementWithUPwDofs(const Properties::Pointer&
         Geo::ConstVariableRefs{std::cref(WATER_PRESSURE), std::cref(DISPLACEMENT_X),
                                std::cref(DISPLACEMENT_Y), std::cref(DISPLACEMENT_Z)};
     auto p_interface_element = &result;
-    // Note that we're a bit sloppy here, since we add the degrees of freedom to _all_ nodes (even for diff-order elements)
+    // Note that we're a bit sloppy here, since we add the degrees of freedom to _all_ nodes (even for diff-order elements).
+    // However, you'll find the same sloppiness in the fully integrated workflow. That needs to be improved later.
     Testing::ElementSetupUtilities::AddVariablesToEntity(
         p_interface_element, solution_step_variables, degrees_of_freedom);
 
@@ -291,33 +292,37 @@ UPwInterfaceElement CreateAndInitializeElement(TElementFactory                Fa
     return element;
 }
 
-Matrix ExpectedStiffnessMatrixOfLinearTrianglularInterfaceElement()
+Matrix ExpectedStiffnessMatrixOfLinearTriangularInterfaceElement()
 {
-    // The function provides values taken from the element
-    auto expected_left_hand_side = Matrix(18, 18);
-    // clang-format off
-    expected_left_hand_side <<=
-        1.6666666666666661,0,0,0,0,0,0,0,0,-1.6666666666666661,0,0,0,0,0,0,0,0,
-        0,1.6666666666666661,0,0,0,0,0,0,0,0,-1.6666666666666661,0,0,0,0,0,0,0,
-        0,0,3.3333333333333321,0,0,0,0,0,0,0,0,-3.3333333333333321,0,0,0,0,0,0,
-        0,0,0,1.6666666666666661,0,0,0,0,0,0,0,0,-1.6666666666666661,0,0,0,0,0,
-        0,0,0,0,1.6666666666666661,0,0,0,0,0,0,0,0,-1.6666666666666661,0,0,0,0,
-        0,0,0,0,0,3.3333333333333321,0,0,0,0,0,0,0,0,-3.3333333333333321,0,0,0,
-        0,0,0,0,0,0,1.6666666666666661,0,0,0,0,0,0,0,0,-1.6666666666666661,0,0,
-        0,0,0,0,0,0,0,1.6666666666666661,0,0,0,0,0,0,0,0,-1.6666666666666661,0,
-        0,0,0,0,0,0,0,0,3.3333333333333321,0,0,0,0,0,0,0,0,-3.3333333333333321,
-        -1.6666666666666661,0,0,0,0,0,0,0,0,1.6666666666666661,0,0,0,0,0,0,0,0,
-        0,-1.6666666666666661,0,0,0,0,0,0,0,0,1.6666666666666661,0,0,0,0,0,0,0,
-        0,0,-3.3333333333333321,0,0,0,0,0,0,0,0,3.3333333333333321,0,0,0,0,0,0,
-        0,0,0,-1.6666666666666661,0,0,0,0,0,0,0,0,1.6666666666666661,0,0,0,0,0,
-        0,0,0,0,-1.6666666666666661,0,0,0,0,0,0,0,0,1.6666666666666661,0,0,0,0,
-        0,0,0,0,0,-3.3333333333333321,0,0,0,0,0,0,0,0,3.3333333333333321,0,0,0,
-        0,0,0,0,0,0,-1.6666666666666661,0,0,0,0,0,0,0,0,1.6666666666666661,0,0,
-        0,0,0,0,0,0,0,-1.6666666666666661,0,0,0,0,0,0,0,0,1.6666666666666661,0,
-        0,0,0,0,0,0,0,0,-3.3333333333333321,0,0,0,0,0,0,0,0,3.3333333333333321;
-    // clang-format on
+    constexpr auto cs = 5.0 / 3.0;
+    constexpr auto cn = 10.0 / 3.0;
+    return UblasUtilities::CreateMatrix({
+        {cs, 0, 0, 0, 0, 0, 0, 0, 0, -cs, 0, 0, 0, 0, 0, 0, 0, 0},
+        {0, cs, 0, 0, 0, 0, 0, 0, 0, 0, -cs, 0, 0, 0, 0, 0, 0, 0},
+        {0, 0, cn, 0, 0, 0, 0, 0, 0, 0, 0, -cn, 0, 0, 0, 0, 0, 0},
+        {0, 0, 0, cs, 0, 0, 0, 0, 0, 0, 0, 0, -cs, 0, 0, 0, 0, 0},
+        {0, 0, 0, 0, cs, 0, 0, 0, 0, 0, 0, 0, 0, -cs, 0, 0, 0, 0},
+        {0, 0, 0, 0, 0, cn, 0, 0, 0, 0, 0, 0, 0, 0, -cn, 0, 0, 0},
+        {0, 0, 0, 0, 0, 0, cs, 0, 0, 0, 0, 0, 0, 0, 0, -cs, 0, 0},
+        {0, 0, 0, 0, 0, 0, 0, cs, 0, 0, 0, 0, 0, 0, 0, 0, -cs, 0},
+        {0, 0, 0, 0, 0, 0, 0, 0, cn, 0, 0, 0, 0, 0, 0, 0, 0, -cn},
+        {-cs, 0, 0, 0, 0, 0, 0, 0, 0, cs, 0, 0, 0, 0, 0, 0, 0, 0},
+        {0, -cs, 0, 0, 0, 0, 0, 0, 0, 0, cs, 0, 0, 0, 0, 0, 0, 0},
+        {0, 0, -cn, 0, 0, 0, 0, 0, 0, 0, 0, cn, 0, 0, 0, 0, 0, 0},
+        {0, 0, 0, -cs, 0, 0, 0, 0, 0, 0, 0, 0, cs, 0, 0, 0, 0, 0},
+        {0, 0, 0, 0, -cs, 0, 0, 0, 0, 0, 0, 0, 0, cs, 0, 0, 0, 0},
+        {0, 0, 0, 0, 0, -cn, 0, 0, 0, 0, 0, 0, 0, 0, cn, 0, 0, 0},
+        {0, 0, 0, 0, 0, 0, -cs, 0, 0, 0, 0, 0, 0, 0, 0, cs, 0, 0},
+        {0, 0, 0, 0, 0, 0, 0, -cs, 0, 0, 0, 0, 0, 0, 0, 0, cs, 0},
+        {0, 0, 0, 0, 0, 0, 0, 0, -cn, 0, 0, 0, 0, 0, 0, 0, 0, cn},
+    });
+}
 
-    return expected_left_hand_side;
+Vector ExpectedStiffnessForceOfLinearTriangularInterfaceElement()
+{
+    return UblasUtilities::CreateVector({1.0 / 3.0, 5.0 / 6.0, 0.0, 0.0, 0.0, 0.0, -1.0 / 3.0,
+                                         -5.0 / 6.0, 0.0, -1.0 / 3.0, -5.0 / 6.0, 0.0, 0.0, 0.0,
+                                         0.0, 1.0 / 3.0, 5.0 / 6.0, 0.0});
 }
 
 class MockElementWithTotalStressVectors : public Element
@@ -979,19 +984,13 @@ KRATOS_TEST_CASE_IN_SUITE(UPwTriangleInterfaceElement_LeftHandSideContainsMateri
     // Assert
     constexpr auto number_of_u_dofs  = std::size_t{6 * 3};
     constexpr auto number_of_pw_dofs = std::size_t{6};
-    ASSERT_EQ(actual_left_hand_side.size1(), number_of_u_dofs + number_of_pw_dofs);
-    ASSERT_EQ(actual_left_hand_side.size2(), number_of_u_dofs + number_of_pw_dofs);
-
-    const auto expected_uu_block_matrix = ExpectedStiffnessMatrixOfLinearTrianglularInterfaceElement();
-    KRATOS_EXPECT_MATRIX_RELATIVE_NEAR(
-        subrange(actual_left_hand_side, 0, 0 + number_of_u_dofs, 0, 0 + number_of_u_dofs),
-        expected_uu_block_matrix, Defaults::relative_tolerance)
+    const auto expected_uu_block_matrix = ExpectedStiffnessMatrixOfLinearTriangularInterfaceElement();
     const auto expected_up_block_matrix = Matrix{number_of_u_dofs, number_of_pw_dofs, 0.0};
-    AssertUPBlockMatrixIsNear(actual_left_hand_side, expected_up_block_matrix, number_of_u_dofs, number_of_pw_dofs);
     const auto expected_pu_block_matrix = Matrix{number_of_pw_dofs, number_of_u_dofs, 0.0};
-    AssertPUBlockMatrixIsNear(actual_left_hand_side, expected_pu_block_matrix, number_of_u_dofs, number_of_pw_dofs);
     const auto expected_pp_block_matrix = Matrix{number_of_pw_dofs, number_of_pw_dofs, 0.0};
-    AssertPPBlockMatrixIsNear(actual_left_hand_side, expected_pp_block_matrix, number_of_u_dofs, number_of_pw_dofs);
+    AssertLHSMatrixBlocksAreNear(actual_left_hand_side, expected_uu_block_matrix,
+                                 expected_up_block_matrix, expected_pu_block_matrix,
+                                 expected_pp_block_matrix, number_of_u_dofs, number_of_pw_dofs);
 }
 
 KRATOS_TEST_CASE_IN_SUITE(UPwTriangleInterfaceElement_LeftHandSideContainsMaterialStiffnessContributions_Rotated,
@@ -1013,23 +1012,16 @@ KRATOS_TEST_CASE_IN_SUITE(UPwTriangleInterfaceElement_LeftHandSideContainsMateri
     // Assert
     constexpr auto number_of_u_dofs  = std::size_t{6 * 3};
     constexpr auto number_of_pw_dofs = std::size_t{6};
-    ASSERT_EQ(actual_left_hand_side.size1(), number_of_u_dofs + number_of_pw_dofs);
-    ASSERT_EQ(actual_left_hand_side.size2(), number_of_u_dofs + number_of_pw_dofs);
-
-    const auto expected_uu_block_matrix = ExpectedStiffnessMatrixOfLinearTrianglularInterfaceElement();
-
     // Since the rotation is about the z-axis (the normal of the triangle) and the two shear
     // stiffnesses are equal, the stiffness matrix is equal to the stiffness matrix of a
     // non-rotated surface interface element.
-    KRATOS_EXPECT_MATRIX_RELATIVE_NEAR(
-        subrange(actual_left_hand_side, 0, 0 + number_of_u_dofs, 0, 0 + number_of_u_dofs),
-        expected_uu_block_matrix, Defaults::relative_tolerance)
+    const auto expected_uu_block_matrix = ExpectedStiffnessMatrixOfLinearTriangularInterfaceElement();
     const auto expected_up_block_matrix = Matrix{number_of_u_dofs, number_of_pw_dofs, 0.0};
-    AssertUPBlockMatrixIsNear(actual_left_hand_side, expected_up_block_matrix, number_of_u_dofs, number_of_pw_dofs);
     const auto expected_pu_block_matrix = Matrix{number_of_pw_dofs, number_of_u_dofs, 0.0};
-    AssertPUBlockMatrixIsNear(actual_left_hand_side, expected_pu_block_matrix, number_of_u_dofs, number_of_pw_dofs);
     const auto expected_pp_block_matrix = Matrix{number_of_pw_dofs, number_of_pw_dofs, 0.0};
-    AssertPPBlockMatrixIsNear(actual_left_hand_side, expected_pp_block_matrix, number_of_u_dofs, number_of_pw_dofs);
+    AssertLHSMatrixBlocksAreNear(actual_left_hand_side, expected_uu_block_matrix,
+                                 expected_up_block_matrix, expected_pu_block_matrix,
+                                 expected_pp_block_matrix, number_of_u_dofs, number_of_pw_dofs);
 }
 
 KRATOS_TEST_CASE_IN_SUITE(UPwTriangleInterfaceElement_LeftHandSideContainsMaterialStiffnessContributions_RotatedAboutYAxis,
@@ -1054,32 +1046,37 @@ KRATOS_TEST_CASE_IN_SUITE(UPwTriangleInterfaceElement_LeftHandSideContainsMateri
     ASSERT_EQ(actual_left_hand_side.size1(), number_of_u_dofs + number_of_pw_dofs);
     ASSERT_EQ(actual_left_hand_side.size2(), number_of_u_dofs + number_of_pw_dofs);
 
-    auto expected_uu_block_matrix = Matrix{number_of_u_dofs, number_of_u_dofs};
-    expected_uu_block_matrix <<= 2.083333333333333, 0, 0.72168783648703216, 0, 0, 0, 0, 0, 0,
-        -2.083333333333333, 0, -0.72168783648703216, 0, 0, 0, 0, 0, 0, 0, 1.6666666666666661, 0, 0,
-        0, 0, 0, 0, 0, 0, -1.6666666666666661, 0, 0, 0, 0, 0, 0, 0, 0.72168783648703216, 0,
-        2.9166666666666661, 0, 0, 0, 0, 0, 0, -0.72168783648703216, 0, -2.9166666666666661, 0, 0, 0,
-        0, 0, 0, 0, 0, 0, 2.083333333333333, 0, 0.72168783648703216, 0, 0, 0, 0, 0, 0,
-        -2.083333333333333, 0, -0.72168783648703216, 0, 0, 0, 0, 0, 0, 0, 1.6666666666666661, 0, 0,
-        0, 0, 0, 0, 0, 0, -1.6666666666666661, 0, 0, 0, 0, 0, 0, 0, 0.72168783648703216, 0,
-        2.9166666666666661, 0, 0, 0, 0, 0, 0, -0.72168783648703216, 0, -2.9166666666666661, 0, 0, 0,
-        0, 0, 0, 0, 0, 0, 2.083333333333333, 0, 0.72168783648703216, 0, 0, 0, 0, 0, 0,
-        -2.083333333333333, 0, -0.72168783648703216, 0, 0, 0, 0, 0, 0, 0, 1.6666666666666661, 0, 0,
-        0, 0, 0, 0, 0, 0, -1.6666666666666661, 0, 0, 0, 0, 0, 0, 0, 0.72168783648703216, 0,
-        2.9166666666666661, 0, 0, 0, 0, 0, 0, -0.72168783648703216, 0, -2.9166666666666661,
-        -2.083333333333333, 0, -0.72168783648703216, 0, 0, 0, 0, 0, 0, 2.083333333333333, 0,
-        0.72168783648703216, 0, 0, 0, 0, 0, 0, 0, -1.6666666666666661, 0, 0, 0, 0, 0, 0, 0, 0,
-        1.6666666666666661, 0, 0, 0, 0, 0, 0, 0, -0.72168783648703216, 0, -2.9166666666666661, 0, 0,
-        0, 0, 0, 0, 0.72168783648703216, 0, 2.9166666666666661, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-        -2.083333333333333, 0, -0.72168783648703216, 0, 0, 0, 0, 0, 0, 2.083333333333333, 0,
-        0.72168783648703216, 0, 0, 0, 0, 0, 0, 0, -1.6666666666666661, 0, 0, 0, 0, 0, 0, 0, 0,
-        1.6666666666666661, 0, 0, 0, 0, 0, 0, 0, -0.72168783648703216, 0, -2.9166666666666661, 0, 0,
-        0, 0, 0, 0, 0.72168783648703216, 0, 2.9166666666666661, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-        -2.083333333333333, 0, -0.72168783648703216, 0, 0, 0, 0, 0, 0, 2.083333333333333, 0,
-        0.72168783648703216, 0, 0, 0, 0, 0, 0, 0, -1.6666666666666661, 0, 0, 0, 0, 0, 0, 0, 0,
-        1.6666666666666661, 0, 0, 0, 0, 0, 0, 0, -0.72168783648703216, 0, -2.9166666666666661, 0, 0,
-        0, 0, 0, 0, 0.72168783648703216, 0, 2.9166666666666661;
-
+    const auto expected_uu_block_matrix = UblasUtilities::CreateMatrix(
+        {{2.083333333333333, 0, 0.72168783648703216, 0, 0, 0, 0, 0, 0, -2.083333333333333, 0,
+          -0.72168783648703216, 0, 0, 0, 0, 0, 0},
+         {0, 1.6666666666666661, 0, 0, 0, 0, 0, 0, 0, 0, -1.6666666666666661, 0, 0, 0, 0, 0, 0, 0},
+         {0.72168783648703216, 0, 2.9166666666666661, 0, 0, 0, 0, 0, 0, -0.72168783648703216, 0,
+          -2.9166666666666661, 0, 0, 0, 0, 0, 0},
+         {0, 0, 0, 2.083333333333333, 0, 0.72168783648703216, 0, 0, 0, 0, 0, 0, -2.083333333333333,
+          0, -0.72168783648703216, 0, 0, 0},
+         {0, 0, 0, 0, 1.6666666666666661, 0, 0, 0, 0, 0, 0, 0, 0, -1.6666666666666661, 0, 0, 0, 0},
+         {0, 0, 0, 0.72168783648703216, 0, 2.9166666666666661, 0, 0, 0, 0, 0, 0,
+          -0.72168783648703216, 0, -2.9166666666666661, 0, 0, 0},
+         {0, 0, 0, 0, 0, 0, 2.083333333333333, 0, 0.72168783648703216, 0, 0, 0, 0, 0, 0,
+          -2.083333333333333, 0, -0.72168783648703216},
+         {0, 0, 0, 0, 0, 0, 0, 1.6666666666666661, 0, 0, 0, 0, 0, 0, 0, 0, -1.6666666666666661, 0},
+         {0, 0, 0, 0, 0, 0, 0.72168783648703216, 0, 2.9166666666666661, 0, 0, 0, 0, 0, 0,
+          -0.72168783648703216, 0, -2.9166666666666661},
+         {-2.083333333333333, 0, -0.72168783648703216, 0, 0, 0, 0, 0, 0, 2.083333333333333, 0,
+          0.72168783648703216, 0, 0, 0, 0, 0, 0},
+         {0, -1.6666666666666661, 0, 0, 0, 0, 0, 0, 0, 0, 1.6666666666666661, 0, 0, 0, 0, 0, 0, 0},
+         {-0.72168783648703216, 0, -2.9166666666666661, 0, 0, 0, 0, 0, 0, 0.72168783648703216, 0,
+          2.9166666666666661, 0, 0, 0, 0, 0, 0},
+         {0, 0, 0, -2.083333333333333, 0, -0.72168783648703216, 0, 0, 0, 0, 0, 0, 2.083333333333333,
+          0, 0.72168783648703216, 0, 0, 0},
+         {0, 0, 0, 0, -1.6666666666666661, 0, 0, 0, 0, 0, 0, 0, 0, 1.6666666666666661, 0, 0, 0, 0},
+         {0, 0, 0, -0.72168783648703216, 0, -2.9166666666666661, 0, 0, 0, 0, 0, 0,
+          0.72168783648703216, 0, 2.9166666666666661, 0, 0, 0},
+         {0, 0, 0, 0, 0, 0, -2.083333333333333, 0, -0.72168783648703216, 0, 0, 0, 0, 0, 0,
+          2.083333333333333, 0, 0.72168783648703216},
+         {0, 0, 0, 0, 0, 0, 0, -1.6666666666666661, 0, 0, 0, 0, 0, 0, 0, 0, 1.6666666666666661, 0},
+         {0, 0, 0, 0, 0, 0, -0.72168783648703216, 0, -2.9166666666666661, 0, 0, 0, 0, 0, 0,
+          0.72168783648703216, 0, 2.9166666666666661}});
     KRATOS_EXPECT_MATRIX_RELATIVE_NEAR(
         subrange(actual_left_hand_side, 0, 0 + number_of_u_dofs, 0, 0 + number_of_u_dofs),
         expected_uu_block_matrix, Defaults::relative_tolerance)
@@ -1110,18 +1107,12 @@ KRATOS_TEST_CASE_IN_SUITE(UPwTriangleInterfaceElement_RightHandSideEqualsMinusIn
     element.CalculateRightHandSide(actual_right_hand_side, ProcessInfo{});
 
     // Assert
-    constexpr auto number_of_u_dofs  = std::size_t{6 * 3};
-    constexpr auto number_of_pw_dofs = std::size_t{6};
-    ASSERT_EQ(actual_right_hand_side.size(), number_of_u_dofs + number_of_pw_dofs);
-
-    auto expected_stiffness_force = Vector{number_of_u_dofs};
-    expected_stiffness_force <<= 0.333333, 0.833333, 0, 0, 0, 0, -0.333333, -0.833333, 0, -0.333333,
-        -0.833333, 0, 0, 0, 0, 0.333333, 0.833333, 0;
-    constexpr auto tolerance = 1e-5;
-    KRATOS_EXPECT_VECTOR_RELATIVE_NEAR(subrange(actual_right_hand_side, 0, 0 + number_of_u_dofs),
-                                       expected_stiffness_force, tolerance)
+    constexpr auto number_of_u_dofs    = std::size_t{6 * 3};
+    constexpr auto number_of_pw_dofs   = std::size_t{6};
+    const auto expected_u_block_vector = ExpectedStiffnessForceOfLinearTriangularInterfaceElement();
     const auto expected_p_block_vector = Vector{number_of_pw_dofs, 0.0};
-    AssertPBlockVectorIsNear(actual_right_hand_side, expected_p_block_vector, number_of_u_dofs, number_of_pw_dofs);
+    AssertRHSVectorBlocksAreNear(actual_right_hand_side, expected_u_block_vector,
+                                 expected_p_block_vector, number_of_u_dofs, number_of_pw_dofs);
 }
 
 KRATOS_TEST_CASE_IN_SUITE(UPwTriangleInterfaceElement_RightHandSideEqualsMinusInternalForceVector_Rotated,
@@ -1229,29 +1220,18 @@ KRATOS_TEST_CASE_IN_SUITE(UPwTriangleInterfaceElement_ReturnsExpectedLeftAndRigh
     // Assert
     constexpr auto number_of_u_dofs  = std::size_t{6 * 3};
     constexpr auto number_of_pw_dofs = std::size_t{6};
-    ASSERT_EQ(actual_left_hand_side.size1(), number_of_u_dofs + number_of_pw_dofs);
-    ASSERT_EQ(actual_left_hand_side.size2(), number_of_u_dofs + number_of_pw_dofs);
-    ASSERT_EQ(actual_right_hand_side.size(), number_of_u_dofs + number_of_pw_dofs);
-
-    const auto expected_uu_block_matrix = ExpectedStiffnessMatrixOfLinearTrianglularInterfaceElement();
-    KRATOS_EXPECT_MATRIX_RELATIVE_NEAR(
-        subrange(actual_left_hand_side, 0, 0 + number_of_u_dofs, 0, 0 + number_of_u_dofs),
-        expected_uu_block_matrix, Defaults::relative_tolerance)
+    const auto expected_uu_block_matrix = ExpectedStiffnessMatrixOfLinearTriangularInterfaceElement();
     const auto expected_up_block_matrix = Matrix{number_of_u_dofs, number_of_pw_dofs, 0.0};
-    AssertUPBlockMatrixIsNear(actual_left_hand_side, expected_up_block_matrix, number_of_u_dofs, number_of_pw_dofs);
     const auto expected_pu_block_matrix = Matrix{number_of_pw_dofs, number_of_u_dofs, 0.0};
-    AssertPUBlockMatrixIsNear(actual_left_hand_side, expected_pu_block_matrix, number_of_u_dofs, number_of_pw_dofs);
     const auto expected_pp_block_matrix = Matrix{number_of_pw_dofs, number_of_pw_dofs, 0.0};
-    AssertPPBlockMatrixIsNear(actual_left_hand_side, expected_pp_block_matrix, number_of_u_dofs, number_of_pw_dofs);
+    AssertLHSMatrixBlocksAreNear(actual_left_hand_side, expected_uu_block_matrix,
+                                 expected_up_block_matrix, expected_pu_block_matrix,
+                                 expected_pp_block_matrix, number_of_u_dofs, number_of_pw_dofs);
 
-    const auto expected_stiffness_force =
-        UblasUtilities::CreateVector({0.333333, 0.833333, 0, 0, 0, 0, -0.333333, -0.833333, 0,
-                                      -0.333333, -0.833333, 0, 0, 0, 0, 0.333333, 0.833333, 0});
-    constexpr auto tolerance = 1e-5;
-    KRATOS_EXPECT_VECTOR_NEAR(subrange(actual_right_hand_side, 0, 0 + number_of_u_dofs),
-                              expected_stiffness_force, tolerance)
+    const auto expected_u_block_vector = ExpectedStiffnessForceOfLinearTriangularInterfaceElement();
     const auto expected_p_block_vector = Vector{number_of_pw_dofs, 0.0};
-    AssertPBlockVectorIsNear(actual_right_hand_side, expected_p_block_vector, number_of_u_dofs, number_of_pw_dofs);
+    AssertRHSVectorBlocksAreNear(actual_right_hand_side, expected_u_block_vector,
+                                 expected_p_block_vector, number_of_u_dofs, number_of_pw_dofs);
 }
 
 KRATOS_TEST_CASE_IN_SUITE(UPwTriangleInterfaceElement_CalculateRelativeDisplacementVector,
