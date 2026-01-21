@@ -13,102 +13,76 @@
 
 #pragma once
 
+// System includes
+
+// External includes
+
+// Project includes
 #include "includes/serializer.h"
 
 namespace Kratos::Testing
 {
-
-class TestClass 
-{
-public:
-    int mValue;
-    TestClass() : mValue(0) {}
-    TestClass(int v) : mValue(v) {}
-    virtual ~TestClass() = default;
-private:
-    friend class Kratos::Serializer;
-    void save(Serializer& rSerializer) const {
-        rSerializer.save("Value", mValue);
-    }
-    void load(Serializer& rSerializer) {
-        rSerializer.load("Value", mValue);
-    }
-};
-
-// Two dummy classes for testing (de)serialization of a derived class through
-// a pointer to an abstract base class
-class AbstractTestClass
-{
-public:
-    virtual ~AbstractTestClass() = default;
-    [[nodiscard]] virtual int foo() const = 0;
-
-private:
-    friend class Kratos::Serializer;
-    virtual void save(Serializer&) const = 0;
-    virtual void load(Serializer&) = 0;
-
-    // The following members are required to use this class with intrusive_ptr
-    friend void intrusive_ptr_add_ref(const AbstractTestClass* pInstance)
+    class KRATOS_API(KRATOS_TEST_UTILS) TestClass 
     {
-        if (pInstance) ++(pInstance->mRefCount);
-    }
+    public:
+        int mValue;
+        TestClass();
+        TestClass(int v);
+        virtual ~TestClass() = default;
+    private:
+        friend class Kratos::Serializer;
+        void save(Serializer& rSerializer) const;
+        void load(Serializer& rSerializer);
+    };
 
-    friend void intrusive_ptr_release(const AbstractTestClass* pInstance)
+    class KRATOS_API(KRATOS_TEST_UTILS) AbstractTestClass
     {
-        if (pInstance) {
-            --(pInstance->mRefCount);
-            if (pInstance->mRefCount == 0) delete pInstance;
+    public:
+        virtual ~AbstractTestClass() = default;
+        [[nodiscard]] virtual int foo() const = 0;
+
+    private:
+        friend class Kratos::Serializer;
+        virtual void save(Serializer&) const = 0;
+        virtual void load(Serializer&) = 0;
+
+        friend void intrusive_ptr_add_ref(const AbstractTestClass* pInstance) {
+            if (pInstance) ++(pInstance->mRefCount);
         }
-    }
 
-    mutable std::size_t mRefCount = 0; // Must be mutable, since previous two members receive a pointer-to-const
-};
+        friend void intrusive_ptr_release(const AbstractTestClass* pInstance) {
+            if (pInstance) {
+                --(pInstance->mRefCount);
+                if (pInstance->mRefCount == 0) delete pInstance;
+            }
+        }
+        mutable std::size_t mRefCount = 0;
+    };
 
-class DerivedTestClass : public AbstractTestClass
-{
-public:
-    explicit DerivedTestClass(int FooNumber = 0) : mFooNumber(FooNumber) {}
-    ~DerivedTestClass() override = default;
-    [[nodiscard]] int foo() const override { return mFooNumber; }
-
-private:
-    friend class Kratos::Serializer;
-
-    void save(Serializer& rSerializer) const override
+    class KRATOS_API(KRATOS_TEST_UTILS) DerivedTestClass : public AbstractTestClass
     {
-        rSerializer.save("mFooNumber", mFooNumber);
-    }
+    public:
+        explicit DerivedTestClass(int FooNumber = 0);
+        ~DerivedTestClass() override = default;
+        [[nodiscard]] int foo() const override;
 
-    void load(Serializer& rSerializer) override
+    private:
+        friend class Kratos::Serializer;
+        void save(Serializer& rSerializer) const override;
+        void load(Serializer& rSerializer) override;
+        int mFooNumber;
+    };
+
+    class KRATOS_API(KRATOS_TEST_UTILS) ScopedTestClassRegistration
     {
-        rSerializer.load("mFooNumber", mFooNumber);
-    }
+    public:
+        ScopedTestClassRegistration();
+        ~ScopedTestClassRegistration();
 
-    int mFooNumber;
-};
+        ScopedTestClassRegistration(const ScopedTestClassRegistration&) = delete;
+        ScopedTestClassRegistration& operator=(const ScopedTestClassRegistration&) = delete;
+        ScopedTestClassRegistration(ScopedTestClassRegistration&&) noexcept = default;
+        ScopedTestClassRegistration& operator=(ScopedTestClassRegistration&&) noexcept = default;
+    };
 
-class ScopedTestClassRegistration
-{
-public:
-    ScopedTestClassRegistration()
-    {
-        Serializer::Register("TestClass", TestClass{});
-        Serializer::Register("DerivedTestClass", DerivedTestClass{});
-    }
-
-    ~ScopedTestClassRegistration()
-    {
-        Serializer::Deregister("TestClass");
-        Serializer::Deregister("DerivedTestClass");
-    }
-
-    // Since the destructor has been defined, use the Rule of Five
-    ScopedTestClassRegistration(const ScopedTestClassRegistration&) = delete;
-    ScopedTestClassRegistration& operator=(const ScopedTestClassRegistration&) = delete;
-
-    ScopedTestClassRegistration(ScopedTestClassRegistration&&) noexcept = default;
-    ScopedTestClassRegistration& operator=(ScopedTestClassRegistration&&) noexcept = default;
-};
-
-}
+} // namespace Kratos::Testing
