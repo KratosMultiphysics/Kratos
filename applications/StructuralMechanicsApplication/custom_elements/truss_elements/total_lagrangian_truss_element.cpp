@@ -484,9 +484,7 @@ void TotalLagrangianTrussElement<TDimension>::CalculateOnIntegrationPoints(
 
     } else if (rVariable == AXIAL_STRAIN) {
 
-        const auto& r_props = GetProperties();
         const auto& r_geometry = GetGeometry();
-
         const array_3 ref_axis = r_geometry[1].GetInitialPosition().Coordinates() - r_geometry[0].GetInitialPosition().Coordinates();
         const array_3 curr_axis = r_geometry[1].Coordinates() - r_geometry[0].Coordinates();
         const double ref_length = norm_2(ref_axis);
