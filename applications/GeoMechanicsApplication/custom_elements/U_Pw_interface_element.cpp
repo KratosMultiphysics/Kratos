@@ -173,12 +173,6 @@ void UPwInterfaceElement::CalculateLeftHandSide(MatrixType& rLeftHandSideMatrix,
         CalculateConstitutiveMatricesAtIntegrationPoints(
             CalculateRelativeDisplacementsAtIntegrationPoints(local_b_matrices), rProcessInfo),
         CalculateIntegrationCoefficients());
-    KRATOS_DEBUG_ERROR_IF(stiffness_matrix.size1() != NumberOfUDofs())
-        << "Stiffness matrix of interface element " << Id() << " has unexpected number of rows: got "
-        << stiffness_matrix.size1() << ", but expected " << NumberOfUDofs() << "\n";
-    KRATOS_DEBUG_ERROR_IF(stiffness_matrix.size2() != NumberOfUDofs())
-        << "Stiffness matrix of interface element " << Id() << " has unexpected number of columns: got "
-        << stiffness_matrix.size2() << ", but expected " << NumberOfUDofs() << "\n";
 
     GeoElementUtilities::AssignUUBlockMatrix(rLeftHandSideMatrix, stiffness_matrix);
 }
