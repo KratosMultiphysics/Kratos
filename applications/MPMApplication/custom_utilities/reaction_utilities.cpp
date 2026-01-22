@@ -19,7 +19,6 @@
 
 // Application includes
 #include "reaction_utilities.h"
-#include "mpm_application_variables.h"
 
 namespace Kratos
 {

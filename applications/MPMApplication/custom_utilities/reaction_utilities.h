@@ -16,17 +16,22 @@
 // External includes
 
 // Project includes
+#include "mpm_application_variables.h"
 
 namespace Kratos
 {
 
-  // Auxiliary utility to compute the reaction over a line or surface
-  // The line or surface can be a part of the boundary of the background grid
-  // (conforming boundary conditions) or can be defined through material
-  // point conditions (non-conforming boundary conditions)
-  class KRATOS_API(MPM_APPLICATION) ReactionUtilities
-  {
-  public:
+// Auxiliary utility to compute the reaction over a line or surface
+// The line or surface can be a part of the boundary of the background grid
+// (conforming boundary conditions) or can be defined through material
+// point conditions (non-conforming boundary conditions)
+class KRATOS_API(MPM_APPLICATION) ReactionUtilities
+{
+public:
+
+    ReactionUtilities() = default;
+
+    virtual ~ReactionUtilities() = default;
 
     /**
     * @brief Computes the sum of the REACTION variable for all nodes in a given model part
