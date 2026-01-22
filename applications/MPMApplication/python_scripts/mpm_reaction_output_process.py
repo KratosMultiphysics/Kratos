@@ -1,6 +1,4 @@
-# Importing the Kratos Library
 import KratosMultiphysics
-# other imports
 from KratosMultiphysics.time_based_ascii_file_writer_utility import TimeBasedAsciiFileWriterUtility
 
 def Factory(settings: KratosMultiphysics.Parameters, model: KratosMultiphysics.Model) -> KratosMultiphysics.OutputProcess:
@@ -8,9 +6,9 @@ def Factory(settings: KratosMultiphysics.Parameters, model: KratosMultiphysics.M
         raise Exception("expected input shall be a Model object")
     if not isinstance(settings, KratosMultiphysics.Parameters):
         raise Exception("expected input shall be a Parameters object, encapsulating a json string")
-    return ComputeReactionProcess(model, settings["Parameters"])
+    return MPMReactionOutputProcess(model, settings["Parameters"])
 
-class ComputeReactionProcess(KratosMultiphysics.OutputProcess):
+class MPMReactionOutputProcess(KratosMultiphysics.OutputProcess):
     """
     Auxiliary base class to output total reaction of over a line or surface.
     A derived class needs to be implemented to be able to use this functionality
@@ -46,7 +44,7 @@ class ComputeReactionProcess(KratosMultiphysics.OutputProcess):
             }
             """)
 
-    def ExecuteBeforeSolutionLoop(self):
+    def ExecuteBeforeSolutionLoop(self) -> None:
         self.model_part = self.model[self.model_part_name]
         file_handler_params = KratosMultiphysics.Parameters(self.params["output_file_settings"])
 
@@ -55,30 +53,33 @@ class ComputeReactionProcess(KratosMultiphysics.OutputProcess):
             output_file_name = f"{self.model_part_name}_reaction"
             wrn_msg = f"File name not specified, using the default name: {output_file_name}"
             KratosMultiphysics.Logger.PrintWarning(self.__class__.__name__,wrn_msg)
+            file_handler_params.AddString("file_name",output_file_name)
 
         self.output_file = TimeBasedAsciiFileWriterUtility(self.model_part, file_handler_params, self._GetFileHeader()).file
-        self.output_file.flush()
+        self.PrintOutput()
 
     def PrintOutput(self) -> None:
-        current_time = self.model_part.ProcessInfo[KratosMultiphysics.TIME]
-        reaction_force = self._GetReaction() # Compute reaction force
-        self.output_file.write(f"{str(current_time)} {reaction_force[0]:{self.format}} {reaction_force[1]:{self.format}} {reaction_force[2]:{self.format}}\n")
-        self.output_file.flush()
-        self.controller.Update()
+        if self.output_file:
+            time = self.model_part.ProcessInfo[KratosMultiphysics.TIME]
+            reaction_force = self._GetReaction() # Compute reaction force
+            out = f"{str(time)} {reaction_force[0]:{self.format}} {reaction_force[1]:{self.format}} {reaction_force[2]:{self.format}}\n"
+            self.output_file.write(out)
+            self.output_file.flush()
+            self.controller.Update()
 
     def IsOutputStep(self) -> bool:
-        current_time = self.model_part.ProcessInfo[KratosMultiphysics.TIME]
         return self.controller.Evaluate()
 
-    def ExecuteFinalize(self):
-        self.output_file.close()
+    def ExecuteFinalize(self) -> None:
+        if self.output_file:
+            self.output_file.close()
 
     def _GetFileHeader(self):
-        err_msg  = 'ComputeReactionProcess: _GetFileHeader called in base class\n'
+        err_msg  = '{self.__class__.__name__}: _GetFileHeader called in base class\n'
         err_msg += 'this needs to be implemented and called from derived class'
         raise Exception(err_msg)
 
     def _GetReaction(self):
-        err_msg  = 'ComputeReactionProcess: _GetReaction called in base class\n'
+        err_msg  = '{self.__class__.__name__}: _GetReaction called in base class\n'
         err_msg += 'this needs to be implemented and called from derived class'
         raise Exception(err_msg)
