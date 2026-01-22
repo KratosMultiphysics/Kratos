@@ -18,19 +18,15 @@
 // External includes
 
 // Project includes
-#include "mpm_application_variables.h"
 #include "containers/model.h"
 #include "includes/element.h"
 
 namespace Kratos
 {
 
-class KRATOS_API(MPM_APPLICATION) MPMEnergyCalculationUtility
+class MPMEnergyCalculationUtility
 {
 public:
-
-    /// Pointer definition of MPMEnergyCalculationUtility
-    KRATOS_CLASS_POINTER_DEFINITION(MPMEnergyCalculationUtility);
 
     /**
      * @brief Compute the potential energy of a material point element

@@ -18,6 +18,7 @@
 
 // Project includes
 #include "custom_utilities/mpm_energy_calculation_utility.h"
+#include "mpm_application_variables.h"
 #include "utilities/parallel_utilities.h"
 #include "utilities/reduction_utilities.h"
 
