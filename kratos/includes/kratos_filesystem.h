@@ -16,11 +16,13 @@
 // System includes
 #include <string>
 #include <vector>
+#include <cstdint>
 
 // External includes
 
 // Project includes
 #include "includes/define.h"
+
 
 
 namespace Kratos {
