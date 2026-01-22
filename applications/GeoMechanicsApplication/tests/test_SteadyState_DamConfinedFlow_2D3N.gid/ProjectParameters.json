@@ -64,7 +64,6 @@
             "scaling":             true
         },
         "problem_domain_sub_model_part_list": ["Soil"],
-        "processes_sub_model_part_list":      ["Left_water_head","Right_water_head","gravity"],
         "body_domain_sub_model_part_list":    ["Soil"]
     },
     "output_processes": {

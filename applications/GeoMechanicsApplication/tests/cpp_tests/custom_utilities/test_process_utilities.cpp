@@ -16,6 +16,8 @@
 #include "custom_processes/apply_excavation_process.h"
 #include "custom_processes/apply_final_stresses_of_previous_stage_to_initial_state.h"
 #include "custom_processes/apply_k0_procedure_process.h"
+#include "custom_processes/apply_vector_constraint_table_process.h"
+#include "custom_processes/geo_extrapolate_integration_point_values_to_nodes_process.hpp"
 #include "custom_utilities/process_utilities.h"
 #include "testing/testing.h"
 #include "tests/cpp_tests/geo_mechanics_fast_suite.h"
@@ -25,6 +27,7 @@ namespace Kratos::Testing
 
 KRATOS_TEST_CASE_IN_SUITE(GetModelPartsFromSettings_SingleModelPart, KratosGeoMechanicsFastSuiteWithoutKernel)
 {
+    // Arrange
     Model model;
     model.CreateModelPart("Main");
 
@@ -33,14 +36,17 @@ KRATOS_TEST_CASE_IN_SUITE(GetModelPartsFromSettings_SingleModelPart, KratosGeoMe
             "model_part_name": "Main"
         })");
 
+    // Act
     const auto model_parts = ProcessUtilities::GetModelPartsFromSettings(model, settings, "TestProcess");
 
+    // Assert
     KRATOS_EXPECT_EQ(model_parts.size(), 1);
     KRATOS_EXPECT_EQ(model_parts[0].get().Name(), "Main");
 }
 
 KRATOS_TEST_CASE_IN_SUITE(GetModelPartsFromSettings_ListOfModelParts, KratosGeoMechanicsFastSuiteWithoutKernel)
 {
+    // Arrange
     Model model;
     model.CreateModelPart("Part1");
     model.CreateModelPart("Part2");
@@ -50,11 +56,30 @@ KRATOS_TEST_CASE_IN_SUITE(GetModelPartsFromSettings_ListOfModelParts, KratosGeoM
             "model_part_name_list": ["Part1", "Part2"]
         })");
 
+    // Act
     const auto model_parts = ProcessUtilities::GetModelPartsFromSettings(model, settings, "TestProcess");
 
+    // Assert
     KRATOS_EXPECT_EQ(model_parts.size(), 2);
     KRATOS_EXPECT_EQ(model_parts[0].get().Name(), "Part1");
     KRATOS_EXPECT_EQ(model_parts[1].get().Name(), "Part2");
+}
+
+KRATOS_TEST_CASE_IN_SUITE(GetModelPartsFromSettings_CheckForDuplicatedNames, KratosGeoMechanicsFastSuiteWithoutKernel)
+{
+    // Arrange
+    Model model;
+    model.CreateModelPart("Part1");
+    model.CreateModelPart("Part2");
+
+    Parameters settings(R"(
+        {
+            "model_part_name_list": ["Part1", "Part1"]
+        })");
+
+    // Act and Assert
+    KRATOS_EXPECT_EXCEPTION_IS_THROWN(ProcessUtilities::GetModelPartsFromSettings(model, settings, "TestProcess"),
+                                      "model_part_name_list has duplicated names for TestProcess.")
 }
 
 struct NamedFactory {
@@ -131,6 +156,14 @@ static const std::vector<NamedFactory> ProcessesAndOperations = {
      [](Model& rModel, const Parameters& rSettings) {
     return std::make_unique<Kratos::ApplyCPhiReductionProcess>(rModel, rSettings);
 }},
+    {"ApplyVectorConstraintTableProcess",
+     [](Model& rModel, const Parameters& rSettings) {
+    return std::make_unique<Kratos::ApplyVectorConstraintTableProcess>(rModel, rSettings);
+}},
+    {"GeoExtrapolateIntegrationPointValuesToNodesProcess",
+     [](Model& rModel, const Parameters& rSettings) {
+    return std::make_unique<Kratos::GeoExtrapolateIntegrationPointValuesToNodesProcess>(rModel, rSettings);
+}},
     {"ActivateModelPartOperation",
      [](Model& rModel, const Parameters& rSettings) {
     return std::make_unique<Kratos::ActivateModelPartOperation>(rModel, rSettings);
@@ -140,5 +173,79 @@ static const std::vector<NamedFactory> ProcessesAndOperations = {
 }}};
 
 INSTANTIATE_TEST_SUITE_P(ProcessAndOperationUtilitiesTests, ModelPartsTest, ::testing::ValuesIn(ProcessesAndOperations));
+
+KRATOS_TEST_CASE_IN_SUITE(AddProcessesSubModelPartList_AddsEmptyListWhenThereAreNoProcesses,
+                          KratosGeoMechanicsFastSuiteWithoutKernel)
+{
+    // Arrange
+    const auto project_parameters = Parameters{};
+    Parameters solver_settings(R"(
+        {
+            "model_part_name": "Main"
+        })");
+
+    // Act
+    ProcessUtilities::AddProcessesSubModelPartListToSolverSettings(project_parameters, solver_settings);
+
+    // Assert
+    KRATOS_EXPECT_TRUE(solver_settings.Has("processes_sub_model_part_list"))
+    KRATOS_EXPECT_TRUE(solver_settings["processes_sub_model_part_list"].IsArray())
+    KRATOS_EXPECT_TRUE(solver_settings["processes_sub_model_part_list"].size() == 0)
+}
+
+KRATOS_TEST_CASE_IN_SUITE(AddProcessesSubModelPartList_AddsFilledListBasedOnConstraintsLoadsAndAuxiliaryProcessesOnly,
+                          KratosGeoMechanicsFastSuiteWithoutKernel)
+{
+    // Arrange
+    const Parameters project_parameters(R"(
+      {
+         "processes":
+         {
+            "constraints_process_list": [
+            {
+                "Parameters":    {
+                    "model_part_name": "PorousDomain.Sides"
+                }
+            },{
+                "Parameters":    {
+                    "model_part_name_list": ["PorousDomain.BottomFixed", "PorousDomain.TopLoad"]
+                }
+            }],
+            "loads_process_list": [
+            {
+                "Parameters":    {
+                    "model_part_name": "PorousDomain.Soil"
+                }
+            }],
+            "auxiliary_process_list": [{
+                "Parameters": {
+                    "model_part_name": "PorousDomain.Soil"
+                }
+            }],
+            "arbitrary_process_list": [{
+                "Parameters": {
+                    "model_part_name": "PorousDomain"
+                }
+            }]
+         },
+         "solver_settings": {
+             "model_part_name": "PorousDomain",
+             "processes_sub_model_part_list": ["name1", "name2", "name3"]
+         }
+      })");
+
+    auto solver_settings = project_parameters["solver_settings"];
+
+    // Act
+    ProcessUtilities::AddProcessesSubModelPartListToSolverSettings(project_parameters, solver_settings);
+
+    // Assert
+    const auto& r_list = solver_settings["processes_sub_model_part_list"];
+    KRATOS_EXPECT_EQ(r_list.size(), 4);
+
+    const auto actual_modelpart_names = solver_settings["processes_sub_model_part_list"].GetStringArray();
+    const std::vector<std::string> expected_modelpart_names = {"BottomFixed", "Sides", "Soil", "TopLoad"};
+    EXPECT_EQ(actual_modelpart_names, expected_modelpart_names);
+}
 
 } // namespace Kratos::Testing

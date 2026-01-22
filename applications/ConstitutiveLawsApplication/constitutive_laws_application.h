@@ -131,6 +131,9 @@
 #include "custom_constitutive/thermal/small_strains/damage/generic_small_strain_thermal_isotropic_damage.h"
 #include "custom_constitutive/thermal/small_strains/damage/generic_small_strain_thermal_isotropic_damage_plane_stress.h"
 
+// structural elements CL
+#include "custom_constitutive/structural_elements_constitutive_laws/thickness_integrated_isotropic_constitutive_law.h"
+
 namespace Kratos {
 
 ///@name Kratos Globals
@@ -697,6 +700,10 @@ private:
     const GenericSmallStrainThermalIsotropicDamagePlaneStress <GenericConstitutiveLawIntegratorDamage<ThermalRankineYieldSurface<VonMisesPlasticPotential<3>>>> mSmallStrainThermalIsotropicDamagePlaneStressRankine;
     const GenericSmallStrainThermalIsotropicDamagePlaneStress <GenericConstitutiveLawIntegratorDamage<ThermalSimoJuYieldSurface<VonMisesPlasticPotential<3>>>> mSmallStrainThermalIsotropicDamagePlaneStressSimoJu;
     const GenericSmallStrainThermalIsotropicDamagePlaneStress <GenericConstitutiveLawIntegratorDamage<ThermalMohrCoulombYieldSurface<VonMisesPlasticPotential<3>>>> mSmallStrainThermalIsotropicDamagePlaneStressMohrCoulomb;
+
+
+    // Structural elements CLs
+    const ThicknessIntegratedIsotropicConstitutiveLaw mThicknessIntegratedIsotropicConstitutiveLaw;
 
     ///@}
     ///@name Private Operators

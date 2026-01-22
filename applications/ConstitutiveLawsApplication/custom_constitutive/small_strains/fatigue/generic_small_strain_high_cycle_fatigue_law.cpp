@@ -652,6 +652,22 @@ Matrix& GenericSmallStrainHighCycleFatigueLaw<TConstLawIntegratorType>::Calculat
 /***********************************************************************************/
 /***********************************************************************************/
 
+template <class TConstLawIntegratorType>
+int GenericSmallStrainHighCycleFatigueLaw<TConstLawIntegratorType>::Check(
+    const Properties& rMaterialProperties,
+    const GeometryType& rElementGeometry,
+    const ProcessInfo& rCurrentProcessInfo
+    ) const
+{
+    const int check_base = BaseType::Check(rMaterialProperties, rElementGeometry, rCurrentProcessInfo);
+    const int check_integrator = HighCycleFatigueLawIntegrator<6>::Check(rMaterialProperties);
+    if ((check_base + check_integrator) > 0) return 1;
+    return 0;
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
 template class GenericSmallStrainHighCycleFatigueLaw <GenericConstitutiveLawIntegratorDamage<VonMisesYieldSurface<VonMisesPlasticPotential<6>>>>;
 template class GenericSmallStrainHighCycleFatigueLaw <GenericConstitutiveLawIntegratorDamage<ModifiedMohrCoulombYieldSurface<ModifiedMohrCoulombPlasticPotential<6>>>>;
 template class GenericSmallStrainHighCycleFatigueLaw <GenericConstitutiveLawIntegratorDamage<TrescaYieldSurface<TrescaPlasticPotential<6>>>>;

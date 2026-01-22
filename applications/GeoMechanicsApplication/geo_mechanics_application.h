@@ -28,31 +28,31 @@
 #include "geo_mechanics_application_variables.h"
 
 // conditions
-#include "custom_conditions/Pw_normal_flux_condition.hpp"
-#include "custom_conditions/Pw_point_flux_condition.hpp"
+#include "custom_conditions/Pw_normal_flux_condition.h"
+#include "custom_conditions/Pw_point_flux_condition.h"
 #include "custom_conditions/T_microclimate_flux_condition.h"
 #include "custom_conditions/T_normal_flux_condition.h"
-#include "custom_conditions/U_Pw_face_load_condition.hpp"
-#include "custom_conditions/U_Pw_face_load_interface_condition.hpp"
-#include "custom_conditions/U_Pw_force_condition.hpp"
-#include "custom_conditions/U_Pw_normal_face_load_condition.hpp"
-#include "custom_conditions/U_Pw_normal_flux_FIC_condition.hpp"
-#include "custom_conditions/U_Pw_normal_flux_condition.hpp"
-#include "custom_conditions/U_Pw_normal_flux_interface_condition.hpp"
-#include "custom_conditions/U_Pw_normal_lysmer_absorbing_condition.hpp"
-#include "custom_conditions/axisymmetric_U_Pw_normal_face_load_condition.hpp"
-#include "custom_conditions/axisymmetric_line_normal_fluid_flux_2D_diff_order_condition.hpp"
-#include "custom_conditions/axisymmetric_line_normal_load_2D_diff_order_condition.hpp"
-#include "custom_conditions/line_load_2D_diff_order_condition.hpp"
-#include "custom_conditions/line_normal_fluid_flux_2D_diff_order_condition.hpp"
-#include "custom_conditions/line_normal_load_2D_diff_order_condition.hpp"
-#include "custom_conditions/surface_load_3D_diff_order_condition.hpp"
-#include "custom_conditions/surface_normal_fluid_flux_3D_diff_order_condition.hpp"
-#include "custom_conditions/surface_normal_load_3D_diff_order_condition.hpp"
+#include "custom_conditions/U_Pw_face_load_condition.h"
+#include "custom_conditions/U_Pw_face_load_interface_condition.h"
+#include "custom_conditions/U_Pw_force_condition.h"
+#include "custom_conditions/U_Pw_normal_face_load_condition.h"
+#include "custom_conditions/U_Pw_normal_flux_FIC_condition.h"
+#include "custom_conditions/U_Pw_normal_flux_condition.h"
+#include "custom_conditions/U_Pw_normal_flux_interface_condition.h"
+#include "custom_conditions/U_Pw_normal_lysmer_absorbing_condition.h"
+#include "custom_conditions/axisymmetric_U_Pw_normal_face_load_condition.h"
+#include "custom_conditions/axisymmetric_line_normal_fluid_flux_2D_diff_order_condition.h"
+#include "custom_conditions/axisymmetric_line_normal_load_2D_diff_order_condition.h"
+#include "custom_conditions/line_load_2D_diff_order_condition.h"
+#include "custom_conditions/line_normal_fluid_flux_2D_diff_order_condition.h"
+#include "custom_conditions/line_normal_load_2D_diff_order_condition.h"
+#include "custom_conditions/surface_load_3D_diff_order_condition.h"
+#include "custom_conditions/surface_normal_fluid_flux_3D_diff_order_condition.h"
+#include "custom_conditions/surface_normal_load_3D_diff_order_condition.h"
 #include "custom_conditions/thermal_point_flux_condition.h"
 
 // Geometries
-#include "custom_geometries/interface_geometry.h"
+#include "custom_geometries/interface_geometry.hpp"
 #include "geometries/hexahedra_3d_20.h"
 #include "geometries/hexahedra_3d_27.h"
 #include "geometries/hexahedra_3d_8.h"
@@ -82,20 +82,20 @@
 #include "geometries/triangle_3d_6.h"
 
 // elements
-#include "custom_elements/Pw_element.h"
-#include "custom_elements/U_Pw_small_strain_FIC_element.hpp"
-#include "custom_elements/U_Pw_small_strain_element.hpp"
-#include "custom_elements/U_Pw_small_strain_interface_element.hpp"
-#include "custom_elements/U_Pw_updated_lagrangian_FIC_element.hpp"
-#include "custom_elements/U_Pw_updated_lagrangian_element.hpp"
+#include "custom_elements/Pw_element.hpp"
+#include "custom_elements/U_Pw_interface_element.h"
+#include "custom_elements/U_Pw_small_strain_FIC_element.h"
+#include "custom_elements/U_Pw_small_strain_element.h"
+#include "custom_elements/U_Pw_small_strain_interface_element.h"
+#include "custom_elements/U_Pw_updated_lagrangian_FIC_element.h"
+#include "custom_elements/U_Pw_updated_lagrangian_element.h"
 #include "custom_elements/calculation_contribution.h"
 #include "custom_elements/geo_steady_state_Pw_piping_element.h"
-#include "custom_elements/interface_element.h"
-#include "custom_elements/small_strain_U_Pw_diff_order_element.hpp"
-#include "custom_elements/steady_state_Pw_element.hpp"
-#include "custom_elements/transient_Pw_element.hpp"
+#include "custom_elements/small_strain_U_Pw_diff_order_element.h"
+#include "custom_elements/steady_state_Pw_element.h"
+#include "custom_elements/transient_Pw_element.h"
 #include "custom_elements/transient_thermal_element.h"
-#include "custom_elements/updated_lagrangian_U_Pw_diff_order_element.hpp"
+#include "custom_elements/updated_lagrangian_U_Pw_diff_order_element.h"
 
 // Element policies
 #include "custom_elements/axisymmetric_stress_state.h"
@@ -105,7 +105,7 @@
 #include "custom_elements/three_dimensional_stress_state.h"
 
 // geo structural element
-#include "custom_elements/geo_cr_beam_element_linear_2D2N.hpp"
+#include "custom_elements/geo_cr_beam_element_linear_2D2N.h"
 
 // constitutive models
 #include "custom_constitutive/incremental_linear_elastic_interface_law.h"
@@ -122,10 +122,10 @@
 #include "custom_constitutive/small_strain_udsm_2D_interface_law.h"
 #include "custom_constitutive/small_strain_udsm_3D_interface_law.h"
 #include "custom_constitutive/small_strain_udsm_law.h"
-#include "custom_constitutive/small_strain_umat_2D_interface_law.hpp"
-#include "custom_constitutive/small_strain_umat_2D_plane_strain_law.hpp"
-#include "custom_constitutive/small_strain_umat_3D_interface_law.hpp"
-#include "custom_constitutive/small_strain_umat_law.hpp"
+#include "custom_constitutive/small_strain_umat_2D_interface_law.h"
+#include "custom_constitutive/small_strain_umat_2D_plane_strain_law.h"
+#include "custom_constitutive/small_strain_umat_3D_interface_law.h"
+#include "custom_constitutive/small_strain_umat_law.h"
 #include "custom_constitutive/three_dimensional.h"
 #include "custom_constitutive/truss_backbone_constitutive_law.h"
 #include "custom_elements/interface_stress_state.h"
@@ -516,24 +516,24 @@ private:
         0, Kratos::make_shared<HexahedraInterface3D8<NodeType>>(Element::GeometryType::PointsArrayType(8)),
         std::make_unique<ThreeDimensionalStressState>()};
 
-    const InterfaceElement mULineInterfacePlaneStrainElement2Plus2N{
+    const UPwInterfaceElement mUPwLineInterfacePlaneStrainElement2Plus2N{
         0, Kratos::make_shared<InterfaceGeometry<Line2D2<NodeType>>>(Element::GeometryType::PointsArrayType(4)),
-        std::make_unique<Line2DInterfaceStressState>()};
-    const InterfaceElement mULineInterfacePlaneStrainElement3Plus3N{
+        std::make_unique<Line2DInterfaceStressState>(), IsDiffOrderElement::No};
+    const UPwInterfaceElement mUPwLineInterfacePlaneStrainElement3Plus3N{
         0, Kratos::make_shared<InterfaceGeometry<Line2D3<NodeType>>>(Element::GeometryType::PointsArrayType(6)),
-        std::make_unique<Line2DInterfaceStressState>()};
-    const InterfaceElement mUSurfaceInterfaceElement3Plus3N{
+        std::make_unique<Line2DInterfaceStressState>(), IsDiffOrderElement::No};
+    const UPwInterfaceElement mUPwSurfaceInterfaceElement3Plus3N{
         0, Kratos::make_shared<InterfaceGeometry<Triangle3D3<NodeType>>>(Element::GeometryType::PointsArrayType(6)),
-        std::make_unique<SurfaceInterfaceStressState>()};
-    const InterfaceElement mUSurfaceInterfaceElement4Plus4N{
+        std::make_unique<SurfaceInterfaceStressState>(), IsDiffOrderElement::No};
+    const UPwInterfaceElement mUPwSurfaceInterfaceElement4Plus4N{
         0, Kratos::make_shared<InterfaceGeometry<Quadrilateral3D4<NodeType>>>(Element::GeometryType::PointsArrayType(8)),
-        std::make_unique<SurfaceInterfaceStressState>()};
-    const InterfaceElement mUSurfaceInterfaceElement6Plus6N{
+        std::make_unique<SurfaceInterfaceStressState>(), IsDiffOrderElement::No};
+    const UPwInterfaceElement mUPwSurfaceInterfaceElement6Plus6N{
         0, Kratos::make_shared<InterfaceGeometry<Triangle3D6<NodeType>>>(Element::GeometryType::PointsArrayType(12)),
-        std::make_unique<SurfaceInterfaceStressState>()};
-    const InterfaceElement mUSurfaceInterfaceElement8Plus8N{
+        std::make_unique<SurfaceInterfaceStressState>(), IsDiffOrderElement::No};
+    const UPwInterfaceElement mUPwSurfaceInterfaceElement8Plus8N{
         0, Kratos::make_shared<InterfaceGeometry<Quadrilateral3D8<NodeType>>>(Element::GeometryType::PointsArrayType(16)),
-        std::make_unique<SurfaceInterfaceStressState>()};
+        std::make_unique<SurfaceInterfaceStressState>(), IsDiffOrderElement::No};
 
     // Updated-Lagrangian elements:
     const UPwUpdatedLagrangianElement<2, 3> mUPwUpdatedLagrangianElement2D3N{

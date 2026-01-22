@@ -11,7 +11,7 @@
 //
 #include "geometry_utilities.h"
 #include "geometries/geometry_data.h"
-#include "math_utilities.h"
+#include "math_utilities.hpp"
 
 #include <boost/numeric/ublas/assignment.hpp>
 
@@ -138,15 +138,6 @@ Matrix GeometryUtilities::Calculate3DRotationMatrixForPlaneGeometry(const Geomet
     return result;
 }
 
-std::vector<std::size_t> GeometryUtilities::GetNodeIdsFromGeometry(const Geometry<Node>& rGeometry)
-{
-    std::vector<std::size_t> result;
-    result.reserve(rGeometry.size());
-    std::ranges::transform(rGeometry, std::back_inserter(result),
-                           [](const auto& rNode) { return rNode.Id(); });
-    return result;
-}
-
 void GeometryUtilities::ReverseNodes(PointerVector<Node>&                  rNodes,
                                      GeometryData::KratosGeometryFamily    GeometryFamily,
                                      GeometryData::KratosGeometryOrderType GeometryOrderType)
@@ -159,6 +150,15 @@ void GeometryUtilities::ReverseNodes(std::vector<std::size_t>&             rNode
                                      GeometryData::KratosGeometryOrderType GeometryOrderType)
 {
     ::ReverseNodes(rNodeIds.begin(), rNodeIds.end(), GeometryFamily, GeometryOrderType);
+}
+
+PointerVector<Node> GeometryUtilities::GetNodesByIndex(const Geometry<Node>& rGeometry,
+                                                       const std::initializer_list<int>& rNodeIndices)
+{
+    auto result = PointerVector<Node>{rNodeIndices.size()};
+    std::ranges::transform(rNodeIndices, result.ptr_begin(),
+                           [&rGeometry](auto NodeIndex) { return rGeometry.pGetPoint(NodeIndex); });
+    return result;
 }
 
 } // namespace Kratos

@@ -20,8 +20,7 @@
         "move_mesh_flag" : false,
         "max_iteration" : 1e2,
         "model_import_settings": {
-            "input_type": "mdpa",
-            "input_filename" : "link_constraint_2d"
+            "input_type": "use_input_model_part"
         },
         "material_import_settings": {
             "materials_filename": "link_constraint_2d_materials.json"

@@ -10,7 +10,7 @@
 //  Main authors:    Richard Faasse
 //
 
-#include "custom_geometries/interface_geometry.h"
+#include "custom_geometries/interface_geometry.hpp"
 #include "custom_utilities/geometry_utilities.h"
 #include "geometries/geometry_data.h"
 #include "tests/cpp_tests/geo_mechanics_fast_suite.h"
@@ -255,27 +255,6 @@ KRATOS_TEST_CASE_IN_SUITE(GeometryUtilities_RotationMatrixForOpenHorizontalInter
         GeometryUtilities::Calculate2DRotationMatrixForLineGeometry(geometry, local_coordinate);
 
     KRATOS_EXPECT_MATRIX_NEAR(Matrix{IdentityMatrix{2}}, rotation_matrix, 1e-6)
-}
-
-KRATOS_TEST_CASE_IN_SUITE(GeometryUtilities_ReturnsEmptyListForEmptyGeometry, KratosGeoMechanicsFastSuiteWithoutKernel)
-{
-    const auto node_ids = GeometryUtilities::GetNodeIdsFromGeometry(Geometry<Node>{});
-
-    KRATOS_EXPECT_TRUE(node_ids.empty())
-}
-
-KRATOS_TEST_CASE_IN_SUITE(GeometryUtilities_ReturnsCorrectNodeIds, KratosGeoMechanicsFastSuiteWithoutKernel)
-{
-    PointerVector<Node> nodes;
-    nodes.push_back(Kratos::make_intrusive<Node>(1, 0.0, 0.0, 0.0));
-    nodes.push_back(Kratos::make_intrusive<Node>(3, 0.0, 0.0, 0.0));
-    nodes.push_back(Kratos::make_intrusive<Node>(42, 0.0, 0.0, 0.0));
-    nodes.push_back(Kratos::make_intrusive<Node>(314, 0.0, 0.0, 0.0));
-    const Geometry geometry(1, nodes);
-
-    const auto node_ids = GeometryUtilities::GetNodeIdsFromGeometry(geometry);
-
-    KRATOS_EXPECT_VECTOR_EQ(node_ids, std::vector({1, 3, 42, 314}));
 }
 
 class GeometryFamiliesReverseFixture

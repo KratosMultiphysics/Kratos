@@ -124,6 +124,9 @@
 
 #include "custom_constitutive/thermal/auxiliary_files/thermal_yield_surfaces/thermal_von_mises_yield_surface.h"
 
+// Structural elements CL
+#include "custom_constitutive/structural_elements_constitutive_laws/thickness_integrated_isotropic_constitutive_law.h"
+
 namespace Kratos::Python {
 
 void AddCustomConstitutiveLawsToPython(pybind11::module& m)
@@ -1569,6 +1572,12 @@ void AddCustomConstitutiveLawsToPython(pybind11::module& m)
     py::class_<  GenericSmallStrainThermalIsotropicDamagePlaneStress <GenericConstitutiveLawIntegratorDamage<ThermalRankineYieldSurface<VonMisesPlasticPotential<3>>>>,
     typename GenericSmallStrainThermalIsotropicDamagePlaneStress <GenericConstitutiveLawIntegratorDamage<ThermalRankineYieldSurface<VonMisesPlasticPotential<3>>>>::Pointer,
     ConstitutiveLaw > (m,"SmallStrainThermalIsotropicDamagePlaneStressRankine").def(py::init<>());
+
+    // Structural elements CLs
+    py::class_< ThicknessIntegratedIsotropicConstitutiveLaw, typename ThicknessIntegratedIsotropicConstitutiveLaw::Pointer,  ConstitutiveLaw  >
+    (m,"ThicknessIntegratedIsotropicConstitutiveLaw").def(py::init<>())
+    ;
+
 
 }
 
