@@ -68,7 +68,7 @@ public:
     KRATOS_CLASS_POINTER_DEFINITION(WriteFromSwAtInterfaceProcess);
 
     /// Definition of the node type
-    using NodeType = Node;
+    using NodeType = Node<3>;
 
     /// Definition of the geometry type
     using GeometryType = Geometry<NodeType>;
