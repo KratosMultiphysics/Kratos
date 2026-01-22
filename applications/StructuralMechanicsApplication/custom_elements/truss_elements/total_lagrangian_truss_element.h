@@ -51,7 +51,7 @@ using SizeType = std::size_t;
  * O---------O --> x'
  *  0         1
  * @author Alejandro Cornejo
- * Reference: "Non-linear Finite Element Analysis of Solids and Structures" by Belytschko, Liu, Moran.
+ * Reference: "Non Linear Finite Element Methods", P. Wriggers.
  */
 template <SizeType TDimension>
 class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) TotalLagrangianTrussElement
@@ -129,97 +129,12 @@ public:
     ///@{
 
     /**
-     * @brief This method returns the angle of the FE axis in the reference configuration
-     * 2D calculations
-     */
-    double GetReferenceAngle() const
-    {
-        return StructuralMechanicsElementUtilities::GetReferenceRotationAngle2D2NBeam(GetGeometry());
-    }
-
-    /**
-     * @brief This method returns the angle of the FE axis in the current configuration
-     * 2D calculations
-     */
-    double GetCurrentAngle() const
-    {
-        return StructuralMechanicsElementUtilities::GetCurrentRotationAngle2D2NBeam(GetGeometry());
-    }
-
-    /**
-     * @brief This function builds the Frenet Serret matrix that rotates from global to local axes in the reference configuration
-     * T = | <- t -> |  x, local
-     *     | <- n -> |  y, local
-     *     | <- m -> |  z, local
-     * 3D calculations
-    */
-    BoundedMatrix<double, 3, 3> GetFrenetSerretMatrix() const;
-
-    /**
      * @brief This method returns the integration method depending on the Number of Nodes
      */
     IntegrationMethod CalculateIntegrationMethod()
     {
         return GeometryData::IntegrationMethod::GI_GAUSS_1;
     }
-
-    /**
-     * @brief This method returns the base shape functions in a reduced size vector
-     */
-    Vector GetBaseShapeFunctions(const double xi) const;
-
-    /**
-     * @brief Returns a n component vector including the values of the DoFs
-     * in LOCAL truss axes
-     */
-    void GetNodalValuesVector(SystemSizeBoundedArrayType& rNodalValue) const;
-
-    /**
-     * @brief Computes the reference (initial) length of the FE and returns it
-     */
-    double CalculateReferenceLength() const
-    {
-        if constexpr (Dimension == 2) {
-            return StructuralMechanicsElementUtilities::CalculateReferenceLength2D2N(*this);
-        } else {
-            return StructuralMechanicsElementUtilities::CalculateReferenceLength3D2N(*this);
-        }
-    }
-
-    /**
-     * @brief Computes the current length (updated) of the FE and returns it
-     */
-    double CalculateCurrentLength() const
-    {
-        if constexpr (Dimension == 2) {
-            return StructuralMechanicsElementUtilities::CalculateCurrentLength2D2N(*this);
-        } else {
-            return StructuralMechanicsElementUtilities::CalculateCurrentLength3D2N(*this);
-        }
-    }
-
-    /**
-     * @brief Computes the Green-Lagrange strain of the element
-     * @param CurrentLength The current length of the element
-     * @param ReferenceLength The reference length of the element
-     * @return The Green-Lagrange strain
-     */
-    double CalculateGreenLagrangeStrain(const double CurrentLength, const double ReferenceLength) const
-    {
-        return 0.5 * (std::pow(CurrentLength / ReferenceLength, 2) - 1.0);
-    }
-
-    /**
-     * @brief Computes the Geometric stiffness matrix of the element
-     * @param Stress_x The axial Cauchy stress of the element
-     * @param Ref_Length The reference length of the element
-     */
-    MatrixType CalculateGeometricStiffnessMatrix(
-        const double Stress_x,
-        const double Ref_Length
-    );
-
-    MatrixType CalculateClosedFormK(const double Sxx);
 
     void GetValuesVector(
         Vector& rValues,
@@ -320,56 +235,6 @@ public:
     {
         return GetGeometry().IntegrationPoints(ThisMethod);
     }
-
-    /**
-     * @brief This function returns the 2 shape functions used for interpolating the displacements in x,y,z
-     * Also the derivatives of u to compute the longitudinal strain
-     * @param rN reference to the shape functions (or derivatives)
-     * @param Length The size of the beam element
-     * @param Phi The shear slenderness parameter
-     * @param xi The coordinate in the natural axes
-    */
-    void GetShapeFunctionsValues(SystemSizeBoundedArrayType& rN, const double Length, const double xi) const;
-    void GetShapeFunctionsValuesY(SystemSizeBoundedArrayType& rN, const double Length, const double xi) const;
-    void GetShapeFunctionsValuesZ(SystemSizeBoundedArrayType& rN, const double Length, const double xi) const;
-    void GetFirstDerivativesShapeFunctionsValues(SystemSizeBoundedArrayType& rN, const double Length, const double xi) const;
-
-    /**
-     * @brief This function rotates the LHS from local to global coordinates
-     * @param rLHS the left hand side
-     * @param rGeometry the geometry of the FE
-    */
-    void RotateLHS(
-        MatrixType &rLHS);
-
-    /**
-     * @brief This function rotates the RHS from local to global coordinates
-     * @param rRHS the right hand side
-     * @param rGeometry the geometry of the FE
-    */
-    void RotateRHS(
-        VectorType &rRHS);
-
-    /**
-     * @brief This function rotates the LHS and RHS from local to global coordinates
-     * @param rLHS the left hand side
-     * @param rRHS the right hand side
-     * @param rGeometry the geometry of the FE
-    */
-    void RotateAll(
-        MatrixType &rLHS,
-        VectorType &rRHS);
-
-    /**
-     * @brief This function retrieves the body forces in local axes
-     * @param rElement the element reference
-     * @param rIntegrationPoints array of IP
-     * @param PointNumber tthe IP to be evaluated
-    */
-    array_1d<double, 3> GetLocalAxesBodyForce(
-        const Element &rElement,
-        const GeometryType::IntegrationPointsArrayType &rIntegrationPoints,
-        const IndexType PointNumber) const;
 
     /**
      * @brief This function provides a more general interface to the element.
