@@ -1,5 +1,6 @@
 # Importing Kratos
 import KratosMultiphysics
+import KratosMultiphysics.FluidDynamicsApplication
 from KratosMultiphysics.process_factory import KratosProcessFactory
 from KratosMultiphysics.kratos_utilities import IssueDeprecationWarning
 from KratosMultiphysics.model_parameters_factory import KratosModelParametersFactory
@@ -38,8 +39,6 @@ class AnalysisStage(object):
             KratosMultiphysics.Logger.PrintWarning("Parallel Type", '"OpenMP" is specified as "parallel_type", but Kratos is running distributed!')
         if self.parallel_type == "MPI" and not is_distributed_run:
             KratosMultiphysics.Logger.PrintWarning("Parallel Type", '"MPI" is specified as "parallel_type", but Kratos is not running distributed!')
-
-        self.AddVariables() 
 
     def AddVariables(self):
         """This function adds the variables to the model part
@@ -92,6 +91,9 @@ class AnalysisStage(object):
         Usage: It is designed to be called ONCE, BEFORE the execution of the solution-loop
         This function has to be implemented in deriving classes!
         """
+        #importing the variables to be used 
+        self.AddVariables() 
+
         # Modelers:
         self._CreateModelers()
         self._ModelersSetupGeometryModel()
