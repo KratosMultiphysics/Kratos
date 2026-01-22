@@ -34,6 +34,8 @@ public:
     static void   ReverseNodes(std::vector<std::size_t>&             rNodeIds,
                                GeometryData::KratosGeometryFamily    GeometryFamily,
                                GeometryData::KratosGeometryOrderType GeometryOrderType);
+    static PointerVector<Node> GetNodesByIndex(const Geometry<Node>&             rGeometry,
+                                               const std::initializer_list<int>& rNodeIndices);
 };
 
 } // namespace Kratos
