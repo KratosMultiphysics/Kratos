@@ -7,10 +7,10 @@ from importlib import import_module
 import KratosMultiphysics
 import KratosMultiphysics.PfemFluidDynamicsApplication as KratosPfemFluid
 
-from KratosMultiphysics.analysis_stage import AnalysisStage
+from KratosMultiphysics.analysis_stage_with_solver import AnalysisStageWithSolver
 from KratosMultiphysics.PfemFluidDynamicsApplication import python_solvers_wrapper_pfem_fluid as solver_wrapper
 
-class PfemFluidDynamicsAnalysis(AnalysisStage):
+class PfemFluidDynamicsAnalysis(AnalysisStageWithSolver):
     """The base class for the PfemFluidDynamicsAnalysis
     """
     def __init__(self, model, parameters):

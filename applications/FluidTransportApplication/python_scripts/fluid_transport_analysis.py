@@ -9,11 +9,11 @@ import KratosMultiphysics.ConvectionDiffusionApplication
 import KratosMultiphysics.FluidDynamicsApplication
 import KratosMultiphysics.FluidTransportApplication
 
-from KratosMultiphysics.analysis_stage import AnalysisStage
+from KratosMultiphysics.analysis_stage_with_solver import AnalysisStageWithSolver
 
 from importlib import import_module
 
-class FluidTransportAnalysis(AnalysisStage):
+class FluidTransportAnalysis(AnalysisStageWithSolver):
     '''Main script for fluid + fluid transport simulations.'''
 
     def __init__(self,model,parameters):

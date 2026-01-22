@@ -13,11 +13,11 @@ import KratosMultiphysics.PoromechanicsApplication as KratosPoro
 import KratosMultiphysics.DamApplication as KratosDam
 
 # Importing the base class
-from KratosMultiphysics.analysis_stage import AnalysisStage
+from KratosMultiphysics.analysis_stage_with_solver import AnalysisStageWithSolver
 
 from importlib import import_module
 
-class DamAnalysis(AnalysisStage):
+class DamAnalysis(AnalysisStageWithSolver):
     """Main-script of the DamApplication put in a class."""
     def __init__(self, model, project_parameters):
         """DamApplication analysis."""

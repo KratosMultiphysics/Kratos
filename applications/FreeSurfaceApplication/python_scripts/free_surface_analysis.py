@@ -1,11 +1,11 @@
 # Kratos imports
 import KratosMultiphysics
 
-from KratosMultiphysics.analysis_stage import AnalysisStage
+from KratosMultiphysics.analysis_stage_with_solver import AnalysisStageWithSolver
 from KratosMultiphysics.FreeSurfaceApplication import python_solvers_wrapper_free_surface
 
 
-class FreeSurfaceAnalysis(AnalysisStage):
+class FreeSurfaceAnalysis(AnalysisStageWithSolver):
     '''Main script for free surface application.'''
 
     def __init__(self,
