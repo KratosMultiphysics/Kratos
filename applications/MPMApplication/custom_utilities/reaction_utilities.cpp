@@ -29,11 +29,11 @@ namespace Kratos
 
     array_1d<double,3> ReactionUtilities::CalculateNonConformingReaction(ModelPart& rModelPart) {
         const ProcessInfo& r_current_process_info = rModelPart.GetProcessInfo();
-        return block_for_each<SumReduction<array_1d<double,3>>>(rModelPart.Conditions(),
-            [&r_current_process_info](auto& condition) {
-                std::vector<array_1d<double,3>> mpc_reaction{ ZeroVector(3) };
-                condition.CalculateOnIntegrationPoints(MPC_CONTACT_FORCE, mpc_reaction, r_current_process_info);
-                return mpc_reaction[0];
+        std::vector<array_1d<double,3>> mpc_reaction{ ZeroVector(3) };
+        return block_for_each<SumReduction<array_1d<double,3>>>(rModelPart.Conditions(), mpc_reaction,
+            [&r_current_process_info](auto& condition, auto& rReaction) {
+                condition.CalculateOnIntegrationPoints(MPC_CONTACT_FORCE, rReaction, r_current_process_info);
+                return rReaction[0];
             });
     }
 }

@@ -19,8 +19,6 @@
 
 namespace Kratos
 {
-  ///@addtogroup MPMApplication
-  ///@{
 
   // Auxiliary utility to compute the reaction over a line or surface
   // The line or surface can be a part of the boundary of the background grid
@@ -30,21 +28,16 @@ namespace Kratos
   {
   public:
 
-    /// Pointer definition of ReactionUtilities
-    KRATOS_CLASS_POINTER_DEFINITION(ReactionUtilities);
-
-    ///@name Operations
-    ///@{
-
     /**
-    * @brief Computes the sum of the reaction over the nodes of the given modelpart
+    * @brief Computes the sum of the REACTION variable for all nodes in a given model part
     * @param rModelPart reference to the model part where the force is to be computed
     * @return An array containing the force value
     */
     static array_1d<double, 3> CalculateGridConformingReaction(ModelPart &rModelPart);
 
     /**
-    * @brief Computes the sum of the reaction over the material point conditions of the given modelpart
+    * @brief Computes the sum of the MPC_CONTACT_FORCE variable for all material point
+    * conditions in a given model part
     * @param rModelPart reference to the model part where the force is to be computed
     * @return An array containing the force value
     */
