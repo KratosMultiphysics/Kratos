@@ -150,7 +150,9 @@ namespace Kratos::MaterialPointGeneratorUtility
 
                         // FindPointOnMesh find the background element in which a given point falls and the relative shape functions
                         bool is_found = SearchStructure.FindPointOnMesh(xg[0], N, pelem, result_begin);
-                        if (!is_found) KRATOS_WARNING("MaterialPointGeneratorUtility") << "::search failed." << std::endl;
+                        std::string error_msg = "Search failed: unable to find a background grid ";
+                        error_msg += "geometry containing the material point element having coordinates ";
+                        KRATOS_ERROR_IF_NOT(is_found) << error_msg << xg[0] << std::endl;
 
                         pelem->Set(ACTIVE);
                         auto p_new_geometry = CreateQuadraturePointsUtility<Node>::CreateFromCoordinates(
@@ -346,7 +348,7 @@ namespace Kratos::MaterialPointGeneratorUtility
 
                             }
                             else{
-                                KRATOS_WARNING("MaterialPointGeneratorUtility") << "Equal distribution of material point conditions only available for line segments:  "  << std::endl;
+                                KRATOS_ERROR << "Equal distribution of material point conditions only available for line segments"  << std::endl;
                             }
                         }
                         else{
@@ -432,7 +434,9 @@ namespace Kratos::MaterialPointGeneratorUtility
 
                             // FindPointOnMesh find the background element in which a given point falls and the relative shape functions
                             bool is_found = SearchStructure.FindPointOnMesh(mpc_xg[0], N, pelem, result_begin);
-                            if (!is_found) KRATOS_WARNING("MaterialPointGeneratorUtility") << "::search failed." << std::endl;
+                            std::string error_msg = "Search failed: unable to find a background grid ";
+                            error_msg += "geometry containing the material point condition having coordinates ";
+                            KRATOS_ERROR_IF_NOT(is_found) << error_msg << mpc_xg[0] << std::endl;
 
                             auto p_new_geometry = CreateQuadraturePointsUtility<Node>::CreateFromCoordinates(
                                 pelem->pGetGeometry(), mpc_xg[0],
@@ -479,7 +483,9 @@ namespace Kratos::MaterialPointGeneratorUtility
                                 Element::Pointer pelem;
                                 Vector N;
                                 bool is_found = SearchStructure.FindPointOnMesh(mpc_xg[0], N, pelem, result_begin);
-                                if (!is_found) KRATOS_WARNING("MaterialPointGeneratorUtility") << "::MPC search failed." << std::endl;
+                                std::string error_msg = "Search failed: unable to find a background grid ";
+                                error_msg += "geometry containing the material point condition having coordinates ";
+                                KRATOS_ERROR_IF_NOT(is_found) << error_msg << mpc_xg[0] << std::endl;
 
                                 pelem->Set(ACTIVE);
                                 auto p_quadrature_point_geometry = CreateQuadraturePointsUtility<Node>::CreateFromCoordinates(
