@@ -23,9 +23,9 @@ class MPMWriteEnergyOutputProcess(KratosMultiphysics.OutputProcess):
         self.params = params
         self.params.ValidateAndAssignDefaults(self.GetDefaultParameters())
 
-        self.interval = KratosMultiphysics.IntervalUtility(self.params)
         self.output_file = None
         self.format = self.params["print_format"].GetString()
+        self.controller = KratosMultiphysics.OutputController(self.model, self.params)
 
         # Getting the ModelPart from the Model
         self.model_part_name = self.params["model_part_name"].GetString()
@@ -38,7 +38,8 @@ class MPMWriteEnergyOutputProcess(KratosMultiphysics.OutputProcess):
     def GetDefaultParameters():
         return KratosMultiphysics.Parameters('''{
             "model_part_name"      : "",
-            "interval"             : [0.0, 1e30],
+            "output_control_type"  : "step",
+            "output_interval"      : 1.0,
             "print_format"         : ".8f",
             "output_file_settings" : {}
         }''')
@@ -59,8 +60,7 @@ class MPMWriteEnergyOutputProcess(KratosMultiphysics.OutputProcess):
         self.PrintOutput()
 
     def IsOutputStep(self):
-        time = self.model_part.ProcessInfo[KratosMultiphysics.TIME]
-        return self.interval.IsInInterval(time)
+        return self.controller.Evaluate()
 
     def PrintOutput(self):
         time = self.model_part.ProcessInfo[KratosMultiphysics.TIME]
@@ -69,6 +69,7 @@ class MPMWriteEnergyOutputProcess(KratosMultiphysics.OutputProcess):
             out = f"{str(time)} {p_energy:{self.format}} {k_energy:{self.format}} {s_energy:{self.format}} {t_energy:{self.format}}\n"
             self.output_file.write(out)
             self.output_file.flush()
+        self.controller.Update()
 
     def ExecuteFinalize(self):
         if self.output_file:

@@ -95,7 +95,8 @@ class TestMPMWriteEnergyOutputProcess(KratosUnittest.TestCase):
         mpm_write_energy_output_parameters = KratosMultiphysics.Parameters("""{
             "Parameters" : {
                 "model_part_name"      : "MPMModelPart",
-                "interval"             : [0.0, 1e30],
+                "output_control_type"  : "step",
+                "output_interval"      : 1.0,
                 "print_format"         : ".8f",
                 "output_file_settings" : {
                     "output_path" : "test_mpm_write_energy",
