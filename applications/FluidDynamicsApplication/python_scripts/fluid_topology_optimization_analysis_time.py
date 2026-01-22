@@ -50,7 +50,7 @@ from KratosMultiphysics.ConvectionDiffusionApplication.apply_topology_optimizati
 # Import Kratos Processes
 from KratosMultiphysics import ComputeNodalGradientProcess
 
-class FluidTopologyOptimizationAnalysis(FluidDynamicsAnalysis):
+class FluidTopologyOptimizationAnalysisTime(FluidDynamicsAnalysis):
     def _ReadOptimizationParameters(self):
         self.project_parameters_adjoint = self.project_parameters.Clone()
         if (self.project_parameters.Has("optimization_parameters_file_name")):
@@ -312,10 +312,10 @@ class FluidTopologyOptimizationAnalysis(FluidDynamicsAnalysis):
     def _PrintFunctionalWeightsPhysicsInfo(self):
         self.MpiPrint("--|" + self.topology_optimization_stage_str + "| INITIAL FUNCTIONAL: " + str(self.initial_fluid_functional))
         self.MpiPrint("--|" + self.topology_optimization_stage_str + "| NORMALIZED FUNCTIONAL WEIGHTS: " + str(self.normalized_fluid_functional_weights))
-        
+    
     def _InitializeFunctionalWeights(self):
         "This method assumes that the '_ImportFunctionalWeights()' has already been called"
-        if (self.functional_weigths_imported):
+        if (self.functional_weights_imported):
             # get number of functionals
             self.n_fluid_functionals = len(self.normalized_fluid_functional_weights)
             self.n_functionals = self.n_fluid_functionals + 7 # 7 = transportfunctionals
@@ -335,7 +335,7 @@ class FluidTopologyOptimizationAnalysis(FluidDynamicsAnalysis):
 
     def _ImportFunctionalWeights(self):
         self._ImportFluidFunctionalWeights()
-        self.functional_weigths_imported = True
+        self.functional_weights_imported = True
 
     def _ImportFluidFunctionalWeights(self):
         fluid_functional_weights = [0.0, 0.0, 0.0]
@@ -404,10 +404,17 @@ class FluidTopologyOptimizationAnalysis(FluidDynamicsAnalysis):
             self.end_time = self.project_parameters["problem_data"]["end_time"].GetDouble()
             self.time_step_base = self._GetSolver().settings["time_stepping"]["time_step"].GetDouble()
             self.n_time_steps = max(int(np.ceil((self.end_time-self.start_time) / self.time_step_base)), 1)
+            self.simulation_times = np.zeros(self.n_time_steps+1)
             self.time_steps = np.zeros(self.n_time_steps)
             self.time_steps_integration_weights = np.zeros(self.n_time_steps) # weight to each time step to perform fast time integration of functionals
             for istep in range(self.n_time_steps):
                 self.time_steps[istep] = self.time_step_base # assume equal time steps
+                self.simulation_times[istep] = self.start_time + istep*self.time_step_base
+            self.simulation_times[self.n_time_steps] = self.end_time
+            # now build th eintegration weigths
+            # the idea is that the ith time solution will be evaluated (i-1)th time step
+            # functional at time_id=n multiplies the time_step_id=n-1
+            # particular case: time_id=0, is not evaluated since it is not coupled with any time step. It is supposed that vel(t=t0)=0
             for istep in range(self.n_time_steps-1):
                 self.time_steps_integration_weights[istep] = (self.time_steps[istep] + self.time_steps[istep+1]) / 2.0
             if (self.n_time_steps == 1):
@@ -613,14 +620,118 @@ class FluidTopologyOptimizationAnalysis(FluidDynamicsAnalysis):
         self.constraints_derivatives_wrt_design = np.zeros((self.n_optimization_constraints, self.n_opt_design_parameters))
 
     def _InitializeFunctionalEvaluation(self):
-        self.functional_weigths_imported = False
+        self.functional_weights_imported = False
         self._InitializeFunctionalsInTime()
         self._ImportFunctionalWeights()
-    
+
     def _InitializeFunctionalsInTime(self):
+        self._InitializeFluidFunctionalsInTime()
+    
+    def _InitializeFluidFunctionalsInTime(self):
+        self._InitializeResistanceFunctionalInTime()
+        self._InitializeStrainRateFunctionalInTime()
+        self._InitializeVorticityFunctionalsInTime()
+
+    def _InitializeResistanceFunctionalInTime(self):
         self.resistance_functionals_in_delta_time  = np.zeros(self.n_time_steps)
+        self.resistance_functional_time_steps_integration_weights = self._InitializeFunctionalTimeIntegrationWeights(functional_physics="fluid_functionals", functional_name="resistance")
+
+    def _InitializeStrainRateFunctionalInTime(self):
         self.strain_rate_functionals_in_delta_time = np.zeros(self.n_time_steps)
+        self.strain_rate_functional_time_steps_integration_weights = self._InitializeFunctionalTimeIntegrationWeights(functional_physics="fluid_functionals", functional_name="strain_rate")
+    
+    def _InitializeVorticityFunctionalsInTime(self):
         self.vorticity_functionals_in_delta_time   = np.zeros(self.n_time_steps)
+        self.vorticity_functional_time_steps_integration_weights = self._InitializeFunctionalTimeIntegrationWeights(functional_physics="fluid_functionals", functional_name="vorticity")
+
+    def _InitializeFunctionalTimeIntegrationWeights(self, functional_physics, functional_name):
+        functional_time_steps_integration_weights = np.zeros(self.n_time_steps)
+        if self.IsUnsteadySolution():
+            [start_time, end_time] = self._GetFunctionalEvaluationTimeInterval(functional_physics, functional_name)
+            dt = end_time-start_time    
+            start_id = np.searchsorted(self.simulation_times, start_time, side="right")
+            end_id = np.searchsorted(self.simulation_times, end_time, side="right")
+            if (end_id == self.n_time_steps+1):
+                end_id = end_id-1
+            if end_id > start_id:
+                start_span_times_ids = [start_id-1, start_id]  
+                end_span_times_ids   = [end_id-1, end_id]  
+                start_span_time_steps_ids = [id-1 for id in start_span_times_ids] # time_step ids that multiply the the start_span_times in time integral evaluations (functional at time_id=n multiplies the time_step_id=n-1)
+                end_span_time_steps_ids   = [id-1 for id in end_span_times_ids] # time_step ids that multiply the the end_span_times in time integral evaluations
+                start_span_times = [self.simulation_times[start_span_times_ids[0]], self.simulation_times[start_span_times_ids[1]]] # interval containing time_interval[0]
+                end_span_times   = [self.simulation_times[end_span_times_ids[0]], self.simulation_times[end_span_times_ids[1]]] # interval containing time_interval[1]
+                dt_start_span = start_span_times[1]-start_span_times[0]
+                dt_end_span   = end_span_times[1]-end_span_times[0] 
+                start_eval_weights = [(start_span_times[1]-start_time)/dt_start_span, (start_time-start_span_times[0])/dt_start_span]
+                end_eval_weights   = [(end_span_times[1]-end_time)/dt_end_span, (end_time-end_span_times[0])/dt_end_span]
+                if (start_span_time_steps_ids[0] >= 0):
+                    # check to store the first start_span_time_step_weight only if it is not relative to the starting time, 
+                    # at the starting time the solution is assumed to be zero and thererefore is not integrated
+                    functional_time_steps_integration_weights[start_span_time_steps_ids[0]] += (start_eval_weights[0]**2)  * dt_start_span / 2.0
+                functional_time_steps_integration_weights[start_span_time_steps_ids[1]]     += (1.0+start_eval_weights[1]) * start_eval_weights[0] * dt_start_span / 2.0
+                current_id = start_span_time_steps_ids[1]+1
+                while current_id <= end_span_time_steps_ids[0]:
+                    functional_time_steps_integration_weights[current_id-1]   += self.time_steps[current_id] / 2.0
+                    functional_time_steps_integration_weights[current_id]     += self.time_steps[current_id] / 2.0
+                    current_id += 1
+                functional_time_steps_integration_weights[end_span_time_steps_ids[0]]   += (1.0+end_eval_weights[0]) * end_eval_weights[1] * dt_end_span / 2.0
+                functional_time_steps_integration_weights[end_span_time_steps_ids[1]]   += (end_eval_weights[1]**2)  * dt_end_span / 2.0
+            else: # end_id = start_id
+                span_times_ids = [start_id-1, start_id]  # unique span ids array
+                span_time_steps_ids = [id-1 for id in span_times_ids]
+                span_times = [self.simulation_times[span_time_steps_ids[0]], self.simulation_times[span_time_steps_ids[1]]]
+                dt_span = span_times[1]-span_times[0]
+                start_eval_weights = [(span_times[1]-start_time)/dt_span, (start_time-span_times[0])/dt_span]
+                end_eval_weights   = [(span_times[1]-end_time)/dt_span, (end_time-span_times[0])/dt_span]
+                if (span_time_steps_ids[0] >= 0):
+                    # check to store the first start_span_time_step_weight only if it is not relative to the starting time, 
+                    # at the starting time the solution is assumed to be zero and thererefore is not integrated
+                    functional_time_steps_integration_weights[span_time_steps_ids[0]] += (start_eval_weights[0]+end_eval_weights[0]) * dt / 2.0
+                functional_time_steps_integration_weights[span_time_steps_ids[1]] += (start_eval_weights[1]+end_eval_weights[1]) * dt / 2.0
+        else: # steady simulation, no time integration
+            functional_time_steps_integration_weights = [1.0]
+        return functional_time_steps_integration_weights
+
+    def _GetFunctionalEvaluationTimeInterval(self, functional_physics, functional_name):
+        physics_time_interval_list = self.optimization_settings["optimization_problem_settings"]["functional_weights"][functional_physics]["time_interval"]
+        functional_time_interval_list = self.optimization_settings["optimization_problem_settings"]["functional_weights"][functional_physics][functional_name]["time_interval"]
+        physics_start_time, physics_end_time = self._GetTimeIntervalFromSettingsList(physics_time_interval_list, functional_err_msg=functional_physics)
+        functional_start_time, functional_end_time = self._GetTimeIntervalFromSettingsList(functional_time_interval_list, functional_err_msg=functional_physics+"->"+functional_name)
+        if physics_start_time > functional_end_time:
+            info_msg = "Calling '_GetFunctionalEvaluationTimeInterval' for functional: " + functional_physics + "->" + functional_name + " setting physics_start_time > functional_end_time"
+            raise RuntimeError("FluidTransportTopologyOptimizationAnalysis: " + info_msg)
+        elif functional_start_time > physics_end_time:
+            info_msg = "Calling '_GetFunctionalEvaluationTimeInterval' for functional: " + functional_physics + "->" + functional_name + " setting functional_start_time > physics_end_time"
+        start_time_value = max(physics_start_time, functional_start_time)
+        end_time_value = min(physics_end_time, functional_end_time)
+        if start_time_value > end_time_value:
+            info_msg = "Calling '_GetFunctionalEvaluationTimeInterval' for functional: " + functional_physics + "->" + functional_name + " setting start_time_value > end_time_value"
+            raise RuntimeError("FluidTransportTopologyOptimizationAnalysis: " + info_msg)
+        return start_time_value, end_time_value
+    
+    def _GetTimeIntervalFromSettingsList(self, interval_list, functional_err_msg="Not Specified"):
+        if interval_list[0].IsString():
+            start_time_value = interval_list[0].GetString()
+            if start_time_value == "Start":
+                start_time_value = self.start_time
+            else:
+                info_msg = "Calling '_GetTimeIntervalFromSettings' for functional: " + functional_err_msg + " setting a start time using a string_type != 'String'"
+                raise RuntimeError("FluidTransportTopologyOptimizationAnalysis: " + info_msg)
+        else:
+            start_time_value = max(interval_list[0].GetDouble(), self.start_time)
+        if interval_list[1].IsString():
+            end_time_value = interval_list[1].GetString()
+            if end_time_value == "End":
+                end_time_value = self.end_time
+            else:
+                info_msg = "Calling '_GetTimeIntervalFromSettings' for functional: " + functional_err_msg + " setting a end time using a string_type != 'End'"
+                raise RuntimeError("FluidTransportTopologyOptimizationAnalysis: " + info_msg)
+        else:
+            end_time_value = min(interval_list[1].GetDouble(), self.end_time)
+        if start_time_value > end_time_value:
+            info_msg = "Calling '_GetTimeIntervalFromSettings' for functional: " + functional_err_msg + " setting start_time > end_time"
+            raise RuntimeError("FluidTransportTopologyOptimizationAnalysis: " + info_msg)
+        return start_time_value, end_time_value
 
     def _InitializeDomainDesign(self):
         self.MpiPrint("--|" + self.topology_optimization_stage_str + "| INITIALIZE DOMAIN DESIGN")
@@ -1126,7 +1237,7 @@ class FluidTopologyOptimizationAnalysis(FluidDynamicsAnalysis):
         """
         This method computes the resistance functional: int_{time}{int_{\Omega}{\\alpha||u||^2}}
         """
-        self.fluid_functionals[0] = np.dot(self.resistance_functionals_in_delta_time, self.time_steps_integration_weights)
+        self.fluid_functionals[0] = np.dot(self.resistance_functionals_in_delta_time, self.resistance_functional_time_steps_integration_weights)
         if self.IsMpiParallelism():
             self.fluid_functionals[0] = self.MpiSumLocalValues(self.fluid_functionals[0])
         if (self.first_iteration):
@@ -1151,7 +1262,7 @@ class FluidTopologyOptimizationAnalysis(FluidDynamicsAnalysis):
         """
         This method computes the Strain-Rate functional: int_{time}{int_{\Omega}{\\2*mu*||1/2*[grad(u)+grad(u)^T]||^2}}
         """
-        self.fluid_functionals[1] = np.dot(self.strain_rate_functionals_in_delta_time, self.time_steps_integration_weights)
+        self.fluid_functionals[1] = np.dot(self.strain_rate_functionals_in_delta_time, self.strain_rate_functional_time_steps_integration_weights)
         if self.IsMpiParallelism():
             self.fluid_functionals[1] = self.MpiSumLocalValues(self.fluid_functionals[1])
         if (self.first_iteration):
@@ -1176,7 +1287,7 @@ class FluidTopologyOptimizationAnalysis(FluidDynamicsAnalysis):
         """
         This method computes the Vorticity functional: int_{time}{int_{\Omega}{\\2*mu*||1/2*[grad(u)-grad(u)^T]||^2}}
         """
-        self.fluid_functionals[2] = np.dot(self.vorticity_functionals_in_delta_time, self.time_steps_integration_weights)
+        self.fluid_functionals[2] = np.dot(self.vorticity_functionals_in_delta_time, self.vorticity_functional_time_steps_integration_weights)
         if self.IsMpiParallelism():
             self.fluid_functionals[2] = self.MpiSumLocalValues(self.fluid_functionals[2])
         if (self.first_iteration):
@@ -1233,7 +1344,7 @@ class FluidTopologyOptimizationAnalysis(FluidDynamicsAnalysis):
         for istep in range(self.n_time_steps):
             velocity = self.velocity_solutions[istep]
             resistance_functional_derivatives_in_delta_time[:,istep] = self.resistance_derivative_wrt_design_base * np.sum(velocity*velocity, axis=1) * self.nodal_domain_sizes 
-        return np.einsum('ij,j->i', resistance_functional_derivatives_in_delta_time, self.time_steps_integration_weights)
+        return np.einsum('ij,j->i', resistance_functional_derivatives_in_delta_time, self.resistance_functional_time_steps_integration_weights)
 
     def _ComputeFunctionalDerivativesFluidPhysicsContribution(self):
         fluid_physics_functional_derivatives_in_delta_time = np.zeros((self.n_nodes, self.n_time_steps))
@@ -1424,8 +1535,6 @@ class FluidTopologyOptimizationAnalysis(FluidDynamicsAnalysis):
         self.MpiPrint("\n--|PRINT OPTIMIZATION PROBLEM DATA|", min_echo=0)
         self._PrintFunctionals()
         self._PrintConstraints()
-        mex = "time:" + str(self.time_steps_integration_weights)
-        self.MpiPrint(mex)
     
     def _PrintFunctionals(self):
         self._PrintTotalFunctional()
@@ -2026,49 +2135,61 @@ class FluidTopologyOptimizationAnalysis(FluidDynamicsAnalysis):
             "optimization_problem_settings": {
                 "functional_weights": {
                     "fluid_functionals": {
+                        "time_interval": ["Start","End"],
                         "normalization" : {
                             "type" : "initial",
                             "value": 0.0
                         },
                         "resistance" : {
-                            "weight": 1.0
+                            "weight": 1.0,
+                            "time_interval": ["Start","End"]
                         },
                         "strain_rate" : {
-                            "weight": 1.0
+                            "weight": 1.0,
+                            "time_interval": ["Start","End"]
                         },
                         "vorticity" : {
-                            "weight": 0.0
+                            "weight": 0.0,
+                            "time_interval": ["Start","End"]
                         }
                     },
                     "transport_functionals": {
+                        "time_interval": ["Start","End"],
                         "normalization" : {
                             "type" : "initial",
                             "value": 0.0
                         },
                         "outlet_transport_scalar" : {
                             "weight"    : 0.0,
+                            "time_interval": ["Start","End"],
                             "outlet_model_part": "Outlet",
                             "target_value": 0.0
                         },
                         "focus_region_transport_scalar" : {
                             "weight"    : 0.0,
+                            "time_interval": ["Start","End"],
                             "focus_region_model_part": "FocusRegion",
                             "target_value": 0.0
                         },
                         "conductivity_transfer" : {
-                            "weight": 1.0
+                            "weight": 1.0,
+                            "time_interval": ["Start","End"]
                         },
                         "convection_transfer" : {
-                            "weight": 0.0
+                            "weight": 0.0,
+                            "time_interval": ["Start","End"]
                         },
                         "decay_transfer" : {
-                            "weight": 0.0
+                            "weight": 0.0,
+                            "time_interval": ["Start","End"]
                         },
                         "source_transfer" : {
-                            "weight": 0.0
+                            "weight": 0.0,
+                            "time_interval": ["Start","End"]
                         },
                         "decay_1st_order_transport" : {
-                            "weight": 0.0
+                            "weight": 0.0,
+                            "time_interval": ["Start","End"]
                         }
                     },
                     "coupling" : {
