@@ -50,7 +50,7 @@ from KratosMultiphysics.ConvectionDiffusionApplication.apply_topology_optimizati
 # Import Kratos Processes
 from KratosMultiphysics import ComputeNodalGradientProcess
 
-class FluidTopologyOptimizationAnalysisTime(FluidDynamicsAnalysis):
+class FluidTopologyOptimizationAnalysis(FluidDynamicsAnalysis):
     def _ReadOptimizationParameters(self):
         self.project_parameters_adjoint = self.project_parameters.Clone()
         if (self.project_parameters.Has("optimization_parameters_file_name")):
