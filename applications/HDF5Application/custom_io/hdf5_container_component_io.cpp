@@ -247,10 +247,10 @@ bool ContainerComponentIO<TContainerType, TContainerDataIO, TComponents...>::Wri
         const auto& r_data_set_path = mComponentPrefix + rComponentName;
         const auto& r_component = KratosComponents<TComponentType>::Get(rComponentName);
 
-        std::vector<int> shape(value_type_traits::Dimension);
+        std::vector<unsigned int> shape(value_type_traits::Dimension);
 
         // first we have to check the availability
-        Vector<unsigned char> availability(rLocalContainer.size(), 1);
+        Vector<int> availability(rLocalContainer.size(), 1);
         Internals::DataAvailabilityStatesList container_data_availability = TContainerDataIO::DataAvailability;
 
         // check for the availability. Here we do not check for the case CONSISTENTLY_UNAVAILABLE
@@ -260,17 +260,19 @@ bool ContainerComponentIO<TContainerType, TContainerDataIO, TComponents...>::Wri
         if constexpr(TContainerDataIO::DataAvailability == Internals::DataAvailabilityStatesList::INCONCLUSIVE) {
             // the entities in the rContainer may or may not contain the rComponent. Hence, for this
             // type we need to compute the availability.
-            const std::tuple<unsigned char, unsigned char> availability_local_counts_pair = IndexPartition<IndexType>(rLocalContainer.size()).for_each<CombinedReduction<SumReduction<IndexType>, SumReduction<IndexType>>>([&rContainerDataIO, &rLocalContainer, &r_component, &availability](const auto Index) {
+            const std::tuple<int, int> availability_local_counts_pair = IndexPartition<IndexType>(rLocalContainer.size()).for_each<CombinedReduction<SumReduction<IndexType>, SumReduction<IndexType>>>([&rContainerDataIO, &rLocalContainer, &r_component, &availability](const auto Index) {
                 availability[Index] = rContainerDataIO.HasValue(*(rLocalContainer.begin() + Index), r_component);
-                return std::make_tuple<unsigned char, unsigned char>(static_cast<unsigned char>(availability[Index] == 1), static_cast<unsigned char>(availability[Index] == 0));
+                return std::make_tuple<int, int>(static_cast<int>(availability[Index] == 1), static_cast<int>(availability[Index] == 0));
             });
 
-            const auto& availability_global_counts_pair = mpFile->GetDataCommunicator().SumAll(std::vector<unsigned char>{std::get<0>(availability_local_counts_pair), std::get<1>(availability_local_counts_pair)});
+            const auto& availability_global_counts_pair = mpFile->GetDataCommunicator().SumAll(std::vector<int>{std::get<0>(availability_local_counts_pair), std::get<1>(availability_local_counts_pair)});
+            const auto& available_count = availability_global_counts_pair[0];
+            const auto& non_available_count = availability_global_counts_pair[1];
 
-            KRATOS_ERROR_IF(availability_global_counts_pair[1] == availability_global_counts_pair[2])
+            KRATOS_ERROR_IF(available_count == 0)
                 << "None of the entities in the container have \"" << rComponentName << "\" defined.";
 
-            if (availability_global_counts_pair[0] == availability_global_counts_pair[2]) {
+            if (non_available_count == 0) {
                 // even though the container type may or may not have entities without the component, all the entities
                 // of this container has the component. Hence, this is no longer inconclusive, rather CONSISTENTLY_AVAILABLE.
                 container_data_availability = Internals::DataAvailabilityStatesList::CONSISTENTLY_AVAILABLE;
@@ -319,7 +321,7 @@ bool ContainerComponentIO<TContainerType, TContainerDataIO, TComponents...>::Wri
         if (shape.size() > 0) {
             Attributes.AddEmptyArray("__data_shape");
             for (const auto v : shape) {
-                Attributes["__data_shape"].Append(v);
+                Attributes["__data_shape"].Append(static_cast<int>(v));
             }
         }
         Attributes.AddInt("__data_dimension", value_type_traits::Dimension);
@@ -333,7 +335,7 @@ bool ContainerComponentIO<TContainerType, TContainerDataIO, TComponents...>::Wri
             mpFile->WriteDataSet(r_data_set_path + "_availability", availability, rInfo);
             Attributes.AddString("__data_availability", "inconclusive");
         } else {
-            Attributes.AddString("__data_availability", (container_data_availability == Internals::DataAvailabilityStatesList::CONSISTENTLY_AVAILABLE ? "consistently_available" : "CONSISTENTLY_UNAVAILABLE "));
+            Attributes.AddString("__data_availability", (container_data_availability == Internals::DataAvailabilityStatesList::CONSISTENTLY_AVAILABLE ? "consistently_available" : "CONSISTENTLY_UNAVAILABLE"));
         }
 
         // now write the attributes
@@ -386,8 +388,8 @@ bool ContainerComponentIO<TContainerType, TContainerDataIO, TComponents...>::Rea
         const auto data_availability = attributes["__data_availability"].GetString();
 
         // there is no need to read data sets which cannot be set, hence can ignore the whole block
-        Vector<unsigned char> availability(BlockSize, 1);
-        if (data_availability != "CONSISTENTLY_UNAVAILABLE ") {
+        Vector<int> availability(BlockSize, 1);
+        if (data_availability != "CONSISTENTLY_UNAVAILABLE") {
             if constexpr(value_type_traits::IsDynamic) {
                 std::vector<unsigned int> shape;
                 Internals::GetShapeFromAttributes(shape, attributes);
