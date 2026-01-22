@@ -13,10 +13,13 @@
 #pragma once
 
 #include <functional>
+#include <memory>
 #include <vector>
 
 #include "containers/variable.h"
 #include "includes/constitutive_law.h"
+#include "geometries/geometry.h"
+#include "includes/node.h"
 #include "integration/integration_point.h"
 
 namespace Kratos
@@ -35,6 +38,8 @@ using IntegrationPointType       = IntegrationPoint<3>;
 using IntegrationPointVectorType = std::vector<IntegrationPointType>;
 
 using KappaDependentFunction = std::function<double(double)>;
+
+using GeometryUniquePtr = std::unique_ptr<Geometry<Node>>;
 
 using BMatrixVectorGetter           = std::function<std::vector<Matrix>()>;
 using StrainVectorsGetter           = std::function<std::vector<Vector>()>;

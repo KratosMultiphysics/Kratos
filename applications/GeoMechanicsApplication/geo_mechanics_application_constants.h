@@ -100,4 +100,6 @@ enum indexDOF2DBeam : int { INDEX_2D_BEAM_X, INDEX_2D_BEAM_Y, INDEX_2D_BEAM_T };
 // Heat vector indices:
 enum class indexThermalFlux : int { X, Y, Z };
 
+enum class IsDiffOrderElement : int { Yes, No };
+
 } // namespace Kratos
