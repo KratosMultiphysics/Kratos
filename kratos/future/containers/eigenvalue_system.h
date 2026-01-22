@@ -8,7 +8,6 @@
 //                   Kratos default license: kratos/license.txt
 //
 //  Main authors:    Ruben Zorrilla
-//                   Riccardo Rossi
 //
 
 #pragma once
@@ -18,7 +17,6 @@
 // External includes
 
 // Project includes
-#include "future/containers/linear_system.h"
 #include "future/linear_operators/linear_operator.h"
 
 namespace Kratos::Future
@@ -31,7 +29,7 @@ namespace Kratos::Future
 ///@{
 
 template <class TLinearAlgebra>
-class EigenvalueSystem : public LinearSystem<TLinearAlgebra>
+class EigenvalueSystem final
 {
 public:
 
@@ -50,13 +48,18 @@ public:
     /// Type of the linear operator from the linear algebra traits
     using LinearOperatorType = LinearOperator<TLinearAlgebra>;
 
+    /// Type od the dense matrix
+    using DenseMatrixType = typename TLinearAlgebra::DenseMatrixType;
+
+    /// Type of the dense matrix pointer
+    using DenseMatrixPointerType = Kratos::shared_ptr<DenseMatrixType>;
+
     ///@}
     ///@name Life Cycle
     ///@{
 
     /// Constructor
     EigenvalueSystem()
-        : LinearSystem<TLinearAlgebra>()
     {
     }
 
@@ -65,12 +68,13 @@ public:
         typename MatrixType::Pointer pK,
         typename MatrixType::Pointer pM,
         typename VectorType::Pointer pEigenvalues,
-        typename VectorType::Pointer pEigenvectors)
-        : LinearSystem<TLinearAlgebra>()
-        , mpK(pK)
+        DenseMatrixPointerType pEigenvectors,
+        const std::string SystemName = "")
+        : mpK(pK)
         , mpM(pM)
         , mpEigenvalues(pEigenvalues)
         , mpEigenvectors(pEigenvectors)
+        , mSystemName(SystemName)
     {
     }
 
@@ -188,7 +192,7 @@ public:
     * @brief Get a reference to the eigenvectors matrix.
     * @return Reference to the eigenvectors matrix
     */
-    MatrixType& GetEigenvectors()
+    DenseMatrixType& GetEigenvectors()
     {
         KRATOS_ERROR_IF(!mpEigenvectors) << "Eigenvectors matrix is not initialized." << std::endl;
         return *mpEigenvectors;
@@ -198,7 +202,7 @@ public:
     * @brief Get a const reference to the eigenvectors matrix.
     * @return Const reference to the eigenvectors matrix
     */
-    const MatrixType& GetEigenvectors() const
+    const DenseMatrixType& GetEigenvectors() const
     {
         KRATOS_ERROR_IF(!mpEigenvectors) << "Eigenvectors matrix is not initialized." << std::endl;
         return *mpEigenvectors;
@@ -208,6 +212,14 @@ public:
     ///@name Inquiry
     ///@{
 
+    /**
+    * @brief Get the name of the linear system.
+    * @return Name of the linear system
+    */
+    virtual const std::string& Name() const
+    {
+        return mSystemName;
+    }
 
     ///@}
 private:
@@ -221,7 +233,9 @@ private:
 
     typename VectorType::Pointer mpEigenvalues = nullptr;
 
-    typename MultipleVectorType::Pointer mpEigenvectors = nullptr;
+    DenseMatrixPointerType mpEigenvectors = nullptr;
+
+    const std::string mSystemName;
 
     ///@}
 }; // Class EigenvalueSystem

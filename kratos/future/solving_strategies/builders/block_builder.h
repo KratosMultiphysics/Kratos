@@ -110,40 +110,40 @@ public:
 
     void AllocateLinearSystem(
         const SparseGraphType& rSparseGraph,
-        ImplicitStrategyDataContainer<TLinearAlgebra> &rLinearSystemContainer) override
+        ImplicitStrategyDataContainer<TLinearAlgebra> &rImplicitStrategyDataContainer) override
     {
         // Set the system arrays
         // Note that the graph-based constructor does both resizing and initialization
         auto p_dx = Kratos::make_shared<VectorType>(rSparseGraph);
-        rLinearSystemContainer.pDx.swap(p_dx);
+        rImplicitStrategyDataContainer.pDx.swap(p_dx);
 
         auto p_rhs = Kratos::make_shared<VectorType>(rSparseGraph);
-        rLinearSystemContainer.pRhs.swap(p_rhs);
+        rImplicitStrategyDataContainer.pRhs.swap(p_rhs);
 
         auto p_lhs = Kratos::make_shared<MatrixType>(rSparseGraph);
-        rLinearSystemContainer.pLhs.swap(p_lhs);
+        rImplicitStrategyDataContainer.pLhs.swap(p_lhs);
 
         // Set the effective arrays
-        if (rLinearSystemContainer.RequiresEffectiveDofSet()) {
+        if (rImplicitStrategyDataContainer.RequiresEffectiveDofSet()) {
             // If there are no constraints the effective arrays are the same as the input ones
             // Note that we avoid duplicating the memory by making the effective pointers to point to the same object
-            rLinearSystemContainer.pEffectiveLhs = rLinearSystemContainer.pLhs;
-            rLinearSystemContainer.pEffectiveRhs = rLinearSystemContainer.pRhs;
-            rLinearSystemContainer.pEffectiveDx = rLinearSystemContainer.pDx;
+            rImplicitStrategyDataContainer.pEffectiveLhs = rImplicitStrategyDataContainer.pLhs;
+            rImplicitStrategyDataContainer.pEffectiveRhs = rImplicitStrategyDataContainer.pRhs;
+            rImplicitStrategyDataContainer.pEffectiveDx = rImplicitStrategyDataContainer.pDx;
         } else {
             // Allocate the effective vectors according to the effective DOF set size
             auto p_eff_lhs = Kratos::make_shared<MatrixType>();
-            rLinearSystemContainer.pEffectiveLhs.swap(p_eff_lhs);
+            rImplicitStrategyDataContainer.pEffectiveLhs.swap(p_eff_lhs);
 
-            auto p_eff_rhs = Kratos::make_shared<VectorType>(rLinearSystemContainer.pEffectiveDofSet->size());
-            rLinearSystemContainer.pEffectiveRhs.swap(p_eff_rhs);
+            auto p_eff_rhs = Kratos::make_shared<VectorType>(rImplicitStrategyDataContainer.pEffectiveDofSet->size());
+            rImplicitStrategyDataContainer.pEffectiveRhs.swap(p_eff_rhs);
 
-            auto p_eff_dx = Kratos::make_shared<VectorType>(rLinearSystemContainer.pEffectiveDofSet->size());
-            rLinearSystemContainer.pEffectiveDx.swap(p_eff_dx);
+            auto p_eff_dx = Kratos::make_shared<VectorType>(rImplicitStrategyDataContainer.pEffectiveDofSet->size());
+            rImplicitStrategyDataContainer.pEffectiveDx.swap(p_eff_dx);
         }
     }
 
-    void AllocateLinearSystemConstraints(ImplicitStrategyDataContainer<TLinearAlgebra>& rLinearSystemContainer) override
+    void AllocateLinearSystemConstraints(ImplicitStrategyDataContainer<TLinearAlgebra>& rImplicitStrategyDataContainer) override
     {
         // Check if there are master-slave constraints
         //TODO: Do the MPI sum all
@@ -151,29 +151,29 @@ public:
         if (n_constraints) {
             // Fill the master-slave constraints graph
             SparseGraphType constraints_sparse_graph;
-            auto& r_dof_set = *rLinearSystemContainer.pDofSet;
-            auto& r_eff_dof_set = *rLinearSystemContainer.pEffectiveDofSet;
+            auto& r_dof_set = *rImplicitStrategyDataContainer.pDofSet;
+            auto& r_eff_dof_set = *rImplicitStrategyDataContainer.pEffectiveDofSet;
             this->SetUpMasterSlaveConstraintsGraph(r_dof_set, r_eff_dof_set, constraints_sparse_graph);
 
             // Allocate the constraints arrays (note that we are using the move assignment operator in here)
             auto p_aux_q = Kratos::make_shared<VectorType>(r_dof_set.size());
-            rLinearSystemContainer.pConstraintsQ.swap(p_aux_q);
+            rImplicitStrategyDataContainer.pConstraintsQ.swap(p_aux_q);
 
             auto p_aux_T = Kratos::make_shared<MatrixType>(constraints_sparse_graph);
-            rLinearSystemContainer.pConstraintsT.swap(p_aux_T);
+            rImplicitStrategyDataContainer.pConstraintsT.swap(p_aux_T);
         }
     }
 
     //FIXME: Do the RHS-only version
-    void ApplyLinearSystemConstraints(ImplicitStrategyDataContainer<TLinearAlgebra>& rLinearSystemContainer) override
+    void ApplyLinearSystemConstraints(ImplicitStrategyDataContainer<TLinearAlgebra>& rImplicitStrategyDataContainer) override
     {
         // Calculate the effective LHS, RHS and solution vector
-        ApplyBlockBuildMasterSlaveConstraints(rLinearSystemContainer);
+        ApplyBlockBuildMasterSlaveConstraints(rImplicitStrategyDataContainer);
 
         // Apply the Dirichlet BCs in a block way by leveraging the CSR matrix implementation
-        auto& r_eff_rhs = *(rLinearSystemContainer.pEffectiveRhs);
-        auto& r_eff_lhs = *(rLinearSystemContainer.pEffectiveLhs);
-        auto& r_eff_dof_set = *(rLinearSystemContainer.pEffectiveDofSet);
+        auto& r_eff_rhs = *(rImplicitStrategyDataContainer.pEffectiveRhs);
+        auto& r_eff_lhs = *(rImplicitStrategyDataContainer.pEffectiveLhs);
+        auto& r_eff_dof_set = *(rImplicitStrategyDataContainer.pEffectiveDofSet);
         ApplyBlockBuildDirichletConditions(r_eff_dof_set, r_eff_lhs, r_eff_rhs);
     }
 
@@ -191,16 +191,16 @@ private:
     /**
      * @brief Applies the master-slave constraints
      * This method applies the master-slave constraints following a block-type build
-     * @param rLinearSystemContainer Auxiliary container with the linear system arrays
+     * @param rImplicitStrategyDataContainer Auxiliary container with the linear system arrays
      */
-    void ApplyBlockBuildMasterSlaveConstraints(ImplicitStrategyDataContainer<TLinearAlgebra> &rLinearSystemContainer)
+    void ApplyBlockBuildMasterSlaveConstraints(ImplicitStrategyDataContainer<TLinearAlgebra> &rImplicitStrategyDataContainer)
     {
         const auto& r_model_part = this->GetModelPart();
         const std::size_t n_constraints = r_model_part.NumberOfMasterSlaveConstraints();
         if (n_constraints) { //FIXME: In here we should check the number of active constraints
             // Get effective arrays
-            auto p_eff_dx = rLinearSystemContainer.pEffectiveDx;
-            auto p_eff_rhs = rLinearSystemContainer.pEffectiveRhs;
+            auto p_eff_dx = rImplicitStrategyDataContainer.pEffectiveDx;
+            auto p_eff_rhs = rImplicitStrategyDataContainer.pEffectiveRhs;
 
             // Initialize the effective RHS
             KRATOS_ERROR_IF(p_eff_rhs == nullptr) << "Effective RHS vector has not been initialized yet." << std::endl;
@@ -211,18 +211,18 @@ private:
             p_eff_dx->SetValue(0.0);
 
             // Assign the master-slave relation matrix as the effective one since there are no other constraints
-            rLinearSystemContainer.pEffectiveT = rLinearSystemContainer.pConstraintsT;
+            rImplicitStrategyDataContainer.pEffectiveT = rImplicitStrategyDataContainer.pConstraintsT;
 
             // Apply constraints to RHS
-            auto p_rhs = rLinearSystemContainer.pRhs;
-            rLinearSystemContainer.pEffectiveT->TransposeSpMV(*p_rhs, *p_eff_rhs);
+            auto p_rhs = rImplicitStrategyDataContainer.pRhs;
+            rImplicitStrategyDataContainer.pEffectiveT->TransposeSpMV(*p_rhs, *p_eff_rhs);
 
             // Apply constraints to LHS
             //TODO: Rethink once we figure out the LinearSystemContainer, LinearOperator and so...
-            auto p_lhs = rLinearSystemContainer.pLhs;
-            auto p_LHS_T = AmgclCSRSpMMUtilities::SparseMultiply(*p_lhs, *rLinearSystemContainer.pEffectiveT);
-            auto p_transT = AmgclCSRConversionUtilities::Transpose(*rLinearSystemContainer.pEffectiveT);
-            rLinearSystemContainer.pEffectiveLhs = AmgclCSRSpMMUtilities::SparseMultiply(*p_transT, *p_LHS_T);
+            auto p_lhs = rImplicitStrategyDataContainer.pLhs;
+            auto p_LHS_T = AmgclCSRSpMMUtilities::SparseMultiply(*p_lhs, *rImplicitStrategyDataContainer.pEffectiveT);
+            auto p_transT = AmgclCSRConversionUtilities::Transpose(*rImplicitStrategyDataContainer.pEffectiveT);
+            rImplicitStrategyDataContainer.pEffectiveLhs = AmgclCSRSpMMUtilities::SparseMultiply(*p_transT, *p_LHS_T);
 
             // // Compute the scale factor value
             // //TODO: think on how to make this user-definable
@@ -239,9 +239,9 @@ private:
         } else {
             // If there are no constraints the effective arrays are the same as the input ones
             // Note that we avoid duplicating the memory by making the effective pointers to point to the same object
-            rLinearSystemContainer.pEffectiveLhs = rLinearSystemContainer.pLhs;
-            rLinearSystemContainer.pEffectiveRhs = rLinearSystemContainer.pRhs;
-            rLinearSystemContainer.pEffectiveDx = rLinearSystemContainer.pDx;
+            rImplicitStrategyDataContainer.pEffectiveLhs = rImplicitStrategyDataContainer.pLhs;
+            rImplicitStrategyDataContainer.pEffectiveRhs = rImplicitStrategyDataContainer.pRhs;
+            rImplicitStrategyDataContainer.pEffectiveDx = rImplicitStrategyDataContainer.pDx;
         }
     }
 

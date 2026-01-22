@@ -8,7 +8,6 @@
 //                   Kratos default license: kratos/license.txt
 //
 //  Main authors:    Ruben Zorrilla
-//                   Riccardo Rossi
 //
 
 #pragma once
@@ -18,6 +17,7 @@
 // External includes
 
 // Project includes
+#include "includes/model_part.h"
 #include "future/linear_operators/linear_operator.h"
 #include "future/linear_operators/sparse_matrix_linear_operator.h"
 
@@ -31,7 +31,7 @@ namespace Kratos::Future
 ///@{
 
 template <class TLinearAlgebra>
-class LinearSystem
+class LinearSystem final
 {
 public:
 
@@ -40,6 +40,9 @@ public:
 
     /// Pointer definition of LinearSystem
     KRATOS_CLASS_POINTER_DEFINITION(LinearSystem);
+
+    /// DofsArrayType definition
+    using DofsArrayType = ModelPart::DofsArrayType;
 
     /// Type of the matrix from the linear algebra traits
     using MatrixType = typename TLinearAlgebra::MatrixType;
@@ -62,11 +65,30 @@ public:
         typename MatrixType::Pointer pLhs,
         typename VectorType::Pointer pRhs,
         typename VectorType::Pointer pSol,
-        std::string system_name = "")
+        std::string SystemName = "")
         : mpLhs(pLhs)
         , mpRhs(pRhs)
         , mpSol(pSol)
+        , mSystemName(SystemName)
     {
+        mpLinearOperator = Kratos::make_shared<SparseMatrixLinearOperator<TLinearAlgebra>>(*pLhs);
+    }
+
+    /// Constructor with matrix and additional data
+    LinearSystem(
+        typename MatrixType::Pointer pLhs,
+        typename VectorType::Pointer pRhs,
+        typename VectorType::Pointer pSol,
+        ModelPart& rModelPart,
+        DofsArrayType& rDofs,
+        const std::string SystemName = "")
+        : mpLhs(pLhs)
+        , mpRhs(pRhs)
+        , mpSol(pSol)
+        , mSystemName(SystemName)
+    {
+        mpModelPart = &rModelPart;
+        mpDofs = Kratos::make_shared<DofsArrayType>(rDofs);
         mpLinearOperator = Kratos::make_shared<SparseMatrixLinearOperator<TLinearAlgebra>>(*pLhs);
     }
 
@@ -74,11 +96,30 @@ public:
     LinearSystem(
         typename LinearOperatorType::Pointer pLinearOperator,
         typename VectorType::Pointer pRhs,
-        typename VectorType::Pointer pSol)
+        typename VectorType::Pointer pSol,
+        std::string SystemName = "")
         : mpLinearOperator(pLinearOperator)
         , mpRhs(pRhs)
         , mpSol(pSol)
+        , mSystemName(SystemName)
     {
+    }
+
+    /// Constructor with linear operator and additional data
+    LinearSystem(
+        typename LinearOperatorType::Pointer pLinearOperator,
+        typename VectorType::Pointer pRhs,
+        typename VectorType::Pointer pSol,
+        ModelPart& rModelPart,
+        DofsArrayType& rDofs,
+        const std::string SystemName = "")
+        : mpLinearOperator(pLinearOperator)
+        , mpRhs(pRhs)
+        , mpSol(pSol)
+        , mSystemName(SystemName)
+    {
+        mpModelPart = &rModelPart;
+        mpDofs = Kratos::make_shared<DofsArrayType>(rDofs);
     }
 
     // /// Copy constructor
@@ -126,6 +167,18 @@ public:
     ///@name Operations
     ///@{
 
+    virtual int Check()
+    {
+        // Check if the system arrays are initialized
+        KRATOS_ERROR_IF(mpLinearOperator == nullptr && mpLhs == nullptr) << "Linear operator or left-hand side matrix must be initialized." << std::endl;
+        KRATOS_ERROR_IF(mpRhs == nullptr) << "Right-hand side vector must be initialized." << std::endl;
+        KRATOS_ERROR_IF(mpSol == nullptr) << "Solution vector must be initialized." << std::endl;
+
+        // Check if the system name is set (not mandatory but a good practice for debugging purposes)
+        KRATOS_WARNING_IF(mSystemName.empty()) << "System name is empty." << std::endl;
+
+        return 0;
+    }
 
     ///@}
     ///@name Access
@@ -135,21 +188,22 @@ public:
     * @brief Get a pointer to the linear operator.
     * @return Pointer to the linear operator
     */
-    virtual typename LinearOperatorType::Pointer GetLinearOperator()
+    virtual typename LinearOperatorType::Pointer& GetLinearOperator()
     {
         KRATOS_ERROR_IF(!mpLinearOperator) << "Linear operator is not initialized." << std::endl;
         return mpLinearOperator;
     }
 
-    /**
-    * @brief Get a pointer to the linear operator.
-    * @return Pointer to the linear operator
-    */
-    virtual typename LinearOperatorType::Pointer GetLinearOperator() const
-    {
-        KRATOS_ERROR_IF(!mpLinearOperator) << "Linear operator is not initialized." << std::endl;
-        return mpLinearOperator;
-    }
+    //FIXME: This should be const
+    // /**
+    // * @brief Get a pointer to the linear operator.
+    // * @return Pointer to the linear operator
+    // */
+    // virtual typename LinearOperatorType::Pointer& GetLinearOperator() const
+    // {
+    //     KRATOS_ERROR_IF(!mpLinearOperator) << "Linear operator is not initialized." << std::endl;
+    //     return mpLinearOperator;
+    // }
 
     /**
     * @brief Get a reference to the left-hand side matrix.
@@ -211,6 +265,21 @@ public:
         return *mpSol;
     }
 
+    /**
+     * @brief Set the Additional Data
+     * This method is used to set the additional data of the linear system.
+     * @param rModelPart The model part from which the linear system is built
+     * @param rDofs The dofs array of the linear system
+     */
+    virtual void SetAdditionalData(
+        ModelPart& rModelPart,
+        DofsArrayType& rDofs)
+    {
+        KRATOS_WARNING_IF("LinearSystem", HasAdditionalData()) << "Additional data is already set for linear system " << Name() << ". Overwriting it." << std::endl;
+        mpModelPart = &rModelPart;
+        mpDofs = Kratos::make_shared<DofsArrayType>(rDofs);
+    }
+
     ///@}
     ///@name Inquiry
     ///@{
@@ -230,19 +299,66 @@ public:
         }
     }
 
+    /**
+     * @brief This method checks if the dimensions of the system of equations are consistent
+     * @return True if consistent, false otherwise
+     */
+    virtual bool IsConsistent()
+    {
+        const std::size_t num_rows = mpLinearOperator->NumRows();
+        const std::size_t num_cols = mpLinearOperator->NumCols();
+        const std::size_t size_x = mpSol->size();
+        const std::size_t size_b = mpRhs->size();
+        return ((num_rows ==  num_cols) && (num_rows ==  size_x) && (num_rows ==  size_b));
+    }
+
+    /**
+     * @brief This method checks if the dimensions of the system of equations are not consistent
+     * @return False if consistent, true otherwise
+     */
+    virtual bool IsNotConsistent()
+    {
+        return !IsConsistent();
+    }
+
+    /**
+    * @brief Get the name of the linear system.
+    * @return Name of the linear system
+    */
+    virtual const std::string& Name() const
+    {
+        return mSystemName;
+    }
+
+    /**
+     * @brief Check if the linear system has additional data (model part and dofs)
+     * @return true if the linear system has additional data
+     * @return false if the linear system does not have additional data
+     */
+    virtual bool HasAdditionalData() const
+    {
+        return mpModelPart != nullptr && mpDofs != nullptr;
+    }
+
     ///@}
 private:
 
     ///@name Member Variables
     ///@{
 
-    typename VectorType::Pointer mpSol = nullptr;
-
-    typename VectorType::Pointer mpRhs = nullptr;
+    typename LinearOperatorType::Pointer mpLinearOperator = nullptr;
 
     typename MatrixType::Pointer mpLhs = nullptr;
 
-    typename LinearOperatorType::Pointer mpLinearOperator = nullptr;
+    typename VectorType::Pointer mpRhs = nullptr;
+
+    typename VectorType::Pointer mpSol = nullptr;
+
+    const std::string mSystemName;
+
+    ModelPart* mpModelPart = nullptr;
+
+    typename ModelPart::DofsArrayType::Pointer mpDofs = nullptr;
 
     ///@}
 }; // Class LinearSystem

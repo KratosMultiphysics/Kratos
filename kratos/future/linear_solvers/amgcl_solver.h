@@ -30,6 +30,7 @@
 #include <boost/property_tree/json_parser.hpp>
 
 // Project includes
+#include "future/containers/linear_system.h"
 #include "future/linear_solvers/iterative_solver.h"
 #include "includes/define.h"
 #include "includes/kratos_parameters.h"
@@ -128,6 +129,9 @@ public:
 
     /// Local system matrix type definition
     using DenseMatrixType = DenseMatrix<DataType>;
+
+    /// Linear system type definition
+    using LinearSystemType = LinearSystem<TLinearAlgebra>;
 
     /// Linear operator pointer type definition
     using LinearOperatorPointerType = typename LinearOperator<TLinearAlgebra>::Pointer;
@@ -322,13 +326,12 @@ public:
      * @param rX Solution vector. it's also the initial guess for iterative linear solvers.
      * @param rB Right hand side vector.
      */
-    bool Solve(
-        LinearOperatorPointerType pLinearOperator,
-        VectorType& rX,
-        VectorType& rB) override
+    bool PerformSolutionStep(LinearSystemType& rLinearSystem) override
     {
-        // Get CSR matrix from CSR matrix linear operator
-        auto& r_A = (*pLinearOperator).GetMatrix();
+        // Get system arrays from linear system
+        auto& r_A = rLinearSystem.GetLeftHandSide();
+        auto& rX = rLinearSystem.GetSolution();
+        auto& rB = rLinearSystem.GetRightHandSide();
 
         // Initial checks
         KRATOS_ERROR_IF(r_A.size1() != r_A.size2()) << "matrix A is not square! sizes are " << r_A.size1() << " and " << r_A.size2() << std::endl;

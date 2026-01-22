@@ -18,6 +18,7 @@
 // Project includes
 #include "includes/define.h"
 #include "includes/kratos_parameters.h"
+#include "future/containers/linear_system.h"
 #include "future/linear_operators/linear_operator.h"
 #include "future/linear_solvers/direct_solver.h"
 
@@ -496,13 +497,15 @@ public:
 
     using DenseMatrixType = typename BaseType::DenseMatrixType;
 
-    using CsrMatrixType = TLinearAlgebra::MatrixType;
+    using MatrixType = typename TLinearAlgebra::MatrixType;
 
     using VectorType = typename TLinearAlgebra::VectorType;
 
     using DataType = typename VectorType::DataType;
 
     using IndexType = typename VectorType::IndexType;
+
+    using LinearSystemType = LinearSystem<TLinearAlgebra>;
 
     using LinearOperatorPointerType = typename LinearOperator<TLinearAlgebra>::Pointer;
 
@@ -524,18 +527,21 @@ public:
     ~SkylineLUFactorizationSolver() override = default;
 
     //TODO: This Solve method should be split into Initialize, InitializeSolutionStep, SolveSolutionStep, FinalizeSolutionStep, ...
-    bool Solve(
-        LinearOperatorPointerType pLinearOperator,
-        VectorType& rX,
-        VectorType& rB) override
+    bool PerformSolutionStep(LinearSystemType& rLinearSystem) override
     {
-        if(this->IsNotConsistent(pLinearOperator, rX, rB))
+        if (rLinearSystem.IsNotConsistent()) {
             return false;
+        }
+
+        auto pLinearOperator = rLinearSystem.GetLinearOperator();
+        auto& rX = rLinearSystem.GetSolution();
+        auto& rB = rLinearSystem.GetRightHandSide();
 
         const int size = rX.size();
 
         // define an object to store skyline matrix and factorization
-        LUSkylineFactorization<CsrMatrixType, VectorType> myFactorization;
+        //TODO: We should add a setting to decide if the factorization is done each iteration or only once per time step
+        LUSkylineFactorization<MatrixType, VectorType> myFactorization;
 
         // copy myMatrix into skyline format
         KRATOS_ERROR_IF(pLinearOperator->IsMatrixFree()) << "SkylineLUFactorizationSolver cannot be used with matrix-free linear operators." << std::endl;
@@ -552,47 +558,48 @@ public:
     }
 
     //TODO: This Solve method should be split into Initialize, InitializeSolutionStep, SolveSolutionStep, FinalizeSolutionStep, ...
-    bool Solve(
-        LinearOperatorPointerType pLinearOperator,
-        DenseMatrixType& rX,
-        DenseMatrixType& rB) override
-    {
-        const int size1 = rX.size1();
-        const int size2 = rX.size2();
+    //TODO: Implement this method once we have the dense matrix version of the linear system
+    // bool Solve(
+    //     LinearOperatorPointerType pLinearOperator,
+    //     DenseMatrixType& rX,
+    //     DenseMatrixType& rB) override
+    // {
+    //     const int size1 = rX.size1();
+    //     const int size2 = rX.size2();
 
-        bool is_solved = true;
+    //     bool is_solved = true;
 
-        VectorType x(size1);
-        VectorType b(size1);
+    //     VectorType x(size1);
+    //     VectorType b(size1);
 
-        // define an object to store skyline matrix and factorization
-        LUSkylineFactorization<CsrMatrixType, VectorType> myFactorization;
+    //     // define an object to store skyline matrix and factorization
+    //     LUSkylineFactorization<CsrMatrixType, VectorType> myFactorization;
 
-        // copy myMatrix into skyline format
-        KRATOS_ERROR_IF(pLinearOperator->IsMatrixFree()) << "SkylineLUFactorizationSolver cannot be used with matrix-free linear operators." << std::endl;
-        const auto& r_A = pLinearOperator->GetMatrix();
-        myFactorization.copyFromCSRMatrix(r_A);
-        // factorize it
-        myFactorization.factorize();
+    //     // copy myMatrix into skyline format
+    //     KRATOS_ERROR_IF(pLinearOperator->IsMatrixFree()) << "SkylineLUFactorizationSolver cannot be used with matrix-free linear operators." << std::endl;
+    //     const auto& r_A = pLinearOperator->GetMatrix();
+    //     myFactorization.copyFromCSRMatrix(r_A);
+    //     // factorize it
+    //     myFactorization.factorize();
 
-        for(int i = 0 ; i < size2 ; i++)
-        {
-            for (IndexType i_row = 0; i_row < size1; ++i_row) {
-                x[i_row] = rX(i_row,i);
-                b[i_row] = rB(i_row,i);
-            }
+    //     for(int i = 0 ; i < size2 ; i++)
+    //     {
+    //         for (IndexType i_row = 0; i_row < size1; ++i_row) {
+    //             x[i_row] = rX(i_row,i);
+    //             b[i_row] = rB(i_row,i);
+    //         }
 
-            // and back solve
-            myFactorization.backForwardSolve(size1, b, x);
+    //         // and back solve
+    //         myFactorization.backForwardSolve(size1, b, x);
 
-            for (IndexType i_row = 0; i_row < size1; ++i_row) {
-                rX(i_row,i) = x[i_row];
-                rB(i_row,i) = b[i_row];
-            }
-        }
+    //         for (IndexType i_row = 0; i_row < size1; ++i_row) {
+    //             rX(i_row,i) = x[i_row];
+    //             rB(i_row,i) = b[i_row];
+    //         }
+    //     }
 
-        return is_solved;
-    }
+    //     return is_solved;
+    // }
 
     /// Print information about this object.
     void  PrintInfo(std::ostream& rOStream) const override

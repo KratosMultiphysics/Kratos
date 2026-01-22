@@ -229,7 +229,15 @@ public:
         if (rp_linear_solver->AdditionalPhysicalDataIsNeeded()) {
             rp_linear_solver->ProvideAdditionalData(p_eff_lhs_lin_op, *p_eff_dx, *p_eff_rhs, r_eff_dof_set, this->GetModelPart());
         }
-        rp_linear_solver->Solve(p_eff_lhs_lin_op, *p_eff_dx, *p_eff_rhs);
+        // rp_linear_solver->Solve(p_eff_lhs_lin_op, *p_eff_dx, *p_eff_rhs);
+        // rp_linear_solver->Solve(rp_linear_system);
+
+        //TODO: properly do this once everything works
+        auto& r_eff_lin_sys = r_strategy_data_container.GetEffectiveLinearSystem();
+        rp_linear_solver->Initialize(r_eff_lin_sys);
+        rp_linear_solver->InitializeSolutionStep(r_eff_lin_sys);
+        rp_linear_solver->PerformSolutionStep(r_eff_lin_sys);
+        rp_linear_solver->FinalizeSolutionStep(r_eff_lin_sys);
 
         // Debugging info
         this->EchoInfo();

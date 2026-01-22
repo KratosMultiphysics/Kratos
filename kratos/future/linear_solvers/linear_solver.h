@@ -21,6 +21,7 @@
 #include "containers/csr_matrix.h"
 #include "future/containers/define_linear_algebra_serial.h"
 #include "future/containers/linear_system.h"
+#include "future/containers/eigenvalue_system.h"
 #include "includes/model_part.h"
 #include "future/linear_operators/sparse_matrix_linear_operator.h"
 
@@ -69,6 +70,12 @@ public:
     /// Pointer definition of LinearSolver
     KRATOS_CLASS_POINTER_DEFINITION(LinearSolver);
 
+    /// Linear system type definition
+    using LinearSystemType = LinearSystem<TLinearAlgebra>;
+
+    /// Eigenvalue system type definition
+    using EigenvalueSystemType = EigenvalueSystem<TLinearAlgebra>;
+
     /// Linear operator pointer type definition
     using LinearOperatorPointerType = typename LinearOperator<TLinearAlgebra>::Pointer;
 
@@ -113,25 +120,41 @@ public:
 
     /**
      * @brief This function is designed to be called as few times as possible.
-     * @details It creates the data structures that only depend on the connectivity of the matrix (and not on its coefficients) so that the memory can be allocated once and expensive operations can be done only when strictly  needed
+     * @details It creates the data structures that only depend on the connectivity of the matrix (and not on its coefficients) so that the memory can be allocated once and expensive operations can be done only when strictly needed
      * @param rLinearSystem The linear system to be solved
      */
-    virtual void Initialize(
-        LinearOperatorPointerType pLinearOperator,
-        VectorType& rX,
-        VectorType& rB)
+    virtual void Initialize(LinearSystemType& rLinearSystem)
     {
     }
+
+    /**
+     * @brief This function is designed to be called as few times as possible.
+     * @details It creates the data structures that only depend on the connectivity of the matrix (and not on its coefficients) so that the memory can be allocated once and expensive operations can be done only when strictly needed
+     * @param rEigenvalueSystem The eigenvlaue system to be solved
+     */
+    virtual void Initialize(EigenvalueSystemType& rEigenvalueSystem)
+    {
+    }
+
+    //TODO:
+    // virtual void Initialize(MultiRHSLinearSystemType>& rLinearSystem)
+    // {
+    // }
 
     /**
      * @brief This function is designed to be called every time the coefficients change in the system that is, normally at the beginning of each solve.
      * @details For example if we are implementing a direct solver, this is the place to do the factorization so that then the backward substitution can be performed effectively more than once
      * @param rLinearSystem The linear system to be solved
      */
-    virtual void InitializeSolutionStep(
-        LinearOperatorPointerType pLinearOperator,
-        VectorType& rX,
-        VectorType& rB)
+    virtual void InitializeSolutionStep(LinearSystemType& rLinearSystem)
+    {
+    }
+    /**
+     * @brief This function is designed to be called every time the coefficients change in the system that is, normally at the beginning of each solve.
+     * @details For example if we are implementing a direct solver, this is the place to do the factorization so that then the backward substitution can be performed effectively more than once
+     * @param rEigenvalueSystem The eigenvalue system to be solved
+     */
+    virtual void InitializeSolutionStep(EigenvalueSystemType& rEigenvalueSystem)
     {
     }
 
@@ -140,12 +163,20 @@ public:
      * @param rLinearSystem The linear system to be solved.
      * @return @p true if the provided system was solved successfully satisfying the given requirements, @p false otherwise.
      */
-    virtual bool PerformSolutionStep(
-        LinearOperatorPointerType pLinearOperator,
-        VectorType& rX,
-        VectorType& rB)
+    virtual bool PerformSolutionStep(LinearSystemType& rLinearSystem)
     {
-        KRATOS_ERROR << "Calling linear solver base class" << std::endl;
+        KRATOS_ERROR << "Calling linear solver base class." << std::endl;
+        return false;
+    }
+
+    /**
+     * @brief This function actually performs the solution work, eventually taking advantage of what was done before in the Initialize and InitializeSolutionStep functions.
+     * @param rLinearSystem The linear system to be solved.
+     * @return @p true if the provided system was solved successfully satisfying the given requirements, @p false otherwise.
+     */
+    virtual bool PerformSolutionStep(EigenvalueSystemType& rEigenvalueSystem)
+    {
+        KRATOS_ERROR << "Calling linear solver base class." << std::endl;
         return false;
     }
 
@@ -154,10 +185,16 @@ public:
      * @details for example this is the place to remove any data that we do not want to save for later
      * @param rLinearSystem The linear system to be solved.
      */
-    virtual void FinalizeSolutionStep(
-        LinearOperatorPointerType pLinearOperator,
-        VectorType& rX,
-        VectorType& rB)
+    virtual void FinalizeSolutionStep(LinearSystemType& rLinearSystem)
+    {
+    }
+
+    /**
+     * @brief This function is designed to be called at the end of the solve step.
+     * @details for example this is the place to remove any data that we do not want to save for later
+     * @param rEigenvalueSystem The linear system to be solved.
+     */
+    virtual void FinalizeSolutionStep(EigenvalueSystemType& rEigenvalueSystem)
     {
     }
 
@@ -167,59 +204,6 @@ public:
      */
     virtual void Clear()
     {
-    }
-
-    /**
-     * @brief Solve method with linear operator as input.
-     * @details Solves the linear system Ax=b and puts the result on SystemVector& rX. rX is also th initial guess for iterative methods.
-     * @param rLinearSystem The linear system to be solved.
-     * @return true if the system was solved successfully, false otherwise
-     */
-    KRATOS_DEPRECATED_MESSAGE("This is deprecated (use the InitializeSolutionStep, PerformSolutionStep, FinalizeSolutionStep and Clear sequence instead.)")
-    virtual bool Solve(
-        LinearOperatorPointerType pLinearOperator,
-        VectorType& rX,
-        VectorType& rB)
-    {
-        KRATOS_WARNING("LinearSolver") << "Using the deprecated Solve method. Use the InitializeSolutionStep, PerformSolutionStep, FinalizeSolutionStep and Clear methods in sequence." << std::endl;
-        this->InitializeSolutionStep(pLinearOperator, rX, rB);
-        const auto status = this->PerformSolutionStep(pLinearOperator, rX, rB);
-        this->FinalizeSolutionStep(pLinearOperator, rX, rB);
-        this->Clear();
-        return status;
-    }
-
-    /**
-     * @brief Multi solve method for solving a set of linear systems with same coefficient matrix.
-     * @details Solves the linear system Ax=b and puts the result on SystemVector& rX. rX is also th initial guess for iterative methods.
-     * @param pLinearOperator System matrix linear operator pointer
-     * @param rX Solution vectors
-     * @param rB Right hand side vectors
-     * @return true if the system was solved successfully, false otherwise
-     */
-    virtual bool Solve(
-        LinearOperatorPointerType pLinearOperator,
-        DenseMatrixType& rX,
-        DenseMatrixType& rB)
-    {
-        KRATOS_ERROR << "Calling linear solver base class" << std::endl;
-        return false;
-    }
-
-    /**
-     * @brief Eigenvalue and eigenvector solve method for derived eigensolvers
-     * @param K The stiffness matrix linear operator
-     * @param M The mass matrix linear operator
-     * @param Eigenvalues The vector containing the eigen values
-     * @param Eigenvectors The matrix containing the eigen vectors
-     */
-    virtual void Solve(
-        LinearOperatorPointerType pLinearOperatorK,
-        LinearOperatorPointerType pLinearOperatorM,
-        VectorType& Eigenvalues,
-        DenseMatrixType& Eigenvectors)
-    {
-        KRATOS_ERROR << "Calling linear solver base class" << std::endl;
     }
 
     /**
@@ -296,77 +280,58 @@ public:
     ///@name Inquiry
     ///@{
 
-    /**
-     * @brief This method checks if the dimensions of the system of equations are consistent
-     * @param pLinearOperator Pointer to the sparse matrix linear operator
-     * @param rX The vector containing the unknowns
-     * @param rB The RHS of the system of equations
-     * @return True if consistent, false otherwise
-     */
-    virtual bool IsConsistent(
-        LinearOperatorPointerType pLinearOperator,
-        VectorType& rX,
-        VectorType& rB)
-    {
-        const std::size_t num_rows = pLinearOperator->NumRows();
-        const std::size_t num_cols = pLinearOperator->NumCols();
-        const std::size_t size_x = rX.size();
-        const std::size_t size_b = rB.size();
+    //TODO: move this to the multivector linear system once we implement it!!!!
+    // /**
+    //  * @brief This method checks if the dimensions of the system of equations are consistent (dense matrix for RHS and unknowns version)
+    //  * @param pLinearOperator Pointer to the sparse matrix linear operator
+    //  * @param rX The matrix containing the unknowns
+    //  * @param rB The matrix containing the RHSs of the system of equations
+    //  * @return True if consistent, false otherwise
+    //  */
+    // virtual bool IsConsistent(
+    //     LinearOperatorPointerType pLinearOperator,
+    //     DenseMatrixType& rX,
+    //     DenseMatrixType& rB)
+    // {
+    //     const std::size_t num_rows = pLinearOperator->NumRows();
+    //     const std::size_t num_cols = pLinearOperator->NumCols();
+    //     const std::size_t size_1_x = rX.size1();
+    //     const std::size_t size_1_b = rB.size1();
+    //     const std::size_t size_2_x = rX.size2();
+    //     const std::size_t size_2_b = rB.size2();
 
-        return ((num_rows ==  num_cols) && (num_rows ==  size_x) && (num_rows ==  size_b));
-    }
+    //     return ((num_rows ==  num_cols) && (num_rows ==  size_1_x) && (num_rows ==  size_1_b) && (size_2_x == size_2_b));
+    // }
 
-    /**
-     * @brief This method checks if the dimensions of the system of equations are consistent (dense matrix for RHS and unknowns version)
-     * @param pLinearOperator Pointer to the sparse matrix linear operator
-     * @param rX The matrix containing the unknowns
-     * @param rB The matrix containing the RHSs of the system of equations
-     * @return True if consistent, false otherwise
-     */
-    virtual bool IsConsistent(
-        LinearOperatorPointerType pLinearOperator,
-        DenseMatrixType& rX,
-        DenseMatrixType& rB)
-    {
-        const std::size_t num_rows = pLinearOperator->NumRows();
-        const std::size_t num_cols = pLinearOperator->NumCols();
-        const std::size_t size_1_x = rX.size1();
-        const std::size_t size_1_b = rB.size1();
-        const std::size_t size_2_x = rX.size2();
-        const std::size_t size_2_b = rB.size2();
+    // /**
+    //  * @brief This method checks if the dimensions of the system of equations are not consistent
+    //  * @param pLinearOperator Pointer to the sparse matrix linear operator
+    //  * @param rX The vector containing the unknowns
+    //  * @param rB The RHS of the system of equations
+    //  * @return False if consistent, true otherwise
+    //  */
+    // virtual bool IsNotConsistent(
+    //     LinearOperatorPointerType pLinearOperator,
+    //     VectorType& rX,
+    //     VectorType& rB)
+    // {
+    //     return !IsConsistent(pLinearOperator, rX, rB);
+    // }
 
-        return ((num_rows ==  num_cols) && (num_rows ==  size_1_x) && (num_rows ==  size_1_b) && (size_2_x == size_2_b));
-    }
-
-    /**
-     * @brief This method checks if the dimensions of the system of equations are not consistent
-     * @param pLinearOperator Pointer to the sparse matrix linear operator
-     * @param rX The vector containing the unknowns
-     * @param rB The RHS of the system of equations
-     * @return False if consistent, true otherwise
-     */
-    virtual bool IsNotConsistent(
-        LinearOperatorPointerType pLinearOperator,
-        VectorType& rX,
-        VectorType& rB)
-    {
-        return !IsConsistent(pLinearOperator, rX, rB);
-    }
-
-    /**
-     * @brief This method checks if the dimensions of the system of equations are not consistent
-     * @param pLinearOperator Pointer to the sparse matrix linear operator
-     * @param rX The matrix containing the unknowns
-     * @param rB The matrix containing the RHSs of the system of equations
-     * @return False if consistent, true otherwise
-     */
-    virtual bool IsNotConsistent(
-        LinearOperatorPointerType pLinearOperator,
-        DenseMatrixType& rX,
-        DenseMatrixType& rB)
-    {
-        return !IsConsistent(pLinearOperator, rX, rB);
-    }
+    // /**
+    //  * @brief This method checks if the dimensions of the system of equations are not consistent
+    //  * @param pLinearOperator Pointer to the sparse matrix linear operator
+    //  * @param rX The matrix containing the unknowns
+    //  * @param rB The matrix containing the RHSs of the system of equations
+    //  * @return False if consistent, true otherwise
+    //  */
+    // virtual bool IsNotConsistent(
+    //     LinearOperatorPointerType pLinearOperator,
+    //     DenseMatrixType& rX,
+    //     DenseMatrixType& rB)
+    // {
+    //     return !IsConsistent(pLinearOperator, rX, rB);
+    // }
 
     ///@}
     ///@name Input and output

@@ -187,6 +187,9 @@ public:
         // Initialize scheme (this has to be done once)
         pGetScheme()->Initialize(mImplicitStrategyDataContainer);
 
+        // // Initialize linear solver
+        // pGetLinearSolver()->Initialize();
+
         KRATOS_CATCH("")
     }
 
@@ -702,7 +705,7 @@ private:
 
     LinearSolverPointerType mpLinearSolver = nullptr; /// The pointer to the linear solver
 
-    ImplicitStrategyDataContainerType mImplicitStrategyDataContainer;
+    ImplicitStrategyDataContainerType mImplicitStrategyDataContainer; /// The implicit strategy data container (includes linear systems, DOFs, etc.)
 
     int mEchoLevel;
 
