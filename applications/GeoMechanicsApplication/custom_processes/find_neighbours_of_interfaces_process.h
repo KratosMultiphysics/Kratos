@@ -17,6 +17,7 @@
 #include "processes/process.h"
 
 #include <functional>
+#include <string>
 #include <vector>
 
 namespace Kratos

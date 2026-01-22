@@ -12,12 +12,19 @@
 //
 
 #include "incremental_linear_elastic_interface_law.h"
-#include "custom_utilities/check_utilities.h"
-#include "geo_mechanics_application_constants.h"
+#include "constitutive_law_dimension.h"
+#include "custom_utilities/check_utilities.hpp"
 #include "geo_mechanics_application_variables.h"
 
 namespace Kratos
 {
+
+GeoIncrementalLinearElasticInterfaceLaw::~GeoIncrementalLinearElasticInterfaceLaw() = default;
+
+GeoIncrementalLinearElasticInterfaceLaw::GeoIncrementalLinearElasticInterfaceLaw(std::unique_ptr<ConstitutiveLawDimension> pConstitutiveLawDimension)
+    : mpConstitutiveLawDimension(std::move(pConstitutiveLawDimension))
+{
+}
 
 ConstitutiveLaw::Pointer GeoIncrementalLinearElasticInterfaceLaw::Clone() const
 {

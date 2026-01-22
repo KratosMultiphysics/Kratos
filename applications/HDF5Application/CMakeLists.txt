@@ -54,7 +54,7 @@ endif()
 set(KRATOS_HDF5_APPLICATION_EXTRA_LIBS "")
 
 if(USE_MPI)
-  if(HDF5_IS_PARALLEL)
+  if (HDF5_IS_PARALLEL OR HDF5_ENABLE_PARALLEL OR HDF5_PROVIDES_PARALLEL)
     message(STATUS "Using parallel HDF5 libraries.")
     if (   (HDF5_INCLUDE_DIRS MATCHES ".*openmpi.*")
         OR (HDF5_LIBRARY_DIRS MATCHES ".*openmpi.*"))
