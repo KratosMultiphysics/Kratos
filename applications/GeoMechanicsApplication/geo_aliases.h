@@ -17,8 +17,8 @@
 #include <vector>
 
 #include "containers/variable.h"
-#include "includes/constitutive_law.h"
 #include "geometries/geometry.h"
+#include "includes/constitutive_law.h"
 #include "includes/node.h"
 #include "integration/integration_point.h"
 

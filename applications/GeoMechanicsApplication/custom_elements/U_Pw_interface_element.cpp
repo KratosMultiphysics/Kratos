@@ -12,9 +12,9 @@
 //
 #include "U_Pw_interface_element.h"
 
-#include "custom_geometries/interface_geometry.hpp"
 #include "contribution_calculators/calculation_contribution.h"
 #include "contribution_calculators/stiffness_calculator.hpp"
+#include "custom_geometries/interface_geometry.hpp"
 #include "custom_utilities/constitutive_law_utilities.h"
 #include "custom_utilities/dof_utilities.hpp"
 #include "custom_utilities/element_utilities.hpp"
@@ -155,22 +155,34 @@ void UPwInterfaceElement::CalculateLeftHandSide(MatrixType& rLeftHandSideMatrix,
         case CalculationContribution::Stiffness:
             switch (stiffness_matrix_size) {
             case 8:
-                GeoElementUtilities::AssignUUBlockMatrix(rLeftHandSideMatrix, CreateStiffnessCalculator<8>(rProcessInfo).LHSContribution().value());
+                GeoElementUtilities::AssignUUBlockMatrix(
+                    rLeftHandSideMatrix,
+                    CreateStiffnessCalculator<8>(rProcessInfo).LHSContribution().value());
                 break;
             case 12:
-                GeoElementUtilities::AssignUUBlockMatrix(rLeftHandSideMatrix, CreateStiffnessCalculator<12>(rProcessInfo).LHSContribution().value());
+                GeoElementUtilities::AssignUUBlockMatrix(
+                    rLeftHandSideMatrix,
+                    CreateStiffnessCalculator<12>(rProcessInfo).LHSContribution().value());
                 break;
             case 18:
-                GeoElementUtilities::AssignUUBlockMatrix(rLeftHandSideMatrix, CreateStiffnessCalculator<18>(rProcessInfo).LHSContribution().value());
+                GeoElementUtilities::AssignUUBlockMatrix(
+                    rLeftHandSideMatrix,
+                    CreateStiffnessCalculator<18>(rProcessInfo).LHSContribution().value());
                 break;
             case 36:
-                GeoElementUtilities::AssignUUBlockMatrix(rLeftHandSideMatrix, CreateStiffnessCalculator<36>(rProcessInfo).LHSContribution().value());
+                GeoElementUtilities::AssignUUBlockMatrix(
+                    rLeftHandSideMatrix,
+                    CreateStiffnessCalculator<36>(rProcessInfo).LHSContribution().value());
                 break;
             case 24:
-                GeoElementUtilities::AssignUUBlockMatrix(rLeftHandSideMatrix, CreateStiffnessCalculator<24>(rProcessInfo).LHSContribution().value());
+                GeoElementUtilities::AssignUUBlockMatrix(
+                    rLeftHandSideMatrix,
+                    CreateStiffnessCalculator<24>(rProcessInfo).LHSContribution().value());
                 break;
             case 48:
-                GeoElementUtilities::AssignUUBlockMatrix(rLeftHandSideMatrix, CreateStiffnessCalculator<48>(rProcessInfo).LHSContribution().value());
+                GeoElementUtilities::AssignUUBlockMatrix(
+                    rLeftHandSideMatrix,
+                    CreateStiffnessCalculator<48>(rProcessInfo).LHSContribution().value());
                 break;
             default:
                 KRATOS_ERROR << "This stiffness matrix size is not supported \n";
@@ -198,22 +210,28 @@ void UPwInterfaceElement::CalculateRightHandSide(Element::VectorType& rRightHand
         case CalculationContribution::Stiffness:
             switch (stiffness_matrix_size) {
             case 8:
-                GeoElementUtilities::AssignUBlockVector(rRightHandSideVector, CreateStiffnessCalculator<8>(rProcessInfo).RHSContribution());
+                GeoElementUtilities::AssignUBlockVector(
+                    rRightHandSideVector, CreateStiffnessCalculator<8>(rProcessInfo).RHSContribution());
                 break;
             case 12:
-                GeoElementUtilities::AssignUBlockVector(rRightHandSideVector, CreateStiffnessCalculator<12>(rProcessInfo).RHSContribution());
+                GeoElementUtilities::AssignUBlockVector(
+                    rRightHandSideVector, CreateStiffnessCalculator<12>(rProcessInfo).RHSContribution());
                 break;
             case 18:
-                GeoElementUtilities::AssignUBlockVector(rRightHandSideVector, CreateStiffnessCalculator<18>(rProcessInfo).RHSContribution());
+                GeoElementUtilities::AssignUBlockVector(
+                    rRightHandSideVector, CreateStiffnessCalculator<18>(rProcessInfo).RHSContribution());
                 break;
             case 36:
-                GeoElementUtilities::AssignUBlockVector(rRightHandSideVector, CreateStiffnessCalculator<36>(rProcessInfo).RHSContribution());
+                GeoElementUtilities::AssignUBlockVector(
+                    rRightHandSideVector, CreateStiffnessCalculator<36>(rProcessInfo).RHSContribution());
                 break;
             case 24:
-                GeoElementUtilities::AssignUBlockVector(rRightHandSideVector, CreateStiffnessCalculator<24>(rProcessInfo).RHSContribution());
+                GeoElementUtilities::AssignUBlockVector(
+                    rRightHandSideVector, CreateStiffnessCalculator<24>(rProcessInfo).RHSContribution());
                 break;
             case 48:
-                GeoElementUtilities::AssignUBlockVector(rRightHandSideVector, CreateStiffnessCalculator<48>(rProcessInfo).RHSContribution());
+                GeoElementUtilities::AssignUBlockVector(
+                    rRightHandSideVector, CreateStiffnessCalculator<48>(rProcessInfo).RHSContribution());
                 break;
             default:
                 KRATOS_ERROR << "This stiffness matrix size is not supported \n";
