@@ -483,6 +483,7 @@ void TotalLagrangianTrussElement<TDimension>::CalculateOnIntegrationPoints(
         rOutput[0] = ref_area * (stress_vector[0] + pre_stress);
 
     } else if (rVariable == AXIAL_STRAIN) {
+
         const auto& r_props = GetProperties();
         const auto& r_geometry = GetGeometry();
 
@@ -492,7 +493,6 @@ void TotalLagrangianTrussElement<TDimension>::CalculateOnIntegrationPoints(
         const double curr_length = norm_2(curr_axis);
         const array_3 current_unit_dir = curr_axis / curr_length;
         const double Fxx = curr_length / ref_length; // Deformation gradient in the axial direction
-        const double ref_area = r_props[CROSS_AREA];
         rOutput[0] = 0.5 * (Fxx * Fxx - 1.0);
     }
 }
@@ -520,7 +520,6 @@ void TotalLagrangianTrussElement<TDimension>::CalculateOnIntegrationPoints(
         const double curr_length = norm_2(curr_axis);
         const array_3 current_unit_dir = curr_axis / curr_length;
         const double Fxx = curr_length / ref_length; // Deformation gradient in the axial direction
-        const double ref_area = r_props[CROSS_AREA];
         const double green_lagrange_strain = 0.5 * (Fxx * Fxx - 1.0);
         const double pre_stress = r_props.Has(TRUSS_PRESTRESS_PK2) ? r_props[TRUSS_PRESTRESS_PK2] :  0.0;
 
