@@ -113,15 +113,15 @@ public:
     }
 
     static void FillPermeabilityMatrix(BoundedMatrix<double, 1, 1>&   rPermeabilityMatrix,
-                                       const Element::PropertiesType& Prop);
+                                       const Element::PropertiesType& rProperties);
 
     static void FillPermeabilityMatrix(BoundedMatrix<double, 2, 2>&   rPermeabilityMatrix,
-                                       const Element::PropertiesType& Prop);
+                                       const Element::PropertiesType& rProperties);
 
     static void FillPermeabilityMatrix(BoundedMatrix<double, 3, 3>&   rPermeabilityMatrix,
-                                       const Element::PropertiesType& Prop);
+                                       const Element::PropertiesType& rProperties);
 
-    static Matrix FillPermeabilityMatrix(const Element::PropertiesType& Prop, std::size_t Dimension);
+    static Matrix FillPermeabilityMatrix(const Element::PropertiesType& rProperties, std::size_t Dimension);
 
     template <typename MatrixType1, typename MatrixType2>
     static void AssembleUUBlockMatrix(MatrixType1& rLeftHandSideMatrix, const MatrixType2& rUUBlockMatrix)
