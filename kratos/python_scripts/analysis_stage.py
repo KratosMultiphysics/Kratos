@@ -108,9 +108,9 @@ class AnalysisStage(object):
         ##here we initialize user-provided processes
         self.SetupProcesses()
 
-        self.Check()
-
         self.InitializeSolver() #DOES NOTHING in the base class
+
+        self.Check()
 
         for process in self._GetListOfProcesses():
             process.ExecuteBeforeSolutionLoop()
