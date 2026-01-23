@@ -15,8 +15,10 @@
 #include "includes/checks.h"
 #include "tests/cpp_tests/custom_constitutive/mock_constitutive_law.hpp"
 #include "tests/cpp_tests/geo_mechanics_fast_suite.h"
+#include "tests/cpp_tests/test_utilities.h"
 
 #include <boost/numeric/ublas/assignment.hpp>
+#include <numbers>
 
 using namespace Kratos;
 
@@ -175,6 +177,15 @@ KRATOS_TEST_CASE_IN_SUITE(ConstitutiveLawUtilities_CheckStrainMeasures, KratosGe
 
     constitutive_law->AddStrainMeasure_Infinitesimal(true);
     EXPECT_NO_THROW(ConstitutiveLawUtilities::CheckHasStrainMeasure_Infinitesimal(properties, element_id));
+}
+
+KRATOS_TEST_CASE_IN_SUITE(ConstitutiveLawUtilities_CalculateK0NCFromFrictionAngleInDegrees,
+                          KratosGeoMechanicsFastSuiteWithoutKernel)
+{
+    EXPECT_NEAR(ConstitutiveLawUtilities::CalculateK0NCFromFrictionAngleInRadians(MathUtils<>::DegreesToRadians(30.0)),
+                0.5, Defaults::absolute_tolerance);
+    EXPECT_NEAR(ConstitutiveLawUtilities::CalculateK0NCFromFrictionAngleInRadians(MathUtils<>::DegreesToRadians(60.0)),
+                1.0 - 0.5 * std::numbers::sqrt3, Defaults::absolute_tolerance);
 }
 
 } // namespace Kratos::Testing
