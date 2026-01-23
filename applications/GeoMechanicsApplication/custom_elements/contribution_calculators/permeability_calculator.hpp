@@ -79,26 +79,26 @@ private:
     [[nodiscard]] BoundedMatrix<double, TNumNodes, TNumNodes> CalculatePermeabilityMatrix() const
     {
         RetentionLaw::Parameters retention_parameters(mInputProvider.GetElementProperties());
-        const auto&              r_properties = mInputProvider.GetElementProperties();
-        const auto& integration_coefficients  = mInputProvider.GetIntegrationCoefficients();
-        const auto& shape_function_gradients  = mInputProvider.GetShapeFunctionGradients();
-        const auto  material_permeability     = mInputProvider.GetMaterialPermeability();
+        const auto&              r_properties  = mInputProvider.GetElementProperties();
+        const auto& r_integration_coefficients = mInputProvider.GetIntegrationCoefficients();
+        const auto& r_shape_function_gradients = mInputProvider.GetShapeFunctionGradients();
+        const auto  material_permeability      = mInputProvider.GetMaterialPermeability();
 
         BoundedMatrix<double, TNumNodes, TNumNodes> result = ZeroMatrix(TNumNodes, TNumNodes);
 
-        const double dynamic_viscosity_inverse = 1.0 / r_properties[DYNAMIC_VISCOSITY];
-        const auto&  fluid_pressures           = mInputProvider.GetFluidPressures();
+        const auto  dynamic_viscosity_inverse = 1.0 / r_properties[DYNAMIC_VISCOSITY];
+        const auto& r_fluid_pressures         = mInputProvider.GetFluidPressures();
 
         for (std::size_t integration_point_index = 0;
-             integration_point_index < integration_coefficients.size(); ++integration_point_index) {
-            retention_parameters.SetFluidPressure(fluid_pressures[integration_point_index]);
-            const double relative_permeability =
+             integration_point_index < r_integration_coefficients.size(); ++integration_point_index) {
+            retention_parameters.SetFluidPressure(r_fluid_pressures[integration_point_index]);
+            const auto relative_permeability =
                 mInputProvider.GetRetentionLaws()[integration_point_index]->CalculateRelativePermeability(
                     retention_parameters);
 
             noalias(result) += GeoTransportEquationUtilities::CalculatePermeabilityMatrix(
-                shape_function_gradients[integration_point_index], dynamic_viscosity_inverse, material_permeability,
-                relative_permeability, integration_coefficients[integration_point_index]);
+                r_shape_function_gradients[integration_point_index], dynamic_viscosity_inverse, material_permeability,
+                relative_permeability, r_integration_coefficients[integration_point_index]);
         }
         return result;
     }
