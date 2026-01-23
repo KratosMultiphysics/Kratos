@@ -13,6 +13,7 @@
 
 #pragma once
 
+#include "geo_aliases.h"
 #include "includes/element.h"
 #include "includes/ublas_interface.h"
 #include "integration_coefficients_calculator.hpp"
@@ -39,13 +40,15 @@ public:
     UPwInterfaceElement& operator=(UPwInterfaceElement&&) noexcept = default;
 
     UPwInterfaceElement(IndexType                          NewId,
-                        const GeometryType::Pointer&       rGeometry,
-                        const PropertiesType::Pointer&     rProperties,
-                        std::unique_ptr<StressStatePolicy> pStressStatePolicy);
+                        const GeometryType::Pointer&       rpGeometry,
+                        const PropertiesType::Pointer&     rpProperties,
+                        std::unique_ptr<StressStatePolicy> pStressStatePolicy,
+                        IsDiffOrderElement                 IsDiffOrder);
 
     UPwInterfaceElement(IndexType                          NewId,
-                        const GeometryType::Pointer&       rGeometry,
-                        std::unique_ptr<StressStatePolicy> pStressStatePolicy);
+                        const GeometryType::Pointer&       rpGeometry,
+                        std::unique_ptr<StressStatePolicy> pStressStatePolicy,
+                        IsDiffOrderElement                 IsDiffOrder);
     Element::Pointer Create(IndexType NewId, const NodesArrayType& rNodes, PropertiesType::Pointer pProperties) const override;
     Element::Pointer Create(IndexType NewId, GeometryType::Pointer pGeom, PropertiesType::Pointer pProperties) const override;
 
@@ -73,12 +76,16 @@ public:
 
     const IntegrationScheme& GetIntegrationScheme() const;
 
-    const Geometry<Node>& GetMidGeometry() const;
+    const Geometry<Node>& GetDisplacementMidGeometry() const;
 
 private:
     UPwInterfaceElement() = default;
 
     Element::DofsVectorType GetDofs() const;
+
+    const GeometryType&       GetDisplacementGeometry() const;
+    const GeometryType&       GetWaterPressureGeometry() const;
+    [[nodiscard]] std::size_t NumberOfUDofs() const;
 
     std::vector<Matrix> CalculateLocalBMatricesAtIntegrationPoints() const;
     std::vector<double> CalculateIntegrationCoefficients() const;
@@ -101,6 +108,7 @@ private:
     std::unique_ptr<StressStatePolicy>    mpStressStatePolicy;
     std::vector<ConstitutiveLaw::Pointer> mConstitutiveLaws;
     IntegrationCoefficientsCalculator     mIntegrationCoefficientsCalculator;
+    Geo::GeometryUniquePtr                mpOptionalPressureGeometry;
 
     friend class Serializer;
 };
