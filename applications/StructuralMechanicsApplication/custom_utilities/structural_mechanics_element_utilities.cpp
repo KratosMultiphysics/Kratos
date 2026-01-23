@@ -253,13 +253,15 @@ double CalculateReferenceLength2D2N(const Element& rElement)
 
 double CalculateCurrentLength2D2N(const Element& rElement)
 {
-    KRATOS_TRY;
+    KRATOS_TRY
+
+    const auto& r_geometry = rElement.GetGeometry();
 
     const array_1d<double, 3> delta_pos =
-        rElement.GetGeometry()[1].GetInitialPosition().Coordinates() -
-        rElement.GetGeometry()[0].GetInitialPosition().Coordinates() +
-        rElement.GetGeometry()[1].FastGetSolutionStepValue(DISPLACEMENT) -
-        rElement.GetGeometry()[0].FastGetSolutionStepValue(DISPLACEMENT);
+        r_geometry[1].GetInitialPosition().Coordinates() -
+        r_geometry[0].GetInitialPosition().Coordinates() +
+        r_geometry[1].FastGetSolutionStepValue(DISPLACEMENT) -
+        r_geometry[0].FastGetSolutionStepValue(DISPLACEMENT);
 
     const double l = std::sqrt((delta_pos[0] * delta_pos[0]) +
                                (delta_pos[1] * delta_pos[1]));
@@ -293,13 +295,15 @@ double CalculateReferenceLength3D2N(const Element& rElement)
 
 double CalculateCurrentLength3D2N(const Element& rElement)
 {
-    KRATOS_TRY;
+    KRATOS_TRY
+
+    const auto& r_geometry = rElement.GetGeometry();
 
     const array_1d<double, 3> delta_pos =
-        rElement.GetGeometry()[1].GetInitialPosition().Coordinates() -
-        rElement.GetGeometry()[0].GetInitialPosition().Coordinates() +
-        rElement.GetGeometry()[1].FastGetSolutionStepValue(DISPLACEMENT) -
-        rElement.GetGeometry()[0].FastGetSolutionStepValue(DISPLACEMENT);
+        r_geometry[1].GetInitialPosition().Coordinates() -
+        r_geometry[0].GetInitialPosition().Coordinates() +
+        r_geometry[1].FastGetSolutionStepValue(DISPLACEMENT) -
+        r_geometry[0].FastGetSolutionStepValue(DISPLACEMENT);
 
     const double l = MathUtils<double>::Norm3(delta_pos);
 
@@ -511,11 +515,24 @@ void BuildElementSizeRotationMatrixFor3D3NTruss(
 
 double GetReferenceRotationAngle2D2NBeam(const GeometryType& rGeometry)
 {
-    const auto &r_node_1 = rGeometry[0];
-    const auto &r_node_2 = rGeometry[1];
+    const auto &r_coords_1 = rGeometry[0].GetInitialPosition().Coordinates();
+    const auto &r_coords_2 = rGeometry[1].GetInitialPosition().Coordinates();
 
-    const double delta_x = r_node_2.X0() - r_node_1.X0();
-    const double delta_y = r_node_2.Y0() - r_node_1.Y0();
+    const double delta_x = r_coords_2[0] - r_coords_1[0];
+    const double delta_y = r_coords_2[1] - r_coords_1[1];
+    return std::atan2(delta_y, delta_x);
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+double GetCurrentRotationAngle2D2NBeam(const GeometryType& rGeometry)
+{
+    const auto &r_coords_1 = rGeometry[0].Coordinates();
+    const auto &r_coords_2 = rGeometry[1].Coordinates();
+
+    const double delta_x = r_coords_2[0] - r_coords_1[0];
+    const double delta_y = r_coords_2[1] - r_coords_1[1];
 
     return std::atan2(delta_y, delta_x);
 }
@@ -621,7 +638,7 @@ void BuildElementSizeRotationMatrixFor2D3NBeam(
 
 double CalculatePhi(const Properties& rProperties, const double L, const SizeType Plane)
 {
-    const double E   = rProperties[YOUNG_MODULUS];
+    const double E = rProperties[YOUNG_MODULUS];
 
     double I, G, A_s;
     if (Plane == 0) {
@@ -667,7 +684,10 @@ void InitializeConstitutiveLawValuesForStressCalculation(ConstitutiveLaw::Parame
 /***********************************************************************************/
 /***********************************************************************************/
 
-BoundedMatrix<double, 3, 3> GetFrenetSerretMatrix3D(const GeometryType& rGeometry)
+BoundedMatrix<double, 3, 3> GetFrenetSerretMatrix3D(
+    const GeometryType& rGeometry,
+    const bool UseCurrentConfiguration
+    )
 {
     BoundedMatrix<double, 3, 3> T;
     T.clear(); // global to local
@@ -677,7 +697,11 @@ BoundedMatrix<double, 3, 3> GetFrenetSerretMatrix3D(const GeometryType& rGeometr
     array_1d<double, 3> m;
 
     // t is the axis of the truss
-    noalias(t) = rGeometry[1].GetInitialPosition() - rGeometry[0].GetInitialPosition();
+    if (UseCurrentConfiguration) {
+        noalias(t) = rGeometry[1].Coordinates() - rGeometry[0].Coordinates();
+    } else {
+        noalias(t) = rGeometry[1].GetInitialPosition() - rGeometry[0].GetInitialPosition();
+    }
     t /= norm_2(t);
 
     n.clear();
