@@ -112,6 +112,8 @@ class AnalysisStage(object):
 
         self.Check()
 
+        self.ModifyAfterSolverInitialize() #DOES NOTHING in the base class
+
         for process in self._GetListOfProcesses():
             process.ExecuteBeforeSolutionLoop()
 
@@ -204,6 +206,11 @@ class AnalysisStage(object):
     def InitializeSolver(self):
         """This function initializes the solver - IF SUCH A THING EXISTS - do nothing otherwise
         It is designed to be called ONCE, BEFORE the execution of the solution-loop
+        """
+        pass
+
+    def ModifyAfterSolverInitialize(self):
+        """This function modifies the model after the solver is initialized  - IF SUCH A THING EXISTS - do nothing otherwise
         """
         pass
 
