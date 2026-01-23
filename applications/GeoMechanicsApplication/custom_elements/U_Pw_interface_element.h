@@ -110,7 +110,6 @@ private:
     Geo::StrainVectorsGetter           CreateRelativeDisplacementsGetter() const;
     Geo::IntegrationCoefficientsGetter CreateIntegrationCoefficientsGetter() const;
     Geo::PropertiesGetter              CreatePropertiesGetter() const;
-    Geo::ProcessInfoGetter             CreateProcessInfoGetter(const ProcessInfo& rProcessInfo);
     Geo::ConstitutiveLawsGetter        CreateConstitutiveLawsGetter() const;
 
     template <unsigned int MatrixSize>
@@ -135,34 +134,4 @@ private:
 
     friend class Serializer;
 };
-
-template <unsigned int MatrixSize>
-typename StiffnessCalculator<MatrixSize>::InputProvider UPwInterfaceElement::CreateStiffnessInputProvider(const ProcessInfo& rProcessInfo)
-{
-    return typename StiffnessCalculator<MatrixSize>::InputProvider(
-        CreateBMatricesGetter(), CreateRelativeDisplacementsGetter(), CreateIntegrationCoefficientsGetter(),
-        CreatePropertiesGetter(), CreateProcessInfoGetter(rProcessInfo), CreateConstitutiveLawsGetter());
-}
-
-template <unsigned int MatrixSize>
-auto UPwInterfaceElement::CreateStiffnessCalculator(const ProcessInfo& rProcessInfo)
-{
-    return StiffnessCalculator<MatrixSize>(CreateStiffnessInputProvider<MatrixSize>(rProcessInfo));
-}
-
-template <unsigned int MatrixSize>
-void UPwInterfaceElement::CalculateAndAssignStiffnessMatrix(MatrixType&        rLeftHandSideMatrix,
-                                                            const ProcessInfo& rProcessInfo)
-{
-    GeoElementUtilities::AssignUUBlockMatrix(
-        rLeftHandSideMatrix, CreateStiffnessCalculator<MatrixSize>(rProcessInfo).LHSContribution().value());
-}
-
-template <unsigned int MatrixSize>
-void UPwInterfaceElement::CalculateAndAssignStiffnesForceVector(VectorType& rLeftHandSideMatrix,
-                                                                const ProcessInfo& rProcessInfo)
-{
-    GeoElementUtilities::AssignUBlockVector(
-        rLeftHandSideMatrix, CreateStiffnessCalculator<MatrixSize>(rProcessInfo).RHSContribution());
-}
 } // namespace Kratos

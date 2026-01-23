@@ -82,6 +82,11 @@ Geo::GeometryUniquePtr MakeOptionalWaterPressureGeometry(const Geometry<Node>& r
     return nullptr; // required for release builds
 }
 
+Geo::ProcessInfoGetter CreateProcessInfoGetter(const ProcessInfo& rProcessInfo)
+{
+    return [&rProcessInfo]() -> const ProcessInfo& { return rProcessInfo; };
+}
+
 } // namespace
 
 namespace Kratos
@@ -545,14 +550,39 @@ Geo::IntegrationCoefficientsGetter UPwInterfaceElement::CreateIntegrationCoeffic
     return [this]() { return this->CalculateIntegrationCoefficients(); };
 }
 
-Geo::ProcessInfoGetter UPwInterfaceElement::CreateProcessInfoGetter(const ProcessInfo& rProcessInfo)
-{
-    return [&rProcessInfo]() -> const ProcessInfo& { return rProcessInfo; };
-}
-
 Geo::PropertiesGetter UPwInterfaceElement::CreatePropertiesGetter() const
 {
     return [this]() -> const Properties& { return this->GetProperties(); };
+}
+
+template <unsigned int MatrixSize>
+typename StiffnessCalculator<MatrixSize>::InputProvider UPwInterfaceElement::CreateStiffnessInputProvider(const ProcessInfo& rProcessInfo)
+{
+    return typename StiffnessCalculator<MatrixSize>::InputProvider(
+        CreateBMatricesGetter(), CreateRelativeDisplacementsGetter(), CreateIntegrationCoefficientsGetter(),
+        CreatePropertiesGetter(), CreateProcessInfoGetter(rProcessInfo), CreateConstitutiveLawsGetter());
+}
+
+template <unsigned int MatrixSize>
+auto UPwInterfaceElement::CreateStiffnessCalculator(const ProcessInfo& rProcessInfo)
+{
+    return StiffnessCalculator<MatrixSize>(CreateStiffnessInputProvider<MatrixSize>(rProcessInfo));
+}
+
+template <unsigned int MatrixSize>
+void UPwInterfaceElement::CalculateAndAssignStiffnessMatrix(MatrixType&        rLeftHandSideMatrix,
+                                                            const ProcessInfo& rProcessInfo)
+{
+    GeoElementUtilities::AssignUUBlockMatrix(
+        rLeftHandSideMatrix, CreateStiffnessCalculator<MatrixSize>(rProcessInfo).LHSContribution().value());
+}
+
+template <unsigned int MatrixSize>
+void UPwInterfaceElement::CalculateAndAssignStiffnesForceVector(VectorType& rLeftHandSideMatrix,
+                                                                const ProcessInfo& rProcessInfo)
+{
+    GeoElementUtilities::AssignUBlockVector(
+        rLeftHandSideMatrix, CreateStiffnessCalculator<MatrixSize>(rProcessInfo).RHSContribution());
 }
 
 // Instances of this class can not be copied but can be moved. Check that at compile time.
