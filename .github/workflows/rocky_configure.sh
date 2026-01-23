@@ -62,7 +62,7 @@ ${KRATOS_CMAKE_OPTIONS_FLAGS}                                                   
 -DUSE_MPI=OFF                                                                   \
 -DPYBIND11_PYTHON_VERSION="3.8"                                                 \
 -DBOOST_ROOT="${BOOST_ROOT}"                                                    \
--DCMAKE_CXX_FLAGS="${KRATOS_CMAKE_CXX_FLAGS} -O0 -Wall -Woverloaded-virtual=1"  \
+-DCMAKE_CXX_FLAGS="${KRATOS_CMAKE_CXX_FLAGS} -O0 -Wall -Wno-overloaded-virtual" \
 -DCMAKE_UNITY_BUILD=ON                                                          \
 
 # Build
