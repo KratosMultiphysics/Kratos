@@ -23,6 +23,8 @@
 
 #include <optional>
 
+#include "custom_utilities/element_utilities.hpp"
+
 namespace Kratos
 {
 class KRATOS_API(GEO_MECHANICS_APPLICATION) UPwInterfaceElement : public Element
@@ -55,7 +57,10 @@ public:
     Element::Pointer Create(IndexType NewId, GeometryType::Pointer pGeom, PropertiesType::Pointer pProperties) const override;
 
     void EquationIdVector(EquationIdVectorType& rResult, const ProcessInfo&) const override;
+    void CalculateAndAssignStifnessMatrix(Element::MatrixType& rLeftHandSideMatrix, const ProcessInfo& rProcessInfo);
     void CalculateLeftHandSide(MatrixType& rLeftHandSideMatrix, const ProcessInfo&) override;
+    void CalculateAndAssignStifnessForceVector(Element::VectorType& rRightHandSideVector,
+                                               const ProcessInfo&   rProcessInfo);
     void CalculateRightHandSide(VectorType& rRightHandSideVector, const ProcessInfo&) override;
     void CalculateLocalSystem(MatrixType&        rLeftHandSideMatrix,
                               VectorType&        rRightHandSideVector,
@@ -101,29 +106,24 @@ private:
                                           const Vector& rGlobalStressVector) const;
     Vector ConvertLocalStressToTraction(const Matrix& rLocalStress) const;
 
-    Geo::BMatrixVectorGetter           CreateBMatricesGetter() const;
+    Geo::BMatricesGetter               CreateBMatricesGetter() const;
     Geo::StrainVectorsGetter           CreateRelativeDisplacementsGetter() const;
     Geo::IntegrationCoefficientsGetter CreateIntegrationCoefficientsGetter() const;
-    Geo::PropertiesGetter              CreatePropertiesGetter();
+    Geo::PropertiesGetter              CreatePropertiesGetter() const;
     Geo::ProcessInfoGetter             CreateProcessInfoGetter(const ProcessInfo& rProcessInfo);
-    Geo::ConstitutiveLawVectorGetter   CreateConstitutiveLawGetter();
+    Geo::ConstitutiveLawsGetter        CreateConstitutiveLawsGetter() const;
 
     template <unsigned int MatrixSize>
-    typename StiffnessCalculator<MatrixSize>::InputProvider CreateStiffnessInputProvider(const ProcessInfo& rProcessInfo)
-    {
-        return typename StiffnessCalculator<MatrixSize>::InputProvider(
-            CreateBMatricesGetter(), CreateRelativeDisplacementsGetter(),
-            CreateIntegrationCoefficientsGetter(), CreatePropertiesGetter(),
-            CreateProcessInfoGetter(rProcessInfo), CreateConstitutiveLawGetter());
-    }
+    typename StiffnessCalculator<MatrixSize>::InputProvider CreateStiffnessInputProvider(const ProcessInfo& rProcessInfo);
 
     template <unsigned int MatrixSize>
-    auto CreateStiffnessCalculator(const ProcessInfo& rProcessInfo)
-    {
-        const auto input_provider = CreateStiffnessInputProvider<MatrixSize>(rProcessInfo);
-        StiffnessCalculator<MatrixSize> calculator(input_provider);
-        return calculator;
-    }
+    auto CreateStiffnessCalculator(const ProcessInfo& rProcessInfo);
+
+    template <unsigned int MatrixSize>
+    void CalculateAndAssignStiffnessMatrix(MatrixType& rLeftHandSideMatrix, const ProcessInfo& rProcessInfo);
+
+    template <unsigned int MatrixSize>
+    void CalculateAndAssignStiffnesForceVector(VectorType& rLeftHandSideMatrix, const ProcessInfo& rProcessInfo);
 
     std::function<Matrix(const Geometry<Node>&, const array_1d<double, 3>&)> mfpCalculateRotationMatrix;
 
@@ -136,4 +136,33 @@ private:
     friend class Serializer;
 };
 
+template <unsigned int MatrixSize>
+typename StiffnessCalculator<MatrixSize>::InputProvider UPwInterfaceElement::CreateStiffnessInputProvider(const ProcessInfo& rProcessInfo)
+{
+    return typename StiffnessCalculator<MatrixSize>::InputProvider(
+        CreateBMatricesGetter(), CreateRelativeDisplacementsGetter(), CreateIntegrationCoefficientsGetter(),
+        CreatePropertiesGetter(), CreateProcessInfoGetter(rProcessInfo), CreateConstitutiveLawsGetter());
+}
+
+template <unsigned int MatrixSize>
+auto UPwInterfaceElement::CreateStiffnessCalculator(const ProcessInfo& rProcessInfo)
+{
+    return StiffnessCalculator<MatrixSize>(CreateStiffnessInputProvider<MatrixSize>(rProcessInfo));
+}
+
+template <unsigned int MatrixSize>
+void UPwInterfaceElement::CalculateAndAssignStiffnessMatrix(MatrixType&        rLeftHandSideMatrix,
+                                                            const ProcessInfo& rProcessInfo)
+{
+    GeoElementUtilities::AssignUUBlockMatrix(
+        rLeftHandSideMatrix, CreateStiffnessCalculator<MatrixSize>(rProcessInfo).LHSContribution().value());
+}
+
+template <unsigned int MatrixSize>
+void UPwInterfaceElement::CalculateAndAssignStiffnesForceVector(VectorType& rLeftHandSideMatrix,
+                                                                const ProcessInfo& rProcessInfo)
+{
+    GeoElementUtilities::AssignUBlockVector(
+        rLeftHandSideMatrix, CreateStiffnessCalculator<MatrixSize>(rProcessInfo).RHSContribution());
+}
 } // namespace Kratos

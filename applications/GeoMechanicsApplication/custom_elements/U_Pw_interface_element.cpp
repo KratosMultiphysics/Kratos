@@ -147,50 +147,43 @@ void UPwInterfaceElement::CalculateLeftHandSide(MatrixType& rLeftHandSideMatrix,
 
     // Currently, the left-hand side matrix only includes the stiffness matrix. In the future, it
     // will also include water pressure contributions and coupling terms.
-    const auto        stiffness_matrix_size = NumberOfUDofs();
-    const std::vector contributions         = {CalculationContribution::Stiffness};
+    const std::vector contributions = {CalculationContribution::Stiffness};
 
     for (auto contribution : contributions) {
         switch (contribution) {
         case CalculationContribution::Stiffness:
-            switch (stiffness_matrix_size) {
-            case 8:
-                GeoElementUtilities::AssignUUBlockMatrix(
-                    rLeftHandSideMatrix,
-                    CreateStiffnessCalculator<8>(rProcessInfo).LHSContribution().value());
-                break;
-            case 12:
-                GeoElementUtilities::AssignUUBlockMatrix(
-                    rLeftHandSideMatrix,
-                    CreateStiffnessCalculator<12>(rProcessInfo).LHSContribution().value());
-                break;
-            case 18:
-                GeoElementUtilities::AssignUUBlockMatrix(
-                    rLeftHandSideMatrix,
-                    CreateStiffnessCalculator<18>(rProcessInfo).LHSContribution().value());
-                break;
-            case 36:
-                GeoElementUtilities::AssignUUBlockMatrix(
-                    rLeftHandSideMatrix,
-                    CreateStiffnessCalculator<36>(rProcessInfo).LHSContribution().value());
-                break;
-            case 24:
-                GeoElementUtilities::AssignUUBlockMatrix(
-                    rLeftHandSideMatrix,
-                    CreateStiffnessCalculator<24>(rProcessInfo).LHSContribution().value());
-                break;
-            case 48:
-                GeoElementUtilities::AssignUUBlockMatrix(
-                    rLeftHandSideMatrix,
-                    CreateStiffnessCalculator<48>(rProcessInfo).LHSContribution().value());
-                break;
-            default:
-                KRATOS_ERROR << "This stiffness matrix size is not supported \n";
-            }
+            CalculateAndAssignStifnessMatrix(rLeftHandSideMatrix, rProcessInfo);
             break;
         default:
             KRATOS_ERROR << "This contribution is not supported \n";
         }
+    }
+}
+
+void UPwInterfaceElement::CalculateAndAssignStifnessMatrix(Element::MatrixType& rLeftHandSideMatrix,
+                                                           const ProcessInfo&   rProcessInfo)
+{
+    switch (NumberOfUDofs()) {
+    case 8:
+        CalculateAndAssignStiffnessMatrix<8>(rLeftHandSideMatrix, rProcessInfo);
+        break;
+    case 12:
+        CalculateAndAssignStiffnessMatrix<12>(rLeftHandSideMatrix, rProcessInfo);
+        break;
+    case 18:
+        CalculateAndAssignStiffnessMatrix<18>(rLeftHandSideMatrix, rProcessInfo);
+        break;
+    case 36:
+        CalculateAndAssignStiffnessMatrix<36>(rLeftHandSideMatrix, rProcessInfo);
+        break;
+    case 24:
+        CalculateAndAssignStiffnessMatrix<24>(rLeftHandSideMatrix, rProcessInfo);
+        break;
+    case 48:
+        CalculateAndAssignStiffnessMatrix<48>(rLeftHandSideMatrix, rProcessInfo);
+        break;
+    default:
+        KRATOS_ERROR << "This stiffness matrix size is not supported: " << NumberOfUDofs() << "\n";
     }
 }
 
@@ -201,45 +194,43 @@ void UPwInterfaceElement::CalculateRightHandSide(Element::VectorType& rRightHand
 
     // Currently, the right-hand side only includes the internal force vector. In the future, it
     // will also include water pressure contributions and coupling terms.
-    const auto stiffness_matrix_size = NumberOfUDofs();
-
     const std::vector contributions = {CalculationContribution::Stiffness};
 
     for (auto contribution : contributions) {
         switch (contribution) {
         case CalculationContribution::Stiffness:
-            switch (stiffness_matrix_size) {
-            case 8:
-                GeoElementUtilities::AssignUBlockVector(
-                    rRightHandSideVector, CreateStiffnessCalculator<8>(rProcessInfo).RHSContribution());
-                break;
-            case 12:
-                GeoElementUtilities::AssignUBlockVector(
-                    rRightHandSideVector, CreateStiffnessCalculator<12>(rProcessInfo).RHSContribution());
-                break;
-            case 18:
-                GeoElementUtilities::AssignUBlockVector(
-                    rRightHandSideVector, CreateStiffnessCalculator<18>(rProcessInfo).RHSContribution());
-                break;
-            case 36:
-                GeoElementUtilities::AssignUBlockVector(
-                    rRightHandSideVector, CreateStiffnessCalculator<36>(rProcessInfo).RHSContribution());
-                break;
-            case 24:
-                GeoElementUtilities::AssignUBlockVector(
-                    rRightHandSideVector, CreateStiffnessCalculator<24>(rProcessInfo).RHSContribution());
-                break;
-            case 48:
-                GeoElementUtilities::AssignUBlockVector(
-                    rRightHandSideVector, CreateStiffnessCalculator<48>(rProcessInfo).RHSContribution());
-                break;
-            default:
-                KRATOS_ERROR << "This stiffness matrix size is not supported \n";
-            }
+            CalculateAndAssignStifnessForceVector(rRightHandSideVector, rProcessInfo);
             break;
         default:
             KRATOS_ERROR << "This contribution is not supported \n";
         }
+    }
+}
+
+void UPwInterfaceElement::CalculateAndAssignStifnessForceVector(Element::VectorType& rRightHandSideVector,
+                                                                const ProcessInfo& rProcessInfo)
+{
+    switch (NumberOfUDofs()) {
+    case 8:
+        CalculateAndAssignStiffnesForceVector<8>(rRightHandSideVector, rProcessInfo);
+        break;
+    case 12:
+        CalculateAndAssignStiffnesForceVector<12>(rRightHandSideVector, rProcessInfo);
+        break;
+    case 18:
+        CalculateAndAssignStiffnesForceVector<18>(rRightHandSideVector, rProcessInfo);
+        break;
+    case 36:
+        CalculateAndAssignStiffnesForceVector<36>(rRightHandSideVector, rProcessInfo);
+        break;
+    case 24:
+        CalculateAndAssignStiffnesForceVector<24>(rRightHandSideVector, rProcessInfo);
+        break;
+    case 48:
+        CalculateAndAssignStiffnesForceVector<48>(rRightHandSideVector, rProcessInfo);
+        break;
+    default:
+        KRATOS_ERROR << "This stiffness force vector size is not supported: " << NumberOfUDofs() << "\n";
     }
 }
 
@@ -530,12 +521,12 @@ Vector UPwInterfaceElement::ConvertLocalStressToTraction(const Matrix& rLocalStr
     return result;
 }
 
-Geo::BMatrixVectorGetter UPwInterfaceElement::CreateBMatricesGetter() const
+Geo::BMatricesGetter UPwInterfaceElement::CreateBMatricesGetter() const
 {
     return [this]() { return this->CalculateLocalBMatricesAtIntegrationPoints(); };
 }
 
-Geo::ConstitutiveLawVectorGetter UPwInterfaceElement::CreateConstitutiveLawGetter()
+Geo::ConstitutiveLawsGetter UPwInterfaceElement::CreateConstitutiveLawsGetter() const
 {
     return
         [this]() -> const std::vector<ConstitutiveLaw::Pointer>& { return this->mConstitutiveLaws; };
@@ -559,7 +550,7 @@ Geo::ProcessInfoGetter UPwInterfaceElement::CreateProcessInfoGetter(const Proces
     return [&rProcessInfo]() -> const ProcessInfo& { return rProcessInfo; };
 }
 
-Geo::PropertiesGetter UPwInterfaceElement::CreatePropertiesGetter()
+Geo::PropertiesGetter UPwInterfaceElement::CreatePropertiesGetter() const
 {
     return [this]() -> const Properties& { return this->GetProperties(); };
 }

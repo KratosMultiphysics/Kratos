@@ -41,10 +41,10 @@ using KappaDependentFunction = std::function<double(double)>;
 
 using GeometryUniquePtr = std::unique_ptr<Geometry<Node>>;
 
-using BMatrixVectorGetter           = std::function<std::vector<Matrix>()>;
+using BMatricesGetter               = std::function<std::vector<Matrix>()>;
 using StrainVectorsGetter           = std::function<std::vector<Vector>()>;
 using IntegrationCoefficientsGetter = std::function<std::vector<double>()>;
 using PropertiesGetter              = std::function<const Properties&()>;
 using ProcessInfoGetter             = std::function<const ProcessInfo&()>;
-using ConstitutiveLawVectorGetter   = std::function<const std::vector<ConstitutiveLaw::Pointer>&()>;
+using ConstitutiveLawsGetter        = std::function<const std::vector<ConstitutiveLaw::Pointer>&()>;
 } // namespace Kratos::Geo

@@ -15,6 +15,7 @@
 #include "contribution_calculator.h"
 #include "custom_utilities/equation_of_motion_utilities.hpp"
 #include "custom_utilities/stress_strain_utilities.h"
+#include "geo_aliases.h"
 #include "includes/constitutive_law.h"
 #include "includes/properties.h"
 #include "includes/ublas_interface.h"
@@ -27,13 +28,15 @@ template <unsigned int MatrixSize>
 class StiffnessCalculator : public ContributionCalculator<MatrixSize>
 {
 public:
+    using BaseType = ContributionCalculator<MatrixSize>;
+
     struct InputProvider {
-        InputProvider(std::function<std::vector<Matrix>()> GetBMatrices,
-                      std::function<std::vector<Vector>()> GetStrains,
-                      std::function<std::vector<double>()> GetIntegrationCoefficients,
-                      std::function<const Properties&()>   GetElementProperties,
-                      std::function<const ProcessInfo&()>  GetProcessInfo,
-                      std::function<const std::vector<ConstitutiveLaw::Pointer>&()> GetConstitutiveLaws)
+        InputProvider(Geo::BMatricesGetter               GetBMatrices,
+                      Geo::StrainVectorsGetter           GetStrains,
+                      Geo::IntegrationCoefficientsGetter GetIntegrationCoefficients,
+                      Geo::PropertiesGetter              GetElementProperties,
+                      Geo::ProcessInfoGetter             GetProcessInfo,
+                      Geo::ConstitutiveLawsGetter        GetConstitutiveLaws)
             : GetBMatrices(std::move(GetBMatrices)),
               GetStrains(std::move(GetStrains)),
               GetIntegrationCoefficients(std::move(GetIntegrationCoefficients)),
@@ -43,12 +46,12 @@ public:
         {
         }
 
-        std::function<std::vector<Matrix>()>                          GetBMatrices;
-        std::function<std::vector<Vector>()>                          GetStrains;
-        std::function<std::vector<double>()>                          GetIntegrationCoefficients;
-        std::function<const Properties&()>                            GetElementProperties;
-        std::function<const ProcessInfo&()>                           GetProcessInfo;
-        std::function<const std::vector<ConstitutiveLaw::Pointer>&()> GetConstitutiveLaws;
+        Geo::BMatricesGetter               GetBMatrices;
+        Geo::StrainVectorsGetter           GetStrains;
+        Geo::IntegrationCoefficientsGetter GetIntegrationCoefficients;
+        Geo::PropertiesGetter              GetElementProperties;
+        Geo::ProcessInfoGetter             GetProcessInfo;
+        Geo::ConstitutiveLawsGetter        GetConstitutiveLaws;
     };
 
     explicit StiffnessCalculator(InputProvider StiffnessInputProvider)
@@ -56,26 +59,23 @@ public:
     {
     }
 
-    std::optional<BoundedMatrix<double, MatrixSize, MatrixSize>> LHSContribution() override
+    std::optional<typename BaseType::LHSMatrixType> LHSContribution() override
     {
         return std::make_optional(GeoEquationOfMotionUtilities::CalculateStiffnessMatrix(
             mInputProvider.GetBMatrices(), CalculateConstitutiveMatricesAtIntegrationPoints(),
             mInputProvider.GetIntegrationCoefficients()));
     }
 
-    BoundedVector<double, MatrixSize> RHSContribution() override
+    BaseType::RHSVectorType RHSContribution() override
     {
-        const auto local_b_matrices       = mInputProvider.GetBMatrices();
-        const auto relative_displacements = mInputProvider.GetStrains();
         const auto stresses = StressStrainUtilities::CalculateStressVectorsFromStrainVectors(
-            relative_displacements, mInputProvider.GetProcessInfo(),
+            mInputProvider.GetStrains(), mInputProvider.GetProcessInfo(),
             mInputProvider.GetElementProperties(), mInputProvider.GetConstitutiveLaws());
-        const auto integration_coefficients = mInputProvider.GetIntegrationCoefficients();
         return BoundedVector<double, MatrixSize>{-GeoEquationOfMotionUtilities::CalculateInternalForceVector(
-            local_b_matrices, stresses, integration_coefficients)};
+            mInputProvider.GetBMatrices(), stresses, mInputProvider.GetIntegrationCoefficients())};
     }
 
-    std::pair<std::optional<BoundedMatrix<double, MatrixSize, MatrixSize>>, BoundedVector<double, MatrixSize>> LocalSystemContribution() override
+    std::pair<std::optional<typename BaseType::LHSMatrixType>, typename BaseType::RHSVectorType> LocalSystemContribution() override
     {
         return {LHSContribution(), RHSContribution()};
     }
@@ -83,24 +83,22 @@ public:
 private:
     std::vector<Matrix> CalculateConstitutiveMatricesAtIntegrationPoints()
     {
-        const auto& r_properties   = mInputProvider.GetElementProperties();
-        const auto& r_process_info = mInputProvider.GetProcessInfo();
-        auto get_constitutive_matrix = [&r_properties, &r_process_info](const auto& p_constitutive_law,
-                                                                        auto rRelativeDisplacement) {
-            auto result = Matrix{p_constitutive_law->GetStrainSize(), p_constitutive_law->GetStrainSize()};
+        const auto& r_properties                  = mInputProvider.GetElementProperties();
+        const auto& r_process_info                = mInputProvider.GetProcessInfo();
+        auto        calculate_constitutive_matrix = [&r_properties, &r_process_info](
+                                                 const auto& rp_constitutive_law, auto rRelativeDisplacement) {
+            auto result = Matrix{rp_constitutive_law->GetStrainSize(), rp_constitutive_law->GetStrainSize()};
             auto law_parameters = ConstitutiveLaw::Parameters{};
             law_parameters.SetMaterialProperties(r_properties);
             law_parameters.SetStrainVector(rRelativeDisplacement);
             law_parameters.SetProcessInfo(r_process_info);
-            p_constitutive_law->CalculateValue(law_parameters, CONSTITUTIVE_MATRIX, result);
+            rp_constitutive_law->CalculateValue(law_parameters, CONSTITUTIVE_MATRIX, result);
             return result;
         };
-        auto       result                 = std::vector<Matrix>{};
-        const auto constitutive_laws      = mInputProvider.GetConstitutiveLaws();
-        const auto relative_displacements = mInputProvider.GetStrains();
-        result.reserve(constitutive_laws.size());
-        std::ranges::transform(constitutive_laws, relative_displacements,
-                               std::back_inserter(result), get_constitutive_matrix);
+        auto result = std::vector<Matrix>{};
+        result.reserve(mInputProvider.GetConstitutiveLaws().size());
+        std::ranges::transform(mInputProvider.GetConstitutiveLaws(), mInputProvider.GetStrains(),
+                               std::back_inserter(result), calculate_constitutive_matrix);
 
         return result;
     }
