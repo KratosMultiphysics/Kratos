@@ -66,7 +66,7 @@ public:
             mInputProvider.GetIntegrationCoefficients()));
     }
 
-    BaseType::RHSVectorType RHSContribution() override
+    typename BaseType::RHSVectorType RHSContribution() override
     {
         const auto stresses = StressStrainUtilities::CalculateStressVectorsFromStrainVectors(
             mInputProvider.GetStrains(), mInputProvider.GetProcessInfo(),
