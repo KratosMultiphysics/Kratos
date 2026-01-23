@@ -137,6 +137,14 @@ private:
         return [this]() -> const std::vector<RetentionLaw::Pointer>& { return mRetentionLawVector; };
     }
 
+    auto MakeMaterialPermeabilityGetter()
+    {
+        return [this]() -> Matrix {
+            return GeoElementUtilities::FillPermeabilityMatrix(
+                GetProperties(), this->GetGeometry().LocalSpaceDimension());
+        };
+    }
+
     auto GetNContainer()
     {
         return [this]() -> const Matrix& { return mNContainer; };

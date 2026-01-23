@@ -459,8 +459,9 @@ template <unsigned int TDim, unsigned int TNumNodes>
 typename PermeabilityCalculator<TNumNodes>::InputProvider PwElement<TDim, TNumNodes>::CreatePermeabilityInputProvider()
 {
     return typename PermeabilityCalculator<TNumNodes>::InputProvider(
-        MakePropertiesGetter(), MakeRetentionLawsGetter(), GetIntegrationCoefficients(),
-        MakeNodalVariableGetter(), MakeShapeFunctionLocalGradientsGetter(), GetFluidPressures());
+        MakePropertiesGetter(), MakeRetentionLawsGetter(), MakeMaterialPermeabilityGetter(),
+        GetIntegrationCoefficients(), MakeNodalVariableGetter(),
+        MakeShapeFunctionLocalGradientsGetter(), GetFluidPressures());
 }
 
 template <unsigned int TDim, unsigned int TNumNodes>

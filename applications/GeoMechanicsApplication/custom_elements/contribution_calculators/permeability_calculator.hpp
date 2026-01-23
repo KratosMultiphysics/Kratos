@@ -28,12 +28,14 @@ public:
     struct InputProvider {
         InputProvider(std::function<const Properties&()> GetElementProperties,
                       std::function<const std::vector<RetentionLaw::Pointer>&()> GetRetentionLaws,
+                      std::function<Matrix()>                        GetMaterialPermeability,
                       std::function<Vector()>                        GetIntegrationCoefficients,
                       std::function<Vector(const Variable<double>&)> GetNodalValuesOf,
                       std::function<Geometry<Node>::ShapeFunctionsGradientsType()> GetShapeFunctionGradients,
                       std::function<std::vector<double>()> GetFluidPressures)
             : GetElementProperties(std::move(GetElementProperties)),
               GetRetentionLaws(std::move(GetRetentionLaws)),
+              GetMaterialPermeability(std::move(GetMaterialPermeability)),
               GetIntegrationCoefficients(std::move(GetIntegrationCoefficients)),
               GetNodalValues(std::move(GetNodalValuesOf)),
               GetShapeFunctionGradients(std::move(GetShapeFunctionGradients)),
@@ -43,6 +45,7 @@ public:
 
         std::function<const Properties&()>                           GetElementProperties;
         std::function<const std::vector<RetentionLaw::Pointer>&()>   GetRetentionLaws;
+        std::function<Matrix()>                                      GetMaterialPermeability;
         std::function<Vector()>                                      GetIntegrationCoefficients;
         std::function<Vector(const Variable<double>&)>               GetNodalValues;
         std::function<Geometry<Node>::ShapeFunctionsGradientsType()> GetShapeFunctionGradients;
@@ -76,12 +79,10 @@ private:
     [[nodiscard]] BoundedMatrix<double, TNumNodes, TNumNodes> CalculatePermeabilityMatrix() const
     {
         RetentionLaw::Parameters retention_parameters(mInputProvider.GetElementProperties());
-        const auto&              r_properties      = mInputProvider.GetElementProperties();
-        const auto&       integration_coefficients = mInputProvider.GetIntegrationCoefficients();
-        const auto&       shape_function_gradients = mInputProvider.GetShapeFunctionGradients();
-        const std::size_t local_dimension          = shape_function_gradients[0].size2();
-        const Matrix      constitutive_matrix =
-            GeoElementUtilities::FillPermeabilityMatrix(r_properties, local_dimension);
+        const auto&              r_properties = mInputProvider.GetElementProperties();
+        const auto& integration_coefficients  = mInputProvider.GetIntegrationCoefficients();
+        const auto& shape_function_gradients  = mInputProvider.GetShapeFunctionGradients();
+        const auto  material_permeability     = mInputProvider.GetMaterialPermeability();
 
         BoundedMatrix<double, TNumNodes, TNumNodes> result = ZeroMatrix(TNumNodes, TNumNodes);
 
@@ -96,7 +97,7 @@ private:
                     retention_parameters);
 
             noalias(result) += GeoTransportEquationUtilities::CalculatePermeabilityMatrix(
-                shape_function_gradients[integration_point_index], dynamic_viscosity_inverse, constitutive_matrix,
+                shape_function_gradients[integration_point_index], dynamic_viscosity_inverse, material_permeability,
                 relative_permeability, integration_coefficients[integration_point_index]);
         }
         return result;
