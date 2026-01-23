@@ -71,31 +71,31 @@ public:
 
     BoundedVector<double, TNumNodes> RHSContribution() override
     {
-        const auto& shape_function_gradients = mInputProvider.GetShapeFunctionGradients();
+        const auto& r_shape_function_gradients = mInputProvider.GetShapeFunctionGradients();
 
-        const auto& integration_coefficients = mInputProvider.GetIntegrationCoefficients();
+        const auto& r_integration_coefficients = mInputProvider.GetIntegrationCoefficients();
 
         const auto& r_properties          = mInputProvider.GetElementProperties();
         const auto  material_permeability = mInputProvider.GetMaterialPermeability();
 
         RetentionLaw::Parameters retention_law_parameters(r_properties);
-        const auto&              projected_gravity_on_integration_points =
+        const auto&              r_projected_gravity_on_integration_points =
             mInputProvider.GetProjectedGravityAtIntegrationPoints();
-        const auto&                      fluid_pressures = mInputProvider.GetFluidPressures();
-        BoundedVector<double, TNumNodes> result          = ZeroVector(TNumNodes);
-        const auto bishop_coefficients = CalculateBishopCoefficients(fluid_pressures);
+        const auto&                      r_fluid_pressures = mInputProvider.GetFluidPressures();
+        BoundedVector<double, TNumNodes> result            = ZeroVector(TNumNodes);
+        const auto bishop_coefficients = CalculateBishopCoefficients(r_fluid_pressures);
 
         for (unsigned int integration_point_index = 0;
-             integration_point_index < integration_coefficients.size(); ++integration_point_index) {
-            retention_law_parameters.SetFluidPressure(fluid_pressures[integration_point_index]);
+             integration_point_index < r_integration_coefficients.size(); ++integration_point_index) {
+            retention_law_parameters.SetFluidPressure(r_fluid_pressures[integration_point_index]);
             const auto relative_permeability =
                 mInputProvider.GetRetentionLaws()[integration_point_index]->CalculateRelativePermeability(
                     retention_law_parameters);
             noalias(result) +=
                 r_properties[DENSITY_WATER] * bishop_coefficients[integration_point_index] * relative_permeability *
-                prod(prod(shape_function_gradients[integration_point_index], material_permeability),
-                     projected_gravity_on_integration_points[integration_point_index]) *
-                integration_coefficients[integration_point_index] / r_properties[DYNAMIC_VISCOSITY];
+                prod(prod(r_shape_function_gradients[integration_point_index], material_permeability),
+                     r_projected_gravity_on_integration_points[integration_point_index]) *
+                r_integration_coefficients[integration_point_index] / r_properties[DYNAMIC_VISCOSITY];
         }
         return result;
     }
