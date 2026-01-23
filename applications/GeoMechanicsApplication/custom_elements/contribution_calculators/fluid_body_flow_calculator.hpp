@@ -39,10 +39,10 @@ public:
                       std::function<std::vector<double>()> GetFluidPressures)
 
             : GetElementProperties(std::move(GetElementProperties)),
-              GetProjectedGravityAtIntegrationPoints(std::move(GetProjectedGravityAtIntegrationPoints)),
               GetRetentionLaws(std::move(GetRetentionLaws)),
-              GetIntegrationCoefficients(std::move(GetIntegrationCoefficients)),
               GetMaterialPermeability(std::move(GetMaterialPermeability)),
+              GetIntegrationCoefficients(std::move(GetIntegrationCoefficients)),
+              GetProjectedGravityAtIntegrationPoints(std::move(GetProjectedGravityAtIntegrationPoints)),
               GetShapeFunctionGradients(std::move(GetShapeFunctionGradients)),
               GetLocalSpaceDimension(std::move(GetLocalSpaceDimension)),
               GetFluidPressures(std::move(GetFluidPressures))
