@@ -182,12 +182,10 @@ KRATOS_TEST_CASE_IN_SUITE(ConstitutiveLawUtilities_CheckStrainMeasures, KratosGe
 KRATOS_TEST_CASE_IN_SUITE(ConstitutiveLawUtilities_CalculateK0NCFromFrictionAngleInDegrees,
                           KratosGeoMechanicsFastSuiteWithoutKernel)
 {
-    using namespace std::numbers;
-
-    EXPECT_NEAR(ConstitutiveLawUtilities::CalculateK0NCFromFrictionAngleInDegrees(30.0), 0.5,
-                Defaults::absolute_tolerance);
-    EXPECT_NEAR(ConstitutiveLawUtilities::CalculateK0NCFromFrictionAngleInDegrees(60.0),
-                1.0 - 0.5 * sqrt3, Defaults::absolute_tolerance);
+    EXPECT_NEAR(ConstitutiveLawUtilities::CalculateK0NCFromFrictionAngleInRadians(MathUtils<>::DegreesToRadians(30.0)),
+                0.5, Defaults::absolute_tolerance);
+    EXPECT_NEAR(ConstitutiveLawUtilities::CalculateK0NCFromFrictionAngleInRadians(MathUtils<>::DegreesToRadians(60.0)),
+                1.0 - 0.5 * std::numbers::sqrt3, Defaults::absolute_tolerance);
 }
 
 } // namespace Kratos::Testing
