@@ -8,10 +8,11 @@ class AnalysisStageWithSolver(AnalysisStage):
     """
     def __init__(self, model, project_parameters):
         super().__init__(model, project_parameters)
+        self._CreateSolver()
+        self._GetSolver().AddVariables()
 
     def InitializeSolver(self):
         self._GetSolver().Initialize()
-        #ModifyAfterSolverInitialize should be called here if needed
 
     def Finalize(self):
         super().Finalize()
@@ -47,9 +48,9 @@ class AnalysisStageWithSolver(AnalysisStage):
         return self._GetSolver().AdvanceInTime(self.time)
 
     def Check(self):
-        super().Check()
         self._GetSolver().Check()
-
+        super().Check()
+        
     def Clear(self):
         super().Clear()
         self._GetSolver().Clear()

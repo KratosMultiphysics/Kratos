@@ -91,8 +91,8 @@ class AnalysisStage(object):
         Usage: It is designed to be called ONCE, BEFORE the execution of the solution-loop
         This function has to be implemented in deriving classes!
         """
-        #importing the variables to be used 
-        self.AddVariables() 
+        # #importing the variables to be used 
+        # self.AddVariables() 
 
         # Modelers:
         self._CreateModelers()
@@ -134,9 +134,7 @@ class AnalysisStage(object):
         KratosMultiphysics.Logger.PrintInfo(self._GetSimulationName(), "Analysis -START- ")
 
     def ImportModelPart(self):
-        """This function imports the model part
-        """
-        pass
+        raise Exception("ImportModelPart function has to be implemented in the derived analysis_stages")
 
     def PrepareModelPart(self):
         """This function prepares the model part
@@ -244,22 +242,10 @@ class AnalysisStage(object):
                 process.ExecuteAfterOutputStep()
 
     def Check(self):
-        """This function checks the AnalysisStage
-
-        Keyword arguments:
-        self -- It signifies an instance of a class.
-        """
-        # Checking processes
         for process in self._GetListOfProcesses():
             process.Check()
 
     def Clear(self):
-        """This function clears the AnalysisStage
-
-        Keyword arguments:
-        self -- It signifies an instance of a class.
-        """
-        # Clearing processes
         for process in self._GetListOfProcesses():
             process.Clear()
 
