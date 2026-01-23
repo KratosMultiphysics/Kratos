@@ -12,6 +12,8 @@
 //
 #include "U_Pw_interface_element.h"
 
+#include "contribution_calculators/calculation_contribution.h"
+#include "contribution_calculators/stiffness_calculator.hpp"
 #include "custom_geometries/interface_geometry.hpp"
 #include "custom_utilities/constitutive_law_utilities.h"
 #include "custom_utilities/dof_utilities.hpp"
@@ -21,6 +23,7 @@
 #include "custom_utilities/generic_utilities.hpp"
 #include "custom_utilities/geometry_utilities.h"
 #include "custom_utilities/math_utilities.hpp"
+#include "custom_utilities/stress_strain_utilities.h"
 #include "geo_aliases.h"
 #include "geometries/line_2d_2.h"
 #include "geometries/quadrilateral_3d_4.h"
@@ -43,29 +46,6 @@ Vector CalculateDeterminantsOfJacobiansAtIntegrationPoints(const Geo::Integratio
     std::ranges::transform(rIntegrationPoints, result.begin(), [&rGeometry](const auto& rIntegrationPoint) {
         return rGeometry.DeterminantOfJacobian(rIntegrationPoint);
     });
-
-    return result;
-}
-
-std::vector<Matrix> CalculateConstitutiveMatricesAtIntegrationPoints(const std::vector<ConstitutiveLaw::Pointer>& rConstitutiveLaws,
-                                                                     const Properties& rProperties,
-                                                                     const std::vector<Vector>& rRelativeDisplacements,
-                                                                     const ProcessInfo& rProcessInfo)
-{
-    auto get_constitutive_matrix = [&rProperties, &rProcessInfo](const auto& p_constitutive_law,
-                                                                 auto rRelativeDisplacement) {
-        auto result = Matrix{p_constitutive_law->GetStrainSize(), p_constitutive_law->GetStrainSize()};
-        auto law_parameters = ConstitutiveLaw::Parameters{};
-        law_parameters.SetMaterialProperties(rProperties);
-        law_parameters.SetStrainVector(rRelativeDisplacement);
-        law_parameters.SetProcessInfo(rProcessInfo);
-        p_constitutive_law->CalculateValue(law_parameters, CONSTITUTIVE_MATRIX, result);
-        return result;
-    };
-    auto result = std::vector<Matrix>{};
-    result.reserve(rConstitutiveLaws.size());
-    std::transform(rConstitutiveLaws.begin(), rConstitutiveLaws.end(), rRelativeDisplacements.begin(),
-                   std::back_inserter(result), get_constitutive_matrix);
 
     return result;
 }
@@ -100,6 +80,11 @@ Geo::GeometryUniquePtr MakeOptionalWaterPressureGeometry(const Geometry<Node>& r
     KRATOS_DEBUG_ERROR << "The specified geometry family is not supported for creating a water "
                           "pressure geometry.\n";
     return nullptr; // required for release builds
+}
+
+Geo::ProcessInfoGetter CreateProcessInfoGetter(const ProcessInfo& rProcessInfo)
+{
+    return [&rProcessInfo]() -> const ProcessInfo& { return rProcessInfo; };
 }
 
 } // namespace
@@ -167,14 +152,44 @@ void UPwInterfaceElement::CalculateLeftHandSide(MatrixType& rLeftHandSideMatrix,
 
     // Currently, the left-hand side matrix only includes the stiffness matrix. In the future, it
     // will also include water pressure contributions and coupling terms.
-    const auto local_b_matrices = CalculateLocalBMatricesAtIntegrationPoints();
-    const auto stiffness_matrix = GeoEquationOfMotionUtilities::CalculateStiffnessMatrix(
-        local_b_matrices,
-        CalculateConstitutiveMatricesAtIntegrationPoints(
-            CalculateRelativeDisplacementsAtIntegrationPoints(local_b_matrices), rProcessInfo),
-        CalculateIntegrationCoefficients());
+    const std::vector contributions = {CalculationContribution::Stiffness};
 
-    GeoElementUtilities::AssignUUBlockMatrix(rLeftHandSideMatrix, stiffness_matrix);
+    for (auto contribution : contributions) {
+        switch (contribution) {
+        case CalculationContribution::Stiffness:
+            CalculateAndAssignStifnessMatrix(rLeftHandSideMatrix, rProcessInfo);
+            break;
+        default:
+            KRATOS_ERROR << "This contribution is not supported \n";
+        }
+    }
+}
+
+void UPwInterfaceElement::CalculateAndAssignStifnessMatrix(Element::MatrixType& rLeftHandSideMatrix,
+                                                           const ProcessInfo&   rProcessInfo)
+{
+    switch (NumberOfUDofs()) {
+    case 8:
+        CalculateAndAssignStiffnessMatrix<8>(rLeftHandSideMatrix, rProcessInfo);
+        break;
+    case 12:
+        CalculateAndAssignStiffnessMatrix<12>(rLeftHandSideMatrix, rProcessInfo);
+        break;
+    case 18:
+        CalculateAndAssignStiffnessMatrix<18>(rLeftHandSideMatrix, rProcessInfo);
+        break;
+    case 36:
+        CalculateAndAssignStiffnessMatrix<36>(rLeftHandSideMatrix, rProcessInfo);
+        break;
+    case 24:
+        CalculateAndAssignStiffnessMatrix<24>(rLeftHandSideMatrix, rProcessInfo);
+        break;
+    case 48:
+        CalculateAndAssignStiffnessMatrix<48>(rLeftHandSideMatrix, rProcessInfo);
+        break;
+    default:
+        KRATOS_ERROR << "This stiffness matrix size is not supported: " << NumberOfUDofs() << "\n";
+    }
 }
 
 void UPwInterfaceElement::CalculateRightHandSide(Element::VectorType& rRightHandSideVector,
@@ -184,12 +199,44 @@ void UPwInterfaceElement::CalculateRightHandSide(Element::VectorType& rRightHand
 
     // Currently, the right-hand side only includes the internal force vector. In the future, it
     // will also include water pressure contributions and coupling terms.
-    const auto local_b_matrices = CalculateLocalBMatricesAtIntegrationPoints();
-    const auto relative_displacements = CalculateRelativeDisplacementsAtIntegrationPoints(local_b_matrices);
-    const auto tractions = CalculateTractionsAtIntegrationPoints(relative_displacements, rProcessInfo);
-    GeoElementUtilities::AssignUBlockVector(
-        rRightHandSideVector, -1.0 * GeoEquationOfMotionUtilities::CalculateInternalForceVector(
-                                         local_b_matrices, tractions, CalculateIntegrationCoefficients()));
+    const std::vector contributions = {CalculationContribution::Stiffness};
+
+    for (auto contribution : contributions) {
+        switch (contribution) {
+        case CalculationContribution::Stiffness:
+            CalculateAndAssignStifnessForceVector(rRightHandSideVector, rProcessInfo);
+            break;
+        default:
+            KRATOS_ERROR << "This contribution is not supported \n";
+        }
+    }
+}
+
+void UPwInterfaceElement::CalculateAndAssignStifnessForceVector(Element::VectorType& rRightHandSideVector,
+                                                                const ProcessInfo& rProcessInfo)
+{
+    switch (NumberOfUDofs()) {
+    case 8:
+        CalculateAndAssignStiffnesForceVector<8>(rRightHandSideVector, rProcessInfo);
+        break;
+    case 12:
+        CalculateAndAssignStiffnesForceVector<12>(rRightHandSideVector, rProcessInfo);
+        break;
+    case 18:
+        CalculateAndAssignStiffnesForceVector<18>(rRightHandSideVector, rProcessInfo);
+        break;
+    case 36:
+        CalculateAndAssignStiffnesForceVector<36>(rRightHandSideVector, rProcessInfo);
+        break;
+    case 24:
+        CalculateAndAssignStiffnesForceVector<24>(rRightHandSideVector, rProcessInfo);
+        break;
+    case 48:
+        CalculateAndAssignStiffnesForceVector<48>(rRightHandSideVector, rProcessInfo);
+        break;
+    default:
+        KRATOS_ERROR << "This stiffness force vector size is not supported: " << NumberOfUDofs() << "\n";
+    }
 }
 
 void UPwInterfaceElement::CalculateLocalSystem(MatrixType&        rLeftHandSideMatrix,
@@ -210,7 +257,8 @@ void UPwInterfaceElement::CalculateOnIntegrationPoints(const Variable<Vector>& r
     } else if (rVariable == GEO_EFFECTIVE_TRACTION_VECTOR) {
         const auto local_b_matrices = CalculateLocalBMatricesAtIntegrationPoints();
         const auto relative_displacements = CalculateRelativeDisplacementsAtIntegrationPoints(local_b_matrices);
-        rOutput = CalculateTractionsAtIntegrationPoints(relative_displacements, rCurrentProcessInfo);
+        rOutput = StressStrainUtilities::CalculateStressVectorsFromStrainVectors(
+            relative_displacements, rCurrentProcessInfo, GetProperties(), mConstitutiveLaws);
     } else {
         Element::CalculateOnIntegrationPoints(rVariable, rOutput, rCurrentProcessInfo);
     }
@@ -237,7 +285,8 @@ void UPwInterfaceElement::Calculate(const Variable<Vector>& rVariable, Vector& r
     // will also include water pressure contributions and coupling terms.
     const auto local_b_matrices = CalculateLocalBMatricesAtIntegrationPoints();
     const auto relative_displacements = CalculateRelativeDisplacementsAtIntegrationPoints(local_b_matrices);
-    const auto tractions = CalculateTractionsAtIntegrationPoints(relative_displacements, rProcessInfo);
+    const auto tractions = StressStrainUtilities::CalculateStressVectorsFromStrainVectors(
+        relative_displacements, rProcessInfo, GetProperties(), mConstitutiveLaws);
     const auto integration_coefficients = CalculateIntegrationCoefficients();
     if (rVariable == INTERNAL_FORCES_VECTOR) {
         GeoElementUtilities::AssignUBlockVector(
@@ -377,13 +426,6 @@ std::vector<double> UPwInterfaceElement::CalculateIntegrationCoefficients() cons
                                                     determinants_of_jacobian, this);
 }
 
-std::vector<Matrix> UPwInterfaceElement::CalculateConstitutiveMatricesAtIntegrationPoints(
-    const std::vector<Vector>& rRelativeDisplacements, const ProcessInfo& rProcessInfo)
-{
-    return ::CalculateConstitutiveMatricesAtIntegrationPoints(mConstitutiveLaws, GetProperties(),
-                                                              rRelativeDisplacements, rProcessInfo);
-}
-
 std::vector<Vector> UPwInterfaceElement::CalculateRelativeDisplacementsAtIntegrationPoints(
     const std::vector<Matrix>& rLocalBMatrices) const
 {
@@ -400,31 +442,6 @@ std::vector<Vector> UPwInterfaceElement::CalculateRelativeDisplacementsAtIntegra
         return Vector{prod(rLocalB, nodal_displacement_vector)};
     };
     std::ranges::transform(rLocalBMatrices, std::back_inserter(result), calculate_relative_displacement_vector);
-
-    return result;
-}
-
-std::vector<Vector> UPwInterfaceElement::CalculateTractionsAtIntegrationPoints(const std::vector<Vector>& rRelativeDisplacements,
-                                                                               const ProcessInfo& rProcessInfo)
-{
-    // We have to make a copy of each relative displacement vector, since setting it at the
-    // constitutive law parameters requires a reference to a _mutable_ object!
-    auto calculate_traction = [&properties = GetProperties(), &rProcessInfo](
-                                  auto RelativeDisplacement, auto& p_law) {
-        auto law_parameters = ConstitutiveLaw::Parameters{};
-        law_parameters.SetStrainVector(RelativeDisplacement);
-        auto result = Vector{};
-        result.resize(p_law->GetStrainSize());
-        law_parameters.SetStressVector(result);
-        law_parameters.SetMaterialProperties(properties);
-        law_parameters.Set(ConstitutiveLaw::COMPUTE_STRESS);
-        law_parameters.SetProcessInfo(rProcessInfo);
-        p_law->CalculateMaterialResponseCauchy(law_parameters);
-        return result;
-    };
-    auto result = std::vector<Vector>{};
-    result.reserve(rRelativeDisplacements.size());
-    std::ranges::transform(rRelativeDisplacements, mConstitutiveLaws, std::back_inserter(result), calculate_traction);
 
     return result;
 }
@@ -507,6 +524,65 @@ Vector UPwInterfaceElement::ConvertLocalStressToTraction(const Matrix& rLocalStr
         result[2] = rLocalStress(1, 2);
     }
     return result;
+}
+
+Geo::BMatricesGetter UPwInterfaceElement::CreateBMatricesGetter() const
+{
+    return [this]() { return this->CalculateLocalBMatricesAtIntegrationPoints(); };
+}
+
+Geo::ConstitutiveLawsGetter UPwInterfaceElement::CreateConstitutiveLawsGetter() const
+{
+    return
+        [this]() -> const std::vector<ConstitutiveLaw::Pointer>& { return this->mConstitutiveLaws; };
+}
+
+Geo::StrainVectorsGetter UPwInterfaceElement::CreateRelativeDisplacementsGetter() const
+{
+    return [this]() {
+        return this->CalculateRelativeDisplacementsAtIntegrationPoints(
+            this->CalculateLocalBMatricesAtIntegrationPoints());
+    };
+}
+
+Geo::IntegrationCoefficientsGetter UPwInterfaceElement::CreateIntegrationCoefficientsGetter() const
+{
+    return [this]() { return this->CalculateIntegrationCoefficients(); };
+}
+
+Geo::PropertiesGetter UPwInterfaceElement::CreatePropertiesGetter() const
+{
+    return [this]() -> const Properties& { return this->GetProperties(); };
+}
+
+template <unsigned int MatrixSize>
+typename StiffnessCalculator<MatrixSize>::InputProvider UPwInterfaceElement::CreateStiffnessInputProvider(const ProcessInfo& rProcessInfo)
+{
+    return typename StiffnessCalculator<MatrixSize>::InputProvider(
+        CreateBMatricesGetter(), CreateRelativeDisplacementsGetter(), CreateIntegrationCoefficientsGetter(),
+        CreatePropertiesGetter(), CreateProcessInfoGetter(rProcessInfo), CreateConstitutiveLawsGetter());
+}
+
+template <unsigned int MatrixSize>
+auto UPwInterfaceElement::CreateStiffnessCalculator(const ProcessInfo& rProcessInfo)
+{
+    return StiffnessCalculator<MatrixSize>(CreateStiffnessInputProvider<MatrixSize>(rProcessInfo));
+}
+
+template <unsigned int MatrixSize>
+void UPwInterfaceElement::CalculateAndAssignStiffnessMatrix(MatrixType&        rLeftHandSideMatrix,
+                                                            const ProcessInfo& rProcessInfo)
+{
+    GeoElementUtilities::AssignUUBlockMatrix(
+        rLeftHandSideMatrix, CreateStiffnessCalculator<MatrixSize>(rProcessInfo).LHSContribution().value());
+}
+
+template <unsigned int MatrixSize>
+void UPwInterfaceElement::CalculateAndAssignStiffnesForceVector(VectorType& rRightHandSideVector,
+                                                                const ProcessInfo& rProcessInfo)
+{
+    GeoElementUtilities::AssignUBlockVector(
+        rRightHandSideVector, CreateStiffnessCalculator<MatrixSize>(rProcessInfo).RHSContribution());
 }
 
 // Instances of this class can not be copied but can be moved. Check that at compile time.

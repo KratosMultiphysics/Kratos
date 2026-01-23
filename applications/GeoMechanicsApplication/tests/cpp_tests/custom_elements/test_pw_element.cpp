@@ -12,7 +12,7 @@
 //
 
 #include "custom_elements/Pw_element.hpp"
-#include "custom_elements/calculation_contribution.h"
+#include "custom_elements/contribution_calculators/calculation_contribution.h"
 #include "custom_elements/integration_coefficient_modifier_for_line_element.h"
 #include "custom_retention/saturated_law.h"
 #include "geometries/line_2d_4.h"

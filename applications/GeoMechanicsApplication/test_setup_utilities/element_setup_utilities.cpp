@@ -17,7 +17,7 @@
 #include "custom_elements/Pw_element.hpp"
 #include "custom_elements/U_Pw_interface_element.h"
 #include "custom_elements/U_Pw_small_strain_element.h"
-#include "custom_elements/calculation_contribution.h"
+#include "custom_elements/contribution_calculators/calculation_contribution.h"
 #include "custom_elements/interface_stress_state.h"
 #include "custom_elements/plane_strain_stress_state.h"
 #include "custom_elements/small_strain_U_Pw_diff_order_element.h"

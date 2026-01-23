@@ -15,15 +15,15 @@
 
 #pragma once
 
-#include "calculation_contribution.h"
-#include "compressibility_calculator.hpp"
+#include "contribution_calculators/calculation_contribution.h"
+#include "contribution_calculators/compressibility_calculator.hpp"
+#include "contribution_calculators/filter_compressibility_calculator.hpp"
+#include "contribution_calculators/fluid_body_flow_calculator.hpp"
+#include "contribution_calculators/permeability_calculator.hpp"
 #include "custom_retention/retention_law_factory.h"
-#include "filter_compressibility_calculator.hpp"
-#include "fluid_body_flow_calculator.hpp"
 #include "includes/element.h"
 #include "includes/serializer.h"
 #include "integration_coefficients_calculator.hpp"
-#include "permeability_calculator.hpp"
 
 #include <optional>
 
