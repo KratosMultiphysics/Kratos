@@ -578,11 +578,11 @@ void UPwInterfaceElement::CalculateAndAssignStiffnessMatrix(MatrixType&        r
 }
 
 template <unsigned int MatrixSize>
-void UPwInterfaceElement::CalculateAndAssignStiffnesForceVector(VectorType& rLeftHandSideMatrix,
+void UPwInterfaceElement::CalculateAndAssignStiffnesForceVector(VectorType& rRightHandSideVector,
                                                                 const ProcessInfo& rProcessInfo)
 {
     GeoElementUtilities::AssignUBlockVector(
-        rLeftHandSideMatrix, CreateStiffnessCalculator<MatrixSize>(rProcessInfo).RHSContribution());
+        rRightHandSideVector, CreateStiffnessCalculator<MatrixSize>(rProcessInfo).RHSContribution());
 }
 
 // Instances of this class can not be copied but can be moved. Check that at compile time.
