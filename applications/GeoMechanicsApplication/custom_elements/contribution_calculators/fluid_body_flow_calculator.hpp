@@ -108,7 +108,7 @@ public:
 private:
     InputProvider mInputProvider;
 
-    std::vector<double> CalculateBishopCoefficients(const std::vector<double>& rFluidPressures) const
+    [[nodiscard]] std::vector<double> CalculateBishopCoefficients(const std::vector<double>& rFluidPressures) const
     {
         KRATOS_ERROR_IF_NOT(rFluidPressures.size() == mInputProvider.GetRetentionLaws().size());
 
