@@ -353,12 +353,122 @@ namespace Kratos
                 if (CalculateResidualVectorFlag == true) //calculation of the matrix is required
                 {
                     // operation performed: rRightHandSideVector -= Weight*IntForce
-                    noalias(rRightHandSideVector) -= integration_weight * prod(trans(B), constitutive_variables.StressVector);
+                    noalias(rRightHandSideVector) -= integration_weight * prod(trans(B), stress_cau_cart[Gauss_index]);
                 }
 
             } 
         }
         KRATOS_CATCH("");
+    }
+
+    ///@}
+    ///@name Explicit dynamic functions
+    ///@{
+
+    void Shell6pElement::AddExplicitContribution(
+        const VectorType& rRHSVector,
+        const Variable<VectorType>& rRHSVariable,
+        const Variable<double >& rDestinationVariable,
+        const ProcessInfo& rCurrentProcessInfo
+        )
+    {
+        auto& r_geometry = GetGeometry();
+        const IndexType nb_nodes = r_geometry.size();
+        const IndexType nb_dofs = r_geometry.size() * 6;
+
+        if (rDestinationVariable == NODAL_MASS) {
+            VectorType element_mass_vector(nb_dofs);
+
+            CalculateLumpedMassVector(element_mass_vector, rCurrentProcessInfo);
+
+            for (IndexType i = 0; i < nb_nodes; ++i) {
+                double& r_nodal_mass = r_geometry[i].GetValue(NODAL_MASS);
+                IndexType index = i * 6;
+
+                #pragma omp atomic
+                r_nodal_mass += element_mass_vector(index);
+
+            }
+        }
+    }
+
+    void Shell6pElement::AddExplicitContribution(
+        const VectorType& rRHSVector, const Variable<VectorType>& rRHSVariable,
+        const Variable<array_1d<double, 3>>& rDestinationVariable,
+        const ProcessInfo& rCurrentProcessInfo
+        )
+    {
+        auto& r_geometry = GetGeometry();
+        const IndexType nb_nodes = r_geometry.size();
+        const IndexType nb_dofs = nb_nodes * 6;
+
+        //TO DO 
+
+        #pragma omp critical
+        {
+            if (rRHSVariable == RESIDUAL_VECTOR && rDestinationVariable == FORCE_RESIDUAL) {
+
+                Vector damping_residual_contribution = ZeroVector(nb_dofs);
+                Vector current_nodal_velocities = ZeroVector(nb_dofs);
+                GetFirstDerivativesVector(current_nodal_velocities, 0);
+                Matrix damping_matrix;
+                ProcessInfo temp_process_information; // cant pass const ProcessInfo
+                CalculateDampingMatrix(damping_matrix, temp_process_information);
+                // current residual contribution due to damping
+                noalias(damping_residual_contribution) = prod(damping_matrix, current_nodal_velocities);
+
+                for (IndexType i = 0; i < nb_nodes; ++i) {
+                    IndexType index = 6 * i;
+                    array_1d<double, 3>& r_force_residual = r_geometry[i].FastGetSolutionStepValue(FORCE_RESIDUAL);
+
+                    for (IndexType j = 0; j < 3; ++j) {
+                    #pragma omp atomic
+                        r_force_residual[j] += rRHSVector[index + j] - damping_residual_contribution[index + j];
+                    }
+                }
+            }
+            else if (rRHSVariable == RESIDUAL_VECTOR && rDestinationVariable == MOMENT_RESIDUAL) {
+
+                Vector damping_residual_contribution = ZeroVector(nb_dofs);
+                Vector current_nodal_velocities = ZeroVector(nb_dofs);
+                GetFirstDerivativesVector(current_nodal_velocities, 0);
+                Matrix damping_matrix;
+                ProcessInfo temp_process_information; // cant pass const ProcessInfo
+                CalculateDampingMatrix(damping_matrix, temp_process_information);
+                // current residual contribution due to damping
+                noalias(damping_residual_contribution) = prod(damping_matrix, current_nodal_velocities);
+
+                for (IndexType i = 0; i < nb_nodes; ++i) {
+                    IndexType index = 6 * i;
+                    array_1d<double, 3>& r_moment_residual = r_geometry[i].FastGetSolutionStepValue(MOMENT_RESIDUAL);
+
+                    for (IndexType j = 0; j < 3; ++j) {
+                    #pragma omp atomic
+                        r_moment_residual[j] += rRHSVector[index + j + 3] - damping_residual_contribution[index + j + 3];
+                    }
+                }
+            }
+            else if (rDestinationVariable == NODAL_INERTIA) {
+
+                // Getting the vector mass
+                VectorType mass_vector(nb_dofs);
+                CalculateLumpedMassVector(mass_vector, rCurrentProcessInfo);
+
+                for (IndexType i = 0; i < nb_nodes; ++i) {
+                    double& r_nodal_mass = r_geometry[i].GetValue(NODAL_MASS);
+                    array_1d<double, 3>& r_nodal_inertia = r_geometry[i].GetValue(NODAL_INERTIA);
+                    IndexType index = i * 6;
+
+                    #pragma omp atomic
+                    r_nodal_mass += mass_vector[index];
+
+                    for (IndexType k = 0; k < 3; ++k) {
+                        #pragma omp atomic
+                        r_nodal_inertia[k] += mass_vector[index + 3 + k];
+                    }
+                }
+            }
+        }   
     }
 
     ///@}
@@ -447,20 +557,78 @@ namespace Kratos
 
             rMassMatrix = ZeroMatrix(mat_size, mat_size);
 
-            for (unsigned int r = 0; r<number_of_nodes; r++)
-            {
-                for (unsigned int s = 0; s<number_of_nodes; s++)
-                {
-                    rMassMatrix(6 * s, 6 * r) = r_N(point_number, s)*r_N(point_number, r) * mass;
-                    rMassMatrix(6 * s + 1, 6 * r + 1) = rMassMatrix(6 * s, 6 * r);
-                    rMassMatrix(6 * s + 2, 6 * r + 2) = rMassMatrix(6 * s, 6 * r);
-                    rMassMatrix(6 * s + 3, 6 * r + 3) = rMassMatrix(6 * s, 6 * r) * thickness * thickness / 12.0;
-                    rMassMatrix(6 * s + 4, 6 * r + 4) = rMassMatrix(6 * s, 6 * r) * thickness * thickness / 12.0;
-                    rMassMatrix(6 * s + 5, 6 * r + 5) = rMassMatrix(6 * s, 6 * r) * thickness * thickness / 12.0;
+            // Setup matrix of shape functions
+            Matrix N = Matrix(6, 6 * number_of_nodes, 0.0);
+
+            // Assemble shape function matrix over nodes
+            for (SizeType node = 0; node < number_of_nodes; node++) {
+                // translational entries - dofs 1-3
+                for (SizeType dof = 0; dof < 3; dof++) {
+                    N(dof, 6 * node + dof) = r_N(point_number, node);
+                }
+
+                // rotational inertia entries - dofs 4-6
+                for (SizeType dof = 0; dof < 3; dof++) {
+                    N(dof + 3, 6 * node + dof + 3) =
+                        thickness / std::sqrt(12.0) * r_N(point_number, node);
+                }
+            }
+
+            // Add contribution to total mass matrix
+            rMassMatrix += prod(trans(N), N)* mass;
+
+            // for (unsigned int r = 0; r<number_of_nodes; r++)
+            // {
+            //     for (unsigned int s = 0; s<number_of_nodes; s++)
+            //     {
+            //         rMassMatrix(6 * s, 6 * r) = r_N(point_number, s)*r_N(point_number, r) * mass;
+            //         rMassMatrix(6 * s + 1, 6 * r + 1) = rMassMatrix(6 * s, 6 * r);
+            //         rMassMatrix(6 * s + 2, 6 * r + 2) = rMassMatrix(6 * s, 6 * r);
+            //         rMassMatrix(6 * s + 3, 6 * r + 3) = rMassMatrix(6 * s, 6 * r) * thickness * thickness / 12.0;
+            //         rMassMatrix(6 * s + 4, 6 * r + 4) = rMassMatrix(6 * s, 6 * r) * thickness * thickness / 12.0;
+            //         rMassMatrix(6 * s + 5, 6 * r + 5) = rMassMatrix(6 * s, 6 * r) * thickness * thickness / 12.0;
+            //     }
+            // }
+        }
+        KRATOS_CATCH("")
+    }
+
+    void Shell6pElement::CalculateLumpedMassVector(
+        Vector& rLumpedMassVector,
+        const ProcessInfo& rCurrentProcessInfo
+        ) const
+    {
+        const auto& r_geometry = GetGeometry();
+        const IndexType nb_nodes = r_geometry.size();
+        const Matrix& r_N = r_geometry.ShapeFunctionsValues();
+        auto& r_integration_points = r_geometry.IntegrationPoints();
+        const double num_integration_points = r_integration_points.size();
+        // Clear matrix
+        if (rLumpedMassVector.size() != nb_nodes * 6) {
+            rLumpedMassVector.resize(nb_nodes * 6, false);
+        }
+
+        for (IndexType point_number = 0; point_number < num_integration_points; ++point_number) {
+            
+             double integration_weight = r_integration_points[point_number].Weight();
+
+            double thickness = this->GetProperties().GetValue(THICKNESS);
+            double density = this->GetProperties().GetValue(DENSITY);
+            double mass = thickness * density * m_dA_vector[point_number] * integration_weight;
+
+            for (IndexType i = 0; i < nb_nodes; ++i) {
+                for (IndexType j = 0; j < 3; ++j) {
+                    IndexType index = i * 6 + j;
+
+                    rLumpedMassVector[index] = mass * r_N(point_number, i);
+                }
+                for (IndexType j = 3; j < 6; ++j) {
+                    IndexType index = i * 6 + j;
+
+                    rLumpedMassVector[index] = mass * r_N(point_number, i) * thickness * thickness / 12.0;
                 }
             }
         }
-        KRATOS_CATCH("")
     }
 
     ///@}
@@ -1104,9 +1272,9 @@ namespace Kratos
             rValues[index] = displacement[0];
             rValues[index + 1] = displacement[1];
             rValues[index + 2] = displacement[2];
-            rValues[index + 3] = rotation[3];
-            rValues[index + 4] = rotation[4];
-            rValues[index + 5] = rotation[5];
+            rValues[index + 3] = rotation[0];
+            rValues[index + 4] = rotation[1];
+            rValues[index + 5] = rotation[2];
         }
     }
 

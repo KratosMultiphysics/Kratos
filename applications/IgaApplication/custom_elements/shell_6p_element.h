@@ -229,6 +229,21 @@ public:
         const ProcessInfo& rCurrentProcessInfo
     ) override;
 
+    ///@}
+    ///@name Explicit dynamic functions
+    ///@{
+
+    void AddExplicitContribution(
+        const VectorType& rRHSVector,
+        const Variable<VectorType>& rRHSVariable,
+        const Variable<double >& rDestinationVariable,
+        const ProcessInfo& rCurrentProcessInfo) override;
+
+    void AddExplicitContribution(
+        const VectorType& rRHSVector, const Variable<VectorType>& rRHSVariable,
+        const Variable<array_1d<double, 3>>& rDestinationVariable,
+        const ProcessInfo& rCurrentProcessInfo) override;
+
     /**
     * @brief This is called during the assembling process in order to calculate the elemental damping matrix
     * @param rDampingMatrix The elemental damping matrix
@@ -238,6 +253,11 @@ public:
         MatrixType& rDampingMatrix,
         const ProcessInfo& rCurrentProcessInfo
     ) override;
+
+    /// Calculates lumped mass vector
+    void CalculateLumpedMassVector(
+        VectorType &rLumpedMassVector,
+        const ProcessInfo &rCurrentProcessInfo) const override;
 
     void FinalizeSolutionStep(const ProcessInfo& rCurrentProcessInfo) override;
 
