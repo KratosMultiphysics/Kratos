@@ -7,6 +7,7 @@
 //  License:         BSD License
 //                   Kratos default license: kratos/license.txt
 //
+//  Main author:     Leonhard Rieder 
 
 #pragma once
 

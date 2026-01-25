@@ -13,94 +13,6 @@ import KratosMultiphysics.KratosUnittest as KratosUnittest
 import os
 import math
 
-#Custom function to report matrix/vector differences
-def _report_matrix_diff(reference_matrix, comparison_matrix, diff_threshold=1e-4,
-                        reference_label="primal_LHS", comparison_label="adjoint_LHS"):
-    """Print matrix entries whose absolute difference exceeds diff_threshold."""
-    if reference_matrix.Size1() != comparison_matrix.Size1() or reference_matrix.Size2() != comparison_matrix.Size2():
-        raise RuntimeError(f"{reference_label} and {comparison_label} have different shapes")
-
-    large_differences = []
-    for row in range(reference_matrix.Size1()):
-        for col in range(reference_matrix.Size2()):
-            diff = abs(reference_matrix[row, col] - comparison_matrix[row, col])
-            if diff > diff_threshold:
-                large_differences.append((row, col, reference_matrix[row, col], comparison_matrix[row, col], diff))
-
-    if large_differences:
-        print(f"Entries with |{reference_label} - {comparison_label}| > {diff_threshold}:")
-        for row, col, ref_val, cmp_val, diff in large_differences:
-            print(f"  row {row}, col {col}: {reference_label}={ref_val}, {comparison_label}={cmp_val}, diff={diff}")
-    else:
-        print(f"{reference_label.upper()} vs {comparison_label.upper()} - No entries differ by more than {diff_threshold}")
-
-# Custom function to report first entries of matrix/vector differences
-def _report_matrix_diff_first_entries(reference_matrix, comparison_matrix, block_size=27,
-                                      diff_threshold=1e-4, reference_label="primal_LHS",
-                                      comparison_label="shell3p_LHS"):
-    """Print differences for the top-left block of two matrices."""
-    if reference_matrix.Size1() < block_size or reference_matrix.Size2() < block_size:
-        raise RuntimeError(f"{reference_label} is smaller than the requested block size {block_size}")
-    if comparison_matrix.Size1() < block_size or comparison_matrix.Size2() < block_size:
-        raise RuntimeError(f"{comparison_label} is smaller than the requested block size {block_size}")
-
-    large_differences = []
-    for row in range(block_size):
-        for col in range(block_size):
-            diff = abs(reference_matrix[row, col] - comparison_matrix[row, col])
-            if diff > diff_threshold:
-                large_differences.append((row, col, reference_matrix[row, col], comparison_matrix[row, col], diff))
-
-    if large_differences:
-        print(f"Entries with |{reference_label}[0:{block_size}] - {comparison_label}[0:{block_size}]| > {diff_threshold}:")
-        for row, col, ref_val, cmp_val, diff in large_differences:
-            print(f"  row {row}, col {col}: {reference_label}={ref_val}, {comparison_label}={cmp_val}, diff={diff}")
-    else:
-        print(f"{reference_label.upper()} vs {comparison_label.upper()} (first {block_size}) - No entries differ by more than {diff_threshold}")
-
-# Custom function to report vector differences
-def _report_vector_diff(reference_vector, comparison_vector, diff_threshold=1e-4,
-                        reference_label="primal_rhs", comparison_label="adjoint_rhs"):
-    """Print vector entries whose absolute difference exceeds diff_threshold."""
-    if reference_vector.Size() != comparison_vector.Size():
-        raise RuntimeError(f"{reference_label} and {comparison_label} have different sizes")
-
-    large_differences = []
-    for idx in range(reference_vector.Size()):
-        diff = abs(reference_vector[idx] - comparison_vector[idx])
-        if diff > diff_threshold:
-            large_differences.append((idx, reference_vector[idx], comparison_vector[idx], diff))
-
-    if large_differences:
-        print(f"Entries with |{reference_label} - {comparison_label}| > {diff_threshold}:")
-        for idx, ref_val, cmp_val, diff in large_differences:
-            print(f"  index {idx}: {reference_label}={ref_val}, {comparison_label}={cmp_val}, diff={diff}")
-    else:
-        print(f"{reference_label.upper()} vs {comparison_label.upper()} - No entries differ by more than {diff_threshold}")
-
-# Custom function to report first entries of vector differences
-def _report_vector_diff_first_entries(reference_vector, comparison_vector, vector_size=27,
-                                      diff_threshold=1e-4, reference_label="primal_rhs",
-                                      comparison_label="shell3p_rhs"):
-    """Print differences for the leading entries of two vectors."""
-    if reference_vector.Size() < vector_size:
-        raise RuntimeError(f"{reference_label} has fewer than {vector_size} entries")
-    if comparison_vector.Size() < vector_size:
-        raise RuntimeError(f"{comparison_label} has fewer than {vector_size} entries")
-
-    large_differences = []
-    for idx in range(vector_size):
-        diff = abs(reference_vector[idx] - comparison_vector[idx])
-        if diff > diff_threshold:
-            large_differences.append((idx, reference_vector[idx], comparison_vector[idx], diff))
-
-    if large_differences:
-        print(f"Entries with |{reference_label}[0:{vector_size}] - {comparison_label}[0:{vector_size}]| > {diff_threshold}:")
-        for idx, ref_val, cmp_val, diff in large_differences:
-            print(f"  index {idx}: {reference_label}={ref_val}, {comparison_label}={cmp_val}, diff={diff}")
-    else:
-        print(f"{reference_label.upper()} vs {comparison_label.upper()} (first {vector_size}) - No entries differ by more than {diff_threshold}")
-
 
 def solve_cantilever(create_geometry):
     model = KM.Model()
@@ -111,7 +23,6 @@ def solve_cantilever(create_geometry):
     model_part.AddNodalSolutionStepVariable(SMA.POINT_LOAD)
 
     # create property for shell elements
-
     shell_properties = model_part.GetProperties()[1]
     shell_properties.SetValue(KM.THICKNESS, 0.1)
     shell_properties.SetValue(KM.YOUNG_MODULUS, 100000)
@@ -127,28 +38,10 @@ def solve_cantilever(create_geometry):
     surface.CreateQuadraturePointGeometries(quadrature_point_geometries, 3)
 
 
-    # print(len(quadrature_point_geometries), " quadrature point geometries created.")
-    # print("Control point coordinates:")
-    # for node in sorted(model_part.Nodes, key=lambda n: n.Id):
-    #     print(f"  Node {node.Id}: ({node.X:.6f}, {node.Y:.6f}, {node.Z:.6f})")
-
-    # print("Quadrature point centers and weights:")
-    # thickness = shell_properties.GetValue(KM.THICKNESS)
-    # for qp_index, qp_geometry in enumerate(quadrature_point_geometries, start=1):
-    #     center = qp_geometry.Center()
-    #     # match ActiveShell3pElement integration weight: weight * dA * thickness
-    #     weight = qp_geometry.DomainSize() * thickness
-    #     print(
-    #         f"  QP {qp_index}: ({center.X:.6f}, {center.Y:.6f}, {center.Z:.6f}), weight={weight:.6f}"
-    #     )
-
-
-
     element_id = 1
     for i in range(0, len(quadrature_point_geometries)):
         model_part.CreateNewElement('ActiveShell3pElement', element_id, quadrature_point_geometries[i], shell_properties)
         model_part.CreateNewElement('ActiveAdjointFiniteDifferenceBaseElement', element_id + 100, quadrature_point_geometries[i], shell_properties)
-        model_part.CreateNewElement('Shell3pElement', element_id + 1000, quadrature_point_geometries[i], shell_properties)
         element_id += 1
 
     # assign active shell element inputs
@@ -182,10 +75,6 @@ def solve_cantilever(create_geometry):
     }""")
     IGA.ActiveShellElementDofAssignmentProcess(model, params).ExecuteInitialize()
 
-    # divisor = 50
-    # for node in model_part.Nodes:
-    #     node.SetSolutionStepValue(KM.DISPLACEMENT, KM.Array3([node.Id / divisor, (node.Id + 1) / divisor, (node.Id + 2) / divisor]))
-
     # add dofs
     KM.VariableUtils().AddDof(KM.DISPLACEMENT_X, KM.REACTION_X, model_part)
     KM.VariableUtils().AddDof(KM.DISPLACEMENT_Y, KM.REACTION_Y, model_part)
@@ -203,12 +92,6 @@ def solve_cantilever(create_geometry):
 
         if element.Id < 100:
             element.CalculateLocalSystem(primal_LHS, primal_rhs, model_part.ProcessInfo)
-            #raise Exception("Alpha check complete: stop here.")
-            # print("primal_rhs\n:", primal_rhs)
-            # print("-" * 40)
-            # print("primal_LHS\n:", primal_LHS)
-            # print("-" * 40)
-
 
             # adjoint calculation
             adjoint_element: KM.Element = model_part.GetElement(element.Id + 100)
@@ -219,35 +102,10 @@ def solve_cantilever(create_geometry):
 
             adjoint_rhs = KM.Vector()
             adjoint_element.CalculateRightHandSide(adjoint_rhs, model_part.ProcessInfo)
-            
-            # _report_matrix_diff(primal_LHS, adjoint_LHS, diff_threshold=1e-4,
-            #                     reference_label="primal_LHS", comparison_label="adjoint_LHS")
-
-            # _report_vector_diff(primal_rhs, adjoint_rhs, diff_threshold=1e-4,
-            #                     reference_label="primal_rhs", comparison_label="adjoint_rhs")
-
-            #normal Shell3pElement
-            Shell3p_element: KM.Element = model_part.GetElement(element.Id + 1000)
-            Shell3p_LHS = KM.Matrix()
-            shell3p_reference_rhs = KM.Vector()
-            Shell3p_element.Initialize(model_part.ProcessInfo)
-            Shell3p_element.InitializeNonLinearIteration(model_part.ProcessInfo)
-            Shell3p_element.CalculateLocalSystem(Shell3p_LHS, shell3p_reference_rhs, model_part.ProcessInfo)
-
-
-            # print("size Shell3p_LHS:", Shell3p_LHS.Size1(), Shell3p_LHS.Size2())
-            # _report_matrix_diff_first_entries(primal_LHS, Shell3p_LHS, block_size=27, diff_threshold=1e-4,
-            #                                   reference_label="primal_LHS", comparison_label="shell3p_LHS")
-
-            # _report_vector_diff_first_entries(primal_rhs, shell3p_reference_rhs, vector_size=27,
-            #                                   diff_threshold=1e-4,
-            #                                   reference_label="primal_rhs",
-            #                                   comparison_label="shell3p_reference_rhs")
 
 
             # Finite differencing loop over node perturbations
             perturbed_primal_rhs = KM.Vector()
-            shell3p_perturbed_rhs = KM.Vector()
 
             target_node_id = 9
 
@@ -264,21 +122,14 @@ def solve_cantilever(create_geometry):
             element.InitializeNonLinearIteration(model_part.ProcessInfo)
             element.CalculateLocalSystem(primal_LHS, perturbed_primal_rhs, model_part.ProcessInfo)
 
-            Shell3p_element.InitializeNonLinearIteration(model_part.ProcessInfo)
-            Shell3p_element.CalculateLocalSystem(Shell3p_LHS, shell3p_perturbed_rhs, model_part.ProcessInfo)
-
             fd_sensitivities = (perturbed_primal_rhs - primal_rhs) / delta
-            shell3p_fd_sensitivities = (shell3p_perturbed_rhs - shell3p_reference_rhs) / delta
 
             target_node.X -= delta
 
-            #print(f"perturbed node {target_node_id} Coordinate .X")
-            #print("sensitivities comparison: Fdiff_RHS_primal; Fdiff_RHS_Shell3p; LHS_adjoint -------------------")
             for eq_idx in range(33):
                 print(adjoint_LHS[eq_idx, target_idx], -fd_sensitivities[eq_idx])
                 KratosUnittest.TestCase().assertAlmostEqual(adjoint_LHS[eq_idx, target_idx], -fd_sensitivities[eq_idx],places=3)
-                #print(fd_sensitivities[eq_idx], shell3p_fd_sensitivities[eq_idx], adjoint_LHS[eq_idx, target_idx])
-            # print("-" * 40)
+
 
             #  node.Y  #######################################
             target_idx = 25  # column index associated with node 9 displacement Y
@@ -288,20 +139,12 @@ def solve_cantilever(create_geometry):
             element.InitializeNonLinearIteration(model_part.ProcessInfo)
             element.CalculateLocalSystem(primal_LHS, perturbed_primal_rhs, model_part.ProcessInfo)
 
-            Shell3p_element.InitializeNonLinearIteration(model_part.ProcessInfo)
-            Shell3p_element.CalculateLocalSystem(Shell3p_LHS, shell3p_perturbed_rhs, model_part.ProcessInfo)
-
             fd_sensitivities = (perturbed_primal_rhs - primal_rhs) / delta
-            shell3p_fd_sensitivities = (shell3p_perturbed_rhs - shell3p_reference_rhs) / delta
 
             target_node.Y -= delta
 
-            # print(f"perturbed node {target_node_id} Coordinate .Y")
-            # print("sensitivities comparison: Fdiff_RHS_primal; Fdiff_RHS_Shell3p; LHS_adjoint -------------------")
             for eq_idx in range(26):
                 KratosUnittest.TestCase().assertAlmostEqual(fd_sensitivities[eq_idx], -adjoint_LHS[eq_idx, target_idx], places=3)
-            #     print(fd_sensitivities[eq_idx], shell3p_fd_sensitivities[eq_idx], adjoint_LHS[eq_idx, target_idx])
-            # print("-" * 40)
 
 
             #  node.Z  #######################################
@@ -312,26 +155,18 @@ def solve_cantilever(create_geometry):
             element.InitializeNonLinearIteration(model_part.ProcessInfo)
             element.CalculateLocalSystem(primal_LHS, perturbed_primal_rhs, model_part.ProcessInfo)
 
-            Shell3p_element.InitializeNonLinearIteration(model_part.ProcessInfo)
-            Shell3p_element.CalculateLocalSystem(Shell3p_LHS, shell3p_perturbed_rhs, model_part.ProcessInfo)
-
             fd_sensitivities = (perturbed_primal_rhs - primal_rhs) / delta
-            shell3p_fd_sensitivities = (shell3p_perturbed_rhs - shell3p_reference_rhs) / delta
 
             target_node.Z -= delta
 
-            # print(f"perturbed node {target_node_id} Coordinate .Z")
-            # print("sensitivities comparison: Fdiff_RHS_primal; Fdiff_RHS_Shell3p; LHS_adjoint -------------------")
             for eq_idx in range(26):
                 KratosUnittest.TestCase().assertAlmostEqual(fd_sensitivities[eq_idx], -adjoint_LHS[eq_idx, target_idx], places=4)
-            #     print(fd_sensitivities[eq_idx], shell3p_fd_sensitivities[eq_idx], adjoint_LHS[eq_idx, target_idx])
-            # print("-" * 40)
 
             #  ALPHA  #######################################
             print("++++++++++++++Starting actuation variable sensitivity FD checks...")
             target_idx = 27  # column index associated with Global Point - actuation variable Alpha
             delta = 1e-8
-            # There is only one node per background geometry -  the loop is redundant here but kept for generality
+            # There is only one node (ACTIVE_MP) in this background geometry -  the loop is redundant here but kept for generality
             print("number of nodes in ACTIVE_MP:", model["ACTIVE_MP"].NumberOfNodes())
             for node in model["ACTIVE_MP"].Nodes:
                 print("perturbing node: ", node,"  - node id:", node.Id)
@@ -341,19 +176,29 @@ def solve_cantilever(create_geometry):
                 fd_sensitivities = (perturbed_primal_rhs - primal_rhs) / delta
                 node.SetSolutionStepValue(IGA.ACTIVE_SHELL_ALPHA, node.GetSolutionStepValue(IGA.ACTIVE_SHELL_ALPHA) - delta)
 
-                # print("...............adjoint_LHS:",adjoint_LHS)
-                delta = 1e-8
-
                 print("perturbed ActiveGlobalNode - Variable ALPHA")
                 print("LHS_adjoint versus Fdiff_RHS_primal :  -------------------")
                 for eq_idx in range(33):
                     print(adjoint_LHS[eq_idx, target_idx],fd_sensitivities[eq_idx])
                     
                 for eq_idx in range(33):
-                    # print(adjoint_LHS[eq_idx, target_idx],fd_sensitivities[eq_idx])
                     KratosUnittest.TestCase().assertAlmostEqual(adjoint_LHS[eq_idx, target_idx], fd_sensitivities[eq_idx], places=3)
-            #     print("-" * 40)
-            raise Exception("Alpha check complete: stop here.")
+
+                # Note: A recurring mismatch is observed here, e.g.
+                #   1253.858024691359 != 2218.364249984006
+                # for eq_idx = 27.
+                #
+                # Root cause is not yet identified and requires further investigation.
+                # See Leonhard Rieder, "Implementation and inverse analysis of active shells for soft robotics",
+                # Master’s thesis report, pp. 71–73.
+                #
+                # The report includes an example LHS entry calculation (pp. 33–35) indicating that 1253.85
+                # corresponds to the contribution of the first quadrature point to the element’s local stiffness
+                # matrix (LHS). This suggests that quadrature-point contributions may not be accumulated
+                # correctly in the ActiveShell element.
+
+
+            #raise Exception("Alpha check complete: stop here.")
 
             #  BETA  #######################################
             target_idx = 28  # column index associated with Global Point - actuation variable Alpha
@@ -368,12 +213,11 @@ def solve_cantilever(create_geometry):
                 fd_sensitivities = (perturbed_primal_rhs - primal_rhs) / delta
                 node.SetSolutionStepValue(IGA.ACTIVE_SHELL_BETA, node.GetSolutionStepValue(IGA.ACTIVE_SHELL_BETA) - delta)
 
-            #     print("perturbed ActiveGlobalNode - Variable BETA")
-            #     print("Fdiff_RHS_primal versus LHS_adjoint:  -------------------")
-            #     for eq_idx in range(33):
-            #         print(fd_sensitivities[eq_idx], - adjoint_LHS[eq_idx, target_idx])
-            #         KratosUnittest.TestCase().assertAlmostEqual(fd_sensitivities[eq_idx], -adjoint_LHS[eq_idx, target_idx], places=3)
-            # #     print("-" * 40)
+                print("perturbed ActiveGlobalNode - Variable BETA")
+                print("Fdiff_RHS_primal versus LHS_adjoint:  -------------------")
+                for eq_idx in range(33):
+                    #print(fd_sensitivities[eq_idx], - adjoint_LHS[eq_idx, target_idx])
+                    KratosUnittest.TestCase().assertAlmostEqual(fd_sensitivities[eq_idx], -adjoint_LHS[eq_idx, target_idx], places=3)
 
             #  GAMMA  #######################################
             target_idx = 29  # column index associated with Global Point - actuation variable Alpha
@@ -388,13 +232,12 @@ def solve_cantilever(create_geometry):
                 fd_sensitivities = (perturbed_primal_rhs - primal_rhs) / delta
                 node.SetSolutionStepValue(IGA.ACTIVE_SHELL_GAMMA, node.GetSolutionStepValue(IGA.ACTIVE_SHELL_GAMMA) - delta)
 
-            #     print("perturbed ActiveGlobalNode - Variable GAMMA")
-            #     print("fd_sensitivities:",fd_sensitivities)
-            #     print("Fdiff_RHS_primal versus LHS_adjoint:  -------------------")
-            #     for eq_idx in range(33):
-            #         print(fd_sensitivities[eq_idx], - adjoint_LHS[eq_idx, target_idx])
-            #         KratosUnittest.TestCase().assertAlmostEqual(fd_sensitivities[eq_idx], -adjoint_LHS[eq_idx, target_idx], places=3)
-            # #     print("-" * 40)
+                print("perturbed ActiveGlobalNode - Variable GAMMA")
+                print("fd_sensitivities:",fd_sensitivities)
+                print("Fdiff_RHS_primal versus LHS_adjoint:  -------------------")
+                for eq_idx in range(33):
+                    #print(fd_sensitivities[eq_idx], - adjoint_LHS[eq_idx, target_idx])
+                    KratosUnittest.TestCase().assertAlmostEqual(fd_sensitivities[eq_idx], -adjoint_LHS[eq_idx, target_idx], places=3)
 
             #  KAPPA_1  #######################################
             target_idx = 30  # column index associated with Global Point - actuation variable Kappa_1
@@ -413,9 +256,8 @@ def solve_cantilever(create_geometry):
                 print("fd_sensitivities:",fd_sensitivities)
                 print("Fdiff_RHS_primal versus LHS_adjoint:  -------------------")
                 for eq_idx in range(33):
-                    print(fd_sensitivities[eq_idx], adjoint_LHS[eq_idx, target_idx])
+                    #print(fd_sensitivities[eq_idx], adjoint_LHS[eq_idx, target_idx])
                     KratosUnittest.TestCase().assertAlmostEqual(fd_sensitivities[eq_idx], -adjoint_LHS[eq_idx, target_idx], places=3)
-                # print("-" * 40)
 
             #  KAPPA_2  #######################################
             target_idx = 31  # column index associated with Global Point - actuation variable Kappa_2
@@ -436,7 +278,6 @@ def solve_cantilever(create_geometry):
                 for eq_idx in range(33):
                     # print(fd_sensitivities[eq_idx], adjoint_LHS[eq_idx, target_idx])
                     KratosUnittest.TestCase().assertAlmostEqual(fd_sensitivities[eq_idx], -adjoint_LHS[eq_idx, target_idx], places=3)
-                # print("-" * 40)
 
             #  KAPPA_12  #######################################
             target_idx = 32  # column index associated with Global Point - actuation variable Kappa_12
@@ -457,7 +298,6 @@ def solve_cantilever(create_geometry):
                 for eq_idx in range(33):
                     # print(fd_sensitivities[eq_idx], adjoint_LHS[eq_idx, target_idx])
                     KratosUnittest.TestCase().assertAlmostEqual(fd_sensitivities[eq_idx], -adjoint_LHS[eq_idx, target_idx], places=3)
-                # print("-" * 40)
 
     return surface
 
@@ -512,15 +352,3 @@ if __name__ == "__main__":
         KratosUnittest.TestCase().assertAlmostEqual(node.GetValue(KM.DISPLACEMENT_X), 0)
         KratosUnittest.TestCase().assertAlmostEqual(node.GetValue(KM.DISPLACEMENT_Y), 0)
         KratosUnittest.TestCase().assertAlmostEqual(node.GetValue(KM.DISPLACEMENT_Z), 0)
-
-    # KratosUnittest.TestCase().assertAlmostEqual(surface[0].Z, 0.0)
-    # KratosUnittest.TestCase().assertAlmostEqual(surface[3].Z, 0.0)
-    # KratosUnittest.TestCase().assertAlmostEqual(surface[6].Z, 0.0)
-
-    # KratosUnittest.TestCase().assertAlmostEqual(surface[1].Z, 0.0)
-    # KratosUnittest.TestCase().assertAlmostEqual(surface[4].Z, 0.0)
-    # KratosUnittest.TestCase().assertAlmostEqual(surface[7].Z, 0.0)
-
-    # KratosUnittest.TestCase().assertAlmostEqual(surface[2].Z, -0.223839729168301)
-    # KratosUnittest.TestCase().assertAlmostEqual(surface[5].Z, -0.223958628927084)
-    # KratosUnittest.TestCase().assertAlmostEqual(surface[8].Z, -0.223839729168301)

@@ -7,7 +7,7 @@
 //                   license: StructuralMechanicsApplication/license.txt
 //
 //  Main authors:    Armin Geiser, https://github.com/armingeiser
-//
+//                   Leonhard Rieder (for active adjoint element implementation)
 
 #pragma once
 
@@ -109,33 +109,6 @@ public:
       mpPrimalElement(Kratos::make_intrusive<TPrimalElement>(NewId, pGeometry, pProperties)),
       mHasRotationDofs(HasRotationDofs)
     {       
-            //CECKLEO was davon war schon da davor? lomplett neu nur klammern lassen
-            KRATOS_WATCH(pGeometry);
-            if (pGeometry) {
-                KRATOS_WATCH(pGeometry->PointsNumber());
-            } else {
-                KRATOS_INFO("ActiveAdjointFiniteDifferencingBaseElement") << "pGeometry is nullptr!" << std::endl;
-            }
-            if (mpPrimalElement) {
-                KRATOS_WATCH(mpPrimalElement->pGetGeometry());
-                if (mpPrimalElement->pGetGeometry()) {
-                    KRATOS_WATCH(mpPrimalElement->pGetGeometry()->PointsNumber());
-                } else {
-                    KRATOS_INFO("ActiveAdjointFiniteDifferencingBaseElement") << "mpPrimalElement->pGetGeometry() is nullptr!" << std::endl;
-                }
-            }
-            KRATOS_WATCH(pProperties); //CHECKLEO -> Outbut untersuchung, weil Primal element keine Properies zum initialisieren hat 
-            if (pProperties) {
-                KRATOS_WATCH(pProperties->Id());
-            } else {
-                KRATOS_INFO("ActiveAdjointFiniteDifferencingBaseElement") << "pProperties is nullptr!" << std::endl;
-            }
-            if (mpPrimalElement) {
-                KRATOS_WATCH(mpPrimalElement->pGetProperties());
-                KRATOS_WATCH(mpPrimalElement->GetProperties().Id());
-            } else {
-                KRATOS_INFO("ActiveAdjointFiniteDifferencingBaseElement") << "mpPrimalElement is nullptr!" << std::endl;
-            }
     }
 
     ///@}
@@ -177,7 +150,6 @@ public:
 
     void Initialize(const ProcessInfo& rCurrentProcessInfo) override
     {
-        mpPrimalElement->SetProperties(pGetProperties()); //CHECKLEO das ist neu -braucht man das?
         mpPrimalElement->Initialize(rCurrentProcessInfo);
     }
 
@@ -396,7 +368,13 @@ public:
     /**
      * Calculates the pseudo-load contribution of the element w.r.t. all properties which are available at the element.
      * This is done by finite differencing of the RHS of the primal element when perturbing a property value.
-        * This operation is thread-safe, because the property pointer is exchanged by a local one before perturbation.
+      * This operation is thread-safe, because the property pointer is exchanged by a local one before perturbation.
+      *
+      * @note Known issue (under investigation): When validating the finite-difference sensitivities by comparing the
+      *       derived RHS against the assembled LHS blocks, the blocks $k_{dd}$, $k_{da}$ and $k_{ad}$ match, while the
+      *       actuation stiffness block $k_{aa}$ does not align with the finite-difference derivative of the RHS.
+      *       The issue is currently suspected to originate in the active element implementation rather than in this
+      *       sensitivity routine. Further debugging is required.
      */
     void CalculateSensitivityMatrix(const Variable<double>& rDesignVariable, Matrix& rOutput,
                                             const ProcessInfo& rCurrentProcessInfo) override;
@@ -446,8 +424,6 @@ public:
     ///@}
 
 protected:
-    ///@name Property/Material Checks (SMA-like) //CHECKLEO das ist neu
-    void CheckProperties(const ProcessInfo& rCurrentProcessInfo) const; //CHECKLEO das ist neu
 
     ///@name Protected Lyfe Cycle
     ///@{
@@ -507,19 +483,6 @@ protected:
         }
 
         KRATOS_CATCH("")
-    }
-
-    //CHECKLEO das ist neu
-    void PrintInfo(std::ostream& rOStream) const override
-    {
-        rOStream << Info() << std::endl;
-    }    
-
-    std::string Info() const override
-    {
-        std::stringstream buffer;
-        buffer << "ActiveAdjointFiniteDifferenceElement #" << Id();
-        return buffer.str();
     }
 
     ///@}

@@ -7,6 +7,7 @@
 //  License:         BSD License
 //                   Kratos default license: kratos/license.txt
 //
+//  Main author:     Leonhard Rieder
 
 // System includes
 
@@ -67,11 +68,6 @@ ActiveShellElementDofAssignmentProcess::ActiveShellElementDofAssignmentProcess(
         KRATOS_ERROR_IF(flag != "fix" && flag != "free")
             << "Invalid entry in 'unfixed_actuation_list': " << flag << ". Allowed: \"fix\" or \"free\"\n";
     }
-    KRATOS_WATCH(ThisParameters.PrettyPrintJsonString()) //CHECKLEO
-    KRATOS_WATCH(mIgaModelPartName) //CHECK LEO
-    KRATOS_WATCH(mActiveShellDofModelPartName) //CHECK LEO
-    KRATOS_WATCH(ThisParameters["iga_model_part_name"].GetString()) //CHECK LEO
-    KRATOS_WATCH(ThisParameters["iga_model_part_name"].GetString()) //CHECK LEO
 
     KRATOS_CATCH("");
 }
@@ -116,27 +112,14 @@ void ActiveShellElementDofAssignmentProcess::ExecuteInitialize()
     r_active_shell_mp.AddNodalSolutionStepVariable(ADJOINT_REACTION_ACTIVE_SHELL_KAPPA_2);
     r_active_shell_mp.AddNodalSolutionStepVariable(ADJOINT_REACTION_ACTIVE_SHELL_KAPPA_12);
 
-    // KRATOS_WATCH(mIgaModelPartName) //CHECK LEO
-    // KRATOS_WATCH(mActiveShellDofModelPartName) //CHECK LEO
-
-    // KRATOS_WATCH(mrModel) //CHECK LEO
-
-    // KRATOS_WATCH(r_iga_model_part) //CHECK LEO
-    // KRATOS_WATCH(r_iga_model_part.rProperties()) //CHECK LEO
-    // KRATOS_WATCH(r_iga_model_part.Elements()) //CHECK LEO
-    // KRATOS_INFO("Tag") << "Process info: " << this->Info() << std::endl; //CHECK LEO
-    //exit(0);//CHECK LEO
-
     // Assign the input values to the actuation variables.
     for (auto& r_element : r_iga_model_part.Elements()) {
         auto& r_geometry = r_element.GetGeometry().GetGeometryParent(0);
-        //KRATOS_WATCH(r_element.GetGeometry().GetGeometryParent(0)) //CHECK LEO
+
         if (!r_geometry.Has(ACTIVE_SHELL_NODE_GP)) {
             const auto& r_center = r_geometry.Center();
             auto p_active_shell_node = r_active_shell_mp.CreateNewNode(r_geometry.Id(), r_center[0], r_center[1], r_center[2]);
             
-            //std::cout << "Active shell node created with ID: " << p_active_shell_node->Id() << std::endl; //CHECKLEO ausgabe der Global Node ID
-
             std::vector<std::string>::iterator itr;
             if ((itr = std::find(mAppliedActuationList.begin(), mAppliedActuationList.end(), "alpha")) != mAppliedActuationList.end()) {
                 double value = mAppliedActuationValue[std::distance(mAppliedActuationList.begin(), itr)];
@@ -169,27 +152,6 @@ void ActiveShellElementDofAssignmentProcess::ExecuteInitialize()
                 p_active_shell_node->FastGetSolutionStepValue(ADJOINT_ACTIVE_SHELL_KAPPA_12) = value;
             }
 
-
-            // // Robust assignment of actuation values from properties to active shell node
-            // if (r_iga_model_part.Has(ACTIVE_SHELL_ALPHA))
-            //     p_active_shell_node->FastGetSolutionStepValue(ACTIVE_SHELL_ALPHA) = r_iga_model_part.GetValue(ACTIVE_SHELL_ALPHA);
-            // if (r_iga_model_part.Has(ACTIVE_SHELL_BETA))
-            //     p_active_shell_node->FastGetSolutionStepValue(ACTIVE_SHELL_BETA) = r_iga_model_part.GetValue(ACTIVE_SHELL_BETA);
-            // if (r_iga_model_part.Has(ACTIVE_SHELL_GAMMA))
-            //     p_active_shell_node->FastGetSolutionStepValue(ACTIVE_SHELL_GAMMA) = r_iga_model_part.GetValue(ACTIVE_SHELL_GAMMA);
-            // if (r_iga_model_part.Has(ACTIVE_SHELL_KAPPA_1))
-            //     p_active_shell_node->FastGetSolutionStepValue(ACTIVE_SHELL_KAPPA_1) = r_iga_model_part.GetValue(ACTIVE_SHELL_KAPPA_1);
-            // if (r_iga_model_part.Has(ACTIVE_SHELL_KAPPA_2))
-            //     p_active_shell_node->FastGetSolutionStepValue(ACTIVE_SHELL_KAPPA_2) = r_iga_model_part.GetValue(ACTIVE_SHELL_KAPPA_2);
-            // if (r_iga_model_part.Has(ACTIVE_SHELL_KAPPA_12))
-            //     p_active_shell_node->FastGetSolutionStepValue(ACTIVE_SHELL_KAPPA_12) = r_iga_model_part.GetValue(ACTIVE_SHELL_KAPPA_12);
-            // p_active_shell_node->FastGetSolutionStepValue(ACTIVE_SHELL_ALPHA) = 0.5;
-            // p_active_shell_node->FastGetSolutionStepValue(ACTIVE_SHELL_KAPPA_12) = 0.1;
-
-            // KRATOS_WATCH(p_active_shell_node) //CHECK LEO
-            // KRATOS_WATCH(p_active_shell_node->FastGetSolutionStepValue(ACTIVE_SHELL_ALPHA)) //CHECK LEO
-            // KRATOS_WATCH(p_active_shell_node->FastGetSolutionStepValue(ACTIVE_SHELL_BETA)) //CHECK LEO
-
             GlobalPointersVector<Node> nodes;
             nodes.push_back(p_active_shell_node);
             r_geometry.SetValue(ACTIVE_SHELL_NODE_GP, nodes);
@@ -214,13 +176,13 @@ void ActiveShellElementDofAssignmentProcess::ExecuteInitialize()
         r_node.AddDof(ADJOINT_ACTIVE_SHELL_KAPPA_2, ADJOINT_REACTION_ACTIVE_SHELL_KAPPA_2);
         r_node.AddDof(ADJOINT_ACTIVE_SHELL_KAPPA_12, ADJOINT_REACTION_ACTIVE_SHELL_KAPPA_12);
 
-        // Check actuation dof values
-        KRATOS_WATCH(r_node.FastGetSolutionStepValue(ACTIVE_SHELL_ALPHA));
-        KRATOS_WATCH(r_node.FastGetSolutionStepValue(ACTIVE_SHELL_BETA));
-        KRATOS_WATCH(r_node.FastGetSolutionStepValue(ACTIVE_SHELL_GAMMA));
-        KRATOS_WATCH(r_node.FastGetSolutionStepValue(ACTIVE_SHELL_KAPPA_1));
-        KRATOS_WATCH(r_node.FastGetSolutionStepValue(ACTIVE_SHELL_KAPPA_2));
-        KRATOS_WATCH(r_node.FastGetSolutionStepValue(ACTIVE_SHELL_KAPPA_12));
+        // // Check actuation dof values
+        // KRATOS_WATCH(r_node.FastGetSolutionStepValue(ACTIVE_SHELL_ALPHA));
+        // KRATOS_WATCH(r_node.FastGetSolutionStepValue(ACTIVE_SHELL_BETA));
+        // KRATOS_WATCH(r_node.FastGetSolutionStepValue(ACTIVE_SHELL_GAMMA));
+        // KRATOS_WATCH(r_node.FastGetSolutionStepValue(ACTIVE_SHELL_KAPPA_1));
+        // KRATOS_WATCH(r_node.FastGetSolutionStepValue(ACTIVE_SHELL_KAPPA_2));
+        // KRATOS_WATCH(r_node.FastGetSolutionStepValue(ACTIVE_SHELL_KAPPA_12));
 
         // Fix actuation DOFs by default (Dirichlet). Keep them free only if explicitly marked as "free".
         for (std::size_t i = 0; i < mAppliedActuationList.size(); ++i) {

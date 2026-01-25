@@ -1,3 +1,14 @@
+//    |  /           |
+//    ' /   __| _` | __|  _ \   __|
+//    . \  |   (   | |   (   |\__ `
+//   _|\_\_|  \__,_|\__|\___/ ____/
+//                   Multi-Physics
+//
+//  License:         BSD License
+//                     Kratos default license: kratos/IGAStructuralMechanicsApplication/license.txt
+//
+//  Main author:     Leonhard Rieder
+
 #pragma once
 
 // System includes
@@ -19,11 +30,15 @@ namespace Kratos
 /**
  * @class ActiveShell3pElement
  * @ingroup IgaApplication
+ * @author Leonhard Rieder
  * @brief Kirchhoff-Love shell element with additional actuation DOFs.
  * @details This element extends @ref Shell3pElement by introducing 6 actuation degrees of freedom
  *          ($\alpha$, $\beta$, $\gamma$, $\kappa_1$, $\kappa_2$, $\kappa_{12}$) that prescribe an "active" strain/curvature
  *          contribution.
- *
+ * 
+ *          Shell3pElement formulation: Kirchhoff-Love Shell. Optimized for Isogeometric Analysis by Kiendl et al.
+ *          Actuation formulation: Active shell finite element formulation for the inverse analysis of flexible thin-walled structures by Sachse et al.
+ *          
  *          The actuation DOFs live on an auxiliary actuation node stored in the parent geometry under
  *          ACTIVE_SHELL_NODE_GP. The node and its DOFs are created by
  *          @ref ActiveShellElementDofAssignmentProcess and read by the element in @ref InitializeActiveShellDofs.
@@ -413,7 +428,7 @@ private:
     /// The vector containing the constitutive laws for all integration points.
     std::vector<ConstitutiveLaw::Pointer> mConstitutiveLawVector;
 
-    //CHECKLEO - temporary predefined actuation variables
+    //Declaration of the predefined actuation variables
     double mACTUATION_ALPHA = 0.0;
     double mACTUATION_BETA = 0.0;
     double mACTUATION_GAMMA = 0.0;
@@ -510,23 +525,6 @@ private:
         ConstitutiveLaw::Parameters& rValues,
         const ConstitutiveLaw::StressMeasure ThisStressMeasure
     ) const;
-
-    // /**
-    //  *  CHECKLEO
-    // * This functions updates the ACTUATED constitutive variables
-    // * @param rActualMetric: The actual metric
-    // * @param rThisActuatedConstitutiveVariables: The constitutive variables to be calculated
-    // * @param rValues: The CL parameters
-    // * @param ThisStressMeasure: The stress measure considered
-    // */
-    // void CalculateActuatedConstitutiveVariables(
-    //     const IndexType IntegrationPointIndex,
-    //     KinematicVariables& rActualMetric,
-    //     ConstitutiveVariables& rThisActuatedConstitutiveVariablesMembrane,
-    //     ConstitutiveVariables& rThisActuatedConstitutiveVariablesCurvature,
-    //     ConstitutiveLaw::Parameters& rValues,
-    //     const ConstitutiveLaw::StressMeasure ThisStressMeasure
-    // ) const;
 
     inline void CalculateAndAddKm(
         MatrixType& rLeftHandSideMatrix,

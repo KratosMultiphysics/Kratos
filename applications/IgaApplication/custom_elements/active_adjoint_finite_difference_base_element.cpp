@@ -7,7 +7,7 @@
 //                   license: StructuralMechanicsApplication/license.txt
 //
 //  Main authors:    Armin Geiser, https://github.com/armingeiser
-//
+//                   Leonhard Rieder (for active adjoint element implementation)
 
 // System includes
 
@@ -48,7 +48,7 @@ void CalculateOnIntegrationPoints(
         const auto& output_value = rAdjointElement.GetValue(rVariable);
 
         // Resize Output
-        const std::size_t gauss_points_number = rAdjointElement.GetGeometry().IntegrationPointsNumber(rAdjointElement.GetIntegrationMethod()); //CHECKLEO neu
+        const std::size_t gauss_points_number = rAdjointElement.GetGeometry().IntegrationPointsNumber(rAdjointElement.GetIntegrationMethod());
         if (rValues.size() != gauss_points_number) {
             rValues.resize(gauss_points_number);
         }
@@ -71,50 +71,6 @@ void ActiveAdjointFiniteDifferencingBaseElement<TPrimalElement>::EquationIdVecto
     const ProcessInfo& rCurrentProcessInfo) const
 {
     KRATOS_TRY
-    //CHECKLEO--
-    // const GeometryType& geom = this->GetGeometry();
-
-    // const SizeType number_of_nodes = geom.PointsNumber();
-    // const SizeType dimension = geom.WorkingSpaceDimension();
-    // const SizeType num_dofs_per_node = (mHasRotationDofs) ?  2 * dimension : dimension;
-    // const SizeType num_dofs = number_of_nodes * num_dofs_per_node;
-    // constexpr SizeType extra_actuation_dofs = 6;
-
-    // if (rResult.size() != num_dofs + extra_actuation_dofs)
-    //     rResult.resize(num_dofs + extra_actuation_dofs, false);
-
-    // for(IndexType i = 0; i < geom.size(); ++i)
-    // {
-    //     const IndexType index = i * num_dofs_per_node;
-    //     const NodeType& iNode = geom[i];
-
-    //     rResult[index]     = iNode.GetDof(ADJOINT_DISPLACEMENT_X).EquationId();
-    //     rResult[index + 1] = iNode.GetDof(ADJOINT_DISPLACEMENT_Y).EquationId();
-    //     rResult[index + 2] = iNode.GetDof(ADJOINT_DISPLACEMENT_Z).EquationId();
-
-    //     if(mHasRotationDofs)
-    //     {
-    //         rResult[index + 3] = iNode.GetDof(ADJOINT_ROTATION_X).EquationId();
-    //         rResult[index + 4] = iNode.GetDof(ADJOINT_ROTATION_Y).EquationId();
-    //         rResult[index + 5] = iNode.GetDof(ADJOINT_ROTATION_Z).EquationId();
-    //     }
-    // }
-    // // Adjoint actuation DOFs (global node)
-    // const auto& gp_vec = geom.GetGeometryParent(0).GetValue(ACTIVE_SHELL_NODE_GP);
-    // KRATOS_ERROR_IF(gp_vec.size() == 0) << "ACTIVE_SHELL_NODE_GP is empty!" << std::endl;
-    // const NodeType& r_global_node = gp_vec[0];
-    // KRATOS_ERROR_IF_NOT(r_global_node.HasDofFor(ADJOINT_ACTIVE_SHELL_ALPHA)) << "Global node has no ADJOINT_ACTIVE_SHELL_ALPHA DOF!" << std::endl;
-
-    // const NodeType& r_global_node = geom.GetGeometryParent(0).GetValue(ACTIVE_SHELL_NODE_GP)[0];
-    // IndexType offset = geom.size() * num_dofs_per_node;
-    // rResult[offset + 0] = r_global_node.GetDof(ADJOINT_ACTIVE_SHELL_ALPHA).EquationId();
-    // rResult[offset + 1] = r_global_node.GetDof(ADJOINT_ACTIVE_SHELL_BETA).EquationId();
-    // rResult[offset + 2] = r_global_node.GetDof(ADJOINT_ACTIVE_SHELL_GAMMA).EquationId();
-    // rResult[offset + 3] = r_global_node.GetDof(ADJOINT_ACTIVE_SHELL_KAPPA_1).EquationId();
-    // rResult[offset + 4] = r_global_node.GetDof(ADJOINT_ACTIVE_SHELL_KAPPA_2).EquationId();
-    // rResult[offset + 5] = r_global_node.GetDof(ADJOINT_ACTIVE_SHELL_KAPPA_12).EquationId();
-    //--CHECKLEO
-    //CHECKLEO neu
     const SizeType number_of_control_points = GetGeometry().size();
 
     if (rResult.size() != 3 * number_of_control_points + 6)
@@ -147,46 +103,6 @@ void ActiveAdjointFiniteDifferencingBaseElement<TPrimalElement>::GetDofList(Dofs
     const ProcessInfo& rCurrentProcessInfo) const
 {
     KRATOS_TRY
-    //CHECKLEO---
-    // const GeometryType & geom = this->GetGeometry();
-
-    // const SizeType number_of_nodes = geom.PointsNumber();
-    // const SizeType dimension =  geom.WorkingSpaceDimension();
-    // const SizeType num_dofs_per_node = (mHasRotationDofs) ?  2 * dimension : dimension;
-    // const SizeType num_dofs = number_of_nodes * num_dofs_per_node;
-
-    // rElementalDofList.clear();
-    // rElementalDofList.reserve(num_dofs + 6);
-
-    // for (IndexType i = 0; i < number_of_nodes; ++i)
-    // {
-    //     rElementalDofList.push_back(this->GetGeometry()[i].pGetDof(ADJOINT_DISPLACEMENT_X));
-    //     rElementalDofList.push_back(this->GetGeometry()[i].pGetDof(ADJOINT_DISPLACEMENT_Y));
-    //     rElementalDofList.push_back(this->GetGeometry()[i].pGetDof(ADJOINT_DISPLACEMENT_Z));
-
-    //     if(mHasRotationDofs)
-    //     {
-    //         rElementalDofList.push_back(this->GetGeometry()[i].pGetDof(ADJOINT_ROTATION_X));
-    //         rElementalDofList.push_back(this->GetGeometry()[i].pGetDof(ADJOINT_ROTATION_Y));
-    //         rElementalDofList.push_back(this->GetGeometry()[i].pGetDof(ADJOINT_ROTATION_Z));
-    //     }
-    // }
-
-    // // Adjoint actuation DOFs (global node)
-    // const auto& gp_vec = geom.GetGeometryParent(0).GetValue(ACTIVE_SHELL_NODE_GP);
-    // KRATOS_ERROR_IF(gp_vec.size() == 0) << "ACTIVE_SHELL_NODE_GP is empty!" << std::endl;
-    // const NodeType& r_global_node = gp_vec[0];
-    // KRATOS_ERROR_IF_NOT(r_global_node.HasDofFor(ADJOINT_ACTIVE_SHELL_ALPHA)) << "Global node has no ADJOINT_ACTIVE_SHELL_ALPHA DOF!" << std::endl;
-
-    // const NodeType& r_global_node = this->GetGeometry().GetGeometryParent(0).GetValue(ACTIVE_SHELL_NODE_GP)[0];
-    // rElementalDofList.push_back(r_global_node.pGetDof(ADJOINT_ACTIVE_SHELL_ALPHA));
-    // rElementalDofList.push_back(r_global_node.pGetDof(ADJOINT_ACTIVE_SHELL_BETA));
-    // rElementalDofList.push_back(r_global_node.pGetDof(ADJOINT_ACTIVE_SHELL_GAMMA));
-    // rElementalDofList.push_back(r_global_node.pGetDof(ADJOINT_ACTIVE_SHELL_KAPPA_1));
-    // rElementalDofList.push_back(r_global_node.pGetDof(ADJOINT_ACTIVE_SHELL_KAPPA_2));
-    // rElementalDofList.push_back(r_global_node.pGetDof(ADJOINT_ACTIVE_SHELL_KAPPA_12));
-    //--CHECKLEO
-
     const SizeType number_of_control_points = GetGeometry().size();
 
     rElementalDofList.resize(0);
@@ -215,14 +131,6 @@ template <class TPrimalElement>
 void ActiveAdjointFiniteDifferencingBaseElement<TPrimalElement>::GetValuesVector(Vector& rValues, int Step) const
 {
     KRATOS_TRY
-    //CHECKLEO
-    // const GeometryType & geom = this->GetGeometry();
-
-    // const SizeType number_of_nodes = geom.PointsNumber();
-    // const SizeType dimension =  geom.WorkingSpaceDimension();
-    // const SizeType num_dofs_per_node = (mHasRotationDofs) ?  2 * dimension : dimension;
-    // const SizeType num_dofs = number_of_nodes * num_dofs_per_node;
-    //--CHECKLEO
 
     const SizeType number_of_control_points = GetGeometry().size();
 
@@ -236,7 +144,7 @@ void ActiveAdjointFiniteDifferencingBaseElement<TPrimalElement>::GetValuesVector
         rValues[local_index++] = GetGeometry()[i].FastGetSolutionStepValue(ADJOINT_DISPLACEMENT_Z);
     }
 
-    //CHECKLEO set values for adjoint actuation dofs
+    //set values for adjoint actuation dofs
     const NodeType& r_global_node = GetGeometry().GetGeometryParent(0).GetValue(ACTIVE_SHELL_NODE_GP)[0];
     rValues[local_index++] = r_global_node.FastGetSolutionStepValue(ADJOINT_ACTIVE_SHELL_ALPHA);
     rValues[local_index++] = r_global_node.FastGetSolutionStepValue(ADJOINT_ACTIVE_SHELL_BETA);
@@ -381,87 +289,37 @@ void ActiveAdjointFiniteDifferencingBaseElement<TPrimalElement>::CalculateOnInte
     AdjointFiniteDifferenceBaseElementHelperUtils::CalculateOnIntegrationPoints(*mpPrimalElement, *this, rVariable, rOutput, rCurrentProcessInfo);
 }
 
-//Temporarily commented out Check function to facilitate debugging. Re-enable once debugging is complete, (checking of rotations should be removed))
-// template <class TPrimalElement>
-// int ActiveAdjointFiniteDifferencingBaseElement<TPrimalElement>::Check(const ProcessInfo& rCurrentProcessInfo) const
-// {
-//     KRATOS_TRY
-
-//     int return_value = Element::Check(rCurrentProcessInfo);
-
-//     KRATOS_ERROR_IF_NOT(mpPrimalElement) << "Primal element pointer is nullptr!" << std::endl;
-
-//     const GeometryType& r_geom = this->GetGeometry();
-
-//     // TODO generic way of doing these checks without checking the dofs..
-
-//     // Check dofs
-//     for (IndexType i = 0; i < r_geom.size(); ++i) {
-//         const auto& r_node = r_geom[i];
-
-//         KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(DISPLACEMENT, r_node);
-//         KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(ADJOINT_DISPLACEMENT, r_node);
-
-//         KRATOS_CHECK_DOF_IN_NODE(ADJOINT_DISPLACEMENT_X, r_node);
-//         KRATOS_CHECK_DOF_IN_NODE(ADJOINT_DISPLACEMENT_Y, r_node);
-//         KRATOS_CHECK_DOF_IN_NODE(ADJOINT_DISPLACEMENT_Z, r_node);
-
-//         if(mHasRotationDofs) {
-//             KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(ROTATION, r_node);
-//             KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(ADJOINT_ROTATION, r_node);
-//             KRATOS_CHECK_DOF_IN_NODE(ADJOINT_ROTATION_X, r_node);
-//             KRATOS_CHECK_DOF_IN_NODE(ADJOINT_ROTATION_Y, r_node);
-//             KRATOS_CHECK_DOF_IN_NODE(ADJOINT_ROTATION_Z, r_node);
-//         }
-//     }
-
-//     return return_value;
-
-//     KRATOS_CATCH("")
-// }
-
-// Check-Override: Reused Check() for property validation
-template <typename TPrimalElement>
+template <class TPrimalElement>
 int ActiveAdjointFiniteDifferencingBaseElement<TPrimalElement>::Check(const ProcessInfo& rCurrentProcessInfo) const
 {
+    KRATOS_TRY
+
     int return_value = Element::Check(rCurrentProcessInfo);
-    this->CheckProperties(rCurrentProcessInfo);
+
+    //Temporarily commented out Check function to facilitate debugging. Re-enable once debugging is complete.
+    // KRATOS_ERROR_IF_NOT(mpPrimalElement) << "Primal element pointer is nullptr!" << std::endl;
+
+    // const GeometryType& r_geom = this->GetGeometry();
+
+    // // TODO generic way of doing these checks without checking the dofs..
+
+    // // Check dofs
+    // for (IndexType i = 0; i < r_geom.size(); ++i) {
+    //     const auto& r_node = r_geom[i];
+
+    //     KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(DISPLACEMENT, r_node);
+    //     KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(ADJOINT_DISPLACEMENT, r_node);
+
+    //     KRATOS_CHECK_DOF_IN_NODE(ADJOINT_DISPLACEMENT_X, r_node);
+    //     KRATOS_CHECK_DOF_IN_NODE(ADJOINT_DISPLACEMENT_Y, r_node);
+    //     KRATOS_CHECK_DOF_IN_NODE(ADJOINT_DISPLACEMENT_Z, r_node);
+
+    // }
+
     return return_value;
+
+    KRATOS_CATCH("")
 }
-
-// Property/material check analog to SMA-adjoint-element
-// introduced temporarily for debugging and to clarify property usage; it is no longer required. ToDo remove it safe
-template <typename TPrimalElement>
-void ActiveAdjointFiniteDifferencingBaseElement<TPrimalElement>::CheckProperties(const ProcessInfo& rCurrentProcessInfo) const
-{
-    if (this->pGetProperties() == nullptr) {
-    // Erzeuge ein neues, leeres Properties-Objekt
-    Properties::Pointer p_dummy_properties = Kratos::make_shared<Properties>(0);
-    const_cast<ActiveAdjointFiniteDifferencingBaseElement<TPrimalElement>*>(this)->SetProperties(p_dummy_properties);
-    KRATOS_WARNING("ActiveAdjointFiniteDifferencingBaseElement") << "Properties not provided for element " << this->Id() << ". An empty Properties object has been assigned." << std::endl;
-    }
-    // if(this->pGetProperties() == nullptr)
-    //     KRATOS_ERROR << "Properties not provided for element " << this->Id() << std::endl;
-
-    // const PropertiesType & props = this->GetProperties();
-    // const GeometryType& geom = this->GetGeometry();
-
-    // if (!props.Has(CONSTITUTIVE_LAW))
-    //     KRATOS_ERROR << "CONSTITUTIVE_LAW not provided for element " << this->Id() << std::endl;
-    // if (!props.Has(THICKNESS))
-    //     KRATOS_ERROR << "THICKNESS not provided for element " << this->Id() << std::endl;
-    // if (!props.Has(DENSITY))
-    //     KRATOS_ERROR << "DENSITY not provided for element " << this->Id() << std::endl;
-
-    // // Optional: DummySection analog SMA falls benötigt
-    // ShellCrossSection::Pointer dummySection = Kratos::make_shared<ShellCrossSection>(ShellCrossSection());
-    // dummySection->BeginStack();
-    // dummySection->AddPly(0, 5, props);
-    // dummySection->EndStack();
-    // dummySection->SetSectionBehavior(ShellCrossSection::Thick);
-    // dummySection->Check(props, geom, rCurrentProcessInfo);
-}
-
 
 // Sensitivity functions
 

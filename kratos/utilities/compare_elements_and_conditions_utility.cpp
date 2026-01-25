@@ -50,8 +50,6 @@ void CompareElementsAndConditionsUtility::GetRegisteredName(
     KRATOS_TRY;
 
     for(auto const& component: KratosComponents<Element>::GetComponents()) {
-        KRATOS_WATCH(component.first)
-        KRATOS_WATCH(*component.second)
         if (GeometricalObject::IsSame(*(component.second), rElement)) {
             rName = component.first;
             return;

@@ -40,12 +40,6 @@ class StructuralMechanicsAnalysis(AnalysisStage):
         
         """ Initializing the Analysis """
         super().Initialize()
-        # Properties-Check:CHECKLEO: jetzt sind die Properties und Elemente initialisiert!
-        model_part = self._GetSolver().GetComputingModelPart()
-        print("=== Properties im ModelPart ===")
-        for prop in model_part.Properties:
-            print(f"Property ID: {prop.Id}")
-
 
         # In case of contact problem
         if self.contact_problem:
