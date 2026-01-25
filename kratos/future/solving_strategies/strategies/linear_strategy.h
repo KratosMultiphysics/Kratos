@@ -142,6 +142,8 @@ public:
     {
         KRATOS_TRY
 
+        KRATOS_WATCH("Linear Strategy Constructor")
+
         KRATOS_CATCH("")
     }
 
@@ -185,9 +187,10 @@ public:
         auto& r_strategy_data_container = this->GetImplicitStrategyDataContainer();
 
         // Get system arrays
-        auto p_dx = r_strategy_data_container.pDx;
-        auto p_rhs = r_strategy_data_container.pRhs;
-        auto p_lhs = r_strategy_data_container.pLhs;
+        auto p_linear_system = r_strategy_data_container.pGetLinearSystem();
+        auto p_dx = p_linear_system->pGetSolution();
+        auto p_lhs = p_linear_system->pGetLeftHandSide();
+        auto p_rhs = p_linear_system->pGetRightHandSide();
         auto p_constraints_T = r_strategy_data_container.pConstraintsT;
         auto p_constraints_q = r_strategy_data_container.pConstraintsQ;
 
@@ -219,9 +222,10 @@ public:
         }
 
         // Get the effective arrays to solve the system
-        auto p_eff_dx = r_strategy_data_container.pEffectiveDx;
-        auto p_eff_rhs = r_strategy_data_container.pEffectiveRhs;
-        auto p_eff_lhs = r_strategy_data_container.pEffectiveLhs;
+        auto p_eff_lin_sys = r_strategy_data_container.pGetEffectiveLinearSystem();
+        auto p_eff_dx = p_eff_lin_sys->pGetSolution();
+        auto p_eff_lhs = p_eff_lin_sys->pGetLeftHandSide();
+        auto p_eff_rhs = p_eff_lin_sys->pGetRightHandSide();
         auto p_eff_lhs_lin_op = Kratos::make_shared<SparseMatrixLinearOperator<TLinearAlgebra>>(*p_eff_lhs);
 
         // Solve the system
@@ -231,13 +235,10 @@ public:
         }
         // rp_linear_solver->Solve(p_eff_lhs_lin_op, *p_eff_dx, *p_eff_rhs);
         // rp_linear_solver->Solve(rp_linear_system);
-
-        //TODO: properly do this once everything works
-        auto& r_eff_lin_sys = r_strategy_data_container.GetEffectiveLinearSystem();
-        rp_linear_solver->Initialize(r_eff_lin_sys);
-        rp_linear_solver->InitializeSolutionStep(r_eff_lin_sys);
-        rp_linear_solver->PerformSolutionStep(r_eff_lin_sys);
-        rp_linear_solver->FinalizeSolutionStep(r_eff_lin_sys);
+        rp_linear_solver->Initialize(*p_eff_lin_sys);
+        rp_linear_solver->InitializeSolutionStep(*p_eff_lin_sys);
+        rp_linear_solver->PerformSolutionStep(*p_eff_lin_sys);
+        rp_linear_solver->FinalizeSolutionStep(*p_eff_lin_sys);
 
         // Debugging info
         this->EchoInfo();

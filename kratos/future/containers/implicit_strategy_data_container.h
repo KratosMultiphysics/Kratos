@@ -56,25 +56,25 @@ struct ImplicitStrategyDataContainer
 
     using LinearSystemType = LinearSystem<TLinearAlgebra>;
 
-    //TODO: All these must dissapear from here
-    typename MatrixType::Pointer pLhs = nullptr; // Pointer to the LHS matrix
+    // //TODO: All these must dissapear from here
+    // typename MatrixType::Pointer pLhs = nullptr; // Pointer to the LHS matrix
 
-    //TODO: All these must dissapear from here
-    typename VectorType::Pointer pRhs = nullptr; // Pointer to the RHS vector
+    // //TODO: All these must dissapear from here
+    // typename VectorType::Pointer pRhs = nullptr; // Pointer to the RHS vector
 
-    //TODO: All these must dissapear from here
-    typename VectorType::Pointer pDx = nullptr; // Pointer to the solution increment vector
+    // //TODO: All these must dissapear from here
+    // typename VectorType::Pointer pDx = nullptr; // Pointer to the solution increment vector
 
-    //TODO: All these must dissapear from here
-    typename MatrixType::Pointer pEffectiveLhs = nullptr; // Pointer to the effective LHS matrix (i.e., after applying system constraints)
+    // //TODO: All these must dissapear from here
+    // typename MatrixType::Pointer pEffectiveLhs = nullptr; // Pointer to the effective LHS matrix (i.e., after applying system constraints)
 
-    //TODO: All these must dissapear from here
-    typename VectorType::Pointer pEffectiveRhs = nullptr; // Pointer to the effective RHS vector (i.e., after applying system constraints)
+    // //TODO: All these must dissapear from here
+    // typename VectorType::Pointer pEffectiveRhs = nullptr; // Pointer to the effective RHS vector (i.e., after applying system constraints)
 
-    //TODO: All these must dissapear from here
-    typename VectorType::Pointer pEffectiveDx = nullptr; // Pointer to the effective solution increment vector (i.e., after applying system constraints)
+    // //TODO: All these must dissapear from here
+    // typename VectorType::Pointer pEffectiveDx = nullptr; // Pointer to the effective solution increment vector (i.e., after applying system constraints)
 
-    typename MatrixType::Pointer pEffectiveT = nullptr; // Linear system constraints total relation matrix
+    typename MatrixType::Pointer pEffectiveT = nullptr; // Linear system constraints total relation matrix (combination of MPCs and eventual Dirichlet BCs)
 
     typename MatrixType::Pointer pConstraintsT = nullptr; // Master-slave constraints relation matrix
 
@@ -84,70 +84,84 @@ struct ImplicitStrategyDataContainer
 
     typename ModelPart::DofsArrayType::Pointer pEffectiveDofSet = Kratos::make_shared<ModelPart::DofsArrayType>(); /// The PVS containing the effective DOFs of the system
 
-    LinearSystemType mLinearSystem = LinearSystemType(pLhs, pRhs, pDx, "LinearSystem");
+    typename LinearSystemType::Pointer mpLinearSystem = nullptr;
 
-    LinearSystemType mEffectiveLinearSystem = LinearSystemType(pEffectiveLhs, pEffectiveRhs, pEffectiveDx, "EffectiveLinearSystem");
+    typename LinearSystemType::Pointer mpEffectiveLinearSystem = nullptr;
 
-    typename MatrixType::Pointer& pGetLeftHandSide()
+    /**
+     * @brief Returns the pointer to the linear system
+     * @return const LinearSystemType::Pointer The pointer to the linear system
+     */
+    typename LinearSystemType::Pointer pGetLinearSystem()
     {
-        return mLinearSystem.Lhs;
-    }
-
-    void pSetLeftHandSide(typename MatrixType::Pointer pLhs)
-    {
-        mLinearSystem.Lhs = pLhs;
-    }
-
-    typename MatrixType::Pointer pGetEffectiveLeftHandSide()
-    {
-        return mEffectiveLinearSystem.Lhs;
-    }
-
-    void pSetEffectiveLeftHandSide(typename MatrixType::Pointer pEffectiveLhs)
-    {
-        mEffectiveLinearSystem.Lhs = pEffectiveLhs;
+        return mpLinearSystem;
     }
 
     /**
      * @brief Returns the pointer to the linear system
-     *
-     * @return const LinearSystemType::UniquePointer The pointer to the linear system
+     * @return const LinearSystemType::Pointer The pointer to the linear system
      */
-    LinearSystemType& GetLinearSystem()
+    const typename LinearSystemType::Pointer pGetLinearSystem() const
     {
-        return mLinearSystem;
+        return mpLinearSystem;
+    }
+
+    /**
+     * @brief Sets the pointer to the linear system
+     * @param pLinearSystem The pointer to the linear system
+     */
+    void pSetLinearSystem(typename LinearSystemType::Pointer pLinearSystem)
+    {
+        mpLinearSystem = pLinearSystem;
     }
 
     /**
      * @brief Returns the pointer to the effective linear system
-     *
-     * @return const LinearSystemType::UniquePointer The pointer to the effective linear system
+     * @return const LinearSystemType::Pointer The pointer to the effective linear system
      */
-    LinearSystemType& GetEffectiveLinearSystem()
+    typename LinearSystemType::Pointer pGetEffectiveLinearSystem()
     {
-        return mEffectiveLinearSystem;
+        return mpEffectiveLinearSystem;
+    }
+
+    /**
+     * @brief Returns the pointer to the effective linear system
+     * @return const LinearSystemType::Pointer The pointer to the effective linear system
+     */
+    const typename LinearSystemType::Pointer pGetEffectiveLinearSystem() const
+    {
+        return mpEffectiveLinearSystem;
+    }
+
+    /**
+     * @brief Sets the pointer to the effective linear system
+     * @param pEffectiveLinearSystem The pointer to the effective linear system
+     */
+    void pSetEffectiveLinearSystem(typename LinearSystemType::Pointer pEffectiveLinearSystem)
+    {
+        mpEffectiveLinearSystem = pEffectiveLinearSystem;
     }
 
     void Clear()
     {
-        if (pLhs) {
-            pLhs->Clear();
-        }
-        if (pRhs) {
-            pRhs->Clear();
-        }
-        if (pDx) {
-            pDx->Clear();
-        }
-        if (pEffectiveLhs) {
-            pEffectiveLhs->Clear();
-        }
-        if (pEffectiveRhs) {
-            pEffectiveRhs->Clear();
-        }
-        if (pEffectiveDx) {
-            pEffectiveDx->Clear();
-        }
+        // if (pLhs) {
+        //     pLhs->Clear();
+        // }
+        // if (pRhs) {
+        //     pRhs->Clear();
+        // }
+        // if (pDx) {
+        //     pDx->Clear();
+        // }
+        // if (pEffectiveLhs) {
+        //     pEffectiveLhs->Clear();
+        // }
+        // if (pEffectiveRhs) {
+        //     pEffectiveRhs->Clear();
+        // }
+        // if (pEffectiveDx) {
+        //     pEffectiveDx->Clear();
+        // }
         if (pEffectiveT) {
             pEffectiveT->Clear();
         }

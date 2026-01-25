@@ -145,6 +145,8 @@ public:
     {
         KRATOS_TRY
 
+        KRATOS_WATCH("Implicit Strategy Constructor")
+
         // Set EchoLevel to the default value (only time is displayed) //TODO: Get this from input settings
         this->SetEchoLevel(1);
 
@@ -582,7 +584,7 @@ public:
      */
     double GetResidualNorm()
     {
-        auto p_rhs = mImplicitStrategyDataContainer.pRhs;
+        auto p_rhs = mImplicitStrategyDataContainer.pGetLinearSystem()->pGetRightHandSide();
         KRATOS_ERROR_IF(p_rhs == nullptr) << "Right hand side vector is not set. Residual cannot be computed." << std::endl;
         if (p_rhs->size() != 0) {
             return p_rhs->Norm();
@@ -659,9 +661,10 @@ protected:
      */
     virtual void EchoInfo()
     {
-        const auto& r_A = mImplicitStrategyDataContainer.pLhs;
-        const auto& r_b = mImplicitStrategyDataContainer.pRhs;
-        const auto& r_dx = *mImplicitStrategyDataContainer.pDx;
+        const auto p_linear_system = mImplicitStrategyDataContainer.pGetLinearSystem();
+        const auto& r_A = p_linear_system->pGetLeftHandSide();
+        const auto& r_b = p_linear_system->pGetRightHandSide();
+        const auto& r_dx = p_linear_system->GetSolution();
 
         if (GetEchoLevel() == 3) { //if it is needed to print the debug info
             KRATOS_INFO("ImplicitStrategy") << "LHS = " << r_A << std::endl;

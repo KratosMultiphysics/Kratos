@@ -19,6 +19,7 @@
 
 // Project includes
 #include "builder.h"
+#include "future/containers/linear_system.h"
 #include "includes/define.h"
 #include "includes/model_part.h"
 #include "utilities/amgcl_csr_conversion_utilities.h"
@@ -67,7 +68,7 @@ public:
     using VectorType = typename TLinearAlgebra::VectorType;
 
     /// Sparse graph type definition
-    using SparseGraphType = TLinearAlgebra::SparseGraphType;
+    using SparseGraphType = typename TLinearAlgebra::SparseGraphType;
 
     /// DOF type definition
     using DofType = typename BaseType::DofType;
@@ -77,6 +78,9 @@ public:
 
     /// DOF pointer vector type definition
     using DofPointerVectorType = typename BaseType::DofPointerVectorType;
+
+    /// Linear system type definition
+    using LinearSystemType = LinearSystem<TLinearAlgebra>;
 
     ///@}
     ///@name Life Cycle
@@ -115,31 +119,26 @@ public:
         // Set the system arrays
         // Note that the graph-based constructor does both resizing and initialization
         auto p_dx = Kratos::make_shared<VectorType>(rSparseGraph);
-        rImplicitStrategyDataContainer.pDx.swap(p_dx);
-
         auto p_rhs = Kratos::make_shared<VectorType>(rSparseGraph);
-        rImplicitStrategyDataContainer.pRhs.swap(p_rhs);
-
         auto p_lhs = Kratos::make_shared<MatrixType>(rSparseGraph);
-        rImplicitStrategyDataContainer.pLhs.swap(p_lhs);
 
-        // Set the effective arrays
+        // Set the linear system with the arrays above
+        auto p_lin_sys = Kratos::make_unique<LinearSystemType>(p_lhs, p_rhs, p_dx, "LinearSystem");
+        rImplicitStrategyDataContainer.mpLinearSystem = std::move(p_lin_sys); // Transfer ownership to the data container
+
+        // Set the effective arrays and corresponding linear system
         if (rImplicitStrategyDataContainer.RequiresEffectiveDofSet()) {
-            // If there are no constraints the effective arrays are the same as the input ones
+            // If there are no constraints the effective arrays are the same as the global ones
             // Note that we avoid duplicating the memory by making the effective pointers to point to the same object
-            rImplicitStrategyDataContainer.pEffectiveLhs = rImplicitStrategyDataContainer.pLhs;
-            rImplicitStrategyDataContainer.pEffectiveRhs = rImplicitStrategyDataContainer.pRhs;
-            rImplicitStrategyDataContainer.pEffectiveDx = rImplicitStrategyDataContainer.pDx;
+            auto p_eff_lin_sys = Kratos::make_unique<LinearSystemType>(p_lhs, p_rhs, p_dx, "EffectiveLinearSystem");
+            rImplicitStrategyDataContainer.mpEffectiveLinearSystem = std::move(p_eff_lin_sys); // Transfer ownership to the data container
         } else {
             // Allocate the effective vectors according to the effective DOF set size
             auto p_eff_lhs = Kratos::make_shared<MatrixType>();
-            rImplicitStrategyDataContainer.pEffectiveLhs.swap(p_eff_lhs);
-
             auto p_eff_rhs = Kratos::make_shared<VectorType>(rImplicitStrategyDataContainer.pEffectiveDofSet->size());
-            rImplicitStrategyDataContainer.pEffectiveRhs.swap(p_eff_rhs);
-
             auto p_eff_dx = Kratos::make_shared<VectorType>(rImplicitStrategyDataContainer.pEffectiveDofSet->size());
-            rImplicitStrategyDataContainer.pEffectiveDx.swap(p_eff_dx);
+            auto p_eff_lin_sys = Kratos::make_unique<LinearSystemType>(p_eff_lhs, p_eff_rhs, p_eff_dx, "EffectiveLinearSystem");
+            rImplicitStrategyDataContainer.mpEffectiveLinearSystem = std::move(p_eff_lin_sys); // Transfer ownership to the data container
         }
     }
 
@@ -171,8 +170,9 @@ public:
         ApplyBlockBuildMasterSlaveConstraints(rImplicitStrategyDataContainer);
 
         // Apply the Dirichlet BCs in a block way by leveraging the CSR matrix implementation
-        auto& r_eff_rhs = *(rImplicitStrategyDataContainer.pEffectiveRhs);
-        auto& r_eff_lhs = *(rImplicitStrategyDataContainer.pEffectiveLhs);
+        auto p_eff_lin_sys = rImplicitStrategyDataContainer.pGetEffectiveLinearSystem();
+        auto& r_eff_lhs = *(p_eff_lin_sys->pGetLeftHandSide());
+        auto& r_eff_rhs = *(p_eff_lin_sys->pGetRightHandSide());
         auto& r_eff_dof_set = *(rImplicitStrategyDataContainer.pEffectiveDofSet);
         ApplyBlockBuildDirichletConditions(r_eff_dof_set, r_eff_lhs, r_eff_rhs);
     }
@@ -196,11 +196,13 @@ private:
     void ApplyBlockBuildMasterSlaveConstraints(ImplicitStrategyDataContainer<TLinearAlgebra> &rImplicitStrategyDataContainer)
     {
         const auto& r_model_part = this->GetModelPart();
+        auto p_lin_sys = rImplicitStrategyDataContainer.pGetLinearSystem();
+        auto p_eff_lin_sys = rImplicitStrategyDataContainer.pGetEffectiveLinearSystem();
         const std::size_t n_constraints = r_model_part.NumberOfMasterSlaveConstraints();
         if (n_constraints) { //FIXME: In here we should check the number of active constraints
             // Get effective arrays
-            auto p_eff_dx = rImplicitStrategyDataContainer.pEffectiveDx;
-            auto p_eff_rhs = rImplicitStrategyDataContainer.pEffectiveRhs;
+            auto p_eff_dx = p_eff_lin_sys->pGetSolution();
+            auto p_eff_rhs = p_eff_lin_sys->pGetRightHandSide();
 
             // Initialize the effective RHS
             KRATOS_ERROR_IF(p_eff_rhs == nullptr) << "Effective RHS vector has not been initialized yet." << std::endl;
@@ -214,15 +216,16 @@ private:
             rImplicitStrategyDataContainer.pEffectiveT = rImplicitStrategyDataContainer.pConstraintsT;
 
             // Apply constraints to RHS
-            auto p_rhs = rImplicitStrategyDataContainer.pRhs;
+            auto p_rhs = p_lin_sys->pGetRightHandSide();
             rImplicitStrategyDataContainer.pEffectiveT->TransposeSpMV(*p_rhs, *p_eff_rhs);
 
             // Apply constraints to LHS
             //TODO: Rethink once we figure out the LinearSystemContainer, LinearOperator and so...
-            auto p_lhs = rImplicitStrategyDataContainer.pLhs;
+            auto p_lhs = p_lin_sys->pGetLeftHandSide();
             auto p_LHS_T = AmgclCSRSpMMUtilities::SparseMultiply(*p_lhs, *rImplicitStrategyDataContainer.pEffectiveT);
             auto p_transT = AmgclCSRConversionUtilities::Transpose(*rImplicitStrategyDataContainer.pEffectiveT);
-            rImplicitStrategyDataContainer.pEffectiveLhs = AmgclCSRSpMMUtilities::SparseMultiply(*p_transT, *p_LHS_T);
+            auto p_eff_lhs = AmgclCSRSpMMUtilities::SparseMultiply(*p_transT, *p_LHS_T);
+            p_eff_lin_sys->SetLeftHandSide(*p_eff_lhs);
 
             // // Compute the scale factor value
             // //TODO: think on how to make this user-definable
@@ -239,9 +242,12 @@ private:
         } else {
             // If there are no constraints the effective arrays are the same as the input ones
             // Note that we avoid duplicating the memory by making the effective pointers to point to the same object
-            rImplicitStrategyDataContainer.pEffectiveLhs = rImplicitStrategyDataContainer.pLhs;
-            rImplicitStrategyDataContainer.pEffectiveRhs = rImplicitStrategyDataContainer.pRhs;
-            rImplicitStrategyDataContainer.pEffectiveDx = rImplicitStrategyDataContainer.pDx;
+            auto& r_dx = p_lin_sys->GetSolution();
+            auto& r_lhs = p_lin_sys->GetLeftHandSide();
+            auto& r_rhs = p_lin_sys->GetRightHandSide();
+            p_eff_lin_sys->SetSolution(r_dx);
+            p_eff_lin_sys->SetLeftHandSide(r_lhs);
+            p_eff_lin_sys->SetRightHandSide(r_rhs);
         }
     }
 

@@ -19,6 +19,7 @@
 
 // Project includes
 #include "builder.h"
+#include "future/containers/linear_system.h"
 #include "includes/define.h"
 #include "includes/model_part.h"
 #include "utilities/amgcl_csr_conversion_utilities.h"
@@ -68,13 +69,16 @@ public:
     using VectorType = typename TLinearAlgebra::VectorType;
 
     /// Sparse graph type definition
-    using SparseGraphType = TLinearAlgebra::SparseGraphType;
+    using SparseGraphType = typename TLinearAlgebra::SparseGraphType;
 
     /// Index type definition from sparse matrix
     using IndexType = typename TLinearAlgebra::IndexType;
 
     /// DOF array type definition
     using DofsArrayType = typename BaseType::DofsArrayType;
+
+    /// Linear system type definition
+    using LinearSystemType = LinearSystem<TLinearAlgebra>;
 
     ///@}
     ///@name Life Cycle
@@ -104,21 +108,20 @@ public:
 
     void AllocateLinearSystem(
         const SparseGraphType& rSparseGraph,
-        ImplicitStrategyDataContainer<TLinearAlgebra> &rLinearSystemContainer) override
+        ImplicitStrategyDataContainer<TLinearAlgebra> &rImplicitStrategyDataContainer) override
     {
         // Set the system arrays
         // Note that the graph-based constructor does both resizing and initialization
         auto p_dx = Kratos::make_shared<VectorType>(rSparseGraph);
-        rLinearSystemContainer.pDx.swap(p_dx);
-
         auto p_rhs = Kratos::make_shared<VectorType>(rSparseGraph);
-        rLinearSystemContainer.pRhs.swap(p_rhs);
-
         auto p_lhs = Kratos::make_shared<MatrixType>(rSparseGraph);
-        rLinearSystemContainer.pLhs.swap(p_lhs);
+
+        // Set the linear system with the arrays above
+        auto p_lin_sys = Kratos::make_unique<LinearSystemType>(p_lhs, p_rhs, p_dx, "LinearSystem");
+        rImplicitStrategyDataContainer.mpLinearSystem = std::move(p_lin_sys); // Transfer ownership to the data container
 
         // Get the number of free DOFs to allocate the effective system arrays
-        auto& r_eff_dof_set = *(rLinearSystemContainer.pEffectiveDofSet);
+        auto& r_eff_dof_set = *(rImplicitStrategyDataContainer.pEffectiveDofSet);
         const std::size_t n_free_dofs = IndexPartition<std::size_t>(r_eff_dof_set.size()).for_each<SumReduction<std::size_t>>([&](IndexType Index) {
             auto p_dof = r_eff_dof_set.begin() + Index;
             return p_dof->IsFixed() ? 0 : 1;
@@ -126,32 +129,31 @@ public:
 
         // Allocate the effective arrays according to the number of free effective DOFs
         auto p_eff_lhs = Kratos::make_shared<MatrixType>();
-        rLinearSystemContainer.pEffectiveLhs.swap(p_eff_lhs);
-
         auto p_eff_rhs = Kratos::make_shared<VectorType>(n_free_dofs);
-        rLinearSystemContainer.pEffectiveRhs.swap(p_eff_rhs);
-
         auto p_eff_dx = Kratos::make_shared<VectorType>(n_free_dofs);
-        rLinearSystemContainer.pEffectiveDx.swap(p_eff_dx);
+
+        // Set the effective linear system with the effective arrays
+        auto p_eff_lin_sys = Kratos::make_unique<LinearSystemType>(p_eff_lhs, p_eff_rhs, p_eff_dx, "EffectiveLinearSystem");
+        rImplicitStrategyDataContainer.mpEffectiveLinearSystem = std::move(p_eff_lin_sys); // Transfer ownership to the data container
     }
 
-    void AllocateLinearSystemConstraints(ImplicitStrategyDataContainer<TLinearAlgebra>& rLinearSystemContainer) override
+    void AllocateLinearSystemConstraints(ImplicitStrategyDataContainer<TLinearAlgebra>& rImplicitStrategyDataContainer) override
     {
         // Check if there are master-slave constraints
-        auto& r_eff_dof_set = *(rLinearSystemContainer.pEffectiveDofSet);
+        auto& r_eff_dof_set = *(rImplicitStrategyDataContainer.pEffectiveDofSet);
         const std::size_t n_constraints = this->GetModelPart().NumberOfMasterSlaveConstraints();
         if (n_constraints) {
             // Fill the master-slave constraints graph
             SparseGraphType constraints_sparse_graph;
-            auto& r_dof_set = *(rLinearSystemContainer.pDofSet);
+            auto& r_dof_set = *(rImplicitStrategyDataContainer.pDofSet);
             this->SetUpMasterSlaveConstraintsGraph(r_dof_set, r_eff_dof_set, constraints_sparse_graph);
 
             // Allocate the constraints arrays (note that we are using the move assignment operator in here)
             auto p_aux_q = Kratos::make_shared<VectorType>(r_dof_set.size());
-            rLinearSystemContainer.pConstraintsQ.swap(p_aux_q);
+            rImplicitStrategyDataContainer.pConstraintsQ.swap(p_aux_q);
 
             auto p_aux_T = Kratos::make_shared<MatrixType>(constraints_sparse_graph);
-            rLinearSystemContainer.pConstraintsT.swap(p_aux_T);
+            rImplicitStrategyDataContainer.pConstraintsT.swap(p_aux_T);
 
             // // Free the constraints sparse matrix graph memory to avoid having two graphs at the same time
             // delete constraints_sparse_graph;
@@ -184,11 +186,12 @@ public:
     }
 
     //FIXME: Do the RHS-only version
-    void ApplyLinearSystemConstraints(ImplicitStrategyDataContainer<TLinearAlgebra>& rLinearSystemContainer) override
+    void ApplyLinearSystemConstraints(ImplicitStrategyDataContainer<TLinearAlgebra>& rImplicitStrategyDataContainer) override
     {
         // Get effective arrays
-        auto p_eff_dx = rLinearSystemContainer.pEffectiveDx;
-        auto p_eff_rhs = rLinearSystemContainer.pEffectiveRhs;
+        auto p_eff_lin_sys = rImplicitStrategyDataContainer.pGetEffectiveLinearSystem();
+        auto p_eff_dx = p_eff_lin_sys->pGetSolution();
+        auto p_eff_rhs = p_eff_lin_sys->pGetRightHandSide();
 
         // Initialize the effective RHS
         KRATOS_ERROR_IF(p_eff_rhs == nullptr) << "Effective RHS vector has not been initialized yet." << std::endl;
@@ -201,36 +204,39 @@ public:
         // Set ones in the entries of the Dirichlet constraints relation matrix
         mpDirichletT->SetValue(1.0);
 
+        // Get the linear system to apply the constraints to
+        auto p_lin_sys = rImplicitStrategyDataContainer.pGetLinearSystem();
+        auto& r_lhs = p_lin_sys->GetLeftHandSide();
+        auto& r_rhs = p_lin_sys->GetRightHandSide();
+
         // Check if there are master-slave constraints to do the constraints composition
         const auto& r_model_part = this->GetModelPart();
         const std::size_t n_constraints = r_model_part.NumberOfMasterSlaveConstraints();
         if (n_constraints) { //FIXME: In here we should check the number of active constraints
             // Compute the total relation matrix including master-slave and Dirichlet constraints
-            auto& r_constraints_T = *rLinearSystemContainer.pConstraintsT;
-            rLinearSystemContainer.pEffectiveT = AmgclCSRSpMMUtilities::SparseMultiply(r_constraints_T, *mpDirichletT);
+            auto& r_constraints_T = *rImplicitStrategyDataContainer.pConstraintsT;
+            rImplicitStrategyDataContainer.pEffectiveT = AmgclCSRSpMMUtilities::SparseMultiply(r_constraints_T, *mpDirichletT);
 
             // Apply constraints to RHS
-            auto p_rhs = rLinearSystemContainer.pRhs;
-            rLinearSystemContainer.pEffectiveT->TransposeSpMV(*p_rhs, *p_eff_rhs);
+            rImplicitStrategyDataContainer.pEffectiveT->TransposeSpMV(r_rhs, *p_eff_rhs);
 
             // Apply constraints to LHS
-            auto p_lhs = rLinearSystemContainer.pLhs;
-            auto p_LHS_T = AmgclCSRSpMMUtilities::SparseMultiply(*p_lhs, *rLinearSystemContainer.pEffectiveT);
-            auto p_transT = AmgclCSRConversionUtilities::Transpose(*rLinearSystemContainer.pEffectiveT);
-            rLinearSystemContainer.pEffectiveLhs = AmgclCSRSpMMUtilities::SparseMultiply(*p_transT, *p_LHS_T);
+            auto p_LHS_T = AmgclCSRSpMMUtilities::SparseMultiply(r_lhs, *rImplicitStrategyDataContainer.pEffectiveT);
+            auto p_transT = AmgclCSRConversionUtilities::Transpose(*rImplicitStrategyDataContainer.pEffectiveT);
+            auto p_eff_lhs = AmgclCSRSpMMUtilities::SparseMultiply(*p_transT, *p_LHS_T);
+            p_eff_lin_sys->SetLeftHandSide(*p_eff_lhs);
         } else {
             // Assign the Dirichlet relation matrix as the effective ones since there are no other constraints
-            rLinearSystemContainer.pEffectiveT = mpDirichletT;
+            rImplicitStrategyDataContainer.pEffectiveT = mpDirichletT;
 
             // Apply Dirichlet constraints to RHS
-            auto p_rhs = rLinearSystemContainer.pRhs;
-            rLinearSystemContainer.pEffectiveT->TransposeSpMV(*p_rhs, *p_eff_rhs);
+            rImplicitStrategyDataContainer.pEffectiveT->TransposeSpMV(r_rhs, *p_eff_rhs);
 
             // Apply Dirichlet constraints to LHS
-            auto p_lhs = rLinearSystemContainer.pLhs;
-            auto p_LHS_T = AmgclCSRSpMMUtilities::SparseMultiply(*p_lhs, *rLinearSystemContainer.pEffectiveT);
-            auto p_transT = AmgclCSRConversionUtilities::Transpose(*rLinearSystemContainer.pEffectiveT);
-            rLinearSystemContainer.pEffectiveLhs = AmgclCSRSpMMUtilities::SparseMultiply(*p_transT, *p_LHS_T);
+            auto p_LHS_T = AmgclCSRSpMMUtilities::SparseMultiply(r_lhs, *rImplicitStrategyDataContainer.pEffectiveT);
+            auto p_transT = AmgclCSRConversionUtilities::Transpose(*rImplicitStrategyDataContainer.pEffectiveT);
+            auto p_eff_lhs = AmgclCSRSpMMUtilities::SparseMultiply(*p_transT, *p_LHS_T);
+            p_eff_lin_sys->SetLeftHandSide(*p_eff_lhs);
         }
     }
 

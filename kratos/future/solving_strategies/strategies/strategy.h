@@ -80,6 +80,8 @@ public:
         : mpModelPart(&rModelPart)
         , mParameters(ThisParameters)
     {
+        KRATOS_WATCH("Strategy Constructor")
+
         mParameters.ValidateAndAssignDefaults(this->GetDefaultParameters());
     }
 

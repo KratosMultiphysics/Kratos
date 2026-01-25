@@ -175,7 +175,7 @@ public:
         KRATOS_ERROR_IF(mpSol == nullptr) << "Solution vector must be initialized." << std::endl;
 
         // Check if the system name is set (not mandatory but a good practice for debugging purposes)
-        KRATOS_WARNING_IF(mSystemName.empty()) << "System name is empty." << std::endl;
+        KRATOS_WARNING_IF("LinearSystem", mSystemName.empty()) << "System name is empty." << std::endl;
 
         return 0;
     }
@@ -209,6 +209,16 @@ public:
     * @brief Get a reference to the left-hand side matrix.
     * @return Reference to the left-hand side matrix
     */
+    virtual typename MatrixType::Pointer pGetLeftHandSide()
+    {
+        KRATOS_ERROR_IF(!mpLhs) << "Left-hand side matrix is not initialized." << std::endl;
+        return mpLhs;
+    }
+
+    /**
+    * @brief Get a reference to the left-hand side matrix.
+    * @return Reference to the left-hand side matrix
+    */
     virtual MatrixType& GetLeftHandSide()
     {
         KRATOS_ERROR_IF(!mpLhs) << "Left-hand side matrix is not initialized." << std::endl;
@@ -223,6 +233,26 @@ public:
     {
         KRATOS_ERROR_IF(!mpLhs) << "Left-hand side matrix is not initialized." << std::endl;
         return *mpLhs;
+    }
+
+    /**
+     * @brief Set the Left Hand Side matrix
+     * @param rLhs The left-hand side matrix
+     */
+    virtual void SetLeftHandSide(MatrixType& rLhs)
+    {
+        mpLhs = Kratos::make_shared<MatrixType>(rLhs);
+        mpLinearOperator = Kratos::make_shared<SparseMatrixLinearOperator<TLinearAlgebra>>(rLhs);
+    }
+
+    /**
+    * @brief Get a pointer to the right-hand side vector.
+    * @return Pointer to the right-hand side vector
+    */
+    virtual typename VectorType::Pointer pGetRightHandSide()
+    {
+        KRATOS_ERROR_IF(!mpRhs) << "Right-hand side vector is not initialized." << std::endl;
+        return mpRhs;
     }
 
     /**
@@ -246,10 +276,29 @@ public:
     }
 
     /**
+     * @brief Set the Right Hand Side vector
+     * @param rRhs The right-hand side vector
+     */
+    virtual void SetRightHandSide(VectorType& rRhs)
+    {
+        mpRhs = Kratos::make_shared<VectorType>(rRhs);
+    }
+
+    /**
+     * @brief Get a pointer to the solution vector.
+     * @return Pointer to the solution vector
+     */
+    virtual typename VectorType::Pointer pGetSolution() //FIXME: rename to pGetSolutionIncrement?
+    {
+        KRATOS_ERROR_IF(!mpSol) << "Solution vector is not initialized." << std::endl;
+        return mpSol;
+    }
+
+    /**
     * @brief Get a reference to the solution vector.
     * @return Reference to the solution vector
     */
-    virtual VectorType& GetSolution()
+    virtual VectorType& GetSolution() //FIXME: rename to GetSolutionIncrement?
     {
         KRATOS_ERROR_IF(!mpSol) << "Solution vector is not initialized." << std::endl;
         return *mpSol;
@@ -259,10 +308,19 @@ public:
     * @brief Get a const reference to the solution vector.
     * @return Const reference to the solution vector
     */
-    virtual const VectorType& GetSolution() const
+    virtual const VectorType& GetSolution() const //FIXME: rename to GetSolutionIncrement?
     {
         KRATOS_ERROR_IF(!mpSol) << "Solution vector is not initialized." << std::endl;
         return *mpSol;
+    }
+
+    /**
+     * @brief Set the Solution vector
+     * @param rSol The solution vector
+     */
+    virtual void SetSolution(VectorType& rSol) //FIXME: rename to SetSolutionIncrement?
+    {
+        mpSol = Kratos::make_shared<VectorType>(rSol);
     }
 
     /**

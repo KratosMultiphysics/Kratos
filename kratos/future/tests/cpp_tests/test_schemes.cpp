@@ -61,8 +61,9 @@ KRATOS_TEST_CASE_IN_SUITE(StaticSchemeBuild1D, KratosCoreFastSuite)
     p_scheme->Initialize(strategy_data_container);
 
     // Call the build
-    auto p_lhs = strategy_data_container.pLhs;
-    auto p_rhs = strategy_data_container.pRhs;
+    const auto p_linear_system = strategy_data_container.pGetLinearSystem();
+    auto p_lhs = p_linear_system->pGetLeftHandSide();
+    auto p_rhs = p_linear_system->pGetRightHandSide();
     p_scheme->Build(*p_lhs, *p_rhs);
 
     // Check resultant matrices
@@ -120,8 +121,9 @@ KRATOS_TEST_CASE_IN_SUITE(StaticSchemeBuild2D, KratosCoreFastSuite)
     p_scheme->Initialize(strategy_data_container);
 
     // Call the build
-    auto p_lhs = strategy_data_container.pLhs;
-    auto p_rhs = strategy_data_container.pRhs;
+    const auto p_linear_system = strategy_data_container.pGetLinearSystem();
+    auto p_lhs = p_linear_system->pGetLeftHandSide();
+    auto p_rhs = p_linear_system->pGetRightHandSide();
 
     sleep(30);
 

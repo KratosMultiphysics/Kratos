@@ -221,8 +221,8 @@ public:
         KRATOS_TRY
 
         // Get linear system arrays
-        auto& r_dx = *(rImplicitStrategyDataContainer.pDx);
-        auto& r_eff_dx = *(rImplicitStrategyDataContainer.pEffectiveDx);
+        auto& r_dx = rImplicitStrategyDataContainer.pGetLinearSystem()->GetSolution();
+        auto& r_eff_dx = rImplicitStrategyDataContainer.pGetEffectiveLinearSystem()->GetSolution();
         auto& r_dof_set = *(rImplicitStrategyDataContainer.pDofSet);
         auto& r_eff_dof_set = *(rImplicitStrategyDataContainer.pEffectiveDofSet);
 
