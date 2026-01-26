@@ -289,6 +289,7 @@ KRATOS_TEST_CASE_IN_SUITE(IgaMappingIntersection_FindInitialGuessNewtonRaphsonPr
         x0, y0, z0,
         L,
         node_id_offset);
+    const GeometryType& r_master_geom = *p_brep;
 
     std::vector<IndexType> patches_id{patch_id};
 
@@ -310,7 +311,7 @@ KRATOS_TEST_CASE_IN_SUITE(IgaMappingIntersection_FindInitialGuessNewtonRaphsonPr
 
     const bool found = FindInitialGuessNewtonRaphsonProjection(
         slave_xyz,
-        p_brep,          // GeometryPointerType
+        r_master_geom,          // GeometryPointerType
         patch_cache,
         initial_guess,
         search_radius);
@@ -333,7 +334,7 @@ KRATOS_TEST_CASE_IN_SUITE(IgaMappingIntersection_FindInitialGuessNewtonRaphsonPr
 
     const bool found_far = FindInitialGuessNewtonRaphsonProjection(
         slave_xyz_far,
-        p_brep,
+        r_master_geom,
         patch_cache,
         initial_guess_far,
         search_radius);
@@ -497,6 +498,7 @@ KRATOS_TEST_CASE_IN_SUITE(
 
     // IMPORTANT: use the same helper you already have
     auto p_brep = CreateTestBrepSurface_NoTrim(r_mp, patch_id, 0.0, 0.0, 0.0, 1.0, 1);
+    const GeometryType& r_master_geom = *p_brep;
     r_mp.AddGeometry(p_brep);
 
     GeometryPointerType p_geom_master = p_brep;
@@ -541,7 +543,7 @@ KRATOS_TEST_CASE_IN_SUITE(
 
     const bool found =
         FindTriangleSegmentSurfaceIntersectionWithBisection(
-            p_geom_master,
+            r_master_geom,
             point_inside_xyz,
             point_outside_xyz,
             initial_guess,

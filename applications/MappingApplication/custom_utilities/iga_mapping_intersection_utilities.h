@@ -226,7 +226,7 @@ namespace IgaMappingIntersectionUtilities
      */
     bool KRATOS_API(MAPPING_APPLICATION) FindInitialGuessNewtonRaphsonProjection(
         const CoordinatesArrayType& rSlaveElementNode,
-        GeometryPointerType pMasterGeometry,
+        const GeometryType& rMasterGeometry,
         const PatchCacheMap& rPatchCache,
         CoordinatesArrayType& rInitialGuess,
         const double SearchRadius);
@@ -269,7 +269,7 @@ namespace IgaMappingIntersectionUtilities
      * @return true                   Always true (current implementation). Can be extended to signal failure.
      */
     bool KRATOS_API(MAPPING_APPLICATION) FindTriangleSegmentSurfaceIntersectionWithBisection(
-        GeometryPointerType p_geom_master,
+        const GeometryType& p_geom_master,
         const CoordinatesArrayType& r_point_inside,
         const CoordinatesArrayType& r_point_outside,
         const CoordinatesArrayType& r_initial_guess,

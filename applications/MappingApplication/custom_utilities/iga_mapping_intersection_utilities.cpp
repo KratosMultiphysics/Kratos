@@ -326,7 +326,7 @@ void IgaMappingIntersectionUtilities::CreateIgaFEMQuadraturePointsOnSurface(
             const bool have_initial_guess =
             IgaMappingIntersectionUtilities::FindInitialGuessNewtonRaphsonProjection(
                 node_coordinate_xyz,        // slave XYZ
-                geom_master,                // Brep surface geometry
+                geometry_itr->GetGeometryPart(0),                // Brep surface geometry
                 rPatchCache,                // PatchCacheMap (built once)
                 local_parameter,            // output (u,v)
                 search_radius               // bins search radius
@@ -385,7 +385,7 @@ void IgaMappingIntersectionUtilities::CreateIgaFEMQuadraturePointsOnSurface(
 
                 const bool found =
                     FindTriangleSegmentSurfaceIntersectionWithBisection(
-                        geom_master,
+                        geometry_itr->GetGeometryPart(0),
                         successful_nodes_xyz[0],
                         failed_nodes_xyz[i],
                         points_to_triangulate[0],
@@ -447,7 +447,7 @@ void IgaMappingIntersectionUtilities::CreateIgaFEMQuadraturePointsOnSurface(
 
                 // Use your current intersection routine (void). If you have the new bool routine, use it instead.
                 IgaMappingIntersectionUtilities::FindTriangleSegmentSurfaceIntersectionWithBisection(
-                    geom_master,
+                    geometry_itr->GetGeometryPart(0),
                     successful_nodes_xyz[i],              // inside the patch
                     failed_nodes_xyz[0],          // outside the patch
                     points_to_triangulate[i],                                       // better initial guess: the corresponding inside param
@@ -679,12 +679,12 @@ void IgaMappingIntersectionUtilities::CreateIgaFEMQuadraturePointsOnSurface(
 
 bool IgaMappingIntersectionUtilities::FindInitialGuessNewtonRaphsonProjection(
     const CoordinatesArrayType& slave_xyz,
-    const GeometryPointerType master_geometry,
+    const GeometryType& r_master_geometry,
     const PatchCacheMap& rPatchCache,
     CoordinatesArrayType& initial_guess,
     const double search_radius)
 {
-    const IndexType patch_id = master_geometry->Id();
+    const IndexType patch_id = r_master_geometry.Id();
 
     auto it = rPatchCache.find(patch_id);
     KRATOS_ERROR_IF(it == rPatchCache.end())
@@ -764,7 +764,7 @@ bool IgaMappingIntersectionUtilities::AreProjectionsOnParameterSpaceBoundary(
 }
 
 bool IgaMappingIntersectionUtilities::FindTriangleSegmentSurfaceIntersectionWithBisection(
-    GeometryPointerType p_geom_master,
+    const GeometryType& r_geom_master,
     const CoordinatesArrayType& r_point_inside,
     const CoordinatesArrayType& r_point_outside,
     const CoordinatesArrayType& r_initial_guess,
@@ -794,7 +794,7 @@ bool IgaMappingIntersectionUtilities::FindTriangleSegmentSurfaceIntersectionWith
         }
 
         // "Inside test" via projection success
-        const IndexType projection_ok = p_geom_master->ProjectionPointGlobalToLocalSpace(
+        const IndexType projection_ok = r_geom_master.ProjectionPointGlobalToLocalSpace(
             mid, local_param, proj_tol);
 
         if (projection_ok == 0) {
