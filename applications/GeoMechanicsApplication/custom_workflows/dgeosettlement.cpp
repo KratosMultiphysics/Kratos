@@ -19,25 +19,25 @@
 #include "structural_mechanics_application.h"
 #include "time_loop_executor_interface.h"
 
+#include "custom_processes/apply_c_phi_reduction_process.h"
+#include "custom_processes/apply_component_table_process.h"
+#include "custom_processes/apply_constant_interpolate_line_pressure_process.h"
+#include "custom_processes/apply_constant_phreatic_multi_line_pressure_process.h"
 #include "custom_processes/apply_excavation_process.h"
+#include "custom_processes/apply_final_stresses_of_previous_stage_to_initial_state.h"
+#include "custom_processes/apply_initial_uniform_stress_field.h"
 #include "custom_processes/apply_k0_procedure_process.h"
 #include "custom_processes/apply_normal_load_table_process.h"
 #include "custom_processes/apply_scalar_constraint_table_process.h"
 #include "custom_processes/apply_vector_constraint_table_process.h"
-#include "custom_processes/fix_water_pressures_above_phreatic_line.h"
-#include "custom_processes/set_parameter_field_process.hpp"
-#include "custom_processes/apply_c_phi_reduction_process.h"
-#include "custom_processes/apply_component_table_process.h"
-#include "custom_processes/apply_constant_interpolate_line_pressure_process.hpp"
-#include "custom_processes/apply_constant_phreatic_multi_line_pressure_process.h"
-#include "custom_processes/apply_final_stresses_of_previous_stage_to_initial_state.h"
-#include "custom_processes/apply_initial_uniform_stress_field.h"
-#include "custom_processes/apply_write_result_scalar_process.hpp"
+#include "custom_processes/apply_write_result_scalar_process.h"
 #include "custom_processes/calculate_incremental_motion_process.h"
 #include "custom_processes/calculate_total_motion_process.h"
+#include "custom_processes/fix_water_pressures_above_phreatic_line.h"
 #include "custom_processes/geo_apply_constant_scalar_value_process.h"
-#include "custom_processes/set_absorbing_boundary_parameters_process.hpp"
+#include "custom_processes/set_absorbing_boundary_parameters_process.h"
 #include "custom_processes/set_multiple_moving_loads.h"
+#include "custom_processes/set_parameter_field_process.hpp"
 
 #include "adaptive_time_incrementor.h"
 #include "custom_processes/deactivate_conditions_on_inactive_elements_process.h"
@@ -175,21 +175,23 @@ void KratosGeoSettlement::InitializeProcessFactory()
                                 MakeCreatorWithModelFor<GeoExtrapolateIntegrationPointValuesToNodesProcess>());
     mProcessFactory->AddCreator("FixWaterPressuresAbovePhreaticLineProcess",
                                 MakeCreatorFor<FixWaterPressuresAbovePhreaticLineProcess>());
-    mProcessFactory->AddCreator("ApplyComponentTableProcess",
-                                MakeCreatorFor<ApplyComponentTableProcess>());
+    mProcessFactory->AddCreator("ApplyComponentTableProcess", MakeCreatorFor<ApplyComponentTableProcess>());
     mProcessFactory->AddCreator("ApplyConstantPhreaticMultiLinePressureProcess",
                                 MakeCreatorFor<ApplyConstantPhreaticMultiLinePressureProcess>());
     mProcessFactory->AddCreator("ApplyFinalStressesOfPreviousStageToInitialState",
                                 MakeCreatorWithModelFor<ApplyFinalStressesOfPreviousStageToInitialState>());
-    mProcessFactory->AddCreator("ApplyInitialUniformStressField", MakeCreatorFor<ApplyInitialUniformStressField>());
+    mProcessFactory->AddCreator("ApplyInitialUniformStressField",
+                                MakeCreatorFor<ApplyInitialUniformStressField>());
     mProcessFactory->AddCreator("ApplyWriteScalarProcess", MakeCreatorFor<ApplyWriteScalarProcess>());
     mProcessFactory->AddCreator("CalculateIncrementalMotionProcess",
                                 MakeCreatorFor<CalculateIncrementalMotionProcess>());
     mProcessFactory->AddCreator("CalculateTotalMotionProcess", MakeCreatorFor<CalculateTotalMotionProcess>());
     mProcessFactory->AddCreator("GeoApplyConstantScalarValueProcess",
                                 MakeCreatorFor<GeoApplyConstantScalarValueProcess>());
-    mProcessFactory->AddCreator("SetMultipleMovingLoadsProcess", MakeCreatorFor<SetMultipleMovingLoadsProcess>());
-    mProcessFactory->AddCreator("ApplyCPhiReductionProcess", MakeCreatorWithModelFor<ApplyCPhiReductionProcess>());
+    mProcessFactory->AddCreator("SetMultipleMovingLoadsProcess",
+                                MakeCreatorFor<SetMultipleMovingLoadsProcess>());
+    mProcessFactory->AddCreator("ApplyCPhiReductionProcess",
+                                MakeCreatorWithModelFor<ApplyCPhiReductionProcess>());
     mProcessFactory->AddCreator("ApplyConstantInterpolateLinePressureProcess",
                                 MakeCreatorFor<ApplyConstantInterpolateLinePressureProcess>());
     mProcessFactory->AddCreator("SetAbsorbingBoundaryParametersProcess",
