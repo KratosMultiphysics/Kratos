@@ -27,6 +27,8 @@ The Mapping Application contains the core developments in mapping data between n
   - Nearest Neighbor
   - Nearest Element
   - Barycentric
+  - Radial Basis Function Mapper
+  - Beam Mapper
 - Metamappers
   - 3D/2D metamapper (metamapper which obtains the solution for the 3D destination model part from the original 2D solution)
 - Mapping operations (see [here](#customizing-the-behavior-of-the-mapping-with-flags))
@@ -252,9 +254,20 @@ Internally it constructs the mapping matrix, hence it offers the usage of the tr
 
 **Supported mesh topologies**: This mapper only works with nodes and hence supports any mesh topology
 
+#### Nearest Neighbor for IGA scenarios
+
+The _NearestNeighborMapperIGA_ is a simple and robust Mapper for IGA/FEM partitioned simulations. For each node on the FEM side, it finds the closest integration point on the IGA interface.
+During mapping, it evaluates the IGA shape functions at that location to assemble the mapping matrix.
+
+This mapper is suited for cases where the origin domain is discretized with IGA elements and the destination with any node-based discretization technique (e.g., FEM or FCV).
+
+Internally, it constructs the mapping matrix, which also allows the use of its transpose for conservative mapping (e.g., mapping forces from FEM to IGA). In cases of highly inhomogeneous interface discretizations, using the transpose may introduce oscillations in the mapped values.
+
+**Supported mesh topologies**: This mapper operates on nodes and supports any mesh topology. The only requirement is that the origin domain must be the IGA domain; otherwise, the mapping problem is not well defined.
+
 #### Nearest Element
 
-The _NearestElementMapper_ projects nodes to the elements( or conditions) on other side of the interface. Mapping is then done by interpolating the values of the nodes of the elements by using the shape functions at the projected position.
+The _NearestElementMapper_ projects nodes to the elements( or conditions) on other side of the interface. Mapping is then done by interpolating the values of the nodes of the elements by using the shape functions at the projected position. The NearestElementMapper supports IGA/FEM partitioned simulations where the origin must be the IGA domain. Each FEM node is projected onto the IGA surface or its boundary curves, and the shape functions are evaluated at that point to assemble the mapping matrix.
 
 This mapper is best suited for problems where the _NearestNeighborMapper_ cannot be used, i.e. for cases where the discretization on the interfaces is different. Note that it is less robust than the _NearestNeighborMapper_ due to the projections it performs. In case a projection fails, it uses an approximation that is similar to the approach of the _NearestNeighborMapper_. This can be disabled by setting `use_approximation` to `false` in the mapper-settings.
 
@@ -273,6 +286,79 @@ Furthermore, the geometry type for the reconstruction/interpolation has to be ch
 Internally it constructs the mapping matrix, hence it offers the usage of the transposed mapping matrix. When using this, for very inhomogeneous interface discretizations it can come to oscillations in the mapped quantities.
 
 **Supported mesh topologies**: This mapper only works with nodes and hence supports any mesh topology
+
+#### Radial Basis Function (RBF) Mapper 
+The _RadialBasisFunctionMapper_ is a global, mesh-independent mapper that constructs a smooth interpolation field based on Radial Basis Functions (RBFs). In contrast to purely local methods, this mapper uses all (or a user-defined subset of) points from the origin interface to build an RBF system that is then evaluated at the destination points.
+
+This allows for smooth, high-quality transfer of field quantities between arbitrarily discretized, non-matching, or strongly non-uniform interfaces. It is therefore particularly suitable for multi-physics problems where interface meshes can differ substantially.
+
+The default configuration looks as follows:
+
+```json
+"mapper_settings" : {
+    "echo_level"                     : 0,
+    "radial_basis_function_type"     : "thin_plate_spline",
+    "additional_polynomial_degree"   : 0,
+    "origin_is_iga"                  : false,
+    "destination_is_iga"             : false,
+    "max_support_points"  : 0,
+    "use_all_rbf_support_points": true,
+    "precompute_mapping_matrix"      : true,
+    "search_settings"                : {},
+    "linear_solver_settings"         : {}
+}
+```
+
+**Important notes:**
+- Only the origin domain can be IGA.
+The mapper can extract coordinates from IGA gauss points on the origin side (```json"origin_is_iga": true```). The destination side must currently be a standard finite element mesh (nodes as mapping coordinates).
+-Global RBF System
+Internally, the mapper assembles and solves a global RBF interpolation system.
+If ```json"precompute_mapping_matrix": true```, the resulting mapping matrix is stored and reused, allowing efficient repeated mapping calls.
+- Support Points
+  - ```json"use_all_rbf_support_points": true``` → all origin points contribute to the RBF system.
+  - ```json"max_support_points" > 0``` → restricts support to a local neighborhood for each destination point.
+
+
+#### Beam Mapper 
+The _BeamMapper_ provides support for mapping between 1D beam elements and 2D/3D surface meshes. It follows the formulation of Wang (2019) and is intended for cases where beam DOFs (displacements and rotations) must be transferred consistently to a surrounding surface, e.g. in FSI or beam–solid coupling.
+
+The mapper projects each surface node onto the undeformed beam centerline and assigns a local rigid cross section. The motion of every projected surface point is obtained through rigid body motion of this cross section, using the beam’s axial and rotational DOFs. Hermitian shape functions are used along the beam to interpolate both displacements and rotations.
+
+A typical configuration json looks as follows:
+
+```json
+"mapper" : {
+    "type" : "kratos_beam_mapping",
+    "model_part_name_beam"         : "Structure.Parts_Beam_beam",
+    "model_part_name_surface"      : "Structure.Parts_Shell_wet_surface",
+    "solver_name_beam": "beam_structure",
+    "solver_name_surface" : "dummy_fluid",
+    "echo_level": 3,
+    "mapper_settings" : {
+        "mapper_type" : "beam_mapper",
+        "use_corotation" : false,
+        "search_settings": {
+            "max_num_search_iterations"     : 30,
+            "search_radius": 3.0
+        },
+        "echo_level": 0
+    }
+}
+```
+
+**Explanation of the main entries:**
+- `"type"`: selects the CoSimulation mapper. "kratos_beam_mapping" activates the _BeamMapper_.
+- `"model_part_name_beam" / "model_part_name_surface"`: names of the origin beam model part and the target surface model part used for the mapping.
+- `"solver_name_beam" / "solver_name_surface"`: identifiers of the solvers that own these model parts. They are used internally by the CoSimulation framework to retrieve nodal values.
+- `"echo_level"`: controls the amount of printed information for debugging.
+- `"mapper_settings"`
+  - `"mapper_type"`: must be "beam_mapper" to use the _BeamMapper_.
+  - `"use_corotation"`: enables the co-rotational formulation (false → linear mapping, true → large-rotation mapping)
+  - `"search_settings"`: parameters controlling the projection of surface nodes onto the beam centerline.
+
+**Note:**
+This mapper currently supports FEM beam elements only. IGA beams are not yet supported.
 
 ### When to use which Mapper?
 

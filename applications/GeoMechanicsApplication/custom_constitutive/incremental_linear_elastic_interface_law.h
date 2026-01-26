@@ -18,11 +18,20 @@
 
 namespace Kratos
 {
+class ConstitutiveLawDimension;
 
 class KRATOS_API(GEO_MECHANICS_APPLICATION) GeoIncrementalLinearElasticInterfaceLaw : public ConstitutiveLaw
 {
 public:
     using BaseType = ConstitutiveLaw;
+
+    explicit GeoIncrementalLinearElasticInterfaceLaw(std::unique_ptr<ConstitutiveLawDimension> pConstitutiveLawDimension);
+
+    ~GeoIncrementalLinearElasticInterfaceLaw() override;
+    GeoIncrementalLinearElasticInterfaceLaw(const GeoIncrementalLinearElasticInterfaceLaw&) = delete;
+    GeoIncrementalLinearElasticInterfaceLaw& operator=(const GeoIncrementalLinearElasticInterfaceLaw&) = delete;
+    GeoIncrementalLinearElasticInterfaceLaw(GeoIncrementalLinearElasticInterfaceLaw&&) noexcept = default;
+    GeoIncrementalLinearElasticInterfaceLaw& operator=(GeoIncrementalLinearElasticInterfaceLaw&&) noexcept = default;
 
     [[nodiscard]] Pointer  Clone() const override;
     SizeType               WorkingSpaceDimension() override;
@@ -42,12 +51,15 @@ public:
                const ProcessInfo&  rCurrentProcessInfo) const override;
 
 private:
+    GeoIncrementalLinearElasticInterfaceLaw() = default;
+
     friend class Serializer;
     void save(Serializer& rSerializer) const override;
     void load(Serializer& rSerializer) override;
 
-    Vector mPreviousRelativeDisplacement;
-    Vector mPreviousTraction;
+    Vector                                    mPreviousRelativeDisplacement;
+    Vector                                    mPreviousTraction;
+    std::unique_ptr<ConstitutiveLawDimension> mpConstitutiveLawDimension;
 };
 
 } // namespace Kratos

@@ -169,6 +169,7 @@ public:
         if (r_gid_io_base.GetData() == 0){
             GiD_PostInit();
         }
+        GiD_PostSetFormatReal("%g");
         r_gid_io_base.SetData(r_gid_io_base.GetData() + 1);
     }
 

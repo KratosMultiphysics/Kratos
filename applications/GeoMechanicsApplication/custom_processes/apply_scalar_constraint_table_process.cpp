@@ -12,20 +12,21 @@
 //
 #include "apply_scalar_constraint_table_process.h"
 #include "apply_component_table_process.h"
-#include "apply_constant_interpolate_line_pressure_process.hpp"
-#include "apply_constant_phreatic_line_pressure_process.hpp"
-#include "apply_constant_phreatic_surface_pressure_process.hpp"
-#include "apply_hydrostatic_pressure_table_process.hpp"
-#include "apply_phreatic_line_pressure_table_process.hpp"
+#include "apply_constant_interpolate_line_pressure_process.h"
+#include "apply_constant_phreatic_line_pressure_process.h"
+#include "apply_constant_phreatic_surface_pressure_process.h"
+#include "apply_hydrostatic_pressure_table_process.h"
+#include "apply_phreatic_line_pressure_table_process.h"
 #include "apply_phreatic_multi_line_pressure_table_process.h"
-#include "apply_phreatic_surface_pressure_table_process.hpp"
+#include "apply_phreatic_surface_pressure_table_process.h"
 #include "custom_utilities/parameters_utilities.h"
+#include "geo_apply_constant_scalar_value_process.h"
 #include "includes/kratos_parameters.h"
 #include "includes/model_part.h"
-#include "processes/apply_constant_scalarvalue_process.h"
 
 namespace Kratos
 {
+using namespace std::string_literals;
 
 ApplyScalarConstraintTableProcess::ApplyScalarConstraintTableProcess(ModelPart& rModelPart,
                                                                      const Parameters& rProcessSettings)
@@ -33,8 +34,6 @@ ApplyScalarConstraintTableProcess::ApplyScalarConstraintTableProcess(ModelPart& 
 {
     MakeInternalProcess(rProcessSettings);
 }
-
-ApplyScalarConstraintTableProcess::~ApplyScalarConstraintTableProcess() = default;
 
 void ApplyScalarConstraintTableProcess::MakeInternalProcess(const Parameters& rProcessSettings)
 {
@@ -79,7 +78,7 @@ void ApplyScalarConstraintTableProcess::MakeScalarConstraintProcess(const Parame
         mProcess = std::make_unique<ApplyComponentTableProcess>(
             mrModelPart, ParametersUtilities::CopyRequiredParameters(rProcessSettings, NamesOfSettingsToCopy));
     } else {
-        mProcess = std::make_unique<ApplyConstantScalarValueProcess>(
+        mProcess = std::make_unique<GeoApplyConstantScalarValueProcess>(
             mrModelPart, ParametersUtilities::CopyRequiredParameters(rProcessSettings, NamesOfSettingsToCopy));
     }
 }
@@ -190,7 +189,7 @@ void ApplyScalarConstraintTableProcess::ExecuteFinalize() { mProcess->ExecuteFin
 
 std::string ApplyScalarConstraintTableProcess::Info() const
 {
-    return "ApplyScalarConstraintTableProcess";
+    return "ApplyScalarConstraintTableProcess"s;
 }
 
 } // namespace Kratos

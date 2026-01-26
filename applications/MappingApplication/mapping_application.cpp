@@ -36,7 +36,10 @@
 #include "custom_mappers/nearest_element_mapper.h"
 #include "custom_mappers/barycentric_mapper.h"
 #include "custom_mappers/projection_3D_2D_mapper.h"
+#include "custom_mappers/beam_mapper.h"
 #include "custom_mappers/coupling_geometry_mapper.h"
+#include "custom_mappers/radial_basis_function_mapper.h"
+#include "custom_mappers/nearest_neighbor_mapper_iga.h"
 
 // Macros for registering mappers
 // will be removed once using the core factories
@@ -91,9 +94,14 @@ void KratosMappingApplication::Register()
     KRATOS_REGISTER_MAPPER_WITH_BACKEND(BarycentricMapper,     "barycentric");
     KRATOS_REGISTER_MAPPER_WITH_BACKEND(Projection3D2DMapper,  "projection_3D_2D");
 
+    KRATOS_REGISTER_MAPPER_WITH_BACKEND(NearestNeighborMapperIGA, "nearest_neighbor_iga");
+
+    KRATOS_REGISTER_MAPPER(RadialBasisFunctionMapper,  "radial_basis_function");
     KRATOS_REGISTER_MAPPER(CouplingGeometryMapper,  "coupling_geometry");
+    KRATOS_REGISTER_MAPPER(BeamMapper,  "beam_mapper");
 
     KRATOS_REGISTER_MODELER("MappingGeometriesModeler", mMappingGeometriesModeler);
+    KRATOS_REGISTER_MODELER("IgaFEMMappingGeometriesModeler", mIgaFEMMappingGeometriesModeler);
 
     KRATOS_REGISTER_VARIABLE( INTERFACE_EQUATION_ID )
     KRATOS_REGISTER_VARIABLE( PAIRING_STATUS )

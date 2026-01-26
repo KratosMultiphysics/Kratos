@@ -53,9 +53,17 @@ class RemeshDomainsProcess(KratosMultiphysics.Process):
         self.meshing_domains = []
         domains_list = self.settings["meshing_domains"]
         self.number_of_domains = domains_list.size()
+        model_name = self.settings["model_part_name"].GetString()
         for i in range(0,self.number_of_domains):
             item = domains_list[i]
-            domain_module = __import__(item["python_module"].GetString())
+            if item.Has("model_part_name"):
+                if not model_name in item["model_part_name"].GetString():
+                    name = model_name+"."+item["model_part_name"].GetString()
+                    item["model_part_name"].SetString(name)
+
+
+            import importlib
+            domain_module = importlib.import_module(item["python_module"].GetString())
             domain = domain_module.CreateMeshingDomain(Model,item)
             self.meshing_domains.append(domain)
 

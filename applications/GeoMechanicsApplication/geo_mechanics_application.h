@@ -28,31 +28,31 @@
 #include "geo_mechanics_application_variables.h"
 
 // conditions
-#include "custom_conditions/Pw_normal_flux_condition.hpp"
-#include "custom_conditions/Pw_point_flux_condition.hpp"
+#include "custom_conditions/Pw_normal_flux_condition.h"
+#include "custom_conditions/Pw_point_flux_condition.h"
 #include "custom_conditions/T_microclimate_flux_condition.h"
 #include "custom_conditions/T_normal_flux_condition.h"
-#include "custom_conditions/U_Pw_face_load_condition.hpp"
-#include "custom_conditions/U_Pw_face_load_interface_condition.hpp"
-#include "custom_conditions/U_Pw_force_condition.hpp"
-#include "custom_conditions/U_Pw_normal_face_load_condition.hpp"
-#include "custom_conditions/U_Pw_normal_flux_FIC_condition.hpp"
-#include "custom_conditions/U_Pw_normal_flux_condition.hpp"
-#include "custom_conditions/U_Pw_normal_flux_interface_condition.hpp"
-#include "custom_conditions/U_Pw_normal_lysmer_absorbing_condition.hpp"
-#include "custom_conditions/axisymmetric_U_Pw_normal_face_load_condition.hpp"
-#include "custom_conditions/axisymmetric_line_normal_fluid_flux_2D_diff_order_condition.hpp"
-#include "custom_conditions/axisymmetric_line_normal_load_2D_diff_order_condition.hpp"
-#include "custom_conditions/line_load_2D_diff_order_condition.hpp"
-#include "custom_conditions/line_normal_fluid_flux_2D_diff_order_condition.hpp"
-#include "custom_conditions/line_normal_load_2D_diff_order_condition.hpp"
-#include "custom_conditions/surface_load_3D_diff_order_condition.hpp"
-#include "custom_conditions/surface_normal_fluid_flux_3D_diff_order_condition.hpp"
-#include "custom_conditions/surface_normal_load_3D_diff_order_condition.hpp"
+#include "custom_conditions/U_Pw_face_load_condition.h"
+#include "custom_conditions/U_Pw_face_load_interface_condition.h"
+#include "custom_conditions/U_Pw_force_condition.h"
+#include "custom_conditions/U_Pw_normal_face_load_condition.h"
+#include "custom_conditions/U_Pw_normal_flux_FIC_condition.h"
+#include "custom_conditions/U_Pw_normal_flux_condition.h"
+#include "custom_conditions/U_Pw_normal_flux_interface_condition.h"
+#include "custom_conditions/U_Pw_normal_lysmer_absorbing_condition.h"
+#include "custom_conditions/axisymmetric_U_Pw_normal_face_load_condition.h"
+#include "custom_conditions/axisymmetric_line_normal_fluid_flux_2D_diff_order_condition.h"
+#include "custom_conditions/axisymmetric_line_normal_load_2D_diff_order_condition.h"
+#include "custom_conditions/line_load_2D_diff_order_condition.h"
+#include "custom_conditions/line_normal_fluid_flux_2D_diff_order_condition.h"
+#include "custom_conditions/line_normal_load_2D_diff_order_condition.h"
+#include "custom_conditions/surface_load_3D_diff_order_condition.h"
+#include "custom_conditions/surface_normal_fluid_flux_3D_diff_order_condition.h"
+#include "custom_conditions/surface_normal_load_3D_diff_order_condition.h"
 #include "custom_conditions/thermal_point_flux_condition.h"
 
 // Geometries
-#include "custom_geometries/line_interface_geometry.h"
+#include "custom_geometries/interface_geometry.hpp"
 #include "geometries/hexahedra_3d_20.h"
 #include "geometries/hexahedra_3d_27.h"
 #include "geometries/hexahedra_3d_8.h"
@@ -82,26 +82,20 @@
 #include "geometries/triangle_3d_6.h"
 
 // elements
-#include "custom_elements/U_Pw_small_strain_FIC_element.hpp"
-#include "custom_elements/U_Pw_small_strain_element.hpp"
-#include "custom_elements/U_Pw_small_strain_interface_element.hpp"
-#include "custom_elements/U_Pw_small_strain_link_interface_element.hpp"
-#include "custom_elements/U_Pw_updated_lagrangian_FIC_element.hpp"
-#include "custom_elements/U_Pw_updated_lagrangian_element.hpp"
-#include "custom_elements/calculation_contribution.h"
-#include "custom_elements/drained_U_Pw_small_strain_element.hpp"
+#include "custom_elements/Pw_element.hpp"
+#include "custom_elements/U_Pw_interface_element.h"
+#include "custom_elements/U_Pw_small_strain_FIC_element.h"
+#include "custom_elements/U_Pw_small_strain_element.h"
+#include "custom_elements/U_Pw_small_strain_interface_element.h"
+#include "custom_elements/U_Pw_updated_lagrangian_FIC_element.h"
+#include "custom_elements/U_Pw_updated_lagrangian_element.h"
+#include "custom_elements/contribution_calculators/calculation_contribution.h"
 #include "custom_elements/geo_steady_state_Pw_piping_element.h"
-#include "custom_elements/line_interface_element.h"
-#include "custom_elements/small_strain_U_Pw_diff_order_element.hpp"
-#include "custom_elements/steady_state_Pw_element.hpp"
-#include "custom_elements/steady_state_Pw_interface_element.hpp"
-#include "custom_elements/steady_state_Pw_piping_element.hpp"
-#include "custom_elements/transient_Pw_element.hpp"
-#include "custom_elements/transient_Pw_interface_element.hpp"
-#include "custom_elements/transient_Pw_line_element.h"
+#include "custom_elements/small_strain_U_Pw_diff_order_element.h"
+#include "custom_elements/steady_state_Pw_element.h"
+#include "custom_elements/transient_Pw_element.h"
 #include "custom_elements/transient_thermal_element.h"
-#include "custom_elements/undrained_U_Pw_small_strain_element.hpp"
-#include "custom_elements/updated_lagrangian_U_Pw_diff_order_element.hpp"
+#include "custom_elements/updated_lagrangian_U_Pw_diff_order_element.h"
 
 // Element policies
 #include "custom_elements/axisymmetric_stress_state.h"
@@ -111,28 +105,30 @@
 #include "custom_elements/three_dimensional_stress_state.h"
 
 // geo structural element
-#include "custom_elements/geo_cr_beam_element_linear_2D2N.hpp"
+#include "custom_elements/geo_cr_beam_element_linear_2D2N.h"
 
 // constitutive models
 #include "custom_constitutive/incremental_linear_elastic_interface_law.h"
 #include "custom_constitutive/incremental_linear_elastic_law.h"
 #include "custom_constitutive/interface_coulomb_with_tension_cut_off.h"
+#include "custom_constitutive/interface_plane_strain.h"
+#include "custom_constitutive/interface_three_dimensional_surface.h"
 #include "custom_constitutive/linear_elastic_2D_beam_law.h"
 #include "custom_constitutive/linear_elastic_2D_interface_law.h"
 #include "custom_constitutive/linear_elastic_3D_interface_law.h"
 #include "custom_constitutive/linear_elastic_plane_stress_2D_law.h"
 #include "custom_constitutive/mohr_coulomb_with_tension_cutoff.h"
 #include "custom_constitutive/plane_strain.h"
-#include "custom_constitutive/small_strain_udsm_2D_interface_law.hpp"
-#include "custom_constitutive/small_strain_udsm_2D_plane_strain_law.hpp"
-#include "custom_constitutive/small_strain_udsm_3D_interface_law.hpp"
-#include "custom_constitutive/small_strain_udsm_3D_law.hpp"
-#include "custom_constitutive/small_strain_umat_2D_interface_law.hpp"
-#include "custom_constitutive/small_strain_umat_2D_plane_strain_law.hpp"
-#include "custom_constitutive/small_strain_umat_3D_interface_law.hpp"
-#include "custom_constitutive/small_strain_umat_3D_law.hpp"
+#include "custom_constitutive/small_strain_udsm_2D_interface_law.h"
+#include "custom_constitutive/small_strain_udsm_3D_interface_law.h"
+#include "custom_constitutive/small_strain_udsm_law.h"
+#include "custom_constitutive/small_strain_umat_2D_interface_law.h"
+#include "custom_constitutive/small_strain_umat_2D_plane_strain_law.h"
+#include "custom_constitutive/small_strain_umat_3D_interface_law.h"
+#include "custom_constitutive/small_strain_umat_law.h"
 #include "custom_constitutive/three_dimensional.h"
 #include "custom_constitutive/truss_backbone_constitutive_law.h"
+#include "custom_elements/interface_stress_state.h"
 
 namespace Kratos
 {
@@ -302,52 +298,31 @@ private:
         0, Kratos::make_shared<Hexahedra3D27<NodeType>>(Element::GeometryType::PointsArrayType(27)),
         std::make_unique<ThreeDimensionalStressState>()};
 
-    const TransientPwLineElement<2, 2> mTransientPwLineElement2D2N{
-        0,
-        Kratos::make_shared<Line2D2<NodeType>>(Element::GeometryType::PointsArrayType(2)),
-        {CalculationContribution::Permeability, CalculationContribution::Compressibility,
-         CalculationContribution::FluidBodyFlow},
-        std::make_unique<IntegrationCoefficientModifierForLineElement>()};
-    const TransientPwLineElement<2, 3> mTransientPwLineElement2D3N{
-        0,
-        Kratos::make_shared<Line2D3<NodeType>>(Element::GeometryType::PointsArrayType(3)),
-        {CalculationContribution::Permeability, CalculationContribution::Compressibility,
-         CalculationContribution::FluidBodyFlow},
-        std::make_unique<IntegrationCoefficientModifierForLineElement>()};
-    const TransientPwLineElement<2, 4> mTransientPwLineElement2D4N{
-        0,
-        Kratos::make_shared<Line2D4<NodeType>>(Element::GeometryType::PointsArrayType(4)),
-        {CalculationContribution::Permeability, CalculationContribution::Compressibility,
-         CalculationContribution::FluidBodyFlow},
-        std::make_unique<IntegrationCoefficientModifierForLineElement>()};
-    const TransientPwLineElement<2, 5> mTransientPwLineElement2D5N{
-        0,
-        Kratos::make_shared<Line2D5<NodeType>>(Element::GeometryType::PointsArrayType(5)),
-        {CalculationContribution::Permeability, CalculationContribution::Compressibility,
-         CalculationContribution::FluidBodyFlow},
-        std::make_unique<IntegrationCoefficientModifierForLineElement>()};
-    const TransientPwLineElement<3, 2> mTransientPwLineElement3D2N{
-        0,
-        Kratos::make_shared<Line3D2<NodeType>>(Element::GeometryType::PointsArrayType(2)),
-        {CalculationContribution::Permeability, CalculationContribution::Compressibility,
-         CalculationContribution::FluidBodyFlow},
-        std::make_unique<IntegrationCoefficientModifierForLineElement>()};
-    const TransientPwLineElement<3, 3> mTransientPwLineElement3D3N{
-        0,
-        Kratos::make_shared<Line3D3<NodeType>>(Element::GeometryType::PointsArrayType(3)),
-        {CalculationContribution::Permeability, CalculationContribution::Compressibility,
-         CalculationContribution::FluidBodyFlow},
-        std::make_unique<IntegrationCoefficientModifierForLineElement>()};
-
-    const TransientPwInterfaceElement<2, 4> mTransientPwInterfaceElement2D4N{
-        0, Kratos::make_shared<QuadrilateralInterface2D4<NodeType>>(Element::GeometryType::PointsArrayType(4)),
-        std::make_unique<PlaneStrainStressState>()};
-    const TransientPwInterfaceElement<3, 6> mTransientPwInterfaceElement3D6N{
-        0, Kratos::make_shared<PrismInterface3D6<NodeType>>(Element::GeometryType::PointsArrayType(6)),
-        std::make_unique<ThreeDimensionalStressState>()};
-    const TransientPwInterfaceElement<3, 8> mTransientPwInterfaceElement3D8N{
-        0, Kratos::make_shared<HexahedraInterface3D8<NodeType>>(Element::GeometryType::PointsArrayType(8)),
-        std::make_unique<ThreeDimensionalStressState>()};
+    const std::vector<CalculationContribution> transient_Pw_element_contribution = {
+        CalculationContribution::Permeability, CalculationContribution::Compressibility,
+        CalculationContribution::FluidBodyFlow};
+    const PwElement<2, 2> mTransientPwLineElement2D2N{
+        0, Kratos::make_shared<Line2D2<NodeType>>(Element::GeometryType::PointsArrayType(2)),
+        transient_Pw_element_contribution, std::make_unique<IntegrationCoefficientModifierForLineElement>()};
+    const PwElement<2, 3> mTransientPwLineElement2D3N{
+        0, Kratos::make_shared<Line2D3<NodeType>>(Element::GeometryType::PointsArrayType(3)),
+        transient_Pw_element_contribution, std::make_unique<IntegrationCoefficientModifierForLineElement>()};
+    const PwElement<2, 4> mTransientPwLineElement2D4N{
+        0, Kratos::make_shared<Line2D4<NodeType>>(Element::GeometryType::PointsArrayType(4)),
+        transient_Pw_element_contribution, std::make_unique<IntegrationCoefficientModifierForLineElement>()};
+    const PwElement<2, 5> mTransientPwLineElement2D5N{
+        0, Kratos::make_shared<Line2D5<NodeType>>(Element::GeometryType::PointsArrayType(5)),
+        transient_Pw_element_contribution, std::make_unique<IntegrationCoefficientModifierForLineElement>()};
+    const PwElement<3, 2> mTransientPwLineElement3D2N{
+        0, Kratos::make_shared<Line3D2<NodeType>>(Element::GeometryType::PointsArrayType(2)),
+        transient_Pw_element_contribution, std::make_unique<IntegrationCoefficientModifierForLineElement>()};
+    const PwElement<3, 3> mTransientPwLineElement3D3N{
+        0, Kratos::make_shared<Line3D3<NodeType>>(Element::GeometryType::PointsArrayType(3)),
+        transient_Pw_element_contribution, std::make_unique<IntegrationCoefficientModifierForLineElement>()};
+    // PwElement3D4N is not used for modelling; but it tests 3D features of the PwElement, which may replace TransientPwElement in future
+    const PwElement<3, 4> PwElement3D4N{
+        0, Kratos::make_shared<Tetrahedra3D4<NodeType>>(Element::GeometryType::PointsArrayType(4)),
+        transient_Pw_element_contribution, std::make_unique<IntegrationCoefficientModifierForLineElement>()};
 
     // Steady-State one-phase flow elements:
     const SteadyStatePwElement<2, 3> mSteadyStatePwElement2D3N{
@@ -387,25 +362,6 @@ private:
         0, Kratos::make_shared<Hexahedra3D27<NodeType>>(Element::GeometryType::PointsArrayType(27)),
         std::make_unique<ThreeDimensionalStressState>()};
 
-    const SteadyStatePwInterfaceElement<2, 4> mSteadyStatePwInterfaceElement2D4N{
-        0, Kratos::make_shared<QuadrilateralInterface2D4<NodeType>>(Element::GeometryType::PointsArrayType(4)),
-        std::make_unique<PlaneStrainStressState>()};
-    const SteadyStatePwInterfaceElement<3, 6> mSteadyStatePwInterfaceElement3D6N{
-        0, Kratos::make_shared<PrismInterface3D6<NodeType>>(Element::GeometryType::PointsArrayType(6)),
-        std::make_unique<ThreeDimensionalStressState>()};
-    const SteadyStatePwInterfaceElement<3, 8> mSteadyStatePwInterfaceElement3D8N{
-        0, Kratos::make_shared<HexahedraInterface3D8<NodeType>>(Element::GeometryType::PointsArrayType(8)),
-        std::make_unique<ThreeDimensionalStressState>()};
-
-    const SteadyStatePwPipingElement<2, 4> mSteadyStatePwPipingElement2D4N{
-        0, Kratos::make_shared<QuadrilateralInterface2D4<NodeType>>(Element::GeometryType::PointsArrayType(4)),
-        std::make_unique<PlaneStrainStressState>()};
-    const SteadyStatePwPipingElement<3, 6> mSteadyStatePwPipingElement3D6N{
-        0, Kratos::make_shared<PrismInterface3D6<NodeType>>(Element::GeometryType::PointsArrayType(6)),
-        std::make_unique<ThreeDimensionalStressState>()};
-    const SteadyStatePwPipingElement<3, 8> mSteadyStatePwPipingElement3D8N{
-        0, Kratos::make_shared<HexahedraInterface3D8<NodeType>>(Element::GeometryType::PointsArrayType(8)),
-        std::make_unique<ThreeDimensionalStressState>()};
     const GeoSteadyStatePwPipingElement<2, 2> mGeoSteadyStatePwPipingElement2D2N{
         0, Kratos::make_shared<Line2D2<NodeType>>(Element::GeometryType::PointsArrayType(2))};
     const GeoSteadyStatePwPipingElement<3, 2> mGeoSteadyStatePwPipingElement3D2N{
@@ -449,34 +405,6 @@ private:
         0, Kratos::make_shared<Hexahedra3D27<NodeType>>(Element::GeometryType::PointsArrayType(27)),
         std::make_unique<ThreeDimensionalStressState>()};
 
-    // small strain drained elements:
-    const DrainedUPwSmallStrainElement<2, 3> mDrainedUPwSmallStrainElement2D3N{
-        0, Kratos::make_shared<Triangle2D3<NodeType>>(Element::GeometryType::PointsArrayType(3)),
-        std::make_unique<PlaneStrainStressState>()};
-    const DrainedUPwSmallStrainElement<2, 4> mDrainedUPwSmallStrainElement2D4N{
-        0, Kratos::make_shared<Quadrilateral2D4<NodeType>>(Element::GeometryType::PointsArrayType(4)),
-        std::make_unique<PlaneStrainStressState>()};
-    const DrainedUPwSmallStrainElement<3, 4> mDrainedUPwSmallStrainElement3D4N{
-        0, Kratos::make_shared<Tetrahedra3D4<NodeType>>(Element::GeometryType::PointsArrayType(4)),
-        std::make_unique<ThreeDimensionalStressState>()};
-    const DrainedUPwSmallStrainElement<3, 8> mDrainedUPwSmallStrainElement3D8N{
-        0, Kratos::make_shared<Hexahedra3D8<NodeType>>(Element::GeometryType::PointsArrayType(8)),
-        std::make_unique<ThreeDimensionalStressState>()};
-
-    // small strain undrained elements:
-    const UndrainedUPwSmallStrainElement<2, 3> mUndrainedUPwSmallStrainElement2D3N{
-        0, Kratos::make_shared<Triangle2D3<NodeType>>(Element::GeometryType::PointsArrayType(3)),
-        std::make_unique<PlaneStrainStressState>()};
-    const UndrainedUPwSmallStrainElement<2, 4> mUndrainedUPwSmallStrainElement2D4N{
-        0, Kratos::make_shared<Quadrilateral2D4<NodeType>>(Element::GeometryType::PointsArrayType(4)),
-        std::make_unique<PlaneStrainStressState>()};
-    const UndrainedUPwSmallStrainElement<3, 4> mUndrainedUPwSmallStrainElement3D4N{
-        0, Kratos::make_shared<Tetrahedra3D4<NodeType>>(Element::GeometryType::PointsArrayType(4)),
-        std::make_unique<ThreeDimensionalStressState>()};
-    const UndrainedUPwSmallStrainElement<3, 8> mUndrainedUPwSmallStrainElement3D8N{
-        0, Kratos::make_shared<Hexahedra3D8<NodeType>>(Element::GeometryType::PointsArrayType(8)),
-        std::make_unique<ThreeDimensionalStressState>()};
-
     // FIC elements
     const UPwSmallStrainFICElement<2, 3> mUPwSmallStrainFICElement2D3N{
         0, Kratos::make_shared<Triangle2D3<NodeType>>(Element::GeometryType::PointsArrayType(3)),
@@ -517,7 +445,7 @@ private:
         0, Kratos::make_shared<Hexahedra3D27<NodeType>>(Element::GeometryType::PointsArrayType(27)),
         std::make_unique<ThreeDimensionalStressState>()};
 
-    // small strain axisymmtric elements:
+    // small strain axisymmetric elements
     const UPwSmallStrainElement<2, 3> mUPwSmallStrainAxisymmetricElement2D3N{
         0, Kratos::make_shared<Triangle2D3<NodeType>>(Element::GeometryType::PointsArrayType(3)),
         std::make_unique<AxisymmetricStressState>(),
@@ -588,22 +516,24 @@ private:
         0, Kratos::make_shared<HexahedraInterface3D8<NodeType>>(Element::GeometryType::PointsArrayType(8)),
         std::make_unique<ThreeDimensionalStressState>()};
 
-    const UPwSmallStrainLinkInterfaceElement<2, 4> mUPwSmallStrainLinkInterfaceElement2D4N{
-        0, Kratos::make_shared<QuadrilateralInterface2D4<NodeType>>(Element::GeometryType::PointsArrayType(4)),
-        std::make_unique<PlaneStrainStressState>()};
-    const UPwSmallStrainLinkInterfaceElement<3, 6> mUPwSmallStrainLinkInterfaceElement3D6N{
-        0, Kratos::make_shared<PrismInterface3D6<NodeType>>(Element::GeometryType::PointsArrayType(6)),
-        std::make_unique<ThreeDimensionalStressState>()};
-    const UPwSmallStrainLinkInterfaceElement<3, 8> mUPwSmallStrainLinkInterfaceElement3D8N{
-        0, Kratos::make_shared<HexahedraInterface3D8<NodeType>>(Element::GeometryType::PointsArrayType(8)),
-        std::make_unique<ThreeDimensionalStressState>()};
-
-    const LineInterfaceElement mULineInterfacePlaneStrainElement2Plus2N{
-        0, Kratos::make_shared<LineInterfaceGeometry<Line2D2<NodeType>>>(
-               Element::GeometryType::PointsArrayType(4))};
-    const LineInterfaceElement mULineInterfacePlaneStrainElement3Plus3N{
-        0, Kratos::make_shared<LineInterfaceGeometry<Line2D3<NodeType>>>(
-               Element::GeometryType::PointsArrayType(6))};
+    const UPwInterfaceElement mUPwLineInterfacePlaneStrainElement2Plus2N{
+        0, Kratos::make_shared<InterfaceGeometry<Line2D2<NodeType>>>(Element::GeometryType::PointsArrayType(4)),
+        std::make_unique<Line2DInterfaceStressState>(), IsDiffOrderElement::No};
+    const UPwInterfaceElement mUPwLineInterfacePlaneStrainElement3Plus3N{
+        0, Kratos::make_shared<InterfaceGeometry<Line2D3<NodeType>>>(Element::GeometryType::PointsArrayType(6)),
+        std::make_unique<Line2DInterfaceStressState>(), IsDiffOrderElement::No};
+    const UPwInterfaceElement mUPwSurfaceInterfaceElement3Plus3N{
+        0, Kratos::make_shared<InterfaceGeometry<Triangle3D3<NodeType>>>(Element::GeometryType::PointsArrayType(6)),
+        std::make_unique<SurfaceInterfaceStressState>(), IsDiffOrderElement::No};
+    const UPwInterfaceElement mUPwSurfaceInterfaceElement4Plus4N{
+        0, Kratos::make_shared<InterfaceGeometry<Quadrilateral3D4<NodeType>>>(Element::GeometryType::PointsArrayType(8)),
+        std::make_unique<SurfaceInterfaceStressState>(), IsDiffOrderElement::No};
+    const UPwInterfaceElement mUPwSurfaceInterfaceElement6Plus6N{
+        0, Kratos::make_shared<InterfaceGeometry<Triangle3D6<NodeType>>>(Element::GeometryType::PointsArrayType(12)),
+        std::make_unique<SurfaceInterfaceStressState>(), IsDiffOrderElement::No};
+    const UPwInterfaceElement mUPwSurfaceInterfaceElement8Plus8N{
+        0, Kratos::make_shared<InterfaceGeometry<Quadrilateral3D8<NodeType>>>(Element::GeometryType::PointsArrayType(16)),
+        std::make_unique<SurfaceInterfaceStressState>(), IsDiffOrderElement::No};
 
     // Updated-Lagrangian elements:
     const UPwUpdatedLagrangianElement<2, 3> mUPwUpdatedLagrangianElement2D3N{
@@ -825,6 +755,10 @@ private:
         0, Kratos::make_shared<Triangle3D3<NodeType>>(Condition::GeometryType::PointsArrayType(3))};
     const UPwNormalFaceLoadCondition<3, 4> mUPwNormalFaceLoadCondition3D4N{
         0, Kratos::make_shared<Quadrilateral3D4<NodeType>>(Condition::GeometryType::PointsArrayType(4))};
+    const UPwNormalFaceLoadCondition<3, 6> mUPwNormalFaceLoadCondition3D6N{
+        0, Kratos::make_shared<Triangle3D6<NodeType>>(Condition::GeometryType::PointsArrayType(6))};
+    const UPwNormalFaceLoadCondition<3, 8> mUPwNormalFaceLoadCondition3D8N{
+        0, Kratos::make_shared<Quadrilateral3D8<NodeType>>(Condition::GeometryType::PointsArrayType(8))};
 
     const UPwNormalFluxCondition<2, 2> mUPwNormalFluxCondition2D2N{
         0, Kratos::make_shared<Line2D2<NodeType>>(Condition::GeometryType::PointsArrayType(2))};
@@ -992,15 +926,27 @@ private:
     const GeoIncrementalLinearElasticLaw mLinearElastic3DLaw{std::make_unique<ThreeDimensional>()};
     const GeoLinearElasticPlaneStress2DLaw mLinearElasticPlaneStress2DLaw;
 
-    const SmallStrainUDSM3DLaw            mSmallStrainUDSM3DLaw{};
-    const SmallStrainUDSM2DPlaneStrainLaw mSmallStrainUDSM2DPlaneStrainLaw{};
-    const SmallStrainUDSM2DInterfaceLaw   mSmallStrainUDSM2DInterfaceLaw{};
-    const SmallStrainUDSM3DInterfaceLaw   mSmallStrainUDSM3DInterfaceLaw{};
+    const SmallStrainUDSMLaw mSmallStrainUDSM2DPlaneStrainLaw{std::make_unique<PlaneStrain>()};
+    const SmallStrainUDSMLaw mSmallStrainUDSM3DLaw{std::make_unique<ThreeDimensional>()};
+    const SmallStrainUDSM2DInterfaceLaw mSmallStrainUDSM2DInterfaceLaw{};
+    const SmallStrainUDSM3DInterfaceLaw mSmallStrainUDSM3DInterfaceLaw{};
 
-    const SmallStrainUMAT3DLaw            mSmallStrainUMAT3DLaw{};
-    const SmallStrainUMAT2DPlaneStrainLaw mSmallStrainUMAT2DPlaneStrainLaw{};
-    const SmallStrainUMAT2DInterfaceLaw   mSmallStrainUMAT2DInterfaceLaw{};
-    const SmallStrainUMAT3DInterfaceLaw   mSmallStrainUMAT3DInterfaceLaw{};
+    // Currently, these UMAT constititutive laws are based on the 3D version of the SmallStrainUMAT
+    // law. This seems counter-intuitive, for 2D laws, but currently this is needed because our
+    // UMATs are not implemented for 2D plane strain and interface conditions (but expect
+    // matrix/vector sizes to be consistent with a 3D model). Be careful with changing this, as it
+    // may lead to UMATs writing to out-of-bounds memory locations.
+    const SmallStrainUMATLaw<VOIGT_SIZE_3D> mSmallStrainUMAT3DLaw{std::make_unique<ThreeDimensional>()};
+    const SmallStrainUMAT2DPlaneStrainLaw mSmallStrainUMAT2DPlaneStrainLaw{std::make_unique<ThreeDimensional>()};
+    const SmallStrainUMAT2DInterfaceLaw mSmallStrainUMAT2DInterfaceLaw{std::make_unique<ThreeDimensional>()};
+    const SmallStrainUMAT3DInterfaceLaw mSmallStrainUMAT3DInterfaceLaw{std::make_unique<ThreeDimensional>()};
+
+    // These UMAT laws actually use the correct template parameter and ConstitutiveDimension
+    // (InterfacePlaneStrain), since it assumes the UMAT is implemented using the correct vector sizes.
+    const SmallStrainUMATLaw<VOIGT_SIZE_2D_INTERFACE> mSmallStrainUMAT2DLineInterfaceLaw{
+        std::make_unique<InterfacePlaneStrain>()};
+    const SmallStrainUMATLaw<VOIGT_SIZE_3D_INTERFACE> mSmallStrainUMAT3DSurfaceInterfaceLaw{
+        std::make_unique<InterfaceThreeDimensionalSurface>()};
 
     const LinearElastic2DInterfaceLaw mLinearElastic2DInterfaceLaw;
     const LinearElastic3DInterfaceLaw mLinearElastic3DInterfaceLaw;
@@ -1008,7 +954,10 @@ private:
     const LinearElastic2DBeamLaw       mLinearElastic2DBeamLaw;
     const TrussBackboneConstitutiveLaw mTrussBackboneConstitutiveLaw;
 
-    const GeoIncrementalLinearElasticInterfaceLaw mIncrementalLinearElasticInterfaceLaw;
+    const GeoIncrementalLinearElasticInterfaceLaw mIncrementalLinearElasticInterfaceLaw{
+        std::make_unique<InterfacePlaneStrain>()};
+    const GeoIncrementalLinearElasticInterfaceLaw mIncrementalLinearElasticInterface3DSurfaceLaw{
+        std::make_unique<InterfaceThreeDimensionalSurface>()};
 
     const MohrCoulombWithTensionCutOff mMohrCoulombWithTensionCutOff2D{std::make_unique<PlaneStrain>()};
     const MohrCoulombWithTensionCutOff mMohrCoulombWithTensionCutOff3D{std::make_unique<ThreeDimensional>()};

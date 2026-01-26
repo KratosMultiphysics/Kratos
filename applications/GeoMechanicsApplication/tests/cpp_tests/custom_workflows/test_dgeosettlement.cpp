@@ -10,7 +10,7 @@
 //  Main authors:    Richard Faasse
 //
 
-#include "custom_workflows/dgeosettlement.h"
+#include "custom_workflows/dgeosettlement.hpp"
 #include "tests/cpp_tests/geo_mechanics_fast_suite.h"
 #include "tests/cpp_tests/stub_input_utility.h"
 #include "tests/cpp_tests/stub_process_info_parser.h"
@@ -35,8 +35,7 @@ const std::string parameter_json_settings = R"(
                                                     {
                                                         "materials_filename": "MaterialParameters1.json"
                                                     },
-                                                    "problem_domain_sub_model_part_list": [],
-                                                    "processes_sub_model_part_list": []
+                                                    "problem_domain_sub_model_part_list": []
                                                 }
                                             }
                                             )"; // these have material_import settings

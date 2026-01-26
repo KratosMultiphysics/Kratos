@@ -4,8 +4,8 @@
 //   _|\_\_|  \__,_|\__|\___/ ____/
 //                   Multi-Physics
 //
-//  License:		 BSD License
-//					 license: HDF5Application/license.txt
+//  License:        BSD License
+//                  license: HDF5Application/license.txt
 //
 //  Main author:    Michael Andre, https://github.com/msandre
 //
@@ -14,8 +14,7 @@
  *  @brief Methods for storing and retrieving a properties in an HDF5 file.
  */
 
-#if !defined(KRATOS_HDF5_PROPERTIES_IO_H_INCLUDED)
-#define KRATOS_HDF5_PROPERTIES_IO_H_INCLUDED
+#pragma once
 
 // System includes
 #include <string>
@@ -26,29 +25,23 @@
 #include "includes/define.h"
 
 // Application includes
+#include "custom_io/hdf5_file.h"
 #include "hdf5_application_define.h"
 
-namespace Kratos
-{
-namespace HDF5
-{
-
-class File;
-
-namespace Internals
+namespace Kratos::HDF5::Internals
 {
 ///@addtogroup HDF5Application
 ///@{
 
-void ReadProperties(File& rFile, std::string const& rPrefix, PropertiesContainerType& rProperties);
+void ReadProperties(
+    File& rFile,
+    const std::string& rPrefix,
+    PropertiesContainerType& rProperties);
 
-void WriteProperties(File& rFile, std::string const& rPrefix, Properties const& rProperties);
+void WriteProperties(
+    File& rFile,
+    const std::string& rPrefix,
+    const PropertiesContainerType& rProperties);
 
-void WriteProperties(File& rFile, std::string const& rPrefix, PropertiesContainerType const& rProperties);
-
-///@} addtogroup
-} // namespace Internals.
-} // namespace HDF5.
-} // namespace Kratos.
-
-#endif // KRATOS_HDF5_PROPERTIES_IO_H_INCLUDED defined
+///@}
+} // namespace Kratos::HDF5::Internals

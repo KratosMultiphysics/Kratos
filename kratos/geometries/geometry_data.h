@@ -78,11 +78,6 @@ public:
         GI_GAUSS_3,
         GI_GAUSS_4,
         GI_GAUSS_5,
-        GI_EXTENDED_GAUSS_1,
-        GI_EXTENDED_GAUSS_2,
-        GI_EXTENDED_GAUSS_3,
-        GI_EXTENDED_GAUSS_4,
-        GI_EXTENDED_GAUSS_5,
         GI_LOBATTO_1,
         NumberOfIntegrationMethods // Note that this entry needs to be always the last to be used as integration methods counter
     };
@@ -149,6 +144,7 @@ public:
         Kratos_Brep_Curve_On_Surface,
         Kratos_Quadrature_Point_Geometry,
         Kratos_Coupling_Geometry,
+        Kratos_Quadrature_Point_Curve_Geometry,
         Kratos_Quadrature_Point_Curve_On_Surface_Geometry,
         Kratos_Quadrature_Point_Surface_In_Volume_Geometry,
         NumberOfGeometryTypes // Note that this entry needs to be always the last to be used as geometry types counter

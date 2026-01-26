@@ -48,6 +48,10 @@ void GeoLinearElasticPlaneStress2DLaw::GetLawFeatures(Features& rFeatures)
     rFeatures.mSpaceDimension = 2;
 }
 
+SizeType GeoLinearElasticPlaneStress2DLaw::WorkingSpaceDimension() { return Dimension; };
+
+SizeType GeoLinearElasticPlaneStress2DLaw::GetStrainSize() const { return VoigtSize; }
+
 void GeoLinearElasticPlaneStress2DLaw::CalculateElasticMatrix(Matrix& C, ConstitutiveLaw::Parameters& rValues)
 {
     const Properties& r_material_properties = rValues.GetMaterialProperties();
@@ -76,4 +80,13 @@ void GeoLinearElasticPlaneStress2DLaw::CalculatePK2Stress(const Vector& rStrainV
     noalias(rStressVector) = prod(C, rStrainVector);
 }
 
+void GeoLinearElasticPlaneStress2DLaw::save(Serializer& rSerializer) const
+{
+    KRATOS_SERIALIZE_SAVE_BASE_CLASS(rSerializer, BaseType)
+}
+
+void GeoLinearElasticPlaneStress2DLaw::load(Serializer& rSerializer)
+{
+    KRATOS_SERIALIZE_LOAD_BASE_CLASS(rSerializer, BaseType)
+}
 } // namespace Kratos

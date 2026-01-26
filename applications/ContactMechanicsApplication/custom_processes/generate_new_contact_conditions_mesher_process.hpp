@@ -16,7 +16,6 @@
 #include <iostream>
 
 // External includes
-#include <boost/timer.hpp>
 
 // Project includes
 #include "includes/model_part.h"

@@ -40,7 +40,8 @@ SetMovingLoadProcess::SetMovingLoadProcess(ModelPart& rModelPart,
             "direction"       : [1,1,1],
             "velocity"        : 1,
             "origin"          : [0.0, 0.0, 0.0],
-            "offset"          : 0.0
+            "offset"          : 0.0,
+            "motion_type"     : "base" 
         }  )"
     );
     
@@ -72,6 +73,9 @@ SetMovingLoadProcess::SetMovingLoadProcess(ModelPart& rModelPart,
     }
 
     KRATOS_ERROR_IF(!is_all_string && !is_all_number) << "'load' has to be a vector of numbers, or an array with strings" << std::endl;
+
+    std::string motion_type = mParameters["motion_type"].GetString();
+    KRATOS_ERROR_IF(motion_type != "base" && motion_type != "total") << "'motion_type' has to be either 'base' or 'total'!" << std::endl;
 
 }
 
@@ -122,7 +126,7 @@ Condition& SetMovingLoadProcess::GetFirstConditionFromCoord(const double FirstCo
 
 Condition& SetMovingLoadProcess::GetFirstCondition(const Point FirstPoint, const Point SecondPoint, const array_1d<int,3> Direction, std::vector<Condition>& rEndConditions)
 {
-    constexpr double tolerance = std::numeric_limits<double>::epsilon();
+    constexpr double tolerance = std::numeric_limits<double>::epsilon() * 1000.0;
 
     // sort on x-coord, if x coords are equal, sort on y coord, if y coord is equal sort on z-coord
     if (std::abs(FirstPoint[0] - SecondPoint[0]) > tolerance){
@@ -138,7 +142,7 @@ Condition& SetMovingLoadProcess::GetFirstCondition(const Point FirstPoint, const
 
 bool SetMovingLoadProcess::IsConditionReversed(const Condition& rCondition, const array_1d<int, 3> Direction)
 {
-    constexpr double tolerance = std::numeric_limits<double>::epsilon();
+    constexpr double tolerance = std::numeric_limits<double>::epsilon() * 1000.0;
 
     auto& r_points = rCondition.GetGeometry().Points();
     if (std::abs(r_points[0].X0() - r_points[1].X0()) > tolerance){
@@ -151,33 +155,33 @@ bool SetMovingLoadProcess::IsConditionReversed(const Condition& rCondition, cons
 }
 
 
-std::vector<Condition> SetMovingLoadProcess::SortConditions(ModelPart::ConditionsContainerType& rUnsortedConditions, Condition& rFirstCondition)
+void SetMovingLoadProcess::SortConditionIds(Condition& rFirstCondition)
 {
 
-    std::vector<Condition> unsorted_conditions_v(rUnsortedConditions.begin(), rUnsortedConditions.end());
+    const std::vector<Condition> unsorted_conditions_v(mrModelPart.Conditions().begin(), mrModelPart.Conditions().end());
 
-    std::vector<Condition> sorted_conditions;
-    std::vector<int> visited_indices;
-    GeometricalObject::GeometryType& r_geom_first = rFirstCondition.GetGeometry();
+    mSortedConditionsIds.clear();
+    std::unordered_set<int> visited_indices;
+    const GeometricalObject::GeometryType& r_geom_first = rFirstCondition.GetGeometry();
     std::vector<IndexType> node_id_vector{ r_geom_first[0].Id(),r_geom_first[1].Id() };
 
     bool is_cond_reversed = mIsCondReversedVector[0];
     while (visited_indices.size() != unsorted_conditions_v.size()) {
         for (IndexType i = 0; i < unsorted_conditions_v.size(); i++) {
-            Condition& r_cond = unsorted_conditions_v[i];
-            GeometricalObject::GeometryType& r_geom = r_cond.GetGeometry();
-
 
             // check if current index is already added to sorted condition vector
-            if (!std::count(visited_indices.begin(), visited_indices.end(), i)) {
+            if (!visited_indices.count(i)) {
+                const Condition& r_cond = unsorted_conditions_v[i];
+                const GeometricalObject::GeometryType& r_geom = r_cond.GetGeometry();
+
                 // check if geom has a shared node with previous geom
                 if (std::find(node_id_vector.begin(), node_id_vector.end(), r_geom.Points()[0].Id()) != node_id_vector.end() || std::find(node_id_vector.begin(), node_id_vector.end(), r_geom.Points()[1].Id()) != node_id_vector.end()) {
-                    if (sorted_conditions.size() == 0) {
+                    if (mSortedConditionsIds.size() == 0) {
                         // check if both nodes of geom are equal to nodes in start element, only do this to add the first element in the sorted conditions vector
                         if (std::find(node_id_vector.begin(), node_id_vector.end(), r_geom.Points()[0].Id()) != node_id_vector.end() && std::find(node_id_vector.begin(), node_id_vector.end(), r_geom.Points()[1].Id()) != node_id_vector.end()) {
                             node_id_vector = { r_geom[0].Id(),r_geom[1].Id() };
-                            sorted_conditions.push_back(r_cond);
-                            visited_indices.push_back(i);
+                            mSortedConditionsIds.push_back(r_cond.Id());
+                            visited_indices.insert(i);
                         }
                     } else {
                         // sort nodes in condition, such that new node is connected to previous condition
@@ -198,16 +202,14 @@ std::vector<Condition> SetMovingLoadProcess::SortConditions(ModelPart::Condition
 
                         // add condition to sorted conditions vector
                         node_id_vector = { r_geom[0].Id(),r_geom[1].Id() };
-                        sorted_conditions.push_back(r_cond);
-                        visited_indices.push_back(i);
+                        mSortedConditionsIds.push_back(r_cond.Id());
+                        visited_indices.insert(i);
                     }
                 }
             }
 
         }
     }
-
-    return sorted_conditions;
 }
 
 std::vector<Condition> SetMovingLoadProcess::FindEndConditions()
@@ -260,8 +262,8 @@ void SetMovingLoadProcess::InitializeDistanceLoadInSortedVector()
 {
     double global_distance = 0;
     // loop over sorted conditions
-    for (IndexType i = 0; i < mSortedConditions.size(); ++i){
-        auto& r_cond = mSortedConditions[i];
+    for (IndexType i = 0; i < mSortedConditionsIds.size(); ++i){
+        auto& r_cond = this->mrModelPart.GetCondition(mSortedConditionsIds[i]);
         auto& r_geom = r_cond.GetGeometry();
         const double element_length = r_geom.Length();
 
@@ -324,7 +326,7 @@ void SetMovingLoadProcess::ExecuteInitialize()
         // get the two line condition elements at both sides of the model part
         std::vector<Condition> end_conditions = FindEndConditions();
 
-        // find start condition 
+        // find start condition
         const Point center_1 = end_conditions[0].GetGeometry().Center();
         const Point center_2 = end_conditions[1].GetGeometry().Center();
         Condition& r_first_cond = GetFirstCondition(center_1, center_2, direction, end_conditions);
@@ -332,9 +334,13 @@ void SetMovingLoadProcess::ExecuteInitialize()
         // Initialise vector which indicates if nodes in condition are in direction of movement
         mIsCondReversedVector.clear();
         mIsCondReversedVector.push_back(IsConditionReversed(r_first_cond, direction));
-        mSortedConditions = SortConditions(mrModelPart.Conditions(), r_first_cond);
+        this->SortConditionIds(r_first_cond);
 
         InitializeDistanceLoadInSortedVector();
+
+        for (auto& r_cond : mrModelPart.Conditions()) {
+            r_cond.SetValue(MOTION_TYPE, mParameters["motion_type"].GetString());
+        }
     }
     KRATOS_CATCH("")
 }
@@ -362,15 +368,16 @@ void SetMovingLoadProcess::ExecuteInitializeSolutionStep()
     // bool to check if load is already added, such that a load is not added twice if the load is exactly at a shared node.
     bool is_moving_load_added = false;
 
+	constexpr double tolerance = std::numeric_limits<double>::epsilon() * 1000.0;
     // loop over sorted conditions vector
-    for (IndexType i = 0; i < mSortedConditions.size(); ++i) {
-        auto& r_cond = mSortedConditions[i];
+    for (IndexType i = 0; i < mSortedConditionsIds.size(); ++i) {
+        auto& r_cond = mrModelPart.GetCondition(mSortedConditionsIds[i]);
         auto& r_geom = r_cond.GetGeometry();
         const double element_length = r_geom.Length();
 
         // if moving load is located at current condition element, apply moving load, else apply a zero load
-        if (distance_cond + element_length >= mCurrentDistance - std::numeric_limits<double>::epsilon() && 
-            distance_cond <= mCurrentDistance + std::numeric_limits<double>::epsilon() && 
+        if (distance_cond + element_length >= mCurrentDistance - tolerance &&
+            distance_cond <= mCurrentDistance + tolerance &&
             !is_moving_load_added){
 
             double local_distance;
@@ -390,7 +397,7 @@ void SetMovingLoadProcess::ExecuteInitializeSolutionStep()
             r_cond.SetValue(MOVING_LOAD_LOCAL_DISTANCE, 0);
         }
         distance_cond += element_length;
-    }    
+    }
 }
 
 
@@ -418,7 +425,7 @@ void SetMovingLoadProcess::ExecuteFinalizeSolutionStep()
 void SetMovingLoadProcess::save(Serializer& rSerializer) const
 {
     KRATOS_SERIALIZE_SAVE_BASE_CLASS(rSerializer, Process);
-    rSerializer.save("SortedConditions", mSortedConditions);
+    rSerializer.save("SortedConditionsIds", mSortedConditionsIds);
     rSerializer.save("IsCondReversedVector", mIsCondReversedVector);
     rSerializer.save("UseLoadFunction", mUseLoadFunction);
     rSerializer.save("UseVelocityFunction", mUseVelocityFunction);
@@ -429,7 +436,7 @@ void SetMovingLoadProcess::save(Serializer& rSerializer) const
 void SetMovingLoadProcess::load(Serializer& rSerializer)
 {
     KRATOS_SERIALIZE_LOAD_BASE_CLASS(rSerializer, Process);
-    rSerializer.load("SortedConditions", mSortedConditions);
+    rSerializer.load("SortedConditionsIds", mSortedConditionsIds);
     rSerializer.load("IsCondReversedVector", mIsCondReversedVector);
     rSerializer.load("UseLoadFunction", mUseLoadFunction);
     rSerializer.load("UseVelocityFunction", mUseVelocityFunction);

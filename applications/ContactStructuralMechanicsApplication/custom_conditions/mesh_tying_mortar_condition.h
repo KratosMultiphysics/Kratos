@@ -97,6 +97,9 @@ public:
     /// Definition of a point
     using PointType = Point;
 
+    /// Geometry point type definition
+    using GeometryPointType = Geometry<PointType>;
+
     /// Definition of the geometry type
     using GeometryType = Geometry<Node>;
 

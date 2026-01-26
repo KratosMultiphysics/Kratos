@@ -12,12 +12,12 @@
 
 #include "containers/model.h"
 #include "custom_elements/plane_strain_stress_state.h"
-#include "custom_utilities/registration_utilities.h"
+#include "custom_utilities/registration_utilities.hpp"
 #include "includes/checks.h"
 #include "includes/stream_serializer.h"
+#include "test_setup_utilities/model_setup_utilities.h"
 #include "tests/cpp_tests/geo_mechanics_fast_suite.h"
 #include "tests/cpp_tests/test_utilities.h"
-#include "tests/cpp_tests/test_utilities/model_setup_utilities.h"
 
 #include <boost/numeric/ublas/assignment.hpp>
 #include <string>
@@ -124,7 +124,7 @@ KRATOS_TEST_CASE_IN_SUITE(PlaneStrainStressState_CanBeSavedAndLoadedThroughInter
 {
     // Arrange
     const auto scoped_registration =
-        ScopedSerializerRegistration{"PlaneStrainStressState"s, PlaneStrainStressState{}};
+        ScopedSerializerRegistration{std::make_pair("PlaneStrainStressState"s, PlaneStrainStressState{})};
     const auto p_policy = std::unique_ptr<StressStatePolicy>{std::make_unique<PlaneStrainStressState>()};
     auto serializer = StreamSerializer{};
 
