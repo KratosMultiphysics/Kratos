@@ -106,7 +106,7 @@ namespace IgaMappingIntersectionUtilities
      * @param rModelPartResult    ModelPart where the generated coupling geometries will be stored
      * @param Tolerance           Geometric tolerance used for intersection/projection decisions
      */
-    void KRATOS_API(MAPPING_APPLICATION) CreateIgaFEMCouplingGeometries(
+    void KRATOS_API(MAPPING_APPLICATION) CreateIgaFEMCouplingGeometriesOnCurve(
         ModelPart& rModelPartDomainA,
         ModelPart& rModelPartDomainB,
         const bool& rIsOriginIga,
@@ -129,7 +129,7 @@ namespace IgaMappingIntersectionUtilities
      * @param rModelPartCoupling   ModelPart containing the previously created line coupling geometries
      * @param Tolerance            Geometric tolerance used during evaluation/projection
      */
-    void KRATOS_API(MAPPING_APPLICATION) CreateIgaFEMQuadraturePointsCouplingInterface(
+    void KRATOS_API(MAPPING_APPLICATION) CreateIgaFEMQuadraturePointsOnCurve(
         ModelPart& rModelPartCoupling,
         double Tolerance);
 
@@ -151,7 +151,7 @@ namespace IgaMappingIntersectionUtilities
      * @param search_radius           Radius used for spatial pre-filtering of candidate IGA patches
      * @param rPatchCache             Patch cache (sampling + bins). It is rebuilt internally for the involved patches.
      */
-    void KRATOS_API(MAPPING_APPLICATION) CreateIgaFEMSurfaceCouplingGeometries(
+    void KRATOS_API(MAPPING_APPLICATION) CreateIgaFEMCouplingGeometriesOnSurface(
         ModelPart& rModelPartDomainA,
         ModelPart& rModelPartDomainB,
         ModelPart& rModelPartResult,
@@ -179,7 +179,7 @@ namespace IgaMappingIntersectionUtilities
      * @param rPatchCache             Patch cache used for fast initial guess generation for surface projections
      * @param search_radius           Radius used in the cached spatial bins search for initial guess estimation
      */
-    void KRATOS_API(MAPPING_APPLICATION) CreateIgaFEMQuadraturePointsCoupling2DGeometries3D(
+    void KRATOS_API(MAPPING_APPLICATION) CreateIgaFEMQuadraturePointsOnSurface(
         ModelPart& rModelPartCoupling,
         bool origin_is_iga,
         const PatchCacheMap& rPatchCache,

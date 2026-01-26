@@ -24,7 +24,7 @@
 namespace Kratos
 {
 
-void IgaMappingIntersectionUtilities::CreateIgaFEMCouplingGeometries(
+void IgaMappingIntersectionUtilities::CreateIgaFEMCouplingGeometriesOnCurve(
     ModelPart& rModelPartDomainA,
     ModelPart& rModelPartDomainB,
     const bool& rIsOriginIga,
@@ -70,7 +70,7 @@ void IgaMappingIntersectionUtilities::CreateIgaFEMCouplingGeometries(
     }
 }
 
-void IgaMappingIntersectionUtilities::CreateIgaFEMQuadraturePointsCouplingInterface(
+void IgaMappingIntersectionUtilities::CreateIgaFEMQuadraturePointsOnCurve(
     ModelPart& rModelPartCoupling,
     double Tolerance)
 {
@@ -106,7 +106,7 @@ void IgaMappingIntersectionUtilities::CreateIgaFEMQuadraturePointsCouplingInterf
     }
 }
 
-void IgaMappingIntersectionUtilities::CreateIgaFEMSurfaceCouplingGeometries(
+void IgaMappingIntersectionUtilities::CreateIgaFEMCouplingGeometriesOnSurface(
         ModelPart &rModelPartDomainA,
         ModelPart &rModelPartDomainB,
         ModelPart &rModelPartResult,
@@ -274,7 +274,7 @@ std::vector<IndexType> IgaMappingIntersectionUtilities::GetPatchesWithProbablePr
 }
 
 
-void IgaMappingIntersectionUtilities::CreateIgaFEMQuadraturePointsCoupling2DGeometries3D(
+void IgaMappingIntersectionUtilities::CreateIgaFEMQuadraturePointsOnSurface(
     ModelPart& rModelPartCoupling,
     bool origin_is_iga,
     const PatchCacheMap& rPatchCache,

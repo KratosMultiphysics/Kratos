@@ -107,18 +107,18 @@ namespace Kratos
 
         if (!is_surface_mapping)
         {
-            IgaMappingIntersectionUtilities::CreateIgaFEMCouplingGeometries(
+            IgaMappingIntersectionUtilities::CreateIgaFEMCouplingGeometriesOnCurve(
                 coupling_interface_origin,
                 coupling_interface_destination,
                 is_origin_iga,
                 coupling_model_part, 1e-6);
-            IgaMappingIntersectionUtilities::CreateIgaFEMQuadraturePointsCouplingInterface(
+            IgaMappingIntersectionUtilities::CreateIgaFEMQuadraturePointsOnCurve(
                 coupling_model_part, 1e-6);
         } else {
             IgaMappingIntersectionUtilities::PatchCacheMap patch_cache;
 
             // Create coupling geometries connecting each finite element with the IGA surface 
-            IgaMappingIntersectionUtilities::CreateIgaFEMSurfaceCouplingGeometries(
+            IgaMappingIntersectionUtilities::CreateIgaFEMCouplingGeometriesOnSurface(
                 coupling_interface_origin,
                 coupling_interface_destination,
                 coupling_model_part, 
@@ -127,7 +127,7 @@ namespace Kratos
                 patch_cache);
             
              // Create quadrature point geometries in the origin and destination domain
-            IgaMappingIntersectionUtilities::CreateIgaFEMQuadraturePointsCoupling2DGeometries3D(
+            IgaMappingIntersectionUtilities::CreateIgaFEMQuadraturePointsOnSurface(
                 coupling_model_part, 
                 is_origin_iga,
                 patch_cache,
