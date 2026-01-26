@@ -35,7 +35,6 @@ namespace Kratos::Future
  * @brief Auxiliary container to store the linear system
  * This auxiliary container is intended to store all the arrays requires for the linear system setup
  * @tparam TLinearAlgebra The linear algebra type
- * TODO: to be changed to LinearSystem and have the matrices and vectors stored by their name in a dictionary, so we can reuse them if needed in the strategy
  */
 template <class TLinearAlgebra>
 struct ImplicitStrategyDataContainer
@@ -56,24 +55,6 @@ struct ImplicitStrategyDataContainer
 
     using LinearSystemType = LinearSystem<TLinearAlgebra>;
 
-    // //TODO: All these must dissapear from here
-    // typename MatrixType::Pointer pLhs = nullptr; // Pointer to the LHS matrix
-
-    // //TODO: All these must dissapear from here
-    // typename VectorType::Pointer pRhs = nullptr; // Pointer to the RHS vector
-
-    // //TODO: All these must dissapear from here
-    // typename VectorType::Pointer pDx = nullptr; // Pointer to the solution increment vector
-
-    // //TODO: All these must dissapear from here
-    // typename MatrixType::Pointer pEffectiveLhs = nullptr; // Pointer to the effective LHS matrix (i.e., after applying system constraints)
-
-    // //TODO: All these must dissapear from here
-    // typename VectorType::Pointer pEffectiveRhs = nullptr; // Pointer to the effective RHS vector (i.e., after applying system constraints)
-
-    // //TODO: All these must dissapear from here
-    // typename VectorType::Pointer pEffectiveDx = nullptr; // Pointer to the effective solution increment vector (i.e., after applying system constraints)
-
     typename MatrixType::Pointer pEffectiveT = nullptr; // Linear system constraints total relation matrix (combination of MPCs and eventual Dirichlet BCs)
 
     typename MatrixType::Pointer pConstraintsT = nullptr; // Master-slave constraints relation matrix
@@ -84,9 +65,9 @@ struct ImplicitStrategyDataContainer
 
     typename ModelPart::DofsArrayType::Pointer pEffectiveDofSet = Kratos::make_shared<ModelPart::DofsArrayType>(); /// The PVS containing the effective DOFs of the system
 
-    typename LinearSystemType::Pointer mpLinearSystem = nullptr;
+    typename LinearSystemType::Pointer mpLinearSystem = nullptr; // Linear system (i.e., linear system before applying constraints)
 
-    typename LinearSystemType::Pointer mpEffectiveLinearSystem = nullptr;
+    typename LinearSystemType::Pointer mpEffectiveLinearSystem = nullptr; // Effective linear system (i.e., linear system after applying constraints)
 
     /**
      * @brief Returns the pointer to the linear system
@@ -144,24 +125,6 @@ struct ImplicitStrategyDataContainer
 
     void Clear()
     {
-        // if (pLhs) {
-        //     pLhs->Clear();
-        // }
-        // if (pRhs) {
-        //     pRhs->Clear();
-        // }
-        // if (pDx) {
-        //     pDx->Clear();
-        // }
-        // if (pEffectiveLhs) {
-        //     pEffectiveLhs->Clear();
-        // }
-        // if (pEffectiveRhs) {
-        //     pEffectiveRhs->Clear();
-        // }
-        // if (pEffectiveDx) {
-        //     pEffectiveDx->Clear();
-        // }
         if (pEffectiveT) {
             pEffectiveT->Clear();
         }
