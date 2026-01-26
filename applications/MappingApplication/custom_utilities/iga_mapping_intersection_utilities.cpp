@@ -222,12 +222,9 @@ IgaMappingIntersectionUtilities::PatchCacheMap IgaMappingIntersectionUtilities::
 
                 p_brep->GlobalCoordinates(phys, local);
 
-                // IMPORTANT: use intrusive pointer type
                 pc.points.push_back(PointTypePointer(new PointType(
                     id++, phys[0], phys[1], phys[2]
                 )));
-                // If available in your Kratos:
-                // pc.points.push_back(Kratos::make_intrusive<PointType>(id++, phys[0], phys[1], phys[2]));
             }
         }
 
