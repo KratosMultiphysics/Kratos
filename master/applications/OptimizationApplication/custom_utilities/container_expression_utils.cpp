@@ -635,7 +635,6 @@ void ContainerExpressionUtils::GetGradientExpression(
             Matrix dn_dx_T;
             Transpose(dn_dx_T, dn_dx);
             noalias(gradient) += prod(dn_dx_T, nodal_values);
-            // KRATOS_INFO("DNDX") << "Element #" << Index << " dn/dx: " << dn_dx << ", dn_dx_T: " << dn_dx_T<< ", product: " << prod(dn_dx_T, nodal_values) << std::endl;
         }
 
         // write the gradients back to the expression
@@ -733,15 +732,7 @@ void ContainerExpressionUtils::HamilotinanUpdate(
     KRATOS_TRY
 
     auto& r_element_container = rGradient.GetContainer();
-    // const auto& r_expression = rGradient.GetExpression();
 
-    // std::cout << "gradient expression: " << rGradient << std::endl;
-
-    // for (size_t i = 0; i < r_element_container.size(); i++)    
-    // {
-    //     std::cout << r_expression.Evaluate(i, i, 0) << ", ";
-    // }
-    // std::cout << std::endl;
 
     VariableUtils().SetNonHistoricalVariablesToZero(r_element_container, TEMPORARY_SCALAR_VARIABLE_1);
     VariableUtils().SetNonHistoricalVariablesToZero(r_element_container, TEMPORARY_SCALAR_VARIABLE_2);
@@ -761,7 +752,6 @@ void ContainerExpressionUtils::HamilotinanUpdate(
         Matrix& list_n = std::get<0>(rTLS);
         Vector& list_det_J = std::get<1>(rTLS);
         DenseVector<Matrix>& list_dn_dx = std::get<2>(rTLS);
-        // GeometryType::IntegrationPointsArrayType&
         std::vector<Kratos::IntegrationPoint<3> >& list_w = std::get<3>(rTLS);
         Vector& lumping_factors = std::get<4>(rTLS);
 
@@ -771,12 +761,10 @@ void ContainerExpressionUtils::HamilotinanUpdate(
         r_geometry.LumpingFactors(lumping_factors);
         double volume = r_geometry.DomainSize();
         
-        // SHOULD I USE ELEMENTAL TO NODAL CONVERSION HERE (on integrand)?
         // IF ONE GP IS ASSUMED AND VALUES ARE CONST OVER ELEMENT THEN CURRENT SHOULD BE FINE
         const double velocity = r_velocity_expression.Evaluate(Index, Index, 0);
         const double grad_phi = r_gradient_expression.Evaluate(Index, Index, 0);
         const double integrand = velocity * grad_phi;
-        // // // // KRATOS_INFO("INTEGRAND") << "Element #" << Index << " velocity: " << velocity << ", gradient: " << grad_phi << ", integrand: " << integrand << std::endl;
         
         for (IndexType i_gauss = 0; i_gauss < list_det_J.size(); ++i_gauss) {
             const double det_J = list_det_J[i_gauss];
@@ -803,13 +791,8 @@ void ContainerExpressionUtils::HamilotinanUpdate(
         const double delta_phi = r_node.GetValue(TEMPORARY_SCALAR_VARIABLE_1);
         const double mass_scaling = r_node.GetValue(TEMPORARY_SCALAR_VARIABLE_2);
         const double new_contribution = delta_phi / mass_scaling;
+        
         // phi_new = phi_old - dt * v * |d_phi|
-        // ADD DELTA T CALCULATION
-
-        // KRATOS_INFO("PHI_VALUES") << "Node #" << Index << ", delta phi: " << delta_phi
-        //                           << ", scaling: " << mass_scaling << ", new contribution: " << new_contribution
-        //                           << ", old phi: " << r_phi_expression.Evaluate(Index, Index, 0)
-        //                           << ", new phi: " << r_phi_expression.Evaluate(Index, Index, 0) + 1.0 * new_contribution << std::endl;
         double new_phi = r_phi_expression.Evaluate(Index, Index, 0) + 1.0 * new_contribution;
         
         r_node.SetValue(TEMPORARY_SCALAR_VARIABLE_1, new_phi);
