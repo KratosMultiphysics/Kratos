@@ -256,6 +256,9 @@ class OptimizationProblemInterfaceOutputProcess(Kratos.OutputProcess):
         cond_id = mp_interface.NumberOfConditions()
         prop = mp_interface.GetProperties(2)
 
+
+
+
         # INTERIOR: element-wise MC using lookup tables 
         for elem in self.model_part.Elements:
             geom = elem.GetGeometry()
