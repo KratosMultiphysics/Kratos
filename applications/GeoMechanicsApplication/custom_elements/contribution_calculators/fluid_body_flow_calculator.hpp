@@ -14,6 +14,7 @@
 
 #include "contribution_calculator.h"
 #include "custom_retention/retention_law.h"
+#include "geo_aliases.h"
 #include "includes/cfd_variables.h"
 #include "includes/properties.h"
 #include "includes/ublas_interface.h"
@@ -29,7 +30,7 @@ class FluidBodyFlowCalculator : public ContributionCalculator<TNumNodes>
 {
 public:
     struct InputProvider {
-        InputProvider(std::function<const Properties&()> GetElementProperties,
+        InputProvider(Geo::PropertiesGetter GetElementProperties,
                       std::function<const std::vector<RetentionLaw::Pointer>&()> GetRetentionLaws,
                       std::function<Matrix()>              GetMaterialPermeability,
                       std::function<Vector()>              GetIntegrationCoefficients,
@@ -47,7 +48,7 @@ public:
         {
         }
 
-        std::function<const Properties&()>                         GetElementProperties;
+        Geo::PropertiesGetter                                      GetElementProperties;
         std::function<const std::vector<RetentionLaw::Pointer>&()> GetRetentionLaws;
         std::function<Matrix()>                                    GetMaterialPermeability;
         std::function<Vector()>                                    GetIntegrationCoefficients;
