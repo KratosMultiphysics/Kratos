@@ -24,13 +24,19 @@ namespace Kratos
 class Properties;
 class Serializer;
 
+namespace Geo
+{
+struct PrincipalStresses;
+}
+
 class CoulombWithTensionCutOffImpl
 {
 public:
     CoulombWithTensionCutOffImpl() = default;
     explicit CoulombWithTensionCutOffImpl(const Properties& rMaterialProperties);
 
-    [[nodiscard]] bool   IsAdmissibleSigmaTau(const Vector& rTrialSigmaTau) const;
+    [[nodiscard]] bool IsAdmissibleSigmaTau(const Vector& rTrialSigmaTau) const;
+    [[nodiscard]] bool IsAdmissibleStressState(const Geo::PrincipalStresses& rPrincipalStresses) const;
     [[nodiscard]] Vector DoReturnMapping(const Vector&                             rTrialSigmaTau,
                                          CoulombYieldSurface::CoulombAveragingType AveragingType);
 

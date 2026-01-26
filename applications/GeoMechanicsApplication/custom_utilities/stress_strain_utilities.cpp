@@ -186,6 +186,17 @@ std::vector<Vector> StressStrainUtilities::CalculateStrains(const std::vector<Ma
     return result;
 }
 
+Geo::PrincipalStresses StressStrainUtilities::CalculatePrincipalStresses(const Vector& rStressVector)
+{
+    auto principal_stresses = Vector{};
+    auto eigen_vectors      = Matrix{};
+    CalculatePrincipalStresses(rStressVector, principal_stresses, eigen_vectors);
+
+    auto result = Geo::PrincipalStresses{};
+    std::ranges::copy(principal_stresses, result.values.begin());
+    return result;
+}
+
 void StressStrainUtilities::CalculatePrincipalStresses(const Vector& rCauchyStressVector,
                                                        Vector&       rPrincipalStressVector,
                                                        Matrix&       rEigenVectorsMatrix)

@@ -14,7 +14,9 @@
 //
 
 #include "custom_constitutive/coulomb_with_tension_cut_off_impl.h"
+#include "custom_constitutive/geo_principal_stresses.h"
 #include "custom_utilities/constitutive_law_utilities.h"
+#include "custom_utilities/stress_strain_utilities.h"
 #include "custom_utilities/ublas_utilities.h"
 #include "geo_mechanics_application_variables.h"
 #include "includes/properties.h"
@@ -43,6 +45,14 @@ bool CoulombWithTensionCutOffImpl::IsAdmissibleSigmaTau(const Vector& rTrialSigm
     const auto     coulomb_tolerance = tolerance * (1.0 + std::abs(coulomb_yield_function_value));
     const auto     tension_tolerance = tolerance * (1.0 + std::abs(tension_yield_function_value));
     return coulomb_yield_function_value < coulomb_tolerance && tension_yield_function_value < tension_tolerance;
+}
+
+bool CoulombWithTensionCutOffImpl::IsAdmissibleStressState(const Geo::PrincipalStresses& rPrincipalStresses) const
+{
+    // For now, convert the supplied principal stresses to a `Vector`, just so we can use existing functions
+    auto principal_stresses = Vector{rPrincipalStresses.values.size()};
+    std::ranges::copy(rPrincipalStresses.values, principal_stresses.begin());
+    return IsAdmissibleSigmaTau(StressStrainUtilities::TransformPrincipalStressesToSigmaTau(principal_stresses));
 }
 
 Vector CoulombWithTensionCutOffImpl::DoReturnMapping(const Vector& rTrialSigmaTau,
