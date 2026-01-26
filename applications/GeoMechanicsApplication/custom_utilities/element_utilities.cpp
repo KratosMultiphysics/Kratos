@@ -33,62 +33,62 @@ void GeoElementUtilities::FillArray1dOutput(array_1d<double, 3>& rOutputValue, c
 }
 
 void GeoElementUtilities::FillPermeabilityMatrix(BoundedMatrix<double, 1, 1>&   rPermeabilityMatrix,
-                                                 const Element::PropertiesType& Prop)
+                                                 const Element::PropertiesType& rProperties)
 {
     // 1D
-    if (Prop[RETENTION_LAW] == "PressureFilterLaw") {
-        const auto equivalent_radius_square = Prop[CROSS_AREA] / Globals::Pi;
+    if (rProperties[RETENTION_LAW] == "PressureFilterLaw") {
+        const auto equivalent_radius_square = rProperties[CROSS_AREA] / Globals::Pi;
         rPermeabilityMatrix(0, 0)           = equivalent_radius_square * 0.125;
     } else {
-        rPermeabilityMatrix(0, 0) = Prop[PERMEABILITY_XX];
+        rPermeabilityMatrix(0, 0) = rProperties[PERMEABILITY_XX];
     }
 }
 
 void GeoElementUtilities::FillPermeabilityMatrix(BoundedMatrix<double, 2, 2>&   rPermeabilityMatrix,
-                                                 const Element::PropertiesType& Prop)
+                                                 const Element::PropertiesType& rProperties)
 {
     // 2D
-    rPermeabilityMatrix(0, 0) = Prop[PERMEABILITY_XX];
-    rPermeabilityMatrix(1, 1) = Prop[PERMEABILITY_YY];
+    rPermeabilityMatrix(0, 0) = rProperties[PERMEABILITY_XX];
+    rPermeabilityMatrix(1, 1) = rProperties[PERMEABILITY_YY];
 
-    rPermeabilityMatrix(0, 1) = Prop[PERMEABILITY_XY];
+    rPermeabilityMatrix(0, 1) = rProperties[PERMEABILITY_XY];
     rPermeabilityMatrix(1, 0) = rPermeabilityMatrix(0, 1);
 }
 
 void GeoElementUtilities::FillPermeabilityMatrix(BoundedMatrix<double, 3, 3>&   rPermeabilityMatrix,
-                                                 const Element::PropertiesType& Prop)
+                                                 const Element::PropertiesType& rProperties)
 {
     // 3D
-    rPermeabilityMatrix(0, 0) = Prop[PERMEABILITY_XX];
-    rPermeabilityMatrix(1, 1) = Prop[PERMEABILITY_YY];
-    rPermeabilityMatrix(2, 2) = Prop[PERMEABILITY_ZZ];
+    rPermeabilityMatrix(0, 0) = rProperties[PERMEABILITY_XX];
+    rPermeabilityMatrix(1, 1) = rProperties[PERMEABILITY_YY];
+    rPermeabilityMatrix(2, 2) = rProperties[PERMEABILITY_ZZ];
 
-    rPermeabilityMatrix(0, 1) = Prop[PERMEABILITY_XY];
+    rPermeabilityMatrix(0, 1) = rProperties[PERMEABILITY_XY];
     rPermeabilityMatrix(1, 0) = rPermeabilityMatrix(0, 1);
 
-    rPermeabilityMatrix(1, 2) = Prop[PERMEABILITY_YZ];
+    rPermeabilityMatrix(1, 2) = rProperties[PERMEABILITY_YZ];
     rPermeabilityMatrix(2, 1) = rPermeabilityMatrix(1, 2);
 
-    rPermeabilityMatrix(2, 0) = Prop[PERMEABILITY_ZX];
+    rPermeabilityMatrix(2, 0) = rProperties[PERMEABILITY_ZX];
     rPermeabilityMatrix(0, 2) = rPermeabilityMatrix(2, 0);
 }
 
-Matrix GeoElementUtilities::FillPermeabilityMatrix(const Element::PropertiesType& Prop, std::size_t Dimension)
+Matrix GeoElementUtilities::FillPermeabilityMatrix(const Element::PropertiesType& rProperties, std::size_t Dimension)
 {
     switch (Dimension) {
     case 1: {
         BoundedMatrix<double, 1, 1> result;
-        FillPermeabilityMatrix(result, Prop);
+        FillPermeabilityMatrix(result, rProperties);
         return result;
     }
     case 2: {
         BoundedMatrix<double, 2, 2> result;
-        FillPermeabilityMatrix(result, Prop);
+        FillPermeabilityMatrix(result, rProperties);
         return result;
     }
     case 3: {
         BoundedMatrix<double, 3, 3> result;
-        FillPermeabilityMatrix(result, Prop);
+        FillPermeabilityMatrix(result, rProperties);
         return result;
     }
     default:

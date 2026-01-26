@@ -14,7 +14,7 @@
 
 #include "contribution_calculator.h"
 #include "custom_retention/retention_law.h"
-#include "custom_utilities/element_utilities.hpp"
+#include "geo_aliases.h"
 #include "includes/cfd_variables.h"
 #include "includes/properties.h"
 #include "includes/ublas_interface.h"
@@ -30,30 +30,30 @@ class FluidBodyFlowCalculator : public ContributionCalculator<TNumNodes>
 {
 public:
     struct InputProvider {
-        InputProvider(std::function<const Properties&()> GetElementProperties,
-                      std::function<const std::vector<RetentionLaw::Pointer>&()> GetRetentionLaws,
-                      std::function<Vector()>              GetIntegrationCoefficients,
-                      std::function<std::vector<Vector>()> GetProjectedGravityAtIntegrationPoints,
+        InputProvider(Geo::PropertiesGetter                 GetElementProperties,
+                      Geo::RetentionLawsGetter              GetRetentionLaws,
+                      Geo::MaterialPermeabilityMatrixGetter GetMaterialPermeability,
+                      Geo::IntegrationCoefficientsGetter    GetIntegrationCoefficients,
+                      std::function<std::vector<Vector>()>  GetProjectedGravityAtIntegrationPoints,
                       std::function<Geometry<Node>::ShapeFunctionsGradientsType()> GetShapeFunctionGradients,
-                      std::function<std::size_t()>         GetLocalSpaceDimension,
                       std::function<std::vector<double>()> GetFluidPressures)
 
             : GetElementProperties(std::move(GetElementProperties)),
+              GetRetentionLaws(std::move(GetRetentionLaws)),
+              GetMaterialPermeability(std::move(GetMaterialPermeability)),
               GetIntegrationCoefficients(std::move(GetIntegrationCoefficients)),
               GetProjectedGravityAtIntegrationPoints(std::move(GetProjectedGravityAtIntegrationPoints)),
-              GetRetentionLaws(std::move(GetRetentionLaws)),
               GetShapeFunctionGradients(std::move(GetShapeFunctionGradients)),
-              GetLocalSpaceDimension(std::move(GetLocalSpaceDimension)),
               GetFluidPressures(std::move(GetFluidPressures))
         {
         }
 
-        std::function<const Properties&()>   GetElementProperties;
-        std::function<Vector()>              GetIntegrationCoefficients;
-        std::function<std::vector<Vector>()> GetProjectedGravityAtIntegrationPoints;
-        std::function<const std::vector<RetentionLaw::Pointer>&()>   GetRetentionLaws;
+        Geo::PropertiesGetter                 GetElementProperties;
+        Geo::RetentionLawsGetter              GetRetentionLaws;
+        Geo::MaterialPermeabilityMatrixGetter GetMaterialPermeability;
+        Geo::IntegrationCoefficientsGetter    GetIntegrationCoefficients;
+        std::function<std::vector<Vector>()>  GetProjectedGravityAtIntegrationPoints;
         std::function<Geometry<Node>::ShapeFunctionsGradientsType()> GetShapeFunctionGradients;
-        std::function<std::size_t()>                                 GetLocalSpaceDimension;
         std::function<std::vector<double>()>                         GetFluidPressures;
     };
 
@@ -69,32 +69,31 @@ public:
 
     BoundedVector<double, TNumNodes> RHSContribution() override
     {
-        const auto& shape_function_gradients = mInputProvider.GetShapeFunctionGradients();
+        const auto& r_shape_function_gradients = mInputProvider.GetShapeFunctionGradients();
 
-        const auto& integration_coefficients = mInputProvider.GetIntegrationCoefficients();
+        const auto& r_integration_coefficients = mInputProvider.GetIntegrationCoefficients();
 
-        const auto& r_properties        = mInputProvider.GetElementProperties();
-        const auto  constitutive_matrix = GeoElementUtilities::FillPermeabilityMatrix(
-            r_properties, mInputProvider.GetLocalSpaceDimension());
+        const auto& r_properties          = mInputProvider.GetElementProperties();
+        const auto  material_permeability = mInputProvider.GetMaterialPermeability();
 
         RetentionLaw::Parameters retention_law_parameters(r_properties);
-        const auto&              projected_gravity_on_integration_points =
+        const auto&              r_projected_gravity_on_integration_points =
             mInputProvider.GetProjectedGravityAtIntegrationPoints();
-        const auto&                      fluid_pressures = mInputProvider.GetFluidPressures();
-        BoundedVector<double, TNumNodes> result          = ZeroVector(TNumNodes);
-        const auto bishop_coefficients = CalculateBishopCoefficients(fluid_pressures);
+        const auto&                      r_fluid_pressures = mInputProvider.GetFluidPressures();
+        BoundedVector<double, TNumNodes> result            = ZeroVector(TNumNodes);
+        const auto bishop_coefficients = CalculateBishopCoefficients(r_fluid_pressures);
 
         for (unsigned int integration_point_index = 0;
-             integration_point_index < integration_coefficients.size(); ++integration_point_index) {
-            retention_law_parameters.SetFluidPressure(fluid_pressures[integration_point_index]);
+             integration_point_index < r_integration_coefficients.size(); ++integration_point_index) {
+            retention_law_parameters.SetFluidPressure(r_fluid_pressures[integration_point_index]);
             const auto relative_permeability =
                 mInputProvider.GetRetentionLaws()[integration_point_index]->CalculateRelativePermeability(
                     retention_law_parameters);
             noalias(result) +=
                 r_properties[DENSITY_WATER] * bishop_coefficients[integration_point_index] * relative_permeability *
-                prod(prod(shape_function_gradients[integration_point_index], constitutive_matrix),
-                     projected_gravity_on_integration_points[integration_point_index]) *
-                integration_coefficients[integration_point_index] / r_properties[DYNAMIC_VISCOSITY];
+                prod(prod(r_shape_function_gradients[integration_point_index], material_permeability),
+                     r_projected_gravity_on_integration_points[integration_point_index]) *
+                r_integration_coefficients[integration_point_index] / r_properties[DYNAMIC_VISCOSITY];
         }
         return result;
     }
@@ -107,7 +106,7 @@ public:
 private:
     InputProvider mInputProvider;
 
-    std::vector<double> CalculateBishopCoefficients(const std::vector<double>& rFluidPressures) const
+    [[nodiscard]] std::vector<double> CalculateBishopCoefficients(const std::vector<double>& rFluidPressures) const
     {
         KRATOS_ERROR_IF_NOT(rFluidPressures.size() == mInputProvider.GetRetentionLaws().size());
 
