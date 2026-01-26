@@ -87,7 +87,8 @@ namespace Kratos
             {
                 const auto& r_geom = r_cond.GetGeometry();
 
-                KRATOS_ERROR_IF(r_geom.PointsNumber() != 3)
+                KRATOS_ERROR_IF_NOT(r_geom.GetGeometryType() == GeometryData::KratosGeometryType::Kratos_Triangle3D3 || 
+                                r_geom.GetGeometryType() == GeometryData::KratosGeometryType::Kratos_Triangle2D3)
                     << "Surface mapping currently supports only TRIANGULAR interface conditions.\n"
                     << "Condition Id: " << r_cond.Id() << "\n"
                     << "Geometry: " << r_geom.Info() << "\n"
