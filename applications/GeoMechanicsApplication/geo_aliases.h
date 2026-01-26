@@ -49,4 +49,5 @@ using PropertiesGetter              = std::function<const Properties&()>;
 using ProcessInfoGetter             = std::function<const ProcessInfo&()>;
 using ConstitutiveLawsGetter        = std::function<const std::vector<ConstitutiveLaw::Pointer>&()>;
 using RetentionLawsGetter           = std::function<const std::vector<RetentionLaw::Pointer>&()>;
+using MaterialPermeabilityMatrixGetter = std::function<Matrix()>;
 } // namespace Kratos::Geo

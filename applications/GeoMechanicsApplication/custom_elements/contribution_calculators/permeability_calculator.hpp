@@ -28,7 +28,7 @@ public:
     struct InputProvider {
         InputProvider(Geo::PropertiesGetter                          GetElementProperties,
                       Geo::RetentionLawsGetter                       GetRetentionLaws,
-                      std::function<Matrix()>                        GetMaterialPermeability,
+                      Geo::MaterialPermeabilityMatrixGetter          GetMaterialPermeability,
                       Geo::IntegrationCoefficientsGetter             GetIntegrationCoefficients,
                       std::function<Vector(const Variable<double>&)> GetNodalValuesOf,
                       std::function<Geometry<Node>::ShapeFunctionsGradientsType()> GetShapeFunctionGradients,
@@ -45,7 +45,7 @@ public:
 
         Geo::PropertiesGetter                                        GetElementProperties;
         Geo::RetentionLawsGetter                                     GetRetentionLaws;
-        std::function<Matrix()>                                      GetMaterialPermeability;
+        Geo::MaterialPermeabilityMatrixGetter                        GetMaterialPermeability;
         Geo::IntegrationCoefficientsGetter                           GetIntegrationCoefficients;
         std::function<Vector(const Variable<double>&)>               GetNodalValues;
         std::function<Geometry<Node>::ShapeFunctionsGradientsType()> GetShapeFunctionGradients;

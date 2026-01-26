@@ -30,11 +30,11 @@ class FluidBodyFlowCalculator : public ContributionCalculator<TNumNodes>
 {
 public:
     struct InputProvider {
-        InputProvider(Geo::PropertiesGetter                GetElementProperties,
-                      Geo::RetentionLawsGetter             GetRetentionLaws,
-                      std::function<Matrix()>              GetMaterialPermeability,
-                      Geo::IntegrationCoefficientsGetter   GetIntegrationCoefficients,
-                      std::function<std::vector<Vector>()> GetProjectedGravityAtIntegrationPoints,
+        InputProvider(Geo::PropertiesGetter                 GetElementProperties,
+                      Geo::RetentionLawsGetter              GetRetentionLaws,
+                      Geo::MaterialPermeabilityMatrixGetter GetMaterialPermeability,
+                      Geo::IntegrationCoefficientsGetter    GetIntegrationCoefficients,
+                      std::function<std::vector<Vector>()>  GetProjectedGravityAtIntegrationPoints,
                       std::function<Geometry<Node>::ShapeFunctionsGradientsType()> GetShapeFunctionGradients,
                       std::function<std::vector<double>()> GetFluidPressures)
 
@@ -48,11 +48,11 @@ public:
         {
         }
 
-        Geo::PropertiesGetter                GetElementProperties;
-        Geo::RetentionLawsGetter             GetRetentionLaws;
-        std::function<Matrix()>              GetMaterialPermeability;
-        Geo::IntegrationCoefficientsGetter   GetIntegrationCoefficients;
-        std::function<std::vector<Vector>()> GetProjectedGravityAtIntegrationPoints;
+        Geo::PropertiesGetter                 GetElementProperties;
+        Geo::RetentionLawsGetter              GetRetentionLaws;
+        Geo::MaterialPermeabilityMatrixGetter GetMaterialPermeability;
+        Geo::IntegrationCoefficientsGetter    GetIntegrationCoefficients;
+        std::function<std::vector<Vector>()>  GetProjectedGravityAtIntegrationPoints;
         std::function<Geometry<Node>::ShapeFunctionsGradientsType()> GetShapeFunctionGradients;
         std::function<std::vector<double>()>                         GetFluidPressures;
     };
