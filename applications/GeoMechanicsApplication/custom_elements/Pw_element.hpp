@@ -141,7 +141,7 @@ private:
     {
         return [this]() -> Matrix {
             return GeoElementUtilities::FillPermeabilityMatrix(
-                GetProperties(), this->GetGeometry().LocalSpaceDimension());
+                this->GetProperties(), this->GetGeometry().LocalSpaceDimension());
         };
     }
 
