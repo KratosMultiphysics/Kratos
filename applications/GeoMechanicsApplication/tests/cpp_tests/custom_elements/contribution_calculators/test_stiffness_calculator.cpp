@@ -19,9 +19,9 @@ namespace
 
 Kratos::ProcessInfo GetProcessInfo() { return Kratos::ProcessInfo(); }
 
-class MockLaw: public Kratos::ConstitutiveLaw
+class MockLaw : public Kratos::ConstitutiveLaw
 {
-    public:
+public:
     KRATOS_CLASS_POINTER_DEFINITION(MockLaw);
 
     Kratos::Matrix& CalculateValue(Parameters& rParameterValues,
@@ -29,11 +29,11 @@ class MockLaw: public Kratos::ConstitutiveLaw
                                    Kratos::Matrix& rValue) override
     {
         constexpr std::size_t voigt_size = 4;
-        rValue = Kratos::ScalarMatrix(voigt_size, voigt_size, 2.0);
+        rValue                           = Kratos::ScalarMatrix(voigt_size, voigt_size, 2.0);
         return rValue;
     }
 
-    SizeType GetStrainSize() const override{return 4;}
+    SizeType GetStrainSize() const override { return 4; }
 };
 
 } // namespace
@@ -45,37 +45,28 @@ TEST_F(KratosGeoMechanicsFastSuiteWithoutKernel, TestsStiffnessContribution)
     constexpr std::size_t voigt_size = 4;
     constexpr std::size_t n          = 3;
 
-    const Matrix        b = ScalarMatrix(voigt_size, n, 0.5);
-    std::vector<Matrix> b_matrices;
-    b_matrices.push_back(b);
-    b_matrices.push_back(b);
-
-    const Matrix        constitutive = ScalarMatrix(voigt_size, voigt_size, 2.0);
-    std::vector<Matrix> constitutive_matrices;
-    constitutive_matrices.push_back(constitutive);
-    constitutive_matrices.push_back(constitutive);
-
-    std::vector<double>                integration_coefficients{1.0, 2.0};
     Geo::IntegrationCoefficientsGetter integration_coefficients_getter = []() {
         return std::vector{1.0, 2.0};
     };
+    const auto               b                 = Matrix(voigt_size, n, 0.5);
     Geo::BMatricesGetter     b_matrices_getter = [b]() { return std::vector{b, b}; };
     Geo::StrainVectorsGetter strains_getter    = []() {
         return std::vector{Vector{2, 0.5}, Vector{2, 0.6}};
     };
     std::vector<ConstitutiveLaw::Pointer> mock_laws{std::make_shared<MockLaw>(), std::make_shared<MockLaw>()};
-    Geo::ConstitutiveLawsGetter constitutive_laws_getter = [mock_laws]() -> const std::vector<ConstitutiveLaw::Pointer>& { return mock_laws; };
-    Geo::PropertiesGetter properties_getter = []() -> const Properties& {return Properties{};};
-
-    auto stiffness_matrix = GeoEquationOfMotionUtilities::CalculateStiffnessMatrix(
-        b_matrices, constitutive_matrices, integration_coefficients);
-
-    const auto expected_stiffness_matrix = ScalarMatrix(n, n, 24.0);
+    Geo::ConstitutiveLawsGetter constitutive_laws_getter =
+        [mock_laws]() -> const std::vector<ConstitutiveLaw::Pointer>& { return mock_laws; };
+    Geo::PropertiesGetter properties_getter = []() -> const Properties& { return Properties{}; };
 
     constexpr std::size_t                               number_of_u_dof = 4;
     StiffnessCalculator<number_of_u_dof>::InputProvider provider(
-        b_matrices_getter, strains_getter, integration_coefficients_getter, properties_getter, GetProcessInfo, constitutive_laws_getter);
+        b_matrices_getter, strains_getter, integration_coefficients_getter, properties_getter,
+        GetProcessInfo, constitutive_laws_getter);
     StiffnessCalculator<number_of_u_dof> calculator(provider);
-    KRATOS_CHECK_MATRIX_NEAR(calculator.LHSContribution().value(), expected_stiffness_matrix, 1e-4)
+
+    const auto actual_stiffness_matrix = calculator.LHSContribution().value();
+
+    const auto expected_stiffness_matrix = ScalarMatrix(n, n, 24.0);
+    KRATOS_CHECK_MATRIX_NEAR(actual_stiffness_matrix, expected_stiffness_matrix, 1e-4)
 }
 } // namespace Kratos::Testing
