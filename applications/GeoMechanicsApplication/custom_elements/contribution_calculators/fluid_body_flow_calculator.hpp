@@ -30,8 +30,8 @@ class FluidBodyFlowCalculator : public ContributionCalculator<TNumNodes>
 {
 public:
     struct InputProvider {
-        InputProvider(Geo::PropertiesGetter GetElementProperties,
-                      std::function<const std::vector<RetentionLaw::Pointer>&()> GetRetentionLaws,
+        InputProvider(Geo::PropertiesGetter                GetElementProperties,
+                      Geo::RetentionLawsGetter             GetRetentionLaws,
                       std::function<Matrix()>              GetMaterialPermeability,
                       std::function<Vector()>              GetIntegrationCoefficients,
                       std::function<std::vector<Vector>()> GetProjectedGravityAtIntegrationPoints,
@@ -48,10 +48,10 @@ public:
         {
         }
 
-        Geo::PropertiesGetter                                      GetElementProperties;
-        std::function<const std::vector<RetentionLaw::Pointer>&()> GetRetentionLaws;
-        std::function<Matrix()>                                    GetMaterialPermeability;
-        std::function<Vector()>                                    GetIntegrationCoefficients;
+        Geo::PropertiesGetter                GetElementProperties;
+        Geo::RetentionLawsGetter             GetRetentionLaws;
+        std::function<Matrix()>              GetMaterialPermeability;
+        std::function<Vector()>              GetIntegrationCoefficients;
         std::function<std::vector<Vector>()> GetProjectedGravityAtIntegrationPoints;
         std::function<Geometry<Node>::ShapeFunctionsGradientsType()> GetShapeFunctionGradients;
         std::function<std::vector<double>()>                         GetFluidPressures;

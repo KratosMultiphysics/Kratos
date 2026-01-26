@@ -26,8 +26,8 @@ class PermeabilityCalculator : public ContributionCalculator<TNumNodes> ///
 {
 public:
     struct InputProvider {
-        InputProvider(Geo::PropertiesGetter GetElementProperties,
-                      std::function<const std::vector<RetentionLaw::Pointer>&()> GetRetentionLaws,
+        InputProvider(Geo::PropertiesGetter                          GetElementProperties,
+                      Geo::RetentionLawsGetter                       GetRetentionLaws,
                       std::function<Matrix()>                        GetMaterialPermeability,
                       std::function<Vector()>                        GetIntegrationCoefficients,
                       std::function<Vector(const Variable<double>&)> GetNodalValuesOf,
@@ -44,7 +44,7 @@ public:
         }
 
         Geo::PropertiesGetter                                        GetElementProperties;
-        std::function<const std::vector<RetentionLaw::Pointer>&()>   GetRetentionLaws;
+        Geo::RetentionLawsGetter                                     GetRetentionLaws;
         std::function<Matrix()>                                      GetMaterialPermeability;
         std::function<Vector()>                                      GetIntegrationCoefficients;
         std::function<Vector(const Variable<double>&)>               GetNodalValues;

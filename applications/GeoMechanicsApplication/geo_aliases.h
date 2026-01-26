@@ -17,6 +17,7 @@
 #include <vector>
 
 #include "containers/variable.h"
+#include "custom_retention/retention_law.h"
 #include "geometries/geometry.h"
 #include "includes/constitutive_law.h"
 #include "includes/node.h"
@@ -47,4 +48,5 @@ using IntegrationCoefficientsGetter = std::function<std::vector<double>()>;
 using PropertiesGetter              = std::function<const Properties&()>;
 using ProcessInfoGetter             = std::function<const ProcessInfo&()>;
 using ConstitutiveLawsGetter        = std::function<const std::vector<ConstitutiveLaw::Pointer>&()>;
+using RetentionLawsGetter           = std::function<const std::vector<RetentionLaw::Pointer>&()>;
 } // namespace Kratos::Geo
