@@ -101,7 +101,7 @@ private:
     std::vector<CalculationContribution> mContributions;
     IntegrationCoefficientsCalculator    mIntegrationCoefficientsCalculator;
     std::vector<RetentionLaw::Pointer>   mRetentionLawVector;
-    Vector                               mIntegrationCoefficients;
+    std::vector<double>                  mIntegrationCoefficients;
     Matrix                               mNContainer;
     Vector                               mDetJCcontainer;
     std::vector<double>                  mFluidPressures;
@@ -154,10 +154,10 @@ private:
 
     auto GetIntegrationCoefficients()
     {
-        return [this]() -> const Vector& { return mIntegrationCoefficients; };
+        return [this]() -> const std::vector<double>& { return mIntegrationCoefficients; };
     }
 
-    Vector CalculateIntegrationCoefficients();
+    std::vector<double> CalculateIntegrationCoefficients();
 
     auto GetFluidPressures()
     {

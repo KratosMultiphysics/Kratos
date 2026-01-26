@@ -15,6 +15,7 @@
 #include "contribution_calculator.h"
 #include "custom_retention/retention_law.h"
 #include "custom_utilities/transport_equation_utilities.hpp"
+#include "geo_aliases.h"
 #include "geo_mechanics_application_variables.h"
 #include "includes/properties.h"
 #include "includes/ublas_interface.h"
@@ -30,10 +31,10 @@ class CompressibilityCalculator : public ContributionCalculator<TNumNodes>
 {
 public:
     struct InputProvider {
-        InputProvider(std::function<const Properties&()> GetElementProperties,
+        InputProvider(Geo::PropertiesGetter GetElementProperties,
                       std::function<const std::vector<RetentionLaw::Pointer>&()> GetRetentionLaws,
                       std::function<const Matrix&()>                             GetNContainer,
-                      std::function<Vector()>                        GetIntegrationCoefficients,
+                      Geo::IntegrationCoefficientsGetter             GetIntegrationCoefficients,
                       std::function<double()>                        GetMatrixScalarFactor,
                       std::function<Vector(const Variable<double>&)> GetNodalValuesOf,
                       std::function<std::vector<double>()>           GetFluidPressures)
@@ -47,10 +48,10 @@ public:
         {
         }
 
-        std::function<const Properties&()>                         GetElementProperties;
+        Geo::PropertiesGetter                                      GetElementProperties;
         std::function<const std::vector<RetentionLaw::Pointer>&()> GetRetentionLaws;
         std::function<const Matrix&()>                             GetNContainer;
-        std::function<Vector()>                                    GetIntegrationCoefficients;
+        Geo::IntegrationCoefficientsGetter                         GetIntegrationCoefficients;
         std::function<double()>                                    GetMatrixScalarFactor;
         std::function<Vector(const Variable<double>&)>             GetNodalValues;
         std::function<std::vector<double>()>                       GetFluidPressures;

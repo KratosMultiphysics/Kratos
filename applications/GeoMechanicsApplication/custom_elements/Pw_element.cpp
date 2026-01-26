@@ -480,10 +480,10 @@ Matrix PwElement<TDim, TNumNodes>::CalculateNContainer()
 }
 
 template <unsigned int TDim, unsigned int TNumNodes>
-Vector PwElement<TDim, TNumNodes>::CalculateIntegrationCoefficients()
+std::vector<double> PwElement<TDim, TNumNodes>::CalculateIntegrationCoefficients()
 {
     GetGeometry().DeterminantOfJacobian(mDetJCcontainer, this->GetIntegrationMethod());
-    return mIntegrationCoefficientsCalculator.Run<Vector>(
+    return mIntegrationCoefficientsCalculator.Run<>(
         GetGeometry().IntegrationPoints(GetIntegrationMethod()), mDetJCcontainer, this);
 }
 

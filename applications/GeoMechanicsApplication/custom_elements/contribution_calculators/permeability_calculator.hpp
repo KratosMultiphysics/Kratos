@@ -29,7 +29,7 @@ public:
         InputProvider(Geo::PropertiesGetter                          GetElementProperties,
                       Geo::RetentionLawsGetter                       GetRetentionLaws,
                       std::function<Matrix()>                        GetMaterialPermeability,
-                      std::function<Vector()>                        GetIntegrationCoefficients,
+                      Geo::IntegrationCoefficientsGetter             GetIntegrationCoefficients,
                       std::function<Vector(const Variable<double>&)> GetNodalValuesOf,
                       std::function<Geometry<Node>::ShapeFunctionsGradientsType()> GetShapeFunctionGradients,
                       std::function<std::vector<double>()> GetFluidPressures)
@@ -46,7 +46,7 @@ public:
         Geo::PropertiesGetter                                        GetElementProperties;
         Geo::RetentionLawsGetter                                     GetRetentionLaws;
         std::function<Matrix()>                                      GetMaterialPermeability;
-        std::function<Vector()>                                      GetIntegrationCoefficients;
+        Geo::IntegrationCoefficientsGetter                           GetIntegrationCoefficients;
         std::function<Vector(const Variable<double>&)>               GetNodalValues;
         std::function<Geometry<Node>::ShapeFunctionsGradientsType()> GetShapeFunctionGradients;
         std::function<std::vector<double>()>                         GetFluidPressures;
