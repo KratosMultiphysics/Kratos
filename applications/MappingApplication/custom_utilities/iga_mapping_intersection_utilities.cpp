@@ -549,10 +549,6 @@ void IgaMappingIntersectionUtilities::CreateIgaFEMQuadraturePointsOnSurface(
             double clip_area = 0.0;
             if (solution.size() > 0){
                 clip_area = std::abs(Clipper2Lib::Area(solution[0]));
-                // for (IndexType k = 1; k < solution.size(); ++k) {
-                //         clip_area -= std::abs(Clipper2Lib::Area(solution_outer[k]));
-                //     }
-                // }
             }
 
             std::vector<Matrix> triangles;
@@ -608,10 +604,6 @@ void IgaMappingIntersectionUtilities::CreateIgaFEMQuadraturePointsOnSurface(
         for (IndexType tri_id = 0; tri_id < triangles_param_space.size(); ++tri_id)
         {
             obtained_triangles_after_intersection_with_knot_lines.clear();
-
-            // If enabled, triangulation fills obtained_triangles
-            // IgaMappingIntersectionUtilities::Triangulation(
-            //     triangle_coordinates_parameter_space[tri_id], geom_master, obtained_triangles);
 
             // Fallback: no triangulation => process original triangle
             if (obtained_triangles_after_intersection_with_knot_lines.empty()) {
