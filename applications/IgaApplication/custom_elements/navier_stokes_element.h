@@ -325,6 +325,18 @@ private:
         Matrix& BDerivativeDy,
         const ShapeDerivativesType& r_DDN_DDX) const;
 
+    void CalculateBDerivativeDx3D(
+        Matrix& BDerivativeDx,
+        const ShapeDerivativesType& r_DDN_DDX) const;
+
+    void CalculateBDerivativeDy3D(
+        Matrix& BDerivativeDy,
+        const ShapeDerivativesType& r_DDN_DDX) const;
+
+    void CalculateBDerivativeDz3D(
+        Matrix& BDerivativeDz,
+        const ShapeDerivativesType& r_DDN_DDX) const;
+
     void GetSolutionCoefficientVector(
         Vector& rValues) const;
 

@@ -100,13 +100,22 @@ public:
         KRATOS_ERROR_IF(first_valid_index >= nelements)
             << "BDF2HigherOrderVMSScheme: no 2D/3D elements found to use as reference." << std::endl;
 
-        // KRATOS_INFO("BDF2HigherOrderVMSScheme") << "Number of Gauss points per knot span: " << gauss_point_per_knot_span << std::endl;
-        // KRATOS_INFO("BDF2HigherOrderVMSScheme") << "Number of control points: " << number_of_control_points << std::endl;
+        const unsigned int gauss_point_per_knot_span =
+            (el_begin + first_valid_index)->GetGeometry().size();
+        const unsigned int number_of_control_points =
+            (el_begin + first_valid_index)->GetGeometry().size();
+        const unsigned int dim =
+            (el_begin + first_valid_index)->GetGeometry().WorkingSpaceDimension();
+        KRATOS_INFO("BDF2HigherOrderVMSScheme") << "Number of Gauss points per knot span: "
+                                               << gauss_point_per_knot_span << std::endl;
+        KRATOS_INFO("BDF2HigherOrderVMSScheme") << "Number of control points: "
+                                               << number_of_control_points << std::endl;
 
         std::vector<std::vector<double>> collected_stress;
         std::vector<std::vector<double>> collected_shape_functions;
         std::vector<std::vector<double>> collected_shape_functions_dx;
         std::vector<std::vector<double>> collected_shape_functions_dy;
+        std::vector<std::vector<double>> collected_shape_functions_dz;
         std::vector<array_1d<double, 3>> collected_coordinates;
         unsigned int collected_count = 0;
 
@@ -119,6 +128,7 @@ public:
 
             const unsigned int gauss_point_per_knot_span = (it_elem)->GetGeometry().size();
             const unsigned int number_of_control_points  = (it_elem)->GetGeometry().size();
+            const unsigned int elem_dim = it_elem->GetGeometry().WorkingSpaceDimension();
 
             if (it_elem->IsActive()) {
                 std::vector<Vector> stress_vector;
@@ -126,10 +136,10 @@ public:
                 it_elem->CalculateOnIntegrationPoints(CAUCHY_STRESS_VECTOR, stress_vector, CurrentProcessInfo);
 
                 // Collect
-                std::vector<double> stress_vector_temp(3);
-                stress_vector_temp[0] = stress_vector[0][0];
-                stress_vector_temp[1] = stress_vector[0][1];
-                stress_vector_temp[2] = stress_vector[0][2];
+                std::vector<double> stress_vector_temp((elem_dim == 3) ? 6 : 3);
+                for (std::size_t s = 0; s < stress_vector_temp.size(); ++s) {
+                    stress_vector_temp[s] = stress_vector[0][s];
+                }
                 
                 collected_stress.push_back(stress_vector_temp);
                 array_1d<double, 3> center_coord = it_elem->GetGeometry().Center();
@@ -145,6 +155,7 @@ public:
                 std::vector<double> element_shape_functions;
                 std::vector<double> element_shape_functions_dx;
                 std::vector<double> element_shape_functions_dy;
+                std::vector<double> element_shape_functions_dz;
 
                 for (std::size_t cp = 0; cp < number_of_control_points; ++cp) {
                     // Collect the shape function value for the current Gauss point (assuming 1 value per Gauss point)
@@ -153,11 +164,17 @@ public:
                     auto DN_DX = DN_De[0];
                     element_shape_functions_dx.push_back(DN_DX(cp, 0)); // Derivative w.r.t. local x (ξ)
                     element_shape_functions_dy.push_back(DN_DX(cp, 1)); // Derivative w.r.t. local y (η)
+                    if (elem_dim == 3) {
+                        element_shape_functions_dz.push_back(DN_DX(cp, 2)); // Derivative w.r.t. local z (ζ)
+                    }
                 }
                 // Store the collected shape function values and their derivatives
                 collected_shape_functions.push_back(element_shape_functions);
                 collected_shape_functions_dx.push_back(element_shape_functions_dx);
-                collected_shape_functions_dy.push_back(element_shape_functions_dy);        
+                collected_shape_functions_dy.push_back(element_shape_functions_dy);
+                if (elem_dim == 3) {
+                    collected_shape_functions_dz.push_back(element_shape_functions_dz);
+                }
 
                 // Increase the count of collected Gauss points
                 collected_count++;
@@ -167,16 +184,24 @@ public:
                     // Call the utility passing the data of the GPs of the current knot span
                     ComputeDivSigmaUtility div_sigma_utility;
                     
-                    div_sigma_utility.SetInputData(collected_stress, collected_coordinates, collected_shape_functions, 
-                        collected_shape_functions_dx, collected_shape_functions_dy);
+                    if (elem_dim == 3) {
+                        div_sigma_utility.SetInputData(collected_stress, collected_coordinates, collected_shape_functions,
+                            collected_shape_functions_dx, collected_shape_functions_dy, collected_shape_functions_dz);
+                    } else {
+                        div_sigma_utility.SetInputData(collected_stress, collected_coordinates, collected_shape_functions,
+                            collected_shape_functions_dx, collected_shape_functions_dy);
+                    }
 
                     std::vector<std::vector<double>> collected_divergence = div_sigma_utility.ComputeDivergence() ;
 
                     // setValue of DIVERGENCE(SIGMA) to the Gauss Point
                     for (size_t i = 0; i < gauss_point_per_knot_span; ++i) {
-                        Vector divergence_value(2);
+                        Vector divergence_value(elem_dim);
                         divergence_value[0] = collected_divergence[i][0]; // div_sigma_1
                         divergence_value[1] = collected_divergence[i][1]; // div_sigma_2
+                        if (elem_dim == 3) {
+                            divergence_value[2] = collected_divergence[i][2]; // div_sigma_3
+                        }
                         
                         auto it_element_in_knot_span = it_elem - (gauss_point_per_knot_span-1) + i;
                         // Apply the divergence values back to the Gauss point
@@ -189,6 +214,7 @@ public:
                     collected_shape_functions.clear();
                     collected_shape_functions_dx.clear();
                     collected_shape_functions_dy.clear();
+                    collected_shape_functions_dz.clear();
                     collected_count = 0;
                 }
             }

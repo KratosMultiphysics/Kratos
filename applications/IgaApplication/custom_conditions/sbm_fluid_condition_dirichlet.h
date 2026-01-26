@@ -262,6 +262,23 @@ namespace Kratos
             double dy, IndexType n_k);
 
         /**
+         * @brief compute the Taylor expansion for apply the Shifted Boundary Method in 3D
+         * @param derivative
+         * @param dx
+         * @param k_x
+         * @param dy
+         * @param k_y
+         * @param dz
+         * @param k_z
+         * @return double
+         */
+        double ComputeTaylorTerm3D(
+            double derivative,
+            double dx, int k_x,
+            double dy, int k_y,
+            double dz, int k_z);
+
+        /**
          * @brief 
          * 
          * @param grad_H_sum 

@@ -288,8 +288,15 @@ void IgaModelerSbm::CreateQuadraturePointGeometries(
             << geometries.size() << " quadrature point geometries have been created." << std::endl;
 
         if (type == "element") {
-            // Get the mesh sizes from the iga model part
-            const Vector& knot_span_sizes = rModelPart.GetParentModelPart().GetValue(KNOT_SPAN_SIZES);
+            // Get the mesh sizes from the iga model part (fallback if not on parent).
+            Vector knot_span_sizes;
+            if (rModelPart.GetParentModelPart().Has(KNOT_SPAN_SIZES)) {
+                knot_span_sizes = rModelPart.GetParentModelPart().GetValue(KNOT_SPAN_SIZES);
+            } else if (rModelPart.Has(KNOT_SPAN_SIZES)) {
+                knot_span_sizes = rModelPart.GetValue(KNOT_SPAN_SIZES);
+            } else if (rModelPart.GetRootModelPart().Has(KNOT_SPAN_SIZES)) {
+                knot_span_sizes = rModelPart.GetRootModelPart().GetValue(KNOT_SPAN_SIZES);
+            }
 
             SizeType id = 1;
             if (rModelPart.GetRootModelPart().Elements().size() > 0)
@@ -300,8 +307,13 @@ void IgaModelerSbm::CreateQuadraturePointGeometries(
                 rModelPart, name, id, PropertiesPointerType(), knot_span_sizes);
         }
         else if (type == "condition") {
-            // Get the mesh sizes from the iga model part
-            const Vector& knot_span_sizes = rModelPart.GetParentModelPart().GetValue(KNOT_SPAN_SIZES);
+            // Get the mesh sizes from the iga model part (fallback if not on parent).
+            Vector knot_span_sizes;
+            if (rModelPart.GetParentModelPart().Has(KNOT_SPAN_SIZES)) {
+                knot_span_sizes = rModelPart.GetParentModelPart().GetValue(KNOT_SPAN_SIZES);
+            } else {
+                KRATOS_ERROR << "KNOT_SPAN_SIZES not found in parent model part." << std::endl;
+            }
 
             SizeType id = 1;
             if (rModelPart.GetRootModelPart().Conditions().size() > 0)
@@ -716,7 +728,7 @@ void IgaModelerSbm::CreateQuadraturePointGeometriesSbmByFixedConditionName(
     if (domain_size == 2) {
         search_radius = 2*std::sqrt(2.0) * knot_span_reference_size;
     } else {
-        search_radius = std::sqrt(3.0) * knot_span_reference_size; // TODO:
+        search_radius = 3*std::sqrt(3.0) * knot_span_reference_size; // TODO:
     }
 
     DynamicBins testBins(points.begin(), points.end());

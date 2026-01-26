@@ -30,9 +30,9 @@ public:
     ///@{
     KRATOS_CLASS_POINTER_DEFINITION( NurbsGeometryModelerSbm );
 
-    using IndexType = std::size_t;
-    using SizeType = std::size_t;
-    using NodeType = Node;
+    using IndexType = NurbsGeometryModeler::IndexType;
+    using SizeType = NurbsGeometryModeler::SizeType;
+    using NodeType = NurbsGeometryModeler::NodeType;
 
     using GeometryType = Geometry<NodeType>;
     using GeometryPointerType = GeometryType::Pointer;
@@ -59,8 +59,9 @@ public:
         Model & rModel,
         const Parameters ModelerParameters = Parameters())
         : NurbsGeometryModeler(rModel, ModelerParameters)
-        , mpModel(&rModel)
     {
+        mParameters.ValidateDefaults(this->GetValidParameters());
+        mParameters.AddMissingParameters(this->GetDefaultParameters());
     }
 
     /// Destructor.
@@ -74,11 +75,13 @@ public:
         return Kratos::make_shared<NurbsGeometryModelerSbm>(rModel, ModelParameters);
     }
 
+    // Get the default parameters
+    const Parameters GetDefaultParameters() const override;
+    const Parameters GetValidParameters() const;
+
     ///@}
     ///@name Stages
     ///@{
-
-    void SetupGeometryModel() override;
 
     ///@}
 
@@ -103,7 +106,6 @@ protected:
         const SizeType NumKnotSpansU, 
         const SizeType NumKnotSpansV, 
         const bool AddSurfaceToModelPart) override;
-    
 
     /**
      * @brief Create a And Add Regular Grid 3 D object
@@ -140,8 +142,6 @@ private:
 
     ///@name Private Member Variables
     ///@{
-
-    Model* mpModel;
 
     ///@}
     ///@name Private Operations
