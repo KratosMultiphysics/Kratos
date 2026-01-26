@@ -14,7 +14,6 @@
 
 #include "contribution_calculator.h"
 #include "custom_retention/retention_law.h"
-#include "custom_utilities/element_utilities.hpp"
 #include "custom_utilities/transport_equation_utilities.hpp"
 #include "includes/cfd_variables.h"
 
