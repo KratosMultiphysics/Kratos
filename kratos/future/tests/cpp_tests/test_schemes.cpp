@@ -55,7 +55,7 @@ KRATOS_TEST_CASE_IN_SUITE(StaticSchemeBuild1D, KratosCoreFastSuite)
 
     // Set up the matrix graph and arrays
     // Note that in a standard case this happens at the strategy level
-    Future::ImplicitStrategyDataContainer<Future::SerialLinearAlgebraTraits> strategy_data_container;
+    Future::ImplicitStrategyData<Future::SerialLinearAlgebraTraits> strategy_data_container;
 
     // Call the initialize (note that this sets all the arrays above)
     p_scheme->Initialize(strategy_data_container);
@@ -115,7 +115,7 @@ KRATOS_TEST_CASE_IN_SUITE(StaticSchemeBuild2D, KratosCoreFastSuite)
 
     // Set up the matrix graph and arrays
     // Note that in a standard case this happens at the strategy level
-    Future::ImplicitStrategyDataContainer<Future::SerialLinearAlgebraTraits> strategy_data_container;
+    Future::ImplicitStrategyData<Future::SerialLinearAlgebraTraits> strategy_data_container;
 
     // Call the initialize (note that this sets all the arrays above)
     p_scheme->Initialize(strategy_data_container);

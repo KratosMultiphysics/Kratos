@@ -25,7 +25,7 @@
 #include "utilities/timer.h"
 
 #ifdef KRATOS_USE_FUTURE
-#include "future/containers/implicit_strategy_data_container.h"
+#include "./future/solving_strategies/strategies/implicit_strategy_data.h"
 #endif
 
 namespace Kratos::Future
@@ -117,7 +117,7 @@ public:
      */
     virtual void AllocateLinearSystem(
         const SparseGraphType& rSparseGraph,
-        ImplicitStrategyDataContainer<TLinearAlgebra> &rLinearSystemContainer)
+        ImplicitStrategyData<TLinearAlgebra> &rLinearSystemContainer)
     {
         KRATOS_ERROR << "Calling base class 'AllocateLinearSystem'." << std::endl;
     }
@@ -128,11 +128,11 @@ public:
      * Note that the sizes of the resultant arrays depend on the build type
      * @param pLinearSystemContainer Auxiliary container with the linear system arrays
      */
-    virtual void AllocateLinearSystem(ImplicitStrategyDataContainer<TLinearAlgebra> &rLinearSystemContainer)
+    virtual void AllocateLinearSystem(ImplicitStrategyData<TLinearAlgebra> &rLinearSystemContainer)
     {
         // Set up the system sparse matrix graph (note that the sparse graph will be destroyed when leaving this scope)
         BuiltinTimer sparse_matrix_graph_time;
-        auto p_dof_set = rLinearSystemContainer.pDofSet;
+        auto p_dof_set = rLinearSystemContainer.pGetDofSet();
         SparseGraphType sparse_matrix_graph(p_dof_set->size());
         this->SetUpSparseMatrixGraph(sparse_matrix_graph);
         KRATOS_INFO_IF("BlockBuilder", this->GetEchoLevel() > 0) << "Set up sparse matrix graph time: " << sparse_matrix_graph_time << std::endl;
@@ -147,7 +147,7 @@ public:
      * Note that the sizes of the resultant arrays depend on the build type
      * @param rLinearSystemContainer Auxiliary container with the linear system arrays
      */
-    virtual void AllocateLinearSystemConstraints(ImplicitStrategyDataContainer<TLinearAlgebra>& rLinearSystemContainer)
+    virtual void AllocateLinearSystemConstraints(ImplicitStrategyData<TLinearAlgebra>& rLinearSystemContainer)
     {
         KRATOS_ERROR << "Calling base class 'AllocateLinearSystemConstraints'." << std::endl;
     }
@@ -261,7 +261,7 @@ public:
      * in the derived classes depending on the build type.
      * @param rLinearSystemContainer Auxiliary container with the linear system arrays
      */
-    virtual void ApplyLinearSystemConstraints(ImplicitStrategyDataContainer<TLinearAlgebra>& rLinearSystemContainer)
+    virtual void ApplyLinearSystemConstraints(ImplicitStrategyData<TLinearAlgebra>& rLinearSystemContainer)
     {
         KRATOS_ERROR << "Calling base class 'ApplyLinearSystemConstraints'." << std::endl;
     }

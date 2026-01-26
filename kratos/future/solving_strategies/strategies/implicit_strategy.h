@@ -70,7 +70,7 @@ public:
     using LinearSolverPointerType = typename Future::LinearSolver<TLinearAlgebra>::Pointer;
 
     /// Data container type definition
-    using ImplicitStrategyDataContainerType = ImplicitStrategyDataContainer<TLinearAlgebra>;
+    using ImplicitStrategyDataType = ImplicitStrategyData<TLinearAlgebra>;
 
     /// DOFs array type definition
     using DofsArrayType = typename ModelPart::DofsArrayType;
@@ -187,7 +187,7 @@ public:
         KRATOS_TRY
 
         // Initialize scheme (this has to be done once)
-        pGetScheme()->Initialize(mImplicitStrategyDataContainer);
+        pGetScheme()->Initialize(mImplicitStrategyData);
 
         // // Initialize linear solver
         // pGetLinearSolver()->Initialize();
@@ -200,7 +200,7 @@ public:
         KRATOS_TRY
 
         // Call the scheme InitializeSolutionStep
-        pGetScheme()->InitializeSolutionStep(mImplicitStrategyDataContainer);
+        pGetScheme()->InitializeSolutionStep(mImplicitStrategyData);
 
         KRATOS_CATCH("")
     }
@@ -210,7 +210,7 @@ public:
         KRATOS_TRY
 
         // Call the time scheme predict (note that this also updates the mesh if needed)
-        pGetScheme()->Predict(mImplicitStrategyDataContainer);
+        pGetScheme()->Predict(mImplicitStrategyData);
 
         KRATOS_CATCH("")
     }
@@ -225,7 +225,7 @@ public:
         KRATOS_TRY;
 
         // Finalisation of the solution step (operations to be done after achieving convergence)
-        pGetScheme()->FinalizeSolutionStep(mImplicitStrategyDataContainer);
+        pGetScheme()->FinalizeSolutionStep(mImplicitStrategyData);
 
         // Reset flags for next step
         mStiffnessMatrixIsBuilt = false; // By default we always rebuilt (if not implement a derived strategy)
@@ -248,7 +248,7 @@ public:
         }
 
         // Clearing the system of equations
-        mImplicitStrategyDataContainer.Clear();
+        mImplicitStrategyData.Clear();
 
         // Clearing scheme
         // Note that this resets the DOF set
@@ -492,19 +492,19 @@ public:
     //     return mpEffectiveDx;
     // }
 
-    ImplicitStrategyDataContainerType& GetImplicitStrategyDataContainer()
+    ImplicitStrategyDataType& GetImplicitStrategyData()
     {
-        return mImplicitStrategyDataContainer;
+        return mImplicitStrategyData;
     }
 
-    const ImplicitStrategyDataContainerType& GetImplicitStrategyDataContainer() const
+    const ImplicitStrategyDataType& GetImplicitStrategyData() const
     {
-        return mImplicitStrategyDataContainer;
+        return mImplicitStrategyData;
     }
 
     DofsArrayType& GetDofSet()
     {
-        return *mImplicitStrategyDataContainer.pDofSet;
+        return *mImplicitStrategyData.pGetDofSet();
     }
 
     /**
@@ -512,7 +512,7 @@ public:
      */
     const DofsArrayType& GetDofSet() const
     {
-        return *mImplicitStrategyDataContainer.pDofSet;
+        return *mImplicitStrategyData.pGetDofSet();
     }
 
     /**
@@ -520,7 +520,7 @@ public:
      */
     DofsArrayType& GetEffectiveDofSet()
     {
-        return *mImplicitStrategyDataContainer.pEffectiveDofSet;
+        return *mImplicitStrategyData.pGetEffectiveDofSet();
     }
 
     /**
@@ -528,7 +528,7 @@ public:
      */
     const DofsArrayType &GetEffectiveDofSet() const
     {
-        return *mImplicitStrategyDataContainer.mEffectiveDofSet;
+        return *mImplicitStrategyData.pGetEffectiveDofSet();
     }
 
     ///@}
@@ -584,7 +584,7 @@ public:
      */
     double GetResidualNorm()
     {
-        auto p_rhs = mImplicitStrategyDataContainer.pGetLinearSystem()->pGetRightHandSide();
+        auto p_rhs = mImplicitStrategyData.pGetLinearSystem()->pGetRightHandSide();
         KRATOS_ERROR_IF(p_rhs == nullptr) << "Right hand side vector is not set. Residual cannot be computed." << std::endl;
         if (p_rhs->size() != 0) {
             return p_rhs->Norm();
@@ -661,7 +661,7 @@ protected:
      */
     virtual void EchoInfo()
     {
-        const auto p_linear_system = mImplicitStrategyDataContainer.pGetLinearSystem();
+        const auto p_linear_system = mImplicitStrategyData.pGetLinearSystem();
         const auto& r_A = p_linear_system->pGetLeftHandSide();
         const auto& r_b = p_linear_system->pGetRightHandSide();
         const auto& r_dx = p_linear_system->GetSolution();
@@ -708,7 +708,7 @@ private:
 
     LinearSolverPointerType mpLinearSolver = nullptr; /// The pointer to the linear solver
 
-    ImplicitStrategyDataContainerType mImplicitStrategyDataContainer; /// The implicit strategy data container (includes linear systems, DOFs, etc.)
+    ImplicitStrategyDataType mImplicitStrategyData; /// The implicit strategy data container (includes linear systems, DOFs, etc.)
 
     int mEchoLevel;
 

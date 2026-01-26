@@ -184,15 +184,15 @@ public:
         // Get system data
         auto& r_dof_set = this->GetDofSet();
         auto& r_eff_dof_set = this->GetEffectiveDofSet();
-        auto& r_strategy_data_container = this->GetImplicitStrategyDataContainer();
+        auto& r_strategy_data_container = this->GetImplicitStrategyData();
 
         // Get system arrays
         auto p_linear_system = r_strategy_data_container.pGetLinearSystem();
         auto p_dx = p_linear_system->pGetSolution();
         auto p_lhs = p_linear_system->pGetLeftHandSide();
         auto p_rhs = p_linear_system->pGetRightHandSide();
-        auto p_constraints_T = r_strategy_data_container.pConstraintsT;
-        auto p_constraints_q = r_strategy_data_container.pConstraintsQ;
+        auto p_constraints_T = r_strategy_data_container.pGetConstraintsT();
+        auto p_constraints_q = r_strategy_data_container.pGetConstraintsQ();
 
         // Initialize non-linear iteration (once as this is a linear strategy)
         p_scheme->InitializeNonLinIteration(r_strategy_data_container);

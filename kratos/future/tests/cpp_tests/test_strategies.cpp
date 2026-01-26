@@ -92,7 +92,7 @@ KRATOS_TEST_CASE_IN_SUITE(LinearStrategyEliminationBuild, KratosCoreFastSuite)
     p_strategy->FinalizeSolutionStep();
 
     // Check array sizes
-    const auto& r_strategy_data_container = p_strategy->GetImplicitStrategyDataContainer();
+    const auto& r_strategy_data_container = p_strategy->GetImplicitStrategyData();
     const auto p_lin_sys = r_strategy_data_container.pGetLinearSystem();
     const auto p_eff_lin_sys = r_strategy_data_container.pGetEffectiveLinearSystem();
     KRATOS_CHECK_EQUAL(p_lin_sys->GetRightHandSide().size(), 3);
@@ -153,7 +153,7 @@ KRATOS_TEST_CASE_IN_SUITE(LinearStrategyBlockBuild, KratosCoreFastSuite)
     p_strategy->FinalizeSolutionStep();
 
     // Check array sizes
-    const auto &r_strategy_data_container = p_strategy->GetImplicitStrategyDataContainer();
+    const auto &r_strategy_data_container = p_strategy->GetImplicitStrategyData();
     const auto p_lin_sys = r_strategy_data_container.pGetLinearSystem();
     const auto p_eff_lin_sys = r_strategy_data_container.pGetEffectiveLinearSystem();
     KRATOS_CHECK_EQUAL(p_lin_sys->GetRightHandSide().size(), 3);
@@ -226,7 +226,7 @@ KRATOS_TEST_CASE_IN_SUITE(LinearStrategyWithJumpConstraintEliminationBuild, Krat
     p_strategy->FinalizeSolutionStep();
 
     // Check array sizes
-    const auto &r_strategy_data_container = p_strategy->GetImplicitStrategyDataContainer();
+    const auto &r_strategy_data_container = p_strategy->GetImplicitStrategyData();
     const auto p_lin_sys = r_strategy_data_container.pGetLinearSystem();
     const auto p_eff_lin_sys = r_strategy_data_container.pGetEffectiveLinearSystem();
     KRATOS_CHECK_EQUAL(p_lin_sys->GetRightHandSide().size(), 3);
@@ -299,7 +299,7 @@ KRATOS_TEST_CASE_IN_SUITE(LinearStrategyWithJumpConstraintBlockBuild, KratosCore
     p_strategy->FinalizeSolutionStep();
 
     // Check array sizes
-    const auto &r_strategy_data_container = p_strategy->GetImplicitStrategyDataContainer();
+    const auto &r_strategy_data_container = p_strategy->GetImplicitStrategyData();
     const auto p_lin_sys = r_strategy_data_container.pGetLinearSystem();
     const auto p_eff_lin_sys = r_strategy_data_container.pGetEffectiveLinearSystem();
     KRATOS_CHECK_EQUAL(p_lin_sys->GetRightHandSide().size(), 3);
@@ -370,7 +370,7 @@ KRATOS_TEST_CASE_IN_SUITE(LinearStrategyWithPeriodicityConstraintEliminationBuil
     p_strategy->FinalizeSolutionStep();
 
     // Check array sizes
-    const auto &r_strategy_data_container = p_strategy->GetImplicitStrategyDataContainer();
+    const auto &r_strategy_data_container = p_strategy->GetImplicitStrategyData();
     const auto p_lin_sys = r_strategy_data_container.pGetLinearSystem();
     const auto p_eff_lin_sys = r_strategy_data_container.pGetEffectiveLinearSystem();
     KRATOS_CHECK_EQUAL(p_lin_sys->GetRightHandSide().size(), 4);
@@ -442,7 +442,7 @@ KRATOS_TEST_CASE_IN_SUITE(LinearStrategyWithPeriodicityConstraintBlockBuild, Kra
     p_strategy->FinalizeSolutionStep();
 
     // Check array sizes
-    const auto &r_strategy_data_container = p_strategy->GetImplicitStrategyDataContainer();
+    const auto &r_strategy_data_container = p_strategy->GetImplicitStrategyData();
     const auto p_lin_sys = r_strategy_data_container.pGetLinearSystem();
     const auto p_eff_lin_sys = r_strategy_data_container.pGetEffectiveLinearSystem();
     KRATOS_CHECK_EQUAL(p_lin_sys->GetRightHandSide().size(), 4);
@@ -523,7 +523,7 @@ KRATOS_TEST_CASE_IN_SUITE(LinearStrategyWithMultipleDofsConstraintsEliminationBu
     p_strategy->FinalizeSolutionStep();
 
     // Check array sizes
-    const auto &r_strategy_data_container = p_strategy->GetImplicitStrategyDataContainer();
+    const auto &r_strategy_data_container = p_strategy->GetImplicitStrategyData();
     const auto p_lin_sys = r_strategy_data_container.pGetLinearSystem();
     const auto p_eff_lin_sys = r_strategy_data_container.pGetEffectiveLinearSystem();
     KRATOS_CHECK_EQUAL(p_lin_sys->GetRightHandSide().size(), 4);
@@ -604,7 +604,7 @@ KRATOS_TEST_CASE_IN_SUITE(LinearStrategyWithMultipleDofsConstraintsBlockBuild, K
     p_strategy->FinalizeSolutionStep();
 
     // Check array sizes
-    const auto &r_strategy_data_container = p_strategy->GetImplicitStrategyDataContainer();
+    const auto &r_strategy_data_container = p_strategy->GetImplicitStrategyData();
     const auto p_lin_sys = r_strategy_data_container.pGetLinearSystem();
     const auto p_eff_lin_sys = r_strategy_data_container.pGetEffectiveLinearSystem();
     KRATOS_CHECK_EQUAL(p_lin_sys->GetRightHandSide().size(), 4);
@@ -691,7 +691,7 @@ KRATOS_TEST_CASE_IN_SUITE(LinearStrategyWithTieConstraintsEliminationBuild, Krat
     p_strategy->FinalizeSolutionStep();
 
     // Check array sizes
-    const auto &r_strategy_data_container = p_strategy->GetImplicitStrategyDataContainer();
+    const auto &r_strategy_data_container = p_strategy->GetImplicitStrategyData();
     const auto p_lin_sys = r_strategy_data_container.pGetLinearSystem();
     const auto p_eff_lin_sys = r_strategy_data_container.pGetEffectiveLinearSystem();
     KRATOS_CHECK_EQUAL(p_lin_sys->GetRightHandSide().size(), 4);
@@ -778,7 +778,7 @@ KRATOS_TEST_CASE_IN_SUITE(LinearStrategyWithTieConstraintsBlockBuild, KratosCore
     p_strategy->FinalizeSolutionStep();
 
     // Check array sizes
-    const auto &r_strategy_data_container = p_strategy->GetImplicitStrategyDataContainer();
+    const auto &r_strategy_data_container = p_strategy->GetImplicitStrategyData();
     const auto p_lin_sys = r_strategy_data_container.pGetLinearSystem();
     const auto p_eff_lin_sys = r_strategy_data_container.pGetEffectiveLinearSystem();
     KRATOS_CHECK_EQUAL(p_lin_sys->GetRightHandSide().size(), 4);

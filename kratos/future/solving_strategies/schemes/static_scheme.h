@@ -172,13 +172,13 @@ public:
         return Kratos::make_shared<StaticScheme<TLinearAlgebra>>(*this) ;
     }
 
-    void Predict(ImplicitStrategyDataContainer<TLinearAlgebra>& rImplicitStrategyDataContainer) override
+    void Predict(ImplicitStrategyData<TLinearAlgebra>& rImplicitStrategyData) override
     {
         KRATOS_TRY
 
         // If needed, reset the DOF sets before applying the constraints and the prediction
         if (this->GetReformDofsAtEachStep()) {
-            this->InitializeLinearSystem(rImplicitStrategyDataContainer);
+            this->InitializeLinearSystem(rImplicitStrategyData);
         }
 
         // Applying constraints if needed
@@ -191,14 +191,14 @@ public:
         if (n_constraints_glob != 0) {
             // Assemble constraints constant vector and apply it to the DOF set
             // Note that the constraints constant vector is applied only once in here as we then solve for the solution increment
-            auto p_constraints_T = rImplicitStrategyDataContainer.pConstraintsT;
-            auto p_constraints_Q = rImplicitStrategyDataContainer.pConstraintsQ;
-            this->BuildMasterSlaveConstraints(rImplicitStrategyDataContainer);
+            auto p_constraints_T = rImplicitStrategyData.pGetConstraintsT();
+            auto p_constraints_Q = rImplicitStrategyData.pGetConstraintsQ();
+            this->BuildMasterSlaveConstraints(rImplicitStrategyData);
 
             // Fill the current values vector considering the master-slave constraints
             // Note that this already accounts for the Dirichlet BCs affecting the effective DOF set
-            auto& r_dof_set = *(rImplicitStrategyDataContainer.pDofSet);
-            auto& r_eff_dof_set = *(rImplicitStrategyDataContainer.pEffectiveDofSet);
+            auto& r_dof_set = *(rImplicitStrategyData.pGetDofSet());
+            auto& r_eff_dof_set = *(rImplicitStrategyData.pGetEffectiveDofSet());
             VectorType x(r_dof_set.size());
             (this->GetBuilder()).CalculateSolutionVector(r_eff_dof_set, *p_constraints_T, *p_constraints_Q, x);
 
@@ -216,21 +216,21 @@ public:
         KRATOS_CATCH("")
     }
 
-    void Update(ImplicitStrategyDataContainer<TLinearAlgebra> &rImplicitStrategyDataContainer) override
+    void Update(ImplicitStrategyData<TLinearAlgebra> &rImplicitStrategyData) override
     {
         KRATOS_TRY
 
         // Get linear system arrays
-        auto& r_dx = rImplicitStrategyDataContainer.pGetLinearSystem()->GetSolution();
-        auto& r_eff_dx = rImplicitStrategyDataContainer.pGetEffectiveLinearSystem()->GetSolution();
-        auto& r_dof_set = *(rImplicitStrategyDataContainer.pDofSet);
-        auto& r_eff_dof_set = *(rImplicitStrategyDataContainer.pEffectiveDofSet);
+        auto& r_dx = rImplicitStrategyData.pGetLinearSystem()->GetSolution();
+        auto& r_eff_dx = rImplicitStrategyData.pGetEffectiveLinearSystem()->GetSolution();
+        auto& r_dof_set = *(rImplicitStrategyData.pGetDofSet());
+        auto& r_eff_dof_set = *(rImplicitStrategyData.pGetEffectiveDofSet());
 
         // First update the constraints only DOFs with the effective solution vector
         this->UpdateConstraintsOnlyDofs(r_eff_dx, r_dof_set, r_eff_dof_set);
 
         // Get the solution update vector from the effective one
-        this->CalculateUpdateVector(rImplicitStrategyDataContainer);
+        this->CalculateUpdateVector(rImplicitStrategyData);
 
         // Update DOFs with solution values (note that we solve for the increments)
         block_for_each(r_dof_set, [&r_dx](DofType& rDof){

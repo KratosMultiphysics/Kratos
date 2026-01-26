@@ -24,7 +24,6 @@
 // Future Extensions
 #include "future/python/add_containers_to_python.h"
 #include "future/containers/define_linear_algebra_serial.h"
-#include "future/containers/implicit_strategy_data_container.h"
 #include "future/containers/linear_system.h"
 #include "future/containers/eigenvalue_system.h"
 
@@ -35,13 +34,6 @@ namespace py = pybind11;
 
 void AddContainersToPython(py::module& m)
 {
-
-    using ImplicitStrategyDataContainerType = Future::ImplicitStrategyDataContainer<Future::SerialLinearAlgebraTraits>;
-    py::class_<ImplicitStrategyDataContainerType, typename ImplicitStrategyDataContainerType::Pointer>(m, "ImplicitStrategyDataContainer")
-        .def(py::init<>())
-        .def("Clear", &ImplicitStrategyDataContainerType::Clear)
-        .def("RequiresEffectiveDofSet", &ImplicitStrategyDataContainerType::RequiresEffectiveDofSet)
-    ;
 
     using LinearSystemType = Future::LinearSystem<Future::SerialLinearAlgebraTraits>;
     py::class_<LinearSystemType, typename LinearSystemType::Pointer>(m, "LinearSystem")

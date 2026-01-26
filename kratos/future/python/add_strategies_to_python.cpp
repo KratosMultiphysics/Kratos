@@ -28,6 +28,7 @@
 #include "future/solving_strategies/schemes/static_scheme.h"
 #include "future/solving_strategies/strategies/strategy.h"
 #include "future/solving_strategies/strategies/implicit_strategy.h"
+#include "future/solving_strategies/strategies/implicit_strategy_data.h"
 #include "future/solving_strategies/strategies/linear_strategy.h"
 
 namespace Kratos::Future::Python
@@ -37,12 +38,32 @@ namespace py = pybind11;
 
 void AddStrategiesToPython(py::module& m)
 {
+    using ImplicitStrategyDataType = Future::ImplicitStrategyData<Future::SerialLinearAlgebraTraits>;
+    py::class_<ImplicitStrategyDataType, typename ImplicitStrategyDataType::Pointer>(m, "ImplicitStrategyData")
+        .def(py::init<>())
+        .def("Clear", &ImplicitStrategyDataType::Clear)
+        .def("RequiresEffectiveDofSet", &ImplicitStrategyDataType::RequiresEffectiveDofSet)
+        .def("GetLinearSystem", py::overload_cast<>(&ImplicitStrategyDataType::pGetLinearSystem))
+        .def("SetLinearSystem", &ImplicitStrategyDataType::pSetLinearSystem)
+        .def("GetEffectiveLinearSystem", py::overload_cast<>(&ImplicitStrategyDataType::pGetEffectiveLinearSystem))
+        .def("SetEffectiveLinearSystem", &ImplicitStrategyDataType::pSetEffectiveLinearSystem)
+        .def("GetEffectiveT", py::overload_cast<>(&ImplicitStrategyDataType::pGetEffectiveT))
+        .def("SetEffectiveT", &ImplicitStrategyDataType::pSetEffectiveT)
+        .def("GetConstraintsT", py::overload_cast<>(&ImplicitStrategyDataType::pGetConstraintsT))
+        .def("SetConstraintsT", &ImplicitStrategyDataType::pSetConstraintsT)
+        .def("GetConstraintsQ", py::overload_cast<>(&ImplicitStrategyDataType::pGetConstraintsQ))
+        .def("SetConstraintsQ", &ImplicitStrategyDataType::pSetConstraintsQ)
+        .def("GetDofSet", py::overload_cast<>(&ImplicitStrategyDataType::pGetDofSet))
+        .def("SetDofSet", &ImplicitStrategyDataType::pSetDofSet)
+        .def("GetEffectiveDofSet", py::overload_cast<>(&ImplicitStrategyDataType::pGetEffectiveDofSet))
+        .def("SetEffectiveDofSet", &ImplicitStrategyDataType::pSetEffectiveDofSet)
+    ;
+
     using BuilderType = Future::Builder<Future::SerialLinearAlgebraTraits>;
-    using ImplicitStrategyDataContainerType = Future::ImplicitStrategyDataContainer<Future::SerialLinearAlgebraTraits>;
     py::class_<BuilderType, typename BuilderType::Pointer>(m, "Builder")
         .def(py::init<ModelPart &, Parameters>())
-        .def("AllocateLinearSystem", py::overload_cast<ImplicitStrategyDataContainerType&>(&BuilderType::AllocateLinearSystem))
-        .def("AllocateLinearSystem", py::overload_cast<const Future::SerialLinearAlgebraTraits::SparseGraphType&, ImplicitStrategyDataContainerType&>(&BuilderType::AllocateLinearSystem))
+        .def("AllocateLinearSystem", py::overload_cast<ImplicitStrategyDataType&>(&BuilderType::AllocateLinearSystem))
+        .def("AllocateLinearSystem", py::overload_cast<const Future::SerialLinearAlgebraTraits::SparseGraphType&, ImplicitStrategyDataType&>(&BuilderType::AllocateLinearSystem))
         .def("AllocateLinearSystemConstraints", &BuilderType::AllocateLinearSystemConstraints)
         .def("SetUpSparseMatrixGraph", &BuilderType::SetUpSparseMatrixGraph)
         .def("SetUpMasterSlaveConstraintsGraph", &BuilderType::SetUpMasterSlaveConstraintsGraph)
