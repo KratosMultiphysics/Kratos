@@ -364,11 +364,6 @@ template <unsigned int TDim, unsigned int TNumNodes>
 std::vector<Vector> PwElement<TDim, TNumNodes>::CalculateProjectedGravityAtIntegrationPoints(const Matrix& rNContainer) const
 {
     const auto number_integration_points = GetGeometry().IntegrationPointsNumber(GetIntegrationMethod());
-    GeometryType::JacobiansType J_container{number_integration_points};
-    for (auto& j : J_container) {
-        j.resize(GetGeometry().WorkingSpaceDimension(), GetGeometry().LocalSpaceDimension(), false);
-    }
-    GetGeometry().Jacobian(J_container, this->GetIntegrationMethod());
 
     array_1d<double, TNumNodes * TDim> volume_acceleration;
     GeoElementUtilities::GetNodalVariableVector<TDim, TNumNodes>(volume_acceleration, GetGeometry(),
@@ -378,6 +373,11 @@ std::vector<Vector> PwElement<TDim, TNumNodes>::CalculateProjectedGravityAtInteg
     std::vector<Vector> projected_gravity;
     projected_gravity.reserve(number_integration_points);
     if (GetGeometry().LocalSpaceDimension() == 1) {
+        GeometryType::JacobiansType J_container{number_integration_points};
+        for (auto& j : J_container) {
+            j.resize(GetGeometry().WorkingSpaceDimension(), GetGeometry().LocalSpaceDimension(), false);
+        }
+        GetGeometry().Jacobian(J_container, this->GetIntegrationMethod());
         for (unsigned int integration_point_index = 0;
              integration_point_index < number_integration_points; ++integration_point_index) {
             GeoElementUtilities::InterpolateVariableWithComponents<TDim, TNumNodes>(
