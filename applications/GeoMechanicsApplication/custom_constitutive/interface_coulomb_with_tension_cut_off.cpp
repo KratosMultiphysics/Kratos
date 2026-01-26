@@ -14,6 +14,7 @@
 
 // Application includes
 #include "custom_constitutive/interface_coulomb_with_tension_cut_off.h"
+#include "custom_constitutive/geo_sigma_tau.h"
 #include "custom_utilities/check_utilities.hpp"
 #include "custom_utilities/constitutive_law_utilities.h"
 #include "custom_utilities/math_utilities.hpp"
@@ -137,7 +138,10 @@ void InterfaceCoulombWithTensionCutOff::CalculateMaterialResponseCauchy(Paramete
     const auto negative = std::signbit(trial_sigma_tau[1]);
     trial_sigma_tau[1]  = std::abs(trial_sigma_tau[1]);
 
-    if (!mCoulombWithTensionCutOffImpl.IsAdmissibleSigmaTau(trial_sigma_tau)) {
+    auto trial_sigma_tau2 = Geo::SigmaTau{};
+    std::ranges::copy(trial_sigma_tau, trial_sigma_tau2.values.begin());
+
+    if (!mCoulombWithTensionCutOffImpl.IsAdmissibleStressState(trial_sigma_tau2)) {
         mapped_sigma_tau = mCoulombWithTensionCutOffImpl.DoReturnMapping(
             trial_sigma_tau, CoulombYieldSurface::CoulombAveragingType::NO_AVERAGING);
         if (negative) mapped_sigma_tau[1] *= -1.0;

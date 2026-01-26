@@ -15,6 +15,7 @@
 
 #include "custom_constitutive/coulomb_with_tension_cut_off_impl.h"
 #include "custom_constitutive/geo_principal_stresses.h"
+#include "custom_constitutive/geo_sigma_tau.h"
 #include "custom_utilities/constitutive_law_utilities.h"
 #include "custom_utilities/stress_strain_utilities.h"
 #include "custom_utilities/ublas_utilities.h"
@@ -53,6 +54,14 @@ bool CoulombWithTensionCutOffImpl::IsAdmissibleStressState(const Geo::PrincipalS
     auto principal_stresses = Vector{rPrincipalStresses.values.size()};
     std::ranges::copy(rPrincipalStresses.values, principal_stresses.begin());
     return IsAdmissibleSigmaTau(StressStrainUtilities::TransformPrincipalStressesToSigmaTau(principal_stresses));
+}
+
+bool CoulombWithTensionCutOffImpl::IsAdmissibleStressState(const Geo::SigmaTau& rSigmaTau) const
+{
+    // For now, convert the supplied sigma and tau to a `Vector`, just so we can use existing functions
+    auto sigma_tau = Vector{2};
+    std::ranges::copy(rSigmaTau.values, sigma_tau.begin());
+    return IsAdmissibleSigmaTau(sigma_tau);
 }
 
 Vector CoulombWithTensionCutOffImpl::DoReturnMapping(const Vector& rTrialSigmaTau,

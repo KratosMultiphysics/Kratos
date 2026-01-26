@@ -27,7 +27,8 @@ class Serializer;
 namespace Geo
 {
 struct PrincipalStresses;
-}
+struct SigmaTau;
+} // namespace Geo
 
 class CoulombWithTensionCutOffImpl
 {
@@ -37,6 +38,7 @@ public:
 
     [[nodiscard]] bool IsAdmissibleSigmaTau(const Vector& rTrialSigmaTau) const;
     [[nodiscard]] bool IsAdmissibleStressState(const Geo::PrincipalStresses& rPrincipalStresses) const;
+    [[nodiscard]] bool   IsAdmissibleStressState(const Geo::SigmaTau& rSigmaTau) const;
     [[nodiscard]] Vector DoReturnMapping(const Vector&                             rTrialSigmaTau,
                                          CoulombYieldSurface::CoulombAveragingType AveragingType);
 
