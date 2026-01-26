@@ -512,7 +512,7 @@ void IgaMappingIntersectionUtilities::CreateIgaFEMQuadraturePointsOnSurface(
                     auto new_int_point = BrepTrimmingUtilities<false>::ToIntPoint(
                         uv[0], uv[1], factor);
 
-                    // Shift tolerance
+                    // We need to define this tolerance for the clipping process
                     new_int_point.x += 100000.0;
                     new_int_point.y += 100000.0;
 
