@@ -35,7 +35,6 @@ public:
                       std::function<Vector()>              GetIntegrationCoefficients,
                       std::function<std::vector<Vector>()> GetProjectedGravityAtIntegrationPoints,
                       std::function<Geometry<Node>::ShapeFunctionsGradientsType()> GetShapeFunctionGradients,
-                      std::function<std::size_t()>         GetLocalSpaceDimension,
                       std::function<std::vector<double>()> GetFluidPressures)
 
             : GetElementProperties(std::move(GetElementProperties)),
@@ -44,7 +43,6 @@ public:
               GetIntegrationCoefficients(std::move(GetIntegrationCoefficients)),
               GetProjectedGravityAtIntegrationPoints(std::move(GetProjectedGravityAtIntegrationPoints)),
               GetShapeFunctionGradients(std::move(GetShapeFunctionGradients)),
-              GetLocalSpaceDimension(std::move(GetLocalSpaceDimension)),
               GetFluidPressures(std::move(GetFluidPressures))
         {
         }
@@ -55,7 +53,6 @@ public:
         std::function<Vector()>                                    GetIntegrationCoefficients;
         std::function<std::vector<Vector>()> GetProjectedGravityAtIntegrationPoints;
         std::function<Geometry<Node>::ShapeFunctionsGradientsType()> GetShapeFunctionGradients;
-        std::function<std::size_t()>                                 GetLocalSpaceDimension;
         std::function<std::vector<double>()>                         GetFluidPressures;
     };
 

@@ -470,7 +470,7 @@ typename FluidBodyFlowCalculator<TNumNodes>::InputProvider PwElement<TDim, TNumN
     return typename FluidBodyFlowCalculator<TNumNodes>::InputProvider(
         MakePropertiesGetter(), MakeRetentionLawsGetter(), MakeMaterialPermeabilityGetter(),
         GetIntegrationCoefficients(), MakeProjectedGravityForIntegrationPointsGetter(),
-        MakeShapeFunctionLocalGradientsGetter(), MakeLocalSpaceDimensionGetter(), GetFluidPressures());
+        MakeShapeFunctionLocalGradientsGetter(), GetFluidPressures());
 }
 
 template <unsigned int TDim, unsigned int TNumNodes>

@@ -202,11 +202,6 @@ private:
         };
     }
 
-    auto MakeLocalSpaceDimensionGetter() const
-    {
-        return [this]() -> std::size_t { return this->GetGeometry().LocalSpaceDimension(); };
-    }
-
     [[nodiscard]] DofsVectorType GetDofs() const;
 
     friend class Serializer;
