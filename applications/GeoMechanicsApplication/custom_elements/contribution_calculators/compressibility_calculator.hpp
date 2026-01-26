@@ -31,9 +31,9 @@ class CompressibilityCalculator : public ContributionCalculator<TNumNodes>
 {
 public:
     struct InputProvider {
-        InputProvider(Geo::PropertiesGetter GetElementProperties,
-                      std::function<const std::vector<RetentionLaw::Pointer>&()> GetRetentionLaws,
-                      std::function<const Matrix&()>                             GetNContainer,
+        InputProvider(Geo::PropertiesGetter                          GetElementProperties,
+                      Geo::RetentionLawsGetter                       GetRetentionLaws,
+                      std::function<const Matrix&()>                 GetNContainer,
                       Geo::IntegrationCoefficientsGetter             GetIntegrationCoefficients,
                       std::function<double()>                        GetMatrixScalarFactor,
                       std::function<Vector(const Variable<double>&)> GetNodalValuesOf,
@@ -48,13 +48,13 @@ public:
         {
         }
 
-        Geo::PropertiesGetter                                      GetElementProperties;
-        std::function<const std::vector<RetentionLaw::Pointer>&()> GetRetentionLaws;
-        std::function<const Matrix&()>                             GetNContainer;
-        Geo::IntegrationCoefficientsGetter                         GetIntegrationCoefficients;
-        std::function<double()>                                    GetMatrixScalarFactor;
-        std::function<Vector(const Variable<double>&)>             GetNodalValues;
-        std::function<std::vector<double>()>                       GetFluidPressures;
+        Geo::PropertiesGetter                          GetElementProperties;
+        Geo::RetentionLawsGetter                       GetRetentionLaws;
+        std::function<const Matrix&()>                 GetNContainer;
+        Geo::IntegrationCoefficientsGetter             GetIntegrationCoefficients;
+        std::function<double()>                        GetMatrixScalarFactor;
+        std::function<Vector(const Variable<double>&)> GetNodalValues;
+        std::function<std::vector<double>()>           GetFluidPressures;
     };
 
     explicit CompressibilityCalculator(InputProvider rInputProvider)
