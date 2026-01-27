@@ -52,6 +52,9 @@ private:
     double              mAbsoluteYieldFunctionValueTolerance{1.0e-8};
     std::size_t         mMaxNumberOfPlasticIterations{100};
 
+    template <typename StressStateType>
+    [[nodiscard]] bool IsAdmissibleStressState(const StressStateType& rTrialStressState) const;
+
     [[nodiscard]] Vector CalculateCornerPoint() const;
     [[nodiscard]] bool   IsStressAtTensionApexReturnZone(const Vector& rTrialSigmaTau) const;
     [[nodiscard]] bool   IsStressAtTensionCutoffReturnZone(const Vector& rTrialSigmaTau) const;
