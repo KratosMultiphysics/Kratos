@@ -13,6 +13,7 @@
 #pragma once
 
 #include "contribution_calculator.h"
+#include "geo_aliases.h"
 
 namespace Kratos
 {
@@ -22,6 +23,25 @@ namespace Kratos
     public:
         struct InputProvider
         {
+            InputProvider(std::function<const Matrix&()> GetNpContainer, Geo::BMatricesGetter GetBMatrices,
+                          std::function<Vector()> GetVoigtVector,
+                          Geo::IntegrationCoefficientsGetter GetIntegrationCoefficients,
+                          std::function<std::vector<double>()> GetBiotCoefficients,
+                          std::function<std::vector<double>()> GetBishopCoefficients) :
+                GetNpContainer(std::move(GetNpContainer)), GetBMatrices(std::move(GetBMatrices)),
+                GetVoigtVector(std::move(GetVoigtVector)),
+                GetIntegrationCoefficients(std::move(GetIntegrationCoefficients)),
+                GetBiotCoefficients(std::move(GetBiotCoefficients)),
+                GetBishopCoefficients(std::move(GetBishopCoefficients))
+            {
+            }
+
+            std::function<const Matrix&()> GetNpContainer;
+            Geo::BMatricesGetter GetBMatrices;
+            std::function<Vector()> GetVoigtVector;
+            Geo::IntegrationCoefficientsGetter GetIntegrationCoefficients;
+            std::function<std::vector<double>()> GetBiotCoefficients;
+            std::function<std::vector<double>()> GetBishopCoefficients;
         };
 
 

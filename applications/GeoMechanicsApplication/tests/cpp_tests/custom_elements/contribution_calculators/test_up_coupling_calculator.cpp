@@ -27,6 +27,32 @@ namespace Kratos::Testing
         constexpr auto number_of_u_dof = 4;
         constexpr auto number_of_pw_dof = 2;
 
-        UPCouplingCalculator<number_of_u_dof, number_of_pw_dof>::InputProvider input_provider;
+        auto get_b_matrices = []()
+        {
+            return std::vector<Matrix>{};
+        };
+        auto get_integration_coefficients = []()
+        {
+            return std::vector<double>{};
+        };
+        const auto np_container = Matrix{};
+        auto get_np_container = [&np_container]() -> const Matrix& { return np_container; };
+        auto get_biot_coefficients = []()
+        {
+            return std::vector<double>{};
+        };
+        auto get_bishop_coefficients = []()
+        {
+            return std::vector<double>{};
+        };
+        auto get_voigt_vector = []()
+        {
+            return Vector{};
+        };
+
+
+        UPCouplingCalculator<number_of_u_dof, number_of_pw_dof>::InputProvider input_provider(
+            get_np_container, get_b_matrices, get_voigt_vector, get_integration_coefficients, get_biot_coefficients,
+            get_bishop_coefficients);
     }
 }
