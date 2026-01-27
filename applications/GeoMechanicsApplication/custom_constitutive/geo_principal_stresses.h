@@ -15,11 +15,19 @@
 
 #include "includes/ublas_interface.h"
 
+#include <algorithm>
+
 namespace Kratos::Geo
 {
 
 struct PrincipalStresses {
     BoundedVector<double, 3> values;
+
+    template <typename VectorType>
+    explicit PrincipalStresses(const VectorType& rStressVector)
+    {
+        std::ranges::copy(rStressVector, values.begin());
+    }
 };
 
 } // namespace Kratos::Geo
