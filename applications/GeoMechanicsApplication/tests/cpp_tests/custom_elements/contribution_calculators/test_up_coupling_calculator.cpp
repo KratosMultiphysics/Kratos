@@ -37,7 +37,6 @@ TEST_F(KratosGeoMechanicsFastSuiteWithoutKernel, TestUPCouplingMatrixContributio
     // clang-format on
 
     const auto   voigt_vector = UblasUtilities::CreateVector({1.0, 1.0, 1.0, 0.0, 0.0, 0.0});
-    Vector       n_p          = UblasUtilities::CreateVector({1.0, 2.0, 3.0, 4.0});
     const double integration_coefficient = 1.0;
     const double biot_coefficient        = 0.02;
     const double bishop_coefficient      = 0.1;
@@ -94,7 +93,6 @@ TEST_F(KratosGeoMechanicsFastSuiteWithoutKernel, TestUPCouplingMatrixContributio
     // clang-format on
 
     const auto   voigt_vector            = UblasUtilities::CreateVector({1.0, 1.0, 1.0, 0.0});
-    Vector       n_p                     = UblasUtilities::CreateVector({1.0, 2.0});
     const double integration_coefficient = 0.5;
     const double biot_coefficient        = 2.0;
     const double bishop_coefficient      = 0.1;
@@ -143,7 +141,6 @@ TEST_F(KratosGeoMechanicsFastSuiteWithoutKernel, TestUPCouplingVectorContributio
     // clang-format on
 
     const auto   voigt_vector            = UblasUtilities::CreateVector({1.0, 1.0, 1.0, 0.0});
-    Vector       n_p                     = UblasUtilities::CreateVector({1.0, 2.0});
     const double integration_coefficient = 0.5;
     const double biot_coefficient        = 2.0;
     const double bishop_coefficient      = 0.1;
