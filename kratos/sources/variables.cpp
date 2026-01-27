@@ -19,7 +19,6 @@
 #include "includes/variables.h"
 #include "includes/kernel.h"
 #include "includes/convection_diffusion_settings.h"
-#include "includes/radiation_settings.h"
 
 namespace Kratos {
 typedef Node NodeType;
@@ -452,7 +451,6 @@ KRATOS_CREATE_VARIABLE(GlobalPointersVector<Condition>, NEIGHBOUR_CONDITIONS)
 //for Structural application:
 KRATOS_CREATE_VARIABLE(GlobalPointersVector<GeometricalObject>, NEIGHBOUR_EMBEDDED_FACES)
 KRATOS_CREATE_VARIABLE(ConvectionDiffusionSettings::Pointer, CONVECTION_DIFFUSION_SETTINGS)
-KRATOS_CREATE_VARIABLE(RadiationSettings::Pointer, RADIATION_SETTINGS)
 
 KRATOS_CREATE_VARIABLE(PeriodicVariablesContainer, PERIODIC_VARIABLES)
 
@@ -757,7 +755,6 @@ void KratosApplication::RegisterVariables() {
 
     KRATOS_REGISTER_VARIABLE(NEIGHBOUR_EMBEDDED_FACES)
     KRATOS_REGISTER_VARIABLE(CONVECTION_DIFFUSION_SETTINGS)
-    KRATOS_REGISTER_VARIABLE(RADIATION_SETTINGS)
 
     //--------------- STRUCTURAL Application -------------------//
     KRATOS_REGISTER_VARIABLE(NUMBER_OF_CYCLES)

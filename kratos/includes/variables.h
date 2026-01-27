@@ -459,7 +459,6 @@ namespace Kratos
     //for Structural application:
     //KRATOS_DEFINE_VARIABLE( GlobalPointersVector< GeometricalObject >, NEIGHBOUR_EMBEDDED_FACES )
     //KRATOS_DEFINE_VARIABLE( ConvectionDiffusionSettings::Pointer,  CONVECTION_DIFFUSION_SETTINGS )
-    //KRATOS_DEFINE_VARIABLE( RadiationSettings::Pointer,  RADIATION_SETTINGS )
 
     KRATOS_DEFINE_VARIABLE( PeriodicVariablesContainer, PERIODIC_VARIABLES )
 

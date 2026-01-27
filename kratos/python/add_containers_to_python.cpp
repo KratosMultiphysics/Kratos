@@ -26,7 +26,6 @@
 #include "includes/kratos_flags.h"
 #include "includes/constitutive_law.h"
 #include "includes/convection_diffusion_settings.h"
-#include "includes/radiation_settings.h"
 #include "utilities/quaternion.h"
 #include "python/numpy_utils.h"
 
@@ -743,7 +742,6 @@ void  AddContainersToPython(pybind11::module& m)
     .def("GetMeshVelocityVariable",&RadiationSettings::GetMeshVelocityVariable, py::return_value_policy::reference_internal )
     ;
     KRATOS_REGISTER_IN_PYTHON_VARIABLE(m,CONVECTION_DIFFUSION_SETTINGS)
-    KRATOS_REGISTER_IN_PYTHON_VARIABLE(m,RADIATION_SETTINGS)
 
     AddNDData<unsigned char>(m, "UIntNDData");
     AddNDData<bool>(m, "BoolNDData");
