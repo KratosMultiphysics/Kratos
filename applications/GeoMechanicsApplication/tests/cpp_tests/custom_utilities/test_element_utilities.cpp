@@ -60,6 +60,20 @@ KRATOS_TEST_CASE_IN_SUITE(AssignUUBlockMatrix_PositionsMatrixAtTopLeft, KratosGe
     KRATOS_EXPECT_MATRIX_EQ(destination_matrix, expected_matrix);
 }
 
+KRATOS_TEST_CASE_IN_SUITE(AssignPPBlockMatrix_PositionsMatrixAtBottomRight, KratosGeoMechanicsFastSuiteWithoutKernel)
+{
+    // Arrange
+    auto destination_matrix = Matrix{3, 3, 5.0};
+    auto insertion_matrix   = Matrix{2, 2, 3.0};
+
+    // Act
+    GeoElementUtilities::AssignPPBlockMatrix(destination_matrix, insertion_matrix);
+
+    // Assert
+    auto expected_matrix = UblasUtilities::CreateMatrix({{5.0, 5.0, 5.0}, {5.0, 3.0, 3.0}, {5.0, 3.0, 3.0}});
+    KRATOS_EXPECT_MATRIX_EQ(destination_matrix, expected_matrix);
+}
+
 KRATOS_TEST_CASE_IN_SUITE(AssignUBlockVector_PositionsVectorAtTop, KratosGeoMechanicsFastSuiteWithoutKernel)
 {
     // Arrange
@@ -71,6 +85,20 @@ KRATOS_TEST_CASE_IN_SUITE(AssignUBlockVector_PositionsVectorAtTop, KratosGeoMech
 
     // Assert
     auto expected_vector = UblasUtilities::CreateVector({3.0, 3.0, 5.0});
+    KRATOS_EXPECT_VECTOR_EQ(destination_vector, expected_vector);
+}
+
+KRATOS_TEST_CASE_IN_SUITE(AssignPBlockVector_PositionsVectorAtBottom, KratosGeoMechanicsFastSuiteWithoutKernel)
+{
+    // Arrange
+    auto destination_vector = Vector{3, 5.0};
+    auto addition_vector    = Vector{2, 3.0};
+
+    // Act
+    GeoElementUtilities::AssignPBlockVector(destination_vector, addition_vector);
+
+    // Assert
+    auto expected_vector = UblasUtilities::CreateVector({5.0, 3.0, 3.0});
     KRATOS_EXPECT_VECTOR_EQ(destination_vector, expected_vector);
 }
 
