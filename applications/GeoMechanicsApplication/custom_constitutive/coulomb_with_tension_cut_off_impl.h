@@ -42,9 +42,9 @@ public:
     [[nodiscard]] Vector        DoReturnMapping(const Vector&                             rTrialSigmaTau,
                                                 CoulombYieldSurface::CoulombAveragingType AveragingType);
     [[nodiscard]] Geo::SigmaTau DoReturnMapping(const Geo::SigmaTau& rTrialSigmaTau,
-                                                CoulombYieldSurface::CoulombAveragingType AveragingType) const;
+                                                CoulombYieldSurface::CoulombAveragingType AveragingType);
     [[nodiscard]] Geo::PrincipalStresses DoReturnMapping(const Geo::PrincipalStresses& rTrialSigmaTau,
-                                                         CoulombYieldSurface::CoulombAveragingType AveragingType) const;
+                                                         CoulombYieldSurface::CoulombAveragingType AveragingType);
 
     void SaveKappaOfCoulombYieldSurface();
     void RestoreKappaOfCoulombYieldSurface();

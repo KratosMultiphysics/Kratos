@@ -81,7 +81,7 @@ Vector CoulombWithTensionCutOffImpl::DoReturnMapping(const Vector& rTrialSigmaTa
 }
 
 Geo::SigmaTau CoulombWithTensionCutOffImpl::DoReturnMapping(const Geo::SigmaTau& rTrialSigmaTau,
-                                                            CoulombYieldSurface::CoulombAveragingType AveragingType) const
+                                                            CoulombYieldSurface::CoulombAveragingType AveragingType)
 {
     auto result = Geo::SigmaTau{Vector{2, 0.0}};
 
@@ -114,7 +114,7 @@ Geo::SigmaTau CoulombWithTensionCutOffImpl::DoReturnMapping(const Geo::SigmaTau&
 }
 
 Geo::PrincipalStresses CoulombWithTensionCutOffImpl::DoReturnMapping(const Geo::PrincipalStresses& rTrialPrincipalStresses,
-                                                                     CoulombYieldSurface::CoulombAveragingType AveragingType) const
+                                                                     CoulombYieldSurface::CoulombAveragingType AveragingType)
 {
     auto result = Geo::PrincipalStresses{Vector{3, 0.0}};
 
