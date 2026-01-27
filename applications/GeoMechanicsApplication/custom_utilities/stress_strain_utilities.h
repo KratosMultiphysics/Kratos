@@ -16,7 +16,7 @@
 #pragma once
 
 /* Project includes */
-#include "custom_constitutive/geo_principal_stresses.h"
+#include "custom_constitutive/geo_principal_stresses.hpp"
 #include "includes/constitutive_law.h"
 #include "includes/define.h"
 #include "includes/ublas_interface.h"

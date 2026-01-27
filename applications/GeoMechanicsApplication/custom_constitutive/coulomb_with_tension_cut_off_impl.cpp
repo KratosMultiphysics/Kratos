@@ -14,7 +14,7 @@
 //
 
 #include "custom_constitutive/coulomb_with_tension_cut_off_impl.h"
-#include "custom_constitutive/geo_principal_stresses.h"
+#include "custom_constitutive/geo_principal_stresses.hpp"
 #include "custom_constitutive/geo_sigma_tau.h"
 #include "custom_utilities/constitutive_law_utilities.h"
 #include "custom_utilities/stress_strain_utilities.h"
