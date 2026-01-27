@@ -20,6 +20,11 @@ namespace Kratos
     class UPCouplingCalculator : public ContributionCalculator<NumberOfRows, NumberOfColumns>
     {
     public:
+        struct InputProvider
+        {
+        };
+
+
         using BaseType = ContributionCalculator<NumberOfRows, NumberOfColumns>;
 
         std::optional<typename BaseType::LHSMatrixType> LHSContribution() override

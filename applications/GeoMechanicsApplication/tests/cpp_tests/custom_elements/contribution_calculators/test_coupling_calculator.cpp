@@ -21,4 +21,12 @@ namespace Kratos::Testing
         constexpr auto number_of_pw_dof = 2;
         UPCouplingCalculator<number_of_u_dof, number_of_pw_dof> coupling_calculator;
     }
+
+    TEST_F(KratosGeoMechanicsFastSuiteWithoutKernel, TestCanCreateUpCouplingInputProvider)
+    {
+        constexpr auto number_of_u_dof = 4;
+        constexpr auto number_of_pw_dof = 2;
+
+        UPCouplingCalculator<number_of_u_dof, number_of_pw_dof>::InputProvider input_provider;
+    }
 }
