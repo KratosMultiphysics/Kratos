@@ -47,6 +47,12 @@ double TensionCutoff::YieldFunctionValue(const Geo::PrincipalStresses& rPrincipa
 
 Vector TensionCutoff::DerivativeOfFlowFunction(const Vector&) const
 {
+    const auto unused_sigma_tau = Geo::SigmaTau{Vector{2, 0.0}};
+    return DerivativeOfFlowFunction(unused_sigma_tau);
+}
+
+Vector TensionCutoff::DerivativeOfFlowFunction(const Geo::SigmaTau&) const
+{
     return Vector{ScalarVector{2, 1.0}};
 }
 

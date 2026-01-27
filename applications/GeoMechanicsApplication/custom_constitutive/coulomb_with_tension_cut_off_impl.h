@@ -39,8 +39,10 @@ public:
     [[nodiscard]] bool IsAdmissibleStressState(const Geo::SigmaTau& rTrialSigmaTau) const;
     [[nodiscard]] bool IsAdmissibleStressState(const Geo::PrincipalStresses& rTrialPrincipalStresses) const;
 
-    [[nodiscard]] Vector DoReturnMapping(const Vector&                             rTrialSigmaTau,
-                                         CoulombYieldSurface::CoulombAveragingType AveragingType);
+    [[nodiscard]] Vector        DoReturnMapping(const Vector&                             rTrialSigmaTau,
+                                                CoulombYieldSurface::CoulombAveragingType AveragingType);
+    [[nodiscard]] Geo::SigmaTau DoReturnMapping(const Geo::SigmaTau& rTrialSigmaTau,
+                                                CoulombYieldSurface::CoulombAveragingType AveragingType) const;
     [[nodiscard]] Geo::PrincipalStresses DoReturnMapping(const Geo::PrincipalStresses& rTrialSigmaTau,
                                                          CoulombYieldSurface::CoulombAveragingType AveragingType) const;
 
@@ -59,13 +61,22 @@ private:
 
     [[nodiscard]] Vector CalculateCornerPoint() const;
     [[nodiscard]] bool   IsStressAtTensionApexReturnZone(const Vector& rTrialSigmaTau) const;
+    [[nodiscard]] bool   IsStressAtTensionApexReturnZone(const Geo::SigmaTau& rTrialSigmaTau) const;
     [[nodiscard]] bool   IsStressAtTensionCutoffReturnZone(const Vector& rTrialSigmaTau) const;
-    [[nodiscard]] bool   IsStressAtCornerReturnZone(const Vector& rTrialSigmaTau,
-                                                    CoulombYieldSurface::CoulombAveragingType AveragingType) const;
-    [[nodiscard]] Vector ReturnStressAtTensionApexReturnZone() const;
+    [[nodiscard]] bool IsStressAtTensionCutoffReturnZone(const Geo::SigmaTau& rTrialSigmaTau) const;
+    [[nodiscard]] bool IsStressAtCornerReturnZone(const Vector& rTrialSigmaTau,
+                                                  CoulombYieldSurface::CoulombAveragingType AveragingType) const;
+    [[nodiscard]] bool IsStressAtCornerReturnZone(const Geo::SigmaTau& rTrialSigmaTau,
+                                                  CoulombYieldSurface::CoulombAveragingType AveragingType) const;
+
+    [[nodiscard]] Vector        ReturnStressAtTensionApexReturnZone() const;
+    [[nodiscard]] Geo::SigmaTau ReturnStressAtTensionApexReturnZone(const Geo::SigmaTau&) const;
     [[nodiscard]] Vector ReturnStressAtTensionCutoffReturnZone(const Vector& rSigmaTau) const;
-    [[nodiscard]] Vector ReturnStressAtRegularFailureZone(const Vector& rSigmaTau,
-                                                          CoulombYieldSurface::CoulombAveragingType AveragingType) const;
+    [[nodiscard]] Geo::SigmaTau ReturnStressAtTensionCutoffReturnZone(const Geo::SigmaTau& rSigmaTau) const;
+    [[nodiscard]] Vector        ReturnStressAtRegularFailureZone(const Vector& rSigmaTau,
+                                                                 CoulombYieldSurface::CoulombAveragingType AveragingType) const;
+    [[nodiscard]] Geo::SigmaTau ReturnStressAtRegularFailureZone(const Geo::SigmaTau& rSigmaTau,
+                                                                 CoulombYieldSurface::CoulombAveragingType AveragingType) const;
 
     friend class Serializer;
     void save(Serializer& rSerializer) const;

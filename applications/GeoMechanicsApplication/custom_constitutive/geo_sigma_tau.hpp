@@ -34,6 +34,14 @@ struct SigmaTau {
         std::ranges::copy(rStressVector, values.begin());
     }
 
+    ~SigmaTau() = default;
+    SigmaTau(const SigmaTau& rOther);
+    SigmaTau& operator=(const SigmaTau& rOther);
+
+    // For some unclear reason, I cannot explicitly delete the move operations...
+    // SigmaTau(SigmaTau&&) noexcept = delete;
+    // SigmaTau& operator=(SigmaTau&&) noexcept = delete;
+
     template <typename ContainerType>
     ContainerType CopyTo() const
     {

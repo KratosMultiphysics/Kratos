@@ -155,23 +155,24 @@ Vector CoulombYieldSurface::DerivativeOfFlowFunction(const Vector& rSigmaTau) co
 
 Vector CoulombYieldSurface::DerivativeOfFlowFunction(const Vector&, CoulombAveragingType AveragingType) const
 {
+    const auto unused_sigma_tau = Geo::SigmaTau{Vector{ZeroVector{2}}};
+    return DerivativeOfFlowFunction(unused_sigma_tau, AveragingType);
+}
+
+Vector CoulombYieldSurface::DerivativeOfFlowFunction(const Geo::SigmaTau&, CoulombAveragingType AveragingType) const
+{
     const auto sin_psi = std::sin(GetDilatancyAngleInRadians());
-    Vector     result(2);
     switch (AveragingType) {
         using enum CoulombAveragingType;
     case LOWEST_PRINCIPAL_STRESSES:
-        result <<= -(1.0 - 3.0 * sin_psi) / 4.0, (3.0 - sin_psi) / 4.0;
-        break;
+        return UblasUtilities::CreateVector({-(1.0 - 3.0 * sin_psi) / 4.0, (3.0 - sin_psi) / 4.0});
     case NO_AVERAGING:
-        result <<= sin_psi, 1.0;
-        break;
+        return UblasUtilities::CreateVector({sin_psi, 1.0});
     case HIGHEST_PRINCIPAL_STRESSES:
-        result <<= (1.0 + 3.0 * sin_psi) / 4.0, (3.0 + sin_psi) / 4.0;
-        break;
+        return UblasUtilities::CreateVector({(1.0 + 3.0 * sin_psi) / 4.0, (3.0 + sin_psi) / 4.0});
     default:
         KRATOS_ERROR << "Unsupported Averaging Type: " << static_cast<std::size_t>(AveragingType) << "\n";
     }
-    return result;
 }
 
 double CoulombYieldSurface::CalculateApex() const
@@ -186,12 +187,21 @@ void CoulombYieldSurface::InitializeKappaDependentFunctions()
     mDilatancyAngleCalculator = MakeDilatancyAngleCalculator(mMaterialProperties);
 }
 
+// At some point in time we would like to get rid of this API. For now, just forward the request.
 double CoulombYieldSurface::CalculatePlasticMultiplier(const Vector& rSigmaTau,
+                                                       const Vector& rDerivativeOfFlowFunction) const
+{
+    return CalculatePlasticMultiplier(Geo::SigmaTau{rSigmaTau}, rDerivativeOfFlowFunction);
+}
+
+double CoulombYieldSurface::CalculatePlasticMultiplier(const Geo::SigmaTau& rSigmaTau,
                                                        const Vector& rDerivativeOfFlowFunction) const
 {
     const auto sin_phi   = std::sin(GetFrictionAngleInRadians());
     const auto numerator = sin_phi * rDerivativeOfFlowFunction[0] + rDerivativeOfFlowFunction[1];
-    return (GetCohesion() * std::cos(GetFrictionAngleInRadians()) - rSigmaTau[0] * sin_phi - rSigmaTau[1]) / numerator;
+    return (GetCohesion() * std::cos(GetFrictionAngleInRadians()) - rSigmaTau.sigma * sin_phi -
+            rSigmaTau.tau) /
+           numerator;
 }
 
 double CoulombYieldSurface::CalculateEquivalentPlasticStrainIncrement(const Vector& rSigmaTau,

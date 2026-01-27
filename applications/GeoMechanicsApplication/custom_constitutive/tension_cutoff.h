@@ -40,6 +40,7 @@ public:
     [[nodiscard]] double YieldFunctionValue(const Geo::SigmaTau& rSigmaTau) const;
     [[nodiscard]] double YieldFunctionValue(const Geo::PrincipalStresses& rPrincipalStresses) const;
     [[nodiscard]] Vector DerivativeOfFlowFunction(const Vector&) const override;
+    [[nodiscard]] Vector DerivativeOfFlowFunction(const Geo::SigmaTau&) const;
 
 private:
     friend class Serializer;
