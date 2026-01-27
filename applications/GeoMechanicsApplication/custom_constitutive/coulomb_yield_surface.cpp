@@ -131,6 +131,7 @@ double CoulombYieldSurface::GetKappa() const { return mKappa; }
 
 void CoulombYieldSurface::SetKappa(double kappa) { mKappa = kappa; }
 
+// At some point in time we would like to get rid of this API. For now, just forward the request.
 double CoulombYieldSurface::YieldFunctionValue(const Vector& rSigmaTau) const
 {
     return YieldFunctionValue(Geo::SigmaTau{rSigmaTau});
