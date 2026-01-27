@@ -22,7 +22,7 @@ namespace Kratos
 {
 
 template <unsigned int TNumNodes>
-class PermeabilityCalculator : public ContributionCalculator<TNumNodes> ///
+class PermeabilityCalculator : public ContributionCalculator<TNumNodes>
 {
 public:
     struct InputProvider {

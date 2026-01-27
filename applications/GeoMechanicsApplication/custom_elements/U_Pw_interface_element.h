@@ -13,6 +13,7 @@
 
 #pragma once
 
+#include "contribution_calculators/permeability_calculator.hpp"
 #include "contribution_calculators/calculation_contribution.h"
 #include "contribution_calculators/stiffness_calculator.hpp"
 #include "geo_aliases.h"
@@ -108,12 +109,21 @@ private:
     Matrix RotateStressToLocalCoordinates(const Geo::IntegrationPointType& rIntegrationPoint,
                                           const Vector& rGlobalStressVector) const;
     Vector ConvertLocalStressToTraction(const Matrix& rLocalStress) const;
+    Vector GetWaterPressureGeometryNodalVariable(const Variable<double>& rVariable) const;
+    Matrix CalculatePwBMatrix(const Vector& rN, const Geometry<Node>& rGeometry) const;
+    std::vector<Matrix> CalculateLocalPwBMatricesAtIntegrationPoints() const;
+    std::vector<double> CalculateFluidPressure() const;
 
-    Geo::BMatricesGetter               CreateBMatricesGetter() const;
-    Geo::StrainVectorsGetter           CreateRelativeDisplacementsGetter() const;
-    Geo::IntegrationCoefficientsGetter CreateIntegrationCoefficientsGetter() const;
-    Geo::PropertiesGetter              CreatePropertiesGetter() const;
-    Geo::ConstitutiveLawsGetter        CreateConstitutiveLawsGetter() const;
+    Geo::BMatricesGetter                  CreateBMatricesGetter() const;
+    Geo::StrainVectorsGetter              CreateRelativeDisplacementsGetter() const;
+    Geo::IntegrationCoefficientsGetter    CreateIntegrationCoefficientsGetter() const;
+    Geo::PropertiesGetter                 CreatePropertiesGetter() const;
+    Geo::ConstitutiveLawsGetter           CreateConstitutiveLawsGetter() const;
+    Geo::RetentionLawsGetter              CreateRetentionLawsGetter() const;
+    Geo::MaterialPermeabilityMatrixGetter CreateMaterialPermeabilityGetter() const;
+    Geo::NodalValuesGetter                CreateWaterPressureGeometryNodalVariableGetter() const;
+    Geo::BMatricesGetter                  CreatePwBMatricesGetter() const;
+    Geo::IntegrationPointValuesGetter     CreateFluidPressureCalculator() const;
 
     template <unsigned int MatrixSize>
     typename StiffnessCalculator<MatrixSize>::InputProvider CreateStiffnessInputProvider(const ProcessInfo& rProcessInfo);
@@ -127,11 +137,24 @@ private:
     template <unsigned int MatrixSize>
     void CalculateAndAssignStiffnesForceVector(VectorType& rRightHandSideVector, const ProcessInfo& rProcessInfo);
 
+    template <unsigned int TNumNodes>
+    typename PermeabilityCalculator<TNumNodes>::InputProvider CreatePermeabilityInputProvider();
+
+    template <unsigned int TNumNodes>
+    auto CreatePermeabilityCalculator();
+
+    template <unsigned int TnumNodes>
+    void CalculateAndAssignPermeabilityMatrix(MatrixType& rLeftHandSideMatrix);
+
+    template <unsigned int TnumNodes>
+    void CalculateAndAssignPermeabilityFlowVector(VectorType& rRightHandSideVector);
+
     std::function<Matrix(const Geometry<Node>&, const array_1d<double, 3>&)> mfpCalculateRotationMatrix;
 
     std::unique_ptr<IntegrationScheme>    mpIntegrationScheme;
     std::unique_ptr<StressStatePolicy>    mpStressStatePolicy;
     std::vector<ConstitutiveLaw::Pointer> mConstitutiveLaws;
+    std::vector<RetentionLaw::Pointer>    mRetentionLaws;
     IntegrationCoefficientsCalculator     mIntegrationCoefficientsCalculator;
     Geo::GeometryUniquePtr                mpOptionalPressureGeometry;
     std::vector<CalculationContribution>  mContributions;

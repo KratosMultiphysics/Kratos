@@ -13,8 +13,10 @@
 #include "U_Pw_interface_element.h"
 
 #include "contribution_calculators/calculation_contribution.h"
+#include "contribution_calculators/permeability_calculator.hpp"
 #include "contribution_calculators/stiffness_calculator.hpp"
 #include "custom_geometries/interface_geometry.hpp"
+#include "custom_retention/retention_law_factory.h"
 #include "custom_utilities/constitutive_law_utilities.h"
 #include "custom_utilities/dof_utilities.hpp"
 #include "custom_utilities/element_utilities.hpp"
@@ -308,8 +310,10 @@ void UPwInterfaceElement::Initialize(const ProcessInfo& rCurrentProcessInfo)
     Element::Initialize(rCurrentProcessInfo);
 
     mConstitutiveLaws.clear();
+    mRetentionLaws.clear();
     for (auto i = std::size_t{0}; i < mpIntegrationScheme->GetNumberOfIntegrationPoints(); ++i) {
         mConstitutiveLaws.push_back(GetProperties()[CONSTITUTIVE_LAW]->Clone());
+        mRetentionLaws.push_back(RetentionLawFactory::Clone(GetProperties()));
     }
     // Only interpolate when neighbouring elements that provide nodal stresses were found
     if (this->Has(NEIGHBOUR_ELEMENTS) && this->GetValue(NEIGHBOUR_ELEMENTS).size() > 0) {
@@ -409,6 +413,54 @@ std::vector<Matrix> UPwInterfaceElement::CalculateLocalBMatricesAtIntegrationPoi
         const auto dummy_gradients = Matrix{};
         auto       b_matrix        = mpStressStatePolicy->CalculateBMatrix(
             dummy_gradients, rShapeFunctionValuesAtIntegrationPoint, r_geometry);
+        ApplyRotationToBMatrix(b_matrix, mfpCalculateRotationMatrix(r_geometry, rIntegrationPoint));
+        return b_matrix;
+    };
+    std::transform(shape_function_values_at_integration_points.begin(),
+                   shape_function_values_at_integration_points.end(), r_integration_points.begin(),
+                   std::back_inserter(result), calculate_local_b_matrix);
+
+    return result;
+}
+
+Matrix UPwInterfaceElement::CalculatePwBMatrix(const Vector& rN, const Geometry<Node>& rGeometry) const
+{
+    KRATOS_ERROR_IF(rN.empty())
+        << "Shape function values are empty. Therefore, the PwB matrix can not be computed.\n";
+    KRATOS_ERROR_IF_NOT(rN.size() == rGeometry.size() / 2)
+        << "The number of shape functions should be equal to the number of node pairs. Therefore, "
+           "the PwB matrix can not be computed.\n";
+    auto component_order = rGeometry.GetGeometryFamily() == GeometryData::KratosGeometryFamily::Kratos_Linear
+                               ? std::vector<std::size_t>{1, 0}
+                               : std::vector<std::size_t>{2, 0, 1};
+    auto result = Matrix{ZeroMatrix{component_order.size(), rGeometry.size()}};
+
+    const auto number_of_pw_dofs_per_side = result.size2() / 2;
+    for (unsigned int i = 0; i < rGeometry.size() / 2; ++i) {
+        // Use the order in which the degrees of freedom at any node must be processed to compute
+        // the normal component(s) first and then the tangential component(s)
+        for (unsigned int j = 0; j < component_order.size(); ++j) {
+            result(component_order[j], i)                              = -rN[i];
+            result(component_order[j], i + number_of_pw_dofs_per_side) = rN[i];
+        }
+    }
+
+    return result;
+}
+
+std::vector<Matrix> UPwInterfaceElement::CalculateLocalPwBMatricesAtIntegrationPoints() const
+{
+    const auto& r_integration_points = mpIntegrationScheme->GetIntegrationPoints();
+    const auto  shape_function_values_at_integration_points =
+        GeoElementUtilities::EvaluateShapeFunctionsAtIntegrationPoints(r_integration_points,
+                                                                       GetWaterPressureGeometry());
+
+    auto result = std::vector<Matrix>{};
+    result.reserve(shape_function_values_at_integration_points.size());
+    auto calculate_local_b_matrix = [&r_geometry = GetWaterPressureGeometry(), this](
+                                        const auto& rShapeFunctionValuesAtIntegrationPoint,
+                                        const auto& rIntegrationPoint) {
+        auto b_matrix = CalculatePwBMatrix(rShapeFunctionValuesAtIntegrationPoint, r_geometry);
         ApplyRotationToBMatrix(b_matrix, mfpCalculateRotationMatrix(r_geometry, rIntegrationPoint));
         return b_matrix;
     };
@@ -527,6 +579,24 @@ Vector UPwInterfaceElement::ConvertLocalStressToTraction(const Matrix& rLocalStr
     return result;
 }
 
+Vector UPwInterfaceElement::GetWaterPressureGeometryNodalVariable(const Variable<double>& rVariable) const
+{
+    Vector result{this->GetWaterPressureGeometry().size()};
+    auto   index = std::size_t{0};
+    for (auto& r_node : this->GetWaterPressureGeometry()) {
+        result[index] = r_node.FastGetSolutionStepValue(rVariable);
+        index++;
+    }
+    return result;
+}
+
+std::vector<double> UPwInterfaceElement::CalculateFluidPressure() const
+{
+    return GeoTransportEquationUtilities::CalculateFluidPressures(
+        GetWaterPressureGeometry().ShapeFunctionsValues(GetIntegrationMethod()),
+        GetWaterPressureGeometryNodalVariable(WATER_PRESSURE));
+}
+
 Geo::BMatricesGetter UPwInterfaceElement::CreateBMatricesGetter() const
 {
     return [this]() { return this->CalculateLocalBMatricesAtIntegrationPoints(); };
@@ -536,6 +606,19 @@ Geo::ConstitutiveLawsGetter UPwInterfaceElement::CreateConstitutiveLawsGetter() 
 {
     return
         [this]() -> const std::vector<ConstitutiveLaw::Pointer>& { return this->mConstitutiveLaws; };
+}
+
+Geo::RetentionLawsGetter UPwInterfaceElement::CreateRetentionLawsGetter() const
+{
+    return [this]() -> const std::vector<RetentionLaw::Pointer>& { return this->mRetentionLaws; };
+}
+
+Geo::MaterialPermeabilityMatrixGetter UPwInterfaceElement::CreateMaterialPermeabilityGetter() const
+{
+    return [this]() -> Matrix {
+        return GeoElementUtilities::FillPermeabilityMatrix(
+            this->GetProperties(), this->GetWaterPressureGeometry().LocalSpaceDimension());
+    };
 }
 
 Geo::StrainVectorsGetter UPwInterfaceElement::CreateRelativeDisplacementsGetter() const
@@ -551,9 +634,26 @@ Geo::IntegrationCoefficientsGetter UPwInterfaceElement::CreateIntegrationCoeffic
     return [this]() { return this->CalculateIntegrationCoefficients(); };
 }
 
+Geo::NodalValuesGetter UPwInterfaceElement::CreateWaterPressureGeometryNodalVariableGetter() const
+{
+    return [this](const Variable<double>& rVariable) {
+        return this->GetWaterPressureGeometryNodalVariable(rVariable);
+    };
+}
+
 Geo::PropertiesGetter UPwInterfaceElement::CreatePropertiesGetter() const
 {
     return [this]() -> const Properties& { return this->GetProperties(); };
+}
+
+Geo::BMatricesGetter UPwInterfaceElement::CreatePwBMatricesGetter() const
+{
+    return [this]() { return this->CalculateLocalBMatricesAtIntegrationPoints(); };
+}
+
+Geo::IntegrationPointValuesGetter UPwInterfaceElement::CreateFluidPressureCalculator() const
+{
+    return [this]() { return this->CalculateFluidPressure(); };
 }
 
 template <unsigned int MatrixSize>
@@ -584,6 +684,35 @@ void UPwInterfaceElement::CalculateAndAssignStiffnesForceVector(VectorType& rRig
 {
     GeoElementUtilities::AssignUBlockVector(
         rRightHandSideVector, CreateStiffnessCalculator<MatrixSize>(rProcessInfo).RHSContribution());
+}
+
+template <unsigned int TNumNodes>
+typename PermeabilityCalculator<TNumNodes>::InputProvider UPwInterfaceElement::CreatePermeabilityInputProvider()
+{
+    return typename PermeabilityCalculator<TNumNodes>::InputProvider(
+        CreatePropertiesGetter(), CreateRetentionLawsGetter(), CreateMaterialPermeabilityGetter(),
+        CreateIntegrationCoefficientsGetter(), CreateWaterPressureGeometryNodalVariableGetter(),
+        CreatePwBMatricesGetter(), CreateFluidPressureCalculator());
+}
+
+template <unsigned int TNumNodes>
+auto UPwInterfaceElement::CreatePermeabilityCalculator()
+{
+    return PermeabilityCalculator<TNumNodes>(CreatePermeabilityInputProvider<TNumNodes>());
+}
+
+template <unsigned int TNumNodes>
+void UPwInterfaceElement::CalculateAndAssignPermeabilityMatrix(MatrixType& rLeftHandSideMatrix)
+{
+    GeoElementUtilities::AssignPPBlockMatrix(
+        rLeftHandSideMatrix, CreatePermeabilityCalculator<TNumNodes>().LHSContribution().value());
+}
+
+template <unsigned int TNumNodes>
+void UPwInterfaceElement::CalculateAndAssignPermeabilityFlowVector(VectorType& rRightHandSideVector)
+{
+    GeoElementUtilities::AssignPBlockVector(
+        rRightHandSideVector, CreatePermeabilityCalculator<TNumNodes>().RHSContribution());
 }
 
 // Instances of this class can not be copied but can be moved. Check that at compile time.

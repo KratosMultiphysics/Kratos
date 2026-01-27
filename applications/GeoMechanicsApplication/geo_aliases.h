@@ -50,4 +50,6 @@ using ProcessInfoGetter             = std::function<const ProcessInfo&()>;
 using ConstitutiveLawsGetter        = std::function<const std::vector<ConstitutiveLaw::Pointer>&()>;
 using RetentionLawsGetter           = std::function<const std::vector<RetentionLaw::Pointer>&()>;
 using MaterialPermeabilityMatrixGetter = std::function<Matrix()>;
+using NodalValuesGetter                = std::function<Vector(const Variable<double>&)>;
+using IntegrationPointValuesGetter     = std::function<std::vector<double>()>;
 } // namespace Kratos::Geo
