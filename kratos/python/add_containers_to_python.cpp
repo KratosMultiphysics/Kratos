@@ -219,10 +219,6 @@ void  AddContainersToPython(pybind11::module& m)
     .def("__str__", PrintObject<Variable<ConvectionDiffusionSettings::Pointer >>)
     ;
 
-    py::class_<Variable<RadiationSettings::Pointer > ,VariableData>(m,"RadiationSettingsVariable")
-    .def("__str__", PrintObject<Variable<RadiationSettings::Pointer >>)
-    ;
-
     py::class_<Variable<Quaternion<double> >>(m, "DoubleQuaternionVariable")
     .def("__str__", PrintObject<Variable<Quaternion<double> >>)
     ;
@@ -241,7 +237,6 @@ void  AddContainersToPython(pybind11::module& m)
     DataValueContainerIndexingUtility< DataValueContainerBinderType, DataValueContainer, Variable<Vector> >(DataValueBinder);
     DataValueContainerIndexingUtility< DataValueContainerBinderType, DataValueContainer, Variable<Matrix> >(DataValueBinder);
     DataValueContainerIndexingUtility< DataValueContainerBinderType, DataValueContainer, Variable<ConvectionDiffusionSettings::Pointer> >(DataValueBinder);
-    DataValueContainerIndexingUtility< DataValueContainerBinderType, DataValueContainer, Variable<RadiationSettings::Pointer> >(DataValueBinder);
     DataValueContainerIndexingUtility< DataValueContainerBinderType, DataValueContainer, Variable<Quaternion<double>> >(DataValueBinder);
     DataValueContainerIndexingUtility< DataValueContainerBinderType, DataValueContainer, Variable<std::string> >(DataValueBinder);
 
@@ -723,24 +718,6 @@ void  AddContainersToPython(pybind11::module& m)
     .def("IsDefinedReactionGradientVariable",&ConvectionDiffusionSettings::IsDefinedReactionGradientVariable)
     ;
 
-    py::class_< RadiationSettings, RadiationSettings::Pointer>	(m,"RadiationSettings")
-    .def(py::init<	>() )
-    .def("SetDensityVariable",&RadiationSettings::SetDensityVariable)
-    .def("SetDiffusionVariable",&RadiationSettings::SetDiffusionVariable)
-    .def("SetUnknownVariable",&RadiationSettings::SetUnknownVariable)
-    .def("SetVolumeSourceVariable",&RadiationSettings::SetVolumeSourceVariable)
-    .def("SetSurfaceSourceVariable",&RadiationSettings::SetSurfaceSourceVariable)
-    .def("SetProjectionVariable",&RadiationSettings::SetProjectionVariable)
-    .def("SetMeshVelocityVariable",&RadiationSettings::SetMeshVelocityVariable)
-    .def("GetDensityVariable",&RadiationSettings::GetDensityVariable, py::return_value_policy::reference_internal )
-    .def("GetDiffusionVariable",&RadiationSettings::GetDiffusionVariable, py::return_value_policy::reference_internal )
-    .def("GetUnknownVariable",&RadiationSettings::GetUnknownVariable, py::return_value_policy::reference_internal )
-    .def("GetVolumeSourceVariable",&RadiationSettings::GetVolumeSourceVariable, py::return_value_policy::reference_internal )
-    .def("GetSurfaceSourceVariable",&RadiationSettings::GetSurfaceSourceVariable, py::return_value_policy::reference_internal )
-    //.def("GetSurfaceSourceVariable",&RadiationSettings::GetSurfaceSourceVariable, py::return_value_policy::reference_internal )
-    .def("GetProjectionVariable",&RadiationSettings::GetProjectionVariable, py::return_value_policy::reference_internal )
-    .def("GetMeshVelocityVariable",&RadiationSettings::GetMeshVelocityVariable, py::return_value_policy::reference_internal )
-    ;
     KRATOS_REGISTER_IN_PYTHON_VARIABLE(m,CONVECTION_DIFFUSION_SETTINGS)
 
     AddNDData<unsigned char>(m, "UIntNDData");
