@@ -28,13 +28,15 @@ public:
                       std::function<Vector()>              GetVoigtVector,
                       Geo::IntegrationCoefficientsGetter   GetIntegrationCoefficients,
                       std::function<std::vector<double>()> GetBiotCoefficients,
-                      std::function<std::vector<double>()> GetBishopCoefficients)
+                      std::function<std::vector<double>()> GetBishopCoefficients,
+                      std::function<Vector()> GetFluidPressures)
             : GetNpContainer(std::move(GetNpContainer)),
               GetBMatrices(std::move(GetBMatrices)),
               GetVoigtVector(std::move(GetVoigtVector)),
               GetIntegrationCoefficients(std::move(GetIntegrationCoefficients)),
               GetBiotCoefficients(std::move(GetBiotCoefficients)),
-              GetBishopCoefficients(std::move(GetBishopCoefficients))
+              GetBishopCoefficients(std::move(GetBishopCoefficients)),
+              GetFluidPressures(std::move(GetFluidPressures))
         {
         }
 
@@ -44,6 +46,7 @@ public:
         Geo::IntegrationCoefficientsGetter   GetIntegrationCoefficients;
         std::function<std::vector<double>()> GetBiotCoefficients;
         std::function<std::vector<double>()> GetBishopCoefficients;
+        std::function<Vector()> GetFluidPressures;
     };
 
     explicit UPCouplingCalculator(InputProvider CouplingInputProvider)
@@ -53,9 +56,9 @@ public:
 
     using BaseType = ContributionCalculator<NumberOfRows, NumberOfColumns>;
 
-    std::optional<typename BaseType::LHSMatrixType> LHSContribution() override
+    typename BaseType::LHSMatrixType CalculateCouplingMatrix()
     {
-        typename BaseType::LHSMatrixType result = ZeroMatrix(NumberOfRows, NumberOfColumns);
+        typename BaseType::LHSMatrixType result       = ZeroMatrix(NumberOfRows, NumberOfColumns);
         const auto                       b_matrices   = mInputProvider.GetBMatrices();
         const auto                       voigt_vector = mInputProvider.GetVoigtVector();
         const auto integration_coefficients           = mInputProvider.GetIntegrationCoefficients();
@@ -73,7 +76,15 @@ public:
         return result;
     }
 
-    typename BaseType::RHSVectorType RHSContribution() override { return {}; }
+    std::optional<typename BaseType::LHSMatrixType> LHSContribution() override
+    {
+        return CalculateCouplingMatrix();
+    }
+
+    typename BaseType::RHSVectorType RHSContribution() override
+    {
+        return prod(CalculateCouplingMatrix(), mInputProvider.GetFluidPressures());
+    }
 
     std::pair<std::optional<typename BaseType::LHSMatrixType>, typename BaseType::RHSVectorType> LocalSystemContribution() override
     {

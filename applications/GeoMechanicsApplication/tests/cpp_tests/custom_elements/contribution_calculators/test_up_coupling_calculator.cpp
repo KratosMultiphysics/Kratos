@@ -20,26 +20,6 @@
 namespace Kratos::Testing
 {
 
-TEST_F(KratosGeoMechanicsFastSuiteWithoutKernel, TestCanCreateUpCouplingCalculatorWithInputProvider)
-{
-    constexpr auto number_of_u_dof  = 4;
-    constexpr auto number_of_pw_dof = 2;
-
-    auto       get_b_matrices               = []() { return std::vector<Matrix>{}; };
-    auto       get_integration_coefficients = []() { return std::vector<double>{}; };
-    const auto np_container                 = Matrix{};
-    auto       get_np_container      = [&np_container]() -> const Matrix& { return np_container; };
-    auto       get_biot_coefficients = []() { return std::vector<double>{}; };
-    auto       get_bishop_coefficients = []() { return std::vector<double>{}; };
-    auto       get_voigt_vector        = []() { return Vector{}; };
-
-    UPCouplingCalculator<number_of_u_dof, number_of_pw_dof>::InputProvider input_provider(
-        get_np_container, get_b_matrices, get_voigt_vector, get_integration_coefficients,
-        get_biot_coefficients, get_bishop_coefficients);
-
-    UPCouplingCalculator<number_of_u_dof, number_of_pw_dof> coupling_calculator(input_provider);
-}
-
 TEST_F(KratosGeoMechanicsFastSuiteWithoutKernel, TestUPCouplingMatrixContribution)
 {
     constexpr std::size_t size_D = 3;
@@ -90,11 +70,12 @@ TEST_F(KratosGeoMechanicsFastSuiteWithoutKernel, TestUPCouplingMatrixContributio
     auto       get_np_container = [&np_container]() -> const Matrix& { return np_container; };
     auto get_biot_coefficients  = [biot_coefficient]() { return std::vector{biot_coefficient}; };
     auto get_bishop_coefficients = [bishop_coefficient]() { return std::vector{bishop_coefficient}; };
-    auto get_voigt_vector = [voigt_vector]() { return voigt_vector; };
+    auto get_voigt_vector    = [voigt_vector]() { return voigt_vector; };
+    auto get_fluid_pressures = []() { return UblasUtilities::CreateVector({1.0, 2.0}); };
 
     UPCouplingCalculator<number_of_u_dof, number_of_pw_dof>::InputProvider input_provider(
         get_np_container, get_b_matrices, get_voigt_vector, get_integration_coefficients,
-        get_biot_coefficients, get_bishop_coefficients);
+        get_biot_coefficients, get_bishop_coefficients, get_fluid_pressures);
 
     UPCouplingCalculator<number_of_u_dof, number_of_pw_dof> coupling_calculator(input_provider);
 
@@ -104,9 +85,6 @@ TEST_F(KratosGeoMechanicsFastSuiteWithoutKernel, TestUPCouplingMatrixContributio
 
 TEST_F(KratosGeoMechanicsFastSuiteWithoutKernel, TestUPCouplingMatrixContributionSmaller)
 {
-    constexpr std::size_t size_D = 2;
-    constexpr std::size_t size_N = 2;
-
     // clang-format off
     const auto b_matrix = UblasUtilities::CreateMatrix(
                 {{1.0,  2.0, 3.0, 4.0},
@@ -121,10 +99,9 @@ TEST_F(KratosGeoMechanicsFastSuiteWithoutKernel, TestUPCouplingMatrixContributio
     const double biot_coefficient        = 2.0;
     const double bishop_coefficient      = 0.1;
 
-    BoundedMatrix<double, size_D * size_N, size_N> expected_coupling_matrix;
     // clang-format off
     // Checked by hand
-    expected_coupling_matrix = UblasUtilities::CreateMatrix(
+    const auto expected_coupling_matrix = UblasUtilities::CreateMatrix(
     {{1.5, 3.0},
      {1.8, 3.6},
      {2.1, 4.2},
@@ -142,16 +119,60 @@ TEST_F(KratosGeoMechanicsFastSuiteWithoutKernel, TestUPCouplingMatrixContributio
     auto       get_np_container = [&np_container]() -> const Matrix& { return np_container; };
     auto get_biot_coefficients  = [biot_coefficient]() { return std::vector{biot_coefficient}; };
     auto get_bishop_coefficients = [bishop_coefficient]() { return std::vector{bishop_coefficient}; };
-    auto get_voigt_vector = [voigt_vector]() { return voigt_vector; };
+    auto get_voigt_vector    = [voigt_vector]() { return voigt_vector; };
+    auto get_fluid_pressures = []() { return UblasUtilities::CreateVector({1.0, 2.0}); };
 
     UPCouplingCalculator<number_of_u_dof, number_of_pw_dof>::InputProvider input_provider(
         get_np_container, get_b_matrices, get_voigt_vector, get_integration_coefficients,
-        get_biot_coefficients, get_bishop_coefficients);
+        get_biot_coefficients, get_bishop_coefficients, get_fluid_pressures);
 
     UPCouplingCalculator<number_of_u_dof, number_of_pw_dof> coupling_calculator(input_provider);
 
     const auto calculated_coupling_matrix = coupling_calculator.LHSContribution().value();
     KRATOS_CHECK_MATRIX_NEAR(calculated_coupling_matrix, expected_coupling_matrix, Defaults::absolute_tolerance);
+}
+
+TEST_F(KratosGeoMechanicsFastSuiteWithoutKernel, TestUPCouplingVectorContribution)
+{
+    // clang-format off
+    const auto b_matrix = UblasUtilities::CreateMatrix(
+                {{1.0,  2.0, 3.0, 4.0},
+                 {5.0,  6.0, 7.0, 8.0},
+                 {9.0, 10.0,11.0,12.0},
+                 {13.0,14.0,15.0,16.0}});
+    // clang-format on
+
+    const auto   voigt_vector            = UblasUtilities::CreateVector({1.0, 1.0, 1.0, 0.0});
+    Vector       n_p                     = UblasUtilities::CreateVector({1.0, 2.0});
+    const double integration_coefficient = 0.5;
+    const double biot_coefficient        = 2.0;
+    const double bishop_coefficient      = 0.1;
+
+    // Checked by hand
+    const auto expected_coupling_vector = UblasUtilities::CreateVector({7.5, 9.0, 10.5, 12.0});
+
+    constexpr auto number_of_u_dof  = 4;
+    constexpr auto number_of_pw_dof = 2;
+
+    auto get_b_matrices               = [b_matrix]() { return std::vector{b_matrix}; };
+    auto get_integration_coefficients = [integration_coefficient]() {
+        return std::vector{integration_coefficient};
+    };
+    const auto np_container     = UblasUtilities::CreateMatrix({{1.0, 2.0}});
+    auto       get_np_container = [&np_container]() -> const Matrix& { return np_container; };
+    auto get_biot_coefficients  = [biot_coefficient]() { return std::vector{biot_coefficient}; };
+    auto get_bishop_coefficients = [bishop_coefficient]() { return std::vector{bishop_coefficient}; };
+    auto get_voigt_vector    = [voigt_vector]() { return voigt_vector; };
+    auto get_fluid_pressures = []() { return UblasUtilities::CreateVector({1.0, 2.0}); };
+
+    UPCouplingCalculator<number_of_u_dof, number_of_pw_dof>::InputProvider input_provider(
+        get_np_container, get_b_matrices, get_voigt_vector, get_integration_coefficients,
+        get_biot_coefficients, get_bishop_coefficients, get_fluid_pressures);
+
+    UPCouplingCalculator<number_of_u_dof, number_of_pw_dof> coupling_calculator(input_provider);
+
+    const auto calculated_coupling_vector = coupling_calculator.RHSContribution();
+    KRATOS_CHECK_VECTOR_NEAR(calculated_coupling_vector, expected_coupling_vector, Defaults::absolute_tolerance);
 }
 
 } // namespace Kratos::Testing
