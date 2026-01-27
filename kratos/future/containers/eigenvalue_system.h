@@ -28,6 +28,12 @@ namespace Kratos::Future
 ///@name Kratos Classes
 ///@{
 
+/**
+ * @brief Eigenvalue system container
+ * This class encapsulates the components of an eigenvalue system, including the
+ * stiffness matrix, mass matrix, eigenvalues vector, and eigenvectors matrix.
+ * @tparam TLinearAlgebra The struct containing the linear algebra types
+ */
 template <class TLinearAlgebra>
 class EigenvalueSystem final
 {

@@ -30,6 +30,14 @@ namespace Kratos::Future
 ///@name Kratos Classes
 ///@{
 
+/**
+ * @brief Linear system container
+ * This class encapsulates the components of a linear system, including the
+ * left-hand side matrix, right-hand side vector, solution vector, and a linear operator.
+ * If the linear operator is not provided, it defaults to a sparse matrix linear operator.
+ * Information about the physics of the problem can be optionally stored via a ModelPart and its Dofs.
+ * @tparam TLinearAlgebra The struct containing the linear algebra types
+ */
 template <class TLinearAlgebra>
 class LinearSystem final
 {
