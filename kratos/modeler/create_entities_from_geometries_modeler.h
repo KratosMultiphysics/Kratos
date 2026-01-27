@@ -21,7 +21,6 @@
 #include "containers/model.h"
 #include "includes/define.h"
 #include "includes/define_registry.h"
-#include "includes/kratos_components.h"
 #include "modeler/modeler.h"
 #include "utilities/parallel_utilities.h"
 #include "utilities/reduction_utilities.h"

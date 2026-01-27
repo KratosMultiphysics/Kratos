@@ -22,6 +22,7 @@
 #include "includes/geometrical_object.h"
 #include "includes/constitutive_law.h"
 #include "includes/kratos_parameters.h"
+#include "includes/kratos_components.h"
 #include "containers/global_pointers_vector.h"
 
 namespace Kratos
@@ -1247,7 +1248,7 @@ inline std::ostream & operator <<(std::ostream& rOStream,
 }
 ///@}
 
-KRATOS_API_EXTERN template class KRATOS_API(KRATOS_CORE) KratosComponents<Element >;
+KRATOS_API_EXTERN template class KRATOS_API(KRATOS_CORE) KratosComponents<Element>;
 
 void KRATOS_API(KRATOS_CORE) AddKratosComponent(std::string const& Name, Element const& ThisComponent);
 

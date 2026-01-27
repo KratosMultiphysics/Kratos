@@ -26,7 +26,6 @@
 #include "includes/data_communicator.h"
 #include "containers/flags.h"
 #include "containers/variable.h"
-#include "utilities/quaternion.h"
 
 namespace Kratos
 {
@@ -486,7 +485,6 @@ KRATOS_API_EXTERN template class KRATOS_API(KRATOS_CORE) KratosComponents<Variab
 KRATOS_API_EXTERN template class KRATOS_API(KRATOS_CORE) KratosComponents<Variable<array_1d<double, 4>>>;
 KRATOS_API_EXTERN template class KRATOS_API(KRATOS_CORE) KratosComponents<Variable<array_1d<double, 6>>>;
 KRATOS_API_EXTERN template class KRATOS_API(KRATOS_CORE) KratosComponents<Variable<array_1d<double, 9>>>;
-KRATOS_API_EXTERN template class KRATOS_API(KRATOS_CORE) KratosComponents<Variable<Quaternion<double>>>;
 KRATOS_API_EXTERN template class KRATOS_API(KRATOS_CORE) KratosComponents<Variable<Vector>>;
 KRATOS_API_EXTERN template class KRATOS_API(KRATOS_CORE) KratosComponents<Variable<Matrix>>;
 KRATOS_API_EXTERN template class KRATOS_API(KRATOS_CORE) KratosComponents<Variable<std::string>>;
@@ -518,7 +516,6 @@ void KRATOS_API(KRATOS_CORE) AddKratosComponent(const std::string& rName, const 
 void KRATOS_API(KRATOS_CORE) AddKratosComponent(const std::string& rName, const Variable<array_1d<double, 4>>& rComponent);
 void KRATOS_API(KRATOS_CORE) AddKratosComponent(const std::string& rName, const Variable<array_1d<double, 6>>& rComponent);
 void KRATOS_API(KRATOS_CORE) AddKratosComponent(const std::string& rName, const Variable<array_1d<double, 9>>& rComponent);
-void KRATOS_API(KRATOS_CORE) AddKratosComponent(const std::string& rName, const Variable<Quaternion<double>>& rComponent);
 void KRATOS_API(KRATOS_CORE) AddKratosComponent(const std::string& rName, const Variable<Vector>& rComponent);
 void KRATOS_API(KRATOS_CORE) AddKratosComponent(const std::string& rName, const Variable<Matrix>& rComponent);
 void KRATOS_API(KRATOS_CORE) AddKratosComponent(const std::string& rName, const Variable<std::string>& rComponent);

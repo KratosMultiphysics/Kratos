@@ -18,7 +18,6 @@
 // External includes
 
 // Project includes
-#include "includes/kratos_components.h"
 #include "modeler/modeler.h"
 
 namespace Kratos

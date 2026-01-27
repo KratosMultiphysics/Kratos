@@ -19,7 +19,6 @@
 
 // Project includes
 #include "containers/variable.h"
-#include "includes/kratos_components.h"
 #include "includes/exception.h"
 
 #ifdef KRATOS_DEBUG

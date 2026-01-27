@@ -20,7 +20,6 @@
 // Project includes
 #include "includes/define.h"
 #include "containers/variable.h"
-#include "includes/kratos_components.h"
 #include "containers/array_1d.h"
 
 #undef  KRATOS_EXPORT_MACRO

@@ -14,8 +14,11 @@
 #if !defined(QUATERNION_H_INCLUDED)
 #define QUATERNION_H_INCLUDED
 
-#include "includes/global_variables.h"
 #include "includes/serializer.h"
+#include "includes/global_variables.h"
+#include "includes/kratos_components.h"
+
+#include "containers/variable.h"
 
 namespace Kratos
 {
@@ -607,18 +610,22 @@ namespace Kratos
 	}
 
 
-        template<class T>
-        inline std::istream& operator >> (std::istream& rIStream, Quaternion<T>& rThis);
+	template<class T>
+	inline std::istream& operator >> (std::istream& rIStream, Quaternion<T>& rThis);
 
-        template<class T>
-        inline std::ostream& operator << (std::ostream& rOStream, const Quaternion<T>& rThis)
-        {
-            rThis.PrintInfo(rOStream);
-            rOStream << " : ";
-            rThis.PrintData(rOStream);
+	template<class T>
+	inline std::ostream& operator << (std::ostream& rOStream, const Quaternion<T>& rThis)
+	{
+		rThis.PrintInfo(rOStream);
+		rOStream << " : ";
+		rThis.PrintData(rOStream);
 
-            return rOStream;
-        }
+		return rOStream;
+	}
+
+	KRATOS_API_EXTERN template class KRATOS_API(KRATOS_CORE) KratosComponents<Variable<Quaternion<double>>>;
+
+	void KRATOS_API(KRATOS_CORE) AddKratosComponent(std::string const& Name, const Variable<Quaternion<double>>& ThisComponent);
 
 } // namespace Kratos
 

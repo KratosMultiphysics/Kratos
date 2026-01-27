@@ -22,6 +22,7 @@
 #include "containers/variable.h"
 #include "includes/process_info.h"
 #include "includes/indexed_object.h"
+#include "includes/kratos_components.h"
 
 namespace Kratos
 {

@@ -19,7 +19,6 @@
 // Project includes
 #include "includes/define.h"
 #include "containers/variable.h"
-#include "includes/kratos_components.h"
 #include "includes/ublas_interface.h"
 #include "containers/array_1d.h"
 
