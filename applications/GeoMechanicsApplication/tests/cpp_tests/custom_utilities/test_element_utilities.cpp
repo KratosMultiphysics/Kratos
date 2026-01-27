@@ -17,8 +17,6 @@
 #include "includes/node.h"
 #include "tests/cpp_tests/geo_mechanics_fast_suite.h"
 
-#include <boost/numeric/ublas/assignment.hpp>
-
 using namespace Kratos;
 
 namespace Kratos::Testing
@@ -38,10 +36,8 @@ KRATOS_TEST_CASE_IN_SUITE(ElementUtilities_ReturnsCorrectListOfShapeFunctionsVal
     const auto shape_function_values =
         GeoElementUtilities::EvaluateShapeFunctionsAtIntegrationPoints(integration_points, geometry);
 
-    Vector shape_function_values_1(2);
-    shape_function_values_1 <<= 1.0, 0.0;
-    Vector shape_function_values_2(2);
-    shape_function_values_2 <<= 0.0, 1.0;
+    auto shape_function_values_1 = UblasUtilities::CreateVector({1.0, 0.0});
+    auto shape_function_values_2 = UblasUtilities::CreateVector({0.0, 1.0});
     const std::vector<Vector> expected_shape_function_values{shape_function_values_1, shape_function_values_2};
 
     KRATOS_EXPECT_EQ(expected_shape_function_values.size(), shape_function_values.size());
