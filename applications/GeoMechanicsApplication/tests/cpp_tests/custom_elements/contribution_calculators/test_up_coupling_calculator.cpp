@@ -13,7 +13,6 @@
 #include "custom_elements/contribution_calculators/up_coupling_calculator.hpp"
 #include "custom_utilities/transport_equation_utilities.hpp"
 #include "custom_utilities/ublas_utilities.h"
-#include "geo_mechanics_application_constants.h"
 #include "includes/checks.h"
 #include "tests/cpp_tests/geo_mechanics_fast_suite_without_kernel.h"
 #include "tests/cpp_tests/test_utilities.h"
