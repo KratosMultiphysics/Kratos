@@ -105,9 +105,9 @@ Geo::SigmaTau CoulombWithTensionCutOffImpl::DoReturnMapping(const Geo::SigmaTau&
                                              rTrialSigmaTau, AveragingType);
         mCoulombYieldSurface.SetKappa(kappa);
 
-        // if (std::abs(mCoulombYieldSurface.YieldFunctionValue(result)) < mAbsoluteYieldFunctionValueTolerance) {
-        //     break;
-        // }
+        if (std::abs(mCoulombYieldSurface.YieldFunctionValue(result)) < mAbsoluteYieldFunctionValueTolerance) {
+            break;
+        }
     }
 
     return result;
