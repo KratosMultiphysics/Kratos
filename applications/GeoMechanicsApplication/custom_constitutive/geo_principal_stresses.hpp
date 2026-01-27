@@ -28,6 +28,14 @@ struct PrincipalStresses {
     {
         std::ranges::copy(rStressVector, values.begin());
     }
+
+    template <typename ContainerType>
+    ContainerType CopyTo() const
+    {
+        auto result = ContainerType{values.size()};
+        std::ranges::copy(values, result.begin());
+        return result;
+    }
 };
 
 } // namespace Kratos::Geo

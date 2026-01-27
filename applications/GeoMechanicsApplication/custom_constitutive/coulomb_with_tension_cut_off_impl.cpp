@@ -50,10 +50,8 @@ bool CoulombWithTensionCutOffImpl::IsAdmissibleSigmaTau(const Vector& rTrialSigm
 
 bool CoulombWithTensionCutOffImpl::IsAdmissibleStressState(const Geo::PrincipalStresses& rPrincipalStresses) const
 {
-    // For now, convert the supplied principal stresses to a `Vector`, just so we can use existing functions
-    auto principal_stresses = Vector{rPrincipalStresses.values.size()};
-    std::ranges::copy(rPrincipalStresses.values, principal_stresses.begin());
-    return IsAdmissibleSigmaTau(StressStrainUtilities::TransformPrincipalStressesToSigmaTau(principal_stresses));
+    return IsAdmissibleSigmaTau(StressStrainUtilities::TransformPrincipalStressesToSigmaTau(
+        rPrincipalStresses.CopyTo<Vector>()));
 }
 
 bool CoulombWithTensionCutOffImpl::IsAdmissibleStressState(const Geo::SigmaTau& rSigmaTau) const
