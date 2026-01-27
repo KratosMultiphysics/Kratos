@@ -12,6 +12,7 @@
 
 #include "custom_geometries/interface_geometry.hpp"
 #include "custom_utilities/element_utilities.hpp"
+#include "custom_utilities/ublas_utilities.h"
 #include "geometries/line_2d_2.h"
 #include "includes/node.h"
 #include "tests/cpp_tests/geo_mechanics_fast_suite.h"
@@ -47,6 +48,34 @@ KRATOS_TEST_CASE_IN_SUITE(ElementUtilities_ReturnsCorrectListOfShapeFunctionsVal
     for (std::size_t i = 0; i < expected_shape_function_values.size(); ++i) {
         KRATOS_CHECK_VECTOR_NEAR(expected_shape_function_values[i], shape_function_values[i], 1e-6);
     }
+}
+
+KRATOS_TEST_CASE_IN_SUITE(AssignUUBlockMatrix_PositionsMatrixAtTopLeft, KratosGeoMechanicsFastSuiteWithoutKernel)
+{
+    // Arrange
+    auto destination_matrix = Matrix{3, 3, 5.0};
+    auto insertion_matrix   = Matrix{2, 2, 3.0};
+
+    // Act
+    GeoElementUtilities::AssignUUBlockMatrix(destination_matrix, insertion_matrix);
+
+    // Assert
+    auto expected_matrix = UblasUtilities::CreateMatrix({{3.0, 3.0, 5.0}, {3.0, 3.0, 5.0}, {5.0, 5.0, 5.0}});
+    KRATOS_EXPECT_MATRIX_EQ(destination_matrix, expected_matrix);
+}
+
+KRATOS_TEST_CASE_IN_SUITE(AssembleUUBlockMatrix_AddsMatrixAtTopLeft, KratosGeoMechanicsFastSuiteWithoutKernel)
+{
+    // Arrange
+    auto destination_matrix = Matrix{3, 3, 5.0};
+    auto addition_matrix    = Matrix{2, 2, 3.0};
+
+    // Act
+    GeoElementUtilities::AssembleUUBlockMatrix(destination_matrix, addition_matrix);
+
+    // Assert
+    auto expected_matrix = UblasUtilities::CreateMatrix({{8.0, 8.0, 5.0}, {8.0, 8.0, 5.0}, {5.0, 5.0, 5.0}});
+    KRATOS_EXPECT_MATRIX_EQ(destination_matrix, expected_matrix);
 }
 
 } // namespace Kratos::Testing
