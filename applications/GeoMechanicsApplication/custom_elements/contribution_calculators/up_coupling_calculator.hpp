@@ -29,14 +29,14 @@ public:
                       Geo::IntegrationCoefficientsGetter   GetIntegrationCoefficients,
                       std::function<std::vector<double>()> GetBiotCoefficients,
                       std::function<std::vector<double>()> GetBishopCoefficients,
-                      std::function<Vector()> GetFluidPressures)
+                      std::function<Vector()> GetNodalWaterPressures)
             : GetNpContainer(std::move(GetNpContainer)),
               GetBMatrices(std::move(GetBMatrices)),
               GetVoigtVector(std::move(GetVoigtVector)),
               GetIntegrationCoefficients(std::move(GetIntegrationCoefficients)),
               GetBiotCoefficients(std::move(GetBiotCoefficients)),
               GetBishopCoefficients(std::move(GetBishopCoefficients)),
-              GetFluidPressures(std::move(GetFluidPressures))
+              GetNodalWaterPressures(std::move(GetNodalWaterPressures))
         {
         }
 
@@ -46,7 +46,7 @@ public:
         Geo::IntegrationCoefficientsGetter   GetIntegrationCoefficients;
         std::function<std::vector<double>()> GetBiotCoefficients;
         std::function<std::vector<double>()> GetBishopCoefficients;
-        std::function<Vector()> GetFluidPressures;
+        std::function<Vector()> GetNodalWaterPressures;
     };
 
     explicit UPCouplingCalculator(InputProvider CouplingInputProvider)
@@ -83,7 +83,7 @@ public:
 
     typename BaseType::RHSVectorType RHSContribution() override
     {
-        return prod(CalculateCouplingMatrix(), mInputProvider.GetFluidPressures());
+        return prod(CalculateCouplingMatrix(), mInputProvider.GetNodalWaterPressures());
     }
 
     std::pair<std::optional<typename BaseType::LHSMatrixType>, typename BaseType::RHSVectorType> LocalSystemContribution() override
