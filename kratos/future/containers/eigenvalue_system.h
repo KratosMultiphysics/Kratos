@@ -78,21 +78,11 @@ public:
     {
     }
 
-    // /// Copy constructor
-    // EigenvalueSystem(const EigenvalueSystem& rOther)
-    // {
-    //     mpLhs = rOther.mpLhs;
-    //     mpRhs = rOther.mpRhs;
-    //     mpLinearOperator = rOther.mpLinearOperator;
-    // }
+    /// Copy constructor
+    EigenvalueSystem(const EigenvalueSystem& rOther) = delete;
 
-    // /// Defaulted move constructor
-    // EigenvalueSystem(EigenvalueSystem&& rOther)
-    // {
-    //     mpLhs = std::move(rOther.mpLhs);
-    //     mpRhs = std::move(rOther.mpRhs);
-    //     mpLinearOperator = std::move(rOther.mpLinearOperator);
-    // }
+    /// Move constructor
+    EigenvalueSystem(EigenvalueSystem&& rOther) = delete;
 
     /// Destructor
     ~EigenvalueSystem() = default;
@@ -101,23 +91,11 @@ public:
     ///@name Operators
     ///@{
 
-    // /// Copy assignment operator
-    // EigenvalueSystem& operator=(const EigenvalueSystem& rOther)
-    // {
-    //     mpLhs = rOther.mpLhs;
-    //     mpRhs = rOther.mpRhs;
-    //     mpLinearOperator = rOther.mpLinearOperator;
-    //     return *this;
-    // }
+    /// Copy assignment operator
+    EigenvalueSystem& operator=(const EigenvalueSystem& rOther) = delete;
 
-    // /// Defaulted move assignment operator
-    // EigenvalueSystem& operator=(EigenvalueSystem&& rOther)
-    // {
-    //     mpLhs = std::move(rOther.mpLhs);
-    //     mpRhs = std::move(rOther.mpRhs);
-    //     mpLinearOperator = std::move(rOther.mpLinearOperator);
-    //     return *this;
-    // }
+    /// Defaulted move assignment operator
+    EigenvalueSystem& operator=(EigenvalueSystem&& rOther) = delete;
 
     ///@}
     ///@name Operations

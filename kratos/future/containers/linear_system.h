@@ -122,21 +122,11 @@ public:
         mpDofs = Kratos::make_shared<DofsArrayType>(rDofs);
     }
 
-    // /// Copy constructor
-    // LinearSystem(const LinearSystem& rOther)
-    // {
-    //     mpLhs = rOther.mpLhs;
-    //     mpRhs = rOther.mpRhs;
-    //     mpLinearOperator = rOther.mpLinearOperator;
-    // }
+    /// Copy constructor
+    LinearSystem(const LinearSystem& rOther) = delete;
 
-    // /// Defaulted move constructor
-    // LinearSystem(LinearSystem&& rOther)
-    // {
-    //     mpLhs = std::move(rOther.mpLhs);
-    //     mpRhs = std::move(rOther.mpRhs);
-    //     mpLinearOperator = std::move(rOther.mpLinearOperator);
-    // }
+    /// Move constructor
+    LinearSystem(LinearSystem&& rOther) = delete;
 
     /// Destructor
     ~LinearSystem() = default;
@@ -145,23 +135,11 @@ public:
     ///@name Operators
     ///@{
 
-    // /// Copy assignment operator
-    // LinearSystem& operator=(const LinearSystem& rOther)
-    // {
-    //     mpLhs = rOther.mpLhs;
-    //     mpRhs = rOther.mpRhs;
-    //     mpLinearOperator = rOther.mpLinearOperator;
-    //     return *this;
-    // }
+    /// Copy assignment operator
+    LinearSystem& operator=(const LinearSystem& rOther) = delete;
 
-    // /// Defaulted move assignment operator
-    // LinearSystem& operator=(LinearSystem&& rOther)
-    // {
-    //     mpLhs = std::move(rOther.mpLhs);
-    //     mpRhs = std::move(rOther.mpRhs);
-    //     mpLinearOperator = std::move(rOther.mpLinearOperator);
-    //     return *this;
-    // }
+    /// Move assignment operator
+    LinearSystem& operator=(LinearSystem&& rOther) = delete;
 
     ///@}
     ///@name Operations
@@ -188,22 +166,31 @@ public:
     * @brief Get a pointer to the linear operator.
     * @return Pointer to the linear operator
     */
-    virtual typename LinearOperatorType::Pointer& GetLinearOperator()
+    virtual typename LinearOperatorType::Pointer pGetLinearOperator()
     {
         KRATOS_ERROR_IF(!mpLinearOperator) << "Linear operator is not initialized." << std::endl;
         return mpLinearOperator;
     }
 
-    //FIXME: This should be const
-    // /**
-    // * @brief Get a pointer to the linear operator.
-    // * @return Pointer to the linear operator
-    // */
-    // virtual typename LinearOperatorType::Pointer& GetLinearOperator() const
-    // {
-    //     KRATOS_ERROR_IF(!mpLinearOperator) << "Linear operator is not initialized." << std::endl;
-    //     return mpLinearOperator;
-    // }
+    /**
+    * @brief Get a reference to the linear operator.
+    * @return Reference to the linear operator
+    */
+    virtual LinearOperatorType& GetLinearOperator()
+    {
+        KRATOS_ERROR_IF(!mpLinearOperator) << "Linear operator is not initialized." << std::endl;
+        return *mpLinearOperator;
+    }
+
+    /**
+    * @brief Get a const reference to the linear operator.
+    * @return Const reference to the linear operator
+    */
+    virtual const LinearOperatorType& GetLinearOperator() const
+    {
+        KRATOS_ERROR_IF(!mpLinearOperator) << "Linear operator is not initialized." << std::endl;
+        return *mpLinearOperator;
+    }
 
     /**
     * @brief Get a reference to the left-hand side matrix.
