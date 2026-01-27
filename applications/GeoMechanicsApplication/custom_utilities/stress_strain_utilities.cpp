@@ -13,7 +13,7 @@
 
 #include "stress_strain_utilities.h"
 #include "custom_constitutive/geo_principal_stresses.hpp"
-#include "custom_constitutive/geo_sigma_tau.h"
+#include "custom_constitutive/geo_sigma_tau.hpp"
 #include "custom_utilities/generic_utilities.hpp"
 #include "custom_utilities/math_utilities.hpp"
 #include "custom_utilities/ublas_utilities.h"

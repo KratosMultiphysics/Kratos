@@ -13,7 +13,7 @@
 
 #include "custom_constitutive/tension_cutoff.h"
 #include "custom_constitutive/geo_principal_stresses.hpp"
-#include "custom_constitutive/geo_sigma_tau.h"
+#include "custom_constitutive/geo_sigma_tau.hpp"
 #include "custom_utilities/stress_strain_utilities.h"
 #include "includes/serializer.h"
 
