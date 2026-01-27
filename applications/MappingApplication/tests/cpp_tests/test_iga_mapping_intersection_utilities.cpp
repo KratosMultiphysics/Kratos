@@ -156,7 +156,7 @@ KRATOS_TEST_CASE_IN_SUITE(IgaMappingIntersection_BuildPatchCaches_Basic, KratosM
     // BuildPatchCaches needs patch ids
     std::vector<IndexType> patches_id{patch_id};
 
-    const IndexType n_div = 10; // keep test fast
+    const IndexType n_div = 10; 
     auto cache = BuildPatchCaches(patches_id, r_mp, n_div);
 
     KRATOS_EXPECT_EQ(cache.size(), 1u);
@@ -198,7 +198,7 @@ KRATOS_TEST_CASE_IN_SUITE(
 
     std::vector<IndexType> patches_id = {patch_id_1, patch_id_2};
 
-    const IndexType n_div = 20; // a bit finer helps at the shared boundary
+    const IndexType n_div = 20; 
     auto patch_cache = BuildPatchCaches(patches_id, r_model_part, n_div);
 
     KRATOS_WATCH(patch_cache.size())
@@ -294,7 +294,7 @@ KRATOS_TEST_CASE_IN_SUITE(IgaMappingIntersection_FindInitialGuessNewtonRaphsonPr
     std::vector<IndexType> patches_id{patch_id};
 
     // --- Build cache ---
-    const IndexType n_div = 10; // small but enough
+    const IndexType n_div = 10;
     auto patch_cache = BuildPatchCaches(patches_id, r_mp, n_div);
 
     KRATOS_EXPECT_EQ(patch_cache.size(), 1u);
@@ -311,7 +311,7 @@ KRATOS_TEST_CASE_IN_SUITE(IgaMappingIntersection_FindInitialGuessNewtonRaphsonPr
 
     const bool found = FindInitialGuessNewtonRaphsonProjection(
         slave_xyz,
-        r_master_geom,          // GeometryPointerType
+        r_master_geom,          
         patch_cache,
         initial_guess,
         search_radius);
@@ -412,7 +412,7 @@ KRATOS_TEST_CASE_IN_SUITE(IgaMappingIntersection_AreProjectionsOnParameterSpaceB
     {
         std::vector<CoordinatesArrayType> points(1);
         points[0] = ZeroVector(3);
-        points[0][0] = u_min;                      // boundary
+        points[0][0] = u_min;                      
         points[0][1] = 0.5 * (v_min + v_max);
 
         const bool is_boundary = AreProjectionsOnParameterSpaceBoundary(points, r_nurbs);
@@ -470,10 +470,10 @@ KRATOS_TEST_CASE_IN_SUITE(IgaMappingIntersection_AreProjectionsOnParameterSpaceB
 
         // p0 on u = u_min
         points[0][0] = u_min;
-        points[0][1] = 0.75 * (v_min + 1.0*v_max); // not on v boundary
+        points[0][1] = 0.75 * (v_min + 1.0*v_max); 
 
         // p1 on v = v_min
-        points[1][0] = 0.75 * (u_min + 1.0*u_max); // not on u boundary
+        points[1][0] = 0.75 * (u_min + 1.0*u_max); 
         points[1][1] = v_min;
 
         const bool is_boundary = AreProjectionsOnParameterSpaceBoundary(points, r_nurbs);
@@ -531,7 +531,7 @@ KRATOS_TEST_CASE_IN_SUITE(
 
     // --- Define outside point by moving in +X direction (outside patch domain) ---
     CoordinatesArrayType point_outside_xyz = point_inside_xyz;
-    point_outside_xyz[0] += 2.0; // move far outside in x
+    point_outside_xyz[0] += 2.0; 
 
     // --- Provide an initial guess in local space ---
     CoordinatesArrayType initial_guess = ZeroVector(3);

@@ -340,7 +340,6 @@ void IgaMappingIntersectionUtilities::CreateIgaFEMQuadraturePointsOnSurface(
             const bool projection_ok = geom_master->ProjectionPointGlobalToLocalSpace(
                 node_coordinate_xyz, local_parameter, 1e-5) == 1;
             
-
             if (projection_ok)
             {
                 successful_nodes_xyz.push_back(node_coordinate_xyz);
@@ -480,6 +479,8 @@ void IgaMappingIntersectionUtilities::CreateIgaFEMQuadraturePointsOnSurface(
 
             // Get the trimming curves outer loop
             auto outer_loop_array = geom_master_cast->GetOuterLoops();
+
+            KRATOS_ERROR_IF(geom_master_cast->GetInnerLoops().size() > 0) << "The current patch has inner loops and this is not yet supported for the IGA-FEM Surface Mortar Mapper" << std::endl;
 
             Clipper2Lib::Paths64 all_loops(1), triangle(1), solution;
             const double factor = 1e-10;
