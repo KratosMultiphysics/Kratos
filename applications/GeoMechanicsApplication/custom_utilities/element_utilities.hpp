@@ -195,6 +195,22 @@ public:
     }
 
     template <typename MatrixType1, typename MatrixType2>
+    static void AssignUPBlockMatrix(MatrixType1& rDestinationMatrix, const MatrixType2& rUPBlockMatrix)
+    {
+        constexpr auto row_offset    = std::size_t{0};
+        const auto     column_offset = rDestinationMatrix.size2() - rUPBlockMatrix.size2();
+        AssignMatrixAtPosition(rDestinationMatrix, rUPBlockMatrix, row_offset, column_offset);
+    }
+
+    template <typename MatrixType1, typename MatrixType2>
+    static void AssignPUBlockMatrix(MatrixType1& rDestinationMatrix, const MatrixType2& rPUBlockMatrix)
+    {
+        const auto     row_offset    = rDestinationMatrix.size1() - rPUBlockMatrix.size1();
+        constexpr auto column_offset = std::size_t{0};
+        AssignMatrixAtPosition(rDestinationMatrix, rPUBlockMatrix, row_offset, column_offset);
+    }
+
+    template <typename MatrixType1, typename MatrixType2>
     static void AssignPPBlockMatrix(MatrixType1& rDestinationMatrix, const MatrixType2& rPPBlockMatrix)
     {
         const auto row_offset    = rDestinationMatrix.size1() - rPPBlockMatrix.size1();
