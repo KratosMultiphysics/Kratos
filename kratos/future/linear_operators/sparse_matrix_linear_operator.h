@@ -88,7 +88,7 @@ public:
     /// Defaulted move constructor
     SparseMatrixLinearOperator(SparseMatrixLinearOperator&& rOther) = default;
 
-    /// Default destructor (non-virtual)
+    /// Default destructor
     ~SparseMatrixLinearOperator() = default;
 
     ///@}

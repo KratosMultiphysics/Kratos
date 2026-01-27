@@ -89,7 +89,7 @@ public:
     /// Defaulted move constructor
     LinearOperator(LinearOperator&& rOther) = default;
 
-    /// Default destructor (non-virtual)
+    /// Default destructor
     virtual ~LinearOperator() = default;
 
     ///@}
