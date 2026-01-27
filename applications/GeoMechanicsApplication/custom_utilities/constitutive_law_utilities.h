@@ -47,6 +47,7 @@ public:
 
     static void CheckHasStrainMeasure_Infinitesimal(const Properties& rProperties, std::size_t ElementId);
 
+    [[nodiscard]] static double CalculateK0NCFromFrictionAngleInRadians(double FrictionAngleInRadians);
 }; /* Class ConstitutiveLawUtilities*/
 
 } // namespace Kratos

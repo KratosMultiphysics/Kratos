@@ -14,7 +14,7 @@
 #include "custom_constitutive/plane_strain.h"
 #include "geo_mechanics_application_variables.h"
 #include "includes/cfd_variables.h"
-#include "test_setup_utilities/element_setup_utilities.h"
+#include "test_setup_utilities/element_setup_utilities.hpp"
 
 #include <benchmark/benchmark.h>
 

@@ -11,6 +11,7 @@
 //
 
 #include "custom_elements/geo_steady_state_Pw_piping_element.h"
+#include "geo_mechanics_application_variables.h"
 #include "tests/cpp_tests/geo_mechanics_fast_suite.h"
 #include "tests/cpp_tests/test_utilities.h"
 

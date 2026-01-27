@@ -15,9 +15,13 @@
 #include "includes/table.h"
 
 #include "custom_processes/apply_constant_phreatic_multi_line_pressure_process.h"
+#include "includes/kratos_parameters.h"
+
+#include <string>
 
 namespace Kratos
 {
+class ModelPart;
 
 class KRATOS_API(GEO_MECHANICS_APPLICATION) ApplyPhreaticMultiLinePressureTableProcess
     : public ApplyConstantPhreaticMultiLinePressureProcess
@@ -40,18 +44,5 @@ private:
     std::vector<TableType::Pointer> mpTable;
     double                          mTimeUnitConverter;
 }; // Class ApplyPhreaticMultiLinePressureTableProcess
-
-/// input stream function
-inline std::istream& operator>>(std::istream& rIStream, ApplyPhreaticMultiLinePressureTableProcess& rThis);
-
-/// output stream function
-inline std::ostream& operator<<(std::ostream& rOStream, const ApplyPhreaticMultiLinePressureTableProcess& rThis)
-{
-    rThis.PrintInfo(rOStream);
-    rOStream << std::endl;
-    rThis.PrintData(rOStream);
-
-    return rOStream;
-}
 
 } // namespace Kratos.

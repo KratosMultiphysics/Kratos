@@ -57,6 +57,7 @@ KRATOS_TEST_CASE_IN_SUITE(StaticSchemeBuild1D, KratosCoreFastSuite)
     Future::LinearSystemContainer<CsrMatrix<>, SystemVector<>> linear_system_container;
 
     // Call the initialize solution step (note that this sets all the arrays above)
+    p_scheme->Initialize(linear_system_container);
     p_scheme->InitializeSolutionStep(linear_system_container);
 
     // Call the build
@@ -116,6 +117,7 @@ KRATOS_TEST_CASE_IN_SUITE(StaticSchemeBuild2D, KratosCoreFastSuite)
     Future::LinearSystemContainer<CsrMatrix<>, SystemVector<>> linear_system_container;
 
     // Call the initialize solution step (note that this sets all the arrays above)
+    p_scheme->Initialize(linear_system_container);
     p_scheme->InitializeSolutionStep(linear_system_container);
 
     // Call the build

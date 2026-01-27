@@ -69,6 +69,8 @@ KratosStructuralMechanicsApplication::KratosStructuralMechanicsApplication()
       mLinearTrussElement2D3N(0, Element::GeometryType::Pointer(new Line2D3<NodeType >(Element::GeometryType::PointsArrayType(3)))),
       mLinearTrussElement3D2N(0, Element::GeometryType::Pointer(new Line3D2<NodeType >(Element::GeometryType::PointsArrayType(2)))),
       mLinearTrussElement3D3N(0, Element::GeometryType::Pointer(new Line3D3<NodeType >(Element::GeometryType::PointsArrayType(3)))),
+      mTotalLagrangianTrussElement2D2N(0, Element::GeometryType::Pointer(new Line2D2<NodeType >(Element::GeometryType::PointsArrayType(2)))),
+      mTotalLagrangianTrussElement3D2N(0, Element::GeometryType::Pointer(new Line3D2<NodeType >(Element::GeometryType::PointsArrayType(2)))),
       // Adding the beam elements
       mCrBeamElement3D2N(0, Element::GeometryType::Pointer(new Line3D2<NodeType >(Element::GeometryType::PointsArrayType(2)))),
       mCrLinearBeamElement3D2N(0, Element::GeometryType::Pointer(new Line3D2<NodeType >(Element::GeometryType::PointsArrayType(2)))),
@@ -564,6 +566,8 @@ void KratosStructuralMechanicsApplication::Register() {
     KRATOS_REGISTER_ELEMENT("LinearTrussElement2D3N", mLinearTrussElement2D3N)
     KRATOS_REGISTER_ELEMENT("LinearTrussElement3D2N", mLinearTrussElement3D2N)
     KRATOS_REGISTER_ELEMENT("LinearTrussElement3D3N", mLinearTrussElement3D3N)
+    KRATOS_REGISTER_ELEMENT("TotalLagrangianTrussElement2D2N", mTotalLagrangianTrussElement2D2N)
+    KRATOS_REGISTER_ELEMENT("TotalLagrangianTrussElement3D2N", mTotalLagrangianTrussElement3D2N)
 
     // Register the beam element
     KRATOS_REGISTER_ELEMENT("CrBeamElement3D2N", mCrBeamElement3D2N)

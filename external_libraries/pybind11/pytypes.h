@@ -48,6 +48,9 @@ PYBIND11_NAMESPACE_BEGIN(detail)
 class args_proxy;
 bool isinstance_generic(handle obj, const std::type_info &tp);
 
+template <typename T>
+bool isinstance_native_enum(handle obj, const std::type_info &tp);
+
 // Accessor forward declarations
 template <typename Policy>
 class accessor;
@@ -78,7 +81,9 @@ using is_pyobject = std::is_base_of<pyobject_tag, remove_reference_t<T>>;
 \endrst */
 template <typename Derived>
 class object_api : public pyobject_tag {
+    object_api() = default;
     const Derived &derived() const { return static_cast<const Derived &>(*this); }
+    friend Derived;
 
 public:
     /** \rst
@@ -112,6 +117,17 @@ public:
     obj_attr_accessor attr(object &&key) const;
     /// See above (the only difference is that the key is provided as a string literal)
     str_attr_accessor attr(const char *key) const;
+
+    /** \rst
+         Similar to the above attr functions with the difference that the templated Type
+         is used to set the `__annotations__` dict value to the corresponding key. Worth noting
+         that attr_with_type_hint is implemented in cast.h.
+    \endrst */
+    template <typename T>
+    obj_attr_accessor attr_with_type_hint(handle key) const;
+    /// See above (the only difference is that the key is provided as a string literal)
+    template <typename T>
+    str_attr_accessor attr_with_type_hint(const char *key) const;
 
     /** \rst
         Matches * unpacking in Python, e.g. to unpack arguments out of a ``tuple``
@@ -182,6 +198,9 @@ public:
     /// Get or set the object's docstring, i.e. ``obj.__doc__``.
     str_attr_accessor doc() const;
 
+    /// Get or set the object's annotations, i.e. ``obj.__annotations__``.
+    object annotations() const;
+
     /// Return the object's current reference count
     ssize_t ref_count() const {
 #ifdef PYPY_VERSION
@@ -193,8 +212,7 @@ public:
 #endif
     }
 
-    // TODO PYBIND11_DEPRECATED(
-    //     "Call py::type::handle_of(h) or py::type::of(h) instead of h.get_type()")
+    PYBIND11_DEPRECATED("Call py::type::handle_of(h) or py::type::of(h) instead of h.get_type()")
     handle get_type() const;
 
 private:
@@ -260,7 +278,7 @@ public:
         inc_ref_counter(1);
 #endif
 #ifdef PYBIND11_ASSERT_GIL_HELD_INCREF_DECREF
-        if (m_ptr != nullptr && !PyGILState_Check()) {
+        if (m_ptr != nullptr && PyGILState_Check() == 0) {
             throw_gilstate_error("pybind11::handle::inc_ref()");
         }
 #endif
@@ -275,7 +293,7 @@ public:
     \endrst */
     const handle &dec_ref() const & {
 #ifdef PYBIND11_ASSERT_GIL_HELD_INCREF_DECREF
-        if (m_ptr != nullptr && !PyGILState_Check()) {
+        if (m_ptr != nullptr && PyGILState_Check() == 0) {
             throw_gilstate_error("pybind11::handle::dec_ref()");
         }
 #endif
@@ -547,12 +565,6 @@ struct error_fetch_and_normalize {
                           + " failed to obtain the name "
                             "of the normalized active exception type.");
         }
-#    if defined(PYPY_VERSION_NUM) && PYPY_VERSION_NUM < 0x07030a00
-        // This behavior runs the risk of masking errors in the error handling, but avoids a
-        // conflict with PyPy, which relies on the normalization here to change OSError to
-        // FileNotFoundError (https://github.com/pybind/pybind11/issues/4075).
-        m_lazy_error_string = exc_type_name_norm;
-#    else
         if (exc_type_name_norm != m_lazy_error_string) {
             std::string msg = std::string(called)
                               + ": MISMATCH of original and normalized "
@@ -564,7 +576,6 @@ struct error_fetch_and_normalize {
             msg += ": " + format_value_and_trace();
             pybind11_fail(msg);
         }
-#    endif
 #endif
     }
 
@@ -845,7 +856,8 @@ bool isinstance(handle obj) {
 
 template <typename T, detail::enable_if_t<!std::is_base_of<object, T>::value, int> = 0>
 bool isinstance(handle obj) {
-    return detail::isinstance_generic(obj, typeid(T));
+    return detail::isinstance_native_enum<T>(obj, typeid(T))
+           || detail::isinstance_generic(obj, typeid(T));
 }
 
 template <>
@@ -1387,6 +1399,18 @@ class simple_collector;
 template <return_value_policy policy = return_value_policy::automatic_reference>
 class unpacking_collector;
 
+inline object get_scope_module(handle scope) {
+    if (scope) {
+        if (hasattr(scope, "__module__")) {
+            return scope.attr("__module__");
+        }
+        if (hasattr(scope, "__name__")) {
+            return scope.attr("__name__");
+        }
+    }
+    return object();
+}
+
 PYBIND11_NAMESPACE_END(detail)
 
 // TODO: After the deprecated constructors are removed, this macro can be simplified by
@@ -1920,13 +1944,14 @@ private:
 
 class slice : public object {
 public:
-    PYBIND11_OBJECT_DEFAULT(slice, object, PySlice_Check)
+    PYBIND11_OBJECT(slice, object, PySlice_Check)
     slice(handle start, handle stop, handle step)
         : object(PySlice_New(start.ptr(), stop.ptr(), step.ptr()), stolen_t{}) {
         if (!m_ptr) {
             pybind11_fail("Could not allocate slice object!");
         }
     }
+    slice() : slice(none(), none(), none()) {}
 
 #ifdef PYBIND11_HAS_OPTIONAL
     slice(std::optional<ssize_t> start, std::optional<ssize_t> stop, std::optional<ssize_t> step)
@@ -2224,6 +2249,18 @@ class args : public tuple {
 };
 class kwargs : public dict {
     PYBIND11_OBJECT_DEFAULT(kwargs, dict, PyDict_Check)
+};
+
+// Subclasses of args and kwargs to support type hinting
+// as defined in PEP 484. See #5357 for more info.
+template <typename T>
+class Args : public args {
+    using args::args;
+};
+
+template <typename T>
+class KWArgs : public kwargs {
+    using kwargs::kwargs;
 };
 
 class anyset : public object {
@@ -2547,6 +2584,20 @@ str_attr_accessor object_api<D>::doc() const {
 }
 
 template <typename D>
+object object_api<D>::annotations() const {
+// This is needed again because of the lazy annotations added in 3.14+
+#if PY_VERSION_HEX < 0x030A0000 || PY_VERSION_HEX >= 0x030E0000
+    // https://docs.python.org/3/howto/annotations.html#accessing-the-annotations-dict-of-an-object-in-python-3-9-and-older
+    if (!hasattr(derived(), "__annotations__")) {
+        setattr(derived(), "__annotations__", dict());
+    }
+    return attr("__annotations__");
+#else
+    return getattr(derived(), "__annotations__", dict());
+#endif
+}
+
+template <typename D>
 handle object_api<D>::get_type() const {
     return type::handle_of(derived());
 }
@@ -2611,6 +2662,19 @@ PYBIND11_MATH_OPERATOR_BINARY_INPLACE(operator>>=, PyNumber_InPlaceRshift)
 #undef PYBIND11_MATH_OPERATOR_UNARY
 #undef PYBIND11_MATH_OPERATOR_BINARY
 #undef PYBIND11_MATH_OPERATOR_BINARY_INPLACE
+
+// Meant to return a Python str, but this is not checked.
+inline object get_module_name_if_available(handle scope) {
+    if (scope) {
+        if (hasattr(scope, "__module__")) {
+            return scope.attr("__module__");
+        }
+        if (hasattr(scope, "__name__")) {
+            return scope.attr("__name__");
+        }
+    }
+    return object();
+}
 
 PYBIND11_NAMESPACE_END(detail)
 PYBIND11_NAMESPACE_END(PYBIND11_NAMESPACE)

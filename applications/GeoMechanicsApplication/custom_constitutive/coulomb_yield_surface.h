@@ -10,11 +10,13 @@
 //
 //  Main authors:    Mohamed Nabi,
 //                   Wijtze Pieter Kikstra
+//                   Anne van de Graaf
 //
 
 #pragma once
 
 #include "custom_constitutive/yield_surface.h"
+#include "geo_aliases.h"
 #include "includes/properties.h"
 
 #include <functional>
@@ -28,8 +30,6 @@ class KRATOS_API(GEO_MECHANICS_APPLICATION) CoulombYieldSurface : public YieldSu
 {
 public:
     KRATOS_CLASS_POINTER_DEFINITION(CoulombYieldSurface);
-
-    using KappaDependentFunction = std::function<double(double)>;
 
     enum class CoulombAveragingType {
         NO_AVERAGING,
@@ -66,11 +66,11 @@ private:
     void save(Serializer& rSerializer) const override;
     void load(Serializer& rSerializer) override;
 
-    double                 mKappa = 0.0;
-    Properties             mMaterialProperties;
-    KappaDependentFunction mFrictionAngleCalculator;
-    KappaDependentFunction mCohesionCalculator;
-    KappaDependentFunction mDilatancyAngleCalculator;
+    double                      mKappa = 0.0;
+    Properties                  mMaterialProperties;
+    Geo::KappaDependentFunction mFrictionAngleCalculator;
+    Geo::KappaDependentFunction mCohesionCalculator;
+    Geo::KappaDependentFunction mDilatancyAngleCalculator;
 }; // Class CoulombYieldSurface
 
 } // namespace Kratos

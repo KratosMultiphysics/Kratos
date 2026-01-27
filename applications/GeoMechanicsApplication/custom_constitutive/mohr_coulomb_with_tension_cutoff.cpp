@@ -15,9 +15,9 @@
 // Application includes
 #include "custom_constitutive/mohr_coulomb_with_tension_cutoff.h"
 #include "custom_constitutive/constitutive_law_dimension.h"
-#include "custom_utilities/check_utilities.h"
+#include "custom_utilities/check_utilities.hpp"
 #include "custom_utilities/constitutive_law_utilities.h"
-#include "custom_utilities/math_utilities.h"
+#include "custom_utilities/math_utilities.hpp"
 #include "custom_utilities/stress_strain_utilities.h"
 #include "geo_mechanics_application_variables.h"
 

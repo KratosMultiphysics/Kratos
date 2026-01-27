@@ -14,7 +14,7 @@
 #include "custom_constitutive/mohr_coulomb_with_tension_cutoff.h"
 #include "custom_constitutive/plane_strain.h"
 #include "custom_constitutive/three_dimensional.h"
-#include "custom_utilities/registration_utilities.h"
+#include "custom_utilities/registration_utilities.hpp"
 #include "custom_utilities/ublas_utilities.h"
 #include "geo_mechanics_application_variables.h"
 #include "tests/cpp_tests/geo_mechanics_fast_suite.h"

@@ -22,12 +22,12 @@
 #include "includes/model_part.h"
 #include "processes/process.h"
 
-#include "utilities/function_parser_utility.h"
 #include "utilities/mortar_utilities.h"
+
+#include <string>
 
 namespace Kratos
 {
-
 ///@name Kratos Globals
 ///@{
 

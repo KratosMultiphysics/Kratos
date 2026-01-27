@@ -35,6 +35,7 @@
 #include "custom_elements/truss_elements/truss_element_linear_3D2N.hpp"
 #include "custom_elements/truss_elements/cable_element_3D2N.hpp"
 #include "custom_elements/truss_elements/linear_truss_element.h"
+#include "custom_elements/truss_elements/total_lagrangian_truss_element.h"
 
 /* Adding beam element */
 #include "custom_elements/beam_elements/cr_beam_element_3D2N.hpp"
@@ -284,6 +285,8 @@ private:
     const LinearTrussElement<2, 3> mLinearTrussElement2D3N;
     const LinearTrussElement<3, 2> mLinearTrussElement3D2N;
     const LinearTrussElement<3, 3> mLinearTrussElement3D3N;
+    const TotalLagrangianTrussElement<2> mTotalLagrangianTrussElement2D2N;
+    const TotalLagrangianTrussElement<3> mTotalLagrangianTrussElement3D2N;
 
     // Adding the beam element
     const CrBeamElement3D2N mCrBeamElement3D2N;

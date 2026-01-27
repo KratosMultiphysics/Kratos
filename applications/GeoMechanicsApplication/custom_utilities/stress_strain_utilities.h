@@ -16,6 +16,7 @@
 #pragma once
 
 /* Project includes */
+#include "includes/constitutive_law.h"
 #include "includes/define.h"
 #include "includes/ublas_interface.h"
 
@@ -50,6 +51,17 @@ public:
 
     static Vector TransformPrincipalStressesToSigmaTau(const Vector& rPrincipalStresses);
     static Vector TransformSigmaTauToPrincipalStresses(const Vector& rSigmaTau, const Vector& rPrincipalStresses);
+    static Vector TransformPrincipalStressesToPandQ(const Vector& rPrincipalStresses);
+
+    /// @brief This function calculates stresses from strains using the constitutive laws.
+    /// However, it can also be used to calculate tractions from relative displacements.
+    /// In that case, the relative displacements should be input as strains, and the return
+    /// is a vector with tractions
+    static std::vector<Vector> CalculateStressVectorsFromStrainVectors(
+        const std::vector<Vector>&                   rStrains,
+        const ProcessInfo&                           rProcessInfo,
+        const Properties&                            rProperties,
+        const std::vector<ConstitutiveLaw::Pointer>& rConstitutiveLaws);
 
 private:
     static double CalculateQMohrCoulomb(const Vector& rStressVector, double C, double PhiInRadians);

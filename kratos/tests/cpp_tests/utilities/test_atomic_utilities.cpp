@@ -11,6 +11,11 @@
 //
 
 // System includes
+#ifdef KRATOS_USE_TBB
+    #include <ranges>
+    #include <execution>
+    #include <algorithm>
+#endif
 
 // External includes
 
@@ -56,11 +61,18 @@ KRATOS_TEST_CASE(AtomicMult)
     const double exp = 1.001;
     double sum = 5;
 
+#ifdef KRATOS_USE_TBB
+    auto range = std::ranges::views::iota(0uz, size);
+    std::for_each(std::execution::par_unseq, range.begin(), range.end(), [&sum, exp](int x) {
+        AtomicMult(sum, exp);
+    });
+#else
     IndexPartition(size).for_each(
-        [&sum, exp](auto i){
+        [&sum, exp](auto i) {
             AtomicMult(sum, exp);
-            }
-        );
+        }
+    );
+#endif
 
     KRATOS_EXPECT_NEAR(5 * std::pow(exp, size), sum, 1e-3);
 }

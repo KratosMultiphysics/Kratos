@@ -15,6 +15,8 @@
 
 #include "processes/process.h"
 
+#include <string>
+
 namespace Kratos
 {
 

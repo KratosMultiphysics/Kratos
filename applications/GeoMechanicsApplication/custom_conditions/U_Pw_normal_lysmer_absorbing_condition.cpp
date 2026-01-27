@@ -14,7 +14,7 @@
 // Application includes
 #include "custom_conditions/U_Pw_normal_lysmer_absorbing_condition.h"
 #include "custom_utilities/condition_utilities.hpp"
-#include "custom_utilities/dof_utilities.h"
+#include "custom_utilities/dof_utilities.hpp"
 #include "custom_utilities/extrapolation_utilities.h"
 
 namespace Kratos
