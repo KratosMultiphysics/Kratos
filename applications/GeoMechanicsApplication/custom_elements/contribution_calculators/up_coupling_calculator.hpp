@@ -13,6 +13,7 @@
 #pragma once
 
 #include "contribution_calculator.h"
+#include "custom_utilities/transport_equation_utilities.hpp"
 #include "geo_aliases.h"
 
 namespace Kratos
@@ -52,7 +53,25 @@ public:
 
     using BaseType = ContributionCalculator<NumberOfRows, NumberOfColumns>;
 
-    std::optional<typename BaseType::LHSMatrixType> LHSContribution() override { return {}; }
+    std::optional<typename BaseType::LHSMatrixType> LHSContribution() override
+    {
+        typename BaseType::LHSMatrixType result = ZeroMatrix(NumberOfRows, NumberOfColumns);
+        const auto                       b_matrices   = mInputProvider.GetBMatrices();
+        const auto                       voigt_vector = mInputProvider.GetVoigtVector();
+        const auto integration_coefficients           = mInputProvider.GetIntegrationCoefficients();
+        const auto biot_coefficients                  = mInputProvider.GetBiotCoefficients();
+        const auto bishop_coefficients                = mInputProvider.GetBishopCoefficients();
+        const auto np_container                       = mInputProvider.GetNpContainer();
+        for (int i = 0; i < mInputProvider.GetBMatrices().size(); ++i) {
+            Matrix coupling_contribution(NumberOfRows, NumberOfColumns);
+            GeoTransportEquationUtilities::CalculateCouplingMatrix(
+                coupling_contribution, b_matrices[i], voigt_vector, row(np_container, i),
+                biot_coefficients[i], bishop_coefficients[i], integration_coefficients[i]);
+            result += coupling_contribution;
+        }
+
+        return result;
+    }
 
     typename BaseType::RHSVectorType RHSContribution() override { return {}; }
 
