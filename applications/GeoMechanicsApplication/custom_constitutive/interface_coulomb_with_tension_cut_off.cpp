@@ -138,10 +138,7 @@ void InterfaceCoulombWithTensionCutOff::CalculateMaterialResponseCauchy(Paramete
     const auto negative = std::signbit(trial_sigma_tau[1]);
     trial_sigma_tau[1]  = std::abs(trial_sigma_tau[1]);
 
-    auto trial_sigma_tau2 = Geo::SigmaTau{};
-    std::ranges::copy(trial_sigma_tau, trial_sigma_tau2.values.begin());
-
-    if (!mCoulombWithTensionCutOffImpl.IsAdmissibleStressState(trial_sigma_tau2)) {
+    if (!mCoulombWithTensionCutOffImpl.IsAdmissibleStressState(Geo::SigmaTau{trial_sigma_tau})) {
         mapped_sigma_tau = mCoulombWithTensionCutOffImpl.DoReturnMapping(
             trial_sigma_tau, CoulombYieldSurface::CoulombAveragingType::NO_AVERAGING);
         if (negative) mapped_sigma_tau[1] *= -1.0;

@@ -58,10 +58,7 @@ bool CoulombWithTensionCutOffImpl::IsAdmissibleStressState(const Geo::PrincipalS
 
 bool CoulombWithTensionCutOffImpl::IsAdmissibleStressState(const Geo::SigmaTau& rSigmaTau) const
 {
-    // For now, convert the supplied sigma and tau to a `Vector`, just so we can use existing functions
-    auto sigma_tau = Vector{2};
-    std::ranges::copy(rSigmaTau.values, sigma_tau.begin());
-    return IsAdmissibleSigmaTau(sigma_tau);
+    return IsAdmissibleSigmaTau(rSigmaTau.CopyTo<Vector>());
 }
 
 Vector CoulombWithTensionCutOffImpl::DoReturnMapping(const Vector& rTrialSigmaTau,
