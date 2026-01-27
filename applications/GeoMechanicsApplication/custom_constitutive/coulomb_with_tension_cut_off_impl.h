@@ -37,8 +37,8 @@ public:
     explicit CoulombWithTensionCutOffImpl(const Properties& rMaterialProperties);
 
     [[nodiscard]] bool IsAdmissibleSigmaTau(const Vector& rTrialSigmaTau) const;
+    [[nodiscard]] bool IsAdmissibleStressState(const Geo::SigmaTau& rTrialSigmaTau) const;
     [[nodiscard]] bool IsAdmissibleStressState(const Geo::PrincipalStresses& rTrialPrincipalStresses) const;
-    [[nodiscard]] bool   IsAdmissibleStressState(const Geo::SigmaTau& rTrialSigmaTau) const;
     [[nodiscard]] Vector DoReturnMapping(const Vector&                             rTrialSigmaTau,
                                          CoulombYieldSurface::CoulombAveragingType AveragingType);
 
