@@ -681,7 +681,7 @@ void CopyFromContiguousDataArray(
     const TContainerDataIO& rContainerDataIO,
     TDataType const* pBegin,
     const std::vector<unsigned int>& rShape,
-    const Vector<unsigned char>& rAvailability)
+    const Vector<int>& rAvailability)
 {
     KRATOS_TRY
 
