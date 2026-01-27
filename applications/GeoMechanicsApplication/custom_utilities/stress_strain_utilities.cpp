@@ -12,6 +12,8 @@
 //
 
 #include "stress_strain_utilities.h"
+#include "custom_constitutive/geo_principal_stresses.hpp"
+#include "custom_constitutive/geo_sigma_tau.h"
 #include "custom_utilities/generic_utilities.hpp"
 #include "custom_utilities/math_utilities.hpp"
 #include "custom_utilities/ublas_utilities.h"
@@ -235,6 +237,11 @@ Vector StressStrainUtilities::TransformPrincipalStressesToSigmaTau(const Vector&
     result[0]   = 0.5 * (rPrincipalStresses[0] + rPrincipalStresses[2]);
     result[1]   = 0.5 * (rPrincipalStresses[0] - rPrincipalStresses[2]);
     return result;
+}
+
+Geo::SigmaTau StressStrainUtilities::TransformPrincipalStressesToSigmaTau(const Geo::PrincipalStresses& rPrincipalStresses)
+{
+    return Geo::SigmaTau{TransformPrincipalStressesToSigmaTau(rPrincipalStresses.CopyTo<Vector>())};
 }
 
 Vector StressStrainUtilities::TransformSigmaTauToPrincipalStresses(const Vector& rSigmaTau,

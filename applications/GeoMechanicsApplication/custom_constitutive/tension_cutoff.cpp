@@ -12,6 +12,8 @@
 //
 
 #include "custom_constitutive/tension_cutoff.h"
+#include "custom_constitutive/geo_principal_stresses.hpp"
+#include "custom_constitutive/geo_sigma_tau.h"
 #include "custom_utilities/stress_strain_utilities.h"
 #include "includes/serializer.h"
 
@@ -25,10 +27,21 @@ double TensionCutoff::GetTensileStrength() const { return mTensileStrength; }
 
 double TensionCutoff::YieldFunctionValue(const Vector& rSigmaTau) const
 {
+    return YieldFunctionValue(Geo::SigmaTau{rSigmaTau});
+}
+
+double TensionCutoff::YieldFunctionValue(const Geo::SigmaTau& rSigmaTau) const
+{
+    // Note that we attempt to calculate the principal stress vector (which consists of three values) from the given
+    // sigma and tau (two values). As a result, the second principal stress cannot be uniquely determined.
     auto principal_stress_vector = Vector{ZeroVector{3}};
-    principal_stress_vector =
-        StressStrainUtilities::TransformSigmaTauToPrincipalStresses(rSigmaTau, principal_stress_vector);
-    return principal_stress_vector[0] - mTensileStrength;
+    return YieldFunctionValue(Geo::PrincipalStresses{StressStrainUtilities::TransformSigmaTauToPrincipalStresses(
+        rSigmaTau.CopyTo<Vector>(), principal_stress_vector)});
+}
+
+double TensionCutoff::YieldFunctionValue(const Geo::PrincipalStresses& rPrincipalStresses) const
+{
+    return rPrincipalStresses.values[0] - mTensileStrength;
 }
 
 Vector TensionCutoff::DerivativeOfFlowFunction(const Vector&) const

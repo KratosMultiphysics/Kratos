@@ -13,9 +13,12 @@
 //
 
 #include "custom_constitutive/coulomb_yield_surface.h"
+#include "custom_constitutive/geo_principal_stresses.hpp"
+#include "custom_constitutive/geo_sigma_tau.h"
 #include "custom_utilities/check_utilities.hpp"
 #include "custom_utilities/constitutive_law_utilities.h"
 #include "custom_utilities/function_object_utilities.h"
+#include "custom_utilities/stress_strain_utilities.h"
 #include "custom_utilities/string_utilities.h"
 #include "custom_utilities/ublas_utilities.h"
 #include "geo_mechanics_application_variables.h"
@@ -130,8 +133,18 @@ void CoulombYieldSurface::SetKappa(double kappa) { mKappa = kappa; }
 
 double CoulombYieldSurface::YieldFunctionValue(const Vector& rSigmaTau) const
 {
-    return rSigmaTau[1] + rSigmaTau[0] * std::sin(GetFrictionAngleInRadians()) -
+    return YieldFunctionValue(Geo::SigmaTau{rSigmaTau});
+}
+
+double CoulombYieldSurface::YieldFunctionValue(const Geo::SigmaTau& rSigmaTau) const
+{
+    return rSigmaTau.tau + rSigmaTau.sigma * std::sin(GetFrictionAngleInRadians()) -
            GetCohesion() * std::cos(GetFrictionAngleInRadians());
+}
+
+double CoulombYieldSurface::YieldFunctionValue(const Geo::PrincipalStresses& rPrincipalStresses) const
+{
+    return YieldFunctionValue(StressStrainUtilities::TransformPrincipalStressesToSigmaTau(rPrincipalStresses));
 }
 
 Vector CoulombYieldSurface::DerivativeOfFlowFunction(const Vector& rSigmaTau) const

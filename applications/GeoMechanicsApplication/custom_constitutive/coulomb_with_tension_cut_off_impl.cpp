@@ -40,23 +40,27 @@ CoulombWithTensionCutOffImpl::CoulombWithTensionCutOffImpl(const Properties& rMa
 
 bool CoulombWithTensionCutOffImpl::IsAdmissibleSigmaTau(const Vector& rTrialSigmaTau) const
 {
+    return IsAdmissibleStressState(Geo::SigmaTau{rTrialSigmaTau});
+}
+
+bool CoulombWithTensionCutOffImpl::IsAdmissibleStressState(const Geo::PrincipalStresses& rTrialPrincipalStresses) const
+{
+    const auto coulomb_yield_function_value = mCoulombYieldSurface.YieldFunctionValue(rTrialPrincipalStresses);
+    const auto tension_yield_function_value = mTensionCutOff.YieldFunctionValue(rTrialPrincipalStresses);
+    constexpr auto tolerance         = 1.0e-10;
+    const auto     coulomb_tolerance = tolerance * (1.0 + std::abs(coulomb_yield_function_value));
+    const auto     tension_tolerance = tolerance * (1.0 + std::abs(tension_yield_function_value));
+    return coulomb_yield_function_value < coulomb_tolerance && tension_yield_function_value < tension_tolerance;
+}
+
+bool CoulombWithTensionCutOffImpl::IsAdmissibleStressState(const Geo::SigmaTau& rTrialSigmaTau) const
+{
     const auto coulomb_yield_function_value = mCoulombYieldSurface.YieldFunctionValue(rTrialSigmaTau);
     const auto     tension_yield_function_value = mTensionCutOff.YieldFunctionValue(rTrialSigmaTau);
     constexpr auto tolerance                    = 1.0e-10;
     const auto     coulomb_tolerance = tolerance * (1.0 + std::abs(coulomb_yield_function_value));
     const auto     tension_tolerance = tolerance * (1.0 + std::abs(tension_yield_function_value));
     return coulomb_yield_function_value < coulomb_tolerance && tension_yield_function_value < tension_tolerance;
-}
-
-bool CoulombWithTensionCutOffImpl::IsAdmissibleStressState(const Geo::PrincipalStresses& rTrialPrincipalStresses) const
-{
-    return IsAdmissibleSigmaTau(StressStrainUtilities::TransformPrincipalStressesToSigmaTau(
-        rTrialPrincipalStresses.CopyTo<Vector>()));
-}
-
-bool CoulombWithTensionCutOffImpl::IsAdmissibleStressState(const Geo::SigmaTau& rTrialSigmaTau) const
-{
-    return IsAdmissibleSigmaTau(rTrialSigmaTau.CopyTo<Vector>());
 }
 
 Vector CoulombWithTensionCutOffImpl::DoReturnMapping(const Vector& rTrialSigmaTau,

@@ -24,6 +24,12 @@
 namespace Kratos
 {
 
+namespace Geo
+{
+struct PrincipalStresses;
+struct SigmaTau;
+} // namespace Geo
+
 class KRATOS_API(GEO_MECHANICS_APPLICATION) StressStrainUtilities
 {
 public:
@@ -52,6 +58,7 @@ public:
                                           std::size_t   StressVectorSize);
 
     static Vector TransformPrincipalStressesToSigmaTau(const Vector& rPrincipalStresses);
+    static Geo::SigmaTau TransformPrincipalStressesToSigmaTau(const Geo::PrincipalStresses& rPrincipalStresses);
     static Vector TransformSigmaTauToPrincipalStresses(const Vector& rSigmaTau, const Vector& rPrincipalStresses);
     static Vector TransformPrincipalStressesToPandQ(const Vector& rPrincipalStresses);
 
