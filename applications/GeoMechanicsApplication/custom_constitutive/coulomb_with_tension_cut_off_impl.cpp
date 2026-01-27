@@ -38,12 +38,6 @@ CoulombWithTensionCutOffImpl::CoulombWithTensionCutOffImpl(const Properties& rMa
     }
 }
 
-// We intend to get rid of this API at some point in time. For now, just forward the request.
-bool CoulombWithTensionCutOffImpl::IsAdmissibleSigmaTau(const Vector& rTrialSigmaTau) const
-{
-    return IsAdmissibleStressState(Geo::SigmaTau{rTrialSigmaTau});
-}
-
 bool CoulombWithTensionCutOffImpl::IsAdmissibleStressState(const Geo::SigmaTau& rTrialSigmaTau) const
 {
     return IsAdmissibleStressState<>(rTrialSigmaTau);
