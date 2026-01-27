@@ -60,6 +60,20 @@ KRATOS_TEST_CASE_IN_SUITE(AssignUUBlockMatrix_PositionsMatrixAtTopLeft, KratosGe
     KRATOS_EXPECT_MATRIX_EQ(destination_matrix, expected_matrix);
 }
 
+KRATOS_TEST_CASE_IN_SUITE(AssignUBlockVector_PositionsVectorAtTop, KratosGeoMechanicsFastSuiteWithoutKernel)
+{
+    // Arrange
+    auto destination_vector = Vector{3, 5.0};
+    auto addition_vector    = Vector{2, 3.0};
+
+    // Act
+    GeoElementUtilities::AssignUBlockVector(destination_vector, addition_vector);
+
+    // Assert
+    auto expected_vector = UblasUtilities::CreateVector({3.0, 3.0, 5.0});
+    KRATOS_EXPECT_VECTOR_EQ(destination_vector, expected_vector);
+}
+
 KRATOS_TEST_CASE_IN_SUITE(AssembleUUBlockMatrix_AddsMatrixAtTopLeft, KratosGeoMechanicsFastSuiteWithoutKernel)
 {
     // Arrange
@@ -115,4 +129,33 @@ KRATOS_TEST_CASE_IN_SUITE(AssemblePPBlockMatrix_AddsMatrixAtBottomRight, KratosG
     auto expected_matrix = UblasUtilities::CreateMatrix({{5.0, 5.0, 5.0}, {5.0, 8.0, 8.0}, {5.0, 8.0, 8.0}});
     KRATOS_EXPECT_MATRIX_EQ(destination_matrix, expected_matrix);
 }
+
+KRATOS_TEST_CASE_IN_SUITE(AssembleUBlockVector_AddsVectorAtTop, KratosGeoMechanicsFastSuiteWithoutKernel)
+{
+    // Arrange
+    auto destination_vector = Vector{3, 5.0};
+    auto addition_vector    = Vector{2, 3.0};
+
+    // Act
+    GeoElementUtilities::AssembleUBlockVector(destination_vector, addition_vector);
+
+    // Assert
+    auto expected_vector = UblasUtilities::CreateVector({8.0, 8.0, 5.0});
+    KRATOS_EXPECT_VECTOR_EQ(destination_vector, expected_vector);
+}
+
+KRATOS_TEST_CASE_IN_SUITE(AssemblePBlockVector_AddsVectorAtBottom, KratosGeoMechanicsFastSuiteWithoutKernel)
+{
+    // Arrange
+    auto destination_vector = Vector{3, 5.0};
+    auto addition_vector    = Vector{2, 3.0};
+
+    // Act
+    GeoElementUtilities::AssemblePBlockVector(destination_vector, addition_vector);
+
+    // Assert
+    auto expected_vector = UblasUtilities::CreateVector({5.0, 8.0, 8.0});
+    KRATOS_EXPECT_VECTOR_EQ(destination_vector, expected_vector);
+}
+
 } // namespace Kratos::Testing
