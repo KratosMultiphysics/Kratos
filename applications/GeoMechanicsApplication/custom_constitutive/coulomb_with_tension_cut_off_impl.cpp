@@ -48,15 +48,15 @@ bool CoulombWithTensionCutOffImpl::IsAdmissibleSigmaTau(const Vector& rTrialSigm
     return coulomb_yield_function_value < coulomb_tolerance && tension_yield_function_value < tension_tolerance;
 }
 
-bool CoulombWithTensionCutOffImpl::IsAdmissibleStressState(const Geo::PrincipalStresses& rPrincipalStresses) const
+bool CoulombWithTensionCutOffImpl::IsAdmissibleStressState(const Geo::PrincipalStresses& rTrialPrincipalStresses) const
 {
     return IsAdmissibleSigmaTau(StressStrainUtilities::TransformPrincipalStressesToSigmaTau(
-        rPrincipalStresses.CopyTo<Vector>()));
+        rTrialPrincipalStresses.CopyTo<Vector>()));
 }
 
-bool CoulombWithTensionCutOffImpl::IsAdmissibleStressState(const Geo::SigmaTau& rSigmaTau) const
+bool CoulombWithTensionCutOffImpl::IsAdmissibleStressState(const Geo::SigmaTau& rTrialSigmaTau) const
 {
-    return IsAdmissibleSigmaTau(rSigmaTau.CopyTo<Vector>());
+    return IsAdmissibleSigmaTau(rTrialSigmaTau.CopyTo<Vector>());
 }
 
 Vector CoulombWithTensionCutOffImpl::DoReturnMapping(const Vector& rTrialSigmaTau,
