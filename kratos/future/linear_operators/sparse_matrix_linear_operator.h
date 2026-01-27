@@ -76,8 +76,8 @@ public:
      */
     SparseMatrixLinearOperator(MatrixType& rA)
         : LinearOperator<TLinearAlgebra>()
+        , mrCsrMatrix(rA)
     {
-        mrCsrMatrix = std::ref(rA);
         this->SetNumRows(rA.size1());
         this->SetNumCols(rA.size2());
     }
@@ -88,7 +88,7 @@ public:
     /// Defaulted move constructor
     SparseMatrixLinearOperator(SparseMatrixLinearOperator&& rOther) = default;
 
-    /// Default destructor (non-virtual)
+    /// Default destructor
     ~SparseMatrixLinearOperator() = default;
 
     ///@}
@@ -109,27 +109,29 @@ public:
         const VectorType& rX,
         VectorType& rY) const override
     {
-        const auto& r_A = this->template GetMatrix<MatrixType>();
-        r_A.SpMV(rX, rY);
+        mrCsrMatrix.SpMV(rX, rY);
     }
 
     void TransposeSpMV(
         const VectorType& rX,
         VectorType& rY) const override
     {
-        const auto& r_A = this->template GetMatrix<MatrixType>();
-        r_A.TransposeSpMV(rX, rY);
-    }
-
-    void Clear() override
-    {
-        LinearOperator<TLinearAlgebra>::Clear(); // Call base class Clear
-        mrCsrMatrix.reset(); // Clear the reference to the CSR matrix (note that the matrix itself is not cleared)
+        mrCsrMatrix.TransposeSpMV(rX, rY);
     }
 
     ///@}
     ///@name Access
     ///@{
+
+    MatrixType& GetMatrix() override
+    {
+        return mrCsrMatrix;
+    }
+
+    const MatrixType& GetMatrix() const override
+    {
+        return mrCsrMatrix;
+    }
 
     ///@}
     ///@name Inquiry
@@ -141,31 +143,15 @@ public:
     }
 
     ///@}
+    private:
 
-protected:
-
-    ///@name Protected access
+    ///@name Member Variables
     ///@{
 
-    std::any GetMatrixImpl() override
-    {
-        KRATOS_ERROR_IF_NOT(mrCsrMatrix.has_value()) << "Matrix is not set." << std::endl;
-        return mrCsrMatrix;
-    }
-
-    const std::any GetMatrixImpl() const override
-    {
-        KRATOS_ERROR_IF_NOT(mrCsrMatrix.has_value()) << "Matrix is not set." << std::endl;
-        return mrCsrMatrix;
-    }
+    /// Reference to the CSR matrix
+    MatrixType& mrCsrMatrix;
 
     ///@}
-
-private:
-
-    /// Reference to the CSR matrix (of type MatrixType& handled as std::any)
-    std::any mrCsrMatrix;
-
 }; // class SparseMatrixLinearOperator
 
 ///@}

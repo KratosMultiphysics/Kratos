@@ -54,6 +54,9 @@ public:
     /// Vector type definition from template parameter
     using VectorType = typename TLinearAlgebra::VectorType;
 
+    /// Matrix type definition from template parameter
+    using MatrixType = typename TLinearAlgebra::MatrixType;
+
     /// Data type stored in the system vector
     using DataType = typename VectorType::DataType;
 
@@ -86,7 +89,7 @@ public:
     /// Defaulted move constructor
     LinearOperator(LinearOperator&& rOther) = default;
 
-    /// Default destructor (non-virtual)
+    /// Default destructor
     virtual ~LinearOperator() = default;
 
     ///@}
@@ -141,6 +144,16 @@ public:
     ///@name Access
     ///@{
 
+    virtual MatrixType& GetMatrix()
+    {
+        KRATOS_ERROR << "GetMatrix() is not implemented in base LinearOperator class." << std::endl;
+    }
+
+    virtual const MatrixType& GetMatrix() const
+    {
+        KRATOS_ERROR << "GetMatrix() is not implemented in base LinearOperator class." << std::endl;
+    }
+
     /**
      * @brief Set the number of rows.
      * @param NumRows Number of rows
@@ -157,32 +170,6 @@ public:
     void SetNumCols(std::size_t NumCols)
     {
         mNumCols = NumCols;
-    }
-
-    /**
-     * @brief Get a reference to the underlying matrix.
-     * @tparam TMatrixType The type of the matrix to retrieve
-     * @return Reference to the matrix
-     */
-    template<class TMatrixType>
-    TMatrixType& GetMatrix()
-    {
-        KRATOS_ERROR_IF(this->IsMatrixFree()) << "Trying to access matrix from a matrix-free LinearOperator." << std::endl;
-        auto r_matrix = this->GetMatrixImpl(); // Get the underlying matrix as std::any
-        return std::any_cast<std::reference_wrapper<TMatrixType>>(r_matrix).get(); // Cast and return the reference
-    }
-
-    /**
-     * @brief Get a const reference to the underlying matrix.
-     * @tparam TMatrixType The type of the matrix to retrieve
-     * @return Const reference to the matrix
-     */
-    template<class TMatrixType>
-    const TMatrixType& GetMatrix() const
-    {
-        KRATOS_ERROR_IF(this->IsMatrixFree()) << "Trying to access matrix from a matrix-free LinearOperator." << std::endl;
-        const auto r_matrix = this->GetMatrixImpl(); // Get the underlying matrix as const std::any
-        return std::any_cast<std::reference_wrapper<TMatrixType>>(r_matrix).get(); // Cast and return the reference
     }
 
     ///@}
@@ -209,7 +196,7 @@ public:
 
     /**
      * @brief Check if the operator is matrix-free.
-     * @return True if the operator is matrix-free, false if it wraps a CSR matrix
+     * @return True if the operator is matrix-free, false otherwise
      */
     virtual bool IsMatrixFree() const
     {
@@ -217,37 +204,10 @@ public:
     }
 
     ///@}
-
-protected:
-
-    ///@name Protected access
-    ///@{
-
-    /**
-     * @brief Implementation to get a reference to the underlying matrix.
-     * This method is to be overridden in matrix-based LinearOperator classes.
-     * An exception is thrown if this method is called from the base class (matrix-free).
-     * @return Reference to the matrix as an std::any
-     */
-    virtual std::any GetMatrixImpl()
-    {
-        KRATOS_ERROR << "GetMatrixImpl() not implemented in base LinearOperator class." << std::endl;
-    }
-
-    /**
-     * @brief Implementation to get a const reference to the underlying matrix.
-     * This method is to be overridden in matrix-based LinearOperator classes.
-     * An exception is thrown if this method is called from the base class (matrix-free).
-     * @return Reference to the matrix as a const std::any
-     */
-    virtual const std::any GetMatrixImpl() const
-    {
-        KRATOS_ERROR << "GetMatrixImpl() not implemented in base LinearOperator class." << std::endl;
-    }
-
-    ///@}
-
 private:
+
+    ///@name Member Variables
+    ///@{
 
     /// Number of rows of the operator
     std::size_t mNumRows = 0;
@@ -255,6 +215,7 @@ private:
     /// Number of columns of the operator
     std::size_t mNumCols = 0;
 
+    ///@}
 }; // class LinearOperator
 
 ///@}
