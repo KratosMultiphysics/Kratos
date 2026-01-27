@@ -13,7 +13,6 @@
 #pragma once
 
 // System includes
-#include <any>
 
 // External includes
 
