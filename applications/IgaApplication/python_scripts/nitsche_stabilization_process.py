@@ -36,6 +36,7 @@ class NitscheStabilizationProcess(KratosMultiphysics.Process):
             "eigen_system_settings" : {
                 "solver_type"           : "feast"
             },
+            "compute_stabilization_factor" : false,
             "number_of_conditions" : 1
         }""")
 
@@ -72,19 +73,24 @@ class NitscheStabilizationProcess(KratosMultiphysics.Process):
         # Get the model parts which divide the problem
         current_process_info = self.model_part.ProcessInfo
 
-        # Compute the eigen values
-        eigen_linear_solver = eigen_solver_factory.ConstructSolver(self.params["eigen_system_settings"])
-        builder_and_solver = KratosMultiphysics.ResidualBasedBlockBuilderAndSolver(eigen_linear_solver)
-        eigen_scheme = IGA.EigensolverNitscheStabilizationScheme()
-        eigen_solver = IGA.EigensolverNitscheStabilizationStrategy(self.model_part, eigen_scheme, builder_and_solver)
-        eigen_solver.Solve()
+        if(self.params["compute_stabilization_factor"].GetBool()):
+            # Compute the eigen values
+            eigen_linear_solver = eigen_solver_factory.ConstructSolver(self.params["eigen_system_settings"])
+            builder_and_solver = KratosMultiphysics.ResidualBasedBlockBuilderAndSolver(eigen_linear_solver)
+            eigen_scheme = IGA.EigensolverNitscheStabilizationScheme()
+            eigen_solver = IGA.EigensolverNitscheStabilizationStrategy(self.model_part, eigen_scheme, builder_and_solver)
+            eigen_solver.Solve()
 
-        # Compute the Nitsche stabilization factor
-        eigenvalue_nitsche_stabilization_vector = current_process_info.GetValue(IGA.EIGENVALUE_NITSCHE_STABILIZATION_VECTOR)
-        nitsche_stabilization_factor= eigenvalue_nitsche_stabilization_vector[eigenvalue_nitsche_stabilization_vector.Size()-1]*4*self.params["number_of_conditions"].GetInt()
+            # Compute the Nitsche stabilization factor
+            eigenvalue_nitsche_stabilization_vector = current_process_info.GetValue(IGA.EIGENVALUE_NITSCHE_STABILIZATION_VECTOR)
+            nitsche_stabilization_factor= eigenvalue_nitsche_stabilization_vector[eigenvalue_nitsche_stabilization_vector.Size()-1]*4*self.params["number_of_conditions"].GetInt()
 
-        eigenvalue_nitsche_stabilization_rotation_vector = current_process_info.GetValue(IGA.EIGENVALUE_NITSCHE_STABILIZATION_ROTATION_VECTOR)
-        nitsche_stabilization_rotation_factor= eigenvalue_nitsche_stabilization_rotation_vector[eigenvalue_nitsche_stabilization_rotation_vector.Size()-1]*4*self.params["number_of_conditions"].GetInt()
+            eigenvalue_nitsche_stabilization_rotation_vector = current_process_info.GetValue(IGA.EIGENVALUE_NITSCHE_STABILIZATION_ROTATION_VECTOR)
+            nitsche_stabilization_rotation_factor= eigenvalue_nitsche_stabilization_rotation_vector[eigenvalue_nitsche_stabilization_rotation_vector.Size()-1]*4*self.params["number_of_conditions"].GetInt()
+        else:
+            prop = next(iter(self.model_part_condition.Properties))
+            nitsche_stabilization_factor = prop.GetValue(IGA.PENALTY_FACTOR)
+            nitsche_stabilization_rotation_factor = prop.GetValue(IGA.PENALTY_ROTATION_FACTOR)
 
         # Set the Nitsche stabilization factor
         for prop in self.model_part_condition.Properties:
