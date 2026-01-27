@@ -102,34 +102,6 @@ KRATOS_TEST_CASE_IN_SUITE(AssignPPBlockMatrix_PositionsMatrixAtBottomRight, Krat
     KRATOS_EXPECT_MATRIX_EQ(destination_matrix, expected_matrix);
 }
 
-KRATOS_TEST_CASE_IN_SUITE(AssignUBlockVector_PositionsVectorAtTop, KratosGeoMechanicsFastSuiteWithoutKernel)
-{
-    // Arrange
-    auto destination_vector = Vector{3, 5.0};
-    auto addition_vector    = Vector{2, 3.0};
-
-    // Act
-    GeoElementUtilities::AssignUBlockVector(destination_vector, addition_vector);
-
-    // Assert
-    auto expected_vector = UblasUtilities::CreateVector({3.0, 3.0, 5.0});
-    KRATOS_EXPECT_VECTOR_EQ(destination_vector, expected_vector);
-}
-
-KRATOS_TEST_CASE_IN_SUITE(AssignPBlockVector_PositionsVectorAtBottom, KratosGeoMechanicsFastSuiteWithoutKernel)
-{
-    // Arrange
-    auto destination_vector = Vector{3, 5.0};
-    auto addition_vector    = Vector{2, 3.0};
-
-    // Act
-    GeoElementUtilities::AssignPBlockVector(destination_vector, addition_vector);
-
-    // Assert
-    auto expected_vector = UblasUtilities::CreateVector({5.0, 3.0, 3.0});
-    KRATOS_EXPECT_VECTOR_EQ(destination_vector, expected_vector);
-}
-
 KRATOS_TEST_CASE_IN_SUITE(AssembleUUBlockMatrix_AddsMatrixAtTopLeft, KratosGeoMechanicsFastSuiteWithoutKernel)
 {
     // Arrange
@@ -186,32 +158,32 @@ KRATOS_TEST_CASE_IN_SUITE(AssemblePPBlockMatrix_AddsMatrixAtBottomRight, KratosG
     KRATOS_EXPECT_MATRIX_EQ(destination_matrix, expected_matrix);
 }
 
-KRATOS_TEST_CASE_IN_SUITE(AssembleUBlockVector_AddsVectorAtTop, KratosGeoMechanicsFastSuiteWithoutKernel)
+class ParametrizedVectorAssignAndAssembleFixture
+    : public ::testing::TestWithParam<std::tuple<std::function<void(Vector&, const Vector&)>, Vector>>
+{
+};
+
+TEST_P(ParametrizedVectorAssignAndAssembleFixture, VectorsAreFilledForVaryingParts)
 {
     // Arrange
-    auto destination_vector = Vector{3, 5.0};
-    auto addition_vector    = Vector{2, 3.0};
+    const auto& [vector_function, expected_vector] = GetParam();
 
-    // Act
-    GeoElementUtilities::AssembleUBlockVector(destination_vector, addition_vector);
+    auto       destination_vector = Vector{3, 5.0};
+    const auto addition_vector    = Vector{2, 3.0};
 
-    // Assert
-    auto expected_vector = UblasUtilities::CreateVector({8.0, 8.0, 5.0});
+    vector_function(destination_vector, addition_vector);
     KRATOS_EXPECT_VECTOR_EQ(destination_vector, expected_vector);
 }
 
-KRATOS_TEST_CASE_IN_SUITE(AssemblePBlockVector_AddsVectorAtBottom, KratosGeoMechanicsFastSuiteWithoutKernel)
-{
-    // Arrange
-    auto destination_vector = Vector{3, 5.0};
-    auto addition_vector    = Vector{2, 3.0};
-
-    // Act
-    GeoElementUtilities::AssemblePBlockVector(destination_vector, addition_vector);
-
-    // Assert
-    auto expected_vector = UblasUtilities::CreateVector({5.0, 8.0, 8.0});
-    KRATOS_EXPECT_VECTOR_EQ(destination_vector, expected_vector);
-}
-
+INSTANTIATE_TEST_SUITE_P(
+    KratosGeoMechanicsFastSuiteWithoutKernel,
+    ParametrizedVectorAssignAndAssembleFixture,
+    ::testing::Values(std::make_tuple(GeoElementUtilities::AssignUBlockVector<Vector, Vector>,
+                                      UblasUtilities::CreateVector({3.0, 3.0, 5.0})),
+                      std::make_tuple(GeoElementUtilities::AssignPBlockVector<Vector, Vector>,
+                                      UblasUtilities::CreateVector({5.0, 3.0, 3.0})),
+                      std::make_tuple(GeoElementUtilities::AssembleUBlockVector<Vector, Vector>,
+                                      UblasUtilities::CreateVector({8.0, 8.0, 5.0})),
+                      std::make_tuple(GeoElementUtilities::AssemblePBlockVector<Vector, Vector>,
+                                      UblasUtilities::CreateVector({5.0, 8.0, 8.0}))));
 } // namespace Kratos::Testing
