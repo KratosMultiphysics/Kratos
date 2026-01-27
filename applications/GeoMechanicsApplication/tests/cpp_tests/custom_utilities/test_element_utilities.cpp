@@ -46,118 +46,6 @@ KRATOS_TEST_CASE_IN_SUITE(ElementUtilities_ReturnsCorrectListOfShapeFunctionsVal
     }
 }
 
-KRATOS_TEST_CASE_IN_SUITE(AssignUUBlockMatrix_PositionsMatrixAtTopLeft, KratosGeoMechanicsFastSuiteWithoutKernel)
-{
-    // Arrange
-    auto destination_matrix = Matrix{3, 3, 5.0};
-    auto insertion_matrix   = Matrix{2, 2, 3.0};
-
-    // Act
-    GeoElementUtilities::AssignUUBlockMatrix(destination_matrix, insertion_matrix);
-
-    // Assert
-    auto expected_matrix = UblasUtilities::CreateMatrix({{3.0, 3.0, 5.0}, {3.0, 3.0, 5.0}, {5.0, 5.0, 5.0}});
-    KRATOS_EXPECT_MATRIX_EQ(destination_matrix, expected_matrix);
-}
-
-KRATOS_TEST_CASE_IN_SUITE(AssignUPBlockMatrix_PositionsMatrixAtTopRight, KratosGeoMechanicsFastSuiteWithoutKernel)
-{
-    // Arrange
-    auto destination_matrix = Matrix{3, 3, 5.0};
-    auto insertion_matrix   = Matrix{2, 2, 3.0};
-
-    // Act
-    GeoElementUtilities::AssignUPBlockMatrix(destination_matrix, insertion_matrix);
-
-    // Assert
-    auto expected_matrix = UblasUtilities::CreateMatrix({{5.0, 3.0, 3.0}, {5.0, 3.0, 3.0}, {5.0, 5.0, 5.0}});
-    KRATOS_EXPECT_MATRIX_EQ(destination_matrix, expected_matrix);
-}
-
-KRATOS_TEST_CASE_IN_SUITE(AssignPUBlockMatrix_PositionsMatrixAtBottomLeft, KratosGeoMechanicsFastSuiteWithoutKernel)
-{
-    // Arrange
-    auto destination_matrix = Matrix{3, 3, 5.0};
-    auto insertion_matrix   = Matrix{2, 2, 3.0};
-
-    // Act
-    GeoElementUtilities::AssignPUBlockMatrix(destination_matrix, insertion_matrix);
-
-    // Assert
-    auto expected_matrix = UblasUtilities::CreateMatrix({{5.0, 5.0, 5.0}, {3.0, 3.0, 5.0}, {3.0, 3.0, 5.0}});
-    KRATOS_EXPECT_MATRIX_EQ(destination_matrix, expected_matrix);
-}
-
-KRATOS_TEST_CASE_IN_SUITE(AssignPPBlockMatrix_PositionsMatrixAtBottomRight, KratosGeoMechanicsFastSuiteWithoutKernel)
-{
-    // Arrange
-    auto destination_matrix = Matrix{3, 3, 5.0};
-    auto insertion_matrix   = Matrix{2, 2, 3.0};
-
-    // Act
-    GeoElementUtilities::AssignPPBlockMatrix(destination_matrix, insertion_matrix);
-
-    // Assert
-    auto expected_matrix = UblasUtilities::CreateMatrix({{5.0, 5.0, 5.0}, {5.0, 3.0, 3.0}, {5.0, 3.0, 3.0}});
-    KRATOS_EXPECT_MATRIX_EQ(destination_matrix, expected_matrix);
-}
-
-KRATOS_TEST_CASE_IN_SUITE(AssembleUUBlockMatrix_AddsMatrixAtTopLeft, KratosGeoMechanicsFastSuiteWithoutKernel)
-{
-    // Arrange
-    auto destination_matrix = Matrix{3, 3, 5.0};
-    auto addition_matrix    = Matrix{2, 2, 3.0};
-
-    // Act
-    GeoElementUtilities::AssembleUUBlockMatrix(destination_matrix, addition_matrix);
-
-    // Assert
-    auto expected_matrix = UblasUtilities::CreateMatrix({{8.0, 8.0, 5.0}, {8.0, 8.0, 5.0}, {5.0, 5.0, 5.0}});
-    KRATOS_EXPECT_MATRIX_EQ(destination_matrix, expected_matrix);
-}
-
-KRATOS_TEST_CASE_IN_SUITE(AssembleUPBlockMatrix_AddsMatrixAtTopRight, KratosGeoMechanicsFastSuiteWithoutKernel)
-{
-    // Arrange
-    auto destination_matrix = Matrix{3, 3, 5.0};
-    auto addition_matrix    = Matrix{2, 2, 3.0};
-
-    // Act
-    GeoElementUtilities::AssembleUPBlockMatrix(destination_matrix, addition_matrix);
-
-    // Assert
-    auto expected_matrix = UblasUtilities::CreateMatrix({{5.0, 8.0, 8.0}, {5.0, 8.0, 8.0}, {5.0, 5.0, 5.0}});
-    KRATOS_EXPECT_MATRIX_EQ(destination_matrix, expected_matrix);
-}
-
-KRATOS_TEST_CASE_IN_SUITE(AssemblePUBlockMatrix_AddsMatrixAtBottomLeft, KratosGeoMechanicsFastSuiteWithoutKernel)
-{
-    // Arrange
-    auto destination_matrix = Matrix{3, 3, 5.0};
-    auto addition_matrix    = Matrix{2, 2, 3.0};
-
-    // Act
-    GeoElementUtilities::AssemblePUBlockMatrix(destination_matrix, addition_matrix);
-
-    // Assert
-    auto expected_matrix = UblasUtilities::CreateMatrix({{5.0, 5.0, 5.0}, {8.0, 8.0, 5.0}, {8.0, 8.0, 5.0}});
-    KRATOS_EXPECT_MATRIX_EQ(destination_matrix, expected_matrix);
-}
-
-KRATOS_TEST_CASE_IN_SUITE(AssemblePPBlockMatrix_AddsMatrixAtBottomRight, KratosGeoMechanicsFastSuiteWithoutKernel)
-{
-    // Arrange
-    auto destination_matrix = Matrix{3, 3, 5.0};
-    auto addition_matrix    = Matrix{2, 2, 3.0};
-
-    // Act
-    GeoElementUtilities::AssemblePPBlockMatrix(destination_matrix, addition_matrix);
-
-    // Assert
-    auto expected_matrix = UblasUtilities::CreateMatrix({{5.0, 5.0, 5.0}, {5.0, 8.0, 8.0}, {5.0, 8.0, 8.0}});
-    KRATOS_EXPECT_MATRIX_EQ(destination_matrix, expected_matrix);
-}
-
 class ParametrizedVectorAssignAndAssembleFixture
     : public ::testing::TestWithParam<std::tuple<std::function<void(Vector&, const Vector&)>, Vector>>
 {
@@ -186,4 +74,43 @@ INSTANTIATE_TEST_SUITE_P(
                                       UblasUtilities::CreateVector({8.0, 8.0, 5.0})),
                       std::make_tuple(GeoElementUtilities::AssemblePBlockVector<Vector, Vector>,
                                       UblasUtilities::CreateVector({5.0, 8.0, 8.0}))));
+
+class ParametrizedMatrixAssignAndAssembleFixture
+    : public ::testing::TestWithParam<std::tuple<std::function<void(Matrix&, const Matrix&)>, Matrix>>
+{
+};
+
+TEST_P(ParametrizedMatrixAssignAndAssembleFixture, MatricesAreFilledForVaryingParts)
+{
+    // Arrange
+    const auto& [matrix_function, expected_matrix] = GetParam();
+
+    auto       destination_matrix = Matrix{3, 3, 5.0};
+    const auto addition_matrix    = Matrix{2, 2, 3.0};
+
+    matrix_function(destination_matrix, addition_matrix);
+    KRATOS_EXPECT_MATRIX_EQ(destination_matrix, expected_matrix);
+}
+
+INSTANTIATE_TEST_SUITE_P(
+    KratosGeoMechanicsFastSuiteWithoutKernel,
+    ParametrizedMatrixAssignAndAssembleFixture,
+    ::testing::Values(
+        std::make_tuple(GeoElementUtilities::AssignUUBlockMatrix<Matrix, Matrix>,
+                        UblasUtilities::CreateMatrix({{3.0, 3.0, 5.0}, {3.0, 3.0, 5.0}, {5.0, 5.0, 5.0}})),
+        std::make_tuple(GeoElementUtilities::AssignUPBlockMatrix<Matrix, Matrix>,
+                        UblasUtilities::CreateMatrix({{5.0, 3.0, 3.0}, {5.0, 3.0, 3.0}, {5.0, 5.0, 5.0}})),
+        std::make_tuple(GeoElementUtilities::AssignPUBlockMatrix<Matrix, Matrix>,
+                        UblasUtilities::CreateMatrix({{5.0, 5.0, 5.0}, {3.0, 3.0, 5.0}, {3.0, 3.0, 5.0}})),
+        std::make_tuple(GeoElementUtilities::AssignPPBlockMatrix<Matrix, Matrix>,
+                        UblasUtilities::CreateMatrix({{5.0, 5.0, 5.0}, {5.0, 3.0, 3.0}, {5.0, 3.0, 3.0}})),
+        std::make_tuple(GeoElementUtilities::AssembleUUBlockMatrix<Matrix, Matrix>,
+                        UblasUtilities::CreateMatrix({{8.0, 8.0, 5.0}, {8.0, 8.0, 5.0}, {5.0, 5.0, 5.0}})),
+        std::make_tuple(GeoElementUtilities::AssembleUPBlockMatrix<Matrix, Matrix>,
+                        UblasUtilities::CreateMatrix({{5.0, 8.0, 8.0}, {5.0, 8.0, 8.0}, {5.0, 5.0, 5.0}})),
+        std::make_tuple(GeoElementUtilities::AssemblePUBlockMatrix<Matrix, Matrix>,
+                        UblasUtilities::CreateMatrix({{5.0, 5.0, 5.0}, {8.0, 8.0, 5.0}, {8.0, 8.0, 5.0}})),
+        std::make_tuple(GeoElementUtilities::AssemblePPBlockMatrix<Matrix, Matrix>,
+                        UblasUtilities::CreateMatrix({{5.0, 5.0, 5.0}, {5.0, 8.0, 8.0}, {5.0, 8.0, 8.0}}))));
+
 } // namespace Kratos::Testing
