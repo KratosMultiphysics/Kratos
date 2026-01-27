@@ -204,7 +204,14 @@ double CoulombYieldSurface::CalculatePlasticMultiplier(const Geo::SigmaTau& rSig
            numerator;
 }
 
+// At some point in time we would like to get rid of this API. For now, just forward the request.
 double CoulombYieldSurface::CalculateEquivalentPlasticStrainIncrement(const Vector& rSigmaTau,
+                                                                      CoulombAveragingType AveragingType) const
+{
+    return CalculateEquivalentPlasticStrainIncrement(Geo::SigmaTau{rSigmaTau}, AveragingType);
+}
+
+double CoulombYieldSurface::CalculateEquivalentPlasticStrainIncrement(const Geo::SigmaTau& rSigmaTau,
                                                                       CoulombAveragingType AveragingType) const
 {
     const auto derivative              = DerivativeOfFlowFunction(rSigmaTau, AveragingType);

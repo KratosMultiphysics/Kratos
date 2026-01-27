@@ -101,10 +101,10 @@ Geo::SigmaTau CoulombWithTensionCutOffImpl::DoReturnMapping(const Geo::SigmaTau&
             result = ReturnStressAtRegularFailureZone(rTrialSigmaTau, AveragingType);
         }
 
-        // const auto kappa = kappa_start + mCoulombYieldSurface.CalculateEquivalentPlasticStrainIncrement(
-        //                                      rTrialSigmaTau, AveragingType);
-        // mCoulombYieldSurface.SetKappa(kappa);
-        //
+        const auto kappa = kappa_start + mCoulombYieldSurface.CalculateEquivalentPlasticStrainIncrement(
+                                             rTrialSigmaTau, AveragingType);
+        mCoulombYieldSurface.SetKappa(kappa);
+
         // if (std::abs(mCoulombYieldSurface.YieldFunctionValue(result)) < mAbsoluteYieldFunctionValueTolerance) {
         //     break;
         // }
