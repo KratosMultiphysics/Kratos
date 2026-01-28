@@ -217,9 +217,7 @@
     ],
     "_check_process_list": [
     {
-        "python_module" : "json_output_process",
-        "kratos_module" : "KratosMultiphysics",
-        "process_name"  : "JsonOutputProcess",
+        "name" : "Processes.KratosMultiphysics.JsonOutputProcess",
         "Parameters"    : {
             "output_variables"     : ["VELOCITY_X","VELOCITY_Y"],
             "output_file_name"     : "fluid_tests/newtonian/sloshing_2D_results.json",
