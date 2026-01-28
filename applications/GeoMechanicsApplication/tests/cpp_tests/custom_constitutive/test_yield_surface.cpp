@@ -24,7 +24,6 @@
 #include "tests/cpp_tests/test_utilities.h"
 #include "utilities/math_utils.h"
 
-#include <boost/numeric/ublas/assignment.hpp>
 #include <numbers>
 #include <string>
 
@@ -89,17 +88,16 @@ KRATOS_TEST_CASE_IN_SUITE(TestTensionCutoff, KratosGeoMechanicsFastSuiteWithoutK
 {
     double tension_cutoff = 2.0;
 
-    Vector principal_stress(3);
-    principal_stress <<= 3.0, 2.0, 1.0;
+    auto principal_stress = Geo::PrincipalStresses{UblasUtilities::CreateVector({3.0, 2.0, 1.0})};
     auto sigma_tau = StressStrainUtilities::TransformPrincipalStressesToSigmaTau(principal_stress);
     TensionCutoff tensionCutoff(tension_cutoff);
     KRATOS_EXPECT_NEAR(tensionCutoff.YieldFunctionValue(sigma_tau), 1.0, Defaults::absolute_tolerance);
 
-    principal_stress <<= 2.0, 1.5, 1.0;
+    principal_stress = Geo::PrincipalStresses{UblasUtilities::CreateVector({2.0, 1.5, 1.0})};
     sigma_tau = StressStrainUtilities::TransformPrincipalStressesToSigmaTau(principal_stress);
     KRATOS_EXPECT_NEAR(tensionCutoff.YieldFunctionValue(sigma_tau), 0.0, Defaults::absolute_tolerance);
 
-    principal_stress <<= 1.0, 0.5, 0.1;
+    principal_stress = Geo::PrincipalStresses{UblasUtilities::CreateVector({1.0, 0.5, 0.1})};
     sigma_tau = StressStrainUtilities::TransformPrincipalStressesToSigmaTau(principal_stress);
     KRATOS_EXPECT_NEAR(tensionCutoff.YieldFunctionValue(sigma_tau), -1.0, Defaults::absolute_tolerance);
 }
