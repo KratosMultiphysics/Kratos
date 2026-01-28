@@ -128,12 +128,13 @@ Geo::PrincipalStresses CoulombWithTensionCutOffImpl::DoReturnMapping(const Geo::
             return ReturnStressAtTensionCutoffReturnZone(rTrialPrincipalStresses);
         }
 
-        //     if (IsStressAtCornerReturnZone(rTrialSigmaTau, AveragingType)) {
-        //         result = CalculateCornerPoint();
-        //     } else { // Regular failure region
-        //         result = ReturnStressAtRegularFailureZone(rTrialSigmaTau, AveragingType);
-        //     }
-        //
+        if (IsStressAtCornerReturnZone(rTrialPrincipalStresses, AveragingType)) {
+            result = StressStrainUtilities::TransformSigmaTauToPrincipalStresses(
+                CalculateCornerPoint(), rTrialPrincipalStresses);
+        } else { // Regular failure region
+            result = ReturnStressAtRegularFailureZone(rTrialPrincipalStresses, AveragingType);
+        }
+
         //     const auto kappa = kappa_start + mCoulombYieldSurface.CalculateEquivalentPlasticStrainIncrement(
         //                                          rTrialSigmaTau, AveragingType);
         //     mCoulombYieldSurface.SetKappa(kappa);
@@ -237,6 +238,13 @@ bool CoulombWithTensionCutOffImpl::IsStressAtCornerReturnZone(const Geo::SigmaTa
            0.0;
 }
 
+bool CoulombWithTensionCutOffImpl::IsStressAtCornerReturnZone(const Geo::PrincipalStresses& rTrialPrincipalStresses,
+                                                              CoulombYieldSurface::CoulombAveragingType AveragingType) const
+{
+    return IsStressAtCornerReturnZone(
+        StressStrainUtilities::TransformPrincipalStressesToSigmaTau(rTrialPrincipalStresses), AveragingType);
+}
+
 // At some point in time we would like to get rid of this API. For now, just forward the request.
 Vector CoulombWithTensionCutOffImpl::ReturnStressAtTensionApexReturnZone() const
 {
@@ -294,6 +302,15 @@ Geo::SigmaTau CoulombWithTensionCutOffImpl::ReturnStressAtRegularFailureZone(
         mCoulombYieldSurface.DerivativeOfFlowFunction(rSigmaTau, AveragingType);
     const auto lambda = mCoulombYieldSurface.CalculatePlasticMultiplier(rSigmaTau, derivative_of_flow_function);
     return Geo::SigmaTau{Vector{rSigmaTau.CopyTo<Vector>() + lambda * derivative_of_flow_function}};
+}
+
+Geo::PrincipalStresses CoulombWithTensionCutOffImpl::ReturnStressAtRegularFailureZone(
+    const Geo::PrincipalStresses& rPrincipalStresses, CoulombYieldSurface::CoulombAveragingType AveragingType) const
+{
+    return StressStrainUtilities::TransformSigmaTauToPrincipalStresses(
+        ReturnStressAtRegularFailureZone(
+            StressStrainUtilities::TransformPrincipalStressesToSigmaTau(rPrincipalStresses), AveragingType),
+        rPrincipalStresses);
 }
 
 void CoulombWithTensionCutOffImpl::save(Serializer& rSerializer) const
