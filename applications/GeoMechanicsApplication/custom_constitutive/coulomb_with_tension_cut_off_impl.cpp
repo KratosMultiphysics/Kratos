@@ -120,10 +120,10 @@ Geo::PrincipalStresses CoulombWithTensionCutOffImpl::DoReturnMapping(const Geo::
 
     auto kappa_start = mCoulombYieldSurface.GetKappa();
     for (auto counter = std::size_t{0}; counter < mMaxNumberOfPlasticIterations; ++counter) {
-        //     if (IsStressAtTensionApexReturnZone(rTrialSigmaTau)) {
-        //         return ReturnStressAtTensionApexReturnZone();
-        //     }
-        //
+        if (IsStressAtTensionApexReturnZone(rTrialPrincipalStresses)) {
+            return ReturnStressAtTensionApexReturnZone(rTrialPrincipalStresses);
+        }
+
         //     if (IsStressAtTensionCutoffReturnZone(rTrialSigmaTau)) {
         //         return ReturnStressAtTensionCutoffReturnZone(rTrialSigmaTau);
         //     }
@@ -193,6 +193,12 @@ bool CoulombWithTensionCutOffImpl::IsStressAtTensionApexReturnZone(const Geo::Si
            rTrialSigmaTau.sigma - rTrialSigmaTau.tau - tensile_strength > 0.0;
 }
 
+bool CoulombWithTensionCutOffImpl::IsStressAtTensionApexReturnZone(const Geo::PrincipalStresses& rTrialPrincipalStresses) const
+{
+    return IsStressAtTensionApexReturnZone(
+        StressStrainUtilities::TransformPrincipalStressesToSigmaTau(rTrialPrincipalStresses));
+}
+
 // At some point in time we would like to get rid of this API. For now, just forward the request.
 bool CoulombWithTensionCutOffImpl::IsStressAtTensionCutoffReturnZone(const Vector& rTrialSigmaTau) const
 {
@@ -234,6 +240,14 @@ Vector CoulombWithTensionCutOffImpl::ReturnStressAtTensionApexReturnZone() const
 Geo::SigmaTau CoulombWithTensionCutOffImpl::ReturnStressAtTensionApexReturnZone(const Geo::SigmaTau&) const
 {
     return Geo::SigmaTau{UblasUtilities::CreateVector({mTensionCutOff.GetTensileStrength(), 0.0})};
+}
+
+Geo::PrincipalStresses CoulombWithTensionCutOffImpl::ReturnStressAtTensionApexReturnZone(const Geo::PrincipalStresses& rPrincipalStresses) const
+{
+    return StressStrainUtilities::TransformSigmaTauToPrincipalStresses(
+        ReturnStressAtTensionApexReturnZone(
+            StressStrainUtilities::TransformPrincipalStressesToSigmaTau(rPrincipalStresses)),
+        rPrincipalStresses);
 }
 
 // At some point in time we would like to get rid of this API. For now, just forward the request.

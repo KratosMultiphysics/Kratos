@@ -62,7 +62,8 @@ private:
     [[nodiscard]] Vector CalculateCornerPoint() const;
     [[nodiscard]] bool   IsStressAtTensionApexReturnZone(const Vector& rTrialSigmaTau) const;
     [[nodiscard]] bool   IsStressAtTensionApexReturnZone(const Geo::SigmaTau& rTrialSigmaTau) const;
-    [[nodiscard]] bool   IsStressAtTensionCutoffReturnZone(const Vector& rTrialSigmaTau) const;
+    [[nodiscard]] bool IsStressAtTensionApexReturnZone(const Geo::PrincipalStresses& rTrialPrincipalStresses) const;
+    [[nodiscard]] bool IsStressAtTensionCutoffReturnZone(const Vector& rTrialSigmaTau) const;
     [[nodiscard]] bool IsStressAtTensionCutoffReturnZone(const Geo::SigmaTau& rTrialSigmaTau) const;
     [[nodiscard]] bool IsStressAtCornerReturnZone(const Vector& rTrialSigmaTau,
                                                   CoulombYieldSurface::CoulombAveragingType AveragingType) const;
@@ -71,6 +72,7 @@ private:
 
     [[nodiscard]] Vector        ReturnStressAtTensionApexReturnZone() const;
     [[nodiscard]] Geo::SigmaTau ReturnStressAtTensionApexReturnZone(const Geo::SigmaTau&) const;
+    [[nodiscard]] Geo::PrincipalStresses ReturnStressAtTensionApexReturnZone(const Geo::PrincipalStresses& rPrincipalStresses) const;
     [[nodiscard]] Vector ReturnStressAtTensionCutoffReturnZone(const Vector& rSigmaTau) const;
     [[nodiscard]] Geo::SigmaTau ReturnStressAtTensionCutoffReturnZone(const Geo::SigmaTau& rSigmaTau) const;
     [[nodiscard]] Vector        ReturnStressAtRegularFailureZone(const Vector& rSigmaTau,

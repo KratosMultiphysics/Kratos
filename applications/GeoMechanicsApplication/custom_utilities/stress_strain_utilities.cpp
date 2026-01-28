@@ -254,6 +254,13 @@ Vector StressStrainUtilities::TransformSigmaTauToPrincipalStresses(const Vector&
     return result;
 }
 
+Geo::PrincipalStresses StressStrainUtilities::TransformSigmaTauToPrincipalStresses(
+    const Geo::SigmaTau& rSigmaTau, const Geo::PrincipalStresses& rPrincipalStresses)
+{
+    return Geo::PrincipalStresses{TransformSigmaTauToPrincipalStresses(
+        rSigmaTau.CopyTo<Vector>(), rPrincipalStresses.CopyTo<Vector>())};
+}
+
 Vector StressStrainUtilities::TransformPrincipalStressesToPandQ(const Vector& rPrincipalStresses)
 {
     auto stress_vector = Vector(6, 0.0);
