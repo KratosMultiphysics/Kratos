@@ -66,7 +66,7 @@ public:
         const auto bishop_coefficients                = mInputProvider.GetBishopCoefficients();
         const auto np_container                       = mInputProvider.GetNpContainer();
         for (int i = 0; i < mInputProvider.GetBMatrices().size(); ++i) {
-            Matrix coupling_contribution(NumberOfRows, NumberOfColumns);
+            typename BaseType::LHSMatrixType coupling_contribution;
             GeoTransportEquationUtilities::CalculateCouplingMatrix(
                 coupling_contribution, b_matrices[i], voigt_vector, row(np_container, i),
                 biot_coefficients[i], bishop_coefficients[i], integration_coefficients[i]);

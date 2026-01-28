@@ -15,6 +15,7 @@
 #include "contribution_calculator.h"
 #include "custom_utilities/transport_equation_utilities.hpp"
 #include "geo_aliases.h"
+#include "up_coupling_calculator.hpp"
 
 namespace Kratos
 {
@@ -61,24 +62,18 @@ public:
 
     typename BaseType::LHSMatrixType CalculateCouplingMatrix()
     {
+        std::function<Vector()> dummy_nodal_water_pressure_function = {};
         // The NumberOfColumns and NumberOfRows are swapped because the coupling matrix is
         // transposed before returning it.
-        Matrix     result                   = ZeroMatrix(NumberOfColumns, NumberOfRows);
-        const auto b_matrices               = mInputProvider.GetBMatrices();
-        const auto voigt_vector             = mInputProvider.GetVoigtVector();
-        const auto integration_coefficients = mInputProvider.GetIntegrationCoefficients();
-        const auto biot_coefficients        = mInputProvider.GetBiotCoefficients();
-        const auto bishop_coefficients      = mInputProvider.GetDegreesOfSaturation();
-        const auto np_container             = mInputProvider.GetNpContainer();
-        for (int i = 0; i < mInputProvider.GetBMatrices().size(); ++i) {
-            Matrix coupling_contribution(NumberOfColumns, NumberOfRows);
-            GeoTransportEquationUtilities::CalculateCouplingMatrix(
-                coupling_contribution, b_matrices[i], voigt_vector, row(np_container, i),
-                biot_coefficients[i], bishop_coefficients[i], integration_coefficients[i]);
-            result += coupling_contribution;
-        }
+        typename UPCouplingCalculator<NumberOfColumns, NumberOfRows>::InputProvider input_provider(
+            mInputProvider.GetNpContainer, mInputProvider.GetBMatrices, mInputProvider.GetVoigtVector,
+            mInputProvider.GetIntegrationCoefficients, mInputProvider.GetBiotCoefficients,
+            mInputProvider.GetDegreesOfSaturation, dummy_nodal_water_pressure_function);
+        UPCouplingCalculator<NumberOfColumns, NumberOfRows> up_coupling_calculator(input_provider);
+        typename UPCouplingCalculator<NumberOfColumns, NumberOfRows>::LHSMatrixType up_coupling_matrix =
+            up_coupling_calculator.LHSContribution().value();
 
-        return trans(result) * mInputProvider.GetVelocityCoefficient() * PORE_PRESSURE_SIGN_FACTOR;
+        return trans(up_coupling_matrix) * mInputProvider.GetVelocityCoefficient() * PORE_PRESSURE_SIGN_FACTOR;
     }
 
     std::optional<typename BaseType::LHSMatrixType> LHSContribution() override
