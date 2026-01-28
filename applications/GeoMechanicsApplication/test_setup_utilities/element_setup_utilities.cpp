@@ -279,44 +279,49 @@ Element::Pointer ElementSetupUtilities::Create2D15NElement()
 }
 
 Element::Pointer ElementSetupUtilities::Create2D4NInterfaceElement(const PointerVector<Node>& rNodes,
-                                                                   const Properties::Pointer& rProperties)
+                                                                   const Properties::Pointer& rProperties,
+                                                                   const std::vector<CalculationContribution>& rContributions)
 {
     return make_intrusive<UPwInterfaceElement>(
         1, std::make_shared<InterfaceGeometry<Line2D2<Node>>>(rNodes), rProperties,
-        std::make_unique<Line2DInterfaceStressState>(), IsDiffOrderElement::No);
+        std::make_unique<Line2DInterfaceStressState>(), IsDiffOrderElement::No, rContributions);
 }
 
 Element::Pointer ElementSetupUtilities::Create2D6NInterfaceElement(const PointerVector<Node>& rNodes,
-                                                                   const Properties::Pointer& rProperties)
+                                                                   const Properties::Pointer& rProperties,
+                                                                   const std::vector<CalculationContribution>& rContributions)
 {
     return make_intrusive<UPwInterfaceElement>(
         1, std::make_shared<InterfaceGeometry<Line2D3<Node>>>(rNodes), rProperties,
-        std::make_unique<Line2DInterfaceStressState>(), IsDiffOrderElement::No);
+        std::make_unique<Line2DInterfaceStressState>(), IsDiffOrderElement::No, rContributions);
 }
 
 Element::Pointer ElementSetupUtilities::Create3D6NInterfaceElement(const PointerVector<Node>& rNodes,
-                                                                   const Properties::Pointer& rProperties)
+                                                                   const Properties::Pointer& rProperties,
+                                                                   const std::vector<CalculationContribution>& rContributions)
 {
     return make_intrusive<UPwInterfaceElement>(
         1, std::make_shared<InterfaceGeometry<Triangle3D3<Node>>>(rNodes), rProperties,
-        std::make_unique<SurfaceInterfaceStressState>(), IsDiffOrderElement::No);
+        std::make_unique<SurfaceInterfaceStressState>(), IsDiffOrderElement::No, rContributions);
 }
 
 Element::Pointer ElementSetupUtilities::Create3D12NInterfaceElement(const PointerVector<Node>& rNodes,
-                                                                    const Properties::Pointer& rProperties)
+                                                                    const Properties::Pointer& rProperties,
+                                                                    const std::vector<CalculationContribution>& rContributions)
 {
     return make_intrusive<UPwInterfaceElement>(
         1, std::make_shared<InterfaceGeometry<Triangle3D6<Node>>>(rNodes), rProperties,
-        std::make_unique<SurfaceInterfaceStressState>(), IsDiffOrderElement::No);
+        std::make_unique<SurfaceInterfaceStressState>(), IsDiffOrderElement::No, rContributions);
 }
 
 Element::Pointer ElementSetupUtilities::Create3D8NInterfaceElement(const PointerVector<Node>& rNodes,
                                                                    const Properties::Pointer& rProperties,
-                                                                   std::size_t Id)
+                                                                   std::size_t Id,
+                                                                   const std::vector<CalculationContribution>& rContributions)
 {
     return make_intrusive<UPwInterfaceElement>(
         Id, std::make_shared<InterfaceGeometry<Quadrilateral3D4<Node>>>(rNodes), rProperties,
-        std::make_unique<SurfaceInterfaceStressState>(), IsDiffOrderElement::No);
+        std::make_unique<SurfaceInterfaceStressState>(), IsDiffOrderElement::No, rContributions);
 }
 
 Element::Pointer ElementSetupUtilities::Create3D4NElement(const PointerVector<Node>& rNodes,

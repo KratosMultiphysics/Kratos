@@ -96,8 +96,11 @@ UPwInterfaceElement::UPwInterfaceElement(IndexType                          NewI
                                          const GeometryType::Pointer&       rpGeometry,
                                          const Properties::Pointer&         rpProperties,
                                          std::unique_ptr<StressStatePolicy> pStressStatePolicy,
-                                         IsDiffOrderElement                 IsDiffOrder)
-    : Element(NewId, rpGeometry, rpProperties), mpStressStatePolicy(std::move(pStressStatePolicy))
+                                         IsDiffOrderElement                 IsDiffOrder,
+                                         const std::vector<CalculationContribution>& rContributions)
+    : Element(NewId, rpGeometry, rpProperties),
+      mpStressStatePolicy(std::move(pStressStatePolicy)),
+      mContributions(rContributions)
 {
     MakeIntegrationSchemeAndAssignFunction();
     mpOptionalPressureGeometry = MakeOptionalWaterPressureGeometry(GetDisplacementGeometry(), IsDiffOrder);
@@ -106,8 +109,10 @@ UPwInterfaceElement::UPwInterfaceElement(IndexType                          NewI
 UPwInterfaceElement::UPwInterfaceElement(IndexType                          NewId,
                                          const GeometryType::Pointer&       rpGeometry,
                                          std::unique_ptr<StressStatePolicy> pStressStatePolicy,
-                                         IsDiffOrderElement                 IsDiffOrder)
-    : UPwInterfaceElement(NewId, rpGeometry, nullptr /* no properties */, std::move(pStressStatePolicy), IsDiffOrder)
+                                         IsDiffOrderElement                 IsDiffOrder,
+                                         const std::vector<CalculationContribution>& rContributions)
+    : UPwInterfaceElement(
+          NewId, rpGeometry, nullptr /* no properties */, std::move(pStressStatePolicy), IsDiffOrder, rContributions)
 {
 }
 
@@ -136,8 +141,8 @@ Element::Pointer UPwInterfaceElement::Create(IndexType               NewId,
                                              PropertiesType::Pointer pProperties) const
 {
     const auto is_diff_order = mpOptionalPressureGeometry ? IsDiffOrderElement::Yes : IsDiffOrderElement::No;
-    return make_intrusive<UPwInterfaceElement>(NewId, pGeometry, pProperties,
-                                               mpStressStatePolicy->Clone(), is_diff_order);
+    return make_intrusive<UPwInterfaceElement>(
+        NewId, pGeometry, pProperties, mpStressStatePolicy->Clone(), is_diff_order, mContributions);
 }
 
 void UPwInterfaceElement::EquationIdVector(EquationIdVectorType& rResult, const ProcessInfo&) const
