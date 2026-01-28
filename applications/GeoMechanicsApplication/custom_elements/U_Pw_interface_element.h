@@ -13,6 +13,7 @@
 
 #pragma once
 
+#include "contribution_calculators/calculation_contribution.h"
 #include "contribution_calculators/stiffness_calculator.hpp"
 #include "geo_aliases.h"
 #include "includes/element.h"
@@ -43,16 +44,18 @@ public:
     UPwInterfaceElement(UPwInterfaceElement&&) noexcept            = default;
     UPwInterfaceElement& operator=(UPwInterfaceElement&&) noexcept = default;
 
-    UPwInterfaceElement(IndexType                          NewId,
-                        const GeometryType::Pointer&       rpGeometry,
-                        const PropertiesType::Pointer&     rpProperties,
-                        std::unique_ptr<StressStatePolicy> pStressStatePolicy,
-                        IsDiffOrderElement                 IsDiffOrder);
+    UPwInterfaceElement(IndexType                                   NewId,
+                        const GeometryType::Pointer&                rpGeometry,
+                        const PropertiesType::Pointer&              rpProperties,
+                        std::unique_ptr<StressStatePolicy>          pStressStatePolicy,
+                        IsDiffOrderElement                          IsDiffOrder,
+                        const std::vector<CalculationContribution>& rContributions);
 
-    UPwInterfaceElement(IndexType                          NewId,
-                        const GeometryType::Pointer&       rpGeometry,
-                        std::unique_ptr<StressStatePolicy> pStressStatePolicy,
-                        IsDiffOrderElement                 IsDiffOrder);
+    UPwInterfaceElement(IndexType                                   NewId,
+                        const GeometryType::Pointer&                rpGeometry,
+                        std::unique_ptr<StressStatePolicy>          pStressStatePolicy,
+                        IsDiffOrderElement                          IsDiffOrder,
+                        const std::vector<CalculationContribution>& rContributions);
     Element::Pointer Create(IndexType NewId, const NodesArrayType& rNodes, PropertiesType::Pointer pProperties) const override;
     Element::Pointer Create(IndexType NewId, GeometryType::Pointer pGeom, PropertiesType::Pointer pProperties) const override;
 
@@ -131,6 +134,7 @@ private:
     std::vector<ConstitutiveLaw::Pointer> mConstitutiveLaws;
     IntegrationCoefficientsCalculator     mIntegrationCoefficientsCalculator;
     Geo::GeometryUniquePtr                mpOptionalPressureGeometry;
+    std::vector<CalculationContribution>  mContributions;
 
     friend class Serializer;
 };
