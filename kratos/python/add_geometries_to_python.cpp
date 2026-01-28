@@ -217,6 +217,19 @@ void  AddGeometriesToPython(pybind11::module& m)
     .def("Length",&GeometryType::Length)
     .def("Area",&GeometryType::Area)
     .def("Volume",&GeometryType::Volume)
+    // Intersection
+    .def("HasIntersection",[](GeometryType& self, const GeometryType& rThisGeometry)
+            { return(self.HasIntersection(rThisGeometry)); })
+    .def("HasIntersection",[](GeometryType& self, const Point& rLowPoint, const Point& rHighPoint)
+            { return(self.HasIntersection(rLowPoint, rHighPoint)); })
+    .def("GetIntersectionPoints",[](GeometryType& self, const GeometryType& rThisGeometry)
+            {   pybind11::list point_list;
+                const auto int_points = self.GetIntersectionPoints(rThisGeometry);
+                for( auto& r_point : int_points) {
+                    point_list.append(r_point);
+                }
+                return point_list; 
+            })
     // Assign
     .def("Assign", Assign<bool>)
     .def("Assign", Assign<int>)
