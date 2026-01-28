@@ -155,7 +155,7 @@ Vector CoulombYieldSurface::DerivativeOfFlowFunction(const Vector& rSigmaTau) co
 
 Vector CoulombYieldSurface::DerivativeOfFlowFunction(const Vector&, CoulombAveragingType AveragingType) const
 {
-    const auto unused_sigma_tau = Geo::SigmaTau{Vector{ZeroVector{2}}};
+    const auto unused_sigma_tau = Geo::SigmaTau{};
     return DerivativeOfFlowFunction(unused_sigma_tau, AveragingType);
 }
 
