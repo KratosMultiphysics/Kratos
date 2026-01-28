@@ -62,9 +62,13 @@ public:
 
     typename BaseType::LHSMatrixType CalculateCouplingMatrix()
     {
+        // For the calculation, we can re-use the calculation of the UP coupling matrix.
+        // To do this, the NumberOfColumns and NumberOfRows are swapped because the
+        // PU coupling matrix is the transpose of the UP coupling matrix.
+        // Also note that instead of the bishop coefficients, the degrees of saturation are passed.
+        // Finally, the nodal water pressure getter is not needed for the matrix calculation, so
+        // we pass a dummy function.
         std::function<Vector()> dummy_nodal_water_pressure_function = {};
-        // The NumberOfColumns and NumberOfRows are swapped because the coupling matrix is
-        // transposed before returning it.
         typename UPCouplingCalculator<NumberOfColumns, NumberOfRows>::InputProvider input_provider(
             mInputProvider.GetNpContainer, mInputProvider.GetBMatrices, mInputProvider.GetVoigtVector,
             mInputProvider.GetIntegrationCoefficients, mInputProvider.GetBiotCoefficients,
