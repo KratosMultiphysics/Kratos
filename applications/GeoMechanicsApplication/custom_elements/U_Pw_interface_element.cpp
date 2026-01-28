@@ -164,6 +164,9 @@ void UPwInterfaceElement::CalculateLeftHandSide(MatrixType& rLeftHandSideMatrix,
         case CalculationContribution::Stiffness:
             CalculateAndAssignStifnessMatrix(rLeftHandSideMatrix, rProcessInfo);
             break;
+        case CalculationContribution::Permeability:
+            CalculateAndAssignPermeabilityMatrix(rLeftHandSideMatrix);
+            break;
         default:
             KRATOS_ERROR << "This contribution is not supported \n";
         }
@@ -197,6 +200,31 @@ void UPwInterfaceElement::CalculateAndAssignStifnessMatrix(Element::MatrixType& 
     }
 }
 
+void UPwInterfaceElement::CalculateAndAssignPermeabilityMatrix(Element::MatrixType& rLeftHandSideMatrix)
+{
+    switch (GetGeometry().PointsNumber()) {
+    case 4:
+        CalculateAndAssignPermeabilityMatrix<4>(rLeftHandSideMatrix);
+        break;
+    case 6:
+        CalculateAndAssignPermeabilityMatrix<6>(rLeftHandSideMatrix);
+        break;
+    case 8:
+        CalculateAndAssignPermeabilityMatrix<8>(rLeftHandSideMatrix);
+        break;
+    case 12:
+        CalculateAndAssignPermeabilityMatrix<12>(rLeftHandSideMatrix);
+        break;
+    case 16:
+        CalculateAndAssignPermeabilityMatrix<16>(rLeftHandSideMatrix);
+        break;
+    default:
+        KRATOS_ERROR
+            << "This number of points is not supported for the permeability matrix calculation: "
+            << GetGeometry().PointsNumber() << "\n";
+    }
+}
+
 void UPwInterfaceElement::CalculateRightHandSide(Element::VectorType& rRightHandSideVector,
                                                  const ProcessInfo&   rProcessInfo)
 {
@@ -208,6 +236,9 @@ void UPwInterfaceElement::CalculateRightHandSide(Element::VectorType& rRightHand
         switch (contribution) {
         case CalculationContribution::Stiffness:
             CalculateAndAssignStifnessForceVector(rRightHandSideVector, rProcessInfo);
+            break;
+        case CalculationContribution::Permeability:
+            CalculateAndAssignPermeabilityFlowVector(rRightHandSideVector);
             break;
         default:
             KRATOS_ERROR << "This contribution is not supported \n";
@@ -239,6 +270,30 @@ void UPwInterfaceElement::CalculateAndAssignStifnessForceVector(Element::VectorT
         break;
     default:
         KRATOS_ERROR << "This stiffness force vector size is not supported: " << NumberOfUDofs() << "\n";
+    }
+}
+
+void UPwInterfaceElement::CalculateAndAssignPermeabilityFlowVector(Element::VectorType& rRightHandSideVector)
+{
+    switch (GetGeometry().PointsNumber()) {
+    case 4:
+        CalculateAndAssignPermeabilityFlowVector<4>(rRightHandSideVector);
+        break;
+    case 6:
+        CalculateAndAssignPermeabilityFlowVector<6>(rRightHandSideVector);
+        break;
+    case 8:
+        CalculateAndAssignPermeabilityFlowVector<8>(rRightHandSideVector);
+        break;
+    case 12:
+        CalculateAndAssignPermeabilityFlowVector<12>(rRightHandSideVector);
+        break;
+    case 16:
+        CalculateAndAssignPermeabilityFlowVector<16>(rRightHandSideVector);
+        break;
+    default:
+        KRATOS_ERROR << "This number of points for the permeability flow vectoris not supported: "
+                     << GetGeometry().PointsNumber() << "\n";
     }
 }
 
@@ -448,15 +503,15 @@ Matrix UPwInterfaceElement::CalculatePwBMatrix(const Vector& rN, const Geometry<
     return result;
 }
 
-std::vector<Matrix> UPwInterfaceElement::CalculateLocalPwBMatricesAtIntegrationPoints() const
+Geometry<Node>::ShapeFunctionsGradientsType UPwInterfaceElement::CalculateLocalPwBMatricesAtIntegrationPoints() const
 {
     const auto& r_integration_points = mpIntegrationScheme->GetIntegrationPoints();
     const auto  shape_function_values_at_integration_points =
         GeoElementUtilities::EvaluateShapeFunctionsAtIntegrationPoints(r_integration_points,
                                                                        GetWaterPressureGeometry());
 
-    auto result = std::vector<Matrix>{};
-    result.reserve(shape_function_values_at_integration_points.size());
+    auto result = Geometry<Node>::ShapeFunctionsGradientsType{r_integration_points.size()};
+    // result.reserve(shape_function_values_at_integration_points.size());
     auto calculate_local_b_matrix = [&r_geometry = GetWaterPressureGeometry(), this](
                                         const auto& rShapeFunctionValuesAtIntegrationPoint,
                                         const auto& rIntegrationPoint) {
@@ -464,9 +519,8 @@ std::vector<Matrix> UPwInterfaceElement::CalculateLocalPwBMatricesAtIntegrationP
         ApplyRotationToBMatrix(b_matrix, mfpCalculateRotationMatrix(r_geometry, rIntegrationPoint));
         return b_matrix;
     };
-    std::transform(shape_function_values_at_integration_points.begin(),
-                   shape_function_values_at_integration_points.end(), r_integration_points.begin(),
-                   std::back_inserter(result), calculate_local_b_matrix);
+    std::ranges::transform(shape_function_values_at_integration_points, r_integration_points,
+                           result.begin(), calculate_local_b_matrix);
 
     return result;
 }
@@ -646,9 +700,9 @@ Geo::PropertiesGetter UPwInterfaceElement::CreatePropertiesGetter() const
     return [this]() -> const Properties& { return this->GetProperties(); };
 }
 
-Geo::BMatricesGetter UPwInterfaceElement::CreatePwBMatricesGetter() const
+Geo::ShapeFunctionGradientsGetter UPwInterfaceElement::CreatePwBMatricesGetter() const
 {
-    return [this]() { return this->CalculateLocalBMatricesAtIntegrationPoints(); };
+    return [this]() { return this->CalculateLocalPwBMatricesAtIntegrationPoints(); };
 }
 
 Geo::IntegrationPointValuesGetter UPwInterfaceElement::CreateFluidPressureCalculator() const

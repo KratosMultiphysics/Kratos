@@ -62,9 +62,11 @@ public:
 
     void EquationIdVector(EquationIdVectorType& rResult, const ProcessInfo&) const override;
     void CalculateAndAssignStifnessMatrix(Element::MatrixType& rLeftHandSideMatrix, const ProcessInfo& rProcessInfo);
+    void CalculateAndAssignPermeabilityMatrix(Element::MatrixType& rLeftHandSideMatrix);
     void CalculateLeftHandSide(MatrixType& rLeftHandSideMatrix, const ProcessInfo&) override;
     void CalculateAndAssignStifnessForceVector(Element::VectorType& rRightHandSideVector,
                                                const ProcessInfo&   rProcessInfo);
+    void CalculateAndAssignPermeabilityFlowVector(Element::VectorType& rRightHandSideVector);
     void CalculateRightHandSide(VectorType& rRightHandSideVector, const ProcessInfo&) override;
     void CalculateLocalSystem(MatrixType&        rLeftHandSideMatrix,
                               VectorType&        rRightHandSideVector,
@@ -111,7 +113,7 @@ private:
     Vector ConvertLocalStressToTraction(const Matrix& rLocalStress) const;
     Vector GetWaterPressureGeometryNodalVariable(const Variable<double>& rVariable) const;
     Matrix CalculatePwBMatrix(const Vector& rN, const Geometry<Node>& rGeometry) const;
-    std::vector<Matrix> CalculateLocalPwBMatricesAtIntegrationPoints() const;
+    Geometry<Node>::ShapeFunctionsGradientsType CalculateLocalPwBMatricesAtIntegrationPoints() const;
     std::vector<double> CalculateFluidPressure() const;
 
     Geo::BMatricesGetter                  CreateBMatricesGetter() const;
@@ -122,7 +124,7 @@ private:
     Geo::RetentionLawsGetter              CreateRetentionLawsGetter() const;
     Geo::MaterialPermeabilityMatrixGetter CreateMaterialPermeabilityGetter() const;
     Geo::NodalValuesGetter                CreateWaterPressureGeometryNodalVariableGetter() const;
-    Geo::BMatricesGetter                  CreatePwBMatricesGetter() const;
+    Geo::ShapeFunctionGradientsGetter     CreatePwBMatricesGetter() const;
     Geo::IntegrationPointValuesGetter     CreateFluidPressureCalculator() const;
 
     template <unsigned int MatrixSize>
