@@ -21,7 +21,7 @@
 namespace Kratos::Testing
 {
 
-TEST_F(KratosGeoMechanicsFastSuiteWithoutKernel, TestUPCouplingMatrixContributionSmaller)
+TEST_F(KratosGeoMechanicsFastSuiteWithoutKernel, TestUPCouplingMatrixContribution)
 {
     // clang-format off
     const auto b_matrix = UblasUtilities::CreateMatrix(
