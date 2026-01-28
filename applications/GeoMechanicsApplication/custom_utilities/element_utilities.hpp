@@ -197,9 +197,9 @@ public:
     template <typename MatrixType1, typename MatrixType2>
     static void AssignPPBlockMatrix(MatrixType1& rDestinationMatrix, const MatrixType2& rPPBlockMatrix)
     {
-        constexpr auto row_offset    = rDestinationMatrix.size1() - rPPBlockMatrix.size1();
-        constexpr auto column_offset = rDestinationMatrix.size2() - rPPBlockMatrix.size2();
-        ;
+        const auto row_offset    = rDestinationMatrix.size1() - rPPBlockMatrix.size1();
+        const auto column_offset = rDestinationMatrix.size2() - rPPBlockMatrix.size2();
+
         AssignMatrixAtPosition(rDestinationMatrix, rPPBlockMatrix, row_offset, column_offset);
     }
 
@@ -223,7 +223,7 @@ public:
     template <typename VectorType1, typename VectorType2>
     static void AssignPBlockVector(VectorType1& rDestinationVector, const VectorType2& rPBlockVector)
     {
-        constexpr auto offset = rDestinationVector.size() - rPBlockVector.size();
+        const auto offset = rDestinationVector.size() - rPBlockVector.size();
         AssignVectorAtPosition(rDestinationVector, rPBlockVector, offset);
     }
 
