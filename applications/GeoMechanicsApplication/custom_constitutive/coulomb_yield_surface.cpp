@@ -226,6 +226,13 @@ double CoulombYieldSurface::CalculateEquivalentPlasticStrainIncrement(const Geo:
            CalculatePlasticMultiplier(rSigmaTau, DerivativeOfFlowFunction(rSigmaTau, AveragingType));
 }
 
+double CoulombYieldSurface::CalculateEquivalentPlasticStrainIncrement(const Geo::PrincipalStresses& rPrincipalStresses,
+                                                                      CoulombAveragingType AveragingType) const
+{
+    return CalculateEquivalentPlasticStrainIncrement(
+        StressStrainUtilities::TransformPrincipalStressesToSigmaTau(rPrincipalStresses), AveragingType);
+}
+
 void CoulombYieldSurface::CheckMaterialProperties() const
 {
     const CheckProperties check_properties(mMaterialProperties, "property", CheckProperties::Bounds::AllInclusive);

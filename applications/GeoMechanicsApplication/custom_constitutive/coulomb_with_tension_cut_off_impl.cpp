@@ -135,10 +135,10 @@ Geo::PrincipalStresses CoulombWithTensionCutOffImpl::DoReturnMapping(const Geo::
             result = ReturnStressAtRegularFailureZone(rTrialPrincipalStresses, AveragingType);
         }
 
-        //     const auto kappa = kappa_start + mCoulombYieldSurface.CalculateEquivalentPlasticStrainIncrement(
-        //                                          rTrialSigmaTau, AveragingType);
-        //     mCoulombYieldSurface.SetKappa(kappa);
-        //
+        const auto kappa = kappa_start + mCoulombYieldSurface.CalculateEquivalentPlasticStrainIncrement(
+                                             rTrialPrincipalStresses, AveragingType);
+        mCoulombYieldSurface.SetKappa(kappa);
+
         //     if (std::abs(mCoulombYieldSurface.YieldFunctionValue(result)) < mAbsoluteYieldFunctionValueTolerance) {
         //         break;
         //     }
