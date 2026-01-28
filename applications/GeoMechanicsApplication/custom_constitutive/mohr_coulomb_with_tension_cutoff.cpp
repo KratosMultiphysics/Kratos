@@ -195,11 +195,8 @@ void MohrCoulombWithTensionCutOff::CalculateMaterialResponseCauchy(ConstitutiveL
     }
 
     const auto trial_stress_vector = CalculateTrialStressVector(rParameters.GetStrainVector(), r_properties);
-    Vector principal_trial_stress_vector;
-    Matrix rotation_matrix;
-    StressStrainUtilities::CalculatePrincipalStresses(
-        trial_stress_vector, principal_trial_stress_vector, rotation_matrix);
-    auto trial_principal_stresses = Geo::PrincipalStresses{principal_trial_stress_vector};
+    const auto& [trial_principal_stresses, rotation_matrix] =
+        StressStrainUtilities::CalculatePrincipalStresses(trial_stress_vector);
 
     if (mCoulombWithTensionCutOffImpl.IsAdmissibleStressState(trial_principal_stresses)) {
         mStressVector = trial_stress_vector;

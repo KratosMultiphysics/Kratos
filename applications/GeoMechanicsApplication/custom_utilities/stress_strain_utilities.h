@@ -43,15 +43,15 @@ public:
     static Vector CalculateHenckyStrain(const Matrix& rDeformationGradient, size_t VoigtSize);
     static Matrix CalculateGreenLagrangeStrainTensor(const Matrix& rDeformationGradient);
     static Vector CalculateCauchyStrain(const Matrix& rB, const Vector& rDisplacements);
-    static std::vector<Vector>    CalculateStrains(const std::vector<Matrix>& rDeformationGradients,
-                                                   const std::vector<Matrix>& rBs,
-                                                   const Vector&              rDisplacements,
-                                                   bool                       UseHenckyStrain,
-                                                   std::size_t                VoigtSize);
-    static Geo::PrincipalStresses CalculatePrincipalStresses(const Vector& rStressVector);
-    static void                   CalculatePrincipalStresses(const Vector& rCauchyStressVector,
-                                                             Vector&       rPrincipalStressVector,
-                                                             Matrix&       rEigenVectorsMatrix);
+    static std::vector<Vector> CalculateStrains(const std::vector<Matrix>& rDeformationGradients,
+                                                const std::vector<Matrix>& rBs,
+                                                const Vector&              rDisplacements,
+                                                bool                       UseHenckyStrain,
+                                                std::size_t                VoigtSize);
+    static std::pair<Geo::PrincipalStresses, Matrix> CalculatePrincipalStresses(const Vector& rStressVector);
+    static void CalculatePrincipalStresses(const Vector& rCauchyStressVector,
+                                           Vector&       rPrincipalStressVector,
+                                           Matrix&       rEigenVectorsMatrix);
     static void ReorderEigenValuesAndVectors(Vector& rPrincipalStressVector, Matrix& rEigenVectorsMatrix);
     static Vector RotatePrincipalStresses(const Vector& rPrincipalStressVector,
                                           const Matrix& rRotationMatrix,
