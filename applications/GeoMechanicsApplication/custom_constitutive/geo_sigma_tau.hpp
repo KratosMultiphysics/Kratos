@@ -13,6 +13,7 @@
 
 #pragma once
 
+#include "includes/kratos_export_api.h"
 #include "includes/ublas_interface.h"
 
 #include <algorithm>
@@ -20,7 +21,7 @@
 namespace Kratos::Geo
 {
 
-struct SigmaTau {
+struct KRATOS_API(GEO_MECHANICS_APPLICATION) SigmaTau {
     constexpr static auto vector_size = std::size_t{2};
 
     BoundedVector<double, vector_size> values = ZeroVector{vector_size};

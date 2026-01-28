@@ -42,16 +42,17 @@ KRATOS_TEST_CASE_IN_SUITE(TestCoulombYieldSurface, KratosGeoMechanicsFastSuiteWi
 
     const auto coulomb_yield_surface = CoulombYieldSurface{material_properties};
 
-    Vector principal_stress(3);
-    principal_stress <<= 3.0, 2.0, 1.0;
+    auto principal_stress = Geo::PrincipalStresses{UblasUtilities::CreateVector({3.0, 2.0, 1.0})};
     auto sigma_tau = StressStrainUtilities::TransformPrincipalStressesToSigmaTau(principal_stress);
     KRATOS_EXPECT_NEAR(coulomb_yield_surface.YieldFunctionValue(sigma_tau), 1.0, Defaults::absolute_tolerance);
 
-    principal_stress <<= 1.7071067811865475, 1.0, 0.2928932188134525;
+    principal_stress =
+        Geo::PrincipalStresses{UblasUtilities::CreateVector({1.7071067811865475, 1.0, 0.2928932188134525})};
     sigma_tau = StressStrainUtilities::TransformPrincipalStressesToSigmaTau(principal_stress);
     KRATOS_EXPECT_NEAR(coulomb_yield_surface.YieldFunctionValue(sigma_tau), 0.0, Defaults::absolute_tolerance);
 
-    principal_stress <<= 0.1715728752538099, -1.0, -1.8284271247461901;
+    principal_stress = Geo::PrincipalStresses{
+        UblasUtilities::CreateVector({0.1715728752538099, -1.0, -1.8284271247461901})};
     sigma_tau = StressStrainUtilities::TransformPrincipalStressesToSigmaTau(principal_stress);
     KRATOS_EXPECT_NEAR(coulomb_yield_surface.YieldFunctionValue(sigma_tau), -1.0, Defaults::absolute_tolerance);
 }
