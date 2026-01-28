@@ -311,6 +311,15 @@ void KratosFluidDynamicsApplication::Register() {
 
     KRATOS_REGISTER_VARIABLE( Y_PLUS )
 
+    // Aerodynamic coefficients
+    KRATOS_REGISTER_VARIABLE( LIFT_COEFFICIENT )
+    KRATOS_REGISTER_VARIABLE( DRAG_COEFFICIENT )
+    KRATOS_REGISTER_VARIABLE( LATERAL_FORCE_COEFFICIENT )
+    KRATOS_REGISTER_VARIABLE( ROLLING_MOMENT_COEFFICIENT )
+    KRATOS_REGISTER_VARIABLE( PITCHING_MOMENT_COEFFICIENT )
+    KRATOS_REGISTER_VARIABLE( YAWING_MOMENT_COEFFICIENT )
+
+
     // Register Elements
     KRATOS_REGISTER_ELEMENT("VMS2D3N",mVMS2D); //this is the name the element should have according to the naming convention
     KRATOS_REGISTER_ELEMENT("VMS3D4N",mVMS3D); //this is the name the element should have according to the naming convention
