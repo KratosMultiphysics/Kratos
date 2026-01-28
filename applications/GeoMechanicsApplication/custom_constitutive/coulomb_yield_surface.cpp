@@ -24,7 +24,6 @@
 #include "geo_mechanics_application_variables.h"
 #include "includes/serializer.h"
 
-#include <boost/numeric/ublas/assignment.hpp>
 #include <cmath>
 
 namespace
