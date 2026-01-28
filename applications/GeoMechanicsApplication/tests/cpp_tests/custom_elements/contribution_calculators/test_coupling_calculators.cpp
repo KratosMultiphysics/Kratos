@@ -25,30 +25,30 @@ using namespace Kratos;
 
 template <unsigned int NumberOfRows, unsigned int NumberOfColumns>
 UPCouplingCalculator<NumberOfRows, NumberOfColumns>::InputProvider CreateUPInputProvider(
-    const Matrix& b_matrix,
-    const Vector& voigt_vector,
-    double        integration_coefficient,
-    double        biot_coefficient,
-    double        bishop_coefficient,
-    const Vector& fluid_pressures,
+    const Matrix& rBMatrix,
+    const Vector& rVoigtVector,
+    double        IntegrationCoefficient,
+    double        BiotCoefficient,
+    double        BishopCoefficient,
+    const Vector& rFluidPressures,
     const Matrix& rNpContainer,
     std::size_t   NumberOfIntegrationPoints = 1)
 {
-    auto get_b_matrices = [b_matrix, NumberOfIntegrationPoints]() {
-        return std::vector(NumberOfIntegrationPoints, b_matrix);
+    auto get_b_matrices = [rBMatrix, NumberOfIntegrationPoints]() {
+        return std::vector(NumberOfIntegrationPoints, rBMatrix);
     };
-    auto get_integration_coefficients = [integration_coefficient, NumberOfIntegrationPoints]() {
-        return std::vector(NumberOfIntegrationPoints, integration_coefficient);
+    auto get_integration_coefficients = [IntegrationCoefficient, NumberOfIntegrationPoints]() {
+        return std::vector(NumberOfIntegrationPoints, IntegrationCoefficient);
     };
     auto get_np_container      = [&rNpContainer]() -> const Matrix& { return rNpContainer; };
-    auto get_biot_coefficients = [biot_coefficient, NumberOfIntegrationPoints]() {
-        return std::vector(NumberOfIntegrationPoints, biot_coefficient);
+    auto get_biot_coefficients = [BiotCoefficient, NumberOfIntegrationPoints]() {
+        return std::vector(NumberOfIntegrationPoints, BiotCoefficient);
     };
-    auto get_bishop_coefficients = [bishop_coefficient, NumberOfIntegrationPoints]() {
-        return std::vector(NumberOfIntegrationPoints, bishop_coefficient);
+    auto get_bishop_coefficients = [BishopCoefficient, NumberOfIntegrationPoints]() {
+        return std::vector(NumberOfIntegrationPoints, BishopCoefficient);
     };
-    auto get_voigt_vector    = [voigt_vector]() { return voigt_vector; };
-    auto get_fluid_pressures = [fluid_pressures]() { return fluid_pressures; };
+    auto get_voigt_vector    = [rVoigtVector]() { return rVoigtVector; };
+    auto get_fluid_pressures = [rFluidPressures]() { return rFluidPressures; };
 
     return typename UPCouplingCalculator<NumberOfRows, NumberOfColumns>::InputProvider(
         get_np_container, get_b_matrices, get_voigt_vector, get_integration_coefficients,
@@ -57,28 +57,32 @@ UPCouplingCalculator<NumberOfRows, NumberOfColumns>::InputProvider CreateUPInput
 
 template <unsigned int NumberOfRows, unsigned int NumberOfColumns>
 PUCouplingCalculator<NumberOfRows, NumberOfColumns>::InputProvider CreatePUInputProvider(
-    const Matrix& b_matrix,
-    const Vector& voigt_vector,
-    double        integration_coefficient,
-    double        biot_coefficient,
-    double        degree_of_saturation,
-    const Vector& velocities,
-    double        velocity_coefficient,
+    const Matrix& rBMatrix,
+    const Vector& rVoigtVector,
+    double        IntegrationCoefficient,
+    double        BiotCoefficient,
+    double        DegreeOfSaturation,
+    const Vector& rVelocities,
+    double        VelocityCoefficient,
     const Matrix& rNpContainer,
     std::size_t   NumberOfIntegrationPoints = 1)
 {
-    auto get_b_matrices               = [b_matrix, NumberOfIntegrationPoints]() { return std::vector(NumberOfIntegrationPoints, b_matrix); };
-    auto get_integration_coefficients = [integration_coefficient, NumberOfIntegrationPoints]() {
-        return std::vector(NumberOfIntegrationPoints, integration_coefficient);
+    auto get_b_matrices = [rBMatrix, NumberOfIntegrationPoints]() {
+        return std::vector(NumberOfIntegrationPoints, rBMatrix);
     };
-    auto get_np_container          = [&rNpContainer]() -> const Matrix& { return rNpContainer; };
-    auto get_biot_coefficients     = [biot_coefficient, NumberOfIntegrationPoints]() { return std::vector(NumberOfIntegrationPoints, biot_coefficient); };
-    auto get_degrees_of_saturation = [degree_of_saturation, NumberOfIntegrationPoints]() {
-        return std::vector(NumberOfIntegrationPoints, degree_of_saturation);
+    auto get_integration_coefficients = [IntegrationCoefficient, NumberOfIntegrationPoints]() {
+        return std::vector(NumberOfIntegrationPoints, IntegrationCoefficient);
     };
-    auto get_voigt_vector         = [voigt_vector]() { return voigt_vector; };
-    auto get_velocities           = [velocities]() { return velocities; };
-    auto get_velocity_coefficient = [velocity_coefficient]() { return velocity_coefficient; };
+    auto get_np_container      = [&rNpContainer]() -> const Matrix& { return rNpContainer; };
+    auto get_biot_coefficients = [BiotCoefficient, NumberOfIntegrationPoints]() {
+        return std::vector(NumberOfIntegrationPoints, BiotCoefficient);
+    };
+    auto get_degrees_of_saturation = [DegreeOfSaturation, NumberOfIntegrationPoints]() {
+        return std::vector(NumberOfIntegrationPoints, DegreeOfSaturation);
+    };
+    auto get_voigt_vector         = [rVoigtVector]() { return rVoigtVector; };
+    auto get_velocities           = [rVelocities]() { return rVelocities; };
+    auto get_velocity_coefficient = [VelocityCoefficient]() { return VelocityCoefficient; };
 
     return typename PUCouplingCalculator<NumberOfRows, NumberOfColumns>::InputProvider(
         get_np_container, get_b_matrices, get_voigt_vector, get_integration_coefficients,
@@ -304,9 +308,9 @@ TEST_F(KratosGeoMechanicsFastSuiteWithoutKernel, TestPUCouplingVectorContributio
     const double degree_of_saturation    = 0.1;
     const auto   velocity_coefficient    = 2.0;
     const auto   velocities              = UblasUtilities::CreateVector({1.0, 2.0, 3.0, 4.0});
-    const auto np_container          = UblasUtilities::CreateMatrix({{1.0, 2.0}, {1.0, 2.0}});
-    const auto number_of_integration_points = std::size_t{2};
-    const auto input_provider = CreatePUInputProvider<number_of_pw_dof, number_of_u_dof>(
+    const auto   np_container            = UblasUtilities::CreateMatrix({{1.0, 2.0}, {1.0, 2.0}});
+    const auto   number_of_integration_points = std::size_t{2};
+    const auto   input_provider = CreatePUInputProvider<number_of_pw_dof, number_of_u_dof>(
         b_matrix, voigt_vector, integration_coefficient, biot_coefficient, degree_of_saturation,
         velocities, velocity_coefficient, np_container, number_of_integration_points);
 
