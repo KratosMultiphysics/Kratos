@@ -157,9 +157,7 @@ void UPwInterfaceElement::CalculateLeftHandSide(MatrixType& rLeftHandSideMatrix,
 
     // Currently, the left-hand side matrix only includes the stiffness matrix. In the future, it
     // will also include water pressure contributions and coupling terms.
-    const std::vector contributions = {CalculationContribution::Stiffness};
-
-    for (auto contribution : contributions) {
+    for (auto contribution : mContributions) {
         switch (contribution) {
         case CalculationContribution::Stiffness:
             CalculateAndAssignStifnessMatrix(rLeftHandSideMatrix, rProcessInfo);
@@ -204,9 +202,7 @@ void UPwInterfaceElement::CalculateRightHandSide(Element::VectorType& rRightHand
 
     // Currently, the right-hand side only includes the internal force vector. In the future, it
     // will also include water pressure contributions and coupling terms.
-    const std::vector contributions = {CalculationContribution::Stiffness};
-
-    for (auto contribution : contributions) {
+    for (auto contribution : mContributions) {
         switch (contribution) {
         case CalculationContribution::Stiffness:
             CalculateAndAssignStifnessForceVector(rRightHandSideVector, rProcessInfo);
