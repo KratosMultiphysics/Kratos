@@ -21,7 +21,11 @@ namespace Kratos::Geo
 {
 
 struct PrincipalStresses {
-    BoundedVector<double, 3> values;
+    constexpr static auto vector_size = std::size_t{3};
+
+    BoundedVector<double, vector_size> values = ZeroVector{vector_size};
+
+    PrincipalStresses() = default;
 
     template <typename VectorType>
     explicit PrincipalStresses(const VectorType& rStressVector)

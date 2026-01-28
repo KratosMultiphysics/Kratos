@@ -23,13 +23,14 @@ namespace Kratos::Geo
 struct SigmaTau {
     constexpr static auto vector_size = std::size_t{2};
 
-    BoundedVector<double, vector_size> values;
+    BoundedVector<double, vector_size> values = ZeroVector{vector_size};
     double&                            sigma;
     double&                            tau;
 
+    SigmaTau();
+
     template <typename VectorType>
-    explicit SigmaTau(const VectorType& rStressVector)
-        : values{ZeroVector{vector_size}}, sigma{values[0]}, tau{values[1]}
+    explicit SigmaTau(const VectorType& rStressVector) : sigma{values[0]}, tau{values[1]}
     {
         std::ranges::copy(rStressVector, values.begin());
     }

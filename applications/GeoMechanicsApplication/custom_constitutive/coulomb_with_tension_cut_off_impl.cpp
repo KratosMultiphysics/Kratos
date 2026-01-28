@@ -51,67 +51,13 @@ bool CoulombWithTensionCutOffImpl::IsAdmissibleStressState(const Geo::PrincipalS
 Geo::SigmaTau CoulombWithTensionCutOffImpl::DoReturnMapping(const Geo::SigmaTau& rTrialSigmaTau,
                                                             CoulombYieldSurface::CoulombAveragingType AveragingType)
 {
-    auto result = Geo::SigmaTau{Vector{2, 0.0}};
-
-    auto kappa_start = mCoulombYieldSurface.GetKappa();
-    for (auto counter = std::size_t{0}; counter < mMaxNumberOfPlasticIterations; ++counter) {
-        if (IsStressAtTensionApexReturnZone(rTrialSigmaTau)) {
-            return ReturnStressAtTensionApexReturnZone(rTrialSigmaTau);
-        }
-
-        if (IsStressAtTensionCutoffReturnZone(rTrialSigmaTau)) {
-            return ReturnStressAtTensionCutoffReturnZone(rTrialSigmaTau);
-        }
-
-        if (IsStressAtCornerReturnZone(rTrialSigmaTau, AveragingType)) {
-            result = CalculateCornerPoint(rTrialSigmaTau);
-        } else { // Regular failure region
-            result = ReturnStressAtRegularFailureZone(rTrialSigmaTau, AveragingType);
-        }
-
-        const auto kappa = kappa_start + mCoulombYieldSurface.CalculateEquivalentPlasticStrainIncrement(
-                                             rTrialSigmaTau, AveragingType);
-        mCoulombYieldSurface.SetKappa(kappa);
-
-        if (std::abs(mCoulombYieldSurface.YieldFunctionValue(result)) < mAbsoluteYieldFunctionValueTolerance) {
-            break;
-        }
-    }
-
-    return result;
+    return DoReturnMapping<>(rTrialSigmaTau, AveragingType);
 }
 
 Geo::PrincipalStresses CoulombWithTensionCutOffImpl::DoReturnMapping(const Geo::PrincipalStresses& rTrialPrincipalStresses,
                                                                      CoulombYieldSurface::CoulombAveragingType AveragingType)
 {
-    auto result = Geo::PrincipalStresses{Vector{3, 0.0}};
-
-    auto kappa_start = mCoulombYieldSurface.GetKappa();
-    for (auto counter = std::size_t{0}; counter < mMaxNumberOfPlasticIterations; ++counter) {
-        if (IsStressAtTensionApexReturnZone(rTrialPrincipalStresses)) {
-            return ReturnStressAtTensionApexReturnZone(rTrialPrincipalStresses);
-        }
-
-        if (IsStressAtTensionCutoffReturnZone(rTrialPrincipalStresses)) {
-            return ReturnStressAtTensionCutoffReturnZone(rTrialPrincipalStresses);
-        }
-
-        if (IsStressAtCornerReturnZone(rTrialPrincipalStresses, AveragingType)) {
-            result = CalculateCornerPoint(rTrialPrincipalStresses);
-        } else { // Regular failure region
-            result = ReturnStressAtRegularFailureZone(rTrialPrincipalStresses, AveragingType);
-        }
-
-        const auto kappa = kappa_start + mCoulombYieldSurface.CalculateEquivalentPlasticStrainIncrement(
-                                             rTrialPrincipalStresses, AveragingType);
-        mCoulombYieldSurface.SetKappa(kappa);
-
-        if (std::abs(mCoulombYieldSurface.YieldFunctionValue(result)) < mAbsoluteYieldFunctionValueTolerance) {
-            break;
-        }
-    }
-
-    return result;
+    return DoReturnMapping<>(rTrialPrincipalStresses, AveragingType);
 }
 
 void CoulombWithTensionCutOffImpl::SaveKappaOfCoulombYieldSurface()
@@ -133,6 +79,40 @@ bool CoulombWithTensionCutOffImpl::IsAdmissibleStressState(const StressStateType
     const auto     coulomb_tolerance = tolerance * (1.0 + std::abs(coulomb_yield_function_value));
     const auto     tension_tolerance = tolerance * (1.0 + std::abs(tension_yield_function_value));
     return coulomb_yield_function_value < coulomb_tolerance && tension_yield_function_value < tension_tolerance;
+}
+
+template <typename StressStateType>
+StressStateType CoulombWithTensionCutOffImpl::DoReturnMapping(const StressStateType& rTrialStressState,
+                                                              CoulombYieldSurface::CoulombAveragingType AveragingType)
+{
+    auto result = StressStateType{};
+
+    auto kappa_start = mCoulombYieldSurface.GetKappa();
+    for (auto counter = std::size_t{0}; counter < mMaxNumberOfPlasticIterations; ++counter) {
+        if (IsStressAtTensionApexReturnZone(rTrialStressState)) {
+            return ReturnStressAtTensionApexReturnZone(rTrialStressState);
+        }
+
+        if (IsStressAtTensionCutoffReturnZone(rTrialStressState)) {
+            return ReturnStressAtTensionCutoffReturnZone(rTrialStressState);
+        }
+
+        if (IsStressAtCornerReturnZone(rTrialStressState, AveragingType)) {
+            result = CalculateCornerPoint(rTrialStressState);
+        } else { // Regular failure region
+            result = ReturnStressAtRegularFailureZone(rTrialStressState, AveragingType);
+        }
+
+        const auto kappa = kappa_start + mCoulombYieldSurface.CalculateEquivalentPlasticStrainIncrement(
+                                             rTrialStressState, AveragingType);
+        mCoulombYieldSurface.SetKappa(kappa);
+
+        if (std::abs(mCoulombYieldSurface.YieldFunctionValue(result)) < mAbsoluteYieldFunctionValueTolerance) {
+            break;
+        }
+    }
+
+    return result;
 }
 
 Geo::SigmaTau CoulombWithTensionCutOffImpl::CalculateCornerPoint(const Geo::SigmaTau&) const

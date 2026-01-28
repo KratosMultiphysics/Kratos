@@ -56,6 +56,9 @@ private:
 
     template <typename StressStateType>
     [[nodiscard]] bool IsAdmissibleStressState(const StressStateType& rTrialStressState) const;
+    template <typename StressStateType>
+    [[nodiscard]] StressStateType DoReturnMapping(const StressStateType& rTrialStressState,
+                                                  CoulombYieldSurface::CoulombAveragingType AveragingType);
 
     [[nodiscard]] Geo::SigmaTau CalculateCornerPoint(const Geo::SigmaTau&) const;
     [[nodiscard]] Geo::PrincipalStresses CalculateCornerPoint(const Geo::PrincipalStresses& rPrincipalStresses) const;

@@ -16,6 +16,8 @@
 namespace Kratos::Geo
 {
 
+SigmaTau::SigmaTau() : sigma{values[0]}, tau{values[1]} {}
+
 SigmaTau::SigmaTau(const SigmaTau& rOther) : sigma{values[0]}, tau{values[1]} { *this = rOther; }
 
 SigmaTau& SigmaTau::operator=(const SigmaTau& rOther)
