@@ -124,10 +124,10 @@ Geo::PrincipalStresses CoulombWithTensionCutOffImpl::DoReturnMapping(const Geo::
             return ReturnStressAtTensionApexReturnZone(rTrialPrincipalStresses);
         }
 
-        //     if (IsStressAtTensionCutoffReturnZone(rTrialSigmaTau)) {
-        //         return ReturnStressAtTensionCutoffReturnZone(rTrialSigmaTau);
-        //     }
-        //
+        if (IsStressAtTensionCutoffReturnZone(rTrialPrincipalStresses)) {
+            return ReturnStressAtTensionCutoffReturnZone(rTrialPrincipalStresses);
+        }
+
         //     if (IsStressAtCornerReturnZone(rTrialSigmaTau, AveragingType)) {
         //         result = CalculateCornerPoint();
         //     } else { // Regular failure region
@@ -212,6 +212,12 @@ bool CoulombWithTensionCutOffImpl::IsStressAtTensionCutoffReturnZone(const Geo::
            corner_point[1] - rTrialSigmaTau.tau - corner_point[0] + rTrialSigmaTau.sigma > 0.0;
 }
 
+bool CoulombWithTensionCutOffImpl::IsStressAtTensionCutoffReturnZone(const Geo::PrincipalStresses& rTrialPrincipalStresses) const
+{
+    return IsStressAtTensionCutoffReturnZone(
+        StressStrainUtilities::TransformPrincipalStressesToSigmaTau(rTrialPrincipalStresses));
+}
+
 // At some point in time we would like to get rid of this API. For now, just forward the request.
 bool CoulombWithTensionCutOffImpl::IsStressAtCornerReturnZone(const Vector& rTrialSigmaTau,
                                                               CoulombYieldSurface::CoulombAveragingType AveragingType) const
@@ -262,6 +268,15 @@ Geo::SigmaTau CoulombWithTensionCutOffImpl::ReturnStressAtTensionCutoffReturnZon
     const auto lambda_tc = (mTensionCutOff.GetTensileStrength() - rSigmaTau.sigma - rSigmaTau.tau) /
                            (derivative_of_flow_function[0] + derivative_of_flow_function[1]);
     return Geo::SigmaTau{Vector{rSigmaTau.CopyTo<Vector>() + lambda_tc * derivative_of_flow_function}};
+}
+
+Geo::PrincipalStresses CoulombWithTensionCutOffImpl::ReturnStressAtTensionCutoffReturnZone(
+    const Geo::PrincipalStresses& rPrincipalStresses) const
+{
+    return StressStrainUtilities::TransformSigmaTauToPrincipalStresses(
+        ReturnStressAtTensionCutoffReturnZone(
+            StressStrainUtilities::TransformPrincipalStressesToSigmaTau(rPrincipalStresses)),
+        rPrincipalStresses);
 }
 
 // At some point in time we would like to get rid of this API. For now, just forward the request.
