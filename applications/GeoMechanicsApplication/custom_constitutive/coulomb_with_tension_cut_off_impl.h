@@ -39,8 +39,6 @@ public:
     [[nodiscard]] bool IsAdmissibleStressState(const Geo::SigmaTau& rTrialSigmaTau) const;
     [[nodiscard]] bool IsAdmissibleStressState(const Geo::PrincipalStresses& rTrialPrincipalStresses) const;
 
-    [[nodiscard]] Vector        DoReturnMapping(const Vector&                             rTrialSigmaTau,
-                                                CoulombYieldSurface::CoulombAveragingType AveragingType);
     [[nodiscard]] Geo::SigmaTau DoReturnMapping(const Geo::SigmaTau& rTrialSigmaTau,
                                                 CoulombYieldSurface::CoulombAveragingType AveragingType);
     [[nodiscard]] Geo::PrincipalStresses DoReturnMapping(const Geo::PrincipalStresses& rTrialSigmaTau,
