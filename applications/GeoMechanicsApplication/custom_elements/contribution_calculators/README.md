@@ -46,7 +46,7 @@ The `UPCouplingCalculator` computes the influence of the pressure on the displac
 
 This data is provided via the `InputProvider` and enables the calculator to compute left-hand side contribution ($Q$ as defined before) and right-hand side contributions ($Q p$, in which $p$ is the vector of nodal water pressures).
 
-The `PUCouplingCalculator` computes the influence of the pressure on the displacement degrees of freedom and needs the following input data:
+The `PUCouplingCalculator` computes the influence of the displacements on the pressure degrees of freedom and needs the following input data:
 - The B-matrices for all integration points
 - The Biot-alpha values for all integration points
 - The degrees of saturation for all integration points
@@ -60,7 +60,4 @@ This data is provided via the `InputProvider` and enables the calculator to comp
 
 ($Q_{pu}$ as defined before) and right-hand side contributions ($Q_{pu} v$, in which $v$ is the vector of nodal velocities).
 
-
-from the displacement degrees of freedom to the pressure equation, while the `PUCouplingCalculator` computes the contribution from the pressure degrees of freedom to the displacement equation.
-
-
+For more code-specific information on how to call/use these calculators in your code, please refer to the related [unit tests](../../tests/cpp_tests/custom_elements/contribution_calculators/test_coupling_calculators.cpp)
