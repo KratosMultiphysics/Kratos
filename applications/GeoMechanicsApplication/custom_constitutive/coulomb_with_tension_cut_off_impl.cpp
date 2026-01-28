@@ -136,12 +136,6 @@ Geo::PrincipalStresses CoulombWithTensionCutOffImpl::CalculateCornerPoint(const 
         rPrincipalStresses);
 }
 
-// At some point in time we would like to get rid of this API. For now, just forward the request.
-bool CoulombWithTensionCutOffImpl::IsStressAtTensionApexReturnZone(const Vector& rTrialSigmaTau) const
-{
-    return IsStressAtTensionApexReturnZone(Geo::SigmaTau{rTrialSigmaTau});
-}
-
 bool CoulombWithTensionCutOffImpl::IsStressAtTensionApexReturnZone(const Geo::SigmaTau& rTrialSigmaTau) const
 {
     const auto tensile_strength = mTensionCutOff.GetTensileStrength();
@@ -155,12 +149,6 @@ bool CoulombWithTensionCutOffImpl::IsStressAtTensionApexReturnZone(const Geo::Pr
         StressStrainUtilities::TransformPrincipalStressesToSigmaTau(rTrialPrincipalStresses));
 }
 
-// At some point in time we would like to get rid of this API. For now, just forward the request.
-bool CoulombWithTensionCutOffImpl::IsStressAtTensionCutoffReturnZone(const Vector& rTrialSigmaTau) const
-{
-    return IsStressAtTensionCutoffReturnZone(Geo::SigmaTau{rTrialSigmaTau});
-}
-
 bool CoulombWithTensionCutOffImpl::IsStressAtTensionCutoffReturnZone(const Geo::SigmaTau& rTrialSigmaTau) const
 {
     const auto corner_point = CalculateCornerPoint(rTrialSigmaTau);
@@ -172,13 +160,6 @@ bool CoulombWithTensionCutOffImpl::IsStressAtTensionCutoffReturnZone(const Geo::
 {
     return IsStressAtTensionCutoffReturnZone(
         StressStrainUtilities::TransformPrincipalStressesToSigmaTau(rTrialPrincipalStresses));
-}
-
-// At some point in time we would like to get rid of this API. For now, just forward the request.
-bool CoulombWithTensionCutOffImpl::IsStressAtCornerReturnZone(const Vector& rTrialSigmaTau,
-                                                              CoulombYieldSurface::CoulombAveragingType AveragingType) const
-{
-    return IsStressAtCornerReturnZone(Geo::SigmaTau{rTrialSigmaTau}, AveragingType);
 }
 
 bool CoulombWithTensionCutOffImpl::IsStressAtCornerReturnZone(const Geo::SigmaTau& rTrialSigmaTau,
@@ -199,13 +180,6 @@ bool CoulombWithTensionCutOffImpl::IsStressAtCornerReturnZone(const Geo::Princip
         StressStrainUtilities::TransformPrincipalStressesToSigmaTau(rTrialPrincipalStresses), AveragingType);
 }
 
-// At some point in time we would like to get rid of this API. For now, just forward the request.
-Vector CoulombWithTensionCutOffImpl::ReturnStressAtTensionApexReturnZone() const
-{
-    const auto unused_sigma_tau = Geo::SigmaTau{Vector{ZeroVector{2}}};
-    return ReturnStressAtTensionApexReturnZone(unused_sigma_tau).CopyTo<Vector>();
-}
-
 Geo::SigmaTau CoulombWithTensionCutOffImpl::ReturnStressAtTensionApexReturnZone(const Geo::SigmaTau&) const
 {
     return Geo::SigmaTau{UblasUtilities::CreateVector({mTensionCutOff.GetTensileStrength(), 0.0})};
@@ -217,12 +191,6 @@ Geo::PrincipalStresses CoulombWithTensionCutOffImpl::ReturnStressAtTensionApexRe
         ReturnStressAtTensionApexReturnZone(
             StressStrainUtilities::TransformPrincipalStressesToSigmaTau(rPrincipalStresses)),
         rPrincipalStresses);
-}
-
-// At some point in time we would like to get rid of this API. For now, just forward the request.
-Vector CoulombWithTensionCutOffImpl::ReturnStressAtTensionCutoffReturnZone(const Vector& rSigmaTau) const
-{
-    return ReturnStressAtTensionCutoffReturnZone(Geo::SigmaTau{rSigmaTau}).CopyTo<Vector>();
 }
 
 Geo::SigmaTau CoulombWithTensionCutOffImpl::ReturnStressAtTensionCutoffReturnZone(const Geo::SigmaTau& rSigmaTau) const
@@ -240,13 +208,6 @@ Geo::PrincipalStresses CoulombWithTensionCutOffImpl::ReturnStressAtTensionCutoff
         ReturnStressAtTensionCutoffReturnZone(
             StressStrainUtilities::TransformPrincipalStressesToSigmaTau(rPrincipalStresses)),
         rPrincipalStresses);
-}
-
-// At some point in time we would like to get rid of this API. For now, just forward the request.
-Vector CoulombWithTensionCutOffImpl::ReturnStressAtRegularFailureZone(const Vector& rSigmaTau,
-                                                                      CoulombYieldSurface::CoulombAveragingType AveragingType) const
-{
-    return ReturnStressAtRegularFailureZone(Geo::SigmaTau{rSigmaTau}, AveragingType).CopyTo<Vector>();
 }
 
 Geo::SigmaTau CoulombWithTensionCutOffImpl::ReturnStressAtRegularFailureZone(
