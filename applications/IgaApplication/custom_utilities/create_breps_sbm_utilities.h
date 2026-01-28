@@ -609,12 +609,17 @@ private:
         Vector normal = ZeroVector(3);
         const SizeType p = 1;
         const SizeType q = 1;
+        const double min_x = std::min(rCoordsA[0], rCoordsB[0]);
+        const double max_x = std::max(rCoordsA[0], rCoordsB[0]);
+        const double min_y = std::min(rCoordsA[1], rCoordsB[1]);
+        const double max_y = std::max(rCoordsA[1], rCoordsB[1]);
+        const double min_z = std::min(rCoordsA[2], rCoordsB[2]);
+        const double max_z = std::max(rCoordsA[2], rCoordsB[2]);
         
-        // TO DO: DOES NOT WORK IF THE KNOT SPANS ARE RECTANGLES
         // lower
         Geometry<NodeType>::PointsArrayType points_lower;
-        knot_vector_u[0] = 0.0; knot_vector_u[1] = std::abs(rCoordsA[0]-rCoordsB[0]);  
-        knot_vector_v[0] = 0.0; knot_vector_v[1] = std::abs(rCoordsA[1]-rCoordsB[1]); 
+        knot_vector_u[0] = min_x; knot_vector_u[1] = max_x;
+        knot_vector_v[0] = min_y; knot_vector_v[1] = max_y;
         points_lower.push_back(NodeType::Pointer(new NodeType(1, rCoordsA[0], rCoordsA[1], rCoordsA[2])));
         points_lower.push_back(NodeType::Pointer(new NodeType(2, rCoordsA[0], rCoordsB[1], rCoordsA[2])));
         points_lower.push_back(NodeType::Pointer(new NodeType(3, rCoordsB[0], rCoordsA[1], rCoordsA[2])));
@@ -630,8 +635,8 @@ private:
 
         // upper
         Geometry<NodeType>::PointsArrayType points_upper;
-        knot_vector_u[0] = 0.0; knot_vector_u[1] = std::abs(rCoordsA[0]-rCoordsB[0]);  
-        knot_vector_v[0] = 0.0; knot_vector_v[1] = std::abs(rCoordsA[1]-rCoordsB[1]); 
+        knot_vector_u[0] = min_x; knot_vector_u[1] = max_x;
+        knot_vector_v[0] = min_y; knot_vector_v[1] = max_y;
         points_upper.push_back(NodeType::Pointer(new NodeType(1, rCoordsA[0], rCoordsA[1], rCoordsB[2])));
         points_upper.push_back(NodeType::Pointer(new NodeType(2, rCoordsA[0], rCoordsB[1], rCoordsB[2])));
         points_upper.push_back(NodeType::Pointer(new NodeType(3, rCoordsB[0], rCoordsA[1], rCoordsB[2])));
@@ -647,8 +652,8 @@ private:
 
         // front
         Geometry<NodeType>::PointsArrayType points_front;
-        knot_vector_u[0] = 0.0; knot_vector_u[1] = std::abs(rCoordsA[0]-rCoordsB[0]);  
-        knot_vector_v[0] = 0.0; knot_vector_v[1] = std::abs(rCoordsA[2]-rCoordsB[2]); 
+        knot_vector_u[0] = min_x; knot_vector_u[1] = max_x;
+        knot_vector_v[0] = min_z; knot_vector_v[1] = max_z;
         points_front.push_back(NodeType::Pointer(new NodeType(1, rCoordsA[0], rCoordsA[1], rCoordsA[2])));
         points_front.push_back(NodeType::Pointer(new NodeType(2, rCoordsB[0], rCoordsA[1], rCoordsA[2])));
         points_front.push_back(NodeType::Pointer(new NodeType(3, rCoordsA[0], rCoordsA[1], rCoordsB[2]))); 
@@ -664,8 +669,8 @@ private:
 
         // back
         Geometry<NodeType>::PointsArrayType points_back;
-        knot_vector_u[0] = 0.0; knot_vector_u[1] = std::abs(rCoordsA[0]-rCoordsB[0]);  
-        knot_vector_v[0] = 0.0; knot_vector_v[1] = std::abs(rCoordsA[2]-rCoordsB[2]); 
+        knot_vector_u[0] = min_x; knot_vector_u[1] = max_x;
+        knot_vector_v[0] = min_z; knot_vector_v[1] = max_z;
         points_back.push_back(NodeType::Pointer(new NodeType(1, rCoordsA[0], rCoordsB[1], rCoordsA[2])));
         points_back.push_back(NodeType::Pointer(new NodeType(2, rCoordsA[0], rCoordsB[1], rCoordsB[2])));
         points_back.push_back(NodeType::Pointer(new NodeType(3, rCoordsB[0], rCoordsB[1], rCoordsA[2])));
@@ -681,8 +686,8 @@ private:
 
         // left
         Geometry<NodeType>::PointsArrayType points_left;
-        knot_vector_u[0] = 0.0; knot_vector_u[1] = std::abs(rCoordsA[1]-rCoordsB[1]);  
-        knot_vector_v[0] = 0.0; knot_vector_v[1] = std::abs(rCoordsA[2]-rCoordsB[2]); 
+        knot_vector_u[0] = min_y; knot_vector_u[1] = max_y;
+        knot_vector_v[0] = min_z; knot_vector_v[1] = max_z;
         points_left.push_back(NodeType::Pointer(new NodeType(1, rCoordsA[0], rCoordsA[1], rCoordsA[2])));
         points_left.push_back(NodeType::Pointer(new NodeType(2, rCoordsA[0], rCoordsB[1], rCoordsA[2])));
         points_left.push_back(NodeType::Pointer(new NodeType(3, rCoordsA[0], rCoordsA[1], rCoordsB[2])));
@@ -699,8 +704,8 @@ private:
 
         // right
         Geometry<NodeType>::PointsArrayType points_right;
-        knot_vector_u[0] = 0.0; knot_vector_u[1] = std::abs(rCoordsA[1]-rCoordsB[1]);  
-        knot_vector_v[0] = 0.0; knot_vector_v[1] = std::abs(rCoordsA[2]-rCoordsB[2]); 
+        knot_vector_u[0] = min_y; knot_vector_u[1] = max_y;
+        knot_vector_v[0] = min_z; knot_vector_v[1] = max_z;
         points_right.push_back(NodeType::Pointer(new NodeType(1, rCoordsB[0], rCoordsA[1], rCoordsA[2])));
         points_right.push_back(NodeType::Pointer(new NodeType(2 ,rCoordsB[0], rCoordsA[1], rCoordsB[2])));
         points_right.push_back(NodeType::Pointer(new NodeType(3 ,rCoordsB[0], rCoordsB[1], rCoordsA[2])));
@@ -770,22 +775,28 @@ private:
                 int perpendicular_direction = -1;
                 if (std::abs(inner_prod(diagonalAB, x_unit)) < 1e-13 ) {
                     // the normal is parallel to x
-                    knot_vector_u[1] = std::abs(A_uvw_sbm[1]-B_uvw_sbm[1]);
-                    knot_vector_v[1] = std::abs(A_uvw_sbm[2]-B_uvw_sbm[2]);
+                    knot_vector_u[0] = std::min(A_uvw_sbm[1], B_uvw_sbm[1]);
+                    knot_vector_u[1] = std::max(A_uvw_sbm[1], B_uvw_sbm[1]);
+                    knot_vector_v[0] = std::min(A_uvw_sbm[2], B_uvw_sbm[2]);
+                    knot_vector_v[1] = std::max(A_uvw_sbm[2], B_uvw_sbm[2]);
                     perpendicular_direction = 0;
                     normal[0] = 1; 
                 }
                 else if (std::abs(inner_prod(diagonalAB, y_unit)) < 1e-13 ){
                     // the normal is parallel to y
-                    knot_vector_u[1] = std::abs(A_uvw_sbm[0]-B_uvw_sbm[0]);
-                    knot_vector_v[1] = std::abs(A_uvw_sbm[2]-B_uvw_sbm[2]);
+                    knot_vector_u[0] = std::min(A_uvw_sbm[0], B_uvw_sbm[0]);
+                    knot_vector_u[1] = std::max(A_uvw_sbm[0], B_uvw_sbm[0]);
+                    knot_vector_v[0] = std::min(A_uvw_sbm[2], B_uvw_sbm[2]);
+                    knot_vector_v[1] = std::max(A_uvw_sbm[2], B_uvw_sbm[2]);
                     perpendicular_direction = 1;
                     normal[1] = 1; 
                 }
                 else if (std::abs(inner_prod(diagonalAB, z_unit)) < 1e-13 ){
                     // the normal is parallel to z
-                    knot_vector_u[1] = std::abs(A_uvw_sbm[0]-B_uvw_sbm[0]);
-                    knot_vector_v[1] = std::abs(A_uvw_sbm[1]-B_uvw_sbm[1]);
+                    knot_vector_u[0] = std::min(A_uvw_sbm[0], B_uvw_sbm[0]);
+                    knot_vector_u[1] = std::max(A_uvw_sbm[0], B_uvw_sbm[0]);
+                    knot_vector_v[0] = std::min(A_uvw_sbm[1], B_uvw_sbm[1]);
+                    knot_vector_v[1] = std::max(A_uvw_sbm[1], B_uvw_sbm[1]);
                     perpendicular_direction = 2;
                     normal[2] = 1; 
                 } else {
@@ -820,11 +831,6 @@ private:
                     normal = normal * (-1);
                 }
                 p_brep_surface_on_volume_sbm->SetIsExitingDirectionSbm(is_exiting_direction);
-                // KRATOS_WATCH("\n")
-                // KRATOS_WATCH(is_exiting_direction)
-                // KRATOS_WATCH(isExiting)
-                // KRATOS_WATCH(i_cond)
-                // KRATOS_WATCH(normal)
                 p_brep_surface_on_volume_sbm->SetNormalSbm(normal);
                 
                 rModelPart.AddGeometry(p_brep_surface_on_volume_sbm);
@@ -871,22 +877,28 @@ private:
                 int perpendicular_direction = -1;
                 if (std::abs(inner_prod(diagonalAB, x_unit)) < 1e-13 ) {
                     // the normal is parallel to x
-                    knot_vector_u[1] = std::abs(A_uvw_sbm[1]-B_uvw_sbm[1]);
-                    knot_vector_v[1] = std::abs(A_uvw_sbm[2]-B_uvw_sbm[2]);
+                    knot_vector_u[0] = std::min(A_uvw_sbm[1], B_uvw_sbm[1]);
+                    knot_vector_u[1] = std::max(A_uvw_sbm[1], B_uvw_sbm[1]);
+                    knot_vector_v[0] = std::min(A_uvw_sbm[2], B_uvw_sbm[2]);
+                    knot_vector_v[1] = std::max(A_uvw_sbm[2], B_uvw_sbm[2]);
                     perpendicular_direction = 0;
                     normal[0] = 1; 
                 }
                 else if (std::abs(inner_prod(diagonalAB, y_unit)) < 1e-13 ){
                     // the normal is parallel to y
-                    knot_vector_u[1] = std::abs(A_uvw_sbm[0]-B_uvw_sbm[0]);
-                    knot_vector_v[1] = std::abs(A_uvw_sbm[2]-B_uvw_sbm[2]);
+                    knot_vector_u[0] = std::min(A_uvw_sbm[0], B_uvw_sbm[0]);
+                    knot_vector_u[1] = std::max(A_uvw_sbm[0], B_uvw_sbm[0]);
+                    knot_vector_v[0] = std::min(A_uvw_sbm[2], B_uvw_sbm[2]);
+                    knot_vector_v[1] = std::max(A_uvw_sbm[2], B_uvw_sbm[2]);
                     perpendicular_direction = 1;
                     normal[1] = 1; 
                 }
                 else if (std::abs(inner_prod(diagonalAB, z_unit)) < 1e-13 ){
                     // the normal is parallel to z
-                    knot_vector_u[1] = std::abs(A_uvw_sbm[0]-B_uvw_sbm[0]);
-                    knot_vector_v[1] = std::abs(A_uvw_sbm[1]-B_uvw_sbm[1]);
+                    knot_vector_u[0] = std::min(A_uvw_sbm[0], B_uvw_sbm[0]);
+                    knot_vector_u[1] = std::max(A_uvw_sbm[0], B_uvw_sbm[0]);
+                    knot_vector_v[0] = std::min(A_uvw_sbm[1], B_uvw_sbm[1]);
+                    knot_vector_v[1] = std::max(A_uvw_sbm[1], B_uvw_sbm[1]);
                     perpendicular_direction = 2;
                     normal[2] = 1; 
                 } else {

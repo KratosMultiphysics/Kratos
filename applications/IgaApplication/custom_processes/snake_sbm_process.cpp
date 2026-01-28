@@ -1961,6 +1961,7 @@ void SnakeSbmProcess::CreateTheSnakeCoordinates3D(
     starting_pos_uvw[0] = knot_vector_u[0];
     starting_pos_uvw[1] = knot_vector_v[0];
     starting_pos_uvw[2] = knot_vector_w[0];
+    KRATOS_WATCH(starting_pos_uvw)
 
     // Set PARAMETER_SPACE_CORNERS
     std::vector<Vector> parameter_external_coordinates(3);
@@ -2243,7 +2244,7 @@ void SnakeSbmProcess::CreateTheSnakeCoordinates3D(
         
         if (is_inner) {
             CreateSurrogateBuondaryFromSnakeInner3D(id_inner_loop, r_skin_sub_model_part, points_bin, n_knot_spans_uvw, 
-                                                    knot_vector_u, knot_vector_v, knot_vector_w, 
+                                                    knot_vector_u, knot_vector_v, knot_vector_w, starting_pos_uvw,
                                                     knot_spans_available, r_surrogate_sub_model_part);
             
             std::ofstream outputFile("surrogate_condition_nodes_coordinates.txt", std::ios::app);
@@ -2774,6 +2775,7 @@ void SnakeSbmProcess::CreateSurrogateBuondaryFromSnakeInner3D(
     const Vector& rKnotVectorU, 
     const Vector& rKnotVectorV,
     const Vector& rKnotVectorW,
+    const Vector& rStartingPositionUVW,
     std::vector<std::vector<std::vector<std::vector<int>>>>& rKnotSpansAvailable,
     ModelPart& rSurrogateModelPartInner
     ) 
@@ -2805,7 +2807,11 @@ void SnakeSbmProcess::CreateSurrogateBuondaryFromSnakeInner3D(
             bool check_next_point = false;
             for (int i = 0; i < rNumberKnotSpans[0]; ++i) {
                 if (check_next_point) {
-                    Point center_point((i + 0.5) * knot_step_u, (j + 0.5) * knot_step_v, (k + 0.5) * knot_step_w);
+                    Point center_point(
+                        (i + 0.5) * knot_step_u + rStartingPositionUVW[0],
+                        (j + 0.5) * knot_step_v + rStartingPositionUVW[1],
+                        (k + 0.5) * knot_step_w + rStartingPositionUVW[2]
+                    );
                     bool is_exiting = false;
                     if (rKnotSpansAvailable[IdMatrix][k][j][i] == 1) {
                         // Already marked active
