@@ -61,12 +61,8 @@ public:
     [[nodiscard]] Vector DerivativeOfFlowFunction(const Geo::SigmaTau&, CoulombAveragingType AveragingType) const;
 
     [[nodiscard]] double CalculateApex() const;
-    [[nodiscard]] double CalculatePlasticMultiplier(const Vector& rSigmaTau,
-                                                    const Vector& rDerivativeOfFlowFunction) const;
     [[nodiscard]] double CalculatePlasticMultiplier(const Geo::SigmaTau& rSigmaTau,
                                                     const Vector& rDerivativeOfFlowFunction) const;
-    [[nodiscard]] double CalculateEquivalentPlasticStrainIncrement(const Vector& rSigmaTau,
-                                                                   CoulombAveragingType AveragingType) const;
     [[nodiscard]] double CalculateEquivalentPlasticStrainIncrement(const Geo::SigmaTau& rSigmaTau,
                                                                    CoulombAveragingType AveragingType) const;
     [[nodiscard]] double CalculateEquivalentPlasticStrainIncrement(const Geo::PrincipalStresses& rPrincipalStresses,

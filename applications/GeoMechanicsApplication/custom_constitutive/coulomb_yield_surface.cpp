@@ -186,13 +186,6 @@ void CoulombYieldSurface::InitializeKappaDependentFunctions()
     mDilatancyAngleCalculator = MakeDilatancyAngleCalculator(mMaterialProperties);
 }
 
-// At some point in time we would like to get rid of this API. For now, just forward the request.
-double CoulombYieldSurface::CalculatePlasticMultiplier(const Vector& rSigmaTau,
-                                                       const Vector& rDerivativeOfFlowFunction) const
-{
-    return CalculatePlasticMultiplier(Geo::SigmaTau{rSigmaTau}, rDerivativeOfFlowFunction);
-}
-
 double CoulombYieldSurface::CalculatePlasticMultiplier(const Geo::SigmaTau& rSigmaTau,
                                                        const Vector& rDerivativeOfFlowFunction) const
 {
@@ -201,13 +194,6 @@ double CoulombYieldSurface::CalculatePlasticMultiplier(const Geo::SigmaTau& rSig
     return (GetCohesion() * std::cos(GetFrictionAngleInRadians()) - rSigmaTau.sigma * sin_phi -
             rSigmaTau.tau) /
            numerator;
-}
-
-// At some point in time we would like to get rid of this API. For now, just forward the request.
-double CoulombYieldSurface::CalculateEquivalentPlasticStrainIncrement(const Vector& rSigmaTau,
-                                                                      CoulombAveragingType AveragingType) const
-{
-    return CalculateEquivalentPlasticStrainIncrement(Geo::SigmaTau{rSigmaTau}, AveragingType);
 }
 
 double CoulombYieldSurface::CalculateEquivalentPlasticStrainIncrement(const Geo::SigmaTau& rSigmaTau,
