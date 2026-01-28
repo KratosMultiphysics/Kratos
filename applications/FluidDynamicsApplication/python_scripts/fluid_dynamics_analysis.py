@@ -3,10 +3,10 @@ from sys import argv
 
 import KratosMultiphysics as Kratos
 
-from KratosMultiphysics.analysis_stage import AnalysisStage
+from KratosMultiphysics.analysis_stage_with_solver import AnalysisStageWithSolver
 from KratosMultiphysics.FluidDynamicsApplication import python_solvers_wrapper_fluid
 
-class FluidDynamicsAnalysis(AnalysisStage):
+class FluidDynamicsAnalysis(AnalysisStageWithSolver):
     '''Main script for fluid dynamics simulations using the navier_stokes family of python solvers.'''
 
     def __init__(self,model,parameters):

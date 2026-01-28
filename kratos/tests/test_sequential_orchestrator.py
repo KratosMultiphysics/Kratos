@@ -8,6 +8,7 @@ import KratosMultiphysics.kratos_utilities
 from KratosMultiphysics.project import Project
 from KratosMultiphysics.python_solver import PythonSolver
 from KratosMultiphysics.analysis_stage import AnalysisStage
+from KratosMultiphysics.analysis_stage_with_solver import AnalysisStageWithSolver
 
 # Fake do-nothing solver class to test the orchestrator
 class EmptySolver(PythonSolver):
@@ -28,7 +29,7 @@ class EmptySolver(PythonSolver):
         return self.model.GetModelPart(self.settings["model_part_name"].GetString())
 
 # Fake do-nothing analysis stage class to test the orchestrator
-class EmptyAnalysisStage(AnalysisStage):
+class EmptyAnalysisStage(AnalysisStageWithSolver):
     def __init__(self, model, project_parameters):
         super().__init__(model, project_parameters)
 
