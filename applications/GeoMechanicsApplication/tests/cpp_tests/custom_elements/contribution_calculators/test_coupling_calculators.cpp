@@ -222,7 +222,7 @@ TEST_F(KratosGeoMechanicsFastSuiteWithoutKernel, TestPUCouplingVectorContributio
     const auto   voigt_vector            = UblasUtilities::CreateVector({1.0, 1.0, 1.0, 0.0});
     const double integration_coefficient = 0.5;
     const double biot_coefficient        = 2.0;
-    const double degree_of_saturation      = 0.1;
+    const double degree_of_saturation    = 0.1;
 
     // Checked by hand
     const auto expected_coupling_vector = UblasUtilities::CreateVector({42.0, 84.0});
@@ -231,12 +231,14 @@ TEST_F(KratosGeoMechanicsFastSuiteWithoutKernel, TestPUCouplingVectorContributio
     auto get_integration_coefficients = [integration_coefficient]() {
         return std::vector{integration_coefficient};
     };
-    const auto np_container     = UblasUtilities::CreateMatrix({{1.0, 2.0}});
-    auto       get_np_container = [&np_container]() -> const Matrix& { return np_container; };
-    auto get_biot_coefficients  = [biot_coefficient]() { return std::vector{biot_coefficient}; };
-    auto get_degrees_of_saturation = [degree_of_saturation]() { return std::vector{degree_of_saturation}; };
-    auto get_voigt_vector    = [voigt_vector]() { return voigt_vector; };
-    auto get_velocities = []() { return UblasUtilities::CreateVector({1.0, 2.0, 3.0, 4.0}); };
+    const auto np_container        = UblasUtilities::CreateMatrix({{1.0, 2.0}});
+    auto       get_np_container    = [&np_container]() -> const Matrix& { return np_container; };
+    auto get_biot_coefficients     = [biot_coefficient]() { return std::vector{biot_coefficient}; };
+    auto get_degrees_of_saturation = [degree_of_saturation]() {
+        return std::vector{degree_of_saturation};
+    };
+    auto get_voigt_vector = [voigt_vector]() { return voigt_vector; };
+    auto get_velocities   = []() { return UblasUtilities::CreateVector({1.0, 2.0, 3.0, 4.0}); };
     auto get_velocity_coefficient = []() { return 2.0; };
 
     PUCouplingCalculator<number_of_pw_dof, number_of_u_dof>::InputProvider input_provider(
@@ -265,7 +267,7 @@ TEST_F(KratosGeoMechanicsFastSuiteWithoutKernel, TestPUCouplingVectorContributio
     const auto   voigt_vector            = UblasUtilities::CreateVector({1.0, 1.0, 1.0, 0.0});
     const double integration_coefficient = 0.5;
     const double biot_coefficient        = 2.0;
-    const double degree_of_saturation      = 0.1;
+    const double degree_of_saturation    = 0.1;
 
     // Checked by hand
     const auto expected_coupling_vector = UblasUtilities::CreateVector({84.0, 168.0});
@@ -274,12 +276,16 @@ TEST_F(KratosGeoMechanicsFastSuiteWithoutKernel, TestPUCouplingVectorContributio
     auto get_integration_coefficients = [integration_coefficient]() {
         return std::vector{integration_coefficient, integration_coefficient};
     };
-    const auto np_container     = UblasUtilities::CreateMatrix({{1.0, 2.0}, {1.0, 2.0}});
-    auto       get_np_container = [&np_container]() -> const Matrix& { return np_container; };
-    auto get_biot_coefficients  = [biot_coefficient]() { return std::vector{biot_coefficient, biot_coefficient}; };
-    auto get_degrees_of_saturation = [degree_of_saturation]() { return std::vector{degree_of_saturation, degree_of_saturation}; };
-    auto get_voigt_vector    = [voigt_vector]() { return voigt_vector; };
-    auto get_velocities = []() { return UblasUtilities::CreateVector({1.0, 2.0, 3.0, 4.0}); };
+    const auto np_container          = UblasUtilities::CreateMatrix({{1.0, 2.0}, {1.0, 2.0}});
+    auto       get_np_container      = [&np_container]() -> const Matrix& { return np_container; };
+    auto       get_biot_coefficients = [biot_coefficient]() {
+        return std::vector{biot_coefficient, biot_coefficient};
+    };
+    auto get_degrees_of_saturation = [degree_of_saturation]() {
+        return std::vector{degree_of_saturation, degree_of_saturation};
+    };
+    auto get_voigt_vector = [voigt_vector]() { return voigt_vector; };
+    auto get_velocities   = []() { return UblasUtilities::CreateVector({1.0, 2.0, 3.0, 4.0}); };
     auto get_velocity_coefficient = []() { return 2.0; };
 
     PUCouplingCalculator<number_of_pw_dof, number_of_u_dof>::InputProvider input_provider(

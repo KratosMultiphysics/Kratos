@@ -86,7 +86,10 @@ public:
         return CalculateCouplingMatrix();
     }
 
-    typename BaseType::RHSVectorType RHSContribution() override { return prod(CalculateCouplingMatrix(), mInputProvider.GetNodalVelocities()); }
+    typename BaseType::RHSVectorType RHSContribution() override
+    {
+        return prod(CalculateCouplingMatrix(), mInputProvider.GetNodalVelocities());
+    }
 
     std::pair<std::optional<typename BaseType::LHSMatrixType>, typename BaseType::RHSVectorType> LocalSystemContribution() override
     {

@@ -29,7 +29,7 @@ public:
                       Geo::IntegrationCoefficientsGetter   GetIntegrationCoefficients,
                       std::function<std::vector<double>()> GetBiotCoefficients,
                       std::function<std::vector<double>()> GetBishopCoefficients,
-                      std::function<Vector()> GetNodalWaterPressures)
+                      std::function<Vector()>              GetNodalWaterPressures)
             : GetNpContainer(std::move(GetNpContainer)),
               GetBMatrices(std::move(GetBMatrices)),
               GetVoigtVector(std::move(GetVoigtVector)),
@@ -46,7 +46,7 @@ public:
         Geo::IntegrationCoefficientsGetter   GetIntegrationCoefficients;
         std::function<std::vector<double>()> GetBiotCoefficients;
         std::function<std::vector<double>()> GetBishopCoefficients;
-        std::function<Vector()> GetNodalWaterPressures;
+        std::function<Vector()>              GetNodalWaterPressures;
     };
 
     explicit UPCouplingCalculator(InputProvider CouplingInputProvider)
