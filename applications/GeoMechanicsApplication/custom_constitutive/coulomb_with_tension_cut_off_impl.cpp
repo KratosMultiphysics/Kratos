@@ -139,9 +139,9 @@ Geo::PrincipalStresses CoulombWithTensionCutOffImpl::DoReturnMapping(const Geo::
                                              rTrialPrincipalStresses, AveragingType);
         mCoulombYieldSurface.SetKappa(kappa);
 
-        //     if (std::abs(mCoulombYieldSurface.YieldFunctionValue(result)) < mAbsoluteYieldFunctionValueTolerance) {
-        //         break;
-        //     }
+        if (std::abs(mCoulombYieldSurface.YieldFunctionValue(result)) < mAbsoluteYieldFunctionValueTolerance) {
+            break;
+        }
     }
 
     return result;
