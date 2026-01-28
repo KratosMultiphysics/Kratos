@@ -59,9 +59,9 @@ private:
     template <typename StressStateType>
     [[nodiscard]] bool IsAdmissibleStressState(const StressStateType& rTrialStressState) const;
 
-    [[nodiscard]] Vector CalculateCornerPoint() const;
-    [[nodiscard]] bool   IsStressAtTensionApexReturnZone(const Vector& rTrialSigmaTau) const;
-    [[nodiscard]] bool   IsStressAtTensionApexReturnZone(const Geo::SigmaTau& rTrialSigmaTau) const;
+    [[nodiscard]] Geo::SigmaTau CalculateCornerPoint() const;
+    [[nodiscard]] bool          IsStressAtTensionApexReturnZone(const Vector& rTrialSigmaTau) const;
+    [[nodiscard]] bool IsStressAtTensionApexReturnZone(const Geo::SigmaTau& rTrialSigmaTau) const;
     [[nodiscard]] bool IsStressAtTensionApexReturnZone(const Geo::PrincipalStresses& rTrialPrincipalStresses) const;
     [[nodiscard]] bool IsStressAtTensionCutoffReturnZone(const Vector& rTrialSigmaTau) const;
     [[nodiscard]] bool IsStressAtTensionCutoffReturnZone(const Geo::SigmaTau& rTrialSigmaTau) const;

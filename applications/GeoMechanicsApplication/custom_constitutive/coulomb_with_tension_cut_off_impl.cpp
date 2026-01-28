@@ -64,7 +64,7 @@ Vector CoulombWithTensionCutOffImpl::DoReturnMapping(const Vector& rTrialSigmaTa
         }
 
         if (IsStressAtCornerReturnZone(rTrialSigmaTau, AveragingType)) {
-            result = CalculateCornerPoint();
+            result = CalculateCornerPoint().CopyTo<Vector>();
         } else { // Regular failure region
             result = ReturnStressAtRegularFailureZone(rTrialSigmaTau, AveragingType);
         }
@@ -96,7 +96,7 @@ Geo::SigmaTau CoulombWithTensionCutOffImpl::DoReturnMapping(const Geo::SigmaTau&
         }
 
         if (IsStressAtCornerReturnZone(rTrialSigmaTau, AveragingType)) {
-            result = Geo::SigmaTau{CalculateCornerPoint()};
+            result = CalculateCornerPoint();
         } else { // Regular failure region
             result = ReturnStressAtRegularFailureZone(rTrialSigmaTau, AveragingType);
         }
@@ -167,17 +167,18 @@ bool CoulombWithTensionCutOffImpl::IsAdmissibleStressState(const StressStateType
     return coulomb_yield_function_value < coulomb_tolerance && tension_yield_function_value < tension_tolerance;
 }
 
-Vector CoulombWithTensionCutOffImpl::CalculateCornerPoint() const
+Geo::SigmaTau CoulombWithTensionCutOffImpl::CalculateCornerPoint() const
 {
     const auto tensile_strength = mTensionCutOff.GetTensileStrength();
     if (const auto apex = mCoulombYieldSurface.CalculateApex(); tensile_strength > apex)
-        return UblasUtilities::CreateVector({apex, 0.0});
+        return Geo::SigmaTau{UblasUtilities::CreateVector({apex, 0.0})};
 
     const auto cohesion = mCoulombYieldSurface.GetCohesion();
     const auto sin_phi  = std::sin(mCoulombYieldSurface.GetFrictionAngleInRadians());
     const auto cos_phi  = std::cos(mCoulombYieldSurface.GetFrictionAngleInRadians());
-    return UblasUtilities::CreateVector({(tensile_strength - cohesion * cos_phi) / (1.0 - sin_phi),
-                                         (cohesion * cos_phi - tensile_strength * sin_phi) / (1.0 - sin_phi)});
+    return Geo::SigmaTau{UblasUtilities::CreateVector(
+        {(tensile_strength - cohesion * cos_phi) / (1.0 - sin_phi),
+         (cohesion * cos_phi - tensile_strength * sin_phi) / (1.0 - sin_phi)})};
 }
 
 // At some point in time we would like to get rid of this API. For now, just forward the request.
@@ -209,7 +210,7 @@ bool CoulombWithTensionCutOffImpl::IsStressAtTensionCutoffReturnZone(const Geo::
 {
     const auto corner_point = CalculateCornerPoint();
     return mTensionCutOff.GetTensileStrength() < mCoulombYieldSurface.CalculateApex() &&
-           corner_point[1] - rTrialSigmaTau.tau - corner_point[0] + rTrialSigmaTau.sigma > 0.0;
+           corner_point.tau - rTrialSigmaTau.tau - corner_point.sigma + rTrialSigmaTau.sigma > 0.0;
 }
 
 bool CoulombWithTensionCutOffImpl::IsStressAtTensionCutoffReturnZone(const Geo::PrincipalStresses& rTrialPrincipalStresses) const
@@ -231,8 +232,8 @@ bool CoulombWithTensionCutOffImpl::IsStressAtCornerReturnZone(const Geo::SigmaTa
     const auto corner_point = CalculateCornerPoint();
     const auto derivative_of_flow_function =
         mCoulombYieldSurface.DerivativeOfFlowFunction(rTrialSigmaTau, AveragingType);
-    return (rTrialSigmaTau.sigma - corner_point[0]) * derivative_of_flow_function[1] -
-               (rTrialSigmaTau.tau - corner_point[1]) * derivative_of_flow_function[0] >=
+    return (rTrialSigmaTau.sigma - corner_point.sigma) * derivative_of_flow_function[1] -
+               (rTrialSigmaTau.tau - corner_point.tau) * derivative_of_flow_function[0] >=
            0.0;
 }
 
