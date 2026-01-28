@@ -57,7 +57,6 @@ public:
                                           const Matrix& rRotationMatrix,
                                           std::size_t   StressVectorSize);
 
-    static Vector TransformPrincipalStressesToSigmaTau(const Vector& rPrincipalStresses);
     static Geo::SigmaTau TransformPrincipalStressesToSigmaTau(const Geo::PrincipalStresses& rPrincipalStresses);
     static Vector TransformSigmaTauToPrincipalStresses(const Vector& rSigmaTau, const Vector& rPrincipalStresses);
     static Geo::PrincipalStresses TransformSigmaTauToPrincipalStresses(const Geo::SigmaTau& rSigmaTau,

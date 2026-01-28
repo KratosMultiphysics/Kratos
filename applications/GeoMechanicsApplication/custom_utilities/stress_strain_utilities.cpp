@@ -231,17 +231,11 @@ Vector StressStrainUtilities::RotatePrincipalStresses(const Vector& rPrincipalSt
     return MathUtils<>::StressTensorToVector(rotated_stress_matrix, StressVectorSize);
 }
 
-Vector StressStrainUtilities::TransformPrincipalStressesToSigmaTau(const Vector& rPrincipalStresses)
-{
-    auto result = Vector{2};
-    result[0]   = 0.5 * (rPrincipalStresses[0] + rPrincipalStresses[2]);
-    result[1]   = 0.5 * (rPrincipalStresses[0] - rPrincipalStresses[2]);
-    return result;
-}
-
 Geo::SigmaTau StressStrainUtilities::TransformPrincipalStressesToSigmaTau(const Geo::PrincipalStresses& rPrincipalStresses)
 {
-    return Geo::SigmaTau{TransformPrincipalStressesToSigmaTau(rPrincipalStresses.CopyTo<Vector>())};
+    return Geo::SigmaTau{UblasUtilities::CreateVector(
+        {0.5 * (rPrincipalStresses.values[0] + rPrincipalStresses.values[2]),
+         0.5 * (rPrincipalStresses.values[0] - rPrincipalStresses.values[2])})};
 }
 
 Vector StressStrainUtilities::TransformSigmaTauToPrincipalStresses(const Vector& rSigmaTau,
