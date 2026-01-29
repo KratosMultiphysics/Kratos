@@ -1,6 +1,6 @@
 import KratosMultiphysics as Kratos
 from KratosMultiphysics.StructuralMechanicsApplication.structural_mechanics_analysis import StructuralMechanicsAnalysis
-from KratosMultiphysics.StructuralMechanicsApplication.step_controller import StepController, DefaultStepController
+from KratosMultiphysics.StructuralMechanicsApplication.step_controller import StepController, DefaultStepController, Factory
 
 class StructuralMechanicsLoadSteppingAnalysis(StructuralMechanicsAnalysis):
     def RunSolutionLoop(self):
@@ -18,12 +18,15 @@ class StructuralMechanicsLoadSteppingAnalysis(StructuralMechanicsAnalysis):
         if self.project_parameters.Has("list_of_step_controllers"):
             for step_controller_settings in self.project_parameters["list_of_step_controllers"].values():
                 step_controller_settings.ValidateAndAssignDefaults(default_step_controller_settings)
-                list_of_step_controllers.append((Kratos.IntervalUtility(step_controller_settings), self._CreateStepController(step_controller_settings["settings"])))
+                list_of_step_controllers.append((Kratos.IntervalUtility(step_controller_settings), Factory(step_controller_settings["settings"])))
 
         if len(list_of_step_controllers) == 0:
             list_of_step_controllers.append((Kratos.IntervalUtility(Kratos.Parameters("""{"interval":[0.0, "End"]}""")), DefaultStepController(Kratos.Parameters("""{}"""))))
 
         computing_mp: Kratos.ModelPart = self._GetSolver().GetComputingModelPart()
+
+        def __get_serializer():
+            return Kratos.FileSerializer("serialization", Kratos.SerializerTraceType.SERIALIZER_NO_TRACE, True)
 
         is_converged = False
         while self.KeepAdvancingSolutionLoop():
@@ -46,13 +49,7 @@ class StructuralMechanicsLoadSteppingAnalysis(StructuralMechanicsAnalysis):
 
             self.time = time_end
 
-            # store the positions of the nodes first, because Predict may move the mesh as well, therefore, we
-            # need to collect node positions before moving
-            # this will add a cost for the existing behavior, hence this is guarded by the following if block to
-            # not to have additional cost of collecting data if no stepping is used.
-            if not isinstance(step_controller, DefaultStepController):
-                ta_position = Kratos.TensorAdaptors.NodePositionTensorAdaptor(computing_mp.Nodes, Kratos.Configuration.Current)
-                ta_position.CollectData()
+            __get_serializer().Save(computing_mp.FullName(), computing_mp)
 
             # first try to solve for the final time.
             self.InitializeSolutionStep()
@@ -83,22 +80,18 @@ class StructuralMechanicsLoadSteppingAnalysis(StructuralMechanicsAnalysis):
 
                     # now collect the nodes positions, which may have moved
                     # can be used at a later time to reset the nodal positions.
-                    ta_position.CollectData()
+                    __get_serializer().Save(computing_mp.FullName(), computing_mp)
                 else:
                     Kratos.Logger.PrintInfo(self.__class__.__name__, f"Step at time = {self.time} did not converge.")
+                    # here we need to reset the coordinates of the mesh, if someone has used the move_mesh_flag = true
+                    # reset the mesh coordinates
+                    __get_serializer().Load(computing_mp.FullName(), computing_mp)
+
                     # sub_step did not converge
                     # do not advance in step. get a new sub-step
                     self.time = step_controller.GetNextStep(time_begin, is_converged)
                     computing_mp.ProcessInfo[Kratos.TIME] = self.time
                     computing_mp.ProcessInfo[Kratos.DELTA_TIME] = self.time - time_begin
-
-                    # here we need to reset the coordinates of the mesh, if someone has used the move_mesh_flag = true
-                    # reset the mesh coordinates
-                    ta_position.StoreData()
-
-                    # here we reset the solution step data of each node to the previous time step values
-                    # so the Predict can does a better prediction again with the new step
-                    computing_mp.OverwriteSolutionStepData(1, 0)
 
                 self.InitializeSolutionStep()
                 self._GetSolver().Predict()
