@@ -56,26 +56,6 @@ public:
 
     using BaseType = ContributionCalculator<NumberOfRows, NumberOfColumns>;
 
-    typename BaseType::LHSMatrixType CalculateCouplingMatrix()
-    {
-        typename BaseType::LHSMatrixType result       = ZeroMatrix(NumberOfRows, NumberOfColumns);
-        const auto                       b_matrices   = mInputProvider.GetBMatrices();
-        const auto                       voigt_vector = mInputProvider.GetVoigtVector();
-        const auto integration_coefficients           = mInputProvider.GetIntegrationCoefficients();
-        const auto biot_coefficients                  = mInputProvider.GetBiotCoefficients();
-        const auto bishop_coefficients                = mInputProvider.GetBishopCoefficients();
-        const auto np_container                       = mInputProvider.GetNpContainer();
-        for (std::size_t i = 0; i < mInputProvider.GetBMatrices().size(); ++i) {
-            typename BaseType::LHSMatrixType coupling_contribution;
-            GeoTransportEquationUtilities::CalculateCouplingMatrix(
-                coupling_contribution, b_matrices[i], voigt_vector, row(np_container, i),
-                biot_coefficients[i], bishop_coefficients[i], integration_coefficients[i]);
-            result += coupling_contribution;
-        }
-
-        return result;
-    }
-
     std::optional<typename BaseType::LHSMatrixType> LHSContribution() override
     {
         return CalculateCouplingMatrix();
@@ -90,6 +70,27 @@ public:
     {
         return {LHSContribution(), RHSContribution()};
     };
+
+private:
+    typename BaseType::LHSMatrixType CalculateCouplingMatrix()
+    {
+        typename BaseType::LHSMatrixType result       = ZeroMatrix(NumberOfRows, NumberOfColumns);
+        const auto                       b_matrices   = mInputProvider.GetBMatrices();
+        const auto                       voigt_vector = mInputProvider.GetVoigtVector();
+        const auto integration_coefficients           = mInputProvider.GetIntegrationCoefficients();
+        const auto biot_coefficients                  = mInputProvider.GetBiotCoefficients();
+        const auto bishop_coefficients                = mInputProvider.GetBishopCoefficients();
+        const auto np_container                       = mInputProvider.GetNpContainer();
+        for (auto i = std::size_t{0}; i < integration_coefficients.size(); ++i) {
+            typename BaseType::LHSMatrixType coupling_contribution;
+            GeoTransportEquationUtilities::CalculateCouplingMatrix(
+                coupling_contribution, b_matrices[i], voigt_vector, row(np_container, i),
+                biot_coefficients[i], bishop_coefficients[i], integration_coefficients[i]);
+            result += coupling_contribution;
+        }
+
+        return result;
+    }
 
     InputProvider mInputProvider;
 };

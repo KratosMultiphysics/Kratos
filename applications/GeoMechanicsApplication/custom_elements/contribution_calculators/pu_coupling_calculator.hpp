@@ -71,8 +71,7 @@ public:
             mInputProvider.GetIntegrationCoefficients, mInputProvider.GetBiotCoefficients,
             mInputProvider.GetDegreesOfSaturation, dummy_nodal_water_pressure_function);
         UPCouplingCalculator<NumberOfColumns, NumberOfRows> up_coupling_calculator(input_provider);
-        typename UPCouplingCalculator<NumberOfColumns, NumberOfRows>::LHSMatrixType up_coupling_matrix =
-            up_coupling_calculator.LHSContribution().value();
+        const auto up_coupling_matrix = up_coupling_calculator.LHSContribution().value();
 
         return trans(up_coupling_matrix) * PORE_PRESSURE_SIGN_FACTOR;
     }

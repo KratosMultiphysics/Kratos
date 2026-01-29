@@ -14,7 +14,7 @@
 #include "custom_elements/contribution_calculators/up_coupling_calculator.hpp"
 #include "custom_utilities/transport_equation_utilities.hpp"
 #include "custom_utilities/ublas_utilities.h"
-#include "includes/checks.h"
+#include "includes/expect.h"
 #include "tests/cpp_tests/geo_mechanics_fast_suite_without_kernel.h"
 #include "tests/cpp_tests/test_utilities.h"
 
@@ -24,7 +24,7 @@ namespace
 using namespace Kratos;
 
 template <unsigned int NumberOfRows, unsigned int NumberOfColumns>
-UPCouplingCalculator<NumberOfRows, NumberOfColumns>::InputProvider CreateUPInputProvider(
+typename UPCouplingCalculator<NumberOfRows, NumberOfColumns>::InputProvider CreateUPInputProvider(
     const Matrix& rBMatrix,
     const Vector& rVoigtVector,
     double        IntegrationCoefficient,
@@ -34,13 +34,13 @@ UPCouplingCalculator<NumberOfRows, NumberOfColumns>::InputProvider CreateUPInput
     const Matrix& rNpContainer,
     std::size_t   NumberOfIntegrationPoints = 1)
 {
-    auto get_b_matrices = [rBMatrix, NumberOfIntegrationPoints]() {
+    auto get_b_matrices = [&rBMatrix, NumberOfIntegrationPoints]() {
         return std::vector(NumberOfIntegrationPoints, rBMatrix);
     };
     auto get_integration_coefficients = [IntegrationCoefficient, NumberOfIntegrationPoints]() {
         return std::vector(NumberOfIntegrationPoints, IntegrationCoefficient);
     };
-    auto get_np_container      = [&rNpContainer]() -> const Matrix& { return rNpContainer; };
+    auto get_np_container      = [&rNpContainer]() -> const auto& { return rNpContainer; };
     auto get_biot_coefficients = [BiotCoefficient, NumberOfIntegrationPoints]() {
         return std::vector(NumberOfIntegrationPoints, BiotCoefficient);
     };
@@ -56,7 +56,7 @@ UPCouplingCalculator<NumberOfRows, NumberOfColumns>::InputProvider CreateUPInput
 }
 
 template <unsigned int NumberOfRows, unsigned int NumberOfColumns>
-PUCouplingCalculator<NumberOfRows, NumberOfColumns>::InputProvider CreatePUInputProvider(
+typename PUCouplingCalculator<NumberOfRows, NumberOfColumns>::InputProvider CreatePUInputProvider(
     const Matrix& rBMatrix,
     const Vector& rVoigtVector,
     double        IntegrationCoefficient,
@@ -66,13 +66,13 @@ PUCouplingCalculator<NumberOfRows, NumberOfColumns>::InputProvider CreatePUInput
     const Matrix& rNpContainer,
     std::size_t   NumberOfIntegrationPoints = 1)
 {
-    auto get_b_matrices = [rBMatrix, NumberOfIntegrationPoints]() {
+    auto get_b_matrices = [&rBMatrix, NumberOfIntegrationPoints]() {
         return std::vector(NumberOfIntegrationPoints, rBMatrix);
     };
     auto get_integration_coefficients = [IntegrationCoefficient, NumberOfIntegrationPoints]() {
         return std::vector(NumberOfIntegrationPoints, IntegrationCoefficient);
     };
-    auto get_np_container      = [&rNpContainer]() -> const Matrix& { return rNpContainer; };
+    auto get_np_container      = [&rNpContainer]() -> const auto& { return rNpContainer; };
     auto get_biot_coefficients = [BiotCoefficient, NumberOfIntegrationPoints]() {
         return std::vector(NumberOfIntegrationPoints, BiotCoefficient);
     };
@@ -94,7 +94,7 @@ namespace Kratos::Testing
 
 TEST_F(KratosGeoMechanicsFastSuiteWithoutKernel, TestUPCouplingMatrixContribution)
 {
-    // Given
+    // Arrange
     constexpr auto number_of_u_dof  = 4;
     constexpr auto number_of_pw_dof = 2;
 
@@ -106,12 +106,12 @@ TEST_F(KratosGeoMechanicsFastSuiteWithoutKernel, TestUPCouplingMatrixContributio
                  {13.0,14.0,15.0,16.0}});
     // clang-format on
 
-    const auto   voigt_vector            = UblasUtilities::CreateVector({1.0, 1.0, 1.0, 0.0});
-    const double integration_coefficient = 0.5;
-    const double biot_coefficient        = 2.0;
-    const double bishop_coefficient      = 0.1;
-    const auto   np_container            = UblasUtilities::CreateMatrix({{1.0, 2.0}});
-    auto         fluid_pressures         = UblasUtilities::CreateVector({1.0, 2.0});
+    const auto       voigt_vector            = UblasUtilities::CreateVector({1.0, 1.0, 1.0, 0.0});
+    constexpr double integration_coefficient = 0.5;
+    constexpr double biot_coefficient        = 2.0;
+    constexpr double bishop_coefficient      = 0.1;
+    const auto       np_container            = UblasUtilities::CreateMatrix({{1.0, 2.0}});
+    auto             fluid_pressures         = UblasUtilities::CreateVector({1.0, 2.0});
 
     const auto input_provider = CreateUPInputProvider<number_of_u_dof, number_of_pw_dof>(
         b_matrix, voigt_vector, integration_coefficient, biot_coefficient, bishop_coefficient,
@@ -119,10 +119,10 @@ TEST_F(KratosGeoMechanicsFastSuiteWithoutKernel, TestUPCouplingMatrixContributio
 
     UPCouplingCalculator<number_of_u_dof, number_of_pw_dof> coupling_calculator(input_provider);
 
-    // When
+    // Act
     const auto calculated_coupling_matrix = coupling_calculator.LHSContribution().value();
 
-    // Then
+    // Assert
     // clang-format off
     // Expected result is checked by hand
     const auto expected_coupling_matrix = UblasUtilities::CreateMatrix(
@@ -131,12 +131,12 @@ TEST_F(KratosGeoMechanicsFastSuiteWithoutKernel, TestUPCouplingMatrixContributio
      {2.1, 4.2},
      {2.4, 4.8}});
     // clang-format on
-    KRATOS_CHECK_MATRIX_NEAR(calculated_coupling_matrix, expected_coupling_matrix, Defaults::absolute_tolerance);
+    KRATOS_EXPECT_MATRIX_NEAR(calculated_coupling_matrix, expected_coupling_matrix, Defaults::absolute_tolerance);
 }
 
 TEST_F(KratosGeoMechanicsFastSuiteWithoutKernel, TestUPCouplingVectorContribution)
 {
-    // Given
+    // Arrange
     constexpr auto number_of_u_dof  = 4;
     constexpr auto number_of_pw_dof = 2;
 
@@ -148,12 +148,12 @@ TEST_F(KratosGeoMechanicsFastSuiteWithoutKernel, TestUPCouplingVectorContributio
                  {13.0,14.0,15.0,16.0}});
     // clang-format on
 
-    const auto   voigt_vector            = UblasUtilities::CreateVector({1.0, 1.0, 1.0, 0.0});
-    const double integration_coefficient = 0.5;
-    const double biot_coefficient        = 2.0;
-    const double bishop_coefficient      = 0.1;
-    const auto   np_container            = UblasUtilities::CreateMatrix({{1.0, 2.0}});
-    auto         fluid_pressures         = UblasUtilities::CreateVector({1.0, 2.0});
+    const auto       voigt_vector            = UblasUtilities::CreateVector({1.0, 1.0, 1.0, 0.0});
+    constexpr double integration_coefficient = 0.5;
+    constexpr double biot_coefficient        = 2.0;
+    constexpr double bishop_coefficient      = 0.1;
+    const auto       np_container            = UblasUtilities::CreateMatrix({{1.0, 2.0}});
+    auto             fluid_pressures         = UblasUtilities::CreateVector({1.0, 2.0});
 
     const auto input_provider = CreateUPInputProvider<number_of_u_dof, number_of_pw_dof>(
         b_matrix, voigt_vector, integration_coefficient, biot_coefficient, bishop_coefficient,
@@ -161,18 +161,18 @@ TEST_F(KratosGeoMechanicsFastSuiteWithoutKernel, TestUPCouplingVectorContributio
 
     UPCouplingCalculator<number_of_u_dof, number_of_pw_dof> coupling_calculator(input_provider);
 
-    // When
+    // Act
     const auto calculated_coupling_vector = coupling_calculator.RHSContribution();
 
-    // Then
+    // Assert
     // Expected result is checked by hand
     const auto expected_coupling_vector = UblasUtilities::CreateVector({7.5, 9.0, 10.5, 12.0});
-    KRATOS_CHECK_VECTOR_NEAR(calculated_coupling_vector, expected_coupling_vector, Defaults::absolute_tolerance);
+    KRATOS_EXPECT_VECTOR_NEAR(calculated_coupling_vector, expected_coupling_vector, Defaults::absolute_tolerance);
 }
 
 TEST_F(KratosGeoMechanicsFastSuiteWithoutKernel, TestUPCouplingVectorContributionMultipleIntegrationPoints)
 {
-    // Given
+    // Arrange
     constexpr auto number_of_u_dof  = 4;
     constexpr auto number_of_pw_dof = 2;
 
@@ -185,9 +185,9 @@ TEST_F(KratosGeoMechanicsFastSuiteWithoutKernel, TestUPCouplingVectorContributio
     // clang-format on
 
     const auto   voigt_vector            = UblasUtilities::CreateVector({1.0, 1.0, 1.0, 0.0});
-    const double integration_coefficient = 0.5;
-    const double biot_coefficient        = 2.0;
-    const double bishop_coefficient      = 0.1;
+    constexpr double integration_coefficient = 0.5;
+    constexpr double biot_coefficient        = 2.0;
+    constexpr double bishop_coefficient      = 0.1;
     // The Np container now has two rows since there are two integration points
     const auto     np_container    = UblasUtilities::CreateMatrix({{1.0, 2.0}, {1.0, 2.0}});
     const auto     fluid_pressures = UblasUtilities::CreateVector({1.0, 2.0});
@@ -199,18 +199,18 @@ TEST_F(KratosGeoMechanicsFastSuiteWithoutKernel, TestUPCouplingVectorContributio
 
     UPCouplingCalculator<number_of_u_dof, number_of_pw_dof> coupling_calculator(input_provider);
 
-    // When
+    // Act
     const auto calculated_coupling_vector = coupling_calculator.RHSContribution();
 
-    // Then
+    // Assert
     // Expected result is checked by hand
     const auto expected_coupling_vector = UblasUtilities::CreateVector({15.0, 18.0, 21.0, 24.0});
-    KRATOS_CHECK_VECTOR_NEAR(calculated_coupling_vector, expected_coupling_vector, Defaults::absolute_tolerance);
+    KRATOS_EXPECT_VECTOR_NEAR(calculated_coupling_vector, expected_coupling_vector, Defaults::absolute_tolerance);
 }
 
 TEST_F(KratosGeoMechanicsFastSuiteWithoutKernel, TestPUCouplingMatrixContribution)
 {
-    // Given
+    // Arrange
     constexpr auto number_of_u_dof  = 4;
     constexpr auto number_of_pw_dof = 2;
 
@@ -223,9 +223,9 @@ TEST_F(KratosGeoMechanicsFastSuiteWithoutKernel, TestPUCouplingMatrixContributio
     // clang-format on
 
     const auto   voigt_vector            = UblasUtilities::CreateVector({1.0, 1.0, 1.0, 0.0});
-    const double integration_coefficient = 0.5;
-    const double biot_coefficient        = 2.0;
-    const double degree_of_saturation    = 0.1;
+    constexpr double integration_coefficient = 0.5;
+    constexpr double biot_coefficient        = 2.0;
+    constexpr double degree_of_saturation    = 0.1;
     const auto   velocities              = UblasUtilities::CreateVector({1.0, 2.0, 3.0, 4.0});
     const auto   np_container            = UblasUtilities::CreateMatrix({{1.0, 2.0}});
 
@@ -235,22 +235,22 @@ TEST_F(KratosGeoMechanicsFastSuiteWithoutKernel, TestPUCouplingMatrixContributio
 
     PUCouplingCalculator<number_of_pw_dof, number_of_u_dof> coupling_calculator(input_provider);
 
-    // When
+    // Act
     const auto calculated_coupling_matrix = coupling_calculator.LHSContribution().value();
 
-    // Then
+    // Assert
     // clang-format off
     // Expected result is checked by hand
     const auto expected_coupling_matrix = UblasUtilities::CreateMatrix(
     {{1.5, 1.8, 2.1, 2.4},
      {3.0, 3.6, 4.2, 4.8}});
     // clang-format on
-    KRATOS_CHECK_MATRIX_NEAR(calculated_coupling_matrix, expected_coupling_matrix, Defaults::absolute_tolerance);
+    KRATOS_EXPECT_MATRIX_NEAR(calculated_coupling_matrix, expected_coupling_matrix, Defaults::absolute_tolerance);
 }
 
 TEST_F(KratosGeoMechanicsFastSuiteWithoutKernel, TestPUCouplingVectorContribution)
 {
-    // Given
+    // Arrange
     constexpr auto number_of_u_dof  = 4;
     constexpr auto number_of_pw_dof = 2;
 
@@ -263,9 +263,9 @@ TEST_F(KratosGeoMechanicsFastSuiteWithoutKernel, TestPUCouplingVectorContributio
     // clang-format on
 
     const auto   voigt_vector            = UblasUtilities::CreateVector({1.0, 1.0, 1.0, 0.0});
-    const double integration_coefficient = 0.5;
-    const double biot_coefficient        = 2.0;
-    const double degree_of_saturation    = 0.1;
+    constexpr double integration_coefficient = 0.5;
+    constexpr double biot_coefficient        = 2.0;
+    constexpr double degree_of_saturation    = 0.1;
     const auto   velocities              = UblasUtilities::CreateVector({1.0, 2.0, 3.0, 4.0});
     const auto   np_container            = UblasUtilities::CreateMatrix({{1.0, 2.0}});
 
@@ -275,18 +275,18 @@ TEST_F(KratosGeoMechanicsFastSuiteWithoutKernel, TestPUCouplingVectorContributio
 
     PUCouplingCalculator<number_of_pw_dof, number_of_u_dof> coupling_calculator(input_provider);
 
-    // When
+    // Act
     const auto calculated_coupling_vector = coupling_calculator.RHSContribution();
 
-    // Then
+    // Assert
     // Expected result is checked by hand
     const auto expected_coupling_vector = UblasUtilities::CreateVector({21.0, 42.0});
-    KRATOS_CHECK_VECTOR_NEAR(calculated_coupling_vector, expected_coupling_vector, Defaults::absolute_tolerance);
+    KRATOS_EXPECT_VECTOR_NEAR(calculated_coupling_vector, expected_coupling_vector, Defaults::absolute_tolerance);
 }
 
 TEST_F(KratosGeoMechanicsFastSuiteWithoutKernel, TestPUCouplingVectorContributionMultipleIntegrationPoints)
 {
-    // Given
+    // Arrange
     constexpr auto number_of_u_dof  = 4;
     constexpr auto number_of_pw_dof = 2;
 
@@ -299,9 +299,9 @@ TEST_F(KratosGeoMechanicsFastSuiteWithoutKernel, TestPUCouplingVectorContributio
     // clang-format on
 
     const auto   voigt_vector            = UblasUtilities::CreateVector({1.0, 1.0, 1.0, 0.0});
-    const double integration_coefficient = 0.5;
-    const double biot_coefficient        = 2.0;
-    const double degree_of_saturation    = 0.1;
+    constexpr double integration_coefficient = 0.5;
+    constexpr double biot_coefficient        = 2.0;
+    constexpr double degree_of_saturation    = 0.1;
     const auto   velocities              = UblasUtilities::CreateVector({1.0, 2.0, 3.0, 4.0});
     const auto   np_container            = UblasUtilities::CreateMatrix({{1.0, 2.0}, {1.0, 2.0}});
     const auto   number_of_integration_points = std::size_t{2};
@@ -311,13 +311,13 @@ TEST_F(KratosGeoMechanicsFastSuiteWithoutKernel, TestPUCouplingVectorContributio
 
     PUCouplingCalculator<number_of_pw_dof, number_of_u_dof> coupling_calculator(input_provider);
 
-    // When
+    // Act
     const auto calculated_coupling_vector = coupling_calculator.RHSContribution();
 
-    // Then
+    // Assert
     // Expected result is checked by hand
     const auto expected_coupling_vector = UblasUtilities::CreateVector({42.0, 84.0});
-    KRATOS_CHECK_VECTOR_NEAR(calculated_coupling_vector, expected_coupling_vector, Defaults::absolute_tolerance);
+    KRATOS_EXPECT_VECTOR_NEAR(calculated_coupling_vector, expected_coupling_vector, Defaults::absolute_tolerance);
 }
 
 } // namespace Kratos::Testing
