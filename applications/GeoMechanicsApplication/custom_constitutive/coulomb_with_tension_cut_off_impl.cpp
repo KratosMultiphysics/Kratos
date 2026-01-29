@@ -51,13 +51,17 @@ bool CoulombWithTensionCutOffImpl::IsAdmissibleStressState(const Geo::PrincipalS
 Geo::SigmaTau CoulombWithTensionCutOffImpl::DoReturnMapping(const Geo::SigmaTau& rTrialSigmaTau,
                                                             CoulombYieldSurface::CoulombAveragingType AveragingType)
 {
-    return DoReturnMapping<>(rTrialSigmaTau, AveragingType);
+    auto sigma_tau_to_sigma_tau = [](const Geo::SigmaTau& rSigmaTau) { return rSigmaTau; };
+    return DoReturnMapping<>(rTrialSigmaTau, sigma_tau_to_sigma_tau, AveragingType);
 }
 
 Geo::PrincipalStresses CoulombWithTensionCutOffImpl::DoReturnMapping(const Geo::PrincipalStresses& rTrialPrincipalStresses,
                                                                      CoulombYieldSurface::CoulombAveragingType AveragingType)
 {
-    return DoReturnMapping<>(rTrialPrincipalStresses, AveragingType);
+    auto principal_stresses_to_sigma_tau = [](const Geo::PrincipalStresses& rPrincipalStresses) {
+        return StressStrainUtilities::TransformPrincipalStressesToSigmaTau(rPrincipalStresses);
+    };
+    return DoReturnMapping<>(rTrialPrincipalStresses, principal_stresses_to_sigma_tau, AveragingType);
 }
 
 void CoulombWithTensionCutOffImpl::SaveKappaOfCoulombYieldSurface()
@@ -81,23 +85,26 @@ bool CoulombWithTensionCutOffImpl::IsAdmissibleStressState(const StressStateType
     return coulomb_yield_function_value < coulomb_tolerance && tension_yield_function_value < tension_tolerance;
 }
 
-template <typename StressStateType>
+template <typename StressStateType, typename StressStateToSigmaTauFunctionType>
 StressStateType CoulombWithTensionCutOffImpl::DoReturnMapping(const StressStateType& rTrialStressState,
+                                                              const StressStateToSigmaTauFunctionType& rStressStateToSigmaTau,
                                                               CoulombYieldSurface::CoulombAveragingType AveragingType)
 {
     auto result = StressStateType{};
 
+    const auto trial_sigma_tau = rStressStateToSigmaTau(rTrialStressState);
+
     auto kappa_start = mCoulombYieldSurface.GetKappa();
     for (auto counter = std::size_t{0}; counter < mMaxNumberOfPlasticIterations; ++counter) {
-        if (IsStressAtTensionApexReturnZone(rTrialStressState)) {
+        if (IsStressAtTensionApexReturnZone(trial_sigma_tau)) {
             return ReturnStressAtTensionApexReturnZone(rTrialStressState);
         }
 
-        if (IsStressAtTensionCutoffReturnZone(rTrialStressState)) {
+        if (IsStressAtTensionCutoffReturnZone(trial_sigma_tau)) {
             return ReturnStressAtTensionCutoffReturnZone(rTrialStressState);
         }
 
-        if (IsStressAtCornerReturnZone(rTrialStressState, AveragingType)) {
+        if (IsStressAtCornerReturnZone(trial_sigma_tau, AveragingType)) {
             result = CalculateCornerPoint(rTrialStressState);
         } else { // Regular failure region
             result = ReturnStressAtRegularFailureZone(rTrialStressState, AveragingType);
@@ -143,23 +150,11 @@ bool CoulombWithTensionCutOffImpl::IsStressAtTensionApexReturnZone(const Geo::Si
            rTrialSigmaTau.sigma - rTrialSigmaTau.tau - tensile_strength > 0.0;
 }
 
-bool CoulombWithTensionCutOffImpl::IsStressAtTensionApexReturnZone(const Geo::PrincipalStresses& rTrialPrincipalStresses) const
-{
-    return IsStressAtTensionApexReturnZone(
-        StressStrainUtilities::TransformPrincipalStressesToSigmaTau(rTrialPrincipalStresses));
-}
-
 bool CoulombWithTensionCutOffImpl::IsStressAtTensionCutoffReturnZone(const Geo::SigmaTau& rTrialSigmaTau) const
 {
     const auto corner_point = CalculateCornerPoint(rTrialSigmaTau);
     return mTensionCutOff.GetTensileStrength() < mCoulombYieldSurface.CalculateApex() &&
            corner_point.tau - rTrialSigmaTau.tau - corner_point.sigma + rTrialSigmaTau.sigma > 0.0;
-}
-
-bool CoulombWithTensionCutOffImpl::IsStressAtTensionCutoffReturnZone(const Geo::PrincipalStresses& rTrialPrincipalStresses) const
-{
-    return IsStressAtTensionCutoffReturnZone(
-        StressStrainUtilities::TransformPrincipalStressesToSigmaTau(rTrialPrincipalStresses));
 }
 
 bool CoulombWithTensionCutOffImpl::IsStressAtCornerReturnZone(const Geo::SigmaTau& rTrialSigmaTau,
@@ -171,13 +166,6 @@ bool CoulombWithTensionCutOffImpl::IsStressAtCornerReturnZone(const Geo::SigmaTa
     return (rTrialSigmaTau.sigma - corner_point.sigma) * derivative_of_flow_function[1] -
                (rTrialSigmaTau.tau - corner_point.tau) * derivative_of_flow_function[0] >=
            0.0;
-}
-
-bool CoulombWithTensionCutOffImpl::IsStressAtCornerReturnZone(const Geo::PrincipalStresses& rTrialPrincipalStresses,
-                                                              CoulombYieldSurface::CoulombAveragingType AveragingType) const
-{
-    return IsStressAtCornerReturnZone(
-        StressStrainUtilities::TransformPrincipalStressesToSigmaTau(rTrialPrincipalStresses), AveragingType);
 }
 
 Geo::SigmaTau CoulombWithTensionCutOffImpl::ReturnStressAtTensionApexReturnZone(const Geo::SigmaTau&) const

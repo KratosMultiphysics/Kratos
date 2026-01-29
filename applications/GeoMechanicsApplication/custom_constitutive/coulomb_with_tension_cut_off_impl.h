@@ -56,19 +56,16 @@ private:
 
     template <typename StressStateType>
     [[nodiscard]] bool IsAdmissibleStressState(const StressStateType& rTrialStressState) const;
-    template <typename StressStateType>
+    template <typename StressStateType, typename StressStateToSigmaTauFunctionType>
     [[nodiscard]] StressStateType DoReturnMapping(const StressStateType& rTrialStressState,
+                                                  const StressStateToSigmaTauFunctionType& rStressStateToSigmaTau,
                                                   CoulombYieldSurface::CoulombAveragingType AveragingType);
 
     [[nodiscard]] Geo::SigmaTau CalculateCornerPoint(const Geo::SigmaTau&) const;
     [[nodiscard]] Geo::PrincipalStresses CalculateCornerPoint(const Geo::PrincipalStresses& rPrincipalStresses) const;
     [[nodiscard]] bool IsStressAtTensionApexReturnZone(const Geo::SigmaTau& rTrialSigmaTau) const;
-    [[nodiscard]] bool IsStressAtTensionApexReturnZone(const Geo::PrincipalStresses& rTrialPrincipalStresses) const;
     [[nodiscard]] bool IsStressAtTensionCutoffReturnZone(const Geo::SigmaTau& rTrialSigmaTau) const;
-    [[nodiscard]] bool IsStressAtTensionCutoffReturnZone(const Geo::PrincipalStresses& rTrialPrincipalStresses) const;
     [[nodiscard]] bool IsStressAtCornerReturnZone(const Geo::SigmaTau& rTrialSigmaTau,
-                                                  CoulombYieldSurface::CoulombAveragingType AveragingType) const;
-    [[nodiscard]] bool IsStressAtCornerReturnZone(const Geo::PrincipalStresses& rTrialPrincipalStresses,
                                                   CoulombYieldSurface::CoulombAveragingType AveragingType) const;
 
     [[nodiscard]] Geo::SigmaTau ReturnStressAtTensionApexReturnZone(const Geo::SigmaTau&) const;
