@@ -97,7 +97,6 @@ void DataValueContainer::load(Serializer& rSerializer)
     for (std::size_t i = 0; i < size; i++) {
         rSerializer.load("Variable Name", name);
         mData[i].first = KratosComponents<VariableData>::pGet(name);
-        mData[i].first->Allocate(&(mData[i].second));
         mData[i].first->Load(rSerializer, mData[i].second);
     }
 
