@@ -16,7 +16,12 @@
 namespace Kratos::Geo
 {
 
-SigmaTau::SigmaTau() : sigma{values[0]}, tau{values[1]} {}
+SigmaTau::SigmaTau() : SigmaTau{{}} {}
+
+SigmaTau::SigmaTau(const std::initializer_list<double>& rValues)
+    : SigmaTau{rValues.begin(), rValues.end()}
+{
+}
 
 SigmaTau::SigmaTau(const SigmaTau& rOther) : sigma{values[0]}, tau{values[1]} { *this = rOther; }
 

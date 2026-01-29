@@ -24,17 +24,19 @@ namespace Kratos::Geo
 struct KRATOS_API(GEO_MECHANICS_APPLICATION) SigmaTau {
     constexpr static auto vector_size = std::size_t{2};
 
-    BoundedVector<double, vector_size> values = ZeroVector{vector_size};
+    BoundedVector<double, vector_size> values;
     double&                            sigma;
     double&                            tau;
 
     SigmaTau();
 
     template <typename VectorType>
-    explicit SigmaTau(const VectorType& rStressVector) : sigma{values[0]}, tau{values[1]}
+    explicit SigmaTau(const VectorType& rStressVector)
+        : SigmaTau{std::begin(rStressVector), std::end(rStressVector)}
     {
-        std::ranges::copy(rStressVector, values.begin());
     }
+
+    explicit SigmaTau(const std::initializer_list<double>& rValues);
 
     ~SigmaTau() = default;
     SigmaTau(const SigmaTau& rOther);
@@ -50,6 +52,14 @@ struct KRATOS_API(GEO_MECHANICS_APPLICATION) SigmaTau {
         auto result = ContainerType{values.size()};
         std::ranges::copy(values, result.begin());
         return result;
+    }
+
+private:
+    template <typename InputIt>
+    SigmaTau(InputIt First, InputIt Last)
+        : values{ZeroVector{vector_size}}, sigma{values[0]}, tau{values[1]}
+    {
+        std::copy(First, Last, values.begin());
     }
 };
 
