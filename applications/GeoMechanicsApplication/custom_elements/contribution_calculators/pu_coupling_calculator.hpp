@@ -30,16 +30,14 @@ public:
                       Geo::IntegrationCoefficientsGetter   GetIntegrationCoefficients,
                       std::function<std::vector<double>()> GetBiotCoefficients,
                       std::function<std::vector<double>()> GetDegreesOfSaturation,
-                      std::function<Vector()>              GetNodalVelocities,
-                      std::function<double()>              GetVelocityCoefficient)
+                      std::function<Vector()>              GetNodalVelocities)
             : GetNpContainer(std::move(GetNpContainer)),
               GetBMatrices(std::move(GetBMatrices)),
               GetVoigtVector(std::move(GetVoigtVector)),
               GetIntegrationCoefficients(std::move(GetIntegrationCoefficients)),
               GetBiotCoefficients(std::move(GetBiotCoefficients)),
               GetDegreesOfSaturation(std::move(GetDegreesOfSaturation)),
-              GetNodalVelocities(std::move(GetNodalVelocities)),
-              GetVelocityCoefficient(std::move(GetVelocityCoefficient))
+              GetNodalVelocities(std::move(GetNodalVelocities))
         {
         }
 
@@ -50,7 +48,6 @@ public:
         std::function<std::vector<double>()> GetBiotCoefficients;
         std::function<std::vector<double>()> GetDegreesOfSaturation;
         std::function<Vector()>              GetNodalVelocities;
-        std::function<double()>              GetVelocityCoefficient;
     };
 
     explicit PUCouplingCalculator(InputProvider CouplingInputProvider)
@@ -77,7 +74,7 @@ public:
         typename UPCouplingCalculator<NumberOfColumns, NumberOfRows>::LHSMatrixType up_coupling_matrix =
             up_coupling_calculator.LHSContribution().value();
 
-        return trans(up_coupling_matrix) * mInputProvider.GetVelocityCoefficient() * PORE_PRESSURE_SIGN_FACTOR;
+        return trans(up_coupling_matrix) * PORE_PRESSURE_SIGN_FACTOR;
     }
 
     std::optional<typename BaseType::LHSMatrixType> LHSContribution() override
