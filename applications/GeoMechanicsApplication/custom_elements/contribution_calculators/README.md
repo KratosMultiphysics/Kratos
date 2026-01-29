@@ -31,7 +31,7 @@ All calculators define a calculator-specific `InputProvider`, which is used to p
 The available contributions are listed in the introduction. The following sections provide more details on each of them. The documentation is still work in progress, meaning not all calculators have a detailed description yet.
 
 ### Water $\leftrightarrow$ Displacement Coupling
-The [UPCouplingCalculator](up_coupling_calculator.hpp) and the [PUCouplingCalculator](pu_coupling_calculator.hpp) compute the coupling matrix and terms ($Q$) to account for the between the water pressure and the displacement degrees of freedom. The mathematical definition is:
+The [UPCouplingCalculator](up_coupling_calculator.hpp) and the [PUCouplingCalculator](pu_coupling_calculator.hpp) compute the coupling matrix and terms ($Q$) to account for the coupling between the water pressure and the displacement degrees of freedom. The mathematical definition is:
 $$Q = \int_\Omega B^T \alpha \xi m N_p d\Omega$$
 where $B$ is the B-matrix, $\alpha$ is the Biot-alpha (relation between pressure and displacements, material parameter), $\xi$ is the Bishop coefficient, $m$ is the Voigt-vector (for example $[1,1,1,0]$ for plane strain and $[1,1,1,0,0,0]$ for 3D cases) and $N_p$ is the pressure shape function.
 
@@ -55,7 +55,7 @@ The `PUCouplingCalculator` computes the influence of the displacements on the pr
 - The Voigt-vector
 - The nodal velocity values
 
-This data is provided via the `InputProvider` and enables the calculator to compute left-hand side contribution. The PU coupling matrix is related to Q as follows: $$Q_{pu} = Q^{T}$$ This results in left-hand side contribution. **_Note: next to the transpose $Q_{pu}$ is calculated using degrees of saturation instead of Bishop coefficients._**
+This data is provided via the `InputProvider` and enables the calculator to compute left-hand side contribution. The PU coupling matrix is related to Q as follows: $$Q_{pu} = Q^{T}$$ This results in left-hand side contribution. **Note: next to the transpose $Q_{pu}$ is calculated using degrees of saturation instead of Bishop coefficients.**
 
 ($Q_{pu}$ as defined before) and right-hand side contributions ($Q_{pu} v$, in which $v$ is the vector of nodal velocities).
 

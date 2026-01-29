@@ -57,6 +57,22 @@ public:
 
     using BaseType = ContributionCalculator<NumberOfRows, NumberOfColumns>;
 
+    std::optional<typename BaseType::LHSMatrixType> LHSContribution() override
+    {
+        return CalculateCouplingMatrix();
+    }
+
+    typename BaseType::RHSVectorType RHSContribution() override
+    {
+        return prod(CalculateCouplingMatrix(), mInputProvider.GetNodalVelocities());
+    }
+
+    std::pair<std::optional<typename BaseType::LHSMatrixType>, typename BaseType::RHSVectorType> LocalSystemContribution() override
+    {
+        return {LHSContribution(), RHSContribution()};
+    };
+
+private:
     typename BaseType::LHSMatrixType CalculateCouplingMatrix()
     {
         // For the calculation, we can re-use the calculation of the UP coupling matrix.
@@ -75,21 +91,6 @@ public:
 
         return trans(up_coupling_matrix) * PORE_PRESSURE_SIGN_FACTOR;
     }
-
-    std::optional<typename BaseType::LHSMatrixType> LHSContribution() override
-    {
-        return CalculateCouplingMatrix();
-    }
-
-    typename BaseType::RHSVectorType RHSContribution() override
-    {
-        return prod(CalculateCouplingMatrix(), mInputProvider.GetNodalVelocities());
-    }
-
-    std::pair<std::optional<typename BaseType::LHSMatrixType>, typename BaseType::RHSVectorType> LocalSystemContribution() override
-    {
-        return {LHSContribution(), RHSContribution()};
-    };
 
     InputProvider mInputProvider;
 };
