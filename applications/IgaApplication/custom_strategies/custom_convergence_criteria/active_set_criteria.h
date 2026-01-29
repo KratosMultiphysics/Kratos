@@ -269,16 +269,18 @@ public:
     {
 
         if (!rModelPart.HasSubModelPart("ContactInterface")) return true;
-        ModelPart& r_contact_model_part = rModelPart.GetSubModelPart("ContactInterface");
+        ModelPart& r_contact_model_part_list = rModelPart.GetSubModelPart("ContactInterface");
 
-        for (auto& contact_sub_model_part : r_contact_model_part.SubModelParts())
+        for (auto& contact_model_part : r_contact_model_part_list.SubModelParts())
         {
             KRATOS_INFO_IF("::[ActiveSetCriteria]:: Starting Post Criteria of Contact sub model part ", this->GetEchoLevel() >= 1) 
-                            << contact_sub_model_part.Name();
+                            << contact_model_part.Name();
+            
+            auto& r_contact_sub_model_part = contact_model_part.GetSubModelPart("contact");
 
             int count_cond = 0;
 
-            int n_cond = contact_sub_model_part.Conditions().size(); 
+            int n_cond = r_contact_sub_model_part.Conditions().size(); 
 
             Vector length = ZeroVector(n_cond);
             Vector check_per_segment = ZeroVector(n_cond);
@@ -291,13 +293,13 @@ public:
             Vector check_per_segment_gap_slave = ZeroVector(n_cond);
             Vector per_segment_tangent_gap_slave = ZeroVector(n_cond);
         
-            if (contact_sub_model_part.NumberOfConditions() == 0) return true;
+            if (r_contact_sub_model_part.NumberOfConditions() == 0) return true;
 
             
             double toll_tangent_distance = 1e-1;
-            double toll_gap = -1e-2;
+            double toll_gap = 0;
 
-            int n_CP = (contact_sub_model_part.Conditions().begin())->GetGeometry().GetGeometryPart(0).size();
+            int n_CP = (r_contact_sub_model_part.Conditions().begin())->GetGeometry().GetGeometryPart(0).size();
             int p = (int) sqrt(n_CP);
 
             int n_GP_per_segment = 2*p+1;
@@ -307,14 +309,14 @@ public:
             int n_changes = 0;
             int n_active = 0;
 
-            for (auto i_cond(contact_sub_model_part.Conditions().begin()); i_cond != contact_sub_model_part.Conditions().end(); ++i_cond)
+            for (auto i_cond(r_contact_sub_model_part.Conditions().begin()); i_cond != r_contact_sub_model_part.Conditions().end(); ++i_cond)
             {
                 
                 // double normal_gap = i_cond->GetValue(NORMAL_GAP);
                 Vector normal_stress_slave = i_cond->GetValue(STRESS_SLAVE);
-                Vector normal_slave = i_cond->GetValue(NORMAL_SLAVE);
+                Vector normal_slave = i_cond->GetValue(NORMAL_SKIN_SLAVE);
                 Vector normal_stress_master = i_cond->GetValue(STRESS_MASTER);
-                Vector normal_master = i_cond->GetValue(NORMAL_MASTER);
+                Vector normal_master = i_cond->GetValue(NORMAL_SKIN_MASTER);
 
                 Vector gap = i_cond->GetValue(GAP);
                 double normal_gap_master = -inner_prod(gap, normal_master);
@@ -356,10 +358,19 @@ public:
 
                 // count_cond++;
 
-                
+                if (i_cond->GetValue(SKIN_MASTER_COORDINATES)[0] < 0.05)
+                {
+                    if (i_cond->GetValue(ACTIVATION_LEVEL) != 3)
+                    {
+                        i_cond->SetValue(ACTIVATION_LEVEL, 3);
+                        n_changes++;
+                    }
+                    n_active ++;
+                    continue;
+                }
                 // // // FIXME:
-                // // if (i_cond->GetGeometry().GetGeometryPart(0).Center().X() <= 0.4305620486218446) 47165709287164087
-                // if (i_cond->GetValue(SKIN_MASTER_COORDINATES)[0] < 0.4305620486218446)
+                // if (i_cond->GetGeometry().GetGeometryPart(0).Center().X() <= 0.4305620486218446) //47165709287164087
+                // if (i_cond->GetValue(SKIN_MASTER_COORDINATES)[0] < 0.27085)
                 // {
                 //     if (i_cond->GetValue(ACTIVATION_LEVEL) != 3)
                 //     {
@@ -370,7 +381,7 @@ public:
                 // }
                 // else 
                 // // if (i_cond->GetGeometry().GetGeometryPart(0).Center().X() > 0.4305620486218446)
-                // if (i_cond->GetValue(SKIN_MASTER_COORDINATES)[0] > 0.4305620486218446)
+                // if (i_cond->GetValue(SKIN_MASTER_COORDINATES)[0] > 0.27085)
                 // {
                 //     if (i_cond->GetValue(ACTIVATION_LEVEL) != 0)
                 //     {
@@ -400,23 +411,29 @@ public:
                 } 
                 else if (sigma_nn_master/young_modulus_master > 0)
                 {
-                    if (check_value_slave >= toll_gap && tangent_gap_slave < toll_tangent_distance) //ONLY SLAVE ACTIVE
+                    // if (check_value_slave >= toll_gap && tangent_gap_slave < toll_tangent_distance) //ONLY SLAVE ACTIVE
+                    // {
+                    //     if (i_cond->GetValue(ACTIVATION_LEVEL) != 2)
+                    //     {
+                    //         i_cond->SetValue(ACTIVATION_LEVEL, 2);
+                    //         n_changes++;
+                    //     }
+                    //     n_active++;
+                    // }
+                    // else
+                    //  if (sigma_nn_slave/young_modulus_slave > 0) // NONE ACTIVE
+                    // {
+                    //     if (i_cond->GetValue(ACTIVATION_LEVEL) != 0)
+                    //     {
+                    //         i_cond->SetValue(ACTIVATION_LEVEL, 0);
+                    //         n_changes++;
+                    //     }
+                    // }
+
+                    if (i_cond->GetValue(ACTIVATION_LEVEL) != 0)
                     {
-                        if (i_cond->GetValue(ACTIVATION_LEVEL) != 2)
-                        {
-                            i_cond->SetValue(ACTIVATION_LEVEL, 2);
-                            n_changes++;
-                        }
-                        n_active++;
-                    }
-                    else
-                     if (sigma_nn_slave/young_modulus_slave > 0) // NONE ACTIVE
-                    {
-                        if (i_cond->GetValue(ACTIVATION_LEVEL) != 0)
-                        {
-                            i_cond->SetValue(ACTIVATION_LEVEL, 0);
-                            n_changes++;
-                        }
+                        i_cond->SetValue(ACTIVATION_LEVEL, 0);
+                        n_changes++;
                     }
                 }
                 

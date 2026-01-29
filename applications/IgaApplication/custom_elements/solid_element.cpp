@@ -190,6 +190,13 @@ void SolidElement::CalculateLeftHandSide(MatrixType& rLeftHandSideMatrix,
 
     noalias(rLeftHandSideMatrix) += int_to_reference_weight * prod(trans(B), Matrix(prod(r_D, B))); 
 
+    for (unsigned int i = 0; i < number_of_control_points; i++) {
+
+        std::ofstream outputFile("txt_files/Id_active_control_points.txt", std::ios::app);
+        outputFile << r_geometry[i].GetId() << "  " <<r_geometry[i].GetDof(DISPLACEMENT_X).EquationId() <<"\n";
+        outputFile.close();
+    }
+
     KRATOS_CATCH("")
 }
 

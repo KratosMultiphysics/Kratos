@@ -183,7 +183,7 @@ private:
     const RefinementModeler mRefinementModeler;
     const NurbsGeometryModeler mNurbsGeometryModeler;
     const NurbsGeometryModelerSbm mNurbsGeometryModelerSbm;
-    const NurbsGeometryModelerCutSbm mNurbsGeometryModelerCutSbm;
+    // const NurbsGeometryModelerCutSbm mNurbsGeometryModelerCutSbm;
     const ImportNurbsSbmModeler mImportNurbsSbmModeler;
 
     ///@}

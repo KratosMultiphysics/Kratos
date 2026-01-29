@@ -351,13 +351,16 @@ public:
             (physical_coord_2[1] - physical_coord_1[1] < 0 )) {
             reverse_order = true;
         }
-        std::vector<double> tempSpans;
-        const double tolerance_orientation = 1e-10;
-        const double tolerance_intersection = 1e-15;
-        
         // Scale factor between surface coordinate and curve one
         double physical_length_segment = norm_2(physical_coord_1-physical_coord_2);
         double parameter_length_segment = norm_2(local_coord_1-local_coord_2);
+        const double range_u = surface_spans_u.empty() ? 0.0 : (surface_spans_u.back() - surface_spans_u.front());
+        const double range_v = surface_spans_v.empty() ? 0.0 : (surface_spans_v.back() - surface_spans_v.front());
+        const double length_scale = std::max(1.0, std::max(physical_length_segment, std::max(range_u, range_v)));
+        std::vector<double> tempSpans;
+        const double tolerance_orientation = 1e-10 * length_scale;
+        const double tolerance_intersection = 1e-15 * length_scale;
+        
         double scale_factor = parameter_length_segment/physical_length_segment;
 
         std::vector<double> knot_interval(2);
@@ -379,7 +382,7 @@ public:
                 if (curr_knot_value > knot_interval[1]) {break;}
                 if (std::abs(curr_knot_value - knot_interval[1]) < tolerance_intersection*10) knot_interval[1] = curr_knot_value;
                 double knot_value_in_curve_parameter = Start + (curr_knot_value-knot_interval[0]) * scale_factor;
-
+                
                 tempSpans.push_back(knot_value_in_curve_parameter);
             }
             

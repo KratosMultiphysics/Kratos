@@ -100,7 +100,31 @@ protected:
     /**
     * @brief Creates the initial snake coordinates for 2D skin.
     */
-    void CreateTheSnakeCoordinates();
+    void CreateTheSnakeCoordinates(bool RemoveIslands = false);
+
+    /**
+     * @brief Create a The Snake Coordinates object
+     * 
+     * @tparam TIsInnerLoop 
+     * @param rIgaModelPart 
+     * @param rSkinModelPartInitial 
+     * @param rSkinModelPart 
+     * @param NumberOfInnerLoops 
+     * @param Lambda 
+     */
+    template <bool TIsInnerLoop>
+    static void CreateTheSnakeCoordinates(
+        const ModelPart& rSkinModelPartInitial,
+        const std::size_t NumberOfLoops,
+        const double Lambda,
+        IndexType EchoLevel,
+        ModelPart& rIgaModelPart,
+        ModelPart& rSkinModelPart,
+        const int NumberInitialPointsIfImportingNurbs,
+        bool RemoveIslands = false
+        );
+
+
     Model* mpModel = nullptr;
     Parameters mThisParameters;
     IndexType mEchoLevel;
@@ -121,12 +145,18 @@ protected:
     using DistanceIterator = std::vector<double>::iterator;
     using DynamicBins = BinsDynamic<3, PointType, PointVector, PointTypePointer, PointIterator, DistanceIterator>;
     using DynamicBinsPointerType = DynamicBins::PointerType;
-
-    using SizeType = std::size_t;
     using NurbsCurveGeometryPointerType = NurbsCurveGeometry<2, PointerVector<Node>>::Pointer;
     using CoordinatesArrayType = Geometry<PointType>::CoordinatesArrayType;
 
-    static inline double Orientation(
+    /**
+     * @brief 
+     * 
+     * @param rPointP 
+     * @param rPointQ 
+     * @param rPointR 
+     * @return double 
+     */
+    static double Orientation(
         const Node& rPointP,
         const Node& rPointQ,
         const Node& rPointR)
@@ -135,7 +165,16 @@ protected:
                (rPointQ.Y() - rPointP.Y()) * (rPointR.X() - rPointP.X());
     }
 
-    static inline bool OnSegment(
+    /**
+     * @brief 
+     * 
+     * @param rPointP 
+     * @param rPointQ 
+     * @param rPointR 
+     * @return true 
+     * @return false 
+     */
+    static bool OnSegment(
         const Node& rPointP,
         const Node& rPointQ,
         const Node& rPointR)
@@ -144,7 +183,17 @@ protected:
                 std::min(rPointP.Y(), rPointR.Y()) <= rPointQ.Y() && rPointQ.Y() <= std::max(rPointP.Y(), rPointR.Y()));
     }
 
-    static inline bool SegmentsIntersect(
+    /**
+     * @brief 
+     * 
+     * @param rPointA 
+     * @param rPointB 
+     * @param rPointC 
+     * @param rPointD 
+     * @return true 
+     * @return false 
+     */
+    static bool SegmentsIntersect(
         const Node& rPointA,
         const Node& rPointB,
         const Node& rPointC,
@@ -170,27 +219,6 @@ protected:
 private:
 
     /**
-     * @brief Create a The Snake Coordinates object
-     * 
-     * @tparam TIsInnerLoop 
-     * @param rIgaModelPart 
-     * @param rSkinModelPartInitial 
-     * @param rSkinModelPart 
-     * @param NumberOfInnerLoops 
-     * @param Lambda 
-     */
-    template <bool TIsInnerLoop>
-    static void CreateTheSnakeCoordinates(
-        const ModelPart& rSkinModelPartInitial,
-        const std::size_t NumberOfInnerLoops,
-        const double Lambda,
-        IndexType EchoLevel,
-        ModelPart& rIgaModelPart,
-        ModelPart& rSkinModelPart,
-        const int NumberInitialPointsIfImportingNurbs
-        );
-
-    /**
      * @brief Performs a single step in the snake algorithm for 2D models.
      * 
      * @param IdMatrixKnotSpansAvailable ID of the matrix tracking available knot spans.
@@ -204,11 +232,11 @@ private:
     static void SnakeStep(
         const int IdMatrixKnotSpansAvailable, 
         const std::vector<std::vector<int>>& rKnotSpansUV, 
-        const std::vector<std::vector<double>>& ConditionCoords, 
-        const Vector KnotStepUV, 
-        const Vector StartingPositionUV,
+        const std::vector<std::vector<double>>& rConditionCoordinates, 
+        const array_1d<double, 2>& rKnotStepUV, 
+        const array_1d<double, 2>& rStartingPositionUV,
         ModelPart& rSkinModelPart, 
-        std::vector<std::vector<std::vector<int>>> & rKnotSpansAvailable
+        std::vector<std::vector<std::vector<int>>>& rKnotSpansAvailable
         );
     
     /**
@@ -226,14 +254,14 @@ private:
      */
     static void SnakeStepNurbs(
             const int IdMatrixKnotSpansAvailable, 
-            const std::vector<std::vector<int>> rKnotSpansUV, 
+            const std::vector<std::vector<int>>& rKnotSpansUV, 
             const std::vector<std::vector<double>>& rConditionCoord, 
-            const Vector rKnotStepUV, 
-            const Vector rStartingPosition,
-            const std::vector<double> rLocalCoords,
-            const NurbsCurveGeometryPointerType &rpCurve,
+            const array_1d<double, 2>& rKnotStepUV, 
+            const array_1d<double, 2>& rStartingPosition,
+            const std::vector<double>& rLocalCoords,
+            const NurbsCurveGeometryPointerType& rpCurve,
             ModelPart& rSkinModelPart, 
-            std::vector<std::vector<std::vector<int>>> &rKnotSpansAvailable
+            std::vector<std::vector<std::vector<int>>>& rKnotSpansAvailable
             );
 
     /**
@@ -286,13 +314,13 @@ private:
      */
     static void CreateSurrogateBuondaryFromSnakeInner(
         const int IdMatrix,
-        const ModelPart& SkinModelPartInner,
+        const ModelPart& rSkinModelPartInner,
         DynamicBins& rPointsBinInner,
         const std::vector<int>& rNumberKnotSpans,
         const Vector& rKnotVectorU,
         const Vector& rKnotVectorV,
         const Vector& rStartingPositionUV,
-        std::vector<std::vector<std::vector<int>>> & rKnotSpansAvailable,
+        std::vector<std::vector<std::vector<int>>>& rKnotSpansAvailable,
         ModelPart& rSurrogateModelPartInner
         );
 
@@ -311,13 +339,13 @@ private:
      */
     static void CreateSurrogateBuondaryFromSnakeOuter(
         const int IdMatrix,
-        const ModelPart& SkinModelPartOuter,
+        const ModelPart& rSkinModelPartOuter,
         DynamicBins& rPointsBinOuter,
         const std::vector<int>& rNumberKnotSpans,
         const Vector& rKnotVectorU,
         const Vector& rKnotVectorV,
         const Vector& rStartingPositionUV,
-        std::vector<std::vector<std::vector<int>>> & rKnotSpansAvailable,
+        std::vector<std::vector<std::vector<int>>>& rKnotSpansAvailable,
         ModelPart& rSurrogateModelPartOuter
         );
     
@@ -335,108 +363,14 @@ private:
         ); 
 
     
+    /**
+     * @brief Remove the islands surrogate domain disconnected from the main one
+     * 
+     * @tparam TIsInnerLoop 
+     * @param grid 
+     */
     template <bool TIsInnerLoop>
-    static void KeepLargestZeroIsland(std::vector<std::vector<int>>& grid) {
-        const int R = static_cast<int>(grid.size());
-        if (R == 0) return;
-        const int C = static_cast<int>(grid[0].size());
-        if (C == 0) return;
-
-        // Label map: -1 = unvisited/non-zero, 0..K = component id for zero components
-        std::vector<std::vector<int>> label(R, std::vector<int>(C, -1));
-        std::vector<int> comp_size;  // comp_size[comp_id] = size
-
-        static const int dr8[8] = {-1,-1,-1, 0, 0, 1, 1, 1};
-        static const int dc8[8] = {-1, 0, 1,-1, 1,-1, 0, 1};
-
-        // Use a snapshot to avoid chain reactions during this pass
-        const auto original = grid;
-
-        for (int r = 0; r < R; ++r) {
-            for (int c = 0; c < C; ++c) {
-                if (original[r][c] != 0) continue;
-
-                bool hasZeroNeighbor = false;
-                for (int k = 0; k < 8; ++k) {
-                    int nr = r + dr8[k], nc = c + dc8[k];
-                    if (0 <= nr && nr < R && 0 <= nc && nc < C &&
-                        original[nr][nc] == 0) {
-                        hasZeroNeighbor = true;
-                        break;
-                    }
-                }
-                if (!hasZeroNeighbor) {
-                    grid[r][c] = 1; // isolated 0 → 1
-                }
-            }
-        }
-    
-
-        // 4-neighborhood
-        const int dr[4] = {-1, 1, 0, 0};
-        const int dc[4] = { 0, 0,-1, 1};
-
-        int comp_id = 0;
-        int largest_id = -1;
-        int largest_size = 0;
-
-        for (int r = 0; r < R; ++r) {
-            for (int c = 0; c < C; ++c) {
-                if (grid[r][c] == 0 && label[r][c] == -1) {
-                    // BFS to label this zero-component
-                    std::queue<std::pair<int,int>> q;
-                    q.push({r, c});
-                    label[r][c] = comp_id;
-                    int size = 0;
-
-                    while (!q.empty()) {
-                        auto [cr, cc] = q.front(); q.pop();
-                        ++size;
-
-                        for (int k = 0; k < 4; ++k) {
-                            int nr = cr + dr[k], nc = cc + dc[k];
-                            if (0 <= nr && nr < R && 0 <= nc && nc < C &&
-                                grid[nr][nc] == 0 && label[nr][nc] == -1) {
-                                label[nr][nc] = comp_id;
-                                q.push({nr, nc});
-                            }
-                        }
-                    }
-
-                    comp_size.push_back(size);
-                    // Track largest; if tie, keep first encountered
-                    if (size > largest_size) {
-                        largest_size = size;
-                        largest_id = comp_id;
-                    }
-                    ++comp_id;
-                }
-            }
-        }
-
-        if (largest_id == -1) return; // no zeros at all
-
-        // Flip all zeros that are NOT in the largest component to 1
-        if constexpr (TIsInnerLoop) {
-            for (int r = 0; r < R; ++r) {
-                for (int c = 0; c < C; ++c) {
-                    if (grid[r][c] == 0 && label[r][c] != largest_id) {
-                        grid[r][c] = 1;
-                    }
-                }
-            }
-        } 
-        // else { 
-        //     for (int r = 0; r < R; ++r) {
-        //         for (int c = 0; c < C; ++c) {
-        //             if (grid[r][c] == 0 && label[r][c] == largest_id) {
-        //                 grid[r][c] = 1;
-        //             }
-        //         }
-        //     }
-        // }
-    }
-
+    static void KeepLargestZeroIsland(std::vector<std::vector<int>>& rGrid);
 
 }; // Class SnakeSbmProcess
 

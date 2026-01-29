@@ -44,6 +44,7 @@ namespace Kratos
         /// Size types
         typedef std::size_t SizeType;
         typedef std::size_t IndexType;
+        using NodeType = typename Condition::NodeType;
 
         ///@}
         ///@name Life Cycle
@@ -101,15 +102,27 @@ namespace Kratos
                 NewId, pGeom, pPropMaster, pPropSlave);
         };
 
+        GeometryType & GetSlaveGeometry() 
+        {
+            return this->GetGeometry().GetGeometryPart(QuadraturePointCouplingGeometry2D<Point>::Slave);
+        };
+
         GeometryType const& GetSlaveGeometry() const
         {
             return this->GetGeometry().GetGeometryPart(QuadraturePointCouplingGeometry2D<Point>::Slave);
         };
 
+
         /**
          * @brief This method returns the paired geometry (constant version)
          * @return The master geometry (master in the definition of Popp which is the opposite of the standard)
          */
+        GeometryType & GetMasterGeometry() 
+        {
+            return this->GetGeometry().GetGeometryPart(QuadraturePointCouplingGeometry2D<Point>::Master);
+        };
+
+
         GeometryType const& GetMasterGeometry() const
         {
             return this->GetGeometry().GetGeometryPart(QuadraturePointCouplingGeometry2D<Point>::Master);
@@ -138,19 +151,7 @@ namespace Kratos
         */
         void CalculateRightHandSide(
             VectorType& rRightHandSideVector,
-            const ProcessInfo& rCurrentProcessInfo) override
-        {
-            const SizeType mat_size = GetGeometry().size() * 2;
-
-            if (rRightHandSideVector.size() != mat_size)
-                rRightHandSideVector.resize(mat_size);
-            noalias(rRightHandSideVector) = ZeroVector(mat_size);
-
-            MatrixType left_hand_side_matrix = ZeroMatrix(mat_size, mat_size);
-
-            CalculateAll(left_hand_side_matrix, rRightHandSideVector,
-                rCurrentProcessInfo, false, true);
-        }
+            const ProcessInfo& rCurrentProcessInfo) override;
 
         /**
         * @brief This is called during the assembling process in order
@@ -160,19 +161,7 @@ namespace Kratos
         */
         void CalculateLeftHandSide(
             MatrixType& rLeftHandSideMatrix,
-            const ProcessInfo& rCurrentProcessInfo) override
-        {
-            const SizeType mat_size = GetGeometry().size() * 2;
-
-            VectorType right_hand_side_vector;
-
-            if (rLeftHandSideMatrix.size1() != mat_size && rLeftHandSideMatrix.size2())
-                rLeftHandSideMatrix.resize(mat_size, mat_size);
-            noalias(rLeftHandSideMatrix) = ZeroMatrix(mat_size, mat_size);
-
-            CalculateAll(rLeftHandSideMatrix, right_hand_side_vector,
-                rCurrentProcessInfo, true, false);
-        }
+            const ProcessInfo& rCurrentProcessInfo) override;
 
         /**
          * @brief This function provides a more general interface to the element.
@@ -185,21 +174,7 @@ namespace Kratos
         void CalculateLocalSystem(
             MatrixType& rLeftHandSideMatrix,
             VectorType& rRightHandSideVector,
-            const ProcessInfo& rCurrentProcessInfo) override
-        {
-            const SizeType mat_size = GetGeometry().size() * 2;
-
-            if (rRightHandSideVector.size() != mat_size)
-                rRightHandSideVector.resize(mat_size);
-            noalias(rRightHandSideVector) = ZeroVector(mat_size);
-
-            if (rLeftHandSideMatrix.size1() != mat_size)
-                rLeftHandSideMatrix.resize(mat_size, mat_size);
-            noalias(rLeftHandSideMatrix) = ZeroMatrix(mat_size, mat_size);
-
-            CalculateAll(rLeftHandSideMatrix, rRightHandSideVector,
-                rCurrentProcessInfo, true, true);
-        }
+            const ProcessInfo& rCurrentProcessInfo) override;
 
         /**
         * @brief Sets on rResult the ID's of the element degrees of freedom
@@ -220,15 +195,6 @@ namespace Kratos
             DofsVectorType& rElementalDofList,
             const ProcessInfo& rCurrentProcessInfo
         ) const override;
-
-        /// Calculates left (K) and right (u) hand sides, according to the flags
-        void CalculateAll(
-            MatrixType& rLeftHandSideMatrix,
-            VectorType& rRightHandSideVector,
-            const ProcessInfo& rCurrentProcessInfo,
-            const bool CalculateStiffnessMatrixFlag,
-            const bool CalculateResidualVectorFlag
-        );
 
         void GetValuesVector(Vector& rValues, IndexType index) const;
 
@@ -322,6 +288,26 @@ namespace Kratos
     ///@name Protected static Member Variables
     ///@{
     void InitializeMaterial();
+    void InitializeMemberVariables();
+    void InitializeSbmMemberVariables();
+
+    void ComputeGradientTaylorExpansionContribution(
+        const GeometryType& rGeometry,
+        const Vector& rDistanceVector,
+        const SizeType BasisFunctionsOrder,
+        Matrix& rGradHSum) const;
+
+        void ComputeTaylorSumContribution(
+            const GeometryType& rGeometry,
+            const Vector& rDistanceVector,
+            const SizeType BasisFunctionsOrder,
+            Matrix& rHSum) const;
+
+        void ApplyConstitutiveLaw(
+            ConstitutiveLaw::Pointer pConstitutiveLaw,
+            Vector& rStrain,
+            ConstitutiveLaw::Parameters& rValues,
+            ConstitutiveVariables& rConstitutiveVariables) const;
 
     PropertiesType& GetPropertiesMaster()
     {
@@ -358,11 +344,32 @@ namespace Kratos
 
     bool m_contact_is_active = false;
 
+    SizeType mMasterDim = 0;
+    SizeType mSlaveDim = 0;
+
+    SizeType mMasterBasisFunctionsOrder = 0;
+    SizeType mSlaveBasisFunctionsOrder = 0;
+
+    double mMasterCharacteristicLength = 0.0;
+    double mSlaveCharacteristicLength = 0.0;
+
+    NodeType* mpProjectionNodeMaster = nullptr;
+    NodeType* mpProjectionNodeSlave = nullptr;
+
     Vector mDistanceMaster = ZeroVector(2);
     Vector mDistanceSlave = ZeroVector(2);
 
     Vector mNormalMaster = ZeroVector(3);
     Vector mNormalSlave = ZeroVector(3);
+
+    Vector mTrueNormalMaster = ZeroVector(3);
+    Vector mTrueNormalSlave = ZeroVector(3);
+
+    double mMasterTrueDotSurrogateNormal = 0.0;
+    double mSlaveTrueDotSurrogateNormal = 0.0;
+
+    double mIntegrationWeightMaster = 0.0;
+    double mIntegrationWeightSlave = 0.0;
 
     ///@}
 
@@ -396,6 +403,8 @@ namespace Kratos
         }
 
         void GetDeformed(const Matrix& N, Vector& reference_position, Vector& displacement, Vector& deformed_position);
+
+        double ComputeTaylorTerm(const double derivative, const double dx, const int n_k, const double dy, const int k) const;
                            
         friend class Serializer;
 
@@ -408,12 +417,6 @@ namespace Kratos
         {
             KRATOS_SERIALIZE_LOAD_BASE_CLASS(rSerializer, Condition);
         }
-
-
-
-        double ComputeTaylorTerm(double derivative, double dx, int n_k, double dy, int k);
-
-        unsigned long long Factorial(int n); 
 
         ///@}
 

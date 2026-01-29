@@ -126,9 +126,6 @@ void SbmLoadSolidCondition::InitializeSbmMemberVariables()
     {
         mpProjectionNode = &r_geometry.GetValue(NEIGHBOUR_NODES)[0];
 
-        //FIXME: debug contact
-        this->SetValue(PROJECTION_NODE_ID, mpProjectionNode->Id());
-
         mTrueNormal = mpProjectionNode->GetValue(NORMAL);
 
         if (loopIdentifier == "inner")
@@ -140,6 +137,10 @@ void SbmLoadSolidCondition::InitializeSbmMemberVariables()
         // dot product n dot n_tilde
         mTrueDotSurrogateNormal = inner_prod(mNormalParameterSpace, mTrueNormal);
 
+        //FIXME: debug contact
+        this->SetValue(PROJECTION_NODE_ID, mpProjectionNode->Id());
+        this->SetValue(NORMAL_MASTER, mTrueNormal);
+        this->SetValue(CURVATURE, mpProjectionNode->GetValue(CURVATURE));
         return;
     }
 
@@ -327,6 +328,13 @@ void SbmLoadSolidCondition::CalculateLeftHandSide(
                 }
             }
         }
+    }
+
+    for (unsigned int i = 0; i < number_of_control_points; i++) {
+
+        std::ofstream outputFile("txt_files/Id_active_control_points_condition_neumann.txt", std::ios::app);
+        outputFile << r_geometry[i].GetId() << "  " <<r_geometry[i].GetDof(DISPLACEMENT_X).EquationId() <<"\n";
+        outputFile.close();
     }
 
 

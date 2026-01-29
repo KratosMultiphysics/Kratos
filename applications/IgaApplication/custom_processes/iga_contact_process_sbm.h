@@ -31,6 +31,8 @@
 #include "spatial_containers/bins_dynamic.h"
 
 #include <cmath>
+#include <vector>
+#include <string>
 
 #include "spaces/ublas_space.h"
 
@@ -183,6 +185,7 @@ private:
     Model* mpModel = nullptr;
     Parameters mParameters;
     SizeType mEchoLevel;
+    bool mIntegrateOnTrueBoundary = false;
 
     ModelPart* mrSlaveModelPart = nullptr; 
     ModelPart* mrMasterModelPart = nullptr; 
@@ -297,6 +300,77 @@ private:
         IndexType& rBrepId,
         double& rSurrogateProjection
     );
+
+    struct MasterSegmentData {
+        BrepCurveOnSurfaceType::Pointer p_brep;
+        double local_begin = 0.0;
+        double local_end = 0.0;
+        NodeType::Pointer p_node_begin = nullptr;
+        NodeType::Pointer p_node_end = nullptr;
+    };
+
+    NodeType::Pointer FindExistingNode(
+        const std::vector<NodeType::Pointer>& rNodes,
+        const CoordinatesArrayType& rCoordinates,
+        double tolerance) const;
+
+    NodeType::Pointer CreateOrRetrieveContactNode(
+        const CoordinatesArrayType& rCoordinates,
+        std::vector<NodeType::Pointer>& rNodes,
+        IndexType& rNextNodeId,
+        double tolerance);
+
+    static CoordinatesArrayType ConvertVectorToCoordinates(const Vector& rVector);
+
+    static bool IsPointOnAxisAlignedSegment(
+        const CoordinatesArrayType& rPoint,
+        const CoordinatesArrayType& rSegmentBegin,
+        const CoordinatesArrayType& rSegmentEnd,
+        double tolerance);
+
+    void CreateQuadratureGeometries(
+        BrepCurveOnSurfaceType& rBrep,
+        GeometriesArrayType& rGeometries,
+        const std::vector<double>* pCustomSpans = nullptr);
+
+    void CollectUniqueSlaveVertices(
+        std::vector<CoordinatesArrayType>& rVertices,
+        double tolerance) const;
+
+    void SplitMasterSegmentsWithSlaveVertices(
+        const std::vector<CoordinatesArrayType>& rSlaveVertices,
+        std::vector<MasterSegmentData>& rMasterSegments,
+        std::vector<NodeType::Pointer>& rMasterNodes,
+        IndexType& rNextNodeId,
+        double coordinate_tolerance,
+        const std::string& master_layer_name,
+        const std::string& slave_layer_name);
+
+    void SplitMasterSegment(
+        IndexType brep_id,
+        double split_parameter,
+        NodeType::Pointer p_split_node,
+        std::vector<MasterSegmentData>& rMasterSegments,
+        double tolerance);
+
+    static void AppendUniqueVertex(
+        std::vector<CoordinatesArrayType>& rVertices,
+        const CoordinatesArrayType& rVertex,
+        double tolerance);
+
+    static bool ContainsVertex(
+        const std::vector<CoordinatesArrayType>& rVertices,
+        const CoordinatesArrayType& rVertex,
+        double tolerance);
+
+    void SetSurrogateNeighbourNodes(
+        GeometryPointerType p_geometry,
+        BrepCurveOnSurfaceType::Pointer p_brep_geometry,
+        const std::string& rSlaveLayerName);
+    
+    void PrepareIntegrationOnTrueBoundary(
+        ModelPart& rMasterSkinModelPart,
+        ModelPart& rSlaveSkinModelPart) const;
 
     ///@}
     ///@name Input and output

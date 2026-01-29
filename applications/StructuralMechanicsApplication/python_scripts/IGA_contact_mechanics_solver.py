@@ -281,6 +281,10 @@ class IgaContactMechanicsSolver(MechanicalSolver):
         fixed_node_x = []
         fixed_node_y = []
         fixed_node_z = []
+        
+        neumann_node_x = []
+        neumann_node_y = []
+        neumann_node_z = []
         dof = []
 
         # z_ref = 1.0
@@ -318,6 +322,25 @@ class IgaContactMechanicsSolver(MechanicalSolver):
             fixed_node_z.append(node.Z)
 
         
+        free_node_x3 = []
+        free_node_y3= []
+        free_node_z3= []
+        # Set Free the active ones
+        if os.path.exists("txt_files/Id_active_control_points_condition_neumann.txt"):
+            with open('txt_files/Id_active_control_points_condition_neumann.txt', 'r') as file:
+                lines = file.readlines()
+            for line in lines:
+                numbers = line.split()
+                node = self.main_model_part.GetNode(int(numbers[0]))
+
+                free_node_x3.append(node.X)
+                free_node_y3.append(node.Y)
+        
+        for node in self.main_model_part.GetNodes() :
+            neumann_node_x.append(node.X)
+            neumann_node_y.append(node.Y)
+            neumann_node_z.append(node.Z)
+        
         # ax = fig.add_subplot(111, projection='3d')
         # print(free_node_x)
         # print(free_node_y)
@@ -325,7 +348,9 @@ class IgaContactMechanicsSolver(MechanicalSolver):
         # ax.scatter(fixed_node_x, fixed_node_y, fixed_node_z, marker='x', color='black', s=12,  label='Fixed Nodes')
         ax.scatter(free_node_x, free_node_y, marker='d', color='red',s=60, label='Free Nodes')
 
-        ax.scatter(free_node_x2, free_node_y2, marker='x', alpha=0.3, color='green',s=25, label='Free Nodes')
+        ax.scatter(free_node_x2, free_node_y2, marker='x', alpha=0.3, color='green',s=30, label='Free Nodes')
+        
+        ax.scatter(free_node_x3, free_node_y3, marker='x', alpha=0.3, color='blue',s=25, label='Free Nodes')
         
         # count = 0
         # for i in range(len(dof)) :
