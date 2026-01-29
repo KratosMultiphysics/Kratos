@@ -207,4 +207,60 @@ KRATOS_TEST_CASE_IN_SUITE(ApplyConstantInterpolateLinePressureProcess_Info, Krat
     KRATOS_EXPECT_EQ(process.Info(), "ApplyConstantInterpolateLinePressureProcess");
 }
 
+KRATOS_TEST_CASE_IN_SUITE(ApplyConstantInterpolateLinePressure_IndirectPrivateCoverage, KratosGeoMechanicsFastSuite)
+{
+    Model      model;
+    ModelPart& r_model_part = model.CreateModelPart("Main");
+
+    r_model_part.AddNodalSolutionStepVariable(WATER_PRESSURE);
+
+    // TOP boundary (y = 10)
+    auto top_node_1 = r_model_part.CreateNewNode(1, 0.0, 10.0, 0.0);
+    auto top_node_2 = r_model_part.CreateNewNode(2, 5.0, 10.0, 0.0);
+    auto top_node_3 = r_model_part.CreateNewNode(3, 10.0, 10.0, 0.0);
+
+    top_node_1->FastGetSolutionStepValue(WATER_PRESSURE) = 0.0;
+    top_node_2->FastGetSolutionStepValue(WATER_PRESSURE) = 50.0;
+    top_node_3->FastGetSolutionStepValue(WATER_PRESSURE) = 100.0;
+
+    // BOTTOM boundary (y = 0)
+    auto bottom_node_1 = r_model_part.CreateNewNode(4, 0.0, 0.0, 0.0);
+    auto bottom_node_2 = r_model_part.CreateNewNode(5, 5.0, 0.0, 0.0);
+    auto bottom_node_3 = r_model_part.CreateNewNode(6, 10.0, 0.0, 0.0);
+
+    bottom_node_1->FastGetSolutionStepValue(WATER_PRESSURE) = 100.0;
+    bottom_node_2->FastGetSolutionStepValue(WATER_PRESSURE) = 150.0;
+    bottom_node_3->FastGetSolutionStepValue(WATER_PRESSURE) = 200.0;
+
+    auto interior_node = r_model_part.CreateNewNode(7, 7.5, 5.0, 0.0);
+
+    // Minimal elements to detect boundary nodes
+    Properties::Pointer p_props = r_model_part.CreateNewProperties(0);
+    r_model_part.CreateNewElement("Element2D2N", 1, std::vector<ModelPart::IndexType>{1, 2}, p_props);
+    r_model_part.CreateNewElement("Element2D2N", 2, std::vector<ModelPart::IndexType>{2, 3}, p_props);
+    r_model_part.CreateNewElement("Element2D2N", 3, std::vector<ModelPart::IndexType>{4, 5}, p_props);
+    r_model_part.CreateNewElement("Element2D2N", 4, std::vector<ModelPart::IndexType>{5, 6}, p_props);
+
+    Parameters params(R"(
+    {
+        "model_part_name" : "Main",
+        "variable_name"   : "WATER_PRESSURE",
+        "gravity_direction" : 1,
+        "out_of_plane_direction" : 2,
+        "is_fixed" : false,
+        "pressure_tension_cut_off" : 1e9
+    })");
+
+    ApplyConstantInterpolateLinePressureProcess process(r_model_part, params);
+
+    process.ExecuteInitializeSolutionStep();
+
+    const double expected_top = 75.0;  // from top boundary
+    const double expected_bot = 175.0; // from bottom boundary
+
+    const double expected = (expected_top - expected_bot) / (10.0 - 0.0) * (5.0 - 0.0) + expected_bot;
+
+    KRATOS_EXPECT_NEAR(interior_node->FastGetSolutionStepValue(WATER_PRESSURE), expected, 1e-12);
+}
+
 } // namespace
