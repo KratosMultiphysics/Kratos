@@ -263,4 +263,24 @@ KRATOS_TEST_CASE_IN_SUITE(ApplyConstantInterpolateLinePressure_IndirectPrivateCo
     KRATOS_EXPECT_NEAR(interior_node->FastGetSolutionStepValue(WATER_PRESSURE), expected, 1e-12);
 }
 
+KRATOS_TEST_CASE_IN_SUITE(ApplyConstantInterpolateLinePressure_NoBoundaryNodes, KratosGeoMechanicsFastSuite)
+{
+    Model      model;
+    ModelPart& mp = model.CreateModelPart("Main");
+    mp.AddNodalSolutionStepVariable(WATER_PRESSURE);
+
+    // Create nodes but NO elements → no boundary detection
+    mp.CreateNewNode(1, 0.0, 0.0, 0.0);
+    mp.CreateNewNode(2, 1.0, 0.0, 0.0);
+
+    Parameters params(R"(
+    {
+        "model_part_name" : "Main",
+        "variable_name"   : "WATER_PRESSURE"
+    })");
+
+    KRATOS_EXPECT_EXCEPTION_IS_THROWN(ApplyConstantInterpolateLinePressureProcess(mp, params),
+                                      "No boundary node is found");
+}
+
 } // namespace
