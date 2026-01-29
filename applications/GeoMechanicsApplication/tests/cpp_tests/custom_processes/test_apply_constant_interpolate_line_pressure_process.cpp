@@ -126,6 +126,67 @@ KRATOS_TEST_CASE_IN_SUITE(ApplyConstantInterpolateLinePressureProcess_ExecuteIni
     }
 }
 
+KRATOS_TEST_CASE_IN_SUITE(ApplyConstantInterpolateLinePressureProcess_SeepageBranch, KratosGeoMechanicsFastSuite)
+{
+    Model model;
+    auto& r_model_part = CreateTestModelPart(model);
+
+    // Set up so that CalculatePressure returns a value less than the cut-off for node 1,
+    // and a value greater than or equal to the cut-off for node 2.
+    // We'll do this by setting the initial WATER_PRESSURE and using a high cut-off.
+
+    for (auto& r_node : r_model_part.Nodes()) {
+        r_node.FastGetSolutionStepValue(WATER_PRESSURE) = 0.0;
+    }
+
+    // Set a high cut-off so all nodes will be below the cut-off
+    Parameters params_below(R"({
+        "model_part_name": "TestPart",
+        "variable_name": "WATER_PRESSURE",
+        "is_fixed": true,
+        "is_seepage": true,
+        "gravity_direction": 1,
+        "out_of_plane_direction": 2,
+        "pressure_tension_cut_off": 100.0,
+        "table": 1
+    })");
+
+    ApplyConstantInterpolateLinePressureProcess process_below(r_model_part, params_below);
+    process_below.ExecuteInitializeSolutionStep();
+
+    // All nodes should be set and fixed (since pressure < cut-off)
+    for (auto& r_node : r_model_part.Nodes()) {
+        KRATOS_CHECK(r_node.IsFixed(WATER_PRESSURE));
+        // The value is set by CalculatePressure, which in this test setup is 0.0
+        KRATOS_CHECK_DOUBLE_EQUAL(r_node.FastGetSolutionStepValue(WATER_PRESSURE), 0.0);
+    }
+
+    // Now set a low cut-off so all nodes will be above the cut-off
+    Parameters params_above(R"({
+        "model_part_name": "TestPart",
+        "variable_name": "WATER_PRESSURE",
+        "is_fixed": true,
+        "is_seepage": true,
+        "gravity_direction": 1,
+        "out_of_plane_direction": 2,
+        "pressure_tension_cut_off": -100.0,
+        "table": 1
+    })");
+
+    // Reset nodes to unfixed
+    for (auto& r_node : r_model_part.Nodes()) {
+        r_node.Free(WATER_PRESSURE);
+    }
+
+    ApplyConstantInterpolateLinePressureProcess process_above(r_model_part, params_above);
+    process_above.ExecuteInitializeSolutionStep();
+
+    // All nodes should be free (since pressure >= cut-off)
+    for (auto& r_node : r_model_part.Nodes()) {
+        KRATOS_CHECK_IS_FALSE(r_node.IsFixed(WATER_PRESSURE));
+    }
+}
+
 KRATOS_TEST_CASE_IN_SUITE(ApplyConstantInterpolateLinePressureProcess_Info, KratosGeoMechanicsFastSuite)
 {
     Model model;
