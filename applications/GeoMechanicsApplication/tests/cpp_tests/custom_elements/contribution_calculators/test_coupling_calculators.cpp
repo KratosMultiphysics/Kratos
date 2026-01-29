@@ -184,7 +184,7 @@ TEST_F(KratosGeoMechanicsFastSuiteWithoutKernel, TestUPCouplingVectorContributio
                  {13.0,14.0,15.0,16.0}});
     // clang-format on
 
-    const auto   voigt_vector            = UblasUtilities::CreateVector({1.0, 1.0, 1.0, 0.0});
+    const auto       voigt_vector            = UblasUtilities::CreateVector({1.0, 1.0, 1.0, 0.0});
     constexpr double integration_coefficient = 0.5;
     constexpr double biot_coefficient        = 2.0;
     constexpr double bishop_coefficient      = 0.1;
@@ -222,12 +222,12 @@ TEST_F(KratosGeoMechanicsFastSuiteWithoutKernel, TestPUCouplingMatrixContributio
                  {13.0,14.0,15.0,16.0}});
     // clang-format on
 
-    const auto   voigt_vector            = UblasUtilities::CreateVector({1.0, 1.0, 1.0, 0.0});
+    const auto       voigt_vector            = UblasUtilities::CreateVector({1.0, 1.0, 1.0, 0.0});
     constexpr double integration_coefficient = 0.5;
     constexpr double biot_coefficient        = 2.0;
     constexpr double degree_of_saturation    = 0.1;
-    const auto   velocities              = UblasUtilities::CreateVector({1.0, 2.0, 3.0, 4.0});
-    const auto   np_container            = UblasUtilities::CreateMatrix({{1.0, 2.0}});
+    const auto       velocities              = UblasUtilities::CreateVector({1.0, 2.0, 3.0, 4.0});
+    const auto       np_container            = UblasUtilities::CreateMatrix({{1.0, 2.0}});
 
     const auto input_provider = CreatePUInputProvider<number_of_pw_dof, number_of_u_dof>(
         b_matrix, voigt_vector, integration_coefficient, biot_coefficient, degree_of_saturation,
@@ -262,12 +262,12 @@ TEST_F(KratosGeoMechanicsFastSuiteWithoutKernel, TestPUCouplingVectorContributio
                  {13.0,14.0,15.0,16.0}});
     // clang-format on
 
-    const auto   voigt_vector            = UblasUtilities::CreateVector({1.0, 1.0, 1.0, 0.0});
+    const auto       voigt_vector            = UblasUtilities::CreateVector({1.0, 1.0, 1.0, 0.0});
     constexpr double integration_coefficient = 0.5;
     constexpr double biot_coefficient        = 2.0;
     constexpr double degree_of_saturation    = 0.1;
-    const auto   velocities              = UblasUtilities::CreateVector({1.0, 2.0, 3.0, 4.0});
-    const auto   np_container            = UblasUtilities::CreateMatrix({{1.0, 2.0}});
+    const auto       velocities              = UblasUtilities::CreateVector({1.0, 2.0, 3.0, 4.0});
+    const auto       np_container            = UblasUtilities::CreateMatrix({{1.0, 2.0}});
 
     const auto input_provider = CreatePUInputProvider<number_of_pw_dof, number_of_u_dof>(
         b_matrix, voigt_vector, integration_coefficient, biot_coefficient, degree_of_saturation,
@@ -298,14 +298,14 @@ TEST_F(KratosGeoMechanicsFastSuiteWithoutKernel, TestPUCouplingVectorContributio
                  {13.0,14.0,15.0,16.0}});
     // clang-format on
 
-    const auto   voigt_vector            = UblasUtilities::CreateVector({1.0, 1.0, 1.0, 0.0});
+    const auto       voigt_vector            = UblasUtilities::CreateVector({1.0, 1.0, 1.0, 0.0});
     constexpr double integration_coefficient = 0.5;
     constexpr double biot_coefficient        = 2.0;
     constexpr double degree_of_saturation    = 0.1;
-    const auto   velocities              = UblasUtilities::CreateVector({1.0, 2.0, 3.0, 4.0});
-    const auto   np_container            = UblasUtilities::CreateMatrix({{1.0, 2.0}, {1.0, 2.0}});
-    const auto   number_of_integration_points = std::size_t{2};
-    const auto   input_provider = CreatePUInputProvider<number_of_pw_dof, number_of_u_dof>(
+    const auto       velocities              = UblasUtilities::CreateVector({1.0, 2.0, 3.0, 4.0});
+    const auto       np_container = UblasUtilities::CreateMatrix({{1.0, 2.0}, {1.0, 2.0}});
+    const auto       number_of_integration_points = std::size_t{2};
+    const auto       input_provider = CreatePUInputProvider<number_of_pw_dof, number_of_u_dof>(
         b_matrix, voigt_vector, integration_coefficient, biot_coefficient, degree_of_saturation,
         velocities, np_container, number_of_integration_points);
 
