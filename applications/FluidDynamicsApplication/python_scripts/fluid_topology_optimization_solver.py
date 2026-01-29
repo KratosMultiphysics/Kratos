@@ -40,7 +40,6 @@ class FluidTopologyOptimizationSolver(NavierStokesMonolithicSolver):
         self._InitializeModelPartImporter()
         self.InitializeDataCommunicator()
         self.CheckModelPartImportSettings(custom_settings)
-        print(custom_settings)
         super().__init__(model,custom_settings)
         print_str = "Construction of FluidTopologyOptimizationSolver "
         if self.IsAdjoint():
@@ -112,15 +111,16 @@ class FluidTopologyOptimizationSolver(NavierStokesMonolithicSolver):
         self.is_unsteady = True
         self.time_scheme = self.settings["time_scheme"].GetString()
         self.settings["time_stepping"]["automatic_time_step"].SetBool(False)
-        if self.time_scheme == "bossak":
-            KratosMultiphysics.Logger.PrintWarning("[WARNING] " + self.__class__.__name__ + " time scheme_type: \' " + self.time_scheme + " \' is not compatible with the current implementation of FluidTopologyOptimization. Its value has been reset to default value: \' bdf2 \'")
-            self.settings["time_scheme"].SetString("bdf2")
-            self.min_buffer_size = 3
-        elif self.time_scheme == "bdf2":
+        if self.time_scheme == "bdf2":
             self.min_buffer_size = 3
         elif self.time_scheme == "steady":
             self.settings["time_scheme"].SetString("bdf2")
             self.is_unsteady = False
+            self.min_buffer_size = 3
+            self._SetUpSteadySimulation()
+        else:
+            KratosMultiphysics.Logger.PrintWarning("[WARNING] " + self.__class__.__name__ + " time scheme_type: \' " + self.time_scheme + " \' is not compatible with the current implementation. Its value has been reset to default value: \' bdf2 \'")
+            self.settings["time_scheme"].SetString("bdf2")
             self.min_buffer_size = 3
     
     def _SetNodalProperties(self):

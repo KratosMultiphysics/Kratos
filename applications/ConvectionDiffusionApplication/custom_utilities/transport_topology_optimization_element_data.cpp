@@ -61,7 +61,7 @@ void TransportTopologyOptimizationElementData<TDim, TNumNodes, TElementIntegrate
 
     // NAVIER-STOKES VARIABLES
     this->FillFromHistoricalNodalData(Temperature,TEMPERATURE,r_geometry);
-    this->FillFromHistoricalNodalData(ConvectiveVelocity,VELOCITY,r_geometry);
+    this->FillFromHistoricalNodalData(ConvectiveVelocity,CONVECTION_VELOCITY,r_geometry);
     this->FillFromHistoricalNodalData(MeshVelocity,MESH_VELOCITY,r_geometry);
     this->FillFromHistoricalNodalData(SourceTerm, HEAT_FLUX,r_geometry);
     // TIME DEPENDENT PROBLEMS NOT YET IMPLEMENTED

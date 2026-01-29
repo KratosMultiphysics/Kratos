@@ -15,11 +15,10 @@ class ApplyTransportTopologyOptimizationImposeTransportScalarProcess(KratosMulti
         
         default_settings = KratosMultiphysics.Parameters("""
             {
-                "mesh_id"         : 0,
                 "model_part_name" : "please_specify_model_part_name",
                 "interval"        : [0.0,1e30],
-                "transport_scalar_value"         : {},
-                "adjoint_transport_scalar_value" : {}
+                "transport_scalar_value"         : "",
+                "adjoint_transport_scalar_value" : ""
             }
             """)
 
@@ -47,7 +46,6 @@ class ApplyTransportTopologyOptimizationImposeTransportScalarProcess(KratosMulti
         
         settings.ValidateAndAssignDefaults(default_settings)
 
-        mesh_id = settings["mesh_id"].GetInt()
         model_part_name = settings["model_part_name"].GetString()
         interval = settings["interval"].PrettyPrintJsonString()
         if (settings["transport_scalar_value"].IsString()):
@@ -61,11 +59,10 @@ class ApplyTransportTopologyOptimizationImposeTransportScalarProcess(KratosMulti
 
         transport_scalar_settings = KratosMultiphysics.Parameters("""
             {
-                "mesh_id"              : """ + str(mesh_id) + """,
                 "model_part_name"      : \"""" + model_part_name + """\",
                 "variable_name"        : "TEMPERATURE",
                 "interval"             : """ + interval + """,
-                "value"                : """ + transport_scalar_value + """,
+                "value"                : \"""" + transport_scalar_value + """\",
                 "constrained"          : true,
                 "local_axes"           : {}
             }
@@ -74,11 +71,10 @@ class ApplyTransportTopologyOptimizationImposeTransportScalarProcess(KratosMulti
 
         adjoint_transport_scalar_settings = KratosMultiphysics.Parameters("""
             {
-                "mesh_id"              : """ + str(mesh_id) + """,
                 "model_part_name"      : \"""" + model_part_name + """\",
                 "variable_name"        : "TEMPERATURE_ADJ",
                 "interval"             : """ + interval + """,
-                "value"                : """ + adjoint_transport_scalar_value + """,
+                "value"                : \"""" + adjoint_transport_scalar_value + """\",
                 "constrained"          : true,
                 "local_axes"           : {}
             }
