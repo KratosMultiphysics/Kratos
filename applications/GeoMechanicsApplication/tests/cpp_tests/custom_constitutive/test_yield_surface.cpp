@@ -41,17 +41,15 @@ KRATOS_TEST_CASE_IN_SUITE(TestCoulombYieldSurface, KratosGeoMechanicsFastSuiteWi
 
     const auto coulomb_yield_surface = CoulombYieldSurface{material_properties};
 
-    auto principal_stress = Geo::PrincipalStresses{UblasUtilities::CreateVector({3.0, 2.0, 1.0})};
+    auto principal_stress = Geo::PrincipalStresses{3.0, 2.0, 1.0};
     auto sigma_tau = StressStrainUtilities::TransformPrincipalStressesToSigmaTau(principal_stress);
     KRATOS_EXPECT_NEAR(coulomb_yield_surface.YieldFunctionValue(sigma_tau), 1.0, Defaults::absolute_tolerance);
 
-    principal_stress =
-        Geo::PrincipalStresses{UblasUtilities::CreateVector({1.7071067811865475, 1.0, 0.2928932188134525})};
+    principal_stress = Geo::PrincipalStresses{1.7071067811865475, 1.0, 0.2928932188134525};
     sigma_tau = StressStrainUtilities::TransformPrincipalStressesToSigmaTau(principal_stress);
     KRATOS_EXPECT_NEAR(coulomb_yield_surface.YieldFunctionValue(sigma_tau), 0.0, Defaults::absolute_tolerance);
 
-    principal_stress = Geo::PrincipalStresses{
-        UblasUtilities::CreateVector({0.1715728752538099, -1.0, -1.8284271247461901})};
+    principal_stress = Geo::PrincipalStresses{0.1715728752538099, -1.0, -1.8284271247461901};
     sigma_tau = StressStrainUtilities::TransformPrincipalStressesToSigmaTau(principal_stress);
     KRATOS_EXPECT_NEAR(coulomb_yield_surface.YieldFunctionValue(sigma_tau), -1.0, Defaults::absolute_tolerance);
 }
@@ -75,7 +73,7 @@ KRATOS_TEST_CASE_IN_SUITE(CoulombYieldSurface_CanBeSavedAndLoaded, KratosGeoMech
     serializer.load("test_tag"s, loaded_coulomb_yield_surface);
 
     // Assert
-    const auto principal_stresses = Geo::PrincipalStresses{UblasUtilities::CreateVector({1.0, 1.0, 1.0})};
+    const auto principal_stresses = Geo::PrincipalStresses{1.0, 1.0, 1.0};
     const auto sigma_tau = StressStrainUtilities::TransformPrincipalStressesToSigmaTau(principal_stresses);
     KRATOS_EXPECT_NEAR(loaded_coulomb_yield_surface.YieldFunctionValue(sigma_tau),
                        0.5 * std::sqrt(3.0) - 1, Defaults::absolute_tolerance);
@@ -88,16 +86,16 @@ KRATOS_TEST_CASE_IN_SUITE(TestTensionCutoff, KratosGeoMechanicsFastSuiteWithoutK
 {
     double tension_cutoff = 2.0;
 
-    auto principal_stress = Geo::PrincipalStresses{UblasUtilities::CreateVector({3.0, 2.0, 1.0})};
+    auto principal_stress = Geo::PrincipalStresses{3.0, 2.0, 1.0};
     auto sigma_tau = StressStrainUtilities::TransformPrincipalStressesToSigmaTau(principal_stress);
     TensionCutoff tensionCutoff(tension_cutoff);
     KRATOS_EXPECT_NEAR(tensionCutoff.YieldFunctionValue(sigma_tau), 1.0, Defaults::absolute_tolerance);
 
-    principal_stress = Geo::PrincipalStresses{UblasUtilities::CreateVector({2.0, 1.5, 1.0})};
+    principal_stress = Geo::PrincipalStresses{2.0, 1.5, 1.0};
     sigma_tau = StressStrainUtilities::TransformPrincipalStressesToSigmaTau(principal_stress);
     KRATOS_EXPECT_NEAR(tensionCutoff.YieldFunctionValue(sigma_tau), 0.0, Defaults::absolute_tolerance);
 
-    principal_stress = Geo::PrincipalStresses{UblasUtilities::CreateVector({1.0, 0.5, 0.1})};
+    principal_stress = Geo::PrincipalStresses{1.0, 0.5, 0.1};
     sigma_tau = StressStrainUtilities::TransformPrincipalStressesToSigmaTau(principal_stress);
     KRATOS_EXPECT_NEAR(tensionCutoff.YieldFunctionValue(sigma_tau), -1.0, Defaults::absolute_tolerance);
 }
@@ -117,8 +115,7 @@ KRATOS_TEST_CASE_IN_SUITE(TensionCutOff_CanBeSavedAndLoadedThroughInterface, Kra
     serializer.load("test_tag"s, loaded_tension_cut_off);
 
     // Assert
-    const auto principal_stresses =
-        Geo::PrincipalStresses{UblasUtilities::CreateVector({tensile_strength, 0.0, 0.0})};
+    const auto principal_stresses = Geo::PrincipalStresses{tensile_strength, 0.0, 0.0};
     const auto sigma_tau = StressStrainUtilities::TransformPrincipalStressesToSigmaTau(principal_stresses);
     KRATOS_EXPECT_NEAR(loaded_tension_cut_off.YieldFunctionValue(sigma_tau), 0.0, Defaults::absolute_tolerance);
     const auto expected_derivative = UblasUtilities::CreateVector({1.0, 1.0});

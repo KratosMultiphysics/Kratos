@@ -30,9 +30,11 @@ struct KRATOS_API(GEO_MECHANICS_APPLICATION) PrincipalStresses {
 
     template <typename VectorType>
     explicit PrincipalStresses(const VectorType& rStressVector)
+        : PrincipalStresses{std::begin(rStressVector), std::end(rStressVector)}
     {
-        std::ranges::copy(rStressVector, values.begin());
     }
+
+    explicit PrincipalStresses(const std::initializer_list<double>& rValues);
 
     template <typename ContainerType>
     ContainerType CopyTo() const
@@ -40,6 +42,13 @@ struct KRATOS_API(GEO_MECHANICS_APPLICATION) PrincipalStresses {
         auto result = ContainerType{values.size()};
         std::ranges::copy(values, result.begin());
         return result;
+    }
+
+private:
+    template <typename InputIt>
+    PrincipalStresses(InputIt First, InputIt Last)
+    {
+        std::copy(First, Last, values.begin());
     }
 };
 

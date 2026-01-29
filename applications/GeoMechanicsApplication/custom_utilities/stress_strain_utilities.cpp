@@ -241,8 +241,8 @@ Geo::SigmaTau StressStrainUtilities::TransformPrincipalStressesToSigmaTau(const 
 Geo::PrincipalStresses StressStrainUtilities::TransformSigmaTauToPrincipalStresses(
     const Geo::SigmaTau& rSigmaTau, const Geo::PrincipalStresses& rPrincipalStresses)
 {
-    return Geo::PrincipalStresses{UblasUtilities::CreateVector(
-        {rSigmaTau.sigma + rSigmaTau.tau, rPrincipalStresses.values[1], rSigmaTau.sigma - rSigmaTau.tau})};
+    return Geo::PrincipalStresses{{rSigmaTau.sigma + rSigmaTau.tau, rPrincipalStresses.values[1],
+                                   rSigmaTau.sigma - rSigmaTau.tau}};
 }
 
 Vector StressStrainUtilities::TransformPrincipalStressesToPandQ(const Vector& rPrincipalStresses)
