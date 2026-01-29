@@ -275,7 +275,7 @@ void UPwInterfaceElement::CalculateAndAssignStifnessForceVector(Element::VectorT
 
 void UPwInterfaceElement::CalculateAndAssignPermeabilityFlowVector(Element::VectorType& rRightHandSideVector)
 {
-    switch (GetGeometry().PointsNumber()) {
+    switch (GetWaterPressureGeometry().PointsNumber()) {
     case 4:
         CalculateAndAssignPermeabilityFlowVector<4>(rRightHandSideVector);
         break;
@@ -430,6 +430,12 @@ const Geometry<Node>& UPwInterfaceElement::GetDisplacementMidGeometry() const
     return GetDisplacementGeometry().GetGeometryPart(unused_part_index);
 }
 
+const Geometry<Node>& UPwInterfaceElement::GetWaterPressureMidGeometry() const
+{
+    constexpr auto unused_part_index = std::size_t{0};
+    return GetWaterPressureGeometry().GetGeometryPart(unused_part_index);
+}
+
 Element::DofsVectorType UPwInterfaceElement::GetDofs() const
 {
     return Geo::DofUtilities::ExtractUPwDofsFromNodes(GetDisplacementGeometry(), GetWaterPressureGeometry(),
@@ -488,18 +494,17 @@ Matrix UPwInterfaceElement::CalculatePwBMatrix(const Vector& rN, const Geometry<
     auto component_order = rGeometry.GetGeometryFamily() == GeometryData::KratosGeometryFamily::Kratos_Linear
                                ? std::vector<std::size_t>{1, 0}
                                : std::vector<std::size_t>{2, 0, 1};
-    auto result = Matrix{ZeroMatrix{component_order.size(), rGeometry.size()}};
+    auto result = Matrix{rGeometry.size(), component_order.size(), 0.0};
 
     const auto number_of_pw_dofs_per_side = result.size2() / 2;
     for (unsigned int i = 0; i < rGeometry.size() / 2; ++i) {
         // Use the order in which the degrees of freedom at any node must be processed to compute
         // the normal component(s) first and then the tangential component(s)
         for (unsigned int j = 0; j < component_order.size(); ++j) {
-            result(component_order[j], i)                              = -rN[i];
-            result(component_order[j], i + number_of_pw_dofs_per_side) = rN[i];
+            result(i, component_order[j])                              = -rN[i];
+            result(i + number_of_pw_dofs_per_side, component_order[j]) = rN[i];
         }
     }
-
     return result;
 }
 
@@ -644,11 +649,27 @@ Vector UPwInterfaceElement::GetWaterPressureGeometryNodalVariable(const Variable
     return result;
 }
 
-std::vector<double> UPwInterfaceElement::CalculateFluidPressure() const
+std::vector<double> UPwInterfaceElement::CalculateIntegrationPointFluidPressures() const
 {
-    return GeoTransportEquationUtilities::CalculateFluidPressures(
-        GetWaterPressureGeometry().ShapeFunctionsValues(GetIntegrationMethod()),
-        GetWaterPressureGeometryNodalVariable(WATER_PRESSURE));
+    Matrix      n_container{mpIntegrationScheme->GetIntegrationPoints().size(),
+                       GetWaterPressureMidGeometry().PointsNumber()};
+    std::size_t integration_point_index = 0;
+    for (auto& r_integration_point : mpIntegrationScheme->GetIntegrationPoints()) {
+        auto integration_point_shape_function_values = Vector{};
+        // water pressure shape function values on integration point ( the integration points are shared with the displacement mid geometry )
+        GetWaterPressureMidGeometry().ShapeFunctionsValues(integration_point_shape_function_values,
+                                                           r_integration_point);
+        row(n_container, integration_point_index) = integration_point_shape_function_values;
+        integration_point_index++;
+    }
+    auto   nodal_water_pressure = GetWaterPressureGeometryNodalVariable(WATER_PRESSURE);
+    Vector mid_geometry_water_pressures{nodal_water_pressure.size() / 2};
+    for (auto i = std::size_t{0}; i < nodal_water_pressure.size() / 2; ++i) {
+        // this choice of averaging should be different for impermeable interface
+        mid_geometry_water_pressures[i] =
+            nodal_water_pressure[i] + nodal_water_pressure[i + nodal_water_pressure.size() / 2];
+    }
+    return GeoTransportEquationUtilities::CalculateFluidPressures(n_container, mid_geometry_water_pressures);
 }
 
 Geo::BMatricesGetter UPwInterfaceElement::CreateBMatricesGetter() const
@@ -670,8 +691,8 @@ Geo::RetentionLawsGetter UPwInterfaceElement::CreateRetentionLawsGetter() const
 Geo::MaterialPermeabilityMatrixGetter UPwInterfaceElement::CreateMaterialPermeabilityGetter() const
 {
     return [this]() -> Matrix {
-        return GeoElementUtilities::FillPermeabilityMatrix(
-            this->GetProperties(), this->GetWaterPressureGeometry().LocalSpaceDimension());
+        return GeoElementUtilities::FillInterfacePermeabilityMatrix(
+            this->GetProperties(), this->GetWaterPressureMidGeometry().WorkingSpaceDimension());
     };
 }
 
@@ -707,7 +728,7 @@ Geo::ShapeFunctionGradientsGetter UPwInterfaceElement::CreatePwBMatricesGetter()
 
 Geo::IntegrationPointValuesGetter UPwInterfaceElement::CreateFluidPressureCalculator() const
 {
-    return [this]() { return this->CalculateFluidPressure(); };
+    return [this]() { return this->CalculateIntegrationPointFluidPressures(); };
 }
 
 template <unsigned int MatrixSize>

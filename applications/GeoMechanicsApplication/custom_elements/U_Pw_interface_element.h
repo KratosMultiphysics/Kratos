@@ -90,6 +90,7 @@ public:
     const IntegrationScheme& GetIntegrationScheme() const;
 
     const Geometry<Node>& GetDisplacementMidGeometry() const;
+    const Geometry<Node>& GetWaterPressureMidGeometry() const;
 
 private:
     UPwInterfaceElement() = default;
@@ -114,7 +115,7 @@ private:
     Vector GetWaterPressureGeometryNodalVariable(const Variable<double>& rVariable) const;
     Matrix CalculatePwBMatrix(const Vector& rN, const Geometry<Node>& rGeometry) const;
     Geometry<Node>::ShapeFunctionsGradientsType CalculateLocalPwBMatricesAtIntegrationPoints() const;
-    std::vector<double> CalculateFluidPressure() const;
+    std::vector<double> CalculateIntegrationPointFluidPressures() const;
 
     Geo::BMatricesGetter                  CreateBMatricesGetter() const;
     Geo::StrainVectorsGetter              CreateRelativeDisplacementsGetter() const;

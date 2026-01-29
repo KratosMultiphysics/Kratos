@@ -519,6 +519,9 @@ KRATOS_TEST_CASE_IN_SUITE(UPwLineInterfaceElement_LeftHandSideContainsMaterialSt
     constexpr auto shear_stiffness  = 10.0;
     const auto     p_properties =
         CreateElasticMaterialProperties<InterfacePlaneStrain>(normal_stiffness, shear_stiffness);
+    p_properties->SetValue(TRANSVERSAL_PERMEABILITY, 5.0E-3);
+    p_properties->SetValue(DYNAMIC_VISCOSITY, 2.0E-1);
+    p_properties->SetValue(RETENTION_LAW, "SaturatedLaw");
     auto element = CreateAndInitializeElement(
         CreateHorizontalUnitLength2Plus2NodedLineInterfaceElementWithUPwDofs, p_properties);
 
