@@ -156,7 +156,7 @@ KRATOS_TEST_CASE_IN_SUITE(ApplyConstantInterpolateLinePressureProcess_SeepageBra
 
     // All nodes should be set and fixed (since pressure < cut-off)
     for (auto& r_node : r_model_part.Nodes()) {
-        KRATOS_CHECK(r_node.IsFixed(WATER_PRESSURE));
+        KRATOS_CHECK(r_node.IsFixed(WATER_PRESSURE))
         // The value is set by CalculatePressure, which in this test setup is 0.0
         KRATOS_CHECK_DOUBLE_EQUAL(r_node.FastGetSolutionStepValue(WATER_PRESSURE), 0.0);
     }
@@ -182,8 +182,8 @@ KRATOS_TEST_CASE_IN_SUITE(ApplyConstantInterpolateLinePressureProcess_SeepageBra
     process_above.ExecuteInitializeSolutionStep();
 
     // All nodes should be free (since pressure >= cut-off)
-    for (auto& r_node : r_model_part.Nodes()) {
-        KRATOS_CHECK_IS_FALSE(r_node.IsFixed(WATER_PRESSURE));
+    for (const auto& r_node : r_model_part.Nodes()) {
+        KRATOS_CHECK_IS_FALSE(r_node.IsFixed(WATER_PRESSURE))
     }
 }
 
