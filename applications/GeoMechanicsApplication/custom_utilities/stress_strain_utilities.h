@@ -58,7 +58,6 @@ public:
                                           std::size_t   StressVectorSize);
 
     static Geo::SigmaTau TransformPrincipalStressesToSigmaTau(const Geo::PrincipalStresses& rPrincipalStresses);
-    static Vector TransformSigmaTauToPrincipalStresses(const Vector& rSigmaTau, const Vector& rPrincipalStresses);
     static Geo::PrincipalStresses TransformSigmaTauToPrincipalStresses(const Geo::SigmaTau& rSigmaTau,
                                                                        const Geo::PrincipalStresses& rPrincipalStresses);
     static Vector TransformPrincipalStressesToPandQ(const Vector& rPrincipalStresses);

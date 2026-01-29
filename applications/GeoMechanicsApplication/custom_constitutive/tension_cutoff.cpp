@@ -35,9 +35,9 @@ double TensionCutoff::YieldFunctionValue(const Geo::SigmaTau& rSigmaTau) const
 {
     // Note that we attempt to calculate the principal stress vector (which consists of three values) from the given
     // sigma and tau (two values). As a result, the second principal stress cannot be uniquely determined.
-    auto principal_stress_vector = Vector{ZeroVector{3}};
-    return YieldFunctionValue(Geo::PrincipalStresses{StressStrainUtilities::TransformSigmaTauToPrincipalStresses(
-        rSigmaTau.CopyTo<Vector>(), principal_stress_vector)});
+    const auto principal_stress_vector = Geo::PrincipalStresses{};
+    return YieldFunctionValue(StressStrainUtilities::TransformSigmaTauToPrincipalStresses(
+        rSigmaTau, principal_stress_vector));
 }
 
 double TensionCutoff::YieldFunctionValue(const Geo::PrincipalStresses& rPrincipalStresses) const
