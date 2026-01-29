@@ -350,8 +350,10 @@ void UPwInterfaceElement::Calculate(const Variable<Vector>& rVariable, Vector& r
         GeoElementUtilities::AssignUBlockVector(
             rOutput, GeoEquationOfMotionUtilities::CalculateInternalForceVector(
                          local_b_matrices, tractions, integration_coefficients));
+        // Todo: Extend with permeability flow and other p parts
     } else if (rVariable == EXTERNAL_FORCES_VECTOR) {
         GeoElementUtilities::AssignUBlockVector(rOutput, Vector{NumberOfUDofs(), 0.0});
+        // Todo: Extend with p parts
     }
 }
 
@@ -496,15 +498,14 @@ Matrix UPwInterfaceElement::CalculatePwBMatrix(const Vector& rN, const Geometry<
                                : std::vector<std::size_t>{2, 0, 1};
     auto result = Matrix{rGeometry.size(), component_order.size(), 0.0};
 
-    const auto number_of_pw_dofs_per_side = result.size2() / 2;
-    for (unsigned int i = 0; i < rGeometry.size() / 2; ++i) {
-        // Use the order in which the degrees of freedom at any node must be processed to compute
-        // the normal component(s) first and then the tangential component(s)
-        for (unsigned int j = 0; j < component_order.size(); ++j) {
-            result(i, component_order[j])                              = -rN[i];
-            result(i + number_of_pw_dofs_per_side, component_order[j]) = rN[i];
+    auto number_of_pw_dofs_per_side = result.size1() / 2;
+    for (auto i = size_t{0}; i < rGeometry.size() / 2; ++i) {
+        for (auto j = size_t{0}; j < component_order.size(); ++j) {
+            result(i, j)                              = -rN[i];
+            result(i + number_of_pw_dofs_per_side, j) = rN[i];
         }
     }
+    KRATOS_INFO("UPwInterfaceElement::CalculatePwBMatrix") << result << std::endl;
     return result;
 }
 
@@ -651,9 +652,9 @@ Vector UPwInterfaceElement::GetWaterPressureGeometryNodalVariable(const Variable
 
 std::vector<double> UPwInterfaceElement::CalculateIntegrationPointFluidPressures() const
 {
-    Matrix      n_container{mpIntegrationScheme->GetIntegrationPoints().size(),
+    Matrix n_container{mpIntegrationScheme->GetIntegrationPoints().size(),
                        GetWaterPressureMidGeometry().PointsNumber()};
-    std::size_t integration_point_index = 0;
+    auto   integration_point_index = std::size_t{0};
     for (auto& r_integration_point : mpIntegrationScheme->GetIntegrationPoints()) {
         auto integration_point_shape_function_values = Vector{};
         // water pressure shape function values on integration point ( the integration points are shared with the displacement mid geometry )
@@ -667,7 +668,7 @@ std::vector<double> UPwInterfaceElement::CalculateIntegrationPointFluidPressures
     for (auto i = std::size_t{0}; i < nodal_water_pressure.size() / 2; ++i) {
         // this choice of averaging should be different for impermeable interface
         mid_geometry_water_pressures[i] =
-            nodal_water_pressure[i] + nodal_water_pressure[i + nodal_water_pressure.size() / 2];
+            (nodal_water_pressure[i] + nodal_water_pressure[i + nodal_water_pressure.size() / 2]) / 2.0;
     }
     return GeoTransportEquationUtilities::CalculateFluidPressures(n_container, mid_geometry_water_pressures);
 }

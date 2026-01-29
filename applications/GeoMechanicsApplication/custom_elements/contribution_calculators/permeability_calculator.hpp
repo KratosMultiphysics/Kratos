@@ -95,11 +95,18 @@ private:
             const auto relative_permeability =
                 mInputProvider.GetRetentionLaws()[integration_point_index]->CalculateRelativePermeability(
                     retention_parameters);
-
+            KRATOS_INFO("from calculator CalculatePermeabilityMatrix() ip")
+                << integration_point_index << "contr: "
+                << GeoTransportEquationUtilities::CalculatePermeabilityMatrix(
+                       r_shape_function_gradients[integration_point_index],
+                       dynamic_viscosity_inverse, material_permeability, relative_permeability,
+                       r_integration_coefficients[integration_point_index])
+                << std::endl;
             noalias(result) += GeoTransportEquationUtilities::CalculatePermeabilityMatrix(
                 r_shape_function_gradients[integration_point_index], dynamic_viscosity_inverse, material_permeability,
                 relative_permeability, r_integration_coefficients[integration_point_index]);
         }
+        KRATOS_INFO("from calculator CalculatePermeabilityMatrix()") << result << std::endl;
         return result;
     }
 
