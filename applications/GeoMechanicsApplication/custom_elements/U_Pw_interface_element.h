@@ -13,8 +13,8 @@
 
 #pragma once
 
-#include "contribution_calculators/permeability_calculator.hpp"
 #include "contribution_calculators/calculation_contribution.h"
+#include "contribution_calculators/permeability_calculator.hpp"
 #include "contribution_calculators/stiffness_calculator.hpp"
 #include "geo_aliases.h"
 #include "includes/element.h"
