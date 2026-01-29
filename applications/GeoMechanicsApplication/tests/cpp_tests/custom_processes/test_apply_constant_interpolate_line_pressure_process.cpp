@@ -69,7 +69,7 @@ KRATOS_TEST_CASE_IN_SUITE(ApplyConstantInterpolateLinePressureProcess_Constructi
         "table": 1
     })");
 
-    ApplyConstantInterpolateLinePressureProcess process(r_model_part, params);
+    EXPECT_NO_THROW(ApplyConstantInterpolateLinePressureProcess process(r_model_part, params));
 }
 
 KRATOS_TEST_CASE_IN_SUITE(ApplyConstantInterpolateLinePressureProcess_ThrowsOnInvalidDirections, KratosGeoMechanicsFastSuite)
@@ -102,7 +102,7 @@ KRATOS_TEST_CASE_IN_SUITE(ApplyConstantInterpolateLinePressureProcess_ExecuteIni
 
     // Set initial pressure values for boundary nodes
     for (auto& r_node : r_model_part.Nodes()) {
-        r_node.FastGetSolutionStepValue(WATER_PRESSURE) = 10.0 * r_node.Id();
+        r_node.FastGetSolutionStepValue(WATER_PRESSURE) = 10.0 * static_cast<double>(r_node.Id());
     }
 
     Parameters params(R"({
@@ -121,7 +121,7 @@ KRATOS_TEST_CASE_IN_SUITE(ApplyConstantInterpolateLinePressureProcess_ExecuteIni
 
     // Check that pressure is set and fixed
     for (auto& r_node : r_model_part.Nodes()) {
-        KRATOS_CHECK(r_node.IsFixed(WATER_PRESSURE));
+        KRATOS_CHECK(r_node.IsFixed(WATER_PRESSURE))
         KRATOS_CHECK_DOUBLE_EQUAL(r_node.FastGetSolutionStepValue(WATER_PRESSURE), 10.0 * r_node.Id());
     }
 }
@@ -204,6 +204,7 @@ KRATOS_TEST_CASE_IN_SUITE(ApplyConstantInterpolateLinePressureProcess_Info, Krat
     })");
 
     ApplyConstantInterpolateLinePressureProcess process(r_model_part, params);
-    KRATOS_CHECK_STRING_EQUAL(process.Info(), "ApplyConstantInterpolateLinePressureProcess");
+    KRATOS_EXPECT_EQ(process.Info(), "ApplyConstantInterpolateLinePressureProcess");
 }
+
 } // namespace
