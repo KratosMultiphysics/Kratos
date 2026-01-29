@@ -54,9 +54,8 @@ The `PUCouplingCalculator` computes the influence of the displacements on the pr
 - The integration coefficients for all integration points
 - The Voigt-vector
 - The nodal velocity values
-- The velocity coefficient
 
-This data is provided via the `InputProvider` and enables the calculator to compute left-hand side contribution. The PU coupling matrix is related to Q as follows: $$Q_{pu} = \beta Q^{T}$$ where $\beta$ is the velocity coefficient. This results in left-hand side contribution. **_Note: the other difference is that $Q$ is calculated using degrees of saturation instead of Bishop coefficients._**
+This data is provided via the `InputProvider` and enables the calculator to compute left-hand side contribution. The PU coupling matrix is related to Q as follows: $$Q_{pu} = Q^{T}$$ This results in left-hand side contribution. **_Note: next to the transpose $Q_{pu}$ is calculated using degrees of saturation instead of Bishop coefficients._**
 
 ($Q_{pu}$ as defined before) and right-hand side contributions ($Q_{pu} v$, in which $v$ is the vector of nodal velocities).
 
