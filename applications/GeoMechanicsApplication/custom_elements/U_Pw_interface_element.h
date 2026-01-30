@@ -14,6 +14,7 @@
 #pragma once
 
 #include "contribution_calculators/calculation_contribution.h"
+#include "contribution_calculators/fluid_body_flow_calculator.hpp"
 #include "contribution_calculators/permeability_calculator.hpp"
 #include "contribution_calculators/stiffness_calculator.hpp"
 #include "geo_aliases.h"
@@ -64,9 +65,11 @@ public:
     void CalculateAndAssignStifnessMatrix(Element::MatrixType& rLeftHandSideMatrix, const ProcessInfo& rProcessInfo);
     void CalculateAndAssignPermeabilityMatrix(Element::MatrixType& rLeftHandSideMatrix);
     void CalculateLeftHandSide(MatrixType& rLeftHandSideMatrix, const ProcessInfo&) override;
-    void CalculateAndAssignStifnessForceVector(Element::VectorType& rRightHandSideVector,
-                                               const ProcessInfo&   rProcessInfo);
-    void CalculateAndAssignPermeabilityFlowVector(Element::VectorType& rRightHandSideVector);
+    void CalculateAndAssembleStifnessForceVector(Element::VectorType& rRightHandSideVector,
+                                                 const ProcessInfo&   rProcessInfo);
+    void CalculateAndAssemblePermeabilityFlowVector(Element::VectorType& rRightHandSideVector);
+    void CalculateAndAssembleFluidBodyFlowVector(Element::VectorType& rRightHandSideVector);
+
     void CalculateRightHandSide(VectorType& rRightHandSideVector, const ProcessInfo&) override;
     void CalculateLocalSystem(MatrixType&        rLeftHandSideMatrix,
                               VectorType&        rRightHandSideVector,
@@ -116,6 +119,7 @@ private:
     Matrix CalculatePwBMatrix(const Vector& rN, const Geometry<Node>& rGeometry) const;
     Geometry<Node>::ShapeFunctionsGradientsType CalculateLocalPwBMatricesAtIntegrationPoints() const;
     std::vector<double> CalculateIntegrationPointFluidPressures() const;
+    std::vector<Vector> CalculateProjectedGravity() const;
 
     Geo::BMatricesGetter                  CreateBMatricesGetter() const;
     Geo::StrainVectorsGetter              CreateRelativeDisplacementsGetter() const;
@@ -127,6 +131,7 @@ private:
     Geo::NodalValuesGetter                CreateWaterPressureGeometryNodalVariableGetter() const;
     Geo::ShapeFunctionGradientsGetter     CreatePwBMatricesGetter() const;
     Geo::IntegrationPointValuesGetter     CreateFluidPressureCalculator() const;
+    std::function<std::vector<Vector>()>  CreateProjectedGravityCalculator() const;
 
     template <unsigned int MatrixSize>
     typename StiffnessCalculator<MatrixSize>::InputProvider CreateStiffnessInputProvider(const ProcessInfo& rProcessInfo);
@@ -138,7 +143,7 @@ private:
     void CalculateAndAssignStiffnessMatrix(MatrixType& rLeftHandSideMatrix, const ProcessInfo& rProcessInfo);
 
     template <unsigned int MatrixSize>
-    void CalculateAndAssignStiffnesForceVector(VectorType& rRightHandSideVector, const ProcessInfo& rProcessInfo);
+    void CalculateAndAssembleStiffnesForceVector(VectorType& rRightHandSideVector, const ProcessInfo& rProcessInfo);
 
     template <unsigned int TNumNodes>
     typename PermeabilityCalculator<TNumNodes>::InputProvider CreatePermeabilityInputProvider();
@@ -150,7 +155,16 @@ private:
     void CalculateAndAssignPermeabilityMatrix(MatrixType& rLeftHandSideMatrix);
 
     template <unsigned int TnumNodes>
-    void CalculateAndAssignPermeabilityFlowVector(VectorType& rRightHandSideVector);
+    void CalculateAndAssemblePermeabilityFlowVector(VectorType& rRightHandSideVector);
+
+    template <unsigned int TNumNodes>
+    typename FluidBodyFlowCalculator<TNumNodes>::InputProvider CreateFluidBodyFlowInputProvider();
+
+    template <unsigned int TNumNodes>
+    auto CreateFluidBodyFlowCalculator();
+
+    template <unsigned int TnumNodes>
+    void CalculateAndAssembleFluidBodyFlowVector(VectorType& rRightHandSideVector);
 
     std::function<Matrix(const Geometry<Node>&, const array_1d<double, 3>&)> mfpCalculateRotationMatrix;
 
