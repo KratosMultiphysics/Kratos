@@ -265,7 +265,7 @@ public:
             if (pValue) {
                 auto itr = mLoadedPointers.find(&*pValue);
                 if (itr == mLoadedPointers.end()) {
-                    mLoadedPointers[&*pValue]=&*pValue;
+                    mLoadedPointers[pValue.get()]=pValue.get();
                     load(rTag, *pValue);
                 }
             }
