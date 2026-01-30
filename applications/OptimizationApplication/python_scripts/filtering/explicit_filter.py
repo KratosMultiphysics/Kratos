@@ -86,7 +86,7 @@ class ExplicitFilter(Filter):
         # now set the filter radius. Can be changed in future to support adaptive radius methods.
         filter_radius = FilterRadiusFactory(self.model_part, self.data_location, self.parameters["filter_radius_settings"])
         self.filter_utils.SetRadius(filter_radius)
-        self.GetComponentDataView().GetUnBufferedData().SetValue("filter_radius", filter_radius.Clone(), overwrite=True)
+        self.GetComponentDataView().GetUnBufferedData().SetValue("filter_radius", filter_radius, overwrite=True)
 
         # now set the damping
         stride = max(enumerate(accumulate(self.filter_variable_shape, operator.mul, initial=1)))[1]
@@ -105,13 +105,25 @@ class ExplicitFilter(Filter):
         pass
 
     def ForwardFilterField(self, control_field: ContainerExpressionTypes) -> ContainerExpressionTypes:
-        return self.filter_utils.ForwardFilterField(control_field)
+        temp_ta = Kratos.TensorAdaptors.DoubleTensorAdaptor(control_field.GetContainer(), Kratos.DoubleNDData(control_field.Evaluate()), False)
+        result_ta = self.filter_utils.ForwardFilterField(temp_ta)
+        result = control_field.Clone()
+        Kratos.Expression.CArrayExpressionIO.Read(result, result_ta.data)
+        return result
 
     def BackwardFilterField(self, physical_mesh_independent_gradient_field: ContainerExpressionTypes) -> ContainerExpressionTypes:
-        return self.filter_utils.BackwardFilterField(physical_mesh_independent_gradient_field)
+        temp_ta = Kratos.TensorAdaptors.DoubleTensorAdaptor(physical_mesh_independent_gradient_field.GetContainer(), Kratos.DoubleNDData(physical_mesh_independent_gradient_field.Evaluate()), False)
+        result_ta = self.filter_utils.BackwardFilterField(temp_ta)
+        result = physical_mesh_independent_gradient_field.Clone()
+        Kratos.Expression.CArrayExpressionIO.Read(result, result_ta.data)
+        return result
 
     def BackwardFilterIntegratedField(self, physical_mesh_dependent_gradient_field: ContainerExpressionTypes) -> ContainerExpressionTypes:
-        return self.filter_utils.BackwardFilterIntegratedField(physical_mesh_dependent_gradient_field)
+        temp_ta = Kratos.TensorAdaptors.DoubleTensorAdaptor(physical_mesh_dependent_gradient_field.GetContainer(), Kratos.DoubleNDData(physical_mesh_dependent_gradient_field.Evaluate()), False)
+        result_ta = self.filter_utils.BackwardFilterIntegratedField(temp_ta)
+        result = physical_mesh_dependent_gradient_field.Clone()
+        Kratos.Expression.CArrayExpressionIO.Read(result, result_ta.data)
+        return result
 
     def UnfilterField(self, filtered_field: ContainerExpressionTypes) -> ContainerExpressionTypes:
          # WARNING: In general explicit VM doesn't need unfiltered field because it works with changes. Hence, it returns zeros and optimization runs correctly.
