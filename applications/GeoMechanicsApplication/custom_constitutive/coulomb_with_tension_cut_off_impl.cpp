@@ -185,7 +185,7 @@ Geo::SigmaTau CoulombWithTensionCutOffImpl::ReturnStressAtTensionCutoffReturnZon
     const auto derivative_of_flow_function = mTensionCutOff.DerivativeOfFlowFunction(rSigmaTau);
     const auto lambda_tc = (mTensionCutOff.GetTensileStrength() - rSigmaTau.sigma - rSigmaTau.tau) /
                            (derivative_of_flow_function[0] + derivative_of_flow_function[1]);
-    return Geo::SigmaTau{Vector{rSigmaTau.CopyTo<Vector>() + lambda_tc * derivative_of_flow_function}};
+    return Geo::SigmaTau{rSigmaTau.CopyTo<Vector>() + lambda_tc * derivative_of_flow_function};
 }
 
 Geo::PrincipalStresses CoulombWithTensionCutOffImpl::ReturnStressAtTensionCutoffReturnZone(
