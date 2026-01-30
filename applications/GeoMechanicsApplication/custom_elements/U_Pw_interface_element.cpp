@@ -788,7 +788,7 @@ Geo::RetentionLawsGetter UPwInterfaceElement::CreateRetentionLawsGetter() const
 
 Geo::MaterialPermeabilityMatrixGetter UPwInterfaceElement::CreateMaterialPermeabilityGetter() const
 {
-    return [this]() -> Matrix {
+    return [this]() {
         return GeoElementUtilities::FillInterfacePermeabilityMatrix(
             this->GetProperties(), this->GetWaterPressureMidGeometry().WorkingSpaceDimension());
     };
