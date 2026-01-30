@@ -116,10 +116,11 @@ class TestVMShapeControlShell(TestVMShapeControlBase, kratos_unittest.TestCase):
         self.assertAlmostEqual(Kratos.Expression.Utils.NormL2(shape_field), 20.976176963410882, 10)
 
     def test_MapGradient(self):
-        physical_gradient = self.implicit_shape_control.GetEmptyField()
-        constant_field_value = Kratos.Array3([1.0, 1.0, 1.0])
-        Kratos.Expression.LiteralExpressionIO.SetData(physical_gradient, constant_field_value)
-        self.explicit_shape_control.filter.filter_utils.GetIntegrationWeights(physical_gradient)
+        physical_gradient =  self.implicit_shape_control.GetEmptyField()
+        ta_physical_gradient = Kratos.TensorAdaptors.DoubleTensorAdaptor(physical_gradient.GetContainer(), Kratos.DoubleNDData(physical_gradient.Evaluate()), copy=False)
+        ta_physical_gradient.data[:] = 1.0
+        self.explicit_shape_control.filter.filter_utils.GetIntegrationWeights(ta_physical_gradient)
+        Kratos.Expression.CArrayExpressionIO.Read(physical_gradient, ta_physical_gradient.data)
         implicit_mapped_gradient = self.implicit_shape_control.MapGradient({KratosOA.SHAPE: physical_gradient})
         self.assertAlmostEqual(Kratos.Expression.Utils.NormL2(implicit_mapped_gradient), 27.84296340221239, 10)
         explicit_mapped_gradient = self.explicit_shape_control.MapGradient({KratosOA.SHAPE: physical_gradient})
