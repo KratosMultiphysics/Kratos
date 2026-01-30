@@ -53,36 +53,30 @@ class TestExplicitFilterConsistency(kratos_unittest.TestCase):
         self.__RunMatrixTest(damping)
 
     def __RunConsistencyTest(self, vm_filter: FilterUtilsType, entities: EntityContainerType, model_part: Kratos.ModelPart):
+        radius_exp = Kratos.TensorAdaptors.DoubleTensorAdaptor(entities, Kratos.DoubleNDData([len(entities)]), copy=False)
         if isinstance(entities, Kratos.NodesArray):
-            container_expression_type = Kratos.Expression.NodalExpression
             damping_type = KratosOA.NearestNodeExplicitDamping
         elif isinstance(entities, Kratos.ConditionsArray):
-            container_expression_type = Kratos.Expression.ConditionExpression
             damping_type = KratosOA.NearestConditionExplicitDamping
         elif isinstance(entities, Kratos.ElementsArray):
-            container_expression_type = Kratos.Expression.ElementExpression
             damping_type = KratosOA.NearestElementExplicitDamping
 
-        radius_exp = container_expression_type(model_part)
-        Kratos.Expression.LiteralExpressionIO.SetData(radius_exp, 2.0)
-        vm_filter.SetRadius(radius_exp.Clone())
+        radius_exp.data[:] = 2.0
+        vm_filter.SetRadius(radius_exp)
         damping = damping_type(self.model, Kratos.Parameters("""{"damping_function_type": "cosine"}"""), 3)
-        damping.SetRadius(radius_exp.Clone())
+        damping.SetRadius(radius_exp)
         vm_filter.SetDamping(damping)
 
         damping.Update()
         vm_filter.Update()
 
-        constant_field_value = Kratos.Array3([2.0, 2.0, 2.0])
-
-        unfiltered_field = container_expression_type(model_part)
-        Kratos.Expression.LiteralExpressionIO.SetData(unfiltered_field, constant_field_value)
+        unfiltered_field = Kratos.TensorAdaptors.DoubleTensorAdaptor(entities, Kratos.DoubleNDData([len(entities), 3], 2.0), copy=False)
         filtered_data = vm_filter.ForwardFilterField(unfiltered_field)
-        self.assertAlmostEqual(Kratos.Expression.Utils.NormL2(filtered_data), math.sqrt(12 * len(entities)), 12)
+        self.assertAlmostEqual(numpy.linalg.norm(filtered_data.data), math.sqrt(12 * len(entities)), 12)
 
         # check with damping
         damping = damping_type(self.model, Kratos.Parameters("""{"damping_function_type": "cosine", "damped_model_part_settings": { "test.fixed": [true, true, false] }}"""), 3)
-        damping.SetRadius(radius_exp.Clone())
+        damping.SetRadius(radius_exp)
         vm_filter.SetDamping(damping)
         damping.Update()
 
@@ -91,36 +85,34 @@ class TestExplicitFilterConsistency(kratos_unittest.TestCase):
             physical_sensitivity_numpy_array.append([entity.Id, entity.Id + 1, entity.Id + 2])
         physical_sensitivity_numpy_array = numpy.array(physical_sensitivity_numpy_array, dtype=numpy.float64)
 
-        physical_sensitivity_field = container_expression_type(model_part)
-        Kratos.Expression.CArrayExpressionIO.Read(physical_sensitivity_field, physical_sensitivity_numpy_array)
-        control_update = physical_sensitivity_field * -1.0
+        physical_sensitivity_field = Kratos.TensorAdaptors.DoubleTensorAdaptor(entities, Kratos.DoubleNDData(physical_sensitivity_numpy_array), copy=False)
+        control_update = Kratos.TensorAdaptors.DoubleTensorAdaptor(physical_sensitivity_field)
+        control_update.data = physical_sensitivity_field.data * -1.0
         vm_filter.Update()
 
         control_sensitivity_field = vm_filter.BackwardFilterField(physical_sensitivity_field)
         physical_update = vm_filter.ForwardFilterField(control_update)
 
         self.assertAlmostEqual(
-            Kratos.Expression.Utils.InnerProduct(physical_sensitivity_field, physical_update),
-            Kratos.Expression.Utils.InnerProduct(control_sensitivity_field, control_update), 9)
+            numpy.dot(physical_sensitivity_field.data.ravel(), physical_update.data.ravel()),
+            numpy.dot(control_sensitivity_field.data.ravel(), control_update.data.ravel()), 9)
 
-        integration_weights = container_expression_type(model_part)
-        Kratos.Expression.LiteralExpressionIO.SetData(integration_weights, constant_field_value)
+        integration_weights = Kratos.TensorAdaptors.DoubleTensorAdaptor(entities, Kratos.DoubleNDData([len(entities), 3], 2.0), copy=False)
         vm_filter.GetIntegrationWeights(integration_weights)
-        integrated_physical_sensitivity_field = physical_sensitivity_field * integration_weights
+        integrated_physical_sensitivity_field = Kratos.TensorAdaptors.DoubleTensorAdaptor(physical_sensitivity_field)
+        integrated_physical_sensitivity_field.data = physical_sensitivity_field.data * integration_weights.data
 
         temp = vm_filter.BackwardFilterIntegratedField(integrated_physical_sensitivity_field)
-        self.assertAlmostEqual(Kratos.Expression.Utils.NormL2(temp - control_sensitivity_field), 0.0, 9)
+        self.assertAlmostEqual(numpy.linalg.norm(temp.data - control_sensitivity_field.data), 0.0, 9)
 
     def __RunMatrixTest(self, damping: DampingType) -> None:
         model_part = self.model_part
         vm_filter = KratosOA.NodeExplicitFilterUtils(model_part, "linear", 1000, 0)
 
-        radius_exp = Kratos.Expression.NodalExpression(model_part)
-        Kratos.Expression.LiteralExpressionIO.SetData(radius_exp, 0.7)
-        vm_filter.SetRadius(radius_exp.Clone())
+        radius_exp = Kratos.TensorAdaptors.DoubleTensorAdaptor(model_part.Nodes, Kratos.DoubleNDData([len(model_part.Nodes)], 0.7), copy=False)
+        vm_filter.SetRadius(radius_exp)
 
-
-        damping.SetRadius(radius_exp.Clone())
+        damping.SetRadius(radius_exp)
         vm_filter.SetDamping(damping)
         damping.Update()
         vm_filter.Update()
@@ -130,17 +122,17 @@ class TestExplicitFilterConsistency(kratos_unittest.TestCase):
             physical_sensitivity_numpy_array.append(entity.Id)
         physical_sensitivity_numpy_array = numpy.array(physical_sensitivity_numpy_array, dtype=numpy.float64)
 
-        physical_sensitivity_field = Kratos.Expression.NodalExpression(model_part)
-        Kratos.Expression.CArrayExpressionIO.Read(physical_sensitivity_field, physical_sensitivity_numpy_array)
-        control_update = physical_sensitivity_field * -1.0
+        physical_sensitivity_field = Kratos.TensorAdaptors.DoubleTensorAdaptor(model_part.Nodes, Kratos.DoubleNDData(physical_sensitivity_numpy_array), copy=False)
+        control_update = Kratos.TensorAdaptors.DoubleTensorAdaptor(physical_sensitivity_field)
+        control_update.data = physical_sensitivity_field.data * -1.0
 
         # compute nodal area
         Kratos.CalculateNonHistoricalNodalAreaProcess(model_part).Execute()
-        nodal_area_exp = Kratos.Expression.NodalExpression(model_part)
-        Kratos.Expression.VariableExpressionIO.Read(nodal_area_exp, Kratos.NODAL_AREA, False)
-        nodal_area = nodal_area_exp.Evaluate()
+        nodal_area_ta = Kratos.TensorAdaptors.VariableTensorAdaptor(model_part.Nodes, Kratos.NODAL_AREA)
+        nodal_area_ta.CollectData()
 
-        integrated_physical_sensitivity_field = Kratos.Expression.Utils.Scale(physical_sensitivity_field, nodal_area_exp)
+        integrated_physical_sensitivity_field = Kratos.TensorAdaptors.DoubleTensorAdaptor(physical_sensitivity_field)
+        integrated_physical_sensitivity_field.data[:] = physical_sensitivity_field.data[:] * nodal_area_ta.data
 
         A = Kratos.Matrix()
         damping.CalculateMatrix(A, 0)
@@ -148,25 +140,25 @@ class TestExplicitFilterConsistency(kratos_unittest.TestCase):
         vm_filter.CalculateMatrix(A)
         A = numpy.array(A)
 
-        p =  control_update.Evaluate()
-        df_dx = physical_sensitivity_field.Evaluate()
+        p =  control_update.data
+        df_dx = physical_sensitivity_field.data
 
         # test forward filtering
         x = D @ A @ p
-        x_vm = vm_filter.ForwardFilterField(control_update).Evaluate()
+        x_vm = vm_filter.ForwardFilterField(control_update).data
         self.assertVectorAlmostEqual(x, x_vm)
 
         # now test the backward filtering
         df_dp = A.T @ D @ df_dx
-        df_dp_vm = vm_filter.BackwardFilterField(physical_sensitivity_field).Evaluate()
+        df_dp_vm = vm_filter.BackwardFilterField(physical_sensitivity_field).data
         self.assertVectorAlmostEqual(df_dp, df_dp_vm)
 
         self.assertAlmostEqual(df_dx.dot(x), df_dp.dot(p))
 
         # now test the integrated backward filtering
-        int_df_dx = integrated_physical_sensitivity_field.Evaluate()
-        df_dp_1 = A.T @ D @ (int_df_dx / nodal_area)
-        df_dp_1_vm = vm_filter.BackwardFilterIntegratedField(integrated_physical_sensitivity_field).Evaluate()
+        int_df_dx = integrated_physical_sensitivity_field.data
+        df_dp_1 = A.T @ D @ (int_df_dx / nodal_area_ta.data)
+        df_dp_1_vm = vm_filter.BackwardFilterIntegratedField(integrated_physical_sensitivity_field).data
         self.assertVectorAlmostEqual(df_dp_1, df_dp_vm)
         self.assertVectorAlmostEqual(df_dp_1, df_dp_1_vm)
 
