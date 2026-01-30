@@ -16,6 +16,7 @@
 // Project includes
 #include "utilities/openmp_utils.h"
 #include "utilities/variable_utils.h"
+#include "mpm_application_variables.h"
 
 // Application includes
 #include "reaction_utilities.h"

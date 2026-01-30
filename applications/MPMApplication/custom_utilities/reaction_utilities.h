@@ -16,7 +16,6 @@
 // External includes
 
 // Project includes
-#include "mpm_application_variables.h"
 
 namespace Kratos
 {
@@ -28,10 +27,6 @@ namespace Kratos
 class KRATOS_API(MPM_APPLICATION) ReactionUtilities
 {
 public:
-
-    ReactionUtilities() = default;
-
-    virtual ~ReactionUtilities() = default;
 
     /**
     * @brief Computes the sum of the REACTION variable for all nodes in a given model part
