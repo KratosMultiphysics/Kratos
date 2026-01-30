@@ -131,8 +131,8 @@ Geo::SigmaTau CoulombWithTensionCutOffImpl::CalculateCornerPoint(const Geo::Sigm
     const auto cohesion = mCoulombYieldSurface.GetCohesion();
     const auto sin_phi  = std::sin(mCoulombYieldSurface.GetFrictionAngleInRadians());
     const auto cos_phi  = std::cos(mCoulombYieldSurface.GetFrictionAngleInRadians());
-    return Geo::SigmaTau{{(tensile_strength - cohesion * cos_phi) / (1.0 - sin_phi),
-                          (cohesion * cos_phi - tensile_strength * sin_phi) / (1.0 - sin_phi)}};
+    return Geo::SigmaTau{(tensile_strength - cohesion * cos_phi) / (1.0 - sin_phi),
+                         (cohesion * cos_phi - tensile_strength * sin_phi) / (1.0 - sin_phi)};
 }
 
 Geo::PrincipalStresses CoulombWithTensionCutOffImpl::CalculateCornerPoint(const Geo::PrincipalStresses& rPrincipalStresses) const
@@ -169,7 +169,7 @@ bool CoulombWithTensionCutOffImpl::IsStressAtCornerReturnZone(const Geo::SigmaTa
 
 Geo::SigmaTau CoulombWithTensionCutOffImpl::ReturnStressAtTensionApexReturnZone(const Geo::SigmaTau&) const
 {
-    return Geo::SigmaTau{{mTensionCutOff.GetTensileStrength(), 0.0}};
+    return Geo::SigmaTau{mTensionCutOff.GetTensileStrength(), 0.0};
 }
 
 Geo::PrincipalStresses CoulombWithTensionCutOffImpl::ReturnStressAtTensionApexReturnZone(const Geo::PrincipalStresses& rPrincipalStresses) const
