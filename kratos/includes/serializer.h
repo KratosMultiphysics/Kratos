@@ -263,7 +263,7 @@ public:
             }
         } else {
             if (pValue) {
-                auto itr = mLoadedPointers.find(&*pValue);
+                auto itr = mLoadedPointers.find(pValue.get());
                 if (itr == mLoadedPointers.end()) {
                     mLoadedPointers[pValue.get()]=pValue.get();
                     load(rTag, *pValue);
