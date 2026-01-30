@@ -223,6 +223,10 @@ class AdjointFluidTest(UnitTest.TestCase):
                 "file_settings" : {
                     "file_access_mode" : "truncate"
                 },
+                "output_time_settings": {
+                    "output_control_type": "time",
+                    "output_interval"    : 0.009
+                },
                 "nodal_solution_step_data_settings" : {
                     "list_of_variables": ["VELOCITY", "PRESSURE", "ACCELERATION"]
                 }
@@ -244,6 +248,10 @@ class AdjointFluidTest(UnitTest.TestCase):
                 "model_part_name": "MainModelPart",
                 "file_settings": {
                     "file_access_mode": "truncate"
+                },
+                "output_time_settings": {
+                    "output_control_type": "time",
+                    "output_interval"    : 0.009
                 },
                 "nodal_solution_step_data_settings": {
                     "list_of_variables": [

@@ -9,43 +9,19 @@ license: HDF5Application/license.txt
 
 __all__ = ["Factory"]
 
+import typing
 
 import KratosMultiphysics
-from KratosMultiphysics.HDF5Application import core
-from KratosMultiphysics.HDF5Application.utils import ParametersWrapper
+from KratosMultiphysics.HDF5Application.core.processes import HDF5Process
+from KratosMultiphysics.HDF5Application.core.processes import HDF5OutputProcess
+from KratosMultiphysics.HDF5Application.core.operations.aggregated_operations import AggregatedControlledOperations
+from KratosMultiphysics.HDF5Application.core.operations import CreateAggregatedOperation
 
-
-def Factory(settings, Model):
+def Factory(settings: KratosMultiphysics.Parameters, model: KratosMultiphysics.Model) -> 'typing.Union[HDF5Process, HDF5OutputProcess]':
     """Return a user-defined input/output process for HDF5.
 
     The input settings are a json array of parameters which maps to the
     structure of the HDF5 IO python core.
-
-    The settings of each array item are given in the following table:
-    +-----------------------+------------+-------------------------------------------+
-    | Setting               | Type       | Default Value                             |
-    +-----------------------+------------+-------------------------------------------+
-    | "model_part_name"     | String     | "PLEASE_SPECIFY_MODEL_PART_NAME"          |
-    +-----------------------+------------+-------------------------------------------+
-    | "process_step"        | String     | "initialize"                              |
-    +-----------------------+------------+-------------------------------------------+
-    | "controller_settings" | Parameters | {                                         |
-    |                       |            |   "controller_type": "default_controller" |
-    |                       |            | }                                         |
-    +-----------------------+------------+-------------------------------------------+
-    | "io_settings"         | Parameters | "echo_level": 0                           |
-    |                       |            | "file_access_mode": "exclusive"           |
-    |                       |            | "file_driver": "sec2"                     |
-    |                       |            | "file_name": "kratos"                     |
-    |                       |            | "max_files_to_keep": "unlimited"          |
-    |                       |            | "io_type": "serial_hdf5_file_io"          |
-    +-----------------------+------------+-------------------------------------------+
-    | "list_of_operations"  | Parameters | [{                                        |
-    |                       | Array      |   "operation_type": "model_part_output"   |
-    |                       |            |   "prefix": "/ModelData"                  |
-    |                       |            | }]                                        |
-    +-----------------------+------------+-------------------------------------------+
-
 
     For example:
         '''
@@ -131,5 +107,50 @@ def Factory(settings, Model):
     algorithm, frequencies and IO operations can be configured by appending
     additional parameters to the json array.
     """
-    # TODO: decide whether to pass a KratosMultiphysics.Process or a KratosMultiphysics.OutputProcess
-    return core.Factory(ParametersWrapper(settings["Parameters"]), Model, KratosMultiphysics.Process)
+
+    defaults = KratosMultiphysics.Parameters("""{
+        "model_part_name" : "MainModelPart",
+        "process_step": "finalize_solution_step",
+        "controller_settings": {
+            "controller_type": "temporal_controller",
+            "time_frequency": 0.5
+        },
+        "io_settings": {
+            "file_name": "results.h5",
+            "file_access_mode": "read_write"
+        },
+        "list_of_operations": [{
+            "prefix": "/<time>/<model_part_name>/ModelData",
+            "operation_type": "model_part_output"
+        },{
+            "prefix": "/<time>/<model_part_name>/ResultsData/",
+            "operation_type": "nodal_solution_step_data_output",
+            "list_of_variables": ["DISPLACEMENT"]
+        }]
+    }""")
+
+    aggregated_operations_map: 'dict[str, list[AggregatedControlledOperations]]' = {}
+
+    aggregated_operation_params: KratosMultiphysics.Parameters
+    for aggregated_operation_params in settings.values():
+        aggregated_operation_params.ValidateAndAssignDefaults(defaults)
+
+        process_step = aggregated_operation_params["process_step"].GetString()
+        if process_step not in aggregated_operations_map.keys():
+            aggregated_operations_map[process_step]: 'list[AggregatedControlledOperations]' = []
+        aggregated_operations_map[process_step].append(CreateAggregatedOperation(model, aggregated_operation_params))
+
+    if "print_output" in aggregated_operations_map.keys():
+        process: 'typing.Union[HDF5Process, HDF5OutputProcess]' = HDF5OutputProcess()
+    else:
+        process: 'typing.Union[HDF5Process, HDF5OutputProcess]' = HDF5Process()
+
+    for process_step, aggregated_operations_list in aggregated_operations_map.items():
+        if process_step == "print_output":
+            list(map(lambda x: process.AddPrintOutput(x) , aggregated_operations_list))
+        else:
+            modified_process_step = KratosMultiphysics.StringUtilities.ConvertSnakeCaseToCamelCase(process_step)
+            method_name = f"Add{modified_process_step}"
+            list(map(lambda x: getattr(process, method_name)(x), aggregated_operations_list))
+
+    return process
