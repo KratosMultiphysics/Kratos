@@ -540,7 +540,7 @@ def extract_shear_traction_and_y_from_line(line):
     return _extract_x_and_y_from_line(line, index_of_x=4, index_of_y=1)
 
 
-class KratosGeoMechanicsSubmergedConstructionOfExcavation(KratosUnittest.TestCase):
+class KratosGeoMechanicsBuildingPit(KratosUnittest.TestCase):
 
     def setUp(self):
         super().setUp()
@@ -705,7 +705,7 @@ class KratosGeoMechanicsSubmergedConstructionOfExcavation(KratosUnittest.TestCas
 
     def run_simulation_and_checks(self, sub_directory_name):
         project_path = test_helper.get_file_path(
-            os.path.join("submerged_construction_of_excavation", sub_directory_name)
+            os.path.join("building_pit", sub_directory_name)
         )
 
         with context_managers.set_cwd_to(project_path):
