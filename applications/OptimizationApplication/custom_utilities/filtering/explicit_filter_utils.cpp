@@ -18,7 +18,6 @@
 #include <tuple>
 
 // Project includes
-#include "expression/literal_flat_expression.h"
 #include "utilities/atomic_utilities.h"
 #include "utilities/builtin_timer.h"
 #include "utilities/model_part_utils.h"
@@ -35,34 +34,28 @@ namespace Kratos {
 namespace ExplicitFilterUtilsHelperUtilities
 {
 template<class TContainerType>
-Expression::ConstPointer GetNodalDomainSizeExpression(
+void GetNodalDomainSizeExpression(
+    std::vector<double>& rNodalDomainSizes,
     const TContainerType& rContainer,
     const ModelPart::NodesContainerType& rNodes)
 {
     const IndexType number_of_nodes = rNodes.size();
 
-    auto p_expression = LiteralFlatExpression<double>::Create(number_of_nodes, {});
+    rNodalDomainSizes.resize(number_of_nodes, 0.0);
 
-    // reset the existing values in the expression
-    IndexPartition<IndexType>(number_of_nodes).for_each([&p_expression](const IndexType Index) {
-        *(p_expression->begin() + Index) = 0.0;
-    });
-
-    IndexPartition<IndexType>(rContainer.size()).for_each([&rNodes, &rContainer, &p_expression](const IndexType Index) {
+    IndexPartition<IndexType>(rContainer.size()).for_each([&rNodes, &rContainer, &rNodalDomainSizes](const IndexType Index) {
         const auto& r_geometry = (rContainer.begin() + Index)->GetGeometry();
         const double nodal_domain_size = r_geometry.DomainSize() / r_geometry.size();
         for (const auto& r_node : r_geometry) {
             const auto node_ptr = rNodes.find(r_node.Id());
             if (node_ptr != rNodes.end()) {
                 const IndexType node_index = std::distance(rNodes.begin(), node_ptr);
-                AtomicAdd<double>(*(p_expression->begin() + node_index), nodal_domain_size);
+                AtomicAdd<double>(rNodalDomainSizes[node_index], nodal_domain_size);
             } else {
                 KRATOS_ERROR << "Node with id " << r_node.Id() << " not found.";
             }
         }
     });
-
-    return p_expression;
 }
 
 struct NodeCloudsType
@@ -70,7 +63,7 @@ struct NodeCloudsType
     template<class TEntityType>
     static inline double GetDomainSize(
         const EntityPoint<TEntityType>& rPoint,
-        Expression const * const pExpression)
+        const std::vector<double>& rNodalDomainSizes)
     {
         if constexpr(!std::is_same_v<TEntityType, ModelPart::NodeType>) {
             KRATOS_ERROR << "Point / node clouds should only be used with nodes.";
@@ -91,10 +84,10 @@ struct MeshIndependentType
     template<class TEntityType>
     static inline double GetDomainSize(
         const EntityPoint<TEntityType>& rPoint,
-        Expression const * const pExpression)
+        const std::vector<double>& rNodalDomainSizes)
     {
         if constexpr(std::is_same_v<TEntityType, ModelPart::NodeType>) {
-            return pExpression->Evaluate(rPoint.Id(), rPoint.Id(), 0);
+            return rNodalDomainSizes[rPoint.Id()];
         } else {
             return rPoint.GetEntity().GetGeometry().DomainSize();
         }
@@ -113,10 +106,10 @@ struct MeshDependentType
     template<class TEntityType>
     static inline double GetDomainSize(
         const EntityPoint<TEntityType>& rPoint,
-        Expression const * const pExpression)
+        const std::vector<double>& rNodalDomainSizes)
     {
         if constexpr(std::is_same_v<TEntityType, ModelPart::NodeType>) {
-            return pExpression->Evaluate(rPoint.Id(), rPoint.Id(), 0);
+            return rNodalDomainSizes[rPoint.Id()];
         } else {
             return rPoint.GetEntity().GetGeometry().DomainSize();
         }
@@ -140,10 +133,10 @@ void ComputeWeightForAllNeighbors(
     const std::vector<typename EntityPoint<TEntityType>::Pointer>& rNeighbourNodes,
     const std::vector<double>& rSquaredDistances,
     const IndexType NumberOfNeighbours,
-    Expression const * const pExpression)
+    const std::vector<double>& rNodalDomainSizes)
 {
     for (IndexType i = 0; i < NumberOfNeighbours; ++i) {
-        const double domain_size = TMeshDependencyType::GetDomainSize(*rNeighbourNodes[i], pExpression);
+        const double domain_size = TMeshDependencyType::GetDomainSize(*rNeighbourNodes[i], rNodalDomainSizes);
         const double filter_weight = rFilterFunction.ComputeWeight(Radius, std::sqrt(rSquaredDistances[i])) * domain_size;
         rListOfWeights[i] = filter_weight;
         rSumOfWeights += filter_weight;
@@ -168,24 +161,42 @@ ExplicitFilterUtils<TContainerType>::ExplicitFilterUtils(
 }
 
 template<class TContainerType>
-void ExplicitFilterUtils<TContainerType>::SetRadius(const ContainerExpression<TContainerType>& rContainerExpression)
+void ExplicitFilterUtils<TContainerType>::SetRadius(TensorAdaptor<double>::Pointer pTensorAdaptor)
 {
-    KRATOS_ERROR_IF_NOT(rContainerExpression.GetItemComponentCount() == 1)
-        << "Only scalar values are allowed for the filter radius container expression. "
-        << "Provided container expression = " << rContainerExpression << ".\n";
+    KRATOS_ERROR_IF_NOT(pTensorAdaptor->Shape().size() == 1)
+        << "Only scalar values are allowed for the filter radius tensor adaptor."
+        << "Provided tensor adaptor = " << *pTensorAdaptor << ".\n";
 
-    KRATOS_ERROR_IF_NOT(&rContainerExpression.GetModelPart() == &mrModelPart)
-        << "Filter radius container expression model part and filter model part mismatch."
-        << "\n\tFilter = " << *this
-        << "\n\tContainerExpression = " << rContainerExpression;
+    if (std::holds_alternative<ModelPart::NodesContainerType::Pointer>(pTensorAdaptor->GetContainer())) {
+        const auto& r_container = *(std::get<ModelPart::NodesContainerType::Pointer>(pTensorAdaptor->GetContainer()));
+        KRATOS_ERROR_IF_NOT(&r_container == &mrModelPart.Nodes() || &r_container == &mrModelPart.GetCommunicator().LocalMesh().Nodes())
+            << "Filter radius container expression model part and filter model part mismatch."
+            << "\n\tFilter = " << *this
+            << "\n\tContainerExpression = " << *pTensorAdaptor;
+    } else if (std::holds_alternative<ModelPart::ConditionsContainerType::Pointer>(pTensorAdaptor->GetContainer())) {
+        const auto& r_container = *(std::get<ModelPart::ConditionsContainerType::Pointer>(pTensorAdaptor->GetContainer()));
+        KRATOS_ERROR_IF_NOT(&r_container == &mrModelPart.Conditions())
+            << "Filter radius container expression model part and filter model part mismatch."
+            << "\n\tFilter = " << *this
+            << "\n\tContainerExpression = " << *pTensorAdaptor;
+    } else if (std::holds_alternative<ModelPart::ElementsContainerType::Pointer>(pTensorAdaptor->GetContainer())) {
+        const auto& r_container = *(std::get<ModelPart::ElementsContainerType::Pointer>(pTensorAdaptor->GetContainer()));
+        KRATOS_ERROR_IF_NOT(&r_container == &mrModelPart.Elements())
+            << "Filter radius container expression model part and filter model part mismatch."
+            << "\n\tFilter = " << *this
+            << "\n\tContainerExpression = " << *pTensorAdaptor;
+    } else {
+        KRATOS_ERROR << "Unsupported container type is found in the tensor adaptor. Only supports nodal, condition or elemental tensor adaptors [ tensor adaptor = "
+                     << *pTensorAdaptor << " ].\n";
+    }
 
-    mpFilterRadiusContainer = rContainerExpression.Clone();
+    mpFilterRadiusTensorAdaptor = pTensorAdaptor;
 }
 
 template<class TContainerType>
-ContainerExpression<TContainerType> ExplicitFilterUtils<TContainerType>::GetRadius() const
+TensorAdaptor<double>::Pointer ExplicitFilterUtils<TContainerType>::GetRadius() const
 {
-    return *mpFilterRadiusContainer;
+    return mpFilterRadiusTensorAdaptor;
 }
 
 template<class TContainerType>
@@ -224,9 +235,9 @@ void ExplicitFilterUtils<TContainerType>::ExplicitFilterUtils::Update()
             const IndexType number_of_elements = r_elements.size();
 
             if (number_of_elements > 0) {
-                mpNodalDomainSizeExpression = ExplicitFilterUtilsHelperUtilities::GetNodalDomainSizeExpression(r_elements, r_nodes);
+                ExplicitFilterUtilsHelperUtilities::GetNodalDomainSizeExpression(mNodalDomainSizes, r_elements, r_nodes);
             } else if (number_of_conditions > 0) {
-                mpNodalDomainSizeExpression = ExplicitFilterUtilsHelperUtilities::GetNodalDomainSizeExpression(r_conditions, r_nodes);
+                ExplicitFilterUtilsHelperUtilities::GetNodalDomainSizeExpression(mNodalDomainSizes, r_conditions, r_nodes);
             } else {
                 KRATOS_ERROR << "Nodal mapping requires atleast either conditions or elements to be present in "
                             << mrModelPart.FullName() << ".\n";
@@ -240,21 +251,35 @@ void ExplicitFilterUtils<TContainerType>::ExplicitFilterUtils::Update()
 }
 
 template<class TContainerType>
-void ExplicitFilterUtils<TContainerType>::CheckField(const ContainerExpression<TContainerType>& rContainerExpression) const
+void ExplicitFilterUtils<TContainerType>::CheckField(const TensorAdaptor<double>& rTensorAdaptor) const
 {
-    KRATOS_ERROR_IF(mpFilterRadiusContainer.get() == nullptr)
+    KRATOS_ERROR_IF(mpFilterRadiusTensorAdaptor.get() == nullptr)
         << "The filter radius container expression not set. "
         << "Please set it using SetRadius method.\n\t Filter = "
         << *this;
 
-    KRATOS_ERROR_IF_NOT(rContainerExpression.HasExpression())
-        << "Uninitialized container expression given. "
-        << rContainerExpression;
-
-    KRATOS_ERROR_IF_NOT(&rContainerExpression.GetModelPart() == &mrModelPart)
-        << "Filter radius container expression model part and filter model part mismatch."
-        << "\n\tFilter = " << *this
-        << "\n\tContainerExpression = " << rContainerExpression;
+    if (std::holds_alternative<ModelPart::NodesContainerType::Pointer>(rTensorAdaptor.GetContainer())) {
+        const auto& r_container = *(std::get<ModelPart::NodesContainerType::Pointer>(rTensorAdaptor.GetContainer()));
+        KRATOS_ERROR_IF_NOT(&r_container == &mrModelPart.Nodes() || &r_container == &mrModelPart.GetCommunicator().LocalMesh().Nodes())
+            << "Filter radius container expression model part and filter model part mismatch."
+            << "\n\tFilter = " << *this
+            << "\n\tContainerExpression = " << rTensorAdaptor;
+    } else if (std::holds_alternative<ModelPart::ConditionsContainerType::Pointer>(rTensorAdaptor.GetContainer())) {
+        const auto& r_container = *(std::get<ModelPart::ConditionsContainerType::Pointer>(rTensorAdaptor.GetContainer()));
+        KRATOS_ERROR_IF_NOT(&r_container == &mrModelPart.Conditions())
+            << "Filter radius container expression model part and filter model part mismatch."
+            << "\n\tFilter = " << *this
+            << "\n\tContainerExpression = " << rTensorAdaptor;
+    } else if (std::holds_alternative<ModelPart::ElementsContainerType::Pointer>(rTensorAdaptor.GetContainer())) {
+        const auto& r_container = *(std::get<ModelPart::ElementsContainerType::Pointer>(rTensorAdaptor.GetContainer()));
+        KRATOS_ERROR_IF_NOT(&r_container == &mrModelPart.Elements())
+            << "Filter radius container expression model part and filter model part mismatch."
+            << "\n\tFilter = " << *this
+            << "\n\tContainerExpression = " << rTensorAdaptor;
+    } else {
+        KRATOS_ERROR << "Unsupported container type is found in the tensor adaptor. Only supports nodal, condition or elemental tensor adaptors [ tensor adaptor = "
+                     << rTensorAdaptor << " ].\n";
+    }
 
     KRATOS_ERROR_IF(mpDamping.get() == nullptr)
         << "Damping method is not set. "
@@ -264,29 +289,28 @@ void ExplicitFilterUtils<TContainerType>::CheckField(const ContainerExpression<T
 
 template<class TContainerType>
 template<class TMeshDependencyType>
-ContainerExpression<TContainerType> ExplicitFilterUtils<TContainerType>::GenericForwardFilterField(const ContainerExpression<TContainerType>& rContainerExpression) const
+TensorAdaptor<double>::Pointer ExplicitFilterUtils<TContainerType>::GenericForwardFilterField(const TensorAdaptor<double>& rTensorAdaptor) const
 {
     KRATOS_TRY
 
     using tls = OptimizationUtils::KDTreeThreadLocalStorage<typename EntityPointType::Pointer>;
 
-    CheckField(rContainerExpression);
+    CheckField(rTensorAdaptor);
 
-    const IndexType stride = rContainerExpression.GetItemComponentCount();
-    const auto& r_origin_expression = rContainerExpression.GetExpression();
-    const auto& r_container = rContainerExpression.GetContainer();
-    const auto& r_filter_radius_expression = mpFilterRadiusContainer->GetExpression();
+    const auto& r_origin_data_view = rTensorAdaptor.ViewData();
+    const auto& r_container = *(std::get<typename TContainerType::Pointer>(rTensorAdaptor.GetContainer()));
+    const IndexType stride = rTensorAdaptor.Size() / r_container.size();
+    const auto& r_filter_radius_data_view = mpFilterRadiusTensorAdaptor->ViewData();
 
     KRATOS_ERROR_IF_NOT(stride == mpDamping->GetStride())
         << "Damping stride and expression stride mismatch. [ damping stride = "
         << mpDamping->GetStride() << ", expression stride = " << stride << " ].\n";
 
-    ContainerExpression<TContainerType> result(*rContainerExpression.pGetModelPart());
-    auto p_expression = LiteralFlatExpression<double>::Create(result.GetContainer().size(), rContainerExpression.GetItemShape());
-    result.SetExpression(p_expression);
+    auto p_result_tensor_adaptor = Kratos::make_shared<TensorAdaptor<double>>(rTensorAdaptor);
+    auto result_data_view = p_result_tensor_adaptor->ViewData();
 
     IndexPartition<IndexType>(r_container.size()).for_each(tls(mMaxNumberOfNeighbors, stride), [&](const IndexType Index, tls& rTLS){
-        const double radius = r_filter_radius_expression.Evaluate(Index, Index, 0);
+        const double radius = r_filter_radius_data_view[Index];
 
         EntityPoint<EntityType> entity_point(*(r_container.begin() + Index), Index);
         const auto number_of_neighbors = mpSearchTree->SearchInRadius(
@@ -304,18 +328,18 @@ ContainerExpression<TContainerType> ExplicitFilterUtils<TContainerType>::Generic
         double sum_of_weights = 0.0;
         ExplicitFilterUtilsHelperUtilities::ComputeWeightForAllNeighbors<TMeshDependencyType>(
             sum_of_weights, rTLS.mListOfWeights, *mpKernelFunction, radius,
-            entity_point, rTLS.mNeighbourEntityPoints, rTLS.mResultingSquaredDistances, number_of_neighbors, this->mpNodalDomainSizeExpression.get());
+            entity_point, rTLS.mNeighbourEntityPoints, rTLS.mResultingSquaredDistances, number_of_neighbors, this->mNodalDomainSizes);
 
         mpDamping->Apply(rTLS.mListOfDampedWeights, rTLS.mListOfWeights, Index, number_of_neighbors, rTLS.mNeighbourEntityPoints);
 
         for (IndexType j = 0; j < stride; ++j) {
             const auto& r_damped_weights = rTLS.mListOfDampedWeights[j];
-            double& current_index_value = *(p_expression->begin() + Index * stride + j);
+            double& current_index_value = result_data_view[Index * stride + j];
             current_index_value = 0.0;
             for(IndexType neighbour_index = 0 ; neighbour_index < number_of_neighbors; ++neighbour_index) {
                 const IndexType neighbour_id = rTLS.mNeighbourEntityPoints[neighbour_index]->Id();
                 const double weight = r_damped_weights[neighbour_index] / sum_of_weights;
-                const double origin_value = r_origin_expression.Evaluate(neighbour_id, neighbour_id * stride, j);
+                const double origin_value = r_origin_data_view[neighbour_id * stride + j];
                 current_index_value +=  weight * origin_value;
             }
         }
@@ -323,40 +347,39 @@ ContainerExpression<TContainerType> ExplicitFilterUtils<TContainerType>::Generic
 
     KRATOS_INFO_IF("ExplicitFilterUtils", mEchoLevel > 1) << "Computed forward filter field." << std::endl;
 
-    return result;
+    return p_result_tensor_adaptor;
 
     KRATOS_CATCH("");
 }
 
 template<class TContainerType>
 template<class TMeshDependencyType>
-ContainerExpression<TContainerType> ExplicitFilterUtils<TContainerType>::GenericBackwardFilterField(const ContainerExpression<TContainerType>& rContainerExpression) const
+TensorAdaptor<double>::Pointer ExplicitFilterUtils<TContainerType>::GenericBackwardFilterField(const TensorAdaptor<double>& rTensorAdaptor) const
 {
     KRATOS_TRY
 
     using tls = OptimizationUtils::KDTreeThreadLocalStorage<typename EntityPointType::Pointer>;
 
-    CheckField(rContainerExpression);
+    CheckField(rTensorAdaptor);
 
-    const IndexType stride = rContainerExpression.GetItemComponentCount();
-    const auto& r_origin_expression = rContainerExpression.GetExpression();
-    const auto& r_container = rContainerExpression.GetContainer();
-    const auto& r_filter_radius_expression = mpFilterRadiusContainer->GetExpression();
+    const auto& r_origin_data_view = rTensorAdaptor.ViewData();
+    const auto& r_container = *(std::get<typename TContainerType::Pointer>(rTensorAdaptor.GetContainer()));
+    const IndexType stride = r_origin_data_view.size() / r_container.size();
+    const auto& r_filter_radius_data_view = mpFilterRadiusTensorAdaptor->ViewData();
 
     KRATOS_ERROR_IF_NOT(stride == mpDamping->GetStride())
         << "Damping stride and expression stride mismatch. [ damping stride = "
         << mpDamping->GetStride() << ", expression stride = " << stride << " ].\n";
 
-    ContainerExpression<TContainerType> result(*rContainerExpression.pGetModelPart());
-    auto p_expression = LiteralFlatExpression<double>::Create(result.GetContainer().size(), rContainerExpression.GetItemShape());
-    result.SetExpression(p_expression);
+    auto p_result_tensor_adaptor = Kratos::make_shared<TensorAdaptor<double>>(rTensorAdaptor);
+    auto result_data_view = p_result_tensor_adaptor->ViewData();
 
-    IndexPartition<IndexType>(result.GetContainer().size() * stride).for_each([&p_expression](const auto Index) {
-        *(p_expression->begin() + Index) = 0.0;
+    IndexPartition<IndexType>(result_data_view.size()).for_each([&result_data_view](const auto Index) {
+        result_data_view[Index] = 0.0;
     });
 
     IndexPartition<IndexType>(r_container.size()).for_each(tls(mMaxNumberOfNeighbors, stride), [&](const IndexType Index, tls& rTLS){
-        const double radius = r_filter_radius_expression.Evaluate(Index, Index, 0);
+        const double radius = r_filter_radius_data_view[Index];
 
         EntityPoint<EntityType> entity_point(*(r_container.begin() + Index), Index);
         const auto number_of_neighbors = mpSearchTree->SearchInRadius(
@@ -374,16 +397,17 @@ ContainerExpression<TContainerType> ExplicitFilterUtils<TContainerType>::Generic
         double sum_of_weights = 0.0;
         ExplicitFilterUtilsHelperUtilities::ComputeWeightForAllNeighbors<TMeshDependencyType>(
             sum_of_weights, rTLS.mListOfWeights, *mpKernelFunction, radius,
-            entity_point, rTLS.mNeighbourEntityPoints, rTLS.mResultingSquaredDistances, number_of_neighbors, this->mpNodalDomainSizeExpression.get());
+            entity_point, rTLS.mNeighbourEntityPoints, rTLS.mResultingSquaredDistances, number_of_neighbors, this->mNodalDomainSizes);
 
         mpDamping->Apply(rTLS.mListOfDampedWeights, rTLS.mListOfWeights, Index, number_of_neighbors, rTLS.mNeighbourEntityPoints);
 
         const IndexType current_data_begin = Index * stride;
-        const double domain_size = TMeshDependencyType::GetDomainSize(entity_point, mpNodalDomainSizeExpression.get());
+        const double domain_size = TMeshDependencyType::GetDomainSize(entity_point, mNodalDomainSizes);
 
         for (IndexType j = 0; j < stride; ++j) {
             const auto& r_damped_weights = rTLS.mListOfDampedWeights[j];
-            const double origin_value = TMeshDependencyType::Compute(r_origin_expression.Evaluate(Index, current_data_begin, j), domain_size);
+            const double origin_value = TMeshDependencyType::Compute(r_origin_data_view[current_data_begin + j], domain_size);
+            // KRATOS_WATCH(origin_value)
 
             for(IndexType neighbour_index = 0; neighbour_index < number_of_neighbors; ++neighbour_index) {
                 const double weight = r_damped_weights[neighbour_index] / sum_of_weights;
@@ -391,79 +415,80 @@ ContainerExpression<TContainerType> ExplicitFilterUtils<TContainerType>::Generic
                 const IndexType neighbour_id = rTLS.mNeighbourEntityPoints[neighbour_index]->Id();
                 const IndexType neighbour_data_begin_index = neighbour_id * stride;
 
-                AtomicAdd<double>(*(p_expression->begin() + neighbour_data_begin_index + j), origin_value * weight);
+                // KRATOS_WATCH(neighbour_id)
+                // KRATOS_WATCH(weight)
+
+                AtomicAdd<double>(result_data_view[neighbour_data_begin_index + j], origin_value * weight);
+                double temp = result_data_view[neighbour_data_begin_index + j];
+                // std::cout << std::scientific << std::setprecision(18) << "temp:" << temp << std::endl;
             }
         }
     });
 
     KRATOS_INFO_IF("ExplicitFilterUtils", mEchoLevel > 1) << "Computed backward filter field." << std::endl;
 
-    return result;
+    return p_result_tensor_adaptor;
 
     KRATOS_CATCH("");
 }
 
 template<class TContainerType>
 template<class TMeshDependencyType>
-void ExplicitFilterUtils<TContainerType>::GenericGetIntegrationWeights(ContainerExpression<TContainerType>& rContainerExpression) const
+void ExplicitFilterUtils<TContainerType>::GenericGetIntegrationWeights(TensorAdaptor<double>& rTensorAdaptor) const
 {
+    CheckField(rTensorAdaptor);
 
-    KRATOS_ERROR_IF_NOT(&rContainerExpression.GetModelPart() == &mrModelPart)
-        << "The given container expression model part and filter model part mismatch.";
-
-    const IndexType stride = rContainerExpression.GetItemComponentCount();
-    const auto& r_container = rContainerExpression.GetContainer();
-    auto p_expression = LiteralFlatExpression<double>::Create(r_container.GetContainer().size(), rContainerExpression.GetItemShape());
-    rContainerExpression.SetExpression(p_expression);
+    const auto& r_container = *(std::get<typename TContainerType::Pointer>(rTensorAdaptor.GetContainer()));
+    const IndexType stride = rTensorAdaptor.Size() / r_container.size();
+    auto r_data_view = rTensorAdaptor.ViewData();
 
     IndexPartition<IndexType>(r_container.size()).for_each([&](const IndexType Index){
         const EntityPoint<EntityType> entity(*(r_container.begin() + Index), Index);
-        const auto integration_weight = TMeshDependencyType::GetDomainSize(entity, this->mpNodalDomainSizeExpression.get());
+        const auto integration_weight = TMeshDependencyType::GetDomainSize(entity, this->mNodalDomainSizes);
         const IndexType current_data_begin = Index * stride;
         for (IndexType j = 0; j < stride; ++j) {
-            double& current_index_value = *(p_expression->begin() + current_data_begin + j);
-            current_index_value = integration_weight;
+            r_data_view[current_data_begin + j] = integration_weight;
         }
     });
 }
 
 template<class TContainerType>
-ContainerExpression<TContainerType> ExplicitFilterUtils<TContainerType>::ForwardFilterField(const ContainerExpression<TContainerType>& rContainerExpression) const
+TensorAdaptor<double>::Pointer ExplicitFilterUtils<TContainerType>::ForwardFilterField(const TensorAdaptor<double>& rTensorAdaptor) const
 {
     if (mNodeCloudMesh) {
-        return GenericForwardFilterField<ExplicitFilterUtilsHelperUtilities::NodeCloudsType>(rContainerExpression);
+        return GenericForwardFilterField<ExplicitFilterUtilsHelperUtilities::NodeCloudsType>(rTensorAdaptor);
     } else {
-        return GenericForwardFilterField<ExplicitFilterUtilsHelperUtilities::MeshIndependentType>(rContainerExpression);
+        return GenericForwardFilterField<ExplicitFilterUtilsHelperUtilities::MeshIndependentType>(rTensorAdaptor);
     }
 }
 
 template<class TContainerType>
-ContainerExpression<TContainerType> ExplicitFilterUtils<TContainerType>::BackwardFilterField(const ContainerExpression<TContainerType>& rContainerExpression) const
+TensorAdaptor<double>::Pointer ExplicitFilterUtils<TContainerType>::BackwardFilterField(const TensorAdaptor<double>& rTensorAdaptor) const
 {
     if (mNodeCloudMesh) {
-        return GenericBackwardFilterField<ExplicitFilterUtilsHelperUtilities::NodeCloudsType>(rContainerExpression);
+        return GenericBackwardFilterField<ExplicitFilterUtilsHelperUtilities::NodeCloudsType>(rTensorAdaptor);
     } else {
-        return GenericBackwardFilterField<ExplicitFilterUtilsHelperUtilities::MeshIndependentType>(rContainerExpression);
+        return GenericBackwardFilterField<ExplicitFilterUtilsHelperUtilities::MeshIndependentType>(rTensorAdaptor);
     }
 }
 
 template<class TContainerType>
-ContainerExpression<TContainerType> ExplicitFilterUtils<TContainerType>::BackwardFilterIntegratedField(const ContainerExpression<TContainerType>& rContainerExpression) const
+TensorAdaptor<double>::Pointer ExplicitFilterUtils<TContainerType>::BackwardFilterIntegratedField(const TensorAdaptor<double>& rTensorAdaptor) const
 {
     if (mNodeCloudMesh) {
-        return GenericBackwardFilterField<ExplicitFilterUtilsHelperUtilities::NodeCloudsType>(rContainerExpression);
+        return GenericBackwardFilterField<ExplicitFilterUtilsHelperUtilities::NodeCloudsType>(rTensorAdaptor);
     } else {
-        return GenericBackwardFilterField<ExplicitFilterUtilsHelperUtilities::MeshDependentType>(rContainerExpression);
+        return GenericBackwardFilterField<ExplicitFilterUtilsHelperUtilities::MeshDependentType>(rTensorAdaptor);
     }
 }
 
 template<class TContainerType>
-void ExplicitFilterUtils<TContainerType>::GetIntegrationWeights(ContainerExpression<TContainerType>& rContainerExpression) const
+void ExplicitFilterUtils<TContainerType>::GetIntegrationWeights(TensorAdaptor<double>& rTensorAdaptor) const
 {
     if (mNodeCloudMesh) {
-        GenericGetIntegrationWeights<ExplicitFilterUtilsHelperUtilities::NodeCloudsType>(rContainerExpression);
+        GenericGetIntegrationWeights<ExplicitFilterUtilsHelperUtilities::NodeCloudsType>(rTensorAdaptor);
     } else {
-        GenericGetIntegrationWeights<ExplicitFilterUtilsHelperUtilities::MeshIndependentType>(rContainerExpression);
+        GenericGetIntegrationWeights<ExplicitFilterUtilsHelperUtilities::MeshIndependentType>(rTensorAdaptor);
     }
 }
 
@@ -495,7 +520,7 @@ void ExplicitFilterUtils<TContainerType>::CalculateMatrix(Matrix& rOutput) const
 
     const auto number_of_entities = mEntityPointVector.size();
 
-    const auto& r_filter_radius_expression = mpFilterRadiusContainer->GetExpression();
+    const auto r_filter_radius_data_view = mpFilterRadiusTensorAdaptor->ViewData();
 
     if (rOutput.size1 () != number_of_entities || rOutput.size2() != number_of_entities) {
         rOutput.resize(number_of_entities, number_of_entities, false);
@@ -504,7 +529,7 @@ void ExplicitFilterUtils<TContainerType>::CalculateMatrix(Matrix& rOutput) const
     noalias(rOutput) = ZeroMatrix(number_of_entities, number_of_entities);
 
     IndexPartition<IndexType>(number_of_entities).for_each(tls(mMaxNumberOfNeighbors, 1), [&](const auto Index, auto& rTLS) {
-        const double radius = r_filter_radius_expression.Evaluate(Index, Index, 0);
+        const double radius = r_filter_radius_data_view[Index];
 
         const auto number_of_neighbors = mpSearchTree->SearchInRadius(
                                             *mEntityPointVector[Index],
@@ -522,7 +547,7 @@ void ExplicitFilterUtils<TContainerType>::CalculateMatrix(Matrix& rOutput) const
         double sum_of_weights = 0.0;
         ExplicitFilterUtilsHelperUtilities::ComputeWeightForAllNeighbors<ExplicitFilterUtilsHelperUtilities::MeshIndependentType>(
             sum_of_weights, list_of_weights, *mpKernelFunction, radius,
-            *mEntityPointVector[Index], rTLS.mNeighbourEntityPoints, rTLS.mResultingSquaredDistances, number_of_neighbors, this->mpNodalDomainSizeExpression.get());
+            *mEntityPointVector[Index], rTLS.mNeighbourEntityPoints, rTLS.mResultingSquaredDistances, number_of_neighbors, this->mNodalDomainSizes);
 
         double* data_begin = (rOutput.data().begin() + Index * number_of_entities);
 
@@ -536,15 +561,8 @@ void ExplicitFilterUtils<TContainerType>::CalculateMatrix(Matrix& rOutput) const
 }
 
 // template instantiations
-#define KRATOS_INSTANTIATE_EXPLICIT_FILTER_METHODS(CONTAINER_TYPE)                                                                                                                                                      \
-    template class ExplicitFilterUtils<CONTAINER_TYPE>;                                                                                                                                                                        \
-    template ContainerExpression<CONTAINER_TYPE> ExplicitFilterUtils<CONTAINER_TYPE>::GenericBackwardFilterField<ExplicitFilterUtilsHelperUtilities::MeshIndependentType>(const ContainerExpression<CONTAINER_TYPE>&) const;     \
-    template ContainerExpression<CONTAINER_TYPE> ExplicitFilterUtils<CONTAINER_TYPE>::GenericBackwardFilterField<ExplicitFilterUtilsHelperUtilities::MeshDependentType>(const ContainerExpression<CONTAINER_TYPE>&) const;
-
-KRATOS_INSTANTIATE_EXPLICIT_FILTER_METHODS(ModelPart::NodesContainerType)
-KRATOS_INSTANTIATE_EXPLICIT_FILTER_METHODS(ModelPart::ConditionsContainerType)
-KRATOS_INSTANTIATE_EXPLICIT_FILTER_METHODS(ModelPart::ElementsContainerType)
-
-#undef KRATOS_INSTANTIATE_EXPLICIT_FILTER_METHODS
+template class ExplicitFilterUtils<ModelPart::NodesContainerType>;
+template class ExplicitFilterUtils<ModelPart::ConditionsContainerType>;
+template class ExplicitFilterUtils<ModelPart::ElementsContainerType>;
 
 } // namespace Kratos
