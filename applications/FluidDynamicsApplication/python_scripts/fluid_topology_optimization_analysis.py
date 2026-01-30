@@ -1630,6 +1630,7 @@ class FluidTopologyOptimizationAnalysis(FluidDynamicsAnalysis):
                 else:
                     design_parameter_converged = False
             design_parameter_converged = self.data_communicator.Broadcast(design_parameter_converged, source_rank=0)
+            self.design_parameter_change = self.data_communicator.Broadcast(self.design_parameter_change, source_rank=0)
             self.MpiPrint("--|" + self.topology_optimization_stage_str + "| DESIGN PARAMETER CHANGE: " + str(self.design_parameter_change))
             return design_parameter_converged       
 
@@ -1889,12 +1890,7 @@ class FluidTopologyOptimizationAnalysis(FluidDynamicsAnalysis):
 
     def SetTimeOutputSolutionStepPhysicsVariables(self, time_step_id):
         self._SetTimeOutputSolutionStepFluidVariables(time_step_id)
-
-    def _SetTimeOutputSolutionStepFluidVariables(self, time_step_id): 
-        KratosMultiphysics.VariableUtils().SetSolutionStepValuesVector(self._GetLocalMeshNodes(), KratosMultiphysics.VELOCITY, self.velocity_solutions[time_step_id].flatten(), 0)
-        KratosMultiphysics.VariableUtils().SetSolutionStepValuesVector(self._GetLocalMeshNodes(), KratosMultiphysics.PRESSURE, self.pressure_solutions[time_step_id], 0)
-        KratosMultiphysics.VariableUtils().SetSolutionStepValuesVector(self._GetLocalMeshNodes(), KratosMultiphysics.VELOCITY_ADJ, self.adjoint_velocity_solutions[time_step_id].flatten(), 0)
-        KratosMultiphysics.VariableUtils().SetSolutionStepValuesVector(self._GetLocalMeshNodes(), KratosMultiphysics.PRESSURE_ADJ, self.adjoint_pressure_solutions[time_step_id], 0)  
+nbv  
 
     def PrintTimeOutputProcess(self, output_process, time_step_id):
         time_step_counter = str(time_step_id).zfill(len(str(self.n_time_steps))) 
