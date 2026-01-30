@@ -31,19 +31,19 @@ public:
     using GeometryType = Geometry<Node>;
 
     template <unsigned int TDim, unsigned int TNumNodes>
-    static inline void CalculateNuMatrix(BoundedMatrix<double, TDim, TDim * TNumNodes>& rNu,
-                                         const Matrix&                                  NContainer,
-                                         unsigned int                                   GPoint)
+    static void CalculateNuMatrix(BoundedMatrix<double, TDim, TDim * TNumNodes>& rNu,
+                                  const Matrix&                                  NContainer,
+                                  unsigned int                                   GPoint)
     {
         CalculateNuMatrix(TDim, TNumNodes, rNu, NContainer, GPoint);
     }
 
     template <typename MatrixType1, typename MatrixType2>
-    static inline void CalculateNuMatrix(std::size_t        Dim,
-                                         std::size_t        NumNodes,
-                                         MatrixType1&       rNu,
-                                         const MatrixType2& NContainer,
-                                         unsigned int       GPoint)
+    static void CalculateNuMatrix(std::size_t        Dim,
+                                  std::size_t        NumNodes,
+                                  MatrixType1&       rNu,
+                                  const MatrixType2& NContainer,
+                                  unsigned int       GPoint)
     {
         for (unsigned int i = 0; i < Dim; ++i) {
             unsigned int index = i;
@@ -55,10 +55,10 @@ public:
     }
 
     template <unsigned int TDim, unsigned int TNumNodes>
-    static inline void InterpolateVariableWithComponents(array_1d<double, TDim>& rVector,
-                                                         const Matrix&           NContainer,
-                                                         const array_1d<double, TDim * TNumNodes>& VariableWithComponents,
-                                                         unsigned int GPoint)
+    static void InterpolateVariableWithComponents(array_1d<double, TDim>& rVector,
+                                                  const Matrix&           NContainer,
+                                                  const array_1d<double, TDim * TNumNodes>& VariableWithComponents,
+                                                  unsigned int GPoint)
     {
         noalias(rVector) = ZeroVector(TDim);
 
@@ -72,10 +72,10 @@ public:
     }
 
     template <unsigned int TDof, unsigned int TNumNodes>
-    static inline void InterpolateVariableWithComponents(Vector&       rVector,
-                                                         const Matrix& NContainer,
-                                                         const Vector& VariableWithComponents,
-                                                         unsigned int  GPoint)
+    static void InterpolateVariableWithComponents(Vector&       rVector,
+                                                  const Matrix& NContainer,
+                                                  const Vector& VariableWithComponents,
+                                                  unsigned int  GPoint)
     {
         if (rVector.size() != TDof) rVector.resize(TDof, false);
         KRATOS_ERROR_IF(VariableWithComponents.size() != TDof * TNumNodes)
@@ -96,10 +96,10 @@ public:
     static void FillArray1dOutput(array_1d<double, 3>& rOutputValue, const array_1d<double, 3>& ComputedValue);
 
     template <unsigned int TDim, unsigned int TNumNodes>
-    static inline void GetNodalVariableVector(array_1d<double, TDim * TNumNodes>& rNodalVariableVector,
-                                              const Element::GeometryType&         Geom,
-                                              const Variable<array_1d<double, 3>>& Variable,
-                                              IndexType SolutionStepIndex = 0)
+    static void GetNodalVariableVector(array_1d<double, TDim * TNumNodes>&  rNodalVariableVector,
+                                       const Element::GeometryType&         Geom,
+                                       const Variable<array_1d<double, 3>>& Variable,
+                                       IndexType                            SolutionStepIndex = 0)
     {
         array_1d<double, 3> NodalVariableAux;
         unsigned int        index = 0;
@@ -113,18 +113,18 @@ public:
     }
 
     static void FillPermeabilityMatrix(BoundedMatrix<double, 1, 1>&   rPermeabilityMatrix,
-                                       const Element::PropertiesType& Prop);
+                                       const Element::PropertiesType& rProperties);
 
     static void FillPermeabilityMatrix(BoundedMatrix<double, 2, 2>&   rPermeabilityMatrix,
-                                       const Element::PropertiesType& Prop);
+                                       const Element::PropertiesType& rProperties);
 
     static void FillPermeabilityMatrix(BoundedMatrix<double, 3, 3>&   rPermeabilityMatrix,
-                                       const Element::PropertiesType& Prop);
+                                       const Element::PropertiesType& rProperties);
 
-    static Matrix FillPermeabilityMatrix(const Element::PropertiesType& Prop, std::size_t Dimension);
+    static Matrix FillPermeabilityMatrix(const Element::PropertiesType& rProperties, std::size_t Dimension);
 
     template <typename MatrixType1, typename MatrixType2>
-    static inline void AssembleUUBlockMatrix(MatrixType1& rLeftHandSideMatrix, const MatrixType2& rUUBlockMatrix)
+    static void AssembleUUBlockMatrix(MatrixType1& rLeftHandSideMatrix, const MatrixType2& rUUBlockMatrix)
     {
         constexpr auto row_offset    = std::size_t{0};
         constexpr auto column_offset = row_offset;
@@ -132,7 +132,7 @@ public:
     }
 
     template <typename MatrixType1, typename MatrixType2>
-    static inline void AssembleUPBlockMatrix(MatrixType1& rLeftHandSideMatrix, const MatrixType2& rUPBlockMatrix)
+    static void AssembleUPBlockMatrix(MatrixType1& rLeftHandSideMatrix, const MatrixType2& rUPBlockMatrix)
     {
         constexpr auto row_offset    = std::size_t{0};
         const auto     column_offset = rLeftHandSideMatrix.size2() - rUPBlockMatrix.size2();
@@ -140,7 +140,7 @@ public:
     }
 
     template <typename MatrixType1, typename MatrixType2>
-    static inline void AssemblePUBlockMatrix(MatrixType1& rLeftHandSideMatrix, const MatrixType2& rPUBlockMatrix)
+    static void AssemblePUBlockMatrix(MatrixType1& rLeftHandSideMatrix, const MatrixType2& rPUBlockMatrix)
     {
         const auto     row_offset    = rLeftHandSideMatrix.size1() - rPUBlockMatrix.size1();
         constexpr auto column_offset = std::size_t{0};
@@ -148,7 +148,7 @@ public:
     }
 
     template <typename MatrixType1, typename MatrixType2>
-    static inline void AssemblePPBlockMatrix(MatrixType1& rLeftHandSideMatrix, const MatrixType2& rPPBlockMatrix)
+    static void AssemblePPBlockMatrix(MatrixType1& rLeftHandSideMatrix, const MatrixType2& rPPBlockMatrix)
     {
         const auto row_offset    = rLeftHandSideMatrix.size1() - rPPBlockMatrix.size1();
         const auto column_offset = row_offset;
@@ -156,17 +156,91 @@ public:
     }
 
     template <typename VectorType1, typename VectorType2>
-    static inline void AssembleUBlockVector(VectorType1& rRightHandSideVector, const VectorType2& rUBlockVector)
+    static void AssembleUBlockVector(VectorType1& rRightHandSideVector, const VectorType2& rUBlockVector)
     {
         constexpr auto offset = std::size_t{0};
         AddVectorAtPosition(rUBlockVector, rRightHandSideVector, offset);
     }
 
     template <typename VectorType1, typename VectorType2>
-    static inline void AssemblePBlockVector(VectorType1& rRightHandSideVector, const VectorType2& rPBlockVector)
+    static void AssemblePBlockVector(VectorType1& rRightHandSideVector, const VectorType2& rPBlockVector)
     {
         const auto offset = rRightHandSideVector.size() - rPBlockVector.size();
         AddVectorAtPosition(rPBlockVector, rRightHandSideVector, offset);
+    }
+
+    template <typename MatrixType1, typename MatrixType2>
+    static void AssignMatrixAtPosition(MatrixType1&       rDestinationMatrix,
+                                       const MatrixType2& rSourceMatrix,
+                                       std::size_t        RowOffset,
+                                       std::size_t        ColumnOffset)
+    {
+        KRATOS_DEBUG_ERROR_IF(RowOffset + rSourceMatrix.size1() > rDestinationMatrix.size1())
+            << "Can't assign submatrix: last row index (" << RowOffset + rSourceMatrix.size1()
+            << ") exceeds the row size of the destination matrix (" << rDestinationMatrix.size1() << ")\n";
+        KRATOS_DEBUG_ERROR_IF(ColumnOffset + rSourceMatrix.size2() > rDestinationMatrix.size2())
+            << "Can't assign submatrix: last column index (" << ColumnOffset + rSourceMatrix.size2()
+            << ") exceeds the column size of the destination matrix (" << rDestinationMatrix.size2() << ")\n";
+
+        subrange(rDestinationMatrix, RowOffset, RowOffset + rSourceMatrix.size1(), ColumnOffset,
+                 ColumnOffset + rSourceMatrix.size2()) = rSourceMatrix;
+    }
+
+    template <typename MatrixType1, typename MatrixType2>
+    static void AssignUUBlockMatrix(MatrixType1& rDestinationMatrix, const MatrixType2& rUUBlockMatrix)
+    {
+        constexpr auto row_offset    = std::size_t{0};
+        constexpr auto column_offset = std::size_t{0};
+        AssignMatrixAtPosition(rDestinationMatrix, rUUBlockMatrix, row_offset, column_offset);
+    }
+
+    template <typename MatrixType1, typename MatrixType2>
+    static void AssignUPBlockMatrix(MatrixType1& rDestinationMatrix, const MatrixType2& rUPBlockMatrix)
+    {
+        constexpr auto row_offset    = std::size_t{0};
+        const auto     column_offset = rDestinationMatrix.size2() - rUPBlockMatrix.size2();
+        AssignMatrixAtPosition(rDestinationMatrix, rUPBlockMatrix, row_offset, column_offset);
+    }
+
+    template <typename MatrixType1, typename MatrixType2>
+    static void AssignPUBlockMatrix(MatrixType1& rDestinationMatrix, const MatrixType2& rPUBlockMatrix)
+    {
+        const auto     row_offset    = rDestinationMatrix.size1() - rPUBlockMatrix.size1();
+        constexpr auto column_offset = std::size_t{0};
+        AssignMatrixAtPosition(rDestinationMatrix, rPUBlockMatrix, row_offset, column_offset);
+    }
+
+    template <typename MatrixType1, typename MatrixType2>
+    static void AssignPPBlockMatrix(MatrixType1& rDestinationMatrix, const MatrixType2& rPPBlockMatrix)
+    {
+        const auto row_offset    = rDestinationMatrix.size1() - rPPBlockMatrix.size1();
+        const auto column_offset = rDestinationMatrix.size2() - rPPBlockMatrix.size2();
+
+        AssignMatrixAtPosition(rDestinationMatrix, rPPBlockMatrix, row_offset, column_offset);
+    }
+
+    template <typename VectorType1, typename VectorType2>
+    static void AssignVectorAtPosition(VectorType1& rDestinationVector, const VectorType2& rSourceVector, std::size_t Offset)
+    {
+        KRATOS_DEBUG_ERROR_IF(Offset + rSourceVector.size() > rDestinationVector.size())
+            << "Can't assign subvector: last index (" << Offset + rSourceVector.size()
+            << ") exceeds the size of the destination vector (" << rDestinationVector.size() << ")\n";
+
+        subrange(rDestinationVector, Offset, Offset + rSourceVector.size()) = rSourceVector;
+    }
+
+    template <typename VectorType1, typename VectorType2>
+    static void AssignUBlockVector(VectorType1& rDestinationVector, const VectorType2& rUBlockVector)
+    {
+        constexpr auto offset = std::size_t{0};
+        AssignVectorAtPosition(rDestinationVector, rUBlockVector, offset);
+    }
+
+    template <typename VectorType1, typename VectorType2>
+    static void AssignPBlockVector(VectorType1& rDestinationVector, const VectorType2& rPBlockVector)
+    {
+        const auto offset = rDestinationVector.size() - rPBlockVector.size();
+        AssignVectorAtPosition(rDestinationVector, rPBlockVector, offset);
     }
 
     /**
@@ -191,10 +265,10 @@ public:
                                                                      const Geometry<Node>& rGeometry);
 
     template <typename MatrixType1, typename MatrixType2>
-    static inline void AddMatrixAtPosition(const MatrixType1& rSourceMatrix,
-                                           MatrixType2&       rDestinationMatrix,
-                                           const std::size_t  RowOffset,
-                                           const std::size_t  ColumnOffset)
+    static void AddMatrixAtPosition(const MatrixType1& rSourceMatrix,
+                                    MatrixType2&       rDestinationMatrix,
+                                    const std::size_t  RowOffset,
+                                    const std::size_t  ColumnOffset)
     {
         const std::size_t size1 = rSourceMatrix.size1();
         const std::size_t size2 = rSourceMatrix.size2();

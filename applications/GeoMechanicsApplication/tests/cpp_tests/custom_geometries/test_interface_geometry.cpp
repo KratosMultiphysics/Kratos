@@ -835,4 +835,5 @@ KRATOS_TEST_CASE_IN_SUITE(InterfaceGeometry_Throws_WhenCallingFunctionsRelatedTo
     KRATOS_EXPECT_EXCEPTION_IS_THROWN(
         geometry.GlobalSpaceDerivatives(dummy_coordinates, dummy_index, dummy_index), message)
 }
+
 } // namespace Kratos::Testing
