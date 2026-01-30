@@ -12,22 +12,53 @@
 //
 
 // Application includes
-#include "custom_elements/U_Pw_small_strain_element.hpp"
-#include "custom_utilities/check_utilities.h"
+#include "custom_elements/U_Pw_small_strain_element.h"
+#include "custom_utilities/check_utilities.hpp"
 #include "custom_utilities/constitutive_law_utilities.h"
-#include "custom_utilities/equation_of_motion_utilities.h"
+#include "custom_utilities/element_utilities.hpp"
+#include "custom_utilities/equation_of_motion_utilities.hpp"
 #include "custom_utilities/hydraulic_discharge.h"
-#include "custom_utilities/math_utilities.h"
+#include "custom_utilities/math_utilities.hpp"
 #include "custom_utilities/node_utilities.h"
 #include "custom_utilities/output_utilities.hpp"
+#include "custom_utilities/stress_strain_utilities.h"
 #include "custom_utilities/transport_equation_utilities.hpp"
 #include "custom_utilities/variables_utilities.hpp"
+#include "geo_mechanics_application_variables.h"
 #include "includes/cfd_variables.h"
 
 #include <numeric>
 
 namespace Kratos
 {
+
+template <unsigned int TDim, unsigned int TNumNodes>
+UPwSmallStrainElement<TDim, TNumNodes>::UPwSmallStrainElement(IndexType             NewId,
+                                                              const NodesArrayType& ThisNodes,
+                                                              std::unique_ptr<StressStatePolicy> pStressStatePolicy,
+                                                              std::unique_ptr<IntegrationCoefficientModifier> pCoefficientModifier)
+    : UPwBaseElement(NewId, ThisNodes, std::move(pStressStatePolicy), std::move(pCoefficientModifier))
+{
+}
+
+template <unsigned int TDim, unsigned int TNumNodes>
+UPwSmallStrainElement<TDim, TNumNodes>::UPwSmallStrainElement(IndexType             NewId,
+                                                              GeometryType::Pointer pGeometry,
+                                                              std::unique_ptr<StressStatePolicy> pStressStatePolicy,
+                                                              std::unique_ptr<IntegrationCoefficientModifier> pCoefficientModifier)
+    : UPwBaseElement(NewId, pGeometry, std::move(pStressStatePolicy), std::move(pCoefficientModifier))
+{
+}
+
+template <unsigned int TDim, unsigned int TNumNodes>
+UPwSmallStrainElement<TDim, TNumNodes>::UPwSmallStrainElement(IndexType               NewId,
+                                                              GeometryType::Pointer   pGeometry,
+                                                              PropertiesType::Pointer pProperties,
+                                                              std::unique_ptr<StressStatePolicy> pStressStatePolicy,
+                                                              std::unique_ptr<IntegrationCoefficientModifier> pCoefficientModifier)
+    : UPwBaseElement(NewId, pGeometry, pProperties, std::move(pStressStatePolicy), std::move(pCoefficientModifier))
+{
+}
 
 template <unsigned int TDim, unsigned int TNumNodes>
 Element::Pointer UPwSmallStrainElement<TDim, TNumNodes>::Create(IndexType             NewId,
@@ -1351,6 +1382,32 @@ void UPwSmallStrainElement<TDim, TNumNodes>::CalculateAnyOfMaterialResponse(
 
         mConstitutiveLawVector[integration_point]->CalculateMaterialResponseCauchy(rConstitutiveParameters);
     }
+}
+
+template <unsigned int TDim, unsigned int TNumNodes>
+std::string UPwSmallStrainElement<TDim, TNumNodes>::Info() const
+{
+    const std::string constitutive_info =
+        !mConstitutiveLawVector.empty() ? mConstitutiveLawVector[0]->Info() : "not defined";
+    return "U-Pw small strain Element #" + std::to_string(this->Id()) + "\nConstitutive law: " + constitutive_info;
+}
+
+template <unsigned int TDim, unsigned int TNumNodes>
+void UPwSmallStrainElement<TDim, TNumNodes>::PrintInfo(std::ostream& rOStream) const
+{
+    rOStream << Info();
+}
+
+template <unsigned int TDim, unsigned int TNumNodes>
+void UPwSmallStrainElement<TDim, TNumNodes>::save(Serializer& rSerializer) const
+{
+    KRATOS_SERIALIZE_SAVE_BASE_CLASS(rSerializer, UPwBaseElement)
+}
+
+template <unsigned int TDim, unsigned int TNumNodes>
+void UPwSmallStrainElement<TDim, TNumNodes>::load(Serializer& rSerializer)
+{
+    KRATOS_SERIALIZE_LOAD_BASE_CLASS(rSerializer, UPwBaseElement)
 }
 
 template class UPwSmallStrainElement<2, 3>;
