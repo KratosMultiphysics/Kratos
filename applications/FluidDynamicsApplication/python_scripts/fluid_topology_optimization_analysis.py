@@ -1221,6 +1221,7 @@ class FluidTopologyOptimizationAnalysis(FluidDynamicsAnalysis):
 
     def FinalizeSolutionStep(self):
         super().FinalizeSolutionStep()
+        self.EvaluateOptimizationRequiredGradients()
         if self.IsPhysicsStage():
             self.EvaluateFunctionalsInDeltaTime(self.time_step_counter-1)
         self.StoreTimeStepSolution()
@@ -2029,7 +2030,6 @@ class FluidTopologyOptimizationAnalysis(FluidDynamicsAnalysis):
             self._EvaluateVorticityFunctional(print_functional)
 
     def EvaluateFunctionalsInDeltaTime(self, time_step_id):
-        self.EvaluateOptimizationRequiredGradients()
         self.EvaluatePhysicsFunctionalInDeltaTime(time_step_id)
 
     def EvaluatePhysicsFunctionalInDeltaTime(self, time_step_id):
