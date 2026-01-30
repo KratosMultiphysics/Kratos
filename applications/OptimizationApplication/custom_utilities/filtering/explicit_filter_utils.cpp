@@ -41,7 +41,8 @@ void GetNodalDomainSizeExpression(
 {
     const IndexType number_of_nodes = rNodes.size();
 
-    rNodalDomainSizes.resize(number_of_nodes, 0.0);
+    rNodalDomainSizes.resize(number_of_nodes);
+    std::fill(rNodalDomainSizes.begin(), rNodalDomainSizes.end(), 0.0);
 
     IndexPartition<IndexType>(rContainer.size()).for_each([&rNodes, &rContainer, &rNodalDomainSizes](const IndexType Index) {
         const auto& r_geometry = (rContainer.begin() + Index)->GetGeometry();
