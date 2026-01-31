@@ -70,9 +70,17 @@ void NodalNeighbourCountTensorAdaptor::CollectData()
     }
 
     std::visit([&data_view, &id_index_map](auto pContainer){
+        using container_type = BareType<decltype(*pContainer)>;
         block_for_each(*pContainer, [&data_view, &id_index_map](const auto& rEntity) {
             for (const auto& r_node : rEntity.GetGeometry()) {
-                AtomicAdd<int>(data_view[id_index_map[r_node.Id()]], 1);
+                auto itr = id_index_map.find(r_node.Id());
+
+                KRATOS_ERROR_IF(itr == id_index_map.end())
+                    << "The node with id " << r_node.Id() << " in the "
+                    << ModelPart::Container<container_type>::GetEntityName() << " with id " << rEntity.Id()
+                    << " is not found in the nodes list.";
+
+                AtomicAdd<int>(data_view[itr->second], 1);
             }
         });
     }, mpEntityContainer);
