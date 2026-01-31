@@ -28,7 +28,7 @@
 
 // Application includes
 #include "tensor_adaptors/variable_tensor_adaptor.h"
-#include "custom_utilities/properties_variable_tensor_adaptor.h"
+#include "custom_utilities/tensor_adaptors/properties_variable_tensor_adaptor.h"
 #include "optimization_application_variables.h"
 
 // Include base h

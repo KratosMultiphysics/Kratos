@@ -29,7 +29,6 @@
 #include "custom_utilities/implicit_filter_utils.h"
 #include "custom_utilities/optimization_utils.h"
 #include "custom_utilities/properties_variable_expression_io.h"
-#include "custom_utilities/properties_variable_tensor_adaptor.h"
 
 // Include base h
 #include "add_custom_response_utilities_to_python.h"
@@ -379,14 +378,6 @@ void  AddCustomUtilitiesToPython(pybind11::module& m)
              py::arg("model_part"),
              py::arg("variable"),
              py::arg("data_location"))
-        ;
-
-    py::class_<PropertiesVariableTensorAdaptor, PropertiesVariableTensorAdaptor::Pointer, PropertiesVariableTensorAdaptor::BaseType>(m, "PropertiesVariableTensorAdaptor")
-        .def(py::init<const PropertiesVariableTensorAdaptor::BaseType&, PropertiesVariableTensorAdaptor::VariablePointerType, const bool>(), py::arg("tensor_adaptor"), py::arg("variable"), py::arg("copy") = true)
-        .def(py::init<ModelPart::ConditionsContainerType::Pointer, PropertiesVariableTensorAdaptor::VariablePointerType>(), py::arg("container"), py::arg("variable"))
-        .def(py::init<ModelPart::ConditionsContainerType::Pointer, PropertiesVariableTensorAdaptor::VariablePointerType, const std::vector<unsigned int>&>(), py::arg("container"), py::arg("variable"), py::arg("data_shape"))
-        .def(py::init<ModelPart::ElementsContainerType::Pointer, PropertiesVariableTensorAdaptor::VariablePointerType>(), py::arg("container"), py::arg("variable"))
-        .def(py::init<ModelPart::ElementsContainerType::Pointer, PropertiesVariableTensorAdaptor::VariablePointerType, const std::vector<unsigned int>&>(), py::arg("container"), py::arg("variable"), py::arg("data_shape"))
         ;
 }
 
