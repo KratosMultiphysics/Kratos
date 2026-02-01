@@ -11,7 +11,8 @@
 //                   Anne van de Graaf
 //
 
-#include "integration_coefficients_calculator.h"
+#include "integration_coefficients_calculator.hpp"
+#include "includes/node.h"
 
 namespace Kratos
 {
