@@ -137,7 +137,7 @@ int& ThicknessIntegratedIsotropicConstitutiveLaw::GetValue(
     int& rValue
     )
 {
-    return GetValue<int>(rThisVariable, rValue);
+    return ThicknessIntegratedIsotropicConstitutiveLaw::TGetValue<int>(rThisVariable, rValue);
 }
 
 /***********************************************************************************/
@@ -148,7 +148,7 @@ double& ThicknessIntegratedIsotropicConstitutiveLaw::GetValue(
     double& rValue
     )
 {
-    return GetValue<double>(rThisVariable, rValue);
+    return ThicknessIntegratedIsotropicConstitutiveLaw::TGetValue<double>(rThisVariable, rValue);
 }
 
 /***********************************************************************************/
@@ -159,7 +159,7 @@ Vector& ThicknessIntegratedIsotropicConstitutiveLaw::GetValue(
     Vector& rValue
     )
 {
-    return GetValue<Vector>(rThisVariable, rValue);
+    return ThicknessIntegratedIsotropicConstitutiveLaw::TGetValue<Vector>(rThisVariable, rValue);
 }
 
 /***********************************************************************************/
@@ -171,7 +171,7 @@ void ThicknessIntegratedIsotropicConstitutiveLaw::SetValue(
     const ProcessInfo& rCurrentProcessInfo
     )
 {
-    SetValue<int>(rThisVariable, rValue, rCurrentProcessInfo);
+    ThicknessIntegratedIsotropicConstitutiveLaw::TSetValue<int>(rThisVariable, rValue, rCurrentProcessInfo);
 }
 
 /***********************************************************************************/
@@ -183,7 +183,7 @@ void ThicknessIntegratedIsotropicConstitutiveLaw::SetValue(
     const ProcessInfo& rCurrentProcessInfo
     )
 {
-    SetValue<double>(rThisVariable, rValue, rCurrentProcessInfo);
+    ThicknessIntegratedIsotropicConstitutiveLaw::TSetValue<double>(rThisVariable, rValue, rCurrentProcessInfo);
 }
 
 /***********************************************************************************/
@@ -195,7 +195,7 @@ void ThicknessIntegratedIsotropicConstitutiveLaw::SetValue(
     const ProcessInfo& rCurrentProcessInfo
     )
 {
-    SetValue<Vector>(rThisVariable, rValue, rCurrentProcessInfo);
+    ThicknessIntegratedIsotropicConstitutiveLaw::TSetValue<Vector>(rThisVariable, rValue, rCurrentProcessInfo);
 }
 
 /***********************************************************************************/
@@ -208,7 +208,7 @@ double& ThicknessIntegratedIsotropicConstitutiveLaw::CalculateValue(
     )
 {
 
-    return CalculateValue<double>(rParameterValues, rThisVariable, rValue);
+    return TCalculateValue<double>(rParameterValues, rThisVariable, rValue);
 }
 
 /***********************************************************************************/
@@ -220,7 +220,7 @@ Vector& ThicknessIntegratedIsotropicConstitutiveLaw::CalculateValue(
     Vector& rValue
     )
 {
-    return CalculateValue<Vector>(rParameterValues, rThisVariable, rValue);
+    return TCalculateValue<Vector>(rParameterValues, rThisVariable, rValue);
 }
 
 /***********************************************************************************/
@@ -232,7 +232,7 @@ Matrix& ThicknessIntegratedIsotropicConstitutiveLaw::CalculateValue(
     Matrix& rValue
     )
 {
-    return CalculateValue<Matrix>(rParameterValues, rThisVariable, rValue);
+    return TCalculateValue<Matrix>(rParameterValues, rThisVariable, rValue);
 }
 
 /***********************************************************************************/

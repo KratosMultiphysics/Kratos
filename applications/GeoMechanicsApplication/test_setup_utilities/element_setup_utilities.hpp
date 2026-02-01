@@ -12,6 +12,7 @@
 
 #pragma once
 
+#include "custom_elements/contribution_calculators/calculation_contribution.h"
 #include "geo_aliases.h"
 #include "geometries/point.h"
 #include "includes/condition.h"
@@ -82,17 +83,27 @@ public:
     static Element::Pointer Create2D15NElement();
 
     static Element::Pointer Create2D4NInterfaceElement(const PointerVector<Node>& rNodes,
-                                                       const Properties::Pointer& rProperties);
+                                                       const Properties::Pointer& rProperties,
+                                                       const std::vector<CalculationContribution>& rContributions = {
+                                                           CalculationContribution::Stiffness});
     static Element::Pointer Create2D6NInterfaceElement(const PointerVector<Node>& rNodes,
-                                                       const Properties::Pointer& rProperties);
+                                                       const Properties::Pointer& rProperties,
+                                                       const std::vector<CalculationContribution>& rContributions = {
+                                                           CalculationContribution::Stiffness});
     static Element::Pointer Create3D6NInterfaceElement(const PointerVector<Node>& rNodes,
-                                                       const Properties::Pointer& rProperties);
+                                                       const Properties::Pointer& rProperties,
+                                                       const std::vector<CalculationContribution>& rContributions = {
+                                                           CalculationContribution::Stiffness});
     static Element::Pointer Create3D12NInterfaceElement(const PointerVector<Node>& rNodes,
-                                                        const Properties::Pointer& rProperties);
+                                                        const Properties::Pointer& rProperties,
+                                                        const std::vector<CalculationContribution>& rContributions = {
+                                                            CalculationContribution::Stiffness});
 
     static Element::Pointer Create3D8NInterfaceElement(const PointerVector<Node>& rNodes,
                                                        const Properties::Pointer& rProperties,
-                                                       std::size_t Id = std::size_t{0});
+                                                       std::size_t Id = std::size_t{0},
+                                                       const std::vector<CalculationContribution>& rContributions = {
+                                                           CalculationContribution::Stiffness});
 
     static Element::Pointer Create3D4NElement(const PointerVector<Node>& rNodes,
                                               const Properties::Pointer& rProperties);
