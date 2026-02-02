@@ -83,8 +83,8 @@ namespace Kratos::Testing
 TEST_F(KratosGeoMechanicsFastSuiteWithoutKernel, TestsStiffnessContribution)
 {
     // Arrange
-    constexpr std::size_t number_of_u_dof = 4;
-    constexpr auto number_of_integration_points = std::size_t{2};
+    constexpr std::size_t number_of_u_dof              = 4;
+    constexpr auto        number_of_integration_points = std::size_t{2};
 
     const auto b_matrix = UblasUtilities::CreateMatrix({{1, 2, 3, 4}, {5, 6, 7, 8}, {9, 10, 11, 12}});
     const auto strain = Vector{4, 0.5};
@@ -93,12 +93,13 @@ TEST_F(KratosGeoMechanicsFastSuiteWithoutKernel, TestsStiffnessContribution)
     std::vector<ConstitutiveLaw::Pointer> mock_laws{
         std::make_shared<MockLaw>(constitutive_matrix, stress_vector),
         std::make_shared<MockLaw>(constitutive_matrix, stress_vector)};
-    const auto properties = Properties{};
+    const auto properties              = Properties{};
     const auto process_info            = ProcessInfo{};
     const auto integration_coefficient = 0.5;
 
-    StiffnessCalculator<number_of_u_dof>::InputProvider provider = CreateStiffnessInputProvider<number_of_u_dof>(
-        b_matrix, strain, integration_coefficient, properties, process_info, mock_laws, number_of_integration_points);
+    StiffnessCalculator<number_of_u_dof>::InputProvider provider =
+        CreateStiffnessInputProvider<number_of_u_dof>(b_matrix, strain, integration_coefficient, properties,
+                                                      process_info, mock_laws, number_of_integration_points);
     StiffnessCalculator<number_of_u_dof> calculator(provider);
 
     // Act
@@ -115,8 +116,8 @@ TEST_F(KratosGeoMechanicsFastSuiteWithoutKernel, TestsStiffnessContribution)
 TEST_F(KratosGeoMechanicsFastSuiteWithoutKernel, TestsStiffnessForceContribution)
 {
     // Arrange
-    constexpr std::size_t number_of_u_dof = 4;
-    constexpr auto number_of_integration_points = std::size_t{2};
+    constexpr std::size_t number_of_u_dof              = 4;
+    constexpr auto        number_of_integration_points = std::size_t{2};
 
     const auto b_matrix = UblasUtilities::CreateMatrix({{1, 2, 3, 4}, {5, 6, 7, 8}, {9, 10, 11, 12}});
     const auto strain = Vector{4, 0.5};
@@ -125,12 +126,13 @@ TEST_F(KratosGeoMechanicsFastSuiteWithoutKernel, TestsStiffnessForceContribution
     std::vector<ConstitutiveLaw::Pointer> mock_laws{
         std::make_shared<MockLaw>(constitutive_matrix, stress_vector),
         std::make_shared<MockLaw>(constitutive_matrix, stress_vector)};
-    const auto properties = Properties{};
+    const auto properties              = Properties{};
     const auto process_info            = ProcessInfo{};
     const auto integration_coefficient = 0.5;
 
-    StiffnessCalculator<number_of_u_dof>::InputProvider provider = CreateStiffnessInputProvider<number_of_u_dof>(
-        b_matrix, strain, integration_coefficient, properties, process_info, mock_laws, number_of_integration_points);
+    StiffnessCalculator<number_of_u_dof>::InputProvider provider =
+        CreateStiffnessInputProvider<number_of_u_dof>(b_matrix, strain, integration_coefficient, properties,
+                                                      process_info, mock_laws, number_of_integration_points);
     StiffnessCalculator<number_of_u_dof> calculator(provider);
 
     // Act
