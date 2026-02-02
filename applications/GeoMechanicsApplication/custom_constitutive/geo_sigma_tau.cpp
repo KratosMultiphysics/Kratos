@@ -16,6 +16,11 @@
 namespace Kratos::Geo
 {
 
+SigmaTau::SigmaTau(const std::initializer_list<double>& rValues)
+{
+    std::ranges::copy(rValues, mValues.begin());
+}
+
 const SigmaTau::InternalVectorType& SigmaTau::Values() const { return mValues; }
 
 double SigmaTau::Sigma() const { return mValues[0]; }

@@ -17,6 +17,7 @@
 #include "includes/ublas_interface.h"
 
 #include <algorithm>
+#include <initializer_list>
 
 namespace Kratos::Geo
 {
@@ -37,6 +38,8 @@ public:
             << " entry/ies, but expected " << msVectorSize << "\n";
         std::ranges::copy(rValues, mValues.begin());
     }
+
+    explicit SigmaTau(const std::initializer_list<double>& rValues);
 
     const InternalVectorType& Values() const;
     double                    Sigma() const;

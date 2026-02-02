@@ -74,4 +74,10 @@ KRATOS_TEST_CASE_IN_SUITE(SigmaTau_RaisesADebugErrorWhenAttemptingToConstructFro
     EXPECT_THROW(Geo::SigmaTau{too_long}, Exception);
 }
 
+KRATOS_TEST_CASE_IN_SUITE(SigmaTau_CanBeConstructedFromAStdInitializerListWithSize2, KratosGeoMechanicsFastSuiteWithoutKernel)
+{
+    KRATOS_EXPECT_NEAR((Geo::SigmaTau{1.0, 2.0}.Sigma()), 1.0, Defaults::absolute_tolerance);
+    KRATOS_EXPECT_NEAR((Geo::SigmaTau{1.0, 2.0}.Tau()), 2.0, Defaults::absolute_tolerance);
+}
+
 } // namespace Kratos::Testing
