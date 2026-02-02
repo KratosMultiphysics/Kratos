@@ -124,7 +124,8 @@ class CFDUtils:
 
     def ApplyLaplacian(self, DN: np.ndarray, field: np.ndarray, out: np.ndarray):
         """
-        Computes the term (∇q, ∇field).
+        Computes the term (∇q, ∇field) - scalar field
+                       or (∇w, ∇field) - vector field
         
         Using Einstein notation: 
         if field is scalar: out[e,i] = DN[e,i,m]*DN[e,j,m]*field[e,j]

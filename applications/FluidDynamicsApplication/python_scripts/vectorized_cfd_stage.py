@@ -35,14 +35,16 @@ class VectorizedCFDStage(analysis_stage.AnalysisStage):
 
     def ComputeLumpedMass(self):
         Mel = np.einsum("e,i->ei",self.elemental_volumes,self.N)
-        M = np.empty(len(self.model_part.Nodes)*self.dim)
-        self.cfd_utils.AssembleVector(self.connectivity,Mel,M)
-        print("M.shape",M.shape)
-        print("Mel.shape",Mel.shape)
+        Mscalar = np.empty((len(self.model_part.Nodes)))
+        self.cfd_utils.AssembleVector(self.connectivity,Mel,Mscalar) #here i have one mass per node, but we will need one per component
+        M = np.empty((Mscalar.shape[0],self.dim))
+        for i in range(0,self.dim):
+            M[:,i] = Mscalar[:]
+        M = M.ravel()
         return M
 
     def ApplyVelocityDirichletConditions(self, vold, v_end_of_step, dt_factor, v):
-        v[self.fix_vel_indices] = dt_factor*vold[self.fix_vel_indices] + (1-dt_factor)*v_end_of_step[self.fix_vel_indices]
+        v.ravel()[self.fix_vel_indices] = dt_factor*vold.ravel()[self.fix_vel_indices] + (1-dt_factor)*v_end_of_step
 
     def ComputeH(self,DN):
         inverse_h2 = np.max(np.linalg.norm(DN,axis=2),axis=1)
@@ -140,7 +142,6 @@ class VectorizedCFDStage(analysis_stage.AnalysisStage):
         return "Fluid Dynamics Analysis"
 
 
-
     def ElemData(self,v,connectivities,out):
         expected_shape = (*connectivities.shape, *v.shape[1:])
         if out.shape != expected_shape:
@@ -155,6 +156,7 @@ class VectorizedCFDStage(analysis_stage.AnalysisStage):
         self.model_part.ProcessInfo[KM.STEP] += 1
         return self.time
 
+        
     def Initialize(self):
         super().Initialize()
 
@@ -168,14 +170,9 @@ class VectorizedCFDStage(analysis_stage.AnalysisStage):
 
         self.v_adaptor.CollectData()
         v = self.v_adaptor.data.reshape((len(self.model_part.Nodes),self.dim))
-        for i in range(len(v)): #TODO: remove - just to test
-            v[i,0] = i
-            v[i,1] = i+0.001
 
         self.p_adaptor.CollectData()
         p = self.p_adaptor.data
-        for i in range(len(p)): #TODO: remove - just to test
-            p[i] = i*10
 
         self.connectivity_adaptor = KM.TensorAdaptors.ConnectivityIdsTensorAdaptor(self.vol_mp.Geometries)
         self.connectivity_adaptor.CollectData()
@@ -207,28 +204,10 @@ class VectorizedCFDStage(analysis_stage.AnalysisStage):
         #compute h per every element
         self.h = self.ComputeH(self.DN)
 
-        #obtain fixity
-        #TODO: this should be done with an adaptor
-        counter=0
-        self.fix_vel_indices = []
-        self.fix_press_indices = []
-        for node in self.model_part.Nodes:
-            if node.IsFixed(KM.VELOCITY_X):
-                self.fix_vel_indices.append(counter)
-            if node.IsFixed(KM.VELOCITY_Y):
-                self.fix_vel_indices.append(counter+1)
-            if self.dim==3 and node.IsFixed(KM.VELOCITY_Z):
-                self.fix_vel_indices.append(counter+2)
-            if node.IsFixed(KM.PRESSURE):
-                self.fix_press_indices.append(counter)
-            counter+=1
-        self.fix_vel_indices = np.array(self.fix_vel_indices, np.int64)
-        self.fix_press_indices = np.array(self.fix_press_indices, np.int64)
-
         #compute lumped mass matrix and its inverse
         self.M=self.ComputeLumpedMass() #TODO: decide if we need to store M
         self.Minv = 1./self.M
-
+        
         # Preallocate all outputs
         nelem = self.DN.shape[0]
         self.grad_v   = np.empty((nelem, 2, 2))   # gradient of velocity
@@ -236,12 +215,36 @@ class VectorizedCFDStage(analysis_stage.AnalysisStage):
         self.aux_res_el = np.empty((nelem, 3, 2))
         self.res        = np.empty((nelem, 3, 2))
 
+        ########################## REMOVE - just for testing
+        for node in self.model_part.Nodes:
+            if(node.X < 0.0001):
+                node.Fix(KM.VELOCITY_X)
+                node.SetSolutionStepValue(KM.VELOCITY_X,0,1.0)
+
     def ComputeVelocityProjection(self,v_elemental):
         
         self.cfd_utils.ComputeConvectiveContribution(self.N, grad_u, a, self.Pi)
 
+    def GetFixity(self):
+        #obtain fixity
+        #TODO: this should be done with an adaptor
+        self.fix_vel_indices = []
+        self.fix_press_indices = []
+        for node in self.model_part.Nodes:
+            if node.IsFixed(KM.VELOCITY_X):
+                self.fix_vel_indices.append((node.Id-1)*self.dim)
+            if node.IsFixed(KM.VELOCITY_Y):
+                self.fix_vel_indices.append((node.Id-1)*self.dim+1)
+            if self.dim==3 and node.IsFixed(KM.VELOCITY_Z):
+                self.fix_vel_indices.append((node.Id-1)*self.dim+2)
+            if node.IsFixed(KM.PRESSURE):
+                self.fix_press_indices.append(node.Id)
+
+
+        self.fix_vel_indices = np.array(self.fix_vel_indices, np.int64)
+        self.fix_press_indices = np.array(self.fix_press_indices, np.int64)
+
     def SolveStep1(self,v,vold,p,dt):
-        v_end_of_step_dirichlet = v[self.fix_vel_indices].copy()
 
         self.ElemData(p, self.connectivity, self.scalar_elemental_data)
         pel = self.scalar_elemental_data #no copy ... just renaming for better readability
@@ -255,34 +258,41 @@ class VectorizedCFDStage(analysis_stage.AnalysisStage):
 
         # --- k1 ---
         k1 = self.ComputeVelocityResidual(vel,pel,self.DN,self.tau)
-        print("k1.shape",k1.shape)
-        print("Minv.shape",self.Minv.shape)
         k1.reshape(-1)[:] *= self.Minv
-        
+        print("line269 - v_end_of_step_dirichlet",np.linalg.norm(self.v_end_of_step_dirichlet))
+
         # --- k2 ---    
         v2 = vold + 0.5 * dt * k1
-        self.ApplyVelocityDirichletConditions(vold,v_end_of_step_dirichlet,0.5,v2)
+        self.ApplyVelocityDirichletConditions(vold,self.v_end_of_step_dirichlet,0.5,v2)
+        print("line277 - v_end_of_step_dirichlet",np.linalg.norm(self.v_end_of_step_dirichlet))
         self.ElemData(v2, self.connectivity, vel)
         k2 = self.ComputeVelocityResidual(vel, pel, self.DN,self.tau)
         k2.reshape(-1)[:] *= self.Minv
+        print("dirichlet from database",np.linalg.norm(v2.ravel()[self.fix_vel_indices]))
         
         # --- k3 ---
         v3 = vold + 0.5 * dt * k2
-        self.ApplyVelocityDirichletConditions(vold,v_end_of_step_dirichlet,0.5,v3)
+        self.ApplyVelocityDirichletConditions(vold,self.v_end_of_step_dirichlet,0.5,v3)
+        print("dirichlet from database",np.linalg.norm(v3.ravel()[self.fix_vel_indices]))
         self.ElemData(v3, self.connectivity, vel)
         k3 = self.ComputeVelocityResidual(vel, pel, self.DN,self.tau)
         k3.reshape(-1)[:] *= self.Minv
+        print("line285 - v_end_of_step_dirichlet",np.linalg.norm(self.v_end_of_step_dirichlet))
 
         # --- k4 ---
         v4 = vold + dt * k3
-        self.ApplyVelocityDirichletConditions(vold,v_end_of_step_dirichlet,1.0,v4)
+        self.ApplyVelocityDirichletConditions(vold,self.v_end_of_step_dirichlet,1.0,v4)
+        print("dirichlet from database",np.linalg.norm(v4.ravel()[self.fix_vel_indices]))
         self.ElemData(v4, self.connectivity, vel)
         k4 = self.ComputeVelocityResidual(vel, pel, self.DN,self.tau)
         k4.reshape(-1)[:] *= self.Minv
-
+        print("line293 - v_end_of_step_dirichlet",np.linalg.norm(self.v_end_of_step_dirichlet))
+        
         # --- final RK4 update ---
         vnew = vold + (dt/6.0) * (k1 + 2*k2 + 2*k3 + k4)
-        self.ApplyVelocityDirichletConditions(vold,v_end_of_step_dirichlet,1.0,vnew)
+        self.ApplyVelocityDirichletConditions(vold, self.v_end_of_step_dirichlet,1.0,vnew)
+        print("line298 - v_end_of_step_dirichlet",np.linalg.norm(self.v_end_of_step_dirichlet))
+        print("dirichlet from database",np.linalg.norm(vnew.ravel()[self.fix_vel_indices]))
 
         return vnew
 
@@ -326,10 +336,12 @@ class VectorizedCFDStage(analysis_stage.AnalysisStage):
         v = vfrac - dt * self.Minv * self.cfd_utils.ComputeElementalGradient(self.DN, p)
 
     def SolveSolutionStep(self):
+        self.GetFixity() #TODO: do this only once!
+
         #obtain velocity from Kratos
         self.v_adaptor.CollectData() #new vel
         v = self.v_adaptor.data.reshape((len(self.model_part.Nodes),self.dim))
-        
+        print("line351",np.linalg.norm(v))
         self.v_adaptor_n.CollectData() #old
         vold = self.v_adaptor_n.data.reshape((len(self.model_part.Nodes),self.dim))
 
@@ -338,18 +350,27 @@ class VectorizedCFDStage(analysis_stage.AnalysisStage):
 
         dt = self.model_part.ProcessInfo[KM.DELTA_TIME]
         
+        #get dirichlet values
+        print("line357 - v_end_of_step_dirichlet",np.linalg.norm(v.ravel()[self.fix_vel_indices].copy()))
+        self.v_end_of_step_dirichlet = v.ravel()[self.fix_vel_indices].copy()
+        print("line359 - v_end_of_step_dirichlet",np.linalg.norm(self.v_end_of_step_dirichlet))
+
+
         #perform fractional step
         vfrac = self.SolveStep1(v,vold,p,dt)
-        p = self.SolveStep2(vfrac,p.copy(),dt)
+        print("line363",np.linalg.norm(vfrac))
+        
+        #p = self.SolveStep2(vfrac,p.copy(),dt)
         # v = self.SolveStep3(vfrac,p,dt)
-        v = vfrac
+        v = vfrac #TODO: remove! this is just mocking step2 and step3
         
         #update Kratos
         self.v_adaptor.data = v
         self.v_adaptor.StoreData()
         self.p_adaptor.data = p
         self.p_adaptor.StoreData()
-
+        value = input("Press Enter to continue...")
+        
 
     def ComputeVelocityResidual(self,v_elemental,p_elemental,DN,tau):
         nelem = v_elemental.shape[0]
@@ -361,19 +382,22 @@ class VectorizedCFDStage(analysis_stage.AnalysisStage):
         aux_res_el = self.aux_res_el
         res        = self.res
 
+        #(w,b)
+        res.fill(0.0) #TODO: substitute by the proper computation of the external forces
+
         #(w,a·∇u)
         convective=aux_res_el #rename this to make it more readable
         self.cfd_utils.ComputeElementalGradient(DN, v_elemental, grad_v)
         self.cfd_utils.InterpolateValue(self.N,v_elemental,v_gauss)
         self.cfd_utils.ComputeConvectiveContribution(N, grad_v, v_gauss, convective)
-        #TODO: scale convective by density
-        res += convective
+        convective *= self.rho
+        res -= convective
 
         #(∇w,∇u)
         viscous=aux_res_el #rename this to make it more readable
         self.cfd_utils.ApplyLaplacian(DN,v_elemental,viscous)
         viscous *= self.nu
-        res += viscous
+        res -= viscous
 
         # (∇w,p_gauss)
         pressure_term=aux_res_el #rename this to make it more readable
@@ -384,9 +408,8 @@ class VectorizedCFDStage(analysis_stage.AnalysisStage):
         convective_stabilization=aux_res_el #rename this to make it more readable
         Pi_elemental = np.zeros(v_elemental.shape) #TODO: this has to be computed in the appropriate way!
         self.cfd_utils.ComputeMomentumStabilization(N, DN, v_gauss, v_elemental, Pi_elemental, convective_stabilization)
-        print(convective_stabilization)
-        res += convective_stabilization
-        
+        convective_stabilization *= 0.0 ##self.tau[:,np.newaxis,np.newaxis] #TODO: activate stabilization
+        res -= convective_stabilization
 
         #multiply by volume
         res *= self.elemental_volumes[:,np.newaxis,np.newaxis]
@@ -394,8 +417,6 @@ class VectorizedCFDStage(analysis_stage.AnalysisStage):
         #VECTORIZED FEM ASSEMBLY 
         Rassembled = np.zeros((self.nnodes,self.dim),dtype=res.dtype) ##TODO preallocate this
         self.cfd_utils.AssembleVector(self.connectivity,res,Rassembled)
-        print("Rassembled.shape",Rassembled.shape)
-        print("res.shape",res.shape)
         return Rassembled
 
     def ImportModelPart(self):
