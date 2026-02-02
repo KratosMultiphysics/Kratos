@@ -22,9 +22,9 @@ namespace Kratos::Testing
 KRATOS_TEST_CASE_IN_SUITE(SigmaTau_HasZeroesAsValuesWhenDefaultConstructed, KratosGeoMechanicsFastSuiteWithoutKernel)
 {
     KRATOS_EXPECT_VECTOR_NEAR(Geo::SigmaTau().Values(), Vector(2, 0.0), Defaults::absolute_tolerance);
-    KRATOS_EXPECT_VECTOR_NEAR(Geo::SigmaTau{}.Values(), Vector(2, 0.0), Defaults::absolute_tolerance);
-    KRATOS_EXPECT_NEAR(Geo::SigmaTau{}.Sigma(), 0.0, Defaults::absolute_tolerance);
-    KRATOS_EXPECT_NEAR(Geo::SigmaTau{}.Tau(), 0.0, Defaults::absolute_tolerance);
+    KRATOS_EXPECT_VECTOR_NEAR(Geo::SigmaTau().Values(), Vector(2, 0.0), Defaults::absolute_tolerance);
+    KRATOS_EXPECT_NEAR(Geo::SigmaTau().Sigma(), 0.0, Defaults::absolute_tolerance);
+    KRATOS_EXPECT_NEAR(Geo::SigmaTau().Tau(), 0.0, Defaults::absolute_tolerance);
 }
 
 KRATOS_TEST_CASE_IN_SUITE(SigmaTau_CanBeConstructedFromAnyVectorWithSize2, KratosGeoMechanicsFastSuiteWithoutKernel)
@@ -78,6 +78,18 @@ KRATOS_TEST_CASE_IN_SUITE(SigmaTau_CanBeConstructedFromAStdInitializerListWithSi
 {
     KRATOS_EXPECT_NEAR((Geo::SigmaTau{1.0, 2.0}.Sigma()), 1.0, Defaults::absolute_tolerance);
     KRATOS_EXPECT_NEAR((Geo::SigmaTau{1.0, 2.0}.Tau()), 2.0, Defaults::absolute_tolerance);
+}
+
+KRATOS_TEST_CASE_IN_SUITE(SigmaTau_RaisesADebugErrorWhenAttemptingToConstructFromANonEmptyStdInitializerListWithSizeUnequalTo2,
+                          KratosGeoMechanicsFastSuiteWithoutKernel)
+{
+#ifndef KRATOS_DEBUG
+    GTEST_SKIP() << "This test requires a debug build";
+#endif
+
+    EXPECT_NO_THROW(Geo::SigmaTau{}); // empty list is OK
+    EXPECT_THROW(Geo::SigmaTau{1.0}, Exception);
+    EXPECT_THROW((Geo::SigmaTau{2.0, 3.0, 4.0}), Exception);
 }
 
 } // namespace Kratos::Testing

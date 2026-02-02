@@ -18,6 +18,9 @@ namespace Kratos::Geo
 
 SigmaTau::SigmaTau(const std::initializer_list<double>& rValues)
 {
+    KRATOS_DEBUG_ERROR_IF(rValues.size() != msVectorSize && rValues.size() != 0)
+        << "Cannot construct a SigmaTau instance: the given initializer list is nonempty and has "
+        << rValues.size() << " entry/ies, but expected " << msVectorSize << "\n";
     std::ranges::copy(rValues, mValues.begin());
 }
 
