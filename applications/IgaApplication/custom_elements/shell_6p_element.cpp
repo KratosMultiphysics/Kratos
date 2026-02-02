@@ -155,10 +155,6 @@ namespace Kratos
             rOutput.resize(r_integration_points.size());
         }
 
-        Matrix DN_De_Jn = ZeroMatrix(number_of_nodes,3);
-        Matrix J_inv = ZeroMatrix(3, 3);
-        double area = 0.0;
-
         Vector current_displacement = ZeroVector(6*number_of_nodes);
         GetValuesVector(current_displacement,0);
 
@@ -185,13 +181,16 @@ namespace Kratos
                 Matrix(prod(constitutive_variables.ConstitutiveMatrix, trans(m_T_vector[point_number]))));
               
 
-            // calculate B MATRICES
-            Matrix B = ZeroMatrix(6, mat_size);
-            Matrix dn = ZeroMatrix(3, 3);
-
             // Loop for zeta
             for (IndexType Gauss_index = 0; Gauss_index < mGaussIntegrationThickness.num_GP_thickness; Gauss_index++)
             {
+                // Initialization
+                Matrix B = ZeroMatrix(6, mat_size);
+                Matrix dn = ZeroMatrix(3, 3);
+                Matrix DN_De_Jn = ZeroMatrix(number_of_nodes,3);
+                Matrix J_inv = ZeroMatrix(3, 3);
+                double area = 0.0;
+
                 CalculateJn(point_number, kinematic_variables, mZeta, DN_De_Jn, J_inv, dn, area);
 
                 CalculateB(point_number, B, mZeta, DN_De_Jn, J_inv, dn, kinematic_variables);
@@ -275,11 +274,6 @@ namespace Kratos
 
         const auto& r_integration_points = r_geometry.IntegrationPoints();
 
-        // Initialization for Jn calculation
-        Matrix DN_De_Jn = ZeroMatrix(number_of_nodes,3);
-        Matrix J_inv = ZeroMatrix(3, 3);
-        double area = 0.0;
-
         for (IndexType point_number = 0; point_number < r_integration_points.size(); ++point_number) {
 
             // Compute Kinematics and Metric
@@ -298,16 +292,19 @@ namespace Kratos
             constitutive_variables.ConstitutiveMatrix = prod(m_T_vector[point_number], 
                 Matrix(prod(constitutive_variables.ConstitutiveMatrix, trans(m_T_vector[point_number]))));
                 
-            // Initialization for B Matrices
-            Matrix B = ZeroMatrix(6, mat_size);
-            Matrix B_Drill = ZeroMatrix(1, mat_size);
-            Matrix B_Geometric = ZeroMatrix(9, mat_size);
-            Matrix dn = ZeroMatrix(3, 3);
-            Matrix stress_matrix = ZeroMatrix(9,9);
-            
             // Loop for zeta
             for (IndexType Gauss_index = 0; Gauss_index < mGaussIntegrationThickness.num_GP_thickness; Gauss_index++)
-            {
+            {            
+                // Initialization
+                Matrix B = ZeroMatrix(6, mat_size);
+                Matrix B_Drill = ZeroMatrix(1, mat_size);
+                Matrix B_Geometric = ZeroMatrix(9, mat_size);
+                Matrix dn = ZeroMatrix(3, 3);
+                Matrix stress_matrix = ZeroMatrix(9,9);
+                Matrix DN_De_Jn = ZeroMatrix(number_of_nodes,3);
+                Matrix J_inv = ZeroMatrix(3, 3);
+                double area = 0.0;
+
                 mZeta = mGaussIntegrationThickness.zeta(Gauss_index);
 
                 CalculateJn(point_number, kinematic_variables, mZeta, DN_De_Jn, J_inv, dn, area);
@@ -353,7 +350,7 @@ namespace Kratos
                 if (CalculateResidualVectorFlag == true) //calculation of the matrix is required
                 {
                     // operation performed: rRightHandSideVector -= Weight*IntForce
-                    noalias(rRightHandSideVector) -= integration_weight * prod(trans(B), constitutive_variables.StressVector);
+                    noalias(rRightHandSideVector) -= integration_weight * prod(trans(B), stress_cau_cart[Gauss_index]);
                 }
 
             } 
@@ -559,11 +556,18 @@ namespace Kratos
         rValues.SetStressVector(rThisConstitutiveVariables.StressVector); //this is an ouput parameter
         rValues.SetConstitutiveMatrix(rThisConstitutiveVariables.ConstitutiveMatrix); //this is an ouput parameter
 
-        mConstitutiveLawVector[IntegrationPointIndex]->CalculateMaterialResponse(rValues, ThisStressMeasure);
-
-        // Apply shear correction factor
-        rThisConstitutiveVariables.ConstitutiveMatrix(4, 4) = rThisConstitutiveVariables.ConstitutiveMatrix(4, 4) * 5.0 / 6.0;
-        rThisConstitutiveVariables.ConstitutiveMatrix(5, 5) = rThisConstitutiveVariables.ConstitutiveMatrix(5, 5) * 5.0 / 6.0;
+        const double nu = this->GetProperties()[POISSON_RATIO];
+        const double Emodul = this->GetProperties()[YOUNG_MODULUS];
+        double lambda = Emodul / (1.0 - nu * nu);
+        double Gmodul = Emodul / (2.0 * (1.0 + nu));
+        
+        rThisConstitutiveVariables.ConstitutiveMatrix(0, 0) = lambda;
+        rThisConstitutiveVariables.ConstitutiveMatrix(0, 1) = lambda * nu;
+        rThisConstitutiveVariables.ConstitutiveMatrix(1, 0) = lambda * nu;
+        rThisConstitutiveVariables.ConstitutiveMatrix(1, 1) = lambda;
+        rThisConstitutiveVariables.ConstitutiveMatrix(3, 3) = lambda * (1 - nu) / 2;
+        rThisConstitutiveVariables.ConstitutiveMatrix(4, 4) = Gmodul * 5.0 / 6.0;
+        rThisConstitutiveVariables.ConstitutiveMatrix(5, 5) = Gmodul * 5.0 / 6.0;
 
         //Local Cartesian Stresses
         noalias(rThisConstitutiveVariables.StressVector) = prod(
@@ -1104,9 +1108,9 @@ namespace Kratos
             rValues[index] = displacement[0];
             rValues[index + 1] = displacement[1];
             rValues[index + 2] = displacement[2];
-            rValues[index + 3] = rotation[3];
-            rValues[index + 4] = rotation[4];
-            rValues[index + 5] = rotation[5];
+            rValues[index + 3] = rotation[0];
+            rValues[index + 4] = rotation[1];
+            rValues[index + 5] = rotation[2];
         }
     }
 
