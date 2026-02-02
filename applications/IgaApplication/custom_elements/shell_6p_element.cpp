@@ -727,6 +727,11 @@ namespace Kratos
 
         for (IndexType i = 0; i < number_of_control_points; ++i)
         {
+            // zeta  Derivatives 
+            const double dzetadx= J_inv(0,2);
+            const double dzetady= J_inv(1,2);
+            const double dzetadz= J_inv(2,2); 
+          
             Dn = prod(J_inv, dn);
 
             // y hat Derivative w.r.t x
@@ -883,6 +888,11 @@ namespace Kratos
 
         for (IndexType i = 0; i < number_of_control_points; ++i)
         {
+            // zeta  Derivatives 
+            const double dzetadx= J_inv(0,2);
+            const double dzetady= J_inv(1,2);
+            const double dzetadz= J_inv(2,2); 
+          
             Dn = prod(J_inv, dn);
 
             // y hat Derivative w.r.t x
