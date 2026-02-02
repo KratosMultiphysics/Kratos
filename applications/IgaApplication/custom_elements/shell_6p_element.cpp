@@ -155,10 +155,6 @@ namespace Kratos
             rOutput.resize(r_integration_points.size());
         }
 
-        Matrix DN_De_Jn = ZeroMatrix(number_of_nodes,3);
-        Matrix J_inv = ZeroMatrix(3, 3);
-        double area = 0.0;
-
         Vector current_displacement = ZeroVector(6*number_of_nodes);
         GetValuesVector(current_displacement,0);
 
@@ -185,13 +181,16 @@ namespace Kratos
                 Matrix(prod(constitutive_variables.ConstitutiveMatrix, trans(m_T_vector[point_number]))));
               
 
-            // calculate B MATRICES
-            Matrix B = ZeroMatrix(6, mat_size);
-            Matrix dn = ZeroMatrix(3, 3);
-
             // Loop for zeta
             for (IndexType Gauss_index = 0; Gauss_index < mGaussIntegrationThickness.num_GP_thickness; Gauss_index++)
             {
+                // Initialization
+                Matrix B = ZeroMatrix(6, mat_size);
+                Matrix dn = ZeroMatrix(3, 3);
+                Matrix DN_De_Jn = ZeroMatrix(number_of_nodes,3);
+                Matrix J_inv = ZeroMatrix(3, 3);
+                double area = 0.0;
+
                 CalculateJn(point_number, kinematic_variables, mZeta, DN_De_Jn, J_inv, dn, area);
 
                 CalculateB(point_number, B, mZeta, DN_De_Jn, J_inv, dn, kinematic_variables);
@@ -275,11 +274,6 @@ namespace Kratos
 
         const auto& r_integration_points = r_geometry.IntegrationPoints();
 
-        // Initialization for Jn calculation
-        Matrix DN_De_Jn = ZeroMatrix(number_of_nodes,3);
-        Matrix J_inv = ZeroMatrix(3, 3);
-        double area = 0.0;
-
         for (IndexType point_number = 0; point_number < r_integration_points.size(); ++point_number) {
 
             // Compute Kinematics and Metric
@@ -298,16 +292,19 @@ namespace Kratos
             constitutive_variables.ConstitutiveMatrix = prod(m_T_vector[point_number], 
                 Matrix(prod(constitutive_variables.ConstitutiveMatrix, trans(m_T_vector[point_number]))));
                 
-            // Initialization for B Matrices
-            Matrix B = ZeroMatrix(6, mat_size);
-            Matrix B_Drill = ZeroMatrix(1, mat_size);
-            Matrix B_Geometric = ZeroMatrix(9, mat_size);
-            Matrix dn = ZeroMatrix(3, 3);
-            Matrix stress_matrix = ZeroMatrix(9,9);
-            
             // Loop for zeta
             for (IndexType Gauss_index = 0; Gauss_index < mGaussIntegrationThickness.num_GP_thickness; Gauss_index++)
-            {
+            {            
+                // Initialization
+                Matrix B = ZeroMatrix(6, mat_size);
+                Matrix B_Drill = ZeroMatrix(1, mat_size);
+                Matrix B_Geometric = ZeroMatrix(9, mat_size);
+                Matrix dn = ZeroMatrix(3, 3);
+                Matrix stress_matrix = ZeroMatrix(9,9);
+                Matrix DN_De_Jn = ZeroMatrix(number_of_nodes,3);
+                Matrix J_inv = ZeroMatrix(3, 3);
+                double area = 0.0;
+
                 mZeta = mGaussIntegrationThickness.zeta(Gauss_index);
 
                 CalculateJn(point_number, kinematic_variables, mZeta, DN_De_Jn, J_inv, dn, area);
