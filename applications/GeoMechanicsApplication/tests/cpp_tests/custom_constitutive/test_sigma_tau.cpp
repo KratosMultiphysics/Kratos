@@ -13,13 +13,14 @@
 
 #include "custom_constitutive/geo_sigma_tau.hpp"
 #include "custom_utilities/ublas_utilities.h"
-#include "tests/cpp_tests/geo_mechanics_fast_suite.h"
+#include "includes/expect.h"
+#include "tests/cpp_tests/geo_mechanics_fast_suite_without_kernel.h"
 #include "tests/cpp_tests/test_utilities.h"
 
 namespace Kratos::Testing
 {
 
-KRATOS_TEST_CASE_IN_SUITE(SigmaTau_HasZeroesAsValuesWhenDefaultConstructed, KratosGeoMechanicsFastSuiteWithoutKernel)
+TEST_F(KratosGeoMechanicsFastSuiteWithoutKernel, SigmaTau_HasZeroesAsValuesWhenDefaultConstructed)
 {
     KRATOS_EXPECT_VECTOR_NEAR(Geo::SigmaTau().Values(), Vector(2, 0.0), Defaults::absolute_tolerance);
     KRATOS_EXPECT_VECTOR_NEAR(Geo::SigmaTau().Values(), Vector(2, 0.0), Defaults::absolute_tolerance);
@@ -27,7 +28,7 @@ KRATOS_TEST_CASE_IN_SUITE(SigmaTau_HasZeroesAsValuesWhenDefaultConstructed, Krat
     KRATOS_EXPECT_NEAR(Geo::SigmaTau().Tau(), 0.0, Defaults::absolute_tolerance);
 }
 
-KRATOS_TEST_CASE_IN_SUITE(SigmaTau_CanBeConstructedFromAnyVectorWithSize2, KratosGeoMechanicsFastSuiteWithoutKernel)
+TEST_F(KratosGeoMechanicsFastSuiteWithoutKernel, SigmaTau_CanBeConstructedFromAnyVectorWithSize2)
 {
     // Arrange
     const auto vector_1 = UblasUtilities::CreateVector({1.0, 2.0});
@@ -58,8 +59,8 @@ KRATOS_TEST_CASE_IN_SUITE(SigmaTau_CanBeConstructedFromAnyVectorWithSize2, Krato
     KRATOS_EXPECT_VECTOR_NEAR(Geo::SigmaTau{vector_3}.Values(), vector_3, Defaults::absolute_tolerance);
 }
 
-KRATOS_TEST_CASE_IN_SUITE(SigmaTau_RaisesADebugErrorWhenAttemptingToConstructFromAVectorWithSizeUnequalTo2,
-                          KratosGeoMechanicsFastSuiteWithoutKernel)
+TEST_F(KratosGeoMechanicsFastSuiteWithoutKernel,
+       SigmaTau_RaisesADebugErrorWhenAttemptingToConstructFromAVectorWithSizeUnequalTo2)
 {
 #ifndef KRATOS_DEBUG
     GTEST_SKIP() << "This test requires a debug build";
@@ -74,14 +75,14 @@ KRATOS_TEST_CASE_IN_SUITE(SigmaTau_RaisesADebugErrorWhenAttemptingToConstructFro
     EXPECT_THROW(Geo::SigmaTau{too_long}, Exception);
 }
 
-KRATOS_TEST_CASE_IN_SUITE(SigmaTau_CanBeConstructedFromAStdInitializerListWithSize2, KratosGeoMechanicsFastSuiteWithoutKernel)
+TEST_F(KratosGeoMechanicsFastSuiteWithoutKernel, SigmaTau_CanBeConstructedFromAStdInitializerListWithSize2)
 {
     KRATOS_EXPECT_NEAR((Geo::SigmaTau{1.0, 2.0}.Sigma()), 1.0, Defaults::absolute_tolerance);
     KRATOS_EXPECT_NEAR((Geo::SigmaTau{1.0, 2.0}.Tau()), 2.0, Defaults::absolute_tolerance);
 }
 
-KRATOS_TEST_CASE_IN_SUITE(SigmaTau_RaisesADebugErrorWhenAttemptingToConstructFromANonEmptyStdInitializerListWithSizeUnequalTo2,
-                          KratosGeoMechanicsFastSuiteWithoutKernel)
+TEST_F(KratosGeoMechanicsFastSuiteWithoutKernel,
+       SigmaTau_RaisesADebugErrorWhenAttemptingToConstructFromANonEmptyStdInitializerListWithSizeUnequalTo2)
 {
 #ifndef KRATOS_DEBUG
     GTEST_SKIP() << "This test requires a debug build";
