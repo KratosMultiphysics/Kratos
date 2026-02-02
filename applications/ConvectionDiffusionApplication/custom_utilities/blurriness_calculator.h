@@ -216,7 +216,7 @@ namespace Kratos
                         ModelPart::ElementType::Pointer p_elem;
                         FindElementContainingPoint(gauss_point_global, gauss_point_local, p_elem);
                         KRATOS_ERROR_IF(p_elem == nullptr)
-                            << "Element with Id = " << p_elem->Id() << " not found in model part " << mMainModelPart.Name() << std::endl;
+                            << "Gauss point " << gauss_point_global << " in condition with ID = " << it_cond->Id() << " not found in model part " << mMainModelPart.Name() << std::endl;
 
                         // Interpolate the value of the blurriness at the gauss points
                         array_1d<double, 3> normal_vec = r_geometry.Normal(gauss_point_local);

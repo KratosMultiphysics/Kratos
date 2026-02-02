@@ -2,6 +2,16 @@
 
 namespace Kratos
 {
+    /**
+     * @brief Computes L2 norm of material acceleration error without recovery using Gauss point interpolated values.
+     * 
+     * This function computes the material acceleration by deriving the velocity field using
+     * shape functions at Gauss points. The exact material acceleration is obtained by interpolating
+     * the exact values computed at the nodes to the Gauss points using shape functions.
+     * 
+     * @param r_model_part The model part containing the elements to process
+     * @return L2 norm of the material acceleration error
+     */
     double ErrorNormVelocityFieldCalculator::getL2NormFluidAccelWithoutRecoveryUsingGaussInterpolatedValues(ModelPart &r_model_part)
     {
         ProcessInfo process_info = r_model_part.GetProcessInfo();
@@ -83,6 +93,17 @@ namespace Kratos
         return std::sqrt(result / l2_norm_factor);
     }
 
+    /**
+     * @brief Computes L2 norm of material acceleration error with recovery using Gauss point interpolated values.
+     * 
+     * This function uses nodal material acceleration values that have been previously computed/recovered.
+     * Both the computed and exact material acceleration values are interpolated from the nodes to the
+     * Gauss points using shape functions. This provides a smoothed/recovered acceleration field
+     * compared to computing directly from velocity derivatives.
+     * 
+     * @param r_model_part The model part containing the elements to process
+     * @return L2 norm of the material acceleration error
+     */
     double ErrorNormVelocityFieldCalculator::getL2NormFluidAccelWithRecoveryUsingGaussInterpolatedValues(ModelPart &r_model_part)
     {
         double l2_norm_factor = 0.0, result = 0.0;
@@ -149,6 +170,16 @@ namespace Kratos
         return std::sqrt(result / l2_norm_factor);
     }
 
+    /**
+     * @brief Computes L2 norm of material acceleration error without recovery using exact values at Gauss points.
+     * 
+     * This function computes the material acceleration by deriving the velocity field using shape function
+     * derivatives at Gauss points. The exact material acceleration is computed directly at each Gauss point
+     * location (not interpolated from nodes), providing pointwise exact values for comparison.
+     * 
+     * @param r_model_part The model part containing the elements to process
+     * @return L2 norm of the material acceleration error
+     */
     double ErrorNormVelocityFieldCalculator::getL2NormFluidAccelWithoutRecoveryUsingGaussExactValues(ModelPart &r_model_part)
     {
         ProcessInfo process_info = r_model_part.GetProcessInfo();
@@ -246,6 +277,17 @@ namespace Kratos
         return std::sqrt(result / l2_norm_factor);
     }
 
+    /**
+     * @brief Computes L2 norm of material acceleration error with recovery using exact values at Gauss points.
+     * 
+     * This function uses nodal material acceleration values that have been previously computed/recovered.
+     * These values are interpolated from the nodes to Gauss points using shape functions. The exact
+     * material acceleration is computed directly at each Gauss point location. This combines the benefits
+     * of using a recovered acceleration field with exact evaluation at arbitrary points.
+     * 
+     * @param r_model_part The model part containing the elements to process
+     * @return L2 norm of the material acceleration error
+     */
     double ErrorNormVelocityFieldCalculator::getL2NormFluidAccelWithRecoveryUsingGaussExactValues(ModelPart &r_model_part)
     {
         double l2_norm_factor = 0.0, result = 0.0;
