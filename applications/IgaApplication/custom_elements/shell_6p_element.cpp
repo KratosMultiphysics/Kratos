@@ -684,7 +684,6 @@ namespace Kratos
         const std::size_t mat_size = number_of_control_points * 6;
         const auto& r_N = GetGeometry().ShapeFunctionsValues();
         const Matrix& r_DN_De = GetGeometry().ShapeFunctionLocalGradient(IntegrationPointIndex);
-        const Matrix& r_DDN_DDe = GetGeometry().ShapeFunctionDerivatives(2, IntegrationPointIndex, GetGeometry().GetDefaultIntegrationMethod());
         double thickness = this->GetProperties().GetValue(THICKNESS);   
 
         //Bending part
@@ -717,9 +716,6 @@ namespace Kratos
         array_1d<double, 3> da3_tilde_d2;
         array_1d<double, 3> da3_tilde_d2_1;
         array_1d<double, 3> da3_tilde_d2_2;
-
-        double inv_dA = 1 / rActualKinematic.dA;
-        double inv_dA3 = 1 / std::pow(rActualKinematic.dA, 3);
 
         if (rB.size1() != 6 || rB.size2() != mat_size)
             rB.resize(6, mat_size);
@@ -811,8 +807,6 @@ namespace Kratos
         const std::size_t number_of_control_points = GetGeometry().size();
         const std::size_t mat_size = number_of_control_points * 6;
 
-        const Matrix& r_DN_De = GetGeometry().ShapeFunctionLocalGradient(IntegrationPointIndex);
-        double thickness = this->GetProperties().GetValue(THICKNESS);
         const auto& r_N = GetGeometry().ShapeFunctionsValues();
 
         if (rBd.size1() != 1|| rBd.size2() != mat_size)                                 
@@ -845,7 +839,6 @@ namespace Kratos
         const std::size_t mat_size = number_of_control_points * 6;
         const auto& r_N = GetGeometry().ShapeFunctionsValues();
         const Matrix& r_DN_De = GetGeometry().ShapeFunctionLocalGradient(IntegrationPointIndex);
-        const Matrix& r_DDN_DDe = GetGeometry().ShapeFunctionDerivatives(2, IntegrationPointIndex, GetGeometry().GetDefaultIntegrationMethod());
         double thickness = this->GetProperties().GetValue(THICKNESS);   
 
         //Bending part
@@ -878,9 +871,6 @@ namespace Kratos
         array_1d<double, 3> da3_tilde_d2;
         array_1d<double, 3> da3_tilde_d2_1;
         array_1d<double, 3> da3_tilde_d2_2;
-
-        double inv_dA = 1 / rActualKinematic.dA;
-        double inv_dA3 = 1 / std::pow(rActualKinematic.dA, 3);
 
         if (rB.size1() != 9 || rB.size2() != mat_size)
             rB.resize(9, mat_size);
@@ -1018,9 +1008,7 @@ namespace Kratos
         const double IntegrationWeight_zeta 
     ) const
     {
-        double thickness = this->GetProperties().GetValue(THICKNESS);
-        noalias(rLeftHandSideMatrix) +=  IntegrationWeight * IntegrationWeight_zeta * (rKm + rKd ); 
-        double weight = IntegrationWeight * IntegrationWeight_zeta * thickness/2;                               
+        noalias(rLeftHandSideMatrix) +=  IntegrationWeight * IntegrationWeight_zeta * (rKm + rKd );                            
     }
 
  
@@ -1040,8 +1028,6 @@ namespace Kratos
     ) const
     {
         double E = this->GetProperties().GetValue(YOUNG_MODULUS);
-        double thickness = this->GetProperties().GetValue(THICKNESS);
-
         noalias(rKd) += 0.05 * E  * prod(trans(rBd), Matrix((rBd)));                  
     }
 
