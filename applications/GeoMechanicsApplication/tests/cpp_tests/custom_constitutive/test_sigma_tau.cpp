@@ -12,6 +12,7 @@
 //
 
 #include "custom_constitutive/geo_sigma_tau.hpp"
+#include "custom_utilities/ublas_utilities.h"
 #include "tests/cpp_tests/geo_mechanics_fast_suite.h"
 #include "tests/cpp_tests/test_utilities.h"
 
@@ -24,6 +25,37 @@ KRATOS_TEST_CASE_IN_SUITE(SigmaTau_HasZeroesAsValuesWhenDefaultConstructed, Krat
     KRATOS_EXPECT_VECTOR_NEAR(Geo::SigmaTau{}.Values(), Vector(2, 0.0), Defaults::absolute_tolerance);
     KRATOS_EXPECT_NEAR(Geo::SigmaTau{}.Sigma(), 0.0, Defaults::absolute_tolerance);
     KRATOS_EXPECT_NEAR(Geo::SigmaTau{}.Tau(), 0.0, Defaults::absolute_tolerance);
+}
+
+KRATOS_TEST_CASE_IN_SUITE(SigmaTau_CanBeConstructedFromAnyVectorWithSize2, KratosGeoMechanicsFastSuiteWithoutKernel)
+{
+    // Arrange
+    const auto vector_1 = UblasUtilities::CreateVector({1.0, 2.0});
+
+    // Act
+    const auto sigma_tau_1 = Geo::SigmaTau{vector_1};
+
+    // Assert
+    KRATOS_EXPECT_VECTOR_NEAR(sigma_tau_1.Values(), vector_1, Defaults::absolute_tolerance);
+    KRATOS_EXPECT_NEAR(sigma_tau_1.Sigma(), vector_1[0], Defaults::absolute_tolerance);
+    KRATOS_EXPECT_NEAR(sigma_tau_1.Tau(), vector_1[1], Defaults::absolute_tolerance);
+
+    // Arrange
+    auto vector_2 = BoundedVector<double, 2>{};
+    vector_2[0]   = 3.0;
+    vector_2[1]   = 4.0;
+
+    // Act
+    const auto sigma_tau_2 = Geo::SigmaTau{vector_2};
+
+    // Assert
+    KRATOS_EXPECT_VECTOR_NEAR(sigma_tau_2.Values(), vector_2, Defaults::absolute_tolerance);
+
+    // Arrange
+    const auto vector_3 = std::vector{5.0, 6.0};
+
+    // Act & Assert
+    KRATOS_EXPECT_VECTOR_NEAR(Geo::SigmaTau{vector_3}.Values(), vector_3, Defaults::absolute_tolerance);
 }
 
 } // namespace Kratos::Testing
