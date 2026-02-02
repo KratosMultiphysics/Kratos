@@ -46,7 +46,7 @@ namespace Kratos {
  * @author Suneth Warnakulasuriya
  * @see @ref TensorAdaptor                  Base class.
  */
-class KRATOS_API(OPTIMIZATION_APPLICATION) NodalNeighbourCountTensorAdaptor: public TensorAdaptor<int> {
+class KRATOS_API(KRATOS_CORE) NodalNeighbourCountTensorAdaptor: public TensorAdaptor<int> {
 public:
 
     ///@name Type definitions
@@ -79,21 +79,15 @@ public:
     ///@{
 
     /**
-     * @brief Fill the internal data from Kratos data structures's properties
-     * @details This will fill the internal data from Kratos data structures's properties. It is advised to call
-     *          at least once the Check method to ensure there won't be any errors if the
-     *          variable is not present in the entities' properties. This will return Variable::Zero()
-     *          values for all the entities when collecting if the variable is not set before.
+     * @brief Fill the internal data with number of neightour entities of nodes
+     * @details This will fill the internal data for each node with its available number of entities (i.e. conditions / elements).
+     * @throws std::runtime_error if there is an entity having a node with id which is not present in the provided @p pNodes when this object is constructed.
      */
     void CollectData() override;
 
     /**
-     * @brief Store internal data to the given container's properties.
-     * @details This method is designed to store data even if the variable is not already available in the
-     *          entities' properties. If it is not present in the entities' properties, then a correctly shaped zero valued value
-     *          will be set and then their relevant components will be overwritten by this method.
-     *
-     * @warning If the entities' properties are not unique for each entity, this will result in a race condition.
+     * @brief Does not do anything
+     * @throws std::runtime_error always.
      */
     void StoreData() override;
 

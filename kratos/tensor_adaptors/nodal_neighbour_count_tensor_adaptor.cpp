@@ -104,9 +104,9 @@ std::string NodalNeighbourCountTensorAdaptor::Info() const
     return info.str();
 }
 
-template KRATOS_API(OPTIMIZATION_APPLICATION) NodalNeighbourCountTensorAdaptor::NodalNeighbourCountTensorAdaptor(ModelPart::NodesContainerType::Pointer, ModelPart::ConditionsContainerType::Pointer);
-template KRATOS_API(OPTIMIZATION_APPLICATION) NodalNeighbourCountTensorAdaptor::NodalNeighbourCountTensorAdaptor(ModelPart::NodesContainerType::Pointer, ModelPart::ElementsContainerType::Pointer);
-template KRATOS_API(OPTIMIZATION_APPLICATION) NodalNeighbourCountTensorAdaptor::NodalNeighbourCountTensorAdaptor(const TensorAdaptor&, ModelPart::ConditionsContainerType::Pointer, const bool);
-template KRATOS_API(OPTIMIZATION_APPLICATION) NodalNeighbourCountTensorAdaptor::NodalNeighbourCountTensorAdaptor(const TensorAdaptor&, ModelPart::ElementsContainerType::Pointer, const bool);
+template KRATOS_API(KRATOS_CORE) NodalNeighbourCountTensorAdaptor::NodalNeighbourCountTensorAdaptor(ModelPart::NodesContainerType::Pointer, ModelPart::ConditionsContainerType::Pointer);
+template KRATOS_API(KRATOS_CORE) NodalNeighbourCountTensorAdaptor::NodalNeighbourCountTensorAdaptor(ModelPart::NodesContainerType::Pointer, ModelPart::ElementsContainerType::Pointer);
+template KRATOS_API(KRATOS_CORE) NodalNeighbourCountTensorAdaptor::NodalNeighbourCountTensorAdaptor(const TensorAdaptor&, ModelPart::ConditionsContainerType::Pointer, const bool);
+template KRATOS_API(KRATOS_CORE) NodalNeighbourCountTensorAdaptor::NodalNeighbourCountTensorAdaptor(const TensorAdaptor&, ModelPart::ElementsContainerType::Pointer, const bool);
 
 } // namespace Kratos
