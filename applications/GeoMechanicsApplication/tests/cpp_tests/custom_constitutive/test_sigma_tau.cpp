@@ -93,4 +93,24 @@ TEST_F(KratosGeoMechanicsFastSuiteWithoutKernel,
     EXPECT_THROW((Geo::SigmaTau{2.0, 3.0, 4.0}), Exception);
 }
 
+TEST_F(KratosGeoMechanicsFastSuiteWithoutKernel, SigmaTau_ComponentsCanBeModifiedDirectly)
+{
+    // Arrange
+    auto sigma_tau = Geo::SigmaTau{1.0, 2.0};
+
+    // Act
+    sigma_tau.Sigma() = 3.0;
+
+    // Assert
+    KRATOS_EXPECT_VECTOR_NEAR(sigma_tau.Values(), UblasUtilities::CreateVector({3.0, 2.0}),
+                              Defaults::absolute_tolerance);
+
+    // Act
+    sigma_tau.Tau() = 4.0;
+
+    // Assert
+    KRATOS_EXPECT_VECTOR_NEAR(sigma_tau.Values(), UblasUtilities::CreateVector({3.0, 4.0}),
+                              Defaults::absolute_tolerance);
+}
+
 } // namespace Kratos::Testing

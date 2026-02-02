@@ -28,6 +28,10 @@ const SigmaTau::InternalVectorType& SigmaTau::Values() const { return mValues; }
 
 double SigmaTau::Sigma() const { return mValues[0]; }
 
+double& SigmaTau::Sigma() { return mValues[0]; }
+
 double SigmaTau::Tau() const { return mValues[1]; }
+
+double& SigmaTau::Tau() { return mValues[1]; }
 
 } // namespace Kratos::Geo

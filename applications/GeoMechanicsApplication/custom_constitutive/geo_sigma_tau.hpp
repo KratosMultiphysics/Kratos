@@ -43,7 +43,9 @@ public:
 
     const InternalVectorType& Values() const;
     double                    Sigma() const;
+    double&                   Sigma();
     double                    Tau() const;
+    double&                   Tau();
 
 private:
     InternalVectorType mValues = ZeroVector{msVectorSize};
