@@ -1459,21 +1459,35 @@ void BinBasedDEMFluidCoupledMapping<TDim, TBaseTypeOfSwimmingParticle>::Interpol
 
     alpha = mUseSteadyFluid ? 1.0 : alpha;
 
-    std::cout << "\n" << "########################################################################################" << std::endl;
-    std::cout << "Interpolating variable " << r_origin_variable << " to  " << r_destination_variable << std::endl;
+    // std::cout << "\n" << "########################################################################################" << std::endl;
+    // std::cout << "Interpolating variable " << r_origin_variable << " to  " << r_destination_variable << std::endl;
+    // std::cout << "  alpha = " << alpha << std::endl;
 
     // Destination data
     double& step_data = p_node->FastGetSolutionStepValue(r_destination_variable);
-    step_data += N[0] * (alpha * geom[0].FastGetSolutionStepValue(r_origin_variable) + (1 - alpha) * geom[0].FastGetCurrentSolutionStepValue(r_origin_variable, 1));
-    std::cout << "  Node " << 0 << " has N[" << 0 << "] = " << N[0] << "alpha = " << alpha << " val = " << geom[0].FastGetSolutionStepValue(r_origin_variable) << std::endl;
+    step_data += N[0] * (alpha * geom[0].FastGetSolutionStepValue(r_origin_variable) + (1 - alpha) * geom[0].FastGetSolutionStepValue(r_origin_variable, 1));
+
+    // Compute and print info
+    // double sol_0 = geom[0].FastGetSolutionStepValue(r_origin_variable);
+    // double sol_1 = geom[0].FastGetSolutionStepValue(r_origin_variable, 1);
+    // std::cout << "Node 0" << std::endl;
+    // std::cout << "  sol_0 = " << sol_0 << std::endl;
+    // std::cout << "  sol_1 = " << sol_1 << std::endl;
+    // std::cout << "  step_data = " << step_data<< std::endl;
 
     for (unsigned int i = 1; i < NumNodes; ++i){
-        // std::cout << "  Node " << i << " has N[" << i << "] = " << N[i] << " val = " << geom[i].FastGetSolutionStepValue(r_origin_variable) << std::endl;
-        std::cout << "  Node " << i << " has N[" << i << "] = " << N[i] << "alpha = " << alpha << " val = " << geom[i].FastGetSolutionStepValue(r_origin_variable) << std::endl;
+        step_data += N[i] * (alpha * geom[i].FastGetSolutionStepValue(r_origin_variable) + (1 - alpha) * geom[i].FastGetSolutionStepValue(r_origin_variable, 1));
+
+        // Compute and print info
+        // double sol_0 = geom[i].FastGetSolutionStepValue(r_origin_variable);
+        // double sol_1 = geom[i].FastGetSolutionStepValue(r_origin_variable, 1);
+        // std::cout << "Node " << i << std::endl;
+        // std::cout << "  sol_0 = " << sol_0 << std::endl;
+        // std::cout << "  sol_1 = " << sol_1 << std::endl;
+        // std::cout << "  step_data = " << step_data<< std::endl;
     }
 
-    std::cout << "  step_data = " << step_data << std::endl;
-    std::cout << "########################################################################################" << "\n"  << std::endl;
+    // std::cout << "########################################################################################" << "\n"  << std::endl;
 }
 //***************************************************************************************************************
 //***************************************************************************************************************
