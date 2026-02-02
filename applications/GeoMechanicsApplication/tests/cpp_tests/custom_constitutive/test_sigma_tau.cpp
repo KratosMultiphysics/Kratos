@@ -24,8 +24,8 @@ TEST_F(KratosGeoMechanicsFastSuiteWithoutKernel, SigmaTau_HasZeroesAsValuesWhenD
 {
     KRATOS_EXPECT_VECTOR_NEAR(Geo::SigmaTau().Values(), Vector(2, 0.0), Defaults::absolute_tolerance);
     KRATOS_EXPECT_VECTOR_NEAR(Geo::SigmaTau().Values(), Vector(2, 0.0), Defaults::absolute_tolerance);
-    KRATOS_EXPECT_NEAR(Geo::SigmaTau().Sigma(), 0.0, Defaults::absolute_tolerance);
-    KRATOS_EXPECT_NEAR(Geo::SigmaTau().Tau(), 0.0, Defaults::absolute_tolerance);
+    EXPECT_NEAR(Geo::SigmaTau().Sigma(), 0.0, Defaults::absolute_tolerance);
+    EXPECT_NEAR(Geo::SigmaTau().Tau(), 0.0, Defaults::absolute_tolerance);
 }
 
 TEST_F(KratosGeoMechanicsFastSuiteWithoutKernel, SigmaTau_CanBeConstructedFromAnyVectorWithSize2)
@@ -38,8 +38,8 @@ TEST_F(KratosGeoMechanicsFastSuiteWithoutKernel, SigmaTau_CanBeConstructedFromAn
 
     // Assert
     KRATOS_EXPECT_VECTOR_NEAR(sigma_tau_1.Values(), vector_1, Defaults::absolute_tolerance);
-    KRATOS_EXPECT_NEAR(sigma_tau_1.Sigma(), vector_1[0], Defaults::absolute_tolerance);
-    KRATOS_EXPECT_NEAR(sigma_tau_1.Tau(), vector_1[1], Defaults::absolute_tolerance);
+    EXPECT_NEAR(sigma_tau_1.Sigma(), vector_1[0], Defaults::absolute_tolerance);
+    EXPECT_NEAR(sigma_tau_1.Tau(), vector_1[1], Defaults::absolute_tolerance);
 
     // Arrange
     auto vector_2 = BoundedVector<double, 2>{};
@@ -77,8 +77,8 @@ TEST_F(KratosGeoMechanicsFastSuiteWithoutKernel,
 
 TEST_F(KratosGeoMechanicsFastSuiteWithoutKernel, SigmaTau_CanBeConstructedFromAStdInitializerListWithSize2)
 {
-    KRATOS_EXPECT_NEAR((Geo::SigmaTau{1.0, 2.0}.Sigma()), 1.0, Defaults::absolute_tolerance);
-    KRATOS_EXPECT_NEAR((Geo::SigmaTau{1.0, 2.0}.Tau()), 2.0, Defaults::absolute_tolerance);
+    EXPECT_NEAR((Geo::SigmaTau{1.0, 2.0}.Sigma()), 1.0, Defaults::absolute_tolerance);
+    EXPECT_NEAR((Geo::SigmaTau{1.0, 2.0}.Tau()), 2.0, Defaults::absolute_tolerance);
 }
 
 TEST_F(KratosGeoMechanicsFastSuiteWithoutKernel,
