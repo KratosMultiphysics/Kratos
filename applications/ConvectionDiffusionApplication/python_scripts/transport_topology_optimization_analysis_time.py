@@ -250,7 +250,46 @@ class TransportTopologyOptimizationAnalysisTime(FluidTopologyOptimizationAnalysi
         if (abs(self.functional_weights[9]) > 1e-10):
             self.MpiPrint("--|" + self.topology_optimization_stage_str + "| ---> Transport Scalar 1st Order Decay Functional (" + str(self.functional_weights[9]) + "): " + str(self.weighted_functionals[9]), min_echo=0)
 
+    def InitializePhysicsFunctionalsWeightsInTime(self):
+        self._InitializeTransportFunctionalsWeightsInTime()
 
+    def _InitializeTransportFunctionalsWeightsInTime(self):
+        self._InitializeOutletTransportScalarFunctionalWeightsInTime()
+        self._InitializeFocusRegionTransportScalarFunctionalWeightsInTime()
+        self._InitializeTransportScalarDiffusionFunctionalWeightsInTime()
+        self._InitializeTransportScalarConvectionFunctionalWeightsInTime()
+        self._InitializeTransportScalarDecayFunctionalWeightsInTime()
+        self._InitializeTransportScalarSourceFunctionalWeightsInTime()
+        self._InitializeTransportScalar1stOrderDecayFunctionalWeightsInTime()
+
+    def _InitializeOutletTransportScalarFunctionalWeightsInTime(self):
+        outlet_transport_scalar_functional_id = 3
+        self._SetFunctionalWeightsInTime(outlet_transport_scalar_functional_id, self.outlet_transport_scalar_functional_time_info)
+
+    def _InitializeFocusRegionTransportScalarFunctionalWeightsInTime(self):
+        focus_region_transport_scalar_functional_id = 4
+        self._SetFunctionalWeightsInTime(focus_region_transport_scalar_functional_id, self.focus_region_transport_scalar_functional_time_info)
+
+    def _InitializeTransportScalarDiffusionFunctionalWeightsInTime(self):
+        transport_scalar_diffusion_functional_id = 5
+        self._SetFunctionalWeightsInTime(transport_scalar_diffusion_functional_id, self.transport_scalar_diffusion_functional_time_info)
+
+    def _InitializeTransportScalarConvectionFunctionalWeightsInTime(self):
+        transport_scalar_convection_functional_id = 6
+        self._SetFunctionalWeightsInTime(transport_scalar_convection_functional_id, self.transport_scalar_convection_functional_time_info)
+
+    def _InitializeTransportScalarDecayFunctionalWeightsInTime(self):
+        transport_scalar_decay_functional_id = 7
+        self._SetFunctionalWeightsInTime(transport_scalar_decay_functional_id, self.transport_scalar_decay_functional_time_info)
+
+    def _InitializeTransportScalarSourceFunctionalWeightsInTime(self):
+        transport_scalar_source_functional_id = 8
+        self._SetFunctionalWeightsInTime(transport_scalar_source_functional_id, self.transport_scalar_source_functional_time_info)
+
+    def _InitializeTransportScalar1stOrderDecayFunctionalWeightsInTime(self):
+        transport_scalar_1st_order_decay_functional_id = 9
+        self._SetFunctionalWeightsInTime(transport_scalar_1st_order_decay_functional_id, self.transport_scalar_1st_order_decay_functional_time_info)
+    
     def _InitializeFunctionalWeights(self):
         "This method assumes that the '_ImportFunctionalWeights()' has already been called"
         if (self.functional_weights_imported):
@@ -580,31 +619,31 @@ class TransportTopologyOptimizationAnalysisTime(FluidTopologyOptimizationAnalysi
 
     def _InitializeOutletTransportScalarFunctionalInTime(self):
         self.outlet_transport_scalar_functionals_in_delta_time  = np.zeros(self.n_time_steps)
-        self.outlet_transport_scalar_functional_time_steps_integration_weights = self._InitializeFunctionalTimeIntegrationWeights(functional_physics="transport_functionals", functional_name="outlet_transport_scalar")
+        self.outlet_transport_scalar_functional_time_steps_integration_weights, self.outlet_transport_scalar_functional_time_info = self._InitializeFunctionalTimeIntegrationWeights(functional_physics="transport_functionals", functional_name="outlet_transport_scalar")
 
     def _InitializeFocusRegionTransportScalarFunctionalInTime(self):
         self.focus_region_transport_scalar_functionals_in_delta_time  = np.zeros(self.n_time_steps)
-        self.focus_region_transport_scalar_functional_time_steps_integration_weights = self._InitializeFunctionalTimeIntegrationWeights(functional_physics="transport_functionals", functional_name="focus_region_transport_scalar")
+        self.focus_region_transport_scalar_functional_time_steps_integration_weights, self.focus_region_transport_scalar_functional_time_info = self._InitializeFunctionalTimeIntegrationWeights(functional_physics="transport_functionals", functional_name="focus_region_transport_scalar")
 
     def _InitializeTransportScalarDiffusionFunctionalsInTime(self):
         self.transport_scalar_diffusion_functionals_in_delta_time  = np.zeros(self.n_time_steps)
-        self.transport_scalar_diffusion_functional_time_steps_integration_weights = self._InitializeFunctionalTimeIntegrationWeights(functional_physics="transport_functionals", functional_name="diffusion_transport")
+        self.transport_scalar_diffusion_functional_time_steps_integration_weights, self.transport_scalar_diffusion_functional_time_info = self._InitializeFunctionalTimeIntegrationWeights(functional_physics="transport_functionals", functional_name="diffusion_transport")
 
     def _InitializeTransportScalarConvectionFunctionalsInTime(self):
         self.transport_scalar_convection_functionals_in_delta_time  = np.zeros(self.n_time_steps)
-        self.transport_scalar_convection_functional_time_steps_integration_weights = self._InitializeFunctionalTimeIntegrationWeights(functional_physics="transport_functionals", functional_name="convection_transport")
+        self.transport_scalar_convection_functional_time_steps_integration_weights, self.transport_scalar_convection_functional_time_info = self._InitializeFunctionalTimeIntegrationWeights(functional_physics="transport_functionals", functional_name="convection_transport")
 
     def _InitializeTransportScalarDecayFunctionalsInTime(self):
         self.transport_scalar_decay_functionals_in_delta_time  = np.zeros(self.n_time_steps)
-        self.transport_scalar_decay_functional_time_steps_integration_weights = self._InitializeFunctionalTimeIntegrationWeights(functional_physics="transport_functionals", functional_name="decay_transport")
+        self.transport_scalar_decay_functional_time_steps_integration_weights, self.transport_scalar_decay_functional_time_info = self._InitializeFunctionalTimeIntegrationWeights(functional_physics="transport_functionals", functional_name="decay_transport")
 
     def _InitializeTransportScalarSourceFunctionalsInTime(self):
         self.transport_scalar_source_functionals_in_delta_time  = np.zeros(self.n_time_steps)
-        self.transport_scalar_source_functional_time_steps_integration_weights = self._InitializeFunctionalTimeIntegrationWeights(functional_physics="transport_functionals", functional_name="source_transport")
+        self.transport_scalar_source_functional_time_steps_integration_weights, self.transport_scalar_source_functional_time_info = self._InitializeFunctionalTimeIntegrationWeights(functional_physics="transport_functionals", functional_name="source_transport")
 
     def _InitializeTransportScalar1stOrderDecayFunctionalsInTime(self):
         self.transport_scalar_1st_order_decay_functionals_in_delta_time  = np.zeros(self.n_time_steps)
-        self.transport_scalar_1st_order_decay_functional_time_steps_integration_weights = self._InitializeFunctionalTimeIntegrationWeights(functional_physics="transport_functionals", functional_name="decay_1st_order_transport")
+        self.transport_scalar_1st_order_decay_functional_time_steps_integration_weights, self.transport_scalar_1st_order_decay_functional_time_info = self._InitializeFunctionalTimeIntegrationWeights(functional_physics="transport_functionals", functional_name="decay_1st_order_transport")
 
     def SetTargetOutletTransportScalar(self):
         functional_settings = self.optimization_settings["optimization_problem_settings"]["functional_weights"]["transport_functionals"]["outlet_transport_scalar"]
