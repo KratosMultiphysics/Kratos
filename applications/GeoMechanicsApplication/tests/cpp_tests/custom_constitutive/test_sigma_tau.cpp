@@ -113,4 +113,18 @@ TEST_F(KratosGeoMechanicsFastSuiteWithoutKernel, SigmaTau_ComponentsCanBeModifie
                               Defaults::absolute_tolerance);
 }
 
+TEST_F(KratosGeoMechanicsFastSuiteWithoutKernel, SigmaTau_CanBeCopiedToAnyVectorType)
+{
+    // Arrange
+    const auto sigma_tau = Geo::SigmaTau{1.0, 2.0};
+
+    // Act & Assert
+    KRATOS_EXPECT_VECTOR_NEAR(sigma_tau.CopyTo<Vector>(), UblasUtilities::CreateVector({1.0, 2.0}),
+                              Defaults::absolute_tolerance);
+    KRATOS_EXPECT_VECTOR_NEAR((sigma_tau.CopyTo<BoundedVector<double, 2>>()),
+                              (std::vector{1.0, 2.0}), Defaults::absolute_tolerance);
+    KRATOS_EXPECT_VECTOR_NEAR(sigma_tau.CopyTo<std::vector<double>>(), (std::vector{1.0, 2.0}),
+                              Defaults::absolute_tolerance);
+}
+
 } // namespace Kratos::Testing

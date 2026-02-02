@@ -47,6 +47,14 @@ public:
     double                    Tau() const;
     double&                   Tau();
 
+    template <typename VectorType>
+    VectorType CopyTo() const
+    {
+        auto result = VectorType(msVectorSize);
+        std::ranges::copy(mValues, result.begin());
+        return result;
+    }
+
 private:
     InternalVectorType mValues = ZeroVector{msVectorSize};
 };
