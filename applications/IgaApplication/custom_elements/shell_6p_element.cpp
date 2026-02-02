@@ -727,11 +727,18 @@ namespace Kratos
         rValues.SetStressVector(rThisConstitutiveVariables.StressVector); //this is an ouput parameter
         rValues.SetConstitutiveMatrix(rThisConstitutiveVariables.ConstitutiveMatrix); //this is an ouput parameter
 
-        mConstitutiveLawVector[IntegrationPointIndex]->CalculateMaterialResponse(rValues, ThisStressMeasure);
-
-        // Apply shear correction factor
-        rThisConstitutiveVariables.ConstitutiveMatrix(4, 4) = rThisConstitutiveVariables.ConstitutiveMatrix(4, 4) * 5.0 / 6.0;
-        rThisConstitutiveVariables.ConstitutiveMatrix(5, 5) = rThisConstitutiveVariables.ConstitutiveMatrix(5, 5) * 5.0 / 6.0;
+        const double nu = this->GetProperties()[POISSON_RATIO];
+        const double Emodul = this->GetProperties()[YOUNG_MODULUS];
+        double lambda = Emodul / (1.0 - nu * nu);
+        double Gmodul = Emodul / (2.0 * (1.0 + nu));
+        
+        rThisConstitutiveVariables.ConstitutiveMatrix(0, 0) = lambda;
+        rThisConstitutiveVariables.ConstitutiveMatrix(0, 1) = lambda * nu;
+        rThisConstitutiveVariables.ConstitutiveMatrix(1, 0) = lambda * nu;
+        rThisConstitutiveVariables.ConstitutiveMatrix(1, 1) = lambda;
+        rThisConstitutiveVariables.ConstitutiveMatrix(3, 3) = lambda * (1 - nu) / 2;
+        rThisConstitutiveVariables.ConstitutiveMatrix(4, 4) = Gmodul * 5.0 / 6.0;
+        rThisConstitutiveVariables.ConstitutiveMatrix(5, 5) = Gmodul * 5.0 / 6.0;
 
         //Local Cartesian Stresses
         noalias(rThisConstitutiveVariables.StressVector) = prod(
