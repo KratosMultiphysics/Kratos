@@ -72,8 +72,7 @@ class DesignVariableProjection(ABC):
 class IdentityDesignVariableProjection(DesignVariableProjection):
     def __init__(self, parameters: Kratos.Parameters, _):
         default_settings = Kratos.Parameters("""{
-            "type"       : "identity_projection",
-            "extrapolate": "false"
+            "type"       : "identity_projection"
         }""")
         parameters.ValidateAndAssignDefaults(default_settings)
         pass
