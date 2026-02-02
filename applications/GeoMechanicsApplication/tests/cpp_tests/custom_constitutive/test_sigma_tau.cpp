@@ -58,4 +58,20 @@ KRATOS_TEST_CASE_IN_SUITE(SigmaTau_CanBeConstructedFromAnyVectorWithSize2, Krato
     KRATOS_EXPECT_VECTOR_NEAR(Geo::SigmaTau{vector_3}.Values(), vector_3, Defaults::absolute_tolerance);
 }
 
+KRATOS_TEST_CASE_IN_SUITE(SigmaTau_RaisesADebugErrorWhenAttemptingToConstructFromAVectorWithSizeUnequalTo2,
+                          KratosGeoMechanicsFastSuiteWithoutKernel)
+{
+#ifndef KRATOS_DEBUG
+    GTEST_SKIP() << "This test requires a debug build";
+#endif
+
+    // Arrange
+    const auto too_short = UblasUtilities::CreateVector({1.0});
+    const auto too_long  = UblasUtilities::CreateVector({2.0, 3.0, 4.0});
+
+    // Act & Assert
+    EXPECT_THROW(Geo::SigmaTau{too_short}, Exception);
+    EXPECT_THROW(Geo::SigmaTau{too_long}, Exception);
+}
+
 } // namespace Kratos::Testing

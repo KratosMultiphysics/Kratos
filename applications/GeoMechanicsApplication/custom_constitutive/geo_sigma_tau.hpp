@@ -32,6 +32,9 @@ public:
     template <typename VectorType>
     explicit SigmaTau(const VectorType& rValues)
     {
+        KRATOS_DEBUG_ERROR_IF(rValues.size() != msVectorSize)
+            << "Cannot construct a SigmaTau instance: the given vector has " << rValues.size()
+            << " entry/ies, but expected " << msVectorSize << "\n";
         std::ranges::copy(rValues, mValues.begin());
     }
 
