@@ -16,11 +16,10 @@
 // External includes
 
 // Project includes
+#include "containers/csr_matrix.h"
 #include "containers/nd_data.h"
+#include "containers/sparse_contiguous_row_graph.h"
 #include "testing/testing.h"
-#include "future/containers/define_linear_algebra_serial.h"
-#include "future/containers/linear_system_container.h"
-#include "future/solving_strategies/builders/block_builder.h"
 #include "future/utilities/csr_utilities.h"
 #include "utilities/dof_utilities/dof_array_utilities.h"
 #include "test_utilities/solving_strategies_test_utilities.h"
@@ -46,18 +45,24 @@ KRATOS_TEST_CASE_IN_SUITE(CsrUtilitiesGetCsrEquationIdIndices, KratosCoreFastSui
 
     // Set the DOF array
     ModelPart::DofsArrayType dof_set;
-    DofArrayUtilities::SetUpDofArray(r_model_part, dof_set);
+    DofArrayUtilities::SetUpDofArray(r_test_model_part, dof_set);
 
-    // // Block builder set up to allocate the linear system matrix
-    // using BuilderType = BlockBuilder<SerialLinearAlgebraTraits::MatrixType, SerialLinearAlgebraTraits::VectorType, SerialLinearAlgebraTraits::GraphType>;
-    // auto p_builder = Kratos::make_shared<BuilderType>(r_test_model_part);
-    // //FIXME: avoid builders
+    // Build the sparse matrix graph
+    SparseContiguousRowGraph<std::size_t> sparse_matrix_graph(dof_set.size());
+    IndexPartition<std::size_t>(r_test_model_part.NumberOfElements()).for_each([&](std::size_t Index) {
+        Element::EquationIdVectorType eq_ids;
+        auto it_elem = r_test_model_part.ElementsBegin() + Index;
+        it_elem->EquationIdVector(eq_ids, r_test_model_part.GetProcessInfo());
+        sparse_matrix_graph.AddEntries(eq_ids);
+    });
 
-    // Output NdData
-    NDDData<std::size_t> nd_data(DenseVector<unsigned int>(0));
+    // Allocate the CSR matrix
+    CsrMatrix<> csr_matrix(sparse_matrix_graph);
 
     // Call the utility
-    // CsrUtilities::GetCsrEquationIdIndices(container, dummy_matrix, nd_data);
+    DenseVector<unsigned int> aux_size(0);
+    NDData<unsigned int> eq_ids_csr_indices(aux_size);
+    CsrUtilities::GetEquationIdCsrIndices(r_test_model_part.Elements(), r_test_model_part.GetProcessInfo(), csr_matrix, eq_ids_csr_indices);
 
     // // Verify results
     // const auto& shape = nd_data.Shape();

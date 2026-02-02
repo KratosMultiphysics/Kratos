@@ -18,6 +18,7 @@
 
 // Project include
 #include "containers/nd_data.h"
+#include "includes/model_part.h"
 
 namespace Kratos
 {
@@ -54,6 +55,7 @@ public:
     ///@name Type Definitions
     ///@{
 
+    using EquationIdVectorType = std::vector<std::size_t>;
 
     ///@}
     ///@name Life Cycle
@@ -74,21 +76,46 @@ public:
     ///@name Operations
     ///@{
 
-    template<class TContainerType, class TCsrMatrixType , class TIndexVectorType>
-    static void GetCsrEquationIdIndices(
+    template<class TContainerType, class TCsrMatrixType>
+    static void GetEquationIdCsrIndices(
         const TContainerType& rContainer,
+        const ProcessInfo& rProcessInfo,
         const TCsrMatrixType& rCsrMatrix,
-        NDData<IndexType>& rNdData)
+        NDData<unsigned int>& rNDData)
     {
-        // Resize NDData
-        // Note that we assume the entities in the container to be of the same type
+        // Get equation ids size from the first entity (assuming all entities have the same size)
+        EquationIdVectorType equation_ids;
+        rContainer.begin()->EquationIdVector(equation_ids, rProcessInfo);
+        const std::size_t local_size = equation_ids.size();
+
+        // Assign the input NDData to have shape: number of entities * local_size * local_size
         DenseVector<unsigned int> nd_data_shape(3);
         nd_data_shape[0] = rContainer.size();
-        nd_data_shape[1] = rContainer.begin()->GetDofs().size();
-        nd_data_shape[2] = rContainer.begin()->GetDofs().size();
-        rNdData = NdData<IndexType>(nd_data_shape);
+        nd_data_shape[1] = local_size;
+        nd_data_shape[2] = local_size;
+        rNDData = NDData<unsigned int>(nd_data_shape);
 
-        //
+        //TODO: Parallelism?
+        // Loop over the container
+        auto data_view = rNDData.ViewData();
+        for (auto it = rContainer.begin(); it != rContainer.end(); ++it) {
+            // Get current entity equation ids
+            EquationIdVectorType equation_ids;
+            it->EquationIdVector(equation_ids, rProcessInfo);
+
+            // Get local size
+            const unsigned int local_size = equation_ids.size();
+
+            // Loop over the local size
+            for (unsigned int i_local = 0; i_local < local_size; ++i_local) {
+                const unsigned int i_global = equation_ids[i_local];
+                for(unsigned int j_local = 0; j_local < local_size; ++j_local) {
+                    const unsigned int j_global = equation_ids[j_local];
+                    const unsigned int k = rCsrMatrix.FindValueIndex(i_global,j_global);
+                    data_view[it->Id() * (local_size * local_size) + i_local * local_size + j_local] = k;
+                }
+            }
+        }
     }
 
     ///@}
