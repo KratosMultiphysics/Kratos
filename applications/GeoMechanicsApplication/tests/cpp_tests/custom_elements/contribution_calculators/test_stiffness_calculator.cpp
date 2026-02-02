@@ -19,8 +19,6 @@
 namespace
 {
 
-Kratos::ProcessInfo GetProcessInfo() { return Kratos::ProcessInfo(); }
-
 using namespace Kratos;
 
 class MockLaw : public ConstitutiveLaw
@@ -28,13 +26,12 @@ class MockLaw : public ConstitutiveLaw
 public:
     KRATOS_CLASS_POINTER_DEFINITION(MockLaw);
 
-    explicit MockLaw(const Matrix& rConstitutiveMatrix) : mConstitutiveMatrix(rConstitutiveMatrix)
+    explicit MockLaw(const Matrix& rConstitutiveMatrix, const Vector& rStressVectors)
+        : mConstitutiveMatrix(rConstitutiveMatrix), mStressVector(rStressVectors)
     {
     }
 
-    Matrix& CalculateValue(Parameters& rParameterValues,
-                                   const Variable<Matrix>& rThisVariable,
-                                   Matrix& rValue) override
+    Matrix& CalculateValue(Parameters& rParameterValues, const Variable<Matrix>& rThisVariable, Matrix& rValue) override
     {
         rValue = mConstitutiveMatrix;
         return mConstitutiveMatrix;
@@ -42,13 +39,42 @@ public:
 
     void CalculateMaterialResponseCauchy(Parameters& rValues) override
     {
-        rValues.GetStressVector() = UblasUtilities::CreateVector({1.0, 2.0, 3.0});
+        rValues.GetStressVector() = mStressVector;
     };
 
-    SizeType GetStrainSize() const override { return 3; }
+    SizeType GetStrainSize() const override { return mStressVector.size(); }
 
     Matrix mConstitutiveMatrix;
+    Vector mStressVector;
 };
+
+template <unsigned int NumberOfUDof>
+typename StiffnessCalculator<NumberOfUDof>::InputProvider CreateStiffnessInputProvider(
+    const Matrix&                                rBMatrix,
+    const Vector&                                rStrain,
+    double                                       IntegrationCoefficient,
+    const Properties&                            rProperties,
+    const ProcessInfo&                           rProcessInfo,
+    const std::vector<ConstitutiveLaw::Pointer>& rConstitutiveLaws,
+    std::size_t                                  NumberOfIntegrationPoints = 1)
+{
+    auto get_b_matrices = [&rBMatrix, NumberOfIntegrationPoints]() {
+        return std::vector(NumberOfIntegrationPoints, rBMatrix);
+    };
+    auto get_integration_coefficients = [IntegrationCoefficient, NumberOfIntegrationPoints]() {
+        return std::vector(NumberOfIntegrationPoints, IntegrationCoefficient);
+    };
+    auto get_strains = [&rStrain, NumberOfIntegrationPoints]() {
+        return std::vector(NumberOfIntegrationPoints, rStrain);
+    };
+    auto get_element_properties = [&rProperties]() -> const auto& { return rProperties; };
+    auto get_process_info       = [&rProcessInfo]() -> const auto& { return rProcessInfo; };
+    auto get_constitutive_laws = [&rConstitutiveLaws]() -> const auto& { return rConstitutiveLaws; };
+
+    return typename StiffnessCalculator<NumberOfUDof>::InputProvider(
+        get_b_matrices, get_strains, get_integration_coefficients, get_element_properties,
+        get_process_info, get_constitutive_laws);
+}
 
 } // namespace
 
@@ -56,34 +82,29 @@ namespace Kratos::Testing
 {
 TEST_F(KratosGeoMechanicsFastSuiteWithoutKernel, TestsStiffnessContribution)
 {
+    // Arrange
     constexpr std::size_t number_of_u_dof = 4;
+    constexpr auto number_of_integration_points = std::size_t{2};
 
-    Geo::IntegrationCoefficientsGetter integration_coefficients_getter = []() {
-        return std::vector{0.7, 0.3};
-    };
-    const auto b = UblasUtilities::CreateMatrix({{1, 2, 3, 4}, {5, 6, 7, 8}, {9, 10, 11, 12}});
-    Geo::BMatricesGetter     b_matrices_getter = [b]() { return std::vector{b, b}; };
-    Geo::StrainVectorsGetter strains_getter    = []() {
-        return std::vector{Vector{4, 0.5}, Vector{4, 0.6}};
-    };
-
+    const auto b_matrix = UblasUtilities::CreateMatrix({{1, 2, 3, 4}, {5, 6, 7, 8}, {9, 10, 11, 12}});
+    const auto strain = Vector{4, 0.5};
     const auto constitutive_matrix = UblasUtilities::CreateMatrix({{1, 2, 3}, {4, 5, 6}, {7, 8, 9}});
-    std::vector<ConstitutiveLaw::Pointer> mock_laws{std::make_shared<MockLaw>(constitutive_matrix),
-                                                    std::make_shared<MockLaw>(constitutive_matrix)};
-    Geo::ConstitutiveLawsGetter           constitutive_laws_getter =
-        [mock_laws]() -> const std::vector<ConstitutiveLaw::Pointer>& { return mock_laws; };
-    const auto            properties        = Properties{};
-    Geo::PropertiesGetter properties_getter = [&properties]() -> const Properties& {
-        return properties;
-    };
+    const auto                            stress_vector = UblasUtilities::CreateVector({1, 2, 3});
+    std::vector<ConstitutiveLaw::Pointer> mock_laws{
+        std::make_shared<MockLaw>(constitutive_matrix, stress_vector),
+        std::make_shared<MockLaw>(constitutive_matrix, stress_vector)};
+    const auto properties = Properties{};
+    const auto process_info            = ProcessInfo{};
+    const auto integration_coefficient = 0.5;
 
-    StiffnessCalculator<number_of_u_dof>::InputProvider provider(
-        b_matrices_getter, strains_getter, integration_coefficients_getter, properties_getter,
-        GetProcessInfo, constitutive_laws_getter);
+    StiffnessCalculator<number_of_u_dof>::InputProvider provider = CreateStiffnessInputProvider<number_of_u_dof>(
+        b_matrix, strain, integration_coefficient, properties, process_info, mock_laws, number_of_integration_points);
     StiffnessCalculator<number_of_u_dof> calculator(provider);
 
+    // Act
     const auto actual_stiffness_matrix = calculator.LHSContribution().value();
 
+    // Assert
     // The expected matrix is obtained by calculating B^T * C * B * weight for each
     // integration point and summing the results.
     auto expected_stiffness_matrix = UblasUtilities::CreateMatrix(
@@ -93,34 +114,29 @@ TEST_F(KratosGeoMechanicsFastSuiteWithoutKernel, TestsStiffnessContribution)
 
 TEST_F(KratosGeoMechanicsFastSuiteWithoutKernel, TestsStiffnessForceContribution)
 {
+    // Arrange
     constexpr std::size_t number_of_u_dof = 4;
+    constexpr auto number_of_integration_points = std::size_t{2};
 
-    Geo::IntegrationCoefficientsGetter integration_coefficients_getter = []() {
-        return std::vector{0.7, 0.3};
-    };
-    const auto b = UblasUtilities::CreateMatrix({{1, 2, 3, 4}, {5, 6, 7, 8}, {9, 10, 11, 12}});
-    Geo::BMatricesGetter     b_matrices_getter = [b]() { return std::vector{b, b}; };
-    Geo::StrainVectorsGetter strains_getter    = []() {
-        return std::vector{Vector{3, 0.5}, Vector{3, 0.6}};
-    };
-
+    const auto b_matrix = UblasUtilities::CreateMatrix({{1, 2, 3, 4}, {5, 6, 7, 8}, {9, 10, 11, 12}});
+    const auto strain = Vector{4, 0.5};
     const auto constitutive_matrix = UblasUtilities::CreateMatrix({{1, 2, 3}, {4, 5, 6}, {7, 8, 9}});
-    std::vector<ConstitutiveLaw::Pointer> mock_laws{std::make_shared<MockLaw>(constitutive_matrix),
-                                                    std::make_shared<MockLaw>(constitutive_matrix)};
-    Geo::ConstitutiveLawsGetter           constitutive_laws_getter =
-        [mock_laws]() -> const std::vector<ConstitutiveLaw::Pointer>& { return mock_laws; };
-    const auto            properties        = Properties{};
-    Geo::PropertiesGetter properties_getter = [&properties]() -> const Properties& {
-        return properties;
-    };
+    const auto                            stress_vector = UblasUtilities::CreateVector({1, 2, 3});
+    std::vector<ConstitutiveLaw::Pointer> mock_laws{
+        std::make_shared<MockLaw>(constitutive_matrix, stress_vector),
+        std::make_shared<MockLaw>(constitutive_matrix, stress_vector)};
+    const auto properties = Properties{};
+    const auto process_info            = ProcessInfo{};
+    const auto integration_coefficient = 0.5;
 
-    StiffnessCalculator<number_of_u_dof>::InputProvider provider(
-        b_matrices_getter, strains_getter, integration_coefficients_getter, properties_getter,
-        GetProcessInfo, constitutive_laws_getter);
+    StiffnessCalculator<number_of_u_dof>::InputProvider provider = CreateStiffnessInputProvider<number_of_u_dof>(
+        b_matrix, strain, integration_coefficient, properties, process_info, mock_laws, number_of_integration_points);
     StiffnessCalculator<number_of_u_dof> calculator(provider);
 
+    // Act
     const auto actual_stiffness_force = calculator.RHSContribution();
 
+    // Assert
     // The expected matrix is obtained by calculating - B^T * stress vector * weight for each
     // integration point and summing the results.
     auto expected_stiffness_force = UblasUtilities::CreateVector({-38, -44, -50, -56});
