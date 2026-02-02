@@ -20,9 +20,17 @@ namespace Kratos::Geo
 class KRATOS_API(GEO_MECHANICS_APPLICATION) PrincipalStresses
 {
 public:
+    PrincipalStresses() = default;
+
+    template <typename VectorType>
+    explicit PrincipalStresses(const VectorType& rStressVector)
+    {
+        std::ranges::copy(rStressVector, mValues.begin());
+    }
+
     static constexpr std::size_t msVectorSize = 3;
     using InternalVectorType                  = BoundedVector<double, msVectorSize>;
-    InternalVectorType Values();
+    InternalVectorType Values() const const;
 
 private:
     InternalVectorType mValues = ZeroVector{msVectorSize};
