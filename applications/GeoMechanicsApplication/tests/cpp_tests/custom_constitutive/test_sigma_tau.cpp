@@ -127,4 +127,14 @@ TEST_F(KratosGeoMechanicsFastSuiteWithoutKernel, SigmaTau_CanBeCopiedToAnyVector
                               Defaults::absolute_tolerance);
 }
 
+TEST_F(KratosGeoMechanicsFastSuiteWithoutKernel, SigmaTau_RaisesAnErrorWhenAttemptingToCopyToAVectorThatIsTooSmall)
+{
+    // Arrange
+    const auto sigma_tau = Geo::SigmaTau{1.0, 2.0};
+
+    // Act & Assert
+    EXPECT_THROW((sigma_tau.CopyTo<BoundedVector<double, 1>>()), boost::numeric::ublas::bad_size);
+    EXPECT_NO_THROW((sigma_tau.CopyTo<BoundedVector<double, 3>>())); // excess element(s) are OK
+}
+
 } // namespace Kratos::Testing
