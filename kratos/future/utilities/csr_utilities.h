@@ -78,14 +78,17 @@ public:
     static void GetCsrEquationIdIndices(
         const TContainerType& rContainer,
         const TCsrMatrixType& rCsrMatrix,
-        NdData<IndexType>& rNdData)
+        NDData<IndexType>& rNdData)
     {
-        // Resize NdData
+        // Resize NDData
+        // Note that we assume the entities in the container to be of the same type
         DenseVector<unsigned int> nd_data_shape(3);
         nd_data_shape[0] = rContainer.size();
         nd_data_shape[1] = rContainer.begin()->GetDofs().size();
         nd_data_shape[2] = rContainer.begin()->GetDofs().size();
         rNdData = NdData<IndexType>(nd_data_shape);
+
+        //
     }
 
     ///@}
