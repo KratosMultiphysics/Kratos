@@ -25,12 +25,15 @@ public:
     template <typename VectorType>
     explicit PrincipalStresses(const VectorType& rStressVector)
     {
+        KRATOS_DEBUG_ERROR_IF_NOT(rStressVector.size() == msVectorSize)
+            << "PrincipalStresses can only be initialized with a vector of size " << msVectorSize
+            << ", got " << rStressVector.size() << std::endl;
         std::ranges::copy(rStressVector, mValues.begin());
     }
 
     static constexpr std::size_t msVectorSize = 3;
     using InternalVectorType                  = BoundedVector<double, msVectorSize>;
-    InternalVectorType Values() const const;
+    InternalVectorType Values() const;
 
 private:
     InternalVectorType mValues = ZeroVector{msVectorSize};
