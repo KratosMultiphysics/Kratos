@@ -85,6 +85,20 @@ NDData<TDataType>::NDData(const NDData& rOther)
 }
 
 template<class TDataType>
+NDData<TDataType>& NDData<TDataType>::operator=(const NDData& rOther)
+{
+    mShape = rOther.mShape;
+    mpData = Kratos::make_intrusive<PointerWrapper>(new TDataType[this->Size()], true);
+
+    const auto span = this->ViewData();
+    IndexPartition<IndexType>(this->Size()).for_each([&span, &rOther](const auto Index) {
+        span[Index] = rOther.ViewData()[Index];
+    });
+
+    return *this;
+}
+
+template<class TDataType>
 Kratos::span<const TDataType> NDData<TDataType>::ViewData() const
 {
     return Kratos::span<const TDataType>(this->mpData->Data(), this->mpData->Data() + this->Size());
@@ -127,5 +141,6 @@ template class NDData<unsigned char>; // We have to use the unsigned char, becau
 template class NDData<bool>;
 template class NDData<int>;
 template class NDData<double>;
+template class NDData<unsigned int>;
 
 } // namespace Kratos
