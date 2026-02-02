@@ -727,23 +727,6 @@ namespace Kratos
 
         for (IndexType i = 0; i < number_of_control_points; ++i)
         {
-            /////////////////////////////////////////////
-            // xi Derivatives
-            const double dxidx= J_inv(0,0);
-            const double dxidy= J_inv(1,0);
-            const double dxidz= J_inv(2,0);
-
-            // eta  Derivatives 
-            const double detadx= J_inv(0,1);
-            const double detady= J_inv(1,1);
-            const double detadz= J_inv(2,1);
-
-            // zeta  Derivatives 
-            const double dzetadx= J_inv(0,2);
-            const double dzetady= J_inv(1,2);
-            const double dzetadz= J_inv(2,2); 
-            
-            ///////////////////////////////////////////
             Dn = prod(J_inv, dn);
 
             // y hat Derivative w.r.t x
@@ -900,23 +883,6 @@ namespace Kratos
 
         for (IndexType i = 0; i < number_of_control_points; ++i)
         {
-            /////////////////////////////////////////////
-            // xi Derivatives
-            const double dxidx= J_inv(0,0);
-            const double dxidy= J_inv(1,0);
-            const double dxidz= J_inv(2,0);
-
-            // eta  Derivatives 
-            const double detadx= J_inv(0,1);
-            const double detady= J_inv(1,1);
-            const double detadz= J_inv(2,1);
-
-            // zeta  Derivatives 
-            const double dzetadx= J_inv(0,2);
-            const double dzetady= J_inv(1,2);
-            const double dzetadz= J_inv(2,2); 
-            
-            ///////////////////////////////////////////
             Dn = prod(J_inv, dn);
 
             // y hat Derivative w.r.t x
