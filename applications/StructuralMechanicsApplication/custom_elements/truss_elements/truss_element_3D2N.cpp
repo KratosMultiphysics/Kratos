@@ -314,12 +314,139 @@ void TrussElement3D2N::CalculateLeftHandSide(MatrixType& rLeftHandSideMatrix,
 {
 
     KRATOS_TRY;
+    BoundedVector<double, msLocalSize> internal_forces = ZeroVector(msLocalSize);
+    UpdateInternalForces(internal_forces, rCurrentProcessInfo);
     // resizing the matrices + create memory for LHS
     rLeftHandSideMatrix = ZeroMatrix(msLocalSize, msLocalSize);
     // creating LHS
     noalias(rLeftHandSideMatrix) =
         CreateElementStiffnessMatrix(rCurrentProcessInfo);
     KRATOS_CATCH("")
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+/**
+ * ELEMENTS inherited from this class must implement this methods
+ * if they need to add dynamic element contributions
+ * note: first derivatives means the velocities if the displacements are the dof of the analysis
+ * note: time integration parameters must be set in the rCurrentProcessInfo before calling these methods
+ * CalculateFirstDerivativesContributions,
+ * CalculateFirstDerivativesLHS, CalculateFirstDerivativesRHS methods are : OPTIONAL
+ */
+
+/**
+ * this is called during the assembling process in order
+ * to calculate the first derivatives contributions for the LHS and RHS
+ * @param rLeftHandSideMatrix the elemental left hand side matrix
+ * @param rRightHandSideVector the elemental right hand side
+ * @param rCurrentProcessInfo the current process info instance
+ */
+void TrussElement3D2N::CalculateFirstDerivativesContributions(MatrixType& rLeftHandSideMatrix,
+                                                    VectorType& rRightHandSideVector,
+                                                    const ProcessInfo& rCurrentProcessInfo)
+{
+    if (rLeftHandSideMatrix.size1() != msLocalSize || (rLeftHandSideMatrix.size2() != msLocalSize)) {
+        rLeftHandSideMatrix.resize(msLocalSize, msLocalSize, false);
+    }
+    if (rRightHandSideVector.size() != msLocalSize) {
+        rRightHandSideVector.resize(msLocalSize, false);
+    }
+
+    CalculateFirstDerivativesLHS(rLeftHandSideMatrix, rCurrentProcessInfo);
+    CalculateFirstDerivativesRHS(rRightHandSideVector, rCurrentProcessInfo);
+}
+
+/**
+ * this is called during the assembling process in order
+ * to calculate the elemental left hand side matrix for the first derivatives contributions
+ * @param rLeftHandSideMatrix the elemental left hand side matrix
+ * @param rCurrentProcessInfo the current process info instance
+ */
+void TrussElement3D2N::CalculateFirstDerivativesLHS(MatrixType& rLeftHandSideMatrix,
+                                            const ProcessInfo& rCurrentProcessInfo)
+{
+    if (rLeftHandSideMatrix.size1() != msLocalSize || (rLeftHandSideMatrix.size2() != msLocalSize)) {
+        rLeftHandSideMatrix.resize(msLocalSize, msLocalSize, false);
+    }
+    CalculateDampingMatrix(rLeftHandSideMatrix, rCurrentProcessInfo);
+}
+
+/**
+ * this is called during the assembling process in order
+ * to calculate the elemental right hand side vector for the first derivatives contributions
+ * @param rRightHandSideVector the elemental right hand side vector
+ * @param rCurrentProcessInfo the current process info instance
+ */
+void TrussElement3D2N::CalculateFirstDerivativesRHS(VectorType& rRightHandSideVector,
+                                            const ProcessInfo& rCurrentProcessInfo)
+{
+    if (rRightHandSideVector.size() != msLocalSize) {
+        rRightHandSideVector.resize(msLocalSize, false);
+    }
+    noalias(rRightHandSideVector) = ZeroVector(msLocalSize);
+}
+
+/**
+ * ELEMENTS inherited from this class must implement this methods
+ * if they need to add dynamic element contributions
+ * note: second derivatives means the accelerations if the displacements are the dof of the analysis
+ * note: time integration parameters must be set in the rCurrentProcessInfo before calling these methods
+ * CalculateSecondDerivativesContributions,
+ * CalculateSecondDerivativesLHS, CalculateSecondDerivativesRHS methods are : OPTIONAL
+ */
+
+
+/**
+ * this is called during the assembling process in order
+ * to calculate the second derivative contributions for the LHS and RHS
+ * @param rLeftHandSideMatrix the elemental left hand side matrix
+ * @param rRightHandSideVector the elemental right hand side
+ * @param rCurrentProcessInfo the current process info instance
+ */
+void TrussElement3D2N::CalculateSecondDerivativesContributions(MatrixType& rLeftHandSideMatrix,
+                                                        VectorType& rRightHandSideVector,
+                                                        const ProcessInfo& rCurrentProcessInfo)
+{
+    if (rLeftHandSideMatrix.size1() != msLocalSize || (rLeftHandSideMatrix.size2() != msLocalSize)) {
+        rLeftHandSideMatrix.resize(msLocalSize, msLocalSize, false);
+    }
+    if (rRightHandSideVector.size() != msLocalSize) {
+        rRightHandSideVector.resize(msLocalSize, false);
+    }
+    CalculateSecondDerivativesLHS(rLeftHandSideMatrix, rCurrentProcessInfo);
+    CalculateSecondDerivativesRHS(rRightHandSideVector, rCurrentProcessInfo);
+}
+
+/**
+ * this is called during the assembling process in order
+ * to calculate the elemental left hand side matrix for the second derivatives contributions
+ * @param rLeftHandSideMatrix the elemental left hand side matrix
+ * @param rCurrentProcessInfo the current process info instance
+ */
+void TrussElement3D2N::CalculateSecondDerivativesLHS(MatrixType& rLeftHandSideMatrix,
+                                            const ProcessInfo& rCurrentProcessInfo)
+{
+    if (rLeftHandSideMatrix.size1() != msLocalSize || (rLeftHandSideMatrix.size2() != msLocalSize)) {
+        rLeftHandSideMatrix.resize(msLocalSize, msLocalSize, false);
+    }
+    CalculateMassMatrix(rLeftHandSideMatrix, rCurrentProcessInfo);
+}
+
+/**
+ * this is called during the assembling process in order
+ * to calculate the elemental right hand side vector for the second derivatives contributions
+ * @param rRightHandSideVector the elemental right hand side vector
+ * @param rCurrentProcessInfo the current process info instance
+ */
+void TrussElement3D2N::CalculateSecondDerivativesRHS(VectorType& rRightHandSideVector,
+                                            const ProcessInfo& rCurrentProcessInfo)
+{
+    if (rRightHandSideVector.size() != msLocalSize) {
+        rRightHandSideVector.resize(msLocalSize, false);
+    }
+    noalias(rRightHandSideVector) = ZeroVector(msLocalSize);
 }
 
 void TrussElement3D2N::Calculate(const Variable<Matrix>& rVariable, Matrix& rOutput, const ProcessInfo& rCurrentProcessInfo)

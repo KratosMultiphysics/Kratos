@@ -17,6 +17,7 @@
 #include "includes/checks.h"
 #include "custom_elements/truss_elements/truss_element_3D2N.hpp"
 #include "custom_elements/truss_elements/truss_element_linear_3D2N.hpp"
+//#include "custom_elements/truss_elements/cable_element_3D2N.hpp"
 
 
 
@@ -229,6 +230,7 @@ void AdjointFiniteDifferenceTrussElement<TPrimalElement>::load(Serializer& rSeri
 
 template class AdjointFiniteDifferenceTrussElement<TrussElement3D2N>;
 template class AdjointFiniteDifferenceTrussElement<TrussElementLinear3D2N>;
+//template class AdjointFiniteDifferenceTrussElement<CableElement3D2N>;
 
 } // namespace Kratos.
 
