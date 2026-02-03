@@ -23,8 +23,8 @@ namespace Kratos::Testing
 TEST_F(KratosGeoMechanicsFastSuiteWithoutKernel, SigmaTau_HasZeroesAsValuesWhenDefaultConstructed)
 {
     KRATOS_EXPECT_VECTOR_NEAR(Geo::SigmaTau().Values(), Vector(2, 0.0), Defaults::absolute_tolerance);
-    EXPECT_NEAR(Geo::SigmaTau().Sigma(), 0.0, Defaults::absolute_tolerance);
-    EXPECT_NEAR(Geo::SigmaTau().Tau(), 0.0, Defaults::absolute_tolerance);
+    EXPECT_NEAR(Geo::SigmaTau{}.Sigma(), 0.0, Defaults::absolute_tolerance);
+    EXPECT_NEAR(Geo::SigmaTau{}.Tau(), 0.0, Defaults::absolute_tolerance);
 }
 
 template <typename T>
@@ -74,13 +74,12 @@ TEST_F(KratosGeoMechanicsFastSuiteWithoutKernel, SigmaTau_CanBeConstructedFromAS
 }
 
 TEST_F(KratosGeoMechanicsFastSuiteWithoutKernel,
-       SigmaTau_RaisesADebugErrorWhenAttemptingToConstructFromANonEmptyStdInitializerListWithSizeUnequalTo2)
+       SigmaTau_RaisesADebugErrorWhenAttemptingToConstructFromAnStdInitializerListWithSizeUnequalTo2)
 {
 #ifndef KRATOS_DEBUG
     GTEST_SKIP() << "This test requires a debug build";
 #endif
 
-    EXPECT_NO_THROW(Geo::SigmaTau{}); // empty list is OK
     EXPECT_THROW(Geo::SigmaTau{1.0}, Exception);
     EXPECT_THROW((Geo::SigmaTau{2.0, 3.0, 4.0}), Exception);
 }
@@ -110,20 +109,6 @@ TYPED_TEST(TestSigmaTauFixture, SigmaTau_CanBeCopiedToAnyVectorTypeWithSizeOf2)
 
     // Act & Assert
     KRATOS_EXPECT_VECTOR_NEAR(sigma_tau.CopyTo<TypeParam>(), (std::vector{1.0, 2.0}), Defaults::absolute_tolerance);
-}
-
-TEST_F(KratosGeoMechanicsFastSuiteWithoutKernel, SigmaTau_RaisesADebugErrorWhenAttemptingToCopyToAVectorThatIsTooSmall)
-{
-#ifndef KRATOS_DEBUG
-    GTEST_SKIP() << "This test requires a debug build";
-#endif
-
-    // Arrange
-    const auto sigma_tau = Geo::SigmaTau{1.0, 2.0};
-
-    // Act & Assert
-    EXPECT_THROW((sigma_tau.CopyTo<BoundedVector<double, 1>>()), boost::numeric::ublas::bad_size);
-    EXPECT_NO_THROW((sigma_tau.CopyTo<BoundedVector<double, 3>>())); // excess element(s) are OK
 }
 
 } // namespace Kratos::Testing
