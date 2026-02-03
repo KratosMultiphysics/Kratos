@@ -24,13 +24,13 @@ class PUCouplingCalculator : public ContributionCalculator<NumberOfRows, NumberO
 {
 public:
     struct InputProvider {
-        InputProvider(std::function<const Matrix&()>       GetNpContainer,
-                      Geo::BMatricesGetter                 GetBMatrices,
-                      std::function<Vector()>              GetVoigtVector,
-                      Geo::IntegrationCoefficientsGetter   GetIntegrationCoefficients,
-                      std::function<std::vector<double>()> GetBiotCoefficients,
-                      std::function<std::vector<double>()> GetDegreesOfSaturation,
-                      std::function<Vector()>              GetNodalVelocities)
+        InputProvider(std::function<const Matrix&()>                    GetNpContainer,
+                      Geo::BMatricesGetter                              GetBMatrices,
+                      std::function<Vector()>                           GetVoigtVector,
+                      Geo::IntegrationCoefficientsGetter                GetIntegrationCoefficients,
+                      std::function<std::vector<double>()>              GetBiotCoefficients,
+                      std::function<std::vector<double>(const Vector&)> GetDegreesOfSaturation,
+                      std::function<Vector()>                           GetNodalVelocities)
             : GetNpContainer(std::move(GetNpContainer)),
               GetBMatrices(std::move(GetBMatrices)),
               GetVoigtVector(std::move(GetVoigtVector)),
@@ -41,13 +41,13 @@ public:
         {
         }
 
-        std::function<const Matrix&()>       GetNpContainer;
-        Geo::BMatricesGetter                 GetBMatrices;
-        std::function<Vector()>              GetVoigtVector;
-        Geo::IntegrationCoefficientsGetter   GetIntegrationCoefficients;
-        std::function<std::vector<double>()> GetBiotCoefficients;
-        std::function<std::vector<double>()> GetDegreesOfSaturation;
-        std::function<Vector()>              GetNodalVelocities;
+        std::function<const Matrix&()>                    GetNpContainer;
+        Geo::BMatricesGetter                              GetBMatrices;
+        std::function<Vector()>                           GetVoigtVector;
+        Geo::IntegrationCoefficientsGetter                GetIntegrationCoefficients;
+        std::function<std::vector<double>()>              GetBiotCoefficients;
+        std::function<std::vector<double>(const Vector&)> GetDegreesOfSaturation;
+        std::function<Vector()>                           GetNodalVelocities;
     };
 
     explicit PUCouplingCalculator(InputProvider CouplingInputProvider)
@@ -81,7 +81,9 @@ private:
         // Also note that instead of the bishop coefficients, the degrees of saturation are passed.
         // Finally, the nodal water pressure getter is not needed for the matrix calculation, so
         // we pass a dummy function.
-        std::function<Vector()> dummy_nodal_water_pressure_function = {};
+        auto dummy_nodal_water_pressure_function = []() {
+            return Vector(); 
+        };
         typename UPCouplingCalculator<NumberOfColumns, NumberOfRows>::InputProvider input_provider(
             mInputProvider.GetNpContainer, mInputProvider.GetBMatrices, mInputProvider.GetVoigtVector,
             mInputProvider.GetIntegrationCoefficients, mInputProvider.GetBiotCoefficients,

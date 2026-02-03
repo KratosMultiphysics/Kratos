@@ -15,6 +15,7 @@
 
 #include "contribution_calculators/calculation_contribution.h"
 #include "contribution_calculators/stiffness_calculator.hpp"
+#include "custom_elements/contribution_calculators/up_coupling_calculator.hpp"
 #include "geo_aliases.h"
 #include "includes/element.h"
 #include "includes/ublas_interface.h"
@@ -28,6 +29,8 @@
 
 namespace Kratos
 {
+class RetentionLaw;
+
 class KRATOS_API(GEO_MECHANICS_APPLICATION) UPwInterfaceElement : public Element
 {
 public:
@@ -64,6 +67,9 @@ public:
     void CalculateLeftHandSide(MatrixType& rLeftHandSideMatrix, const ProcessInfo&) override;
     void CalculateAndAssignStifnessForceVector(Element::VectorType& rRightHandSideVector,
                                                const ProcessInfo&   rProcessInfo);
+    void CalculateAndAssignCouplingMatrix(MatrixType& rLeftHandSideMatrix, const ProcessInfo& rProcessInfo) const;
+    void CalculateAndAssembleCouplingForceVector(Element::VectorType& rRightHandSideVector,
+                                                 const ProcessInfo&   rProcessInfo) const;
     void CalculateRightHandSide(VectorType& rRightHandSideVector, const ProcessInfo&) override;
     void CalculateLocalSystem(MatrixType&        rLeftHandSideMatrix,
                               VectorType&        rRightHandSideVector,
@@ -87,6 +93,7 @@ public:
     const IntegrationScheme& GetIntegrationScheme() const;
 
     const Geometry<Node>& GetDisplacementMidGeometry() const;
+    const Geometry<Node>& GetWaterPressureMidGeometry() const;
 
 private:
     UPwInterfaceElement() = default;
@@ -109,11 +116,21 @@ private:
                                           const Vector& rGlobalStressVector) const;
     Vector ConvertLocalStressToTraction(const Matrix& rLocalStress) const;
 
-    Geo::BMatricesGetter               CreateBMatricesGetter() const;
-    Geo::StrainVectorsGetter           CreateRelativeDisplacementsGetter() const;
-    Geo::IntegrationCoefficientsGetter CreateIntegrationCoefficientsGetter() const;
-    Geo::PropertiesGetter              CreatePropertiesGetter() const;
-    Geo::ConstitutiveLawsGetter        CreateConstitutiveLawsGetter() const;
+    Geo::BMatricesGetter                              CreateBMatricesGetter() const;
+    Geo::StrainVectorsGetter                          CreateRelativeDisplacementsGetter() const;
+    Geo::IntegrationCoefficientsGetter                CreateIntegrationCoefficientsGetter() const;
+    Geo::PropertiesGetter                             CreatePropertiesGetter() const;
+    Geo::ConstitutiveLawsGetter                       CreateConstitutiveLawsGetter() const;
+    std::function<const Matrix&()>                    CreateNpContainerGetter() const;
+    std::function<Vector()>                           CreateVoigtVectorGetter() const;
+    std::function<std::vector<double>()>              CreateBiotCoefficientsGetter() const;
+    std::function<std::vector<double>(const Vector&)> CreateBishopCoefficientsGetter() const;
+    std::function<Vector()>                           CreateNodalWaterPressuresGetter() const;
+
+    std::vector<double> CalculateBiotCoefficients() const;
+    std::vector<double> CalculateBishopCoefficients(const Vector& rFluidPressure) const;
+    std::vector<double> CalculateIntegrationPointFluidPressures() const;
+    Vector GetWaterPressureGeometryNodalVariable(const Variable<double>& rVariable) const;
 
     template <unsigned int MatrixSize>
     typename StiffnessCalculator<MatrixSize>::InputProvider CreateStiffnessInputProvider(const ProcessInfo& rProcessInfo);
@@ -127,6 +144,20 @@ private:
     template <unsigned int MatrixSize>
     void CalculateAndAssignStiffnesForceVector(VectorType& rRightHandSideVector, const ProcessInfo& rProcessInfo);
 
+    template <unsigned int NumberOfRows, unsigned int NumberOfColumns>
+    typename UPCouplingCalculator<NumberOfRows, NumberOfColumns>::InputProvider CreateCouplingInputProvider(
+        const ProcessInfo& rProcessInfo) const;
+
+    template <unsigned int NumberOfRows, unsigned int NumberOfColumns>
+    auto CreateCouplingCalculator(const ProcessInfo& rProcessInfo) const;
+
+    template <unsigned int NumberOfRows, unsigned int NumberOfColumns>
+    void CalculateAndAssignCouplingMatrix(MatrixType& rLeftHandSideMatrix, const ProcessInfo& rProcessInfo) const;
+
+    template <unsigned int NumberOfRows, unsigned int NumberOfColumns>
+    void CalculateAndAssembleCouplingForceVector(VectorType&        rRightHandSideVector,
+                                                 const ProcessInfo& rProcessInfo) const;
+
     std::function<Matrix(const Geometry<Node>&, const array_1d<double, 3>&)> mfpCalculateRotationMatrix;
 
     std::unique_ptr<IntegrationScheme>    mpIntegrationScheme;
@@ -135,6 +166,7 @@ private:
     IntegrationCoefficientsCalculator     mIntegrationCoefficientsCalculator;
     Geo::GeometryUniquePtr                mpOptionalPressureGeometry;
     std::vector<CalculationContribution>  mContributions;
+    std::vector<RetentionLaw::Pointer>    mRetentionLawVector;
 
     friend class Serializer;
 };
