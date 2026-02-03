@@ -81,9 +81,7 @@ private:
         // Also note that instead of the bishop coefficients, the degrees of saturation are passed.
         // Finally, the nodal water pressure getter is not needed for the matrix calculation, so
         // we pass a dummy function.
-        auto dummy_nodal_water_pressure_function = []() {
-            return Vector(); 
-        };
+        auto dummy_nodal_water_pressure_function = []() { return Vector(); };
         typename UPCouplingCalculator<NumberOfColumns, NumberOfRows>::InputProvider input_provider(
             mInputProvider.GetNpContainer, mInputProvider.GetBMatrices, mInputProvider.GetVoigtVector,
             mInputProvider.GetIntegrationCoefficients, mInputProvider.GetBiotCoefficients,

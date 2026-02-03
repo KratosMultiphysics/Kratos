@@ -106,8 +106,10 @@ UPwInterfaceElement::UPwInterfaceElement(IndexType                          NewI
     MakeIntegrationSchemeAndAssignFunction();
     mpOptionalPressureGeometry = MakeOptionalWaterPressureGeometry(GetDisplacementGeometry(), IsDiffOrder);
     mRetentionLawVector.resize(GetWaterPressureMidGeometry().PointsNumber());
+    auto properties = Properties{};
+    if (rpProperties) properties = *rpProperties;
     for (auto& r_retention_law : mRetentionLawVector) {
-        r_retention_law = RetentionLawFactory::Clone(*rpProperties);
+        r_retention_law = RetentionLawFactory::Clone(properties);
     }
 }
 
