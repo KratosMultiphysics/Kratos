@@ -81,7 +81,7 @@ public:
         const TContainerType& rContainer,
         const ProcessInfo& rProcessInfo,
         const TCsrMatrixType& rCsrMatrix,
-        NDData<unsigned int>& rNDData)
+        NDData<int>& rNDData)
     {
         // Get equation ids size from the first entity (assuming all entities have the same size)
         EquationIdVectorType equation_ids;
@@ -93,7 +93,7 @@ public:
         nd_data_shape[0] = rContainer.size();
         nd_data_shape[1] = local_size;
         nd_data_shape[2] = local_size;
-        rNDData = NDData<unsigned int>(nd_data_shape);
+        rNDData = NDData<int>(nd_data_shape);
 
         //TODO: Parallelism?
         // Loop over the container
@@ -113,6 +113,33 @@ public:
                     const unsigned int j_global = equation_ids[j_local];
                     const unsigned int k = rCsrMatrix.FindValueIndex(i_global,j_global);
                     data_view[it->Id() * (local_size * local_size) + i_local * local_size + j_local] = k;
+                }
+            }
+        }
+    }
+
+    template<class TCsrMatrixType>
+    static void Assemble(
+        const NDData<double>& rLeftHandSideContributions,
+        const NDData<int>& rEqIdsCsrIndices,
+        TCsrMatrixType& rLeftHandSide)
+    {
+        const auto& shape = rEqIdsCsrIndices.Shape();
+        const std::size_t n_entities = shape[0];
+        const std::size_t local_size_1 = shape[1];
+        const std::size_t local_size_2 = shape[2];
+
+        //TODO: Parallelism?
+        auto& r_lhs_data = rLeftHandSide.value_data();
+        const auto& r_idx_data = rEqIdsCsrIndices.ViewData();
+        const auto& r_lhs_contribution_data = rLeftHandSideContributions.ViewData();
+        for (std::size_t i = 0; i < n_entities; ++i) {
+            for (std::size_t j = 0; j < local_size_1; ++j) {
+                for (std::size_t k = 0; k < local_size_2; ++k) {
+                    std::size_t aux_idx = i * (local_size_1 * local_size_2) + j * local_size_1 + k;
+                    const unsigned int csr_index = r_idx_data[aux_idx];
+                    const double lhs_contribution = r_lhs_contribution_data[aux_idx];
+                    r_lhs_data[csr_index] += lhs_contribution;
                 }
             }
         }

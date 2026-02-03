@@ -60,16 +60,68 @@ KRATOS_TEST_CASE_IN_SUITE(CsrUtilitiesGetCsrEquationIdIndices, KratosCoreFastSui
     CsrMatrix<> csr_matrix(sparse_matrix_graph);
 
     // Call the utility
-    DenseVector<unsigned int> aux_size(0);
-    NDData<unsigned int> eq_ids_csr_indices(aux_size);
+    const DenseVector<unsigned int> aux_size(0);
+    NDData<int> eq_ids_csr_indices(aux_size);
     CsrUtilities::GetEquationIdCsrIndices(r_test_model_part.Elements(), r_test_model_part.GetProcessInfo(), csr_matrix, eq_ids_csr_indices);
 
-    // // Verify results
-    // const auto& shape = nd_data.Shape();
-    // KRATOS_EXPECT_EQ(shape.size(), 3);
-    // KRATOS_EXPECT_EQ(shape[0], 2); // 2 entities
-    // KRATOS_EXPECT_EQ(shape[1], 3); // 3 DoFs per entity
-    // KRATOS_EXPECT_EQ(shape[2], 3); // 3 DoFs per entity
+    // Verify results
+    const auto& r_shape = eq_ids_csr_indices.Shape();
+    const auto& r_data = eq_ids_csr_indices.ViewData();
+    KRATOS_EXPECT_EQ(r_shape.size(), 3);
+    KRATOS_EXPECT_EQ(r_shape[0], 2);
+    KRATOS_EXPECT_EQ(r_shape[1], 3);
+    KRATOS_EXPECT_EQ(r_shape[2], 3);
+    KRATOS_EXPECT_EQ(r_data[0], 0);
+    KRATOS_EXPECT_EQ(r_data[1], 1);
+    KRATOS_EXPECT_EQ(r_data[2], 2);
+    KRATOS_EXPECT_EQ(r_data[3], 3);
+    KRATOS_EXPECT_EQ(r_data[4], 4);
+    KRATOS_EXPECT_EQ(r_data[5], 5);
+}
+
+KRATOS_TEST_CASE_IN_SUITE(CsrUtilitiesAssemble, KratosCoreFastSuite)
+{
+    // Set up the indices array
+    DenseVector<unsigned int> eq_ids_shape(3);
+    eq_ids_shape[0] = 3;
+    eq_ids_shape[1] = 2;
+    eq_ids_shape[2] = 2;
+    int eq_ids_csr_indices_data[12];
+    eq_ids_csr_indices_data[0] = 0; eq_ids_csr_indices_data[1] = 1;
+    eq_ids_csr_indices_data[2] = 2; eq_ids_csr_indices_data[3] = 3;
+    eq_ids_csr_indices_data[4] = 3; eq_ids_csr_indices_data[5] = 4;
+    eq_ids_csr_indices_data[6] = 5; eq_ids_csr_indices_data[7] = 6;
+    eq_ids_csr_indices_data[8] = 6; eq_ids_csr_indices_data[9] = 7;
+    eq_ids_csr_indices_data[10] = 8; eq_ids_csr_indices_data[11] = 9;
+    NDData<int> eq_ids_csr_indices(eq_ids_csr_indices_data, eq_ids_shape);
+
+    // Set up the contributions array
+    DenseVector<unsigned int> contributions_shape(3);
+    contributions_shape[0] = 3;
+    contributions_shape[1] = 2;
+    contributions_shape[2] = 2;
+    double contributions_data[12];
+    contributions_data[0] = 1.0; contributions_data[1] = -1.0;
+    contributions_data[2] = -1.0; contributions_data[3] = 1.0;
+    contributions_data[4] = 2.0; contributions_data[5] = -2.0;
+    contributions_data[6] = -2.0; contributions_data[7] = 2.0;
+    contributions_data[8] = 1.0; contributions_data[9] = -1.0;
+    contributions_data[10] = -1.0; contributions_data[11] = 1.0;
+    NDData<double> contributions(contributions_data, contributions_shape);
+
+    // Set up and initialize the CSR matrix
+    SparseContiguousRowGraph<std::size_t> sparse_matrix_graph(4);
+    sparse_matrix_graph.AddEntry(0,0); sparse_matrix_graph.AddEntry(0,1);
+    sparse_matrix_graph.AddEntry(1,0); sparse_matrix_graph.AddEntry(1,1); sparse_matrix_graph.AddEntry(1,2);
+    sparse_matrix_graph.AddEntry(2,1); sparse_matrix_graph.AddEntry(2,2); sparse_matrix_graph.AddEntry(2,3);
+    sparse_matrix_graph.AddEntry(3,2); sparse_matrix_graph.AddEntry(3,3);
+    CsrMatrix<> csr_matrix(sparse_matrix_graph);
+    csr_matrix.SetValue(0.0);
+
+    // Call the utility
+    CsrUtilities::Assemble(contributions, eq_ids_csr_indices, csr_matrix);
+
+    // Verify results
 }
 
 } // namespace Kratos::Testing
