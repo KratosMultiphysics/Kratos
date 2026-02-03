@@ -36,6 +36,7 @@ public:
         KRATOS_DEBUG_ERROR_IF(rValues.size() != msVectorSize)
             << "Cannot construct a SigmaTau instance: the given vector has " << rValues.size()
             << " entry/ies, but expected " << msVectorSize << " entries\n";
+
         std::ranges::copy(rValues, mValues.begin());
     }
 
