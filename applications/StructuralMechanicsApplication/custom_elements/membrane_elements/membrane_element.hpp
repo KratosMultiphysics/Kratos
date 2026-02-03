@@ -101,6 +101,25 @@ namespace Kratos
       VectorType& rRightHandSideVector,
       const ProcessInfo& rCurrentProcessInfo) override;
 
+    void CalculateFirstDerivativesContributions(MatrixType& rLeftHandSideMatrix,
+                                                VectorType& rRightHandSideVector,
+                                                const ProcessInfo& rCurrentProcessInfo) override;
+
+    void CalculateFirstDerivativesLHS(MatrixType& rLeftHandSideMatrix,
+                                      const ProcessInfo& rCurrentProcessInfo) override;
+
+    void CalculateFirstDerivativesRHS(VectorType& rRightHandSideVector,
+                                      const ProcessInfo& rCurrentProcessInfo) override;
+
+    void CalculateSecondDerivativesContributions(MatrixType& rLeftHandSideMatrix,
+                                                VectorType& rRightHandSideVector,
+                                                const ProcessInfo& rCurrentProcessInfo) override;
+
+    void CalculateSecondDerivativesLHS(MatrixType& rLeftHandSideMatrix,
+                                       const ProcessInfo& rCurrentProcessInfo) override;
+
+    void CalculateSecondDerivativesRHS(VectorType& rRightHandSideVector,
+                                       const ProcessInfo& rCurrentProcessInfo) override;
 
     void GetValuesVector(
       Vector& rValues,

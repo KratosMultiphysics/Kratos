@@ -24,6 +24,8 @@
 #include "custom_elements/truss_elements/truss_element_linear_3D2N.hpp"
 #include "custom_elements/solid_elements/small_displacement.h"
 #include "custom_elements/nodal_elements/spring_damper_element.hpp"
+#include "custom_elements/truss_elements/cable_element_3D2N.hpp"
+#include "custom_elements/membrane_elements/membrane_element.hpp"
 
 
 namespace Kratos
@@ -376,10 +378,44 @@ void AdjointFiniteDifferencingBaseElement<TPrimalElement>::CalculateSensitivityM
                 rOutput(i_node, i) = derived_RHS[i];
         }
     }
+    // else if( rDesignVariable == TRUSS_PRESTRESS_PK2 )
+    // {
+    //     Vector RHS;
+    //     this->pGetPrimalElement()->CalculateRightHandSide(RHS, rCurrentProcessInfo);
+
+    //     // Get pseudo-load from utility
+    //     //FiniteDifferenceUtility::CalculateRightHandSideDerivative(*pGetPrimalElement(), RHS, rDesignVariable, delta, rOutput, rCurrentProcessInfo);
+    //     rOutput.resize(1,RHS.size(), false);
+
+    //     std::stringstream filename;
+    //     filename << "sensitivity_element_" << mpPrimalElement->Id() << ".dat";
+
+    //     std::ifstream inFile(filename.str());
+    //     if (!inFile.is_open()) {
+    //         KRATOS_ERROR << "Could not open file " << filename.str() << " for reading" << std::endl;
+    //     }
+
+    //     std::vector<double> values;
+    //     double val;
+    //     while (inFile >> val) {
+    //         values.push_back(val);
+    //     }
+    //     inFile.close();
+
+    //     // Create 1-row matrix
+        
+    //     for (std::size_t j = 0; j < values.size(); ++j) {
+    //         rOutput(0, j) = values[j];
+    //     }
+
+    
+    // }
     else
     {
         Vector RHS;
         this->pGetPrimalElement()->CalculateRightHandSide(RHS, rCurrentProcessInfo);
+        //KRATOS_WATCH(RHS)
+        //KRATOS_WATCH(this->pGetPrimalElement())
 
         // Get pseudo-load from utility
         FiniteDifferenceUtility::CalculateRightHandSideDerivative(*pGetPrimalElement(), RHS, rDesignVariable, delta, rOutput, rCurrentProcessInfo);
@@ -387,6 +423,7 @@ void AdjointFiniteDifferencingBaseElement<TPrimalElement>::CalculateSensitivityM
 
     if (rOutput.size1() == 0 || rOutput.size2() == 0)
     {
+        //std::cout << "base class: Passing 0 of size 1 to sensitivity matrix for variable: " << rDesignVariable.Name() << std::endl;
         rOutput = ZeroMatrix(0, local_size);
     }
 
@@ -434,9 +471,52 @@ void AdjointFiniteDifferencingBaseElement<TPrimalElement>::CalculateSensitivityM
             index++;
         }
     }
-    else
-        rOutput = ZeroMatrix(0, local_size);
+    else if( rDesignVariable == PRE_STRESS )
+    {
+        std::cout << "CalculateSensitivityMatrix in BaseElement" << std::endl;
+        const Vector delta_vector = this->GetPerturbationSize(PRESTRESS_VECTOR, rCurrentProcessInfo);
+        //const std::vector<const FiniteDifferenceUtility::array_1d_component_type*> components = {&PRE_STRESS_SENSITIVITY_XX, &PRE_STRESS_SENSITIVITY_YY, &PRE_STRESS_SENSITIVITY_XY};
+        Matrix derived_RHS;
+        const SizeType dimension = rCurrentProcessInfo.GetValue(DOMAIN_SIZE);
+        
+        KRATOS_ERROR_IF_NOT(dimension > 1) << "CalculateSensitivityMatrix for Vector variables is only available for 2 and 3D!" << std::endl;
+        
+        SizeType vector_size;
+        if (dimension == 2){
+            vector_size = 1;
+        }
+        else if (dimension == 3){
+            vector_size = 3;
+        }
 
+        if ( (rOutput.size1() != vector_size) || (rOutput.size2() != local_size ) )
+            rOutput.resize(vector_size , local_size, false);
+
+        IndexType index = 0;
+
+        Vector RHS;
+        pGetPrimalElement()->CalculateRightHandSide(RHS, rCurrentProcessInfo);
+        
+        // Get pseudo-load contribution from utility
+        FiniteDifferenceUtility::CalculateRightHandSideDerivative(*pGetPrimalElement(), RHS, PRESTRESS_VECTOR,
+                                                                    delta_vector, derived_RHS, rCurrentProcessInfo);
+
+        KRATOS_ERROR_IF_NOT(derived_RHS.size2() == local_size) << "Size of the pseudo-load does not fit!" << std::endl;
+
+        for(IndexType i = 0; i < derived_RHS.size1(); ++i)
+            for(IndexType j = 0; j < derived_RHS.size2(); ++j)
+                if (i==2){
+                    rOutput(i,j) = 0.0;
+                }
+                else {
+                    rOutput( i , j) = derived_RHS(i,j);
+                }
+
+    }
+    else{
+        //std::cout << "base class: Passing 0 of size 3 to sensitivity matrix for variable: " << rDesignVariable.Name() << std::endl;
+        rOutput = ZeroMatrix(0, local_size);
+    }
     KRATOS_CATCH("")
 }
 
@@ -652,7 +732,7 @@ void AdjointFiniteDifferencingBaseElement<TPrimalElement>::CalculateStressDesign
     KRATOS_CATCH("")
 }
 
-// private
+// protected
 template <class TPrimalElement>
 double AdjointFiniteDifferencingBaseElement<TPrimalElement>::GetPerturbationSize(const Variable<double>& rDesignVariable, const ProcessInfo& rCurrentProcessInfo) const
 {
@@ -675,6 +755,35 @@ double AdjointFiniteDifferencingBaseElement<TPrimalElement>::GetPerturbationSize
 
     KRATOS_DEBUG_ERROR_IF_NOT(delta > 0) << "The perturbation size is not > 0!";
     return delta;
+}
+
+template <class TPrimalElement>
+Vector AdjointFiniteDifferencingBaseElement<TPrimalElement>::GetPerturbationSize(const Variable<Vector>& rDesignVariable, const ProcessInfo& rCurrentProcessInfo) const
+{
+    const double delta = rCurrentProcessInfo[PERTURBATION_SIZE];
+    //KRATOS_WATCH(delta)
+    Vector delta_vector(3);
+    delta_vector[0] = delta;
+    delta_vector[1] = delta;
+    delta_vector[2] = delta;
+    if (rCurrentProcessInfo[ADAPT_PERTURBATION_SIZE]) {
+
+        const Vector delta_mod = this->GetPerturbationSizeModificationFactor(rDesignVariable);
+        //KRATOS_WATCH(delta_mod)
+        if (delta_mod.size() > 0){
+
+            for (IndexType i=0; i<delta_vector.size(); ++i){
+                delta_vector[i] *= delta_mod[i];
+            }
+        }
+    }
+    for (IndexType i=0; i<3; ++i){
+        if (delta_vector[i] < 1e-8)
+            delta_vector[i] = 1e-8;
+    }
+
+    KRATOS_DEBUG_ERROR_IF_NOT(delta > 0) << "The perturbation size is not > 0!";
+    return delta_vector;
 }
 
 template <class TPrimalElement>
@@ -715,6 +824,28 @@ double AdjointFiniteDifferencingBaseElement<TPrimalElement>::GetPerturbationSize
 }
 
 template <class TPrimalElement>
+Vector AdjointFiniteDifferencingBaseElement<TPrimalElement>::GetPerturbationSizeModificationFactor(const Variable<Vector>& rDesignVariable) const
+{
+    KRATOS_TRY;
+ 
+    if(rDesignVariable == PRESTRESS_VECTOR)
+    {
+        //std::cout << "inside perturbationsoize" << std::endl;
+        //KRATOS_WATCH(mpPrimalElement->GetProperties()[rDesignVariable])
+        const Vector delta_vector = mpPrimalElement->GetProperties()[rDesignVariable];
+        return delta_vector;
+        
+    }
+    else
+    {
+        Vector delta_vector = ZeroVector(3);
+        return delta_vector;
+    }
+
+    KRATOS_CATCH("")
+}
+
+template <class TPrimalElement>
 void AdjointFiniteDifferencingBaseElement<TPrimalElement>::save(Serializer& rSerializer) const
 {
     KRATOS_SERIALIZE_SAVE_BASE_CLASS(rSerializer,  Element );
@@ -737,6 +868,8 @@ template class AdjointFiniteDifferencingBaseElement<TrussElement3D2N>;
 template class AdjointFiniteDifferencingBaseElement<TrussElementLinear3D2N>;
 template class AdjointFiniteDifferencingBaseElement<SmallDisplacement>;
 template class AdjointFiniteDifferencingBaseElement<SpringDamperElement<3>>;
+template class AdjointFiniteDifferencingBaseElement<CableElement3D2N>;
+template class AdjointFiniteDifferencingBaseElement<MembraneElement>;
 
 } // namespace Kratos
 

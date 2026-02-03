@@ -47,6 +47,8 @@
 #include "custom_response_functions/adjoint_elements/adjoint_finite_difference_cr_beam_element_3D2N.h"
 #include "custom_response_functions/adjoint_elements/adjoint_finite_difference_truss_element_3D2N.h"
 #include "custom_response_functions/adjoint_elements/adjoint_finite_difference_truss_element_linear_3D2N.h"
+#include "custom_response_functions/adjoint_elements/adjoint_finite_difference_cable_element_3D2N.h"
+#include "custom_response_functions/adjoint_elements/adjoint_finite_difference_membrane_element.h"
 #include "custom_response_functions/adjoint_elements/adjoint_solid_element.h"
 #include "custom_response_functions/adjoint_elements/adjoint_finite_difference_small_displacement_element.h"
 #include "custom_response_functions/adjoint_elements/adjoint_finite_difference_spring_damper_element_3D2N.h"
@@ -446,6 +448,8 @@ private:
     const AdjointFiniteDifferenceCrBeamElement<CrBeamElementLinear3D2N> mAdjointFiniteDifferenceCrBeamElementLinear3D2N;
     const AdjointFiniteDifferenceTrussElement<TrussElement3D2N> mAdjointFiniteDifferenceTrussElement3D2N;
     const AdjointFiniteDifferenceTrussElementLinear<TrussElementLinear3D2N> mAdjointFiniteDifferenceTrussLinearElement3D2N;
+    const AdjointFiniteDifferenceCableElement<CableElement3D2N> mAdjointFiniteDifferenceCableElement3D2N;
+    const AdjointFiniteDifferenceMembraneElement<MembraneElement> mAdjointFiniteDifferenceMembraneElement3D3N;
     const AdjointSolidElement<TotalLagrangian> mTotalLagrangianAdjoint2D3N;
     const AdjointSolidElement<TotalLagrangian> mTotalLagrangianAdjoint2D4N;
     const AdjointSolidElement<TotalLagrangian> mTotalLagrangianAdjoint2D6N;

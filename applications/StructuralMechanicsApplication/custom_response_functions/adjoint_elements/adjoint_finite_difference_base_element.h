@@ -462,6 +462,45 @@ protected:
         KRATOS_CATCH("")
     }
 
+    /**
+     * Get the perturbation size for a scalar variable
+     */
+    double GetPerturbationSize(const Variable<double>& rDesignVariable, const ProcessInfo& rCurrentProcessInfo) const;
+
+    /**
+     * Get the perturbation size for a vector variable
+     */
+    double GetPerturbationSize(const Variable<array_1d<double,3>>& rDesignVariable, const ProcessInfo& rCurrentProcessInfo) const;
+
+    /**
+     * Get the perturbation size for a vector variable
+     */
+    Vector GetPerturbationSize(const Variable<Vector>& rDesignVariable, const ProcessInfo& rCurrentProcessInfo) const;
+
+    /**
+     * Get the perturbation size modification factor for a scalar variable.
+     * The computed factor reflects the current value of the property (design variable).
+     * Note: This approach is only based on experience.
+     * This can be overwritten by derived classes.
+     */
+    virtual double GetPerturbationSizeModificationFactor(const Variable<double>& rVariable) const;
+
+    /**
+     * Get the perturbation size modification factor for a vector variable.
+     * The computed factor reflects the size of the element.
+     * Note: This approach is only based on experience.
+     * This can be overwritten by derived classes.
+     */
+    virtual double GetPerturbationSizeModificationFactor(const Variable<array_1d<double,3>>& rDesignVariable) const;
+
+    /**
+     * Get the perturbation size modification factor for a vector variable.
+     * The computed factor reflects the size of the element.
+     * Note: This approach is only based on experience.
+     * This can be overwritten by derived classes.
+     */
+    virtual Vector GetPerturbationSizeModificationFactor(const Variable<Vector>& rDesignVariable) const;
+
     ///@}
     ///@name Member Variables
     ///@{
@@ -482,33 +521,7 @@ private:
 
     ///@name Private Operations
     ///@{
-
-    /**
-     * Get the perturbation size for a scalar variable
-     */
-    double GetPerturbationSize(const Variable<double>& rDesignVariable, const ProcessInfo& rCurrentProcessInfo) const;
-
-    /**
-     * Get the perturbation size for a vector variable
-     */
-    double GetPerturbationSize(const Variable<array_1d<double,3>>& rDesignVariable, const ProcessInfo& rCurrentProcessInfo) const;
-
-    /**
-     * Get the perturbation size modification factor for a scalar variable.
-     * The computed factor reflects the current value of the property (design variable).
-     * Note: This approach is only based on experience.
-     * This can be overwritten by derived classes.
-     */
-    virtual double GetPerturbationSizeModificationFactor(const Variable<double>& rVariable) const;
-
-    /**
-     * Get the perturbation size modification factor for a vector variable.
-     * The computed factor reflects the size of the element.
-     * Note: This approach is only based on experience.
-     * This can be overwritten by derived classes.
-     */
-    virtual double GetPerturbationSizeModificationFactor(const Variable<array_1d<double,3>>& rDesignVariable) const;
-
+    
     ///@}
 
     ///@name Static Member Variables

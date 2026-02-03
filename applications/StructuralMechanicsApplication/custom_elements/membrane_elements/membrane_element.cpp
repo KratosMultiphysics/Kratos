@@ -194,6 +194,154 @@ void MembraneElement::CalculateLocalSystem(
     CalculateLeftHandSide(rLeftHandSideMatrix,rCurrentProcessInfo);
 }
 
+/***********************************************************************************/
+/***********************************************************************************/
+
+/**
+ * ELEMENTS inherited from this class must implement this methods
+ * if they need to add dynamic element contributions
+ * note: first derivatives means the velocities if the displacements are the dof of the analysis
+ * note: time integration parameters must be set in the rCurrentProcessInfo before calling these methods
+ * CalculateFirstDerivativesContributions,
+ * CalculateFirstDerivativesLHS, CalculateFirstDerivativesRHS methods are : OPTIONAL
+ */
+
+/**
+ * this is called during the assembling process in order
+ * to calculate the first derivatives contributions for the LHS and RHS
+ * @param rLeftHandSideMatrix the elemental left hand side matrix
+ * @param rRightHandSideVector the elemental right hand side
+ * @param rCurrentProcessInfo the current process info instance
+ */
+void MembraneElement::CalculateFirstDerivativesContributions(MatrixType& rLeftHandSideMatrix,
+                                                    VectorType& rRightHandSideVector,
+                                                    const ProcessInfo& rCurrentProcessInfo)
+{
+    const SizeType number_of_nodes = GetGeometry().size();
+    const SizeType dimension = GetGeometry().WorkingSpaceDimension();
+    const SizeType system_size = number_of_nodes * dimension;
+
+    if (rLeftHandSideMatrix.size1() != system_size || (rLeftHandSideMatrix.size2() != system_size)) {
+        rLeftHandSideMatrix.resize(system_size, system_size, false);
+    }
+    if (rRightHandSideVector.size() != system_size) {
+        rRightHandSideVector.resize(system_size, false);
+    }
+
+    CalculateFirstDerivativesLHS(rLeftHandSideMatrix, rCurrentProcessInfo);
+    CalculateFirstDerivativesRHS(rRightHandSideVector, rCurrentProcessInfo);
+}
+
+/**
+ * this is called during the assembling process in order
+ * to calculate the elemental left hand side matrix for the first derivatives contributions
+ * @param rLeftHandSideMatrix the elemental left hand side matrix
+ * @param rCurrentProcessInfo the current process info instance
+ */
+void MembraneElement::CalculateFirstDerivativesLHS(MatrixType& rLeftHandSideMatrix,
+                                            const ProcessInfo& rCurrentProcessInfo)
+{
+    const SizeType number_of_nodes = GetGeometry().size();
+    const SizeType dimension = GetGeometry().WorkingSpaceDimension();
+    const SizeType system_size = number_of_nodes * dimension;
+
+    if (rLeftHandSideMatrix.size1() != system_size || (rLeftHandSideMatrix.size2() != system_size)) {
+        rLeftHandSideMatrix.resize(system_size, system_size, false);
+    }
+    CalculateDampingMatrix(rLeftHandSideMatrix, rCurrentProcessInfo);
+}
+
+/**
+ * this is called during the assembling process in order
+ * to calculate the elemental right hand side vector for the first derivatives contributions
+ * @param rRightHandSideVector the elemental right hand side vector
+ * @param rCurrentProcessInfo the current process info instance
+ */
+void MembraneElement::CalculateFirstDerivativesRHS(VectorType& rRightHandSideVector,
+                                            const ProcessInfo& rCurrentProcessInfo)
+{
+    const SizeType number_of_nodes = GetGeometry().size();
+    const SizeType dimension = GetGeometry().WorkingSpaceDimension();
+    const SizeType system_size = number_of_nodes * dimension;
+
+    if (rRightHandSideVector.size() != system_size) {
+        rRightHandSideVector.resize(system_size, false);
+    }
+    noalias(rRightHandSideVector) = ZeroVector(system_size);
+}
+
+/**
+ * ELEMENTS inherited from this class must implement this methods
+ * if they need to add dynamic element contributions
+ * note: second derivatives means the accelerations if the displacements are the dof of the analysis
+ * note: time integration parameters must be set in the rCurrentProcessInfo before calling these methods
+ * CalculateSecondDerivativesContributions,
+ * CalculateSecondDerivativesLHS, CalculateSecondDerivativesRHS methods are : OPTIONAL
+ */
+
+
+/**
+ * this is called during the assembling process in order
+ * to calculate the second derivative contributions for the LHS and RHS
+ * @param rLeftHandSideMatrix the elemental left hand side matrix
+ * @param rRightHandSideVector the elemental right hand side
+ * @param rCurrentProcessInfo the current process info instance
+ */
+void MembraneElement::CalculateSecondDerivativesContributions(MatrixType& rLeftHandSideMatrix,
+                                                        VectorType& rRightHandSideVector,
+                                                        const ProcessInfo& rCurrentProcessInfo)
+{
+    const SizeType number_of_nodes = GetGeometry().size();
+    const SizeType dimension = GetGeometry().WorkingSpaceDimension();
+    const SizeType system_size = number_of_nodes * dimension;
+
+    if (rLeftHandSideMatrix.size1() != system_size || (rLeftHandSideMatrix.size2() != system_size)) {
+        rLeftHandSideMatrix.resize(system_size, system_size, false);
+    }
+    if (rRightHandSideVector.size() != system_size) {
+        rRightHandSideVector.resize(system_size, false);
+    }
+    CalculateSecondDerivativesLHS(rLeftHandSideMatrix, rCurrentProcessInfo);
+    CalculateSecondDerivativesRHS(rRightHandSideVector, rCurrentProcessInfo);
+}
+
+/**
+ * this is called during the assembling process in order
+ * to calculate the elemental left hand side matrix for the second derivatives contributions
+ * @param rLeftHandSideMatrix the elemental left hand side matrix
+ * @param rCurrentProcessInfo the current process info instance
+ */
+void MembraneElement::CalculateSecondDerivativesLHS(MatrixType& rLeftHandSideMatrix,
+                                            const ProcessInfo& rCurrentProcessInfo)
+{
+    const SizeType number_of_nodes = GetGeometry().size();
+    const SizeType dimension = GetGeometry().WorkingSpaceDimension();
+    const SizeType system_size = number_of_nodes * dimension;
+
+    if (rLeftHandSideMatrix.size1() != system_size || (rLeftHandSideMatrix.size2() != system_size)) {
+        rLeftHandSideMatrix.resize(system_size, system_size, false);
+    }
+    CalculateMassMatrix(rLeftHandSideMatrix, rCurrentProcessInfo);
+}
+
+/**
+ * this is called during the assembling process in order
+ * to calculate the elemental right hand side vector for the second derivatives contributions
+ * @param rRightHandSideVector the elemental right hand side vector
+ * @param rCurrentProcessInfo the current process info instance
+ */
+void MembraneElement::CalculateSecondDerivativesRHS(VectorType& rRightHandSideVector,
+                                            const ProcessInfo& rCurrentProcessInfo)
+{
+    const SizeType number_of_nodes = GetGeometry().size();
+    const SizeType dimension = GetGeometry().WorkingSpaceDimension();
+    const SizeType system_size = number_of_nodes * dimension;
+
+    if (rRightHandSideVector.size() != system_size) {
+        rRightHandSideVector.resize(system_size, false);
+    }
+    noalias(rRightHandSideVector) = ZeroVector(system_size);
+}
 
 //***********************************************************************************
 //***********************************************************************************
