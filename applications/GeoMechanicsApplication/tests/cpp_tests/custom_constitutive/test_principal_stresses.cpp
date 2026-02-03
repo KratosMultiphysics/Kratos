@@ -73,9 +73,22 @@ TEST_F(KratosGeoMechanicsFastSuiteWithoutKernel, PrincipalStresses_ThrowsWhenSiz
 
 TEST_F(KratosGeoMechanicsFastSuiteWithoutKernel, PrincipalStressesCanBeCopiedToVector)
 {
+
+}
+
+template <typename T>
+class TestCopyTo : public ::testing::Test
+{
+};
+
+using ListTypes = ::testing::Types<Vector, BoundedVector<double, 3>, std::vector<double>>;
+TYPED_TEST_SUITE(TestCopyTo, ListTypes);
+
+TYPED_TEST(TestCopyTo, PrincipalStressesCanBeCopiedToListType)
+{
     Geo::PrincipalStresses principal_stresses{std::vector{1.0, 2.0, 3.0}};
 
-    const auto copied_vector = principal_stresses.CopyTo<Vector>();
+    const auto copied_vector = principal_stresses.CopyTo<TypeParam>();
 
     KRATOS_EXPECT_VECTOR_NEAR(principal_stresses.Values(), copied_vector, Defaults::absolute_tolerance);
 }

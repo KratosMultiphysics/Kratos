@@ -34,7 +34,7 @@ public:
     template <typename VectorType>
     VectorType CopyTo()
     {
-        VectorType result{msVectorSize};
+        VectorType result(msVectorSize);
         std::ranges::copy(mValues, result.begin());
         return result;
     }
