@@ -138,13 +138,7 @@ Expression::ConstPointer ExpressionUtils::Scale(
 {
     KRATOS_TRY
 
-    if (Scale == 0.0) {
-        return LiteralExpression<double>::Create(0.0, rpExpression->NumberOfEntities());
-    } else if (Scale == 1.0) {
-        return rpExpression;
-    } else {
-        return BinaryExpression<BinaryOperations::Multiplication>::Create(rpExpression, LiteralExpression<double>::Create(Scale, rpExpression->NumberOfEntities()));
-    }
+    return BinaryExpression<BinaryOperations::Multiplication>::Create(rpExpression, LiteralExpression<double>::Create(Scale, rpExpression->NumberOfEntities()));
 
     KRATOS_CATCH("");
 }
