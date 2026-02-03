@@ -29,14 +29,14 @@ TEST_F(KratosGeoMechanicsFastSuiteWithoutKernel, SigmaTau_HasZeroesAsValuesWhenD
 }
 
 template <typename T>
-class TestSigmaTauConstructionFromVectorWithSizeOf2 : public ::testing::Test
+class TestSigmaTauFixture : public ::testing::Test
 {
 };
 
 using TestVectorTypes = ::testing::Types<Vector, BoundedVector<double, 2>, std::vector<double>>;
-TYPED_TEST_SUITE(TestSigmaTauConstructionFromVectorWithSizeOf2, TestVectorTypes);
+TYPED_TEST_SUITE(TestSigmaTauFixture, TestVectorTypes);
 
-TYPED_TEST(TestSigmaTauConstructionFromVectorWithSizeOf2, SigmaTau_CanBeConstructedFromAnyVectorWithSizeOf2)
+TYPED_TEST(TestSigmaTauFixture, SigmaTau_CanBeConstructedFromAnyVectorWithSizeOf2)
 {
     // Arrange
     auto initialization_vector = TypeParam(2);
@@ -106,18 +106,13 @@ TEST_F(KratosGeoMechanicsFastSuiteWithoutKernel, SigmaTau_ComponentsCanBeModifie
                               Defaults::absolute_tolerance);
 }
 
-TEST_F(KratosGeoMechanicsFastSuiteWithoutKernel, SigmaTau_CanBeCopiedToAnyVectorType)
+TYPED_TEST(TestSigmaTauFixture, SigmaTau_CanBeCopiedToAnyVectorTypeWithSizeOf2)
 {
     // Arrange
     const auto sigma_tau = Geo::SigmaTau{1.0, 2.0};
 
     // Act & Assert
-    KRATOS_EXPECT_VECTOR_NEAR(sigma_tau.CopyTo<Vector>(), UblasUtilities::CreateVector({1.0, 2.0}),
-                              Defaults::absolute_tolerance);
-    KRATOS_EXPECT_VECTOR_NEAR((sigma_tau.CopyTo<BoundedVector<double, 2>>()),
-                              (std::vector{1.0, 2.0}), Defaults::absolute_tolerance);
-    KRATOS_EXPECT_VECTOR_NEAR(sigma_tau.CopyTo<std::vector<double>>(), (std::vector{1.0, 2.0}),
-                              Defaults::absolute_tolerance);
+    KRATOS_EXPECT_VECTOR_NEAR(sigma_tau.CopyTo<TypeParam>(), (std::vector{1.0, 2.0}), Defaults::absolute_tolerance);
 }
 
 TEST_F(KratosGeoMechanicsFastSuiteWithoutKernel, SigmaTau_RaisesADebugErrorWhenAttemptingToCopyToAVectorThatIsTooSmall)
