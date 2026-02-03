@@ -10,7 +10,7 @@
 //  Main authors:    Richard Faasse
 //
 
-#include "principal_stresses.h"
+#include "principal_stresses.hpp"
 
 namespace Kratos::Geo
 {

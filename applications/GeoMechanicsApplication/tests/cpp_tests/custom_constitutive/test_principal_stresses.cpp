@@ -10,7 +10,7 @@
 //  Main authors:    Richard Faasse
 //
 
-#include "custom_constitutive/principal_stresses.h"
+#include "custom_constitutive/principal_stresses.hpp"
 #include "custom_utilities/ublas_utilities.h"
 #include "includes/expect.h"
 #include "tests/cpp_tests/geo_mechanics_fast_suite_without_kernel.h"
