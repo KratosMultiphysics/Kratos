@@ -15,7 +15,5 @@
 namespace Kratos::Geo
 {
 
-PrincipalStresses::InternalVectorType PrincipalStresses::Values() const {
-    return mValues;
-}
+PrincipalStresses::InternalVectorType PrincipalStresses::Values() const { return mValues; }
 } // namespace Kratos::Geo

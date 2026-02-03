@@ -31,6 +31,14 @@ public:
         std::ranges::copy(rStressVector, mValues.begin());
     }
 
+    template <typename VectorType>
+    VectorType CopyTo()
+    {
+        VectorType result{msVectorSize};
+        std::ranges::copy(mValues, result.begin());
+        return result;
+    }
+
     static constexpr std::size_t msVectorSize = 3;
     using InternalVectorType                  = BoundedVector<double, msVectorSize>;
     InternalVectorType Values() const;
