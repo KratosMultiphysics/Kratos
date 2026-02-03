@@ -30,9 +30,10 @@ namespace Kratos
 
         if ( rElement.GetProperties().Has(rDesignVariable) )
         {
-
+            //std::cout << "In CalculateRightHandSideDerivative" << std::endl; 
             // define working variables
             Vector RHS_perturbed;
+            //KRATOS_WATCH(rElement.GetProperties())
 
             if ( (rOutput.size1() != 1) || (rOutput.size2() != rRHS.size() ) )
                 rOutput.resize(1, rRHS.size(), false);
@@ -43,14 +44,15 @@ namespace Kratos
             // Create new property and assign it to the element
             Properties::Pointer p_local_property(Kratos::make_shared<Properties>(Properties(*p_global_properties)));
             rElement.SetProperties(p_local_property);
-
+            //KRATOS_WATCH(rPertubationSize)
             // perturb the design variable
             const double current_property_value = rElement.GetProperties()[rDesignVariable];
+            //KRATOS_WATCH(current_property_value)
             p_local_property->SetValue(rDesignVariable, (current_property_value + rPertubationSize));
 
             // Compute RHS after perturbation
             rElement.CalculateRightHandSide(RHS_perturbed, rCurrentProcessInfo);
-
+            //KRATOS_WATCH(RHS_perturbed)
             // Compute derivative of RHS w.r.t. design variable with finite differences
             for(IndexType i = 0; i < RHS_perturbed.size(); ++i)
                 rOutput(0, i) = (RHS_perturbed[i] - rRHS[i]) / rPertubationSize;
@@ -61,6 +63,65 @@ namespace Kratos
         else
             if ( (rOutput.size1() != 0) || (rOutput.size2() != 0) )
                 rOutput.resize(0,0,false);
+
+        KRATOS_CATCH("");
+    }
+
+    void FiniteDifferenceUtility::CalculateRightHandSideDerivative(Element& rElement,
+                                                const Vector& rRHS,
+                                                const Variable<Vector>& rDesignVariable,
+                                                const Vector& rPertubationSize,
+                                                Matrix& rOutput,
+                                                const ProcessInfo& rCurrentProcessInfo)
+    {
+        KRATOS_TRY;
+        //KRATOS_WATCH(rElement.GetProperties())
+        if ( rElement.GetProperties().Has(rDesignVariable) )
+        {
+            //std::cout << "In CalculateRightHandSideDerivative" << std::endl;
+            // define working variables
+            Vector RHS_perturbed;
+
+            if ( (rOutput.size1() != 3) || (rOutput.size2() != rRHS.size() ) )
+                rOutput.resize(3, rRHS.size(), false);
+
+            for(IndexType j = 0; j < rOutput.size1(); ++j){
+                // Save property pointer
+                Properties::Pointer p_global_properties = rElement.pGetProperties();
+
+                // Create new property and assign it to the element
+                Properties::Pointer p_local_property(Kratos::make_shared<Properties>(Properties(*p_global_properties)));
+                rElement.SetProperties(p_local_property);
+
+                // perturb the design variable
+                const Vector current_property_value = rElement.GetProperties()[rDesignVariable];
+                //KRATOS_WATCH(current_property_value)
+                Vector perturbation_vector = ZeroVector(rOutput.size1());
+                perturbation_vector[j] = rPertubationSize[j];
+                //KRATOS_WATCH(rPertubationSize)
+                //KRATOS_WATCH(rPertubationSize[j])
+                Vector perturbed_value = current_property_value + perturbation_vector;
+                //KRATOS_WATCH(perturbed_value)
+                //KRATOS_WATCH(perturbed_value-current_property_value)
+                p_local_property->SetValue(rDesignVariable, (perturbed_value));
+
+                // Compute RHS after perturbation
+                rElement.CalculateRightHandSide(RHS_perturbed, rCurrentProcessInfo);
+
+                // Compute derivative of RHS w.r.t. design variable with finite differences
+                for(IndexType i = 0; i < RHS_perturbed.size(); ++i)
+                    rOutput(j, i) = (RHS_perturbed[i] - rRHS[i]) / rPertubationSize[j];
+
+                // Give element original properties back
+                rElement.SetProperties(p_global_properties);
+            }
+ 
+        }
+        else
+            if ((rOutput.size1() != 3) || (rOutput.size2() != rRHS.size() ) )
+                rOutput.resize(3, rRHS.size(), false);
+            // if ( (rOutput.size1() != 0) || (rOutput.size2() != 0) )
+            //     rOutput.resize(0,0,false);
 
         KRATOS_CATCH("");
     }

@@ -46,6 +46,13 @@ public:
                                                 Matrix& rOutput,
                                                 const ProcessInfo& rCurrentProcessInfo);
 
+    static void CalculateRightHandSideDerivative(Element& rElement,
+                                                const Vector& rRHS,
+                                                const Variable<Vector>& rDesignVariable,
+                                                const Vector& rPertubationSize,
+                                                Matrix& rOutput,
+                                                const ProcessInfo& rCurrentProcessInfo);
+
     template <typename TElementType>
     static void CalculateRightHandSideDerivative(TElementType& rElement,
                                                 const Vector& rRHS,
