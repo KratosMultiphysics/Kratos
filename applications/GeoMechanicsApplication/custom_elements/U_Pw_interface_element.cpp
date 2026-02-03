@@ -523,20 +523,24 @@ Matrix UPwInterfaceElement::CalculatePwBMatrix(const Vector& rN, const Geometry<
     KRATOS_ERROR_IF_NOT(rN.size() == rGeometry.size() / 2)
         << "The number of shape functions should be equal to the number of node pairs. Therefore, "
            "the PwB matrix can not be computed.\n";
-    auto component_order = rGeometry.GetGeometryFamily() == GeometryData::KratosGeometryFamily::Kratos_Linear
-                               ? std::vector<std::size_t>{1, 0}
-                               : std::vector<std::size_t>{2, 0, 1};
-    auto result = Matrix{rGeometry.size(), component_order.size(), 0.0};
+    auto component_order = ComponentOrder(rGeometry);
+    auto result          = Matrix{rGeometry.size(), component_order.size(), 0.0};
 
     auto number_of_pw_dofs_per_side = result.size1() / 2;
-    for (auto i = size_t{0}; i < rGeometry.size() / 2; ++i) {
+    for (auto i = size_t{0}; i < number_of_pw_dofs_per_side; ++i) {
         for (auto j = size_t{0}; j < component_order.size(); ++j) {
             result(i, component_order[j])                              = -rN[i];
             result(i + number_of_pw_dofs_per_side, component_order[j]) = rN[i];
         }
     }
-    KRATOS_INFO("UPwInterfaceElement::CalculatePwBMatrix") << result << std::endl;
     return result;
+}
+
+std::vector<std::size_t> UPwInterfaceElement::ComponentOrder(const Geometry<Node>& rGeometry) const
+{
+    return rGeometry.GetGeometryFamily() == GeometryData::KratosGeometryFamily::Kratos_Linear
+               ? std::vector<std::size_t>{1, 0}
+               : std::vector<std::size_t>{2, 0, 1};
 }
 
 Geometry<Node>::ShapeFunctionsGradientsType UPwInterfaceElement::CalculateLocalPwBMatricesAtIntegrationPoints() const
@@ -718,14 +722,16 @@ std::vector<Vector> UPwInterfaceElement::CalculateProjectedGravity() const
     for (const auto& r_node : GetWaterPressureGeometry()) {
         volume_accelerations.emplace_back(r_node.FastGetSolutionStepValue(VOLUME_ACCELERATION));
     }
-    // average to WaterPressureMidGeometry
+    auto component_order = ComponentOrder(GetWaterPressureGeometry());
+
+    // average to WaterPressureMidGeometry and sort to element directions
     std::vector<Vector> mid_volume_accelerations;
     const auto          number_of_mid_points = GetWaterPressureMidGeometry().PointsNumber();
     mid_volume_accelerations.reserve(number_of_mid_points);
     for (auto i = std::size_t{0}; i < number_of_mid_points; ++i) {
         auto mean_acceleration = Vector{dimension};
         for (auto idim = std::size_t{0}; idim < dimension; ++idim) {
-            mean_acceleration[idim] =
+            mean_acceleration[component_order[idim]] =
                 (volume_accelerations[i][idim] + volume_accelerations[i + number_of_mid_points][idim]) / 2.0;
         }
         mid_volume_accelerations.emplace_back(mean_acceleration);
@@ -733,38 +739,15 @@ std::vector<Vector> UPwInterfaceElement::CalculateProjectedGravity() const
 
     std::vector<Vector> projected_gravity;
     projected_gravity.reserve(number_integration_points);
-    if (GetGeometry().GetGeometryFamily() == GeometryData::KratosGeometryFamily::Kratos_Linear) {
-        GeometryType::JacobiansType J_container{number_integration_points};
-        for (auto& j : J_container) {
-            j.resize(GetGeometry().WorkingSpaceDimension(), GetGeometry().LocalSpaceDimension(), false);
+    for (auto integration_point_index = std::size_t{0};
+         integration_point_index < number_integration_points; ++integration_point_index) {
+        auto body_acceleration = Vector{dimension, 0.0};
+        for (auto mid_node_index = std::size_t{0}; mid_node_index < number_of_mid_points; ++mid_node_index) {
+            body_acceleration +=
+                shape_function_values_at_integration_points[integration_point_index][mid_node_index] *
+                mid_volume_accelerations[mid_node_index];
         }
-        // hier moet ik vast een andere GetIntegrationMethod()
-        GetWaterPressureMidGeometry().Jacobian(J_container, this->GetIntegrationMethod());
-        for (auto integration_point_index = std::size_t{0};
-             integration_point_index < number_integration_points; ++integration_point_index) {
-            auto body_acceleration = Vector{dimension, 0.0};
-            for (auto mid_node_index = std::size_t{0}; mid_node_index < number_of_mid_points; ++mid_node_index) {
-                body_acceleration +=
-                    shape_function_values_at_integration_points[integration_point_index][mid_node_index] *
-                    mid_volume_accelerations[mid_node_index];
-            }
-            auto tangent_vector = column(J_container[integration_point_index], 0);
-            tangent_vector /= norm_2(tangent_vector);
-            projected_gravity.emplace_back(
-                ScalarVector(1, std::inner_product(tangent_vector.begin(), tangent_vector.end(),
-                                                   body_acceleration.begin(), 0.0)));
-        }
-    } else {
-        for (auto integration_point_index = std::size_t{0};
-             integration_point_index < number_integration_points; ++integration_point_index) {
-            auto body_acceleration = Vector{dimension, 0.0};
-            for (auto mid_node_index = std::size_t{0}; mid_node_index < number_of_mid_points; ++mid_node_index) {
-                body_acceleration +=
-                    shape_function_values_at_integration_points[integration_point_index][mid_node_index] *
-                    mid_volume_accelerations[mid_node_index];
-            }
-            projected_gravity.emplace_back(body_acceleration);
-        }
+        projected_gravity.emplace_back(body_acceleration);
     }
 
     return projected_gravity;

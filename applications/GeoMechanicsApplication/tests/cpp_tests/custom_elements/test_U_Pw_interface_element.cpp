@@ -97,8 +97,8 @@ UPwInterfaceElement CreateInterfaceElementWithUPwDofs(const Properties::Pointer&
 {
     auto result = UPwInterfaceElement{
         1, rpGeometry, rpProperties, std::make_unique<TInterfaceDimension>(), IsDiffOrder, rCalculationContributions};
-    const auto solution_step_variables =
-        Geo::ConstVariableDataRefs{std::cref(WATER_PRESSURE), std::cref(DISPLACEMENT)};
+    const auto solution_step_variables = Geo::ConstVariableDataRefs{
+        std::cref(WATER_PRESSURE), std::cref(DISPLACEMENT), std::cref(VOLUME_ACCELERATION)};
     const auto degrees_of_freedom =
         Geo::ConstVariableRefs{std::cref(WATER_PRESSURE), std::cref(DISPLACEMENT_X),
                                std::cref(DISPLACEMENT_Y), std::cref(DISPLACEMENT_Z)};
@@ -121,6 +121,21 @@ UPwInterfaceElement CreateHorizontalUnitLength2Plus2NodedLineInterfaceElementWit
     nodes.push_back(r_model_part.CreateNewNode(1, 1.0, 0.0, 0.0));
     nodes.push_back(r_model_part.CreateNewNode(2, 0.0, 0.0, 0.0));
     nodes.push_back(r_model_part.CreateNewNode(3, 1.0, 0.0, 0.0));
+    const auto p_geometry = std::make_shared<LineInterfaceGeometry2D2Plus2Noded>(nodes);
+    return CreateInterfaceElementWithUPwDofs<Interface2D>(
+        rpProperties, p_geometry, IsDiffOrderElement::No, rCalculationContributions);
+}
+
+UPwInterfaceElement CreateHorizontalOpenUnitLength2Plus2NodedLineInterfaceElementWithUPwDofs(
+    Model& rModel, const Properties::Pointer& rpProperties, const std::vector<CalculationContribution>& rCalculationContributions)
+{
+    auto& r_model_part = CreateModelPartWithUPwVariables(rModel);
+
+    PointerVector<Node> nodes;
+    nodes.push_back(r_model_part.CreateNewNode(0, 0.0, 0.0, 0.0));
+    nodes.push_back(r_model_part.CreateNewNode(1, 1.0, 0.0, 0.0));
+    nodes.push_back(r_model_part.CreateNewNode(2, 0.0, 1.0, 0.0));
+    nodes.push_back(r_model_part.CreateNewNode(3, 1.0, 1.0, 0.0));
     const auto p_geometry = std::make_shared<LineInterfaceGeometry2D2Plus2Noded>(nodes);
     return CreateInterfaceElementWithUPwDofs<Interface2D>(
         rpProperties, p_geometry, IsDiffOrderElement::No, rCalculationContributions);
@@ -304,7 +319,8 @@ UPwInterfaceElement CreateAndInitializeElement(TElementFactory            Factor
                                                const Properties::Pointer& rpProperties,
                                                const std::vector<CalculationContribution>& rCalculationContributions,
                                                const PrescribedDisplacements&  rDisplacements  = {},
-                                               const PrescribedWaterPressures& rWaterPressures = {})
+                                               const PrescribedWaterPressures& rWaterPressures = {},
+                                               const PrescribedDisplacements& rVolumeAcceleractions = {})
 {
     Model model;
     auto  element = Factory(model, rpProperties, rCalculationContributions);
@@ -314,6 +330,9 @@ UPwInterfaceElement CreateAndInitializeElement(TElementFactory            Factor
     }
     for (const auto& [idx, p_w] : rWaterPressures) {
         element.GetGeometry()[idx].FastGetSolutionStepValue(WATER_PRESSURE) = p_w;
+    }
+    for (const auto& [idx, volume_acceleration] : rVolumeAcceleractions) {
+        element.GetGeometry()[idx].FastGetSolutionStepValue(VOLUME_ACCELERATION) = volume_acceleration;
     }
     return element;
 }
@@ -629,7 +648,7 @@ KRATOS_TEST_CASE_IN_SUITE(UPwLineInterfaceElement_RightHandSideEqualsMinusIntern
 
     const auto prescribed_displacements = PrescribedDisplacements{
         {2, array_1d<double, 3>{0.2, 0.5, 0.0}}, {3, array_1d<double, 3>{0.2, 0.5, 0.0}}};
-    const auto prescribed_water_pressures = PrescribedWaterPressures{{2, 20.0}, {3, 20}};
+    const auto prescribed_water_pressures = PrescribedWaterPressures{{2, 20.0}, {3, 20.0}};
     auto       element                    = CreateAndInitializeElement(
         CreateHorizontalUnitLength2Plus2NodedLineInterfaceElementWithUPwDofs, p_properties,
         {CalculationContribution::Stiffness, CalculationContribution::Permeability},
@@ -2163,4 +2182,50 @@ KRATOS_TEST_CASE_IN_SUITE(UPwDiffOrderQuadrilateraleInterfaceElement_8Plus8Noded
     AssertPBlockVectorIsNear(actual_right_hand_side, expected_p_block_vector, number_of_u_dofs, number_of_pw_dofs);
 }
 
+KRATOS_TEST_CASE_IN_SUITE(UPwLineInterfaceElement_HorizontalOpenInterfacePermeabilityandFluidBodyFlowContributions,
+                          KratosGeoMechanicsFastSuiteWithoutKernel)
+{
+    // Arrange
+    constexpr auto normal_stiffness = 20.0;
+    constexpr auto shear_stiffness  = 10.0;
+    const auto     p_properties =
+        CreateElasticMaterialProperties<InterfacePlaneStrain>(normal_stiffness, shear_stiffness);
+    p_properties->SetValue(TRANSVERSAL_PERMEABILITY, 5.0E-3);
+    p_properties->SetValue(DYNAMIC_VISCOSITY, 2.0E-1);
+    p_properties->SetValue(RETENTION_LAW, "SaturatedLaw");
+    p_properties->SetValue(DENSITY_WATER, 1000.0);
+
+    const auto prescribed_displacements =
+        PrescribedDisplacements{{0, array_1d<double, 3>{0.0, 0.0, 0.0}},
+                                {1, array_1d<double, 3>{0.0, 0.0, 0.0}},
+                                {2, array_1d<double, 3>{0.0, 0.0, 0.0}},
+                                {3, array_1d<double, 3>{0.0, 0.0, 0.0}}};
+
+    const auto prescribed_water_pressures =
+        PrescribedWaterPressures{{0, 20.0E3}, {1, 20.0E3}, {2, 10.0E3}, {3, 10.0E3}};
+
+    const auto prescribed_volume_accelerations = std::vector<std::pair<std::size_t, array_1d<double, 3>>>{
+        {0, array_1d<double, 3>{0.0, -10.0, 0.0}},
+        {1, array_1d<double, 3>{0.0, -10.0, 0.0}},
+        {2, array_1d<double, 3>{0.0, -10.0, 0.0}},
+        {3, array_1d<double, 3>{0.0, -10.0, 0.0}}};
+
+    auto element = CreateAndInitializeElement(
+        CreateHorizontalOpenUnitLength2Plus2NodedLineInterfaceElementWithUPwDofs, p_properties,
+        {CalculationContribution::Permeability, CalculationContribution::FluidBodyFlow},
+        prescribed_displacements, prescribed_water_pressures, prescribed_volume_accelerations);
+
+    // Act
+    Vector actual_right_hand_side;
+    element.CalculateRightHandSide(actual_right_hand_side, ProcessInfo{});
+
+    // Assert
+    constexpr auto number_of_u_dofs        = std::size_t{4 * 2};
+    constexpr auto number_of_pw_dofs       = std::size_t{4};
+    const auto     expected_u_block_vector = Vector{number_of_u_dofs, 0.0};
+    AssertUBlockVectorIsNear(actual_right_hand_side, expected_u_block_vector, number_of_u_dofs, number_of_pw_dofs);
+    // The permeability flow and fluid body flow should cancel each other
+    const auto expected_p_block_vector = Vector{number_of_pw_dofs, 0.0};
+    AssertPBlockVectorIsNear(actual_right_hand_side, expected_p_block_vector, number_of_u_dofs, number_of_pw_dofs);
+}
 } // namespace Kratos::Testing
