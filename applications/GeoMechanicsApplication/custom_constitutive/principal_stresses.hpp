@@ -34,6 +34,8 @@ public:
         std::ranges::copy(rStressVector, mValues.begin());
     }
 
+    explicit PrincipalStresses(const std::initializer_list<double>& rValues);
+
     template <typename VectorType>
     VectorType CopyTo()
     {
@@ -42,8 +44,7 @@ public:
         return result;
     }
 
-
-    [[nodiscard]] InternalVectorType Values() const;
+    [[nodiscard]] const InternalVectorType& Values() const;
 
 private:
     InternalVectorType mValues = ZeroVector{msVectorSize};
