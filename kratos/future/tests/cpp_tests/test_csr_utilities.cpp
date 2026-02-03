@@ -62,7 +62,9 @@ KRATOS_TEST_CASE_IN_SUITE(CsrUtilitiesGetCsrEquationIdIndices, KratosCoreFastSui
     // Call the utility
     const DenseVector<unsigned int> aux_size(0);
     NDData<int> eq_ids_csr_indices(aux_size);
+    KRATOS_WATCH("A")
     CsrUtilities::GetEquationIdCsrIndices(r_test_model_part.Elements(), r_test_model_part.GetProcessInfo(), csr_matrix, eq_ids_csr_indices);
+    KRATOS_WATCH("B")
 
     // Verify results
     const auto& r_shape = eq_ids_csr_indices.Shape();

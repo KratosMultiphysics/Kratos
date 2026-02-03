@@ -83,17 +83,21 @@ public:
         const TCsrMatrixType& rCsrMatrix,
         NDData<int>& rNDData)
     {
+        KRATOS_WATCH("B")
         // Get equation ids size from the first entity (assuming all entities have the same size)
         EquationIdVectorType equation_ids;
         rContainer.begin()->EquationIdVector(equation_ids, rProcessInfo);
         const std::size_t local_size = equation_ids.size();
 
         // Assign the input NDData to have shape: number of entities * local_size * local_size
+        KRATOS_WATCH("C")
         DenseVector<unsigned int> nd_data_shape(3);
         nd_data_shape[0] = rContainer.size();
         nd_data_shape[1] = local_size;
         nd_data_shape[2] = local_size;
+        KRATOS_WATCH(nd_data_shape)
         rNDData = NDData<int>(nd_data_shape);
+        KRATOS_WATCH("D")
 
         //TODO: Parallelism?
         // Loop over the container
@@ -137,7 +141,7 @@ public:
             for (std::size_t j = 0; j < local_size_1; ++j) {
                 for (std::size_t k = 0; k < local_size_2; ++k) {
                     std::size_t aux_idx = i * (local_size_1 * local_size_2) + j * local_size_1 + k;
-                    const unsigned int csr_index = r_idx_data[aux_idx];
+                    const int csr_index = r_idx_data[aux_idx];
                     const double lhs_contribution = r_lhs_contribution_data[aux_idx];
                     r_lhs_data[csr_index] += lhs_contribution;
                 }
