@@ -31,13 +31,8 @@ public:
     SigmaTau() = default;
 
     template <typename VectorType>
-    explicit SigmaTau(const VectorType& rValues)
+    explicit SigmaTau(const VectorType& rValues) : SigmaTau{std::begin(rValues), std::end(rValues)}
     {
-        KRATOS_DEBUG_ERROR_IF(rValues.size() != msVectorSize)
-            << "Cannot construct a SigmaTau instance: the given vector has " << rValues.size()
-            << " entry/ies, but expected " << msVectorSize << " entries\n";
-
-        std::ranges::copy(rValues, mValues.begin());
     }
 
     explicit SigmaTau(const std::initializer_list<double>& rValues);
@@ -57,6 +52,16 @@ public:
     }
 
 private:
+    template <typename InputIt>
+    SigmaTau(InputIt First, InputIt Last)
+    {
+        KRATOS_DEBUG_ERROR_IF(std::distance(First, Last) != msVectorSize)
+            << "Cannot construct a SigmaTau instance: expected " << msVectorSize
+            << " values, but got " << std::distance(First, Last) << " value(s)\n";
+
+        std::copy(First, Last, mValues.begin());
+    }
+
     InternalVectorType mValues = ZeroVector{msVectorSize};
 };
 

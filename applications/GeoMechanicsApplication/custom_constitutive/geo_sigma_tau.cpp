@@ -17,12 +17,8 @@ namespace Kratos::Geo
 {
 
 SigmaTau::SigmaTau(const std::initializer_list<double>& rValues)
+    : SigmaTau{rValues.begin(), rValues.end()}
 {
-    KRATOS_DEBUG_ERROR_IF(rValues.size() != msVectorSize)
-        << "Cannot construct a SigmaTau instance: the given initializer list has " << rValues.size()
-        << " entry/ies, but expected " << msVectorSize << " entries\n";
-
-    std::ranges::copy(rValues, mValues.begin());
 }
 
 const SigmaTau::InternalVectorType& SigmaTau::Values() const { return mValues; }
