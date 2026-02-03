@@ -71,10 +71,7 @@ TEST_F(KratosGeoMechanicsFastSuiteWithoutKernel, PrincipalStresses_ThrowsWhenSiz
     EXPECT_THROW((Geo::PrincipalStresses(too_short)), Exception);
 }
 
-TEST_F(KratosGeoMechanicsFastSuiteWithoutKernel, PrincipalStressesCanBeCopiedToVector)
-{
-
-}
+TEST_F(KratosGeoMechanicsFastSuiteWithoutKernel, PrincipalStressesCanBeCopiedToVector) {}
 
 template <typename T>
 class TestCopyTo : public ::testing::Test
@@ -92,6 +89,5 @@ TYPED_TEST(TestCopyTo, PrincipalStressesCanBeCopiedToListType)
 
     KRATOS_EXPECT_VECTOR_NEAR(principal_stresses.Values(), copied_vector, Defaults::absolute_tolerance);
 }
-
 
 } // namespace Kratos::Testing
