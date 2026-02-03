@@ -46,6 +46,7 @@ class AlgorithmSteepestDescent(Algorithm):
 
         for control_name in parameters["controls"].GetStringArray():
             control = optimization_problem.GetControl(control_name)
+            ComponentDataView(control, self._optimization_problem).SetDataBuffer(self.GetMinimumBufferSize())
             self.master_control.AddControl(control)
 
 
@@ -87,23 +88,60 @@ class AlgorithmSteepestDescent(Algorithm):
     @time_decorator()
     def ComputeSearchDirection(self, obj_grad) -> KratosOA.CollectiveExpression:
         search_direction = obj_grad * -1.0
-        self.algorithm_data.GetBufferedData()["search_direction"] = search_direction.Clone()
+
+        E_dependant = True
+        if E_dependant:
+
+            print("Before")
+            print(search_direction.GetContainerExpressions()[0].Evaluate())
+            print(search_direction.GetContainerExpressions()[1].Evaluate())
+
+            E_x_container_exp = search_direction.GetContainerExpressions()[0].Clone()
+            E_y_container_exp = search_direction.GetContainerExpressions()[1].Clone()
+
+            print(E_x_container_exp)
+            print(E_y_container_exp)
+
+            avg_exp = Kratos.Expression.Utils.Scale((E_x_container_exp + E_y_container_exp), 0.5).Clone()
+            
+            E_x_container_exp_orig = search_direction.GetContainerExpressions()[0]
+            E_y_container_exp_orig = search_direction.GetContainerExpressions()[1]
+
+            E_x_container_exp_orig.SetExpression(Kratos.Expression.Utils.Collapse(avg_exp).GetExpression())
+            E_y_container_exp_orig.SetExpression(Kratos.Expression.Utils.Collapse(avg_exp).GetExpression())
+            # for container_expression in search_direction.GetContainerExpressions():
+            #     current_gradient : Kratos.Expression = container_expression.Clone()
+            #     print(current_gradient)
+            #     current_gradient.
+            print("After")
+            print(search_direction.GetContainerExpressions()[0].Evaluate())
+            print(search_direction.GetContainerExpressions()[1].Evaluate())
+
+
+        #raise RuntimeError(222222)
+
+        self.master_control.EmplaceData("search_direction", search_direction, self._optimization_problem)
         return search_direction
 
     @time_decorator()
     def ComputeControlUpdate(self, alpha):
-        search_direction = self.algorithm_data.GetBufferedData()["search_direction"]
+        search_direction = self.master_control.GetData("search_direction", self._optimization_problem)
         update = KratosOA.ExpressionUtils.Scale(search_direction, alpha)
-        self.algorithm_data.GetBufferedData()["control_field_update"] = update.Clone()
+        print("searchdir_new:\n", search_direction)
+        print("update_vor_search:\n", update)
+        print("alpha:\n", alpha)
+        self.master_control.EmplaceData("control_field_update", update, self._optimization_problem)
 
     @time_decorator()
     def UpdateControl(self) -> KratosOA.CollectiveExpression:
-        update = self.algorithm_data.GetBufferedData()["control_field_update"]
+        update = self.master_control.GetData("control_field_update", self._optimization_problem)
+        print("control_field:\n", self.__control_field)
+        print("update:\n", update)
         self.__control_field = KratosOA.ExpressionUtils.Collapse(self.__control_field + update)
 
     @time_decorator()
     def Output(self) -> KratosOA.CollectiveExpression:
-        self.algorithm_data.GetBufferedData()["control_field"] = self.__control_field.Clone()
+        self.master_control.EmplaceData("control_field", self.__control_field.Clone(), self._optimization_problem)
         for process in self._optimization_problem.GetListOfProcesses("output_processes"):
             if process.IsOutputStep():
                 process.PrintOutput()
@@ -131,7 +169,7 @@ class AlgorithmSteepestDescent(Algorithm):
 
                 self.ComputeSearchDirection(obj_grad)
 
-                alpha = self.__line_search_method.ComputeStep()
+                alpha = self.__line_search_method.ComputeStep(self.master_control)
 
                 self.ComputeControlUpdate(alpha)
 

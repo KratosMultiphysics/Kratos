@@ -17,14 +17,14 @@ from KratosMultiphysics.OptimizationApplication.filtering.filter import Factory 
 
 def Factory(model: Kratos.Model, parameters: Kratos.Parameters, optimization_problem: OptimizationProblem) -> Control:
     if not parameters.Has("name"):
-        raise RuntimeError(f"MaterialPropertiesControl instantiation requires a \"name\" in parameters [ parameters = {parameters}].")
+        raise RuntimeError(f"MaterialPropertiesVectorControl instantiation requires a \"name\" in parameters [ parameters = {parameters}].")
     if not parameters.Has("settings"):
-        raise RuntimeError(f"MaterialPropertiesControl instantiation requires a \"settings\" in parameters [ parameters = {parameters}].")
+        raise RuntimeError(f"MaterialPropertiesVectorControl instantiation requires a \"settings\" in parameters [ parameters = {parameters}].")
 
-    return MaterialPropertiesControl(parameters["name"].GetString(), model, parameters["settings"], optimization_problem)
+    return MaterialPropertiesVectorControl(parameters["name"].GetString(), model, parameters["settings"], optimization_problem)
 
-class MaterialPropertiesControl(Control):
-    """Material properties control
+class MaterialPropertiesVectorControl(Control):
+    """Material properties vector control
 
     This is a generic material properties control which creates a control
     for the specified control variable. This does not do any filtering.
@@ -35,7 +35,8 @@ class MaterialPropertiesControl(Control):
 
         default_settings = Kratos.Parameters("""{
             "control_variable_name"             : "",
-            "control_variable_bounds"           : [0.0, 0.0],
+            "control_variable_lower_bounds"           : [0.0],
+            "control_variable_upper_bounds"           : [0.0],
             "output_all_fields"                 : false,
             "consider_recursive_property_update": false,
             "filter_settings"                   : {},
@@ -55,13 +56,13 @@ class MaterialPropertiesControl(Control):
         self.output_all_fields = parameters["output_all_fields"].GetBool()
         control_variable_name = parameters["control_variable_name"].GetString()
         control_variable_type = Kratos.KratosGlobals.GetVariableType(control_variable_name)
-        if control_variable_type != "Double":
-            raise RuntimeError(f"{control_variable_name} with {control_variable_type} type is not supported. Only supports double variables")
+        if control_variable_type != "Vector":
+            raise RuntimeError(f"{control_variable_name} with {control_variable_type} type is not supported. This control only supports vector variables")
         self.controlled_physical_variable: SupportedSensitivityFieldVariableTypes = Kratos.KratosGlobals.GetVariable(control_variable_name)
 
         controlled_model_part_names: 'list[Kratos.Parameters]' = parameters["model_part_names"].values()
         if len(controlled_model_part_names) == 0:
-            raise RuntimeError(f"No model parts were provided for MaterialPropertiesControl. [ control name = \"{self.GetName()}\"]")
+            raise RuntimeError(f"No model parts were provided for MaterialPropertiesVectorControl. [ control name = \"{self.GetName()}\"]")
 
         self.primal_model_part_operation = ModelPartOperation(
                                                 self.model,
@@ -89,7 +90,8 @@ class MaterialPropertiesControl(Control):
         self.primal_model_part: Optional[Kratos.ModelPart] = None
         self.adjoint_model_part: Optional[Kratos.ModelPart] = None
 
-        control_variable_bounds = parameters["control_variable_bounds"].GetVector()
+        control_variable_lower_bounds = parameters["control_variable_lower_bounds"].GetVector()
+        control_variable_upper_bounds = parameters["control_variable_upper_bounds"].GetVector()
 
         # use the clamper in the unit interval
         self.interval_bounder = ExpressionBoundingManager(control_variable_bounds)
@@ -208,8 +210,5 @@ class MaterialPropertiesControl(Control):
             un_buffered_data.SetValue(f"{self.controlled_physical_variable.Name()}_physical_phi", self.physical_phi_field.Clone(), overwrite=True)
             un_buffered_data.SetValue(f"{self.controlled_physical_variable.Name()}_physical_phi_derivative", self.physical_phi_derivative_field.Clone(), overwrite=True)
 
-    def _GetControlPrefix(self) -> str:
-        return "MaterialPropertiesControl"
-
     def __str__(self) -> str:
-        return f"Control [type = {self._GetControlPrefix()}, name = {self.GetName()}, model part name = {self.adjoint_model_part_operation.GetModelPartFullName()}, control variable = {self.controlled_physical_variable.Name()}"
+        return f"Control [type = {self.__class__.__name__}, name = {self.GetName()}, model part name = {self.adjoint_model_part_operation.GetModelPartFullName()}, control variable = {self.controlled_physical_variable.Name()}"

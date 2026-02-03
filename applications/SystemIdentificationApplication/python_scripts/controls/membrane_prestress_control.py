@@ -4,6 +4,7 @@ from typing import Optional
 import KratosMultiphysics as Kratos
 import KratosMultiphysics.OptimizationApplication as KratosOA
 import KratosMultiphysics.SystemIdentificationApplication as KratosSI
+import KratosMultiphysics.StructuralMechanicsApplication as KratosSM
 from KratosMultiphysics.OptimizationApplication.controls.control import Control
 from KratosMultiphysics.OptimizationApplication.utilities.union_utilities import ContainerExpressionTypes
 from KratosMultiphysics.OptimizationApplication.utilities.union_utilities import SupportedSensitivityFieldVariableTypes
@@ -14,24 +15,25 @@ from KratosMultiphysics.OptimizationApplication.utilities.component_data_view im
 from KratosMultiphysics.OptimizationApplication.utilities.optimization_problem import OptimizationProblem
 from KratosMultiphysics.SystemIdentificationApplication.utilities.expression_utils import ExpressionBoundingManager
 from KratosMultiphysics.OptimizationApplication.filtering.filter import Factory as FilterFactory
+from KratosMultiphysics.SystemIdentificationApplication.controls.material_properties_control import MaterialPropertiesControl
 
 def Factory(model: Kratos.Model, parameters: Kratos.Parameters, optimization_problem: OptimizationProblem) -> Control:
     if not parameters.Has("name"):
-        raise RuntimeError(f"MaterialPropertiesControl instantiation requires a \"name\" in parameters [ parameters = {parameters}].")
+        raise RuntimeError(f"MembranePrestressControl instantiation requires a \"name\" in parameters [ parameters = {parameters}].")
     if not parameters.Has("settings"):
-        raise RuntimeError(f"MaterialPropertiesControl instantiation requires a \"settings\" in parameters [ parameters = {parameters}].")
+        raise RuntimeError(f"MembranePrestressControl instantiation requires a \"settings\" in parameters [ parameters = {parameters}].")
 
-    return MaterialPropertiesControl(parameters["name"].GetString(), model, parameters["settings"], optimization_problem)
+    return MembranePrestressControl(parameters["name"].GetString(), model, parameters["settings"], optimization_problem)
 
-class MaterialPropertiesControl(Control):
+class MembranePrestressControl(MaterialPropertiesControl):
     """Material properties control
 
-    This is a generic material properties control which creates a control
+    This is a membrane presress in material properties which creates a control
     for the specified control variable. This does not do any filtering.
 
     """
     def __init__(self, name: str, model: Kratos.Model, parameters: Kratos.Parameters, optimization_problem: OptimizationProblem):
-        super().__init__(name)
+        super(MaterialPropertiesControl, self).__init__(name)
 
         default_settings = Kratos.Parameters("""{
             "control_variable_name"             : "",
@@ -55,13 +57,13 @@ class MaterialPropertiesControl(Control):
         self.output_all_fields = parameters["output_all_fields"].GetBool()
         control_variable_name = parameters["control_variable_name"].GetString()
         control_variable_type = Kratos.KratosGlobals.GetVariableType(control_variable_name)
-        if control_variable_type != "Double":
-            raise RuntimeError(f"{control_variable_name} with {control_variable_type} type is not supported. Only supports double variables")
+        if control_variable_type != "Array":
+            raise RuntimeError(f"{control_variable_name} with {control_variable_type} type is not supported. Only supports Array1DVariable3 variables")
         self.controlled_physical_variable: SupportedSensitivityFieldVariableTypes = Kratos.KratosGlobals.GetVariable(control_variable_name)
 
         controlled_model_part_names: 'list[Kratos.Parameters]' = parameters["model_part_names"].values()
         if len(controlled_model_part_names) == 0:
-            raise RuntimeError(f"No model parts were provided for MaterialPropertiesControl. [ control name = \"{self.GetName()}\"]")
+            raise RuntimeError(f"No model parts were provided for MembranePrestressControl. [ control name = \"{self.GetName()}\"]")
 
         self.primal_model_part_operation = ModelPartOperation(
                                                 self.model,
@@ -85,7 +87,7 @@ class MaterialPropertiesControl(Control):
         # the primal model part rendering the filter element pointers useless and to segfault.
         # hence filter is using the primal model part to get the locations.
         self.filter = FilterFactory(self.model, self.primal_model_part_operation.GetModelPartFullName(), self.controlled_physical_variable, Kratos.Globals.DataLocation.Element, self.parameters["filter_settings"])
-
+        #print(self.filter)
         self.primal_model_part: Optional[Kratos.ModelPart] = None
         self.adjoint_model_part: Optional[Kratos.ModelPart] = None
 
@@ -95,105 +97,32 @@ class MaterialPropertiesControl(Control):
         self.interval_bounder = ExpressionBoundingManager(control_variable_bounds)
         self.clamper = KratosSI.ElementSmoothClamper(0, 1)
 
-    def Initialize(self) -> None:
-        self.primal_model_part = self.primal_model_part_operation.GetModelPart()
-        self.adjoint_model_part = self.adjoint_model_part_operation.GetModelPart()
-
-        if not KratosOA.OptAppModelPartUtils.CheckModelPartStatus(self.primal_model_part, "element_specific_properties_created"):
-            KratosOA.OptimizationUtils.CreateEntitySpecificPropertiesForContainer(self.primal_model_part, self.primal_model_part.Elements, self.consider_recursive_property_update)
-            KratosOA.OptAppModelPartUtils.LogModelPartStatus(self.primal_model_part, "element_specific_properties_created")
-
-            if self.primal_model_part != self.adjoint_model_part:
-                if KratosOA.OptAppModelPartUtils.CheckModelPartStatus(self.adjoint_model_part, "element_specific_properties_created"):
-                    raise RuntimeError(f"Trying to create element specific properties for {self.adjoint_model_part.FullName()} which already has element specific properties.")
-
-                # now assign the properties of primal to the adjoint model parts
-                KratosSI.ControlUtils.AssignEquivalentProperties(self.primal_model_part.Elements, self.adjoint_model_part.Elements)
-                KratosOA.OptAppModelPartUtils.LogModelPartStatus(self.adjoint_model_part, "element_specific_properties_created")
-
-        # initialize the filter
-        self.filter.SetComponentDataView(ComponentDataView(self, self.optimization_problem))
-        self.filter.Initialize()
-
-        physical_field = self.GetPhysicalField()
-
-        # get the phi field which is in [0, 1] range
-        self.physical_phi_field = self.clamper.ProjectBackward(self.interval_bounder.GetBoundedExpression(physical_field))
-
-        # compute the control phi field
-        self.control_phi_field = self.filter.UnfilterField(self.physical_phi_field)
-
-        self.physical_phi_derivative_field = self.clamper.CalculateForwardProjectionGradient(self.physical_phi_field) * self.interval_bounder.GetBoundGap()
-
-        self._UpdateAndOutputFields(self.GetEmptyField())
-
-    def Check(self) -> None:
-        self.filter.Check()
-
-    def Finalize(self) -> None:
-        self.filter.Finalize()
-
-    def GetPhysicalKratosVariables(self) -> 'list[SupportedSensitivityFieldVariableTypes]':
-        return [self.controlled_physical_variable]
-
     def GetEmptyField(self) -> ContainerExpressionTypes:
         field = Kratos.Expression.ElementExpression(self.primal_model_part)
-        Kratos.Expression.LiteralExpressionIO.SetData(field, 0.0)
+        Kratos.Expression.LiteralExpressionIO.SetData(field, Kratos.Array3(0.0))
         return field
-
-    def GetControlField(self) -> ContainerExpressionTypes:
-        return self.control_phi_field
 
     def GetPhysicalField(self) -> ContainerExpressionTypes:
         physical_thickness_field = Kratos.Expression.ElementExpression(self.primal_model_part)
-        KratosOA.PropertiesVariableExpressionIO.Read(physical_thickness_field, self.controlled_physical_variable)
+        KratosOA.PropertiesVariableExpressionIO.Read(physical_thickness_field, KratosSM.PRESTRESS_VECTOR)
         return physical_thickness_field
 
-    def MapGradient(self, physical_gradient_variable_container_expression_map: 'dict[SupportedSensitivityFieldVariableTypes, ContainerExpressionTypes]') -> ContainerExpressionTypes:
-        with TimeLogger("ShellThicknessControl::MapGradient", None, "Finished",False):
-            keys = physical_gradient_variable_container_expression_map.keys()
-            if len(keys) != 1:
-                raise RuntimeError(f"Provided more than required gradient fields for control \"{self.GetName()}\". Following are the variables:\n\t" + "\n\t".join([k.Name() for k in keys]))
-            if self.controlled_physical_variable not in keys:
-                raise RuntimeError(f"The required gradient for control \"{self.GetName()}\" w.r.t. {self.controlled_physical_variable.Name()} not found. Followings are the variables:\n\t" + "\n\t".join([k.Name() for k in keys]))
-
-            physical_gradient = physical_gradient_variable_container_expression_map[self.controlled_physical_variable]
-            if not IsSameContainerExpression(physical_gradient, self.GetEmptyField()):
-                raise RuntimeError(f"Gradients for the required element container not found for control \"{self.GetName()}\". [ required model part name: {self.primal_model_part.FullName()}, given model part name: {physical_gradient.GetModelPart().FullName()} ]")
-
-            # dj/dE -> physical_gradient
-            # dj/dphi = dj/dphysical * dphysical/dphi
-            return self.filter.BackwardFilterIntegratedField(physical_gradient * self.physical_phi_derivative_field)
-
-    def Update(self, new_control_field: ContainerExpressionTypes) -> bool:
-        if not IsSameContainerExpression(new_control_field, self.GetEmptyField()):
-            raise RuntimeError(f"Updates for the required element container not found for control \"{self.GetName()}\". [ required model part name: {self.primal_model_part.FullName()}, given model part name: {control_field.GetModelPart().FullName()} ]")
-
-        update = new_control_field - self.control_phi_field
-        if not math.isclose(Kratos.Expression.Utils.NormL2(update), 0.0, abs_tol=1e-16):
-            with TimeLogger(self.__class__.__name__, f"Updating {self.GetName()}...", f"Finished updating of {self.GetName()}.",False):
-                # update the control thickness field
-                self.control_phi_field = new_control_field
-                # now update the physical field
-                self._UpdateAndOutputFields(update)
-
-                self.filter.Update()
-
-                return True
-        return False
-
     def _UpdateAndOutputFields(self, update: ContainerExpressionTypes) -> None:
+        #print("In update")
+        #print("update ", update.Evaluate())
         # filter the control field
         filtered_phi_field_update = self.filter.ForwardFilterField(update)
+        #print("filtered_phi_field_update ", filtered_phi_field_update.Evaluate())
         self.physical_phi_field = Kratos.Expression.Utils.Collapse(self.physical_phi_field + filtered_phi_field_update)
+        #print("self.physical_phi_field ", self.physical_phi_field.Evaluate())
 
         # project forward the filtered thickness field to get clamped physical field
         physical_field = self.interval_bounder.GetUnboundedExpression(self.clamper.ProjectForward(self.physical_phi_field))
-
+        #print(self.controlled_physical_variable.Name(), " physical_field ", physical_field.Evaluate())
         # now update physical field
-        KratosOA.PropertiesVariableExpressionIO.Write(physical_field, self.controlled_physical_variable)
+        KratosOA.PropertiesVariableExpressionIO.Write(physical_field, KratosSM.PRESTRESS_VECTOR)
         if self.consider_recursive_property_update:
-            KratosOA.OptimizationUtils.UpdatePropertiesVariableWithRootValueRecursively(physical_field.GetContainer(), self.controlled_physical_variable)
+            KratosOA.OptimizationUtils.UpdatePropertiesVariableWithRootValueRecursively(physical_field.GetContainer(), KratosSM.PRESTRESS_VECTOR)
 
         # compute and store projection derivatives for consistent filtering of the sensitivities
         # this is dphi/dphysical -> physical_phi_derivative_field
@@ -209,7 +138,5 @@ class MaterialPropertiesControl(Control):
             un_buffered_data.SetValue(f"{self.controlled_physical_variable.Name()}_physical_phi_derivative", self.physical_phi_derivative_field.Clone(), overwrite=True)
 
     def _GetControlPrefix(self) -> str:
-        return "MaterialPropertiesControl"
-
-    def __str__(self) -> str:
-        return f"Control [type = {self._GetControlPrefix()}, name = {self.GetName()}, model part name = {self.adjoint_model_part_operation.GetModelPartFullName()}, control variable = {self.controlled_physical_variable.Name()}"
+        return "MembranePrestressControl"
+    
