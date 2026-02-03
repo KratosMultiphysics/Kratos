@@ -529,8 +529,8 @@ Matrix UPwInterfaceElement::CalculatePwBMatrix(const Vector& rN, const Geometry<
     auto number_of_pw_dofs_per_side = result.size1() / 2;
     for (auto i = size_t{0}; i < number_of_pw_dofs_per_side; ++i) {
         for (auto j = size_t{0}; j < component_order.size(); ++j) {
-            result(i, component_order[j])                              = -rN[i];
-            result(i + number_of_pw_dofs_per_side, component_order[j]) = rN[i];
+            result(i, component_order[j])                              = rN[i];
+            result(i + number_of_pw_dofs_per_side, component_order[j]) = -rN[i];
         }
     }
     return result;
