@@ -15,6 +15,9 @@
 #include "includes/kratos_export_api.h"
 #include "includes/ublas_interface.h"
 
+#include <algorithm>
+#include <initializer_list>
+
 namespace Kratos::Geo
 {
 class KRATOS_API(GEO_MECHANICS_APPLICATION) PrincipalStresses
