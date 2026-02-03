@@ -23,40 +23,25 @@ TEST_F(KratosGeoMechanicsFastSuiteWithoutKernel, PrincipalStresses_HasZeroesAsVa
     KRATOS_EXPECT_VECTOR_NEAR(Geo::PrincipalStresses{}.Values(), Vector(3, 0.0), Defaults::absolute_tolerance);
 }
 
-TEST_F(KratosGeoMechanicsFastSuiteWithoutKernel, PrincipalStresses_CanBeConstructedWithAVectorWithSize3)
+template <typename T>
+class TestPrincipalStressFixture : public ::testing::Test
 {
-    const auto ublas_vector       = UblasUtilities::CreateVector({1.0, 2.0, 3.0});
-    const auto principal_stresses = Geo::PrincipalStresses{ublas_vector};
+};
 
-    KRATOS_EXPECT_VECTOR_NEAR(principal_stresses.Values(), ublas_vector, Defaults::absolute_tolerance);
-}
+using TestVectorTypesPrincipalStress =
+    ::testing::Types<Vector, BoundedVector<double, 3>, std::vector<double>>;
+TYPED_TEST_SUITE(TestPrincipalStressFixture, TestVectorTypesPrincipalStress);
 
-TEST_F(KratosGeoMechanicsFastSuiteWithoutKernel, PrincipalStresses_CanBeConstructedWithABoundedVectorWithSize3)
+TYPED_TEST(TestPrincipalStressFixture, PrincipalStresses_CanBeConstructedFromAnyVectorWithSizeOf3)
 {
-    BoundedVector<double, 3> bounded_vector;
-    bounded_vector[0] = 1.0;
-    bounded_vector[1] = 2.0;
-    bounded_vector[2] = 3.0;
+    TypeParam initialization_vector(3);
+    initialization_vector[0] = 1.0;
+    initialization_vector[1] = 2.0;
+    initialization_vector[2] = 3.0;
 
-    const auto principal_stresses = Geo::PrincipalStresses{bounded_vector};
+    const auto principal_stresses = Geo::PrincipalStresses{initialization_vector};
 
-    KRATOS_EXPECT_VECTOR_NEAR(principal_stresses.Values(), bounded_vector, Defaults::absolute_tolerance);
-}
-
-TEST_F(KratosGeoMechanicsFastSuiteWithoutKernel, PrincipalStresses_CanBeConstructedWithAStdVectorWithSize3)
-{
-    const std::vector std_vector{1.0, 2.0, 3.0};
-    const auto        principal_stresses = Geo::PrincipalStresses{std_vector};
-
-    KRATOS_EXPECT_VECTOR_NEAR(principal_stresses.Values(), std_vector, Defaults::absolute_tolerance);
-}
-
-TEST_F(KratosGeoMechanicsFastSuiteWithoutKernel, PrincipalStresses_CanBeConstructedWithAInitializerListWithSize3)
-{
-    const std::initializer_list initializer_list{1.0, 2.0, 3.0};
-    const auto                  principal_stresses = Geo::PrincipalStresses{initializer_list};
-
-    KRATOS_EXPECT_VECTOR_NEAR(principal_stresses.Values(), initializer_list, Defaults::absolute_tolerance);
+    KRATOS_EXPECT_VECTOR_NEAR(principal_stresses.Values(), initialization_vector, Defaults::absolute_tolerance);
 }
 
 TEST_F(KratosGeoMechanicsFastSuiteWithoutKernel, PrincipalStresses_ThrowsWhenSizeIsIncorrect)
@@ -71,17 +56,7 @@ TEST_F(KratosGeoMechanicsFastSuiteWithoutKernel, PrincipalStresses_ThrowsWhenSiz
     EXPECT_THROW((Geo::PrincipalStresses(too_short)), Exception);
 }
 
-TEST_F(KratosGeoMechanicsFastSuiteWithoutKernel, PrincipalStressesCanBeCopiedToVector) {}
-
-template <typename T>
-class TestCopyTo : public ::testing::Test
-{
-};
-
-using ListTypes = ::testing::Types<Vector, BoundedVector<double, 3>, std::vector<double>>;
-TYPED_TEST_SUITE(TestCopyTo, ListTypes);
-
-TYPED_TEST(TestCopyTo, PrincipalStressesCanBeCopiedToListType)
+TYPED_TEST(TestPrincipalStressFixture, PrincipalStressesCanBeCopiedToAnyVectorWithSize3)
 {
     Geo::PrincipalStresses principal_stresses{std::vector{1.0, 2.0, 3.0}};
 
