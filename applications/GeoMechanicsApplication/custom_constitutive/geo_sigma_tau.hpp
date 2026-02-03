@@ -42,11 +42,11 @@ public:
 
     explicit SigmaTau(const std::initializer_list<double>& rValues);
 
-    const InternalVectorType& Values() const;
-    double                    Sigma() const;
-    double&                   Sigma();
-    double                    Tau() const;
-    double&                   Tau();
+    [[nodiscard]] const InternalVectorType& Values() const;
+    [[nodiscard]] double                    Sigma() const;
+    double&                                 Sigma();
+    [[nodiscard]] double                    Tau() const;
+    double&                                 Tau();
 
     template <typename VectorType>
     VectorType CopyTo() const
