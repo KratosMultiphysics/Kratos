@@ -28,35 +28,28 @@ TEST_F(KratosGeoMechanicsFastSuiteWithoutKernel, SigmaTau_HasZeroesAsValuesWhenD
     EXPECT_NEAR(Geo::SigmaTau().Tau(), 0.0, Defaults::absolute_tolerance);
 }
 
-TEST_F(KratosGeoMechanicsFastSuiteWithoutKernel, SigmaTau_CanBeConstructedFromAnyVectorWithSize2)
+template <typename T>
+class TestSigmaTauConstructionFromVectorWithSizeOf2 : public ::testing::Test
+{
+};
+
+using TestVectorTypes = ::testing::Types<Vector, BoundedVector<double, 2>, std::vector<double>>;
+TYPED_TEST_SUITE(TestSigmaTauConstructionFromVectorWithSizeOf2, TestVectorTypes);
+
+TYPED_TEST(TestSigmaTauConstructionFromVectorWithSizeOf2, SigmaTau_CanBeConstructedFromAnyVectorWithSizeOf2)
 {
     // Arrange
-    const auto vector_1 = UblasUtilities::CreateVector({1.0, 2.0});
+    auto initialization_vector = TypeParam(2);
+    initialization_vector[0]   = 1.0;
+    initialization_vector[1]   = 2.0;
 
     // Act
-    const auto sigma_tau_1 = Geo::SigmaTau{vector_1};
+    const auto sigma_tau = Geo::SigmaTau{initialization_vector};
 
     // Assert
-    KRATOS_EXPECT_VECTOR_NEAR(sigma_tau_1.Values(), vector_1, Defaults::absolute_tolerance);
-    EXPECT_NEAR(sigma_tau_1.Sigma(), vector_1[0], Defaults::absolute_tolerance);
-    EXPECT_NEAR(sigma_tau_1.Tau(), vector_1[1], Defaults::absolute_tolerance);
-
-    // Arrange
-    auto vector_2 = BoundedVector<double, 2>{};
-    vector_2[0]   = 3.0;
-    vector_2[1]   = 4.0;
-
-    // Act
-    const auto sigma_tau_2 = Geo::SigmaTau{vector_2};
-
-    // Assert
-    KRATOS_EXPECT_VECTOR_NEAR(sigma_tau_2.Values(), vector_2, Defaults::absolute_tolerance);
-
-    // Arrange
-    const auto vector_3 = std::vector{5.0, 6.0};
-
-    // Act & Assert
-    KRATOS_EXPECT_VECTOR_NEAR(Geo::SigmaTau{vector_3}.Values(), vector_3, Defaults::absolute_tolerance);
+    KRATOS_EXPECT_VECTOR_NEAR(sigma_tau.Values(), initialization_vector, Defaults::absolute_tolerance);
+    EXPECT_NEAR(sigma_tau.Sigma(), initialization_vector[0], Defaults::absolute_tolerance);
+    EXPECT_NEAR(sigma_tau.Tau(), initialization_vector[1], Defaults::absolute_tolerance);
 }
 
 TEST_F(KratosGeoMechanicsFastSuiteWithoutKernel,
