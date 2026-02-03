@@ -95,15 +95,13 @@ TEST_F(KratosGeoMechanicsFastSuiteWithoutKernel, SigmaTau_ComponentsCanBeModifie
     sigma_tau.Sigma() = 3.0;
 
     // Assert
-    KRATOS_EXPECT_VECTOR_NEAR(sigma_tau.Values(), UblasUtilities::CreateVector({3.0, 2.0}),
-                              Defaults::absolute_tolerance);
+    KRATOS_EXPECT_VECTOR_NEAR(sigma_tau.Values(), (std::vector{3.0, 2.0}), Defaults::absolute_tolerance);
 
     // Act
     sigma_tau.Tau() = 4.0;
 
     // Assert
-    KRATOS_EXPECT_VECTOR_NEAR(sigma_tau.Values(), UblasUtilities::CreateVector({3.0, 4.0}),
-                              Defaults::absolute_tolerance);
+    KRATOS_EXPECT_VECTOR_NEAR(sigma_tau.Values(), (std::vector{3.0, 4.0}), Defaults::absolute_tolerance);
 }
 
 TYPED_TEST(TestSigmaTauFixture, SigmaTau_CanBeCopiedToAnyVectorTypeWithSizeOf2)
