@@ -127,8 +127,12 @@ TEST_F(KratosGeoMechanicsFastSuiteWithoutKernel, SigmaTau_CanBeCopiedToAnyVector
                               Defaults::absolute_tolerance);
 }
 
-TEST_F(KratosGeoMechanicsFastSuiteWithoutKernel, SigmaTau_RaisesAnErrorWhenAttemptingToCopyToAVectorThatIsTooSmall)
+TEST_F(KratosGeoMechanicsFastSuiteWithoutKernel, SigmaTau_RaisesADebugErrorWhenAttemptingToCopyToAVectorThatIsTooSmall)
 {
+#ifndef KRATOS_DEBUG
+    GTEST_SKIP() << "This test requires a debug build";
+#endif
+
     // Arrange
     const auto sigma_tau = Geo::SigmaTau{1.0, 2.0};
 
