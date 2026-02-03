@@ -80,16 +80,40 @@ ContainerExpression<TContainerType> SmoothClamper<TContainerType>::ProjectForwar
     const auto number_of_entities = r_input_exp.NumberOfEntities();
     const auto stride = r_input_exp.GetItemComponentCount();
 
-    KRATOS_ERROR_IF_NOT(stride == 1)
-        << "SmoothClamper only supports scalar expressions. [ Expression stride = " << stride << " ].\n";
+    // KRATOS_ERROR_IF_NOT(stride == 1)
+    //     << "SmoothClamper only supports scalar expressions. [ Expression stride = " << stride << " ].\n";
 
-    auto p_result_exp = LiteralFlatExpression<double>::Create(number_of_entities, {});
+    std::vector<std::size_t> shape;
+    if (stride == 1){
+        shape = {};
+    }
+    else if (stride == 3){
+        shape = {3};
+    }
+    auto p_result_exp = LiteralFlatExpression<double>::Create(number_of_entities, shape);
 
-    IndexPartition<IndexType>(number_of_entities).for_each([&](const auto Index) {
-        const double x = r_input_exp.Evaluate(Index, Index, 0);
-        *(p_result_exp->begin() + Index) = this->ProjectForward(x);
-    });
+    if (stride == 1){
+        
+        
+        IndexPartition<IndexType>(number_of_entities).for_each([&](const auto Index) {
+            const double x = r_input_exp.Evaluate(Index, Index, 0);
+            *(p_result_exp->begin() + Index) = this->ProjectForward(x);
+        });
+        
+    }
+    else if (stride == 3){
+        
+        
+        IndexPartition<IndexType>(number_of_entities).for_each([&](const auto Index) {
+            const double x1 = r_input_exp.Evaluate(Index, Index * stride, 0);
+            const double x2 = r_input_exp.Evaluate(Index, Index * stride, 1);
+            const double x3 = r_input_exp.Evaluate(Index, Index * stride, 2);
+            *(p_result_exp->begin() + Index * stride + 0) = this->ProjectForward(x1);
+            *(p_result_exp->begin() + Index * stride + 1) = this->ProjectForward(x2);
+            *(p_result_exp->begin() + Index * stride + 2) = this->ProjectForward(x3);
+        });
 
+    }
     auto result = rInput;
     result.SetExpression(p_result_exp);
     return result;
@@ -110,15 +134,40 @@ ContainerExpression<TContainerType> SmoothClamper<TContainerType>::CalculateForw
     const auto number_of_entities = r_input_exp.NumberOfEntities();
     const auto stride = r_input_exp.GetItemComponentCount();
 
-    KRATOS_ERROR_IF_NOT(stride == 1)
-        << "SmoothClamper only supports scalar expressions. [ Expression stride = " << stride << " ].\n";
+    // KRATOS_ERROR_IF_NOT(stride == 1)
+    //     << "SmoothClamper only supports scalar expressions. [ Expression stride = " << stride << " ].\n";
 
-    auto p_result_exp = LiteralFlatExpression<double>::Create(number_of_entities, {});
+    std::vector<std::size_t> shape;
+    if (stride == 1){
+        shape = {};
+    }
+    else if (stride == 3){
+        shape = {3};
+    }
+    auto p_result_exp = LiteralFlatExpression<double>::Create(number_of_entities, shape);
 
-    IndexPartition<IndexType>(number_of_entities).for_each([&](const auto Index) {
-        const double x = r_input_exp.Evaluate(Index, Index, 0);
-        *(p_result_exp->begin() + Index) = this->CalculateForwardProjectionGradient(x);
-    });
+    if (stride == 1){
+        
+        
+        IndexPartition<IndexType>(number_of_entities).for_each([&](const auto Index) {
+            const double x = r_input_exp.Evaluate(Index, Index, 0);
+            *(p_result_exp->begin() + Index) = this->CalculateForwardProjectionGradient(x);
+        });
+        
+    }
+    else if (stride == 3){
+        
+        
+        IndexPartition<IndexType>(number_of_entities).for_each([&](const auto Index) {
+            const double x1 = r_input_exp.Evaluate(Index, Index * stride, 0);
+            const double x2 = r_input_exp.Evaluate(Index, Index * stride, 1);
+            const double x3 = r_input_exp.Evaluate(Index, Index * stride, 2);
+            *(p_result_exp->begin() + Index * stride + 0) = this->CalculateForwardProjectionGradient(x1);
+            *(p_result_exp->begin() + Index * stride + 1) = this->CalculateForwardProjectionGradient(x2);
+            *(p_result_exp->begin() + Index * stride + 2) = this->CalculateForwardProjectionGradient(x3);
+        });
+
+    }
 
     auto result = rInput;
     result.SetExpression(p_result_exp);
@@ -136,15 +185,39 @@ ContainerExpression<TContainerType> SmoothClamper<TContainerType>::ProjectBackwa
     const auto number_of_entities = r_input_exp.NumberOfEntities();
     const auto stride = r_input_exp.GetItemComponentCount();
 
-    KRATOS_ERROR_IF_NOT(stride == 1)
-        << "SmoothClamper only supports scalar expressions. [ Expression stride = " << stride << " ].\n";
+    // KRATOS_ERROR_IF_NOT(stride == 1)
+    //     << "SmoothClamper only supports scalar expressions. [ Expression stride = " << stride << " ].\n";
 
-    auto p_result_exp = LiteralFlatExpression<double>::Create(number_of_entities, {});
+    std::vector<std::size_t> shape;
+    if (stride == 1){
+        shape = {};
+    }
+    else if (stride == 3){
+        shape = {3};
+    }
+    auto p_result_exp = LiteralFlatExpression<double>::Create(number_of_entities, shape);
 
-    IndexPartition<IndexType>(number_of_entities).for_each([&](const auto Index) {
-        const double x = r_input_exp.Evaluate(Index, Index, 0);
-        *(p_result_exp->begin() + Index) = this->ProjectBackward(x);
-    });
+    if (stride == 1){
+
+        
+        IndexPartition<IndexType>(number_of_entities).for_each([&](const auto Index) {
+            const double x = r_input_exp.Evaluate(Index, Index, 0);
+            *(p_result_exp->begin() + Index) = this->ProjectBackward(x);
+        });
+        
+    }
+    else if (stride == 3){
+        
+        IndexPartition<IndexType>(number_of_entities).for_each([&](const auto Index) {
+            const double x1 = r_input_exp.Evaluate(Index, Index * stride, 0);
+            const double x2 = r_input_exp.Evaluate(Index, Index * stride, 1);
+            const double x3 = r_input_exp.Evaluate(Index, Index * stride, 2);
+            *(p_result_exp->begin() + Index * stride + 0) = this->ProjectBackward(x1);
+            *(p_result_exp->begin() + Index * stride + 1) = this->ProjectBackward(x2);
+            *(p_result_exp->begin() + Index * stride + 2) = this->ProjectBackward(x3);
+        });
+
+    }
 
     auto result = rInput;
     result.SetExpression(p_result_exp);

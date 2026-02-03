@@ -110,6 +110,8 @@ class ResponseRoutine:
 
         if compute_response_value_flag:
             self.__response_value = self.__response.CalculateValue()
+            for control in self.__master_control.GetListOfControls():
+                control.filter.Update()
             Kratos.Logger.PrintInfo(f"Response value is calculated for {self.GetResponseName()}.")
         else:
             Kratos.Logger.PrintInfo(f"The control field is not updated, hence the response value is not computed for {self.GetResponseName()}.")

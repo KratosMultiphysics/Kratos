@@ -8,7 +8,7 @@ from KratosMultiphysics.OptimizationApplication.utilities.union_utilities import
 
 class ResponseSensitivityAnalysis(AnalysisStage, abc.ABC):
     @abc.abstractmethod
-    def CalculateGradient(self, response_function: Kratos.AdjointResponseFunction) -> 'dict[SupportedSensitivityFieldVariableTypes, ContainerExpressionTypes]':
+    def CalculateGradient(self, response_function: Kratos.AdjointResponseFunction) -> None:
         """Returns the gradient computed by using the provided adjoint response function.
 
         This method returns all the sensitivities computed from the given adjoint response function. The return
@@ -21,6 +21,10 @@ class ResponseSensitivityAnalysis(AnalysisStage, abc.ABC):
         Returns:
             dict[str, ContainerExpressionTypes]: Sensitivities dictionary with variable and sensitivities as the pair.
         """
+        pass
+
+    @abc.abstractmethod
+    def GetGradient(self, sensitivity_variable: SupportedSensitivityFieldVariableTypes, container_expression: ContainerExpressionTypes) -> None:
         pass
 
     def GetProcessesOrder(self) -> 'list[str]':

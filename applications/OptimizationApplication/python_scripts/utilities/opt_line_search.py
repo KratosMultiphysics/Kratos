@@ -35,16 +35,16 @@ class ConstStep():
         self._gradient_scaling = parameters["gradient_scaling"].GetString()
         self.unscaled_step = self._init_step
 
-    def ComputeScaleFactor(self) -> float:
+    def ComputeScaleFactor(self, master_control) -> float:
         algorithm_buffered_data = ComponentDataView("algorithm", self._optimization_problem).GetBufferedData()
 
-        if not algorithm_buffered_data.HasValue("search_direction"):
-            raise RuntimeError(f"Algorithm data does not contain computed \"search_direction\".\nData:\n{algorithm_buffered_data}" )
+        # if not algorithm_buffered_data.HasValue("search_direction"):
+        #     raise RuntimeError(f"Algorithm data does not contain computed \"search_direction\".\nData:\n{algorithm_buffered_data}" )
 
         if self._gradient_scaling == "inf_norm":
-            norm = KratosOA.ExpressionUtils.NormInf(algorithm_buffered_data["search_direction"])
+            norm = KratosOA.ExpressionUtils.NormInf(master_control.GetData("search_direction", self._optimization_problem, 0))
         elif self._gradient_scaling == "l2_norm":
-            norm = KratosOA.ExpressionUtils.NormL2(algorithm_buffered_data["search_direction"])
+            norm = KratosOA.ExpressionUtils.NormL2(master_control.GetData("search_direction", self._optimization_problem, 0))
         elif self._gradient_scaling == "none":
             norm = 1.0
         else:
@@ -53,8 +53,8 @@ class ConstStep():
         return norm
 
     @time_decorator()
-    def ComputeStep(self) -> float:
-        norm = self.ComputeScaleFactor()
+    def ComputeStep(self, master_control) -> float:
+        norm = self.ComputeScaleFactor(master_control)
         if not math.isclose(norm, 0.0, abs_tol=1e-16):
             self.step = self._init_step / norm
         else:
@@ -88,18 +88,18 @@ class BBStep(ConstStep):
         self._gradient_scaling = parameters["gradient_scaling"].GetString()
 
     @time_decorator()
-    def ComputeStep(self) -> KratosOA.CollectiveExpression:
+    def ComputeStep(self, master_control) -> KratosOA.CollectiveExpression:
         algorithm_buffered_data = ComponentDataView("algorithm", self._optimization_problem).GetBufferedData()
-        norm = self.ComputeScaleFactor()
+        norm = self.ComputeScaleFactor(master_control)
         if math.isclose(norm, 0.0, abs_tol=1e-16):
             norm = 1.0
         if self._optimization_problem.GetStep() == 0:
             self.step = self._init_step / norm
         else:
-            current_search_direction = algorithm_buffered_data.GetValue("search_direction", 0)
-            previous_search_direction = algorithm_buffered_data.GetValue("search_direction", 1)
+            current_search_direction = master_control.GetData("search_direction", self._optimization_problem, 0)
+            previous_search_direction = master_control.GetData("search_direction", self._optimization_problem, 1)
             y = previous_search_direction - current_search_direction
-            d = algorithm_buffered_data.GetValue("control_field_update", 1)
+            d = master_control.GetData("control_field_update", self._optimization_problem, 1)
             dy = KratosOA.ExpressionUtils.InnerProduct(d,y)
             dd = KratosOA.ExpressionUtils.InnerProduct(d,d)
             if math.isclose(dy, 0.0, abs_tol=1e-16):

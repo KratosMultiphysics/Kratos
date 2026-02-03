@@ -200,3 +200,24 @@ class MasterControl:
 
     def GetName(self) -> str:
         return "master_control"
+    
+    def EmplaceData(self, collective_data_name: str, collective_data: KratosOA.CollectiveExpression, optimization_problem, step_index = 0, use_buffered = True, overwrite = False) -> None:
+        from KratosMultiphysics.OptimizationApplication.utilities.component_data_view import ComponentDataView        
+        for control, container_expression in zip(self.__list_of_controls, collective_data.GetContainerExpressions()):
+            data_view = ComponentDataView(control, optimization_problem)
+            if use_buffered:
+                data_view.GetBufferedData().SetValue(f"{control.GetName()}_{collective_data_name}", container_expression.Clone(), step_index, overwrite)
+            else:
+                data_view.GetUnBufferedData().SetValue(f"{control.GetName()}_{collective_data_name}", container_expression.Clone(), step_index, overwrite)
+
+    def GetData(self, collective_data_name, optimization_problem, step_index = 0, use_buffered = True) -> KratosOA.CollectiveExpression:
+        from KratosMultiphysics.OptimizationApplication.utilities.component_data_view import ComponentDataView        
+        result = KratosOA.CollectiveExpression()
+        for control in self.__list_of_controls:
+            data_view = ComponentDataView(control, optimization_problem)
+            if use_buffered:
+                exp = data_view.GetBufferedData().GetValue(f"{control.GetName()}_{collective_data_name}", step_index)
+            else:
+                exp = data_view.GetUnBufferedData().GetValue(f"{control.GetName()}_{collective_data_name}", step_index)        
+            result.Add(exp)
+        return result
