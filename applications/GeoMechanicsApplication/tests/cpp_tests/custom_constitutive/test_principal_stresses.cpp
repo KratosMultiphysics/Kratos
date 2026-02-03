@@ -58,9 +58,8 @@ TEST_F(KratosGeoMechanicsFastSuiteWithoutKernel, PrincipalStresses_ThrowsWhenSiz
 
 TEST_F(KratosGeoMechanicsFastSuiteWithoutKernel, PrincipalStresses_CanBeConstructedFromAStdInitializerListWithSize3)
 {
-    Geo::PrincipalStresses stresses{1.0, 2.0, 3.0};
-    const auto             expected = std::vector{1.0, 2.0, 3.0};
-    KRATOS_EXPECT_VECTOR_NEAR(stresses.Values(), expected, Defaults::absolute_tolerance);
+    KRATOS_EXPECT_VECTOR_NEAR((Geo::PrincipalStresses{1.0, 2.0, 3.0}.Values()),
+                              (std::vector{1.0, 2.0, 3.0}), Defaults::absolute_tolerance);
 }
 
 TEST_F(KratosGeoMechanicsFastSuiteWithoutKernel,
@@ -82,6 +81,15 @@ TYPED_TEST(TestPrincipalStressFixture, PrincipalStressesCanBeCopiedToAnyVectorWi
     const auto copied_vector = principal_stresses.CopyTo<TypeParam>();
 
     KRATOS_EXPECT_VECTOR_NEAR(principal_stresses.Values(), copied_vector, Defaults::absolute_tolerance);
+}
+
+TEST_F(KratosGeoMechanicsFastSuiteWithoutKernel, PrincipalStresses_CanBeChangedDirectly)
+{
+    auto stresses = Geo::PrincipalStresses{1.0, 2.0, 3.0};
+
+    stresses.Values()[0] = 4.0;
+
+    KRATOS_EXPECT_VECTOR_NEAR(stresses.Values(), (std::vector{4.0, 2.0, 3.0}), Defaults::absolute_tolerance);
 }
 
 } // namespace Kratos::Testing

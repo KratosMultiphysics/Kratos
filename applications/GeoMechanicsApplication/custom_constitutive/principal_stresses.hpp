@@ -48,6 +48,7 @@ public:
     }
 
     [[nodiscard]] const InternalVectorType& Values() const;
+    [[nodiscard]] InternalVectorType&       Values();
 
 private:
     InternalVectorType mValues = ZeroVector{msVectorSize};
