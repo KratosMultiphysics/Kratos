@@ -21,6 +21,7 @@
 #include "integration/integration_point_utilities.h"
 #include "utilities/math_utils.h"
 
+#include <chrono>
 #include <algorithm>
 #include <cmath>
 #include <limits>
@@ -178,6 +179,13 @@ namespace Kratos
 
     
     void IgaContactProcessSbm::Execute(){
+        using Clock = std::chrono::steady_clock;
+        double time_project_to_skin = 0.0;
+        double time_newton = 0.0;
+        double time_back_projection = 0.0;
+        double time_create_quadrature = 0.0;
+        double time_create_quadrature_sbm = 0.0;
+        double time_create_coupling = 0.0;
         
         std::string master_layer_name = mParameters["contact_parameters"]["master_model_part"]["layer_name"].GetString();
         const std::string slave_layer_name = mParameters["contact_parameters"]["slave_model_part"]["layer_name"].GetString();
@@ -267,6 +275,7 @@ namespace Kratos
         std::vector<array_1d<double, 3>> master_curve_derivatives(3, ZeroVector(3));
         CoordinatesArrayType master_skin_projection = ZeroVector(3);
         std::string projection_layer_name = master_layer_name;
+        const auto t_proj_begin = Clock::now();
         bool is_projected_master = ProjectToSkinBoundary(
             mrMasterSkinModelPart,
             projection_layer_name,
@@ -274,9 +283,11 @@ namespace Kratos
             master_skin_projection,
             master_curve_derivatives,
             10);
+        time_project_to_skin += std::chrono::duration<double>(Clock::now() - t_proj_begin).count();
 
         if (!is_projected_master) {
             projection_layer_name.clear();
+            const auto t_proj_begin_retry = Clock::now();
             is_projected_master = ProjectToSkinBoundary(
                 mrMasterSkinModelPart,
                 projection_layer_name,
@@ -284,6 +295,7 @@ namespace Kratos
                 master_skin_projection,
                 master_curve_derivatives,
                 10);
+            time_project_to_skin += std::chrono::duration<double>(Clock::now() - t_proj_begin_retry).count();
         }
 
         if (!is_projected_master) {
@@ -319,6 +331,7 @@ namespace Kratos
             CoordinatesArrayType projected_point = ZeroVector(3);
             double distance = std::numeric_limits<double>::max();
 
+            const auto t_newton_begin = Clock::now();
             bool is_converged = NewtonRaphsonCurveOnDeformed(
                 local_coords,
                 master_skin_deformed,
@@ -328,6 +341,7 @@ namespace Kratos
                 20,
                 10,
                 1e-9);
+            time_newton += std::chrono::duration<double>(Clock::now() - t_newton_begin).count();
 
             if ((is_converged || distance < projection_distance_fallback) && distance < best_projection_distance) {
                 best_projection_found = true;
@@ -392,6 +406,7 @@ namespace Kratos
 
         IndexType slave_brep_id = std::numeric_limits<IndexType>::max();
         double slave_brep_local_parameter = 0.0;
+        const auto t_back_begin = Clock::now();
         ProjectBackToSurrogateBoundary(
             *mrSlaveModelPart,
             best_slave_projection,
@@ -399,6 +414,7 @@ namespace Kratos
             slave_normal,
             slave_brep_id,
             slave_brep_local_parameter);
+        time_back_projection += std::chrono::duration<double>(Clock::now() - t_back_begin).count();
 
         if (slave_brep_id == std::numeric_limits<IndexType>::max()) {
             p_node->SetValue(ACTIVATION_LEVEL, 0.0);
@@ -506,15 +522,27 @@ namespace Kratos
 
         GeometriesArrayType quadrature_geometries;
         const std::vector<double> custom_spans{r_segment.local_begin, r_segment.local_end};
+        const auto t_quad_begin = Clock::now();
         CreateQuadratureGeometries(*p_segment_brep, quadrature_geometries, &custom_spans);
+        time_create_quadrature += std::chrono::duration<double>(Clock::now() - t_quad_begin).count();
 
         if (!begin_active || !end_active) {
             for (IndexType i = 0; i < quadrature_geometries.size(); ++i) {
                 auto p_gp = quadrature_geometries(i);
+                // const auto& r_gp_center = p_gp->Center();
+                // const bool is_target_gp = (std::abs(r_gp_center[0] + 0.305) < 1.0e-2) &&
+                //                           (std::abs(r_gp_center[1] - 36.205) < 1.0e-2);
+                // if (is_target_gp) {
+                //     KRATOS_WATCH("TARGET_GP_BEGIN_END_INACTIVE")
+                //     KRATOS_WATCH(r_gp_center)
+                //     KRATOS_WATCH(begin_active)
+                //     KRATOS_WATCH(end_active)
+                // }
 
                 std::vector<array_1d<double, 3>> master_curve_derivatives(3, ZeroVector(3));
                 CoordinatesArrayType master_skin_point = ZeroVector(3);
                 std::string projection_layer_name = master_layer_name;
+                const auto t_proj_begin = Clock::now();
                 bool is_projected_master = ProjectToSkinBoundary(
                     mrMasterSkinModelPart,
                     projection_layer_name,
@@ -522,9 +550,11 @@ namespace Kratos
                     master_skin_point,
                     master_curve_derivatives,
                     10);
+                time_project_to_skin += std::chrono::duration<double>(Clock::now() - t_proj_begin).count();
 
                 if (!is_projected_master) {
                     projection_layer_name.clear();
+                    const auto t_proj_begin_retry = Clock::now();
                     ProjectToSkinBoundary(
                         mrMasterSkinModelPart,
                         projection_layer_name,
@@ -532,10 +562,15 @@ namespace Kratos
                         master_skin_point,
                         master_curve_derivatives,
                         10);
+                    time_project_to_skin += std::chrono::duration<double>(Clock::now() - t_proj_begin_retry).count();
                 }
                 if (!is_projected_master) {
                     KRATOS_WARNING("") << "::[IgaModelerSbm]:: master surrogate point " << p_gp->Center() << "could not be projected to the skin master. \n"
                                 << "The best projection was: " << master_skin_point << std::endl;
+                    // if (is_target_gp) {
+                    //     KRATOS_WATCH("TARGET_GP_MASTER_PROJECTION_FAILED_INACTIVE_BRANCH")
+                    //     KRATOS_WATCH(master_skin_point)
+                    // }
                 }
 
                 IndexType new_node_id = mrSlaveSkinModelPart->GetRootModelPart().Nodes().size() + 1;
@@ -564,16 +599,27 @@ namespace Kratos
                 p_gp->SetValue(NEIGHBOUR_NODES, neighbour_nodes);
 
                 neumann_geometries_master.push_back(p_gp);
+                // if (is_target_gp) {
+                //     KRATOS_WATCH("TARGET_GP_ASSIGNED_NEUMANN_INACTIVE_BRANCH")
+                // }
             }
             continue;
         }
 
         for (IndexType i = 0; i < quadrature_geometries.size(); ++i) {
             auto p_gp = quadrature_geometries(i);
+            // const auto& r_gp_center = p_gp->Center();
+            // const bool is_target_gp = (std::abs(r_gp_center[0] + 0.305) < 1.0e-2) &&
+            //                           (std::abs(r_gp_center[1] - 36.205) < 1.0e-2);
+            // if (is_target_gp) {
+            //     KRATOS_WATCH("TARGET_GP_ACTIVE_BRANCH_START")
+            //     KRATOS_WATCH(r_gp_center)
+            // }
 
             std::vector<array_1d<double, 3>> master_curve_derivatives(3, ZeroVector(3));
             CoordinatesArrayType master_skin_point = ZeroVector(3);
             std::string projection_layer_name = master_layer_name;
+            const auto t_proj_begin = Clock::now();
             bool is_projected_master = ProjectToSkinBoundary(
                 mrMasterSkinModelPart,
                 projection_layer_name,
@@ -581,9 +627,18 @@ namespace Kratos
                 master_skin_point,
                 master_curve_derivatives,
                 10);
+            time_project_to_skin += std::chrono::duration<double>(Clock::now() - t_proj_begin).count();
+
+            // if (is_target_gp) {
+            //     KRATOS_WATCH("TARGET_GP_BEGIN_END_INACTIVE")
+            //     KRATOS_WATCH(r_gp_center)
+            //     KRATOS_WATCH(master_skin_point)
+            //     // exit(0);
+            // }
 
             if (!is_projected_master) {
                 projection_layer_name.clear();
+                const auto t_proj_begin_retry = Clock::now();
                 is_projected_master = ProjectToSkinBoundary(
                     mrMasterSkinModelPart,
                     projection_layer_name,
@@ -591,10 +646,16 @@ namespace Kratos
                     master_skin_point,
                     master_curve_derivatives,
                     10);
+                time_project_to_skin += std::chrono::duration<double>(Clock::now() - t_proj_begin_retry).count();
             }
 
-            if (!is_projected_master) {
+            if (!is_projected_master && norm_2(master_skin_point - p_gp->Center()) > projection_distance_fallback) {
                 neumann_geometries_master.push_back(p_gp);
+                // if (is_target_gp) {
+                //     KRATOS_WATCH(projection_distance_fallback)
+                //     KRATOS_WATCH(norm_2(master_skin_point - p_gp->Center()))
+                //     KRATOS_WATCH("TARGET_GP_ASSIGNED_NEUMANN_MASTER_PROJECTION_FAILED")
+                // }
                 continue;
             }
 
@@ -644,6 +705,7 @@ namespace Kratos
                 CoordinatesArrayType projected_point = ZeroVector(3);
                 double distance = std::numeric_limits<double>::max();
 
+                const auto t_newton_begin = Clock::now();
                 bool is_converged = NewtonRaphsonCurveOnDeformed(
                     local_coords,
                     master_skin_deformed,
@@ -654,6 +716,17 @@ namespace Kratos
                     10,
                     1e-9
                 );
+                time_newton += std::chrono::duration<double>(Clock::now() - t_newton_begin).count();
+                // if (is_target_gp) {
+                //     KRATOS_WATCH("TARGET_GP_SLAVE_CURVE_TRY")
+                //     KRATOS_WATCH(r_slave_curve_geometry.Id())
+                //     KRATOS_WATCH(master_skin_point)
+                //     KRATOS_WATCH(master_skin_deformed)
+                //     KRATOS_WATCH(projected_point)
+                //     KRATOS_WATCH(slave_layer_name)
+                //     KRATOS_WATCH(is_converged)
+                //     KRATOS_WATCH(distance)
+                // }
 
                 if ((is_converged || distance < projection_distance_fallback) && distance < best_projection_distance) {
                     best_projection_found = true;
@@ -670,6 +743,13 @@ namespace Kratos
             if (!(best_projection_found &&
                 (best_projection_distance < projection_distance_limit || best_projection_distance < projection_distance_fallback))) {
                 neumann_geometries_master.push_back(p_gp);
+                // if (is_target_gp) {
+                //     KRATOS_WATCH("TARGET_GP_ASSIGNED_NEUMANN_SLAVE_PROJECTION_FAILED_OR_DISTANCE")
+                //     KRATOS_WATCH(best_projection_found)
+                //     KRATOS_WATCH(best_projection_distance)
+                //     KRATOS_WATCH(projection_distance_limit)
+                //     KRATOS_WATCH(projection_distance_fallback)
+                // }
                 continue;
             }
 
@@ -699,6 +779,7 @@ namespace Kratos
 
             IndexType slave_brep_id = std::numeric_limits<IndexType>::max();
             double slave_brep_local_parameter = 0.0;
+            const auto t_back_begin = Clock::now();
             ProjectBackToSurrogateBoundary(
                 *mrSlaveModelPart,
                 best_slave_projection,
@@ -706,9 +787,13 @@ namespace Kratos
                 slave_normal,
                 slave_brep_id,
                 slave_brep_local_parameter);
+            time_back_projection += std::chrono::duration<double>(Clock::now() - t_back_begin).count();
 
             if (slave_brep_id == std::numeric_limits<IndexType>::max()) {
                 neumann_geometries_master.push_back(p_gp);
+                // if (is_target_gp) {
+                //     KRATOS_WATCH("TARGET_GP_ASSIGNED_NEUMANN_NO_SLAVE_BREP")
+                // }
                 continue;
             }
 
@@ -724,22 +809,29 @@ namespace Kratos
 
             const int number_of_shape_function_derivatives = 5; //FIXME:
             IntegrationInfo surrogate_integration_info = p_slave_brep_curve->GetDefaultIntegrationInfo();
+            const auto t_quad_sbm_begin = Clock::now();
             p_slave_brep_curve->pGetCurveOnSurface()->CreateQuadraturePointGeometriesSBM(
                 surrogate_quadrature_list,
                 number_of_shape_function_derivatives,
                 surrogate_integration_points_list,
                 surrogate_integration_info);
+            time_create_quadrature_sbm += std::chrono::duration<double>(Clock::now() - t_quad_sbm_begin).count();
 
             // FIXME: is it really necessary?
             std::vector<Geometry<Node>::Pointer> neighbour_geometries;
             neighbour_geometries.push_back(surrogate_quadrature_list(0));
             p_slave_skin_node->SetValue(NEIGHBOUR_GEOMETRIES, neighbour_geometries);
 
+            const auto t_coupling_begin = Clock::now();
             auto p_coupling_geometry = CreateQuadraturePointsUtility<NodeType>::CreateQuadraturePointCouplingGeometry2D(
                 p_gp,
                 surrogate_quadrature_list(0));
+            time_create_coupling += std::chrono::duration<double>(Clock::now() - t_coupling_begin).count();
             p_coupling_geometry->SetValue(KNOT_SPAN_SIZES, master_knot_step_uv);
                 contact_geometries.push_back(p_coupling_geometry);
+                // if (is_target_gp) {
+                //     KRATOS_WATCH("TARGET_GP_ASSIGNED_CONTACT")
+                // }
 
                 auto p_slave_brep_for_contact = mrSlaveModelPart->pGetGeometry(slave_brep_id);
                 if (p_slave_brep_for_contact->GetValue(ACTIVATION_LEVEL) != 2.0) {
@@ -921,8 +1013,11 @@ namespace Kratos
 
 
     // Obtain the slave skin model part //TODO: read from input
-    std::string slave_skin_model_part_name = "skin_Body1.outer.Bottom";
-    std::string master_skin_model_part_name = "skin_Body2.outer.Top_1";
+    std::string slave_skin_model_part_name = "skin_Body1.outer.ContactSide";
+    std::string master_skin_model_part_name = "skin_Body2.outer.ContactSide";
+
+    // std::string master_skin_model_part_name = "skin_Body1.outer.Bottom";
+    // std::string slave_skin_model_part_name = "skin_Body2.outer.Top_1";
 
     // std::string master_skin_model_part_name = "skin_Body1.outer.bottom";
     // std::string slave_skin_model_part_name = "skin_Body2.outer.top";
@@ -936,8 +1031,21 @@ namespace Kratos
     auto& r_slave_skin_sub_model_part = (mpModel->GetModelPart(slave_skin_model_part_name));
     auto& r_master_skin_sub_model_part = (mpModel->GetModelPart(master_skin_model_part_name));
 
+    KRATOS_INFO("IgaContactProcessSbmTiming") << "ProjectToSkinBoundary: " << time_project_to_skin
+        << "s, NewtonRaphsonCurveOnDeformed: " << time_newton
+        << "s, ProjectBackToSurrogateBoundary: " << time_back_projection
+        << "s, CreateQuadratureGeometries: " << time_create_quadrature
+        << "s, CreateQuadraturePointGeometriesSBM: " << time_create_quadrature_sbm
+        << "s, CreateQuadraturePointCouplingGeometry2D: " << time_create_coupling
+        << "s" << std::endl;
+
+    KRATOS_INFO("[IgaContactProcess]:: finished projections \n");
+
     if (mIntegrateOnTrueBoundary)
         PrepareIntegrationOnTrueBoundary(r_master_skin_sub_model_part, r_slave_skin_sub_model_part);
+    
+    KRATOS_INFO("[IgaContactProcess]:: finished preparation for integration on true \n");
+    
 }
 
 
@@ -1854,11 +1962,6 @@ void IgaContactProcessSbm::CreateConditions(
                 current_point_global_coordinates = curve_derivatives[0]; // undeformed
 
                 // deformed position
-
-                if (current_point_global_coordinates[0] < 0)
-                {
-                    exit(0);
-                }
                 GetDeformedPosition(current_point_global_coordinates, *mrSlaveModelPart, mSparseBrepMatrixSlave, projected_point_deformed_global_coordinates);
 
                 // // NEW
@@ -2168,11 +2271,137 @@ void IgaContactProcessSbm::CreateConditions(
     {
         rProjectedPoint = ZeroVector(3);
         rCurveDerivatives.resize(3);
+        auto FindBestProjection = [&](const std::string& rLayerFilter,
+                                      double& rBestDistance,
+                                      std::vector<array_1d<double, 3>>& rBestDerivatives,
+                                      std::string& rBestLayerName,
+                                      bool& rFound) {
+            for (auto &i_curve : pSkinModelPart->Geometries())
+            {   
+                if  (rLayerFilter != "" && i_curve.GetValue(IDENTIFIER) != rLayerFilter) continue;
+
+                int nurbs_curve_id = i_curve.Id();
+                auto p_nurbs_curve_geometry = pSkinModelPart->pGetGeometry(nurbs_curve_id);
+                auto nurbs_curve_geometry = std::dynamic_pointer_cast<NurbsCurveGeometryType>(p_nurbs_curve_geometry);
+                KRATOS_ERROR_IF(!nurbs_curve_geometry) <<  ":::[IgaContactProcessSbm]::: the geometry with id " << nurbs_curve_id 
+                                    << " is not a NurbsCurveGeometryType." << std::endl;
+
+                const double t0 = nurbs_curve_geometry->DomainInterval().GetT0();
+                const double t1 = nurbs_curve_geometry->DomainInterval().GetT1();
+
+                for (int i_guess = 0; i_guess < nInitialGuesses; ++i_guess) {
+                    CoordinatesArrayType projected_point_local = ZeroVector(3);
+                    CoordinatesArrayType projected_point = ZeroVector(3);
+
+                    projected_point_local[0] = t0 + (t1 - t0) * double(i_guess) / (nInitialGuesses - 1);
+
+                    bool is_projected = nurbs_curve_geometry->ProjectionPointGlobalToLocalSpace(rPoint, projected_point_local, 1e-13);
+
+                    if (!is_projected) continue;
+
+                    nurbs_curve_geometry->GlobalCoordinates(projected_point, projected_point_local);
+
+                    double curr_distance = norm_2(rPoint - projected_point);
+
+                    if (curr_distance < rBestDistance) {
+                        rBestDistance = curr_distance;
+                        rProjectedPoint = projected_point;
+                        nurbs_curve_geometry->GlobalSpaceDerivatives(rBestDerivatives, projected_point_local, 2);
+                        rFound = true;
+                        rBestLayerName = i_curve.GetValue(IDENTIFIER);
+                    }
+                }
+            }
+        };
+
         bool is_projected_at_least_once = false;
         double best_distance = 1e12;
         std::vector<array_1d<double, 3>> best_curve_derivatives(3, ZeroVector(3));
         std::string best_layer_name = "";
 
+        FindBestProjection(rLayerName, best_distance, best_curve_derivatives, best_layer_name, is_projected_at_least_once);
+
+        rCurveDerivatives = best_curve_derivatives;
+
+        if (rLayerName == "") rLayerName = best_layer_name;
+
+        /*
+        // DynamicBins fallback (disabled)
+        {
+            Vector knot_span_sizes;
+            if (pSkinModelPart->Has(KNOT_SPAN_SIZES)) {
+                knot_span_sizes = pSkinModelPart->GetValue(KNOT_SPAN_SIZES);
+            } else if (pSkinModelPart->GetParentModelPart().Has(KNOT_SPAN_SIZES)) {
+                knot_span_sizes = pSkinModelPart->GetParentModelPart().GetValue(KNOT_SPAN_SIZES);
+            } else if (pSkinModelPart->GetRootModelPart().Has(KNOT_SPAN_SIZES)) {
+                knot_span_sizes = pSkinModelPart->GetRootModelPart().GetValue(KNOT_SPAN_SIZES);
+            }
+
+            double mesh_size = 0.0;
+            if (knot_span_sizes.size() >= 2) {
+                mesh_size = std::max(knot_span_sizes[0], knot_span_sizes[1]);
+            }
+            if (mesh_size <= 0.0) {
+                mesh_size = 1.0;
+            }
+            const double radius = std::sqrt(2.0) * mesh_size;
+
+            PointVector points;
+            points.reserve(pSkinModelPart->NumberOfConditions());
+            for (auto& r_cond : pSkinModelPart->Conditions()) {
+                if (rLayerName != "" && r_cond.GetValue(LAYER_NAME) != rLayerName) {
+                    continue;
+                }
+                const auto& c = r_cond.GetGeometry().Center();
+                points.push_back(Kratos::make_intrusive<PointType>(r_cond.Id(), c.X(), c.Y(), c.Z()));
+            }
+
+            if (!points.empty()) {
+                DynamicBins bins(points.begin(), points.end());
+                const int number_of_results = static_cast<int>(points.size());
+                PointVector results(number_of_results);
+                std::vector<double> list_of_distances(number_of_results);
+
+                PointerType p_point_to_search(new PointType(10000, rPoint[0], rPoint[1], rPoint[2]));
+                const int obtained_results = bins.SearchInRadius(*p_point_to_search, radius,
+                    results.begin(), list_of_distances.begin(), number_of_results);
+
+                if (obtained_results > 0) {
+                    double minimum_distance = list_of_distances[0];
+                    int nearest_index = 0;
+                    for (int i_result = 1; i_result < obtained_results; ++i_result) {
+                        if (list_of_distances[i_result] < minimum_distance) {
+                            minimum_distance = list_of_distances[i_result];
+                            nearest_index = i_result;
+                        }
+                    }
+
+                    if (results[nearest_index] && (minimum_distance < best_distance || !is_projected_at_least_once)) {
+                        best_distance = minimum_distance;
+                        rProjectedPoint[0] = (*results[nearest_index])[0];
+                        rProjectedPoint[1] = (*results[nearest_index])[1];
+                        rProjectedPoint[2] = (*results[nearest_index])[2];
+                        rCurveDerivatives = std::vector<array_1d<double, 3>>(3, ZeroVector(3));
+                        is_projected_at_least_once = true;
+
+                        if (rLayerName == "") {
+                            const IndexType condition_id = results[nearest_index]->Id();
+                            if (pSkinModelPart->HasCondition(condition_id)) {
+                                rLayerName = pSkinModelPart->GetCondition(condition_id).GetValue(LAYER_NAME);
+                            }
+                        }
+                    }
+                }
+            }
+
+            if (!is_projected_at_least_once) {
+                KRATOS_WARNING("::[IgaContactProcessSbm]:: no projection found on the skin boundary with layer ") << rLayerName 
+                            << " for the point: " << rPoint << std::endl;
+            }
+        }
+        */
+
+        // Fallback: check only curve endpoints (t0, t1) without ProjectionPointGlobalToLocalSpace
         for (auto &i_curve : pSkinModelPart->Geometries())
         {   
             if  (rLayerName != "" && i_curve.GetValue(IDENTIFIER) != rLayerName) continue;
@@ -2186,37 +2415,32 @@ void IgaContactProcessSbm::CreateConditions(
             const double t0 = nurbs_curve_geometry->DomainInterval().GetT0();
             const double t1 = nurbs_curve_geometry->DomainInterval().GetT1();
 
-            for (int i_guess = 0; i_guess < nInitialGuesses; ++i_guess) {
-                CoordinatesArrayType projected_point_local = ZeroVector(3);
-                CoordinatesArrayType projected_point = ZeroVector(3);
-                std::vector<array_1d<double, 3>> curve_derivatives(3, ZeroVector(3));
+            CoordinatesArrayType projected_point_local = ZeroVector(3);
+            CoordinatesArrayType projected_point = ZeroVector(3);
 
-                projected_point_local[0] = t0 + (t1 - t0) * double(i_guess) / (nInitialGuesses - 1);
+            projected_point_local[0] = t0;
+            nurbs_curve_geometry->GlobalCoordinates(projected_point, projected_point_local);
+            double curr_distance = norm_2(rPoint - projected_point);
+            if (curr_distance < best_distance) {
+                best_distance = curr_distance;
+                rProjectedPoint = projected_point;
+                is_projected_at_least_once = true;
+                nurbs_curve_geometry->GlobalSpaceDerivatives(rCurveDerivatives, projected_point_local, 2);
+            }
 
-                bool is_projected = nurbs_curve_geometry->ProjectionPointGlobalToLocalSpace(rPoint, projected_point_local, 1e-13);
-
-                if (!is_projected) continue;
-
-                nurbs_curve_geometry->GlobalCoordinates(projected_point, projected_point_local);
-
-                double curr_distance = norm_2(rPoint - projected_point);
-
-                if (curr_distance < best_distance) {
-                    best_distance = curr_distance;
-                    rProjectedPoint = projected_point;
-                    nurbs_curve_geometry->GlobalSpaceDerivatives(best_curve_derivatives, projected_point_local, 2);
-                    is_projected_at_least_once = true;
-                    best_layer_name = i_curve.GetValue(IDENTIFIER);
-                }
+            projected_point_local[0] = t1;
+            nurbs_curve_geometry->GlobalCoordinates(projected_point, projected_point_local);
+            curr_distance = norm_2(rPoint - projected_point);
+            if (curr_distance < best_distance) {
+                is_projected_at_least_once = true;
+                best_distance = curr_distance;
+                rProjectedPoint = projected_point;
+                nurbs_curve_geometry->GlobalSpaceDerivatives(rCurveDerivatives, projected_point_local, 2);
             }
         }
 
-        rCurveDerivatives = best_curve_derivatives;
-
-        if (rLayerName == "") rLayerName = best_layer_name;
-
-        if (!is_projected_at_least_once)
-        {
+        // Keep warning behavior tied only to initial FindBestProjection result
+        if (!is_projected_at_least_once) {
             KRATOS_WARNING("::[IgaContactProcessSbm]:: no projection found on the skin boundary with layer ") << rLayerName 
                         << " for the point: " << rPoint << std::endl;
         }

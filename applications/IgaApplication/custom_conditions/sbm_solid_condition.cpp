@@ -456,7 +456,22 @@ void SbmSolidCondition::CalculateRightHandSide(
         const double displacement_module = norm_2(r_displacement);
 
         const double old_displacement_direction = inner_prod(old_displacement, direction);
-            
+
+        // MIXED CONDITIONS (prescribed force on the orthogonal direction)
+        if (mpProjectionNode->Has(FORCE))
+        {
+            double tangent_force_modulus = mpProjectionNode->GetValue(FORCE_X); //FIXME:
+
+            for (IndexType i = 0; i < number_of_control_points; i++) {
+
+                for (IndexType idim = 0; idim < 2; idim++) {
+                    const int iglob = 2*i+idim;
+
+                    // imposed tangent flux
+                    rRightHandSideVector(iglob) += r_N(0,i) * orthogonal_direction[idim] * tangent_force_modulus * int_to_reference_weight;
+                }
+            }
+        } 
         for (IndexType i = 0; i < number_of_control_points; i++) {
 
             for (IndexType idim = 0; idim < 2; idim++) {

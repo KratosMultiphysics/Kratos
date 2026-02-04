@@ -297,7 +297,16 @@ public:
 
             
             double toll_tangent_distance = 1e-1;
-            double toll_gap = 0;
+            double toll_gap = -1e-2;
+            for (auto i_cond(r_contact_sub_model_part.Conditions().begin());
+                 i_cond != r_contact_sub_model_part.Conditions().end(); ++i_cond)
+            {
+                if (i_cond->GetValue(ACTIVATION_LEVEL) > 0)
+                {
+                    toll_gap = 1E-4;
+                    break;
+                }
+            }
 
             int n_CP = (r_contact_sub_model_part.Conditions().begin())->GetGeometry().GetGeometryPart(0).size();
             int p = (int) sqrt(n_CP);
@@ -358,16 +367,16 @@ public:
 
                 // count_cond++;
 
-                if (i_cond->GetValue(SKIN_MASTER_COORDINATES)[0] < 0.05)
-                {
-                    if (i_cond->GetValue(ACTIVATION_LEVEL) != 3)
-                    {
-                        i_cond->SetValue(ACTIVATION_LEVEL, 3);
-                        n_changes++;
-                    }
-                    n_active ++;
-                    continue;
-                }
+                // if (i_cond->GetValue(SKIN_MASTER_COORDINATES)[0] < 0.05)
+                // {
+                    // if (i_cond->GetValue(ACTIVATION_LEVEL) != 3)
+                    // {
+                    //     i_cond->SetValue(ACTIVATION_LEVEL, 3);
+                    //     n_changes++;
+                    // }
+                    // n_active ++;
+                    // continue;
+                // }
                 // // // FIXME:
                 // if (i_cond->GetGeometry().GetGeometryPart(0).Center().X() <= 0.4305620486218446) //47165709287164087
                 // if (i_cond->GetValue(SKIN_MASTER_COORDINATES)[0] < 0.27085)
