@@ -183,6 +183,9 @@ class TestOptimizationUtils(kratos_unittest.TestCase):
         self.assertVectorAlmostEqual(nodal_ta_v.data.shape, [self.model_part.NumberOfNodes(), 3])
         self.assertVectorAlmostEqual(nodal_ta_p.data.shape, [self.model_part.NumberOfNodes()])
 
+        self.assertVectorAlmostEqual(numpy.sum(nodal_ta_v.data, axis=0), numpy.sum(condition_ta_v.data, axis=0))
+        self.assertAlmostEqual(numpy.sum(nodal_ta_p.data, axis=0), numpy.sum(condition_ta_p.data, axis=0))
+
         Kratos.VariableUtils().SetNonHistoricalVariableToZero(Kratos.DENSITY, self.model_part.Nodes)
         Kratos.VariableUtils().SetNonHistoricalVariableToZero(Kratos.ACCELERATION, self.model_part.Nodes)
         for entity in self.model_part.Conditions:
@@ -199,16 +202,19 @@ class TestOptimizationUtils(kratos_unittest.TestCase):
             entity.SetValue(Kratos.VELOCITY, Kratos.Array3([entity.Id, entity.Id + 1, entity.Id + 3]))
             entity.SetValue(Kratos.PRESSURE, entity.Id + 4)
 
-        condition_ta_v = Kratos.TensorAdaptors.VariableTensorAdaptor(self.model_part.Elements, Kratos.VELOCITY)
-        condition_ta_v.CollectData()
-        condition_ta_p = Kratos.TensorAdaptors.VariableTensorAdaptor(self.model_part.Elements, Kratos.PRESSURE)
-        condition_ta_p.CollectData()
+        element_ta_v = Kratos.TensorAdaptors.VariableTensorAdaptor(self.model_part.Elements, Kratos.VELOCITY)
+        element_ta_v.CollectData()
+        element_ta_p = Kratos.TensorAdaptors.VariableTensorAdaptor(self.model_part.Elements, Kratos.PRESSURE)
+        element_ta_p.CollectData()
 
-        nodal_ta_v = KratosOA.OptimizationUtils.MapContainerDataToNodalData(condition_ta_v, self.model_part.Nodes)
-        nodal_ta_p = KratosOA.OptimizationUtils.MapContainerDataToNodalData(condition_ta_p, self.model_part.Nodes)
+        nodal_ta_v = KratosOA.OptimizationUtils.MapContainerDataToNodalData(element_ta_v, self.model_part.Nodes)
+        nodal_ta_p = KratosOA.OptimizationUtils.MapContainerDataToNodalData(element_ta_p, self.model_part.Nodes)
 
         self.assertVectorAlmostEqual(nodal_ta_v.data.shape, [self.model_part.NumberOfNodes(), 3])
         self.assertVectorAlmostEqual(nodal_ta_p.data.shape, [self.model_part.NumberOfNodes()])
+
+        self.assertVectorAlmostEqual(numpy.sum(nodal_ta_v.data, axis=0), numpy.sum(element_ta_v.data, axis=0))
+        self.assertAlmostEqual(numpy.sum(nodal_ta_p.data, axis=0), numpy.sum(element_ta_p.data, axis=0))
 
         Kratos.VariableUtils().SetNonHistoricalVariableToZero(Kratos.DENSITY, self.model_part.Nodes)
         Kratos.VariableUtils().SetNonHistoricalVariableToZero(Kratos.ACCELERATION, self.model_part.Nodes)
@@ -242,6 +248,9 @@ class TestOptimizationUtils(kratos_unittest.TestCase):
         self.assertVectorAlmostEqual(entity_ta_v.data.shape, [self.model_part.NumberOfConditions(), 3])
         self.assertVectorAlmostEqual(entity_ta_p.data.shape, [self.model_part.NumberOfConditions()])
 
+        self.assertVectorAlmostEqual(numpy.sum(nodal_ta_v.data, axis=0), numpy.sum(entity_ta_v.data, axis=0))
+        self.assertAlmostEqual(numpy.sum(nodal_ta_p.data, axis=0), numpy.sum(entity_ta_p.data, axis=0))
+
         Kratos.VariableUtils().SetNonHistoricalVariableToZero(Kratos.DENSITY, self.model_part.Conditions)
         Kratos.VariableUtils().SetNonHistoricalVariableToZero(Kratos.ACCELERATION, self.model_part.Conditions)
         for entity in self.model_part.Conditions:
@@ -273,6 +282,9 @@ class TestOptimizationUtils(kratos_unittest.TestCase):
 
         self.assertVectorAlmostEqual(entity_ta_v.data.shape, [self.model_part.NumberOfElements(), 3])
         self.assertVectorAlmostEqual(entity_ta_p.data.shape, [self.model_part.NumberOfElements()])
+
+        self.assertVectorAlmostEqual(numpy.sum(nodal_ta_v.data, axis=0), numpy.sum(entity_ta_v.data, axis=0))
+        self.assertAlmostEqual(numpy.sum(nodal_ta_p.data, axis=0), numpy.sum(entity_ta_p.data, axis=0))
 
         Kratos.VariableUtils().SetNonHistoricalVariableToZero(Kratos.DENSITY, self.model_part.Elements)
         Kratos.VariableUtils().SetNonHistoricalVariableToZero(Kratos.ACCELERATION, self.model_part.Elements)
