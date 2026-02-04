@@ -18,6 +18,7 @@
 
 #include <algorithm>
 #include <initializer_list>
+#include <iterator>
 
 namespace Kratos::Geo
 {
@@ -52,8 +53,8 @@ public:
     }
 
 private:
-    template <typename InputIt>
-    SigmaTau(InputIt First, InputIt Last)
+    template <std::forward_iterator Iter>
+    SigmaTau(Iter First, Iter Last)
     {
         KRATOS_DEBUG_ERROR_IF(std::distance(First, Last) != msVectorSize)
             << "Cannot construct a SigmaTau instance: expected " << msVectorSize
