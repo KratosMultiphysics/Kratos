@@ -236,12 +236,6 @@ class TestExplicitFilterReference(kratos_unittest.TestCase):
         vm_filter.SetComponentDataView(ComponentDataView("test", self.optimization_problem))
         vm_filter.Initialize()
 
-        nodal_neighbours = Kratos.TensorAdaptors.NodalNeighbourCountTensorAdaptor(self.model_part.Nodes, self.model_part.Elements)
-        nodal_neighbours.CollectData()
-
-        nodal_neighbours_exp = Kratos.Expression.NodalExpression(self.model_part)
-        KratosOA.ExpressionUtils.ComputeNumberOfNeighbourElements(nodal_neighbours_exp)
-
         step_size = 5e-2
         for i in range(10):
             Kratos.NormalCalculationUtils().CalculateNormalsInElements(self.model_part, Kratos.NORMAL)
@@ -253,13 +247,7 @@ class TestExplicitFilterReference(kratos_unittest.TestCase):
 
             physical_element_gradient = Kratos.TensorAdaptors.DoubleTensorAdaptor(element_ta)
             physical_element_gradient.data = element_ta.data * domain_size_ta.data[:, None] # row wise scaling
-
-            physical_element_gradient_exp = Kratos.Expression.ElementExpression(self.model_part)
-            Kratos.Expression.CArrayExpressionIO.Read(physical_element_gradient_exp, physical_element_gradient.data)
-            physical_space_gradient_exp = Kratos.Expression.NodalExpression(self.model_part)
-            KratosOA.ExpressionUtils.MapContainerVariableToNodalVariable(physical_space_gradient_exp, physical_element_gradient_exp, nodal_neighbours_exp)
-            physical_space_gradient = Kratos.TensorAdaptors.VariableTensorAdaptor(self.model_part.Nodes, Kratos.NORMAL)
-            physical_space_gradient.data[:] = physical_space_gradient_exp.Evaluate()
+            physical_space_gradient = KratosOA.OptimizationUtils.MapContainerDataToNodalData(physical_element_gradient, self.model_part.Nodes)
 
             control_space_gradient = vm_filter.BackwardFilterField(physical_space_gradient)
             control_update = Kratos.TensorAdaptors.DoubleTensorAdaptor(control_space_gradient)
