@@ -71,7 +71,7 @@ void RemoveTwoNodes(ModelPart& rModelPart)
     rModelPart.RemoveNodeFromAllLevels(1);
 }
 
-PointerVector<Node> CreateThreeNodes()
+PointerVector<Node> CreateThreeNodesForPwElementTest()
 {
     PointerVector<Node> result;
     result.push_back(make_intrusive<Node>(1, 0.0, 0.0, 0.0));
@@ -80,7 +80,7 @@ PointerVector<Node> CreateThreeNodes()
     return result;
 }
 
-PointerVector<Node> CreateThreeCoincidentNodes()
+PointerVector<Node> CreateThreeCoincidentNodesForPwElementTest()
 {
     PointerVector<Node> result;
     for (unsigned int id = 1; id <= 3; id++) {
@@ -430,7 +430,7 @@ KRATOS_TEST_CASE_IN_SUITE(TransientPwLineElement_CheckThrowsOnFaultyInput, Krato
 KRATOS_TEST_CASE_IN_SUITE(TransientPwLineElement_CreateInstanceWithGeometryInput, KratosGeoMechanicsFastSuiteWithoutKernel)
 {
     // Arrange
-    const auto p_geometry = std::make_shared<Triangle2D3<Node>>(CreateThreeNodes());
+    const auto p_geometry = std::make_shared<Triangle2D3<Node>>(CreateThreeNodesForPwElementTest());
     using enum CalculationContribution;
     const std::vector     contributions = {Permeability, Compressibility, FluidBodyFlow};
     const auto            p_properties  = std::make_shared<Properties>();
@@ -452,11 +452,11 @@ KRATOS_TEST_CASE_IN_SUITE(TransientPwLineElement_CreateInstanceWithNodeInput, Kr
     const auto p_properties = std::make_shared<Properties>();
     using enum CalculationContribution;
     const std::vector     contributions = {Permeability, Compressibility, FluidBodyFlow};
-    const PwElement<2, 3> element(0, std::make_shared<Triangle2D3<Node>>(CreateThreeNodes()),
+    const PwElement<2, 3> element(0, std::make_shared<Triangle2D3<Node>>(CreateThreeNodesForPwElementTest()),
                                   p_properties, contributions, nullptr);
 
     // Act
-    const auto p_created_element = element.Create(1, CreateThreeNodes(), p_properties);
+    const auto p_created_element = element.Create(1, CreateThreeNodesForPwElementTest(), p_properties);
 
     // Assert
     EXPECT_NE(p_created_element, nullptr);
@@ -513,7 +513,7 @@ KRATOS_TEST_CASE_IN_SUITE(TransientPwLineElement_IntegrationMethod, KratosGeoMec
     // Arrange
     using enum CalculationContribution;
     const std::vector contributions = {Permeability, Compressibility, FluidBodyFlow};
-    const PwElement<2, 3> element(0, std::make_shared<Triangle2D3<Node>>(CreateThreeCoincidentNodes()),
+    const PwElement<2, 3> element(0, std::make_shared<Triangle2D3<Node>>(CreateThreeCoincidentNodesForPwElementTest()),
                                   std::make_shared<Properties>(), contributions, nullptr);
 
     // Act
@@ -532,7 +532,7 @@ KRATOS_TEST_CASE_IN_SUITE(TransientPwLineElement_CheckThrowsOnFaultyInputForSurf
     const std::vector     contributions = {Permeability, Compressibility, FluidBodyFlow};
     const auto            p_properties  = std::make_shared<Properties>();
     const PwElement<2, 3> element_with_coincident_nodes(
-        1, std::make_shared<Triangle2D3<Node>>(CreateThreeCoincidentNodes()), p_properties, contributions, nullptr);
+        1, std::make_shared<Triangle2D3<Node>>(CreateThreeCoincidentNodesForPwElementTest()), p_properties, contributions, nullptr);
 
     // Act and Assert
     const auto dummy_process_info = ProcessInfo{};
@@ -540,7 +540,7 @@ KRATOS_TEST_CASE_IN_SUITE(TransientPwLineElement_CheckThrowsOnFaultyInputForSurf
                                       "Error: DomainSize (0) is smaller than 1e-15 for element 1")
 
     const PwElement<2, 3> element_with_correct_domain_size(
-        1, std::make_shared<Triangle2D3<Node>>(CreateThreeNodes()), p_properties, contributions, nullptr);
+        1, std::make_shared<Triangle2D3<Node>>(CreateThreeNodesForPwElementTest()), p_properties, contributions, nullptr);
     KRATOS_EXPECT_EXCEPTION_IS_THROWN(element_with_correct_domain_size.Check(dummy_process_info),
                                       "Missing variable WATER_PRESSURE on nodes 1 2 3")
 
