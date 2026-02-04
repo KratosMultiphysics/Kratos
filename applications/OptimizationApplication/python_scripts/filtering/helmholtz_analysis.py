@@ -81,7 +81,7 @@ class HelmholtzAnalysis(AnalysisStage):
         if isinstance(data_exp, KM.Expression.NodalExpression):
             mapped_values = data_exp
         else:
-            KOA.ExpressionUtils.MapContainerVariableToNodalVariable(mapped_values, data_exp, self.__GetNeighbourEntities(data_exp))
+            KOA.ExpressionUtils.MapContainerVariableToNodalVariable(mapped_values, data_exp)
         KM.Expression.VariableExpressionIO.Write(mapped_values, self._GetSolver().GetSolvingVariable(), True)
 
     def __AssignDataExpressionToNodalSource(self, data_exp: ContainerExpressionTypes):
@@ -97,7 +97,7 @@ class HelmholtzAnalysis(AnalysisStage):
         if isinstance(data_exp, KM.Expression.NodalExpression):
             mapped_values = data_exp
         else:
-            KOA.ExpressionUtils.MapContainerVariableToNodalVariable(mapped_values, data_exp, self.__GetNeighbourEntities(data_exp))
+            KOA.ExpressionUtils.MapContainerVariableToNodalVariable(mapped_values, data_exp)
 
         KM.Expression.VariableExpressionIO.Write(mapped_values, self._GetSolver().GetSourceVariable(), False)
 
@@ -119,7 +119,7 @@ class HelmholtzAnalysis(AnalysisStage):
             return nodal_solution_field.Clone()
         else:
             mapped_entity_solution_field = self.__source_data.Clone()
-            KOA.ExpressionUtils.MapNodalVariableToContainerVariable(mapped_entity_solution_field, nodal_solution_field)
+            KOA.ExpressionUtils.MapNodalVariableToContainerVariable(mapped_entity_solution_field, nodal_solution_field, self.__GetNeighbourEntities(self.__source_data))
             return mapped_entity_solution_field
 
     def __GetNeighbourEntities(self, data_exp: ContainerExpressionTypes) -> ContainerExpressionTypes:

@@ -64,7 +64,7 @@ class TestShellThicknessControl(kratos_unittest.TestCase):
 
     def test_GetControlField(self):
         control_field = self.thickness_control.GetControlField()
-        self.assertAlmostEqual(Kratos.Expression.Utils.NormInf(control_field), 0.5, 4)
+        self.assertAlmostEqual(Kratos.Expression.Utils.NormInf(control_field), 0.35, 4)
 
     def test_GetPhysicalField(self):
         thickness_field = self.thickness_control.GetPhysicalField()
@@ -85,7 +85,7 @@ class TestShellThicknessControl(kratos_unittest.TestCase):
         control_field = self.thickness_control.GetControlField()
         thickness_field = self.thickness_control.GetPhysicalField()
         self.assertAlmostEqual(Kratos.Expression.Utils.NormInf(control_field), 0.75, 4)
-        self.assertAlmostEqual(Kratos.Expression.Utils.NormInf(thickness_field), 0.019999962733607157, 10)
+        self.assertAlmostEqual(Kratos.Expression.Utils.NormInf(thickness_field), 0.019999999998375886, 10)
 
     def test_AdaptiveBeta(self):
         parameters = Kratos.Parameters("""{
@@ -115,7 +115,7 @@ class TestShellThicknessControl(kratos_unittest.TestCase):
             self.optimization_problem.AdvanceStep()
 
         self.assertAlmostEqual(thickness_control.thickness_projection.beta, 0.014071004226562506)
-        self.assertAlmostEqual(Kratos.Expression.Utils.NormL2(thickness_control.GetPhysicalField()), 0.031423121954655735)
+        self.assertAlmostEqual(Kratos.Expression.Utils.NormL2(thickness_control.GetPhysicalField()), 0.03112562769742746)
 
 if __name__ == "__main__":
     kratos_unittest.main()
