@@ -416,12 +416,7 @@ TensorAdaptor<double>::Pointer ExplicitFilterUtils<TContainerType>::GenericBackw
                 const IndexType neighbour_id = rTLS.mNeighbourEntityPoints[neighbour_index]->Id();
                 const IndexType neighbour_data_begin_index = neighbour_id * stride;
 
-                // KRATOS_WATCH(neighbour_id)
-                // KRATOS_WATCH(weight)
-
                 AtomicAdd<double>(result_data_view[neighbour_data_begin_index + j], origin_value * weight);
-                double temp = result_data_view[neighbour_data_begin_index + j];
-                // std::cout << std::scientific << std::setprecision(18) << "temp:" << temp << std::endl;
             }
         }
     });

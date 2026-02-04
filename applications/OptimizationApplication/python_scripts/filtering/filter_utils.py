@@ -2,7 +2,6 @@ import typing
 
 import KratosMultiphysics as Kratos
 import KratosMultiphysics.OptimizationApplication as KratosOA
-from KratosMultiphysics.OptimizationApplication.utilities.union_utilities import ContainerExpressionTypes
 
 def FilterRadiusFactory(model_part: Kratos.ModelPart, container_type: Kratos.Globals.DataLocation, filter_radius_settings: Kratos.Parameters) -> Kratos.TensorAdaptors.DoubleTensorAdaptor:
     if not filter_radius_settings.Has("filter_radius_type"):

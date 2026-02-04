@@ -39,7 +39,7 @@ class TestResponseFunctionWrapper(ResponseFunction):
         self.calculate_value_calls += 1
         return self.response_function.CalculateValue()
 
-    def CalculateGradient(self, physical_variable_collective_expressions: 'dict[SupportedSensitivityFieldVariableTypes, KratosOA.CollectiveExpression]') -> None:
+    def CalculateGradient(self, physical_variable_collective_expressions: 'dict[SupportedSensitivityFieldVariableTypes, Kratos.TensorAdaptors.DoubleCombinedTensorAdaptor]') -> None:
         self.calculate_gradient_calls += 1
         return self.response_function.CalculateGradient(physical_variable_collective_expressions)
 
@@ -94,12 +94,12 @@ class TestResponseUtilities(kratos_unittest.TestCase):
         ref_value = analytical_lambda()
         self.assertAlmostEqual(ref_value, response_function.CalculateValue(), precision)
 
-        physical_variable_collective_expressions: 'dict[SupportedSensitivityFieldVariableTypes, KratosOA.CollectiveExpression]' = {}
+        physical_variable_collective_expressions: 'dict[SupportedSensitivityFieldVariableTypes, Kratos.TensorAdaptors.DoubleCombinedTensorAdaptor]' = {}
         fd_gradients: 'dict[SupportedSensitivityFieldVariableTypes, list[float]]' = {}
         for sensitivity_variable in sensitivity_variables:
-            nodal_exp = Kratos.Expression.NodalExpression(self.model_part)
-            Kratos.Expression.LiteralExpressionIO.SetData(nodal_exp, 0.0)
-            physical_variable_collective_expressions[sensitivity_variable] = KratosOA.CollectiveExpression([nodal_exp])
+            ta = Kratos.TensorAdaptors.VariableTensorAdaptor(self.model_part.Nodes, sensitivity_variable)
+            ta.data[:] = 0.0
+            physical_variable_collective_expressions[sensitivity_variable] = Kratos.TensorAdaptors.DoubleCombinedTensorAdaptor([ta], perform_collect_data_recursively=False, perform_store_data_recursively=False)
             fd_gradients[sensitivity_variable] = []
 
         response_function.CalculateGradient(physical_variable_collective_expressions)
@@ -111,9 +111,9 @@ class TestResponseUtilities(kratos_unittest.TestCase):
                 node.SetValue(sensitivity_variable, node.GetValue(sensitivity_variable) - delta)
 
         for sensitivity_variable in sensitivity_variables:
-            nodal_exp = Kratos.Expression.NodalExpression(self.model_part)
-            Kratos.Expression.CArrayExpressionIO.Read(nodal_exp, np.array(fd_gradients[sensitivity_variable], np.float64))
-            self.assertAlmostEqual(Kratos.Expression.Utils.NormInf(nodal_exp - physical_variable_collective_expressions[sensitivity_variable].GetContainerExpressions()[0]), 0.0, precision)
+            ta = Kratos.TensorAdaptors.VariableTensorAdaptor(self.model_part.Nodes, sensitivity_variable)
+            ta.data[:] = np.array(fd_gradients[sensitivity_variable], np.float64)
+            self.assertAlmostEqual(np.linalg.norm(ta.data - physical_variable_collective_expressions[sensitivity_variable].GetTensorAdaptors()[0].data, ord="inf"), 0.0, precision)
 
     def setUp(self) -> None:
         self.optimization_problem = OptimizationProblem()

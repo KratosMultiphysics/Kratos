@@ -94,10 +94,9 @@ class TestOptimizationUtils(kratos_unittest.TestCase):
 
         KratosOA.OptimizationUtils.CreateEntitySpecificPropertiesForContainer(model_part, model_part.Elements, False)
 
-        values = numpy.arange(50, dtype=numpy.float64)
-        expression = Kratos.Expression.ElementExpression(model_part)
-        Kratos.Expression.CArrayExpressionIO.Read(expression, values)
-        KratosOA.PropertiesVariableExpressionIO.Write(expression, Kratos.YOUNG_MODULUS)
+        ta = KratosOA.TensorAdaptors.PropertiesVariableTensorAdaptor(model_part.Elements, Kratos.YOUNG_MODULUS)
+        ta.data[:] = numpy.arange(50, dtype=numpy.float64)
+        ta.StoreData()
 
         for element in model_part.Elements:
             self.assertEqual(element.Properties.Id, element.Id + 8)
@@ -131,10 +130,9 @@ class TestOptimizationUtils(kratos_unittest.TestCase):
 
         KratosOA.OptimizationUtils.CreateEntitySpecificPropertiesForContainer(model_part, model_part.Elements, True)
 
-        values = numpy.arange(50, dtype=numpy.float64)
-        expression = Kratos.Expression.ElementExpression(model_part)
-        Kratos.Expression.CArrayExpressionIO.Read(expression, values)
-        KratosOA.PropertiesVariableExpressionIO.Write(expression, Kratos.YOUNG_MODULUS)
+        ta = KratosOA.TensorAdaptors.PropertiesVariableTensorAdaptor(model_part.Elements, Kratos.YOUNG_MODULUS)
+        ta.data[:] = numpy.arange(50, dtype=numpy.float64)
+        ta.StoreData()
 
         def check_properties_value_recursively(properties: Kratos.Properties, value: float):
             self.assertEqual(properties[Kratos.YOUNG_MODULUS], value)
@@ -168,6 +166,124 @@ class TestOptimizationUtils(kratos_unittest.TestCase):
         KratosOA.OptimizationUtils.UpdatePropertiesVariableWithRootValueRecursively(model_part.Elements, Kratos.YOUNG_MODULUS)
         for element in model_part.Elements:
             check_properties_value_recursively(element.Properties, element.Id - 1)
+
+    def test_MapConditionDataToNodalData(self):
+        for entity in self.model_part.Conditions:
+            entity.SetValue(Kratos.VELOCITY, Kratos.Array3([entity.Id, entity.Id + 1, entity.Id + 3]))
+            entity.SetValue(Kratos.PRESSURE, entity.Id + 4)
+
+        condition_ta_v = Kratos.TensorAdaptors.VariableTensorAdaptor(self.model_part.Conditions, Kratos.VELOCITY)
+        condition_ta_v.CollectData()
+        condition_ta_p = Kratos.TensorAdaptors.VariableTensorAdaptor(self.model_part.Conditions, Kratos.PRESSURE)
+        condition_ta_p.CollectData()
+
+        nodal_ta_v = KratosOA.OptimizationUtils.MapContainerDataToNodalData(condition_ta_v, self.model_part.Nodes)
+        nodal_ta_p = KratosOA.OptimizationUtils.MapContainerDataToNodalData(condition_ta_p, self.model_part.Nodes)
+
+        self.assertVectorAlmostEqual(nodal_ta_v.data.shape, [self.model_part.NumberOfNodes(), 3])
+        self.assertVectorAlmostEqual(nodal_ta_p.data.shape, [self.model_part.NumberOfNodes()])
+
+        Kratos.VariableUtils().SetNonHistoricalVariableToZero(Kratos.DENSITY, self.model_part.Nodes)
+        Kratos.VariableUtils().SetNonHistoricalVariableToZero(Kratos.ACCELERATION, self.model_part.Nodes)
+        for entity in self.model_part.Conditions:
+            for node in entity.GetGeometry():
+                node[Kratos.ACCELERATION] += entity[Kratos.VELOCITY] / len(entity.GetGeometry())
+                node[Kratos.DENSITY] += entity[Kratos.PRESSURE] / len(entity.GetGeometry())
+
+        for i, node in enumerate(self.model_part.Nodes):
+            self.assertVectorAlmostEqual(nodal_ta_v.data[i, :], node[Kratos.ACCELERATION])
+            self.assertAlmostEqual(nodal_ta_p.data[i], node[Kratos.DENSITY])
+
+    def test_MapElementDataToNodalData(self):
+        for entity in self.model_part.Elements:
+            entity.SetValue(Kratos.VELOCITY, Kratos.Array3([entity.Id, entity.Id + 1, entity.Id + 3]))
+            entity.SetValue(Kratos.PRESSURE, entity.Id + 4)
+
+        condition_ta_v = Kratos.TensorAdaptors.VariableTensorAdaptor(self.model_part.Elements, Kratos.VELOCITY)
+        condition_ta_v.CollectData()
+        condition_ta_p = Kratos.TensorAdaptors.VariableTensorAdaptor(self.model_part.Elements, Kratos.PRESSURE)
+        condition_ta_p.CollectData()
+
+        nodal_ta_v = KratosOA.OptimizationUtils.MapContainerDataToNodalData(condition_ta_v, self.model_part.Nodes)
+        nodal_ta_p = KratosOA.OptimizationUtils.MapContainerDataToNodalData(condition_ta_p, self.model_part.Nodes)
+
+        self.assertVectorAlmostEqual(nodal_ta_v.data.shape, [self.model_part.NumberOfNodes(), 3])
+        self.assertVectorAlmostEqual(nodal_ta_p.data.shape, [self.model_part.NumberOfNodes()])
+
+        Kratos.VariableUtils().SetNonHistoricalVariableToZero(Kratos.DENSITY, self.model_part.Nodes)
+        Kratos.VariableUtils().SetNonHistoricalVariableToZero(Kratos.ACCELERATION, self.model_part.Nodes)
+        for entity in self.model_part.Elements:
+            for node in entity.GetGeometry():
+                node[Kratos.ACCELERATION] += entity[Kratos.VELOCITY] / len(entity.GetGeometry())
+                node[Kratos.DENSITY] += entity[Kratos.PRESSURE] / len(entity.GetGeometry())
+
+        for i, node in enumerate(self.model_part.Nodes):
+            self.assertVectorAlmostEqual(nodal_ta_v.data[i, :], node[Kratos.ACCELERATION])
+            self.assertAlmostEqual(nodal_ta_p.data[i], node[Kratos.DENSITY])
+
+    def test_MapNodalDataToConditionData(self):
+        for node in self.model_part.Nodes:
+            node.SetValue(Kratos.VELOCITY, Kratos.Array3([node.Id, node.Id + 1, node.Id + 3]))
+            node.SetValue(Kratos.PRESSURE, node.Id + 4)
+
+        nodal_ta_v = Kratos.TensorAdaptors.VariableTensorAdaptor(self.model_part.Nodes, Kratos.VELOCITY)
+        nodal_ta_v.CollectData()
+        nodal_ta_p = Kratos.TensorAdaptors.VariableTensorAdaptor(self.model_part.Nodes, Kratos.PRESSURE)
+        nodal_ta_p.CollectData()
+
+        neighbour_count_ta = Kratos.TensorAdaptors.NodalNeighbourCountTensorAdaptor(self.model_part.Nodes, self.model_part.Conditions)
+        neighbour_count_ta.CollectData()
+        for i, node in enumerate(neighbour_count_ta.GetContainer()):
+            node[Kratos.YOUNG_MODULUS] = neighbour_count_ta.data[i]
+
+        entity_ta_v = KratosOA.OptimizationUtils.MapNodalDataToContainerData(nodal_ta_v, self.model_part.Conditions, neighbour_count_ta)
+        entity_ta_p = KratosOA.OptimizationUtils.MapNodalDataToContainerData(nodal_ta_p, self.model_part.Conditions, neighbour_count_ta)
+
+        self.assertVectorAlmostEqual(entity_ta_v.data.shape, [self.model_part.NumberOfConditions(), 3])
+        self.assertVectorAlmostEqual(entity_ta_p.data.shape, [self.model_part.NumberOfConditions()])
+
+        Kratos.VariableUtils().SetNonHistoricalVariableToZero(Kratos.DENSITY, self.model_part.Conditions)
+        Kratos.VariableUtils().SetNonHistoricalVariableToZero(Kratos.ACCELERATION, self.model_part.Conditions)
+        for entity in self.model_part.Conditions:
+            for node in entity.GetGeometry():
+                entity[Kratos.ACCELERATION] += node[Kratos.VELOCITY] / node[Kratos.YOUNG_MODULUS]
+                entity[Kratos.DENSITY] += node[Kratos.PRESSURE] / node[Kratos.YOUNG_MODULUS]
+
+        for i, entity in enumerate(self.model_part.Conditions):
+            self.assertVectorAlmostEqual(entity_ta_v.data[i, :], entity[Kratos.ACCELERATION])
+            self.assertAlmostEqual(entity_ta_p.data[i], entity[Kratos.DENSITY])
+
+    def test_MapNodalDataToElementData(self):
+        for node in self.model_part.Nodes:
+            node.SetValue(Kratos.VELOCITY, Kratos.Array3([node.Id, node.Id + 1, node.Id + 3]))
+            node.SetValue(Kratos.PRESSURE, node.Id + 4)
+
+        nodal_ta_v = Kratos.TensorAdaptors.VariableTensorAdaptor(self.model_part.Nodes, Kratos.VELOCITY)
+        nodal_ta_v.CollectData()
+        nodal_ta_p = Kratos.TensorAdaptors.VariableTensorAdaptor(self.model_part.Nodes, Kratos.PRESSURE)
+        nodal_ta_p.CollectData()
+
+        neighbour_count_ta = Kratos.TensorAdaptors.NodalNeighbourCountTensorAdaptor(self.model_part.Nodes, self.model_part.Elements)
+        neighbour_count_ta.CollectData()
+        for i, node in enumerate(neighbour_count_ta.GetContainer()):
+            node[Kratos.YOUNG_MODULUS] = neighbour_count_ta.data[i]
+
+        entity_ta_v = KratosOA.OptimizationUtils.MapNodalDataToContainerData(nodal_ta_v, self.model_part.Elements, neighbour_count_ta)
+        entity_ta_p = KratosOA.OptimizationUtils.MapNodalDataToContainerData(nodal_ta_p, self.model_part.Elements, neighbour_count_ta)
+
+        self.assertVectorAlmostEqual(entity_ta_v.data.shape, [self.model_part.NumberOfElements(), 3])
+        self.assertVectorAlmostEqual(entity_ta_p.data.shape, [self.model_part.NumberOfElements()])
+
+        Kratos.VariableUtils().SetNonHistoricalVariableToZero(Kratos.DENSITY, self.model_part.Elements)
+        Kratos.VariableUtils().SetNonHistoricalVariableToZero(Kratos.ACCELERATION, self.model_part.Elements)
+        for entity in self.model_part.Elements:
+            for node in entity.GetGeometry():
+                entity[Kratos.ACCELERATION] += node[Kratos.VELOCITY] / node[Kratos.YOUNG_MODULUS]
+                entity[Kratos.DENSITY] += node[Kratos.PRESSURE] / node[Kratos.YOUNG_MODULUS]
+
+        for i, entity in enumerate(self.model_part.Elements):
+            self.assertVectorAlmostEqual(entity_ta_v.data[i, :], entity[Kratos.ACCELERATION])
+            self.assertAlmostEqual(entity_ta_p.data[i], entity[Kratos.DENSITY])
 
 if __name__ == "__main__":
     kratos_unittest.main()

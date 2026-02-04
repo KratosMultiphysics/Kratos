@@ -174,16 +174,17 @@ class TestExplicitFilterReference(kratos_unittest.TestCase):
 
         cls.optimization_problem = OptimizationProblem(0)
 
-        cls.initial_nodal_pos = Kratos.Expression.NodalExpression(cls.model_part)
-        Kratos.Expression.NodalPositionExpressionIO.Read(cls.initial_nodal_pos, Kratos.Configuration.Initial)
+        cls.initial_nodal_pos = Kratos.TensorAdaptors.NodePositionTensorAdaptor(cls.model_part.Nodes, Kratos.Configuration.Initial)
+        cls.initial_nodal_pos.CollectData()
+
         cls.filter_data = ComponentDataView("test", cls.optimization_problem)
         cls.filter_data.SetDataBuffer(1)
 
         cls.vtu_output = Kratos.VtuOutput(cls.model_part, binary_output=Kratos.VtuOutput.ASCII, precision=6)
 
     def setUp(self) -> None:
-        Kratos.Expression.NodalPositionExpressionIO.Write(self.initial_nodal_pos, Kratos.Configuration.Initial)
-        Kratos.Expression.NodalPositionExpressionIO.Write(self.initial_nodal_pos, Kratos.Configuration.Current)
+        Kratos.TensorAdaptors.NodePositionTensorAdaptor(self.initial_nodal_pos, Kratos.Configuration.Initial, copy=False).StoreData()
+        Kratos.TensorAdaptors.NodePositionTensorAdaptor(self.initial_nodal_pos, Kratos.Configuration.Current, copy=False).StoreData()
 
     def test_FilterCosine(self):
         self.__RunTestCase("cosine", "cosine", "explicit_filter_reference_cosine.vtu")
@@ -235,23 +236,34 @@ class TestExplicitFilterReference(kratos_unittest.TestCase):
         vm_filter.SetComponentDataView(ComponentDataView("test", self.optimization_problem))
         vm_filter.Initialize()
 
-        nodal_neighbours = Kratos.Expression.NodalExpression(self.model_part)
-        KratosOA.ExpressionUtils.ComputeNumberOfNeighbourElements(nodal_neighbours)
+        nodal_neighbours = Kratos.TensorAdaptors.NodalNeighbourCountTensorAdaptor(self.model_part.Nodes, self.model_part.Elements)
+        nodal_neighbours.CollectData()
+
+        nodal_neighbours_exp = Kratos.Expression.NodalExpression(self.model_part)
+        KratosOA.ExpressionUtils.ComputeNumberOfNeighbourElements(nodal_neighbours_exp)
 
         step_size = 5e-2
         for i in range(10):
             Kratos.NormalCalculationUtils().CalculateNormalsInElements(self.model_part, Kratos.NORMAL)
-            element_exp = Kratos.Expression.ElementExpression(self.model_part)
-            Kratos.Expression.VariableExpressionIO.Read(element_exp, Kratos.NORMAL)
-            domain_size_exp = Kratos.Expression.ElementExpression(self.model_part)
-            Kratos.Expression.DomainSizeExpressionIO.Read(domain_size_exp)
-            physical_element_gradient = Kratos.Expression.Utils.Scale(element_exp, domain_size_exp)
+            element_ta = Kratos.TensorAdaptors.VariableTensorAdaptor(self.model_part.Elements, Kratos.NORMAL)
+            element_ta.CollectData()
 
-            physical_space_gradient = Kratos.Expression.NodalExpression(self.model_part)
-            KratosOA.ExpressionUtils.MapContainerVariableToNodalVariable(physical_space_gradient, physical_element_gradient, nodal_neighbours)
+            domain_size_ta = Kratos.TensorAdaptors.GeometryMetricsTensorAdaptor(self.model_part.Elements, Kratos.TensorAdaptors.GeometryMetricsTensorAdaptor.DomainSize)
+            domain_size_ta.CollectData()
+
+            physical_element_gradient = Kratos.TensorAdaptors.DoubleTensorAdaptor(element_ta)
+            physical_element_gradient.data = element_ta.data * domain_size_ta.data[:, None] # row wise scaling
+
+            physical_element_gradient_exp = Kratos.Expression.ElementExpression(self.model_part)
+            Kratos.Expression.CArrayExpressionIO.Read(physical_element_gradient_exp, physical_element_gradient.data)
+            physical_space_gradient_exp = Kratos.Expression.NodalExpression(self.model_part)
+            KratosOA.ExpressionUtils.MapContainerVariableToNodalVariable(physical_space_gradient_exp, physical_element_gradient_exp, nodal_neighbours_exp)
+            physical_space_gradient = Kratos.TensorAdaptors.VariableTensorAdaptor(self.model_part.Nodes, Kratos.NORMAL)
+            physical_space_gradient.data[:] = physical_space_gradient_exp.Evaluate()
 
             control_space_gradient = vm_filter.BackwardFilterField(physical_space_gradient)
-            control_update = control_space_gradient * (step_size / Kratos.Expression.Utils.NormInf(control_space_gradient))
+            control_update = Kratos.TensorAdaptors.DoubleTensorAdaptor(control_space_gradient)
+            control_update.data = control_space_gradient.data * (step_size / numpy.max(numpy.abs(control_space_gradient.data)))
             physical_update = vm_filter.ForwardFilterField(control_update)
 
             # Purposefully left out for debugging if required.
@@ -263,10 +275,15 @@ class TestExplicitFilterReference(kratos_unittest.TestCase):
             # self.vtu_output.PrintOutput(f"output_{i+1}")
 
             # update the mesh
-            nodal_coords = Kratos.Expression.NodalExpression(self.model_part)
-            Kratos.Expression.NodalPositionExpressionIO.Read(nodal_coords, Kratos.Configuration.Initial)
-            Kratos.Expression.NodalPositionExpressionIO.Write(nodal_coords + physical_update, Kratos.Configuration.Initial)
-            Kratos.Expression.NodalPositionExpressionIO.Write(nodal_coords + physical_update, Kratos.Configuration.Current)
+            nodal_coords_initial = Kratos.TensorAdaptors.NodePositionTensorAdaptor(self.model_part.Nodes, Kratos.Configuration.Initial)
+            nodal_coords_initial.CollectData()
+            nodal_coords_initial.data += physical_update.data
+            nodal_coords_initial.StoreData()
+
+            nodal_coords_current = Kratos.TensorAdaptors.NodePositionTensorAdaptor(self.model_part.Nodes, Kratos.Configuration.Current)
+            nodal_coords_current.CollectData()
+            nodal_coords_current.data += physical_update.data
+            nodal_coords_current.StoreData()
 
             vm_filter.Update()
 

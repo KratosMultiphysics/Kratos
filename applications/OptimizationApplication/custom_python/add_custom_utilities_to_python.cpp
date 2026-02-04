@@ -203,7 +203,18 @@ void  AddCustomUtilitiesToPython(pybind11::module& m)
         .def("GetComponentWiseModelParts", &OptimizationUtils::GetComponentWiseModelParts,
             py::arg("model"),
             py::arg("parameters"),
-            py::return_value_policy::reference);
+            py::return_value_policy::reference)
+        .def("MapContainerDataToNodalData", OptimizationUtils::MapContainerDataToNodalData,
+            py::arg("input_tensor_adaptor"),
+            py::arg("nodes"))
+        .def("MapNodalDataToContainerData", OptimizationUtils::MapNodalDataToContainerData<ModelPart::ConditionsContainerType::Pointer>,
+            py::arg("input_tensor_adaptor"),
+            py::arg("conditions"),
+            py::arg("neighbour_count_tensor_adaptor"))
+        .def("MapNodalDataToContainerData", OptimizationUtils::MapNodalDataToContainerData<ModelPart::ElementsContainerType::Pointer>,
+            py::arg("input_tensor_adaptor"),
+            py::arg("conditions"),
+            py::arg("neighbour_count_tensor_adaptor"))
         ;
 
     // Add collective expression to python

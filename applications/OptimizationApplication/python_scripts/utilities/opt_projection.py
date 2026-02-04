@@ -7,7 +7,6 @@ from abc import ABC, abstractmethod
 import KratosMultiphysics as Kratos
 import KratosMultiphysics.OptimizationApplication as KratosOA
 from KratosMultiphysics.OptimizationApplication.utilities.optimization_problem import OptimizationProblem
-from KratosMultiphysics.OptimizationApplication.utilities.union_utilities import ContainerExpressionTypes
 
 class DesignVariableProjection(ABC):
     """Design variable projection methods to convert given x space values to given y space values
@@ -29,38 +28,38 @@ class DesignVariableProjection(ABC):
         pass
 
     @abstractmethod
-    def ProjectForward(self, x_values: ContainerExpressionTypes) -> ContainerExpressionTypes:
+    def ProjectForward(self, x_values: Kratos.TensorAdaptors.DoubleTensorAdaptor) -> Kratos.TensorAdaptors.DoubleTensorAdaptor:
         """Project x space values to y space
 
         Args:
-            x_values (ContainerExpressionTypes): x space values.
+            x_values (Kratos.TensorAdaptors.DoubleTensorAdaptor): x space values.
 
         Returns:
-            ContainerExpressionTypes: y space values.
+            Kratos.TensorAdaptors.DoubleTensorAdaptor: y space values.
         """
         pass
 
     @abstractmethod
-    def ProjectBackward(self, y_values: ContainerExpressionTypes) -> ContainerExpressionTypes:
+    def ProjectBackward(self, y_values: Kratos.TensorAdaptors.DoubleTensorAdaptor) -> Kratos.TensorAdaptors.DoubleTensorAdaptor:
         """Project y space values to x space values
 
         Args:
-            y_values (ContainerExpressionTypes): y space values.
+            y_values (Kratos.TensorAdaptors.DoubleTensorAdaptor): y space values.
 
         Returns:
-            ContainerExpressionTypes: x space values.
+            Kratos.TensorAdaptors.DoubleTensorAdaptor: x space values.
         """
         pass
 
     @abstractmethod
-    def ForwardProjectionGradient(self, x_values: ContainerExpressionTypes) -> ContainerExpressionTypes:
+    def ForwardProjectionGradient(self, x_values: Kratos.TensorAdaptors.DoubleTensorAdaptor) -> Kratos.TensorAdaptors.DoubleTensorAdaptor:
         """Computes the forward projected y space values' gradient w.r.t x space.
 
         Args:
-            x_values (ContainerExpressionTypes): x space values.
+            x_values (Kratos.TensorAdaptors.DoubleTensorAdaptor): x space values.
 
         Returns:
-            ContainerExpressionTypes: gradient of the y space values w.r.t. x space.
+            Kratos.TensorAdaptors.DoubleTensorAdaptor: gradient of the y space values w.r.t. x space.
         """
         pass
 
@@ -81,18 +80,18 @@ class IdentityDesignVariableProjection(DesignVariableProjection):
         # not using any of the spaces provided.
         pass
 
-    def ProjectForward(self, x_values: ContainerExpressionTypes) -> ContainerExpressionTypes:
+    def ProjectForward(self, x_values: Kratos.TensorAdaptors.DoubleTensorAdaptor) -> Kratos.TensorAdaptors.DoubleTensorAdaptor:
         # returns the x_values since x and y are the same for IdentityProjection
-        return x_values.Clone()
+        return Kratos.TensorAdaptors.DoubleTensorAdaptor(x_values)
 
-    def ProjectBackward(self, y_values: ContainerExpressionTypes) -> ContainerExpressionTypes:
+    def ProjectBackward(self, y_values: Kratos.TensorAdaptors.DoubleTensorAdaptor) -> Kratos.TensorAdaptors.DoubleTensorAdaptor:
         # return the y_values since x and y are the same for Identity projection
-        return y_values.Clone()
+        return Kratos.TensorAdaptors.DoubleTensorAdaptor(y_values)
 
-    def ForwardProjectionGradient(self, x_values: ContainerExpressionTypes) -> ContainerExpressionTypes:
-        result = x_values.Clone()
+    def ForwardProjectionGradient(self, x_values: Kratos.TensorAdaptors.DoubleTensorAdaptor) -> Kratos.TensorAdaptors.DoubleTensorAdaptor:
+        result = Kratos.TensorAdaptors.DoubleTensorAdaptor(x_values)
         # x = y, hence the gradients are 1.0
-        Kratos.Expression.LiteralExpressionIO.SetData(result, 1.0)
+        result.data[:] = 1.0
         return result
 
     def Update(self) -> None:
@@ -117,26 +116,14 @@ class SigmoidalDesignVariableProjection(DesignVariableProjection):
         self.x_space_values = x_space_values
         self.y_space_values = y_space_values
 
-    def ProjectForward(self, x_values: ContainerExpressionTypes) -> ContainerExpressionTypes:
-        ta = Kratos.TensorAdaptors.DoubleTensorAdaptor(x_values.GetContainer(), Kratos.DoubleNDData(x_values.Evaluate()), copy=False)
-        result_ta = KratosOA.ControlUtils.SigmoidalProjectionUtils.ProjectForward(ta, self.x_space_values, self.y_space_values, self.beta, self.penalty_factor)
-        result_exp = x_values.Clone()
-        Kratos.Expression.CArrayExpressionIO.Read(result_exp, result_ta.data)
-        return result_exp
+    def ProjectForward(self, x_values: Kratos.TensorAdaptors.DoubleTensorAdaptor) -> Kratos.TensorAdaptors.DoubleTensorAdaptor:
+        return KratosOA.ControlUtils.SigmoidalProjectionUtils.ProjectForward(x_values, self.x_space_values, self.y_space_values, self.beta, self.penalty_factor)
 
-    def ProjectBackward(self, y_values: ContainerExpressionTypes) -> ContainerExpressionTypes:
-        ta = Kratos.TensorAdaptors.DoubleTensorAdaptor(y_values.GetContainer(), Kratos.DoubleNDData(y_values.Evaluate()), copy=False)
-        result_ta = KratosOA.ControlUtils.SigmoidalProjectionUtils.ProjectBackward(ta, self.x_space_values, self.y_space_values, self.beta, self.penalty_factor)
-        result_exp = y_values.Clone()
-        Kratos.Expression.CArrayExpressionIO.Read(result_exp, result_ta.data)
-        return result_exp
+    def ProjectBackward(self, y_values: Kratos.TensorAdaptors.DoubleTensorAdaptor) -> Kratos.TensorAdaptors.DoubleTensorAdaptor:
+        return KratosOA.ControlUtils.SigmoidalProjectionUtils.ProjectBackward(y_values, self.x_space_values, self.y_space_values, self.beta, self.penalty_factor)
 
-    def ForwardProjectionGradient(self, x_values: ContainerExpressionTypes) -> ContainerExpressionTypes:
-        ta = Kratos.TensorAdaptors.DoubleTensorAdaptor(x_values.GetContainer(), Kratos.DoubleNDData(x_values.Evaluate()), copy=False)
-        result_ta = KratosOA.ControlUtils.SigmoidalProjectionUtils.CalculateForwardProjectionGradient(ta, self.x_space_values, self.y_space_values, self.beta, self.penalty_factor)
-        result_exp = x_values.Clone()
-        Kratos.Expression.CArrayExpressionIO.Read(result_exp, result_ta.data)
-        return result_exp
+    def ForwardProjectionGradient(self, x_values: Kratos.TensorAdaptors.DoubleTensorAdaptor) -> Kratos.TensorAdaptors.DoubleTensorAdaptor:
+        return KratosOA.ControlUtils.SigmoidalProjectionUtils.CalculateForwardProjectionGradient(x_values, self.x_space_values, self.y_space_values, self.beta, self.penalty_factor)
 
     def Update(self) -> None:
         pass
@@ -169,26 +156,14 @@ class AdaptiveSigmoidalDesignVariableProjection(DesignVariableProjection):
         self.x_space_values = x_space_values
         self.y_space_values = y_space_values
 
-    def ProjectForward(self, x_values: ContainerExpressionTypes) -> ContainerExpressionTypes:
-        ta = Kratos.TensorAdaptors.DoubleTensorAdaptor(x_values.GetContainer(), Kratos.DoubleNDData(x_values.Evaluate()), copy=False)
-        result_ta = KratosOA.ControlUtils.SigmoidalProjectionUtils.ProjectForward(ta, self.x_space_values, self.y_space_values, self.beta, self.penalty_factor)
-        result_exp = x_values.Clone()
-        Kratos.Expression.CArrayExpressionIO.Read(result_exp, result_ta.data)
-        return result_exp
+    def ProjectForward(self, x_values: Kratos.TensorAdaptors.DoubleTensorAdaptor) -> Kratos.TensorAdaptors.DoubleTensorAdaptor:
+        return KratosOA.ControlUtils.SigmoidalProjectionUtils.ProjectForward(x_values, self.x_space_values, self.y_space_values, self.beta, self.penalty_factor)
 
-    def ProjectBackward(self, y_values: ContainerExpressionTypes) -> ContainerExpressionTypes:
-        ta = Kratos.TensorAdaptors.DoubleTensorAdaptor(y_values.GetContainer(), Kratos.DoubleNDData(y_values.Evaluate()), copy=False)
-        result_ta = KratosOA.ControlUtils.SigmoidalProjectionUtils.ProjectBackward(ta, self.x_space_values, self.y_space_values, self.beta, self.penalty_factor)
-        result_exp = y_values.Clone()
-        Kratos.Expression.CArrayExpressionIO.Read(result_exp, result_ta.data)
-        return result_exp
+    def ProjectBackward(self, y_values: Kratos.TensorAdaptors.DoubleTensorAdaptor) -> Kratos.TensorAdaptors.DoubleTensorAdaptor:
+        return KratosOA.ControlUtils.SigmoidalProjectionUtils.ProjectBackward(y_values, self.x_space_values, self.y_space_values, self.beta, self.penalty_factor)
 
-    def ForwardProjectionGradient(self, x_values: ContainerExpressionTypes) -> ContainerExpressionTypes:
-        ta = Kratos.TensorAdaptors.DoubleTensorAdaptor(x_values.GetContainer(), Kratos.DoubleNDData(x_values.Evaluate()), copy=False)
-        result_ta = KratosOA.ControlUtils.SigmoidalProjectionUtils.CalculateForwardProjectionGradient(ta, self.x_space_values, self.y_space_values, self.beta, self.penalty_factor)
-        result_exp = x_values.Clone()
-        Kratos.Expression.CArrayExpressionIO.Read(result_exp, result_ta.data)
-        return result_exp
+    def ForwardProjectionGradient(self, x_values: Kratos.TensorAdaptors.DoubleTensorAdaptor) -> Kratos.TensorAdaptors.DoubleTensorAdaptor:
+        return KratosOA.ControlUtils.SigmoidalProjectionUtils.CalculateForwardProjectionGradient(x_values, self.x_space_values, self.y_space_values, self.beta, self.penalty_factor)
 
     def Update(self) -> None:
         step = self.optimization_problem.GetStep()

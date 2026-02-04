@@ -6,7 +6,6 @@ import KratosMultiphysics.OptimizationApplication as KratosOA
 from KratosMultiphysics.OptimizationApplication.filtering.filter import Filter
 from KratosMultiphysics.OptimizationApplication.filtering.filter_utils import FilterRadiusFactory
 from KratosMultiphysics.OptimizationApplication.filtering.filter_utils import ExplicitFilterDampingFactory
-from KratosMultiphysics.OptimizationApplication.utilities.union_utilities import ContainerExpressionTypes
 from KratosMultiphysics.OptimizationApplication.utilities.union_utilities import SupportedSensitivityFieldVariableTypes
 
 def Factory(model: Kratos.Model, filtering_model_part_name: str, filtering_variable: SupportedSensitivityFieldVariableTypes, data_location: Kratos.Globals.DataLocation, parameters: Kratos.Parameters) -> Filter:
@@ -104,30 +103,20 @@ class ExplicitFilter(Filter):
     def Finalize(self) -> None:
         pass
 
-    def ForwardFilterField(self, control_field: ContainerExpressionTypes) -> ContainerExpressionTypes:
-        temp_ta = Kratos.TensorAdaptors.DoubleTensorAdaptor(control_field.GetContainer(), Kratos.DoubleNDData(control_field.Evaluate()), False)
-        result_ta = self.filter_utils.ForwardFilterField(temp_ta)
-        result = control_field.Clone()
-        Kratos.Expression.CArrayExpressionIO.Read(result, result_ta.data)
-        return result
+    def ForwardFilterField(self, control_field: Kratos.TensorAdaptors.DoubleTensorAdaptor) -> Kratos.TensorAdaptors.DoubleTensorAdaptor:
+        return self.filter_utils.ForwardFilterField(control_field)
 
-    def BackwardFilterField(self, physical_mesh_independent_gradient_field: ContainerExpressionTypes) -> ContainerExpressionTypes:
-        temp_ta = Kratos.TensorAdaptors.DoubleTensorAdaptor(physical_mesh_independent_gradient_field.GetContainer(), Kratos.DoubleNDData(physical_mesh_independent_gradient_field.Evaluate()), False)
-        result_ta = self.filter_utils.BackwardFilterField(temp_ta)
-        result = physical_mesh_independent_gradient_field.Clone()
-        Kratos.Expression.CArrayExpressionIO.Read(result, result_ta.data)
-        return result
+    def BackwardFilterField(self, physical_mesh_independent_gradient_field: Kratos.TensorAdaptors.DoubleTensorAdaptor) -> Kratos.TensorAdaptors.DoubleTensorAdaptor:
+        return self.filter_utils.BackwardFilterField(physical_mesh_independent_gradient_field)
 
-    def BackwardFilterIntegratedField(self, physical_mesh_dependent_gradient_field: ContainerExpressionTypes) -> ContainerExpressionTypes:
-        temp_ta = Kratos.TensorAdaptors.DoubleTensorAdaptor(physical_mesh_dependent_gradient_field.GetContainer(), Kratos.DoubleNDData(physical_mesh_dependent_gradient_field.Evaluate()), False)
-        result_ta = self.filter_utils.BackwardFilterIntegratedField(temp_ta)
-        result = physical_mesh_dependent_gradient_field.Clone()
-        Kratos.Expression.CArrayExpressionIO.Read(result, result_ta.data)
-        return result
+    def BackwardFilterIntegratedField(self, physical_mesh_dependent_gradient_field: Kratos.TensorAdaptors.DoubleTensorAdaptor) -> Kratos.TensorAdaptors.DoubleTensorAdaptor:
+        return self.filter_utils.BackwardFilterIntegratedField(physical_mesh_dependent_gradient_field)
 
-    def UnfilterField(self, filtered_field: ContainerExpressionTypes) -> ContainerExpressionTypes:
-         # WARNING: In general explicit VM doesn't need unfiltered field because it works with changes. Hence, it returns zeros and optimization runs correctly.
-        return Kratos.Expression.Utils.Collapse(filtered_field * 0.0)
+    def UnfilterField(self, filtered_field: Kratos.TensorAdaptors.DoubleTensorAdaptor) -> Kratos.TensorAdaptors.DoubleTensorAdaptor:
+        # WARNING: In general explicit VM doesn't need unfiltered field because it works with changes. Hence, it returns zeros and optimization runs correctly.
+        result = Kratos.TensorAdaptors.DoubleTensorAdaptor(filtered_field)
+        result.data[:] = 0.0
+        return result
 
     def GetBoundaryConditions(self) -> 'list[list[Kratos.ModelPart]]':
         return self.damping.GetDampedModelParts()

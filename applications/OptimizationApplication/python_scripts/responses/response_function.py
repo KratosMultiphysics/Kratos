@@ -75,21 +75,21 @@ class ResponseFunction(ABC):
         pass
 
     @abstractmethod
-    def CalculateGradient(self, physical_variable_collective_expressions: 'dict[SupportedSensitivityFieldVariableTypes, KratosOA.CollectiveExpression]') -> None:
+    def CalculateGradient(self, physical_variable_combined_tensor_adaptor: 'dict[SupportedSensitivityFieldVariableTypes, Kratos.TensorAdaptors.DoubleCombinedTensorAdaptor]') -> None:
         """Calculate gradient w.r.t. given physical variables.
 
-        This method should always calculate the sensitivities w.r.t. requested physical variables on the given container expressions
-        in the collective expression. An error should be thrown if sensitivitiy computation w.r.t. one or more given physical variables
+        This method should always calculate the sensitivities w.r.t. requested physical variables on the given @ref  Kratos::TensorAdaptor
+        in the @ref Kratos::CombinedTensorAdaptor. An error should be thrown if sensitivitiy computation w.r.t. one or more given physical variables
         are not implemented.
 
         This method should always calculate the sensitivities assuming the domain has changed.
 
-        physical_variable_collective_expressions is a map of physical variables, and their domains. The domains are represented by a CollectiveExpression
-        which contains list of empty ContainerExpression. Each empty ContainerExpression contains details of the model part's nodes/conditions/element/properties
+        physical_variable_combined_tensor_adaptor is a map of physical variables, and their domains. The domains are represented by a @ref Kratos::CombinedTensorAdaptor
+        which contains list of empty @ref Kratos::TensorAdaptor. Each empty Kratos::TensorAdaptor contains details of the model part's nodes/conditions/element/properties
         container for which the sensitivities w.r.t. physical variable requested.
 
         Args:
-            physical_variable_collective_expressions (dict[SupportedSensitivityFieldVariableTypes, KratosOA.CollectiveExpression]): Output containing calculated sensitivities w.r.t. requested physical variables.
+            physical_variable_combined_tensor_adaptor (dict[SupportedSensitivityFieldVariableTypes, Kratos.TensorAdaptors.DoubleCombinedTensorAdaptor]): Output containing calculated sensitivities w.r.t. requested physical variables.
         """
         pass
 
