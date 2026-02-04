@@ -41,16 +41,15 @@ class TestDiscreteValueResidualResponseFunctionExact(kratos_unittest.TestCase):
 
     def test_CalculateGradient(self):
         ref_value = self.response_function.CalculateValue()
-        analytical_gradient = Kratos.Expression.NodalExpression(self.model_part)
-        self.response_function.CalculateGradient({Kratos.PRESSURE: KratosOA.CollectiveExpression([analytical_gradient])})
-        analytical_gradient = analytical_gradient.Evaluate()
+        analytical_gradient = Kratos.TensorAdaptors.VariableTensorAdaptor(self.model_part.Nodes, Kratos.PRESSURE)
+        self.response_function.CalculateGradient({Kratos.PRESSURE: Kratos.TensorAdaptors.DoubleCombinedTensorAdaptor([analytical_gradient])})
 
         delta = 1e-9
         for i, node in enumerate(self.model_part.Nodes):
             node.SetValue(Kratos.PRESSURE, node.GetValue(Kratos.PRESSURE) + delta)
             fd_gradient = (self.response_function.CalculateValue() - ref_value) / delta
             node.SetValue(Kratos.PRESSURE, node.GetValue(Kratos.PRESSURE) - delta)
-            self.assertAlmostEqual(fd_gradient, analytical_gradient[i], 5)
+            self.assertAlmostEqual(fd_gradient, analytical_gradient.data[i], 5)
 
 class TestDiscreteValueResidualResponseFunctionLogarithm(kratos_unittest.TestCase):
     @classmethod
@@ -87,17 +86,15 @@ class TestDiscreteValueResidualResponseFunctionLogarithm(kratos_unittest.TestCas
 
     def test_CalculateGradient(self):
         ref_value = self.response_function.CalculateValue()
-        analytical_gradient = Kratos.Expression.NodalExpression(self.model_part)
-        self.response_function.CalculateGradient({Kratos.PRESSURE: KratosOA.CollectiveExpression([analytical_gradient])})
-        analytical_gradient = analytical_gradient.Evaluate()
+        analytical_gradient = Kratos.TensorAdaptors.VariableTensorAdaptor(self.model_part.Nodes, Kratos.PRESSURE)
+        self.response_function.CalculateGradient({Kratos.PRESSURE: Kratos.TensorAdaptors.DoubleCombinedTensorAdaptor([analytical_gradient])})
 
         delta = 1e-8
         for i, node in enumerate(self.model_part.Nodes):
             node.SetValue(Kratos.PRESSURE, node.GetValue(Kratos.PRESSURE) + delta)
             fd_gradient = (self.response_function.CalculateValue() - ref_value) / delta
             node.SetValue(Kratos.PRESSURE, node.GetValue(Kratos.PRESSURE) - delta)
-            self.assertAlmostEqual(fd_gradient, analytical_gradient[i], 5)
+            self.assertAlmostEqual(fd_gradient, analytical_gradient.data[i], 5)
 
 if __name__ == "__main__":
-    Kratos.Tester.SetVerbosity(Kratos.Tester.Verbosity.PROGRESS)  # TESTS_OUTPUTS
     kratos_unittest.main()
