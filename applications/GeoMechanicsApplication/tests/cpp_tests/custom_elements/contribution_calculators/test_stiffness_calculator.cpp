@@ -31,7 +31,7 @@ public:
     {
     }
 
-    Matrix& CalculateValue(Parameters& rParameterValues, const Variable<Matrix>& rThisVariable, Matrix& rValue) override
+    Matrix& CalculateValue(Parameters&, const Variable<Matrix>&, Matrix& rValue) override
     {
         rValue = mConstitutiveMatrix;
         return mConstitutiveMatrix;
