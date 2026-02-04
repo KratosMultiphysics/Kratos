@@ -52,8 +52,8 @@ TEST_F(KratosGeoMechanicsFastSuiteWithoutKernel, PrincipalStresses_ThrowsWhenSiz
 
     const auto too_short = {1.0, 2.0};
     const auto too_long  = {1.0, 2.0, 3.0, 4.0};
-    EXPECT_THROW((Geo::PrincipalStresses(too_long)), Exception);
-    EXPECT_THROW((Geo::PrincipalStresses(too_short)), Exception);
+    EXPECT_THROW(Geo::PrincipalStresses{too_long}, Exception);
+    EXPECT_THROW(Geo::PrincipalStresses{too_short}, Exception);
 }
 
 TEST_F(KratosGeoMechanicsFastSuiteWithoutKernel, PrincipalStresses_CanBeConstructedFromAStdInitializerListWithSize3)

@@ -17,6 +17,7 @@
 
 #include <algorithm>
 #include <initializer_list>
+#include <iterator>
 
 namespace Kratos::Geo
 {
@@ -34,7 +35,7 @@ public:
     {
     }
 
-    template <typename InputIt>
+    template <std::forward_iterator InputIt>
     PrincipalStresses(InputIt First, InputIt Last)
     {
         KRATOS_DEBUG_ERROR_IF(std::distance(First, Last) != msVectorSize)
