@@ -83,21 +83,17 @@ public:
         const TCsrMatrixType& rCsrMatrix,
         NDData<int>& rNDData)
     {
-        KRATOS_WATCH("B")
         // Get equation ids size from the first entity (assuming all entities have the same size)
         EquationIdVectorType equation_ids;
         rContainer.begin()->EquationIdVector(equation_ids, rProcessInfo);
         const std::size_t local_size = equation_ids.size();
 
         // Assign the input NDData to have shape: number of entities * local_size * local_size
-        KRATOS_WATCH("C")
         DenseVector<unsigned int> nd_data_shape(3);
-        nd_data_shape[0] = rContainer.size();
+        nd_data_shape[0] = std::distance(rContainer.begin(), rContainer.end());
         nd_data_shape[1] = local_size;
         nd_data_shape[2] = local_size;
-        KRATOS_WATCH(nd_data_shape)
         rNDData = NDData<int>(nd_data_shape);
-        KRATOS_WATCH("D")
 
         //TODO: Parallelism?
         // Loop over the container
@@ -111,12 +107,13 @@ public:
             const unsigned int local_size = equation_ids.size();
 
             // Loop over the local size
+            const std::size_t aux_i = std::distance(rContainer.begin(), it) * (local_size * local_size);
             for (unsigned int i_local = 0; i_local < local_size; ++i_local) {
                 const unsigned int i_global = equation_ids[i_local];
                 for(unsigned int j_local = 0; j_local < local_size; ++j_local) {
                     const unsigned int j_global = equation_ids[j_local];
                     const unsigned int k = rCsrMatrix.FindValueIndex(i_global,j_global);
-                    data_view[it->Id() * (local_size * local_size) + i_local * local_size + j_local] = k;
+                    data_view[aux_i + i_local * local_size + j_local] = k;
                 }
             }
         }

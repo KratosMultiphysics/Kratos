@@ -37,15 +37,14 @@ KRATOS_TEST_CASE_IN_SUITE(CsrUtilitiesGetCsrEquationIdIndices, KratosCoreFastSui
     // Set up the test model part
     Model test_model;
     auto& r_test_model_part = test_model.CreateModelPart("TestModelPart");
-    const std::size_t num_elems_x = 5;
-    const std::size_t num_elems_y = 3;
-    const double elem_size_x = 1.0;
-    const double elem_size_y = 1.0;
-    SolvingStrategiesTestUtilities::SetUpTestModelPart2D(num_elems_x, num_elems_y, elem_size_x, elem_size_y, r_test_model_part);
+    const std::size_t num_elems = 3;
+    const double elem_size = 1.0;
+    SolvingStrategiesTestUtilities::SetUpTestModelPart1D(num_elems, elem_size, r_test_model_part);
 
     // Set the DOF array
     ModelPart::DofsArrayType dof_set;
     DofArrayUtilities::SetUpDofArray(r_test_model_part, dof_set);
+    DofArrayUtilities::SetDofEquationIds(dof_set);
 
     // Build the sparse matrix graph
     SparseContiguousRowGraph<std::size_t> sparse_matrix_graph(dof_set.size());
@@ -62,23 +61,20 @@ KRATOS_TEST_CASE_IN_SUITE(CsrUtilitiesGetCsrEquationIdIndices, KratosCoreFastSui
     // Call the utility
     const DenseVector<unsigned int> aux_size(0);
     NDData<int> eq_ids_csr_indices(aux_size);
-    KRATOS_WATCH("A")
     CsrUtilities::GetEquationIdCsrIndices(r_test_model_part.Elements(), r_test_model_part.GetProcessInfo(), csr_matrix, eq_ids_csr_indices);
-    KRATOS_WATCH("B")
 
     // Verify results
     const auto& r_shape = eq_ids_csr_indices.Shape();
     const auto& r_data = eq_ids_csr_indices.ViewData();
     KRATOS_EXPECT_EQ(r_shape.size(), 3);
-    KRATOS_EXPECT_EQ(r_shape[0], 2);
-    KRATOS_EXPECT_EQ(r_shape[1], 3);
-    KRATOS_EXPECT_EQ(r_shape[2], 3);
-    KRATOS_EXPECT_EQ(r_data[0], 0);
-    KRATOS_EXPECT_EQ(r_data[1], 1);
-    KRATOS_EXPECT_EQ(r_data[2], 2);
-    KRATOS_EXPECT_EQ(r_data[3], 3);
-    KRATOS_EXPECT_EQ(r_data[4], 4);
-    KRATOS_EXPECT_EQ(r_data[5], 5);
+    KRATOS_EXPECT_EQ(r_shape[0], 3);
+    KRATOS_EXPECT_EQ(r_shape[1], 2);
+    KRATOS_EXPECT_EQ(r_shape[2], 2);
+    KRATOS_EXPECT_VECTOR_EQ(r_data, std::vector<int>({
+        0, 1, 2, 3,
+        3, 4, 5, 6,
+        6, 7, 8, 9
+    }));
 }
 
 KRATOS_TEST_CASE_IN_SUITE(CsrUtilitiesAssemble, KratosCoreFastSuite)
