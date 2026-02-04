@@ -14,13 +14,9 @@
 
 namespace Kratos::Geo
 {
-
 PrincipalStresses::PrincipalStresses(const std::initializer_list<double>& rValues)
+    : PrincipalStresses{std::begin(rValues), std::end(rValues)}
 {
-    KRATOS_DEBUG_ERROR_IF_NOT(rValues.size() == msVectorSize)
-        << "PrincipalStresses can only be initialized with a vector of size " << msVectorSize
-        << ", got " << rValues.size() << std::endl;
-    std::ranges::copy(rValues, mValues.begin());
 }
 
 const PrincipalStresses::InternalVectorType& PrincipalStresses::Values() const { return mValues; }

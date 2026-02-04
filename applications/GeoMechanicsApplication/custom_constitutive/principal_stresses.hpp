@@ -30,11 +30,18 @@ public:
 
     template <typename VectorType>
     explicit PrincipalStresses(const VectorType& rStressVector)
+        : PrincipalStresses{std::begin(rStressVector), std::end(rStressVector)}
     {
-        KRATOS_DEBUG_ERROR_IF_NOT(rStressVector.size() == msVectorSize)
-            << "PrincipalStresses can only be initialized with a vector of size " << msVectorSize
-            << ", got " << rStressVector.size() << std::endl;
-        std::ranges::copy(rStressVector, mValues.begin());
+    }
+
+    template <typename InputIt>
+    PrincipalStresses(InputIt First, InputIt Last)
+    {
+        KRATOS_DEBUG_ERROR_IF(std::distance(First, Last) != msVectorSize)
+            << "Cannot construct a PrincipalStresses instance: expected " << msVectorSize
+            << " values, but got " << std::distance(First, Last) << " value(s)\n";
+
+        std::copy(First, Last, mValues.begin());
     }
 
     explicit PrincipalStresses(const std::initializer_list<double>& rValues);

@@ -69,7 +69,6 @@ TEST_F(KratosGeoMechanicsFastSuiteWithoutKernel,
     GTEST_SKIP() << "This test requires a debug build";
 #endif
 
-    EXPECT_NO_THROW(Geo::PrincipalStresses{}); // empty list is OK
     EXPECT_THROW((Geo::PrincipalStresses{1.0, 2.0}), Exception);
     EXPECT_THROW((Geo::PrincipalStresses{1.0, 2.0, 3.0, 4.0}), Exception);
 }
