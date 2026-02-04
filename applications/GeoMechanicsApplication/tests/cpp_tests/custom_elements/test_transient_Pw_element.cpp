@@ -44,7 +44,7 @@ PointerVector<Node> CreateThreeCoincidentNodesForTransientPwElementTest()
 }
 
 template <unsigned int TNumNodes>
-PointerVector<Node> CreateNodesOnModelPart(ModelPart& rModelPart)
+PointerVector<Node> CreateNodesOnModelPartForTransientPwElementTest(ModelPart& rModelPart)
 {
     PointerVector<Node> result;
     result.push_back(rModelPart.CreateNewNode(1, 0.0, 0.0, 0.0));
@@ -86,12 +86,13 @@ intrusive_ptr<TransientPwElement<TDim, TNumNodes>> CreateTransientPwElementWithP
     if constexpr (TDim == 2) {
         p_element = make_intrusive<TransientPwElement<TDim, TNumNodes>>(
             NextElementNumber(rModelPart),
-            std::make_shared<Triangle2D3<Node>>(CreateNodesOnModelPart<TNumNodes>(rModelPart)),
+            std::make_shared<Triangle2D3<Node>>(CreateNodesOnModelPartForTransientPwElementTest<TNumNodes>(rModelPart)),
             rProperties, std::make_unique<PlaneStrainStressState>());
     } else {
         p_element = make_intrusive<TransientPwElement<TDim, TNumNodes>>(
             NextElementNumber(rModelPart),
-            std::make_shared<Tetrahedra3D4<Node>>(CreateNodesOnModelPart<TNumNodes>(rModelPart)),
+            std::make_shared<Tetrahedra3D4<Node>>(
+                CreateNodesOnModelPartForTransientPwElementTest<TNumNodes>(rModelPart)),
             rProperties, std::make_unique<ThreeDimensionalStressState>());
     }
     for (auto& r_node : p_element->GetGeometry()) {
@@ -106,8 +107,8 @@ intrusive_ptr<TransientPwElement<2, 3>> CreateTriangleTransientPwElementWithoutP
 {
     auto p_element = make_intrusive<TransientPwElement<2, 3>>(
         NextElementNumber(rModelPart),
-        std::make_shared<Triangle2D3<Node>>(CreateNodesOnModelPart<3>(rModelPart)), rProperties,
-        std::make_unique<PlaneStrainStressState>(), nullptr);
+        std::make_shared<Triangle2D3<Node>>(CreateNodesOnModelPartForTransientPwElementTest<3>(rModelPart)),
+        rProperties, std::make_unique<PlaneStrainStressState>(), nullptr);
 
     rModelPart.AddElement(p_element);
     return p_element;
@@ -143,8 +144,8 @@ using namespace Kratos;
 KRATOS_TEST_CASE_IN_SUITE(TransientPwElement_CreateInstanceWithGeometryInput, KratosGeoMechanicsFastSuiteWithoutKernel)
 {
     // Arrange
-    const auto p_geometry   = std::make_shared<Triangle2D3<Node>>(CreateThreeNodesForTransientPwElementTest());
-    const auto p_properties = std::make_shared<Properties>();
+    const auto p_geometry = std::make_shared<Triangle2D3<Node>>(CreateThreeNodesForTransientPwElementTest());
+    const auto                     p_properties = std::make_shared<Properties>();
     const TransientPwElement<2, 3> element(0, p_geometry, p_properties,
                                            std::make_unique<PlaneStrainStressState>());
 
@@ -161,9 +162,10 @@ KRATOS_TEST_CASE_IN_SUITE(TransientPwElement_CreateInstanceWithGeometryInput, Kr
 KRATOS_TEST_CASE_IN_SUITE(TransientPwElement_CreateInstanceWithNodeInput, KratosGeoMechanicsFastSuiteWithoutKernel)
 {
     // Arrange
-    const auto p_properties = std::make_shared<Properties>();
-    const TransientPwElement<2, 3> element(0, std::make_shared<Triangle2D3<Node>>(CreateThreeNodesForTransientPwElementTest()),
-                                           p_properties, std::make_unique<PlaneStrainStressState>());
+    const auto                     p_properties = std::make_shared<Properties>();
+    const TransientPwElement<2, 3> element(
+        0, std::make_shared<Triangle2D3<Node>>(CreateThreeNodesForTransientPwElementTest()),
+        p_properties, std::make_unique<PlaneStrainStressState>());
 
     // Act
     const auto p_created_element = element.Create(1, CreateThreeNodesForTransientPwElementTest(), p_properties);
@@ -237,8 +239,8 @@ KRATOS_TEST_CASE_IN_SUITE(TransientPwElement_CheckThrowsOnFaultyInput, KratosGeo
     // Arrange
     const auto                     p_properties = std::make_shared<Properties>();
     const TransientPwElement<2, 3> element_with_coincident_nodes(
-        1, std::make_shared<Triangle2D3<Node>>(CreateThreeCoincidentNodesForTransientPwElementTest()), p_properties,
-        std::make_unique<PlaneStrainStressState>(), nullptr);
+        1, std::make_shared<Triangle2D3<Node>>(CreateThreeCoincidentNodesForTransientPwElementTest()),
+        p_properties, std::make_unique<PlaneStrainStressState>(), nullptr);
 
     // Act and Assert
     const auto dummy_process_info = ProcessInfo{};
@@ -246,8 +248,8 @@ KRATOS_TEST_CASE_IN_SUITE(TransientPwElement_CheckThrowsOnFaultyInput, KratosGeo
                                       "DomainSize (0) is smaller than 1e-15 for element 1")
 
     const TransientPwElement<2, 3> element_with_correct_domain_size(
-        1, std::make_shared<Triangle2D3<Node>>(CreateThreeNodesForTransientPwElementTest()), p_properties,
-        std::make_unique<PlaneStrainStressState>(), nullptr);
+        1, std::make_shared<Triangle2D3<Node>>(CreateThreeNodesForTransientPwElementTest()),
+        p_properties, std::make_unique<PlaneStrainStressState>(), nullptr);
     KRATOS_EXPECT_EXCEPTION_IS_THROWN(element_with_correct_domain_size.Check(dummy_process_info),
                                       "Missing variable WATER_PRESSURE on nodes 1 2 3")
 
