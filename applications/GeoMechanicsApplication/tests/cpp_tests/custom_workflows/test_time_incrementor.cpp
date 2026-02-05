@@ -440,7 +440,6 @@ KRATOS_TEST_CASE_IN_SUITE(ThrowExceptionWhenDeltaTimeSmallerThanTheLimit, Kratos
 {
     AdaptiveTimeIncrementorSettings settings; // with EndTime = 8.0
     settings.StartTime               = 7.9999999;
-    settings.EndTime                 = 8.0;
     auto time_incrementor            = MakeAdaptiveTimeIncrementor(settings);
     auto previous_state              = TimeStepEndState{};
     previous_state.time              = 7.9999999; // to have a zero time step
