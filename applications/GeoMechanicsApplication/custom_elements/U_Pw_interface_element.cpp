@@ -156,7 +156,9 @@ void UPwInterfaceElement::EquationIdVector(EquationIdVectorType& rResult, const 
 void UPwInterfaceElement::CalculateLeftHandSide(MatrixType& rLeftHandSideMatrix, const ProcessInfo& rProcessInfo)
 {
     const auto number_of_dofs = GetDofs().size();
-    rLeftHandSideMatrix       = ZeroMatrix{number_of_dofs, number_of_dofs};
+    const auto ignore_undrained =
+        this->GetProperties().Has(IGNORE_UNDRAINED) ? this->GetProperties()[IGNORE_UNDRAINED] : false;
+    rLeftHandSideMatrix = ZeroMatrix{number_of_dofs, number_of_dofs};
 
     // Currently, the left-hand side matrix only includes the stiffness matrix. In the future, it
     // will also include water pressure contributions and coupling terms.
@@ -166,7 +168,7 @@ void UPwInterfaceElement::CalculateLeftHandSide(MatrixType& rLeftHandSideMatrix,
             CalculateAndAssignStifnessMatrix(rLeftHandSideMatrix, rProcessInfo);
             break;
         case CalculationContribution::Permeability:
-            CalculateAndAssignPermeabilityMatrix(rLeftHandSideMatrix);
+            if (!ignore_undrained) CalculateAndAssignPermeabilityMatrix(rLeftHandSideMatrix);
             break;
         case CalculationContribution::FluidBodyFlow:
             break;
@@ -231,6 +233,8 @@ void UPwInterfaceElement::CalculateAndAssignPermeabilityMatrix(Element::MatrixTy
 void UPwInterfaceElement::CalculateRightHandSide(Element::VectorType& rRightHandSideVector,
                                                  const ProcessInfo&   rProcessInfo)
 {
+    const auto ignore_undrained =
+        this->GetProperties().Has(IGNORE_UNDRAINED) ? this->GetProperties()[IGNORE_UNDRAINED] : false;
     rRightHandSideVector = ZeroVector{GetDofs().size()};
 
     // Currently, the right-hand side only includes the internal force vector. In the future, it
@@ -241,10 +245,10 @@ void UPwInterfaceElement::CalculateRightHandSide(Element::VectorType& rRightHand
             CalculateAndAssembleStifnessForceVector(rRightHandSideVector, rProcessInfo);
             break;
         case CalculationContribution::Permeability:
-            CalculateAndAssemblePermeabilityFlowVector(rRightHandSideVector);
+            if (!ignore_undrained) CalculateAndAssemblePermeabilityFlowVector(rRightHandSideVector);
             break;
         case CalculationContribution::FluidBodyFlow:
-            CalculateAndAssembleFluidBodyFlowVector(rRightHandSideVector);
+            if (!ignore_undrained) CalculateAndAssembleFluidBodyFlowVector(rRightHandSideVector);
             break;
         default:
             KRATOS_ERROR << "This contribution is not supported \n";
