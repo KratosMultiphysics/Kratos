@@ -73,7 +73,7 @@ bool AdaptiveTimeIncrementor::WantRetryStep(std::size_t CycleNumber, const TimeS
     return CycleNumber < mMaxNumOfCycles; // stopping criterion
 }
 
-double AdaptiveTimeIncrementor::GetIncrement() const { return mDeltaTime; }
+double AdaptiveTimeIncrementor::GetIncrement(double PreviousTime) const { return mDeltaTime; }
 
 void AdaptiveTimeIncrementor::PostTimeStepExecution(const TimeStepEndState& rResultantState)
 {

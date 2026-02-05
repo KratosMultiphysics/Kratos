@@ -92,7 +92,7 @@ void TimeLoopExecutor::CallExecuteBeforeSolutionLoopOnProcesses() const
 TimeStepEndState TimeLoopExecutor::RunCycle(double PreviousTime)
 {
     // Setting the time and time increment may be needed for the processes
-    const auto time_increment = mTimeIncrementor->GetIncrement();
+    const auto time_increment = mTimeIncrementor->GetIncrement(PreviousTime);
     mStrategyWrapper->SetTimeIncrement(time_increment);
     const auto end_time = PreviousTime + time_increment;
     mStrategyWrapper->SetEndTime(end_time);

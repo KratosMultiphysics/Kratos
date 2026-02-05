@@ -40,7 +40,7 @@ bool PrescribedTimeIncrementor::WantRetryStep(std::size_t CycleNumber, const Tim
     return CycleNumber == 0;
 }
 
-double PrescribedTimeIncrementor::GetIncrement() const
+double PrescribedTimeIncrementor::GetIncrement(double) const
 {
     KRATOS_ERROR_IF(mPos == mIncrements.end()) << "Out of increment range";
 

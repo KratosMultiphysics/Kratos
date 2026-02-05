@@ -124,7 +124,7 @@ public:
         return CycleNumber < mNumCyclesPerStep;
     }
 
-    [[nodiscard]] double GetIncrement() const override { return 0.5; }
+    [[nodiscard]] double GetIncrement(double) const override { return 0.5; }
 
     void PostTimeStepExecution(const TimeStepEndState& rResultantState) override
     {
