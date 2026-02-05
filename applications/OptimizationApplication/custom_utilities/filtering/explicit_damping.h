@@ -66,7 +66,7 @@ class KRATOS_API(OPTIMIZATION_APPLICATION) ExplicitDamping
     }
 
     /**
-     * @brief Get the used damping radius expression
+     * @brief Get the used damping radius tensor adaptor
      */
     virtual TensorAdaptor<double>::Pointer GetRadius() const
     {

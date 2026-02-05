@@ -91,7 +91,7 @@ public:
      *              \Delta \underline{s} = \mathbf{D}\mathbf{A}\Delta \tilde{\underline{s}}
      *          \f]
      *
-     * @param rContainerExpression  mesh-independent update field in control space.
+     * @param rTensorAdaptor  mesh-independent update field in control space.
      * @return TensorAdaptor<double>::Pointer Filtered/Smoothened mesh-independent update field in physical space
      */
     TensorAdaptor<double>::Pointer ForwardFilterField(const TensorAdaptor<double>& rTensorAdaptor) const;
@@ -101,7 +101,7 @@ public:
      * @details This method transforms physical space gradients to control space gradients
      *          by using the transpose of the @ref ForwardFilterField method.
      *
-     * @param rContainerExpression  Mesh-independent physical space gradient.
+     * @param rTensorAdaptor  Mesh-independent physical space gradient.
      * @return TensorAdaptor<double>::Pointer Mesh-independent control space gradient.
      */
     TensorAdaptor<double>::Pointer BackwardFilterField(const TensorAdaptor<double>& rTensorAdaptor) const;
@@ -111,7 +111,7 @@ public:
      * @details This method transforms physical space gradients to control space gradients
      *          by using the transpose of the @ref ForwardFilterField method.
      *
-     * @param rContainerExpression  Mesh-dependent physical space gradient.
+     * @param rTensorAdaptor  Mesh-dependent physical space gradient.
      * @return TensorAdaptor<double>::Pointer Mesh-independent control space gradient.
      */
     TensorAdaptor<double>::Pointer BackwardFilterIntegratedField(const TensorAdaptor<double>& rTensorAdaptor) const;

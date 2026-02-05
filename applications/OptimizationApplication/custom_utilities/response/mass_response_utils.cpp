@@ -163,7 +163,7 @@ void MassResponseUtils::CalculateGradient(
                 << "\n\t" << SHAPE.Name();
         }
 
-        // now fill the container expressions
+        // now fill the container tensor adaptors
         for (auto p_tensor_adaptor : rCombinedTensorAdaptor.GetTensorAdaptors()) {
             std::visit([&p_tensor_adaptor, &pVariable](const auto& pContainer) {
                 using container_type = BareType<decltype(*pContainer)>;

@@ -171,21 +171,21 @@ void ExplicitFilterUtils<TContainerType>::SetRadius(TensorAdaptor<double>::Point
     if (std::holds_alternative<ModelPart::NodesContainerType::Pointer>(pTensorAdaptor->GetContainer())) {
         const auto& r_container = *(std::get<ModelPart::NodesContainerType::Pointer>(pTensorAdaptor->GetContainer()));
         KRATOS_ERROR_IF_NOT(&r_container == &mrModelPart.Nodes() || &r_container == &mrModelPart.GetCommunicator().LocalMesh().Nodes())
-            << "Filter radius container expression model part and filter model part mismatch."
+            << "Filter radius tensor adaptor container and filter model part mismatch."
             << "\n\tFilter = " << *this
-            << "\n\tContainerExpression = " << *pTensorAdaptor;
+            << "\n\tTensorAdaptor = " << *pTensorAdaptor;
     } else if (std::holds_alternative<ModelPart::ConditionsContainerType::Pointer>(pTensorAdaptor->GetContainer())) {
         const auto& r_container = *(std::get<ModelPart::ConditionsContainerType::Pointer>(pTensorAdaptor->GetContainer()));
         KRATOS_ERROR_IF_NOT(&r_container == &mrModelPart.Conditions())
-            << "Filter radius container expression model part and filter model part mismatch."
+            << "Filter radius tensor adaptor container and filter model part mismatch."
             << "\n\tFilter = " << *this
-            << "\n\tContainerExpression = " << *pTensorAdaptor;
+            << "\n\tTensorAdaptor = " << *pTensorAdaptor;
     } else if (std::holds_alternative<ModelPart::ElementsContainerType::Pointer>(pTensorAdaptor->GetContainer())) {
         const auto& r_container = *(std::get<ModelPart::ElementsContainerType::Pointer>(pTensorAdaptor->GetContainer()));
         KRATOS_ERROR_IF_NOT(&r_container == &mrModelPart.Elements())
-            << "Filter radius container expression model part and filter model part mismatch."
+            << "Filter radius tensor adaptor container and filter model part mismatch."
             << "\n\tFilter = " << *this
-            << "\n\tContainerExpression = " << *pTensorAdaptor;
+            << "\n\tTensorAdaptor = " << *pTensorAdaptor;
     } else {
         KRATOS_ERROR << "Unsupported container type is found in the tensor adaptor. Only supports nodal, condition or elemental tensor adaptors [ tensor adaptor = "
                      << *pTensorAdaptor << " ].\n";
@@ -255,28 +255,28 @@ template<class TContainerType>
 void ExplicitFilterUtils<TContainerType>::CheckField(const TensorAdaptor<double>& rTensorAdaptor) const
 {
     KRATOS_ERROR_IF(mpFilterRadiusTensorAdaptor.get() == nullptr)
-        << "The filter radius container expression not set. "
+        << "The filter radius tensor adaptor not set. "
         << "Please set it using SetRadius method.\n\t Filter = "
         << *this;
 
     if (std::holds_alternative<ModelPart::NodesContainerType::Pointer>(rTensorAdaptor.GetContainer())) {
         const auto& r_container = *(std::get<ModelPart::NodesContainerType::Pointer>(rTensorAdaptor.GetContainer()));
         KRATOS_ERROR_IF_NOT(&r_container == &mrModelPart.Nodes() || &r_container == &mrModelPart.GetCommunicator().LocalMesh().Nodes())
-            << "Filter radius container expression model part and filter model part mismatch."
+            << "Filter radius tensor adaptor container and filter model part mismatch."
             << "\n\tFilter = " << *this
-            << "\n\tContainerExpression = " << rTensorAdaptor;
+            << "\n\tTensorAdaptor = " << rTensorAdaptor;
     } else if (std::holds_alternative<ModelPart::ConditionsContainerType::Pointer>(rTensorAdaptor.GetContainer())) {
         const auto& r_container = *(std::get<ModelPart::ConditionsContainerType::Pointer>(rTensorAdaptor.GetContainer()));
         KRATOS_ERROR_IF_NOT(&r_container == &mrModelPart.Conditions())
-            << "Filter radius container expression model part and filter model part mismatch."
+            << "Filter radius tensor adaptor container and filter model part mismatch."
             << "\n\tFilter = " << *this
-            << "\n\tContainerExpression = " << rTensorAdaptor;
+            << "\n\tTensorAdaptor = " << rTensorAdaptor;
     } else if (std::holds_alternative<ModelPart::ElementsContainerType::Pointer>(rTensorAdaptor.GetContainer())) {
         const auto& r_container = *(std::get<ModelPart::ElementsContainerType::Pointer>(rTensorAdaptor.GetContainer()));
         KRATOS_ERROR_IF_NOT(&r_container == &mrModelPart.Elements())
-            << "Filter radius container expression model part and filter model part mismatch."
+            << "Filter radius tensor adaptor container and filter model part mismatch."
             << "\n\tFilter = " << *this
-            << "\n\tContainerExpression = " << rTensorAdaptor;
+            << "\n\tTensorAdaptor = " << rTensorAdaptor;
     } else {
         KRATOS_ERROR << "Unsupported container type is found in the tensor adaptor. Only supports nodal, condition or elemental tensor adaptors [ tensor adaptor = "
                      << rTensorAdaptor << " ].\n";
@@ -304,8 +304,8 @@ TensorAdaptor<double>::Pointer ExplicitFilterUtils<TContainerType>::GenericForwa
     const auto& r_filter_radius_data_view = mpFilterRadiusTensorAdaptor->ViewData();
 
     KRATOS_ERROR_IF_NOT(stride == mpDamping->GetStride())
-        << "Damping stride and expression stride mismatch. [ damping stride = "
-        << mpDamping->GetStride() << ", expression stride = " << stride << " ].\n";
+        << "Damping stride and tensor adaptor stride mismatch. [ damping stride = "
+        << mpDamping->GetStride() << ", tensor adaptor stride = " << stride << " ].\n";
 
     auto p_result_tensor_adaptor = Kratos::make_shared<TensorAdaptor<double>>(rTensorAdaptor);
     auto result_data_view = p_result_tensor_adaptor->ViewData();
@@ -369,8 +369,8 @@ TensorAdaptor<double>::Pointer ExplicitFilterUtils<TContainerType>::GenericBackw
     const auto& r_filter_radius_data_view = mpFilterRadiusTensorAdaptor->ViewData();
 
     KRATOS_ERROR_IF_NOT(stride == mpDamping->GetStride())
-        << "Damping stride and expression stride mismatch. [ damping stride = "
-        << mpDamping->GetStride() << ", expression stride = " << stride << " ].\n";
+        << "Damping stride and tensor adaptor stride mismatch. [ damping stride = "
+        << mpDamping->GetStride() << ", tensor adaptor stride = " << stride << " ].\n";
 
     auto p_result_tensor_adaptor = Kratos::make_shared<TensorAdaptor<double>>(rTensorAdaptor);
     auto result_data_view = p_result_tensor_adaptor->ViewData();
