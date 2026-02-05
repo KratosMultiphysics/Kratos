@@ -26,8 +26,8 @@ class MockLaw : public ConstitutiveLaw
 public:
     KRATOS_CLASS_POINTER_DEFINITION(MockLaw);
 
-    explicit MockLaw(const Matrix& rConstitutiveMatrix, const Vector& rStressVectors)
-        : mConstitutiveMatrix(rConstitutiveMatrix), mStressVector(rStressVectors)
+    explicit MockLaw(const Matrix& rConstitutiveMatrix, const Vector& rStressVector)
+        : mConstitutiveMatrix(rConstitutiveMatrix), mStressVector(rStressVector)
     {
     }
 
@@ -97,8 +97,8 @@ namespace Kratos::Testing
 TEST_F(KratosGeoMechanicsFastSuiteWithoutKernel, TestsStiffnessContribution)
 {
     // Arrange
-    constexpr std::size_t number_of_u_dof              = 4;
-    constexpr auto        number_of_integration_points = std::size_t{2};
+    constexpr auto number_of_u_dof              = std::size_t{4};
+    constexpr auto number_of_integration_points = std::size_t{2};
 
     const auto stiffness_inputs = StiffnessInputs{};
     const auto provider =
@@ -119,8 +119,8 @@ TEST_F(KratosGeoMechanicsFastSuiteWithoutKernel, TestsStiffnessContribution)
 TEST_F(KratosGeoMechanicsFastSuiteWithoutKernel, TestsStiffnessForceContribution)
 {
     // Arrange
-    constexpr std::size_t number_of_u_dof              = 4;
-    constexpr auto        number_of_integration_points = std::size_t{2};
+    constexpr auto number_of_u_dof              = std::size_t{4};
+    constexpr auto number_of_integration_points = std::size_t{2};
 
     const auto stiffness_inputs = StiffnessInputs{};
     const auto provider =

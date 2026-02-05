@@ -71,8 +71,8 @@ public:
         const auto stresses = StressStrainUtilities::CalculateStressVectorsFromStrainVectors(
             mInputProvider.GetStrains(), mInputProvider.GetProcessInfo(),
             mInputProvider.GetElementProperties(), mInputProvider.GetConstitutiveLaws());
-        return {-GeoEquationOfMotionUtilities::CalculateInternalForceVector(
-            mInputProvider.GetBMatrices(), stresses, mInputProvider.GetIntegrationCoefficients())};
+        return {-1.0 * GeoEquationOfMotionUtilities::CalculateInternalForceVector(
+                           mInputProvider.GetBMatrices(), stresses, mInputProvider.GetIntegrationCoefficients())};
     }
 
     std::pair<std::optional<typename BaseType::LHSMatrixType>, typename BaseType::RHSVectorType> LocalSystemContribution() override
