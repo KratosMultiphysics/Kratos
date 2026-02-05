@@ -149,13 +149,7 @@ double CoulombYieldSurface::YieldFunctionValue(const Geo::PrincipalStresses& rPr
 
 Vector CoulombYieldSurface::DerivativeOfFlowFunction(const Vector& rSigmaTau) const
 {
-    return DerivativeOfFlowFunction(rSigmaTau, CoulombAveragingType::NO_AVERAGING);
-}
-
-Vector CoulombYieldSurface::DerivativeOfFlowFunction(const Vector&, CoulombAveragingType AveragingType) const
-{
-    const auto unused_sigma_tau = Geo::SigmaTau{};
-    return DerivativeOfFlowFunction(unused_sigma_tau, AveragingType);
+    return DerivativeOfFlowFunction(Geo::SigmaTau{rSigmaTau}, CoulombAveragingType::NO_AVERAGING);
 }
 
 Vector CoulombYieldSurface::DerivativeOfFlowFunction(const Geo::SigmaTau&, CoulombAveragingType AveragingType) const
