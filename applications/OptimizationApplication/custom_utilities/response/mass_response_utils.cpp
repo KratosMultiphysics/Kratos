@@ -125,6 +125,9 @@ void MassResponseUtils::CalculateGradient(
 {
     KRATOS_TRY
 
+    // make a copy of combined tensor adaptor, but sharing the internal NDData
+    CombinedTensorAdaptor<double> temp_cta(rCombinedTensorAdaptor, false, false, false);
+
     std::visit([&](auto pVariable) {
         if (*pVariable == DENSITY) {
             // clears the existing values
@@ -187,7 +190,8 @@ void MassResponseUtils::CalculateGradient(
     }, rPhysicalVariable);
 
     // update the combined tensor adaptor flat vector.
-    rCombinedTensorAdaptor.CollectData();
+    // below will never call the CollectData recursively.
+    temp_cta.CollectData();
 
     KRATOS_CATCH("");
 }

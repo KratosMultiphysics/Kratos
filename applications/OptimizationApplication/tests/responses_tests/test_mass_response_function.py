@@ -81,7 +81,7 @@ class TestMassResponseFunctionBeams(TestMassResponseFunctionBase):
         self.assertAlmostEqual(self.ref_value, 126, 12)
 
     def test_CalculateShapeSensitivity(self):
-        sensitivity = Kratos.TensorAdaptors.DoubleCombinedTensorAdaptor([Kratos.TensorAdaptors.VariableTensorAdaptor(self.model_part.Nodes,  KratosOA.SHAPE)], perform_collect_data_recursively=False, perform_store_data_recursively=False)
+        sensitivity = Kratos.TensorAdaptors.DoubleCombinedTensorAdaptor([Kratos.TensorAdaptors.VariableTensorAdaptor(self.model_part.Nodes,  KratosOA.SHAPE)])
         self.response_function.CalculateGradient({KratosOA.SHAPE: sensitivity})
 
         # calculate nodal shape sensitivities
@@ -104,7 +104,7 @@ class TestMassResponseFunctionBeams(TestMassResponseFunctionBase):
             4)
 
     def test_CalculateDensitySensitivity(self):
-        sensitivity = Kratos.TensorAdaptors.DoubleCombinedTensorAdaptor([Kratos.TensorAdaptors.VariableTensorAdaptor(self.model_part.Elements, Kratos.DENSITY)], perform_collect_data_recursively=False, perform_store_data_recursively=False)
+        sensitivity = Kratos.TensorAdaptors.DoubleCombinedTensorAdaptor([Kratos.TensorAdaptors.VariableTensorAdaptor(self.model_part.Elements, Kratos.DENSITY)])
         self.response_function.CalculateGradient({Kratos.DENSITY: sensitivity})
 
         # calculate element density sensitivity
@@ -118,7 +118,7 @@ class TestMassResponseFunctionBeams(TestMassResponseFunctionBase):
             6)
 
     def test_CalculateCrossAreaSensitivity(self):
-        sensitivity = Kratos.TensorAdaptors.DoubleCombinedTensorAdaptor([Kratos.TensorAdaptors.VariableTensorAdaptor(self.model_part.Elements, KratosOA.CROSS_AREA)], perform_collect_data_recursively=False, perform_store_data_recursively=False)
+        sensitivity = Kratos.TensorAdaptors.DoubleCombinedTensorAdaptor([Kratos.TensorAdaptors.VariableTensorAdaptor(self.model_part.Elements, KratosOA.CROSS_AREA)])
         self.response_function.CalculateGradient({KratosOA.CROSS_AREA: sensitivity})
 
         # calculate element cross area sensitivity
@@ -159,7 +159,7 @@ class TestMassResponseFunctionShells(TestMassResponseFunctionBase):
         self.assertAlmostEqual(self.ref_value, 15, 12)
 
     def test_CalculateShapeSensitivity(self):
-        sensitivity = Kratos.TensorAdaptors.DoubleCombinedTensorAdaptor([Kratos.TensorAdaptors.VariableTensorAdaptor(self.model_part.Nodes, KratosOA.SHAPE)], perform_collect_data_recursively=False, perform_store_data_recursively=False)
+        sensitivity = Kratos.TensorAdaptors.DoubleCombinedTensorAdaptor([Kratos.TensorAdaptors.VariableTensorAdaptor(self.model_part.Nodes, KratosOA.SHAPE)])
         self.response_function.CalculateGradient({KratosOA.SHAPE: sensitivity})
 
         # calculate nodal shape sensitivities
@@ -182,7 +182,7 @@ class TestMassResponseFunctionShells(TestMassResponseFunctionBase):
             4)
 
     def test_CalculateDensitySensitivity(self):
-        sensitivity = Kratos.TensorAdaptors.DoubleCombinedTensorAdaptor([Kratos.TensorAdaptors.VariableTensorAdaptor(self.model_part.Elements, Kratos.DENSITY)], perform_collect_data_recursively=False, perform_store_data_recursively=False)
+        sensitivity = Kratos.TensorAdaptors.DoubleCombinedTensorAdaptor([Kratos.TensorAdaptors.VariableTensorAdaptor(self.model_part.Elements, Kratos.DENSITY)])
         self.response_function.CalculateGradient({Kratos.DENSITY: sensitivity})
 
         # calculate element density sensitivity
@@ -196,7 +196,7 @@ class TestMassResponseFunctionShells(TestMassResponseFunctionBase):
             6)
 
     def test_CalculateThicknessSensitivity(self):
-        sensitivity = Kratos.TensorAdaptors.DoubleCombinedTensorAdaptor([Kratos.TensorAdaptors.VariableTensorAdaptor(self.model_part.Elements, Kratos.THICKNESS)], perform_collect_data_recursively=False, perform_store_data_recursively=False)
+        sensitivity = Kratos.TensorAdaptors.DoubleCombinedTensorAdaptor([Kratos.TensorAdaptors.VariableTensorAdaptor(self.model_part.Elements, Kratos.THICKNESS)])
         self.response_function.CalculateGradient({Kratos.THICKNESS: sensitivity})
 
         # calculate element cross area sensitivity
@@ -239,7 +239,7 @@ class TestMassResponseFunctionSolids(TestMassResponseFunctionBase):
         self.assertAlmostEqual(self.ref_value, v, 12)
 
     def test_CalculateShapeSensitivity(self):
-        sensitivity = Kratos.TensorAdaptors.DoubleCombinedTensorAdaptor([Kratos.TensorAdaptors.VariableTensorAdaptor(self.model_part.Nodes, KratosOA.SHAPE)], perform_collect_data_recursively=False, perform_store_data_recursively=False)
+        sensitivity = Kratos.TensorAdaptors.DoubleCombinedTensorAdaptor([Kratos.TensorAdaptors.VariableTensorAdaptor(self.model_part.Nodes, KratosOA.SHAPE)])
         self.response_function.CalculateGradient({KratosOA.SHAPE: sensitivity})
 
         # calculate nodal shape sensitivities
@@ -271,7 +271,7 @@ class TestMassResponseFunctionSolids(TestMassResponseFunctionBase):
             4)
 
     def test_CalculateDensitySensitivity(self):
-        sensitivity = Kratos.TensorAdaptors.DoubleCombinedTensorAdaptor([Kratos.TensorAdaptors.VariableTensorAdaptor(self.model_part.Elements, Kratos.DENSITY)], perform_collect_data_recursively=False, perform_store_data_recursively=False)
+        sensitivity = Kratos.TensorAdaptors.DoubleCombinedTensorAdaptor([Kratos.TensorAdaptors.VariableTensorAdaptor(self.model_part.Elements, Kratos.DENSITY)])
         self.response_function.CalculateGradient({Kratos.DENSITY: sensitivity})
 
         # calculate element density sensitivity
@@ -310,7 +310,7 @@ class TestMassResponseFunctionQuads(TestMassResponseFunctionBase):
         self.assertAlmostEqual(self.ref_value, v, 12)
 
     def test_CalculateShapeSensitivity(self):
-        sensitivity = Kratos.TensorAdaptors.DoubleCombinedTensorAdaptor([Kratos.TensorAdaptors.VariableTensorAdaptor(self.model_part.Nodes, KratosOA.SHAPE)], perform_collect_data_recursively=False, perform_store_data_recursively=False)
+        sensitivity = Kratos.TensorAdaptors.DoubleCombinedTensorAdaptor([Kratos.TensorAdaptors.VariableTensorAdaptor(self.model_part.Nodes, KratosOA.SHAPE)])
         self.response_function.CalculateGradient({KratosOA.SHAPE: sensitivity})
 
         # calculate nodal shape sensitivities
@@ -342,7 +342,7 @@ class TestMassResponseFunctionQuads(TestMassResponseFunctionBase):
             4)
 
     def test_CalculateDensitySensitivity(self):
-        sensitivity = Kratos.TensorAdaptors.DoubleCombinedTensorAdaptor([Kratos.TensorAdaptors.VariableTensorAdaptor(self.model_part.Elements, Kratos.DENSITY)], perform_collect_data_recursively=False, perform_store_data_recursively=False)
+        sensitivity = Kratos.TensorAdaptors.DoubleCombinedTensorAdaptor([Kratos.TensorAdaptors.VariableTensorAdaptor(self.model_part.Elements, Kratos.DENSITY)])
         self.response_function.CalculateGradient({Kratos.DENSITY: sensitivity})
 
         # calculate element density sensitivity
