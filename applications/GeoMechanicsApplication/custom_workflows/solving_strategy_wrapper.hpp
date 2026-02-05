@@ -12,9 +12,11 @@
 
 #pragma once
 
-#include "strategy_wrapper.hpp"
+#include "strategy_wrapper.h"
 #include <memory>
 
+#include "custom_processes/calculate_incremental_motion_process.h"
+#include "custom_processes/calculate_total_motion_process.h"
 #include "geo_mechanics_application_variables.h"
 #include "geo_output_writer.h"
 #include "includes/variables.h"
@@ -95,37 +97,18 @@ public:
         CopyNodalSolutionStepValues(ROTATION, index_of_old_value, index_of_new_value);
     }
 
-    void SaveTotalDisplacementFieldAtStartOfTimeLoop() override
-    {
-        if (mResetDisplacements) {
-            mOldTotalDisplacements.clear();
-            for (const auto& node : mrModelPart.Nodes()) {
-                mOldTotalDisplacements.emplace_back(node.GetSolutionStepValue(TOTAL_DISPLACEMENT));
-            }
-        }
-    }
-
     void AccumulateTotalDisplacementField() override
     {
-        if (mResetDisplacements) {
-            KRATOS_ERROR_IF_NOT(mrModelPart.Nodes().size() == mOldTotalDisplacements.size())
-                << "The number of old displacements (" << mOldTotalDisplacements.size()
-                << ") does not match the current number of nodes (" << mrModelPart.Nodes().size() << ").";
-            std::size_t count = 0;
-            for (auto& node : mrModelPart.Nodes()) {
-                node.GetSolutionStepValue(TOTAL_DISPLACEMENT) =
-                    mOldTotalDisplacements[count] + node.GetSolutionStepValue(DISPLACEMENT);
-                ++count;
-            }
-        }
+        auto process =
+            CalculateTotalMotionProcess(mrModelPart, Parameters(R"({"variable_name": "DISPLACEMENT"})"));
+        process.Execute();
     }
 
     void ComputeIncrementalDisplacementField() override
     {
-        for (auto& node : mrModelPart.Nodes()) {
-            node.GetSolutionStepValue(INCREMENTAL_DISPLACEMENT) =
-                node.GetSolutionStepValue(DISPLACEMENT, 0) - node.GetSolutionStepValue(DISPLACEMENT, 1);
-        }
+        auto process = CalculateIncrementalMotionProcess(
+            mrModelPart, Parameters(R"({"variable_name": "DISPLACEMENT"})"));
+        process.Execute();
     }
 
     void OutputProcess() override
@@ -166,7 +149,6 @@ private:
     std::unique_ptr<SolvingStrategy<TSparseSpace, TDenseSpace>> mpStrategy;
     ModelPart&                                                  mrModelPart;
     bool                                                        mResetDisplacements;
-    std::vector<array_1d<double, 3>>                            mOldTotalDisplacements;
     Parameters                                                  mProjectParameters;
     std::filesystem::path                                       mWorkingDirectory;
     std::unique_ptr<GeoOutputWriter>                            mWriter;

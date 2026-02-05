@@ -12,22 +12,19 @@
     "model_part_name"                  : "PorousDomain",
     "domain_size"                      : 2,
     "model_import_settings": {
-      "input_type"                     : "mdpa",
-      "input_filename"                 : "column"
+      "input_type"                     : "use_input_model_part"
     },
     "material_import_settings": {
       "materials_filename"             : "../Common/MaterialParameters_stage2.json"
     },
     "time_stepping": {
-      "time_step"                      : 0.1,
-      "max_delta_time_factor"          : 1.0
+      "time_step"                      : 0.1
     },
     "buffer_size"                      : 2,
     "echo_level"                       : 1,
     "clear_storage"                    : false,
     "compute_reactions"                : true,
     "reform_dofs_at_each_step"         : false,
-    "nodal_smoothing"                  : false,
     "block_builder"                    : true,
     "solution_type"                    : "Quasi-Static",
     "scheme_type"                      : "Newmark",
@@ -61,7 +58,6 @@
       "scaling"                        : true
     },
     "problem_domain_sub_model_part_list": ["Parts_Solid_Grond"    ],
-    "processes_sub_model_part_list"     : ["gravity", "WATER_PRESSURE_Bottom", "WATER_PRESSURE_Top"],
     "body_domain_sub_model_part_list"   : ["Parts_Solid_Grond"    ],
     "newmark_beta"                     : 0.25,
     "newmark_gamma"                    : 0.5,
@@ -120,7 +116,8 @@
           "x_coordinates"              : [ 0.0,  1.0],
           "y_coordinates"              : [-2.0, -2.0],
           "z_coordinates"              : [ 0.0,  0.0],
-          "specific_weight"            : 10000.0
+          "specific_weight"            : 10000.0,
+          "pressure_tension_cut_off"   : 1.0E-03
         }
       },
       {
@@ -138,7 +135,8 @@
           "x_coordinates"              : [ 0.0,  1.0],
           "y_coordinates"              : [-2.0, -2.0],
           "z_coordinates"              : [ 0.0,  0.0],
-          "specific_weight"            : 10000.0
+          "specific_weight"            : 10000.0,
+          "pressure_tension_cut_off"   : 1.0E-03
         }
       },
       {
@@ -168,7 +166,6 @@
           "table"                      : [0, 0, 0]
         }
       }
-    ],
-    "auxiliar_process_list": []
+    ]
   }
 }

@@ -11,8 +11,8 @@
 //
 
 #include "custom_processes/apply_scalar_constraint_table_process.h"
+#include "test_setup_utilities/model_setup_utilities.h"
 #include "tests/cpp_tests/geo_mechanics_fast_suite.h"
-#include "tests/cpp_tests/test_utilities/model_setup_utilities.h"
 
 #include "geo_mechanics_application_variables.h"
 
@@ -125,6 +125,26 @@ KRATOS_TEST_CASE_IN_SUITE(ApplyScalarConstraintTableProcess_AppliesCorrectValues
     process.ExecuteInitializeSolutionStep();
     expected_value = 2.5; // Extrapolated value
     AssertNodesHaveCorrectValueAndFixity(expected_value, expected_fixity, r_model_part.Nodes());
+}
+
+KRATOS_TEST_CASE_IN_SUITE(CheckInfoApplyScalarConstraintTableProcess, KratosGeoMechanicsFastSuiteWithoutKernel)
+{
+    // Arrange
+    Model model;
+    auto  table        = std::make_shared<Table<double>>();
+    auto& r_model_part = SetupModelPart(table, model);
+
+    const Parameters                        parameters(R"(
+      {
+          "model_part_name": "Main",
+          "variable_name":   "DISPLACEMENT_X",
+          "is_fixed":        true,
+          "table":           1,
+          "value":           0.3
+      }  )");
+    const ApplyScalarConstraintTableProcess process(r_model_part, parameters);
+    // Act & assert
+    KRATOS_EXPECT_EQ(process.Info(), "ApplyScalarConstraintTableProcess");
 }
 
 } // namespace Kratos::Testing

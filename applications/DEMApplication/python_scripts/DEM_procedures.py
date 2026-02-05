@@ -629,7 +629,7 @@ class Procedures():
         dem_inlet_model_part.SetBufferSize(inlet_b_size)
         rigid_face_model_part.SetBufferSize(rigid_b_size)
 
-    def FindMaxNodeIdAccrossModelParts(self, creator_destructor, all_model_parts):
+    def FindMaxNodeIdAcrossModelParts(self, creator_destructor, all_model_parts):
 
         max_candidates = []
         max_candidates.append(creator_destructor.FindMaxNodeIdInModelPart(all_model_parts.Get("SpheresPart")))

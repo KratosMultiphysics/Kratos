@@ -636,7 +636,7 @@ public:
        double h01 = -2.0 * projection * projection * projection + 3.0 * projection * projection;
        double h11 = projection * projection * projection - projection * projection;
 
-       //hermite interpolation polinomial
+       //hermite interpolation polynomial
        rD  = h00 * rP1;
        rD += h10 * modulus * T1;
        rD += h01 * rP2;

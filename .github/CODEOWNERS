@@ -5,6 +5,7 @@
 /kratos/              @KratosMultiphysics/technical-committee
 /.github/             @KratosMultiphysics/technical-committee
 /cmake_modules/       @KratosMultiphysics/technical-committee
+/external_libraries/gidpost  @KratosMultiphysics/technical-committee @KratosMultiphysics/gidproblemtype
 /external_libraries/  @KratosMultiphysics/technical-committee
 /scripts/             @KratosMultiphysics/technical-committee
 /kratos/mpi           @KratosMultiphysics/technical-committee @KratosMultiphysics/mpi
@@ -32,4 +33,4 @@
 /applications/MultilevelMonteCarloApplication/         @KratosMultiphysics/uncertainty-quantification
 /applications/MPMApplication/                          @KratosMultiphysics/mpm
 /applications/RomApplication/                          @KratosMultiphysics/rom
-/applications/GeoMechanicsApplication/.................@KratosMultiphysics/geomechanics
+/applications/GeoMechanicsApplication/                 @KratosMultiphysics/geomechanics

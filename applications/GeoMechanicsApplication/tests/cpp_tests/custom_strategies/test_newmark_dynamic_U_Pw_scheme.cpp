@@ -32,9 +32,9 @@ public:
         CreateValidModelPart(ThreeDCase);
     }
 
-    NewmarkDynamicUPwScheme<SparseSpaceType, LocalSpaceType> CreateValidScheme() const
+    static NewmarkDynamicUPwScheme<SparseSpaceType, LocalSpaceType> CreateValidScheme()
     {
-        return NewmarkDynamicUPwScheme<SparseSpaceType, LocalSpaceType>(0.25, 0.5, 0.75);
+        return {0.25, 0.5, 0.75};
     }
 
     void CreateValidModelPart(const bool Add3DDofs)

@@ -19,7 +19,6 @@
 // Project includes
 #include "contact_structural_mechanics_application_variables.h"
 #include "includes/kratos_parameters.h"
-#include "includes/define.h"
 #include "includes/model_part.h"
 #include "includes/variables.h"
 
@@ -628,7 +627,7 @@ protected:
         TSystemVectorType& rDx = *BaseType::mpDx;
         TSystemVectorType& rb = *BaseType::mpb;
 
-        // Initializing the parameters of the Newton-Raphson cicle
+        // Initializing the parameters of the Newton-Raphson cycle
         IndexType iteration_number = 1;
         r_process_info[NL_ITERATION_NUMBER] = iteration_number;
 
@@ -692,7 +691,7 @@ protected:
             is_converged = BaseType::mpConvergenceCriteria->PostCriteria(r_model_part, r_dof_set, rA, rDx, rb);
         }
 
-        // Iteration Cicle... performed only for NonLinearProblems
+        // Iteration Cycle... performed only for NonLinearProblems
         while (is_converged == false && iteration_number++<BaseType::mMaxIterationNumber) {
             //setting the number of iteration
             r_process_info[NL_ITERATION_NUMBER] = iteration_number;

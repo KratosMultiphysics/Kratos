@@ -12,14 +12,11 @@
 
 #pragma once
 
+#include "constitutive_law_dimension.h"
 #include "custom_constitutive/linear_elastic_law.h"
-#include "geo_mechanics_application_constants.h"
 
 namespace Kratos
 {
-
-class ConstitutiveLawDimension;
-
 /**
  * @class GeoIncrementalLinearElasticLaw
  * @ingroup GeoMechanicsApplication
@@ -33,15 +30,15 @@ public:
     using SizeType = std::size_t;
 
     KRATOS_CLASS_POINTER_DEFINITION(GeoIncrementalLinearElasticLaw);
-    GeoIncrementalLinearElasticLaw();
+    GeoIncrementalLinearElasticLaw() = default;
 
     explicit GeoIncrementalLinearElasticLaw(std::unique_ptr<ConstitutiveLawDimension> pConstitutiveDimension);
     GeoIncrementalLinearElasticLaw(const GeoIncrementalLinearElasticLaw& rOther);
     GeoIncrementalLinearElasticLaw& operator=(const GeoIncrementalLinearElasticLaw& rOther);
 
-    GeoIncrementalLinearElasticLaw(GeoIncrementalLinearElasticLaw&& rOther) noexcept;
-    GeoIncrementalLinearElasticLaw& operator=(GeoIncrementalLinearElasticLaw&& rOther) noexcept;
-    ~GeoIncrementalLinearElasticLaw() override;
+    GeoIncrementalLinearElasticLaw(GeoIncrementalLinearElasticLaw&& rOther) noexcept = default;
+    GeoIncrementalLinearElasticLaw& operator=(GeoIncrementalLinearElasticLaw&& rOther) noexcept = default;
+    ~GeoIncrementalLinearElasticLaw() override = default;
 
     [[nodiscard]] ConstitutiveLaw::Pointer Clone() const override;
 

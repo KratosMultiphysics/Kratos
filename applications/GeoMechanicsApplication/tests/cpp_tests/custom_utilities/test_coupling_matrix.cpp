@@ -12,7 +12,6 @@
 
 #include "containers/model.h"
 #include "custom_utilities/transport_equation_utilities.hpp"
-#include "includes/checks.h"
 #include "tests/cpp_tests/geo_mechanics_fast_suite.h"
 #include <boost/numeric/ublas/assignment.hpp>
 
@@ -43,9 +42,8 @@ KRATOS_TEST_CASE_IN_SUITE(CalculateCouplingMatrix2D3NGivesCorrectResults, Kratos
     const double biot_coefficient        = 0.02;
     const double bishop_coefficient      = 0.1;
 
-    BoundedMatrix<double, size_D * size_N, size_N> coupling_matrix =
-        GeoTransportEquationUtilities::CalculateCouplingMatrix<size_D, size_N>(
-            b_matrix, voigt_vector, n_p, biot_coefficient, bishop_coefficient, integration_coefficient);
+    const auto coupling_matrix = GeoTransportEquationUtilities::CalculateCouplingMatrix<size_D, size_N>(
+        b_matrix, voigt_vector, n_p, biot_coefficient, bishop_coefficient, integration_coefficient);
 
     BoundedMatrix<double, size_D * size_N, size_N> expected_coupling_matrix;
     // clang-format off
@@ -57,7 +55,7 @@ KRATOS_TEST_CASE_IN_SUITE(CalculateCouplingMatrix2D3NGivesCorrectResults, Kratos
                                  0.044,0.088,0.132;
     // clang-format on
 
-    KRATOS_CHECK_MATRIX_NEAR(coupling_matrix, expected_coupling_matrix, 1e-12)
+    KRATOS_EXPECT_MATRIX_NEAR(coupling_matrix, expected_coupling_matrix, 1e-12)
 }
 
 KRATOS_TEST_CASE_IN_SUITE(CalculateCouplingMatrix3D4NGivesCorrectResults, KratosGeoMechanicsFastSuiteWithoutKernel)
@@ -86,9 +84,10 @@ KRATOS_TEST_CASE_IN_SUITE(CalculateCouplingMatrix3D4NGivesCorrectResults, Kratos
     const double biot_coefficient        = 0.02;
     const double bishop_coefficient      = 0.1;
 
-    BoundedMatrix<double, size_D * size_N, size_N> coupling_matrix =
-        GeoTransportEquationUtilities::CalculateCouplingMatrix<size_D, size_N>(
-            b_matrix, voigt_vector, n_p, biot_coefficient, bishop_coefficient, integration_coefficient);
+    BoundedMatrix<double, size_D * size_N, size_N> coupling_matrix;
+    GeoTransportEquationUtilities::CalculateCouplingMatrix(coupling_matrix, b_matrix, voigt_vector,
+                                                           n_p, biot_coefficient, bishop_coefficient,
+                                                           integration_coefficient);
 
     BoundedMatrix<double, size_D * size_N, size_N> expected_coupling_matrix;
     // clang-format off
@@ -106,7 +105,7 @@ KRATOS_TEST_CASE_IN_SUITE(CalculateCouplingMatrix3D4NGivesCorrectResults, Kratos
                                  0.132,0.264,0.396,0.528;
     // clang-format on
 
-    KRATOS_CHECK_MATRIX_NEAR(coupling_matrix, expected_coupling_matrix, 1e-12)
+    KRATOS_EXPECT_MATRIX_NEAR(coupling_matrix, expected_coupling_matrix, 1e-12)
 }
 
 } // namespace Kratos::Testing

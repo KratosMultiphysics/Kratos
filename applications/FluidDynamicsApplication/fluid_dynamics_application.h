@@ -100,6 +100,7 @@
 #include "custom_elements/data_containers/two_fluid_fractional_navier_stokes/two_fluid_navier_stokes_fractional_convection_data.h"
 
 #include "custom_constitutive/bingham_3d_law.h"
+#include "custom_constitutive/bingham_2d_law.h"
 #include "custom_constitutive/euler_2d_law.h"
 #include "custom_constitutive/euler_3d_law.h"
 #include "custom_constitutive/herschel_bulkley_3d_law.h"
@@ -457,9 +458,13 @@ private:
     /// Low Mach Navier-Stokes element
     const LowMachNavierStokes<LowMachNavierStokesData<2,3>> mLowMachNavierStokes2D3N;
     const LowMachNavierStokes<LowMachNavierStokesData<2,4>> mLowMachNavierStokes2D4N;
+    const LowMachNavierStokes<LowMachNavierStokesData<3,4>> mLowMachNavierStokes3D4N;
+    const LowMachNavierStokes<LowMachNavierStokesData<3,8>> mLowMachNavierStokes3D8N;
 
     /// Low Mach Navier-Stokes condition
     const LowMachNavierStokesWallCondition<2,2> mLowMachNavierStokesWallCondition2D2N;
+    const LowMachNavierStokesWallCondition<3,3> mLowMachNavierStokesWallCondition3D3N;
+    const LowMachNavierStokesWallCondition<3,4> mLowMachNavierStokesWallCondition3D4N;
 
     /// Compressible Navier-Stokes symbolic element
     const CompressibleNavierStokesExplicit<2, 3> mCompressibleNavierStokesExplicit2D3N;
@@ -484,6 +489,7 @@ private:
 
     /// Fluid constitutive laws
     const Bingham3DLaw mBingham3DLaw;
+    const Bingham2DLaw mBingham2DLaw;
     const Euler2DLaw mEuler2DLaw;
     const Euler3DLaw mEuler3DLaw;
     const HerschelBulkley3DLaw mHerschelBulkley3DLaw;

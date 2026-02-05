@@ -1,8 +1,8 @@
 {
     "problem_data": {
         "problem_name":         "test",
-        "start_time":           0.0,
-        "end_time":             1.0,
+        "start_time":           1.0,
+        "end_time":             2.0,
         "echo_level":           1,
         "parallel_type":        "OpenMP",
         "number_of_threads":    1
@@ -12,8 +12,7 @@
         "model_part_name":                    "PorousDomain",
         "domain_size":                        2,
         "model_import_settings":              {
-            "input_type":       "mdpa",
-            "input_filename":   "../Common/test"
+            "input_type":       "use_input_model_part"
         },
         "material_import_settings":              {
             "materials_filename":       "../Common/MaterialParameters.json"
@@ -28,7 +27,6 @@
         "compute_reactions":                  true,
         "move_mesh_flag":                     false,
         "reform_dofs_at_each_step":           false,
-        "nodal_smoothing":                    false,
         "block_builder":                      true,
         "solution_type":                      "Quasi-Static",
         "scheme_type":                        "Backward_Euler",
@@ -70,7 +68,6 @@
             "preconditioner_type": "ilu0"
         },
         "problem_domain_sub_model_part_list": ["Dummy_soil"],
-        "processes_sub_model_part_list":      ["Bottom_fixed","Side_sliders","Phreatic_line","Second_line_load"],
         "body_domain_sub_model_part_list":    ["Dummy_soil"]
     },
     "output_processes": {
@@ -158,7 +155,6 @@
             "value":           [0.0,-20.0,0.0],
             "table":           [0,0,0]
         }
-    }],
-        "auxiliar_process_list": []
+    }]
     }
 }

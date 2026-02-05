@@ -19,7 +19,6 @@
 
 // Project includes
 #include "containers/model.h"
-#include "includes/model_part.h"
 #include "utilities/geometry_utilities.h"
 #include "utilities/parallel_utilities.h"
 #include "processes/parallel_distance_calculation_process.h"
@@ -47,6 +46,7 @@ ParallelDistanceCalculationProcess<TDim>::ParallelDistanceCalculationProcess(
 
     mMaxLevels = Settings["max_levels"].GetInt();
     mMaxDistance = Settings["max_distance"].GetDouble();
+    mPreserveInterface = Settings["preserve_interface"].GetBool();
     mCalculateExactDistancesToPlane = Settings["calculate_exact_distances_to_plane"].GetBool();
 
     const std::string distance_database = Settings["distance_database"].GetString();
@@ -75,6 +75,7 @@ const Parameters ParallelDistanceCalculationProcess<TDim>::GetDefaultParameters(
         "distance_database" : "nodal_historical",
         "max_levels" : 25,
         "max_distance" : 1.0,
+        "preserve_interface" : false,
         "calculate_exact_distances_to_plane" : false
     })");
 }
@@ -86,20 +87,16 @@ double ParallelDistanceCalculationProcess<TDim>::FindMaximumEdgeSize()
 
     double h_max = 0.0;
 
-    for(ModelPart::ElementsContainerType::iterator it=mrModelPart.ElementsBegin(); it!=mrModelPart.ElementsEnd(); it++)
-    {
+    for(ModelPart::ElementsContainerType::iterator it=mrModelPart.ElementsBegin(); it!=mrModelPart.ElementsEnd(); it++) {
         Geometry<NodeType >&geom = it->GetGeometry();
 
         double h = 0.0;
 
-        for(unsigned int i=0; i<TDim+1; i++)
-        {
-
+        for(unsigned int i=0; i<TDim+1; i++) {
             double xc = geom[i].X();
             double yc = geom[i].Y();
             double zc = geom[i].Z();
-            for(unsigned int j=i+1; j<TDim+1; j++)
-            {
+            for(unsigned int j=i+1; j<TDim+1; j++) {
                 double x = geom[j].X();
                 double y = geom[j].Y();
                 double z = geom[j].Z();
@@ -167,6 +164,7 @@ void ParallelDistanceCalculationProcess<TDim>::AddDistanceToNodes(
     const BoundedMatrix<double,TDim+1,TDim>& rDN_DX,
     const double& Volume)
 {
+    constexpr double zero_tolerance = 1e-12;
     unsigned int unknown_node_index = 0;
     array_1d<double,TDim> d;
     double nodal_vol = Volume/static_cast<double>(TDim+1);
@@ -204,21 +202,8 @@ void ParallelDistanceCalculationProcess<TDim>::AddDistanceToNodes(
 
     double discriminant = b * b - 4.0 * a*c;
 
-    if (discriminant < 0.0) //here we solve (2ax+b) = 0
+    if (discriminant < zero_tolerance) //here we solve (2ax+b) = 0
     {
-//                  double numerator = 0.0;
-//                  double denominator = 0.0;
-//                  for(unsigned int i=0; i<TDim+1; i++)
-//                  {
-//                      for (unsigned int jjj = 0; jjj < TDim; jjj++)
-//                      {
-//                          if(i != unknown_node_index)
-//                            numerator += rDN_DX(unknown_node_index, jjj) * rDN_DX(i, jjj);
-//                          else
-//                            denominator += rDN_DX(unknown_node_index, jjj)*rDN_DX(unknown_node_index, jjj);
-//                      }
-//                  }
-//                  distance = - numerator/denominator;
 
         distance = -b / (2.0*a); //avg_dist ; //
     }
@@ -227,14 +212,14 @@ void ParallelDistanceCalculationProcess<TDim>::AddDistanceToNodes(
         //(accurate) computation of the distance
         //requires the solution of a*x^2+b*x+c=0
         double q, root1, root2;
-        double sqrt_det = sqrt(discriminant);
-        if (a != 0.0)
+        const double sqrt_det = std::sqrt(discriminant);
+        if (std::abs(a) > zero_tolerance)
         {
             if (b > 0) q = -0.5 * (b + sqrt_det);
             else q = -0.5 * (b - sqrt_det);
             root1 = q / a;
             distance = root1;
-            if(std::abs(q) > 0.0) {
+            if(std::abs(q) > zero_tolerance) {
                 root2 = c / q;
                 if (root2 > root1) distance = root2;
             }
@@ -279,7 +264,7 @@ void ParallelDistanceCalculationProcess<TDim>::Execute()
 
     ResetVariables();
 
-    CalculateExactDistancesOnDividedElements();
+    SetDistancesOnDividedElements();
 
     ExtendDistancesByLayer();
 
@@ -323,12 +308,12 @@ void ParallelDistanceCalculationProcess<TDim>::ResetVariables()
 }
 
 template<unsigned int TDim>
-void ParallelDistanceCalculationProcess<TDim>::CalculateExactDistancesOnDividedElements()
+void ParallelDistanceCalculationProcess<TDim>::SetDistancesOnDividedElements()
 {
     KRATOS_TRY
 
     //identify the list of elements divided by the original distance distribution and recompute an "exact" distance
-    //attempting to maintain the original position of the free surface
+    //attempting to mantain the original position of the free surface
     //note that the backup value is used in calculating the position of the free surface and the divided elements
     array_1d<double,TDim+1> dist;
     block_for_each(mrModelPart.Elements(), dist, [&](Element& rElement, array_1d<double,TDim+1>& rDist){
@@ -340,23 +325,10 @@ void ParallelDistanceCalculationProcess<TDim>::CalculateExactDistancesOnDividedE
 
         bool is_divided = IsDivided(rDist);
         if (is_divided) {
-            if (mCalculateExactDistancesToPlane) {
-                GeometryUtils::CalculateExactDistancesToPlane(element_geometry, rDist);
+            if (mPreserveInterface) {
+                PreserveDistancesOnDividedElements(element_geometry, rDist);
             } else {
-                GeometryUtils::CalculateTetrahedraDistances(element_geometry, rDist);
-            }
-
-            // loop over nodes and apply the new distances.
-            for (unsigned int i_node = 0; i_node < TDim+1; i_node++) {
-                double& r_distance = mDistanceGetter(element_geometry[i_node]);
-                const double new_distance = rDist[i_node];
-
-                element_geometry[i_node].SetLock();
-                if (std::abs(r_distance) > std::abs(new_distance)) {
-                    r_distance = new_distance;
-                }
-                element_geometry[i_node].Set(VISITED, true);
-                element_geometry[i_node].UnSetLock();
+                CalculateExactDistancesOnDividedElements(element_geometry, rDist);
             }
         }
     });
@@ -383,6 +355,53 @@ void ParallelDistanceCalculationProcess<TDim>::CalculateExactDistancesOnDividedE
     KRATOS_CATCH("")
 }
 
+
+template<unsigned int TDim>
+void ParallelDistanceCalculationProcess<TDim>::CalculateExactDistancesOnDividedElements(
+    Geometry<Node>& rGeometry,
+    array_1d<double,TDim+1>& rDist)
+{
+    KRATOS_TRY
+
+    if (mCalculateExactDistancesToPlane) {
+        GeometryUtils::CalculateExactDistancesToPlane(rGeometry, rDist);
+    } else {
+        GeometryUtils::CalculateTetrahedraDistances(rGeometry, rDist);
+    }
+
+    for (unsigned int i_node = 0; i_node < TDim+1; i_node++) {
+        double& r_distance = mDistanceGetter(rGeometry[i_node]);
+        const double new_distance = rDist[i_node];
+
+        rGeometry[i_node].SetLock();
+        if (std::abs(r_distance) > std::abs(new_distance)) {
+            r_distance = new_distance;
+        }
+        rGeometry[i_node].Set(VISITED, true);
+        rGeometry[i_node].UnSetLock();
+    }
+
+    KRATOS_CATCH("")
+}
+
+template<unsigned int TDim>
+void ParallelDistanceCalculationProcess<TDim>::PreserveDistancesOnDividedElements(
+    Geometry<Node>& rGeometry,
+    const array_1d<double,TDim+1>& rDist)
+{
+    KRATOS_TRY
+
+    for (unsigned int i_node = 0; i_node < TDim+1; i_node++) {
+        double& r_distance = mDistanceGetter(rGeometry[i_node]);
+        rGeometry[i_node].SetLock();
+        r_distance = std::abs(rDist[i_node]);
+        rGeometry[i_node].Set(VISITED, true);
+        rGeometry[i_node].UnSetLock();
+    }
+
+    KRATOS_CATCH("")
+}
+
 template<unsigned int TDim>
 void ParallelDistanceCalculationProcess<TDim>::ExtendDistancesByLayer()
 {
@@ -390,7 +409,7 @@ void ParallelDistanceCalculationProcess<TDim>::ExtendDistancesByLayer()
 
     // Set the TLS container
     array_1d<double,TDim+1> visited, N;
-    BoundedMatrix <double, TDim+1,TDim> DN_DX;
+    BoundedMatrix <double, TDim+1,TDim> DN_DX = ZeroMatrix(TDim+1, TDim);
     typedef std::tuple<array_1d<double,TDim+1>, array_1d<double,TDim+1>, BoundedMatrix<double, TDim+1, TDim>> TLSType;
     TLSType tls_container = std::make_tuple(visited, N, DN_DX);
 

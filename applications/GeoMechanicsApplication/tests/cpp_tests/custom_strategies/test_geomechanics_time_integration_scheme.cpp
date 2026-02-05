@@ -144,20 +144,20 @@ public:
         };
 
         // Create functions that check if the previously mentioned functions have been called
-        auto finalize_function_check = [](const Kratos::intrusive_ptr<T> rElement) {
-            return rElement->IsSolutionStepFinalized();
+        auto finalize_function_check = [](const intrusive_ptr<T>& rpElement) {
+            return rpElement->IsSolutionStepFinalized();
         };
 
-        auto initialize_function_check = [](const Kratos::intrusive_ptr<T> rElement) {
-            return rElement->IsSolutionStepInitialized();
+        auto initialize_function_check = [](const intrusive_ptr<T>& rpElement) {
+            return rpElement->IsSolutionStepInitialized();
         };
 
-        auto initialize_non_linear_iteration_check = [](const Kratos::intrusive_ptr<T> rCondition) {
-            return rCondition->IsNonLinIterationInitialized();
+        auto initialize_non_linear_iteration_check = [](const intrusive_ptr<T>& rpCondition) {
+            return rpCondition->IsNonLinIterationInitialized();
         };
 
-        auto finalize_non_linear_iteration_check = [](const Kratos::intrusive_ptr<T> rCondition) {
-            return rCondition->IsNonLinIterationFinalized();
+        auto finalize_non_linear_iteration_check = [](const intrusive_ptr<T>& rpCondition) {
+            return rpCondition->IsNonLinIterationFinalized();
         };
 
         functions_and_checks.push_back({finalize_solution_step, finalize_function_check});
@@ -170,12 +170,12 @@ public:
 
     void AddComponent(ModelPart::ElementType::Pointer element)
     {
-        GetModelPart().AddElement(element);
+        GetModelPart().AddElement(std::move(element));
     }
 
     void AddComponent(ModelPart::ConditionType::Pointer condition)
     {
-        GetModelPart().AddCondition(condition);
+        GetModelPart().AddCondition(std::move(condition));
     }
 
     ModelPart& GetModelPart() { return mModel.GetModelPart("dummy"); }
@@ -194,21 +194,32 @@ KRATOS_TEST_CASE_IN_SUITE(FunctionCallsOnAllConditions_AreOnlyCalledForActiveCon
     tester.TestFunctionCallOnAllComponents_AreOnlyCalledForActiveComponents<SpyCondition>();
 }
 
-KRATOS_TEST_CASE_IN_SUITE(FunctionCalledOnCondition_IsCalledOnActiveAndInactiveConditions,
-                          KratosGeoMechanicsFastSuiteWithoutKernel)
-{
-    GeoMechanicsSchemeTester tester;
-    tester.TestFunctionCalledOnComponent_IsCalledOnActiveAndInactiveComponents<SpyCondition>(
-        [](auto& rModelPart, auto& rCondition) { rModelPart.AddCondition(rCondition); },
-        [](auto& rScheme, auto& rModelPart) { rScheme.InitializeConditions(rModelPart); });
-}
-
 KRATOS_TEST_CASE_IN_SUITE(FunctionCalledOnElement_IsCalledOnActiveAndInactiveElements, KratosGeoMechanicsFastSuiteWithoutKernel)
 {
     GeoMechanicsSchemeTester tester;
     tester.TestFunctionCalledOnComponent_IsCalledOnActiveAndInactiveComponents<SpyElement>(
         [](auto& rModelPart, auto& rElement) { rModelPart.AddElement(rElement); },
         [](auto& rScheme, auto& rModelPart) { rScheme.InitializeElements(rModelPart); });
+}
+
+KRATOS_TEST_CASE_IN_SUITE(FunctionCalledOnCondition_IsCalledOnActiveAndInactiveConditions,
+                          KratosGeoMechanicsFastSuiteWithoutKernel)
+{
+    GeoMechanicsSchemeTester tester;
+    tester.TestFunctionCalledOnComponent_IsCalledOnActiveAndInactiveComponents<SpyCondition>(
+        [](auto& rModelPart, auto& rCondition) { rModelPart.AddCondition(rCondition); },
+        [](auto& rScheme, auto& rModelPart) {
+        rScheme.SetElementsAreInitialized(); // Precondition for initializing the conditions
+        rScheme.InitializeConditions(rModelPart);
+    });
+}
+
+KRATOS_TEST_CASE_IN_SUITE(InitializeConditions_Throws_IfElementsNotInitialized, KratosGeoMechanicsFastSuiteWithoutKernel)
+{
+    GeoMechanicsSchemeTester tester;
+    tester.Setup();
+    auto& model_part = tester.GetModelPart();
+    EXPECT_THROW(tester.mScheme.InitializeConditions(model_part), Kratos::Exception);
 }
 
 KRATOS_TEST_CASE_IN_SUITE(ForInvalidBufferSize_CheckGeoMechanicsTimeIntegrationScheme_Throws,
@@ -252,10 +263,10 @@ void TestUpdateForNumberOfThreads(int NumberOfThreads)
     Dx[0] = 1.0; // Meaning the updated value = 42.0 + 1.0 = 43.0
 
     auto dof_displacement                                     = p_node->pGetDof(DISPLACEMENT_X);
-    dof_displacement->GetSolutionStepValue(DISPLACEMENT_X, 0) = 3.14;
+    dof_displacement->GetSolutionStepValue(DISPLACEMENT_X, 0) = 3.41;
     dof_displacement->SetEquationId(1);
     dofs_array.push_back(dof_displacement);
-    Dx[1] = 6.0; // Meaning the updated value = 3.14 + 6.0 = 9.14
+    Dx[1] = 6.0; // Meaning the updated value = 3.41 + 6.0 = 9.41
 
     auto dof_inactive_displacement = p_node->pGetDof(DISPLACEMENT_Y);
     dof_inactive_displacement->GetSolutionStepValue(DISPLACEMENT_Y, 0) = 1.0;
@@ -267,7 +278,7 @@ void TestUpdateForNumberOfThreads(int NumberOfThreads)
     tester.mScheme.Update(tester.GetModelPart(), dofs_array, A, Dx, b);
 
     KRATOS_EXPECT_DOUBLE_EQ(dofs_array.begin()->GetSolutionStepValue(WATER_PRESSURE, 0), 43.0);
-    KRATOS_EXPECT_DOUBLE_EQ((dofs_array.begin() + 1)->GetSolutionStepValue(DISPLACEMENT_X, 0), 9.14);
+    KRATOS_EXPECT_DOUBLE_EQ((dofs_array.begin() + 1)->GetSolutionStepValue(DISPLACEMENT_X, 0), 9.41);
     KRATOS_EXPECT_DOUBLE_EQ((dofs_array.begin() + 2)->GetSolutionStepValue(DISPLACEMENT_Y, 0), 1.0);
 }
 

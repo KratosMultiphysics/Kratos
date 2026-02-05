@@ -11,8 +11,12 @@
 //
 
 // Application includes
-#include "custom_elements/transient_Pw_element.hpp"
-#include "custom_utilities/dof_utilities.h"
+#include "custom_elements/transient_Pw_element.h"
+#include "custom_retention/retention_law_factory.h"
+#include "custom_utilities/check_utilities.hpp"
+#include "custom_utilities/dof_utilities.hpp"
+#include "custom_utilities/element_utilities.hpp"
+#include "custom_utilities/stress_strain_utilities.h"
 #include "custom_utilities/transport_equation_utilities.hpp"
 #include "includes/cfd_variables.h"
 
@@ -20,12 +24,41 @@ namespace Kratos
 {
 
 template <unsigned int TDim, unsigned int TNumNodes>
+TransientPwElement<TDim, TNumNodes>::TransientPwElement(IndexType             NewId,
+                                                        const NodesArrayType& ThisNodes,
+                                                        std::unique_ptr<StressStatePolicy> pStressStatePolicy,
+                                                        std::unique_ptr<IntegrationCoefficientModifier> pCoefficientModifier)
+    : BaseType(NewId, ThisNodes, std::move(pStressStatePolicy), std::move(pCoefficientModifier))
+{
+}
+
+template <unsigned int TDim, unsigned int TNumNodes>
+TransientPwElement<TDim, TNumNodes>::TransientPwElement(IndexType             NewId,
+                                                        GeometryType::Pointer pGeometry,
+                                                        std::unique_ptr<StressStatePolicy> pStressStatePolicy,
+                                                        std::unique_ptr<IntegrationCoefficientModifier> pCoefficientModifier)
+    : BaseType(NewId, pGeometry, std::move(pStressStatePolicy), std::move(pCoefficientModifier))
+{
+}
+
+template <unsigned int TDim, unsigned int TNumNodes>
+TransientPwElement<TDim, TNumNodes>::TransientPwElement(IndexType               NewId,
+                                                        GeometryType::Pointer   pGeometry,
+                                                        PropertiesType::Pointer pProperties,
+                                                        std::unique_ptr<StressStatePolicy> pStressStatePolicy,
+                                                        std::unique_ptr<IntegrationCoefficientModifier> pCoefficientModifier)
+    : BaseType(NewId, pGeometry, pProperties, std::move(pStressStatePolicy), std::move(pCoefficientModifier))
+{
+}
+
+template <unsigned int TDim, unsigned int TNumNodes>
 Element::Pointer TransientPwElement<TDim, TNumNodes>::Create(IndexType             NewId,
                                                              NodesArrayType const& ThisNodes,
                                                              PropertiesType::Pointer pProperties) const
 {
     return Element::Pointer(new TransientPwElement(NewId, this->GetGeometry().Create(ThisNodes),
-                                                   pProperties, this->GetStressStatePolicy().Clone()));
+                                                   pProperties, this->GetStressStatePolicy().Clone(),
+                                                   this->CloneIntegrationCoefficientModifier()));
 }
 
 template <unsigned int TDim, unsigned int TNumNodes>
@@ -33,8 +66,9 @@ Element::Pointer TransientPwElement<TDim, TNumNodes>::Create(IndexType          
                                                              GeometryType::Pointer pGeom,
                                                              PropertiesType::Pointer pProperties) const
 {
-    return Element::Pointer(
-        new TransientPwElement(NewId, pGeom, pProperties, this->GetStressStatePolicy().Clone()));
+    return Element::Pointer(new TransientPwElement(NewId, pGeom, pProperties,
+                                                   this->GetStressStatePolicy().Clone(),
+                                                   this->CloneIntegrationCoefficientModifier()));
 }
 
 template <unsigned int TDim, unsigned int TNumNodes>
@@ -123,9 +157,8 @@ void TransientPwElement<TDim, TNumNodes>::Initialize(const ProcessInfo& rCurrent
 {
     KRATOS_TRY
 
-    const PropertiesType& r_properties = this->GetProperties();
-    const GeometryType&   r_geom       = this->GetGeometry();
-    const unsigned int    number_of_integration_points =
+    const auto&        r_geom = this->GetGeometry();
+    const unsigned int number_of_integration_points =
         r_geom.IntegrationPointsNumber(this->GetIntegrationMethod());
 
     if (mConstitutiveLawVector.size() != number_of_integration_points)
@@ -137,7 +170,7 @@ void TransientPwElement<TDim, TNumNodes>::Initialize(const ProcessInfo& rCurrent
     if (mRetentionLawVector.size() != number_of_integration_points)
         mRetentionLawVector.resize(number_of_integration_points);
     for (auto& r_retention_law : mRetentionLawVector) {
-        r_retention_law = RetentionLawFactory::Clone(r_properties);
+        r_retention_law = RetentionLawFactory::Clone(this->GetProperties());
     }
 
     KRATOS_CATCH("")
@@ -148,105 +181,28 @@ int TransientPwElement<TDim, TNumNodes>::Check(const ProcessInfo& rCurrentProces
 {
     KRATOS_TRY
 
-    const PropertiesType& r_properties = this->GetProperties();
-    const GeometryType&   r_geom       = this->GetGeometry();
+    const auto& r_geom = this->GetGeometry();
 
-    if (r_geom.DomainSize() < 1.0e-15)
-        KRATOS_ERROR << "DomainSize < 1.0e-15 for the element " << this->Id() << std::endl;
+    CheckUtilities::CheckDomainSize(r_geom.DomainSize(), this->Id());
+    CheckUtilities::CheckHasNodalSolutionStepData(
+        r_geom, {std::cref(WATER_PRESSURE), std::cref(DT_WATER_PRESSURE), std::cref(VOLUME_ACCELERATION)});
+    CheckUtilities::CheckHasDofs(r_geom, {std::cref(WATER_PRESSURE)});
 
-    for (unsigned int i = 0; i < TNumNodes; ++i) {
-        if (r_geom[i].SolutionStepsDataHas(WATER_PRESSURE) == false)
-            KRATOS_ERROR << "Missing variable WATER_PRESSURE on node " << r_geom[i].Id() << std::endl;
+    const CheckProperties check_properties(this->GetProperties(), "material properties", this->Id(),
+                                           CheckProperties::Bounds::AllInclusive);
+    check_properties.Check(DENSITY_WATER);
+    check_properties.Check(BULK_MODULUS_SOLID);
+    constexpr auto max_value_porosity = 1.0;
+    check_properties.Check(POROSITY, max_value_porosity);
 
-        if (r_geom[i].SolutionStepsDataHas(DT_WATER_PRESSURE) == false)
-            KRATOS_ERROR << "Missing variable DT_WATER_PRESSURE on node " << r_geom[i].Id() << std::endl;
+    if constexpr (TDim == 2) CheckUtilities::CheckForNonZeroZCoordinateIn2D(r_geom);
 
-        if (r_geom[i].SolutionStepsDataHas(VOLUME_ACCELERATION) == false)
-            KRATOS_ERROR << "Missing variable VOLUME_ACCELERATION on node " << r_geom[i].Id() << std::endl;
+    check_properties.SingleUseBounds(CheckProperties::Bounds::AllExclusive).Check(BULK_MODULUS_FLUID);
+    check_properties.SingleUseBounds(CheckProperties::Bounds::AllExclusive).Check(DYNAMIC_VISCOSITY);
+    check_properties.CheckAvailability(BIOT_COEFFICIENT);
+    check_properties.CheckPermeabilityProperties(TDim);
 
-        if (r_geom[i].HasDofFor(WATER_PRESSURE) == false)
-            KRATOS_ERROR << "Missing variable WATER_PRESSURE on node " << r_geom[i].Id() << std::endl;
-    }
-
-    // Verify ProcessInfo variables
-
-    // Verify properties
-    if (r_properties.Has(DENSITY_WATER) == false || r_properties[DENSITY_WATER] < 0.0)
-        KRATOS_ERROR << "DENSITY_WATER does not exist in the material "
-                        "properties or has an invalid value at element "
-                     << this->Id() << std::endl;
-
-    if (r_properties.Has(BULK_MODULUS_SOLID) == false || r_properties[BULK_MODULUS_SOLID] < 0.0)
-        KRATOS_ERROR << "BULK_MODULUS_SOLID does not exist in the material "
-                        "properties or has an invalid value at element "
-                     << this->Id() << std::endl;
-
-    if (r_properties.Has(POROSITY) == false || r_properties[POROSITY] < 0.0 || r_properties[POROSITY] > 1.0)
-        KRATOS_ERROR << "POROSITY does not exist in the material properties or "
-                        "has an invalid value at element "
-                     << this->Id() << std::endl;
-
-    if (TDim == 2) {
-        // If this is a 2D problem, nodes must be in XY plane
-        for (unsigned int i = 0; i < TNumNodes; ++i) {
-            if (r_geom[i].Z() != 0.0)
-                KRATOS_ERROR << " Node with non-zero Z coordinate found. Id: " << r_geom[i].Id() << std::endl;
-        }
-    }
-
-    // Verify specific properties
-    if (r_properties.Has(BULK_MODULUS_FLUID) == false || r_properties[BULK_MODULUS_FLUID] < 0.0)
-        KRATOS_ERROR << "BULK_MODULUS_FLUID does not exist in the material "
-                        "properties or has an invalid value at element "
-                     << this->Id() << std::endl;
-
-    if (r_properties.Has(DYNAMIC_VISCOSITY) == false || r_properties[DYNAMIC_VISCOSITY] < 0.0)
-        KRATOS_ERROR << "DYNAMIC_VISCOSITY does not exist in the material "
-                        "properties or has an invalid value at element "
-                     << this->Id() << std::endl;
-
-    if (r_properties.Has(PERMEABILITY_XX) == false || r_properties[PERMEABILITY_XX] < 0.0)
-        KRATOS_ERROR << "PERMEABILITY_XX does not exist in the material "
-                        "properties or has an invalid value at element "
-                     << this->Id() << std::endl;
-
-    if (r_properties.Has(PERMEABILITY_YY) == false || r_properties[PERMEABILITY_YY] < 0.0)
-        KRATOS_ERROR << "PERMEABILITY_YY does not exist in the material "
-                        "properties or has an invalid value at element "
-                     << this->Id() << std::endl;
-
-    if (r_properties.Has(PERMEABILITY_XY) == false || r_properties[PERMEABILITY_XY] < 0.0)
-        KRATOS_ERROR << "PERMEABILITY_XY does not exist in the material "
-                        "properties or has an invalid value at element "
-                     << this->Id() << std::endl;
-
-    if (!r_properties.Has(BIOT_COEFFICIENT))
-        KRATOS_ERROR << "BIOT_COEFFICIENT does not exist in the material "
-                        "properties in element "
-                     << this->Id() << std::endl;
-
-    if constexpr (TDim > 2) {
-        if (r_properties.Has(PERMEABILITY_ZZ) == false || r_properties[PERMEABILITY_ZZ] < 0.0)
-            KRATOS_ERROR << "PERMEABILITY_ZZ does not exist in the material "
-                            "properties or has an invalid value at element "
-                         << this->Id() << std::endl;
-
-        if (r_properties.Has(PERMEABILITY_YZ) == false || r_properties[PERMEABILITY_YZ] < 0.0)
-            KRATOS_ERROR << "PERMEABILITY_YZ does not exist in the material "
-                            "properties or has an invalid value at element "
-                         << this->Id() << std::endl;
-
-        if (r_properties.Has(PERMEABILITY_ZX) == false || r_properties[PERMEABILITY_ZX] < 0.0)
-            KRATOS_ERROR << "PERMEABILITY_ZX does not exist in the material "
-                            "properties or has an invalid value at element "
-                         << this->Id() << std::endl;
-    }
-
-    if (!mRetentionLawVector.empty()) {
-        return mRetentionLawVector[0]->Check(r_properties, rCurrentProcessInfo);
-    }
-
-    return 0;
+    return RetentionLaw::Check(mRetentionLawVector, this->GetProperties(), rCurrentProcessInfo);
 
     KRATOS_CATCH("")
 }
@@ -319,7 +275,9 @@ void TransientPwElement<TDim, TNumNodes>::CalculateOnIntegrationPoints(const Var
 
     if (rVariable == FLUID_FLUX_VECTOR) {
         std::vector<double> permeability_update_factors(number_of_integration_points, 1.0);
-        const auto fluid_fluxes = this->CalculateFluidFluxes(permeability_update_factors, rCurrentProcessInfo);
+        const auto fluid_fluxes = GeoTransportEquationUtilities::CalculateFluidFluxes<TDim, TNumNodes>(
+            this->GetGeometry(), this->GetIntegrationMethod(), this->GetProperties(),
+            mRetentionLawVector, permeability_update_factors);
 
         for (unsigned int integration_point = 0; integration_point < number_of_integration_points;
              ++integration_point) {
@@ -498,7 +456,7 @@ void TransientPwElement<TDim, TNumNodes>::CalculateAndAddCompressibilityMatrix(M
 template <unsigned int TDim, unsigned int TNumNodes>
 void TransientPwElement<TDim, TNumNodes>::CalculateAndAddRHS(VectorType&       rRightHandSideVector,
                                                              ElementVariables& rVariables,
-                                                             unsigned int      integration_point)
+                                                             unsigned int)
 {
     KRATOS_TRY
 
@@ -568,6 +526,31 @@ template <unsigned int TDim, unsigned int TNumNodes>
 Element::DofsVectorType TransientPwElement<TDim, TNumNodes>::GetDofs() const
 {
     return Geo::DofUtilities::ExtractDofsFromNodes(this->GetGeometry(), WATER_PRESSURE);
+}
+
+template <unsigned int TDim, unsigned int TNumNodes>
+std::string TransientPwElement<TDim, TNumNodes>::Info() const
+{
+    const std::string retention_info = !mRetentionLawVector.empty() ? mRetentionLawVector[0]->Info() : "not defined";
+    return "transient Pw flow Element #" + std::to_string(this->Id()) + "\nRetention law: " + retention_info;
+}
+
+template <unsigned int TDim, unsigned int TNumNodes>
+void TransientPwElement<TDim, TNumNodes>::PrintInfo(std::ostream& rOStream) const
+{
+    rOStream << Info();
+}
+
+template <unsigned int TDim, unsigned int TNumNodes>
+void TransientPwElement<TDim, TNumNodes>::save(Serializer& rSerializer) const
+{
+    KRATOS_SERIALIZE_SAVE_BASE_CLASS(rSerializer, Element)
+}
+
+template <unsigned int TDim, unsigned int TNumNodes>
+void TransientPwElement<TDim, TNumNodes>::load(Serializer& rSerializer)
+{
+    KRATOS_SERIALIZE_LOAD_BASE_CLASS(rSerializer, Element)
 }
 
 template class TransientPwElement<2, 3>;

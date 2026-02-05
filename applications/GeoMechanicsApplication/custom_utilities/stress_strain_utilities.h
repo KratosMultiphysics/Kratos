@@ -16,6 +16,7 @@
 #pragma once
 
 /* Project includes */
+#include "includes/constitutive_law.h"
 #include "includes/define.h"
 #include "includes/ublas_interface.h"
 
@@ -29,8 +30,8 @@ public:
     static double CalculateTrace(const Vector& rStressVector);
     static double CalculateMeanStress(const Vector& rStressVector);
     static double CalculateLodeAngle(const Vector& rStressVector);
-    static double CalculateMohrCoulombShearCapacity(const Vector& rStressVector, double C, double Phi);
-    static double CalculateMohrCoulombPressureCapacity(const Vector& rStressVector, double C, double Phi);
+    static double CalculateMohrCoulombShearCapacity(const Vector& rStressVector, double C, double PhiInRadians);
+    static double CalculateMohrCoulombPressureCapacity(const Vector& rStressVector, double C, double PhiInRadians);
     static double CalculateVonMisesStrain(const Vector& rStrainVector);
     static Vector CalculateHenckyStrain(const Matrix& rDeformationGradient, size_t VoigtSize);
     static Matrix CalculateGreenLagrangeStrainTensor(const Matrix& rDeformationGradient);
@@ -40,10 +41,31 @@ public:
                                                 const Vector&              rDisplacements,
                                                 bool                       UseHenckyStrain,
                                                 std::size_t                VoigtSize);
+    static void                CalculatePrincipalStresses(const Vector& rCauchyStressVector,
+                                                          Vector&       rPrincipalStressVector,
+                                                          Matrix&       rEigenVectorsMatrix);
+    static void ReorderEigenValuesAndVectors(Vector& rPrincipalStressVector, Matrix& rEigenVectorsMatrix);
+    static Vector RotatePrincipalStresses(const Vector& rPrincipalStressVector,
+                                          const Matrix& rRotationMatrix,
+                                          std::size_t   StressVectorSize);
+
+    static Vector TransformPrincipalStressesToSigmaTau(const Vector& rPrincipalStresses);
+    static Vector TransformSigmaTauToPrincipalStresses(const Vector& rSigmaTau, const Vector& rPrincipalStresses);
+    static Vector TransformPrincipalStressesToPandQ(const Vector& rPrincipalStresses);
+
+    /// @brief This function calculates stresses from strains using the constitutive laws.
+    /// However, it can also be used to calculate tractions from relative displacements.
+    /// In that case, the relative displacements should be input as strains, and the return
+    /// is a vector with tractions
+    static std::vector<Vector> CalculateStressVectorsFromStrainVectors(
+        const std::vector<Vector>&                   rStrains,
+        const ProcessInfo&                           rProcessInfo,
+        const Properties&                            rProperties,
+        const std::vector<ConstitutiveLaw::Pointer>& rConstitutiveLaws);
 
 private:
-    static double CalculateQMohrCoulomb(const Vector& rStressVector, double C, double Phi);
-    static double CalculateDenominator(const Vector& rStressVector, double Phi);
+    static double CalculateQMohrCoulomb(const Vector& rStressVector, double C, double PhiInRadians);
+    static double CalculateDenominator(const Vector& rStressVector, double PhiInRadians);
 };
 
 } // namespace Kratos

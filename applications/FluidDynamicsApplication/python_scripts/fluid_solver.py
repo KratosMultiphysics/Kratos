@@ -26,7 +26,7 @@ class FluidSolver(PythonSolver):
     _CreateBuilderAndSolver
     _CreateSolutionStrategy
 
-    The solution strategy, builder_and_solver, etc. should alway be retrieved
+    The solution strategy, builder_and_solver, etc. should always be retrieved
     using the getter functions _GetSolutionStrategy, _GetBuilderAndSolver,
     etc. from this base class.
 
@@ -45,7 +45,7 @@ class FluidSolver(PythonSolver):
         self.element_name = None
         self.condition_name = None
         self.min_buffer_size = 3
-        self._enforce_element_and_conditions_replacement = False #TODO: Remove once we remove the I/O from the solver
+        self._enforce_element_and_conditions_replacement = self.settings["enforce_element_and_conditions_replacement"].GetBool() #TODO: Remove once we remove the I/O from the solver
 
         # Either retrieve the model part from the model or create a new one
         model_part_name = self.settings["model_part_name"].GetString()
@@ -94,8 +94,7 @@ class FluidSolver(PythonSolver):
             if not materials_imported:
                 KratosMultiphysics.Logger.PrintWarning(self.__class__.__name__, "Material properties have not been imported. Check \'material_import_settings\' in your ProjectParameters.json.")
             ## Replace default elements and conditions
-            use_input_model_part = self.settings["model_import_settings"]["input_type"].GetString() == "use_input_model_part"
-            if not (use_input_model_part and self._enforce_element_and_conditions_replacement):
+            if self._enforce_element_and_conditions_replacement:
                 self._ReplaceElementsAndConditions()
             ## Set and fill buffer
             self._SetAndFillBuffer()
@@ -310,9 +309,17 @@ class FluidSolver(PythonSolver):
         if self.element_integrates_in_time:
             # "Fake" scheme for those cases in where the element manages the time integration
             # It is required to perform the nodal update once the current time step is solved
-            scheme = KratosMultiphysics.ResidualBasedIncrementalUpdateStaticSchemeSlip(
-                domain_size,
-                domain_size + 1)
+            scheme_settings = KratosMultiphysics.Parameters("""{
+                "block_size" : 0,
+                "domain_size" : 0,
+                "rotation_dof_position" : 0,
+                "rotation_flag_name" : "SLIP"
+            }""")
+            domain_size = self.GetComputingModelPart().ProcessInfo[KratosMultiphysics.DOMAIN_SIZE]
+            scheme_settings["domain_size"].SetInt(domain_size)
+            scheme_settings["block_size"].SetInt(domain_size + 1)
+            scheme = KratosCFD.IncrementalUpdateRotationScheme(scheme_settings)
+
             # In case the BDF2 scheme is used inside the element, the BDF time discretization utility is required to update the BDF coefficients
             if (self.settings["time_scheme"].GetString() == "bdf2"):
                 time_order = 2

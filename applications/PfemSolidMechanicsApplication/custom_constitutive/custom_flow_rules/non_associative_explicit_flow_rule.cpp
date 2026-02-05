@@ -1003,7 +1003,7 @@ namespace Kratos
          this->ComputePlasticHardeningParameter(ActualElasticHenckyStrain, Alpha, H);
 
          DeltaGamma = rDrift;
-         DeltaGamma /= ( H + MathUtils<double>::Dot(AuxiliarDerivatives.YieldFunctionD, prod(ElasticMatrix, AuxiliarDerivatives.PlasticPotentialD)));
+         DeltaGamma /=  H + MathUtils<double>::Dot<Vector, Vector>(AuxiliarDerivatives.YieldFunctionD, prod(ElasticMatrix, AuxiliarDerivatives.PlasticPotentialD));
 
 
 
@@ -1105,7 +1105,7 @@ namespace Kratos
          DeltaGamma += auxVector(i)*AuxiliarDerivatives.YieldFunctionD(i);
 
 
-      double auxDenominador = H + MathUtils<double>::Dot( AuxiliarDerivatives.YieldFunctionD, prod(ElasticMatrix, AuxiliarDerivatives.PlasticPotentialD));
+      double auxDenominador = H + MathUtils<double>::Dot<Vector, Vector>( AuxiliarDerivatives.YieldFunctionD,  prod(ElasticMatrix, AuxiliarDerivatives.PlasticPotentialD));
 
       DeltaGamma /= auxDenominador;
 
