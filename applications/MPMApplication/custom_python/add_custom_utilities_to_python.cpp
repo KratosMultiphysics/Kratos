@@ -17,6 +17,7 @@
 // External includes
 
 // Project includes
+#include "custom_utilities/mpm_energy_calculation_utility.h"
 #include "includes/define.h"
 #include "processes/process.h"
 #include "custom_python/add_custom_utilities_to_python.h"
@@ -24,10 +25,10 @@
 #include "linear_solvers/linear_solver.h"
 #include "custom_utilities/material_point_search_utility.h"
 #include "custom_utilities/material_point_generator_utility.cpp"
+#include "custom_utilities/mpm_energy_calculation_utility.cpp"
 
 
-namespace Kratos{
-namespace Python{
+namespace Kratos::Python{
 
     void SearchElementAccordingToDimension(
         ModelPart& rBackgroundGridModelPart,
@@ -67,12 +68,31 @@ namespace Python{
 
     void  AddCustomUtilitiesToPython(pybind11::module& m)
     {
+
+        namespace py = pybind11;
+
         m.def("SearchElement", SearchElementAccordingToDimension);
         m.def("GenerateMaterialPointElement", GenerateMaterialPointElementAccordingToDimension);
         m.def("GenerateMaterialPointCondition", GenerateMaterialPointConditionAccordingToDimension);
         m.def("GenerateLagrangeNodes", MaterialPointGeneratorUtility::GenerateLagrangeNodes);
+
+        // Calculate energy utility
+        py::class_< MPMEnergyCalculationUtility> (m,"EnergyCalculationUtility")
+            .def(py::init<>())
+            .def_static("CalculatePotentialEnergy", py::overload_cast<Element&>(&MPMEnergyCalculationUtility::CalculatePotentialEnergy), py::arg("element"))
+            .def_static("CalculatePotentialEnergy", py::overload_cast<ModelPart&>(&MPMEnergyCalculationUtility::CalculatePotentialEnergy), py::arg("model_part"))
+            .def_static("CalculateStrainEnergy", py::overload_cast<Element&>(&MPMEnergyCalculationUtility::CalculateStrainEnergy), py::arg("element"))
+            .def_static("CalculateStrainEnergy", py::overload_cast<ModelPart&>(&MPMEnergyCalculationUtility::CalculateStrainEnergy), py::arg("model_part"))
+            .def_static("CalculateKineticEnergy", py::overload_cast<Element&>(&MPMEnergyCalculationUtility::CalculateKineticEnergy), py::arg("element"))
+            .def_static("CalculateKineticEnergy", py::overload_cast<ModelPart&>(&MPMEnergyCalculationUtility::CalculateKineticEnergy), py::arg("model_part"))
+            .def_static("CalculateTotalEnergy", py::overload_cast<Element&>(&MPMEnergyCalculationUtility::CalculateTotalEnergy), py::arg("element"))
+            .def_static("CalculateTotalEnergy", py::overload_cast<ModelPart&>(&MPMEnergyCalculationUtility::CalculateTotalEnergy), py::arg("model_part"))
+            .def_static("CalculateAllEnergies", [](ModelPart& model_part) -> py::tuple {
+                    double potential, kinetic, strain, total;
+                    MPMEnergyCalculationUtility().CalculateAllEnergies(model_part, potential, kinetic, strain, total);
+                    return py::make_tuple(potential, kinetic, strain, total);
+                }, py::arg("model_part"))
+            ;
     }
 
-}  // namespace Python.
-} // Namespace Kratos
-
+}  // namespace Kratos::Python.
