@@ -722,12 +722,12 @@ std::function<const Matrix()> UPwInterfaceElement::CreateNpContainerGetter() con
 
 std::function<Vector()> UPwInterfaceElement::CreateVoigtVectorGetter() const
 {
-    return [this]() -> Vector { return mpStressStatePolicy->GetVoigtVector(); };
+    return [this]() { return mpStressStatePolicy->GetVoigtVector(); };
 }
 
 std::function<std::vector<double>()> UPwInterfaceElement::CreateBiotCoefficientsGetter() const
 {
-    return [this]() -> std::vector<double> { return this->CalculateBiotCoefficients(); };
+    return [this]() { return this->CalculateBiotCoefficients(); };
 }
 
 std::vector<double> UPwInterfaceElement::CalculateBiotCoefficients() const

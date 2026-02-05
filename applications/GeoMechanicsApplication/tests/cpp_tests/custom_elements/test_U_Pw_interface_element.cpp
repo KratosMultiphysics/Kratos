@@ -2194,9 +2194,6 @@ KRATOS_TEST_CASE_IN_SUITE(UPwLineInterfaceElement_CouplingContribution_DiffOrder
     ASSERT_EQ(actual_left_hand_side.size2(), number_of_u_dofs + number_of_pw_dofs);
     ASSERT_EQ(actual_right_hand_side.size(), number_of_u_dofs + number_of_pw_dofs);
 
-    std::cout << "actual_left_hand_side" << actual_left_hand_side << std::endl;
-    std::cout << "actual_right_hand_side" << actual_right_hand_side << std::endl;
-
     // clang-format off
     const auto expected_up_block_matrix = UblasUtilities::CreateMatrix({
         {0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0},
