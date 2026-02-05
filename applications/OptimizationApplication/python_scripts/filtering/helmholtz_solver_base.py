@@ -1,5 +1,6 @@
 import abc
 import typing
+import numpy
 
 # Importing the Kratos Library
 import KratosMultiphysics
@@ -127,9 +128,12 @@ class HelmholtzSolverBase(PythonSolver):
 
     def Initialize(self) -> None:
         self._GetSolutionStrategy().Initialize()
-        neighbours_exp = KratosMultiphysics.Expression.NodalExpression(self.helmholtz_model_part)
-        KOA.ExpressionUtils.ComputeNumberOfNeighbourElements(neighbours_exp)
-        KratosMultiphysics.Expression.VariableExpressionIO.Write(neighbours_exp, KratosMultiphysics.NUMBER_OF_NEIGHBOUR_ELEMENTS, False)
+        neighbours_ta_int = KratosMultiphysics.TensorAdaptors.NodalNeighbourCountTensorAdaptor(self.helmholtz_model_part.Nodes, self.helmholtz_model_part.Elements)
+        neighbours_ta_int.CollectData()
+
+        writing_ta = KratosMultiphysics.TensorAdaptors.VariableTensorAdaptor(neighbours_ta_int.GetContainer(), KratosMultiphysics.NUMBER_OF_NEIGHBOUR_ELEMENTS)
+        writing_ta.SetData(neighbours_ta_int.data)
+        writing_ta.StoreData()
         KratosMultiphysics.Logger.PrintInfo("::[HelmholtzSolverBase]:: Finished initialization.")
 
     def InitializeSolutionStep(self) -> None:
