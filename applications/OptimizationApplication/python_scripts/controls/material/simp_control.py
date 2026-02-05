@@ -1,12 +1,11 @@
 import typing
+import numpy
 import KratosMultiphysics as Kratos
 import KratosMultiphysics.OptimizationApplication as KratosOA
 from KratosMultiphysics.OptimizationApplication.controls.control import Control
 from KratosMultiphysics.OptimizationApplication.utilities.optimization_problem import OptimizationProblem
-from KratosMultiphysics.OptimizationApplication.utilities.union_utilities import ContainerExpressionTypes
 from KratosMultiphysics.OptimizationApplication.utilities.union_utilities import SupportedSensitivityFieldVariableTypes
 from KratosMultiphysics.OptimizationApplication.utilities.model_part_utilities import ModelPartOperation
-from KratosMultiphysics.OptimizationApplication.utilities.helper_utilities import IsSameContainerExpression
 from KratosMultiphysics.OptimizationApplication.utilities.component_data_view import ComponentDataView
 from KratosMultiphysics.OptimizationApplication.filtering.filter import Factory as FilterFactory
 from KratosMultiphysics.OptimizationApplication.utilities.opt_projection import CreateProjection
@@ -130,12 +129,12 @@ class SimpControl(Control):
         if is_density_defined:
             if is_youngs_modulus_defined:
                 Kratos.Logger.PrintWarning(self.__class__.__name__, f"Elements of {self.model_part.FullName()} defines both DENSITY and YOUNG_MODULUS. Using DENSITY for initial field calculation and ignoring YOUNG_MODULUS.")
-            density = Kratos.Expression.ElementExpression(self.model_part)
-            KratosOA.PropertiesVariableExpressionIO.Read(density, Kratos.DENSITY)
+            density = KratosOA.TensorAdaptors.PropertiesVariableTensorAdaptor(self.model_part.Elements, Kratos.DENSITY)
+            density.CollectData()
             self.simp_physical_phi = self.density_projection.ProjectBackward(density)
         elif is_youngs_modulus_defined:
-            young_modulus = Kratos.Expression.ElementExpression(self.model_part)
-            KratosOA.PropertiesVariableExpressionIO.Read(young_modulus, Kratos.YOUNG_MODULUS)
+            young_modulus = KratosOA.TensorAdaptors.PropertiesVariableTensorAdaptor(self.model_part.Elements, Kratos.YOUNG_MODULUS)
+            young_modulus.CollectData()
             self.simp_physical_phi = self.young_modulus_projection.ProjectBackward(young_modulus)
         else:
             raise RuntimeError(f"Elements of {self.model_part.FullName()} does not define either DENSITY or YOUNG_MODULUS.")
@@ -154,43 +153,43 @@ class SimpControl(Control):
     def GetPhysicalKratosVariables(self) -> 'list[SupportedSensitivityFieldVariableTypes]':
         return self.controlled_physical_variables
 
-    def GetEmptyField(self) -> ContainerExpressionTypes:
-        field = Kratos.Expression.ElementExpression(self.model_part)
-        Kratos.Expression.LiteralExpressionIO.SetData(field, 0.0)
-        return field
+    def GetEmptyField(self) -> Kratos.TensorAdaptors.DoubleTensorAdaptor:
+        field = Kratos.TensorAdaptors.VariableTensorAdaptor(self.model_part.Elements, Kratos.DENSITY)
+        field.data[:] = 0.0
+        return Kratos.TensorAdaptors.DoubleTensorAdaptor(field, copy=False)
 
-    def GetControlField(self) -> ContainerExpressionTypes:
-        return self.control_phi.Clone()
+    def GetControlField(self) -> Kratos.TensorAdaptors.DoubleTensorAdaptor:
+        return Kratos.TensorAdaptors.DoubleTensorAdaptor(self.control_phi) # returning a copy
 
-    def MapGradient(self, physical_gradient_variable_container_expression_map: 'dict[SupportedSensitivityFieldVariableTypes, ContainerExpressionTypes]') -> ContainerExpressionTypes:
-        keys = physical_gradient_variable_container_expression_map.keys()
+    def MapGradient(self, physical_gradient_variable_tensor_adaptor_map: 'dict[SupportedSensitivityFieldVariableTypes, Kratos.TensorAdaptors.DoubleTensorAdaptor]') -> Kratos.TensorAdaptors.DoubleTensorAdaptor:
+        keys = physical_gradient_variable_tensor_adaptor_map.keys()
         if len(keys) != 2:
             raise RuntimeError(f"Not provided required gradient fields for control \"{self.GetName()}\". Following are the variables:\n\t" + "\n\t".join([k.Name() for k in keys]))
         if  Kratos.DENSITY not in keys or Kratos.YOUNG_MODULUS not in keys:
             raise RuntimeError(f"The required gradient for control \"{self.GetName()}\" w.r.t. DENSITY or YOUNG_MODULUS not found. Followings are the variables:\n\t" + "\n\t".join([k.Name() for k in keys]))
 
         # first calculate the density partial sensitivity of the response function
-        d_j_d_density = physical_gradient_variable_container_expression_map[Kratos.DENSITY]
+        d_j_d_density = physical_gradient_variable_tensor_adaptor_map[Kratos.DENSITY]
 
         # second calculate the young modulus partial sensitivity of the response function
-        d_j_d_youngs = physical_gradient_variable_container_expression_map[Kratos.YOUNG_MODULUS]
+        d_j_d_youngs = physical_gradient_variable_tensor_adaptor_map[Kratos.YOUNG_MODULUS]
 
         # now compute response function total sensitivity w.r.t. phi
-        d_j_d_phi = d_j_d_density * self.d_density_d_phi + d_j_d_youngs * self.d_young_modulus_d_phi
+        d_j_d_phi = Kratos.TensorAdaptors.DoubleTensorAdaptor(d_j_d_density)
+        d_j_d_phi.data = d_j_d_density.data * self.d_density_d_phi.data + d_j_d_youngs.data * self.d_young_modulus_d_phi.data
 
         return self.filter.BackwardFilterIntegratedField(d_j_d_phi)
 
-    def Update(self, control_field: ContainerExpressionTypes) -> bool:
-        if not IsSameContainerExpression(control_field, self.GetEmptyField()):
-            raise RuntimeError(f"Updates for the required element container not found for control \"{self.GetName()}\". [ required model part name: {self.model_part.FullName()}, given model part name: {control_field.GetModelPart().FullName()} ]")
+    def Update(self, control_field: Kratos.TensorAdaptors.DoubleTensorAdaptor) -> bool:
+        if control_field.GetContainer() != self.model_part.Elements:
+            raise RuntimeError(f"Updates for the required element container not found for control \"{self.GetName()}\". [ required model part name: {self.model_part.FullName()} ]")
 
-        update = control_field - self.control_phi
-        if Kratos.Expression.Utils.NormL2(update) > 1e-15:
-            self.control_phi = control_field
+        update = Kratos.TensorAdaptors.DoubleTensorAdaptor(control_field)
+        update.data = control_field.data - self.control_phi.data
+        if numpy.linalg.norm(update.data) > 1e-15:
+            self.control_phi.data[:] = control_field.data[:]
             self._UpdateAndOutputFields(update)
             self.filter.Update()
-            return True
-
             self.density_projection.Update()
             self.young_modulus_projection.Update()
             return True
@@ -199,22 +198,22 @@ class SimpControl(Control):
         self.young_modulus_projection.Update()
         return False
 
-    def _UpdateAndOutputFields(self, update: ContainerExpressionTypes) -> None:
+    def _UpdateAndOutputFields(self, update: Kratos.TensorAdaptors.DoubleTensorAdaptor) -> None:
         # filter the control field
         physical_phi_update = self.filter.ForwardFilterField(update)
-        self.simp_physical_phi = Kratos.Expression.Utils.Collapse(self.simp_physical_phi + physical_phi_update)
+        self.simp_physical_phi.data += physical_phi_update.data
 
         density = self.density_projection.ProjectForward(self.simp_physical_phi)
-        KratosOA.PropertiesVariableExpressionIO.Write(density, Kratos.DENSITY)
+        KratosOA.TensorAdaptors.PropertiesVariableTensorAdaptor(density, Kratos.DENSITY, copy=False).StoreData()
         if self.consider_recursive_property_update:
             KratosOA.OptimizationUtils.UpdatePropertiesVariableWithRootValueRecursively(density.GetContainer(), Kratos.DENSITY)
-        self.un_buffered_data.SetValue("DENSITY", density.Clone(), overwrite=True)
+        self.un_buffered_data.SetValue("DENSITY", density, overwrite=True)
 
         youngs_modulus = self.young_modulus_projection.ProjectForward(self.simp_physical_phi)
-        KratosOA.PropertiesVariableExpressionIO.Write(youngs_modulus, Kratos.YOUNG_MODULUS)
+        KratosOA.TensorAdaptors.PropertiesVariableTensorAdaptor(youngs_modulus, Kratos.YOUNG_MODULUS, copy=False).StoreData()
         if self.consider_recursive_property_update:
             KratosOA.OptimizationUtils.UpdatePropertiesVariableWithRootValueRecursively(youngs_modulus.GetContainer(), Kratos.YOUNG_MODULUS)
-        self.un_buffered_data.SetValue("YOUNG_MODULUS", youngs_modulus.Clone(), overwrite=True)
+        self.un_buffered_data.SetValue("YOUNG_MODULUS", youngs_modulus, overwrite=True)
 
         # now calculate the total sensitivities of density w.r.t. phi
         self.d_density_d_phi = self.density_projection.ForwardProjectionGradient(self.simp_physical_phi)
@@ -224,8 +223,8 @@ class SimpControl(Control):
 
         # now output the fields
         un_buffered_data = ComponentDataView(self, self.optimization_problem).GetUnBufferedData()
-        un_buffered_data.SetValue(f"{self.GetName()}", self.simp_physical_phi.Clone(),overwrite=True)
+        un_buffered_data.SetValue(f"{self.GetName()}", Kratos.TensorAdaptors.DoubleTensorAdaptor(self.simp_physical_phi),overwrite=True)
         if self.output_all_fields:
-            un_buffered_data.SetValue(f"{self.GetName()}_update", physical_phi_update.Clone(), overwrite=True)
-            un_buffered_data.SetValue(f"dDENSITY_d{self.GetName()}", self.d_density_d_phi.Clone(), overwrite=True)
-            un_buffered_data.SetValue(f"dYOUNG_MODULUS_d{self.GetName()}", self.d_young_modulus_d_phi.Clone(), overwrite=True)
+            un_buffered_data.SetValue(f"{self.GetName()}_update", physical_phi_update, overwrite=True)
+            un_buffered_data.SetValue(f"dDENSITY_d{self.GetName()}", Kratos.TensorAdaptors.DoubleTensorAdaptor(self.d_density_d_phi), overwrite=True)
+            un_buffered_data.SetValue(f"dYOUNG_MODULUS_d{self.GetName()}", Kratos.TensorAdaptors.DoubleTensorAdaptor(self.d_young_modulus_d_phi), overwrite=True)
