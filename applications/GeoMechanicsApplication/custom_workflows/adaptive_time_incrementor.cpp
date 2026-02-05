@@ -80,7 +80,7 @@ double AdaptiveTimeIncrementor::GetIncrement(double PreviousTime) const
         std::min(mInitialDeltaTime, delta_time_as_fraction_of_time_span * mTimeSpan);
     if (mEndTime - (PreviousTime + mDeltaTime) < mUserMinDeltaTime.value_or(default_min_delta_time)) {
         KRATOS_ERROR_IF(mEndTime - PreviousTime < mUserMinDeltaTime.value_or(default_min_delta_time))
-            << "Delta time (" << mDeltaTime << ") is smaller than "
+            << "Delta time (" << mEndTime - PreviousTime << ") is smaller than "
             << (mUserMinDeltaTime ? "given" : "default") << " minimum allowable value "
             << mUserMinDeltaTime.value_or(default_min_delta_time) << std::endl;
 
