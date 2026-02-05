@@ -1,4 +1,5 @@
 import numpy as np
+import KratosMultiphysics as KM
 
 class CFDUtils:
     def __init__(self):
@@ -30,7 +31,7 @@ class CFDUtils:
         #store element by element divergence in aux_array1
         np.einsum("nij,nij->n", DN, uel, out=out, optimize=True)
 
-    def ComputeNodalDivergence(self, N: np.ndarray, DN: np.ndarray, uel: np.ndarray, out: np.ndarray):
+    def ComputeElementwiseNodalDivergence(self, N: np.ndarray, DN: np.ndarray, uel: np.ndarray, out: np.ndarray):
         """
         Computes the nodal weighted divergence of a vector field u.
         
@@ -49,20 +50,28 @@ class CFDUtils:
             Output array, expected to have shape (Nelem, n_in_el).
         """
         nelem = DN.shape[0]
+        n_in_el = DN.shape[1]
+        dim = DN.shape[2]
+        print(N.shape)
+        if N.shape[0] != n_in_el or N.ndim!=1:
+            raise Exception("wrong size of N")
+        if uel.shape != DN.shape:
+            raise Exception("wrong size of uel")
 
-        #verify shape of auxiliary arrays
-        if(self.aux_array1.shape != (nelem)):
-            self.aux_array1 = np.empty(nelem)
+        np.einsum("I,eJk,eJk->eI",N,DN,uel,out=out,optimize=True)
+        # #verify shape of auxiliary arrays
+        # if(self.aux_array1.shape != (nelem)):
+        #     self.aux_array1 = np.empty(nelem)
 
-        self.ComputeElementalDivergence(DN, uel, self.aux_array1)
+        # self.ComputeElementalDivergence(DN, uel, self.aux_array1)
         
-        np.einsum("e,i->ei",self.aux_array1,N, out=out, optimize=True)
+        # np.einsum("e,i->ei",self.aux_array1,N, out=out, optimize=True)
 
     def Compute_N_DN(self, N: np.ndarray, DN: np.ndarray, pel: np.ndarray, out: np.ndarray):
         """
         Computes the term (w, ∇p).
         
-        Using Einstein notation: out[e,i,m] = N[i]*DN[e,m,n]*pel[e,n]
+        Using Einstein notation: out[e,I,k] = N[I]*DN[e,J,k]*pel[e,J]
 
         Parameters
         ----------
@@ -75,13 +84,13 @@ class CFDUtils:
         out : ndarray
             Output array, expected to have shape (Nelem, n_in_el).
         """
-        np.einsum("emn,en,i->eim", DN, pel, N, out=out, optimize=True)
+        np.einsum("I,eJk,eJ->eIk", N,DN, pel,  out=out, optimize=True)
 
     def Compute_DN_N(self, N: np.ndarray, DN: np.ndarray, pel: np.ndarray, out: np.ndarray):
         """
         Computes the term (∇w, p).
         
-        Using Einstein notation: out[e,i,m] = DN[e,i,m]*pel[e,k]*N[k]
+        Using Einstein notation: out[e,I,k] = sum_J DN[e,I,k]*pel[e,J]*N[J]
 
         Parameters
         ----------
@@ -96,16 +105,18 @@ class CFDUtils:
         """
         nelem = out.shape[0]
 
-        # aux_array1 must have shape (nelem,)
-        if self.aux_array1.shape != (nelem,):
-            self.aux_array1 = np.empty(nelem)
+        np.einsum("eIk,J,eJ->eIk",DN,N,pel,out=out)
 
-        # 1) aux[e] = pel[e,k] * N[k]
-        np.einsum("ek,k->e", pel, N, out=self.aux_array1)
+        # # aux_array1 must have shape (nelem,)
+        # if self.aux_array1.shape != (nelem,):
+        #     self.aux_array1 = np.empty(nelem)
 
-        # 2) out[e,i,m] = DN[e,i,m] * aux[e]
-        out[:] = DN
-        out *= self.aux_array1[:, np.newaxis, np.newaxis]
+        # # 1) aux[e] = pel[e,k] * N[k]
+        # np.einsum("ek,k->e", pel, N, out=self.aux_array1)
+
+        # # 2) out[e,i,m] = DN[e,i,m] * aux[e]
+        # out[:] = DN
+        # out *= self.aux_array1[:, np.newaxis, np.newaxis]
 
     def ComputeLaplacianMatrix(self, DN: np.ndarray, out: np.ndarray):
         """
@@ -120,7 +131,7 @@ class CFDUtils:
         out : ndarray
             Output array, expected to have shape (Nelem, n_in_el, n_in_el).
         """
-        np.einsum("eim,ejm->eij", DN, DN, out=out)
+        np.einsum("eim,ejm->eij", DN, DN, out=out, optimize=True)
 
     def ApplyLaplacian(self, DN: np.ndarray, field: np.ndarray, out: np.ndarray):
         """
@@ -253,26 +264,27 @@ class CFDUtils:
         # ------------------------------
         if field.ndim == 2:
             if field.shape != (nelem, nnode):
-                raise ValueError("field must have shape (nelem, nnode) for scalar case")
+                raise ValueError("field must have shape (nelem, nnode) for scalar case. Current shape is:",field.shape)
 
             if out.shape != (nelem, ndim):
-                raise ValueError(f"out must have shape (nelem, {ndim}) for scalar case")
+                raise ValueError(f"out must have shape (nelem, {ndim}) for scalar case. Current shape is:",out.shape)
 
             # grad[e,k] = sum_i field[e,i] * DN[e,i,k]
             np.einsum('ei,eik->ek', field, DN, out=out)
+            return
 
         # ------------------------------
         # Vector field
         # ------------------------------
         elif field.ndim == 3:
             if field.shape[0] != nelem or field.shape[1] != nnode:
-                raise ValueError("field must have shape (nelem, nnode, ncomp)")
+                raise ValueError("field must have shape (nelem, nnode, ncomp). Current shape is:",field.shape)
 
             ncomp = field.shape[2]
 
             if out.shape != (nelem, ncomp, ndim):
                 raise ValueError(
-                    f"out must have shape (nelem, {ncomp}, {ndim}) for vector case"
+                    f"out must have shape (nelem, {ncomp}, {ndim}) for vector case. Current shape is:",field.shape
                 )
 
             # grad[e,k,l] = sum_i field[e,i,k] * DN[e,i,l]
@@ -282,7 +294,8 @@ class CFDUtils:
         # ------------------------------
         # Invalid field
         # ------------------------------
-        raise ValueError("field must have 2 dims (scalar) or 3 dims (vector)")
+        print(field.ndim)
+        raise ValueError("field must have 2 dims (scalar) or 3 dims (vector), Current shape of field is:",field.shape)
 
     def ComputeConvectiveContribution(self, N: np.ndarray, grad_u: np.ndarray, a: np.ndarray, out: np.ndarray):
         """
@@ -328,6 +341,24 @@ class CFDUtils:
     def ComputePressureStabilization_Proj(self, DN: np.ndarray, Pi_elemental: np.ndarray, out: np.ndarray):
         ##TODO: avoid temporaries!
         pass
+    
+    def AllocateScalarMatrix(self,conn: np.ndarray):
+        #TODO: make it efficient
+        size = np.max(conn)+1
+        Agraph = KM.SparseContiguousRowGraph(size)
+        for e in range(conn.shape[0]):
+            Agraph.AddEntries(conn[e])
+        Agraph.Finalize()
+
+        #assembling matrix
+        A = KM.CsrMatrix(Agraph)
+
+        return A
         
-        
+    def AssembleScalarMatrix(self,LHSel,conn,A):
+        A.SetValue(0.0) 
+        A.BeginAssemble()
+        for e in range(conn.shape[0]):
+            A.Assemble(LHSel[e],conn[e])
+        A.FinalizeAssemble()        
        
