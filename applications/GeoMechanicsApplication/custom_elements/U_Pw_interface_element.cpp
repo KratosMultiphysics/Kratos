@@ -162,8 +162,8 @@ void UPwInterfaceElement::CalculateLeftHandSide(MatrixType& rLeftHandSideMatrix,
     const auto number_of_dofs = GetDofs().size();
     rLeftHandSideMatrix       = ZeroMatrix{number_of_dofs, number_of_dofs};
 
-    // Currently, the left-hand side matrix only includes the stiffness matrix. In the future, it
-    // will also include water pressure contributions and coupling terms.
+    // Currently, the left-hand side matrix includes the stiffness matrix and coupling terms. In the
+    // future, it will also include water pressure contributions.
     for (auto contribution : mContributions) {
         switch (contribution) {
         case CalculationContribution::Stiffness:
@@ -280,8 +280,8 @@ void UPwInterfaceElement::CalculateRightHandSide(Element::VectorType& rRightHand
 {
     rRightHandSideVector = ZeroVector{GetDofs().size()};
 
-    // Currently, the right-hand side only includes the internal force vector. In the future, it
-    // will also include water pressure contributions and coupling terms.
+    // Currently, the right-hand side includes the internal force vector and coupling terms. In the
+    // future, it will also include water pressure contributions.
     for (auto contribution : mContributions) {
         switch (contribution) {
         case CalculationContribution::Stiffness:
@@ -326,16 +326,12 @@ void UPwInterfaceElement::CalculateAndAssignStifnessForceVector(Element::VectorT
 void UPwInterfaceElement::CalculateAndAssembleCouplingForceVector(Element::VectorType& rRightHandSideVector,
                                                                   const ProcessInfo& rProcessInfo) const
 {
-    auto number_P_Dofs =
-        GetWaterPressureGeometry().size() * GetDisplacementGeometry().WorkingSpaceDimension();
+    auto number_P_Dofs = GetWaterPressureGeometry().size();
     switch (NumberOfUDofs()) {
     case 8:
         switch (number_P_Dofs) {
         case 4:
             CalculateAndAssembleCouplingForceVector<8, 4>(rRightHandSideVector, rProcessInfo);
-            break;
-        case 8:
-            CalculateAndAssembleCouplingForceVector<8, 8>(rRightHandSideVector, rProcessInfo);
             break;
         default:
             KRATOS_ERROR << "This Coupling force vector size is not supported: " << NumberOfUDofs()
@@ -347,34 +343,18 @@ void UPwInterfaceElement::CalculateAndAssembleCouplingForceVector(Element::Vecto
         case 6:
             CalculateAndAssembleCouplingForceVector<12, 6>(rRightHandSideVector, rProcessInfo);
             break;
-        case 12:
-            CalculateAndAssembleCouplingForceVector<12, 12>(rRightHandSideVector, rProcessInfo);
+        case 4:
+            CalculateAndAssembleCouplingForceVector<12, 4>(rRightHandSideVector, rProcessInfo);
             break;
         default:
             KRATOS_ERROR << "This Coupling force vector size is not supported: " << NumberOfUDofs()
                          << "x" << number_P_Dofs << "\n";
         }
         break;
-    case 18:
+    case 16:
         switch (number_P_Dofs) {
-        case 6:
-            CalculateAndAssembleCouplingForceVector<18, 6>(rRightHandSideVector, rProcessInfo);
-            break;
-        case 18:
-            CalculateAndAssembleCouplingForceVector<18, 18>(rRightHandSideVector, rProcessInfo);
-            break;
-        default:
-            KRATOS_ERROR << "This Coupling force vector size is not supported: " << NumberOfUDofs()
-                         << "x" << number_P_Dofs << "\n";
-        }
-        break;
-    case 36:
-        switch (number_P_Dofs) {
-        case 12:
-            CalculateAndAssembleCouplingForceVector<36, 12>(rRightHandSideVector, rProcessInfo);
-            break;
-        case 36:
-            CalculateAndAssembleCouplingForceVector<36, 36>(rRightHandSideVector, rProcessInfo);
+        case 8:
+            CalculateAndAssembleCouplingForceVector<16, 8>(rRightHandSideVector, rProcessInfo);
             break;
         default:
             KRATOS_ERROR << "This Coupling force vector size is not supported: " << NumberOfUDofs()
@@ -383,24 +363,24 @@ void UPwInterfaceElement::CalculateAndAssembleCouplingForceVector(Element::Vecto
         break;
     case 24:
         switch (number_P_Dofs) {
-        case 8:
-            CalculateAndAssembleCouplingForceVector<24, 8>(rRightHandSideVector, rProcessInfo);
+        case 12:
+            CalculateAndAssembleCouplingForceVector<24, 12>(rRightHandSideVector, rProcessInfo);
             break;
-        case 24:
-            CalculateAndAssembleCouplingForceVector<24, 24>(rRightHandSideVector, rProcessInfo);
+        case 6:
+            CalculateAndAssembleCouplingForceVector<24, 6>(rRightHandSideVector, rProcessInfo);
             break;
         default:
             KRATOS_ERROR << "This Coupling force vector size is not supported: " << NumberOfUDofs()
                          << "x" << number_P_Dofs << "\n";
         }
         break;
-    case 48:
+    case 32:
         switch (number_P_Dofs) {
         case 16:
-            CalculateAndAssembleCouplingForceVector<48, 12>(rRightHandSideVector, rProcessInfo);
+            CalculateAndAssembleCouplingForceVector<32, 16>(rRightHandSideVector, rProcessInfo);
             break;
-        case 48:
-            CalculateAndAssembleCouplingForceVector<48, 48>(rRightHandSideVector, rProcessInfo);
+        case 8:
+            CalculateAndAssembleCouplingForceVector<32, 8>(rRightHandSideVector, rProcessInfo);
             break;
         default:
             KRATOS_ERROR << "This Coupling force vector size is not supported: " << NumberOfUDofs()
@@ -737,17 +717,17 @@ Geo::PropertiesGetter UPwInterfaceElement::CreatePropertiesGetter() const
 
 std::function<const Matrix()> UPwInterfaceElement::CreateNpContainerGetter() const
 {
-    return [this]() -> Matrix { return this->GetNpContainer(); };
+    return [this]() { return this->GetNpContainer(); };
 }
 
 std::function<Vector()> UPwInterfaceElement::CreateVoigtVectorGetter() const
 {
-    return [this]() -> const Vector { return mpStressStatePolicy->GetVoigtVector(); };
+    return [this]() -> Vector { return mpStressStatePolicy->GetVoigtVector(); };
 }
 
 std::function<std::vector<double>()> UPwInterfaceElement::CreateBiotCoefficientsGetter() const
 {
-    return [this]() -> const std::vector<double> { return this->CalculateBiotCoefficients(); };
+    return [this]() -> std::vector<double> { return this->CalculateBiotCoefficients(); };
 }
 
 std::vector<double> UPwInterfaceElement::CalculateBiotCoefficients() const
@@ -771,21 +751,19 @@ std::function<std::vector<double>(const Vector&)> UPwInterfaceElement::CreateBis
 
 std::vector<double> UPwInterfaceElement::CalculateBishopCoefficients(const Vector& rFluidPressures) const
 {
-    {
-        KRATOS_ERROR_IF_NOT(rFluidPressures.size() == mRetentionLawVector.size());
+    KRATOS_ERROR_IF_NOT(rFluidPressures.size() == mRetentionLawVector.size());
 
-        auto retention_law_params = RetentionLaw::Parameters{this->GetProperties()};
+    auto retention_law_params = RetentionLaw::Parameters{this->GetProperties()};
 
-        auto result = std::vector<double>{};
-        result.reserve(mRetentionLawVector.size());
-        std::transform(mRetentionLawVector.begin(), mRetentionLawVector.end(),
-                       rFluidPressures.begin(), std::back_inserter(result),
-                       [&retention_law_params](const auto& pRetentionLaw, auto FluidPressure) {
-            retention_law_params.SetFluidPressure(FluidPressure);
-            return pRetentionLaw->CalculateBishopCoefficient(retention_law_params);
-        });
-        return result;
-    }
+    auto result = std::vector<double>{};
+    result.reserve(mRetentionLawVector.size());
+    std::transform(mRetentionLawVector.begin(), mRetentionLawVector.end(), rFluidPressures.begin(),
+                   std::back_inserter(result),
+                   [&retention_law_params](const auto& pRetentionLaw, auto FluidPressure) {
+        retention_law_params.SetFluidPressure(FluidPressure);
+        return pRetentionLaw->CalculateBishopCoefficient(retention_law_params);
+    });
+    return result;
 }
 
 Matrix UPwInterfaceElement::GetNpContainer() const
@@ -880,7 +858,7 @@ void UPwInterfaceElement::CalculateAndAssignStiffnesForceVector(VectorType& rRig
 
 template <unsigned int NumberOfRows, unsigned int NumberOfColumns>
 typename UPCouplingCalculator<NumberOfRows, NumberOfColumns>::InputProvider UPwInterfaceElement::CreateCouplingInputProvider(
-    const ProcessInfo& rProcessInfo) const
+    const ProcessInfo&) const
 {
     return typename UPCouplingCalculator<NumberOfRows, NumberOfColumns>::InputProvider(
         CreateNpContainerGetter(), CreateBMatricesGetter(), CreateVoigtVectorGetter(),
