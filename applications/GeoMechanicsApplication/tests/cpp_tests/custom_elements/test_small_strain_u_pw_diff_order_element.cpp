@@ -32,7 +32,7 @@ namespace
 using namespace Kratos;
 using namespace std::string_literals;
 
-std::shared_ptr<Properties> CreateProperties()
+std::shared_ptr<Properties> CreatePropertiesForUPwDiffOrderElementTest()
 {
     const auto p_properties = std::make_shared<Properties>();
     p_properties->SetValue(CONSTITUTIVE_LAW, std::make_shared<GeoIncrementalLinearElasticLaw>(
@@ -182,7 +182,8 @@ KRATOS_TEST_CASE_IN_SUITE(SmallStrainUPwDiffOrderElement_CalculateShearCapacity,
 KRATOS_TEST_CASE_IN_SUITE(SmallStrainUPwDiffOrderElement_CalculateLHS, KratosGeoMechanicsFastSuiteWithoutKernel)
 {
     // Arrange
-    auto p_element = CreateSmallStrainUPwDiffOrderElementWithUPwDofs(CreateProperties());
+    auto p_element =
+        CreateSmallStrainUPwDiffOrderElementWithUPwDofs(CreatePropertiesForUPwDiffOrderElementTest());
 
     SetSolutionStepValuesForGeneralCheck(p_element);
 
@@ -203,7 +204,8 @@ KRATOS_TEST_CASE_IN_SUITE(SmallStrainUPwDiffOrderElement_CalculateLHS_WithSaveAn
         std::make_pair("PlaneStrainStressState"s, PlaneStrainStressState{}));
 
     // Arrange
-    auto p_element = CreateSmallStrainUPwDiffOrderElementWithUPwDofs(CreateProperties());
+    auto p_element =
+        CreateSmallStrainUPwDiffOrderElementWithUPwDofs(CreatePropertiesForUPwDiffOrderElementTest());
 
     SetSolutionStepValuesForGeneralCheck(p_element);
 
@@ -224,7 +226,7 @@ KRATOS_TEST_CASE_IN_SUITE(SmallStrainUPwDiffOrderElement_CalculateLHS_WithSaveAn
 KRATOS_TEST_CASE_IN_SUITE(SmallStrainUPwDiffOrderElement_CalculateRHS, KratosGeoMechanicsFastSuiteWithoutKernel)
 {
     // Arrange
-    auto p_properties = CreateProperties();
+    auto p_properties = CreatePropertiesForUPwDiffOrderElementTest();
     p_properties->SetValue(BIOT_COEFFICIENT, 1.0); // to get RHS contributions of coupling
     auto p_element = CreateSmallStrainUPwDiffOrderElementWithUPwDofs(p_properties);
 
@@ -250,7 +252,7 @@ KRATOS_TEST_CASE_IN_SUITE(SmallStrainUPwDiffOrderElement_CalculateRHS, KratosGeo
 KRATOS_TEST_CASE_IN_SUITE(SmallStrainUPwDiffOrderElement_RHSEqualsUnbalanceVector, KratosGeoMechanicsFastSuiteWithoutKernel)
 {
     // Arrange
-    auto p_properties = CreateProperties();
+    auto p_properties = CreatePropertiesForUPwDiffOrderElementTest();
     p_properties->SetValue(BIOT_COEFFICIENT, 1.0); // to get RHS contributions of coupling
     auto p_element = CreateSmallStrainUPwDiffOrderElementWithUPwDofs(p_properties);
 
@@ -282,7 +284,7 @@ KRATOS_TEST_CASE_IN_SUITE(SmallStrainUPwDiffOrderElement_RHSEqualsUnbalanceVecto
 KRATOS_TEST_CASE_IN_SUITE(SmallStrainUPwDiffOrderElement_CalculateThrowsDebugErrorForUnknownVectorVariable,
                           KratosGeoMechanicsFastSuiteWithoutKernel)
 {
-    auto p_properties = CreateProperties();
+    auto p_properties = CreatePropertiesForUPwDiffOrderElementTest();
     p_properties->SetValue(BIOT_COEFFICIENT, 1.0); // to get RHS contributions of coupling
     auto p_element = CreateSmallStrainUPwDiffOrderElementWithUPwDofs(p_properties);
 
