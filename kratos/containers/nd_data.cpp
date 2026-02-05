@@ -141,6 +141,5 @@ template class NDData<unsigned char>; // We have to use the unsigned char, becau
 template class NDData<bool>;
 template class NDData<int>;
 template class NDData<double>;
-template class NDData<unsigned int>;
 
 } // namespace Kratos
