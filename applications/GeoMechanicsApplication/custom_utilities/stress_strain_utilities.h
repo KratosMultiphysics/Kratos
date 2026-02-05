@@ -47,7 +47,7 @@ public:
                                                 const Vector&              rDisplacements,
                                                 bool                       UseHenckyStrain,
                                                 std::size_t                VoigtSize);
-    static std::pair<Geo::PrincipalStresses, Matrix> CalculatePrincipalStresses(const Vector& rStressVector);
+    static std::pair<Geo::PrincipalStresses, Matrix> CalculatePrincipalStressesAndRotationMatrix(const Vector& rStressVector);
     static void CalculatePrincipalStresses(const Vector& rCauchyStressVector,
                                            Vector&       rPrincipalStressVector,
                                            Matrix&       rEigenVectorsMatrix);

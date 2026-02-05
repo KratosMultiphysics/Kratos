@@ -188,7 +188,7 @@ std::vector<Vector> StressStrainUtilities::CalculateStrains(const std::vector<Ma
     return result;
 }
 
-std::pair<Geo::PrincipalStresses, Matrix> StressStrainUtilities::CalculatePrincipalStresses(const Vector& rStressVector)
+std::pair<Geo::PrincipalStresses, Matrix> StressStrainUtilities::CalculatePrincipalStressesAndRotationMatrix(const Vector& rStressVector)
 {
     auto principal_stresses = Vector{};
     auto eigen_vectors      = Matrix{};
