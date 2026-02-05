@@ -34,7 +34,7 @@ namespace Kratos {
 namespace ExplicitFilterUtilsHelperUtilities
 {
 template<class TContainerType>
-void GetNodalDomainSizeExpression(
+void GetNodalDomainSizes(
     std::vector<double>& rNodalDomainSizes,
     const TContainerType& rContainer,
     const ModelPart::NodesContainerType& rNodes)
@@ -236,9 +236,9 @@ void ExplicitFilterUtils<TContainerType>::ExplicitFilterUtils::Update()
             const IndexType number_of_elements = r_elements.size();
 
             if (number_of_elements > 0) {
-                ExplicitFilterUtilsHelperUtilities::GetNodalDomainSizeExpression(mNodalDomainSizes, r_elements, r_nodes);
+                ExplicitFilterUtilsHelperUtilities::GetNodalDomainSizes(mNodalDomainSizes, r_elements, r_nodes);
             } else if (number_of_conditions > 0) {
-                ExplicitFilterUtilsHelperUtilities::GetNodalDomainSizeExpression(mNodalDomainSizes, r_conditions, r_nodes);
+                ExplicitFilterUtilsHelperUtilities::GetNodalDomainSizes(mNodalDomainSizes, r_conditions, r_nodes);
             } else {
                 KRATOS_ERROR << "Nodal mapping requires atleast either conditions or elements to be present in "
                             << mrModelPart.FullName() << ".\n";
