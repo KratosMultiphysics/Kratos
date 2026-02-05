@@ -194,7 +194,7 @@ std::pair<Geo::PrincipalStresses, Matrix> StressStrainUtilities::CalculatePrinci
     auto eigen_vectors      = Matrix{};
     CalculatePrincipalStresses(rStressVector, principal_stresses, eigen_vectors);
 
-    return {Geo::PrincipalStresses{principal_stresses}, eigen_vectors};
+    return std::make_pair(Geo::PrincipalStresses{principal_stresses}, std::move(eigen_vectors));
 }
 
 void StressStrainUtilities::CalculatePrincipalStresses(const Vector& rCauchyStressVector,
