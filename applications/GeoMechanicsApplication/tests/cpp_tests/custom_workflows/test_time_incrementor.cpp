@@ -436,18 +436,15 @@ KRATOS_TEST_CASE_IN_SUITE(ScaleIncrementToAvoidExtraSmallTimeStep, KratosGeoMech
     KRATOS_EXPECT_DOUBLE_EQ(8.0, time_incrementor.GetIncrement(previous_state.time));
 }
 
-KRATOS_TEST_CASE_IN_SUITE(ThrowExceptionWhenDeltaTimeSmallerThanTheLimitPostTimeStep, KratosGeoMechanicsFastSuiteWithoutKernel)
+KRATOS_TEST_CASE_IN_SUITE(ThrowExceptionUponConstructionWhenDeltaTimeSmallerThanTheLimit,
+                          KratosGeoMechanicsFastSuiteWithoutKernel)
 {
     AdaptiveTimeIncrementorSettings settings; // with EndTime = 8.0
-    settings.StartTime               = 7.9999999;
-    auto time_incrementor            = MakeAdaptiveTimeIncrementor(settings);
-    auto previous_state              = TimeStepEndState{};
-    previous_state.time              = 7.9999999; // to have an almost-zero time step
-    previous_state.convergence_state = TimeStepEndState::ConvergenceState::non_converged;
+    settings.StartTime = 7.9999999;
 
     KRATOS_EXPECT_EXCEPTION_IS_THROWN(
-        time_incrementor.PostTimeStepExecution(previous_state),
-        "Delta time (5e-08) is smaller than the given minimum allowable value 1e-06");
+        MakeAdaptiveTimeIncrementor(settings),
+        "Delta time (1e-07) is smaller than the given minimum allowable value 1e-06");
 }
 
 KRATOS_TEST_CASE_IN_SUITE(ThrowExceptionWhenDeltaTimeSmallerThanTheLimitAfterAvoidingSmallNextStep,
@@ -458,10 +455,9 @@ KRATOS_TEST_CASE_IN_SUITE(ThrowExceptionWhenDeltaTimeSmallerThanTheLimitAfterAvo
     // The incrementor will scale this up to 0.5, which is still smaller than the user-defined minimum of 1.0
     settings.StartIncrement   = 0.4999;
     settings.UserMinDeltaTime = 1.0;
-    auto time_incrementor     = MakeAdaptiveTimeIncrementor(settings);
 
     KRATOS_EXPECT_EXCEPTION_IS_THROWN(
-        time_incrementor.GetIncrement(settings.StartTime),
+        MakeAdaptiveTimeIncrementor(settings),
         "Delta time (0.5) is smaller than the given minimum allowable value 1");
 }
 
@@ -471,10 +467,9 @@ KRATOS_TEST_CASE_IN_SUITE(ThrowExceptionWhenDeltaTimeSmallerThanTheLimit, Kratos
     settings.StartTime        = 5.0;
     settings.StartIncrement   = 0.5; // smaller than the user-defined minimum of 1.0
     settings.UserMinDeltaTime = 1.0;
-    auto time_incrementor     = MakeAdaptiveTimeIncrementor(settings);
 
     KRATOS_EXPECT_EXCEPTION_IS_THROWN(
-        time_incrementor.GetIncrement(settings.StartTime),
+        MakeAdaptiveTimeIncrementor(settings),
         "Delta time (0.5) is smaller than the given minimum allowable value 1");
 }
 

@@ -57,6 +57,11 @@ AdaptiveTimeIncrementor::AdaptiveTimeIncrementor(double                StartTime
         << "Increase factor must be greater than or equal to 1, but got " << mIncreaseFactor;
     KRATOS_ERROR_IF(MaxTimeStepFactor < 1.0)
         << "Max_delta_time_factor must be greater than or equal to 1, but got " << MaxTimeStepFactor;
+
+    if (mEndTime - (StartTime + mDeltaTime) < GetMinimumDeltaTime()) {
+        mDeltaTime = mTimeSpan;
+    }
+    CheckMinimumDeltaTime(mDeltaTime);
 }
 
 bool AdaptiveTimeIncrementor::WantNextStep(const TimeStepEndState& rPreviousState) const
@@ -81,17 +86,7 @@ double AdaptiveTimeIncrementor::GetMinimumDeltaTime() const
     return mUserMinDeltaTime.value_or(default_min_delta_time);
 }
 
-double AdaptiveTimeIncrementor::GetIncrement(double PreviousTime) const
-{
-    if (mEndTime - (PreviousTime + mDeltaTime) < GetMinimumDeltaTime()) {
-        const auto new_dt_to_avoid_small_end_increment = mEndTime - PreviousTime;
-        CheckMinimumDeltaTime(new_dt_to_avoid_small_end_increment);
-        return new_dt_to_avoid_small_end_increment;
-    }
-
-    CheckMinimumDeltaTime(mDeltaTime);
-    return mDeltaTime;
-}
+double AdaptiveTimeIncrementor::GetIncrement(double PreviousTime) const { return mDeltaTime; }
 
 void AdaptiveTimeIncrementor::CheckMinimumDeltaTime(double DeltaTime) const
 {
@@ -104,18 +99,24 @@ void AdaptiveTimeIncrementor::CheckMinimumDeltaTime(double DeltaTime) const
 void AdaptiveTimeIncrementor::PostTimeStepExecution(const TimeStepEndState& rResultantState)
 {
     if (rResultantState.Converged()) {
+        if (rResultantState.time >= mEndTime) return;
+
         if (rResultantState.num_of_iterations < mMinNumOfIterations) {
             mDeltaTime = std::min(mDeltaTime * mIncreaseFactor, mMaxDeltaTime);
         } else if (rResultantState.num_of_iterations == mMaxNumOfIterations) {
             mDeltaTime *= mReductionFactor;
+        }
+        if (mEndTime - (rResultantState.time + mDeltaTime) < GetMinimumDeltaTime()) {
+            mDeltaTime = mEndTime - rResultantState.time;
         }
     }
 
     else {
         // non converged, scale down step and restart
         mDeltaTime *= mReductionFactor;
-        CheckMinimumDeltaTime(mDeltaTime);
     }
+
+    CheckMinimumDeltaTime(mDeltaTime);
 }
 
 } // namespace Kratos
