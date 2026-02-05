@@ -26,6 +26,12 @@ namespace Kratos
 
 class CheckProperties;
 
+namespace Geo
+{
+class PrincipalStresses;
+class SigmaTau;
+} // namespace Geo
+
 class KRATOS_API(GEO_MECHANICS_APPLICATION) CoulombYieldSurface : public YieldSurface
 {
 public:
@@ -47,13 +53,20 @@ public:
     void                 SetKappa(double kappa);
 
     [[nodiscard]] double YieldFunctionValue(const Vector& rSigmaTau) const override;
+    [[nodiscard]] double YieldFunctionValue(const Geo::SigmaTau& rSigmaTau) const;
+    [[nodiscard]] double YieldFunctionValue(const Geo::PrincipalStresses& rPrincipalStresses) const;
+
     [[nodiscard]] Vector DerivativeOfFlowFunction(const Vector&) const override;
     [[nodiscard]] Vector DerivativeOfFlowFunction(const Vector&, CoulombAveragingType AveragingType) const;
+    [[nodiscard]] Vector DerivativeOfFlowFunction(const Geo::SigmaTau&,
+                                                  CoulombAveragingType AveragingType = CoulombAveragingType::NO_AVERAGING) const;
 
     [[nodiscard]] double CalculateApex() const;
-    [[nodiscard]] double CalculatePlasticMultiplier(const Vector& rSigmaTau,
+    [[nodiscard]] double CalculatePlasticMultiplier(const Geo::SigmaTau& rSigmaTau,
                                                     const Vector& rDerivativeOfFlowFunction) const;
-    [[nodiscard]] double CalculateEquivalentPlasticStrainIncrement(const Vector& rSigmaTau,
+    [[nodiscard]] double CalculateEquivalentPlasticStrainIncrement(const Geo::SigmaTau& rSigmaTau,
+                                                                   CoulombAveragingType AveragingType) const;
+    [[nodiscard]] double CalculateEquivalentPlasticStrainIncrement(const Geo::PrincipalStresses& rPrincipalStresses,
                                                                    CoulombAveragingType AveragingType) const;
 
 private:
