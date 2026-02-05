@@ -35,7 +35,9 @@ public:
 
     [[nodiscard]] bool WantNextStep(const TimeStepEndState& rPreviousState) const override;
     [[nodiscard]] bool WantRetryStep(std::size_t CycleNumber, const TimeStepEndState& rPreviousState) const override;
+    [[nodiscard]] double GetMinimumDeltaTime() const;
     [[nodiscard]] double GetIncrement(double PreviousTime) const override;
+    void                 CheckMinimumDeltaTime(double DeltaTime) const;
     void                 PostTimeStepExecution(const TimeStepEndState& rResultantState) override;
 
 private:
