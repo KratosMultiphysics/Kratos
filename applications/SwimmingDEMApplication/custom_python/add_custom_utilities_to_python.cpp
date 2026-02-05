@@ -73,6 +73,7 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include "custom_utilities/fields/ethier_flow_field.h"
 #include "custom_utilities/fields/poiseuille_torus_flow_field.h"
 #include "custom_utilities/fields/quadratic_steady_real_field.h"
+#include "custom_utilities/fields/quadratic_linear_time_real_field.h"
 #include "custom_utilities/fields/cubic_steady_real_field.h"
 #include "custom_utilities/fields/product_of_sines_field.h"
 #include "custom_utilities/fields/pouliot_flow_field.h"
@@ -265,6 +266,13 @@ void  AddCustomUtilitiesToPython(pybind11::module& m){
 
     py::class_<QuadraticSteadyRealFlowField, QuadraticSteadyRealFlowField::Pointer, VelocityField > (m, "QuadraticSteadyRealFlowField")
         .def(py::init<const array_1d<double, 9>&, const array_1d<double, 9>&, const array_1d<double, 9>&, const array_1d<double, 3>&>())
+        ;
+
+    py::class_<QuadraticLinearTimeRealFlowField, QuadraticLinearTimeRealFlowField::Pointer, VelocityField > (m, "QuadraticLinearTimeRealFlowField")
+        .def(py::init<const array_1d<double, 9>&, const array_1d<double, 9>&,
+                      const array_1d<double, 9>&, const array_1d<double, 9>&,
+                      const array_1d<double, 9>&, const array_1d<double, 9>&,
+                      const array_1d<double, 3>&>())
         ;
 
     py::class_<CubicSteadyRealFlowField, CubicSteadyRealFlowField::Pointer, VelocityField > (m, "CubicSteadyRealFlowField")
