@@ -23,30 +23,30 @@ class UPCouplingCalculator : public ContributionCalculator<NumberOfRows, NumberO
 {
 public:
     struct InputProvider {
-        InputProvider(std::function<const Matrix&()>                    GetNpContainer,
+        InputProvider(std::function<const Matrix()>                     GetNpContainer,
                       Geo::BMatricesGetter                              GetBMatrices,
                       std::function<Vector()>                           GetVoigtVector,
                       Geo::IntegrationCoefficientsGetter                GetIntegrationCoefficients,
                       std::function<std::vector<double>()>              GetBiotCoefficients,
                       std::function<std::vector<double>(const Vector&)> GetBishopCoefficients,
-                      std::function<Vector()>                           GetNodalWaterPressures)
+                      std::function<Vector()> GetIntegrationPointFluidPressures)
             : GetNpContainer(std::move(GetNpContainer)),
               GetBMatrices(std::move(GetBMatrices)),
               GetVoigtVector(std::move(GetVoigtVector)),
               GetIntegrationCoefficients(std::move(GetIntegrationCoefficients)),
               GetBiotCoefficients(std::move(GetBiotCoefficients)),
               GetBishopCoefficients(std::move(GetBishopCoefficients)),
-              GetNodalWaterPressures(std::move(GetNodalWaterPressures))
+              GetIntegrationPointFluidPressures(std::move(GetIntegrationPointFluidPressures))
         {
         }
 
-        std::function<const Matrix&()>                    GetNpContainer;
+        std::function<const Matrix()>                     GetNpContainer;
         Geo::BMatricesGetter                              GetBMatrices;
         std::function<Vector()>                           GetVoigtVector;
         Geo::IntegrationCoefficientsGetter                GetIntegrationCoefficients;
         std::function<std::vector<double>()>              GetBiotCoefficients;
         std::function<std::vector<double>(const Vector&)> GetBishopCoefficients;
-        std::function<Vector()>                           GetNodalWaterPressures;
+        std::function<Vector()>                           GetIntegrationPointFluidPressures;
     };
 
     explicit UPCouplingCalculator(InputProvider CouplingInputProvider)
@@ -63,7 +63,7 @@ public:
 
     typename BaseType::RHSVectorType RHSContribution() override
     {
-        return prod(CalculateCouplingMatrix(), mInputProvider.GetNodalWaterPressures());
+        return prod(CalculateCouplingMatrix(), mInputProvider.GetIntegrationPointFluidPressures());
     }
 
     std::pair<std::optional<typename BaseType::LHSMatrixType>, typename BaseType::RHSVectorType> LocalSystemContribution() override
@@ -79,17 +79,16 @@ private:
         const auto                       voigt_vector = mInputProvider.GetVoigtVector();
         const auto integration_coefficients           = mInputProvider.GetIntegrationCoefficients();
         const auto biot_coefficients                  = mInputProvider.GetBiotCoefficients();
-        const auto fluid_pressures                    = mInputProvider.GetNodalWaterPressures();
+        const auto fluid_pressures     = mInputProvider.GetIntegrationPointFluidPressures();
         const auto bishop_coefficients = mInputProvider.GetBishopCoefficients(fluid_pressures);
         const auto np_container        = mInputProvider.GetNpContainer();
         for (auto i = std::size_t{0}; i < integration_coefficients.size(); ++i) {
-            typename BaseType::LHSMatrixType coupling_contribution;
+            typename BaseType::LHSMatrixType coupling_contribution; // = ZeroMatrix(NumberOfRows, NumberOfColumns);
             GeoTransportEquationUtilities::CalculateCouplingMatrix(
                 coupling_contribution, b_matrices[i], voigt_vector, row(np_container, i),
                 biot_coefficients[i], bishop_coefficients[i], integration_coefficients[i]);
             result += coupling_contribution;
         }
-
         return result;
     }
 

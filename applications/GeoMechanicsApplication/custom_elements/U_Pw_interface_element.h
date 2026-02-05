@@ -121,16 +121,17 @@ private:
     Geo::IntegrationCoefficientsGetter                CreateIntegrationCoefficientsGetter() const;
     Geo::PropertiesGetter                             CreatePropertiesGetter() const;
     Geo::ConstitutiveLawsGetter                       CreateConstitutiveLawsGetter() const;
-    std::function<const Matrix&()>                    CreateNpContainerGetter() const;
+    std::function<const Matrix()>                     CreateNpContainerGetter() const;
     std::function<Vector()>                           CreateVoigtVectorGetter() const;
     std::function<std::vector<double>()>              CreateBiotCoefficientsGetter() const;
     std::function<std::vector<double>(const Vector&)> CreateBishopCoefficientsGetter() const;
-    std::function<Vector()>                           CreateNodalWaterPressuresGetter() const;
+    std::function<Vector()> CreateIntegrationPointFluidPressuresGetter() const;
 
     std::vector<double> CalculateBiotCoefficients() const;
     std::vector<double> CalculateBishopCoefficients(const Vector& rFluidPressure) const;
-    std::vector<double> CalculateIntegrationPointFluidPressures() const;
+    Vector              CalculateIntegrationPointFluidPressures() const;
     Vector GetWaterPressureGeometryNodalVariable(const Variable<double>& rVariable) const;
+    Matrix GetNpContainer() const;
 
     template <unsigned int MatrixSize>
     typename StiffnessCalculator<MatrixSize>::InputProvider CreateStiffnessInputProvider(const ProcessInfo& rProcessInfo);
