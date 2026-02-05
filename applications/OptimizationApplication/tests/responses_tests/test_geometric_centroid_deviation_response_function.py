@@ -18,14 +18,14 @@ class TestGeometricCentroidDeviationResponseFunction(kratos_unittest.TestCase):
         cls.response_function.Check()
         cls.ref_value = cls.response_function.CalculateValue()
 
-    def _CheckSensitivity(self, update_method, expression_sensitivity_retrieval_method, delta, precision):
+    def _CheckSensitivity(self, update_method, tensor_adaptor_sensitivity_retrieval_method, delta, precision):
         ref_value = self.response_function.CalculateValue()
         for node in self.model_part.Nodes:
             update_method(node, delta)
             value = self.response_function.CalculateValue()
             sensitivity = (value - ref_value)/delta
             update_method(node, -delta)
-            self.assertAlmostEqual(sensitivity, expression_sensitivity_retrieval_method(node), precision)
+            self.assertAlmostEqual(sensitivity, tensor_adaptor_sensitivity_retrieval_method(node), precision)
 
     def _UpdateNodalPositions(self, direction, entity, delta):
         if direction == 0:

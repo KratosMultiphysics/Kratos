@@ -255,11 +255,11 @@ class TestExplicitFilterReference(kratos_unittest.TestCase):
             physical_update = vm_filter.ForwardFilterField(control_update)
 
             # Purposefully left out for debugging if required.
-            # self.vtu_output.AddContainerExpression("physical_space_gradient", physical_space_gradient)
-            # self.vtu_output.AddContainerExpression("control_space_gradient", control_space_gradient)
-            # self.vtu_output.AddContainerExpression("control_update", control_update)
-            # self.vtu_output.AddContainerExpression("physical_update", physical_update)
-            # self.vtu_output.AddContainerExpression("damping_coeffs", vm_filter.GetComponentDataView().GetUnBufferedData()["damping_coefficients"])
+            # self.vtu_output.AddTensorAdaptor("physical_space_gradient", physical_space_gradient)
+            # self.vtu_output.AddTensorAdaptor("control_space_gradient", control_space_gradient)
+            # self.vtu_output.AddTensorAdaptor("control_update", control_update)
+            # self.vtu_output.AddTensorAdaptor("physical_update", physical_update)
+            # self.vtu_output.AddTensorAdaptor("damping_coeffs", vm_filter.GetComponentDataView().GetUnBufferedData()["damping_coefficients"])
             # self.vtu_output.PrintOutput(f"output_{i+1}")
 
             # update the mesh
