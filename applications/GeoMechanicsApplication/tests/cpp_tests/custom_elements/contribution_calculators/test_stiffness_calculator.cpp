@@ -42,7 +42,7 @@ public:
         rValues.GetStressVector() = mStressVector;
     };
 
-    SizeType GetStrainSize() const override { return mStressVector.size(); }
+    [[nodiscard]] SizeType GetStrainSize() const override { return mStressVector.size(); }
 
     Matrix mConstitutiveMatrix;
     Vector mStressVector;
