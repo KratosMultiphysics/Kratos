@@ -48,28 +48,42 @@ public:
     Vector mStressVector;
 };
 
+struct StiffnessInputs {
+    const Matrix BMatrix = UblasUtilities::CreateMatrix({{1, 2, 3, 4}, {5, 6, 7, 8}, {9, 10, 11, 12}});
+    const Vector Strain = Vector{4, 0.5};
+    const Matrix ConstitutiveMatrix = UblasUtilities::CreateMatrix({{1, 2, 3}, {4, 5, 6}, {7, 8, 9}});
+    const Vector                          StressVector = UblasUtilities::CreateVector({1, 2, 3});
+    std::vector<ConstitutiveLaw::Pointer> MockLaws{
+        std::make_shared<MockLaw>(ConstitutiveMatrix, StressVector),
+        std::make_shared<MockLaw>(ConstitutiveMatrix, StressVector)};
+    const Properties  MyProperties           = Properties{};
+    const ProcessInfo MyProcessInfo          = ProcessInfo{};
+    const double      IntegrationCoefficient = 0.5;
+};
+
 template <unsigned int NumberOfUDof>
 typename StiffnessCalculator<NumberOfUDof>::InputProvider CreateStiffnessInputProvider(
-    const Matrix&                                rBMatrix,
-    const Vector&                                rStrain,
-    double                                       IntegrationCoefficient,
-    const Properties&                            rProperties,
-    const ProcessInfo&                           rProcessInfo,
-    const std::vector<ConstitutiveLaw::Pointer>& rConstitutiveLaws,
-    std::size_t                                  NumberOfIntegrationPoints = 1)
+    const StiffnessInputs& rStiffnessInputs, std::size_t NumberOfIntegrationPoints = 1)
 {
-    auto get_b_matrices = [&rBMatrix, NumberOfIntegrationPoints]() {
-        return std::vector(NumberOfIntegrationPoints, rBMatrix);
+    auto get_b_matrices = [&rStiffnessInputs, NumberOfIntegrationPoints]() {
+        return std::vector(NumberOfIntegrationPoints, rStiffnessInputs.BMatrix);
     };
-    auto get_integration_coefficients = [IntegrationCoefficient, NumberOfIntegrationPoints]() {
-        return std::vector(NumberOfIntegrationPoints, IntegrationCoefficient);
+
+    auto get_integration_coefficients = [&rStiffnessInputs, NumberOfIntegrationPoints]() {
+        return std::vector(NumberOfIntegrationPoints, rStiffnessInputs.IntegrationCoefficient);
     };
-    auto get_strains = [&rStrain, NumberOfIntegrationPoints]() {
-        return std::vector(NumberOfIntegrationPoints, rStrain);
+    auto get_strains = [&rStiffnessInputs, NumberOfIntegrationPoints]() {
+        return std::vector(NumberOfIntegrationPoints, rStiffnessInputs.Strain);
     };
-    auto get_element_properties = [&rProperties]() -> const auto& { return rProperties; };
-    auto get_process_info       = [&rProcessInfo]() -> const auto& { return rProcessInfo; };
-    auto get_constitutive_laws = [&rConstitutiveLaws]() -> const auto& { return rConstitutiveLaws; };
+    auto get_element_properties = [&rStiffnessInputs]() -> const auto& {
+        return rStiffnessInputs.MyProperties;
+    };
+    auto get_process_info = [&rStiffnessInputs]() -> const auto& {
+        return rStiffnessInputs.MyProcessInfo;
+    };
+    auto get_constitutive_laws = [&rStiffnessInputs]() -> const auto& {
+        return rStiffnessInputs.MockLaws;
+    };
 
     return typename StiffnessCalculator<NumberOfUDof>::InputProvider(
         get_b_matrices, get_strains, get_integration_coefficients, get_element_properties,
@@ -86,20 +100,9 @@ TEST_F(KratosGeoMechanicsFastSuiteWithoutKernel, TestsStiffnessContribution)
     constexpr std::size_t number_of_u_dof              = 4;
     constexpr auto        number_of_integration_points = std::size_t{2};
 
-    const auto b_matrix = UblasUtilities::CreateMatrix({{1, 2, 3, 4}, {5, 6, 7, 8}, {9, 10, 11, 12}});
-    const auto strain = Vector{4, 0.5};
-    const auto constitutive_matrix = UblasUtilities::CreateMatrix({{1, 2, 3}, {4, 5, 6}, {7, 8, 9}});
-    const auto                            stress_vector = UblasUtilities::CreateVector({1, 2, 3});
-    std::vector<ConstitutiveLaw::Pointer> mock_laws{
-        std::make_shared<MockLaw>(constitutive_matrix, stress_vector),
-        std::make_shared<MockLaw>(constitutive_matrix, stress_vector)};
-    const auto properties              = Properties{};
-    const auto process_info            = ProcessInfo{};
-    const auto integration_coefficient = 0.5;
-
-    StiffnessCalculator<number_of_u_dof>::InputProvider provider =
-        CreateStiffnessInputProvider<number_of_u_dof>(b_matrix, strain, integration_coefficient, properties,
-                                                      process_info, mock_laws, number_of_integration_points);
+    const auto stiffness_inputs = StiffnessInputs{};
+    const auto provider =
+        CreateStiffnessInputProvider<number_of_u_dof>(stiffness_inputs, number_of_integration_points);
     StiffnessCalculator<number_of_u_dof> calculator(provider);
 
     // Act
@@ -119,20 +122,9 @@ TEST_F(KratosGeoMechanicsFastSuiteWithoutKernel, TestsStiffnessForceContribution
     constexpr std::size_t number_of_u_dof              = 4;
     constexpr auto        number_of_integration_points = std::size_t{2};
 
-    const auto b_matrix = UblasUtilities::CreateMatrix({{1, 2, 3, 4}, {5, 6, 7, 8}, {9, 10, 11, 12}});
-    const auto strain = Vector{4, 0.5};
-    const auto constitutive_matrix = UblasUtilities::CreateMatrix({{1, 2, 3}, {4, 5, 6}, {7, 8, 9}});
-    const auto                            stress_vector = UblasUtilities::CreateVector({1, 2, 3});
-    std::vector<ConstitutiveLaw::Pointer> mock_laws{
-        std::make_shared<MockLaw>(constitutive_matrix, stress_vector),
-        std::make_shared<MockLaw>(constitutive_matrix, stress_vector)};
-    const auto properties              = Properties{};
-    const auto process_info            = ProcessInfo{};
-    const auto integration_coefficient = 0.5;
-
-    StiffnessCalculator<number_of_u_dof>::InputProvider provider =
-        CreateStiffnessInputProvider<number_of_u_dof>(b_matrix, strain, integration_coefficient, properties,
-                                                      process_info, mock_laws, number_of_integration_points);
+    const auto stiffness_inputs = StiffnessInputs{};
+    const auto provider =
+        CreateStiffnessInputProvider<number_of_u_dof>(stiffness_inputs, number_of_integration_points);
     StiffnessCalculator<number_of_u_dof> calculator(provider);
 
     // Act
