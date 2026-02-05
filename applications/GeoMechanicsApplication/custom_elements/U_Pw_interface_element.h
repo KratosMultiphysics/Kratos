@@ -116,19 +116,19 @@ private:
                                           const Vector& rGlobalStressVector) const;
     Vector ConvertLocalStressToTraction(const Matrix& rLocalStress) const;
 
-    Geo::BMatricesGetter                              CreateBMatricesGetter() const;
-    Geo::StrainVectorsGetter                          CreateRelativeDisplacementsGetter() const;
-    Geo::IntegrationCoefficientsGetter                CreateIntegrationCoefficientsGetter() const;
-    Geo::PropertiesGetter                             CreatePropertiesGetter() const;
-    Geo::ConstitutiveLawsGetter                       CreateConstitutiveLawsGetter() const;
-    std::function<const Matrix()>                     CreateNpContainerGetter() const;
-    std::function<Vector()>                           CreateVoigtVectorGetter() const;
-    std::function<std::vector<double>()>              CreateBiotCoefficientsGetter() const;
-    std::function<std::vector<double>(const Vector&)> CreateBishopCoefficientsGetter() const;
-    std::function<Vector()> CreateIntegrationPointFluidPressuresGetter() const;
+    Geo::BMatricesGetter                 CreateBMatricesGetter() const;
+    Geo::StrainVectorsGetter             CreateRelativeDisplacementsGetter() const;
+    Geo::IntegrationCoefficientsGetter   CreateIntegrationCoefficientsGetter() const;
+    Geo::PropertiesGetter                CreatePropertiesGetter() const;
+    Geo::ConstitutiveLawsGetter          CreateConstitutiveLawsGetter() const;
+    std::function<const Matrix()>        CreateNpContainerGetter() const;
+    std::function<Vector()>              CreateVoigtVectorGetter() const;
+    std::function<std::vector<double>()> CreateBiotCoefficientsGetter() const;
+    std::function<std::vector<double>()> CreateBishopCoefficientsGetter() const;
+    std::function<Vector()>              CreateNodalPressuresGetter() const;
 
     std::vector<double> CalculateBiotCoefficients() const;
-    std::vector<double> CalculateBishopCoefficients(const Vector& rFluidPressure) const;
+    std::vector<double> CalculateBishopCoefficients() const;
     Vector              CalculateIntegrationPointFluidPressures() const;
     Vector GetWaterPressureGeometryNodalVariable(const Variable<double>& rVariable) const;
     Matrix GetNpContainer() const;

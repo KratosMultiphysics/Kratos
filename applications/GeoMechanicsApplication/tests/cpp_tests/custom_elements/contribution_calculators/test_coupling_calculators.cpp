@@ -44,7 +44,7 @@ typename UPCouplingCalculator<NumberOfRows, NumberOfColumns>::InputProvider Crea
     auto get_biot_coefficients = [BiotCoefficient, NumberOfIntegrationPoints]() {
         return std::vector(NumberOfIntegrationPoints, BiotCoefficient);
     };
-    auto get_bishop_coefficients = [BishopCoefficient, NumberOfIntegrationPoints](const Vector&) {
+    auto get_bishop_coefficients = [BishopCoefficient, NumberOfIntegrationPoints]() {
         return std::vector(NumberOfIntegrationPoints, BishopCoefficient);
     };
     auto get_voigt_vector    = [rVoigtVector]() { return rVoigtVector; };
@@ -76,8 +76,8 @@ typename PUCouplingCalculator<NumberOfRows, NumberOfColumns>::InputProvider Crea
     auto get_biot_coefficients = [BiotCoefficient, NumberOfIntegrationPoints]() {
         return std::vector(NumberOfIntegrationPoints, BiotCoefficient);
     };
-    auto get_degrees_of_saturation = [DegreeOfSaturation, NumberOfIntegrationPoints](const Vector&) {
-        return std::vector<double>(NumberOfIntegrationPoints, DegreeOfSaturation);
+    auto get_degrees_of_saturation = [DegreeOfSaturation, NumberOfIntegrationPoints]() {
+        return std::vector(NumberOfIntegrationPoints, DegreeOfSaturation);
     };
     auto get_voigt_vector = [rVoigtVector]() { return rVoigtVector; };
     auto get_velocities   = [rVelocities]() { return rVelocities; };

@@ -105,7 +105,7 @@ UPwInterfaceElement::UPwInterfaceElement(IndexType                          NewI
 {
     MakeIntegrationSchemeAndAssignFunction();
     mpOptionalPressureGeometry = MakeOptionalWaterPressureGeometry(GetDisplacementGeometry(), IsDiffOrder);
-    mRetentionLawVector.resize(GetWaterPressureMidGeometry().PointsNumber());
+    mRetentionLawVector.resize(mpIntegrationScheme->GetIntegrationPoints().size());
     auto properties = Properties{};
     if (rpProperties) properties = *rpProperties;
     for (auto& r_retention_law : mRetentionLawVector) {
@@ -742,22 +742,21 @@ std::vector<double> UPwInterfaceElement::CalculateBiotCoefficients() const
     return std::vector<double>(n_points, biot_coefficient);
 }
 
-std::function<std::vector<double>(const Vector&)> UPwInterfaceElement::CreateBishopCoefficientsGetter() const
+std::function<std::vector<double>()> UPwInterfaceElement::CreateBishopCoefficientsGetter() const
 {
-    return [this](const Vector& rFluidPressures) {
-        return this->CalculateBishopCoefficients(rFluidPressures);
-    };
+    return [this]() { return this->CalculateBishopCoefficients(); };
 }
 
-std::vector<double> UPwInterfaceElement::CalculateBishopCoefficients(const Vector& rFluidPressures) const
+std::vector<double> UPwInterfaceElement::CalculateBishopCoefficients() const
 {
-    KRATOS_ERROR_IF_NOT(rFluidPressures.size() == mRetentionLawVector.size());
+    const auto fluid_pressure = CalculateIntegrationPointFluidPressures();
+    KRATOS_ERROR_IF_NOT(fluid_pressure.size() == mRetentionLawVector.size());
 
     auto retention_law_params = RetentionLaw::Parameters{this->GetProperties()};
 
     auto result = std::vector<double>{};
     result.reserve(mRetentionLawVector.size());
-    std::transform(mRetentionLawVector.begin(), mRetentionLawVector.end(), rFluidPressures.begin(),
+    std::transform(mRetentionLawVector.begin(), mRetentionLawVector.end(), fluid_pressure.begin(),
                    std::back_inserter(result),
                    [&retention_law_params](const auto& pRetentionLaw, auto FluidPressure) {
         retention_law_params.SetFluidPressure(FluidPressure);
@@ -768,11 +767,8 @@ std::vector<double> UPwInterfaceElement::CalculateBishopCoefficients(const Vecto
 
 Matrix UPwInterfaceElement::GetNpContainer() const
 {
-    const auto total_number_of_nodes       = GetGeometry().PointsNumber();
-    const auto number_of_nodes_on_one_side = GetWaterPressureMidGeometry().PointsNumber();
-    KRATOS_ERROR_IF_NOT(total_number_of_nodes == 2 * number_of_nodes_on_one_side)
-        << " Mismatch in total " << total_number_of_nodes << " and one side node numbers"
-        << number_of_nodes_on_one_side << std::endl;
+    const auto total_number_of_nodes    = GetGeometry().PointsNumber();
+    const auto number_of_pressure_nodes = GetWaterPressureMidGeometry().PointsNumber();
     Matrix n_container{mpIntegrationScheme->GetIntegrationPoints().size(), total_number_of_nodes};
     auto   shape_function_values_interface = Vector(total_number_of_nodes);
 
@@ -783,9 +779,9 @@ Matrix UPwInterfaceElement::GetNpContainer() const
         GetWaterPressureMidGeometry().ShapeFunctionsValues(integration_point_shape_function_values,
                                                            r_integration_point);
         // shape function values are for one side, extend it for the other side
-        noalias(subrange(shape_function_values_interface, 0, number_of_nodes_on_one_side)) =
+        noalias(subrange(shape_function_values_interface, 0, number_of_pressure_nodes)) =
             integration_point_shape_function_values;
-        noalias(subrange(shape_function_values_interface, number_of_nodes_on_one_side, total_number_of_nodes)) =
+        noalias(subrange(shape_function_values_interface, number_of_pressure_nodes, total_number_of_nodes)) =
             -integration_point_shape_function_values;
         row(n_container, integration_point_index) = shape_function_values_interface;
         integration_point_index++;
@@ -795,9 +791,9 @@ Matrix UPwInterfaceElement::GetNpContainer() const
 
 Vector UPwInterfaceElement::CalculateIntegrationPointFluidPressures() const
 {
-    const auto n_container          = GetNpContainer();
-    auto       nodal_water_pressure = GetWaterPressureGeometryNodalVariable(WATER_PRESSURE);
-    Vector     mid_geometry_water_pressures{nodal_water_pressure.size() / 2};
+    const auto n_container                  = GetNpContainer();
+    auto       nodal_water_pressure         = GetWaterPressureGeometryNodalVariable(WATER_PRESSURE);
+    auto       mid_geometry_water_pressures = Vector{nodal_water_pressure.size(), 0};
     for (auto i = std::size_t{0}; i < nodal_water_pressure.size() / 2; ++i) {
         // this choice of averaging should be different for impermeable interface
         mid_geometry_water_pressures[i] =
@@ -810,9 +806,9 @@ Vector UPwInterfaceElement::CalculateIntegrationPointFluidPressures() const
     return result;
 }
 
-std::function<Vector()> UPwInterfaceElement::CreateIntegrationPointFluidPressuresGetter() const
+std::function<Vector()> UPwInterfaceElement::CreateNodalPressuresGetter() const
 {
-    return [this]() { return this->CalculateIntegrationPointFluidPressures(); };
+    return [this]() { return this->GetWaterPressureGeometryNodalVariable(WATER_PRESSURE); };
 }
 
 Vector UPwInterfaceElement::GetWaterPressureGeometryNodalVariable(const Variable<double>& rVariable) const
@@ -863,7 +859,7 @@ typename UPCouplingCalculator<NumberOfRows, NumberOfColumns>::InputProvider UPwI
     return typename UPCouplingCalculator<NumberOfRows, NumberOfColumns>::InputProvider(
         CreateNpContainerGetter(), CreateBMatricesGetter(), CreateVoigtVectorGetter(),
         CreateIntegrationCoefficientsGetter(), CreateBiotCoefficientsGetter(),
-        CreateBishopCoefficientsGetter(), CreateIntegrationPointFluidPressuresGetter());
+        CreateBishopCoefficientsGetter(), CreateNodalPressuresGetter());
 }
 
 template <unsigned int NumberOfRows, unsigned int NumberOfColumns>

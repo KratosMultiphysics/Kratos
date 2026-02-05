@@ -2135,8 +2135,6 @@ KRATOS_TEST_CASE_IN_SUITE(UPwLineInterfaceElement_CouplingContribution, KratosGe
     ASSERT_EQ(actual_left_hand_side.size2(), number_of_u_dofs + number_of_pw_dofs);
     ASSERT_EQ(actual_right_hand_side.size(), number_of_u_dofs + number_of_pw_dofs);
 
-    // std::cout << "lhs" << lhs << std::endl;
-
     // clang-format off
     const auto expected_up_block_matrix = UblasUtilities::CreateMatrix({
                 {0,0,0,0,0,0,0,0,0,0,0,0},
@@ -2153,13 +2151,77 @@ KRATOS_TEST_CASE_IN_SUITE(UPwLineInterfaceElement_CouplingContribution, KratosGe
                 {0,0,0,0,0,0,0,0,0,0,0,0}});
     // clang-format on
 
-    KRATOS_EXPECT_MATRIX_RELATIVE_NEAR(subrange(actual_left_hand_side, 0, 0 + number_of_u_dofs + number_of_pw_dofs,
-                                                0, 0 + number_of_u_dofs + number_of_pw_dofs),
-                                       expected_up_block_matrix, Defaults::relative_tolerance)
+    KRATOS_EXPECT_MATRIX_RELATIVE_NEAR(actual_left_hand_side, expected_up_block_matrix, Defaults::relative_tolerance)
 
     const auto expected_up_block_vector =
-        UblasUtilities::CreateVector({0, -50, 0, -50, 0, 50, 0, 50, 0, 0, 0, 0});
-    KRATOS_EXPECT_VECTOR_NEAR(subrange(actual_right_hand_side, 0, 0 + number_of_u_dofs + number_of_pw_dofs),
-                              expected_up_block_vector, Defaults::relative_tolerance)
+        UblasUtilities::CreateVector({0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0});
+    KRATOS_EXPECT_VECTOR_NEAR(actual_right_hand_side, expected_up_block_vector, Defaults::relative_tolerance)
+}
+
+KRATOS_TEST_CASE_IN_SUITE(UPwLineInterfaceElement_CouplingContribution_DiffOrder, KratosGeoMechanicsFastSuiteWithoutKernel)
+{
+    // Arrange
+    constexpr auto normal_stiffness = 20.0;
+    constexpr auto shear_stiffness  = 10.0;
+    const auto     p_properties =
+        CreateElasticMaterialProperties<InterfacePlaneStrain>(normal_stiffness, shear_stiffness);
+
+    Model model;
+    auto  interface_element =
+        CreateHorizontalUnitLength3Plus3NodedLineInterfaceElementWithUPwDoF(model, p_properties);
+
+    // Set nonzero water pressure at each node to ensure coupling code is exercised
+    for (auto& node : interface_element.GetGeometry()) {
+        node.FastGetSolutionStepValue(WATER_PRESSURE) = 100.0;
+    }
+
+    // a new element with only Coupling contribution
+    interface_element = UPwInterfaceElement(1, interface_element.pGetGeometry(), p_properties,
+                                            std::make_unique<Line2DInterfaceStressState>(),
+                                            IsDiffOrderElement::Yes, {CalculationContribution::Coupling});
+
+    interface_element.Initialize(ProcessInfo{});
+
+    // Act
+    Vector actual_right_hand_side;
+    Matrix actual_left_hand_side;
+    interface_element.CalculateLocalSystem(actual_left_hand_side, actual_right_hand_side, ProcessInfo{});
+
+    // Assert
+    constexpr auto number_of_u_dofs  = std::size_t{6 * 2};
+    constexpr auto number_of_pw_dofs = std::size_t{4};
+    ASSERT_EQ(actual_left_hand_side.size1(), number_of_u_dofs + number_of_pw_dofs);
+    ASSERT_EQ(actual_left_hand_side.size2(), number_of_u_dofs + number_of_pw_dofs);
+    ASSERT_EQ(actual_right_hand_side.size(), number_of_u_dofs + number_of_pw_dofs);
+
+    std::cout << "actual_left_hand_side" << actual_left_hand_side << std::endl;
+    std::cout << "actual_right_hand_side" << actual_right_hand_side << std::endl;
+
+    // clang-format off
+    const auto expected_up_block_matrix = UblasUtilities::CreateMatrix({
+        {0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0},
+        {0,0,0,0,0,0,0,0,0,0,0,0,-0.166667,0,0.166667,0},
+        {0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0},
+        {0,0,0,0,0,0,0,0,0,0,0,0,0,-0.166667,0,0.166667},
+        {0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0},
+        {0,0,0,0,0,0,0,0,0,0,0,0,-0.333333,-0.333333,0.333333,0.333333},
+        {0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0},
+        {0,0,0,0,0,0,0,0,0,0,0,0,0.166667,0,-0.166667,0},
+        {0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0},
+        {0,0,0,0,0,0,0,0,0,0,0,0,0,0.166667,0,-0.166667},
+        {0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0},
+        {0,0,0,0,0,0,0,0,0,0,0,0,0.333333,0.333333,-0.333333,-0.333333},
+        {0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0},
+        {0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0},
+        {0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0},
+        {0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0}
+    });
+    // clang-format on
+    constexpr auto tolerance = 1e-5;
+    KRATOS_EXPECT_MATRIX_RELATIVE_NEAR(actual_left_hand_side, expected_up_block_matrix, tolerance)
+
+    const auto expected_up_block_vector =
+        UblasUtilities::CreateVector({0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0});
+    KRATOS_EXPECT_VECTOR_NEAR(actual_right_hand_side, expected_up_block_vector, Defaults::relative_tolerance)
 }
 } // namespace Kratos::Testing
