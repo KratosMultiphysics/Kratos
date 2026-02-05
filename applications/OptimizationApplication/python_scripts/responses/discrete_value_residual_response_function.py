@@ -94,9 +94,9 @@ class DiscreteValueResidualResponseFunction(ResponseFunction):
 
         for value in self.list_of_discrete_values:
             if self.residual_type == "exact":
-                resultant.data *= (ta.data - value) ** 2
+                resultant.data[:] *= (ta.data[:] - value) ** 2
             elif self.residual_type == "logarithm":
-                resultant.data += numpy.log((ta.data[:] - value) ** 2)
+                resultant.data[:] += numpy.log((ta.data[:] - value) ** 2)
 
         return numpy.sum(resultant.data)
 
@@ -107,13 +107,12 @@ class DiscreteValueResidualResponseFunction(ResponseFunction):
         # calculate the gradients
         for physical_variable, cta in physical_variable_combined_tensor_adaptor.items():
             if physical_variable == self.variable:
-                tas = cta.GetTensorAdaptors()
 
-                # initialize the current expression
-                for ta in tas:
+                # initialize the current tensor adaptor
+                for ta in cta.GetTensorAdaptors():
                     ta.data[:] = 0.0
 
-                for ta in tas:
+                for ta in cta.GetTensorAdaptors():
                     for i, value_i in enumerate(self.list_of_discrete_values):
                         if self.residual_type == "exact":
                             partial_gradient_ta = Kratos.TensorAdaptors.DoubleTensorAdaptor(ta)
@@ -126,5 +125,7 @@ class DiscreteValueResidualResponseFunction(ResponseFunction):
                             ta.data[:] += partial_gradient_ta.data
                         elif self.residual_type == "logarithm":
                             ta.data[:] += (((values.data - value_i) ** (-2)) * (values.data - value_i) * 2.0)
+
+                Kratos.TensorAdaptors.DoubleCombinedTensorAdaptor(cta, perform_collect_data_recursively=False, copy=False).CollectData()
             else:
                 raise RuntimeError(f"Unsupported sensitivity w.r.t. {physical_variable.Name()} requested. Followings are supported sensitivity variables:\n\t{self.variable.Name()}")
