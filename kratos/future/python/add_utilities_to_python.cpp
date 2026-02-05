@@ -32,9 +32,9 @@ namespace py = pybind11;
 
 void AddUtilitiesToPython(py::module& m)
 {
-    m.def_submodule("CsrUtilities")
-        .def("GetEquationIdCsrIndices", &CsrUtilities::GetEquationIdCsrIndices<ModelPart::ElementsContainerType, CsrMatrix<>>)
-    ;
+    // m.def_submodule("CsrUtilities")
+    //     .def("GetEquationIdCsrIndices", &CsrUtilities::GetEquationIdCsrIndices<ModelPart::ElementsContainerType, CsrMatrix<>>)
+    // ;
 }
 
 }  // namespace Kratos::Future::Python.
