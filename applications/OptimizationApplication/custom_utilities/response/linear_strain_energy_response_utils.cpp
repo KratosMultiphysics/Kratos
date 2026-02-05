@@ -90,6 +90,8 @@ void LinearStrainEnergyResponseUtils::CalculateGradient(
 {
     KRATOS_TRY
 
+    CombinedTensorAdaptor<double> temp_cta(rCombinedTensorAdaptor, false, false, false);
+
     std::visit([&](auto pVariable) {
         if (*pVariable == YOUNG_MODULUS) {
             block_for_each(rGradientRequiredModelPart.Elements(), [](auto& rElement) { rElement.GetProperties().SetValue(YOUNG_MODULUS_SENSITIVITY, 0.0); });
@@ -140,7 +142,8 @@ void LinearStrainEnergyResponseUtils::CalculateGradient(
     }, rPhysicalVariable);
 
     // update the combined tensor adaptor flat vector.
-    rCombinedTensorAdaptor.CollectData();
+    // below will never call the CollectData recursively.
+    temp_cta.CollectData();
 
     KRATOS_CATCH("");
 }
