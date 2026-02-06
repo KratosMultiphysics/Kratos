@@ -208,70 +208,25 @@ void UPwInterfaceElement::CalculateAndAssignStifnessMatrix(Element::MatrixType& 
 void UPwInterfaceElement::CalculateAndAssignCouplingMatrix(MatrixType&        rLeftHandSideMatrix,
                                                            const ProcessInfo& rProcessInfo) const
 {
-    auto number_P_Dofs = GetWaterPressureGeometry().size();
-    switch (NumberOfUDofs()) {
-    case 8:
-        switch (number_P_Dofs) {
-        case 4:
-            CalculateAndAssignCouplingMatrix<8, 4>(rLeftHandSideMatrix, rProcessInfo);
-            break;
-        default:
-            KRATOS_ERROR << "This Coupling matrix size is not supported: " << NumberOfUDofs() << "x"
-                         << number_P_Dofs << "\n";
-        }
-        break;
-    case 12:
-        switch (number_P_Dofs) {
-        case 6:
-            CalculateAndAssignCouplingMatrix<12, 6>(rLeftHandSideMatrix, rProcessInfo);
-            break;
-        case 4:
-            CalculateAndAssignCouplingMatrix<12, 4>(rLeftHandSideMatrix, rProcessInfo);
-            break;
-        default:
-            KRATOS_ERROR << "This Coupling matrix size is not supported: " << NumberOfUDofs() << "x"
-                         << number_P_Dofs << "\n";
-        }
-        break;
-    case 16:
-        switch (number_P_Dofs) {
-        case 8:
-            CalculateAndAssignCouplingMatrix<16, 8>(rLeftHandSideMatrix, rProcessInfo);
-            break;
-        default:
-            KRATOS_ERROR << "This Coupling matrix size is not supported: " << NumberOfUDofs() << "x"
-                         << number_P_Dofs << "\n";
-        }
-        break;
-    case 24:
-        switch (number_P_Dofs) {
-        case 12:
-            CalculateAndAssignCouplingMatrix<24, 12>(rLeftHandSideMatrix, rProcessInfo);
-            break;
-        case 6:
-            CalculateAndAssignCouplingMatrix<24, 6>(rLeftHandSideMatrix, rProcessInfo);
-            break;
-        default:
-            KRATOS_ERROR << "This Coupling matrix size is not supported: " << NumberOfUDofs() << "x"
-                         << number_P_Dofs << "\n";
-        }
-        break;
-    case 32:
-        switch (number_P_Dofs) {
-        case 16:
-            CalculateAndAssignCouplingMatrix<32, 16>(rLeftHandSideMatrix, rProcessInfo);
-            break;
-        case 8:
-            CalculateAndAssignCouplingMatrix<32, 8>(rLeftHandSideMatrix, rProcessInfo);
-            break;
-        default:
-            KRATOS_ERROR << "This Coupling matrix size is not supported: " << NumberOfUDofs() << "x"
-                         << number_P_Dofs << "\n";
-        }
-        break;
-    default:
-        KRATOS_ERROR << "This Coupling matrix size is not supported: " << NumberOfUDofs() << "x"
-                     << number_P_Dofs << "\n";
+    using Key  = std::pair<std::size_t, std::size_t>;
+    using Func = void (UPwInterfaceElement::*)(MatrixType&, const ProcessInfo&) const;
+
+    static const std::map<Key, Func> dispatch_table = {
+        {{8, 4}, &UPwInterfaceElement::CalculateAndAssignCouplingMatrix<8, 4>},
+        {{12, 6}, &UPwInterfaceElement::CalculateAndAssignCouplingMatrix<12, 6>},
+        {{12, 4}, &UPwInterfaceElement::CalculateAndAssignCouplingMatrix<12, 4>},
+        {{16, 8}, &UPwInterfaceElement::CalculateAndAssignCouplingMatrix<16, 8>},
+        {{24, 12}, &UPwInterfaceElement::CalculateAndAssignCouplingMatrix<24, 12>},
+        {{24, 6}, &UPwInterfaceElement::CalculateAndAssignCouplingMatrix<24, 6>},
+        {{32, 16}, &UPwInterfaceElement::CalculateAndAssignCouplingMatrix<32, 16>},
+        {{32, 8}, &UPwInterfaceElement::CalculateAndAssignCouplingMatrix<32, 8>}};
+
+    Key  key{NumberOfUDofs(), GetWaterPressureGeometry().size()};
+    auto it = dispatch_table.find(key);
+    if (it != dispatch_table.end()) {
+        (this->*(it->second))(rLeftHandSideMatrix, rProcessInfo);
+    } else {
+        KRATOS_ERROR << "This Coupling matrix size is not supported: " << key.first << "x" << key.second << "\n";
     }
 }
 
@@ -326,70 +281,26 @@ void UPwInterfaceElement::CalculateAndAssignStifnessForceVector(Element::VectorT
 void UPwInterfaceElement::CalculateAndAssembleCouplingForceVector(Element::VectorType& rRightHandSideVector,
                                                                   const ProcessInfo& rProcessInfo) const
 {
-    auto number_P_Dofs = GetWaterPressureGeometry().size();
-    switch (NumberOfUDofs()) {
-    case 8:
-        switch (number_P_Dofs) {
-        case 4:
-            CalculateAndAssembleCouplingForceVector<8, 4>(rRightHandSideVector, rProcessInfo);
-            break;
-        default:
-            KRATOS_ERROR << "This Coupling force vector size is not supported: " << NumberOfUDofs()
-                         << "x" << number_P_Dofs << "\n";
-        }
-        break;
-    case 12:
-        switch (number_P_Dofs) {
-        case 6:
-            CalculateAndAssembleCouplingForceVector<12, 6>(rRightHandSideVector, rProcessInfo);
-            break;
-        case 4:
-            CalculateAndAssembleCouplingForceVector<12, 4>(rRightHandSideVector, rProcessInfo);
-            break;
-        default:
-            KRATOS_ERROR << "This Coupling force vector size is not supported: " << NumberOfUDofs()
-                         << "x" << number_P_Dofs << "\n";
-        }
-        break;
-    case 16:
-        switch (number_P_Dofs) {
-        case 8:
-            CalculateAndAssembleCouplingForceVector<16, 8>(rRightHandSideVector, rProcessInfo);
-            break;
-        default:
-            KRATOS_ERROR << "This Coupling force vector size is not supported: " << NumberOfUDofs()
-                         << "x" << number_P_Dofs << "\n";
-        }
-        break;
-    case 24:
-        switch (number_P_Dofs) {
-        case 12:
-            CalculateAndAssembleCouplingForceVector<24, 12>(rRightHandSideVector, rProcessInfo);
-            break;
-        case 6:
-            CalculateAndAssembleCouplingForceVector<24, 6>(rRightHandSideVector, rProcessInfo);
-            break;
-        default:
-            KRATOS_ERROR << "This Coupling force vector size is not supported: " << NumberOfUDofs()
-                         << "x" << number_P_Dofs << "\n";
-        }
-        break;
-    case 32:
-        switch (number_P_Dofs) {
-        case 16:
-            CalculateAndAssembleCouplingForceVector<32, 16>(rRightHandSideVector, rProcessInfo);
-            break;
-        case 8:
-            CalculateAndAssembleCouplingForceVector<32, 8>(rRightHandSideVector, rProcessInfo);
-            break;
-        default:
-            KRATOS_ERROR << "This Coupling force vector size is not supported: " << NumberOfUDofs()
-                         << "x" << number_P_Dofs << "\n";
-        }
-        break;
-    default:
-        KRATOS_ERROR << "This Coupling matrix force vector is not supported: " << NumberOfUDofs()
-                     << "x" << number_P_Dofs << "\n";
+    using Key  = std::pair<std::size_t, std::size_t>;
+    using Func = void (UPwInterfaceElement::*)(Element::VectorType&, const ProcessInfo&) const;
+
+    static const std::map<Key, Func> dispatch_table = {
+        {{8, 4}, &UPwInterfaceElement::CalculateAndAssembleCouplingForceVector<8, 4>},
+        {{12, 6}, &UPwInterfaceElement::CalculateAndAssembleCouplingForceVector<12, 6>},
+        {{12, 4}, &UPwInterfaceElement::CalculateAndAssembleCouplingForceVector<12, 4>},
+        {{16, 8}, &UPwInterfaceElement::CalculateAndAssembleCouplingForceVector<16, 8>},
+        {{24, 12}, &UPwInterfaceElement::CalculateAndAssembleCouplingForceVector<24, 12>},
+        {{24, 6}, &UPwInterfaceElement::CalculateAndAssembleCouplingForceVector<24, 6>},
+        {{32, 16}, &UPwInterfaceElement::CalculateAndAssembleCouplingForceVector<32, 16>},
+        {{32, 8}, &UPwInterfaceElement::CalculateAndAssembleCouplingForceVector<32, 8>}};
+
+    Key  key{NumberOfUDofs(), GetWaterPressureGeometry().size()};
+    auto it = dispatch_table.find(key);
+    if (it != dispatch_table.end()) {
+        (this->*(it->second))(rRightHandSideVector, rProcessInfo);
+    } else {
+        KRATOS_ERROR << "This Coupling force vector size is not supported: " << key.first << "x"
+                     << key.second << "\n";
     }
 }
 
