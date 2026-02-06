@@ -2133,20 +2133,20 @@ void SnakeSbmProcess::CreateTheSnakeCoordinates3D(
         KRATOS_INFO_IF("::[SnakeSbmProcess]::", is_inner) << "Inner :: Starting MarkKnotSpansAvailable" << std::endl;
         KRATOS_INFO_IF("::[SnakeSbmProcess]::", !is_inner) << "Outer :: Starting MarkKnotSpansAvailable" << std::endl;
     }
-    // print r_skin_sub_model_part
-    std::ofstream outputFile("skin_condition_nodes_coordinates.txt");
-    outputFile << std::setprecision(16);
-    for (const auto& cond : r_skin_sub_model_part.Conditions()) {
-        const auto& geometry = cond.GetGeometry();
-        outputFile << "Condition ID: " << cond.Id() << std::endl;
-        for (std::size_t i = 0; i < geometry.PointsNumber(); ++i) {
-            const auto& node = geometry[i];
-            outputFile << "Node ID: " << node.Id() << "  "
-                    << node.X() << " " << node.Y() << " " << node.Z() << std::endl;
-        }
-        outputFile << std::endl;
-    }
-    outputFile.close();
+    // // print r_skin_sub_model_part
+    // std::ofstream outputFile("skin_condition_nodes_coordinates.txt");
+    // outputFile << std::setprecision(16);
+    // for (const auto& cond : r_skin_sub_model_part.Conditions()) {
+    //     const auto& geometry = cond.GetGeometry();
+    //     outputFile << "Condition ID: " << cond.Id() << std::endl;
+    //     for (std::size_t i = 0; i < geometry.PointsNumber(); ++i) {
+    //         const auto& node = geometry[i];
+    //         outputFile << "Node ID: " << node.Id() << "  "
+    //                 << node.X() << " " << node.Y() << " " << node.Z() << std::endl;
+    //     }
+    //     outputFile << std::endl;
+    // }
+    // outputFile.close();
 
     // std::ofstream knotFile("knot_spans_available_before.txt", std::ios::app);
     // knotFile << std::setprecision(16);

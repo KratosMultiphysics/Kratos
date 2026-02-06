@@ -439,7 +439,7 @@ void IgaModelerSbm::CreateQuadraturePointGeometriesSbmByProjectionLayer(
     if (domain_size == 2) {
         search_radius = std::sqrt(2.0) * knot_span_reference_size;
     } else {
-        search_radius = std::sqrt(3.0) * knot_span_reference_size; // TODO:
+        search_radius = 3* std::sqrt(3.0) * knot_span_reference_size; // TODO:
     }
 
     DynamicBins testBins(points.begin(), points.end());
@@ -728,7 +728,7 @@ void IgaModelerSbm::CreateQuadraturePointGeometriesSbmByFixedConditionName(
     if (domain_size == 2) {
         search_radius = 2*std::sqrt(2.0) * knot_span_reference_size;
     } else {
-        search_radius = 3*std::sqrt(3.0) * knot_span_reference_size; // TODO:
+        search_radius = 3*std::sqrt(3.0) * knot_span_reference_size; // TODO: with 10 it works...
     }
 
     DynamicBins testBins(points.begin(), points.end());

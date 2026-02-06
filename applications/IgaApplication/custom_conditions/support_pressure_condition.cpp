@@ -174,7 +174,7 @@ void SupportPressureCondition::CalculateRightHandSide(
         }
 
         // -------------------------------------------------------CHANNEL-------------------------------------------------------
-        // t_N = ZeroVector(mDim); 
+        t_N = ZeroVector(mDim); 
         // -------------------------------------------------------CHANNEL-------------------------------------------------------
 
         for (IndexType idim = 0; idim < mDim; idim++) {
