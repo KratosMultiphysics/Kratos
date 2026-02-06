@@ -100,9 +100,9 @@ KRATOS_TEST_CASE_IN_SUITE(PrescribedTimeIncrementsMustMatchInput, KratosGeoMecha
     auto       incrementor    = PrescribedTimeIncrementor{increments};
     const auto previous_state = MakeConvergedEndState();
 
-    KRATOS_EXPECT_DOUBLE_EQ(increments.front(), incrementor.GetIncrement(previous_state.time));
+    KRATOS_EXPECT_DOUBLE_EQ(increments.front(), incrementor.GetIncrement());
     incrementor.PostTimeStepExecution(previous_state);
-    KRATOS_EXPECT_DOUBLE_EQ(increments.back(), incrementor.GetIncrement(previous_state.time));
+    KRATOS_EXPECT_DOUBLE_EQ(increments.back(), incrementor.GetIncrement());
 }
 
 KRATOS_TEST_CASE_IN_SUITE(PrescribedTimeIncrementorThrowsWhenAskingForIncrementBeyondEnd,
@@ -119,7 +119,7 @@ KRATOS_TEST_CASE_IN_SUITE(PrescribedTimeIncrementorThrowsWhenAskingForIncrementB
     // member function by assigning the return value to a dummy variable. In turn, the dummy
     // variable needs to be marked `[[maybe_unused]]` to avoid a warning about an unused variable.
     KRATOS_EXPECT_EXCEPTION_IS_THROWN(
-        [[maybe_unused]] const auto increment = incrementor.GetIncrement(previous_state.time),
+        [[maybe_unused]] const auto increment = incrementor.GetIncrement(),
         "Out of increment range")
 }
 
@@ -129,14 +129,14 @@ KRATOS_TEST_CASE_IN_SUITE(WithoutPostTimeStepExecutionAlwaysGetSameIncrement, Kr
     auto           incrementor   = PrescribedTimeIncrementor{increments};
     constexpr auto previous_time = 0.0;
 
-    KRATOS_EXPECT_DOUBLE_EQ(increments.front(), incrementor.GetIncrement(previous_time));
-    KRATOS_EXPECT_DOUBLE_EQ(increments.front(), incrementor.GetIncrement(previous_time));
+    KRATOS_EXPECT_DOUBLE_EQ(increments.front(), incrementor.GetIncrement());
+    KRATOS_EXPECT_DOUBLE_EQ(increments.front(), incrementor.GetIncrement());
 
     const auto previous_state = MakeConvergedEndState();
     incrementor.PostTimeStepExecution(previous_state);
 
-    KRATOS_EXPECT_DOUBLE_EQ(increments.back(), incrementor.GetIncrement(previous_state.time));
-    KRATOS_EXPECT_DOUBLE_EQ(increments.back(), incrementor.GetIncrement(previous_state.time));
+    KRATOS_EXPECT_DOUBLE_EQ(increments.back(), incrementor.GetIncrement());
+    KRATOS_EXPECT_DOUBLE_EQ(increments.back(), incrementor.GetIncrement());
 }
 
 KRATOS_TEST_CASE_IN_SUITE(NoNextTimeStepWhenPreviousEndStateDidNotConverge, KratosGeoMechanicsFastSuiteWithoutKernel)

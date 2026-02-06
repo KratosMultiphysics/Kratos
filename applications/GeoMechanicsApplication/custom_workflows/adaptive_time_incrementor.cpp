@@ -86,7 +86,7 @@ double AdaptiveTimeIncrementor::GetMinimumDeltaTime() const
     return mUserMinDeltaTime.value_or(default_min_delta_time);
 }
 
-double AdaptiveTimeIncrementor::GetIncrement(double PreviousTime) const { return mDeltaTime; }
+double AdaptiveTimeIncrementor::GetIncrement() const { return mDeltaTime; }
 
 void AdaptiveTimeIncrementor::CheckMinimumDeltaTime(double DeltaTime) const
 {

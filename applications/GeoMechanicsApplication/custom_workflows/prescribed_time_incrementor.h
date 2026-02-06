@@ -28,7 +28,7 @@ public:
 
     [[nodiscard]] bool WantNextStep(const TimeStepEndState& rPreviousState) const override;
     [[nodiscard]] bool WantRetryStep(std::size_t CycleNumber, const TimeStepEndState& rPreviousState) const override;
-    [[nodiscard]] double GetIncrement(double) const override;
+    [[nodiscard]] double GetIncrement() const override;
     void                 PostTimeStepExecution(const TimeStepEndState& rResultantState) override;
 
 private:
