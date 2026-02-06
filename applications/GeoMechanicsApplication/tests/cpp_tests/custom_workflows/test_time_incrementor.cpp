@@ -423,8 +423,6 @@ KRATOS_TEST_CASE_IN_SUITE(ScaleIncrementToAvoidExtraSmallTimeStep, KratosGeoMech
     settings.StartIncrement          = 7.9999;
     settings.UserMinDeltaTime        = 0.01;
     auto time_incrementor            = MakeAdaptiveTimeIncrementor(settings);
-    auto previous_state              = TimeStepEndState{};
-    previous_state.convergence_state = TimeStepEndState::ConvergenceState::converged;
 
     KRATOS_EXPECT_DOUBLE_EQ(8.0, time_incrementor.GetIncrement());
 }
