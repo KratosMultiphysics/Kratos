@@ -1,11 +1,10 @@
+import numpy
 from typing import Optional
 
 import KratosMultiphysics as Kratos
 import KratosMultiphysics.OptimizationApplication as KratosOA
 from KratosMultiphysics.OptimizationApplication.controls.control import Control
-from KratosMultiphysics.OptimizationApplication.utilities.union_utilities import ContainerExpressionTypes
 from KratosMultiphysics.OptimizationApplication.utilities.union_utilities import SupportedSensitivityFieldVariableTypes
-from KratosMultiphysics.OptimizationApplication.utilities.helper_utilities import IsSameContainerExpression
 from KratosMultiphysics.OptimizationApplication.utilities.model_part_utilities import ModelPartOperation
 from KratosMultiphysics.OptimizationApplication.utilities.logger_utilities import TimeLogger
 from KratosMultiphysics.OptimizationApplication.utilities.component_data_view import ComponentDataView
@@ -81,8 +80,8 @@ class ShellThicknessControl(Control):
         # initialize the projections
         self.thickness_projection.SetProjectionSpaces(self.filtered_thicknesses, self.physical_thicknesses)
 
-        physical_thickness_field = Kratos.Expression.ElementExpression(self.model_part)
-        KratosOA.PropertiesVariableExpressionIO.Read(physical_thickness_field, Kratos.THICKNESS)
+        physical_thickness_field = KratosOA.TensorAdaptors.PropertiesVariableTensorAdaptor(self.model_part.Elements, Kratos.THICKNESS)
+        physical_thickness_field.CollectData()
 
         # project backward the uniform physical control field and assign it to the control field
         self.physical_phi_field = self.thickness_projection.ProjectBackward(physical_thickness_field)
@@ -102,47 +101,49 @@ class ShellThicknessControl(Control):
     def GetPhysicalKratosVariables(self) -> 'list[SupportedSensitivityFieldVariableTypes]':
         return [Kratos.THICKNESS]
 
-    def GetEmptyField(self) -> ContainerExpressionTypes:
-        field = Kratos.Expression.ElementExpression(self.model_part)
-        Kratos.Expression.LiteralExpressionIO.SetData(field, 0.0)
+    def GetEmptyField(self) -> Kratos.TensorAdaptors.DoubleTensorAdaptor:
+        field = Kratos.TensorAdaptors.VariableTensorAdaptor(self.model_part.Elements, Kratos.THICKNESS)
+        field.data[:] = 0.0
         return field
 
-    def GetControlField(self) -> ContainerExpressionTypes:
-        return self.control_phi_field
+    def GetControlField(self) -> Kratos.TensorAdaptors.DoubleTensorAdaptor:
+        return Kratos.TensorAdaptors.DoubleTensorAdaptor(self.control_phi_field)
 
-    def GetPhysicalField(self) -> ContainerExpressionTypes:
-        physical_thickness_field = Kratos.Expression.ElementExpression(self.model_part)
-        KratosOA.PropertiesVariableExpressionIO.Read(physical_thickness_field, Kratos.THICKNESS)
+    def GetPhysicalField(self) -> Kratos.TensorAdaptors.DoubleTensorAdaptor:
+        physical_thickness_field = KratosOA.TensorAdaptors.PropertiesVariableTensorAdaptor(self.model_part.Elements, Kratos.THICKNESS)
+        physical_thickness_field.CollectData()
         return physical_thickness_field
 
-    def MapGradient(self, physical_gradient_variable_container_expression_map: 'dict[SupportedSensitivityFieldVariableTypes, ContainerExpressionTypes]') -> ContainerExpressionTypes:
+    def MapGradient(self, physical_gradient_variable_tensor_adaptor_map: 'dict[SupportedSensitivityFieldVariableTypes, Kratos.TensorAdaptors.DoubleTensorAdaptor]') -> Kratos.TensorAdaptors.DoubleTensorAdaptor:
         with TimeLogger("ShellThicknessControl::MapGradient", None, "Finished",False):
-            keys = physical_gradient_variable_container_expression_map.keys()
+            keys = physical_gradient_variable_tensor_adaptor_map.keys()
             if len(keys) != 1:
                 raise RuntimeError(f"Provided more than required gradient fields for control \"{self.GetName()}\". Following are the variables:\n\t" + "\n\t".join([k.Name() for k in keys]))
             if Kratos.THICKNESS not in keys:
                 raise RuntimeError(f"The required gradient for control \"{self.GetName()}\" w.r.t. {Kratos.THICKNESS.Name()} not found. Followings are the variables:\n\t" + "\n\t".join([k.Name() for k in keys]))
 
-            physical_gradient = physical_gradient_variable_container_expression_map[Kratos.THICKNESS]
-            if not IsSameContainerExpression(physical_gradient, self.GetEmptyField()):
+            physical_gradient = physical_gradient_variable_tensor_adaptor_map[Kratos.THICKNESS]
+            if physical_gradient.GetContainer() != self.model_part.Elements:
                 raise RuntimeError(f"Gradients for the required element container not found for control \"{self.GetName()}\". [ required model part name: {self.model_part.FullName()}, given model part name: {physical_gradient.GetModelPart().FullName()} ]")
 
             # multiply the physical sensitivity field with projection derivatives
-            projected_gradient = physical_gradient * self.projection_derivative_field
+            projected_gradient = Kratos.TensorAdaptors.DoubleTensorAdaptor(physical_gradient)
+            projected_gradient.data = physical_gradient.data * self.projection_derivative_field.data
             # now filter the field
             filtered_gradient = self.filter.BackwardFilterIntegratedField(projected_gradient)
 
             return filtered_gradient
 
-    def Update(self, new_control_field: ContainerExpressionTypes) -> bool:
-        if not IsSameContainerExpression(new_control_field, self.GetEmptyField()):
+    def Update(self, new_control_field: Kratos.TensorAdaptors.DoubleTensorAdaptor) -> bool:
+        if new_control_field.GetContainer() != self.model_part.Elements:
             raise RuntimeError(f"Updates for the required element container not found for control \"{self.GetName()}\". [ required model part name: {self.model_part.FullName()}, given model part name: {new_control_field.GetModelPart().FullName()} ]")
 
-        update = new_control_field - self.control_phi_field
-        if Kratos.Expression.Utils.NormL2(update) > 1e-15:
+        update = Kratos.TensorAdaptors.DoubleTensorAdaptor(new_control_field)
+        update.data[:] = new_control_field.data - self.control_phi_field.data
+        if numpy.linalg.norm(update.data) > 1e-15:
             with TimeLogger(self.__class__.__name__, f"Updating {self.GetName()}...", f"Finished updating of {self.GetName()}.",False):
                 # update the control thickness field
-                self.control_phi_field = new_control_field
+                self.control_phi_field.data[:] = new_control_field.data
                 # now update the physical field
                 self._UpdateAndOutputFields(update)
 
@@ -154,15 +155,15 @@ class ShellThicknessControl(Control):
         self.thickness_projection.Update()
         return False
 
-    def _UpdateAndOutputFields(self, update: ContainerExpressionTypes) -> None:
+    def _UpdateAndOutputFields(self, update: Kratos.TensorAdaptors.DoubleTensorAdaptor) -> None:
         # filter the control field
         filtered_thickness_field_update = self.filter.ForwardFilterField(update)
-        self.physical_phi_field = Kratos.Expression.Utils.Collapse(self.physical_phi_field + filtered_thickness_field_update)
+        self.physical_phi_field.data += filtered_thickness_field_update.data
 
         # project forward the filtered thickness field
         projected_filtered_thickness_field = self.thickness_projection.ProjectForward(self.physical_phi_field)
         # now update physical field
-        KratosOA.PropertiesVariableExpressionIO.Write(projected_filtered_thickness_field, Kratos.THICKNESS)
+        KratosOA.TensorAdaptors.PropertiesVariableTensorAdaptor(projected_filtered_thickness_field, Kratos.THICKNESS, copy=False).StoreData()
         if self.consider_recursive_property_update:
             KratosOA.OptimizationUtils.UpdatePropertiesVariableWithRootValueRecursively(projected_filtered_thickness_field.GetContainer(), Kratos.THICKNESS)
 
@@ -171,12 +172,12 @@ class ShellThicknessControl(Control):
 
         # now output the fields
         un_buffered_data = ComponentDataView(self, self.optimization_problem).GetUnBufferedData()
-        un_buffered_data.SetValue("physical_thickness", projected_filtered_thickness_field.Clone(),overwrite=True)
+        un_buffered_data.SetValue("physical_thickness", projected_filtered_thickness_field,overwrite=True)
         if self.output_all_fields:
-            un_buffered_data.SetValue("filtered_thickness_update", filtered_thickness_field_update.Clone(), overwrite=True)
-            un_buffered_data.SetValue("control_thickness_phi", self.control_phi_field.Clone(), overwrite=True)
-            un_buffered_data.SetValue("physical_thickness_phi", self.physical_phi_field.Clone(), overwrite=True)
-            un_buffered_data.SetValue("projection_derivative", self.projection_derivative_field.Clone(), overwrite=True)
+            un_buffered_data.SetValue("filtered_thickness_update", filtered_thickness_field_update, overwrite=True)
+            un_buffered_data.SetValue("control_thickness_phi", Kratos.TensorAdaptors.DoubleTensorAdaptor(self.control_phi_field), overwrite=True)
+            un_buffered_data.SetValue("physical_thickness_phi", Kratos.TensorAdaptors.DoubleTensorAdaptor(self.physical_phi_field), overwrite=True)
+            un_buffered_data.SetValue("projection_derivative", Kratos.TensorAdaptors.DoubleTensorAdaptor(self.projection_derivative_field), overwrite=True)
 
     def __str__(self) -> str:
         return f"Control [type = {self.__class__.__name__}, name = {self.GetName()}, model part name = {self.model_part.FullName()}, control variable = {Kratos.THICKNESS.Name()}"
