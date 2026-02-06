@@ -307,6 +307,25 @@ UPwInterfaceElement CreateTriangleInterfaceElementRotatedBy30DegreesAboutYAxisWi
     return CreateInterfaceElementWithUPwDofs<Interface3D>(rpProperties, p_geometry, IsDiffOrder, rContributions);
 }
 
+UPwInterfaceElement CreateHorizontal4Plus4NodedQuadraliteralInterfaceElementWithUPwDoF(
+    Model&                                      rModel,
+    const Properties::Pointer&                  rpProperties,
+    IsDiffOrderElement                          IsDiffOrder,
+    const std::vector<CalculationContribution>& rContributions)
+{
+    const auto nodes = Testing::ModelSetupUtilities::CreateNodes({{1, {0.0, 0.0, 0.0}},
+                                                                  {2, {1.0, 0.0, 0.0}},
+                                                                  {3, {1.0, 1.0, 0.0}},
+                                                                  {4, {0.0, 1.0, 0.0}},
+                                                                  {5, {0.0, 0.0, 0.0}},
+                                                                  {6, {1.0, 0.0, 0.0}},
+                                                                  {7, {1.0, 1.0, 0.0}},
+                                                                  {8, {0.0, 1.0, 0.0}}});
+
+    auto p_geometry = std::make_shared<InterfaceGeometry<Quadrilateral3D4<Node>>>(1, nodes);
+    return CreateInterfaceElementWithUPwDofs<Interface3D>(rpProperties, p_geometry, IsDiffOrder, rContributions);
+}
+
 UPwInterfaceElement CreateHorizontal8Plus8NodedQuadraliteralInterfaceElementWithUPwDoF(
     Model&                                      rModel,
     const Properties::Pointer&                  rpProperties,
@@ -2451,6 +2470,53 @@ KRATOS_TEST_CASE_IN_SUITE(UPwTriangleInterfaceElement_6Plus6Element_CouplingCont
     GeneralCouplingContributionTest<InterfaceThreeDimensionalSurface>(
         CreateHorizontal6Plus6NodedTriangleInterfaceElementWithUPwDoF, IsDiffOrderElement::Yes, 36,
         6, expected_up_block_matrix, expected_up_block_vector);
+}
+
+KRATOS_TEST_CASE_IN_SUITE(UPwQuadraliteralInterfaceElement_4Plus4Element_CouplingContribution,
+                          KratosGeoMechanicsFastSuiteWithoutKernel)
+{
+    // clang-format off
+    const auto expected_up_block_matrix = UblasUtilities::CreateMatrix({
+        {0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0},
+        {0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0},
+        {0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,-0.25,0,0,0,0.25,0,0,0},
+        {0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0},
+        {0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0},
+        {0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,-0.25,0,0,0,0.25,0,0},
+        {0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0},
+        {0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0},
+        {0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,-0.25,0,0,0,0.25,0},
+        {0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0},
+        {0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0},
+        {0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,-0.25,0,0,0,0.25},
+        {0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0},
+        {0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0},
+        {0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0.25,0,0,0,-0.25,0,0,0},
+        {0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0},
+        {0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0},
+        {0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0.25,0,0,0,-0.25,0,0},
+        {0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0},
+        {0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0},
+        {0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0.25,0,0,0,-0.25,0},
+        {0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0},
+        {0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0},
+        {0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0.25,0,0,0,-0.25},
+        {0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0},
+        {0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0},
+        {0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0},
+        {0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0},
+        {0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0},
+        {0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0},
+        {0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0},
+        {0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0}
+});
+    // clang-format on
+    const auto expected_up_block_vector = UblasUtilities::CreateVector(
+        {0, 0,    -22.5, 0, 0,    -22.5, 0, 0,    -22.5, 0, 0, -22.5, 0, 0, 22.5, 0,
+         0, 22.5, 0,     0, 22.5, 0,     0, 22.5, 0,     0, 0, 0,     0, 0, 0,    0});
+    GeneralCouplingContributionTest<InterfaceThreeDimensionalSurface>(
+        CreateHorizontal4Plus4NodedQuadraliteralInterfaceElementWithUPwDoF, IsDiffOrderElement::No,
+        24, 8, expected_up_block_matrix, expected_up_block_vector);
 }
 
 KRATOS_TEST_CASE_IN_SUITE(UPwQuadraliteralInterfaceElement_8Plus8Element_CouplingContribution,
