@@ -306,8 +306,8 @@ KRATOS_TEST_CASE_IN_SUITE(DontRetryWhenPreviousAttemptConverged, KratosGeoMechan
 KRATOS_TEST_CASE_IN_SUITE(GetStartIncrementWhenItWouldNotResultInExceedingTheEndTime, KratosGeoMechanicsFastSuiteWithoutKernel)
 {
     AdaptiveTimeIncrementorSettings settings;
-    settings.StartIncrement         = 0.6;
-    const auto     time_incrementor = MakeAdaptiveTimeIncrementor(settings);
+    settings.StartIncrement     = 0.6;
+    const auto time_incrementor = MakeAdaptiveTimeIncrementor(settings);
     KRATOS_EXPECT_DOUBLE_EQ(settings.StartIncrement, time_incrementor.GetIncrement());
 }
 
@@ -319,8 +319,7 @@ KRATOS_TEST_CASE_IN_SUITE(ReduceStartIncrementWhenItWouldResultInExceedingTheEnd
     settings.EndTime = settings.StartTime + 0.5 * settings.StartIncrement; // EndTime would be exceeded if StartIncrement is applied
     const auto time_incrementor = MakeAdaptiveTimeIncrementor(settings);
 
-    KRATOS_EXPECT_DOUBLE_EQ(settings.EndTime - settings.StartTime,
-                            time_incrementor.GetIncrement());
+    KRATOS_EXPECT_DOUBLE_EQ(settings.EndTime - settings.StartTime, time_incrementor.GetIncrement());
 }
 
 KRATOS_TEST_CASE_IN_SUITE(ReduceIncrementWhenPreviousAttemptDidNotConverge, KratosGeoMechanicsFastSuiteWithoutKernel)
@@ -331,8 +330,7 @@ KRATOS_TEST_CASE_IN_SUITE(ReduceIncrementWhenPreviousAttemptDidNotConverge, Krat
     previous_state.convergence_state = TimeStepEndState::ConvergenceState::non_converged;
 
     time_incrementor.PostTimeStepExecution(previous_state); // process previous non-converged state
-    KRATOS_EXPECT_DOUBLE_EQ(settings.StartIncrement * settings.ReductionFactor,
-                            time_incrementor.GetIncrement());
+    KRATOS_EXPECT_DOUBLE_EQ(settings.StartIncrement * settings.ReductionFactor, time_incrementor.GetIncrement());
 }
 
 KRATOS_TEST_CASE_IN_SUITE(ReduceIncrementEvenMoreWhenPreviousTwoAttemptsDidNotConverge,
@@ -359,8 +357,7 @@ KRATOS_TEST_CASE_IN_SUITE(ReduceIncrementWhenStepConvergedAndMaxNumberOfIteratio
     previous_state.num_of_iterations = settings.MaxNumOfIterations;
 
     time_incrementor.PostTimeStepExecution(previous_state); // previous attempt converged, but required maximum number of iterations
-    KRATOS_EXPECT_DOUBLE_EQ(settings.StartIncrement * settings.ReductionFactor,
-                            time_incrementor.GetIncrement());
+    KRATOS_EXPECT_DOUBLE_EQ(settings.StartIncrement * settings.ReductionFactor, time_incrementor.GetIncrement());
 }
 
 KRATOS_TEST_CASE_IN_SUITE(IncreaseIncrementWhenStepRequiredLessThanMinNumberOfIterations,
@@ -373,8 +370,7 @@ KRATOS_TEST_CASE_IN_SUITE(IncreaseIncrementWhenStepRequiredLessThanMinNumberOfIt
     previous_state.num_of_iterations = settings.MinNumOfIterations - 1;
 
     time_incrementor.PostTimeStepExecution(previous_state); // previous attempt converged and required less than minimum number of iterations
-    KRATOS_EXPECT_DOUBLE_EQ(settings.StartIncrement * settings.IncreaseFactor,
-                            time_incrementor.GetIncrement());
+    KRATOS_EXPECT_DOUBLE_EQ(settings.StartIncrement * settings.IncreaseFactor, time_incrementor.GetIncrement());
 }
 
 KRATOS_TEST_CASE_IN_SUITE(ReduceIncrementToAvoidExceedingEndTime, KratosGeoMechanicsFastSuiteWithoutKernel)
@@ -388,8 +384,7 @@ KRATOS_TEST_CASE_IN_SUITE(ReduceIncrementToAvoidExceedingEndTime, KratosGeoMecha
         settings.EndTime - 0.5 * settings.StartIncrement; // only half of StartIncrement left before reaching EndTime
 
     time_incrementor.PostTimeStepExecution(previous_state);
-    KRATOS_EXPECT_DOUBLE_EQ(0.5 * settings.StartIncrement,
-                            time_incrementor.GetIncrement());
+    KRATOS_EXPECT_DOUBLE_EQ(0.5 * settings.StartIncrement, time_incrementor.GetIncrement());
 }
 
 KRATOS_TEST_CASE_IN_SUITE(ReduceUpscaledIncrementToAvoidExceedingEndTime, KratosGeoMechanicsFastSuiteWithoutKernel)
@@ -404,8 +399,7 @@ KRATOS_TEST_CASE_IN_SUITE(ReduceUpscaledIncrementToAvoidExceedingEndTime, Kratos
         settings.EndTime - 0.5 * settings.StartIncrement; // only half of StartIncrement left before reaching EndTime
 
     time_incrementor.PostTimeStepExecution(previous_state);
-    KRATOS_EXPECT_DOUBLE_EQ(0.5 * settings.StartIncrement,
-                            time_incrementor.GetIncrement());
+    KRATOS_EXPECT_DOUBLE_EQ(0.5 * settings.StartIncrement, time_incrementor.GetIncrement());
 }
 
 KRATOS_TEST_CASE_IN_SUITE(ReduceUpscaledIncrementToAvoidExceedingMaxDeltaTimeFactor, KratosGeoMechanicsFastSuiteWithoutKernel)

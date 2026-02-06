@@ -118,9 +118,8 @@ KRATOS_TEST_CASE_IN_SUITE(PrescribedTimeIncrementorThrowsWhenAskingForIncrementB
     // Note: avoid a warning triggered by the `[[nodiscard]]` attribute of the `GetIncrement()`
     // member function by assigning the return value to a dummy variable. In turn, the dummy
     // variable needs to be marked `[[maybe_unused]]` to avoid a warning about an unused variable.
-    KRATOS_EXPECT_EXCEPTION_IS_THROWN(
-        [[maybe_unused]] const auto increment = incrementor.GetIncrement(),
-        "Out of increment range")
+    KRATOS_EXPECT_EXCEPTION_IS_THROWN([[maybe_unused]] const auto increment = incrementor.GetIncrement(),
+                                      "Out of increment range")
 }
 
 KRATOS_TEST_CASE_IN_SUITE(WithoutPostTimeStepExecutionAlwaysGetSameIncrement, KratosGeoMechanicsFastSuiteWithoutKernel)
