@@ -63,9 +63,7 @@
     "processes": {
         "json_output": [
             {
-                "python_module": "json_output_process",
-                "kratos_module": "KratosMultiphysics",
-                "process_name": "JsonOutputProcess",
+                "name" : "Processes.KratosMultiphysics.JsonOutputProcess",
                 "Parameters": {
                     "model_part_name": "PorousDomain.load",
                     "output_file_name": "calculated_results.json",
