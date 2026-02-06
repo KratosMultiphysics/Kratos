@@ -64,20 +64,20 @@ class MasterControl:
         return physical_variable_combined_ta_dict
 
     def GetEmptyField(self) -> Kratos.TensorAdaptors.DoubleCombinedTensorAdaptor:
-        """Returns empty CollectiveExpression containing empty ContainerExpressions for each control.
+        """Returns empty CombinedTensorAdaptor containing empty TensorAdaptor for each control.
 
         Returns:
-            Kratos.TensorAdaptors.DoubleCombinedTensorAdaptor: Empty CollectiveExpression
+            Kratos.TensorAdaptors.DoubleCombinedTensorAdaptor: Empty CombinedTensorAdaptor
         """
         ta = Kratos.TensorAdaptors.DoubleCombinedTensorAdaptor([control.GetEmptyField() for control in self.__list_of_controls], perform_collect_data_recursively=False, perform_store_data_recursively=False)
         ta.CollectData() # reading all the data from each ta adaptor to the combined tensor adaptor
         return ta
 
     def GetControlField(self) -> Kratos.TensorAdaptors.DoubleCombinedTensorAdaptor:
-        """Returns CollectiveExpression containing control field ContainerExpressions for each control.
+        """Returns CombinedTensorAdaptor containing control field TensorAdaptor for each control.
 
         Returns:
-            Kratos.TensorAdaptors.DoubleCombinedTensorAdaptor: Control field CollectiveExpression
+            Kratos.TensorAdaptors.DoubleCombinedTensorAdaptor: Control field CombinedTensorAdaptor
         """
         ta = Kratos.TensorAdaptors.DoubleCombinedTensorAdaptor([control.GetControlField() for control in self.__list_of_controls], perform_collect_data_recursively=False, perform_store_data_recursively=False)
         ta.CollectData() # reading all the data from each ta adaptor to the combined tensor adaptor
@@ -130,7 +130,7 @@ class MasterControl:
 
         for control in self.__list_of_controls:
             # iterate through each control to create its own container map from the combined tensor adaptor map given as input
-            control_physical_sensitivities_container_expression_map: 'dict[SupportedSensitivityFieldVariableTypes, Kratos.TensorAdaptors.DoubleTensorAdaptor]' = {}
+            control_physical_sensitivities_tensor_adaptor_map: 'dict[SupportedSensitivityFieldVariableTypes, Kratos.TensorAdaptors.DoubleTensorAdaptor]' = {}
             for physical_control_variable in control.GetPhysicalKratosVariables():
                 # first assume the gradients for this physical_control_variable is zero, hence get the zero valued tensor adaptor.
                 control_ta = control.GetEmptyField()
@@ -144,16 +144,16 @@ class MasterControl:
                     for ta in sensitivity_cta.GetTensorAdaptors():
                         if ta.GetContainer() == control_ta.GetContainer():
                             # there exists for this control's physical variables sensitivities.
-                            control_physical_sensitivities_container_expression_map[physical_control_variable] = ta
+                            control_physical_sensitivities_tensor_adaptor_map[physical_control_variable] = ta
                             break
 
-                if physical_control_variable not in control_physical_sensitivities_container_expression_map.keys():
-                    # If it is found from input gradients, the control_expression will have those values,
-                    # otherwise it will have representative zero control_expression.
-                    control_physical_sensitivities_container_expression_map[physical_control_variable] = control_ta
+                if physical_control_variable not in control_physical_sensitivities_tensor_adaptor_map.keys():
+                    # If it is found from input gradients, the tensor_adaptor will have those values,
+                    # otherwise it will have representative zero tensor_adaptor.
+                    control_physical_sensitivities_tensor_adaptor_map[physical_control_variable] = control_ta
 
             # map the physical control variable sensitivities to one control space
-            mapped_gradients.append(control.MapGradient(control_physical_sensitivities_container_expression_map))
+            mapped_gradients.append(control.MapGradient(control_physical_sensitivities_tensor_adaptor_map))
 
         result = Kratos.TensorAdaptors.DoubleCombinedTensorAdaptor([mapped_gradient for mapped_gradient in mapped_gradients], perform_collect_data_recursively=False, perform_store_data_recursively=False)
         result.CollectData()
