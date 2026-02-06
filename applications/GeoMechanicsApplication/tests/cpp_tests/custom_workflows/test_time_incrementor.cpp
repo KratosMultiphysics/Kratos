@@ -420,9 +420,9 @@ KRATOS_TEST_CASE_IN_SUITE(ReduceUpscaledIncrementToAvoidExceedingMaxDeltaTimeFac
 KRATOS_TEST_CASE_IN_SUITE(ScaleIncrementToAvoidExtraSmallTimeStep, KratosGeoMechanicsFastSuiteWithoutKernel)
 {
     AdaptiveTimeIncrementorSettings settings; // with EndTime = 8.0
-    settings.StartIncrement          = 7.9999;
-    settings.UserMinDeltaTime        = 0.01;
-    auto time_incrementor            = MakeAdaptiveTimeIncrementor(settings);
+    settings.StartIncrement   = 7.9999;
+    settings.UserMinDeltaTime = 0.01;
+    auto time_incrementor     = MakeAdaptiveTimeIncrementor(settings);
 
     KRATOS_EXPECT_DOUBLE_EQ(8.0, time_incrementor.GetIncrement());
 }
