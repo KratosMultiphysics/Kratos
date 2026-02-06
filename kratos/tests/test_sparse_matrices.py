@@ -247,5 +247,67 @@ class TestSparseMatrixInterface(KratosUnittest.TestCase):
         expected_data = [0.1, -0.05, -0.05, -0.05, 0.1, 0.0, -0.05, -0.05, 0.0, 0.1, -0.05, -0.05, -0.05, 0.1]
         self.assertVectorAlmostEqual(data, expected_data)
 
+    def test_assemble_with_equation_ids(self):
+        # Create model part
+        model = KratosMultiphysics.Model()
+        mp = model.CreateModelPart("Main")
+        mp.SetBufferSize(2)
+        mp.AddNodalSolutionStepVariable(KratosMultiphysics.DISTANCE)
+
+        # Create nodes
+        mp.CreateNewNode(1, 0.0, 0.0, 0.0)
+        mp.CreateNewNode(2, 1.0, 0.0, 0.0)
+        mp.CreateNewNode(3, 0.0, 1.0, 0.0)
+        mp.CreateNewNode(4, 1.0, 1.0, 0.0)
+
+        # Create elements (Element2D3N)
+        prop = mp.CreateNewProperties(1)
+        mp.CreateNewElement("DistanceCalculationElementSimplex2D3N", 1, [1, 2, 3], prop)
+        mp.CreateNewElement("DistanceCalculationElementSimplex2D3N", 2, [2, 4, 3], prop) # Mesh of 2 triangles
+
+        # Add DOFs
+        for node in mp.Nodes:
+            node.AddDof(KratosMultiphysics.DISTANCE)
+
+        # Initialize DOFs (EquationIds)
+        for node in mp.Nodes:
+            node.GetDof(KratosMultiphysics.DISTANCE).EquationId = node.Id - 1
+
+        # Build sparse matrix graph
+        graph = KratosMultiphysics.SparseContiguousRowGraph(mp.NumberOfNodes())
+        for elem in mp.Elements:
+            equation_id_vector = elem.EquationIdVector(mp.ProcessInfo)
+            graph.AddEntries(equation_id_vector, equation_id_vector)
+        graph.Finalize()
+
+        # Create Matrix
+        A = KratosMultiphysics.CsrMatrix(graph)
+
+        # Get the elemental equation ids matrix
+        equation_ids_data = np.empty((mp.NumberOfElements(), 3), dtype=np.int32)
+        for elem in mp.Elements:
+            equation_id_vector = elem.EquationIdVector(mp.ProcessInfo)
+            equation_ids_data[elem.Id-1, :] = equation_id_vector
+        elem_equation_ids = KratosMultiphysics.IntNDData(equation_ids_data)
+
+        # Calculate and store the LHS contributions
+        elem_lhs_contributions = KratosMultiphysics.DoubleNDData([mp.NumberOfElements(), 3, 3])
+        aux_data = elem_lhs_contributions.to_numpy()
+        for elem in mp.Elements:
+            lhs = KratosMultiphysics.Matrix()
+            rhs = KratosMultiphysics.Vector()
+            elem.CalculateLocalSystem(lhs, rhs, mp.ProcessInfo)
+            for i in range(3):
+                for j in range(3):
+                    aux_data[(elem.Id-1)][i][j] = lhs[i, j]
+
+        # Assemble the contributions
+        A.AssembleWithEquationIds(elem_lhs_contributions, elem_equation_ids)
+
+        # Check results
+        data = A.value_data()
+        expected_data = [0.1, -0.05, -0.05, -0.05, 0.1, 0.0, -0.05, -0.05, 0.0, 0.1, -0.05, -0.05, -0.05, 0.1]
+        self.assertVectorAlmostEqual(data, expected_data)
+
 if __name__ == '__main__':
     KratosUnittest.main()

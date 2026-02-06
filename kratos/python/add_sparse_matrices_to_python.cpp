@@ -31,6 +31,10 @@ namespace Kratos::Python
 
 namespace py = pybind11;
 
+/**
+ * @brief Anonymous namespace to store the assembly helper functions.
+ * @note This namespace is not intended to be used outside of this file as these functions are tailored to enable the efficient Python assembly.
+ */
 namespace
 {
 
@@ -40,6 +44,15 @@ namespace
 
     using EquationIdVectorType = std::vector<std::size_t>;
 
+    /**
+     * @brief Get the Equation Id Csr Indices object
+     * @details This function computes the CSR matrix value vector indices corresponding to the equation ids of the entities in the provided container.
+     * @tparam TContainerType Type of the container of the entities.
+     * @param rCsrMatrix The CSR matrix to get the indices from.
+     * @param rContainer The container of the entities.
+     * @param rProcessInfo The process info.
+     * @param rNDData The NDData object to store the indices.
+     */
     template<class TContainerType>
     void GetEquationIdCsrIndices(
         const CsrMatrixType& rCsrMatrix,
@@ -83,25 +96,31 @@ namespace
         });
     }
 
+    /**
+     * @brief Assemble the global stiffness matrix from the entities contributions and the equation ids indices.
+     * @param rLeftHandSideElementContributions The left hand side ontributions to the global stiffness matrix for each entity.
+     * @param rElementEqIdsCsrIndices The CSR values vector indices for each left hand side entry.
+     * @param rLeftHandSide The global stiffness matrix in which the contributions will be added.
+     */
     void AssembleWithCsrIndices(
-        const NDData<double>& rLeftHandSideContributions,
-        const NDData<int>& rEqIdsCsrIndices,
+        const NDData<double>& rLeftHandSideElementContributions,
+        const NDData<int>& rElementEqIdsCsrIndices,
         CsrMatrixType& rLeftHandSide)
     {
         // Get and check the provided data shapes
-        const auto& shape = rEqIdsCsrIndices.Shape();
+        const auto& shape = rElementEqIdsCsrIndices.Shape();
         const std::size_t n_entities = shape[0];
         const std::size_t local_size_1 = shape[1];
         const std::size_t local_size_2 = shape[2];
-        KRATOS_ERROR_IF(shape.size() != rLeftHandSideContributions.Shape().size()) << "The shapes of the equation ids and left hand side contributions do not match." << std::endl;
+        KRATOS_ERROR_IF(shape.size() != rLeftHandSideElementContributions.Shape().size()) << "The shapes of the equation ids indices and left hand side contributions do not match." << std::endl;
         for (std::size_t i = 0; i < shape.size(); ++i) {
-            KRATOS_ERROR_IF(shape[i] != rLeftHandSideContributions.Shape()[i]) << "The shapes of the equation ids and left hand side contributions do not match in component " << i << "." << std::endl;
+            KRATOS_ERROR_IF(shape[i] != rLeftHandSideElementContributions.Shape()[i]) << "The shapes of the equation ids indices and left hand side contributions do not match in component " << i << "." << std::endl;
         }
 
         // Get the left hand side data
         auto& r_lhs_data = rLeftHandSide.value_data();
-        const auto& r_idx_data = rEqIdsCsrIndices.ViewData();
-        const auto& r_lhs_contribution_data = rLeftHandSideContributions.ViewData();
+        const auto& r_idx_data = rElementEqIdsCsrIndices.ViewData();
+        const auto& r_lhs_contribution_data = rLeftHandSideElementContributions.ViewData();
 
         // Loop over the entities
         IndexPartition<std::size_t>(n_entities).for_each([&](std::size_t i) {
@@ -117,38 +136,41 @@ namespace
         });
     }
 
+    /**
+     * @brief Assemble the global stiffness matrix from the entities contributions and the equation ids.
+     * @param rLeftHandSideElementContributions The left hand side contributions to the global stiffness matrix for each entity.
+     * @param rElementEqIds The equation ids of each entity.
+     * @param rLeftHandSide The global stiffness matrix in which the contributions will be added.
+     */
     void AssembleWithEquationIds(
-        const NDData<double>& rLeftHandSideContributions,
-        const NDData<int>& rEqIds,
+        const NDData<double>& rLeftHandSideElementContributions,
+        const NDData<int>& rElementEqIds,
         CsrMatrixType& rLeftHandSide)
     {
-        // // Get and check the provided data shapes
-        // const auto& shape = rEqIdsCsrIndices.Shape();
-        // const std::size_t n_entities = shape[0];
-        // const std::size_t local_size_1 = shape[1];
-        // const std::size_t local_size_2 = shape[2];
-        // KRATOS_ERROR_IF(shape.size() != rLeftHandSideContributions.Shape().size()) << "The shapes of the equation ids and left hand side contributions do not match." << std::endl;
-        // for (std::size_t i = 0; i < shape.size(); ++i) {
-        //     KRATOS_ERROR_IF(shape[i] != rLeftHandSideContributions.Shape()[i]) << "The shapes of the equation ids and left hand side contributions do not match in component " << i << "." << std::endl;
-        // }
+        // Get and check the provided data shapes
+        const auto& eq_ids_shape = rElementEqIds.Shape();
+        const std::size_t n_entities = eq_ids_shape[0];
+        const std::size_t local_size = eq_ids_shape[1];
+        KRATOS_ERROR_IF(n_entities != rLeftHandSideElementContributions.Shape()[0]) << "The shapes of the equation ids and left hand side contributions refer to different number of entites." << std::endl;
+        KRATOS_ERROR_IF(local_size != rLeftHandSideElementContributions.Shape()[1]) << "The shapes of the equation ids and left hand side contributions do not match in component 1." << std::endl;
+        KRATOS_ERROR_IF(local_size != rLeftHandSideElementContributions.Shape()[2]) << "The shapes of the equation ids and left hand side contributions do not match in component 2." << std::endl;
 
-        // // Get the left hand side data
-        // auto& r_lhs_data = rLeftHandSide.value_data();
-        // const auto& r_idx_data = rEqIdsCsrIndices.ViewData();
-        // const auto& r_lhs_contribution_data = rLeftHandSideContributions.ViewData();
+        // Get the left hand side data
+        const auto& r_eq_ids_data = rElementEqIds.ViewData();
+        const auto& r_lhs_contribution_data = rLeftHandSideElementContributions.ViewData();
 
-        // // Loop over the entities
-        // IndexPartition<std::size_t>(n_entities).for_each([&](std::size_t i) {
-        //     const std::size_t entity_pos = i * (local_size_1 * local_size_2);
-        //     for (std::size_t i_local = 0; i_local < local_size_1; ++i_local) {
-        //         for (std::size_t j_local = 0; j_local < local_size_2; ++j_local) {
-        //             const std::size_t aux_idx = entity_pos + i_local * local_size_1 + j_local; // Position in the contributions and equation ids data
-        //             const int csr_index = r_idx_data[aux_idx]; // Index in the CSR matrix values vector
-        //             const double lhs_contribution = r_lhs_contribution_data[aux_idx]; // Scalar contribution to the left hand side
-        //             r_lhs_data[csr_index] += lhs_contribution;
-        //         }
-        //     }
-        // });
+        // Loop over the entities
+        IndexPartition<std::size_t>(n_entities).for_each([&](std::size_t i) {
+            const std::size_t eq_id_pos = i * local_size;
+            const std::size_t lhs_pos = i * (local_size * local_size);
+            for (std::size_t i_local = 0; i_local < local_size; ++i_local) {
+                for (std::size_t j_local = 0; j_local < local_size; ++j_local) {
+                    const std::size_t aux_idx = lhs_pos + i_local * local_size + j_local; // Position in the LHS contributions data
+                    const double lhs_contribution = r_lhs_contribution_data[aux_idx]; // Scalar contribution to the left hand side
+                    rLeftHandSide.AssembleEntry(lhs_contribution, r_eq_ids_data[eq_id_pos + i_local], r_eq_ids_data[eq_id_pos + j_local]);
+                }
+            }
+        });
     }
 
 }
