@@ -58,9 +58,7 @@ AdaptiveTimeIncrementor::AdaptiveTimeIncrementor(double                StartTime
     KRATOS_ERROR_IF(MaxTimeStepFactor < 1.0)
         << "Max_delta_time_factor must be greater than or equal to 1, but got " << MaxTimeStepFactor;
 
-    if (mEndTime - (StartTime + mDeltaTime) < GetMinimumDeltaTime()) {
-        mDeltaTime = mTimeSpan;
-    }
+    CorrectDeltaTimeToEndTime(StartTime);
     CheckMinimumDeltaTime(mDeltaTime);
 }
 
@@ -90,9 +88,7 @@ void AdaptiveTimeIncrementor::PostTimeStepExecution(const TimeStepEndState& rRes
         } else if (rResultantState.num_of_iterations == mMaxNumOfIterations) {
             mDeltaTime *= mReductionFactor;
         }
-        if (mEndTime - (rResultantState.time + mDeltaTime) < GetMinimumDeltaTime()) {
-            mDeltaTime = mEndTime - rResultantState.time;
-        }
+        CorrectDeltaTimeToEndTime(rResultantState.time);
     }
 
     else {
@@ -117,6 +113,13 @@ double AdaptiveTimeIncrementor::GetMinimumDeltaTime() const
     const auto     default_min_delta_time =
         std::min(mInitialDeltaTime, delta_time_as_fraction_of_time_span * mTimeSpan);
     return mUserMinDeltaTime.value_or(default_min_delta_time);
+}
+
+void AdaptiveTimeIncrementor::CorrectDeltaTimeToEndTime(double StartOfIncrement)
+{
+    if (mEndTime - (StartOfIncrement + mDeltaTime) < GetMinimumDeltaTime()) {
+        mDeltaTime = mEndTime - StartOfIncrement;
+    }
 }
 
 } // namespace Kratos

@@ -41,6 +41,7 @@ public:
 private:
     void                 CheckMinimumDeltaTime(double DeltaTime) const;
     [[nodiscard]] double GetMinimumDeltaTime() const;
+    void                 CorrectDeltaTimeToEndTime(double StartOfIncrement);
 
     double                mEndTime;
     double                mTimeSpan;
