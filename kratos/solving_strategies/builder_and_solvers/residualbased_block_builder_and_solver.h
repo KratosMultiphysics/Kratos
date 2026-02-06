@@ -885,6 +885,116 @@ public:
     }
 
     /**
+     * @brief Applies the dirichlet conditions only on the LHS
+     * @param pScheme The pointer to the integration scheme
+     * @param rModelPart The model part to compute
+     * @param rA The LHS matrix
+     * @param rDx The Unknowns vector
+     */
+    void ApplyDirichletConditions_LHS(
+        typename TSchemeType::Pointer pScheme,
+        ModelPart& rModelPart,
+        TSystemMatrixType& rA,
+        TSystemVectorType& rDx
+        ) override
+    {
+        const std::size_t system_size = rA.size1();
+        Vector scaling_factors (system_size);
+
+        const auto it_dof_iterator_begin = BaseType::mDofSet.begin();
+        const int ndofs = static_cast<int>(BaseType::mDofSet.size());
+
+        // NOTE: dofs are assumed to be numbered consecutively in the BlockBuilderAndSolver
+        #pragma omp parallel for firstprivate(ndofs)
+        for (int k = 0; k<ndofs; k++) {
+            auto it_dof_iterator = it_dof_iterator_begin + k;
+            if (it_dof_iterator->IsFixed()) {
+                scaling_factors[k] = 0.0;
+            } else {
+                scaling_factors[k] = 1.0;
+            }
+        }
+
+        double* Avalues = rA.value_data().begin();
+        std::size_t* Arow_indices = rA.index1_data().begin();
+        std::size_t* Acol_indices = rA.index2_data().begin();
+
+        // The diagonal considered
+        mScaleFactor = GetScaleNorm(rModelPart, rA);
+
+        // Detect if there is a line of all zeros and set the diagonal to a 1 if this happens
+        #pragma omp parallel firstprivate(system_size)
+        {
+            std::size_t col_begin = 0, col_end  = 0;
+            bool empty = true;
+
+            #pragma omp for
+            for (int k = 0; k < static_cast<int>(system_size); ++k) {
+                col_begin = Arow_indices[k];
+                col_end = Arow_indices[k + 1];
+                empty = true;
+                for (std::size_t j = col_begin; j < col_end; ++j) {
+                    if(Avalues[j] != 0.0) {
+                        empty = false;
+                        break;
+                    }
+                }
+
+                if(empty) {
+                    rA(k, k) = mScaleFactor;
+                }
+            }
+        }
+
+        #pragma omp parallel for firstprivate(system_size)
+        for (int k = 0; k < static_cast<int>(system_size); ++k) {
+            std::size_t col_begin = Arow_indices[k];
+            std::size_t col_end = Arow_indices[k+1];
+            const double k_factor = scaling_factors[k];
+            if (k_factor == 0.0) {
+                // Zero out the whole row, except the diagonal
+                for (std::size_t j = col_begin; j < col_end; ++j)
+                    if (static_cast<int>(Acol_indices[j]) != k )
+                        Avalues[j] = 0.0;
+            } else {
+                // Zero out the column which is associated with the zero'ed row
+                for (std::size_t j = col_begin; j < col_end; ++j)
+                    if(scaling_factors[ Acol_indices[j] ] == 0 )
+                        Avalues[j] = 0.0;
+            }
+        }
+    }
+
+    /**
+     * @brief Applies the dirichlet conditions only on the RHS
+     * @param pScheme The pointer to the integration scheme
+     * @param rDx The Unknowns vector
+     * @param rb The RHS vector
+     */
+    void ApplyDirichletConditions_RHS(
+        typename TSchemeType::Pointer pScheme,
+        ModelPart& rModelPart,
+        TSystemVectorType& rDx,
+        TSystemVectorType& rb
+        ) override
+    {
+        const auto& r_dof_set = BaseType::mDofSet;
+
+        const auto it_dof_iterator_begin = r_dof_set.begin();
+        const int ndofs = static_cast<int>(r_dof_set.size());
+
+        // NOTE: dofs are assumed to be numbered consecutively in the BlockBuilderAndSolver
+        #pragma omp parallel for firstprivate(ndofs)
+        for (int k = 0; k<ndofs; k++) {
+            const auto it_dof_iterator = it_dof_iterator_begin + k;
+            bool not_active = (r_dof_set.find(*it_dof_iterator) == r_dof_set.end());
+            if (it_dof_iterator->IsFixed() || not_active) {
+                rb[k] = 0.0;
+            }
+        }
+    }
+
+    /**
      * @brief Applies the constraints with master-slave relation matrix (RHS only)
      * @param pScheme The integration scheme considered
      * @param rModelPart The model part of the problem to solve
