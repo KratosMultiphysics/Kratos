@@ -40,7 +40,7 @@ class ResponseRoutine:
             if required_physical_variable not in self.__response.GetImplementedPhysicalKratosVariables():
                 list_of_independent_variables.append(required_physical_variable)
 
-        # now remove this independent collective expression from the require collective expressions map.
+        # now remove this independent combined tensor adaptor from the require combined tensor adaptors map.
         for independent_variable in list_of_independent_variables:
             del self.__required_physical_gradients[independent_variable]
 
@@ -86,12 +86,12 @@ class ResponseRoutine:
         if self.__response_value is None:
             self.my_current_control_field = Kratos.TensorAdaptors.DoubleTensorAdaptor(control_field)
 
-        if not math.isclose(numpy.linalg.norm(self.my_current_control_field.data, ord="inf"), 0.0, abs_tol=1e-16):
-            rel_diff = (self.my_current_control_field.data - control_field.data) / numpy.linalg.norm(self.my_current_control_field.data, ord="inf")
+        if not math.isclose(numpy.linalg.norm(self.my_current_control_field.data, ord=numpy.inf), 0.0, abs_tol=1e-16):
+            rel_diff = (self.my_current_control_field.data - control_field.data) / numpy.linalg.norm(self.my_current_control_field.data, ord=numpy.inf)
         else:
             rel_diff = (self.my_current_control_field.data - control_field.data)
 
-        norm = numpy.linalg.norm(rel_diff, ord="inf")
+        norm = numpy.linalg.norm(rel_diff, ord=numpy.inf)
 
         if not math.isclose(norm, 0.0, abs_tol=1e-16):
             compute_response_value_flag = True
@@ -117,19 +117,19 @@ class ResponseRoutine:
             Kratos.Logger.PrintInfo(f"The control field is not updated, hence the response value is not computed for {self.GetResponseName()}.")
 
         # Update current control field state
-        self.my_current_control_field.data = control_field.data
+        self.my_current_control_field.data[:] = control_field.data
 
         return self.__response_value
 
     def CalculateGradient(self) -> Kratos.TensorAdaptors.DoubleCombinedTensorAdaptor:
-        """Returns Collective expression containing all the control space gradients for all control variable types (fields).
+        """Returns CombinedTensorAdaptor containing all the control space gradients for all control variable types (fields).
 
         Notes:
             1. It expects that the CalculateValue is called.
             2. The gradients are computed with respect to updates from master control.
 
         Returns:
-            Kratos.TensorAdaptors.DoubleCombinedTensorAdaptor: Returns mapped gradients collective expression.
+            Kratos.TensorAdaptors.DoubleCombinedTensorAdaptor: Returns mapped gradients combined tensor adaptor.
         """
         # fills the proper physical gradients from the response
         self.__response.CalculateGradient(self.__required_physical_gradients)
@@ -144,7 +144,7 @@ class ResponseRoutine:
     def GetRequiredPhysicalGradients(self) -> 'dict[SupportedSensitivityFieldVariableTypes, Kratos.TensorAdaptors.DoubleCombinedTensorAdaptor]':
         """Returns required physical gradients by this response
 
-        This method returns required physical gradients. The expressions may or not be empty field
+        This method returns required physical gradients. The tensor adaptors may or not be empty field
         depending on CalculateGradient is called or not.
 
         Returns:
