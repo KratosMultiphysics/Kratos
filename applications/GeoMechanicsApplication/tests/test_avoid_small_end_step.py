@@ -51,7 +51,7 @@ class KratosGeoMechanicsAvoidSmallEndStepTests(KratosUnittest.TestCase):
         self.assertEqual(end_time, 1.0)
 
 
-class KratosGeoMechanicsAvoidSmallTimeStepPythonRoute(
+class KratosGeoMechanicsAvoidSmallEndStepPythonRoute(
     KratosGeoMechanicsAvoidSmallEndStepTests
 ):
     """
@@ -73,7 +73,7 @@ class KratosGeoMechanicsAvoidSmallTimeStepPythonRoute(
 
 
 
-class KratosGeoMechanicsAvoidSmallTimeStepCppRoute(
+class KratosGeoMechanicsAvoidSmallEndStepCppRoute(
     KratosGeoMechanicsAvoidSmallEndStepTests
 ):
     """
