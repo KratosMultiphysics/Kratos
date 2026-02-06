@@ -116,12 +116,11 @@ INSTANTIATE_TEST_SUITE_P(KratosGeoMechanicsFastSuiteWithoutKernel,
                                            std::make_tuple(Geo::PrincipalStresses{2.0, 1.5, 1.0}, 0.0),
                                            std::make_tuple(Geo::PrincipalStresses{1.0, 0.5, 0.1}, -1.0)));
 
-class ParametrizedDerivativeOfFlowFunctionFromSigmaTauFixture : public ::testing::TestWithParam<Geo::SigmaTau>
+class ParametrizedDerivativeOfFlowFunctionOfTensionCutOff : public ::testing::TestWithParam<Geo::SigmaTau>
 {
 };
 
-TEST_P(ParametrizedDerivativeOfFlowFunctionFromSigmaTauFixture,
-       TensionCutOff_DerivativeOfFlowFunctionIsIndependentOfGivenSigmaTau)
+TEST_P(ParametrizedDerivativeOfFlowFunctionOfTensionCutOff, TensionCutOff_DerivativeOfFlowFunctionIsIndependentOfGivenSigmaTau)
 {
     // Arrange
     constexpr auto tensile_strength = 2.0;
@@ -135,7 +134,7 @@ TEST_P(ParametrizedDerivativeOfFlowFunctionFromSigmaTauFixture,
 }
 
 INSTANTIATE_TEST_SUITE_P(KratosGeoMechanicsFastSuiteWithoutKernel,
-                         ParametrizedDerivativeOfFlowFunctionFromSigmaTauFixture,
+                         ParametrizedDerivativeOfFlowFunctionOfTensionCutOff,
                          ::testing::Values(Geo::SigmaTau{-1.0, -1.0},
                                            Geo::SigmaTau{0.0, 2.0},
                                            Geo::SigmaTau{1.0, -3.0}));
