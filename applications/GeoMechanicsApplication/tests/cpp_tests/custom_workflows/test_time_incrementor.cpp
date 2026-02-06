@@ -308,7 +308,6 @@ KRATOS_TEST_CASE_IN_SUITE(GetStartIncrementWhenItWouldNotResultInExceedingTheEnd
     AdaptiveTimeIncrementorSettings settings;
     settings.StartIncrement         = 0.6;
     const auto     time_incrementor = MakeAdaptiveTimeIncrementor(settings);
-    constexpr auto previous_time    = 0.0;
     KRATOS_EXPECT_DOUBLE_EQ(settings.StartIncrement, time_incrementor.GetIncrement());
 }
 
