@@ -1,5 +1,5 @@
 
-import abc
+import abc, numpy
 
 import KratosMultiphysics as Kratos
 from KratosMultiphysics.testing.utilities import ReadModelPart
@@ -47,12 +47,12 @@ class TestVMShapeControlBase:
             cls.implicit_shape_control.Initialize()
             cls.explicit_shape_control.Initialize()
 
-        cls.initial_nodal_positions_exp = Kratos.Expression.NodalExpression(cls.model_part)
-        Kratos.Expression.NodalPositionExpressionIO.Read(cls.initial_nodal_positions_exp, Kratos.Configuration.Initial)
+        cls.initial_nodal_positions_ta = Kratos.TensorAdaptors.NodePositionTensorAdaptor(cls.model_part.Nodes, Kratos.Configuration.Initial)
+        cls.initial_nodal_positions_ta.CollectData()
 
     def setUp(self) -> None:
-        Kratos.Expression.NodalPositionExpressionIO.Write(self.initial_nodal_positions_exp, Kratos.Configuration.Initial)
-        Kratos.Expression.NodalPositionExpressionIO.Write(self.initial_nodal_positions_exp, Kratos.Configuration.Current)
+        Kratos.TensorAdaptors.NodePositionTensorAdaptor(self.initial_nodal_positions_ta, Kratos.Configuration.Initial, copy=False).StoreData()
+        Kratos.TensorAdaptors.NodePositionTensorAdaptor(self.initial_nodal_positions_ta, Kratos.Configuration.Current, copy=False).StoreData()
 
     @classmethod
     def tearDownClass(cls):
@@ -106,45 +106,41 @@ class TestVMShapeControlShell(TestVMShapeControlBase, kratos_unittest.TestCase):
         return "shell"
 
     def test_GetControlField(self):
-        self.assertAlmostEqual(Kratos.Expression.Utils.NormL2(self.implicit_shape_control.GetControlField()), 22.4268730405143, 10)
-        self.assertAlmostEqual(Kratos.Expression.Utils.NormL2(self.explicit_shape_control.GetControlField()), 0.0, 10)
+        self.assertAlmostEqual(numpy.linalg.norm(self.implicit_shape_control.GetControlField().data), 22.4268730405143, 10)
+        self.assertAlmostEqual(numpy.linalg.norm(self.explicit_shape_control.GetControlField().data), 0.0, 10)
 
     def test_GetPhysicalField(self):
         shape_field = self.implicit_shape_control.GetPhysicalField()
-        self.assertAlmostEqual(Kratos.Expression.Utils.NormL2(shape_field), 20.976176963410882, 10)
+        self.assertAlmostEqual(numpy.linalg.norm(shape_field.data), 20.976176963410882, 10)
         shape_field = self.explicit_shape_control.GetPhysicalField()
-        self.assertAlmostEqual(Kratos.Expression.Utils.NormL2(shape_field), 20.976176963410882, 10)
+        self.assertAlmostEqual(numpy.linalg.norm(shape_field.data), 20.976176963410882, 10)
 
     def test_MapGradient(self):
         physical_gradient =  self.implicit_shape_control.GetEmptyField()
-        ta_physical_gradient = Kratos.TensorAdaptors.DoubleTensorAdaptor(physical_gradient.GetContainer(), Kratos.DoubleNDData(physical_gradient.Evaluate()), copy=False)
-        ta_physical_gradient.data[:] = 1.0
-        self.explicit_shape_control.filter.filter_utils.GetIntegrationWeights(ta_physical_gradient)
-        Kratos.Expression.CArrayExpressionIO.Read(physical_gradient, ta_physical_gradient.data)
+        physical_gradient.data[:] = 1.0
+        self.explicit_shape_control.filter.filter_utils.GetIntegrationWeights(physical_gradient)
         implicit_mapped_gradient = self.implicit_shape_control.MapGradient({KratosOA.SHAPE: physical_gradient})
-        self.assertAlmostEqual(Kratos.Expression.Utils.NormL2(implicit_mapped_gradient), 27.84296340221239, 10)
+        self.assertAlmostEqual(numpy.linalg.norm(implicit_mapped_gradient.data), 27.84296340221239, 10)
         explicit_mapped_gradient = self.explicit_shape_control.MapGradient({KratosOA.SHAPE: physical_gradient})
-        self.assertAlmostEqual(Kratos.Expression.Utils.NormL2(explicit_mapped_gradient), 28.075348639115425, 10)
+        self.assertAlmostEqual(numpy.linalg.norm(explicit_mapped_gradient.data), 28.075348639115425, 10)
 
     def test_UpdateImplicit(self):
         update_field = self.implicit_shape_control.GetEmptyField()
-        constant_field_value = Kratos.Array3([0.1, 0.1, 0.1])
-        Kratos.Expression.LiteralExpressionIO.SetData(update_field, constant_field_value)
+        update_field.data[:] = 0.1
         self.implicit_shape_control.Update(update_field)
         implicit_control_field = self.implicit_shape_control.GetControlField()
         implicit_shape_field = self.implicit_shape_control.GetPhysicalField()
-        self.assertAlmostEqual(Kratos.Expression.Utils.NormL2(implicit_control_field), 3.633180424916991, 10)
-        self.assertAlmostEqual(Kratos.Expression.Utils.NormL2(implicit_shape_field), 10.365298105786017, 10)
+        self.assertAlmostEqual(numpy.linalg.norm(implicit_control_field.data), 3.633180424916991, 10)
+        self.assertAlmostEqual(numpy.linalg.norm(implicit_shape_field.data), 10.365298105786017, 10)
 
     def test_UpdateExplicit(self):
         update_field = self.explicit_shape_control.GetEmptyField()
-        constant_field_value = Kratos.Array3([0.1, 0.1, 0.1])
-        Kratos.Expression.LiteralExpressionIO.SetData(update_field, constant_field_value)
+        update_field.data[:] = 0.1
         self.explicit_shape_control.Update(update_field)
         explicit_control_field = self.explicit_shape_control.GetControlField()
         explicit_shape_field = self.explicit_shape_control.GetPhysicalField()
-        self.assertAlmostEqual(Kratos.Expression.Utils.NormL2(explicit_control_field), 3.633180424916991, 10)
-        self.assertAlmostEqual(Kratos.Expression.Utils.NormL2(explicit_shape_field), 22.013379276492945, 10)
+        self.assertAlmostEqual(numpy.linalg.norm(explicit_control_field.data), 3.633180424916991, 10)
+        self.assertAlmostEqual(numpy.linalg.norm(explicit_shape_field.data), 22.013379276492945, 10)
 
 @kratos_unittest.skipIfApplicationsNotAvailable("StructuralMechanicsApplication", "MeshMovingApplication")
 class TestVMShapeControlSolid(TestVMShapeControlBase, kratos_unittest.TestCase):
@@ -212,48 +208,43 @@ class TestVMShapeControlSolid(TestVMShapeControlBase, kratos_unittest.TestCase):
         return "solid"
 
     def test_GetControlField(self):
-        self.assertAlmostEqual(Kratos.Expression.Utils.NormL2(self.implicit_shape_control.GetControlField()), 213.27526425126743, 4)
-        self.assertAlmostEqual(Kratos.Expression.Utils.NormL2(self.explicit_shape_control.GetControlField()), 0.0000, 4)
+        self.assertAlmostEqual(numpy.linalg.norm(self.implicit_shape_control.GetControlField().data), 213.27526425126743, 4)
+        self.assertAlmostEqual(numpy.linalg.norm(self.explicit_shape_control.GetControlField().data), 0.0000, 4)
 
     def test_GetPhysicalField(self):
         shape_field = self.explicit_shape_control.GetPhysicalField()
-        self.assertAlmostEqual(Kratos.Expression.Utils.NormL2(shape_field), 4.24264068711927, 10)
+        self.assertAlmostEqual(numpy.linalg.norm(shape_field.data), 4.24264068711927, 10)
         shape_field = self.implicit_shape_control.GetPhysicalField()
-        self.assertAlmostEqual(Kratos.Expression.Utils.NormL2(shape_field), 4.24264068711927, 10)
+        self.assertAlmostEqual(numpy.linalg.norm(shape_field.data), 4.24264068711927, 10)
 
     def test_MapGradient(self):
-        constant_field_value = Kratos.Array3([1.0, 1.0, 1.0])
-
         solid_physical_gradient = self.explicit_shape_control.GetEmptyField()
-        Kratos.Expression.LiteralExpressionIO.SetData(solid_physical_gradient, constant_field_value)
+        solid_physical_gradient.data[:] = 1.0
         mapped_gradient = self.explicit_shape_control.MapGradient({KratosOA.SHAPE: solid_physical_gradient})
-        self.assertAlmostEqual(Kratos.Expression.Utils.NormL2(mapped_gradient), 13.52774925846869, 10)
+        self.assertAlmostEqual(numpy.linalg.norm(mapped_gradient.data), 13.52774925846869, 10)
 
         solid_physical_gradient = self.implicit_shape_control.GetEmptyField()
-        Kratos.Expression.LiteralExpressionIO.SetData(solid_physical_gradient, constant_field_value)
+        solid_physical_gradient.data[:] = 1.0
         mapped_gradient = self.implicit_shape_control.MapGradient({KratosOA.SHAPE: solid_physical_gradient})
-        self.assertAlmostEqual(Kratos.Expression.Utils.NormL2(mapped_gradient), 20.108624626448545, 10)
+        self.assertAlmostEqual(numpy.linalg.norm(mapped_gradient.data), 20.108624626448545, 10)
 
     def test_UpdateExplicit(self):
-        constant_field_value = Kratos.Array3([0.1, 0.1, 0.1])
-
         update_field = self.explicit_shape_control.GetEmptyField()
-        Kratos.Expression.LiteralExpressionIO.SetData(update_field, constant_field_value)
+        update_field.data[:] = 0.1
         self.explicit_shape_control.Update(update_field)
         control_field = self.explicit_shape_control.GetControlField()
         shape_field = self.explicit_shape_control.GetPhysicalField()
-        self.assertAlmostEqual(Kratos.Expression.Utils.NormL2(control_field), 0.6480740698407862, 10)
-        self.assertAlmostEqual(Kratos.Expression.Utils.NormL2(shape_field), 4.524378410345448, 10)
+        self.assertAlmostEqual(numpy.linalg.norm(control_field.data), 0.6480740698407862, 10)
+        self.assertAlmostEqual(numpy.linalg.norm(shape_field.data), 4.524378410345448, 10)
 
     def test_UpdateImplicit(self):
-        constant_field_value = Kratos.Array3([0.1, 0.1, 0.1])
         update_field = self.implicit_shape_control.GetEmptyField()
-        Kratos.Expression.LiteralExpressionIO.SetData(update_field, constant_field_value)
+        update_field.data[:] = 0.1
         self.implicit_shape_control.Update(update_field)
         control_field = self.implicit_shape_control.GetControlField()
         shape_field = self.implicit_shape_control.GetPhysicalField()
-        self.assertAlmostEqual(Kratos.Expression.Utils.NormL2(control_field), 0.6480740698407862, 10)
-        self.assertAlmostEqual(Kratos.Expression.Utils.NormL2(shape_field), 4.370590586296503, 10)
+        self.assertAlmostEqual(numpy.linalg.norm(control_field.data), 0.6480740698407862, 10)
+        self.assertAlmostEqual(numpy.linalg.norm(shape_field.data), 4.370590586296503, 10)
 
 if __name__ == "__main__":
     kratos_unittest.main()
