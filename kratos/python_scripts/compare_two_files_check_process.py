@@ -87,23 +87,29 @@ class CompareTwoFilesCheckProcess(KratosMultiphysics.Process, KratosUnittest.Tes
         if KratosMultiphysics.Testing.GetDefaultDataCommunicator().Rank() != 0:
             return
 
-        if (self.comparison_type == "deterministic"):
+        if self.comparison_type == "deterministic":
             value = filecmp.cmp(self.reference_file_name, self.output_file_name)
             self.assertTrue(value, msg = self.info_msg)
-        elif (self.comparison_type == "mesh_file"):
+        elif self.comparison_type == "mesh_file":
             self.__CompareMeshVerticesFile()
-        elif (self.comparison_type == "sol_file"):
+        elif self.comparison_type == "sol_file":
             self.__CompareSolMetricFile()
-        elif (self.comparison_type == "post_res_file"):
+        elif self.comparison_type == "post_res_file":
             self.__ComparePostResFile()
-        elif (self.comparison_type == "dat_file"):
+        elif self.comparison_type == "dat_file":
             self.__CompareDatFile()
-        elif (self.comparison_type == "csv_file"):
+        elif self.comparison_type == "csv_file":
             self.__CompareCSVFile()
-        elif (self.comparison_type == "dat_file_variables_time_history"):
+        elif self.comparison_type == "dat_file_variables_time_history":
             self.__CompareDatFileVariablesTimeHistory()
-        elif (self.comparison_type == "vtk"):
+        elif self.comparison_type == "vtk":
             self.__CompareVtkFile()
+        elif self.comparison_type == "case":
+            self.__CompareCaseFile()
+        elif self.comparison_type == "geo":
+            self.__CompareGeoFile()
+        elif self.comparison_type == "ensight_solution":
+            self.__CompareEnsightSolutionFile()
         else:
             raise NameError('Requested comparison type "' + self.comparison_type + '" not implemented yet')
 
@@ -532,6 +538,405 @@ class CompareTwoFilesCheckProcess(KratosMultiphysics.Process, KratosUnittest.Tes
             if line_ref.startswith("POINT_DATA") or line_ref.startswith("CELL_DATA"):
                 CompareData(lines_ref, lines_out, line_counter)
 
+    def __CompareCaseFile(self):
+        """
+        This function compares two EnSight Case (.case) files.
+        It checks the format, geometry, time, and variable definitions.
+        """
+
+        def ParseCaseFile(lines):
+            """
+            Parses the lines of a .case file into a structured dictionary.
+            """
+            data = {
+                "VARIABLE": [] # Use a list to store multiple variable definitions
+            }
+            current_section = None
+
+            for line in lines:
+                line = line.strip()
+                if not line or line.startswith('#'):
+                    continue
+
+                # Check for section headers
+                if line in ["FORMAT", "GEOMETRY", "VARIABLE", "TIME"]:
+                    current_section = line
+                    continue
+
+                # Parse content based on the current section
+                if current_section == "FORMAT":
+                    key, val = line.split(':')
+                    data.setdefault("FORMAT", {})[key.strip()] = val.strip()
+
+                elif current_section == "GEOMETRY":
+                    key, val = line.split(':', 1) # Split only on the first colon
+                    data.setdefault("GEOMETRY", {})[key.strip()] = val.strip()
+
+                elif current_section == "TIME":
+                    key, val = line.split(':', 1)
+                    key = key.strip()
+                    val = val.strip()
+                    if key == "time values":
+                        # Parse list of floats
+                        parsed_val = [float(v) for v in val.split()]
+                    else:
+                        # Parse integers
+                        parsed_val = int(val)
+                    data.setdefault("TIME", {})[key] = parsed_val
+
+                elif current_section == "VARIABLE":
+                    # E.g.: "scalar per node: 1 PRESSURE Main.PRESSURE.****.node.scl"
+                    parts = line.split(':')
+                    var_type = parts[0].strip()
+
+                    # Further split the remaining part by whitespace
+                    details = parts[1].strip().split()
+                    var_count = int(details[0])
+                    var_name = details[1]
+                    var_file = details[2]
+
+                    variable_info = {
+                        "description": var_type,
+                        "count": var_count,
+                        "name": var_name,
+                        "file": var_file
+                    }
+                    data["VARIABLE"].append(variable_info)
+
+            # Sort variables by name to make comparison order-independent
+            data["VARIABLE"].sort(key=lambda v: v['name'])
+            return data
+
+        ###### Main execution starts here ######
+        lines_ref, lines_out = self.__GetFileLines()
+
+        # Parse both files into structured dictionaries
+        data_ref = ParseCaseFile(lines_ref)
+        data_out = ParseCaseFile(lines_out)
+
+        # List to collect all error messages
+        error_messages = []
+
+        # 1. Compare FORMAT section
+        format_ref = data_ref.get("FORMAT", {})
+        format_out = data_out.get("FORMAT", {})
+        if format_ref != format_out:
+            error_messages.append(
+                f"FORMAT sections do not match.\n  Ref: {format_ref}\n  Out: {format_out}"
+            )
+
+        # 2. Compare GEOMETRY section
+        geometry_ref = data_ref.get("GEOMETRY", {})
+        geometry_out = data_out.get("GEOMETRY", {})
+        if geometry_ref != geometry_out:
+            error_messages.append(
+                f"GEOMETRY sections do not match.\n  Ref: {geometry_ref}\n  Out: {geometry_out}"
+            )
+
+        # 3. Compare TIME section
+        # Use copies to safely modify them by popping "time values"
+        time_ref = data_ref.get("TIME", {}).copy()
+        time_out = data_out.get("TIME", {}).copy()
+
+        if set(time_ref.keys()) != set(time_out.keys()):
+            error_messages.append(
+                f"TIME section keys do not match.\n  Ref keys: {set(time_ref.keys())}\n  Out keys: {set(time_out.keys())}"
+            )
+        else:
+            # Handle the special case of "time values", which is a list of floats
+            if "time values" in time_ref:
+                ref_time_values = time_ref.pop("time values")
+                out_time_values = time_out.pop("time values")
+
+                if len(ref_time_values) != len(out_time_values):
+                    error_messages.append(
+                        f"Number of 'time values' entries does not match. Ref: {len(ref_time_values)}, Out: {len(out_time_values)}"
+                    )
+                else:
+                    # Compare each float value with tolerance
+                    for i, (ref_val, out_val) in enumerate(zip(ref_time_values, out_time_values)):
+                        try:
+                            # Assuming __CheckCloseValues raises an AssertionError on failure
+                            self.__CheckCloseValues(ref_val, out_val)
+                        except AssertionError as e:
+                            error_messages.append(
+                                f"Mismatch in 'time values' at index {i}: Ref={ref_val}, Out={out_val}. Details: {e}"
+                            )
+
+            # Compare all other remaining key-value pairs (expected to be integers)
+            for key, ref_val in time_ref.items():
+                out_val = time_out[key]
+                if int(ref_val) != int(out_val):
+                    error_messages.append(
+                        f"TIME section mismatch for key '{key}'. Ref: {ref_val}, Out: {out_val}"
+                    )
+
+        # 4. Compare VARIABLE section
+        vars_ref = data_ref.get("VARIABLE", [])
+        vars_out = data_out.get("VARIABLE", [])
+
+        if len(vars_ref) != len(vars_out):
+            error_messages.append(
+                f"Number of defined VARIABLEs does not match. Ref: {len(vars_ref)}, Out: {len(vars_out)}"
+            )
+        else:
+            for var_ref, var_out in zip(vars_ref, vars_out):
+                if var_ref != var_out:
+                    var_name = var_ref.get('name', 'UNKNOWN')
+                    error_messages.append(
+                        f"Mismatch in VARIABLE definition for '{var_name}'.\n  Ref: {var_ref}\n  Out: {var_out}"
+                    )
+
+        # A single assertion at the end. It passes if the error_messages list is empty.
+        if error_messages:
+            print("Case file comparison failed:\n\n" + "\n\n".join(error_messages))
+        self.assertTrue(not error_messages)
+
+    def __CompareGeoFile(self):
+        """
+        This function compares two EnSight 6 Geometry (.geo) files in ASCII format.
+        It checks nodes, coordinates, parts, and element connectivities.
+        """
+        def ReadVectorFromLine(line, conversion_fct):
+            """
+            Reads a vector of values from a single line string, 
+            using any whitespace (spaces, tabs, etc.) as a delimiter.
+            """
+            # Use split() without arguments to handle any amount of whitespace as a delimiter
+            # and automatically discard empty strings.
+            return [conversion_fct(word) for word in line.split()]
+
+        def CompareHeader(lines_ref, lines_out):
+            """
+            Checks the header section of the geo file. It expects the first 4 lines
+            to define the file type and node/element id settings.
+            """
+            header_lines_to_check = [
+                "EnSight 6 Geometry File",
+                "Written by Kratos Multi-Physics",
+                "node id given",
+                "element id given"
+            ]
+            for i, line_content in enumerate(header_lines_to_check):
+                if line_content not in lines_ref[i] or line_content not in lines_out[i]:
+                    raise Exception(f'Header mismatch in line {i+1}. Expected "{line_content}"')
+
+            # We can start parsing from after the header
+            return len(header_lines_to_check)
+
+        def CompareCoordinates(lines_ref, lines_out, line_counter, error_messages):
+            """
+            Compares the 'coordinates' block of the two files.
+            """
+            # Verify the "coordinates" keyword
+            if "coordinates" not in lines_ref[line_counter]:
+                raise Exception(f'Reference file is missing "coordinates" keyword at line {line_counter+1}')
+            if "coordinates" not in lines_out[line_counter]:
+                raise Exception(f'Output file is missing "coordinates" keyword at line {line_counter+1}')
+            line_counter += 1
+
+            # Compare number of nodes
+            num_nodes_ref = int(lines_ref[line_counter])
+            num_nodes_out = int(lines_out[line_counter])
+            if num_nodes_ref != num_nodes_out:
+                error_messages.append(f'Mismatch in number of nodes. Ref: {num_nodes_ref}, Out: {num_nodes_out}')
+                # If counts differ, we cannot safely compare them. Skip to the end of this block.
+                return line_counter + 1 + num_nodes_ref
+            line_counter += 1
+
+            # Compare node IDs and coordinates for each node
+            for i in range(num_nodes_ref):
+                current_line_idx = line_counter + i
+                ref_node_data = ReadVectorFromLine(lines_ref[current_line_idx], float)
+                out_node_data = ReadVectorFromLine(lines_out[current_line_idx], float)
+
+                # Node ID (integer)
+                if int(ref_node_data[0]) != int(out_node_data[0]):
+                    error_messages.append(f'Node ID mismatch in line {current_line_idx+1}. Ref: {int(ref_node_data[0])}, Out: {int(out_node_data[0])}')
+
+                # Coordinates (floats)
+                for i_coord, (ref_coord, out_coord) in enumerate(zip(ref_node_data[1:], out_node_data[1:])):
+                    try:
+                        self.__CheckCloseValues(ref_coord, out_coord)
+                    except AssertionError as e:
+                        error_messages.append(f'Coordinate {i_coord+1} mismatch in line {current_line_idx+1}. Ref: {ref_coord}, Out: {out_coord}. Details: {e}')
+
+            return line_counter + num_nodes_ref
+
+        def ComparePart(lines_ref, lines_out, line_counter, error_messages):
+            """
+            Compares a single 'part' block, including its elements and connectivities.
+            """
+            list_of_element_types = [
+                "point", "bar2", "bar3", "tria3", "tria6", "quad4", "quad8",
+                "tetra4", "tetra10", "pyramid5", "pyramid13", "penta6",
+                "penta15", "hexa8", "hexa20"
+            ]
+            if not lines_ref[line_counter].strip().startswith("part"):
+                raise Exception(f'Reference file is missing "part" keyword at line {line_counter+1}')
+            if not lines_out[line_counter].strip().startswith("part"):
+                raise Exception(f'Output file is missing "part" keyword at line {line_counter+1}')
+            line_counter += 1
+
+            # Compare part number and description
+            if lines_ref[line_counter].strip() != lines_out[line_counter].strip():
+                error_messages.append(f'Part number mismatch at line {line_counter+1}.')
+            line_counter += 1
+
+            # Iterate through all element types in this part
+            while line_counter < len(lines_ref) and lines_ref[line_counter] in list_of_element_types:
+                # Compare element type
+                elem_type_ref = lines_ref[line_counter].strip()
+                elem_type_out = lines_out[line_counter].strip()
+                if elem_type_ref != elem_type_out:
+                    error_messages.append(f'Element type mismatch for part at line {line_counter-2}. Ref: "{elem_type_ref}", Out: "{elem_type_out}"')
+                line_counter += 1
+
+                # Compare number of elements
+                num_elements_ref = int(lines_ref[line_counter])
+                num_elements_out = int(lines_out[line_counter])
+                if num_elements_ref != num_elements_out:
+                    error_messages.append(f'Mismatch in number of elements for part "{elem_type_ref}". Ref: {num_elements_ref}, Out: {num_elements_out}')
+                    # Skip to end of this part block based on reference file
+                    return line_counter + 1 + num_elements_ref
+                line_counter += 1
+
+                # Compare element IDs and connectivities
+                for i in range(num_elements_ref):
+                    current_line_idx = line_counter + i
+                    ref_connectivity = ReadVectorFromLine(lines_ref[current_line_idx], int)
+                    out_connectivity = ReadVectorFromLine(lines_out[current_line_idx], int)
+                    if ref_connectivity != out_connectivity:
+                        error_messages.append(f'Element connectivity mismatch in line {current_line_idx+1}.\n  Ref: {ref_connectivity}\n  Out: {out_connectivity}')
+                line_counter += num_elements_ref
+
+            return line_counter # Return the updated line counter
+
+        ###### Main execution starts here ######
+        lines_ref, lines_out = self.__GetFileLines()
+
+        # Pre-process by removing leading/trailing whitespace from all lines
+        lines_ref = [line.strip() for line in lines_ref]
+        lines_out = [line.strip() for line in lines_out]
+
+        error_messages = []
+
+        try:
+            # Compare headers and get starting index for data
+            line_counter = CompareHeader(lines_ref, lines_out)
+
+            # The next block must be coordinates
+            line_counter = CompareCoordinates(lines_ref, lines_out, line_counter, error_messages)
+
+            # Process all subsequent 'part' blocks until the end of the file
+            while line_counter < len(lines_ref):
+                # If it's not an empty line, it must be a part
+                line_counter = ComparePart(lines_ref, lines_out, line_counter, error_messages)
+
+        except IndexError:
+            error_messages.append("Comparison failed because files have different structures or lengths, leading to an out-of-bounds error.")
+        except Exception as e:
+            error_messages.append(f"A critical error occurred during comparison: {e}")
+
+        # Final assertion on the collected results
+        if error_messages:
+            print("Geo file comparison failed:\n\n" + "\n\n".join(error_messages))
+        self.assertTrue(not error_messages)
+
+    def __CompareEnsightSolutionFile(self):
+        """
+        This function compares two EnSight 6 Solution files (scalar or vector).
+        It checks the header for equality and then compares all numerical values
+        using a hardcoded tolerance, while preserving the class method structure.
+        Supported formats: .scl, .vec
+        """
+        # A hardcoded tolerance is defined for the check, ignoring class parameters.
+        HARDCODED_TOLERANCE = 1e-9
+
+        # Use the existing class method to read file lines.
+        lines_ref, lines_out = self.__GetFileLines()
+
+        # 1. Perform a direct comparison of the header line.
+        header_ref = lines_ref[0]
+        header_out = lines_out[0]
+        if header_ref != header_out:
+            # Explicitly fail the test if the headers do not match.
+            error_msg = "EnSight solution file headers do not match.\n"
+            error_msg += f"  Reference: '{header_ref.strip()}'\n"
+            error_msg += f"  Output:    '{header_out.strip()}'"
+            self.fail(error_msg + self.info_msg)
+
+        number_of_lines = len(lines_ref)
+        line_counter = 1 # Start after the header line
+
+        # 2. Iterate through the numerical data lines (skipping the header and parts).
+        while line_counter < number_of_lines:
+            line_ref = lines_ref[line_counter]
+            line_out = lines_out[line_counter]
+
+            # Skip "part" lines if present (only in element and condition file types).
+            if not "Per_node" in header_ref and "part" in line_ref:
+                # Check it is the same part number, split and the number of the part is the second word
+                part_number_ref = int(line_ref.split()[1])
+                part_number_out = int(line_out.split()[1])
+                if part_number_ref != part_number_out:
+                    error_msg = f"Part numbers do not match at line {line_counter+1}.\n"
+                    error_msg += f"  Reference: {part_number_ref}\n"
+                    error_msg += f"  Output:    {part_number_out}"
+                    self.fail(error_msg + self.info_msg)
+
+                # Check the same type of element follows
+                line_counter += 1
+                line_ref = lines_ref[line_counter]
+                line_out = lines_out[line_counter]
+                element_type_ref = line_ref.strip()
+                element_type_out = line_out.strip()
+                if element_type_ref != element_type_out:
+                    error_msg = f"Element types do not match after part {part_number_ref} at line {line_counter+1}.\n"
+                    error_msg += f"  Reference: '{element_type_ref}'\n"
+                    error_msg += f"  Output:    '{element_type_out}'"
+                    self.fail(error_msg + self.info_msg)
+
+                # Update the counter to move to the next line after "part" and element type
+                line_counter += 1
+                line_ref = lines_ref[line_counter]
+                line_out = lines_out[line_counter]
+
+            # Split lines by any whitespace to get numerical values as strings.
+            values_ref_str = line_ref.split()
+            values_out_str = line_out.split()
+
+            # Ensure both lines contain the same number of values using a direct comparison.
+            len_ref = len(values_ref_str)
+            len_out = len(values_out_str)
+            error_msg = f"Line {line_counter+1} has a different number of values.\n"
+            error_msg += f"  Reference count: {len_ref}\n"
+            error_msg += f"  Output count:    {len_out}"
+            self.assertTrue(len_ref == len_out, msg=error_msg + self.info_msg)
+
+            # 3. Compare each pair of numerical values from the line.
+            for val_ref_str, val_out_str in zip(values_ref_str, values_out_str):
+                try:
+                    val_ref = float(val_ref_str)
+                    val_out = float(val_out_str)
+
+                    # Perform the hardcoded comparison.
+                    is_close = math.isclose(val_ref, val_out, abs_tol=HARDCODED_TOLERANCE)
+
+                    # Use the test framework's assertion to check the result and report failure.
+                    full_msg = self.info_msg + "\n"
+                    full_msg += f"Mismatch on data line {line_counter}: {val_ref} != {val_out}"
+                    full_msg += f" (hardcoded tolerance = {HARDCODED_TOLERANCE})"
+                    self.assertTrue(is_close, msg=full_msg)
+
+                except ValueError:
+                    # If conversion to float fails, fail the test immediately.
+                    self.fail(f"Could not convert value to float on line {i+1}. "
+                              f"Ref: '{val_ref_str}', Out: '{val_out_str}'" + self.info_msg)
+
+            # Update counter to move to the next line.
+            line_counter += 1
+
     def __CheckCloseValues(self, val_a, val_b, additional_info=""):
         isclosethis = t_isclose(val_a, val_b, rel_tol=self.reltol, abs_tol=self.tol)
         full_msg =  self.info_msg + "\n"
@@ -540,7 +945,6 @@ class CompareTwoFilesCheckProcess(KratosMultiphysics.Process, KratosUnittest.Tes
         if additional_info != "":
             full_msg += "\n" + additional_info
         self.assertTrue(isclosethis, msg=full_msg)
-
 
 def ConvertStringToListFloat(line, space = " ", endline = ""):
     """This function converts a string into a list of floats
