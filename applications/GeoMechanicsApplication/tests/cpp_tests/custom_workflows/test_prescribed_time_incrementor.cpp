@@ -126,7 +126,6 @@ KRATOS_TEST_CASE_IN_SUITE(WithoutPostTimeStepExecutionAlwaysGetSameIncrement, Kr
 {
     const auto     increments    = std::vector<double>{0.4, 0.6};
     auto           incrementor   = PrescribedTimeIncrementor{increments};
-    constexpr auto previous_time = 0.0;
 
     KRATOS_EXPECT_DOUBLE_EQ(increments.front(), incrementor.GetIncrement());
     KRATOS_EXPECT_DOUBLE_EQ(increments.front(), incrementor.GetIncrement());
