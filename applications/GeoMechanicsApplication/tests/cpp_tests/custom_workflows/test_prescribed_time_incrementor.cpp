@@ -124,8 +124,8 @@ KRATOS_TEST_CASE_IN_SUITE(PrescribedTimeIncrementorThrowsWhenAskingForIncrementB
 
 KRATOS_TEST_CASE_IN_SUITE(WithoutPostTimeStepExecutionAlwaysGetSameIncrement, KratosGeoMechanicsFastSuiteWithoutKernel)
 {
-    const auto     increments    = std::vector<double>{0.4, 0.6};
-    auto           incrementor   = PrescribedTimeIncrementor{increments};
+    const auto increments  = std::vector<double>{0.4, 0.6};
+    auto       incrementor = PrescribedTimeIncrementor{increments};
 
     KRATOS_EXPECT_DOUBLE_EQ(increments.front(), incrementor.GetIncrement());
     KRATOS_EXPECT_DOUBLE_EQ(increments.front(), incrementor.GetIncrement());
