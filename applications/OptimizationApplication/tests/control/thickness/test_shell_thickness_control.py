@@ -111,11 +111,11 @@ class TestShellThicknessControl(kratos_unittest.TestCase):
         thickness_control.Update(control_field)
         for i in range(20):
             control_field *= 1.2
-            thickness_control.Update(control_field)
+            self.assertTrue(thickness_control.Update(control_field), msg=f"Failed at iteration = {i} with update = {control_field.Evaluate()}, control_field = {thickness_control.GetControlField().Evaluate()}")
             self.optimization_problem.AdvanceStep()
 
         self.assertAlmostEqual(thickness_control.thickness_projection.beta, 0.014071004226562506)
-        self.assertAlmostEqual(Kratos.Expression.Utils.NormL2(thickness_control.GetPhysicalField()), 0.03112562769742746)
+        self.assertAlmostEqual(Kratos.Expression.Utils.NormL2(thickness_control.GetPhysicalField()), 0.03204326420888321)
 
 if __name__ == "__main__":
     kratos_unittest.main()
