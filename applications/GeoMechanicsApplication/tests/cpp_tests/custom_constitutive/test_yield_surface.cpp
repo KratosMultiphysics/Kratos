@@ -84,20 +84,23 @@ KRATOS_TEST_CASE_IN_SUITE(CoulombYieldSurface_CanBeSavedAndLoaded, KratosGeoMech
 
 KRATOS_TEST_CASE_IN_SUITE(TestTensionCutoff, KratosGeoMechanicsFastSuiteWithoutKernel)
 {
-    double tension_cutoff = 2.0;
+    constexpr auto tensile_strength = 2.0;
+    const auto     tension_cut_off  = TensionCutoff{tensile_strength};
 
-    auto principal_stress = Geo::PrincipalStresses{3.0, 2.0, 1.0};
-    auto sigma_tau = StressStrainUtilities::TransformPrincipalStressesToSigmaTau(principal_stress);
-    TensionCutoff tensionCutoff(tension_cutoff);
-    KRATOS_EXPECT_NEAR(tensionCutoff.YieldFunctionValue(sigma_tau), 1.0, Defaults::absolute_tolerance);
+    auto principal_stresses = Geo::PrincipalStresses{3.0, 2.0, 1.0};
+    KRATOS_EXPECT_NEAR(tension_cut_off.YieldFunctionValue(principal_stresses), 1.0, Defaults::absolute_tolerance);
+    auto sigma_tau = StressStrainUtilities::TransformPrincipalStressesToSigmaTau(principal_stresses);
+    KRATOS_EXPECT_NEAR(tension_cut_off.YieldFunctionValue(sigma_tau), 1.0, Defaults::absolute_tolerance);
 
-    principal_stress = Geo::PrincipalStresses{2.0, 1.5, 1.0};
-    sigma_tau = StressStrainUtilities::TransformPrincipalStressesToSigmaTau(principal_stress);
-    KRATOS_EXPECT_NEAR(tensionCutoff.YieldFunctionValue(sigma_tau), 0.0, Defaults::absolute_tolerance);
+    principal_stresses = Geo::PrincipalStresses{2.0, 1.5, 1.0};
+    KRATOS_EXPECT_NEAR(tension_cut_off.YieldFunctionValue(principal_stresses), 0.0, Defaults::absolute_tolerance);
+    sigma_tau = StressStrainUtilities::TransformPrincipalStressesToSigmaTau(principal_stresses);
+    KRATOS_EXPECT_NEAR(tension_cut_off.YieldFunctionValue(sigma_tau), 0.0, Defaults::absolute_tolerance);
 
-    principal_stress = Geo::PrincipalStresses{1.0, 0.5, 0.1};
-    sigma_tau = StressStrainUtilities::TransformPrincipalStressesToSigmaTau(principal_stress);
-    KRATOS_EXPECT_NEAR(tensionCutoff.YieldFunctionValue(sigma_tau), -1.0, Defaults::absolute_tolerance);
+    principal_stresses = Geo::PrincipalStresses{1.0, 0.5, 0.1};
+    KRATOS_EXPECT_NEAR(tension_cut_off.YieldFunctionValue(principal_stresses), -1.0, Defaults::absolute_tolerance);
+    sigma_tau = StressStrainUtilities::TransformPrincipalStressesToSigmaTau(principal_stresses);
+    KRATOS_EXPECT_NEAR(tension_cut_off.YieldFunctionValue(sigma_tau), -1.0, Defaults::absolute_tolerance);
 }
 
 KRATOS_TEST_CASE_IN_SUITE(TensionCutOff_CanBeSavedAndLoaded, KratosGeoMechanicsFastSuiteWithoutKernel)
