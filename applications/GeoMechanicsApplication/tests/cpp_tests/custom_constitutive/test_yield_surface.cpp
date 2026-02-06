@@ -32,27 +32,36 @@ using namespace std::string_literals;
 namespace Kratos::Testing
 {
 
-KRATOS_TEST_CASE_IN_SUITE(TestCoulombYieldSurface, KratosGeoMechanicsFastSuiteWithoutKernel)
+class ParametrizedYieldFunctionValuesOfCoulombYieldSurfaceFixture
+    : public ::testing::TestWithParam<std::tuple<Geo::PrincipalStresses, double>>
 {
+};
+
+TEST_P(ParametrizedYieldFunctionValuesOfCoulombYieldSurfaceFixture, CoulombYieldSurface_CalculateYieldFunctionValues)
+{
+    // Arrange
     auto material_properties                 = Properties{};
     material_properties[GEO_FRICTION_ANGLE]  = 45.0;
     material_properties[GEO_COHESION]        = 2.0;
     material_properties[GEO_DILATANCY_ANGLE] = 0.0;
+    const auto coulomb_yield_surface         = CoulombYieldSurface{material_properties};
 
-    const auto coulomb_yield_surface = CoulombYieldSurface{material_properties};
+    const auto& [principal_stresses, expected_value] = GetParam();
 
-    auto principal_stress = Geo::PrincipalStresses{3.0, 2.0, 1.0};
-    auto sigma_tau = StressStrainUtilities::TransformPrincipalStressesToSigmaTau(principal_stress);
-    KRATOS_EXPECT_NEAR(coulomb_yield_surface.YieldFunctionValue(sigma_tau), 1.0, Defaults::absolute_tolerance);
-
-    principal_stress = Geo::PrincipalStresses{1.7071067811865475, 1.0, 0.2928932188134525};
-    sigma_tau = StressStrainUtilities::TransformPrincipalStressesToSigmaTau(principal_stress);
-    KRATOS_EXPECT_NEAR(coulomb_yield_surface.YieldFunctionValue(sigma_tau), 0.0, Defaults::absolute_tolerance);
-
-    principal_stress = Geo::PrincipalStresses{0.1715728752538099, -1.0, -1.8284271247461901};
-    sigma_tau = StressStrainUtilities::TransformPrincipalStressesToSigmaTau(principal_stress);
-    KRATOS_EXPECT_NEAR(coulomb_yield_surface.YieldFunctionValue(sigma_tau), -1.0, Defaults::absolute_tolerance);
+    // Act & Assert
+    KRATOS_EXPECT_NEAR(coulomb_yield_surface.YieldFunctionValue(principal_stresses), expected_value,
+                       Defaults::absolute_tolerance);
+    const auto sigma_tau = StressStrainUtilities::TransformPrincipalStressesToSigmaTau(principal_stresses);
+    KRATOS_EXPECT_NEAR(coulomb_yield_surface.YieldFunctionValue(sigma_tau), expected_value,
+                       Defaults::absolute_tolerance);
 }
+
+INSTANTIATE_TEST_SUITE_P(
+    KratosGeoMechanicsFastSuiteWithoutKernel,
+    ParametrizedYieldFunctionValuesOfCoulombYieldSurfaceFixture,
+    ::testing::Values(std::make_tuple(Geo::PrincipalStresses{3.0, 2.0, 1.0}, 1.0),
+                      std::make_tuple(Geo::PrincipalStresses{1.7071067811865475, 1.0, 0.2928932188134525}, 0.0),
+                      std::make_tuple(Geo::PrincipalStresses{0.1715728752538099, -1.0, -1.8284271247461901}, -1.0)));
 
 KRATOS_TEST_CASE_IN_SUITE(CoulombYieldSurface_CanBeSavedAndLoaded, KratosGeoMechanicsFastSuiteWithoutKernel)
 {
@@ -82,12 +91,12 @@ KRATOS_TEST_CASE_IN_SUITE(CoulombYieldSurface_CanBeSavedAndLoaded, KratosGeoMech
                               expected_derivative, Defaults::absolute_tolerance);
 }
 
-class ParametrizedYieldFunctionValuesFromPrincipalStressesFixture
+class ParametrizedYieldFunctionValuesOfTensionCutOffFixture
     : public ::testing::TestWithParam<std::tuple<Geo::PrincipalStresses, double>>
 {
 };
 
-TEST_P(ParametrizedYieldFunctionValuesFromPrincipalStressesFixture, TensionCutOff_CalculateYieldFunctionValues)
+TEST_P(ParametrizedYieldFunctionValuesOfTensionCutOffFixture, TensionCutOff_CalculateYieldFunctionValues)
 {
     // Arrange
     constexpr auto tensile_strength                  = 2.0;
@@ -102,7 +111,7 @@ TEST_P(ParametrizedYieldFunctionValuesFromPrincipalStressesFixture, TensionCutOf
 }
 
 INSTANTIATE_TEST_SUITE_P(KratosGeoMechanicsFastSuiteWithoutKernel,
-                         ParametrizedYieldFunctionValuesFromPrincipalStressesFixture,
+                         ParametrizedYieldFunctionValuesOfTensionCutOffFixture,
                          ::testing::Values(std::make_tuple(Geo::PrincipalStresses{3.0, 2.0, 1.0}, 1.0),
                                            std::make_tuple(Geo::PrincipalStresses{2.0, 1.5, 1.0}, 0.0),
                                            std::make_tuple(Geo::PrincipalStresses{1.0, 0.5, 0.1}, -1.0)));
