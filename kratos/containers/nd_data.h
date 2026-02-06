@@ -196,6 +196,16 @@ public:
         const NDData& rOther);
 
     ///@}
+    ///@name Public operators
+    ///@{
+
+    /**
+     * @brief Copy assignment operator.
+     * @details Copy assigns having the internal data also copied.
+     */
+    NDData& operator=(const NDData& rOther);
+
+    ///@}
     ///@name Public operations
     ///@{
 
@@ -242,7 +252,7 @@ private:
     ///@name private member variables
     ///@{
 
-    const DenseVector<unsigned int> mShape;
+    DenseVector<unsigned int> mShape;
 
     typename PointerWrapper::Pointer mpData;
 
