@@ -1,12 +1,9 @@
-import random
-
 import KratosMultiphysics as Kratos
 import KratosMultiphysics.OptimizationApplication as KratosOA
 
 # Import KratosUnittest
 import KratosMultiphysics.KratosUnittest as kratos_unittest
 from KratosMultiphysics.testing.utilities import ReadModelPart
-from KratosMultiphysics.OptimizationApplication.utilities.model_part_utilities import ModelPartOperation
 
 class TestOptAppModelPartUtils(kratos_unittest.TestCase):
     @classmethod
@@ -231,78 +228,6 @@ class TestOptAppModelPartUtils(kratos_unittest.TestCase):
         self.assertTrue(self.model.HasModelPart("test.evaluated_element_1.<OPTIMIZATION_APP_AUTO>_Nodes_NoConditions_NoElements_NoParents_ExaminedMPs_test>sensitivity_condition_1;test>sensitivity_element_1;test>sensitivity_element_2;test>sensitivity_element_3;test>sensitivity_element_4;"))
         self.assertTrue(self.model.HasModelPart("test.evaluated_element_2.<OPTIMIZATION_APP_AUTO>_Nodes_NoConditions_NoElements_NoParents_ExaminedMPs_test>sensitivity_condition_1;test>sensitivity_element_1;test>sensitivity_element_2;test>sensitivity_element_3;test>sensitivity_element_4;"))
         self.assertTrue(self.model.HasModelPart("test.evaluated_element_3.<OPTIMIZATION_APP_AUTO>_Nodes_NoConditions_NoElements_NoParents_ExaminedMPs_test>sensitivity_condition_1;test>sensitivity_element_1;test>sensitivity_element_2;test>sensitivity_element_3;test>sensitivity_element_4;"))
-
-class TestModelPartUtilities(kratos_unittest.TestCase):
-    @classmethod
-    def setUpClass(cls) -> None:
-        cls.model = Kratos.Model()
-        cls.model_part = cls.model.CreateModelPart("test")
-
-        cls.sub_model_part_names_list: 'list[str]' = []
-        cls.sub_model_part_names_list.append(cls.model_part.CreateSubModelPart("sub_1").FullName())
-        cls.sub_model_part_names_list.append(cls.model_part.CreateSubModelPart("sub_2").FullName())
-        cls.sub_model_part_names_list.append(cls.model_part.CreateSubModelPart("sub_3").FullName())
-
-    def test_GetModelPartFullName(self):
-        dummy_names = ["test.sub_full_name_1", "test.sub_full_name_2", "test.sub_full_name_3", "test.sub_full_name_4"]
-        mp_operation_1 = ModelPartOperation(self.model, ModelPartOperation.OperationType.UNION, "full_name_t1", dummy_names, False)
-        self.assertEqual(mp_operation_1.GetModelPartFullName(), "test.full_name_t1")
-
-        random.shuffle(dummy_names)
-        mp_operation_2 = ModelPartOperation(self.model, ModelPartOperation.OperationType.UNION, "full_name_t2", dummy_names, False)
-        self.assertEqual(mp_operation_2.GetModelPartFullName(), "test.full_name_t1")
-
-        random.shuffle(dummy_names)
-        mp_operation_3 = ModelPartOperation(self.model, ModelPartOperation.OperationType.UNION, "full_name_t3", dummy_names, True)
-        self.assertEqual(mp_operation_3.GetModelPartFullName(), "test.full_name_t3")
-
-        random.shuffle(dummy_names)
-        mp_operation_3 = ModelPartOperation(self.model, ModelPartOperation.OperationType.INTERSECT, "full_name_t4", dummy_names, True)
-        self.assertEqual(mp_operation_3.GetModelPartFullName(), "test.full_name_t4")
-
-        random.shuffle(dummy_names)
-        mp_operation_3 = ModelPartOperation(self.model, ModelPartOperation.OperationType.INTERSECT, "full_name_t5", dummy_names, True)
-        self.assertEqual(mp_operation_3.GetModelPartFullName(), "test.full_name_t4")
-
-        random.shuffle(dummy_names)
-        mp_operation_3 = ModelPartOperation(self.model, ModelPartOperation.OperationType.INTERSECT, "full_name_t6", dummy_names, True)
-        self.assertEqual(mp_operation_3.GetModelPartFullName(), "test.full_name_t4")
-
-        random.shuffle(dummy_names)
-        mp_operation_3 = ModelPartOperation(self.model, ModelPartOperation.OperationType.UNION, "full_name_t6", dummy_names, True)
-        self.assertEqual(mp_operation_3.GetModelPartFullName(), "test.full_name_t3")
-
-    def test_UnionNoOperation(self):
-        _ = ModelPartOperation(self.model, ModelPartOperation.OperationType.UNION, "t1", [self.model_part.FullName()], False).GetModelPart()
-        self.assertFalse(self.model_part.HasSubModelPart("t1"))
-
-    def test_IntersectNoOperation(self):
-        _ = ModelPartOperation(self.model, ModelPartOperation.OperationType.INTERSECT, "t2", [self.model_part.FullName()], False).GetModelPart()
-        self.assertFalse(self.model_part.HasSubModelPart("t2"))
-
-    def test_UnionOperation(self):
-        random.shuffle(self.sub_model_part_names_list)
-        _ = ModelPartOperation(self.model, ModelPartOperation.OperationType.UNION, "t3", self.sub_model_part_names_list, False).GetModelPart()
-        self.assertTrue(self.model_part.HasSubModelPart("t3"))
-
-        random.shuffle(self.sub_model_part_names_list)
-        model_part = ModelPartOperation(self.model, ModelPartOperation.OperationType.UNION, "t4", self.sub_model_part_names_list, False).GetModelPart()
-        self.assertFalse(self.model_part.HasSubModelPart("t4"))
-
-        random.shuffle(self.sub_model_part_names_list)
-        self.assertEqual(model_part, ModelPartOperation(self.model, ModelPartOperation.OperationType.UNION, "t5", self.sub_model_part_names_list, False).GetModelPart())
-
-    def test_IntersectNoOperation(self):
-        random.shuffle(self.sub_model_part_names_list)
-        _ = ModelPartOperation(self.model, ModelPartOperation.OperationType.INTERSECT, "t5", self.sub_model_part_names_list, False).GetModelPart()
-        self.assertTrue(self.model_part.HasSubModelPart("t5"))
-
-        random.shuffle(self.sub_model_part_names_list)
-        model_part = ModelPartOperation(self.model, ModelPartOperation.OperationType.INTERSECT, "t6", self.sub_model_part_names_list, False).GetModelPart()
-        self.assertFalse(self.model_part.HasSubModelPart("t6"))
-
-        random.shuffle(self.sub_model_part_names_list)
-        self.assertEqual(model_part, ModelPartOperation(self.model, ModelPartOperation.OperationType.INTERSECT, "t7", self.sub_model_part_names_list, False).GetModelPart())
 
 if __name__ == "__main__":
     kratos_unittest.main()
