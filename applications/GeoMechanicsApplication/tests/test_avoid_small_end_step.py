@@ -55,7 +55,7 @@ class KratosGeoMechanicsAvoidSmallTimeStepPythonRoute(
     KratosGeoMechanicsAvoidSmallEndStepTests
 ):
     """
-    This test class checks the settlement workflow using the python route.
+    This test class checks avoiding a small end step using the python route.
     """
 
     def get_test_dir_name(self):
@@ -77,7 +77,7 @@ class KratosGeoMechanicsAvoidSmallTimeStepCppRoute(
     KratosGeoMechanicsAvoidSmallEndStepTests
 ):
     """
-    This test class checks the settlement workflow using the C++ route.
+    This test class checks avoiding a small end step using the C++ route.
     """
 
     def get_test_dir_name(self):
