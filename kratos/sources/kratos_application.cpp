@@ -62,7 +62,7 @@ KratosApplication::KratosApplication(const std::string& ApplicationName)
       // IBRA
       mBrepCurveOnSurfaceCondition( 0, GeometryType::Pointer(new BrepCurveOnSurface<PointerVector<NodeType>, false, PointerVector<NodeType>>(GeometryType::PointsArrayType()))),
       mNurbsCurveCondition( 0, GeometryType::Pointer(new NurbsCurveGeometry<3, PointerVector<NodeType>>(GeometryType::PointsArrayType()))),
-
+      
       // Master-Slave Constraint
       mMasterSlaveConstraint(),
       mLinearMasterSlaveConstraint(),
