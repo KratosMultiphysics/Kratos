@@ -108,7 +108,7 @@ class ShellThicknessControl(Control):
         return field
 
     def GetControlField(self) -> ContainerExpressionTypes:
-        return self.control_phi_field
+        return self.control_phi_field.Clone()
 
     def GetPhysicalField(self) -> ContainerExpressionTypes:
         physical_thickness_field = Kratos.Expression.ElementExpression(self.model_part)
@@ -142,7 +142,7 @@ class ShellThicknessControl(Control):
         if Kratos.Expression.Utils.NormL2(update) > 1e-15:
             with TimeLogger(self.__class__.__name__, f"Updating {self.GetName()}...", f"Finished updating of {self.GetName()}.",False):
                 # update the control thickness field
-                self.control_phi_field = new_control_field
+                self.control_phi_field = new_control_field.Clone()
                 # now update the physical field
                 self._UpdateAndOutputFields(update)
 
