@@ -233,9 +233,8 @@ Vector StressStrainUtilities::RotatePrincipalStresses(const Vector& rPrincipalSt
 
 Geo::SigmaTau StressStrainUtilities::TransformPrincipalStressesToSigmaTau(const Geo::PrincipalStresses& rPrincipalStresses)
 {
-    return Geo::SigmaTau{UblasUtilities::CreateVector(
-        {0.5 * (rPrincipalStresses.Values()[0] + rPrincipalStresses.Values()[2]),
-         0.5 * (rPrincipalStresses.Values()[0] - rPrincipalStresses.Values()[2])})};
+    return Geo::SigmaTau{{0.5 * (rPrincipalStresses.Values()[0] + rPrincipalStresses.Values()[2]),
+                          0.5 * (rPrincipalStresses.Values()[0] - rPrincipalStresses.Values()[2])}};
 }
 
 Geo::PrincipalStresses StressStrainUtilities::TransformSigmaTauToPrincipalStresses(
