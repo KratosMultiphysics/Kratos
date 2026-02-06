@@ -2175,8 +2175,15 @@ KRATOS_TEST_CASE_IN_SUITE(UPwLineInterfaceElement_CouplingContribution, KratosGe
         model, p_properties, IsDiffOrderElement::No, {CalculationContribution::Coupling});
 
     // Set nonzero water pressure at each node to ensure coupling code is exercised
+    const auto number_of_nodes_on_side = interface_element.GetGeometry().PointsNumber() / 2;
+    auto       counter_nodes           = 0;
     for (auto& node : interface_element.GetGeometry()) {
-        node.FastGetSolutionStepValue(WATER_PRESSURE) = 100.0;
+        if (counter_nodes < number_of_nodes_on_side) {
+            node.FastGetSolutionStepValue(WATER_PRESSURE) = 100.0;
+        } else {
+            node.FastGetSolutionStepValue(WATER_PRESSURE) = 10.0;
+        }
+        counter_nodes++;
     }
 
     interface_element.Initialize(ProcessInfo{});
@@ -2212,7 +2219,7 @@ KRATOS_TEST_CASE_IN_SUITE(UPwLineInterfaceElement_CouplingContribution, KratosGe
     KRATOS_EXPECT_MATRIX_RELATIVE_NEAR(actual_left_hand_side, expected_up_block_matrix, Defaults::relative_tolerance)
 
     const auto expected_up_block_vector =
-        UblasUtilities::CreateVector({0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0});
+        UblasUtilities::CreateVector({0, -45, 0, -45, 0, 45, 0, 45, 0, 0, 0, 0});
     KRATOS_EXPECT_VECTOR_NEAR(actual_right_hand_side, expected_up_block_vector, Defaults::relative_tolerance)
 }
 
@@ -2227,8 +2234,15 @@ KRATOS_TEST_CASE_IN_SUITE(UPwLineInterfaceElement_CouplingContribution_DiffOrder
         model, p_properties, IsDiffOrderElement::Yes, {CalculationContribution::Coupling});
 
     // Set nonzero water pressure at each node to ensure coupling code is exercised
+    const auto number_of_nodes_on_side = interface_element.GetGeometry().PointsNumber() / 2;
+    auto       counter_nodes           = 0;
     for (auto& node : interface_element.GetGeometry()) {
-        node.FastGetSolutionStepValue(WATER_PRESSURE) = 100.0;
+        if (counter_nodes < number_of_nodes_on_side) {
+            node.FastGetSolutionStepValue(WATER_PRESSURE) = 100.0;
+        } else {
+            node.FastGetSolutionStepValue(WATER_PRESSURE) = 10.0;
+        }
+        counter_nodes++;
     }
 
     interface_element.Initialize(ProcessInfo{});
@@ -2269,7 +2283,7 @@ KRATOS_TEST_CASE_IN_SUITE(UPwLineInterfaceElement_CouplingContribution_DiffOrder
     KRATOS_EXPECT_MATRIX_RELATIVE_NEAR(actual_left_hand_side, expected_up_block_matrix, tolerance)
 
     const auto expected_up_block_vector =
-        UblasUtilities::CreateVector({0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0});
+        UblasUtilities::CreateVector({0, -15, 0, -15, 0, -60, 0, 15, 0, 15, 0, 60, 0, 0, 0, 0});
     KRATOS_EXPECT_VECTOR_NEAR(actual_right_hand_side, expected_up_block_vector, Defaults::relative_tolerance)
 }
 } // namespace Kratos::Testing
