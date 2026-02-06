@@ -45,6 +45,7 @@ double TensionCutoff::YieldFunctionValue(const Geo::PrincipalStresses& rPrincipa
     return rPrincipalStresses.Values()[0] - mTensileStrength;
 }
 
+// At some point in time we would like to get rid of this API. For now, just forward the request.
 Vector TensionCutoff::DerivativeOfFlowFunction(const Vector&) const
 {
     const auto unused_sigma_tau = Geo::SigmaTau{};
