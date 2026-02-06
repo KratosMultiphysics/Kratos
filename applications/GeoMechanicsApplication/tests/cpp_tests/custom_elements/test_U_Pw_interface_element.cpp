@@ -2286,4 +2286,172 @@ KRATOS_TEST_CASE_IN_SUITE(UPwLineInterfaceElement_CouplingContribution_DiffOrder
         UblasUtilities::CreateVector({0, -15, 0, -15, 0, -60, 0, 15, 0, 15, 0, 60, 0, 0, 0, 0});
     KRATOS_EXPECT_VECTOR_NEAR(actual_right_hand_side, expected_up_block_vector, Defaults::relative_tolerance)
 }
+
+KRATOS_TEST_CASE_IN_SUITE(UPwTriangleInterfaceElement_CouplingContribution, KratosGeoMechanicsFastSuiteWithoutKernel)
+{
+    // Arrange
+    const auto p_properties = std::make_shared<Properties>();
+    p_properties->GetValue(CONSTITUTIVE_LAW) = std::make_shared<GeoIncrementalLinearElasticInterfaceLaw>(
+        std::make_unique<InterfaceThreeDimensionalSurface>());
+
+    Model model;
+    auto  interface_element = CreateHorizontal3Plus3NodedTriangleInterfaceElementWithUPwDofs(
+        model, p_properties, IsDiffOrderElement::No, {CalculationContribution::Coupling});
+
+    // Set nonzero water pressure at each node to ensure coupling code is exercised
+    const auto number_of_nodes_on_side = interface_element.GetGeometry().PointsNumber() / 2;
+    auto       counter_nodes           = 0;
+    for (auto& node : interface_element.GetGeometry()) {
+        if (counter_nodes < number_of_nodes_on_side) {
+            node.FastGetSolutionStepValue(WATER_PRESSURE) = 100.0;
+        } else {
+            node.FastGetSolutionStepValue(WATER_PRESSURE) = 10.0;
+        }
+        counter_nodes++;
+    }
+
+    interface_element.Initialize(ProcessInfo{});
+
+    // Act
+    Vector actual_right_hand_side;
+    Matrix actual_left_hand_side;
+    interface_element.CalculateLocalSystem(actual_left_hand_side, actual_right_hand_side, ProcessInfo{});
+
+    // Assert
+    constexpr auto number_of_u_dofs  = std::size_t{6 * 3};
+    constexpr auto number_of_pw_dofs = std::size_t{6};
+    ASSERT_EQ(actual_left_hand_side.size1(), number_of_u_dofs + number_of_pw_dofs);
+    ASSERT_EQ(actual_left_hand_side.size2(), number_of_u_dofs + number_of_pw_dofs);
+    ASSERT_EQ(actual_right_hand_side.size(), number_of_u_dofs + number_of_pw_dofs);
+
+    // clang-format off
+    const auto expected_up_block_matrix = UblasUtilities::CreateMatrix({
+        {0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0},
+        {0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0},
+        {0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,-0.1666666666666666,0,0,0.1666666666666666,0,0},
+        {0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0},
+        {0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0},
+        {0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,-0.1666666666666666,0,0,0.1666666666666666,0},
+        {0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0},
+        {0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0},
+        {0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,-0.1666666666666666,0,0,0.1666666666666666},
+        {0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0},
+        {0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0},
+        {0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0.1666666666666666,0,0,-0.1666666666666666,0,0},
+        {0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0},
+        {0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0},
+        {0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0.1666666666666666,0,0,-0.1666666666666666,0},
+        {0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0},
+        {0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0},
+        {0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0.1666666666666666,0,0,-0.1666666666666666},
+        {0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0},
+        {0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0},
+        {0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0},
+        {0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0},
+        {0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0},
+        {0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0}
+});
+    // clang-format on
+
+    KRATOS_EXPECT_MATRIX_RELATIVE_NEAR(actual_left_hand_side, expected_up_block_matrix, Defaults::relative_tolerance)
+
+    const auto expected_up_block_vector = UblasUtilities::CreateVector(
+        {0, 0, -15, 0, 0, -15, 0, 0, -15, 0, 0, 15, 0, 0, 15, 0, 0, 15, 0, 0, 0, 0, 0, 0});
+    KRATOS_EXPECT_VECTOR_NEAR(actual_right_hand_side, expected_up_block_vector, Defaults::relative_tolerance)
+}
+
+KRATOS_TEST_CASE_IN_SUITE(UPwTriangleInterfaceElement_CouplingContribution_DiffOrder, KratosGeoMechanicsFastSuiteWithoutKernel)
+{
+    // Arrange
+    const auto p_properties = std::make_shared<Properties>();
+    p_properties->GetValue(CONSTITUTIVE_LAW) = std::make_shared<GeoIncrementalLinearElasticInterfaceLaw>(
+        std::make_unique<InterfaceThreeDimensionalSurface>());
+    Model model;
+    auto  interface_element = CreateHorizontal6Plus6NodedTriangleInterfaceElementWithUPwDoF(
+        model, p_properties, IsDiffOrderElement::Yes, {CalculationContribution::Coupling});
+
+    // Set nonzero water pressure at each node to ensure coupling code is exercised
+    const auto number_of_nodes_on_side = interface_element.GetGeometry().PointsNumber() / 2;
+    auto       counter_nodes           = 0;
+    for (auto& node : interface_element.GetGeometry()) {
+        if (counter_nodes < number_of_nodes_on_side) {
+            node.FastGetSolutionStepValue(WATER_PRESSURE) = 100.0;
+        } else {
+            node.FastGetSolutionStepValue(WATER_PRESSURE) = 10.0;
+        }
+        counter_nodes++;
+    }
+
+    interface_element.Initialize(ProcessInfo{});
+
+    // Act
+    Vector actual_right_hand_side;
+    Matrix actual_left_hand_side;
+    interface_element.CalculateLocalSystem(actual_left_hand_side, actual_right_hand_side, ProcessInfo{});
+
+    // Assert
+    constexpr auto number_of_u_dofs  = std::size_t{12 * 3};
+    constexpr auto number_of_pw_dofs = std::size_t{6};
+    ASSERT_EQ(actual_left_hand_side.size1(), number_of_u_dofs + number_of_pw_dofs);
+    ASSERT_EQ(actual_left_hand_side.size2(), number_of_u_dofs + number_of_pw_dofs);
+    ASSERT_EQ(actual_right_hand_side.size(), number_of_u_dofs + number_of_pw_dofs);
+
+    // clang-format off
+    const auto expected_up_block_matrix = UblasUtilities::CreateMatrix({
+        {0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0},
+        {0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0},
+        {0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,-0.016431924882629123,0,0,0.016431924882629123,0,0},
+        {0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0},
+        {0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0},
+        {0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,-0.016431924882629123,0,0,0.016431924882629123,0},
+        {0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0},
+        {0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0},
+        {0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,-0.016431924882629123,0,0,0.016431924882629123},
+        {0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0},
+        {0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0},
+        {0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,-0.075117370892018739,-0.075117370892018739,0,0.075117370892018739,0.075117370892018739,0},
+        {0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0},
+        {0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0},
+        {0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,-0.075117370892018795,-0.075117370892018795,0,0.075117370892018795,0.075117370892018795},
+        {0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0},
+        {0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0},
+        {0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,-0.075117370892018767,0,-0.075117370892018767,0.075117370892018767,0,0.075117370892018767},
+        {0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0},
+        {0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0},
+        {0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0.016431924882629123,0,0,-0.016431924882629123,0,0},
+        {0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0},
+        {0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0},
+        {0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0.016431924882629123,0,0,-0.016431924882629123,0},
+        {0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0},
+        {0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0},
+        {0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0.016431924882629123,0,0,-0.016431924882629123},
+        {0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0},
+        {0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0},
+        {0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0.075117370892018739,0.075117370892018739,0,-0.075117370892018739,-0.075117370892018739,0},
+        {0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0},
+        {0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0},
+        {0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0.075117370892018795,0.075117370892018795,0,-0.075117370892018795,-0.075117370892018795},
+        {0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0},
+        {0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0},
+        {0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0.075117370892018767,0,0.075117370892018767,-0.075117370892018767,0,-0.075117370892018767},
+        {0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0},
+        {0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0},
+        {0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0},
+        {0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0},
+        {0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0},
+        {0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0}
+    });
+    // clang-format on
+    constexpr auto tolerance = 1e-5;
+    KRATOS_EXPECT_MATRIX_RELATIVE_NEAR(actual_left_hand_side, expected_up_block_matrix, tolerance)
+
+    const auto expected_up_block_vector = UblasUtilities::CreateVector(
+        {0,           0,           -1.47887324, 0,           0,           -1.47887324, 0,
+         0,           -1.47887324, 0,           0,           -13.5211268, 0,           0,
+         -13.5211268, 0,           0,           -13.5211268, 0,           0,           1.47887324,
+         0,           0,           1.47887324,  0,           0,           1.47887324,  0,
+         0,           13.5211268,  0,           0,           13.5211268,  0,           0,
+         13.5211268,  0,           0,           0,           0,           0,           0});
+    KRATOS_EXPECT_VECTOR_NEAR(actual_right_hand_side, expected_up_block_vector, tolerance)
+}
 } // namespace Kratos::Testing

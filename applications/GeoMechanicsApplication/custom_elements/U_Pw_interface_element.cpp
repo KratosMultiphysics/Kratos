@@ -216,10 +216,12 @@ void UPwInterfaceElement::CalculateAndAssignCouplingMatrix(MatrixType&        rL
         {{12, 6}, &UPwInterfaceElement::CalculateAndAssignCouplingMatrix<12, 6>},
         {{12, 4}, &UPwInterfaceElement::CalculateAndAssignCouplingMatrix<12, 4>},
         {{16, 8}, &UPwInterfaceElement::CalculateAndAssignCouplingMatrix<16, 8>},
+        {{18, 6}, &UPwInterfaceElement::CalculateAndAssignCouplingMatrix<18, 6>},
         {{24, 12}, &UPwInterfaceElement::CalculateAndAssignCouplingMatrix<24, 12>},
         {{24, 6}, &UPwInterfaceElement::CalculateAndAssignCouplingMatrix<24, 6>},
         {{32, 16}, &UPwInterfaceElement::CalculateAndAssignCouplingMatrix<32, 16>},
-        {{32, 8}, &UPwInterfaceElement::CalculateAndAssignCouplingMatrix<32, 8>}};
+        {{32, 8}, &UPwInterfaceElement::CalculateAndAssignCouplingMatrix<32, 8>},
+        {{36, 6}, &UPwInterfaceElement::CalculateAndAssignCouplingMatrix<36, 6>}};
 
     Key  key{NumberOfUDofs(), GetWaterPressureGeometry().size()};
     auto it = dispatch_table.find(key);
@@ -289,10 +291,12 @@ void UPwInterfaceElement::CalculateAndAssembleCouplingForceVector(Element::Vecto
         {{12, 6}, &UPwInterfaceElement::CalculateAndAssembleCouplingForceVector<12, 6>},
         {{12, 4}, &UPwInterfaceElement::CalculateAndAssembleCouplingForceVector<12, 4>},
         {{16, 8}, &UPwInterfaceElement::CalculateAndAssembleCouplingForceVector<16, 8>},
+        {{18, 6}, &UPwInterfaceElement::CalculateAndAssembleCouplingForceVector<18, 6>},
         {{24, 12}, &UPwInterfaceElement::CalculateAndAssembleCouplingForceVector<24, 12>},
         {{24, 6}, &UPwInterfaceElement::CalculateAndAssembleCouplingForceVector<24, 6>},
         {{32, 16}, &UPwInterfaceElement::CalculateAndAssembleCouplingForceVector<32, 16>},
-        {{32, 8}, &UPwInterfaceElement::CalculateAndAssembleCouplingForceVector<32, 8>}};
+        {{32, 8}, &UPwInterfaceElement::CalculateAndAssembleCouplingForceVector<32, 8>},
+        {{36, 6}, &UPwInterfaceElement::CalculateAndAssembleCouplingForceVector<36, 6>}};
 
     Key  key{NumberOfUDofs(), GetWaterPressureGeometry().size()};
     auto it = dispatch_table.find(key);
