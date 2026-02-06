@@ -313,7 +313,6 @@ UPwInterfaceElement CreateHorizontal8Plus8NodedQuadraliteralInterfaceElementWith
     IsDiffOrderElement                          IsDiffOrder,
     const std::vector<CalculationContribution>& rContributions)
 {
-    CreateModelPartWithUPwVariables(rModel);
     const auto nodes = Testing::ModelSetupUtilities::CreateNodes({{1, {0.0, 0.0, 0.0}},
                                                                   {2, {1.0, 0.0, 0.0}},
                                                                   {3, {1.0, 1.0, 0.0}},
