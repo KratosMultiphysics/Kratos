@@ -58,8 +58,8 @@ AdaptiveTimeIncrementor::AdaptiveTimeIncrementor(double                StartTime
     KRATOS_ERROR_IF(MaxTimeStepFactor < 1.0)
         << "Max_delta_time_factor must be greater than or equal to 1, but got " << MaxTimeStepFactor;
 
-    CorrectDeltaTimeToEndTime(StartTime);
-    CheckMinimumDeltaTime(mDeltaTime);
+    AdaptDeltaTimeIfNeeded(StartTime);
+    CheckMinimumDeltaTime();
 }
 
 bool AdaptiveTimeIncrementor::WantNextStep(const TimeStepEndState& rPreviousState) const
@@ -88,7 +88,7 @@ void AdaptiveTimeIncrementor::PostTimeStepExecution(const TimeStepEndState& rRes
         } else if (rResultantState.num_of_iterations == mMaxNumOfIterations) {
             mDeltaTime *= mReductionFactor;
         }
-        CorrectDeltaTimeToEndTime(rResultantState.time);
+        AdaptDeltaTimeIfNeeded(rResultantState.time);
     }
 
     else {
@@ -96,15 +96,16 @@ void AdaptiveTimeIncrementor::PostTimeStepExecution(const TimeStepEndState& rRes
         mDeltaTime *= mReductionFactor;
     }
 
-    CheckMinimumDeltaTime(mDeltaTime);
+    CheckMinimumDeltaTime();
 }
 
-void AdaptiveTimeIncrementor::CheckMinimumDeltaTime(double DeltaTime) const
+void AdaptiveTimeIncrementor::CheckMinimumDeltaTime() const
 {
     const auto min_delta_time = GetMinimumDeltaTime();
-    KRATOS_ERROR_IF(DeltaTime < min_delta_time)
-        << "Delta time (" << DeltaTime << ") is smaller than the " << (mUserMinDeltaTime ? "given" : "default")
-        << " minimum allowable value " << min_delta_time << std::endl;
+    KRATOS_ERROR_IF(mDeltaTime < min_delta_time)
+        << "Delta time (" << mDeltaTime << ") is smaller than the "
+        << (mUserMinDeltaTime ? "given" : "default") << " minimum allowable value "
+        << min_delta_time << std::endl;
 }
 
 double AdaptiveTimeIncrementor::GetMinimumDeltaTime() const
@@ -115,8 +116,12 @@ double AdaptiveTimeIncrementor::GetMinimumDeltaTime() const
     return mUserMinDeltaTime.value_or(default_min_delta_time);
 }
 
-void AdaptiveTimeIncrementor::CorrectDeltaTimeToEndTime(double StartOfIncrement)
+void AdaptiveTimeIncrementor::AdaptDeltaTimeIfNeeded(double StartOfIncrement)
 {
+    // If the delta time would result in
+    //  a. the next step exceeding the end time or
+    //  b. having too small a remaining time step
+    // then the delta time is chosen such that the next step ends exactly at the end time.
     if (mEndTime - (StartOfIncrement + mDeltaTime) < GetMinimumDeltaTime()) {
         mDeltaTime = mEndTime - StartOfIncrement;
     }

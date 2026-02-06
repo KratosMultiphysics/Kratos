@@ -39,9 +39,9 @@ public:
     void                 PostTimeStepExecution(const TimeStepEndState& rResultantState) override;
 
 private:
-    void                 CheckMinimumDeltaTime(double DeltaTime) const;
+    void                 CheckMinimumDeltaTime() const;
     [[nodiscard]] double GetMinimumDeltaTime() const;
-    void                 CorrectDeltaTimeToEndTime(double StartOfIncrement);
+    void                 AdaptDeltaTimeIfNeeded(double StartOfIncrement);
 
     double                mEndTime;
     double                mTimeSpan;
