@@ -100,7 +100,7 @@ KRATOS_TEST_CASE_IN_SUITE(TestTensionCutoff, KratosGeoMechanicsFastSuiteWithoutK
     KRATOS_EXPECT_NEAR(tensionCutoff.YieldFunctionValue(sigma_tau), -1.0, Defaults::absolute_tolerance);
 }
 
-KRATOS_TEST_CASE_IN_SUITE(TensionCutOff_CanBeSavedAndLoadedThroughInterface, KratosGeoMechanicsFastSuiteWithoutKernel)
+KRATOS_TEST_CASE_IN_SUITE(TensionCutOff_CanBeSavedAndLoaded, KratosGeoMechanicsFastSuiteWithoutKernel)
 {
     // Arrange
     const auto scoped_registration =
