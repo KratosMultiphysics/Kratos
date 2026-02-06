@@ -24,6 +24,7 @@
 #include "linear_solvers/linear_solver.h"
 #include "custom_utilities/material_point_search_utility.h"
 #include "custom_utilities/material_point_generator_utility.cpp"
+#include "custom_utilities/reaction_utilities.cpp"
 
 
 namespace Kratos{
@@ -71,6 +72,16 @@ namespace Python{
         m.def("GenerateMaterialPointElement", GenerateMaterialPointElementAccordingToDimension);
         m.def("GenerateMaterialPointCondition", GenerateMaterialPointConditionAccordingToDimension);
         m.def("GenerateLagrangeNodes", MaterialPointGeneratorUtility::GenerateLagrangeNodes);
+
+        namespace py = pybind11;
+
+        // Calculate reaction forces
+        py::class_<ReactionUtilities> (m,"ReactionUtilities")
+            .def(py::init<>())
+            .def_static("CalculateGridConformingReaction", &ReactionUtilities::CalculateGridConformingReaction)
+            .def_static("CalculateNonConformingReaction", &ReactionUtilities::CalculateNonConformingReaction)
+            ;
+
     }
 
 }  // namespace Python.
