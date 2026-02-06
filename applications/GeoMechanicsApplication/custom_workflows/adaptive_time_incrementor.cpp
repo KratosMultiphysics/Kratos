@@ -37,7 +37,7 @@ AdaptiveTimeIncrementor::AdaptiveTimeIncrementor(double                StartTime
       mMaxNumOfCycles(MaxNumOfCycles),
       mReductionFactor(ReductionFactor),
       mIncreaseFactor(IncreaseFactor),
-      mUserMinDeltaTime(std::move(UserMinDeltaTime)),
+      mUserMinDeltaTime(UserMinDeltaTime),
       mMaxDeltaTime(MaxTimeStepFactor * mDeltaTime),
       mMinNumOfIterations(MinNumOfIterations),
       mMaxNumOfIterations(MaxNumOfIterations)
