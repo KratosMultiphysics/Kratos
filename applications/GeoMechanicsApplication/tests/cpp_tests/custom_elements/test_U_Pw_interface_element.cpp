@@ -308,7 +308,7 @@ UPwInterfaceElement CreateTriangleInterfaceElementRotatedBy30DegreesAboutYAxisWi
 }
 
 UPwInterfaceElement CreateHorizontal4Plus4NodedQuadraliteralInterfaceElementWithUPwDoF(
-    Model&                                      rModel,
+    Model&,
     const Properties::Pointer&                  rpProperties,
     IsDiffOrderElement                          IsDiffOrder,
     const std::vector<CalculationContribution>& rContributions)
@@ -327,7 +327,7 @@ UPwInterfaceElement CreateHorizontal4Plus4NodedQuadraliteralInterfaceElementWith
 }
 
 UPwInterfaceElement CreateHorizontal8Plus8NodedQuadraliteralInterfaceElementWithUPwDoF(
-    Model&                                      rModel,
+    Model&,
     const Properties::Pointer&                  rpProperties,
     IsDiffOrderElement                          IsDiffOrder,
     const std::vector<CalculationContribution>& rContributions)
@@ -471,14 +471,13 @@ GlobalPointersVector<Element> MakeElementGlobalPtrContainerWith(const DerivedEle
     return {GlobalPointer<Element>{p_element}};
 }
 
-template <typename TConstitutiveLawDimension>
-void GeneralCouplingContributionTest(
-    std::function<UPwInterfaceElement(Model&, Properties::Pointer, IsDiffOrderElement, const std::vector<CalculationContribution>&)> element_factory,
-    IsDiffOrderElement diff_order,
-    std::size_t        number_of_u_dofs,
-    std::size_t        number_of_pw_dofs,
-    const Matrix&      expected_up_block_matrix,
-    const Vector&      expected_up_block_vector)
+template <typename TConstitutiveLawDimension, typename TElementFactory>
+void GeneralCouplingContributionTest(TElementFactory&&  ElementFactory,
+                                     IsDiffOrderElement diff_order,
+                                     std::size_t        number_of_u_dofs,
+                                     std::size_t        number_of_pw_dofs,
+                                     const Matrix&      expected_up_block_matrix,
+                                     const Vector&      expected_up_block_vector)
 {
     const auto p_properties = std::make_shared<Properties>();
     p_properties->GetValue(CONSTITUTIVE_LAW) = std::make_shared<GeoIncrementalLinearElasticInterfaceLaw>(
@@ -486,7 +485,7 @@ void GeneralCouplingContributionTest(
 
     Model model;
     auto  interface_element =
-        element_factory(model, p_properties, diff_order, {CalculationContribution::Coupling});
+        ElementFactory(model, p_properties, diff_order, {CalculationContribution::Coupling});
 
     // Set nonzero water pressure at each node to ensure coupling code is exercised
     const auto  number_of_nodes_on_side = interface_element.GetGeometry().PointsNumber() / 2;
