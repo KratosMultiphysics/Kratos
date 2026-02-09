@@ -181,7 +181,7 @@ private:
     auto MakeNodalVariableGetter() const
     {
         return [this](const Variable<double>& rVariable) -> Vector {
-            return VariablesUtilities::GetNodalValuesOf<TNumNodes>(this->GetGeometry(), rVariable);
+            return VariablesUtilities::GetNodalValues<TNumNodes>(this->GetGeometry(), rVariable);
         };
     }
 
