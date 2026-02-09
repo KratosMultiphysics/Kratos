@@ -35,19 +35,30 @@ namespace py = pybind11;
 void AddContainersToPython(py::module& m)
 {
 
+    py::enum_<Future::LinearSystemTag>(m, "LinearSystemTag")
+        .value("LHS", Future::LinearSystemTag::LHS)
+        .value("RHS", Future::LinearSystemTag::RHS)
+        .value("Dx", Future::LinearSystemTag::Dx)
+        .value("M", Future::LinearSystemTag::M)
+        .value("K", Future::LinearSystemTag::K)
+        .value("C", Future::LinearSystemTag::C)
+        .value("Eigvals", Future::LinearSystemTag::Eigvals)
+        .value("Eigvects", Future::LinearSystemTag::Eigvects)
+        .value("NumberOfTags", Future::LinearSystemTag::NumberOfTags)
+    ;
+
     using LinearSystemType = Future::LinearSystem<Future::SerialLinearAlgebraTraits>;
     py::class_<LinearSystemType, typename LinearSystemType::Pointer>(m, "LinearSystem")
         .def(py::init<>())
-        .def(py::init<typename LinearSystemType::MatrixType::Pointer, typename LinearSystemType::VectorType::Pointer, typename LinearSystemType::VectorType::Pointer, std::string>(), py::arg("pLhs"), py::arg("pRhs"), py::arg("pSol"), py::arg("Name") = "")
-        .def(py::init<typename LinearSystemType::LinearOperatorType::Pointer, typename LinearSystemType::VectorType::Pointer, typename LinearSystemType::VectorType::Pointer, std::string>(), py::arg("pLinearOperator"), py::arg("pRhs"), py::arg("pSol"), py::arg("Name") = "")
-        .def("GetLinearOperator", [](LinearSystemType& rLinearSystem)->typename LinearSystemType::LinearOperatorType& { return rLinearSystem.GetLinearOperator(); }, py::return_value_policy::reference)
-        .def("GetLeftHandSide", [](LinearSystemType& rLinearSystem)->typename Future::SerialLinearAlgebraTraits::MatrixType& { return rLinearSystem.GetLeftHandSide(); }, py::return_value_policy::reference)
-        .def("GetRightHandSide", [](LinearSystemType& rLinearSystem)->typename Future::SerialLinearAlgebraTraits::VectorType& { return rLinearSystem.GetRightHandSide(); }, py::return_value_policy::reference)
-        .def("GetSolution", [](LinearSystemType& rLinearSystem)->typename Future::SerialLinearAlgebraTraits::VectorType& { return rLinearSystem.GetSolution(); }, py::return_value_policy::reference)
+        .def(py::init<std::string>(), py::arg("Name"))
+        .def(py::init<typename LinearSystemType::MatrixType::Pointer, typename LinearSystemType::VectorType::Pointer, typename LinearSystemType::VectorType::Pointer, std::string>(), py::arg("pLhs"), py::arg("pRhs"), py::arg("pSol"), py::arg("Name"))
+        .def(py::init<typename LinearSystemType::LinearOperatorType::UniquePointer, typename LinearSystemType::VectorType::Pointer, typename LinearSystemType::VectorType::Pointer, std::string>(), py::arg("pLinearOperator"), py::arg("pRhs"), py::arg("pSol"), py::arg("Name"))
+        .def("GetMatrix", [](LinearSystemType& rLinearSystem, Future::LinearSystemTag Tag) -> typename Future::SerialLinearAlgebraTraits::MatrixType& { return rLinearSystem.GetMatrix(Tag); }, py::return_value_policy::reference_internal)
+        .def("GetVector", [](LinearSystemType& rLinearSystem, Future::LinearSystemTag Tag) -> typename Future::SerialLinearAlgebraTraits::VectorType& { return rLinearSystem.GetVector(Tag); }, py::return_value_policy::reference_internal)
+        .def("GetLinearOperator", [](LinearSystemType& rLinearSystem, Future::LinearSystemTag Tag) -> typename Future::LinearOperator<Future::SerialLinearAlgebraTraits>& { return rLinearSystem.GetLinearOperator(Tag); }, py::return_value_policy::reference_internal)
         .def("SetAdditionalData", &LinearSystemType::SetAdditionalData)
-        .def("IsMatrixFree", &LinearSystemType::IsMatrixFree)
-        .def("Name", &LinearSystemType::Name)
-        .def("HasAdditionalData", &LinearSystemType::HasAdditionalData)
+        .def_property_readonly("Name", &LinearSystemType::Name)
+        .def_property_readonly("HasAdditionalData", &LinearSystemType::HasAdditionalData)
     ;
 
     using EigenvalueSystemType = Future::EigenvalueSystem<Future::SerialLinearAlgebraTraits>;
