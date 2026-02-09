@@ -459,17 +459,18 @@ template <unsigned int TDim, unsigned int TNumNodes>
 typename PermeabilityCalculator<TNumNodes>::InputProvider PwElement<TDim, TNumNodes>::CreatePermeabilityInputProvider()
 {
     return typename PermeabilityCalculator<TNumNodes>::InputProvider(
-        MakePropertiesGetter(), MakeRetentionLawsGetter(), GetIntegrationCoefficients(),
-        MakeNodalVariableGetter(), MakeShapeFunctionLocalGradientsGetter(), GetFluidPressures());
+        MakePropertiesGetter(), MakeRetentionLawsGetter(), MakeMaterialPermeabilityGetter(),
+        GetIntegrationCoefficients(), MakeNodalVariableGetter(),
+        MakeShapeFunctionLocalGradientsGetter(), GetFluidPressures());
 }
 
 template <unsigned int TDim, unsigned int TNumNodes>
 typename FluidBodyFlowCalculator<TNumNodes>::InputProvider PwElement<TDim, TNumNodes>::CreateFluidBodyFlowInputProvider()
 {
     return typename FluidBodyFlowCalculator<TNumNodes>::InputProvider(
-        MakePropertiesGetter(), MakeRetentionLawsGetter(), GetIntegrationCoefficients(),
-        MakeProjectedGravityForIntegrationPointsGetter(), MakeShapeFunctionLocalGradientsGetter(),
-        MakeLocalSpaceDimensionGetter(), GetFluidPressures());
+        MakePropertiesGetter(), MakeRetentionLawsGetter(), MakeMaterialPermeabilityGetter(),
+        GetIntegrationCoefficients(), MakeProjectedGravityForIntegrationPointsGetter(),
+        MakeShapeFunctionLocalGradientsGetter(), GetFluidPressures());
 }
 
 template <unsigned int TDim, unsigned int TNumNodes>
@@ -479,10 +480,10 @@ Matrix PwElement<TDim, TNumNodes>::CalculateNContainer()
 }
 
 template <unsigned int TDim, unsigned int TNumNodes>
-Vector PwElement<TDim, TNumNodes>::CalculateIntegrationCoefficients()
+std::vector<double> PwElement<TDim, TNumNodes>::CalculateIntegrationCoefficients()
 {
     GetGeometry().DeterminantOfJacobian(mDetJCcontainer, this->GetIntegrationMethod());
-    return mIntegrationCoefficientsCalculator.Run<Vector>(
+    return mIntegrationCoefficientsCalculator.Run<>(
         GetGeometry().IntegrationPoints(GetIntegrationMethod()), mDetJCcontainer, this);
 }
 

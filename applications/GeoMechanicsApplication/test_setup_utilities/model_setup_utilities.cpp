@@ -67,6 +67,18 @@ void AddDofsToNodes(const NodeRange& rNodeRange, const Geo::ConstVariableRefs& r
 namespace Kratos::Testing
 {
 
+PointerVector<Node> ModelSetupUtilities::CreateNodes(const NodeDefinitionVector& rNodeDefinitions)
+{
+    auto result = PointerVector<Node>{};
+    result.reserve(rNodeDefinitions.size());
+    for (const auto& r_node_definition : rNodeDefinitions) {
+        result.push_back(make_intrusive<Node>(r_node_definition.id, r_node_definition.position.X(),
+                                              r_node_definition.position.Y(),
+                                              r_node_definition.position.Z()));
+    }
+    return result;
+}
+
 PointerVector<Node> ModelSetupUtilities::CreateNodes(ModelPart& rModelPart, const NodeDefinitionVector& rNodeDefinitions)
 {
     auto result = PointerVector<Node>{};

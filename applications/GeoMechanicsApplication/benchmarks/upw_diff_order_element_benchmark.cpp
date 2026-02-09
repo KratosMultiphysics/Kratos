@@ -23,7 +23,7 @@ namespace
 
 using namespace Kratos;
 
-std::shared_ptr<Properties> CreateProperties()
+std::shared_ptr<Properties> CreatePropertiesForUPwDiffOrderElementBenchmark()
 {
     const auto p_properties = std::make_shared<Properties>();
     p_properties->SetValue(CONSTITUTIVE_LAW, std::make_shared<GeoIncrementalLinearElasticLaw>(
@@ -97,7 +97,7 @@ namespace Kratos
 
 void benchmarkUPwDiffOrderLocalSystemCalculation(benchmark::State& rState)
 {
-    const auto p_properties = CreateProperties();
+    const auto p_properties = CreatePropertiesForUPwDiffOrderElementBenchmark();
     auto       p_element    = CreateSmallStrainUPwDiffOrderElementWithUPwDofs(p_properties);
 
     SetSolutionStepValuesForGeneralCheck(p_element);
@@ -114,7 +114,7 @@ void benchmarkUPwDiffOrderLocalSystemCalculation(benchmark::State& rState)
 
 void benchmarkUPwDiffOrderRHSCalculation(benchmark::State& rState)
 {
-    const auto p_properties = CreateProperties();
+    const auto p_properties = CreatePropertiesForUPwDiffOrderElementBenchmark();
     auto       p_element    = CreateSmallStrainUPwDiffOrderElementWithUPwDofs(p_properties);
 
     SetSolutionStepValuesForGeneralCheck(p_element);
@@ -130,7 +130,7 @@ void benchmarkUPwDiffOrderRHSCalculation(benchmark::State& rState)
 
 void benchmarkUPwDiffOrderLHSCalculation(benchmark::State& rState)
 {
-    const auto p_properties = CreateProperties();
+    const auto p_properties = CreatePropertiesForUPwDiffOrderElementBenchmark();
     auto       p_element    = CreateSmallStrainUPwDiffOrderElementWithUPwDofs(p_properties);
 
     SetSolutionStepValuesForGeneralCheck(p_element);
