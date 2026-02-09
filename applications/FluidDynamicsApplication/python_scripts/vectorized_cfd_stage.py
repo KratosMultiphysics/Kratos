@@ -24,6 +24,11 @@ class VectorizedCFDStage(analysis_stage.AnalysisStage):
             self.model_part = self.model.CreateModelPart(model_part_name)
 
         self.dim = settings["domain_size"].GetInt()
+        if(self.dim==2):
+            self.n_in_el = 3
+        else:
+            self.n_in_el = 4
+
         if self.dim == -1:
             raise Exception('Please provide the domain size as the "domain_size" (int) parameter!')
 
@@ -56,7 +61,7 @@ class VectorizedCFDStage(analysis_stage.AnalysisStage):
     def ComputeTau(self,h,v_elemental,viscosity,dt,rho):
         vavg=np.sum(v_elemental,axis=1) / (self.dim+1.0)
         vnorms = np.linalg.norm(vavg,axis=1)
-        tau = 1./(dt/rho + vnorms/h + viscosity/h**2)
+        tau = 1./(rho/dt + vnorms/h + viscosity/h**2)
         return tau
 
     def PrepareModelPart(self):
@@ -163,8 +168,6 @@ class VectorizedCFDStage(analysis_stage.AnalysisStage):
         super().Initialize()
 
         self.nnodes = len(self.model_part.Nodes)
-
-
         
         self.v_adaptor_n = KM.TensorAdaptors.HistoricalVariableTensorAdaptor(self.model_part.Nodes,KM.VELOCITY,data_shape=[self.dim],step_index=1)
         self.v_adaptor = KM.TensorAdaptors.HistoricalVariableTensorAdaptor(self.model_part.Nodes,KM.VELOCITY,data_shape=[self.dim],step_index=0)
@@ -213,10 +216,12 @@ class VectorizedCFDStage(analysis_stage.AnalysisStage):
         
         # Preallocate all outputs
         nelem = self.DN.shape[0]
-        self.grad_v   = np.empty((nelem, 2, 2))   # gradient of velocity
-        self.v_gauss  = np.empty((nelem, 2))      # velocity at Gauss point
-        self.aux_res_el = np.empty((nelem, 3, 2))
-        self.res        = np.empty((nelem, 3, 2))
+        self.grad_v   = np.empty((nelem, self.dim, self.dim))   # gradient of velocity
+        self.v_gauss  = np.empty((nelem, self.dim))      # velocity at Gauss point
+        self.aux_res_el = np.empty((nelem, self.n_in_el, self.dim))
+        self.res        = np.empty((nelem, 3, self.dim))
+        self.Projection         = np.empty((self.nnodes, self.dim))
+        self.Proj_el = np.empty((nelem, 3, self.dim))
 
         ########################## REMOVE - just for testing
         for node in self.model_part.Nodes:
@@ -227,10 +232,18 @@ class VectorizedCFDStage(analysis_stage.AnalysisStage):
         ###allocate the graph of the matrix
         self.L = self.cfd_utils.AllocateScalarMatrix(self.connectivity)
 
+    def ComputeVelocityProjection(self,v_elemental, Pi_conv):
+        #solve (w,pi) = (w,a·∇u)
+        convective=self.aux_res_el #rename this to make it more readable
+        self.cfd_utils.ComputeElementalGradient(self.DN, v_elemental, self.grad_v)
+        self.cfd_utils.InterpolateValue(self.N,v_elemental,self.v_gauss)
+        self.cfd_utils.ComputeConvectiveContribution(self.N, self.grad_v, self.v_gauss, convective)
+        convective *= self.elemental_volumes[:,np.newaxis,np.newaxis]
+        self.cfd_utils.AssembleVector(self.connectivity, convective, Pi_conv)
+        Pi_conv = Pi_conv.ravel()
+        Pi_conv *= self.Minv
+        Pi_conv = Pi_conv.reshape((self.nnodes, self.dim))
 
-    def ComputeVelocityProjection(self,v_elemental):
-        
-        self.cfd_utils.ComputeConvectiveContribution(self.N, grad_u, a, self.Pi)
 
     def GetFixity(self):
         #obtain fixity
@@ -252,7 +265,7 @@ class VectorizedCFDStage(analysis_stage.AnalysisStage):
         self.fix_press_indices = np.array(self.fix_press_indices, np.int64)
 
     def SolveStep1(self,v,vold,p,dt):
-
+        ##TODO: a lot of intermediate storage could be avoided reusing vectors
         self.ElemData(p, self.connectivity, self.scalar_elemental_data)
         pel = self.scalar_elemental_data #no copy ... just renaming for better readability
 
@@ -261,10 +274,20 @@ class VectorizedCFDStage(analysis_stage.AnalysisStage):
 
         self.tau = self.ComputeTau(self.h,vel,self.nu,dt,self.rho)
 
-        ##TODO: a lot of intermediate storage could be avoided reusing vectors
+        #########################################################
+        #compute convective projection
+        self.ComputeVelocityProjection(vel, self.Projection) #TODO: actually the vector Projection is not needed after getting the ElemData
+        proj_el = self.Proj_el
+        self.ElemData(self.Projection, self.connectivity, proj_el)
+        # proj_el = np.zeros(vel.shape)
+
+        
+
+        #########################################################
+        #advance in time by runge kutta
 
         # --- k1 ---
-        k1 = self.ComputeVelocityResidual(vel,pel,self.DN,self.tau)
+        k1 = self.ComputeVelocityResidual(vel,pel,proj_el,self.DN,self.tau)
         k1.reshape(-1)[:] *= self.Minv
 
         # --- k2 ---    
@@ -272,7 +295,7 @@ class VectorizedCFDStage(analysis_stage.AnalysisStage):
         self.ApplyVelocityDirichletConditions(vold,self.v_end_of_step_dirichlet,0.5,v2)
 
         self.ElemData(v2, self.connectivity, vel)
-        k2 = self.ComputeVelocityResidual(vel, pel, self.DN,self.tau)
+        k2 = self.ComputeVelocityResidual(vel, pel,proj_el, self.DN,self.tau)
         k2.reshape(-1)[:] *= self.Minv
         
         # --- k3 ---
@@ -280,7 +303,7 @@ class VectorizedCFDStage(analysis_stage.AnalysisStage):
         self.ApplyVelocityDirichletConditions(vold,self.v_end_of_step_dirichlet,0.5,v3)
 
         self.ElemData(v3, self.connectivity, vel)
-        k3 = self.ComputeVelocityResidual(vel, pel, self.DN,self.tau)
+        k3 = self.ComputeVelocityResidual(vel, pel,proj_el, self.DN,self.tau)
         k3.reshape(-1)[:] *= self.Minv
 
         # --- k4 ---
@@ -288,7 +311,7 @@ class VectorizedCFDStage(analysis_stage.AnalysisStage):
         self.ApplyVelocityDirichletConditions(vold,self.v_end_of_step_dirichlet,1.0,v4)
 
         self.ElemData(v4, self.connectivity, vel)
-        k4 = self.ComputeVelocityResidual(vel, pel, self.DN,self.tau)
+        k4 = self.ComputeVelocityResidual(vel, pel,proj_el, self.DN,self.tau)
         k4.reshape(-1)[:] *= self.Minv
         
         # --- final RK4 update ---
@@ -302,12 +325,16 @@ class VectorizedCFDStage(analysis_stage.AnalysisStage):
         n_in_el = self.DN.shape[1]
         dim = self.DN.shape[2]
 
+
         ##allocation of intermediate arrays #TODO: allocate it only once
         Lel = np.empty((nelem,n_in_el,n_in_el))
         N_div = np.empty((nelem,n_in_el))
         RHSel = np.empty((nelem,n_in_el))
-        
+        Pi_press_nodal = np.empty((self.nnodes, self.dim))
+        tmp = np.empty(RHSel.shape) #TODO: use an existing temporary to avoid allocation
+        Pi_press_el = np.empty(self.DN.shape)
 
+        ###############################################################
         #gather data from the database
         self.ElemData(p, self.connectivity, self.scalar_elemental_data)
         pel = self.scalar_elemental_data #no copy ... just renaming for better readability
@@ -315,41 +342,57 @@ class VectorizedCFDStage(analysis_stage.AnalysisStage):
         self.ElemData(vfrac, self.connectivity, self.vec_elemental_data)
         vel = self.vec_elemental_data #no copy ... just renaming for better readability
 
-        # the RHS L_IJ := (∇N_I,∇N_J)
-        self.cfd_utils.ComputeLaplacianMatrix(self.DN,Lel)
-        #L *= self.tau[:,np.newaxis,np.newaxis] 
-        Lel *= self.elemental_volumes[:,np.newaxis,np.newaxis]
+        ###############################################################
+        ##compute pressure proj and store it into Pi_press_nodal
+        self.cfd_utils.Compute_N_DN(self.N, self.DN, pel, Pi_press_el)
+        Pi_press_el *= self.elemental_volumes[:,np.newaxis,np.newaxis]
+        Pi_press_nodal.fill(0.0)
+        self.cfd_utils.AssembleVector(self.connectivity,Pi_press_el,Pi_press_nodal)
+        Pi_press_nodal = Pi_press_nodal.ravel()
+        Pi_press_nodal *= self.Minv
+        Pi_press_nodal = Pi_press_nodal.reshape((self.nnodes, self.dim))
 
+        ###############################################################
+        #from now on compute the LHS and RHS of the pressure problem to be solved
+        ###############################################################
+
+        #obtain the nodal versio nof Pi_press_el
+        self.ElemData(vfrac, self.connectivity, Pi_press_el)
+
+        # the L_IJ := (∇N_I,∇N_J)
+        self.cfd_utils.ComputeLaplacianMatrix(self.DN,Lel)
 
         # (q,∇·u)
         self.cfd_utils.ComputeElementwiseNodalDivergence(self.N, self.DN, vel, N_div)
-        RHSel = N_div
-        
+        RHSel = -N_div
 
-        # coeff = self.dt ##TODO: it should be 1/(density+BDFCoeff0
-        # RHSel += coeff*np.einsum("eij,ej->ei", Lel , pel) #RHS -= LHS@pel #TODO: change to avoid temporaries
-
-        # tmp = np.zeros(RHS_el.shape) #TODO: use an existing temporary to avoid allocation
-        # self.cfd_utils.ComputePressureStabilization_Proj(self.DN, pel, tmp)
-        # tmp *= self.tau[:,np.newaxis]
-        # RHSel += tmp
+        # dt*(∇q,∇pold)=dt*Lij*pj
+        Lp = tmp #just renaming
+        np.einsum("eIJ,eJ->eI",Lel,pel,out=Lp)
+        Lp *= dt
+        RHSel += Lp
         
-        RHSel *= -self.elemental_volumes[:,np.newaxis] #REMARK: observe the - sign!
+        # tau*(∇q,Pi_pressure)
+        self.cfd_utils.ComputePressureStabilization_ProjectionTerm(self.N, self.DN, Pi_press_el,tmp)
+        tmp *= self.tau[:,np.newaxis]
+        RHSel += tmp #TODO: check carefully this term
+
+        #multiplying by the elemental volume
+        Lel *= (self.dt+self.tau[:,np.newaxis,np.newaxis])*self.elemental_volumes[:,np.newaxis,np.newaxis]       
+        RHSel *= self.elemental_volumes[:,np.newaxis] 
+
+        #assemble RHS
         RHSpressure = np.zeros(vfrac.shape[0])
         self.cfd_utils.AssembleVector(self.connectivity,RHSel,RHSpressure)
         RHSpressure *= self.rho
 
-
-
+        #assemble LHS
         self.cfd_utils.AssembleScalarMatrix(Lel,self.connectivity,self.L)
-        Lvalues = self.L.value_data() #TODO: add to the interface the possibility of doing L*=dt
-        Lvalues *= dt 
+        
 
         # dt*(∇q,∇pold)
-        RHSpressure += (self.L@p) #TODO: use SpMV function to avoid temporaries
+        ##RHSpressure += (self.L@p) #TODO: use SpMV function to avoid temporaries
 
-        for i in range(RHSpressure.shape[0]):
-            print(i+1,RHSpressure[i])
 
 
         #apply Pressure BCs
@@ -405,11 +448,9 @@ class VectorizedCFDStage(analysis_stage.AnalysisStage):
         #perform fractional step
         pold = p.copy()
         vfrac = self.SolveStep1(v,vold,pold,dt)
-        #vfrac = v.copy()
         p = self.SolveStep2(vfrac,pold,dt)
         delta_p = p - pold #TODO: most probably we could modify p in place
         v = self.SolveStep3(v,vfrac,delta_p,dt) 
-        #v = vfrac.copy() #TODO: remove! this is just mocking step2 and step3
         
         #update Kratos
         self.v_adaptor.data = v
@@ -419,7 +460,7 @@ class VectorizedCFDStage(analysis_stage.AnalysisStage):
         value = input("Press Enter to continue...")
         
 
-    def ComputeVelocityResidual(self,v_elemental,p_elemental,DN,tau):
+    def ComputeVelocityResidual(self,v_elemental,p_elemental, proj_el,DN,tau):
         nelem = v_elemental.shape[0]
         N = self.N
 
@@ -440,6 +481,13 @@ class VectorizedCFDStage(analysis_stage.AnalysisStage):
         convective *= self.rho 
         res -= convective
 
+        # (a·∇u,a·∇u) - (a·∇u,Pi_conv)
+        convective_stabilization=aux_res_el #rename this to make it more readable
+        #proj_el = np.zeros(v_elemental.shape) #TODO: this has to be computed in the appropriate way!
+        self.cfd_utils.ComputeMomentumStabilization(N, DN, v_gauss, v_elemental, proj_el, convective_stabilization)
+        convective_stabilization *= self.tau[:,np.newaxis,np.newaxis] #TODO: activate stabilization
+        res -= convective_stabilization
+
         #(∇w,∇u)
         viscous=aux_res_el #rename this to make it more readable
         self.cfd_utils.ApplyLaplacian(DN,v_elemental,viscous)
@@ -450,13 +498,6 @@ class VectorizedCFDStage(analysis_stage.AnalysisStage):
         pressure_term=aux_res_el #rename this to make it more readable
         self.cfd_utils.Compute_DN_N(N,DN,p_elemental,pressure_term)
         res += pressure_term
-
-        # (a·∇u,a·∇u) - (a·∇u,Pi_conv)
-        convective_stabilization=aux_res_el #rename this to make it more readable
-        Pi_elemental = np.zeros(v_elemental.shape) #TODO: this has to be computed in the appropriate way!
-        self.cfd_utils.ComputeMomentumStabilization(N, DN, v_gauss, v_elemental, Pi_elemental, convective_stabilization)
-        convective_stabilization *= self.tau[:,np.newaxis,np.newaxis] #TODO: activate stabilization
-        res -= convective_stabilization
 
         #multiply by volume
         res *= self.elemental_volumes[:,np.newaxis,np.newaxis]

@@ -84,6 +84,16 @@ class CFDUtils:
         out : ndarray
             Output array, expected to have shape (Nelem, n_in_el).
         """
+        nelem = DN.shape[0]
+        n_in_el = DN.shape[1]
+        ndim = DN.shape[2]
+
+        if pel.shape != (nelem, n_in_el):
+            raise ValueError("pel must have shape (nelem, n_in_el) for scalar case. Current shape is:",field.shape)
+
+        if out.shape != (nelem, n_in_el,ndim):
+            raise ValueError(f"out must have shape (nelem, {ndim}) for scalar case. Current shape is:",out.shape)
+
         np.einsum("I,eJk,eJ->eIk", N,DN, pel,  out=out, optimize=True)
 
     def Compute_DN_N(self, N: np.ndarray, DN: np.ndarray, pel: np.ndarray, out: np.ndarray):
@@ -330,17 +340,38 @@ class CFDUtils:
         ##TODO: avoid temporaries!
         a_DN = np.einsum("el,eil->ei",a,DN) #TODO: reuse an auxiliary array
         np.einsum("eI,eJ,eJk->eIk",a_DN,a_DN,u_elemental,out=out)
-
+        print("out before pi contrib",np.linalg.norm(out))
         PiContrib = np.einsum("eI,J,eJk->eIk",a_DN,N,Pi_elemental)
         out -= PiContrib
+        print("out after pi contrib",np.linalg.norm(out))
     
     def ComputeDivDivStabilization(self, DN: np.ndarray, Pi_elemental: np.ndarray, out: np.ndarray):
         ##TODO: avoid temporaries!
         pass
 
-    def ComputePressureStabilization_Proj(self, DN: np.ndarray, Pi_elemental: np.ndarray, out: np.ndarray):
-        ##TODO: avoid temporaries!
-        pass
+    def ComputePressureStabilization_ProjectionTerm(self, N: np.ndarray, DN: np.ndarray, Pi_press_el: np.ndarray, out: np.ndarray):
+        """
+        implements (∇q,Pi_pressure)
+
+        this corresponds in einstain notation to
+        out[i,k] = sum_l N_I ∇u_kl a_l
+        on every element
+
+        Parameters
+        ----------
+        N : (nelem, n_in_el)
+            shape function values at the gauss point
+        
+        grad_u : (nelem, ndim, ndim) in the vector case or (nelem, ndim) in the scalar case
+            gradient of the velocity at the gauss point
+        
+        a: (nelem,ndim) 
+            convective velocity on the gauss point
+        
+        out: (nelem, n_in_el, ndim)
+           
+        """
+        np.einsum("eIk,J,eJk->eI",DN,N,Pi_press_el,out=out)
     
     def AllocateScalarMatrix(self,conn: np.ndarray):
         #TODO: make it efficient
