@@ -680,10 +680,10 @@ std::vector<double> UPwInterfaceElement::CalculateBishopCoefficients() const
 
 Matrix UPwInterfaceElement::GetNpContainer() const
 {
-    const auto total_number_of_nodes    = GetGeometry().PointsNumber();
+    const auto total_number_of_nodes    = GetWaterPressureGeometry().size();
     const auto number_of_pressure_nodes = GetWaterPressureMidGeometry().PointsNumber();
     Matrix n_container{mpIntegrationScheme->GetIntegrationPoints().size(), total_number_of_nodes};
-    auto   shape_function_values_interface = Vector(total_number_of_nodes);
+    auto   shape_function_values_interface = Vector(total_number_of_nodes, 0.0);
 
     auto integration_point_index = std::size_t{0};
     for (auto& r_integration_point : mpIntegrationScheme->GetIntegrationPoints()) {
@@ -694,9 +694,9 @@ Matrix UPwInterfaceElement::GetNpContainer() const
         // shape function values are for one side, extend it for the other side
         noalias(subrange(shape_function_values_interface, 0, number_of_pressure_nodes)) =
             integration_point_shape_function_values;
-        noalias(subrange(shape_function_values_interface, number_of_pressure_nodes, total_number_of_nodes)) =
-            -integration_point_shape_function_values;
-        row(n_container, integration_point_index) = shape_function_values_interface;
+        noalias(subrange(shape_function_values_interface, number_of_pressure_nodes,
+                         2 * number_of_pressure_nodes)) = -integration_point_shape_function_values;
+        row(n_container, integration_point_index)       = shape_function_values_interface;
         integration_point_index++;
     }
     return n_container;
