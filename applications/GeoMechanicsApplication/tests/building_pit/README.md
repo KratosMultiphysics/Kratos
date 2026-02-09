@@ -1,6 +1,6 @@
-# Submerged construction of an excavation
+# Building pit
 
-This document describes excavation modeling test.
+This document describes the building pit test.
 
 ## Geometry
 The picture shows the modelling set-up.

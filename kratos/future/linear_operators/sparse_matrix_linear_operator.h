@@ -75,11 +75,9 @@ public:
      * @param rA Reference to the CSR matrix
      */
     SparseMatrixLinearOperator(MatrixType& rA)
-        : LinearOperator<TLinearAlgebra>()
+        : LinearOperator<TLinearAlgebra>(std::make_pair(rA.size1(), rA.size2()))
         , mrCsrMatrix(rA)
     {
-        this->SetNumRows(rA.size1());
-        this->SetNumCols(rA.size2());
     }
 
     /// Deleted copy constructor (non-copyable)
