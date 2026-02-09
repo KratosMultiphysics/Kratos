@@ -37,6 +37,8 @@ public:
         return mConstitutiveMatrix;
     }
 
+    using ConstitutiveLaw::CalculateValue;
+
     void CalculateMaterialResponseCauchy(Parameters& rValues) override
     {
         rValues.GetStressVector() = mStressVector;
