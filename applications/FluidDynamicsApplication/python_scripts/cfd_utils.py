@@ -52,20 +52,12 @@ class CFDUtils:
         nelem = DN.shape[0]
         n_in_el = DN.shape[1]
         dim = DN.shape[2]
-        print(N.shape)
         if N.shape[0] != n_in_el or N.ndim!=1:
             raise Exception("wrong size of N")
         if uel.shape != DN.shape:
             raise Exception("wrong size of uel")
 
         np.einsum("I,eJk,eJk->eI",N,DN,uel,out=out,optimize=True)
-        # #verify shape of auxiliary arrays
-        # if(self.aux_array1.shape != (nelem)):
-        #     self.aux_array1 = np.empty(nelem)
-
-        # self.ComputeElementalDivergence(DN, uel, self.aux_array1)
-        
-        # np.einsum("e,i->ei",self.aux_array1,N, out=out, optimize=True)
 
     def Compute_N_DN(self, N: np.ndarray, DN: np.ndarray, pel: np.ndarray, out: np.ndarray):
         """
@@ -336,14 +328,12 @@ class CFDUtils:
         else:
             raise ValueError("grad_u must have 2 dims (scalar) or 3 dims (vector)")
 
-    def ComputeMomentumStabilization(self, N: np.ndarray, DN: np.ndarray, a: np.ndarray, u_elemental: np.ndarray, Pi_elemental: np.ndarray, out: np.ndarray):
+    def ComputeMomentumStabilization(self, N: np.ndarray, DN: np.ndarray, a: np.ndarray, u_elemental: np.ndarray, Pi_elemental: np.ndarray, out: np.ndarray, a_DN: np.ndarray, PiContrib: np.ndarray):
         ##TODO: avoid temporaries!
-        a_DN = np.einsum("el,eil->ei",a,DN) #TODO: reuse an auxiliary array
+        np.einsum("el,eil->ei",a,DN, out=a_DN) #TODO: reuse an auxiliary array
         np.einsum("eI,eJ,eJk->eIk",a_DN,a_DN,u_elemental,out=out)
-        print("out before pi contrib",np.linalg.norm(out))
-        PiContrib = np.einsum("eI,J,eJk->eIk",a_DN,N,Pi_elemental)
+        np.einsum("eI,J,eJk->eIk",a_DN,N,Pi_elemental, out=PiContrib)
         out -= PiContrib
-        print("out after pi contrib",np.linalg.norm(out))
     
     def ComputeDivDivStabilization(self, DN: np.ndarray, Pi_elemental: np.ndarray, out: np.ndarray):
         ##TODO: avoid temporaries!

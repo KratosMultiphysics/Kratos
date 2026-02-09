@@ -183,6 +183,11 @@ class VectorizedCFDStage(analysis_stage.AnalysisStage):
         self.connectivity_adaptor.CollectData()
         self.connectivity = self.connectivity_adaptor.data
         self.connectivity -= 1 #have indices to start in 
+        max_idx = self.connectivity.max()
+        if max_idx <= np.iinfo(np.int32).max: #use 32 bit integers for connectivities
+            self.connectivity = self.connectivity.astype(np.int32)
+        else:
+            print(f"Warning: Max index {max_idx} is too large for uint32. Staying at 64-bit.")
 
         #preallocation of elemental arrays of velocities and pressures
         self.vec_elemental_data = np.empty((*self.connectivity.shape, v.shape[1]))
@@ -222,6 +227,13 @@ class VectorizedCFDStage(analysis_stage.AnalysisStage):
         self.res        = np.empty((nelem, 3, self.dim))
         self.Projection         = np.empty((self.nnodes, self.dim))
         self.Proj_el = np.empty((nelem, 3, self.dim))
+
+        # SCRATCH ARRAYS for memory reuse
+        self.elemental_scalar_scratch = np.empty((nelem, self.n_in_el))
+        self.nodal_vector_scratch = np.empty((self.nnodes, self.dim))
+        self.elemental_grad_scratch = np.empty(self.DN.shape)
+        self.Lel_scratch = np.empty((nelem, self.n_in_el, self.n_in_el))
+        self.rhs_el_scratch = np.empty((nelem, self.n_in_el))
 
         ########################## REMOVE - just for testing
         for node in self.model_part.Nodes:
@@ -279,7 +291,7 @@ class VectorizedCFDStage(analysis_stage.AnalysisStage):
         self.ComputeVelocityProjection(vel, self.Projection) #TODO: actually the vector Projection is not needed after getting the ElemData
         proj_el = self.Proj_el
         self.ElemData(self.Projection, self.connectivity, proj_el)
-        # proj_el = np.zeros(vel.shape)
+        proj_el = np.zeros(vel.shape)
 
         
 
@@ -326,13 +338,13 @@ class VectorizedCFDStage(analysis_stage.AnalysisStage):
         dim = self.DN.shape[2]
 
 
-        ##allocation of intermediate arrays #TODO: allocate it only once
-        Lel = np.empty((nelem,n_in_el,n_in_el))
-        N_div = np.empty((nelem,n_in_el))
-        RHSel = np.empty((nelem,n_in_el))
-        Pi_press_nodal = np.empty((self.nnodes, self.dim))
-        tmp = np.empty(RHSel.shape) #TODO: use an existing temporary to avoid allocation
-        Pi_press_el = np.empty(self.DN.shape)
+        ##allocation of intermediate arrays - reusing scratch
+        Lel = self.Lel_scratch
+        aux_scalar = self.elemental_scalar_scratch # Use this for N_div, Lp, stabilized term (SCALAR)
+        RHSel = self.rhs_el_scratch
+        Pi_press_nodal = self.nodal_vector_scratch
+        #tmp = self.elemental_vector_scratch  <-- removed
+        Pi_press_el = self.elemental_grad_scratch # REUSE GRAD SCRATCH
 
         ###############################################################
         #gather data from the database
@@ -363,19 +375,21 @@ class VectorizedCFDStage(analysis_stage.AnalysisStage):
         self.cfd_utils.ComputeLaplacianMatrix(self.DN,Lel)
 
         # (q,∇·u)
-        self.cfd_utils.ComputeElementwiseNodalDivergence(self.N, self.DN, vel, N_div)
-        RHSel = -N_div
+        self.cfd_utils.ComputeElementwiseNodalDivergence(self.N, self.DN, vel, aux_scalar)
+        
+        # RHSel = -aux_scalar (in-place)
+        np.negative(aux_scalar, out=RHSel)
 
         # dt*(∇q,∇pold)=dt*Lij*pj
-        Lp = tmp #just renaming
-        np.einsum("eIJ,eJ->eI",Lel,pel,out=Lp)
-        Lp *= dt
-        RHSel += Lp
+        # Lp = aux_scalar #reuse
+        np.einsum("eIJ,eJ->eI",Lel,pel,out=aux_scalar)
+        aux_scalar *= dt
+        RHSel += aux_scalar
         
         # tau*(∇q,Pi_pressure)
-        self.cfd_utils.ComputePressureStabilization_ProjectionTerm(self.N, self.DN, Pi_press_el,tmp)
-        tmp *= self.tau[:,np.newaxis]
-        RHSel += tmp #TODO: check carefully this term
+        self.cfd_utils.ComputePressureStabilization_ProjectionTerm(self.N, self.DN, Pi_press_el,aux_scalar) #writes to aux_scalar
+        aux_scalar *= self.tau[:,np.newaxis]
+        RHSel += aux_scalar #TODO: check carefully this term
 
         #multiplying by the elemental volume
         Lel *= (self.dt+self.tau[:,np.newaxis,np.newaxis])*self.elemental_volumes[:,np.newaxis,np.newaxis]       
@@ -396,8 +410,7 @@ class VectorizedCFDStage(analysis_stage.AnalysisStage):
 
 
         #apply Pressure BCs
-        print("fix_prss_indices",self.fix_press_indices)
-        self.pressure_free_dofs_vector = np.ones(self.nnodes,np.float64) #TODO: this vector can be computed once if the fixity is fixed
+        self.pressure_free_dofs_vector = np.ones(self.nnodes,np.float64) 
         self.pressure_free_dofs_vector[self.fix_press_indices] = 0.0
         self.L.ApplyHomogeneousDirichlet(self.pressure_free_dofs_vector, 1e9, RHSpressure)
 
@@ -411,7 +424,7 @@ class VectorizedCFDStage(analysis_stage.AnalysisStage):
 
     def SolveStep3(self,v,vfrac,delta_p,dt):
         
-        grad_dp_el = np.empty(self.DN.shape) #TODO: allocate it only once(or even better reuse one that is available)
+        grad_dp_el = self.elemental_grad_scratch
     
         self.ElemData(delta_p, self.connectivity, self.scalar_elemental_data)
         delta_pel = self.scalar_elemental_data #no copy ... just renaming for better readability
@@ -419,7 +432,8 @@ class VectorizedCFDStage(analysis_stage.AnalysisStage):
         self.cfd_utils.Compute_DN_N(self.N, self.DN, delta_pel, grad_dp_el)
         grad_dp_el *= self.elemental_volumes[:,np.newaxis,np.newaxis]
         
-        grad_dp_nodal = np.zeros((self.nnodes, self.dim)) #TODO: allocate it only once
+        grad_dp_nodal = self.nodal_vector_scratch
+        grad_dp_nodal.fill(0.0)
         self.cfd_utils.AssembleVector(self.connectivity,grad_dp_el,grad_dp_nodal)
 
         v.ravel()[:] = vfrac.ravel() - (dt/self.rho)*  self.Minv * grad_dp_nodal.ravel()
@@ -457,7 +471,7 @@ class VectorizedCFDStage(analysis_stage.AnalysisStage):
         self.v_adaptor.StoreData()
         self.p_adaptor.data = p
         self.p_adaptor.StoreData()
-        value = input("Press Enter to continue...")
+        #value = input("Press Enter to continue...")
         
 
     def ComputeVelocityResidual(self,v_elemental,p_elemental, proj_el,DN,tau):
@@ -484,7 +498,7 @@ class VectorizedCFDStage(analysis_stage.AnalysisStage):
         # (a·∇u,a·∇u) - (a·∇u,Pi_conv)
         convective_stabilization=aux_res_el #rename this to make it more readable
         #proj_el = np.zeros(v_elemental.shape) #TODO: this has to be computed in the appropriate way!
-        self.cfd_utils.ComputeMomentumStabilization(N, DN, v_gauss, v_elemental, proj_el, convective_stabilization)
+        self.cfd_utils.ComputeMomentumStabilization(N, DN, v_gauss, v_elemental, proj_el, convective_stabilization, self.elemental_scalar_scratch, self.elemental_grad_scratch)
         convective_stabilization *= self.tau[:,np.newaxis,np.newaxis] #TODO: activate stabilization
         res -= convective_stabilization
 
