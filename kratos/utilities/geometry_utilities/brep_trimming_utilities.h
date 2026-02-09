@@ -63,6 +63,14 @@ namespace Kratos
             const std::vector<double>& rSpansV,
             IntegrationInfo& rIntegrationInfo);
 
+        static void CreateBrepSurfaceTrimmingIntegrationPointsPerKnot(
+            IntegrationPointsArrayType& rIntegrationPoints,
+            const DenseVector<DenseVector<BrepCurveOnSurfacePointerType>>& rOuterLoops,
+            const DenseVector<DenseVector<BrepCurveOnSurfacePointerType>>& rInnerLoops,
+            NurbsInterval& rKnotSpanU,
+            NurbsInterval& rKnotSpanV,
+            IntegrationInfo& rIntegrationInfo);
+
         struct DPState {
             bool visible;
             double weight;

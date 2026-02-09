@@ -311,6 +311,7 @@ void KratosApplication::RegisterKratosCore() {
     KRATOS_REGISTER_GEOMETRY("QuadraturePointGeometrySurface2D", mQuadraturePointGeometrySurface2D);
     KRATOS_REGISTER_GEOMETRY("QuadraturePointGeometrySurface3D", mQuadraturePointGeometrySurface3D);
     KRATOS_REGISTER_GEOMETRY("QuadraturePointGeometryVolume3D", mQuadraturePointGeometryVolume3D);
+    // KRATOS_REGISTER_GEOMETRY("KnotSpanGeometrySurface", mKnotSpanGeometrySurface);
     KRATOS_REGISTER_GEOMETRY("CouplingGeometry", mCouplingGeometry);
 
     // Register flags:

@@ -122,9 +122,9 @@ ModelPart& CreateDummyModelPartWithNodes(Model& rModel, const std::function<void
     return r_result;
 }
 
-intrusive_ptr<Condition> CreateMicroClimateCondition(ModelPart&             rModelPart,
-                                                     shared_ptr<Properties> pProperties,
-                                                     std::size_t            DimensionSize)
+intrusive_ptr<Condition> CreateMicroClimateCondition(ModelPart&                    rModelPart,
+                                                     const shared_ptr<Properties>& rpProperties,
+                                                     std::size_t                   DimensionSize)
 {
     auto r_nodes  = rModelPart.Nodes();
     auto node_ids = std::vector<ModelPart::IndexType>{};
@@ -139,31 +139,31 @@ intrusive_ptr<Condition> CreateMicroClimateCondition(ModelPart&             rMod
     Condition::Pointer condition = nullptr;
     if (DimensionSize == 2 && node_ids.size() == 2) {
         condition = make_intrusive<GeoTMicroClimateFluxCondition<2, 2>>(
-            1, Kratos::make_shared<Line2D2<Node>>(node_pointers), pProperties);
+            1, Kratos::make_shared<Line2D2<Node>>(node_pointers), rpProperties);
     } else if (DimensionSize == 2 && node_ids.size() == 3) {
         condition = make_intrusive<GeoTMicroClimateFluxCondition<2, 3>>(
-            1, Kratos::make_shared<Line2D3<Node>>(node_pointers), pProperties);
+            1, Kratos::make_shared<Line2D3<Node>>(node_pointers), rpProperties);
     } else if (DimensionSize == 2 && node_ids.size() == 4) {
         condition = make_intrusive<GeoTMicroClimateFluxCondition<2, 4>>(
-            1, Kratos::make_shared<Line2D4<Node>>(node_pointers), pProperties);
+            1, Kratos::make_shared<Line2D4<Node>>(node_pointers), rpProperties);
     } else if (DimensionSize == 2 && node_ids.size() == 5) {
         condition = make_intrusive<GeoTMicroClimateFluxCondition<2, 5>>(
-            1, Kratos::make_shared<Line2D5<Node>>(node_pointers), pProperties);
+            1, Kratos::make_shared<Line2D5<Node>>(node_pointers), rpProperties);
     } else if (DimensionSize == 3 && node_ids.size() == 3) {
         condition = make_intrusive<GeoTMicroClimateFluxCondition<3, 3>>(
-            1, Kratos::make_shared<Triangle3D3<Node>>(node_pointers), pProperties);
+            1, Kratos::make_shared<Triangle3D3<Node>>(node_pointers), rpProperties);
     } else if (DimensionSize == 3 && node_ids.size() == 6) {
         condition = make_intrusive<GeoTMicroClimateFluxCondition<3, 6>>(
-            1, Kratos::make_shared<Triangle3D6<Node>>(node_pointers), pProperties);
+            1, Kratos::make_shared<Triangle3D6<Node>>(node_pointers), rpProperties);
     } else if (DimensionSize == 3 && node_ids.size() == 4) {
         condition = make_intrusive<GeoTMicroClimateFluxCondition<3, 4>>(
-            1, Kratos::make_shared<Quadrilateral3D4<Node>>(node_pointers), pProperties);
+            1, Kratos::make_shared<Quadrilateral3D4<Node>>(node_pointers), rpProperties);
     } else if (DimensionSize == 3 && node_ids.size() == 8) {
         condition = make_intrusive<GeoTMicroClimateFluxCondition<3, 8>>(
-            1, Kratos::make_shared<Quadrilateral3D8<Node>>(node_pointers), pProperties);
+            1, Kratos::make_shared<Quadrilateral3D8<Node>>(node_pointers), rpProperties);
     } else if (DimensionSize == 3 && node_ids.size() == 9) {
         condition = make_intrusive<GeoTMicroClimateFluxCondition<3, 9>>(
-            1, Kratos::make_shared<Quadrilateral3D9<Node>>(node_pointers), pProperties);
+            1, Kratos::make_shared<Quadrilateral3D9<Node>>(node_pointers), rpProperties);
     }
 
     KRATOS_ERROR_IF_NOT(condition) << "Condition could not be created" << std::endl;
@@ -172,10 +172,10 @@ intrusive_ptr<Condition> CreateMicroClimateCondition(ModelPart&             rMod
     return condition;
 }
 
-std::string ExecuteInitializeSolutionStep(intrusive_ptr<Condition> pCondition, const ProcessInfo& rProcessInfo)
+std::string ExecuteInitializeSolutionStep(const intrusive_ptr<Condition>& rpCondition, const ProcessInfo& rProcessInfo)
 {
     try {
-        pCondition->InitializeSolutionStep(rProcessInfo);
+        rpCondition->InitializeSolutionStep(rProcessInfo);
     } catch (const Exception& e) {
         return e.what();
     }

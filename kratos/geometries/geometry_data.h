@@ -143,6 +143,7 @@ public:
         Kratos_Brep_Surface,
         Kratos_Brep_Curve_On_Surface,
         Kratos_Quadrature_Point_Geometry,
+        Kratos_Knot_Span_Geometry,
         Kratos_Coupling_Geometry,
         Kratos_Quadrature_Point_Curve_Geometry,
         Kratos_Quadrature_Point_Curve_On_Surface_Geometry,

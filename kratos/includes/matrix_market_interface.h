@@ -15,7 +15,6 @@
 // System includes
 #include <stdio.h>
 
-
 // External includes
 
 // To avoid linking problems

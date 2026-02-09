@@ -12,6 +12,7 @@
 //
 #include "containers/model.h"
 #include "custom_processes/apply_c_phi_reduction_process.h"
+#include "geo_mechanics_application_variables.h"
 #include "geometries/triangle_2d_3.h"
 #include "tests/cpp_tests/geo_mechanics_fast_suite.h"
 #include "tests/cpp_tests/stub_linear_elastic_law.h"
