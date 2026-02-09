@@ -42,6 +42,18 @@ public:
         return result;
     }
 
+    template <typename NodeContainerType, typename DataType>
+    static std::vector<DataType> GetNodalValues(const NodeContainerType& rNodes, const Variable<DataType>& rVariable)
+    {
+        auto result = std::vector<DataType>{};
+        result.reserve(rNodes.size());
+        auto get_nodal_value = [&rVariable](const auto& rNode) {
+            return rNode.FastGetSolutionStepValue(rVariable);
+        };
+        std::ranges::transform(rNodes, std::back_inserter(result), get_nodal_value);
+        return result;
+    }
+
     static const Variable<double>& GetComponentFromVectorVariable(const std::string& rSourceVariableName,
                                                                   const std::string& rComponent);
 };
