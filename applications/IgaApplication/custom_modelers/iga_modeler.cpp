@@ -126,7 +126,7 @@ namespace Kratos
         }
 
         std::string quadrature_method = rParameters.Has("quadrature_method")
-            ? rParameters["integration_rule"].GetString()
+            ? rParameters["quadrature_method"].GetString()
             : "GAUSS";
 
         KRATOS_INFO_IF("CreateQuadraturePointGeometries", mEchoLevel > 0)
@@ -145,9 +145,12 @@ namespace Kratos
                 else if (quadrature_method == "GRID") {
                     integration_info.SetQuadratureMethod(0, IntegrationInfo::QuadratureMethod::GRID);
                 }
+                else if (quadrature_method == "CUSTOM") {
+                    integration_info.SetQuadratureMethod(0, IntegrationInfo::QuadratureMethod::CUSTOM);
+                }
                 else {
                     KRATOS_INFO("CreateQuadraturePointGeometries") << "Quadrature method: " << quadrature_method
-                        << " is not available. Available options are \"GAUSS\" and \"GRID\". Default quadrature method is being considered." << std::endl;
+                        << " is not available. Available options are \"GAUSS\", \"GRID\"  and \"CUSTOM\". Default quadrature method is being considered." << std::endl;
                 }
             }
 
