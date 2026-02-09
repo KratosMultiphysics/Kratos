@@ -98,7 +98,7 @@ public:
         ///@name Inquiry
         ///@{
 
-        const bool IsManaged() const { return mIsManaged; }
+        bool IsManaged() const { return mIsManaged; }
 
         ///@}
 
