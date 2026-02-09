@@ -56,9 +56,8 @@ void SurfaceNormalFluidFlux3DDiffOrderCondition::CalculateConditionVector(Condit
                                                                           unsigned int PointNumber)
 {
     KRATOS_TRY
-    Vector nodal_normal_fluid_flux_vector(mpPressureGeometry->PointsNumber());
-    VariablesUtilities::GetNodalValues(*mpPressureGeometry, NORMAL_FLUID_FLUX,
-                                       nodal_normal_fluid_flux_vector.begin());
+    auto nodal_normal_fluid_flux_vector =
+        VariablesUtilities::GetNodalValues(*mpPressureGeometry, NORMAL_FLUID_FLUX);
     rVariables.ConditionVector =
         ScalarVector{1, std::inner_product(rVariables.Np.cbegin(), rVariables.Np.cend(),
                                            nodal_normal_fluid_flux_vector.cbegin(), 0.0)};

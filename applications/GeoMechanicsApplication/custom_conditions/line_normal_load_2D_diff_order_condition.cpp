@@ -63,8 +63,7 @@ void LineNormalLoad2DDiffOrderCondition::CalculateConditionVector(ConditionVaria
     Vector tangential_vector = ZeroVector(3);
     tangential_vector[0]     = column(rVariables.JContainer[PointNumber], 0)[0];
     tangential_vector[1]     = column(rVariables.JContainer[PointNumber], 0)[1];
-    Vector tangential_stresses(r_geometry.PointsNumber());
-    VariablesUtilities::GetNodalValues(r_geometry, TANGENTIAL_CONTACT_STRESS, tangential_stresses.begin());
+    auto tangential_stresses = VariablesUtilities::GetNodalValues(r_geometry, TANGENTIAL_CONTACT_STRESS);
     const auto tangential_stress = std::inner_product(rVariables.Nu.cbegin(), rVariables.Nu.cend(),
                                                       tangential_stresses.cbegin(), 0.0);
 
@@ -72,8 +71,7 @@ void LineNormalLoad2DDiffOrderCondition::CalculateConditionVector(ConditionVaria
     out_of_plane_vector[2]     = 1.0;
     Vector normal_vector       = ZeroVector(3);
     MathUtils<double>::CrossProduct(normal_vector, out_of_plane_vector, tangential_vector);
-    Vector normal_stresses(r_geometry.PointsNumber());
-    VariablesUtilities::GetNodalValues(r_geometry, NORMAL_CONTACT_STRESS, normal_stresses.begin());
+    auto normal_stresses = VariablesUtilities::GetNodalValues(r_geometry, NORMAL_CONTACT_STRESS);
     const auto normal_stress =
         std::inner_product(rVariables.Nu.cbegin(), rVariables.Nu.cend(), normal_stresses.cbegin(), 0.0);
 

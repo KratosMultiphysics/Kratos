@@ -67,8 +67,7 @@ void PwNormalFluxCondition<TDim, TNumNodes>::CalculateRHS(Vector&            rRi
     r_geometry.Jacobian(j_container, this->GetIntegrationMethod());
 
     // Condition variables
-    Vector normal_flux_vector(TNumNodes);
-    VariablesUtilities::GetNodalValues(r_geometry, NORMAL_FLUID_FLUX, normal_flux_vector.begin());
+    auto normal_flux_vector = VariablesUtilities::GetNodalValues(r_geometry, NORMAL_FLUID_FLUX);
 
     for (unsigned int integration_point = 0; integration_point < number_of_integration_points; ++integration_point) {
         // Interpolation of nodal normal flux to integration point normal flux.
