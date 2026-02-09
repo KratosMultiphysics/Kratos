@@ -13,7 +13,7 @@
 
 #include "incremental_linear_elastic_interface_law.h"
 #include "constitutive_law_dimension.h"
-#include "custom_utilities/check_utilities.h"
+#include "custom_utilities/check_utilities.hpp"
 #include "geo_mechanics_application_variables.h"
 
 namespace Kratos
