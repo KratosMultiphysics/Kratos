@@ -31,7 +31,10 @@
         "mpc_contact_settings"                : {
             "contact_type"                   : "Frictionless"
         },
-        "rotation_dofs"                   : false
+        "rotation_dofs"                   : false,
+        "linear_solver_settings"             : {
+                "solver_type": "skyline_lu_factorization"
+        }
     },
     "processes"        : {
         "constraints_process_list" : [{

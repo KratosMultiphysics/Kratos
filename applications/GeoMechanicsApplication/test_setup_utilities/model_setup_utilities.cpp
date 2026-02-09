@@ -14,9 +14,9 @@
 #include "includes/model_part.h"
 
 #include "custom_elements/plane_strain_stress_state.h"
-#include "custom_elements/small_strain_U_Pw_diff_order_element.hpp"
+#include "custom_elements/small_strain_U_Pw_diff_order_element.h"
 #include "custom_elements/three_dimensional_stress_state.h"
-#include "element_setup_utilities.h"
+#include "element_setup_utilities.hpp"
 #include "geometries/tetrahedra_3d_10.h"
 #include "geometries/tetrahedra_3d_4.h"
 #include "geometries/triangle_2d_3.h"
@@ -66,6 +66,30 @@ void AddDofsToNodes(const NodeRange& rNodeRange, const Geo::ConstVariableRefs& r
 
 namespace Kratos::Testing
 {
+
+PointerVector<Node> ModelSetupUtilities::CreateNodes(const NodeDefinitionVector& rNodeDefinitions)
+{
+    auto result = PointerVector<Node>{};
+    result.reserve(rNodeDefinitions.size());
+    for (const auto& r_node_definition : rNodeDefinitions) {
+        result.push_back(make_intrusive<Node>(r_node_definition.id, r_node_definition.position.X(),
+                                              r_node_definition.position.Y(),
+                                              r_node_definition.position.Z()));
+    }
+    return result;
+}
+
+PointerVector<Node> ModelSetupUtilities::CreateNodes(ModelPart& rModelPart, const NodeDefinitionVector& rNodeDefinitions)
+{
+    auto result = PointerVector<Node>{};
+    result.reserve(rNodeDefinitions.size());
+    for (const auto& r_node_definition : rNodeDefinitions) {
+        result.push_back(rModelPart.CreateNewNode(r_node_definition.id, r_node_definition.position.X(),
+                                                  r_node_definition.position.Y(),
+                                                  r_node_definition.position.Z()));
+    }
+    return result;
+}
 
 ModelPart& ModelSetupUtilities::CreateModelPartWithASingle2D3NElement(Model& rModel,
                                                                       const Geo::ConstVariableRefs& rNodalVariables)
@@ -278,6 +302,22 @@ Tetrahedra3D4<Node> ModelSetupUtilities::Create3D4NTetrahedraGeometry()
     const auto node_3 = make_intrusive<Node>(3, 0.0, 1.0, 0.0);
     const auto node_4 = make_intrusive<Node>(3, 0.0, 0.0, 1.0);
     return {node_1, node_2, node_3, node_4};
+}
+
+void ModelSetupUtilities::CreateNumberOfNewNodes(ModelPart& rModelPart, std::size_t NumberOfNodes)
+{
+    for (std::size_t i = 0; i < NumberOfNodes; ++i) {
+        rModelPart.CreateNewNode(i + 1, 0.0, 0.0, 0.0);
+    }
+}
+
+PointerVector<Node> ModelSetupUtilities::GetNodesFromIds(ModelPart&                      rModelPart,
+                                                         const std::vector<std::size_t>& rNodeIds)
+{
+    PointerVector<Node> result(rNodeIds.size());
+    std::ranges::transform(rNodeIds, result.ptr_begin(),
+                           [&rModelPart](auto Id) { return rModelPart.pGetNode(Id); });
+    return result;
 }
 
 } // namespace Kratos::Testing

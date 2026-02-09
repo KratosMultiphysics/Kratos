@@ -184,8 +184,8 @@ public:
         const auto& r_model_part = this->GetModelPart();
         const auto& r_comm = r_model_part.GetCommunicator().GetDataCommunicator();
         auto& r_constraints = r_model_part.MasterSlaveConstraints();
-        const std::size_t n_constraints_loc = r_constraints.size();
-        const std::size_t n_constraints_glob = r_comm.SumAll(n_constraints_loc);
+        const unsigned int n_constraints_loc = r_constraints.size();
+        const unsigned int n_constraints_glob = r_comm.SumAll(n_constraints_loc);
 
         if (n_constraints_glob != 0) {
             // Assemble constraints constant vector and apply it to the DOF set
@@ -242,15 +242,6 @@ public:
         if (this->GetMoveMesh()) {
             this->MoveMesh();
         }
-
-        KRATOS_CATCH("")
-    }
-
-    void CalculateOutputData(LinearSystemContainer<TSparseMatrixType, TSystemVectorType> &rLinearSystemContainer) override
-    {
-        KRATOS_TRY
-
-        //TODO: Think about creating a datavalue container in here that we can access from outside.
 
         KRATOS_CATCH("")
     }

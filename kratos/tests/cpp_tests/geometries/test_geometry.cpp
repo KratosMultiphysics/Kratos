@@ -153,6 +153,8 @@ namespace Testing {
           return "Kratos_Knot_Span_Geometry";
         case GeometryData::KratosGeometryType::Kratos_Coupling_Geometry:
             return "Kratos_Coupling_Geometry";
+        case GeometryData::KratosGeometryType::Kratos_Quadrature_Point_Curve_Geometry:
+          return "Kratos_Quadrature_Point_Curve_Geometry";
         case GeometryData::KratosGeometryType::Kratos_Quadrature_Point_Curve_On_Surface_Geometry:
           return "Kratos_Quadrature_Point_Curve_On_Surface_Geometry";
         case GeometryData::KratosGeometryType::Kratos_Quadrature_Point_Surface_In_Volume_Geometry:

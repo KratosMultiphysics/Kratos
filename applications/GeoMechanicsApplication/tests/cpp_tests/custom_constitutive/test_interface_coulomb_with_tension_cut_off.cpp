@@ -12,7 +12,7 @@
 //
 
 #include "custom_constitutive/interface_coulomb_with_tension_cut_off.h"
-#include "custom_utilities/registration_utilities.h"
+#include "custom_utilities/registration_utilities.hpp"
 #include "geo_mechanics_application_variables.h"
 #include "includes/stream_serializer.h"
 #include "tests/cpp_tests/geo_mechanics_fast_suite.h"
@@ -89,7 +89,7 @@ KRATOS_TEST_CASE_IN_SUITE(InterfaceCoulombWithTensionCutOff_CalculateMaterialRes
 
     // Arrange: set elastic tensile state
     traction_vector <<= 5.0, 4.0;
-    law.SetValue(CAUCHY_STRESS_VECTOR, traction_vector, ProcessInfo{});
+    law.SetValue(GEO_EFFECTIVE_TRACTION_VECTOR, traction_vector, ProcessInfo{});
     law.FinalizeMaterialResponseCauchy(parameters);
 
     // Act
@@ -100,7 +100,7 @@ KRATOS_TEST_CASE_IN_SUITE(InterfaceCoulombWithTensionCutOff_CalculateMaterialRes
 
     // Arrange: set elastic tensile state (reverse shear)
     traction_vector <<= 5.0, -2.0;
-    law.SetValue(CAUCHY_STRESS_VECTOR, traction_vector, ProcessInfo{});
+    law.SetValue(GEO_EFFECTIVE_TRACTION_VECTOR, traction_vector, ProcessInfo{});
     law.FinalizeMaterialResponseCauchy(parameters);
 
     // Act
@@ -299,7 +299,7 @@ KRATOS_TEST_CASE_IN_SUITE(InterfaceCoulombWithTensionCutOff_Serialization, Krato
     ASSERT_NE(p_loaded_law.get(), nullptr);
 
     auto loaded_calculated_traction_vector = Vector{};
-    p_loaded_law->GetValue(CAUCHY_STRESS_VECTOR, loaded_calculated_traction_vector);
+    p_loaded_law->GetValue(GEO_EFFECTIVE_TRACTION_VECTOR, loaded_calculated_traction_vector);
     KRATOS_EXPECT_VECTOR_EQ(loaded_calculated_traction_vector, calculated_traction_vector);
 
     // Check whether the finalized traction and relative displacement have been restored properly
@@ -413,9 +413,12 @@ KRATOS_TEST_CASE_IN_SUITE(InterfaceCoulombWithTensionCutOff_CalculateConstitutiv
                           KratosGeoMechanicsFastSuiteWithoutKernel)
 {
     // Arrange
-    auto properties = Properties{};
-    properties.SetValue(INTERFACE_NORMAL_STIFFNESS, 1.0E8);
-    properties.SetValue(INTERFACE_SHEAR_STIFFNESS, 5.0E7);
+    auto properties                        = Properties{};
+    properties[INTERFACE_NORMAL_STIFFNESS] = 1.0E8;
+    properties[INTERFACE_SHEAR_STIFFNESS]  = 5.0E7;
+    properties[GEO_FRICTION_ANGLE]         = 0.0;
+    properties[GEO_COHESION]               = 0.0;
+    properties[GEO_DILATANCY_ANGLE]        = 0.0;
 
     auto parameters = ConstitutiveLaw::Parameters{};
     parameters.SetMaterialProperties(properties);

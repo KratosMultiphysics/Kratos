@@ -14,9 +14,9 @@
 
 // Application includes
 #include "custom_constitutive/interface_coulomb_with_tension_cut_off.h"
-#include "custom_utilities/check_utilities.h"
+#include "custom_utilities/check_utilities.hpp"
 #include "custom_utilities/constitutive_law_utilities.h"
-#include "custom_utilities/math_utilities.h"
+#include "custom_utilities/math_utilities.hpp"
 #include "custom_utilities/stress_strain_utilities.h"
 #include "geo_mechanics_application_constants.h"
 #include "geo_mechanics_application_variables.h"
@@ -39,7 +39,7 @@ ConstitutiveLaw::Pointer InterfaceCoulombWithTensionCutOff::Clone() const
 
 Vector& InterfaceCoulombWithTensionCutOff::GetValue(const Variable<Vector>& rVariable, Vector& rValue)
 {
-    if (rVariable == CAUCHY_STRESS_VECTOR) {
+    if (rVariable == GEO_EFFECTIVE_TRACTION_VECTOR) {
         rValue = mTractionVector;
     } else {
         rValue = ConstitutiveLaw::GetValue(rVariable, rValue);
@@ -51,7 +51,7 @@ void InterfaceCoulombWithTensionCutOff::SetValue(const Variable<Vector>& rVariab
                                                  const Vector&           rValue,
                                                  const ProcessInfo&      rCurrentProcessInfo)
 {
-    if (rVariable == CAUCHY_STRESS_VECTOR) {
+    if (rVariable == GEO_EFFECTIVE_TRACTION_VECTOR) {
         mTractionVector = rValue;
     } else {
         KRATOS_ERROR << "Can't set value of " << rVariable.Name() << ": unsupported variable\n";
@@ -108,10 +108,7 @@ void InterfaceCoulombWithTensionCutOff::InitializeMaterial(const Properties& rMa
                                                            const Geometry<Node>&,
                                                            const Vector&)
 {
-    mCoulombWithTensionCutOffImpl = CoulombWithTensionCutOffImpl{
-        MathUtils<>::DegreesToRadians(rMaterialProperties[GEO_FRICTION_ANGLE]), rMaterialProperties[GEO_COHESION],
-        MathUtils<>::DegreesToRadians(rMaterialProperties[GEO_DILATANCY_ANGLE]),
-        rMaterialProperties[GEO_TENSILE_STRENGTH]};
+    mCoulombWithTensionCutOffImpl = CoulombWithTensionCutOffImpl{rMaterialProperties};
 
     mRelativeDisplacementVectorFinalized =
         HasInitialState() ? GetInitialState().GetInitialStrainVector() : ZeroVector{GetStrainSize()};
@@ -142,7 +139,7 @@ void InterfaceCoulombWithTensionCutOff::CalculateMaterialResponseCauchy(Paramete
 
     if (!mCoulombWithTensionCutOffImpl.IsAdmissibleSigmaTau(trial_sigma_tau)) {
         mapped_sigma_tau = mCoulombWithTensionCutOffImpl.DoReturnMapping(
-            r_properties, trial_sigma_tau, CoulombYieldSurface::CoulombAveragingType::NO_AVERAGING);
+            trial_sigma_tau, CoulombYieldSurface::CoulombAveragingType::NO_AVERAGING);
         if (negative) mapped_sigma_tau[1] *= -1.0;
     }
 

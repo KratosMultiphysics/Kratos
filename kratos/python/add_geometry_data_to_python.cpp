@@ -92,6 +92,7 @@ void AddGeometryDataToPython(pybind11::module& m)
         .value("Kratos_Quadrature_Point_Geometry", GeometryData::KratosGeometryType::Kratos_Quadrature_Point_Geometry)
         .value("Kratos_Knot_Span_Geometry", GeometryData::KratosGeometryType::Kratos_Knot_Span_Geometry)
         .value("Kratos_Coupling_Geometry", GeometryData::KratosGeometryType::Kratos_Coupling_Geometry)
+        .value("Kratos_Quadrature_Point_Curve_Geometry", GeometryData::KratosGeometryType::Kratos_Quadrature_Point_Curve_Geometry)
         .value("Kratos_Quadrature_Point_Curve_On_Surface_Geometry", GeometryData::KratosGeometryType::Kratos_Quadrature_Point_Curve_On_Surface_Geometry)
         .value("Kratos_Quadrature_Point_Surface_In_Volume_Geometry", GeometryData::KratosGeometryType::Kratos_Quadrature_Point_Surface_In_Volume_Geometry);
 

@@ -11,7 +11,7 @@
 //
 
 #include "custom_processes/find_neighbour_elements_of_conditions_process.h"
-#include "test_setup_utilities/element_setup_utilities.h"
+#include "test_setup_utilities/element_setup_utilities.hpp"
 #include "test_setup_utilities/model_setup_utilities.h"
 #include "tests/cpp_tests/geo_mechanics_fast_suite.h"
 
@@ -167,7 +167,7 @@ INSTANTIATE_TEST_SUITE_P(KratosGeoMechanicsFastSuiteWithoutKernel,
                                            std::vector<std::size_t>{4, 2, 1},
                                            std::vector<std::size_t>{1, 3, 4}));
 
-TEST_F(KratosGeoMechanicsFastSuiteWithoutKernel, FindNeighboursWithMultipleNeighbouringElements_AddsLastElementAsNeighbour)
+TEST_F(KratosGeoMechanicsFastSuiteWithoutKernel, FindNeighboursWithMultipleNeighbouringElements_AddsAllElementsAsNeighbour)
 {
     // Arrange
     Model model;
@@ -193,15 +193,20 @@ TEST_F(KratosGeoMechanicsFastSuiteWithoutKernel, FindNeighboursWithMultipleNeigh
     process.Execute();
 
     // Assert
-    EXPECT_EQ(p_condition->GetValue(NEIGHBOUR_ELEMENTS).size(), 1);
-    EXPECT_EQ(p_condition->GetValue(NEIGHBOUR_ELEMENTS)[0].GetId(), 2);
+    const auto& r_neighbours = p_condition->GetValue(NEIGHBOUR_ELEMENTS);
+    EXPECT_EQ(r_neighbours.size(), 2);
+
+    KRATOS_EXPECT_TRUE(std::any_of(r_neighbours.ptr_begin(), r_neighbours.ptr_end(),
+                                   [](const auto& element) { return element->GetId() == 1; }))
+    KRATOS_EXPECT_TRUE(std::any_of(r_neighbours.ptr_begin(), r_neighbours.ptr_end(),
+                                   [](const auto& element) { return element->GetId() == 2; }))
 }
 
 KRATOS_TEST_CASE_IN_SUITE(CheckInfoFindNeighbourElementsOfConditionsProcess, KratosGeoMechanicsFastSuiteWithoutKernel)
 {
     // Arrange
-    Model                                    model;
-    auto&                                    r_empty_model_part = model.CreateModelPart("foo");
+    Model model;
+    auto& r_empty_model_part = model.CreateModelPart("foo");
     const FindNeighbourElementsOfConditionsProcess process(r_empty_model_part);
     // Act & assert
     KRATOS_EXPECT_EQ(process.Info(), "FindNeighbourElementsOfConditionsProcess");

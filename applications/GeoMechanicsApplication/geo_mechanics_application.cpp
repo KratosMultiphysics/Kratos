@@ -14,6 +14,7 @@
 
 // Application includes
 #include "geo_mechanics_application.h"
+#include "custom_retention/saturated_below_phreatic_level_law.h"
 
 namespace Kratos
 {
@@ -133,12 +134,12 @@ void KratosGeoMechanicsApplication::Register()
     KRATOS_REGISTER_ELEMENT("UPwSmallStrainInterfaceElement3D6N", mUPwSmallStrainInterfaceElement3D6N)
     KRATOS_REGISTER_ELEMENT("UPwSmallStrainInterfaceElement3D8N", mUPwSmallStrainInterfaceElement3D8N)
 
-    KRATOS_REGISTER_ELEMENT("Geo_ULineInterfacePlaneStrainElement2Plus2N", mULineInterfacePlaneStrainElement2Plus2N)
-    KRATOS_REGISTER_ELEMENT("Geo_ULineInterfacePlaneStrainElement3Plus3N", mULineInterfacePlaneStrainElement3Plus3N)
-    KRATOS_REGISTER_ELEMENT("Geo_USurfaceInterfaceElement3Plus3N", mUSurfaceInterfaceElement3Plus3N)
-    KRATOS_REGISTER_ELEMENT("Geo_USurfaceInterfaceElement4Plus4N", mUSurfaceInterfaceElement4Plus4N)
-    KRATOS_REGISTER_ELEMENT("Geo_USurfaceInterfaceElement6Plus6N", mUSurfaceInterfaceElement6Plus6N)
-    KRATOS_REGISTER_ELEMENT("Geo_USurfaceInterfaceElement8Plus8N", mUSurfaceInterfaceElement8Plus8N)
+    KRATOS_REGISTER_ELEMENT("Geo_ULineInterfacePlaneStrainElement2Plus2N", mUPwLineInterfacePlaneStrainElement2Plus2N)
+    KRATOS_REGISTER_ELEMENT("Geo_ULineInterfacePlaneStrainElement3Plus3N", mUPwLineInterfacePlaneStrainElement3Plus3N)
+    KRATOS_REGISTER_ELEMENT("Geo_USurfaceInterfaceElement3Plus3N", mUPwSurfaceInterfaceElement3Plus3N)
+    KRATOS_REGISTER_ELEMENT("Geo_USurfaceInterfaceElement4Plus4N", mUPwSurfaceInterfaceElement4Plus4N)
+    KRATOS_REGISTER_ELEMENT("Geo_USurfaceInterfaceElement6Plus6N", mUPwSurfaceInterfaceElement6Plus6N)
+    KRATOS_REGISTER_ELEMENT("Geo_USurfaceInterfaceElement8Plus8N", mUPwSurfaceInterfaceElement8Plus8N)
 
     // Updated-Lagrangian elements
     KRATOS_REGISTER_ELEMENT("UPwUpdatedLagrangianElement2D3N", mUPwUpdatedLagrangianElement2D3N)
@@ -377,6 +378,15 @@ void KratosGeoMechanicsApplication::Register()
     KRATOS_REGISTER_VARIABLE(GEO_FRICTION_ANGLE)
     KRATOS_REGISTER_VARIABLE(GEO_DILATANCY_ANGLE)
     KRATOS_REGISTER_VARIABLE(GEO_TENSILE_STRENGTH)
+    KRATOS_REGISTER_VARIABLE(GEO_COULOMB_HARDENING_TYPE)
+    KRATOS_REGISTER_VARIABLE(GEO_COHESION_FUNCTION_COEFFICIENTS)
+    KRATOS_REGISTER_VARIABLE(GEO_FRICTION_ANGLE_FUNCTION_COEFFICIENTS)
+    KRATOS_REGISTER_VARIABLE(GEO_DILATANCY_ANGLE_FUNCTION_COEFFICIENTS)
+    KRATOS_REGISTER_VARIABLE(GEO_MAX_PLASTIC_ITERATIONS)
+    KRATOS_REGISTER_VARIABLE(GEO_ABS_YIELD_FUNCTION_TOLERANCE)
+    KRATOS_REGISTER_VARIABLE(GEO_COMPRESSION_CAP_SIZE)
+    KRATOS_REGISTER_VARIABLE(GEO_PRECONSOLIDATION_STRESS)
+    KRATOS_REGISTER_VARIABLE(GEO_CAP_HARDENING_TYPE)
 
     KRATOS_REGISTER_VARIABLE(SPECIFIC_HEAT_CAPACITY_WATER)
     KRATOS_REGISTER_VARIABLE(SPECIFIC_HEAT_CAPACITY_SOLID)
@@ -438,6 +448,9 @@ void KratosGeoMechanicsApplication::Register()
     KRATOS_REGISTER_3D_VARIABLE_WITH_COMPONENTS(INCREMENTAL_ROTATION)
 
     KRATOS_REGISTER_VARIABLE(IS_CONVERGED)
+
+    KRATOS_REGISTER_VARIABLE(GEO_RELATIVE_DISPLACEMENT_VECTOR)
+    KRATOS_REGISTER_VARIABLE(GEO_EFFECTIVE_TRACTION_VECTOR)
 
     KRATOS_REGISTER_VARIABLE(TOTAL_STRESS_TENSOR)
     KRATOS_REGISTER_VARIABLE(TOTAL_STRESS_VECTOR)

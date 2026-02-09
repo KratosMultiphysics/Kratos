@@ -11,7 +11,7 @@
 //
 
 // Project includes
-#include "custom_elements/Pw_element.h"
+#include "custom_elements/Pw_element.hpp"
 #include "custom_elements/geo_steady_state_Pw_piping_element.h"
 #include "custom_strategies/strategies/geo_mechanics_newton_raphson_erosion_process_strategy.hpp"
 #include "tests/cpp_tests/geo_mechanics_fast_suite.h"
@@ -39,7 +39,7 @@ public:
                                                         typename TBuilderAndSolverType::Pointer pNewBuilderAndSolver,
                                                         Parameters& rParameters)
         : GeoMechanicsNewtonRaphsonErosionProcessStrategy<TSparseSpace, TDenseSpace, TLinearSolver>(
-              rModelPart, pScheme, pNewConvergenceCriteria, pNewBuilderAndSolver, rParameters),
+              rModelPart, std::move(pScheme), std::move(pNewConvergenceCriteria), std::move(pNewBuilderAndSolver), rParameters),
           mrModelPart(rModelPart)
     {
     }

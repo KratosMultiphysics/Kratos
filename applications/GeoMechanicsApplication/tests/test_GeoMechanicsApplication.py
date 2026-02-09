@@ -70,6 +70,8 @@ from moving_column_with_fixed_pressure_above_phreatic_line import KratosGeoMecha
 from test_surface_interface_elements import KratosGeoMechanicsSurfaceInterfaceElementTests
 from test_dsettlement_validation import  KratosGeoMechanicsDSettlementValidationTests
 from test_dirichlet_u_constant import KratosGeoMechanicsDirichletUConstantTests
+from interface_prestress import KratosGeoMechanicsInterfacePreStressTests
+from test_building_pit import KratosGeoMechanicsBuildingPit
 
 def AssembleTestSuites():
     ''' Populates the test suites to run.
@@ -125,6 +127,7 @@ def AssembleTestSuites():
                         KratosGeoMechanicsSurfaceInterfaceElementTests,
                         KratosGeoMechanicsAvoidSmallEndStepTests,
                         KratosGeoMechanicsDirichletUConstantTests,
+                        KratosGeoMechanicsInterfacePreStressTests,
                         ]
 
     night_test_cases = [
@@ -158,6 +161,7 @@ def AssembleTestSuites():
                         KratosGeoMechanicsThreeDimensionalPipingValidation,
                         KratosGeoMechanicsTransientThermalValidationTests,
                         KratosGeoMechanicsDSettlementValidationTests,
+                        KratosGeoMechanicsBuildingPit,
                         ]
 
     # Create an array that contains all the tests from every testCase

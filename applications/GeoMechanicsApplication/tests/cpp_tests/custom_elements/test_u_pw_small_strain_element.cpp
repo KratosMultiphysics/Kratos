@@ -14,11 +14,12 @@
 #include "custom_constitutive/incremental_linear_elastic_law.h"
 #include "custom_constitutive/plane_strain.h"
 #include "custom_constitutive/small_strain_udsm_law.h"
-#include "custom_elements/U_Pw_small_strain_element.hpp"
+#include "custom_elements/U_Pw_small_strain_element.h"
 #include "custom_elements/plane_strain_stress_state.h"
-#include "custom_utilities/registration_utilities.h"
+#include "custom_retention/saturated_law.h"
+#include "custom_utilities/registration_utilities.hpp"
 #include "includes/variables.h"
-#include "test_setup_utilities/element_setup_utilities.h"
+#include "test_setup_utilities/element_setup_utilities.hpp"
 #include "test_setup_utilities/model_setup_utilities.h"
 #include "tests/cpp_tests/custom_constitutive/mock_constitutive_law.hpp"
 #include "tests/cpp_tests/geo_mechanics_fast_suite.h"
@@ -48,7 +49,7 @@ ModelPart& CreateModelPartWithUPwSolutionStepVariables(Model& rModel)
     return r_result;
 }
 
-std::shared_ptr<Properties> CreateProperties()
+std::shared_ptr<Properties> CreatePropertiesForUPwSmallStrainElementTest()
 {
     const auto p_properties = std::make_shared<Properties>();
     p_properties->SetValue(CONSTITUTIVE_LAW, std::make_shared<GeoIncrementalLinearElasticLaw>(
@@ -217,7 +218,8 @@ KRATOS_TEST_CASE_IN_SUITE(UPwSmallStrainElement_CheckDoesNotThrowOnCorrectInput,
 {
     // Arrange
     Model model;
-    auto  p_element = CreateUPwSmallStrainElementWithUPwDofs(model, CreateProperties());
+    auto  p_element =
+        CreateUPwSmallStrainElementWithUPwDofs(model, CreatePropertiesForUPwSmallStrainElementTest());
     SetSolutionStepValuesForGeneralCheck(p_element);
     const auto dummy_process_info = ProcessInfo{};
     p_element->Initialize(dummy_process_info);
@@ -229,7 +231,8 @@ KRATOS_TEST_CASE_IN_SUITE(UPwSmallStrainElement_CalculatesSteadyStateRightHandSi
 {
     // Arrange
     Model model;
-    auto  p_element = CreateUPwSmallStrainElementWithUPwDofs(model, CreateProperties());
+    auto  p_element =
+        CreateUPwSmallStrainElementWithUPwDofs(model, CreatePropertiesForUPwSmallStrainElementTest());
     SetSolutionStepValuesForFluidFluxCheck(p_element);
     const auto process_info = ProcessInfo{};
 
@@ -256,7 +259,8 @@ KRATOS_TEST_CASE_IN_SUITE(UPwSmallStrainElement_CalculatesSteadyStateLeftHandSid
 {
     // Arrange
     Model model;
-    auto  p_element = CreateUPwSmallStrainElementWithUPwDofs(model, CreateProperties());
+    auto  p_element =
+        CreateUPwSmallStrainElementWithUPwDofs(model, CreatePropertiesForUPwSmallStrainElementTest());
     SetSolutionStepValuesForGeneralCheck(p_element);
     const auto process_info = ProcessInfo{};
 
@@ -277,7 +281,8 @@ KRATOS_TEST_CASE_IN_SUITE(UPwSmallStrainElement_CalculatesCorrectLHSAfterSaveAnd
         std::make_pair("PlaneStrainStressState"s, PlaneStrainStressState{}));
 
     Model model;
-    auto  p_element = CreateUPwSmallStrainElementWithUPwDofs(model, CreateProperties());
+    auto  p_element =
+        CreateUPwSmallStrainElementWithUPwDofs(model, CreatePropertiesForUPwSmallStrainElementTest());
     SetSolutionStepValuesForGeneralCheck(p_element);
     const auto process_info = ProcessInfo{};
     p_element->Initialize(process_info);
@@ -304,7 +309,8 @@ KRATOS_TEST_CASE_IN_SUITE(UPwSmallStrainElement_CalculatesCorrectRHSAfterSaveAnd
         std::make_pair("PlaneStrainStressState"s, PlaneStrainStressState{}));
 
     Model model;
-    auto  p_element = CreateUPwSmallStrainElementWithUPwDofs(model, CreateProperties());
+    auto  p_element =
+        CreateUPwSmallStrainElementWithUPwDofs(model, CreatePropertiesForUPwSmallStrainElementTest());
     SetSolutionStepValuesForFluidFluxCheck(p_element);
     const auto process_info = ProcessInfo{};
 
@@ -337,7 +343,8 @@ KRATOS_TEST_CASE_IN_SUITE(UPwSmallStrainElement_InitializeSolutionStep, KratosGe
 {
     // Arrange
     Model model;
-    auto  p_element = CreateUPwSmallStrainElementWithUPwDofs(model, CreateProperties());
+    auto  p_element =
+        CreateUPwSmallStrainElementWithUPwDofs(model, CreatePropertiesForUPwSmallStrainElementTest());
     SetSolutionStepValuesForGeneralCheck(p_element);
     const auto process_info = ProcessInfo{};
     p_element->Initialize(process_info);
@@ -409,7 +416,8 @@ KRATOS_TEST_CASE_IN_SUITE(UPwSmallStrainElement_InitializeNonLinearIterationAndC
 {
     // Arrange
     Model model;
-    auto  p_element = CreateUPwSmallStrainElementWithUPwDofs(model, CreateProperties());
+    auto  p_element =
+        CreateUPwSmallStrainElementWithUPwDofs(model, CreatePropertiesForUPwSmallStrainElementTest());
     p_element->GetProperties().SetValue(BIOT_COEFFICIENT, 1.000000e+00);
     SetSolutionStepValuesForGeneralCheck(p_element);
     const auto process_info = ProcessInfo{};
@@ -431,7 +439,8 @@ KRATOS_TEST_CASE_IN_SUITE(UPwSmallStrainElement_InitializeNonLinearIterationAndC
 
     // Arrange
     Model model;
-    auto  p_element = CreateUPwSmallStrainElementWithUPwDofs(model, CreateProperties());
+    auto  p_element =
+        CreateUPwSmallStrainElementWithUPwDofs(model, CreatePropertiesForUPwSmallStrainElementTest());
     p_element->GetProperties().SetValue(BIOT_COEFFICIENT, 1.000000e+00);
     SetSolutionStepValuesForGeneralCheck(p_element);
     const auto process_info = ProcessInfo{};
@@ -454,7 +463,8 @@ KRATOS_TEST_CASE_IN_SUITE(UPwSmallStrainElement_CalculateOnIntegrationPointsVari
 {
     // Arrange
     Model model;
-    auto  p_element = CreateUPwSmallStrainElementWithUPwDofs(model, CreateProperties());
+    auto  p_element =
+        CreateUPwSmallStrainElementWithUPwDofs(model, CreatePropertiesForUPwSmallStrainElementTest());
     p_element->GetProperties().SetValue(BIOT_COEFFICIENT, 1.000000e+00);
     SetSolutionStepValuesForGeneralCheck(p_element);
     const auto process_info = ProcessInfo{};
@@ -546,7 +556,8 @@ KRATOS_TEST_CASE_IN_SUITE(UPwSmallStrainElement_FinalizeSolutionStep, KratosGeoM
 {
     // Arrange
     Model model;
-    auto  p_element = CreateUPwSmallStrainElementWithUPwDofs(model, CreateProperties());
+    auto  p_element =
+        CreateUPwSmallStrainElementWithUPwDofs(model, CreatePropertiesForUPwSmallStrainElementTest());
     p_element->GetProperties().SetValue(BIOT_COEFFICIENT, 1.000000e+00);
     SetSolutionStepValuesForFluidFluxCheck(p_element);
     const auto process_info = ProcessInfo{};
@@ -566,7 +577,8 @@ KRATOS_TEST_CASE_IN_SUITE(UPwSmallStrainElement_SetValuesOnIntegrationPointsMatr
 {
     // Arrange
     Model model;
-    auto  p_element = CreateUPwSmallStrainElementWithUPwDofs(model, CreateProperties());
+    auto  p_element =
+        CreateUPwSmallStrainElementWithUPwDofs(model, CreatePropertiesForUPwSmallStrainElementTest());
     p_element->GetProperties().SetValue(BIOT_COEFFICIENT, 1.000000e+00);
     SetSolutionStepValuesForGeneralCheck(p_element);
     const auto process_info = ProcessInfo{};
@@ -713,5 +725,4 @@ KRATOS_TEST_CASE_IN_SUITE(UPwSmallStrainElement_InitializeCorrectlySetsStatePara
                                            Defaults::relative_tolerance);
     }
 }
-
 } // namespace Kratos::Testing

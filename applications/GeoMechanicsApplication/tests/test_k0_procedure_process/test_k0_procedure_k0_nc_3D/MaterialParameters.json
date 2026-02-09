@@ -15,8 +15,8 @@
               "POROSITY"                 :  0.3,
               "BULK_MODULUS_SOLID"       :  1.0e9,
               "BULK_MODULUS_FLUID"       :  2.0e-30,
-	          "K0_NC"                    :  0.5,
-	          "K0_MAIN_DIRECTION"        :  2,
+              "K0_NC"                    :  0.5,
+              "K0_MAIN_DIRECTION"        :  2,
               "PERMEABILITY_XX"          :  4.5e-30,
               "PERMEABILITY_YY"          :  4.5e-30,
               "PERMEABILITY_ZZ"          :  4.5e-30,
@@ -28,8 +28,7 @@
               "SATURATED_SATURATION"             :  1.0,
               "RESIDUAL_SATURATION"              :  1e-10,
               "MINIMUM_RELATIVE_PERMEABILITY"    :  0.0001
-         },
-         "Tables": {}
+         }
       }
    }]
 }

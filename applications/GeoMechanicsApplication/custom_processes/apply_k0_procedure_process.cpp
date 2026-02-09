@@ -13,7 +13,6 @@
 #include "apply_k0_procedure_process.h"
 
 #include <algorithm>
-#include <iterator>
 #include <ostream>
 
 #include "containers/model.h"
@@ -22,13 +21,13 @@
 #include "custom_utilities/process_utilities.h"
 #include "geo_aliases.h"
 #include "geo_mechanics_application_variables.h"
-#include "includes/element.h"
 #include "includes/model_part.h"
 
 namespace
 {
 
 using namespace Kratos;
+using namespace std::string_literals;
 
 void SetConsiderDiagonalEntriesOnlyAndNoShear(ModelPart::ElementsContainerType& rElements, bool Whether)
 {
@@ -192,14 +191,14 @@ void ApplyK0ProcedureProcess::ExecuteFinalizeSolutionStep()
 
     // K0 procedure for the model part:
     for (const auto& r_model_part : mrModelParts) {
-        block_for_each(r_model_part.get().Elements(), [&r_model_part, this](Element& rElement) {
+        block_for_each(r_model_part.get().Elements(), [&r_model_part](Element& rElement) {
             CalculateK0Stresses(rElement, r_model_part.get().GetProcessInfo());
         });
     }
     KRATOS_CATCH("")
 }
 
-std::string ApplyK0ProcedureProcess::Info() const { return "ApplyK0ProcedureProcess"; }
+std::string ApplyK0ProcedureProcess::Info() const { return "ApplyK0ProcedureProcess"s; }
 
 bool ApplyK0ProcedureProcess::UseStandardProcedure() const
 {
@@ -214,8 +213,8 @@ array_1d<double, 3> ApplyK0ProcedureProcess::CreateK0Vector(const Element::Prope
     if (rProp.Has(K0_NC)) {
         std::fill(k0_vector.begin(), k0_vector.end(), rProp[K0_NC]);
     } else if (rProp.Has(INDEX_OF_UMAT_PHI_PARAMETER) && rProp.Has(UMAT_PARAMETERS)) {
-        const auto phi_in_radians = ConstitutiveLawUtilities::GetFrictionAngleInRadians(rProp);
-        std::fill(k0_vector.begin(), k0_vector.end(), 1.0 - std::sin(phi_in_radians));
+        std::ranges::fill(k0_vector, ConstitutiveLawUtilities::CalculateK0NCFromFrictionAngleInRadians(
+                                         ConstitutiveLawUtilities::GetFrictionAngleInRadians(rProp)));
     } else {
         k0_vector[0] = rProp[K0_VALUE_XX];
         k0_vector[1] = rProp[K0_VALUE_YY];
@@ -225,7 +224,7 @@ array_1d<double, 3> ApplyK0ProcedureProcess::CreateK0Vector(const Element::Prope
     return k0_vector;
 }
 
-void ApplyK0ProcedureProcess::CalculateK0Stresses(Element& rElement, const ProcessInfo& rProcessInfo) const
+void ApplyK0ProcedureProcess::CalculateK0Stresses(Element& rElement, const ProcessInfo& rProcessInfo)
 {
     // Get K0 material parameters of this element ( probably there is something more efficient )
     const Element::PropertiesType& rProp             = rElement.GetProperties();

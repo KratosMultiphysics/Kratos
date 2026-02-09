@@ -145,6 +145,7 @@ public:
         Kratos_Quadrature_Point_Geometry,
         Kratos_Knot_Span_Geometry,
         Kratos_Coupling_Geometry,
+        Kratos_Quadrature_Point_Curve_Geometry,
         Kratos_Quadrature_Point_Curve_On_Surface_Geometry,
         Kratos_Quadrature_Point_Surface_In_Volume_Geometry,
         NumberOfGeometryTypes // Note that this entry needs to be always the last to be used as geometry types counter

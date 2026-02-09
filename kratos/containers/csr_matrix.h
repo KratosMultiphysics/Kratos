@@ -396,29 +396,30 @@ public:
             KRATOS_ERROR << " max column index : " << max_col << " exceeds mNcols :" << mNcols << std::endl;
     }
 
-    TDataType& operator()(IndexType I, IndexType J)
+    IndexType FindValueIndex(IndexType I, IndexType J) const
     {
         const IndexType row_begin = index1_data()[I];
         const IndexType row_end = index1_data()[I+1];
-        IndexType k = BinarySearch(index2_data(), row_begin, row_end, J);
+        return BinarySearch(index2_data(), row_begin, row_end, J);
+    }
+
+    TDataType& operator()(IndexType I, IndexType J)
+    {
+        const IndexType k = FindValueIndex(I,J);
         KRATOS_DEBUG_ERROR_IF(k==std::numeric_limits<IndexType>::max()) << "local indices I,J : " << I << " " << J << " not found in matrix" << std::endl;
         return value_data()[k];
     }
 
     const TDataType& operator()(IndexType I, IndexType J) const
     {
-        const IndexType row_begin = index1_data()[I];
-        const IndexType row_end = index1_data()[I+1];
-        IndexType k = BinarySearch(index2_data(), row_begin, row_end, J);
+        const IndexType k = FindValueIndex(I,J);
         KRATOS_DEBUG_ERROR_IF(k==std::numeric_limits<IndexType>::max()) << "local indices I,J : " << I << " " << J << " not found in matrix" << std::endl;
         return value_data()[k];
     }
 
     bool Has(IndexType I, IndexType J) const
     {
-        const IndexType row_begin = index1_data()[I];
-        const IndexType row_end = index1_data()[I+1];
-        IndexType k = BinarySearch(index2_data(), row_begin, row_end, J);
+        const IndexType k = FindValueIndex(I,J);
         return k != std::numeric_limits<IndexType>::max();
     }
 
