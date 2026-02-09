@@ -51,7 +51,8 @@ KRATOS_TEST_CASE_IN_SUITE(GeometryUtilities_ReturnsGetNodalValues, KratosGeoMech
     KRATOS_EXPECT_VECTOR_EQ(temperatures, expected_temperatures);
 
     // Act
-    auto more_temperatures = VariablesUtilities::GetNodalValues(r_model_part.Nodes(), TEMPERATURE);
+    const auto more_temperatures = VariablesUtilities::GetNodalValues(r_model_part.Nodes(), TEMPERATURE);
+
     // Assert
     KRATOS_EXPECT_VECTOR_EQ(temperatures, expected_temperatures);
 }

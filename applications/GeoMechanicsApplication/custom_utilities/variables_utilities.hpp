@@ -25,11 +25,12 @@ namespace Kratos
 class KRATOS_API(GEO_MECHANICS_APPLICATION) VariablesUtilities
 {
 public:
-    template <typename OutputIt>
-    static OutputIt GetNodalValues(const Geometry<Node>& rGeometry, const Variable<double>& rNodalVariable, OutputIt FirstOut)
+    template <typename NodeContainerType, typename DataType, typename OutputIt>
+    static OutputIt GetNodalValues(const NodeContainerType& rNodes, const Variable<DataType>& rNodalVariable, OutputIt FirstOut)
     {
-        return std::transform(rGeometry.begin(), rGeometry.end(), FirstOut, [&rNodalVariable](const auto& node) {
-            return node.FastGetSolutionStepValue(rNodalVariable);
+        return std::transform(std::begin(rNodes), std::end(rNodes), FirstOut,
+                              [&rNodalVariable](const auto& rNode) {
+            return rNode.FastGetSolutionStepValue(rNodalVariable);
         });
     }
 
@@ -47,10 +48,7 @@ public:
     {
         auto result = std::vector<DataType>{};
         result.reserve(rNodes.size());
-        auto get_nodal_value = [&rVariable](const auto& rNode) {
-            return rNode.FastGetSolutionStepValue(rVariable);
-        };
-        std::ranges::transform(rNodes, std::back_inserter(result), get_nodal_value);
+        GetNodalValues(rNodes, rVariable, std::back_inserter(result));
         return result;
     }
 
