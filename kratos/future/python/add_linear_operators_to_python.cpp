@@ -36,13 +36,11 @@ void AddLinearOperatorsToPython(py::module& m)
         .def(py::init<Parameters>())
         .def("SpMV", &LinearOperatorType::SpMV)
         .def("TransposeSpMV", &LinearOperatorType::TransposeSpMV)
-        .def("Clear", &LinearOperatorType::Clear)
-        .def("SetNumRows", &LinearOperatorType::SetNumRows)
-        .def("SetNumCols", &LinearOperatorType::SetNumCols)
         .def("GetMatrix", py::overload_cast<>(&LinearOperatorType::GetMatrix), py::return_value_policy::reference)
-        .def("NumRows", &LinearOperatorType::NumRows)
-        .def("NumCols", &LinearOperatorType::NumCols)
-        .def("IsMatrixFree", &LinearOperatorType::IsMatrixFree)
+        .def_property_readonly("Shape", &LinearOperatorType::Shape)
+        .def_property_readonly("NumRows", &LinearOperatorType::NumRows)
+        .def_property_readonly("NumCols", &LinearOperatorType::NumCols)
+        .def_property_readonly("IsMatrixFree", &LinearOperatorType::IsMatrixFree)
         ;
 
     using SparseMatrixLinearOperatorType = Future::SparseMatrixLinearOperator<Future::SerialLinearAlgebraTraits>;

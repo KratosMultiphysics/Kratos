@@ -82,6 +82,16 @@ public:
         mNumCols = ThisParameters["num_cols"].GetInt();
     }
 
+    /**
+     * @brief Construct a new Linear Operator object
+     * @param Shape Pair with the shape of the linear operator
+     */
+    LinearOperator(const std::pair<std::size_t, std::size_t> Shape)
+    {
+        mNumRows = std::get<0>(Shape);
+        mNumCols = std::get<1>(Shape);
+    }
+
     /// Deleted copy constructor (non-copyable)
     LinearOperator(const LinearOperator& rOther) = delete;
 
@@ -129,51 +139,36 @@ public:
         KRATOS_ERROR << "TransposeSpMV() is not implemented in base LinearOperator class." << std::endl;
     }
 
-    /**
-     * @brief Clear the operator data.
-     * @details Resets the sizes and function objects to null.
-     */
-    virtual void Clear()
-    {
-        mNumRows = 0;
-        mNumCols = 0;
-    }
-
     ///@}
     ///@name Access
     ///@{
 
+    /**
+     * @brief Get the Matrix object
+     * @return MatrixType& Reference to the underlying matrix.
+     */
     virtual MatrixType& GetMatrix()
     {
         KRATOS_ERROR << "GetMatrix() is not implemented in base LinearOperator class." << std::endl;
     }
 
+    /**
+     * @brief Get the Matrix object
+     * @return const MatrixType& Reference to the underlying matrix.
+     */
     virtual const MatrixType& GetMatrix() const
     {
         KRATOS_ERROR << "GetMatrix() is not implemented in base LinearOperator class." << std::endl;
     }
 
-    /**
-     * @brief Set the number of rows.
-     * @param NumRows Number of rows
-     */
-    void SetNumRows(std::size_t NumRows)
-    {
-        mNumRows = NumRows;
-    }
-
-    /**
-     * @brief Set the number of columns.
-     * @param NumCols Number of columns
-     */
-    void SetNumCols(std::size_t NumCols)
-    {
-        mNumCols = NumCols;
-    }
-
     ///@}
     ///@name Inquiry
     ///@{
+
+    std::pair<std::size_t, std::size_t> Shape() const
+    {
+        return {mNumRows, mNumCols};
+    }
 
     /**
      * @brief Get the number of rows.

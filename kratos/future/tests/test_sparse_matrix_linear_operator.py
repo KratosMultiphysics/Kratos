@@ -25,9 +25,12 @@ class TestSparseMatrixLinearOperator(KratosUnittest.TestCase):
         lin_op = KratosMultiphysics.Future.SparseMatrixLinearOperator(A)
 
         # Check operator properties
-        self.assertEqual(lin_op.NumRows(), 2)
-        self.assertEqual(lin_op.NumCols(), 2)
-        self.assertFalse(lin_op.IsMatrixFree())
+        shape = lin_op.Shape
+        self.assertEqual(shape[0], 2)
+        self.assertEqual(shape[1], 2)
+        self.assertEqual(lin_op.NumRows, 2)
+        self.assertEqual(lin_op.NumCols, 2)
+        self.assertFalse(lin_op.IsMatrixFree)
 
         # Test GetMatrix
         # Note: GetMatrix returns a reference to the CsrMatrix.
@@ -51,11 +54,6 @@ class TestSparseMatrixLinearOperator(KratosUnittest.TestCase):
         lin_op.TransposeSpMV(x, y_trans)
         self.assertAlmostEqual(y_trans_data[0], 3.0)
         self.assertAlmostEqual(y_trans_data[1], 5.0)
-
-        # Test Clear
-        lin_op.Clear()
-        self.assertEqual(lin_op.NumRows(), 0)
-        self.assertEqual(lin_op.NumCols(), 0)
 
 if __name__ == '__main__':
     KratosUnittest.main()
