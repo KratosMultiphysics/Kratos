@@ -42,7 +42,7 @@ class ConstStep():
 
         search_direction: Kratos.TensorAdaptors.DoubleCombinedTensorAdaptor = algorithm_buffered_data["search_direction"]
         if self._gradient_scaling == "inf_norm":
-            return numpy.linalg.norm(search_direction.data, ord=numpy.inf)
+            return numpy.max(numpy.abs(search_direction.data))
         elif self._gradient_scaling == "l2_norm":
             return numpy.linalg.norm(search_direction.data)
         elif self._gradient_scaling == "none":
