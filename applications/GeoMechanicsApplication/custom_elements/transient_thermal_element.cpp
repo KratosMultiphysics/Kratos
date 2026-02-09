@@ -194,10 +194,10 @@ void TransientThermalElement<TDim, TNumNodes>::AddContributionsToRhsVector(
     const BoundedMatrix<double, TNumNodes, TNumNodes>& rCapacityMatrix) const
 {
     const auto capacity_vector     = array_1d<double, TNumNodes>{-prod(
-        rCapacityMatrix, VariablesUtilities::GetNodalValuesOf<TNumNodes>(DT_TEMPERATURE, this->GetGeometry()))};
+        rCapacityMatrix, VariablesUtilities::GetNodalValuesOf<TNumNodes>(this->GetGeometry(), DT_TEMPERATURE))};
     rRightHandSideVector           = capacity_vector;
     const auto conductivity_vector = array_1d<double, TNumNodes>{-prod(
-        rConductivityMatrix, VariablesUtilities::GetNodalValuesOf<TNumNodes>(TEMPERATURE, this->GetGeometry()))};
+        rConductivityMatrix, VariablesUtilities::GetNodalValuesOf<TNumNodes>(this->GetGeometry(), TEMPERATURE))};
     rRightHandSideVector += conductivity_vector;
 }
 

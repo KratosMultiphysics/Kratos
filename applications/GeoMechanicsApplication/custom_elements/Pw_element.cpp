@@ -491,7 +491,7 @@ template <unsigned int TDim, unsigned int TNumNodes>
 std::vector<double> PwElement<TDim, TNumNodes>::CalculateFluidPressure()
 {
     return GeoTransportEquationUtilities::CalculateFluidPressures(
-        mNContainer, VariablesUtilities::GetNodalValuesOf<TNumNodes>(WATER_PRESSURE, this->GetGeometry()));
+        mNContainer, VariablesUtilities::GetNodalValuesOf<TNumNodes>(this->GetGeometry(), WATER_PRESSURE));
 }
 
 template <unsigned int TDim, unsigned int TNumNodes>

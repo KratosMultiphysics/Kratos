@@ -44,7 +44,7 @@ KRATOS_TEST_CASE_IN_SUITE(GeometryUtilities_ReturnsGetNodalValues, KratosGeoMech
     }
 
     // Act
-    const auto temperatures = VariablesUtilities::GetNodalValuesOf<2>(TEMPERATURE, geometry);
+    const auto temperatures = VariablesUtilities::GetNodalValuesOf<2>(geometry, TEMPERATURE);
 
     // Assert
     auto expected_temperatures = std::vector({4.5, 4.5});

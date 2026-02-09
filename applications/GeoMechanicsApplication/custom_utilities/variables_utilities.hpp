@@ -35,8 +35,8 @@ public:
     }
 
     template <unsigned int TNumNodes>
-    static array_1d<double, TNumNodes> GetNodalValuesOf(const Variable<double>& rNodalVariable,
-                                                        const Geometry<Node>&   rGeometry)
+    static array_1d<double, TNumNodes> GetNodalValuesOf(const Geometry<Node>&   rGeometry,
+                                                        const Variable<double>& rNodalVariable)
     {
         auto result = array_1d<double, TNumNodes>{};
         GetNodalValues(rGeometry, rNodalVariable, result.begin());
