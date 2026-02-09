@@ -86,9 +86,19 @@ public:
 
         ~PointerWrapper() { if (mIsManaged && mpData) delete[] mpData; }
 
+        ///@}
+        ///@name Access
+        ///@{
+
         TDataType * Data() { return mpData; }
 
         TDataType const * Data() const { return mpData; }
+
+        ///@}
+        ///@name Inquiry
+        ///@{
+
+        const bool IsManaged() const { return mIsManaged; }
 
         ///@}
 
