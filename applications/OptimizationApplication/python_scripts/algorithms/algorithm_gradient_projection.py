@@ -126,9 +126,7 @@ class AlgorithmGradientProjection(Algorithm):
 
         if not number_of_active_constraints:
             search_direction.data[:] *= -1.0
-            search_direction.StoreData()
             correction.data[:] = 0.0
-            correction.StoreData()
         else:
             constraint_violations = Kratos.Vector(number_of_active_constraints)
             for i, active_constraint in enumerate(active_constraints_list):
@@ -159,6 +157,7 @@ class AlgorithmGradientProjection(Algorithm):
         if correction_norm > self.correction_size:
             correction.data[:] *= self.correction_size / correction_norm
 
+        search_direction.StoreData()
         correction.StoreData()
 
         self.algorithm_data.GetBufferedData()["search_direction"] = search_direction

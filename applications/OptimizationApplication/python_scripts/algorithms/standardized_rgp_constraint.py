@@ -198,7 +198,7 @@ class StandardizedRGPConstraint(ResponseRoutine):
             else:
                 raise RuntimeError(f"Response value for {self.GetResponseName()} is not calculated yet.")
 
-    def CalculateStandardizedValue(self, control_field: KratosOA.CollectiveExpression, save_value: bool = True) -> float:
+    def CalculateStandardizedValue(self, control_field: Kratos.TensorAdaptors.DoubleCombinedTensorAdaptor, save_value: bool = True) -> float:
         with TimeLogger(f"StandardizedRGPConstraint::Calculate {self.GetResponseName()} value", None, "Finished"):
             response_value = self.CalculateValue(control_field)
             standardized_response_value = response_value * self.__scaling
@@ -218,14 +218,15 @@ class StandardizedRGPConstraint(ResponseRoutine):
 
         return standardized_response_value
 
-    def CalculateStandardizedGradient(self) -> KratosOA.CollectiveExpression:
+    def CalculateStandardizedGradient(self) -> Kratos.TensorAdaptors.DoubleCombinedTensorAdaptor:
         with TimeLogger(f"StandardizedRGPConstraint::Calculate {self.GetResponseName()} gradients", None, "Finished"):
             gradient_collective_expression = self.CalculateGradient()
             if self.IsEqualityType():
                 factor = 1.0 if self.GetStandardizedValue() > 0.0 else -1.0
             else:
                 factor = 1.0
-            return gradient_collective_expression * self.__scaling * factor
+            gradient_collective_expression.data[:] *= self.__scaling * factor
+            return gradient_collective_expression
 
     def GetValue(self, step_index: int = 0) -> float:
         return self.__buffered_data.GetValue("value", step_index)
