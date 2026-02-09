@@ -26,6 +26,7 @@
 #include "custom_elements/shell_3p_mixed_element.h"
 #include "custom_elements/shell_5p_hierarchic_element.h"
 #include "custom_elements/shell_5p_element.h"
+#include "custom_elements/shell_6p_element.h"
 #include "custom_elements/laplacian_element.h"
 #include "custom_elements/solid_element.h"
 #include "custom_elements/stokes_element.h"
@@ -141,6 +142,7 @@ private:
     const Shell3pMixedElement mShell3pMixedElement;
     const Shell5pHierarchicElement mShell5pHierarchicElement;
     const Shell5pElement mShell5pElement;
+    const Shell6pElement mShell6pElement;
     const LaplacianElement mLaplacianElement;
     const SolidElement mSolidElement;
     const StokesElement mStokesElement;
