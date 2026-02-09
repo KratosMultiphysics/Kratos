@@ -2546,7 +2546,7 @@ void ModelPartIO::ReadConstraintsBlock(
         for(SizeType i = 0 ; i < number_of_master_dofs ; i++) {
             word = words[number_of_words - (number_of_master_dofs - i)]; // Reading master id
             ExtractValue(word, node_id);
-            temp_master_nodes[i] = *(FindKey(rThisNodes, ReorderedNodeId(node_id), "Node").base());
+            temp_master_nodes.push_back(*(FindKey(rThisNodes, ReorderedNodeId(node_id), "Node").base()));
         }
 
         // Now with the nodes and the variables we can create the dofs

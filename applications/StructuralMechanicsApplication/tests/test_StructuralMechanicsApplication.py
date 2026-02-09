@@ -108,6 +108,7 @@ from structural_mechanics_test_factory import MixedUEElementTest as TMixedUEElem
 from structural_mechanics_test_factory import LinearTruss2D2NTest as TLinearTruss2D2NTest
 from structural_mechanics_test_factory import LinearTruss2D3NTest as TLinearTruss2D3NTest
 from structural_mechanics_test_factory import LinearTruss3DTest as TLinearTruss3DTest
+from structural_mechanics_test_factory import TLTruss3DTest as TTLTruss3DTest
 from structural_mechanics_test_factory import TimoshenkoBeam3D2NTest as TTimoshenkoBeam3D2NTest
 from structural_mechanics_test_factory import TimoshenkoBeam2D2NTest as TTimoshenkoBeam2D2NTest
 from structural_mechanics_test_factory import TimoshenkoBeam2D3NTest as TTimoshenkoBeam2D3NTest
@@ -369,6 +370,7 @@ def AssembleTestSuites():
     smallSuite.addTest(TLinearTruss2D2NTest('test_execution'))
     smallSuite.addTest(TLinearTruss2D3NTest('test_execution'))
     smallSuite.addTest(TLinearTruss3DTest('test_execution'))
+    smallSuite.addTest(TTLTruss3DTest('test_execution'))
     smallSuite.addTest(TTimoshenkoBeam3D2NTest('test_execution'))
     smallSuite.addTest(TTimoshenkoBeam2D2NTest('test_execution'))
     smallSuite.addTest(TTimoshenkoBeam2D3NTest('test_execution'))

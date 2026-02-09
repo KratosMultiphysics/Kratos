@@ -15,15 +15,15 @@
 
 #pragma once
 
-#include "calculation_contribution.h"
-#include "compressibility_calculator.hpp"
+#include "contribution_calculators/calculation_contribution.h"
+#include "contribution_calculators/compressibility_calculator.hpp"
+#include "contribution_calculators/filter_compressibility_calculator.hpp"
+#include "contribution_calculators/fluid_body_flow_calculator.hpp"
+#include "contribution_calculators/permeability_calculator.hpp"
 #include "custom_retention/retention_law_factory.h"
-#include "filter_compressibility_calculator.hpp"
-#include "fluid_body_flow_calculator.hpp"
 #include "includes/element.h"
 #include "includes/serializer.h"
 #include "integration_coefficients_calculator.hpp"
-#include "permeability_calculator.hpp"
 
 #include <optional>
 
@@ -101,7 +101,7 @@ private:
     std::vector<CalculationContribution> mContributions;
     IntegrationCoefficientsCalculator    mIntegrationCoefficientsCalculator;
     std::vector<RetentionLaw::Pointer>   mRetentionLawVector;
-    Vector                               mIntegrationCoefficients;
+    std::vector<double>                  mIntegrationCoefficients;
     Matrix                               mNContainer;
     Vector                               mDetJCcontainer;
     std::vector<double>                  mFluidPressures;
@@ -137,6 +137,14 @@ private:
         return [this]() -> const std::vector<RetentionLaw::Pointer>& { return mRetentionLawVector; };
     }
 
+    auto MakeMaterialPermeabilityGetter()
+    {
+        return [this]() -> Matrix {
+            return GeoElementUtilities::FillPermeabilityMatrix(
+                this->GetProperties(), this->GetGeometry().LocalSpaceDimension());
+        };
+    }
+
     auto GetNContainer()
     {
         return [this]() -> const Matrix& { return mNContainer; };
@@ -146,10 +154,10 @@ private:
 
     auto GetIntegrationCoefficients()
     {
-        return [this]() -> const Vector& { return mIntegrationCoefficients; };
+        return [this]() -> const std::vector<double>& { return mIntegrationCoefficients; };
     }
 
-    Vector CalculateIntegrationCoefficients();
+    std::vector<double> CalculateIntegrationCoefficients();
 
     auto GetFluidPressures()
     {
@@ -192,11 +200,6 @@ private:
 
             return dN_dX_container;
         };
-    }
-
-    auto MakeLocalSpaceDimensionGetter() const
-    {
-        return [this]() -> std::size_t { return this->GetGeometry().LocalSpaceDimension(); };
     }
 
     [[nodiscard]] DofsVectorType GetDofs() const;
