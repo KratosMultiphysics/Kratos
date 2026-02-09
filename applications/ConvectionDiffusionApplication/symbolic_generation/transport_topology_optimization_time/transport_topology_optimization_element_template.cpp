@@ -10,14 +10,14 @@
 //  Main authors:    Gianmarco Boscolo
 //
 
-#include "fluid_topology_optimization_element.h"
+#include "transport_topology_optimization_element.h"
 #include "includes/cfd_variables.h"
 #include "includes/checks.h"
 
 #include "utilities/element_size_calculator.h"
 
 // include Fluid Topology Optimization Data
-#include "custom_utilities/fluid_topology_optimization_element_data.h"
+#include "custom_utilities/transport_topology_optimization_element_data.h"
 
 namespace Kratos
 {
@@ -26,77 +26,64 @@ namespace Kratos
 // Life cycle
 
 template< class TElementData >
-FluidTopologyOptimizationElement<TElementData>::FluidTopologyOptimizationElement(IndexType NewId):
+TransportTopologyOptimizationElement<TElementData>::TransportTopologyOptimizationElement(IndexType NewId):
     Element(NewId)
 {}
 
 template< class TElementData >
-FluidTopologyOptimizationElement<TElementData>::FluidTopologyOptimizationElement(IndexType NewId, const NodesArrayType& ThisNodes):
+TransportTopologyOptimizationElement<TElementData>::TransportTopologyOptimizationElement(IndexType NewId, const NodesArrayType& ThisNodes):
     Element(NewId,ThisNodes)
 {}
 
 
 template< class TElementData >
-FluidTopologyOptimizationElement<TElementData>::FluidTopologyOptimizationElement(IndexType NewId, GeometryType::Pointer pGeometry):
+TransportTopologyOptimizationElement<TElementData>::TransportTopologyOptimizationElement(IndexType NewId, GeometryType::Pointer pGeometry):
     Element(NewId,pGeometry)
 {}
 
 
 template< class TElementData >
-FluidTopologyOptimizationElement<TElementData>::FluidTopologyOptimizationElement(IndexType NewId, GeometryType::Pointer pGeometry, PropertiesType::Pointer pProperties):
+TransportTopologyOptimizationElement<TElementData>::TransportTopologyOptimizationElement(IndexType NewId, GeometryType::Pointer pGeometry, PropertiesType::Pointer pProperties):
     Element(NewId,pGeometry,pProperties)
 {}
 
 
 template< class TElementData >
-FluidTopologyOptimizationElement<TElementData>::~FluidTopologyOptimizationElement()
+TransportTopologyOptimizationElement<TElementData>::~TransportTopologyOptimizationElement()
 {}
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 // Public Operations
 
 template <class TElementData>
-Element::Pointer FluidTopologyOptimizationElement<TElementData>::Create(
+Element::Pointer TransportTopologyOptimizationElement<TElementData>::Create(
     IndexType NewId,
     NodesArrayType const &ThisNodes,
     Properties::Pointer pProperties) const
 {
-    return Kratos::make_intrusive<FluidTopologyOptimizationElement>(NewId, this->GetGeometry().Create(ThisNodes), pProperties);
+    return Kratos::make_intrusive<TransportTopologyOptimizationElement>(NewId, this->GetGeometry().Create(ThisNodes), pProperties);
 }
 
 template <class TElementData>
-Element::Pointer FluidTopologyOptimizationElement<TElementData>::Create(
+Element::Pointer TransportTopologyOptimizationElement<TElementData>::Create(
     IndexType NewId,
     GeometryType::Pointer pGeom,
     Properties::Pointer pProperties) const
 {
-    return Kratos::make_intrusive<FluidTopologyOptimizationElement>(NewId, pGeom, pProperties);
+    return Kratos::make_intrusive<TransportTopologyOptimizationElement>(NewId, pGeom, pProperties);
 }
 
 template< class TElementData >
-void FluidTopologyOptimizationElement<TElementData>::Initialize(const ProcessInfo& rCurrentProcessInfo) {
+void TransportTopologyOptimizationElement<TElementData>::Initialize(const ProcessInfo& rCurrentProcessInfo) {
     KRATOS_TRY;
 
-    // If we are restarting, the constitutive law will be already defined
-    if (mpConstitutiveLaw == nullptr) {
-        const Properties& r_properties = this->GetProperties();
-        KRATOS_ERROR_IF_NOT(r_properties.Has(CONSTITUTIVE_LAW))
-            << "In initialization of Element " << this->Info()
-            << ": No CONSTITUTIVE_LAW defined for property "
-            << r_properties.Id() << "." << std::endl;
-
-        mpConstitutiveLaw = r_properties[CONSTITUTIVE_LAW]->Clone();
-
-        const GeometryType& r_geometry = this->GetGeometry();
-        const auto& r_shape_functions = r_geometry.ShapeFunctionsValues(GeometryData::IntegrationMethod::GI_GAUSS_1);
-        mpConstitutiveLaw->InitializeMaterial(r_properties,r_geometry,row(r_shape_functions,0));
-    }
+    // DO NOTHING
 
     KRATOS_CATCH("");
 }
 
 template <class TElementData>
-void FluidTopologyOptimizationElement<TElementData>::CalculateLocalSystem(MatrixType& rLeftHandSideMatrix,
+void TransportTopologyOptimizationElement<TElementData>::CalculateLocalSystem(MatrixType& rLeftHandSideMatrix,
                                                       VectorType& rRightHandSideVector,
                                                       const ProcessInfo& rCurrentProcessInfo)
 {
@@ -128,7 +115,7 @@ void FluidTopologyOptimizationElement<TElementData>::CalculateLocalSystem(Matrix
         // problem_physics = 2: ADJOINT NS equations
         if (problem_physics == 1)
         {
-            // PRIMAL NAVIER-STOKES
+            // PRIMAL TRANSPORT
             // Iterate over integration points to evaluate local contribution
             for (unsigned int g = 0; g < number_of_gauss_points; g++) 
             {
@@ -143,7 +130,7 @@ void FluidTopologyOptimizationElement<TElementData>::CalculateLocalSystem(Matrix
         }
         else if (problem_physics == 2)
         {
-            // ADJOINT NAVIER-STOKES
+            // ADJOINT TRANSPORT
             // Iterate over integration points to evaluate local contribution
             for (unsigned int g = 0; g < number_of_gauss_points; g++) {
 
@@ -159,14 +146,14 @@ void FluidTopologyOptimizationElement<TElementData>::CalculateLocalSystem(Matrix
         {
             if (problem_physics != 0)
             {
-                KRATOS_ERROR << "\nInvalid value for the variable FLUID_TOP_OPT_PROBLEM_STAGE for the Fluid Topology Optimization aplication. |\t TopOptProblemStage = " << problem_physics << " |\t Accepted values are 1->NS, 2->ADJ_NS.\n";
+                KRATOS_ERROR << "\nInvalid value for the variable TRANSPORT_TOP_OPT_PROBLEM_STAGE for the Fluid Topology Optimization aplication. |\t TopOptProblemStage = " << problem_physics << " |\t Accepted values are 1->NS, 2->ADJ_NS.\n";
             }
         }
     }
 }
 
 template <class TElementData>
-void FluidTopologyOptimizationElement<TElementData>::CalculateLeftHandSide(MatrixType& rLeftHandSideMatrix,
+void TransportTopologyOptimizationElement<TElementData>::CalculateLeftHandSide(MatrixType& rLeftHandSideMatrix,
                                                        const ProcessInfo& rCurrentProcessInfo)
 {
     // Resize and intialize output
@@ -193,7 +180,7 @@ void FluidTopologyOptimizationElement<TElementData>::CalculateLeftHandSide(Matri
         // problem_physics = 2: ADJOINT NS equations
         if (problem_physics == 1)
         {
-            // PRIMAL NAVIER-STOKES
+            // PRIMAL TRANSPORT
             // Iterate over integration points to evaluate local contribution
             for (unsigned int g = 0; g < number_of_gauss_points; g++) 
             {
@@ -206,9 +193,9 @@ void FluidTopologyOptimizationElement<TElementData>::CalculateLeftHandSide(Matri
         }
         else if (problem_physics == 2)
         {
-            // ADJOINT NAVIER-STOKES
+            // ADJOINT TRANSPORT
             // Iterate over integration points to evaluate local contribution
-            // PRIMAL NAVIER-STOKES
+            // PRIMAL TRANSPORT
             // Iterate over integration points to evaluate local contribution
             for (unsigned int g = 0; g < number_of_gauss_points; g++) 
             {
@@ -223,7 +210,7 @@ void FluidTopologyOptimizationElement<TElementData>::CalculateLeftHandSide(Matri
         {
             if (problem_physics != 0)
             {
-                KRATOS_ERROR << "\nInvalid value for the variable FLUID_TOP_OPT_PROBLEM_STAGE for the Fluid Topology Optimization aplication. |\t TopOptProblemStage = " << problem_physics << " |\t Accepted values are 1->NS, 2->ADJ_NS.\n";
+                KRATOS_ERROR << "\nInvalid value for the variable TRANSPORT_TOP_OPT_PROBLEM_STAGE for the Fluid Topology Optimization aplication. |\t TopOptProblemStage = " << problem_physics << " |\t Accepted values are 1->NS, 2->ADJ_NS.\n";
         
             }
         }
@@ -231,7 +218,7 @@ void FluidTopologyOptimizationElement<TElementData>::CalculateLeftHandSide(Matri
 }
 
 template <class TElementData>
-void FluidTopologyOptimizationElement<TElementData>::CalculateRightHandSide(VectorType& rRightHandSideVector,
+void TransportTopologyOptimizationElement<TElementData>::CalculateRightHandSide(VectorType& rRightHandSideVector,
                                                         const ProcessInfo& rCurrentProcessInfo)
 {
     if (rRightHandSideVector.size() != LocalSize)
@@ -258,7 +245,7 @@ void FluidTopologyOptimizationElement<TElementData>::CalculateRightHandSide(Vect
         // problem_physics = 2: ADJOINT NS equations
         if (problem_physics == 1)
         {
-            // PRIMAL NAVIER-STOKES
+            // PRIMAL TRANSPORT
             // Iterate over integration points to evaluate local contribution
             for (unsigned int g = 0; g < number_of_gauss_points; g++) 
             {
@@ -271,7 +258,7 @@ void FluidTopologyOptimizationElement<TElementData>::CalculateRightHandSide(Vect
         }
         else if (problem_physics == 2)
         {
-            // ADJOINT NAVIER-STOKES
+            // ADJOINT TRANSPORT
             // Iterate over integration points to evaluate local contribution
             for (unsigned int g = 0; g < number_of_gauss_points; g++) 
             {
@@ -286,7 +273,7 @@ void FluidTopologyOptimizationElement<TElementData>::CalculateRightHandSide(Vect
         {
             if (problem_physics != 0)
             {
-                KRATOS_ERROR << "\nInvalid value for the variable FLUID_TOP_OPT_PROBLEM_STAGE for the Fluid Topology Optimization aplication. |\t TopOptProblemStage = " << problem_physics << " |\t Accepted values are 1->NS, 2->ADJ_NS.\n";
+                KRATOS_ERROR << "\nInvalid value for the variable TRANSPORT_TOP_OPT_PROBLEM_STAGE for the Fluid Topology Optimization aplication. |\t TopOptProblemStage = " << problem_physics << " |\t Accepted values are 1->NS, 2->ADJ_NS.\n";
         
             }
         }
@@ -294,7 +281,7 @@ void FluidTopologyOptimizationElement<TElementData>::CalculateRightHandSide(Vect
 }
 
 template <class TElementData>
-void FluidTopologyOptimizationElement<TElementData>::CalculateLocalVelocityContribution(
+void TransportTopologyOptimizationElement<TElementData>::CalculateLocalVelocityContribution(
     MatrixType& rDampMatrix, VectorType& rRightHandSideVector, const ProcessInfo& rCurrentProcessInfo)
 {
     // Resize and intialize output
@@ -332,7 +319,7 @@ void FluidTopologyOptimizationElement<TElementData>::CalculateLocalVelocityContr
 }
 
 template <class TElementData>
-void FluidTopologyOptimizationElement<TElementData>::CalculateMassMatrix(MatrixType& rMassMatrix,
+void TransportTopologyOptimizationElement<TElementData>::CalculateMassMatrix(MatrixType& rMassMatrix,
                                                      const ProcessInfo& rCurrentProcessInfo)
 {
     // Resize and intialize output
@@ -365,7 +352,7 @@ void FluidTopologyOptimizationElement<TElementData>::CalculateMassMatrix(MatrixT
 }
 
 template< class TElementData >
-void FluidTopologyOptimizationElement< TElementData >::EquationIdVector(EquationIdVectorType &rResult, const ProcessInfo &rCurrentProcessInfo) const
+void TransportTopologyOptimizationElement< TElementData >::EquationIdVector(EquationIdVectorType &rResult, const ProcessInfo &rCurrentProcessInfo) const
 {
     const GeometryType& r_geometry = this->GetGeometry();
 
@@ -375,50 +362,39 @@ void FluidTopologyOptimizationElement< TElementData >::EquationIdVector(Equation
         rResult.resize(LocalSize, false);
 
     // Now the distinction of what to do for the primal or adjoint problem must be done calling the relative Kratos property
-    unsigned int problem_physics = rCurrentProcessInfo[FLUID_TOP_OPT_PROBLEM_STAGE];
+    unsigned int problem_physics = rCurrentProcessInfo[TRANSPORT_TOP_OPT_PROBLEM_STAGE];
     // problem_physics = 1: NS equations
     // problem_physics = 2: ADJOINT NS equations
     if (problem_physics == 1)
     {
-        // PRIMAL NAVIER-STOKES
-        const unsigned int xpos = this->GetGeometry()[0].GetDofPosition(VELOCITY_X);
-        const unsigned int ppos = this->GetGeometry()[0].GetDofPosition(PRESSURE);
+        // PRIMAL TRANSPORT
+        const unsigned int cpos = this->GetGeometry()[0].GetDofPosition(TEMPERATURE);
 
         for (unsigned int i = 0; i < NumNodes; ++i)
         {
-            rResult[LocalIndex++] = r_geometry[i].GetDof(VELOCITY_X,xpos).EquationId();
-            rResult[LocalIndex++] = r_geometry[i].GetDof(VELOCITY_Y,xpos+1).EquationId();
-            if (Dim == 3) rResult[LocalIndex++] = r_geometry[i].GetDof(VELOCITY_Z,xpos+2).EquationId();
-            rResult[LocalIndex++] = r_geometry[i].GetDof(PRESSURE,ppos).EquationId();
+            rResult[LocalIndex++] = r_geometry[i].GetDof(TEMPERATURE, cpos).EquationId();
         }
     }
     else if (problem_physics == 2)
     {
-        // ADJOINT NAVIER-STOKES
-        const unsigned int xpos = this->GetGeometry()[0].GetDofPosition(VELOCITY_ADJ_X);
-        const unsigned int ppos = this->GetGeometry()[0].GetDofPosition(PRESSURE_ADJ);
+        // ADJOINT TRANSPORT
+        const unsigned int cpos = this->GetGeometry()[0].GetDofPosition(TEMPERATURE_ADJ);
 
         for (unsigned int i = 0; i < NumNodes; ++i)
         {
-            rResult[LocalIndex++] = r_geometry[i].GetDof(VELOCITY_ADJ_X,xpos).EquationId();
-            rResult[LocalIndex++] = r_geometry[i].GetDof(VELOCITY_ADJ_Y,xpos+1).EquationId();
-            if (Dim == 3) rResult[LocalIndex++] = r_geometry[i].GetDof(VELOCITY_ADJ_Z,xpos+2).EquationId();
-            rResult[LocalIndex++] = r_geometry[i].GetDof(PRESSURE_ADJ,ppos).EquationId();
+            rResult[LocalIndex++] = r_geometry[i].GetDof(TEMPERATURE_ADJ, cpos).EquationId();
         }
     }
     else
     {
         if (problem_physics != 0)
         {
-            KRATOS_ERROR << "\nInvalid value for the variable FLUID_TOP_OPT_PROBLEM_STAGE for the Fluid Topology Optimization aplication. |\t TopOptProblemStage = " << problem_physics << " |\t Accepted values are 1->NS, 2->ADJ_NS.\n";
-    
+            KRATOS_ERROR << "\nInvalid value for the variable TRANSPORT_TOP_OPT_PROBLEM_STAGE for the Fluid Topology Optimization aplication. |\t TopOptProblemStage = " << problem_physics << " |\t Accepted values are 1->T, 2->ADJ_T.\n";
         }
     }
 }
-
-
 template< class TElementData >
-void FluidTopologyOptimizationElement< TElementData >::GetDofList(DofsVectorType &rElementalDofList, const ProcessInfo &rCurrentProcessInfo) const
+void TransportTopologyOptimizationElement< TElementData >::GetDofList(DofsVectorType &rElementalDofList, const ProcessInfo &rCurrentProcessInfo) const
 {
     const GeometryType& r_geometry = this->GetGeometry();
 
@@ -426,44 +402,36 @@ void FluidTopologyOptimizationElement< TElementData >::GetDofList(DofsVectorType
          rElementalDofList.resize(LocalSize);
 
     // Now the distinction of what to do for the primal or adjoint problem must be done calling the relative Kratos property
-    unsigned int problem_physics = rCurrentProcessInfo[FLUID_TOP_OPT_PROBLEM_STAGE];
+    unsigned int problem_physics = rCurrentProcessInfo[TRANSPORT_TOP_OPT_PROBLEM_STAGE];
     // problem_physics = 1: NS equations
     // problem_physics = 2: ADJOINT NS equations
     if (problem_physics == 1)
     {
-        // PRIMAL NAVIER-STOKES
-        const unsigned int xpos = this->GetGeometry()[0].GetDofPosition(VELOCITY_X);
-        const unsigned int ppos = this->GetGeometry()[0].GetDofPosition(PRESSURE);
+        // PRIMAL TRANSPORT
+        const unsigned int cpos = this->GetGeometry()[0].GetDofPosition(TEMPERATURE);
 
         unsigned int LocalIndex = 0;
         for (unsigned int i = 0; i < NumNodes; ++i)
         {
-            rElementalDofList[LocalIndex++] = r_geometry[i].pGetDof(VELOCITY_X,xpos);
-            rElementalDofList[LocalIndex++] = r_geometry[i].pGetDof(VELOCITY_Y,xpos+1);
-            if (Dim == 3) rElementalDofList[LocalIndex++] = r_geometry[i].pGetDof(VELOCITY_Z,xpos+2);
-            rElementalDofList[LocalIndex++] = r_geometry[i].pGetDof(PRESSURE,ppos);
+            rElementalDofList[LocalIndex++] = r_geometry[i].pGetDof(TEMPERATURE,cpos);
         }
     }
     else if (problem_physics == 2)
     {
-        // ADJOINT NAVIER-STOKES
-        const unsigned int xpos = this->GetGeometry()[0].GetDofPosition(VELOCITY_ADJ_X);
-        const unsigned int ppos = this->GetGeometry()[0].GetDofPosition(PRESSURE_ADJ);
+        // ADJOINT TRANSPORT
+        const unsigned int cpos = this->GetGeometry()[0].GetDofPosition(TEMPERATURE_ADJ);
 
         unsigned int LocalIndex = 0;
         for (unsigned int i = 0; i < NumNodes; ++i)
         {
-            rElementalDofList[LocalIndex++] = r_geometry[i].pGetDof(VELOCITY_ADJ_X,xpos);
-            rElementalDofList[LocalIndex++] = r_geometry[i].pGetDof(VELOCITY_ADJ_Y,xpos+1);
-            if (Dim == 3) rElementalDofList[LocalIndex++] = r_geometry[i].pGetDof(VELOCITY_ADJ_Z,xpos+2);
-            rElementalDofList[LocalIndex++] = r_geometry[i].pGetDof(PRESSURE_ADJ,ppos);
+            rElementalDofList[LocalIndex++] = r_geometry[i].pGetDof(TEMPERATURE_ADJ,cpos);
         }
     }
     else
     {
         if (problem_physics != 0)
         {
-            KRATOS_ERROR << "\nInvalid value for the variable FLUID_TOP_OPT_PROBLEM_STAGE for the Fluid Topology Optimization aplication. |\t TopOptProblemStage = " << problem_physics << " |\t Accepted values are 1->NS, 2->ADJ_NS.\n";
+            KRATOS_ERROR << "\nInvalid value for the variable TRANSPORT_TOP_OPT_PROBLEM_STAGE for the Fluid Topology Optimization aplication. |\t TopOptProblemStage = " << problem_physics << " |\t Accepted values are 1->NS, 2->ADJ_NS.\n";
     
         }
     }
@@ -472,7 +440,7 @@ void FluidTopologyOptimizationElement< TElementData >::GetDofList(DofsVectorType
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 
 template< class TElementData >
-void FluidTopologyOptimizationElement<TElementData>::GetFirstDerivativesVector(Vector &rValues, int Step) const
+void TransportTopologyOptimizationElement<TElementData>::GetFirstDerivativesVector(Vector &rValues, int Step) const
 {
     const GeometryType& r_geometry = this->GetGeometry();
 
@@ -483,16 +451,13 @@ void FluidTopologyOptimizationElement<TElementData>::GetFirstDerivativesVector(V
 
     for (unsigned int i = 0; i < NumNodes; i++)
     {
-        const array_1d<double,3>& rVel = r_geometry[i].FastGetSolutionStepValue(VELOCITY,Step);
-        for (unsigned int d = 0; d < Dim; d++)
-            rValues[Index++] = rVel[d];
-        rValues[Index++] = r_geometry[i].FastGetSolutionStepValue(PRESSURE,Step);
+        rValues[Index++] = r_geometry[i].FastGetSolutionStepValue(TEMPERATURE,Step);
     }
 }
 
 
 template< class TElementData >
-void FluidTopologyOptimizationElement<TElementData>::GetSecondDerivativesVector(Vector &rValues, int Step) const
+void TransportTopologyOptimizationElement<TElementData>::GetSecondDerivativesVector(Vector &rValues, int Step) const
 {
     const GeometryType& r_geometry = this->GetGeometry();
 
@@ -511,7 +476,7 @@ void FluidTopologyOptimizationElement<TElementData>::GetSecondDerivativesVector(
 
 
 template< class TElementData >
-GeometryData::IntegrationMethod FluidTopologyOptimizationElement<TElementData>::GetIntegrationMethod() const
+GeometryData::IntegrationMethod TransportTopologyOptimizationElement<TElementData>::GetIntegrationMethod() const
 {
     return GeometryData::IntegrationMethod::GI_GAUSS_2;
 }
@@ -520,8 +485,11 @@ GeometryData::IntegrationMethod FluidTopologyOptimizationElement<TElementData>::
 // Inquiry
 
 template< class TElementData >
-int FluidTopologyOptimizationElement<TElementData>::Check(const ProcessInfo &rCurrentProcessInfo) const
+int TransportTopologyOptimizationElement<TElementData>::Check(const ProcessInfo &rCurrentProcessInfo) const
 {
+    // THE CHECK FOR THIS ELEMENT DOES NOT CHECK THE EXISTENCE OF A CONSITUTITVE LAW SINCE IT HAS BEEN IMPLEMENTED WITHOUT IT
+    // IN RERALITY THIS ELEMENT SOLVES A CONVECTION-DIFFUSION-REACTION EQUATION
+
     // Generic geometry check
     int out = Element::Check(rCurrentProcessInfo);
     if (out != 0) {
@@ -536,19 +504,13 @@ int FluidTopologyOptimizationElement<TElementData>::Check(const ProcessInfo &rCu
 
     const GeometryType& r_geometry = this->GetGeometry();
 
-    unsigned int problem_physics = rCurrentProcessInfo[FLUID_TOP_OPT_PROBLEM_STAGE];
+    unsigned int problem_physics = rCurrentProcessInfo[TRANSPORT_TOP_OPT_PROBLEM_STAGE];
     if (problem_physics == 1)
     {
         for(unsigned int i=0; i<NumNodes; ++i)
         {
             const Node& rNode = r_geometry[i];
-            KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(ACCELERATION,rNode);
-            
-            // Check that required dofs exist for PRIMAL NS
-            KRATOS_CHECK_DOF_IN_NODE(VELOCITY_X,rNode);
-            KRATOS_CHECK_DOF_IN_NODE(VELOCITY_Y,rNode);
-            if (Dim == 3) KRATOS_CHECK_DOF_IN_NODE(VELOCITY_Z,rNode);
-            KRATOS_CHECK_DOF_IN_NODE(PRESSURE,rNode);
+            KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(TEMPERATURE,rNode);
         }
     }
     else if (problem_physics == 2)
@@ -556,20 +518,14 @@ int FluidTopologyOptimizationElement<TElementData>::Check(const ProcessInfo &rCu
         for(unsigned int i=0; i<NumNodes; ++i)
         {
             const Node& rNode = r_geometry[i];
-            KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(ACCELERATION_ADJ,rNode);
-            
-            // Check that required dofs exist for ADJOINT NS
-            KRATOS_CHECK_DOF_IN_NODE(VELOCITY_ADJ_X,rNode);
-            KRATOS_CHECK_DOF_IN_NODE(VELOCITY_ADJ_Y,rNode);
-            if (Dim == 3) KRATOS_CHECK_DOF_IN_NODE(VELOCITY_ADJ_Z,rNode);
-            KRATOS_CHECK_DOF_IN_NODE(PRESSURE_ADJ,rNode);
+            KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(TEMPERATURE_ADJ,rNode);
         }
     }
     else
     {
         if (problem_physics != 0)
         {
-            KRATOS_ERROR << "\nInvalid value for the variable FLUID_TOP_OPT_PROBLEM_STAGE for the Fluid Topology Optimization aplication. |\t TopOptProblemStage = " << problem_physics << " |\t Accepted values are 1->NS, 2->ADJ_NS.\n";
+            KRATOS_ERROR << "\nInvalid value for the variable TRANSPORT_TOP_OPT_PROBLEM_STAGE for the Fluid Topology Optimization aplication. |\t TopOptProblemStage = " << problem_physics << " |\t Accepted values are 1->NS, 2->ADJ_NS.\n";
     
         }    
     }
@@ -584,18 +540,18 @@ int FluidTopologyOptimizationElement<TElementData>::Check(const ProcessInfo &rCu
     }
 
     // Check the constitutive law
-    KRATOS_ERROR_IF(mpConstitutiveLaw == nullptr) << "Constitutive Law not initialized for Element " << this->Info() << std::endl;
+    // KRATOS_ERROR_IF(mpConstitutiveLaw == nullptr) << "Constitutive Law not initialized for Element " << this->Info() << std::endl;
 
-    constexpr auto dimension = Dim;  // I need to set this here otherwise it gives me a linking error when attempting to '<<' Dim.
+    // constexpr auto dimension = Dim;  // I need to set this here otherwise it gives me a linking error when attempting to '<<' Dim.
 
-    KRATOS_ERROR_IF(mpConstitutiveLaw->WorkingSpaceDimension() != Dim)
-        << "Wrong dimension: The " << mpConstitutiveLaw->WorkingSpaceDimension()
-        << "D constitutive law " << mpConstitutiveLaw->Info()
-        << " is not compatible with " << dimension << "D element " << this->Info()
-        << "." << std::endl;
+    // KRATOS_ERROR_IF(mpConstitutiveLaw->WorkingSpaceDimension() != Dim)
+    //     << "Wrong dimension: The " << mpConstitutiveLaw->WorkingSpaceDimension()
+    //     << "D constitutive law " << mpConstitutiveLaw->Info()
+    //     << " is not compatible with " << dimension << "D element " << this->Info()
+    //     << "." << std::endl;
 
-    out = mpConstitutiveLaw->Check(this->GetProperties(),r_geometry,rCurrentProcessInfo);
-    KRATOS_ERROR_IF_NOT( out == 0) << "The Constitutive Law provided for Element " << this->Info() << " is not correct." << std::endl;
+    // out = mpConstitutiveLaw->Check(this->GetProperties(),r_geometry,rCurrentProcessInfo);
+    // KRATOS_ERROR_IF_NOT( out == 0) << "The Constitutive Law provided for Element " << this->Info() << " is not correct." << std::endl;
 
     return out;
 }
@@ -604,7 +560,7 @@ int FluidTopologyOptimizationElement<TElementData>::Check(const ProcessInfo &rCu
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 
 template< class TElementData >
-void FluidTopologyOptimizationElement<TElementData>::CalculateOnIntegrationPoints(
+void TransportTopologyOptimizationElement<TElementData>::CalculateOnIntegrationPoints(
     Variable<array_1d<double, 3 > > const& rVariable,
     std::vector<array_1d<double, 3 > >& rValues,
     ProcessInfo const& rCurrentProcessInfo)
@@ -623,7 +579,7 @@ void FluidTopologyOptimizationElement<TElementData>::CalculateOnIntegrationPoint
 
 
 template< class TElementData >
-void FluidTopologyOptimizationElement<TElementData>::CalculateOnIntegrationPoints(
+void TransportTopologyOptimizationElement<TElementData>::CalculateOnIntegrationPoints(
     Variable<double> const& rVariable,
     std::vector<double>& rValues,
     ProcessInfo const& rCurrentProcessInfo)
@@ -656,21 +612,21 @@ void FluidTopologyOptimizationElement<TElementData>::CalculateOnIntegrationPoint
 }
 
 template <class TElementData>
-void FluidTopologyOptimizationElement<TElementData>::CalculateOnIntegrationPoints(
+void TransportTopologyOptimizationElement<TElementData>::CalculateOnIntegrationPoints(
     Variable<array_1d<double, 6>> const& rVariable,
     std::vector<array_1d<double, 6>>& rValues,
     ProcessInfo const& rCurrentProcessInfo)
 {}
 
 template <class TElementData>
-void FluidTopologyOptimizationElement<TElementData>::CalculateOnIntegrationPoints(
+void TransportTopologyOptimizationElement<TElementData>::CalculateOnIntegrationPoints(
     Variable<Vector> const& rVariable,
     std::vector<Vector>& rValues,
     ProcessInfo const& rCurrentProcessInfo)
 {}
 
 template <class TElementData>
-void FluidTopologyOptimizationElement<TElementData>::CalculateOnIntegrationPoints(
+void TransportTopologyOptimizationElement<TElementData>::CalculateOnIntegrationPoints(
     Variable<Matrix> const& rVariable,
     std::vector<Matrix>& rValues,
     ProcessInfo const& rCurrentProcessInfo)
@@ -678,32 +634,32 @@ void FluidTopologyOptimizationElement<TElementData>::CalculateOnIntegrationPoint
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 // Input and output
-
 template <class TElementData>
-std::string FluidTopologyOptimizationElement<TElementData>::Info() const
-{
-    std::stringstream buffer;
-    buffer << "FluidTopologyOptimizationElement" << Dim << "D" << NumNodes << "N #" << this->Id();
-    return buffer.str();
-}
-
-template <class TElementData>
-void FluidTopologyOptimizationElement<TElementData>::PrintInfo(std::ostream& rOStream) const
+void TransportTopologyOptimizationElement<TElementData>::PrintInfo(std::ostream& rOStream) const
 {
     rOStream << this->Info() << std::endl;
 
-    if (this->GetConstitutiveLaw() != nullptr) {
-        rOStream << "with constitutive law " << std::endl;
-        this->GetConstitutiveLaw()->PrintInfo(rOStream);
-    }
+    // if (this->GetConstitutiveLaw() != nullptr) {
+    //     rOStream << "with constitutive law " << std::endl;
+    //     this->GetConstitutiveLaw()->PrintInfo(rOStream);
+    // }
 }
+
+template <class TElementData>
+std::string TransportTopologyOptimizationElement<TElementData>::Info() const
+{
+    std::stringstream buffer;
+    buffer << "TransportTopologyOptimizationElement" << Dim << "D" << NumNodes << "N #" << this->Id();
+    return buffer.str();
+}
+
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 // Protected functions
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 
 template <class TElementData>
-double FluidTopologyOptimizationElement<TElementData>::GetAtCoordinate(
+double TransportTopologyOptimizationElement<TElementData>::GetAtCoordinate(
     const typename TElementData::NodalScalarData& rValues,
     const typename TElementData::ShapeFunctionsType& rN) const
 {
@@ -717,7 +673,7 @@ double FluidTopologyOptimizationElement<TElementData>::GetAtCoordinate(
 }
 
 template <class TElementData>
-array_1d<double, 3> FluidTopologyOptimizationElement<TElementData>::GetAtCoordinate(
+array_1d<double, 3> TransportTopologyOptimizationElement<TElementData>::GetAtCoordinate(
     const typename TElementData::NodalVectorData& rValues,
     const typename TElementData::ShapeFunctionsType& rN) const
 {
@@ -733,7 +689,7 @@ array_1d<double, 3> FluidTopologyOptimizationElement<TElementData>::GetAtCoordin
 }
 
 template <class TElementData>
-BoundedMatrix<double, TElementData::Dim, TElementData::Dim> FluidTopologyOptimizationElement<TElementData>::GetAtCoordinate(
+BoundedMatrix<double, TElementData::Dim, TElementData::Dim> TransportTopologyOptimizationElement<TElementData>::GetAtCoordinate(
     const typename TElementData::NodalTensorData &rValues,
     const typename TElementData::ShapeFunctionsType &rN) const
 {
@@ -747,7 +703,7 @@ BoundedMatrix<double, TElementData::Dim, TElementData::Dim> FluidTopologyOptimiz
 }
 
 template <class TElementData>
-double FluidTopologyOptimizationElement<TElementData>::GetAtCoordinate(
+double TransportTopologyOptimizationElement<TElementData>::GetAtCoordinate(
     const double Value,
     const typename TElementData::ShapeFunctionsType& rN) const
 {
@@ -755,7 +711,7 @@ double FluidTopologyOptimizationElement<TElementData>::GetAtCoordinate(
 }
 
 template <class TElementData>
-void FluidTopologyOptimizationElement<TElementData>::UpdateIntegrationPointData(
+void TransportTopologyOptimizationElement<TElementData>::UpdateIntegrationPointData(
     TElementData& rData,
     unsigned int IntegrationPointIndex,
     double Weight,
@@ -763,64 +719,10 @@ void FluidTopologyOptimizationElement<TElementData>::UpdateIntegrationPointData(
     const typename TElementData::ShapeDerivativesType& rDN_DX) const
 {
     rData.UpdateGeometryValues(IntegrationPointIndex, Weight, rN, rDN_DX);
-
-    this->CalculateMaterialResponse(rData);
-}
-
-template <class TElementData>
-void FluidTopologyOptimizationElement<TElementData>::CalculateMaterialResponse(TElementData& rData) const
-{
-    this->CalculateStrainRate(rData);
-
-    auto& Values = rData.ConstitutiveLawValues;
-
-    const Vector& shape_functions_vector = rData.N;
-    const Matrix& shape_functions_derivative_matrix = rData.DN_DX;
-    Values.SetShapeFunctionsValues(shape_functions_vector);
-    Values.SetShapeFunctionsDerivatives(shape_functions_derivative_matrix);
-
-    //ATTENTION: here we assume that only one constitutive law is employed for all of the gauss points in the element.
-    //this is ok under the hypothesis that no history dependent behavior is employed
-    mpConstitutiveLaw->CalculateMaterialResponseCauchy(Values);
-
-    mpConstitutiveLaw->CalculateValue(Values,EFFECTIVE_VISCOSITY,rData.EffectiveViscosity);
-}
-
-template <class TElementData>
-void FluidTopologyOptimizationElement<TElementData>::CalculateStrainRate(TElementData& rData) const
-{
-    // Now the distinction of what to do for the primal or adjoint problem must be done calling the relative Kratos property
-        unsigned int problem_physics = rData.TopOptProblemStage;
-        // problem_physics = 1: NS equations
-        // problem_physics = 2: ADJOINT NS equations
-        if (problem_physics == 1)
-        {
-            // PRIMAL NAVIER-STOKES
-            Internals::StrainRateSpecialization<TElementData,Dim>::Calculate(
-            rData.StrainRate,
-            rData.Velocity,
-            rData.DN_DX);
-        }
-        else if (problem_physics == 2)
-        {
-            // ADJOINT NAVIER-STOKES
-            Internals::StrainRateSpecialization<TElementData,Dim>::Calculate(
-            rData.StrainRate,
-            rData.Velocity_adj,
-            rData.DN_DX);
-            }
-        else
-        {
-            if (problem_physics != 0)
-            {
-                KRATOS_ERROR << "\nInvalid value for the variable FLUID_TOP_OPT_PROBLEM_STAGE for the Fluid Topology Optimization aplication. |\t TopOptProblemStage = " << problem_physics << " |\t Accepted values are 1->NS, 2->ADJ_NS.\n";
-            }
-        }
-    
 }
 
 template< class TElementData >
-void FluidTopologyOptimizationElement<TElementData>::CalculateGeometryData(Vector &rGaussWeights,
+void TransportTopologyOptimizationElement<TElementData>::CalculateGeometryData(Vector &rGaussWeights,
                                       Matrix &rNContainer,
                                       ShapeFunctionDerivativesArrayType &rDN_DX) const
 {
@@ -847,7 +749,7 @@ void FluidTopologyOptimizationElement<TElementData>::CalculateGeometryData(Vecto
 }
 
 template <class TElementData>
-void FluidTopologyOptimizationElement<TElementData>::Calculate(
+void TransportTopologyOptimizationElement<TElementData>::Calculate(
     const Variable<double> &rVariable,
     double &rOutput,
     const ProcessInfo &rCurrentProcessInfo)
@@ -856,7 +758,7 @@ void FluidTopologyOptimizationElement<TElementData>::Calculate(
 }
 
 template <class TElementData>
-void FluidTopologyOptimizationElement<TElementData>::Calculate(
+void TransportTopologyOptimizationElement<TElementData>::Calculate(
     const Variable<array_1d<double, 3>> &rVariable,
     array_1d<double, 3> &rOutput,
     const ProcessInfo &rCurrentProcessInfo)
@@ -865,52 +767,16 @@ void FluidTopologyOptimizationElement<TElementData>::Calculate(
 }
 
 template <class TElementData>
-void FluidTopologyOptimizationElement<TElementData>::Calculate(
+void TransportTopologyOptimizationElement<TElementData>::Calculate(
     const Variable<Vector >& rVariable,
     Vector& rOutput,
     const ProcessInfo& rCurrentProcessInfo )
 {
-    noalias( rOutput ) = ZeroVector( StrainSize );
-
-    if (rVariable == FLUID_STRESS) {
-
-        // creating a new data container that goes out of scope after the function is left
-        TElementData data_local;
-
-        // transferring the velocity (among other variables)
-        data_local.Initialize(*this, rCurrentProcessInfo);
-
-        Vector gauss_weights;
-        Matrix shape_functions;
-        ShapeFunctionDerivativesArrayType shape_derivatives;
-
-        // computing DN_DX values for the strain rate
-        this->CalculateGeometryData(gauss_weights, shape_functions, shape_derivatives);
-        const unsigned int number_of_gauss_points = gauss_weights.size();
-
-        double sum_of_gauss_weights = 0.0;
-
-        for (unsigned int g = 0; g < number_of_gauss_points; g++){
-
-            this->UpdateIntegrationPointData(data_local, g, gauss_weights[g], row(shape_functions, g), shape_derivatives[g]);
-
-            const Vector gauss_point_contribution = data_local.ShearStress;
-
-            noalias( rOutput ) += gauss_point_contribution * gauss_weights[g];
-            sum_of_gauss_weights += gauss_weights[g];
-        }
-
-        for (unsigned int i = 0; i < StrainSize; i++){
-            rOutput[i] = ( 1.0 / sum_of_gauss_weights ) * rOutput[i];
-        }
-
-    } else {
-        Element::Calculate(rVariable, rOutput, rCurrentProcessInfo);
-    }
+    Element::Calculate(rVariable, rOutput, rCurrentProcessInfo);
 }
 
 template <class TElementData>
-void FluidTopologyOptimizationElement<TElementData>::Calculate(
+void TransportTopologyOptimizationElement<TElementData>::Calculate(
     const Variable<Matrix> &rVariable,
     Matrix &rOutput,
     const ProcessInfo &rCurrentProcessInfo)
@@ -921,7 +787,7 @@ void FluidTopologyOptimizationElement<TElementData>::Calculate(
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 
 template< class TElementData >
-void FluidTopologyOptimizationElement<TElementData>::ConvectionOperator(Vector &rResult,
+void TransportTopologyOptimizationElement<TElementData>::ConvectionOperator(Vector &rResult,
                                    const array_1d<double,3> &rConvVel,
                                    const ShapeFunctionDerivativesType &DN_DX) const
 {
@@ -936,7 +802,7 @@ void FluidTopologyOptimizationElement<TElementData>::ConvectionOperator(Vector &
 }
 
 template <class TElementData>
-void FluidTopologyOptimizationElement<TElementData>::AddTimeIntegratedSystem(
+void TransportTopologyOptimizationElement<TElementData>::AddTimeIntegratedSystem(
     TElementData& rData, MatrixType& rLHS, VectorType& rRHS) 
 {
     this->ComputeGaussPointLHSContribution(rData, rLHS);
@@ -944,21 +810,21 @@ void FluidTopologyOptimizationElement<TElementData>::AddTimeIntegratedSystem(
 }
 
 template <class TElementData>
-void FluidTopologyOptimizationElement<TElementData>::AddTimeIntegratedLHS(
+void TransportTopologyOptimizationElement<TElementData>::AddTimeIntegratedLHS(
     TElementData& rData, MatrixType& rLHS) 
 {
     this->ComputeGaussPointLHSContribution(rData, rLHS);
 }
 
 template <class TElementData>
-void FluidTopologyOptimizationElement<TElementData>::AddTimeIntegratedRHS(
+void TransportTopologyOptimizationElement<TElementData>::AddTimeIntegratedRHS(
     TElementData& rData, VectorType& rRHS) 
 {
     this->ComputeGaussPointRHSContribution(rData, rRHS);
 }
 
 template <class TElementData>
-void FluidTopologyOptimizationElement<TElementData>::AddTimeIntegratedSystemAdjoint(
+void TransportTopologyOptimizationElement<TElementData>::AddTimeIntegratedSystemAdjoint(
     TElementData& rData, MatrixType& rLHS, VectorType& rRHS) 
 {
     this->ComputeGaussPointLHSContributionAdjoint(rData, rLHS);
@@ -966,118 +832,140 @@ void FluidTopologyOptimizationElement<TElementData>::AddTimeIntegratedSystemAdjo
 }
 
 template <class TElementData>
-void FluidTopologyOptimizationElement<TElementData>::AddTimeIntegratedLHSAdjoint(
+void TransportTopologyOptimizationElement<TElementData>::AddTimeIntegratedLHSAdjoint(
     TElementData& rData, MatrixType& rLHS) 
 {
     this->ComputeGaussPointLHSContributionAdjoint(rData, rLHS);
 }
 
 template <class TElementData>
-void FluidTopologyOptimizationElement<TElementData>::AddTimeIntegratedRHSAdjoint(
+void TransportTopologyOptimizationElement<TElementData>::AddTimeIntegratedRHSAdjoint(
     TElementData& rData, VectorType& rRHS) 
 {
     this->ComputeGaussPointRHSContributionAdjoint(rData, rRHS);
 }
 
+// BUILD NS SYSTEM
 template <>
-void FluidTopologyOptimizationElement< FluidTopologyOptimizationElementData<2,3,true>>::ComputeGaussPointLHSContribution(
-    FluidTopologyOptimizationElementData<2,3,true> & rData,
+void TransportTopologyOptimizationElement< TransportTopologyOptimizationElementData<2,3,true>>::ComputeGaussPointLHSContribution(
+    TransportTopologyOptimizationElementData<2,3,true> & rData,
     MatrixType& rLHS)
 {
-    const double rho = rData.Density;
-    const double mu = rData.EffectiveViscosity;
-    // const array_1d<double,3>& c = rData.SoundVelocity;
-
-    const array_1d<double,3> alpha = rData.Resistance;
+    const array_1d<double,3> D = rData.Conductivity;
+    const array_1d<double,3> k = rData.Decay;
+    const array_1d<double,3> c = rData.ConvectionCoefficient;
 
     const double h = rData.ElementSize;
     
     const double dt = rData.DeltaTime;
-    const double bdf0 = rData.bdf0;
+    const double theta = rData.TimeIntegrationTheta;
     const double time_coeff = rData.TopOptTimeCoefficient;
 
     const double dyn_tau = rData.DynamicTau;
-    
-    // Get constitutive matrix
-    const BoundedMatrix<double,3,3>& C = rData.C;
 
     // Get shape function values
     const array_1d<double,3>& N = rData.N;
     const BoundedMatrix<double,3,2>& DN = rData.DN_DX;
 
-    // const double dyn_tau = rData.DynamicTau;
     // Stabilization parameters 
     constexpr double stab_c1 = 4.0;
     constexpr double stab_c2 = 2.0;
     constexpr double stab_c3 = 2.0;
 
-    const BoundedMatrix<double,2,3> vconv = rData.Velocity - rData.MeshVelocity;
+    const BoundedMatrix<double,2,3> vconv = rData.ConvectionVelocity - rData.MeshVelocity;
 
     // Assemble LHS contribution
     const double gauss_weight = rData.Weight;
 
-    // NAVIER-STOKES ELEMENTAL LHS MATRIX
-    //substitute_lhs_2D3N_NS    
+    // TRANSPORT ELEMENTAL LHS MATRIX
+    //substitute_lhs_2D3N_T 
+    
 }
 
 template <>
-void FluidTopologyOptimizationElement<FluidTopologyOptimizationElementData<3,4,true>>::ComputeGaussPointLHSContribution(
-    FluidTopologyOptimizationElementData<3,4,true>& rData,
+void TransportTopologyOptimizationElement< TransportTopologyOptimizationElementData<2,4,true>>::ComputeGaussPointLHSContribution(
+    TransportTopologyOptimizationElementData<2,4,true> & rData,
     MatrixType& rLHS)
 {
-    const double rho = rData.Density;
-    const double mu = rData.EffectiveViscosity;
-    // const array_1d<double,4>& c = rData.SoundVelocity;
-
-    const array_1d<double,4> alpha = rData.Resistance;
+    const array_1d<double,4> D = rData.Conductivity;
+    const array_1d<double,4> k = rData.Decay;
+    const array_1d<double,4> c = rData.ConvectionCoefficient;
 
     const double h = rData.ElementSize;
     
     const double dt = rData.DeltaTime;
-    const double bdf0 = rData.bdf0;
+    const double theta = rData.TimeIntegrationTheta;
     const double time_coeff = rData.TopOptTimeCoefficient;
 
     const double dyn_tau = rData.DynamicTau;
+
+    // Get shape function values
+    const array_1d<double,4>& N = rData.N;
+    const BoundedMatrix<double,4,2>& DN = rData.DN_DX;
+
+    // Stabilization parameters 
+    constexpr double stab_c1 = 4.0;
+    constexpr double stab_c2 = 2.0;
+    constexpr double stab_c3 = 2.0;
+
+    const BoundedMatrix<double,2,4> vconv = rData.ConvectionVelocity - rData.MeshVelocity;
+
+    // Assemble LHS contribution
+    const double gauss_weight = rData.Weight;
+
+    // TRANSPORT ELEMENTAL LHS MATRIX
+    //substitute_lhs_2D4N_T 
     
-    // Get constitutive matrix
-    const BoundedMatrix<double,6,6>& C = rData.C;
+}
+
+template <>
+void TransportTopologyOptimizationElement<TransportTopologyOptimizationElementData<3,4,true>>::ComputeGaussPointLHSContribution(
+    TransportTopologyOptimizationElementData<3,4,true>& rData,
+    MatrixType& rLHS)
+{
+    const array_1d<double,4> D = rData.Conductivity;
+    const array_1d<double,4> k = rData.Decay;
+    const array_1d<double,4> c = rData.ConvectionCoefficient;
+
+    const double h = rData.ElementSize;
+    
+    const double dt = rData.DeltaTime;
+    const double theta = rData.TimeIntegrationTheta;
+    const double time_coeff = rData.TopOptTimeCoefficient;
+
+    const double dyn_tau = rData.DynamicTau;
 
     // Get shape function values
     const array_1d<double,4>& N = rData.N;
     const BoundedMatrix<double,4,3>& DN = rData.DN_DX;
 
-    // const double dyn_tau = rData.DynamicTau;
     // Stabilization parameters 
     constexpr double stab_c1 = 4.0;
     constexpr double stab_c2 = 2.0;
     constexpr double stab_c3 = 2.0;
 
-    const BoundedMatrix<double,3,4> vconv = rData.Velocity - rData.MeshVelocity;
+    const BoundedMatrix<double,3,4> vconv = rData.ConvectionVelocity - rData.MeshVelocity;
 
     // Assemble LHS contribution
     const double gauss_weight = rData.Weight;
 
-    // NAVIER-STOKES ELEMENTAL LHS MATRIX
-    //substitute_lhs_3D4N_NS
+    // TRANSPORT ELEMENTAL LHS MATRIX
+    //substitute_lhs_3D4N_T
 }
 
 template <>
-void FluidTopologyOptimizationElement<FluidTopologyOptimizationElementData<2,3,true>>::ComputeGaussPointRHSContribution(
-    FluidTopologyOptimizationElementData<2,3,true>& rData,
+void TransportTopologyOptimizationElement<TransportTopologyOptimizationElementData<2,3,true>>::ComputeGaussPointRHSContribution(
+    TransportTopologyOptimizationElementData<2,3,true>& rData,
     VectorType& rRHS)
 {
-    const double rho = rData.Density;
-    const double mu = rData.EffectiveViscosity;
-    // const array_1d<double,3>& c = rData.SoundVelocity;
-
-    const array_1d<double,3> alpha = rData.Resistance;
+    const array_1d<double,3> D = rData.Conductivity;
+    const array_1d<double,3> k = rData.Decay;
+    const array_1d<double,3> c = rData.ConvectionCoefficient;
 
     const double h = rData.ElementSize;
-
+    
     const double dt = rData.DeltaTime;
-    const double bdf0 = rData.bdf0;
-    const double bdf1 = rData.bdf1;
-    const double bdf2 = rData.bdf2;
+    const double theta = rData.TimeIntegrationTheta;
     const double time_coeff = rData.TopOptTimeCoefficient;
 
     const double dyn_tau = rData.DynamicTau;
@@ -1086,47 +974,78 @@ void FluidTopologyOptimizationElement<FluidTopologyOptimizationElementData<2,3,t
     const array_1d<double,3>& N = rData.N;
     const BoundedMatrix<double,3,2>& DN = rData.DN_DX;
 
-    // const double dyn_tau = rData.DynamicTau;
-    // Stabilization parameters
+    // Stabilization parameters 
     constexpr double stab_c1 = 4.0;
     constexpr double stab_c2 = 2.0;
     constexpr double stab_c3 = 2.0;
 
-    const BoundedMatrix<double,2,3>& v = rData.Velocity;
-    const BoundedMatrix<double,2,3>& vn = rData.Velocity_OldStep1;
-    const BoundedMatrix<double,2,3>& vnn = rData.Velocity_OldStep2;
+    const array_1d<double,3>& t = rData.Temperature;
+    const array_1d<double,3>& tn = rData.Temperature_OldStep1;
     const BoundedMatrix<double,2,3>& vmesh = rData.MeshVelocity;
-    const BoundedMatrix<double,2,3> vconv = rData.Velocity - rData.MeshVelocity;
-    const BoundedMatrix<double,2,3>& f = rData.BodyForce;
-    const array_1d<double,3>& p = rData.Pressure;
-    // const array_1d<double,3>& pn = rData.Pressure_OldStep1;
-    // const array_1d<double,3>& pnn = rData.Pressure_OldStep2;
-    const array_1d<double,3>& stress = rData.ShearStress;
+    const BoundedMatrix<double,2,3> vconv = rData.ConvectionVelocity - rData.MeshVelocity;
+    const array_1d<double,3>& source = rData.SourceTerm;
+    const array_1d<double,3>& sourcen = rData.SourceTerm_OldStep1;
 
     // Assemble RHS contribution
     const double gauss_weight = rData.Weight;
 
-    // NAVIER-STOKES ELEMENTAL RHS VECTOR
-    //substitute_rhs_2D3N_NS
+    // TRANSPORT ELEMENTAL RHS VECTOR
+    //substitute_rhs_2D3N_T
 }
 
 template <>
-void FluidTopologyOptimizationElement<FluidTopologyOptimizationElementData<3,4,true>>::ComputeGaussPointRHSContribution(
-    FluidTopologyOptimizationElementData<3,4,true>& rData,
+void TransportTopologyOptimizationElement<TransportTopologyOptimizationElementData<2,4,true>>::ComputeGaussPointRHSContribution(
+    TransportTopologyOptimizationElementData<2,4,true>& rData,
     VectorType& rRHS)
 {
-    const double rho = rData.Density;
-    const double mu = rData.EffectiveViscosity;
-    // const array_1d<double,4>& c = rData.SoundVelocity;
-
-    const array_1d<double,4> alpha = rData.Resistance;
+    const array_1d<double,4> D = rData.Conductivity;
+    const array_1d<double,4> k = rData.Decay;
+    const array_1d<double,4> c = rData.ConvectionCoefficient;
 
     const double h = rData.ElementSize;
     
     const double dt = rData.DeltaTime;
-    const double bdf0 = rData.bdf0;
-    const double bdf1 = rData.bdf1;
-    const double bdf2 = rData.bdf2;
+    const double theta = rData.TimeIntegrationTheta;
+    const double time_coeff = rData.TopOptTimeCoefficient;
+
+    const double dyn_tau = rData.DynamicTau;
+
+    // Get shape function values
+    const array_1d<double,4>& N = rData.N;
+    const BoundedMatrix<double,4,2>& DN = rData.DN_DX;
+
+    // Stabilization parameters 
+    constexpr double stab_c1 = 4.0;
+    constexpr double stab_c2 = 2.0;
+    constexpr double stab_c3 = 2.0;
+
+    const array_1d<double,4>& t = rData.Temperature;
+    const array_1d<double,4>& tn = rData.Temperature_OldStep1;
+    const BoundedMatrix<double,2,4>& vmesh = rData.MeshVelocity;
+    const BoundedMatrix<double,2,4> vconv = rData.ConvectionVelocity - rData.MeshVelocity;
+    const array_1d<double,4>& source = rData.SourceTerm;
+    const array_1d<double,4>& sourcen = rData.SourceTerm_OldStep1;
+
+    // Assemble RHS contribution
+    const double gauss_weight = rData.Weight;
+
+    // TRANSPORT ELEMENTAL RHS VECTOR
+    //substitute_rhs_2D4N_T
+}
+
+template <>
+void TransportTopologyOptimizationElement<TransportTopologyOptimizationElementData<3,4,true>>::ComputeGaussPointRHSContribution(
+    TransportTopologyOptimizationElementData<3,4,true>& rData,
+    VectorType& rRHS)
+{
+    const array_1d<double,4> D = rData.Conductivity;
+    const array_1d<double,4> k = rData.Decay;
+    const array_1d<double,4> c = rData.ConvectionCoefficient;
+
+    const double h = rData.ElementSize;
+    
+    const double dt = rData.DeltaTime;
+    const double theta = rData.TimeIntegrationTheta;
     const double time_coeff = rData.TopOptTimeCoefficient;
 
     const double dyn_tau = rData.DynamicTau;
@@ -1135,129 +1054,144 @@ void FluidTopologyOptimizationElement<FluidTopologyOptimizationElementData<3,4,t
     const array_1d<double,4>& N = rData.N;
     const BoundedMatrix<double,4,3>& DN = rData.DN_DX;
 
-    // const double dyn_tau = rData.DynamicTau;
-    // Stabilization parameters
+    // Stabilization parameters 
     constexpr double stab_c1 = 4.0;
     constexpr double stab_c2 = 2.0;
     constexpr double stab_c3 = 2.0;
 
-    const BoundedMatrix<double,3,4>& v = rData.Velocity;
-    const BoundedMatrix<double,3,4>& vn = rData.Velocity_OldStep1;
-    const BoundedMatrix<double,3,4>& vnn = rData.Velocity_OldStep2;
+    const array_1d<double,4>& t = rData.Temperature;
+    const array_1d<double,4>& tn = rData.Temperature_OldStep1;
     const BoundedMatrix<double,3,4>& vmesh = rData.MeshVelocity;
-    const BoundedMatrix<double,3,4> vconv = rData.Velocity - rData.MeshVelocity;
-    const BoundedMatrix<double,3,4>& f = rData.BodyForce;
-    const array_1d<double,4>& p = rData.Pressure;
-    // const array_1d<double,4>& pn = rData.Pressure_OldStep1;
-    // const array_1d<double,4>& pnn = rData.Pressure_OldStep2;
-    const array_1d<double,6>& stress = rData.ShearStress;
+    const BoundedMatrix<double,3,4> vconv = rData.ConvectionVelocity - rData.MeshVelocity;
+    const array_1d<double,4>& source = rData.SourceTerm;
+    const array_1d<double,4>& sourcen = rData.SourceTerm_OldStep1;
 
     // Assemble RHS contribution
     const double gauss_weight = rData.Weight;
 
-    // NAVIER-STOKES ELEMENTAL RHS VECTOR
-    //substitute_rhs_3D4N_NS
+    // TRANSPORT ELEMENTAL RHS VECTOR
+    //substitute_rhs_3D4N_T
 }
 
+// BUILD ADJOINT NS SYSTEM
 template <>
-void FluidTopologyOptimizationElement< FluidTopologyOptimizationElementData<2,3,true>>::ComputeGaussPointLHSContributionAdjoint(
-    FluidTopologyOptimizationElementData<2,3,true>& rData,
+void TransportTopologyOptimizationElement< TransportTopologyOptimizationElementData<2,3,true>>::ComputeGaussPointLHSContributionAdjoint(
+    TransportTopologyOptimizationElementData<2,3,true> & rData,
     MatrixType& rLHS)
 {
-    const double rho = rData.Density;
-    const double mu = rData.EffectiveViscosity;
-    // const array_1d<double,3>& c = rData.SoundVelocity;
-
-    const array_1d<double,3> alpha = rData.Resistance;
+    const array_1d<double,3> D = rData.Conductivity;
+    const array_1d<double,3> k = rData.Decay;
+    const array_1d<double,3> c = rData.ConvectionCoefficient;
 
     const double h = rData.ElementSize;
     
     const double dt = rData.DeltaTime;
-    const double bdf0 = rData.bdf0;
+    const double theta = rData.TimeIntegrationTheta;
     const double time_coeff = rData.TopOptTimeCoefficient;
 
     const double dyn_tau = rData.DynamicTau;
-    
-    // Get constitutive matrix
-    const BoundedMatrix<double,3,3>& C = rData.C;
 
     // Get shape function values
     const array_1d<double,3>& N = rData.N;
     const BoundedMatrix<double,3,2>& DN = rData.DN_DX;
 
-    // const double dyn_tau = rData.DynamicTau;
     // Stabilization parameters 
     constexpr double stab_c1 = 4.0;
     constexpr double stab_c2 = 2.0;
     constexpr double stab_c3 = 2.0;
 
-    const BoundedMatrix<double,2,3> v_conv_ns = rData.Convection_velocity_adj; // CONVECTIVE VELOCITY FOR THE ADJOINT IS THE PRIMAL NS SOLUTION
+    const BoundedMatrix<double,2,3> vconv_adj = rData.ConvectionVelocity - rData.MeshVelocity;
 
     // Assemble LHS contribution
     const double gauss_weight = rData.Weight;
 
-    // ADJOINT NAVIER-STOKES ELEMENTAL LHS MATRIX
-    //substitute_lhs_2D3N_ADJ_NS    
+    // ADJOINT TRANSPORT ELEMENTAL LHS MATRIX
+    //substitute_lhs_2D3N_ADJ_T
 }
 
 template <>
-void FluidTopologyOptimizationElement<FluidTopologyOptimizationElementData<3,4,true>>::ComputeGaussPointLHSContributionAdjoint(
-    FluidTopologyOptimizationElementData<3,4,true>& rData,
+void TransportTopologyOptimizationElement< TransportTopologyOptimizationElementData<2,4,true>>::ComputeGaussPointLHSContributionAdjoint(
+    TransportTopologyOptimizationElementData<2,4,true> & rData,
     MatrixType& rLHS)
 {
-    const double rho = rData.Density;
-    const double mu = rData.EffectiveViscosity;
-    // const array_1d<double,4>& c = rData.SoundVelocity;
-
-    const array_1d<double,4> alpha = rData.Resistance;
+    const array_1d<double,4> D = rData.Conductivity;
+    const array_1d<double,4> k = rData.Decay;
+    const array_1d<double,4> c = rData.ConvectionCoefficient;
 
     const double h = rData.ElementSize;
     
     const double dt = rData.DeltaTime;
-    const double bdf0 = rData.bdf0;
+    const double theta = rData.TimeIntegrationTheta;
     const double time_coeff = rData.TopOptTimeCoefficient;
 
     const double dyn_tau = rData.DynamicTau;
+
+    // Get shape function values
+    const array_1d<double,4>& N = rData.N;
+    const BoundedMatrix<double,4,2>& DN = rData.DN_DX;
+
+    // Stabilization parameters 
+    constexpr double stab_c1 = 4.0;
+    constexpr double stab_c2 = 2.0;
+    constexpr double stab_c3 = 2.0;
+
+    const BoundedMatrix<double,2,4> vconv_adj = rData.ConvectionVelocity - rData.MeshVelocity;
+
+    // Assemble LHS contribution
+    const double gauss_weight = rData.Weight;
+
+    // ADJOINT TRANSPORT ELEMENTAL LHS MATRIX
+    //substitute_lhs_2D4N_ADJ_T
+}
+
+template <>
+void TransportTopologyOptimizationElement<TransportTopologyOptimizationElementData<3,4,true>>::ComputeGaussPointLHSContributionAdjoint(
+    TransportTopologyOptimizationElementData<3,4,true>& rData,
+    MatrixType& rLHS)
+{
+    const array_1d<double,4> D = rData.Conductivity;
+    const array_1d<double,4> k = rData.Decay;
+    const array_1d<double,4> c = rData.ConvectionCoefficient;
+
+    const double h = rData.ElementSize;
     
-    // Get constitutive matrix
-    const BoundedMatrix<double,6,6>& C = rData.C;
+    const double dt = rData.DeltaTime;
+    const double theta = rData.TimeIntegrationTheta;
+    const double time_coeff = rData.TopOptTimeCoefficient;
+
+    const double dyn_tau = rData.DynamicTau;
 
     // Get shape function values
     const array_1d<double,4>& N = rData.N;
     const BoundedMatrix<double,4,3>& DN = rData.DN_DX;
 
-    // const double dyn_tau = rData.DynamicTau;
     // Stabilization parameters 
     constexpr double stab_c1 = 4.0;
     constexpr double stab_c2 = 2.0;
     constexpr double stab_c3 = 2.0;
 
-    const BoundedMatrix<double,3,4> v_conv_ns = rData.Convection_velocity_adj; // CONVECTIVE VELOCITY FOR THE ADJOINT IS THE PRIMAL NS SOLUTION
+    const BoundedMatrix<double,3,4> vconv_adj = rData.ConvectionVelocity - rData.MeshVelocity;
 
     // Assemble LHS contribution
     const double gauss_weight = rData.Weight;
 
-    // ADJOINT NAVIER-STOKES ELEMENTAL LHS MATRIX
-    //substitute_lhs_3D4N_ADJ_NS
+    // ADJOINT TRANSPORT ELEMENTAL LHS MATRIX
+    //substitute_lhs_3D4N_ADJ_T
 }
 
 template <>
-void FluidTopologyOptimizationElement<FluidTopologyOptimizationElementData<2,3,true>>::ComputeGaussPointRHSContributionAdjoint(
-    FluidTopologyOptimizationElementData<2,3,true>& rData,
+void TransportTopologyOptimizationElement<TransportTopologyOptimizationElementData<2,3,true>>::ComputeGaussPointRHSContributionAdjoint(
+    TransportTopologyOptimizationElementData<2,3,true>& rData,
     VectorType& rRHS)
 {
-    const double rho = rData.Density;
-    const double mu = rData.EffectiveViscosity;
-    // const array_1d<double,3>& c = rData.SoundVelocity;
-
-    const array_1d<double,3> alpha = rData.Resistance;
+    const array_1d<double,3> D = rData.Conductivity;
+    const array_1d<double,3> k = rData.Decay;
+    const array_1d<double,3> c = rData.ConvectionCoefficient;
 
     const double h = rData.ElementSize;
     
     const double dt = rData.DeltaTime;
-    const double bdf0 = rData.bdf0;
-    const double bdf1 = rData.bdf1;
-    const double bdf2 = rData.bdf2;
+    const double theta = rData.TimeIntegrationTheta;
     const double time_coeff = rData.TopOptTimeCoefficient;
 
     const double dyn_tau = rData.DynamicTau;
@@ -1266,53 +1200,90 @@ void FluidTopologyOptimizationElement<FluidTopologyOptimizationElementData<2,3,t
     const array_1d<double,3>& N = rData.N;
     const BoundedMatrix<double,3,2>& DN = rData.DN_DX;
 
-    // const double dyn_tau = rData.DynamicTau;
-    // Stabilization parameters
+    // Stabilization parameters 
     constexpr double stab_c1 = 4.0;
     constexpr double stab_c2 = 2.0;
     constexpr double stab_c3 = 2.0;
 
     Vector functional_weights = rData.Functional_Weights; //  functional terms weights
 
-    const BoundedMatrix<double,2,3>& v_adj = rData.Velocity_adj;
-    const BoundedMatrix<double,2,3>& vn_adj = rData.Velocity_adj_OldStep1;
-    const BoundedMatrix<double,2,3>& vnn_adj = rData.Velocity_adj_OldStep2;
-    const BoundedMatrix<double,2,3>& vmesh_adj = rData.MeshVelocity_adj;
-    const BoundedMatrix<double,2,3> v_conv_ns = rData.Convection_velocity_adj; // CONVECTIVE VELOCITY FOR THE ADJOINT IS THE PRIMAL NS SOLUTION
-    const BoundedMatrix<double,2,3>& f_adj = rData.BodyForce_adj;
-    const array_1d<double,3>& p_adj = rData.Pressure_adj;
+    const array_1d<double,3>& t_adj = rData.Temperature_adj;
+    const array_1d<double,3>& tn_adj = rData.Temperature_adj_OldStep1;
+    const BoundedMatrix<double,2,3>& vmesh = rData.MeshVelocity;
+    const BoundedMatrix<double,2,3> vconv_adj = rData.ConvectionVelocity - rData.MeshVelocity;
+    const array_1d<double,3>& source_adj = rData.SourceTerm_adj;
+    const array_1d<double,3>& sourcen_adj = rData.SourceTerm_adj_OldStep1;
+    const array_1d<double,3>& opt_t = rData.Optimization_Temperature;
     const BoundedMatrix<double,2,3> functional_v = rData.Functional_derivative_velocity;
     const array_1d<double,3>& functional_t = rData.Functional_derivative_transport_scalar;
-    const array_1d<double,3>& functional_t_adj = rData.Functional_derivative_transport_scalar_adj;
-    const array_1d<double,3> t_ConvCoeff = rData.TransportCouplingConvectionCoefficient;
-    // const array_1d<double,3>& pn_adj = rData.Pressure_adj_OldStep1;
-    // const array_1d<double,3>& pnn_adj = rData.Pressure_adj_OldStep2;
-    const array_1d<double,3>& stress_adj = rData.ShearStress;
+    const array_1d<double,3>& source = rData.SourceTerm;
 
     // Assemble RHS contribution
     const double gauss_weight = rData.Weight;
 
-    // ADJOINT NAVIER-STOKES ELEMENTAL RHS VECTOR
-    //substitute_rhs_2D3N_ADJ_NS
+    // ADJOINT TRANSPORT ELEMENTAL RHS VECTOR
+    //substitute_rhs_2D3N_ADJ_T
 }
 
 template <>
-void FluidTopologyOptimizationElement<FluidTopologyOptimizationElementData<3,4,true>>::ComputeGaussPointRHSContributionAdjoint(
-    FluidTopologyOptimizationElementData<3,4,true>& rData,
+void TransportTopologyOptimizationElement<TransportTopologyOptimizationElementData<2,4,true>>::ComputeGaussPointRHSContributionAdjoint(
+    TransportTopologyOptimizationElementData<2,4,true>& rData,
     VectorType& rRHS)
 {
-    const double rho = rData.Density;
-    const double mu = rData.EffectiveViscosity;
-    // const array_1d<double,4>& c = rData.SoundVelocity;
-
-    const array_1d<double,4> alpha = rData.Resistance;
+    const array_1d<double,4> D = rData.Conductivity;
+    const array_1d<double,4> k = rData.Decay;
+    const array_1d<double,4> c = rData.ConvectionCoefficient;
 
     const double h = rData.ElementSize;
     
     const double dt = rData.DeltaTime;
-    const double bdf0 = rData.bdf0;
-    const double bdf1 = rData.bdf1;
-    const double bdf2 = rData.bdf2;
+    const double theta = rData.TimeIntegrationTheta;
+    const double time_coeff = rData.TopOptTimeCoefficient;
+
+    const double dyn_tau = rData.DynamicTau;
+
+    // Get shape function values
+    const array_1d<double,4>& N = rData.N;
+    const BoundedMatrix<double,4,2>& DN = rData.DN_DX;
+
+    // Stabilization parameters 
+    constexpr double stab_c1 = 4.0;
+    constexpr double stab_c2 = 2.0;
+    constexpr double stab_c3 = 2.0;
+
+    Vector functional_weights = rData.Functional_Weights; //  functional terms weights
+
+    const array_1d<double,4>& t_adj = rData.Temperature_adj;
+    const array_1d<double,4>& tn_adj = rData.Temperature_adj_OldStep1;
+    const BoundedMatrix<double,2,4>& vmesh = rData.MeshVelocity;
+    const BoundedMatrix<double,2,4> vconv_adj = rData.ConvectionVelocity - rData.MeshVelocity;
+    const array_1d<double,4>& source_adj = rData.SourceTerm_adj;
+    const array_1d<double,4>& sourcen_adj = rData.SourceTerm_adj_OldStep1;
+    const array_1d<double,4>& opt_t = rData.Optimization_Temperature;
+    const BoundedMatrix<double,2,4> functional_v = rData.Functional_derivative_velocity;
+    const array_1d<double,4>& functional_t = rData.Functional_derivative_transport_scalar;
+    const array_1d<double,4>& source = rData.SourceTerm;
+
+    // Assemble RHS contribution
+    const double gauss_weight = rData.Weight;
+
+    // ADJOINT TRANSPORT ELEMENTAL RHS VECTOR
+    //substitute_rhs_2D4N_ADJ_T
+}
+
+template <>
+void TransportTopologyOptimizationElement<TransportTopologyOptimizationElementData<3,4,true>>::ComputeGaussPointRHSContributionAdjoint(
+    TransportTopologyOptimizationElementData<3,4,true>& rData,
+    VectorType& rRHS)
+{
+    const array_1d<double,4> D = rData.Conductivity;
+    const array_1d<double,4> k = rData.Decay;
+    const array_1d<double,4> c = rData.ConvectionCoefficient;
+
+    const double h = rData.ElementSize;
+    
+    const double dt = rData.DeltaTime;
+    const double theta = rData.TimeIntegrationTheta;
     const double time_coeff = rData.TopOptTimeCoefficient;
 
     const double dyn_tau = rData.DynamicTau;
@@ -1321,45 +1292,40 @@ void FluidTopologyOptimizationElement<FluidTopologyOptimizationElementData<3,4,t
     const array_1d<double,4>& N = rData.N;
     const BoundedMatrix<double,4,3>& DN = rData.DN_DX;
 
-    // const double dyn_tau = rData.DynamicTau;
-    // Stabilization parameters
+    // Stabilization parameters 
     constexpr double stab_c1 = 4.0;
     constexpr double stab_c2 = 2.0;
     constexpr double stab_c3 = 2.0;
 
     Vector functional_weights = rData.Functional_Weights; //  functional terms weights
 
-    const BoundedMatrix<double,3,4>& v_adj = rData.Velocity_adj;
-    const BoundedMatrix<double,3,4>& vn_adj = rData.Velocity_adj_OldStep1;
-    const BoundedMatrix<double,3,4>& vnn_adj = rData.Velocity_adj_OldStep2;
-    const BoundedMatrix<double,3,4>& vmesh_adj = rData.MeshVelocity_adj;
-    const BoundedMatrix<double,3,4> v_conv_ns = rData.Convection_velocity_adj; // CONVECTIVE VELOCITY FOR THE ADJOINT IS THE PRIMAL NS SOLUTION
-    const BoundedMatrix<double,3,4>& f_adj = rData.BodyForce_adj;
-    const array_1d<double,4>& p_adj = rData.Pressure_adj;
-    // const array_1d<double,4>& pn_adj = rData.Pressure_adj_OldStep1;
-    // const array_1d<double,4>& pnn_adj = rData.Pressure_adj_OldStep2;
+    const array_1d<double,4>& t_adj = rData.Temperature_adj;
+    const array_1d<double,4>& tn_adj = rData.Temperature_adj_OldStep1;
+    const BoundedMatrix<double,3,4>& vmesh = rData.MeshVelocity;
+    const BoundedMatrix<double,3,4> vconv_adj = rData.ConvectionVelocity - rData.MeshVelocity;
+    const array_1d<double,4>& source_adj = rData.SourceTerm_adj;
+    const array_1d<double,4>& sourcen_adj = rData.SourceTerm_adj_OldStep1;
+    const array_1d<double,4>& opt_t = rData.Optimization_Temperature;
     const BoundedMatrix<double,3,4> functional_v = rData.Functional_derivative_velocity;
     const array_1d<double,4>& functional_t = rData.Functional_derivative_transport_scalar;
-    const array_1d<double,4>& functional_t_adj = rData.Functional_derivative_transport_scalar_adj;
-    const array_1d<double,4> t_ConvCoeff = rData.TransportCouplingConvectionCoefficient;
-    const array_1d<double,6>& stress_adj = rData.ShearStress;
+    const array_1d<double,4>& source = rData.SourceTerm;
 
     // Assemble RHS contribution
     const double gauss_weight = rData.Weight;
 
-    // ADJOINT NAVIER-STOKES ELEMENTAL RHS VECTOR
-    //substitute_rhs_3D4N_ADJ_NS
+    // ADJOINT TRANSPORT ELEMENTAL RHS VECTOR
+    //substitute_rhs_3D4N_ADJ_T 
 }
 
 template <class TElementData>
-void FluidTopologyOptimizationElement<TElementData>::AddVelocitySystem(
+void TransportTopologyOptimizationElement<TElementData>::AddVelocitySystem(
     TElementData& rData,
     MatrixType& rLocalLHS,
     VectorType& rLocalRHS) 
     {
     KRATOS_TRY;
 
-    KRATOS_ERROR << "Calling base FluidTopologyOptimizationElement::AddVelocitySystem "
+    KRATOS_ERROR << "Calling base TransportTopologyOptimizationElement::AddVelocitySystem "
                     "implementation. This method is not supported by your "
                     "element."
                  << std::endl;
@@ -1368,11 +1334,11 @@ void FluidTopologyOptimizationElement<TElementData>::AddVelocitySystem(
 }
 
 template <class TElementData>
-void FluidTopologyOptimizationElement<TElementData>::AddMassLHS(
+void TransportTopologyOptimizationElement<TElementData>::AddMassLHS(
     TElementData& rData, MatrixType& rMassMatrix) {
     KRATOS_TRY;
 
-    KRATOS_ERROR << "Calling base FluidTopologyOptimizationElement::AddMassLHS "
+    KRATOS_ERROR << "Calling base TransportTopologyOptimizationElement::AddMassLHS "
                     "implementation. This method is not supported by your "
                     "element."
                  << std::endl;
@@ -1381,30 +1347,17 @@ void FluidTopologyOptimizationElement<TElementData>::AddMassLHS(
 }
 
 template <class TElementData>
-void FluidTopologyOptimizationElement<TElementData>::GetCurrentValuesVector(
+void TransportTopologyOptimizationElement<TElementData>::GetCurrentValuesVector(
     const TElementData& rData,
     array_1d<double,LocalSize>& rValues) const {
 
     int local_index = 0;
 
-    const auto& r_velocities = rData.Velocity;
-    const auto& r_pressures = rData.Pressure;
+    const auto& r_temperatures = rData.Temperature;
 
     for (unsigned int i = 0; i < NumNodes; ++i) {
-        for (unsigned int d = 0; d < Dim; ++d)  // Velocity Dofs
-            rValues[local_index++] = r_velocities(i, d);
-        rValues[local_index++] = r_pressures[i];  // Pressure Dof
+        rValues[local_index++] = r_temperatures[i];  // Temperature Dof
     }
-}
-
-template< class TElementData >
-ConstitutiveLaw::Pointer FluidTopologyOptimizationElement<TElementData>::GetConstitutiveLaw() {
-    return this->mpConstitutiveLaw;
-}
-
-template< class TElementData >
-const ConstitutiveLaw::Pointer FluidTopologyOptimizationElement<TElementData>::GetConstitutiveLaw() const {
-    return this->mpConstitutiveLaw;
 }
 
 
@@ -1415,7 +1368,7 @@ const ConstitutiveLaw::Pointer FluidTopologyOptimizationElement<TElementData>::G
 // serializer
 
 template< class TElementData >
-void FluidTopologyOptimizationElement<TElementData>::save(Serializer& rSerializer) const
+void TransportTopologyOptimizationElement<TElementData>::save(Serializer& rSerializer) const
 {
     KRATOS_SERIALIZE_SAVE_BASE_CLASS(rSerializer, Element );
     rSerializer.save("mpConstitutiveLaw",this->mpConstitutiveLaw);
@@ -1423,54 +1376,18 @@ void FluidTopologyOptimizationElement<TElementData>::save(Serializer& rSerialize
 
 
 template< class TElementData >
-void FluidTopologyOptimizationElement<TElementData>::load(Serializer& rSerializer)
+void TransportTopologyOptimizationElement<TElementData>::load(Serializer& rSerializer)
 {
     KRATOS_SERIALIZE_LOAD_BASE_CLASS(rSerializer, Element);
     rSerializer.load("mpConstitutiveLaw",this->mpConstitutiveLaw);
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////
-
-namespace Internals {
-
-template< class TElementData >
-void StrainRateSpecialization<TElementData,2>::Calculate(
-    Vector& rStrainRate,
-    const typename TElementData::NodalVectorData& rVelocities,
-    const typename TElementData::ShapeDerivativesType& rDNDX) {
-
-    noalias(rStrainRate) = ZeroVector(3);
-    for (unsigned int i = 0; i < TElementData::NumNodes; i++) {
-        rStrainRate[0] += rDNDX(i,0)*rVelocities(i,0);
-        rStrainRate[1] += rDNDX(i,1)*rVelocities(i,1);
-        rStrainRate[2] += rDNDX(i,0)*rVelocities(i,1) + rDNDX(i,1)*rVelocities(i,0);
-    }
-}
-
-template< class TElementData >
-void StrainRateSpecialization<TElementData,3>::Calculate(
-    Vector& rStrainRate,
-    const typename TElementData::NodalVectorData& rVelocities,
-    const typename TElementData::ShapeDerivativesType& rDNDX) {
-
-    noalias(rStrainRate) = ZeroVector(6);
-    for (unsigned int i = 0; i < TElementData::NumNodes; i++) {
-        rStrainRate[0] += rDNDX(i,0)*rVelocities(i,0);
-        rStrainRate[1] += rDNDX(i,1)*rVelocities(i,1);
-        rStrainRate[2] += rDNDX(i,2)*rVelocities(i,2);
-        rStrainRate[3] += rDNDX(i,0)*rVelocities(i,1) + rDNDX(i,1)*rVelocities(i,0);
-        rStrainRate[4] += rDNDX(i,1)*rVelocities(i,2) + rDNDX(i,2)*rVelocities(i,1);
-        rStrainRate[5] += rDNDX(i,0)*rVelocities(i,2) + rDNDX(i,2)*rVelocities(i,0);
-    }
-}
-
-} // namespace Internals
-
-///////////////////////////////////////////////////////////////////////////////////////////////////
 // Template class instantiation
 
-template class FluidTopologyOptimizationElement< FluidTopologyOptimizationElementData<2,3,true> >;
-template class FluidTopologyOptimizationElement< FluidTopologyOptimizationElementData<3,4,true> >;
+template class TransportTopologyOptimizationElement< TransportTopologyOptimizationElementData<2,3,true> >;
+template class TransportTopologyOptimizationElement< TransportTopologyOptimizationElementData<2,4,true> >;
+template class TransportTopologyOptimizationElement< TransportTopologyOptimizationElementData<3,4,true> >;
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 }

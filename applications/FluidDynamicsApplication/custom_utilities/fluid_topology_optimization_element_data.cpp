@@ -75,6 +75,7 @@ void FluidTopologyOptimizationElementData<TDim, TNumNodes, TElementIntegratesInT
     bdf0 = BDFVector[0];
     bdf1 = BDFVector[1];
     bdf2 = BDFVector[2];
+    this->FillFromProcessInfo(TopOptTimeCoefficient,TOP_OPT_TIME_COEFFICIENT,rProcessInfo);
 
     // Functionals Database
     // 0: resistance  : int_{\Omega}{alpha*||u||^2}
@@ -83,7 +84,10 @@ void FluidTopologyOptimizationElementData<TDim, TNumNodes, TElementIntegratesInT
     // 3: ...
     // 4: ...
     // 5: ...
-    // 5 is just a number big enough to contain the acutal database of functionals
+    // |
+    // |
+    // 20: ...
+    // 20 is just a number big enough to contain the acutal database of functionals
     Functional_Weights.resize(20, false);       // Resize to length 5
     this->FillFromProcessInfo(Functional_Weights,FUNCTIONAL_WEIGHTS,rProcessInfo);
 
@@ -100,12 +104,15 @@ void FluidTopologyOptimizationElementData<TDim, TNumNodes, TElementIntegratesInT
 
     // ADJOINT NAVIER-STOKES VARIABLES
     this->FillFromNonHistoricalNodalData(Convection_velocity_adj,CONVECTION_VELOCITY,r_geometry);
+    this->FillFromNonHistoricalNodalData(Functional_derivative_velocity,FUNCTIONAL_DERIVATIVE_VELOCITY,r_geometry);
+    this->FillFromNonHistoricalNodalData(Functional_derivative_transport_scalar,FUNCTIONAL_DERIVATIVE_TRANSPORT_SCALAR,r_geometry);
+    this->FillFromNonHistoricalNodalData(Functional_derivative_transport_scalar_adj,FUNCTIONAL_DERIVATIVE_TRANSPORT_SCALAR_ADJ,r_geometry);
+    
     this->FillFromHistoricalNodalData(Velocity_adj,VELOCITY_ADJ,r_geometry);
     this->FillFromHistoricalNodalData(MeshVelocity_adj,MESH_VELOCITY_ADJ,r_geometry);
     this->FillFromHistoricalNodalData(BodyForce_adj,BODY_FORCE_ADJ,r_geometry);
     this->FillFromHistoricalNodalData(Pressure_adj,PRESSURE_ADJ,r_geometry);
-    this->FillFromHistoricalNodalData(Temperature,TEMPERATURE,r_geometry);
-    this->FillFromHistoricalNodalData(Temperature_adj,TEMPERATURE_ADJ,r_geometry);
+    
     // TIME DEPENDENT PROBLEMS NOT YET IMPLEMENTED
     this->FillFromHistoricalNodalData(Velocity_adj_OldStep1,VELOCITY_ADJ,r_geometry,1);
     this->FillFromHistoricalNodalData(Velocity_adj_OldStep2,VELOCITY_ADJ,r_geometry,2);

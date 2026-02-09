@@ -109,6 +109,9 @@ class TrilinosFluidTopologyOptimizationSolver(TrilinosNavierStokesMonolithicSolv
         self.non_historical_nodal_properties_variables_list.append(KratosCFD.RESISTANCE)
         self.non_historical_nodal_properties_variables_list.append(KratosMultiphysics.CONVECTION_COEFFICIENT)
         self.non_historical_nodal_properties_variables_list.append(KratosCFD.CONVECTION_VELOCITY)
+        self.non_historical_nodal_properties_variables_list.append(KratosMultiphysics.FUNCTIONAL_DERIVATIVE_VELOCITY)
+        self.non_historical_nodal_properties_variables_list.append(KratosMultiphysics.FUNCTIONAL_DERIVATIVE_TRANSPORT_SCALAR)
+        self.non_historical_nodal_properties_variables_list.append(KratosMultiphysics.FUNCTIONAL_DERIVATIVE_TRANSPORT_SCALAR_ADJ)
 
     def AddVariables(self):  
         #Add parent class variables
@@ -158,6 +161,12 @@ class TrilinosFluidTopologyOptimizationSolver(TrilinosNavierStokesMonolithicSolv
             KratosMultiphysics.Logger.PrintWarning("[WARNING] " + self.__class__.__name__ + " time scheme_type: \' " + self.time_scheme + " \' is not compatible with the current implementation. Its value has been reset to default value: \' bdf2 \'")
             self.settings["time_scheme"].SetString("bdf2")
             self.min_buffer_size = 3
+
+    def _SetAnalysisTimeCoefficient(self):
+        if self._IsUnsteady():
+            self.main_model_part.ProcessInfo[KratosMultiphysics.TOP_OPT_TIME_COEFFICIENT] = 1.0
+        else:
+            self.main_model_part.ProcessInfo[KratosMultiphysics.TOP_OPT_TIME_COEFFICIENT] = 0.0
     
     def _SetNodalProperties(self):
         set_density = KratosMultiphysics.DENSITY in self.historical_nodal_properties_variables_list
@@ -331,6 +340,15 @@ class TrilinosFluidTopologyOptimizationSolver(TrilinosNavierStokesMonolithicSolv
             node.SetValue(KratosCFD.CONVECTION_VELOCITY_Y, nodal_convection_velocity[1])
             if (dim == 3):
                 node.SetValue(KratosCFD.CONVECTION_VELOCITY_Z, nodal_convection_velocity[2])
+
+    def _UpdateFunctionalDerivativeVelocityVariable(self, functional_velocity):
+        dim = self.main_model_part.ProcessInfo[KratosMultiphysics.DOMAIN_SIZE]
+        for node in self._GetLocalMeshNodes():
+            nodal_functional_derivative_velocity = functional_velocity[self.nodes_ids_global_to_local_partition_dictionary[node.Id]]
+            node.SetValue(KratosMultiphysics.FUNCTIONAL_DERIVATIVE_VELOCITY_X, nodal_functional_derivative_velocity[0])
+            node.SetValue(KratosMultiphysics.FUNCTIONAL_DERIVATIVE_VELOCITY_Y, nodal_functional_derivative_velocity[1])
+            if (dim == 3):
+                node.SetValue(KratosMultiphysics.FUNCTIONAL_DERIVATIVE_VELOCITY_Z, nodal_functional_derivative_velocity[2])
     
     def InitializeSolutionStep(self):
         self.is_resistance_updated = False

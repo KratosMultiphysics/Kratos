@@ -24,28 +24,23 @@ void TransportTopologyOptimizationElementData<TDim, TNumNodes, TElementIntegrate
     const Properties& r_properties = rElement.GetProperties();
 
     // COMMON PHYSICAL QUANTITIES
-    // this->FillFromProperties(Conductivity,CONDUCTIVITY,r_properties);
-    // this->FillFromProperties(Decay,DECAY,r_properties);
-    // this->FillFromProperties(ConvectionCoefficient,CONVECTION_COEFFICIENT,r_properties);
     this->FillFromNonHistoricalNodalData(Conductivity,CONDUCTIVITY,r_geometry); 
     this->FillFromNonHistoricalNodalData(Decay,DECAY,r_geometry); 
     this->FillFromNonHistoricalNodalData(ConvectionCoefficient,CONVECTION_COEFFICIENT,r_geometry); 
+    this->FillFromNonHistoricalNodalData(ConvectionVelocity,CONVECTION_VELOCITY,r_geometry);
+    this->FillFromNonHistoricalNodalData(Functional_derivative_velocity,FUNCTIONAL_DERIVATIVE_VELOCITY,r_geometry);
+    this->FillFromNonHistoricalNodalData(Functional_derivative_transport_scalar,FUNCTIONAL_DERIVATIVE_TRANSPORT_SCALAR,r_geometry);
 
     this->FillFromProcessInfo(DeltaTime,DELTA_TIME,rProcessInfo);
     // Calculate element characteristic size
     ElementSize = ElementSizeCalculator<TDim,TNumNodes>::MinimumElementSize(r_geometry);
 
-    // COMMON STABILIZATION QUANTITIES
-    DynamicTau = 1.0; //->FillFromProcessInfo(DynamicTau,1,rProcessInfo);
     this->FillFromProcessInfo(TopOptProblemStage,TRANSPORT_TOP_OPT_PROBLEM_STAGE,rProcessInfo);
-    // TIME DEPENDENT PROBLEMS NOT YET IMPLEMENTED
-    // const Vector& BDFVector = rProcessInfo[BDF_COEFFICIENTS];
-    // bdf0 = BDFVector[0];
-    // bdf1 = BDFVector[1];
-    // bdf2 = BDFVector[2];
-    bdf0 = 1.0;
-    bdf1 = 1.0;
-    bdf2 = 1.0;
+
+    // COMMON STABILIZATION QUANTITIES
+    this->FillFromProcessInfo(DynamicTau,DYNAMIC_TAU,rProcessInfo);
+    this->FillFromProcessInfo(TimeIntegrationTheta,TIME_INTEGRATION_THETA,rProcessInfo);
+    this->FillFromProcessInfo(TopOptTimeCoefficient,TOP_OPT_TIME_COEFFICIENT,rProcessInfo);
 
     // Functionals Database
     // 0: resistance  : int_{\Omega}{alpha*||u||^2}
@@ -61,19 +56,17 @@ void TransportTopologyOptimizationElementData<TDim, TNumNodes, TElementIntegrate
 
     // NAVIER-STOKES VARIABLES
     this->FillFromHistoricalNodalData(Temperature,TEMPERATURE,r_geometry);
-    this->FillFromHistoricalNodalData(ConvectiveVelocity,CONVECTION_VELOCITY,r_geometry);
+    // this->FillFromHistoricalNodalData(ConvectiveVelocity,CONVECTION_VELOCITY,r_geometry);
     this->FillFromHistoricalNodalData(MeshVelocity,MESH_VELOCITY,r_geometry);
     this->FillFromHistoricalNodalData(SourceTerm, HEAT_FLUX,r_geometry);
-    // TIME DEPENDENT PROBLEMS NOT YET IMPLEMENTED
-    // this->FillFromHistoricalNodalData(Temperature_OldStep1,TEMPERATURE,r_geometry,1);
-    // this->FillFromHistoricalNodalData(Temperature_OldStep2,TEMPERATURE,r_geometry,2);
+    this->FillFromHistoricalNodalData(Temperature_OldStep1,TEMPERATURE,r_geometry,1);
+    this->FillFromHistoricalNodalData(SourceTerm_OldStep1,HEAT_FLUX,r_geometry,1);
 
     // ADJOINT NAVIER-STOKES VARIABLES
     this->FillFromHistoricalNodalData(Temperature_adj,TEMPERATURE_ADJ,r_geometry);
     this->FillFromHistoricalNodalData(SourceTerm_adj, HEAT_FLUX_ADJ,r_geometry);
-    // TIME DEPENDENT PROBLEMS NOT YET IMPLEMENTED
-    // this->FillFromHistoricalNodalData(Temperature_adj_OldStep1,TEMPERATURE_ADJ,r_geometry,1);
-    // this->FillFromHistoricalNodalData(Temperature_adj_OldStep2,TEMPERATURE_ADJ,r_geometry,2);
+    this->FillFromHistoricalNodalData(Temperature_adj_OldStep1,TEMPERATURE_ADJ,r_geometry,1);
+    this->FillFromHistoricalNodalData(SourceTerm_adj_OldStep1, HEAT_FLUX_ADJ,r_geometry,1);
 }
 
 template <size_t TDim, size_t TNumNodes, bool TElementIntegratesInTime>

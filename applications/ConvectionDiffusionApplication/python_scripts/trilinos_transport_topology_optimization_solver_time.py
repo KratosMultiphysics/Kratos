@@ -179,6 +179,12 @@ class TrilinosTransportTopologyOptimizationSolverTime(ConvectionDiffusionTransie
             self.settings["time_integration_method"].SetString("implicit")
             self.min_buffer_size = 3
 
+    def _SetAnalysisTimeCoefficient(self):
+        if self._IsUnsteady():
+            self.main_model_part.ProcessInfo[KratosMultiphysics.TOP_OPT_TIME_COEFFICIENT] = 1.0
+        else:
+            self.main_model_part.ProcessInfo[KratosMultiphysics.TOP_OPT_TIME_COEFFICIENT] = 0.0
+
     def PrepareModelPart(self):
         KratosMultiphysics.VariableUtils().SetNonHistoricalVariable(KratosMultiphysics.CONDUCTIVITY, 0.0, self._GetLocalMeshNodes())
         KratosMultiphysics.VariableUtils().SetNonHistoricalVariable(KratosCD.DECAY, 0.0, self._GetLocalMeshNodes())
@@ -254,6 +260,20 @@ class TrilinosTransportTopologyOptimizationSolverTime(ConvectionDiffusionTransie
             node.SetValue(KratosCD.CONVECTION_VELOCITY_Y, nodal_convection_velocity[1])
             if (dim == 3):
                 node.SetValue(KratosCD.CONVECTION_VELOCITY_Z, nodal_convection_velocity[2])
+
+    def _UpdateFunctionalDerivativeVelocityVariable(self, convection_velocity):
+        dim = self.main_model_part.ProcessInfo[KratosMultiphysics.DOMAIN_SIZE]
+        for node in self._GetLocalMeshNodes():
+            nodal_functional_derivative_velocity = convection_velocity[self.nodes_ids_global_to_local_partition_dictionary[node.Id]]
+            node.SetValue(KratosMultiphysics.FUNCTIONAL_DERIVATIVE_VELOCITY_X, nodal_functional_derivative_velocity[0])
+            node.SetValue(KratosMultiphysics.FUNCTIONAL_DERIVATIVE_VELOCITY_Y, nodal_functional_derivative_velocity[1])
+            if (dim == 3):
+                node.SetValue(KratosMultiphysics.FUNCTIONAL_DERIVATIVE_VELOCITY_Z, nodal_functional_derivative_velocity[2])
+
+    def _UpdateFunctionalDerivativeTransportScalarVariable(self, transport_Scalar):
+        for node in self._GetLocalMeshNodes():
+            nodal_functional_derivative_transport_Scalar = transport_Scalar[self.nodes_ids_global_to_local_partition_dictionary[node.Id]]
+            node.SetValue(KratosMultiphysics.FUNCTIONAL_DERIVATIVE_TRANSPORT_SCALAR, nodal_functional_derivative_transport_Scalar)
     
     def AddDofs(self):
         dofs_and_reactions_to_add = []

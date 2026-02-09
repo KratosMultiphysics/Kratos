@@ -57,39 +57,53 @@ for dim, nnodes in zip(dim_vector, nnodes_vector):
     ConvCoeff        = DefineVector('c',nnodes)    # convection coefficient
     ConvCoeff_gauss  = ConvCoeff.transpose()*N  # convection coefficient at gauss points
 
-    # print(ConvCoeff_gauss.shape)
-    # print(ConvCoeff.shape)
-    # input()
-    # decay_gauss * (t_gauss.transpose()*q_gauss)
+    dt = sympy.Symbol('dt', positive = True)         # Time increment
+    dyn_tau = sympy.Symbol('dyn_tau', positive = True)
+
+    ## Time Inntegration coefficients
+    theta = sympy.Symbol('theta')
+    time_coeff = sympy.Symbol('time_coeff')
     
     ## |-----------------------------------------------|
     ## | START PRIMAL TOP. OPT. TRANSPORT ELEMENT DEFINITION |
     print("---\n-| FLUID TOPOLOGY OPTIMIZATION TRANSPORT ELEMENT\n---")
 
     # Unknowns definition
-    t = DefineVector('t',nnodes)        # Temperature
+    t  = DefineVector('t',nnodes)       # transport_scalar
+    tn = DefineVector('tn',nnodes)      # Previous step transport_scalar
+    time_der_t = 1.0/dt*(t-tn)          # transport scalar time derivative
+    theta_t = theta*t + (1.0-theta)*tn  # transport scalar at theta time
 
     # Source Term definitions
-    f = DefineVector('source', nnodes)  # Source Term
+    f  = DefineVector('source', nnodes)  # Source Term
+    fn = DefineVector('sourcen', nnodes) # Previous step Source Term
+    theta_f = theta*f + (1.0-theta)*fn   # Source term at theta time
 
     # Test functions definition
-    q = DefineVector('q',nnodes)        # Temperature test function
+    q = DefineVector('q',nnodes)        # transport_scalar test function
 
     # Compute functions at Gauss points
-    t_gauss = t.transpose()*N           # Temperature at gauss points
-    f_gauss = f.transpose()*N           # Source Term at gauss points
-    q_gauss = q.transpose()*N           # Temperature test function at gauss points
+    t_gauss  = t.transpose()*N                  # transport_scalar at gauss points
+    tn_gauss = tn.transpose()*N                 # transport_scalar at gauss points
+    f_gauss  = f.transpose()*N                  # Source Term at gauss points
+    fn_gauss = fn.transpose()*N                 # Source Term at gauss points
+    q_gauss  = q.transpose()*N                  # transport_scalar test function at gauss points
+    time_der_t_gauss = time_der_t.transpose()*N # transport scalar time derivative at gauss points
+    theta_t_gauss = theta_t.transpose()*N       # transport scalar at theta time at gauss points
+    theta_f_gauss = theta_f.transpose()*N       # source term at theta time at gauss points
 
     # Derivatives evaluation
     # Gradient
-    grad_t = DfjDxi(DN,t)   # Temperature gradient VERTICAL VECTOR
-    grad_q = DfjDxi(DN,q)   # Temperature test function gradient VERTICAL VECTOR
+    grad_t = DfjDxi(DN,t)   # transport_scalar gradient VERTICAL VECTOR
+    grad_q = DfjDxi(DN,q)   # transport_scalar test function gradient VERTICAL VECTOR
+    grad_theta_t = DfjDxi(DN,theta_t)     # transport_scalar at theta time test function gradient VERTICAL VECTOR
 
     ## BASE GALERKIN FUNCTIONAL RESIDUAL
-    rv_conductivity  = -Conductivity_gauss*(grad_q.transpose()*grad_t)  # diffusion term
-    rv_source =  q_gauss.transpose()*f_gauss # RHS Source Term
-    rv_decay = -Decay_gauss*(q_gauss.transpose()*t_gauss) # reaction term
-    rv = rv_conductivity + rv_source + rv_decay # save BASE residual into TOTAL element residual
+    rv_time_derivative = -time_coeff*ConvCoeff_gauss*(q_gauss.transpose()*time_der_t_gauss)
+    rv_conductivity  = -Conductivity_gauss*(grad_q.transpose()*grad_theta_t)  # diffusion term
+    rv_source =  q_gauss.transpose()*theta_f_gauss # RHS Source Term
+    rv_decay = -Decay_gauss*(q_gauss.transpose()*theta_t_gauss) # reaction term
+    rv = rv_time_derivative + rv_conductivity + rv_source + rv_decay # save BASE residual into TOTAL element residual
 
     ## HANDLE CONVECTION 
     if (convective_term):
@@ -98,7 +112,7 @@ for dim, nnodes in zip(dim_vector, nnodes_vector):
         # Gauss points
         vconv_gauss = vconv.transpose()*N           # Convective velocity on gauss points
         # CONVECTIVE GALERKIN FUNCTIONAL RESIDUAL
-        rv_conv = -ConvCoeff_gauss*(q_gauss.transpose()*(vconv_gauss.transpose()*grad_t)) # convective term
+        rv_conv = -ConvCoeff_gauss*(q_gauss.transpose()*(vconv_gauss.transpose()*grad_theta_t)) # convective term
         rv += rv_conv # save CONVECTION residual into TOTAL element residual
     # END HANDLE CONVECTION
 
@@ -106,15 +120,13 @@ for dim, nnodes in zip(dim_vector, nnodes_vector):
     if (stabilization):
         # Parameters definition
         h = sympy.Symbol('h', positive = True)      # Mesh size
-        # dt = sympy.Symbol('dt', positive = True) # Time increment
-        # dyn_tau = sympy.Symbol('dyn_tau', positive = True) # Time stabilization constant
         #Stabilization constants definition
         stab_c1 = sympy.Symbol('stab_c1', positive = True) # Diffusion stabilization constant
         stab_c2 = sympy.Symbol('stab_c2', positive = True) # Convection stabilization constant
         stab_c3 = sympy.Symbol('stab_c3', positive = True) # Resistance (alpha) term stabilization constant
         # TAU1 EVALUATION steps
         tau1_denominator = 0.0
-        # tau1_denominator += rho*dyn_tau/dt # time contribution to tau_1
+        tau1_denominator += time_coeff*ConvCoeff_gauss[0]*dyn_tau/dt # time contribution to tau_1
         tau1_denominator += stab_c1*Conductivity_gauss[0]/h**2 # diffusion contribution to tau_1
         tau1_denominator += stab_c3*Decay_gauss[0] # decay contribution to tau_1
         # Update TAU1 with CONVECTIVE term stabilization
@@ -128,18 +140,19 @@ for dim, nnodes in zip(dim_vector, nnodes_vector):
         tau1 = 1.0/tau1_denominator         # Stabilization parameter 1
         ##  STABILIZATION functional terms
         # mass conservation residual
-        mass_residual  = f_gauss # Source Term
-        mass_residual += -Decay_gauss*t_gauss # Decay_gauss factor
+        mass_residual  = theta_f_gauss # Source Term
+        mass_residual += -time_coeff*ConvCoeff_gauss*time_der_t_gauss # time derivative factor
+        mass_residual += -Decay_gauss*theta_t_gauss # Decay_gauss factor
         # eliminates diffusion involving 2nd order derivatives for 1st order solutions
         if (convective_term):
-            mass_residual += -ConvCoeff_gauss*vconv_gauss.transpose()*grad_t # convective term
-        # Temperature subscales
-        temperature_subscale = tau1*mass_residual
+            mass_residual += -ConvCoeff_gauss*vconv_gauss.transpose()*grad_theta_t # convective term
+        # transport_scalar subscales
+        transport_scalar_subscale = tau1*mass_residual
         # ASGS stabilization
         # some of the terms in rv_stab are taken with sign (+) since they derive from an integration by parts 
-        rv_stab = -Decay_gauss*q_gauss.transpose()*temperature_subscale # stab decay residual
+        rv_stab = -Decay_gauss*q_gauss.transpose()*transport_scalar_subscale # stab decay residual
         if (convective_term):
-            rv_stab += ConvCoeff_gauss*temperature_subscale*vconv_gauss.transpose()*grad_q # stab convection
+            rv_stab += ConvCoeff_gauss*transport_scalar_subscale*vconv_gauss.transpose()*grad_q # stab convection
         rv += rv_stab # save STABILIZATION residual into TOTAL element residual
     # END HANDLE STABILIZATION
 
@@ -147,7 +160,7 @@ for dim, nnodes in zip(dim_vector, nnodes_vector):
     dofs = sympy.zeros(nnodes, 1)
     testfunc = sympy.zeros(nnodes, 1)
     for i in range(nnodes):
-        # Temperature DOFs and test functions
+        # transport_scalar DOFs and test functions
         dofs[i] = t[i,0]
         testfunc[i] = q[i,0]
 
@@ -170,29 +183,41 @@ for dim, nnodes in zip(dim_vector, nnodes_vector):
     print("---\n-| ADJOINT FLUID TOPOLOGY OPTIMIZATION TRANSPORT ELEMENT\n---")
 
     # Unknowns definition
-    t_adj = DefineVector('t_adj',nnodes)        # Temperature
+    t_adj  = DefineVector('t_adj',nnodes)           # transport_scalar
+    tn_adj = DefineVector('tn_adj',nnodes)          # Previous step transport_scalar
+    time_der_t_adj = 1.0/dt*(t_adj-tn_adj)          # transport scalar time derivative
+    theta_t_adj = theta*t_adj + (1.0-theta)*tn_adj  # transport scalar at theta time
 
     # Source Term definitions
-    f_adj = DefineVector('source_adj', nnodes)  # Source Term
+    f_adj  = DefineVector('source_adj', nnodes)        # Source Term
+    fn_adj = DefineVector('sourcen_adj',nnodes)        # Previous step transport_scalar
+    theta_f_adj = theta*f_adj + (1.0-theta)*fn_adj     # Source term at theta time
 
     # Test functions definition
-    q_adj = DefineVector('q_adj', nnodes)        # Temperature test function
+    q_adj = DefineVector('q_adj', nnodes)        # transport_scalar test function
 
     # Compute functions at Gauss points
-    t_adj_gauss = t_adj.transpose()*N           # Temperature at gauss points
-    f_adj_gauss = f_adj.transpose()*N           # Source Term at gauss points
-    q_adj_gauss = q_adj.transpose()*N           # Temperature test function at gauss points
+    t_adj_gauss  = t_adj.transpose()*N                  # transport_scalar at gauss points
+    tn_adj_gauss = tn_adj.transpose()*N                 # transport_scalar at gauss points
+    f_adj_gauss  = f_adj.transpose()*N                  # Source Term at gauss points
+    fn_adj_gauss = fn_adj.transpose()*N                 # Source Term at gauss points
+    q_adj_gauss  = q_adj.transpose()*N                  # transport_scalar test function at gauss points
+    time_der_t_adj_gauss = time_der_t_adj.transpose()*N # transport scalar time derivative at gauss points
+    theta_t_adj_gauss = theta_t_adj.transpose()*N       # transport scalar at theta time at gauss points
+    theta_f_adj_gauss = theta_f_adj.transpose()*N       # source term at theta time at gauss points
 
     # Derivatives evaluation
     # Gradient
-    grad_t_adj = DfjDxi(DN,t_adj)   # Temperature gradient VERTICAL VECTOR
-    grad_q_adj = DfjDxi(DN,q_adj)   # Temperature test function gradient VERTICAL VECTOR
+    grad_t_adj = DfjDxi(DN,t_adj)           # transport_scalar gradient VERTICAL VECTOR
+    grad_q_adj = DfjDxi(DN,q_adj)           # transport_scalar test function gradient VERTICAL VECTOR
+    grad_theta_t_adj = DfjDxi(DN,theta_t_adj)     # transport_scalar at theta time test function gradient VERTICAL VECTOR
 
     ## BASE GALERKIN FUNCTIONAL RESIDUAL
-    rv_conductivtiy_adj  = -Conductivity_gauss*(grad_q_adj.transpose()*grad_t_adj)  # diffusion term
-    rv_source_adj =  q_adj_gauss.transpose()*f_adj_gauss # RHS Source Term
-    rv_decay_adj = -Decay_gauss*(q_adj_gauss.transpose()*t_adj_gauss) # reaction term
-    rv_adj = rv_conductivtiy_adj + rv_source_adj + rv_decay_adj # save BASE residual into TOTAL element residual
+    rv_time_derivative_adj = -time_coeff*ConvCoeff_gauss*(q_adj_gauss.transpose()*time_der_t_adj_gauss) # time derivative term
+    rv_conductivtiy_adj    = -Conductivity_gauss*(grad_q_adj.transpose()*grad_theta_t_adj)  # diffusion term
+    rv_source_adj          =  q_adj_gauss.transpose()*theta_f_adj_gauss # RHS Source Term
+    rv_decay_adj           = -Decay_gauss*(q_adj_gauss.transpose()*theta_t_adj_gauss) # reaction term
+    rv_adj                 = rv_time_derivative_adj + rv_conductivtiy_adj + rv_source_adj + rv_decay_adj # save BASE residual into TOTAL element residual
     
     ## HANDLE ADJOINT FORCING TERMS  
     if (include_functionals):
@@ -211,23 +236,23 @@ for dim, nnodes in zip(dim_vector, nnodes_vector):
 
         # VARIABLES
         opt_t = DefineVector('opt_t', nnodes)  
-        t_physics = DefineVector('t', nnodes) 
-        vconv_physics = DefineMatrix('vconv',nnodes,dim)
+        functional_t = DefineVector('functional_t', nnodes) 
+        functional_v = DefineMatrix('functional_v',nnodes,dim)
         f_physics = DefineVector('source', nnodes) 
         # VARIABLES AT GAUSS POINTS
-        opt_t_gauss = opt_t.transpose()*N # Optimization Temperature at gauss points
-        t_physics_gauss = t_physics.transpose()*N # Transport scalar at gauss points
-        vconv_physics_gauss = vconv_physics.transpose()*N # Physics convective velocity at gauss points
+        opt_t_gauss = opt_t.transpose()*N # Optimization transport_scalar at gauss points
+        functional_t_gauss = functional_t.transpose()*N # Transport scalar at gauss points
+        functional_v_gauss = functional_v.transpose()*N # Physics convective velocity at gauss points
         f_physics_gauss = f_physics.transpose()*N # Physics source at gauss points
         # GRADIENTS
-        grad_t_physics = DfjDxi(DN,t_physics)
+        grad_functional_t = DfjDxi(DN,functional_t)
         
         # region_transport_scalar functional
         rv_funct_region_transport_scalar  = -2.0*(q_adj_gauss.transpose()*opt_t_gauss)
         # transport_scalar_transfer
-        rv_funct_transport_scalar_diffusion       = -2.0*Conductivity_gauss*(grad_q_adj.transpose()*grad_t_physics)
-        rv_funct_transport_scalar_convection      = -ConvCoeff_gauss*((vconv_physics_gauss.transpose()*grad_t_physics)*q_adj_gauss + t_physics_gauss*(vconv_physics_gauss.transpose()*grad_q_adj)) 
-        rv_funct_transport_scalar_decay           = -2.0*Decay_gauss*(q_adj_gauss*t_physics_gauss)
+        rv_funct_transport_scalar_diffusion       = -2.0*Conductivity_gauss*(grad_q_adj.transpose()*grad_functional_t)
+        rv_funct_transport_scalar_convection      = -ConvCoeff_gauss*((functional_v_gauss.transpose()*grad_functional_t)*q_adj_gauss + functional_t_gauss*(functional_v_gauss.transpose()*grad_q_adj)) 
+        rv_funct_transport_scalar_decay           = -2.0*Decay_gauss*(q_adj_gauss*functional_t_gauss)
         rv_funct_transport_scalar_source          = f_physics_gauss*q_adj_gauss
         rv_funct_transport_scalar_1st_order_decay = -Decay_gauss*q_adj_gauss
         
@@ -250,7 +275,7 @@ for dim, nnodes in zip(dim_vector, nnodes_vector):
         # Gauss points
         vconv_adj_gauss = vconv_adj.transpose()*N           # Convective velocity on gauus points
         # CONVECTIVE GALERKIN FUNCTIONAL RESIDUAL
-        rv_conv_adj = -ConvCoeff_gauss*(t_adj_gauss.transpose()*(vconv_adj_gauss.transpose()*grad_q_adj)) # convective term
+        rv_conv_adj = -ConvCoeff_gauss*(theta_t_adj_gauss.transpose()*(vconv_adj_gauss.transpose()*grad_q_adj)) # convective term
         rv_adj += rv_conv_adj # save CONVECTION residual into TOTAL element residual
     # END HANDLE CONVECTION
 
@@ -266,7 +291,7 @@ for dim, nnodes in zip(dim_vector, nnodes_vector):
         stab_c3 = sympy.Symbol('stab_c3', positive = True) # Decay term stabilization constant
         # TAU1 EVALUATION steps
         tau1_denominator_adj = 0.0
-        # tau1_denominator += rho*dyn_tau/dt # time contribution to tau_1
+        tau1_denominator_adj += time_coeff*ConvCoeff_gauss[0]*dyn_tau/dt # time contribution to tau_1
         tau1_denominator_adj += stab_c1*Conductivity_gauss[0]/h**2 # diffusion contribution to tau_1
         tau1_denominator_adj += stab_c3*Decay_gauss[0] # decay contribution to tau_1
         # Update TAU1 with CONVECTIVE term stabilization 
@@ -281,31 +306,32 @@ for dim, nnodes in zip(dim_vector, nnodes_vector):
         tau1_adj = 1.0/tau1_denominator_adj         # Stabilization parameter 1
         ##  STABILIZATION functional terms
         # mass conservation residual
-        mass_residual_adj  = f_adj_gauss # Source Term
-        mass_residual_adj += -Decay_gauss*t_adj_gauss # decay factor
+        mass_residual_adj  = theta_f_adj_gauss # Source Term
+        mass_residual     += -time_coeff*ConvCoeff_gauss*time_der_t_adj_gauss # time derivative factor
+        mass_residual_adj += -Decay_gauss*theta_t_adj_gauss # decay factor
         # eliminates diffusion involving 2nd order derivatives for 1st order solutions
         if (convective_term):
-            mass_residual_adj += ConvCoeff_gauss*vconv_adj_gauss.transpose()*grad_t_adj # convective term
+            mass_residual_adj += ConvCoeff_gauss*vconv_adj_gauss.transpose()*grad_theta_t_adj # convective term
 
         ## Include adjoint forcing terms coming from the functional definition
         if (include_functionals):
             mass_residual_adj += -functional_weights[4]*2.0*opt_t_gauss
-            # residual coming from transfer functional DIFFUSION  term involves second order derivatives. 
-            # residual coming from transfer functional CONVECTION term erases when evaluated not in the weak form, only a term in grad(beta) remains
+            # residual coming from transfer functional DIFFUSION  term involves second order derivatives (relative to functional_weights[5]). 
+            # residual coming from transfer functional CONVECTION term erases when evaluated not in the weak form (relative to functional_weights[6]), only a term in grad(beta) remains
             grad_ConvCoeff = DfjDxi(DN,ConvCoeff) 
-            mass_residual_adj += functional_weights[6]*((vconv_physics_gauss.transpose()*grad_ConvCoeff)*t_physics_gauss)
-            mass_residual_adj += -functional_weights[7]*(2.0*Decay_gauss*t_physics_gauss)
+            mass_residual_adj += functional_weights[6]*((functional_v_gauss.transpose()*grad_ConvCoeff)*functional_t_gauss)
+            mass_residual_adj += -functional_weights[7]*(2.0*Decay_gauss*functional_t_gauss)
             mass_residual_adj += functional_weights[8]*(f_physics_gauss) 
             mass_residual_adj += -functional_weights[9]*(Decay_gauss)
 
-        # Temperature subscales
-        temperature_subscale_adj = tau1_adj*mass_residual_adj
+        # transport_scalar subscales
+        transport_scalar_subscale_adj = tau1_adj*mass_residual_adj
 
         # ASGS stabilization
         # some of the terms in rv_stab are taken with sign (+) since they derive from an integration by parts 
-        rv_stab_adj = -Decay_gauss*q_adj_gauss.transpose()*temperature_subscale_adj # stab decay residual
+        rv_stab_adj = -Decay_gauss*q_adj_gauss.transpose()*transport_scalar_subscale_adj # stab decay residual
         if (convective_term):
-            rv_stab_adj += -ConvCoeff_gauss*temperature_subscale_adj*vconv_adj_gauss.transpose()*grad_q_adj # stab convection
+            rv_stab_adj += -ConvCoeff_gauss*transport_scalar_subscale_adj*vconv_adj_gauss.transpose()*grad_q_adj # stab convection
         rv_adj += rv_stab_adj # save STABILIZATION residual into TOTAL element residual
     # END HANDLE STABILIZATION
 
@@ -313,7 +339,7 @@ for dim, nnodes in zip(dim_vector, nnodes_vector):
     dofs = sympy.zeros(nnodes, 1)
     testfunc = sympy.zeros(nnodes, 1)
     for i in range(nnodes):
-        # Temperature adj DOFs and test functions
+        # transport_scalar adj DOFs and test functions
         dofs[i] = t_adj[i,0]
         testfunc[i] = q_adj[i,0] 
 

@@ -99,18 +99,30 @@ class TransportTopologyOptimizationAnalysisTime(FluidTopologyOptimizationAnalysi
         self._InitializeTransportSolutionStep()
 
     def _InitializeTransportSolutionStep(self):
-        self._InitializePhysicsSolutionStepConvectionVelocity()
+        self._InitializeTransportSolutionStepConvectionVelocity()
 
     def InitializeAdjointPhysicsSolutionStep(self):
         self._InitializeAdjointTransportSolutionStep()
 
     def _InitializeAdjointTransportSolutionStep(self):
-        self._InitializeAdjointPhysicsSolutionStepConvectionVelocity()
+        self._InitializeAdjointTransportSolutionStepConvectionVelocity()
+        self._InitializeAdjointPhysicsSolutionStepFunctionalDerivativeVelocity()
+        self._InitializeAdjointPhysicsSolutionStepFunctionalDerivativeTransportScalar()
 
-    def _InitializePhysicsSolutionStepConvectionVelocity(self):
+    def _InitializeTransportSolutionStepConvectionVelocity(self):
         convection_velocity = self.velocity_solutions[self.time_step_counter-1,:,:].copy()
         self._GetPhysicsSolver()._UpdateConvectionVelocityVariable(convection_velocity)
         self._GetMainModelPart().GetCommunicator().SynchronizeNonHistoricalVariable(KratosCD.CONVECTION_VELOCITY)
+
+    def _InitializeAdjointTransportSolutionStepConvectionVelocity(self):
+        convection_velocity = self.velocity_solutions[self.n_time_steps-self.time_step_counter,:,:].copy()
+        self._GetAdjointSolver()._UpdateConvectionVelocityVariable(convection_velocity)
+        self._GetMainModelPart().GetCommunicator().SynchronizeNonHistoricalVariable(KratosCD.CONVECTION_VELOCITY)
+
+    def _InitializeAdjointPhysicsSolutionStepFunctionalDerivativeTransportScalar(self):
+        transport_scalar = self.transport_scalar_solutions[self.n_time_steps-self.time_step_counter,:].copy()
+        self._GetAdjointSolver()._UpdateFunctionalDerivativeTransportScalarVariable(transport_scalar)
+        self._GetMainModelPart().GetCommunicator().SynchronizeNonHistoricalVariable(KratosMultiphysics.FUNCTIONAL_DERIVATIVE_TRANSPORT_SCALAR)
 
     def StoreTimeStepSolution(self):
         if self.IsPhysicsStage():
@@ -1037,13 +1049,21 @@ class TransportTopologyOptimizationAnalysisTime(FluidTopologyOptimizationAnalysi
 
     def _SetTimeOutputSolutionStepTransportVariables(self, time_step_id): 
         KratosMultiphysics.VariableUtils().SetSolutionStepValuesVector(self._GetLocalMeshNodes(), KratosMultiphysics.TEMPERATURE, self.transport_scalar_solutions[time_step_id], 0)
+        KratosMultiphysics.VariableUtils().SetSolutionStepValuesVector(self._GetLocalMeshNodes(), KratosMultiphysics.TEMPERATURE_GRADIENT, self.transport_scalar_gradient_solutions[time_step_id].flatten(), 0)
         KratosMultiphysics.VariableUtils().SetSolutionStepValuesVector(self._GetLocalMeshNodes(), KratosMultiphysics.TEMPERATURE_ADJ, self.adjoint_transport_scalar_solutions[time_step_id], 0)  
+        KratosMultiphysics.VariableUtils().SetSolutionStepValuesVector(self._GetLocalMeshNodes(), KratosMultiphysics.TEMPERATURE_ADJ_GRADIENT, self.adjoint_transport_scalar_gradient_solutions[time_step_id].flatten(), 0) 
     
     def _SynchronizePhysicsParametersVariables(self):
         self._GetMainModelPart().GetCommunicator().SynchronizeNonHistoricalVariable(KratosMultiphysics.CONDUCTIVITY)
         self._GetMainModelPart().GetCommunicator().SynchronizeNonHistoricalVariable(KratosCD.DECAY)
         self._GetMainModelPart().GetCommunicator().SynchronizeNonHistoricalVariable(KratosMultiphysics.CONVECTION_COEFFICIENT)
         self._GetMainModelPart().GetCommunicator().SynchronizeVariable(KratosMultiphysics.HEAT_FLUX)
+
+    def _SolveFluidPhysics(self):
+        return False
+    
+    def _SolveTransportPhysics(self):
+        return True
 
 
     

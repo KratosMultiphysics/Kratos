@@ -76,6 +76,7 @@ public:
     double bdf0;
     double bdf1;
     double bdf2;
+    double TopOptTimeCoefficient;
 
     Vector Functional_Weights; // weigths of the functional terms
 
@@ -104,8 +105,9 @@ public:
     NodalScalarData Pressure_adj;
     NodalScalarData Pressure_adj_OldStep1;
     NodalScalarData Pressure_adj_OldStep2;
-    NodalScalarData Temperature;
-    NodalScalarData Temperature_adj;
+    NodalVectorData Functional_derivative_velocity;
+    NodalScalarData Functional_derivative_transport_scalar;
+    NodalScalarData Functional_derivative_transport_scalar_adj;
     // ADJ_NS Auxiliary containers for the symbolically-generated matrices
     BoundedMatrix<double,TNumNodes*(TDim+1),TNumNodes*(TDim+1)> lhs_adj;
     array_1d<double,TNumNodes*(TDim+1)> rhs_adj;

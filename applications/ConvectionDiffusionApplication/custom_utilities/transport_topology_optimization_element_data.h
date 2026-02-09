@@ -26,6 +26,7 @@
 // Application includes
 #include "convection_diffusion_application_variables.h"
 #include "utilities/element_size_calculator.h"
+#include "includes/cfd_variables.h"
 
 namespace Kratos
 {
@@ -69,9 +70,8 @@ public:
 
     // COMMON STABILIZATION QUANTITIES
     double DynamicTau;     // Dynamic tau considered in ASGS stabilization coefficients
-    double bdf0;
-    double bdf1;
-    double bdf2;
+    double TimeIntegrationTheta;
+    double TopOptTimeCoefficient;
 
     Vector Functional_Weights; // weigths of the functional terms
     NodalScalarData Optimization_Temperature; // temperature in the optimization region
@@ -80,20 +80,22 @@ public:
 
     // TRANSPORT VARIABLES
     NodalScalarData Temperature;
-    NodalScalarData Temperature_OldStep1;;
-    NodalScalarData Temperature_OldStep2;;
-    NodalVectorData ConvectiveVelocity;
+    NodalScalarData Temperature_OldStep1;
+    NodalVectorData ConvectionVelocity;
     NodalVectorData MeshVelocity;
     NodalScalarData SourceTerm;
+    NodalScalarData SourceTerm_OldStep1;
     // NS Auxiliary containers for the symbolically-generated matrices
     BoundedMatrix<double,TNumNodes,TNumNodes> lhs;
     array_1d<double,TNumNodes> rhs;
 
     // ADJOINT TRANSPORT VARIABLES
     NodalScalarData Temperature_adj;
-    NodalScalarData Temperature_adj_OldStep1;;
-    NodalScalarData Temperature_adj_OldStep2;;
+    NodalScalarData Temperature_adj_OldStep1;
     NodalScalarData SourceTerm_adj;
+    NodalScalarData SourceTerm_adj_OldStep1;
+    NodalVectorData Functional_derivative_velocity;
+    NodalScalarData Functional_derivative_transport_scalar;
     // ADJ_NS Auxiliary containers for the symbolically-generated matrices
     BoundedMatrix<double,TNumNodes,TNumNodes> lhs_adj;
     array_1d<double,TNumNodes> rhs_adj;

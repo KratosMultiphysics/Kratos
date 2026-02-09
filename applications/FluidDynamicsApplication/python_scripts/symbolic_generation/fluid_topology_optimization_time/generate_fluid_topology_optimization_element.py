@@ -67,6 +67,7 @@ for dim, nnodes in zip(dim_vector, nnodes_vector):
     bdf0 = sympy.Symbol('bdf0')
     bdf1 = sympy.Symbol('bdf1')
     bdf2 = sympy.Symbol('bdf2')
+    time_coeff = sympy.Symbol('time_coeff')
     
     ## |-----------------------------------------------|
     ## | START PRIMAL NAVIER-STOKES ELEMENT DEFINITION |
@@ -113,7 +114,7 @@ for dim, nnodes in zip(dim_vector, nnodes_vector):
 
     ## BASE GALERKIN FUNCTIONAL RESIDUAL
     rv_galerkin  = -(grad_sym_voigt_w.transpose()*stress) # diffusion term, OBS--> A::B=A_sym::B_sym + A_asym::B_asym, but (grad(u)+grad(u)^T) is sym, so we can use the grad_sym_voigt(w)
-    rv_galerkin += -rho*w_gauss.transpose()*accel_gauss
+    rv_galerkin += -time_coeff*rho*w_gauss.transpose()*accel_gauss
     rv_galerkin +=  div_w*p_gauss # pressure term
     rv_galerkin += -alpha*(w_gauss.transpose()*v_gauss) # resistance (alpha) term
     rv_galerkin +=  rho*w_gauss.transpose()*f_gauss # RHS forcing
@@ -137,15 +138,13 @@ for dim, nnodes in zip(dim_vector, nnodes_vector):
     if (stabilization):
         # Parameters definition
         h = sympy.Symbol('h', positive = True)      # Mesh size
-        # dt = sympy.Symbol('dt', positive = True) # Time increment
-        # dyn_tau = sympy.Symbol('dyn_tau', positive = True) # Time stabilization constant
         #Stabilization constants definition
         stab_c1 = sympy.Symbol('stab_c1', positive = True) # Diffusion stabilization constant
         stab_c2 = sympy.Symbol('stab_c2', positive = True) # Convection stabilization constant
         stab_c3 = sympy.Symbol('stab_c3', positive = True) # Resistance (alpha) term stabilization constant
         # TAU1 EVALUATION steps
         tau1_denominator = 0.0
-        tau1_denominator += rho*dyn_tau/dt # time contribution to tau_1
+        tau1_denominator += time_coeff*rho*dyn_tau/dt # time contribution to tau_1
         tau1_denominator += stab_c1*mu/h**2 # diffusion contribution to tau_1
         tau1_denominator += stab_c3*alpha # resistance contribution to tau_1
         # TAU2 EVALUATION steps
@@ -165,7 +164,7 @@ for dim, nnodes in zip(dim_vector, nnodes_vector):
         ##  STABILIZATION functional terms
         # momentum conservation residual
         momentum_residual  =  rho*f_gauss # forcing
-        momentum_residual += -rho*accel_gauss # time derivative
+        momentum_residual += -time_coeff*rho*accel_gauss # time derivative
         momentum_residual += -grad_p # pressure gradient
         # diffusion eliminates since it involves 2nd order derivatives for 1st order solutions
         momentum_residual += -(alpha)*v_gauss
@@ -227,8 +226,11 @@ for dim, nnodes in zip(dim_vector, nnodes_vector):
     # Forcing_adj definitions
     f_adj = DefineMatrix('f_adj', nnodes, dim)  # Forcing_adj
 
-    # Navier-Stokes velocity solution
-    v_ns = DefineMatrix('v_ns',nnodes,dim)    # NS velocity solution 
+    # Navier-Stokes convection velocity solution
+    v_conv_ns = DefineMatrix('v_conv_ns',nnodes,dim)    # NS velocity solution 
+
+    # NS fucntional derivatives variables
+    functional_v = DefineMatrix('functional_v',nnodes,dim)
 
     # Stress_adj definition
     stress_adj = DefineVector('stress_adj',strain_size)
@@ -238,12 +240,13 @@ for dim, nnodes in zip(dim_vector, nnodes_vector):
     q_adj = DefineVector('q_adj',nnodes)        # Pressure_adj test function
 
     # Compute functions at Gauss points
-    v_adj_gauss = v_adj.transpose()*N           # Velocity_adj at gauss points
-    p_adj_gauss = p_adj.transpose()*N           # Pressure_adj at gauss points
-    f_adj_gauss = f_adj.transpose()*N           # Forcing_adj at gauss points
-    v_ns_gauss  = v_ns.transpose()*N            # NS velocity solution at gauss points
-    w_adj_gauss = w_adj.transpose()*N           # Velocity_adj test function at gauss points
-    q_adj_gauss = q_adj.transpose()*N           # Pressure_adj test function at gauss points
+    v_adj_gauss = v_adj.transpose()*N                       # Velocity_adj at gauss points
+    p_adj_gauss = p_adj.transpose()*N                       # Pressure_adj at gauss points
+    f_adj_gauss = f_adj.transpose()*N                       # Forcing_adj at gauss points
+    v_conv_ns_gauss  = v_conv_ns.transpose()*N              # NS velocity solution at gauss points
+    functional_v_gauss  = functional_v.transpose()*N        # NS velocity solution at gauss points
+    w_adj_gauss = w_adj.transpose()*N                       # Velocity_adj test function at gauss points
+    q_adj_gauss = q_adj.transpose()*N                       # Pressure_adj test function at gauss points
     accel_adj_gauss = (bdf0*v_adj + bdf1*vn_adj + bdf2*vnn_adj).transpose()*N # Time derivative term: acceleration at gauss points
 
     # Derivatives evaluation
@@ -252,25 +255,25 @@ for dim, nnodes in zip(dim_vector, nnodes_vector):
     grad_p_adj = DfjDxi(DN,p_adj)  # Pressure_adj gradient VERTICAL VECTOR
     grad_w_adj = DfiDxj(DN,w_adj)  # Velocity_adj test function gradient
     grad_q_adj = DfjDxi(DN,q_adj)  # Pressure_adj test function gradient VERTICAL VECTOR
-    grad_v_ns  = DfiDxj(DN,v_ns)   # Gradient of the NS velocity solution
+    grad_v_conv_ns  = DfiDxj(DN,v_conv_ns)                # Gradient of the NS velocity solution
+    grad_functional_v  = DfiDxj(DN,functional_v)     # Gradient of the NS velocity solution
 
     # Symmetric Gradient: 1/2*(grad(u)+grad(u)^T)
-    grad_sym_v_ns     = 1/2 * (grad_v_ns + grad_v_ns.transpose())
-    grad_antisym_v_ns = 1/2 * (grad_v_ns - grad_v_ns.transpose())
+    grad_sym_functional_v     = 1/2 * (grad_functional_v + grad_functional_v.transpose())
+    grad_antisym_functional_v = 1/2 * (grad_functional_v - grad_functional_v.transpose())
 
     # Voigt Notation Symmetric Gradient: 1/2*(grad(u)+grad(u)^T)
     grad_sym_voigt_v_adj = grad_sym_voigtform(DN,v_adj)   # Symmetric velocity_adj gradient in Voigt notation
     grad_sym_voigt_w_adj = grad_sym_voigtform(DN,w_adj)   # Symmetric velocity_adj test function gradient of w in Voigt notation
-    grad_sym_voigt_v_ns  = grad_sym_voigtform(DN,v_ns)    # Symmetric NS velocity solution gradient in Voigt notation
 
     #Divergence
     div_v_adj = div(DN,v_adj)   # Velocity_adj divergence
     div_w_adj = div(DN,w_adj)   # Velocity_adj test function divergence
-    div_v_ns  = div(DN,v_ns)    # NS velocity solution divergence
+    div_v_conv_ns  = div(DN,v_conv_ns)    # NS velocity solution divergence
 
     ## ADJOINT BASE GALERKIN FUNCTIONAL RESIDUAL
     rv_galerkin_adj  = -(grad_sym_voigt_w_adj.transpose()*stress_adj) # diffusion term, OBS--> A:B=A_sym:B_sym + A_asym:B_asym, but (grad(u)+grad(u)^T) is sym, so we can use the grad_sym_voigt(w)
-    rv_galerkin_adj += -rho*w_adj_gauss.transpose()*accel_adj_gauss
+    rv_galerkin_adj += -time_coeff*rho*w_adj_gauss.transpose()*accel_adj_gauss
     rv_galerkin_adj +=  div_w_adj*p_adj_gauss # pressure term
     rv_galerkin_adj += -alpha*(w_adj_gauss.transpose()*v_adj_gauss) # resistance (alpha) term
     rv_galerkin_adj +=  rho*w_adj_gauss.transpose()*f_adj_gauss # RHS forcing
@@ -291,42 +294,42 @@ for dim, nnodes in zip(dim_vector, nnodes_vector):
 	    # 7: transport_scalar_decay: int_{\Omega}{kT^2}
 	    # 8: transport_scalar_source: int_{\Omega}{-Q*T}
         functional_weights = DefineVector('functional_weights', n_functionals) # Weights of the functionals terms
-        rv_funct_resistance_adj  = -2.0*alpha*(w_adj_gauss.transpose()*v_ns_gauss)
-        rv_funct_strain_rate_adj = -4.0*mu*(sympy.Matrix([DoubleContraction(grad_sym_v_ns, grad_w_adj)]))
-        rv_funct_vorticity_adj   = -4.0*mu*(sympy.Matrix([DoubleContraction(grad_antisym_v_ns, grad_w_adj)]))
+        rv_funct_resistance_adj  = -2.0*alpha*(w_adj_gauss.transpose()*functional_v_gauss)
+        rv_funct_strain_rate_adj = -4.0*mu*(sympy.Matrix([DoubleContraction(grad_sym_functional_v, grad_w_adj)]))
+        rv_funct_vorticity_adj   = -4.0*mu*(sympy.Matrix([DoubleContraction(grad_antisym_functional_v, grad_w_adj)]))
         rv_adj += functional_weights[0]*rv_funct_resistance_adj + functional_weights[1]*rv_funct_strain_rate_adj + functional_weights[2]*rv_funct_vorticity_adj
 
     ## HANDLE EVENTUAL TRANSPORT COUPLING TERMS  
     if (transport_coupling):
         # Transport Problem Solution (if only fluid is = 0)
-        t     = DefineVector('t',nnodes) # transprot scalar
-        t_adj = DefineVector('t_adj',nnodes) # transport scalar
+        functional_t     = DefineVector('functional_t',nnodes) # transprot scalar
+        functional_t_adj = DefineVector('functional_t_adj',nnodes) # transport scalar
         t_ConvCoeff = DefineVector('t_ConvCoeff', nnodes) # convection coefficient for transport coupling
         # Temperature at gauss points
-        t_gauss = t_adj.transpose()*N # t at gauss points
-        t_adj_gauss = t_adj.transpose()*N # t_adj at gauss points
+        functional_t_gauss = functional_t.transpose()*N # t at gauss points
+        functional_t_adj_gauss = functional_t_adj.transpose()*N # t_adj at gauss points
         t_ConvCoeff_gauss = t_ConvCoeff.transpose()*N # convection coefficient for transport coupling at gauss points
         # Temperature Gradient
-        grad_t     = DfjDxi(DN,t)      # Temperature gradient VERTICAL VECTOR
+        grad_functional_t     = DfjDxi(DN,functional_t)      # Temperature gradient VERTICAL VECTOR
         # Residual evaluation
-        rv_transport_coupling_adj = -t_ConvCoeff_gauss*(w_adj_gauss.transpose()*(grad_t*t_adj_gauss))
+        rv_transport_coupling_adj = -t_ConvCoeff_gauss*(w_adj_gauss.transpose()*(grad_functional_t*functional_t_adj_gauss))
         rv_adj += rv_transport_coupling_adj
 
         # HANDLE ADJOINT FORCING TERMS  
         if (include_functionals):
-            rv_funct_transport_convection_adj = -t_ConvCoeff_gauss * t_gauss * (grad_t.transpose()*w_adj_gauss)
+            rv_funct_transport_convection_adj = -t_ConvCoeff_gauss * functional_t_gauss * (grad_functional_t.transpose()*w_adj_gauss)
             rv_adj += functional_weights[6]*rv_funct_transport_convection_adj
     
     ## HANDLE ADJOINT CONVECTION 
     if (convective_term):
         # CONVECTIVE ADJOINT GALERKIN FUNCTIONAL RESIDUAL
-        # Adjoint velocity convection driven by the vconv = NS velocity = v_ns
+        # Adjoint velocity convection driven by the vconv = NS velocity = v_conv_ns
         # -> evaluated in a weak form such that the Neumann BC are imposed "naturally"
-        # from the Adjoint PDE its formulation should be: rv_galerkin  += rho*(w_gauss.transpose()*(grad_v*v_ns_gauss))
-        rv_conv_adj   = -rho*(v_adj_gauss.transpose()*(grad_w_adj*v_ns_gauss)) 
+        # from the Adjoint PDE its formulation should be: rv_galerkin  += rho*(w_gauss.transpose()*(grad_v*v_conv_ns_gauss))
+        rv_conv_adj   = -rho*(v_adj_gauss.transpose()*(grad_w_adj*v_conv_ns_gauss)) 
         # Velocity convection driven by the adjoint velocity: called ADJOINT RESISTANCE caouse we can write (alphaI+grad(U))u_a * w
         # additional term appearing in the ADJ_NS system w.r.t. the NS eqs.
-        rv_conv_adj  += -rho*(w_adj_gauss.transpose()*(grad_v_ns.transpose()*v_adj_gauss))
+        rv_conv_adj  += -rho*(w_adj_gauss.transpose()*(grad_v_conv_ns.transpose()*v_adj_gauss))
         rv_adj += rv_conv_adj # save CONVECTION residual into TOTAL element residual
     # END HANDLE CONVECTION
 
@@ -354,8 +357,8 @@ for dim, nnodes in zip(dim_vector, nnodes_vector):
             #           the term similar to the resistance term stabilization has been added to the Resistance stabilization using the frobenius norm of ||grad(U)||_frob
             # TRUE CONVECTION STABILIZATION
             stab_norm_a_adj = 0.0
-            for i in range(0, dim): # evaluate the v_ns norm
-                stab_norm_a_adj += v_ns_gauss[i]**2
+            for i in range(0, dim): # evaluate the v_conv_ns norm
+                stab_norm_a_adj += v_conv_ns_gauss[i]**2
             stab_norm_a_adj = sympy.sqrt(stab_norm_a_adj)
             tau1_denominator_adj += stab_c2*rho*stab_norm_a_adj/h # convection contribution to tau_1
             tau2_factor_adj      += stab_c2*rho*stab_norm_a_adj*h # convection contribution to tau_2
@@ -365,7 +368,7 @@ for dim, nnodes in zip(dim_vector, nnodes_vector):
             stab_norm_gradU_adj = 0.0
             for i in range(0,dim):
                 for j in range(0,dim):
-                    stab_norm_gradU_adj += grad_v_ns[i,j]**2
+                    stab_norm_gradU_adj += grad_v_conv_ns[i,j]**2
             stab_norm_gradU_adj = sympy.sqrt(stab_norm_gradU_adj)
             tau1_denominator_adj += stab_c3*rho*stab_norm_gradU_adj # convection contribution to tau_1
             tau2_factor_adj += stab_c3*rho*stab_norm_gradU_adj*h*h # convection contribution to tau_2
@@ -375,22 +378,22 @@ for dim, nnodes in zip(dim_vector, nnodes_vector):
         ##  STABILIZATION functional terms
         # momentum conservation residual
         momentum_residual_adj  =  rho*f_adj_gauss # forcing
-        momentum_residual     += -rho*accel_adj_gauss # time derivative
+        momentum_residual     += -time_coeff*rho*accel_adj_gauss # time derivative
         momentum_residual_adj += -grad_p_adj # pressure gradient
         # diffusion eliminates since it involves 2nd order derivatives for 1st order solutions
         momentum_residual_adj += -alpha*v_adj_gauss
         if (convective_term):
-            momentum_residual_adj +=  rho*grad_v_adj*v_ns_gauss
-            momentum_residual_adj += -rho*grad_v_ns.transpose()*v_adj_gauss
+            momentum_residual_adj +=  rho*grad_v_adj*v_conv_ns_gauss
+            momentum_residual_adj += -rho*grad_v_conv_ns.transpose()*v_adj_gauss
 
         ## Include adjoint forcing terms coming from the functional definition
         if (include_functionals):
-            momentum_residual_adj += -functional_weights[0]*2.0*alpha*v_ns_gauss
+            momentum_residual_adj += -functional_weights[0]*2.0*alpha*v_conv_ns_gauss
 
         if (transport_coupling):
-            momentum_residual_adj += -grad_t*t_adj_gauss*t_ConvCoeff_gauss
+            momentum_residual_adj += -grad_functional_t*functional_t_adj_gauss*t_ConvCoeff_gauss
             if (include_functionals):
-                momentum_residual_adj += -functional_weights[6]*grad_t*t_gauss*t_ConvCoeff_gauss
+                momentum_residual_adj += -functional_weights[6]*grad_functional_t*functional_t_gauss*t_ConvCoeff_gauss
 
         # mass conservation residual
         mass_residual_adj = -div_v_adj
@@ -406,9 +409,9 @@ for dim, nnodes in zip(dim_vector, nnodes_vector):
             #SIGN - WAS DONE TO STAB THE ADJ, BUT WAS UNCOHERENT WITH STABILIZED NS ADJOINT 
             # without - the adjoint should be the adjoint of the stabilized version!
             # the stabilizing filter is set to be the same of the primal but evaluated in adjoint test functions
-            rv_stab_adj += -rho*velocity_adj_subscale.transpose()*(grad_w_adj*v_ns_gauss) # 1st stab convective residual: convective term
-            rv_stab_adj += -rho*w_adj_gauss.transpose()*(grad_v_ns.transpose()*velocity_adj_subscale)  # 2nd stab convective residual: adjoint resistance term
-            # rv_stab_adj += rho*velocity_adj_subscale.transpose()*(grad_w_adj*v_ns_gauss) 
+            rv_stab_adj += -rho*velocity_adj_subscale.transpose()*(grad_w_adj*v_conv_ns_gauss) # 1st stab convective residual: convective term
+            rv_stab_adj += -rho*w_adj_gauss.transpose()*(grad_v_conv_ns.transpose()*velocity_adj_subscale)  # 2nd stab convective residual: adjoint resistance term
+            # rv_stab_adj += rho*velocity_adj_subscale.transpose()*(grad_w_adj*v_conv_ns_gauss) 
             # rv_stab_adj += rho*div_v_ns*velocity_adj_subscale.transpose()*w_adj_gauss
         rv_adj += rv_stab_adj # save STABILIZATION residual into TOTAL element residual
     # END HANDLE STABILIZATION

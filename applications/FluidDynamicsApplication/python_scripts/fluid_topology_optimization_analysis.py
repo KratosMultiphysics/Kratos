@@ -326,7 +326,7 @@ class FluidTopologyOptimizationAnalysis(FluidDynamicsAnalysis):
 
     def _InitializeFluidFunctionalsWeightsInTime(self):
         self._InitializeResistanceFunctionalWeightsInTime()
-        self._InitializeResistanceFunctionalWeightsInTime()
+        self._InitializeStrainRateFunctionalWeightsInTime()
         self._InitializeVorticityFunctionalWeightsInTime()
 
     def _InitializeResistanceFunctionalWeightsInTime(self):
@@ -342,10 +342,16 @@ class FluidTopologyOptimizationAnalysis(FluidDynamicsAnalysis):
         self._SetFunctionalWeightsInTime(vorticity_functional_id, self.vorticity_functional_time_info)
 
     def _SetFunctionalWeightsInTime(self, functional_id, time_info):
+        """ Set the functional time-weights to 1.0 over the activation interval [start_time, end_time].
+        start_time and end_time are continuous and each lies between two discrete time steps
+        (the corresponding span is given by *_span_time_steps_ids and *_span_times).
+        We map each boundary to one of the two steps by comparing it with mean(span_times):
+          - start: pick the first id if start_time <= mean(start_span_times), else the second.
+          - end  : pick the first id if end_time   <= mean(end_span_times),   else the second.
+        Then we activate all time steps in [start_weights_id, end_weights_id] (inclusive).
+        If start_weights_id < 0, clamp it to 0 (weights start from the first time step)."""
         start_time = time_info["times"][0]
-        end_time   = time_info["times"][1] 
-        start_weights_id = -1
-        end_weights_id = self.n_time_steps-1
+        end_time   = time_info["times"][1]
         if (start_time <= np.mean(time_info["start_span_times"])):
             start_weights_id = time_info["start_span_time_steps_ids"][0]
         else:
@@ -355,8 +361,7 @@ class FluidTopologyOptimizationAnalysis(FluidDynamicsAnalysis):
         else:
             end_weights_id = time_info["end_span_time_steps_ids"][1]
         if start_weights_id < 0:
-            start_weights_id = 0 # time step weights starts form the first time step, ignoring the starting time
-        # end_weights_id == -1, meaning that the functional interval is inside the first half of the first time step, then no contribution is considered in the adjoint system functional weights
+            start_weights_id = 0
         for time_step_id in range(start_weights_id, end_weights_id+1):
             self.functional_weights_in_time[time_step_id, functional_id] = 1.0
 
@@ -457,7 +462,14 @@ class FluidTopologyOptimizationAnalysis(FluidDynamicsAnalysis):
         self._GetAdjointSolver().Initialize()
 
     def InitializeAnalysisTimeSettings(self):
-        ## Stepping and time settings
+        self._InitializeAnalysisTimeCoefficient()
+        self._InitializeAnalysisTimeStepsSettings()
+
+    def _InitializeAnalysisTimeCoefficient(self):
+        self._GetPhysicsSolver()._SetAnalysisTimeCoefficient()
+
+    def _InitializeAnalysisTimeStepsSettings(self):    
+        # Stepping and time settings
         if self.IsUnsteadySolution():
             self.start_time = self.project_parameters["problem_data"]["start_time"].GetDouble()
             self.end_time = self.project_parameters["problem_data"]["end_time"].GetDouble()
@@ -1264,11 +1276,12 @@ class FluidTopologyOptimizationAnalysis(FluidDynamicsAnalysis):
 
     def UpdateFunctionalWeights(self):
         if self.IsUnsteadySolution():
-            time_step_functional_weights = self.functional_weights_in_time[self.time_step_counter-1,:] * self.functional_weights
+            time_step_functional_weights = self.functional_weights_in_time[self.n_time_steps-self.time_step_counter,:] * self.functional_weights
             self._GetComputingModelPart().ProcessInfo.SetValue(KratosMultiphysics.FUNCTIONAL_WEIGHTS, time_step_functional_weights)
         else:
             self._GetComputingModelPart().ProcessInfo.SetValue(KratosMultiphysics.FUNCTIONAL_WEIGHTS, self.functional_weights)
-    
+        self._GetMainModelPart().GetCommunicator().SynchronizeNonHistoricalVariable(KratosMultiphysics.FUNCTIONAL_WEIGHTS)
+        
     def InitializePhysicsSolutionStep(self):
         self._InitializeFluidSolutionStep()
 
@@ -1279,12 +1292,18 @@ class FluidTopologyOptimizationAnalysis(FluidDynamicsAnalysis):
         self._InitializeAdjointFluidSolutionStep()
 
     def _InitializeAdjointFluidSolutionStep(self):
-        self._InitializeAdjointPhysicsSolutionStepConvectionVelocity()
+        self._InitializeAdjointFluidSolutionStepConvectionVelocity()
+        self._InitializeAdjointPhysicsSolutionStepFunctionalDerivativeVelocity()
 
-    def _InitializeAdjointPhysicsSolutionStepConvectionVelocity(self):
+    def _InitializeAdjointFluidSolutionStepConvectionVelocity(self):
         convection_velocity = self.velocity_solutions[self.n_time_steps-self.time_step_counter,:,:].copy()
         self._GetAdjointSolver()._UpdateConvectionVelocityVariable(convection_velocity)
         self._GetMainModelPart().GetCommunicator().SynchronizeNonHistoricalVariable(KratosCFD.CONVECTION_VELOCITY)
+
+    def _InitializeAdjointPhysicsSolutionStepFunctionalDerivativeVelocity(self):
+        functional_derivative_velocity = self.velocity_solutions[self.n_time_steps-self.time_step_counter,:,:].copy()
+        self._GetAdjointSolver()._UpdateFunctionalDerivativeVelocityVariable(functional_derivative_velocity)
+        self._GetMainModelPart().GetCommunicator().SynchronizeNonHistoricalVariable(KratosMultiphysics.FUNCTIONAL_DERIVATIVE_VELOCITY)
 
     def FinalizeSolutionStep(self):
         super().FinalizeSolutionStep()
@@ -1957,6 +1976,12 @@ class FluidTopologyOptimizationAnalysis(FluidDynamicsAnalysis):
 
     def SetTimeOutputSolutionStepPhysicsVariables(self, time_step_id):
         self._SetTimeOutputSolutionStepFluidVariables(time_step_id)
+
+    def _SetTimeOutputSolutionStepFluidVariables(self, time_step_id): 
+        KratosMultiphysics.VariableUtils().SetSolutionStepValuesVector(self._GetLocalMeshNodes(), KratosMultiphysics.VELOCITY, self.velocity_solutions[time_step_id].flatten(), 0)
+        KratosMultiphysics.VariableUtils().SetSolutionStepValuesVector(self._GetLocalMeshNodes(), KratosMultiphysics.PRESSURE, self.pressure_solutions[time_step_id], 0)  
+        KratosMultiphysics.VariableUtils().SetSolutionStepValuesVector(self._GetLocalMeshNodes(), KratosMultiphysics.VELOCITY_ADJ, self.adjoint_velocity_solutions[time_step_id].flatten(), 0)  
+        KratosMultiphysics.VariableUtils().SetSolutionStepValuesVector(self._GetLocalMeshNodes(), KratosMultiphysics.PRESSURE_ADJ, self.adjoint_pressure_solutions[time_step_id], 0) 
 
     def PrintTimeOutputProcess(self, output_process, time_step_id):
         time_step_counter = str(time_step_id).zfill(len(str(self.n_time_steps))) 
@@ -2941,3 +2966,9 @@ class FluidTopologyOptimizationAnalysis(FluidDynamicsAnalysis):
     def GetAdjointBufferIdFromTimeStepId(self, time_step_id):
         # assume time step id starts from 0 for the first time step and ends with self.n_time_steps-1
         return time_step_id
+    
+    def _SolveFluidPhysics(self):
+        return True
+    
+    def _SolveTransportPhysics(self):
+        return False
