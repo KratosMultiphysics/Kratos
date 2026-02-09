@@ -12,8 +12,8 @@
 
 #include "custom_constitutive/compression_cap_yield_surface.h"
 #include "custom_constitutive/coulomb_yield_surface.h"
-#include "custom_constitutive/geo_sigma_tau.hpp"
 #include "custom_constitutive/principal_stresses.hpp"
+#include "custom_constitutive/sigma_tau.hpp"
 #include "custom_constitutive/tension_cutoff.h"
 #include "custom_utilities/registration_utilities.hpp"
 #include "custom_utilities/stress_strain_utilities.h"

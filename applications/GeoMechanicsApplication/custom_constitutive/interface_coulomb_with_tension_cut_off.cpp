@@ -14,7 +14,7 @@
 
 // Application includes
 #include "custom_constitutive/interface_coulomb_with_tension_cut_off.h"
-#include "custom_constitutive/geo_sigma_tau.hpp"
+#include "custom_constitutive/sigma_tau.hpp"
 #include "custom_utilities/check_utilities.hpp"
 #include "custom_utilities/constitutive_law_utilities.h"
 #include "custom_utilities/math_utilities.hpp"
