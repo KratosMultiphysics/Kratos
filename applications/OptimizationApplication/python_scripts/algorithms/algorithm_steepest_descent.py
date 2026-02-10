@@ -91,16 +91,15 @@ class AlgorithmSteepestDescent(Algorithm):
 
     @time_decorator()
     def ComputeSearchDirection(self, obj_grad: Kratos.TensorAdaptors.DoubleCombinedTensorAdaptor) -> Kratos.TensorAdaptors.DoubleCombinedTensorAdaptor:
-        search_direction = Kratos.TensorAdaptors.DoubleCombinedTensorAdaptor(obj_grad)
-        search_direction.data[:] = obj_grad.data[:] * -1.0
+        search_direction: Kratos.TensorAdaptors.DoubleCombinedTensorAdaptor = obj_grad.Clone()
+        search_direction.data[:] *= -1.0
         Kratos.TensorAdaptors.DoubleCombinedTensorAdaptor(search_direction, perform_store_data_recursively=False, copy=False).StoreData()
-        self.algorithm_data.GetBufferedData()["search_direction"] = Kratos.TensorAdaptors.DoubleCombinedTensorAdaptor(search_direction)
+        self.algorithm_data.GetBufferedData()["search_direction"] = search_direction
         return search_direction
 
     @time_decorator()
     def ComputeControlUpdate(self, alpha: Kratos.TensorAdaptors.DoubleCombinedTensorAdaptor) -> None:
-        search_direction: Kratos.TensorAdaptors.DoubleCombinedTensorAdaptor = self.algorithm_data.GetBufferedData()["search_direction"]
-        update = Kratos.TensorAdaptors.DoubleCombinedTensorAdaptor(search_direction)
+        update: Kratos.TensorAdaptors.DoubleCombinedTensorAdaptor = self.algorithm_data.GetBufferedData()["search_direction"].Clone()
         update.data[:] *= alpha.data[:]
         Kratos.TensorAdaptors.DoubleCombinedTensorAdaptor(update, perform_store_data_recursively=False, copy=False).StoreData()
         self.algorithm_data.GetBufferedData()["control_field_update"] = update
