@@ -14,14 +14,18 @@
 #pragma once
 
 // System includes
+#include <iostream>
+#include <vector>
 #include <map>
 #include <set>
 #include <string>
 #include <cstring>
 #include <sstream>
+#include <typeinfo>
 #include <fstream>
-#include <iostream>
+#include <functional>
 #include <unordered_map>
+#include <filesystem>
 #include <unordered_set>
 
 // External includes
@@ -126,6 +130,7 @@ public:
     typedef void* (*ObjectFactoryType)();
 
     typedef std::map<void*, void*> LoadedPointersContainerType;
+    typedef std::map<void*, std::shared_ptr<void>> LoadedSharedPointersContainerType;
 
     typedef std::map<std::string, ObjectFactoryType> RegisteredObjectsContainerType;
 
@@ -240,19 +245,27 @@ public:
                     }
 
                     // Load the pointer address before loading the content
-                    mLoadedPointers[p_pointer]=&pValue;
+                    mLoadedPointers[p_pointer]=pValue.get();
+                    mLoadedSharedPointers[p_pointer] = pValue;
+
                     load(rTag, *pValue);
                 }
                 else
                 {
-                    pValue = *static_cast<Kratos::shared_ptr<TDataType>*>((i_pointer->second));
+                    auto it_shared = mLoadedSharedPointers.find(p_pointer);
+                    if(it_shared != mLoadedSharedPointers.end()) {
+                        pValue = std::static_pointer_cast<TDataType>(it_shared->second);
+                    } else {
+                        pValue.reset(static_cast<TDataType*>((i_pointer->second)));
+                        mLoadedSharedPointers[p_pointer] = pValue;
+                    }
                 }
             }
         } else {
             if (pValue) {
-                auto itr = mLoadedPointers.find(&*pValue);
+                auto itr = mLoadedPointers.find(pValue.get());
                 if (itr == mLoadedPointers.end()) {
-                    mLoadedPointers[&*pValue]=&*pValue;
+                    mLoadedPointers[pValue.get()]=pValue.get();
                     load(rTag, *pValue);
                 }
             }
@@ -300,19 +313,19 @@ public:
                     }
 
                     // Load the pointer address before loading the content
-                    mLoadedPointers[p_pointer]=&pValue;
+                    mLoadedPointers[p_pointer]=pValue.get();
                     load(rTag, *pValue);
                 }
                 else
                 {
-                    pValue = *static_cast<Kratos::intrusive_ptr<TDataType>*>((i_pointer->second));
+                    pValue.reset(static_cast<TDataType*>((i_pointer->second)));
                 }
             }
         } else {
             if (pValue) {
-                auto itr = mLoadedPointers.find(&*pValue);
+                auto itr = mLoadedPointers.find(pValue.get());
                 if (itr == mLoadedPointers.end()) {
-                    mLoadedPointers[&*pValue]=&*pValue;
+                    mLoadedPointers[pValue.get()]=pValue.get();
                     load(rTag, *pValue);
                 }
             }
@@ -365,14 +378,14 @@ public:
                 }
                 else
                 {
-                    pValue = std::move(Kratos::unique_ptr<TDataType>(static_cast<TDataType*>((i_pointer->second))));
+                    pValue.reset(static_cast<TDataType*>((i_pointer->second)));
                 }
             }
         } else {
             if (pValue) {
-                auto itr = mLoadedPointers.find(&*pValue);
+                auto itr = mLoadedPointers.find(pValue.get());
                 if (itr == mLoadedPointers.end()) {
-                    mLoadedPointers[&*pValue]=&*pValue;
+                    mLoadedPointers[pValue.get()]=pValue.get();
                     load(rTag, *pValue);
                 }
             }
@@ -421,19 +434,19 @@ public:
                     }
 
                     // Load the pointer address before loading the content
-                    mLoadedPointers[p_pointer]=&pValue;
+                    mLoadedPointers[p_pointer]=pValue;
                     load(rTag, *pValue);
                 }
                 else
                 {
-                    pValue = *static_cast<TDataType**>((i_pointer->second));
+                    pValue = static_cast<TDataType*>((i_pointer->second));
                 }
             }
         } else {
             if (pValue) {
-                auto itr = mLoadedPointers.find(&*pValue);
+                auto itr = mLoadedPointers.find(pValue);
                 if (itr == mLoadedPointers.end()) {
-                    mLoadedPointers[&*pValue]=&*pValue;
+                    mLoadedPointers[pValue]=pValue;
                     load(rTag, *pValue);
                 }
             }
@@ -1074,6 +1087,7 @@ private:
 
     SavedPointersContainerType mSavedPointers;
     LoadedPointersContainerType mLoadedPointers;
+    LoadedSharedPointersContainerType mLoadedSharedPointers;
 
     bool mIsDataOnly;
 
@@ -1352,7 +1366,7 @@ private:
 
         for(; First != Last ; First++)
         {
-            mpBuffer->read((char *)First,sizeof(size));
+            mpBuffer->read(reinterpret_cast<char*>(&(*First)), size);
         }
 
         KRATOS_SERIALIZER_MODE_ASCII
@@ -1373,8 +1387,7 @@ private:
 
         for(; First != Last ; First++)
         {
-            const char * data = reinterpret_cast<const char *>(First);
-            mpBuffer->write(data,sizeof(size));
+            mpBuffer->write(reinterpret_cast<const char*>(&(*First)), size);
         }
 
         KRATOS_SERIALIZER_MODE_ASCII

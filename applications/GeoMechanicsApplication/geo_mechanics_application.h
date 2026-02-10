@@ -89,7 +89,7 @@
 #include "custom_elements/U_Pw_small_strain_interface_element.h"
 #include "custom_elements/U_Pw_updated_lagrangian_FIC_element.h"
 #include "custom_elements/U_Pw_updated_lagrangian_element.h"
-#include "custom_elements/calculation_contribution.h"
+#include "custom_elements/contribution_calculators/calculation_contribution.h"
 #include "custom_elements/geo_steady_state_Pw_piping_element.h"
 #include "custom_elements/small_strain_U_Pw_diff_order_element.h"
 #include "custom_elements/steady_state_Pw_element.h"
@@ -516,24 +516,43 @@ private:
         0, Kratos::make_shared<HexahedraInterface3D8<NodeType>>(Element::GeometryType::PointsArrayType(8)),
         std::make_unique<ThreeDimensionalStressState>()};
 
-    const UPwInterfaceElement mULineInterfacePlaneStrainElement2Plus2N{
-        0, Kratos::make_shared<InterfaceGeometry<Line2D2<NodeType>>>(Element::GeometryType::PointsArrayType(4)),
-        std::make_unique<Line2DInterfaceStressState>()};
-    const UPwInterfaceElement mULineInterfacePlaneStrainElement3Plus3N{
-        0, Kratos::make_shared<InterfaceGeometry<Line2D3<NodeType>>>(Element::GeometryType::PointsArrayType(6)),
-        std::make_unique<Line2DInterfaceStressState>()};
-    const UPwInterfaceElement mUSurfaceInterfaceElement3Plus3N{
-        0, Kratos::make_shared<InterfaceGeometry<Triangle3D3<NodeType>>>(Element::GeometryType::PointsArrayType(6)),
-        std::make_unique<SurfaceInterfaceStressState>()};
-    const UPwInterfaceElement mUSurfaceInterfaceElement4Plus4N{
-        0, Kratos::make_shared<InterfaceGeometry<Quadrilateral3D4<NodeType>>>(Element::GeometryType::PointsArrayType(8)),
-        std::make_unique<SurfaceInterfaceStressState>()};
-    const UPwInterfaceElement mUSurfaceInterfaceElement6Plus6N{
-        0, Kratos::make_shared<InterfaceGeometry<Triangle3D6<NodeType>>>(Element::GeometryType::PointsArrayType(12)),
-        std::make_unique<SurfaceInterfaceStressState>()};
-    const UPwInterfaceElement mUSurfaceInterfaceElement8Plus8N{
-        0, Kratos::make_shared<InterfaceGeometry<Quadrilateral3D8<NodeType>>>(Element::GeometryType::PointsArrayType(16)),
-        std::make_unique<SurfaceInterfaceStressState>()};
+    const UPwInterfaceElement mUPwLineInterfacePlaneStrainElement2Plus2N{
+        0,
+        Kratos::make_shared<InterfaceGeometry<Line2D2<NodeType>>>(Element::GeometryType::PointsArrayType(4)),
+        std::make_unique<Line2DInterfaceStressState>(),
+        IsDiffOrderElement::No,
+        {CalculationContribution::Stiffness}};
+    const UPwInterfaceElement mUPwLineInterfacePlaneStrainElement3Plus3N{
+        0,
+        Kratos::make_shared<InterfaceGeometry<Line2D3<NodeType>>>(Element::GeometryType::PointsArrayType(6)),
+        std::make_unique<Line2DInterfaceStressState>(),
+        IsDiffOrderElement::No,
+        {CalculationContribution::Stiffness}};
+    const UPwInterfaceElement mUPwSurfaceInterfaceElement3Plus3N{
+        0,
+        Kratos::make_shared<InterfaceGeometry<Triangle3D3<NodeType>>>(Element::GeometryType::PointsArrayType(6)),
+        std::make_unique<SurfaceInterfaceStressState>(),
+        IsDiffOrderElement::No,
+        {CalculationContribution::Stiffness}};
+    const UPwInterfaceElement mUPwSurfaceInterfaceElement4Plus4N{
+        0,
+        Kratos::make_shared<InterfaceGeometry<Quadrilateral3D4<NodeType>>>(Element::GeometryType::PointsArrayType(8)),
+        std::make_unique<SurfaceInterfaceStressState>(),
+        IsDiffOrderElement::No,
+        {CalculationContribution::Stiffness}};
+    const UPwInterfaceElement mUPwSurfaceInterfaceElement6Plus6N{
+        0,
+        Kratos::make_shared<InterfaceGeometry<Triangle3D6<NodeType>>>(Element::GeometryType::PointsArrayType(12)),
+        std::make_unique<SurfaceInterfaceStressState>(),
+        IsDiffOrderElement::No,
+        {CalculationContribution::Stiffness}};
+    const UPwInterfaceElement mUPwSurfaceInterfaceElement8Plus8N{
+        0,
+        Kratos::make_shared<InterfaceGeometry<Quadrilateral3D8<NodeType>>>(
+            Element::GeometryType::PointsArrayType(16)),
+        std::make_unique<SurfaceInterfaceStressState>(),
+        IsDiffOrderElement::No,
+        {CalculationContribution::Stiffness}};
 
     // Updated-Lagrangian elements:
     const UPwUpdatedLagrangianElement<2, 3> mUPwUpdatedLagrangianElement2D3N{

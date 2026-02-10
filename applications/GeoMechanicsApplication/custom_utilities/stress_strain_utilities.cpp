@@ -14,9 +14,10 @@
 #include "stress_strain_utilities.h"
 #include "custom_utilities/generic_utilities.hpp"
 #include "custom_utilities/math_utilities.hpp"
+#include "custom_utilities/ublas_utilities.h"
 #include "geo_mechanics_application_constants.h"
+#include "includes/process_info.h"
 #include "utilities/math_utils.h"
-#include <cmath>
 
 namespace Kratos
 {
@@ -234,6 +235,41 @@ Vector StressStrainUtilities::TransformSigmaTauToPrincipalStresses(const Vector&
     result[0]   = rSigmaTau[0] + rSigmaTau[1];
     result[1]   = rPrincipalStresses[1];
     result[2]   = rSigmaTau[0] - rSigmaTau[1];
+    return result;
+}
+
+Vector StressStrainUtilities::TransformPrincipalStressesToPandQ(const Vector& rPrincipalStresses)
+{
+    auto stress_vector = Vector(6, 0.0);
+    std::ranges::copy(rPrincipalStresses, stress_vector.begin());
+    return UblasUtilities::CreateVector(
+        {CalculateMeanStress(stress_vector), CalculateVonMisesStress(stress_vector)});
+}
+
+std::vector<Vector> StressStrainUtilities::CalculateStressVectorsFromStrainVectors(
+    const std::vector<Vector>&                   rStrains,
+    const ProcessInfo&                           rProcessInfo,
+    const Properties&                            rProperties,
+    const std::vector<ConstitutiveLaw::Pointer>& rConstitutiveLaws)
+{
+    // We have to make a copy of each strain vector, since setting it at the
+    // constitutive law parameters requires a reference to a _mutable_ object!
+    auto calculate_stress = [&rProperties, &rProcessInfo](auto Strain, auto& rpLaw) {
+        auto law_parameters = ConstitutiveLaw::Parameters{};
+        law_parameters.SetStrainVector(Strain);
+        auto result = Vector{};
+        result.resize(rpLaw->GetStrainSize());
+        law_parameters.SetStressVector(result);
+        law_parameters.SetMaterialProperties(rProperties);
+        law_parameters.Set(ConstitutiveLaw::COMPUTE_STRESS);
+        law_parameters.SetProcessInfo(rProcessInfo);
+        rpLaw->CalculateMaterialResponseCauchy(law_parameters);
+        return result;
+    };
+    auto result = std::vector<Vector>{};
+    result.reserve(rStrains.size());
+    std::ranges::transform(rStrains, rConstitutiveLaws, std::back_inserter(result), calculate_stress);
+
     return result;
 }
 
