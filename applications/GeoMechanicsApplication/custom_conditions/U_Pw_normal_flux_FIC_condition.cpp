@@ -77,9 +77,8 @@ void UPwNormalFluxFICCondition<TDim, TNumNodes>::CalculateAll(Matrix& rLeftHandS
     r_geom.Jacobian(j_container, this->GetIntegrationMethod());
 
     // Condition variables
-    array_1d<double, TNumNodes> normal_flux_vector;
-    NormalFluxVariables         Variables;
-    NormalFluxFICVariables      FICVariables;
+    NormalFluxVariables    Variables;
+    NormalFluxFICVariables FICVariables;
     FICVariables.DtPressureCoefficient = CurrentProcessInfo[DT_PRESSURE_COEFFICIENT];
     this->CalculateElementLength(FICVariables.ElementLength, r_geom);
     const double BulkModulusSolid = r_prop[BULK_MODULUS_SOLID];
@@ -89,7 +88,7 @@ void UPwNormalFluxFICCondition<TDim, TNumNodes>::CalculateAll(Matrix& rLeftHandS
     FICVariables.BiotModulusInverse =
         (BiotCoefficient - Porosity) / BulkModulusSolid + Porosity / r_prop[BULK_MODULUS_FLUID];
 
-    normal_flux_vector = VariablesUtilities::GetNodalValues<TNumNodes>(r_geom, NORMAL_FLUID_FLUX);
+    auto normal_flux_vector = VariablesUtilities::GetNodalValues<TNumNodes>(r_geom, NORMAL_FLUID_FLUX);
     FICVariables.DtPressureVector = VariablesUtilities::GetNodalValues<TNumNodes>(r_geom, DT_WATER_PRESSURE);
 
     // Loop over integration points
