@@ -216,7 +216,7 @@ public:
     /**
      * @brief Clones the existing tensor adaptor.
      */
-    TensorAdaptor<TDataType>::Pointer Clone() const override;
+    typename TensorAdaptor<TDataType>::Pointer Clone() const override;
 
     /**
      * @brief Check if the necessary data is present in the underlying container.
