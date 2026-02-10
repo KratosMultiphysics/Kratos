@@ -1,3 +1,4 @@
+from numpy import double
 import numpy as np
 import KratosMultiphysics as KM
 
@@ -9,7 +10,7 @@ class CFDUtils:
     def ComputeElementalDivergence(self, DN: np.ndarray, uel: np.ndarray, out: np.ndarray):
         """
         Computes the elemental divergence of a vector field u.
-        
+
         This term is ∇·u.
         Using Einstein notation: out[e] = sum_k sum_l DN[e,k,l]*uel[e,k,l]
 
@@ -34,7 +35,7 @@ class CFDUtils:
     def ComputeElementwiseNodalDivergence(self, N: np.ndarray, DN: np.ndarray, uel: np.ndarray, out: np.ndarray):
         """
         Computes the nodal weighted divergence of a vector field u.
-        
+
         This term is (w, ∇·u).
         Using Einstein notation: out[e,i] = sum_k sum_l N[i]*DN[e,k,l]*uel[e,k,l]
 
@@ -62,7 +63,7 @@ class CFDUtils:
     def Compute_N_DN(self, N: np.ndarray, DN: np.ndarray, pel: np.ndarray, out: np.ndarray):
         """
         Computes the term (w, ∇p).
-        
+
         Using Einstein notation: out[e,I,k] = N[I]*DN[e,J,k]*pel[e,J]
 
         Parameters
@@ -91,7 +92,7 @@ class CFDUtils:
     def Compute_DN_N(self, N: np.ndarray, DN: np.ndarray, pel: np.ndarray, out: np.ndarray):
         """
         Computes the term (∇w, p).
-        
+
         Using Einstein notation: out[e,I,k] = sum_J DN[e,I,k]*pel[e,J]*N[J]
 
         Parameters
@@ -123,7 +124,7 @@ class CFDUtils:
     def ComputeLaplacianMatrix(self, DN: np.ndarray, out: np.ndarray):
         """
         Computes the Laplacian local matrix term (∇N, ∇N).
-        
+
         Using Einstein notation: out[e,i,j] = DN[e,i,m]*DN[e,j,m]
 
         Parameters
@@ -139,8 +140,8 @@ class CFDUtils:
         """
         Computes the term (∇q, ∇field) - scalar field
                        or (∇w, ∇field) - vector field
-        
-        Using Einstein notation: 
+
+        Using Einstein notation:
         if field is scalar: out[e,i] = DN[e,i,m]*DN[e,j,m]*field[e,j]
         if field is vector: out[e,i,k] = DN[e,i,m]*DN[e,j,m]*field[e,j,k]
 
@@ -159,14 +160,14 @@ class CFDUtils:
         """
 
         if field.ndim == 2: # scalar case
-            
+
             np.einsum("eIm,eJm,eJ->eI", DN, DN, field, out=out)
 
         elif field.ndim == 3:
 
             np.einsum("eIm,eJm,eJk->eIk", DN, DN, field, out=out)
 
-    
+
     def InterpolateValue(self, N: np.ndarray, field: np.ndarray, out: np.ndarray):
         """
         Computes:
@@ -311,15 +312,15 @@ class CFDUtils:
         ----------
         N : (nelem, n_in_el)
             shape function values at the gauss point
-        
+
         grad_u : (nelem, ndim, ndim) in the vector case or (nelem, ndim) in the scalar case
             gradient of the velocity at the gauss point
-        
-        a: (nelem,ndim) 
+
+        a: (nelem,ndim)
             convective velocity on the gauss point
-        
+
         out: (nelem, n_in_el, ndim)
-            
+
         """
         if grad_u.ndim == 3: #gradient of a vector function
             np.einsum('i,ekl,el->eik', N, grad_u, a, out=out)
@@ -334,7 +335,7 @@ class CFDUtils:
         np.einsum("eI,eJ,eJk->eIk",a_DN,a_DN,u_elemental,out=out)
         np.einsum("eI,J,eJk->eIk",a_DN,N,Pi_elemental, out=PiContrib)
         out -= PiContrib
-    
+
     def ComputeDivDivStabilization(self, DN: np.ndarray, Pi_elemental: np.ndarray, out: np.ndarray):
         ##TODO: avoid temporaries!
         pass
@@ -351,18 +352,18 @@ class CFDUtils:
         ----------
         N : (nelem, n_in_el)
             shape function values at the gauss point
-        
+
         grad_u : (nelem, ndim, ndim) in the vector case or (nelem, ndim) in the scalar case
             gradient of the velocity at the gauss point
-        
-        a: (nelem,ndim) 
+
+        a: (nelem,ndim)
             convective velocity on the gauss point
-        
+
         out: (nelem, n_in_el, ndim)
-           
+
         """
         np.einsum("eIk,J,eJk->eI",DN,N,Pi_press_el,out=out)
-    
+
     def AllocateScalarMatrix(self,conn: np.ndarray):
         #TODO: make it efficient
         size = np.max(conn)+1
@@ -375,11 +376,11 @@ class CFDUtils:
         A = KM.CsrMatrix(Agraph)
 
         return A
-        
+
     def AssembleScalarMatrix(self,LHSel,conn,A):
-        A.SetValue(0.0) 
+        A.SetValue(0.0)
         A.BeginAssemble()
         for e in range(conn.shape[0]):
             A.Assemble(LHSel[e],conn[e])
-        A.FinalizeAssemble()        
-       
+        A.FinalizeAssemble()
+
