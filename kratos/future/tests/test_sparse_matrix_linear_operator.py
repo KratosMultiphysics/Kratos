@@ -28,8 +28,8 @@ class TestSparseMatrixLinearOperator(KratosUnittest.TestCase):
         shape = lin_op.Shape
         self.assertEqual(shape[0], 2)
         self.assertEqual(shape[1], 2)
-        self.assertEqual(lin_op.NumRows, 2)
-        self.assertEqual(lin_op.NumCols, 2)
+        self.assertEqual(lin_op.Size1, 2)
+        self.assertEqual(lin_op.Size2, 2)
         self.assertFalse(lin_op.IsMatrixFree)
 
         # Test GetMatrix
