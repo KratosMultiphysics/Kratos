@@ -1257,9 +1257,9 @@ void UPwSmallStrainElement<TDim, TNumNodes>::InitializeNodalPorePressureVariable
 {
     KRATOS_TRY
 
-    const GeometryType& r_geometry = this->GetGeometry();
-    VariablesUtilities::GetNodalValues(r_geometry, WATER_PRESSURE, rVariables.PressureVector.begin());
-    VariablesUtilities::GetNodalValues(r_geometry, DT_WATER_PRESSURE, rVariables.DtPressureVector.begin());
+    const auto& r_geometry = this->GetGeometry();
+    rVariables.PressureVector = VariablesUtilities::GetNodalValues<TNumNodes>(r_geometry, WATER_PRESSURE);
+    rVariables.DtPressureVector = VariablesUtilities::GetNodalValues<TNumNodes>(r_geometry, DT_WATER_PRESSURE);
 
     KRATOS_CATCH("")
 }
@@ -1269,7 +1269,7 @@ void UPwSmallStrainElement<TDim, TNumNodes>::InitializeNodalDisplacementVariable
 {
     KRATOS_TRY
 
-    const GeometryType& r_geometry = this->GetGeometry();
+    const auto& r_geometry = this->GetGeometry();
 
     // Nodal variables
     GeoElementUtilities::GetNodalVariableVector<TDim, TNumNodes>(rVariables.DisplacementVector,

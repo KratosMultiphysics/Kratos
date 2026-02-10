@@ -93,11 +93,11 @@ template <unsigned int TDim, unsigned int TNumNodes>
 void UPwNormalFaceLoadCondition<TDim, TNumNodes>::InitializeConditionVariables(NormalFaceLoadVariables& rVariables,
                                                                                const GeometryType& rGeom)
 {
-    VariablesUtilities::GetNodalValues(rGeom, NORMAL_CONTACT_STRESS, rVariables.NormalStressVector.begin());
+    rVariables.NormalStressVector = VariablesUtilities::GetNodalValues<TNumNodes>(rGeom, NORMAL_CONTACT_STRESS);
 
     if constexpr (TDim == 2) {
-        VariablesUtilities::GetNodalValues(rGeom, TANGENTIAL_CONTACT_STRESS,
-                                           rVariables.TangentialStressVector.begin());
+        rVariables.TangentialStressVector =
+            VariablesUtilities::GetNodalValues<TNumNodes>(rGeom, TANGENTIAL_CONTACT_STRESS);
     }
 }
 
