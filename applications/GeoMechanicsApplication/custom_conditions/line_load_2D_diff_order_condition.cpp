@@ -52,14 +52,13 @@ void LineLoad2DDiffOrderCondition::CalculateConditionVector(ConditionVariables& 
 {
     KRATOS_TRY
 
-    const GeometryType& r_geometry = GetGeometry();
-    const auto line_load_vector    = VariablesUtilities::GetNodalValues(r_geometry, LINE_LOAD);
+    const auto line_load_vectors = VariablesUtilities::GetNodalValues(GetGeometry(), LINE_LOAD);
 
     rVariables.ConditionVector.resize(2, false);
     noalias(rVariables.ConditionVector) = ZeroVector(2);
-    for (SizeType i = 0; i < r_geometry.PointsNumber(); ++i) {
-        rVariables.ConditionVector[0] += rVariables.Nu[i] * line_load_vector[i][0];
-        rVariables.ConditionVector[1] += rVariables.Nu[i] * line_load_vector[i][1];
+    for (SizeType i = 0; i < line_load_vectors.size(); ++i) {
+        rVariables.ConditionVector[0] += rVariables.Nu[i] * line_load_vectors[i][0];
+        rVariables.ConditionVector[1] += rVariables.Nu[i] * line_load_vectors[i][1];
     }
 
     KRATOS_CATCH("")
