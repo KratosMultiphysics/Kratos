@@ -528,6 +528,7 @@ class VectorizedCFDStage(analysis_stage.AnalysisStage):
         convective *= self.rho
         res -= convective
 
+        #FIXME: missing 2nd order integration of the stabilization term
         # (a·∇u,a·∇u) - (a·∇u,Pi_conv)
         convective_stabilization=aux_res_el #rename this to make it more readable
         #proj_el = np.zeros(v_elemental.shape) #TODO: this has to be computed in the appropriate way!
