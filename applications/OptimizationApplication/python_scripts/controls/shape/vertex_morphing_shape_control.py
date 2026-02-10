@@ -174,7 +174,7 @@ class VertexMorphingShapeControl(Control):
         un_buffered_data = ComponentDataView(self, self.optimization_problem).GetUnBufferedData()
         un_buffered_data.SetValue("shape_update", shape_update,overwrite=True)
         if self.output_all_fields:
-            un_buffered_data.SetValue("shape_control", Kratos.TensorAdaptors.DoubleTensorAdaptor(self.control_field), overwrite=True)
+            un_buffered_data.SetValue("shape_control", self.control_field.Clone(), overwrite=True)
             un_buffered_data.SetValue("shape_control_update", control_update, overwrite=True)
 
     def _UpdateMesh(self, shape_update: Kratos.TensorAdaptors.DoubleTensorAdaptor) -> None:

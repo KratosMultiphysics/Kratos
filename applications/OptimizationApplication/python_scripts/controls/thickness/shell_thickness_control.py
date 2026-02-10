@@ -175,9 +175,9 @@ class ShellThicknessControl(Control):
         un_buffered_data.SetValue("physical_thickness", projected_filtered_thickness_field,overwrite=True)
         if self.output_all_fields:
             un_buffered_data.SetValue("filtered_thickness_update", filtered_thickness_field_update, overwrite=True)
-            un_buffered_data.SetValue("control_thickness_phi", Kratos.TensorAdaptors.DoubleTensorAdaptor(self.control_phi_field), overwrite=True)
-            un_buffered_data.SetValue("physical_thickness_phi", Kratos.TensorAdaptors.DoubleTensorAdaptor(self.physical_phi_field), overwrite=True)
-            un_buffered_data.SetValue("projection_derivative", Kratos.TensorAdaptors.DoubleTensorAdaptor(self.projection_derivative_field), overwrite=True)
+            un_buffered_data.SetValue("control_thickness_phi", self.control_phi_field.Clone(), overwrite=True)
+            un_buffered_data.SetValue("physical_thickness_phi", self.physical_phi_field.Clone(), overwrite=True)
+            un_buffered_data.SetValue("projection_derivative", self.projection_derivative_field.Clone(), overwrite=True)
 
     def __str__(self) -> str:
         return f"Control [type = {self.__class__.__name__}, name = {self.GetName()}, model part name = {self.model_part.FullName()}, control variable = {Kratos.THICKNESS.Name()}"

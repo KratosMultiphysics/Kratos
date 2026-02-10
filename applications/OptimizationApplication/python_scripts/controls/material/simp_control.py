@@ -223,8 +223,8 @@ class SimpControl(Control):
 
         # now output the fields
         un_buffered_data = ComponentDataView(self, self.optimization_problem).GetUnBufferedData()
-        un_buffered_data.SetValue(f"{self.GetName()}", Kratos.TensorAdaptors.DoubleTensorAdaptor(self.simp_physical_phi),overwrite=True)
+        un_buffered_data.SetValue(f"{self.GetName()}", self.simp_physical_phi.Clone(),overwrite=True)
         if self.output_all_fields:
             un_buffered_data.SetValue(f"{self.GetName()}_update", physical_phi_update, overwrite=True)
-            un_buffered_data.SetValue(f"dDENSITY_d{self.GetName()}", Kratos.TensorAdaptors.DoubleTensorAdaptor(self.d_density_d_phi), overwrite=True)
-            un_buffered_data.SetValue(f"dYOUNG_MODULUS_d{self.GetName()}", Kratos.TensorAdaptors.DoubleTensorAdaptor(self.d_young_modulus_d_phi), overwrite=True)
+            un_buffered_data.SetValue(f"dDENSITY_d{self.GetName()}", self.d_density_d_phi.Clone(), overwrite=True)
+            un_buffered_data.SetValue(f"dYOUNG_MODULUS_d{self.GetName()}", self.d_young_modulus_d_phi.Clone(), overwrite=True)
