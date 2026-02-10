@@ -42,13 +42,21 @@ CombinedTensorAdaptor<TDataType>::CombinedTensorAdaptor(
     const TensorAdaptorVectorType& rTensorAdaptorVector,
     const unsigned int Axis,
     const bool PerformCollectDataRecursively,
-    const bool PerformStoreDataRecursively)
+    const bool PerformStoreDataRecursively,
+    const bool Copy)
     : mPerformCollectDataRecursively(PerformCollectDataRecursively),
       mPerformStoreDataRecursively(PerformStoreDataRecursively),
-      mAxis(Axis),
-      mTensorAdaptors(rTensorAdaptorVector)
+      mAxis(Axis)
 {
     KRATOS_TRY
+
+    for (const auto& p_tensor_adaptor : rTensorAdaptorVector) {
+        if (Copy) {
+            mTensorAdaptors.push_back(p_tensor_adaptor->Clone());
+        } else {
+            mTensorAdaptors.push_back(p_tensor_adaptor);
+        }
+    }
 
     // It is not allowed to create combined tensor adaptors with empty list of tensor adaptors vector
     KRATOS_ERROR_IF(rTensorAdaptorVector.empty())
@@ -110,13 +118,21 @@ template<class TDataType>
 CombinedTensorAdaptor<TDataType>::CombinedTensorAdaptor(
     const TensorAdaptorVectorType& rTensorAdaptorVector,
     const bool PerformCollectDataRecursively,
-    const bool PerformStoreDataRecursively)
+    const bool PerformStoreDataRecursively,
+    const bool Copy)
     : mPerformCollectDataRecursively(PerformCollectDataRecursively),
       mPerformStoreDataRecursively(PerformStoreDataRecursively),
-      mAxis(-1), // represent that this combined tensor adaptor is used with ravel
-      mTensorAdaptors(rTensorAdaptorVector)
+      mAxis(-1) // represent that this combined tensor adaptor is used with ravel
 {
     KRATOS_TRY
+
+    for (const auto& p_tensor_adaptor : rTensorAdaptorVector) {
+        if (Copy) {
+            mTensorAdaptors.push_back(p_tensor_adaptor->Clone());
+        } else {
+            mTensorAdaptors.push_back(p_tensor_adaptor);
+        }
+    }
 
     // this combined tensor will have everything raveled. Therefore, it will only have one dimension.
     DenseVector<unsigned int> tensor_shape(1);
@@ -141,9 +157,25 @@ CombinedTensorAdaptor<TDataType>::CombinedTensorAdaptor(
     : BaseType(rOther, Copy),
       mPerformCollectDataRecursively(PerformCollectDataRecursively),
       mPerformStoreDataRecursively(PerformStoreDataRecursively),
-      mAxis(rOther.mAxis),
-      mTensorAdaptors(rOther.mTensorAdaptors)
+      mAxis(rOther.mAxis)
 {
+    KRATOS_TRY
+
+    for (const auto& p_tensor_adaptor : rOther.mTensorAdaptors) {
+        if (Copy) {
+            mTensorAdaptors.push_back(p_tensor_adaptor->Clone());
+        } else {
+            mTensorAdaptors.push_back(p_tensor_adaptor);
+        }
+    }
+
+    KRATOS_CATCH("");
+}
+
+template<class TDataType>
+TensorAdaptor<TDataType>::Pointer CombinedTensorAdaptor<TDataType>::Clone() const
+{
+    return Kratos::make_shared<CombinedTensorAdaptor<TDataType>>(*this, this->mPerformCollectDataRecursively, this->mPerformStoreDataRecursively);
 }
 
 template<class TDataType>
