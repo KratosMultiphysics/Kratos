@@ -82,6 +82,150 @@ class TestTensorAdaptors(KratosUnittest.TestCase):
         flag_setter(self.model_part.Conditions)
         flag_setter(self.model_part.Elements)
 
+    def test_HistoricalVariableTensorAdaptorClone(self):
+        ta = Kratos.TensorAdaptors.HistoricalVariableTensorAdaptor(self.model_part.Nodes, Kratos.PRESSURE)
+        ta.Check()
+        ta.CollectData()
+        cloned_ta = ta.Clone()
+        for i, node in enumerate(self.model_part.Nodes):
+            self.assertAlmostEqual(node.GetSolutionStepValue(Kratos.PRESSURE), ta.data[i])
+            self.assertAlmostEqual(node.GetSolutionStepValue(Kratos.PRESSURE), cloned_ta.data[i])
+
+        cloned_ta.data[:] += 2.0
+        self.assertVectorAlmostEqual(ta.data[:] + 2.0, cloned_ta.data)
+
+        cloned_ta.StoreData()
+        for i, node in enumerate(self.model_part.Nodes):
+            self.assertAlmostEqual(node.GetSolutionStepValue(Kratos.PRESSURE), ta.data[i] + 2.0)
+            self.assertAlmostEqual(node.GetSolutionStepValue(Kratos.PRESSURE), cloned_ta.data[i])
+
+    def test_VariableTensorAdaptorClone(self):
+        ta = Kratos.TensorAdaptors.VariableTensorAdaptor(self.model_part.Nodes, Kratos.PRESSURE)
+        ta.Check()
+        ta.CollectData()
+        cloned_ta = ta.Clone()
+        for i, node in enumerate(self.model_part.Nodes):
+            self.assertAlmostEqual(node.GetValue(Kratos.PRESSURE), ta.data[i])
+            self.assertAlmostEqual(node.GetValue(Kratos.PRESSURE), cloned_ta.data[i])
+
+        cloned_ta.data[:] += 2.0
+        self.assertVectorAlmostEqual(ta.data[:] + 2.0, cloned_ta.data)
+
+        cloned_ta.StoreData()
+        for i, node in enumerate(self.model_part.Nodes):
+            self.assertAlmostEqual(node.GetValue(Kratos.PRESSURE), ta.data[i] + 2.0)
+            self.assertAlmostEqual(node.GetValue(Kratos.PRESSURE), cloned_ta.data[i])
+
+    def test_NodePositionTensorAdaptorClone(self):
+        ta = Kratos.TensorAdaptors.NodePositionTensorAdaptor(self.model_part.Nodes, Kratos.Configuration.Current)
+        ta.Check()
+        ta.CollectData()
+        cloned_ta = ta.Clone()
+        for i, node in enumerate(self.model_part.Nodes):
+            self.assertAlmostEqual(node.X, ta.data[i, 0])
+            self.assertAlmostEqual(node.X, cloned_ta.data[i, 0])
+            self.assertAlmostEqual(node.Y, ta.data[i, 1])
+            self.assertAlmostEqual(node.Y, cloned_ta.data[i, 1])
+            self.assertAlmostEqual(node.Z, ta.data[i, 2])
+            self.assertAlmostEqual(node.Z, cloned_ta.data[i, 2])
+
+        cloned_ta.data[:] += 2.0
+        self.assertVectorAlmostEqual(ta.data[:].ravel() + 2.0, cloned_ta.data.ravel())
+
+        cloned_ta.StoreData()
+        for i, node in enumerate(self.model_part.Nodes):
+            self.assertAlmostEqual(node.X, ta.data[i, 0] + 2.0)
+            self.assertAlmostEqual(node.X, cloned_ta.data[i, 0])
+            self.assertAlmostEqual(node.Y, ta.data[i, 1] + 2.0)
+            self.assertAlmostEqual(node.Y, cloned_ta.data[i, 1])
+            self.assertAlmostEqual(node.Z, ta.data[i, 2] + 2.0)
+            self.assertAlmostEqual(node.Z, cloned_ta.data[i, 2])
+
+    def test_CombinedTensorAdaptorClone(self):
+        ta_1 = Kratos.TensorAdaptors.VariableTensorAdaptor(self.model_part.Nodes, Kratos.PRESSURE)
+        ta_2 = Kratos.TensorAdaptors.VariableTensorAdaptor(self.model_part.Nodes, Kratos.VELOCITY)
+        ta_3 = Kratos.TensorAdaptors.HistoricalVariableTensorAdaptor(self.model_part.Nodes, Kratos.EXTERNAL_FORCES_VECTOR)
+        ta_4 = Kratos.TensorAdaptors.HistoricalVariableTensorAdaptor(self.model_part.Nodes, Kratos.NORMAL_SHAPE_DERIVATIVE)
+        ta_5 = Kratos.TensorAdaptors.NodePositionTensorAdaptor(self.model_part.Nodes, Kratos.Configuration.Initial)
+        ta_6 = Kratos.TensorAdaptors.NodePositionTensorAdaptor(self.model_part.Nodes, Kratos.Configuration.Current)
+
+        ta_1.data[:] = 0.0
+        ta_2.data[:] = 0.0
+        ta_3.data[:] = 0.0
+        ta_4.data[:] = 0.0
+        ta_5.data[:] = 0.0
+        ta_6.data[:] = 0.0
+        self.assertAlmostEqual(numpy.linalg.norm(ta_1.data.ravel(), ord=numpy.inf), 0.0)
+        self.assertAlmostEqual(numpy.linalg.norm(ta_2.data.ravel(), ord=numpy.inf), 0.0)
+        self.assertAlmostEqual(numpy.linalg.norm(ta_3.data.ravel(), ord=numpy.inf), 0.0)
+        self.assertAlmostEqual(numpy.linalg.norm(ta_4.data.ravel(), ord=numpy.inf), 0.0)
+        self.assertAlmostEqual(numpy.linalg.norm(ta_5.data.ravel(), ord=numpy.inf), 0.0)
+        self.assertAlmostEqual(numpy.linalg.norm(ta_6.data.ravel(), ord=numpy.inf), 0.0)
+
+        cta_1 = Kratos.TensorAdaptors.DoubleCombinedTensorAdaptor([ta_1, ta_2, ta_3, ta_4, ta_5, ta_6])
+        cta_1.Check()
+        cta_1.CollectData()
+        self.assertAlmostEqual(numpy.linalg.norm(ta_1.data.ravel(), ord=numpy.inf), 0.0)
+        self.assertAlmostEqual(numpy.linalg.norm(ta_2.data.ravel(), ord=numpy.inf), 0.0)
+        self.assertAlmostEqual(numpy.linalg.norm(ta_3.data.ravel(), ord=numpy.inf), 0.0)
+        self.assertAlmostEqual(numpy.linalg.norm(ta_4.data.ravel(), ord=numpy.inf), 0.0)
+        self.assertAlmostEqual(numpy.linalg.norm(ta_5.data.ravel(), ord=numpy.inf), 0.0)
+        self.assertAlmostEqual(numpy.linalg.norm(ta_6.data.ravel(), ord=numpy.inf), 0.0)
+
+        cta_2 = Kratos.TensorAdaptors.DoubleCombinedTensorAdaptor([ta_1, ta_2, ta_3, ta_4, ta_5, ta_6], copy=False)
+        cta_2.Check()
+        cta_2.CollectData()
+        self.assertAlmostEqual(numpy.linalg.norm(ta_1.data.ravel()), numpy.linalg.norm(cta_1.GetTensorAdaptors()[0].data.ravel()))
+        self.assertAlmostEqual(numpy.linalg.norm(ta_2.data.ravel()), numpy.linalg.norm(cta_1.GetTensorAdaptors()[1].data.ravel()))
+        self.assertAlmostEqual(numpy.linalg.norm(ta_3.data.ravel()), numpy.linalg.norm(cta_1.GetTensorAdaptors()[2].data.ravel()))
+        self.assertAlmostEqual(numpy.linalg.norm(ta_4.data.ravel()), numpy.linalg.norm(cta_1.GetTensorAdaptors()[3].data.ravel()))
+        self.assertAlmostEqual(numpy.linalg.norm(ta_5.data.ravel()), numpy.linalg.norm(cta_1.GetTensorAdaptors()[4].data.ravel()))
+        self.assertAlmostEqual(numpy.linalg.norm(ta_6.data.ravel()), numpy.linalg.norm(cta_1.GetTensorAdaptors()[5].data.ravel()))
+
+        cta_4 = Kratos.TensorAdaptors.DoubleCombinedTensorAdaptor([ta_1, ta_2, ta_3, ta_4, ta_5, ta_6])
+        self.assertAlmostEqual(numpy.linalg.norm(ta_1.data.ravel()), numpy.linalg.norm(cta_4.GetTensorAdaptors()[0].data.ravel()))
+        self.assertAlmostEqual(numpy.linalg.norm(ta_2.data.ravel()), numpy.linalg.norm(cta_4.GetTensorAdaptors()[1].data.ravel()))
+        self.assertAlmostEqual(numpy.linalg.norm(ta_3.data.ravel()), numpy.linalg.norm(cta_4.GetTensorAdaptors()[2].data.ravel()))
+        self.assertAlmostEqual(numpy.linalg.norm(ta_4.data.ravel()), numpy.linalg.norm(cta_4.GetTensorAdaptors()[3].data.ravel()))
+        self.assertAlmostEqual(numpy.linalg.norm(ta_5.data.ravel()), numpy.linalg.norm(cta_4.GetTensorAdaptors()[4].data.ravel()))
+        self.assertAlmostEqual(numpy.linalg.norm(ta_6.data.ravel()), numpy.linalg.norm(cta_4.GetTensorAdaptors()[5].data.ravel()))
+
+        cta_5 = Kratos.TensorAdaptors.DoubleCombinedTensorAdaptor([ta_1, ta_2, cta_1])
+        cta_5.Check()
+        cta_5.CollectData()
+        cta_5.data[:] += 2.0
+        cta_5.StoreData()
+
+        self.assertEqual(cta_5.data.size, ta_1.data.size + ta_2.data.size + cta_1.data.size)
+        self.assertVectorAlmostEqual(cta_5.data[              : ta_1.data.size], ta_1.data + 2.0)
+        self.assertVectorAlmostEqual(cta_5.data[ta_1.data.size: ta_1.data.size + ta_2.data.size], ta_2.data.ravel() + 2.0)
+        self.assertVectorAlmostEqual(cta_5.data[ta_1.data.size + ta_2.data.size: ta_1.data.size + ta_2.data.size + cta_1.data.size], cta_1.data.ravel() + 2.0)
+
+        self.assertVectorAlmostEqual(cta_5.GetTensorAdaptors()[2].GetTensorAdaptors()[0].data.ravel(), cta_1.GetTensorAdaptors()[0].data.ravel() + 2.0)
+        self.assertVectorAlmostEqual(cta_5.GetTensorAdaptors()[2].GetTensorAdaptors()[1].data.ravel(), cta_1.GetTensorAdaptors()[1].data.ravel() + 2.0)
+        self.assertVectorAlmostEqual(cta_5.GetTensorAdaptors()[2].GetTensorAdaptors()[2].data.ravel(), cta_1.GetTensorAdaptors()[2].data.ravel() + 2.0)
+        self.assertVectorAlmostEqual(cta_5.GetTensorAdaptors()[2].GetTensorAdaptors()[3].data.ravel(), cta_1.GetTensorAdaptors()[3].data.ravel() + 2.0)
+        self.assertVectorAlmostEqual(cta_5.GetTensorAdaptors()[2].GetTensorAdaptors()[4].data.ravel(), cta_1.GetTensorAdaptors()[4].data.ravel() + 2.0)
+        self.assertVectorAlmostEqual(cta_5.GetTensorAdaptors()[2].GetTensorAdaptors()[5].data.ravel(), cta_1.GetTensorAdaptors()[5].data.ravel() + 2.0)
+
+        cta_6 = Kratos.TensorAdaptors.DoubleCombinedTensorAdaptor(cta_5, copy=False)
+        cta_6.Check()
+        cta_6.CollectData()
+        cta_6.data[:] += 4.0
+        cta_6.StoreData()
+
+        self.assertEqual(cta_5.data.size, ta_1.data.size + ta_2.data.size + cta_1.data.size)
+        self.assertVectorAlmostEqual(cta_5.data[              : ta_1.data.size], ta_1.data + 6.0)
+        self.assertVectorAlmostEqual(cta_5.data[ta_1.data.size: ta_1.data.size + ta_2.data.size], ta_2.data.ravel() + 6.0)
+        self.assertVectorAlmostEqual(cta_5.data[ta_1.data.size + ta_2.data.size: ta_1.data.size + ta_2.data.size + cta_1.data.size], cta_1.data.ravel() + 6.0)
+
+        self.assertVectorAlmostEqual(cta_5.GetTensorAdaptors()[2].GetTensorAdaptors()[0].data.ravel(), cta_1.GetTensorAdaptors()[0].data.ravel() + 6.0)
+        self.assertVectorAlmostEqual(cta_5.GetTensorAdaptors()[2].GetTensorAdaptors()[1].data.ravel(), cta_1.GetTensorAdaptors()[1].data.ravel() + 6.0)
+        self.assertVectorAlmostEqual(cta_5.GetTensorAdaptors()[2].GetTensorAdaptors()[2].data.ravel(), cta_1.GetTensorAdaptors()[2].data.ravel() + 6.0)
+        self.assertVectorAlmostEqual(cta_5.GetTensorAdaptors()[2].GetTensorAdaptors()[3].data.ravel(), cta_1.GetTensorAdaptors()[3].data.ravel() + 6.0)
+        self.assertVectorAlmostEqual(cta_5.GetTensorAdaptors()[2].GetTensorAdaptors()[4].data.ravel(), cta_1.GetTensorAdaptors()[4].data.ravel() + 6.0)
+        self.assertVectorAlmostEqual(cta_5.GetTensorAdaptors()[2].GetTensorAdaptors()[5].data.ravel(), cta_1.GetTensorAdaptors()[5].data.ravel() + 6.0)
+
     def test_ShapeHistoricalVariableTensorAdaptor(self):
         self.__TestTensorAdaptorShape(self.model_part.Nodes, Kratos.TensorAdaptors.HistoricalVariableTensorAdaptor)
 
@@ -369,7 +513,7 @@ class TestTensorAdaptors(KratosUnittest.TestCase):
         p_ta = Kratos.TensorAdaptors.VariableTensorAdaptor(self.model_part.Nodes, Kratos.PRESSURE)
         u_ta = Kratos.TensorAdaptors.VariableTensorAdaptor(self.model_part.Nodes, Kratos.VELOCITY)
 
-        combined_ta = Kratos.TensorAdaptors.DoubleCombinedTensorAdaptor([p_ta, x_ta, u_ta], axis=1)
+        combined_ta = Kratos.TensorAdaptors.DoubleCombinedTensorAdaptor([p_ta, x_ta, u_ta], axis=1, copy=False)
         combined_ta.Check()
         combined_ta.CollectData()
 
@@ -426,19 +570,26 @@ class TestTensorAdaptors(KratosUnittest.TestCase):
         copy_combined_ta.data *= 3.0
         copy_combined_ta.StoreData()
         for i, node in enumerate(self.model_part.Nodes):
-            self.assertAlmostEqual(node.GetValue(Kratos.PRESSURE), p_ta.data[i] * 2.0 / 3.0)
-            self.assertAlmostEqual(node.X0, x_ta.data[i, 0] * 2.0 / 3.0)
-            self.assertAlmostEqual(node.Y0, x_ta.data[i, 1] * 2.0 / 3.0)
-            self.assertAlmostEqual(node.Z0, x_ta.data[i, 2] * 2.0 / 3.0)
-            self.assertAlmostEqual(node.GetValue(Kratos.VELOCITY_X), u_ta.data[i, 0] * 2.0 / 3.0)
-            self.assertAlmostEqual(node.GetValue(Kratos.VELOCITY_Y), u_ta.data[i, 1] * 2.0 / 3.0)
-            self.assertAlmostEqual(node.GetValue(Kratos.VELOCITY_Z), u_ta.data[i, 2] * 2.0 / 3.0)
+            self.assertAlmostEqual(node.GetValue(Kratos.PRESSURE), p_ta.data[i] * 2.0)
+            self.assertAlmostEqual(node.X0, x_ta.data[i, 0] * 2.0)
+            self.assertAlmostEqual(node.Y0, x_ta.data[i, 1] * 2.0)
+            self.assertAlmostEqual(node.Z0, x_ta.data[i, 2] * 2.0)
+            self.assertAlmostEqual(node.GetValue(Kratos.VELOCITY_X), u_ta.data[i, 0] * 2.0)
+            self.assertAlmostEqual(node.GetValue(Kratos.VELOCITY_Y), u_ta.data[i, 1] * 2.0)
+            self.assertAlmostEqual(node.GetValue(Kratos.VELOCITY_Z), u_ta.data[i, 2] * 2.0)
+            self.assertAlmostEqual(node.GetValue(Kratos.PRESSURE), copy_combined_ta.GetTensorAdaptors()[0].data[i] * 2.0 / 3.0)
+            self.assertAlmostEqual(node.X0, copy_combined_ta.GetTensorAdaptors()[1].data[i, 0] * 2.0 / 3.0)
+            self.assertAlmostEqual(node.Y0, copy_combined_ta.GetTensorAdaptors()[1].data[i, 1] * 2.0 / 3.0)
+            self.assertAlmostEqual(node.Z0, copy_combined_ta.GetTensorAdaptors()[1].data[i, 2] * 2.0 / 3.0)
+            self.assertAlmostEqual(node.GetValue(Kratos.VELOCITY_X), copy_combined_ta.GetTensorAdaptors()[2].data[i, 0] * 2.0 / 3.0)
+            self.assertAlmostEqual(node.GetValue(Kratos.VELOCITY_Y), copy_combined_ta.GetTensorAdaptors()[2].data[i, 1] * 2.0 / 3.0)
+            self.assertAlmostEqual(node.GetValue(Kratos.VELOCITY_Z), copy_combined_ta.GetTensorAdaptors()[2].data[i, 2] * 2.0 / 3.0)
 
     def test_CombinedTensorAdaptorAxis0(self):
         u_nodes_ta = Kratos.TensorAdaptors.VariableTensorAdaptor(self.model_part.Nodes, Kratos.VELOCITY)
         u_elems_ta = Kratos.TensorAdaptors.VariableTensorAdaptor(self.model_part.Elements, Kratos.VELOCITY)
 
-        combined_ta = Kratos.TensorAdaptors.DoubleCombinedTensorAdaptor([u_nodes_ta, u_elems_ta], axis=0)
+        combined_ta = Kratos.TensorAdaptors.DoubleCombinedTensorAdaptor([u_nodes_ta, u_elems_ta], axis=0, copy=False)
         combined_ta.Check()
         combined_ta.CollectData()
 
@@ -470,7 +621,7 @@ class TestTensorAdaptors(KratosUnittest.TestCase):
         u_nodes_ta = Kratos.TensorAdaptors.VariableTensorAdaptor(self.model_part.Nodes, Kratos.VELOCITY)
         u_elems_ta = Kratos.TensorAdaptors.VariableTensorAdaptor(self.model_part.Elements, Kratos.PRESSURE)
 
-        combined_ta = Kratos.TensorAdaptors.DoubleCombinedTensorAdaptor([u_nodes_ta, u_elems_ta])
+        combined_ta = Kratos.TensorAdaptors.DoubleCombinedTensorAdaptor([u_nodes_ta, u_elems_ta], copy=False)
         combined_ta.Check()
         combined_ta.CollectData()
 
@@ -539,7 +690,7 @@ class TestTensorAdaptors(KratosUnittest.TestCase):
         u_nodes_ta = Kratos.TensorAdaptors.VariableTensorAdaptor(self.model_part.Nodes, Kratos.VELOCITY)
         u_elems_ta = Kratos.TensorAdaptors.VariableTensorAdaptor(self.model_part.Elements, Kratos.PRESSURE)
 
-        combined_ta = Kratos.TensorAdaptors.DoubleCombinedTensorAdaptor([u_nodes_ta, u_elems_ta])
+        combined_ta = Kratos.TensorAdaptors.DoubleCombinedTensorAdaptor([u_nodes_ta, u_elems_ta], copy=False)
 
         self.assertEqual(id(u_nodes_ta), id(combined_ta.GetTensorAdaptors()[0]))
         self.assertEqual(id(u_elems_ta), id(combined_ta.GetTensorAdaptors()[1]))
@@ -562,6 +713,60 @@ class TestTensorAdaptors(KratosUnittest.TestCase):
         ref_combined_ta = Kratos.TensorAdaptors.DoubleCombinedTensorAdaptor(combined_ta, copy=False)
         ref_combined_ta.data *= 3.0
         self.assertAlmostEqual(numpy.linalg.norm(ref_combined_ta.data - combined_ta.data), 0.0)
+
+    def test_NodalNeighboursTensorAdaptorCondition(self):
+        ta = Kratos.TensorAdaptors.NodalNeighbourCountTensorAdaptor(self.model_part.Nodes, self.model_part.Conditions)
+        ta.Check()
+        ta.CollectData()
+
+        for i, v in enumerate(ta.data):
+            if (i != 0 or i != ta.data.size - 1):
+                self.assertEqual(v, 2)
+            else:
+                self.assertEqual(v, 1)
+
+        with self.assertRaises(RuntimeError):
+            ta.StoreData()
+
+    def test_NodalNeighboursTensorAdaptorElement(self):
+        ta = Kratos.TensorAdaptors.NodalNeighbourCountTensorAdaptor(self.model_part.Nodes, self.model_part.Elements)
+        ta.Check()
+        ta.CollectData()
+
+        for i, v in enumerate(ta.data):
+            if (i != 0 or i != ta.data.size - 1):
+                self.assertEqual(v, 2)
+            else:
+                self.assertEqual(v, 1)
+
+        with self.assertRaises(RuntimeError):
+            ta.StoreData()
+
+    def testGeometryMetricsTensorAdaptorDomainSizeCondition(self):
+        ta = Kratos.TensorAdaptors.GeometryMetricsTensorAdaptor(self.model_part.Conditions, Kratos.TensorAdaptors.GeometryMetricsTensorAdaptor.DomainSize)
+        ta.CollectData()
+        for i, condition in enumerate(self.model_part.Conditions):
+            self.assertEqual(ta.data[i], condition.GetGeometry().DomainSize())
+
+    def testGeometryMetricsTensorAdaptorDomainSizeElement(self):
+        ta = Kratos.TensorAdaptors.GeometryMetricsTensorAdaptor(self.model_part.Elements, Kratos.TensorAdaptors.GeometryMetricsTensorAdaptor.DomainSize)
+        ta.CollectData()
+        for i, element in enumerate(self.model_part.Elements):
+            self.assertEqual(ta.data[i], element.GetGeometry().DomainSize())
+
+    def testGeometryMetricsTensorAdaptorDomainSizeCondition_Empty(self):
+        model = Kratos.Model()
+        model_part = model.CreateModelPart("test")
+        ta = Kratos.TensorAdaptors.GeometryMetricsTensorAdaptor(model_part.Conditions, Kratos.TensorAdaptors.GeometryMetricsTensorAdaptor.DomainSize)
+        ta.CollectData()
+        self.assertEqual(ta.data.shape, (0,))
+
+    def testGeometryMetricsTensorAdaptorDomainSizeElement_Empty(self):
+        model = Kratos.Model()
+        model_part = model.CreateModelPart("test")
+        ta = Kratos.TensorAdaptors.GeometryMetricsTensorAdaptor(model_part.Elements, Kratos.TensorAdaptors.GeometryMetricsTensorAdaptor.DomainSize)
+        ta.CollectData()
+        self.assertEqual(ta.data.shape, (0,))
 
     def __TestCopyTensorAdaptor(self, tensor_adaptor_type, value_getter):
         var_ta_orig = tensor_adaptor_type(self.model_part.Nodes, Kratos.VELOCITY, data_shape=[2])
