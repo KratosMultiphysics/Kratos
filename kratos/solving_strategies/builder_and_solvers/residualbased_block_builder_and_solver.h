@@ -1177,18 +1177,30 @@ protected:
         //for (typename ElementsArrayType::ptr_iterator it = pElements.ptr_begin(); it != pElements.ptr_end(); ++it)
 
         const int nelements = static_cast<int>(pElements.size());
+        auto error_thrown = false;
         #pragma omp parallel firstprivate(nelements, RHS_Contribution, EquationId)
         {
             #pragma omp for schedule(guided, 512) nowait
             for (int i=0; i<nelements; i++) {
-                typename ElementsArrayType::iterator it = pElements.begin() + i;
-                // If the element is active
-                if(it->IsActive()) {
-                    //calculate elemental Right Hand Side Contribution
-                    pScheme->CalculateRHSContribution(*it, RHS_Contribution, EquationId, CurrentProcessInfo);
+                if (error_thrown) continue;
 
-                    //assemble the elemental contribution
-                    AssembleRHS(b, RHS_Contribution, EquationId);
+                try {
+                    typename ElementsArrayType::iterator it = pElements.begin() + i;
+                    // If the element is active
+                    if(it->IsActive()) {
+                        //calculate elemental Right Hand Side Contribution
+                        pScheme->CalculateRHSContribution(*it, RHS_Contribution, EquationId, CurrentProcessInfo);
+
+                        //assemble the elemental contribution
+                        AssembleRHS(b, RHS_Contribution, EquationId);
+                    }
+                }
+                catch (Exception e) {
+                    KRATOS_INFO("ERROR") << e;
+                    #pragma omp critical
+                    {
+                        error_thrown = true;
+                    }
                 }
             }
 
@@ -1199,17 +1211,30 @@ protected:
             const int nconditions = static_cast<int>(ConditionsArray.size());
             #pragma omp for schedule(guided, 512)
             for (int i = 0; i<nconditions; i++) {
-                auto it = ConditionsArray.begin() + i;
-                // If the condition is active
-                if(it->IsActive()) {
-                    //calculate elemental contribution
-                    pScheme->CalculateRHSContribution(*it, RHS_Contribution, EquationId, CurrentProcessInfo);
+                if (error_thrown) continue;
 
-                    //assemble the elemental contribution
-                    AssembleRHS(b, RHS_Contribution, EquationId);
+                try {
+                    auto it = ConditionsArray.begin() + i;
+                    // If the condition is active
+                    if(it->IsActive()) {
+                        //calculate elemental contribution
+                        pScheme->CalculateRHSContribution(*it, RHS_Contribution, EquationId, CurrentProcessInfo);
+
+                        //assemble the elemental contribution
+                        AssembleRHS(b, RHS_Contribution, EquationId);
+                    }
+                }
+                catch (Exception e) {
+                    KRATOS_INFO("ERROR") << e;
+                    #pragma omp critical
+                    {
+                        error_thrown = true;
+                    }
                 }
             }
         }
+
+        KRATOS_ERROR_IF(error_thrown) << "Error occurred in parallel region";
 
         KRATOS_CATCH("")
 
