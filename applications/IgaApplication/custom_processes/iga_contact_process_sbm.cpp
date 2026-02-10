@@ -609,8 +609,8 @@ namespace Kratos
         for (IndexType i = 0; i < quadrature_geometries.size(); ++i) {
             auto p_gp = quadrature_geometries(i);
             const auto& r_gp_center = p_gp->Center();
-            const bool is_target_gp = (std::abs(r_gp_center[0] + 0.47) < 1.0e-2) &&
-                                      (std::abs(r_gp_center[1] - 35.32) < 1.0e-2);
+            // const bool is_target_gp = (std::abs(r_gp_center[0] + 0.47) < 1.0e-2) &&
+            //                           (std::abs(r_gp_center[1] - 35.32) < 1.0e-2);
             // if (is_target_gp) {
             //     KRATOS_WATCH("TARGET_GP_ACTIVE_BRANCH_START")
             //     KRATOS_WATCH(r_gp_center)
@@ -629,11 +629,11 @@ namespace Kratos
                 50);
             time_project_to_skin += std::chrono::duration<double>(Clock::now() - t_proj_begin).count();
 
-            if (is_target_gp) {
-                KRATOS_WATCH(r_gp_center)
-                KRATOS_WATCH(master_skin_point)
-                // exit(0);
-            }
+            // if (is_target_gp) {
+            //     KRATOS_WATCH(r_gp_center)
+            //     KRATOS_WATCH(master_skin_point)
+            //     // exit(0);
+            // }
 
             if (!is_projected_master) {
                 projection_layer_name.clear();
