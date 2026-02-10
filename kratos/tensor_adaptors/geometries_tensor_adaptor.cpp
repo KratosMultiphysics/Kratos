@@ -297,6 +297,11 @@ GeometriesTensorAdaptor::GeometriesTensorAdaptor(
     *mpContainer);
 }
 
+TensorAdaptor<double>::Pointer GeometriesTensorAdaptor::Clone() const
+{
+    return Kratos::make_shared<GeometriesTensorAdaptor>(*this);
+}
+
 void GeometriesTensorAdaptor::Check() const {}
 
 void GeometriesTensorAdaptor::CollectData()
