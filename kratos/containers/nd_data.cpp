@@ -80,25 +80,16 @@ NDData<TDataType>::NDData(
 
 template<class TDataType>
 NDData<TDataType>::NDData(const NDData& rOther)
-    : NDData(rOther.pData()->Data(), rOther.Shape(), rOther.pData()->IsManaged())
 {
+    mShape = rOther.mShape;
+    mpData = rOther.mpData;
 }
 
 template<class TDataType>
 NDData<TDataType>& NDData<TDataType>::operator=(const NDData& rOther)
 {
     mShape = rOther.mShape;
-    if (!rOther.pData()->IsManaged()) {
-        mpData = Kratos::make_intrusive<PointerWrapper>(rOther.pData()->Data(), false);
-    } else {
-        mpData = Kratos::make_intrusive<PointerWrapper>(new TDataType[this->Size()], true);
-
-        const auto span = this->ViewData();
-        IndexPartition<IndexType>(this->Size()).for_each([&span, &rOther](const auto Index) {
-            span[Index] = rOther.ViewData()[Index];
-        });
-    }
-
+    mpData = rOther.mpData;
     return *this;
 }
 
