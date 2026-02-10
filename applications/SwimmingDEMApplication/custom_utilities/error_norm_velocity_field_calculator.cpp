@@ -64,12 +64,12 @@ namespace Kratos
             Matrix fluid_accel_gauss_points = ZeroMatrix(r_number_integration_points, dim);
             for (unsigned g = 0; g < r_number_integration_points; g++)
             {
-                for (unsigned n = 0; n < num_nodes; n++)
+                for (unsigned i = 0; i < dim; i++)
                 {
-                    array_1d<double, 3> u_nodal = r_geometry[n].FastGetSolutionStepValue(VELOCITY);
-                    for (unsigned i = 0; i < dim; i++)
+                    fluid_accel_gauss_points(g, i) = dUdt_gauss_points(g, i);
+                    for (unsigned n = 0; n < num_nodes; n++)
                     {
-                        fluid_accel_gauss_points(g, i) = dUdt_gauss_points(g, i);
+                        array_1d<double, 3> u_nodal = r_geometry[n].FastGetSolutionStepValue(VELOCITY);
                         for (unsigned j = 0; j < dim; j++)
                         {
                             fluid_accel_gauss_points(g, i) += vel_gauss_points(g, j) * (shape_derivatives[g](n, j) * u_nodal[i]);
@@ -77,9 +77,6 @@ namespace Kratos
                     }
                 }
             }
-
-            // std::cout << "fluid_accel_gauss_points = \n" << fluid_accel_gauss_points << std::endl;
-            // std::cout << "exact_var_values_at_gauss_points = \n" << exact_var_values_at_gauss_points << std::endl << std::endl;
 
             // Compute the error of the material acceleration computed using the derivatives of the shape function
             for (unsigned int g = 0; g < r_number_integration_points; g++)
@@ -259,12 +256,12 @@ namespace Kratos
             Matrix fluid_accel_gauss_points = ZeroMatrix(r_number_integration_points, dim);
             for (unsigned g = 0; g < r_number_integration_points; g++)
             {
-                for (unsigned n = 0; n < num_nodes; n++)
+                for (unsigned i = 0; i < dim; i++)
                 {
-                    array_1d<double, 3> u_nodal = r_geometry[n].FastGetSolutionStepValue(VELOCITY);
-                    for (unsigned i = 0; i < dim; i++)
+                    fluid_accel_gauss_points(g, i) = dUdt_gauss_points(g, i);
+                    for (unsigned n = 0; n < num_nodes; n++)
                     {
-                        fluid_accel_gauss_points(g, i) = dUdt_gauss_points(g, i);
+                        array_1d<double, 3> u_nodal = r_geometry[n].FastGetSolutionStepValue(VELOCITY);
                         for (unsigned j = 0; j < dim; j++)
                         {
                             fluid_accel_gauss_points(g, i) += vel_gauss_points(g, j) * (shape_derivatives[g](n, j) * u_nodal[i]);
