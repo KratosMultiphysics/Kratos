@@ -51,14 +51,13 @@ namespace
      * @param rCsrMatrix The CSR matrix to get the indices from.
      * @param rContainer The container of the entities.
      * @param rProcessInfo The process info.
-     * @param rNDData The NDData object to store the indices.
+     * @param pNDData Pointer to the NDData object to store the indices.
      */
     template<class TContainerType>
-    void GetEquationIdCsrIndices(
+    NDData<int> GetEquationIdCsrIndices(
         const CsrMatrixType& rCsrMatrix,
         const TContainerType& rContainer,
-        const ProcessInfo& rProcessInfo,
-        NDData<int>& rNDData)
+        const ProcessInfo& rProcessInfo)
     {
         // Get equation ids size from the first entity (assuming all entities have the same size)
         EquationIdVectorType equation_ids;
@@ -71,10 +70,10 @@ namespace
         nd_data_shape[0] = n_entities;
         nd_data_shape[1] = local_size;
         nd_data_shape[2] = local_size;
-        rNDData = NDData<int>(nd_data_shape);
+        auto eq_ids_data = NDData<int>(nd_data_shape);
 
         // Loop over the container
-        auto data_view = rNDData.ViewData();
+        auto eq_ids_data_view = eq_ids_data.ViewData();
         IndexPartition<std::size_t>(n_entities).for_each([&](std::size_t i) {
             // Get current entity
             auto it = rContainer.begin() + i;
@@ -90,10 +89,13 @@ namespace
                 for(unsigned int j_local = 0; j_local < local_size; ++j_local) {
                     const unsigned int j_global = equation_ids[j_local]; // Column global equation id
                     const unsigned int csr_index = rCsrMatrix.FindValueIndex(i_global,j_global); // Index in the CSR matrix values vector
-                    data_view[it_pos + i_local * local_size + j_local] = csr_index;
+                    eq_ids_data_view[it_pos + i_local * local_size + j_local] = csr_index;
                 }
             }
         });
+
+        // Return the data container
+        return eq_ids_data;
     }
 
     /**
@@ -304,12 +306,12 @@ void AddSparseMatricesToPython(pybind11::module& m)
     .def("__matmul__", [](CsrMatrix<double,IndexType>& rA,CsrMatrix<double,IndexType>& rB){
         return AmgclCSRSpMMUtilities::SparseMultiply(rA,rB);
     }, py::is_operator())
-    .def("GetEquationIdCsrIndices", [](CsrMatrix<double,IndexType>& rA, const ElementsContainerType& rElements, const ProcessInfo& rProcessInfo, NDData<int>& rNDData) {
-        GetEquationIdCsrIndices(rA, rElements, rProcessInfo, rNDData);
-    })
-    .def("GetEquationIdCsrIndices", [](CsrMatrix<double,IndexType>& rA, const ConditionsContainerType& rConditions, const ProcessInfo& rProcessInfo, NDData<int>& rNDData) {
-        GetEquationIdCsrIndices(rA, rConditions, rProcessInfo, rNDData);
-    })
+    .def("GetEquationIdCsrIndices", [](CsrMatrix<double,IndexType>& rA, const ElementsContainerType& rElements, const ProcessInfo& rProcessInfo) {
+        return GetEquationIdCsrIndices(rA, rElements, rProcessInfo);
+    }, py::return_value_policy::move)
+    .def("GetEquationIdCsrIndices", [](CsrMatrix<double,IndexType>& rA, const ConditionsContainerType& rConditions, const ProcessInfo& rProcessInfo) {
+        return GetEquationIdCsrIndices(rA, rConditions, rProcessInfo);
+    }, py::return_value_policy::move)
     .def("Transpose", [](CsrMatrix<double,IndexType>& rA){
         return AmgclCSRConversionUtilities::Transpose<double,IndexType>(rA);
     })

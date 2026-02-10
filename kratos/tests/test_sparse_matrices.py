@@ -173,8 +173,7 @@ class TestSparseMatrixInterface(KratosUnittest.TestCase):
         A = KratosMultiphysics.CsrMatrix(graph)
 
         # Get the elemental contributions CSR indices
-        elem_csr_indices = KratosMultiphysics.IntNDData(np.array([], dtype=np.int32))
-        A.GetEquationIdCsrIndices(mp.Elements, mp.ProcessInfo, elem_csr_indices)
+        elem_csr_indices = A.GetEquationIdCsrIndices(mp.Elements, mp.ProcessInfo)
 
         # Check results
         shape = elem_csr_indices.to_numpy().shape
@@ -225,8 +224,7 @@ class TestSparseMatrixInterface(KratosUnittest.TestCase):
         A = KratosMultiphysics.CsrMatrix(graph)
 
         # Get the elemental contributions CSR indices
-        elem_csr_indices = KratosMultiphysics.IntNDData(np.array([], dtype=np.int32))
-        A.GetEquationIdCsrIndices(mp.Elements, mp.ProcessInfo, elem_csr_indices)
+        elem_csr_indices = A.GetEquationIdCsrIndices(mp.Elements, mp.ProcessInfo)
 
         # Calculate and store the LHS contributions
         elem_lhs_contributions = KratosMultiphysics.DoubleNDData([mp.NumberOfElements(), 3, 3])

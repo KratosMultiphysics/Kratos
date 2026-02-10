@@ -80,17 +80,8 @@ NDData<TDataType>::NDData(
 
 template<class TDataType>
 NDData<TDataType>::NDData(const NDData& rOther)
+    : NDData(rOther.ViewData().data(), rOther.Shape())
 {
-    mShape = rOther.mShape;
-    mpData = rOther.mpData;
-}
-
-template<class TDataType>
-NDData<TDataType>& NDData<TDataType>::operator=(const NDData& rOther)
-{
-    mShape = rOther.mShape;
-    mpData = rOther.mpData;
-    return *this;
 }
 
 template<class TDataType>

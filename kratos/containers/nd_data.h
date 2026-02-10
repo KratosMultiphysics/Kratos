@@ -84,40 +84,7 @@ public:
         : mIsManaged(IsManaged),
           mpData(pData) {}
 
-        /**
-         * @brief Copy constructor.
-         * @details This constructor will copy the data from the @p rOther object.
-         *              - If @p rOther.IsManaged() is true, then the data will be copied.
-         *              - If @p rOther.IsManaged() is false, then the data will not be copied.
-         *
-         * @param rOther The object to copy from.
-         */
-        PointerWrapper(const PointerWrapper& rOther)
-            : mIsManaged(rOther.mIsManaged)
-            , mpData(rOther.mpData)
-        {
-        }
-
-        /**
-         * @brief Destroy the Pointer Wrapper.
-         * @details If @p mIsManaged is true, then the data pointed by @p mpData will be deallocated.
-         */
         ~PointerWrapper() { if (mIsManaged && mpData) delete[] mpData; }
-
-        ///@}
-        ///@name Operators
-        ///@{
-
-        PointerWrapper& operator=(const PointerWrapper& rOther)
-        {
-            mIsManaged = rOther.mIsManaged;
-            mpData = rOther.mpData;
-            return *this;
-        }
-
-        ///@}
-        ///@name Access
-        ///@{
 
         TDataType * Data() { return mpData; }
 
@@ -129,7 +96,7 @@ public:
         ///@name Private member variables
         ///@{
 
-        bool mIsManaged;
+        const bool mIsManaged;
 
         TDataType * mpData = nullptr;
 
@@ -229,16 +196,6 @@ public:
         const NDData& rOther);
 
     ///@}
-    ///@name Public operators
-    ///@{
-
-    /**
-     * @brief Copy assignment operator.
-     * @details Copy assigns having the internal data also copied.
-     */
-    NDData& operator=(const NDData& rOther);
-
-    ///@}
     ///@name Public operations
     ///@{
 
@@ -285,7 +242,7 @@ private:
     ///@name private member variables
     ///@{
 
-    DenseVector<unsigned int> mShape;
+    const DenseVector<unsigned int> mShape;
 
     typename PointerWrapper::Pointer mpData;
 
