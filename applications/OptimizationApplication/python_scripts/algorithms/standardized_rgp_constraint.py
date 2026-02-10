@@ -220,13 +220,13 @@ class StandardizedRGPConstraint(ResponseRoutine):
 
     def CalculateStandardizedGradient(self) -> Kratos.TensorAdaptors.DoubleCombinedTensorAdaptor:
         with TimeLogger(f"StandardizedRGPConstraint::Calculate {self.GetResponseName()} gradients", None, "Finished"):
-            gradient_collective_expression = self.CalculateGradient()
+            gradient_cta = self.CalculateGradient()
             if self.IsEqualityType():
                 factor = 1.0 if self.GetStandardizedValue() > 0.0 else -1.0
             else:
                 factor = 1.0
-            gradient_collective_expression.data[:] *= self.__scaling * factor
-            return gradient_collective_expression
+            gradient_cta.data[:] *= self.__scaling * factor
+            return gradient_cta
 
     def GetValue(self, step_index: int = 0) -> float:
         return self.__buffered_data.GetValue("value", step_index)
