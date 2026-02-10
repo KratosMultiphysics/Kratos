@@ -272,6 +272,8 @@ void ApplyConstitutiveLaw(
         ConstitutiveLaw::Parameters& rValues,
         ConstitutiveVariables& rConstitutiVariables);
 
+void ComputeGradientTaylorExpansionContribution(const Vector& rDistanceVector, Matrix& grad_H_sum);
+
 /**
  * @brief 
  * 

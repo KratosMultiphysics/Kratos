@@ -828,9 +828,6 @@ void IgaModelerSbm::CreateConditions(
     const bool IsInner,
     const Vector KnotSpanSizes) const
 {
-
-    ModelPart::ConditionsContainerType new_condition_list;
-
     int count_list_closest_condition = 0;
 
     // count how many conditions for each layer
@@ -922,89 +919,129 @@ void IgaModelerSbm::CreateConditions(
         count_list_closest_condition++;
     }
 
-    KRATOS_ERROR_IF(!KratosComponents<Condition>::Has(max_condition_name))
-            << max_condition_name << " not registered." << std::endl;
-
-    if (max_condition_name == "SbmContact2DCondition") {
-        ModelPart& analysis_model_part = rModelPart.GetParentModelPart();
-        // KRATOS_WATCH(analysis_model_part)
-        count_list_closest_condition = 0;
-        for (auto it = rGeometriesBegin; it != rGeometriesEnd; ++it) {
-            int condId = rListIdClosestCondition[count_list_closest_condition];
-            Condition::Pointer cond = rSkinModelPart.pGetCondition(condId);
-
-
-            NodePointerVector empty_vector;
-            empty_vector.push_back(cond->GetGeometry()(0)); // Just it_node-plane neighbours
-            (*it)->SetValue(NEIGHBOUR_NODES, empty_vector);
-
-            count_list_closest_condition++;
-        }
-        
-        ModelPart& layerModelPart = analysis_model_part.HasSubModelPart(layer_name) ? 
-                        analysis_model_part.GetSubModelPart(layer_name) : 
-                        analysis_model_part.CreateSubModelPart(layer_name);
-
-        // retrieve the id of the brep
-        IndexType id = (*rGeometriesBegin)->GetGeometryParent(0).Id();
-
-        // add the brep to the SubModelPart
-        layerModelPart.AddGeometry(analysis_model_part.pGetGeometry(id));
-
-        return;
-    }
-
-    //--------------------------
-
-    const Condition& rReferenceCondition = KratosComponents<Condition>::Get(max_condition_name);
-    count_list_closest_condition = 0;
-
-    ModelPart& r_layer_model_part = rModelPart.HasSubModelPart(layer_name) ? 
-                                    rModelPart.GetSubModelPart(layer_name) : 
-                                    rModelPart.CreateSubModelPart(layer_name);
-    // 2D case
-    if (rSkinModelPart.ConditionsBegin()->GetGeometry().size() == 2) {
-
-        for (auto it = rGeometriesBegin; it != rGeometriesEnd; ++it) {
-            new_condition_list.push_back(
-                rReferenceCondition.Create(rIdCounter, (*it), pProperties));
-
-            IndexType condId = rListIdClosestCondition[count_list_closest_condition];
-
-            Condition::Pointer cond1 = &rSkinModelPart.GetCondition(condId);
-            IndexType condId2;  
-            if (condId == rSkinModelPart.ConditionsBegin()->Id()) {
-                condId2 = (rSkinModelPart.ConditionsEnd()-1)->Id();
+    const std::string and_token = "_AND_";
+    std::vector<std::string> condition_names;
+    const bool has_and_token = max_condition_name.find(and_token) != std::string::npos;
+    if (has_and_token) {
+        size_t start_pos = 0;
+        while (true) {
+            const size_t end_pos = max_condition_name.find(and_token, start_pos);
+            const std::string name = max_condition_name.substr(start_pos, end_pos - start_pos);
+            KRATOS_ERROR_IF(name.empty()) << "Empty condition name token in " << max_condition_name << std::endl;
+            condition_names.push_back(name);
+            if (end_pos == std::string::npos) {
+                break;
             }
-            else condId2 = condId-1;
-            Condition::Pointer cond2 = &rSkinModelPart.GetCondition(condId2);
-
-            // Add closest projection node
-            NodePointerVector empty_vector;
-            PointTypePointer projection_node = cond1->GetGeometry()(0);
-            if (norm_2(projection_node->GetValue(NORMAL)) > 1e-13)
-            {
-                empty_vector.push_back(cond1->GetGeometry()(0)); // Just it_node-plane neighbours
-                (*it)->SetValue(NEIGHBOUR_NODES, empty_vector);
-            }
-            
-            new_condition_list.GetContainer()[count_list_closest_condition]->SetValue(NEIGHBOUR_CONDITIONS, GlobalPointersVector<Condition>({cond1,cond2}));
-            if (IsInner) {
-                new_condition_list.GetContainer()[count_list_closest_condition]->SetValue(IDENTIFIER, "inner");
-            } else {
-                new_condition_list.GetContainer()[count_list_closest_condition]->SetValue(IDENTIFIER, "outer");
-            }
-            new_condition_list.GetContainer()[count_list_closest_condition]->SetValue(KNOT_SPAN_SIZES, KnotSpanSizes);                            
-
-            rIdCounter++;
-            count_list_closest_condition++;
+            start_pos = end_pos + and_token.size();
         }
     } else {
-        // TODO: 3D case
-        KRATOS_ERROR << "CreateConditions: 3D case not implemented yet." << std::endl;
+        condition_names.push_back(max_condition_name);
     }
-    
-    r_layer_model_part.AddConditions(new_condition_list.begin(), new_condition_list.end());
+
+    if (mEchoLevel > 1) {
+        std::stringstream names_msg;
+        names_msg << "CreateConditions split condition names: ";
+        for (size_t i = 0; i < condition_names.size(); ++i) {
+            names_msg << condition_names[i];
+            if (i + 1 < condition_names.size()) {
+                names_msg << ", ";
+            }
+        }
+        KRATOS_INFO("CreateConditions") << names_msg.str() << std::endl;
+    }
+
+    for (const auto& condition_name : condition_names) {
+        if (has_and_token && condition_name == "SbmContact2DCondition") {
+            KRATOS_ERROR << "SbmContact2DCondition not supported when using " << and_token
+                         << " in condition name." << std::endl;
+        }
+        KRATOS_ERROR_IF(!KratosComponents<Condition>::Has(condition_name))
+                << condition_name << " not registered." << std::endl;
+
+        if (condition_name == "SbmContact2DCondition") {
+            ModelPart& analysis_model_part = rModelPart.GetParentModelPart();
+            // KRATOS_WATCH(analysis_model_part)
+            count_list_closest_condition = 0;
+            for (auto it = rGeometriesBegin; it != rGeometriesEnd; ++it) {
+                int condId = rListIdClosestCondition[count_list_closest_condition];
+                Condition::Pointer cond = rSkinModelPart.pGetCondition(condId);
+
+                NodePointerVector empty_vector;
+                empty_vector.push_back(cond->GetGeometry()(0)); // Just it_node-plane neighbours
+                (*it)->SetValue(NEIGHBOUR_NODES, empty_vector);
+
+                count_list_closest_condition++;
+            }
+            
+            ModelPart& layerModelPart = analysis_model_part.HasSubModelPart(layer_name) ? 
+                            analysis_model_part.GetSubModelPart(layer_name) : 
+                            analysis_model_part.CreateSubModelPart(layer_name);
+
+            // retrieve the id of the brep
+            IndexType id = (*rGeometriesBegin)->GetGeometryParent(0).Id();
+
+            // add the brep to the SubModelPart
+            layerModelPart.AddGeometry(analysis_model_part.pGetGeometry(id));
+
+            if (condition_names.size() == 1) {
+                return;
+            }
+            continue;
+        }
+
+        //--------------------------
+
+        ModelPart::ConditionsContainerType new_condition_list;
+        const Condition& rReferenceCondition = KratosComponents<Condition>::Get(condition_name);
+        count_list_closest_condition = 0;
+
+        ModelPart& r_layer_model_part = rModelPart.HasSubModelPart(layer_name) ? 
+                                        rModelPart.GetSubModelPart(layer_name) : 
+                                        rModelPart.CreateSubModelPart(layer_name);
+        // 2D case
+        if (rSkinModelPart.ConditionsBegin()->GetGeometry().size() == 2) {
+
+            for (auto it = rGeometriesBegin; it != rGeometriesEnd; ++it) {
+                new_condition_list.push_back(
+                    rReferenceCondition.Create(rIdCounter, (*it), pProperties));
+
+                IndexType condId = rListIdClosestCondition[count_list_closest_condition];
+
+                Condition::Pointer cond1 = &rSkinModelPart.GetCondition(condId);
+                IndexType condId2;  
+                if (condId == rSkinModelPart.ConditionsBegin()->Id()) {
+                    condId2 = (rSkinModelPart.ConditionsEnd()-1)->Id();
+                }
+                else condId2 = condId-1;
+                Condition::Pointer cond2 = &rSkinModelPart.GetCondition(condId2);
+
+                // Add closest projection node
+                NodePointerVector empty_vector;
+                PointTypePointer projection_node = cond1->GetGeometry()(0);
+                if (norm_2(projection_node->GetValue(NORMAL)) > 1e-13)
+                {
+                    empty_vector.push_back(cond1->GetGeometry()(0)); // Just it_node-plane neighbours
+                    (*it)->SetValue(NEIGHBOUR_NODES, empty_vector);
+                }
+                
+                new_condition_list.GetContainer()[count_list_closest_condition]->SetValue(NEIGHBOUR_CONDITIONS, GlobalPointersVector<Condition>({cond1,cond2}));
+                if (IsInner) {
+                    new_condition_list.GetContainer()[count_list_closest_condition]->SetValue(IDENTIFIER, "inner");
+                } else {
+                    new_condition_list.GetContainer()[count_list_closest_condition]->SetValue(IDENTIFIER, "outer");
+                }
+                new_condition_list.GetContainer()[count_list_closest_condition]->SetValue(KNOT_SPAN_SIZES, KnotSpanSizes);                            
+
+                rIdCounter++;
+                count_list_closest_condition++;
+            }
+        } else {
+            // TODO: 3D case
+            KRATOS_ERROR << "CreateConditions: 3D case not implemented yet." << std::endl;
+        }
+        
+        r_layer_model_part.AddConditions(new_condition_list.begin(), new_condition_list.end());
+    }
 }
 
 void IgaModelerSbm::PrepareIntegrationOnTrueBoundary(ModelPart& analysis_model_part) const 
@@ -1079,7 +1116,9 @@ void IgaModelerSbm::PrepareIntegrationOnTrueBoundary(ModelPart& analysis_model_p
                     if (obtainedResults == 0) {
                             KRATOS_WATCH("0 POINTS FOUND: EXIT")
                             KRATOS_WATCH(pointToSearch)
-                            exit(0);}
+                            continue;
+                            // exit(0);
+                        }
 
                     
                     IndexType idCond = Results[nearestNodeId]->Id();

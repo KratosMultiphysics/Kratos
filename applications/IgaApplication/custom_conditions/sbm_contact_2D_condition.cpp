@@ -522,8 +522,8 @@ void SbmContact2DCondition::CalculateLocalSystem(
 
         Matrix H_sum_master;
         Matrix H_sum_slave;
-        ComputeTaylorSumContribution(r_geometry_master, mDistanceMaster, mMasterBasisFunctionsOrder, H_sum_master);
-        ComputeTaylorSumContribution(r_geometry_slave, mDistanceSlave, mSlaveBasisFunctionsOrder, H_sum_slave);
+        ComputeTaylorSumContribution(r_geometry_master, mDistanceMaster, 2*mMasterBasisFunctionsOrder, H_sum_master);
+        ComputeTaylorSumContribution(r_geometry_slave, mDistanceSlave, 2*mSlaveBasisFunctionsOrder, H_sum_slave);
 
         Matrix grad_H_sum_master_transposed;
         ComputeGradientTaylorExpansionContribution(r_geometry_master, mDistanceMaster, mMasterBasisFunctionsOrder, grad_H_sum_master_transposed);
@@ -570,7 +570,7 @@ void SbmContact2DCondition::CalculateLocalSystem(
                     {
                         const int jglob = 2*j+jdim;
 
-                        // FLUX STANDARD TERM
+                        // // FLUX STANDARD T<ERM
                         Vector sigma_u_n(2);
                         sigma_u_n[0] = (DB_master(0, jglob)* mNormalMaster[0] + DB_master(2, jglob)* mNormalMaster[1]);
                         sigma_u_n[1] = (DB_master(2, jglob)* mNormalMaster[0] + DB_master(1, jglob)* mNormalMaster[1]);
@@ -603,7 +603,7 @@ void SbmContact2DCondition::CalculateLocalSystem(
                         const int j_index = 2*j+jdim;
                         const int jglob = 2*j+jdim + shift_dof;
 
-                        // // FLUX STANDARD TERM
+                        // // // FLUX STANDARD TERM
                         Vector sigma_u_n(2);
                         sigma_u_n[0] = (DB_slave(0, j_index)* mNormalSlave[0] + DB_slave(2, j_index)* mNormalSlave[1]);
                         sigma_u_n[1] = (DB_slave(2, j_index)* mNormalSlave[0] + DB_slave(1, j_index)* mNormalSlave[1]);
@@ -671,7 +671,7 @@ void SbmContact2DCondition::CalculateLocalSystem(
                         {
                             const int jglob = 2*j+jdim;
     
-                            // FLUX EXTENSION TERM
+                            // // FLUX EXTENSION TERM
                             Vector extension_sigma_u_n(2);
                             extension_sigma_u_n[0] = (DB_sum_master(0, jglob)* mTrueNormalMaster[0] + DB_sum_master(2, jglob)* mTrueNormalMaster[1]);
                             extension_sigma_u_n[1] = (DB_sum_master(2, jglob)* mTrueNormalMaster[0] + DB_sum_master(1, jglob)* mTrueNormalMaster[1]);
@@ -691,7 +691,7 @@ void SbmContact2DCondition::CalculateLocalSystem(
                             const int jglob = 2*j+jdim + shift_dof;
                             const int j_index =  2*j+jdim;
     
-                            // FLUX EXTENSION TERM
+                            // // FLUX EXTENSION TERM
                             Vector extension_sigma_u_n(2);
                             extension_sigma_u_n[0] = (DB_sum_slave(0, j_index)* mTrueNormalSlave[0] + DB_sum_slave(2, j_index)* mTrueNormalSlave[1]);
                             extension_sigma_u_n[1] = (DB_sum_slave(2, j_index)* mTrueNormalSlave[0] + DB_sum_slave(1, j_index)* mTrueNormalSlave[1]);
@@ -717,7 +717,7 @@ void SbmContact2DCondition::CalculateLocalSystem(
                         {
                             const int jglob = 2*j+jdim;
     
-                            // FLUX EXTENSION TERM
+                            // // FLUX EXTENSION TERM
                             Vector extension_sigma_u_n(2);
                             extension_sigma_u_n[0] = (DB_sum_master(0, jglob)* mTrueNormalMaster[0] + DB_sum_master(2, jglob)* mTrueNormalMaster[1]);
                             extension_sigma_u_n[1] = (DB_sum_master(2, jglob)* mTrueNormalMaster[0] + DB_sum_master(1, jglob)* mTrueNormalMaster[1]);
@@ -741,7 +741,7 @@ void SbmContact2DCondition::CalculateLocalSystem(
                             const int jglob = 2*j+jdim + shift_dof;
                             const int j_index =  2*j+jdim;
     
-                            // FLUX EXTENSION TERM
+                            // // FLUX EXTENSION TERM
                             Vector extension_sigma_u_n(2);
                             extension_sigma_u_n[0] = (DB_sum_slave(0, j_index)* mTrueNormalSlave[0] + DB_sum_slave(2, j_index)* mTrueNormalSlave[1]);
                             extension_sigma_u_n[1] = (DB_sum_slave(2, j_index)* mTrueNormalSlave[0] + DB_sum_slave(1, j_index)* mTrueNormalSlave[1]);
@@ -1249,7 +1249,7 @@ void SbmContact2DCondition::CalculateLocalSystem(
         GetValuesVector(displacements, index);
 
         // // Calculating the cartesian derivatives (it is avoided storing them to minimize storage)
-        noalias(DN_DX) = prod(DN_De[0],InvJ0);
+        noalias(DN_DX) = DN_De[0];
 
         // MODIFIED
         Matrix B = ZeroMatrix(3,number_of_nodes);
@@ -1450,8 +1450,8 @@ void SbmContact2DCondition::CalculateLocalSystem(
                 const double integration_weight = integration_weight_list_master[i];
 
                 Vector distance_vector_master = ZeroVector(mMasterDim);
-                distance_vector_master[0] = r_integration_point.size() > 0 ? r_integration_point[0] - master_center.X() : 0.0;
-                distance_vector_master[1] = r_integration_point.size() > 1 ? r_integration_point[1] - master_center.Y() : 0.0;
+                distance_vector_master[0] = r_integration_point[0] - master_center.X();
+                distance_vector_master[1] = r_integration_point[1] - master_center.Y();
 
                 Matrix grad_H_sum_master_transposed;
                 ComputeGradientTaylorExpansionContribution(r_geometry_master, distance_vector_master, mMasterBasisFunctionsOrder, grad_H_sum_master_transposed);
@@ -1472,8 +1472,22 @@ void SbmContact2DCondition::CalculateLocalSystem(
                 normal_stress_master[0] = stress_vector_master_on_true[0] * normal_true_master[0] + stress_vector_master_on_true[2] * normal_true_master[1];
                 normal_stress_master[1] = stress_vector_master_on_true[2] * normal_true_master[0] + stress_vector_master_on_true[1] * normal_true_master[1];
 
-                const double normal_stress = normal_stress_master[0] * normal_true_master[0] + normal_stress_master[1] * normal_true_master[1];
+                double normal_stress = normal_stress_master[0] * normal_true_master[0] + normal_stress_master[1] * normal_true_master[1];
                 const double shear_stress = -normal_stress_master[0] * normal_true_master[1] + normal_stress_master[1] * normal_true_master[0];
+                
+                // FIXME: 
+                auto gap = GetValue(GAP);
+                double normal_gap = gap[0] * normal_true_master[0] + gap[1] * normal_true_master[1];
+                auto penalty_master = (*mpPropMaster)[PENALTY_FACTOR];
+                const double h = std::min(mMasterCharacteristicLength, mSlaveCharacteristicLength);
+
+                // Modify the penalty factor: p^2 * penalty / h (NITSCHE APPROACH)
+                // penalty_master = penalty_master / h * mMasterBasisFunctionsOrder *mMasterBasisFunctionsOrder;
+                // if (normal_gap < 0.0) {
+                //     normal_stress = penalty_master * normal_gap;
+                // } else {
+                //     normal_stress = 0;
+                // }
 
                 values_on_true_boundary_master(i, 0) = integration_weight;
                 values_on_true_boundary_master(i, 1) = r_integration_point.size() > 0 ? r_integration_point[0] : 0.0;
@@ -1496,8 +1510,8 @@ void SbmContact2DCondition::CalculateLocalSystem(
                 const double integration_weight = integration_weight_list_slave[i];
 
                 Vector distance_vector_slave = ZeroVector(mSlaveDim);
-                distance_vector_slave[0] = r_integration_point.size() > 0 ? r_integration_point[0] - slave_center.X() : 0.0;
-                distance_vector_slave[1] = r_integration_point.size() > 1 ? r_integration_point[1] - slave_center.Y() : 0.0;
+                distance_vector_slave[0] = r_integration_point[0] - slave_center.X();
+                distance_vector_slave[1] = r_integration_point[1] - slave_center.Y();
 
                 Matrix grad_H_sum_slave_transposed;
                 ComputeGradientTaylorExpansionContribution(r_geometry_slave, distance_vector_slave, mSlaveBasisFunctionsOrder, grad_H_sum_slave_transposed);
@@ -1518,9 +1532,23 @@ void SbmContact2DCondition::CalculateLocalSystem(
                 normal_stress_slave_vector[0] = stress_vector_slave_on_true[0] * normal_true_slave[0] + stress_vector_slave_on_true[2] * normal_true_slave[1];
                 normal_stress_slave_vector[1] = stress_vector_slave_on_true[2] * normal_true_slave[0] + stress_vector_slave_on_true[1] * normal_true_slave[1];
 
-                const double normal_stress = normal_stress_slave_vector[0] * normal_true_slave[0] + normal_stress_slave_vector[1] * normal_true_slave[1];
+                double normal_stress = normal_stress_slave_vector[0] * normal_true_slave[0] + normal_stress_slave_vector[1] * normal_true_slave[1];
                 const double shear_stress = -normal_stress_slave_vector[0] * normal_true_slave[1] + normal_stress_slave_vector[1] * normal_true_slave[0];
+                
 
+                // FIXME: 
+                auto gap = GetValue(GAP);
+                double normal_gap = gap[0] * normal_true_master[0] + gap[1] * normal_true_master[1];
+                auto penalty_master = (*mpPropMaster)[PENALTY_FACTOR];
+                const double h = std::min(mMasterCharacteristicLength, mSlaveCharacteristicLength);
+
+                // Modify the penalty factor: p^2 * penalty / h (NITSCHE APPROACH)
+                // penalty_master = penalty_master / h * mMasterBasisFunctionsOrder *mMasterBasisFunctionsOrder;
+                // if (normal_gap < 0.0) {
+                //     normal_stress = penalty_master * normal_gap;
+                // } else {
+                //     normal_stress = 0;
+                // }
                 values_on_true_boundary_slave(i, 0) = integration_weight;
                 values_on_true_boundary_slave(i, 1) = r_integration_point.size() > 0 ? r_integration_point[0] : 0.0;
                 values_on_true_boundary_slave(i, 2) = r_integration_point.size() > 1 ? r_integration_point[1] : 0.0;
@@ -1579,8 +1607,8 @@ void SbmContact2DCondition::CalculateLocalSystem(
 
         Matrix H_sum_master;
         Matrix H_sum_slave;
-        ComputeTaylorSumContribution(r_geometry_master, mDistanceMaster, mMasterBasisFunctionsOrder, H_sum_master);
-        ComputeTaylorSumContribution(r_geometry_slave, mDistanceSlave, mSlaveBasisFunctionsOrder, H_sum_slave);
+        ComputeTaylorSumContribution(r_geometry_master, mDistanceMaster, 2*mMasterBasisFunctionsOrder, H_sum_master);
+        ComputeTaylorSumContribution(r_geometry_slave, mDistanceSlave, 2*mSlaveBasisFunctionsOrder, H_sum_slave);
 
         Matrix H_master_true = ZeroMatrix(dim, dim * number_of_nodes_master);
         for (IndexType i = 0; i < number_of_nodes_master; ++i) {

@@ -191,6 +191,7 @@ private:
     ModelPart* mrMasterModelPart = nullptr; 
     ModelPart* mrSlaveSkinModelPart = nullptr; 
     ModelPart* mrMasterSkinModelPart = nullptr; 
+    
     ModelPart* mrContactModelPart = nullptr; 
 
     SparseMatrixType mSparseBrepMatrixSlave;
