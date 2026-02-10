@@ -485,7 +485,7 @@ void GeneralCouplingContributionTest(TElementFactory&&  ElementFactory,
 
     Model model;
     auto  interface_element =
-        ElementFactory(model, p_properties, diff_order, {CalculationContribution::Coupling});
+        ElementFactory(model, p_properties, diff_order, {CalculationContribution::UPCoupling});
 
     // Set nonzero water pressure at each node to ensure coupling code is exercised
     const auto  number_of_nodes_on_side = interface_element.GetGeometry().PointsNumber() / 2;

@@ -169,8 +169,8 @@ void UPwInterfaceElement::CalculateLeftHandSide(MatrixType& rLeftHandSideMatrix,
         case CalculationContribution::Stiffness:
             CalculateAndAssignStifnessMatrix(rLeftHandSideMatrix, rProcessInfo);
             break;
-        case CalculationContribution::Coupling:
-            CalculateAndAssignCouplingMatrix(rLeftHandSideMatrix, rProcessInfo);
+        case CalculationContribution::UPCoupling:
+            CalculateAndAssignUPCouplingMatrix(rLeftHandSideMatrix, rProcessInfo);
             break;
         default:
             KRATOS_ERROR << "This contribution is not supported \n";
@@ -205,30 +205,27 @@ void UPwInterfaceElement::CalculateAndAssignStifnessMatrix(Element::MatrixType& 
     }
 }
 
-void UPwInterfaceElement::CalculateAndAssignCouplingMatrix(MatrixType&        rLeftHandSideMatrix,
-                                                           const ProcessInfo& rProcessInfo) const
+void UPwInterfaceElement::CalculateAndAssignUPCouplingMatrix(MatrixType&        rLeftHandSideMatrix,
+                                                             const ProcessInfo& rProcessInfo) const
 {
     using Key  = std::pair<std::size_t, std::size_t>;
     using Func = void (UPwInterfaceElement::*)(MatrixType&, const ProcessInfo&) const;
 
     static const std::map<Key, Func> dispatch_table = {
-        {{8, 4}, &UPwInterfaceElement::CalculateAndAssignCouplingMatrix<8, 4>},
-        {{12, 6}, &UPwInterfaceElement::CalculateAndAssignCouplingMatrix<12, 6>},
-        {{12, 4}, &UPwInterfaceElement::CalculateAndAssignCouplingMatrix<12, 4>},
-        {{18, 6}, &UPwInterfaceElement::CalculateAndAssignCouplingMatrix<18, 6>},
-        {{36, 12}, &UPwInterfaceElement::CalculateAndAssignCouplingMatrix<36, 12>},
-        {{36, 6}, &UPwInterfaceElement::CalculateAndAssignCouplingMatrix<36, 6>},
-        {{24, 8}, &UPwInterfaceElement::CalculateAndAssignCouplingMatrix<24, 8>},
-        {{48, 16}, &UPwInterfaceElement::CalculateAndAssignCouplingMatrix<48, 16>},
-        {{48, 8}, &UPwInterfaceElement::CalculateAndAssignCouplingMatrix<48, 8>}};
+        {{8, 4}, &UPwInterfaceElement::CalculateAndAssignUPCouplingMatrix<8, 4>},
+        {{12, 6}, &UPwInterfaceElement::CalculateAndAssignUPCouplingMatrix<12, 6>},
+        {{12, 4}, &UPwInterfaceElement::CalculateAndAssignUPCouplingMatrix<12, 4>},
+        {{18, 6}, &UPwInterfaceElement::CalculateAndAssignUPCouplingMatrix<18, 6>},
+        {{36, 12}, &UPwInterfaceElement::CalculateAndAssignUPCouplingMatrix<36, 12>},
+        {{36, 6}, &UPwInterfaceElement::CalculateAndAssignUPCouplingMatrix<36, 6>},
+        {{24, 8}, &UPwInterfaceElement::CalculateAndAssignUPCouplingMatrix<24, 8>},
+        {{48, 16}, &UPwInterfaceElement::CalculateAndAssignUPCouplingMatrix<48, 16>},
+        {{48, 8}, &UPwInterfaceElement::CalculateAndAssignUPCouplingMatrix<48, 8>}};
 
-    Key  key{NumberOfUDofs(), GetWaterPressureGeometry().size()};
-    auto it = dispatch_table.find(key);
-    if (it != dispatch_table.end()) {
-        (this->*(it->second))(rLeftHandSideMatrix, rProcessInfo);
-    } else {
-        KRATOS_ERROR << "This Coupling matrix size is not supported: " << key.first << "x" << key.second << "\n";
-    }
+    const auto key = Key{NumberOfUDofs(), GetWaterPressureGeometry().size()};
+    KRATOS_ERROR_IF_NOT(dispatch_table.contains(key))
+        << "This Coupling matrix size is not supported: " << key.first << "x" << key.second << "\n";
+    (this->*dispatch_table.at(key))(rLeftHandSideMatrix, rProcessInfo);
 }
 
 void UPwInterfaceElement::CalculateRightHandSide(Element::VectorType& rRightHandSideVector,
@@ -243,8 +240,8 @@ void UPwInterfaceElement::CalculateRightHandSide(Element::VectorType& rRightHand
         case CalculationContribution::Stiffness:
             CalculateAndAssignStifnessForceVector(rRightHandSideVector, rProcessInfo);
             break;
-        case CalculationContribution::Coupling:
-            CalculateAndAssembleCouplingForceVector(rRightHandSideVector, rProcessInfo);
+        case CalculationContribution::UPCoupling:
+            CalculateAndAssembleUPCouplingForceVector(rRightHandSideVector, rProcessInfo);
             break;
         default:
             KRATOS_ERROR << "This contribution is not supported \n";
@@ -279,31 +276,27 @@ void UPwInterfaceElement::CalculateAndAssignStifnessForceVector(Element::VectorT
     }
 }
 
-void UPwInterfaceElement::CalculateAndAssembleCouplingForceVector(Element::VectorType& rRightHandSideVector,
-                                                                  const ProcessInfo& rProcessInfo) const
+void UPwInterfaceElement::CalculateAndAssembleUPCouplingForceVector(Element::VectorType& rRightHandSideVector,
+                                                                    const ProcessInfo& rProcessInfo) const
 {
     using Key  = std::pair<std::size_t, std::size_t>;
     using Func = void (UPwInterfaceElement::*)(Element::VectorType&, const ProcessInfo&) const;
 
     static const std::map<Key, Func> dispatch_table = {
-        {{8, 4}, &UPwInterfaceElement::CalculateAndAssembleCouplingForceVector<8, 4>},
-        {{12, 6}, &UPwInterfaceElement::CalculateAndAssembleCouplingForceVector<12, 6>},
-        {{12, 4}, &UPwInterfaceElement::CalculateAndAssembleCouplingForceVector<12, 4>},
-        {{18, 6}, &UPwInterfaceElement::CalculateAndAssembleCouplingForceVector<18, 6>},
-        {{36, 12}, &UPwInterfaceElement::CalculateAndAssembleCouplingForceVector<36, 12>},
-        {{36, 6}, &UPwInterfaceElement::CalculateAndAssembleCouplingForceVector<36, 6>},
-        {{24, 8}, &UPwInterfaceElement::CalculateAndAssembleCouplingForceVector<24, 8>},
-        {{48, 16}, &UPwInterfaceElement::CalculateAndAssembleCouplingForceVector<48, 16>},
-        {{48, 8}, &UPwInterfaceElement::CalculateAndAssembleCouplingForceVector<48, 8>}};
+        {{8, 4}, &UPwInterfaceElement::CalculateAndAssembleUPCouplingForceVector<8, 4>},
+        {{12, 6}, &UPwInterfaceElement::CalculateAndAssembleUPCouplingForceVector<12, 6>},
+        {{12, 4}, &UPwInterfaceElement::CalculateAndAssembleUPCouplingForceVector<12, 4>},
+        {{18, 6}, &UPwInterfaceElement::CalculateAndAssembleUPCouplingForceVector<18, 6>},
+        {{36, 12}, &UPwInterfaceElement::CalculateAndAssembleUPCouplingForceVector<36, 12>},
+        {{36, 6}, &UPwInterfaceElement::CalculateAndAssembleUPCouplingForceVector<36, 6>},
+        {{24, 8}, &UPwInterfaceElement::CalculateAndAssembleUPCouplingForceVector<24, 8>},
+        {{48, 16}, &UPwInterfaceElement::CalculateAndAssembleUPCouplingForceVector<48, 16>},
+        {{48, 8}, &UPwInterfaceElement::CalculateAndAssembleUPCouplingForceVector<48, 8>}};
 
-    Key  key{NumberOfUDofs(), GetWaterPressureGeometry().size()};
-    auto it = dispatch_table.find(key);
-    if (it != dispatch_table.end()) {
-        (this->*(it->second))(rRightHandSideVector, rProcessInfo);
-    } else {
-        KRATOS_ERROR << "This Coupling force vector size is not supported: " << key.first << "x"
-                     << key.second << "\n";
-    }
+    const auto key = Key{NumberOfUDofs(), GetWaterPressureGeometry().size()};
+    KRATOS_ERROR_IF_NOT(dispatch_table.contains(key))
+        << "This Coupling force vector size is not supported: " << key.first << "x" << key.second << "\n";
+    (this->*dispatch_table.at(key))(rRightHandSideVector, rProcessInfo);
 }
 
 void UPwInterfaceElement::CalculateLocalSystem(MatrixType&        rLeftHandSideMatrix,
@@ -705,17 +698,18 @@ Matrix UPwInterfaceElement::GetNpContainer() const
 Vector UPwInterfaceElement::CalculateIntegrationPointFluidPressures() const
 {
     const auto n_container                  = GetNpContainer();
-    auto       nodal_water_pressure         = GetWaterPressureGeometryNodalVariable(WATER_PRESSURE);
+    const auto nodal_water_pressure         = GetWaterPressureGeometryNodalVariable(WATER_PRESSURE);
     auto       mid_geometry_water_pressures = Vector{nodal_water_pressure.size(), 0};
-    for (auto i = std::size_t{0}; i < nodal_water_pressure.size() / 2; ++i) {
-        // this choice of averaging should be different for impermeable interface
-        mid_geometry_water_pressures[i] =
-            (nodal_water_pressure[i] + nodal_water_pressure[i + nodal_water_pressure.size() / 2]) / 2.0;
-    }
+    const auto half_way_point               = nodal_water_pressure.begin() +
+                                static_cast<Vector::difference_type>(nodal_water_pressure.size() / 2);
+    std::transform(nodal_water_pressure.begin(), half_way_point, half_way_point,
+                   mid_geometry_water_pressures.begin(), [](const auto first_half, const auto second_half) {
+        return (first_half + second_half) / 2.0;
+    });
     const auto fluid_pressure =
         GeoTransportEquationUtilities::CalculateFluidPressures(n_container, mid_geometry_water_pressures);
     auto result = Vector(fluid_pressure.size());
-    std::copy(fluid_pressure.begin(), fluid_pressure.end(), result.begin());
+    std::ranges::copy(fluid_pressure, result.begin());
     return result;
 }
 
@@ -766,7 +760,7 @@ void UPwInterfaceElement::CalculateAndAssignStiffnesForceVector(VectorType& rRig
 }
 
 template <unsigned int NumberOfRows, unsigned int NumberOfColumns>
-typename UPCouplingCalculator<NumberOfRows, NumberOfColumns>::InputProvider UPwInterfaceElement::CreateCouplingInputProvider(
+typename UPCouplingCalculator<NumberOfRows, NumberOfColumns>::InputProvider UPwInterfaceElement::CreateUPCouplingInputProvider(
     const ProcessInfo&) const
 {
     return typename UPCouplingCalculator<NumberOfRows, NumberOfColumns>::InputProvider(
@@ -779,12 +773,12 @@ template <unsigned int NumberOfRows, unsigned int NumberOfColumns>
 auto UPwInterfaceElement::CreateCouplingCalculator(const ProcessInfo& rProcessInfo) const
 {
     return UPCouplingCalculator<NumberOfRows, NumberOfColumns>(
-        CreateCouplingInputProvider<NumberOfRows, NumberOfColumns>(rProcessInfo));
+        CreateUPCouplingInputProvider<NumberOfRows, NumberOfColumns>(rProcessInfo));
 }
 
 template <unsigned int NumberOfRows, unsigned int NumberOfColumns>
-void UPwInterfaceElement::CalculateAndAssignCouplingMatrix(MatrixType&        rLeftHandSideMatrix,
-                                                           const ProcessInfo& rProcessInfo) const
+void UPwInterfaceElement::CalculateAndAssignUPCouplingMatrix(MatrixType&        rLeftHandSideMatrix,
+                                                             const ProcessInfo& rProcessInfo) const
 {
     GeoElementUtilities::AssignUPBlockMatrix(
         rLeftHandSideMatrix,
@@ -792,8 +786,8 @@ void UPwInterfaceElement::CalculateAndAssignCouplingMatrix(MatrixType&        rL
 }
 
 template <unsigned int NumberOfRows, unsigned int NumberOfColumns>
-void UPwInterfaceElement::CalculateAndAssembleCouplingForceVector(VectorType& rRightHandSideVector,
-                                                                  const ProcessInfo& rProcessInfo) const
+void UPwInterfaceElement::CalculateAndAssembleUPCouplingForceVector(VectorType& rRightHandSideVector,
+                                                                    const ProcessInfo& rProcessInfo) const
 {
     GeoElementUtilities::AssignUBlockVector(
         rRightHandSideVector,

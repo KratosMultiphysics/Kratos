@@ -19,7 +19,7 @@ enum class CalculationContribution {
     Compressibility,
     FluidBodyFlow,
     Stiffness,
-    Coupling
+    UPCoupling
 };
 
 }

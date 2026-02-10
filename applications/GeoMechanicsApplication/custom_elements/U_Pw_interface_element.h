@@ -67,9 +67,9 @@ public:
     void CalculateLeftHandSide(MatrixType& rLeftHandSideMatrix, const ProcessInfo&) override;
     void CalculateAndAssignStifnessForceVector(Element::VectorType& rRightHandSideVector,
                                                const ProcessInfo&   rProcessInfo);
-    void CalculateAndAssignCouplingMatrix(MatrixType& rLeftHandSideMatrix, const ProcessInfo& rProcessInfo) const;
-    void CalculateAndAssembleCouplingForceVector(Element::VectorType& rRightHandSideVector,
-                                                 const ProcessInfo&   rProcessInfo) const;
+    void CalculateAndAssignUPCouplingMatrix(MatrixType& rLeftHandSideMatrix, const ProcessInfo& rProcessInfo) const;
+    void CalculateAndAssembleUPCouplingForceVector(Element::VectorType& rRightHandSideVector,
+                                                   const ProcessInfo&   rProcessInfo) const;
     void CalculateRightHandSide(VectorType& rRightHandSideVector, const ProcessInfo&) override;
     void CalculateLocalSystem(MatrixType&        rLeftHandSideMatrix,
                               VectorType&        rRightHandSideVector,
@@ -146,18 +146,18 @@ private:
     void CalculateAndAssignStiffnesForceVector(VectorType& rRightHandSideVector, const ProcessInfo& rProcessInfo);
 
     template <unsigned int NumberOfRows, unsigned int NumberOfColumns>
-    typename UPCouplingCalculator<NumberOfRows, NumberOfColumns>::InputProvider CreateCouplingInputProvider(
+    typename UPCouplingCalculator<NumberOfRows, NumberOfColumns>::InputProvider CreateUPCouplingInputProvider(
         const ProcessInfo& rProcessInfo) const;
 
     template <unsigned int NumberOfRows, unsigned int NumberOfColumns>
     auto CreateCouplingCalculator(const ProcessInfo& rProcessInfo) const;
 
     template <unsigned int NumberOfRows, unsigned int NumberOfColumns>
-    void CalculateAndAssignCouplingMatrix(MatrixType& rLeftHandSideMatrix, const ProcessInfo& rProcessInfo) const;
+    void CalculateAndAssignUPCouplingMatrix(MatrixType& rLeftHandSideMatrix, const ProcessInfo& rProcessInfo) const;
 
     template <unsigned int NumberOfRows, unsigned int NumberOfColumns>
-    void CalculateAndAssembleCouplingForceVector(VectorType&        rRightHandSideVector,
-                                                 const ProcessInfo& rProcessInfo) const;
+    void CalculateAndAssembleUPCouplingForceVector(VectorType&        rRightHandSideVector,
+                                                   const ProcessInfo& rProcessInfo) const;
 
     std::function<Matrix(const Geometry<Node>&, const array_1d<double, 3>&)> mfpCalculateRotationMatrix;
 
