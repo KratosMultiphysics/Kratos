@@ -39,7 +39,7 @@ void AddExplicitFilterUtils(
     namespace py = pybind11;
 
     py::class_<ExplicitFilterUtils<TContainerType>, typename ExplicitFilterUtils<TContainerType>::Pointer>(m, rName.c_str())
-        .def(py::init<const ModelPart&, const std::string&, const std::size_t, const std::size_t, bool>(), py::arg("model_part"), py::arg("kernel_function_type"), py::arg("max_number_of_neighbours"), py::arg("echo_level"), py::arg("node_cloud_mesh") = false)
+        .def(py::init<ModelPart&, const std::string&, const std::size_t, const std::size_t>(), py::arg("model_part"), py::arg("kernel_function_type"), py::arg("max_items_in_bucket") = 10, py::arg("echo_level") = 0)
         .def("SetRadius", &ExplicitFilterUtils<TContainerType>::SetRadius, py::arg("filter_radius"))
         .def("SetDamping", &ExplicitFilterUtils<TContainerType>::SetDamping, py::arg("damping"))
         .def("ForwardFilterField", &ExplicitFilterUtils<TContainerType>::ForwardFilterField, py::arg("mesh_independent_control_space_field"))

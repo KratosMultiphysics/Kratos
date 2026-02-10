@@ -211,15 +211,14 @@ class TestExplicitFilterReference(kratos_unittest.TestCase):
     def test_FilterSigmoidal(self):
         self.__RunTestCase("sigmoidal", "cosine", "explicit_filter_reference_sigmoidal.vtu")
 
-    def test_FilterSigmoidalNodeCloudMesh(self):
-        self.__RunTestCase("sigmoidal", "cosine", "explicit_filter_reference_sigmoidal_cloud_mesh.vtu", True)
+    # def test_FilterSigmoidalNodeCloudMesh(self):
+    #     self.__RunTestCase("sigmoidal", "cosine", "explicit_filter_reference_sigmoidal_cloud_mesh.vtu", True)
 
     def __RunTestCase(self, filter_function_type: str, damping_function_type: str, ref_file: str, node_cloud_mesh=False) -> None:
         settings = Kratos.Parameters("""{
             "filter_type"               : "explicit_filter",
             "filter_function_type"      : "linear",
-            "max_nodes_in_filter_radius": 100000,
-            "node_cloud_mesh": false,
+            "max_items_in_bucket"       : 10,
             "echo_level"                : 0,
             "filter_radius_settings":{
                 "filter_radius_type": "constant",
@@ -238,7 +237,7 @@ class TestExplicitFilterReference(kratos_unittest.TestCase):
         }""")
         settings["filter_function_type"].SetString(filter_function_type)
         settings["filtering_boundary_conditions"]["damping_function_type"].SetString(damping_function_type)
-        settings["node_cloud_mesh"].SetBool(node_cloud_mesh)
+        # settings["node_cloud_mesh"].SetBool(node_cloud_mesh)
         vm_filter = FilterFactory(self.model, "test", KratosOA.SHAPE, Kratos.Globals.DataLocation.NodeHistorical, settings)
         vm_filter.SetComponentDataView(ComponentDataView("test", self.optimization_problem))
         vm_filter.Initialize()

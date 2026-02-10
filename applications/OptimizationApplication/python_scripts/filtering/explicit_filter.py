@@ -17,9 +17,8 @@ class ExplicitFilter(Filter):
     def GetDefaultParameters(cls) -> Kratos.Parameters:
         return Kratos.Parameters("""{
             "filter_type"               : "explicit_filter",
-            "node_cloud_mesh"           : false,
             "filter_function_type"      : "linear",
-            "max_nodes_in_filter_radius": 100000,
+            "max_items_in_bucket"       : 10,
             "echo_level"                : 0,
             "filter_radius_settings":{
                 "filter_radius_type": "constant",
@@ -66,19 +65,14 @@ class ExplicitFilter(Filter):
         # we create the filter in the initialize to support filter to work
         # on sub model parts.
         filter_function_type = self.parameters["filter_function_type"].GetString()
-        max_nodes_in_filter_radius = self.parameters["max_nodes_in_filter_radius"].GetInt()
+        max_items_in_bucket = self.parameters["max_items_in_bucket"].GetInt()
         echo_level = self.parameters["echo_level"].GetInt()
-        node_cloud_mesh = self.parameters["node_cloud_mesh"].GetBool()
         if self.data_location in [Kratos.Globals.DataLocation.NodeHistorical, Kratos.Globals.DataLocation.NodeNonHistorical]:
-            self.filter_utils = KratosOA.NodeExplicitFilterUtils(self.model_part, filter_function_type, max_nodes_in_filter_radius, echo_level, node_cloud_mesh)
+            self.filter_utils = KratosOA.NodeExplicitFilterUtils(self.model_part, filter_function_type, max_items_in_bucket, echo_level)
         elif self.data_location == Kratos.Globals.DataLocation.Condition:
-            if node_cloud_mesh:
-                raise RuntimeError("\"node_cloud_mesh\" flag can be only used for filtering meshes with nodes.")
-            self.filter_utils = KratosOA.ConditionExplicitFilterUtils(self.model_part, filter_function_type, max_nodes_in_filter_radius, echo_level)
+            self.filter_utils = KratosOA.ConditionExplicitFilterUtils(self.model_part, filter_function_type, max_items_in_bucket, echo_level)
         elif self.data_location == Kratos.Globals.DataLocation.Element:
-            if node_cloud_mesh:
-                raise RuntimeError("\"node_cloud_mesh\" flag can be only used for filtering meshes with nodes.")
-            self.filter_utils = KratosOA.ElementExplicitFilterUtils(self.model_part, filter_function_type, max_nodes_in_filter_radius, echo_level)
+            self.filter_utils = KratosOA.ElementExplicitFilterUtils(self.model_part, filter_function_type, max_items_in_bucket, echo_level)
 
         self.Update()
 
