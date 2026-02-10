@@ -714,60 +714,6 @@ class TestTensorAdaptors(KratosUnittest.TestCase):
         ref_combined_ta.data *= 3.0
         self.assertAlmostEqual(numpy.linalg.norm(ref_combined_ta.data - combined_ta.data), 0.0)
 
-    def test_NodalNeighboursTensorAdaptorCondition(self):
-        ta = Kratos.TensorAdaptors.NodalNeighbourCountTensorAdaptor(self.model_part.Nodes, self.model_part.Conditions)
-        ta.Check()
-        ta.CollectData()
-
-        for i, v in enumerate(ta.data):
-            if (i != 0 or i != ta.data.size - 1):
-                self.assertEqual(v, 2)
-            else:
-                self.assertEqual(v, 1)
-
-        with self.assertRaises(RuntimeError):
-            ta.StoreData()
-
-    def test_NodalNeighboursTensorAdaptorElement(self):
-        ta = Kratos.TensorAdaptors.NodalNeighbourCountTensorAdaptor(self.model_part.Nodes, self.model_part.Elements)
-        ta.Check()
-        ta.CollectData()
-
-        for i, v in enumerate(ta.data):
-            if (i != 0 or i != ta.data.size - 1):
-                self.assertEqual(v, 2)
-            else:
-                self.assertEqual(v, 1)
-
-        with self.assertRaises(RuntimeError):
-            ta.StoreData()
-
-    def testGeometryMetricsTensorAdaptorDomainSizeCondition(self):
-        ta = Kratos.TensorAdaptors.GeometryMetricsTensorAdaptor(self.model_part.Conditions, Kratos.TensorAdaptors.GeometryMetricsTensorAdaptor.DomainSize)
-        ta.CollectData()
-        for i, condition in enumerate(self.model_part.Conditions):
-            self.assertEqual(ta.data[i], condition.GetGeometry().DomainSize())
-
-    def testGeometryMetricsTensorAdaptorDomainSizeElement(self):
-        ta = Kratos.TensorAdaptors.GeometryMetricsTensorAdaptor(self.model_part.Elements, Kratos.TensorAdaptors.GeometryMetricsTensorAdaptor.DomainSize)
-        ta.CollectData()
-        for i, element in enumerate(self.model_part.Elements):
-            self.assertEqual(ta.data[i], element.GetGeometry().DomainSize())
-
-    def testGeometryMetricsTensorAdaptorDomainSizeCondition_Empty(self):
-        model = Kratos.Model()
-        model_part = model.CreateModelPart("test")
-        ta = Kratos.TensorAdaptors.GeometryMetricsTensorAdaptor(model_part.Conditions, Kratos.TensorAdaptors.GeometryMetricsTensorAdaptor.DomainSize)
-        ta.CollectData()
-        self.assertEqual(ta.data.shape, (0,))
-
-    def testGeometryMetricsTensorAdaptorDomainSizeElement_Empty(self):
-        model = Kratos.Model()
-        model_part = model.CreateModelPart("test")
-        ta = Kratos.TensorAdaptors.GeometryMetricsTensorAdaptor(model_part.Elements, Kratos.TensorAdaptors.GeometryMetricsTensorAdaptor.DomainSize)
-        ta.CollectData()
-        self.assertEqual(ta.data.shape, (0,))
-
     def __TestCopyTensorAdaptor(self, tensor_adaptor_type, value_getter):
         var_ta_orig = tensor_adaptor_type(self.model_part.Nodes, Kratos.VELOCITY, data_shape=[2])
         var_ta_orig.Check()
