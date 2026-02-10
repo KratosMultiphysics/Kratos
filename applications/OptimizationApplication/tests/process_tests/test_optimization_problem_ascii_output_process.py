@@ -46,7 +46,7 @@ class TestOptimizationProblemAsciiOutputProcess(kratos_unittest.TestCase):
             return None
         def GetPhysicalKratosVariables(self) -> 'list[SupportedSensitivityFieldVariableTypes]':
             return []
-        def MapGradient(self, physical_gradient_variable_container_expression_map: 'dict[SupportedSensitivityFieldVariableTypes, Kratos.TensorAdaptors.DoubleTensorAdaptor]') -> Kratos.TensorAdaptors.DoubleTensorAdaptor:
+        def MapGradient(self, physical_gradient_variable_tensor_adaptor_map: 'dict[SupportedSensitivityFieldVariableTypes, Kratos.TensorAdaptors.DoubleTensorAdaptor]') -> Kratos.TensorAdaptors.DoubleTensorAdaptor:
             return None
         def Update(self, control_field: Kratos.TensorAdaptors.DoubleTensorAdaptor) -> bool:
             return True
