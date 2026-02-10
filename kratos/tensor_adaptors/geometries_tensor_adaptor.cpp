@@ -173,18 +173,7 @@ void GeometriesTensorAdaptor::CollectShapeFunctionsDerivatives(
         Geometry<Node>::ShapeFunctionsGradientsType DN_Dx;
         r_geometry.ShapeFunctionsIntegrationPointsGradients(DN_Dx, Method);
 
-        // Geometry<Node>::JacobiansType J;
-        // r_geometry.Jacobian(J, Method);
-
         for (std::size_t g = 0; g < n_gauss; ++g) {
-            // Matrix InvJ;
-            // double DetJ;
-            // const Matrix& J_g = J[g];
-            // MathUtils<double>::GeneralizedInvertMatrix(J_g, InvJ, DetJ);
-
-            // const Matrix& DN_De_g = DN_De[g];
-            // Matrix DN_DX_g = prod(DN_De_g, InvJ);
-
             for (std::size_t n = 0; n < n_node; ++n) {
                 for (std::size_t k = 0; k < dim; ++k) {
                     pData[i * n_gauss * n_node * dim + g * n_node * dim +
@@ -330,3 +319,4 @@ std::string GeometriesTensorAdaptor::Info() const
 }
 
 } // namespace Kratos
+
