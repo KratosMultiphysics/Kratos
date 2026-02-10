@@ -65,7 +65,7 @@ void UPwNormalFluxCondition<TDim, TNumNodes>::CalculateRHS(Vector& rRightHandSid
     r_geometry.Jacobian(j_container, this->GetIntegrationMethod());
 
     // Condition variables
-    auto normal_flux_vector = VariablesUtilities::GetNodalValues(r_geometry, NORMAL_FLUID_FLUX);
+    const auto normal_flux_vector = VariablesUtilities::GetNodalValues(r_geometry, NORMAL_FLUID_FLUX);
 
     for (unsigned int integration_point = 0; integration_point < number_of_integration_points; ++integration_point) {
         const auto shape_function_values = row(r_n_container, integration_point);

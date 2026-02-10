@@ -68,7 +68,7 @@ void GeoTNormalFluxCondition<TDim, TNumNodes>::CalculateRHS(Vector&            r
     }
     r_geom.Jacobian(j_container, this->GetIntegrationMethod());
 
-    auto normal_flux_vector = VariablesUtilities::GetNodalValues(r_geom, NORMAL_HEAT_FLUX);
+    const auto normal_flux_vector = VariablesUtilities::GetNodalValues(r_geom, NORMAL_HEAT_FLUX);
 
     for (unsigned int integration_point = 0; integration_point < num_integration_points; ++integration_point) {
         const auto N = row(r_N_container, integration_point);
