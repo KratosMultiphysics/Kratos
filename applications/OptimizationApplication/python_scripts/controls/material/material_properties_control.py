@@ -89,7 +89,7 @@ class MaterialPropertiesControl(Control):
             raise RuntimeError(f"Gradients for the required element container not found for control \"{self.GetName()}\". [ required model part name: {self.model_part.FullName()} ]")
 
         # TODO: Implement filtering mechanisms here
-        return Kratos.TensorAdaptors.DoubleTensorAdaptor(physical_gradient_variable_tensor_adaptor_map[self.controlled_physical_variable])
+        return  physical_gradient_variable_tensor_adaptor_map[self.controlled_physical_variable].Clone()
 
     def Update(self, control_field: Kratos.TensorAdaptors.DoubleTensorAdaptor) -> bool:
         if control_field.GetContainer() != self.GetEmptyField().GetContainer():
