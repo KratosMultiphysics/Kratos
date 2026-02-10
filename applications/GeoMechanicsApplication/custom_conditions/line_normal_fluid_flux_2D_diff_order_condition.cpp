@@ -56,7 +56,7 @@ void LineNormalFluidFlux2DDiffOrderCondition::CalculateConditionVector(Condition
                                                                        unsigned int PointNumber)
 {
     KRATOS_TRY
-    auto nodal_normal_fluid_flux_vector =
+    const auto nodal_normal_fluid_flux_vector =
         VariablesUtilities::GetNodalValues(*mpPressureGeometry, NORMAL_FLUID_FLUX);
     rVariables.ConditionVector =
         ScalarVector(1, std::inner_product(rVariables.Np.cbegin(), rVariables.Np.cend(),
