@@ -89,7 +89,7 @@ void UPwNormalFluxFICCondition<TDim, TNumNodes>::CalculateAll(Matrix& rLeftHandS
         (BiotCoefficient - Porosity) / BulkModulusSolid + Porosity / r_prop[BULK_MODULUS_FLUID];
 
     auto normal_flux_vector = VariablesUtilities::GetNodalValues<TNumNodes>(r_geom, NORMAL_FLUID_FLUX);
-    FICVariables.DtPressureVector = VariablesUtilities::GetNodalValues<TNumNodes>(r_geom, DT_WATER_PRESSURE);
+    VariablesUtilities::GetNodalValues(r_geom, DT_WATER_PRESSURE, FICVariables.DtPressureVector.begin());
 
     // Loop over integration points
     for (unsigned int integration_point = 0; integration_point < number_of_integration_points;
@@ -143,7 +143,7 @@ void UPwNormalFluxFICCondition<TDim, TNumNodes>::CalculateRHS(Vector& rRightHand
     FICVariables.BiotModulusInverse =
         (BiotCoefficient - Porosity) / BulkModulusSolid + Porosity / r_prop[BULK_MODULUS_FLUID];
     const auto normal_flux_vector = VariablesUtilities::GetNodalValues<TNumNodes>(r_geom, NORMAL_FLUID_FLUX);
-    FICVariables.DtPressureVector = VariablesUtilities::GetNodalValues<TNumNodes>(r_geom, DT_WATER_PRESSURE);
+    VariablesUtilities::GetNodalValues(r_geom, DT_WATER_PRESSURE, FICVariables.DtPressureVector.begin());
 
     for (unsigned int integration_point = 0; integration_point < number_of_integration_points;
          integration_point++) {
