@@ -71,12 +71,19 @@ public:
         TContainerPointerType pEntityContainer,
         const bool Copy = true);
 
+    NodalNeighbourCountTensorAdaptor(const NodalNeighbourCountTensorAdaptor& rOther) = default;
+
     // Destructor
     ~NodalNeighbourCountTensorAdaptor() override = default;
 
     ///@}
     ///@name Public operations
     ///@{
+
+    /**
+     * @brief Clones the existing tensor adaptor.
+     */
+    TensorAdaptor::Pointer Clone() const override;
 
     /**
      * @brief Fill the internal data with number of neightour entities of nodes

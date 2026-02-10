@@ -56,6 +56,11 @@ NodalNeighbourCountTensorAdaptor::NodalNeighbourCountTensorAdaptor(
     KRATOS_CATCH("");
 }
 
+TensorAdaptor<int>::Pointer NodalNeighbourCountTensorAdaptor::Clone() const
+{
+    return Kratos::make_shared<NodalNeighbourCountTensorAdaptor>(*this);
+}
+
 void NodalNeighbourCountTensorAdaptor::CollectData()
 {
     KRATOS_TRY

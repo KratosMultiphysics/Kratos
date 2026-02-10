@@ -51,43 +51,43 @@ void AddBaseTensorAdaptor(
      pybind11::module& rModule,
      const std::string& rName)
 {
-    // add the base tensor adaptor
-    using tensor_adaptor = TensorAdaptor<TDataType>;
-    pybind11::class_<tensor_adaptor, typename tensor_adaptor::Pointer>(
-        rModule, (rName + "Adaptor").c_str())
-        .def(pybind11::init<typename tensor_adaptor::ContainerPointerType, typename NDData<TDataType>::Pointer, const bool>(),
-             pybind11::arg("container"),
-             pybind11::arg("nd_data"),
-             pybind11::arg("copy") = true)
-        .def(pybind11::init<const tensor_adaptor&, const bool>(),
-             pybind11::arg("tensor_adaptor"),
-             pybind11::arg("copy") = true)
-        .def("Check", &tensor_adaptor::Check)
-        .def("CollectData", &tensor_adaptor::CollectData)
-        .def("StoreData", &tensor_adaptor::StoreData)
-        .def("GetContainer", &tensor_adaptor::GetContainer)
-        .def("HasContainer", &tensor_adaptor::HasContainer)
-        .def("Shape", &tensor_adaptor::Shape)
-        .def("DataShape", &tensor_adaptor::DataShape)
-        .def("Size", &tensor_adaptor::Size)
-        .def("__str__", PrintObject<tensor_adaptor>)
-        .def("ViewData", [](tensor_adaptor& rSelf) { return GetPybindArray<TDataType>(*rSelf.pGetStorage()); })
-        .def("SetData", [](tensor_adaptor& rSelf, const pybind11::array& rArray) { SetPybindArray<TDataType>(*rSelf.pGetStorage(), rArray); },
-            pybind11::arg("array").noconvert())
-        .def_property("data",
-            [](tensor_adaptor& rSelf) {
-                return GetPybindArray<TDataType>(*rSelf.pGetStorage());
-            },
-            pybind11::cpp_function(
-                [](tensor_adaptor& rSelf, const pybind11::array& rArray) {
+     // add the base tensor adaptor
+     using tensor_adaptor = TensorAdaptor<TDataType>;
+     pybind11::class_<tensor_adaptor, typename tensor_adaptor::Pointer>(rModule, (rName + "Adaptor").c_str())
+          .def(pybind11::init<typename tensor_adaptor::ContainerPointerType, typename NDData<TDataType>::Pointer, const bool>(),
+               pybind11::arg("container"),
+               pybind11::arg("nd_data"),
+               pybind11::arg("copy") = true)
+          .def(pybind11::init<const tensor_adaptor&, const bool>(),
+               pybind11::arg("tensor_adaptor"),
+               pybind11::arg("copy") = true)
+          .def("Clone", &tensor_adaptor::Clone)
+          .def("Check", &tensor_adaptor::Check)
+          .def("CollectData", &tensor_adaptor::CollectData)
+          .def("StoreData", &tensor_adaptor::StoreData)
+          .def("GetContainer", &tensor_adaptor::GetContainer)
+          .def("HasContainer", &tensor_adaptor::HasContainer)
+          .def("Shape", &tensor_adaptor::Shape)
+          .def("DataShape", &tensor_adaptor::DataShape)
+          .def("Size", &tensor_adaptor::Size)
+          .def("__str__", PrintObject<tensor_adaptor>)
+          .def("ViewData", [](tensor_adaptor& rSelf) { return GetPybindArray<TDataType>(*rSelf.pGetStorage()); })
+          .def("SetData", [](tensor_adaptor& rSelf, const pybind11::array& rArray) { SetPybindArray<TDataType>(*rSelf.pGetStorage(), rArray); },
+               pybind11::arg("array").noconvert())
+          .def_property("data",
+               [](tensor_adaptor& rSelf) {
+                    return GetPybindArray<TDataType>(*rSelf.pGetStorage());
+               },
+               pybind11::cpp_function(
+                    [](tensor_adaptor& rSelf, const pybind11::array& rArray) {
                     SetPybindArray<TDataType>(*rSelf.pGetStorage(), rArray);
-                },
-                pybind11::arg("self"),
-                // no convert makes sure that the numpy arrays are
-                // not converted, hence nothing will be copied. numpy
-                // array will be passed as it is to the SetPybindArray
-                // method.
-                pybind11::arg("array").noconvert()));
+                    },
+                    pybind11::arg("self"),
+                    // no convert makes sure that the numpy arrays are
+                    // not converted, hence nothing will be copied. numpy
+                    // array will be passed as it is to the SetPybindArray
+                    // method.
+                    pybind11::arg("array").noconvert()));
 }
 
 template <class TDataType>
@@ -97,16 +97,18 @@ void AddCombinedTensorAdaptor(
 {
      using combined_ta_type = CombinedTensorAdaptor<TDataType>;
      pybind11::class_<combined_ta_type, typename combined_ta_type::Pointer, typename combined_ta_type::BaseType>(rModule, rName.c_str())
-          .def(pybind11::init<const typename combined_ta_type::TensorAdaptorVectorType &, const bool, const bool>(),
+          .def(pybind11::init<const typename combined_ta_type::TensorAdaptorVectorType &, const bool, const bool, const bool>(),
                pybind11::arg("list_of_tensor_adaptors"),
                pybind11::arg("perform_collect_data_recursively") = true,
-               pybind11::arg("perform_store_data_recursively") = true) // reveling ctor
-          .def(pybind11::init<const typename combined_ta_type::TensorAdaptorVectorType &, const unsigned int, const bool, const bool>(),
+               pybind11::arg("perform_store_data_recursively") = true,
+               pybind11::arg("copy") = true) // reveling ctor
+          .def(pybind11::init<const typename combined_ta_type::TensorAdaptorVectorType &, const unsigned int, const bool, const bool, const bool>(),
                pybind11::arg("list_of_tensor_adaptors"), pybind11::arg("axis"),
                pybind11::arg("perform_collect_data_recursively") = true,
-               pybind11::arg("perform_store_data_recursively") = true) // axis based ctor
+               pybind11::arg("perform_store_data_recursively") = true,
+               pybind11::arg("copy") = true) // axis based ctor
           .def(pybind11::init<const combined_ta_type &, const bool, const bool, const bool>(),
-               pybind11::arg("list_of_tensor_adaptors"),
+               pybind11::arg("combined_tensor_adaptor"),
                pybind11::arg("perform_collect_data_recursively") = true,
                pybind11::arg("perform_store_data_recursively") = true,
                pybind11::arg("copy") = true)

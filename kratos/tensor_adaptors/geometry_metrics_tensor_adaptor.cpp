@@ -113,6 +113,11 @@ GeometryMetricsTensorAdaptor::GeometryMetricsTensorAdaptor(
     KRATOS_CATCH("");
 }
 
+TensorAdaptor<double>::Pointer GeometryMetricsTensorAdaptor::Clone() const
+{
+    return Kratos::make_shared<GeometryMetricsTensorAdaptor>(*this);
+}
+
 void GeometryMetricsTensorAdaptor::CollectData()
 {
     KRATOS_TRY
