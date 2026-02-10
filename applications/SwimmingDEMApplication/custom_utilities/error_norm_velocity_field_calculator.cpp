@@ -15,6 +15,7 @@ namespace Kratos
     double ErrorNormVelocityFieldCalculator::getL2NormFluidAccelWithoutRecoveryUsingGaussInterpolatedValues(ModelPart &r_model_part)
     {
         ProcessInfo process_info = r_model_part.GetProcessInfo();
+        const double time = process_info[TIME];
         const unsigned int dim = process_info[DOMAIN_SIZE];
         const int number_of_elements = r_model_part.NumberOfElements();
 
@@ -37,17 +38,22 @@ namespace Kratos
             r_geometry.ShapeFunctionsIntegrationPointsGradients(shape_derivatives, DetJ, integration_method);
 
             // Velocities and exact var values evaluated at gauss points
-            Matrix vel_gauss_points = ZeroMatrix(r_number_integration_points, dim), exact_var_values_at_gauss_points = ZeroMatrix(r_number_integration_points, dim);
+            Matrix dUdt_gauss_points = ZeroMatrix(r_number_integration_points, dim);  // time derivative
+            Matrix vel_gauss_points = ZeroMatrix(r_number_integration_points, dim);
+            Matrix exact_var_values_at_gauss_points = ZeroMatrix(r_number_integration_points, dim);
             for (unsigned g = 0; g < r_number_integration_points; g++)
             {
                 for (unsigned n = 0; n < num_nodes; n++)
                 {
+                    array_1d<double, 3> du_dt_nodal = r_geometry[n].FastGetSolutionStepValue(ACCELERATION);
                     array_1d<double, 3> u_nodal = r_geometry[n].FastGetSolutionStepValue(VELOCITY);
+
                     // array_1d<double, 3> exact_var_node_values = r_geometry[n].FastGetSolutionStepValue(EXACT_MATERIAL_ACCELERATION);
                     array_1d<double, 3> exact_var_node_values;
-                    mpFlowField->CalculateMaterialAcceleration(0.0, r_geometry[n].Coordinates(), exact_var_node_values, omp_get_thread_num());
+                    mpFlowField->CalculateMaterialAcceleration(time, r_geometry[n].Coordinates(), exact_var_node_values, omp_get_thread_num());
                     for (unsigned i = 0; i < dim; i++)
                     {
+                        dUdt_gauss_points(g, i) += du_dt_nodal[i] * NContainer(g, n);
                         vel_gauss_points(g, i) += u_nodal[i] * NContainer(g, n);
                         exact_var_values_at_gauss_points(g, i) += exact_var_node_values[i] * NContainer(g, n);
                     }
@@ -63,6 +69,7 @@ namespace Kratos
                     array_1d<double, 3> u_nodal = r_geometry[n].FastGetSolutionStepValue(VELOCITY);
                     for (unsigned i = 0; i < dim; i++)
                     {
+                        fluid_accel_gauss_points(g, i) = dUdt_gauss_points(g, i);
                         for (unsigned j = 0; j < dim; j++)
                         {
                             fluid_accel_gauss_points(g, i) += vel_gauss_points(g, j) * (shape_derivatives[g](n, j) * u_nodal[i]);
@@ -109,6 +116,7 @@ namespace Kratos
         double l2_norm_factor = 0.0, result = 0.0;
 
         ProcessInfo process_info = r_model_part.GetProcessInfo();
+        const double time = process_info[TIME];
         const unsigned int dim = process_info[DOMAIN_SIZE];
         const int number_of_elements = r_model_part.NumberOfElements();
 
@@ -132,14 +140,15 @@ namespace Kratos
             r_geometry.ShapeFunctionsIntegrationPointsGradients(shape_derivatives, DetJ, integration_method);
 
             // Material acceleration at gauss points for the recovered field
-            Matrix fluid_accel_gauss_points = ZeroMatrix(r_number_integration_points, dim), exact_fluid_accel_gauss_points = ZeroMatrix(r_number_integration_points, dim);
+            Matrix fluid_accel_gauss_points = ZeroMatrix(r_number_integration_points, dim);
+            Matrix exact_fluid_accel_gauss_points = ZeroMatrix(r_number_integration_points, dim);
             for (unsigned g = 0; g < r_number_integration_points; g++)
             {
                 for (unsigned n = 0; n < num_nodes; n++)
                 {
                     array_1d<double, 3> fluid_accel_nodal = r_geometry[n].FastGetSolutionStepValue(MATERIAL_ACCELERATION);
                     array_1d<double, 3> exact_fluid_accel_nodal;
-                    mpFlowField->CalculateMaterialAcceleration(0.0, r_geometry[n].Coordinates(), exact_fluid_accel_nodal, omp_get_thread_num());
+                    mpFlowField->CalculateMaterialAcceleration(time, r_geometry[n].Coordinates(), exact_fluid_accel_nodal, omp_get_thread_num());
                     for (unsigned i = 0; i < dim; i++)
                     {
                         fluid_accel_gauss_points(g, i) += fluid_accel_nodal[i] * NContainer(g, n);
@@ -183,8 +192,33 @@ namespace Kratos
     double ErrorNormVelocityFieldCalculator::getL2NormFluidAccelWithoutRecoveryUsingGaussExactValues(ModelPart &r_model_part)
     {
         ProcessInfo process_info = r_model_part.GetProcessInfo();
+        const double time = process_info[TIME];
         const unsigned int dim = process_info[DOMAIN_SIZE];
         const int number_of_elements = r_model_part.NumberOfElements();
+
+        // for (int n = 0; n < r_model_part.NumberOfNodes(); n++)
+        // {
+        //     // ModelPart::ElementsContainerType::iterator r = r_model_part.ElementsBegin() + e;
+        //     ModelPart::NodesContainerType::iterator rNode = r_model_part.NodesBegin() + n;
+        //     array_1d<double, 3> mat_deriv_num = rNode->GetSolutionStepValue(MATERIAL_ACCELERATION);
+
+        //     array_1d<double, 3> mat_deriv_exact;
+        //     mpFlowField->CalculateMaterialAcceleration(time, rNode->Coordinates(), mat_deriv_exact, omp_get_thread_num());
+
+        //     array_1d<double, 3> accel_num = rNode->GetSolutionStepValue(ACCELERATION);
+
+        //     array_1d<double, 3> accel_exact;
+        //     mpFlowField->CalculateTimeDerivative(time, rNode->Coordinates(), accel_exact, omp_get_thread_num());
+
+        //     std::cout << "  Node with ID = " << rNode->Id() << std::endl;
+        //     std::cout << "  t = " << time << std::endl;
+        //     std::cout << "  mat_deriv_num   = " << mat_deriv_num << std::endl;
+        //     std::cout << "  mat_deriv_exact = " << mat_deriv_exact << std::endl;
+        //     std::cout << "  accel_num       = " << accel_num << std::endl;
+        //     std::cout << "  accel_exact     = " << accel_exact << std::endl;
+
+        // }
+        // exit(0);
 
         // Compute L2 error = sum_e sum_g sum_d W_g * (u_d(x_g) - u_d,exact(x_g))^2,
         // where u_d and u_d,exact are the piecewise functions of the variable and the exact variable, respectively
@@ -205,14 +239,17 @@ namespace Kratos
             r_geometry.ShapeFunctionsIntegrationPointsGradients(shape_derivatives, DetJ, integration_method);
 
             // Velocities and exact var values evaluated at gauss points
+            Matrix dUdt_gauss_points = ZeroMatrix(r_number_integration_points, dim);  // time derivative
             Matrix vel_gauss_points = ZeroMatrix(r_number_integration_points, dim);
             for (unsigned g = 0; g < r_number_integration_points; g++)
             {
                 for (unsigned n = 0; n < num_nodes; n++)
                 {
+                    array_1d<double, 3> du_dt_nodal = r_geometry[n].FastGetSolutionStepValue(ACCELERATION);
                     array_1d<double, 3> u_nodal = r_geometry[n].FastGetSolutionStepValue(VELOCITY);
                     for (unsigned i = 0; i < dim; i++)
                     {
+                        dUdt_gauss_points(g, i) += du_dt_nodal[i] * NContainer(g, n);
                         vel_gauss_points(g, i) += u_nodal[i] * NContainer(g, n);
                     }
                 }
@@ -227,6 +264,7 @@ namespace Kratos
                     array_1d<double, 3> u_nodal = r_geometry[n].FastGetSolutionStepValue(VELOCITY);
                     for (unsigned i = 0; i < dim; i++)
                     {
+                        fluid_accel_gauss_points(g, i) = dUdt_gauss_points(g, i);
                         for (unsigned j = 0; j < dim; j++)
                         {
                             fluid_accel_gauss_points(g, i) += vel_gauss_points(g, j) * (shape_derivatives[g](n, j) * u_nodal[i]);
@@ -258,7 +296,7 @@ namespace Kratos
             {
                 array_1d<double, 3> exact_material_acceleration_gauss_point;
                 // CalculateMaterialAcceleration(gauss_points_coordinates[g], exact_material_acceleration_gauss_point);
-                mpFlowField->CalculateMaterialAcceleration(0.0, gauss_points_coordinates[g], exact_material_acceleration_gauss_point, omp_get_thread_num());
+                mpFlowField->CalculateMaterialAcceleration(time, gauss_points_coordinates[g], exact_material_acceleration_gauss_point, omp_get_thread_num());
                 // std::cout << "Material acceleration at point " << gauss_points_coordinates[g] << " = " << exact_material_acceleration_gauss_point << std::endl;
 
                 double weight = DetJ[g] * integration_points[g].Weight();
@@ -293,6 +331,7 @@ namespace Kratos
         double l2_norm_factor = 0.0, result = 0.0;
 
         ProcessInfo process_info = r_model_part.GetProcessInfo();
+        const double time = process_info[TIME];
         const unsigned int dim = process_info[DOMAIN_SIZE];
         const int number_of_elements = r_model_part.NumberOfElements();
 
@@ -353,7 +392,7 @@ namespace Kratos
 
                 // Exact fluid's acceleration at gauss points
                 array_1d<double, 3> exact_material_acceleration_gauss_point;
-                mpFlowField->CalculateMaterialAcceleration(0.0, gauss_points_coordinates[g], exact_material_acceleration_gauss_point, omp_get_thread_num());
+                mpFlowField->CalculateMaterialAcceleration(time, gauss_points_coordinates[g], exact_material_acceleration_gauss_point, omp_get_thread_num());
                 // std::cout << "Point = " << gauss_points_coordinates[g] << ", ",
                 // std::cout << "Dtu (manufactured) = " << exact_material_acceleration_gauss_point << ", ";
                 // std::cout << "Dtu (numeric) = [" << fluid_accel_gauss_points(g, 0) << ", " << fluid_accel_gauss_points(g, 1) << ", " << fluid_accel_gauss_points(g, 2) << "]" << std::endl;
