@@ -175,7 +175,7 @@ class VertexMorphingShapeControl(Control):
         un_buffered_data.SetValue("shape_update", shape_update,overwrite=True)
         if self.output_all_fields:
             un_buffered_data.SetValue("shape_control", self.control_field.Clone(), overwrite=True)
-            un_buffered_data.SetValue("shape_control_update", control_update, overwrite=True)
+            un_buffered_data.SetValue("shape_control_update", control_update.Clone(), overwrite=True)
 
     def _UpdateMesh(self, shape_update: Kratos.TensorAdaptors.DoubleTensorAdaptor) -> None:
         if self.mesh_motion_solver_type != "none":
