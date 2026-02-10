@@ -58,7 +58,7 @@ TensorAdaptor<TDataType>::TensorAdaptor(
 }
 
 template<class TDataType>
-TensorAdaptor<TDataType>::Pointer TensorAdaptor<TDataType>::Clone() const
+typename TensorAdaptor<TDataType>::Pointer TensorAdaptor<TDataType>::Clone() const
 {
     return Kratos::make_shared<TensorAdaptor<TDataType>>(*this);
 }

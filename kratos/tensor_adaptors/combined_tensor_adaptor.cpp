@@ -173,7 +173,7 @@ CombinedTensorAdaptor<TDataType>::CombinedTensorAdaptor(
 }
 
 template<class TDataType>
-TensorAdaptor<TDataType>::Pointer CombinedTensorAdaptor<TDataType>::Clone() const
+typename TensorAdaptor<TDataType>::Pointer CombinedTensorAdaptor<TDataType>::Clone() const
 {
     return Kratos::make_shared<CombinedTensorAdaptor<TDataType>>(*this, this->mPerformCollectDataRecursively, this->mPerformStoreDataRecursively);
 }
