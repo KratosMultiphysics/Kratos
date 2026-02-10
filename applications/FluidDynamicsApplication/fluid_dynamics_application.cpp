@@ -29,6 +29,9 @@
 #include "fluid_dynamics_application.h"
 #include "includes/variables.h"
 
+// SBM Slip include
+#include "custom_conditions/compressible_sbm_slip_condition.h"
+
 Kratos::KratosApplication *CreateApplication()
 {
     return new Kratos::KratosFluidDynamicsApplication();
@@ -467,6 +470,9 @@ namespace Kratos
         KRATOS_REGISTER_CONDITION("WallCondition3D3N", mWallCondition3D); // this is the name the element should have according to the naming convention
         KRATOS_REGISTER_CONDITION("WallCondition2D", mWallCondition2D);
         KRATOS_REGISTER_CONDITION("WallCondition3D", mWallCondition3D);
+        // KRATOS_REGISTER_CONDITION("CompressibleSBMSlipCondition", mCompressibleSBMSlipCondition);     // SBM Slip Condition
+        KRATOS_REGISTER_CONDITION("CompressibleSBMSlipCondition2D2N", mCompressibleSBMSlipCondition2D2N); // SBM Slip Condition 2D
+        KRATOS_REGISTER_CONDITION("CompressibleSBMSlipCondition3D3N", mCompressibleSBMSlipCondition3D3N); // SBM Slip Condition 3D
         KRATOS_REGISTER_CONDITION("FSWernerWengleWallCondition2D2N", mFSWernerWengleWallCondition2D);
         KRATOS_REGISTER_CONDITION("FSWernerWengleWallCondition3D3N", mFSWernerWengleWallCondition3D);
         KRATOS_REGISTER_CONDITION("FSGeneralizedWallCondition2D2N", mFSGeneralizedWallCondition2D);
