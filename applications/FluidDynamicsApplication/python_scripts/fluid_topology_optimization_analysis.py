@@ -473,8 +473,13 @@ class FluidTopologyOptimizationAnalysis(FluidDynamicsAnalysis):
         if self.IsUnsteadySolution():
             self.start_time = self.project_parameters["problem_data"]["start_time"].GetDouble()
             self.end_time = self.project_parameters["problem_data"]["end_time"].GetDouble()
+            self.simulation_time = self.end_time-self.start_time
+            self.time_integral_normalization_factor = self.end_time-self.start_time
             self.time_step_base = self._GetSolver().settings["time_stepping"]["time_step"].GetDouble()
-            self.n_time_steps = max(int(np.ceil((self.end_time-self.start_time) / self.time_step_base)), 1)
+            if self.time_step_base > (self.time_integral_normalization_factor):
+                self.time_step_base = self.time_integral_normalization_factor
+                self._GetSolver().settings["time_stepping"]["time_step"].SetDouble(self.time_step_base)
+            self.n_time_steps = max(int(np.ceil(self.time_integral_normalization_factor / self.time_step_base)), 1)
             self.simulation_times = np.zeros(self.n_time_steps+1)
             self.time_steps = np.zeros(self.n_time_steps)
             self.time_steps_integration_weights = np.zeros(self.n_time_steps) # weight to each time step to perform fast time integration of functionals
@@ -494,8 +499,11 @@ class FluidTopologyOptimizationAnalysis(FluidDynamicsAnalysis):
                 self.time_steps_integration_weights[self.n_time_steps-1] = self.time_steps[self.n_time_steps-1] / 2.0
         else:
             self.start_time = self.project_parameters["problem_data"]["start_time"].GetDouble()
-            self.end_time = self.start_time + 1e10
-            self.time_step_base = 1.0000000001*1e10
+            self.end_time = self.start_time + 1e16
+            self.simulation_time = 1e16
+            self.time_integral_normalization_factor = 1.0 # use to normalize the time integration with 1 to get the steady solution integrals
+            self.time_step_base = 1.0000000001*1e16
+            self._GetSolver().settings["time_stepping"]["time_step"].SetDouble(self.time_step_base)
             self.n_time_steps = 1
             self.time_steps = np.zeros(self.n_time_steps)
             self.time_steps_integration_weights = np.zeros(self.n_time_steps) # weight to each time step to perform fast time integration of functionals
@@ -719,13 +727,15 @@ class FluidTopologyOptimizationAnalysis(FluidDynamicsAnalysis):
         functional_time_steps_integration_weights = np.zeros(self.n_time_steps)
         times = {}
         times["times"] = np.asarray([self.start_time, self.end_time])
+        times["time_integral_normalization_factor"] = self.time_integral_normalization_factor
         times["start_span_times"] = np.asarray([self.start_time, self.end_time])
-        times["start_span_time_steps_ids"] = [0,1]
+        times["start_span_time_steps_ids"] = [-1,0]
         times["end_span_times"] = np.asarray([self.start_time, self.end_time])
-        times["end_span_time_steps_ids"] = [0,1]
+        times["end_span_time_steps_ids"] = [-1,0]
         if self.IsUnsteadySolution():
             [start_time, end_time] = self._GetFunctionalEvaluationTimeInterval(functional_physics, functional_name)
             times["times"] = np.asarray([start_time, end_time])
+            times["time_integral_normalization_factor"] = end_time-start_time
             dt = end_time-start_time    
             start_id = np.searchsorted(self.simulation_times, start_time, side="right")
             end_id = np.searchsorted(self.simulation_times, end_time, side="right")
@@ -1258,10 +1268,11 @@ class FluidTopologyOptimizationAnalysis(FluidDynamicsAnalysis):
         This methods hadls the time for the Topology Optimization problems, currently its purpos it's just to make thinks work
         """
         self.time_step_counter += 1
-        if self.IsUnsteadySolution():
-            time = super()._AdvanceTime()
-        else:
-            time = self.start_time + self.time_step_base
+        # if self.IsUnsteadySolution():
+        #     time = super()._AdvanceTime()
+        # else:
+        #     time = self.start_time + self.time_step_base
+        time = super()._AdvanceTime()
         return time
     
     def InitializeSolutionStep(self):
@@ -1370,7 +1381,7 @@ class FluidTopologyOptimizationAnalysis(FluidDynamicsAnalysis):
         """
         This method computes the resistance functional: int_{time}{int_{\Omega}{\\alpha||u||^2}}
         """
-        self.fluid_functionals[0] = np.dot(self.resistance_functionals_in_delta_time, self.resistance_functional_time_steps_integration_weights)
+        self.fluid_functionals[0] = np.dot(self.resistance_functionals_in_delta_time, self.resistance_functional_time_steps_integration_weights) / self.resistance_functional_time_info["time_integral_normalization_factor"]
         if self.IsMpiParallelism():
             self.fluid_functionals[0] = self.MpiSumLocalValues(self.fluid_functionals[0])
         if (self.first_iteration):
@@ -1395,7 +1406,7 @@ class FluidTopologyOptimizationAnalysis(FluidDynamicsAnalysis):
         """
         This method computes the Strain-Rate functional: int_{time}{int_{\Omega}{\\2*mu*||1/2*[grad(u)+grad(u)^T]||^2}}
         """
-        self.fluid_functionals[1] = np.dot(self.strain_rate_functionals_in_delta_time, self.strain_rate_functional_time_steps_integration_weights)
+        self.fluid_functionals[1] = np.dot(self.strain_rate_functionals_in_delta_time, self.strain_rate_functional_time_steps_integration_weights) / self.strain_rate_functional_time_info["time_integral_normalization_factor"]
         if self.IsMpiParallelism():
             self.fluid_functionals[1] = self.MpiSumLocalValues(self.fluid_functionals[1])
         if (self.first_iteration):
@@ -1420,7 +1431,7 @@ class FluidTopologyOptimizationAnalysis(FluidDynamicsAnalysis):
         """
         This method computes the Vorticity functional: int_{time}{int_{\Omega}{\\2*mu*||1/2*[grad(u)-grad(u)^T]||^2}}
         """
-        self.fluid_functionals[2] = np.dot(self.vorticity_functionals_in_delta_time, self.vorticity_functional_time_steps_integration_weights)
+        self.fluid_functionals[2] = np.dot(self.vorticity_functionals_in_delta_time, self.vorticity_functional_time_steps_integration_weights) / self.vorticity_functional_time_info["time_integral_normalization_factor"]
         if self.IsMpiParallelism():
             self.fluid_functionals[2] = self.MpiSumLocalValues(self.fluid_functionals[2])
         if (self.first_iteration):
@@ -1477,7 +1488,7 @@ class FluidTopologyOptimizationAnalysis(FluidDynamicsAnalysis):
         for istep in range(self.n_time_steps):
             velocity = self.velocity_solutions[istep]
             resistance_functional_derivatives_in_delta_time[:,istep] = self.resistance_derivative_wrt_design_base * np.sum(velocity*velocity, axis=1) * self.nodal_domain_sizes 
-        return np.einsum('ij,j->i', resistance_functional_derivatives_in_delta_time, self.resistance_functional_time_steps_integration_weights)
+        return (np.einsum('ij,j->i', resistance_functional_derivatives_in_delta_time, self.resistance_functional_time_steps_integration_weights) / self.resistance_functional_time_info["time_integral_normalization_factor"])
 
     def _ComputeFunctionalDerivativesFluidPhysicsContribution(self):
         fluid_physics_functional_derivatives_in_delta_time = np.zeros((self.n_nodes, self.n_time_steps))
@@ -1485,7 +1496,7 @@ class FluidTopologyOptimizationAnalysis(FluidDynamicsAnalysis):
             velocity = self.velocity_solutions[istep]
             velocity_adjoint = self.adjoint_velocity_solutions[istep]       
             fluid_physics_functional_derivatives_in_delta_time[:,istep] = self.resistance_derivative_wrt_design_base * np.sum(velocity*velocity_adjoint, axis=1) * self.nodal_domain_sizes
-        return np.einsum('ij,j->i', fluid_physics_functional_derivatives_in_delta_time, self.time_steps_integration_weights)
+        return (np.einsum('ij,j->i', fluid_physics_functional_derivatives_in_delta_time, self.time_steps_integration_weights) / self.time_integral_normalization_factor)
 
     def _EvaluateWSSConstraintAndDerivative(self):
         """

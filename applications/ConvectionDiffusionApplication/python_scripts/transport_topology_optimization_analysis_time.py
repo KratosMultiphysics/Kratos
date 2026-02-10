@@ -426,7 +426,7 @@ class TransportTopologyOptimizationAnalysisTime(FluidTopologyOptimizationAnalysi
         """
         if (self.first_iteration):
             self.SetTargetOutletTransportScalar()
-        self.transport_functionals[0] = np.dot(self.outlet_transport_scalar_functionals_in_delta_time, self.outlet_transport_scalar_functional_time_steps_integration_weights)
+        self.transport_functionals[0] = np.dot(self.outlet_transport_scalar_functionals_in_delta_time, self.outlet_transport_scalar_functional_time_steps_integration_weights) / self.outlet_transport_scalar_functional_time_info["time_integral_normalization_factor"]
         if _CheckIsDistributed():
             self.transport_functionals[0] = self.MpiSumLocalValues(self.transport_functionals[0])
         integral_value = np.sqrt(2.0*self.transport_functionals[0])
@@ -468,7 +468,7 @@ class TransportTopologyOptimizationAnalysisTime(FluidTopologyOptimizationAnalysi
         """
         This method computes the Focus Region Concentration functional: int_{\Gamma_{out}}{c}
         """
-        self.transport_functionals[1] = np.dot(self.focus_region_transport_scalar_functionals_in_delta_time, self.focus_region_transport_scalar_functional_time_steps_integration_weights)
+        self.transport_functionals[1] = np.dot(self.focus_region_transport_scalar_functionals_in_delta_time, self.focus_region_transport_scalar_functional_time_steps_integration_weights) / self.focus_region_transport_scalar_functional_time_info["time_integral_normalization_factor"]
         if _CheckIsDistributed():
             self.transport_functionals[1] = self.MpiSumLocalValues(self.transport_functionals[1])
         if (self.first_iteration):
@@ -497,7 +497,7 @@ class TransportTopologyOptimizationAnalysisTime(FluidTopologyOptimizationAnalysi
         """
         This method computes the Transport Scalar Diffusion functional: int_{\Omega}{D\\||grad(u)||^2}
         """
-        self.transport_functionals[2] = np.dot(self.transport_scalar_diffusion_functionals_in_delta_time, self.transport_scalar_diffusion_functional_time_steps_integration_weights)
+        self.transport_functionals[2] = np.dot(self.transport_scalar_diffusion_functionals_in_delta_time, self.transport_scalar_diffusion_functional_time_steps_integration_weights) / self.transport_scalar_diffusion_functional_time_info["time_integral_normalization_factor"]
         if _CheckIsDistributed():
             self.transport_functionals[2] = self.MpiSumLocalValues(self.transport_functionals[2])
         if (self.first_iteration):
@@ -522,7 +522,7 @@ class TransportTopologyOptimizationAnalysisTime(FluidTopologyOptimizationAnalysi
         """
         This method computes the Transport Scalar Convection functional: int_{\Omega}{beta*T*dot(u,grad(T))}
         """
-        self.transport_functionals[3] = np.dot(self.transport_scalar_convection_functionals_in_delta_time, self.transport_scalar_convection_functional_time_steps_integration_weights)
+        self.transport_functionals[3] = np.dot(self.transport_scalar_convection_functionals_in_delta_time, self.transport_scalar_convection_functional_time_steps_integration_weights) / self.transport_scalar_convection_functional_time_info["time_integral_normalization_factor"]
         if _CheckIsDistributed():
             self.transport_functionals[3] = self.MpiSumLocalValues(self.transport_functionals[3])
         if (self.first_iteration):
@@ -548,7 +548,7 @@ class TransportTopologyOptimizationAnalysisTime(FluidTopologyOptimizationAnalysi
         """
         This method computes the Transport Scalar Decay functional: int_{\Omega}{kT^2}
         """
-        self.transport_functionals[4] = np.dot(self.transport_scalar_decay_functionals_in_delta_time, self.transport_scalar_decay_functional_time_steps_integration_weights)
+        self.transport_functionals[4] = np.dot(self.transport_scalar_decay_functionals_in_delta_time, self.transport_scalar_decay_functional_time_steps_integration_weights) / self.transport_scalar_decay_functional_time_info["time_integral_normalization_factor"]
         if _CheckIsDistributed():
             self.transport_functionals[4] = self.MpiSumLocalValues(self.transport_functionals[4])
         if (self.first_iteration):
@@ -572,7 +572,7 @@ class TransportTopologyOptimizationAnalysisTime(FluidTopologyOptimizationAnalysi
         """
         This method computes the Transport Scalar Source functional: int_{\Omega}{-Q*T}
         """
-        self.transport_functionals[5] = np.dot(self.transport_scalar_source_functionals_in_delta_time, self.transport_scalar_source_functional_time_steps_integration_weights)
+        self.transport_functionals[5] = np.dot(self.transport_scalar_source_functionals_in_delta_time, self.transport_scalar_source_functional_time_steps_integration_weights) / self.transport_scalar_source_functional_time_info["time_integral_normalization_factor"]
         if _CheckIsDistributed():
             self.transport_functionals[5] = self.MpiSumLocalValues(self.transport_functionals[5])
         if (self.first_iteration):
@@ -595,9 +595,9 @@ class TransportTopologyOptimizationAnalysisTime(FluidTopologyOptimizationAnalysi
 
     def _EvaluateTransportScalar1stOrderDecayFunctional(self, print_functional=False):
         """
-        This method computes the Transport Scalar Decay functional: int_{\Omega}{kT^2}
+        This method computes the Transport Scalar Decay functional: int_{\Omega}{kT}
         """
-        self.transport_functionals[6] = np.dot(self.transport_scalar_1st_order_decay_functionals_in_delta_time, self.transport_scalar_1st_order_decay_functional_time_steps_integration_weights)
+        self.transport_functionals[6] = np.dot(self.transport_scalar_1st_order_decay_functionals_in_delta_time, self.transport_scalar_1st_order_decay_functional_time_steps_integration_weights) / self.transport_scalar_1st_order_decay_functional_time_info["time_integral_normalization_factor"]
         if _CheckIsDistributed():
             self.transport_functionals[6] = self.MpiSumLocalValues(self.transport_functionals[6])
         if (self.first_iteration):
@@ -609,7 +609,7 @@ class TransportTopologyOptimizationAnalysisTime(FluidTopologyOptimizationAnalysi
 
     def _EvaluateTransportScalar1stOrderDecayFunctionalInDeltaTime(self):
         """
-        This method computes the Transport Scalar Decay functional: int_{\Omega}{kT^2}
+        This method computes the Transport Scalar Decay functional: int_{\Omega}{kT}
         """
         mp = self._GetComputingModelPart()
         transport_scalar = np.asarray(KratosMultiphysics.VariableUtils().GetSolutionStepValuesVector(self._GetLocalMeshNodes(mp), KratosMultiphysics.TEMPERATURE, 0))
@@ -691,7 +691,7 @@ class TransportTopologyOptimizationAnalysisTime(FluidTopologyOptimizationAnalysi
         for istep in range(self.n_time_steps):
             transport_scalar_gradient = self.transport_scalar_gradient_solutions[istep]
             transport_diffusion_functional_derivatives_in_delta_time[:,istep] = self.conductivity_derivative_wrt_design_base * np.einsum('ij,ij->i', transport_scalar_gradient, transport_scalar_gradient) * self.nodal_domain_sizes
-        return np.einsum('ij,j->i', transport_diffusion_functional_derivatives_in_delta_time, self.transport_scalar_diffusion_functional_time_steps_integration_weights)
+        return (np.einsum('ij,j->i', transport_diffusion_functional_derivatives_in_delta_time, self.transport_scalar_diffusion_functional_time_steps_integration_weights) / self.transport_scalar_diffusion_functional_time_info["time_integral_normalization_factor"])
     
     def _ComputeFunctionalDerivativesConvectionFunctionalContribution(self):
         transport_convection_functional_derivatives_in_delta_time = np.zeros((self.n_nodes, self.n_time_steps))
@@ -700,28 +700,28 @@ class TransportTopologyOptimizationAnalysisTime(FluidTopologyOptimizationAnalysi
             velocity = self.velocity_solutions[istep]
             transport_scalar_gradient = self.transport_scalar_gradient_solutions[istep]
             transport_convection_functional_derivatives_in_delta_time[:,istep] = self.convection_coefficient_derivative_wrt_design_base * (transport_scalar*(np.einsum('ij,ij->i', velocity, transport_scalar_gradient))) * self.nodal_domain_sizes
-        return np.einsum('ij,j->i', transport_convection_functional_derivatives_in_delta_time, self.transport_scalar_convection_functional_time_steps_integration_weights)
+        return (np.einsum('ij,j->i', transport_convection_functional_derivatives_in_delta_time, self.transport_scalar_convection_functional_time_steps_integration_weights) / self.transport_scalar_convection_functional_time_info["time_integral_normalization_factor"])
     
     def _ComputeFunctionalDerivativesDecayFunctionalContribution(self):
         transport_decay_functional_derivatives_in_delta_time = np.zeros((self.n_nodes, self.n_time_steps))
         for istep in range(self.n_time_steps):
             transport_scalar = self.transport_scalar_solutions[istep]
             transport_decay_functional_derivatives_in_delta_time[:,istep] = self.decay_derivative_wrt_design_base * (transport_scalar**2) * self.nodal_domain_sizes
-        return np.einsum('ij,j->i', transport_decay_functional_derivatives_in_delta_time, self.transport_scalar_decay_functional_time_steps_integration_weights)
+        return (np.einsum('ij,j->i', transport_decay_functional_derivatives_in_delta_time, self.transport_scalar_decay_functional_time_steps_integration_weights) / self.transport_scalar_decay_functional_time_info["time_integral_normalization_factor"])
 
     def _ComputeFunctionalDerivativesSourceFunctionalContribution(self):
         transport_source_functional_derivatives_in_delta_time = np.zeros((self.n_nodes, self.n_time_steps))
         for istep in range(self.n_time_steps):
             transport_scalar = self.transport_scalar_solutions[istep]
             transport_source_functional_derivatives_in_delta_time[:,istep] = self.transport_source_derivative_wrt_design_base * transport_scalar * self.nodal_domain_sizes
-        return np.einsum('ij,j->i', transport_source_functional_derivatives_in_delta_time, self.transport_scalar_source_functional_time_steps_integration_weights)
+        return (np.einsum('ij,j->i', transport_source_functional_derivatives_in_delta_time, self.transport_scalar_source_functional_time_steps_integration_weights) / self.transport_scalar_source_functional_time_info["time_integral_normalization_factor"])
     
     def _ComputeFunctionalDerivatives1stOrderDecayFunctionalContribution(self):
         transport_1st_order_decay_functional_derivatives_in_delta_time = np.zeros((self.n_nodes, self.n_time_steps))
         for istep in range(self.n_time_steps):
             transport_scalar = self.transport_scalar_solutions[istep]
             transport_1st_order_decay_functional_derivatives_in_delta_time[:,istep] = self.decay_derivative_wrt_design_base * transport_scalar * self.nodal_domain_sizes 
-        return np.einsum('ij,j->i', transport_1st_order_decay_functional_derivatives_in_delta_time, self.transport_scalar_1st_order_decay_functional_time_steps_integration_weights)
+        return (np.einsum('ij,j->i', transport_1st_order_decay_functional_derivatives_in_delta_time, self.transport_scalar_1st_order_decay_functional_time_steps_integration_weights) / self.transport_scalar_1st_order_decay_functional_time_info["time_integral_normalization_factor"])
     
     def _ComputeFunctionalDerivativesTransportPhysicsContribution(self):
         transport_physics_functional_derivatives_in_delta_time = np.zeros((self.n_nodes, self.n_time_steps))
@@ -735,7 +735,7 @@ class TransportTopologyOptimizationAnalysisTime(FluidTopologyOptimizationAnalysi
             transport_physics_functional_derivatives_in_delta_time[:,istep] += self.decay_derivative_wrt_design_base * (transport_scalar*transport_scalar_adj) * self.nodal_domain_sizes
             transport_physics_functional_derivatives_in_delta_time[:,istep] += self.convection_coefficient_derivative_wrt_design_base * np.einsum('ij,ij->i', velocity, transport_scalar_gradient) * transport_scalar_adj * self.nodal_domain_sizes
             transport_physics_functional_derivatives_in_delta_time[:,istep] += self.transport_source_derivative_wrt_design_base * transport_scalar_adj * self.nodal_domain_sizes
-        return np.einsum('ij,j->i', transport_physics_functional_derivatives_in_delta_time, self.time_steps_integration_weights)
+        return (np.einsum('ij,j->i', transport_physics_functional_derivatives_in_delta_time, self.time_steps_integration_weights) / self.time_integral_normalization_factor)
     
     def _UpdateRelevantAdjointVariables(self):
         super()._UpdateRelevantAdjointVariables()

@@ -167,11 +167,10 @@ class TrilinosTransportTopologyOptimizationSolverTime(ConvectionDiffusionTransie
     def _SetTimeIntegrationMethodBufferSize(self):
         self.is_unsteady = True
         self.time_integration_method = self.settings["time_integration_method"].GetString()
-        # self.settings["time_stepping"]["automatic_time_step"].SetBool(False)
         if self.time_integration_method == "implicit":
             self.min_buffer_size = 3
         elif self.time_integration_method == "steady":
-            # self.settings["time_integration_method"].SetString("implicit")
+            self.settings["time_integration_method"].SetString("implicit")
             self.is_unsteady = False
             self.min_buffer_size = 3
         else:
@@ -239,7 +238,7 @@ class TrilinosTransportTopologyOptimizationSolverTime(ConvectionDiffusionTransie
             for node in self._GetLocalMeshNodes():
                 node.SetValue(KratosMultiphysics.CONVECTION_COEFFICIENT, convection_coefficient[self.nodes_ids_global_to_local_partition_dictionary[node.Id]])
         else:
-            raise TypeError(f"Unsupported input type in '_UpdateResistanceVariable' : {type(convection_coefficient)}")
+            raise TypeError(f"Unsupported input type in '_UpdateConvectionCoefficientVariable' : {type(convection_coefficient)}")
         
     def _UpdateTransportSourceVariable(self, transport_source):
         self.is_transport_source_updated = True
@@ -250,7 +249,7 @@ class TrilinosTransportTopologyOptimizationSolverTime(ConvectionDiffusionTransie
             for node in self._GetLocalMeshNodes():
                 node.SetSolutionStepValue(KratosMultiphysics.HEAT_FLUX, transport_source[self.nodes_ids_global_to_local_partition_dictionary[node.Id]])
         else:
-            raise TypeError(f"Unsupported input type in '_UpdateDecayVariable' : {type(transport_source)}")
+            raise TypeError(f"Unsupported input type in '_UpdateTransportSourceVariable' : {type(transport_source)}")
         
     def _UpdateConvectionVelocityVariable(self, convection_velocity):
         dim = self.main_model_part.ProcessInfo[KratosMultiphysics.DOMAIN_SIZE]

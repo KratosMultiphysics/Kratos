@@ -142,11 +142,10 @@ class TransportTopologyOptimizationSolverTime(ConvectionDiffusionTransientSolver
     def _SetTimeIntegrationMethodBufferSize(self):
         self.is_unsteady = True
         self.time_integration_method = self.settings["time_integration_method"].GetString()
-        # self.settings["time_stepping"]["automatic_time_step"].SetBool(False)
         if self.time_integration_method == "implicit":
             self.min_buffer_size = 3
         elif self.time_integration_method == "steady":
-            # self.settings["time_integration_method"].SetString("implicit")
+            self.settings["time_integration_method"].SetString("implicit")
             self.is_unsteady = False
             self.min_buffer_size = 3
         else:
@@ -262,8 +261,6 @@ class TransportTopologyOptimizationSolverTime(ConvectionDiffusionTransientSolver
         if self._IsUnsteady():
             self.GetComputingModelPart().ProcessInfo[KratosMultiphysics.TIME_INTEGRATION_THETA] = self.settings["transient_parameters"]["theta"].GetDouble()
             self.GetComputingModelPart().ProcessInfo[KratosMultiphysics.DYNAMIC_TAU] = self.settings["transient_parameters"]["dynamic_tau"].GetDouble()
-            print(self.GetComputingModelPart().ProcessInfo[KratosMultiphysics.TIME_INTEGRATION_THETA])
-            print(self.GetComputingModelPart().ProcessInfo[KratosMultiphysics.DYNAMIC_TAU])
         else:
             self.GetComputingModelPart().ProcessInfo[KratosMultiphysics.TIME_INTEGRATION_THETA] = 1.0
             self.GetComputingModelPart().ProcessInfo[KratosMultiphysics.DYNAMIC_TAU] = 0.0
