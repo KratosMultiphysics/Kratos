@@ -53,6 +53,7 @@ public:
         return result;
     }
 
+    SigmaTau& operator+=(const SigmaTau& rRhsTraction);
     friend KRATOS_API(GEO_MECHANICS_APPLICATION) SigmaTau operator+(const SigmaTau&, const SigmaTau&);
 
 private:

@@ -31,6 +31,12 @@ double SigmaTau::Tau() const { return mValues[1]; }
 
 double& SigmaTau::Tau() { return mValues[1]; }
 
+SigmaTau& SigmaTau::operator+=(const SigmaTau& rRhsTraction)
+{
+    std::ranges::transform(mValues, rRhsTraction.mValues, mValues.begin(), std::plus{});
+    return *this;
+}
+
 SigmaTau operator+(const SigmaTau& rFirstTraction, const SigmaTau& rSecondTraction)
 {
     return SigmaTau{rFirstTraction.mValues[0] + rSecondTraction.mValues[0],
