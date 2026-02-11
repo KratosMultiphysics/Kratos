@@ -21,18 +21,30 @@ class Schema_Validation:
             "properties": {
                 "type": {"const": "Panel"},
                 "submodelpart": {"type": "string"},
-                "panel_origin_node": {"type": "integer"},
-                "corner_node_x" : {"type": "integer"},
-                "corner_node_y" : {"type": "integer"},
+                #"panel_origin_node": {"type": "integer"},
+                #"corner_node_x" : {"type": "integer"},
+                #"corner_node_y" : {"type": "integer"},
                 "boundary_conditions" : {"type": "array", "items" : {"type" : "number"}},
                 "analysis_methods"  :   {"type": "array", "items": {"type": "string"}}
             },
             "required": ["type", "submodelpart", "analysis_methods"]
         }
 
+        self.column_schema = {
+            "type": "object",
+            "properties": {
+                "type": {"const": "Column"},
+                "submodelpart": {"type": "string"},
+                "euler_case": {"type": "array", "items" : {"type" : "number"}},
+                "analysis_methods": {"type": "array", "items": {"type": "string"}}
+            },
+            "required": ["type", "submodelpart", "analysis_methods"]
+        }
+
     def create_type_schemas(self):
         self.type_schemas = {
-            "Panel": self.panel_schema
+            "Panel": self.panel_schema,
+            "Column": self.column_schema
         }
 
     def validate_structural_element_input(self):

@@ -44,5 +44,11 @@ class StressAnalysisProcess(KratosMultiphysics.Process):
                     "\n CL: ", panel.cl,
                     "\n BCs: ", panel.boundary_conditions)
                 
+
+            elif structural_element["type"].GetString().lower() == "column":
+                sub_model_part = self.modelpart.GetSubModelPart(structural_element["submodelpart"].GetString())
+                column = 4
+                print("Column Structural Element: ", column)
+
             else:
                 continue
