@@ -114,4 +114,13 @@ TYPED_TEST(TestSigmaTauFixture, SigmaTau_CanBeCopiedToAnyVectorTypeWithSizeOf2)
     KRATOS_EXPECT_VECTOR_NEAR(sigma_tau.CopyTo<TypeParam>(), (std::array{1.0, 2.0}), Defaults::absolute_tolerance);
 }
 
+TEST_F(KratosGeoMechanicsFastSuiteWithoutKernel, SigmaTau_AnyVectorWithSizeOf2CanBeAddedToIt)
+{
+    // Act
+    const auto total_traction = Geo::SigmaTau{1.0, 2.0} + Vector(2, 3.0);
+
+    // Assert
+    KRATOS_EXPECT_VECTOR_NEAR(total_traction.Values(), (std::array{4.0, 5.0}), Defaults::absolute_tolerance);
+}
+
 } // namespace Kratos::Testing
