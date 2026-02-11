@@ -27,6 +27,7 @@
 #include "custom_utilities/geometry_utilities.h"
 #include "custom_utilities/math_utilities.hpp"
 #include "custom_utilities/stress_strain_utilities.h"
+#include "custom_utilities/ublas_utilities.h"
 #include "geo_aliases.h"
 #include "geometries/line_2d_2.h"
 #include "geometries/quadrilateral_3d_4.h"
@@ -520,52 +521,42 @@ std::vector<Matrix> UPwInterfaceElement::CalculateLocalBMatricesAtIntegrationPoi
     return result;
 }
 
-Matrix UPwInterfaceElement::CalculatePwBMatrix(const Vector& rN, const Geometry<Node>& rGeometry) const
+Matrix UPwInterfaceElement::CalculatePwBMatrix(const Geo::IntegrationPointType& rIntegrationPoint,
+                                               const Geometry<Node>& rWaterPressureGeometry) const
 {
-    KRATOS_ERROR_IF(rN.empty())
-        << "Shape function values are empty. Therefore, the PwB matrix can not be computed.\n";
-    KRATOS_ERROR_IF_NOT(rN.size() == rGeometry.size() / 2)
-        << "The number of shape functions should be equal to the number of node pairs. Therefore, "
-           "the PwB matrix can not be computed.\n";
-    auto component_order = ComponentOrder(rGeometry);
-    auto result          = Matrix{rGeometry.size(), component_order.size(), 0.0};
+    auto& r_water_pressure_mid_geometry = GetWaterPressureMidGeometry();
+    auto  shape_function_values         = Vector{};
+    r_water_pressure_mid_geometry.ShapeFunctionsValues(shape_function_values, rIntegrationPoint);
+    Matrix shape_functions_local_gradient;
+    r_water_pressure_mid_geometry.ShapeFunctionsLocalGradients(shape_functions_local_gradient, rIntegrationPoint);
+    // local derivative
+    shape_functions_local_gradient /= r_water_pressure_mid_geometry.DeterminantOfJacobian(rIntegrationPoint);
+
+    const auto dim    = r_water_pressure_mid_geometry.WorkingSpaceDimension();
+    auto       result = Matrix{rWaterPressureGeometry.size(), dim, 0.0};
 
     auto number_of_pw_dofs_per_side = result.size1() / 2;
     for (auto i = size_t{0}; i < number_of_pw_dofs_per_side; ++i) {
-        for (auto j = size_t{0}; j < component_order.size(); ++j) {
-            result(i, component_order[j])                              = rN[i];
-            result(i + number_of_pw_dofs_per_side, component_order[j]) = -rN[i];
+        result(i, 0)                              = -shape_function_values[i];
+        result(i + number_of_pw_dofs_per_side, 0) = shape_function_values[i];
+        for (auto j = size_t{1}; j < dim; ++j) {
+            result(i, j) = -0.5 * shape_functions_local_gradient(i, j - 1);
+            result(i + number_of_pw_dofs_per_side, j) = -0.5 * shape_functions_local_gradient(i, j - 1);
         }
     }
     return result;
 }
 
-std::vector<std::size_t> UPwInterfaceElement::ComponentOrder(const Geometry<Node>& rGeometry) const
-{
-    return rGeometry.GetGeometryFamily() == GeometryData::KratosGeometryFamily::Kratos_Linear
-               ? std::vector<std::size_t>{1, 0}
-               : std::vector<std::size_t>{2, 0, 1};
-}
-
 Geometry<Node>::ShapeFunctionsGradientsType UPwInterfaceElement::CalculateLocalPwBMatricesAtIntegrationPoints() const
 {
     const auto& r_integration_points = mpIntegrationScheme->GetIntegrationPoints();
-    const auto  shape_function_values_at_integration_points =
-        GeoElementUtilities::EvaluateShapeFunctionsAtIntegrationPoints(r_integration_points,
-                                                                       GetWaterPressureGeometry());
 
     auto result = Geometry<Node>::ShapeFunctionsGradientsType{r_integration_points.size()};
-    // result.reserve(shape_function_values_at_integration_points.size());
-    auto calculate_local_b_matrix = [&r_geometry = GetWaterPressureGeometry(), this](
-                                        const auto& rShapeFunctionValuesAtIntegrationPoint,
-                                        const auto& rIntegrationPoint) {
-        auto b_matrix = CalculatePwBMatrix(rShapeFunctionValuesAtIntegrationPoint, r_geometry);
-        ApplyRotationToBMatrix(b_matrix, mfpCalculateRotationMatrix(r_geometry, rIntegrationPoint));
-        return b_matrix;
+    auto calculate_local_b_matrix = [&r_water_pressure_geometry = GetWaterPressureGeometry(),
+                                     this](const auto& rIntegrationPoint) {
+        return CalculatePwBMatrix(rIntegrationPoint, r_water_pressure_geometry);
     };
-    std::ranges::transform(shape_function_values_at_integration_points, r_integration_points,
-                           result.begin(), calculate_local_b_matrix);
-
+    std::ranges::transform(r_integration_points, result.begin(), calculate_local_b_matrix);
     return result;
 }
 
@@ -714,11 +705,11 @@ std::vector<double> UPwInterfaceElement::CalculateIntegrationPointFluidPressures
 std::vector<Vector> UPwInterfaceElement::CalculateProjectedGravity() const
 {
     const auto& r_integration_points = mpIntegrationScheme->GetIntegrationPoints();
+    const auto& r_geometry           = GetWaterPressureMidGeometry();
     const auto  shape_function_values_at_integration_points =
-        GeoElementUtilities::EvaluateShapeFunctionsAtIntegrationPoints(
-            r_integration_points, GetWaterPressureMidGeometry());
+        GeoElementUtilities::EvaluateShapeFunctionsAtIntegrationPoints(r_integration_points, r_geometry);
     const auto number_integration_points = r_integration_points.size();
-    const auto dimension                 = GetWaterPressureMidGeometry().WorkingSpaceDimension();
+    const auto dimension                 = r_geometry.WorkingSpaceDimension();
 
     // Get volume acceleration from WaterPressureGeometry and average to WaterPressureMidGeometry
     std::vector<Vector> volume_accelerations;
@@ -726,16 +717,15 @@ std::vector<Vector> UPwInterfaceElement::CalculateProjectedGravity() const
     for (const auto& r_node : GetWaterPressureGeometry()) {
         volume_accelerations.emplace_back(r_node.FastGetSolutionStepValue(VOLUME_ACCELERATION));
     }
-    auto component_order = ComponentOrder(GetWaterPressureGeometry());
 
     // average to WaterPressureMidGeometry and sort to element directions
     std::vector<Vector> mid_volume_accelerations;
-    const auto          number_of_mid_points = GetWaterPressureMidGeometry().PointsNumber();
+    const auto          number_of_mid_points = r_geometry.PointsNumber();
     mid_volume_accelerations.reserve(number_of_mid_points);
     for (auto i = std::size_t{0}; i < number_of_mid_points; ++i) {
         auto mean_acceleration = Vector{dimension};
         for (auto idim = std::size_t{0}; idim < dimension; ++idim) {
-            mean_acceleration[component_order[idim]] =
+            mean_acceleration[idim] =
                 (volume_accelerations[i][idim] + volume_accelerations[i + number_of_mid_points][idim]) / 2.0;
         }
         mid_volume_accelerations.emplace_back(mean_acceleration);
@@ -751,9 +741,20 @@ std::vector<Vector> UPwInterfaceElement::CalculateProjectedGravity() const
                 shape_function_values_at_integration_points[integration_point_index][mid_node_index] *
                 mid_volume_accelerations[mid_node_index];
         }
-        projected_gravity.emplace_back(body_acceleration);
-    }
+        Matrix geometry_to_material_rotation{}; // dit kan buiten de i.p. loop
+        if (r_geometry.GetGeometryFamily() == GeometryData::KratosGeometryFamily::Kratos_Linear) {
+            geometry_to_material_rotation = UblasUtilities::CreateMatrix({{0.0, -1.0}, {1.0, 0.0}});
+        } else {
+            geometry_to_material_rotation =
+                UblasUtilities::CreateMatrix({{0.0, 0.0, 1.0}, {1.0, 0.0, 0.0}, {0.0, 1.0, 0.0}});
+        }
+        auto global_to_geometry_rotation =
+            mfpCalculateRotationMatrix(r_geometry, r_integration_points[integration_point_index]);
+        auto global_to_material_rotation =
+            Matrix{prod(geometry_to_material_rotation, global_to_geometry_rotation)};
 
+        projected_gravity.emplace_back(prod(global_to_material_rotation, body_acceleration));
+    }
     return projected_gravity;
 }
 

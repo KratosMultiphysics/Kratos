@@ -116,11 +116,11 @@ private:
                                           const Vector& rGlobalStressVector) const;
     Vector ConvertLocalStressToTraction(const Matrix& rLocalStress) const;
     Vector GetWaterPressureGeometryNodalVariable(const Variable<double>& rVariable) const;
-    Matrix CalculatePwBMatrix(const Vector& rN, const Geometry<Node>& rGeometry) const;
+    Matrix CalculatePwBMatrix(const Geo::IntegrationPointType& rIntegrationPoint,
+                              const Geometry<Node>&            rWaterPressureGeometry) const;
     Geometry<Node>::ShapeFunctionsGradientsType CalculateLocalPwBMatricesAtIntegrationPoints() const;
-    std::vector<double>      CalculateIntegrationPointFluidPressures() const;
-    std::vector<Vector>      CalculateProjectedGravity() const;
-    std::vector<std::size_t> ComponentOrder(const Geometry<Node>& rGeometry) const;
+    std::vector<double> CalculateIntegrationPointFluidPressures() const;
+    std::vector<Vector> CalculateProjectedGravity() const;
 
     Geo::BMatricesGetter                  CreateBMatricesGetter() const;
     Geo::StrainVectorsGetter              CreateRelativeDisplacementsGetter() const;

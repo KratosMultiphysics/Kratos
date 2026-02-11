@@ -2228,4 +2228,70 @@ KRATOS_TEST_CASE_IN_SUITE(UPwLineInterfaceElement_HorizontalOpenInterfacePermeab
     const auto expected_p_block_vector = Vector{number_of_pw_dofs, 0.0};
     AssertPBlockVectorIsNear(actual_right_hand_side, expected_p_block_vector, number_of_u_dofs, number_of_pw_dofs);
 }
+
+KRATOS_TEST_CASE_IN_SUITE(UPwLineInterfaceElement_VerticalInterfaceFluidBodyFlowContributionsIsZero,
+                          KratosGeoMechanicsFastSuiteWithoutKernel)
+{
+    // Arrange
+    constexpr auto normal_stiffness = 20.0;
+    constexpr auto shear_stiffness  = 10.0;
+    const auto     p_properties =
+        CreateElasticMaterialProperties<InterfacePlaneStrain>(normal_stiffness, shear_stiffness);
+    p_properties->SetValue(TRANSVERSAL_PERMEABILITY, 5.0E-3);
+    p_properties->SetValue(DYNAMIC_VISCOSITY, 2.0E-1);
+    p_properties->SetValue(RETENTION_LAW, "SaturatedLaw");
+    p_properties->SetValue(DENSITY_WATER, 1000.0);
+
+    Model model;
+    auto& r_model_part = CreateModelPartWithUPwVariables(model);
+
+    PointerVector<Node> nodes;
+    nodes.push_back(r_model_part.CreateNewNode(0, 0.0, 1.0, 0.0));
+    nodes.push_back(r_model_part.CreateNewNode(1, 0.0, 0.0, 0.0));
+    nodes.push_back(r_model_part.CreateNewNode(2, 1.0, 1.0, 0.0));
+    nodes.push_back(r_model_part.CreateNewNode(3, 1.0, 0.0, 0.0));
+    const auto p_geometry = std::make_shared<LineInterfaceGeometry2D2Plus2Noded>(nodes);
+    auto       element    = CreateInterfaceElementWithUPwDofs<Interface2D>(
+        p_properties, p_geometry, IsDiffOrderElement::No, {CalculationContribution::FluidBodyFlow});
+    element.Initialize(ProcessInfo{});
+
+    const auto prescribed_displacements =
+        PrescribedDisplacements{{0, array_1d<double, 3>{0.0, 0.0, 0.0}},
+                                {1, array_1d<double, 3>{0.0, 0.0, 0.0}},
+                                {2, array_1d<double, 3>{0.0, 0.0, 0.0}},
+                                {3, array_1d<double, 3>{0.0, 0.0, 0.0}}};
+
+    const auto prescribed_water_pressures =
+        PrescribedWaterPressures{{0, 10.0E3}, {1, 20.0E3}, {2, 10.0E3}, {3, 20.0E3}};
+
+    const auto prescribed_volume_accelerations = std::vector<std::pair<std::size_t, array_1d<double, 3>>>{
+        {0, array_1d<double, 3>{0.0, -10.0, 0.0}},
+        {1, array_1d<double, 3>{0.0, -10.0, 0.0}},
+        {2, array_1d<double, 3>{0.0, -10.0, 0.0}},
+        {3, array_1d<double, 3>{0.0, -10.0, 0.0}}};
+
+    for (const auto& [idx, disp] : prescribed_displacements) {
+        element.GetGeometry()[idx].FastGetSolutionStepValue(DISPLACEMENT) = disp;
+    }
+    for (const auto& [idx, p_w] : prescribed_water_pressures) {
+        element.GetGeometry()[idx].FastGetSolutionStepValue(WATER_PRESSURE) = p_w;
+    }
+    for (const auto& [idx, volume_acceleration] : prescribed_volume_accelerations) {
+        element.GetGeometry()[idx].FastGetSolutionStepValue(VOLUME_ACCELERATION) = volume_acceleration;
+    }
+
+    // Act
+    Vector actual_right_hand_side;
+    element.CalculateRightHandSide(actual_right_hand_side, ProcessInfo{});
+
+    // Assert
+    constexpr auto number_of_u_dofs        = std::size_t{4 * 2};
+    constexpr auto number_of_pw_dofs       = std::size_t{4};
+    const auto     expected_u_block_vector = Vector{number_of_u_dofs, 0.0};
+    AssertUBlockVectorIsNear(actual_right_hand_side, expected_u_block_vector, number_of_u_dofs, number_of_pw_dofs);
+    // The fluid body flow of a vertical interface subjected to vertical gravity should be zero
+    const auto expected_p_block_vector = Vector{number_of_pw_dofs, 0.0};
+    AssertPBlockVectorIsNear(actual_right_hand_side, expected_p_block_vector, number_of_u_dofs, number_of_pw_dofs);
+}
+
 } // namespace Kratos::Testing
