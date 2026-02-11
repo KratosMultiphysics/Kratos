@@ -55,9 +55,9 @@ private:
     CoulombWithTensionCutOffImpl mCoulombWithTensionCutOffImpl;
     bool                         mIsModelInitialized = false;
 
-    [[nodiscard]] Vector CalculateTrialTractionVector(const Vector& rRelativeDisplacementVector,
-                                                      double        NormalStiffness,
-                                                      double        ShearStiffness) const;
+    [[nodiscard]] Geo::SigmaTau CalculateTrialTractionVector(const Vector& rRelativeDisplacementVector,
+                                                             double NormalStiffness,
+                                                             double ShearStiffness) const;
 
     friend class Serializer;
     void save(Serializer& rSerializer) const override;
