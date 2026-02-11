@@ -89,6 +89,11 @@ public:
     ///@{
 
     /**
+     * @brief Clones the existing tensor adaptor.
+     */
+    TensorAdaptor<double>::Pointer Clone() const override;
+
+    /**
      * @brief Execution of this check is only required if this PropertiesVariableTensorAdaptor
      *        will be used to call the @ref CollectData method. If it is only required to be called
      *        with the @ref StoreData, then please do not execute this @ref Check. Because

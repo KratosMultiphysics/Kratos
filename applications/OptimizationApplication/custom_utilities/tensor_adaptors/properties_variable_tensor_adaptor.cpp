@@ -86,6 +86,11 @@ PropertiesVariableTensorAdaptor::PropertiesVariableTensorAdaptor(
     KRATOS_CATCH("");
 }
 
+TensorAdaptor<double>::Pointer PropertiesVariableTensorAdaptor::Clone() const
+{
+    return Kratos::make_shared<PropertiesVariableTensorAdaptor>(*this, mpVariable, true);
+}
+
 void PropertiesVariableTensorAdaptor::Check() const
 {
     KRATOS_TRY
