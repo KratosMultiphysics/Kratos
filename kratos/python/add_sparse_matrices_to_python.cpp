@@ -121,8 +121,9 @@ namespace
         auto eq_ids_data = NDData<int>(nd_data_shape);
 
         // Loop over the container
+        EquationIdVectorType aux_tls;
         auto eq_ids_data_view = eq_ids_data.ViewData();
-        IndexPartition<std::size_t>(n_entities).for_each(EquationIdVectorType(),[&](std::size_t i, EquationIdVectorType& rTLS) {
+        IndexPartition<std::size_t>(n_entities).for_each(aux_tls, [&](std::size_t i, EquationIdVectorType& rTLS) {
             // Get current entity
             auto it = rContainer.begin() + i;
             const std::size_t it_pos = i * (local_size * local_size);
