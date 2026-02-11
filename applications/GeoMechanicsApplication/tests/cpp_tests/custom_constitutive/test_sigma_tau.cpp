@@ -11,7 +11,7 @@
 //  Main authors:    Anne van de Graaf
 //
 
-#include "custom_constitutive/geo_sigma_tau.hpp"
+#include "custom_constitutive/sigma_tau.hpp"
 #include "custom_utilities/ublas_utilities.h"
 #include "includes/expect.h"
 #include "tests/cpp_tests/geo_mechanics_fast_suite_without_kernel.h"
