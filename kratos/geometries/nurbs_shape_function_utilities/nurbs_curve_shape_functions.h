@@ -272,6 +272,93 @@ public:
         }
     }
 
+    void ComputeBSplineShapeFunctionValuesAtSpanLowerOrder(
+        const Vector& rKnots,
+        const IndexType Span,
+        const double ParameterT)
+    {
+        // Use a signed integer for the computations!
+        using Int = std::ptrdiff_t;
+
+        ClearValues();
+
+        const Int polynominal_degree = static_cast<Int>(PolynomialDegree()) - 1;
+        const Int number_of_nonzero_control_points =
+            static_cast<Int>(NumberOfNonzeroControlPoints());
+        const Int number_of_shape_function_rows =
+            static_cast<Int>(NumberOfShapeFunctionRows());
+
+        mFirstNonzeroControlPoint = Span - polynominal_degree + 1;
+
+        // compute B-Spline shape
+        Ndu(0, 0) = 1.0;
+
+        for (Int j = 0; j < polynominal_degree; j++) {
+            mLeft[j] = ParameterT - rKnots[Span - j];
+            mRight[j] = rKnots[Span + j + 1] - ParameterT;
+
+            double saved = 0.0;
+
+            for (Int r = 0; r <= j; r++) {
+                Ndu(j + 1, r) = mRight[r] + mLeft[j - r];
+
+                double temp = Ndu(r, j) / Ndu(j + 1, r);
+
+                Ndu(r, j + 1) = saved + mRight[r] * temp;
+
+                saved = mLeft[j - r] * temp;
+            }
+            Ndu(j + 1, j + 1) = saved;
+        }
+
+        for (Int j = 0; j < number_of_nonzero_control_points; j++) {
+            ShapeFunctionValue(j, 0) = Ndu(j, polynominal_degree);
+        }
+
+        auto& a = mA;
+        auto& b = mB;
+
+        for (Int r = 0; r < number_of_nonzero_control_points; r++) {
+            a[0] = 1.0;
+
+            for (Int k = 1; k < number_of_shape_function_rows; k++) {
+                double& value = ShapeFunctionValue(r, k);
+
+                Int rk = r - k;
+                Int pk = polynominal_degree - k;
+
+                if (r >= k) {
+                    b[0] = a[0] / Ndu(pk + 1, rk);
+                    value = b[0] * Ndu(rk, pk);
+                }
+
+                Int j1 = r >= k - 1 ? 1 : k - r;
+                Int j2 = r <= pk + 1 ? k : number_of_nonzero_control_points - r;
+
+                for (Int j = j1; j < j2; j++) {
+                    b[j] = (a[j] - a[j - 1]) / Ndu(pk + 1, rk + j);
+                    value += b[j] * Ndu(rk + j, pk);
+                }
+
+                if (r <= pk) {
+                    b[k] = -a[k - 1] / Ndu(pk + 1, r);
+                    value += b[k] * Ndu(r, pk);
+                }
+
+                std::swap(a, b);
+            }
+        }
+
+        Int s = polynominal_degree;
+
+        for (Int k = 1; k < number_of_shape_function_rows; k++) {
+            for (Int j = 0; j < number_of_nonzero_control_points; j++) {
+                ShapeFunctionValue(j, k) *= s;
+            }
+            s *= polynominal_degree - k;
+        }
+    }
+
     /*
     * @brief Computation of NURBS shape function values, use this function
     *        if span of ParameterT is unknown.

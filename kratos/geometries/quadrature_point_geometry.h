@@ -506,6 +506,42 @@ public:
         return mpGeometryParent->ShapeFunctionsValues(rResult, rCoordinates);
     }
 
+    Vector& ShapeFunctionsValuesLowerOrder1(
+        Vector &rResult,
+        const CoordinatesArrayType& rCoordinates
+    ) const override
+    {
+        KRATOS_DEBUG_ERROR_IF(mpGeometryParent == nullptr)
+            << "Trying to call ShapeFunctionsValuesLowerOrder1(rCoordinates) from quadrature point. "
+            << "Pointer to parent is not assigned." << std::endl;
+
+        return mpGeometryParent->ShapeFunctionsValuesLowerOrder1(rResult, rCoordinates);
+    }
+
+    Vector& ShapeFunctionsValuesLowerOrder2(
+        Vector &rResult,
+        const CoordinatesArrayType& rCoordinates
+    ) const override
+    {
+        KRATOS_DEBUG_ERROR_IF(mpGeometryParent == nullptr)
+            << "Trying to call ShapeFunctionsValuesLowerOrder2(rCoordinates) from quadrature point. "
+            << "Pointer to parent is not assigned." << std::endl;
+
+        return mpGeometryParent->ShapeFunctionsValuesLowerOrder2(rResult, rCoordinates);
+    }
+
+    Vector& ShapeFunctionsValuesLowerOrderAll(
+        Vector &rResult,
+        const CoordinatesArrayType& rCoordinates
+    ) const override
+    {
+        KRATOS_DEBUG_ERROR_IF(mpGeometryParent == nullptr)
+            << "Trying to call ShapeFunctionsValuesLowerOrderAll(rCoordinates) from quadrature point. "
+            << "Pointer to parent is not assigned." << std::endl;
+
+        return mpGeometryParent->ShapeFunctionsValuesLowerOrderAll(rResult, rCoordinates);
+    }
+
     virtual Matrix& ShapeFunctionsLocalGradients(
         Matrix& rResult,
         const CoordinatesArrayType& rPoint

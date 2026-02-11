@@ -729,6 +729,32 @@ public:
         return rResult;
     }
 
+    Vector& ShapeFunctionsValuesLowerOrder1(
+        Vector &rResult,
+        const CoordinatesArrayType& rCoordinates) const override
+    {
+        mpNurbsSurface->ShapeFunctionsValuesLowerOrder1(rResult, rCoordinates);
+
+        return rResult;
+    }
+
+    Vector& ShapeFunctionsValuesLowerOrder2(
+        Vector &rResult,
+        const CoordinatesArrayType& rCoordinates) const override
+    {
+        mpNurbsSurface->ShapeFunctionsValuesLowerOrder2(rResult, rCoordinates);
+
+        return rResult;
+    }
+
+    Vector& ShapeFunctionsValuesLowerOrderAll(
+        Vector &rResult,
+        const CoordinatesArrayType& rCoordinates) const override
+    {
+        mpNurbsSurface->ShapeFunctionsValuesLowerOrderAll(rResult, rCoordinates);
+        return rResult;
+    }
+
     Matrix& ShapeFunctionsLocalGradients(
         Matrix& rResult,
         const CoordinatesArrayType& rCoordinates) const override

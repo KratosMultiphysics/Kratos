@@ -1041,6 +1041,75 @@ public:
         return rResult;
     }
 
+    Vector& ShapeFunctionsValuesLowerOrder1(
+        Vector &rResult,
+        const CoordinatesArrayType& rCoordinates) const override
+    {
+        NurbsSurfaceShapeFunction shape_function_container(mPolynomialDegreeU, mPolynomialDegreeV, 0);
+
+        if (mIsRational) {
+            shape_function_container.ComputeNurbsShapeFunctionValues1(mKnotsU, mKnotsV, mWeights, rCoordinates[0], rCoordinates[1]);
+        }
+        else {
+            shape_function_container.ComputeBSplineShapeFunctionValues1(mKnotsU, mKnotsV, rCoordinates[0], rCoordinates[1]);
+        }
+
+        if (rResult.size() != shape_function_container.NumberOfNonzeroControlPoints())
+            rResult.resize(shape_function_container.NumberOfNonzeroControlPoints());
+
+        for (IndexType i = 0; i < shape_function_container.NumberOfNonzeroControlPoints(); i++) {
+            rResult[i] = shape_function_container(i, 0);
+        }
+
+        return rResult;
+    }
+
+    Vector& ShapeFunctionsValuesLowerOrder2(
+        Vector &rResult,
+        const CoordinatesArrayType& rCoordinates) const override
+    {
+        NurbsSurfaceShapeFunction shape_function_container(mPolynomialDegreeU, mPolynomialDegreeV, 0);
+
+        if (mIsRational) {
+            shape_function_container.ComputeNurbsShapeFunctionValues2(mKnotsU, mKnotsV, mWeights, rCoordinates[0], rCoordinates[1]);
+        }
+        else {
+            shape_function_container.ComputeBSplineShapeFunctionValues2(mKnotsU, mKnotsV, rCoordinates[0], rCoordinates[1]);
+        }
+
+        if (rResult.size() != shape_function_container.NumberOfNonzeroControlPoints())
+            rResult.resize(shape_function_container.NumberOfNonzeroControlPoints());
+
+        for (IndexType i = 0; i < shape_function_container.NumberOfNonzeroControlPoints(); i++) {
+            rResult[i] = shape_function_container(i, 0);
+        }
+
+        return rResult;
+    }
+
+    Vector& ShapeFunctionsValuesLowerOrderAll(
+        Vector &rResult,
+        const CoordinatesArrayType& rCoordinates) const override
+    {
+        NurbsSurfaceShapeFunction shape_function_container(mPolynomialDegreeU, mPolynomialDegreeV, 0);
+
+        if (mIsRational) {
+            shape_function_container.ComputeNurbsShapeFunctionValuesAll(mKnotsU, mKnotsV, mWeights, rCoordinates[0], rCoordinates[1]);
+        }
+        else {
+            shape_function_container.ComputeBSplineShapeFunctionValuesAll(mKnotsU, mKnotsV, rCoordinates[0], rCoordinates[1]);
+        }
+
+        if (rResult.size() != shape_function_container.NumberOfNonzeroControlPoints())
+            rResult.resize(shape_function_container.NumberOfNonzeroControlPoints());
+
+        for (IndexType i = 0; i < shape_function_container.NumberOfNonzeroControlPoints(); i++) {
+            rResult[i] = shape_function_container(i, 0);
+        }
+
+        return rResult;
+    }
+
     Matrix& ShapeFunctionsLocalGradients(
         Matrix& rResult,
         const CoordinatesArrayType& rCoordinates) const override
