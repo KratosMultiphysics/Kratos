@@ -9,25 +9,31 @@ class TestLinearSystem(KratosUnittest.TestCase):
 
         # Check the empty linear system
         with self.assertRaisesRegex(RuntimeError, "Error: Requested matrix is not initialized for tag 0"):
-            ls.GetMatrix(KratosMultiphysics.Future.LinearSystemTag.LHS)
+            ls.GetMatrix(KratosMultiphysics.Future.SparseMatrixTag.LHS)
 
-        with self.assertRaisesRegex(RuntimeError, "Error: Requested linear operator is not initialized for tag 0"):
-            ls.GetLinearOperator(KratosMultiphysics.Future.LinearSystemTag.LHS)
+        with self.assertRaisesRegex(RuntimeError, "Error: Requested matrix is not initialized for tag 1"):
+            ls.GetMatrix(KratosMultiphysics.Future.SparseMatrixTag.MassMatrix)
 
-        with self.assertRaisesRegex(RuntimeError, "Error: Requested vector is not initialized for tag 1"):
-            ls.GetVector(KratosMultiphysics.Future.LinearSystemTag.RHS)
-
-        with self.assertRaisesRegex(RuntimeError, "Error: Requested vector is not initialized for tag 2"):
-            ls.GetVector(KratosMultiphysics.Future.LinearSystemTag.Dx)
+        with self.assertRaisesRegex(RuntimeError, "Error: Requested matrix is not initialized for tag 2"):
+            ls.GetMatrix(KratosMultiphysics.Future.SparseMatrixTag.StiffnessMatrix)
 
         with self.assertRaisesRegex(RuntimeError, "Error: Requested matrix is not initialized for tag 3"):
-            ls.GetMatrix(KratosMultiphysics.Future.LinearSystemTag.M)
+            ls.GetMatrix(KratosMultiphysics.Future.SparseMatrixTag.DampingMatrix)
 
-        with self.assertRaisesRegex(RuntimeError, "Error: Requested matrix is not initialized for tag 4"):
-            ls.GetMatrix(KratosMultiphysics.Future.LinearSystemTag.K)
+        with self.assertRaisesRegex(RuntimeError, "Error: Requested linear operator is not initialized for tag 0"):
+            ls.GetLinearOperator(KratosMultiphysics.Future.SparseMatrixTag.LHS)
 
-        with self.assertRaisesRegex(RuntimeError, "Error: Requested matrix is not initialized for tag 5"):
-            ls.GetMatrix(KratosMultiphysics.Future.LinearSystemTag.C)
+        with self.assertRaisesRegex(RuntimeError, "Error: Requested vector is not initialized for tag 0"):
+            ls.GetVector(KratosMultiphysics.Future.DenseVectorTag.RHS)
+
+        with self.assertRaisesRegex(RuntimeError, "Error: Requested vector is not initialized for tag 1"):
+            ls.GetVector(KratosMultiphysics.Future.DenseVectorTag.Dx)
+
+        with self.assertRaisesRegex(RuntimeError, "Error: Requested dense matrix is not initialized for tag 0"):
+            ls.GetMatrix(KratosMultiphysics.Future.DenseMatrixTag.RHS)
+
+        with self.assertRaisesRegex(RuntimeError, "Error: Requested dense matrix is not initialized for tag 1"):
+            ls.GetMatrix(KratosMultiphysics.Future.DenseMatrixTag.Dx)
 
         self.assertEqual(ls.Name, "")
 
@@ -47,13 +53,13 @@ class TestLinearSystem(KratosUnittest.TestCase):
 
         # Check accessors
         self.assertEqual(ls.Name, "TestSystem")
-        self.assertEqual(ls.GetMatrix(KratosMultiphysics.Future.LinearSystemTag.LHS).size1(), 2)
-        self.assertEqual(ls.GetVector(KratosMultiphysics.Future.LinearSystemTag.RHS).Size(), 2)
-        self.assertEqual(ls.GetVector(KratosMultiphysics.Future.LinearSystemTag.Dx).Size(), 2)
+        self.assertEqual(ls.GetMatrix(KratosMultiphysics.Future.SparseMatrixTag.LHS).size1(), 2)
+        self.assertEqual(ls.GetVector(KratosMultiphysics.Future.DenseVectorTag.RHS).Size(), 2)
+        self.assertEqual(ls.GetVector(KratosMultiphysics.Future.DenseVectorTag.Dx).Size(), 2)
 
         # Check internal LinearOperator creation
-        lin_op = ls.GetLinearOperator(KratosMultiphysics.Future.LinearSystemTag.LHS)
-        self.assertEqual(lin_op.NumRows, 2)
+        lin_op = ls.GetLinearOperator(KratosMultiphysics.Future.SparseMatrixTag.LHS)
+        self.assertEqual(lin_op.Size1, 2)
         self.assertFalse(lin_op.IsMatrixFree)
 
     def test_LinearSystemWithLinearOperator(self):
@@ -79,12 +85,12 @@ class TestLinearSystem(KratosUnittest.TestCase):
         del csr_lin_op # Manually delete the linear operator to test the ownership transfer
 
         # Check accessors
-        lin_op = ls.GetLinearOperator(KratosMultiphysics.Future.LinearSystemTag.LHS)
-        self.assertEqual(lin_op.NumRows, 2)
+        lin_op = ls.GetLinearOperator(KratosMultiphysics.Future.SparseMatrixTag.LHS)
+        self.assertEqual(lin_op.Size1, 2)
         self.assertFalse(lin_op.IsMatrixFree)
 
         # Getting the left hand side matrix should be possible as this is a matrix-based linear operator
-        lhs = ls.GetMatrix(KratosMultiphysics.Future.LinearSystemTag.LHS)
+        lhs = ls.GetMatrix(KratosMultiphysics.Future.SparseMatrixTag.LHS)
         self.assertEqual(lhs.Size1(), 2)
         self.assertEqual(lhs.Size2(), 2)
 
@@ -110,13 +116,13 @@ class TestLinearSystem(KratosUnittest.TestCase):
         del lin_op # Manually delete the linear operator to test the ownership transfer
 
         # Check accessors
-        lin_op = ls.GetLinearOperator(KratosMultiphysics.Future.LinearSystemTag.LHS)
-        self.assertEqual(lin_op.NumRows, 2)
+        lin_op = ls.GetLinearOperator(KratosMultiphysics.Future.SparseMatrixTag.LHS)
+        self.assertEqual(lin_op.Size1, 2)
         self.assertTrue(lin_op.IsMatrixFree)
 
         # GetLeftHandSide should throw as this is pure matrix-free
         with self.assertRaisesRegex(RuntimeError, "Linear operator referring to matrix 0 is matrix free"):
-            ls.GetMatrix(KratosMultiphysics.Future.LinearSystemTag.LHS)
+            ls.GetMatrix(KratosMultiphysics.Future.SparseMatrixTag.LHS)
 
 if __name__ == '__main__':
     KratosUnittest.main()

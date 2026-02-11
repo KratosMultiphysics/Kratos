@@ -34,16 +34,26 @@ namespace py = pybind11;
 void AddContainersToPython(py::module& m)
 {
 
-    py::enum_<Future::LinearSystemTag>(m, "LinearSystemTag")
-        .value("LHS", Future::LinearSystemTag::LHS)
-        .value("RHS", Future::LinearSystemTag::RHS)
-        .value("Dx", Future::LinearSystemTag::Dx)
-        .value("M", Future::LinearSystemTag::M)
-        .value("K", Future::LinearSystemTag::K)
-        .value("C", Future::LinearSystemTag::C)
-        .value("Eigvals", Future::LinearSystemTag::Eigvals)
-        .value("Eigvects", Future::LinearSystemTag::Eigvects)
-        .value("NumberOfTags", Future::LinearSystemTag::NumberOfTags)
+    py::enum_<Future::SparseMatrixTag>(m, "SparseMatrixTag")
+        .value("LHS", Future::SparseMatrixTag::LHS)
+        .value("MassMatrix", Future::SparseMatrixTag::MassMatrix)
+        .value("StiffnessMatrix", Future::SparseMatrixTag::StiffnessMatrix)
+        .value("DampingMatrix", Future::SparseMatrixTag::DampingMatrix)
+        .value("NumberOfTags", Future::SparseMatrixTag::NumberOfTags)
+    ;
+
+    py::enum_<Future::DenseVectorTag>(m, "DenseVectorTag")
+        .value("RHS", Future::DenseVectorTag::RHS)
+        .value("Dx", Future::DenseVectorTag::Dx)
+        .value("Eigvals", Future::DenseVectorTag::Eigvals)
+        .value("NumberOfTags", Future::DenseVectorTag::NumberOfTags)
+    ;
+
+    py::enum_<Future::DenseMatrixTag>(m, "DenseMatrixTag")
+        .value("RHS", Future::DenseMatrixTag::RHS)
+        .value("Dx", Future::DenseMatrixTag::Dx)
+        .value("Eigvects", Future::DenseMatrixTag::Eigvects)
+        .value("NumberOfTags", Future::DenseMatrixTag::NumberOfTags)
     ;
 
     using LinearSystemType = Future::LinearSystem<Future::SerialLinearAlgebraTraits>;
@@ -52,9 +62,10 @@ void AddContainersToPython(py::module& m)
         .def(py::init<std::string>(), py::arg("Name"))
         .def(py::init<typename LinearSystemType::MatrixType::Pointer, typename LinearSystemType::VectorType::Pointer, typename LinearSystemType::VectorType::Pointer, std::string>(), py::arg("pLhs"), py::arg("pRhs"), py::arg("pSol"), py::arg("Name"))
         .def(py::init<typename LinearSystemType::LinearOperatorType::UniquePointer, typename LinearSystemType::VectorType::Pointer, typename LinearSystemType::VectorType::Pointer, std::string>(), py::arg("pLinearOperator"), py::arg("pRhs"), py::arg("pSol"), py::arg("Name"))
-        .def("GetMatrix", [](LinearSystemType& rLinearSystem, Future::LinearSystemTag Tag) -> typename Future::SerialLinearAlgebraTraits::MatrixType& { return rLinearSystem.GetMatrix(Tag); }, py::return_value_policy::reference_internal)
-        .def("GetVector", [](LinearSystemType& rLinearSystem, Future::LinearSystemTag Tag) -> typename Future::SerialLinearAlgebraTraits::VectorType& { return rLinearSystem.GetVector(Tag); }, py::return_value_policy::reference_internal)
-        .def("GetLinearOperator", [](LinearSystemType& rLinearSystem, Future::LinearSystemTag Tag) -> typename Future::LinearOperator<Future::SerialLinearAlgebraTraits>& { return rLinearSystem.GetLinearOperator(Tag); }, py::return_value_policy::reference_internal)
+        .def("GetMatrix", [](LinearSystemType& rLinearSystem, Future::SparseMatrixTag Tag) -> typename Future::SerialLinearAlgebraTraits::MatrixType& { return rLinearSystem.GetMatrix(Tag); }, py::return_value_policy::reference_internal)
+        .def("GetMatrix", [](LinearSystemType& rLinearSystem, Future::DenseMatrixTag Tag) -> typename Future::SerialLinearAlgebraTraits::DenseMatrixType& { return rLinearSystem.GetMatrix(Tag); }, py::return_value_policy::reference_internal)
+        .def("GetVector", [](LinearSystemType& rLinearSystem, Future::DenseVectorTag Tag) -> typename Future::SerialLinearAlgebraTraits::VectorType& { return rLinearSystem.GetVector(Tag); }, py::return_value_policy::reference_internal)
+        .def("GetLinearOperator", [](LinearSystemType& rLinearSystem, Future::SparseMatrixTag Tag) -> typename Future::LinearOperator<Future::SerialLinearAlgebraTraits>& { return rLinearSystem.GetLinearOperator(Tag); }, py::return_value_policy::reference_internal)
         .def("SetAdditionalData", &LinearSystemType::SetAdditionalData)
         .def_property_readonly("Name", &LinearSystemType::Name)
         .def_property_readonly("HasAdditionalData", &LinearSystemType::HasAdditionalData)

@@ -30,18 +30,32 @@ namespace Kratos::Future
 ///@name Kratos Classes
 ///@{
 
-/// Enum defining the linar system arrays tags
-enum class LinearSystemTag
+/// Enum defining the available linear system matrices
+enum class SparseMatrixTag
 {
     LHS = 0, // Left hand side matrix tag
-    RHS = 1, // Right hand side vector tag
-    Dx = 2, // Solution increment tag
-    M = 3, // Mass matrix tag
-    K = 4, // Stiffness matrix tag
-    C = 5, // Damping matrix tag
-    Eigvals = 6, // Eigenvalues tag
-    Eigvects = 7, // Eigenvectors tag
-    NumberOfTags = 8 // Sentinel tag with the size
+    MassMatrix = 1, // Mass matrix tag
+    StiffnessMatrix = 2, // Stiffness matrix tag
+    DampingMatrix = 3, // Damping matrix tag
+    NumberOfTags = 4 // Sentinel tag with the size
+};
+
+/// Enum defining the available linear system vectors
+enum class DenseVectorTag
+{
+    RHS = 0, // Right hand side vector tag
+    Dx = 1, // Solution increment vector tag
+    Eigvals = 2, // Eigenvalues vector tag
+    NumberOfTags = 3 // Sentinel tag with the size
+};
+
+/// Enum defining the available linear system dense matrices
+enum class DenseMatrixTag
+{
+    RHS = 0, // Right hand side matrix tag
+    Dx = 1, // Solution increment matrix tag
+    Eigvects = 2, // Eigenvectors matrix tag
+    NumberOfTags = 3 // Sentinel tag with the size
 };
 
 /**
@@ -74,6 +88,12 @@ public:
     /// Type of the vector from the linear algebra traits
     using VectorType = typename TLinearAlgebra::VectorType;
 
+    /// Type of the dense matrix from the linear algebra traits
+    using DenseMatrixType = typename TLinearAlgebra::DenseMatrixType;
+
+    /// Type of the dense matrix pointer
+    using DenseMatrixPointerType = Kratos::shared_ptr<DenseMatrixType>;
+
     /// Type of the linear operator from the linear algebra traits
     using LinearOperatorType = LinearOperator<TLinearAlgebra>;
 
@@ -98,9 +118,9 @@ public:
         std::string SystemName = "")
         : mSystemName(SystemName)
     {
-        this->pSetMatrix(pLhs, LinearSystemTag::LHS);
-        this->pSetVector(pRhs, LinearSystemTag::RHS);
-        this->pSetVector(pDx, LinearSystemTag::Dx);
+        this->pSetMatrix(pLhs, SparseMatrixTag::LHS);
+        this->pSetVector(pRhs, DenseVectorTag::RHS);
+        this->pSetVector(pDx, DenseVectorTag::Dx);
     }
 
     /// Constructor with linear operator emulating the left hand side matrix
@@ -111,9 +131,9 @@ public:
         std::string SystemName = "")
         : mSystemName(SystemName)
     {
-        this->pSetLinearOperator(std::move(pLinearOperator), LinearSystemTag::LHS);
-        this->pSetVector(pRhs, LinearSystemTag::RHS);
-        this->pSetVector(pDx, LinearSystemTag::Dx);
+        this->pSetLinearOperator(std::move(pLinearOperator), SparseMatrixTag::LHS);
+        this->pSetVector(pRhs, DenseVectorTag::RHS);
+        this->pSetVector(pDx, DenseVectorTag::Dx);
     }
 
     /// Constructor with matrix and additional data
@@ -128,9 +148,9 @@ public:
     {
         mpModelPart = &rModelPart;
         mpDofs = Kratos::make_shared<DofsArrayType>(rDofs);
-        this->pSetMatrix(pLhs, LinearSystemTag::LHS);
-        this->pSetVector(pRhs, LinearSystemTag::RHS);
-        this->pSetVector(pDx, LinearSystemTag::Dx);
+        this->pSetMatrix(pLhs, SparseMatrixTag::LHS);
+        this->pSetVector(pRhs, DenseVectorTag::RHS);
+        this->pSetVector(pDx, DenseVectorTag::Dx);
     }
 
     /// Constructor with linear operator and additional data
@@ -145,9 +165,9 @@ public:
     {
         mpModelPart = &rModelPart;
         mpDofs = Kratos::make_shared<DofsArrayType>(rDofs);
-        this->pSetLinearOperator(std::move(pLinearOperator), LinearSystemTag::LHS);
-        this->pSetVector(pRhs, LinearSystemTag::RHS);
-        this->pSetVector(pSol, LinearSystemTag::Dx);
+        this->pSetLinearOperator(std::move(pLinearOperator), SparseMatrixTag::LHS);
+        this->pSetVector(pRhs, DenseVectorTag::RHS);
+        this->pSetVector(pSol, DenseVectorTag::Dx);
     }
 
     /// Copy constructor
@@ -191,10 +211,10 @@ public:
 
     /**
      * @brief Get a matrix
-     * @param Tag The tag of the matrix to be retrieved (@see LinearSystemTag)
+     * @param Tag The tag of the matrix to be retrieved (@see SparseMatrixTag)
      * @return Reference to the matrix
      */
-    MatrixType& GetMatrix(LinearSystemTag Tag) const
+    MatrixType& GetMatrix(SparseMatrixTag Tag) const
     {
         const std::size_t tag_idx = GetTagIndex(Tag);
         const auto& p_matrix_lin_op = mLinearOperators[tag_idx];
@@ -207,22 +227,48 @@ public:
      * @brief Set a matrix to an specific tag
      * @details Note that the matrices are stored by creating a matrix-based linear operator
      * @param pMatrix Pointer to the matrix
-     * @param Tag The tag of the matrix to be set (@see LinearSystemTag)
+     * @param Tag The tag of the matrix to be set (@see SparseMatrixTag)
      */
     void pSetMatrix(
         typename MatrixType::Pointer pMatrix,
-        LinearSystemTag Tag)
+        SparseMatrixTag Tag)
     {
         KRATOS_ERROR_IF(!pMatrix) << "Provided matrix pointer is null" << std::endl;
         mLinearOperators[GetTagIndex(Tag)] = Kratos::make_unique<SparseMatrixLinearOperator<TLinearAlgebra>>(*pMatrix);
     }
 
     /**
+     * @brief Get a dense matrix
+     * @param Tag The tag of the dense matrix to be retrieved (@see DenseMatrixTag)
+     * @return Reference to the dense matrix
+     */
+    DenseMatrixType& GetMatrix(DenseMatrixTag Tag) const
+    {
+        const std::size_t tag_idx = GetTagIndex(Tag);
+        const auto& p_dense_matrix = mDenseMatrices[tag_idx];
+        KRATOS_ERROR_IF(!p_dense_matrix) << "Requested dense matrix is not initialized for tag " << tag_idx << std::endl;
+        return *p_dense_matrix;
+    }
+
+    /**
+     * @brief Set a dense matrix to an specific tag
+     * @param pDenseMatrix Pointer to the dense matrix
+     * @param Tag The tag of the dense matrix to be set (@see DenseMatrixTag)
+     */
+    void pSetMatrix(
+        DenseMatrixPointerType pDenseMatrix,
+        DenseMatrixTag Tag)
+    {
+        KRATOS_ERROR_IF(!pDenseMatrix) << "Provided dense matrix pointer is null" << std::endl;
+        mDenseMatrices[GetTagIndex(Tag)] = pDenseMatrix;
+    }
+
+    /**
      * @brief Get a vector
-     * @param Tag The tag of the vector to be retrieved (@see LinearSystemTag)
+     * @param Tag The tag of the vector to be retrieved (@see DenseVectorTag)
      * @return Reference to the vector
      */
-    VectorType& GetVector(LinearSystemTag Tag) const
+    VectorType& GetVector(DenseVectorTag Tag) const
     {
         const std::size_t tag_idx = GetTagIndex(Tag);
         const auto& p_vector = mVectors[tag_idx];
@@ -233,11 +279,11 @@ public:
     /**
      * @brief Set a vector to an specific tag
      * @param pVector Pointer to the vector
-     * @param Tag The tag of the vector to be set (@see LinearSystemTag)
+     * @param Tag The tag of the vector to be set (@see DenseVectorTag)
      */
     void pSetVector(
         typename VectorType::Pointer pVector,
-        LinearSystemTag Tag)
+        DenseVectorTag Tag)
     {
         KRATOS_ERROR_IF(!pVector) << "Provided vector pointer is null" << std::endl;
         mVectors[GetTagIndex(Tag)] = pVector;
@@ -245,10 +291,10 @@ public:
 
     /**
      * @brief Get a linear operator
-     * @param Tag The tag of the linear operator to be retrieved (@see LinearSystemTag)
+     * @param Tag The tag of the linear operator to be retrieved (@see SparseMatrixTag)
      * @return Reference to the linear operator
      */
-    LinearOperatorType& GetLinearOperator(LinearSystemTag Tag) const
+    LinearOperatorType& GetLinearOperator(SparseMatrixTag Tag) const
     {
         const std::size_t tag_idx = GetTagIndex(Tag);
         const auto& p_linear_operator = mLinearOperators[tag_idx];
@@ -261,11 +307,11 @@ public:
      * @details Note that the linear operator ownership is transferred to the linear system
      * so a linear operator cannot be set to more than one linear system or tag.
      * @param pLinearOperator Pointer to the linear operator
-     * @param Tag The tag of the linear operator to be set (@see LinearSystemTag)
+     * @param Tag The tag of the linear operator to be set (@see SparseMatrixTag)
      */
     void pSetLinearOperator(
         typename LinearOperatorType::UniquePointer&& pLinearOperator,
-        LinearSystemTag Tag)
+        SparseMatrixTag Tag)
     {
         KRATOS_ERROR_IF(!pLinearOperator) << "Provided linear operator pointer is null" << std::endl;
         mLinearOperators[GetTagIndex(Tag)] = std::move(pLinearOperator);
@@ -296,10 +342,10 @@ public:
      */
     bool IsConsistent()
     {
-        const std::size_t num_rows = GetLinearOperator(LinearSystemTag::LHS).NumRows();
-        const std::size_t num_cols = GetLinearOperator(LinearSystemTag::LHS).NumCols();
-        const std::size_t size_x = GetVector(LinearSystemTag::Dx).size();
-        const std::size_t size_b = GetVector(LinearSystemTag::RHS).size();
+        const std::size_t num_rows = GetLinearOperator(SparseMatrixTag::LHS).Size1();
+        const std::size_t num_cols = GetLinearOperator(SparseMatrixTag::LHS).Size2();
+        const std::size_t size_x = GetVector(DenseVectorTag::Dx).size();
+        const std::size_t size_b = GetVector(DenseVectorTag::RHS).size();
         return ((num_rows ==  num_cols) && (num_rows ==  size_x) && (num_rows ==  size_b));
     }
 
@@ -343,9 +389,11 @@ private:
 
     typename ModelPart::DofsArrayType::Pointer mpDofs = nullptr; // Dofs of the linear system
 
-    std::array<typename VectorType::Pointer, static_cast<std::size_t>(LinearSystemTag::NumberOfTags)> mVectors; // Vectors of the linear system
+    std::array<typename VectorType::Pointer, static_cast<std::size_t>(DenseVectorTag::NumberOfTags)> mVectors; // Vectors of the linear system
 
-    std::array<typename LinearOperatorType::UniquePointer, static_cast<std::size_t>(LinearSystemTag::NumberOfTags)> mLinearOperators; // Linear operators of the linear system
+    std::array<DenseMatrixPointerType, static_cast<std::size_t>(DenseMatrixTag::NumberOfTags)> mDenseMatrices; // Dense matrices of the linear system
+
+    std::array<typename LinearOperatorType::UniquePointer, static_cast<std::size_t>(SparseMatrixTag::NumberOfTags)> mLinearOperators; // Linear operators of the linear system
 
     ///@}
     ///@name Inquiry
@@ -353,10 +401,30 @@ private:
 
     /**
      * @brief Get the index of a tag
-     * @param Tag The tag of the linear operator to be retrieved (@see LinearSystemTag)
+     * @param Tag The tag of the linear operator to be retrieved (@see SparseMatrixTag)
      * @return constexpr std::size_t The index of the tag
      */
-    static constexpr std::size_t GetTagIndex(LinearSystemTag Tag)
+    static constexpr std::size_t GetTagIndex(SparseMatrixTag Tag)
+    {
+        return static_cast<std::size_t>(Tag);
+    }
+
+    /**
+     * @brief Get the Tag Index object
+     * @param Tag The tag of the linear operator to be retrieved (@see DenseVectorTag)
+     * @return constexpr std::size_t The index of the tag
+     */
+    static constexpr std::size_t GetTagIndex(DenseVectorTag Tag)
+    {
+        return static_cast<std::size_t>(Tag);
+    }
+
+    /**
+     * @brief Get the Tag Index object
+     * @param Tag The tag of the linear operator to be retrieved (@see DenseMatrixTag)
+     * @return constexpr std::size_t The index of the tag
+     */
+    static constexpr std::size_t GetTagIndex(DenseMatrixTag Tag)
     {
         return static_cast<std::size_t>(Tag);
     }
