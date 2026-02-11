@@ -53,6 +53,8 @@ public:
         return result;
     }
 
+    friend KRATOS_API(GEO_MECHANICS_APPLICATION) SigmaTau operator+(const SigmaTau&, const SigmaTau&);
+
 private:
     template <std::forward_iterator Iter>
     SigmaTau(Iter First, Iter Last)
@@ -66,11 +68,5 @@ private:
 
     InternalArrayType mValues = {0.0, 0.0};
 };
-
-template <typename VectorType>
-SigmaTau operator+(const SigmaTau& rTraction, const VectorType& rVector)
-{
-    return SigmaTau{rTraction.Sigma() + rVector[0], rTraction.Tau() + rVector[1]};
-}
 
 } // namespace Kratos::Geo

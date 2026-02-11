@@ -31,4 +31,12 @@ double SigmaTau::Tau() const { return mValues[1]; }
 
 double& SigmaTau::Tau() { return mValues[1]; }
 
+SigmaTau operator+(const SigmaTau& rFirstTraction, const SigmaTau& rSecondTraction)
+{
+    return SigmaTau{rFirstTraction.mValues[0] + rSecondTraction.mValues[0],
+                    rFirstTraction.mValues[1] + rSecondTraction.mValues[1]};
+    // SigmaTau r_first_traction(rFirstTraction);
+    // return r_first_traction += rSecondTraction;
+}
+
 } // namespace Kratos::Geo
