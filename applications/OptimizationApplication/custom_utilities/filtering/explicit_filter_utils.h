@@ -70,7 +70,8 @@ public:
         ModelPart& rModelPart,
         const std::string& rKernelFunctionType,
         const IndexType MaxLeafSize = 10,
-        const IndexType EchoLevel = 0);
+        const IndexType EchoLevel = 0,
+        const bool NodeCloudMesh = false);
 
     ///@}
     ///@name Public operations
@@ -164,6 +165,8 @@ private:
     std::unique_ptr<PositionAdapter> mpAdapter;
 
     std::unique_ptr<KDTreeIndexType> mpKDTreeIndex;
+
+    bool mNodeCloudMesh;
 
     ///@}
     ///@name Private operations

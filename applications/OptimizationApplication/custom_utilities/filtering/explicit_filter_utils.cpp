@@ -41,6 +41,7 @@ void ComputeNodalDomainSizes(
     ModelPart::NodesContainerType& rNodes,
     const TContainerType& rContainer)
 {
+
     VariableUtils().SetNonHistoricalVariableToZero(NODAL_DOMAIN_SIZE, rNodes);
 
     IndexPartition<IndexType>(rContainer.size()).for_each([&rNodes, &rContainer](const IndexType Index) {
@@ -50,6 +51,19 @@ void ComputeNodalDomainSizes(
             AtomicAdd<double>(r_node.GetValue(NODAL_DOMAIN_SIZE), nodal_domain_size);
         }
     });
+}
+
+template<class TContainerType>
+void ComputeNodalDomainSizesNodeCloudMesh(
+    ModelPart::NodesContainerType& rNodes,
+    const TContainerType& rContainer)
+{
+
+    IndexPartition<IndexType>(rNodes.size()).for_each([&rNodes](const IndexType Index) {
+        auto& r_node = *(rNodes.begin() + Index);
+        r_node.SetValue(NODAL_DOMAIN_SIZE, 1.0);
+    });
+
 }
 
 template<class TEntityType>
@@ -111,10 +125,12 @@ ExplicitFilterUtils<TContainerType>::ExplicitFilterUtils(
     ModelPart& rModelPart,
     const std::string& rKernelFunctionType,
     const IndexType MaxLeafSize,
-    const IndexType EchoLevel)
+    const IndexType EchoLevel,
+    const bool NodeCloudMesh)
     : mrModelPart(rModelPart),
       mLeafMaxSize(MaxLeafSize),
-      mEchoLevel(EchoLevel)
+      mEchoLevel(EchoLevel),
+      mNodeCloudMesh(NodeCloudMesh)
 {
     mpKernelFunction = Kratos::make_unique<FilterFunction>(rKernelFunctionType);
 }
@@ -171,14 +187,20 @@ void ExplicitFilterUtils<TContainerType>::ExplicitFilterUtils::Update()
         const auto& r_elements = mrModelPart.Elements();
         const IndexType number_of_elements = r_elements.size();
 
-        if (number_of_elements > 0) {
-            ExplicitFilterUtilsHelperUtilities::ComputeNodalDomainSizes(r_nodes, r_elements);
-        } else if (number_of_conditions > 0) {
-            ExplicitFilterUtilsHelperUtilities::ComputeNodalDomainSizes(r_nodes, r_conditions);
-        } else {
-            KRATOS_ERROR << "Nodal mapping requires atleast either conditions or elements to be present in "
-                         << mrModelPart.FullName() << ".\n";
+        if (mNodeCloudMesh) {
+            ExplicitFilterUtilsHelperUtilities::ComputeNodalDomainSizesNodeCloudMesh(r_nodes, r_container);
         }
+        else{
+            if (number_of_elements > 0) {
+                ExplicitFilterUtilsHelperUtilities::ComputeNodalDomainSizes(r_nodes, r_elements);
+            } else if (number_of_conditions > 0) {
+                ExplicitFilterUtilsHelperUtilities::ComputeNodalDomainSizes(r_nodes, r_conditions);
+            } else {
+                KRATOS_ERROR << "Nodal mapping requires atleast either conditions or elements to be present in "
+                            << mrModelPart.FullName() << ".\n";
+            }
+        }
+
     }
 
     KRATOS_INFO_IF("ExplicitFilterUtils", mEchoLevel > 0) << "Updated filter in: " << timer.ElapsedSeconds() << " s" << std::endl;
