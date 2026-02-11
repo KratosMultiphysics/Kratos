@@ -28,10 +28,10 @@ namespace
 {
 using namespace Kratos;
 
-std::size_t AveragingTypeToArrayIndex(CoulombYieldSurface::CoulombAveragingType AveragingType)
+std::size_t AveragingTypeToArrayIndex(YieldSurface::YieldSurfaceAveragingType AveragingType)
 {
     switch (AveragingType) {
-        using enum CoulombYieldSurface::CoulombAveragingType;
+        using enum YieldSurface::YieldSurfaceAveragingType;
     case LOWEST_PRINCIPAL_STRESSES:
         return 0;
     case HIGHEST_PRINCIPAL_STRESSES:
@@ -42,11 +42,11 @@ std::size_t AveragingTypeToArrayIndex(CoulombYieldSurface::CoulombAveragingType 
 }
 
 Geo::PrincipalStresses AveragePrincipalStressComponents(const Geo::PrincipalStresses& rPrincipalStressVector,
-                                                        CoulombYieldSurface::CoulombAveragingType AveragingType)
+                                                        YieldSurface::YieldSurfaceAveragingType AveragingType)
 {
     auto result = rPrincipalStressVector;
     switch (AveragingType) {
-        using enum CoulombYieldSurface::CoulombAveragingType;
+        using enum YieldSurface::YieldSurfaceAveragingType;
     case LOWEST_PRINCIPAL_STRESSES:
         std::fill(result.Values().begin(), result.Values().begin() + 1,
                   (rPrincipalStressVector.Values()[0] + rPrincipalStressVector.Values()[1]) * 0.5);
@@ -61,9 +61,9 @@ Geo::PrincipalStresses AveragePrincipalStressComponents(const Geo::PrincipalStre
     return result;
 }
 
-CoulombYieldSurface::CoulombAveragingType FindAveragingType(const Geo::PrincipalStresses& rMappedPrincipalStressVector)
+YieldSurface::YieldSurfaceAveragingType FindAveragingType(const Geo::PrincipalStresses& rMappedPrincipalStressVector)
 {
-    using enum CoulombYieldSurface::CoulombAveragingType;
+    using enum YieldSurface::YieldSurfaceAveragingType;
     if (rMappedPrincipalStressVector.Values()[0] < rMappedPrincipalStressVector.Values()[1]) {
         return LOWEST_PRINCIPAL_STRESSES;
     }
@@ -205,11 +205,11 @@ void MohrCoulombWithTensionCutOff::CalculateMaterialResponseCauchy(ConstitutiveL
         mCoulombWithTensionCutOffImpl.SaveKappaOfCoulombYieldSurface();
 
         auto mapped_principal_stresses = mCoulombWithTensionCutOffImpl.DoReturnMapping(
-            trial_principal_stresses, CoulombYieldSurface::CoulombAveragingType::NO_AVERAGING);
+            trial_principal_stresses, YieldSurface::YieldSurfaceAveragingType::NO_AVERAGING);
 
         // For interchanging principal stresses, retry mapping with averaged principal stresses.
         if (const auto averaging_type = FindAveragingType(mapped_principal_stresses);
-            averaging_type != CoulombYieldSurface::CoulombAveragingType::NO_AVERAGING) {
+            averaging_type != YieldSurface::YieldSurfaceAveragingType::NO_AVERAGING) {
             const auto averaged_principal_trial_stress_vector =
                 AveragePrincipalStressComponents(trial_principal_stresses, averaging_type);
             mCoulombWithTensionCutOffImpl.RestoreKappaOfCoulombYieldSurface();
@@ -237,6 +237,17 @@ void MohrCoulombWithTensionCutOff::FinalizeMaterialResponseCauchy(ConstitutiveLa
 {
     mStrainVectorFinalized = rValues.GetStrainVector();
     mStressVectorFinalized = mStressVector;
+}
+
+Matrix MohrCoulombWithTensionCutOff::CalculateElasticConstitutiveMatrix(const Properties& rMaterialProperties) const
+{
+    const auto youngs_modulus = rMaterialProperties[YOUNG_MODULUS];
+    const auto poissons_ratio = rMaterialProperties[POISSON_RATIO];
+    const auto c0     = youngs_modulus / ((1.0 + poissons_ratio) * (1.0 - 2.0 * poissons_ratio));
+    Matrix     result = ZeroMatrix(3, 3);
+    result(0, 0) = result(1, 1) = result(2, 2) = c0 * (1.0 - poissons_ratio);
+    result(0, 1) = result(0, 2) = result(1, 0) = result(1, 2) = result(2, 0) = result(2, 1) = c0 * poissons_ratio;
+    return result;
 }
 
 void MohrCoulombWithTensionCutOff::save(Serializer& rSerializer) const

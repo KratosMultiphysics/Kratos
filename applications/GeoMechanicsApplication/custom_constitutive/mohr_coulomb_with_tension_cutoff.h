@@ -69,6 +69,7 @@ private:
     bool                                      mIsModelInitialized = false;
 
     [[nodiscard]] Vector CalculateTrialStressVector(const Vector& rStrainVector, const Properties& rProperties) const;
+    [[nodiscard]] Matrix CalculateElasticConstitutiveMatrix(const Properties& rMaterialProperties) const;
 
     friend class Serializer;
     void save(Serializer& rSerializer) const override;

@@ -37,12 +37,6 @@ class KRATOS_API(GEO_MECHANICS_APPLICATION) CoulombYieldSurface : public YieldSu
 public:
     KRATOS_CLASS_POINTER_DEFINITION(CoulombYieldSurface);
 
-    enum class CoulombAveragingType {
-        NO_AVERAGING,
-        LOWEST_PRINCIPAL_STRESSES,
-        HIGHEST_PRINCIPAL_STRESSES
-    };
-
     CoulombYieldSurface();
     explicit CoulombYieldSurface(const Properties& rMaterialProperties);
 
@@ -57,14 +51,15 @@ public:
     [[nodiscard]] double YieldFunctionValue(const Geo::PrincipalStresses& rPrincipalStresses) const;
 
     [[nodiscard]] Vector DerivativeOfFlowFunction(const Vector&) const override;
-    [[nodiscard]] Vector DerivativeOfFlowFunction(const Geo::SigmaTau&,
-                                                  CoulombAveragingType AveragingType = CoulombAveragingType::NO_AVERAGING) const;
+    [[nodiscard]] Vector DerivativeOfFlowFunction(
+        const Geo::SigmaTau&,
+        YieldSurfaceAveragingType AveragingType = YieldSurfaceAveragingType::NO_AVERAGING) const;
 
     [[nodiscard]] double CalculateApex() const;
     [[nodiscard]] double CalculatePlasticMultiplier(const Geo::SigmaTau& rSigmaTau,
                                                     const Vector& rDerivativeOfFlowFunction) const;
     [[nodiscard]] double CalculateEquivalentPlasticStrainIncrement(const Geo::SigmaTau& rSigmaTau,
-                                                                   CoulombAveragingType AveragingType) const;
+                                                                   YieldSurfaceAveragingType AveragingType) const;
 
 private:
     void InitializeKappaDependentFunctions();

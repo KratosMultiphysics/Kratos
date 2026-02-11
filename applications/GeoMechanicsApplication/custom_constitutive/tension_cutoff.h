@@ -15,6 +15,7 @@
 #pragma once
 
 #include "custom_constitutive/yield_surface.h"
+#include "includes/properties.h"
 
 namespace Kratos
 {
@@ -32,7 +33,7 @@ public:
 
     TensionCutoff() = default;
 
-    explicit TensionCutoff(double TensileStrength);
+    explicit TensionCutoff(const Properties& rMaterialProperties);
 
     [[nodiscard]] double GetTensileStrength() const;
 
@@ -40,14 +41,23 @@ public:
     [[nodiscard]] double YieldFunctionValue(const Geo::SigmaTau& rSigmaTau) const;
     [[nodiscard]] double YieldFunctionValue(const Geo::PrincipalStresses& rPrincipalStresses) const;
     [[nodiscard]] Vector DerivativeOfFlowFunction(const Vector&) const override;
-    [[nodiscard]] Vector DerivativeOfFlowFunction(const Geo::SigmaTau&) const;
+    [[nodiscard]] Vector DerivativeOfFlowFunction(const Geo::SigmaTau&,
+                                                  YieldSurfaceAveragingType AveragingType) const;
+    [[nodiscard]] Vector DerivativeOfFlowFunction(const Geo::PrincipalStresses&,
+                                                  YieldSurfaceAveragingType AveragingType) const;
+
+    [[nodiscard]] double CalculatePlasticMultiplier(const Geo::SigmaTau& rSigmaTau,
+                                                    const Vector& rDerivativeOfFlowFunction) const;
+    [[nodiscard]] double CalculatePlasticMultiplier(const Geo::PrincipalStresses& rPrincipalStresses,
+                                                    const Vector& rDerivativeOfFlowFunction) const;
+    Matrix CalculateElasticMatrix(const Geo::PrincipalStresses&) const;
 
 private:
     friend class Serializer;
     void save(Serializer& rSerializer) const override;
     void load(Serializer& rSerializer) override;
 
-    double mTensileStrength = 0.0;
+    Properties mMaterialProperties;
 
 }; // Class TensionCutoff
 

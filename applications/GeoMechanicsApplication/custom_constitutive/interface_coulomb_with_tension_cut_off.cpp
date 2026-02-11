@@ -140,7 +140,7 @@ void InterfaceCoulombWithTensionCutOff::CalculateMaterialResponseCauchy(Paramete
 
     if (!mCoulombWithTensionCutOffImpl.IsAdmissibleStressState(trial_sigma_tau)) {
         mapped_sigma_tau = mCoulombWithTensionCutOffImpl.DoReturnMapping(
-            trial_sigma_tau, CoulombYieldSurface::CoulombAveragingType::NO_AVERAGING);
+            trial_sigma_tau, YieldSurface::YieldSurfaceAveragingType::NO_AVERAGING);
         if (negative) mapped_sigma_tau.Tau() *= -1.0;
     }
 
@@ -180,6 +180,14 @@ Matrix& InterfaceCoulombWithTensionCutOff::CalculateValue(Parameters& rConstitut
     }
 
     return rValue;
+}
+
+Matrix InterfaceCoulombWithTensionCutOff::CalculateElasticContitativeMatrix(Properties& rMaterialProperties) const
+{
+    Matrix result = ZeroMatrix(2, 2);
+    result(0, 0)  = rMaterialProperties[INTERFACE_NORMAL_STIFFNESS];
+    result(1, 1)  = rMaterialProperties[INTERFACE_SHEAR_STIFFNESS];
+    return result;
 }
 
 void InterfaceCoulombWithTensionCutOff::save(Serializer& rSerializer) const
