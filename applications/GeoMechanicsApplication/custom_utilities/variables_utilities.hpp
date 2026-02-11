@@ -28,10 +28,9 @@ public:
     template <typename NodeContainerType, typename DataType, typename OutputIt>
     static OutputIt GetNodalValues(const NodeContainerType& rNodes, const Variable<DataType>& rNodalVariable, OutputIt FirstOut)
     {
-        return std::transform(std::begin(rNodes), std::end(rNodes), FirstOut,
-                              [&rNodalVariable](const auto& rNode) {
+        return std::ranges::transform(rNodes, FirstOut, [&rNodalVariable](const auto& rNode) {
             return rNode.FastGetSolutionStepValue(rNodalVariable);
-        });
+        }).out;
     }
 
     template <unsigned int TNumNodes, typename NodeContainerType>
