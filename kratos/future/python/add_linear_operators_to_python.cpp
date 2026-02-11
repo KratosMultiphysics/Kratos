@@ -39,8 +39,8 @@ void AddLinearOperatorsToPython(py::module& m)
         .def("TransposeSpMV", &LinearOperatorType::TransposeSpMV)
         .def("GetMatrix", py::overload_cast<>(&LinearOperatorType::GetMatrix), py::return_value_policy::reference_internal)
         .def_property_readonly("Shape", &LinearOperatorType::Shape)
-        .def_property_readonly("NumRows", &LinearOperatorType::NumRows)
-        .def_property_readonly("NumCols", &LinearOperatorType::NumCols)
+        .def_property_readonly("Size1", &LinearOperatorType::Size1)
+        .def_property_readonly("Size2", &LinearOperatorType::Size2)
         .def_property_readonly("IsMatrixFree", &LinearOperatorType::IsMatrixFree)
         ;
 
