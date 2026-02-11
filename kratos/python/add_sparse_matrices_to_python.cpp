@@ -180,7 +180,7 @@ namespace
                     const std::size_t aux_idx = entity_pos + i_local * local_size_1 + j_local; // Position in the contributions and equation ids data
                     const int csr_index = r_idx_data[aux_idx]; // Index in the CSR matrix values vector
                     const double lhs_contribution = r_lhs_contribution_data[aux_idx]; // Scalar contribution to the left hand side
-                    r_lhs_data[csr_index] += lhs_contribution;
+                    AtomicAdd(r_lhs_data[csr_index], lhs_contribution);
                 }
             }
         });
