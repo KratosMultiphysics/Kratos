@@ -37,12 +37,10 @@ SigmaTau& SigmaTau::operator+=(const SigmaTau& rRhsTraction)
     return *this;
 }
 
-SigmaTau operator+(const SigmaTau& rFirstTraction, const SigmaTau& rSecondTraction)
+SigmaTau operator+(SigmaTau LhsTraction, const SigmaTau& rRhsTraction)
 {
-    return SigmaTau{rFirstTraction.mValues[0] + rSecondTraction.mValues[0],
-                    rFirstTraction.mValues[1] + rSecondTraction.mValues[1]};
-    // SigmaTau r_first_traction(rFirstTraction);
-    // return r_first_traction += rSecondTraction;
+    LhsTraction += rRhsTraction;
+    return LhsTraction;
 }
 
 } // namespace Kratos::Geo
