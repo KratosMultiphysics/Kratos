@@ -62,10 +62,22 @@ void AddContainersToPython(py::module& m)
         .def(py::init<std::string>(), py::arg("Name"))
         .def(py::init<typename LinearSystemType::MatrixType::Pointer, typename LinearSystemType::VectorType::Pointer, typename LinearSystemType::VectorType::Pointer, std::string>(), py::arg("pLhs"), py::arg("pRhs"), py::arg("pSol"), py::arg("Name"))
         .def(py::init<typename LinearSystemType::LinearOperatorType::UniquePointer, typename LinearSystemType::VectorType::Pointer, typename LinearSystemType::VectorType::Pointer, std::string>(), py::arg("pLinearOperator"), py::arg("pRhs"), py::arg("pSol"), py::arg("Name"))
-        .def("GetMatrix", [](LinearSystemType& rLinearSystem, Future::SparseMatrixTag Tag) -> typename Future::SerialLinearAlgebraTraits::MatrixType& { return rLinearSystem.GetMatrix(Tag); }, py::return_value_policy::reference_internal)
-        .def("GetMatrix", [](LinearSystemType& rLinearSystem, Future::DenseMatrixTag Tag) -> typename Future::SerialLinearAlgebraTraits::DenseMatrixType& { return rLinearSystem.GetMatrix(Tag); }, py::return_value_policy::reference_internal)
-        .def("GetVector", [](LinearSystemType& rLinearSystem, Future::DenseVectorTag Tag) -> typename Future::SerialLinearAlgebraTraits::VectorType& { return rLinearSystem.GetVector(Tag); }, py::return_value_policy::reference_internal)
-        .def("GetLinearOperator", [](LinearSystemType& rLinearSystem, Future::SparseMatrixTag Tag) -> typename Future::LinearOperator<Future::SerialLinearAlgebraTraits>& { return rLinearSystem.GetLinearOperator(Tag); }, py::return_value_policy::reference_internal)
+        .def("SetMatrix", [](LinearSystemType& rLinearSystem, typename Future::SerialLinearAlgebraTraits::MatrixType::Pointer pMatrix, Future::SparseMatrixTag Tag) {
+            rLinearSystem.pSetMatrix(pMatrix, Tag); }, py::arg("Matrix"), py::arg("Tag"))
+        .def("SetMatrix", [](LinearSystemType& rLinearSystem, typename Kratos::shared_ptr<Future::SerialLinearAlgebraTraits::DenseMatrixType> pMatrix, Future::DenseMatrixTag Tag) {
+            rLinearSystem.pSetMatrix(pMatrix, Tag); }, py::arg("Matrix"), py::arg("Tag"))
+        .def("SetVector", [](LinearSystemType& rLinearSystem, typename Future::SerialLinearAlgebraTraits::VectorType::Pointer pVector, Future::DenseVectorTag Tag) {
+            rLinearSystem.pSetVector(pVector, Tag); }, py::arg("Vector"), py::arg("Tag"))
+        .def("SetLinearOperator", [](LinearSystemType& rLinearSystem, typename Future::LinearOperator<Future::SerialLinearAlgebraTraits>::UniquePointer pLinearOperator, Future::SparseMatrixTag Tag) {
+            rLinearSystem.pSetLinearOperator(std::move(pLinearOperator), Tag); }, py::arg("LinearOperator"), py::arg("Tag"))
+        .def("GetMatrix", [](LinearSystemType& rLinearSystem, Future::SparseMatrixTag Tag) -> typename Future::SerialLinearAlgebraTraits::MatrixType& {
+            return rLinearSystem.GetMatrix(Tag); }, py::return_value_policy::reference_internal, py::arg("Tag"))
+        .def("GetMatrix", [](LinearSystemType& rLinearSystem, Future::DenseMatrixTag Tag) -> typename Future::SerialLinearAlgebraTraits::DenseMatrixType& {
+            return rLinearSystem.GetMatrix(Tag); }, py::return_value_policy::reference_internal, py::arg("Tag"))
+        .def("GetVector", [](LinearSystemType& rLinearSystem, Future::DenseVectorTag Tag) -> typename Future::SerialLinearAlgebraTraits::VectorType& {
+            return rLinearSystem.GetVector(Tag); }, py::return_value_policy::reference_internal, py::arg("Tag"))
+        .def("GetLinearOperator", [](LinearSystemType& rLinearSystem, Future::SparseMatrixTag Tag) -> typename Future::LinearOperator<Future::SerialLinearAlgebraTraits>& {
+            return rLinearSystem.GetLinearOperator(Tag); }, py::return_value_policy::reference_internal, py::arg("Tag"))
         .def("SetAdditionalData", &LinearSystemType::SetAdditionalData)
         .def_property_readonly("Name", &LinearSystemType::Name)
         .def_property_readonly("HasAdditionalData", &LinearSystemType::HasAdditionalData)

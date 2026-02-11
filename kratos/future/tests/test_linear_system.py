@@ -79,9 +79,14 @@ class TestLinearSystem(KratosUnittest.TestCase):
         # Create a matrix-based linear operator
         csr_lin_op = KratosMultiphysics.Future.SparseMatrixLinearOperator(A)
 
-        # Constructor
-        ls = KratosMultiphysics.Future.LinearSystem(csr_lin_op, b, x, "CsrLinearOperatorTestSystem")
+        # Constructor with system name only
+        ls = KratosMultiphysics.Future.LinearSystem("CsrLinearOperatorTestSystem")
         self.assertEqual(ls.Name, "CsrLinearOperatorTestSystem")
+
+        # Set the system vector and linear operator
+        ls.SetVector(b, KratosMultiphysics.Future.DenseVectorTag.RHS)
+        ls.SetVector(x, KratosMultiphysics.Future.DenseVectorTag.Dx)
+        ls.SetLinearOperator(csr_lin_op, KratosMultiphysics.Future.SparseMatrixTag.LHS)
         del csr_lin_op # Manually delete the linear operator to test the ownership transfer
 
         # Check accessors
