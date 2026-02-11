@@ -17,12 +17,15 @@
 #include "tests/cpp_tests/geo_mechanics_fast_suite_without_kernel.h"
 #include "tests/cpp_tests/test_utilities.h"
 
+#include <array>
+#include <vector>
+
 namespace Kratos::Testing
 {
 
 TEST_F(KratosGeoMechanicsFastSuiteWithoutKernel, SigmaTau_HasZeroesAsValuesWhenDefaultConstructed)
 {
-    KRATOS_EXPECT_VECTOR_NEAR(Geo::SigmaTau().Values(), Vector(2, 0.0), Defaults::absolute_tolerance);
+    KRATOS_EXPECT_VECTOR_NEAR(Geo::SigmaTau().Values(), (std::array{0.0, 0.0}), Defaults::absolute_tolerance);
     EXPECT_NEAR(Geo::SigmaTau{}.Sigma(), 0.0, Defaults::absolute_tolerance);
     EXPECT_NEAR(Geo::SigmaTau{}.Tau(), 0.0, Defaults::absolute_tolerance);
 }
@@ -93,13 +96,13 @@ TEST_F(KratosGeoMechanicsFastSuiteWithoutKernel, SigmaTau_ComponentsCanBeModifie
     sigma_tau.Sigma() = 3.0;
 
     // Assert
-    KRATOS_EXPECT_VECTOR_NEAR(sigma_tau.Values(), (std::vector{3.0, 2.0}), Defaults::absolute_tolerance);
+    KRATOS_EXPECT_VECTOR_NEAR(sigma_tau.Values(), (std::array{3.0, 2.0}), Defaults::absolute_tolerance);
 
     // Act
     sigma_tau.Tau() = 4.0;
 
     // Assert
-    KRATOS_EXPECT_VECTOR_NEAR(sigma_tau.Values(), (std::vector{3.0, 4.0}), Defaults::absolute_tolerance);
+    KRATOS_EXPECT_VECTOR_NEAR(sigma_tau.Values(), (std::array{3.0, 4.0}), Defaults::absolute_tolerance);
 }
 
 TYPED_TEST(TestSigmaTauFixture, SigmaTau_CanBeCopiedToAnyVectorTypeWithSizeOf2)
@@ -108,7 +111,7 @@ TYPED_TEST(TestSigmaTauFixture, SigmaTau_CanBeCopiedToAnyVectorTypeWithSizeOf2)
     const auto sigma_tau = Geo::SigmaTau{1.0, 2.0};
 
     // Act & Assert
-    KRATOS_EXPECT_VECTOR_NEAR(sigma_tau.CopyTo<TypeParam>(), (std::vector{1.0, 2.0}), Defaults::absolute_tolerance);
+    KRATOS_EXPECT_VECTOR_NEAR(sigma_tau.CopyTo<TypeParam>(), (std::array{1.0, 2.0}), Defaults::absolute_tolerance);
 }
 
 } // namespace Kratos::Testing
