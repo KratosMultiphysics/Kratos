@@ -93,6 +93,7 @@
 #include "custom_elements/beam_elements/timoshenko_beam_element_2D2N.h"
 #include "custom_elements/beam_elements/timoshenko_beam_element_3D2N.h"
 #include "custom_elements/beam_elements/timoshenko_beam_element_2D3N.h"
+#include "custom_elements/beam_elements/non_linear_timoshenko_beam_element_2D2N.h"
 #include "custom_elements/beam_elements/timoshenko_curved_beam_element_2D3N.h"
 #include "custom_elements/beam_elements/timoshenko_curved_beam_element_3D3N.h"
 
@@ -294,6 +295,7 @@ private:
     const CrBeamElement2D2N mCrBeamElement2D2N;
     const CrBeamElementLinear2D2N mCrLinearBeamElement2D2N;
     const LinearTimoshenkoBeamElement2D2N mLinearTimoshenkoBeamElement2D2N;
+    const NonLinearTimoshenkoBeamElement2D2N mNonLinearTimoshenkoBeamElement2D2N;
     const LinearTimoshenkoBeamElement3D2N mLinearTimoshenkoBeamElement3D2N;
     const LinearTimoshenkoBeamElement2D3N mLinearTimoshenkoBeamElement2D3N;
     const LinearTimoshenkoCurvedBeamElement2D3N mLinearTimoshenkoCurvedBeamElement2D3N;
