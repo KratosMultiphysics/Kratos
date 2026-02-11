@@ -88,6 +88,11 @@ VariableTensorAdaptor::VariableTensorAdaptor(
     KRATOS_CATCH("");
 }
 
+TensorAdaptor<double>::Pointer VariableTensorAdaptor::Clone() const
+{
+    return Kratos::make_shared<VariableTensorAdaptor>(*this);
+}
+
 void VariableTensorAdaptor::Check() const
 {
     KRATOS_TRY
