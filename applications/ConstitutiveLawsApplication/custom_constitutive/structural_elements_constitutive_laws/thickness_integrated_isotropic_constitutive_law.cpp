@@ -20,6 +20,7 @@
 #include "thickness_integrated_isotropic_constitutive_law.h"
 #include "custom_utilities/advanced_constitutive_law_utilities.h"
 #include "custom_utilities/constitutive_law_utilities.h"
+#include "structural_mechanics_application_variables.h"
 #include "includes/mat_variables.h"
 
 namespace Kratos
@@ -253,16 +254,17 @@ double& ThicknessIntegratedIsotropicConstitutiveLaw::CalculateValue(
 
         // In case the 2D Cls work in finite strain
         noalias(F) = AdvancedConstitutiveLawUtilities<3>::ComputeEquivalentSmallDeformationDeformationGradient(r_strain_vector);
-        detF = MathUtils<double>::Det2(F);
+        double detF = MathUtils<double>::Det2(F);
         rValues.SetDeterminantF(detF);
         rValues.SetDeformationGradientF(F);
 
-        mConstitutiveLaws[i_layer]->CalculateMaterialResponseCauchy(rValues);
+        mConstitutiveLaws[layer]->CalculateMaterialResponseCauchy(rValues);
 
         rValue = ConstitutiveLawUtilities<3>::CalculateVonMisesEquivalentStress(rValues.GetStressVector());
 
         // Restore information
-        rValues.SetStrainVector(generalized_strain_vector);
+        r_strain_vector.resize(VoigtSize, false);
+        noalias(r_strain_vector) = generalized_strain_vector;
         rValues.SetMaterialProperties(r_material_properties);
         r_flags.Set(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR, flag_compute_constitutive_tensor);
         r_flags.Set(ConstitutiveLaw::COMPUTE_STRESS, flag_compute_stress);
@@ -270,7 +272,7 @@ double& ThicknessIntegratedIsotropicConstitutiveLaw::CalculateValue(
         return rValue;
     }
 
-    return TCalculateValue<double>(rParameterValues, rThisVariable, rValue);
+    return TCalculateValue<double>(rValues, rThisVariable, rValue);
 }
 
 /***********************************************************************************/
