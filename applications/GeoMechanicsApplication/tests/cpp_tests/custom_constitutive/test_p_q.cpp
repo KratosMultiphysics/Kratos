@@ -46,12 +46,12 @@ TYPED_TEST(TestPQFixture, PQ_CanBeConstructedFromAnyVectorWithSizeOf2)
     initialization_vector[1]   = 2.0;
 
     // Act
-    const auto stress_invariant = Geo::PQ{initialization_vector};
+    const auto stress_state = Geo::PQ{initialization_vector};
 
     // Assert
-    KRATOS_EXPECT_VECTOR_NEAR(stress_invariant.Values(), initialization_vector, Defaults::absolute_tolerance);
-    EXPECT_NEAR(stress_invariant.P(), initialization_vector[0], Defaults::absolute_tolerance);
-    EXPECT_NEAR(stress_invariant.Q(), initialization_vector[1], Defaults::absolute_tolerance);
+    KRATOS_EXPECT_VECTOR_NEAR(stress_state.Values(), initialization_vector, Defaults::absolute_tolerance);
+    EXPECT_NEAR(stress_state.P(), initialization_vector[0], Defaults::absolute_tolerance);
+    EXPECT_NEAR(stress_state.Q(), initialization_vector[1], Defaults::absolute_tolerance);
 }
 
 TEST_F(KratosGeoMechanicsFastSuiteWithoutKernel, PQ_RaisesADebugErrorWhenAttemptingToConstructFromAVectorWithSizeUnequalTo2)
@@ -89,29 +89,28 @@ TEST_F(KratosGeoMechanicsFastSuiteWithoutKernel,
 TEST_F(KratosGeoMechanicsFastSuiteWithoutKernel, PQ_ComponentsCanBeModifiedDirectly)
 {
     // Arrange
-    auto stress_invariant = Geo::PQ{1.0, 2.0};
+    auto stress_state = Geo::PQ{1.0, 2.0};
 
     // Act
-    stress_invariant.P() = 3.0;
+    stress_state.P() = 3.0;
 
     // Assert
-    KRATOS_EXPECT_VECTOR_NEAR(stress_invariant.Values(), (std::array{3.0, 2.0}), Defaults::absolute_tolerance);
+    KRATOS_EXPECT_VECTOR_NEAR(stress_state.Values(), (std::array{3.0, 2.0}), Defaults::absolute_tolerance);
 
     // Act
-    stress_invariant.Q() = 4.0;
+    stress_state.Q() = 4.0;
 
     // Assert
-    KRATOS_EXPECT_VECTOR_NEAR(stress_invariant.Values(), (std::array{3.0, 4.0}), Defaults::absolute_tolerance);
+    KRATOS_EXPECT_VECTOR_NEAR(stress_state.Values(), (std::array{3.0, 4.0}), Defaults::absolute_tolerance);
 }
 
 TYPED_TEST(TestPQFixture, PQ_CanBeCopiedToAnyVectorTypeWithSizeOf2)
 {
     // Arrange
-    const auto stress_invariant = Geo::PQ{1.0, 2.0};
+    const auto stress_state = Geo::PQ{1.0, 2.0};
 
     // Act & Assert
-    KRATOS_EXPECT_VECTOR_NEAR(stress_invariant.CopyTo<TypeParam>(), (std::array{1.0, 2.0}),
-                              Defaults::absolute_tolerance);
+    KRATOS_EXPECT_VECTOR_NEAR(stress_state.CopyTo<TypeParam>(), (std::array{1.0, 2.0}), Defaults::absolute_tolerance);
 }
 
 } // namespace Kratos::Testing
