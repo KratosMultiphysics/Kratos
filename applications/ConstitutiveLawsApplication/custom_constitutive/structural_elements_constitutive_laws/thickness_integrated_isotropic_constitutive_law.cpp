@@ -19,6 +19,7 @@
 // Project includes
 #include "thickness_integrated_isotropic_constitutive_law.h"
 #include "custom_utilities/advanced_constitutive_law_utilities.h"
+#include "custom_utilities/constitutive_law_utilities.h"
 #include "includes/mat_variables.h"
 
 namespace Kratos
@@ -202,11 +203,72 @@ void ThicknessIntegratedIsotropicConstitutiveLaw::SetValue(
 /***********************************************************************************/
 
 double& ThicknessIntegratedIsotropicConstitutiveLaw::CalculateValue(
-    ConstitutiveLaw::Parameters& rParameterValues,
+    ConstitutiveLaw::Parameters& rValues,
     const Variable<double>& rThisVariable,
     double& rValue
     )
 {
+    if (rThisVariable == VON_MISES_STRESS_TOP_SURFACE ||
+        rThisVariable == VON_MISES_STRESS_BOTTOM_SURFACE ||
+        rThisVariable == VON_MISES_STRESS_MIDDLE_SURFACE)
+    {
+        const auto& r_material_properties = rValues.GetMaterialProperties();
+        Flags& r_flags = rValues.GetOptions();
+
+        // Previous flags saved
+        const bool flag_compute_constitutive_tensor = r_flags.Is(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR);
+        const bool flag_compute_stress = r_flags.Is(ConstitutiveLaw::COMPUTE_STRESS);
+
+        r_flags.Set(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR, false);
+        r_flags.Set(ConstitutiveLaw::COMPUTE_STRESS, true);
+
+        std::vector<double> coordinates;
+        std::vector<double> weights;
+        CalculateCoordinatesAndWeights(coordinates, weights, mThicknessIntegrationPoints, r_material_properties);
+
+        const auto subprop_strain_size = mConstitutiveLaws[0]->GetStrainSize(); // 3
+        const auto subprop_dimension = mConstitutiveLaws[0]->WorkingSpaceDimension(); // 2
+        const Vector generalized_strain_vector = rValues.GetStrainVector(); // size 8
+        const auto it_prop_begin = r_material_properties.GetSubProperties().begin();
+        Properties &r_subprop = *(it_prop_begin);
+
+
+        Vector& r_stress_vector = rValues.GetStressVector(); // size 3
+        Vector& r_strain_vector = rValues.GetStrainVector(); // size 3
+        Matrix& r_constitutive_matrix = rValues.GetConstitutiveMatrix(); // size 3x3
+        r_strain_vector.resize(subprop_strain_size, false);
+        r_stress_vector.resize(subprop_strain_size, false);
+        r_constitutive_matrix.resize(subprop_strain_size, subprop_strain_size, false);
+        r_strain_vector.clear();
+        r_stress_vector.clear();
+        r_constitutive_matrix.clear();
+        Matrix F(subprop_dimension, subprop_dimension); // 2x2
+
+        rValues.SetMaterialProperties(r_subprop);
+
+        IndexType layer = 0;
+
+        noalias(r_strain_vector) = boost::numeric::ublas::project(generalized_strain_vector, boost::numeric::ublas::range(0, 3)) +
+            coordinates[layer] * boost::numeric::ublas::project(generalized_strain_vector, boost::numeric::ublas::range(3, 6));
+
+        // In case the 2D Cls work in finite strain
+        noalias(F) = AdvancedConstitutiveLawUtilities<3>::ComputeEquivalentSmallDeformationDeformationGradient(r_strain_vector);
+        detF = MathUtils<double>::Det2(F);
+        rValues.SetDeterminantF(detF);
+        rValues.SetDeformationGradientF(F);
+
+        mConstitutiveLaws[i_layer]->CalculateMaterialResponseCauchy(rValues);
+
+        rValue = ConstitutiveLawUtilities<3>::CalculateVonMisesEquivalentStress(rValues.GetStressVector());
+
+        // Restore information
+        rValues.SetStrainVector(generalized_strain_vector);
+        rValues.SetMaterialProperties(r_material_properties);
+        r_flags.Set(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR, flag_compute_constitutive_tensor);
+        r_flags.Set(ConstitutiveLaw::COMPUTE_STRESS, flag_compute_stress);
+
+        return rValue;
+    }
 
     return TCalculateValue<double>(rParameterValues, rThisVariable, rValue);
 }
@@ -422,7 +484,7 @@ void ThicknessIntegratedIsotropicConstitutiveLaw::CalculateMaterialResponseCauch
             detF = MathUtils<double>::Det2(F);
             rValues.SetDeterminantF(detF);
             rValues.SetDeformationGradientF(F);
-            
+
             // This fills stress and D
             mConstitutiveLaws[i_layer]->CalculateMaterialResponseCauchy(rValues);
 
@@ -493,12 +555,12 @@ void ThicknessIntegratedIsotropicConstitutiveLaw::CalculateMaterialResponseCauch
         rValues.SetMaterialProperties(r_material_properties);
         r_strain_vector.resize(VoigtSize, false);
         noalias(r_strain_vector) = generalized_strain_vector;
-        
+
         if (flag_compute_stress) {
             r_stress_vector.resize(VoigtSize, false);
             noalias(r_stress_vector) = generalized_stress_vector;
         }
-        
+
         if (flag_compute_constitutive_tensor) {
             r_constitutive_matrix.resize(VoigtSize, VoigtSize, false);
             noalias(r_constitutive_matrix) = generalized_constitutive_matrix;
@@ -596,7 +658,7 @@ void ThicknessIntegratedIsotropicConstitutiveLaw::InitializeMaterialResponseCauc
             detF = MathUtils<double>::Det2(F);
             rValues.SetDeterminantF(detF);
             rValues.SetDeformationGradientF(F);
-            
+
             // This fills stress and D
             mConstitutiveLaws[i_layer]->InitializeMaterialResponseCauchy(rValues);
 
