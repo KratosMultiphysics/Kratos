@@ -290,6 +290,14 @@ double& ThicknessIntegratedIsotropicConstitutiveLaw::CalculateValue(
         r_flags.Set(ConstitutiveLaw::COMPUTE_STRESS, flag_compute_stress);
 
         return rValue;
+    } else if (rThisVariable == VON_MISES_STRESS) {
+        double top_value, mid_value, bot_value;
+
+        CalculateValue(rValues, VON_MISES_STRESS_TOP_SURFACE, top_value);
+        CalculateValue(rValues, VON_MISES_STRESS_MIDDLE_SURFACE, mid_value);
+        CalculateValue(rValues, VON_MISES_STRESS_BOTTOM_SURFACE, bot_value);
+        rValue = std::max({top_value, mid_value, bot_value});
+        return rValue;
     }
 
     return TCalculateValue<double>(rValues, rThisVariable, rValue);
