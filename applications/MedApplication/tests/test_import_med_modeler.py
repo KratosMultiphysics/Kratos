@@ -33,10 +33,10 @@ class TestImportMedModeler(MedModelPartIOTestCase):
 
         # Check read ModelPart
         self.assertEqual(model_part.NumberOfNodes(), 216)
-        self.assertEqual(model_part.NumberOfGeometries(), 371)
+        self.assertEqual(model_part.NumberOfGeometries(), 335)
 
         # check how many geoms of each type
-        exp_geoms = {KM.Hexahedra3D8: 125, KM.Quadrilateral3D4: 150, KM.Line3D2: 60, KM.Geometry: 36}
+        exp_geoms = {KM.Hexahedra3D8: 125, KM.Quadrilateral3D4: 150, KM.Line3D2: 60}
         self.assertEqual(sum(exp_geoms.values()), model_part.NumberOfGeometries())
         self.assertDictEqual(exp_geoms, get_num_geometries_by_type(model_part))
 
