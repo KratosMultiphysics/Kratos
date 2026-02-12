@@ -23,6 +23,8 @@
 #include "custom_utilities/project_vector_on_surface_utility.h"
 #include "custom_utilities/perturb_geometry_sparse_utility.h"
 #include "custom_utilities/perturb_geometry_subgrid_utility.h"
+#include "custom_utilities/section_properties_utility.h"
+
 
 namespace Kratos::Python {
 
@@ -60,6 +62,10 @@ void AddCustomUtilitiesToPython(pybind11::module& m)
         .def("CreateRandomFieldVectors", &PerturbGeometrySubgridUtility::CreateRandomFieldVectors)
         .def("ApplyRandomFieldVectorsToGeometry", &PerturbGeometrySubgridUtility::ApplyRandomFieldVectorsToGeometry)
         ;
+
+    py::class_<SectionPropertiesUtility>(m, "SectionPropertiesUtility")
+    .def_static("InterpretSections",
+        &SectionPropertiesUtility::InterpretSections);
 }
 
 }  // namespace Kratos::Python.

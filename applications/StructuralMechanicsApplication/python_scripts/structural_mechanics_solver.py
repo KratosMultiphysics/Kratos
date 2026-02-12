@@ -256,6 +256,11 @@ class MechanicalSolver(PythonSolver):
         # The mechanical solution strategy is created here if it does not already exist.
         if self.settings["clear_storage"].GetBool():
             self.Clear()
+
+        computing_model_part = self.GetComputingModelPart()
+        KratosMultiphysics.StructuralMechanicsApplication.SectionPropertiesUtility.InterpretSections(
+            computing_model_part)
+        
         mechanical_solution_strategy = self._GetSolutionStrategy()
         mechanical_solution_strategy.SetEchoLevel(self.settings["echo_level"].GetInt())
         mechanical_solution_strategy.Initialize()
