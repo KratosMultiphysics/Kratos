@@ -94,7 +94,7 @@ void CSDSG3ThickShellElement3D3N<IS_COROTATIONAL>::CalculateOnIntegrationPoints(
     const SizeType number_of_integration_points = r_integration_points.size();
 
     // Provide a default empty implementation: resize and set zeros
-    rOutput.assign(number_of_integration_points, ZeroVector(6));
+    rOutput.assign(number_of_integration_points, ZeroVector(3)); // plane stress components
 
     if (mConstitutiveLawVector[0]->Has(rVariable)) {
         GetValueOnConstitutiveLaw(rVariable, rOutput);
