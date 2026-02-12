@@ -477,6 +477,21 @@ public:
      */
     void FinalizeNonLinearIteration(const ProcessInfo& rCurrentProcessInfo) override;
 
+    /**
+     * Getting method to obtain the variable which defines the degrees of freedom
+     */
+    void GetValuesVector(Vector& rValues, int Step = 0) const override;
+
+    /**
+     * Getting method to obtain the time derivative of variable which defines the degrees of freedom
+     */
+    void GetFirstDerivativesVector(Vector& rValues, int Step = 0) const override;
+
+    /**
+     * Getting method to obtain the second time derivative of variable which defines the degrees of freedom
+     */
+    void GetSecondDerivativesVector(Vector& rValues, int Step = 0) const override;
+
 
     /**
     * @brief This function returns the size of the strain vector

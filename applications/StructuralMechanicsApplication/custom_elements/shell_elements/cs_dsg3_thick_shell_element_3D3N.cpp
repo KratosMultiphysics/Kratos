@@ -1373,6 +1373,93 @@ void CSDSG3ThickShellElement3D3N<IS_COROTATIONAL>::CalculateDampingMatrix(
 /***********************************************************************************/
 
 template <bool IS_COROTATIONAL>
+void CSDSG3ThickShellElement3D3N<IS_COROTATIONAL>::GetValuesVector(Vector& rValues, int Step) const
+{
+    const auto& r_geometry = GetGeometry();
+    const IndexType number_of_nodes = r_geometry.PointsNumber();
+    const IndexType system_size = number_of_nodes * GetDoFsPerNode();
+
+    if (rValues.size() != system_size) {
+        rValues.resize(system_size, false);
+    }
+
+    for (IndexType i = 0; i < r_geometry.size(); ++i) {
+        const array_3& disp = r_geometry[i].FastGetSolutionStepValue(DISPLACEMENT, Step);
+        const array_3& rot  = r_geometry[i].FastGetSolutionStepValue(ROTATION, Step);
+
+        const IndexType index = i * GetDoFsPerNode();
+        rValues[index]     = disp[0];
+        rValues[index + 1] = disp[1];
+        rValues[index + 2] = disp[2];
+
+        rValues[index + 3] = rot[0];
+        rValues[index + 4] = rot[1];
+        rValues[index + 5] = rot[2];
+    }
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+template <bool IS_COROTATIONAL>
+void CSDSG3ThickShellElement3D3N<IS_COROTATIONAL>::GetFirstDerivativesVector(Vector& rValues, int Step) const
+{
+    const auto& r_geometry = GetGeometry();
+    const IndexType number_of_nodes = r_geometry.PointsNumber();
+    const IndexType system_size = number_of_nodes * GetDoFsPerNode();
+
+    if (rValues.size() != system_size) {
+        rValues.resize(system_size, false);
+    }
+
+    for (IndexType i = 0; i < r_geometry.size(); ++i) {
+        const array_3& r_vel = r_geometry[i].FastGetSolutionStepValue(VELOCITY, Step);
+        const array_3& r_ang_vel = r_geometry[i].FastGetSolutionStepValue(ANGULAR_VELOCITY, Step);
+
+        const IndexType index = i * GetDoFsPerNode();
+        rValues[index]     = r_vel[0];
+        rValues[index + 1] = r_vel[1];
+        rValues[index + 2] = r_vel[2];
+
+        rValues[index + 3] = r_ang_vel[0];
+        rValues[index + 4] = r_ang_vel[1];
+        rValues[index + 5] = r_ang_vel[2];
+    }
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+template <bool IS_COROTATIONAL>
+void CSDSG3ThickShellElement3D3N<IS_COROTATIONAL>::GetSecondDerivativesVector(Vector& rValues, int Step) const
+{
+    const auto& r_geometry = GetGeometry();
+    const IndexType number_of_nodes = r_geometry.PointsNumber();
+    const IndexType system_size = number_of_nodes * GetDoFsPerNode();
+
+    if (rValues.size() != system_size) {
+        rValues.resize(system_size, false);
+    }
+
+    for (IndexType i = 0; i < r_geometry.size(); ++i) {
+        const array_3& r_acc = r_geometry[i].FastGetSolutionStepValue(ACCELERATION, Step);
+        const array_3& r_ang_acc = r_geometry[i].FastGetSolutionStepValue(ANGULAR_ACCELERATION, Step);
+
+        const IndexType index = i * GetDoFsPerNode();
+        rValues[index]     = r_acc[0];
+        rValues[index + 1] = r_acc[1];
+        rValues[index + 2] = r_acc[2];
+
+        rValues[index + 3] = r_ang_acc[0];
+        rValues[index + 4] = r_ang_acc[1];
+        rValues[index + 5] = r_ang_acc[2];
+    }
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+template <bool IS_COROTATIONAL>
 void CSDSG3ThickShellElement3D3N<IS_COROTATIONAL>::save(
     Serializer& rSerializer) const
 {
