@@ -220,6 +220,32 @@ public:
     }
 
     /**
+     * @brief Calculate values of type double on integration points (stub)
+     */
+    void CalculateOnIntegrationPoints(const Variable<double>& rVariable,
+                                      std::vector<double>& rOutput,
+                                      const ProcessInfo& rCurrentProcessInfo) override;
+
+    /**
+     * @brief This method gets a value directly in the CL
+     * @details Avoids code repetition
+     * @param rVariable The variable we want to get
+     * @param rOutput The values obtained in the integration points
+     * @tparam TType The type considered
+     */
+    template <class TType>
+    void GetValueOnConstitutiveLaw(
+        const Variable<TType> &rVariable,
+        std::vector<TType> &rOutput)
+    {
+        const auto &r_integration_points = CustomTriangleAreaCoordinatesQuadrature(GetGeometry().Area());
+
+        for (IndexType point_number = 0; point_number < integration_points.size(); ++point_number) {
+            mConstitutiveLawVector[point_number]->GetValue(rVariable, rOutput[point_number]);
+        }
+    }
+
+    /**
      * @brief This method computes the Strain-Displacement matrix B, used to relate nodal displacements to strains for a triangle sub-element
      * It assumes that the coordinates are already in the local coordinate system
      * @details The B matrix includes the bending and shear parts. Size of 8x18 since we have 8 generalized strains and 18 dofs (3 nodes with 6 dofs each)
