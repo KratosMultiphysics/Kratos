@@ -188,8 +188,8 @@ double& ReissnerMindlinShellElasticConstitutiveLaw::CalculateValue(
 
         Vector generalized_strain = rValues.GetStrainVector(); // Filled by the element
 
-        noalias(strain_plane_stress) = boost::numeric::ublas::project(generalized_strain, boost::numeric::ublas::range(0, 3)) +
-            z * boost::numeric::ublas::project(generalized_strain, boost::numeric::ublas::range(3, 6)); // gEm + z * gEb
+        noalias(strain_plane_stress) = project(generalized_strain, range(0, 3)) +
+            z * project(generalized_strain, range(3, 6)); // gEm + z * gEb
 
         ConstitutiveLawUtilities<3>::CalculateElasticMatrixPlaneStress(constitutive_matrix, r_props[YOUNG_MODULUS], r_props[POISSON_RATIO]);
         noalias(stress_plane_stress) = prod(constitutive_matrix, strain_plane_stress);

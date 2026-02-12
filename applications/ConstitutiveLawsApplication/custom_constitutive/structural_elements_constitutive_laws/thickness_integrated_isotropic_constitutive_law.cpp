@@ -253,8 +253,7 @@ double& ThicknessIntegratedIsotropicConstitutiveLaw::CalculateValue(
             layer = (mThicknessIntegrationPoints - 1) / 2; // Assuming odd number of IPs, so that we have a middle one
         }
 
-        noalias(r_strain_vector) = boost::numeric::ublas::project(generalized_strain_vector, boost::numeric::ublas::range(0, 3)) +
-            coordinates[layer] * boost::numeric::ublas::project(generalized_strain_vector, boost::numeric::ublas::range(3, 6));
+        noalias(r_strain_vector) = project(generalized_strain_vector, range(0, 3)) + coordinates[layer] * project(generalized_strain_vector, range(3, 6));
 
         // In case the 2D Cls work in finite strain
         noalias(F) = AdvancedConstitutiveLawUtilities<3>::ComputeEquivalentSmallDeformationDeformationGradient(r_strain_vector);
