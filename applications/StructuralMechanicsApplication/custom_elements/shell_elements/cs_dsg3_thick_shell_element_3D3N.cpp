@@ -64,8 +64,8 @@ void CSDSG3ThickShellElement3D3N<IS_COROTATIONAL>::CalculateOnIntegrationPoints(
 {
     KRATOS_TRY
 
-    const auto& integration_points = this->IntegrationPoints(this->GetIntegrationMethod());
-    const SizeType number_of_integration_points = integration_points.size();
+    const auto& r_integration_points = CustomTriangleAreaCoordinatesQuadrature(GetGeometry().Area());
+    const SizeType number_of_integration_points = r_integration_points.size();
 
     // Provide a default empty implementation: resize and set zeros
     rOutput.assign(number_of_integration_points, 0.0);
@@ -90,8 +90,8 @@ void CSDSG3ThickShellElement3D3N<IS_COROTATIONAL>::CalculateOnIntegrationPoints(
 {
     KRATOS_TRY
 
-    const auto& integration_points = this->IntegrationPoints(this->GetIntegrationMethod());
-    const SizeType number_of_integration_points = integration_points.size();
+    const auto& r_integration_points = CustomTriangleAreaCoordinatesQuadrature(GetGeometry().Area());
+    const SizeType number_of_integration_points = r_integration_points.size();
 
     // Provide a default empty implementation: resize and set zeros
     rOutput.assign(number_of_integration_points, ZeroVector(6));
