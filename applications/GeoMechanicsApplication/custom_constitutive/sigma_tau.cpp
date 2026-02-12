@@ -11,7 +11,7 @@
 //  Main authors:    Anne van de Graaf
 //
 
-#include "custom_constitutive/geo_sigma_tau.hpp"
+#include "custom_constitutive/sigma_tau.hpp"
 
 namespace Kratos::Geo
 {

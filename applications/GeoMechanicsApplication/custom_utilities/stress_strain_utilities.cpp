@@ -12,6 +12,8 @@
 //
 
 #include "stress_strain_utilities.h"
+#include "custom_constitutive/principal_stresses.hpp"
+#include "custom_constitutive/sigma_tau.hpp"
 #include "custom_utilities/generic_utilities.hpp"
 #include "custom_utilities/math_utilities.hpp"
 #include "custom_utilities/ublas_utilities.h"
@@ -186,6 +188,15 @@ std::vector<Vector> StressStrainUtilities::CalculateStrains(const std::vector<Ma
     return result;
 }
 
+std::pair<Geo::PrincipalStresses, Matrix> StressStrainUtilities::CalculatePrincipalStressesAndRotationMatrix(const Vector& rStressVector)
+{
+    auto principal_stresses = Vector{};
+    auto eigen_vectors      = Matrix{};
+    CalculatePrincipalStresses(rStressVector, principal_stresses, eigen_vectors);
+
+    return std::make_pair(Geo::PrincipalStresses{principal_stresses}, eigen_vectors);
+}
+
 void StressStrainUtilities::CalculatePrincipalStresses(const Vector& rCauchyStressVector,
                                                        Vector&       rPrincipalStressVector,
                                                        Matrix&       rEigenVectorsMatrix)
@@ -220,22 +231,17 @@ Vector StressStrainUtilities::RotatePrincipalStresses(const Vector& rPrincipalSt
     return MathUtils<>::StressTensorToVector(rotated_stress_matrix, StressVectorSize);
 }
 
-Vector StressStrainUtilities::TransformPrincipalStressesToSigmaTau(const Vector& rPrincipalStresses)
+Geo::SigmaTau StressStrainUtilities::TransformPrincipalStressesToSigmaTau(const Geo::PrincipalStresses& rPrincipalStresses)
 {
-    auto result = Vector{2};
-    result[0]   = 0.5 * (rPrincipalStresses[0] + rPrincipalStresses[2]);
-    result[1]   = 0.5 * (rPrincipalStresses[0] - rPrincipalStresses[2]);
-    return result;
+    return Geo::SigmaTau{{0.5 * (rPrincipalStresses.Values()[0] + rPrincipalStresses.Values()[2]),
+                          0.5 * (rPrincipalStresses.Values()[0] - rPrincipalStresses.Values()[2])}};
 }
 
-Vector StressStrainUtilities::TransformSigmaTauToPrincipalStresses(const Vector& rSigmaTau,
-                                                                   const Vector& rPrincipalStresses)
+Geo::PrincipalStresses StressStrainUtilities::TransformSigmaTauToPrincipalStresses(
+    const Geo::SigmaTau& rSigmaTau, const Geo::PrincipalStresses& rPrincipalStresses)
 {
-    auto result = Vector{3};
-    result[0]   = rSigmaTau[0] + rSigmaTau[1];
-    result[1]   = rPrincipalStresses[1];
-    result[2]   = rSigmaTau[0] - rSigmaTau[1];
-    return result;
+    return Geo::PrincipalStresses{{rSigmaTau.Sigma() + rSigmaTau.Tau(), rPrincipalStresses.Values()[1],
+                                   rSigmaTau.Sigma() - rSigmaTau.Tau()}};
 }
 
 Vector StressStrainUtilities::TransformPrincipalStressesToPandQ(const Vector& rPrincipalStresses)

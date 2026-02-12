@@ -147,10 +147,9 @@ void PwElement<TDim, TNumNodes>::CalculateOnIntegrationPoints(const Variable<dou
         rVariable == DERIVATIVE_OF_SATURATION || rVariable == RELATIVE_PERMEABILITY) {
         Matrix N_container(number_of_integration_points, TNumNodes);
         N_container = r_geometry.ShapeFunctionsValues(this->GetIntegrationMethod());
-        RetentionLaw::Parameters    RetentionParameters(r_properties);
-        Vector                      Np(TNumNodes);
-        array_1d<double, TNumNodes> pressure_vector;
-        VariablesUtilities::GetNodalValues(r_geometry, WATER_PRESSURE, pressure_vector.begin());
+        RetentionLaw::Parameters RetentionParameters(r_properties);
+        Vector                   Np(TNumNodes);
+        const auto pressure_vector = VariablesUtilities::GetNodalValues<TNumNodes>(r_geometry, WATER_PRESSURE);
 
         for (unsigned int integration_point = 0; integration_point < number_of_integration_points;
              ++integration_point) {
@@ -491,7 +490,7 @@ template <unsigned int TDim, unsigned int TNumNodes>
 std::vector<double> PwElement<TDim, TNumNodes>::CalculateFluidPressure()
 {
     return GeoTransportEquationUtilities::CalculateFluidPressures(
-        mNContainer, VariablesUtilities::GetNodalValuesOf<TNumNodes>(WATER_PRESSURE, this->GetGeometry()));
+        mNContainer, VariablesUtilities::GetNodalValues<TNumNodes>(this->GetGeometry(), WATER_PRESSURE));
 }
 
 template <unsigned int TDim, unsigned int TNumNodes>
