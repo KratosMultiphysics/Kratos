@@ -60,7 +60,7 @@ void CheckEntitiesAreEqual(
 {
     KRATOS_TRY
 
-    // KRATOS_CHECK_EQUAL(rNode1.Id(), rNode2.Id()); // the MEDApp deliberately does not care about IDs
+    KRATOS_CHECK_EQUAL(rNode1.Id(), rNode2.Id());
 
     KRATOS_CHECK_DOUBLE_EQUAL(rNode1.X(),  rNode2.X());
     KRATOS_CHECK_DOUBLE_EQUAL(rNode1.X0(), rNode2.X0());
@@ -80,7 +80,7 @@ void CheckGeometriesAreEqual(
 {
     KRATOS_TRY
 
-    // KRATOS_CHECK_EQUAL(rGeom1.Id(), rGeom2.Id()); // the MEDApp deliberately does not care about IDs
+    KRATOS_CHECK_EQUAL(rGeom1.Id(), rGeom2.Id());
 
     KRATOS_CHECK_EQUAL(rGeom1.PointsNumber(), rGeom2.PointsNumber());
 
@@ -218,8 +218,11 @@ void MedTestingUtilities::CheckModelPartsAreEqual(
         });
     };
 
-    KRATOS_CHECK_EQUAL(min_id(rModelPart1), 1);
-    KRATOS_CHECK_EQUAL(min_id(rModelPart2), 1);
+    // KRATOS_CHECK_EQUAL(min_id(rModelPart1), 1);
+    // KRATOS_CHECK_EQUAL(min_id(rModelPart2), 1);
+
+    // make sure the Nodes start with the same Id
+    KRATOS_CHECK_EQUAL(min_id(rModelPart1), min_id(rModelPart2));
 
     // check geometries
     CheckGeometriesAreEqual(rModelPart1, rModelPart2);
@@ -248,6 +251,49 @@ void MedTestingUtilities::AddGeometriesFromElements(
 
     for (const auto& r_elem : rModelPart.Elements()) {
         rModelPart.AddGeometry(r_elem.pGetGeometry());
+    }
+
+    KRATOS_CATCH("")
+}
+
+void MedTestingUtilities::AddGeometriesFromConditions(
+    ModelPart& rModelPart)
+{
+    KRATOS_TRY
+
+    for (const auto& r_cond : rModelPart.Conditions()) {
+        rModelPart.AddGeometry(r_cond.pGetGeometry());
+    }
+
+    KRATOS_CATCH("")
+}
+
+void MedTestingUtilities::AddGeometriesFromElementsAndConditions(
+    ModelPart& rModelPart)
+{
+    KRATOS_TRY
+    
+    AddGeometriesFromElementsAndConditionsAllLevels(rModelPart);
+
+    IndexType geom_id = 1;
+    for (auto& r_geom : rModelPart.Geometries()) {
+        r_geom.SetId(geom_id);
+        ++geom_id;
+    }
+
+    KRATOS_CATCH("")
+}
+
+void MedTestingUtilities::AddGeometriesFromElementsAndConditionsAllLevels(
+    ModelPart& rModelPart)
+{
+    KRATOS_TRY
+    
+    AddGeometriesFromElements(rModelPart);
+    AddGeometriesFromConditions(rModelPart);
+
+    for (const auto& r_smp_name : rModelPart.GetSubModelPartNames()) {
+        AddGeometriesFromElementsAndConditionsAllLevels(rModelPart.GetSubModelPart(r_smp_name));
     }
 
     KRATOS_CATCH("")
