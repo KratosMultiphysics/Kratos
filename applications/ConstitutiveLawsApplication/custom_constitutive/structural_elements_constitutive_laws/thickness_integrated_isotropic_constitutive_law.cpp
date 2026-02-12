@@ -508,39 +508,14 @@ void ThicknessIntegratedIsotropicConstitutiveLaw::CalculateMaterialResponseCauch
             }
 
             if (flag_compute_constitutive_tensor) {
-
                 // membrane part
-                generalized_constitutive_matrix(0, 0) += weight * r_constitutive_matrix(0, 0);
-                generalized_constitutive_matrix(0, 1) += weight * r_constitutive_matrix(0, 1);
-                generalized_constitutive_matrix(0, 2) += weight * r_constitutive_matrix(0, 2);
-                generalized_constitutive_matrix(1, 0) += weight * r_constitutive_matrix(1, 0);
-                generalized_constitutive_matrix(1, 1) += weight * r_constitutive_matrix(1, 1);
-                generalized_constitutive_matrix(1, 2) += weight * r_constitutive_matrix(1, 2);
-                generalized_constitutive_matrix(2, 0) += weight * r_constitutive_matrix(2, 0);
-                generalized_constitutive_matrix(2, 1) += weight * r_constitutive_matrix(2, 1);
-                generalized_constitutive_matrix(2, 2) += weight * r_constitutive_matrix(2, 2);
+                noalias(project(generalized_constitutive_matrix, range(0,3), range(0,3))) += weight * r_constitutive_matrix;
 
                 // bending part
-                generalized_constitutive_matrix(3, 3) += aux_weight2 * r_constitutive_matrix(0, 0);
-                generalized_constitutive_matrix(3, 4) += aux_weight2 * r_constitutive_matrix(0, 1);
-                generalized_constitutive_matrix(3, 5) += aux_weight2 * r_constitutive_matrix(0, 2);
-                generalized_constitutive_matrix(4, 3) += aux_weight2 * r_constitutive_matrix(1, 0);
-                generalized_constitutive_matrix(4, 4) += aux_weight2 * r_constitutive_matrix(1, 1);
-                generalized_constitutive_matrix(4, 5) += aux_weight2 * r_constitutive_matrix(1, 2);
-                generalized_constitutive_matrix(5, 3) += aux_weight2 * r_constitutive_matrix(2, 0);
-                generalized_constitutive_matrix(5, 4) += aux_weight2 * r_constitutive_matrix(2, 1);
-                generalized_constitutive_matrix(5, 5) += aux_weight2 * r_constitutive_matrix(2, 2);
+                noalias(project(generalized_constitutive_matrix, range(3, 6), range(3, 6))) += aux_weight2 * r_constitutive_matrix;
 
                 // membrane-bending part
-                generalized_constitutive_matrix(0, 3) += aux_weight * r_constitutive_matrix(0, 0);
-                generalized_constitutive_matrix(0, 4) += aux_weight * r_constitutive_matrix(0, 1);
-                generalized_constitutive_matrix(0, 5) += aux_weight * r_constitutive_matrix(0, 2);
-                generalized_constitutive_matrix(1, 3) += aux_weight * r_constitutive_matrix(1, 0);
-                generalized_constitutive_matrix(1, 4) += aux_weight * r_constitutive_matrix(1, 1);
-                generalized_constitutive_matrix(1, 5) += aux_weight * r_constitutive_matrix(1, 2);
-                generalized_constitutive_matrix(2, 3) += aux_weight * r_constitutive_matrix(2, 0);
-                generalized_constitutive_matrix(2, 4) += aux_weight * r_constitutive_matrix(2, 1);
-                generalized_constitutive_matrix(2, 5) += aux_weight * r_constitutive_matrix(2, 2);
+                noalias(project(generalized_constitutive_matrix, range(0, 3), range(3, 6))) += aux_weight * r_constitutive_matrix;
 
                 // bending-membrane part (transposed)
                 generalized_constitutive_matrix(3, 0) = generalized_constitutive_matrix(0, 3);
