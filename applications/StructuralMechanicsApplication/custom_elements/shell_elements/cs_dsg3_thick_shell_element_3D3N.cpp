@@ -795,13 +795,14 @@ void CSDSG3ThickShellElement3D3N<IS_COROTATIONAL>::CalculateLocalSystem(
 
     }
     if constexpr (is_corotational) {
-        this->mpCoordinateTransformation->FinalizeCalculations(mpCoordinateTransformation->CreateLocalCoordinateSystem(),
-                                                               Vector(),
-                                                               nodal_values,
-                                                               rLHS,
-                                                               rRHS,
-                                                               true,
-                                                               true);
+        this->mpCoordinateTransformation->FinalizeCalculations(
+            mpCoordinateTransformation->CreateLocalCoordinateSystem(),
+            Vector(),
+            nodal_values,
+            rLHS,
+            rRHS,
+            true,
+            true);
     } else {
         RotateLHSToGlobal(rLHS, rotation_matrix);
         RotateRHSToGlobal(rRHS, rotation_matrix);
@@ -889,13 +890,14 @@ void CSDSG3ThickShellElement3D3N<IS_COROTATIONAL>::CalculateLeftHandSide(
     }
     if constexpr (is_corotational) {
         Vector empty_vector;
-        this->mpCoordinateTransformation->FinalizeCalculations(mpCoordinateTransformation->CreateLocalCoordinateSystem(),
-                                                               Vector(),
-                                                               nodal_values,
-                                                               rLHS,
-                                                               empty_vector,
-                                                               true,
-                                                               true);
+        this->mpCoordinateTransformation->FinalizeCalculations(
+            mpCoordinateTransformation->CreateLocalCoordinateSystem(),
+            Vector(),
+            nodal_values,
+            rLHS,
+            empty_vector,
+            true,
+            true);
     } else {
         RotateLHSToGlobal(rLHS, rotation_matrix);
     }
@@ -981,13 +983,14 @@ void CSDSG3ThickShellElement3D3N<IS_COROTATIONAL>::CalculateRightHandSide(
     }
     if constexpr (is_corotational) {
         Matrix empty_matrix;
-        this->mpCoordinateTransformation->FinalizeCalculations(mpCoordinateTransformation->CreateLocalCoordinateSystem(),
-                                                               Vector(),
-                                                               nodal_values,
-                                                               empty_matrix,
-                                                               rRHS,
-                                                               true,
-                                                               false);
+        this->mpCoordinateTransformation->FinalizeCalculations(
+            mpCoordinateTransformation->CreateLocalCoordinateSystem(),
+            Vector(),
+            nodal_values,
+            empty_matrix,
+            rRHS,
+            true,
+            false);
     } else {
         RotateRHSToGlobal(rRHS, rotation_matrix);
     }
