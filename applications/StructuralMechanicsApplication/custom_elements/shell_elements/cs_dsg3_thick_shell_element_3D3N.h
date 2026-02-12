@@ -315,7 +315,7 @@ public:
             // We call the constitutive law to compute the stress
             cl_values.SetStrainVector(gen_strain_vector);
 
-            rOutput[i_point] = mConstitutiveLawVector[i_point]->CalculateValue(cl_values, rVariable, rOutput[i_point]);
+            mConstitutiveLawVector[i_point]->CalculateValue(cl_values, rVariable, rOutput[i_point]);
         }
     }
 
