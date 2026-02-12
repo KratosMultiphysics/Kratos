@@ -233,7 +233,6 @@ double& ThicknessIntegratedIsotropicConstitutiveLaw::CalculateValue(
         const auto it_prop_begin = r_material_properties.GetSubProperties().begin();
         Properties &r_subprop = *(it_prop_begin);
 
-
         Vector& r_stress_vector = rValues.GetStressVector(); // size 3
         Vector& r_strain_vector = rValues.GetStrainVector(); // size 3
         Matrix& r_constitutive_matrix = rValues.GetConstitutiveMatrix(); // size 3x3
@@ -247,7 +246,12 @@ double& ThicknessIntegratedIsotropicConstitutiveLaw::CalculateValue(
 
         rValues.SetMaterialProperties(r_subprop);
 
-        IndexType layer = 0;
+        IndexType layer = 0; // Top case
+        if (rThisVariable == VON_MISES_STRESS_BOTTOM_SURFACE) {
+            layer = mThicknessIntegrationPoints - 1;
+        } else if (rThisVariable == VON_MISES_STRESS_MIDDLE_SURFACE) {
+            layer = (mThicknessIntegrationPoints - 1) / 2; // Assuming odd number of IPs, so that we have a middle one
+        }
 
         noalias(r_strain_vector) = boost::numeric::ublas::project(generalized_strain_vector, boost::numeric::ublas::range(0, 3)) +
             coordinates[layer] * boost::numeric::ublas::project(generalized_strain_vector, boost::numeric::ublas::range(3, 6));
