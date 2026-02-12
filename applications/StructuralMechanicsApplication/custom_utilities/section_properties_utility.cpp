@@ -58,6 +58,7 @@ void SectionPropertiesUtility::ComputeRectangularSection(
     const double I33_value = h * std::pow(b,3) / 12.0;
     const double It = b * h * (b*b + h*h) / 12.0;
 
+    rProperties.SetValue(CROSS_SECTION_PARAMETERS, rParameters);
     rProperties.SetValue(CROSS_AREA, A);
     rProperties.SetValue(I22, I22_value);
     rProperties.SetValue(I33, I33_value);
