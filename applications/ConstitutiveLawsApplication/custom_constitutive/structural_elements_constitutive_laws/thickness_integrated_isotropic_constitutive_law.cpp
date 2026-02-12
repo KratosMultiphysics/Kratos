@@ -21,6 +21,7 @@
 #include "custom_utilities/advanced_constitutive_law_utilities.h"
 #include "custom_utilities/constitutive_law_utilities.h"
 #include "structural_mechanics_application_variables.h"
+#include "constitutive_laws_application_variables.h"
 #include "includes/mat_variables.h"
 
 namespace Kratos
@@ -128,6 +129,11 @@ bool ThicknessIntegratedIsotropicConstitutiveLaw::Has(const Variable<double>& rT
 
 bool ThicknessIntegratedIsotropicConstitutiveLaw::Has(const Variable<Vector>& rThisVariable)
 {
+    if (rThisVariable == PLASTIC_STRAIN_VECTOR_TOP_SURFACE ||
+        rThisVariable == PLASTIC_STRAIN_VECTOR_BOTTOM_SURFACE ||
+        rThisVariable == PLASTIC_STRAIN_VECTOR_MIDDLE_SURFACE) {
+            return mConstitutiveLaws[0]->Has(PLASTIC_STRAIN_VECTOR);
+    }
     return Has<Vector>(rThisVariable);
 }
 
@@ -161,6 +167,17 @@ Vector& ThicknessIntegratedIsotropicConstitutiveLaw::GetValue(
     Vector& rValue
     )
 {
+    if (rThisVariable == PLASTIC_STRAIN_VECTOR_TOP_SURFACE ||
+        rThisVariable == PLASTIC_STRAIN_VECTOR_BOTTOM_SURFACE ||
+        rThisVariable == PLASTIC_STRAIN_VECTOR_MIDDLE_SURFACE) {
+            SizeType layer = 0;
+            if (rThisVariable == PLASTIC_STRAIN_VECTOR_BOTTOM_SURFACE) {
+                layer = mThicknessIntegrationPoints - 1;
+            } else if (rThisVariable == PLASTIC_STRAIN_VECTOR_MIDDLE_SURFACE) {
+                layer = (mThicknessIntegrationPoints - 1) / 2; // Assuming odd number of IPs, so that we have a middle one }
+            }
+            return mConstitutiveLaws[layer]->GetValue(PLASTIC_STRAIN_VECTOR, rValue);
+    }
     return ThicknessIntegratedIsotropicConstitutiveLaw::TGetValue<Vector>(rThisVariable, rValue);
 }
 
