@@ -227,6 +227,13 @@ public:
                                       const ProcessInfo& rCurrentProcessInfo) override;
 
     /**
+     * @brief Calculate values of type double on integration points (stub)
+     */
+    void CalculateOnIntegrationPoints(const Variable<Vector>& rVariable,
+                                      std::vector<Vector>& rOutput,
+                                      const ProcessInfo& rCurrentProcessInfo) override;
+
+    /**
      * @brief This method gets a value directly in the CL
      * @details Avoids code repetition
      * @param rVariable The variable we want to get
