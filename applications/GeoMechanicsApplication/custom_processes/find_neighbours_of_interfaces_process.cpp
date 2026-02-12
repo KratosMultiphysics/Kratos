@@ -17,8 +17,6 @@
 #include "custom_utilities/process_utilities.h"
 #include "includes/kratos_parameters.h"
 
-#include <string>
-
 using namespace std::string_literals;
 
 namespace Kratos
