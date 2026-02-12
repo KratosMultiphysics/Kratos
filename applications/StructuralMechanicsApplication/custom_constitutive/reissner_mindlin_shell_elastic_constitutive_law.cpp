@@ -162,4 +162,52 @@ void ReissnerMindlinShellElasticConstitutiveLaw::CalculateMaterialResponseCauchy
     }
 }
 
+/***********************************************************************************/
+/***********************************************************************************/
+
+double& ReissnerMindlinShellElasticConstitutiveLaw::CalculateValue(
+    ConstitutiveLaw::Parameters& rValues,
+    const Variable<double>& rThisVariable,
+    double& rValue)
+{
+    if (rThisVariable == VON_MISES_STRESS_TOP_SURFACE ||
+        rThisVariable == VON_MISES_STRESS_BOTTOM_SURFACE ||
+        rThisVariable == VON_MISES_STRESS_MIDDLE_SURFACE) {
+
+        const auto& r_props = rValues.GetMaterialProperties();
+        double z = 0.0;
+
+        if (rThisVariable == VON_MISES_STRESS_TOP_SURFACE) {
+            z = 0.5 * r_props[THICKNESS];
+        } else if (rThisVariable == VON_MISES_STRESS_BOTTOM_SURFACE) {
+            z = -0.5 * r_props[THICKNESS];
+        }
+
+        Vector strain_plane_stress(3), stress_plane_stress(3);
+        Matrix constitutive_matrix(3, 3);
+
+        Vector generalized_strain = rValues.GetStrainVector(); // Filled by the element
+
+        noalias(strain_plane_stress) = boost::numeric::ublas::project(generalized_strain, boost::numeric::ublas::range(0, 3)) +
+            z * boost::numeric::ublas::project(generalized_strain, boost::numeric::ublas::range(3, 6)); // gEm + z * gEb
+
+        ConstitutiveLawUtilities<3>::CalculateElasticMatrixPlaneStress(constitutive_matrix, r_props[YOUNG_MODULUS], r_props[POISSON_RATIO]);
+        noalias(stress_plane_stress) = prod(constitutive_matrix, strain_plane_stress);
+        rValue = ConstitutiveLawUtilities<3>::CalculateVonMisesEquivalentStress(stress_plane_stress);
+        return rValue;
+    } else if (rThisVariable == VON_MISES_STRESS) {
+        double top_value, mid_value, bot_value;
+
+        CalculateValue(rValues, VON_MISES_STRESS_TOP_SURFACE, top_value);
+        CalculateValue(rValues, VON_MISES_STRESS_MIDDLE_SURFACE, mid_value);
+        CalculateValue(rValues, VON_MISES_STRESS_BOTTOM_SURFACE, bot_value);
+        rValue = std::max({top_value, mid_value, bot_value});
+        return rValue;
+    }
+    return rValue;
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
 } // Namespace Kratos
