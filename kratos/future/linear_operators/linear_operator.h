@@ -13,7 +13,6 @@
 #pragma once
 
 // System includes
-#include <any>
 
 // External includes
 
@@ -79,8 +78,18 @@ public:
      */
     LinearOperator(Parameters ThisParameters)
     {
-        mNumRows = ThisParameters["num_rows"].GetInt();
-        mNumCols = ThisParameters["num_cols"].GetInt();
+        mSize1 = ThisParameters["size_1"].GetInt();
+        mSize2 = ThisParameters["size_2"].GetInt();
+    }
+
+    /**
+     * @brief Construct a new Linear Operator object
+     * @param Shape Pair with the shape of the linear operator
+     */
+    LinearOperator(const std::pair<std::size_t, std::size_t> Shape)
+    {
+        mSize1 = std::get<0>(Shape);
+        mSize2 = std::get<1>(Shape);
     }
 
     /// Deleted copy constructor (non-copyable)
@@ -130,68 +139,53 @@ public:
         KRATOS_ERROR << "TransposeSpMV() is not implemented in base LinearOperator class." << std::endl;
     }
 
-    /**
-     * @brief Clear the operator data.
-     * @details Resets the sizes and function objects to null.
-     */
-    virtual void Clear()
-    {
-        mNumRows = 0;
-        mNumCols = 0;
-    }
-
     ///@}
     ///@name Access
     ///@{
 
+    /**
+     * @brief Get the Matrix object
+     * @return MatrixType& Reference to the underlying matrix.
+     */
     virtual MatrixType& GetMatrix()
     {
         KRATOS_ERROR << "GetMatrix() is not implemented in base LinearOperator class." << std::endl;
     }
 
+    /**
+     * @brief Get the Matrix object
+     * @return const MatrixType& Reference to the underlying matrix.
+     */
     virtual const MatrixType& GetMatrix() const
     {
         KRATOS_ERROR << "GetMatrix() is not implemented in base LinearOperator class." << std::endl;
-    }
-
-    /**
-     * @brief Set the number of rows.
-     * @param NumRows Number of rows
-     */
-    void SetNumRows(std::size_t NumRows)
-    {
-        mNumRows = NumRows;
-    }
-
-    /**
-     * @brief Set the number of columns.
-     * @param NumCols Number of columns
-     */
-    void SetNumCols(std::size_t NumCols)
-    {
-        mNumCols = NumCols;
     }
 
     ///@}
     ///@name Inquiry
     ///@{
 
+    std::pair<std::size_t, std::size_t> Shape() const
+    {
+        return {mSize1, mSize2};
+    }
+
     /**
      * @brief Get the number of rows.
      * @return Number of rows of the operator
      */
-    std::size_t NumRows() const
+    std::size_t Size1() const
     {
-        return mNumRows;
+        return mSize1;
     }
 
     /**
      * @brief Get the number of columns.
      * @return Number of columns of the operator
      */
-    std::size_t NumCols() const
+    std::size_t Size2() const
     {
-        return mNumCols;
+        return mSize2;
     }
 
     /**
@@ -210,10 +204,10 @@ private:
     ///@{
 
     /// Number of rows of the operator
-    std::size_t mNumRows = 0;
+    std::size_t mSize1 = 0;
 
     /// Number of columns of the operator
-    std::size_t mNumCols = 0;
+    std::size_t mSize2 = 0;
 
     ///@}
 }; // class LinearOperator

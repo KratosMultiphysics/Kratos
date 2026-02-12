@@ -30,6 +30,44 @@ namespace Kratos::Future
 ///@name Kratos Classes
 ///@{
 
+/// Enum defining the available linear system matrices
+enum class SparseMatrixTag
+{
+    LHS = 0, // Left hand side matrix tag
+    MassMatrix = 1, // Mass matrix tag
+    StiffnessMatrix = 2, // Stiffness matrix tag
+    DampingMatrix = 3, // Damping matrix tag
+    NumberOfTags = 4 // Sentinel tag with the size
+};
+
+/// Enum defining the available linear system vectors
+enum class DenseVectorTag
+{
+    RHS = 0, // Right hand side vector tag
+    Dx = 1, // Solution increment vector tag
+    Eigvals = 2, // Eigenvalues vector tag
+    NumberOfTags = 3 // Sentinel tag with the size
+};
+
+/// Enum defining the available linear system dense matrices
+enum class DenseMatrixTag
+{
+    RHS = 0, // Right hand side matrix tag
+    Dx = 1, // Solution increment matrix tag
+    Eigvects = 2, // Eigenvectors matrix tag
+    NumberOfTags = 3 // Sentinel tag with the size
+};
+
+/**
+ * @brief Linear system container
+ * This class encapsulates the components of a linear system, including the
+ * left-hand side matrix (either in matrix-based or matrix-free form), the
+ * right-hand side vector and the solution vector.
+ * The storage of the matrices is handled by a linear operator.
+ * The ownership of the linear operator is transferred to the linear system but not that of the arrays.
+ * Information about the physics of the problem can be optionally stored via a ModelPart and its Dofs.
+ * @tparam TLinearAlgebra The struct containing the linear algebra types
+ */
 template <class TLinearAlgebra>
 class LinearSystem final
 {
@@ -50,6 +88,12 @@ public:
     /// Type of the vector from the linear algebra traits
     using VectorType = typename TLinearAlgebra::VectorType;
 
+    /// Type of the dense matrix from the linear algebra traits
+    using DenseMatrixType = typename TLinearAlgebra::DenseMatrixType;
+
+    /// Type of the dense matrix pointer
+    using DenseMatrixPointerType = Kratos::shared_ptr<DenseMatrixType>;
+
     /// Type of the linear operator from the linear algebra traits
     using LinearOperatorType = LinearOperator<TLinearAlgebra>;
 
@@ -57,52 +101,56 @@ public:
     ///@name Life Cycle
     ///@{
 
-    /// Constructor
+    /// Default onstructor
     LinearSystem() = default;
 
-    /// Constructor with matrix
+    /// Constructor with system name only
+    LinearSystem(std::string SystemName)
+        : mSystemName(SystemName)
+    {
+    }
+
+    /// Constructor with left hand side matrix
     LinearSystem(
         typename MatrixType::Pointer pLhs,
         typename VectorType::Pointer pRhs,
-        typename VectorType::Pointer pSol,
+        typename VectorType::Pointer pDx,
         std::string SystemName = "")
-        : mpLhs(pLhs)
-        , mpRhs(pRhs)
-        , mpSol(pSol)
-        , mSystemName(SystemName)
+        : mSystemName(SystemName)
     {
-        mpLinearOperator = Kratos::make_shared<SparseMatrixLinearOperator<TLinearAlgebra>>(*pLhs);
+        this->pSetMatrix(pLhs, SparseMatrixTag::LHS);
+        this->pSetVector(pRhs, DenseVectorTag::RHS);
+        this->pSetVector(pDx, DenseVectorTag::Dx);
+    }
+
+    /// Constructor with linear operator emulating the left hand side matrix
+    LinearSystem(
+        typename LinearOperatorType::UniquePointer&& pLinearOperator,
+        typename VectorType::Pointer pRhs,
+        typename VectorType::Pointer pDx,
+        std::string SystemName = "")
+        : mSystemName(SystemName)
+    {
+        this->pSetLinearOperator(std::move(pLinearOperator), SparseMatrixTag::LHS);
+        this->pSetVector(pRhs, DenseVectorTag::RHS);
+        this->pSetVector(pDx, DenseVectorTag::Dx);
     }
 
     /// Constructor with matrix and additional data
     LinearSystem(
         typename MatrixType::Pointer pLhs,
         typename VectorType::Pointer pRhs,
-        typename VectorType::Pointer pSol,
+        typename VectorType::Pointer pDx,
         ModelPart& rModelPart,
         DofsArrayType& rDofs,
         const std::string SystemName = "")
-        : mpLhs(pLhs)
-        , mpRhs(pRhs)
-        , mpSol(pSol)
-        , mSystemName(SystemName)
+        : mSystemName(SystemName)
     {
         mpModelPart = &rModelPart;
         mpDofs = Kratos::make_shared<DofsArrayType>(rDofs);
-        mpLinearOperator = Kratos::make_shared<SparseMatrixLinearOperator<TLinearAlgebra>>(*pLhs);
-    }
-
-    /// Constructor with linear operator
-    LinearSystem(
-        typename LinearOperatorType::Pointer pLinearOperator,
-        typename VectorType::Pointer pRhs,
-        typename VectorType::Pointer pSol,
-        std::string SystemName = "")
-        : mpLinearOperator(pLinearOperator)
-        , mpRhs(pRhs)
-        , mpSol(pSol)
-        , mSystemName(SystemName)
-    {
+        this->pSetMatrix(pLhs, SparseMatrixTag::LHS);
+        this->pSetVector(pRhs, DenseVectorTag::RHS);
+        this->pSetVector(pDx, DenseVectorTag::Dx);
     }
 
     /// Constructor with linear operator and additional data
@@ -113,30 +161,20 @@ public:
         ModelPart& rModelPart,
         DofsArrayType& rDofs,
         const std::string SystemName = "")
-        : mpLinearOperator(pLinearOperator)
-        , mpRhs(pRhs)
-        , mpSol(pSol)
-        , mSystemName(SystemName)
+        : mSystemName(SystemName)
     {
         mpModelPart = &rModelPart;
         mpDofs = Kratos::make_shared<DofsArrayType>(rDofs);
+        this->pSetLinearOperator(std::move(pLinearOperator), SparseMatrixTag::LHS);
+        this->pSetVector(pRhs, DenseVectorTag::RHS);
+        this->pSetVector(pSol, DenseVectorTag::Dx);
     }
 
-    // /// Copy constructor
-    // LinearSystem(const LinearSystem& rOther)
-    // {
-    //     mpLhs = rOther.mpLhs;
-    //     mpRhs = rOther.mpRhs;
-    //     mpLinearOperator = rOther.mpLinearOperator;
-    // }
+    /// Copy constructor
+    LinearSystem(const LinearSystem& rOther) = delete;
 
-    // /// Defaulted move constructor
-    // LinearSystem(LinearSystem&& rOther)
-    // {
-    //     mpLhs = std::move(rOther.mpLhs);
-    //     mpRhs = std::move(rOther.mpRhs);
-    //     mpLinearOperator = std::move(rOther.mpLinearOperator);
-    // }
+    /// Move constructor
+    LinearSystem(LinearSystem&& rOther) = delete;
 
     /// Destructor
     ~LinearSystem() = default;
@@ -145,35 +183,22 @@ public:
     ///@name Operators
     ///@{
 
-    // /// Copy assignment operator
-    // LinearSystem& operator=(const LinearSystem& rOther)
-    // {
-    //     mpLhs = rOther.mpLhs;
-    //     mpRhs = rOther.mpRhs;
-    //     mpLinearOperator = rOther.mpLinearOperator;
-    //     return *this;
-    // }
+    /// Copy assignment operator
+    LinearSystem& operator=(const LinearSystem& rOther) = delete;
 
-    // /// Defaulted move assignment operator
-    // LinearSystem& operator=(LinearSystem&& rOther)
-    // {
-    //     mpLhs = std::move(rOther.mpLhs);
-    //     mpRhs = std::move(rOther.mpRhs);
-    //     mpLinearOperator = std::move(rOther.mpLinearOperator);
-    //     return *this;
-    // }
+    /// Move assignment operator
+    LinearSystem& operator=(LinearSystem&& rOther) = delete;
 
     ///@}
     ///@name Operations
     ///@{
 
+    /**
+     * @brief This method checks if the linear system is consistent
+     * @return 0 if consistent
+     */
     virtual int Check()
     {
-        // Check if the system arrays are initialized
-        KRATOS_ERROR_IF(mpLinearOperator == nullptr && mpLhs == nullptr) << "Linear operator or left-hand side matrix must be initialized." << std::endl;
-        KRATOS_ERROR_IF(mpRhs == nullptr) << "Right-hand side vector must be initialized." << std::endl;
-        KRATOS_ERROR_IF(mpSol == nullptr) << "Solution vector must be initialized." << std::endl;
-
         // Check if the system name is set (not mandatory but a good practice for debugging purposes)
         KRATOS_WARNING_IF("LinearSystem", mSystemName.empty()) << "System name is empty." << std::endl;
 
@@ -185,142 +210,111 @@ public:
     ///@{
 
     /**
-    * @brief Get a pointer to the linear operator.
-    * @return Pointer to the linear operator
-    */
-    virtual typename LinearOperatorType::Pointer& GetLinearOperator()
-    {
-        KRATOS_ERROR_IF(!mpLinearOperator) << "Linear operator is not initialized." << std::endl;
-        return mpLinearOperator;
-    }
-
-    //FIXME: This should be const
-    // /**
-    // * @brief Get a pointer to the linear operator.
-    // * @return Pointer to the linear operator
-    // */
-    // virtual typename LinearOperatorType::Pointer& GetLinearOperator() const
-    // {
-    //     KRATOS_ERROR_IF(!mpLinearOperator) << "Linear operator is not initialized." << std::endl;
-    //     return mpLinearOperator;
-    // }
-
-    /**
-    * @brief Get a reference to the left-hand side matrix.
-    * @return Reference to the left-hand side matrix
-    */
-    virtual typename MatrixType::Pointer pGetLeftHandSide()
-    {
-        KRATOS_ERROR_IF(!mpLhs) << "Left-hand side matrix is not initialized." << std::endl;
-        return mpLhs;
-    }
-
-    /**
-    * @brief Get a reference to the left-hand side matrix.
-    * @return Reference to the left-hand side matrix
-    */
-    virtual MatrixType& GetLeftHandSide()
-    {
-        KRATOS_ERROR_IF(!mpLhs) << "Left-hand side matrix is not initialized." << std::endl;
-        return *mpLhs;
-    }
-
-    /**
-    * @brief Get a const reference to the left-hand side matrix.
-    * @return Const reference to the left-hand side matrix
-    */
-    virtual const MatrixType& GetLeftHandSide() const
-    {
-        KRATOS_ERROR_IF(!mpLhs) << "Left-hand side matrix is not initialized." << std::endl;
-        return *mpLhs;
-    }
-
-    /**
-     * @brief Set the Left Hand Side matrix
-     * @param rLhs The left-hand side matrix
+     * @brief Get a matrix
+     * @param Tag The tag of the matrix to be retrieved (@see SparseMatrixTag)
+     * @return Reference to the matrix
      */
-    virtual void SetLeftHandSide(MatrixType& rLhs)
+    MatrixType& GetMatrix(SparseMatrixTag Tag) const
     {
-        mpLhs = Kratos::make_shared<MatrixType>(rLhs);
-        mpLinearOperator = Kratos::make_shared<SparseMatrixLinearOperator<TLinearAlgebra>>(rLhs);
+        const std::size_t tag_idx = GetTagIndex(Tag);
+        const auto& p_matrix_lin_op = mLinearOperators[tag_idx];
+        KRATOS_ERROR_IF(!p_matrix_lin_op) << "Requested matrix is not initialized for tag " << tag_idx << std::endl;
+        KRATOS_ERROR_IF(p_matrix_lin_op->IsMatrixFree()) << "Linear operator referring to matrix " << tag_idx << " is matrix free" << std::endl;
+        return p_matrix_lin_op->GetMatrix();
     }
 
     /**
-    * @brief Get a pointer to the right-hand side vector.
-    * @return Pointer to the right-hand side vector
-    */
-    virtual typename VectorType::Pointer pGetRightHandSide()
-    {
-        KRATOS_ERROR_IF(!mpRhs) << "Right-hand side vector is not initialized." << std::endl;
-        return mpRhs;
-    }
-
-    /**
-    * @brief Get a reference to the right-hand side vector.
-    * @return Reference to the right-hand side vector
-    */
-    virtual VectorType& GetRightHandSide()
-    {
-        KRATOS_ERROR_IF(!mpRhs) << "Right-hand side vector is not initialized." << std::endl;
-        return *mpRhs;
-    }
-
-    /**
-    * @brief Get a const reference to the right-hand side vector.
-    * @return Const reference to the right-hand side vector
-    */
-    virtual const VectorType& GetRightHandSide() const
-    {
-        KRATOS_ERROR_IF(!mpRhs) << "Right-hand side vector is not initialized." << std::endl;
-        return *mpRhs;
-    }
-
-    /**
-     * @brief Set the Right Hand Side vector
-     * @param rRhs The right-hand side vector
+     * @brief Set a matrix to an specific tag
+     * @details Note that the matrices are stored by creating a matrix-based linear operator
+     * @param pMatrix Pointer to the matrix
+     * @param Tag The tag of the matrix to be set (@see SparseMatrixTag)
      */
-    virtual void SetRightHandSide(VectorType& rRhs)
+    void pSetMatrix(
+        typename MatrixType::Pointer pMatrix,
+        SparseMatrixTag Tag)
     {
-        mpRhs = Kratos::make_shared<VectorType>(rRhs);
+        KRATOS_ERROR_IF(!pMatrix) << "Provided matrix pointer is null" << std::endl;
+        mLinearOperators[GetTagIndex(Tag)] = Kratos::make_unique<SparseMatrixLinearOperator<TLinearAlgebra>>(*pMatrix);
     }
 
     /**
-     * @brief Get a pointer to the solution vector.
-     * @return Pointer to the solution vector
+     * @brief Get a dense matrix
+     * @param Tag The tag of the dense matrix to be retrieved (@see DenseMatrixTag)
+     * @return Reference to the dense matrix
      */
-    virtual typename VectorType::Pointer pGetSolution() //FIXME: rename to pGetSolutionIncrement?
+    DenseMatrixType& GetMatrix(DenseMatrixTag Tag) const
     {
-        KRATOS_ERROR_IF(!mpSol) << "Solution vector is not initialized." << std::endl;
-        return mpSol;
+        const std::size_t tag_idx = GetTagIndex(Tag);
+        const auto& p_dense_matrix = mDenseMatrices[tag_idx];
+        KRATOS_ERROR_IF(!p_dense_matrix) << "Requested dense matrix is not initialized for tag " << tag_idx << std::endl;
+        return *p_dense_matrix;
     }
 
     /**
-    * @brief Get a reference to the solution vector.
-    * @return Reference to the solution vector
-    */
-    virtual VectorType& GetSolution() //FIXME: rename to GetSolutionIncrement?
-    {
-        KRATOS_ERROR_IF(!mpSol) << "Solution vector is not initialized." << std::endl;
-        return *mpSol;
-    }
-
-    /**
-    * @brief Get a const reference to the solution vector.
-    * @return Const reference to the solution vector
-    */
-    virtual const VectorType& GetSolution() const //FIXME: rename to GetSolutionIncrement?
-    {
-        KRATOS_ERROR_IF(!mpSol) << "Solution vector is not initialized." << std::endl;
-        return *mpSol;
-    }
-
-    /**
-     * @brief Set the Solution vector
-     * @param rSol The solution vector
+     * @brief Set a dense matrix to an specific tag
+     * @param pDenseMatrix Pointer to the dense matrix
+     * @param Tag The tag of the dense matrix to be set (@see DenseMatrixTag)
      */
-    virtual void SetSolution(VectorType& rSol) //FIXME: rename to SetSolutionIncrement?
+    void pSetMatrix(
+        DenseMatrixPointerType pDenseMatrix,
+        DenseMatrixTag Tag)
     {
-        mpSol = Kratos::make_shared<VectorType>(rSol);
+        KRATOS_ERROR_IF(!pDenseMatrix) << "Provided dense matrix pointer is null" << std::endl;
+        mDenseMatrices[GetTagIndex(Tag)] = pDenseMatrix;
+    }
+
+    /**
+     * @brief Get a vector
+     * @param Tag The tag of the vector to be retrieved (@see DenseVectorTag)
+     * @return Reference to the vector
+     */
+    VectorType& GetVector(DenseVectorTag Tag) const
+    {
+        const std::size_t tag_idx = GetTagIndex(Tag);
+        const auto& p_vector = mVectors[tag_idx];
+        KRATOS_ERROR_IF(!p_vector) << "Requested vector is not initialized for tag " << tag_idx << std::endl;
+        return *p_vector;
+    }
+
+    /**
+     * @brief Set a vector to an specific tag
+     * @param pVector Pointer to the vector
+     * @param Tag The tag of the vector to be set (@see DenseVectorTag)
+     */
+    void pSetVector(
+        typename VectorType::Pointer pVector,
+        DenseVectorTag Tag)
+    {
+        KRATOS_ERROR_IF(!pVector) << "Provided vector pointer is null" << std::endl;
+        mVectors[GetTagIndex(Tag)] = pVector;
+    }
+
+    /**
+     * @brief Get a linear operator
+     * @param Tag The tag of the linear operator to be retrieved (@see SparseMatrixTag)
+     * @return Reference to the linear operator
+     */
+    LinearOperatorType& GetLinearOperator(SparseMatrixTag Tag) const
+    {
+        const std::size_t tag_idx = GetTagIndex(Tag);
+        const auto& p_linear_operator = mLinearOperators[tag_idx];
+        KRATOS_ERROR_IF(!p_linear_operator) << "Requested linear operator is not initialized for tag " << tag_idx << std::endl;
+        return *p_linear_operator;
+    }
+
+    /**
+     * @brief Set a linear operator to an specific tag
+     * @details Note that the linear operator ownership is transferred to the linear system
+     * so a linear operator cannot be set to more than one linear system or tag.
+     * @param pLinearOperator Pointer to the linear operator
+     * @param Tag The tag of the linear operator to be set (@see SparseMatrixTag)
+     */
+    void pSetLinearOperator(
+        typename LinearOperatorType::UniquePointer&& pLinearOperator,
+        SparseMatrixTag Tag)
+    {
+        KRATOS_ERROR_IF(!pLinearOperator) << "Provided linear operator pointer is null" << std::endl;
+        mLinearOperators[GetTagIndex(Tag)] = std::move(pLinearOperator);
     }
 
     /**
@@ -329,7 +323,7 @@ public:
      * @param rModelPart The model part from which the linear system is built
      * @param rDofs The dofs array of the linear system
      */
-    virtual void SetAdditionalData(
+    void SetAdditionalData(
         ModelPart& rModelPart,
         DofsArrayType& rDofs)
     {
@@ -343,30 +337,15 @@ public:
     ///@{
 
     /**
-    * @brief Check if the linear system is matrix-free.
-    * @return True if the linear system is matrix-free, false if it is not
-    */
-    virtual bool IsMatrixFree() const
-    {
-        if (mpLhs) {
-            return false;
-        } else if (mpLinearOperator) {
-            return true;
-        } else {
-            KRATOS_ERROR << "Linear system has no matrix or linear operator." << std::endl;
-        }
-    }
-
-    /**
      * @brief This method checks if the dimensions of the system of equations are consistent
      * @return True if consistent, false otherwise
      */
-    virtual bool IsConsistent()
+    bool IsConsistent()
     {
-        const std::size_t num_rows = mpLinearOperator->NumRows();
-        const std::size_t num_cols = mpLinearOperator->NumCols();
-        const std::size_t size_x = mpSol->size();
-        const std::size_t size_b = mpRhs->size();
+        const std::size_t num_rows = GetLinearOperator(SparseMatrixTag::LHS).Size1();
+        const std::size_t num_cols = GetLinearOperator(SparseMatrixTag::LHS).Size2();
+        const std::size_t size_x = GetVector(DenseVectorTag::Dx).size();
+        const std::size_t size_b = GetVector(DenseVectorTag::RHS).size();
         return ((num_rows ==  num_cols) && (num_rows ==  size_x) && (num_rows ==  size_b));
     }
 
@@ -374,7 +353,7 @@ public:
      * @brief This method checks if the dimensions of the system of equations are not consistent
      * @return False if consistent, true otherwise
      */
-    virtual bool IsNotConsistent()
+    bool IsNotConsistent()
     {
         return !IsConsistent();
     }
@@ -383,7 +362,7 @@ public:
     * @brief Get the name of the linear system.
     * @return Name of the linear system
     */
-    virtual const std::string& Name() const
+    const std::string& Name() const
     {
         return mSystemName;
     }
@@ -393,7 +372,7 @@ public:
      * @return true if the linear system has additional data
      * @return false if the linear system does not have additional data
      */
-    virtual bool HasAdditionalData() const
+    bool HasAdditionalData() const
     {
         return mpModelPart != nullptr && mpDofs != nullptr;
     }
@@ -404,19 +383,51 @@ private:
     ///@name Member Variables
     ///@{
 
-    typename LinearOperatorType::Pointer mpLinearOperator = nullptr;
+    const std::string mSystemName; // Name of the linear system
 
-    typename MatrixType::Pointer mpLhs = nullptr;
+    ModelPart* mpModelPart = nullptr; // Model part of the linear system
 
-    typename VectorType::Pointer mpRhs = nullptr;
+    typename ModelPart::DofsArrayType::Pointer mpDofs = nullptr; // Dofs of the linear system
 
-    typename VectorType::Pointer mpSol = nullptr;
+    std::array<typename VectorType::Pointer, static_cast<std::size_t>(DenseVectorTag::NumberOfTags)> mVectors; // Vectors of the linear system
 
-    const std::string mSystemName;
+    std::array<DenseMatrixPointerType, static_cast<std::size_t>(DenseMatrixTag::NumberOfTags)> mDenseMatrices; // Dense matrices of the linear system
 
-    ModelPart* mpModelPart = nullptr;
+    std::array<typename LinearOperatorType::UniquePointer, static_cast<std::size_t>(SparseMatrixTag::NumberOfTags)> mLinearOperators; // Linear operators of the linear system
 
-    typename ModelPart::DofsArrayType::Pointer mpDofs = nullptr;
+    ///@}
+    ///@name Inquiry
+    ///@{
+
+    /**
+     * @brief Get the index of a tag
+     * @param Tag The tag of the linear operator to be retrieved (@see SparseMatrixTag)
+     * @return constexpr std::size_t The index of the tag
+     */
+    static constexpr std::size_t GetTagIndex(SparseMatrixTag Tag)
+    {
+        return static_cast<std::size_t>(Tag);
+    }
+
+    /**
+     * @brief Get the Tag Index object
+     * @param Tag The tag of the linear operator to be retrieved (@see DenseVectorTag)
+     * @return constexpr std::size_t The index of the tag
+     */
+    static constexpr std::size_t GetTagIndex(DenseVectorTag Tag)
+    {
+        return static_cast<std::size_t>(Tag);
+    }
+
+    /**
+     * @brief Get the Tag Index object
+     * @param Tag The tag of the linear operator to be retrieved (@see DenseMatrixTag)
+     * @return constexpr std::size_t The index of the tag
+     */
+    static constexpr std::size_t GetTagIndex(DenseMatrixTag Tag)
+    {
+        return static_cast<std::size_t>(Tag);
+    }
 
     ///@}
 }; // Class LinearSystem

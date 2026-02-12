@@ -370,9 +370,10 @@ public:
         rLHS.BeginAssemble();
 
         // Assemble entities
-        TLSType aux_tls;
         #pragma omp parallel
         {
+            TLSType aux_tls;
+
             // Assemble elements
             # pragma omp for schedule(guided, 512) nowait
             for (int k = 0; k < n_elems; ++k) {
@@ -436,9 +437,10 @@ public:
         rLHS.BeginAssemble();
 
         // Assemble entities
-        TLSType aux_tls;
         #pragma omp parallel
         {
+            TLSType aux_tls;
+
             // Assemble elements
             # pragma omp for schedule(guided, 512) nowait
             for (int k = 0; k < n_elems; ++k) {
@@ -666,9 +668,10 @@ public:
         rRHS.BeginAssemble();
 
         // Assemble entities
-        TLSType aux_tls;
         #pragma omp parallel
         {
+            TLSType aux_tls;
+
             // Assemble elements
             # pragma omp for schedule(guided, 512) nowait
             for (int k = 0; k < n_elems; ++k) {
@@ -726,9 +729,10 @@ public:
         rLHS.BeginAssemble();
 
         // Assemble entities
-        TLSType aux_tls;
         #pragma omp parallel
         {
+            TLSType aux_tls;
+
             // Assemble elements
             # pragma omp for schedule(guided, 512) nowait
             for (int k = 0; k < n_elems; ++k) {
@@ -786,9 +790,10 @@ public:
         rMassMatrix.BeginAssemble();
 
         // Assemble entities
-        TLSType aux_tls;
         #pragma omp parallel
         {
+            TLSType aux_tls;
+
             // Assemble elements
             # pragma omp for schedule(guided, 512) nowait
             for (int k = 0; k < n_elems; ++k) {
@@ -846,9 +851,10 @@ public:
         rDampingMatrix.BeginAssemble();
 
         // Assemble entities
-        TLSType aux_tls;
         #pragma omp parallel
         {
+            TLSType aux_tls;
+
             // Assemble elements
             # pragma omp for schedule(guided, 512) nowait
             for (int k = 0; k < n_elems; ++k) {
@@ -914,10 +920,11 @@ public:
             r_constraints_T.BeginAssemble();
             r_constraints_q.BeginAssemble();
 
-            TLSType aux_tls;
-            auto& r_eff_dof_set = *(rImplicitStrategyData.pGetEffectiveDofSet());
+            auto& r_eff_dof_set = *(rLinearSystemContainer.pEffectiveDofSet);
             #pragma omp parallel
             {
+                TLSType aux_tls;
+
                 // Auxiliary set to store the inactive constraints slave DOFs (required by the block build)
                 std::unordered_set<IndexType> auxiliar_inactive_slave_dofs;
 

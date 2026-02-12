@@ -57,8 +57,9 @@ KRATOS_TEST_CASE_IN_SUITE(StaticSchemeBuild1D, KratosCoreFastSuite)
     // Note that in a standard case this happens at the strategy level
     Future::ImplicitStrategyData<Future::SerialLinearAlgebraTraits> strategy_data_container;
 
-    // Call the initialize (note that this sets all the arrays above)
-    p_scheme->Initialize(strategy_data_container);
+    // Call the initialize solution step (note that this sets all the arrays above)
+    p_scheme->Initialize(linear_system_container);
+    p_scheme->InitializeSolutionStep(linear_system_container);
 
     // Call the build
     const auto p_linear_system = strategy_data_container.pGetLinearSystem();
@@ -117,8 +118,9 @@ KRATOS_TEST_CASE_IN_SUITE(StaticSchemeBuild2D, KratosCoreFastSuite)
     // Note that in a standard case this happens at the strategy level
     Future::ImplicitStrategyData<Future::SerialLinearAlgebraTraits> strategy_data_container;
 
-    // Call the initialize (note that this sets all the arrays above)
-    p_scheme->Initialize(strategy_data_container);
+    // Call the initialize solution step (note that this sets all the arrays above)
+    p_scheme->Initialize(linear_system_container);
+    p_scheme->InitializeSolutionStep(linear_system_container);
 
     // Call the build
     const auto p_linear_system = strategy_data_container.pGetLinearSystem();
