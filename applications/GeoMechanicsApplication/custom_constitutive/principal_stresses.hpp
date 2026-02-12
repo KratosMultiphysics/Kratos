@@ -12,10 +12,11 @@
 
 #pragma once
 
+#include "includes/exception.h"
 #include "includes/kratos_export_api.h"
-#include "includes/ublas_interface.h"
 
 #include <algorithm>
+#include <array>
 #include <initializer_list>
 #include <iterator>
 
@@ -24,8 +25,8 @@ namespace Kratos::Geo
 class KRATOS_API(GEO_MECHANICS_APPLICATION) PrincipalStresses
 {
 public:
-    static constexpr std::size_t msVectorSize = 3;
-    using InternalVectorType                  = BoundedVector<double, msVectorSize>;
+    static constexpr std::size_t msArraySize = 3;
+    using InternalArrayType                  = std::array<double, msArraySize>;
 
     PrincipalStresses() = default;
 
@@ -38,8 +39,8 @@ public:
     template <std::forward_iterator InputIt>
     PrincipalStresses(InputIt First, InputIt Last)
     {
-        KRATOS_DEBUG_ERROR_IF(std::distance(First, Last) != msVectorSize)
-            << "Cannot construct a PrincipalStresses instance: expected " << msVectorSize
+        KRATOS_DEBUG_ERROR_IF(std::distance(First, Last) != msArraySize)
+            << "Cannot construct a PrincipalStresses instance: expected " << msArraySize
             << " values, but got " << std::distance(First, Last) << " value(s)\n";
 
         std::copy(First, Last, mValues.begin());
@@ -50,15 +51,15 @@ public:
     template <typename VectorType>
     VectorType CopyTo()
     {
-        VectorType result(msVectorSize);
+        VectorType result(msArraySize);
         std::ranges::copy(mValues, result.begin());
         return result;
     }
 
-    [[nodiscard]] const InternalVectorType& Values() const;
-    [[nodiscard]] InternalVectorType&       Values();
+    [[nodiscard]] const InternalArrayType& Values() const;
+    [[nodiscard]] InternalArrayType&       Values();
 
 private:
-    InternalVectorType mValues = ZeroVector{msVectorSize};
+    InternalArrayType mValues = {0.0, 0.0, 0.0};
 };
 } // namespace Kratos::Geo

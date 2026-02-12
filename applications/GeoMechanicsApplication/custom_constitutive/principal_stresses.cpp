@@ -19,8 +19,8 @@ PrincipalStresses::PrincipalStresses(const std::initializer_list<double>& rValue
 {
 }
 
-const PrincipalStresses::InternalVectorType& PrincipalStresses::Values() const { return mValues; }
+const PrincipalStresses::InternalArrayType& PrincipalStresses::Values() const { return mValues; }
 
-PrincipalStresses::InternalVectorType& PrincipalStresses::Values() { return mValues; }
+PrincipalStresses::InternalArrayType& PrincipalStresses::Values() { return mValues; }
 
 } // namespace Kratos::Geo
