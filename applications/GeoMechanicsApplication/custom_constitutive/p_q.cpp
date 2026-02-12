@@ -18,7 +18,7 @@ namespace Kratos::Geo
 
 PQ::PQ(const std::initializer_list<double>& rValues) : PQ{rValues.begin(), rValues.end()} {}
 
-const PQ::InternalVectorType& PQ::Values() const { return mValues; }
+const PQ::InternalArrayType& PQ::Values() const { return mValues; }
 
 double PQ::P() const { return mValues[0]; }
 
