@@ -207,6 +207,10 @@ void AugmentedLagrangeConstraintAssembler<TSparse,TDense>::AllocateConstraints(P
                                                                                typename Base::DofSet::const_iterator itDofBegin,
                                                                                typename Base::DofSet::const_iterator itDofEnd)
 {
+    // Early exit if the system has no constraints.
+    if (itConstraintBegin == itConstraintEnd)
+        return;
+
     KRATOS_TRY
 
     this->Clear();
@@ -239,6 +243,10 @@ void AugmentedLagrangeConstraintAssembler<TSparse,TDense>::AllocateSystem(typena
                                                                           typename TSparse::VectorType& rRhs,
                                                                           typename Base::DofSet& rDofs)
 {
+    // Early exit if the system has no constraints.
+    if (this->GetRelationMatrix().size1() == 0ul || this->GetRelationMatrix().size2() == 0ul)
+        return;
+
     KRATOS_TRY
     // At this point, the sparsity pattern of the unconstrained LHS matrix (K), as well
     // as the relation matrix (A) are constructed. The current policy in Kratos is that
@@ -248,8 +256,13 @@ void AugmentedLagrangeConstraintAssembler<TSparse,TDense>::AllocateSystem(typena
     // play, which is a subset of A^TA so no new entries need to be added.
     {
         typename TSparse::MatrixType transpose;
-        SparseMatrixMultiplicationUtility::TransposeMatrix(transpose, this->GetRelationMatrix());
-        SparseMatrixMultiplicationUtility::MatrixMultiplication(transpose, this->GetRelationMatrix(), this->GetHessian());
+        SparseMatrixMultiplicationUtility::TransposeMatrix(
+            transpose,
+            this->GetRelationMatrix());
+        SparseMatrixMultiplicationUtility::MatrixMultiplication(
+            transpose,
+            this->GetRelationMatrix(),
+            this->GetHessian());
     }
     MergeMatrices<typename TSparse::DataType>(rLhs, this->GetHessian());
     KRATOS_CATCH("")
@@ -264,26 +277,32 @@ void AugmentedLagrangeConstraintAssembler<TSparse,TDense>::Assemble(const typena
                                                                     const bool AssembleLhs,
                                                                     const bool AssembleRhs)
 {
+    // Early exit if the system has no constraints.
+    if (rConstraints.empty())
+        return;
+
     KRATOS_TRY
     /// @todo @p AssembleLhs and @p AssembleRhs are currently ignored,
     ///       and everything gets assembled. Think it through what needs
     ///       to be done and what can be omitted for each case. - matekelemen
-    detail::AssembleRelationMatrix<TSparse,TDense>(rConstraints,
-                                                   rProcessInfo,
-                                                   this->GetRelationMatrix(),
-                                                   this->GetHessian(),
-                                                   this->GetConstraintGapVector(),
-                                                   mpImpl->mConstraintIdMap);
+    detail::AssembleRelationMatrix<TSparse,TDense>(
+        rConstraints,
+        rProcessInfo,
+        this->GetRelationMatrix(),
+        this->GetHessian(),
+        this->GetConstraintGapVector(),
+        mpImpl->mConstraintIdMap);
     KRATOS_CATCH("")
 
     KRATOS_TRY
     // Propagate obvious dirichlet conditions.
-    detail::ApplyDirichletConditions<TSparse,TDense>(this->GetRelationMatrix(),
-                                                     this->GetConstraintGapVector(),
-                                                     itDofBegin,
-                                                     itDofEnd,
-                                                     this->GetName(),
-                                                     mpImpl->mVerbosity);
+    detail::ApplyDirichletConditions<TSparse,TDense>(
+        this->GetRelationMatrix(),
+        this->GetConstraintGapVector(),
+        itDofBegin,
+        itDofEnd,
+        this->GetName(),
+        mpImpl->mVerbosity);
     KRATOS_CATCH("")
 }
 
@@ -294,6 +313,10 @@ void AugmentedLagrangeConstraintAssembler<TSparse,TDense>::Initialize(typename T
                                                                       typename TSparse::VectorType& rRhs,
                                                                       [[maybe_unused]] typename Base::DofSet& rDofs)
 {
+    // Early exit if the system has no constraints.
+    if (this->GetRelationMatrix().size1() == 0ul || this->GetRelationMatrix().size2() == 0ul)
+        return;
+
     KRATOS_TRY
 
     // Output the relation matrix and constraint gaps if the verbosity is high enough.
@@ -332,28 +355,32 @@ void AugmentedLagrangeConstraintAssembler<TSparse,TDense>::Initialize(typename T
         KRATOS_ERROR_IF(r_transpose_relation_matrix.size1() != this->GetRelationMatrix().size2()
                      || r_transpose_relation_matrix.size2() != this->GetRelationMatrix().size1()
                      || r_transpose_relation_matrix.nnz()   != this->GetRelationMatrix().nnz())
-            << "the transpose of the relation matrix is uninitialized or out of date "
+            << "the transpose of the constraint gradient is uninitialized or out of date "
             << "(" << this->GetRelationMatrix().size1()          << "x" << this->GetRelationMatrix().size2()          << "/" << this->GetRelationMatrix().nnz() << ") "
             << "(" << this->GetTransposeRelationMatrix().size1() << "x" << this->GetTransposeRelationMatrix().size2() << "/" << this->GetTransposeRelationMatrix().nnz() << ") ";
 
         typename TSparse::MatrixType relation_product;
-        SparseUtils::MatrixMultiplication(r_transpose_relation_matrix,
-                                          this->GetRelationMatrix(),
-                                          relation_product);
+        SparseUtils::MatrixMultiplication(
+            r_transpose_relation_matrix,
+            this->GetRelationMatrix(),
+            relation_product);
 
         // Add terms to the LHS matrix.
-        InPlaceMatrixAdd(rLhs,
-                         relation_product,
-                         penalty_factor);
+        InPlaceMatrixAdd(
+            rLhs,
+            relation_product,
+            penalty_factor);
 
-        InPlaceMatrixAdd(rLhs,
-                         this->GetHessian(),
-                         penalty_factor);
+        InPlaceMatrixAdd(
+            rLhs,
+            this->GetHessian(),
+            penalty_factor);
 
         // Add terms to the RHS vector.
-        BalancedProduct<TSparse,TSparse,TSparse>(r_transpose_relation_matrix,
-                                                 this->GetConstraintGapVector(),
-                                                 rRhs);
+        BalancedProduct<TSparse,TSparse,TSparse>(
+            r_transpose_relation_matrix,
+            this->GetConstraintGapVector(),
+            rRhs);
     }
     KRATOS_CATCH("")
 }
@@ -366,6 +393,10 @@ void AugmentedLagrangeConstraintAssembler<TSparse,TDense>::InitializeConstraintI
                                                                                          [[maybe_unused]] typename Base::DofSet::iterator itDofBegin,
                                                                                          [[maybe_unused]] typename Base::DofSet::iterator itDofEnd)
 {
+    // Early exit if the system has no constraints.
+    if (this->GetRelationMatrix().size1() == 0ul || this->GetRelationMatrix().size2() == 0ul)
+        return;
+
     KRATOS_TRY
 
     // Compute the constraint residuals.
@@ -392,6 +423,10 @@ AugmentedLagrangeConstraintAssembler<TSparse,TDense>::FinalizeConstraintIteratio
                                                                                   PMGStatusStream::Report& rReport,
                                                                                   PMGStatusStream& rStream)
 {
+    // Early exit if the system has no constraints.
+    if (this->GetRelationMatrix().size1() == 0ul || this->GetRelationMatrix().size2() == 0ul)
+        return true;
+
     KRATOS_TRY
 
     // Compute the constraint residuals.
