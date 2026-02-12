@@ -204,6 +204,7 @@ double& ReissnerMindlinShellElasticConstitutiveLaw::CalculateValue(
         rValue = std::max({top_value, mid_value, bot_value});
         return rValue;
     }
+    rValue = 0.0;
     return rValue;
 }
 
