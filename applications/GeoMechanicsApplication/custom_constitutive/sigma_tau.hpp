@@ -55,8 +55,9 @@ public:
 
     // See Section "Binary arithmetic operators" at https://en.cppreference.com/w/cpp/language/operators.html
     SigmaTau& operator+=(const SigmaTau& rRhsTraction);
-    friend KRATOS_API(GEO_MECHANICS_APPLICATION) inline SigmaTau operator+(SigmaTau LhsTraction, /* passing this one by value helps optimize chained a+b+c */
-                                                                           const SigmaTau& rRhsTraction);
+    KRATOS_API(GEO_MECHANICS_APPLICATION)
+    friend SigmaTau operator+(SigmaTau LhsTraction, /* passing this one by value helps optimize chained a+b+c */
+                              const SigmaTau& rRhsTraction);
 
 private:
     template <std::forward_iterator Iter>
