@@ -42,7 +42,7 @@ class TestDiscreteValueResidualResponseFunctionExact(kratos_unittest.TestCase):
     def test_CalculateGradient(self):
         ref_value = self.response_function.CalculateValue()
         analytical_gradient = Kratos.TensorAdaptors.VariableTensorAdaptor(self.model_part.Nodes, Kratos.PRESSURE)
-        self.response_function.CalculateGradient({Kratos.PRESSURE: Kratos.TensorAdaptors.DoubleCombinedTensorAdaptor([analytical_gradient])})
+        self.response_function.CalculateGradient({Kratos.PRESSURE: Kratos.TensorAdaptors.DoubleCombinedTensorAdaptor([analytical_gradient], copy=False)})
 
         delta = 1e-9
         for i, node in enumerate(self.model_part.Nodes):
@@ -87,7 +87,7 @@ class TestDiscreteValueResidualResponseFunctionLogarithm(kratos_unittest.TestCas
     def test_CalculateGradient(self):
         ref_value = self.response_function.CalculateValue()
         analytical_gradient = Kratos.TensorAdaptors.VariableTensorAdaptor(self.model_part.Nodes, Kratos.PRESSURE)
-        self.response_function.CalculateGradient({Kratos.PRESSURE: Kratos.TensorAdaptors.DoubleCombinedTensorAdaptor([analytical_gradient])})
+        self.response_function.CalculateGradient({Kratos.PRESSURE: Kratos.TensorAdaptors.DoubleCombinedTensorAdaptor([analytical_gradient], copy=False)})
 
         delta = 1e-8
         for i, node in enumerate(self.model_part.Nodes):
