@@ -162,7 +162,7 @@ void UPwInterfaceElement::CalculateLeftHandSide(MatrixType& rLeftHandSideMatrix,
     const auto number_of_dofs = GetDofs().size();
     rLeftHandSideMatrix       = ZeroMatrix{number_of_dofs, number_of_dofs};
 
-    // Currently, the left-hand side matrix includes the stiffness matrix and UP coupling terms. In
+    // Currently, the left-hand side matrix includes the stiffness matrix and U Pw coupling terms. In
     // the future, it will also include water pressure contributions.
     for (auto contribution : mContributions) {
         switch (contribution) {
@@ -233,7 +233,7 @@ void UPwInterfaceElement::CalculateRightHandSide(Element::VectorType& rRightHand
 {
     rRightHandSideVector = ZeroVector{GetDofs().size()};
 
-    // Currently, the right-hand side includes the internal force vector and UP coupling terms. In
+    // Currently, the right-hand side includes the internal force vector and U Pw coupling terms. In
     // the future, it will also include water pressure contributions.
     for (auto contribution : mContributions) {
         switch (contribution) {
