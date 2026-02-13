@@ -12,6 +12,8 @@
 
 #pragma once
 
+#include "includes/ublas_interface.h"
+
 #include <gtest/gtest.h>
 
 namespace Kratos::Testing::Defaults
@@ -37,5 +39,49 @@ void ExpectPointsAreNear(const PointContainerType1& rPoints1,
         EXPECT_NEAR(rPoints1[i].Z(), rPoints2[i].Z(), AbsoluteTolerance);
     }
 }
+
+void AssertLHSMatrixBlocksAreNear(const Matrix& rActualLHSMatrix,
+                                  const Matrix& rExpectedUUBlockMatrix,
+                                  const Matrix& rExpectedUPBlockMatrix,
+                                  const Matrix& rExpectedPUBlockMatrix,
+                                  const Matrix& rExpectedPPBlockMatrix,
+                                  std::size_t   NumberOfUDofs,
+                                  std::size_t   NumberOfPwDofs,
+                                  double        AbsoluteTolerance = Defaults::absolute_tolerance);
+void AssertUUBlockMatrixIsNear(const Matrix& rActualLHSMatrix,
+                               const Matrix& rExpectedUUBlockMatrix,
+                               std::size_t   NumberOfUDofs,
+                               double        AbsoluteTolerance = Defaults::absolute_tolerance);
+void AssertUPBlockMatrixIsNear(const Matrix& rActualLHSMatrix,
+                               const Matrix& rExpectedUPBlockMatrix,
+                               std::size_t   NumberOfUDofs,
+                               std::size_t   NumberOfPwDofs,
+                               double        AbsoluteTolerance = Defaults::absolute_tolerance);
+void AssertPUBlockMatrixIsNear(const Matrix& rActualLHSMatrix,
+                               const Matrix& rExpectedPUBlockMatrix,
+                               std::size_t   NumberOfUDofs,
+                               std::size_t   NumberOfPwDofs,
+                               double        AbsoluteTolerance = Defaults::absolute_tolerance);
+void AssertPPBlockMatrixIsNear(const Matrix& rActualLHSMatrix,
+                               const Matrix& rExpectedPPBlockMatrix,
+                               std::size_t   NumberOfUDofs,
+                               std::size_t   NumberOfPwDofs,
+                               double        AbsoluteTolerance = Defaults::absolute_tolerance);
+
+void AssertRHSVectorBlocksAreNear(const Vector& rActualRHSVector,
+                                  const Vector& rExpectedUBlockVector,
+                                  const Vector& rExpectedPBlockVector,
+                                  std::size_t   NumberOfUDofs,
+                                  std::size_t   NumberOfPwDofs,
+                                  double        AbsoluteTolerance = Defaults::absolute_tolerance);
+void AssertUBlockVectorIsNear(const Vector& rActualRHSVector,
+                              const Vector& rExpectedUBlockVector,
+                              std::size_t   NumberOfUDofs,
+                              double        AbsoluteTolerance = Defaults::absolute_tolerance);
+void AssertPBlockVectorIsNear(const Vector& rActualRHSVector,
+                              const Vector& rExpectedPBlockVector,
+                              std::size_t   NumberOfUDofs,
+                              std::size_t   NumberOfPwDofs,
+                              double        AbsoluteTolerance = Defaults::absolute_tolerance);
 
 } // namespace Kratos::Testing
