@@ -186,7 +186,7 @@ public:
      * @param rGlobalSizeVector The global size vector including only the axial u terms
      * @param rLocalSizeVector The 2 local components of u
      */
-    virtual void GlobalSizeAxialVector(VectorType& rGlobalSizeVector, const VectorType& rLocalSizeVector)
+    virtual void GlobalSizeAxialVector(VectorType& rGlobalSizeVector, const VectorType& rLocalSizeVector) const
     {
         rGlobalSizeVector.clear();
         rGlobalSizeVector[0] = rLocalSizeVector[0];

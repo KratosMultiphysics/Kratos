@@ -225,7 +225,7 @@ public:
      */
     void GlobalSizeAxialVector(
         VectorType& rGlobalSizeVector,
-        const VectorType& rLocalSizeVector) override
+        const VectorType& rLocalSizeVector) const override
     {
         rGlobalSizeVector.clear();
         rGlobalSizeVector[0] = rLocalSizeVector[0];
