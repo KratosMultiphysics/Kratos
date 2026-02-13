@@ -50,8 +50,7 @@ public:
 
     static void CalculateGradient(
         const PhysicalFieldVariableTypes& rPhysicalVariable,
-        ModelPart& rGradientRequiredModelPart,
-        ModelPart& rGradientComputedModelPart,
+        ModelPart& rValueInfluencingModelPart,
         CombinedTensorAdaptor<double>& rCombinedTensorAdaptor,
         const double PerturbationSize);
 

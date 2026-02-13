@@ -118,8 +118,7 @@ double MassResponseUtils::CalculateValue(const ModelPart& rModelPart)
 
 void MassResponseUtils::CalculateGradient(
     const PhysicalFieldVariableTypes& rPhysicalVariable,
-    ModelPart& rGradientRequiredModelPart,
-    ModelPart& rGradientComputedModelPart,
+    ModelPart& rValueInfluencingModelPart,
     CombinedTensorAdaptor<double>& rCombinedTensorAdaptor,
     const double PerturbationSize)
 {
@@ -130,29 +129,43 @@ void MassResponseUtils::CalculateGradient(
 
     std::visit([&](auto pVariable) {
         if (*pVariable == DENSITY) {
-            // clears the existing values
-            block_for_each(rGradientRequiredModelPart.Elements(), [](auto& rElement) { rElement.GetProperties().SetValue(DENSITY_SENSITIVITY, 0.0); });
-
-            // computes density sensitivity and store it within each elements' properties
-            CalculateMassDensityGradient(rGradientComputedModelPart, DENSITY_SENSITIVITY);
+            // clears the existing values because there may be left over vales on the containers in the provided combined tensor adaptors.
+            for (const auto& p_ta : temp_cta.GetTensorAdaptors()) {
+                if (!std::holds_alternative<ModelPart::ElementsContainerType::Pointer>(p_ta->GetContainer())) {
+                    KRATOS_ERROR << pVariable->Name() << " sensitivity can be computed only on elemental containers.";
+                }
+                block_for_each(*std::get<ModelPart::ElementsContainerType::Pointer>(p_ta->GetContainer()), [](auto& rElement) { rElement.GetProperties().SetValue(DENSITY_SENSITIVITY, 0.0); });
+            }
+            CalculateMassDensityGradient(rValueInfluencingModelPart, DENSITY_SENSITIVITY);
         } else if (*pVariable == THICKNESS) {
-            // clears the existing values
-            block_for_each(rGradientRequiredModelPart.Elements(), [](auto& rElement) { rElement.GetProperties().SetValue(THICKNESS_SENSITIVITY, 0.0); });
-
-            // computes density sensitivity and store it within each elements' properties
-            CalculateMassThicknessGradient(rGradientComputedModelPart, THICKNESS_SENSITIVITY);
+            // clears the existing values because there may be left over vales on the containers in the provided combined tensor adaptors.
+            for (const auto& p_ta : temp_cta.GetTensorAdaptors()) {
+                if (!std::holds_alternative<ModelPart::ElementsContainerType::Pointer>(p_ta->GetContainer())) {
+                    KRATOS_ERROR << pVariable->Name() << " sensitivity can be computed only on elemental containers.";
+                }
+                block_for_each(*std::get<ModelPart::ElementsContainerType::Pointer>(p_ta->GetContainer()), [](auto& rElement) { rElement.GetProperties().SetValue(THICKNESS_SENSITIVITY, 0.0); });
+            }
+            CalculateMassThicknessGradient(rValueInfluencingModelPart, THICKNESS_SENSITIVITY);
         } else if (*pVariable == CROSS_AREA) {
-            // clears the existing values
-            block_for_each(rGradientRequiredModelPart.Elements(), [](auto& rElement) { rElement.GetProperties().SetValue(CROSS_AREA_SENSITIVITY, 0.0); });
-
-            // computes density sensitivity and store it within each elements' properties
-            CalculateMassCrossAreaGradient(rGradientComputedModelPart, CROSS_AREA_SENSITIVITY);
+            // clears the existing values because there may be left over vales on the containers in the provided combined tensor adaptors.
+            for (const auto& p_ta : temp_cta.GetTensorAdaptors()) {
+                if (!std::holds_alternative<ModelPart::ElementsContainerType::Pointer>(p_ta->GetContainer())) {
+                    KRATOS_ERROR << pVariable->Name() << " sensitivity can be computed only on elemental containers.";
+                }
+                block_for_each(*std::get<ModelPart::ElementsContainerType::Pointer>(p_ta->GetContainer()), [](auto& rElement) { rElement.GetProperties().SetValue(CROSS_AREA_SENSITIVITY, 0.0); });
+            }
+            CalculateMassCrossAreaGradient(rValueInfluencingModelPart, CROSS_AREA_SENSITIVITY);
         } else if (*pVariable == SHAPE) {
-            // clears the existing values
-            VariableUtils().SetNonHistoricalVariableToZero(SHAPE_SENSITIVITY, rGradientRequiredModelPart.Nodes());
+            // clears the existing values because shape sensitivity is summed from each element on nodes
+            for (const auto& p_ta : temp_cta.GetTensorAdaptors()) {
+                if (!std::holds_alternative<ModelPart::NodesContainerType::Pointer>(p_ta->GetContainer())) {
+                    KRATOS_ERROR << "SHAPE sensitivity can be computed only on nodal containers.";
+                }
+                VariableUtils().SetNonHistoricalVariableToZero(SHAPE_SENSITIVITY, *std::get<ModelPart::NodesContainerType::Pointer>(p_ta->GetContainer()));
+            }
 
             // computes density sensitivity and store it within each elements' properties
-            CalculateMassShapeGradient(rGradientComputedModelPart, SHAPE_SENSITIVITY, PerturbationSize);
+            CalculateMassShapeGradient(rValueInfluencingModelPart, SHAPE_SENSITIVITY, PerturbationSize);
         } else {
             KRATOS_ERROR
                 << "Unsupported sensitivity w.r.t. " << pVariable->Name()
