@@ -29,8 +29,6 @@ class MPMReactionOutputProcess(KratosMultiphysics.OutputProcess):
         self.model_part_name = self.params["model_part_name"].GetString()
         if not self.model_part_name:
             raise Exception('No "model_part_name" was specified!')
-        elif self.model_part_name.startswith('Background_Grid'):
-            self.model_part_name = self.model_part_name.replace('Background_Grid','MPM_Material')
 
     @staticmethod
     def GetDefaultParameters():
