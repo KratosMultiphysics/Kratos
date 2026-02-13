@@ -243,6 +243,7 @@ class VectorizedCFDStage(analysis_stage.AnalysisStage):
 
         ###allocate the graph of the matrix
         self.L = self.cfd_utils.AllocateScalarMatrix(self.connectivity)
+        self.L_assembly_indices = self.L.GetEquationIdCsrIndices(self.connectivity)
 
     def ComputeVelocityProjection(self,v_elemental, Pi_conv):
         #solve (w,pi) = (w,a·∇u)
@@ -402,7 +403,7 @@ class VectorizedCFDStage(analysis_stage.AnalysisStage):
 
         #assemble LHS
         self.cfd_utils.AssembleScalarMatrix(Lel,self.connectivity,self.L)
-
+        #TODO: RICCARDO USE AT IN HERE WITH self.L_assembly_indices
 
         # dt*(∇q,∇pold)
         ##RHSpressure += (self.L@p) #TODO: use SpMV function to avoid temporaries
