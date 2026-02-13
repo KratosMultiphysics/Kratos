@@ -299,7 +299,7 @@ public:
         cl_values.SetConstitutiveMatrix(gen_constitutive_matrix);
 
         const auto& r_integration_points = CustomTriangleAreaCoordinatesQuadrature(area);
-        double zeta1, zeta2, zeta3, weight;
+        double zeta1, zeta2, zeta3;
         MatrixType B(strain_size, system_size);
         MatrixType temporal(strain_size, system_size);
         MatrixType Bm(strain_size, system_size);
@@ -310,7 +310,6 @@ public:
             zeta1 = r_integration_points[i_point].X();
             zeta2 = r_integration_points[i_point].Y();
             zeta3 = r_integration_points[i_point].Z();
-            weight = r_integration_points[i_point].Weight();
 
             CalculateBmTriangle(Bm, area, local_coords_1, local_coords_2, local_coords_3, zeta1, zeta2, zeta3);
 
