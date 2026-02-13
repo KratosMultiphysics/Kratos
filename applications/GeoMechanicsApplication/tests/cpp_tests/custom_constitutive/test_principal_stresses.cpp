@@ -91,4 +91,16 @@ TEST_F(KratosGeoMechanicsFastSuiteWithoutKernel, PrincipalStresses_CanBeChangedD
     KRATOS_EXPECT_VECTOR_NEAR(stresses.Values(), (std::vector{4.0, 2.0, 3.0}), Defaults::absolute_tolerance);
 }
 
+TEST_F(KratosGeoMechanicsFastSuiteWithoutKernel, PrincipalStresses_SupportsCompoundAssignment)
+{
+    // Arrange
+    auto principal_stresses = Geo::PrincipalStresses{3.0, 2.0, 1.0};
+
+    // Act
+    principal_stresses += Geo::PrincipalStresses{5.0, 4.0, 3.0};
+
+    // Assert
+    KRATOS_EXPECT_VECTOR_NEAR(principal_stresses.Values(), (std::vector{8.0, 6.0, 4.0}), Defaults::absolute_tolerance);
+}
+
 } // namespace Kratos::Testing

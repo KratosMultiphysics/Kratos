@@ -58,6 +58,8 @@ public:
     [[nodiscard]] const InternalVectorType& Values() const;
     [[nodiscard]] InternalVectorType&       Values();
 
+    PrincipalStresses& operator+=(const PrincipalStresses& rRhs);
+
 private:
     InternalVectorType mValues = ZeroVector{msVectorSize};
 };
