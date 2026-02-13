@@ -47,12 +47,12 @@ namespace Kratos::Testing {
         auto p_node_5 = model_part.CreateNewNode(5, 1.0, 1.0, 0.0);
         auto p_node_6 = model_part.CreateNewNode(6, 2.0, 1.0, 0.0);
 
-        model_part.CreateNewElement("Element2D4N", 1, {1, 2, 5, 4}, p_prop);
-        model_part.CreateNewElement("Element2D4N", 2, {2, 3, 6, 5}, p_prop);
-
         model_part.CreateNewCondition("LineCondition2D2N", 1, {{1, 2}}, p_prop);
         model_part.CreateNewCondition("LineCondition2D2N", 2, {{2, 3}}, p_prop);
         model_part.CreateNewCondition("LineCondition2D2N", 3, {{3, 6}}, p_prop);
+        model_part.CreateNewCondition("LineCondition2D2N", 4, {{6, 5}}, p_prop);
+        model_part.CreateNewCondition("LineCondition2D2N", 5, {{5, 4}}, p_prop);
+        model_part.CreateNewCondition("LineCondition2D2N", 6, {{4, 1}}, p_prop);
 
         ModelPart& sub_model_part = model_part.CreateSubModelPart("ReactionModelPart");
         sub_model_part.AddNodes({1, 2, 3, 6});
@@ -73,6 +73,10 @@ namespace Kratos::Testing {
         model_part.GetNode(4).FastGetSolutionStepValue(REACTION_X) = 10.0;
         model_part.GetNode(4).FastGetSolutionStepValue(REACTION_Y) = 4.0;
         model_part.GetNode(4).FastGetSolutionStepValue(REACTION_Z) = 8.0;
+
+        model_part.GetNode(5).FastGetSolutionStepValue(REACTION_X) = 2.0;
+        model_part.GetNode(5).FastGetSolutionStepValue(REACTION_Y) = 1.0;
+        model_part.GetNode(5).FastGetSolutionStepValue(REACTION_Z) = 5.0;
 
         model_part.GetNode(6).FastGetSolutionStepValue(REACTION_X) = 0.5;
         model_part.GetNode(6).FastGetSolutionStepValue(REACTION_Y) = 8.0;
@@ -98,10 +102,10 @@ namespace Kratos::Testing {
 
         Properties::Pointer p_prop = model_part.CreateNewProperties(0);
 
-        auto p_node_1 = model_part.CreateNewNode(1, 0.0, 0.0, 0.0);
-        auto p_node_2 = model_part.CreateNewNode(2, 1.0, 0.0, 0.0);
-        auto p_node_3 = model_part.CreateNewNode(3, 0.0, 1.0, 0.0);
-        auto p_node_4 = model_part.CreateNewNode(4, 1.0, 1.0, 0.0);
+        model_part.CreateNewNode(1, 0.0, 0.0, 0.0);
+        model_part.CreateNewNode(2, 1.0, 0.0, 0.0);
+        model_part.CreateNewNode(3, 0.0, 1.0, 0.0);
+        model_part.CreateNewNode(4, 1.0, 1.0, 0.0);
 
         model_part.CreateNewElement("Element2D4N", 1, {1, 2, 4, 3}, p_prop);
 
