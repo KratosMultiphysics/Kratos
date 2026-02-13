@@ -17,7 +17,6 @@
 #include "tests/cpp_tests/geo_mechanics_fast_suite_without_kernel.h"
 #include "tests/cpp_tests/test_utilities.h"
 
-#include <array>
 #include <vector>
 
 namespace Kratos::Testing
@@ -25,7 +24,7 @@ namespace Kratos::Testing
 
 TEST_F(KratosGeoMechanicsFastSuiteWithoutKernel, PQ_HasZeroesAsValuesWhenDefaultConstructed)
 {
-    KRATOS_EXPECT_VECTOR_NEAR(Geo::PQ().Values(), (std::array{0.0, 0.0}), Defaults::absolute_tolerance);
+    KRATOS_EXPECT_VECTOR_NEAR(Geo::PQ().Values(), (std::vector{0.0, 0.0}), Defaults::absolute_tolerance);
     EXPECT_NEAR(Geo::PQ{}.P(), 0.0, Defaults::absolute_tolerance);
     EXPECT_NEAR(Geo::PQ{}.Q(), 0.0, Defaults::absolute_tolerance);
 }
@@ -95,13 +94,13 @@ TEST_F(KratosGeoMechanicsFastSuiteWithoutKernel, PQ_ComponentsCanBeModifiedDirec
     stress_state.P() = 3.0;
 
     // Assert
-    KRATOS_EXPECT_VECTOR_NEAR(stress_state.Values(), (std::array{3.0, 2.0}), Defaults::absolute_tolerance);
+    KRATOS_EXPECT_VECTOR_NEAR(stress_state.Values(), (std::vector{3.0, 2.0}), Defaults::absolute_tolerance);
 
     // Act
     stress_state.Q() = 4.0;
 
     // Assert
-    KRATOS_EXPECT_VECTOR_NEAR(stress_state.Values(), (std::array{3.0, 4.0}), Defaults::absolute_tolerance);
+    KRATOS_EXPECT_VECTOR_NEAR(stress_state.Values(), (std::vector{3.0, 4.0}), Defaults::absolute_tolerance);
 }
 
 TYPED_TEST(TestPQFixture, PQ_CanBeCopiedToAnyVectorTypeWithSizeOf2)
@@ -110,7 +109,7 @@ TYPED_TEST(TestPQFixture, PQ_CanBeCopiedToAnyVectorTypeWithSizeOf2)
     const auto stress_state = Geo::PQ{1.0, 2.0};
 
     // Act & Assert
-    KRATOS_EXPECT_VECTOR_NEAR(stress_state.CopyTo<TypeParam>(), (std::array{1.0, 2.0}), Defaults::absolute_tolerance);
+    KRATOS_EXPECT_VECTOR_NEAR(stress_state.CopyTo<TypeParam>(), (std::vector{1.0, 2.0}), Defaults::absolute_tolerance);
 }
 
 } // namespace Kratos::Testing
