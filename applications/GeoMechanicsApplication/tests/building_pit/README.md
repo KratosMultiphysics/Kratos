@@ -49,6 +49,9 @@ The following table lists the material properties of the soil layers that have b
 | Young's modulus $`E`$                                     | `YOUNG_MODULUS`        | $`12 \cdot 10^3`$                | $`120 \cdot 10^3`$               | $`\mathrm{kN} / \mathrm{m}^2`$ |
 | Poisson's ratio $`\nu`$                                   | `POISSON_RATIO`        | 0.15                             | 0.20                             | $`[-]`$                        |
 | K0-value for normal consolidation $`K_{\mathrm{0}}^{nc}`$ | `K0_NC`                | 0.5774                           | 0.4701                           | $`[-]`$                        |
+| Cohesion $`c`$                                            | `GEO_COHESION`         | 1000.0                           | 0.0                              | $`\mathrm{N} / \mathrm{m}^2`$  |
+| Friction angle $`\phi`$                                   | `GEO_FRICTION_ANGLE`   | 25.0                             | 32.0                             | $`^{\circ}`$                   |
+| Dilatancy angle $`\psi`$                                  | `GEO_DILATANCY_ANGLE`  | 0.0                              | 2.0                              | $`^{\circ}`$                   |
 
 
 The following table lists the material properties of the interfaces that have been adopted by the Kratos model.
