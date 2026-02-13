@@ -180,15 +180,17 @@ class VectorizedCFDStage(analysis_stage.AnalysisStage):
         p = self.p_adaptor.data
 
         self.connectivity_adaptor = KM.TensorAdaptors.ConnectivityIdsTensorAdaptor(self.vol_mp.Geometries)
+        print("******************",self.connectivity_adaptor.data.dtype)
         self.connectivity_adaptor.CollectData()
         self.connectivity = self.connectivity_adaptor.data
         self.connectivity -= 1 #have indices to start in
-        max_idx = self.connectivity.max()
-        if max_idx <= np.iinfo(np.int32).max: #use 32 bit integers for connectivities
-            self.connectivity = self.connectivity.astype(np.int32)
-        else:
-            print(f"Warning: Max index {max_idx} is too large for uint32. Staying at 64-bit.")
-
+        self.connectivity = self.connectivity.astype(np.int64) #############OUCH!!! TODO: this by defaults should be probably int64
+        # max_idx = self.connectivity.max()
+        # if max_idx <= np.iinfo(np.int32).max: #use 32 bit integers for connectivities
+        #     self.connectivity = self.connectivity.astype(np.int32)
+        # else:
+        #     print(f"Warning: Max index {max_idx} is too large for uint32. Staying at 64-bit.")
+        
         #preallocation of elemental arrays of velocities and pressures
         self.vec_elemental_data = np.empty((*self.connectivity.shape, v.shape[1]))
         self.scalar_elemental_data = np.empty(self.connectivity.shape)
@@ -242,8 +244,7 @@ class VectorizedCFDStage(analysis_stage.AnalysisStage):
                 node.SetSolutionStepValue(KM.VELOCITY_X,0,1.0)
 
         ###allocate the graph of the matrix
-        self.L = self.cfd_utils.AllocateScalarMatrix(self.connectivity)
-        self.L_assembly_indices = self.L.GetEquationIdCsrIndices(self.connectivity)
+        self.L,self.L_assembly_indices = self.cfd_utils.AllocateScalarMatrix(self.connectivity)
 
     def ComputeVelocityProjection(self,v_elemental, Pi_conv):
         #solve (w,pi) = (w,a·∇u)
@@ -402,8 +403,7 @@ class VectorizedCFDStage(analysis_stage.AnalysisStage):
         RHSpressure *= self.rho
 
         #assemble LHS
-        self.cfd_utils.AssembleScalarMatrix(Lel,self.connectivity,self.L)
-        #TODO: RICCARDO USE AT IN HERE WITH self.L_assembly_indices
+        self.cfd_utils.AssembleScalarMatrixByCSRIndices(Lel,self.L_assembly_indices,self.L)
 
         # dt*(∇q,∇pold)
         ##RHSpressure += (self.L@p) #TODO: use SpMV function to avoid temporaries
@@ -411,9 +411,10 @@ class VectorizedCFDStage(analysis_stage.AnalysisStage):
 
 
         #apply Pressure BCs
-        self.pressure_free_dofs_vector = np.ones(self.nnodes,np.float64)
-        self.pressure_free_dofs_vector[self.fix_press_indices] = 0.0
-        self.L.ApplyHomogeneousDirichlet(self.pressure_free_dofs_vector, 1e9, RHSpressure)
+        # self.pressure_free_dofs_vector = np.ones(self.nnodes,np.float64)
+        # self.pressure_free_dofs_vector[self.fix_press_indices] = 0.0
+        # self.L.ApplyHomogeneousDirichlet(self.pressure_free_dofs_vector, 1e9, RHSpressure)
+        self.cfd_utils.ApplyHomogeneousDirichlet(self.fix_press_indices, self.L, RHSpressure)
 
         #solve the system
         ##TODO: use amgcl instead of this one!! ... and also avoid creating temporaries

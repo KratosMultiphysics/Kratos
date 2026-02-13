@@ -375,7 +375,8 @@ class CFDUtils:
         #assembling matrix
         A = KM.CsrMatrix(Agraph)
 
-        return A
+        assembly_indices = A.GetEquationIdCsrIndices(conn) 
+        return A,assembly_indices
 
     def AssembleScalarMatrix(self,LHSel,conn,A):
         A.SetValue(0.0)
@@ -384,3 +385,40 @@ class CFDUtils:
             A.Assemble(LHSel[e],conn[e])
         A.FinalizeAssemble()
 
+    def AssembleScalarMatrixByCSRIndices(self,LHSel,csr_indices,A):
+        A.value_data().fill(0.0)
+        self.AssembleVector(csr_indices.ravel(), LHSel.ravel(), A.value_data())
+
+    def ApplyHomogeneousDirichlet(self, fixed_values, LHS, RHS, diag_value=1.0):
+        """
+        Applies homogeneous Dirichlet BCs (value=0) to a CSR matrix and RHS.
+        Maintains symmetry by zeroing both rows and columns of fixed indices.
+        """
+        n = LHS.Size1()
+        
+        # 1. Create a boolean lookup for fixed indices (O(1) lookup speed)
+        is_fixed = np.zeros(n, dtype=bool)
+        is_fixed[fixed_values] = True
+        
+        # 2. Map every entry in the sparse 'data' array to its row index
+        # LHS.indptr tells us where rows start; np.diff tells us how many entries per row
+        diff_array = np.diff(LHS.index1_data()).astype(np.int64)
+        row_map = np.repeat(np.arange(n), diff_array)
+        
+        # 3. Create masks for entries in fixed rows and fixed columns
+        mask_row = is_fixed[row_map]
+        mask_col = is_fixed[LHS.index2_data()]
+        
+        # 4. Zero out the "Symmetry Cross" (all entries in fixed rows OR columns)
+        # This is the most expensive step, done in a single vectorized pass
+        LHS.value_data()[mask_row | mask_col] = 0.0
+        
+        # 5. Restore the diagonal for the fixed rows
+        # A diagonal entry is where row_index == column_index
+        mask_diag = (row_map == LHS.index2_data()) & mask_row
+        LHS.value_data()[mask_diag] = diag_value
+        
+        # 6. Set RHS to 0 at fixed indices
+        RHS[fixed_values] = 0.0
+        
+        return LHS, RHS
