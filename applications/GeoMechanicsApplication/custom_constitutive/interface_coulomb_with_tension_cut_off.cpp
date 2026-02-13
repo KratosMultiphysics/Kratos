@@ -139,8 +139,9 @@ void InterfaceCoulombWithTensionCutOff::CalculateMaterialResponseCauchy(Paramete
     trial_sigma_tau.Tau() = std::abs(trial_sigma_tau.Tau());
 
     if (!mCoulombWithTensionCutOffImpl.IsAdmissibleStressState(trial_sigma_tau)) {
-        mapped_sigma_tau = mCoulombWithTensionCutOffImpl.DoReturnMapping(
-            trial_sigma_tau, YieldSurface::YieldSurfaceAveragingType::NO_AVERAGING);
+        auto elastic_matrix = CalculateElasticContitativeMatrix(r_properties);
+        mapped_sigma_tau    = mCoulombWithTensionCutOffImpl.DoReturnMapping(
+            trial_sigma_tau, YieldSurface::YieldSurfaceAveragingType::NO_AVERAGING, elastic_matrix);
         if (negative) mapped_sigma_tau.Tau() *= -1.0;
     }
 
@@ -182,7 +183,7 @@ Matrix& InterfaceCoulombWithTensionCutOff::CalculateValue(Parameters& rConstitut
     return rValue;
 }
 
-Matrix InterfaceCoulombWithTensionCutOff::CalculateElasticContitativeMatrix(Properties& rMaterialProperties) const
+Matrix InterfaceCoulombWithTensionCutOff::CalculateElasticContitativeMatrix(const Properties& rMaterialProperties) const
 {
     Matrix result = ZeroMatrix(2, 2);
     result(0, 0)  = rMaterialProperties[INTERFACE_NORMAL_STIFFNESS];

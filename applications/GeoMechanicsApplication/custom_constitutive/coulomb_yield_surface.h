@@ -54,9 +54,13 @@ public:
     [[nodiscard]] Vector DerivativeOfFlowFunction(
         const Geo::SigmaTau&,
         YieldSurfaceAveragingType AveragingType = YieldSurfaceAveragingType::NO_AVERAGING) const;
+    [[nodiscard]] Vector DerivativeOfFlowFunction(const Geo::PrincipalStresses&,
+                                                  YieldSurfaceAveragingType AveragingType) const;
 
     [[nodiscard]] double CalculateApex() const;
     [[nodiscard]] double CalculatePlasticMultiplier(const Geo::SigmaTau& rSigmaTau,
+                                                    const Vector& rDerivativeOfFlowFunction) const;
+    [[nodiscard]] double CalculatePlasticMultiplier(const Geo::PrincipalStresses& rPrincipalStresses,
                                                     const Vector& rDerivativeOfFlowFunction) const;
     [[nodiscard]] double CalculateEquivalentPlasticStrainIncrement(const Geo::SigmaTau& rSigmaTau,
                                                                    YieldSurfaceAveragingType AveragingType) const;

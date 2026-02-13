@@ -156,6 +156,8 @@ KRATOS_TEST_CASE_IN_SUITE(InterfaceCoulombWithTensionCutOff_CalculateMaterialRes
     properties.SetValue(GEO_COHESION, 10.0);
     properties.SetValue(GEO_DILATANCY_ANGLE, 20.0);
     properties.SetValue(GEO_TENSILE_STRENGTH, 10.0);
+    properties.SetValue(INTERFACE_NORMAL_STIFFNESS, 1.0);
+    properties.SetValue(INTERFACE_SHEAR_STIFFNESS, 1.0);
 
     auto parameters = ConstitutiveLaw::Parameters{};
     parameters.SetMaterialProperties(properties);
@@ -230,6 +232,8 @@ KRATOS_TEST_CASE_IN_SUITE(InterfaceCoulombWithTensionCutOff_CalculateMaterialRes
     properties.SetValue(GEO_COHESION, 10.0);
     properties.SetValue(GEO_DILATANCY_ANGLE, 0.0);
     properties.SetValue(GEO_TENSILE_STRENGTH, 10.0);
+    properties.SetValue(INTERFACE_NORMAL_STIFFNESS, 1.0);
+    properties.SetValue(INTERFACE_SHEAR_STIFFNESS, 1.0);
 
     auto parameters = ConstitutiveLaw::Parameters{};
     parameters.SetMaterialProperties(properties);

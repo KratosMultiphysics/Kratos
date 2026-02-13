@@ -48,19 +48,21 @@ bool CoulombWithTensionCutOffImpl::IsAdmissibleStressState(const Geo::PrincipalS
 }
 
 Geo::SigmaTau CoulombWithTensionCutOffImpl::DoReturnMapping(const Geo::SigmaTau& rTrialTraction,
-                                                            YieldSurface::YieldSurfaceAveragingType AveragingType)
+                                                            YieldSurface::YieldSurfaceAveragingType AveragingType,
+                                                            Matrix& rElasticMatrix)
 {
     auto sigma_tau_to_sigma_tau = [](const Geo::SigmaTau& rTraction) { return rTraction; };
-    return DoReturnMapping<>(rTrialTraction, sigma_tau_to_sigma_tau, AveragingType);
+    return DoReturnMapping<>(rTrialTraction, sigma_tau_to_sigma_tau, AveragingType, rElasticMatrix);
 }
 
 Geo::PrincipalStresses CoulombWithTensionCutOffImpl::DoReturnMapping(const Geo::PrincipalStresses& rTrialPrincipalStresses,
-                                                                     YieldSurface::YieldSurfaceAveragingType AveragingType)
+                                                                     YieldSurface::YieldSurfaceAveragingType AveragingType,
+                                                                     Matrix& rElasticMatrix)
 {
     auto principal_stresses_to_sigma_tau = [](const Geo::PrincipalStresses& rPrincipalStresses) {
         return StressStrainUtilities::TransformPrincipalStressesToSigmaTau(rPrincipalStresses);
     };
-    return DoReturnMapping<>(rTrialPrincipalStresses, principal_stresses_to_sigma_tau, AveragingType);
+    return DoReturnMapping<>(rTrialPrincipalStresses, principal_stresses_to_sigma_tau, AveragingType, rElasticMatrix);
 }
 
 void CoulombWithTensionCutOffImpl::SaveKappaOfCoulombYieldSurface()
@@ -87,7 +89,8 @@ bool CoulombWithTensionCutOffImpl::IsAdmissibleStressState(const StressStateType
 template <typename StressStateType, typename StressStateToSigmaTauFunctionType>
 StressStateType CoulombWithTensionCutOffImpl::DoReturnMapping(const StressStateType& rTrialStressState,
                                                               const StressStateToSigmaTauFunctionType& rStressStateToSigmaTau,
-                                                              YieldSurface::YieldSurfaceAveragingType AveragingType)
+                                                              YieldSurface::YieldSurfaceAveragingType AveragingType,
+                                                              Matrix& rElasticMatrix)
 {
     auto result = StressStateType{};
 
@@ -100,13 +103,13 @@ StressStateType CoulombWithTensionCutOffImpl::DoReturnMapping(const StressStateT
         }
 
         if (IsStressAtTensionCutoffReturnZone(trial_traction)) {
-            return ReturnStressAtTensionCutoffReturnZone(rTrialStressState, AveragingType);
+            return ReturnStressAtTensionCutoffReturnZone(rTrialStressState, AveragingType, rElasticMatrix);
         }
 
         if (IsStressAtCornerReturnZone(trial_traction, AveragingType)) {
             result = CalculateCornerPoint(rTrialStressState);
         } else { // Regular failure region
-            result = ReturnStressAtRegularFailureZone(rTrialStressState, AveragingType);
+            result = ReturnStressAtRegularFailureZone(rTrialStressState, AveragingType, rElasticMatrix);
         }
 
         const auto kappa = kappa_start + mCoulombYieldSurface.CalculateEquivalentPlasticStrainIncrement(
@@ -180,43 +183,48 @@ Geo::PrincipalStresses CoulombWithTensionCutOffImpl::ReturnStressAtTensionApexRe
 }
 
 Geo::SigmaTau CoulombWithTensionCutOffImpl::ReturnStressAtTensionCutoffReturnZone(
-    const Geo::SigmaTau& rTraction, YieldSurface::YieldSurfaceAveragingType AveragingType) const
+    const Geo::SigmaTau& rTraction, YieldSurface::YieldSurfaceAveragingType AveragingType, Matrix& rElasticMatrix) const
 {
     const auto derivative_of_flow_function = mTensionCutOff.DerivativeOfFlowFunction(rTraction, AveragingType);
-    const auto lambda_tc = (mTensionCutOff.GetTensileStrength() - rTraction.Sigma() - rTraction.Tau()) /
-                           (derivative_of_flow_function[0] + derivative_of_flow_function[1]);
-    // const auto elastic_matrix = mTensionCutOff.CalculateElasticMatrix(rTraction);
-    return Geo::SigmaTau{rTraction.Values() + lambda_tc * (derivative_of_flow_function)};
+    const auto lambda = mTensionCutOff.CalculatePlasticMultiplier(rTraction, derivative_of_flow_function);
+    return Geo::SigmaTau{rTraction.Values() + lambda * prod(rElasticMatrix, derivative_of_flow_function)};
 }
 
 Geo::PrincipalStresses CoulombWithTensionCutOffImpl::ReturnStressAtTensionCutoffReturnZone(
-    const Geo::PrincipalStresses& rPrincipalStresses, YieldSurface::YieldSurfaceAveragingType AveragingType) const
+    const Geo::PrincipalStresses&           rPrincipalStresses,
+    YieldSurface::YieldSurfaceAveragingType AveragingType,
+    Matrix&                                 rElasticMatrix) const
 {
     const auto derivative_of_flow_function =
         mTensionCutOff.DerivativeOfFlowFunction(rPrincipalStresses, AveragingType);
     const auto lambda =
         mTensionCutOff.CalculatePlasticMultiplier(rPrincipalStresses, derivative_of_flow_function);
-    const auto elastic_matrix = mTensionCutOff.CalculateElasticMatrix(rPrincipalStresses);
     return Geo::PrincipalStresses{rPrincipalStresses.Values() +
-                                  lambda * prod(elastic_matrix, derivative_of_flow_function)};
+                                  lambda * prod(rElasticMatrix, derivative_of_flow_function)};
 }
 
-Geo::SigmaTau CoulombWithTensionCutOffImpl::ReturnStressAtRegularFailureZone(
-    const Geo::SigmaTau& rTraction, YieldSurface::YieldSurfaceAveragingType AveragingType) const
+Geo::SigmaTau CoulombWithTensionCutOffImpl::ReturnStressAtRegularFailureZone(const Geo::SigmaTau& rTraction,
+                                                                             YieldSurface::YieldSurfaceAveragingType AveragingType,
+                                                                             Matrix& rElasticMatrix) const
 {
     const auto derivative_of_flow_function =
         mCoulombYieldSurface.DerivativeOfFlowFunction(rTraction, AveragingType);
     const auto lambda = mCoulombYieldSurface.CalculatePlasticMultiplier(rTraction, derivative_of_flow_function);
-    return Geo::SigmaTau{rTraction.Values() + lambda * derivative_of_flow_function};
+    return Geo::SigmaTau{rTraction.Values() + lambda * prod(rElasticMatrix, derivative_of_flow_function)};
 }
 
 Geo::PrincipalStresses CoulombWithTensionCutOffImpl::ReturnStressAtRegularFailureZone(
-    const Geo::PrincipalStresses& rPrincipalStresses, YieldSurface::YieldSurfaceAveragingType AveragingType) const
+    const Geo::PrincipalStresses&           rPrincipalStresses,
+    YieldSurface::YieldSurfaceAveragingType AveragingType,
+    Matrix&                                 rElasticMatrix) const
 {
-    return StressStrainUtilities::TransformSigmaTauToPrincipalStresses(
-        ReturnStressAtRegularFailureZone(
-            StressStrainUtilities::TransformPrincipalStressesToSigmaTau(rPrincipalStresses), AveragingType),
-        rPrincipalStresses);
+    const auto derivative_of_flow_function =
+        mCoulombYieldSurface.DerivativeOfFlowFunction(rPrincipalStresses, AveragingType);
+    const auto lambda =
+        mCoulombYieldSurface.CalculatePlasticMultiplier(rPrincipalStresses, derivative_of_flow_function);
+    const Matrix elastic_matrix = boost::numeric::ublas::subrange(rElasticMatrix, 0, 3, 0, 3);
+    return Geo::PrincipalStresses{rPrincipalStresses.Values() +
+                                  lambda * prod(elastic_matrix, derivative_of_flow_function)};
 }
 
 void CoulombWithTensionCutOffImpl::save(Serializer& rSerializer) const

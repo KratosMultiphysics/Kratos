@@ -168,6 +168,25 @@ Vector CoulombYieldSurface::DerivativeOfFlowFunction(const Geo::SigmaTau&, Yield
     }
 }
 
+Vector CoulombYieldSurface::DerivativeOfFlowFunction(const Geo::PrincipalStresses&,
+                                                     YieldSurfaceAveragingType AveragingType) const
+{
+    const auto sin_psi = std::sin(GetDilatancyAngleInRadians());
+    switch (AveragingType) {
+        using enum YieldSurfaceAveragingType;
+    case LOWEST_PRINCIPAL_STRESSES:
+        return UblasUtilities::CreateVector(
+            {(1.0 + sin_psi) / 2.0, (-1.0 + sin_psi) / 4.0, (-1.0 + sin_psi) / 4.0});
+    case NO_AVERAGING:
+        return UblasUtilities::CreateVector({(1.0 + sin_psi) / 2.0, 0.0, (-1.0 + sin_psi) / 2.0});
+    case HIGHEST_PRINCIPAL_STRESSES:
+        return UblasUtilities::CreateVector(
+            {(1.0 + sin_psi) / 4.0, (1.0 + sin_psi) / 4.0, (-1.0 + sin_psi) / 2.0});
+    default:
+        KRATOS_ERROR << "Unsupported Averaging Type: " << static_cast<std::size_t>(AveragingType) << "\n";
+    }
+}
+
 double CoulombYieldSurface::CalculateApex() const
 {
     return GetCohesion() / std::tan(GetFrictionAngleInRadians());
@@ -188,6 +207,20 @@ double CoulombYieldSurface::CalculatePlasticMultiplier(const Geo::SigmaTau& rSig
     return (GetCohesion() * std::cos(GetFrictionAngleInRadians()) - rSigmaTau.Sigma() * sin_phi -
             rSigmaTau.Tau()) /
            numerator;
+}
+
+double CoulombYieldSurface::CalculatePlasticMultiplier(const Geo::PrincipalStresses& rPrincipalStresses,
+                                                       const Vector& rDerivativeOfFlowFunction) const
+{
+    const auto sin_phi       = std::sin(GetFrictionAngleInRadians());
+    const auto poisson       = mMaterialProperties[POISSON_RATIO];
+    const auto young_modulus = mMaterialProperties[YOUNG_MODULUS];
+    const auto c1 = (rDerivativeOfFlowFunction[0] - rDerivativeOfFlowFunction[2]) * (1.0 - 2.0 * poisson);
+    const auto c2 = (rDerivativeOfFlowFunction[0] + 2.0 * poisson * rDerivativeOfFlowFunction[1] +
+                     rDerivativeOfFlowFunction[2]) *
+                    sin_phi;
+    const auto c3 = young_modulus / ((1.0 + poisson) * (1.0 - 2.0 * poisson));
+    return -2.0 * YieldFunctionValue(rPrincipalStresses) / ((c1 + c2) * c3);
 }
 
 double CoulombYieldSurface::CalculateEquivalentPlasticStrainIncrement(const Geo::SigmaTau& rSigmaTau,

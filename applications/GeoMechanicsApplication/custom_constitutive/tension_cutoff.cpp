@@ -103,8 +103,8 @@ Vector TensionCutoff::DerivativeOfFlowFunction(const Geo::PrincipalStresses&,
 double TensionCutoff::CalculatePlasticMultiplier(const Geo::SigmaTau& rSigmaTau,
                                                  const Vector& rDerivativeOfFlowFunction) const
 {
-    const auto numerator = mMaterialProperties[INTERFACE_NORMAL_STIFFNESS] +
-                           mMaterialProperties[INTERFACE_SHEAR_STIFFNESS];
+    const auto numerator = mMaterialProperties[INTERFACE_NORMAL_STIFFNESS] * rDerivativeOfFlowFunction[0] +
+                           mMaterialProperties[INTERFACE_SHEAR_STIFFNESS] * rDerivativeOfFlowFunction[1];
     return (mMaterialProperties[GEO_TENSILE_STRENGTH] - rSigmaTau.Sigma() - rSigmaTau.Tau()) / numerator;
 }
 
