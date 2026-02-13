@@ -17,7 +17,6 @@
 #include "tests/cpp_tests/geo_mechanics_fast_suite_without_kernel.h"
 #include "tests/cpp_tests/test_utilities.h"
 
-#include <array>
 #include <vector>
 
 namespace Kratos::Testing
@@ -25,7 +24,7 @@ namespace Kratos::Testing
 
 TEST_F(KratosGeoMechanicsFastSuiteWithoutKernel, SigmaTau_HasZeroesAsValuesWhenDefaultConstructed)
 {
-    KRATOS_EXPECT_VECTOR_NEAR(Geo::SigmaTau().Values(), (std::array{0.0, 0.0}), Defaults::absolute_tolerance);
+    KRATOS_EXPECT_VECTOR_NEAR(Geo::SigmaTau().Values(), Vector(2, 0.0), Defaults::absolute_tolerance);
     EXPECT_NEAR(Geo::SigmaTau{}.Sigma(), 0.0, Defaults::absolute_tolerance);
     EXPECT_NEAR(Geo::SigmaTau{}.Tau(), 0.0, Defaults::absolute_tolerance);
 }
@@ -96,13 +95,13 @@ TEST_F(KratosGeoMechanicsFastSuiteWithoutKernel, SigmaTau_ComponentsCanBeModifie
     traction.Sigma() = 3.0;
 
     // Assert
-    KRATOS_EXPECT_VECTOR_NEAR(traction.Values(), (std::array{3.0, 2.0}), Defaults::absolute_tolerance);
+    KRATOS_EXPECT_VECTOR_NEAR(traction.Values(), (std::vector{3.0, 2.0}), Defaults::absolute_tolerance);
 
     // Act
     traction.Tau() = 4.0;
 
     // Assert
-    KRATOS_EXPECT_VECTOR_NEAR(traction.Values(), (std::array{3.0, 4.0}), Defaults::absolute_tolerance);
+    KRATOS_EXPECT_VECTOR_NEAR(traction.Values(), (std::vector{3.0, 4.0}), Defaults::absolute_tolerance);
 }
 
 TYPED_TEST(TestSigmaTauFixture, SigmaTau_CanBeCopiedToAnyVectorTypeWithSizeOf2)
@@ -111,7 +110,7 @@ TYPED_TEST(TestSigmaTauFixture, SigmaTau_CanBeCopiedToAnyVectorTypeWithSizeOf2)
     const auto traction = Geo::SigmaTau{1.0, 2.0};
 
     // Act & Assert
-    KRATOS_EXPECT_VECTOR_NEAR(traction.CopyTo<TypeParam>(), (std::array{1.0, 2.0}), Defaults::absolute_tolerance);
+    KRATOS_EXPECT_VECTOR_NEAR(traction.CopyTo<TypeParam>(), (std::vector{1.0, 2.0}), Defaults::absolute_tolerance);
 }
 
 TEST_F(KratosGeoMechanicsFastSuiteWithoutKernel, SigmaTau_SupportsCompoundAssignment)
@@ -123,7 +122,7 @@ TEST_F(KratosGeoMechanicsFastSuiteWithoutKernel, SigmaTau_SupportsCompoundAssign
     traction += Geo::SigmaTau{3.0, 4.0};
 
     // Assert
-    KRATOS_EXPECT_VECTOR_NEAR(traction.Values(), (std::array{4.0, 6.0}), Defaults::absolute_tolerance);
+    KRATOS_EXPECT_VECTOR_NEAR(traction.Values(), (std::vector{4.0, 6.0}), Defaults::absolute_tolerance);
 }
 
 TEST_F(KratosGeoMechanicsFastSuiteWithoutKernel, SigmaTau_SupportsAdditionOfTwoInstances)
@@ -132,7 +131,7 @@ TEST_F(KratosGeoMechanicsFastSuiteWithoutKernel, SigmaTau_SupportsAdditionOfTwoI
     const auto summed_traction = Geo::SigmaTau{2.0, 1.0} + Geo::SigmaTau{3.0, 4.0};
 
     // Assert
-    KRATOS_EXPECT_VECTOR_NEAR(summed_traction.Values(), (std::array{5.0, 5.0}), Defaults::absolute_tolerance);
+    KRATOS_EXPECT_VECTOR_NEAR(summed_traction.Values(), (std::vector{5.0, 5.0}), Defaults::absolute_tolerance);
 }
 
 } // namespace Kratos::Testing
