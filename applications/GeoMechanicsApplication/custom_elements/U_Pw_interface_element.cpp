@@ -162,8 +162,8 @@ void UPwInterfaceElement::CalculateLeftHandSide(MatrixType& rLeftHandSideMatrix,
     const auto number_of_dofs = GetDofs().size();
     rLeftHandSideMatrix       = ZeroMatrix{number_of_dofs, number_of_dofs};
 
-    // Currently, the left-hand side matrix includes the stiffness matrix and UP coupling terms. In the
-    // future, it will also include water pressure contributions.
+    // Currently, the left-hand side matrix includes the stiffness matrix and UP coupling terms. In
+    // the future, it will also include water pressure contributions.
     for (auto contribution : mContributions) {
         switch (contribution) {
         case CalculationContribution::Stiffness:
@@ -233,8 +233,8 @@ void UPwInterfaceElement::CalculateRightHandSide(Element::VectorType& rRightHand
 {
     rRightHandSideVector = ZeroVector{GetDofs().size()};
 
-    // Currently, the right-hand side includes the internal force vector and UP coupling terms. In the
-    // future, it will also include water pressure contributions.
+    // Currently, the right-hand side includes the internal force vector and UP coupling terms. In
+    // the future, it will also include water pressure contributions.
     for (auto contribution : mContributions) {
         switch (contribution) {
         case CalculationContribution::Stiffness:
@@ -638,8 +638,8 @@ std::function<std::vector<double>()> UPwInterfaceElement::CreateBiotCoefficients
 
 std::vector<double> UPwInterfaceElement::CalculateBiotCoefficients() const
 {
-    const auto& r_properties     = this->GetProperties();
-    const double      biot_coefficient = r_properties.Has(BIOT_COEFFICIENT) ? r_properties[BIOT_COEFFICIENT]: 1.0;
+    const auto& r_properties = this->GetProperties();
+    const double biot_coefficient = r_properties.Has(BIOT_COEFFICIENT) ? r_properties[BIOT_COEFFICIENT] : 1.0;
     const std::size_t n_points = mpIntegrationScheme->GetNumberOfIntegrationPoints();
     return std::vector<double>(n_points, biot_coefficient);
 }
@@ -696,8 +696,8 @@ Vector UPwInterfaceElement::CalculateIntegrationPointFluidPressures() const
     const auto n_container                  = GetNpContainer();
     const auto nodal_water_pressure         = GetWaterPressureGeometryNodalVariable(WATER_PRESSURE);
     auto       mid_geometry_water_pressures = Vector{nodal_water_pressure.size(), 0};
-    const auto start_of_opposite_side               = nodal_water_pressure.begin() +
-                                static_cast<Vector::difference_type>(nodal_water_pressure.size() / 2);
+    const auto start_of_opposite_side =
+        nodal_water_pressure.begin() + static_cast<Vector::difference_type>(nodal_water_pressure.size() / 2);
     std::transform(nodal_water_pressure.begin(), start_of_opposite_side, start_of_opposite_side,
                    mid_geometry_water_pressures.begin(), [](const auto first_half, const auto second_half) {
         return (first_half + second_half) / 2.0;
@@ -717,11 +717,7 @@ std::function<Vector()> UPwInterfaceElement::CreateNodalPressuresGetter() const
 Vector UPwInterfaceElement::GetWaterPressureGeometryNodalVariable(const Variable<double>& rVariable) const
 {
     Vector result{this->GetWaterPressureGeometry().size()};
-    auto   index = std::size_t{0};
-    for (auto& r_node : this->GetWaterPressureGeometry()) {
-        result[index] = r_node.FastGetSolutionStepValue(rVariable);
-        index++;
-    }
+    VariablesUtilities::GetNodalValues(this->GetWaterPressureGeometry(), WATER_PRESSURE, result.begin());
     return result;
 }
 
