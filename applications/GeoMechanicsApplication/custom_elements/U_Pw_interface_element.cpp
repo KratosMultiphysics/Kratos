@@ -162,8 +162,8 @@ void UPwInterfaceElement::CalculateLeftHandSide(MatrixType& rLeftHandSideMatrix,
     const auto number_of_dofs = GetDofs().size();
     rLeftHandSideMatrix       = ZeroMatrix{number_of_dofs, number_of_dofs};
 
-    // Currently, the left-hand side matrix includes the stiffness matrix and U Pw coupling terms. In
-    // the future, it will also include water pressure contributions.
+    // Currently, the left-hand side matrix includes the stiffness matrix and U Pw coupling terms.
+    // In the future, it will also include water pressure contributions.
     for (auto contribution : mContributions) {
         switch (contribution) {
         case CalculationContribution::Stiffness:
@@ -773,7 +773,7 @@ void UPwInterfaceElement::CalculateAndAssignUPCouplingMatrix(MatrixType&        
 {
     GeoElementUtilities::AssignUPBlockMatrix(
         rLeftHandSideMatrix,
-        CreateCouplingCalculator<NumberOfRows, NumberOfColumns>(rProcessInfo).LHSContribution().value());
+        CreateUPCouplingCalculator<NumberOfRows, NumberOfColumns>(rProcessInfo).LHSContribution().value());
 }
 
 template <unsigned int NumberOfRows, unsigned int NumberOfColumns>
@@ -782,7 +782,7 @@ void UPwInterfaceElement::CalculateAndAssembleUPCouplingForceVector(VectorType& 
 {
     GeoElementUtilities::AssignUBlockVector(
         rRightHandSideVector,
-        CreateCouplingCalculator<NumberOfRows, NumberOfColumns>(rProcessInfo).RHSContribution());
+        CreateUPCouplingCalculator<NumberOfRows, NumberOfColumns>(rProcessInfo).RHSContribution());
 }
 
 // Instances of this class can not be copied but can be moved. Check that at compile time.
