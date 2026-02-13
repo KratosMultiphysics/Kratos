@@ -29,4 +29,10 @@ PrincipalStresses& PrincipalStresses::operator+=(const PrincipalStresses& rRhs)
     return *this;
 }
 
+PrincipalStresses operator+(PrincipalStresses Lhs, const PrincipalStresses& rRhs)
+{
+    Lhs += rRhs;
+    return Lhs;
+}
+
 } // namespace Kratos::Geo

@@ -103,4 +103,15 @@ TEST_F(KratosGeoMechanicsFastSuiteWithoutKernel, PrincipalStresses_SupportsCompo
     KRATOS_EXPECT_VECTOR_NEAR(principal_stresses.Values(), (std::vector{8.0, 6.0, 4.0}), Defaults::absolute_tolerance);
 }
 
+TEST_F(KratosGeoMechanicsFastSuiteWithoutKernel, PrincipalStresses_SupportsAdditionOfTwoInstances)
+{
+    // Arrange & Act
+    const auto summed_principal_stresses =
+        Geo::PrincipalStresses{3.0, 2.0, 1.0} + Geo::PrincipalStresses{4.0, 3.0, 2.0};
+
+    // Assert
+    KRATOS_EXPECT_VECTOR_NEAR(summed_principal_stresses.Values(), (std::vector{7.0, 5.0, 3.0}),
+                              Defaults::absolute_tolerance);
+}
+
 } // namespace Kratos::Testing
