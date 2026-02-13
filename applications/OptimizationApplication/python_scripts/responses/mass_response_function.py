@@ -4,7 +4,6 @@ import KratosMultiphysics as Kratos
 import KratosMultiphysics.OptimizationApplication as KratosOA
 from KratosMultiphysics.OptimizationApplication.responses.response_function import ResponseFunction
 from KratosMultiphysics.OptimizationApplication.responses.response_function import SupportedSensitivityFieldVariableTypes
-from KratosMultiphysics.OptimizationApplication.utilities.union_utilities import SupportedSensitivityFieldVariableTypes
 from KratosMultiphysics.OptimizationApplication.utilities.model_part_utilities import ModelPartOperation
 
 def Factory(model: Kratos.Model, parameters: Kratos.Parameters, _) -> ResponseFunction:
@@ -64,7 +63,6 @@ class MassResponseFunction(ResponseFunction):
         for physical_variable, cta in physical_variable_combined_tensor_adaptor.items():
             KratosOA.ResponseUtils.MassResponseUtils.CalculateGradient(
                 physical_variable,
-                self.model_part,
                 self.model_part,
                 cta,
                 self.perturbation_size)

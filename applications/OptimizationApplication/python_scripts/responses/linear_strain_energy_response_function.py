@@ -65,7 +65,6 @@ class LinearStrainEnergyResponseFunction(ResponseFunction):
             KratosOA.ResponseUtils.LinearStrainEnergyResponseUtils.CalculateGradient(
                 physical_variable,
                 self.GetInfluencingModelPart(),
-                self.GetInfluencingModelPart(),
                 cta,
                 self.perturbation_size)
 
