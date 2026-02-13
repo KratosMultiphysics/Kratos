@@ -82,18 +82,6 @@ void AddContainersToPython(py::module& m)
         .def_property_readonly("Name", &LinearSystemType::Name)
         .def_property_readonly("HasAdditionalData", &LinearSystemType::HasAdditionalData)
     ;
-
-    using EigenvalueSystemType = Future::EigenvalueSystem<Future::SerialLinearAlgebraTraits>;
-    py::class_<EigenvalueSystemType, typename EigenvalueSystemType::Pointer>(m, "EigenvalueSystem")
-        .def(py::init<>())
-        .def(py::init<typename EigenvalueSystemType::MatrixType::Pointer, typename EigenvalueSystemType::MatrixType::Pointer, typename EigenvalueSystemType::VectorType::Pointer, typename EigenvalueSystemType::DenseMatrixPointerType, std::string>(), py::arg("pK"), py::arg("pM"), py::arg("pEigenvalues"), py::arg("pEigenvectors"), py::arg("Name") = "")
-        .def("GetStiffnessMatrix", [](EigenvalueSystemType& rEigenvalueSystem)->typename Future::SerialLinearAlgebraTraits::MatrixType& { return rEigenvalueSystem.GetStiffnessMatrix(); }, py::return_value_policy::reference)
-        .def("GetMassMatrix", [](EigenvalueSystemType& rEigenvalueSystem)->typename Future::SerialLinearAlgebraTraits::MatrixType& { return rEigenvalueSystem.GetMassMatrix(); }, py::return_value_policy::reference)
-        .def("GetEigenvalues", [](EigenvalueSystemType& rEigenvalueSystem)->typename Future::SerialLinearAlgebraTraits::VectorType& { return rEigenvalueSystem.GetEigenvalues(); }, py::return_value_policy::reference)
-        .def("GetEigenvectors", [](EigenvalueSystemType& rEigenvalueSystem)->typename Future::SerialLinearAlgebraTraits::DenseMatrixType& { return rEigenvalueSystem.GetEigenvectors(); }, py::return_value_policy::reference)
-        .def("Name", &EigenvalueSystemType::Name)
-    ;
-
 }
 
 }  // namespace Kratos::Future::Python.

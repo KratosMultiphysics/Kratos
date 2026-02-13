@@ -21,7 +21,6 @@
 #include "containers/csr_matrix.h"
 #include "future/containers/define_linear_algebra_serial.h"
 #include "future/containers/linear_system.h"
-#include "future/containers/eigenvalue_system.h"
 #include "includes/model_part.h"
 #include "future/linear_operators/sparse_matrix_linear_operator.h"
 
@@ -72,9 +71,6 @@ public:
 
     /// Linear system type definition
     using LinearSystemType = LinearSystem<TLinearAlgebra>;
-
-    /// Eigenvalue system type definition
-    using EigenvalueSystemType = EigenvalueSystem<TLinearAlgebra>;
 
     /// Linear operator pointer type definition
     using LinearOperatorPointerType = typename LinearOperator<TLinearAlgebra>::Pointer;
@@ -127,14 +123,6 @@ public:
     {
     }
 
-    /**
-     * @brief This function is designed to be called as few times as possible.
-     * @details It creates the data structures that only depend on the connectivity of the matrix (and not on its coefficients) so that the memory can be allocated once and expensive operations can be done only when strictly needed
-     * @param rEigenvalueSystem The eigenvlaue system to be solved
-     */
-    virtual void Initialize(EigenvalueSystemType& rEigenvalueSystem)
-    {
-    }
 
     //TODO:
     // virtual void Initialize(MultiRHSLinearSystemType>& rLinearSystem)
@@ -147,14 +135,6 @@ public:
      * @param rLinearSystem The linear system to be solved
      */
     virtual void InitializeSolutionStep(LinearSystemType& rLinearSystem)
-    {
-    }
-    /**
-     * @brief This function is designed to be called every time the coefficients change in the system that is, normally at the beginning of each solve.
-     * @details For example if we are implementing a direct solver, this is the place to do the factorization so that then the backward substitution can be performed effectively more than once
-     * @param rEigenvalueSystem The eigenvalue system to be solved
-     */
-    virtual void InitializeSolutionStep(EigenvalueSystemType& rEigenvalueSystem)
     {
     }
 
@@ -170,31 +150,11 @@ public:
     }
 
     /**
-     * @brief This function actually performs the solution work, eventually taking advantage of what was done before in the Initialize and InitializeSolutionStep functions.
-     * @param rLinearSystem The linear system to be solved.
-     * @return @p true if the provided system was solved successfully satisfying the given requirements, @p false otherwise.
-     */
-    virtual bool PerformSolutionStep(EigenvalueSystemType& rEigenvalueSystem)
-    {
-        KRATOS_ERROR << "Calling linear solver base class." << std::endl;
-        return false;
-    }
-
-    /**
      * @brief This function is designed to be called at the end of the solve step.
      * @details for example this is the place to remove any data that we do not want to save for later
      * @param rLinearSystem The linear system to be solved.
      */
     virtual void FinalizeSolutionStep(LinearSystemType& rLinearSystem)
-    {
-    }
-
-    /**
-     * @brief This function is designed to be called at the end of the solve step.
-     * @details for example this is the place to remove any data that we do not want to save for later
-     * @param rEigenvalueSystem The linear system to be solved.
-     */
-    virtual void FinalizeSolutionStep(EigenvalueSystemType& rEigenvalueSystem)
     {
     }
 
