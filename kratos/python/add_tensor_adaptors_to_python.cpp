@@ -36,6 +36,7 @@
 #include "tensor_adaptors/geometries_tensor_adaptor.h"
 #include "tensor_adaptors/tensor_adaptor.h"
 #include "tensor_adaptors/variable_tensor_adaptor.h"
+#include "tensor_adaptors/nodal_neighbour_count_tensor_adaptor.h"
 
 // Include base h
 #include "add_tensor_adaptors_to_python.h"
@@ -298,6 +299,22 @@ void AddTensorAdaptorsToPython(pybind11::module& m)
           .def(py::init<const ConnectivityIdsTensorAdaptor::BaseType&, const bool>(),
                py::arg("tensor_adaptor"),
                py::arg("copy") = true);
+
+     py::class_<NodalNeighbourCountTensorAdaptor, NodalNeighbourCountTensorAdaptor::Pointer, NodalNeighbourCountTensorAdaptor::BaseType>(tensor_adaptor_sub_module, "NodalNeighbourCountTensorAdaptor")
+          .def(py::init<const NodalNeighbourCountTensorAdaptor::BaseType&, ModelPart::ConditionsContainerType::Pointer, const bool>(),
+               py::arg("tensor_adaptor"),
+               py::arg("entity_container"),
+               py::arg("copy") = true)
+          .def(py::init<const NodalNeighbourCountTensorAdaptor::BaseType&, ModelPart::ElementsContainerType::Pointer, const bool>(),
+               py::arg("tensor_adaptor"),
+               py::arg("entity_container"),
+               py::arg("copy") = true)
+          .def(py::init<ModelPart::NodesContainerType::Pointer, ModelPart::ConditionsContainerType::Pointer>(),
+               py::arg("nodes_container"),
+               py::arg("entity_container"))
+          .def(py::init<ModelPart::NodesContainerType::Pointer, ModelPart::ElementsContainerType::Pointer>(),
+               py::arg("nodes_container"),
+               py::arg("entity_container"));
 }
 
 } // namespace Kratos::Python.
