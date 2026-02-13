@@ -69,7 +69,7 @@ class NLOPTAlgorithms(Algorithm):
         self.__objective = StandardizedNLOPTObjective(parameters["objective"], self.master_control, self._optimization_problem)
         self._optimization_problem.AddComponent(self.__objective)
         self.__constraints = []
-        for constraint_settings in parameters["constraints"]:
+        for constraint_settings in parameters["constraints"].values():
             constraint = StandardizedNLOPTConstraint(constraint_settings, self.master_control, self._optimization_problem)
             self._optimization_problem.AddComponent(constraint)
             self.__constraints.append(constraint)
@@ -128,8 +128,7 @@ class NLOPTAlgorithms(Algorithm):
         self.algorithm_data = ComponentDataView("algorithm", self._optimization_problem)
 
         # create nlopt optimizer
-        self.x0 = self.__control_field.Evaluate()
-        self.x0 = self.x0.reshape(-1)
+        self.x0 = self.__control_field.data.reshape(-1)
         self.nlopt_optimizer = nlopt.opt(self.GetOptimizer(self.algorithm_name), self.x0.size)
 
         # add subsidiary optimization algorithm
