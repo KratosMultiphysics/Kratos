@@ -149,7 +149,7 @@ private:
     typename UPCouplingCalculator<NumberOfRows, NumberOfColumns>::InputProvider CreateUPCouplingInputProvider() const;
 
     template <unsigned int NumberOfRows, unsigned int NumberOfColumns>
-    auto CreateCouplingCalculator(const ProcessInfo& rProcessInfo) const;
+    auto CreateUPCouplingCalculator(const ProcessInfo& rProcessInfo) const;
 
     template <unsigned int NumberOfRows, unsigned int NumberOfColumns>
     void CalculateAndAssignUPCouplingMatrix(MatrixType& rLeftHandSideMatrix, const ProcessInfo& rProcessInfo) const;

@@ -761,7 +761,7 @@ typename UPCouplingCalculator<NumberOfRows, NumberOfColumns>::InputProvider UPwI
 }
 
 template <unsigned int NumberOfRows, unsigned int NumberOfColumns>
-auto UPwInterfaceElement::CreateCouplingCalculator(const ProcessInfo& rProcessInfo) const
+auto UPwInterfaceElement::CreateUPCouplingCalculator(const ProcessInfo& rProcessInfo) const
 {
     return UPCouplingCalculator<NumberOfRows, NumberOfColumns>(
         CreateUPCouplingInputProvider<NumberOfRows, NumberOfColumns>());

@@ -478,7 +478,7 @@ void GeneraizedUPCouplingContributionTest(TElementFactory&&  ElementFactory,
                                           const Matrix&      expected_up_block_matrix,
                                           const Vector&      expected_up_block_vector)
 {
-    // Arange
+    // Arrange
     const auto p_properties = std::make_shared<Properties>();
     p_properties->GetValue(CONSTITUTIVE_LAW) = std::make_shared<GeoIncrementalLinearElasticInterfaceLaw>(
         std::make_unique<TConstitutiveLawDimension>());
