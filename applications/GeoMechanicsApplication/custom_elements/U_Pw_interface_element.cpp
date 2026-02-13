@@ -694,7 +694,7 @@ Matrix UPwInterfaceElement::GetNpContainer() const
 Vector UPwInterfaceElement::CalculateIntegrationPointFluidPressures() const
 {
     const auto n_container                  = GetNpContainer();
-    const auto nodal_water_pressure         = GetWaterPressureGeometryNodalVariable(WATER_PRESSURE);
+    const auto nodal_water_pressure         = GetWaterPressureGeometryNodalVariable();
     auto       mid_geometry_water_pressures = Vector{nodal_water_pressure.size(), 0};
     const auto start_of_opposite_side =
         nodal_water_pressure.begin() + static_cast<Vector::difference_type>(nodal_water_pressure.size() / 2);
@@ -711,10 +711,10 @@ Vector UPwInterfaceElement::CalculateIntegrationPointFluidPressures() const
 
 std::function<Vector()> UPwInterfaceElement::CreateNodalPressuresGetter() const
 {
-    return [this]() { return this->GetWaterPressureGeometryNodalVariable(WATER_PRESSURE); };
+    return [this]() { return this->GetWaterPressureGeometryNodalVariable(); };
 }
 
-Vector UPwInterfaceElement::GetWaterPressureGeometryNodalVariable(const Variable<double>& rVariable) const
+Vector UPwInterfaceElement::GetWaterPressureGeometryNodalVariable() const
 {
     Vector result{this->GetWaterPressureGeometry().size()};
     VariablesUtilities::GetNodalValues(this->GetWaterPressureGeometry(), WATER_PRESSURE, result.begin());
@@ -761,7 +761,7 @@ typename UPCouplingCalculator<NumberOfRows, NumberOfColumns>::InputProvider UPwI
 }
 
 template <unsigned int NumberOfRows, unsigned int NumberOfColumns>
-auto UPwInterfaceElement::CreateUPCouplingCalculator(const ProcessInfo& rProcessInfo) const
+auto UPwInterfaceElement::CreateUPCouplingCalculator() const
 {
     return UPCouplingCalculator<NumberOfRows, NumberOfColumns>(
         CreateUPCouplingInputProvider<NumberOfRows, NumberOfColumns>());
@@ -773,7 +773,7 @@ void UPwInterfaceElement::CalculateAndAssignUPCouplingMatrix(MatrixType&        
 {
     GeoElementUtilities::AssignUPBlockMatrix(
         rLeftHandSideMatrix,
-        CreateUPCouplingCalculator<NumberOfRows, NumberOfColumns>(rProcessInfo).LHSContribution().value());
+        CreateUPCouplingCalculator<NumberOfRows, NumberOfColumns>().LHSContribution().value());
 }
 
 template <unsigned int NumberOfRows, unsigned int NumberOfColumns>
@@ -781,8 +781,7 @@ void UPwInterfaceElement::CalculateAndAssembleUPCouplingForceVector(VectorType& 
                                                                     const ProcessInfo& rProcessInfo) const
 {
     GeoElementUtilities::AssignUBlockVector(
-        rRightHandSideVector,
-        CreateUPCouplingCalculator<NumberOfRows, NumberOfColumns>(rProcessInfo).RHSContribution());
+        rRightHandSideVector, CreateUPCouplingCalculator<NumberOfRows, NumberOfColumns>().RHSContribution());
 }
 
 // Instances of this class can not be copied but can be moved. Check that at compile time.
