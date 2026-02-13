@@ -162,7 +162,7 @@ void UPwInterfaceElement::CalculateLeftHandSide(MatrixType& rLeftHandSideMatrix,
     const auto number_of_dofs = GetDofs().size();
     rLeftHandSideMatrix       = ZeroMatrix{number_of_dofs, number_of_dofs};
 
-    // Currently, the left-hand side matrix includes the stiffness matrix and coupling terms. In the
+    // Currently, the left-hand side matrix includes the stiffness matrix and UP coupling terms. In the
     // future, it will also include water pressure contributions.
     for (auto contribution : mContributions) {
         switch (contribution) {
@@ -233,7 +233,7 @@ void UPwInterfaceElement::CalculateRightHandSide(Element::VectorType& rRightHand
 {
     rRightHandSideVector = ZeroVector{GetDofs().size()};
 
-    // Currently, the right-hand side includes the internal force vector and coupling terms. In the
+    // Currently, the right-hand side includes the internal force vector and UP coupling terms. In the
     // future, it will also include water pressure contributions.
     for (auto contribution : mContributions) {
         switch (contribution) {
@@ -295,7 +295,7 @@ void UPwInterfaceElement::CalculateAndAssembleUPCouplingForceVector(Element::Vec
 
     const auto key = Key{NumberOfUDofs(), GetWaterPressureGeometry().size()};
     KRATOS_ERROR_IF_NOT(dispatch_table.contains(key))
-        << "This Coupling force vector size is not supported: " << key.first << "x" << key.second << "\n";
+        << "This coupling force vector size is not supported: " << key.first << "x" << key.second << "\n";
     (this->*dispatch_table.at(key))(rRightHandSideVector, rProcessInfo);
 }
 
@@ -639,11 +639,7 @@ std::function<std::vector<double>()> UPwInterfaceElement::CreateBiotCoefficients
 std::vector<double> UPwInterfaceElement::CalculateBiotCoefficients() const
 {
     const auto& r_properties     = this->GetProperties();
-    double      biot_coefficient = 1.0; // Default value if not set
-
-    if (r_properties.Has(BIOT_COEFFICIENT)) {
-        biot_coefficient = r_properties[BIOT_COEFFICIENT];
-    }
+    const double      biot_coefficient = r_properties.Has(BIOT_COEFFICIENT) ? r_properties[BIOT_COEFFICIENT]: 1.0;
     const std::size_t n_points = mpIntegrationScheme->GetNumberOfIntegrationPoints();
     return std::vector<double>(n_points, biot_coefficient);
 }
@@ -700,9 +696,9 @@ Vector UPwInterfaceElement::CalculateIntegrationPointFluidPressures() const
     const auto n_container                  = GetNpContainer();
     const auto nodal_water_pressure         = GetWaterPressureGeometryNodalVariable(WATER_PRESSURE);
     auto       mid_geometry_water_pressures = Vector{nodal_water_pressure.size(), 0};
-    const auto half_way_point               = nodal_water_pressure.begin() +
+    const auto start_of_opposite_side               = nodal_water_pressure.begin() +
                                 static_cast<Vector::difference_type>(nodal_water_pressure.size() / 2);
-    std::transform(nodal_water_pressure.begin(), half_way_point, half_way_point,
+    std::transform(nodal_water_pressure.begin(), start_of_opposite_side, start_of_opposite_side,
                    mid_geometry_water_pressures.begin(), [](const auto first_half, const auto second_half) {
         return (first_half + second_half) / 2.0;
     });
@@ -760,8 +756,7 @@ void UPwInterfaceElement::CalculateAndAssignStiffnesForceVector(VectorType& rRig
 }
 
 template <unsigned int NumberOfRows, unsigned int NumberOfColumns>
-typename UPCouplingCalculator<NumberOfRows, NumberOfColumns>::InputProvider UPwInterfaceElement::CreateUPCouplingInputProvider(
-    const ProcessInfo&) const
+typename UPCouplingCalculator<NumberOfRows, NumberOfColumns>::InputProvider UPwInterfaceElement::CreateUPCouplingInputProvider() const
 {
     return typename UPCouplingCalculator<NumberOfRows, NumberOfColumns>::InputProvider(
         CreateNpContainerGetter(), CreateBMatricesGetter(), CreateVoigtVectorGetter(),
@@ -773,7 +768,7 @@ template <unsigned int NumberOfRows, unsigned int NumberOfColumns>
 auto UPwInterfaceElement::CreateCouplingCalculator(const ProcessInfo& rProcessInfo) const
 {
     return UPCouplingCalculator<NumberOfRows, NumberOfColumns>(
-        CreateUPCouplingInputProvider<NumberOfRows, NumberOfColumns>(rProcessInfo));
+        CreateUPCouplingInputProvider<NumberOfRows, NumberOfColumns>());
 }
 
 template <unsigned int NumberOfRows, unsigned int NumberOfColumns>

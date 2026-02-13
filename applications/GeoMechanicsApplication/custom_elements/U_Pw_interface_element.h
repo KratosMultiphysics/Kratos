@@ -146,8 +146,7 @@ private:
     void CalculateAndAssignStiffnesForceVector(VectorType& rRightHandSideVector, const ProcessInfo& rProcessInfo);
 
     template <unsigned int NumberOfRows, unsigned int NumberOfColumns>
-    typename UPCouplingCalculator<NumberOfRows, NumberOfColumns>::InputProvider CreateUPCouplingInputProvider(
-        const ProcessInfo& rProcessInfo) const;
+    typename UPCouplingCalculator<NumberOfRows, NumberOfColumns>::InputProvider CreateUPCouplingInputProvider() const;
 
     template <unsigned int NumberOfRows, unsigned int NumberOfColumns>
     auto CreateCouplingCalculator(const ProcessInfo& rProcessInfo) const;
