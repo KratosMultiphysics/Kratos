@@ -50,6 +50,31 @@ The following table lists the material properties of the soil layers that have b
 | Poisson's ratio $`\nu`$                                   | `POISSON_RATIO`        | 0.15                             | 0.20                             | $`[-]`$                        |
 | K0-value for normal consolidation $`K_{\mathrm{0}}^{nc}`$ | `K0_NC`                | 0.5774                           | 0.4701                           | $`[-]`$                        |
 
+The table below is specifically for the material properties of the soils for the Hardening soil (HS) model. For the hardening soil user defined soil model being used in the current model, 21 parameters are expected. These inputs are listed below by order:
+
+| UMAT_PARAMETERS number | Property                                                                     | Clay                 | Sand                 | Unit                           |
+|------------------------|------------------------------------------------------------------------------|----------------------|----------------------|--------------------------------|
+| 1                      | Secant stiffness in standard drained triaxial test $`E_{\mathrm{50}}^{ref}`$ | $`4 \cdot 10^{3}`$   | $`40 \cdot 10^{3}`$  | $`\mathrm{kN} / \mathrm{m}^2`$ |
+| 2                      | Tangent stiffness for primary oedometer loading $`E_{\mathrm{oed}}^{ref}`$   | $`3.3 \cdot 10^{3}`$ | $`40 \cdot 10^{3}`$  | $`\mathrm{kN} / \mathrm{m}^2`$ |
+| 3                      | Unloading / reloading stiffness $`E_{\mathrm{ur}}^{ref}`$                    | $`12 \cdot 10^{3}`$  | $`120 \cdot 10^{3}`$ | $`\mathrm{kN} / \mathrm{m}^2`$ |
+| 4                      | Power for stress-level dependency of stiffness $`m`$                         | 1.0                  | 0.5                  | $`[-]`$                        |
+| 5                      | Friction angle $`\phi_{\mathrm{peak}}`$                                      | 25.0                 | 32.0                 | $`^{\circ}`$                   |
+| 6                      | Dilatancy angle $`\psi_{\mathrm{peak}}`$                                     | 0.0                  | 2.0                  | $`^{\circ}`$                   |
+| 7                      | Cohesion $`c'`$                                                              | 1.0                  | 0.0                  | $`\mathrm{kN} / \mathrm{m}^2`$ |
+| 8                      | Poisson's ratio $`\nu`$                                                      | 0.15                 | 0.2                  | $`[-]`$                        |
+| 9                      | Reference stress for stiffnesses $`P_{\mathrm{ref}}`$                        | 100                  | 100                  | $`\mathrm{kN} / \mathrm{m}^2`$ |
+| 10                     | Failure ratio $`q_{\mathrm{f}}/ q{\mathrm{a}}`$                              | 0.9                  | 0.9                  | $`[-]`$                        |
+| 11                     | Tensile strength $`\sigma_{\mathrm{t,} \mathrm{cut-off}}`$                   | 0.0                  | 0.0                  | $`\mathrm{kN} / \mathrm{m}^2`$ |
+| 12                     | Over-consolidation ratio $`OCR`$                                             | 1.0                  | 1.0                  | $`[-]`$                        |
+| 13                     | Pre-overburden pressure $`POP`$                                              | 5.0                  | 0.0                  | $`\mathrm{kN} / \mathrm{m}^2`$ |
+| 14                     | K0-value for normal consolidation $`K_{\mathrm{0}}^{nc}`$                    | 0.5774               | 0.4701               | $`[-]`$                        |
+| 15                     | Unloading Poisson's ratio  $`\nu_{\mathrm{un}} (UMAT)`$                      | 0.15                 | 0.2                  | $`[-]`$                        |
+| 16                     | Initial void ration $`e_{\mathrm{0}}`$                                       | 0.25                 | 0.4286               | $`[-]`$                        |
+| 17                     | Maximum void ration $`e_{\mathrm{max}}`$                                     | 1.0                  | 1.0                  | $`[-]`$                        |
+| 18                     | Flow rule (HS=0, HSSmall=1, Rowe=2, UBC=3)                                   | 0                    | 0                    | $`[-]`$                        |
+| 19                     | Initial shear modulus   $`G_{\mathrm{0}}^{ref}`$                             | 0.0                  | 0.0                  | $`\mathrm{kN} / \mathrm{m}^2`$ |
+| 20                     | Threshold shear strain $`\gamma_{\mathrm{r}}`$                               | 0.0                  | 0.0                  | $`[-]`$                        |
+| 21                     | Controls the shape of the modulus reduction curve $`\alpha_{\mathrm{r}}`$    | 0.0                  | 0.0                  | $`[-]`$                        |
 
 The following table lists the material properties of the interfaces that have been adopted by the Kratos model.
 
