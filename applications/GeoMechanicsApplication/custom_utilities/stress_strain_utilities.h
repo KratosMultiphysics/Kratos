@@ -16,12 +16,18 @@
 #pragma once
 
 /* Project includes */
+#include "custom_constitutive/principal_stresses.hpp"
 #include "includes/constitutive_law.h"
 #include "includes/define.h"
 #include "includes/ublas_interface.h"
 
 namespace Kratos
 {
+
+namespace Geo
+{
+class SigmaTau;
+} // namespace Geo
 
 class KRATOS_API(GEO_MECHANICS_APPLICATION) StressStrainUtilities
 {
@@ -41,16 +47,18 @@ public:
                                                 const Vector&              rDisplacements,
                                                 bool                       UseHenckyStrain,
                                                 std::size_t                VoigtSize);
-    static void                CalculatePrincipalStresses(const Vector& rCauchyStressVector,
-                                                          Vector&       rPrincipalStressVector,
-                                                          Matrix&       rEigenVectorsMatrix);
+    static std::pair<Geo::PrincipalStresses, Matrix> CalculatePrincipalStressesAndRotationMatrix(const Vector& rStressVector);
+    static void CalculatePrincipalStresses(const Vector& rCauchyStressVector,
+                                           Vector&       rPrincipalStressVector,
+                                           Matrix&       rEigenVectorsMatrix);
     static void ReorderEigenValuesAndVectors(Vector& rPrincipalStressVector, Matrix& rEigenVectorsMatrix);
     static Vector RotatePrincipalStresses(const Vector& rPrincipalStressVector,
                                           const Matrix& rRotationMatrix,
                                           std::size_t   StressVectorSize);
 
-    static Vector TransformPrincipalStressesToSigmaTau(const Vector& rPrincipalStresses);
-    static Vector TransformSigmaTauToPrincipalStresses(const Vector& rSigmaTau, const Vector& rPrincipalStresses);
+    static Geo::SigmaTau TransformPrincipalStressesToSigmaTau(const Geo::PrincipalStresses& rPrincipalStresses);
+    static Geo::PrincipalStresses TransformSigmaTauToPrincipalStresses(const Geo::SigmaTau& rSigmaTau,
+                                                                       const Geo::PrincipalStresses& rPrincipalStresses);
     static Vector TransformPrincipalStressesToPandQ(const Vector& rPrincipalStresses);
 
     /// @brief This function calculates stresses from strains using the constitutive laws.
