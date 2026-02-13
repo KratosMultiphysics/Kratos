@@ -114,7 +114,7 @@ TYPED_TEST(TestSigmaTauFixture, SigmaTau_CanBeCopiedToAnyVectorTypeWithSizeOf2)
     KRATOS_EXPECT_VECTOR_NEAR(traction.CopyTo<TypeParam>(), (std::array{1.0, 2.0}), Defaults::absolute_tolerance);
 }
 
-TEST_F(KratosGeoMechanicsFastSuiteWithoutKernel, SigmaTau_CanBeAddedToAnotherSigmaTau)
+TEST_F(KratosGeoMechanicsFastSuiteWithoutKernel, SigmaTau_SupportsCompoundAssignment)
 {
     // Arrange
     auto traction = Geo::SigmaTau{1.0, 2.0};
@@ -124,12 +124,15 @@ TEST_F(KratosGeoMechanicsFastSuiteWithoutKernel, SigmaTau_CanBeAddedToAnotherSig
 
     // Assert
     KRATOS_EXPECT_VECTOR_NEAR(traction.Values(), (std::array{4.0, 6.0}), Defaults::absolute_tolerance);
+}
 
+TEST_F(KratosGeoMechanicsFastSuiteWithoutKernel, SigmaTau_SupportsAdditionOfTwoInstances)
+{
     // Arrange & Act
-    traction = Geo::SigmaTau{2.0, 1.0} + Geo::SigmaTau{3.0, 4.0};
+    const auto summed_traction = Geo::SigmaTau{2.0, 1.0} + Geo::SigmaTau{3.0, 4.0};
 
     // Assert
-    KRATOS_EXPECT_VECTOR_NEAR(traction.Values(), (std::array{5.0, 5.0}), Defaults::absolute_tolerance);
+    KRATOS_EXPECT_VECTOR_NEAR(summed_traction.Values(), (std::array{5.0, 5.0}), Defaults::absolute_tolerance);
 }
 
 } // namespace Kratos::Testing

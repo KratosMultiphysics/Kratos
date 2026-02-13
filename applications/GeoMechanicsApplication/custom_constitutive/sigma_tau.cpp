@@ -21,7 +21,7 @@ SigmaTau::SigmaTau(const std::initializer_list<double>& rValues)
 {
 }
 
-const SigmaTau::InternalArrayType& SigmaTau::Values() const { return mValues; }
+const SigmaTau::InternalVectorType& SigmaTau::Values() const { return mValues; }
 
 double SigmaTau::Sigma() const { return mValues[0]; }
 

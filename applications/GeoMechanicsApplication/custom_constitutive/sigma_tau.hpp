@@ -13,11 +13,10 @@
 
 #pragma once
 
-#include "includes/exception.h"
 #include "includes/kratos_export_api.h"
+#include "includes/ublas_interface.h"
 
 #include <algorithm>
-#include <array>
 #include <initializer_list>
 #include <iterator>
 
@@ -27,8 +26,8 @@ namespace Kratos::Geo
 class KRATOS_API(GEO_MECHANICS_APPLICATION) SigmaTau
 {
 public:
-    static constexpr std::size_t msArraySize = 2;
-    using InternalArrayType                  = std::array<double, msArraySize>;
+    static constexpr std::size_t msVectorSize = 2;
+    using InternalVectorType                  = BoundedVector<double, msVectorSize>;
 
     SigmaTau() = default;
 
@@ -39,37 +38,36 @@ public:
 
     explicit SigmaTau(const std::initializer_list<double>& rValues);
 
-    [[nodiscard]] const InternalArrayType& Values() const;
-    [[nodiscard]] double                   Sigma() const;
-    double&                                Sigma();
-    [[nodiscard]] double                   Tau() const;
-    double&                                Tau();
+    [[nodiscard]] const InternalVectorType& Values() const;
+    [[nodiscard]] double                    Sigma() const;
+    double&                                 Sigma();
+    [[nodiscard]] double                    Tau() const;
+    double&                                 Tau();
 
     template <typename VectorType>
     VectorType CopyTo() const
     {
-        auto result = VectorType(msArraySize);
+        auto result = VectorType(msVectorSize);
         std::ranges::copy(mValues, result.begin());
         return result;
     }
 
     SigmaTau& operator+=(const SigmaTau& rRhsTraction);
     KRATOS_API(GEO_MECHANICS_APPLICATION)
-    friend SigmaTau operator+(SigmaTau LhsTraction, /* passing this one by value helps optimize chained a+b+c */
-                              const SigmaTau& rRhsTraction);
+    friend SigmaTau operator+(SigmaTau LhsTraction, const SigmaTau& rRhsTraction);
 
 private:
     template <std::forward_iterator Iter>
     SigmaTau(Iter First, Iter Last)
     {
-        KRATOS_DEBUG_ERROR_IF(std::distance(First, Last) != msArraySize)
-            << "Cannot construct a SigmaTau instance: expected " << msArraySize
+        KRATOS_DEBUG_ERROR_IF(std::distance(First, Last) != msVectorSize)
+            << "Cannot construct a SigmaTau instance: expected " << msVectorSize
             << " values, but got " << std::distance(First, Last) << " value(s)\n";
 
         std::copy(First, Last, mValues.begin());
     }
 
-    InternalArrayType mValues = {0.0, 0.0};
+    InternalVectorType mValues = ZeroVector{msVectorSize};
 };
 
 } // namespace Kratos::Geo
