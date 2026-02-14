@@ -16,7 +16,6 @@
 
 // Project includes
 #include "utilities/parallel_utilities.h"
-#include "expression/literal_flat_expression.h"
 
 // Application includes
 
