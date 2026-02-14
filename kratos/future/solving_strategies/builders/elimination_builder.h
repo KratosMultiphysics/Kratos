@@ -187,24 +187,22 @@ public:
     {
         // Get effective arrays
         auto p_eff_lin_sys = rImplicitStrategyData.pGetEffectiveLinearSystem();
-        auto p_eff_dx = p_eff_lin_sys->pGetSolution();
-        auto p_eff_rhs = p_eff_lin_sys->pGetRightHandSide();
+        auto& r_eff_dx = *(p_eff_lin_sys->pGetVector(Future::DenseVectorTag::Dx));
+        auto& r_eff_rhs = *(p_eff_lin_sys->pGetVector(Future::DenseVectorTag::RHS));
 
         // Initialize the effective RHS
-        KRATOS_ERROR_IF(p_eff_rhs == nullptr) << "Effective RHS vector has not been initialized yet." << std::endl;
-        p_eff_rhs->SetValue(0.0);
+        r_eff_rhs.SetValue(0.0);
 
         // Initialize the effective solution vector
-        KRATOS_ERROR_IF(p_eff_dx == nullptr) << "Effective solution increment vector has not been initialized yet." << std::endl;
-        p_eff_dx->SetValue(0.0);
+        r_eff_dx.SetValue(0.0);
 
         // Set ones in the entries of the Dirichlet constraints relation matrix
         mpDirichletT->SetValue(1.0);
 
         // Get the linear system to apply the constraints to
         auto p_lin_sys = rImplicitStrategyData.pGetLinearSystem();
-        auto& r_lhs = p_lin_sys->GetLeftHandSide();
-        auto& r_rhs = p_lin_sys->GetRightHandSide();
+        auto& r_lhs = *(p_lin_sys->pGetMatrix(Future::SparseMatrixTag::LHS));
+        auto& r_rhs = *(p_lin_sys->pGetVector(Future::DenseVectorTag::RHS));
 
         // Check if there are master-slave constraints to do the constraints composition
         const auto& r_model_part = this->GetModelPart();
@@ -215,25 +213,25 @@ public:
             rImplicitStrategyData.pSetEffectiveT(AmgclCSRSpMMUtilities::SparseMultiply(r_constraints_T, *mpDirichletT));
 
             // Apply constraints to RHS
-            rImplicitStrategyData.pGetEffectiveT()->TransposeSpMV(r_rhs, *p_eff_rhs);
+            rImplicitStrategyData.pGetEffectiveT()->TransposeSpMV(r_rhs, r_eff_rhs);
 
             // Apply constraints to LHS
             auto p_LHS_T = AmgclCSRSpMMUtilities::SparseMultiply(r_lhs, *rImplicitStrategyData.pGetEffectiveT());
             auto p_transT = AmgclCSRConversionUtilities::Transpose(*rImplicitStrategyData.pGetEffectiveT());
             auto p_eff_lhs = AmgclCSRSpMMUtilities::SparseMultiply(*p_transT, *p_LHS_T);
-            p_eff_lin_sys->SetLeftHandSide(*p_eff_lhs);
+            p_eff_lin_sys->pSetMatrix(p_eff_lhs, Future::SparseMatrixTag::LHS);
         } else {
             // Assign the Dirichlet relation matrix as the effective ones since there are no other constraints
             rImplicitStrategyData.pSetEffectiveT(mpDirichletT);
 
             // Apply Dirichlet constraints to RHS
-            rImplicitStrategyData.pGetEffectiveT()->TransposeSpMV(r_rhs, *p_eff_rhs);
+            rImplicitStrategyData.pGetEffectiveT()->TransposeSpMV(r_rhs, r_eff_rhs);
 
             // Apply Dirichlet constraints to LHS
             auto p_LHS_T = AmgclCSRSpMMUtilities::SparseMultiply(r_lhs, *rImplicitStrategyData.pGetEffectiveT());
             auto p_transT = AmgclCSRConversionUtilities::Transpose(*rImplicitStrategyData.pGetEffectiveT());
             auto p_eff_lhs = AmgclCSRSpMMUtilities::SparseMultiply(*p_transT, *p_LHS_T);
-            p_eff_lin_sys->SetLeftHandSide(*p_eff_lhs);
+            p_eff_lin_sys->pSetMatrix(p_eff_lhs, Future::SparseMatrixTag::LHS);
         }
     }
 

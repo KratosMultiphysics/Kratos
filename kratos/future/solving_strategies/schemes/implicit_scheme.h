@@ -920,7 +920,7 @@ public:
             r_constraints_T.BeginAssemble();
             r_constraints_q.BeginAssemble();
 
-            auto& r_eff_dof_set = *(rLinearSystemContainer.pEffectiveDofSet);
+            auto& r_eff_dof_set = *(rImplicitStrategyData.pGetEffectiveDofSet());
             #pragma omp parallel
             {
                 TLSType aux_tls;
@@ -1159,8 +1159,8 @@ public:
             "There are constraints but effective relation matrix is not set. Solution update vector cannot be computed." << std::endl;
 
         // Compute the solution vector from the effective one
-        auto& r_dx = rImplicitStrategyData.pGetLinearSystem()->GetSolution();
-        auto& r_eff_dx = rImplicitStrategyData.pGetEffectiveLinearSystem()->GetSolution();
+        auto& r_dx = *(rImplicitStrategyData.pGetLinearSystem()->pGetVector(Future::DenseVectorTag::Dx));
+        auto& r_eff_dx = *(rImplicitStrategyData.pGetEffectiveLinearSystem()->pGetVector(Future::DenseVectorTag::Dx));
         if (p_eff_T != nullptr) {
             r_dx.SetValue(0.0);
             p_eff_T->SpMV(r_eff_dx, r_dx);

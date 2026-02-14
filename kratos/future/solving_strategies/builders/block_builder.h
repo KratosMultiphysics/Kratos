@@ -171,8 +171,8 @@ public:
 
         // Apply the Dirichlet BCs in a block way by leveraging the CSR matrix implementation
         auto p_eff_lin_sys = rImplicitStrategyData.pGetEffectiveLinearSystem();
-        auto& r_eff_lhs = *(p_eff_lin_sys->pGetLeftHandSide());
-        auto& r_eff_rhs = *(p_eff_lin_sys->pGetRightHandSide());
+        auto& r_eff_lhs = *(p_eff_lin_sys->pGetMatrix(Future::SparseMatrixTag::LHS));
+        auto& r_eff_rhs = *(p_eff_lin_sys->pGetVector(Future::DenseVectorTag::RHS));
         auto& r_eff_dof_set = *(rImplicitStrategyData.pGetEffectiveDofSet());
         ApplyBlockBuildDirichletConditions(r_eff_dof_set, r_eff_lhs, r_eff_rhs);
     }
@@ -201,15 +201,13 @@ private:
         const std::size_t n_constraints = r_model_part.NumberOfMasterSlaveConstraints();
         if (n_constraints) { //FIXME: In here we should check the number of active constraints
             // Get effective arrays
-            auto p_eff_dx = p_eff_lin_sys->pGetSolution();
-            auto p_eff_rhs = p_eff_lin_sys->pGetRightHandSide();
+            auto p_eff_dx = p_eff_lin_sys->pGetVector(Future::DenseVectorTag::Dx);
+            auto p_eff_rhs = p_eff_lin_sys->pGetVector(Future::DenseVectorTag::RHS);
 
             // Initialize the effective RHS
-            KRATOS_ERROR_IF(p_eff_rhs == nullptr) << "Effective RHS vector has not been initialized yet." << std::endl;
             p_eff_rhs->SetValue(0.0);
 
             // Initialize the effective solution vector
-            KRATOS_ERROR_IF(p_eff_dx == nullptr) << "Effective solution increment vector has not been initialized yet." << std::endl;
             p_eff_dx->SetValue(0.0);
 
             // Assign the master-slave relation matrix as the effective one since there are no other constraints
@@ -217,17 +215,17 @@ private:
             rImplicitStrategyData.pSetEffectiveT(p_const_T);
 
             // Apply constraints to RHS
-            auto p_rhs = p_lin_sys->pGetRightHandSide();
+            auto p_rhs = p_lin_sys->pGetVector(Future::DenseVectorTag::RHS);
             auto p_eff_T = rImplicitStrategyData.pGetEffectiveT();
             p_eff_T->TransposeSpMV(*p_rhs, *p_eff_rhs);
 
             // Apply constraints to LHS
             //TODO: Rethink once we figure out the LinearSystemContainer, LinearOperator and so...
-            auto p_lhs = p_lin_sys->pGetLeftHandSide();
+            auto p_lhs = p_lin_sys->pGetMatrix(Future::SparseMatrixTag::LHS);
             auto p_LHS_T = AmgclCSRSpMMUtilities::SparseMultiply(*p_lhs, *rImplicitStrategyData.pGetEffectiveT());
             auto p_transT = AmgclCSRConversionUtilities::Transpose(*rImplicitStrategyData.pGetEffectiveT());
             auto p_eff_lhs = AmgclCSRSpMMUtilities::SparseMultiply(*p_transT, *p_LHS_T);
-            p_eff_lin_sys->SetLeftHandSide(*p_eff_lhs);
+            p_eff_lin_sys->pSetMatrix(p_eff_lhs, Future::SparseMatrixTag::LHS);
 
             // // Compute the scale factor value
             // //TODO: think on how to make this user-definable
@@ -244,12 +242,12 @@ private:
         } else {
             // If there are no constraints the effective arrays are the same as the input ones
             // Note that we avoid duplicating the memory by making the effective pointers to point to the same object
-            auto& r_dx = p_lin_sys->GetSolution();
-            auto& r_lhs = p_lin_sys->GetLeftHandSide();
-            auto& r_rhs = p_lin_sys->GetRightHandSide();
-            p_eff_lin_sys->SetSolution(r_dx);
-            p_eff_lin_sys->SetLeftHandSide(r_lhs);
-            p_eff_lin_sys->SetRightHandSide(r_rhs);
+            auto p_dx = p_lin_sys->pGetVector(Future::DenseVectorTag::Dx);
+            auto p_rhs = p_lin_sys->pGetVector(Future::DenseVectorTag::RHS);
+            auto p_lhs = p_lin_sys->pGetMatrix(Future::SparseMatrixTag::LHS);
+            p_eff_lin_sys->pSetVector(p_dx, Future::DenseVectorTag::Dx);
+            p_eff_lin_sys->pSetVector(p_rhs, Future::DenseVectorTag::RHS);
+            p_eff_lin_sys->pSetMatrix(p_lhs, Future::SparseMatrixTag::LHS);
         }
     }
 

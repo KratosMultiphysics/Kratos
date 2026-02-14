@@ -329,9 +329,9 @@ public:
     bool PerformSolutionStep(LinearSystemType& rLinearSystem) override
     {
         // Get system arrays from linear system
-        auto& r_A = rLinearSystem.GetLeftHandSide();
-        auto& rX = rLinearSystem.GetSolution();
-        auto& rB = rLinearSystem.GetRightHandSide();
+        auto& r_A = *rLinearSystem.pGetMatrix(Future::SparseMatrixTag::LHS);
+        auto& rX = *rLinearSystem.pGetVector(Future::DenseVectorTag::Dx);
+        auto& rB = *rLinearSystem.pGetVector(Future::DenseVectorTag::RHS);
 
         // Initial checks
         KRATOS_ERROR_IF(r_A.size1() != r_A.size2()) << "matrix A is not square! sizes are " << r_A.size1() << " and " << r_A.size2() << std::endl;

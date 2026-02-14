@@ -221,8 +221,8 @@ public:
         KRATOS_TRY
 
         // Get linear system arrays
-        auto& r_dx = rImplicitStrategyData.pGetLinearSystem()->GetSolution();
-        auto& r_eff_dx = rImplicitStrategyData.pGetEffectiveLinearSystem()->GetSolution();
+        auto& r_dx = *(rImplicitStrategyData.pGetLinearSystem()->pGetVector(Future::DenseVectorTag::Dx));
+        auto& r_eff_dx = *(rImplicitStrategyData.pGetEffectiveLinearSystem()->pGetVector(Future::DenseVectorTag::Dx));
         auto& r_dof_set = *(rImplicitStrategyData.pGetDofSet());
         auto& r_eff_dof_set = *(rImplicitStrategyData.pGetEffectiveDofSet());
 

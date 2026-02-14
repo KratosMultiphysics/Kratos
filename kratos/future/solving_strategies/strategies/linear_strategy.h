@@ -142,8 +142,6 @@ public:
     {
         KRATOS_TRY
 
-        KRATOS_WATCH("Linear Strategy Constructor")
-
         KRATOS_CATCH("")
     }
 
@@ -188,9 +186,9 @@ public:
 
         // Get system arrays
         auto p_linear_system = r_strategy_data_container.pGetLinearSystem();
-        auto p_dx = p_linear_system->pGetSolution();
-        auto p_lhs = p_linear_system->pGetLeftHandSide();
-        auto p_rhs = p_linear_system->pGetRightHandSide();
+        auto& r_dx = *(p_linear_system->pGetVector(Future::DenseVectorTag::Dx));
+        auto& r_lhs = *(p_linear_system->pGetMatrix(Future::SparseMatrixTag::LHS));
+        auto& r_rhs = *(p_linear_system->pGetVector(Future::DenseVectorTag::RHS));
         auto p_constraints_T = r_strategy_data_container.pGetConstraintsT();
         auto p_constraints_q = r_strategy_data_container.pGetConstraintsQ();
 
@@ -199,12 +197,12 @@ public:
 
         if (!(this->GetStiffnessMatrixIsBuilt())) {
             // Initialize values
-            p_lhs->SetValue(0.0);
-            p_rhs->SetValue(0.0);
-            p_dx->SetValue(0.0);
+            r_lhs.SetValue(0.0);
+            r_rhs.SetValue(0.0);
+            r_dx.SetValue(0.0);
 
             // Build the local system and apply the Dirichlet conditions
-            p_scheme->Build(*p_lhs, *p_rhs);
+            p_scheme->Build(r_lhs, r_rhs);
             p_scheme->BuildLinearSystemConstraints(r_strategy_data_container);
             p_scheme->ApplyLinearSystemConstraints(r_strategy_data_container);
             this->SetStiffnessMatrixIsBuilt(true);
@@ -223,10 +221,10 @@ public:
 
         // Get the effective arrays to solve the system
         auto p_eff_lin_sys = r_strategy_data_container.pGetEffectiveLinearSystem();
-        auto p_eff_dx = p_eff_lin_sys->pGetSolution();
-        auto p_eff_lhs = p_eff_lin_sys->pGetLeftHandSide();
-        auto p_eff_rhs = p_eff_lin_sys->pGetRightHandSide();
-        auto p_eff_lhs_lin_op = Kratos::make_shared<SparseMatrixLinearOperator<TLinearAlgebra>>(*p_eff_lhs);
+        auto p_eff_dx = p_eff_lin_sys->pGetVector(Future::DenseVectorTag::Dx);
+        auto p_eff_lhs = p_eff_lin_sys->pGetMatrix(Future::SparseMatrixTag::LHS);
+        auto p_eff_rhs = p_eff_lin_sys->pGetVector(Future::DenseVectorTag::RHS);
+        auto p_eff_lhs_lin_op = Kratos::make_shared<SparseMatrixLinearOperator<TLinearAlgebra>>(p_eff_lhs);
 
         // Solve the system
         const auto& rp_linear_solver = this->pGetLinearSolver();
@@ -251,7 +249,7 @@ public:
 
         // Calculate reactions if required //TODO: Think on the constraints in here!!!
         if (this->GetComputeReactions()) {
-            p_scheme->CalculateReactions(r_dof_set, *p_rhs);
+            p_scheme->CalculateReactions(r_dof_set, r_rhs);
         }
 
         //FIXME: Free the effective arrays memory if p_lhs != p_eff_lhs

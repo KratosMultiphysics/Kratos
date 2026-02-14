@@ -22,7 +22,6 @@
 // Future Extensions
 #include "future/containers/define_linear_algebra_serial.h"
 #include "future/containers/linear_system.h"
-#include "future/containers/eigenvalue_system.h"
 #include "future/python/add_linear_solvers_to_python.h"
 #include "future/linear_solvers/amgcl_solver.h"
 #include "future/linear_solvers/linear_solver.h"
@@ -37,13 +36,11 @@ namespace py = pybind11;
 void AddLinearSolversToPython(py::module& m)
 {
     using LinearSystemType = Future::LinearSystem<SerialLinearAlgebraTraits>;
-    using EigenvalueSystemType = Future::EigenvalueSystem<SerialLinearAlgebraTraits>;
 
     using LinearSolverType = Future::LinearSolver<SerialLinearAlgebraTraits>;
     py::class_<LinearSolverType, typename LinearSolverType::Pointer>(m, "LinearSolver")
         .def(py::init<>())
-        .def("Initialize", py::overload_cast<LinearSystemType   &>(&LinearSolverType::Initialize))
-        .def("Initialize", py::overload_cast<EigenvalueSystemType&>(&LinearSolverType::Initialize))
+        .def("Initialize", py::overload_cast<LinearSystemType&>(&LinearSolverType::Initialize))
         // .def("__str__", PrintObject<LinearSolverType>)
         .def("GetIterationsNumber", &LinearSolverType::GetIterationsNumber)
     ;

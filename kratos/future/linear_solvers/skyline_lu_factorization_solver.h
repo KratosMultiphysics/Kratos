@@ -533,9 +533,9 @@ public:
             return false;
         }
 
-        auto pLinearOperator = rLinearSystem.GetLinearOperator();
-        auto& rX = rLinearSystem.GetSolution();
-        auto& rB = rLinearSystem.GetRightHandSide();
+        auto& r_lin_op = *(rLinearSystem.pGetLinearOperator(Future::SparseMatrixTag::LHS));
+        auto& rX = *rLinearSystem.pGetVector(Future::DenseVectorTag::Dx);
+        auto& rB = *rLinearSystem.pGetVector(Future::DenseVectorTag::RHS);
 
         const int size = rX.size();
 
@@ -544,8 +544,8 @@ public:
         LUSkylineFactorization<MatrixType, VectorType> myFactorization;
 
         // copy myMatrix into skyline format
-        KRATOS_ERROR_IF(pLinearOperator->IsMatrixFree()) << "SkylineLUFactorizationSolver cannot be used with matrix-free linear operators." << std::endl;
-        const auto& r_A = pLinearOperator->GetMatrix();
+        KRATOS_ERROR_IF(r_lin_op.IsMatrixFree()) << "SkylineLUFactorizationSolver cannot be used with matrix-free linear operators." << std::endl;
+        const auto& r_A = *(r_lin_op.pGetMatrix());
         myFactorization.copyFromCSRMatrix(r_A);
 
         // factorize it

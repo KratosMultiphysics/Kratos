@@ -71,13 +71,13 @@ void AddContainersToPython(py::module& m)
         .def("SetLinearOperator", [](LinearSystemType& rLinearSystem, typename Future::LinearOperator<Future::SerialLinearAlgebraTraits>::UniquePointer pLinearOperator, Future::SparseMatrixTag Tag) {
             rLinearSystem.pSetLinearOperator(std::move(pLinearOperator), Tag); }, py::arg("LinearOperator"), py::arg("Tag"))
         .def("GetMatrix", [](LinearSystemType& rLinearSystem, Future::SparseMatrixTag Tag) -> typename Future::SerialLinearAlgebraTraits::MatrixType& {
-            return rLinearSystem.GetMatrix(Tag); }, py::return_value_policy::reference_internal, py::arg("Tag"))
+            return *rLinearSystem.pGetMatrix(Tag); }, py::return_value_policy::reference_internal, py::arg("Tag"))
         .def("GetMatrix", [](LinearSystemType& rLinearSystem, Future::DenseMatrixTag Tag) -> typename Future::SerialLinearAlgebraTraits::DenseMatrixType& {
-            return rLinearSystem.GetMatrix(Tag); }, py::return_value_policy::reference_internal, py::arg("Tag"))
+            return *rLinearSystem.pGetMatrix(Tag); }, py::return_value_policy::reference_internal, py::arg("Tag"))
         .def("GetVector", [](LinearSystemType& rLinearSystem, Future::DenseVectorTag Tag) -> typename Future::SerialLinearAlgebraTraits::VectorType& {
-            return rLinearSystem.GetVector(Tag); }, py::return_value_policy::reference_internal, py::arg("Tag"))
+            return *rLinearSystem.pGetVector(Tag); }, py::return_value_policy::reference_internal, py::arg("Tag"))
         .def("GetLinearOperator", [](LinearSystemType& rLinearSystem, Future::SparseMatrixTag Tag) -> typename Future::LinearOperator<Future::SerialLinearAlgebraTraits>& {
-            return rLinearSystem.GetLinearOperator(Tag); }, py::return_value_policy::reference_internal, py::arg("Tag"))
+            return *rLinearSystem.pGetLinearOperator(Tag); }, py::return_value_policy::reference_internal, py::arg("Tag"))
         .def("SetAdditionalData", &LinearSystemType::SetAdditionalData)
         .def_property_readonly("Name", &LinearSystemType::Name)
         .def_property_readonly("HasAdditionalData", &LinearSystemType::HasAdditionalData)

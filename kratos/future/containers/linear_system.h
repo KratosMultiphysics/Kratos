@@ -212,15 +212,15 @@ public:
     /**
      * @brief Get a matrix
      * @param Tag The tag of the matrix to be retrieved (@see SparseMatrixTag)
-     * @return Reference to the matrix
+     * @return Pointer to the matrix
      */
-    MatrixType& GetMatrix(SparseMatrixTag Tag) const
+    typename MatrixType::Pointer pGetMatrix(SparseMatrixTag Tag) const
     {
         const std::size_t tag_idx = GetTagIndex(Tag);
         const auto& p_matrix_lin_op = mLinearOperators[tag_idx];
         KRATOS_ERROR_IF(!p_matrix_lin_op) << "Requested matrix is not initialized for tag " << tag_idx << std::endl;
         KRATOS_ERROR_IF(p_matrix_lin_op->IsMatrixFree()) << "Linear operator referring to matrix " << tag_idx << " is matrix free" << std::endl;
-        return p_matrix_lin_op->GetMatrix();
+        return p_matrix_lin_op->pGetMatrix();
     }
 
     /**
@@ -234,20 +234,20 @@ public:
         SparseMatrixTag Tag)
     {
         KRATOS_ERROR_IF(!pMatrix) << "Provided matrix pointer is null" << std::endl;
-        mLinearOperators[GetTagIndex(Tag)] = Kratos::make_unique<SparseMatrixLinearOperator<TLinearAlgebra>>(*pMatrix);
+        mLinearOperators[GetTagIndex(Tag)] = Kratos::make_unique<SparseMatrixLinearOperator<TLinearAlgebra>>(pMatrix);
     }
 
     /**
      * @brief Get a dense matrix
      * @param Tag The tag of the dense matrix to be retrieved (@see DenseMatrixTag)
-     * @return Reference to the dense matrix
+     * @return Pointer to the dense matrix
      */
-    DenseMatrixType& GetMatrix(DenseMatrixTag Tag) const
+    DenseMatrixPointerType pGetMatrix(DenseMatrixTag Tag) const
     {
         const std::size_t tag_idx = GetTagIndex(Tag);
         const auto& p_dense_matrix = mDenseMatrices[tag_idx];
         KRATOS_ERROR_IF(!p_dense_matrix) << "Requested dense matrix is not initialized for tag " << tag_idx << std::endl;
-        return *p_dense_matrix;
+        return p_dense_matrix;
     }
 
     /**
@@ -266,14 +266,14 @@ public:
     /**
      * @brief Get a vector
      * @param Tag The tag of the vector to be retrieved (@see DenseVectorTag)
-     * @return Reference to the vector
+     * @return Pointer to the vector
      */
-    VectorType& GetVector(DenseVectorTag Tag) const
+    typename VectorType::Pointer pGetVector(DenseVectorTag Tag) const
     {
         const std::size_t tag_idx = GetTagIndex(Tag);
         const auto& p_vector = mVectors[tag_idx];
         KRATOS_ERROR_IF(!p_vector) << "Requested vector is not initialized for tag " << tag_idx << std::endl;
-        return *p_vector;
+        return p_vector;
     }
 
     /**
@@ -292,14 +292,14 @@ public:
     /**
      * @brief Get a linear operator
      * @param Tag The tag of the linear operator to be retrieved (@see SparseMatrixTag)
-     * @return Reference to the linear operator
+     * @return Pointer to the linear operator
      */
-    LinearOperatorType& GetLinearOperator(SparseMatrixTag Tag) const
+    const typename LinearOperatorType::UniquePointer& pGetLinearOperator(SparseMatrixTag Tag) const
     {
         const std::size_t tag_idx = GetTagIndex(Tag);
         const auto& p_linear_operator = mLinearOperators[tag_idx];
         KRATOS_ERROR_IF(!p_linear_operator) << "Requested linear operator is not initialized for tag " << tag_idx << std::endl;
-        return *p_linear_operator;
+        return p_linear_operator;
     }
 
     /**
@@ -342,10 +342,10 @@ public:
      */
     bool IsConsistent()
     {
-        const std::size_t num_rows = GetLinearOperator(SparseMatrixTag::LHS).Size1();
-        const std::size_t num_cols = GetLinearOperator(SparseMatrixTag::LHS).Size2();
-        const std::size_t size_x = GetVector(DenseVectorTag::Dx).size();
-        const std::size_t size_b = GetVector(DenseVectorTag::RHS).size();
+        const std::size_t num_rows = pGetLinearOperator(SparseMatrixTag::LHS)->Size1();
+        const std::size_t num_cols = pGetLinearOperator(SparseMatrixTag::LHS)->Size2();
+        const std::size_t size_x = pGetVector(DenseVectorTag::Dx)->size();
+        const std::size_t size_b = pGetVector(DenseVectorTag::RHS)->size();
         return ((num_rows ==  num_cols) && (num_rows ==  size_x) && (num_rows ==  size_b));
     }
 

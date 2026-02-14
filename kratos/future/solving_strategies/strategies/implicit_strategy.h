@@ -145,8 +145,6 @@ public:
     {
         KRATOS_TRY
 
-        KRATOS_WATCH("Implicit Strategy Constructor")
-
         // Set EchoLevel to the default value (only time is displayed) //TODO: Get this from input settings
         this->SetEchoLevel(1);
 
@@ -584,8 +582,8 @@ public:
      */
     double GetResidualNorm()
     {
-        auto p_rhs = mImplicitStrategyData.pGetLinearSystem()->pGetRightHandSide();
-        KRATOS_ERROR_IF(p_rhs == nullptr) << "Right hand side vector is not set. Residual cannot be computed." << std::endl;
+        auto p_rhs = mImplicitStrategyData.pGetLinearSystem()->pGetVector(Future::DenseVectorTag::RHS);
+        KRATOS_ERROR_IF_NOT(p_rhs) << "RHS vector not found in the linear system." << std::endl;
         if (p_rhs->size() != 0) {
             return p_rhs->Norm();
         } else {
@@ -662,9 +660,9 @@ protected:
     virtual void EchoInfo()
     {
         const auto p_linear_system = mImplicitStrategyData.pGetLinearSystem();
-        const auto& r_A = p_linear_system->pGetLeftHandSide();
-        const auto& r_b = p_linear_system->pGetRightHandSide();
-        const auto& r_dx = p_linear_system->GetSolution();
+        const auto& r_A = *(p_linear_system->pGetMatrix(Future::SparseMatrixTag::LHS));
+        const auto& r_b = *(p_linear_system->pGetVector(Future::DenseVectorTag::RHS));
+        const auto& r_dx = *(p_linear_system->pGetVector(Future::DenseVectorTag::Dx));
 
         if (GetEchoLevel() == 3) { //if it is needed to print the debug info
             KRATOS_INFO("ImplicitStrategy") << "LHS = " << r_A << std::endl;
