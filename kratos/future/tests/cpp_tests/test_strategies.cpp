@@ -81,12 +81,12 @@ KRATOS_TEST_CASE_IN_SUITE(LinearStrategyEliminationBuild, KratosCoreFastSuite)
     const auto& r_strategy_data_container = p_strategy->GetImplicitStrategyData();
     const auto p_lin_sys = r_strategy_data_container.pGetLinearSystem();
     const auto p_eff_lin_sys = r_strategy_data_container.pGetEffectiveLinearSystem();
-    KRATOS_CHECK_EQUAL(p_lin_sys->pGetVector(Future::DenseVectorTag::RHS)->size(), 3);
-    KRATOS_CHECK_EQUAL(p_lin_sys->pGetMatrix(Future::SparseMatrixTag::LHS)->size1(), 3);
-    KRATOS_CHECK_EQUAL(p_lin_sys->pGetMatrix(Future::SparseMatrixTag::LHS)->size2(), 3);
-    KRATOS_CHECK_EQUAL(p_eff_lin_sys->pGetVector(Future::DenseVectorTag::RHS)->size(), 2);
-    KRATOS_CHECK_EQUAL(p_eff_lin_sys->pGetMatrix(Future::SparseMatrixTag::LHS)->size1(), 2);
-    KRATOS_CHECK_EQUAL(p_eff_lin_sys->pGetMatrix(Future::SparseMatrixTag::LHS)->size2(), 2);
+    KRATOS_CHECK_EQUAL(p_lin_sys->pGetVector(Future::LinearSystemTags::DenseVectorTag::RHS)->size(), 3);
+    KRATOS_CHECK_EQUAL(p_lin_sys->pGetMatrix(Future::LinearSystemTags::SparseMatrixTag::LHS)->size1(), 3);
+    KRATOS_CHECK_EQUAL(p_lin_sys->pGetMatrix(Future::LinearSystemTags::SparseMatrixTag::LHS)->size2(), 3);
+    KRATOS_CHECK_EQUAL(p_eff_lin_sys->pGetVector(Future::LinearSystemTags::DenseVectorTag::RHS)->size(), 2);
+    KRATOS_CHECK_EQUAL(p_eff_lin_sys->pGetMatrix(Future::LinearSystemTags::SparseMatrixTag::LHS)->size1(), 2);
+    KRATOS_CHECK_EQUAL(p_eff_lin_sys->pGetMatrix(Future::LinearSystemTags::SparseMatrixTag::LHS)->size2(), 2);
 
     // Check results
     KRATOS_CHECK_NEAR(r_test_model_part.GetNode(1).FastGetSolutionStepValue(DISTANCE), 1.0, 1.0e-12);
@@ -142,12 +142,12 @@ KRATOS_TEST_CASE_IN_SUITE(LinearStrategyBlockBuild, KratosCoreFastSuite)
     const auto &r_strategy_data_container = p_strategy->GetImplicitStrategyData();
     const auto p_lin_sys = r_strategy_data_container.pGetLinearSystem();
     const auto p_eff_lin_sys = r_strategy_data_container.pGetEffectiveLinearSystem();
-    KRATOS_CHECK_EQUAL(p_lin_sys->pGetVector(Future::DenseVectorTag::RHS)->size(), 3);
-    KRATOS_CHECK_EQUAL(p_lin_sys->pGetMatrix(Future::SparseMatrixTag::LHS)->size1(), 3);
-    KRATOS_CHECK_EQUAL(p_lin_sys->pGetMatrix(Future::SparseMatrixTag::LHS)->size2(), 3);
-    KRATOS_CHECK_EQUAL(p_eff_lin_sys->pGetVector(Future::DenseVectorTag::RHS)->size(), 3);
-    KRATOS_CHECK_EQUAL(p_eff_lin_sys->pGetMatrix(Future::SparseMatrixTag::LHS)->size2(), 3);
-    KRATOS_CHECK_EQUAL(p_eff_lin_sys->pGetMatrix(Future::SparseMatrixTag::LHS)->size1(), 3);
+    KRATOS_CHECK_EQUAL(p_lin_sys->pGetVector(Future::LinearSystemTags::DenseVectorTag::RHS)->size(), 3);
+    KRATOS_CHECK_EQUAL(p_lin_sys->pGetMatrix(Future::LinearSystemTags::SparseMatrixTag::LHS)->size1(), 3);
+    KRATOS_CHECK_EQUAL(p_lin_sys->pGetMatrix(Future::LinearSystemTags::SparseMatrixTag::LHS)->size2(), 3);
+    KRATOS_CHECK_EQUAL(p_eff_lin_sys->pGetVector(Future::LinearSystemTags::DenseVectorTag::RHS)->size(), 3);
+    KRATOS_CHECK_EQUAL(p_eff_lin_sys->pGetMatrix(Future::LinearSystemTags::SparseMatrixTag::LHS)->size2(), 3);
+    KRATOS_CHECK_EQUAL(p_eff_lin_sys->pGetMatrix(Future::LinearSystemTags::SparseMatrixTag::LHS)->size1(), 3);
 
     // Check results
     KRATOS_CHECK_NEAR(r_test_model_part.GetNode(1).FastGetSolutionStepValue(DISTANCE), 1.0, 1.0e-12);
@@ -215,12 +215,12 @@ KRATOS_TEST_CASE_IN_SUITE(LinearStrategyWithJumpConstraintEliminationBuild, Krat
     const auto &r_strategy_data_container = p_strategy->GetImplicitStrategyData();
     const auto p_lin_sys = r_strategy_data_container.pGetLinearSystem();
     const auto p_eff_lin_sys = r_strategy_data_container.pGetEffectiveLinearSystem();
-    KRATOS_CHECK_EQUAL(p_lin_sys->pGetVector(Future::DenseVectorTag::RHS)->size(), 3);
-    KRATOS_CHECK_EQUAL(p_lin_sys->pGetMatrix(Future::SparseMatrixTag::LHS)->size1(), 3);
-    KRATOS_CHECK_EQUAL(p_lin_sys->pGetMatrix(Future::SparseMatrixTag::LHS)->size2(), 3);
-    KRATOS_CHECK_EQUAL(p_eff_lin_sys->pGetVector(Future::DenseVectorTag::RHS)->size(), 1);
-    KRATOS_CHECK_EQUAL(p_eff_lin_sys->pGetMatrix(Future::SparseMatrixTag::LHS)->size1(), 1);
-    KRATOS_CHECK_EQUAL(p_eff_lin_sys->pGetMatrix(Future::SparseMatrixTag::LHS)->size2(), 1);
+    KRATOS_CHECK_EQUAL(p_lin_sys->pGetVector(Future::LinearSystemTags::DenseVectorTag::RHS)->size(), 3);
+    KRATOS_CHECK_EQUAL(p_lin_sys->pGetMatrix(Future::LinearSystemTags::SparseMatrixTag::LHS)->size1(), 3);
+    KRATOS_CHECK_EQUAL(p_lin_sys->pGetMatrix(Future::LinearSystemTags::SparseMatrixTag::LHS)->size2(), 3);
+    KRATOS_CHECK_EQUAL(p_eff_lin_sys->pGetVector(Future::LinearSystemTags::DenseVectorTag::RHS)->size(), 1);
+    KRATOS_CHECK_EQUAL(p_eff_lin_sys->pGetMatrix(Future::LinearSystemTags::SparseMatrixTag::LHS)->size1(), 1);
+    KRATOS_CHECK_EQUAL(p_eff_lin_sys->pGetMatrix(Future::LinearSystemTags::SparseMatrixTag::LHS)->size2(), 1);
     // Check results
     KRATOS_CHECK_NEAR(r_test_model_part.GetNode(1).FastGetSolutionStepValue(DISTANCE), 1.0, 1.0e-12);
     KRATOS_CHECK_NEAR(r_test_model_part.GetNode(2).FastGetSolutionStepValue(DISTANCE), 2.5, 1.0e-12);
@@ -287,12 +287,12 @@ KRATOS_TEST_CASE_IN_SUITE(LinearStrategyWithJumpConstraintBlockBuild, KratosCore
     const auto &r_strategy_data_container = p_strategy->GetImplicitStrategyData();
     const auto p_lin_sys = r_strategy_data_container.pGetLinearSystem();
     const auto p_eff_lin_sys = r_strategy_data_container.pGetEffectiveLinearSystem();
-    KRATOS_CHECK_EQUAL(p_lin_sys->pGetVector(Future::DenseVectorTag::RHS)->size(), 3);
-    KRATOS_CHECK_EQUAL(p_lin_sys->pGetMatrix(Future::SparseMatrixTag::LHS)->size1(), 3);
-    KRATOS_CHECK_EQUAL(p_lin_sys->pGetMatrix(Future::SparseMatrixTag::LHS)->size2(), 3);
-    KRATOS_CHECK_EQUAL(p_eff_lin_sys->pGetVector(Future::DenseVectorTag::RHS)->size(), 2);
-    KRATOS_CHECK_EQUAL(p_eff_lin_sys->pGetMatrix(Future::SparseMatrixTag::LHS)->size1(), 2);
-    KRATOS_CHECK_EQUAL(p_eff_lin_sys->pGetMatrix(Future::SparseMatrixTag::LHS)->size2(), 2);
+    KRATOS_CHECK_EQUAL(p_lin_sys->pGetVector(Future::LinearSystemTags::DenseVectorTag::RHS)->size(), 3);
+    KRATOS_CHECK_EQUAL(p_lin_sys->pGetMatrix(Future::LinearSystemTags::SparseMatrixTag::LHS)->size1(), 3);
+    KRATOS_CHECK_EQUAL(p_lin_sys->pGetMatrix(Future::LinearSystemTags::SparseMatrixTag::LHS)->size2(), 3);
+    KRATOS_CHECK_EQUAL(p_eff_lin_sys->pGetVector(Future::LinearSystemTags::DenseVectorTag::RHS)->size(), 2);
+    KRATOS_CHECK_EQUAL(p_eff_lin_sys->pGetMatrix(Future::LinearSystemTags::SparseMatrixTag::LHS)->size1(), 2);
+    KRATOS_CHECK_EQUAL(p_eff_lin_sys->pGetMatrix(Future::LinearSystemTags::SparseMatrixTag::LHS)->size2(), 2);
 
     // Check results
     KRATOS_CHECK_NEAR(r_test_model_part.GetNode(1).FastGetSolutionStepValue(DISTANCE), 1.0, 1.0e-12);
@@ -358,12 +358,12 @@ KRATOS_TEST_CASE_IN_SUITE(LinearStrategyWithPeriodicityConstraintEliminationBuil
     const auto &r_strategy_data_container = p_strategy->GetImplicitStrategyData();
     const auto p_lin_sys = r_strategy_data_container.pGetLinearSystem();
     const auto p_eff_lin_sys = r_strategy_data_container.pGetEffectiveLinearSystem();
-    KRATOS_CHECK_EQUAL(p_lin_sys->pGetVector(Future::DenseVectorTag::RHS)->size(), 4);
-    KRATOS_CHECK_EQUAL(p_lin_sys->pGetMatrix(Future::SparseMatrixTag::LHS)->size1(), 4);
-    KRATOS_CHECK_EQUAL(p_lin_sys->pGetMatrix(Future::SparseMatrixTag::LHS)->size2(), 4);
-    KRATOS_CHECK_EQUAL(p_eff_lin_sys->pGetVector(Future::DenseVectorTag::RHS)->size(), 2);
-    KRATOS_CHECK_EQUAL(p_eff_lin_sys->pGetMatrix(Future::SparseMatrixTag::LHS)->size1(), 2);
-    KRATOS_CHECK_EQUAL(p_eff_lin_sys->pGetMatrix(Future::SparseMatrixTag::LHS)->size2(), 2);
+    KRATOS_CHECK_EQUAL(p_lin_sys->pGetVector(Future::LinearSystemTags::DenseVectorTag::RHS)->size(), 4);
+    KRATOS_CHECK_EQUAL(p_lin_sys->pGetMatrix(Future::LinearSystemTags::SparseMatrixTag::LHS)->size1(), 4);
+    KRATOS_CHECK_EQUAL(p_lin_sys->pGetMatrix(Future::LinearSystemTags::SparseMatrixTag::LHS)->size2(), 4);
+    KRATOS_CHECK_EQUAL(p_eff_lin_sys->pGetVector(Future::LinearSystemTags::DenseVectorTag::RHS)->size(), 2);
+    KRATOS_CHECK_EQUAL(p_eff_lin_sys->pGetMatrix(Future::LinearSystemTags::SparseMatrixTag::LHS)->size1(), 2);
+    KRATOS_CHECK_EQUAL(p_eff_lin_sys->pGetMatrix(Future::LinearSystemTags::SparseMatrixTag::LHS)->size2(), 2);
 
     // Check results
     KRATOS_CHECK_NEAR(r_test_model_part.GetNode(1).FastGetSolutionStepValue(DISTANCE), 0.0, 1.0e-12);
@@ -430,12 +430,12 @@ KRATOS_TEST_CASE_IN_SUITE(LinearStrategyWithPeriodicityConstraintBlockBuild, Kra
     const auto &r_strategy_data_container = p_strategy->GetImplicitStrategyData();
     const auto p_lin_sys = r_strategy_data_container.pGetLinearSystem();
     const auto p_eff_lin_sys = r_strategy_data_container.pGetEffectiveLinearSystem();
-    KRATOS_CHECK_EQUAL(p_lin_sys->pGetVector(Future::DenseVectorTag::RHS)->size(), 4);
-    KRATOS_CHECK_EQUAL(p_lin_sys->pGetMatrix(Future::SparseMatrixTag::LHS)->size1(), 4);
-    KRATOS_CHECK_EQUAL(p_lin_sys->pGetMatrix(Future::SparseMatrixTag::LHS)->size2(), 4);
-    KRATOS_CHECK_EQUAL(p_eff_lin_sys->pGetVector(Future::DenseVectorTag::RHS)->size(), 3);
-    KRATOS_CHECK_EQUAL(p_eff_lin_sys->pGetMatrix(Future::SparseMatrixTag::LHS)->size1(), 3);
-    KRATOS_CHECK_EQUAL(p_eff_lin_sys->pGetMatrix(Future::SparseMatrixTag::LHS)->size2(), 3);
+    KRATOS_CHECK_EQUAL(p_lin_sys->pGetVector(Future::LinearSystemTags::DenseVectorTag::RHS)->size(), 4);
+    KRATOS_CHECK_EQUAL(p_lin_sys->pGetMatrix(Future::LinearSystemTags::SparseMatrixTag::LHS)->size1(), 4);
+    KRATOS_CHECK_EQUAL(p_lin_sys->pGetMatrix(Future::LinearSystemTags::SparseMatrixTag::LHS)->size2(), 4);
+    KRATOS_CHECK_EQUAL(p_eff_lin_sys->pGetVector(Future::LinearSystemTags::DenseVectorTag::RHS)->size(), 3);
+    KRATOS_CHECK_EQUAL(p_eff_lin_sys->pGetMatrix(Future::LinearSystemTags::SparseMatrixTag::LHS)->size1(), 3);
+    KRATOS_CHECK_EQUAL(p_eff_lin_sys->pGetMatrix(Future::LinearSystemTags::SparseMatrixTag::LHS)->size2(), 3);
 
     // Check results
     KRATOS_CHECK_NEAR(r_test_model_part.GetNode(1).FastGetSolutionStepValue(DISTANCE), 0.0, 1.0e-12);
@@ -511,12 +511,12 @@ KRATOS_TEST_CASE_IN_SUITE(LinearStrategyWithMultipleDofsConstraintsEliminationBu
     const auto &r_strategy_data_container = p_strategy->GetImplicitStrategyData();
     const auto p_lin_sys = r_strategy_data_container.pGetLinearSystem();
     const auto p_eff_lin_sys = r_strategy_data_container.pGetEffectiveLinearSystem();
-    KRATOS_CHECK_EQUAL(p_lin_sys->pGetVector(Future::DenseVectorTag::RHS)->size(), 4);
-    KRATOS_CHECK_EQUAL(p_lin_sys->pGetMatrix(Future::SparseMatrixTag::LHS)->size1(), 4);
-    KRATOS_CHECK_EQUAL(p_lin_sys->pGetMatrix(Future::SparseMatrixTag::LHS)->size2(), 4);
-    KRATOS_CHECK_EQUAL(p_eff_lin_sys->pGetVector(Future::DenseVectorTag::RHS)->size(), 2);
-    KRATOS_CHECK_EQUAL(p_eff_lin_sys->pGetMatrix(Future::SparseMatrixTag::LHS)->size1(), 2);
-    KRATOS_CHECK_EQUAL(p_eff_lin_sys->pGetMatrix(Future::SparseMatrixTag::LHS)->size2(), 2);
+    KRATOS_CHECK_EQUAL(p_lin_sys->pGetVector(Future::LinearSystemTags::DenseVectorTag::RHS)->size(), 4);
+    KRATOS_CHECK_EQUAL(p_lin_sys->pGetMatrix(Future::LinearSystemTags::SparseMatrixTag::LHS)->size1(), 4);
+    KRATOS_CHECK_EQUAL(p_lin_sys->pGetMatrix(Future::LinearSystemTags::SparseMatrixTag::LHS)->size2(), 4);
+    KRATOS_CHECK_EQUAL(p_eff_lin_sys->pGetVector(Future::LinearSystemTags::DenseVectorTag::RHS)->size(), 2);
+    KRATOS_CHECK_EQUAL(p_eff_lin_sys->pGetMatrix(Future::LinearSystemTags::SparseMatrixTag::LHS)->size1(), 2);
+    KRATOS_CHECK_EQUAL(p_eff_lin_sys->pGetMatrix(Future::LinearSystemTags::SparseMatrixTag::LHS)->size2(), 2);
 
     // Check results
     KRATOS_CHECK_NEAR(r_test_model_part.GetNode(1).FastGetSolutionStepValue(DISTANCE), 1.0, 1.0e-12);
@@ -592,12 +592,12 @@ KRATOS_TEST_CASE_IN_SUITE(LinearStrategyWithMultipleDofsConstraintsBlockBuild, K
     const auto &r_strategy_data_container = p_strategy->GetImplicitStrategyData();
     const auto p_lin_sys = r_strategy_data_container.pGetLinearSystem();
     const auto p_eff_lin_sys = r_strategy_data_container.pGetEffectiveLinearSystem();
-    KRATOS_CHECK_EQUAL(p_lin_sys->pGetVector(Future::DenseVectorTag::RHS)->size(), 4);
-    KRATOS_CHECK_EQUAL(p_lin_sys->pGetMatrix(Future::SparseMatrixTag::LHS)->size1(), 4);
-    KRATOS_CHECK_EQUAL(p_lin_sys->pGetMatrix(Future::SparseMatrixTag::LHS)->size2(), 4);
-    KRATOS_CHECK_EQUAL(p_eff_lin_sys->pGetVector(Future::DenseVectorTag::RHS)->size(), 3);
-    KRATOS_CHECK_EQUAL(p_eff_lin_sys->pGetMatrix(Future::SparseMatrixTag::LHS)->size1(), 3);
-    KRATOS_CHECK_EQUAL(p_eff_lin_sys->pGetMatrix(Future::SparseMatrixTag::LHS)->size2(), 3);
+    KRATOS_CHECK_EQUAL(p_lin_sys->pGetVector(Future::LinearSystemTags::DenseVectorTag::RHS)->size(), 4);
+    KRATOS_CHECK_EQUAL(p_lin_sys->pGetMatrix(Future::LinearSystemTags::SparseMatrixTag::LHS)->size1(), 4);
+    KRATOS_CHECK_EQUAL(p_lin_sys->pGetMatrix(Future::LinearSystemTags::SparseMatrixTag::LHS)->size2(), 4);
+    KRATOS_CHECK_EQUAL(p_eff_lin_sys->pGetVector(Future::LinearSystemTags::DenseVectorTag::RHS)->size(), 3);
+    KRATOS_CHECK_EQUAL(p_eff_lin_sys->pGetMatrix(Future::LinearSystemTags::SparseMatrixTag::LHS)->size1(), 3);
+    KRATOS_CHECK_EQUAL(p_eff_lin_sys->pGetMatrix(Future::LinearSystemTags::SparseMatrixTag::LHS)->size2(), 3);
 
     // Check results
     KRATOS_CHECK_NEAR(r_test_model_part.GetNode(1).FastGetSolutionStepValue(DISTANCE), 1.0, 1.0e-12);
@@ -679,12 +679,12 @@ KRATOS_TEST_CASE_IN_SUITE(LinearStrategyWithTieConstraintsEliminationBuild, Krat
     const auto &r_strategy_data_container = p_strategy->GetImplicitStrategyData();
     const auto p_lin_sys = r_strategy_data_container.pGetLinearSystem();
     const auto p_eff_lin_sys = r_strategy_data_container.pGetEffectiveLinearSystem();
-    KRATOS_CHECK_EQUAL(p_lin_sys->pGetVector(Future::DenseVectorTag::RHS)->size(), 4);
-    KRATOS_CHECK_EQUAL(p_lin_sys->pGetMatrix(Future::SparseMatrixTag::LHS)->size1(), 4);
-    KRATOS_CHECK_EQUAL(p_lin_sys->pGetMatrix(Future::SparseMatrixTag::LHS)->size2(), 4);
-    KRATOS_CHECK_EQUAL(p_eff_lin_sys->pGetVector(Future::DenseVectorTag::RHS)->size(), 2);
-    KRATOS_CHECK_EQUAL(p_eff_lin_sys->pGetMatrix(Future::SparseMatrixTag::LHS)->size1(), 2);
-    KRATOS_CHECK_EQUAL(p_eff_lin_sys->pGetMatrix(Future::SparseMatrixTag::LHS)->size2(), 2);
+    KRATOS_CHECK_EQUAL(p_lin_sys->pGetVector(Future::LinearSystemTags::DenseVectorTag::RHS)->size(), 4);
+    KRATOS_CHECK_EQUAL(p_lin_sys->pGetMatrix(Future::LinearSystemTags::SparseMatrixTag::LHS)->size1(), 4);
+    KRATOS_CHECK_EQUAL(p_lin_sys->pGetMatrix(Future::LinearSystemTags::SparseMatrixTag::LHS)->size2(), 4);
+    KRATOS_CHECK_EQUAL(p_eff_lin_sys->pGetVector(Future::LinearSystemTags::DenseVectorTag::RHS)->size(), 2);
+    KRATOS_CHECK_EQUAL(p_eff_lin_sys->pGetMatrix(Future::LinearSystemTags::SparseMatrixTag::LHS)->size1(), 2);
+    KRATOS_CHECK_EQUAL(p_eff_lin_sys->pGetMatrix(Future::LinearSystemTags::SparseMatrixTag::LHS)->size2(), 2);
 
     // Check results
     KRATOS_CHECK_NEAR(r_test_model_part.GetNode(1).FastGetSolutionStepValue(DISTANCE), 1.0, 1.0e-12);
@@ -766,12 +766,12 @@ KRATOS_TEST_CASE_IN_SUITE(LinearStrategyWithTieConstraintsBlockBuild, KratosCore
     const auto &r_strategy_data_container = p_strategy->GetImplicitStrategyData();
     const auto p_lin_sys = r_strategy_data_container.pGetLinearSystem();
     const auto p_eff_lin_sys = r_strategy_data_container.pGetEffectiveLinearSystem();
-    KRATOS_CHECK_EQUAL(p_lin_sys->pGetVector(Future::DenseVectorTag::RHS)->size(), 4);
-    KRATOS_CHECK_EQUAL(p_lin_sys->pGetMatrix(Future::SparseMatrixTag::LHS)->size1(), 4);
-    KRATOS_CHECK_EQUAL(p_lin_sys->pGetMatrix(Future::SparseMatrixTag::LHS)->size2(), 4);
-    KRATOS_CHECK_EQUAL(p_eff_lin_sys->pGetVector(Future::DenseVectorTag::RHS)->size(), 4);
-    KRATOS_CHECK_EQUAL(p_eff_lin_sys->pGetMatrix(Future::SparseMatrixTag::LHS)->size1(), 4);
-    KRATOS_CHECK_EQUAL(p_eff_lin_sys->pGetMatrix(Future::SparseMatrixTag::LHS)->size2(), 4);
+    KRATOS_CHECK_EQUAL(p_lin_sys->pGetVector(Future::LinearSystemTags::DenseVectorTag::RHS)->size(), 4);
+    KRATOS_CHECK_EQUAL(p_lin_sys->pGetMatrix(Future::LinearSystemTags::SparseMatrixTag::LHS)->size1(), 4);
+    KRATOS_CHECK_EQUAL(p_lin_sys->pGetMatrix(Future::LinearSystemTags::SparseMatrixTag::LHS)->size2(), 4);
+    KRATOS_CHECK_EQUAL(p_eff_lin_sys->pGetVector(Future::LinearSystemTags::DenseVectorTag::RHS)->size(), 4);
+    KRATOS_CHECK_EQUAL(p_eff_lin_sys->pGetMatrix(Future::LinearSystemTags::SparseMatrixTag::LHS)->size1(), 4);
+    KRATOS_CHECK_EQUAL(p_eff_lin_sys->pGetMatrix(Future::LinearSystemTags::SparseMatrixTag::LHS)->size2(), 4);
 
     // Check results
     KRATOS_CHECK_NEAR(r_test_model_part.GetNode(1).FastGetSolutionStepValue(DISTANCE), 1.0, 1.0e-12);

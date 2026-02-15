@@ -1159,8 +1159,8 @@ public:
             "There are constraints but effective relation matrix is not set. Solution update vector cannot be computed." << std::endl;
 
         // Compute the solution vector from the effective one
-        auto& r_dx = *(rImplicitStrategyData.pGetLinearSystem()->pGetVector(Future::DenseVectorTag::Dx));
-        auto& r_eff_dx = *(rImplicitStrategyData.pGetEffectiveLinearSystem()->pGetVector(Future::DenseVectorTag::Dx));
+        auto& r_dx = *(rImplicitStrategyData.pGetLinearSystem()->pGetVector(LinearSystemTags::DenseVectorTag::Dx));
+        auto& r_eff_dx = *(rImplicitStrategyData.pGetEffectiveLinearSystem()->pGetVector(LinearSystemTags::DenseVectorTag::Dx));
         if (p_eff_T != nullptr) {
             r_dx.SetValue(0.0);
             p_eff_T->SpMV(r_eff_dx, r_dx);

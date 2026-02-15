@@ -582,7 +582,7 @@ public:
      */
     double GetResidualNorm()
     {
-        auto p_rhs = mImplicitStrategyData.pGetLinearSystem()->pGetVector(Future::DenseVectorTag::RHS);
+        auto p_rhs = mImplicitStrategyData.pGetLinearSystem()->pGetVector(LinearSystemTags::DenseVectorTag::RHS);
         KRATOS_ERROR_IF_NOT(p_rhs) << "RHS vector not found in the linear system." << std::endl;
         if (p_rhs->size() != 0) {
             return p_rhs->Norm();
@@ -660,9 +660,9 @@ protected:
     virtual void EchoInfo()
     {
         const auto p_linear_system = mImplicitStrategyData.pGetLinearSystem();
-        const auto& r_A = *(p_linear_system->pGetMatrix(Future::SparseMatrixTag::LHS));
-        const auto& r_b = *(p_linear_system->pGetVector(Future::DenseVectorTag::RHS));
-        const auto& r_dx = *(p_linear_system->pGetVector(Future::DenseVectorTag::Dx));
+        const auto& r_A = *(p_linear_system->pGetMatrix(LinearSystemTags::SparseMatrixTag::LHS));
+        const auto& r_b = *(p_linear_system->pGetVector(LinearSystemTags::DenseVectorTag::RHS));
+        const auto& r_dx = *(p_linear_system->pGetVector(LinearSystemTags::DenseVectorTag::Dx));
 
         if (GetEchoLevel() == 3) { //if it is needed to print the debug info
             KRATOS_INFO("ImplicitStrategy") << "LHS = " << r_A << std::endl;

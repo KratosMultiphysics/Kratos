@@ -31,7 +31,7 @@
 
 // Project includes
 #include "future/containers/linear_system.h"
-#include "future/linear_solvers/iterative_solver.h"
+#include "future/linear_solvers/linear_solver.h"
 #include "includes/define.h"
 #include "includes/kratos_parameters.h"
 #include "includes/ublas_interface.h"
@@ -135,6 +135,12 @@ public:
 
     /// Linear operator pointer type definition
     using LinearOperatorPointerType = typename LinearOperator<TLinearAlgebra>::Pointer;
+
+    /// Sparse matrix tag type definition
+    using SparseMatrixTag = typename LinearSystemTags::SparseMatrixTag;
+
+    /// Dense vector tag type definition
+    using DenseVectorTag = typename LinearSystemTags::DenseVectorTag;
 
     ///@}
     ///@name Life Cycle
@@ -329,9 +335,9 @@ public:
     bool PerformSolutionStep(LinearSystemType& rLinearSystem) override
     {
         // Get system arrays from linear system
-        auto& r_A = *rLinearSystem.pGetMatrix(Future::SparseMatrixTag::LHS);
-        auto& rX = *rLinearSystem.pGetVector(Future::DenseVectorTag::Dx);
-        auto& rB = *rLinearSystem.pGetVector(Future::DenseVectorTag::RHS);
+        auto& r_A = *rLinearSystem.pGetMatrix(SparseMatrixTag::LHS);
+        auto& rX = *rLinearSystem.pGetVector(DenseVectorTag::Dx);
+        auto& rB = *rLinearSystem.pGetVector(DenseVectorTag::RHS);
 
         // Initial checks
         KRATOS_ERROR_IF(r_A.size1() != r_A.size2()) << "matrix A is not square! sizes are " << r_A.size1() << " and " << r_A.size2() << std::endl;
@@ -488,14 +494,12 @@ public:
     }
 
     void ProvideAdditionalData (
-        LinearOperatorPointerType pLinearOperator,
-        VectorType& rX,
-        VectorType& rB,
+        LinearSystemType& rLinearSystem,
         typename ModelPart::DofsArrayType& rDofSet,
         ModelPart& rModelPart) override
     {
         // Get CSR matrix from CSR matrix linear operator
-        auto& r_A = (*pLinearOperator).GetMatrix();
+        auto& r_A = (*rLinearSystem.pGetLinearOperator(SparseMatrixTag::LHS)).GetMatrix();
 
         int old_ndof = -1;
         int ndof=0;

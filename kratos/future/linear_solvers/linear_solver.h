@@ -123,12 +123,6 @@ public:
     {
     }
 
-
-    //TODO:
-    // virtual void Initialize(MultiRHSLinearSystemType>& rLinearSystem)
-    // {
-    // }
-
     /**
      * @brief This function is designed to be called every time the coefficients change in the system that is, normally at the beginning of each solve.
      * @details For example if we are implementing a direct solver, this is the place to do the factorization so that then the backward substitution can be performed effectively more than once
@@ -186,16 +180,12 @@ public:
      * Another example is the automatic prescription of rotation null-space for smoothed-aggregation solvers,
      * which require knowledge of the spatial position of the nodes associated with a given degree of freedom (DOF).
      * This function provides the opportunity to provide such data if needed.
-     * @param pLinearOperator Pointer to the sparse matrix linear operator.
-     * @param rX The solution vector.
-     * @param rB The right-hand side vector.
+     * @param rLinearSystem The linear system to be solved
      * @param rDoFSet The set of degrees of freedom.
      * @param rModelPart The model part.
      */
     virtual void ProvideAdditionalData(
-        LinearOperatorPointerType pLinearOperator,
-        VectorType& rX,
-        VectorType& rB,
+        LinearSystemType& rLinearSystem,
         typename ModelPart::DofsArrayType& rDoFSet,
         ModelPart& rModelPart)
     {
@@ -240,59 +230,6 @@ public:
     ///@name Inquiry
     ///@{
 
-    //TODO: move this to the multivector linear system once we implement it!!!!
-    // /**
-    //  * @brief This method checks if the dimensions of the system of equations are consistent (dense matrix for RHS and unknowns version)
-    //  * @param pLinearOperator Pointer to the sparse matrix linear operator
-    //  * @param rX The matrix containing the unknowns
-    //  * @param rB The matrix containing the RHSs of the system of equations
-    //  * @return True if consistent, false otherwise
-    //  */
-    // virtual bool IsConsistent(
-    //     LinearOperatorPointerType pLinearOperator,
-    //     DenseMatrixType& rX,
-    //     DenseMatrixType& rB)
-    // {
-    //     const std::size_t num_rows = pLinearOperator->NumRows();
-    //     const std::size_t num_cols = pLinearOperator->NumCols();
-    //     const std::size_t size_1_x = rX.size1();
-    //     const std::size_t size_1_b = rB.size1();
-    //     const std::size_t size_2_x = rX.size2();
-    //     const std::size_t size_2_b = rB.size2();
-
-    //     return ((num_rows ==  num_cols) && (num_rows ==  size_1_x) && (num_rows ==  size_1_b) && (size_2_x == size_2_b));
-    // }
-
-    // /**
-    //  * @brief This method checks if the dimensions of the system of equations are not consistent
-    //  * @param pLinearOperator Pointer to the sparse matrix linear operator
-    //  * @param rX The vector containing the unknowns
-    //  * @param rB The RHS of the system of equations
-    //  * @return False if consistent, true otherwise
-    //  */
-    // virtual bool IsNotConsistent(
-    //     LinearOperatorPointerType pLinearOperator,
-    //     VectorType& rX,
-    //     VectorType& rB)
-    // {
-    //     return !IsConsistent(pLinearOperator, rX, rB);
-    // }
-
-    // /**
-    //  * @brief This method checks if the dimensions of the system of equations are not consistent
-    //  * @param pLinearOperator Pointer to the sparse matrix linear operator
-    //  * @param rX The matrix containing the unknowns
-    //  * @param rB The matrix containing the RHSs of the system of equations
-    //  * @return False if consistent, true otherwise
-    //  */
-    // virtual bool IsNotConsistent(
-    //     LinearOperatorPointerType pLinearOperator,
-    //     DenseMatrixType& rX,
-    //     DenseMatrixType& rB)
-    // {
-    //     return !IsConsistent(pLinearOperator, rX, rB);
-    // }
-
     ///@}
     ///@name Input and output
     ///@{
@@ -300,13 +237,13 @@ public:
     /// Turn back information as a string.
     virtual std::string Info() const
     {
-        return "New linear solver";
+        return "Linear solver base class";
     }
 
     /// Print information about this object.
     virtual void PrintInfo(std::ostream& rOStream) const
     {
-        rOStream << "New linear solver";
+        rOStream << "Linear solver base class";
     }
 
     /// Print object's data.

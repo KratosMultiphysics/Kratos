@@ -80,6 +80,12 @@ public:
     /// Linear system type definition
     using LinearSystemType = LinearSystem<TLinearAlgebra>;
 
+    /// Dense vector tag type definition
+    using DenseVectorTag = typename LinearSystemTags::DenseVectorTag;
+
+    /// Sparse matrix tag type definition
+    using SparseMatrixTag = typename LinearSystemTags::SparseMatrixTag;
+
     ///@}
     ///@name Life Cycle
     ///@{
@@ -187,8 +193,8 @@ public:
     {
         // Get effective arrays
         auto p_eff_lin_sys = rImplicitStrategyData.pGetEffectiveLinearSystem();
-        auto& r_eff_dx = *(p_eff_lin_sys->pGetVector(Future::DenseVectorTag::Dx));
-        auto& r_eff_rhs = *(p_eff_lin_sys->pGetVector(Future::DenseVectorTag::RHS));
+        auto& r_eff_dx = *(p_eff_lin_sys->pGetVector(DenseVectorTag::Dx));
+        auto& r_eff_rhs = *(p_eff_lin_sys->pGetVector(DenseVectorTag::RHS));
 
         // Initialize the effective RHS
         r_eff_rhs.SetValue(0.0);
@@ -201,8 +207,8 @@ public:
 
         // Get the linear system to apply the constraints to
         auto p_lin_sys = rImplicitStrategyData.pGetLinearSystem();
-        auto& r_lhs = *(p_lin_sys->pGetMatrix(Future::SparseMatrixTag::LHS));
-        auto& r_rhs = *(p_lin_sys->pGetVector(Future::DenseVectorTag::RHS));
+        auto& r_lhs = *(p_lin_sys->pGetMatrix(SparseMatrixTag::LHS));
+        auto& r_rhs = *(p_lin_sys->pGetVector(DenseVectorTag::RHS));
 
         // Check if there are master-slave constraints to do the constraints composition
         const auto& r_model_part = this->GetModelPart();
@@ -219,7 +225,7 @@ public:
             auto p_LHS_T = AmgclCSRSpMMUtilities::SparseMultiply(r_lhs, *rImplicitStrategyData.pGetEffectiveT());
             auto p_transT = AmgclCSRConversionUtilities::Transpose(*rImplicitStrategyData.pGetEffectiveT());
             auto p_eff_lhs = AmgclCSRSpMMUtilities::SparseMultiply(*p_transT, *p_LHS_T);
-            p_eff_lin_sys->pSetMatrix(p_eff_lhs, Future::SparseMatrixTag::LHS);
+            p_eff_lin_sys->pSetMatrix(p_eff_lhs, SparseMatrixTag::LHS);
         } else {
             // Assign the Dirichlet relation matrix as the effective ones since there are no other constraints
             rImplicitStrategyData.pSetEffectiveT(mpDirichletT);
@@ -231,7 +237,7 @@ public:
             auto p_LHS_T = AmgclCSRSpMMUtilities::SparseMultiply(r_lhs, *rImplicitStrategyData.pGetEffectiveT());
             auto p_transT = AmgclCSRConversionUtilities::Transpose(*rImplicitStrategyData.pGetEffectiveT());
             auto p_eff_lhs = AmgclCSRSpMMUtilities::SparseMultiply(*p_transT, *p_LHS_T);
-            p_eff_lin_sys->pSetMatrix(p_eff_lhs, Future::SparseMatrixTag::LHS);
+            p_eff_lin_sys->pSetMatrix(p_eff_lhs, SparseMatrixTag::LHS);
         }
     }
 

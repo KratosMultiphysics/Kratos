@@ -76,6 +76,12 @@ public:
     // Linear solver pointer definition
     using LinearSolverPointerType = typename BaseType::LinearSolverPointerType;
 
+    /// Dense vector tag type definition
+    using DenseVectorTag = typename LinearSystemTags::DenseVectorTag;
+
+    /// Sparse matrix tag type definition
+    using SparseMatrixTag = typename LinearSystemTags::SparseMatrixTag;
+
     ///@}
     ///@name Life Cycle
     ///@{
@@ -186,9 +192,9 @@ public:
 
         // Get system arrays
         auto p_linear_system = r_strategy_data_container.pGetLinearSystem();
-        auto& r_dx = *(p_linear_system->pGetVector(Future::DenseVectorTag::Dx));
-        auto& r_lhs = *(p_linear_system->pGetMatrix(Future::SparseMatrixTag::LHS));
-        auto& r_rhs = *(p_linear_system->pGetVector(Future::DenseVectorTag::RHS));
+        auto& r_dx = *(p_linear_system->pGetVector(DenseVectorTag::Dx));
+        auto& r_lhs = *(p_linear_system->pGetMatrix(SparseMatrixTag::LHS));
+        auto& r_rhs = *(p_linear_system->pGetVector(DenseVectorTag::RHS));
         auto p_constraints_T = r_strategy_data_container.pGetConstraintsT();
         auto p_constraints_q = r_strategy_data_container.pGetConstraintsQ();
 
@@ -221,15 +227,15 @@ public:
 
         // Get the effective arrays to solve the system
         auto p_eff_lin_sys = r_strategy_data_container.pGetEffectiveLinearSystem();
-        auto p_eff_dx = p_eff_lin_sys->pGetVector(Future::DenseVectorTag::Dx);
-        auto p_eff_lhs = p_eff_lin_sys->pGetMatrix(Future::SparseMatrixTag::LHS);
-        auto p_eff_rhs = p_eff_lin_sys->pGetVector(Future::DenseVectorTag::RHS);
+        auto p_eff_dx = p_eff_lin_sys->pGetVector(DenseVectorTag::Dx);
+        auto p_eff_lhs = p_eff_lin_sys->pGetMatrix(SparseMatrixTag::LHS);
+        auto p_eff_rhs = p_eff_lin_sys->pGetVector(DenseVectorTag::RHS);
         auto p_eff_lhs_lin_op = Kratos::make_shared<SparseMatrixLinearOperator<TLinearAlgebra>>(p_eff_lhs);
 
         // Solve the system
         const auto& rp_linear_solver = this->pGetLinearSolver();
         if (rp_linear_solver->AdditionalPhysicalDataIsNeeded()) {
-            rp_linear_solver->ProvideAdditionalData(p_eff_lhs_lin_op, *p_eff_dx, *p_eff_rhs, r_eff_dof_set, this->GetModelPart());
+            rp_linear_solver->ProvideAdditionalData(*p_eff_lin_sys, r_eff_dof_set, this->GetModelPart());
         }
         // rp_linear_solver->Solve(p_eff_lhs_lin_op, *p_eff_dx, *p_eff_rhs);
         // rp_linear_solver->Solve(rp_linear_system);

@@ -82,6 +82,12 @@ public:
     /// Linear system type definition
     using LinearSystemType = LinearSystem<TLinearAlgebra>;
 
+    /// Dense vector tag type definition
+    using DenseVectorTag = typename LinearSystemTags::DenseVectorTag;
+
+    /// Sparse matrix tag type definition
+    using SparseMatrixTag = typename LinearSystemTags::SparseMatrixTag;
+
     ///@}
     ///@name Life Cycle
     ///@{
@@ -171,8 +177,8 @@ public:
 
         // Apply the Dirichlet BCs in a block way by leveraging the CSR matrix implementation
         auto p_eff_lin_sys = rImplicitStrategyData.pGetEffectiveLinearSystem();
-        auto& r_eff_lhs = *(p_eff_lin_sys->pGetMatrix(Future::SparseMatrixTag::LHS));
-        auto& r_eff_rhs = *(p_eff_lin_sys->pGetVector(Future::DenseVectorTag::RHS));
+        auto& r_eff_lhs = *(p_eff_lin_sys->pGetMatrix(SparseMatrixTag::LHS));
+        auto& r_eff_rhs = *(p_eff_lin_sys->pGetVector(DenseVectorTag::RHS));
         auto& r_eff_dof_set = *(rImplicitStrategyData.pGetEffectiveDofSet());
         ApplyBlockBuildDirichletConditions(r_eff_dof_set, r_eff_lhs, r_eff_rhs);
     }
@@ -201,8 +207,8 @@ private:
         const std::size_t n_constraints = r_model_part.NumberOfMasterSlaveConstraints();
         if (n_constraints) { //FIXME: In here we should check the number of active constraints
             // Get effective arrays
-            auto p_eff_dx = p_eff_lin_sys->pGetVector(Future::DenseVectorTag::Dx);
-            auto p_eff_rhs = p_eff_lin_sys->pGetVector(Future::DenseVectorTag::RHS);
+            auto p_eff_dx = p_eff_lin_sys->pGetVector(DenseVectorTag::Dx);
+            auto p_eff_rhs = p_eff_lin_sys->pGetVector(DenseVectorTag::RHS);
 
             // Initialize the effective RHS
             p_eff_rhs->SetValue(0.0);
@@ -215,17 +221,17 @@ private:
             rImplicitStrategyData.pSetEffectiveT(p_const_T);
 
             // Apply constraints to RHS
-            auto p_rhs = p_lin_sys->pGetVector(Future::DenseVectorTag::RHS);
+            auto p_rhs = p_lin_sys->pGetVector(DenseVectorTag::RHS);
             auto p_eff_T = rImplicitStrategyData.pGetEffectiveT();
             p_eff_T->TransposeSpMV(*p_rhs, *p_eff_rhs);
 
             // Apply constraints to LHS
             //TODO: Rethink once we figure out the LinearSystemContainer, LinearOperator and so...
-            auto p_lhs = p_lin_sys->pGetMatrix(Future::SparseMatrixTag::LHS);
+            auto p_lhs = p_lin_sys->pGetMatrix(SparseMatrixTag::LHS);
             auto p_LHS_T = AmgclCSRSpMMUtilities::SparseMultiply(*p_lhs, *rImplicitStrategyData.pGetEffectiveT());
             auto p_transT = AmgclCSRConversionUtilities::Transpose(*rImplicitStrategyData.pGetEffectiveT());
             auto p_eff_lhs = AmgclCSRSpMMUtilities::SparseMultiply(*p_transT, *p_LHS_T);
-            p_eff_lin_sys->pSetMatrix(p_eff_lhs, Future::SparseMatrixTag::LHS);
+            p_eff_lin_sys->pSetMatrix(p_eff_lhs, SparseMatrixTag::LHS);
 
             // // Compute the scale factor value
             // //TODO: think on how to make this user-definable
@@ -242,12 +248,12 @@ private:
         } else {
             // If there are no constraints the effective arrays are the same as the input ones
             // Note that we avoid duplicating the memory by making the effective pointers to point to the same object
-            auto p_dx = p_lin_sys->pGetVector(Future::DenseVectorTag::Dx);
-            auto p_rhs = p_lin_sys->pGetVector(Future::DenseVectorTag::RHS);
-            auto p_lhs = p_lin_sys->pGetMatrix(Future::SparseMatrixTag::LHS);
-            p_eff_lin_sys->pSetVector(p_dx, Future::DenseVectorTag::Dx);
-            p_eff_lin_sys->pSetVector(p_rhs, Future::DenseVectorTag::RHS);
-            p_eff_lin_sys->pSetMatrix(p_lhs, Future::SparseMatrixTag::LHS);
+            auto p_dx = p_lin_sys->pGetVector(DenseVectorTag::Dx);
+            auto p_rhs = p_lin_sys->pGetVector(DenseVectorTag::RHS);
+            auto p_lhs = p_lin_sys->pGetMatrix(SparseMatrixTag::LHS);
+            p_eff_lin_sys->pSetVector(p_dx, DenseVectorTag::Dx);
+            p_eff_lin_sys->pSetVector(p_rhs, DenseVectorTag::RHS);
+            p_eff_lin_sys->pSetMatrix(p_lhs, SparseMatrixTag::LHS);
         }
     }
 

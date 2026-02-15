@@ -63,8 +63,8 @@ KRATOS_TEST_CASE_IN_SUITE(StaticSchemeBuild1D, KratosCoreFastSuite)
 
     // Call the build
     const auto p_linear_system = strategy_data_container.pGetLinearSystem();
-    auto& r_lhs = *(p_linear_system->pGetMatrix(Future::SparseMatrixTag::LHS));
-    auto& r_rhs = *(p_linear_system->pGetVector(Future::DenseVectorTag::RHS));
+    auto& r_lhs = *(p_linear_system->pGetMatrix(Future::LinearSystemTags::SparseMatrixTag::LHS));
+    auto& r_rhs = *(p_linear_system->pGetVector(Future::LinearSystemTags::DenseVectorTag::RHS));
     p_scheme->Build(r_lhs, r_rhs);
 
     // Check resultant matrices
@@ -124,8 +124,8 @@ KRATOS_TEST_CASE_IN_SUITE(StaticSchemeBuild2D, KratosCoreFastSuite)
 
     // Call the build
     const auto p_linear_system = strategy_data_container.pGetLinearSystem();
-    auto& r_lhs = *(p_linear_system->pGetMatrix(Future::SparseMatrixTag::LHS));
-    auto& r_rhs = *(p_linear_system->pGetVector(Future::DenseVectorTag::RHS));
+    auto& r_lhs = *(p_linear_system->pGetMatrix(Future::LinearSystemTags::SparseMatrixTag::LHS));
+    auto& r_rhs = *(p_linear_system->pGetVector(Future::LinearSystemTags::DenseVectorTag::RHS));
 
     sleep(30);
 

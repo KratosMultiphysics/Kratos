@@ -509,6 +509,10 @@ public:
 
     using LinearOperatorPointerType = typename LinearOperator<TLinearAlgebra>::Pointer;
 
+    using DenseVectorTag = typename LinearSystemTags::DenseVectorTag;
+
+    using SparseMatrixTag = typename LinearSystemTags::SparseMatrixTag;
+
     /// Default constructor
     SkylineLUFactorizationSolver() = default;
 
@@ -529,13 +533,13 @@ public:
     //TODO: This Solve method should be split into Initialize, InitializeSolutionStep, SolveSolutionStep, FinalizeSolutionStep, ...
     bool PerformSolutionStep(LinearSystemType& rLinearSystem) override
     {
-        if (rLinearSystem.IsNotConsistent()) {
+        if (!rLinearSystem.IsConsistent(SparseMatrixTag::LHS, DenseVectorTag::RHS, DenseVectorTag::Dx)) {
             return false;
         }
 
-        auto& r_lin_op = *(rLinearSystem.pGetLinearOperator(Future::SparseMatrixTag::LHS));
-        auto& rX = *rLinearSystem.pGetVector(Future::DenseVectorTag::Dx);
-        auto& rB = *rLinearSystem.pGetVector(Future::DenseVectorTag::RHS);
+        auto& r_lin_op = *(rLinearSystem.pGetLinearOperator(SparseMatrixTag::LHS));
+        auto& rX = *rLinearSystem.pGetVector(DenseVectorTag::Dx);
+        auto& rB = *rLinearSystem.pGetVector(DenseVectorTag::RHS);
 
         const int size = rX.size();
 
