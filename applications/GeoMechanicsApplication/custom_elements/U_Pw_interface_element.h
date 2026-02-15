@@ -67,9 +67,8 @@ public:
     void CalculateLeftHandSide(MatrixType& rLeftHandSideMatrix, const ProcessInfo&) override;
     void CalculateAndAssignStifnessForceVector(Element::VectorType& rRightHandSideVector,
                                                const ProcessInfo&   rProcessInfo);
-    void CalculateAndAssignUPCouplingMatrix(MatrixType& rLeftHandSideMatrix, const ProcessInfo& rProcessInfo) const;
-    void CalculateAndAssembleUPCouplingForceVector(Element::VectorType& rRightHandSideVector,
-                                                   const ProcessInfo&   rProcessInfo) const;
+    void CalculateAndAssignUPCouplingMatrix(MatrixType& rLeftHandSideMatrix) const;
+    void CalculateAndAssembleUPCouplingForceVector(Element::VectorType& rRightHandSideVector) const;
     void CalculateRightHandSide(VectorType& rRightHandSideVector, const ProcessInfo&) override;
     void CalculateLocalSystem(MatrixType&        rLeftHandSideMatrix,
                               VectorType&        rRightHandSideVector,
@@ -152,11 +151,10 @@ private:
     auto CreateUPCouplingCalculator() const;
 
     template <unsigned int NumberOfRows, unsigned int NumberOfColumns>
-    void CalculateAndAssignUPCouplingMatrix(MatrixType& rLeftHandSideMatrix, const ProcessInfo& rProcessInfo) const;
+    void CalculateAndAssignUPCouplingMatrix(MatrixType& rLeftHandSideMatrix) const;
 
     template <unsigned int NumberOfRows, unsigned int NumberOfColumns>
-    void CalculateAndAssembleUPCouplingForceVector(VectorType&        rRightHandSideVector,
-                                                   const ProcessInfo& rProcessInfo) const;
+    void CalculateAndAssembleUPCouplingForceVector(VectorType& rRightHandSideVector) const;
 
     std::function<Matrix(const Geometry<Node>&, const array_1d<double, 3>&)> mfpCalculateRotationMatrix;
 
