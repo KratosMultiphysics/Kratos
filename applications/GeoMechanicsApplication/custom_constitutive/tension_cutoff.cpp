@@ -108,7 +108,8 @@ double TensionCutoff::CalculatePlasticMultiplier(const Geo::PrincipalStresses& r
                                                  const Vector& rDerivativeOfFlowFunction) const
 {
     const auto poisson = mMaterialProperties[POISSON_RATIO];
-    const auto numerator = rDerivativeOfFlowFunction[0] * (1.0 - poisson ) + rDerivativeOfFlowFunction[1] * poisson;
+    const auto numerator =
+        rDerivativeOfFlowFunction[0] * (1.0 - poisson) + rDerivativeOfFlowFunction[1] * poisson;
     return -YieldFunctionValue(rPrincipalStresses) / numerator;
 }
 

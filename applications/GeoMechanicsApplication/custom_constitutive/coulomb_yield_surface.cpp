@@ -212,9 +212,10 @@ double CoulombYieldSurface::CalculatePlasticMultiplier(const Geo::SigmaTau& rSig
 double CoulombYieldSurface::CalculatePlasticMultiplier(const Geo::PrincipalStresses& rPrincipalStresses,
                                                        const Vector& rDerivativeOfFlowFunction) const
 {
-    const auto sin_phi       = std::sin(GetFrictionAngleInRadians());
-    const auto poisson       = mMaterialProperties[POISSON_RATIO];
-    const auto c1 = (rDerivativeOfFlowFunction[0] - rDerivativeOfFlowFunction[2]) * (1.0 - 2.0 * poisson) / 2.0;
+    const auto sin_phi = std::sin(GetFrictionAngleInRadians());
+    const auto poisson = mMaterialProperties[POISSON_RATIO];
+    const auto c1 =
+        (rDerivativeOfFlowFunction[0] - rDerivativeOfFlowFunction[2]) * (1.0 - 2.0 * poisson) / 2.0;
     const auto c2 = (rDerivativeOfFlowFunction[0] + 2.0 * poisson * rDerivativeOfFlowFunction[1] +
                      rDerivativeOfFlowFunction[2]) *
                     sin_phi / 2.0;
