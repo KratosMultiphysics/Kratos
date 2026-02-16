@@ -163,4 +163,54 @@ void NonLinearTimoshenkoBeamElement2D2N::GetFirstDerivativesNu0ShapeFunctionsVal
 /***********************************************************************************/
 /***********************************************************************************/
 
+void NonLinearTimoshenkoBeamElement2D2N::CalculateLocalSystem(
+    MatrixType& rLeftHandSideMatrix,
+    VectorType& rRightHandSideVector,
+    const ProcessInfo& rCurrentProcessInfo
+    )
+{
+    CalculateAll(rLeftHandSideMatrix, rRightHandSideVector, rCurrentProcessInfo, true, true);
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+void NonLinearTimoshenkoBeamElement2D2N::CalculateLeftHandSide(
+    MatrixType& rLeftHandSideMatrix,
+    const ProcessInfo& rCurrentProcessInfo
+    )
+{
+    VectorType dummy_rhs;
+    CalculateAll(rLeftHandSideMatrix, dummy_rhs, rCurrentProcessInfo, true, false);
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+void NonLinearTimoshenkoBeamElement2D2N::CalculateRightHandSide(
+    VectorType& rRightHandSideVector,
+    const ProcessInfo& rCurrentProcessInfo
+    )
+{
+    MatrixType dummy_lhs;
+    CalculateAll(dummy_lhs, rRightHandSideVector, rCurrentProcessInfo, false, true);
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+void NonLinearTimoshenkoBeamElement2D2N::CalculateAll(
+    MatrixType& rLeftHandSideMatrix,
+    VectorType& rRightHandSideVector,
+    const ProcessInfo& rCurrentProcessInfo,
+    const bool ComputeLHS,
+    const bool ComputeRHS
+    )
+{
+
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
 } // namespace Kratos

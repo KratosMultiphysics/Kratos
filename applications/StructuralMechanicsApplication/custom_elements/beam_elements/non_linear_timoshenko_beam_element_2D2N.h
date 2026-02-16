@@ -76,6 +76,46 @@ public:
     void GetNu0ShapeFunctionsValues(VectorType& rN, const double Length, const double Phi, const double xi) const override;
     void GetFirstDerivativesNu0ShapeFunctionsValues(VectorType& rN, const double Length, const double Phi, const double xi) const override;
 
+    /**
+     * @brief Calculate local system
+     */
+    void CalculateLocalSystem(
+        MatrixType& rLeftHandSideMatrix,
+        VectorType& rRightHandSideVector,
+        const ProcessInfo& rCurrentProcessInfo
+        ) override;
+
+    /**
+     * @brief Calculate left hand side
+     */
+    void CalculateLeftHandSide(
+        MatrixType& rLeftHandSideMatrix,
+        const ProcessInfo& rCurrentProcessInfo
+        ) override;
+
+    /**
+     * @brief Calculate right hand side
+     */
+    void CalculateRightHandSide(
+        VectorType& rRightHandSideVector,
+        const ProcessInfo& rCurrentProcessInfo
+        ) override;
+
+    ///@}
+    ///@name Protected Operations
+    ///@{
+
+    /**
+     * @brief General calculation method with flags
+     */
+    void CalculateAll(
+        MatrixType& rLeftHandSideMatrix,
+        VectorType& rRightHandSideVector,
+        const ProcessInfo& rCurrentProcessInfo,
+        const bool ComputeLHS,
+        const bool ComputeRHS
+        );
+
     ///@}
     ///@name Serialization
     ///@{
