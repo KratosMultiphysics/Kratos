@@ -200,8 +200,9 @@ Geo::PrincipalStresses CoulombWithTensionCutOffImpl::ReturnStressAtTensionCutoff
         mTensionCutOff.DerivativeOfFlowFunction(rPrincipalStresses, AveragingType);
     const auto lambda =
         mTensionCutOff.CalculatePlasticMultiplier(rPrincipalStresses, derivative_of_flow_function);
+    const Matrix elastic_matrix = boost::numeric::ublas::subrange(rElasticMatrix, 0, 3, 0, 3);
     return Geo::PrincipalStresses{rPrincipalStresses.Values() +
-                                  lambda * prod(rElasticMatrix, derivative_of_flow_function)};
+                                  lambda * prod(elastic_matrix, derivative_of_flow_function)};
 }
 
 Geo::SigmaTau CoulombWithTensionCutOffImpl::ReturnStressAtRegularFailureZone(const Geo::SigmaTau& rTraction,
