@@ -50,7 +50,6 @@ public:
                                                     const Vector& rDerivativeOfFlowFunction) const;
     [[nodiscard]] double CalculatePlasticMultiplier(const Geo::PrincipalStresses& rPrincipalStresses,
                                                     const Vector& rDerivativeOfFlowFunction) const;
-    Matrix CalculateElasticMatrix(const Geo::PrincipalStresses&) const;
 
 private:
     friend class Serializer;
