@@ -65,13 +65,13 @@ Vector TensionCutoff::DerivativeOfFlowFunction(const Geo::SigmaTau&, YieldSurfac
     switch (AveragingType) {
         using enum YieldSurfaceAveragingType;
     case LOWEST_PRINCIPAL_STRESSES:
-        result <<= 1.0, 1.0;
+        result <<= 0.5, 0.5;
         break;
     case NO_AVERAGING:
         result <<= 1.0, 1.0;
         break;
     case HIGHEST_PRINCIPAL_STRESSES:
-        result <<= 0.5, 0.5;
+        result <<= 1.0, 1.0;
         break;
     default:
         KRATOS_ERROR << "Unsupported Averaging Type: " << static_cast<std::size_t>(AveragingType) << "\n";
@@ -86,13 +86,13 @@ Vector TensionCutoff::DerivativeOfFlowFunction(const Geo::PrincipalStresses&,
     switch (AveragingType) {
         using enum YieldSurfaceAveragingType;
     case LOWEST_PRINCIPAL_STRESSES:
-        result <<= 1.0, 0.0, 0.0;
+        result <<= 0.5, 0.5, 0.0;
         break;
     case NO_AVERAGING:
         result <<= 1.0, 0.0, 0.0;
         break;
     case HIGHEST_PRINCIPAL_STRESSES:
-        result <<= 0.5, 0.5, 0.0;
+        result <<= 1.0, 0.0, 0.0;
         break;
     default:
         KRATOS_ERROR << "Unsupported Averaging Type: " << static_cast<std::size_t>(AveragingType) << "\n";

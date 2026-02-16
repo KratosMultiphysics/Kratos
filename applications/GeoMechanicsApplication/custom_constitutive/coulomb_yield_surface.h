@@ -64,6 +64,8 @@ public:
                                                     const Vector& rDerivativeOfFlowFunction) const;
     [[nodiscard]] double CalculateEquivalentPlasticStrainIncrement(const Geo::SigmaTau& rSigmaTau,
                                                                    YieldSurfaceAveragingType AveragingType) const;
+    [[nodiscard]] double CalculateEquivalentPlasticStrainIncrement(const Geo::PrincipalStresses& rPrincipalStresses,
+                                                                   YieldSurfaceAveragingType AveragingType) const;
 
 private:
     void InitializeKappaDependentFunctions();

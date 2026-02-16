@@ -176,12 +176,12 @@ Vector CoulombYieldSurface::DerivativeOfFlowFunction(const Geo::PrincipalStresse
         using enum YieldSurfaceAveragingType;
     case LOWEST_PRINCIPAL_STRESSES:
         return UblasUtilities::CreateVector(
-            {(1.0 + sin_psi) / 2.0, (-1.0 + sin_psi) / 4.0, (-1.0 + sin_psi) / 4.0});
+            {(1.0 + sin_psi) / 4.0, (1.0 + sin_psi) / 4.0, (-1.0 + sin_psi) / 2.0});
     case NO_AVERAGING:
         return UblasUtilities::CreateVector({(1.0 + sin_psi) / 2.0, 0.0, (-1.0 + sin_psi) / 2.0});
     case HIGHEST_PRINCIPAL_STRESSES:
         return UblasUtilities::CreateVector(
-            {(1.0 + sin_psi) / 4.0, (1.0 + sin_psi) / 4.0, (-1.0 + sin_psi) / 2.0});
+            {(1.0 + sin_psi) / 2.0, (-1.0 + sin_psi) / 4.0, (-1.0 + sin_psi) / 4.0});
     default:
         KRATOS_ERROR << "Unsupported Averaging Type: " << static_cast<std::size_t>(AveragingType) << "\n";
     }
@@ -236,6 +236,19 @@ double CoulombYieldSurface::CalculateEquivalentPlasticStrainIncrement(const Geo:
                            [mean](auto sigma) { return sigma - mean; });
     return -std::sqrt(2.0 / 3.0) * MathUtils<>::Norm(deviatoric_principle_stress_vector) *
            CalculatePlasticMultiplier(rSigmaTau, DerivativeOfFlowFunction(rSigmaTau, AveragingType));
+}
+
+double CoulombYieldSurface::CalculateEquivalentPlasticStrainIncrement(const Geo::PrincipalStresses& rPrincipalStresses,
+                                                                      YieldSurfaceAveragingType AveragingType) const
+{
+    const auto derivative              = DerivativeOfFlowFunction(rPrincipalStresses, AveragingType);
+    const auto mean = std::accumulate(rPrincipalStresses.Values().begin(), rPrincipalStresses.Values().end(), 0.0) /
+                      static_cast<double>(rPrincipalStresses.Values().size());
+    auto deviatoric_principle_stress_vector = Vector{3};
+    std::ranges::transform(rPrincipalStresses.Values(), deviatoric_principle_stress_vector.begin(),
+                           [mean](auto sigma) { return sigma - mean; });
+    return -std::sqrt(2.0 / 3.0) * MathUtils<>::Norm(deviatoric_principle_stress_vector) *
+           CalculatePlasticMultiplier(rPrincipalStresses, derivative);
 }
 
 void CoulombYieldSurface::CheckMaterialProperties() const
