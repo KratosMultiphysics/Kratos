@@ -18,8 +18,6 @@
 #include "includes/ublas_interface.h"
 
 #include <algorithm>
-#include <initializer_list>
-#include <iterator>
 
 namespace Kratos::Geo
 {
@@ -34,8 +32,13 @@ public:
     PQ(double P, double Q);
 
     template <typename VectorType>
-    explicit PQ(const VectorType& rValues) : PQ{std::begin(rValues), std::end(rValues)}
+    explicit PQ(const VectorType& rValues)
     {
+        KRATOS_DEBUG_ERROR_IF(std::ranges::distance(rValues) != msVectorSize)
+            << "Cannot construct a PQ instance: expected " << msVectorSize << " values, but got "
+            << std::ranges::distance(rValues) << " value(s)\n";
+
+        std::ranges::copy(rValues, mValues.begin());
     }
 
     [[nodiscard]] const InternalVectorType& Values() const noexcept;
@@ -53,16 +56,6 @@ public:
     }
 
 private:
-    template <std::forward_iterator Iter>
-    PQ(Iter First, Iter Last)
-    {
-        KRATOS_DEBUG_ERROR_IF(std::distance(First, Last) != msVectorSize)
-            << "Cannot construct a PQ instance: expected " << msVectorSize << " values, but got "
-            << std::distance(First, Last) << " value(s)\n";
-
-        std::copy(First, Last, mValues.begin());
-    }
-
     InternalVectorType mValues = ZeroVector{msVectorSize};
 };
 
