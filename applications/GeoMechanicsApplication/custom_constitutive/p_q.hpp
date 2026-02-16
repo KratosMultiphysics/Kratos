@@ -31,13 +31,12 @@ public:
     using InternalVectorType                  = BoundedVector<double, msVectorSize>;
 
     PQ() = default;
+    PQ(double P, double Q);
 
     template <typename VectorType>
     explicit PQ(const VectorType& rValues) : PQ{std::begin(rValues), std::end(rValues)}
     {
     }
-
-    explicit PQ(const std::initializer_list<double>& rValues);
 
     [[nodiscard]] const InternalVectorType& Values() const noexcept;
     [[nodiscard]] double                    P() const noexcept;

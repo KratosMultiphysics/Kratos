@@ -68,21 +68,10 @@ TEST_F(KratosGeoMechanicsFastSuiteWithoutKernel, PQ_RaisesADebugErrorWhenAttempt
     EXPECT_THROW(Geo::PQ{too_long}, Exception);
 }
 
-TEST_F(KratosGeoMechanicsFastSuiteWithoutKernel, PQ_CanBeConstructedFromAStdInitializerListWithSize2)
+TEST_F(KratosGeoMechanicsFastSuiteWithoutKernel, PQ_CanBeConstructedFromFromTwoValues)
 {
     EXPECT_NEAR((Geo::PQ{1.0, 2.0}.P()), 1.0, Defaults::absolute_tolerance);
     EXPECT_NEAR((Geo::PQ{1.0, 2.0}.Q()), 2.0, Defaults::absolute_tolerance);
-}
-
-TEST_F(KratosGeoMechanicsFastSuiteWithoutKernel,
-       PQ_RaisesADebugErrorWhenAttemptingToConstructFromAnStdInitializerListWithSizeUnequalTo2)
-{
-#ifndef KRATOS_DEBUG
-    GTEST_SKIP() << "This test requires a debug build";
-#endif
-
-    EXPECT_THROW(Geo::PQ{1.0}, Exception);
-    EXPECT_THROW((Geo::PQ{2.0, 3.0, 4.0}), Exception);
 }
 
 TEST_F(KratosGeoMechanicsFastSuiteWithoutKernel, PQ_ComponentsCanBeModifiedDirectly)
