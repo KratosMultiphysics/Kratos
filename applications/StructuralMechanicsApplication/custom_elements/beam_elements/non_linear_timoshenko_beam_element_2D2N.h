@@ -62,6 +62,12 @@ public:
     Element::Pointer Clone(IndexType NewId, NodesArrayType const& rThisNodes) const override;
 
     /**
+     * @brief Called to initialize the element.
+     * @warning Must be called before any calculation is done
+     */
+    void Initialize(const ProcessInfo& rCurrentProcessInfo) override;
+
+    /**
      * @brief Override shape function methods to return global-sized vectors automatically
      */
     void GetShapeFunctionsValues(VectorType& rN, const double Length, const double Phi, const double xi) const override;
