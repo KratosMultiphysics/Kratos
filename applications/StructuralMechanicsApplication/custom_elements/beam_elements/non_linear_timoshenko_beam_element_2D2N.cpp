@@ -279,10 +279,58 @@ void NonLinearTimoshenkoBeamElement2D2N::CalculateAll(
         GetShapeFunctionsValues(Nv, length, Phi, xi); // v
         GetFirstDerivativesShapeFunctionsValues(dNv, length, Phi, xi);
 
+        theta = inner_prod(Ntheta, nodal_values);
+        du = inner_prod(Nu, nodal_values);
+        dv = inner_prod(Nv, nodal_values);
 
+        const double sin_theta = std::sin(theta);
+        const double cos_theta = std::cos(theta);
 
+        strain_vector[0] = (1.0 + du) * cos_theta + dv * sin_theta - 1.0; // axial strain
+        strain_vector[1] = inner_prod(dNtheta, nodal_values); // curvature
+        strain_vector[2] = dv * cos_theta - sin_theta * (1.0 + du); // shear strain
+
+        mConstitutiveLawVector[IP]->CalculateMaterialResponseCauchy(cl_values);
+
+        const double N = stress_vector[0]; // Axial force
+        const double M = stress_vector[1]; // Bending moment
+        const double V = stress_vector[2]; // Shear force
+
+        // axial strain increment
+        noalias(row(B, 0)) = -sin_theta * dNtheta + cos_theta * dNu - sin_theta * du * Ntheta + sin_theta * dNv + dv * cos_theta * Ntheta;
+        // curvature increment
+        noalias(row(B, 1)) = dNtheta;
+        // shear strain increment
+        noalias(row(B, 2)) = cos_theta * dNv - sin_theta * dv * Ntheta - cos_theta * Ntheta - sin_theta * dNu - du * cos_theta * Ntheta;
+    
+    
+        if (ComputeRHS) {
+            // Internal forces
+            noalias(rRHS) -= prod(trans(B), stress_vector) * jacobian_weight;
+            // Body forces
+            noalias(rRHS) += Nu * local_body_forces[0] * jacobian_weight * area;
+            noalias(rRHS) += Nv * local_body_forces[1] * jacobian_weight * area;
+        }
+
+        if (ComputeLHS) {
+            MatrixType BtD(mat_size, strain_size);
+            noalias(BtD) = prod(trans(B), constitutive_matrix);
+            // Material K
+            noalias(rLHS) += prod(BtD, B) * jacobian_weight;
+
+            // Geometric K, derivative of the B matrix with respect to the nodal displacements
+            MatrixType dB_axial(mat_size, mat_size); // dB_axial / da(e)
+            MatrixType dB_shear(mat_size, mat_size); // dB_shear / da(e)
+
+            noalias(dB_axial) = -cos_theta * outer_prod(Ntheta, Ntheta) - sin_theta * outer_prod(dNu, Ntheta) - outer_prod(Ntheta, sin_theta * dNu + du * cos_theta * Ntheta) +
+                                cos_theta * outer_prod(dNv, Ntheta) + outer_prod(Ntheta, dNv * cos_theta - dv * sin_theta * Ntheta);
+            noalias(dB_shear) = -sin_theta * outer_prod(dNv, Ntheta) - outer_prod(Ntheta, sin_theta * dNv + cos_theta * dv * Ntheta) - cos_theta * outer_prod(dNu, Ntheta) -
+                                outer_prod(Ntheta, -(1.0 + du) * sin_theta * Ntheta + cos_theta * dNu);
+            noalias(rLHS) += (N * dB_axial + V * dB_shear) * jacobian_weight;
+        }
 
     }
+    // RotateAll(rLHS, rRHS, r_geometry);
 
     KRATOS_CATCH("");
 
