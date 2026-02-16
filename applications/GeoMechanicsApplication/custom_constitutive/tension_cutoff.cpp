@@ -111,12 +111,8 @@ double TensionCutoff::CalculatePlasticMultiplier(const Geo::SigmaTau& rSigmaTau,
 double TensionCutoff::CalculatePlasticMultiplier(const Geo::PrincipalStresses& rPrincipalStresses,
                                                  const Vector& rDerivativeOfFlowFunction) const
 {
-    const auto lambda = (mMaterialProperties[GEO_TENSILE_STRENGTH] - rPrincipalStresses.Values()[0]) /
-                        rDerivativeOfFlowFunction[0];
-    const auto c0 =
-        mMaterialProperties[YOUNG_MODULUS] /
-        ((1.0 + mMaterialProperties[POISSON_RATIO]) * (1.0 - 2.0 * mMaterialProperties[POISSON_RATIO]));
-    return lambda / c0;
+    return (mMaterialProperties[GEO_TENSILE_STRENGTH] - rPrincipalStresses.Values()[0]) /
+           rDerivativeOfFlowFunction[0];
 }
 
 Matrix TensionCutoff::CalculateElasticMatrix(const Geo::PrincipalStresses&) const

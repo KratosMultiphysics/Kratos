@@ -204,7 +204,10 @@ void MohrCoulombWithTensionCutOff::CalculateMaterialResponseCauchy(ConstitutiveL
     } else {
         mCoulombWithTensionCutOffImpl.SaveKappaOfCoulombYieldSurface();
 
+        const auto c0 = r_properties[YOUNG_MODULUS] /
+                        ((1.0 + r_properties[POISSON_RATIO]) * (1.0 - 2.0 * r_properties[POISSON_RATIO]));
         auto elastic_matrix = mpConstitutiveDimension->CalculateElasticMatrix(r_properties);
+        elastic_matrix /= c0;
 
         auto mapped_principal_stresses = mCoulombWithTensionCutOffImpl.DoReturnMapping(
             trial_principal_stresses, YieldSurface::YieldSurfaceAveragingType::NO_AVERAGING, elastic_matrix);

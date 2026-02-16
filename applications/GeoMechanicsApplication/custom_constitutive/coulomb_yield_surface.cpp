@@ -202,11 +202,11 @@ void CoulombYieldSurface::InitializeKappaDependentFunctions()
 double CoulombYieldSurface::CalculatePlasticMultiplier(const Geo::SigmaTau& rSigmaTau,
                                                        const Vector& rDerivativeOfFlowFunction) const
 {
-    const auto sin_phi   = std::sin(GetFrictionAngleInRadians());
-    const auto numerator = sin_phi * rDerivativeOfFlowFunction[0] + rDerivativeOfFlowFunction[1];
-    return (GetCohesion() * std::cos(GetFrictionAngleInRadians()) - rSigmaTau.Sigma() * sin_phi -
-            rSigmaTau.Tau()) /
-           numerator;
+    const auto sin_phi = std::sin(GetFrictionAngleInRadians());
+    const auto numerator =
+        sin_phi * rDerivativeOfFlowFunction[0] * mMaterialProperties[INTERFACE_NORMAL_STIFFNESS] +
+        rDerivativeOfFlowFunction[1] * mMaterialProperties[INTERFACE_SHEAR_STIFFNESS];
+    return -YieldFunctionValue(rSigmaTau) / numerator;
 }
 
 double CoulombYieldSurface::CalculatePlasticMultiplier(const Geo::PrincipalStresses& rPrincipalStresses,
@@ -219,8 +219,7 @@ double CoulombYieldSurface::CalculatePlasticMultiplier(const Geo::PrincipalStres
     const auto c2 = (rDerivativeOfFlowFunction[0] + 2.0 * poisson * rDerivativeOfFlowFunction[1] +
                      rDerivativeOfFlowFunction[2]) *
                     sin_phi;
-    const auto c3 = young_modulus / ((1.0 + poisson) * (1.0 - 2.0 * poisson));
-    return -2.0 * YieldFunctionValue(rPrincipalStresses) / ((c1 + c2) * c3);
+    return -2.0 * YieldFunctionValue(rPrincipalStresses) / (c1 + c2);
 }
 
 double CoulombYieldSurface::CalculateEquivalentPlasticStrainIncrement(const Geo::SigmaTau& rSigmaTau,
@@ -241,11 +240,11 @@ double CoulombYieldSurface::CalculateEquivalentPlasticStrainIncrement(const Geo:
 double CoulombYieldSurface::CalculateEquivalentPlasticStrainIncrement(const Geo::PrincipalStresses& rPrincipalStresses,
                                                                       YieldSurfaceAveragingType AveragingType) const
 {
-    const auto derivative              = DerivativeOfFlowFunction(rPrincipalStresses, AveragingType);
-    const auto mean = std::accumulate(rPrincipalStresses.Values().begin(), rPrincipalStresses.Values().end(), 0.0) /
-                      static_cast<double>(rPrincipalStresses.Values().size());
+    const auto derivative = DerivativeOfFlowFunction(rPrincipalStresses, AveragingType);
+    const auto mean       = std::accumulate(derivative.begin(), derivative.end(), 0.0) /
+                      static_cast<double>(derivative.size());
     auto deviatoric_principle_stress_vector = Vector{3};
-    std::ranges::transform(rPrincipalStresses.Values(), deviatoric_principle_stress_vector.begin(),
+    std::ranges::transform(derivative, deviatoric_principle_stress_vector.begin(),
                            [mean](auto sigma) { return sigma - mean; });
     return -std::sqrt(2.0 / 3.0) * MathUtils<>::Norm(deviatoric_principle_stress_vector) *
            CalculatePlasticMultiplier(rPrincipalStresses, derivative);
