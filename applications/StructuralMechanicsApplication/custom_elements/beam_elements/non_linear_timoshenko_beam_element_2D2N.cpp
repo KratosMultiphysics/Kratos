@@ -11,6 +11,7 @@
 
 // Project includes
 #include "non_linear_timoshenko_beam_element_2D2N.h"
+#include "structural_mechanics_application_variables.h"
 
 namespace Kratos
 {
@@ -337,8 +338,7 @@ void NonLinearTimoshenkoBeamElement2D2N::CalculateAll(
         noalias(row(B, 1)) = dNtheta;
         // shear strain increment
         noalias(row(B, 2)) = cos_theta * dNv - sin_theta * dv * Ntheta - cos_theta * Ntheta - sin_theta * dNu - du * cos_theta * Ntheta;
-    
-    
+
         if (ComputeRHS) {
             // Internal forces
             noalias(rRHS) -= prod(trans(B), stress_vector) * jacobian_weight;
@@ -374,7 +374,96 @@ void NonLinearTimoshenkoBeamElement2D2N::CalculateAll(
     }
 
     KRATOS_CATCH("");
+}
 
+/***********************************************************************************/
+/***********************************************************************************/
+
+void NonLinearTimoshenkoBeamElement2D2N::CalculateOnIntegrationPoints(
+    const Variable<double>& rVariable,
+    std::vector<double>& rOutput,
+    const ProcessInfo& rProcessInfo
+    )
+{
+    const auto& r_integration_points = IntegrationPoints(GetIntegrationMethod());
+    const SizeType strain_size = mConstitutiveLawVector[0]->GetStrainSize();
+    const SizeType mat_size = GetDoFsPerNode() * GetGeometry().size();
+    rOutput.resize(r_integration_points.size());
+    const auto &r_props = GetProperties();
+
+    if (rVariable == AXIAL_FORCE || rVariable == SHEAR_FORCE || rVariable == BENDING_MOMENT || rVariable == AXIAL_STRAIN || rVariable == SHEAR_STRAIN || rVariable == BENDING_STRAIN) {
+
+        const auto &r_geometry = GetGeometry();
+
+        ConstitutiveLaw::Parameters cl_values(r_geometry, r_props, rProcessInfo);
+        const double length = CalculateLength();
+        const double Phi    = StructuralMechanicsElementUtilities::CalculatePhi(r_props, length);
+        VectorType strain_vector(strain_size), stress_vector(strain_size);
+        StructuralMechanicsElementUtilities::InitializeConstitutiveLawValuesForStressCalculation(cl_values, strain_vector, stress_vector);
+
+        VectorType nodal_values(mat_size);
+        GetNodalValuesVector(nodal_values);
+
+        VectorType Ntheta(mat_size), dNtheta(mat_size);
+        VectorType Nu(mat_size), dNu(mat_size);
+        VectorType Nv(mat_size), dNv(mat_size);
+        double theta, du, dv;
+
+        // Loop over the integration points
+        for (SizeType IP = 0; IP < r_integration_points.size(); ++IP) {
+            const double xi = r_integration_points[IP].X();
+
+            // Let's fill the shape functions and their derivatives
+            GetNu0ShapeFunctionsValues(Nu, length, Phi, xi); // u
+            GetFirstDerivativesNu0ShapeFunctionsValues(dNu, length, Phi, xi);
+
+            GetNThetaShapeFunctionsValues(Ntheta, length, Phi, xi); // rotation
+            GetFirstDerivativesNThetaShapeFunctionsValues(dNtheta, length, Phi, xi);
+
+            GetShapeFunctionsValues(Nv, length, Phi, xi); // v
+            GetFirstDerivativesShapeFunctionsValues(dNv, length, Phi, xi);
+
+            theta = inner_prod(Ntheta, nodal_values);
+            du = inner_prod(dNu, nodal_values);
+            dv = inner_prod(dNv, nodal_values);
+
+            const double sin_theta = std::sin(theta);
+            const double cos_theta = std::cos(theta);
+
+            strain_vector[0] = (1.0 + du) * cos_theta + dv * sin_theta - 1.0; // axial strain
+
+            if (rVariable == AXIAL_STRAIN) {
+                rOutput[IP] = strain_vector[0];
+                return;
+            }
+
+            strain_vector[1] = inner_prod(dNtheta, nodal_values); // curvature
+
+
+            if (rVariable == BENDING_STRAIN) {
+                rOutput[IP] = strain_vector[1];
+                return;
+            }
+
+            strain_vector[2] = dv * cos_theta - sin_theta * (1.0 + du); // shear strain
+
+            if (rVariable == SHEAR_STRAIN) {
+                rOutput[IP] = strain_vector[2];
+                return;
+            }
+
+            mConstitutiveLawVector[IP]->CalculateMaterialResponseCauchy(cl_values);
+            const Vector &r_generalized_stresses = cl_values.GetStressVector();
+
+            if (rVariable == AXIAL_FORCE) {
+                rOutput[IP] = r_generalized_stresses[0];
+            } else if (rVariable == BENDING_MOMENT) {
+                rOutput[IP] = r_generalized_stresses[1];
+            } else if (rVariable == SHEAR_FORCE) {
+                rOutput[IP] = r_generalized_stresses[2];
+            }
+        }
+    }
 }
 
 /***********************************************************************************/

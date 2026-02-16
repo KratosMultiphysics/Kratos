@@ -122,14 +122,17 @@ public:
         const bool ComputeRHS
         );
 
+    void CalculateOnIntegrationPoints(
+        const Variable<double> &rVariable,
+        std::vector<double> &rOutput,
+        const ProcessInfo &rProcessInfo) override;
+
     ///@}
     ///@name Serialization
     ///@{
-    // void save(Serializer &rSerializer) const override { BaseType::save(rSerializer); }
-    // void load(Serializer &rSerializer) override { BaseType::load(rSerializer); }
 
 private:
-    // Nothing else for now - behaves like the linear element
+
 };
 
 } // namespace Kratos
