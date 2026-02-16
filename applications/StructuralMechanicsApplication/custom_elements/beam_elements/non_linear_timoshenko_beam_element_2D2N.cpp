@@ -60,13 +60,12 @@ void NonLinearTimoshenkoBeamElement2D2N::GetShapeFunctionsValues(
     const double Phi,
     const double xi) const
 {
-    // VectorType local_N(4);
-    // BaseType::GetShapeFunctionsValues(local_N, Length, Phi, xi);
-    // GlobalSizeVector(rN, local_N);
+    VectorType simple_N(2);
+    BaseType::GetNu0ShapeFunctionsValues(simple_N, Length, Phi, xi);
 
     rN.clear();
-    rN[1] = 0.5 * (1.0 - xi);
-    rN[4] = 0.5 * (1.0 + xi);
+    rN[1] = simple_N[0];
+    rN[4] = simple_N[1];
 }
 
 /***********************************************************************************/
@@ -78,54 +77,12 @@ void NonLinearTimoshenkoBeamElement2D2N::GetFirstDerivativesShapeFunctionsValues
     const double Phi,
     const double xi) const
 {
-    // VectorType local_N(4);
-    // BaseType::GetFirstDerivativesShapeFunctionsValues(local_N, Length, Phi, xi);
-    // GlobalSizeVector(rN, local_N);
+    VectorType simple_N(2);
+    BaseType::GetFirstDerivativesNu0ShapeFunctionsValues(simple_N, Length, Phi, xi);
+
     rN.clear();
-    rN[1] = -1.0 / Length;
-    rN[4] = 1.0 / Length;
-}
-
-/***********************************************************************************/
-/***********************************************************************************/
-
-void NonLinearTimoshenkoBeamElement2D2N::GetSecondDerivativesShapeFunctionsValues(
-    VectorType& rN,
-    const double Length,
-    const double Phi,
-    const double xi) const
-{
-    // VectorType local_N(4);
-    // BaseType::GetSecondDerivativesShapeFunctionsValues(local_N, Length, Phi, xi);
-    // GlobalSizeVector(rN, local_N);
-}
-
-/***********************************************************************************/
-/***********************************************************************************/
-
-void NonLinearTimoshenkoBeamElement2D2N::GetThirdDerivativesShapeFunctionsValues(
-    VectorType& rN,
-    const double Length,
-    const double Phi,
-    const double xi) const
-{
-    // VectorType local_N(4);
-    // BaseType::GetThirdDerivativesShapeFunctionsValues(local_N, Length, Phi, xi);
-    // GlobalSizeVector(rN, local_N);
-}
-
-/***********************************************************************************/
-/***********************************************************************************/
-
-void NonLinearTimoshenkoBeamElement2D2N::GetFourthDerivativesShapeFunctionsValues(
-    VectorType& rN,
-    const double Length,
-    const double Phi,
-    const double xi) const
-{
-    // VectorType local_N(4);
-    // BaseType::GetFourthDerivativesShapeFunctionsValues(local_N, Length, Phi, xi);
-    // GlobalSizeVector(rN, local_N);
+    rN[1] = simple_N[0];
+    rN[4] = simple_N[1];
 }
 
 /***********************************************************************************/
@@ -137,12 +94,12 @@ void NonLinearTimoshenkoBeamElement2D2N::GetNThetaShapeFunctionsValues(
     const double Phi,
     const double xi) const
 {
-    // VectorType local_N(4);
-    // BaseType::GetNThetaShapeFunctionsValues(local_N, Length, Phi, xi);
-    // GlobalSizeVector(rN, local_N);
+    VectorType simple_N(2);
+    BaseType::GetNu0ShapeFunctionsValues(simple_N, Length, Phi, xi);
+
     rN.clear();
-    rN[2] = 0.5 * (1.0 - xi);
-    rN[5] = 0.5 * (1.0 + xi);
+    rN[2] = simple_N[0];
+    rN[5] = simple_N[1];
 }
 
 /***********************************************************************************/
@@ -154,12 +111,12 @@ void NonLinearTimoshenkoBeamElement2D2N::GetFirstDerivativesNThetaShapeFunctions
     const double Phi,
     const double xi) const
 {
-    // VectorType local_N(4);
-    // BaseType::GetFirstDerivativesNThetaShapeFunctionsValues(local_N, Length, Phi, xi);
-    // GlobalSizeVector(rN, local_N);
+    VectorType simple_N(2);
+    BaseType::GetFirstDerivativesNu0ShapeFunctionsValues(simple_N, Length, Phi, xi);
+
     rN.clear();
-    rN[2] = -1.0 / Length;
-    rN[5] = 1.0 / Length;
+    rN[2] = simple_N[0];
+    rN[5] = simple_N[1];
 }
 
 /***********************************************************************************/
@@ -171,12 +128,12 @@ void NonLinearTimoshenkoBeamElement2D2N::GetNu0ShapeFunctionsValues(
     const double Phi,
     const double xi) const
 {
-    // VectorType local_N(2);
-    // BaseType::GetNu0ShapeFunctionsValues(local_N, Length, Phi, xi);
-    // GlobalSizeAxialVector(rN, local_N);
+    VectorType simple_N(2);
+    BaseType::GetNu0ShapeFunctionsValues(simple_N, Length, Phi, xi);
+
     rN.clear();
-    rN[0] = 0.5 * (1.0 - xi);
-    rN[3] = 0.5 * (1.0 + xi);
+    rN[0] = simple_N[0];
+    rN[3] = simple_N[1];
 }
 
 /***********************************************************************************/
@@ -188,12 +145,12 @@ void NonLinearTimoshenkoBeamElement2D2N::GetFirstDerivativesNu0ShapeFunctionsVal
     const double Phi,
     const double xi) const
 {
-    // VectorType local_N(2);
-    // BaseType::GetFirstDerivativesNu0ShapeFunctionsValues(local_N, Length, Phi, xi);
-    // GlobalSizeAxialVector(rN, local_N);
+    VectorType simple_N(2);
+    BaseType::GetFirstDerivativesNu0ShapeFunctionsValues(simple_N, Length, Phi, xi);
+
     rN.clear();
-    rN[0] = -1.0 / Length;
-    rN[3] = 1.0 / Length;
+    rN[0] = simple_N[0];
+    rN[3] = simple_N[1];
 }
 
 /***********************************************************************************/

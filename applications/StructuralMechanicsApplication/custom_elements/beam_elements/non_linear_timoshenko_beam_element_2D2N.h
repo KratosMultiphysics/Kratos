@@ -76,9 +76,6 @@ public:
      */
     void GetShapeFunctionsValues(VectorType& rN, const double Length, const double Phi, const double xi) const override;
     void GetFirstDerivativesShapeFunctionsValues(VectorType& rN, const double Length, const double Phi, const double xi) const override;
-    void GetSecondDerivativesShapeFunctionsValues(VectorType& rN, const double Length, const double Phi, const double xi) const override;
-    void GetThirdDerivativesShapeFunctionsValues(VectorType& rN, const double Length, const double Phi, const double xi) const override;
-    void GetFourthDerivativesShapeFunctionsValues(VectorType& rN, const double Length, const double Phi, const double xi) const override;
 
     void GetNThetaShapeFunctionsValues(VectorType& rN, const double Length, const double Phi, const double xi) const override;
     void GetFirstDerivativesNThetaShapeFunctionsValues(VectorType& rN, const double Length, const double Phi, const double xi) const override;
