@@ -678,12 +678,12 @@ Matrix UPwInterfaceElement::GetNpContainer() const
         // water pressure shape function values on integration point ( the integration points are shared with the displacement mid geometry )
         GetWaterPressureMidGeometry().ShapeFunctionsValues(integration_point_shape_function_values,
                                                            r_integration_point);
-        // shape function values are for one side, extend it for the other side
+        // to interplate nodal values of water pressure on mid geometry, the shape function is split into two equal contributions
         noalias(subrange(shape_function_values_interface, 0, number_of_pressure_nodes)) =
-            integration_point_shape_function_values;
-        noalias(subrange(shape_function_values_interface, number_of_pressure_nodes,
-                         2 * number_of_pressure_nodes)) = -integration_point_shape_function_values;
-        row(n_container, integration_point_index)       = shape_function_values_interface;
+            0.5 * integration_point_shape_function_values;
+        noalias(subrange(shape_function_values_interface, number_of_pressure_nodes, 2 * number_of_pressure_nodes)) =
+            subrange(shape_function_values_interface, 0, number_of_pressure_nodes);
+        row(n_container, integration_point_index) = shape_function_values_interface;
         integration_point_index++;
     }
     return n_container;
@@ -691,17 +691,8 @@ Matrix UPwInterfaceElement::GetNpContainer() const
 
 Vector UPwInterfaceElement::CalculateIntegrationPointFluidPressures() const
 {
-    const auto n_container                  = GetNpContainer();
-    const auto nodal_water_pressure         = GetWaterPressureGeometryNodalVariable();
-    auto       mid_geometry_water_pressures = Vector{nodal_water_pressure.size(), 0};
-    const auto start_of_opposite_side =
-        nodal_water_pressure.begin() + static_cast<Vector::difference_type>(nodal_water_pressure.size() / 2);
-    std::transform(nodal_water_pressure.begin(), start_of_opposite_side, start_of_opposite_side,
-                   mid_geometry_water_pressures.begin(), [](const auto first_half, const auto second_half) {
-        return (first_half + second_half) / 2.0;
-    });
-    const auto fluid_pressure =
-        GeoTransportEquationUtilities::CalculateFluidPressures(n_container, mid_geometry_water_pressures);
+    const auto fluid_pressure = GeoTransportEquationUtilities::CalculateFluidPressures(
+        GetNpContainer(), GetWaterPressureGeometryNodalVariable());
     auto result = Vector(fluid_pressure.size());
     std::ranges::copy(fluid_pressure, result.begin());
     return result;
