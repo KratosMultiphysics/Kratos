@@ -234,8 +234,8 @@ void NonLinearTimoshenkoBeamElement2D2N::CalculateAll(
 
     ConstitutiveLaw::Parameters cl_values(r_geometry, r_props, rProcessInfo);
     auto &r_cl_options = cl_values.GetOptions();
-    r_cl_options.Set(ConstitutiveLaw::COMPUTE_STRESS, true);
-    r_cl_options.Set(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR, true);
+    r_cl_options.Set(ConstitutiveLaw::COMPUTE_STRESS, ComputeRHS);
+    r_cl_options.Set(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR, ComputeLHS);
 
     const double length = CalculateLength(); // Reference length
     const double Phi = StructuralMechanicsElementUtilities::CalculatePhi(r_props, length);
@@ -280,8 +280,8 @@ void NonLinearTimoshenkoBeamElement2D2N::CalculateAll(
         GetFirstDerivativesShapeFunctionsValues(dNv, length, Phi, xi);
 
         theta = inner_prod(Ntheta, nodal_values);
-        du = inner_prod(Nu, nodal_values);
-        dv = inner_prod(Nv, nodal_values);
+        du = inner_prod(dNu, nodal_values);
+        dv = inner_prod(dNv, nodal_values);
 
         const double sin_theta = std::sin(theta);
         const double cos_theta = std::cos(theta);
@@ -297,7 +297,7 @@ void NonLinearTimoshenkoBeamElement2D2N::CalculateAll(
         const double V = stress_vector[2]; // Shear force
 
         // axial strain increment
-        noalias(row(B, 0)) = -sin_theta * dNtheta + cos_theta * dNu - sin_theta * du * Ntheta + sin_theta * dNv + dv * cos_theta * Ntheta;
+        noalias(row(B, 0)) = -sin_theta * Ntheta + cos_theta * dNu - sin_theta * du * Ntheta + sin_theta * dNv + dv * cos_theta * Ntheta;
         // curvature increment
         noalias(row(B, 1)) = dNtheta;
         // shear strain increment
@@ -330,7 +330,13 @@ void NonLinearTimoshenkoBeamElement2D2N::CalculateAll(
         }
 
     }
-    // RotateAll(rLHS, rRHS, r_geometry);
+    if (ComputeLHS && ComputeRHS) {
+        RotateAll(rLHS, rRHS, r_geometry);
+    } else if (ComputeLHS) {
+        RotateLHS(rLHS, r_geometry);
+    } else if (ComputeRHS) {
+        RotateRHS(rRHS, r_geometry);
+    }
 
     KRATOS_CATCH("");
 
