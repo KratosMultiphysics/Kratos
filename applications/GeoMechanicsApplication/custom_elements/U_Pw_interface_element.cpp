@@ -540,8 +540,8 @@ Matrix UPwInterfaceElement::CalculatePwBMatrix(const Geo::IntegrationPointType& 
         result(i, 0)                              = -shape_function_values[i];
         result(i + number_of_pw_dofs_per_side, 0) = shape_function_values[i];
         for (auto j = size_t{1}; j < dim; ++j) {
-            result(i, j) = -0.5 * shape_functions_local_gradient(i, j - 1);
-            result(i + number_of_pw_dofs_per_side, j) = -0.5 * shape_functions_local_gradient(i, j - 1);
+            result(i, j) = 0.5 * shape_functions_local_gradient(i, j - 1);
+            result(i + number_of_pw_dofs_per_side, j) = 0.5 * shape_functions_local_gradient(i, j - 1);
         }
     }
     return result;
@@ -746,7 +746,7 @@ std::vector<Vector> UPwInterfaceElement::CalculateProjectedGravity() const
             geometry_to_material_rotation = UblasUtilities::CreateMatrix({{0.0, -1.0}, {1.0, 0.0}});
         } else {
             geometry_to_material_rotation =
-                UblasUtilities::CreateMatrix({{0.0, 0.0, 1.0}, {1.0, 0.0, 0.0}, {0.0, 1.0, 0.0}});
+                UblasUtilities::CreateMatrix({{0.0, 0.0, -1.0}, {1.0, 0.0, 0.0}, {0.0, -1.0, 0.0}});
         }
         auto global_to_geometry_rotation =
             mfpCalculateRotationMatrix(r_geometry, r_integration_points[integration_point_index]);
