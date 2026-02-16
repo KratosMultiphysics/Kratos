@@ -19,7 +19,11 @@ namespace Kratos
 
 /**
  * @class NonLinearTimoshenkoBeamElement2D2N
- * @brief Derived from LinearTimoshenkoBeamElement2D2N. Currently behaves identically.
+ * @ingroup StructuralMechanicsApplication
+ * @brief This is the Timoshenko beam element of 2 nodes. It is formulated in a Total Lagrangian fashion.
+ * This is not a corotational approach. The non-linearity is introduced by the use of the exact beam kinematics, which results in a non-linear strain-displacement relationship.
+ * Reference: Nonlinear Finite Element Methods, Peter Wriggers, Chapter 9.2.
+ * @author Alejandro Cornejo
  */
 class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) NonLinearTimoshenkoBeamElement2D2N
     : public LinearTimoshenkoBeamElement2D2N
