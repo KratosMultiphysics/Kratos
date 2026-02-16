@@ -39,11 +39,11 @@ public:
 
     explicit PQ(const std::initializer_list<double>& rValues);
 
-    [[nodiscard]] const InternalVectorType& Values() const;
-    [[nodiscard]] double                    P() const;
-    double&                                 P();
-    [[nodiscard]] double                    Q() const;
-    double&                                 Q();
+    [[nodiscard]] const InternalVectorType& Values() const noexcept;
+    [[nodiscard]] double                    P() const noexcept;
+    double&                                 P() noexcept;
+    [[nodiscard]] double                    Q() const noexcept;
+    double&                                 Q() noexcept;
 
     template <typename VectorType>
     VectorType CopyTo() const

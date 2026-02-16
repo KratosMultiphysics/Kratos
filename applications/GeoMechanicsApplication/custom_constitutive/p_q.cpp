@@ -18,14 +18,14 @@ namespace Kratos::Geo
 
 PQ::PQ(const std::initializer_list<double>& rValues) : PQ{rValues.begin(), rValues.end()} {}
 
-const PQ::InternalVectorType& PQ::Values() const { return mValues; }
+const PQ::InternalVectorType& PQ::Values() const noexcept { return mValues; }
 
-double PQ::P() const { return mValues[0]; }
+double PQ::P() const noexcept { return mValues[0]; }
 
-double& PQ::P() { return mValues[0]; }
+double& PQ::P() noexcept { return mValues[0]; }
 
-double PQ::Q() const { return mValues[1]; }
+double PQ::Q() const noexcept { return mValues[1]; }
 
-double& PQ::Q() { return mValues[1]; }
+double& PQ::Q() noexcept { return mValues[1]; }
 
 } // namespace Kratos::Geo
