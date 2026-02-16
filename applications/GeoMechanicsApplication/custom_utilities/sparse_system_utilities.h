@@ -30,6 +30,7 @@ class KRATOS_API(GEO_MECHANICS_APPLICATION) SparseSystemUtilities
 public:
     /// Vector type definition
     using SystemVectorType = UblasSpace<double, CompressedMatrix, Vector>::VectorType;
+	using SystemMatrixType = UblasSpace<double, CompressedMatrix, Vector>::MatrixType;
     /// DoF array type definition
     using DofsArrayType = ModelPart::DofsArrayType;
 
@@ -47,6 +48,14 @@ public:
     static void SetUFirstAndSecondDerivativeVector(const SystemVectorType& rFirstDerivativeVector,
                                                    const SystemVectorType& rSecondDerivativeVector,
                                                    ModelPart&              rModelPart);
+
+	/// <summary>
+	/// In this function, the rows and columns of the secondary matrix corresponding to the fixed DOFs are zeroed, 
+    /// the diagonal is kept as it is, as for secondary matrices, zeros are allowed on the diagonal.
+	/// </summary>
+	/// <param name="rDofSet"></param>
+	/// <param name="rSecondaryMatrix"></param>
+	static void ApplyDirichletConditionsSecondaryMatrix(const DofsArrayType & rDofSet, SystemMatrixType & rSecondaryMatrix);
 
 private:
     static void GetDerivativesForOptionalVariable(const Variable<double>& rVariable,

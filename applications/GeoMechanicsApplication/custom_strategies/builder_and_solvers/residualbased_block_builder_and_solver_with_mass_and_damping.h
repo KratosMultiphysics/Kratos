@@ -289,8 +289,8 @@ public:
         }
 
         BaseType::ApplyDirichletConditions(pScheme, rModelPart, rA, rDx, rb);
-        BaseType::ApplyDirichletConditions(pScheme, rModelPart, mMassMatrix, dummy_rDx, dummy_b);
-        BaseType::ApplyDirichletConditions(pScheme, rModelPart, mDampingMatrix, dummy_rDx, dummy_b);
+        Geo::SparseSystemUtilities::ApplyDirichletConditionsSecondaryMatrix(BaseType::mDofSet, mMassMatrix);
+        Geo::SparseSystemUtilities::ApplyDirichletConditionsSecondaryMatrix(BaseType::mDofSet, mDampingMatrix);
 
         KRATOS_INFO_IF("ResidualBasedBlockBuilderAndSolverWithMassAndDamping", this->GetEchoLevel() == 3)
             << "Before the solution of the system"

@@ -18,6 +18,7 @@ using namespace Kratos;
 namespace Kratos::Geo
 {
 
+
 void SparseSystemUtilities::GetTotalSolutionStepValueVector(SystemVectorType& rTotalSolutionStepValues,
                                                             const DofsArrayType& rDofSet,
                                                             const ModelPart&     rModelPart,
@@ -112,6 +113,52 @@ void SparseSystemUtilities::SetUFirstAndSecondDerivativeVector(const SystemVecto
     });
     KRATOS_CATCH("")
 }
+
+
+void SparseSystemUtilities::ApplyDirichletConditionsSecondaryMatrix(
+    const DofsArrayType& rDofSet,
+    SystemMatrixType& rSecondaryMatrix) {
+    const std::size_t system_size = rSecondaryMatrix.size1();
+    Vector scaling_factors(system_size);
+
+    const auto it_dof_iterator_begin = rDofSet.begin();
+
+    // NOTE: dofs are assumed to be numbered consecutively in the BlockBuilderAndSolver
+    IndexPartition<std::size_t>(rDofSet.size()).for_each([&](std::size_t Index) {
+        auto it_dof_iterator = it_dof_iterator_begin + Index;
+        if (it_dof_iterator->IsFixed()) {
+            scaling_factors[Index] = 0.0;
+        }
+        else {
+            scaling_factors[Index] = 1.0;
+        }
+        });
+
+    double* Avalues = rSecondaryMatrix.value_data().begin();
+    std::size_t* Arow_indices = rSecondaryMatrix.index1_data().begin();
+    std::size_t* Acol_indices = rSecondaryMatrix.index2_data().begin();
+
+    IndexPartition<std::size_t>(system_size).for_each([&](std::size_t Index) {
+        const std::size_t col_begin = Arow_indices[Index];
+        const std::size_t col_end = Arow_indices[Index + 1];
+        const double k_factor = scaling_factors[Index];
+        if (k_factor == 0.0) {
+            // Zero out the whole row, except the diagonal
+            for (std::size_t j = col_begin; j < col_end; ++j)
+                if (Acol_indices[j] != Index)
+                    Avalues[j] = 0.0;
+
+        }
+        else {
+            // Zero out the column which is associated with the zero'ed row
+            for (std::size_t j = col_begin; j < col_end; ++j)
+                if (scaling_factors[Acol_indices[j]] == 0)
+                    Avalues[j] = 0.0;
+        }
+        });
+
+}
+
 
 void SparseSystemUtilities::GetDerivativesForOptionalVariable(const Variable<double>& rVariable,
                                                               const Node&             rNode,

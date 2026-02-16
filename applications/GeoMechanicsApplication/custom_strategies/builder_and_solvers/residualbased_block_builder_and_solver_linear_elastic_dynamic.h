@@ -172,8 +172,9 @@ public:
 
         // apply dirichlet conditions
         BaseType::ApplyDirichletConditions(pScheme, rModelPart, rA, dummy_rDx, rb);
-        BaseType::ApplyDirichletConditions(pScheme, rModelPart, mMassMatrix, dummy_rDx, dummy_b);
-        BaseType::ApplyDirichletConditions(pScheme, rModelPart, mDampingMatrix, dummy_rDx, dummy_b);
+
+        Geo::SparseSystemUtilities::ApplyDirichletConditionsSecondaryMatrix(BaseType::mDofSet, mMassMatrix);
+        Geo::SparseSystemUtilities::ApplyDirichletConditionsSecondaryMatrix(BaseType::mDofSet, mDampingMatrix);
 
         if (mCalculateInitialSecondDerivative) {
             this->CalculateInitialSecondDerivative(rModelPart, rA, pScheme);
