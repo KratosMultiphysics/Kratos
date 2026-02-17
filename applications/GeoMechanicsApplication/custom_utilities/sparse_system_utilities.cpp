@@ -18,7 +18,6 @@ using namespace Kratos;
 namespace Kratos::Geo
 {
 
-
 void SparseSystemUtilities::GetTotalSolutionStepValueVector(SystemVectorType& rTotalSolutionStepValues,
                                                             const DofsArrayType& rDofSet,
                                                             const ModelPart&     rModelPart,
@@ -114,12 +113,11 @@ void SparseSystemUtilities::SetUFirstAndSecondDerivativeVector(const SystemVecto
     KRATOS_CATCH("")
 }
 
-
-void SparseSystemUtilities::ApplyDirichletConditionsSecondaryMatrix(
-    const DofsArrayType& rDofSet,
-    SystemMatrixType& rSecondaryMatrix) {
+void SparseSystemUtilities::ApplyDirichletConditionsSecondaryMatrix(const DofsArrayType& rDofSet,
+                                                                    SystemMatrixType& rSecondaryMatrix)
+{
     const std::size_t system_size = rSecondaryMatrix.size1();
-    Vector scaling_factors(system_size);
+    Vector            scaling_factors(system_size);
 
     const auto it_dof_iterator_begin = rDofSet.begin();
 
@@ -128,37 +126,73 @@ void SparseSystemUtilities::ApplyDirichletConditionsSecondaryMatrix(
         auto it_dof_iterator = it_dof_iterator_begin + Index;
         if (it_dof_iterator->IsFixed()) {
             scaling_factors[Index] = 0.0;
-        }
-        else {
+        } else {
             scaling_factors[Index] = 1.0;
         }
-        });
+    });
 
-    double* Avalues = rSecondaryMatrix.value_data().begin();
+    double*      Avalues      = rSecondaryMatrix.value_data().begin();
     std::size_t* Arow_indices = rSecondaryMatrix.index1_data().begin();
     std::size_t* Acol_indices = rSecondaryMatrix.index2_data().begin();
 
     IndexPartition<std::size_t>(system_size).for_each([&](std::size_t Index) {
         const std::size_t col_begin = Arow_indices[Index];
-        const std::size_t col_end = Arow_indices[Index + 1];
-        const double k_factor = scaling_factors[Index];
+        const std::size_t col_end   = Arow_indices[Index + 1];
+        const double      k_factor  = scaling_factors[Index];
         if (k_factor == 0.0) {
             // Zero out the whole row, except the diagonal
             for (std::size_t j = col_begin; j < col_end; ++j)
-                if (Acol_indices[j] != Index)
-                    Avalues[j] = 0.0;
-
-        }
-        else {
+                if (Acol_indices[j] != Index) Avalues[j] = 0.0;
+        } else {
             // Zero out the column which is associated with the zero'ed row
             for (std::size_t j = col_begin; j < col_end; ++j)
-                if (scaling_factors[Acol_indices[j]] == 0)
-                    Avalues[j] = 0.0;
+                if (scaling_factors[Acol_indices[j]] == 0) Avalues[j] = 0.0;
         }
-        });
-
+    });
 }
 
+bool SparseSystemUtilities::MatricesHaveSameSparsityOnDiagonal(const SystemMatrixType& rPrimaryMatrix,
+                                                               const SystemMatrixType& rSecondaryMatrix)
+{
+    const std::size_t size1 = rPrimaryMatrix.size1();
+    if (size1 != rSecondaryMatrix.size1() || rPrimaryMatrix.size2() != rSecondaryMatrix.size2()) {
+        return false;
+    }
+
+    const auto& r_primary_index1 = rPrimaryMatrix.index1_data();
+    const auto& r_primary_index2 = rPrimaryMatrix.index2_data();
+    const auto& r_primary_values = rPrimaryMatrix.value_data();
+
+    const auto& r_secondary_index1 = rSecondaryMatrix.index1_data();
+    const auto& r_secondary_index2 = rSecondaryMatrix.index2_data();
+    const auto& r_secondary_values = rSecondaryMatrix.value_data();
+
+    for (std::size_t i = 0; i < size1; ++i) {
+        // Find diagonal for Matrix rPrimaryMatrix
+        bool has_primary_diag = false;
+        for (std::size_t k = r_primary_index1[i]; k < r_primary_index1[i + 1]; ++k) {
+            const std::size_t col = r_primary_index2[k];
+            if (col == i) {
+                has_primary_diag = (r_primary_values[k] != 0.0);
+                break;
+            }
+        }
+
+        // Find diagonal for Matrix rSecondaryMatrix
+        bool has_secondary_diag = false;
+        for (std::size_t k = r_secondary_index1[i]; k < r_secondary_index1[i + 1]; ++k) {
+            const std::size_t col = r_secondary_index2[k];
+            if (col == i) {
+                has_secondary_diag = (r_secondary_values[k] != 0.0);
+                break;
+            }
+        }
+
+        if (has_primary_diag != has_secondary_diag) return false;
+    }
+
+    return true;
+}
 
 void SparseSystemUtilities::GetDerivativesForOptionalVariable(const Variable<double>& rVariable,
                                                               const Node&             rNode,

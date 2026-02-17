@@ -29,6 +29,7 @@ class KRATOS_API(GEO_MECHANICS_APPLICATION) SparseSystemUtilities
 {
 public:
     /// Vector type definition
+	using SparseSpace = UblasSpace<double, CompressedMatrix, Vector>;
     using SystemVectorType = UblasSpace<double, CompressedMatrix, Vector>::VectorType;
 	using SystemMatrixType = UblasSpace<double, CompressedMatrix, Vector>::MatrixType;
     /// DoF array type definition
@@ -55,7 +56,15 @@ public:
 	/// </summary>
 	/// <param name="rDofSet"></param>
 	/// <param name="rSecondaryMatrix"></param>
-	static void ApplyDirichletConditionsSecondaryMatrix(const DofsArrayType & rDofSet, SystemMatrixType & rSecondaryMatrix);
+	static void ApplyDirichletConditionsSecondaryMatrix(const DofsArrayType & rDofSet,SystemMatrixType & rSecondaryMatrix);
+
+    static double CheckAndCorrectZeroDiagonalValuesSecondaryMatrix(
+        const ProcessInfo & rProcessInfo,
+        SystemMatrixType & rPrimaryMatrix,
+        SystemMatrixType & rSecondaryMatrix,
+        const SCALING_DIAGONAL ScalingDiagonal = SCALING_DIAGONAL::NO_SCALING);
+
+	static bool MatricesHaveSameSparsityOnDiagonal(const SystemMatrixType & rPrimaryMatrix, const SystemMatrixType & rSecondaryMatrix);
 
 private:
     static void GetDerivativesForOptionalVariable(const Variable<double>& rVariable,
