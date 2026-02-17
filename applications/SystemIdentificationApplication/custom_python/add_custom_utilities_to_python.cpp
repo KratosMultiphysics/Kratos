@@ -32,22 +32,6 @@
 namespace Kratos::Python {
 
 template<class TContainerType>
-void AddSmoothClamper(
-    pybind11::module& m,
-    const std::string& rName)
-{
-    namespace py = pybind11;
-
-    using smooth_clamper_type = SmoothClamper<TContainerType>;
-    py::class_<smooth_clamper_type, typename smooth_clamper_type::Pointer>(m, (rName + "SmoothClamper").c_str())
-        .def(py::init<const double, const double>(), py::arg("min"), py::arg("max"))
-        .def("ProjectForward", py::overload_cast<const ContainerExpression<TContainerType>&>(&smooth_clamper_type::ProjectForward, py::const_), py::arg("x_expression"))
-        .def("CalculateForwardProjectionGradient", py::overload_cast<const ContainerExpression<TContainerType>&>(&smooth_clamper_type::CalculateForwardProjectionGradient, py::const_), py::arg("x_expression"))
-        .def("ProjectBackward", py::overload_cast<const ContainerExpression<TContainerType>&>(&smooth_clamper_type::ProjectBackward, py::const_), py::arg("y_expression"))
-        ;
-}
-
-template<class TContainerType>
 void AddMaskUtilsToPython(pybind11::module& m)
 {
     namespace py = pybind11;
@@ -84,9 +68,12 @@ void AddCustomUtilitiesToPython(pybind11::module& m)
     control_utils.def("AssignEquivalentProperties", &ControlUtils::AssignEquivalentProperties<ModelPart::ConditionsContainerType>, py::arg("source_conditions"), py::arg("destination_conditions"));
     control_utils.def("AssignEquivalentProperties", &ControlUtils::AssignEquivalentProperties<ModelPart::ElementsContainerType>, py::arg("source_elements"), py::arg("destination_elements"));
 
-    AddSmoothClamper<ModelPart::NodesContainerType>(m, "Node");
-    AddSmoothClamper<ModelPart::ConditionsContainerType>(m, "Condition");
-    AddSmoothClamper<ModelPart::ElementsContainerType>(m, "Element");
+    py::class_<SmoothClamper, typename SmoothClamper::Pointer>(m, "SmoothClamper")
+        .def(py::init<const double, const double>(), py::arg("min"), py::arg("max"))
+        .def("ProjectForward", py::overload_cast<const TensorAdaptor<double>&>(&SmoothClamper::ProjectForward, py::const_), py::arg("x_tensor_adaptor"))
+        .def("CalculateForwardProjectionGradient", py::overload_cast<const TensorAdaptor<double>&>(&SmoothClamper::CalculateForwardProjectionGradient, py::const_), py::arg("x_tensor_adaptor"))
+        .def("ProjectBackward", py::overload_cast<const TensorAdaptor<double>&>(&SmoothClamper::ProjectBackward, py::const_), py::arg("y_tensor_adaptor"))
+        ;
 
     auto mask_utils = m.def_submodule("MaskUtils");
     AddMaskUtilsToPython<ModelPart::NodesContainerType>(mask_utils);
