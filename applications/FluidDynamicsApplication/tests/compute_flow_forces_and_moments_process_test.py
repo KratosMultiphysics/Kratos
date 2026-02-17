@@ -5,7 +5,7 @@ import KratosMultiphysics.KratosUnittest as KratosUnittest
 from KratosMultiphysics.FluidDynamicsApplication import compute_flow_forces_and_moments_process
 
 
-class ComputeFlowForcesProcessTest(KratosUnittest.TestCase):
+class ComputeFlowForcesAndMomentsProcessTest(KratosUnittest.TestCase):
 
     def tearDown(self):
         if os.path.exists("main_drag.dat"):
