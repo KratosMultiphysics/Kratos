@@ -2518,9 +2518,6 @@ namespace Kratos
                 rSecondVariationMoment(r, s) += ddK_cu[1]*rSecondVariationMomentProduct(1);
                 rSecondVariationMoment(r, s) += ddK_cu[2]*rSecondVariationMomentProduct(2);
 
-                rSecondVariationMoment(r, s) -= ddK_cu[0]*rSecondVariationMomentProductMasterSlave(0);
-                rSecondVariationMoment(r, s) -= ddK_cu[1]*rSecondVariationMomentProductMasterSlave(1);
-                rSecondVariationMoment(r, s) -= ddK_cu[2]*rSecondVariationMomentProductMasterSlave(2);
 
                 rSecondVariationMoment(s, r) = rSecondVariationMoment(r, s);
             }
@@ -2572,28 +2569,6 @@ namespace Kratos
             rotation_dNCovariant3_master(1, r) = T2Master(1)*first_variations_moment_covariant_3(r);
             rotation_dNCovariant3_master(2, r) = T2Master(2)*first_variations_moment_covariant_3(r);
 
-            rotation_dNCovariant1_slave(0, r) = T2Slave(0)*first_variations_moment_covariant_1(r);
-            rotation_dNCovariant1_slave(1, r) = T2Slave(1)*first_variations_moment_covariant_1(r);
-            rotation_dNCovariant1_slave(2, r) = T2Slave(2)*first_variations_moment_covariant_1(r);
-
-            rotation_dNCovariant2_slave(0, r) = T2Slave(0)*first_variations_moment_covariant_2(r);
-            rotation_dNCovariant2_slave(1, r) = T2Slave(1)*first_variations_moment_covariant_2(r);
-            rotation_dNCovariant2_slave(2, r) = T2Slave(2)*first_variations_moment_covariant_2(r);
-
-            rotation_dNCovariant3_slave(0, r) = T2Slave(0)*first_variations_moment_covariant_3(r);
-            rotation_dNCovariant3_slave(1, r) = T2Slave(1)*first_variations_moment_covariant_3(r);
-            rotation_dNCovariant3_slave(2, r) = T2Slave(2)*first_variations_moment_covariant_3(r);
-        }
-
-        if (rPatch==PatchType::Slave)
-        {
-            rotation_dNCovariant1_master *= -1.0;
-            rotation_dNCovariant2_master *= -1.0;
-            rotation_dNCovariant3_master *= -1.0;
-
-            rotation_dNCovariant1_slave *= -1.0;
-            rotation_dNCovariant2_slave *= -1.0;
-            rotation_dNCovariant3_slave *= -1.0;
         }
 
         rSecondVariationMoment += prod(trans(r_DN_Dxi), rotation_dNCovariant1_master)*n_contravariant_vector(0);
@@ -2604,13 +2579,6 @@ namespace Kratos
         rSecondVariationMoment += prod(trans(rotation_dNCovariant2_master), r_DN_Deta)*n_contravariant_vector(1);
         rSecondVariationMoment += (prod(trans(rotation_dNCovariant3_master), r_DN_Dxi)*n_contravariant_vector(1) + prod(trans(rotation_dNCovariant3_master), r_DN_Deta)*n_contravariant_vector(0));
 
-        rSecondVariationMoment -= prod(trans(r_DN_Dxi), rotation_dNCovariant1_slave)*n_contravariant_vector(0);
-        rSecondVariationMoment -= prod(trans(r_DN_Deta), rotation_dNCovariant2_slave)*n_contravariant_vector(1);
-        rSecondVariationMoment -= (prod(trans(r_DN_Dxi), rotation_dNCovariant3_slave)*n_contravariant_vector(1) + prod(trans(r_DN_Deta), rotation_dNCovariant3_slave)*n_contravariant_vector(0));
-
-        rSecondVariationMoment -= prod(trans(rotation_dNCovariant1_slave), r_DN_Dxi)*n_contravariant_vector(0);
-        rSecondVariationMoment -= prod(trans(rotation_dNCovariant2_slave), r_DN_Deta)*n_contravariant_vector(1);
-        rSecondVariationMoment -= (prod(trans(rotation_dNCovariant3_slave), r_DN_Dxi)*n_contravariant_vector(1) + prod(trans(rotation_dNCovariant3_slave), r_DN_Deta)*n_contravariant_vector(0));
     }
 
     void CouplingNitscheCondition::CalculateRotationalShapeFunctions(
