@@ -217,7 +217,7 @@ namespace Kratos
 
             if (Is(IgaFlags::FIX_ROTATION_X))
             {
-                array_1d<double, 3> curvature_vector = rActualKinematic.b_ab_covariant - m_B_ab_covariant_vector_master[IntegrationPointIndex];
+                array_1d<double, 3> curvature_vector = - rActualKinematic.b_ab_covariant + m_B_ab_covariant_vector_master[IntegrationPointIndex];
                 noalias(rThisConstitutiveVariablesCurvature.StrainVector) = prod(m_T_vector_master[IntegrationPointIndex], curvature_vector);
                 noalias(rThisConstitutiveVariablesCurvature.ConstitutiveMatrix) = rThisConstitutiveVariablesMembrane.ConstitutiveMatrix * (pow(GetProperties().GetSubProperties().front()[THICKNESS], 2) / 12);
             }
@@ -240,7 +240,7 @@ namespace Kratos
 
             if (Is(IgaFlags::FIX_ROTATION_X))
             {
-                array_1d<double, 3> curvature_vector = rActualKinematic.b_ab_covariant - m_B_ab_covariant_vector_slave[IntegrationPointIndex];
+                array_1d<double, 3> curvature_vector = - rActualKinematic.b_ab_covariant + m_B_ab_covariant_vector_slave[IntegrationPointIndex];
                 noalias(rThisConstitutiveVariablesCurvature.StrainVector) = prod(m_T_vector_slave[IntegrationPointIndex], curvature_vector);
                 noalias(rThisConstitutiveVariablesCurvature.ConstitutiveMatrix) = rThisConstitutiveVariablesMembrane.ConstitutiveMatrix * (pow(GetProperties().GetSubProperties().back()[THICKNESS], 2) / 12);
             }
@@ -2058,7 +2058,7 @@ namespace Kratos
             dK_curvilinear(2, index + 2) = 0 - (r_DDN_DDe(i, 1) * rActualKinematic.a3[2] + H(0, 2) * dn(2, 0) + H(1, 2) * dn(2, 1) + H(2, 2) * dn(2, 2));
         }
 
-        noalias(dK_cartesian) = -prod(T_patch, dK_curvilinear);
+        noalias(dK_cartesian) = prod(T_patch, dK_curvilinear);
 
         //Compute the first variations of the 2nd Piola-Kichhoff moments in the local Cartesian bases
         Matrix first_variations_moment_cartesian = ZeroMatrix(3, mat_size);
@@ -2293,12 +2293,12 @@ namespace Kratos
                 ddn[2] = dda3[2] * inv_l_a3 - S_a3_da3_l_a3_3[s] * S_da3(2, r) - S_a3_da3_l_a3_3[r] * S_da3(2, s) + (c + d) * rActualKinematic.a3_tilde[2];
 
                 array_1d<double, 3> ddK_cu = ZeroVector(3);
-                ddK_cu[0] = r_DDN_DDe(kr, 0) * S_dn(dirr, s) + r_DDN_DDe(ks, 0) * S_dn(dirs, r)
-                    + H(0, 0) * ddn[0] + H(1, 0) * ddn[1] + H(2, 0) * ddn[2];
-                ddK_cu[1] = r_DDN_DDe(kr, 2) * S_dn(dirr, s) + r_DDN_DDe(ks, 2) * S_dn(dirs, r)
-                    + H(0, 1) * ddn[0] + H(1, 1) * ddn[1] + H(2, 1) * ddn[2];
-                ddK_cu[2] = r_DDN_DDe(kr, 1) * S_dn(dirr, s) + r_DDN_DDe(ks, 1) * S_dn(dirs, r)
-                    + H(0, 2) * ddn[0] + H(1, 2) * ddn[1] + H(2, 2) * ddn[2];
+                ddK_cu[0] = -(r_DDN_DDe(kr, 0) * S_dn(dirr, s) + r_DDN_DDe(ks, 0) * S_dn(dirs, r)
+                    + H(0, 0) * ddn[0] + H(1, 0) * ddn[1] + H(2, 0) * ddn[2]);
+                ddK_cu[1] = -(r_DDN_DDe(kr, 2) * S_dn(dirr, s) + r_DDN_DDe(ks, 2) * S_dn(dirs, r)
+                    + H(0, 1) * ddn[0] + H(1, 1) * ddn[1] + H(2, 1) * ddn[2]);
+                ddK_cu[2] = -(r_DDN_DDe(kr, 1) * S_dn(dirr, s) + r_DDN_DDe(ks, 1) * S_dn(dirs, r)
+                    + H(0, 2) * ddn[0] + H(1, 2) * ddn[1] + H(2, 2) * ddn[2]);
 
                 rSecondVariationMoment(r, s) += ddK_cu[0]*rSecondVariationMomentProduct(0);
                 rSecondVariationMoment(r, s) += ddK_cu[1]*rSecondVariationMomentProduct(1);
@@ -2507,12 +2507,12 @@ namespace Kratos
                 ddn[2] = dda3[2] * inv_l_a3 - S_a3_da3_l_a3_3[s] * S_da3(2, r) - S_a3_da3_l_a3_3[r] * S_da3(2, s) + (c + d) * rActualKinematic.a3_tilde[2];
 
                 array_1d<double, 3> ddK_cu = ZeroVector(3);
-                ddK_cu[0] = r_DDN_DDe(kr, 0) * S_dn(dirr, s) + r_DDN_DDe(ks, 0) * S_dn(dirs, r)
-                    + H(0, 0) * ddn[0] + H(1, 0) * ddn[1] + H(2, 0) * ddn[2];
-                ddK_cu[1] = r_DDN_DDe(kr, 2) * S_dn(dirr, s) + r_DDN_DDe(ks, 2) * S_dn(dirs, r)
-                    + H(0, 1) * ddn[0] + H(1, 1) * ddn[1] + H(2, 1) * ddn[2];
-                ddK_cu[2] = r_DDN_DDe(kr, 1) * S_dn(dirr, s) + r_DDN_DDe(ks, 1) * S_dn(dirs, r)
-                    + H(0, 2) * ddn[0] + H(1, 2) * ddn[1] + H(2, 2) * ddn[2];
+                ddK_cu[0] = -(r_DDN_DDe(kr, 0) * S_dn(dirr, s) + r_DDN_DDe(ks, 0) * S_dn(dirs, r)
+                    + H(0, 0) * ddn[0] + H(1, 0) * ddn[1] + H(2, 0) * ddn[2]);
+                ddK_cu[1] = -(r_DDN_DDe(kr, 2) * S_dn(dirr, s) + r_DDN_DDe(ks, 2) * S_dn(dirs, r)
+                    + H(0, 1) * ddn[0] + H(1, 1) * ddn[1] + H(2, 1) * ddn[2]);
+                ddK_cu[2] = -(r_DDN_DDe(kr, 1) * S_dn(dirr, s) + r_DDN_DDe(ks, 1) * S_dn(dirs, r)
+                    + H(0, 2) * ddn[0] + H(1, 2) * ddn[1] + H(2, 2) * ddn[2]);
 
                 rSecondVariationMoment(r, s) += ddK_cu[0]*rSecondVariationMomentProduct(0);
                 rSecondVariationMoment(r, s) += ddK_cu[1]*rSecondVariationMomentProduct(1);
