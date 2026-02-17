@@ -296,17 +296,19 @@ public:
             if (r_contact_sub_model_part.NumberOfConditions() == 0) return true;
 
             
-            double toll_tangent_distance = 1e-2;
+            // double toll_tangent_distance = 1e-2;
             double toll_gap = -1e-2;
             for (auto i_cond(r_contact_sub_model_part.Conditions().begin());
                  i_cond != r_contact_sub_model_part.Conditions().end(); ++i_cond)
             {
                 if (i_cond->GetValue(ACTIVATION_LEVEL) > 0)
                 {
-                    toll_gap = 0;
+                    toll_gap = -1e-4;
                     break;
                 }
             }
+
+            // if (toll_gap > 0) return true; //FIXME:
 
             int n_CP = (r_contact_sub_model_part.Conditions().begin())->GetGeometry().GetGeometryPart(0).size();
             int p = (int) sqrt(n_CP);
@@ -344,7 +346,7 @@ public:
                 double young_modulus_master = i_cond->GetValue(YOUNG_MODULUS_MASTER); 
                 double young_modulus_slave = i_cond->GetValue(YOUNG_MODULUS_SLAVE); 
 
-                const double penalty = 2e6;
+                const double penalty = 2e5;
                 double check_value_master = normal_gap_master; //*penalty - sigma_nn_master;///young_modulus_master;
                 double check_value_slave = normal_gap_slave; //*penalty - sigma_nn_slave;///young_modulus_slave;
 
@@ -367,7 +369,7 @@ public:
 
                 // count_cond++;
 
-                // if (i_cond->GetValue(SKIN_MASTER_COORDINATES)[0] < 0.32 && i_cond->GetValue(SKIN_MASTER_COORDINATES)[0] >- 0.015)
+                // if (i_cond->GetValue(SKIN_MASTER_COORDINATES)[0] < 0.05 && i_cond->GetValue(SKIN_MASTER_COORDINATES)[0] >- 0.015)
                 // {
                 //     if (i_cond->GetValue(ACTIVATION_LEVEL) != 3)
                 //     {
@@ -376,7 +378,8 @@ public:
                 //     }
                 //     n_active ++;
                 //     continue;
-                // } else
+                // } 
+                // else
                 // {
                 //     if (i_cond->GetValue(ACTIVATION_LEVEL) != 0)
                 //     {
@@ -387,22 +390,23 @@ public:
                 //     continue;
                 // }
 
-                // if (i_cond->GetValue(SKIN_MASTER_COORDINATES)[0] < 0.03 && i_cond->GetValue(SKIN_MASTER_COORDINATES)[0] > -0.03)
+                // if (i_cond->GetValue(SKIN_MASTER_COORDINATES)[0] < 0.11759 && i_cond->GetValue(SKIN_MASTER_COORDINATES)[0] > -0.11759)
                 // {
-                    // if (i_cond->GetValue(ACTIVATION_LEVEL) != 3)
-                    // {
-                    //     i_cond->SetValue(ACTIVATION_LEVEL, 3);
-                    //     n_changes++;
-                    // }
-                    // continue;
-                // }   //else
+                //     if (i_cond->GetValue(ACTIVATION_LEVEL) != 3)
+                //     {
+                //         i_cond->SetValue(ACTIVATION_LEVEL, 3);
+                //         n_changes++;
+                //     }
+                //     n_active ++;
+                //     continue;
+                // }   
+                // else
                 // {
                 //     if (i_cond->GetValue(ACTIVATION_LEVEL) != 0)
                 //     {
                 //         i_cond->SetValue(ACTIVATION_LEVEL, 0);
                 //         n_changes++;
                 //     }
-                //     n_active ++;
                 //     continue;
                 // }
 
@@ -440,7 +444,7 @@ public:
                 // }
                 if (check_value_master >= toll_gap)// && tangent_gap_master < toll_tangent_distance) //FIXME
                 {
-                    if (check_value_slave >= toll_gap && tangent_gap_slave < toll_tangent_distance) //BOTH ACTIVE
+                    if (check_value_slave >= toll_gap)// && tangent_gap_slave < toll_tangent_distance) //BOTH ACTIVE
                     {
                         if (i_cond->GetValue(ACTIVATION_LEVEL) != 3)
                         {
@@ -458,7 +462,7 @@ public:
                     }
                 } 
                 else if (sigma_nn_master/young_modulus_master > 0)
-                // else if (normal_gap_master*2E4 < -10)
+                // else if (normal_gap_master*2E5 < -1e-1)
                 {
                     // if (check_value_slave >= toll_gap && tangent_gap_slave < toll_tangent_distance) //ONLY SLAVE ACTIVE
                     // {

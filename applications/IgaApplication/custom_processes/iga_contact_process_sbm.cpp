@@ -1013,7 +1013,7 @@ namespace Kratos
 
     // Obtain the slave skin model part //TODO: read from input
     std::string slave_skin_model_part_name = "skin_Body1.outer.ContactSide";
-    std::string master_skin_model_part_name = "skin_Body2.outer.ContactSide";
+    std::string master_skin_model_part_name = "skin_Body2.outer.ContactSide_1";
 
     // std::string master_skin_model_part_name = "skin_Body1.outer.Bottom";
     // std::string slave_skin_model_part_name = "skin_Body2.outer.Top_1";
@@ -1150,6 +1150,12 @@ void IgaContactProcessSbm::CreateQuadratureGeometries(
     } else {
         KRATOS_INFO_IF("CreateQuadraturePointGeometries", mEchoLevel > 4)
             << "shape_function_derivatives_order is not provided and thus being considered as 3. " << std::endl;
+    }
+
+    const SizeType polynomial_degree = rBrep.PolynomialDegree(0);
+    const SizeType required_derivatives_order = 2 * polynomial_degree + 1;
+    if (shape_function_derivatives_order < required_derivatives_order) {
+        shape_function_derivatives_order = required_derivatives_order;
     }
 
     std::string quadrature_method = mParameters.Has("quadrature_method")
