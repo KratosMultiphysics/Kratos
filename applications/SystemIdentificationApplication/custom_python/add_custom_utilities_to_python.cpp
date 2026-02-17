@@ -31,35 +31,6 @@
 
 namespace Kratos::Python {
 
-template<class TContainerType>
-void AddMaskUtilsToPython(pybind11::module& m)
-{
-    namespace py = pybind11;
-
-    std::string lower_prefix, upper_prefix;
-    if constexpr(std::is_same_v<TContainerType, ModelPart::NodesContainerType>) {
-        lower_prefix = "nodal";
-        upper_prefix = "Nodal";
-    } else if constexpr(std::is_same_v<TContainerType, ModelPart::ConditionsContainerType>) {
-        lower_prefix = "condition";
-        upper_prefix = "Condition";
-    } else if constexpr(std::is_same_v<TContainerType, ModelPart::ElementsContainerType>) {
-        lower_prefix = "element";
-        upper_prefix = "Element";
-    }
-
-    m.def("GetMaskSize", &MaskUtils::GetMaskSize<TContainerType>, py::arg((lower_prefix + "_mask_expression").c_str()), py::arg("required_minimum_redundancy") = 1);
-    m.def("GetMask", py::overload_cast<const ContainerExpression<TContainerType>&>(&MaskUtils::GetMask<TContainerType>), py::arg((lower_prefix + "_scalar_expression").c_str()));
-    m.def("GetMask", py::overload_cast<const ContainerExpression<TContainerType>&, const double>(&MaskUtils::GetMask<TContainerType>), py::arg((lower_prefix + "_scalar_expression").c_str()), py::arg("threshold"));
-    m.def("GetMaskThreshold", &MaskUtils::GetMaskThreshold<TContainerType>, py::arg((lower_prefix + "_scalar_expression").c_str()));
-    m.def("Union", &MaskUtils::Union<TContainerType>, py::arg((lower_prefix + "_mask_1_expression").c_str()), py::arg((lower_prefix + "_mask_2_expression").c_str()), py::arg("required_minimum_redundancy") = 1);
-    m.def("Intersect", &MaskUtils::Intersect<TContainerType>, py::arg((lower_prefix + "_mask_1_expression").c_str()), py::arg((lower_prefix + "_mask_2_expression").c_str()), py::arg("required_minimum_redundancy") = 1);
-    m.def("Subtract", &MaskUtils::Subtract<TContainerType>, py::arg((lower_prefix + "_mask_1_expression").c_str()), py::arg((lower_prefix + "_mask_2_expression").c_str()), py::arg("required_minimum_redundancy") = 1);
-    m.def("Scale", &MaskUtils::Scale<TContainerType>, py::arg((lower_prefix + "_scalar_expression").c_str()), py::arg((lower_prefix + "_mask_expression").c_str()), py::arg("required_minimum_redundancy") = 1);
-    m.def("ClusterMasks", &MaskUtils::ClusterMasks<TContainerType>, py::arg(("list_of_" + lower_prefix + "_mask_expressions").c_str()), py::arg("required_minimum_redundancy") = 1);
-    m.def("GetMasksDividingReferenceMask", &MaskUtils::GetMasksDividingReferenceMask<TContainerType>, py::arg(("reference_" + lower_prefix + "_mask_expression").c_str()), py::arg(("list_of_" + lower_prefix + "_mask_expressions").c_str()), py::arg("required_minimum_redundancy") = 1);
-}
-
 void AddCustomUtilitiesToPython(pybind11::module& m)
 {
     namespace py = pybind11;
@@ -76,9 +47,16 @@ void AddCustomUtilitiesToPython(pybind11::module& m)
         ;
 
     auto mask_utils = m.def_submodule("MaskUtils");
-    AddMaskUtilsToPython<ModelPart::NodesContainerType>(mask_utils);
-    AddMaskUtilsToPython<ModelPart::ConditionsContainerType>(mask_utils);
-    AddMaskUtilsToPython<ModelPart::ElementsContainerType>(mask_utils);
+    mask_utils.def("GetMaskSize", &MaskUtils::GetMaskSize, py::arg("mask_tensor_adaptor"), py::arg("required_minimum_redundancy") = 1);
+    mask_utils.def("GetMask", py::overload_cast<const TensorAdaptor<double>&>(&MaskUtils::GetMask), py::arg("scalar_tensor_adaptor"));
+    mask_utils.def("GetMask", py::overload_cast<const TensorAdaptor<double>&, const double>(&MaskUtils::GetMask), py::arg("scalar_tensor_adaptor"), py::arg("threshold"));
+    mask_utils.def("GetMaskThreshold", &MaskUtils::GetMaskThreshold, py::arg("scalar_tensor_adaptor"));
+    mask_utils.def("Union", &MaskUtils::Union, py::arg("mask_1_tensor_adaptor"), py::arg("mask_2_tensor_adaptor"), py::arg("required_minimum_redundancy") = 1);
+    mask_utils.def("Intersect", &MaskUtils::Intersect, py::arg("mask_1_tensor_adaptor"), py::arg("mask_2_tensor_adaptor"), py::arg("required_minimum_redundancy") = 1);
+    mask_utils.def("Subtract", &MaskUtils::Subtract, py::arg("mask_1_tensor_adaptor"), py::arg("mask_2_tensor_adaptor"), py::arg("required_minimum_redundancy") = 1);
+    mask_utils.def("Scale", &MaskUtils::Scale, py::arg("scalar_tensor_adaptor"), py::arg("mask_tensor_adaptor"), py::arg("required_minimum_redundancy") = 1);
+    mask_utils.def("ClusterMasks", &MaskUtils::ClusterMasks, py::arg("list_of_mask_tensor_adaptors"), py::arg("required_minimum_redundancy") = 1);
+    mask_utils.def("GetMasksDividingReferenceMask", &MaskUtils::GetMasksDividingReferenceMask, py::arg("reference_mask_tensor_adaptor"), py::arg("list_of_mask_tensor_adaptors"), py::arg("required_minimum_redundancy") = 1);
 
     auto sensor_utils = m.def_submodule("SensorUtils");
     sensor_utils.def("IsPointInGeometry", &SensorUtils::IsPointInGeometry, py::arg("point"), py::arg("geometry"));
