@@ -534,6 +534,7 @@ private:
     void CalculateHessian(
         Matrix& Hessian,
         const Matrix& rDDN_DDe,
+        const ConfigurationType& rConfiguration,
         const PatchType& rPatch) const;
 
     ///@}

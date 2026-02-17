@@ -98,7 +98,7 @@ namespace Kratos
         if (Is(IgaFlags::FIX_ROTATION_X))
         {
             Matrix H = ZeroMatrix(3, 3);
-            CalculateHessian(H, r_geometry.ShapeFunctionDerivatives(2, IntegrationPointIndex, r_geometry.GetDefaultIntegrationMethod()), rPatch);
+            CalculateHessian(H, r_geometry.ShapeFunctionDerivatives(2, IntegrationPointIndex, r_geometry.GetDefaultIntegrationMethod()), rConfiguration, rPatch);
 
             rKinematicVariables.b_ab_covariant[0] = H(0, 0) * rKinematicVariables.a3[0] + H(1, 0) * rKinematicVariables.a3[1] + H(2, 0) * rKinematicVariables.a3[2];
             rKinematicVariables.b_ab_covariant[1] = H(0, 1) * rKinematicVariables.a3[0] + H(1, 1) * rKinematicVariables.a3[1] + H(2, 1) * rKinematicVariables.a3[2];
@@ -1999,7 +1999,7 @@ namespace Kratos
         double inv_dA3 = 1 / std::pow(rActualKinematic.dA, 3);
 
         Matrix H = ZeroMatrix(3, 3);
-        CalculateHessian(H, r_geometry.ShapeFunctionDerivatives(2, IntegrationPointIndex), rPatch);
+        CalculateHessian(H, r_geometry.ShapeFunctionDerivatives(2, IntegrationPointIndex), ConfigurationType::Current, rPatch);
 
         //Compute the first variation of the Green-Lagrange curvature
         Matrix dK_curvilinear = ZeroMatrix(3, mat_size);
@@ -2233,7 +2233,7 @@ namespace Kratos
         Matrix S_dn = ZeroMatrix(3, mat_size);
 
         Matrix H = ZeroMatrix(3, 3);
-        CalculateHessian(H, r_geometry.ShapeFunctionDerivatives(2, IntegrationPointIndex, r_geometry.GetDefaultIntegrationMethod()), rPatch);
+        CalculateHessian(H, r_geometry.ShapeFunctionDerivatives(2, IntegrationPointIndex, r_geometry.GetDefaultIntegrationMethod()), ConfigurationType::Current, rPatch);
 
         // first variation of curvature w.r.t. dof
         for (IndexType r = 0; r < mat_size; r++)
@@ -2447,7 +2447,7 @@ namespace Kratos
         Matrix S_dn = ZeroMatrix(3, mat_size);
 
         Matrix H = ZeroMatrix(3, 3);
-        CalculateHessian(H, r_geometry.ShapeFunctionDerivatives(2, IntegrationPointIndex, r_geometry.GetDefaultIntegrationMethod()), rPatch);
+        CalculateHessian(H, r_geometry.ShapeFunctionDerivatives(2, IntegrationPointIndex, r_geometry.GetDefaultIntegrationMethod()), ConfigurationType::Current, rPatch);
 
         //First variation of curvature w.r.t. dof
         for (IndexType r = 0; r < mat_size; r++)
@@ -2896,6 +2896,7 @@ namespace Kratos
     void CouplingNitscheCondition::CalculateHessian(
         Matrix& Hessian,
         const Matrix& rDDN_DDe,
+        const ConfigurationType& rConfiguration,
         const PatchType& rPatch) const
     {
         IndexType GeometryPart = (rPatch==PatchType::Master) ? 0 : 1;
@@ -2905,10 +2906,20 @@ namespace Kratos
         const SizeType working_space_dimension = r_geometry.WorkingSpaceDimension();
         Hessian.resize(working_space_dimension, working_space_dimension);
         Hessian = ZeroMatrix(working_space_dimension, working_space_dimension);
+        array_1d<double, 3> coords;
 
         for (IndexType k = 0; k < number_of_points; k++)
         {
-            const array_1d<double, 3> coords = r_geometry[k].Coordinates();
+            if (rConfiguration==ConfigurationType::Current)
+            {
+                coords = r_geometry[k].Coordinates();
+            }
+            else if (rConfiguration==ConfigurationType::Reference)
+            {
+                coords[0] = r_geometry[k].X0();
+                coords[1] = r_geometry[k].Y0();
+                coords[2] = r_geometry[k].Z0();
+            }
 
             Hessian(0, 0) += rDDN_DDe(k, 0)*coords[0];
             Hessian(0, 1) += rDDN_DDe(k, 2)*coords[0];
