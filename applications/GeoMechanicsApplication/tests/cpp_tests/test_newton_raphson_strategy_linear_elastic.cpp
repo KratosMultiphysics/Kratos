@@ -67,11 +67,9 @@ public:
 
         // add dofs
         p_node->AddDof(DISPLACEMENT_X);
-        //     p_node->AddDof(TOTAL_DISPLACEMENT_X);
         p_node->pGetDof(DISPLACEMENT_X)->SetEquationId(0);
 
         p_node->AddDof(DISPLACEMENT_Y);
-        //		p_node->AddDof(TOTAL_DISPLACEMENT_Y);
         p_node->pGetDof(DISPLACEMENT_Y)->SetEquationId(1);
 
         // initialize nodal values

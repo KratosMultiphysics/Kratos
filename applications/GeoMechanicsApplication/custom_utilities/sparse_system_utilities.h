@@ -29,9 +29,8 @@ class KRATOS_API(GEO_MECHANICS_APPLICATION) SparseSystemUtilities
 {
 public:
     /// Vector type definition
-	using SparseSpace = UblasSpace<double, CompressedMatrix, Vector>;
     using SystemVectorType = UblasSpace<double, CompressedMatrix, Vector>::VectorType;
-	using SystemMatrixType = UblasSpace<double, CompressedMatrix, Vector>::MatrixType;
+    using SystemMatrixType = UblasSpace<double, CompressedMatrix, Vector>::MatrixType;
     /// DoF array type definition
     using DofsArrayType = ModelPart::DofsArrayType;
 
@@ -50,21 +49,23 @@ public:
                                                    const SystemVectorType& rSecondDerivativeVector,
                                                    ModelPart&              rModelPart);
 
-	/// <summary>
-	/// In this function, the rows and columns of the secondary matrix corresponding to the fixed DOFs are zeroed, 
+    /// <summary>
+    /// In this function, the rows and columns of the secondary matrix corresponding to the fixed DOFs are zeroed,
     /// the diagonal is kept as it is, as for secondary matrices, zeros are allowed on the diagonal.
-	/// </summary>
-	/// <param name="rDofSet"></param>
-	/// <param name="rSecondaryMatrix"></param>
-	static void ApplyDirichletConditionsSecondaryMatrix(const DofsArrayType & rDofSet,SystemMatrixType & rSecondaryMatrix);
+    /// </summary>
+    /// <param name="rDofSet"></param>
+    /// <param name="rSecondaryMatrix"></param>
+    static void ApplyDirichletConditionsSecondaryMatrix(const DofsArrayType& rDofSet,
+                                                        SystemMatrixType&    rSecondaryMatrix);
 
-    static double CheckAndCorrectZeroDiagonalValuesSecondaryMatrix(
-        const ProcessInfo & rProcessInfo,
-        SystemMatrixType & rPrimaryMatrix,
-        SystemMatrixType & rSecondaryMatrix,
-        const SCALING_DIAGONAL ScalingDiagonal = SCALING_DIAGONAL::NO_SCALING);
-
-	static bool MatricesHaveSameSparsityOnDiagonal(const SystemMatrixType & rPrimaryMatrix, const SystemMatrixType & rSecondaryMatrix);
+    /// <summary>
+    /// Checks if the two matrices have the same sparsity pattern on the diagonal, meaning that they have non-zeros in the same positions on the diagonal.
+    /// </summary>
+    /// <param name="rPrimaryMatrix"></param>
+    /// <param name="rSecondaryMatrix"></param>
+    /// <returns></returns>
+    static bool MatricesHaveSameSparsityOnDiagonal(const SystemMatrixType& rPrimaryMatrix,
+                                                   const SystemMatrixType& rSecondaryMatrix);
 
 private:
     static void GetDerivativesForOptionalVariable(const Variable<double>& rVariable,
