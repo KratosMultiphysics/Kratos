@@ -63,7 +63,7 @@ void AddCustomUtilitiesToPython(pybind11::module& m)
 
     py::class_<DistanceMatrix, DistanceMatrix::Pointer>(m, "DistanceMatrix")
         .def(py::init<>())
-        .def("Update", &DistanceMatrix::Update, py::arg("values_container_expression"))
+        .def("Update", &DistanceMatrix::Update, py::arg("values_container_tensor_adaptor"))
         .def("GetDistance", py::overload_cast<const IndexType, const IndexType>(&DistanceMatrix::GetDistance, py::const_), py::arg("index_i"), py::arg("index_j"))
         .def("GetEntriesSize", &DistanceMatrix::GetEntriesSize)
         .def("GetNumberOfItems", &DistanceMatrix::GetNumberOfItems)
