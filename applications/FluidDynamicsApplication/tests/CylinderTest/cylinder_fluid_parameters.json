@@ -137,8 +137,8 @@
             "process_name"  : "ComputeBodyFittedFlowForcesAndMomentsProcess",
             "Parameters"    : {
                 "model_part_name"        : "MainModelPart.NoSlip2D_cylinder",
-                "write_flow_forces_output_file" : true,
-                "print_flow_forces_to_screen"   : true,
+                "write_flow_forces_and_moments_output_file" : true,
+                "print_flow_forces_and_moments_to_screen"   : true,
                 "interval"               : [0.0,"End"]
             }
         },
