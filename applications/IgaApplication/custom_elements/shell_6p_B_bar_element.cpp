@@ -351,7 +351,7 @@ namespace Kratos
 
                 if (CalculateStiffnessMatrixFlag == true)
                 {
-                    CalculateAndAddKm(rKm, B, constitutive_variables.ConstitutiveMatrix);
+                    CalculateAndAddKm(rKm, B, constitutive_variables.ConstitutiveMatrix,MID, MID_bar);
 
                     CalculateAndAddKmBd(rKd, B_Drill);
 
@@ -867,6 +867,7 @@ namespace Kratos
 
         for (IndexType k=0; k<number_of_control_points; ++k) {
         const double Nk = Nbar_A[k];
+        rN_sigma_A(1, 6*k + 0) = Nk;
         rN_sigma_A(1, 6*k + 1) = Nk;
         rN_sigma_A(2, 6*k + 2) = Nk;
         rN_sigma_A(3, 6*k + 3) = Nk;
@@ -1161,10 +1162,12 @@ namespace Kratos
     inline void Shell6pBbarElement::CalculateAndAddKm(
         MatrixType& rKm,
         const Matrix& rB,
-        const Matrix& rD                                                                                                              
+        const Matrix& rD ,
+        const Matrix& rMID
+        const Matrix& rMID_bar                                                                                                            
     ) const
     {  
-        noalias(rKm) += prod(trans(rB), Matrix(prod(rD, rB)));                                              
+        noalias(rKm) += prod(trans(rB), Matrix(prod(rD, rB)))-prod(trans(rMID), Matrix(prod(rD, rMID)))+prod(trans(rMID_bar), Matrix(prod(rD, rMID_bar)));                                              
     }
 
     
