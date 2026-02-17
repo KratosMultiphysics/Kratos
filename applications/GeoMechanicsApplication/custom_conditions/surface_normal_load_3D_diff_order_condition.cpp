@@ -64,9 +64,7 @@ void SurfaceNormalLoad3DDiffOrderCondition::CalculateConditionVector(ConditionVa
     MathUtils<double>::CrossProduct(normal_vector, column(rVariables.JContainer[PointNumber], 0),
                                     column(rVariables.JContainer[PointNumber], 1));
 
-    const auto& r_geometry = GetGeometry();
-    Vector      normal_stresses(r_geometry.PointsNumber());
-    VariablesUtilities::GetNodalValues(r_geometry, NORMAL_CONTACT_STRESS, normal_stresses.begin());
+    const auto normal_stresses = VariablesUtilities::GetNodalValues(GetGeometry(), NORMAL_CONTACT_STRESS);
 
     // Since the normal vector is pointing outwards for the 3D conditions, the normal stress
     // should switch sign, such that positive normal contact stress is defined inwards.

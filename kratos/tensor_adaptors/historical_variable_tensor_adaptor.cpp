@@ -119,6 +119,11 @@ HistoricalVariableTensorAdaptor::HistoricalVariableTensorAdaptor(
     KRATOS_CATCH("");
 }
 
+TensorAdaptor<double>::Pointer HistoricalVariableTensorAdaptor::Clone() const
+{
+    return Kratos::make_shared<HistoricalVariableTensorAdaptor>(*this);
+}
+
 void HistoricalVariableTensorAdaptor::Check() const
 {
     KRATOS_TRY
