@@ -156,7 +156,7 @@ class DataValuesControl(Control):
 
             physical_gradient = physical_gradient_variable_tensor_adaptor_map[self.controlled_physical_variable]
             if physical_gradient.GetContainer() != self.GetEmptyField().GetContainer():
-                raise RuntimeError(f"Gradients for the required element container not found for control \"{self.GetName()}\". [ required model part name: {self.primal_model_part.FullName()}, given model part name: {physical_gradient.GetModelPart().FullName()} ]")
+                raise RuntimeError(f"Gradients for the required element container not found for control \"{self.GetName()}\". [ required model part name: {self.primal_model_part.FullName()} ]")
 
             # dj/dE -> physical_gradient
             # dj/dphi = dj/dphysical * dphysical/dphi
@@ -166,7 +166,7 @@ class DataValuesControl(Control):
 
     def Update(self, new_control_field: Kratos.TensorAdaptors.DoubleTensorAdaptor) -> bool:
         if new_control_field.GetContainer() != self.GetEmptyField().GetContainer():
-            raise RuntimeError(f"Updates for the required element container not found for control \"{self.GetName()}\". [ required model part name: {self.primal_model_part.FullName()}, given model part name: {control_field.GetModelPart().FullName()} ]")
+            raise RuntimeError(f"Updates for the required element container not found for control \"{self.GetName()}\". [ required model part name: {self.primal_model_part.FullName()} ]")
 
         update = new_control_field.Clone()
         update.data[:] -= self.control_phi_field.data
