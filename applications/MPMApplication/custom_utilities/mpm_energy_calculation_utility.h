@@ -24,7 +24,7 @@
 namespace Kratos
 {
 
-class MPMEnergyCalculationUtility
+class KRATOS_API(MPM_APPLICATION) MPMEnergyCalculationUtility
 {
 public:
 
