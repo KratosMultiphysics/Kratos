@@ -15,7 +15,7 @@ class MPMNonConformingReactionOutputProcess(MPMReactionOutputProcess):
     defined through material point conditions
     """
     def __init__(self, model: KratosMultiphysics.Model, settings: KratosMultiphysics.Parameters) -> None:
-        super().__init__()
+        super().__init__(model, settings)
         if self.model_part_name.startswith('Background_Grid'):
             self.model_part_name = self.model_part_name.replace('Background_Grid','MPM_Material')
 

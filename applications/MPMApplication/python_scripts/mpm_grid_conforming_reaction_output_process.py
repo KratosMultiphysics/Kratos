@@ -14,10 +14,10 @@ class MPMGridConformingReactionOutputProcess(MPMReactionOutputProcess):
     The specific implementation for the output of reaction on grid conforming boundaries
     """
     def __init__(self, model: KratosMultiphysics.Model, settings: KratosMultiphysics.Parameters) -> None:
-        super().__init__()
+        super().__init__(model, settings)
         if not self.model_part_name.startswith('Background_Grid'):
             err_msg  = f"'{self.__class__.__name__}' prints the sum of the reaction of a given SubModelPart of the background grid.\n"
-            err_msg += "Model part name must start with 'Background_Grid'. Input model part name: '{self.model_part_name}'"
+            err_msg += f"Model part name must start with 'Background_Grid'. Input model part name: '{self.model_part_name}'"
             raise Exception(err_msg)
 
     def _GetFileHeader(self):
