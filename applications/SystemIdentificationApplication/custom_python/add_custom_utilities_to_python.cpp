@@ -82,7 +82,6 @@ void AddCustomUtilitiesToPython(pybind11::module& m)
 
     auto sensor_utils = m.def_submodule("SensorUtils");
     sensor_utils.def("IsPointInGeometry", &SensorUtils::IsPointInGeometry, py::arg("point"), py::arg("geometry"));
-    sensor_utils.def("CreateSensorView", &SensorUtils::CreateSensorView, py::arg("sensor"), py::arg("expression_name"));
 
     py::class_<DistanceMatrix, DistanceMatrix::Pointer>(m, "DistanceMatrix")
         .def(py::init<>())
