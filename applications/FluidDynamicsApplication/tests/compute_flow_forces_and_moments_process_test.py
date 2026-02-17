@@ -32,7 +32,7 @@ class ComputeFlowForcesAndMomentsProcessTest(KratosUnittest.TestCase):
         {
             "model_part_name" : "main",
             "print_flow_forces_and_moments_to_screen"      : false,
-            "write_flow_forces_and_moments_output_file"    : true,
+            "write_flow_forces_output_file"    : true,
             "output_file_settings" : {
                 "file_extension": "dat",
                 "file_name": "main_drag.dat",

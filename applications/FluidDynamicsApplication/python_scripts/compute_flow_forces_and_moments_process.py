@@ -31,7 +31,8 @@ class ComputeFlowForcesAndMomentsProcess(KratosMultiphysics.Process):
                 "interval"                  : [0.0, 1e30],
                 "print_flow_forces_and_moments_to_screen"      : false,
                 "print_format"              : ".8f",
-                "write_flow_forces_and_moments_output_file"    : true,
+                "write_flow_forces_output_file"    : true,
+                "write_flow_moments_output_file": false,
                 "output_file_settings": {},
                 "reference_point"           : [0.0, 0.0, 0.0]
             }
@@ -63,13 +64,14 @@ class ComputeFlowForcesAndMomentsProcess(KratosMultiphysics.Process):
         self.interval[0] = self.params["interval"][0].GetDouble()
         self.interval[1] = self.params["interval"][1].GetDouble()
         self.print_flow_forces_and_moments_to_screen = self.params["print_flow_forces_and_moments_to_screen"].GetBool()
-        self.write_flow_forces_and_moments_output_file = self.params["write_flow_forces_and_moments_output_file"].GetBool()
+        self.write_flow_forces_output_file = self.params["write_flow_forces_output_file"].GetBool()
+        self.write_flow_moments_output_file = self.params["write_flow_moments_output_file"].GetBool()
         self.reference_point = KratosMultiphysics.Vector(3)
         self.reference_point[0] = self.params["reference_point"][0].GetDouble()
         self.reference_point[1] = self.params["reference_point"][1].GetDouble()
         self.reference_point[2] = self.params["reference_point"][2].GetDouble()
 
-        if (self.write_flow_forces_and_moments_output_file):
+        if (self.write_flow_forces_output_file):
             if (self.model_part.GetCommunicator().MyPID() == 0):
 
                 output_file_name = self.params["model_part_name"].GetString() + "_drag.dat"
@@ -106,13 +108,22 @@ class ComputeFlowForcesAndMomentsProcess(KratosMultiphysics.Process):
 
                 # not formatting time in order to not lead to problems with time recognition
                 # in the file writer when restarting
-                if (self.write_flow_forces_and_moments_output_file):
-                    self.output_file.write(str(current_time)+" "+format(flow_force[0],self.format)+" "+format(flow_force[1],self.format)+" "+format(flow_force[2],self.format)+" "+ \
-                    format(flow_moment[0],self.format)+" "+format(flow_moment[1],self.format)+" "+format(flow_moment[2],self.format)+"\n")
+                if self.write_flow_forces_output_file:
+                    if self.write_flow_moments_output_file:
+                        self.output_file.write(
+                            f"{time_str} "
+                            f"{format(flow_force[0],self.format)} {format(flow_force[1],self.format)} {format(flow_force[2],self.format)} "
+                            f"{format(flow_moment[0],self.format)} {format(flow_moment[1],self.format)} {format(flow_moment[2],self.format)}\n"
+                        )
+                    else:
+                        self.output_file.write(
+                            f"{time_str} "
+                            f"{format(flow_force[0],self.format)} {format(flow_force[1],self.format)} {format(flow_force[2],self.format)}\n"
+                        )
                     self.output_file.flush()
 
     def ExecuteFinalize(self):
-        if (self.write_flow_forces_and_moments_output_file):
+        if (self.write_flow_forces_output_file):
             if (self.model_part.GetCommunicator().MyPID() == 0):
                 self.output_file.close()
 
