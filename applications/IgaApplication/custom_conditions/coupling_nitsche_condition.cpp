@@ -708,12 +708,12 @@ namespace Kratos
                 Vector first_variations_moment_T2 = ZeroVector(mat_size);
 
                 for (SizeType i=0;i<3 * number_of_nodes_master;++i){
-                    first_variations_moment_master_T2(i) =  T1_master[0]*first_variations_moment_master(0,i) + T1_master[1]*first_variations_moment_master(1,i) +
-                                                        T1_master[2]*first_variations_moment_master(2,i);
+                    first_variations_moment_master_T2(i) =  T2_master[0]*first_variations_moment_master(0,i) + T2_master[1]*first_variations_moment_master(1,i) +
+                                                        T2_master[2]*first_variations_moment_master(2,i);
                 }
                 for (SizeType i=0;i<3 * number_of_nodes_slave;++i){
-                    first_variations_moment_slave_T2(i) = T1_slave[0]*first_variations_moment_slave(0,i) + T1_slave[1]*first_variations_moment_slave(1,i) +
-                                                        T1_slave[2]*first_variations_moment_slave(2,i);
+                    first_variations_moment_slave_T2(i) = T2_slave[0]*first_variations_moment_slave(0,i) + T2_slave[1]*first_variations_moment_slave(1,i) +
+                                                        T2_slave[2]*first_variations_moment_slave(2,i);
                 } 
 
                 for (IndexType i = 0; i < 3 * number_of_nodes_master; i++)
@@ -761,7 +761,7 @@ namespace Kratos
 
                 CalculateSecondVariationMomentT2(point_number, second_variations_moment_master, kinematic_variables_master, first_variations_moment_covariant_master, T2_master, T2_slave, 
                                                 second_variations_moment_product_vector_master, second_variations_moment_product_vector_slave_master, PatchType::Master);
-                CalculateSecondVariationMomentT2(point_number, second_variations_moment_slave, kinematic_variables_slave, first_variations_moment_covariant_slave, T2_master, T2_slave, 
+                CalculateSecondVariationMomentT2(point_number, second_variations_moment_slave, kinematic_variables_slave, first_variations_moment_covariant_slave, T2_slave, T2_master, 
                                                 second_variations_moment_product_vector_slave, second_variations_moment_product_vector_master_slave, PatchType::Slave);
 
                 second_variations_moment_master *= diff_phi(0);
