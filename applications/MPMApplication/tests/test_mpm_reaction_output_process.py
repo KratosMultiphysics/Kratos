@@ -81,8 +81,44 @@ class TestMPMReactionOutputProcess(KratosUnittest.TestCase):
             reaction_value = [reaction_value*0.25, reaction_value*0.5, reaction_value*1.0]
             cond.SetValuesOnIntegrationPoints(KratosMPM.MPC_CONTACT_FORCE, [reaction_value], self.mpm_model_part.ProcessInfo)
 
-    def test_mpm_grid_conforming_reaction_output_process(self):
+    def _run_and_check_output_process(self, process_params, factory_function):
+        """Run the output process through a time loop and compare results to reference."""
+        output_process = factory_function(process_params, self.model)
 
+        time = 0.0
+        dt = 0.2
+        end_time = 0.6
+
+        output_process.ExecuteInitialize()
+        output_process.ExecuteBeforeSolutionLoop()
+        while (time < end_time):
+            time += dt
+            self.mpm_model_part.ProcessInfo[KratosMultiphysics.STEP] += 1
+            self.mpm_model_part.CloneTimeStep(time)
+            self._set_solution()
+            output_process.ExecuteInitializeSolutionStep()
+            output_process.ExecuteFinalizeSolutionStep()
+            if output_process.IsOutputStep():
+                output_process.ExecuteBeforeOutputStep()
+                output_process.PrintOutput()
+                output_process.ExecuteAfterOutputStep()
+        output_process.ExecuteFinalize()
+
+        file_name  = process_params["Parameters"]["output_file_settings"]["file_name"].GetString()
+        file_name += "." + process_params["Parameters"]["output_file_settings"]["file_extension"].GetString()
+        output_path = pathlib.Path(process_params["Parameters"]["output_file_settings"]["output_path"].GetString())
+        output_file = output_path/file_name
+        reference_files_path = pathlib.Path("mpm_reaction_output_process_files")
+        reference_file = reference_files_path/file_name
+        params = KratosMultiphysics.Parameters("""{
+           "reference_file_name" : "",
+           "output_file_name"    : ""
+        }""")
+        params["reference_file_name"].SetString(str(GetFilePath(reference_file)))
+        params["output_file_name"].SetString(str(output_file))
+        CompareTwoFilesCheckProcess(params).Execute()
+
+    def test_mpm_grid_conforming_reaction_output_process(self):
         process_params = KratosMultiphysics.Parameters("""{
             "Parameters" : {
                 "model_part_name"      : "Background_Grid.grid_conforming_reaction",
@@ -96,44 +132,11 @@ class TestMPMReactionOutputProcess(KratosUnittest.TestCase):
                 }
             }
         }""")
-        output_process = mpm_grid_conforming_reaction_output_process.Factory(process_params, self.model)
-
-        time = 0.0
-        dt = 0.2
-        step = 0
-        end_time = 0.6
-
-        output_process.ExecuteInitialize()
-        output_process.ExecuteBeforeSolutionLoop()
-        while (time < end_time):
-            time += dt
-            self.mpm_model_part.ProcessInfo[KratosMultiphysics.STEP] += 1
-            self.mpm_model_part.CloneTimeStep(time)
-            self._set_solution()
-            output_process.ExecuteInitializeSolutionStep()
-            output_process.ExecuteFinalizeSolutionStep()
-            if output_process.IsOutputStep():
-                output_process.ExecuteBeforeOutputStep()
-                output_process.PrintOutput()
-                output_process.ExecuteAfterOutputStep()
-        output_process.ExecuteFinalize()
-
-        file_name  = process_params["Parameters"]["output_file_settings"]["file_name"].GetString()
-        file_name += "." + process_params["Parameters"]["output_file_settings"]["file_extension"].GetString()
-        output_path = pathlib.Path(process_params["Parameters"]["output_file_settings"]["output_path"].GetString())
-        output_file = output_path/file_name
-        reference_files_path = pathlib.Path("mpm_reaction_output_process_files")
-        reference_file = reference_files_path/file_name
-        params = KratosMultiphysics.Parameters("""{
-           "reference_file_name" : "",
-           "output_file_name"    : ""
-        }""")
-        params["reference_file_name"].SetString(str(GetFilePath(reference_file)))
-        params["output_file_name"].SetString(str(output_file))
-        CompareTwoFilesCheckProcess(params).Execute()
+        self._run_and_check_output_process(
+            process_params,
+            mpm_grid_conforming_reaction_output_process.Factory)
 
     def test_mpm_non_conforming_reaction_output_process(self):
-
         process_params = KratosMultiphysics.Parameters("""{
             "Parameters" : {
                 "model_part_name"      : "MPMModelPart.non_conforming_reaction",
@@ -147,41 +150,9 @@ class TestMPMReactionOutputProcess(KratosUnittest.TestCase):
                 }
             }
         }""")
-        output_process = mpm_non_conforming_reaction_output_process.Factory(process_params, self.model)
-
-        time = 0.0
-        dt = 0.2
-        step = 0
-        end_time = 0.6
-
-        output_process.ExecuteInitialize()
-        output_process.ExecuteBeforeSolutionLoop()
-        while (time < end_time):
-            time += dt
-            self.mpm_model_part.ProcessInfo[KratosMultiphysics.STEP] += 1
-            self.mpm_model_part.CloneTimeStep(time)
-            self._set_solution()
-            output_process.ExecuteInitializeSolutionStep()
-            output_process.ExecuteFinalizeSolutionStep()
-            if output_process.IsOutputStep():
-                output_process.ExecuteBeforeOutputStep()
-                output_process.PrintOutput()
-                output_process.ExecuteAfterOutputStep()
-        output_process.ExecuteFinalize()
-
-        file_name  = process_params["Parameters"]["output_file_settings"]["file_name"].GetString()
-        file_name += "." + process_params["Parameters"]["output_file_settings"]["file_extension"].GetString()
-        output_path = pathlib.Path(process_params["Parameters"]["output_file_settings"]["output_path"].GetString())
-        output_file = output_path/file_name
-        reference_files_path = pathlib.Path("mpm_reaction_output_process_files")
-        reference_file = reference_files_path/file_name
-        params = KratosMultiphysics.Parameters("""{
-           "reference_file_name" : "",
-           "output_file_name"    : ""
-        }""")
-        params["reference_file_name"].SetString(str(GetFilePath(reference_file)))
-        params["output_file_name"].SetString(str(output_file))
-        CompareTwoFilesCheckProcess(params).Execute()
+        self._run_and_check_output_process(
+            process_params,
+            mpm_non_conforming_reaction_output_process.Factory)
 
 if __name__ == '__main__':
     KratosMultiphysics.Logger.GetDefaultOutput().SetSeverity(KratosMultiphysics.Logger.Severity.INFO)
