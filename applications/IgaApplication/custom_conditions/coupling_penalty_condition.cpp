@@ -100,8 +100,8 @@ namespace Kratos
             }
 
             // Differential area
-            double penalty_integration = penalty * integration_points[point_number].Weight();
-            double penalty_rotation_integration = penalty_rotation * integration_points[point_number].Weight();
+            double penalty_integration = penalty * integration_points[point_number].Weight() * determinant_jacobian_vector[point_number];
+            double penalty_rotation_integration = penalty_rotation * integration_points[point_number].Weight() * determinant_jacobian_vector[point_number];
      
             // Rotation coupling
             if (Is(IgaFlags::FIX_ROTATION_X))
