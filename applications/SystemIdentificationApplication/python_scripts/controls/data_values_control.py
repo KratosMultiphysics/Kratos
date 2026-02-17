@@ -1,17 +1,15 @@
-import math
+import math, numpy
 from typing import Optional
 
 import KratosMultiphysics as Kratos
 import KratosMultiphysics.SystemIdentificationApplication as KratosSI
 from KratosMultiphysics.OptimizationApplication.controls.control import Control
-from KratosMultiphysics.OptimizationApplication.utilities.union_utilities import ContainerExpressionTypes
 from KratosMultiphysics.OptimizationApplication.utilities.union_utilities import SupportedSensitivityFieldVariableTypes
-from KratosMultiphysics.OptimizationApplication.utilities.helper_utilities import IsSameContainerExpression
 from KratosMultiphysics.OptimizationApplication.utilities.model_part_utilities import ModelPartOperation
 from KratosMultiphysics.OptimizationApplication.utilities.logger_utilities import TimeLogger
 from KratosMultiphysics.OptimizationApplication.utilities.component_data_view import ComponentDataView
 from KratosMultiphysics.OptimizationApplication.utilities.optimization_problem import OptimizationProblem
-from KratosMultiphysics.SystemIdentificationApplication.utilities.expression_utils import ExpressionBoundingManager
+from KratosMultiphysics.SystemIdentificationApplication.utilities.tensor_adaptor_utils import TensorAdaptorBoundingManager, GetTensorAdaptor
 from KratosMultiphysics.OptimizationApplication.filtering.filter import Factory as FilterFactory
 
 def Factory(model: Kratos.Model, parameters: Kratos.Parameters, optimization_problem: OptimizationProblem) -> Control:
@@ -30,50 +28,6 @@ class DataValuesControl(Control):
     for the specified control variable. This does not do any filtering.
 
     """
-    class __ElementValueControlHelper:
-        clamper_type = KratosSI.ElementSmoothClamper
-        data_location = Kratos.Globals.DataLocation.Element
-        expression_type = Kratos.Expression.ElementExpression
-
-        def ReadExpression(self, exp, var):
-            Kratos.Expression.VariableExpressionIO.Read(exp, var)
-
-        def WriteExpression(self, exp, var):
-            Kratos.Expression.VariableExpressionIO.Write(exp, var)
-
-    class __ConditionValueControlHelper:
-        clamper_type = KratosSI.ConditionSmoothClamper
-        data_location = Kratos.Globals.DataLocation.Condition
-        expression_type = Kratos.Expression.ConditionExpression
-
-        def ReadExpression(self, exp, var):
-            Kratos.Expression.VariableExpressionIO.Read(exp, var)
-
-        def WriteExpression(self, exp, var):
-            Kratos.Expression.VariableExpressionIO.Write(exp, var)
-
-    class __NodalValueControlHelper:
-        clamper_type = KratosSI.NodeSmoothClamper
-        data_location = Kratos.Globals.DataLocation.NodeNonHistorical
-        expression_type = Kratos.Expression.NodalExpression
-
-        def ReadExpression(self, exp, var):
-            Kratos.Expression.VariableExpressionIO.Read(exp, var, False)
-
-        def WriteExpression(self, exp, var):
-            Kratos.Expression.VariableExpressionIO.Write(exp, var, False)
-
-    class __NodalHistoricalValueControlHelper:
-        clamper_type = KratosSI.NodeSmoothClamper
-        data_location = Kratos.Globals.DataLocation.NodeHistorical
-        expression_type = Kratos.Expression.NodalExpression
-
-        def ReadExpression(self, exp, var):
-            Kratos.Expression.VariableExpressionIO.Read(exp, var, True)
-
-        def WriteExpression(self, exp, var):
-            Kratos.Expression.VariableExpressionIO.Write(exp, var, True)
-
     def __init__(self, name: str, model: Kratos.Model, parameters: Kratos.Parameters, optimization_problem: OptimizationProblem):
         super().__init__(name)
 
@@ -94,17 +48,16 @@ class DataValuesControl(Control):
         parameters.ValidateAndAssignDefaults(default_settings)
 
         allowed_container_types = {
-            "nodal_historical": self.__NodalHistoricalValueControlHelper,
-            "nodal_nonhistorical": self.__NodalValueControlHelper,
-            "condition": self.__ConditionValueControlHelper,
-            "element": self.__ElementValueControlHelper
+            "nodal_historical": Kratos.Globals.DataLocation.NodeHistorical,
+            "nodal_nonhistorical": Kratos.Globals.DataLocation.NodeNonHistorical,
+            "condition": Kratos.Globals.DataLocation.Condition,
+            "element": Kratos.Globals.DataLocation.Element
         }
         container_type = parameters["container_type"].GetString()
         if container_type not in allowed_container_types.keys():
             raise RuntimeError(f"Unsupported container type = \"{container_type}\". Allowed container types are:\n\t" + "\n\t".join(list(allowed_container_types.keys())))
         else:
-            self.helper = allowed_container_types[container_type]
-            self.container_type_helper = self.helper()
+            self.container_type = allowed_container_types[container_type]
 
         self.model : Kratos.Model = model
         self.parameters = parameters
@@ -139,7 +92,7 @@ class DataValuesControl(Control):
         # for filtering. The adjoint model part may re-assign adjoint elements based on
         # the primal model part rendering the filter element pointers useless and to segfault.
         # hence filter is using the primal model part to get the locations.
-        self.filter = FilterFactory(self.model, self.primal_model_part_operation.GetModelPartFullName(), self.controlled_physical_variable, self.container_type_helper.data_location, self.parameters["filter_settings"])
+        self.filter = FilterFactory(self.model, self.primal_model_part_operation.GetModelPartFullName(), self.controlled_physical_variable, self.container_type, self.parameters["filter_settings"])
 
         self.primal_model_part: Optional[Kratos.ModelPart] = None
         self.adjoint_model_part: Optional[Kratos.ModelPart] = None
@@ -147,8 +100,8 @@ class DataValuesControl(Control):
         control_variable_bounds = parameters["control_variable_bounds"].GetVector()
 
         # use the clamper in the unit interval
-        self.interval_bounder = ExpressionBoundingManager(control_variable_bounds)
-        self.clamper = self.container_type_helper.clamper_type(0, 1)
+        self.interval_bounder = TensorAdaptorBoundingManager(control_variable_bounds)
+        self.clamper = KratosSI.SmoothClamper(0, 1)
 
     def Initialize(self) -> None:
         self.primal_model_part = self.primal_model_part_operation.GetModelPart()
@@ -161,12 +114,13 @@ class DataValuesControl(Control):
         physical_field = self.GetPhysicalField()
 
         # get the phi field which is in [0, 1] range
-        self.physical_phi_field = self.clamper.ProjectBackward(self.interval_bounder.GetBoundedExpression(physical_field))
+        self.physical_phi_field = self.clamper.ProjectBackward(self.interval_bounder.GetBoundedTensorAdaptor(physical_field))
 
         # compute the control phi field
         self.control_phi_field = self.filter.UnfilterField(self.physical_phi_field)
 
-        self.physical_phi_derivative_field = self.clamper.CalculateForwardProjectionGradient(self.physical_phi_field) * self.interval_bounder.GetBoundGap()
+        self.physical_phi_derivative_field = self.clamper.CalculateForwardProjectionGradient(self.physical_phi_field)
+        self.physical_phi_derivative_field.data[:] *= self.interval_bounder.GetBoundGap()
 
         self._UpdateAndOutputFields(self.GetEmptyField())
 
@@ -179,44 +133,47 @@ class DataValuesControl(Control):
     def GetPhysicalKratosVariables(self) -> 'list[SupportedSensitivityFieldVariableTypes]':
         return [self.controlled_physical_variable]
 
-    def GetEmptyField(self) -> ContainerExpressionTypes:
-        field = self.container_type_helper.expression_type(self.primal_model_part)
-        Kratos.Expression.LiteralExpressionIO.SetData(field, 0.0)
+    def GetEmptyField(self) -> Kratos.TensorAdaptors.DoubleTensorAdaptor:
+        field = GetTensorAdaptor(self.primal_model_part, self.container_type, self.controlled_physical_variable)
+        field.data[:] = 0.0
         return field
 
-    def GetControlField(self) -> ContainerExpressionTypes:
-        return self.control_phi_field
+    def GetControlField(self) -> Kratos.TensorAdaptors.DoubleTensorAdaptor:
+        return self.control_phi_field.Clone()
 
-    def GetPhysicalField(self) -> ContainerExpressionTypes:
-        physical_thickness_field = self.container_type_helper.expression_type(self.primal_model_part)
-        self.container_type_helper.ReadExpression(physical_thickness_field, self.controlled_physical_variable)
+    def GetPhysicalField(self) -> Kratos.TensorAdaptors.DoubleTensorAdaptor:
+        physical_thickness_field = GetTensorAdaptor(self.primal_model_part, self.container_type, self.controlled_physical_variable)
+        physical_thickness_field.CollectData()
         return physical_thickness_field
 
-    def MapGradient(self, physical_gradient_variable_container_expression_map: 'dict[SupportedSensitivityFieldVariableTypes, ContainerExpressionTypes]') -> ContainerExpressionTypes:
+    def MapGradient(self, physical_gradient_variable_tensor_adaptor_map: 'dict[SupportedSensitivityFieldVariableTypes, Kratos.TensorAdaptors.DoubleTensorAdaptor]') -> Kratos.TensorAdaptors.DoubleTensorAdaptor:
         with TimeLogger("DataValuesControl::MapGradient", None, "Finished",False):
-            keys = physical_gradient_variable_container_expression_map.keys()
+            keys = physical_gradient_variable_tensor_adaptor_map.keys()
             if len(keys) != 1:
                 raise RuntimeError(f"Provided more than required gradient fields for control \"{self.GetName()}\". Following are the variables:\n\t" + "\n\t".join([k.Name() for k in keys]))
             if self.controlled_physical_variable not in keys:
                 raise RuntimeError(f"The required gradient for control \"{self.GetName()}\" w.r.t. {self.controlled_physical_variable.Name()} not found. Followings are the variables:\n\t" + "\n\t".join([k.Name() for k in keys]))
 
-            physical_gradient = physical_gradient_variable_container_expression_map[self.controlled_physical_variable]
-            if not IsSameContainerExpression(physical_gradient, self.GetEmptyField()):
+            physical_gradient = physical_gradient_variable_tensor_adaptor_map[self.controlled_physical_variable]
+            if physical_gradient.GetContainer() != self.GetEmptyField().GetContainer():
                 raise RuntimeError(f"Gradients for the required element container not found for control \"{self.GetName()}\". [ required model part name: {self.primal_model_part.FullName()}, given model part name: {physical_gradient.GetModelPart().FullName()} ]")
 
             # dj/dE -> physical_gradient
             # dj/dphi = dj/dphysical * dphysical/dphi
-            return self.filter.BackwardFilterIntegratedField(physical_gradient * self.physical_phi_derivative_field)
+            dj_dphi = physical_gradient.Clone()
+            dj_dphi.data[:] *= self.physical_phi_derivative_field.data
+            return self.filter.BackwardFilterIntegratedField(dj_dphi)
 
-    def Update(self, new_control_field: ContainerExpressionTypes) -> bool:
-        if not IsSameContainerExpression(new_control_field, self.GetEmptyField()):
+    def Update(self, new_control_field: Kratos.TensorAdaptors.DoubleTensorAdaptor) -> bool:
+        if new_control_field.GetContainer() != self.GetEmptyField().GetContainer():
             raise RuntimeError(f"Updates for the required element container not found for control \"{self.GetName()}\". [ required model part name: {self.primal_model_part.FullName()}, given model part name: {control_field.GetModelPart().FullName()} ]")
 
-        update = new_control_field - self.control_phi_field
-        if not math.isclose(Kratos.Expression.Utils.NormL2(update), 0.0, abs_tol=1e-16):
+        update = new_control_field.Clone()
+        update.data[:] -= self.control_phi_field.data
+        if not math.isclose(numpy.linalg.norm(update.data), 0.0, abs_tol=1e-16):
             with TimeLogger(self.__class__.__name__, f"Updating {self.GetName()}...", f"Finished updating of {self.GetName()}.",False):
                 # update the control thickness field
-                self.control_phi_field = new_control_field
+                self.control_phi_field.data[:] = new_control_field.data
                 # now update the physical field
                 self._UpdateAndOutputFields(update)
 
@@ -225,20 +182,23 @@ class DataValuesControl(Control):
                 return True
         return False
 
-    def _UpdateAndOutputFields(self, update: ContainerExpressionTypes) -> None:
+    def _UpdateAndOutputFields(self, update: Kratos.TensorAdaptors.DoubleTensorAdaptor) -> None:
         # filter the control field
         filtered_phi_field_update = self.filter.ForwardFilterField(update)
-        self.physical_phi_field = Kratos.Expression.Utils.Collapse(self.physical_phi_field + filtered_phi_field_update)
+        self.physical_phi_field.data[:] += filtered_phi_field_update.data
 
         # project forward the filtered thickness field to get clamped physical field
-        physical_field = self.interval_bounder.GetUnboundedExpression(self.clamper.ProjectForward(self.physical_phi_field))
+        physical_field = self.interval_bounder.GetUnboundedTensorAdaptor(self.clamper.ProjectForward(self.physical_phi_field))
 
         # now update physical field
-        self.container_type_helper.WriteExpression(physical_field, self.controlled_physical_variable)
+        ta = GetTensorAdaptor(self.primal_model_part, self.container_type, self.controlled_physical_variable)
+        ta.data[:] = physical_field.data
+        ta.StoreData()
 
         # compute and store projection derivatives for consistent filtering of the sensitivities
         # this is dphi/dphysical -> physical_phi_derivative_field
-        self.physical_phi_derivative_field = self.clamper.CalculateForwardProjectionGradient(self.physical_phi_field) * self.interval_bounder.GetBoundGap()
+        self.physical_phi_derivative_field = self.clamper.CalculateForwardProjectionGradient(self.physical_phi_field)
+        self.physical_phi_derivative_field.data[:] *= self.interval_bounder.GetBoundGap()
 
         # now output the fields
         un_buffered_data = ComponentDataView(self, self.optimization_problem).GetUnBufferedData()
