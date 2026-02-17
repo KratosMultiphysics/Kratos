@@ -5,7 +5,7 @@ import KratosMultiphysics.KratosUnittest as KratosUnittest
 from KratosMultiphysics.FluidDynamicsApplication import compute_flow_forces_and_moments_process
 
 
-class ComputeFlowForcesAndMomentsProcessTest(KratosUnittest.TestCase):
+class ComputeFlowForcesProcessTest(KratosUnittest.TestCase):
 
     def tearDown(self):
         if os.path.exists("main_drag.dat"):
@@ -13,7 +13,7 @@ class ComputeFlowForcesAndMomentsProcessTest(KratosUnittest.TestCase):
 
     class DummyFlowForcesAndMomentsProcess(compute_flow_forces_and_moments_process.ComputeFlowForcesAndMomentsProcess):
         def _GetFileHeader(self):
-            return '# HEADER\n# Time Fx Fy Fz Mx My Mz\n'
+            return '# HEADER\n# Time Fx Fy Fz\n'
 
         def _PrintToScreen(self, result_msg):
             KratosMultiphysics.Logger.PrintInfo("ComputeEmbeddedFlowForcesAndMomentsProcess", "DUMMY DRAG RESULTS:")
@@ -35,7 +35,7 @@ class ComputeFlowForcesAndMomentsProcessTest(KratosUnittest.TestCase):
             "write_flow_forces_output_file"    : true,
             "output_file_settings" : {
                 "file_extension": "dat",
-                "file_name": "main_drag.dat",
+                "file_name": "main_flow_force.dat",
                 "write_buffer_size": -1
             }
         }""")
