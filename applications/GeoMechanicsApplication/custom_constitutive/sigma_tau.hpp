@@ -13,6 +13,7 @@
 
 #pragma once
 
+#include "includes/exception.h"
 #include "includes/kratos_export_api.h"
 #include "includes/ublas_interface.h"
 
@@ -51,6 +52,10 @@ public:
         std::ranges::copy(mValues, result.begin());
         return result;
     }
+
+    SigmaTau& operator+=(const SigmaTau& rRhsTraction);
+    KRATOS_API(GEO_MECHANICS_APPLICATION)
+    friend SigmaTau operator+(SigmaTau LhsTraction, const SigmaTau& rRhsTraction);
 
 private:
     template <std::forward_iterator Iter>
