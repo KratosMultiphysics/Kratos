@@ -132,7 +132,7 @@
                     "PRESSURE"]
             }
         },{
-            "python_module" : "compute_body_fitted_drag_process",
+            "python_module" : "compute_body_fitted_flow_forces_and_moments_process",
             "kratos_module" : "KratosMultiphysics.FluidDynamicsApplication",
             "process_name"  : "ComputeBodyFittedFlowForcesAndMomentsProcess",
             "Parameters"    : {
