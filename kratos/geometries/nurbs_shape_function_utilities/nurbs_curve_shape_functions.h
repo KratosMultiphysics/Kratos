@@ -118,7 +118,7 @@ public:
     {
         return mDerivativeOrder + 1;
     }
-
+    
     /* 
     * @brief Provides the shape function value depending to the DerivativeOrder and
     *        the index of the control point.

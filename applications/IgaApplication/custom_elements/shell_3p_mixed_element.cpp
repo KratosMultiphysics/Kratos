@@ -337,7 +337,7 @@ namespace Kratos
         // definition of problem size
         const SizeType number_of_nodes = r_geometry.size();
         const SizeType mat_size = number_of_nodes * 3;
-
+        KRATOS_WATCH(number_of_nodes);
         const auto& r_integration_points = r_geometry.IntegrationPoints();
 
         for (IndexType point_number = 0; point_number < r_integration_points.size(); ++point_number) {
@@ -384,9 +384,8 @@ namespace Kratos
                 kinematic_variables);
            double detJ = GetGeometry().DeterminantOfJacobian(point_number);
 
-           KRATOS_WATCH(BMembrane)
-           KRATOS_WATCH(BCurvature)
-           KRATOS_WATCH(Nstress) 
+       
+
 
           for(IndexType i=0; i<BMembrane.size1(); i++)
           for(IndexType j=0; j<BMembrane.size2(); j++)
@@ -639,7 +638,7 @@ namespace Kratos
             }
         }
         KRATOS_CATCH("")
-        KRATOS_WATCH("checkpoint 16")
+        
     }
 
     ///@}
@@ -877,39 +876,43 @@ namespace Kratos
 
 
 
-{
-    const SizeType number_of_control_points = GetGeometry().size();
-    const SizeType mat_size = number_of_control_points * 3; 
+       {
+         const SizeType number_of_control_points = GetGeometry().size();
+         const SizeType mat_size = number_of_control_points * 3; 
  
          const auto& r_geometry = GetGeometry();
-         Vector N1;
-         Vector N2;
-         Vector N3;
- const SizeType number_of_points = GetGeometry().size();
- const array_1d<double, 3> coords ;
-for (IndexType k = 0; k < number_of_points; k++)
-      { const array_1d<double, 3> coords = GetGeometry()[k].Coordinates();
-        r_geometry.ShapeFunctionsValuesLowerOrder1(N1, coords) ;
-        r_geometry.ShapeFunctionsValuesLowerOrder2(N2,coords);
-        r_geometry.ShapeFunctionsValuesLowerOrderAll(N3,coords);
- }
+         const auto& r_integration_points = r_geometry.IntegrationPoints();
+         const auto& r_gp = r_integration_points[IntegrationPointIndex];
+         Vector N;
+         Vector N_1;
+         Vector N_2;
+         Vector N_3;
+          r_geometry.ShapeFunctionsValues(N,r_gp) ;
+          r_geometry.ShapeFunctionsValuesLowerOrder1(N_1,r_gp) ;
+          r_geometry.ShapeFunctionsValuesLowerOrder2(N_2,r_gp);
+          r_geometry.ShapeFunctionsValuesLowerOrderAll(N_3,r_gp);
+          KRATOS_WATCH(N_1);
+          KRATOS_WATCH(N_2);
+          KRATOS_WATCH(N_3);
+          KRATOS_WATCH(N);
+          KRATOS_WATCH(number_of_control_points);
 
 
 
 
- noalias(rN_sigma) = ZeroMatrix(3, mat_size);
+       
 
- if (rN_sigma.size1() != 3 || rN_sigma.size2() != mat_size)
- rN_sigma.resize(3, mat_size);
- 
+        if (rN_sigma.size1() != 3 || rN_sigma.size2() != mat_size)
+        rN_sigma.resize(3, mat_size);
+         noalias(rN_sigma) = ZeroMatrix(3, mat_size);
 
- for (IndexType k=0; k<number_of_control_points; ++k) {
+        for (IndexType k=0; k<number_of_control_points; ++k) {
 
- rN_sigma(0, 3*k + 0) = N1[k];
- rN_sigma(1, 3*k + 1) = N2[k];
- rN_sigma(2, 3*k + 2) = N3[k];
- }
-
+        rN_sigma(0, 3*k + 0) = N_1[k];
+        rN_sigma(1, 3*k + 1) = N_2[k];
+        rN_sigma(2, 3*k + 2) = N_3[k];
+        }
+        
 }
 
     void Shell3pMixedElement::CalculateBCurvature(

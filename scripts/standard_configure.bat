@@ -30,14 +30,14 @@ set KRATOS_APPLICATIONS=
 CALL :add_app %KRATOS_APP_DIR%\LinearSolversApplication;
 CALL :add_app %KRATOS_APP_DIR%\IgaApplication;
 CALL :add_app %KRATOS_APP_DIR%\FluidDynamicsApplication;
-
+CALL :add_app %KRATOS_APP_DIR%\StructuralMechanicsApplication;
 rem Clean
 del /F /Q "%KRATOS_BUILD%\%KRATOS_BUILD_TYPE%\cmake_install.cmake"
 del /F /Q "%KRATOS_BUILD%\%KRATOS_BUILD_TYPE%\CMakeCache.txt"
 del /F /Q "%KRATOS_BUILD%\%KRATOS_BUILD_TYPE%\CMakeFiles"
 
 rem Enable this if your build is slow and you have a multi-core machine
-set KRATOS_PARALLEL_BUILD_FLAG=/MP12
+set KRATOS_PARALLEL_BUILD_FLAG=/MP10
 
 rem Configure
 @echo on
