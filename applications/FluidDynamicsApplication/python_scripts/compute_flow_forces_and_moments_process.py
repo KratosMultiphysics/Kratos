@@ -108,6 +108,7 @@ class ComputeFlowForcesAndMomentsProcess(KratosMultiphysics.Process):
 
                 # not formatting time in order to not lead to problems with time recognition
                 # in the file writer when restarting
+                time_str = format(current_time, self.format) 
                 if self.write_flow_forces_output_file:
                     if self.write_flow_moments_output_file:
                         self.output_file.write(
