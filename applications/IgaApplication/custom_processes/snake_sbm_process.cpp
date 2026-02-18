@@ -79,8 +79,9 @@ void SnakeSbmProcess::CreateTheSnakeCoordinates(bool RemoveIslands)
             CreateTheSnakeCoordinates<false>(*mpSkinModelPartOuterInitial, 1, mLambdaOuter, mEchoLevel, *mpIgaModelPart, *mpSkinModelPart, mNumberInitialPointsIfImportingNurbs, false);
         }
     }
-    
-}   
+}    
+
+
 
 void SnakeSbmProcess::GenerateOuterInitialFromSurrogateInner()
 {
@@ -646,9 +647,22 @@ void SnakeSbmProcess::CreateTheSnakeCoordinates(
             // check the last point of the curve
             if (norm_2(second_point_coords - r_skin_sub_model_part.GetNode(first_node_id)) < 1e-15)
             {
-                Node& r_last_node = r_skin_sub_model_part.GetNode(first_node_id);
+                const int last_node_id = r_skin_sub_model_part.GetRootModelPart().NumberOfNodes();
+                Condition* p_closing_condition = nullptr;
+                for (auto cond_it = r_skin_sub_model_part.ConditionsEnd(); cond_it != r_skin_sub_model_part.ConditionsBegin();) {
+                    --cond_it;
+                    if (cond_it->GetGeometry()[1].Id() == last_node_id) {
+                        p_closing_condition = &(*cond_it);
+                        break;
+                    }
+                }
+                KRATOS_ERROR_IF(!p_closing_condition) << "[SnakeSbmProcess] Could not locate closing condition." << std::endl;
+
+                auto p_first_node = r_skin_sub_model_part.pGetNode(first_node_id);
+                p_closing_condition->GetGeometry()(1) = p_first_node;
 
                 // cut sbm modifications 
+                Node& r_last_node = r_skin_sub_model_part.GetNode(first_node_id);
                 std::string layer_name = p_curve->GetValue(IDENTIFIER);
                 std::string condition_name = p_curve->GetValue(CONDITION_NAME);
                 auto connected_layers = r_last_node.GetValue(CONNECTED_LAYERS);
@@ -658,6 +672,8 @@ void SnakeSbmProcess::CreateTheSnakeCoordinates(
 
                 r_last_node.SetValue(CONNECTED_LAYERS, connected_layers);
                 r_last_node.SetValue(CONNECTED_CONDITIONS, connected_condition_names);
+
+                r_skin_sub_model_part.RemoveNodeFromAllLevels(last_node_id);
 
                 first_node_id = r_skin_sub_model_part.GetRootModelPart().NumberOfNodes()+1;
                 new_inner_loop = true;
@@ -885,13 +901,19 @@ void SnakeSbmProcess::SnakeStepNurbs(
                                                          std::pow((xy_true_boundary_split[1] - rConditionCoordinates[1][0]),2)); 
                 
                 // exactly passing trough a diagonal vertex 
-                const double minumum_length = std::min(rKnotStepUV[0]/100, rKnotStepUV[1]/100); 
+                const double minumum_length = std::min(rKnotStepUV[0]/5000000, rKnotStepUV[1]/5000000); //TODO: to assest in future PR
                 if (split_segment_length <= minumum_length)
                 {
                     KRATOS_WARNING("[SnakeSbmProcess] :: one skin segment is exactly passing trough a diagonal vertex");
                     // -> we mark an arbitrary knot span (the one with the x of the first point and the y of the second point) as cut.
                     knot_span_u_point_split = rKnotSpansUV[0][0];
                     knot_span_v_point_split = rKnotSpansUV[1][1];
+
+
+                    // TODO:: check thorugh diagonal. Assest in future PR 
+                    rKnotSpansAvailable[IdMatrix][rKnotSpansUV[1][0]][rKnotSpansUV[0][0]] = 2;
+                    rKnotSpansAvailable[IdMatrix][rKnotSpansUV[1][0]][rKnotSpansUV[0][1]] = 2;
+                    rKnotSpansAvailable[IdMatrix][rKnotSpansUV[1][1]][rKnotSpansUV[0][0]] = 2;
                 }
             }
 
@@ -1067,7 +1089,26 @@ bool SnakeSbmProcess::IsPointInsideSkinBoundary(
         const Node& r_prev_first_node = r_condition_previous.GetGeometry()[0];
         const Node& r_prev_second_node = r_condition_previous.GetGeometry()[1];
 
-        if (SegmentsIntersect(temp_point, r_main_second_node, r_prev_first_node, r_prev_second_node)) {
+        const double extension_length = 1e10;
+
+        const auto& r_main_first_node = r_condition_main.GetGeometry()[0];
+        array_1d<double, 3> main_extended_coordinates = r_main_second_node.Coordinates();
+        array_1d<double, 3> main_direction = r_main_second_node - r_main_first_node;
+        const double main_direction_norm = norm_2(main_direction);
+        if (main_direction_norm != 0.0) {
+            main_extended_coordinates += (main_direction / main_direction_norm) * extension_length;
+        }
+        const Node main_extended_node(0, main_extended_coordinates[0], main_extended_coordinates[1], main_extended_coordinates[2]);
+
+        array_1d<double, 3> prev_extended_coordinates = r_prev_first_node.Coordinates();
+        array_1d<double, 3> prev_direction = r_prev_first_node - r_prev_second_node;
+        const double prev_direction_norm = norm_2(prev_direction);
+        if (prev_direction_norm != 0.0) {
+            prev_extended_coordinates += (prev_direction / prev_direction_norm) * extension_length;
+        }
+        const Node prev_extended_node(0, prev_extended_coordinates[0], prev_extended_coordinates[1], prev_extended_coordinates[2]);
+        
+        if (SegmentsIntersect(temp_point, main_extended_node, prev_extended_node, r_prev_second_node)) {
             return cross_product_previous_z > 0.0;
         }
     }
@@ -1263,7 +1304,7 @@ void SnakeSbmProcess::CreateSurrogateBuondaryFromSnakeInner(
 
                     IndexType id_node_1 = id_surrogate_first_node + node1_i + node1_j*rNumberKnotSpans[0];
                     IndexType id_node_2 = id_surrogate_first_node + node2_i + node2_j*rNumberKnotSpans[0];
-                        
+
                     auto p_condition = rSurrogateModelPartInner.CreateNewCondition("LineCondition2D2N", id_surrogate_condition, {{id_node_2, id_node_1}}, p_cond_prop );
 
                     // BOUNDARY true means that the condition (i.e. the sbm face) is entering looking from x,y,z positive
@@ -1282,7 +1323,7 @@ void SnakeSbmProcess::CreateSurrogateBuondaryFromSnakeInner(
 
                 IndexType id_node_1 = id_surrogate_first_node + node1_i + node1_j*rNumberKnotSpans[0]; 
                 IndexType id_node_2 = id_surrogate_first_node + node2_i + node2_j*rNumberKnotSpans[0];
-                    
+
                 auto p_condition = rSurrogateModelPartInner.CreateNewCondition("LineCondition2D2N", id_surrogate_condition, {{id_node_2, id_node_1}}, p_cond_prop );
                 id_surrogate_condition++;
                 check_next_point = true;
@@ -1312,7 +1353,7 @@ void SnakeSbmProcess::CreateSurrogateBuondaryFromSnakeInner(
 
                     IndexType id_node_1 = id_surrogate_first_node + node1_i + node1_j*rNumberKnotSpans[0];
                     IndexType id_node_2 = id_surrogate_first_node + node2_i + node2_j*rNumberKnotSpans[0];
-                        
+  
                     auto p_condition = rSurrogateModelPartInner.CreateNewCondition("LineCondition2D2N", id_surrogate_condition, {{id_node_1, id_node_2}}, p_cond_prop );
                     // BOUNDARY true means that the condition (i.e. the sbm face) is entering looking from x,y,z positive
                     p_condition->Set(BOUNDARY, false);
@@ -1343,7 +1384,6 @@ void SnakeSbmProcess::CreateSurrogateBuondaryFromSnakeInner(
 
     // Create "fictituos element" to store starting and ending condition id for each surrogate boundary loop
     IndexType elem_id = rSurrogateModelPartInner.GetRootModelPart().NumberOfElements()+1;
-
     IndexType id_surrogate_last_condition = id_surrogate_condition-1;
     std::vector<ModelPart::IndexType> elem_nodes{id_surrogate_first_condition, id_surrogate_last_condition};
     rSurrogateModelPartInner.CreateNewElement("Element2D2N", elem_id, elem_nodes, p_cond_prop);
