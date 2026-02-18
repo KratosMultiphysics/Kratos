@@ -116,6 +116,12 @@ def test_model():
 
     return model
 
+@pytest.fixture(autouse=True)
+def test_clean_modelpart(test_modelpart):
+    VariableUtils().SetHistoricalVariableToZero(NORMAL, test_modelpart.Nodes)
+
+    return test_modelpart
+
 class TestNormalUtilsEmptyModelPart():
     @pytest.fixture(scope="class", autouse=True)
     def test_modelpart(self, test_model):
@@ -135,12 +141,6 @@ class TestNormalUtilsEmptyModelPart():
         yield modelpart
         
         RemoveFiles(modelpart_name)
-
-    @pytest.fixture(autouse=True)
-    def test_clean_modelpart(self, test_modelpart):
-        VariableUtils().SetHistoricalVariableToZero(NORMAL, test_modelpart.Nodes)
-
-        return test_modelpart
 
     def test_ComputeSimplexNormalModelPart(self, test_clean_modelpart):
         NormalCalculationUtils().CalculateOnSimplex(test_clean_modelpart)
@@ -304,12 +304,6 @@ class TestNormalUtilsQuadSphere():
         
         RemoveFiles(modelpart_name)
 
-    @pytest.fixture(autouse=True)
-    def test_clean_modelpart(self, test_modelpart):
-        VariableUtils().SetHistoricalVariableToZero(NORMAL, test_modelpart.Nodes)
-
-        return test_modelpart
-
     def test_ComputeUnitNormalQuadModelPart(self, test_clean_modelpart):
         NormalCalculationUtils().CalculateUnitNormals(test_clean_modelpart)
 
@@ -335,12 +329,6 @@ class TestNormalUtils2DSymmetricalSquare():
         yield modelpart
         
         RemoveFiles(modelpart_name)
-
-    @pytest.fixture(autouse=True)
-    def test_clean_modelpart(test_modelpart):
-        VariableUtils().SetHistoricalVariableToZero(NORMAL, test_modelpart.Nodes)
-
-        return test_modelpart
 
     def test_CalculateShapeDerivativesOnSimplexConditions2D(self, test_clean_modelpart):
         FiniteDifferenceNormalShapeSensitivity(test_clean_modelpart, [1, 2, 3, 4, 5, 10, 11, 12, 13, 19, 20], 1e-7, 8)
