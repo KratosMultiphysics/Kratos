@@ -153,7 +153,7 @@ class TestNormalUtilsEmptyModelPart():
 
             assert CalculateNorm(normal - solution_normal) < 0.15
 
-    @pytest.mark.skipif(IsDistributedRun(), "This test is designed for serial runs only.")
+    @pytest.mark.skipif(IsDistributedRun(), reason="This test is designed for serial runs only.")
     def test_ComputeSimplexNormalModelPartWithLineCondition(self, test_clean_modelpart):
         # Adding one line, to make sure it is getting ignored
         
@@ -316,7 +316,7 @@ class TestNormalUtilsQuadSphere():
 
 class TestNormalUtils2DSymmetricalSquare():
     @pytest.fixture(scope="class", autouse=True)
-    def test_modelpart(test_model):
+    def test_modelpart(self, test_model):
         modelpart_name = GetFilePath("auxiliar_files_for_python_unittest/mdpa_files/two_dim_symmetrical_square")
         modelpart      = test_model.CreateModelPart("Main")
 
