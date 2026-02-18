@@ -110,20 +110,20 @@ def FiniteDifferenceNormalShapeSensitivity(model_part, check_condition_ids, delt
                         condition, i * dimensionality + 2, analytical_normal_shape_sensitivities)
                     node.Z -= delta
 
-@pytest.fixture(scope="class", autouse=True)
+@pytest.fixture(scope="class")
 def test_model():
     model = Model()
 
     return model
 
-@pytest.fixture(autouse=True)
+@pytest.fixture()
 def test_clean_modelpart(test_modelpart):
     VariableUtils().SetHistoricalVariableToZero(NORMAL, test_modelpart.Nodes)
 
     return test_modelpart
 
 class TestNormalUtilsEmptyModelPart():
-    @pytest.fixture(scope="class", autouse=True)
+    @pytest.fixture(scope="class")
     def test_modelpart(self, test_model):
         modelpart_name = GetFilePath("auxiliar_files_for_python_unittest/mdpa_files/coarse_sphere_with_conditions")
         modelpart      = test_model.CreateModelPart("Main")
@@ -220,7 +220,6 @@ class TestNormalUtilsEmptyModelPart():
             assert CalculateNorm(normal - solution_normal) < 0.15
 
     def test_ComputeUnitNormalModelPartNonHistorical(self, test_clean_modelpart):
-        # Calculate the unit normals using NODAL_VAUX as custom variable
         enforce_generic_algorithm = False
         NormalCalculationUtils().CalculateUnitNormalsNonHistorical(
             test_clean_modelpart,
@@ -289,7 +288,7 @@ class TestNormalUtilsEmptyModelPart():
         FiniteDifferenceNormalShapeSensitivity(test_clean_modelpart, [1, 2, 6, 10, 15, 20, 25, 30, 31, 32, 50, 80, 100, 120], 1e-8, 8)
 
 class TestNormalUtilsQuadSphere():
-    @pytest.fixture(scope="class", autouse=True)
+    @pytest.fixture(scope="class")
     def test_modelpart(self, test_model):
         modelpart_name = GetFilePath("auxiliar_files_for_python_unittest/mdpa_files/quad_sphere")
         modelpart      = test_model.CreateModelPart("Main")
@@ -315,7 +314,7 @@ class TestNormalUtilsQuadSphere():
             assert CalculateNorm(normal - solution_normal) < 0.15
 
 class TestNormalUtils2DSymmetricalSquare():
-    @pytest.fixture(scope="class", autouse=True)
+    @pytest.fixture(scope="class")
     def test_modelpart(self, test_model):
         modelpart_name = GetFilePath("auxiliar_files_for_python_unittest/mdpa_files/two_dim_symmetrical_square")
         modelpart      = test_model.CreateModelPart("Main")
