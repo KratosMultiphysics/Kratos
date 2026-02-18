@@ -14,6 +14,8 @@
 #pragma once
 
 #include "contribution_calculators/calculation_contribution.h"
+#include "contribution_calculators/fluid_body_flow_calculator.hpp"
+#include "contribution_calculators/permeability_calculator.hpp"
 #include "contribution_calculators/stiffness_calculator.hpp"
 #include "geo_aliases.h"
 #include "includes/element.h"
@@ -61,9 +63,13 @@ public:
 
     void EquationIdVector(EquationIdVectorType& rResult, const ProcessInfo&) const override;
     void CalculateAndAssignStifnessMatrix(Element::MatrixType& rLeftHandSideMatrix, const ProcessInfo& rProcessInfo);
+    void CalculateAndAssignPermeabilityMatrix(Element::MatrixType& rLeftHandSideMatrix);
     void CalculateLeftHandSide(MatrixType& rLeftHandSideMatrix, const ProcessInfo&) override;
-    void CalculateAndAssignStifnessForceVector(Element::VectorType& rRightHandSideVector,
-                                               const ProcessInfo&   rProcessInfo);
+    void CalculateAndAssembleStifnessForceVector(Element::VectorType& rRightHandSideVector,
+                                                 const ProcessInfo&   rProcessInfo);
+    void CalculateAndAssemblePermeabilityFlowVector(Element::VectorType& rRightHandSideVector);
+    void CalculateAndAssembleFluidBodyFlowVector(Element::VectorType& rRightHandSideVector);
+
     void CalculateRightHandSide(VectorType& rRightHandSideVector, const ProcessInfo&) override;
     void CalculateLocalSystem(MatrixType&        rLeftHandSideMatrix,
                               VectorType&        rRightHandSideVector,
@@ -87,6 +93,7 @@ public:
     const IntegrationScheme& GetIntegrationScheme() const;
 
     const Geometry<Node>& GetDisplacementMidGeometry() const;
+    const Geometry<Node>& GetWaterPressureMidGeometry() const;
 
 private:
     UPwInterfaceElement() = default;
@@ -108,12 +115,24 @@ private:
     Matrix RotateStressToLocalCoordinates(const Geo::IntegrationPointType& rIntegrationPoint,
                                           const Vector& rGlobalStressVector) const;
     Vector ConvertLocalStressToTraction(const Matrix& rLocalStress) const;
+    Vector GetWaterPressureGeometryNodalVariable(const Variable<double>& rVariable) const;
+    Matrix CalculatePwBMatrix(const Geo::IntegrationPointType& rIntegrationPoint,
+                              const Geometry<Node>&            rWaterPressureGeometry) const;
+    Geometry<Node>::ShapeFunctionsGradientsType CalculateLocalPwBMatricesAtIntegrationPoints() const;
+    std::vector<double> CalculateIntegrationPointFluidPressures() const;
+    std::vector<Vector> CalculateProjectedGravity() const;
 
-    Geo::BMatricesGetter               CreateBMatricesGetter() const;
-    Geo::StrainVectorsGetter           CreateRelativeDisplacementsGetter() const;
-    Geo::IntegrationCoefficientsGetter CreateIntegrationCoefficientsGetter() const;
-    Geo::PropertiesGetter              CreatePropertiesGetter() const;
-    Geo::ConstitutiveLawsGetter        CreateConstitutiveLawsGetter() const;
+    Geo::BMatricesGetter                  CreateBMatricesGetter() const;
+    Geo::StrainVectorsGetter              CreateRelativeDisplacementsGetter() const;
+    Geo::IntegrationCoefficientsGetter    CreateIntegrationCoefficientsGetter() const;
+    Geo::PropertiesGetter                 CreatePropertiesGetter() const;
+    Geo::ConstitutiveLawsGetter           CreateConstitutiveLawsGetter() const;
+    Geo::RetentionLawsGetter              CreateRetentionLawsGetter() const;
+    Geo::MaterialPermeabilityMatrixGetter CreateMaterialPermeabilityGetter() const;
+    Geo::NodalValuesGetter                CreateWaterPressureGeometryNodalVariableGetter() const;
+    Geo::ShapeFunctionGradientsGetter     CreatePwBMatricesGetter() const;
+    Geo::IntegrationPointValuesGetter     CreateFluidPressureCalculator() const;
+    std::function<std::vector<Vector>()>  CreateProjectedGravityCalculator() const;
 
     template <unsigned int MatrixSize>
     typename StiffnessCalculator<MatrixSize>::InputProvider CreateStiffnessInputProvider(const ProcessInfo& rProcessInfo);
@@ -125,13 +144,35 @@ private:
     void CalculateAndAssignStiffnessMatrix(MatrixType& rLeftHandSideMatrix, const ProcessInfo& rProcessInfo);
 
     template <unsigned int MatrixSize>
-    void CalculateAndAssignStiffnesForceVector(VectorType& rRightHandSideVector, const ProcessInfo& rProcessInfo);
+    void CalculateAndAssembleStiffnesForceVector(VectorType& rRightHandSideVector, const ProcessInfo& rProcessInfo);
+
+    template <unsigned int TNumNodes>
+    typename PermeabilityCalculator<TNumNodes>::InputProvider CreatePermeabilityInputProvider();
+
+    template <unsigned int TNumNodes>
+    auto CreatePermeabilityCalculator();
+
+    template <unsigned int TnumNodes>
+    void CalculateAndAssignPermeabilityMatrix(MatrixType& rLeftHandSideMatrix);
+
+    template <unsigned int TnumNodes>
+    void CalculateAndAssemblePermeabilityFlowVector(VectorType& rRightHandSideVector);
+
+    template <unsigned int TNumNodes>
+    typename FluidBodyFlowCalculator<TNumNodes>::InputProvider CreateFluidBodyFlowInputProvider();
+
+    template <unsigned int TNumNodes>
+    auto CreateFluidBodyFlowCalculator();
+
+    template <unsigned int TnumNodes>
+    void CalculateAndAssembleFluidBodyFlowVector(VectorType& rRightHandSideVector);
 
     std::function<Matrix(const Geometry<Node>&, const array_1d<double, 3>&)> mfpCalculateRotationMatrix;
 
     std::unique_ptr<IntegrationScheme>    mpIntegrationScheme;
     std::unique_ptr<StressStatePolicy>    mpStressStatePolicy;
     std::vector<ConstitutiveLaw::Pointer> mConstitutiveLaws;
+    std::vector<RetentionLaw::Pointer>    mRetentionLaws;
     IntegrationCoefficientsCalculator     mIntegrationCoefficientsCalculator;
     Geo::GeometryUniquePtr                mpOptionalPressureGeometry;
     std::vector<CalculationContribution>  mContributions;
