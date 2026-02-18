@@ -651,7 +651,7 @@ void SnakeSbmProcess::CreateTheSnakeCoordinates(
                 Condition* p_closing_condition = nullptr;
                 for (auto cond_it = r_skin_sub_model_part.ConditionsEnd(); cond_it != r_skin_sub_model_part.ConditionsBegin();) {
                     --cond_it;
-                    if (cond_it->GetGeometry()[1].Id() == last_node_id) {
+                    if (int(cond_it->GetGeometry()[1].Id()) == last_node_id) {
                         p_closing_condition = &(*cond_it);
                         break;
                     }
