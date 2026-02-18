@@ -3,9 +3,59 @@ import numpy as np
 import KratosMultiphysics as KM
 
 class CFDUtils:
-    def __init__(self):
-        #allocate auxiliary arrays
-        self.aux_array1 = np.empty(0)
+
+    def GetShapeFunctionsOnGaussPoints(self, dim: int, integration_order: int):
+        if integration_order == 1:
+            N = np.ones(dim+1) / (dim+1)
+        elif integration_order == 2:
+            if dim == 2:
+                N = np.array([
+                    [2.0/3.0, 1.0/6.0, 1.0/6.0],
+                    [1.0/6.0, 2.0/3.0, 1.0/6.0],
+                    [1.0/6.0, 1.0/6.0, 2.0/3.0]
+                ])
+            elif dim == 3:
+                N = np.array([
+                    [0.5854101966249685, 0.1381966011250105, 0.1381966011250105, 0.1381966011250105],
+                    [0.1381966011250105, 0.5854101966249685, 0.1381966011250105, 0.1381966011250105],
+                    [0.1381966011250105, 0.1381966011250105, 0.5854101966249685, 0.1381966011250105],
+                    [0.1381966011250105, 0.1381966011250105, 0.1381966011250105, 0.5854101966249685]
+                ])
+            else:
+                raise Exception("Dimension not supported.")
+        else:
+            raise Exception("Integration order not supported.")
+
+        return N
+
+    def GetGaussIntegrationWeights(self, dim: int, integration_order: int):
+        if integration_order == 1:
+            if dim == 2:
+                w = np.array([1.0/2.0])
+            elif dim == 3:
+                w = np.array([1.0/6.0])
+            else:
+                raise Exception("Dimension not supported.")
+        elif integration_order == 2:
+            if dim == 2:
+                w = np.array([
+                    1.0/6.0,
+                    1.0/6.0,
+                    1.0/6.0
+                ])
+            elif dim == 3:
+                w = np.array([
+                    1.0/24.0,
+                    1.0/24.0,
+                    1.0/24.0,
+                    1.0/24.0
+                ])
+            else:
+                raise Exception("Dimension not supported.")
+        else:
+            raise Exception("Integration order not supported.")
+
+        return w
 
     def ComputeElementalDivergence(self, DN: np.ndarray, uel: np.ndarray, out: np.ndarray):
         """
@@ -375,7 +425,7 @@ class CFDUtils:
         #assembling matrix
         A = KM.CsrMatrix(Agraph)
 
-        assembly_indices = A.GetEquationIdCsrIndices(conn) 
+        assembly_indices = A.GetEquationIdCsrIndices(conn)
         return A,assembly_indices
 
     def AssembleScalarMatrix(self,LHSel,conn,A):
@@ -395,30 +445,30 @@ class CFDUtils:
         Maintains symmetry by zeroing both rows and columns of fixed indices.
         """
         n = LHS.Size1()
-        
+
         # 1. Create a boolean lookup for fixed indices (O(1) lookup speed)
         is_fixed = np.zeros(n, dtype=bool)
         is_fixed[fixed_values] = True
-        
+
         # 2. Map every entry in the sparse 'data' array to its row index
         # LHS.indptr tells us where rows start; np.diff tells us how many entries per row
         diff_array = np.diff(LHS.index1_data()).astype(np.int64)
         row_map = np.repeat(np.arange(n), diff_array)
-        
+
         # 3. Create masks for entries in fixed rows and fixed columns
         mask_row = is_fixed[row_map]
         mask_col = is_fixed[LHS.index2_data()]
-        
+
         # 4. Zero out the "Symmetry Cross" (all entries in fixed rows OR columns)
         # This is the most expensive step, done in a single vectorized pass
         LHS.value_data()[mask_row | mask_col] = 0.0
-        
+
         # 5. Restore the diagonal for the fixed rows
         # A diagonal entry is where row_index == column_index
         mask_diag = (row_map == LHS.index2_data()) & mask_row
         LHS.value_data()[mask_diag] = diag_value
-        
+
         # 6. Set RHS to 0 at fixed indices
         RHS[fixed_values] = 0.0
-        
+
         return LHS, RHS
