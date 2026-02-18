@@ -28,6 +28,7 @@
 #include "custom_elements/laplacian_element.h"
 #include "custom_elements/solid_element.h"
 #include "custom_elements/stokes_element.h"
+#include "custom_elements/gap_sbm_solid_element.h"
 
 //conditions
 #include "custom_conditions/output_condition.h"
@@ -49,6 +50,7 @@
 #include "custom_conditions/load_solid_condition.h"
 #include "custom_conditions/sbm_solid_condition.h"
 #include "custom_conditions/sbm_load_solid_condition.h"
+#include "custom_conditions/gap_sbm_solid_interface_condition.h"
 
 
 //modelers
@@ -143,6 +145,7 @@ private:
     const LaplacianElement mLaplacianElement;
     const SolidElement mSolidElement;
     const StokesElement mStokesElement;
+    const GapSbmSolidElement mGapSbmSolidElement;
 
     //Conditions
     const OutputCondition mOutputCondition;
@@ -164,6 +167,7 @@ private:
     const LoadSolidCondition mLoadSolidCondition;
     const SbmSolidCondition mSbmSolidCondition;
     const SbmLoadSolidCondition mSbmLoadSolidCondition;
+    const GapSbmSolidInterfaceCondition mGapSbmSolidInterfaceCondition;
 
 
     // Modelers

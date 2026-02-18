@@ -3351,7 +3351,7 @@ const Parameters SnakeGapSbmProcess::GetValidParameters() const
         "skin_model_part_outer_initial_name": "initial_skin_model_part_out",    
         "skin_model_part_inner_initial_name": "initial_skin_model_part_in",           
         "skin_model_part_name": "skin_model_part",
-        "gap_element_name": "CutSbmSolidElement",
+        "gap_element_name": "GapSbmSolidElement",
         "gap_interface_condition_name": "CutSbmSolidInterfaceCondition"
     })");
 }

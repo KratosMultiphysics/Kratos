@@ -38,6 +38,8 @@ KratosIgaApplication::KratosIgaApplication()
         new Geometry<Node>(Element::GeometryType::PointsArrayType(1))))
     , mStokesElement(0, Element::GeometryType::Pointer(
         new Geometry<Node>(Element::GeometryType::PointsArrayType(1))))
+    , mGapSbmSolidElement(0, Element::GeometryType::Pointer(
+        new Geometry<Node>(Element::GeometryType::PointsArrayType(1))))
     , mOutputCondition(0, Condition::GeometryType::Pointer(
         new Geometry<Node>(Condition::GeometryType::PointsArrayType(1))))
     , mLoadCondition(0, Condition::GeometryType::Pointer(
@@ -72,6 +74,8 @@ KratosIgaApplication::KratosIgaApplication()
         new Geometry<Node>(Condition::GeometryType::PointsArrayType(1))))
     , mLoadSolidCondition(0, Condition::GeometryType::Pointer(
         new Geometry<Node>(Condition::GeometryType::PointsArrayType(1))))
+    , mGapSbmSolidInterfaceCondition(0, Condition::GeometryType::Pointer(
+        new Geometry<Node>(Condition::GeometryType::PointsArrayType(1))))
 {
 }
 
@@ -97,6 +101,7 @@ KRATOS_INFO("") << "    KRATOS  _____ _____\n"
     KRATOS_REGISTER_ELEMENT("LaplacianElement", mLaplacianElement)
     KRATOS_REGISTER_ELEMENT("SolidElement", mSolidElement)
     KRATOS_REGISTER_ELEMENT("StokesElement", mStokesElement)
+    KRATOS_REGISTER_ELEMENT("GapSbmSolidElement", mGapSbmSolidElement)
 
     // CONDITIONS
     KRATOS_REGISTER_CONDITION("OutputCondition", mOutputCondition)
@@ -118,6 +123,7 @@ KRATOS_INFO("") << "    KRATOS  _____ _____\n"
     KRATOS_REGISTER_CONDITION("LoadSolidCondition", mLoadSolidCondition)
     KRATOS_REGISTER_CONDITION("SbmSolidCondition", mSbmSolidCondition)
     KRATOS_REGISTER_CONDITION("SbmLoadSolidCondition", mSbmLoadSolidCondition)
+    KRATOS_REGISTER_CONDITION("GapSbmSolidInterfaceCondition", mGapSbmSolidInterfaceCondition)
 
 
     KRATOS_REGISTER_MODELER("IgaModeler", mIgaModeler);
@@ -209,6 +215,7 @@ KRATOS_INFO("") << "    KRATOS  _____ _____\n"
     KRATOS_REGISTER_VARIABLE(KNOT_SPAN_SIZES)
     KRATOS_REGISTER_VARIABLE(PARAMETER_SPACE_CORNERS)
     KRATOS_REGISTER_VARIABLE(PROJECTION_NODE)
+    KRATOS_REGISTER_VARIABLE(PROJECTION_NODE_COORDINATES)
     KRATOS_REGISTER_VARIABLE(NEIGHBOUR_GEOMETRIES)
     KRATOS_REGISTER_VARIABLE(PROJECTION_NODE_ID)
     KRATOS_REGISTER_VARIABLE(CONNECTED_LAYERS)
