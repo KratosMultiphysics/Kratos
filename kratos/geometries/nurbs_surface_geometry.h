@@ -570,7 +570,7 @@ public:
         NurbsInterval KnotSpanV) const
     {
         // Initialize containers.
-        KRATOS_WATCH("I AM HERE?")
+        // KRATOS_WATCH("I AM HERE?")
         IntegrationPointsContainerType integration_points;
 
         typename IntegrationPointsArrayType::iterator integration_point_iterator = rIntegrationPoints.begin();
@@ -828,8 +828,8 @@ public:
             for (IndexType i = 0; i < knot_span_intervals_u.size(); ++i) {
                 for (IndexType j = 0; j < knot_span_intervals_v.size(); ++j) {
 
-                    KRATOS_WATCH(i)
-                    KRATOS_WATCH(j)
+                    // KRATOS_WATCH(i)
+                    // KRATOS_WATCH(j)
 
                     GeometriesArrayType result_geometries_per_span;
 
