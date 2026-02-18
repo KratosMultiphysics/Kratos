@@ -58,7 +58,7 @@ private:
     [[nodiscard]] Geo::SigmaTau CalculateTrialTractionVector(const Vector& rRelativeDisplacementVector,
                                                              double NormalStiffness,
                                                              double ShearStiffness) const;
-    [[nodiscard]] Matrix CalculateElasticContitativeMatrix(const Properties& rMaterialProperties) const;
+    [[nodiscard]] Matrix CalculateElasticConstitutiveMatrix(const Properties& rMaterialProperties) const;
 
     friend class Serializer;
     void save(Serializer& rSerializer) const override;

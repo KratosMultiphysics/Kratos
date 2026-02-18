@@ -46,10 +46,12 @@ public:
     [[nodiscard]] Vector DerivativeOfFlowFunction(const Geo::PrincipalStresses&,
                                                   YieldSurfaceAveragingType AveragingType) const;
 
-    [[nodiscard]] double CalculatePlasticMultiplier(const Geo::SigmaTau& rSigmaTau,
-                                                    const Vector& rDerivativeOfFlowFunction) const;
-    [[nodiscard]] double CalculatePlasticMultiplier(const Geo::PrincipalStresses& rPrincipalStresses,
-                                                    const Vector& rDerivativeOfFlowFunction) const;
+    [[nodiscard]] double CalculatePlasticMultiplier(const Geo::SigmaTau& rTrialSigmaTau,
+                                                    const Vector&        rDerivativeOfFlowFunction,
+                                                    const Matrix&        rElasticMatrix) const;
+    [[nodiscard]] double CalculatePlasticMultiplier(const Geo::PrincipalStresses& rTrialPrincipalStresses,
+                                                    const Vector& rDerivativeOfFlowFunction,
+                                                    const Matrix& rElasticMatrix) const;
 
 private:
     friend class Serializer;

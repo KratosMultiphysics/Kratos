@@ -199,55 +199,60 @@ void CoulombYieldSurface::InitializeKappaDependentFunctions()
     mDilatancyAngleCalculator = MakeDilatancyAngleCalculator(mMaterialProperties);
 }
 
-double CoulombYieldSurface::CalculatePlasticMultiplier(const Geo::SigmaTau& rSigmaTau,
-                                                       const Vector& rDerivativeOfFlowFunction) const
+double CoulombYieldSurface::CalculatePlasticMultiplier(const Geo::SigmaTau& rTrialSigmaTau,
+                                                       const Vector& rDerivativeOfFlowFunction,
+                                                       const Matrix& rElasticMatrix) const
 {
-    const auto sin_phi = std::sin(GetFrictionAngleInRadians());
-    const auto numerator =
-        sin_phi * rDerivativeOfFlowFunction[0] * mMaterialProperties[INTERFACE_NORMAL_STIFFNESS] +
-        rDerivativeOfFlowFunction[1] * mMaterialProperties[INTERFACE_SHEAR_STIFFNESS];
-    return -YieldFunctionValue(rSigmaTau) / numerator;
+    const auto sin_phi   = std::sin(GetFrictionAngleInRadians());
+    const auto numerator = rElasticMatrix(0, 0) * rDerivativeOfFlowFunction[0] * sin_phi +
+                           rElasticMatrix(1, 1) * rDerivativeOfFlowFunction[1];
+    return -YieldFunctionValue(rTrialSigmaTau) / numerator;
 }
 
-double CoulombYieldSurface::CalculatePlasticMultiplier(const Geo::PrincipalStresses& rPrincipalStresses,
-                                                       const Vector& rDerivativeOfFlowFunction) const
+double CoulombYieldSurface::CalculatePlasticMultiplier(const Geo::PrincipalStresses& rTrialPrincipalStresses,
+                                                       const Vector& rDerivativeOfFlowFunction,
+                                                       const Matrix& rElasticMatrix) const
 {
     const auto sin_phi = std::sin(GetFrictionAngleInRadians());
-    const auto poisson = mMaterialProperties[POISSON_RATIO];
-    const auto c1 =
-        (rDerivativeOfFlowFunction[0] - rDerivativeOfFlowFunction[2]) * (1.0 - 2.0 * poisson) / 2.0;
-    const auto c2 = (rDerivativeOfFlowFunction[0] + 2.0 * poisson * rDerivativeOfFlowFunction[1] +
-                     rDerivativeOfFlowFunction[2]) *
+    const auto c1      = (inner_prod(row(rElasticMatrix, 0), rDerivativeOfFlowFunction) -
+                     inner_prod(row(rElasticMatrix, 2), rDerivativeOfFlowFunction)) /
+                    2.0;
+    const auto c2 = (inner_prod(row(rElasticMatrix, 0), rDerivativeOfFlowFunction) +
+                     inner_prod(row(rElasticMatrix, 2), rDerivativeOfFlowFunction)) *
                     sin_phi / 2.0;
-    return -YieldFunctionValue(rPrincipalStresses) / (c1 + c2);
+    return -YieldFunctionValue(rTrialPrincipalStresses) / (c1 + c2);
 }
 
-double CoulombYieldSurface::CalculateEquivalentPlasticStrainIncrement(const Geo::SigmaTau& rSigmaTau,
-                                                                      YieldSurfaceAveragingType AveragingType) const
+double CoulombYieldSurface::CalculateEquivalentPlasticStrainIncrement(const Geo::SigmaTau& rTrialSigmaTau,
+                                                                      YieldSurfaceAveragingType AveragingType,
+                                                                      const Matrix& rElasticMatrix) const
 {
-    const auto derivative              = DerivativeOfFlowFunction(rSigmaTau, AveragingType);
-    const auto principal_stress_vector = UblasUtilities::CreateVector(
-        {(derivative[0] + derivative[1]) / 2.0, 0.0, (derivative[0] - derivative[1]) / 2.0});
+    const auto derivative_of_G_to_sigma = DerivativeOfFlowFunction(rTrialSigmaTau, AveragingType);
+    const auto principal_stress_vector  = UblasUtilities::CreateVector(
+        {(derivative_of_G_to_sigma[0] + derivative_of_G_to_sigma[1]) / 2.0, 0.0,
+          (derivative_of_G_to_sigma[0] - derivative_of_G_to_sigma[1]) / 2.0});
     const auto mean = std::accumulate(principal_stress_vector.begin(), principal_stress_vector.end(), 0.0) /
                       static_cast<double>(principal_stress_vector.size());
     auto deviatoric_principle_stress_vector = Vector{3};
     std::ranges::transform(principal_stress_vector, deviatoric_principle_stress_vector.begin(),
                            [mean](auto sigma) { return sigma - mean; });
     return -std::sqrt(2.0 / 3.0) * MathUtils<>::Norm(deviatoric_principle_stress_vector) *
-           CalculatePlasticMultiplier(rSigmaTau, DerivativeOfFlowFunction(rSigmaTau, AveragingType));
+           CalculatePlasticMultiplier(
+               rTrialSigmaTau, DerivativeOfFlowFunction(rTrialSigmaTau, AveragingType), rElasticMatrix);
 }
 
-double CoulombYieldSurface::CalculateEquivalentPlasticStrainIncrement(const Geo::PrincipalStresses& rPrincipalStresses,
-                                                                      YieldSurfaceAveragingType AveragingType) const
+double CoulombYieldSurface::CalculateEquivalentPlasticStrainIncrement(const Geo::PrincipalStresses& rTrialPrincipalStresses,
+                                                                      YieldSurfaceAveragingType AveragingType,
+                                                                      const Matrix& rElasticMatrix) const
 {
-    const auto derivative = DerivativeOfFlowFunction(rPrincipalStresses, AveragingType);
-    const auto mean       = std::accumulate(derivative.begin(), derivative.end(), 0.0) /
-                      static_cast<double>(derivative.size());
+    const auto derivative_of_G_to_sigma = DerivativeOfFlowFunction(rTrialPrincipalStresses, AveragingType);
+    const auto mean = std::accumulate(derivative_of_G_to_sigma.begin(), derivative_of_G_to_sigma.end(), 0.0) /
+                      static_cast<double>(derivative_of_G_to_sigma.size());
     auto deviatoric_principle_stress_vector = Vector{3};
-    std::ranges::transform(derivative, deviatoric_principle_stress_vector.begin(),
+    std::ranges::transform(derivative_of_G_to_sigma, deviatoric_principle_stress_vector.begin(),
                            [mean](auto sigma) { return sigma - mean; });
     return -std::sqrt(2.0 / 3.0) * MathUtils<>::Norm(deviatoric_principle_stress_vector) *
-           CalculatePlasticMultiplier(rPrincipalStresses, derivative);
+           CalculatePlasticMultiplier(rTrialPrincipalStresses, derivative_of_G_to_sigma, rElasticMatrix);
 }
 
 void CoulombYieldSurface::CheckMaterialProperties() const

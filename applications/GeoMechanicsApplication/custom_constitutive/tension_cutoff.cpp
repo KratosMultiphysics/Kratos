@@ -96,21 +96,21 @@ Vector TensionCutoff::DerivativeOfFlowFunction(const Geo::PrincipalStresses&,
     return result;
 }
 
-double TensionCutoff::CalculatePlasticMultiplier(const Geo::SigmaTau& rSigmaTau,
-                                                 const Vector& rDerivativeOfFlowFunction) const
+double TensionCutoff::CalculatePlasticMultiplier(const Geo::SigmaTau& rTrialSigmaTau,
+                                                 const Vector&        rDerivativeOfFlowFunction,
+                                                 const Matrix&        rElasticMatrix) const
 {
-    const auto numerator = mMaterialProperties[INTERFACE_NORMAL_STIFFNESS] * rDerivativeOfFlowFunction[0] +
-                           mMaterialProperties[INTERFACE_SHEAR_STIFFNESS] * rDerivativeOfFlowFunction[1];
-    return -YieldFunctionValue(rSigmaTau) / numerator;
+    const auto numerator = rElasticMatrix(0, 0) * rDerivativeOfFlowFunction[0] +
+                           rElasticMatrix(1, 1) * rDerivativeOfFlowFunction[1];
+    return -YieldFunctionValue(rTrialSigmaTau) / numerator;
 }
 
-double TensionCutoff::CalculatePlasticMultiplier(const Geo::PrincipalStresses& rPrincipalStresses,
-                                                 const Vector& rDerivativeOfFlowFunction) const
+double TensionCutoff::CalculatePlasticMultiplier(const Geo::PrincipalStresses& rTrialPrincipalStresses,
+                                                 const Vector& rDerivativeOfFlowFunction,
+                                                 const Matrix& rElasticMatrix) const
 {
-    const auto poisson = mMaterialProperties[POISSON_RATIO];
-    const auto numerator =
-        rDerivativeOfFlowFunction[0] * (1.0 - poisson) + rDerivativeOfFlowFunction[1] * poisson;
-    return -YieldFunctionValue(rPrincipalStresses) / numerator;
+    const auto numerator = inner_prod(row(rElasticMatrix, 0), rDerivativeOfFlowFunction);
+    return -YieldFunctionValue(rTrialPrincipalStresses) / numerator;
 }
 
 void TensionCutoff::save(Serializer& rSerializer) const
