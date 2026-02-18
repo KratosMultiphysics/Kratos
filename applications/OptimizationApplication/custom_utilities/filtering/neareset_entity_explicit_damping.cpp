@@ -130,7 +130,7 @@ void NearestEntityExplicitDamping<TContainerType>::Update()
             const auto& kernel_function = *mpKernelFunction;
 
             // now calculate the damping for each entity
-            IndexPartition<IndexType>(r_container.size()).for_each([this, &r_container, &p_search_tree, &kernel_function, &radius_view, stride, i_comp](const auto Index){
+            IndexPartition<IndexType>(r_container.size()).for_each([this, &r_container, &p_search_tree, &kernel_function, &radius_view, i_comp](const auto Index){
                 EntityPointType entity_point(*(r_container.begin() + Index), Index);
                 const auto radius = radius_view[Index];
 
