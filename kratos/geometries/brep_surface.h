@@ -573,86 +573,86 @@ public:
             for (IndexType i = 0; i < knot_span_intervals_u.size(); ++i) {
                 for (IndexType j = 0; j < knot_span_intervals_v.size(); ++j) {
 
-                    KRATOS_WATCH(i)
-                    KRATOS_WATCH(j)
+                    // KRATOS_WATCH(i)
+                    // KRATOS_WATCH(j)
 
                     GeometriesArrayType result_geometries_per_span;
 
-                    ////////////////////////////Testing///////////////////////////////////////////
-                    // shape function container.
-                    NurbsSurfaceShapeFunction shape_function_container(
-                        mpNurbsSurface->PolynomialDegreeU(), mpNurbsSurface->PolynomialDegreeV(), NumberOfShapeFunctionDerivatives);
+                    // ////////////////////////////Testing///////////////////////////////////////////
+                    // // shape function container.
+                    // NurbsSurfaceShapeFunction shape_function_container(
+                    //     mpNurbsSurface->PolynomialDegreeU(), mpNurbsSurface->PolynomialDegreeV(), NumberOfShapeFunctionDerivatives);
 
-                    auto default_method = this->GetDefaultIntegrationMethod();
-                    SizeType num_nonzero_cps = shape_function_container.NumberOfNonzeroControlPoints();
-                    const SizeType num_points = IntegrationPoints.size();
-                    KRATOS_ERROR_IF(num_points < 1) << "List of integration points is empty.\n";
+                    // auto default_method = this->GetDefaultIntegrationMethod();
+                    // SizeType num_nonzero_cps = shape_function_container.NumberOfNonzeroControlPoints();
+                    // const SizeType num_points = IntegrationPoints.size();
+                    // KRATOS_ERROR_IF(num_points < 1) << "List of integration points is empty.\n";
 
-                    // Initialize containers.
-                    IntegrationPointsContainerType integration_points;
-                    ShapeFunctionsValuesContainerType shape_function_values;
-                    ShapeFunctionsDerivativesContainerType shape_function_derivatives;
+                    // // Initialize containers.
+                    // IntegrationPointsContainerType integration_points;
+                    // ShapeFunctionsValuesContainerType shape_function_values;
+                    // ShapeFunctionsDerivativesContainerType shape_function_derivatives;
 
-                    integration_points[0] = IntegrationPoints;
-                    shape_function_values[0].resize(IntegrationPoints.size(), num_nonzero_cps);
-                    shape_function_derivatives[0].resize(NumberOfShapeFunctionDerivatives - 1);
+                    // integration_points[0] = IntegrationPoints;
+                    // shape_function_values[0].resize(IntegrationPoints.size(), num_nonzero_cps);
+                    // shape_function_derivatives[0].resize(NumberOfShapeFunctionDerivatives - 1);
 
-                    for (IndexType i = 0; i < NumberOfShapeFunctionDerivatives - 1; ++i) {
-                        shape_function_derivatives[0][i].resize(num_points);
-                    }
-                    for (IndexType i = 0; i < NumberOfShapeFunctionDerivatives - 1; ++i) {
-                        for( IndexType i_point = 0; i_point < num_points; ++i_point){
-                            shape_function_derivatives[0][i][i_point].resize(num_nonzero_cps, i + 2);
-                        }
-                    }
+                    // for (IndexType i = 0; i < NumberOfShapeFunctionDerivatives - 1; ++i) {
+                    //     shape_function_derivatives[0][i].resize(num_points);
+                    // }
+                    // for (IndexType i = 0; i < NumberOfShapeFunctionDerivatives - 1; ++i) {
+                    //     for( IndexType i_point = 0; i_point < num_points; ++i_point){
+                    //         shape_function_derivatives[0][i][i_point].resize(num_nonzero_cps, i + 2);
+                    //     }
+                    // }
 
-                    for (IndexType i_point = 0; i_point < num_points; ++i_point)
-                    {
-                        if (mpNurbsSurface->IsRational()) {
-                            shape_function_container.ComputeNurbsShapeFunctionValues(
-                                mpNurbsSurface->KnotsU(), mpNurbsSurface->KnotsV(), mpNurbsSurface->Weights(), IntegrationPoints[i_point][0], IntegrationPoints[i_point][1]);
-                        }
-                        else {
-                            shape_function_container.ComputeBSplineShapeFunctionValues(
-                                mpNurbsSurface->KnotsU(), mpNurbsSurface->KnotsV(), IntegrationPoints[i_point][0], IntegrationPoints[i_point][1]);
-                        }
+                    // for (IndexType i_point = 0; i_point < num_points; ++i_point)
+                    // {
+                    //     if (mpNurbsSurface->IsRational()) {
+                    //         shape_function_container.ComputeNurbsShapeFunctionValues(
+                    //             mpNurbsSurface->KnotsU(), mpNurbsSurface->KnotsV(), mpNurbsSurface->Weights(), IntegrationPoints[i_point][0], IntegrationPoints[i_point][1]);
+                    //     }
+                    //     else {
+                    //         shape_function_container.ComputeBSplineShapeFunctionValues(
+                    //             mpNurbsSurface->KnotsU(), mpNurbsSurface->KnotsV(), IntegrationPoints[i_point][0], IntegrationPoints[i_point][1]);
+                    //     }
 
-                        /// Get Shape Functions.
-                        for (IndexType j = 0; j < num_nonzero_cps; ++j) {
-                            shape_function_values[0](i_point, j) = shape_function_container(j, 0);
-                        }
+                    //     /// Get Shape Functions.
+                    //     for (IndexType j = 0; j < num_nonzero_cps; ++j) {
+                    //         shape_function_values[0](i_point, j) = shape_function_container(j, 0);
+                    //     }
 
-                        if (NumberOfShapeFunctionDerivatives > 0) {
-                            IndexType shape_derivative_index = 1;
-                            for (IndexType n = 0; n < NumberOfShapeFunctionDerivatives - 1; n++) {
-                                for (IndexType k = 0; k < n + 2; k++) {
-                                    for (IndexType j = 0; j < num_nonzero_cps; j++) {
-                                    shape_function_derivatives[0][n][i_point](j, k) = shape_function_container(j, shape_derivative_index + k);
-                                    }
-                                }
-                                shape_derivative_index += n + 2;
-                            }
-                        }
-                    }
+                    //     if (NumberOfShapeFunctionDerivatives > 0) {
+                    //         IndexType shape_derivative_index = 1;
+                    //         for (IndexType n = 0; n < NumberOfShapeFunctionDerivatives - 1; n++) {
+                    //             for (IndexType k = 0; k < n + 2; k++) {
+                    //                 for (IndexType j = 0; j < num_nonzero_cps; j++) {
+                    //                 shape_function_derivatives[0][n][i_point](j, k) = shape_function_container(j, shape_derivative_index + k);
+                    //                 }
+                    //             }
+                    //             shape_derivative_index += n + 2;
+                    //         }
+                    //     }
+                    // }
 
-                    /// Get List of Control Points
-                    PointsArrayType nonzero_control_points(num_nonzero_cps);
-                    auto cp_indices = shape_function_container.ControlPointIndices(
-                        mpNurbsSurface->NumberOfControlPointsU(), mpNurbsSurface->NumberOfControlPointsV());
-                    for (IndexType j = 0; j < num_nonzero_cps; j++) {
-                        nonzero_control_points(j) = mpNurbsSurface->pGetPoint(cp_indices[j]);
-                    }
+                    // /// Get List of Control Points
+                    // PointsArrayType nonzero_control_points(num_nonzero_cps);
+                    // auto cp_indices = shape_function_container.ControlPointIndices(
+                    //     mpNurbsSurface->NumberOfControlPointsU(), mpNurbsSurface->NumberOfControlPointsV());
+                    // for (IndexType j = 0; j < num_nonzero_cps; j++) {
+                    //     nonzero_control_points(j) = mpNurbsSurface->pGetPoint(cp_indices[j]);
+                    // }
 
-                    KRATOS_WATCH(nonzero_control_points)
+                    // KRATOS_WATCH(nonzero_control_points)
 
-                    // Idea:
-                    // KnotSpanGeometry knot_span_geo(points_in_u, points_in_v,
-                    //     knot_span_intervals_u[i], knot_span_intervals_v[j], mpNurbsSurface);
+                    // // Idea:
+                    // // KnotSpanGeometry knot_span_geo(points_in_u, points_in_v,
+                    // //     knot_span_intervals_u[i], knot_span_intervals_v[j], mpNurbsSurface);
 
-                    // knot_span_geo.CreateIntegrationPoints()
-                    // knot_span_geo.CreateQuadraturePoints()
+                    // // knot_span_geo.CreateIntegrationPoints()
+                    // // knot_span_geo.CreateQuadraturePoints()
 
-                    ////////////////////////////Testing///////////////////////////////////////////
+                    // ////////////////////////////Testing///////////////////////////////////////////
 
 
                     if (!mIsTrimmed) {
@@ -680,7 +680,7 @@ public:
                             rIntegrationInfo);
                     }
 
-                    KRATOS_WATCH(IntegrationPoints.size())
+                    // KRATOS_WATCH(IntegrationPoints.size())
 
                     mpNurbsSurface->CreateQuadraturePointGeometries(
                         result_geometries_per_span,

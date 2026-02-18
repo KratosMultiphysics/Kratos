@@ -219,9 +219,9 @@ namespace Kratos
                     noalias(rLeftHandSideMatrix) -= integration_weight * pressure_follower_load * (prod(trans(N), (prod(a2x, DN_DXi) + prod(a1x, DN_DEta))));
                 }
 
-                // Assembly
-                noalias(rRightHandSideVector) += f;
             }
+            // Assembly
+            noalias(rRightHandSideVector) += f;
         }
     }
 
