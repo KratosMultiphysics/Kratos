@@ -234,11 +234,10 @@ public:
 
         // Solve the system
         const auto& rp_linear_solver = this->pGetLinearSolver();
-        if (rp_linear_solver->AdditionalPhysicalDataIsNeeded()) {
-            rp_linear_solver->ProvideAdditionalData(*p_eff_lin_sys, r_eff_dof_set, this->GetModelPart());
+        if (rp_linear_solver->RequiresAdditionalData()) {
+            p_eff_lin_sys->SetAdditionalData(this->GetModelPart(), r_eff_dof_set);
+            rp_linear_solver->PrepareAdditionalData(*p_eff_lin_sys);
         }
-        // rp_linear_solver->Solve(p_eff_lhs_lin_op, *p_eff_dx, *p_eff_rhs);
-        // rp_linear_solver->Solve(rp_linear_system);
         rp_linear_solver->Initialize(*p_eff_lin_sys);
         rp_linear_solver->InitializeSolutionStep(*p_eff_lin_sys);
         rp_linear_solver->PerformSolutionStep(*p_eff_lin_sys);

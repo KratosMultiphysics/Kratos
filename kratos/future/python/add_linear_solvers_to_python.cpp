@@ -52,6 +52,13 @@ void AddLinearSolversToPython(py::module& m)
         // .def("__str__", PrintObject<DirectSolverType>)
     ;
 
+    using IterativeSolverType = Future::IterativeSolver<SerialLinearAlgebraTraits>;
+    py::class_<IterativeSolverType, typename IterativeSolverType::Pointer, LinearSolverType>(m, "IterativeSolver")
+        .def(py::init<>())
+        .def(py::init<Parameters>())
+        // .def("__str__", PrintObject<IterativeSolverType>)
+    ;
+
     using SkylineLUFactorizationSolverType = Future::SkylineLUFactorizationSolver<SerialLinearAlgebraTraits>;
     py::class_<SkylineLUFactorizationSolverType, SkylineLUFactorizationSolverType::Pointer, DirectSolverType>(m, "SkylineLUFactorizationSolver")
         .def(py::init<>())

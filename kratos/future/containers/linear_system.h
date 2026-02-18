@@ -124,11 +124,11 @@ public:
         typename VectorType::Pointer pRhs,
         typename VectorType::Pointer pDx,
         ModelPart& rModelPart,
-        DofsArrayType& rDofs,
+        DofsArrayType& rDofSet,
         const std::string SystemName = "")
         : mSystemName(SystemName)
     {
-        mpDofs = &rDofs;
+        mpDofSet = &rDofSet;
         mpModelPart = &rModelPart;
         this->pSetMatrix(pLhs, SparseMatrixTag::LHS);
         this->pSetVector(pRhs, DenseVectorTag::RHS);
@@ -141,11 +141,11 @@ public:
         typename VectorType::Pointer pRhs,
         typename VectorType::Pointer pSol,
         ModelPart& rModelPart,
-        DofsArrayType& rDofs,
+        DofsArrayType& rDofSet,
         const std::string SystemName = "")
         : mSystemName(SystemName)
     {
-        mpDofs = &rDofs;
+        mpDofSet = &rDofSet;
         mpModelPart = &rModelPart;
         this->pSetLinearOperator(std::move(pLinearOperator), SparseMatrixTag::LHS);
         this->pSetVector(pRhs, DenseVectorTag::RHS);
@@ -301,17 +301,41 @@ public:
 
     /**
      * @brief Set the Additional Data
-     * This method is used to set the additional data of the linear system.
+     * @details Some solvers may require a minimum degree of knowledge of the structure of the matrix.
+     * For example, when solving a mixed u-p problem, it is important to identify the row associated with v and p.
+     * Another example is the automatic prescription of rotation null-space for smoothed-aggregation solvers,
+     * which require knowledge of the spatial position of the nodes associated with a given degree of freedom (DOF).
+     * This function provides the opportunity to provide such data if needed.
      * @param rModelPart The model part from which the linear system is built
-     * @param rDofs The dofs array of the linear system
+     * @param rDofSet The dofs array of the linear system
      */
     void SetAdditionalData(
         ModelPart& rModelPart,
-        DofsArrayType& rDofs)
+        DofsArrayType& rDofSet)
     {
-        KRATOS_WARNING_IF("LinearSystem", HasAdditionalData()) << "Additional data is already set for linear system " << Name() << ". Overwriting it." << std::endl;
-        mpDofs = &rDofs;
+        KRATOS_WARNING_IF("LinearSystem", HasAdditionalData()) << "Additional data is already set for linear system " << Name() << ". Overwriting it" << std::endl;
+        mpDofSet = &rDofSet;
         mpModelPart = &rModelPart;
+    }
+
+    /**
+     * @brief Get the Model Part
+     * @return Pointer to the model part
+     */
+    ModelPart* pGetModelPart() const
+    {
+        KRATOS_ERROR_IF_NOT(mpModelPart) << "Model part is not set for linear system " << Name() << std::endl;
+        return mpModelPart;
+    }
+
+    /**
+     * @brief Get the Dofs Array
+     * @return Pointer to the dofs array
+     */
+    DofsArrayType* pGetDofSet() const
+    {
+        KRATOS_ERROR_IF_NOT(mpDofSet) << "DOFs array is not set for linear system " << Name() << std::endl;
+        return mpDofSet;
     }
 
     ///@}
@@ -374,7 +398,7 @@ public:
      */
     bool HasAdditionalData() const
     {
-        return mpModelPart != nullptr && mpDofs != nullptr;
+        return mpModelPart != nullptr && mpDofSet != nullptr;
     }
 
     ///@}
@@ -387,7 +411,7 @@ private:
 
     ModelPart* mpModelPart = nullptr; // Model part of the linear system
 
-    typename ModelPart::DofsArrayType* mpDofs = nullptr; // Dofs of the linear system
+    typename ModelPart::DofsArrayType* mpDofSet = nullptr; // Dofs of the linear system
 
     std::array<typename VectorType::Pointer, static_cast<std::size_t>(DenseVectorTag::NumberOfTags)> mVectors; // Vectors of the linear system
 

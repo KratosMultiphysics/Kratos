@@ -26,53 +26,121 @@
 namespace Kratos::Future
 {
 
-// Base class for all direct solvers in Kratos.
-/* This class define the general interface for direct solvers in Kratos.
-   direct solver is a template class with this parameter:
-   - TDenseMatrixType which specify type of the
-     matrices used as temporary matrices or multi solve unknowns and
-   right hand sides and their operators.
-*/
+/**
+ * @class DirectSolver
+ * @ingroup KratosCore
+ * @brief Base class for all direct solvers in Kratos.
+ * @details This class defines the general interface for direct solvers in Kratos.
+ * @tparam TVectorType The vector type used in the linear system.
+ * @author Pooyan Dadvand
+ * @author Ruben Zorrilla
+ */
 template<class TVectorType = SystemVector<>>
 class DirectSolver : public Future::LinearSolver<TVectorType>
 {
 public:
+    ///@name Type Definitions
+    ///@{
 
     /// Counted pointer of DirectSolver
     KRATOS_CLASS_POINTER_DEFINITION(DirectSolver);
 
+    /// Base type definition
     using BaseType = Future::LinearSolver<TVectorType>;
 
-    /// Default constructor.
-    DirectSolver() = default;
+    ///@}
+    ///@name Life Cycle
+    ///@{
 
-    DirectSolver(Parameters settings) {}
+    /**
+     * @brief Default constructor.
+     * @param Settings The settings for the direct solver.
+     */
+    DirectSolver(Parameters Settings = Parameters(R"({})"))
+        : BaseType(Settings)
+    {
+        // Validate and assign default parameters
+        Settings.ValidateAndAssignDefaults(this->GetDefaultParameters());
+
+        // Assign the linear system tags to be used
+        this->mDxTagString = Settings["dx_tag"].GetString();
+        this->mRhsTagString = Settings["rhs_tag"].GetString();
+        this->mLhsTagString = Settings["lhs_tag"].GetString();
+    }
 
     /// Destructor.
     ~DirectSolver() override = default;
 
     /// Copy constructor.
-    DirectSolver(const DirectSolver& Other) {}
+    DirectSolver(const DirectSolver& Other) = delete;
 
-    /// Print information about this object.
+    ///@}
+    ///@name Operatiors
+    ///@{
+
+    /// Assignment operator.
+    DirectSolver& operator=(const DirectSolver& Other) = delete;
+
+    ///@}
+    ///@name Operations
+    ///@{
+
+
+    ///@}
+    ///@name Inquiry
+    ///@{
+
+    Parameters GetDefaultParameters() const override
+    {
+        Parameters default_parameters( R"({
+            "solver_type" : "direct_solver",
+            "dx_tag" : "Dx",
+            "rhs_tag" : "RHS",
+            "lhs_tag" : "LHS",
+            "multiple_solve" : false
+        })");
+        default_parameters.AddMissingParameters(BaseType::GetDefaultParameters());
+        return default_parameters;
+    }
+
+    ///@}
+    ///@name Input and output
+    ///@{
+
+    /**
+     * @brief Print information about this object.
+     * @param rOStream The output stream.
+     */
     void  PrintInfo(std::ostream& rOStream) const override
     {
         rOStream << "Direct solver";
     }
 
-    /// Print object's data.
+    /**
+     * @brief Print object's data.
+     * @param rOStream The output stream.
+     */
     void  PrintData(std::ostream& rOStream) const override
     {
     }
 
-private:
-
-    /// Assignment operator.
-    DirectSolver& operator=(const DirectSolver& Other);
-
+    ///@}
 }; // Class DirectSolver
 
-/// input stream function
+///@}
+///@name Type Definitions
+///@{
+
+
+///@}
+///@name Input and output
+///@{
+
+/**
+ * @brief input stream function
+ * @param rIStream The input stream.
+ * @param rThis The object relative to the input stream.
+ */
 template<class TVectorType>
 inline std::istream& operator >> (
     std::istream& rIStream,
@@ -81,7 +149,11 @@ inline std::istream& operator >> (
     return rIStream;
 }
 
-/// output stream function
+/**
+ * @brief output stream function
+ * @param rOStream The output stream.
+ * @param rThis The object relative to the output stream.
+ */
 template<class TVectorType>
 inline std::ostream& operator << (
     std::ostream& rOStream,
@@ -93,5 +165,7 @@ inline std::ostream& operator << (
 
     return rOStream;
 }
+
+///@}
 
 }  // namespace Kratos::Future.

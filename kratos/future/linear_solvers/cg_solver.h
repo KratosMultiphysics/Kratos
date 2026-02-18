@@ -13,7 +13,6 @@
 
 #pragma once
 
-
 // System includes
 #include <string>
 #include <iostream>
@@ -24,7 +23,7 @@
 #include "includes/define.h"
 #include "future/linear_solvers/iterative_solver.h"
 
-namespace Kratos
+namespace Kratos::Future
 {
 
 ///@name Kratos Globals
@@ -49,10 +48,8 @@ namespace Kratos
 /// Short class definition.
 /** Detail class definition.
 */
-template<
-    class TLinearAlgebra,
-    class TPreconditionerType>
-class CGSolver : public IterativeSolver<TLinearAlgebra, TPreconditionerType>
+template<class TLinearAlgebra>
+class CGSolver : public IterativeSolver<TLinearAlgebra>
 {
 public:
     ///@name Type Definitions
@@ -61,126 +58,178 @@ public:
     /// Pointer definition of CGSolver
     KRATOS_CLASS_POINTER_DEFINITION(CGSolver);
 
-    using BaseType = IterativeSolver<TLinearAlgebra, TPreconditionerType>;
+    /// Base type iterative solver definition
+    using BaseType = IterativeSolver<TLinearAlgebra>;
 
+    /// Sparse matrix type definition from linear algebra traits
     using MatrixType = typename TLinearAlgebra::MatrixType;
 
+    /// Dense vector type definition from linear algebra traits
     using VectorType = typename TLinearAlgebra::VectorType;
 
-    using DenseMatrixType = typename DenseMatrix<DataType>;
+    /// Dense matrix type definition from linear algebra traits
+    using DenseMatrixType = typename TLinearAlgebra::DenseMatrixType;
+
+    /// Linear system container type definition
+    using LinearSystemType = LinearSystem<TLinearAlgebra>;
+
+    /// Linear operator type definition
+    using LinearOperatorType = LinearOperator<TLinearAlgebra>;
+
+    /// Preconditions pointer type definition
+    using PreconditionerPointerType = typename Preconditioner<TLinearAlgebra>::Pointer;
 
     ///@}
     ///@name Life Cycle
     ///@{
 
     /// Default constructor.
-    CGSolver() {}
-
-    CGSolver(double NewMaxTolerance) : BaseType(NewMaxTolerance) {}
-
-    CGSolver(double NewMaxTolerance, unsigned int NewMaxIterationsNumber) : BaseType(NewMaxTolerance, NewMaxIterationsNumber) {}
-
-    CGSolver(double NewMaxTolerance, unsigned int NewMaxIterationsNumber, typename TPreconditionerType::Pointer pNewPreconditioner) :
-        BaseType(NewMaxTolerance, NewMaxIterationsNumber, pNewPreconditioner) {}
-
-    CGSolver(Parameters settings, typename TPreconditionerType::Pointer pNewPreconditioner):
-        BaseType(settings, pNewPreconditioner) {}
-
-    CGSolver(Parameters settings):
-        BaseType(settings)
+    CGSolver(Parameters Settings = Parameters(R"({})"))
+        : BaseType(Settings)
     {
-        if(settings.Has("preconditioner_type"))
-            BaseType::SetPreconditioner( PreconditionerFactory<TSparseSpaceType,TDenseSpaceType>().Create(settings["preconditioner_type"].GetString()) );
+    }
+
+    /// Constructor with preconditioner.
+    CGSolver(
+        Parameters Settings,
+        PreconditionerPointerType pPreconditioner)
+        : BaseType(Settings, pPreconditioner)
+    {
     }
 
     /// Copy constructor.
-    CGSolver(const CGSolver& Other) : BaseType(Other) {}
-
+    CGSolver(const CGSolver& Other) = delete;
 
     /// Destructor.
-    ~CGSolver() override {}
-
+    ~CGSolver() override = default;
 
     ///@}
     ///@name Operators
     ///@{
 
     /// Assignment operator.
-    CGSolver& operator=(const CGSolver& Other)
-    {
-        BaseType::operator=(Other);
-        return *this;
-    }
+    CGSolver& operator=(const CGSolver& Other) = delete;
 
     ///@}
     ///@name Operations
     ///@{
 
-    /** Normal solve method.
-    Solves the linear system Ax=b and puts the result on SystemVector& rX.
-    rX is also th initial guess for iterative methods.
-    @param rA. System matrix
-    @param rX. Solution vector. it's also the initial
-    guess for iterative linear solvers.
-    @param rB. Right hand side vector.
-    */
-    bool Solve(MatrixType& rA, VectorType& rX, VectorType& rB) override
+    bool PerformSolutionStep(LinearSystemType& rLinearSystem) override
     {
-        if(this->IsNotConsistent(rA, rX, rB))
-            return false;
+        bool is_solved = false;
+        if (!this->mMultipleSolve) {
+            // Get sparse matrix and dense vector tags from strings
+            const auto dx_tag = LinearSystemTags::DenseVectorTagFromString(BaseType::mDxTagString);
+            const auto rhs_tag = LinearSystemTags::DenseVectorTagFromString(BaseType::mRhsTagString);
+            const auto lhs_tag = LinearSystemTags::SparseMatrixTagFromString(BaseType::mLhsTagString);
 
-// 	  GetTimeTable()->Start(Info());
+            // Check if the linear system is consistent
+            if(!rLinearSystem.IsConsistent(lhs_tag, rhs_tag, dx_tag)) {
+                KRATOS_WARNING("CGSolver") << "Linear system is not consistent. PerformSolutionStep cannot be performed." << std::endl;
+                return false;
+            }
 
-        BaseType::GetPreconditioner()->Initialize(rA,rX,rB);
-        BaseType::GetPreconditioner()->ApplyInverseRight(rX);
-        BaseType::GetPreconditioner()->ApplyLeft(rB);
+            // Get arrays from linear system container
+            auto& r_dx = *(rLinearSystem.pGetVector(dx_tag));
+            auto& r_rhs = *(rLinearSystem.pGetVector(rhs_tag));
+            const auto& rp_lhs_lin_op = rLinearSystem.pGetLinearOperator(lhs_tag);
 
-        bool is_solved = IterativeSolve(rA,rX,rB);
+            // Apply preconditioner
+            auto p_preconditioner = this->GetPreconditioner();
+            p_preconditioner->ApplyInverseRight(r_dx);
+            p_preconditioner->ApplyLeft(r_rhs);
 
-        KRATOS_WARNING_IF("CG Linear Solver", !is_solved)<<"Non converged linear solution. ["<< BaseType::GetResidualNorm()/BaseType::mBNorm << " > "<<  BaseType::GetTolerance() << "]" << std::endl;
+            is_solved = IterativeSolve(rp_lhs_lin_op, r_rhs, r_dx);
 
-        BaseType::GetPreconditioner()->Finalize(rX);
+            KRATOS_WARNING_IF("CGSolver", !is_solved) << "Non converged linear solution. ["<< BaseType::GetResidualNorm() / BaseType::mBNorm << " > "<<  BaseType::GetTolerance() << "]" << std::endl;
 
-// 	  GetTimeTable()->Stop(Info());
-
-        return is_solved;
-    }
+            // BaseType::GetPreconditioner()->Finalize(rX);
 
 
-    /** Multi solve method for solving a set of linear systems with same coefficient matrix.
-    Solves the linear system Ax=b and puts the result on SystemVector& rX.
-    rX is also th initial guess for iterative methods.
-    @param rA. System matrix
-    @param rX. Solution vector. it's also the initial
-    guess for iterative linear solvers.
-    @param rB. Right hand side vector.
-    */
-    bool Solve(MatrixType& rA, DenseMatrixType& rX, DenseMatrixType& rB) override
-    {
-// 	  GetTimeTable()->Start(Info());
+        } else {
+            // Get sparse matrix and dense matrices tags from strings
+            const auto dx_tag = LinearSystemTags::DenseMatrixTagFromString(BaseType::mDxTagString);
+            const auto rhs_tag = LinearSystemTags::DenseMatrixTagFromString(BaseType::mRhsTagString);
+            const auto lhs_tag = LinearSystemTags::SparseMatrixTagFromString(BaseType::mLhsTagString);
 
-        BaseType::GetPreconditioner()->Initialize(rA,rX,rB);
+            // Check if the linear system is consistent
+            if(!rLinearSystem.IsConsistent(lhs_tag, rhs_tag, dx_tag)) {
+                KRATOS_WARNING("CGSolver") << "Linear system is not consistent. PerformSolutionStep cannot be performed." << std::endl;
+                return false;
+            }
 
-        bool is_solved = true;
-        VectorType x(TDenseSpaceType::Size1(rX));
-        VectorType b(TDenseSpaceType::Size1(rB));
-        for(unsigned int i = 0 ; i < TDenseSpaceType::Size2(rX) ; i++)
-        {
-            TDenseSpaceType::GetColumn(i,rX, x);
-            TDenseSpaceType::GetColumn(i,rB, b);
-
-            BaseType::GetPreconditioner()->ApplyInverseRight(x);
-            BaseType::GetPreconditioner()->ApplyLeft(b);
-
-            is_solved &= IterativeSolve(rA,x,b);
-
-            BaseType::GetPreconditioner()->Finalize(x);
+            KRATOS_ERROR << "Multiple solve not implemented for CG solver" << std::endl;
         }
 
-// 	  GetTimeTable()->Stop(Info());
-
         return is_solved;
     }
+
+
+//     /** Normal solve method.
+//     Solves the linear system Ax=b and puts the result on SystemVector& rX.
+//     rX is also th initial guess for iterative methods.
+//     @param rA. System matrix
+//     @param rX. Solution vector. it's also the initial
+//     guess for iterative linear solvers.
+//     @param rB. Right hand side vector.
+//     */
+//     bool Solve(MatrixType& rA, VectorType& rX, VectorType& rB) override
+//     {
+//         if(this->IsNotConsistent(rA, rX, rB))
+//             return false;
+
+// // 	  GetTimeTable()->Start(Info());
+
+//         BaseType::GetPreconditioner()->Initialize(rA,rX,rB);
+//         BaseType::GetPreconditioner()->ApplyInverseRight(rX);
+//         BaseType::GetPreconditioner()->ApplyLeft(rB);
+
+//         bool is_solved = IterativeSolve(rA,rX,rB);
+
+//         KRATOS_WARNING_IF("CG Linear Solver", !is_solved)<<"Non converged linear solution. ["<< BaseType::GetResidualNorm()/BaseType::mBNorm << " > "<<  BaseType::GetTolerance() << "]" << std::endl;
+
+//         BaseType::GetPreconditioner()->Finalize(rX);
+
+// // 	  GetTimeTable()->Stop(Info());
+
+//         return is_solved;
+//     }
+
+
+//     /** Multi solve method for solving a set of linear systems with same coefficient matrix.
+//     Solves the linear system Ax=b and puts the result on SystemVector& rX.
+//     rX is also th initial guess for iterative methods.
+//     @param rA. System matrix
+//     @param rX. Solution vector. it's also the initial
+//     guess for iterative linear solvers.
+//     @param rB. Right hand side vector.
+//     */
+//     bool Solve(MatrixType& rA, DenseMatrixType& rX, DenseMatrixType& rB) override
+//     {
+// // 	  GetTimeTable()->Start(Info());
+
+//         BaseType::GetPreconditioner()->Initialize(rA,rX,rB);
+
+//         bool is_solved = true;
+//         VectorType x(TDenseSpaceType::Size1(rX));
+//         VectorType b(TDenseSpaceType::Size1(rB));
+//         for(unsigned int i = 0 ; i < TDenseSpaceType::Size2(rX) ; i++)
+//         {
+//             TDenseSpaceType::GetColumn(i,rX, x);
+//             TDenseSpaceType::GetColumn(i,rB, b);
+
+//             BaseType::GetPreconditioner()->ApplyInverseRight(x);
+//             BaseType::GetPreconditioner()->ApplyLeft(b);
+
+//             is_solved &= IterativeSolve(rA,x,b);
+
+//             BaseType::GetPreconditioner()->Finalize(x);
+//         }
+
+// // 	  GetTimeTable()->Stop(Info());
+
+//         return is_solved;
+//     }
 
     ///@}
     ///@name Access
@@ -216,51 +265,7 @@ public:
         BaseType::PrintData(rOStream);
     }
 
-
     ///@}
-    ///@name Friends
-    ///@{
-
-
-    ///@}
-
-protected:
-    ///@name Protected static Member Variables
-    ///@{
-
-
-    ///@}
-    ///@name Protected member Variables
-    ///@{
-
-
-    ///@}
-    ///@name Protected Operators
-    ///@{
-
-
-    ///@}
-    ///@name Protected Operations
-    ///@{
-
-
-    ///@}
-    ///@name Protected  Access
-    ///@{
-
-
-    ///@}
-    ///@name Protected Inquiry
-    ///@{
-
-
-    ///@}
-    ///@name Protected LifeCycle
-    ///@{
-
-
-    ///@}
-
 private:
     ///@name Static Member Variables
     ///@{
@@ -280,56 +285,61 @@ private:
     ///@name Private Operations
     ///@{
 
-    bool IterativeSolve(MatrixType& rA, VectorType& rX, VectorType& rB)
+    bool IterativeSolve(
+        const typename LinearOperatorType::UniquePointer& rpLinearOperator,
+        const VectorType& rB,
+        VectorType& rX)
     {
-        const int size = TSparseSpaceType::Size(rX);
+        const int size = rX.size();
 
         BaseType::mIterationsNumber = 0;
 
         VectorType r(size);
+        this->PreconditionedMult(rpLinearOperator, rX, r);
+        r *= -1.0;
+        r += rB;
 
-        this->PreconditionedMult(rA,rX,r);
-        TSparseSpaceType::ScaleAndAdd(1.00, rB, -1.00, r);
-
-        BaseType::mBNorm = TSparseSpaceType::TwoNorm(rB);
+        BaseType::mBNorm = rB.Norm();
 
         VectorType p(r);
         VectorType q(size);
+        q.SetValue(0.0);
 
-        double roh0 = TSparseSpaceType::Dot(r, r);
+        double roh0 = r.Dot(r);
         double roh1 = roh0;
-        double beta = 0;
+        double beta = 0.0;
 
-        if(fabs(roh0) < 1.0e-30) //modification by Riccardo
-//	if(roh0 == 0.00)
+        if(std::abs(roh0) < std::numeric_limits<double>::epsilon()) {
             return false;
+        }
 
         do
         {
-            this->PreconditionedMult(rA,p,q);
+            this->PreconditionedMult(rpLinearOperator, p, q);
 
-            double pq = TSparseSpaceType::Dot(p,q);
+            double pq = p.Dot(q);
 
-            //if(pq == 0.00)
-            if(fabs(pq) <= 1.0e-30)
+            if(std::abs(pq) < std::numeric_limits<double>::epsilon()) {
                 break;
+            }
 
             double alpha = roh0 / pq;
 
-            TSparseSpaceType::ScaleAndAdd(alpha, p, 1.00, rX);
-            TSparseSpaceType::ScaleAndAdd(-alpha, q, 1.00, r);
+            rX.Add(alpha, p);
+            r.Add(-alpha, q);
 
-            roh1 = TSparseSpaceType::Dot(r,r);
+            roh1 = r.Dot(r);
 
             beta = (roh1 / roh0);
-            TSparseSpaceType::ScaleAndAdd(1.00, r, beta, p);
+            p *= beta;
+            p.Add(1.0, r);
 
             roh0 = roh1;
 
-            BaseType::mResidualNorm = sqrt(roh1);
+            BaseType::mResidualNorm = std::sqrt(roh1);
             BaseType::mIterationsNumber++;
         }
-        while(BaseType::IterationNeeded() && (fabs(roh0) > 1.0e-30)/*(roh0 != 0.00)*/);
+        while(BaseType::IterationNeeded() && (std::abs(roh0) > std::numeric_limits<double>::epsilon()));
 
         return BaseType::IsConverged();
     }
@@ -350,7 +360,6 @@ private:
 
 
     ///@}
-
 }; // Class CGSolver
 
 ///@}
@@ -363,25 +372,20 @@ private:
 ///@name Input and output
 ///@{
 
-
 /// input stream function
-template<class TSparseSpaceType, class TDenseSpaceType,
-         class TPreconditionerType,
-         class TReordererType>
-inline std::istream& operator >> (std::istream& IStream,
-                                  CGSolver<TSparseSpaceType, TDenseSpaceType,
-                                  TPreconditionerType, TReordererType>& rThis)
+template<class TLinearAlgebra>
+inline std::istream& operator >> (
+    std::istream& IStream,
+    CGSolver<TLinearAlgebra>& rThis)
 {
     return IStream;
 }
 
 /// output stream function
-template<class TSparseSpaceType, class TDenseSpaceType,
-         class TPreconditionerType,
-         class TReordererType>
-inline std::ostream& operator << (std::ostream& OStream,
-                                  const CGSolver<TSparseSpaceType, TDenseSpaceType,
-                                  TPreconditionerType, TReordererType>& rThis)
+template<class TLinearAlgebra>
+inline std::ostream& operator << (
+    std::ostream& OStream,
+    const CGSolver<TLinearAlgebra>& rThis)
 {
     rThis.PrintInfo(OStream);
     OStream << std::endl;
@@ -389,11 +393,10 @@ inline std::ostream& operator << (std::ostream& OStream,
 
     return OStream;
 }
-///@}
 
+///@}
 
 }  // namespace Kratos.
 
-#endif // KRATOS_CG_SOLVER_H_INCLUDED  defined
 
 

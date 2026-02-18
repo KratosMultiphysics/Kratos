@@ -72,9 +72,6 @@ public:
     /// Linear system type definition
     using LinearSystemType = LinearSystem<TLinearAlgebra>;
 
-    /// Linear operator pointer type definition
-    using LinearOperatorPointerType = typename LinearOperator<TLinearAlgebra>::Pointer;
-
     /// Vector type definition from linear algebra template parameter
     using VectorType = typename TLinearAlgebra::VectorType;
 
@@ -92,7 +89,9 @@ public:
     ///@{
 
     /// Default constructor.
-    LinearSolver() {}
+    LinearSolver(Parameters Settings = Parameters(R"({})"))
+    {
+    }
 
     /// Copy constructor.
     LinearSolver(const LinearSolver& Other) {}
@@ -161,33 +160,12 @@ public:
     }
 
     /**
-     * @brief Checks if additional physical data is needed by the solver.
-     * @details Some solvers may require a minimum degree of knowledge of the structure of the matrix.
-     * For instance, when solving a mixed u-p problem, it is important to identify the row associated with v and p.
-     * Another example is the automatic prescription of rotation null-space for smoothed-aggregation solvers,
-     * which require knowledge of the spatial position of the nodes associated with a given degree of freedom (DOF).
-     * @return True if additional physical data is needed, false otherwise.
+     * @brief This function is designed to prepare the additional data needed by the solver.
+     * @details This function is designed to be called after the Initialize function and before the PerformSolutionStep function.
+     * Note that the additional data is assumed to be already contained within the linear system container (@see LinearSystem)
+     * @param rLinearSystem The linear system to be solved.
      */
-    virtual bool AdditionalPhysicalDataIsNeeded()
-    {
-        return false;
-    }
-
-    /**
-     * @brief Provides additional physical data required by the solver.
-     * @details Some solvers may require a minimum degree of knowledge of the structure of the matrix.
-     * For example, when solving a mixed u-p problem, it is important to identify the row associated with v and p.
-     * Another example is the automatic prescription of rotation null-space for smoothed-aggregation solvers,
-     * which require knowledge of the spatial position of the nodes associated with a given degree of freedom (DOF).
-     * This function provides the opportunity to provide such data if needed.
-     * @param rLinearSystem The linear system to be solved
-     * @param rDoFSet The set of degrees of freedom.
-     * @param rModelPart The model part.
-     */
-    virtual void ProvideAdditionalData(
-        LinearSystemType& rLinearSystem,
-        typename ModelPart::DofsArrayType& rDoFSet,
-        ModelPart& rModelPart)
+    virtual void PrepareAdditionalData(LinearSystemType& rLinearSystem)
     {
     }
 
@@ -226,9 +204,35 @@ public:
         return 0;
     }
 
+    /**
+     * @brief Get the Default Parameters object
+     * @details This function returns the default parameters for the linear solver. It is meant to be overridden by derived classes with their corresponding defaults.
+     * @return Parameters
+     */
+    virtual Parameters GetDefaultParameters() const
+    {
+        return Parameters(R"({
+            "solver_type" : "linear_solver",
+            "echo_level" : 0
+        })");
+    }
+
     ///@}
     ///@name Inquiry
     ///@{
+
+    /**
+     * @brief Checks if additional physical data is needed by the solver.
+     * @details Some solvers may require a minimum degree of knowledge of the structure of the matrix.
+     * For instance, when solving a mixed u-p problem, it is important to identify the row associated with v and p.
+     * Another example is the automatic prescription of rotation null-space for smoothed-aggregation solvers,
+     * which require knowledge of the spatial position of the nodes associated with a given degree of freedom (DOF).
+     * @return True if additional physical data is needed, false otherwise.
+     */
+    virtual bool RequiresAdditionalData() const
+    {
+        return false;
+    }
 
     ///@}
     ///@name Input and output
@@ -263,6 +267,14 @@ protected:
     ///@}
     ///@name Protected member Variables
     ///@{
+
+    bool mMultipleSolve;
+
+    std::string mDxTagString;
+
+    std::string mRhsTagString;
+
+    std::string mLhsTagString;
 
     ///@}
     ///@name Protected Operators
@@ -317,9 +329,9 @@ private:
 };
 
 ///@}
-
 ///@name Type Definitions
 ///@{
+
 
 ///@}
 ///@name Input and output

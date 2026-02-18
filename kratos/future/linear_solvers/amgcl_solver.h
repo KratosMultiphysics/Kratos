@@ -133,9 +133,6 @@ public:
     /// Linear system type definition
     using LinearSystemType = LinearSystem<TLinearAlgebra>;
 
-    /// Linear operator pointer type definition
-    using LinearOperatorPointerType = typename LinearOperator<TLinearAlgebra>::Pointer;
-
     /// Sparse matrix tag type definition
     using SparseMatrixTag = typename LinearSystemTags::SparseMatrixTag;
 
@@ -481,33 +478,27 @@ public:
         return mResidualNorm;
     }
 
-    /**
-     * @brief Some solvers may require a minimum degree of knowledge of the structure of the matrix. To make an example
-     * when solving a mixed u-p problem, it is important to identify the row associated to v and p.
-     * @details Another example is the automatic prescription of rotation null-space for smoothed-aggregation solvers
-     * which require knowledge on the spatial position of the nodes associated to a given dof.
-     * This function tells if the solver requires such data
-     */
-    bool AdditionalPhysicalDataIsNeeded() override
+    bool RequiresAdditionalData() const override
     {
         return true;
     }
 
-    void ProvideAdditionalData (
-        LinearSystemType& rLinearSystem,
-        typename ModelPart::DofsArrayType& rDofSet,
-        ModelPart& rModelPart) override
+    void PrepareAdditionalData(LinearSystemType& rLinearSystem) override
     {
+        // Get additional data from linear system container
+        auto& r_dof_set = *rLinearSystem.pGetDofSet();
+        auto& r_model_part = *rLinearSystem.pGetModelPart();
+
         // Get CSR matrix from CSR matrix linear operator
         auto& r_A = (*rLinearSystem.pGetLinearOperator(SparseMatrixTag::LHS)).GetMatrix();
 
         int old_ndof = -1;
         int ndof=0;
 
-        if (!rModelPart.IsDistributed())
+        if (!r_model_part.IsDistributed())
         {
-            unsigned int old_node_id = rDofSet.size() ? rDofSet.begin()->Id() : 0;
-            for (auto it = rDofSet.begin(); it!=rDofSet.end(); it++) {
+            unsigned int old_node_id = r_dof_set.size() ? r_dof_set.begin()->Id() : 0;
+            for (auto it = r_dof_set.begin(); it!=r_dof_set.end(); it++) {
                 if (it->EquationId() < r_A.size1()) {
                     IndexType id = it->Id();
                     if(id != old_node_id) {
@@ -534,9 +525,9 @@ public:
         else //distribute
         {
             const std::size_t system_size = r_A.size1();
-            int current_rank = rModelPart.GetCommunicator().GetDataCommunicator().Rank();
-            unsigned int old_node_id = rDofSet.size() ? rDofSet.begin()->Id() : 0;
-            for (auto it = rDofSet.begin(); it!=rDofSet.end(); it++) {
+            int current_rank = r_model_part.GetCommunicator().GetDataCommunicator().Rank();
+            unsigned int old_node_id = r_dof_set.size() ? r_dof_set.begin()->Id() : 0;
+            for (auto it = r_dof_set.begin(); it!=r_dof_set.end(); it++) {
                 if(it->EquationId() < system_size  && it->GetSolutionStepValue(PARTITION_INDEX) == current_rank) {
                     IndexType id = it->Id();
                     if(id != old_node_id) {
@@ -557,7 +548,7 @@ public:
             if(old_ndof != -1)
                 mBlockSize = ndof;
 
-            int max_block_size = rModelPart.GetCommunicator().GetDataCommunicator().MaxAll(mBlockSize);
+            int max_block_size = r_model_part.GetCommunicator().GetDataCommunicator().MaxAll(mBlockSize);
 
             if( old_ndof == -1) {
                 mBlockSize = max_block_size;
@@ -571,9 +562,9 @@ public:
         if(mProvideCoordinates) {
             mCoordinates.resize(r_A.size1()/mBlockSize);
             unsigned int i=0;
-            for (auto it_dof = rDofSet.begin(); it_dof!=rDofSet.end(); it_dof+=mBlockSize) {
+            for (auto it_dof = r_dof_set.begin(); it_dof!=r_dof_set.end(); it_dof+=mBlockSize) {
                 if (it_dof->EquationId() < r_A.size1()) {
-                    auto it_node = rModelPart.Nodes().find(it_dof->Id());
+                    auto it_node = r_model_part.Nodes().find(it_dof->Id());
                     mCoordinates[ i ] = it_node->Coordinates();
                     i++;
                 }

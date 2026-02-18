@@ -22,6 +22,7 @@
 // Project includes
 #include "includes/define.h"
 #include "includes/kratos_parameters.h"
+#include "future/containers/linear_system_tags.h"
 #include "future/linear_operators/linear_operator.h"
 #include "future/linear_solvers/linear_solver.h"
 #include "future/linear_solvers/preconditioner.h"
@@ -60,9 +61,7 @@ namespace Kratos::Future
     - TPreconditionerType  which specify type of the preconditioner to be used.
     - TStopCriteriaType for specifying type of the object which control the stop criteria for iteration loop.
 */
-template<
-    class TLinearAlgebra,
-    class TPreconditionerType>
+template<class TLinearAlgebra>
 class IterativeSolver : public Future::LinearSolver<TLinearAlgebra>
 {
 public:
@@ -84,53 +83,43 @@ public:
     /// Vector type definition from linear algebra template parameter
     using VectorType = typename TLinearAlgebra::VectorType;
 
-    /// Local system matrix type definition
-    using DenseMatrixType = DenseMatrix<DataType>;
+    /// Linear operator type definition
+    using LinearOperatorType = LinearOperator<TLinearAlgebra>;
 
-    /// Preconditions pointer type definition
-    using PreconditionerPointerType = typename TPreconditionerType::Pointer;
-
-    /// Linear operator pointer type definition
-    using LinearOperatorPointerType = typename LinearOperator<TLinearAlgebra>::Pointer;
+    /// Preconditioner pointer type definition
+    using PreconditionerPointerType = typename Preconditioner<TLinearAlgebra>::Pointer; //TODO: maybe it is a good idea to make this unique_ptr
 
     ///@}
     ///@name Life Cycle
     ///@{
 
     /// Default constructor.
-    IterativeSolver()
-        : mResidualNorm(0)
-        , mIterationsNumber(0)
-        , mBNorm(0)
-        , mpPreconditioner(new TPreconditionerType())
-        , mTolerance(0)
-        , mMaxIterationsNumber(0)
+    IterativeSolver(Parameters Settings = Parameters(R"({})"))
+        : BaseType(Settings)
     {
+        // Validate and assign default parameters
+        Settings.ValidateAndAssignDefaults(this->GetDefaultParameters());
+
+        // Assign input settings to member variables
+        mTolerance = Settings["tolerance"].GetDouble();
+        mMaxIterationsNumber = Settings["max_iteration"].GetInt();
+        mpPreconditioner = Kratos::make_shared<Preconditioner<TLinearAlgebra>>(); //TODO: implement preconditioner by leveraging the registry
+
+        // Assign the linear system tags to be used
+        this->mDxTagString = Settings["dx_tag"].GetString();
+        this->mRhsTagString = Settings["rhs_tag"].GetString();
+        this->mLhsTagString = Settings["lhs_tag"].GetString();
     }
 
-    // IterativeSolver(double NewTolerance)
-    //     : mResidualNorm(0)
-    //     , mIterationsNumber(0)
-    //     , mBNorm(0)
-    //     , mpPreconditioner(new TPreconditionerType())
-    //     ,	mTolerance(NewTolerance)
-    //     , mMaxIterationsNumber(0)
-    // {
-    // }
-
-    // IterativeSolver(double NewTolerance, unsigned int NewMaxIterationsNumber)
-    //     : mResidualNorm(0)
-    //     , mIterationsNumber(0)
-    //     , mBNorm(0)
-    //     , mpPreconditioner(new TPreconditionerType())
-    //     , mTolerance(NewTolerance)
-    //     , mMaxIterationsNumber(NewMaxIterationsNumber) {}
-
-    // IterativeSolver(double NewTolerance, unsigned int NewMaxIterationsNumber, typename TPreconditionerType::Pointer pNewPreconditioner) :
-    //     mResidualNorm(0), mIterationsNumber(0), mBNorm(0),
-    //     mpPreconditioner(pNewPreconditioner),
-    //     mTolerance(NewTolerance),
-    //     mMaxIterationsNumber(NewMaxIterationsNumber) {}
+    /// Constructor with preconditioner.
+    IterativeSolver(
+        Parameters Settings,
+        PreconditionerPointerType pPreconditioner)
+        : BaseType(Settings)
+    {
+        Settings.ValidateAndAssignDefaults(this->GetDefaultParameters());
+        SetPreconditioner(pPreconditioner);
+    }
 
     // IterativeSolver(Parameters settings,
     //                 typename TPreconditionerType::Pointer pNewPreconditioner = Kratos::make_shared<TPreconditionerType>()
@@ -161,133 +150,91 @@ public:
     //     KRATOS_CATCH("")
     // }
 
-    // /// Copy constructor.
-    // IterativeSolver(const IterativeSolver& Other) : BaseType(Other),
-    //     mResidualNorm(Other.mResidualNorm), mIterationsNumber(Other.mIterationsNumber), mBNorm(Other.mBNorm),
-    //     mpPreconditioner(Other.mpPreconditioner),
-    //     mTolerance(Other.mTolerance),
-    //     mMaxIterationsNumber(Other.mMaxIterationsNumber)
-    // {
 
-    // }
+    /// Copy constructor.
+    IterativeSolver(const IterativeSolver& Other) = delete;
 
     /// Destructor.
-    ~IterativeSolver() override {}
-
+    ~IterativeSolver() override = default;
 
     ///@}
     ///@name Operators
     ///@{
 
-    // /// Assignment operator.
-    // IterativeSolver& operator=(const IterativeSolver& Other)
-    // {
-    //     BaseType::operator=(Other);
-    //     mResidualNorm = Other.mResidualNorm;
-    //     mFirstResidualNorm = Other.mFirstResidualNorm;
-    //     mIterationsNumber = Other.mIterationsNumber;
-    //     mBNorm = Other.mBNorm;
-    //     return *this;
-    // }
+    /// Assignment operator.
+    IterativeSolver& operator=(const IterativeSolver& Other) = delete;
 
     ///@}
     ///@name Operations
     ///@{
 
-    /** This function is designed to be called every time the coefficients change in the system
-    		 * that is, normally at the beginning of each solve.
-    		 * For example if we are implementing a direct solver, this is the place to do the factorization
-    		 * so that then the backward substitution can be performed effectively more than once
-    		@param rA. System matrix
-    		@param rX. Solution vector. it's also the initial guess for iterative linear solvers.
-    		@param rB. Right hand side vector.
-    		*/
+    void Initialize(LinearSystem<TLinearAlgebra>& rLinearSystem) override
+    {
+        // Get sparse matrix and dense vector tags from strings
+        const auto dx_tag = LinearSystemTags::DenseVectorTagFromString(BaseType::mDxTagString);
+        const auto rhs_tag = LinearSystemTags::DenseVectorTagFromString(BaseType::mRhsTagString);
+        const auto lhs_tag = LinearSystemTags::SparseMatrixTagFromString(BaseType::mLhsTagString);
+
+        // Call the preconditioner initialize
+        const auto& rp_lhs_lin_op = rLinearSystem.pGetLinearOperator(lhs_tag);
+        auto p_rhs = rLinearSystem.pGetVector(rhs_tag);
+        auto p_dx = rLinearSystem.pGetVector(dx_tag);
+        this->GetPreconditioner()->Initialize(rp_lhs_lin_op, p_rhs, p_dx);
+    }
+
     void InitializeSolutionStep(LinearSystem<TLinearAlgebra>& rLinearSystem) override
     {
-        GetPreconditioner()->InitializeSolutionStep(rLinearSystem);
+        // Get sparse matrix and dense vector tags from strings
+        const auto dx_tag = LinearSystemTags::DenseVectorTagFromString(BaseType::mDxTagString);
+        const auto rhs_tag = LinearSystemTags::DenseVectorTagFromString(BaseType::mRhsTagString);
+        const auto lhs_tag = LinearSystemTags::SparseMatrixTagFromString(BaseType::mLhsTagString);
+
+        // Call the preconditioner initialize
+        const auto& rp_lhs_lin_op = rLinearSystem.pGetLinearOperator(lhs_tag);
+        auto p_rhs = rLinearSystem.pGetVector(rhs_tag);
+        auto p_dx = rLinearSystem.pGetVector(dx_tag);
+        this->GetPreconditioner()->InitializeSolutionStep(rp_lhs_lin_op, p_rhs, p_dx);
     }
 
-    /** This function is designed to be called at the end of the solve step.
-     * for example this is the place to remove any data that we do not want to save for later
-    @param rA. System matrix
-    @param rX. Solution vector. it's also the initial guess for iterative linear solvers.
-    @param rB. Right hand side vector.
-    */
     void FinalizeSolutionStep(LinearSystem<TLinearAlgebra>& rLinearSystem) override
     {
-        GetPreconditioner()->FinalizeSolutionStep(rLinearSystem);
+        // Get sparse matrix and dense vector tags from strings
+        const auto dx_tag = LinearSystemTags::DenseVectorTagFromString(BaseType::mDxTagString);
+        const auto rhs_tag = LinearSystemTags::DenseVectorTagFromString(BaseType::mRhsTagString);
+        const auto lhs_tag = LinearSystemTags::SparseMatrixTagFromString(BaseType::mLhsTagString);
+
+        // Call the preconditioner finalize
+        const auto& rp_lhs_lin_op = rLinearSystem.pGetLinearOperator(lhs_tag);
+        auto p_rhs = rLinearSystem.pGetVector(rhs_tag);
+        auto p_dx = rLinearSystem.pGetVector(dx_tag);
+        this->GetPreconditioner()->FinalizeSolutionStep(rp_lhs_lin_op, p_rhs, p_dx);
     }
 
-    /** This function is designed to clean up all internal data in the solver.
-     * Clear is designed to leave the solver object as if newly created.
-     * After a clear a new Initialize is needed
-     */
     void Clear() override
     {
-        GetPreconditioner()->Clear();
-    }
-
-    /** Some solvers may require a minimum degree of knowledge of the structure of the matrix. To make an example
-     * when solving a mixed u-p problem, it is important to identify the row associated to v and p.
-     * another example is the automatic prescription of rotation null-space for smoothed-aggregation solvers
-     * which require knowledge on the spatial position of the nodes associated to a given dof.
-     * This function tells if the solver requires such data
-     */
-    bool AdditionalPhysicalDataIsNeeded() override
-    {
-        if (GetPreconditioner()->AdditionalPhysicalDataIsNeeded())
-            return true;
-        else
-            return false;
-    }
-
-    /** Some solvers may require a minimum degree of knowledge of the structure of the matrix. To make an example
-     * when solving a mixed u-p problem, it is important to identify the row associated to v and p.
-     * another example is the automatic prescription of rotation null-space for smoothed-aggregation solvers
-     * which require knowledge on the spatial position of the nodes associated to a given dof.
-     * This function is the place to eventually provide such data
-     */
-    void ProvideAdditionalData(
-        LinearSystem<TLinearAlgebra>& rLinearSystem,
-        typename ModelPart::DofsArrayType& rDofSet,
-        ModelPart& rModelPart) override
-    {
-        if (GetPreconditioner()->AdditionalPhysicalDataIsNeeded()) {
-            auto p_lin_op = rLinearSystem.GetLinearOperator();
-            auto& r_X = rLinearSystem.GetSolutionVector();
-            auto& r_B = rLinearSystem.GetRightHandSideVector();
-            GetPreconditioner()->ProvideAdditionalData(p_lin_op, r_X, r_B, rDofSet, rModelPart);
-        }
+        this->GetPreconditioner()->Clear();
     }
 
     ///@}
     ///@name Access
     ///@{
 
-    virtual typename TPreconditionerType::Pointer GetPreconditioner()
+    virtual PreconditionerPointerType GetPreconditioner()
     {
+        KRATOS_ERROR_IF_NOT(mpPreconditioner) << "Preconditioner not set" << std::endl;
         return mpPreconditioner;
     }
 
-    virtual const typename TPreconditionerType::Pointer GetPreconditioner() const
+    virtual const PreconditionerPointerType GetPreconditioner() const
     {
+        KRATOS_ERROR_IF_NOT(mpPreconditioner) << "Preconditioner not set" << std::endl;
         return mpPreconditioner;
     }
 
-    virtual void SetPreconditioner(typename TPreconditionerType::Pointer pNewPreconditioner)
+    virtual void SetPreconditioner(PreconditionerPointerType pNewPreconditioner)
     {
         mpPreconditioner = pNewPreconditioner;
     }
-
-//       virtual typename TStopCriteriaType::Pointer GetStopCriteria(void)
-// 	{
-// 	  return mpStopCriteria;
-// 	}
-
-//       virtual void SetStopCriteria(typename TStopCriteriaType::Pointer pNewStopCriteria)
-// 	{
-// 	  mpStopCriteria = pNewStopCriteria;
-// 	}
 
     virtual void SetMaxIterationsNumber(unsigned int NewMaxIterationsNumber)
     {
@@ -331,6 +278,21 @@ public:
         return mResidualNorm;
     }
 
+    Parameters GetDefaultParameters() const override
+    {
+        Parameters default_parameters( R"({
+            "solver_type" : "iterative_solver",
+            "dx_tag" : "Dx",
+            "rhs_tag" : "RHS",
+            "lhs_tag" : "LHS",
+            "tolerance" : 1e-6,
+            "max_iteration" : 100,
+            "multiple_solve" : false
+        })");
+        default_parameters.AddMissingParameters(BaseType::GetDefaultParameters());
+        return default_parameters;
+    }
+
     ///@}
     ///@name Inquiry
     ///@{
@@ -343,6 +305,14 @@ public:
     virtual bool IsConverged()
     {
         return (mResidualNorm <= mTolerance * mBNorm);
+    }
+
+    bool RequiresAdditionalData() const override
+    {
+        if (GetPreconditioner()->RequiresAdditionalData())
+            return true;
+        else
+            return false;
     }
 
     ///@}
@@ -403,13 +373,13 @@ protected:
     ///@name Protected member Variables
     ///@{
 
-    double mResidualNorm;
+    double mBNorm = 0.0;
 
-    double mFirstResidualNorm;
+    double mResidualNorm = 0.0;
 
-    IndexType mIterationsNumber;
+    double mFirstResidualNorm = 0.0;
 
-    double mBNorm;
+    IndexType mIterationsNumber = 0;
 
     ///@}
     ///@name Protected Operators
@@ -421,19 +391,19 @@ protected:
     ///@{
 
     void PreconditionedMult(
-        LinearOperatorPointerType pLinearOperator,
-        VectorType& rX,
+        const typename LinearOperatorType::UniquePointer& rpLinearOperator,
+        const VectorType& rX,
         VectorType& rY)
     {
-        GetPreconditioner()->Mult(pLinearOperator, rX, rY);
+        GetPreconditioner()->Mult(rpLinearOperator, rX, rY);
     }
 
     void PreconditionedTransposeMult(
-        LinearOperatorPointerType pLinearOperator,
-        VectorType& rX,
+        const typename LinearOperatorType::UniquePointer& rpLinearOperator,
+        const VectorType& rX,
         VectorType& rY)
     {
-        GetPreconditioner()->TransposeMult(pLinearOperator, rX, rY);
+        GetPreconditioner()->TransposeMult(rpLinearOperator, rX, rY);
     }
 
     ///@}
@@ -462,11 +432,11 @@ private:
     ///@name Member Variables
     ///@{
 
-    typename TPreconditionerType::Pointer mpPreconditioner;
+    double mTolerance = 0.0;
 
-    double mTolerance;
+    IndexType mMaxIterationsNumber = 0;
 
-    IndexType mMaxIterationsNumber;
+    PreconditionerPointerType mpPreconditioner = nullptr;
 
     ///@}
     ///@name Private Operators
@@ -509,19 +479,19 @@ private:
 
 
 /// input stream function
-template<class TLinearAlgebra, class TPreconditionerType>
+template<class TLinearAlgebra>
 inline std::istream& operator >> (
     std::istream& IStream,
-    IterativeSolver<TLinearAlgebra, TPreconditionerType>& rThis)
+    IterativeSolver<TLinearAlgebra>& rThis)
 {
     return IStream;
 }
 
 /// output stream function
-template<class TLinearAlgebra, class TPreconditionerType>
+template<class TLinearAlgebra>
 inline std::ostream& operator << (
     std::ostream& OStream,
-    const IterativeSolver<TLinearAlgebra, TPreconditionerType>& rThis)
+    const IterativeSolver<TLinearAlgebra>& rThis)
 {
     rThis.PrintInfo(OStream);
     OStream << std::endl;

@@ -70,7 +70,7 @@ namespace Kratos::Future
      }
      \end{verbatim}
 */
-template<class TVectorType>
+template<class TLinearAlgebra>
 class Preconditioner
 {
 public:
@@ -80,13 +80,15 @@ public:
     /// Pointer definition of Preconditioner
     KRATOS_CLASS_POINTER_DEFINITION(Preconditioner);
 
-    using VectorType = TVectorType;
+    using DataType = typename TLinearAlgebra::DataType;
 
-    using DataType = typename TVectorType::DataType;
+    using VectorType = typename TLinearAlgebra::VectorType;
 
-    using DenseMatrixType = DenseMatrix<DataType>;
+    using DenseMatrixType = typename TLinearAlgebra::DenseMatrixType;
 
-    using LinearOperatorPointerType = typename LinearOperator<TVectorType>::Pointer;
+    using LinearSystemType = LinearSystem<TLinearAlgebra>;
+
+    using LinearOperatorType = LinearOperator<TLinearAlgebra>;
 
     ///@}
     ///@name Life Cycle
@@ -115,60 +117,56 @@ public:
     ///@name Operations
     ///@{
 
-    /** Preconditioner Initialize
-    Initialize preconditioner for linear system rA*rX=rB
-    @param pLinearOperator Pointer to the linear operator representing the system matrix
-    @param rX Unknows vector
-    @param rB Right side linear system of equations.
-    */
+
     virtual void Initialize(
-        LinearOperatorPointerType pLinearOperator,
-        VectorType& rX,
-        VectorType& rB)
+        const typename LinearOperatorType::UniquePointer& rpLinearOperator,
+        typename VectorType::Pointer rX,
+        typename VectorType::Pointer rB)
     {
     }
 
-    virtual void Initialize(
-        LinearOperatorPointerType pLinearOperator,
-        DenseMatrixType& rX,
-        DenseMatrixType& rB)
-    {
-        VectorType x(rX.size1());
-        VectorType b(rB.size1());
+    //TODO: Think about the multiple RHS case --> I think we should treat them outside the preconditioner
+    // virtual void Initialize(
+    //     typename LinearOperatorType::UniquePointer& rpLinearOperator,
+    //     DenseMatrixType& rX,
+    //     DenseMatrixType& rB)
+    // {
+    //     VectorType x(rX.size1());
+    //     VectorType b(rB.size1());
 
-        for (IndexType i = 0; i < rX.size1(); ++i) {
-            x[i] = rX(i,0);
-            b[i] = rB(i,0);
-        }
+    //     for (IndexType i = 0; i < rX.size1(); ++i) {
+    //         x[i] = rX(i,0);
+    //         b[i] = rB(i,0);
+    //     }
 
-        Initialize(pLinearOperator, x, b);
-    }
+    //     Initialize(rpLinearOperator, x, b);
+    // }
 
     /** This function is designed to be called every time the coefficients change in the system
     * that is, normally at the beginning of each solve.
     * For example if we are implementing a direct solver, this is the place to do the factorization
     * so that then the backward substitution can be performed effectively more than once
-    @param rA. System matrix
-    @param rX. Solution vector. it's also the initial guess for iterative linear solvers.
-    @param rB. Right hand side vector.
+    @param rpLinearOperator Pointer to the linear operator representing the system matrix
+    @param rX Solution vector. it's also the initial guess for iterative linear solvers.
+    @param rB Right hand side vector.
     */
     virtual void InitializeSolutionStep(
-        LinearOperatorPointerType pLinearOperator,
-        VectorType& rX,
-        VectorType& rB)
+        const typename LinearOperatorType::UniquePointer& rpLinearOperator,
+        VectorType::Pointer rB,
+        VectorType::Pointer rX)
     {
     }
 
     /** This function is designed to be called at the end of the solve step.
      * for example this is the place to remove any data that we do not want to save for later
-    @param rA. System matrix
-    @param rX. Solution vector. it's also the initial guess for iterative linear solvers.
-    @param rB. Right hand side vector.
+    @param rpLinearOperator Pointer to the linear operator representing the system matrix
+    @param rX Solution vector. it's also the initial guess for iterative linear solvers.
+    @param rB Right hand side vector.
     */
     virtual void FinalizeSolutionStep(
-        LinearOperatorPointerType pLinearOperator,
-        VectorType& rX,
-        VectorType& rB)
+        const typename LinearOperatorType::UniquePointer& rpLinearOperator,
+        VectorType::Pointer rX,
+        VectorType::Pointer rB)
     {
     }
 
@@ -180,13 +178,16 @@ public:
     {
     }
 
-    /** Some preconditioners may require a minimum degree of knowledge of the structure of the matrix. To make an example
-    * when solving a mixed u-p problem, it is important to identify the row associated to v and p.
-    * another example is the automatic prescription of rotation null-space for smoothed-aggregation preconditioners
-    * which require knowledge on the spatial position of the nodes associated to a given dof.
-    * This function tells if the solver requires such data
-    */
-    virtual bool AdditionalPhysicalDataIsNeeded()
+    /**
+     * @brief This function tells if the solver requires additional physical data.
+     * @details Some preconditioners may require a minimum degree of knowledge of the structure of the matrix. To make an example
+     * when solving a mixed u-p problem, it is important to identify the row associated to v and p.
+     * another example is the automatic prescription of rotation null-space for smoothed-aggregation preconditioners
+     * which require knowledge on the spatial position of the nodes associated to a given dof.
+     * This function tells if the solver requires such data
+     * @return True if additional physical data is needed, false otherwise.
+     */
+    virtual bool RequiresAdditionalData()
     {
         return false;
     }
@@ -198,7 +199,7 @@ public:
      * This function is the place to eventually provide such data
      */
     virtual void ProvideAdditionalData(
-        LinearOperatorPointerType pLinearOperator,
+        typename LinearOperatorType::UniquePointer& rpLinearOperator,
         VectorType& rX,
         VectorType& rB,
         typename ModelPart::DofsArrayType& rdof_set,
@@ -206,24 +207,26 @@ public:
     {}
 
     virtual void Mult(
-        LinearOperatorPointerType pLinearOperator,
-        VectorType& rX,
+        const typename LinearOperatorType::UniquePointer& rpLinearOperator,
+        const VectorType& rX,
         VectorType& rY)
     {
-        VectorType z = rX;
+        rY.SetValue(0.0);
+        VectorType z(rX);
         ApplyRight(z);
-        pLinearOperator->SpMV(z, rY);
+        rpLinearOperator->SpMV(z, rY);
         ApplyLeft(rY);
     }
 
     virtual void TransposeMult(
-        LinearOperatorPointerType pLinearOperator,
-        VectorType& rX,
+        const typename LinearOperatorType::UniquePointer& rpLinearOperator,
+        const VectorType& rX,
         VectorType& rY)
     {
-        VectorType z = rX;
+        rY.SetValue(0.0);
+        VectorType z(rX);
         ApplyTransposeLeft(z);
-        pLinearOperator->TransposeSpMV(z, rY);
+        rpLinearOperator->TransposeSpMV(z, rY);
         ApplyTransposeRight(rY);
     }
 

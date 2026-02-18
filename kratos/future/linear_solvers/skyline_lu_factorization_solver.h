@@ -507,17 +507,13 @@ public:
 
     using LinearSystemType = LinearSystem<TLinearAlgebra>;
 
-    using LinearOperatorPointerType = typename LinearOperator<TLinearAlgebra>::Pointer;
-
     using DenseVectorTag = typename LinearSystemTags::DenseVectorTag;
 
     using SparseMatrixTag = typename LinearSystemTags::SparseMatrixTag;
 
     /// Default constructor
-    SkylineLUFactorizationSolver() = default;
-
-    SkylineLUFactorizationSolver(Parameters settings)
-    : BaseType(settings)
+    SkylineLUFactorizationSolver(Parameters Settings = Parameters(R"({})"))
+        : BaseType(Settings)
     {
     }
 
