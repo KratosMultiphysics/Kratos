@@ -133,6 +133,7 @@ public:
         mNrows = size1();
         ComputeColSize();
         ResizeValueData(mColIndices.size());
+        SetValue(0.0);
 
         // Assemble data from matrix map
         this->BeginAssemble();
