@@ -121,7 +121,7 @@ void NearestEntityExplicitDamping<TContainerType>::Update()
         }
 
         if (damped_entities.empty()) {
-            IndexPartition<IndexType>(r_container.size()).for_each([this, stride, i_comp](const auto Index) {
+            IndexPartition<IndexType>(r_container.size()).for_each([this, i_comp](const auto Index) {
                 this->mDampingCoefficients(Index, i_comp) = 1.0;
             });
         } else {
@@ -185,7 +185,7 @@ void NearestEntityExplicitDamping<TContainerType>::NearestEntityExplicitDamping:
 
     rOutput.clear();
 
-    IndexPartition<IndexType>(number_of_entities).for_each([this, &rOutput, stride, ComponentIndex, number_of_entities](const auto Index) {
+    IndexPartition<IndexType>(number_of_entities).for_each([this, &rOutput, ComponentIndex, number_of_entities](const auto Index) {
         *(rOutput.data().begin() + Index * number_of_entities + Index) = this->mDampingCoefficients(Index, ComponentIndex);
     });
 
