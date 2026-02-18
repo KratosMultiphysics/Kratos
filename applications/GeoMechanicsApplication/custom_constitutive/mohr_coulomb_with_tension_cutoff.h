@@ -14,12 +14,7 @@
 
 #pragma once
 
-// System includes
-#include <optional>
-
-// Project includes
-#include "custom_constitutive/coulomb_yield_surface.h"
-#include "custom_constitutive/tension_cutoff.h"
+#include "custom_constitutive/coulomb_with_tension_cut_off_impl.h"
 #include "includes/constitutive_law.h"
 
 namespace Kratos
@@ -55,7 +50,7 @@ public:
                                                               const Vector&         rShapeFunctionsValues) override;
     void    InitializeMaterialResponseCauchy(Parameters& rValues) override;
     void    GetLawFeatures(Features& rFeatures) override;
-    Vector& GetValue(const Variable<Vector>& rThisVariable, Vector& rValue) override;
+    Vector& GetValue(const Variable<Vector>& rVariable, Vector& rValue) override;
     using ConstitutiveLaw::GetValue;
     void SetValue(const Variable<Vector>& rVariable, const Vector& rValue, const ProcessInfo& rCurrentProcessInfo) override;
     using ConstitutiveLaw::SetValue;
@@ -70,14 +65,10 @@ private:
     Vector                                    mStressVector;
     Vector                                    mStressVectorFinalized;
     Vector                                    mStrainVectorFinalized;
-    CoulombYieldSurface                       mCoulombYieldSurface;
-    TensionCutoff                             mTensionCutOff;
+    CoulombWithTensionCutOffImpl              mCoulombWithTensionCutOffImpl;
     bool                                      mIsModelInitialized = false;
 
-    [[nodiscard]] Vector CalculateTrialStressVector(const Vector& rStrainVector,
-                                                    double        YoungsModulus,
-                                                    double        PoissonsRatio) const;
-    [[nodiscard]] bool   IsAdmissiblePrincipalStressState(const Vector& rPrincipalStresses) const;
+    [[nodiscard]] Vector CalculateTrialStressVector(const Vector& rStrainVector, const Properties& rProperties) const;
 
     friend class Serializer;
     void save(Serializer& rSerializer) const override;

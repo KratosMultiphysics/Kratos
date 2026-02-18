@@ -94,7 +94,7 @@ public:
     /**
      * @brief Removes automatically generated model parts
      *
-     * This method removes all the automatically generted sub model parts in the given list of rModelParts
+     * This method removes all the automatically generated sub model parts in the given list of rModelParts
      *
      * @param rModelParts       The list of model parts to look for automatically generated sub model parts.
      */

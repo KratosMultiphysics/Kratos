@@ -10,9 +10,7 @@
 //  Main authors:    Riccardo Rossi
 //
 
-#if !defined(KRATOS_DISTRIBUTED_CSR_MATRIX_H_INCLUDED )
-#define  KRATOS_DISTRIBUTED_CSR_MATRIX_H_INCLUDED
-
+#pragma once
 
 // System includes
 #include <iostream>
@@ -262,6 +260,7 @@ public:
         mOffDiagonalGlobalIds = std::move(rOtherMatrix.mOffDiagonalGlobalIds);
         mfem_assemble_colors = std::move(rOtherMatrix.mfem_assemble_colors);
         mpVectorImporter = std::move(rOtherMatrix.mpVectorImporter);
+        return *this;
     }
     /// Destructor.
     ~DistributedCsrMatrix() {}
@@ -1144,7 +1143,5 @@ inline std::ostream& operator << (std::ostream& rOStream,
 ///@} addtogroup block
 
 }  // namespace Kratos.
-
-#endif // KRATOS_DISTRIBUTED_CSR_MATRIX_H_INCLUDED  defined
 
 

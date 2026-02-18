@@ -71,8 +71,15 @@ class KratosGeoMechanicsMohrCoulombWithTensionTests(KratosUnittest.TestCase):
         
     def test_column_under_gravity(self):
         sig_xx, sig_yy = self.simulate_mohr_coulomb('test_column_under_gravity', 2)
-        self.assertAlmostEqual(sig_xx, -8400.786160492225)
-        self.assertAlmostEqual(sig_yy, -22365.87047624526)
+        self.assertAlmostEqual(sig_xx, -6300.238764425369)
+        self.assertAlmostEqual(sig_yy, -22364.817908413854)
+
+    def test_interface_coulomb_2plus2(self):
+        test_name = "interface_coulomb_2plus2"
+        file_path = test_helper.get_file_path(os.path.join('test_mohr_coulomb_with_tension_cutoff', test_name))
+        simulation = test_helper.run_kratos(file_path)
+        reaction = test_helper.get_nodal_variable(simulation, Kratos.REACTION)
+        self.assertAlmostEqual(176.1686911267587877808, reaction[0][0])
         
 if __name__ == '__main__':
     KratosUnittest.main()

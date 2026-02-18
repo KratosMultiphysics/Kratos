@@ -1,6 +1,8 @@
 
 # Importing the Kratos Library
 import KratosMultiphysics
+import KratosMultiphysics.MPMApplication as KratosMPM
+
 
 # Import applications and dependencies
 import KratosMultiphysics.MPMApplication as KratosMPM
@@ -25,6 +27,5 @@ class MPMStaticSolver(MPMSolver):
         KratosMultiphysics.Logger.PrintInfo("::[MPMStaticSolver]:: ", "Variables are all added.")
 
     def _CreateSolutionScheme(self):
-        grid_model_part = self.GetGridModelPart()
-        #return KratosMultiphysics.ResidualBasedIncrementalUpdateStaticScheme()
-        return KratosMPM.MPMResidualBasedSimpleSteadyScheme(grid_model_part)
+
+        return KratosMPM.MPMResidualBasedIncrementalUpdateStaticScheme()

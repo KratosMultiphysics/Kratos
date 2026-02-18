@@ -2028,7 +2028,7 @@ private:
 
             mOctree.GetAllLeavesVector(leaves);
 
-            rOStream << "GiD Post Results File 1.0" << std::endl << std::endl;
+            rOStream << "GiD Post Results File 1.2" << std::endl << std::endl;
 
             rOStream << "Result \"Distance\" \"Kratos\" 1 Scalar OnNodes" << std::endl;
 

@@ -33,7 +33,7 @@ namespace Kratos
 
 ///@name Kratos Classes
 ///@{
-template<class TNodeType = Node, class TEmbeddedNodeType = Point>
+template<class TNodeType = Node, class TEmbeddedNodeType = Point, bool TShiftedBoundary = true>
 class CreateBrepsSbmUtilities : public IO
 {
     public:
@@ -45,9 +45,6 @@ class CreateBrepsSbmUtilities : public IO
     /// Pointer definition of CreateBrepsSbmUtilities
     KRATOS_CLASS_POINTER_DEFINITION(CreateBrepsSbmUtilities);
 
-    using SizeType = std::size_t;
-    using IndexType = std::size_t;
-
     using GeometryType = Geometry<TNodeType>;
     using GeometryPointerType = typename GeometryType::Pointer;
     using GeometrySurrogateArrayType = DenseVector<GeometryPointerType>;
@@ -55,11 +52,11 @@ class CreateBrepsSbmUtilities : public IO
     using ContainerNodeType = PointerVector<TNodeType>;
     using ContainerEmbeddedNodeType = PointerVector<TEmbeddedNodeType>;
     
-    using NurbsSurfaceGeometryType = NurbsSurfaceGeometry<3, PointerVector<NodeType>>;
+    using NurbsSurfaceGeometryType = NurbsSurfaceGeometry<3, PointerVector<TNodeType>>;
     using NurbsSurfaceGeometryPointerType = typename NurbsSurfaceGeometryType::Pointer;
 
-    using BrepSurfaceType = BrepSurface<ContainerNodeType, true, ContainerEmbeddedNodeType>;
-    using BrepCurveOnSurfaceType = BrepCurveOnSurface<ContainerNodeType, true, ContainerEmbeddedNodeType>;
+    using BrepSurfaceType = BrepSurface<ContainerNodeType, TShiftedBoundary, ContainerEmbeddedNodeType>;
+    using BrepCurveOnSurfaceType = BrepCurveOnSurface<ContainerNodeType, TShiftedBoundary, ContainerEmbeddedNodeType>;
 
     using BrepCurveOnSurfaceLoopType = DenseVector<typename BrepCurveOnSurfaceType::Pointer>;
     using BrepCurveOnSurfaceLoopArrayType = DenseVector<DenseVector<typename BrepCurveOnSurfaceType::Pointer>>;
@@ -70,7 +67,7 @@ class CreateBrepsSbmUtilities : public IO
 
     /// Constructor with path to input file.
     CreateBrepsSbmUtilities(
-        SizeType EchoLevel = 0)
+        std::size_t EchoLevel = 0)
         : mEchoLevel(EchoLevel)
     {
     }
@@ -118,7 +115,7 @@ class CreateBrepsSbmUtilities : public IO
                                 ModelPart& rModelPart)
     {
         CreateBrepSurface(pSurface, rModelPart, mEchoLevel);
-        IndexType id_brep_curve_on_surface = 2; // because id 1 is the brep surface
+        std::size_t id_brep_curve_on_surface = 2; // because id 1 is the brep surface
         CreateBrepCurvesOnRectangle(pSurface, rCoordsA, rCoordsB, id_brep_curve_on_surface, rModelPart);
     }
 
@@ -135,15 +132,16 @@ private:
     static void CreateBrepSurface(
         NurbsSurfaceGeometryPointerType pSurface,
         ModelPart& rModelPart,
-        const SizeType EchoLevel = 0)
+        const std::size_t EchoLevel = 0)
     {
         KRATOS_INFO_IF("ReadBrepSurface", (EchoLevel > 3))
             << "Creating BrepSurface \""<< std::endl;
 
         BrepCurveOnSurfaceLoopArrayType outer_loops, inner_loops;
 
+        // Set to FALSE the TShiftedBoundary flag
         auto p_brep_surface =
-            Kratos::make_shared<BrepSurfaceType>(
+            Kratos::make_shared<BrepSurface<ContainerNodeType, false, ContainerEmbeddedNodeType>>(
                 pSurface, 
                 outer_loops,
                 inner_loops,
@@ -169,7 +167,7 @@ private:
         const ModelPart& rSurrogateModelPartInner, 
         const ModelPart& rSurrogateModelPartOuter,
         ModelPart& rModelPart,
-        const SizeType EchoLevel = 0)
+        const std::size_t EchoLevel = 0)
     {
         KRATOS_INFO_IF("ReadBrepSurface", (EchoLevel > 3))
             << "Creating BrepSurface \""<< std::endl;
@@ -198,8 +196,11 @@ private:
                 outer_loops,
                 inner_loops);
 
-        p_brep_surface->SetSurrogateInnerLoopGeometries(surrogate_inner_loop_geometries);
-        p_brep_surface->SetSurrogateOuterLoopGeometries(surrogate_outer_loop_geometries);
+        auto p_surrogate_outer_loop_geometries = Kratos::make_shared<GeometrySurrogateArrayType>(surrogate_outer_loop_geometries);
+        auto p_surrogate_inner_loop_geometries = Kratos::make_shared<GeometrySurrogateArrayType>(surrogate_inner_loop_geometries);
+
+        p_brep_surface->SetSurrogateOuterLoopGeometries(p_surrogate_outer_loop_geometries);
+        p_brep_surface->SetSurrogateInnerLoopGeometries(p_surrogate_inner_loop_geometries);
 
         // Sets the brep as geometry parent of the nurbs surface.
         pSurface->SetGeometryParent(p_brep_surface.get());
@@ -225,14 +226,14 @@ private:
         const Point& rCoordsA, 
         const Point& rCoordsB,
         ModelPart& rModelPart,
-        const SizeType EchoLevel = 0) {
+        const std::size_t EchoLevel = 0) {
         // OUTER 
-        IndexType id_brep_curve_on_surface = 2; // because id 1 is the brep surface
+        std::size_t id_brep_curve_on_surface = 2; // because id 1 is the brep surface
 
         if (rSurrogateModelPartOuter.NumberOfConditions() > 0)
         {
             for (auto &i_cond : rSurrogateModelPartOuter.Conditions()) {
-                Geometry<NodeType>::PointsArrayType points;
+                Geometry<Node>::PointsArrayType points;
                 Point first_point  = i_cond.GetGeometry()[0];
                 Point second_point = i_cond.GetGeometry()[1];
                 Vector knot_vector = ZeroVector(2);
@@ -284,14 +285,17 @@ private:
 
 
         // INNER
-        for (IndexType i_element = 1; i_element < rSurrogateModelPartInner.Elements().size()+1; i_element++) {
-            IndexType first_surrogate_cond_id = rSurrogateModelPartInner.pGetElement(i_element)->GetGeometry()[0].Id(); // Element 1 because is the only surrogate loop
-            IndexType last_surrogate_cond_id = rSurrogateModelPartInner.pGetElement(i_element)->GetGeometry()[1].Id();  // Element 1 because is the only surrogate loop
-    
-            for (IndexType cond_id = first_surrogate_cond_id; cond_id <= last_surrogate_cond_id; ++cond_id) {
+        const auto& r_elems = rSurrogateModelPartInner.Elements();
+
+        for (const auto& rElem : r_elems) {
+            const auto& r_geom = rElem.GetGeometry();
+            std::size_t first_surrogate_cond_id = r_geom[0].Id();
+            std::size_t last_surrogate_cond_id  = r_geom[1].Id();
+
+            for (std::size_t cond_id = first_surrogate_cond_id; cond_id <= last_surrogate_cond_id; ++cond_id) {
                 
                 auto p_cond = rSurrogateModelPartInner.pGetCondition(cond_id);
-                Geometry<NodeType>::PointsArrayType points;
+                Geometry<Node>::PointsArrayType points;
                 Point first_point  = p_cond->GetGeometry()[0];
                 Point second_point = p_cond->GetGeometry()[1];
                 Vector knot_vector = ZeroVector(2);
@@ -380,7 +384,7 @@ private:
     static void CreateBrepCurvesOnRectangle(const NurbsSurfaceGeometryPointerType pSurfaceGeometry, 
                                             const Point& rCoordsA, 
                                             const Point& rCoordsB, 
-                                            IndexType& rLastGeometryId,
+                                            std::size_t& rLastGeometryId,
                                             ModelPart& rModelPart) {
         Vector knot_vector = ZeroVector(2);
         knot_vector[0] = 0.0;
@@ -408,22 +412,22 @@ private:
         auto p_curve_3 = Kratos::make_shared<NurbsCurveGeometry<2, PointerVector<Point>>>(segment3, p, knot_vector);
         auto p_curve_4 = Kratos::make_shared<NurbsCurveGeometry<2, PointerVector<Point>>>(segment4, p, knot_vector);
         
-        auto brep_curve_on_surface = BrepCurveOnSurface< PointerVector<NodeType>, true, PointerVector<Point>>(pSurfaceGeometry, p_curve_1);
+        auto brep_curve_on_surface = BrepCurveOnSurface< PointerVector<TNodeType>, true, PointerVector<Point>>(pSurfaceGeometry, p_curve_1);
         auto p_brep_curve_on_surface = Kratos::make_shared<BrepCurveOnSurfaceType>(pSurfaceGeometry, p_curve_1);
         p_brep_curve_on_surface->SetId(rLastGeometryId);
         rModelPart.AddGeometry(p_brep_curve_on_surface);
         
-        brep_curve_on_surface = BrepCurveOnSurface< PointerVector<NodeType>, true, PointerVector<Point>>(pSurfaceGeometry, p_curve_2);
+        brep_curve_on_surface = BrepCurveOnSurface< PointerVector<TNodeType>, true, PointerVector<Point>>(pSurfaceGeometry, p_curve_2);
         p_brep_curve_on_surface = Kratos::make_shared<BrepCurveOnSurfaceType>(pSurfaceGeometry, p_curve_2);
         p_brep_curve_on_surface->SetId(++rLastGeometryId);
         rModelPart.AddGeometry(p_brep_curve_on_surface);
 
-        brep_curve_on_surface = BrepCurveOnSurface< PointerVector<NodeType>, true, PointerVector<Point>>(pSurfaceGeometry, p_curve_3);
+        brep_curve_on_surface = BrepCurveOnSurface< PointerVector<TNodeType>, true, PointerVector<Point>>(pSurfaceGeometry, p_curve_3);
         p_brep_curve_on_surface = Kratos::make_shared<BrepCurveOnSurfaceType>(pSurfaceGeometry, p_curve_3);
         p_brep_curve_on_surface->SetId(++rLastGeometryId);
         rModelPart.AddGeometry(p_brep_curve_on_surface);
         
-        brep_curve_on_surface = BrepCurveOnSurface< PointerVector<NodeType>, true, PointerVector<Point>>(pSurfaceGeometry, p_curve_4);
+        brep_curve_on_surface = BrepCurveOnSurface< PointerVector<TNodeType>, true, PointerVector<Point>>(pSurfaceGeometry, p_curve_4);
         p_brep_curve_on_surface = Kratos::make_shared<BrepCurveOnSurfaceType>(pSurfaceGeometry, p_curve_4);
         p_brep_curve_on_surface->SetId(++rLastGeometryId);
         rModelPart.AddGeometry(p_brep_curve_on_surface);

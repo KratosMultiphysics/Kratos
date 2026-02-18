@@ -13,26 +13,24 @@
 //
 
 // Project includes
-#include "custom_conditions/line_load_2D_diff_order_condition.hpp"
+#include "custom_conditions/line_load_2D_diff_order_condition.h"
 #include "custom_utilities/condition_utilities.hpp"
+#include "custom_utilities/variables_utilities.hpp"
 
 namespace Kratos
 {
 
-// Default Constructor
 LineLoad2DDiffOrderCondition::LineLoad2DDiffOrderCondition() : GeneralUPwDiffOrderCondition() {}
 
-// Constructor 1
 LineLoad2DDiffOrderCondition::LineLoad2DDiffOrderCondition(IndexType NewId, GeometryType::Pointer pGeometry)
-    : GeneralUPwDiffOrderCondition(NewId, pGeometry)
+    : GeneralUPwDiffOrderCondition(NewId, std::move(pGeometry))
 {
 }
 
-// Constructor 2
 LineLoad2DDiffOrderCondition::LineLoad2DDiffOrderCondition(IndexType               NewId,
                                                            GeometryType::Pointer   pGeometry,
                                                            PropertiesType::Pointer pProperties)
-    : GeneralUPwDiffOrderCondition(NewId, pGeometry, pProperties)
+    : GeneralUPwDiffOrderCondition(NewId, std::move(pGeometry), std::move(pProperties))
 {
 }
 
@@ -54,13 +52,13 @@ void LineLoad2DDiffOrderCondition::CalculateConditionVector(ConditionVariables& 
 {
     KRATOS_TRY
 
-    const GeometryType& r_geometry = GetGeometry();
+    const auto line_load_vectors = VariablesUtilities::GetNodalValues(GetGeometry(), LINE_LOAD);
+
     rVariables.ConditionVector.resize(2, false);
     noalias(rVariables.ConditionVector) = ZeroVector(2);
-    for (SizeType i = 0; i < r_geometry.PointsNumber(); ++i) {
-        auto line_load = r_geometry[i].FastGetSolutionStepValue(LINE_LOAD);
-        rVariables.ConditionVector[0] += rVariables.Nu[i] * line_load[0];
-        rVariables.ConditionVector[1] += rVariables.Nu[i] * line_load[1];
+    for (SizeType i = 0; i < line_load_vectors.size(); ++i) {
+        rVariables.ConditionVector[0] += rVariables.Nu[i] * line_load_vectors[i][0];
+        rVariables.ConditionVector[1] += rVariables.Nu[i] * line_load_vectors[i][1];
     }
 
     KRATOS_CATCH("")
@@ -86,6 +84,17 @@ void LineLoad2DDiffOrderCondition::CalculateAndAddConditionForce(Vector& rRightH
     }
 }
 
-std::string LineLoad2DDiffOrderCondition::Info() const { return "LineLoad2DDiffOrderCondition"; }
+void LineLoad2DDiffOrderCondition::save(Serializer& rSerializer) const
+{
+    KRATOS_SERIALIZE_SAVE_BASE_CLASS(rSerializer, GeneralUPwDiffOrderCondition)
+}
+
+void LineLoad2DDiffOrderCondition::load(Serializer& rSerializer){
+    KRATOS_SERIALIZE_LOAD_BASE_CLASS(rSerializer, GeneralUPwDiffOrderCondition)}
+
+std::string LineLoad2DDiffOrderCondition::Info() const
+{
+    return "LineLoad2DDiffOrderCondition";
+}
 
 } // Namespace Kratos.

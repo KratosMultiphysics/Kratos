@@ -14,44 +14,46 @@
 
 #pragma once
 
-#include "geo_mechanics_application_variables.h"
 #include "includes/element.h"
 #include "includes/kratos_export_api.h"
 #include "processes/process.h"
 
+#include <string>
+
 namespace Kratos
 {
+
+class Model;
+class Parameters;
 
 class KRATOS_API(GEO_MECHANICS_APPLICATION) ApplyCPhiReductionProcess : public Process
 {
 public:
     KRATOS_CLASS_POINTER_DEFINITION(ApplyCPhiReductionProcess);
 
-    ApplyCPhiReductionProcess(ModelPart& rModelPart, const Parameters&)
-        : Process(Flags()), mrModelPart(rModelPart)
-    {
-    }
+    ApplyCPhiReductionProcess(Model& rModel, const Parameters& rProcessSettings);
 
-    void ExecuteInitializeSolutionStep() override;
-    void ExecuteFinalizeSolutionStep() override;
-    void ExecuteFinalize() override;
-    int  Check() override;
+    void                      ExecuteInitializeSolutionStep() override;
+    void                      ExecuteFinalizeSolutionStep() override;
+    void                      ExecuteFinalize() override;
+    int                       Check() override;
+    [[nodiscard]] std::string Info() const override;
 
 private:
-    ModelPart& mrModelPart;
-    double     mReductionFactor         = 1.0;
-    double     mPreviousReductionFactor = 1.0;
-    double     mReductionIncrement      = 0.1;
+    std::vector<std::reference_wrapper<ModelPart>> mrModelParts;
+    double                                         mReductionFactor         = 1.0;
+    double                                         mPreviousReductionFactor = 1.0;
+    double                                         mReductionIncrement      = 0.1;
 
-    [[nodiscard]] double GetAndCheckPhi(const Element::PropertiesType& rProp) const;
+    [[nodiscard]] static double GetAndCheckPhi(const Properties& rModelPartProperties, IndexType ElementPropertyId);
 
     [[nodiscard]] double ComputeReducedPhi(double Phi) const;
 
-    [[nodiscard]] double GetAndCheckC(const Element::PropertiesType& rProp) const;
+    [[nodiscard]] static double GetAndCheckC(const Properties& rModelPartProperties);
 
-    void SetCPhiAtElement(Element& rElement, double ReducedPhi, double ReducedC) const;
+    static void SetCPhiAtElement(Element& rElement, double ReducedPhi, double ReducedC);
 
-    void SetValueAtElement(Element& rElement, const Variable<Vector>& rVariable, const Vector& rValue) const;
+    static void SetValueAtElement(Element& rElement, const Variable<Vector>& rVariable, const Vector& rValue);
 
     [[nodiscard]] bool IsStepRestarted() const;
 };

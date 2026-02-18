@@ -85,7 +85,7 @@ void DerivativeRecovery<TDim>::CalculateVectorMaterialDerivative(ModelPart& r_mo
                 geom[i].FastGetSolutionStepValue(material_derivative_container) += grad; // we use material_derivative_container to store the gradient of one component at a time
             }
         }
-        // normalizing the constributions to the gradient and getting the j-component of the material derivative
+        // normalizing the contributions to the gradient and getting the j-component of the material derivative
         for (NodeIteratorType inode = r_model_part.NodesBegin(); inode != r_model_part.NodesEnd(); ++inode){
             array_1d <double, 3>& stored_gradient_of_component_j = inode->FastGetSolutionStepValue(material_derivative_container);
             stored_gradient_of_component_j /= inode->FastGetSolutionStepValue(NODAL_AREA);
@@ -190,7 +190,7 @@ void DerivativeRecovery<TDim>::RecoverSuperconvergentMatDeriv(ModelPart& r_model
     for (NodeIteratorType inode = r_model_part.NodesBegin(); inode != r_model_part.NodesEnd(); ++inode){
         GlobalPointersVector<Node >& neigh_nodes = inode->GetValue(NEIGHBOUR_NODES);
         unsigned int n_neigh = neigh_nodes.size();
-        if (!n_neigh){ // then we keep the defualt value
+        if (!n_neigh){ // then we keep the default value
             continue;
         }
         for (unsigned int i = 0; i < n_relevant_terms; ++i){ // resetting polynomial_coefficients to 0
@@ -343,7 +343,7 @@ void DerivativeRecovery<TDim>::RecoverSuperconvergentGradient(ModelPart& r_model
     for (NodeIteratorType inode = r_model_part.NodesBegin(); inode != r_model_part.NodesEnd(); ++inode){
         GlobalPointersVector<Node >& neigh_nodes = inode->GetValue(NEIGHBOUR_NODES);
         unsigned int n_neigh = neigh_nodes.size();
-        if (!n_neigh){ // we keep the defualt value
+        if (!n_neigh){ // we keep the default value
             continue;
         }
         array_1d <double, 3>& recovered_gradient = inode->FastGetSolutionStepValue(gradient_container);
@@ -380,7 +380,7 @@ void DerivativeRecovery<TDim>::RecoverSuperconvergentLaplacian(ModelPart& r_mode
     for (NodeIteratorType inode = r_model_part.NodesBegin(); inode != r_model_part.NodesEnd(); ++inode){
         GlobalPointersVector<Node >& neigh_nodes = inode->GetValue(NEIGHBOUR_NODES);
         unsigned int n_neigh = neigh_nodes.size();
-        if (!n_neigh){ // then we keep the defualt value
+        if (!n_neigh){ // then we keep the default value
             continue;
         }
         for (unsigned int i = 0; i < n_relevant_terms; ++i){ // resetting polynomial_coefficients to 0
@@ -429,7 +429,7 @@ void DerivativeRecovery<TDim>::RecoverSuperconvergentVelocityLaplacianFromGradie
     for (NodeIteratorType inode = r_model_part.NodesBegin(); inode != r_model_part.NodesEnd(); ++inode){
         GlobalPointersVector<Node >& neigh_nodes = inode->GetValue(NEIGHBOUR_NODES);
         unsigned int n_neigh = neigh_nodes.size();
-        if (!n_neigh){ // then we keep the defualt value
+        if (!n_neigh){ // then we keep the default value
             continue;
         }
         for (unsigned int i = 0; i < n_relevant_terms; ++i){ // resetting polynomial_coefficients to 0
@@ -478,7 +478,7 @@ void DerivativeRecovery<TDim>::RecoverSuperconvergentMatDerivAndLaplacian(ModelP
     for (NodeIteratorType inode = r_model_part.NodesBegin(); inode != r_model_part.NodesEnd(); ++inode){
         GlobalPointersVector<Node >& neigh_nodes = inode->GetValue(NEIGHBOUR_NODES);
         unsigned int n_neigh = neigh_nodes.size();
-        if (!n_neigh){ // then we keep the defualt value
+        if (!n_neigh){ // then we keep the default value
             continue;
         }
         for (unsigned int i = 0; i < n_relevant_terms; ++i){ // resetting polynomial_coefficients to 0

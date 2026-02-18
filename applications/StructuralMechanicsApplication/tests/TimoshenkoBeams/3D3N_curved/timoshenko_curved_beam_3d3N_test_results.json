@@ -1,0 +1,65 @@
+{
+  "TIME": [
+    1.0
+  ],
+  "NODE_1": {
+    "DISPLACEMENT_X": [
+      1.2713425361265547e-06
+    ],
+    "DISPLACEMENT_Y": [
+      0.0
+    ],
+    "DISPLACEMENT_Z": [
+      -2.82997036986031e-06
+    ],
+    "ROTATION_X": [
+      0.0
+    ],
+    "ROTATION_Y": [
+      1.1433694984001851e-08
+    ],
+    "ROTATION_Z": [
+      0.0
+    ]
+  },
+  "NODE_2": {
+    "DISPLACEMENT_X": [
+      1.1754456709694937e-06
+    ],
+    "DISPLACEMENT_Y": [
+      0.0
+    ],
+    "DISPLACEMENT_Z": [
+      -1.8184597495683757e-06
+    ],
+    "ROTATION_X": [
+      0.0
+    ],
+    "ROTATION_Y": [
+      9.412484169661815e-09
+    ],
+    "ROTATION_Z": [
+      0.0
+    ]
+  },
+  "NODE_3": {
+    "DISPLACEMENT_X": [
+      0.0
+    ],
+    "DISPLACEMENT_Y": [
+      0.0
+    ],
+    "DISPLACEMENT_Z": [
+      0.0
+    ],
+    "ROTATION_X": [
+      0.0
+    ],
+    "ROTATION_Y": [
+      0.0
+    ],
+    "ROTATION_Z": [
+      0.0
+    ]
+  }
+}

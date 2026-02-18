@@ -19,6 +19,12 @@
 namespace Kratos
 {
 
+namespace Geo
+{
+class PrincipalStresses;
+class SigmaTau;
+} // namespace Geo
+
 class KRATOS_API(GEO_MECHANICS_APPLICATION) TensionCutoff : public YieldSurface
 {
 public:
@@ -28,8 +34,13 @@ public:
 
     explicit TensionCutoff(double TensileStrength);
 
-    [[nodiscard]] double YieldFunctionValue(const Vector& rPrincipalStress) const override;
-    [[nodiscard]] Vector DerivativeOfFlowFunction(const Vector& rPrincipalStress) const override;
+    [[nodiscard]] double GetTensileStrength() const;
+
+    [[nodiscard]] double YieldFunctionValue(const Vector& rSigmaTau) const override;
+    [[nodiscard]] double YieldFunctionValue(const Geo::SigmaTau& rSigmaTau) const;
+    [[nodiscard]] double YieldFunctionValue(const Geo::PrincipalStresses& rPrincipalStresses) const;
+    [[nodiscard]] Vector DerivativeOfFlowFunction(const Vector&) const override;
+    [[nodiscard]] Vector DerivativeOfFlowFunction(const Geo::SigmaTau&) const;
 
 private:
     friend class Serializer;

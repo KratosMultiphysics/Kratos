@@ -31,6 +31,9 @@ from mpm_test_factory import GravityApplicationTest as TGravityApplicationTest
 from mpm_test_factory import GravityTimeStepTableTest as TGravityTimeStepTableTest
 
 from mpm_test_factory import PenaltyImpositionBeamCantileverStaticHyperelasticSelfWeightLoad2DQuadTest as TPenaltyImpositionBeamCantileverStaticHyperelasticSelfWeightLoad2DQuadTest
+from mpm_test_factory import LagrangeImpositionBeamCantileverStaticHyperelasticSelfWeightLoad2DQuadTest as TLagrangeImpositionBeamCantileverStaticHyperelasticSelfWeightLoad2DQuadTest
+from mpm_test_factory import LagrangeCenterImpositionBeamCantileverQuasiStaticHyperelasticSelfWeightLoad2DQuadTest as TLagrangeCenterImpositionBeamCantileverQuasiStaticHyperelasticSelfWeightLoad2DQuadTest
+from mpm_test_factory import PerturbedLagrangeImpositionBeamCantileverStaticHyperelasticSelfWeightLoad2DQuadTest as TPerturbedLagrangeImpositionBeamCantileverStaticHyperelasticSelfWeightLoad2DQuadTest
 
 from mpm_test_factory import SlipBoundaryTest as TSlipBoundaryTest
 from mpm_test_factory import PenaltyBasedSlipTest as TPenaltyBasedSlipTest
@@ -53,11 +56,15 @@ from mpm_test_factory import PQMPMExplicitQuadTest as TPQMPMExplicitQuadTest
 from mpm_test_factory import PQMPMExplicitTriTest as TPQMPMExplicitTriTest
 from mpm_test_factory import PQMPMExplicitHexTest as TPQMPMExplicitHexTest
 
+
 from manufactured_solution_test_mpm import ManufacturedSolutionTestMPM
+from mpm_test_factory import InitialConditionPrescribedVelocityTest as TInitialConditionPrescribedVelocityTest
+
 
 ##### RESTART TESTS #####
 from restart_tests import MPMRestartTestBeamStaticLineLoad2D  as TMPMRestartTestBeamStaticLineLoad2D
 from restart_tests import MPMRestartTestDynamicCantilever2D    as TMPMRestartTestDynamicCantilever2D
+from restart_tests import MPMRestartTestCantileverLagrange2D    as TMPMRestartTestCantileverLagrange2D
 
 
 
@@ -117,6 +124,9 @@ def AssembleTestSuites():
     smallSuite.addTest(TPenaltyBasedSlipTest('test_execution'))
 
     smallSuite.addTest(TFrictionConformingTest('test_execution'))
+    
+    smallSuite.addTest(TInitialConditionPrescribedVelocityTest('test_execution'))
+    
 
     ## These tests are executed in the nightly build
     nightSuite = suites['nightly']
@@ -134,6 +144,9 @@ def AssembleTestSuites():
     nightSuite.addTest(TCooksMembraneUPIncompressibleASGSTest('test_execution'))
     nightSuite.addTest(TCooksMembraneUPIncompressibleOSGSTest('test_execution'))
     nightSuite.addTest(TPenaltyImpositionBeamCantileverStaticHyperelasticSelfWeightLoad2DQuadTest('test_execution'))
+    nightSuite.addTest(TLagrangeImpositionBeamCantileverStaticHyperelasticSelfWeightLoad2DQuadTest('test_execution'))
+    nightSuite.addTest(TLagrangeCenterImpositionBeamCantileverQuasiStaticHyperelasticSelfWeightLoad2DQuadTest('test_execution'))
+    nightSuite.addTest(TPerturbedLagrangeImpositionBeamCantileverStaticHyperelasticSelfWeightLoad2DQuadTest('test_execution'))
     nightSuite.addTest(TBeamCantileverLinearStaticHyperelasticSelfWeightLoad2DQuadTest('test_execution'))
     nightSuite.addTest(TBeamCantileverDynamicConsistentMassTest('test_execution'))
     nightSuite.addTest(TBeamCantileverDynamicHyperelasticUPTest('test_execution'))
@@ -157,9 +170,10 @@ def AssembleTestSuites():
 
     nightSuite.addTest(TMPMRestartTestBeamStaticLineLoad2D('test_execution'))
     nightSuite.addTest(TMPMRestartTestDynamicCantilever2D('test_execution'))
+    nightSuite.addTest(TMPMRestartTestCantileverLagrange2D('test_execution'))
 
     ### Adding Validation Tests
-    ## For very long tests that should not be in nighly and you can use to validate
+    ## For very long tests that should not be in nightly and you can use to validate
     validationSuite = suites['validation']
     validationSuite.addTest(ManufacturedSolutionTestMPM('testManufacturedSolutionMPM'))
 

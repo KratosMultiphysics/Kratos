@@ -10,9 +10,7 @@
 //  Main authors:    Riccardo Rossi
 //
 
-#if !defined(KRATOS_CSR_MATRIX_H_INCLUDED )
-#define  KRATOS_CSR_MATRIX_H_INCLUDED
-
+#pragma once
 
 // System includes
 #include <iostream>
@@ -398,29 +396,30 @@ public:
             KRATOS_ERROR << " max column index : " << max_col << " exceeds mNcols :" << mNcols << std::endl;
     }
 
-    TDataType& operator()(IndexType I, IndexType J)
+    IndexType FindValueIndex(IndexType I, IndexType J) const
     {
         const IndexType row_begin = index1_data()[I];
         const IndexType row_end = index1_data()[I+1];
-        IndexType k = BinarySearch(index2_data(), row_begin, row_end, J);
+        return BinarySearch(index2_data(), row_begin, row_end, J);
+    }
+
+    TDataType& operator()(IndexType I, IndexType J)
+    {
+        const IndexType k = FindValueIndex(I,J);
         KRATOS_DEBUG_ERROR_IF(k==std::numeric_limits<IndexType>::max()) << "local indices I,J : " << I << " " << J << " not found in matrix" << std::endl;
         return value_data()[k];
     }
 
     const TDataType& operator()(IndexType I, IndexType J) const
     {
-        const IndexType row_begin = index1_data()[I];
-        const IndexType row_end = index1_data()[I+1];
-        IndexType k = BinarySearch(index2_data(), row_begin, row_end, J);
+        const IndexType k = FindValueIndex(I,J);
         KRATOS_DEBUG_ERROR_IF(k==std::numeric_limits<IndexType>::max()) << "local indices I,J : " << I << " " << J << " not found in matrix" << std::endl;
         return value_data()[k];
     }
 
     bool Has(IndexType I, IndexType J) const
     {
-        const IndexType row_begin = index1_data()[I];
-        const IndexType row_end = index1_data()[I+1];
-        IndexType k = BinarySearch(index2_data(), row_begin, row_end, J);
+        const IndexType k = FindValueIndex(I,J);
         return k != std::numeric_limits<IndexType>::max();
     }
 
@@ -600,6 +599,53 @@ public:
                 AtomicAdd(value_data()[k], rMatrixInput(i_local,j_local));
 
                 lastJ = J;
+            }
+        }
+    }
+
+    template<class TMatrixType, class TIndexVectorType >
+    void SafeAssemble(
+        const TMatrixType& rMatrixInput,
+        const TIndexVectorType& EquationId
+    )
+    {
+        KRATOS_DEBUG_ERROR_IF(rMatrixInput.size1() != EquationId.size()) << "sizes of matrix and equation id do not match in Assemble" << std::endl;
+        KRATOS_DEBUG_ERROR_IF(rMatrixInput.size2() != EquationId.size()) << "sizes of matrix and equation id do not match in Assemble" << std::endl;
+
+        const unsigned int local_size = rMatrixInput.size1();
+
+        for (unsigned int i_local = 0; i_local < local_size; ++i_local) {
+            const IndexType I = EquationId[i_local];
+            if (I < size1()) {
+                const IndexType row_begin = index1_data()[I];
+                const IndexType row_end = index1_data()[I+1];
+
+                //find first entry (note that we know it exists since local_size > 0)
+                IndexType J = EquationId[0];
+                if (J < size2()) {
+                    IndexType k = BinarySearch(index2_data(), row_begin, row_end, EquationId[0]);
+                    IndexType lastJ = J;
+
+                    AtomicAdd(value_data()[k], rMatrixInput(i_local,0));
+
+                    //now find other entries. note that we assume that it is probably that next entries immediately follow in the ordering
+                    for(unsigned int j_local=1; j_local<local_size; ++j_local) {
+                        J = EquationId[j_local];
+
+                        if(k+1<row_end && index2_data()[k+1] == J) {
+                            k = k+1;
+                        } else if(J > lastJ) { //note that the case k+2 >= index2_data().size() should be impossible
+                            k = BinarySearch(index2_data(), k+2, row_end, J);
+                        } else if(J < lastJ) {
+                            k = BinarySearch(index2_data(), row_begin, k-1, J);
+                        }
+                        //the last missing case is J == lastJ, which should never happen in FEM. If that happens we can reuse k
+
+                        AtomicAdd(value_data()[k], rMatrixInput(i_local,j_local));
+
+                        lastJ = J;
+                    }
+                }
             }
         }
     }
@@ -996,5 +1042,3 @@ inline std::ostream& operator << (std::ostream& rOStream,
 ///@} addtogroup block
 
 }  // namespace Kratos.
-
-#endif // KRATOS_CSR_MATRIX_H_INCLUDED  defined

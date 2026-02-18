@@ -1,4 +1,4 @@
-GiD Post Results File 1.0
+GiD Post Results File 1.2
 Result "DISPLACEMENT" "Kratos" 0 Vector OnNodes
 Values
 1 0.1 0 0
