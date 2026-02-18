@@ -35,6 +35,8 @@ KratosIgaApplication::KratosIgaApplication()
         new Geometry<Node>(Element::GeometryType::PointsArrayType(1))))
     , mShell5pElement(0, Element::GeometryType::Pointer(
         new Geometry<Node>(Element::GeometryType::PointsArrayType(1))))
+    , mShell6pBbarElement(0, Element::GeometryType::Pointer(
+        new Geometry<Node>(Element::GeometryType::PointsArrayType(1))))
     , mShell6pElement(0, Element::GeometryType::Pointer(
         new Geometry<Node>(Element::GeometryType::PointsArrayType(1))))
     , mLaplacianElement(0, Element::GeometryType::Pointer(
@@ -100,6 +102,7 @@ KRATOS_INFO("") << "    KRATOS  _____ _____\n"
     KRATOS_REGISTER_ELEMENT("Shell3pMixedElement", mShell3pMixedElement)
     KRATOS_REGISTER_ELEMENT("Shell5pHierarchicElement", mShell5pHierarchicElement)
     KRATOS_REGISTER_ELEMENT("Shell5pElement", mShell5pElement)
+    KRATOS_REGISTER_ELEMENT("Shell6pBbarElement", mShell6pBbarElement)
     KRATOS_REGISTER_ELEMENT("Shell6pElement", mShell6pElement)
     KRATOS_REGISTER_ELEMENT("LaplacianElement", mLaplacianElement)
     KRATOS_REGISTER_ELEMENT("SolidElement", mSolidElement)
@@ -227,8 +230,8 @@ KRATOS_INFO("") << "    KRATOS  _____ _____\n"
     // KRATOS_REGISTER_VARIABLE(BENDING_STRESS_X)
     // KRATOS_REGISTER_VARIABLE(BENDING_STRESS_Y)
     // KRATOS_REGISTER_VARIABLE(BENDING_STRESS_Z)
-    KRATOS_REGISTER_3D_VARIABLE_WITH_COMPONENTS(MEMBRANE_STRESS)
-    KRATOS_REGISTER_3D_VARIABLE_WITH_COMPONENTS(BENDING_STRESS)
+    KRATOS_REGISTER_3D_VARIABLE_WITH_COMPONENTS(MEMBRANE_STRAIN)
+    KRATOS_REGISTER_3D_VARIABLE_WITH_COMPONENTS(CURVATURE_DOF)
 }
 
 }  // namespace Kratos

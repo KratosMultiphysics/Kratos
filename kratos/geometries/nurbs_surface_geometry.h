@@ -636,7 +636,7 @@ public:
         const IntegrationPointsArrayType& rIntegrationPoints,
         IntegrationInfo& rIntegrationInfo) override
     {
-        // Option 1: One QuadraturePointGeometry is created containing all integration points. This should be used
+        // Option 1: One QuadraturePointGeometry is created containing all git integration points. This should be used
         // when all rIntegrationPoints are located inside the same element.
         if(  IntegrationInfo::QuadratureMethod::GAUSS == rIntegrationInfo.GetQuadratureMethod(0) )
         {
