@@ -360,9 +360,9 @@ void CutSbmLoadSolidCondition::InitializeSolutionStep(const ProcessInfo& rCurren
             //     KRATOS_WATCH(DN_DX(i,1))
             // }
         
-            std::ofstream outputFile("txt_files/Id_active_control_points_condition.txt", std::ios::app);
-            outputFile << GetSurrogateGeometry()[i].GetId() << "  " <<GetSurrogateGeometry()[i].GetDof(DISPLACEMENT_X).EquationId() <<"\n";
-            outputFile.close();
+            // std::ofstream outputFile("txt_files/Id_active_control_points_condition.txt", std::ios::app);
+            // outputFile << GetSurrogateGeometry()[i].GetId() << "  " <<GetSurrogateGeometry()[i].GetDof(DISPLACEMENT_X).EquationId() <<"\n";
+            // outputFile.close();
         }
 
 }
