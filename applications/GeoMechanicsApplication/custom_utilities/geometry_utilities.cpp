@@ -152,4 +152,13 @@ void GeometryUtilities::ReverseNodes(std::vector<std::size_t>&             rNode
     ::ReverseNodes(rNodeIds.begin(), rNodeIds.end(), GeometryFamily, GeometryOrderType);
 }
 
+PointerVector<Node> GeometryUtilities::GetNodesByIndex(const Geometry<Node>& rGeometry,
+                                                       const std::initializer_list<int>& rNodeIndices)
+{
+    auto result = PointerVector<Node>{rNodeIndices.size()};
+    std::ranges::transform(rNodeIndices, result.ptr_begin(),
+                           [&rGeometry](auto NodeIndex) { return rGeometry.pGetPoint(NodeIndex); });
+    return result;
+}
+
 } // namespace Kratos

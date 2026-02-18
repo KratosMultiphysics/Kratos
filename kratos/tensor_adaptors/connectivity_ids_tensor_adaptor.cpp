@@ -23,74 +23,62 @@
 
 namespace Kratos {
 
-namespace {
-
-template <class TContainerType> constexpr bool IsSupportedContainer() {
-  return IsInList<TContainerType, ModelPart::GeometryContainerType,
-                  ModelPart::ElementsContainerType,
-                  ModelPart::ConditionsContainerType>;
-}
-
-template <class TEntity> const auto &GetGeometry(const TEntity &rEntity) {
-  if constexpr (std::is_same_v<TEntity, Geometry<Node>>) {
-    return rEntity;
-  } else {
-    return rEntity.GetGeometry();
-  }
-}
-
 template <class TContainerType>
-DenseVector<unsigned int> GetShape(const TContainerType &rContainer) {
-  if (rContainer.empty()) {
-    return zero_vector<unsigned int>(2);
-  }
-
-  const auto &r_first = *rContainer.begin();
-  const std::size_t num_nodes = GetGeometry(r_first).size();
-
-  DenseVector<unsigned int> shape(2);
-  shape[0] = static_cast<unsigned int>(rContainer.size());
-  shape[1] = static_cast<unsigned int>(num_nodes);
-  return shape;
-}
-
-template <class TContainerType>
-void CheckContainer(const TContainerType &rContainer) {
-  if (rContainer.empty()) {
-    return;
-  }
-  const auto &r_first = *rContainer.begin();
-  const std::size_t num_nodes = GetGeometry(r_first).size();
-
-  IndexPartition<std::size_t>(rContainer.size()).for_each([&](std::size_t i) {
-    const auto &r_entity = *(rContainer.begin() + i);
-    const auto &r_geometry = GetGeometry(r_entity);
-    KRATOS_ERROR_IF(r_geometry.size() != num_nodes)
-        << "Entity #" << r_entity.Id() << " (Index: " << i << ") has "
-        << r_geometry.size() << " nodes, but expected " << num_nodes << "."
-        << std::endl;
-  });
-}
-
-template <class TContainerType>
-void CollectIds(Kratos::span<int> Span, const TContainerType &rContainer,
-                const std::size_t NumNodes) {
-  IndexPartition<std::size_t>(rContainer.size()).for_each([&](std::size_t i) {
-    auto it = rContainer.begin() + i;
-    const auto &r_geometry = GetGeometry(*it);
-
-    // Check compatibility
-    KRATOS_DEBUG_ERROR_IF(r_geometry.size() != NumNodes)
-        << "Entity at index " << i << " has " << r_geometry.size()
-        << " nodes, but expected " << NumNodes << "." << std::endl;
-
-    for (std::size_t n = 0; n < NumNodes; ++n) {
-      Span[i * NumNodes + n] = static_cast<int>(r_geometry[n].Id());
+DenseVector<unsigned int> ConnectivityIdsTensorAdaptor::GetShape(
+    const TContainerType& rContainer)
+{
+    if (rContainer.empty()) {
+        return zero_vector<unsigned int>(2);
     }
-  });
+
+    const auto& r_first = *rContainer.begin();
+    const std::size_t num_nodes = GetGeometry(r_first).size();
+
+    DenseVector<unsigned int> shape(2);
+    shape[0] = static_cast<unsigned int>(rContainer.size());
+    shape[1] = static_cast<unsigned int>(num_nodes);
+    return shape;
 }
 
-} // namespace
+template <class TContainerType>
+void ConnectivityIdsTensorAdaptor::CheckContainer(
+    const TContainerType& rContainer)
+{
+    if (rContainer.empty()) {
+        return;
+    }
+    const auto& r_first = *rContainer.begin();
+    const std::size_t num_nodes = GetGeometry(r_first).size();
+
+    IndexPartition<std::size_t>(rContainer.size()).for_each([&](std::size_t i) {
+        const auto& r_entity = *(rContainer.begin() + i);
+        const auto& r_geometry = GetGeometry(r_entity);
+        KRATOS_ERROR_IF(r_geometry.size() != num_nodes)
+            << "Entity #" << r_entity.Id() << " (Index: " << i << ") has "
+            << r_geometry.size() << " nodes, but expected " << num_nodes << "."
+            << std::endl;
+    });
+}
+
+template <class TContainerType>
+void ConnectivityIdsTensorAdaptor::CollectIds(Kratos::span<int> Span,
+                                              const TContainerType& rContainer,
+                                              const std::size_t NumNodes)
+{
+    IndexPartition<std::size_t>(rContainer.size()).for_each([&](std::size_t i) {
+        auto it = rContainer.begin() + i;
+        const auto& r_geometry = GetGeometry(*it);
+
+        // Check compatibility
+        KRATOS_DEBUG_ERROR_IF(r_geometry.size() != NumNodes)
+            << "Entity at index " << i << " has " << r_geometry.size()
+            << " nodes, but expected " << NumNodes << "." << std::endl;
+
+        for (std::size_t n = 0; n < NumNodes; ++n) {
+            Span[i * NumNodes + n] = static_cast<int>(r_geometry[n].Id());
+        }
+    });
+}
 
 ConnectivityIdsTensorAdaptor::ConnectivityIdsTensorAdaptor(
     ContainerPointerType pContainer)
@@ -124,6 +112,11 @@ void ConnectivityIdsTensorAdaptor::Check() const {
         }
       },
       *mpContainer);
+}
+
+TensorAdaptor<int>::Pointer ConnectivityIdsTensorAdaptor::Clone() const
+{
+    return Kratos::make_shared<ConnectivityIdsTensorAdaptor>(*this);
 }
 
 void ConnectivityIdsTensorAdaptor::CollectData() {

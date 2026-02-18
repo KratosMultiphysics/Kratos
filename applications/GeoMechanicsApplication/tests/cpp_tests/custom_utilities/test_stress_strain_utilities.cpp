@@ -13,6 +13,7 @@
 
 #include "custom_utilities/math_utilities.hpp"
 #include "custom_utilities/stress_strain_utilities.h"
+#include "custom_utilities/ublas_utilities.h"
 #include "tests/cpp_tests/geo_mechanics_fast_suite.h"
 #include "tests/cpp_tests/test_utilities.h"
 #include "utilities/math_utils.h"
@@ -227,22 +228,55 @@ KRATOS_TEST_CASE_IN_SUITE(CheckCalculateStrains, KratosGeoMechanicsFastSuiteWith
 
 KRATOS_TEST_CASE_IN_SUITE(CheckCalculatePrincipalStresses, KratosGeoMechanicsFastSuiteWithoutKernel)
 {
-    Vector cauchy_stresses = ZeroVector(6);
-    cauchy_stresses <<= 80.0, 50.0, 20.0, 40.0, 35.0, 45.0;
+    // Arrange
+    const auto cauchy_stresses = UblasUtilities::CreateVector({80.0, 50.0, 20.0, 40.0, 35.0, 45.0});
 
-    Vector principal_stresses;
-    Matrix rotation_matrix;
-    StressStrainUtilities::CalculatePrincipalStresses(cauchy_stresses, principal_stresses, rotation_matrix);
+    // Act
+    Vector actual_principal_stresses;
+    Matrix actual_rotation_matrix;
+    StressStrainUtilities::CalculatePrincipalStresses(cauchy_stresses, actual_principal_stresses,
+                                                      actual_rotation_matrix);
 
-    Vector expected_solution_vector = ZeroVector(3);
-    expected_solution_vector <<= 135.736961146391, 22.5224297324582, -8.25939087884923;
-    KRATOS_EXPECT_VECTOR_NEAR(principal_stresses, expected_solution_vector, Defaults::absolute_tolerance)
+    // Assert
+    const auto expected_principal_stresses =
+        UblasUtilities::CreateVector({135.736961146391, 22.5224297324582, -8.25939087884923});
+    KRATOS_EXPECT_VECTOR_NEAR(actual_principal_stresses, expected_principal_stresses, Defaults::absolute_tolerance)
 
-    Matrix expected_solution_matrix = ZeroMatrix(3, 3);
-    expected_solution_matrix <<= 0.7304344631839778, -0.6094259674898185, -0.3083269127764114,
-        0.5210391553001751, 0.7890961797761399, -0.3253389274384210, 0.4415695796102967,
-        0.0769883706270019, 0.8939178357941993;
-    KRATOS_EXPECT_MATRIX_NEAR(rotation_matrix, expected_solution_matrix, Defaults::absolute_tolerance)
+    const auto expected_rotation_matrix =
+        UblasUtilities::CreateMatrix({{0.7304344631839778, -0.6094259674898185, -0.3083269127764114},
+                                      {0.5210391553001751, 0.7890961797761399, -0.3253389274384210},
+                                      {0.4415695796102967, 0.0769883706270019, 0.8939178357941993}});
+    KRATOS_EXPECT_MATRIX_NEAR(actual_rotation_matrix, expected_rotation_matrix, Defaults::absolute_tolerance)
+}
+
+KRATOS_TEST_CASE_IN_SUITE(CheckCalculatePrincipalStressesAndRotationMatrix, KratosGeoMechanicsFastSuiteWithoutKernel)
+{
+    // Arrange
+    const auto cauchy_stresses = UblasUtilities::CreateVector({80.0, 50.0, 20.0, 40.0, 35.0, 45.0});
+
+    // Act
+    const auto& [actual_principal_stresses, actual_rotation_matrix] =
+        StressStrainUtilities::CalculatePrincipalStressesAndRotationMatrix(cauchy_stresses);
+
+    // Assert
+    const auto expected_principal_stresses =
+        Geo::PrincipalStresses{135.736961146391, 22.5224297324582, -8.25939087884923};
+    KRATOS_EXPECT_VECTOR_NEAR(actual_principal_stresses.Values(),
+                              expected_principal_stresses.Values(), Defaults::absolute_tolerance)
+
+    const auto expected_rotation_matrix =
+        UblasUtilities::CreateMatrix({{0.7304344631839778, -0.6094259674898185, -0.3083269127764114},
+                                      {0.5210391553001751, 0.7890961797761399, -0.3253389274384210},
+                                      {0.4415695796102967, 0.0769883706270019, 0.8939178357941993}});
+    KRATOS_EXPECT_MATRIX_NEAR(actual_rotation_matrix, expected_rotation_matrix, Defaults::absolute_tolerance)
+}
+
+KRATOS_TEST_CASE_IN_SUITE(CheckTransformPrincipalStressesToPandQ, KratosGeoMechanicsFastSuiteWithoutKernel)
+{
+    const auto stress_vector = UblasUtilities::CreateVector({30.0, 20.0, 10.0});
+    const auto p_q = StressStrainUtilities::TransformPrincipalStressesToPandQ(stress_vector);
+    const auto expected_solution_vector = UblasUtilities::CreateVector({20.0, std::sqrt(300.0)});
+    KRATOS_EXPECT_VECTOR_NEAR(p_q, expected_solution_vector, Defaults::absolute_tolerance)
 }
 
 } // namespace Kratos::Testing
