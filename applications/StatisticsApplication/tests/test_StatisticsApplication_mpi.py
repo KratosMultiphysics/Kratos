@@ -8,6 +8,7 @@ import KratosMultiphysics.KratosUnittest as KratosUnittest
 # Import the tests or test_classes to create the suits
 
 # Shell tests
+from test_spatial_methods import SpatialMethodTests
 from test_spatial_statistics_process import SpatialStatisticsProcessTest
 from test_temporal_sum_method import TemporalSumMethodTests
 from test_temporal_mean_method import TemporalMeanMethodTests
@@ -32,6 +33,7 @@ def AssembleTestSuites():
 
     ### Small MPI tests ########################################################
     smallMPISuite = suites['mpi_small']
+    smallMPISuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([SpatialMethodTests]))
     smallMPISuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([SpatialStatisticsProcessTest]))
     smallMPISuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TemporalSumMethodTests]))
     smallMPISuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TemporalMeanMethodTests]))

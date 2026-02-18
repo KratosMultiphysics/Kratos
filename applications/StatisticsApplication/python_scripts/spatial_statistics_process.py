@@ -1,30 +1,62 @@
+from typing import Any
+
 import KratosMultiphysics as Kratos
+import KratosMultiphysics.StatisticsApplication as KratosStat
 from KratosMultiphysics.process_factory import KratosProcessFactory
 
-from KratosMultiphysics.StatisticsApplication.method_utilities import GetAvailableMethods
-from KratosMultiphysics.StatisticsApplication.method_utilities import GetNormTypeContainer
-from KratosMultiphysics.StatisticsApplication.spatial_utilities import GetItemContainer
-from KratosMultiphysics.StatisticsApplication.spatial_utilities import GetFormattedValue
 from KratosMultiphysics.time_based_ascii_file_writer_utility import TimeBasedAsciiFileWriterUtility
-
-import KratosMultiphysics.StatisticsApplication.spatial_utilities as SpatialUtilities
+from KratosMultiphysics.StatisticsApplication.spatial_statistics_operation import GetLengthAdjustedValue
+from KratosMultiphysics.StatisticsApplication.spatial_statistics_operation import GetFormattedInt
+from KratosMultiphysics.StatisticsApplication.spatial_statistics_operation import GetFormattedFloat
+from KratosMultiphysics.StatisticsApplication.spatial_statistics_operation import SpatialStatisticsOperation
+from KratosMultiphysics.StatisticsApplication.spatial_statistics_operation import GetSpatialStatisticsOperation
 
 from datetime import datetime
 
-
-def Factory(settings, model):
+def Factory(settings: Kratos.Parameters, model: Kratos.Model):
     if (not isinstance(model, Kratos.Model)):
-        raise Exception(
-            "expected input shall be a Model object, encapsulating a json string"
-        )
+        raise Exception("expected input shall be a Model object, encapsulating a json string")
     if (not isinstance(settings, Kratos.Parameters)):
-        raise Exception(
-            "expected input shall be a Parameters object, encapsulating a json string"
-        )
+        raise Exception("expected input shall be a Parameters object, encapsulating a json string")
     return SpatialStatisticsProcess(model, settings["Parameters"])
 
+def GetNorm(norm_name: str) -> Any:
+    if norm_name == "none":
+        return None
+    elif norm_name == "l2":
+        return KratosStat.Norms.L2()
+    elif norm_name == "infinity":
+        return KratosStat.Norms.Infinity()
+    elif norm_name == "trace":
+        return KratosStat.Norms.Trace()
+    elif norm_name.startswith("pnorm_"):
+        return KratosStat.Norms.P(float(norm_name[6:]))
+    elif norm_name.startswith("lpqnorm_("):
+        pos = norm_name.rfind(",")
+        if pos != -1:
+            p = float(norm_name[9:pos])
+            q = float(norm_name[pos+1:-1])
+        else:
+            raise RuntimeError(f"Unsupported norm info provided for LPQ norm [ provided info = \"{norm_name}\", required info = \"lpqnorm_(p,q)\" ].")
+        return KratosStat.Norms.LPQ(p, q)
+    else:
+        raise RuntimeError(f"Unsupported norm name requested [ requested norm name = \"{norm_name}\" ]. Followings are supported:\n\tnone\n\tl2\n\tinfinity\n\ttrace\n\tpnorm_p\n\tlpqnorm_(p,q)")
 
-class SpatialStatisticsProcess(Kratos.Process):
+def GetContainerLocation(container_location_name: str) -> Kratos.Globals.DataLocation:
+    locations_dict = {
+        "nodal_historical"        : Kratos.Globals.DataLocation.NodeHistorical,
+        "nodal_non_historical"    : Kratos.Globals.DataLocation.NodeNonHistorical,
+        "condition_non_historical": Kratos.Globals.DataLocation.Condition,
+        "element_non_historical"  : Kratos.Globals.DataLocation.Element
+    }
+
+    if container_location_name in locations_dict.keys():
+        return locations_dict[container_location_name]
+    else:
+        raise RuntimeError(f"Unsupported container location name [ provided container location name = \"{container_location_name}\" ]. Followings are supported:\n\t" + "\n\t".join(locations_dict.keys()))
+
+
+class SpatialStatisticsProcess(Kratos.OutputProcess):
     """A process to calculate spatial statistics on Kratos containers
 
     This process calculates spatial statistics for given variables in a given container.
@@ -35,8 +67,8 @@ class SpatialStatisticsProcess(Kratos.Process):
         model (Kratos.Model): Model used in problem
         settings (Kratos.Parameters): Kratos parameter settings for process
     """
-    def __init__(self, model, settings):
-        Kratos.Process.__init__(self)
+    def __init__(self, model: Kratos.Model, settings: Kratos.Parameters):
+        Kratos.OutputProcess.__init__(self)
 
         default_parameters = Kratos.Parameters("""
         {
@@ -69,7 +101,6 @@ class SpatialStatisticsProcess(Kratos.Process):
                 "write_kratos_version"   : false,
                 "write_time_stamp"       : false,
                 "output_value_precision" : 5,
-                "output_value_length"    : 14,
                 "output_file_settings"   : {
                     "file_name"  : "<model_part_name>.dat",
                     "output_path": "spatial_statistics_output",
@@ -89,52 +120,7 @@ class SpatialStatisticsProcess(Kratos.Process):
         self.output_settings["output_file_settings"].ValidateAndAssignDefaults(default_parameters["output_settings"]["output_file_settings"])
         self.output_settings.RecursivelyValidateAndAssignDefaults(default_parameters["output_settings"])
 
-        self.model_part_name = self.settings["model_part_name"].GetString()
-
-        ## set the input variavle x methods operations list
-        self.list_of_operations = []
-
-        spatial_output_method_info = []
-        for spatial_method_output in dir(SpatialUtilities):
-            if (spatial_method_output.startswith("Spatial") and spatial_method_output.endswith("Output")):
-                spatial_output_method_info.append([spatial_method_output.lower()[7:-6], spatial_method_output])
-
-        spatial_method_output_names_ = [method_info[0] for method_info in spatial_output_method_info]
-        spatial_method_output = [method_info[1] for method_info in spatial_output_method_info]
-
-        for variable_settings in self.settings["input_variable_settings"].values():
-            variable_settings.ValidateAndAssignDefaults(default_parameters["input_variable_settings"][0])
-
-            container_type = variable_settings["container"].GetString()
-            norm_type = variable_settings["norm_type"].GetString()
-
-            container = GetItemContainer(container_type)
-            norm_container = GetNormTypeContainer(container, norm_type)
-            available_methods, _ = GetAvailableMethods(norm_container)
-
-            for variable_name in variable_settings["variable_names"].GetStringArray():
-                if (not Kratos.KratosGlobals.HasVariable(variable_name)):
-                    raise RuntimeError("Variable not found. [ variable_name = " + variable_name + " ]")
-
-                for method_settings in self.settings["statistics_methods"].values():
-                    method_settings.ValidateAndAssignDefaults(default_parameters["statistics_methods"][0])
-
-                    method_name = method_settings["method_name"].GetString()
-                    if method_name == "":
-                        raise RuntimeError("Found an empty method name. {:s}".format(method_settings))
-
-                    if method_name not in spatial_method_output_names_:
-                        msg = "Unknown method name [ \"method_name\" = \"" + method_name + "\" ]\n"
-                        msg += "Allowed method names are:\n    "
-                        msg += "\n    ".join(sorted(spatial_method_output_names_))
-                        raise RuntimeError(msg)
-
-
-                    if not method_name in available_methods:
-                        Kratos.Logger.PrintInfo(self.__class__.__name__, "Skipping statistics output for {:s} method for {:s} in {:s} because {:s} norm type does not support it.".format(method_name, variable_name, container_type, norm_type))
-                    else:
-                        operation_type = getattr(SpatialUtilities, spatial_method_output[spatial_method_output_names_.index(method_name)])
-                        self.list_of_operations.append(operation_type(container_type, norm_type, variable_name, method_settings["method_settings"]))
+        self.model_part = self.model[self.settings["model_part_name"].GetString()]
 
         ## set the output controller settings
         self.interval_utility = Kratos.IntervalUtility(self.output_settings)
@@ -147,7 +133,23 @@ class SpatialStatisticsProcess(Kratos.Process):
         self.output_control_variable = Kratos.KratosGlobals.GetVariable(output_control_variable_name)
         self.output_interval = self.output_settings["output_time_interval"].GetDouble()
         self.output_value_precision = self.output_settings["output_value_precision"].GetInt()
-        self.output_value_length = self.output_settings["output_value_length"].GetInt()
+
+        # get the list of variables
+        list_of_variable_info = []
+        for variable_settings in self.settings["input_variable_settings"].values():
+            norm = GetNorm(variable_settings["norm_type"].GetString())
+            data_location = GetContainerLocation(variable_settings["container"].GetString())
+            for variable_name in variable_settings["variable_names"].GetStringArray():
+                variable = Kratos.KratosGlobals.GetVariable(variable_name)
+                list_of_variable_info.append([variable, data_location, norm])
+
+        # set the input variavle x methods operations list
+        self.list_of_operations: 'list[SpatialStatisticsOperation]' = []
+        for method_settings in self.settings["statistics_methods"].values():
+            method_settings.ValidateAndAssignDefaults(default_parameters["statistics_methods"].values()[0])
+            for variable_info in list_of_variable_info:
+
+                self.list_of_operations.append(GetSpatialStatisticsOperation(method_settings["method_name"].GetString(), self.model_part, variable_info[0], variable_info[1], variable_info[2], self.output_value_precision, method_settings["method_settings"].Clone()))
 
         ## set the execution process
         self.computation_points = self.settings["computation_points"].GetStringArray()
@@ -162,18 +164,8 @@ class SpatialStatisticsProcess(Kratos.Process):
         Kratos.Logger.PrintInfo("SpatialStatisticsProcess", "Initialized statistics process.")
 
     def Check(self):
-        if (not self.model.HasModelPart(self.model_part_name)):
-            raise RuntimeError(self.model_part_name + " not found.")
-
-        for variable_settings in self.variables_settings_list.values():
-            variable_names_list = variable_settings["variable_names"].GetStringArray()
-
-            container = variable_settings["container"].GetString()
-            if (container == "nodal_historical"):
-                for variable_name in variable_names_list:
-                    variable = Kratos.KratosGlobals.GetVariable(variable_name)
-                    if (not self.__get_model_part().HasNodalSolutionStepVariable(variable)):
-                        raise RuntimeError("Variable " + variable_name + " not found in nodal solution step data of " + self.__get_model_part().Name)
+        for statistics_operation in self.list_of_operations:
+            statistics_operation.Check()
 
         if self.statistics_computation_processeses is not None:
             for process in self.statistics_computation_processeses:
@@ -181,37 +173,33 @@ class SpatialStatisticsProcess(Kratos.Process):
 
     def ExecuteInitialize(self):
         ## set output file path
-        self.output_settings["output_file_settings"]["file_name"].SetString(self.output_settings["output_file_settings"]["file_name"].GetString().replace("<model_part_name>", self.__get_model_part().FullName()))
-        self.output_settings["output_file_settings"]["output_path"].SetString(self.output_settings["output_file_settings"]["output_path"].GetString().replace("<model_part_name>", self.__get_model_part().FullName()))
+        self.output_settings["output_file_settings"]["file_name"].SetString(self.output_settings["output_file_settings"]["file_name"].GetString().replace("<model_part_name>", self.model_part.FullName()))
+        self.output_settings["output_file_settings"]["output_path"].SetString(self.output_settings["output_file_settings"]["output_path"].GetString().replace("<model_part_name>", self.model_part.FullName()))
 
         self.__write_headers()
 
         if self.echo_level > 0:
             Kratos.Logger.PrintInfo(self.__class__.__name__, "List of output operations:\n\t" + "\n\t".join([str(operation) for operation in self.list_of_operations]))
 
-        self.previous_process_info_value = self.__get_model_part().ProcessInfo[self.output_control_variable]
+        self.previous_process_info_value = self.model_part.ProcessInfo[self.output_control_variable]
 
-    def ExecuteFinalizeSolutionStep(self):
-        output_control_counter = self.__get_model_part().ProcessInfo[self.output_control_variable]
+    def IsOutputStep(self) -> bool:
+        n = self.model_part.ProcessInfo[self.output_control_variable]
+        n_begin = self.interval_utility.GetIntervalBegin()
+        n_intervals = int((n - n_begin) / self.output_interval)
+        return abs(n_intervals*self.output_interval+n_begin - n) < 1e-10 and self.interval_utility.IsInInterval(n)
 
-        if self.interval_utility.IsInInterval(output_control_counter):
-            if (output_control_counter - self.previous_process_info_value) >= self.output_interval:
+    def PrintOutput(self) -> None:
+        # execute the statistics computation process
+        if self.statistics_computation_processeses is not None:
+            for process in self.statistics_computation_processeses:
+                for computation_point in self.computation_points:
+                    getattr(process, computation_point)()
 
-                # execute the statistics computation process
-                if self.statistics_computation_processeses is not None:
-                    for process in self.statistics_computation_processeses:
-                        for computation_point in self.computation_points:
-                            getattr(process, computation_point)()
+        self.__write_values()
 
-                for operation in self.list_of_operations:
-                    operation.Evaluate(self.model_part)
-
-                self.__write_values()
-
-                if self.echo_level > 1:
-                    Kratos.Logger.PrintInfo(self.__class__.__name__, "Calculated statistics on {:s}.".format(self.__get_model_part().FullName()))
-
-                self.previous_process_info_value = output_control_counter
+        if self.echo_level > 1:
+            Kratos.Logger.PrintInfo(self.__class__.__name__, "Calculated statistics on {:s}.".format(self.model_part.FullName()))
 
     def ExecuteFinalize(self):
         if (self.__is_writing_process()):
@@ -219,102 +207,107 @@ class SpatialStatisticsProcess(Kratos.Process):
             self.output_file.file.close()
 
     def __write_headers(self):
+        kratos_version = "not_given"
+        if (self.output_settings["write_kratos_version"].GetBool()):
+            kratos_version = str(Kratos.KratosGlobals.Kernel.Version())
+
+        time_stamp = "not_specified"
+        if (self.output_settings["write_time_stamp"].GetBool()):
+            time_stamp = str(datetime.now())
+
+        operation_info_dict:'dict[str, dict[str, int]]' = {
+            "variable": {},
+            "method"  : {},
+            "location": {},
+            "norm"    : {}
+        }
+        for statistics_operation in self.list_of_operations:
+            info = statistics_operation.GetVarianbleInfo()
+            if info not in operation_info_dict["variable"].keys():
+                operation_info_dict["variable"][info] = 0
+            operation_info_dict["variable"][info] += 1
+
+            info = statistics_operation.GetNormInfo()
+            if info not in operation_info_dict["norm"].keys():
+                operation_info_dict["norm"][info] = 0
+            operation_info_dict["norm"][info] += 1
+
+            info = statistics_operation.GetContainerInfo()
+            if info not in operation_info_dict["location"].keys():
+                operation_info_dict["location"][info] = 0
+            operation_info_dict["location"][info] += 1
+
+            info = statistics_operation.GetMethodInfo()
+            if info not in operation_info_dict["method"].keys():
+                operation_info_dict["method"][info] = 0
+            operation_info_dict["method"][info] += 1
+
+        header_details: 'dict[str, bool]' = {}
+        for info_type, operation_info in operation_info_dict.items():
+            header_details[info_type] = True
+            for v in operation_info.values():
+                if v == len(self.list_of_operations):
+                    header_details[info_type] = False
+
+        # now add the headers from all the methods in all ranks
+        all_rank_headers = ""
+        for statistics_operation in self.list_of_operations:
+            all_rank_headers += f", {statistics_operation.GetHeadersString(header_details)}"
+
         if (self.__is_writing_process()):
-            kratos_version = "not_given"
-            if (self.output_settings["write_kratos_version"].GetBool()):
-                kratos_version = str(Kratos.KratosGlobals.Kernel.Version())
-
-            time_stamp = "not_specified"
-            if (self.output_settings["write_time_stamp"].GetBool()):
-                time_stamp = str(datetime.now())
-
-            method_name = ""
-            variable_info = ""
-            for operation in self.list_of_operations:
-                if operation.method_name not in method_name:
-                    method_name += operation.method_name + ", "
-                current_variable_info = "{:s}[{:s}, {:s}], ".format(operation.variable_name, operation.norm_type, operation.container_type)
-                if current_variable_info not in variable_info:
-                    variable_info += current_variable_info
-
-            self.headers, self.header_lengths = self.__get_headers()
 
             msg_header = ""
             msg_header += "# Spatial statistics process output\n"
             msg_header += "# Kratos version               : " + kratos_version + "\n"
             msg_header += "# Timestamp                    : " + time_stamp + "\n"
-            msg_header += "# Method name(s)               : " + method_name[:-2] + "\n"
-            msg_header += "# Variable info(s)             : " + variable_info[:-2] + "\n"
-            msg_header += "# Modelpart name               : " + self.model_part_name + "\n"
+            msg_header += "# Modelpart name               : " + self.model_part.FullName() + "\n"
             msg_header += "# Output control variable name : " + self.output_control_variable.Name() + "\n"
+
+            if not header_details["method"]:
+                msg_header += "# Methon                       : " + list(operation_info_dict["method"].keys())[0] + "\n"
+            if not header_details["variable"]:
+                msg_header += "# Variable                     : " + list(operation_info_dict["variable"].keys())[0] + "\n"
+            if not header_details["location"]:
+                msg_header += "# Location                     : " + list(operation_info_dict["location"].keys())[0] + "\n"
+            if not header_details["norm"]:
+                msg_header += "# Norm                         : " + list(operation_info_dict["norm"].keys())[0] + "\n"
+
             msg_header += "# ----------------------------------------------------------------------\n"
             msg_header += "# Headers:\n"
-            msg_header += "#" + " ".join([("{:>" + str(header_length) + "s}").format(header) for header, header_length in zip(self.headers, self.header_lengths)]) + "\n"
 
-            self.output_file = TimeBasedAsciiFileWriterUtility(self.__get_model_part(), self.output_settings["output_file_settings"], msg_header)
+            # add output control header
+            if isinstance(self.output_control_variable, Kratos.IntegerVariable):
+                v_str = GetFormattedInt(int(1+99), self.output_value_precision)
+            elif isinstance(self.output_control_variable, Kratos.DoubleVariable):
+                v_str = GetFormattedFloat(1+99, self.output_value_precision)
+            if len(v_str) > len(self.output_control_variable.Name()):
+                msg_header += ("#{:>" + str(len(v_str)) + "s}").format(self.output_control_variable.Name())
+                self.output_control_value = lambda : GetLengthAdjustedValue(self.model_part.ProcessInfo[self.output_control_variable], len(v_str)+1, self.output_value_precision)
+            else:
+                msg_header += f"#{self.output_control_variable.Name()}"
+                self.output_control_value = lambda : GetLengthAdjustedValue(self.model_part.ProcessInfo[self.output_control_variable], len(self.output_control_variable.Name()) + 1, self.output_value_precision)
+
+            msg_header += all_rank_headers
+
+            msg_header += "\n"
+
+            self.output_file = TimeBasedAsciiFileWriterUtility(self.model_part, self.output_settings["output_file_settings"], msg_header)
 
             self.is_headers_written = True
 
-    def __get_headers(self):
-        # check whether only one variable with one
-        variable_info = ""
-        for operation in self.list_of_operations:
-            current_variable_info = "{:s}[{:s}, {:s}], ".format(operation.variable_name, operation.norm_type, operation.container_type)
-            if current_variable_info not in variable_info:
-                variable_info += current_variable_info
-
-        headers = ["\"TIME\""]
-        header_lengths = [max(6, self.output_value_length)]
-        if self.output_control_variable != Kratos.TIME:
-            headers.append("\"" + self.output_control_variable.Name() + "\"")
-            header_lengths.append(max(len(self.output_control_variable.Name()) + 2, self.output_value_length))
-
-        # found only one variable type info
-        if variable_info.count(",") == 2:
-            header_formatting_string = "\"<HEADER_NAME><COMPONENT>\""
-        else:
-            header_formatting_string = "\"<VARIABLE_NAME><COMPONENT> [ <NORM_TYPE> | <CONTAINER_TYPE> ] <HEADER_NAME>\""
-
-        variable_components = {
-            "Double": [""],
-            "Array" : ["_X", "_Y", "_Z"]
-        }
-
-        for operation in self.list_of_operations:
-            if operation.norm_type == "none":
-                comps_list = variable_components[Kratos.KratosGlobals.GetVariableType(operation.variable.Name())]
-            else:
-                comps_list = variable_components["Double"]
-
-            for current_header, current_header_length in zip(operation.GetHeaders(), operation.GetValueLengths(self.output_value_length)):
-                for comp in comps_list:
-                    current_header_name = str(header_formatting_string)
-
-                    current_header_name = current_header_name.replace("<HEADER_NAME>", current_header)
-                    current_header_name = current_header_name.replace("<VARIABLE_NAME>", operation.variable.Name())
-                    current_header_name = current_header_name.replace("<COMPONENT>", comp)
-                    current_header_name = current_header_name.replace("<NORM_TYPE>", operation.norm_type)
-                    current_header_name = current_header_name.replace("<CONTAINER_TYPE>", operation.container_type)
-
-                    headers.append(current_header_name)
-                    header_lengths.append(max(len(current_header_name), current_header_length))
-
-        return headers, header_lengths
-
     def __write_values(self):
+        # now write the method values in all ranks
+        all_rank_values = ""
+        for statistics_operation in self.list_of_operations:
+            all_rank_values += f", {statistics_operation.GetValueString()}"
+
         if (self.__is_writing_process()):
-            values = [GetFormattedValue(self.__get_model_part().ProcessInfo[Kratos.TIME], self.output_value_length, self.output_value_precision)[0]]
-            if self.output_control_variable != Kratos.TIME:
-                values.append(GetFormattedValue(self.__get_model_part().ProcessInfo[self.output_control_variable], self.output_value_length, self.output_value_precision)[0])
-            for operation in self.list_of_operations:
-                values.extend(operation.GetValues(self.output_value_length, self.output_value_precision))
-            self.output_file.file.write(" " + " ".join([("{:>" + str(header_length) + "s}").format(value) for value, header_length in zip(values, self.header_lengths)]) + "\n")
+            # first write the output control value
+            self.output_file.file.write(self.output_control_value())
 
-    def __get_model_part(self):
-        if (not hasattr(self, "model_part")):
-            self.model_part = self.model[self.model_part_name]
+            self.output_file.file.write(all_rank_values)
 
-        return self.model_part
+            self.output_file.file.write("\n")
 
     def __is_writing_process(self):
-        return (self.__get_model_part().GetCommunicator().MyPID() == 0)
+        return (self.model_part.GetCommunicator().MyPID() == 0)
