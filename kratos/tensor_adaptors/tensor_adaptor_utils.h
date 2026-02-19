@@ -26,6 +26,7 @@
 #include "includes/model_part.h"
 #include "utilities/data_type_traits.h"
 #include "utilities/container_io_utils.h"
+#include "tensor_adaptors/tensor_adaptor.h"
 
 namespace Kratos {
 
@@ -255,6 +256,9 @@ public:
         data_type_traits::CopyFromContiguousData(zero, zeros.data());
         return zero;
     }
+
+    template<class TContainerType>
+    static TensorAdaptor<int>::Pointer GetNodalNeighboursCountTensorAdaptor(ModelPart& rModelPart);
 
     ///@}
 };
