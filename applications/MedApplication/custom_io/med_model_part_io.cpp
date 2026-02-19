@@ -546,10 +546,7 @@ void MedModelPartIO::ReadModelPart(ModelPart& rThisModelPart)
         KRATOS_WARNING("MedModelPartIO")
             << "MED file does not contain global numbering for nodes. "
             << "Using MED implicit numbering." << std::endl;
-
-        for (med_int i = 0; i < num_nodes; ++i) {
-            node_ids[i] = i + 1;
-        }
+        std::iota(node_ids.begin(), node_ids.end(), 1);
     }
     
     for (int i=0; i<num_nodes; ++i) {
