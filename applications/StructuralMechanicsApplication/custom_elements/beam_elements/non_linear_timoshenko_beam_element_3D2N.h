@@ -14,6 +14,24 @@
 
 namespace Kratos
 {
+///@name Kratos Globals
+///@{
+
+///@}
+///@name Type Definitions
+///@{
+
+///@}
+///@name  Enum's
+///@{
+
+///@}
+///@name  Functions
+///@{
+
+///@}
+///@name Kratos Classes
+///@{
 
 /**
  * @class NonLinearTimoshenkoBeamElement3D2N
@@ -26,7 +44,91 @@ namespace Kratos
 class NonLinearTimoshenkoBeamElement3D2N : public NonLinearTimoshenkoBeamElement2D2N
 {
 public:
+
     KRATOS_CLASS_INTRUSIVE_POINTER_DEFINITION(NonLinearTimoshenkoBeamElement3D2N);
+
+    struct BeamElementData
+    {
+        double du; // displacement derivative in x
+        double dv; // displacement derivative in y
+        double dw; // displacement derivative in z
+
+        double theta_x; // rotation about x
+        double theta_y; // rotation about y
+        double theta_z; // rotation about z
+
+        double dtheta_x; // Derivative of rotation about x
+        double dtheta_y; // Derivative of rotation about y
+        double dtheta_z; // Derivative of rotation about z
+
+        // Displacements shape functions
+        Vector Nu;
+        Vector Nv;
+        Vector Nw;
+
+        // Derivatives of displacements shape functions
+        Vector dNu;
+        Vector dNv;
+        Vector dNw;
+
+        // Rotations shape functions
+        Vector Ntheta_x;
+        Vector Ntheta_y;
+        Vector Ntheta_z;
+
+        // Derivatives of rotations shape functions
+        Vector dNtheta_x;
+        Vector dNtheta_y;
+        Vector dNtheta_z;
+
+        Matrix B; // Strain-displacement matrix
+
+        double cx, cy, cz; // Cosines of the rotations
+        double sx, sy, sz; // Sines of the rotations
+        double L; // Reference length of the beam element
+
+        void Initialize()
+        {
+            du = dv = dw = 0.0;
+            theta_x = theta_y = theta_z = 0.0;
+            dtheta_x = dtheta_y = dtheta_z = 0.0;
+
+            Nu.resize(12);
+            Nv.resize(12);
+            Nw.resize(12);
+            Nu.clear();
+            Nv.clear();
+            Nw.clear();
+
+            dNu.resize(12);
+            dNv.resize(12);
+            dNw.resize(12);
+            dNu.clear();
+            dNv.clear();
+            dNw.clear();
+
+            Ntheta_x.resize(12);
+            Ntheta_y.resize(12);
+            Ntheta_z.resize(12);
+            Ntheta_x.clear();
+            Ntheta_y.clear();
+            Ntheta_z.clear();
+
+            dNtheta_x.resize(12);
+            dNtheta_y.resize(12);
+            dNtheta_z.resize(12);
+            dNtheta_x.clear();
+            dNtheta_y.clear();
+            dNtheta_z.clear();
+
+            B.resize(6, 12);
+            B.clear();
+
+            cx = cy = cz = 0.0;
+            sx = sy = sz = 0.0;
+            L = 0.0;
+        }
+    };
 
     ///@name Type Definitions
     ///@{
@@ -57,15 +159,6 @@ public:
     }
 
     Element::Pointer Clone(IndexType NewId, NodesArrayType const& rThisNodes) const override;
-
-    // void Initialize(const ProcessInfo& rCurrentProcessInfo) override;
-
-    // void GetShapeFunctionsValues(VectorType& rN, const double Length, const double Phi, const double xi) const;
-    // void GetFirstDerivativesShapeFunctionsValues(VectorType& rN, const double Length, const double Phi, const double xi) const;
-    // void GetNThetaShapeFunctionsValues(VectorType& rN, const double Length, const double Phi, const double xi) const;
-    // void GetFirstDerivativesNThetaShapeFunctionsValues(VectorType& rN, const double Length, const double Phi, const double xi) const;
-    // void GetNu0ShapeFunctionsValues(VectorType& rN, const double Length, const double Phi, const double xi) const;
-    // void GetFirstDerivativesNu0ShapeFunctionsValues(VectorType& rN, const double Length, const double Phi, const double xi) const;
 
 
     /**
@@ -104,8 +197,21 @@ public:
         const bool ComputeRHS
         );
 
-    // void CalculateOnIntegrationPoints(const Variable<double>& rVariable, std::vector<double>& rOutput, const ProcessInfo& rProcessInfo) override;
 
+    // void BuildShapeFunctionsValuesVectors(
+    //     const double xi,
+    //     const double du,
+    //     const double dv,
+    //     const double dw,
+    //     const double theta_x,
+    //     const double theta_y,
+    //     const double theta_z,
+    //     Vector& rdNu,
+    //     Vector& rdNv,
+    //     Vector& rdNw,
+    // )
+
+    // void CalculateOnIntegrationPoints(const Variable<double>& rVariable, std::vector<double>& rOutput, const ProcessInfo& rProcessInfo) override;
 };
 
 } // namespace Kratos
