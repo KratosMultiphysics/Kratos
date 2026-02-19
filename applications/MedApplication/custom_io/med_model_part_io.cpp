@@ -679,21 +679,6 @@ void MedModelPartIO::ReadModelPart(ModelPart& rThisModelPart)
                 );
             }
             reorder_fct(geom_node_ids);
-
-            // Avoid using nodes or points as geometries
-            if (geo_type == MED_POINT1) {
-                if (groups_by_fam.empty()) {continue;}
-                const int fam_num_node = geom_family_numbers[i];
-                if (fam_num_node == 0) {continue;}
-
-                const auto it_groups_node = groups_by_fam.find(fam_num_node);
-                KRATOS_ERROR_IF(it_groups_node == groups_by_fam.end()) << "Missing node family with number " << fam_num_node << "!" << std::endl;
-                for (const auto& r_smp_name_node : it_groups_node->second) {
-                    smp_nodes[r_smp_name_node].insert(smp_nodes[r_smp_name_node].end(), geom_node_ids.begin(), geom_node_ids.end());
-                }
-                continue;
-            }
-
             KRATOS_ERROR_IF(std::numeric_limits<decltype(num_geometries_total)>::max() == num_geometries_total)
                 << "number of geometries read (" << num_geometries_total << ") exceeds the capacity of the index type";
 
@@ -701,6 +686,7 @@ void MedModelPartIO::ReadModelPart(ModelPart& rThisModelPart)
             // use global numbering (ids) for geometries, if the file contains them
             if (has_cell_global_numbering) {
                 kratos_geom_id = static_cast<IndexType>(geom_global_ids[i]);
+                ++num_geometries_total;
             } else {
                 kratos_geom_id = ++num_geometries_total;
             }
@@ -724,9 +710,6 @@ void MedModelPartIO::ReadModelPart(ModelPart& rThisModelPart)
                 for (const auto& r_smp_name : it_groups->second) {
                     smp_nodes[r_smp_name].insert(smp_nodes[r_smp_name].end(), geom_node_ids.begin(), geom_node_ids.end());
                 }
-            }
-            if (has_cell_global_numbering) {
-                ++num_geometries_total;
             }
         }
 
