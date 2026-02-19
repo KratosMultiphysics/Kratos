@@ -166,13 +166,14 @@ void UPwInterfaceElement::CalculateLeftHandSide(MatrixType& rLeftHandSideMatrix,
     // terms. In the future, it will also include water pressure contributions.
     for (auto contribution : mContributions) {
         switch (contribution) {
-        case CalculationContribution::Stiffness:
+            using enum CalculationContribution;
+        case Stiffness:
             CalculateAndAssignStifnessMatrix(rLeftHandSideMatrix, rProcessInfo);
             break;
-        case CalculationContribution::UPCoupling:
+        case UPCoupling:
             CalculateAndAssignUPCouplingMatrix(rLeftHandSideMatrix);
             break;
-        case CalculationContribution::PUCoupling:
+        case PUCoupling:
             CalculateAndAssignPUCouplingMatrix(rLeftHandSideMatrix);
             break;
         default:
@@ -261,13 +262,14 @@ void UPwInterfaceElement::CalculateRightHandSide(Element::VectorType& rRightHand
     // terms. In the future, it will also include water pressure contributions.
     for (auto contribution : mContributions) {
         switch (contribution) {
-        case CalculationContribution::Stiffness:
+            using enum CalculationContribution;
+        case Stiffness:
             CalculateAndAssignStifnessForceVector(rRightHandSideVector, rProcessInfo);
             break;
-        case CalculationContribution::UPCoupling:
+        case UPCoupling:
             CalculateAndAssembleUPCouplingForceVector(rRightHandSideVector);
             break;
-        case CalculationContribution::PUCoupling:
+        case PUCoupling:
             CalculateAndAssemblePUCouplingForceVector(rRightHandSideVector);
             break;
         default:
