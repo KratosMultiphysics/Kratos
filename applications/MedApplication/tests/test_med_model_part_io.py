@@ -107,10 +107,10 @@ class TestMedModelPartIO(MedModelPartIOTestCase):
     def test_tetrahedra_4N_linear_mesh(self):
         def mp_check_fct(model_part):
             self.assertEqual(model_part.NumberOfNodes(), 36)
-            self.assertEqual(model_part.NumberOfGeometries(), 161)
+            self.assertEqual(model_part.NumberOfGeometries(), 167)
 
             # check how many geoms of each type
-            exp_geoms = {KM.Tetrahedra3D4: 65, KM.Triangle3D3: 64, KM.Line3D2: 32}
+            exp_geoms = {KM.Tetrahedra3D4: 65, KM.Triangle3D3: 64, KM.Line3D2: 32, KM.Geometry: 6}
             self.assertEqual(sum(exp_geoms.values()), model_part.NumberOfGeometries())
             self.assertDictEqual(exp_geoms, get_num_geometries_by_type(model_part))
 
@@ -134,10 +134,10 @@ class TestMedModelPartIO(MedModelPartIOTestCase):
     def test_tetrahedra_10N_quadratic_mesh(self):
         def mp_check_fct(model_part):
             self.assertEqual(model_part.NumberOfNodes(), 168)
-            self.assertEqual(model_part.NumberOfGeometries(), 161)
+            self.assertEqual(model_part.NumberOfGeometries(), 176)
 
             # check how many geoms of each type
-            exp_geoms = {KM.Tetrahedra3D10: 65, KM.Triangle3D6: 64, KM.Line3D3: 32}
+            exp_geoms = {KM.Tetrahedra3D10: 65, KM.Triangle3D6: 64, KM.Line3D3: 32, KM.Geometry: 15}
             self.assertEqual(sum(exp_geoms.values()), model_part.NumberOfGeometries())
             self.assertDictEqual(exp_geoms, get_num_geometries_by_type(model_part))
 
@@ -161,10 +161,10 @@ class TestMedModelPartIO(MedModelPartIOTestCase):
     def test_hexahedra_8N_linear_mesh(self):
         def mp_check_fct(model_part):
             self.assertEqual(model_part.NumberOfNodes(), 216)
-            self.assertEqual(model_part.NumberOfGeometries(), 335)
+            self.assertEqual(model_part.NumberOfGeometries(), 371)
 
             # check how many geoms of each type
-            exp_geoms = {KM.Hexahedra3D8: 125, KM.Quadrilateral3D4: 150, KM.Line3D2: 60}
+            exp_geoms = {KM.Hexahedra3D8: 125, KM.Quadrilateral3D4: 150, KM.Line3D2: 60, KM.Geometry: 36}
             self.assertEqual(sum(exp_geoms.values()), model_part.NumberOfGeometries())
             self.assertDictEqual(exp_geoms, get_num_geometries_by_type(model_part))
 
@@ -193,7 +193,7 @@ class TestMedModelPartIO(MedModelPartIOTestCase):
             self.assertEqual(model_part.NumberOfGeometries(), 36)
 
             # check how many geoms of each type
-            exp_geoms = {KM.Hexahedra3D20: 125, KM.Quadrilateral3D8: 150, KM.Line3D3: 60}
+            exp_geoms = {KM.Hexahedra3D20: 125, KM.Quadrilateral3D8: 150, KM.Line3D3: 60, KM.Geometry: 96}
             self.assertEqual(sum(exp_geoms.values()), model_part.NumberOfGeometries())
             self.assertDictEqual(exp_geoms, get_num_geometries_by_type(model_part))
 
@@ -222,7 +222,7 @@ class TestMedModelPartIO(MedModelPartIOTestCase):
             self.assertEqual(model_part.NumberOfGeometries(), 36)
 
             # check how many geoms of each type
-            exp_geoms = {KM.Hexahedra3D27: 125, KM.Quadrilateral3D9: 150, KM.Line3D3: 60}
+            exp_geoms = {KM.Hexahedra3D27: 125, KM.Quadrilateral3D9: 150, KM.Line3D3: 60, KM.Geometry: 121}
             self.assertEqual(sum(exp_geoms.values()), model_part.NumberOfGeometries())
             self.assertDictEqual(exp_geoms, get_num_geometries_by_type(model_part))
 
