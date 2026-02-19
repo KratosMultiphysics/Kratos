@@ -47,6 +47,8 @@ ${KRATOS_CMAKE_OPTIONS_FLAGS}                                       \
 -DREMOVE_INSTALL_DIRECTORIES=OFF                                    \
 -DCMAKE_CXX_FLAGS="${KRATOS_CMAKE_CXX_FLAGS} -O0 -Wall"             \
 -DCMAKE_POLICY_VERSION_MINIMUM=3.5                                  \
+-DKRATOS_USE_FUTURE=ON                                              \
+-DKRATOS_USE_LEGACY=OFF                                             \
 -DTRILINOS_INCLUDE_DIR="/usr/include/trilinos"                      \
 -DTRILINOS_LIBRARY_DIR="/usr/lib/x86_64-linux-gnu"                  \
 -DTRILINOS_LIBRARY_PREFIX="trilinos_"                               \
