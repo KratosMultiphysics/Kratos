@@ -25,7 +25,6 @@
 
 namespace Kratos {
 
-
 template<class TContainerType>
 TensorAdaptor<int>::Pointer TensorAdaptorUtils::GetNodalNeighboursCountTensorAdaptor(ModelPart& rModelPart)
 {
@@ -45,6 +44,7 @@ TensorAdaptor<int>::Pointer TensorAdaptorUtils::GetNodalNeighboursCountTensorAda
         } else if constexpr(std::is_same_v<TContainerType, ModelPart::ElementsContainerType>) {
             value = (rModelPart.NodesBegin() + Index)->GetValue(NEIGHBOUR_ELEMENTS).size();
         } else {
+            value = 0.0;
             static_assert(sizeof(TContainerType) == 0, "Only supports conditions and element types");
         }
     });
