@@ -15,7 +15,6 @@
 #pragma once
 
 #include "custom_constitutive/yield_surface.h"
-#include "includes/properties.h"
 
 namespace Kratos
 {
@@ -33,7 +32,7 @@ public:
 
     TensionCutoff() = default;
 
-    explicit TensionCutoff(const Properties& rMaterialProperties);
+    explicit TensionCutoff(double TensileStrength);
 
     [[nodiscard]] double GetTensileStrength() const;
 
@@ -42,9 +41,9 @@ public:
     [[nodiscard]] double YieldFunctionValue(const Geo::PrincipalStresses& rPrincipalStresses) const;
     [[nodiscard]] Vector DerivativeOfFlowFunction(const Vector&) const override;
     [[nodiscard]] Vector DerivativeOfFlowFunction(const Geo::SigmaTau&,
-                                                  YieldSurfaceAveragingType AveragingType) const;
+                                                  YieldSurfaceAveragingType AveragingType = YieldSurfaceAveragingType::NO_AVERAGING) const;
     [[nodiscard]] Vector DerivativeOfFlowFunction(const Geo::PrincipalStresses&,
-                                                  YieldSurfaceAveragingType AveragingType) const;
+                                                  YieldSurfaceAveragingType AveragingType = YieldSurfaceAveragingType::NO_AVERAGING) const;
 
     [[nodiscard]] double CalculatePlasticMultiplier(const Geo::SigmaTau& rTrialSigmaTau,
                                                     const Vector&        rDerivativeOfFlowFunction,
@@ -58,7 +57,7 @@ private:
     void save(Serializer& rSerializer) const override;
     void load(Serializer& rSerializer) override;
 
-    Properties mMaterialProperties;
+    double mTensileStrength = 0.0;
 
 }; // Class TensionCutoff
 

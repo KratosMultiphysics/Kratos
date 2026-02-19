@@ -23,15 +23,9 @@
 
 namespace Kratos
 {
-TensionCutoff::TensionCutoff(const Properties& rMaterialProperties)
-    : mMaterialProperties{rMaterialProperties}
-{
-}
+TensionCutoff::TensionCutoff(double TensileStrength) : mTensileStrength{TensileStrength} {}
 
-double TensionCutoff::GetTensileStrength() const
-{
-    return mMaterialProperties[GEO_TENSILE_STRENGTH];
-}
+double TensionCutoff::GetTensileStrength() const { return mTensileStrength; }
 
 // At some point in time we would like to get rid of this API. For now, just forward the request.
 double TensionCutoff::YieldFunctionValue(const Vector& rSigmaTau) const
@@ -41,12 +35,12 @@ double TensionCutoff::YieldFunctionValue(const Vector& rSigmaTau) const
 
 double TensionCutoff::YieldFunctionValue(const Geo::SigmaTau& rSigmaTau) const
 {
-    return rSigmaTau.Sigma() + rSigmaTau.Tau() - mMaterialProperties[GEO_TENSILE_STRENGTH];
+    return rSigmaTau.Sigma() + rSigmaTau.Tau() - mTensileStrength;
 }
 
 double TensionCutoff::YieldFunctionValue(const Geo::PrincipalStresses& rPrincipalStresses) const
 {
-    return rPrincipalStresses.Values()[0] - mMaterialProperties[GEO_TENSILE_STRENGTH];
+    return rPrincipalStresses.Values()[0] - mTensileStrength;
 }
 
 // At some point in time we would like to get rid of this API. For now, just forward the request.
@@ -106,12 +100,12 @@ double TensionCutoff::CalculatePlasticMultiplier(const Geo::PrincipalStresses& r
 
 void TensionCutoff::save(Serializer& rSerializer) const
 {
-    rSerializer.save("MaterialProperties", mMaterialProperties);
+    rSerializer.save("TensileStrength", mTensileStrength);
 }
 
 void TensionCutoff::load(Serializer& rSerializer)
 {
-    rSerializer.load("MaterialProperties", mMaterialProperties);
+    rSerializer.load("TensileStrength", mTensileStrength);
 }
 
 } // Namespace Kratos

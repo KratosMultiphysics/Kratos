@@ -99,9 +99,8 @@ class ParametrizedYieldFunctionValuesOfTensionCutOffFixture
 TEST_P(ParametrizedYieldFunctionValuesOfTensionCutOffFixture, TensionCutOff_CalculateYieldFunctionValues)
 {
     // Arrange
-    auto material_properties                         = Properties{};
-    material_properties[GEO_TENSILE_STRENGTH]        = 2.0;
-    const auto tension_cut_off                       = TensionCutoff{material_properties};
+    constexpr auto tensile_strength                  = 2.0;
+    const auto     tension_cut_off                   = TensionCutoff{tensile_strength};
     const auto& [principal_stresses, expected_value] = GetParam();
 
     // Act & Assert
@@ -124,11 +123,10 @@ class ParametrizedDerivativeOfFlowFunctionOfTensionCutOff : public ::testing::Te
 TEST_P(ParametrizedDerivativeOfFlowFunctionOfTensionCutOff, TensionCutOff_DerivativeOfFlowFunctionIsIndependentOfGivenSigmaTau)
 {
     // Arrange
-    auto material_properties                  = Properties{};
-    material_properties[GEO_TENSILE_STRENGTH] = 2.0;
-    const auto  tension_cut_off               = TensionCutoff{material_properties};
-    const auto& sigma_tau                     = GetParam();
-    const auto  averaging_type = YieldSurface::YieldSurfaceAveragingType::NO_AVERAGING;
+    constexpr auto tensile_strength = 2.0;
+    const auto     tension_cut_off  = TensionCutoff{tensile_strength};
+    const auto&    sigma_tau        = GetParam();
+    const auto     averaging_type   = YieldSurface::YieldSurfaceAveragingType::NO_AVERAGING;
 
     // Act & Assert
     const auto expected_derivative = UblasUtilities::CreateVector({1.0, 1.0});
@@ -147,11 +145,10 @@ KRATOS_TEST_CASE_IN_SUITE(TensionCutOff_CanBeSavedAndLoaded, KratosGeoMechanicsF
     // Arrange
     const auto scoped_registration =
         ScopedSerializerRegistration{std::make_pair("TensionCutoff"s, TensionCutoff{})};
-    auto material_properties                  = Properties{};
-    material_properties[GEO_TENSILE_STRENGTH] = 2.0;
-    const auto tension_cut_off                = TensionCutoff{material_properties};
-    auto       serializer                     = StreamSerializer{};
-    const auto averaging_type = YieldSurface::YieldSurfaceAveragingType::NO_AVERAGING;
+    constexpr auto tensile_strength = 2.0;
+    const auto     tension_cut_off  = TensionCutoff{tensile_strength};
+    auto           serializer       = StreamSerializer{};
+    const auto     averaging_type   = YieldSurface::YieldSurfaceAveragingType::NO_AVERAGING;
 
     // Act
     serializer.save("test_tag"s, tension_cut_off);
@@ -159,8 +156,7 @@ KRATOS_TEST_CASE_IN_SUITE(TensionCutOff_CanBeSavedAndLoaded, KratosGeoMechanicsF
     serializer.load("test_tag"s, loaded_tension_cut_off);
 
     // Assert
-    const auto principal_stresses =
-        Geo::PrincipalStresses{material_properties[GEO_TENSILE_STRENGTH], 0.0, 0.0};
+    const auto principal_stresses = Geo::PrincipalStresses{tensile_strength, 0.0, 0.0};
     const auto sigma_tau = StressStrainUtilities::TransformPrincipalStressesToSigmaTau(principal_stresses);
     KRATOS_EXPECT_NEAR(loaded_tension_cut_off.YieldFunctionValue(sigma_tau), 0.0, Defaults::absolute_tolerance);
     const auto expected_derivative = UblasUtilities::CreateVector({1.0, 1.0});
