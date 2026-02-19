@@ -473,11 +473,11 @@ GlobalPointersVector<Element> MakeElementGlobalPtrContainerWith(const DerivedEle
 template <typename TConstitutiveLawDimension, typename TElementFactory>
 void GeneraizedCouplingContributionTest(TElementFactory&&                           ElementFactory,
                                         const std::vector<CalculationContribution>& rContributions,
-                                        IsDiffOrderElement                          diff_order,
-                                        std::size_t   number_of_u_dofs,
-                                        std::size_t   number_of_pw_dofs,
-                                        const Matrix& expected_up_block_matrix,
-                                        const Vector& expected_up_block_vector)
+                                        IsDiffOrderElement                          DiffOrder,
+                                        std::size_t                                 NumberOfUDofs,
+                                        std::size_t                                 NumberOfPwDofs,
+                                        const Matrix& rExpectedUpBlockMatrix,
+                                        const Vector& rExpectedUpBlockVector)
 {
     // Arrange
     const auto p_properties = std::make_shared<Properties>();
@@ -490,7 +490,7 @@ void GeneraizedCouplingContributionTest(TElementFactory&&                       
     p_properties->SetValue(VAN_GENUCHTEN_AIR_ENTRY_PRESSURE, 2.561);
     p_properties->SetValue(VAN_GENUCHTEN_GN, 1.377);
     Model model;
-    auto  interface_element = ElementFactory(model, p_properties, diff_order, rContributions);
+    auto  interface_element = ElementFactory(model, p_properties, DiffOrder, rContributions);
 
     // Set nonzero water pressure at each node to ensure coupling code is exercised
     const auto  number_of_nodes_on_side = interface_element.GetGeometry().PointsNumber() / 2;
@@ -511,25 +511,25 @@ void GeneraizedCouplingContributionTest(TElementFactory&&                       
     interface_element.CalculateLocalSystem(actual_left_hand_side, actual_right_hand_side, ProcessInfo{});
 
     // Assert
-    ASSERT_EQ(actual_left_hand_side.size1(), number_of_u_dofs + number_of_pw_dofs);
-    ASSERT_EQ(actual_left_hand_side.size2(), number_of_u_dofs + number_of_pw_dofs);
-    ASSERT_EQ(actual_right_hand_side.size(), number_of_u_dofs + number_of_pw_dofs);
+    ASSERT_EQ(actual_left_hand_side.size1(), NumberOfUDofs + NumberOfPwDofs);
+    ASSERT_EQ(actual_left_hand_side.size2(), NumberOfUDofs + NumberOfPwDofs);
+    ASSERT_EQ(actual_right_hand_side.size(), NumberOfUDofs + NumberOfPwDofs);
 
     for (const auto& contribution : rContributions) {
         switch (contribution) {
         case CalculationContribution::UPCoupling:
-            Testing::AssertUPBlockMatrixIsNear(actual_left_hand_side, expected_up_block_matrix, number_of_u_dofs,
-                                               number_of_pw_dofs, Testing::Defaults::relative_tolerance);
+            Testing::AssertUPBlockMatrixIsNear(actual_left_hand_side, rExpectedUpBlockMatrix, NumberOfUDofs,
+                                               NumberOfPwDofs, Testing::Defaults::relative_tolerance);
             break;
         case CalculationContribution::PUCoupling:
-            Testing::AssertPUBlockMatrixIsNear(actual_left_hand_side, expected_up_block_matrix, number_of_u_dofs,
-                                               number_of_pw_dofs, Testing::Defaults::relative_tolerance);
+            Testing::AssertPUBlockMatrixIsNear(actual_left_hand_side, rExpectedUpBlockMatrix, NumberOfUDofs,
+                                               NumberOfPwDofs, Testing::Defaults::relative_tolerance);
             break;
         default:
             break;
         }
     }
-    KRATOS_EXPECT_VECTOR_NEAR(actual_right_hand_side, expected_up_block_vector, Testing::Defaults::relative_tolerance)
+    KRATOS_EXPECT_VECTOR_NEAR(actual_right_hand_side, rExpectedUpBlockVector, Testing::Defaults::relative_tolerance)
 }
 
 } // namespace
