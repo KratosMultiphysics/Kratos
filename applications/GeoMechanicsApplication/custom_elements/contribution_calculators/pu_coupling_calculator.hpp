@@ -24,7 +24,7 @@ class PUCouplingCalculator : public ContributionCalculator<NumberOfRows, NumberO
 {
 public:
     struct InputProvider {
-        InputProvider(std::function<const Matrix&()>       GetNpContainer,
+        InputProvider(std::function<const Matrix()>        GetNpContainer,
                       Geo::BMatricesGetter                 GetBMatrices,
                       std::function<Vector()>              GetVoigtVector,
                       Geo::IntegrationCoefficientsGetter   GetIntegrationCoefficients,
@@ -41,7 +41,7 @@ public:
         {
         }
 
-        std::function<const Matrix&()>       GetNpContainer;
+        std::function<const Matrix()>        GetNpContainer;
         Geo::BMatricesGetter                 GetBMatrices;
         std::function<Vector()>              GetVoigtVector;
         Geo::IntegrationCoefficientsGetter   GetIntegrationCoefficients;

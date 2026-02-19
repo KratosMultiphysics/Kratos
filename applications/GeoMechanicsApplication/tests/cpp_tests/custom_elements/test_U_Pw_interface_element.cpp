@@ -96,8 +96,8 @@ UPwInterfaceElement CreateInterfaceElementWithUPwDofs(const Properties::Pointer&
     auto result = UPwInterfaceElement{
         1,           rpGeometry,    rpProperties, std::make_unique<TInterfaceDimension>(),
         IsDiffOrder, rContributions};
-    const auto solution_step_variables =
-        Geo::ConstVariableDataRefs{std::cref(WATER_PRESSURE), std::cref(DISPLACEMENT)};
+    const auto solution_step_variables = Geo::ConstVariableDataRefs{
+        std::cref(WATER_PRESSURE), std::cref(DISPLACEMENT), std::cref(VELOCITY)};
     const auto degrees_of_freedom =
         Geo::ConstVariableRefs{std::cref(WATER_PRESSURE), std::cref(DISPLACEMENT_X),
                                std::cref(DISPLACEMENT_Y), std::cref(DISPLACEMENT_Z)};
@@ -494,9 +494,12 @@ void GeneraizedCouplingContributionTest(TElementFactory&&                       
 
     // Set nonzero water pressure at each node to ensure coupling code is exercised
     const auto  number_of_nodes_on_side = interface_element.GetGeometry().PointsNumber() / 2;
+    const auto  velocity_vector         = array_1d<double, 3>{1.0, 0.5, -0.5};
     std::size_t counter_nodes           = 0;
     for (auto& node : interface_element.GetGeometry()) {
         node.FastGetSolutionStepValue(WATER_PRESSURE) = (counter_nodes < number_of_nodes_on_side) ? 100.0 : 1.0;
+        node.FastGetSolutionStepValue(VELOCITY) = velocity_vector * static_cast<double>(counter_nodes) /
+                                                  static_cast<double>(number_of_nodes_on_side);
         ++counter_nodes;
     }
 
@@ -512,8 +515,20 @@ void GeneraizedCouplingContributionTest(TElementFactory&&                       
     ASSERT_EQ(actual_left_hand_side.size2(), number_of_u_dofs + number_of_pw_dofs);
     ASSERT_EQ(actual_right_hand_side.size(), number_of_u_dofs + number_of_pw_dofs);
 
-    Testing::AssertUPBlockMatrixIsNear(actual_left_hand_side, expected_up_block_matrix, number_of_u_dofs,
-                                       number_of_pw_dofs, Testing::Defaults::relative_tolerance);
+    for (const auto& contribution : rContributions) {
+        switch (contribution) {
+        case CalculationContribution::UPCoupling:
+            Testing::AssertUPBlockMatrixIsNear(actual_left_hand_side, expected_up_block_matrix, number_of_u_dofs,
+                                               number_of_pw_dofs, Testing::Defaults::relative_tolerance);
+            break;
+        case CalculationContribution::PUCoupling:
+            Testing::AssertPUBlockMatrixIsNear(actual_left_hand_side, expected_up_block_matrix, number_of_u_dofs,
+                                               number_of_pw_dofs, Testing::Defaults::relative_tolerance);
+            break;
+        default:
+            break;
+        }
+    }
     KRATOS_EXPECT_VECTOR_NEAR(actual_right_hand_side, expected_up_block_vector, Testing::Defaults::relative_tolerance)
 }
 
@@ -2235,7 +2250,8 @@ KRATOS_TEST_CASE_IN_SUITE(UPwDiffOrderQuadrilateraleInterfaceElement_8Plus8Noded
     AssertPBlockVectorIsNear(actual_right_hand_side, expected_p_block_vector, number_of_u_dofs, number_of_pw_dofs);
 }
 
-KRATOS_TEST_CASE_IN_SUITE(UPwLineInterfaceElement_2Plus2Element_CouplingContribution, KratosGeoMechanicsFastSuiteWithoutKernel)
+KRATOS_TEST_CASE_IN_SUITE(UPwLineInterfaceElement_2Plus2Element_UPCouplingContribution,
+                          KratosGeoMechanicsFastSuiteWithoutKernel)
 {
     const auto expected_up_block_matrix =
         UblasUtilities::CreateMatrix({{0, 0, 0, 0},
@@ -2255,7 +2271,8 @@ KRATOS_TEST_CASE_IN_SUITE(UPwLineInterfaceElement_2Plus2Element_CouplingContribu
         expected_up_block_matrix, expected_up_block_vector);
 }
 
-KRATOS_TEST_CASE_IN_SUITE(UPwLineInterfaceElement_3Plus3Element_CouplingContribution, KratosGeoMechanicsFastSuiteWithoutKernel)
+KRATOS_TEST_CASE_IN_SUITE(UPwLineInterfaceElement_3Plus3Element_UPCouplingContribution,
+                          KratosGeoMechanicsFastSuiteWithoutKernel)
 {
     const auto expected_up_block_matrix =
         UblasUtilities::CreateMatrix({{0, 0, 0, 0, 0, 0},
@@ -2280,7 +2297,7 @@ KRATOS_TEST_CASE_IN_SUITE(UPwLineInterfaceElement_3Plus3Element_CouplingContribu
         expected_up_block_matrix, expected_up_block_vector);
 }
 
-KRATOS_TEST_CASE_IN_SUITE(UPwLineInterfaceElement_3Plus3Element_CouplingContribution_DiffOrder,
+KRATOS_TEST_CASE_IN_SUITE(UPwLineInterfaceElement_3Plus3Element_UPCouplingContribution_DiffOrder,
                           KratosGeoMechanicsFastSuiteWithoutKernel)
 {
     const auto expected_up_block_matrix =
@@ -2304,7 +2321,7 @@ KRATOS_TEST_CASE_IN_SUITE(UPwLineInterfaceElement_3Plus3Element_CouplingContribu
         expected_up_block_matrix, expected_up_block_vector);
 }
 
-KRATOS_TEST_CASE_IN_SUITE(UPwTriangleInterfaceElement_3Plus3Element_CouplingContribution,
+KRATOS_TEST_CASE_IN_SUITE(UPwTriangleInterfaceElement_3Plus3Element_UPCouplingContribution,
                           KratosGeoMechanicsFastSuiteWithoutKernel)
 {
     const auto expected_up_block_matrix =
@@ -2334,7 +2351,7 @@ KRATOS_TEST_CASE_IN_SUITE(UPwTriangleInterfaceElement_3Plus3Element_CouplingCont
         IsDiffOrderElement::No, 18, 6, expected_up_block_matrix, expected_up_block_vector);
 }
 
-KRATOS_TEST_CASE_IN_SUITE(UPwTriangleInterfaceElement_6Plus6Element_CouplingContribution,
+KRATOS_TEST_CASE_IN_SUITE(UPwTriangleInterfaceElement_6Plus6Element_UPCouplingContribution,
                           KratosGeoMechanicsFastSuiteWithoutKernel)
 {
     const auto expected_up_block_matrix =
@@ -2384,7 +2401,7 @@ KRATOS_TEST_CASE_IN_SUITE(UPwTriangleInterfaceElement_6Plus6Element_CouplingCont
         IsDiffOrderElement::No, 36, 12, expected_up_block_matrix, expected_up_block_vector);
 }
 
-KRATOS_TEST_CASE_IN_SUITE(UPwTriangleInterfaceElement_6Plus6Element_CouplingContribution_DiffOrder,
+KRATOS_TEST_CASE_IN_SUITE(UPwTriangleInterfaceElement_6Plus6Element_UPCouplingContribution_DiffOrder,
                           KratosGeoMechanicsFastSuiteWithoutKernel)
 {
     const auto expected_up_block_matrix =
@@ -2433,7 +2450,7 @@ KRATOS_TEST_CASE_IN_SUITE(UPwTriangleInterfaceElement_6Plus6Element_CouplingCont
         IsDiffOrderElement::Yes, 36, 6, expected_up_block_matrix, expected_up_block_vector);
 }
 
-KRATOS_TEST_CASE_IN_SUITE(UPwQuadraliteralInterfaceElement_4Plus4Element_CouplingContribution,
+KRATOS_TEST_CASE_IN_SUITE(UPwQuadraliteralInterfaceElement_4Plus4Element_UPCouplingContribution,
                           KratosGeoMechanicsFastSuiteWithoutKernel)
 {
     const auto expected_up_block_matrix =
@@ -2471,7 +2488,7 @@ KRATOS_TEST_CASE_IN_SUITE(UPwQuadraliteralInterfaceElement_4Plus4Element_Couplin
         expected_up_block_matrix, expected_up_block_vector);
 }
 
-KRATOS_TEST_CASE_IN_SUITE(UPwQuadraliteralInterfaceElement_8Plus8Element_CouplingContribution,
+KRATOS_TEST_CASE_IN_SUITE(UPwQuadraliteralInterfaceElement_8Plus8Element_UPCouplingContribution,
                           KratosGeoMechanicsFastSuiteWithoutKernel)
 {
     const auto expected_up_block_matrix = UblasUtilities::CreateMatrix(
@@ -2536,7 +2553,7 @@ KRATOS_TEST_CASE_IN_SUITE(UPwQuadraliteralInterfaceElement_8Plus8Element_Couplin
         expected_up_block_matrix, expected_up_block_vector);
 }
 
-KRATOS_TEST_CASE_IN_SUITE(UPwQuadraliteralInterfaceElement_8Plus8Element_CouplingContribution_DiffOrder,
+KRATOS_TEST_CASE_IN_SUITE(UPwQuadraliteralInterfaceElement_8Plus8Element_UPCouplingContribution_DiffOrder,
                           KratosGeoMechanicsFastSuiteWithoutKernel)
 {
     const auto expected_up_block_matrix = UblasUtilities::CreateMatrix(
@@ -2601,4 +2618,269 @@ KRATOS_TEST_CASE_IN_SUITE(UPwQuadraliteralInterfaceElement_8Plus8Element_Couplin
         expected_up_block_matrix, expected_up_block_vector);
 }
 
+KRATOS_TEST_CASE_IN_SUITE(UPwLineInterfaceElement_2Plus2Element_PUCouplingContribution,
+                          KratosGeoMechanicsFastSuiteWithoutKernel)
+{
+    const auto expected_up_block_matrix =
+        UblasUtilities::CreateMatrix({{0, -0.09136788, 0, 0, 0, 0.09136788, 0, 0},
+                                      {0, 0, 0, -0.09136788, 0, 0, 0, 0.09136788},
+                                      {0, -0.09136788, 0, 0, 0, 0.09136788, 0, 0},
+                                      {0, 0, 0, -0.09136788, 0, 0, 0, 0.09136788}});
+    const auto expected_up_block_vector = UblasUtilities::CreateVector(
+        {0.04568394, 0.04568394, 0.04568394, 0.04568394, 0, 0, 0, 0, 0, 0, 0, 0});
+
+    GeneraizedCouplingContributionTest<InterfacePlaneStrain>(
+        CreateHorizontalUnitLength2Plus2NodedLineInterfaceElementWithUPwDofs,
+        {CalculationContribution::PUCoupling}, IsDiffOrderElement::No, 8, 4,
+        expected_up_block_matrix, expected_up_block_vector);
+}
+
+KRATOS_TEST_CASE_IN_SUITE(UPwLineInterfaceElement_3Plus3Element_PUCouplingContribution,
+                          KratosGeoMechanicsFastSuiteWithoutKernel)
+{
+    const auto expected_up_block_matrix =
+        UblasUtilities::CreateMatrix({{0, -0.03045596, 0, 0, 0, 0, 0, 0.03045596, 0, 0, 0, 0},
+                                      {0, 0, 0, -0.03045596, 0, 0, 0, 0, 0, 0.03045596, 0, 0},
+                                      {0, 0, 0, 0, 0, -0.12182384, 0, 0, 0, 0, 0, 0.12182384},
+                                      {0, -0.03045596, 0, 0, 0, 0, 0, 0.03045596, 0, 0, 0, 0},
+                                      {0, 0, 0, -0.03045596, 0, 0, 0, 0, 0, 0.03045596, 0, 0},
+                                      {0, 0, 0, 0, 0, -0.12182384, 0, 0, 0, 0, 0, 0.12182384}});
+    const auto expected_up_block_vector =
+        UblasUtilities::CreateVector({0.01522798, 0.01522798, 0.06091192, 0.01522798, 0.01522798,
+                                      0.06091192, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0});
+
+    GeneraizedCouplingContributionTest<InterfacePlaneStrain>(
+        CreateHorizontalUnitLength3Plus3NodedLineInterfaceElementWithUPwDoF,
+        {CalculationContribution::PUCoupling}, IsDiffOrderElement::No, 12, 6,
+        expected_up_block_matrix, expected_up_block_vector);
+}
+
+KRATOS_TEST_CASE_IN_SUITE(UPwLineInterfaceElement_3Plus3Element_PUCouplingContribution_DiffOrder,
+                          KratosGeoMechanicsFastSuiteWithoutKernel)
+{
+    const auto expected_up_block_matrix = UblasUtilities::CreateMatrix(
+        {{0, -0.03045596, 0, 0, 0, -0.06091192, 0, 0.03045596, 0, 0, 0, 0.06091192},
+         {0, 0, 0, -0.03045596, 0, -0.06091192, 0, 0, 0, 0.03045596, 0, 0.06091192},
+         {0, -0.03045596, 0, 0, 0, -0.06091192, 0, 0.03045596, 0, 0, 0, 0.06091192},
+         {0, 0, 0, -0.03045596, 0, -0.06091192, 0, 0, 0, 0.03045596, 0, 0.06091192}});
+    const auto expected_up_block_vector = UblasUtilities::CreateVector(
+        {0.04568394, 0.04568394, 0.04568394, 0.04568394, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0});
+    GeneraizedCouplingContributionTest<InterfacePlaneStrain>(
+        CreateHorizontalUnitLength3Plus3NodedLineInterfaceElementWithUPwDoF,
+        {CalculationContribution::PUCoupling}, IsDiffOrderElement::Yes, 12, 4,
+        expected_up_block_matrix, expected_up_block_vector);
+}
+
+KRATOS_TEST_CASE_IN_SUITE(UPwTriangleInterfaceElement_3Plus3Element_PUCouplingContribution,
+                          KratosGeoMechanicsFastSuiteWithoutKernel)
+{
+    const auto expected_up_block_matrix = UblasUtilities::CreateMatrix(
+        {{0, 0, -0.03045596, 0, 0, 0, 0, 0, 0, 0, 0, 0.03045596, 0, 0, 0, 0, 0, 0},
+         {0, 0, 0, 0, 0, -0.03045596, 0, 0, 0, 0, 0, 0, 0, 0, 0.03045596, 0, 0, 0},
+         {0, 0, 0, 0, 0, 0, 0, 0, -0.03045596, 0, 0, 0, 0, 0, 0, 0, 0, 0.03045596},
+         {0, 0, -0.03045596, 0, 0, 0, 0, 0, 0, 0, 0, 0.03045596, 0, 0, 0, 0, 0, 0},
+         {0, 0, 0, 0, 0, -0.03045596, 0, 0, 0, 0, 0, 0, 0, 0, 0.03045596, 0, 0, 0},
+         {0, 0, 0, 0, 0, 0, 0, 0, -0.03045596, 0, 0, 0, 0, 0, 0, 0, 0, 0.03045596}});
+    const auto expected_up_block_vector = UblasUtilities::CreateVector(
+        {-0.01522798, -0.01522798, -0.01522798, -0.01522798, -0.01522798, -0.01522798, 0, 0,
+         0,           0,           0,           0,           0,           0,           0, 0,
+         0,           0,           0,           0,           0,           0,           0, 0});
+    GeneraizedCouplingContributionTest<InterfaceThreeDimensionalSurface>(
+        CreateHorizontal3Plus3NodedTriangleInterfaceElementWithUPwDofs, {CalculationContribution::PUCoupling},
+        IsDiffOrderElement::No, 18, 6, expected_up_block_matrix, expected_up_block_vector);
+}
+
+KRATOS_TEST_CASE_IN_SUITE(UPwTriangleInterfaceElement_6Plus6Element_PUCouplingContribution,
+                          KratosGeoMechanicsFastSuiteWithoutKernel)
+{
+    const auto expected_up_block_matrix = UblasUtilities::CreateMatrix(
+        {{0, 0, -0.0030027003, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+          0, 0, 0.0030027003,  0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0},
+         {0, 0, 0, 0, 0, -0.0030027003, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+          0, 0, 0, 0, 0, 0.0030027003,  0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0},
+         {0, 0, 0, 0, 0, 0, 0, 0, -0.0030027003, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+          0, 0, 0, 0, 0, 0, 0, 0, 0.0030027003,  0, 0, 0, 0, 0, 0, 0, 0, 0},
+         {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, -0.02745326, 0, 0, 0, 0, 0, 0,
+          0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0.02745326,  0, 0, 0, 0, 0, 0},
+         {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, -0.02745326, 0, 0, 0,
+          0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0.02745326,  0, 0, 0},
+         {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, -0.02745326,
+          0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0.02745326},
+         {0, 0, -0.0030027003, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+          0, 0, 0.0030027003,  0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0},
+         {0, 0, 0, 0, 0, -0.0030027003, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+          0, 0, 0, 0, 0, 0.0030027003,  0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0},
+         {0, 0, 0, 0, 0, 0, 0, 0, -0.0030027003, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+          0, 0, 0, 0, 0, 0, 0, 0, 0.0030027003,  0, 0, 0, 0, 0, 0, 0, 0, 0},
+         {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, -0.02745326, 0, 0, 0, 0, 0, 0,
+          0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0.02745326,  0, 0, 0, 0, 0, 0},
+         {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, -0.02745326, 0, 0, 0,
+          0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0.02745326,  0, 0, 0},
+         {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, -0.02745326,
+          0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0.02745326}});
+    // clang-format off
+    const auto expected_up_block_vector = UblasUtilities::CreateVector(
+        {-0.0015013501, -0.0015013501, -0.0015013501, -0.01372663,
+         -0.01372663, -0.01372663, -0.0015013501, -0.0015013501, -0.0015013501,
+         -0.01372663, -0.01372663, -0.01372663,  0,  0,  0,  0,  0,  0,  0,
+         0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+         0, 0, 0, 0, 0, 0});
+    // clang-format on
+    GeneraizedCouplingContributionTest<InterfaceThreeDimensionalSurface>(
+        CreateHorizontal6Plus6NodedTriangleInterfaceElementWithUPwDoF, {CalculationContribution::PUCoupling},
+        IsDiffOrderElement::No, 36, 12, expected_up_block_matrix, expected_up_block_vector);
+}
+
+KRATOS_TEST_CASE_IN_SUITE(UPwTriangleInterfaceElement_6Plus6Element_PUCouplingContribution_DiffOrder,
+                          KratosGeoMechanicsFastSuiteWithoutKernel)
+{
+    const auto expected_up_block_matrix = UblasUtilities::CreateMatrix(
+        {{0, 0, -0.0030027003, 0, 0, 0, 0, 0, 0, 0, 0, -0.01372663, 0, 0, 0, 0, 0, -0.01372663,
+          0, 0, 0.0030027003,  0, 0, 0, 0, 0, 0, 0, 0, 0.01372663,  0, 0, 0, 0, 0, 0.01372663},
+         {0, 0, 0, 0, 0, -0.0030027003, 0, 0, 0, 0, 0, -0.01372663, 0, 0, -0.01372663, 0, 0, 0,
+          0, 0, 0, 0, 0, 0.0030027003,  0, 0, 0, 0, 0, 0.01372663,  0, 0, 0.01372663,  0, 0, 0},
+         {0, 0, 0, 0, 0, 0, 0, 0, -0.0030027003, 0, 0, 0, 0, 0, -0.01372663, 0, 0, -0.01372663,
+          0, 0, 0, 0, 0, 0, 0, 0, 0.0030027003,  0, 0, 0, 0, 0, 0.01372663,  0, 0, 0.01372663},
+         {0, 0, -0.0030027003, 0, 0, 0, 0, 0, 0, 0, 0, -0.01372663, 0, 0, 0, 0, 0, -0.01372663,
+          0, 0, 0.0030027003,  0, 0, 0, 0, 0, 0, 0, 0, 0.01372663,  0, 0, 0, 0, 0, 0.01372663},
+         {0, 0, 0, 0, 0, -0.0030027003, 0, 0, 0, 0, 0, -0.01372663, 0, 0, -0.01372663, 0, 0, 0,
+          0, 0, 0, 0, 0, 0.0030027003,  0, 0, 0, 0, 0, 0.01372663,  0, 0, 0.01372663,  0, 0, 0},
+         {0, 0, 0, 0, 0, 0, 0, 0, -0.0030027003, 0, 0, 0, 0, 0, -0.01372663, 0, 0, -0.01372663,
+          0, 0, 0, 0, 0, 0, 0, 0, 0.0030027003,  0, 0, 0, 0, 0, 0.01372663,  0, 0, 0.01372663}});
+    const auto expected_up_block_vector = UblasUtilities::CreateVector(
+        {-0.01522798, -0.01522798, -0.01522798, -0.01522798, -0.01522798, -0.01522798, 0,
+         0,           0,           0,           0,           0,           0,           0,
+         0,           0,           0,           0,           0,           0,           0,
+         0,           0,           0,           0,           0,           0,           0,
+         0,           0,           0,           0,           0,           0,           0,
+         0,           0,           0,           0,           0,           0,           0});
+    GeneraizedCouplingContributionTest<InterfaceThreeDimensionalSurface>(
+        CreateHorizontal6Plus6NodedTriangleInterfaceElementWithUPwDoF, {CalculationContribution::PUCoupling},
+        IsDiffOrderElement::Yes, 36, 6, expected_up_block_matrix, expected_up_block_vector);
+}
+
+KRATOS_TEST_CASE_IN_SUITE(UPwQuadraliteralInterfaceElement_4Plus4Element_PUCouplingContribution,
+                          KratosGeoMechanicsFastSuiteWithoutKernel)
+{
+    const auto expected_up_block_matrix =
+        UblasUtilities::CreateMatrix({{0, 0, -0.04568394, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+                                       0, 0, 0.04568394,  0, 0, 0, 0, 0, 0, 0, 0, 0},
+                                      {0, 0, 0, 0, 0, -0.04568394, 0, 0, 0, 0, 0, 0,
+                                       0, 0, 0, 0, 0, 0.04568394,  0, 0, 0, 0, 0, 0},
+                                      {0, 0, 0, 0, 0, 0, 0, 0, -0.04568394, 0, 0, 0,
+                                       0, 0, 0, 0, 0, 0, 0, 0, 0.04568394,  0, 0, 0},
+                                      {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, -0.04568394,
+                                       0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0.04568394},
+                                      {0, 0, -0.04568394, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+                                       0, 0, 0.04568394,  0, 0, 0, 0, 0, 0, 0, 0, 0},
+                                      {0, 0, 0, 0, 0, -0.04568394, 0, 0, 0, 0, 0, 0,
+                                       0, 0, 0, 0, 0, 0.04568394,  0, 0, 0, 0, 0, 0},
+                                      {0, 0, 0, 0, 0, 0, 0, 0, -0.04568394, 0, 0, 0,
+                                       0, 0, 0, 0, 0, 0, 0, 0, 0.04568394,  0, 0, 0},
+                                      {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, -0.04568394,
+                                       0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0.04568394}});
+    const auto expected_up_block_vector =
+        UblasUtilities::CreateVector({-0.02284197, -0.02284197, -0.02284197, -0.02284197,
+                                      -0.02284197, -0.02284197, -0.02284197, -0.02284197,
+                                      0,           0,           0,           0,
+                                      0,           0,           0,           0,
+                                      0,           0,           0,           0,
+                                      0,           0,           0,           0,
+                                      0,           0,           0,           0,
+                                      0,           0,           0,           0});
+    GeneraizedCouplingContributionTest<InterfaceThreeDimensionalSurface>(
+        CreateHorizontal4Plus4NodedQuadraliteralInterfaceElementWithUPwDoF,
+        {CalculationContribution::PUCoupling}, IsDiffOrderElement::No, 24, 8,
+        expected_up_block_matrix, expected_up_block_vector);
+}
+
+KRATOS_TEST_CASE_IN_SUITE(UPwQuadraliteralInterfaceElement_8Plus8Element_PUCouplingContribution,
+                          KratosGeoMechanicsFastSuiteWithoutKernel)
+{
+    const auto expected_up_block_matrix = UblasUtilities::CreateMatrix(
+        {{0, 0, -0.0072132537, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+          0, 0, 0.0072132537,  0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0},
+         {0, 0, 0, 0, 0, -0.0072132537, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+          0, 0, 0, 0, 0, 0.0072132537,  0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0},
+         {0, 0, 0, 0, 0, 0, 0, 0, -0.0072132537, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+          0, 0, 0, 0, 0, 0, 0, 0, 0.0072132537,  0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0},
+         {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, -0.0072132537, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+          0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0.0072132537,  0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0},
+         {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, -0.038470686, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+          0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0.038470686,  0, 0, 0, 0, 0, 0, 0, 0, 0},
+         {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, -0.038470686, 0, 0, 0, 0, 0, 0,
+          0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0.038470686,  0, 0, 0, 0, 0, 0},
+         {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, -0.038470686, 0, 0, 0,
+          0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0.038470686,  0, 0, 0},
+         {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, -0.038470686,
+          0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0.038470686},
+         {0, 0, -0.0072132537, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+          0, 0, 0.0072132537,  0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0},
+         {0, 0, 0, 0, 0, -0.0072132537, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+          0, 0, 0, 0, 0, 0.0072132537,  0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0},
+         {0, 0, 0, 0, 0, 0, 0, 0, -0.0072132537, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+          0, 0, 0, 0, 0, 0, 0, 0, 0.0072132537,  0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0},
+         {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, -0.0072132537, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+          0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0.0072132537,  0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0},
+         {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, -0.038470686, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+          0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0.038470686,  0, 0, 0, 0, 0, 0, 0, 0, 0},
+         {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, -0.038470686, 0, 0, 0, 0, 0, 0,
+          0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0.038470686,  0, 0, 0, 0, 0, 0},
+         {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, -0.038470686, 0, 0, 0,
+          0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0.038470686,  0, 0, 0},
+         {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, -0.038470686,
+          0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0.038470686}});
+    // clang-format off
+    const auto expected_up_block_vector = UblasUtilities::CreateVector(
+        {-0.0036066268,  -0.0036066268, -0.0036066268, -0.0036066268, -0.019235343,
+            -0.019235343, -0.019235343, -0.019235343, -0.0036066268,-0.0036066268,
+            -0.0036066268,-0.0036066268,-0.019235343, -0.019235343, -0.019235343,
+            -0.019235343, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+            0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,  0, 0, 0, 0, 0});
+    // clang-format on
+
+    GeneraizedCouplingContributionTest<InterfaceThreeDimensionalSurface>(
+        CreateHorizontal8Plus8NodedQuadraliteralInterfaceElementWithUPwDoF,
+        {CalculationContribution::PUCoupling}, IsDiffOrderElement::No, 48, 16,
+        expected_up_block_matrix, expected_up_block_vector);
+}
+
+KRATOS_TEST_CASE_IN_SUITE(UPwQuadraliteralInterfaceElement_8Plus8Element_PUCouplingContribution_DiffOrder,
+                          KratosGeoMechanicsFastSuiteWithoutKernel)
+{
+    // clang-format off
+    const auto expected_up_block_matrix =
+        UblasUtilities::CreateMatrix(
+            {{0, 0, -0.0072132537, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, -0.019235343,  0, 0, 0, 0, 0, 0, 0, 0, -0.019235343,
+                0, 0, 0.0072132537,  0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0.019235343,   0, 0, 0, 0, 0, 0, 0, 0, 0.019235343},
+               {0, 0, 0, 0, 0, -0.0072132537, 0, 0, 0, 0, 0, 0, 0, 0, -0.019235343, 0, 0, -0.019235343, 0, 0, 0, 0, 0, 0,
+               0, 0, 0, 0, 0, 0.0072132537, 0, 0, 0, 0, 0, 0, 0, 0, 0.019235343, 0, 0, 0.019235343, 0, 0, 0, 0, 0, 0},
+               {0, 0, 0, 0, 0, 0, 0, 0, -0.0072132537, 0, 0, 0,0, 0, 0, 0, 0, -0.019235343, 0, 0, -0.019235343, 0, 0, 0,
+               0, 0, 0, 0, 0, 0, 0, 0, 0.0072132537, 0, 0, 0, 0, 0, 0, 0, 0, 0.019235343, 0, 0, 0.019235343, 0, 0, 0},
+               {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, -0.0072132537, 0, 0, 0, 0, 0, 0, 0, 0, -0.019235343, 0, 0, -0.019235343,
+                0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0.0072132537, 0, 0, 0, 0, 0, 0, 0, 0, 0.019235343, 0, 0, 0.019235343},
+               {0, 0, -0.0072132537, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, -0.019235343,  0, 0, 0, 0, 0, 0, 0, 0, -0.019235343,
+                0, 0, 0.0072132537,  0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0.019235343,   0, 0, 0, 0, 0, 0, 0, 0, 0.019235343},
+               {0, 0, 0, 0, 0, -0.0072132537, 0, 0, 0, 0, 0, 0, 0, 0, -0.019235343, 0, 0, -0.019235343, 0, 0, 0, 0, 0, 0,
+                0, 0, 0, 0, 0, 0.0072132537, 0, 0, 0, 0, 0, 0, 0, 0, 0.019235343, 0, 0, 0.019235343, 0, 0, 0, 0, 0, 0},
+               {0, 0, 0, 0, 0, 0, 0, 0, -0.0072132537, 0, 0, 0, 0, 0, 0, 0, 0, -0.019235343, 0, 0, -0.019235343, 0, 0, 0,
+                0, 0, 0, 0, 0, 0, 0, 0, 0.0072132537, 0, 0, 0, 0, 0, 0, 0, 0, 0.019235343, 0, 0, 0.019235343, 0, 0, 0},
+               {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, -0.0072132537, 0, 0, 0, 0, 0, 0, 0, 0, -0.019235343, 0, 0, -0.019235343,
+                0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0.0072132537, 0, 0, 0, 0, 0, 0, 0, 0, 0.019235343, 0, 0, 0.019235343}});
+    // clang-format on
+    const auto expected_up_block_vector = UblasUtilities::CreateVector(
+        {-0.02284197, -0.02284197, -0.02284197, -0.02284197, -0.02284197, -0.02284197, -0.02284197,
+         -0.02284197, 0,           0,           0,           0,           0,           0,
+         0,           0,           0,           0,           0,           0,           0,
+         0,           0,           0,           0,           0,           0,           0,
+         0,           0,           0,           0,           0,           0,           0,
+         0,           0,           0,           0,           0,           0,           0,
+         0,           0,           0,           0,           0,           0,           0,
+         0,           0,           0,           0,           0,           0,           0});
+
+    GeneraizedCouplingContributionTest<InterfaceThreeDimensionalSurface>(
+        CreateHorizontal8Plus8NodedQuadraliteralInterfaceElementWithUPwDoF,
+        {CalculationContribution::PUCoupling}, IsDiffOrderElement::Yes, 48, 8,
+        expected_up_block_matrix, expected_up_block_vector);
+}
 } // namespace Kratos::Testing

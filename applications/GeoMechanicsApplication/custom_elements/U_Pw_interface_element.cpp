@@ -785,7 +785,20 @@ std::function<std::vector<double>()> UPwInterfaceElement::CreateDegreesOfSaturat
 
 std::vector<double> UPwInterfaceElement::GetDegreesOfSaturationValues() const
 {
-    return VariablesUtilities::GetNodalValues(this->GetWaterPressureGeometry(), DEGREE_OF_SATURATION);
+    const auto fluid_pressure = CalculateIntegrationPointFluidPressures();
+    KRATOS_ERROR_IF_NOT(fluid_pressure.size() == mRetentionLawVector.size());
+
+    auto retention_law_params = RetentionLaw::Parameters{this->GetProperties()};
+
+    auto result = std::vector<double>{};
+    result.reserve(mRetentionLawVector.size());
+    std::transform(mRetentionLawVector.begin(), mRetentionLawVector.end(), fluid_pressure.begin(),
+                   std::back_inserter(result),
+                   [&retention_law_params](const auto& pRetentionLaw, auto FluidPressure) {
+        retention_law_params.SetFluidPressure(FluidPressure);
+        return pRetentionLaw->CalculateSaturation(retention_law_params);
+    });
+    return result;
 }
 
 template <unsigned int MatrixSize>
