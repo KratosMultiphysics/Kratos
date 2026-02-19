@@ -753,48 +753,48 @@ namespace Kratos
             rB(0, index + 2) = 0;
 
             rB(0, index + 3) = 0;
-            rB(0, index + 4) = (DN_De_Jn_bending(i, 0) * y3) + (r_N(i) * (thickness/2) * (zeta * dy3x + y3 * dzetadx));
-            rB(0, index + 5) = - ((DN_De_Jn_bending(i, 0) * y2) + (r_N(i) * (thickness/2) * (zeta * dy2x + dzetadx * y2)));
+            rB(0, index + 4) = (DN_De_Jn_bending(i, 0) * y3) + (r_N(IntegrationPointIndex, i) * (thickness/2) * (zeta * dy3x + y3 * dzetadx));
+            rB(0, index + 5) = - ((DN_De_Jn_bending(i, 0) * y2) + (r_N(IntegrationPointIndex, i) * (thickness/2) * (zeta * dy2x + dzetadx * y2)));
 
             rB(1, index)     = 0;
             rB(1, index + 1) = DN_De_Jn(i, 1);
             rB(1, index + 2) = 0;
 
-            rB(1, index + 3) = - ((DN_De_Jn_bending(i, 1) * y3) + (r_N(i) * (thickness/2) * (zeta * dy3y + dzetady * y3))); 
+            rB(1, index + 3) = - ((DN_De_Jn_bending(i, 1) * y3) + (r_N(IntegrationPointIndex, i) * (thickness/2) * (zeta * dy3y + dzetady * y3))); 
             rB(1, index + 4) = 0;
-            rB(1, index + 5) = (DN_De_Jn_bending(i, 1) * y1) + (r_N(i) * (thickness/2) * (zeta * dy1y + dzetady * y1)); 
+            rB(1, index + 5) = (DN_De_Jn_bending(i, 1) * y1) + (r_N(IntegrationPointIndex, i) * (thickness/2) * (zeta * dy1y + dzetady * y1)); 
 
             rB(2, index)     = 0;
             rB(2, index + 1) = 0;
             rB(2, index + 2) = DN_De_Jn(i, 2);
 
-            rB(2, index + 3) = (DN_De_Jn_bending(i, 2)   * y2) + (r_N(i)  * (thickness/2) * (zeta * dy2z + dzetadz * y2));  
-            rB(2, index + 4) = - ((DN_De_Jn_bending(i, 2) * y1)  + (r_N(i) * (thickness/2) * (zeta  * dy1z + dzetadz *y1))); 
+            rB(2, index + 3) = (DN_De_Jn_bending(i, 2)   * y2) + (r_N(IntegrationPointIndex, i)  * (thickness/2) * (zeta * dy2z + dzetadz * y2));  
+            rB(2, index + 4) = - ((DN_De_Jn_bending(i, 2) * y1)  + (r_N(IntegrationPointIndex, i) * (thickness/2) * (zeta  * dy1z + dzetadz *y1))); 
             rB(2, index + 5) = 0;
             
             rB(3, index)     = DN_De_Jn(i, 1);                    
             rB(3, index + 1) = DN_De_Jn(i, 0);  
             rB(3, index + 2) = 0;
 
-            rB(3, index + 3) = - ((DN_De_Jn_bending(i, 0) * y3) +(r_N(i) * (thickness/2) * (zeta * dy3x + dzetadx * y3)));
-            rB(3, index + 4) = (DN_De_Jn_bending(i, 1) * y3) +(r_N(i) * (thickness/2) * (zeta * dy3y + dzetady * y3));
-            rB(3, index + 5) = ((DN_De_Jn_bending(i, 0) * y1) + (r_N(i) * (thickness/2) * (zeta * dy1x + dzetadx * y1))) - ((DN_De_Jn_bending(i, 1) * y2)+ (r_N(i) * (thickness/2) *  (zeta * dy2y + dzetady * y2))); 
+            rB(3, index + 3) = - ((DN_De_Jn_bending(i, 0) * y3) +(r_N(IntegrationPointIndex, i) * (thickness/2) * (zeta * dy3x + dzetadx * y3)));
+            rB(3, index + 4) = (DN_De_Jn_bending(i, 1) * y3) +(r_N(IntegrationPointIndex, i) * (thickness/2) * (zeta * dy3y + dzetady * y3));
+            rB(3, index + 5) = ((DN_De_Jn_bending(i, 0) * y1) + (r_N(IntegrationPointIndex, i) * (thickness/2) * (zeta * dy1x + dzetadx * y1))) - ((DN_De_Jn_bending(i, 1) * y2)+ (r_N(IntegrationPointIndex, i) * (thickness/2) *  (zeta * dy2y + dzetady * y2))); 
 
             rB(4, index)     = 0;
             rB(4, index + 1) = DN_De_Jn(i, 2);
             rB(4, index + 2) = DN_De_Jn(i, 1);
 
-            rB(4, index + 3) = ((DN_De_Jn_bending(i, 1) * y2) + (r_N(i) * (thickness/2) * (zeta * dy2y + dzetady * y2)))  - ((DN_De_Jn_bending(i, 2) * y3)+ (r_N (i)  * (thickness/2) * (zeta *dy3z + dzetadz * y3))); 
-            rB(4, index + 4) = - ((DN_De_Jn_bending(i, 1) * y1) + (r_N(i) * (thickness/2) * (zeta * dy1y + dzetady * y1))); 
-            rB(4, index + 5) = (DN_De_Jn_bending(i, 2) *  y1 ) + (r_N (i) * (thickness/2) * (zeta * dy1z + dzetadz * y1)); 
+            rB(4, index + 3) = ((DN_De_Jn_bending(i, 1) * y2) + (r_N(IntegrationPointIndex, i) * (thickness/2) * (zeta * dy2y + dzetady * y2)))  - ((DN_De_Jn_bending(i, 2) * y3)+ (r_N(IntegrationPointIndex, i)  * (thickness/2) * (zeta *dy3z + dzetadz * y3))); 
+            rB(4, index + 4) = - ((DN_De_Jn_bending(i, 1) * y1) + (r_N(IntegrationPointIndex, i) * (thickness/2) * (zeta * dy1y + dzetady * y1))); 
+            rB(4, index + 5) = (DN_De_Jn_bending(i, 2) *  y1 ) + (r_N(IntegrationPointIndex, i) * (thickness/2) * (zeta * dy1z + dzetadz * y1)); 
 
             rB(5, index)   = DN_De_Jn (i,2);                    
             rB(5, index + 1) = 0;  
             rB(5, index + 2) = DN_De_Jn(i, 0);
 
-            rB(5, index + 3) = ((DN_De_Jn_bending(i, 0)  * y2) + (r_N(i) * (thickness/2) * ( zeta * dy2x +  dzetadx * y2)) ); 
-            rB(5, index + 4) = ((DN_De_Jn_bending (i,2)  * y3) + (r_N (i)   * (thickness/2) * ( zeta * dy3z + dzetadz * y3 ))) - ((DN_De_Jn_bending(i, 0) * y1) + (r_N(i) * (thickness/2) * (zeta  * dy1x + dzetadx * y1) )); 
-            rB(5, index + 5) = - ((DN_De_Jn_bending (i,2)  * y2 )+(r_N (i) * (thickness/2) * (zeta * dy2z + dzetadz * y2)));  
+            rB(5, index + 3) = ((DN_De_Jn_bending(i, 0)  * y2) + (r_N(IntegrationPointIndex, i) * (thickness/2) * ( zeta * dy2x +  dzetadx * y2)) ); 
+            rB(5, index + 4) = ((DN_De_Jn_bending (i,2)  * y3) + (r_N(IntegrationPointIndex, i)   * (thickness/2) * ( zeta * dy3z + dzetadz * y3 ))) - ((DN_De_Jn_bending(i, 0) * y1) + (r_N(IntegrationPointIndex, i) * (thickness/2) * (zeta  * dy1x + dzetadx * y1) )); 
+            rB(5, index + 5) = - ((DN_De_Jn_bending (i,2)  * y2 )+(r_N(IntegrationPointIndex, i) * (thickness/2) * (zeta * dy2z + dzetadz * y2)));  
         }
     }
 
@@ -822,7 +822,7 @@ namespace Kratos
             rBd(0, index + 2) = 0;
             rBd(0, index + 3) = 0;
             rBd(0, index + 4) = 0;
-            rBd(0, index + 5) = - r_N (i);
+            rBd(0, index + 5) = - r_N(IntegrationPointIndex, i);
         }
     }
 
@@ -907,63 +907,63 @@ namespace Kratos
             rB(0, index + 1) = 0;
             rB(0, index + 2) = 0;
             rB(0, index + 3) = 0;
-            rB(0, index + 4) = (DN_De_Jn_bending(i, 0) * y3) + (r_N(i) * (thickness/2) * (zeta * dy3x + y3 * dzetadx));
-            rB(0, index + 5) = - ((DN_De_Jn_bending(i, 0) * y2) + (r_N(i) * (thickness/2) * (zeta * dy2x + dzetadx * y2)));
+            rB(0, index + 4) = (DN_De_Jn_bending(i, 0) * y3) + (r_N(IntegrationPointIndex, i) * (thickness/2) * (zeta * dy3x + y3 * dzetadx));
+            rB(0, index + 5) = - ((DN_De_Jn_bending(i, 0) * y2) + (r_N(IntegrationPointIndex, i) * (thickness/2) * (zeta * dy2x + dzetadx * y2)));
 
             rB(1, index)     = DN_De_Jn(i, 1);
             rB(1, index + 1) = 0;
             rB(1, index + 2) = 0;
             rB(1, index + 3) = 0;
-            rB(1, index + 4) = (DN_De_Jn_bending(i, 1) * y3) + (r_N(i) * (thickness/2) * (zeta * dy3y + y3 * dzetady));
-            rB(1, index + 5) = - ((DN_De_Jn_bending(i, 1) * y2) + (r_N(i) * (thickness/2) * (zeta * dy2y + dzetady * y2)));
+            rB(1, index + 4) = (DN_De_Jn_bending(i, 1) * y3) + (r_N(IntegrationPointIndex, i) * (thickness/2) * (zeta * dy3y + y3 * dzetady));
+            rB(1, index + 5) = - ((DN_De_Jn_bending(i, 1) * y2) + (r_N(IntegrationPointIndex, i) * (thickness/2) * (zeta * dy2y + dzetady * y2)));
 
             rB(2, index)     = DN_De_Jn(i, 2);
             rB(2, index + 1) = 0;
             rB(2, index + 2) = 0;
             rB(2, index + 3) = 0;
-            rB(2, index + 4) = (DN_De_Jn_bending(i, 2) * y3) + (r_N(i) * (thickness/2) * (zeta * dy3z + y3 * dzetadz));
-            rB(2, index + 5) = - ((DN_De_Jn_bending(i, 2) * y2) + (r_N(i) * (thickness/2) * (zeta * dy2z + dzetadz * y2)));
+            rB(2, index + 4) = (DN_De_Jn_bending(i, 2) * y3) + (r_N(IntegrationPointIndex, i) * (thickness/2) * (zeta * dy3z + y3 * dzetadz));
+            rB(2, index + 5) = - ((DN_De_Jn_bending(i, 2) * y2) + (r_N(IntegrationPointIndex, i) * (thickness/2) * (zeta * dy2z + dzetadz * y2)));
 
             rB(3, index)     = 0;
             rB(3, index + 1) = DN_De_Jn(i, 0);
             rB(3, index + 2) = 0;
-            rB(3, index + 3) = - ((DN_De_Jn_bending(i, 0) * y3) + (r_N(i) * (thickness/2) * (zeta * dy3x + dzetadx * y3))); 
+            rB(3, index + 3) = - ((DN_De_Jn_bending(i, 0) * y3) + (r_N(IntegrationPointIndex, i) * (thickness/2) * (zeta * dy3x + dzetadx * y3))); 
             rB(3, index + 4) = 0;
-            rB(3, index + 5) = (DN_De_Jn_bending(i, 0) * y1) + (r_N(i) * (thickness/2) * (zeta * dy1x + dzetadx * y1)); 
+            rB(3, index + 5) = (DN_De_Jn_bending(i, 0) * y1) + (r_N(IntegrationPointIndex, i) * (thickness/2) * (zeta * dy1x + dzetadx * y1)); 
 
             rB(4, index)     = 0;
             rB(4, index + 1) = DN_De_Jn(i, 1);
             rB(4, index + 2) = 0;
-            rB(4, index + 3) = - ((DN_De_Jn_bending(i, 1) * y3) + (r_N(i) * (thickness/2) * (zeta * dy3y + dzetady * y3))); 
+            rB(4, index + 3) = - ((DN_De_Jn_bending(i, 1) * y3) + (r_N(IntegrationPointIndex, i) * (thickness/2) * (zeta * dy3y + dzetady * y3))); 
             rB(4, index + 4) = 0;
-            rB(4, index + 5) = (DN_De_Jn_bending(i, 1) * y1) + (r_N(i) * (thickness/2) * (zeta * dy1y + dzetady * y1)); 
+            rB(4, index + 5) = (DN_De_Jn_bending(i, 1) * y1) + (r_N(IntegrationPointIndex, i) * (thickness/2) * (zeta * dy1y + dzetady * y1)); 
 
             rB(5, index)     = 0;
             rB(5, index + 1) = DN_De_Jn(i, 2);
             rB(5, index + 2) = 0;
-            rB(5, index + 3) = - ((DN_De_Jn_bending(i, 2) * y3) + (r_N(i) * (thickness/2) * (zeta * dy3z + dzetadz * y3))); 
+            rB(5, index + 3) = - ((DN_De_Jn_bending(i, 2) * y3) + (r_N(IntegrationPointIndex, i) * (thickness/2) * (zeta * dy3z + dzetadz * y3))); 
             rB(5, index + 4) = 0;
-            rB(5, index + 5) = (DN_De_Jn_bending(i, 2) * y1) + (r_N(i) * (thickness/2) * (zeta * dy1z + dzetadz * y1)); 
+            rB(5, index + 5) = (DN_De_Jn_bending(i, 2) * y1) + (r_N(IntegrationPointIndex, i) * (thickness/2) * (zeta * dy1z + dzetadz * y1)); 
 
             rB(6, index)     = 0;
             rB(6, index + 1) = 0;
             rB(6, index + 2) = DN_De_Jn(i, 0);
-            rB(6, index + 3) = (DN_De_Jn_bending(i, 0)   * y2) + (r_N(i)  * (thickness/2) * (zeta * dy2x + dzetadx * y2));  
-            rB(6, index + 4) = - ((DN_De_Jn_bending(i, 0) * y1)  + (r_N(i) * (thickness/2) * (zeta  * dy1x + dzetadx *y1))); 
+            rB(6, index + 3) = (DN_De_Jn_bending(i, 0)   * y2) + (r_N(IntegrationPointIndex, i)  * (thickness/2) * (zeta * dy2x + dzetadx * y2));  
+            rB(6, index + 4) = - ((DN_De_Jn_bending(i, 0) * y1)  + (r_N(IntegrationPointIndex, i) * (thickness/2) * (zeta  * dy1x + dzetadx *y1))); 
             rB(6, index + 5) = 0;
 
             rB(7, index)     = 0;
             rB(7, index + 1) = 0;
             rB(7, index + 2) = DN_De_Jn(i, 1);
-            rB(7, index + 3) = (DN_De_Jn_bending(i, 1)   * y2) + (r_N(i)  * (thickness/2) * (zeta * dy2y + dzetady * y2));  
-            rB(7, index + 4) = - ((DN_De_Jn_bending(i, 1) * y1)  + (r_N(i) * (thickness/2) * (zeta  * dy1y + dzetady *y1))); 
+            rB(7, index + 3) = (DN_De_Jn_bending(i, 1)   * y2) + (r_N(IntegrationPointIndex, i)  * (thickness/2) * (zeta * dy2y + dzetady * y2));  
+            rB(7, index + 4) = - ((DN_De_Jn_bending(i, 1) * y1)  + (r_N(IntegrationPointIndex, i) * (thickness/2) * (zeta  * dy1y + dzetady *y1))); 
             rB(7, index + 5) = 0;
 
             rB(8, index)     = 0;
             rB(8, index + 1) = 0;
             rB(8, index + 2) = DN_De_Jn(i, 2);
-            rB(8, index + 3) = (DN_De_Jn_bending(i, 2)   * y2) + (r_N(i)  * (thickness/2) * (zeta * dy2z + dzetadz * y2));  
-            rB(8, index + 4) = - ((DN_De_Jn_bending(i, 2) * y1)  + (r_N(i) * (thickness/2) * (zeta  * dy1z + dzetadz *y1))); 
+            rB(8, index + 3) = (DN_De_Jn_bending(i, 2)   * y2) + (r_N(IntegrationPointIndex, i)  * (thickness/2) * (zeta * dy2z + dzetadz * y2));  
+            rB(8, index + 4) = - ((DN_De_Jn_bending(i, 2) * y1)  + (r_N(IntegrationPointIndex, i) * (thickness/2) * (zeta  * dy1z + dzetadz *y1))); 
             rB(8, index + 5) = 0;
         }
     }
