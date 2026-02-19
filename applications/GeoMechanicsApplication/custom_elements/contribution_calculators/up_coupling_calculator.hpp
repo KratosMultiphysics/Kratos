@@ -23,7 +23,7 @@ class UPCouplingCalculator : public ContributionCalculator<NumberOfRows, NumberO
 {
 public:
     struct InputProvider {
-        InputProvider(std::function<const Matrix&()>       GetNpContainer,
+        InputProvider(std::function<const Matrix()>        GetNpContainer,
                       Geo::BMatricesGetter                 GetBMatrices,
                       std::function<Vector()>              GetVoigtVector,
                       Geo::IntegrationCoefficientsGetter   GetIntegrationCoefficients,
@@ -40,7 +40,7 @@ public:
         {
         }
 
-        std::function<const Matrix&()>       GetNpContainer;
+        std::function<const Matrix()>        GetNpContainer;
         Geo::BMatricesGetter                 GetBMatrices;
         std::function<Vector()>              GetVoigtVector;
         Geo::IntegrationCoefficientsGetter   GetIntegrationCoefficients;
@@ -88,7 +88,6 @@ private:
                 biot_coefficients[i], bishop_coefficients[i], integration_coefficients[i]);
             result += coupling_contribution;
         }
-
         return result;
     }
 

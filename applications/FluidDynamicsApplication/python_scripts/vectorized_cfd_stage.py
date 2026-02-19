@@ -180,14 +180,16 @@ class VectorizedCFDStage(analysis_stage.AnalysisStage):
         p = self.p_adaptor.data
 
         self.connectivity_adaptor = KM.TensorAdaptors.ConnectivityIdsTensorAdaptor(self.vol_mp.Geometries)
+        print("******************",self.connectivity_adaptor.data.dtype)
         self.connectivity_adaptor.CollectData()
         self.connectivity = self.connectivity_adaptor.data
         self.connectivity -= 1 #have indices to start in
-        max_idx = self.connectivity.max()
-        if max_idx <= np.iinfo(np.int32).max: #use 32 bit integers for connectivities
-            self.connectivity = self.connectivity.astype(np.int32)
-        else:
-            print(f"Warning: Max index {max_idx} is too large for uint32. Staying at 64-bit.")
+        self.connectivity = self.connectivity.astype(np.int64) #############OUCH!!! TODO: this by defaults should be probably int64
+        # max_idx = self.connectivity.max()
+        # if max_idx <= np.iinfo(np.int32).max: #use 32 bit integers for connectivities
+        #     self.connectivity = self.connectivity.astype(np.int32)
+        # else:
+        #     print(f"Warning: Max index {max_idx} is too large for uint32. Staying at 64-bit.")
 
         #preallocation of elemental arrays of velocities and pressures
         self.vec_elemental_data = np.empty((*self.connectivity.shape, v.shape[1]))
@@ -242,7 +244,7 @@ class VectorizedCFDStage(analysis_stage.AnalysisStage):
                 node.SetSolutionStepValue(KM.VELOCITY_X,0,1.0)
 
         ###allocate the graph of the matrix
-        self.L = self.cfd_utils.AllocateScalarMatrix(self.connectivity)
+        self.L,self.L_assembly_indices = self.cfd_utils.AllocateScalarMatrix(self.connectivity)
 
     def ComputeVelocityProjection(self,v_elemental, Pi_conv):
         #solve (w,pi) = (w,a·∇u)
@@ -401,8 +403,7 @@ class VectorizedCFDStage(analysis_stage.AnalysisStage):
         RHSpressure *= self.rho
 
         #assemble LHS
-        self.cfd_utils.AssembleScalarMatrix(Lel,self.connectivity,self.L)
-
+        self.cfd_utils.AssembleScalarMatrixByCSRIndices(Lel,self.L_assembly_indices,self.L)
 
         # dt*(∇q,∇pold)
         ##RHSpressure += (self.L@p) #TODO: use SpMV function to avoid temporaries
@@ -410,9 +411,10 @@ class VectorizedCFDStage(analysis_stage.AnalysisStage):
 
 
         #apply Pressure BCs
-        self.pressure_free_dofs_vector = np.ones(self.nnodes,np.float64)
-        self.pressure_free_dofs_vector[self.fix_press_indices] = 0.0
-        self.L.ApplyHomogeneousDirichlet(self.pressure_free_dofs_vector, 1e9, RHSpressure)
+        # self.pressure_free_dofs_vector = np.ones(self.nnodes,np.float64)
+        # self.pressure_free_dofs_vector[self.fix_press_indices] = 0.0
+        # self.L.ApplyHomogeneousDirichlet(self.pressure_free_dofs_vector, 1e9, RHSpressure)
+        self.cfd_utils.ApplyHomogeneousDirichlet(self.fix_press_indices, self.L, RHSpressure)
 
         #solve the system
         ##TODO: use amgcl instead of this one!! ... and also avoid creating temporaries
@@ -474,7 +476,7 @@ class VectorizedCFDStage(analysis_stage.AnalysisStage):
         #value = input("Press Enter to continue...")
 
 
-    def ComputeVelocityResidual(self,v_elemental,p_elemental, proj_el,DN,tau):
+    def ComputeVelocityResidual(self, v_elemental, p_elemental, proj_el, DN, tau):
         N = self.N
 
         # assign a shorter local name
@@ -486,54 +488,34 @@ class VectorizedCFDStage(analysis_stage.AnalysisStage):
         #(w,b)
         res.fill(0.0) #TODO: substitute by the proper computation of the external forces
 
-        #(w,a·∇u)
+        #(w,a·∇u) + (a·∇w,a·∇u) - (a·∇w,Pi_conv)
         convective=aux_res_el #rename this to make it more readable
+        convective_stabilization = aux_res_el #rename this to make it more readable #TODO: most probably we can get rid of this array
         self.cfd_utils.ComputeElementalGradient(DN, v_elemental, grad_v)
-        self.cfd_utils.InterpolateValue(self.N,v_elemental,v_gauss)
-
-        #TODO: move this to the utils
-        if self.dim == 2:
-            N_gauss_convective = np.array([
-                [2.0/3.0, 1.0/6.0, 1.0/6.0],
-                [1.0/6.0, 2.0/3.0, 1.0/6.0],
-                [1.0/6.0, 1.0/6.0, 2.0/3.0]
-            ])
-            w_gauss_convective = np.array([
-                1.0/6.0,
-                1.0/6.0,
-                1.0/6.0
-            ])
-        elif self.dim == 3:
-            N_gauss_convective = np.array([
-                [0.5854101966249685, 0.1381966011250105, 0.1381966011250105, 0.1381966011250105],
-                [0.1381966011250105, 0.5854101966249685, 0.1381966011250105, 0.1381966011250105],
-                [0.1381966011250105, 0.1381966011250105, 0.5854101966249685, 0.1381966011250105],
-                [0.1381966011250105, 0.1381966011250105, 0.1381966011250105, 0.5854101966249685]
-            ])
-            w_gauss_convective = np.array([
-                1.0/24.0,
-                1.0/24.0,
-                1.0/24.0,
-                1.0/24.0
-            ])
-        else:
-            raise Exception("Dimension not supported.")
 
         tmp = np.empty_like(convective)
+        tmp_stab = np.empty_like(convective_stabilization)
         n_gauss_convective = self.dim + 1
+        w_gauss_convective = self.cfd_utils.GetGaussIntegrationWeights(self.dim, 2)
+        N_gauss_convective = self.cfd_utils.GetShapeFunctionsOnGaussPoints(self.dim, 2)
         for i_gauss in range(n_gauss_convective):
-            N_conv = N_gauss_convective[i_gauss,:]
-            self.cfd_utils.ComputeConvectiveContribution(N_conv, grad_v, v_gauss, tmp)
-            convective += w_gauss_convective[i_gauss] * tmp # Scale with current integration weight (Jacobian determinant is applied at the end to the entire residual)
-        convective *= self.rho
-        res -= convective
+            # Get elemental velocities at current integration point
+            self.cfd_utils.InterpolateValue(N_gauss_convective[i_gauss,:], v_elemental, v_gauss)
 
-        #FIXME: missing 2nd order integration of the stabilization term
-        # (a·∇u,a·∇u) - (a·∇u,Pi_conv)
-        convective_stabilization=aux_res_el #rename this to make it more readable
-        #proj_el = np.zeros(v_elemental.shape) #TODO: this has to be computed in the appropriate way!
-        self.cfd_utils.ComputeMomentumStabilization(N, DN, v_gauss, v_elemental, proj_el, convective_stabilization, self.elemental_scalar_scratch, self.elemental_grad_scratch)
+            # Compute convective contribution at current integration point (w,a·∇u)
+            self.cfd_utils.ComputeConvectiveContribution(N_gauss_convective[i_gauss,:], grad_v, v_gauss, tmp)
+
+            #TODO: Compute convective stabilization contribution at current integration point (a·∇w,a·∇u) - (a·∇w,Pi_conv)
+            #proj_el = np.zeros(v_elemental.shape) #TODO: this has to be computed in the appropriate way!
+            self.cfd_utils.ComputeMomentumStabilization(N_gauss_convective[i_gauss,:], DN, v_gauss, v_elemental, proj_el, tmp_stab, self.elemental_scalar_scratch, self.elemental_grad_scratch)
+
+            # Scale with current integration weight (Jacobian determinant is applied at the end to the entire residual)
+            convective += w_gauss_convective[i_gauss] * tmp
+            convective_stabilization += w_gauss_convective[i_gauss] * tmp_stab
+
+        convective *= self.rho
         convective_stabilization *= self.tau[:,np.newaxis,np.newaxis] #TODO: activate stabilization
+        res -= convective
         res -= convective_stabilization
 
         #(∇w,∇u)
