@@ -214,12 +214,13 @@ double CoulombYieldSurface::CalculatePlasticMultiplier(const Geo::PrincipalStres
                                                        const Vector& rDerivativeOfFlowFunction,
                                                        const Matrix& rElasticMatrix) const
 {
-    const auto sin_phi = std::sin(GetFrictionAngleInRadians());
-    const auto c1      = (inner_prod(row(rElasticMatrix, 0), rDerivativeOfFlowFunction) -
-                     inner_prod(row(rElasticMatrix, 2), rDerivativeOfFlowFunction)) /
+    const auto sin_phi        = std::sin(GetFrictionAngleInRadians());
+    const auto elastic_matrix = subrange(rElasticMatrix, 0, 3, 0, 3);
+    const auto c1             = (inner_prod(row(elastic_matrix, 0), rDerivativeOfFlowFunction) -
+                     inner_prod(row(elastic_matrix, 2), rDerivativeOfFlowFunction)) /
                     2.0;
-    const auto c2 = (inner_prod(row(rElasticMatrix, 0), rDerivativeOfFlowFunction) +
-                     inner_prod(row(rElasticMatrix, 2), rDerivativeOfFlowFunction)) *
+    const auto c2 = (inner_prod(row(elastic_matrix, 0), rDerivativeOfFlowFunction) +
+                     inner_prod(row(elastic_matrix, 2), rDerivativeOfFlowFunction)) *
                     sin_phi / 2.0;
     return -YieldFunctionValue(rTrialPrincipalStresses) / (c1 + c2);
 }

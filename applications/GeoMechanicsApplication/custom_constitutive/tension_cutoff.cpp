@@ -95,7 +95,8 @@ double TensionCutoff::CalculatePlasticMultiplier(const Geo::PrincipalStresses& r
                                                  const Vector& rDerivativeOfFlowFunction,
                                                  const Matrix& rElasticMatrix) const
 {
-    const auto numerator = inner_prod(row(rElasticMatrix, 0), rDerivativeOfFlowFunction);
+    const auto elastic_matrix = subrange(rElasticMatrix, 0, 3, 0, 3);
+    const auto numerator      = inner_prod(row(elastic_matrix, 0), rDerivativeOfFlowFunction);
     return -YieldFunctionValue(rTrialPrincipalStresses) / numerator;
 }
 
