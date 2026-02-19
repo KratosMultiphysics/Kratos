@@ -36,9 +36,12 @@ class VectorizedCFDStage(analysis_stage.AnalysisStage):
 
         self.AddVariables()
 
-        self.dt = settings["time_stepping"]["time_step"].GetDouble()
-        self.model_part.ProcessInfo.SetValue(KM.DELTA_TIME, self.dt)
-
+        self.automatic_dt = settings["time_stepping"]["automatic_time_step"].GetBool()
+        if self.automatic_dt:
+            self.target_cfl = settings["time_stepping"]["CFL_number"].GetDouble() # CFL number from which the DT will be computed
+            self.target_fourier = settings["time_stepping"]["Viscous_Fourier_number"].GetDouble() # Viscous Fourier number from which the DT will be computed
+            self.dt_max = settings["time_stepping"]["maximum_delta_time"].GetDouble() # Maximum value of the automatically computed time step
+        self.dt = settings["time_stepping"]["time_step"].GetDouble() if not self.automatic_dt else None # Initialize dt to None if automatic, to be computed later
 
     def ComputeLumpedMass(self):
         Mscalar = np.empty((len(self.model_part.Nodes)))
@@ -157,12 +160,13 @@ class VectorizedCFDStage(analysis_stage.AnalysisStage):
         return out
 
     def AdvanceInTime(self):
-        self.dt = self.model_part.ProcessInfo[KM.DELTA_TIME]
-        self.time += self.dt
+        dt = self._ComputeDeltaTime()
+        self.time += dt
+
         self.model_part.CloneTimeStep(self.time)
         self.model_part.ProcessInfo[KM.STEP] += 1
-        return self.time
 
+        return self.time
 
     def Initialize(self):
         super().Initialize()
@@ -180,7 +184,6 @@ class VectorizedCFDStage(analysis_stage.AnalysisStage):
         p = self.p_adaptor.data
 
         self.connectivity_adaptor = KM.TensorAdaptors.ConnectivityIdsTensorAdaptor(self.vol_mp.Geometries)
-        print("******************",self.connectivity_adaptor.data.dtype)
         self.connectivity_adaptor.CollectData()
         self.connectivity = self.connectivity_adaptor.data
         self.connectivity -= 1 #have indices to start in
@@ -203,7 +206,6 @@ class VectorizedCFDStage(analysis_stage.AnalysisStage):
             self.vol_mp.Geometries,
             KM.TensorAdaptors.GeometriesTensorAdaptor.DatumType.ShapeFunctionDerivatives,
             KM.GeometryData.IntegrationMethod.GI_GAUSS_1)
-
         geometry_adaptor_DN.CollectData()
 
         self.DN = np.squeeze(geometry_adaptor_DN.data).copy() #this has shape nel*1*nnodes_in_el*dim - the copy is important as we need to own the data
@@ -237,7 +239,7 @@ class VectorizedCFDStage(analysis_stage.AnalysisStage):
         self.Lel_scratch = np.empty((nelem, self.n_in_el, self.n_in_el))
         self.rhs_el_scratch = np.empty((nelem, self.n_in_el))
 
-        ########################## REMOVE - just for testing
+        ##########################FIXME: REMOVE - just for testing
         for node in self.model_part.Nodes:
             if(node.X < 0.0001):
                 node.Fix(KM.VELOCITY_X)
@@ -245,6 +247,11 @@ class VectorizedCFDStage(analysis_stage.AnalysisStage):
 
         ###allocate the graph of the matrix
         self.L,self.L_assembly_indices = self.cfd_utils.AllocateScalarMatrix(self.connectivity)
+
+        # Compute the Fourier number time step restriction (constant as h, rho and mu are constant in time)
+        if self.automatic_dt:
+            aux = self.target_fourier * self.rho / self.nu
+            self.dt_fourier = np.min(aux * self.h**2)
 
     def ComputeVelocityProjection(self,v_elemental, Pi_conv):
         #solve (w,pi) = (w,a·∇u)
@@ -521,7 +528,7 @@ class VectorizedCFDStage(analysis_stage.AnalysisStage):
         #(∇w,∇u)
         viscous=aux_res_el #rename this to make it more readable
         self.cfd_utils.ApplyLaplacian(DN,v_elemental,viscous)
-        viscous *= self.nu #TODO, check if we use nu or mu
+        viscous *= self.nu #FIXME: check if we use nu or mu
         res -= viscous
 
         # (∇w,p_gauss)
@@ -540,10 +547,34 @@ class VectorizedCFDStage(analysis_stage.AnalysisStage):
     def ImportModelPart(self):
         pass
 
-    def Run(self):
-        self.Initialize()
-        self.RunSolutionLoop()
-        self.Finalize()
+    def GetStep(self):
+        return self.model_part.ProcessInfo[KratosMultiphysics.STEP]
+
+    def _ComputeDeltaTime(self):
+        if self.automatic_dt:
+            # Get previous step velocity data
+            self.v_adaptor_n.CollectData() #old
+            vold = self.v_adaptor_n.data.reshape((len(self.model_part.Nodes),self.dim))
+            self.ElemData(vold, self.connectivity, self.vec_elemental_data)
+
+            # Calculate the velocity at the midpoint of all elements
+            v_midpoint = self.v_gauss #just reuse this array to avoid creating temporaries
+            N = self.cfd_utils.GetShapeFunctionsOnGaussPoints(self.dim, 1)
+            self.cfd_utils.InterpolateValue(N, self.vec_elemental_data, v_midpoint)
+            v_midpoint_norm = np.linalg.norm(v_midpoint, axis=1)
+
+            # Calculate the minimum delta time
+            v_zero_mask = v_midpoint_norm > 1.0e-12 # Filter the zero velocity values
+            if np.any(v_zero_mask):
+                dt_cfl = np.min(self.target_cfl * self.h[v_zero_mask] / v_midpoint_norm[v_zero_mask])
+                self.dt = min(min(dt_cfl, self.dt_fourier), self.dt_max)
+            else:
+                self.dt = min(self.dt_max, self.dt_fourier)
+
+        if (self.dt is None or self.dt <= 0.0):
+            raise Exception("Delta time was not computed properly")
+
+        return self.dt
 
 if __name__ == "__main__":
 
