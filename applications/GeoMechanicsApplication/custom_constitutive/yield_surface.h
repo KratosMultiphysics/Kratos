@@ -23,12 +23,6 @@ class Serializer;
 class YieldSurface
 {
 public:
-    enum class YieldSurfaceAveragingType {
-        NO_AVERAGING,
-        LOWEST_PRINCIPAL_STRESSES,
-        HIGHEST_PRINCIPAL_STRESSES
-    };
-
     virtual ~YieldSurface() = default;
 
     [[nodiscard]] virtual double YieldFunctionValue(const Vector& rSigmaTau) const       = 0;

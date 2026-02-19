@@ -13,7 +13,6 @@
 //
 
 #include "custom_constitutive/coulomb_yield_surface.h"
-#include "custom_constitutive/principal_stresses.hpp"
 #include "custom_constitutive/sigma_tau.hpp"
 #include "custom_utilities/check_utilities.hpp"
 #include "custom_utilities/constitutive_law_utilities.h"
@@ -149,14 +148,16 @@ double CoulombYieldSurface::YieldFunctionValue(const Geo::PrincipalStresses& rPr
 
 Vector CoulombYieldSurface::DerivativeOfFlowFunction(const Vector& rSigmaTau) const
 {
-    return DerivativeOfFlowFunction(Geo::SigmaTau{rSigmaTau}, YieldSurfaceAveragingType::NO_AVERAGING);
+    return DerivativeOfFlowFunction(
+        Geo::SigmaTau{rSigmaTau}, Geo::PrincipalStresses::PrincipalStressesAveragingType::NO_AVERAGING);
 }
 
-Vector CoulombYieldSurface::DerivativeOfFlowFunction(const Geo::SigmaTau&, YieldSurfaceAveragingType AveragingType) const
+Vector CoulombYieldSurface::DerivativeOfFlowFunction(const Geo::SigmaTau&,
+                                                     Geo::PrincipalStresses::PrincipalStressesAveragingType AveragingType) const
 {
     const auto sin_psi = std::sin(GetDilatancyAngleInRadians());
     switch (AveragingType) {
-        using enum YieldSurfaceAveragingType;
+        using enum Geo::PrincipalStresses::PrincipalStressesAveragingType;
     case LOWEST_PRINCIPAL_STRESSES:
         return UblasUtilities::CreateVector({-(1.0 - 3.0 * sin_psi) / 4.0, (3.0 - sin_psi) / 4.0});
     case NO_AVERAGING:
@@ -169,11 +170,11 @@ Vector CoulombYieldSurface::DerivativeOfFlowFunction(const Geo::SigmaTau&, Yield
 }
 
 Vector CoulombYieldSurface::DerivativeOfFlowFunction(const Geo::PrincipalStresses&,
-                                                     YieldSurfaceAveragingType AveragingType) const
+                                                     Geo::PrincipalStresses::PrincipalStressesAveragingType AveragingType) const
 {
     const auto sin_psi = std::sin(GetDilatancyAngleInRadians());
     switch (AveragingType) {
-        using enum YieldSurfaceAveragingType;
+        using enum Geo::PrincipalStresses::PrincipalStressesAveragingType;
     case LOWEST_PRINCIPAL_STRESSES:
         return UblasUtilities::CreateVector(
             {(1.0 + sin_psi) / 4.0, (1.0 + sin_psi) / 4.0, (-1.0 + sin_psi) / 2.0});
@@ -224,7 +225,7 @@ double CoulombYieldSurface::CalculatePlasticMultiplier(const Geo::PrincipalStres
 }
 
 double CoulombYieldSurface::CalculateEquivalentPlasticStrainIncrement(const Geo::SigmaTau& rTrialSigmaTau,
-                                                                      YieldSurfaceAveragingType AveragingType,
+                                                                      Geo::PrincipalStresses::PrincipalStressesAveragingType AveragingType,
                                                                       const Matrix& rElasticMatrix) const
 {
     const auto derivative_of_G_to_sigma = DerivativeOfFlowFunction(rTrialSigmaTau, AveragingType);
@@ -242,7 +243,7 @@ double CoulombYieldSurface::CalculateEquivalentPlasticStrainIncrement(const Geo:
 }
 
 double CoulombYieldSurface::CalculateEquivalentPlasticStrainIncrement(const Geo::PrincipalStresses& rTrialPrincipalStresses,
-                                                                      YieldSurfaceAveragingType AveragingType,
+                                                                      Geo::PrincipalStresses::PrincipalStressesAveragingType AveragingType,
                                                                       const Matrix& rElasticMatrix) const
 {
     const auto derivative_of_G_to_sigma = DerivativeOfFlowFunction(rTrialPrincipalStresses, AveragingType);

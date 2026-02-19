@@ -12,7 +12,6 @@
 //
 
 #include "custom_constitutive/tension_cutoff.h"
-#include "custom_constitutive/principal_stresses.hpp"
 #include "custom_constitutive/sigma_tau.hpp"
 #include "custom_utilities/stress_strain_utilities.h"
 #include "custom_utilities/ublas_utilities.h"
@@ -47,13 +46,15 @@ double TensionCutoff::YieldFunctionValue(const Geo::PrincipalStresses& rPrincipa
 Vector TensionCutoff::DerivativeOfFlowFunction(const Vector&) const
 {
     const auto unused_sigma_tau = Geo::SigmaTau{};
-    return DerivativeOfFlowFunction(unused_sigma_tau, YieldSurfaceAveragingType::NO_AVERAGING);
+    return DerivativeOfFlowFunction(
+        unused_sigma_tau, Geo::PrincipalStresses::PrincipalStressesAveragingType::NO_AVERAGING);
 }
 
-Vector TensionCutoff::DerivativeOfFlowFunction(const Geo::SigmaTau&, YieldSurfaceAveragingType AveragingType) const
+Vector TensionCutoff::DerivativeOfFlowFunction(const Geo::SigmaTau&,
+                                               Geo::PrincipalStresses::PrincipalStressesAveragingType AveragingType) const
 {
     switch (AveragingType) {
-        using enum YieldSurfaceAveragingType;
+        using enum Geo::PrincipalStresses::PrincipalStressesAveragingType;
     case LOWEST_PRINCIPAL_STRESSES:
         return UblasUtilities::CreateVector({0.5, 0.5});
     case NO_AVERAGING:
@@ -66,10 +67,10 @@ Vector TensionCutoff::DerivativeOfFlowFunction(const Geo::SigmaTau&, YieldSurfac
 }
 
 Vector TensionCutoff::DerivativeOfFlowFunction(const Geo::PrincipalStresses&,
-                                               YieldSurfaceAveragingType AveragingType) const
+                                               Geo::PrincipalStresses::PrincipalStressesAveragingType AveragingType) const
 {
     switch (AveragingType) {
-        using enum YieldSurfaceAveragingType;
+        using enum Geo::PrincipalStresses::PrincipalStressesAveragingType;
     case LOWEST_PRINCIPAL_STRESSES:
         return UblasUtilities::CreateVector({0.5, 0.5, 0.0});
     case NO_AVERAGING:

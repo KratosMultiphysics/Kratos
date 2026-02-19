@@ -15,6 +15,7 @@
 
 #pragma once
 
+#include "custom_constitutive/principal_stresses.hpp"
 #include "custom_constitutive/yield_surface.h"
 #include "geo_aliases.h"
 #include "includes/properties.h"
@@ -53,10 +54,12 @@ public:
     [[nodiscard]] Vector DerivativeOfFlowFunction(const Vector&) const override;
     [[nodiscard]] Vector DerivativeOfFlowFunction(
         const Geo::SigmaTau&,
-        YieldSurfaceAveragingType AveragingType = YieldSurfaceAveragingType::NO_AVERAGING) const;
+        Geo::PrincipalStresses::PrincipalStressesAveragingType AveragingType =
+            Geo::PrincipalStresses::PrincipalStressesAveragingType::NO_AVERAGING) const;
     [[nodiscard]] Vector DerivativeOfFlowFunction(
         const Geo::PrincipalStresses&,
-        YieldSurfaceAveragingType AveragingType = YieldSurfaceAveragingType::NO_AVERAGING) const;
+        Geo::PrincipalStresses::PrincipalStressesAveragingType AveragingType =
+            Geo::PrincipalStresses::PrincipalStressesAveragingType::NO_AVERAGING) const;
 
     [[nodiscard]] double CalculateApex() const;
     [[nodiscard]] double CalculatePlasticMultiplier(const Geo::SigmaTau& rTrialSigmaTau,
@@ -66,10 +69,10 @@ public:
                                                     const Vector& rDerivativeOfFlowFunction,
                                                     const Matrix& rElasticMatrix) const;
     [[nodiscard]] double CalculateEquivalentPlasticStrainIncrement(const Geo::SigmaTau& rTrialSigmaTau,
-                                                                   YieldSurfaceAveragingType AveragingType,
+                                                                   Geo::PrincipalStresses::PrincipalStressesAveragingType AveragingType,
                                                                    const Matrix& rElasticMatrix) const;
     [[nodiscard]] double CalculateEquivalentPlasticStrainIncrement(const Geo::PrincipalStresses& rTrialPrincipalStresses,
-                                                                   YieldSurfaceAveragingType AveragingType,
+                                                                   Geo::PrincipalStresses::PrincipalStressesAveragingType AveragingType,
                                                                    const Matrix& rElasticMatrix) const;
 
 private:

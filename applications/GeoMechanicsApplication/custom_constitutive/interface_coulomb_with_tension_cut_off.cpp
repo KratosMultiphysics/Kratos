@@ -14,6 +14,7 @@
 
 // Application includes
 #include "custom_constitutive/interface_coulomb_with_tension_cut_off.h"
+#include "custom_constitutive/constitutive_law_dimension.h"
 #include "custom_constitutive/sigma_tau.hpp"
 #include "custom_utilities/check_utilities.hpp"
 #include "custom_utilities/constitutive_law_utilities.h"
@@ -27,11 +28,19 @@
 namespace Kratos
 {
 
+InterfaceCoulombWithTensionCutOff::InterfaceCoulombWithTensionCutOff(std::unique_ptr<ConstitutiveLawDimension> pConstitutiveDimension)
+    : mpConstitutiveDimension(std::move(pConstitutiveDimension)),
+      mTractionVector(ZeroVector(mpConstitutiveDimension->GetStrainSize())),
+      mTractionVectorFinalized(ZeroVector(mpConstitutiveDimension->GetStrainSize())),
+      mRelativeDisplacementVectorFinalized(ZeroVector(mpConstitutiveDimension->GetStrainSize()))
+{
+}
+
 ConstitutiveLaw::Pointer InterfaceCoulombWithTensionCutOff::Clone() const
 {
-    auto p_result                      = std::make_shared<InterfaceCoulombWithTensionCutOff>(*this);
-    p_result->mTractionVector          = mTractionVector;
-    p_result->mTractionVectorFinalized = mTractionVectorFinalized;
+    auto p_result = std::make_shared<InterfaceCoulombWithTensionCutOff>(mpConstitutiveDimension->Clone());
+    p_result->mTractionVector                      = mTractionVector;
+    p_result->mTractionVectorFinalized             = mTractionVectorFinalized;
     p_result->mRelativeDisplacementVectorFinalized = mRelativeDisplacementVectorFinalized;
     p_result->mCoulombWithTensionCutOffImpl        = mCoulombWithTensionCutOffImpl;
     p_result->mIsModelInitialized                  = mIsModelInitialized;
@@ -139,9 +148,9 @@ void InterfaceCoulombWithTensionCutOff::CalculateMaterialResponseCauchy(Paramete
     trial_sigma_tau.Tau() = std::abs(trial_sigma_tau.Tau());
 
     if (!mCoulombWithTensionCutOffImpl.IsAdmissibleStressState(trial_sigma_tau)) {
-        auto elastic_matrix = CalculateElasticConstitutiveMatrix(r_properties);
-        mapped_sigma_tau    = mCoulombWithTensionCutOffImpl.DoReturnMapping(
-            trial_sigma_tau, YieldSurface::YieldSurfaceAveragingType::NO_AVERAGING, elastic_matrix);
+        mapped_sigma_tau = mCoulombWithTensionCutOffImpl.DoReturnMapping(
+            trial_sigma_tau, Geo::PrincipalStresses::PrincipalStressesAveragingType::NO_AVERAGING,
+            mpConstitutiveDimension->CalculateElasticMatrix(r_properties));
         if (negative) mapped_sigma_tau.Tau() *= -1.0;
     }
 
@@ -181,14 +190,6 @@ Matrix& InterfaceCoulombWithTensionCutOff::CalculateValue(Parameters& rConstitut
     }
 
     return rValue;
-}
-
-Matrix InterfaceCoulombWithTensionCutOff::CalculateElasticConstitutiveMatrix(const Properties& rMaterialProperties) const
-{
-    Matrix result = ZeroMatrix(2, 2);
-    result(0, 0)  = rMaterialProperties[INTERFACE_NORMAL_STIFFNESS];
-    result(1, 1)  = rMaterialProperties[INTERFACE_SHEAR_STIFFNESS];
-    return result;
 }
 
 void InterfaceCoulombWithTensionCutOff::save(Serializer& rSerializer) const

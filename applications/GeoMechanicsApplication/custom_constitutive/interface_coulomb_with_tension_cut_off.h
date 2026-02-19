@@ -20,19 +20,34 @@
 namespace Kratos
 {
 
+class ConstitutiveLawDimension;
+
 class KRATOS_API(GEO_MECHANICS_APPLICATION) InterfaceCoulombWithTensionCutOff : public ConstitutiveLaw
 {
 public:
-    [[nodiscard]] Pointer  Clone() const override;
-    SizeType               WorkingSpaceDimension() override;
-    bool                   IsIncremental() override;
-    bool                   RequiresInitializeMaterialResponse() override;
-    StressMeasure          GetStressMeasure() override;
-    [[nodiscard]] SizeType GetStrainSize() const override;
-    StrainMeasure          GetStrainMeasure() override;
-    void                   InitializeMaterial(const Properties&     rMaterialProperties,
-                                              const Geometry<Node>& rElementGeometry,
-                                              const Vector&         rShapeFunctionsValues) override;
+    KRATOS_CLASS_POINTER_DEFINITION(InterfaceCoulombWithTensionCutOff);
+
+    InterfaceCoulombWithTensionCutOff() = default;
+    explicit InterfaceCoulombWithTensionCutOff(std::unique_ptr<ConstitutiveLawDimension> pConstitutiveDimension);
+
+    // Copying is not allowed. Use member `Clone` instead.
+    InterfaceCoulombWithTensionCutOff(const InterfaceCoulombWithTensionCutOff&)            = delete;
+    InterfaceCoulombWithTensionCutOff& operator=(const InterfaceCoulombWithTensionCutOff&) = delete;
+
+    // Moving is supported
+    InterfaceCoulombWithTensionCutOff(InterfaceCoulombWithTensionCutOff&&) noexcept = default;
+    InterfaceCoulombWithTensionCutOff& operator=(InterfaceCoulombWithTensionCutOff&&) noexcept = default;
+
+    [[nodiscard]] ConstitutiveLaw::Pointer Clone() const override;
+    SizeType                               WorkingSpaceDimension() override;
+    bool                                   IsIncremental() override;
+    bool                                   RequiresInitializeMaterialResponse() override;
+    StressMeasure                          GetStressMeasure() override;
+    [[nodiscard]] SizeType                 GetStrainSize() const override;
+    StrainMeasure                          GetStrainMeasure() override;
+    void                                   InitializeMaterial(const Properties&     rMaterialProperties,
+                                                              const Geometry<Node>& rElementGeometry,
+                                                              const Vector&         rShapeFunctionsValues) override;
     void    InitializeMaterialResponseCauchy(Parameters& rConstitutiveLawParameters) override;
     Vector& GetValue(const Variable<Vector>& rVariable, Vector& rValue) override;
     using ConstitutiveLaw::GetValue;
@@ -49,16 +64,16 @@ public:
     using ConstitutiveLaw::CalculateValue;
 
 private:
-    Vector                       mTractionVector;
-    Vector                       mTractionVectorFinalized;
-    Vector                       mRelativeDisplacementVectorFinalized;
-    CoulombWithTensionCutOffImpl mCoulombWithTensionCutOffImpl;
-    bool                         mIsModelInitialized = false;
+    std::unique_ptr<ConstitutiveLawDimension> mpConstitutiveDimension;
+    Vector                                    mTractionVector;
+    Vector                                    mTractionVectorFinalized;
+    Vector                                    mRelativeDisplacementVectorFinalized;
+    CoulombWithTensionCutOffImpl              mCoulombWithTensionCutOffImpl;
+    bool                                      mIsModelInitialized = false;
 
     [[nodiscard]] Geo::SigmaTau CalculateTrialTractionVector(const Vector& rRelativeDisplacementVector,
                                                              double NormalStiffness,
                                                              double ShearStiffness) const;
-    [[nodiscard]] Matrix CalculateElasticConstitutiveMatrix(const Properties& rMaterialProperties) const;
 
     friend class Serializer;
     void save(Serializer& rSerializer) const override;
