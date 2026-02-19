@@ -134,7 +134,7 @@ private:
     std::vector<double> CalculateBiotCoefficients() const;
     std::vector<double> CalculateBishopCoefficients() const;
     Vector              CalculateIntegrationPointFluidPressures() const;
-    Vector              GetWaterPressureGeometryNodalValues() const;
+    Vector              GetWaterPressureGeometryNodalVariable() const;
     Vector              GetGeometryVelocityValues() const;
     Matrix              GetNpContainer() const;
     std::vector<double> GetDegreesOfSaturationValues() const;

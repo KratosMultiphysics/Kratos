@@ -742,7 +742,7 @@ Matrix UPwInterfaceElement::GetNpContainer() const
 Vector UPwInterfaceElement::CalculateIntegrationPointFluidPressures() const
 {
     const auto fluid_pressure = GeoTransportEquationUtilities::CalculateFluidPressures(
-        GetNpContainer(), GetWaterPressureGeometryNodalValues());
+        GetNpContainer(), GetWaterPressureGeometryNodalVariable());
     auto result = Vector(fluid_pressure.size());
     std::ranges::copy(fluid_pressure, result.begin());
     return result;
@@ -750,10 +750,10 @@ Vector UPwInterfaceElement::CalculateIntegrationPointFluidPressures() const
 
 std::function<Vector()> UPwInterfaceElement::CreateNodalPressuresGetter() const
 {
-    return [this]() { return this->GetWaterPressureGeometryNodalValues(); };
+    return [this]() { return this->GetWaterPressureGeometryNodalVariable(); };
 }
 
-Vector UPwInterfaceElement::GetWaterPressureGeometryNodalValues() const
+Vector UPwInterfaceElement::GetWaterPressureGeometryNodalVariable() const
 {
     Vector result{this->GetWaterPressureGeometry().size()};
     VariablesUtilities::GetNodalValues(this->GetWaterPressureGeometry(), WATER_PRESSURE, result.begin());
