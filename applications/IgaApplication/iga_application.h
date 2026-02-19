@@ -23,6 +23,7 @@
 #include "custom_elements/beam_thick_element_2D.h"
 #include "custom_elements/iga_membrane_element.h"
 #include "custom_elements/shell_3p_element.h"
+#include "custom_elements/shell_3p_mixed_membrane_element.h"
 #include "custom_elements/shell_3p_mixed_element.h"
 #include "custom_elements/shell_5p_hierarchic_element.h"
 #include "custom_elements/shell_5p_element.h"
@@ -141,6 +142,7 @@ private:
     const IgaMembraneElement mIgaMembraneElement;
     const Shell3pElement mShell3pElement;
     const Shell3pMixedElement mShell3pMixedElement;
+    const Shell3pMixedMembraneElement mShell3pMixedMembraneElement;
     const Shell5pHierarchicElement mShell5pHierarchicElement;
     const Shell5pElement mShell5pElement;
     const Shell6pBbarElement mShell6pBbarElement;

@@ -1163,7 +1163,7 @@ namespace Kratos
         MatrixType& rKm,
         const Matrix& rB,
         const Matrix& rD ,
-        const Matrix& rMID
+        const Matrix& rMID,
         const Matrix& rMID_bar                                                                                                            
     ) const
     {  
