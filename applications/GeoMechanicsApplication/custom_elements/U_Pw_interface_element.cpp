@@ -176,6 +176,9 @@ void UPwInterfaceElement::CalculateLeftHandSide(MatrixType& rLeftHandSideMatrix,
             KRATOS_ERROR << "This contribution is not supported \n";
         }
     }
+
+    KRATOS_INFO("UPwInterfaceElement::CalculateLeftHandSide")
+        << "Element " << Id() << ": LHS matrix: " << rLeftHandSideMatrix << std::endl;
 }
 
 void UPwInterfaceElement::CalculateAndAssignStifnessMatrix(Element::MatrixType& rLeftHandSideMatrix,
@@ -237,7 +240,7 @@ void UPwInterfaceElement::CalculateRightHandSide(Element::VectorType& rRightHand
     for (auto contribution : mContributions) {
         switch (contribution) {
         case CalculationContribution::Stiffness:
-            CalculateAndAssignStifnessForceVector(rRightHandSideVector, rProcessInfo);
+            CalculateAndAssembleStifnessForceVector(rRightHandSideVector, rProcessInfo);
             break;
         case CalculationContribution::UPCoupling:
             CalculateAndAssembleUPCouplingForceVector(rRightHandSideVector);
@@ -246,29 +249,32 @@ void UPwInterfaceElement::CalculateRightHandSide(Element::VectorType& rRightHand
             KRATOS_ERROR << "This contribution is not supported \n";
         }
     }
+
+    KRATOS_INFO("UPwInterfaceElement::CalculateRightHandSide")
+        << "Element " << Id() << ": RHS vector: " << rRightHandSideVector << std::endl;
 }
 
-void UPwInterfaceElement::CalculateAndAssignStifnessForceVector(Element::VectorType& rRightHandSideVector,
-                                                                const ProcessInfo& rProcessInfo)
+void UPwInterfaceElement::CalculateAndAssembleStifnessForceVector(Element::VectorType& rRightHandSideVector,
+                                                                  const ProcessInfo& rProcessInfo)
 {
     switch (NumberOfUDofs()) {
     case 8:
-        CalculateAndAssignStiffnesForceVector<8>(rRightHandSideVector, rProcessInfo);
+        CalculateAndAssembleStiffnesForceVector<8>(rRightHandSideVector, rProcessInfo);
         break;
     case 12:
-        CalculateAndAssignStiffnesForceVector<12>(rRightHandSideVector, rProcessInfo);
+        CalculateAndAssembleStiffnesForceVector<12>(rRightHandSideVector, rProcessInfo);
         break;
     case 18:
-        CalculateAndAssignStiffnesForceVector<18>(rRightHandSideVector, rProcessInfo);
+        CalculateAndAssembleStiffnesForceVector<18>(rRightHandSideVector, rProcessInfo);
         break;
     case 36:
-        CalculateAndAssignStiffnesForceVector<36>(rRightHandSideVector, rProcessInfo);
+        CalculateAndAssembleStiffnesForceVector<36>(rRightHandSideVector, rProcessInfo);
         break;
     case 24:
-        CalculateAndAssignStiffnesForceVector<24>(rRightHandSideVector, rProcessInfo);
+        CalculateAndAssembleStiffnesForceVector<24>(rRightHandSideVector, rProcessInfo);
         break;
     case 48:
-        CalculateAndAssignStiffnesForceVector<48>(rRightHandSideVector, rProcessInfo);
+        CalculateAndAssembleStiffnesForceVector<48>(rRightHandSideVector, rProcessInfo);
         break;
     default:
         KRATOS_ERROR << "This stiffness force vector size is not supported: " << NumberOfUDofs() << "\n";
@@ -384,13 +390,24 @@ void UPwInterfaceElement::Initialize(const ProcessInfo& rCurrentProcessInfo)
         std::vector<std::optional<Vector>> interface_nodal_cauchy_stresses(interface_node_ids.size());
         auto&               r_neighbour_element = this->GetValue(NEIGHBOUR_ELEMENTS).front();
         std::vector<Vector> neighbour_cauchy_stresses;
-        // Note that the interface elements don't account for water pressures yet. Consequently,
-        // we need to consider the total stresses rather than the effective stresses to calculate
-        // the appropriate prestresses to be applied.
         r_neighbour_element.CalculateOnIntegrationPoints(
-            TOTAL_STRESS_VECTOR, neighbour_cauchy_stresses, rCurrentProcessInfo);
+            CAUCHY_STRESS_VECTOR, neighbour_cauchy_stresses, rCurrentProcessInfo);
         interface_nodal_cauchy_stresses = ExtrapolationUtilities::CalculateNodalVectors(
             interface_node_ids, r_neighbour_element, neighbour_cauchy_stresses);
+        KRATOS_INFO("UPwInterfaceElement::Initialize") << "Element ID: " << this->Id() << std::endl;
+        for (auto i = std::size_t{0}; i < interface_node_ids.size(); ++i) {
+            if (interface_nodal_cauchy_stresses[i]) {
+                KRATOS_INFO("UPwInterfaceElement::Initialize")
+                    << "  Node ID: " << interface_node_ids[i]
+                    << ", nodal effective stress vector: " << *interface_nodal_cauchy_stresses[i] << ", water pressure = "
+                    << GetDisplacementGeometry()[i].FastGetSolutionStepValue(WATER_PRESSURE) << std::endl;
+
+            } else {
+                KRATOS_INFO("UPwInterfaceElement::Initialize")
+                    << "  Node ID: " << interface_node_ids[i]
+                    << " has no nodal effective stress vector" << std::endl;
+            }
+        }
         InterpolateNodalStressesToInitialTractions(interface_nodal_cauchy_stresses);
     }
     const auto shape_function_values_at_integration_points =
@@ -541,6 +558,10 @@ void UPwInterfaceElement::InterpolateNodalStressesToInitialTractions(
         const auto integration_point_local_stress_tensor =
             RotateStressToLocalCoordinates(r_integration_point, integration_point_stress);
         const auto traction_vector = ConvertLocalStressToTraction(integration_point_local_stress_tensor);
+
+        KRATOS_INFO("InterpolateNodalStressesToInitialTractions")
+            << "Integration point index " << integration_point_index
+            << ", effective traction vector: " << traction_vector << std::endl;
 
         const auto initial_state =
             make_intrusive<InitialState>(traction_vector, InitialState::InitialImposingType::STRESS_ONLY);
@@ -733,10 +754,10 @@ void UPwInterfaceElement::CalculateAndAssignStiffnessMatrix(MatrixType&        r
 }
 
 template <unsigned int MatrixSize>
-void UPwInterfaceElement::CalculateAndAssignStiffnesForceVector(VectorType& rRightHandSideVector,
-                                                                const ProcessInfo& rProcessInfo)
+void UPwInterfaceElement::CalculateAndAssembleStiffnesForceVector(VectorType& rRightHandSideVector,
+                                                                  const ProcessInfo& rProcessInfo)
 {
-    GeoElementUtilities::AssignUBlockVector(
+    GeoElementUtilities::AssembleUBlockVector(
         rRightHandSideVector, CreateStiffnessCalculator<MatrixSize>(rProcessInfo).RHSContribution());
 }
 
@@ -767,8 +788,9 @@ void UPwInterfaceElement::CalculateAndAssignUPCouplingMatrix(MatrixType& rLeftHa
 template <unsigned int NumberOfRows, unsigned int NumberOfColumns>
 void UPwInterfaceElement::CalculateAndAssembleUPCouplingForceVector(VectorType& rRightHandSideVector) const
 {
-    GeoElementUtilities::AssignUBlockVector(
-        rRightHandSideVector, CreateUPCouplingCalculator<NumberOfRows, NumberOfColumns>().RHSContribution());
+    GeoElementUtilities::AssembleUBlockVector(
+        rRightHandSideVector,
+        (-1.0) * CreateUPCouplingCalculator<NumberOfRows, NumberOfColumns>().RHSContribution());
 }
 
 // Instances of this class can not be copied but can be moved. Check that at compile time.
