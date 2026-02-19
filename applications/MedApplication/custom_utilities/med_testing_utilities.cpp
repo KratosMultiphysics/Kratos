@@ -218,9 +218,6 @@ void MedTestingUtilities::CheckModelPartsAreEqual(
         });
     };
 
-    // KRATOS_CHECK_EQUAL(min_id(rModelPart1), 1);
-    // KRATOS_CHECK_EQUAL(min_id(rModelPart2), 1);
-
     // make sure the Nodes start with the same Id
     KRATOS_CHECK_EQUAL(min_id(rModelPart1), min_id(rModelPart2));
 
