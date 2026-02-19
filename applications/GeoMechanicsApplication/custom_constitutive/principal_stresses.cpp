@@ -23,4 +23,16 @@ const PrincipalStresses::InternalVectorType& PrincipalStresses::Values() const {
 
 PrincipalStresses::InternalVectorType& PrincipalStresses::Values() { return mValues; }
 
+PrincipalStresses& PrincipalStresses::operator+=(const PrincipalStresses& rRhs)
+{
+    std::ranges::transform(mValues, rRhs.mValues, mValues.begin(), std::plus{});
+    return *this;
+}
+
+PrincipalStresses operator+(PrincipalStresses Lhs, const PrincipalStresses& rRhs)
+{
+    Lhs += rRhs;
+    return Lhs;
+}
+
 } // namespace Kratos::Geo
