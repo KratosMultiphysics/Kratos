@@ -33,64 +33,80 @@ Element::Pointer NonLinearTimoshenkoBeamElement3D2N::Clone(
 /***********************************************************************************/
 /***********************************************************************************/
 
-// void NonLinearTimoshenkoBeamElement3D2N::Initialize(const ProcessInfo& rCurrentProcessInfo)
-// {
-//     // Dummy/empty initialize
-// }
+void NonLinearTimoshenkoBeamElement3D2N::BuildShapeFunctionsValuesVectors(
+    const double xi, // Local coordinate in the beam axis direction
+    const double L, // Reference length of the beam element
+    const Vector& rNodalValues, // Vector containing the nodal values in local axes
+    BeamElementData &rData)
+{
+    Vector local_N(2); // Shape functions in local axes
+    Vector local_dN(2); // Derivatives of shape functions in local axes
+    GetNu0ShapeFunctionsValues(local_N, L, 0.0, xi);
+    GetFirstDerivativesNu0ShapeFunctionsValues(local_dN, L, 0.0, xi);
 
-// void NonLinearTimoshenkoBeamElement3D2N::GetShapeFunctionsValues(
-//     VectorType& rN,
-//     const double Length,
-//     const double Phi,
-//     const double xi) const
-// {
-//     rN.clear();
-// }
+    rData.du = local_dN[0] * rNodalValues[0] + local_dN[1] * rNodalValues[6];
+    rData.dv = local_dN[0] * rNodalValues[1] + local_dN[1] * rNodalValues[7];
+    rData.dw = local_dN[0] * rNodalValues[2] + local_dN[1] * rNodalValues[8];
 
-// void NonLinearTimoshenkoBeamElement3D2N::GetFirstDerivativesShapeFunctionsValues(
-//     VectorType& rN,
-//     const double Length,
-//     const double Phi,
-//     const double xi) const
-// {
-//     rN.clear();
-// }
+    rData.theta_x = local_N[0] * rNodalValues[3] + local_N[1] * rNodalValues[9];
+    rData.theta_y = local_N[0] * rNodalValues[4] + local_N[1] * rNodalValues[10];
+    rData.theta_z = local_N[0] * rNodalValues[5] + local_N[1] * rNodalValues[11];
 
-// void NonLinearTimoshenkoBeamElement3D2N::GetNThetaShapeFunctionsValues(
-//     VectorType& rN,
-//     const double Length,
-//     const double Phi,
-//     const double xi) const
-// {
-//     rN.clear();
-// }
+    rData.dtheta_x = local_dN[0] * rNodalValues[3] + local_dN[1] * rNodalValues[9];
+    rData.dtheta_y = local_dN[0] * rNodalValues[4] + local_dN[1] * rNodalValues[10];
+    rData.dtheta_z = local_dN[0] * rNodalValues[5] + local_dN[1] * rNodalValues[11];
 
-// void NonLinearTimoshenkoBeamElement3D2N::GetFirstDerivativesNThetaShapeFunctionsValues(
-//     VectorType& rN,
-//     const double Length,
-//     const double Phi,
-//     const double xi) const
-// {
-//     rN.clear();
-// }
+    rData.L = L;
 
-// void NonLinearTimoshenkoBeamElement3D2N::GetNu0ShapeFunctionsValues(
-//     VectorType& rN,
-//     const double Length,
-//     const double Phi,
-//     const double xi) const
-// {
-//     rN.clear();
-// }
+    rData.cx = std::cos(rData.theta_x);
+    rData.cy = std::cos(rData.theta_y);
+    rData.cz = std::cos(rData.theta_z);
 
-// void NonLinearTimoshenkoBeamElement3D2N::GetFirstDerivativesNu0ShapeFunctionsValues(
-//     VectorType& rN,
-//     const double Length,
-//     const double Phi,
-//     const double xi) const
-// {
-//     rN.clear();
-// }
+    rData.sx = std::sin(rData.theta_x);
+    rData.sy = std::sin(rData.theta_y);
+    rData.sz = std::sin(rData.theta_z);
+
+    // Assemble the shape functions and their derivatives
+    for (IndexType i = 0; i < 2; ++i) {
+        const IndexType index = i * 6; // 6 DoFs per node
+
+        rData.Nu[index    ] = local_N[i];
+        rData.Nv[index + 1] = local_N[i];
+        rData.Nw[index + 2] = local_N[i];
+
+        rData.dNu[index    ] = local_dN[i];
+        rData.dNv[index + 1] = local_dN[i];
+        rData.dNw[index + 2] = local_dN[i];
+
+        rData.Ntheta_x[index + 3] = local_N[i];
+        rData.Ntheta_y[index + 4] = local_N[i];
+        rData.Ntheta_z[index + 5] = local_N[i];
+
+        rData.dNtheta_x[index + 3] = local_dN[i];
+        rData.dNtheta_y[index + 4] = local_dN[i];
+        rData.dNtheta_z[index + 5] = local_dN[i];
+    }
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+void NonLinearTimoshenkoBeamElement3D2N::CalculateStrains(
+    const double xi, // Local coordinate in the beam axis direction
+    BeamElementData &rData)
+{
+    // rData.longitudinal_strain
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+void NonLinearTimoshenkoBeamElement3D2N::CalculateB(
+    const double xi, // Local coordinate in the beam axis direction
+    BeamElementData &rData)
+{
+
+}
 
 /***********************************************************************************/
 /***********************************************************************************/

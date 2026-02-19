@@ -61,6 +61,13 @@ public:
         double dtheta_y; // Derivative of rotation about y
         double dtheta_z; // Derivative of rotation about z
 
+        double longitudinal_strain; // Axial strain
+        double shear_strain_y; // Shear strain in y
+        double shear_strain_z; // Shear strain in z
+        double bending_curvature_x; // Bending curvature about x
+        double bending_curvature_y; // Bending curvature about y
+        double bending_curvature_z; // Bending curvature about z
+
         // Displacements shape functions
         Vector Nu;
         Vector Nv;
@@ -81,6 +88,7 @@ public:
         Vector dNtheta_y;
         Vector dNtheta_z;
 
+        // Strain = [El, Gamma_y, Gamma_z, kappa_x, kappa_y, kappa_z]
         Matrix B; // Strain-displacement matrix
 
         double cx, cy, cz; // Cosines of the rotations
@@ -92,6 +100,8 @@ public:
             du = dv = dw = 0.0;
             theta_x = theta_y = theta_z = 0.0;
             dtheta_x = dtheta_y = dtheta_z = 0.0;
+            longitudinal_strain = shear_strain_y = shear_strain_z = 0.0;
+            bending_curvature_x = bending_curvature_y = bending_curvature_z = 0.0;
 
             Nu.resize(12);
             Nv.resize(12);
@@ -197,19 +207,34 @@ public:
         const bool ComputeRHS
         );
 
+    /**
+     * @brief This method computes the strains at the given integration point,
+     * based on the current displacements and rotations of the element's nodes,
+     * as well as their derivatives.
+     */
+    void CalculateStrains(
+        const double xi, // Local coordinate in the beam axis direction
+        BeamElementData &rData);
 
-    // void BuildShapeFunctionsValuesVectors(
-    //     const double xi,
-    //     const double du,
-    //     const double dv,
-    //     const double dw,
-    //     const double theta_x,
-    //     const double theta_y,
-    //     const double theta_z,
-    //     Vector& rdNu,
-    //     Vector& rdNv,
-    //     Vector& rdNw,
-    // )
+    /**
+     * @brief This method computes the strain-displacement matrix, B,
+     * at the given integration point, based on the current configuration
+     * of the element and the shape functions.
+     */
+    void CalculateB(
+        const double xi, // Local coordinate in the beam axis direction
+        BeamElementData &rData);
+
+    /**
+     * @brief This method computes and fills the element's strain-displacement matrix, B, 
+     * and the shape functions values and their derivatives at the given integration point.
+     * NOTE: Call the rData.Initialize() before calling this method to ensure all variables are properly initialized.
+     */
+    void BuildShapeFunctionsValuesVectors(
+        const double xi, // Local coordinate in the beam axis direction
+        const double L,
+        const Vector& rNodalValues,
+        BeamElementData &rData);
 
     // void CalculateOnIntegrationPoints(const Variable<double>& rVariable, std::vector<double>& rOutput, const ProcessInfo& rProcessInfo) override;
 };
