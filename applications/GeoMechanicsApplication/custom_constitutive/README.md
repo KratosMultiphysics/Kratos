@@ -278,12 +278,7 @@ We move perpendicular to the tension cutoff yield surface by using the derivativ
     1
     \end{bmatrix}
 ```
-```math
-    C = 
-    \begin{bmatrix} C_{xx} & 0     \\
-                    0      & C_{yy}
-    \end{bmatrix}
-```
+
 ```math
     \sigma^{map} = \sigma^{trial} + \dot{\lambda} C \frac{\partial G_{tc}}{\partial \sigma}
 ```
@@ -291,7 +286,7 @@ We move perpendicular to the tension cutoff yield surface by using the derivativ
 Where $`G_{tc}`$ is the flow function related to tension cutoff surface in $`(\sigma, \tau)`$ coordinates. These formulations can be rewritten in the framework of principal stresses as follows.  
 
 ```math
-    \dot{\lambda} = -\frac{\sigma_1 - t_c}{(1 - \nu) \frac{\partial G_{tc}}{\partial \sigma} + \nu \frac{\partial G_{tc}}{\partial \tau}}
+    \dot{\lambda} = -\frac{\sigma_1 - t_c}{C_{xx} \frac{\partial G_{tc}}{\partial \sigma_1} + C_{xy} \frac{\partial G_{tc}}{\partial \sigma_2}}
 ```
 ```math
     \frac{\partial G_{tc}}{\partial \boldsymbol{\sigma}} = 
@@ -300,13 +295,7 @@ Where $`G_{tc}`$ is the flow function related to tension cutoff surface in $`(\s
                     0
     \end{bmatrix}
 ```
-```math
-    C = 
-    \begin{bmatrix} 1 - \nu &     \nu & \nu     \\
-                        \nu & 1 - \nu & \nu     \\
-                        \nu &     \nu & 1 - \nu
-    \end{bmatrix}
-```
+
 ```math
     \sigma^{map} = \sigma^{trial} + \dot{\lambda} C \frac{\partial G_{tc}}{\partial \sigma}
 ```
@@ -427,8 +416,9 @@ Or in the framework of principal stresses:
 ```
 
 ```math
-    \dot{\lambda} = -2 \frac{\tau^{trial} + \sigma^{trial} \sin{\phi} - c \cos{\phi}}{(\frac{\partial G_{MC}}{\partial \sigma_1} - \frac{\partial G_{MC}}{\partial \sigma_3})(1 - 2 \nu) + (\frac{\partial G_{MC}}{\partial \sigma_1} + 2 \nu \frac{\partial G_{MC}}{\partial \sigma_2} + \frac{\partial G_{MC}}{\partial \sigma_3}) \sin{\phi}}
+    \dot{\lambda} = -2 \frac{\tau^{trial} + \sigma^{trial} \sin{\phi} - c \cos{\phi}}{(C_x - C_z) \cdot \partial G_{MC} / \partial \sigma + \sin{\phi} (C_x + C_z) \cdot \partial G_{MC} / \partial \sigma} 
 ```
+Where $`C_x`$ and $`C_z`$ are the first and third rows of matrix $`C`$.
 
 Then update the principal stresses based on the mapped values. The updated principal stresses need to be rotated back to the element axes system.
 

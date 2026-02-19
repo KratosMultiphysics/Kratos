@@ -15,6 +15,7 @@
 #include "custom_constitutive/principal_stresses.hpp"
 #include "custom_constitutive/sigma_tau.hpp"
 #include "custom_utilities/stress_strain_utilities.h"
+#include "custom_utilities/ublas_utilities.h"
 #include "geo_mechanics_application_variables.h"
 #include "includes/serializer.h"
 
@@ -57,43 +58,33 @@ Vector TensionCutoff::DerivativeOfFlowFunction(const Vector&) const
 
 Vector TensionCutoff::DerivativeOfFlowFunction(const Geo::SigmaTau&, YieldSurfaceAveragingType AveragingType) const
 {
-    Vector result(2);
     switch (AveragingType) {
         using enum YieldSurfaceAveragingType;
     case LOWEST_PRINCIPAL_STRESSES:
-        result <<= 0.5, 0.5;
-        break;
+        return UblasUtilities::CreateVector({0.5, 0.5});
     case NO_AVERAGING:
-        result <<= 1.0, 1.0;
-        break;
+        return UblasUtilities::CreateVector({1.0, 1.0});
     case HIGHEST_PRINCIPAL_STRESSES:
-        result <<= 1.0, 1.0;
-        break;
+        return UblasUtilities::CreateVector({1.0, 1.0});
     default:
         KRATOS_ERROR << "Unsupported Averaging Type: " << static_cast<std::size_t>(AveragingType) << "\n";
     }
-    return result;
 }
 
 Vector TensionCutoff::DerivativeOfFlowFunction(const Geo::PrincipalStresses&,
                                                YieldSurfaceAveragingType AveragingType) const
 {
-    Vector result(3);
     switch (AveragingType) {
         using enum YieldSurfaceAveragingType;
     case LOWEST_PRINCIPAL_STRESSES:
-        result <<= 0.5, 0.5, 0.0;
-        break;
+        return UblasUtilities::CreateVector({0.5, 0.5, 0.0});
     case NO_AVERAGING:
-        result <<= 1.0, 0.0, 0.0;
-        break;
+        return UblasUtilities::CreateVector({1.0, 0.0, 0.0});
     case HIGHEST_PRINCIPAL_STRESSES:
-        result <<= 1.0, 0.0, 0.0;
-        break;
+        return UblasUtilities::CreateVector({1.0, 0.0, 0.0});
     default:
         KRATOS_ERROR << "Unsupported Averaging Type: " << static_cast<std::size_t>(AveragingType) << "\n";
     }
-    return result;
 }
 
 double TensionCutoff::CalculatePlasticMultiplier(const Geo::SigmaTau& rTrialSigmaTau,

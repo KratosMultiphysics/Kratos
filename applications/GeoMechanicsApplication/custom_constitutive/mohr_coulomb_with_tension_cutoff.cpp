@@ -244,17 +244,6 @@ void MohrCoulombWithTensionCutOff::FinalizeMaterialResponseCauchy(ConstitutiveLa
     mStressVectorFinalized = mStressVector;
 }
 
-Matrix MohrCoulombWithTensionCutOff::CalculateElasticConstitutiveMatrix(const Properties& rMaterialProperties) const
-{
-    const auto youngs_modulus = rMaterialProperties[YOUNG_MODULUS];
-    const auto poissons_ratio = rMaterialProperties[POISSON_RATIO];
-    const auto c0     = youngs_modulus / ((1.0 + poissons_ratio) * (1.0 - 2.0 * poissons_ratio));
-    Matrix     result = ZeroMatrix(3, 3);
-    result(0, 0) = result(1, 1) = result(2, 2) = c0 * (1.0 - poissons_ratio);
-    result(0, 1) = result(0, 2) = result(1, 0) = result(1, 2) = result(2, 0) = result(2, 1) = c0 * poissons_ratio;
-    return result;
-}
-
 void MohrCoulombWithTensionCutOff::save(Serializer& rSerializer) const
 {
     KRATOS_SERIALIZE_SAVE_BASE_CLASS(rSerializer, ConstitutiveLaw)
