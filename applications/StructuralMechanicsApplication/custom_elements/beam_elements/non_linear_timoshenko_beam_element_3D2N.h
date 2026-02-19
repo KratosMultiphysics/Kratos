@@ -10,7 +10,7 @@
 //
 #pragma once
 
-#include "non_linear_timoshenko_beam_element_2D2N.h"
+#include "timoshenko_beam_element_3D2N.h"
 
 namespace Kratos
 {
@@ -41,7 +41,7 @@ namespace Kratos
  * Reference: 
  * @author Alejandro Cornejo
  */
-class NonLinearTimoshenkoBeamElement3D2N : public NonLinearTimoshenkoBeamElement2D2N
+class NonLinearTimoshenkoBeamElement3D2N : public LinearTimoshenkoBeamElement3D2N
 {
 public:
 
@@ -132,7 +132,7 @@ public:
 
     ///@name Type Definitions
     ///@{
-    using BaseType = NonLinearTimoshenkoBeamElement2D2N;
+    using BaseType = LinearTimoshenkoBeamElement3D2N;
 
     NonLinearTimoshenkoBeamElement3D2N() {}
 
