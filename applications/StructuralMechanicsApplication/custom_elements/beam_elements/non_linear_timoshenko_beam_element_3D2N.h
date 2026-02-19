@@ -211,6 +211,7 @@ public:
      * @brief This method computes the strains at the given integration point,
      * based on the current displacements and rotations of the element's nodes,
      * as well as their derivatives.
+     * NOTE: Call the rData.Initialize() before calling this method to ensure all variables are properly initialized.
      */
     void CalculateStrains(
         const double xi, // Local coordinate in the beam axis direction
@@ -220,6 +221,7 @@ public:
      * @brief This method computes the strain-displacement matrix, B,
      * at the given integration point, based on the current configuration
      * of the element and the shape functions.
+     * NOTE: Call the rData.Initialize() before calling this method to ensure all variables are properly initialized.
      */
     void CalculateB(
         const double xi, // Local coordinate in the beam axis direction

@@ -95,7 +95,20 @@ void NonLinearTimoshenkoBeamElement3D2N::CalculateStrains(
     const double xi, // Local coordinate in the beam axis direction
     BeamElementData &rData)
 {
-    // rData.longitudinal_strain
+    rData.longitudinal_strain = rData.cy * rData.cz * (1.0 + rData.du) +
+        rData.cy * rData.sz * rData.dv - rData.sy * rData.dw - 1.0;
+
+    rData.shear_strain_y = (1.0 + rData.du) * (rData.cz * rData.sy * rData.sx - rData.sz * rData.cx) + 
+        rData.dv * (rData.sz * rData.sy * rData.sx + rData.cz * rData.cx) + rData.dw * rData.cy * rData.sx;
+
+    rData.shear_strain_z = (1.0 + rData.du) * (rData.cz*rData.sy*rData.cx + rData.sz * rData.sx) + 
+        rData.dv * (rData.sz * rData.sy * rData.cx - rData.cz * rData.sx) + rData.dw * rData.cy * rData.cx;
+
+    rData.bending_curvature_x = rData.dtheta_x + rData.dtheta_z * rData.sy;
+
+    rData.bending_curvature_y = rData.dtheta_y * rData.cx - rData.dtheta_z * rData.cy * rData.sx;
+
+    rData.bending_curvature_z = rData.dtheta_y * rData.sx + rData.dtheta_z * rData.cy * rData.cx;
 }
 
 /***********************************************************************************/
@@ -105,7 +118,17 @@ void NonLinearTimoshenkoBeamElement3D2N::CalculateB(
     const double xi, // Local coordinate in the beam axis direction
     BeamElementData &rData)
 {
+    noalias(row(rData.B, 0)) = -rData.Ntheta_y * (rData.dv * rData.sy * rData.sz + rData.dw * rData.cy + (rData.du + 1) * rData.sy * rData.cz) + rData.Ntheta_z * (rData.dv * rData.cz - (rData.du + 1) * rData.sz) * rData.cy + rData.dNu * rData.cy * rData.cz + rData.dNv * rData.sz * rData.cy - rData.dNw * rData.sy;
 
+    noalias(row(rData.B, 1)) = rData.Ntheta_x * (-rData.dv * (rData.sx * rData.cz - rData.sy * rData.sz * rData.cx) + rData.dw * rData.cx * rData.cy + (rData.du + 1) * (rData.sx * rData.sz + rData.sy * rData.cx * rData.cz)) + rData.Ntheta_y * (rData.dv * rData.sz * rData.cy - rData.dw * rData.sy + (rData.du + 1) * rData.cy * rData.cz) * rData.sx + rData.Ntheta_z * (rData.dv * (rData.sx * rData.sy * rData.cz - rData.sz * rData.cx) - (rData.du + 1) * (rData.sx * rData.sy * rData.sz + rData.cx * rData.cz)) + rData.dNu * (rData.sx * rData.sy * rData.cz - rData.sz * rData.cx) + rData.dNv * (rData.sx * rData.sy * rData.sz + rData.cx * rData.cz) + rData.dNw * rData.sx * rData.cy;
+
+    noalias(row(rData.B, 2)) = -rData.Ntheta_x * (rData.dv * (rData.sx * rData.sy * rData.sz + rData.cx * rData.cz) + rData.dw * rData.sx * rData.cy + (rData.du + 1) * (rData.sx * rData.sy * rData.cz - rData.sz * rData.cx)) + rData.Ntheta_y * (rData.dv * rData.sz * rData.cy - rData.dw * rData.sy + (rData.du + 1) * rData.cy * rData.cz) * rData.cx + rData.Ntheta_z * (rData.dv * (rData.sx * rData.sz + rData.sy * rData.cx * rData.cz) + (rData.du + 1) * (rData.sx * rData.cz - rData.sy * rData.sz * rData.cx)) + rData.dNu * (rData.sx * rData.sz + rData.sy * rData.cx * rData.cz) - rData.dNv * (rData.sx * rData.cz - rData.sy * rData.sz * rData.cx) + rData.dNw * rData.cx * rData.cy;
+
+    noalias(row(rData.B, 3)) = rData.dNtheta_x + rData.dNtheta_z * rData.sy + rData.Ntheta_y * rData.dtheta_z * rData.cy;
+
+    noalias(row(rData.B, 4)) = rData.dNtheta_y * rData.cx - rData.dNtheta_z * rData.sx * rData.cy - rData.Ntheta_x * (rData.dtheta_y * rData.sx + rData.dtheta_z * rData.cx * rData.cy) + rData.Ntheta_y * rData.dtheta_z * rData.sx * rData.sy;
+
+    noalias(row(rData.B, 5)) = rData.dNtheta_y * rData.sx + rData.dNtheta_z * rData.cx * rData.cy + rData.Ntheta_x * (rData.dtheta_y * rData.cx - rData.dtheta_z * rData.sx * rData.cy) - rData.Ntheta_y * rData.dtheta_z * rData.sy * rData.cx;
 }
 
 /***********************************************************************************/
