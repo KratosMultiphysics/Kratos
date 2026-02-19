@@ -482,6 +482,7 @@ void MedModelPartIO::ReadModelPart(ModelPart& rThisModelPart)
     BuiltinTimer timer;
 
     const bool add_nodes_of_geometries = true; // TODO make this an input parameter
+    const bool preserve_global_numbering_for_nodes = true;
 
     KRATOS_ERROR_IF_NOT(mpFileHandler->IsReadMode()) << "MedModelPartIO needs to be created in read mode to read a ModelPart!" << std::endl;
     KRATOS_ERROR_IF_NOT(rThisModelPart.NumberOfNodes() == 0) << "ModelPart is not empty, it has Nodes!" << std::endl;
@@ -529,23 +530,27 @@ void MedModelPartIO::ReadModelPart(ModelPart& rThisModelPart)
         num_nodes,
         dimension);
 
-    // get global numbering for nodes, if the file contains them
     std::vector<med_int> node_ids(num_nodes);
-    med_err err = MEDmeshGlobalNumberRd(
-        mpFileHandler->GetFileHandle(),
-        mpFileHandler->GetMeshName(),
-        MED_NO_DT,
-        MED_NO_IT,
-        MED_NODE,
-        MED_NONE,
-        node_ids.data());
-
-    KRATOS_ERROR_IF(node_ids.empty()) << "MED file does not contain global numbering for nodes." << std::endl;
-
-    if (err < 0) { // No global numbering = Use MED (1-based)
-        KRATOS_WARNING("MedModelPartIO")
-            << "MED file does not contain global numbering for nodes. "
-            << "Using MED implicit numbering." << std::endl;
+    // get global numbering for nodes, if the file contains them
+    if (preserve_global_numbering_for_nodes) {
+        med_err err = MEDmeshGlobalNumberRd(
+            mpFileHandler->GetFileHandle(),
+            mpFileHandler->GetMeshName(),
+            MED_NO_DT,
+            MED_NO_IT,
+            MED_NODE,
+            MED_NONE,
+            node_ids.data());
+    
+        KRATOS_ERROR_IF(node_ids.empty()) << "MED file does not contain global numbering for nodes." << std::endl;
+    
+        if (err < 0) { // No global numbering = Use MED (1-based)
+            KRATOS_WARNING("MedModelPartIO")
+                << "MED file does not contain global numbering for nodes. "
+                << "Using MED implicit numbering." << std::endl;
+            std::iota(node_ids.begin(), node_ids.end(), 1);
+        }
+    } else {
         std::iota(node_ids.begin(), node_ids.end(), 1);
     }
     
