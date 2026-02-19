@@ -158,7 +158,11 @@ MergeMatrices(typename TUblasSparseSpace<TValue>::MatrixType& rLeft,
     typename MatrixType::index_array_type row_extents(rLeft.index1_data().size());
     typename MatrixType::index_array_type column_indices;
     typename MatrixType::value_array_type values;
-    block_for_each(row_extents, [](auto& r_item){r_item = 0;});
+    block_for_each(
+        row_extents,
+        [](typename MatrixType::index_array_type::value_type& r_item){
+            r_item = static_cast<TValue>(0);
+        });
 
     // Merge rows into separate containers.
     {
@@ -339,11 +343,12 @@ void MapContribution(typename TSparse::MatrixType& rLhs,
     for (typename TDense::IndexType i_local = 0; i_local < local_size; i_local++) {
         const IndexType i_global = rEquationIds[i_local];
         std::scoped_lock<LockObject> lock(pLockBegin[i_global]);
-        MapRowContribution<TSparse,TDense>(rLhs,
-                                           rContribution,
-                                           i_global,
-                                           i_local,
-                                           rEquationIds);
+        MapRowContribution<TSparse,TDense>(
+            rLhs,
+            rContribution,
+            i_global,
+            i_local,
+            rEquationIds);
     }
 }
 
@@ -395,37 +400,43 @@ void MapEntityContribution(TEntity& rEntity,
             if constexpr (AssembleLHS) {
                 if constexpr (AssembleRHS) {
                     // Assemble LHS and RHS.
-                    rScheme.CalculateSystemContributions(rEntity,
-                                                         *pLhsContribution,
-                                                         *pRhsContribution,
-                                                         rEquationIndices,
-                                                         rProcessInfo);
-                    MapContribution<TSparse,TDense>(*pLhs,
-                                                    *pRhs,
-                                                    *pLhsContribution,
-                                                    *pRhsContribution,
-                                                    rEquationIndices,
-                                                    pLockBegin);
+                    rScheme.CalculateSystemContributions(
+                        rEntity,
+                        *pLhsContribution,
+                        *pRhsContribution,
+                        rEquationIndices,
+                        rProcessInfo);
+                    MapContribution<TSparse,TDense>(
+                        *pLhs,
+                        *pRhs,
+                        *pLhsContribution,
+                        *pRhsContribution,
+                        rEquationIndices,
+                        pLockBegin);
                 } /*if AssembleRHS*/ else {
                     // Assemble LHS only.
-                    rScheme.CalculateLHSContribution(rEntity,
-                                                    *pLhsContribution,
-                                                    rEquationIndices,
-                                                    rProcessInfo);
-                    MapContribution<TSparse,TDense>(*pLhs,
-                                                    *pLhsContribution,
-                                                    rEquationIndices,
-                                                    pLockBegin);
+                    rScheme.CalculateLHSContribution(
+                        rEntity,
+                        *pLhsContribution,
+                        rEquationIndices,
+                        rProcessInfo);
+                    MapContribution<TSparse,TDense>(
+                        *pLhs,
+                        *pLhsContribution,
+                        rEquationIndices,
+                        pLockBegin);
                 } // if !AssembleRHS
             } /*if AssembleLHS*/ else {
                 // Assemble RHS only.
-                rScheme.CalculateRHSContribution(rEntity,
-                                                 *pRhsContribution,
-                                                 rEquationIndices,
-                                                 rProcessInfo);
-                MapContribution<TSparse,TDense>(*pRhs,
-                                                *pRhsContribution,
-                                                rEquationIndices);
+                rScheme.CalculateRHSContribution(
+                    rEntity,
+                    *pRhsContribution,
+                    rEquationIndices,
+                    rProcessInfo);
+                MapContribution<TSparse,TDense>(
+                    *pRhs,
+                    *pRhsContribution,
+                    rEquationIndices);
             } // if !AssembleLHS
         } // if rEntity.IsActive
     } // if AssembleLHS or AssembleRHS
@@ -481,10 +492,22 @@ void ApplyDirichletConditions(typename TSparse::MatrixType& rLhs,
 
                 if (i_column == i_dof) {
                     found_diagonal = true;
-                    KRATOS_ERROR_IF_NOT(rLhs.value_data()[i_entry])
-                        << "zero on main diagonal of row " << i_dof << " "
-                        << "related to dof " << r_dof.GetVariable().Name() << " "
-                        << "of node " << r_dof.Id();
+
+                    // Check the entry on the main diagonal.
+                    if (!rLhs.value_data()[i_entry]) {
+                        // Explicit zero on the main diagonal.
+                        // - If the associated entry on the RHS is also zero,
+                        //   force the DoF to also vanish.
+                        // - Otherwise it's impossible to solve the system,
+                        //   so throw an exception.
+                        KRATOS_ERROR_IF(rRhs[i_dof])
+                            << "explicit zero on the main diagonal of row " << i_dof << " "
+                            << "related to dof " << r_dof.GetVariable().Name() << " "
+                            << "of node " << r_dof.Id()
+                            << ", but the related entry on the right hand side does not vanish ("
+                            << rLhs.value_data()[i_entry] << ")";
+                        rLhs.value_data()[i_entry] = DiagonalScaleFactor;
+                    }
                 } /*if i_column == i_dof*/ else if (it_column_dof->IsFixed()) {
                     rLhs.value_data()[i_entry] = static_cast<typename TSparse::DataType>(0);
                 }
@@ -493,7 +516,7 @@ void ApplyDirichletConditions(typename TSparse::MatrixType& rLhs,
         } /*not r_dof.IsFixed()*/
 
         KRATOS_ERROR_IF_NOT(found_diagonal)
-        << "missing diagonal in row " << i_dof << " "
+        << "implicit zero on the main diagonal of row " << i_dof << " "
         << "related to dof " << r_dof.GetVariable().Name() << " "
         << "of node " << r_dof.Id();
     });

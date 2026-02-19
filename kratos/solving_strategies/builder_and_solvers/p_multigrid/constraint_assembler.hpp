@@ -93,11 +93,12 @@ public:
     /// @param itDofEnd Sentinel of the unconstrained system's array of @ref Dof "DoFs".
     /// @note This function should be invoked @b after the unconstrained system is allocated, but @b before
     ///       it is assembled.
-    virtual void AllocateConstraints(PointerVectorSet<MasterSlaveConstraint,IndexedObject>::const_iterator itConstraintBegin,
-                                     PointerVectorSet<MasterSlaveConstraint,IndexedObject>::const_iterator itConstraintEnd,
-                                     const ProcessInfo& rProcessInfo,
-                                     typename DofSet::const_iterator itDofBegin,
-                                     typename DofSet::const_iterator itDofEnd)
+    virtual void AllocateConstraints(
+        PointerVectorSet<MasterSlaveConstraint,IndexedObject>::const_iterator itConstraintBegin,
+        PointerVectorSet<MasterSlaveConstraint,IndexedObject>::const_iterator itConstraintEnd,
+        const ProcessInfo& rProcessInfo,
+        typename DofSet::const_iterator itDofBegin,
+        typename DofSet::const_iterator itDofEnd)
     {
     }
 
@@ -107,10 +108,11 @@ public:
     /// @param rSolution Unconstrained solution vector.
     /// @param rRhs Unconstrained right hand side vector.
     /// @param rDofs Dofs before constraint imposition.
-    virtual void AllocateSystem(typename TSparse::MatrixType& rLhs,
-                                typename TSparse::VectorType& rSolution,
-                                typename TSparse::VectorType& rRhs,
-                                DofSet& rDofs)
+    virtual void AllocateSystem(
+        typename TSparse::MatrixType& rLhs,
+        typename TSparse::VectorType& rSolution,
+        typename TSparse::VectorType& rRhs,
+        DofSet& rDofs)
     {
     }
 
@@ -127,12 +129,13 @@ public:
     ///                    the right hand side vector of the unconstrained system.
     /// @note This function must be preceded by a call to @ref ConstraintAssembler::AllocateSystem, and should not make large scale
     ///       reallocations.
-    virtual void Assemble(const ConstraintArray& rConstraints,
-                          const ProcessInfo& rProcessInfo,
-                          typename DofSet::const_iterator itDofBegin,
-                          typename DofSet::const_iterator itDofEnd,
-                          const bool AssembleLhs,
-                          const bool AssembleRhs)
+    virtual void Assemble(
+        const ConstraintArray& rConstraints,
+        const ProcessInfo& rProcessInfo,
+        typename DofSet::const_iterator itDofBegin,
+        typename DofSet::const_iterator itDofEnd,
+        const bool AssembleLhs,
+        const bool AssembleRhs)
     {
     }
 
@@ -147,10 +150,11 @@ public:
     /// @param rSolution Unconstrained right hand side vector with space to accomodate constraint imposition.
     /// @param rRhs Unconstrained solution vector with space to accomodate constraint imposition.
     /// @param rDofSet Unconstrained set of @ref Dof "DoFs".
-    virtual void Initialize(typename TSparse::MatrixType& rLhs,
-                            typename TSparse::VectorType& rSolution,
-                            typename TSparse::VectorType& rRhs,
-                            DofSet& rDofs)
+    virtual void Initialize(
+        typename TSparse::MatrixType& rLhs,
+        typename TSparse::VectorType& rSolution,
+        typename TSparse::VectorType& rRhs,
+        DofSet& rDofs)
     {
     }
 
@@ -160,11 +164,12 @@ public:
     /// @param rRhs Right hand side vector.
     /// @param itDofBegin Iterator pointing to the first @ref Dof "DoF" of the unconstrained system.
     /// @param itDofEnd Sentinel of the unconstrained system's array of @ref Dof "DoFs".
-    virtual void InitializeConstraintIteration(typename TSparse::MatrixType& rLhs,
-                                               typename TSparse::VectorType& rSolution,
-                                               typename TSparse::VectorType& rRhs,
-                                               typename DofSet::iterator itDofBegin,
-                                               typename DofSet::iterator itDofEnd)
+    virtual void InitializeConstraintIteration(
+        typename TSparse::MatrixType& rLhs,
+        typename TSparse::VectorType& rSolution,
+        typename TSparse::VectorType& rRhs,
+        typename DofSet::iterator itDofBegin,
+        typename DofSet::iterator itDofEnd)
     {
     }
 
@@ -180,23 +185,25 @@ public:
     /// @param rStream Output stream to report status to.
     /// @warning The solution loop will continue indefinitely unless this function eventually
     ///          returns @p true.
-    virtual bool FinalizeConstraintIteration(typename TSparse::MatrixType& rLhs,
-                                             typename TSparse::VectorType& rSolution,
-                                             typename TSparse::VectorType& rRhs,
-                                             typename DofSet::iterator itDofBegin,
-                                             typename DofSet::iterator itDofEnd,
-                                             PMGStatusStream::Report& rReport,
-                                             PMGStatusStream& rStream) = 0;
+    virtual bool FinalizeConstraintIteration(
+        typename TSparse::MatrixType& rLhs,
+        typename TSparse::VectorType& rSolution,
+        typename TSparse::VectorType& rRhs,
+        typename DofSet::iterator itDofBegin,
+        typename DofSet::iterator itDofEnd,
+        PMGStatusStream::Report& rReport,
+        PMGStatusStream& rStream) = 0;
 
     /// @brief Perform tasks related to constraint imposition after constraints converged.
     /// @param rLhs Constrained left hand side matrix.
     /// @param rSolution Converged solution vector.
     /// @param rRhs Constrained right hand side vector.
     /// @param rDofSet Constrained set of @ref Dof "DoFs".
-    virtual void Finalize(typename TSparse::MatrixType& rLhs,
-                          typename TSparse::VectorType& rSolution,
-                          typename TSparse::VectorType& rRhs,
-                          DofSet& rDofSet)
+    virtual void Finalize(
+        typename TSparse::MatrixType& rLhs,
+        typename TSparse::VectorType& rSolution,
+        typename TSparse::VectorType& rRhs,
+        DofSet& rDofSet)
     {
     }
 

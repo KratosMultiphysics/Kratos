@@ -196,32 +196,35 @@ struct PMultigridBuilderAndSolver<TSparse,TDense>::Impl
             status_report.maybe_multigrid_residual.reset();
 
             // Initialize the constraint assembler and update residuals.
-            mpConstraintAssembler->InitializeConstraintIteration(rLhs,
-                                                                 rSolution,
-                                                                 rRhs,
-                                                                 mpInterface->GetDofSet().begin(),
-                                                                 mpInterface->GetDofSet().end());
+            mpConstraintAssembler->InitializeConstraintIteration(
+                rLhs,
+                rSolution,
+                rRhs,
+                mpInterface->GetDofSet().begin(),
+                mpInterface->GetDofSet().end());
             TSparse::Copy(rRhs, residual);
             BalancedProduct<TSparse,TSparse,TSparse>(rLhs, rSolution, residual, static_cast<typename TSparse::DataType>(-1));
 
             // Get an update on the solution with respect to the current residual.
-            this->ExecuteMultigridLoop(rLhs,
-                                       rSolution,
-                                       rRhs,
-                                       solution_update,
-                                       residual,
-                                       initial_residual_norm,
-                                       rStream,
-                                       status_report);
+            this->ExecuteMultigridLoop(
+                rLhs,
+                rSolution,
+                rRhs,
+                solution_update,
+                residual,
+                initial_residual_norm,
+                rStream,
+                status_report);
 
             // Check for constraint convergence.
-            constraint_status = mpConstraintAssembler->FinalizeConstraintIteration(rLhs,
-                                                                                   rSolution,
-                                                                                   rRhs,
-                                                                                   mpInterface->GetDofSet().begin(),
-                                                                                   mpInterface->GetDofSet().end(),
-                                                                                   status_report,
-                                                                                   rStream);
+            constraint_status = mpConstraintAssembler->FinalizeConstraintIteration(
+                rLhs,
+                rSolution,
+                rRhs,
+                mpInterface->GetDofSet().begin(),
+                mpInterface->GetDofSet().end(),
+                status_report,
+                rStream);
             if (constraint_status) {
                 rStream.Submit(status_report.Tag(2), mVerbosity);
                 status_report.maybe_constraint_residual.reset();
@@ -263,11 +266,12 @@ struct PMultigridBuilderAndSolver<TSparse,TDense>::Impl
         // Prepare and initialize members.
         KRATOS_TRY
         if (mpInterface->GetRootGridSolver().AdditionalPhysicalDataIsNeeded()) {
-            mpInterface->GetRootGridSolver().ProvideAdditionalData(rLhs,
-                                                                 rSolution,
-                                                                 rRhs,
-                                                                 mpInterface->GetDofSet(),
-                                                                 rModelPart);
+            mpInterface->GetRootGridSolver().ProvideAdditionalData(
+                rLhs,
+                rSolution,
+                rRhs,
+                mpInterface->GetDofSet(),
+                rModelPart);
         }
 
         std::optional<PMGStatusStream> status_stream = PMGStatusStream(
@@ -297,10 +301,11 @@ struct PMultigridBuilderAndSolver<TSparse,TDense>::Impl
                         mMaybeHierarchy.value());
         } // if mMaybeHierarchy
 
-        mpConstraintAssembler->Finalize(rLhs,
-                                        rSolution,
-                                        rRhs,
-                                        mpInterface->GetDofSet());
+        mpConstraintAssembler->Finalize(
+            rLhs,
+            rSolution,
+            rRhs,
+            mpInterface->GetDofSet());
 
         return status_report.multigrid_converged && status_report.constraints_converged;
         KRATOS_CATCH("")
@@ -485,15 +490,16 @@ struct PMultigridBuilderAndSolver<TSparse,TDense>::Impl
 
         // Assemble coarse hierarchy.
         if (this->mMaybeHierarchy.has_value()) {
-            std::visit([&rModelPart, &pMaybeLhs, &pMaybeRhs, this](auto& r_grid){
-                            r_grid.template Assemble<AssembleLHS,AssembleRHS,TSparse>(
-                                rModelPart,
-                                pMaybeLhs.has_value() ? pMaybeLhs.value() : nullptr,
-                                pMaybeRhs.has_value() ? pMaybeRhs.value() : nullptr,
-                                *this->mpConstraintAssembler,
-                                mpInterface->GetDofSet());
-                        },
-                        this->mMaybeHierarchy.value());
+            std::visit(
+                [&rModelPart, &pMaybeLhs, &pMaybeRhs, this](auto& r_grid){
+                    r_grid.template Assemble<AssembleLHS,AssembleRHS,TSparse>(
+                        rModelPart,
+                        pMaybeLhs.has_value() ? pMaybeLhs.value() : nullptr,
+                        pMaybeRhs.has_value() ? pMaybeRhs.value() : nullptr,
+                        *this->mpConstraintAssembler,
+                        mpInterface->GetDofSet());
+                    },
+                this->mMaybeHierarchy.value());
         } // if mMaybeHierarchy
 
         KRATOS_CATCH("")
@@ -716,15 +722,17 @@ void PMultigridBuilderAndSolver<TSparse,TDense>::ResizeAndInitializeVectors(type
         mpImpl->MakeLhsTopology(pScheme, *rpLhs, rModelPart);
 
         // Make constraint topology.
-        mpImpl->mpConstraintAssembler->AllocateConstraints(rModelPart.MasterSlaveConstraints().begin(),
-                                                           rModelPart.MasterSlaveConstraints().end(),
-                                                           rModelPart.GetProcessInfo(),
-                                                           this->GetDofSet().begin(),
-                                                           this->GetDofSet().end());
-        mpImpl->mpConstraintAssembler->AllocateSystem(*rpLhs,
-                                                      *rpSolution,
-                                                      *rpRhs,
-                                                      this->GetDofSet());
+        mpImpl->mpConstraintAssembler->AllocateConstraints(
+            rModelPart.MasterSlaveConstraints().begin(),
+            rModelPart.MasterSlaveConstraints().end(),
+            rModelPart.GetProcessInfo(),
+            this->GetDofSet().begin(),
+            this->GetDofSet().end());
+        mpImpl->mpConstraintAssembler->AllocateSystem(
+            *rpLhs,
+            *rpSolution,
+            *rpRhs,
+            this->GetDofSet());
     } else {
         if (rpLhs->size1() != this->mEquationSystemSize || rpLhs->size2() != this->mEquationSystemSize) {
             KRATOS_ERROR <<"The equation system size has changed during the simulation. This is not permitted."<<std::endl;
@@ -774,13 +782,14 @@ void PMultigridBuilderAndSolver<TSparse,TDense>::Build(typename Interface::TSche
                                                        typename Interface::TSystemVectorType& rRhs)
 {
     KRATOS_PROFILE_SCOPE_MILLI(KRATOS_CODE_LOCATION);
-    KRATOS_ERROR_IF(!pScheme) << "missing scheme" << std::endl;
+    KRATOS_ERROR_IF(!pScheme) << "missing scheme";
     KRATOS_TRY
     mpImpl->mpMaybeModelPart = &rModelPart;
-    mpImpl->template Assemble</*AssembleLHS=*/true,/*AssembleRHS=*/true>(rModelPart,
-                                                                         *pScheme,
-                                                                         &rLhs,
-                                                                         &rRhs);
+    mpImpl->template Assemble</*AssembleLHS=*/true,/*AssembleRHS=*/true>(
+        rModelPart,
+        *pScheme,
+        &rLhs,
+        &rRhs);
     KRATOS_CATCH("")
 }
 
@@ -793,10 +802,11 @@ void PMultigridBuilderAndSolver<TSparse,TDense>::BuildLHS(typename Interface::TS
     KRATOS_PROFILE_SCOPE_MILLI(KRATOS_CODE_LOCATION);
     KRATOS_ERROR_IF(!pScheme) << "missing scheme";
     KRATOS_TRY
-    mpImpl->template Assemble</*AssembleLHS=*/true,/*AssembleRHS=*/false>(rModelPart,
-                                                                          *pScheme,
-                                                                          &rLhs,
-                                                                          nullptr);
+    mpImpl->template Assemble</*AssembleLHS=*/true,/*AssembleRHS=*/false>(
+        rModelPart,
+        *pScheme,
+        &rLhs,
+        nullptr);
     KRATOS_CATCH("")
 }
 
@@ -809,14 +819,47 @@ void PMultigridBuilderAndSolver<TSparse,TDense>::BuildRHS(typename Interface::TS
     KRATOS_PROFILE_SCOPE_MILLI(KRATOS_CODE_LOCATION);
     KRATOS_ERROR_IF(!pScheme) << "missing scheme";
     KRATOS_TRY
-    mpImpl->template Assemble</*AssembleLHS=*/false,/*AssembleRHS=*/true>(rModelPart,
-                                                                          *pScheme,
-                                                                          nullptr,
-                                                                          &rRhs);
+    mpImpl->template Assemble</*AssembleLHS=*/false,/*AssembleRHS=*/true>(
+        rModelPart,
+        *pScheme,
+        nullptr,
+        &rRhs);
     block_for_each(this->GetDofSet(), [&rRhs](Dof<typename TDense::DataType>& rDof){
         if (rDof.IsFixed())
-            rRhs[rDof.EquationId()] = 0.0;
-    });
+            rRhs[rDof.EquationId()] = static_cast<typename TDense::DataType>(0);});
+    KRATOS_CATCH("")
+}
+
+
+template <class TSparse, class TDense>
+void PMultigridBuilderAndSolver<TSparse,TDense>::BuildRHSAndSolve(
+        typename Interface::TSchemeType::Pointer pScheme,
+        ModelPart& rModelPart,
+        typename Interface::TSystemMatrixType& rLhs,
+        typename Interface::TSystemVectorType& rSolution,
+        typename Interface::TSystemVectorType& rRhs) {
+    KRATOS_ERROR << KRATOS_CODE_LOCATION.CleanFunctionName() << " is not tested yet\n";
+    KRATOS_PROFILE_SCOPE_MILLI(KRATOS_CODE_LOCATION);
+    KRATOS_TRY
+    this->BuildRHS(
+        pScheme,
+        rModelPart,
+        rRhs);
+    this->ApplyConstraints(
+        pScheme,
+        rModelPart,
+        rLhs,
+        rRhs);
+    this->ApplyDirichletConditions(
+        pScheme,
+        rModelPart,
+        rLhs,
+        rSolution,
+        rRhs);
+    this->SystemSolve(
+        rLhs,
+        rSolution,
+        rRhs);
     KRATOS_CATCH("")
 }
 
@@ -834,13 +877,15 @@ void PMultigridBuilderAndSolver<TSparse,TDense>::ApplyConstraints(typename Inter
 {
     KRATOS_TRY
     KRATOS_PROFILE_SCOPE_MILLI(KRATOS_CODE_LOCATION);
-    mpImpl->mpConstraintAssembler->Initialize(rLhs,
-                                              *mpImpl->mMaybeLinearSystem.value().mpSolution,
-                                              rRhs,
-                                              this->GetDofSet());
+    mpImpl->mpConstraintAssembler->Initialize(
+        rLhs,
+        *mpImpl->mMaybeLinearSystem.value().mpSolution,
+        rRhs,
+        this->GetDofSet());
     if (mpImpl->mMaybeHierarchy.has_value()) {
-        std::visit([](auto& r_hierarchy){r_hierarchy.ApplyConstraints();},
-                   mpImpl->mMaybeHierarchy.value());
+        std::visit(
+            [](auto& r_hierarchy){r_hierarchy.ApplyConstraints();},
+            mpImpl->mMaybeHierarchy.value());
     }
     KRATOS_CATCH("")
 }
@@ -864,16 +909,18 @@ void PMultigridBuilderAndSolver<TSparse,TDense>::ApplyDirichletConditions(typena
 
     mpImpl->mpDiagonalScaling->template Cache<TSparse>(rLhs);
     const auto diagonal_scale = mpImpl->mpDiagonalScaling->Evaluate();
-    Kratos::ApplyDirichletConditions<TSparse,TDense>(rLhs,
-                                                     rRhs,
-                                                     it_dof_set_begin,
-                                                     it_dof_set_end,
-                                                     diagonal_scale);
+    Kratos::ApplyDirichletConditions<TSparse,TDense>(
+        rLhs,
+        rRhs,
+        it_dof_set_begin,
+        it_dof_set_end,
+        diagonal_scale);
     if (mpImpl->mMaybeHierarchy.has_value()) {
         const auto& r_dependent_dofs = mpImpl->mpConstraintAssembler->GetDependentDofs(this->GetDofSet());
         std::visit([&r_dependent_dofs](auto& r_grid){
-                       r_grid.ApplyDirichletConditions(r_dependent_dofs.begin(),
-                                                       r_dependent_dofs.end());
+                       r_grid.ApplyDirichletConditions(
+                        r_dependent_dofs.begin(),
+                        r_dependent_dofs.end());
                    },
                    mpImpl->mMaybeHierarchy.value());
     } // if mMaybeHierarchy
@@ -894,18 +941,28 @@ void PMultigridBuilderAndSolver<TSparse,TDense>::BuildAndSolve(typename Interfac
                                                                typename Interface::TSystemVectorType& rSolution,
                                                                typename Interface::TSystemVectorType& rRhs)
 {
+    KRATOS_PROFILE_SCOPE_MILLI(KRATOS_CODE_LOCATION);
     KRATOS_TRY
-
-    // Assemble unconstrained system.
-    Build(pScheme, rModelPart, rLhs, rRhs);
-
-    // Apply multifreedom constraints.
-    ApplyConstraints(pScheme, rModelPart, rLhs, rRhs);
-
-    // Apply Dirichlet conditions.
-    ApplyDirichletConditions(pScheme, rModelPart, rLhs, rSolution, rRhs);
-
-    this->SystemSolve(rLhs, rSolution, rRhs);
+    this->Build(
+        pScheme,
+        rModelPart,
+        rLhs,
+        rRhs);
+    this->ApplyConstraints(
+        pScheme,
+        rModelPart,
+        rLhs,
+        rRhs);
+    this->ApplyDirichletConditions(
+        pScheme,
+        rModelPart,
+        rLhs,
+        rSolution,
+        rRhs);
+    this->SystemSolve(
+        rLhs,
+        rSolution,
+        rRhs);
     KRATOS_CATCH("")
 }
 
@@ -946,10 +1003,11 @@ void PMultigridBuilderAndSolver<TSparse,TDense>::CalculateReactions(typename Int
     BuiltinTimer timer;
 
     TSparse::SetToZero(rRhs);
-    mpImpl->template Assemble</*AssembleLHS=*/false,/*AssembleRHS=*/true>(rModelPart,
-                                                                          *pScheme,
-                                                                          nullptr,
-                                                                          &rRhs);
+    mpImpl->template Assemble</*AssembleLHS=*/false,/*AssembleRHS=*/true>(
+        rModelPart,
+        *pScheme,
+        nullptr,
+        &rRhs);
     block_for_each(this->GetDofSet(), [&rRhs](Dof<typename TDense::DataType>& rDof){
         rDof.GetSolutionStepReactionValue() = -rRhs[rDof.EquationId()];
     });

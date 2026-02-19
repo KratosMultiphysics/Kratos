@@ -26,8 +26,7 @@ namespace Kratos {
 
 
 template <class TSparse, class TDense>
-struct MasterSlaveConstraintAssembler<TSparse,TDense>::Impl
-{
+struct MasterSlaveConstraintAssembler<TSparse,TDense>::Impl {
     std::vector<const Dof<typename TDense::DataType>*> mSlaves;
 
     std::unique_ptr<Scaling> mpDiagonalScaling;
@@ -55,8 +54,7 @@ struct MasterSlaveConstraintAssembler<TSparse,TDense>::Impl
 
     int mVerbosity;
 
-    std::pair<typename TSparse::MatrixType&, LinearSolver<TSparse,TDense>&> GetIndependentTransform()
-    {
+    std::pair<typename TSparse::MatrixType&, LinearSolver<TSparse,TDense>&> GetIndependentTransform() {
         if (!mIndependentTransform.has_value()) {
             KRATOS_TRY
             typename TSparse::MatrixType transpose_master_slave_relations;
@@ -64,9 +62,10 @@ struct MasterSlaveConstraintAssembler<TSparse,TDense>::Impl
             mIndependentTransform.emplace();
 
             typename TSparse::MatrixType& r_lhs = mIndependentTransform.value().first;
-            SparseMatrixMultiplicationUtility::MatrixMultiplication(transpose_master_slave_relations,
-                                                                    mMasterSlaveRelations,
-                                                                    r_lhs);
+            SparseMatrixMultiplicationUtility::MatrixMultiplication(
+                transpose_master_slave_relations,
+                mMasterSlaveRelations,
+                r_lhs);
 
             mIndependentTransform.value().second = LinearSolverFactory<TSparse,TDense>().Create(mIndependentSolverSettings);
             typename TSparse::VectorType dummy;
@@ -78,8 +77,7 @@ struct MasterSlaveConstraintAssembler<TSparse,TDense>::Impl
         return std::pair<typename TSparse::MatrixType&,LinearSolver<TSparse,TDense>&>(mIndependentTransform.value().first, *mIndependentTransform.value().second);
     }
 
-    std::pair<typename TSparse::MatrixType&, LinearSolver<TSparse,TDense>&> GetDependentTransform()
-    {
+    std::pair<typename TSparse::MatrixType&, LinearSolver<TSparse,TDense>&> GetDependentTransform() {
         if (!mDependentTransform.has_value()) {
             KRATOS_TRY
             typename TSparse::MatrixType transpose_master_slave_relations;
@@ -87,9 +85,10 @@ struct MasterSlaveConstraintAssembler<TSparse,TDense>::Impl
             mDependentTransform.emplace();
 
             typename TSparse::MatrixType& r_lhs = mDependentTransform.value().first;
-            SparseMatrixMultiplicationUtility::MatrixMultiplication(mMasterSlaveRelations,
-                                                                    transpose_master_slave_relations,
-                                                                    r_lhs);
+            SparseMatrixMultiplicationUtility::MatrixMultiplication(
+                mMasterSlaveRelations,
+                transpose_master_slave_relations,
+                r_lhs);
 
             mDependentTransform.value().second = LinearSolverFactory<TSparse,TDense>().Create(mDependentSolverSettings);
             typename TSparse::VectorType dummy;
@@ -156,6 +155,9 @@ void MasterSlaveConstraintAssembler<TSparse,TDense>::AllocateConstraints(Pointer
                                                                          typename Base::DofSet::const_iterator itDofBegin,
                                                                          typename Base::DofSet::const_iterator itDofEnd)
 {
+    if (itConstraintBegin == itConstraintEnd)
+        return;
+
     KRATOS_TRY
     this->Clear();
     mpImpl->mDependentSystem.emplace();
@@ -167,21 +169,23 @@ void MasterSlaveConstraintAssembler<TSparse,TDense>::AllocateConstraints(Pointer
     if (itConstraintBegin == itConstraintEnd) {
         this->GetRelationMatrix() = typename TSparse::MatrixType(0, dependent_system_size, 0);
         this->GetRelationMatrix().index1_data()[0] = 0;
-        std::fill(this->GetRelationMatrix().index1_data().begin(),
-                  this->GetRelationMatrix().index1_data().end(),
-                  static_cast<typename TSparse::IndexType>(0));
+        std::fill(
+            this->GetRelationMatrix().index1_data().begin(),
+            this->GetRelationMatrix().index1_data().end(),
+            static_cast<typename TSparse::IndexType>(0));
         this->GetRelationMatrix().set_filled(1, 0);
     } else {
-        detail::MakeRelationTopology<TSparse,TDense>(dependent_system_size,
-                                                     itConstraintBegin,
-                                                     itConstraintEnd,
-                                                     rProcessInfo,
-                                                     this->GetRelationMatrix(),
-                                                     this->GetConstraintGapVector(),
-                                                     mpImpl->mConstraintIdMap);
+        detail::MakeRelationTopology<TSparse,TDense>(
+            dependent_system_size,
+            itConstraintBegin,
+            itConstraintEnd,
+            rProcessInfo,
+            this->GetRelationMatrix(),
+            this->GetConstraintGapVector(),
+            mpImpl->mConstraintIdMap);
     }
 
-    // Compute the modified relation matrix (T) for master-slave imposition.
+    // Compute the relation matrix (T) for master-slave imposition.
     // This involves a partitioning of the DoFs (u) into:
     // 0) DoFs that don't participate in any constraints    (w)
     // 1) master DoFs                                       (m)
@@ -220,9 +224,10 @@ void MasterSlaveConstraintAssembler<TSparse,TDense>::AllocateConstraints(Pointer
     const auto master_slave_entry_count = master_slave_system_size              //< 1s on the diagonal of independent DoFs
                                         + this->GetRelationMatrix().nnz()       //< entries in the relation matrix
                                         - this->GetRelationMatrix().size1();    //< one unique slave per constraint equation
-    mpImpl->mMasterSlaveRelations = typename TSparse::MatrixType(dependent_system_size,
-                                                                 master_slave_system_size,
-                                                                 master_slave_entry_count);
+    mpImpl->mMasterSlaveRelations = typename TSparse::MatrixType(
+        dependent_system_size,
+        master_slave_system_size,
+        master_slave_entry_count);
 
     // Compute row extents.
     // This happens in 2 stages: write the number of entries in each row into
@@ -305,12 +310,17 @@ void MasterSlaveConstraintAssembler<TSparse,TDense>::Assemble(const typename Bas
                                                               const bool AssembleLhs,
                                                               const bool AssembleRhs)
 {
+    // Early exit if the system has no constraints.
+    if (!mpImpl->mDependentSystem.has_value())
+        return;
+
     KRATOS_TRY
 
     /// @todo @p AssembleLhs and @p AssembleRhs are currently ignored,
     ///       and everything gets assembled. Think it through what needs
     ///       to be done and what can be omitted for each case. - matekelemen
-    detail::AssembleRelationMatrix<TSparse,TDense>(rConstraints,
+    detail::AssembleRelationMatrix<TSparse,TDense>(
+        rConstraints,
         rProcessInfo,
         this->GetRelationMatrix(),
         this->GetHessian(),
@@ -326,15 +336,17 @@ void MasterSlaveConstraintAssembler<TSparse,TDense>::Assemble(const typename Bas
         const auto i_master_slave_entry_begin = mpImpl->mMasterSlaveRelations.index1_data()[i_slave];
 
         // Find the slave coefficient.
-        auto it_slave = std::lower_bound(this->GetRelationMatrix().index2_data().begin() + i_relation_entry_begin,
-                                         this->GetRelationMatrix().index2_data().begin() + i_relation_entry_end,
-                                         i_slave);
+        auto it_slave = std::lower_bound(
+            this->GetRelationMatrix().index2_data().begin() + i_relation_entry_begin,
+            this->GetRelationMatrix().index2_data().begin() + i_relation_entry_end,
+            i_slave);
         KRATOS_ERROR_IF(it_slave == this->GetRelationMatrix().index2_data().begin() + i_relation_entry_end
                      || *it_slave != i_slave)
             << "no entry in relation matrix for slave DoF " << i_slave << " "
             << "of constraint equation " << i_constraint;
-        const typename TSparse::IndexType i_slave_in_master_slave = std::distance(this->GetRelationMatrix().index2_data().begin(),
-                                                                                  it_slave);
+        const typename TSparse::IndexType i_slave_in_master_slave = std::distance(
+            this->GetRelationMatrix().index2_data().begin(),
+            it_slave);
         const typename TSparse::DataType slave_coefficient = this->GetRelationMatrix().value_data()[i_slave_in_master_slave];
         KRATOS_ERROR_IF_NOT(slave_coefficient) << "coefficient of slave DoF " << i_slave << " in constraint equation "
                                                << i_constraint << " is null.";
@@ -361,6 +373,10 @@ void MasterSlaveConstraintAssembler<TSparse,TDense>::Initialize(typename TSparse
                                                                 typename TSparse::VectorType& rRhs,
                                                                 typename Base::DofSet& rDofs)
 {
+    // Early exit if the system has no constraints.
+    if (!mpImpl->mDependentSystem.has_value())
+        return;
+
     KRATOS_TRY
 
     // Output the relation matrix and constraint gaps if the verbosity is high enough.
@@ -441,6 +457,10 @@ MasterSlaveConstraintAssembler<TSparse,TDense>::FinalizeConstraintIteration(type
                                                                             PMGStatusStream::Report& rReport,
                                                                             PMGStatusStream& rStream)
 {
+    // Early exit if the system has no constraints.
+    if (!mpImpl->mDependentSystem.has_value())
+        return true;
+
     BalancedProduct<TSparse,TSparse,TSparse>(mpImpl->mMasterSlaveRelations,
                                              rSolution,
                                              mpImpl->mDependentSystem.value().mSolution);
@@ -463,6 +483,10 @@ void MasterSlaveConstraintAssembler<TSparse,TDense>::Finalize([[maybe_unused]] t
                                                               [[maybe_unused]] typename TSparse::VectorType& rRhs,
                                                               [[maybe_unused]] typename Base::DofSet& rDofSet)
 {
+    // Early exit if the system has no constraints.
+    if (!mpImpl->mDependentSystem.has_value())
+        return;
+
     // Restore dependent system.
     rLhs.swap(mpImpl->mDependentSystem.value().mLhs);
     rSolution.swap(mpImpl->mDependentSystem.value().mSolution);
