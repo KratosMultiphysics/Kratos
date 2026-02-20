@@ -63,6 +63,9 @@ void ShellThickShiftedBoundaryElement3D3N<TKinematics>::CalculateLocalSystem(
         // Note that it might happen that an interface element has no surrogate face (i.e. a unique node in the surrogate skin)
         const auto sur_bd_ids_vect = GetSurrogateFacesIds();
 
+        Matrix left_hand_side = ZeroMatrix(rLeftHandSideMatrix.size1(), rLeftHandSideMatrix.size2());
+        Vector right_hand_side = ZeroVector(rRightHandSideVector.size());
+
         // KRATOS_WATCH("Is interface");
 
         if (sur_bd_ids_vect.size() != 0) {
@@ -171,9 +174,9 @@ void ShellThickShiftedBoundaryElement3D3N<TKinematics>::CalculateLocalSystem(
                         B(5, initial_index + 4) = DN_DX_parent(i, 1);
 
                         B(6, initial_index + 2) = DN_DX_parent(i, 0);
-                        B(6, initial_index + 3) = N_parent[i];
+                        B(6, initial_index + 4) = N_parent[i];
                         B(7, initial_index + 2) = DN_DX_parent(i, 1);
-                        B(7, initial_index + 4) = N_parent[i];
+                        B(7, initial_index + 3) = -N_parent[i];
 
                         // B(6, initial_index + 2) = -DN_DX_parent(i, 1);
                         // B(6, initial_index + 3) = N_parent[i];
@@ -192,11 +195,20 @@ void ShellThickShiftedBoundaryElement3D3N<TKinematics>::CalculateLocalSystem(
                         }
                     }
 
-                    // D(6,6) = D(5,5)*5.0/6.0;
-                    // D(7,7) = D(5,5)*5.0/6.0;
-
+                    BoundedMatrix<double,8,LocalSize> B_temp = ZeroMatrix(8, 18);
                     BoundedMatrix<double,8,LocalSize> B_parent = ZeroMatrix(8, 18);
-                    B_parent = -1.0 * data.B; 
+
+                    MatrixType T(18, 18);
+                    data.LCS.ComputeTotalRotationMatrix(T);
+                    B_temp = prod(data.B, T); 
+
+                    Matrix R(8, 8);
+                    this->mSections[0]->GetRotationMatrixForGeneralizedStrains(-(this->mSections[0]->GetOrientationAngle()), R);
+
+                    R(6,7) = -1.0*R(6,7); 
+                    R(7,6) = -1.0*R(7,6);
+
+                    B_parent = prod(R, B_temp);
 
                     CalculateCBProjectionLinearisation(D, B_parent, n_sur_bd, aux_CB_projection);
                     CalculateCauchyTractionVector(r_stress, n_sur_bd, cauchy_traction);
@@ -214,10 +226,10 @@ void ShellThickShiftedBoundaryElement3D3N<TKinematics>::CalculateLocalSystem(
                         aux_val = aux_w * r_sur_bd_N(0,i_node);
                         i_loc_id = sur_bd_local_ids[i_node + 1];
                         for (std::size_t d = 0; d < 6; ++d) {
-                            rRightHandSideVector(i_loc_id*BlockSize+d) += aux_val * cauchy_traction[d];
+                            right_hand_side(i_loc_id*BlockSize+d) += aux_val * cauchy_traction[d];
                             // for (std::size_t j_node = 0; j_node < NumNodes; ++j_node) {
                             for (std::size_t j_node = 0; j_node < NumNodes * 6; ++j_node) { //TO DO
-                                rLeftHandSideMatrix(i_loc_id*BlockSize+d, j_node) -= aux_val * aux_CB_projection(d,j_node);
+                                left_hand_side(i_loc_id*BlockSize+d, j_node) -= aux_val * aux_CB_projection(d,j_node);
                                 // rLeftHandSideMatrix(i_loc_id*BlockSize+d, j_node*BlockSize+d) -= aux_val * aux_CB_projection(d,j_node*BlockSize + d);
                             }
                         }
@@ -225,6 +237,10 @@ void ShellThickShiftedBoundaryElement3D3N<TKinematics>::CalculateLocalSystem(
                 }
             // }
         }
+
+        // Assemble contributions
+        rLeftHandSideMatrix += left_hand_side;
+        rRightHandSideVector += right_hand_side;
     }
 
     KRATOS_CATCH("")
