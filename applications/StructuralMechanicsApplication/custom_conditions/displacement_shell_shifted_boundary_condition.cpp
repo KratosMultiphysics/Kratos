@@ -291,10 +291,10 @@ void DisplacementShellShiftedBoundaryCondition::CalculateLocalSystem(
         B_mat_shell(5, initial_index + 3) = -r_DN_DX(i, 0);
         B_mat_shell(5, initial_index + 4) = r_DN_DX(i, 1);
 
-        B_mat_shell(6, initial_index + 2) = -r_DN_DX(i, 0);
-        B_mat_shell(6, initial_index + 3) = -r_N[i];
-        B_mat_shell(7, initial_index + 2) = -r_DN_DX(i, 1);
-        B_mat_shell(7, initial_index + 4) = r_N[i];
+        B_mat_shell(6, initial_index + 2) = r_DN_DX(i, 0);
+        B_mat_shell(6, initial_index + 3) = r_N[i];
+        B_mat_shell(7, initial_index + 2) = r_DN_DX(i, 1);
+        B_mat_shell(7, initial_index + 4) = -r_N[i];
 
         // B_mat_shell(6, initial_index + 2) = -r_DN_DX(i, 1);
         // B_mat_shell(6, initial_index + 3) = r_N[i];
@@ -591,7 +591,7 @@ void DisplacementShellShiftedBoundaryCondition::CalculateBtransCProjectionLinear
         }
     // TO DO: shear and drilling part
         for (std::size_t j = 0; j < local_size; ++j) {
-            rAuxMat(j,2) = -rUnitNormal[0]*aux_transBC(j,6) + rUnitNormal[1]*aux_transBC(j,7);
+            rAuxMat(j,2) = rUnitNormal[0]*aux_transBC(j,6) + rUnitNormal[1]*aux_transBC(j,7);
         }
         
 
