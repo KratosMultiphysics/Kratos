@@ -187,155 +187,155 @@ void DisplacementShellNitscheBoundaryCondition::CalculateLocalSystem(
     noalias(rRightHandSideVector) = ZeroVector(local_size);
     noalias(rLeftHandSideMatrix) = ZeroMatrix(local_size, local_size);
 
-    // Get meshless geometry data
-    const double w = GetValue(INTEGRATION_WEIGHT);
-    const auto& r_N = GetValue(SHAPE_FUNCTIONS_VECTOR);
-    const auto& r_DN_DX = GetValue(SHAPE_FUNCTIONS_GRADIENT_MATRIX);
-    array_1d<double,3> normal = GetValue(NORMAL);
-    normal /= norm_2(normal);
+    // // Get meshless geometry data
+    // const double w = GetValue(INTEGRATION_WEIGHT);
+    // const auto& r_N = GetValue(SHAPE_FUNCTIONS_VECTOR);
+    // const auto& r_DN_DX = GetValue(SHAPE_FUNCTIONS_GRADIENT_MATRIX);
+    // array_1d<double,3> normal = GetValue(NORMAL);
+    // normal /= norm_2(normal);
 
-    // KRATOS_WATCH(normal)
+    // // KRATOS_WATCH(normal)
 
-    // Get unknown values
-    Vector unknown_values = ZeroVector(local_size);
+    // // Get unknown values
+    // Vector unknown_values = ZeroVector(local_size);
 
-    for (std::size_t i_node = 0; i_node < n_nodes; ++i_node) {
-        const auto& r_disp = r_geometry[i_node].FastGetSolutionStepValue(DISPLACEMENT);
-        const auto& r_rot = r_geometry[i_node].FastGetSolutionStepValue(ROTATION);
-        for (std::size_t d = 0; d < 3; ++d) {
-            unknown_values(i_node*6 + d) = r_disp[d];
-            unknown_values(i_node*6 + d + 3) = r_rot[d];
-        }
-    }
+    // for (std::size_t i_node = 0; i_node < n_nodes; ++i_node) {
+    //     const auto& r_disp = r_geometry[i_node].FastGetSolutionStepValue(DISPLACEMENT);
+    //     const auto& r_rot = r_geometry[i_node].FastGetSolutionStepValue(ROTATION);
+    //     for (std::size_t d = 0; d < 3; ++d) {
+    //         unknown_values(i_node*6 + d) = r_disp[d];
+    //         unknown_values(i_node*6 + d + 3) = r_rot[d];
+    //     }
+    // }
 
-    // Calculate the material response to get the constitutive matrix
-    const auto p_cons_law = this->GetValue(CONSTITUTIVE_LAW);
-    const SizeType strain_size = p_cons_law->GetStrainSize();
+    // // Calculate the material response to get the constitutive matrix
+    // const auto p_cons_law = this->GetValue(CONSTITUTIVE_LAW);
+    // const SizeType strain_size = p_cons_law->GetStrainSize();
 
-    Vector stress_vect(strain_size);
-    Matrix B_mat(strain_size, 2*n_nodes);
-    Matrix C_mat(strain_size, strain_size);
+    // Vector stress_vect(strain_size);
+    // Matrix B_mat(strain_size, 2*n_nodes);
+    // Matrix C_mat(strain_size, strain_size);
 
-    // ConstitutiveLaw::VoigtSizeMatrixType D;
-    Matrix D(8, 8);
-    Matrix B_mat_shell(8, 6*n_nodes);
-    noalias(D) = ZeroMatrix(8, 8);
-    noalias(B_mat_shell) = ZeroMatrix(8, 6*n_nodes);
+    // // ConstitutiveLaw::VoigtSizeMatrixType D;
+    // Matrix D(8, 8);
+    // Matrix B_mat_shell(8, 6*n_nodes);
+    // noalias(D) = ZeroMatrix(8, 8);
+    // noalias(B_mat_shell) = ZeroMatrix(8, 6*n_nodes);
 
-    StructuralMechanicsElementUtilities::CalculateB(*this, r_DN_DX, B_mat);
-    Vector strain_vect = prod(B_mat, unknown_values);
+    // StructuralMechanicsElementUtilities::CalculateB(*this, r_DN_DX, B_mat);
+    // Vector strain_vect = prod(B_mat, unknown_values);
 
-    ConstitutiveLaw::Parameters cons_law_values(this->GetGeometry(), this->GetProperties(), rCurrentProcessInfo);
+    // ConstitutiveLaw::Parameters cons_law_values(this->GetGeometry(), this->GetProperties(), rCurrentProcessInfo);
 
-    cons_law_values.SetShapeFunctionsValues(r_N);
-    cons_law_values.SetStressVector(stress_vect);
-    cons_law_values.SetStrainVector(strain_vect);
+    // cons_law_values.SetShapeFunctionsValues(r_N);
+    // cons_law_values.SetStressVector(stress_vect);
+    // cons_law_values.SetStrainVector(strain_vect);
 
-    cons_law_values.SetConstitutiveMatrix(C_mat); //simple hack is okay in this case .. to be continued.. team viewer!!
+    // cons_law_values.SetConstitutiveMatrix(C_mat); //simple hack is okay in this case .. to be continued.. team viewer!!
 
-    auto& r_cons_law_options = cons_law_values.GetOptions();
-    r_cons_law_options.Set(ConstitutiveLaw::COMPUTE_STRESS, false);
-    r_cons_law_options.Set(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR, true);
-    r_cons_law_options.Set(ConstitutiveLaw::USE_ELEMENT_PROVIDED_STRAIN, true);
+    // auto& r_cons_law_options = cons_law_values.GetOptions();
+    // r_cons_law_options.Set(ConstitutiveLaw::COMPUTE_STRESS, false);
+    // r_cons_law_options.Set(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR, true);
+    // r_cons_law_options.Set(ConstitutiveLaw::USE_ELEMENT_PROVIDED_STRAIN, true);
 
-    p_cons_law->CalculateMaterialResponseCauchy(cons_law_values);
+    // p_cons_law->CalculateMaterialResponseCauchy(cons_law_values);
 
-    double thickness = this->GetProperties()[THICKNESS];
+    // double thickness = this->GetProperties()[THICKNESS];
 
-    for(std::size_t i = 0; i < C_mat.size1(); ++i)
-    {
-        for(std::size_t j = 0; j < C_mat.size1(); ++j)
-        {
-            D(i,j) = C_mat(i,j) * thickness;
-            D(i + 3,j +3) = C_mat(i,j) / 12.0 * thickness * thickness * thickness;// * this->GetProperties()[THICKNESS] * this->GetProperties()[THICKNESS]; 
-        }
-    }
+    // for(std::size_t i = 0; i < C_mat.size1(); ++i)
+    // {
+    //     for(std::size_t j = 0; j < C_mat.size1(); ++j)
+    //     {
+    //         D(i,j) = C_mat(i,j) * thickness;
+    //         D(i + 3,j +3) = C_mat(i,j) / 12.0 * thickness * thickness * thickness;// * this->GetProperties()[THICKNESS] * this->GetProperties()[THICKNESS]; 
+    //     }
+    // }
 
-    D(6,6) = C_mat(1,1) / 2.0 * 5.0 / 6.0;
-    D(7,7) = C_mat(1,1) / 2.0 * 5.0 / 6.0; //TODO
+    // D(6,6) = C_mat(1,1) / 2.0 * 5.0 / 6.0;
+    // D(7,7) = C_mat(1,1) / 2.0 * 5.0 / 6.0; //TODO
 
-    // KRATOS_WATCH(D)
-    // KRATOS_WATCH(C_mat)
+    // // KRATOS_WATCH(D)
+    // // KRATOS_WATCH(C_mat)
 
-    // KRATOS_WATCH(r_DN_DX)
-    // exit(0);
+    // // KRATOS_WATCH(r_DN_DX)
+    // // exit(0);
 
-    for ( IndexType i = 0; i < n_nodes; ++i ) {
-        const IndexType initial_index = i*6;
-        B_mat_shell(0, initial_index    ) = r_DN_DX(i, 0);
-        B_mat_shell(1, initial_index + 1) = r_DN_DX(i, 1);
-        B_mat_shell(2, initial_index    ) = r_DN_DX(i, 1);
-        B_mat_shell(2, initial_index + 1) = r_DN_DX(i, 0);
+    // // for ( IndexType i = 0; i < n_nodes; ++i ) {
+    // //     const IndexType initial_index = i*6;
+    // //     B_mat_shell(0, initial_index    ) = r_DN_DX(i, 0);
+    // //     B_mat_shell(1, initial_index + 1) = r_DN_DX(i, 1);
+    // //     B_mat_shell(2, initial_index    ) = r_DN_DX(i, 1);
+    // //     B_mat_shell(2, initial_index + 1) = r_DN_DX(i, 0);
 
-        // B_mat_shell(3, initial_index + 3) = r_DN_DX(i, 0);
-        // B_mat_shell(4, initial_index + 4) = r_DN_DX(i, 1);
-        // B_mat_shell(5, initial_index + 3) = r_DN_DX(i, 1);
-        // B_mat_shell(5, initial_index + 4) = r_DN_DX(i, 0);
+    // //     // B_mat_shell(3, initial_index + 3) = r_DN_DX(i, 0);
+    // //     // B_mat_shell(4, initial_index + 4) = r_DN_DX(i, 1);
+    // //     // B_mat_shell(5, initial_index + 3) = r_DN_DX(i, 1);
+    // //     // B_mat_shell(5, initial_index + 4) = r_DN_DX(i, 0);
 
-        B_mat_shell(3, initial_index + 4) = r_DN_DX(i, 0);
-        B_mat_shell(4, initial_index + 3) = -r_DN_DX(i, 1);
-        B_mat_shell(5, initial_index + 3) = -r_DN_DX(i, 0);
-        B_mat_shell(5, initial_index + 4) = r_DN_DX(i, 1);
+    // //     B_mat_shell(3, initial_index + 4) = r_DN_DX(i, 0);
+    // //     B_mat_shell(4, initial_index + 3) = -r_DN_DX(i, 1);
+    // //     B_mat_shell(5, initial_index + 3) = -r_DN_DX(i, 0);
+    // //     B_mat_shell(5, initial_index + 4) = r_DN_DX(i, 1);
 
-        B_mat_shell(6, initial_index + 2) = r_DN_DX(i, 0);
-        B_mat_shell(6, initial_index + 3) = r_N[i];
-        B_mat_shell(7, initial_index + 2) = r_DN_DX(i, 1);
-        B_mat_shell(7, initial_index + 4) = r_N[i];
+    // //     B_mat_shell(6, initial_index + 2) = r_DN_DX(i, 0);
+    // //     B_mat_shell(6, initial_index + 3) = r_N[i];
+    // //     B_mat_shell(7, initial_index + 2) = r_DN_DX(i, 1);
+    // //     B_mat_shell(7, initial_index + 4) = r_N[i];
 
-        // B_mat_shell(6, initial_index + 2) = -r_DN_DX(i, 1);
-        // B_mat_shell(6, initial_index + 3) = r_N[i];
-        // B_mat_shell(7, initial_index + 2) = r_DN_DX(i, 0);
-        // B_mat_shell(7, initial_index + 4) = r_N[i];
-    }
+    // //     // B_mat_shell(6, initial_index + 2) = -r_DN_DX(i, 1);
+    // //     // B_mat_shell(6, initial_index + 3) = r_N[i];
+    // //     // B_mat_shell(7, initial_index + 2) = r_DN_DX(i, 0);
+    // //     // B_mat_shell(7, initial_index + 4) = r_N[i];
+    // // }
 
-    // Get Dirichlet BC imposition data
-    const double h = GetValue(ELEMENT_H);
-    const auto& r_bc_val = GetValue(DISPLACEMENT);
-    // const auto& r_bc_val_rot = GetValue(ROTATION); //TODO
-    Vector bc_values = ZeroVector(6);
-    for (std::size_t d = 0; d < 3; ++d) {
-        bc_values[d] = r_bc_val[d];
-        bc_values[d + 3] = 0.0; //r_bc_val_rot[d];
-    }
-    const double gamma = rCurrentProcessInfo[PENALTY_COEFFICIENT]; //TO DO: rCurrentProcessInfo[PENALTY_COEFFICIENT];
-    // KRATOS_WATCH(gamma)
+    // // Get Dirichlet BC imposition data
+    // const double h = GetValue(ELEMENT_H);
+    // const auto& r_bc_val = GetValue(DISPLACEMENT);
+    // // const auto& r_bc_val_rot = GetValue(ROTATION); //TODO
+    // Vector bc_values = ZeroVector(6);
+    // for (std::size_t d = 0; d < 3; ++d) {
+    //     bc_values[d] = r_bc_val[d];
+    //     bc_values[d + 3] = 0.0; //r_bc_val_rot[d];
+    // }
+    // const double gamma = rCurrentProcessInfo[PENALTY_COEFFICIENT]; //TO DO: rCurrentProcessInfo[PENALTY_COEFFICIENT];
+    // // KRATOS_WATCH(gamma)
 
-    // Calculate the Nitsche BC imposition contribution
-    // 1. Add Nitsche penalty term //TO DO check this
-    double aux_1;
-    double aux_2;
-    const double rho_C = norm_frobenius(C_mat); //TODO: GS uses the spectral radius in here
-    const double aux_weight = w * gamma * rho_C / h;
+    // // Calculate the Nitsche BC imposition contribution
+    // // 1. Add Nitsche penalty term //TO DO check this
+    // double aux_1;
+    // double aux_2;
+    // const double rho_C = norm_frobenius(C_mat); //TODO: GS uses the spectral radius in here
+    // const double aux_weight = w * gamma * rho_C / h;
 
-    for (std::size_t i_node = 0; i_node < n_nodes; ++i_node) {
-        aux_1 = aux_weight * r_N[i_node];
-        for (std::size_t d = 0; d < n_dim; ++d) {
-            for (std::size_t j_node = 0; j_node < n_nodes; ++j_node) {
+    // for (std::size_t i_node = 0; i_node < n_nodes; ++i_node) {
+    //     aux_1 = aux_weight * r_N[i_node];
+    //     for (std::size_t d = 0; d < n_dim; ++d) {
+    //         for (std::size_t j_node = 0; j_node < n_nodes; ++j_node) {
 
-                // if(d == 2 || d == 3 || d == 4)
-                // {
-                    aux_2 = aux_1 * r_N[j_node];
-                // }
-                // else
-                // {
-                //     aux_2 = 0.0;
-                // }
+    //             // if(d == 2 || d == 3 || d == 4)
+    //             // {
+    //                 aux_2 = aux_1 * r_N[j_node];
+    //             // }
+    //             // else
+    //             // {
+    //             //     aux_2 = 0.0;
+    //             // }
                 
-                rLeftHandSideMatrix(i_node*n_dim + d, j_node*n_dim + d) += aux_2;
-                rRightHandSideVector(i_node*n_dim + d) -= aux_2 * unknown_values(j_node*n_dim + d);
-            }
-            rRightHandSideVector(i_node*n_dim + d) += aux_1 * bc_values[d];
-        }
-    }
+    //             rLeftHandSideMatrix(i_node*n_dim + d, j_node*n_dim + d) += aux_2;
+    //             rRightHandSideVector(i_node*n_dim + d) -= aux_2 * unknown_values(j_node*n_dim + d);
+    //         }
+    //         rRightHandSideVector(i_node*n_dim + d) += aux_1 * bc_values[d];
+    //     }
+    // }
 
     // KRATOS_WATCH(rLeftHandSideMatrix)
     // KRATOS_WATCH(r_N.size())
     // exit(0);
 
     // 2. Add Nitsche stabilization term
-    Matrix aux_N(6, local_size);
-    Matrix transB_C_proj = ZeroMatrix(local_size, 8); //first variation traction
-    CalculateAuxShapeFunctionsMatrix(r_N, aux_N);
+    // Matrix aux_N(6, local_size);
+    // Matrix transB_C_proj = ZeroMatrix(local_size, 8); //first variation traction
+    // CalculateAuxShapeFunctionsMatrix(r_N, aux_N);
 
     // KRATOS_WATCH(aux_N)
     // KRATOS_WATCH(r_N)
