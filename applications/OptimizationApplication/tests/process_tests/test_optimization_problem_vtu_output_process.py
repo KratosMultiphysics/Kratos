@@ -15,7 +15,6 @@ from KratosMultiphysics.OptimizationApplication.utilities.union_utilities import
 from KratosMultiphysics.compare_two_files_check_process import CompareTwoFilesCheckProcess
 
 
-@kratos_unittest.skipUnless(hasattr(Kratos, "Future"), "Kratos is not compiled with KRATOS_FUTURE = ON.")
 class TestOptimizationProblemVtuOutputProcess(kratos_unittest.TestCase):
     class DummyResponseFunction(ResponseFunction):
         def __init__(self, response_name: str, model_part: Kratos.ModelPart) -> None:
