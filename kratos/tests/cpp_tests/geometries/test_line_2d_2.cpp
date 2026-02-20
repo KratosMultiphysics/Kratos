@@ -573,6 +573,73 @@ namespace Testing {
     }
 
     /**
+     * Test an intersection with another co-linear line
+     */
+    KRATOS_TEST_CASE_IN_SUITE(Line2D2IntersectionWithAnotherColinearLineOutside, KratosCoreGeometriesFastSuite) {
+        auto geom_1 = GeneratePointsUnitXDirectionLine2D2();
+        Point::Pointer point_1 = Kratos::make_shared<Point>(1.5, 0.0, 0.0);
+        Point::Pointer point_2 = Kratos::make_shared<Point>(2.0, 0.0, 0.0);
+        auto geom_2 = GenerateLine2D2WithPoints(point_1, point_2);
+        KRATOS_CHECK_IS_FALSE(geom_1->HasIntersection(*geom_2));
+    }
+    KRATOS_TEST_CASE_IN_SUITE(Line2D2IntersectionWithAnotherColinearLineP3In, KratosCoreGeometriesFastSuite) {
+        auto geom_1 = GeneratePointsUnitXDirectionLine2D2();
+        Point::Pointer point_1 = Kratos::make_shared<Point>(0.5, 0.0, 0.0);
+        Point::Pointer point_2 = Kratos::make_shared<Point>(2.0, 0.0, 0.0);
+        auto geom_2 = GenerateLine2D2WithPoints(point_1, point_2);
+        KRATOS_CHECK(geom_1->HasIntersection(*geom_2));
+    }
+    KRATOS_TEST_CASE_IN_SUITE(Line2D2IntersectionWithAnotherColinearLineOnP2Outwards, KratosCoreGeometriesFastSuite) {
+        auto geom_1 = GeneratePointsUnitXDirectionLine2D2();
+        Point::Pointer point_1 = Kratos::make_shared<Point>(1.0, 0.0, 0.0);
+        Point::Pointer point_2 = Kratos::make_shared<Point>(2.0, 0.0, 0.0);
+        auto geom_2 = GenerateLine2D2WithPoints(point_1, point_2);
+        KRATOS_CHECK_IS_FALSE(geom_1->HasIntersection(*geom_2));
+    }
+    KRATOS_TEST_CASE_IN_SUITE(Line2D2IntersectionWithAnotherColinearLineOnP1Inwards, KratosCoreGeometriesFastSuite) {
+        auto geom_1 = GeneratePointsUnitXDirectionLine2D2();
+        Point::Pointer point_1 = Kratos::make_shared<Point>(0.0, 0.0, 0.0);
+        Point::Pointer point_2 = Kratos::make_shared<Point>(2.0, 0.0, 0.0);
+        auto geom_2 = GenerateLine2D2WithPoints(point_1, point_2);
+        KRATOS_CHECK(geom_1->HasIntersection(*geom_2));
+    }
+    KRATOS_TEST_CASE_IN_SUITE(Line2D2IntersectionWithAnotherColinearLineP4In, KratosCoreGeometriesFastSuite) {
+        auto geom_1 = GeneratePointsUnitXDirectionLine2D2();
+        Point::Pointer point_1 = Kratos::make_shared<Point>(-1.0, 0.0, 0.0);
+        Point::Pointer point_2 = Kratos::make_shared<Point>(0.5, 0.0, 0.0);
+        auto geom_2 = GenerateLine2D2WithPoints(point_1, point_2);
+        KRATOS_CHECK(geom_1->HasIntersection(*geom_2));
+    }
+    KRATOS_TEST_CASE_IN_SUITE(Line2D2IntersectionWithAnotherColinearLineOnP1Outwards, KratosCoreGeometriesFastSuite) {
+        auto geom_1 = GeneratePointsUnitXDirectionLine2D2();
+        Point::Pointer point_1 = Kratos::make_shared<Point>(-1.0, 0.0, 0.0);
+        Point::Pointer point_2 = Kratos::make_shared<Point>(0.0, 0.0, 0.0);
+        auto geom_2 = GenerateLine2D2WithPoints(point_1, point_2);
+        KRATOS_CHECK_IS_FALSE(geom_1->HasIntersection(*geom_2));
+    }
+    KRATOS_TEST_CASE_IN_SUITE(Line2D2IntersectionWithAnotherColinearLineOnP2Inwards, KratosCoreGeometriesFastSuite) {
+        auto geom_1 = GeneratePointsUnitXDirectionLine2D2();
+        Point::Pointer point_1 = Kratos::make_shared<Point>(-1.0, 0.0, 0.0);
+        Point::Pointer point_2 = Kratos::make_shared<Point>(1.0, 0.0, 0.0);
+        auto geom_2 = GenerateLine2D2WithPoints(point_1, point_2);
+        KRATOS_CHECK(geom_1->HasIntersection(*geom_2));
+    }
+    KRATOS_TEST_CASE_IN_SUITE(Line2D2IntersectionWithAnotherColinearLineContainingIt, KratosCoreGeometriesFastSuite) {
+        auto geom_1 = GeneratePointsUnitXDirectionLine2D2();
+        Point::Pointer point_1 = Kratos::make_shared<Point>(-1.0, 0.0, 0.0);
+        Point::Pointer point_2 = Kratos::make_shared<Point>(2.0, 0.0, 0.0);
+        auto geom_2 = GenerateLine2D2WithPoints(point_1, point_2);
+        KRATOS_CHECK(geom_1->HasIntersection(*geom_2));
+    }
+    KRATOS_TEST_CASE_IN_SUITE(Line2D2IntersectionWithAnotherColinearLineContained, KratosCoreGeometriesFastSuite) {
+        auto geom_1 = GeneratePointsUnitXDirectionLine2D2();
+        Point::Pointer point_1 = Kratos::make_shared<Point>(0.25, 0.0, 0.0);
+        Point::Pointer point_2 = Kratos::make_shared<Point>(0.75, 0.0, 0.0);
+        auto geom_2 = GenerateLine2D2WithPoints(point_1, point_2);
+        KRATOS_CHECK(geom_1->HasIntersection(*geom_2));
+    }
+
+    /**
      * Test a box inside a line HasIntersection
      */
     KRATOS_TEST_CASE_IN_SUITE(Line2D2IntersectionBoxInsideX, KratosCoreGeometriesFastSuite) {
