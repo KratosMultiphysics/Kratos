@@ -769,15 +769,8 @@ std::function<Vector()> UPwInterfaceElement::CreateNodalVelocitiesGetter() const
 
 Vector UPwInterfaceElement::GetGeometryVelocityValues() const
 {
-    const auto nodal_velocities = VariablesUtilities::GetNodalValues(this->GetGeometry(), VELOCITY);
-    auto       result           = Vector(this->NumberOfUDofs());
-    const auto dimension        = GetDisplacementGeometry().WorkingSpaceDimension();
-    std::size_t position        = 0;
-    for (const auto& v : nodal_velocities) {
-        std::copy(v.begin(), v.begin() + dimension, result.begin() + position);
-        position += dimension;
-    }
-    return result;
+    return GeoElementUtilities::GetNodalVariableVector(
+        this->GetGeometry(), VELOCITY, GetDisplacementGeometry().WorkingSpaceDimension(), this->NumberOfUDofs());
 }
 
 std::function<std::vector<double>()> UPwInterfaceElement::CreateDegreesOfSaturationGetter() const
