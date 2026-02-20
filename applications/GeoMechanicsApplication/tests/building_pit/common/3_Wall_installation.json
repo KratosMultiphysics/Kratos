@@ -35,7 +35,7 @@
         "residual_relative_tolerance"       : 0.0001,
         "residual_absolute_tolerance"       : 1e-09,
         "min_iterations"                    : 6,
-        "max_iterations"                    : 15,
+        "max_iterations"                    : 50,
         "number_cycles"                     : 1,
         "reduction_factor"                  : 0.5,
         "increase_factor"                   : 2.0,
