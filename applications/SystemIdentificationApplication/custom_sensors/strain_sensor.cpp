@@ -343,7 +343,11 @@ void StrainSensor::CalculatePartialSensitivity(
     Vector& rSensitivityGradient,
     const ProcessInfo& rProcessInfo)
 {
-    SetVectorToZero(rSensitivityGradient, rSensitivityMatrix.size1());
+    if (rVariable == DISPLACEMENT) {
+        CalculateGradient(rAdjointElement, rSensitivityMatrix, rSensitivityGradient, rProcessInfo);
+    } else {
+        SetVectorToZero(rSensitivityGradient, rSensitivityMatrix.size1());
+    }
 }
 
 void StrainSensor::CalculatePartialSensitivity(
@@ -353,7 +357,11 @@ void StrainSensor::CalculatePartialSensitivity(
     Vector& rSensitivityGradient,
     const ProcessInfo& rProcessInfo)
 {
-    SetVectorToZero(rSensitivityGradient, rSensitivityMatrix.size1());
+    if (rVariable == DISPLACEMENT) {
+        CalculateGradient(rAdjointCondition, rSensitivityMatrix, rSensitivityGradient, rProcessInfo);
+    } else {
+        SetVectorToZero(rSensitivityGradient, rSensitivityMatrix.size1());
+    }
 }
 
 std::string StrainSensor::Info() const

@@ -360,14 +360,14 @@ void AdjointFiniteDifferencingBaseElement<TPrimalElement>::CalculateSensitivityM
 
         Vector RHS;
         Vector derived_RHS;
-        
+
         pGetPrimalElement()->CalculateRightHandSide(RHS, rCurrentProcessInfo);
 
         for(IndexType i_node = 0; i_node < mpPrimalElement->GetGeometry().PointsNumber(); ++i_node)
         {
             // Get pseudo-load contribution from utility
             FiniteDifferenceUtility::CalculateRightHandSideDerivative(*pGetPrimalElement(), RHS, rDesignVariable,
-                                                                      mpPrimalElement->GetGeometry()[i_node], delta, 
+                                                                      mpPrimalElement->GetGeometry()[i_node], delta,
                                                                       derived_RHS, rCurrentProcessInfo);
 
             KRATOS_ERROR_IF_NOT(derived_RHS.size() == local_size) << "Size of the pseudo-load does not fit! [ derived_RHS.size() = " << derived_RHS.size() << ", local_size = " << local_size << " ]." << std::endl;
@@ -433,8 +433,10 @@ void AdjointFiniteDifferencingBaseElement<TPrimalElement>::CalculateSensitivityM
             }
             index++;
         }
-    }
-    else
+    } else if (rDesignVariable == DISPLACEMENT) {
+        Vector dummy_rhs;
+        this->CalculateFirstDerivativesContributions(rOutput, dummy_rhs, rCurrentProcessInfo);
+    } else
         rOutput = ZeroMatrix(0, local_size);
 
     KRATOS_CATCH("")

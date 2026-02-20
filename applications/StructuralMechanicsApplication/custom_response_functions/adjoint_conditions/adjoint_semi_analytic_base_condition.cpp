@@ -304,6 +304,9 @@ namespace Kratos
                 }
                 index++;
             }
+        }  else if (rDesignVariable == DISPLACEMENT) {
+            Vector dummy_rhs;
+            this->CalculateFirstDerivativesContributions(rOutput, dummy_rhs, rCurrentProcessInfo);
         }
         else if (this->Has(rDesignVariable)) {
             if ((rOutput.size1() != dimension) || (rOutput.size2() != local_size)) {

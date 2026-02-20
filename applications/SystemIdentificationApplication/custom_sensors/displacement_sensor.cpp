@@ -282,7 +282,11 @@ void DisplacementSensor::CalculatePartialSensitivity(
     Vector& rSensitivityGradient,
     const ProcessInfo& rProcessInfo)
 {
-    SetVectorToZero(rSensitivityGradient, rSensitivityMatrix.size1());
+    if (rVariable == DISPLACEMENT) {
+        CalculateGradient(rAdjointElement, rSensitivityMatrix, rSensitivityGradient, rProcessInfo);
+    } else {
+        SetVectorToZero(rSensitivityGradient, rSensitivityMatrix.size1());
+    }
 }
 
 void DisplacementSensor::CalculatePartialSensitivity(
@@ -292,7 +296,11 @@ void DisplacementSensor::CalculatePartialSensitivity(
     Vector& rSensitivityGradient,
     const ProcessInfo& rProcessInfo)
 {
-    SetVectorToZero(rSensitivityGradient, rSensitivityMatrix.size1());
+    if (rVariable == DISPLACEMENT) {
+        CalculateGradient(rAdjointCondition, rSensitivityMatrix, rSensitivityGradient, rProcessInfo);
+    } else {
+        SetVectorToZero(rSensitivityGradient, rSensitivityMatrix.size1());
+    }
 }
 
 std::string DisplacementSensor::Info() const
