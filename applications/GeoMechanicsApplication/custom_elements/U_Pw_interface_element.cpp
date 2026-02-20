@@ -766,7 +766,7 @@ void UPwInterfaceElement::CalculateAndAssembleUPCouplingForceVector(VectorType& 
 {
     GeoElementUtilities::AssembleUBlockVector(
         rRightHandSideVector,
-        (-1.0) * CreateUPCouplingCalculator<NumberOfRows, NumberOfColumns>().RHSContribution());
+        -1.0 * CreateUPCouplingCalculator<NumberOfRows, NumberOfColumns>().RHSContribution());
 }
 
 // Instances of this class can not be copied but can be moved. Check that at compile time.
