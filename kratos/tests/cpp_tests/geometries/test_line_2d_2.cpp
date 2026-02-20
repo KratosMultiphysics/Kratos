@@ -553,7 +553,7 @@ namespace Testing {
     /**
      * Test an intersection with another line
      */
-    KRATOS_TEST_CASE_IN_SUITE(Line2D2IntersectionWithAnotherLine, KratosCoreGeometriesFastSuite) {
+    KRATOS_TEST_CASE_IN_SUITE(Line2D2HasIntersectionWithAnotherLine, KratosCoreGeometriesFastSuite) {
         auto geom_1 = GeneratePointsUnitXDirectionLine2D2();
         Point::Pointer point_1 = Kratos::make_shared<Point>(0.5, 0.5, 0.0);
         Point::Pointer point_2 = Kratos::make_shared<Point>(0.5, -0.5, 0.0);
@@ -564,12 +564,36 @@ namespace Testing {
     /**
      * Test an intersection with another parallel line
      */
-    KRATOS_TEST_CASE_IN_SUITE(Line2D2IntersectionWithAnotherParallelLine, KratosCoreGeometriesFastSuite) {
+    KRATOS_TEST_CASE_IN_SUITE(Line2D2HasIntersectionWithAnotherParallelLine, KratosCoreGeometriesFastSuite) {
         auto geom_1 = GeneratePointsUnitXDirectionLine2D2();
         Point::Pointer point_1 = Kratos::make_shared<Point>(0.0, 0.5, 0.0);
         Point::Pointer point_2 = Kratos::make_shared<Point>(0.5, 0.5, 0.0);
         auto geom_2 = GenerateLine2D2WithPoints(point_1, point_2);
         KRATOS_EXPECT_FALSE(geom_1->HasIntersection(*geom_2));
+    }
+
+    /**
+     * Test an intersection with another line
+     */
+    KRATOS_TEST_CASE_IN_SUITE(Line2D2GetIntersectionPointsWithAnotherLine, KratosCoreGeometriesFastSuite) {
+        auto geom_1 = GeneratePointsUnitXDirectionLine2D2();
+        Point::Pointer point_1 = Kratos::make_shared<Point>(0.5, 0.5, 0.0);
+        Point::Pointer point_2 = Kratos::make_shared<Point>(0.5, -0.5, 0.0);
+        auto geom_2 = GenerateLine2D2WithPoints(point_1, point_2);
+        const auto intersection = geom_1->GetIntersectionPoints(*geom_2);
+        const Point pt(0.5,0.0,0.0);
+        KRATOS_EXPECT_VECTOR_EQ(intersection[0], pt.Coordinates());
+    }
+
+    /**
+     * Test an intersection with another parallel line
+     */
+    KRATOS_TEST_CASE_IN_SUITE(Line2D2GetIntersectionPointsWithAnotherParallelLine, KratosCoreGeometriesFastSuite) {
+        auto geom_1 = GeneratePointsUnitXDirectionLine2D2();
+        Point::Pointer point_1 = Kratos::make_shared<Point>(0.0, 0.5, 0.0);
+        Point::Pointer point_2 = Kratos::make_shared<Point>(0.5, 0.5, 0.0);
+        auto geom_2 = GenerateLine2D2WithPoints(point_1, point_2);
+        KRATOS_EXPECT_EQ(geom_1->GetIntersectionPoints(*geom_2).size(), 0);
     }
 
     /**

@@ -99,6 +99,53 @@ namespace Testing {
         KRATOS_EXPECT_NEAR(p_geom->Length(), std::sqrt(3.0), TOLERANCE);
     }
 
+
+    /**
+     * Test an intersection with another line
+     */
+    KRATOS_TEST_CASE_IN_SUITE(Line3D2HasIntersectionWithAnotherLine, KratosCoreGeometriesFastSuite) {
+        auto geom_1 = GeneratePointsUnitXDirectionLine3D2();
+        Point::Pointer point_1 = Kratos::make_shared<Point>(0.5, 0.5, 0.0);
+        Point::Pointer point_2 = Kratos::make_shared<Point>(0.5, -0.5, 0.0);
+        auto geom_2 = GenerateLine3D2WithPoints(point_1, point_2);
+        KRATOS_EXPECT_TRUE(geom_1->HasIntersection(*geom_2));
+    }
+
+    /**
+     * Test an intersection with another parallel line
+     */
+    KRATOS_TEST_CASE_IN_SUITE(Line3D2HasIntersectionWithAnotherParallelLine, KratosCoreGeometriesFastSuite) {
+        auto geom_1 = GeneratePointsUnitXDirectionLine3D2();
+        Point::Pointer point_1 = Kratos::make_shared<Point>(0.0, 0.5, 0.0);
+        Point::Pointer point_2 = Kratos::make_shared<Point>(0.5, 0.5, 0.0);
+        auto geom_2 = GenerateLine3D2WithPoints(point_1, point_2);
+        KRATOS_EXPECT_FALSE(geom_1->HasIntersection(*geom_2));
+    }
+
+    /**
+     * Test an intersection with another line
+     */
+    KRATOS_TEST_CASE_IN_SUITE(Line3D2GetIntersectionPointsWithAnotherLine, KratosCoreGeometriesFastSuite) {
+        auto geom_1 = GeneratePointsUnitXDirectionLine3D2();
+        Point::Pointer point_1 = Kratos::make_shared<Point>(0.5, 0.5, 0.0);
+        Point::Pointer point_2 = Kratos::make_shared<Point>(0.5, -0.5, 0.0);
+        auto geom_2 = GenerateLine3D2WithPoints(point_1, point_2);
+        const auto intersection = geom_1->GetIntersectionPoints(*geom_2);
+        const Point pt(0.5,0.0,0.0);
+        KRATOS_EXPECT_VECTOR_EQ(intersection[0], pt.Coordinates());
+    }
+
+    /**
+     * Test an intersection with another parallel line
+     */
+    KRATOS_TEST_CASE_IN_SUITE(Line3D2GetIntersectionPointsWithAnotherParallelLine, KratosCoreGeometriesFastSuite) {
+        auto geom_1 = GeneratePointsUnitXDirectionLine3D2();
+        Point::Pointer point_1 = Kratos::make_shared<Point>(0.0, 0.5, 0.0);
+        Point::Pointer point_2 = Kratos::make_shared<Point>(0.5, 0.5, 0.0);
+        auto geom_2 = GenerateLine3D2WithPoints(point_1, point_2);
+        KRATOS_EXPECT_EQ(geom_1->GetIntersectionPoints(*geom_2).size(), 0);
+    }
+
     /** Checks the inside test for a given point respect to the line
     * Checks the inside test for a given point respect to the line
     * It performs 4 tests:
