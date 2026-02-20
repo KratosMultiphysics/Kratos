@@ -5,17 +5,14 @@
 //        |_____|_|_| |_|\___|\__,_|_|  |____/ \___/|_| \_/ \___|_|  |___/ Application
 //
 //  Authors: Armin Geiser
+//           Máté Kelemen
 */
 
-#if !defined(KRATOS_SPECTRA_SYM_G_EIGS_SHIFT_SOLVER_H_INCLUDED)
-#define KRATOS_SPECTRA_SYM_G_EIGS_SHIFT_SOLVER_H_INCLUDED
+#pragma once
 
 // External includes
 #include <Eigen/Core>
 #include <Spectra/SymGEigsShiftSolver.h>
-#if defined EIGEN_USE_MKL_ALL
-#include "eigen_pardiso_lu_solver.h"
-#endif // defined EIGEN_USE_MKL_ALL
 
 // Project includes
 #include "includes/define.h"
@@ -24,9 +21,10 @@
 #include "linear_solvers/iterative_solver.h"
 #include "custom_utilities/ublas_wrapper.h"
 #include "utilities/builtin_timer.h"
+#include "factories/linear_solver_factory.h"
+#include "solving_strategies/builder_and_solvers/p_multigrid/sparse_utilities.hpp"
 
-namespace Kratos
-{
+namespace Kratos {
 
 template<
     class TSparseSpaceType = UblasSpace<double, CompressedMatrix, Vector>,
@@ -38,7 +36,12 @@ class SpectraSymGEigsShiftSolver
 {
     Parameters mParam;
 
-  public:
+    typename LinearSolver<
+        TSparseSpaceType,
+        TDenseSpaceType
+    >::Pointer mpSolver;
+
+public:
     KRATOS_CLASS_POINTER_DEFINITION(SpectraSymGEigsShiftSolver);
 
     typedef IterativeSolver<TSparseSpaceType, TDenseSpaceType, TPreconditionerType, TReordererType> BaseType;
@@ -60,11 +63,30 @@ class SpectraSymGEigsShiftSolver
             "normalize_eigenvectors": false,
             "max_iteration": 1000,
             "shift": 0.0,
-            "echo_level": 1
+            "echo_level": 1,
+            "linear_solver_settings" : {
+                "solver_type" : "sparse_lu"
+            }
         })");
 
-        mParam.ValidateAndAssignDefaults(default_params);
+        // In descending order of preference, the following
+        // linear solvers are defaulted:
+        // - Intel Pardiso (requires MKL)
+        // - CHOLMOD (requires SuiteSparse)
+        // - Eigen LU (always available in the LinearSolversApplication)
+        using SolverRegistry = KratosComponents<
+            LinearSolverFactory<
+                TSparseSpaceType,
+                TDenseSpaceType
+            >
+        >;
+        if (SolverRegistry::Has("pardiso_llt")) {
+            default_params["linear_solver_settings"]["solver_type"].SetString("pardiso_llt");
+        } else if (SolverRegistry::Has("cholmod")) {
+            default_params["linear_solver_settings"]["solver_type"].SetString("cholmod");
+        }
 
+        mParam.ValidateAndAssignDefaults(default_params);
         BaseType::SetMaxIterationsNumber(mParam["max_iteration"].GetInt());
     }
 
@@ -92,10 +114,7 @@ class SpectraSymGEigsShiftSolver
 
         // --- wrap ublas matrices
 
-        UblasWrapper<scalar_t> a_wrapper(rK);
         UblasWrapper<scalar_t> b_wrapper(rM);
-
-        const auto& a = a_wrapper.matrix();
         const auto& b = b_wrapper.matrix();
 
         // --- timer
@@ -108,10 +127,15 @@ class SpectraSymGEigsShiftSolver
         using OpType = OwnSymShiftInvert<scalar_t>;
         using BOpType = OwnSparseSymMatProd<scalar_t>;
 
-        OpType op(a, b);
+        OpType op(rK, rM, mParam["linear_solver_settings"]);
         BOpType Bop(b);
         const int ncv = 3 * nroot;  // TODO find a good value
-        Spectra::SymGEigsShiftSolver<OpType, BOpType, Spectra::GEigsMode::ShiftInvert> eigs(op, Bop, nroot, ncv, shift);
+        Spectra::SymGEigsShiftSolver<OpType, BOpType, Spectra::GEigsMode::ShiftInvert> eigs(
+            op,
+            Bop,
+            nroot,
+            ncv,
+            shift);
 
         eigs.init();
         const int nconv = eigs.compute(Spectra::SortRule::LargestAlge, max_iteration);
@@ -228,18 +252,20 @@ private:
         ///
         Index cols() const { return m_mat.cols(); }
 
-        ///
-        /// Perform the matrix-vector multiplication operation \f$y=Ax\f$.
-        ///
-        /// \param x_in  Pointer to the \f$x\f$ vector.
-        /// \param y_out Pointer to the \f$y\f$ vector.
-        ///
+        /// @brief Perform the matrix-vector multiplication operation \f$y=Ax\f$.
+        /// @param x_in  Pointer to the \f$x\f$ vector.
+        /// @param y_out Pointer to the \f$y\f$ vector.
         // y_out = A * x_in
         void perform_op(const Scalar* x_in, Scalar* y_out) const
         {
-            MapConstVec x(x_in, m_mat.cols());
-            MapVec y(y_out, m_mat.rows());
-            y.noalias() = m_mat * x;
+            block_for_each(y_out, y_out + m_mat.rows(), [](Scalar& rOut) {rOut = static_cast<Scalar>(0);});
+            BalancedProduct(
+                m_mat.outerIndexPtr(),
+                m_mat.outerIndexPtr() + m_mat.outerSize() + 1,
+                m_mat.innerIndexPtr(),
+                m_mat.valuePtr(),
+                x_in,
+                y_out);
         }
 
         ///
@@ -271,83 +297,102 @@ private:
     ///
     /// This class is intended to be used with the SymGEigsShiftSolver generalized eigen solver.
     ///
-    /// \tparam Scalar_        The element type of the matrices.
+    /// \tparam TScalar        The element type of the matrices.
     ///                        Currently supported types are `float`, `double`, and `long double`.
-    template <typename Scalar_>
+    template <typename TScalar>
     class OwnSymShiftInvert
     {
     public:
         ///
         /// Element type of the matrix.
         ///
-        using Scalar = Scalar_;
+        using Scalar = TScalar;
 
     private:
-        using Index = Eigen::Index;
+        using TSparseMatrix = typename TUblasSparseSpace<TScalar>::MatrixType;
 
-        // type of the A matrix
-        using MatrixA = Kratos::EigenSparseMatrix<Scalar>;
+        using TVector = typename TUblasSparseSpace<TScalar>::VectorType;
 
-        // type of the B matrix
-        using MatrixB = Kratos::EigenSparseMatrix<Scalar>;
+        TSparseMatrix* mpTarget;
 
-        using Vector = Kratos::EigenDynamicVector<Scalar>;
-        using MapConstVec = Eigen::Map<const Vector>;
-        using MapVec = Eigen::Map<Vector>;
+        const TSparseMatrix* mpB;
 
-        using ResType = MatrixA;
+        mutable TVector mDummyRhs;
 
-        #if defined EIGEN_USE_MKL_ALL
-        using FacType = Eigen::PardisoLU<ResType>;
-        #else
-        using FacType = Eigen::SparseLU<ResType>;
-        #endif // defined EIGEN_USE_MKL_ALL
+        mutable TVector mDummySolution;
 
-        using ConstGenericMatrixA = const Eigen::Ref<const MatrixA>;
-        using ConstGenericMatrixB = const Eigen::Ref<const MatrixB>;
+        TScalar mLastShift;
 
-        ConstGenericMatrixA m_matA;
-        ConstGenericMatrixB m_matB;
-        const Index m_n;
-        FacType m_solver;
+        typename LinearSolver<
+            TUblasSparseSpace<TScalar>,
+            TUblasDenseSpace<TScalar>
+        >::Pointer mpSolver;
 
     public:
         ///
         /// Constructor to create the matrix operation object.
         ///
-        /// \param A A sparse matrix object, whose type can be
-        ///          `Eigen::SparseMatrix<...>`,
-        ///          `Eigen::Map<Eigen::SparseMatrix<...>>`,
-        ///          `Eigen::Ref<Eigen::SparseMatrix<...>>`, etc.
-        /// \param B A sparse matrix object.
+        /// \param rA A sparse matrix object, whose type can be
+        ///           `Eigen::SparseMatrix<...>`,
+        ///           `Eigen::Map<Eigen::SparseMatrix<...>>`,
+        ///           `Eigen::Ref<Eigen::SparseMatrix<...>>`, etc.
+        /// \param rB A sparse matrix object.
         ///
-        OwnSymShiftInvert(ConstGenericMatrixA& A, ConstGenericMatrixB& B) :
-            m_matA(A), m_matB(B), m_n(A.rows())
+        OwnSymShiftInvert(TSparseMatrix& rA,
+                          const TSparseMatrix& rB,
+                          Parameters Settings)
+            : mpTarget(&rA),
+              mpB(&rB),
+              mDummyRhs(rA.size1()),
+              mDummySolution(rA.size1()),
+              mLastShift(static_cast<TScalar>(0)),
+              mpSolver(nullptr)
         {
-            KRATOS_ERROR_IF(m_n != A.cols() || m_n != B.rows() || m_n != B.cols()) << "SymShiftInvert: A and B must be square matrices of the same size" << std::endl;
+            const std::size_t system_size = rA.size1();
+            KRATOS_ERROR_IF(system_size != rA.size2() || system_size != rB.size1() || system_size != rB.size2())
+                << "SymShiftInvert: A and B must be square matrices of the same size";
+
+            MergeMatrices<TScalar>(*mpTarget, *mpB);
+            TUblasSparseSpace<TScalar>::SetToZero(mDummyRhs);
+            //TUblasSparseSpace<TScalar>::SetToZero(mDummySolution);
+
+            using SolverRegistry = KratosComponents<LinearSolverFactory<
+                TUblasSparseSpace<TScalar>,
+                TUblasDenseSpace<TScalar>
+            >>;
+            const std::string solver_name = Settings["solver_type"].GetString();
+            KRATOS_ERROR_IF_NOT(SolverRegistry::Has(solver_name))
+                << "'" << solver_name << "' does not name a registered linear solver. Options are:\n"
+                << []() -> std::string {
+                    std::stringstream message;
+                    for (const auto& r_pair : SolverRegistry::GetComponents())
+                        message << "\t" << r_pair.first << "\n";
+                    return message.str();
+                }();
+
+            KRATOS_TRY
+            mpSolver = SolverRegistry::Get(solver_name).Create(Settings);
+            KRATOS_CATCH("")
         }
 
-        ///
         /// Return the number of rows of the underlying matrix.
-        ///
-        Index rows() const { return m_n; }
-        ///
-        /// Return the number of columns of the underlying matrix.
-        ///
-        Index cols() const { return m_n; }
+        std::ptrdiff_t rows() const {return mpTarget->size1();}
 
-        ///
+        /// Return the number of columns of the underlying matrix.
+        std::ptrdiff_t cols() const {return mpTarget->size2();}
+
         /// Set the real shift \f$\sigma\f$.
-        ///
         void set_shift(const Scalar& sigma)
         {
-            if (sigma == 0.0) {
-                m_solver.compute(m_matA);
+            const TScalar relative_shift = sigma - mLastShift;
+            mLastShift = sigma;
+
+            if (relative_shift == static_cast<TScalar>(0)) {
+                mpSolver->InitializeSolutionStep(*mpTarget, mDummySolution, mDummyRhs);
             } else {
-                m_solver.compute(m_matA - sigma * m_matB);
+                InPlaceMatrixAdd(*mpTarget, *mpB, -relative_shift);
+                mpSolver->InitializeSolutionStep(*mpTarget, mDummySolution, mDummyRhs);
             }
-            const bool success = m_solver.info() == Eigen::Success;
-            KRATOS_ERROR_IF_NOT(success) << "SymShiftInvert: factorization failed with the given shift" << std::endl;
         }
 
         ///
@@ -359,9 +404,17 @@ private:
         // y_out = inv(A - sigma * B) * x_in
         void perform_op(const Scalar* x_in, Scalar* y_out) const
         {
-            MapConstVec x(x_in, m_n);
-            MapVec y(y_out, m_n);
-            y.noalias() = m_solver.solve(x);
+            //MapConstVec x(x_in, m_n);
+            //MapVec y(y_out, m_n);
+            //y.noalias() = m_solver.solve(x);
+            TUblasSparseSpace<TScalar>::SetToZero(mDummySolution);
+            std::copy(x_in,
+                      x_in + mpTarget->size1(),
+                      mDummyRhs.begin());
+            mpSolver->PerformSolutionStep(*mpTarget, mDummySolution, mDummyRhs);
+            std::copy(mDummySolution.begin(),
+                      mDummySolution.end(),
+                      y_out);
         }
     };
 
@@ -399,4 +452,3 @@ inline std::ostream& operator <<(
 
 } // namespace Kratos
 
-#endif // defined(KRATOS_SPECTRA_SYM_G_EIGS_SHIFT_SOLVER_H_INCLUDED)
