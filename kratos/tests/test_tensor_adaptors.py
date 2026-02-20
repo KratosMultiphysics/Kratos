@@ -714,6 +714,28 @@ class TestTensorAdaptors(KratosUnittest.TestCase):
         ref_combined_ta.data *= 3.0
         self.assertAlmostEqual(numpy.linalg.norm(ref_combined_ta.data - combined_ta.data), 0.0)
 
+    def test_NodalNeighboursTensorAdaptorCondition(self):
+        ta = Kratos.TensorAdaptors.Utils.GetNodalConditionNeighboursCountTensorAdaptor(self.model_part)
+        for i, v in enumerate(ta.data):
+            if (i != 0 or i != ta.data.size - 1):
+                self.assertEqual(v, 2)
+            else:
+                self.assertEqual(v, 1)
+
+        with self.assertRaises(RuntimeError):
+            ta.StoreData()
+
+    def test_NodalNeighboursTensorAdaptorElement(self):
+        ta = Kratos.TensorAdaptors.Utils.GetNodalElementNeighboursCountTensorAdaptor(self.model_part)
+        for i, v in enumerate(ta.data):
+            if (i != 0 or i != ta.data.size - 1):
+                self.assertEqual(v, 2)
+            else:
+                self.assertEqual(v, 1)
+
+        with self.assertRaises(RuntimeError):
+            ta.StoreData()
+
     def __TestCopyTensorAdaptor(self, tensor_adaptor_type, value_getter):
         var_ta_orig = tensor_adaptor_type(self.model_part.Nodes, Kratos.VELOCITY, data_shape=[2])
         var_ta_orig.Check()

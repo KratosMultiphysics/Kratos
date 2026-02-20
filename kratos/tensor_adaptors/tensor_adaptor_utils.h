@@ -26,6 +26,7 @@
 #include "includes/model_part.h"
 #include "utilities/data_type_traits.h"
 #include "utilities/container_io_utils.h"
+#include "tensor_adaptors/tensor_adaptor.h"
 
 namespace Kratos {
 
@@ -255,6 +256,20 @@ public:
         data_type_traits::CopyFromContiguousData(zero, zeros.data());
         return zero;
     }
+
+    /**
+     * @brief Get the Nodal Neighbours Count Tensor Adaptor for nodes in specified model part
+     * @details This method returns number of conditions (if @p TContainerType is of @ref ModelPart::ConditionsContainerType ) or
+     *          number of elements (if @p TContainerType is of @ref ModelPart::ElementsContainerType ) around nodes in the @p rModelPart .
+     *
+     *          Returning @ref TensorAdaptor will be having the @p rModelPart nodes as the container.
+     *
+     * @tparam TContainerType
+     * @param rModelPart                    Model part on which the nodal neighbour count will be done.
+     * @return TensorAdaptor<int>::Pointer  Tensor adaptor containing the number of neighbours for each node.
+     */
+    template<class TContainerType>
+    static TensorAdaptor<int>::Pointer GetNodalNeighboursCountTensorAdaptor(ModelPart& rModelPart);
 
     ///@}
 };
