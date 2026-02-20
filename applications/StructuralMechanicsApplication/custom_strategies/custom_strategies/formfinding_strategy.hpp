@@ -42,7 +42,12 @@ public:
     // Counted pointer of ClassName
     KRATOS_CLASS_POINTER_DEFINITION(FormfindingStrategy);
 
+    // Base class definition
     typedef ResidualBasedNewtonRaphsonStrategy<TSparseSpace, TDenseSpace, TLinearSolver> BaseType;
+
+    /// Definition of the current scheme
+    typedef FormfindingStrategy<TSparseSpace, TDenseSpace, TLinearSolver> ClassType;
+
     typedef typename BaseType::TBuilderAndSolverType TBuilderAndSolverType;
     typedef typename BaseType::TSchemeType TSchemeType;
     typedef typename BaseType::TSystemMatrixType TSystemMatrixType;
@@ -53,8 +58,14 @@ public:
 
     ///@}
     ///@name Life Cycle
-
     ///@{
+
+    /**
+     * @brief Default constructor
+     */
+    explicit FormfindingStrategy() 
+    {
+    }
 
     /**
     * Constructor.
@@ -62,7 +73,7 @@ public:
 
     // constructor with Builder and Solver
     FormfindingStrategy(
-        ModelPart& model_part,
+        ModelPart& rModelPart,
         typename TSchemeType::Pointer pScheme,
         typename TConvergenceCriteriaType::Pointer pNewConvergenceCriteria,
         typename TBuilderAndSolverType::Pointer pNewBuilderAndSolver,
@@ -75,14 +86,29 @@ public:
         bool ReformDofSetAtEachStep = false,
         bool MoveMeshFlag = false
     )
-    : ResidualBasedNewtonRaphsonStrategy<TSparseSpace, TDenseSpace, TLinearSolver>(model_part, pScheme,
+    : BaseType(rModelPart, pScheme,
         pNewConvergenceCriteria,pNewBuilderAndSolver,MaxIterations,CalculateReactions,ReformDofSetAtEachStep,
         MoveMeshFlag),
         mProjectionSettings(ProjectionSetting),
-        mrFormFindingModelPart(rFormFindingModelPart),
+        mpFormFindingModelPart(&rFormFindingModelPart),
         mPrintingFormat(rPrintingFormat),
         mWriteFormFoundGeometryFile(WriteFormFoundGeometryFile)
     {
+        InitializeIterationIO();
+    }
+
+    /**
+     * @brief Default constructor. (with parameters)
+     * @param rModelPart The model part of the problem
+     * @param ThisParameters The configuration parameters
+     */
+    explicit FormfindingStrategy(ModelPart& rModelPart, Parameters ThisParameters)
+        : BaseType(rModelPart)
+    {
+        // Validate and assign defaults
+        ThisParameters = this->ValidateAndAssignParameters(ThisParameters, this->GetDefaultParameters());
+        this->AssignSettings(ThisParameters);
+
         InitializeIterationIO();
     }
 
@@ -107,6 +133,100 @@ public:
         model_part_io.WriteModelPart(rModelPart);
     }
 
+    /**
+     * @brief This method provides the defaults parameters to avoid conflicts between the different constructors
+     * @return The default parameters
+     */
+    Parameters GetDefaultParameters() const override
+    {
+        Parameters default_parameters = Parameters(R"(
+        {
+            "name"                             : "formfinding_strategy",
+            "printing_format"                  : "all",
+            "write_formfound_geometry_file"    : true,
+            "formfinding_model_part_name"      : "",
+            "projection_settings": {
+                "model_part_name"             : "Structure",
+                "echo_level"                  : 0,
+                "projection_type"             : "planar",
+                "global_direction"            : [1,0,0],
+                "variable_name"               : "PLEASE_SPECIFY",
+                "visualize_in_vtk"            : false,
+                "method_specific_settings"    : { },
+                "check_local_space_dimension" : false
+            }
+        })");
+
+        // Getting base class default parameters
+        const Parameters base_default_parameters = BaseType::GetDefaultParameters();
+        default_parameters.RecursivelyAddMissingParameters(base_default_parameters);
+        return default_parameters;
+    }
+
+    /**
+     * @brief Returns the name of the class as used in the settings (snake_case format)
+     * @return The name of the class
+     */
+    static std::string Name()
+    {
+        return "formfinding_strategy";
+    }
+    ///@}
+    ///@name Access
+    ///@{
+
+    ///@}
+    ///@name Inquiry
+    ///@{
+
+    ///@}
+    ///@name Friends
+    ///@{
+
+    ///@}
+
+protected:
+    ///@name Protected static Member Variables
+    ///@{
+
+    ///@}
+    ///@name Protected member Variables
+    ///@{
+
+    ///@}
+    ///@name Protected Operators
+    ///@{
+
+    ///@}
+    ///@name Protected Operations
+    ///@{
+
+    /**
+     * @brief This method assigns settings to member variables
+     * @param ThisParameters Parameters that are assigned to the member variables
+     */
+    void AssignSettings(const Parameters ThisParameters) override
+    {
+        BaseType::AssignSettings(ThisParameters);
+        mpFormFindingModelPart = &BaseType::GetModelPart().GetSubModelPart(ThisParameters["formfinding_model_part_name"].GetString());
+        mPrintingFormat = ThisParameters["printing_format"].GetString();
+        mWriteFormFoundGeometryFile = ThisParameters["write_formfound_geometry_file"].GetBool();
+        mProjectionSettings = ThisParameters["projection_settings"];
+    }
+
+    ///@}
+    ///@name Protected  Access
+    ///@{
+
+    ///@}
+    ///@name Protected Inquiry
+    ///@{
+
+    ///@}
+    ///@name Protected LifeCycle
+    ///@{
+
+    ///@}
 private:
     void UpdateDatabase(
         TSystemMatrixType& A,
@@ -115,7 +235,7 @@ private:
         const bool MoveMesh) override
     {
         BaseType::UpdateDatabase(A,Dx, b, MoveMesh);
-        for(auto& r_node : mrFormFindingModelPart.Nodes()){
+        for(auto& r_node : mpFormFindingModelPart->Nodes()){
             // Updating reference
             const array_1d<double, 3>& disp = r_node.FastGetSolutionStepValue(DISPLACEMENT);
             array_1d<double, 3>& disp_non_historical = r_node.GetValue(DISPLACEMENT);
@@ -125,7 +245,7 @@ private:
 
             r_node.FastGetSolutionStepValue(DISPLACEMENT) = ZeroVector(3);
         }
-        ProjectVectorOnSurfaceUtility::Execute(mrFormFindingModelPart, mProjectionSettings);
+        ProjectVectorOnSurfaceUtility::Execute(*mpFormFindingModelPart, mProjectionSettings);
 
         PrintResults();
     }
@@ -211,10 +331,9 @@ private:
         }
     }
 
-
     IterationIOPointerType mpIterationIO;
     Parameters mProjectionSettings;
-    ModelPart& mrFormFindingModelPart;
+    ModelPart* mpFormFindingModelPart;
     std::string mPrintingFormat;
     int mIterationNumber = 0;
     bool mWriteFormFoundGeometryFile = true;

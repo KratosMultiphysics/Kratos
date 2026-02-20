@@ -94,6 +94,7 @@ void  AddCustomStrategiesToPython(pybind11::module& m)
 
     // Eigensolver Strategy
     py::class_< EigensolverStrategyType, typename EigensolverStrategyType::Pointer,BaseSolvingStrategyType >(m,"EigensolverStrategy")
+        .def(py::init<ModelPart&, Parameters >())
         .def(py::init<ModelPart&,
              BaseSchemeType::Pointer,
              BuilderAndSolverPointer,
@@ -113,16 +114,19 @@ void  AddCustomStrategiesToPython(pybind11::module& m)
     // Prebuckling Strategy
     py::class_< PrebucklingStrategyType, typename PrebucklingStrategyType::Pointer,BaseSolvingStrategyType >(m,"PrebucklingStrategy")
         .def(py::init<ModelPart&, BaseSchemeType::Pointer, BuilderAndSolverPointer, BuilderAndSolverPointer, ConvergenceCriteriaPointer, int, Parameters >())
+        .def(py::init<ModelPart&, Parameters >())
         .def("GetSolutionFoundFlag", &PrebucklingStrategyType::GetSolutionFoundFlag)
         ;
+
     py::class_< FormfindingStrategyType,typename FormfindingStrategyType::Pointer, ResidualBasedNewtonRaphsonStrategyType >(m,"FormfindingStrategy")
         .def(py::init < ModelPart&, BaseSchemeType::Pointer, ConvergenceCriteriaPointer, BuilderAndSolverPointer, ModelPart&, bool, const std::string&, Parameters, int, bool, bool, bool>())
+        .def(py::init<ModelPart&, Parameters >())
         .def_static("WriteFormFoundMdpa", &FormfindingStrategyType::WriteFormFoundMdpa)
         ;
 
-
     py::class_< MechanicalExplicitStrategyType, typename MechanicalExplicitStrategyType::Pointer, BaseSolvingStrategyType >(m,"MechanicalExplicitStrategy")
         .def(py::init < ModelPart&, BaseSchemeType::Pointer, bool, bool, bool >())
+        .def(py::init<ModelPart&, Parameters >())
         .def("SetInitializePerformedFlag", &MechanicalExplicitStrategyType::SetInitializePerformedFlag)
         .def("GetInitializePerformedFlag", &MechanicalExplicitStrategyType::GetInitializePerformedFlag)
         ;
@@ -130,6 +134,7 @@ void  AddCustomStrategiesToPython(pybind11::module& m)
     // harmonic Analysis Strategy
     py::class_< HarmonicAnalysisStrategyType,typename HarmonicAnalysisStrategyType::Pointer, BaseSolvingStrategyType >(m,"HarmonicAnalysisStrategy")
         .def(py::init<ModelPart&, BaseSchemeType::Pointer, BuilderAndSolverPointer, bool>() )
+        .def(py::init<ModelPart&, Parameters >())
         .def("SetUseMaterialDampingFlag", &HarmonicAnalysisStrategyType::SetUseMaterialDampingFlag)
         .def("GetUseMaterialDampingFlag", &HarmonicAnalysisStrategyType::GetUseMaterialDampingFlag)
         ;
@@ -142,12 +147,14 @@ void  AddCustomStrategiesToPython(pybind11::module& m)
     // Residual Based Relaxation Scheme Type
     py::class_< ResidualBasedRelaxationSchemeType,typename ResidualBasedRelaxationSchemeType::Pointer, BaseSchemeType >(m,"ResidualBasedRelaxationScheme")
         .def(py::init< double , double >() )
+        .def(py::init< Parameters>() )
         .def("Initialize", &ResidualBasedRelaxationScheme<SparseSpaceType, LocalSpaceType>::Initialize)
         ;
 
     // Eigensolver Scheme Type
     py::class_< EigensolverDynamicSchemeType,typename EigensolverDynamicSchemeType::Pointer, BaseSchemeType>(m,"EigensolverDynamicScheme")
         .def(py::init<>() )
+        .def(py::init< Parameters>() )
         ;
 
     // Explicit Central Differences Scheme Type
@@ -161,7 +168,7 @@ void  AddCustomStrategiesToPython(pybind11::module& m)
         .def(py::init< const double>())
         .def(py::init< Parameters>())
         ;
-
+  
     // Implicit Bossak Scheme Type
     py::class_<StructuralMechanicsBossakSchemeType, typename StructuralMechanicsBossakSchemeType::Pointer, BaseBossakSchemeType>(m, "StructuralMechanicsBossakScheme")
         .def(py::init<Parameters>())
@@ -180,6 +187,7 @@ void  AddCustomStrategiesToPython(pybind11::module& m)
     py::class_< ResidualDisplacementAndOtherDoFCriteriaType,typename ResidualDisplacementAndOtherDoFCriteriaType::Pointer, ConvergenceCriteriaType >(m,"ResidualDisplacementAndOtherDoFCriteria")
         .def(py::init< double, double, const std::string >())
         .def(py::init< double, double>())
+        .def(py::init< Parameters>() )
         ;
 
     // Error mesh Convergence Criterion

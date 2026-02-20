@@ -57,7 +57,13 @@ public:
     ///@{
 
     // Base class definition
+    typedef SolvingStrategy<TSparseSpace, TDenseSpace> BaseSolvingStrategyType;
+
+    // Base class definition
     typedef ImplicitSolvingStrategy<TSparseSpace, TDenseSpace, TLinearSolver> BaseType;
+
+    /// Definition of the current scheme
+    typedef MechanicalExplicitStrategy<TSparseSpace, TDenseSpace, TLinearSolver> ClassType;
 
     /// Some definitions from the base class
     typedef typename BaseType::TSchemeType TSchemeType;
@@ -84,19 +90,26 @@ public:
 
     /**
      * @brief Default constructor
+     */
+    explicit MechanicalExplicitStrategy() : BaseType()
+    {
+    }
+
+    /**
+     * @brief Default constructor
      * @param rModelPart The model part of the problem
      * @param pScheme The integration scheme
      * @param CalculateReactions The flag for the reaction calculation
      * @param ReformDofSetAtEachStep The flag that allows to compute the modification of the DOF
      * @param MoveMeshFlag The flag that allows to move the mesh
      */
-    MechanicalExplicitStrategy(
+    explicit MechanicalExplicitStrategy(
         ModelPart& rModelPart,
         typename TSchemeType::Pointer pScheme,
         bool CalculateReactions = false,
         bool ReformDofSetAtEachStep = false,
         bool MoveMeshFlag = true)
-        : ImplicitSolvingStrategy<TSparseSpace, TDenseSpace, TLinearSolver>(rModelPart, MoveMeshFlag),
+        : BaseType(rModelPart, MoveMeshFlag),
           mpScheme(pScheme),
           mReformDofSetAtEachStep(ReformDofSetAtEachStep),
           mCalculateReactionsFlag(CalculateReactions)
@@ -110,6 +123,25 @@ public:
         BaseType::SetRebuildLevel(0);
 
         KRATOS_CATCH("")
+    }
+
+    /**
+     * @brief Default constructor. (with parameters)
+     * @param rModelPart The model part of the problem
+     * @param ThisParameters The configuration parameters
+     */
+    explicit MechanicalExplicitStrategy(ModelPart& rModelPart, Parameters ThisParameters)
+        : BaseType(rModelPart)
+    {
+        // Validate and assign defaults
+        ThisParameters = this->ValidateAndAssignParameters(ThisParameters, this->GetDefaultParameters());
+        this->AssignSettings(ThisParameters);
+
+        // Set EchoLevel to the default value (only time is displayed)
+        BaseType::SetEchoLevel(1);
+
+        // Set RebuildLevel to the default value
+        BaseType::SetRebuildLevel(0);
     }
 
     /** Destructor.
@@ -200,7 +232,20 @@ public:
     {
         return mReformDofSetAtEachStep;
     }
-//
+
+    /**
+     * @brief Create method
+     * @param rModelPart The model part of the problem
+     * @param ThisParameters The configuration parameters
+     */
+    typename BaseSolvingStrategyType::Pointer Create(
+        ModelPart& rModelPart,
+        Parameters ThisParameters
+        ) const override
+    {
+        return Kratos::make_shared<ClassType>(rModelPart, ThisParameters);
+    }
+
     /**
      * @brief Initialization of member variables and prior operations
      */
@@ -408,7 +453,8 @@ public:
 
         KRATOS_INFO("MechanicalExplicitStrategy") << "Clear function used" << std::endl;
 
-        GetScheme()->Clear();
+        if (GetScheme() !=  nullptr)
+            GetScheme()->Clear();
         mInitializeWasPerformed = false;
 
         KRATOS_CATCH("")
@@ -433,6 +479,35 @@ public:
         return 0;
 
         KRATOS_CATCH("")
+    }
+
+    /**
+     * @brief This method provides the defaults parameters to avoid conflicts between the different constructors
+     * @return The default parameters
+     */
+    Parameters GetDefaultParameters() const override
+    {
+        Parameters default_parameters = Parameters(R"(
+        {
+            "name"                     : "mechanical_explicit_strategy",
+            "reform_dofs_at_each_step" : false,
+            "compute_reactions"        : false,
+            "scheme_settings"          : {}
+        })");
+
+        // Getting base class default parameters
+        const Parameters base_default_parameters = BaseType::GetDefaultParameters();
+        default_parameters.RecursivelyAddMissingParameters(base_default_parameters);
+        return default_parameters;
+    }
+
+    /**
+     * @brief Returns the name of the class as used in the settings (snake_case format)
+     * @return The name of the class
+     */
+    static std::string Name()
+    {
+        return "mechanical_explicit_strategy";
     }
 
     ///@}
@@ -584,7 +659,7 @@ protected:
     ///@name Protected member Variables
     ///@{
 
-    typename TSchemeType::Pointer mpScheme; /// The pointer to the integration scheme
+    typename TSchemeType::Pointer mpScheme = nullptr; /// The pointer to the integration scheme
 
     /**
      * @brief Flag telling if it is needed to reform the DofSet at each solution step or if it is possible to form it just once
@@ -614,6 +689,22 @@ protected:
     ///@}
     ///@name Protected Operations
     ///@{
+
+    /**
+     * @brief This method assigns settings to member variables
+     * @param ThisParameters Parameters that are assigned to the member variables
+     */
+    void AssignSettings(const Parameters ThisParameters) override
+    {
+        BaseType::AssignSettings(ThisParameters);
+        mReformDofSetAtEachStep = ThisParameters["reform_dofs_at_each_step"].GetBool();
+        mCalculateReactionsFlag = ThisParameters["compute_reactions"].GetBool();
+
+        // Saving the scheme
+        if (ThisParameters["scheme_settings"].Has("name")) {
+            KRATOS_ERROR << "IMPLEMENTATION PENDING IN CONSTRUCTOR WITH PARAMETERS" << std::endl;
+        }
+    }
 
     ///@}
     ///@name Protected  Access
