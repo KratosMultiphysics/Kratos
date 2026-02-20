@@ -91,9 +91,9 @@ void ShellThickNitscheBoundaryElement3D3N<TKinematics>::CalculateLocalSystem(
             //     data.gpIndex = i;
                 
                 array_1d<double,3>& gp0 = data.gpLocations[0]; //TO DO
-                gp0[0] = 0.5;
-                gp0[1] = 0.5;
-                gp0[2] = 0.5;
+                gp0[0] = 1.0/3.0;
+                gp0[1] = 1.0/3.0;
+                gp0[2] = 1.0/3.0;
 
                 data.gpIndex = 0;
 
@@ -182,10 +182,10 @@ void ShellThickNitscheBoundaryElement3D3N<TKinematics>::CalculateLocalSystem(
                         B(5, initial_index + 3) = -DN_DX_parent(i, 0);
                         B(5, initial_index + 4) = DN_DX_parent(i, 1);
 
-                        B(6, initial_index + 2) = -DN_DX_parent(i, 0);
-                        B(6, initial_index + 4) = -N_parent[i];
-                        B(7, initial_index + 2) = -DN_DX_parent(i, 1);
-                        B(7, initial_index + 3) = N_parent[i];
+                        B(6, initial_index + 2) = DN_DX_parent(i, 0);
+                        B(6, initial_index + 4) = N_parent[i];
+                        B(7, initial_index + 2) = DN_DX_parent(i, 1);
+                        B(7, initial_index + 3) = -N_parent[i];
 
                         // B(6, initial_index + 2) = -DN_DX_parent(i, 1);
                         // B(6, initial_index + 3) = N_parent[i];
@@ -204,11 +204,20 @@ void ShellThickNitscheBoundaryElement3D3N<TKinematics>::CalculateLocalSystem(
                         }
                     }
 
+                    BoundedMatrix<double,8,LocalSize> B_temp = ZeroMatrix(8, 18);
                     BoundedMatrix<double,8,LocalSize> B_parent = ZeroMatrix(8, 18);
                     
                     MatrixType T(18, 18);
                     data.LCS.ComputeTotalRotationMatrix(T);
-                    B_parent = prod(data.B, T); 
+                    B_temp = prod(data.B, T); 
+
+                    Matrix R(8, 8);
+                    this->mSections[0]->GetRotationMatrixForGeneralizedStrains(-(this->mSections[0]->GetOrientationAngle()), R);
+
+                    R(6,7) = -1.0*R(6,7); 
+                    R(7,6) = -1.0*R(7,6);
+
+                    B_parent = prod(R, B_temp);
 
                     CalculateCBProjectionLinearisation(D, B_parent, n_sur_bd, aux_CB_projection);
                     CalculateCauchyTractionVector(r_stress, n_sur_bd, cauchy_traction);
@@ -264,6 +273,8 @@ void ShellThickNitscheBoundaryElement3D3N<TKinematics>::CalculateLocalSystem(
                         }
                     }
                 }
+        }
+
         // Assemble contributions
         rLeftHandSideMatrix += left_hand_side;
         rRightHandSideVector += right_hand_side;
@@ -560,7 +571,7 @@ void ShellThickNitscheBoundaryElement3D3N<TKinematics>::CalculateCBProjectionLin
 
         // // TO DO: shear and drilling part
         for (std::size_t j = 0; j < LocalSize; ++j) {
-            rAuxMat(2,j) = -rUnitNormal[0]*aux_CB(6,j) + rUnitNormal[1]*aux_CB(7,j);
+            rAuxMat(2,j) = rUnitNormal[0]*aux_CB(6,j) + rUnitNormal[1]*aux_CB(7,j);
         }
 
 
