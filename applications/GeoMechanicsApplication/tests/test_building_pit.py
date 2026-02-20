@@ -703,7 +703,7 @@ class KratosGeoMechanicsBuildingPit(KratosUnittest.TestCase):
             delta=rel_tolerance * expected_total_vertical_reaction,
         )
 
-    def run_simulation_and_checks(self, sub_directory_name):
+    def run_simulation_and_checks(self, sub_directory_name, expected_results):
         project_path = test_helper.get_file_path(
             os.path.join("building_pit", sub_directory_name)
         )
@@ -781,6 +781,28 @@ class KratosGeoMechanicsBuildingPit(KratosUnittest.TestCase):
             self.stages_info["third_excavation"],
             expected_total_vertical_reaction,
         )
+
+        reader = GiDOutputFileReader()
+        rel_tolerance = 0.01
+        abs_tolerance_map = {"BENDING_MOMENT": 100.0}
+        for stage_tag, expected_stage_results in expected_results.items():
+            stage_base_name = self.stages_info[stage_tag]["base_name"]
+            stage_output = reader.read_output_from(Path(project_path) / f"{stage_base_name}.post.res")
+            end_time = self.stages_info[stage_tag]["end_time"]
+
+            for result_item_name, node_ids_and_expected_values in expected_stage_results.items():
+                abs_tolerance = abs_tolerance_map[result_item_name]
+                for item in node_ids_and_expected_values:
+                    node_id = item["node"]
+                    expected_value = item["value"]
+                    actual_value = reader.nodal_values_at_time(result_item_name, end_time, stage_output, node_ids=[node_id])[0]
+                    self.assertAlmostEqual(
+                        actual_value,
+                        expected_value,
+                        places=None,
+                        delta=max(rel_tolerance * expected_value, abs_tolerance),
+                        msg=f"{stage_tag} (time = {end_time}): {result_item_name} at node {node_id}"
+                    )
 
     def get_structural_stages(self):
         return [
@@ -971,7 +993,29 @@ class KratosGeoMechanicsBuildingPit(KratosUnittest.TestCase):
         return [coord[1] for coord in coordinates]
 
     def test_simulation_with_linear_elastic_materials(self):
-        self.run_simulation_and_checks("linear_elastic")
+        # Check the section forces in the diaphragm wall at the following positions:
+        #  y [m]   Node ID
+        #  20.0    8988
+        #  15.0    8351
+        #  10.0    7597
+        #   5.0    6867
+        #   0.0    6173
+        #  -5.0    5449
+        # -10.0    4768
+
+        # The expected values have been taken from the comparison data files
+        expected_results = {"wall_installation": {"BENDING_MOMENT": [{"node": 8988, "value": 0.0},
+                                                                           {"node": 8351, "value": 7.03e3},
+                                                                           {"node": 7597, "value": 3.83e3},
+                                                                           {"node": 6867, "value": 0.621e3},
+                                                                           {"node": 6173, "value": -1.58e3},
+                                                                           {"node": 5449, "value": -0.414e3},
+                                                                           {"node": 4768, "value": 0.0},
+                                                                     ]},
+                            "first_excavation": {},
+                            "second_excavation": {},
+                            "third_excavation": {}}
+        self.run_simulation_and_checks("linear_elastic", expected_results)
 
 
 if __name__ == "__main__":
