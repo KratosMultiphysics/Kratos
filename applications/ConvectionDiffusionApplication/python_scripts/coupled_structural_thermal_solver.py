@@ -14,6 +14,9 @@ def CreateSolver(main_model_part, custom_settings):
     return CoupledThermoMechanicalSolver(main_model_part, custom_settings)
 
 class CoupledThermoMechanicalSolver(PythonSolver):
+    """ A coupled one-way thermo-mechanical solver in which the time step is shared between the two solvers. 
+    The mechanical solver is the leader and only the structural dt is used (the thermal one is ignored)
+    """
 
     @classmethod
     def GetDefaultParameters(cls):
