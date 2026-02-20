@@ -58,28 +58,30 @@ void BruteForceMaterialPointLocator::FindObject(
         return;
     }
 
-    std::pair<double,int> closest_object = {tolerance*tolerance, rObjectId};
+    auto& process_info = mrModelPart.GetProcessInfo();
 
-    closest_object = block_for_each<MinDistanceReduction>(rObjects, [&](auto& r_object){
+    const std::tuple<double,int> closest_object{ tolerance*tolerance, -1 };
+    std::vector<array_1d<double, 3>> mp_coord = { ZeroVector(3) };
 
-        std::vector<array_1d<double, 3>> mp_coord = { ZeroVector(3) };
-        r_object.CalculateOnIntegrationPoints(MP_COORD, mp_coord, mrModelPart.GetProcessInfo());
+    rObjectId = block_for_each<MPMMinDistanceReduction>(rObjects, mp_coord,
+        [&process_info, &closest_object, &rThePoint](auto& r_object, auto& r_mp_coord){
 
-        const double distance = std::pow(mp_coord[0][0] - rThePoint.X(),2) +
-                                std::pow(mp_coord[0][1] - rThePoint.Y(),2) +
-                                std::pow(mp_coord[0][2] - rThePoint.Z(),2);
+            r_object.CalculateOnIntegrationPoints(MP_COORD, r_mp_coord, process_info);
 
-        if (distance < closest_object.first) {
-            closest_object = {distance, r_object.Id()};
-        }
+            const double distance = std::pow(r_mp_coord[0][0] - rThePoint.X(),2) +
+                                    std::pow(r_mp_coord[0][1] - rThePoint.Y(),2) +
+                                    std::pow(r_mp_coord[0][2] - rThePoint.Z(),2);
 
-        return closest_object;
-    });
+            if (distance < get<0>(closest_object)) {
+                return std::tuple<double,int>(distance, r_object.Id());
+            }
 
-    rObjectId = closest_object.second;
+            return closest_object;
+        });
 
     KRATOS_WARNING_IF("BruteForceMaterialPointLocator", rObjectId == -1)
-        << "No " << rObjectName << " close to point: " << rThePoint << std::endl;
+        << "No " << rObjectName << " close to point: " << rThePoint
+        << " (tolerance: " << tolerance << ")." << std::endl;
 }
 
 }  // namespace Kratos.

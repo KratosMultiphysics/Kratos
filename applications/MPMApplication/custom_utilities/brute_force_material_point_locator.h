@@ -29,33 +29,6 @@ namespace Kratos
 ///@name Kratos Classes
 ///@{
 
-class KRATOS_API(MPM_APPLICATION) MinDistanceReduction
-{
-public:
-    using value_type = std::pair<double,int>;
-    using return_type = std::pair<double,int>;
-
-    value_type mValue = {std::numeric_limits<double>::max(), -1};
-
-    /// access to reduced value
-    value_type GetValue() const
-    {
-        return mValue;
-    }
-
-    /// NON-THREADSAFE (fast) value of reduction, to be used within a single thread
-    void LocalReduce(const value_type value){
-        mValue = value.first < mValue.first ? value : mValue;
-    }
-
-    /// THREADSAFE (needs some sort of lock guard) reduction, to be used to sync threads
-    void ThreadSafeReduce(const MinDistanceReduction& rOther)
-    {
-        KRATOS_CRITICAL_SECTION
-        LocalReduce(rOther.mValue);
-    }
-};
-
 /**
  * @class BruteForceMaterialPointLocator
  * @ingroup MPMApplication
@@ -77,7 +50,10 @@ public:
     ///@{
 
     /// Default constructor.
-    explicit BruteForceMaterialPointLocator(ModelPart& rModelPart) : mrModelPart(rModelPart) {}
+    explicit BruteForceMaterialPointLocator(
+        ModelPart& rModelPart
+        ) : mrModelPart(rModelPart)
+    {}
 
     ///@}
     ///@name Operations
@@ -91,7 +67,8 @@ public:
      */
     int FindElement(
         const Point& rThePoint,
-        const double tolerance = 1e-6) const;
+        const double tolerance = 1e-6
+        ) const;
 
     /**
      * @brief This function finds a material point condition based on a location
@@ -101,7 +78,8 @@ public:
      */
     int FindCondition(
         const Point& rThePoint,
-        const double tolerance = 1e-6) const;
+        const double tolerance = 1e-6
+        ) const;
 
     ///@}
     ///@name Input and output
@@ -147,9 +125,37 @@ private:
         const std::string& rObjectType,
         const Point& rThePoint,
         int& rObjectId,
-        const double tolerance) const;
+        const double tolerance
+        ) const;
 
     ///@}
+
+    class KRATOS_API(MPM_APPLICATION) MPMMinDistanceReduction
+    {
+    public:
+        using value_type = std::tuple<double,int>;
+        using return_type = int;
+
+        value_type mValue = {std::numeric_limits<double>::max(), -1};
+
+        /// access to reduced value
+        return_type GetValue() const
+        {
+            return get<1>(mValue);
+        }
+
+        /// NON-THREADSAFE (fast) value of reduction, to be used within a single thread
+        void LocalReduce(const value_type value){
+            mValue = get<0>(value) < get<0>(mValue) ? value : mValue;
+        }
+
+        /// THREADSAFE (needs some sort of lock guard) reduction, to be used to sync threads
+        void ThreadSafeReduce(const MPMMinDistanceReduction& rOther)
+        {
+            KRATOS_CRITICAL_SECTION
+            LocalReduce(rOther.mValue);
+        }
+    };
 
 }; // Class BruteForceMaterialPointLocator
 
