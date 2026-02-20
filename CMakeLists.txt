@@ -94,6 +94,9 @@ option(KRATOS_COLORED_OUTPUT "KRATOS_COLORED_OUTPUT defines if the logger output
 # If no pch policy disable by default
 option(KRATOS_USE_PCH "KRATOS_USE_PCH defines if pch will be used during the compilation. This may will decrease compilation for clean build or if core components are touched. Default setting is OFF" OFF)
 
+# Future libraries deactivated by default
+option(KRATOS_FUTURE_MDSPAN "KRATOS_FUTURE_MDSPAN enables the MDSPAN Kokkos implementation. This will become the STL standard in C++23. Introducing as future proof. Default setting is OFF" OFF)
+
 # If not defined mute the very verbose installation messages
 if(NOT DEFINED CMAKE_INSTALL_MESSAGE)
   message("-- No CMAKE_INSTALL_MESSAGE is defined. Setting to NEVER")
@@ -391,6 +394,14 @@ if(KRATOS_BUILD_BENCHMARK MATCHES ON)
   # Restore the current directory's old `COMPILE_OPTIONS`
   set_directory_properties(PROPERTIES COMPILE_OPTIONS "${kratos_root_compile_options}")
 endif(KRATOS_BUILD_BENCHMARK MATCHES ON)
+
+# Future mdspan 
+if(KRATOS_FUTURE_MDSPAN MATCHES ON)
+  # Add the definitions if required
+  ADD_DEFINITIONS(-DKRATOS_FUTURE_MDSPAN)
+  message(STATUS "Preparing to use MDSPAN as a future proof library for C++23")
+  include_directories( ${KRATOS_SOURCE_DIR}/external_libraries/mdspan)
+endif()
 
 ################### PYBIND11
 
