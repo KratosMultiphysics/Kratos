@@ -206,6 +206,7 @@ public:
      * @param mpShapeFunctionsValues pointer to the shape functions values in the current integration point (input data)
      * @param mpShapeFunctionsDerivatives pointer to the shape functions derivatives values in the current integration point (input data)
      * @param mpElementGeometry pointer to the element's geometry (input data)
+     * @param mCharacteristicGeometryLength element's geometry characteristic length
 
      * MATERIAL PROPERTIES:
      * @param mpMaterialProperties pointer to the material's Properties object (input data)
@@ -235,6 +236,8 @@ public:
       const ProcessInfo*                   mpCurrentProcessInfo;
       const Properties*                    mpMaterialProperties;
       const GeometryType*                  mpElementGeometry;
+
+      double                               mCharacteristicGeometryLength = -1;
 
     public:
 
@@ -294,6 +297,7 @@ public:
         ,mpCurrentProcessInfo(rNewParameters.mpCurrentProcessInfo)
         ,mpMaterialProperties(rNewParameters.mpMaterialProperties)
         ,mpElementGeometry(rNewParameters.mpElementGeometry)
+        ,mCharacteristicGeometryLength(rNewParameters.mCharacteristicGeometryLength)
       {
       };
 
@@ -403,6 +407,7 @@ public:
       void SetProcessInfo                  (const ProcessInfo& rProcessInfo)          {mpCurrentProcessInfo =&rProcessInfo;};
       void SetMaterialProperties           (const Properties&  rMaterialProperties)   {mpMaterialProperties =&rMaterialProperties;};
       void SetElementGeometry              (const GeometryType& rElementGeometry)     {mpElementGeometry =&rElementGeometry;};
+      void SetCharacteristicGeometryLength (const double CharacteristicGeometryLength){mCharacteristicGeometryLength = CharacteristicGeometryLength;};
 
       /**
        * Returns the reference or the value of a specified variable: returns the value of the parameter, only non const values can be modified
@@ -462,6 +467,11 @@ public:
           KRATOS_DEBUG_ERROR_IF_NOT(IsSetElementGeometry()) << "ElementGeometry is not set!" << std::endl;
           return *mpElementGeometry;
       }
+      double GetCharacteristicGeometryLength() const
+      {
+          KRATOS_DEBUG_ERROR_IF_NOT(IsSetCharacteristicGeometryLength()) << "CharacteristicGeometryLength is not set!" << std::endl;
+          return mCharacteristicGeometryLength;
+      }
 
       /**
        * Returns the reference to the value of a specified variable with not constant access
@@ -490,6 +500,7 @@ public:
       bool IsSetProcessInfo               () {return (mpCurrentProcessInfo != NULL);};
       bool IsSetMaterialProperties        () {return (mpMaterialProperties != NULL);};
       bool IsSetElementGeometry           () {return (mpElementGeometry != NULL);};
+      bool IsSetCharacteristicGeometryLength () const {return (mCharacteristicGeometryLength >= 0.0);};
 
     };// struct Parameters end
 
