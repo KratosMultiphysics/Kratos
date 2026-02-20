@@ -2,11 +2,11 @@
 import KratosMultiphysics as KM
 import KratosMultiphysics.ShallowWaterApplication as SW
 
-from KratosMultiphysics.analysis_stage import AnalysisStage
+from KratosMultiphysics.analysis_stage_with_solver import AnalysisStageWithSolver
 
 from importlib import import_module
 
-class ShallowWaterAnalysis(AnalysisStage):
+class ShallowWaterAnalysis(AnalysisStageWithSolver):
     ''' Main script for shallow water simulations '''
 
     def _CreateSolver(self):

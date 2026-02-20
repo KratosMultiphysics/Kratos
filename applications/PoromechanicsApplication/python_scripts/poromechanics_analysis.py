@@ -8,11 +8,11 @@ import KratosMultiphysics.FluidDynamicsApplication
 import KratosMultiphysics.StructuralMechanicsApplication
 import KratosMultiphysics.PoromechanicsApplication as KratosPoro
 
-from KratosMultiphysics.analysis_stage import AnalysisStage
+from KratosMultiphysics.analysis_stage_with_solver import AnalysisStageWithSolver
 
 from importlib import import_module
 
-class PoromechanicsAnalysis(AnalysisStage):
+class PoromechanicsAnalysis(AnalysisStageWithSolver):
     '''Main script for poromechanics simulations.'''
 
     def __init__(self,model,parameters):
