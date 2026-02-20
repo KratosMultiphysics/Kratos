@@ -45,6 +45,9 @@ struct BareTypeImpl {
 template <typename T>
 using BareType = typename BareTypeImpl<T>::type;
 
+template<class T>
+inline constexpr bool always_false_v = false;
+
 /**
  * @brief Generic data type traits class for arithmetic types.
  *
@@ -331,7 +334,7 @@ private:
         if constexpr(TCheckIndex == 0) {
             return false;
         } else {
-            static_assert(sizeof(TCheckIndex) == 0 && false, "Invalid dimension index.");
+            static_assert(always_false_v<TCheckIndex>, "Invalid dimension index.");
         }
     }
 
@@ -585,7 +588,7 @@ public:
                 }
             }
         } else {
-            static_assert(sizeof(TDataType) == 0 && false, "This should be only called if the rValue is contiguous only.");
+            static_assert(always_false_v<TDataType>, "This should be only called if the rValue is contiguous only.");
         }
     }
 
@@ -617,7 +620,7 @@ public:
                 }
             }
         } else {
-            static_assert(sizeof(TDataType) == 0 && false, "This should be only called if the rValue is contiguous only.");
+            static_assert(always_false_v<TDataType>, "This should be only called if the rValue is contiguous only.");
         }
     }
 
@@ -988,7 +991,7 @@ public:
                 }
             }
         } else {
-            static_assert(sizeof(TDataType) == 0 && false, "GetContiguousData should only be called if rValue is contiguous.");
+            static_assert(always_false_v<TDataType>, "GetContiguousData should only be called if rValue is contiguous.");
         }
     }
 
@@ -1020,7 +1023,7 @@ public:
                 }
             }
         } else {
-            static_assert(sizeof(TDataType) == 0 && false, "GetContiguousData should only be called if rValue is contiguous.");
+            static_assert(always_false_v<TDataType>, "GetContiguousData should only be called if rValue is contiguous.");
         }
     }
 
@@ -1404,7 +1407,7 @@ public:
                 }
             }
         } else {
-            static_assert(sizeof(TDataType) == 0 && false, "GetContiguousData should only be called if rValue is contiguous.");
+            static_assert(always_false_v<TDataType>, "GetContiguousData should only be called if rValue is contiguous.");
         }
     }
 
@@ -1436,7 +1439,7 @@ public:
                 }
             }
         } else {
-            static_assert(sizeof(TDataType) == 0 && false, "GetContiguousData should only be called if rValue is contiguous.");
+            static_assert(always_false_v<TDataType>, "GetContiguousData should only be called if rValue is contiguous.");
         }
     }
 
@@ -1921,7 +1924,7 @@ private:
         if constexpr(TCheckIndex == TCurrentIndex) {
             return true;
         } else {
-            static_assert(sizeof(TCheckIndex) == 0 && false, "Invalid dimension index.");
+            static_assert(always_false_v<TCheckIndex>, "Invalid dimension index.");
         }
     }
 
@@ -2157,7 +2160,7 @@ public:
         if constexpr(IsContiguous) {
             return rValue.data();
         } else {
-            static_assert(sizeof(TDataType) == 0 && false, "GetContiguousData should only be called if rValue is contiguous.");
+            static_assert(always_false_v<TDataType>, "GetContiguousData should only be called if rValue is contiguous.");
         }
     }
 
@@ -2176,7 +2179,7 @@ public:
         if constexpr(IsContiguous) {
             return rValue.data();
         } else {
-            static_assert(sizeof(TDataType) == 0 && false, "GetContiguousData should only be called if rValue is contiguous.");
+            static_assert(always_false_v<TDataType>, "GetContiguousData should only be called if rValue is contiguous.");
         }
     }
 
