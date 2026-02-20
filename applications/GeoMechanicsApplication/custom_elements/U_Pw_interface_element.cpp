@@ -771,11 +771,11 @@ Vector UPwInterfaceElement::GetGeometryVelocityValues() const
 {
     const auto nodal_velocities = VariablesUtilities::GetNodalValues(this->GetGeometry(), VELOCITY);
     auto       result           = Vector(this->NumberOfUDofs());
-    const auto dimesion         = GetDisplacementGeometry().WorkingSpaceDimension();
+    const auto dimension        = GetDisplacementGeometry().WorkingSpaceDimension();
     std::size_t position        = 0;
     for (const auto& v : nodal_velocities) {
-        std::copy(v.begin(), v.begin() + dimesion, result.begin() + position);
-        position += dimesion;
+        std::copy(v.begin(), v.begin() + dimension, result.begin() + position);
+        position += dimension;
     }
     return result;
 }
@@ -891,7 +891,7 @@ void UPwInterfaceElement::CalculateAndAssembleUPCouplingForceVector(VectorType& 
 template <unsigned int NumberOfRows, unsigned int NumberOfColumns>
 void UPwInterfaceElement::CalculateAndAssemblePUCouplingForceVector(VectorType& rRightHandSideVector) const
 {
-    GeoElementUtilities::AssignUBlockVector(
+    GeoElementUtilities::AssemblePBlockVector(
         rRightHandSideVector, CreatePUCouplingCalculator<NumberOfRows, NumberOfColumns>().RHSContribution());
 }
 
