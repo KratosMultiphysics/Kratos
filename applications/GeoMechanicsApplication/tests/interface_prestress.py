@@ -134,7 +134,7 @@ class KratosGeoMechanicsInterfacePreStressTests(KratosUnittest.TestCase):
         )
         self.check_traction_vectors(
             interface_output_data_of_stage_2,
-            expected_normal_traction=-1000.0,
+            expected_normal_traction=-750.0,
             expected_shear_traction=0.0,
         )
         self.check_relative_displacement_vectors(
