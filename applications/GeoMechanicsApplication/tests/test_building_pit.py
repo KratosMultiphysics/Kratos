@@ -973,6 +973,8 @@ class KratosGeoMechanicsBuildingPit(KratosUnittest.TestCase):
     def test_simulation_with_linear_elastic_materials(self):
         self.run_simulation_and_checks("linear_elastic")
 
+    def test_simulation_with_mohr_coulomb_materials(self):
+        self.run_simulation_and_checks("mohr_coulomb")
 
 if __name__ == "__main__":
     KratosUnittest.main()

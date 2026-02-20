@@ -198,7 +198,12 @@
                 "GEO_COHESION"                     : 1.0e3,
                 "GEO_FRICTION_ANGLE"               : 25.0,
                 "GEO_TENSILE_STRENGTH"             : 2144.5,
-                "GEO_DILATANCY_ANGLE"              : 0.0
+                "GEO_DILATANCY_ANGLE"              : 0.0,
+                "BIOT_COEFFICIENT"         :  1.0,
+                "RETENTION_LAW"                 : "SaturatedBelowPhreaticLevelLaw",
+                "SATURATED_SATURATION"          : 1.0,
+                "RESIDUAL_SATURATION"           : 1e-10,
+                "MINIMUM_RELATIVE_PERMEABILITY" : 0.0001
             }
         }
     },{
@@ -214,7 +219,12 @@
                 "GEO_COHESION"                     : 1.0e3,
                 "GEO_FRICTION_ANGLE"               : 25.0,
                 "GEO_TENSILE_STRENGTH"             : 2144.5,
-                "GEO_DILATANCY_ANGLE"              : 0.0
+                "GEO_DILATANCY_ANGLE"              : 0.0,
+                "BIOT_COEFFICIENT"         :  1.0,
+                "RETENTION_LAW"                 : "SaturatedBelowPhreaticLevelLaw",
+                "SATURATED_SATURATION"          : 1.0,
+                "RESIDUAL_SATURATION"           : 1e-10,
+                "MINIMUM_RELATIVE_PERMEABILITY" : 0.0001
             }
         }
     },{
@@ -230,7 +240,12 @@
                 "GEO_COHESION"                     : 1.0e3,
                 "GEO_FRICTION_ANGLE"               : 25.0,
                 "GEO_TENSILE_STRENGTH"             : 2144.5,
-                "GEO_DILATANCY_ANGLE"              : 0.0
+                "GEO_DILATANCY_ANGLE"              : 0.0,
+                "BIOT_COEFFICIENT"         :  1.0,
+                "RETENTION_LAW"                 : "SaturatedBelowPhreaticLevelLaw",
+                "SATURATED_SATURATION"          : 1.0,
+                "RESIDUAL_SATURATION"           : 1e-10,
+                "MINIMUM_RELATIVE_PERMEABILITY" : 0.0001
             }
         }
     },{
@@ -246,7 +261,12 @@
                 "GEO_COHESION"                     : 1.0e3,
                 "GEO_FRICTION_ANGLE"               : 25.0,
                 "GEO_TENSILE_STRENGTH"             : 2144.5,
-                "GEO_DILATANCY_ANGLE"              : 0.0
+                "GEO_DILATANCY_ANGLE"              : 0.0,
+                "BIOT_COEFFICIENT"         :  1.0,
+                "RETENTION_LAW"                 : "SaturatedBelowPhreaticLevelLaw",
+                "SATURATED_SATURATION"          : 1.0,
+                "RESIDUAL_SATURATION"           : 1e-10,
+                "MINIMUM_RELATIVE_PERMEABILITY" : 0.0001
             }
         }
     },{
@@ -262,7 +282,12 @@
                 "GEO_COHESION"                     : 0.0,
                 "GEO_FRICTION_ANGLE"               : 32.0,
                 "GEO_TENSILE_STRENGTH"             : 0.0,
-                "GEO_DILATANCY_ANGLE"              : 2.0
+                "GEO_DILATANCY_ANGLE"              : 2.0,
+                "BIOT_COEFFICIENT"         :  1.0,
+                "RETENTION_LAW"                 : "SaturatedBelowPhreaticLevelLaw",
+                "SATURATED_SATURATION"          : 1.0,
+                "RESIDUAL_SATURATION"           : 1e-10,
+                "MINIMUM_RELATIVE_PERMEABILITY" : 0.0001
             }
         }
     },{
@@ -278,7 +303,12 @@
                 "GEO_COHESION"                     : 0.0,
                 "GEO_FRICTION_ANGLE"               : 32.0,
                 "GEO_TENSILE_STRENGTH"             : 0.0,
-                "GEO_DILATANCY_ANGLE"              : 2.0
+                "GEO_DILATANCY_ANGLE"              : 2.0,
+                "BIOT_COEFFICIENT"         :  1.0,
+                "RETENTION_LAW"                 : "SaturatedBelowPhreaticLevelLaw",
+                "SATURATED_SATURATION"          : 1.0,
+                "RESIDUAL_SATURATION"           : 1e-10,
+                "MINIMUM_RELATIVE_PERMEABILITY" : 0.0001
             }
         }
     },{
