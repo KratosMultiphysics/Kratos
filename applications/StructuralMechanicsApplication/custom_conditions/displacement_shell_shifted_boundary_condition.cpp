@@ -249,8 +249,30 @@ void DisplacementShellShiftedBoundaryCondition::CalculateLocalSystem(
         }
     }
 
-    D(6,6) = C_mat(1,1) / 2.0 * 5.0 / 6.0;
-    D(7,7) = C_mat(1,1) / 2.0 * 5.0 / 6.0; 
+    //determine longest side length (eqn 22) - for shear correction
+    Vector P12 = Vector(r_geometry[0] - r_geometry[1]);
+    Vector P13 = Vector(r_geometry[0] - r_geometry[2]);
+    Vector P23 = Vector(r_geometry[1] - r_geometry[2]);
+
+    double h_e = std::sqrt(inner_prod(P12, P12));
+    double edge_length = std::sqrt(inner_prod(P13, P13));
+    if (edge_length > h_e) {
+        h_e = edge_length;
+    }
+    edge_length = std::sqrt(inner_prod(P23, P23));
+    if (edge_length > h_e) {
+        h_e = edge_length;
+    }
+
+    double alpha = 0.1;
+    double hMean = thickness;
+
+    // Write Stenberg shear stabilisation coefficient
+    double shearStabilisation = (hMean*hMean)
+                              / (hMean*hMean + alpha*h_e*h_e);
+    
+    D(6,6) = D(2,2) * 5.0 / 6.0 * shearStabilisation; //plane strain!
+    D(7,7) = D(2,2) * 5.0 / 6.0 * shearStabilisation; //stenberg is missing
 
     for ( IndexType i = 0; i < n_nodes; ++i ) {
         const IndexType initial_index = i*6;
@@ -269,9 +291,9 @@ void DisplacementShellShiftedBoundaryCondition::CalculateLocalSystem(
         B_mat_shell(5, initial_index + 3) = -r_DN_DX(i, 0);
         B_mat_shell(5, initial_index + 4) = r_DN_DX(i, 1);
 
-        B_mat_shell(6, initial_index + 2) = r_DN_DX(i, 0);
-        B_mat_shell(6, initial_index + 3) = r_N[i];
-        B_mat_shell(7, initial_index + 2) = r_DN_DX(i, 1);
+        B_mat_shell(6, initial_index + 2) = -r_DN_DX(i, 0);
+        B_mat_shell(6, initial_index + 3) = -r_N[i];
+        B_mat_shell(7, initial_index + 2) = -r_DN_DX(i, 1);
         B_mat_shell(7, initial_index + 4) = r_N[i];
 
         // B_mat_shell(6, initial_index + 2) = -r_DN_DX(i, 1);
@@ -569,7 +591,7 @@ void DisplacementShellShiftedBoundaryCondition::CalculateBtransCProjectionLinear
         }
     // TO DO: shear and drilling part
         for (std::size_t j = 0; j < local_size; ++j) {
-            rAuxMat(j,2) = rUnitNormal[0]*aux_transBC(j,6) + rUnitNormal[1]*aux_transBC(j,7);
+            rAuxMat(j,2) = -rUnitNormal[0]*aux_transBC(j,6) + rUnitNormal[1]*aux_transBC(j,7);
         }
         
 
