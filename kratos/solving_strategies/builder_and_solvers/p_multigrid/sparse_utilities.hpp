@@ -22,6 +22,36 @@
 #include <climits> // CHAR_BIT
 
 
+
+// Define the hash table type used for computing CSR patterns.
+// The fallback option is std::unordered_*, but a more performant
+// alternative is boost::unordered_flat_* that requires boost 1.81
+// or newer.
+#if BOOST_VERSION < 108100
+    #include <unordered_set>
+    #include <unordered_map>
+
+    namespace Kratos {
+        template <class TKey, class TValue, class ...TArgs>
+        using CSRHashMap = std::unordered_map<TKey,TValue,TArgs...>;
+
+        template <class TValue, class ...TArgs>
+        using CSRHashSet = std::unordered_set<TValue,TArgs...>;
+    } // namespace Kratos
+#else
+    #include <boost/unordered/unordered_flat_map.hpp>
+    #include <boost/unordered/unordered_flat_set.hpp>
+
+    namespace Kratos {
+        template <class TKey, class TValue, class ...TArgs>
+        using CSRHashMap = boost::unordered_flat_map<TKey,TValue,TArgs...>;
+
+        template <class TValue, class ...TArgs>
+        using CSRHashSet = boost::unordered_flat_set<TValue,TArgs...>;
+    } // namespace Kratos
+#endif
+
+
 namespace Kratos {
 
 
@@ -127,31 +157,46 @@ MergeMatrices(typename TUblasSparseSpace<TValue>::MatrixType& rLeft,
     // Declare new containers for the merged matrix.
     typename MatrixType::index_array_type row_extents(rLeft.index1_data().size());
     typename MatrixType::index_array_type column_indices;
-    block_for_each(row_extents, [](auto& r_item){r_item = 0;});
+    typename MatrixType::value_array_type values;
+    block_for_each(
+        row_extents,
+        [](typename MatrixType::index_array_type::value_type& r_item){
+            r_item = static_cast<TValue>(0);
+        });
 
     // Merge rows into separate containers.
     {
-        std::vector<std::vector<IndexType>> rows(rLeft.size1());
+        std::vector<
+            std::vector<
+                std::pair<typename MatrixType::index_array_type::value_type,
+                          typename MatrixType::value_array_type::value_type
+        >>> rows(rLeft.size1());
+
         IndexPartition<IndexType>(rLeft.size1()).for_each([&rows, &rLeft, &rRight](const IndexType i_row){
             const IndexType i_left_begin = rLeft.index1_data()[i_row];
             const IndexType i_left_end = rLeft.index1_data()[i_row + 1];
             const IndexType i_right_begin = rRight.index1_data()[i_row];
             const IndexType i_right_end = rRight.index1_data()[i_row + 1];
-            rows[i_row].reserve(i_left_end - i_left_begin + i_right_end - i_right_begin);
+            rows[i_row].reserve((i_left_end - i_left_begin) + (i_right_end - i_right_begin));
 
-            rows[i_row].insert(rows[i_row].end(),
-                               rLeft.index2_data().begin() + i_left_begin,
-                               rLeft.index2_data().begin() + i_left_end);
-            rows[i_row].insert(rows[i_row].end(),
-                               rRight.index2_data().begin() + i_right_begin,
-                               rRight.index2_data().begin() + i_right_end);
-            std::sort(rows[i_row].begin(),
-                        rows[i_row].end());
+            for (IndexType i_entry=i_left_begin; i_entry<i_left_end; ++i_entry) {
+                rows[i_row].emplace_back(rLeft.index2_data()[i_entry], rLeft.value_data()[i_entry]);
+            }
+
+            for (IndexType i_entry=i_right_begin; i_entry<i_right_end; ++i_entry) {
+                rows[i_row].emplace_back(rRight.index2_data()[i_entry], rRight.value_data()[i_entry]);
+            }
+
+            std::stable_sort(rows[i_row].begin(),
+                             rows[i_row].end(),
+                             [](const auto& r_left, const auto& r_right) {return r_left.first < r_right.first;});
+
             rows[i_row].erase(std::unique(rows[i_row].begin(),
-                                          rows[i_row].end()),
-                                rows[i_row].end());
+                                          rows[i_row].end(),
+                                          [](const auto& r_left, const auto& r_right) {return r_left.first == r_right.first;}),
+                              rows[i_row].end());
             rows[i_row].shrink_to_fit();
-        });
+        }); // for i_row in range(rLeft.size1())
 
         // Compute new row extents.
         for (IndexType i_row=0; i_row<rLeft.size1(); ++i_row) {
@@ -160,19 +205,22 @@ MergeMatrices(typename TUblasSparseSpace<TValue>::MatrixType& rLeft,
 
         // Fill column indices and entries.
         column_indices.resize(row_extents[rLeft.size1()], false);
-        IndexPartition<IndexType>(rLeft.size1()).for_each([&rows, &row_extents, &column_indices](const IndexType i_row){
+        values.resize(row_extents[rLeft.size1()], false);
+        IndexPartition<IndexType>(rLeft.size1()).for_each([&rows, &row_extents, &column_indices, &values](const IndexType i_row){
             const IndexType i_begin = row_extents[i_row];
-            std::copy(rows[i_row].begin(),
-                        rows[i_row].end(),
-                        column_indices.begin() + i_begin);
-        });
+            for (IndexType i_pair=0ul; i_pair<static_cast<IndexType>(rows[i_row].size()); ++i_pair) {
+                const auto i_entry = i_begin + i_pair;
+                column_indices[i_entry] = rows[i_row][i_pair].first;
+                values[i_entry] = rows[i_row][i_pair].second;
+            }
+        }); // for i_row in range(rLeft.size1())
     }
 
     // Construct the new matrix.
     rLeft = MatrixType(rLeft.size1(), rLeft.size2(), column_indices.size());
     rLeft.index1_data().swap(row_extents);
     rLeft.index2_data().swap(column_indices);
-    block_for_each(rLeft.value_data(), [](auto& r_item){r_item = 0;});
+    rLeft.value_data().swap(values);
     rLeft.set_filled(rLeft.size1() + 1, column_indices.size());
 
     KRATOS_CATCH("")
@@ -295,11 +343,12 @@ void MapContribution(typename TSparse::MatrixType& rLhs,
     for (typename TDense::IndexType i_local = 0; i_local < local_size; i_local++) {
         const IndexType i_global = rEquationIds[i_local];
         std::scoped_lock<LockObject> lock(pLockBegin[i_global]);
-        MapRowContribution<TSparse,TDense>(rLhs,
-                                           rContribution,
-                                           i_global,
-                                           i_local,
-                                           rEquationIds);
+        MapRowContribution<TSparse,TDense>(
+            rLhs,
+            rContribution,
+            i_global,
+            i_local,
+            rEquationIds);
     }
 }
 
@@ -351,37 +400,43 @@ void MapEntityContribution(TEntity& rEntity,
             if constexpr (AssembleLHS) {
                 if constexpr (AssembleRHS) {
                     // Assemble LHS and RHS.
-                    rScheme.CalculateSystemContributions(rEntity,
-                                                         *pLhsContribution,
-                                                         *pRhsContribution,
-                                                         rEquationIndices,
-                                                         rProcessInfo);
-                    MapContribution<TSparse,TDense>(*pLhs,
-                                                    *pRhs,
-                                                    *pLhsContribution,
-                                                    *pRhsContribution,
-                                                    rEquationIndices,
-                                                    pLockBegin);
+                    rScheme.CalculateSystemContributions(
+                        rEntity,
+                        *pLhsContribution,
+                        *pRhsContribution,
+                        rEquationIndices,
+                        rProcessInfo);
+                    MapContribution<TSparse,TDense>(
+                        *pLhs,
+                        *pRhs,
+                        *pLhsContribution,
+                        *pRhsContribution,
+                        rEquationIndices,
+                        pLockBegin);
                 } /*if AssembleRHS*/ else {
                     // Assemble LHS only.
-                    rScheme.CalculateLHSContribution(rEntity,
-                                                    *pLhsContribution,
-                                                    rEquationIndices,
-                                                    rProcessInfo);
-                    MapContribution<TSparse,TDense>(*pLhs,
-                                                    *pLhsContribution,
-                                                    rEquationIndices,
-                                                    pLockBegin);
+                    rScheme.CalculateLHSContribution(
+                        rEntity,
+                        *pLhsContribution,
+                        rEquationIndices,
+                        rProcessInfo);
+                    MapContribution<TSparse,TDense>(
+                        *pLhs,
+                        *pLhsContribution,
+                        rEquationIndices,
+                        pLockBegin);
                 } // if !AssembleRHS
             } /*if AssembleLHS*/ else {
                 // Assemble RHS only.
-                rScheme.CalculateRHSContribution(rEntity,
-                                                 *pRhsContribution,
-                                                 rEquationIndices,
-                                                 rProcessInfo);
-                MapContribution<TSparse,TDense>(*pRhs,
-                                                *pRhsContribution,
-                                                rEquationIndices);
+                rScheme.CalculateRHSContribution(
+                    rEntity,
+                    *pRhsContribution,
+                    rEquationIndices,
+                    rProcessInfo);
+                MapContribution<TSparse,TDense>(
+                    *pRhs,
+                    *pRhsContribution,
+                    rEquationIndices);
             } // if !AssembleLHS
         } // if rEntity.IsActive
     } // if AssembleLHS or AssembleRHS
@@ -437,10 +492,22 @@ void ApplyDirichletConditions(typename TSparse::MatrixType& rLhs,
 
                 if (i_column == i_dof) {
                     found_diagonal = true;
-                    KRATOS_ERROR_IF_NOT(rLhs.value_data()[i_entry])
-                        << "zero on main diagonal of row " << i_dof << " "
-                        << "related to dof " << r_dof.GetVariable().Name() << " "
-                        << "of node " << r_dof.Id();
+
+                    // Check the entry on the main diagonal.
+                    if (!rLhs.value_data()[i_entry]) {
+                        // Explicit zero on the main diagonal.
+                        // - If the associated entry on the RHS is also zero,
+                        //   force the DoF to also vanish.
+                        // - Otherwise it's impossible to solve the system,
+                        //   so throw an exception.
+                        KRATOS_ERROR_IF(rRhs[i_dof])
+                            << "explicit zero on the main diagonal of row " << i_dof << " "
+                            << "related to dof " << r_dof.GetVariable().Name() << " "
+                            << "of node " << r_dof.Id()
+                            << ", but the related entry on the right hand side does not vanish ("
+                            << rLhs.value_data()[i_entry] << ")";
+                        rLhs.value_data()[i_entry] = DiagonalScaleFactor;
+                    }
                 } /*if i_column == i_dof*/ else if (it_column_dof->IsFixed()) {
                     rLhs.value_data()[i_entry] = static_cast<typename TSparse::DataType>(0);
                 }
@@ -449,7 +516,7 @@ void ApplyDirichletConditions(typename TSparse::MatrixType& rLhs,
         } /*not r_dof.IsFixed()*/
 
         KRATOS_ERROR_IF_NOT(found_diagonal)
-        << "missing diagonal in row " << i_dof << " "
+        << "implicit zero on the main diagonal of row " << i_dof << " "
         << "related to dof " << r_dof.GetVariable().Name() << " "
         << "of node " << r_dof.Id();
     });
@@ -588,6 +655,14 @@ void BalancedProduct(const typename TLHSSparse::MatrixType& rLhs,
                      typename TOutputSparse::VectorType& rOutput,
                      const typename TOutputSparse::DataType Coefficient = static_cast<typename TOutputSparse::DataType>(1))
 {
+    // Sanity checks.
+    KRATOS_ERROR_IF_NOT(rLhs.size2() == rRhs.size() && rLhs.size1() == rOutput.size())
+        << "incompatible matrix-vector product: "
+        << "(" << rLhs.size1() << "x" << rLhs.size2() << ") "
+        << "@ "
+        << "(" << rRhs.size() << ") "
+        << "=> (" << rOutput.size() << ")";
+
     KRATOS_TRY
 
     // Create partition for entries in the matrix.
