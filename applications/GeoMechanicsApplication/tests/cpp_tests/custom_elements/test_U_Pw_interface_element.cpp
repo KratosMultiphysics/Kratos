@@ -401,12 +401,12 @@ Vector ExpectedStiffnessForceOfLinearTriangularInterfaceElement()
                                          0.0, 1.0 / 3.0, 5.0 / 6.0, 0.0});
 }
 
-class MockElementWithTotalStressVectors : public Element
+class MockElementWithEffectiveStressVectors : public Element
 {
 public:
-    MockElementWithTotalStressVectors(std::size_t                     ElementId,
-                                      std::shared_ptr<Geometry<Node>> pGeometry,
-                                      Properties::Pointer             pProperties);
+    MockElementWithEffectiveStressVectors(std::size_t                     ElementId,
+                                          std::shared_ptr<Geometry<Node>> pGeometry,
+                                          Properties::Pointer             pProperties);
 
     void SetValuesOnIntegrationPoints(const Variable<Vector>&    rVariable,
                                       const std::vector<Vector>& rValues,
@@ -422,43 +422,42 @@ public:
     void              SetIntegrationMethod(IntegrationMethod CustomIntegrationMethod);
 
 private:
-    std::vector<Vector>              mTotalStressVectors;
+    std::vector<Vector>              mEffectiveStressVectors;
     std::optional<IntegrationMethod> mOptionalCustomIntegrationMethod;
 };
 
-MockElementWithTotalStressVectors::MockElementWithTotalStressVectors(std::size_t ElementId,
-                                                                     std::shared_ptr<Geometry<Node>> pGeometry,
-                                                                     Properties::Pointer pProperties)
+MockElementWithEffectiveStressVectors::MockElementWithEffectiveStressVectors(
+    std::size_t ElementId, std::shared_ptr<Geometry<Node>> pGeometry, Properties::Pointer pProperties)
     : Element{ElementId, std::move(pGeometry), std::move(pProperties)}
 {
 }
 
-void MockElementWithTotalStressVectors::SetValuesOnIntegrationPoints(const Variable<Vector>& rVariable,
-                                                                     const std::vector<Vector>& rValues,
-                                                                     const ProcessInfo&)
+void MockElementWithEffectiveStressVectors::SetValuesOnIntegrationPoints(const Variable<Vector>& rVariable,
+                                                                         const std::vector<Vector>& rValues,
+                                                                         const ProcessInfo&)
 {
-    KRATOS_DEBUG_ERROR_IF_NOT(rVariable == TOTAL_STRESS_VECTOR)
-        << "This mock element can only set total stress vectors\n";
+    KRATOS_DEBUG_ERROR_IF_NOT(rVariable == CAUCHY_STRESS_VECTOR)
+        << "This mock element can only set effective stress vectors\n";
 
-    mTotalStressVectors = rValues;
+    mEffectiveStressVectors = rValues;
 }
 
-void MockElementWithTotalStressVectors::CalculateOnIntegrationPoints(const Variable<Vector>& rVariable,
-                                                                     std::vector<Vector>& rOutput,
-                                                                     const ProcessInfo&)
+void MockElementWithEffectiveStressVectors::CalculateOnIntegrationPoints(const Variable<Vector>& rVariable,
+                                                                         std::vector<Vector>& rOutput,
+                                                                         const ProcessInfo&)
 {
-    KRATOS_DEBUG_ERROR_IF_NOT(rVariable == TOTAL_STRESS_VECTOR)
-        << "This mock element can only calculate total stress vectors\n";
+    KRATOS_DEBUG_ERROR_IF_NOT(rVariable == CAUCHY_STRESS_VECTOR)
+        << "This mock element can only calculate effective stress vectors\n";
 
-    rOutput = mTotalStressVectors;
+    rOutput = mEffectiveStressVectors;
 }
 
-GeometryData::IntegrationMethod MockElementWithTotalStressVectors::GetIntegrationMethod() const
+GeometryData::IntegrationMethod MockElementWithEffectiveStressVectors::GetIntegrationMethod() const
 {
     return mOptionalCustomIntegrationMethod.value_or(GetGeometry().GetDefaultIntegrationMethod());
 }
 
-void MockElementWithTotalStressVectors::SetIntegrationMethod(IntegrationMethod CustomIntegrationMethod)
+void MockElementWithEffectiveStressVectors::SetIntegrationMethod(IntegrationMethod CustomIntegrationMethod)
 {
     mOptionalCustomIntegrationMethod = CustomIntegrationMethod;
 }
@@ -1703,20 +1702,21 @@ KRATOS_TEST_CASE_IN_SUITE(UPwLineInterfaceElement_InterpolatesNodalStresses, Kra
     p_properties->SetValue(YOUNG_MODULUS, 1.000000e+07);
     p_properties->SetValue(POISSON_RATIO, 0.000000e+00);
     // create a triangle neighbour element
-    auto p_neighbour_element = make_intrusive<MockElementWithTotalStressVectors>(
+    auto p_neighbour_element = make_intrusive<MockElementWithEffectiveStressVectors>(
         2, std::make_shared<Triangle2D3<Node>>(nodes), p_properties);
     p_neighbour_element->SetIntegrationMethod(GeometryData::IntegrationMethod::GI_GAUSS_2);
     ProcessInfo dummy_process_info;
     p_neighbour_element->Initialize(dummy_process_info);
-    std::vector<ConstitutiveLaw::StressVectorType> total_stress_vectors;
+    std::vector<ConstitutiveLaw::StressVectorType> effective_stress_vectors;
     ConstitutiveLaw::StressVectorType              stress_vector(4);
     stress_vector <<= 3.0, 13.0 / 6.0, 4.0, 1.0;
-    total_stress_vectors.emplace_back(stress_vector);
-    total_stress_vectors.emplace_back(stress_vector);
+    effective_stress_vectors.emplace_back(stress_vector);
+    effective_stress_vectors.emplace_back(stress_vector);
     stress_vector <<= 3.0, 8.0 / 3.0, 4.0, 1.0;
-    total_stress_vectors.emplace_back(stress_vector);
+    effective_stress_vectors.emplace_back(stress_vector);
 
-    p_neighbour_element->SetValuesOnIntegrationPoints(TOTAL_STRESS_VECTOR, total_stress_vectors, dummy_process_info);
+    p_neighbour_element->SetValuesOnIntegrationPoints(CAUCHY_STRESS_VECTOR,
+                                                      effective_stress_vectors, dummy_process_info);
 
     nodes.clear();
     nodes.push_back(r_model_part.pGetNode(1));
@@ -1751,19 +1751,19 @@ KRATOS_TEST_CASE_IN_SUITE(UPwLineInterfaceElement_InterpolatesNodalStresses, Kra
     nodes.push_back(r_model_part.pGetNode(4));
     nodes.push_back(r_model_part.pGetNode(5));
     nodes.push_back(r_model_part.CreateNewNode(6, 0.0, 2.0, 0.0));
-    auto p_other_neighbour_element = make_intrusive<MockElementWithTotalStressVectors>(
+    auto p_other_neighbour_element = make_intrusive<MockElementWithEffectiveStressVectors>(
         3, std::make_shared<Triangle2D3<Node>>(nodes), p_properties);
     p_other_neighbour_element->SetIntegrationMethod(GeometryData::IntegrationMethod::GI_GAUSS_2);
     p_other_neighbour_element->Initialize(dummy_process_info);
-    total_stress_vectors.clear();
+    effective_stress_vectors.clear();
     stress_vector <<= 7.0, 4.0, 11.0, 5.0 / 6.0;
-    total_stress_vectors.emplace_back(stress_vector);
+    effective_stress_vectors.emplace_back(stress_vector);
     stress_vector <<= 7.0, 4.0, 11.0, 10.0 / 3.0;
-    total_stress_vectors.emplace_back(stress_vector);
+    effective_stress_vectors.emplace_back(stress_vector);
     stress_vector <<= 7.0, 4.0, 11.0, 5.0 / 6.0;
-    total_stress_vectors.emplace_back(stress_vector);
+    effective_stress_vectors.emplace_back(stress_vector);
     p_other_neighbour_element->SetValuesOnIntegrationPoints(
-        TOTAL_STRESS_VECTOR, total_stress_vectors, dummy_process_info);
+        CAUCHY_STRESS_VECTOR, effective_stress_vectors, dummy_process_info);
     interface_element.SetValue(NEIGHBOUR_ELEMENTS, MakeElementGlobalPtrContainerWith(p_other_neighbour_element));
 
     // Act
@@ -1802,25 +1802,26 @@ KRATOS_TEST_CASE_IN_SUITE(UPwPlaneInterfaceElement_InterpolatesNodalStresses, Kr
     p_properties->SetValue(YOUNG_MODULUS, 1.000000e+07);
     p_properties->SetValue(POISSON_RATIO, 0.000000e+00);
     // create a hexagonal neighbour element
-    auto p_neighbour_element = make_intrusive<MockElementWithTotalStressVectors>(
+    auto p_neighbour_element = make_intrusive<MockElementWithEffectiveStressVectors>(
         2, std::make_shared<Hexahedra3D8<Node>>(nodes), p_properties);
     p_neighbour_element->SetIntegrationMethod(GeometryData::IntegrationMethod::GI_GAUSS_2);
 
     ProcessInfo dummy_process_info;
     p_neighbour_element->Initialize(dummy_process_info);
-    std::vector<ConstitutiveLaw::StressVectorType> total_stress_vectors;
+    std::vector<ConstitutiveLaw::StressVectorType> effective_stress_vectors;
     ConstitutiveLaw::StressVectorType              stress_vector(6);
     stress_vector <<= 3.0, (std::sqrt(3.0) - 1.0) / (2.0 * std::sqrt(3.0)), 4.0, 1.0, 2.0, 4.0;
-    total_stress_vectors.emplace_back(stress_vector);
-    total_stress_vectors.emplace_back(stress_vector);
-    total_stress_vectors.emplace_back(stress_vector);
-    total_stress_vectors.emplace_back(stress_vector);
+    effective_stress_vectors.emplace_back(stress_vector);
+    effective_stress_vectors.emplace_back(stress_vector);
+    effective_stress_vectors.emplace_back(stress_vector);
+    effective_stress_vectors.emplace_back(stress_vector);
     stress_vector <<= 3.0, (std::sqrt(3.0) + 1.0) / (2.0 * std::sqrt(3.0)), 4.0, 1.0, 2.0, 4.0;
-    total_stress_vectors.emplace_back(stress_vector);
-    total_stress_vectors.emplace_back(stress_vector);
-    total_stress_vectors.emplace_back(stress_vector);
-    total_stress_vectors.emplace_back(stress_vector);
-    p_neighbour_element->SetValuesOnIntegrationPoints(TOTAL_STRESS_VECTOR, total_stress_vectors, dummy_process_info);
+    effective_stress_vectors.emplace_back(stress_vector);
+    effective_stress_vectors.emplace_back(stress_vector);
+    effective_stress_vectors.emplace_back(stress_vector);
+    effective_stress_vectors.emplace_back(stress_vector);
+    p_neighbour_element->SetValuesOnIntegrationPoints(CAUCHY_STRESS_VECTOR,
+                                                      effective_stress_vectors, dummy_process_info);
 
     nodes.clear();
     nodes.push_back(r_model_part.pGetNode(2));
@@ -1868,23 +1869,23 @@ KRATOS_TEST_CASE_IN_SUITE(UPwPlaneInterfaceElement_InterpolatesNodalStresses, Kr
     nodes.push_back(r_model_part.CreateNewNode(16, 0.5, 1.5, 1.0));
     nodes.push_back(r_model_part.CreateNewNode(17, -0.5, 1.5, 1.0));
     nodes.push_back(r_model_part.pGetNode(18));
-    auto p_other_neighbour_element = make_intrusive<MockElementWithTotalStressVectors>(
+    auto p_other_neighbour_element = make_intrusive<MockElementWithEffectiveStressVectors>(
         3, std::make_shared<Hexahedra3D8<Node>>(nodes), p_properties);
     p_neighbour_element->SetIntegrationMethod(GeometryData::IntegrationMethod::GI_GAUSS_2);
     p_other_neighbour_element->Initialize(dummy_process_info);
-    total_stress_vectors.clear();
+    effective_stress_vectors.clear();
     stress_vector <<= 3.0, 4.0, 1.0, 2.0, (std::sqrt(3.0) - 1.0) / (2.0 * std::sqrt(3.0)), 4.0;
-    total_stress_vectors.emplace_back(stress_vector);
-    total_stress_vectors.emplace_back(stress_vector);
-    total_stress_vectors.emplace_back(stress_vector);
-    total_stress_vectors.emplace_back(stress_vector);
+    effective_stress_vectors.emplace_back(stress_vector);
+    effective_stress_vectors.emplace_back(stress_vector);
+    effective_stress_vectors.emplace_back(stress_vector);
+    effective_stress_vectors.emplace_back(stress_vector);
     stress_vector <<= 3.0, 4.0, 1.0, 2.0, (std::sqrt(3.0) + 1.0) / (2.0 * std::sqrt(3.0)), 4.0;
-    total_stress_vectors.emplace_back(stress_vector);
-    total_stress_vectors.emplace_back(stress_vector);
-    total_stress_vectors.emplace_back(stress_vector);
-    total_stress_vectors.emplace_back(stress_vector);
+    effective_stress_vectors.emplace_back(stress_vector);
+    effective_stress_vectors.emplace_back(stress_vector);
+    effective_stress_vectors.emplace_back(stress_vector);
+    effective_stress_vectors.emplace_back(stress_vector);
     p_other_neighbour_element->SetValuesOnIntegrationPoints(
-        TOTAL_STRESS_VECTOR, total_stress_vectors, dummy_process_info);
+        CAUCHY_STRESS_VECTOR, effective_stress_vectors, dummy_process_info);
 
     interface_element.SetValue(NEIGHBOUR_ELEMENTS, MakeElementGlobalPtrContainerWith(p_other_neighbour_element));
 
@@ -2324,8 +2325,8 @@ KRATOS_TEST_CASE_IN_SUITE(UPwTriangleInterfaceElement_3Plus3Element_CouplingCont
                                       {0, 0, 0, 0, 0, 0},
                                       {0, 0, 0.026959064, 0, 0, 0.026959064}});
     const auto expected_up_block_vector = UblasUtilities::CreateVector(
-        {0, 0, 2.7228655, 0, 0, 2.7228655, 0, 0, 2.7228655, 0, 0, -2.7228655,
-         0, 0, -2.7228655,  0, 0, -2.7228655,  0, 0, 0,          0, 0, 0});
+        {0, 0, 2.7228655,  0, 0, 2.7228655,  0, 0, 2.7228655, 0, 0, -2.7228655,
+         0, 0, -2.7228655, 0, 0, -2.7228655, 0, 0, 0,         0, 0, 0});
     GeneralizedUPCouplingContributionTest<InterfaceThreeDimensionalSurface>(
         CreateHorizontal3Plus3NodedTriangleInterfaceElementWithUPwDofs, IsDiffOrderElement::No, 18,
         6, expected_up_block_matrix, expected_up_block_vector);
@@ -2372,10 +2373,10 @@ KRATOS_TEST_CASE_IN_SUITE(UPwTriangleInterfaceElement_6Plus6Element_CouplingCont
                                       {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0},
                                       {0, 0, 0, 0, 0, 0.024301128, 0, 0, 0, 0, 0, 0.024301128}});
     const auto expected_up_block_vector = UblasUtilities::CreateVector(
-        {0, 0, 0.26845153, 0, 0, 0.26845153, 0, 0, 0.26845153, 0, 0, 2.454414,
-         0, 0, 2.454414,   0, 0, 2.454414,   0, 0, -0.26845153,  0, 0, -0.26845153,
-         0, 0, -0.26845153,  0, 0, -2.454414,    0, 0, -2.454414,    0, 0, -2.454414,
-         0, 0, 0,           0, 0, 0,           0, 0, 0,           0, 0, 0});
+        {0, 0, 0.26845153,  0, 0, 0.26845153, 0, 0, 0.26845153,  0, 0, 2.454414,
+         0, 0, 2.454414,    0, 0, 2.454414,   0, 0, -0.26845153, 0, 0, -0.26845153,
+         0, 0, -0.26845153, 0, 0, -2.454414,  0, 0, -2.454414,   0, 0, -2.454414,
+         0, 0, 0,           0, 0, 0,          0, 0, 0,           0, 0, 0});
     GeneralizedUPCouplingContributionTest<InterfaceThreeDimensionalSurface>(
         CreateHorizontal6Plus6NodedTriangleInterfaceElementWithUPwDoF, IsDiffOrderElement::No, 36,
         12, expected_up_block_matrix, expected_up_block_vector);
@@ -2422,9 +2423,10 @@ KRATOS_TEST_CASE_IN_SUITE(UPwTriangleInterfaceElement_6Plus6Element_CouplingCont
                                       {0, 0, 0, 0, 0, 0},
                                       {0.012150564, 0, 0.012150564, 0.012150564, 0, 0.012150564}});
     const auto expected_up_block_vector = UblasUtilities::CreateVector(
-        {0, 0, 0.26845153, 0, 0, 0.26845153, 0, 0, 0.26845153, 0, 0, 2.454414,  0, 0, 2.454414,
-         0, 0, 2.454414,   0, 0, -0.26845153,  0, 0, -0.26845153,  0, 0, -0.26845153, 0, 0, -2.454414,
-         0, 0, -2.454414,    0, 0, -2.454414,    0, 0, 0,           0, 0, 0});
+        {0, 0, 0.26845153,  0, 0, 0.26845153, 0, 0, 0.26845153,  0, 0, 2.454414,
+         0, 0, 2.454414,    0, 0, 2.454414,   0, 0, -0.26845153, 0, 0, -0.26845153,
+         0, 0, -0.26845153, 0, 0, -2.454414,  0, 0, -2.454414,   0, 0, -2.454414,
+         0, 0, 0,           0, 0, 0});
     GeneralizedUPCouplingContributionTest<InterfaceThreeDimensionalSurface>(
         CreateHorizontal6Plus6NodedTriangleInterfaceElementWithUPwDoF, IsDiffOrderElement::Yes, 36,
         6, expected_up_block_matrix, expected_up_block_vector);
@@ -2459,8 +2461,8 @@ KRATOS_TEST_CASE_IN_SUITE(UPwQuadraliteralInterfaceElement_4Plus4Element_Couplin
                                       {0, 0, 0, 0, 0, 0, 0, 0},
                                       {0, 0, 0, 0.040438596, 0, 0, 0, 0.040438596}});
     const auto expected_up_block_vector = UblasUtilities::CreateVector(
-        {0, 0, 4.0842982, 0, 0, 4.0842982, 0, 0, 4.0842982, 0, 0, 4.0842982,
-         0, 0, -4.0842982,  0, 0, -4.0842982,  0, 0, -4.0842982,  0, 0, -4.0842982,
+        {0, 0, 4.0842982,  0, 0, 4.0842982,  0, 0, 4.0842982,  0, 0, 4.0842982,
+         0, 0, -4.0842982, 0, 0, -4.0842982, 0, 0, -4.0842982, 0, 0, -4.0842982,
          0, 0, 0,          0, 0, 0,          0, 0});
     GeneralizedUPCouplingContributionTest<InterfaceThreeDimensionalSurface>(
         CreateHorizontal4Plus4NodedQuadraliteralInterfaceElementWithUPwDoF, IsDiffOrderElement::No,
@@ -2520,10 +2522,10 @@ KRATOS_TEST_CASE_IN_SUITE(UPwQuadraliteralInterfaceElement_8Plus8Element_Couplin
          {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0},
          {0, 0, 0, 0, 0, 0, 0, 0.034053555, 0, 0, 0, 0, 0, 0, 0, 0.034053555}});
     const auto expected_up_block_vector = UblasUtilities::CreateVector(
-        {0, 0, 0.64488919, 0, 0, 0.64488919, 0, 0, 0.64488919, 0, 0, 0.64488919,
-         0, 0, 3.439409,   0, 0, 3.439409,   0, 0, 3.439409,   0, 0, 3.439409,
-         0, 0, -0.64488919,  0, 0, -0.64488919,  0, 0, -0.64488919,  0, 0, -0.64488919,
-         0, 0, -3.439409,    0, 0, -3.439409,    0, 0, -3.439409,    0, 0, -3.439409,
+        {0, 0, 0.64488919,  0, 0, 0.64488919,  0, 0, 0.64488919,  0, 0, 0.64488919,
+         0, 0, 3.439409,    0, 0, 3.439409,    0, 0, 3.439409,    0, 0, 3.439409,
+         0, 0, -0.64488919, 0, 0, -0.64488919, 0, 0, -0.64488919, 0, 0, -0.64488919,
+         0, 0, -3.439409,   0, 0, -3.439409,   0, 0, -3.439409,   0, 0, -3.439409,
          0, 0, 0,           0, 0, 0,           0, 0, 0,           0, 0, 0,
          0, 0, 0,           0});
     GeneralizedUPCouplingContributionTest<InterfaceThreeDimensionalSurface>(
@@ -2584,10 +2586,10 @@ KRATOS_TEST_CASE_IN_SUITE(UPwQuadraliteralInterfaceElement_8Plus8Element_Couplin
          {0, 0, 0, 0, 0, 0, 0, 0},
          {0.017026777, 0, 0, 0.017026777, 0.017026777, 0, 0, 0.017026777}});
     const auto expected_up_block_vector = UblasUtilities::CreateVector(
-        {0, 0, 0.64488919, 0, 0, 0.64488919, 0, 0, 0.64488919, 0, 0, 0.64488919,
-         0, 0, 3.439409,   0, 0, 3.439409,   0, 0, 3.439409,   0, 0, 3.439409,
-         0, 0, -0.64488919,  0, 0, -0.64488919,  0, 0, -0.64488919,  0, 0, -0.64488919,
-         0, 0, -3.439409,    0, 0, -3.439409,    0, 0, -3.439409,    0, 0, -3.439409,
+        {0, 0, 0.64488919,  0, 0, 0.64488919,  0, 0, 0.64488919,  0, 0, 0.64488919,
+         0, 0, 3.439409,    0, 0, 3.439409,    0, 0, 3.439409,    0, 0, 3.439409,
+         0, 0, -0.64488919, 0, 0, -0.64488919, 0, 0, -0.64488919, 0, 0, -0.64488919,
+         0, 0, -3.439409,   0, 0, -3.439409,   0, 0, -3.439409,   0, 0, -3.439409,
          0, 0, 0,           0, 0, 0,           0, 0});
 
     GeneralizedUPCouplingContributionTest<InterfaceThreeDimensionalSurface>(
