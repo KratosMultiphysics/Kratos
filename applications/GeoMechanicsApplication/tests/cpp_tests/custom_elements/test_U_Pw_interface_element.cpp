@@ -28,6 +28,9 @@
 #include "tests/cpp_tests/test_utilities.h"
 
 #include <boost/numeric/ublas/assignment.hpp>
+#include <numbers>
+
+using namespace std::numbers;
 
 namespace
 {
@@ -1708,12 +1711,10 @@ KRATOS_TEST_CASE_IN_SUITE(UPwLineInterfaceElement_InterpolatesNodalStresses, Kra
     ProcessInfo dummy_process_info;
     p_neighbour_element->Initialize(dummy_process_info);
     std::vector<ConstitutiveLaw::StressVectorType> effective_stress_vectors;
-    ConstitutiveLaw::StressVectorType              stress_vector(4);
-    stress_vector <<= 3.0, 13.0 / 6.0, 4.0, 1.0;
-    effective_stress_vectors.emplace_back(stress_vector);
-    effective_stress_vectors.emplace_back(stress_vector);
-    stress_vector <<= 3.0, 8.0 / 3.0, 4.0, 1.0;
-    effective_stress_vectors.emplace_back(stress_vector);
+    effective_stress_vectors.reserve(3);
+    std::fill_n(std::back_inserter(effective_stress_vectors), 2,
+                UblasUtilities::CreateVector({3.0, 13.0 / 6.0, 4.0, 1.0}));
+    effective_stress_vectors.emplace_back(UblasUtilities::CreateVector({3.0, 8.0 / 3.0, 4.0, 1.0}));
 
     p_neighbour_element->SetValuesOnIntegrationPoints(CAUCHY_STRESS_VECTOR,
                                                       effective_stress_vectors, dummy_process_info);
@@ -1756,12 +1757,9 @@ KRATOS_TEST_CASE_IN_SUITE(UPwLineInterfaceElement_InterpolatesNodalStresses, Kra
     p_other_neighbour_element->SetIntegrationMethod(GeometryData::IntegrationMethod::GI_GAUSS_2);
     p_other_neighbour_element->Initialize(dummy_process_info);
     effective_stress_vectors.clear();
-    stress_vector <<= 7.0, 4.0, 11.0, 5.0 / 6.0;
-    effective_stress_vectors.emplace_back(stress_vector);
-    stress_vector <<= 7.0, 4.0, 11.0, 10.0 / 3.0;
-    effective_stress_vectors.emplace_back(stress_vector);
-    stress_vector <<= 7.0, 4.0, 11.0, 5.0 / 6.0;
-    effective_stress_vectors.emplace_back(stress_vector);
+    effective_stress_vectors.emplace_back(UblasUtilities::CreateVector({7.0, 4.0, 11.0, 5.0 / 6.0}));
+    effective_stress_vectors.emplace_back(UblasUtilities::CreateVector({7.0, 4.0, 11.0, 10.0 / 3.0}));
+    effective_stress_vectors.emplace_back(UblasUtilities::CreateVector({7.0, 4.0, 11.0, 5.0 / 6.0}));
     p_other_neighbour_element->SetValuesOnIntegrationPoints(
         CAUCHY_STRESS_VECTOR, effective_stress_vectors, dummy_process_info);
     interface_element.SetValue(NEIGHBOUR_ELEMENTS, MakeElementGlobalPtrContainerWith(p_other_neighbour_element));
@@ -1809,17 +1807,11 @@ KRATOS_TEST_CASE_IN_SUITE(UPwPlaneInterfaceElement_InterpolatesNodalStresses, Kr
     ProcessInfo dummy_process_info;
     p_neighbour_element->Initialize(dummy_process_info);
     std::vector<ConstitutiveLaw::StressVectorType> effective_stress_vectors;
-    ConstitutiveLaw::StressVectorType              stress_vector(6);
-    stress_vector <<= 3.0, (std::sqrt(3.0) - 1.0) / (2.0 * std::sqrt(3.0)), 4.0, 1.0, 2.0, 4.0;
-    effective_stress_vectors.emplace_back(stress_vector);
-    effective_stress_vectors.emplace_back(stress_vector);
-    effective_stress_vectors.emplace_back(stress_vector);
-    effective_stress_vectors.emplace_back(stress_vector);
-    stress_vector <<= 3.0, (std::sqrt(3.0) + 1.0) / (2.0 * std::sqrt(3.0)), 4.0, 1.0, 2.0, 4.0;
-    effective_stress_vectors.emplace_back(stress_vector);
-    effective_stress_vectors.emplace_back(stress_vector);
-    effective_stress_vectors.emplace_back(stress_vector);
-    effective_stress_vectors.emplace_back(stress_vector);
+    effective_stress_vectors.reserve(8);
+    std::fill_n(std::back_inserter(effective_stress_vectors), 4,
+                UblasUtilities::CreateVector({3.0, (sqrt3 - 1.0) / (2.0 * sqrt3), 4.0, 1.0, 2.0, 4.0}));
+    std::fill_n(std::back_inserter(effective_stress_vectors), 4,
+                UblasUtilities::CreateVector({3.0, (sqrt3 + 1.0) / (2.0 * sqrt3), 4.0, 1.0, 2.0, 4.0}));
     p_neighbour_element->SetValuesOnIntegrationPoints(CAUCHY_STRESS_VECTOR,
                                                       effective_stress_vectors, dummy_process_info);
 
@@ -1874,16 +1866,10 @@ KRATOS_TEST_CASE_IN_SUITE(UPwPlaneInterfaceElement_InterpolatesNodalStresses, Kr
     p_neighbour_element->SetIntegrationMethod(GeometryData::IntegrationMethod::GI_GAUSS_2);
     p_other_neighbour_element->Initialize(dummy_process_info);
     effective_stress_vectors.clear();
-    stress_vector <<= 3.0, 4.0, 1.0, 2.0, (std::sqrt(3.0) - 1.0) / (2.0 * std::sqrt(3.0)), 4.0;
-    effective_stress_vectors.emplace_back(stress_vector);
-    effective_stress_vectors.emplace_back(stress_vector);
-    effective_stress_vectors.emplace_back(stress_vector);
-    effective_stress_vectors.emplace_back(stress_vector);
-    stress_vector <<= 3.0, 4.0, 1.0, 2.0, (std::sqrt(3.0) + 1.0) / (2.0 * std::sqrt(3.0)), 4.0;
-    effective_stress_vectors.emplace_back(stress_vector);
-    effective_stress_vectors.emplace_back(stress_vector);
-    effective_stress_vectors.emplace_back(stress_vector);
-    effective_stress_vectors.emplace_back(stress_vector);
+    std::fill_n(std::back_inserter(effective_stress_vectors), 4,
+                UblasUtilities::CreateVector({3.0, 4.0, 1.0, 2.0, (sqrt3 - 1.0) / (2.0 * sqrt3), 4.0}));
+    std::fill_n(std::back_inserter(effective_stress_vectors), 4,
+                UblasUtilities::CreateVector({3.0, 4.0, 1.0, 2.0, (sqrt3 + 1.0) / (2.0 * sqrt3), 4.0}));
     p_other_neighbour_element->SetValuesOnIntegrationPoints(
         CAUCHY_STRESS_VECTOR, effective_stress_vectors, dummy_process_info);
 
