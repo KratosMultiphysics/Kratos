@@ -10,6 +10,7 @@
 //  Main authors:    Riccardo Rossi
 //                   Denis Demidov
 //                   Philipp Bucher (https://github.com/philbucher)
+//                   Vicente Mataix Ferrandiz
 //
 
 #pragma once
@@ -183,7 +184,7 @@ public:
     {
         KRATOS_PREPARE_CATCH_THREAD_EXCEPTION
 
-        #pragma omp parallel for
+        #pragma omp parallel for schedule(runtime)
         for (int i=0; i<mNchunks; ++i) {
             KRATOS_TRY
             for (auto it = mBlockPartition[i]; it != mBlockPartition[i+1]; ++it) {
@@ -206,7 +207,7 @@ public:
         KRATOS_PREPARE_CATCH_THREAD_EXCEPTION
 
         TReducer global_reducer;
-        #pragma omp parallel for
+        #pragma omp parallel for schedule(runtime)
         for (int i=0; i<mNchunks; ++i) {
             KRATOS_TRY
             TReducer local_reducer;
@@ -238,7 +239,7 @@ public:
             // copy the prototype to create the thread local storage
             TThreadLocalStorage thread_local_storage(rThreadLocalStoragePrototype);
 
-            #pragma omp for
+            #pragma omp for schedule(runtime)
             for(int i=0; i<mNchunks; ++i){
                 KRATOS_TRY
                 for (auto it = mBlockPartition[i]; it != mBlockPartition[i+1]; ++it){
@@ -270,7 +271,7 @@ public:
             // copy the prototype to create the thread local storage
             TThreadLocalStorage thread_local_storage(rThreadLocalStoragePrototype);
 
-            #pragma omp for
+            #pragma omp for schedule(runtime)
             for (int i=0; i<mNchunks; ++i) {
                 KRATOS_TRY
                 TReducer local_reducer;
@@ -519,7 +520,7 @@ public:
     {
         KRATOS_PREPARE_CATCH_THREAD_EXCEPTION
 
-        #pragma omp parallel for
+        #pragma omp parallel for schedule(runtime)
         for (int i=0; i<mNchunks; ++i) {
             KRATOS_TRY
             for (auto k = mBlockPartition[i]; k < mBlockPartition[i+1]; ++k) {
@@ -541,7 +542,7 @@ public:
         KRATOS_PREPARE_CATCH_THREAD_EXCEPTION
 
         TReducer global_reducer;
-        #pragma omp parallel for
+        #pragma omp parallel for schedule(runtime)
         for (int i=0; i<mNchunks; ++i) {
             KRATOS_TRY
             TReducer local_reducer;
@@ -572,7 +573,7 @@ public:
             // copy the prototype to create the thread local storage
             TThreadLocalStorage thread_local_storage(rThreadLocalStoragePrototype);
 
-            #pragma omp for
+            #pragma omp for schedule(runtime)
             for (int i=0; i<mNchunks; ++i) {
                 KRATOS_TRY
                 for (auto k = mBlockPartition[i]; k < mBlockPartition[i+1]; ++k) {
@@ -604,7 +605,7 @@ public:
             // copy the prototype to create the thread local storage
             TThreadLocalStorage thread_local_storage(rThreadLocalStoragePrototype);
 
-            #pragma omp for
+            #pragma omp for schedule(runtime)
             for (int i=0; i<mNchunks; ++i) {
                 KRATOS_TRY
                 TReducer local_reducer;
