@@ -169,17 +169,17 @@ class FiniteDifferenceBodyFittedDragShapeSensitivityAnalysis:
     def _AddResponseFunctionOutput(kratos_parameters, drag_model_part_name):
         response_parameters = Kratos.Parameters(R'''
         {
-            "python_module": "compute_body_fitted_drag_process",
+            "python_module": "compute_body_fitted_flow_forces_and_moments_process",
             "kratos_module": "KratosMultiphysics.FluidDynamicsApplication",
-            "process_name": "ComputeBodyFittedDragProcess",
+            "process_name": "ComputeBodyFittedFlowForcesAndMomentsProcess",
             "Parameters": {
                 "model_part_name": "<DRAG_MODEL_PART_NAME>",
                 "interval": [
                     0.0,
                     1e30
                 ],
-                "write_drag_output_file": true,
-                "print_drag_to_screen": false,
+                "write_flow_forces_output_file": true,
+                "print_flow_forces_and_moments_to_screen": false,
                 "print_format": "22.15e"
             }
         }

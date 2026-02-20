@@ -10,8 +10,8 @@
 //  Main author:     Ruben Zorrilla
 //
 
-#if !defined(KRATOS_DRAG_UTILITIES_H_INCLUDED )
-#define  KRATOS_DRAG_UTILITIES_H_INCLUDED
+#if !defined(KRATOS_FLOW_FORCES_UTILITIES_H_INCLUDED )
+#define  KRATOS_FLOW_FORCES_UTILITIES_H_INCLUDED
 
 // System includes
 #include <string>
@@ -47,11 +47,11 @@ namespace Kratos
   ///@name Kratos Classes
   ///@{
 
-  /// Auxiliary utility to compute the drag force.
+  /// Auxiliary utility to compute the flow force and moments.
   /** For embedded formulations, this utility iterates all the elements of a provided model part. In this iteration
    * calls the calculate method of each element to compute the value of the variable DRAG_FORCE. If the element is split,
    * this method computes the integration of the stress term over the interface. Otherwise, the value is just zero.
-   * The obtained values are accumulated to get the total drag force in the model part.
+   * The obtained values are accumulated to get the total flow force in the model part.
    *
    * Note that if there is more than one embedded object, one just needs to save the surrounding elements to each embedded
    * object in different submodelparts and call this process for each one of that submodelparts.
@@ -59,7 +59,7 @@ namespace Kratos
    * For the body fitted slip case, it integrates the pressure stress term over the given submodelpart conditions (the
    * shear stress term is assumed to be zero).
    */
-  class KRATOS_API(FLUID_DYNAMICS_APPLICATION) DragUtilities
+  class KRATOS_API(FLUID_DYNAMICS_APPLICATION) FlowForcesAndMomentsUtilities
   {
   public:
 
@@ -70,18 +70,18 @@ namespace Kratos
     typedef IntegrationPoint<3>                       IntegrationPointType;
     typedef std::vector<IntegrationPointType>   IntegrationPointsArrayType;
 
-    /// Pointer definition of DragUtilities
-    KRATOS_CLASS_POINTER_DEFINITION(DragUtilities);
+    /// Pointer definition of FlowForcesAndMomentsUtilities
+    KRATOS_CLASS_POINTER_DEFINITION(FlowForcesAndMomentsUtilities);
 
     ///@}
     ///@name Life Cycle
     ///@{
 
     /// Constructor
-    DragUtilities() {};
+    FlowForcesAndMomentsUtilities() {};
 
     /// Destructor.
-    ~DragUtilities() {};
+    ~FlowForcesAndMomentsUtilities() {};
 
     ///@}
     ///@name Operators
@@ -95,24 +95,24 @@ namespace Kratos
     /**
     * Computes the integral of the pressure stress term normal projection over the conditions
     * of the given modelpart
-    * @param rModelPart reference to the model part in where the drag is to be computed
-    * @return An array containing the drag force value.
+    * @param rModelPart reference to the model part in where the flow force is to be computed
+    * @return An array containing the flow force value and the moment about a reference point.
     */
-    array_1d<double, 3> CalculateBodyFittedDrag(ModelPart &rModelPart);
+    std::tuple<array_1d<double,3>, array_1d<double,3>> CalculateBodyFittedFlowForcesAndMoments(ModelPart &rModelPart, const array_1d<double, 3>& rReferencePoint);
 
     /**
     * Computes the integral of the Cauchy stress term normal projection in the given modelpart elements.
-    * @param rModelPart reference to the model part in where the drag is to be computed
-    * @return An array containing the drag force value.
+    * @param rModelPart reference to the model part in where the flow force is to be computed
+    * @return An array containing the flow force value and the moment about a reference point.
     */
-    array_1d<double, 3> CalculateEmbeddedDrag(ModelPart &rModelPart);
+   std::tuple<array_1d<double,3>, array_1d<double,3>> CalculateEmbeddedFlowForcesAndMoments(ModelPart &rModelPart, const array_1d<double, 3>& rReferencePoint);
 
     /**
-    * Calculates the drag force location in embedded formulations
-    * @param rModelPart reference to the model part in where the drag force location is to be computed
-    * @return An array containing the drag force location coordinates.
+    * Calculates the flow force location in embedded formulations
+    * @param rModelPart reference to the model part in where the flow force location is to be computed
+    * @return An array containing the flow force location coordinates.
     */
-    array_1d<double, 3> CalculateEmbeddedDragCenter(const ModelPart &rModelPart);
+    array_1d<double, 3> CalculateEmbeddedFlowForceCenter(const ModelPart &rModelPart);
 
     ///@}
     ///@name Access
@@ -179,14 +179,14 @@ private:
     ///@{
 
     /// Assignment operator.
-    DragUtilities& operator=(DragUtilities const& rOther);
+    FlowForcesAndMomentsUtilities& operator=(FlowForcesAndMomentsUtilities const& rOther);
 
     /// Copy constructor.
-    DragUtilities(DragUtilities const& rOther);
+    FlowForcesAndMomentsUtilities(FlowForcesAndMomentsUtilities const& rOther);
 
     ///@}
 
-}; // Class DragUtilities
+}; // Class FlowForcesAndMomentsUtilities
 
 ///@}
 
@@ -202,7 +202,7 @@ private:
 /// output stream function
 inline std::ostream& operator << (
     std::ostream& rOStream,
-    const DragUtilities& rThis);
+    const FlowForcesAndMomentsUtilities& rThis);
 
 ///@}
 
@@ -210,4 +210,4 @@ inline std::ostream& operator << (
 
 }  // namespace Kratos.
 
-#endif // KRATOS_DRAG_UTILITIES_H_INCLUDED  defined
+#endif // KRATOS_FLOW_FORCES_UTILITIES_H_INCLUDED  defined
