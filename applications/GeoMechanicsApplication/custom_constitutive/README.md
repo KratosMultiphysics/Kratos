@@ -270,7 +270,7 @@ Each trial stress which is outside the tensile-apex zone and follows this condit
 
 We move perpendicular to the tension cutoff yield surface by using the derivative of the flow function related to the tension cutoff surface.
 ```math
-    \dot{\lambda} = \frac{\sigma + \tau - t_c}{\partial G_{tc} / \partial \boldsymbol{\sigma}}
+    \dot{\lambda} = -\frac{\sigma + \tau - t_c}{C_{xx} \frac{\partial G_{tc}}{\partial \sigma} + C_{yy} \frac{\partial G_{tc}}{\partial \tau}}
 ```
 ```math
     \frac{\partial G_{tc}}{\partial \boldsymbol{\sigma}} = 
@@ -278,10 +278,29 @@ We move perpendicular to the tension cutoff yield surface by using the derivativ
     1
     \end{bmatrix}
 ```
+
 ```math
-    \sigma^{map} = \sigma^{trial} + \dot{\lambda} \frac{\partial G_{tc}}{\partial \sigma}
+    \sigma^{map} = \sigma^{trial} + \dot{\lambda} C \frac{\partial G_{tc}}{\partial \sigma}
 ```
-Where $`G_{tc}`$ is the flow function related to tension cutoff surface. Then update the principal stresses based on the mapped values. The updated principal stresses need to be rotated back to the element axes system.
+
+Where $`G_{tc}`$ is the flow function related to tension cutoff surface in $`(\sigma, \tau)`$ coordinates. These formulations can be rewritten in the framework of principal stresses as follows.  
+
+```math
+    \dot{\lambda} = -\frac{\sigma_1 - t_c}{C_{xx} \frac{\partial G_{tc}}{\partial \sigma_1} + C_{xy} \frac{\partial G_{tc}}{\partial \sigma_2}}
+```
+```math
+    \frac{\partial G_{tc}}{\partial \boldsymbol{\sigma}} = 
+    \begin{bmatrix} 1 \\
+                    0 \\
+                    0
+    \end{bmatrix}
+```
+
+```math
+    \sigma^{map} = \sigma^{trial} + \dot{\lambda} C \frac{\partial G_{tc}}{\partial \sigma}
+```
+
+Then update the principal stresses based on the mapped values. The updated principal stresses need to be rotated back to the element axes system.
 
 
 #### Tensile corner return zone
@@ -370,7 +389,7 @@ We use the derivative of the flow function to define the direction and find the 
 
 Then a parametrized line can be defined by:
 ```math
-    \boldsymbol{\sigma} = \boldsymbol{\sigma}^{trial} + \dot{\lambda} \frac{\partial G_{MC}}{\partial \boldsymbol{\sigma}}
+    \boldsymbol{\sigma} = \boldsymbol{\sigma}^{trial} + \dot{\lambda} C \frac{\partial G_{MC}}{\partial \boldsymbol{\sigma}}
 ```
 
 At yield function,
@@ -383,8 +402,23 @@ At yield function,
 
 Solving this 3 equations:
 ```math
-    \dot{\lambda} = \frac{c \cos{\phi} - \sigma^{trial} \sin{\phi} - \tau^{trial}}{\sin(\psi) \sin(\phi) + 1}
+    \dot{\lambda} = - \frac{\tau^{trial} + \sigma^{trial} \sin{\phi} - c \cos{\phi}}{C_{xx} \frac{\partial G_{MC}}{\partial \sigma} \sin(\phi) + C_{yy} \frac{\partial G_{MC}}{\partial \tau}}
 ```
+
+Or in the framework of principal stresses:
+```math
+    \frac{\partial G_{MC}}{\partial \boldsymbol{\sigma}} = 
+    \begin{bmatrix}
+    \frac{1}{2} (\sin{\psi} + 1) \\
+    0                            \\
+    \frac{1}{2} (\sin{\psi} - 1)
+    \end{bmatrix}
+```
+
+```math
+    \dot{\lambda} = -2 \frac{\tau^{trial} + \sigma^{trial} \sin{\phi} - c \cos{\phi}}{(C_x - C_z) \cdot \partial G_{MC} / \partial \sigma + \sin{\phi} (C_x + C_z) \cdot \partial G_{MC} / \partial \sigma} 
+```
+Where $`C_x`$ and $`C_z`$ are the first and third rows of matrix $`C`$.
 
 Then update the principal stresses based on the mapped values. The updated principal stresses need to be rotated back to the element axes system.
 

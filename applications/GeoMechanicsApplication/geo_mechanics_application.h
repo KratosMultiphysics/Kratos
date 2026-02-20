@@ -981,7 +981,8 @@ private:
     const MohrCoulombWithTensionCutOff mMohrCoulombWithTensionCutOff2D{std::make_unique<PlaneStrain>()};
     const MohrCoulombWithTensionCutOff mMohrCoulombWithTensionCutOff3D{std::make_unique<ThreeDimensional>()};
 
-    const InterfaceCoulombWithTensionCutOff mInterfaceCoulombWithTensionCutOff;
+    const InterfaceCoulombWithTensionCutOff mInterfaceCoulombWithTensionCutOff{
+        std::make_unique<InterfacePlaneStrain>()};
 
     ///@}
 

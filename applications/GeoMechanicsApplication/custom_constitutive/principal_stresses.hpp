@@ -25,6 +25,12 @@ namespace Kratos::Geo
 class KRATOS_API(GEO_MECHANICS_APPLICATION) PrincipalStresses
 {
 public:
+    enum class PrincipalStressesAveragingType {
+        NO_AVERAGING,
+        LOWEST_PRINCIPAL_STRESSES,
+        HIGHEST_PRINCIPAL_STRESSES
+    };
+
     static constexpr std::size_t msVectorSize = 3;
     using InternalVectorType                  = BoundedVector<double, msVectorSize>;
 
