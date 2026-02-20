@@ -13,6 +13,7 @@
 // System includes
 
 // External includes
+#include "pybind11/numpy.h"
 
 // Project includes
 #include "includes/define_python.h"
@@ -65,28 +66,31 @@ void  AddDofsToPython(pybind11::module& m)
         })
         .def("GetValues", [](ModelPart::DofsArrayType &self) {
             Vector values(self.size());
-            int counter = 0;
-            for (auto &r_dof : self)
-            {
-                values[counter++] = r_dof.GetSolutionStepValue();
-            }
+            IndexPartition<int>(self.size()).for_each([&](int i) {
+                values[i] = (self.begin()+i)->GetSolutionStepValue();
+            });
             return values;
         })
         .def("GetEquationIds", [](ModelPart::DofsArrayType &self) {
-            std::vector<std::size_t> values(self.size());
-            int counter = 0;
-            for (auto &r_dof : self)
-            {
-                values[counter++] = r_dof.EquationId();
-            }
+            auto values = py::array_t<std::size_t>(self.size());
+            auto buf = values.request();
+            auto *ptr = static_cast<std::size_t *>(buf.ptr);
+            IndexPartition<int>(self.size()).for_each([&](int i) {
+                ptr[i] = (self.begin()+i)->EquationId();
+            });
             return values;
         })
         .def("SetValues", [](ModelPart::DofsArrayType &self, const Vector& values) {
-            int counter = 0;
-            for (auto &r_dof : self)
-            {
-                r_dof.GetSolutionStepValue() = values[counter++];
-            }
+            IndexPartition<int>(self.size()).for_each([&](int i) {
+                (self.begin()+i)->GetSolutionStepValue() = values[i];
+            });
+        })
+        .def("SetValues", [](ModelPart::DofsArrayType &self, const py::array_t<double>& values) {
+            auto buf = values.request();
+            auto *ptr = static_cast<double *>(buf.ptr);
+            IndexPartition<int>(self.size()).for_each([&](int i) {
+                (self.begin()+i)->GetSolutionStepValue() = ptr[i];
+            });
         })
         ;
 
