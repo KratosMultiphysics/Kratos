@@ -71,11 +71,8 @@ public:
         const auto stresses = StressStrainUtilities::CalculateStressVectorsFromStrainVectors(
             mInputProvider.GetStrains(), mInputProvider.GetProcessInfo(),
             mInputProvider.GetElementProperties(), mInputProvider.GetConstitutiveLaws());
-        auto result = typename BaseType::RHSVectorType{
-            -1.0 * GeoEquationOfMotionUtilities::CalculateInternalForceVector(
-                       mInputProvider.GetBMatrices(), stresses, mInputProvider.GetIntegrationCoefficients())};
-        KRATOS_INFO("StiffnessCalculator::RHSContribution") << result << std::endl;
-        return result;
+        return {-1.0 * GeoEquationOfMotionUtilities::CalculateInternalForceVector(
+                           mInputProvider.GetBMatrices(), stresses, mInputProvider.GetIntegrationCoefficients())};
     }
 
     std::pair<std::optional<typename BaseType::LHSMatrixType>, typename BaseType::RHSVectorType> LocalSystemContribution() override

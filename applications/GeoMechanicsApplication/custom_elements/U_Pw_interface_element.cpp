@@ -176,9 +176,6 @@ void UPwInterfaceElement::CalculateLeftHandSide(MatrixType& rLeftHandSideMatrix,
             KRATOS_ERROR << "This contribution is not supported \n";
         }
     }
-
-    KRATOS_INFO("UPwInterfaceElement::CalculateLeftHandSide")
-        << "Element " << Id() << ": LHS matrix: " << rLeftHandSideMatrix << std::endl;
 }
 
 void UPwInterfaceElement::CalculateAndAssignStifnessMatrix(Element::MatrixType& rLeftHandSideMatrix,
@@ -249,9 +246,6 @@ void UPwInterfaceElement::CalculateRightHandSide(Element::VectorType& rRightHand
             KRATOS_ERROR << "This contribution is not supported \n";
         }
     }
-
-    KRATOS_INFO("UPwInterfaceElement::CalculateRightHandSide")
-        << "Element " << Id() << ": RHS vector: " << rRightHandSideVector << std::endl;
 }
 
 void UPwInterfaceElement::CalculateAndAssembleStifnessForceVector(Element::VectorType& rRightHandSideVector,
@@ -394,20 +388,6 @@ void UPwInterfaceElement::Initialize(const ProcessInfo& rCurrentProcessInfo)
             CAUCHY_STRESS_VECTOR, neighbour_cauchy_stresses, rCurrentProcessInfo);
         interface_nodal_cauchy_stresses = ExtrapolationUtilities::CalculateNodalVectors(
             interface_node_ids, r_neighbour_element, neighbour_cauchy_stresses);
-        KRATOS_INFO("UPwInterfaceElement::Initialize") << "Element ID: " << this->Id() << std::endl;
-        for (auto i = std::size_t{0}; i < interface_node_ids.size(); ++i) {
-            if (interface_nodal_cauchy_stresses[i]) {
-                KRATOS_INFO("UPwInterfaceElement::Initialize")
-                    << "  Node ID: " << interface_node_ids[i]
-                    << ", nodal effective stress vector: " << *interface_nodal_cauchy_stresses[i] << ", water pressure = "
-                    << GetDisplacementGeometry()[i].FastGetSolutionStepValue(WATER_PRESSURE) << std::endl;
-
-            } else {
-                KRATOS_INFO("UPwInterfaceElement::Initialize")
-                    << "  Node ID: " << interface_node_ids[i]
-                    << " has no nodal effective stress vector" << std::endl;
-            }
-        }
         InterpolateNodalStressesToInitialTractions(interface_nodal_cauchy_stresses);
     }
     const auto shape_function_values_at_integration_points =
@@ -558,10 +538,6 @@ void UPwInterfaceElement::InterpolateNodalStressesToInitialTractions(
         const auto integration_point_local_stress_tensor =
             RotateStressToLocalCoordinates(r_integration_point, integration_point_stress);
         const auto traction_vector = ConvertLocalStressToTraction(integration_point_local_stress_tensor);
-
-        KRATOS_INFO("InterpolateNodalStressesToInitialTractions")
-            << "Integration point index " << integration_point_index
-            << ", effective traction vector: " << traction_vector << std::endl;
 
         const auto initial_state =
             make_intrusive<InitialState>(traction_vector, InitialState::InitialImposingType::STRESS_ONLY);

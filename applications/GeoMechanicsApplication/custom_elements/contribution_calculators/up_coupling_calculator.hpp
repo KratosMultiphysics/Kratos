@@ -63,10 +63,7 @@ public:
 
     typename BaseType::RHSVectorType RHSContribution() override
     {
-        auto result = typename BaseType::RHSVectorType{
-            prod(CalculateCouplingMatrix(), mInputProvider.GetNodalWaterPressures())};
-        KRATOS_INFO("CouplingCalculator::RHSContribution") << result << std::endl;
-        return result;
+        return prod(CalculateCouplingMatrix(), mInputProvider.GetNodalWaterPressures());
     }
 
     std::pair<std::optional<typename BaseType::LHSMatrixType>, typename BaseType::RHSVectorType> LocalSystemContribution() override
