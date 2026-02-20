@@ -19,6 +19,9 @@
 // Project includes
 #include "thickness_integrated_isotropic_constitutive_law.h"
 #include "custom_utilities/advanced_constitutive_law_utilities.h"
+#include "custom_utilities/constitutive_law_utilities.h"
+#include "structural_mechanics_application_variables.h"
+#include "constitutive_laws_application_variables.h"
 #include "includes/mat_variables.h"
 
 namespace Kratos
@@ -126,6 +129,11 @@ bool ThicknessIntegratedIsotropicConstitutiveLaw::Has(const Variable<double>& rT
 
 bool ThicknessIntegratedIsotropicConstitutiveLaw::Has(const Variable<Vector>& rThisVariable)
 {
+    if (rThisVariable == PLASTIC_STRAIN_VECTOR_TOP_SURFACE ||
+        rThisVariable == PLASTIC_STRAIN_VECTOR_BOTTOM_SURFACE ||
+        rThisVariable == PLASTIC_STRAIN_VECTOR_MIDDLE_SURFACE) {
+            return mConstitutiveLaws[0]->Has(PLASTIC_STRAIN_VECTOR);
+    }
     return Has<Vector>(rThisVariable);
 }
 
@@ -159,6 +167,17 @@ Vector& ThicknessIntegratedIsotropicConstitutiveLaw::GetValue(
     Vector& rValue
     )
 {
+    if (rThisVariable == PLASTIC_STRAIN_VECTOR_TOP_SURFACE ||
+        rThisVariable == PLASTIC_STRAIN_VECTOR_BOTTOM_SURFACE ||
+        rThisVariable == PLASTIC_STRAIN_VECTOR_MIDDLE_SURFACE) {
+            SizeType layer = 0;
+            if (rThisVariable == PLASTIC_STRAIN_VECTOR_BOTTOM_SURFACE) {
+                layer = mThicknessIntegrationPoints - 1;
+            } else if (rThisVariable == PLASTIC_STRAIN_VECTOR_MIDDLE_SURFACE) {
+                layer = (mThicknessIntegrationPoints - 1) / 2; // Assuming odd number of IPs, so that we have a middle one }
+            }
+            return mConstitutiveLaws[layer]->GetValue(PLASTIC_STRAIN_VECTOR, rValue);
+    }
     return ThicknessIntegratedIsotropicConstitutiveLaw::TGetValue<Vector>(rThisVariable, rValue);
 }
 
@@ -202,13 +221,86 @@ void ThicknessIntegratedIsotropicConstitutiveLaw::SetValue(
 /***********************************************************************************/
 
 double& ThicknessIntegratedIsotropicConstitutiveLaw::CalculateValue(
-    ConstitutiveLaw::Parameters& rParameterValues,
+    ConstitutiveLaw::Parameters& rValues,
     const Variable<double>& rThisVariable,
     double& rValue
     )
 {
+    if (rThisVariable == VON_MISES_STRESS_TOP_SURFACE ||
+        rThisVariable == VON_MISES_STRESS_BOTTOM_SURFACE ||
+        rThisVariable == VON_MISES_STRESS_MIDDLE_SURFACE)
+    {
+        const auto& r_material_properties = rValues.GetMaterialProperties();
+        Flags& r_flags = rValues.GetOptions();
 
-    return TCalculateValue<double>(rParameterValues, rThisVariable, rValue);
+        // Previous flags saved
+        const bool flag_compute_constitutive_tensor = r_flags.Is(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR);
+        const bool flag_compute_stress = r_flags.Is(ConstitutiveLaw::COMPUTE_STRESS);
+
+        r_flags.Set(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR, false);
+        r_flags.Set(ConstitutiveLaw::COMPUTE_STRESS, true);
+
+        std::vector<double> coordinates;
+        std::vector<double> weights;
+        CalculateCoordinatesAndWeights(coordinates, weights, mThicknessIntegrationPoints, r_material_properties);
+
+        const auto subprop_strain_size = mConstitutiveLaws[0]->GetStrainSize(); // 3
+        const auto subprop_dimension = mConstitutiveLaws[0]->WorkingSpaceDimension(); // 2
+        const Vector generalized_strain_vector = rValues.GetStrainVector(); // size 8
+        const auto it_prop_begin = r_material_properties.GetSubProperties().begin();
+        Properties &r_subprop = *(it_prop_begin);
+
+        Vector& r_stress_vector = rValues.GetStressVector(); // size 3
+        Vector& r_strain_vector = rValues.GetStrainVector(); // size 3
+        Matrix& r_constitutive_matrix = rValues.GetConstitutiveMatrix(); // size 3x3
+        r_strain_vector.resize(subprop_strain_size, false);
+        r_stress_vector.resize(subprop_strain_size, false);
+        r_constitutive_matrix.resize(subprop_strain_size, subprop_strain_size, false);
+        r_strain_vector.clear();
+        r_stress_vector.clear();
+        r_constitutive_matrix.clear();
+        Matrix F(subprop_dimension, subprop_dimension); // 2x2
+
+        rValues.SetMaterialProperties(r_subprop);
+
+        IndexType layer = 0; // Top case
+        if (rThisVariable == VON_MISES_STRESS_BOTTOM_SURFACE) {
+            layer = mThicknessIntegrationPoints - 1;
+        } else if (rThisVariable == VON_MISES_STRESS_MIDDLE_SURFACE) {
+            layer = (mThicknessIntegrationPoints - 1) / 2; // Assuming odd number of IPs, so that we have a middle one
+        }
+
+        noalias(r_strain_vector) = project(generalized_strain_vector, range(0, 3)) + coordinates[layer] * project(generalized_strain_vector, range(3, 6));
+
+        // In case the 2D Cls work in finite strain
+        noalias(F) = AdvancedConstitutiveLawUtilities<3>::ComputeEquivalentSmallDeformationDeformationGradient(r_strain_vector);
+        double detF = MathUtils<double>::Det2(F);
+        rValues.SetDeterminantF(detF);
+        rValues.SetDeformationGradientF(F);
+
+        mConstitutiveLaws[layer]->CalculateMaterialResponseCauchy(rValues);
+
+        rValue = ConstitutiveLawUtilities<3>::CalculateVonMisesEquivalentStress(rValues.GetStressVector());
+
+        // Restore information
+        r_strain_vector.resize(VoigtSize, false);
+        noalias(r_strain_vector) = generalized_strain_vector;
+        rValues.SetMaterialProperties(r_material_properties);
+        r_flags.Set(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR, flag_compute_constitutive_tensor);
+        r_flags.Set(ConstitutiveLaw::COMPUTE_STRESS, flag_compute_stress);
+
+        return rValue;
+    } else if (rThisVariable == VON_MISES_STRESS) {
+        double top_value, mid_value, bot_value;
+
+        CalculateValue(rValues, VON_MISES_STRESS_TOP_SURFACE, top_value);
+        CalculateValue(rValues, VON_MISES_STRESS_MIDDLE_SURFACE, mid_value);
+        CalculateValue(rValues, VON_MISES_STRESS_BOTTOM_SURFACE, bot_value);
+        rValue = std::max({top_value, mid_value, bot_value});
+        return rValue;
+    }
+
+    return TCalculateValue<double>(rValues, rThisVariable, rValue);
 }
 
 /***********************************************************************************/
@@ -422,7 +514,7 @@ void ThicknessIntegratedIsotropicConstitutiveLaw::CalculateMaterialResponseCauch
             detF = MathUtils<double>::Det2(F);
             rValues.SetDeterminantF(detF);
             rValues.SetDeformationGradientF(F);
-            
+
             // This fills stress and D
             mConstitutiveLaws[i_layer]->CalculateMaterialResponseCauchy(rValues);
 
@@ -440,39 +532,14 @@ void ThicknessIntegratedIsotropicConstitutiveLaw::CalculateMaterialResponseCauch
             }
 
             if (flag_compute_constitutive_tensor) {
-
                 // membrane part
-                generalized_constitutive_matrix(0, 0) += weight * r_constitutive_matrix(0, 0);
-                generalized_constitutive_matrix(0, 1) += weight * r_constitutive_matrix(0, 1);
-                generalized_constitutive_matrix(0, 2) += weight * r_constitutive_matrix(0, 2);
-                generalized_constitutive_matrix(1, 0) += weight * r_constitutive_matrix(1, 0);
-                generalized_constitutive_matrix(1, 1) += weight * r_constitutive_matrix(1, 1);
-                generalized_constitutive_matrix(1, 2) += weight * r_constitutive_matrix(1, 2);
-                generalized_constitutive_matrix(2, 0) += weight * r_constitutive_matrix(2, 0);
-                generalized_constitutive_matrix(2, 1) += weight * r_constitutive_matrix(2, 1);
-                generalized_constitutive_matrix(2, 2) += weight * r_constitutive_matrix(2, 2);
+                noalias(project(generalized_constitutive_matrix, range(0,3), range(0,3))) += weight * r_constitutive_matrix;
 
                 // bending part
-                generalized_constitutive_matrix(3, 3) += aux_weight2 * r_constitutive_matrix(0, 0);
-                generalized_constitutive_matrix(3, 4) += aux_weight2 * r_constitutive_matrix(0, 1);
-                generalized_constitutive_matrix(3, 5) += aux_weight2 * r_constitutive_matrix(0, 2);
-                generalized_constitutive_matrix(4, 3) += aux_weight2 * r_constitutive_matrix(1, 0);
-                generalized_constitutive_matrix(4, 4) += aux_weight2 * r_constitutive_matrix(1, 1);
-                generalized_constitutive_matrix(4, 5) += aux_weight2 * r_constitutive_matrix(1, 2);
-                generalized_constitutive_matrix(5, 3) += aux_weight2 * r_constitutive_matrix(2, 0);
-                generalized_constitutive_matrix(5, 4) += aux_weight2 * r_constitutive_matrix(2, 1);
-                generalized_constitutive_matrix(5, 5) += aux_weight2 * r_constitutive_matrix(2, 2);
+                noalias(project(generalized_constitutive_matrix, range(3, 6), range(3, 6))) += aux_weight2 * r_constitutive_matrix;
 
                 // membrane-bending part
-                generalized_constitutive_matrix(0, 3) += aux_weight * r_constitutive_matrix(0, 0);
-                generalized_constitutive_matrix(0, 4) += aux_weight * r_constitutive_matrix(0, 1);
-                generalized_constitutive_matrix(0, 5) += aux_weight * r_constitutive_matrix(0, 2);
-                generalized_constitutive_matrix(1, 3) += aux_weight * r_constitutive_matrix(1, 0);
-                generalized_constitutive_matrix(1, 4) += aux_weight * r_constitutive_matrix(1, 1);
-                generalized_constitutive_matrix(1, 5) += aux_weight * r_constitutive_matrix(1, 2);
-                generalized_constitutive_matrix(2, 3) += aux_weight * r_constitutive_matrix(2, 0);
-                generalized_constitutive_matrix(2, 4) += aux_weight * r_constitutive_matrix(2, 1);
-                generalized_constitutive_matrix(2, 5) += aux_weight * r_constitutive_matrix(2, 2);
+                noalias(project(generalized_constitutive_matrix, range(0, 3), range(3, 6))) += aux_weight * r_constitutive_matrix;
 
                 // bending-membrane part (transposed)
                 generalized_constitutive_matrix(3, 0) = generalized_constitutive_matrix(0, 3);
@@ -493,12 +560,12 @@ void ThicknessIntegratedIsotropicConstitutiveLaw::CalculateMaterialResponseCauch
         rValues.SetMaterialProperties(r_material_properties);
         r_strain_vector.resize(VoigtSize, false);
         noalias(r_strain_vector) = generalized_strain_vector;
-        
+
         if (flag_compute_stress) {
             r_stress_vector.resize(VoigtSize, false);
             noalias(r_stress_vector) = generalized_stress_vector;
         }
-        
+
         if (flag_compute_constitutive_tensor) {
             r_constitutive_matrix.resize(VoigtSize, VoigtSize, false);
             noalias(r_constitutive_matrix) = generalized_constitutive_matrix;
@@ -596,7 +663,7 @@ void ThicknessIntegratedIsotropicConstitutiveLaw::InitializeMaterialResponseCauc
             detF = MathUtils<double>::Det2(F);
             rValues.SetDeterminantF(detF);
             rValues.SetDeformationGradientF(F);
-            
+
             // This fills stress and D
             mConstitutiveLaws[i_layer]->InitializeMaterialResponseCauchy(rValues);
 

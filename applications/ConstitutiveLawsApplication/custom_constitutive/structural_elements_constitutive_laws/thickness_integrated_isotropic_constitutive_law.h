@@ -247,7 +247,7 @@ public:
             rValue /= static_cast<double>(number_of_laws);
 
             rParameterValues.SetMaterialProperties(r_material_properties);
-            
+
             return rValue;
 
             KRATOS_CATCH("Generic CalculateValue")
