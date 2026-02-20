@@ -4,6 +4,7 @@ import numpy
 import KratosMultiphysics as Kratos
 import KratosMultiphysics.StructuralMechanicsApplication
 import KratosMultiphysics.OptimizationApplication as KratosOA
+from KratosMultiphysics.kratos_utilities import DeleteDirectoryIfExisting, DeleteFileIfExisting
 from KratosMultiphysics.testing.utilities import ReadModelPart
 from KratosMultiphysics.compare_two_files_check_process import CompareTwoFilesCheckProcess
 from KratosMultiphysics.OptimizationApplication.filtering.filter import Factory as FilterFactory
@@ -180,7 +181,7 @@ class TestExplicitFilterReference(kratos_unittest.TestCase):
         cls.filter_data = ComponentDataView("test", cls.optimization_problem)
         cls.filter_data.SetDataBuffer(1)
 
-        cls.vtu_output = Kratos.VtuOutput(cls.model_part, binary_output=Kratos.VtuOutput.ASCII, precision=6)
+        cls.vtu_output = Kratos.VtuOutput(cls.model_part, output_format=Kratos.VtuOutput.ASCII, precision=6)
 
     def setUp(self) -> None:
         Kratos.TensorAdaptors.NodePositionTensorAdaptor(self.initial_nodal_pos, Kratos.Configuration.Initial, copy=False).StoreData()
@@ -284,8 +285,10 @@ class TestExplicitFilterReference(kratos_unittest.TestCase):
                 "comparison_type"       : "deterministic"
             }""")
             params["reference_file_name"].SetString(ref_file)
-            params["output_file_name"].SetString(f"output_{ref_file}")
+            params["output_file_name"].SetString(f"output_{ref_file[:-4]}/test_elements_0.vtu")
             CompareTwoFilesCheckProcess(params).Execute()
+            DeleteDirectoryIfExisting(f"output_{ref_file[:-4]}")
+            DeleteFileIfExisting(f"output_{ref_file[:-4]}.pvd")
 
 
 if __name__ == "__main__":
