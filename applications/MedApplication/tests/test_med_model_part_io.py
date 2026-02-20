@@ -39,7 +39,7 @@ class TestMedModelPartIO(MedModelPartIOTestCase):
             med_io_read_2.ReadModelPart(self.mp_read_2)
 
             KratosMed.MedTestingUtilities.CheckModelPartsAreEqual(
-                self.mp_read_1, self.mp_read_2, check_sub_model_parts=False  # until writing of SMPs is implemented
+                self.mp_read_1, self.mp_read_2, check_sub_model_parts=True  # until writing of SMPs is implemented
             )
 
     def test_empty_med_file(self):
