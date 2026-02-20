@@ -19,7 +19,7 @@
 // Include base h
 #include "xml_base64_binary_nd_data_element.h"
 
-namespace Kratos::Future {
+namespace Kratos {
 
 ///@name Kratos Classes
 ///@{
@@ -77,4 +77,4 @@ template class XmlBase64BinaryNDDataElement<bool>;
 template class XmlBase64BinaryNDDataElement<int>;
 template class XmlBase64BinaryNDDataElement<double>;
 
-} // namespace Kratos::Future
+} // namespace Kratos

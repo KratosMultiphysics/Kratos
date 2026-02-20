@@ -18,7 +18,7 @@
 // Include base h
 #include "xml_utils.h"
 
-namespace Kratos::Future {
+namespace Kratos {
 
 template<class TDataType>
 void XmlUtilities::AddDataArrayAttributes(
@@ -56,4 +56,4 @@ template void XmlUtilities::AddDataArrayAttributes(XmlElement&, const NDData<boo
 template void XmlUtilities::AddDataArrayAttributes(XmlElement&, const NDData<int>&);
 template void XmlUtilities::AddDataArrayAttributes(XmlElement&, const NDData<double>&);
 
-} // namespace Kratos::Future
+} // namespace Kratos

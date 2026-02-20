@@ -20,7 +20,7 @@
 // Include base h
 #include "xml_nd_data_element.h"
 
-namespace Kratos::Future {
+namespace Kratos {
 
 ///@name Kratos Classes
 ///@{
@@ -66,4 +66,4 @@ template class XmlNDDataElement<bool>;
 template class XmlNDDataElement<int>;
 template class XmlNDDataElement<double>;
 
-} // namespace Kratos::Future
+} // namespace Kratos

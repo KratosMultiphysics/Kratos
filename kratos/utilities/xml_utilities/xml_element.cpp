@@ -17,7 +17,7 @@
 // Include base h
 #include "xml_element.h"
 
-namespace Kratos::Future {
+namespace Kratos {
 
 XmlElement::XmlElement(const std::string& rTagName)
     : mTagName(rTagName)
@@ -83,4 +83,4 @@ void XmlElement::WriteEmptyElementTag(
     rOStream << "/>\n";
 }
 
-} // namespace Kratos::Future
+} // namespace Kratos

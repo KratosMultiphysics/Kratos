@@ -17,7 +17,7 @@
 // Include base h
 #include "xml_elements_array.h"
 
-namespace Kratos::Future {
+namespace Kratos {
 
 XmlElementsArray::XmlElementsArray(const std::string& rTagName)
     : BaseType(rTagName)
@@ -60,4 +60,4 @@ void XmlElementsArray:: Write(
     KRATOS_CATCH("");
 }
 
-} // namespace Kratos::Future
+} // namespace Kratos

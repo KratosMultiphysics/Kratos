@@ -20,7 +20,7 @@
 // Include base h
 #include "xml_data_element_wrapper.h"
 
-namespace Kratos::Future {
+namespace Kratos {
 
 XmlDataElementWrapper::XmlDataElementWrapper(const std::string& rTagName)
     : XmlElement(rTagName)
@@ -54,4 +54,4 @@ XmlElement::Pointer XmlDataElementWrapper::Get(
     KRATOS_CATCH("");
 }
 
-} // namespace Kratos::Future
+} // namespace Kratos

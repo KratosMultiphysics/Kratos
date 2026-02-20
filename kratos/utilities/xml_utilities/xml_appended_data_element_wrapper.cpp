@@ -23,7 +23,7 @@
 // Include base h
 #include "xml_appended_data_element_wrapper.h"
 
-namespace Kratos::Future {
+namespace Kratos {
 
 XmlAppendedDataElementWrapper::XmlAppendedDataElementWrapper(const XmlOutputType OutputType)
     : BaseType("AppendedData"),
@@ -136,4 +136,4 @@ void XmlAppendedDataElementWrapper::Write(
     KRATOS_CATCH("");
 }
 
-} // namespace Kratos::Future
+} // namespace Kratos

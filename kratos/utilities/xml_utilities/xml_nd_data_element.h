@@ -20,7 +20,7 @@
 #include "containers/nd_data.h"
 #include "xml_element.h"
 
-namespace Kratos::Future {
+namespace Kratos {
 
 ///@name Kratos Classes
 ///@{
@@ -56,4 +56,4 @@ protected:
 
 ///@}
 
-} // namespace Kratos::Future
+} // namespace Kratos

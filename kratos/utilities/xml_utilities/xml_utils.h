@@ -20,7 +20,7 @@
 #include "includes/define.h"
 #include "xml_element.h"
 
-namespace Kratos::Future {
+namespace Kratos {
 
 ///@name Kratos Classes
 ///@{
@@ -67,4 +67,4 @@ public:
 
 ///@}
 
-} // namespace Kratos::Future
+} // namespace Kratos

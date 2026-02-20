@@ -13,56 +13,60 @@
 #pragma once
 
 // System includes
-#include <string>
-#include <vector>
 
 // Project includes
 #include "includes/define.h"
-#include "xml_element.h"
+#include "containers/nd_data.h"
+#include "xml_data_element_wrapper.h"
 
-namespace Kratos::Future {
+namespace Kratos {
 
 ///@name Kratos Classes
 ///@{
 
-/* @class XmlElementsArray
+/* @class XmlInPlaceDataElementWrapper
  * @ingroup KratosCore
  * @brief Output stream writer for XML format.
  * @author Suneth Warnakulasuriya
  */
-class KRATOS_API(KRATOS_CORE) XmlElementsArray : public XmlElement
+class KRATOS_API(KRATOS_CORE) XmlInPlaceDataElementWrapper : public XmlDataElementWrapper
 {
 public:
-    ///@name Life cycle
+    ///@name Type definitions
     ///@{
 
-    using IndexType = std::size_t;
+    using BaseType = XmlDataElementWrapper;
 
-    using BaseType = XmlElement;
+    KRATOS_CLASS_POINTER_DEFINITION(XmlInPlaceDataElementWrapper);
 
-    KRATOS_CLASS_POINTER_DEFINITION(XmlElementsArray);
+    ///@}
+    ///@name Enums
+    ///@{
+
+    enum XmlOutputType
+    {
+        ASCII = 0,
+        BINARY = 1
+    };
 
     ///@}
     ///@name Life cycle
     ///@{
 
-    XmlElementsArray(const std::string& rTagName);
+    XmlInPlaceDataElementWrapper(
+        const XmlOutputType OutputType,
+        const IndexType Precision);
+
+    ~XmlInPlaceDataElementWrapper() override = default;
 
     ///@}
     ///@name Public operations
     ///@{
 
-    void AddElement(XmlElement::Pointer pElement);
+    XmlElement::Pointer Get(
+        const std::string& rDataArrayName,
+        NDDataPointerType pNDData) override;
 
-    std::vector<XmlElement::Pointer> GetElements() const;
-
-    void ClearElements();
-
-    /**
-     * @brief Writes an XML expression element.
-     * @param XmlExpressionElement Expression xml element to be written.
-     * @param Level The indentation level.
-     */
     void Write(
         std::ostream& rOStream,
         const IndexType Level = 0) const override;
@@ -73,9 +77,11 @@ private:
     ///@name Private member variables
     ///@{
 
-    std::vector<XmlElement::Pointer> mElementsArray;
+    const XmlOutputType mOutputType;
+
+    const IndexType mPrecision;
 
     ///@}
 };
 
-} // namespace Kratos::Future
+} // namespace Kratos

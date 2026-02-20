@@ -19,17 +19,17 @@
 #include "containers/nd_data.h"
 #include "xml_data_element_wrapper.h"
 
-namespace Kratos::Future {
+namespace Kratos {
 
 ///@name Kratos Classes
 ///@{
 
-/* @class XmlInPlaceDataElementWrapper
+/* @class XmlAppendedDataElementWrapper
  * @ingroup KratosCore
  * @brief Output stream writer for XML format.
  * @author Suneth Warnakulasuriya
  */
-class KRATOS_API(KRATOS_CORE) XmlInPlaceDataElementWrapper : public XmlDataElementWrapper
+class KRATOS_API(KRATOS_CORE) XmlAppendedDataElementWrapper : public XmlDataElementWrapper
 {
 public:
     ///@name Type definitions
@@ -37,7 +37,7 @@ public:
 
     using BaseType = XmlDataElementWrapper;
 
-    KRATOS_CLASS_POINTER_DEFINITION(XmlInPlaceDataElementWrapper);
+    KRATOS_CLASS_POINTER_DEFINITION(XmlAppendedDataElementWrapper);
 
     ///@}
     ///@name Enums
@@ -45,19 +45,17 @@ public:
 
     enum XmlOutputType
     {
-        ASCII = 0,
-        BINARY = 1
+        RAW = 0,
+        COMPRESSED_RAW = 1
     };
 
     ///@}
     ///@name Life cycle
     ///@{
 
-    XmlInPlaceDataElementWrapper(
-        const XmlOutputType OutputType,
-        const IndexType Precision);
+    XmlAppendedDataElementWrapper(const XmlOutputType OutputType);
 
-    ~XmlInPlaceDataElementWrapper() override = default;
+    ~XmlAppendedDataElementWrapper() override = default;
 
     ///@}
     ///@name Public operations
@@ -79,9 +77,9 @@ private:
 
     const XmlOutputType mOutputType;
 
-    const IndexType mPrecision;
+    std::vector<char> mData;
 
     ///@}
 };
 
-} // namespace Kratos::Future
+} // namespace Kratos

@@ -20,7 +20,7 @@
 // Include base h
 #include "xml_ascii_nd_data_element.h"
 
-namespace Kratos::Future {
+namespace Kratos {
 
 ///@name Kratos Classes
 ///@{
@@ -79,4 +79,4 @@ template class XmlAsciiNDDataElement<bool>;
 template class XmlAsciiNDDataElement<int>;
 template class XmlAsciiNDDataElement<double>;
 
-} // namespace Kratos::Future
+} // namespace Kratos

@@ -14,22 +14,23 @@
 
 // System includes
 #include <string>
-#include <map>
+#include <vector>
 
 // Project includes
 #include "includes/define.h"
+#include "xml_element.h"
 
-namespace Kratos::Future {
+namespace Kratos {
 
 ///@name Kratos Classes
 ///@{
 
-/* @class XmlElement
+/* @class XmlElementsArray
  * @ingroup KratosCore
  * @brief Output stream writer for XML format.
  * @author Suneth Warnakulasuriya
  */
-class KRATOS_API(KRATOS_CORE) XmlElement
+class KRATOS_API(KRATOS_CORE) XmlElementsArray : public XmlElement
 {
 public:
     ///@name Life cycle
@@ -37,56 +38,34 @@ public:
 
     using IndexType = std::size_t;
 
-    KRATOS_CLASS_POINTER_DEFINITION(XmlElement);
+    using BaseType = XmlElement;
+
+    KRATOS_CLASS_POINTER_DEFINITION(XmlElementsArray);
 
     ///@}
     ///@name Life cycle
     ///@{
 
-    XmlElement(const std::string& rTagName);
-
-    virtual ~XmlElement() = default;
+    XmlElementsArray(const std::string& rTagName);
 
     ///@}
     ///@name Public operations
     ///@{
 
-    void AddAttribute(
-        const std::string& rName,
-        const std::string& rValue);
+    void AddElement(XmlElement::Pointer pElement);
 
-    std::string GetTagName() const;
+    std::vector<XmlElement::Pointer> GetElements() const;
 
-    std::map<std::string, std::string> GetAttributes() const;
-
-    void ClearAttributes();
+    void ClearElements();
 
     /**
      * @brief Writes an XML expression element.
      * @param XmlExpressionElement Expression xml element to be written.
      * @param Level The indentation level.
      */
-    virtual void Write(
+    void Write(
         std::ostream& rOStream,
-        const IndexType Level = 0) const = 0;
-
-    ///@}
-
-protected:
-    ///@name Protected operations
-    ///@{
-
-    void WriteElementTagStart(
-        std::ostream& rOStream,
-        const IndexType Level) const;
-
-    void WriteElementTagEnd(
-        std::ostream& rOStream,
-        const IndexType Level) const;
-
-    void WriteEmptyElementTag(
-        std::ostream& rOStream,
-        const IndexType Level) const;
+        const IndexType Level = 0) const override;
 
     ///@}
 
@@ -94,11 +73,9 @@ private:
     ///@name Private member variables
     ///@{
 
-    std::map<std::string, std::string> mAttributes;
-
-    const std::string mTagName;
+    std::vector<XmlElement::Pointer> mElementsArray;
 
     ///@}
 };
 
-} // namespace Kratos::Future
+} // namespace Kratos

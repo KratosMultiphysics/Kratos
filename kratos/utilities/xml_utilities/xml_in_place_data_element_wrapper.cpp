@@ -24,7 +24,7 @@
 // Include base h
 #include "xml_in_place_data_element_wrapper.h"
 
-namespace Kratos::Future {
+namespace Kratos {
 
 XmlInPlaceDataElementWrapper::XmlInPlaceDataElementWrapper(
     const XmlOutputType OutputType,
@@ -74,4 +74,4 @@ void XmlInPlaceDataElementWrapper::Write(
     KRATOS_CATCH("");
 }
 
-} // namespace Kratos::Future
+} // namespace Kratos
