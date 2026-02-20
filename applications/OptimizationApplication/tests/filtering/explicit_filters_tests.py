@@ -243,9 +243,6 @@ class TestExplicitFilterReference(kratos_unittest.TestCase):
         vm_filter.SetComponentDataView(ComponentDataView("test", self.optimization_problem))
         vm_filter.Initialize()
 
-        nodal_neighbours = Kratos.Expression.NodalExpression(self.model_part)
-        KratosOA.ExpressionUtils.ComputeNumberOfNeighbourElements(nodal_neighbours)
-
         step_size = 5e-2
         for i in range(10):
             Kratos.NormalCalculationUtils().CalculateNormalsInElements(self.model_part, Kratos.NORMAL)
@@ -256,7 +253,7 @@ class TestExplicitFilterReference(kratos_unittest.TestCase):
             physical_element_gradient = Kratos.Expression.Utils.Scale(element_exp, domain_size_exp)
 
             physical_space_gradient = Kratos.Expression.NodalExpression(self.model_part)
-            KratosOA.ExpressionUtils.MapContainerVariableToNodalVariable(physical_space_gradient, physical_element_gradient, nodal_neighbours)
+            KratosOA.ExpressionUtils.MapContainerVariableToNodalVariable(physical_space_gradient, physical_element_gradient)
 
             control_space_gradient = vm_filter.BackwardFilterField(physical_space_gradient)
             control_update = control_space_gradient * (step_size / Kratos.Expression.Utils.NormInf(control_space_gradient))

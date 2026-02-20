@@ -362,8 +362,7 @@ void ContainerExpressionUtils::ComputeNumberOfNeighbourEntities(
 template<class TContainerType>
 void ContainerExpressionUtils::MapContainerVariableToNodalVariable(
     ContainerExpression<ModelPart::NodesContainerType>& rOutput,
-    const ContainerExpression<TContainerType>& rInput,
-    const ContainerExpression<ModelPart::NodesContainerType>& rNeighbourEntities)
+    const ContainerExpression<TContainerType>& rInput)
 {
     KRATOS_TRY
 
@@ -373,23 +372,10 @@ void ContainerExpressionUtils::MapContainerVariableToNodalVariable(
         << "\n\tOutput container: " << rOutput
         << "\n\tInput container : " << rInput << "\n";
 
-    KRATOS_ERROR_IF(&rOutput.GetModelPart() != &rNeighbourEntities.GetModelPart())
-        << "Output container and neighbour entities container model parts mismatch. "
-           "Followings are the container details:"
-        << "\n\tOutput container            : " << rOutput
-        << "\n\tNeighbour entities container: " << rNeighbourEntities << "\n";
-
-    KRATOS_ERROR_IF(rNeighbourEntities.GetItemComponentCount() != 1)
-        << "Neighbour entities container can only have data with dimensionality = 1"
-        << "\n\tNeighbour entities container:" << rNeighbourEntities << "\n";
-
     // reset temporary variables
     std::visit([&rOutput](auto&& p_variable) {
         VariableUtils().SetNonHistoricalVariableToZero(*p_variable, rOutput.GetModelPart().Nodes());
     }, ContainerVariableDataHolderUtilsHelper::GetTemporaryVariable(rInput.GetItemShape()));
-
-    // assign weights to nodes
-    VariableExpressionIO::Write(rNeighbourEntities, &TEMPORARY_SCALAR_VARIABLE_2, false);
 
     // create a dummy copy input data container to access its nodes and modify data
     ContainerExpression<TContainerType> dummy_input_container(rOutput.GetModelPart());
@@ -412,7 +398,7 @@ void ContainerExpressionUtils::MapContainerVariableToNodalVariable(
             for (auto& r_node : r_geometry) {
                 ContainerVariableDataHolderUtilsHelper::GenericAtomicAdd(
                     r_node.GetValue(*p_variable),
-                    rValue / r_node.GetValue(TEMPORARY_SCALAR_VARIABLE_2));
+                    rValue / r_geometry.size());
             }
         });
 
@@ -432,7 +418,8 @@ void ContainerExpressionUtils::MapContainerVariableToNodalVariable(
 template<class TContainerType>
 void ContainerExpressionUtils::MapNodalVariableToContainerVariable(
     ContainerExpression<TContainerType>& rOutput,
-    const ContainerExpression<ModelPart::NodesContainerType>& rInput)
+    const ContainerExpression<ModelPart::NodesContainerType>& rInput,
+    const ContainerExpression<ModelPart::NodesContainerType>& rNeighbourEntities)
 {
     KRATOS_TRY
 
@@ -441,6 +428,19 @@ void ContainerExpressionUtils::MapNodalVariableToContainerVariable(
            "Followings are the container details:"
         << "\n\tOutput container: " << rOutput
         << "\n\tInput container : " << rInput << "\n";
+
+    KRATOS_ERROR_IF(&rOutput.GetModelPart() != &rNeighbourEntities.GetModelPart())
+        << "Output container and neighbour entities container model parts mismatch. "
+           "Followings are the container details:"
+        << "\n\tOutput container            : " << rOutput
+        << "\n\tNeighbour entities container: " << rNeighbourEntities << "\n";
+
+    KRATOS_ERROR_IF(rNeighbourEntities.GetItemComponentCount() != 1)
+        << "Neighbour entities container can only have data with dimensionality = 1"
+        << "\n\tNeighbour entities container:" << rNeighbourEntities << "\n";
+
+    // assign weights to nodes
+    VariableExpressionIO::Write(rNeighbourEntities, &TEMPORARY_SCALAR_VARIABLE_2, false);
 
     std::visit([&rOutput, &rInput](auto&& p_variable) {
         // now create the variable_expression_data_io
@@ -464,11 +464,12 @@ void ContainerExpressionUtils::MapNodalVariableToContainerVariable(
             const IndexType number_of_nodes = r_geometry.size();
 
             auto value = r_geometry[0].GetValue(*p_variable);
+            value /= r_geometry[0].GetValue(TEMPORARY_SCALAR_VARIABLE_2);
 
             for (IndexType i = 1; i < number_of_nodes; ++i) {
-                value += r_geometry[i].GetValue(*p_variable);
+                value += r_geometry[i].GetValue(*p_variable) / r_geometry[i].GetValue(TEMPORARY_SCALAR_VARIABLE_2);
             }
-            p_variable_expression_data_io->Read(r_flat_data_expression, EntityIndex, value / number_of_nodes);
+            p_variable_expression_data_io->Read(r_flat_data_expression, EntityIndex, value);
         });
     }, ContainerVariableDataHolderUtilsHelper::GetTemporaryVariable(rInput.GetItemShape()));
 
@@ -607,8 +608,8 @@ ContainerExpression<TContainerType> ContainerExpressionUtils::ExtractData(
 
 #define KRATOS_INSTANTIATE_NON_NODAL_UTILITY_METHOD_FOR_CONTAINER_TYPE(ContainerType)                                                                                                                                                                                \
     template KRATOS_API(OPTIMIZATION_APPLICATION) void ContainerExpressionUtils::ComputeNumberOfNeighbourEntities<ContainerType>(ContainerExpression<ModelPart::NodesContainerType>&);                                                                                                                \
-    template KRATOS_API(OPTIMIZATION_APPLICATION) void ContainerExpressionUtils::MapContainerVariableToNodalVariable(ContainerExpression<ModelPart::NodesContainerType>&, const ContainerExpression<ContainerType>&, const ContainerExpression<ModelPart::NodesContainerType>&);          \
-    template KRATOS_API(OPTIMIZATION_APPLICATION) void ContainerExpressionUtils::MapNodalVariableToContainerVariable(ContainerExpression<ContainerType>&, const ContainerExpression<ModelPart::NodesContainerType>&);                                                                       \
+    template KRATOS_API(OPTIMIZATION_APPLICATION) void ContainerExpressionUtils::MapContainerVariableToNodalVariable(ContainerExpression<ModelPart::NodesContainerType>&, const ContainerExpression<ContainerType>&);          \
+    template KRATOS_API(OPTIMIZATION_APPLICATION) void ContainerExpressionUtils::MapNodalVariableToContainerVariable(ContainerExpression<ContainerType>&, const ContainerExpression<ModelPart::NodesContainerType>&, const ContainerExpression<ModelPart::NodesContainerType>&);                                                                       \
     template KRATOS_API(OPTIMIZATION_APPLICATION) void ContainerExpressionUtils::ComputeNodalVariableProductWithEntityMatrix(ContainerExpression<ModelPart::NodesContainerType>&, const ContainerExpression<ModelPart::NodesContainerType>&, const Variable<Matrix>& rMatrixVariable, ContainerType&);
 
 
