@@ -292,9 +292,9 @@ void DisplacementShellShiftedBoundaryCondition::CalculateLocalSystem(
         B_mat_shell(5, initial_index + 4) = r_DN_DX(i, 1);
 
         B_mat_shell(6, initial_index + 2) = r_DN_DX(i, 0);
-        B_mat_shell(6, initial_index + 3) = r_N[i];
+        B_mat_shell(6, initial_index + 4) = r_N[i];
         B_mat_shell(7, initial_index + 2) = r_DN_DX(i, 1);
-        B_mat_shell(7, initial_index + 4) = -r_N[i];
+        B_mat_shell(7, initial_index + 2) = -r_N[i];
 
         // B_mat_shell(6, initial_index + 2) = -r_DN_DX(i, 1);
         // B_mat_shell(6, initial_index + 3) = r_N[i];
