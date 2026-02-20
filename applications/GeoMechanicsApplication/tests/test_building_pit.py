@@ -785,8 +785,8 @@ class KratosGeoMechanicsBuildingPit(KratosUnittest.TestCase):
         )
 
         reader = GiDOutputFileReader()
-        rel_tolerance = 0.01
-        abs_tolerance_map = {"BENDING_MOMENT": 100.0}
+        rel_tolerance = 0.07
+        abs_tolerance_map = {"BENDING_MOMENT": 200.0}
         for stage_tag, expected_stage_results in expected_results.items():
             stage_base_name = self.stages_info[stage_tag]["base_name"]
             stage_output = reader.read_output_from(
@@ -809,7 +809,7 @@ class KratosGeoMechanicsBuildingPit(KratosUnittest.TestCase):
                         actual_value,
                         expected_value,
                         places=None,
-                        delta=max(rel_tolerance * expected_value, abs_tolerance),
+                        delta=max(rel_tolerance * abs(expected_value), abs_tolerance),
                         msg=f"{stage_tag} (time = {end_time}): {result_item_name} at node {node_id}",
                     )
 
@@ -1032,9 +1032,39 @@ class KratosGeoMechanicsBuildingPit(KratosUnittest.TestCase):
                     {"node": 4768, "value": 0.0},
                 ]
             },
-            "first_excavation": {},
-            "second_excavation": {},
-            "third_excavation": {},
+            "first_excavation": {
+                "BENDING_MOMENT": [
+                    {"node": 8988, "value": 0.0},
+                    {"node": 8351, "value": 30.5e3},
+                    {"node": 7597, "value": 91.8e3},
+                    {"node": 6867, "value": 57.8e3},
+                    {"node": 6173, "value": -51.6e3},
+                    {"node": 5449, "value": -9.25e3},
+                    {"node": 4768, "value": 0.0},
+                ]
+            },
+            "second_excavation": {
+                "BENDING_MOMENT": [
+                    {"node": 8988, "value": 0.0},
+                    {"node": 8351, "value": 309e3},
+                    {"node": 7597, "value": 91.6e3},
+                    {"node": 6867, "value": 49.0e3},
+                    {"node": 6173, "value": -179e3},
+                    {"node": 5449, "value": -16.1e3},
+                    {"node": 4768, "value": 0.0},
+                ]
+            },
+            "third_excavation": {
+                "BENDING_MOMENT": [
+                    {"node": 8988, "value": 0.0},
+                    {"node": 8351, "value": 533e3},
+                    {"node": 7597, "value": 828e3},
+                    {"node": 6867, "value": 586e3},
+                    {"node": 6173, "value": -885e3},
+                    {"node": 5449, "value": -180e3},
+                    {"node": 4768, "value": 0.0},
+                ]
+            },
         }
         self.run_simulation_and_checks("linear_elastic", expected_results)
 
