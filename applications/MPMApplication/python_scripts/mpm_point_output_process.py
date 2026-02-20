@@ -133,6 +133,7 @@ class MPMPointOutputProcess(KratosMultiphysics.OutputProcess):
 
             out += "\n"
             self.output_file.write(out)
+            self.output_file.flush()
 
     def ExecuteFinalize(self):
         if self.output_file is not None:

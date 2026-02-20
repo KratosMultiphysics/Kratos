@@ -15,6 +15,7 @@
 // External includes
 
 // Project includes
+#include "utilities/parallel_utilities.h"
 #include "mpm_application_variables.h"
 #include "custom_utilities/brute_force_material_point_locator.h"
 
@@ -49,33 +50,35 @@ void BruteForceMaterialPointLocator::FindObject(
     int& rObjectId,
     const double tolerance) const
 {
-    int object_found = 0;
-
     const int num_objects = rObjects.size();
 
-    KRATOS_WARNING_IF("BruteForceMaterialPointLocator", num_objects == 0)
-        << "No " << rObjectName << " in ModelPart \"" << mrModelPart.Name() << "\"" << std::endl;
-
-    std::vector<array_1d<double, 3>> mp_coord = { ZeroVector(3) };
-
-    double closest_object_distance = std::numeric_limits<double>::max();
-
-    for (auto& r_object : rObjects) {
-        r_object.CalculateOnIntegrationPoints(MP_COORD, mp_coord, mrModelPart.GetProcessInfo());
-
-        const double distance = std::sqrt(
-            std::pow(mp_coord[0][0] - rThePoint.X(),2) +
-            std::pow(mp_coord[0][1] - rThePoint.Y(),2) +
-            std::pow(mp_coord[0][2] - rThePoint.Z(),2));
-
-        if (distance < tolerance && distance < closest_object_distance) {
-            closest_object_distance = distance;
-            object_found = 1;
-            rObjectId = r_object.Id();
-        }
+    if (num_objects == 0) {
+        KRATOS_WARNING("BruteForceMaterialPointLocator") << "No " << rObjectName
+            << " in ModelPart \"" << mrModelPart.Name() << "\"" << std::endl;
+        return;
     }
 
-    KRATOS_WARNING_IF("BruteForceMaterialPointLocator", !object_found)
+    std::pair<double,int> closest_object = {tolerance*tolerance, rObjectId};
+
+    closest_object = block_for_each<MinDistanceReduction>(rObjects, [&](auto& r_object){
+
+        std::vector<array_1d<double, 3>> mp_coord = { ZeroVector(3) };
+        r_object.CalculateOnIntegrationPoints(MP_COORD, mp_coord, mrModelPart.GetProcessInfo());
+
+        const double distance = std::pow(mp_coord[0][0] - rThePoint.X(),2) +
+                                std::pow(mp_coord[0][1] - rThePoint.Y(),2) +
+                                std::pow(mp_coord[0][2] - rThePoint.Z(),2);
+
+        if (distance < closest_object.first) {
+            closest_object = {distance, r_object.Id()};
+        }
+
+        return closest_object;
+    });
+
+    rObjectId = closest_object.second;
+
+    KRATOS_WARNING_IF("BruteForceMaterialPointLocator", rObjectId == -1)
         << "No " << rObjectName << " close to point: " << rThePoint << std::endl;
 }
 
