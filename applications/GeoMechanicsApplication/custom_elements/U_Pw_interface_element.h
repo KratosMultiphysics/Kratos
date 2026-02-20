@@ -63,10 +63,10 @@ public:
     Element::Pointer Create(IndexType NewId, GeometryType::Pointer pGeom, PropertiesType::Pointer pProperties) const override;
 
     void EquationIdVector(EquationIdVectorType& rResult, const ProcessInfo&) const override;
-    void CalculateAndAssignStifnessMatrix(Element::MatrixType& rLeftHandSideMatrix, const ProcessInfo& rProcessInfo);
+    void CalculateAndAssignStiffnessMatrix(Element::MatrixType& rLeftHandSideMatrix, const ProcessInfo& rProcessInfo);
     void CalculateLeftHandSide(MatrixType& rLeftHandSideMatrix, const ProcessInfo&) override;
-    void CalculateAndAssembleStifnessForceVector(Element::VectorType& rRightHandSideVector,
-                                                 const ProcessInfo&   rProcessInfo);
+    void CalculateAndAssembleStiffnessForceVector(Element::VectorType& rRightHandSideVector,
+                                                  const ProcessInfo&   rProcessInfo);
     void CalculateAndAssignUPCouplingMatrix(MatrixType& rLeftHandSideMatrix) const;
     void CalculateAndAssembleUPCouplingForceVector(Element::VectorType& rRightHandSideVector) const;
     void CalculateRightHandSide(VectorType& rRightHandSideVector, const ProcessInfo&) override;
@@ -142,7 +142,7 @@ private:
     void CalculateAndAssignStiffnessMatrix(MatrixType& rLeftHandSideMatrix, const ProcessInfo& rProcessInfo);
 
     template <unsigned int MatrixSize>
-    void CalculateAndAssembleStiffnesForceVector(VectorType& rRightHandSideVector, const ProcessInfo& rProcessInfo);
+    void CalculateAndAssembleStiffnessForceVector(VectorType& rRightHandSideVector, const ProcessInfo& rProcessInfo);
 
     template <unsigned int NumberOfRows, unsigned int NumberOfColumns>
     typename UPCouplingCalculator<NumberOfRows, NumberOfColumns>::InputProvider CreateUPCouplingInputProvider() const;

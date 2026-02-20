@@ -167,7 +167,7 @@ void UPwInterfaceElement::CalculateLeftHandSide(MatrixType& rLeftHandSideMatrix,
     for (auto contribution : mContributions) {
         switch (contribution) {
         case CalculationContribution::Stiffness:
-            CalculateAndAssignStifnessMatrix(rLeftHandSideMatrix, rProcessInfo);
+            CalculateAndAssignStiffnessMatrix(rLeftHandSideMatrix, rProcessInfo);
             break;
         case CalculationContribution::UPCoupling:
             CalculateAndAssignUPCouplingMatrix(rLeftHandSideMatrix);
@@ -178,8 +178,8 @@ void UPwInterfaceElement::CalculateLeftHandSide(MatrixType& rLeftHandSideMatrix,
     }
 }
 
-void UPwInterfaceElement::CalculateAndAssignStifnessMatrix(Element::MatrixType& rLeftHandSideMatrix,
-                                                           const ProcessInfo&   rProcessInfo)
+void UPwInterfaceElement::CalculateAndAssignStiffnessMatrix(Element::MatrixType& rLeftHandSideMatrix,
+                                                            const ProcessInfo& rProcessInfo)
 {
     switch (NumberOfUDofs()) {
     case 8:
@@ -237,7 +237,7 @@ void UPwInterfaceElement::CalculateRightHandSide(Element::VectorType& rRightHand
     for (auto contribution : mContributions) {
         switch (contribution) {
         case CalculationContribution::Stiffness:
-            CalculateAndAssembleStifnessForceVector(rRightHandSideVector, rProcessInfo);
+            CalculateAndAssembleStiffnessForceVector(rRightHandSideVector, rProcessInfo);
             break;
         case CalculationContribution::UPCoupling:
             CalculateAndAssembleUPCouplingForceVector(rRightHandSideVector);
@@ -248,27 +248,27 @@ void UPwInterfaceElement::CalculateRightHandSide(Element::VectorType& rRightHand
     }
 }
 
-void UPwInterfaceElement::CalculateAndAssembleStifnessForceVector(Element::VectorType& rRightHandSideVector,
-                                                                  const ProcessInfo& rProcessInfo)
+void UPwInterfaceElement::CalculateAndAssembleStiffnessForceVector(Element::VectorType& rRightHandSideVector,
+                                                                   const ProcessInfo& rProcessInfo)
 {
     switch (NumberOfUDofs()) {
     case 8:
-        CalculateAndAssembleStiffnesForceVector<8>(rRightHandSideVector, rProcessInfo);
+        CalculateAndAssembleStiffnessForceVector<8>(rRightHandSideVector, rProcessInfo);
         break;
     case 12:
-        CalculateAndAssembleStiffnesForceVector<12>(rRightHandSideVector, rProcessInfo);
+        CalculateAndAssembleStiffnessForceVector<12>(rRightHandSideVector, rProcessInfo);
         break;
     case 18:
-        CalculateAndAssembleStiffnesForceVector<18>(rRightHandSideVector, rProcessInfo);
+        CalculateAndAssembleStiffnessForceVector<18>(rRightHandSideVector, rProcessInfo);
         break;
     case 36:
-        CalculateAndAssembleStiffnesForceVector<36>(rRightHandSideVector, rProcessInfo);
+        CalculateAndAssembleStiffnessForceVector<36>(rRightHandSideVector, rProcessInfo);
         break;
     case 24:
-        CalculateAndAssembleStiffnesForceVector<24>(rRightHandSideVector, rProcessInfo);
+        CalculateAndAssembleStiffnessForceVector<24>(rRightHandSideVector, rProcessInfo);
         break;
     case 48:
-        CalculateAndAssembleStiffnesForceVector<48>(rRightHandSideVector, rProcessInfo);
+        CalculateAndAssembleStiffnessForceVector<48>(rRightHandSideVector, rProcessInfo);
         break;
     default:
         KRATOS_ERROR << "This stiffness force vector size is not supported: " << NumberOfUDofs() << "\n";
@@ -672,10 +672,10 @@ Matrix UPwInterfaceElement::GetNpContainer() const
     auto integration_point_index = std::size_t{0};
     for (auto& r_integration_point : mpIntegrationScheme->GetIntegrationPoints()) {
         auto integration_point_shape_function_values = Vector{};
-        // water pressure shape function values on integration point ( the integration points are shared with the displacement mid geometry )
+        // water pressure shape function values on integration point ( the integration points are shared with the displacement mid-geometry )
         GetWaterPressureMidGeometry().ShapeFunctionsValues(integration_point_shape_function_values,
                                                            r_integration_point);
-        // to interplate nodal values of water pressure on mid geometry, the shape function is split into two equal contributions
+        // to interplate nodal values of water pressure on mid-geometry, the shape function is split into two equal contributions
         noalias(subrange(shape_function_values_interface, 0, number_of_pressure_nodes)) =
             0.5 * integration_point_shape_function_values;
         noalias(subrange(shape_function_values_interface, number_of_pressure_nodes, 2 * number_of_pressure_nodes)) =
@@ -730,8 +730,8 @@ void UPwInterfaceElement::CalculateAndAssignStiffnessMatrix(MatrixType&        r
 }
 
 template <unsigned int MatrixSize>
-void UPwInterfaceElement::CalculateAndAssembleStiffnesForceVector(VectorType& rRightHandSideVector,
-                                                                  const ProcessInfo& rProcessInfo)
+void UPwInterfaceElement::CalculateAndAssembleStiffnessForceVector(VectorType& rRightHandSideVector,
+                                                                   const ProcessInfo& rProcessInfo)
 {
     GeoElementUtilities::AssembleUBlockVector(
         rRightHandSideVector, CreateStiffnessCalculator<MatrixSize>(rProcessInfo).RHSContribution());
