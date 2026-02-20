@@ -158,6 +158,8 @@ namespace Kratos
     KRATOS_CREATE_VARIABLE(double, POISSON_RATIO_SENSITIVITY);
 
     KRATOS_CREATE_VARIABLE(double, CUSTOM_DESIGN_VARIABLE);
+    // For filtering
+    KRATOS_CREATE_VARIABLE(double, NODAL_DOMAIN_SIZE);
 
     // do not expose the following variables to python. They are used
     // as temporary data holders. They can be changed
