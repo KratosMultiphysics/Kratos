@@ -122,17 +122,16 @@ public:
     }
 
     /**
-     * @brief Converts template arguments to a string representation
-     * @tparam Types Variadic template types
-     * @param args Arguments to convert to string
-     * @return A comma-separated string representation of the arguments
+     * @brief Gets the registry name from a given demangled type name (no type suffixes and no namespaces)
+     * @return Registry name of a given type
      */
-    template<typename... Types>
-    static std::string RegistryTemplateToString(Types&&... args) {
-        std::string f_name = (... += ("," + std::to_string(args)));
-        f_name.erase(0,1);
-        return f_name;
-    }
+    static std::string GetRegistryName(std::string demangled_name);
+
+    /**
+     * @brief Gets the demangled name from a given type name
+     * @return Demanged name of a given type
+     */
+    static std::string GetDemangledName(const char* name);
 
     ///@}
     ///@name Iterators
