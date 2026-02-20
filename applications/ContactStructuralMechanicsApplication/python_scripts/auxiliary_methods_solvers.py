@@ -174,7 +174,6 @@ def  AuxiliarySolve(mechanical_solution_strategy):
     mechanical_solution_strategy.Solve()
     # mechanical_solution_strategy.Initialize()
     # mechanical_solution_strategy.InitializeSolutionStep()
-    # mechanical_solution_strategy.Predict()
     # mechanical_solution_strategy.SolveSolutionStep()
     # mechanical_solution_strategy.FinalizeSolutionStep()
 

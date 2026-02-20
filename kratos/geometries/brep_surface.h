@@ -11,6 +11,8 @@
 //                   Andreas Apostolatos
 //                   Pooyan Dadvand
 //                   Philipp Bucher
+//                   Nicolò Antonelli
+//                   Andrea Gorgi
 //
 
 #if !defined(KRATOS_BREP_FACE_3D_H_INCLUDED )
@@ -27,6 +29,7 @@
 
 // trimming integration
 #include "utilities/geometry_utilities/brep_trimming_utilities.h"
+#include "utilities/geometry_utilities/brep_sbm_utilities.h"
 
 namespace Kratos
 {
@@ -58,12 +61,15 @@ public:
     typedef Geometry<typename TContainerPointType::value_type> BaseType;
     typedef Geometry<typename TContainerPointType::value_type> GeometryType;
     typedef typename GeometryType::Pointer GeometryPointer;
+    using GeometrySurrogateArrayType = DenseVector<GeometryPointer>;
 
     typedef GeometryData::IntegrationMethod IntegrationMethod;
 
     typedef NurbsSurfaceGeometry<3, TContainerPointType> NurbsSurfaceType;
     typedef BrepCurveOnSurface<TContainerPointType, TShiftedBoundary, TContainerPointEmbeddedType> BrepCurveOnSurfaceType;
+
     typedef BrepTrimmingUtilities<TShiftedBoundary> BrepTrimmingUtilitiesType;
+    typedef BrepSbmUtilities<Node> BrepSbmUtilitiesType;
 
     typedef DenseVector<typename BrepCurveOnSurfaceType::Pointer> BrepCurveOnSurfaceArrayType;
     typedef DenseVector<typename BrepCurveOnSurfaceType::Pointer> BrepCurveOnSurfaceLoopType;
@@ -163,6 +169,8 @@ public:
         mInnerLoopArray = rOther.mInnerLoopArray;
         mEmbeddedEdgesArray = rOther.mEmbeddedEdgesArray;
         mIsTrimmed = rOther.mIsTrimmed;
+        mpSurrogateInnerLoopGeometries = rOther.mpSurrogateInnerLoopGeometries;
+        mpSurrogateOuterLoopGeometries = rOther.mpSurrogateOuterLoopGeometries;
         return *this;
     }
 
@@ -176,6 +184,8 @@ public:
         mInnerLoopArray = rOther.mInnerLoopArray;
         mEmbeddedEdgesArray = rOther.mEmbeddedEdgesArray;
         mIsTrimmed = rOther.mIsTrimmed;
+        mpSurrogateInnerLoopGeometries = rOther.mpSurrogateInnerLoopGeometries;
+        mpSurrogateOuterLoopGeometries = rOther.mpSurrogateOuterLoopGeometries;
         return *this;
     }
 
@@ -195,7 +205,7 @@ public:
     /**
     * @brief This function returns the pointer of the geometry
     *        which is corresponding to the trim index.
-    *        Surface of the geometry is accessable with SURFACE_INDEX.
+    *        Surface of the geometry is accessible with SURFACE_INDEX.
     * @param Index: trim_index or SURFACE_INDEX.
     * @return pointer of geometry, corresponding to the index.
     */
@@ -209,7 +219,7 @@ public:
     /**
     * @brief This function returns the pointer of the geometry
     *        which is corresponding to the trim index.
-    *        Surface of the geometry is accessable with GeometryType::BACKGROUND_GEOMETRY_INDEX.
+    *        Surface of the geometry is accessible with GeometryType::BACKGROUND_GEOMETRY_INDEX.
     * @param Index: trim_index or GeometryType::BACKGROUND_GEOMETRY_INDEX.
     * @return pointer of geometry, corresponding to the index.
     */
@@ -450,9 +460,20 @@ public:
         if (!mIsTrimmed) {
             // sbm case
             if constexpr (TShiftedBoundary) {
-                // TODO: Next PR -> Call  "BrepSBMUtilities::CreateBrepSurfaceSBMIntegrationPoints"
-                mpNurbsSurface->CreateIntegrationPoints(
-                    rIntegrationPoints, rIntegrationInfo);
+
+                std::vector<double> spans_u;
+                std::vector<double> spans_v;
+                mpNurbsSurface->SpansLocalSpace(spans_u, 0);
+                mpNurbsSurface->SpansLocalSpace(spans_v, 1);
+                
+                // Call  "BrepSBMUtilities::CreateBrepSurfaceSBMIntegrationPoints"
+                BrepSbmUtilitiesType::CreateBrepSurfaceSbmIntegrationPoints(
+                    spans_u, 
+                    spans_v,
+                    *mpSurrogateOuterLoopGeometries,
+                    *mpSurrogateInnerLoopGeometries,
+                    rIntegrationPoints,
+                    rIntegrationInfo);
             }
             // body-fitted case
             else {
@@ -480,7 +501,7 @@ public:
     ///@name Quadrature Point Geometries
     ///@{
 
-    /* @brief calls function of undelying nurbs surface and updates
+    /* @brief calls function of underlying nurbs surface and updates
      *        the parent to itself.
      *
      * @param rResultGeometries list of quadrature point geometries.
@@ -550,6 +571,42 @@ public:
         return GeometryData::KratosGeometryType::Kratos_Brep_Surface;
     }
 
+    /**
+     * @brief Set the Surrogate Outer Loop Geometries object
+     * @param pSurrogateOuterLoopArray 
+     */
+    void SetSurrogateOuterLoopGeometries(Kratos::shared_ptr<GeometrySurrogateArrayType> pSurrogateOuterLoopArray)
+    {
+        mpSurrogateOuterLoopGeometries = pSurrogateOuterLoopArray;
+    }
+    
+    /**
+     * @brief Set the Surrogate Inner Loop Geometries object
+     * @param pSurrogateInnerLoopArray 
+     */
+    void SetSurrogateInnerLoopGeometries(Kratos::shared_ptr<GeometrySurrogateArrayType> pSurrogateInnerLoopArray)
+    {
+        mpSurrogateInnerLoopGeometries = pSurrogateInnerLoopArray;
+    }
+
+    /**
+     * @brief Get the Surrogate Inner Loop Geometries object
+     * @return GeometrySurrogateArrayType 
+     */
+    GeometrySurrogateArrayType& GetSurrogateInnerLoopGeometries()
+    {
+        return *mpSurrogateInnerLoopGeometries;
+    }
+
+    /**
+     * @brief Get the Surrogate Outer Loop Geometries object
+     * @return GeometrySurrogateArrayType 
+     */
+    GeometrySurrogateArrayType& GetSurrogateOuterLoopGeometries()
+    {
+        return *mpSurrogateOuterLoopGeometries;
+    }
+
     ///@}
     ///@name Information
     ///@{
@@ -595,6 +652,10 @@ private:
 
     BrepCurveOnSurfaceArrayType mEmbeddedEdgesArray;
 
+    // For SBM
+    Kratos::shared_ptr<GeometrySurrogateArrayType> mpSurrogateOuterLoopGeometries = nullptr;
+    Kratos::shared_ptr<GeometrySurrogateArrayType> mpSurrogateInnerLoopGeometries = nullptr;
+    
     /** IsTrimmed is used to optimize processes as
     *   e.g. creation of integration domain.
     */
@@ -614,6 +675,8 @@ private:
         rSerializer.save("InnerLoopArray", mInnerLoopArray);
         rSerializer.save("EmbeddedEdgesArray", mEmbeddedEdgesArray);
         rSerializer.save("IsTrimmed", mIsTrimmed);
+        rSerializer.save("SurrogateInnerLoopGeometries", mpSurrogateInnerLoopGeometries);
+        rSerializer.save("SurrogateOuterLoopGeometries", mpSurrogateOuterLoopGeometries);
     }
 
     void load( Serializer& rSerializer ) override
@@ -624,6 +687,8 @@ private:
         rSerializer.load("InnerLoopArray", mInnerLoopArray);
         rSerializer.load("EmbeddedEdgesArray", mEmbeddedEdgesArray);
         rSerializer.load("IsTrimmed", mIsTrimmed);
+        rSerializer.save("SurrogateInnerLoopGeometries", mpSurrogateInnerLoopGeometries);
+        rSerializer.save("SurrogateOuterLoopGeometries", mpSurrogateOuterLoopGeometries);
     }
 
     BrepSurface()

@@ -70,6 +70,7 @@
 #include "add_parallel_environment_to_python.h"
 #include "add_global_pointers_to_python.h"
 #include "add_dofs_to_python.h"
+#include "add_dof_utilities_to_python.h"
 #include "add_mapper_to_python.h"
 #include "add_sparse_matrices_to_python.h"
 #include "add_registry_to_python.h"
@@ -77,6 +78,15 @@
 #include "add_accessors_to_python.h"
 #include "add_globals_to_python.h"
 #include "add_geometry_data_to_python.h"
+#include "add_tensor_adaptors_to_python.h"
+
+#ifdef KRATOS_USE_FUTURE
+    #include "future/python/kratos_python.h"
+#endif
+
+#ifdef KRATOS_USE_LEGACY
+    #include "legacy/python/kratos_python.h"
+#endif
 
 namespace Kratos::Python
 {
@@ -128,6 +138,7 @@ PYBIND11_MODULE(Kratos, m)
     AddAMGCLSolverToPython(m);
     AddStrategiesToPython(m);
     AddConvergenceAcceleratorsToPython(m);
+    AddDofUtilitiesToPython(m);
     AddGeometricalUtilitiesToPython(m);
     AddOtherUtilitiesToPython(m);
     AddVariableUtilsToPython(m);
@@ -156,6 +167,17 @@ PYBIND11_MODULE(Kratos, m)
     AddRegistryToPython(m);
     AddContainerExpressionToPython(m);
     AddGlobalsToPython(m);
+    AddTensorAdaptorsToPython(m);
+
+#ifdef KRATOS_USE_FUTURE
+    auto future = m.def_submodule("Future", "Kratos Future submodule containing experimental features");
+    Future::Python::AddFutureToPython(future);
+#endif
+
+#ifdef KRATOS_USE_LEGACY
+    auto legacy = m.def_submodule("Legacy", "Kratos Legacy submodule containing legacy features");
+    Legacy::Python::AddLegacyToPython(legacy);
+#endif
 
     m.def("Hello", Hello);
 }

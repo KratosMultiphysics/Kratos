@@ -1,4 +1,4 @@
-#define GP_VERSION_MAJOR @GP_VERSION_MAJOR@
-#define GP_VERSION_MINOR @GP_VERSION_MINOR@
-
-#cmakedefine HDF5
+#cmakedefine ENABLE_HDF5
+#cmakedefine HAS_GFORTRAN
+#cmakedefine HAS_INTEL_FORTRAN
+#cmakedefine HAS_NVIDIA_FORTRAN

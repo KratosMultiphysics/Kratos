@@ -1,4 +1,4 @@
-# Applications requiered
+# Applications required
 from KratosMultiphysics.DelaunayMeshingApplication import *
 
 # Application dependent names and paths

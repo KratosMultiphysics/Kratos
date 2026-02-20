@@ -60,7 +60,7 @@ public:
     ///@name Life Cycle
     ///@{
 
-    /// Conctructor for B-Spline curves
+    /// Constructor for B-Spline curves
     NurbsCurveGeometry(
         const PointsArrayType& rThisPoints,
         const SizeType PolynomialDegree,
@@ -72,7 +72,7 @@ public:
         CheckAndFitKnotVectors();
     }
 
-    /// Conctructor for NURBS curves
+    /// Constructor for NURBS curves
     NurbsCurveGeometry(
         const PointsArrayType& rThisPoints,
         const SizeType PolynomialDegree,
@@ -332,7 +332,7 @@ public:
     ///@name ClosestPoint
     ///@{
 
-    /* @brief Makes a check if the provided paramater rPointLocalCoordinates[0]
+    /* @brief Makes a check if the provided parameter rPointLocalCoordinates[0]
      *        is inside the curve, or on the boundary or if it lays outside.
      *        If it is outside, it is set to the boundary which is closer to it.
      * @return if rPointLocalCoordinates[0] was before the projection:
@@ -520,6 +520,12 @@ public:
 
         for (IndexType i = 0; i < rIntegrationPoints.size(); ++i)
         {
+            std::vector<CoordinatesArrayType> global_space_derivatives(2);
+            this->GlobalSpaceDerivatives(
+                                        global_space_derivatives,
+                                        rIntegrationPoints[i],
+                                        1);
+
             if (IsRational()) {
                 shape_function_container.ComputeNurbsShapeFunctionValues(
                     mKnots, mWeights, rIntegrationPoints[i][0]);
@@ -553,9 +559,11 @@ public:
             GeometryShapeFunctionContainer<GeometryData::IntegrationMethod> data_container(
                 default_method, rIntegrationPoints[i],
                 N, shape_function_derivatives);
-
-            rResultGeometries(i) = CreateQuadraturePointsUtility<NodeType>::CreateQuadraturePoint(
-                this->WorkingSpaceDimension(), 1, data_container, nonzero_control_points);
+            
+            rResultGeometries(i) = CreateQuadraturePointsUtility<NodeType>::CreateQuadraturePointCurve(
+                this->WorkingSpaceDimension(), 1, 
+                data_container, nonzero_control_points,
+                global_space_derivatives[1][0], global_space_derivatives[1][1], this);
         }
     }
 

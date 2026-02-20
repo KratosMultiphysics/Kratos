@@ -74,6 +74,10 @@ class KratosExternalLibrariesFastSuite : public KratosCoreFastSuite {};
 class KratosNonRectangularJacobianFastSuite : public KratosCoreFastSuite {};
 class KratosCoreStressSuite : public KratosCoreFastSuite {};
 
+// Define test suits for legacy and future namespaces
+class KratosCoreFutureSuite : public KratosCoreFastSuite {};
+class KratosCoreLegacySuite : public KratosCoreFastSuite {};
+
 ////////////////////////////////////////////////////////////////////////////////////////
 //// ALL THIS CLASSES NEED TO BE REMOVED OR MOVED TO CORE_TEST_SUTES.H ONCE MERGED  ////
 ////////////////////////////////////////////////////////////////////////////////////////
@@ -93,7 +97,7 @@ class MeshMovingApplicationFastSuite : public KratosCoreFastSuite {};
 class KratosMeshingApplicationFastSuite : public KratosCoreFastSuite {};
 class KratosRansFastSuite : public KratosCoreFastSuite {};
 class RomApplicationFastSuite : public KratosCoreFastSuite {};
-class KratosSolidMechanicsFastSuite : public KratosCoreFastSuite {};
+//class KratosSolidMechanicsFastSuite : public KratosCoreFastSuite {};
 class KratosStatisticsFastSuite : public KratosCoreFastSuite {};
 class KratosWindEngineeringFastSuite : public KratosCoreFastSuite {};
 class KratosMPMFastSuite : public KratosCoreFastSuite {};

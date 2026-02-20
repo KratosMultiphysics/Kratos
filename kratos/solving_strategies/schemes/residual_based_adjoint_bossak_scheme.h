@@ -174,6 +174,23 @@ public:
         KRATOS_CATCH("");
     }
 
+    void Predict(
+        ModelPart& rModelPart,
+        DofsArrayType& rDofSet,
+        SystemMatrixType& A,
+        SystemVectorType& Dx,
+        SystemVectorType& b) override
+    {
+        KRATOS_TRY;
+
+        const auto& r_current_process_info = rModelPart.GetProcessInfo();
+        mBossak = CalculateBossakConstants(mBossak.Alpha, GetTimeStep(r_current_process_info));
+
+        this->CalculateNodeNeighbourCount(rModelPart);
+
+        KRATOS_CATCH("");
+    }
+
     void InitializeSolutionStep(
         ModelPart& rModelPart,
         SystemMatrixType& rA,

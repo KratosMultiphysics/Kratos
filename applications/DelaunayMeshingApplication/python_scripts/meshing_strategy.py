@@ -117,7 +117,10 @@ class MeshingStrategy(object):
             print(self._class_prefix()+"  ["+self.MeshingParameters.GetSubModelPartName()+" model part ] (REMESH:",self.settings["remesh"].GetBool(),"/ REFINE:",self.settings["refine"].GetBool(),"/ TRANSFER:",self.settings["transfer"].GetBool(),")")
 
         for mesher in meshers_list:
-            meshing_module =__import__(mesher)
+            if not "KratosMultiphysics" in mesher:
+                mesher = "KratosMultiphysics.DelaunayMeshingApplication." + mesher
+            import importlib
+            meshing_module = importlib.import_module(mesher)
             new_mesher = meshing_module.CreateMesher(self.main_model_part,self.MeshingParameters)
             self.meshers.append(new_mesher)
 

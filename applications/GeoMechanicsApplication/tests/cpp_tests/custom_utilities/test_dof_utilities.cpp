@@ -15,14 +15,14 @@
 #include <boost/range/algorithm/copy.hpp>
 
 #include "containers/model.h"
-#include "custom_elements/U_Pw_small_strain_element.hpp"
+#include "custom_elements/U_Pw_small_strain_element.h"
 #include "custom_elements/plane_strain_stress_state.h"
-#include "custom_utilities/dof_utilities.h"
+#include "custom_utilities/dof_utilities.hpp"
 #include "geo_aliases.h"
 #include "geo_mechanics_application_variables.h"
 #include "includes/element.h"
+#include "test_setup_utilities/model_setup_utilities.h"
 #include "tests/cpp_tests/geo_mechanics_fast_suite.h"
-#include "tests/cpp_tests/test_utilities/model_setup_utilities.h"
 
 namespace
 {
@@ -162,7 +162,7 @@ KRATOS_TEST_CASE_IN_SUITE(ExpectThrowWhenExtractingNonExistingDofsFromNodes, Kra
 
     auto p_element = make_intrusive<UPwSmallStrainElement<2, 3>>(
         1, Kratos::make_shared<Triangle2D3<Node>>(nodes), r_model_part.CreateNewProperties(0),
-        std::make_unique<PlaneStrainStressState>());
+        std::make_unique<PlaneStrainStressState>(), nullptr);
     r_model_part.AddElement(p_element);
 
     KRATOS_EXPECT_EXCEPTION_IS_THROWN(
@@ -184,7 +184,7 @@ KRATOS_TEST_CASE_IN_SUITE(VariableTypeAndNodeIDsMustMatchWhenExtractingDofsFromN
     const auto node_ids  = std::vector<ModelPart::IndexType>{1, 2, 3};
     auto       p_element = make_intrusive<UPwSmallStrainElement<2, 3>>(
         1, Kratos::make_shared<Triangle2D3<Node>>(nodes), r_model_part.CreateNewProperties(0),
-        std::make_unique<PlaneStrainStressState>());
+        std::make_unique<PlaneStrainStressState>(), nullptr);
     r_model_part.AddElement(p_element);
 
     const auto dofs = Geo::DofUtilities::ExtractDofsFromNodes(p_element->GetGeometry(), DISPLACEMENT_X);

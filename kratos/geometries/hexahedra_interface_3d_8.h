@@ -20,6 +20,7 @@
 
 // Project includes
 #include "geometries/quadrilateral_3d_4.h"
+#include "integration/quadrilateral_gauss_lobatto_integration_points.h"
 #include "integration/hexahedron_gauss_lobatto_integration_points.h"
 
 
@@ -143,7 +144,7 @@ public:
     typedef typename BaseType::ShapeFunctionsGradientsType ShapeFunctionsGradientsType;
 
     /**
-     * Type of the normal vector used for normal to edges in geomety.
+     * Type of the normal vector used for normal to edges in geometry.
      */
     typedef typename BaseType::NormalType NormalType;
 
@@ -403,7 +404,7 @@ public:
      * Copy constructor from a geometry with other point type.
      * Construct this geometry as a copy of given geometry which
      * has different type of points. The given goemetry's
-     * TOtherPointType* must be implicity convertible to this
+     * TOtherPointType* must be implicitly convertible to this
      * geometry PointType.
      *
      * @note This copy constructor don't copy the points and new
@@ -525,7 +526,7 @@ public:
 
     /**
      * This method calculates and returns area or surface area of
-     * this geometry depending to it's dimension. For one dimensional
+     * this geometry depending on its dimension. For one dimensional
      * geometry it returns zero, for two dimensional it gives area
      * and for three dimensional geometries it gives surface area.
      *
@@ -601,8 +602,8 @@ public:
 
 
     /**
-     * This method calculate and return length, area or volume of
-     * this geometry depending to it's dimension. For one dimensional
+     * This method calculates and returns length, area or volume of
+     * this geometry depending on its dimension. For one dimensional
      * geometry it returns its length, for two dimensional it gives area
      * and for three dimensional geometries it gives its volume.
      *
@@ -785,7 +786,7 @@ public:
      * :TODO: TO BE TESTED
      */
     /** Jacobian in specific integration point of given integration
-     *  method. This method calculate jacobian matrix in given
+     *  method. This method calculates jacobian matrix in given
      * integration point of given integration method.
      *
      * @param IntegrationPointIndex index of integration point which jacobians has to
@@ -836,7 +837,7 @@ public:
     }
 
 	/** Jacobian in specific integration point of given integration
-    method. This method calculate jacobian matrix in given
+    method. This method calculates jacobian matrix in given
     integration point of given integration method.
 
     @param IntegrationPointIndex index of integration point which jacobians has to
@@ -894,7 +895,7 @@ public:
      * :TODO: TO BE TESTED
      */
     /**
-     * Jacobian in given point. This method calculate jacobian
+     * Jacobian in given point. This method calculates jacobian
      * matrix in given point.
      *
      * @param rPoint point which jacobians has to
@@ -935,7 +936,7 @@ public:
      */
     /**
      * Determinant of jacobians for given integration method.
-     * This method calculate determinant of jacobian in all
+     * This method calculates determinant of jacobian in all
      * integrations points of given integration method.
      *
      * @return Vector of double which is vector of determinants of
@@ -980,7 +981,7 @@ public:
      */
     /**
      * Determinant of jacobian in specific integration point of
-     * given integration method. This method calculate determinant
+     * given integration method. This method calculates determinant
      * of jacobian in given integration point of given integration
      * method.
      *
@@ -1025,7 +1026,7 @@ public:
      */
     /**
      * Inverse of jacobians for given integration method.
-     * This method calculate inverse of jacobians matrices in all
+     * This method calculates inverse of jacobians matrices in all
      * integrations points of given integration method.
      *
      * @param ThisMethod integration method which inverse of jacobians has to
@@ -1052,7 +1053,7 @@ public:
     /**
      * Inverse of jacobian in specific integration point of given integration
      * method.
-     * This method calculate Inverse of jacobian matrix in given
+     * This method calculates Inverse of jacobian matrix in given
      * integration point of given integration method.
      *
      * @param IntegrationPointIndex index of integration point which
@@ -1083,7 +1084,7 @@ public:
      */
     /**
      * Inverse of jacobian in given point.
-     * This method calculate inverse of jacobian matrix in given point.
+     * This method calculates inverse of jacobian matrix in given point.
      *
      * @param rPoint point which inverse of jacobians has to
      * be calculated in it.
@@ -1107,7 +1108,7 @@ public:
     /**
      * @brief This method gives you number of all edges of this geometry.
      * @details For example, for a hexahedron, this would be 12
-     * @return SizeType containes number of this geometry edges.
+     * @return SizeType contains number of this geometry edges.
      * @see EdgesNumber()
      * @see Edges()
      * @see GenerateEdges()
@@ -1124,7 +1125,7 @@ public:
      * @brief This method gives you all edges of this geometry.
      * @details This method will gives you all the edges with one dimension less than this geometry.
      * For example a triangle would return three lines as its edges or a tetrahedral would return four triangle as its edges but won't return its six edge lines by this method.
-     * @return GeometriesArrayType containes this geometry edges.
+     * @return GeometriesArrayType contains this geometry edges.
      * @see EdgesNumber()
      * @see Edge()
      */
@@ -1190,7 +1191,7 @@ public:
     /**
      * @brief Returns all faces of the current geometry.
      * @details This is only implemented for 3D geometries, since 2D geometries only have edges but no faces
-     * @return GeometriesArrayType containes this geometry faces.
+     * @return GeometriesArrayType contains this geometry faces.
      * @see EdgesNumber
      * @see GenerateEdges
      * @see FacesNumber
@@ -1761,53 +1762,46 @@ private:
         return d_shape_f_values;
     }
 
+    // Note that the interface geometries "hack" the standard geometry integration mechanism
+    // First integration method, referred as GI_GAUSS_1, is the Lobatto quadrature of the lower order geometry
+    // Second intregration method, referred as GI_LOBATTO_1, is the Lobatto quadrature of the current (degenerated) geometry
     static const IntegrationPointsContainerType AllIntegrationPoints()
     {
         IntegrationPointsContainerType integration_points =
         {
             {
-                Quadrature < HexahedronGaussLobattoIntegrationPoints0,
-                3, IntegrationPoint<3> >::GenerateIntegrationPoints(),
-                Quadrature < HexahedronGaussLobattoIntegrationPoints1,
-                3, IntegrationPoint<3> >::GenerateIntegrationPoints(),
-                IntegrationPointsArrayType(),
-                IntegrationPointsArrayType()
+                Quadrature< QuadrilateralGaussLobattoIntegrationPoints1, 2, IntegrationPoint<3> >::GenerateIntegrationPoints(),
+                Quadrature< HexahedronGaussLobattoIntegrationPoints1, 3, IntegrationPoint<3> >::GenerateIntegrationPoints()
             }
         };
         return integration_points;
     }
 
+    // Note that the interface geometries "hack" the standard geometry integration mechanism
+    // First integration method, referred as GI_GAUSS_1, is the Lobatto quadrature of the lower order geometry
+    // Second intregration method, referred as GI_LOBATTO_1, is the Lobatto quadrature of the current (degenerated) geometry
     static const ShapeFunctionsValuesContainerType AllShapeFunctionsValues()
     {
         ShapeFunctionsValuesContainerType shape_functions_values =
         {
             {
-                HexahedraInterface3D8<TPointType>::CalculateShapeFunctionsIntegrationPointsValues(
-                    GeometryData::IntegrationMethod::GI_GAUSS_1 ),
-                HexahedraInterface3D8<TPointType>::CalculateShapeFunctionsIntegrationPointsValues(
-                    GeometryData::IntegrationMethod::GI_GAUSS_2 ),
-                Matrix(),
-                Matrix()
+                HexahedraInterface3D8<TPointType>::CalculateShapeFunctionsIntegrationPointsValues(GeometryData::IntegrationMethod::GI_GAUSS_1 ), // FIXME: this is the lower order geometry (i.e., quad) Lobatto quadrature and shouldn't be GI_GAUSS_1
+                HexahedraInterface3D8<TPointType>::CalculateShapeFunctionsIntegrationPointsValues(GeometryData::IntegrationMethod::GI_LOBATTO_1 )
             }
         };
         return shape_functions_values;
     }
 
-    /**
-     * TODO: TO BE VERIFIED
-     */
-    static const ShapeFunctionsLocalGradientsContainerType
-    AllShapeFunctionsLocalGradients()
+    // Note that the interface geometries "hack" the standard geometry integration mechanism
+    // First integration method, referred as GI_GAUSS_1, is the Lobatto quadrature of the lower order geometry
+    // Second intregration method, referred as GI_LOBATTO_1, is the Lobatto quadrature of the current (degenerated) geometry
+    static const ShapeFunctionsLocalGradientsContainerType AllShapeFunctionsLocalGradients()
     {
         ShapeFunctionsLocalGradientsContainerType shape_functions_local_gradients =
         {
             {
-                HexahedraInterface3D8<TPointType>::CalculateShapeFunctionsIntegrationPointsLocalGradients(
-                    GeometryData::IntegrationMethod::GI_GAUSS_1 ),
-                HexahedraInterface3D8<TPointType>::CalculateShapeFunctionsIntegrationPointsLocalGradients(
-                    GeometryData::IntegrationMethod::GI_GAUSS_2 ),
-                ShapeFunctionsGradientsType(),
-                ShapeFunctionsGradientsType()
+                HexahedraInterface3D8<TPointType>::CalculateShapeFunctionsIntegrationPointsLocalGradients(GeometryData::IntegrationMethod::GI_GAUSS_1 ), // FIXME: this is the lower order geometry (i.e., quad) Lobatto quadrature and shouldn't be GI_GAUSS_1
+                HexahedraInterface3D8<TPointType>::CalculateShapeFunctionsIntegrationPointsLocalGradients(GeometryData::IntegrationMethod::GI_LOBATTO_1 ),
             }
         };
         return shape_functions_local_gradients;

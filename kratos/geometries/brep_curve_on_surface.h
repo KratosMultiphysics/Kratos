@@ -375,7 +375,7 @@ public:
     ///@name ClosestPoint
     ///@{
 
-    /* @brief Makes a check if the provided paramater rPointLocalCoordinates[0]
+    /* @brief Makes a check if the provided parameter rPointLocalCoordinates[0]
      *        is inside the curve, or on the boundary or if it lays outside.
      *        If it is outside, it is set to the boundary which is closer to it.
      * @return if rPointLocalCoordinates[0] was before the projection:
@@ -400,7 +400,7 @@ public:
 
         const double max_parameter = mCurveNurbsInterval.MaxParameter();
         if (rPointLocalCoordinates[0] > max_parameter) {
-            rClosestPointLocalCoordinates[0] = min_parameter;
+            rClosestPointLocalCoordinates[0] = max_parameter;
             return 0;
         } else if (std::abs(rPointLocalCoordinates[0] - max_parameter) < Tolerance) {
             rClosestPointLocalCoordinates[0] = rPointLocalCoordinates[0];
@@ -469,7 +469,7 @@ public:
     *        number of derivatives at the underlying nurbs curve on surface
     *        at the parameter rLocalCoordinates[0].
     *
-    * @param LocalCoordinates The local coordinates in paramater space
+    * @param LocalCoordinates The local coordinates in parameter space
     * @param Derivative Number of computed derivatives
     *        0 -> Location = PointLocalCoordinates
     *        1 -> Tangent

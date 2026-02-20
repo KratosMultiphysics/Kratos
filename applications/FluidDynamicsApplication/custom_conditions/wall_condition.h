@@ -553,7 +553,7 @@ namespace Kratos
 
         void CalculateNormal(array_1d<double,3>& An );
 
-        /// Commpute the wall stress and add corresponding terms to the system contributions.
+        /// Compute the wall stress and add corresponding terms to the system contributions.
         /**
           @param rLocalMatrix Local system matrix
           @param rLocalVector Local right hand side

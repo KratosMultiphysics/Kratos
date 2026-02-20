@@ -1,5 +1,6 @@
 # Importing the Kratos Library
 import KratosMultiphysics
+import importlib
 import KratosMultiphysics.kratos_utilities as kratos_utils
 if kratos_utils.CheckIfApplicationsAvailable("StructuralMechanicsApplication"):
     from KratosMultiphysics.StructuralMechanicsApplication.structural_mechanics_analysis import StructuralMechanicsAnalysis
@@ -50,7 +51,16 @@ class TestFactory(KratosUnittest.TestCase):
 
             # Creating the test
             model = KratosMultiphysics.Model()
-            self.test = StructuralMechanicsAnalysis(model, ProjectParameters)
+            if ProjectParameters.Has("analysis_stage"):
+                analysis_stage_module_name = ProjectParameters["analysis_stage"].GetString()
+                analysis_stage_class_name = analysis_stage_module_name.split('.')[-1]
+                analysis_stage_class_name = ''.join(x.title() for x in analysis_stage_class_name.split('_'))
+                analysis_stage_module = importlib.import_module(analysis_stage_module_name)
+                analysis_stage_class = getattr(analysis_stage_module, analysis_stage_class_name)
+
+                self.test = analysis_stage_class(model, ProjectParameters)
+            else:
+                self.test = StructuralMechanicsAnalysis(model, ProjectParameters)
             self.test.Initialize()
 
     def modify_parameters(self, project_parameters):
@@ -118,6 +128,9 @@ class SmallDeformationPlasticityTest(TestFactory):
 class SimpleJ2PlasticityTest(TestFactory):
     file_name = "SimpleSmallDeformationPlasticity/plasticity_j2_cube_test"
 
+class PlaneStressJ2Plasticity(TestFactory):
+    file_name = "PlaneStressJ2Plasticity/plane_stress_j2_test"
+
 class TensileTestStructuralTest(TestFactory):
     file_name = "TensileTestStructural/TensileTestStructural"
 
@@ -133,7 +146,8 @@ class TractionSeparationLawTest(TestFactory):
 class CurveByPointsPlasticityTest(TestFactory):
     file_name = "CurveByPointsPlasticity/plastic_test"
 
-
+class ThicknessIntegratedShellConstitutiveLawTest(TestFactory):
+    file_name = "ThicknessIntegratedShellConstitutiveLaw/thickness_integrated_cl_test"
 
 if __name__ == '__main__':
     KratosUnittest.main()

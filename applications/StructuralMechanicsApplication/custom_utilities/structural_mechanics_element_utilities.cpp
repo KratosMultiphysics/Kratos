@@ -253,13 +253,15 @@ double CalculateReferenceLength2D2N(const Element& rElement)
 
 double CalculateCurrentLength2D2N(const Element& rElement)
 {
-    KRATOS_TRY;
+    KRATOS_TRY
+
+    const auto& r_geometry = rElement.GetGeometry();
 
     const array_1d<double, 3> delta_pos =
-        rElement.GetGeometry()[1].GetInitialPosition().Coordinates() -
-        rElement.GetGeometry()[0].GetInitialPosition().Coordinates() +
-        rElement.GetGeometry()[1].FastGetSolutionStepValue(DISPLACEMENT) -
-        rElement.GetGeometry()[0].FastGetSolutionStepValue(DISPLACEMENT);
+        r_geometry[1].GetInitialPosition().Coordinates() -
+        r_geometry[0].GetInitialPosition().Coordinates() +
+        r_geometry[1].FastGetSolutionStepValue(DISPLACEMENT) -
+        r_geometry[0].FastGetSolutionStepValue(DISPLACEMENT);
 
     const double l = std::sqrt((delta_pos[0] * delta_pos[0]) +
                                (delta_pos[1] * delta_pos[1]));
@@ -293,13 +295,15 @@ double CalculateReferenceLength3D2N(const Element& rElement)
 
 double CalculateCurrentLength3D2N(const Element& rElement)
 {
-    KRATOS_TRY;
+    KRATOS_TRY
+
+    const auto& r_geometry = rElement.GetGeometry();
 
     const array_1d<double, 3> delta_pos =
-        rElement.GetGeometry()[1].GetInitialPosition().Coordinates() -
-        rElement.GetGeometry()[0].GetInitialPosition().Coordinates() +
-        rElement.GetGeometry()[1].FastGetSolutionStepValue(DISPLACEMENT) -
-        rElement.GetGeometry()[0].FastGetSolutionStepValue(DISPLACEMENT);
+        r_geometry[1].GetInitialPosition().Coordinates() -
+        r_geometry[0].GetInitialPosition().Coordinates() +
+        r_geometry[1].FastGetSolutionStepValue(DISPLACEMENT) -
+        r_geometry[0].FastGetSolutionStepValue(DISPLACEMENT);
 
     const double l = MathUtils<double>::Norm3(delta_pos);
 
@@ -511,11 +515,24 @@ void BuildElementSizeRotationMatrixFor3D3NTruss(
 
 double GetReferenceRotationAngle2D2NBeam(const GeometryType& rGeometry)
 {
-    const auto &r_node_1 = rGeometry[0];
-    const auto &r_node_2 = rGeometry[1];
+    const auto &r_coords_1 = rGeometry[0].GetInitialPosition().Coordinates();
+    const auto &r_coords_2 = rGeometry[1].GetInitialPosition().Coordinates();
 
-    const double delta_x = r_node_2.X0() - r_node_1.X0();
-    const double delta_y = r_node_2.Y0() - r_node_1.Y0();
+    const double delta_x = r_coords_2[0] - r_coords_1[0];
+    const double delta_y = r_coords_2[1] - r_coords_1[1];
+    return std::atan2(delta_y, delta_x);
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+double GetCurrentRotationAngle2D2NBeam(const GeometryType& rGeometry)
+{
+    const auto &r_coords_1 = rGeometry[0].Coordinates();
+    const auto &r_coords_2 = rGeometry[1].Coordinates();
+
+    const double delta_x = r_coords_2[0] - r_coords_1[0];
+    const double delta_y = r_coords_2[1] - r_coords_1[1];
 
     return std::atan2(delta_y, delta_x);
 }
@@ -619,14 +636,22 @@ void BuildElementSizeRotationMatrixFor2D3NBeam(
 /***********************************************************************************/
 /***********************************************************************************/
 
-double CalculatePhi(const Properties& rProperties, const double L)
+double CalculatePhi(const Properties& rProperties, const double L, const SizeType Plane)
 {
-    const double E   = rProperties[YOUNG_MODULUS];
-    const double I   = rProperties[I33];
-    const double A_s = rProperties[AREA_EFFECTIVE_Y];
-    const double G   = ConstitutiveLawUtilities<3>::CalculateShearModulus(rProperties);
+    const double E = rProperties[YOUNG_MODULUS];
 
-    if (A_s == 0.0) // If effective area is null -> Euler Bernouilli case
+    double I, G, A_s;
+    if (Plane == 0) {
+        I   = rProperties[I33];
+        A_s = rProperties[AREA_EFFECTIVE_Y];
+        G   = ConstitutiveLawUtilities<3>::CalculateShearModulus(rProperties);
+    } else {
+        I   = rProperties[I22];
+        A_s = rProperties[AREA_EFFECTIVE_Z];
+        G   = ConstitutiveLawUtilities<3>::CalculateShearModulus(rProperties);
+    }
+
+    if (A_s == 0.0) // If effective area is null -> Euler Bernoulli case
         return 0.0;
     else
         return 12.0 * E * I / (G * A_s * std::pow(L, 2));
@@ -654,6 +679,59 @@ void InitializeConstitutiveLawValuesForStressCalculation(ConstitutiveLaw::Parame
     rStrainVector.clear();
     rValues.SetStrainVector(rStrainVector);
     rValues.SetStressVector(rStressVector);
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+BoundedMatrix<double, 3, 3> GetFrenetSerretMatrix3D(
+    const GeometryType& rGeometry,
+    const bool UseCurrentConfiguration
+    )
+{
+    BoundedMatrix<double, 3, 3> T;
+    T.clear(); // global to local
+
+    array_1d<double, 3> t;
+    array_1d<double, 3> n;
+    array_1d<double, 3> m;
+
+    // t is the axis of the truss
+    if (UseCurrentConfiguration) {
+        noalias(t) = rGeometry[1].Coordinates() - rGeometry[0].Coordinates();
+    } else {
+        noalias(t) = rGeometry[1].GetInitialPosition() - rGeometry[0].GetInitialPosition();
+    }
+    t /= norm_2(t);
+
+    n.clear();
+
+    if (rGeometry.Has(LOCAL_AXIS_2)) {
+        noalias(n) = rGeometry.GetValue(LOCAL_AXIS_2);
+    } else {
+        // Default
+        n[1] = 1.0;
+    }
+
+    if (norm_2(t - n) <= 1.0e-8) { // colineal, hence we use another aux vector
+        n.clear();
+        n[2] = 1.0;
+        KRATOS_WARNING("StructuralElementUtilities") << "The LOCAL_AXIS_2 is colineal with the axis of the beam, being modified to [0,0,1]";
+    }
+
+    // Gram-Schmidt ortogonalization
+    n = n - inner_prod(t, n) / inner_prod(t, t) * t;
+    n /= norm_2(n);
+
+    noalias(m) = MathUtils<double>::CrossProduct(t, n);
+
+    for (IndexType i = 0; i < 3; ++i) {
+        T(0, i) = t[i];
+        T(1, i) = n[i];
+        T(2, i) = m[i];
+    }
+
+    return T;
 }
 
 /***********************************************************************************/

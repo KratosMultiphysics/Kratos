@@ -15,6 +15,8 @@ has_linear_solvers_application = kratos_utilities.CheckIfApplicationsAvailable("
 ##### SELF-CONTAINED TESTS #####
 # CL tests
 from test_constitutive_law import TestConstitutiveLaw as TTestConstitutiveLaw
+# Constraint tests
+from test_link_constraint import TestLinkConstraint
 # Processes test
 from test_mass_calculation import TestMassCalculation as TTestMassCalculation
 from test_compute_center_of_gravity import TestComputeCenterOfGravity as TTestComputeCenterOfGravity
@@ -67,6 +69,8 @@ from test_prebuckling_analysis import TestPrebucklingAnalysis as TTestPrebucklin
 from test_postprocess_eigenvalues_process import TestPostprocessEigenvaluesProcess as TTestPostprocessEigenvaluesProcess
 # Eigensolver with Constraints test
 from test_eigen_solver_with_constraints import TestEigenSolverWithConstraints
+# Eigensolver with mass matrix normalized eigenmodes
+from test_eigen_solver_with_mass_normalized_eigenmodes import TestEigenSolverWithMassNormalizedEigenmodes
 # Eigensolver with different dofs test
 from test_eigen_solver_different_dofs import TestEigenSolverWithDifferentDofs
 # Custom Scipy Solver test
@@ -89,6 +93,8 @@ from adjoint_sensitivity_analysis_test_factory import TestAdjointSensitivityAnal
 from adjoint_sensitivity_analysis_test_factory import TestAdjointSensitivityAnalysisLinearTrussStructure as TTestAdjointSensitivityAnalysisLinearTrussStructure
 from adjoint_sensitivity_analysis_test_factory import TestAdjointSensitivityAnalysisNonLinearTrussStructure as TTestAdjointSensitivityAnalysisNonLinearTrussStructure
 from test_adjoint_loading_conditions import TestAdjointLoadingConditions as TTestAdjointLoadingConditions
+# Explicit dynamics reactions tests
+from test_explicit_central_differences_reactions import TestExplicitCentralDifferencesReactions as TTestExplicitCentralDifferencesReactions
 
 ##### SMALL TESTS #####
 # Basic moving mesh test (leave these in the smallSuite to have the Exection script tested)
@@ -96,12 +102,18 @@ from structural_mechanics_test_factory import SimpleMeshMovingTest as TSimpleMes
 
 ##### NIGHTLY TESTS #####
 # Patch test Small Displacements
+from structural_mechanics_test_factory import CorotationalReissnerMindlinTest as TCorotationalReissnerMindlinTest
+from structural_mechanics_test_factory import LinearReissnerMindlinTest as TLinearReissnerMindlinTest
+from structural_mechanics_test_factory import MixedUEElementTest as TMixedUEElementTest
 from structural_mechanics_test_factory import LinearTruss2D2NTest as TLinearTruss2D2NTest
 from structural_mechanics_test_factory import LinearTruss2D3NTest as TLinearTruss2D3NTest
 from structural_mechanics_test_factory import LinearTruss3DTest as TLinearTruss3DTest
+from structural_mechanics_test_factory import TLTruss3DTest as TTLTruss3DTest
+from structural_mechanics_test_factory import TimoshenkoBeam3D2NTest as TTimoshenkoBeam3D2NTest
 from structural_mechanics_test_factory import TimoshenkoBeam2D2NTest as TTimoshenkoBeam2D2NTest
 from structural_mechanics_test_factory import TimoshenkoBeam2D3NTest as TTimoshenkoBeam2D3NTest
 from structural_mechanics_test_factory import TimoshenkoCurvedBeam2D3NTest as TTimoshenkoCurvedBeam2D3NTest
+from structural_mechanics_test_factory import TimoshenkoCurvedBeam3D3NTest as TTimoshenkoCurvedBeam3D3NTest
 from structural_mechanics_test_factory import AutomatedInitialVariableProcessTest as TAutomatedInitialVariableProcessTest
 from structural_mechanics_test_factory import SDTwoDShearQuaPatchTest as TSDTwoDShearQuaPatchTest
 from structural_mechanics_test_factory import SDTwoDShearTriPatchTest as TSDTwoDShearTriPatchTest
@@ -248,8 +260,8 @@ from structural_response_function_test_factory import TestEigenfrequencyResponse
 def AssembleTestSuites():
     ''' Populates the test suites to run.
 
-    Populates the test suites to run. At least, it should pupulate the suites:
-    "small", "nighlty" and "all"
+    Populates the test suites to run. At least, it should populate the suites:
+    "small", "nightly" and "all"
 
     Return
     ------
@@ -271,6 +283,8 @@ def AssembleTestSuites():
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TTestConstitutiveLaw]))
     nightSuite.addTest(TInitialStateElasticityTest('test_execution'))
     nightSuite.addTest(TInitialStrainShellQ4ThickTest('test_execution'))
+    # Constraint tests
+    smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCase(TestLinkConstraint))
     # Mass calculation tests
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TTestMassCalculation]))
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TTestComputeCenterOfGravity]))
@@ -318,6 +332,7 @@ def AssembleTestSuites():
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TTestPostprocessEigenvaluesProcess]))
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TestEigenSolverWithConstraints]))
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TestEigenSolverWithDifferentDofs]))
+    smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TestEigenSolverWithMassNormalizedEigenmodes]))
     # Custom Scipy Solver test
     nightSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TestCustomScipyBaseSolver]))
     # local-axis visualization tests
@@ -336,6 +351,8 @@ def AssembleTestSuites():
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TTestPerturbGeometryUtility]))
     # Set moving load process test
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TTestSetMovingLoadProcess]))
+    # Explicit dynamics reactions tests
+    smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TTestExplicitCentralDifferencesReactions]))
 
     ### Adding Small Tests
     # Basic moving mesh test (leave these in the smallSuite to have the Exection script tested)
@@ -347,12 +364,18 @@ def AssembleTestSuites():
 
     ### Adding Nightly Tests
     # Patch test Small Displacements
+    smallSuite.addTest(TLinearReissnerMindlinTest('test_execution'))
+    smallSuite.addTest(TCorotationalReissnerMindlinTest('test_execution'))
+    smallSuite.addTest(TMixedUEElementTest('test_execution'))
     smallSuite.addTest(TLinearTruss2D2NTest('test_execution'))
     smallSuite.addTest(TLinearTruss2D3NTest('test_execution'))
     smallSuite.addTest(TLinearTruss3DTest('test_execution'))
+    smallSuite.addTest(TTLTruss3DTest('test_execution'))
+    smallSuite.addTest(TTimoshenkoBeam3D2NTest('test_execution'))
     smallSuite.addTest(TTimoshenkoBeam2D2NTest('test_execution'))
     smallSuite.addTest(TTimoshenkoBeam2D3NTest('test_execution'))
     smallSuite.addTest(TTimoshenkoCurvedBeam2D3NTest('test_execution'))
+    smallSuite.addTest(TTimoshenkoCurvedBeam3D3NTest('test_execution'))
     smallSuite.addTest(TAutomatedInitialVariableProcessTest('test_execution'))
     nightSuite.addTest(TSDTwoDShearQuaPatchTest('test_execution'))
     nightSuite.addTest(TSDTwoDShearTriPatchTest('test_execution'))
@@ -462,7 +485,7 @@ def AssembleTestSuites():
     nightSuite.addTests(smallSuite)
 
     ### Adding Validation Tests
-    # For very long tests that should not be in nighly and you can use to validate
+    # For very long tests that should not be in nightly and you can use to validate
     validationSuite = suites['validation']
     validationSuite.addTests(nightSuite) # Validation contains all the tests
     # SPRISM tests

@@ -172,8 +172,7 @@ public:
     ///@name Input and output
     ///@{
 
-    /// Turn back information as a stemplate<class T, std::size_t dim> tring.
-    virtual std::string Info() const
+        virtual std::string Info() const
     {
         return "";
     }
@@ -307,7 +306,7 @@ private:
               coor[i][2] = geom[j].Z();
             }
 
-          else { // for each edge, the weight of one end's coordinates is proportional to the absolut value of the signed distance of the other
+          else { // for each edge, the weight of one end's coordinates is proportional to the absolute value of the signed distance of the other
               double sum_d_inv = 1 / (dist[i] + dist[j]);
               coor[i][0] = (geom[i].X() * dist[j] + geom[j].X() * dist[i]) * sum_d_inv;
               coor[i][1] = (geom[i].Y() * dist[j] + geom[j].Y() * dist[i]) * sum_d_inv;
