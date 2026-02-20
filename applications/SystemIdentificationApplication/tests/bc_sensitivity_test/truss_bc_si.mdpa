@@ -1,0 +1,58 @@
+Begin ModelPartData
+//  VARIABLE_NAME value
+End ModelPartData
+
+Begin Properties 0
+End Properties
+Begin Nodes
+    1   0.0000000000   0.0000000000   0.0000000000
+    2   2.0000000000   0.0000000000   0.0000000000
+    3   4.0000000000   0.0000000000   0.0000000000
+    4   6.0000000000   0.0000000000   0.0000000000
+    5   8.0000000000   0.0000000000   0.0000000000
+    6  10.0000000000   0.0000000000   0.0000000000
+End Nodes
+
+
+Begin Elements TrussLinearElement3D2N// GUI group identifier: solid
+        1          0     1     2 
+        2          0     2     3 
+        3          0     3     4 
+        4          0     4     5 
+        5          0     5     6 
+End Elements
+
+Begin Conditions PointLoadCondition3D1N// GUI group identifier: force
+    4 0 6
+End Conditions
+
+Begin SubModelPart Parts_Truss_solid // Group solid // Subtree Parts_Truss
+    Begin SubModelPartNodes
+            1
+            2
+            3
+            4
+            5
+            6
+    End SubModelPartNodes
+    Begin SubModelPartElements
+            1
+            2
+            3
+            4
+            5
+    End SubModelPartElements
+End SubModelPart
+Begin SubModelPart DISPLACEMENT_fix // Group fix // Subtree DISPLACEMENT
+    Begin SubModelPartNodes
+            1
+    End SubModelPartNodes
+End SubModelPart
+Begin SubModelPart PointLoad3D_force // Group force // Subtree PointLoad3D
+    Begin SubModelPartNodes
+            6
+    End SubModelPartNodes
+    Begin SubModelPartConditions
+            4
+    End SubModelPartConditions
+End SubModelPart
