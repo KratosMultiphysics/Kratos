@@ -68,6 +68,9 @@ void ShellThickNitscheBoundaryElement3D3N<TKinematics>::CalculateLocalSystem(
 
         std::vector<int> result{0}; //HACK
 
+        Matrix left_hand_side = ZeroMatrix(rLeftHandSideMatrix.size1(), rLeftHandSideMatrix.size2());
+        Vector right_hand_side = ZeroVector(rRightHandSideVector.size());
+
         // for (int v : sur_bd_ids_origin) {
         //     if (std::find(sur_bd_ids_vect.begin(),sur_bd_ids_vect.end(),v) == sur_bd_ids_vect.end()) 
         //     {
@@ -179,10 +182,10 @@ void ShellThickNitscheBoundaryElement3D3N<TKinematics>::CalculateLocalSystem(
                         B(5, initial_index + 3) = -DN_DX_parent(i, 0);
                         B(5, initial_index + 4) = DN_DX_parent(i, 1);
 
-                        B(6, initial_index + 2) = DN_DX_parent(i, 0);
-                        B(6, initial_index + 3) = N_parent[i];
-                        B(7, initial_index + 2) = DN_DX_parent(i, 1);
-                        B(7, initial_index + 4) = N_parent[i];
+                        B(6, initial_index + 2) = -DN_DX_parent(i, 0);
+                        B(6, initial_index + 4) = -N_parent[i];
+                        B(7, initial_index + 2) = -DN_DX_parent(i, 1);
+                        B(7, initial_index + 3) = N_parent[i];
 
                         // B(6, initial_index + 2) = -DN_DX_parent(i, 1);
                         // B(6, initial_index + 3) = N_parent[i];
@@ -202,7 +205,10 @@ void ShellThickNitscheBoundaryElement3D3N<TKinematics>::CalculateLocalSystem(
                     }
 
                     BoundedMatrix<double,8,LocalSize> B_parent = ZeroMatrix(8, 18);
-                    B_parent = -1.0 * data.B; 
+                    
+                    MatrixType T(18, 18);
+                    data.LCS.ComputeTotalRotationMatrix(T);
+                    B_parent = prod(data.B, T); 
 
                     CalculateCBProjectionLinearisation(D, B_parent, n_sur_bd, aux_CB_projection);
                     CalculateCauchyTractionVector(r_stress, n_sur_bd, cauchy_traction);
@@ -234,9 +240,9 @@ void ShellThickNitscheBoundaryElement3D3N<TKinematics>::CalculateLocalSystem(
                         aux_val = aux_w * r_sur_bd_N(0,i_node);
                         i_loc_id = sur_bd_local_ids[i_node + 1];
                         for (std::size_t d = 0; d < 5; ++d) { //HACK! if I put 6, it will affect the solution.
-                            rRightHandSideVector(i_loc_id*BlockSize+d) += aux_val * cauchy_traction[d];
+                            right_hand_side(i_loc_id*BlockSize+d) += aux_val * cauchy_traction[d];
                             for (std::size_t j_node = 1; j_node < NumNodes; ++j_node) { //HACK!
-                                rLeftHandSideMatrix(i_loc_id*BlockSize+d, j_node*BlockSize+d) += r_sur_bd_N(0,i_node) * aux_val * penalty_parameter; //Penalty
+                                left_hand_side(i_loc_id*BlockSize+d, j_node*BlockSize+d) += r_sur_bd_N(0,i_node) * aux_val * penalty_parameter; //Penalty
                             }
                         }
                     }
@@ -246,19 +252,21 @@ void ShellThickNitscheBoundaryElement3D3N<TKinematics>::CalculateLocalSystem(
                         aux_val = aux_w * r_sur_bd_N(0,i_node); //later check r_sur_bd_N(0,i_node)
                         i_loc_id = sur_bd_local_ids[i_node + 1];
                         for (std::size_t d = 0; d < 5; ++d) { //HACK!
-                            rRightHandSideVector(i_loc_id*BlockSize+d) += aux_val * cauchy_traction[d];
-                            // for (std::size_t j_node = 0; j_node < NumNodes * 6; ++j_node) { //BIG TO DO
-                            for (std::size_t j_node = 0; j_node < NumNodes; ++j_node) {
-                                rLeftHandSideMatrix(i_loc_id*BlockSize+d, j_node*BlockSize+d) -= aux_val * aux_CB_projection(d,j_node*BlockSize + d);
-                                rLeftHandSideMatrix(j_node*BlockSize+d, i_loc_id*BlockSize+d) -= aux_val * aux_CB_projection(d,j_node*BlockSize + d);
-                            //     rLeftHandSideMatrix(i_loc_id*BlockSize+d, j_node) -= aux_val * aux_CB_projection(d,j_node);
-                            //     rLeftHandSideMatrix(j_node, i_loc_id*BlockSize+d) -= aux_val * aux_CB_projection(d,j_node);
+                            right_hand_side(i_loc_id*BlockSize+d) += aux_val * cauchy_traction[d];
+                            for (std::size_t j_node = 0; j_node < NumNodes * 6; ++j_node) { //BIG TO DO
+                            // for (std::size_t j_node = 0; j_node < NumNodes; ++j_node) {
+                            //     rLeftHandSideMatrix(i_loc_id*BlockSize+d, j_node*BlockSize+d) -= aux_val * aux_CB_projection(d,j_node*BlockSize + d);
+                            //     rLeftHandSideMatrix(j_node*BlockSize+d, i_loc_id*BlockSize+d) -= aux_val * aux_CB_projection(d,j_node*BlockSize + d);
+                                left_hand_side(i_loc_id*BlockSize+d, j_node) -= aux_val * aux_CB_projection(d,j_node);
+                                left_hand_side(j_node, i_loc_id*BlockSize+d) -= aux_val * aux_CB_projection(d,j_node);
                             // }
                             }
                         }
                     }
                 }
-        }
+        // Assemble contributions
+        rLeftHandSideMatrix += left_hand_side;
+        rRightHandSideVector += right_hand_side;
     }
 
     KRATOS_CATCH("")
@@ -552,7 +560,7 @@ void ShellThickNitscheBoundaryElement3D3N<TKinematics>::CalculateCBProjectionLin
 
         // // TO DO: shear and drilling part
         for (std::size_t j = 0; j < LocalSize; ++j) {
-            rAuxMat(2,j) = rUnitNormal[0]*aux_CB(6,j) + rUnitNormal[1]*aux_CB(7,j);
+            rAuxMat(2,j) = -rUnitNormal[0]*aux_CB(6,j) + rUnitNormal[1]*aux_CB(7,j);
         }
 
 
