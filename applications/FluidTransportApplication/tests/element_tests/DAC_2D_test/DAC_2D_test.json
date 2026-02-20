@@ -128,9 +128,7 @@
         }
     }],
     "_json_output_process"  : [{
-        "python_module" : "json_output_process",
-        "kratos_module" : "KratosMultiphysics",
-        "process_name"  : "JsonOutputProcess",
+        "name" : "Processes.KratosMultiphysics.JsonOutputProcess",
         "Parameters"    : {
             "output_variables"     : ["TEMPERATURE"],
             "output_file_name"     : "element_tests/DAC_2D_test/DAC_2D_test_results.json",

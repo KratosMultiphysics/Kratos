@@ -98,9 +98,7 @@ class CouetteFlowTest(KratosUnittest.TestCase):
 
     def _AddReferenceValuesOutput(self):
         json_output_settings = KratosMultiphysics.Parameters("""{
-            "python_module" : "json_output_process",
-            "kratos_module" : "KratosMultiphysics",
-            "process_name"  : "JsonOutputProcess",
+            "name" : "Processes.KratosMultiphysics.JsonOutputProcess",
             "Parameters"    : {
                 "output_variables" : ["VELOCITY","PRESSURE"],
                 "output_file_name" : "reference_couette_flow_test",

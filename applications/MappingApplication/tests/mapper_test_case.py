@@ -3,7 +3,6 @@ from KratosMultiphysics import KratosUnittest
 data_comm = KM.Testing.GetDefaultDataCommunicator()
 import os
 from KratosMultiphysics import from_json_check_result_process
-from KratosMultiphysics import json_output_process
 from KratosMultiphysics import vtk_output_process
 from KratosMultiphysics.testing import utilities as testing_utils
 
@@ -108,7 +107,7 @@ def OutputReferenceSolution(model_part, variable, file_name):
     output_parameters["output_file_name"].SetString(file_name + ".json")
     output_parameters["model_part_name"].SetString(full_model_part_name)
 
-    output_proc = json_output_process.JsonOutputProcess(model_part.GetModel(), output_parameters)
+    output_proc = KM.JsonOutputProcess(model_part.GetModel(), output_parameters)
     output_proc.ExecuteInitialize()
     output_proc.ExecuteBeforeSolutionLoop()
     output_proc.ExecuteFinalizeSolutionStep()
