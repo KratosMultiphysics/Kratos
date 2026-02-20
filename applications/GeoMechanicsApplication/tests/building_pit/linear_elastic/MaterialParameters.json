@@ -182,7 +182,12 @@
             },
             "Variables"        : {
                 "INTERFACE_NORMAL_STIFFNESS" : 48000000,
-                "INTERFACE_SHEAR_STIFFNESS"  : 20869565
+                "INTERFACE_SHEAR_STIFFNESS"  : 20869565,
+                "BIOT_COEFFICIENT"              : 1.0,
+                "RETENTION_LAW"                 : "SaturatedBelowPhreaticLevelLaw",
+                "SATURATED_SATURATION"          : 1.0,
+                "RESIDUAL_SATURATION"           : 1e-10,
+                "MINIMUM_RELATIVE_PERMEABILITY" : 0.0001
             }
         }
     },{
@@ -194,7 +199,12 @@
             },
             "Variables"        : {
                 "INTERFACE_NORMAL_STIFFNESS" : 48000000,
-                "INTERFACE_SHEAR_STIFFNESS"  : 20869565
+                "INTERFACE_SHEAR_STIFFNESS"  : 20869565,
+                "BIOT_COEFFICIENT"              : 1.0,
+                "RETENTION_LAW"                 : "SaturatedBelowPhreaticLevelLaw",
+                "SATURATED_SATURATION"          : 1.0,
+                "RESIDUAL_SATURATION"           : 1e-10,
+                "MINIMUM_RELATIVE_PERMEABILITY" : 0.0001
             }
         }
     },{
@@ -206,7 +216,12 @@
             },
             "Variables"        : {
                 "INTERFACE_NORMAL_STIFFNESS" : 48000000,
-                "INTERFACE_SHEAR_STIFFNESS"  : 20869565
+                "INTERFACE_SHEAR_STIFFNESS"  : 20869565,
+                "BIOT_COEFFICIENT"              : 1.0,
+                "RETENTION_LAW"                 : "SaturatedBelowPhreaticLevelLaw",
+                "SATURATED_SATURATION"          : 1.0,
+                "RESIDUAL_SATURATION"           : 1e-10,
+                "MINIMUM_RELATIVE_PERMEABILITY" : 0.0001
             }
         }
     },{
@@ -218,7 +233,12 @@
             },
             "Variables"        : {
                 "INTERFACE_NORMAL_STIFFNESS" : 48000000,
-                "INTERFACE_SHEAR_STIFFNESS"  : 20869565
+                "INTERFACE_SHEAR_STIFFNESS"  : 20869565,
+                "BIOT_COEFFICIENT"              : 1.0,
+                "RETENTION_LAW"                 : "SaturatedBelowPhreaticLevelLaw",
+                "SATURATED_SATURATION"          : 1.0,
+                "RESIDUAL_SATURATION"           : 1e-10,
+                "MINIMUM_RELATIVE_PERMEABILITY" : 0.0001
             }
         }
     },{
@@ -230,7 +250,12 @@
             },
             "Variables"        : {
                 "INTERFACE_NORMAL_STIFFNESS" : 480000000,
-                "INTERFACE_SHEAR_STIFFNESS"  : 200000000
+                "INTERFACE_SHEAR_STIFFNESS"  : 200000000,
+                "BIOT_COEFFICIENT"              : 1.0,
+                "RETENTION_LAW"                 : "SaturatedBelowPhreaticLevelLaw",
+                "SATURATED_SATURATION"          : 1.0,
+                "RESIDUAL_SATURATION"           : 1e-10,
+                "MINIMUM_RELATIVE_PERMEABILITY" : 0.0001
             }
         }
     },{
@@ -242,7 +267,12 @@
             },
             "Variables"        : {
                 "INTERFACE_NORMAL_STIFFNESS" : 480000000,
-                "INTERFACE_SHEAR_STIFFNESS"  : 200000000
+                "INTERFACE_SHEAR_STIFFNESS"  : 200000000,
+                "BIOT_COEFFICIENT"              : 1.0,
+                "RETENTION_LAW"                 : "SaturatedBelowPhreaticLevelLaw",
+                "SATURATED_SATURATION"          : 1.0,
+                "RESIDUAL_SATURATION"           : 1e-10,
+                "MINIMUM_RELATIVE_PERMEABILITY" : 0.0001
             }
         }
     },{
