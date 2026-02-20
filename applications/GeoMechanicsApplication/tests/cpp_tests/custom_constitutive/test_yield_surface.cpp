@@ -271,13 +271,12 @@ KRATOS_TEST_CASE_IN_SUITE(CompressionCapYieldSurface_CanBeSavedAndLoadedThroughI
     auto material_properties                         = Properties{};
     material_properties[GEO_PRECONSOLIDATION_STRESS] = 20.0;
     material_properties[GEO_COMPRESSION_CAP_SIZE]    = 4.0;
-    auto p_cap_yield_surface =
-        std::unique_ptr<YieldSurface>{std::make_unique<CompressionCapYieldSurface>(material_properties)};
-    auto serializer = StreamSerializer{};
+    auto p_cap_yield_surface = std::make_unique<CompressionCapYieldSurface>(material_properties);
+    auto serializer          = StreamSerializer{};
 
     // Act
     serializer.save("test_tag"s, p_cap_yield_surface);
-    auto p_loaded_cap_yield_surface = std::unique_ptr<YieldSurface>{};
+    auto p_loaded_cap_yield_surface = std::unique_ptr<CompressionCapYieldSurface>{};
     serializer.load("test_tag"s, p_loaded_cap_yield_surface);
 
     // Assert

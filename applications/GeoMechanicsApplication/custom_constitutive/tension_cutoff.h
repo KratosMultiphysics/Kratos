@@ -14,7 +14,7 @@
 
 #pragma once
 
-#include "custom_constitutive/yield_surface.h"
+#include "geo_aliases.h"
 
 namespace Kratos
 {
@@ -25,7 +25,7 @@ class PrincipalStresses;
 class SigmaTau;
 } // namespace Geo
 
-class KRATOS_API(GEO_MECHANICS_APPLICATION) TensionCutoff : public YieldSurface
+class KRATOS_API(GEO_MECHANICS_APPLICATION) TensionCutoff
 {
 public:
     KRATOS_CLASS_POINTER_DEFINITION(TensionCutoff);
@@ -36,16 +36,15 @@ public:
 
     [[nodiscard]] double GetTensileStrength() const;
 
-    [[nodiscard]] double YieldFunctionValue(const Vector& rSigmaTau) const override;
     [[nodiscard]] double YieldFunctionValue(const Geo::SigmaTau& rSigmaTau) const;
     [[nodiscard]] double YieldFunctionValue(const Geo::PrincipalStresses& rPrincipalStresses) const;
-    [[nodiscard]] Vector DerivativeOfFlowFunction(const Vector&) const override;
+    [[nodiscard]] Vector DerivativeOfFlowFunction(const Vector&) const;
     [[nodiscard]] Vector DerivativeOfFlowFunction(const Geo::SigmaTau&) const;
 
 private:
     friend class Serializer;
-    void save(Serializer& rSerializer) const override;
-    void load(Serializer& rSerializer) override;
+    void save(Serializer& rSerializer) const;
+    void load(Serializer& rSerializer);
 
     double mTensileStrength = 0.0;
 

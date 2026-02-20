@@ -276,7 +276,7 @@ KRATOS_TEST_CASE_IN_SUITE(CheckTransformPrincipalStressesToPandQ, KratosGeoMecha
     const auto stress_vector = UblasUtilities::CreateVector({30.0, 20.0, 10.0});
     const auto p_q = StressStrainUtilities::TransformPrincipalStressesToPandQ(stress_vector);
     const auto expected_solution_vector = UblasUtilities::CreateVector({20.0, std::sqrt(300.0)});
-    KRATOS_EXPECT_VECTOR_NEAR(p_q, expected_solution_vector, Defaults::absolute_tolerance)
+    KRATOS_EXPECT_VECTOR_NEAR(p_q.Values(), expected_solution_vector, Defaults::absolute_tolerance)
 }
 
 } // namespace Kratos::Testing
