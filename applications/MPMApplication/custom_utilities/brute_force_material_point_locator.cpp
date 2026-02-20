@@ -72,7 +72,7 @@ void BruteForceMaterialPointLocator::FindObject(
                                     std::pow(r_mp_coord[0][1] - rThePoint.Y(),2) +
                                     std::pow(r_mp_coord[0][2] - rThePoint.Z(),2);
 
-            if (distance < get<0>(closest_object)) {
+            if (distance <= get<0>(closest_object)) {
                 return std::tuple<double,int>(distance, r_object.Id());
             }
 
