@@ -79,24 +79,36 @@ class TestVtuOutputBase:
         self.WriteVtu(Kratos.VtuOutput.COMPRESSED_RAW)
 
     def test_WriteMeshAsciiWithError(self):
-        self.addCleanup(kratos_utils.DeleteDirectoryIfExisting, "auxiliar_files_for_python_unittest/vtk_output_process_ref_files/temp")
         with self.assertRaises(RuntimeError):
             self.WriteVtu(Kratos.VtuOutput.ASCII, True)
 
+        with kratos_unittest.WorkFolderScope("auxiliar_files_for_python_unittest/vtk_output_process_ref_files", __file__, True):
+            kratos_utils.DeleteFileIfExisting("temp/ascii2D/Main/test_elements_0.vtu")
+            kratos_utils.DeleteFileIfExisting("temp/ascii3D/Main/test_elements_0.vtu")
+
     def test_WriteMeshBinaryWithError(self):
-        self.addCleanup(kratos_utils.DeleteDirectoryIfExisting, "auxiliar_files_for_python_unittest/vtk_output_process_ref_files/temp")
         with self.assertRaises(RuntimeError):
             self.WriteVtu(Kratos.VtuOutput.BINARY, True)
 
+        with kratos_unittest.WorkFolderScope("auxiliar_files_for_python_unittest/vtk_output_process_ref_files", __file__, True):
+            kratos_utils.DeleteFileIfExisting("temp/binary2D/Main/test_elements_0.vtu")
+            kratos_utils.DeleteFileIfExisting("temp/binary3D/Main/test_elements_0.vtu")
+
     def test_WriteMeshRawWithError(self):
-        self.addCleanup(kratos_utils.DeleteDirectoryIfExisting, "auxiliar_files_for_python_unittest/vtk_output_process_ref_files/temp")
         with self.assertRaises(RuntimeError):
             self.WriteVtu(Kratos.VtuOutput.RAW, True)
 
+        with kratos_unittest.WorkFolderScope("auxiliar_files_for_python_unittest/vtk_output_process_ref_files", __file__, True):
+            kratos_utils.DeleteFileIfExisting("temp/raw2D/Main/test_elements_0.vtu")
+            kratos_utils.DeleteFileIfExisting("temp/raw3D/Main/test_elements_0.vtu")
+
     def test_WriteMeshCompressedRawWithError(self):
-        self.addCleanup(kratos_utils.DeleteDirectoryIfExisting, "auxiliar_files_for_python_unittest/vtk_output_process_ref_files/temp")
         with self.assertRaises(RuntimeError):
             self.WriteVtu(Kratos.VtuOutput.COMPRESSED_RAW, True)
+
+        with kratos_unittest.WorkFolderScope("auxiliar_files_for_python_unittest/vtk_output_process_ref_files", __file__, True):
+            kratos_utils.DeleteFileIfExisting("temp/compressed_raw2D/Main/test_elements_0.vtu")
+            kratos_utils.DeleteFileIfExisting("temp/compressed_raw3D/Main/test_elements_0.vtu")
 
     def Check(self, output_prefix, reference_prefix):
         def check_file(output_file_name: str, reference_file_name: str):
@@ -115,12 +127,14 @@ class TestVtuOutputBase:
             check_file(f"{output_prefix}/{file_path.name}", str(file_path))
         check_file(f"{output_prefix}.pvd", f"{reference_prefix}.pvd")
 
-        kratos_utils.DeleteDirectoryIfExistingAndEmpty("temp")
-
 class TestVtuOutput2D(TestVtuOutputBase, kratos_unittest.TestCase):
     @classmethod
     def setUpClass(cls) -> None:
         super().setUpClass("2D", SetupModelPart2D, output_sub_model_parts = True)
+
+    def tearDown(self):
+        with kratos_unittest.WorkFolderScope("auxiliar_files_for_python_unittest/vtk_output_process_ref_files", __file__, True):
+            kratos_utils.DeleteDirectoryIfExistingAndEmpty("temp")
 
 class TestVtuOutput3D(TestVtuOutputBase, kratos_unittest.TestCase):
     @classmethod
@@ -129,6 +143,10 @@ class TestVtuOutput3D(TestVtuOutputBase, kratos_unittest.TestCase):
         # with nodes which do not include nodes from its conditions or elements. It uses
         # some random nodes. Hence sub_model_part output is disabled.
         super().setUpClass("3D", SetupModelPart3D, output_sub_model_parts = False)
+
+    def tearDown(self):
+        with kratos_unittest.WorkFolderScope("auxiliar_files_for_python_unittest/vtk_output_process_ref_files", __file__, True):
+            kratos_utils.DeleteDirectoryIfExistingAndEmpty("temp")
 
 class TestVtuOutput(kratos_unittest.TestCase):
     @classmethod
@@ -573,8 +591,8 @@ class TestVtuOutput(kratos_unittest.TestCase):
 
     @classmethod
     def tearDownClass(cls):
-        kratos_utils.DeleteDirectoryIfExistingAndEmpty("temp")
-
+        with kratos_unittest.WorkFolderScope("auxiliar_files_for_python_unittest/vtk_output_process_ref_files", __file__, True):
+            kratos_utils.DeleteDirectoryIfExistingAndEmpty("temp")
 
 if __name__ == "__main__":
     Kratos.Logger.GetDefaultOutput().SetSeverity(Kratos.Logger.Severity.INFO)
