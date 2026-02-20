@@ -25,6 +25,46 @@
 namespace Kratos
 {
 
+double QuadraticErrorFunction::QuadraticErrorFunctionValue(
+    const GeometryType& rVoxel,
+    const GeometryArrayType& rTriangles,
+    array_1d<double, 3>& rQEFPoint
+    )
+{
+    // Initialize the corresponding matrices
+    AuxiliaryClasses aux;
+
+    // Compute the QEF point
+    rQEFPoint = QuadraticErrorFunctionPoint(rVoxel, rTriangles, aux);
+
+    // Return the QEF value at that point
+    const double qef_value = ComputeError(aux, rQEFPoint);
+    return qef_value;
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+double QuadraticErrorFunction::QuadraticErrorFunctionValue(
+    const BoundingBox<Point>& rBox,
+    const std::vector<GeometricalObject*>& rTriangles,
+    array_1d<double, 3>& rQEFPoint
+    )
+{
+    // Initialize the corresponding matrices
+    AuxiliaryClasses aux;
+
+    // Compute the QEF point
+    rQEFPoint = QuadraticErrorFunctionPoint(rBox, rTriangles, aux);
+
+    // Return the QEF value at that point
+    const double qef_value = ComputeError(aux, rQEFPoint);
+    return qef_value;
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
 array_1d<double, 3> QuadraticErrorFunction::QuadraticErrorFunctionPoint (
     const GeometryType& rVoxel,
     const GeometryArrayType& rTriangles
@@ -33,35 +73,8 @@ array_1d<double, 3> QuadraticErrorFunction::QuadraticErrorFunctionPoint (
     // Initialize the corresponding matrices
     AuxiliaryClasses aux;
 
-    // Compute the center of the box
-    const array_1d<double, 3> center = rVoxel.Center().Coordinates();
-    column(aux.MatCenter, 0) = center;
-
-    // Generate the edges of the voxel
-    GeometryArrayType edges = rVoxel.GenerateEdges();
-
-    // Iterate over the triangles
-    for (std::size_t i = 0; i < rTriangles.size(); i++) {
-        noalias(aux.Normal) = rTriangles[i].Normal(aux.AuxCenter);
-        column(aux.MatNormal,0) = aux.Normal;
-
-        // We will iterate through the edges using a while loop, so that if a triangles intersects 2 edges (unlikely
-        // but possible), only one will be taken into account to create the matrices.
-        // TODO: Intersection should be in every side, not just one
-        int result = 0;
-        std::size_t j = 0;
-        while(!result && j < edges.size()) {
-            PointsArrayType ends = edges[j++].Points();
-            result = IntersectionUtilities::ComputeTriangleLineIntersection(rTriangles[i], ends[0], ends[1], aux.Intersection);
-        }
-
-        // If the triangle intersects the edge, update the matrices
-        if (result) {
-            UpdateATAATB(aux);
-        }
-    }
-
-    return ComputeQuadraticErrorFunctionPoint(aux.ATA, aux.ATB, aux.MatCenter);
+    // Compute the QEF point
+    return QuadraticErrorFunctionPoint(rVoxel, rTriangles, aux);
 }
 
 /***********************************************************************************/
@@ -75,16 +88,69 @@ array_1d<double, 3> QuadraticErrorFunction::QuadraticErrorFunctionPoint (
     // Initialize the corresponding matrices
     AuxiliaryClasses aux;
 
+    // Compute the QEF point
+    return QuadraticErrorFunctionPoint(rBox, rTriangles, aux);
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+array_1d<double, 3> QuadraticErrorFunction::QuadraticErrorFunctionPoint (
+    const GeometryType& rVoxel,
+    const GeometryArrayType& rTriangles,
+    AuxiliaryClasses& rAuxiliaryClasses
+    )
+{
+    // Compute the center of the box
+    const array_1d<double, 3> center = rVoxel.Center().Coordinates();
+    column(rAuxiliaryClasses.MatCenter, 0) = center;
+
+    // Generate the edges of the voxel
+    GeometryArrayType edges = rVoxel.GenerateEdges();
+
+    // Iterate over the triangles
+    for (std::size_t i = 0; i < rTriangles.size(); i++) {
+        noalias(rAuxiliaryClasses.Normal) = rTriangles[i].Normal(rAuxiliaryClasses.AuxCenter);
+        column(rAuxiliaryClasses.MatNormal,0) = rAuxiliaryClasses.Normal;
+
+        // We will iterate through the edges using a while loop, so that if a triangles intersects 2 edges (unlikely
+        // but possible), only one will be taken into account to create the matrices.
+        // TODO: Intersection should be in every side, not just one
+        int result = 0;
+        std::size_t j = 0;
+        while(!result && j < edges.size()) {
+            PointsArrayType ends = edges[j++].Points();
+            result = IntersectionUtilities::ComputeTriangleLineIntersection(rTriangles[i], ends[0], ends[1], rAuxiliaryClasses.Intersection);
+        }
+
+        // If the triangle intersects the edge, update the matrices
+        if (result) {
+            UpdateATAATB(rAuxiliaryClasses);
+        }
+    }
+
+    return ComputeQuadraticErrorFunctionPoint(rAuxiliaryClasses.ATA, rAuxiliaryClasses.ATB, rAuxiliaryClasses.MatCenter);
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+array_1d<double, 3> QuadraticErrorFunction::QuadraticErrorFunctionPoint (
+    const BoundingBox<Point>& rBox,
+    const std::vector<GeometricalObject*>& rTriangles,
+    AuxiliaryClasses& rAuxiliaryClasses
+    )
+{
     // Compute the center of the box
     const array_1d<double, 3> center = rBox.GetMinPoint() + (rBox.GetMaxPoint() - rBox.GetMinPoint())/2;
-    column(aux.MatCenter, 0) = center;
+    column(rAuxiliaryClasses.MatCenter, 0) = center;
 
     // Iterate over the triangles
     Point end0, end1;
     for (std::size_t i = 0; i < rTriangles.size(); i++) {
         const auto& r_geometry = rTriangles[i]->GetGeometry();
-        noalias(aux.Normal) = r_geometry.Normal(aux.AuxCenter);
-        column(aux.MatNormal,0) = aux.Normal;
+        noalias(rAuxiliaryClasses.Normal) = r_geometry.Normal(rAuxiliaryClasses.AuxCenter);
+        column(rAuxiliaryClasses.MatNormal,0) = rAuxiliaryClasses.Normal;
 
         // We will iterate through the edges using a while loop, so that if a triangles intersects 2 edges (unlikely
         // but possible), only one will be taken into account to create the matrices.
@@ -94,17 +160,17 @@ array_1d<double, 3> QuadraticErrorFunction::QuadraticErrorFunctionPoint (
         while(!result && j < 12) {
             FirstEnd(end0, j, rBox);
             SecondEnd(end1, j, rBox);
-            result = IntersectionUtilities::ComputeTriangleLineIntersection(r_geometry, end0, end1, aux.Intersection);
+            result = IntersectionUtilities::ComputeTriangleLineIntersection(r_geometry, end0, end1, rAuxiliaryClasses.Intersection);
             ++j;
         }
 
         // If the triangle intersects the edge, update the matrices
         if (result) {
-            UpdateATAATB(aux);
+            UpdateATAATB(rAuxiliaryClasses);
         }
     }
 
-    return ComputeQuadraticErrorFunctionPoint(aux.ATA, aux.ATB, aux.MatCenter);
+    return ComputeQuadraticErrorFunctionPoint(rAuxiliaryClasses.ATA, rAuxiliaryClasses.ATB, rAuxiliaryClasses.MatCenter);
 }
 
 /***********************************************************************************/
@@ -118,6 +184,29 @@ void QuadraticErrorFunction::UpdateATAATB(AuxiliaryClasses& rAuxiliaryClasses)
     const double dot_product = MathUtils<double>::Dot(rAuxiliaryClasses.Normal, rAuxiliaryClasses.Intersection);
     rAuxiliaryClasses.MatAux(0, 0) = dot_product;
     rAuxiliaryClasses.ATB += prod(rAuxiliaryClasses.MatNormal, rAuxiliaryClasses.MatAux);
+    rAuxiliaryClasses.BTB += dot_product * dot_product;
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+double QuadraticErrorFunction::ComputeError(
+    const AuxiliaryClasses& rAuxiliaryClasses,
+    const array_1d<double, 3>& rQEFPoint
+    )
+{
+    // Remember, our error function is
+    // E(x) = (Ax - B)ᵀ(Ax - B)
+    // We can expand this:
+    // E(x) = xᵀAᵀAx - 2xᵀAᵀB + BᵀB
+    double error = 0.0;
+    BoundedMatrix<double,3,1> x;
+    column(x,0) = rQEFPoint;
+    const BoundedMatrix<double,3,1> ata_x = prod(rAuxiliaryClasses.ATA, x);
+    error += ata_x(0, 0) * rQEFPoint[0] + ata_x(1, 0) * rQEFPoint[1] + ata_x(2, 0) * rQEFPoint[2];
+    error -= 2.0 * (rQEFPoint[0] * rAuxiliaryClasses.ATB(0, 0) + rQEFPoint[1] * rAuxiliaryClasses.ATB(1, 0) + rQEFPoint[2] * rAuxiliaryClasses.ATB(2, 0));
+    error += rAuxiliaryClasses.BTB;
+    return error;
 }
 
 /***********************************************************************************/
