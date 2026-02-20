@@ -112,6 +112,11 @@ public:
         }
     }
 
+    static Vector GetNodalVariableVector(const Element::GeometryType&         rGeom,
+                                         const Variable<array_1d<double, 3>>& rVariable,
+                                         IndexType                            Dimension,
+                                         IndexType                            NumberOfDofs);
+
     static void FillPermeabilityMatrix(BoundedMatrix<double, 1, 1>&   rPermeabilityMatrix,
                                        const Element::PropertiesType& rProperties);
 
