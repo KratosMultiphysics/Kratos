@@ -78,17 +78,23 @@ class KratosGeoMechanicsInterfacePreStressTests(KratosUnittest.TestCase):
                 msg=f"{name_of_shear_component} at integration point {integration_point_label} of {element_label}",
             )
 
-    def check_traction_vectors(
-        self, output_data, expected_normal_traction, expected_shear_traction
+    def check_effective_traction_vectors(
+        self,
+        output_data,
+        expected_effective_normal_traction,
+        expected_effective_shear_traction,
     ):
-        expected_traction_vector = [expected_normal_traction, expected_shear_traction]
+        expected_effective_traction_vector = [
+            expected_effective_normal_traction,
+            expected_effective_shear_traction,
+        ]
         self._check_output_vectors(
             output_data,
-            expected_traction_vector,
+            expected_effective_traction_vector,
             output_item_label="GEO_EFFECTIVE_TRACTION_VECTOR",
-            name_of_output_item="traction",
-            name_of_normal_component="normal traction",
-            name_of_shear_component="shear_traction",
+            name_of_output_item="effective traction",
+            name_of_normal_component="effective normal traction",
+            name_of_shear_component="effective shear_traction",
         )
 
     def check_relative_displacement_vectors(
@@ -132,10 +138,10 @@ class KratosGeoMechanicsInterfacePreStressTests(KratosUnittest.TestCase):
         self.check_output_times(
             interface_output_data_of_stage_2, expected_time=end_time
         )
-        self.check_traction_vectors(
+        self.check_effective_traction_vectors(
             interface_output_data_of_stage_2,
-            expected_normal_traction=-750.0,
-            expected_shear_traction=0.0,
+            expected_effective_normal_traction=-750.0,
+            expected_effective_shear_traction=0.0,
         )
         self.check_relative_displacement_vectors(
             interface_output_data_of_stage_2,
