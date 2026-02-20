@@ -25,7 +25,7 @@
 /* ELEMENTS */
 
 /* 0D elements */
-#include "custom_elements/nodal_elements/nodal_concentrated_element.hpp"
+#include "custom_elements/nodal_elements/nodal_concentrated_element.h"
 
 /* Mass elements */
 #include "custom_elements/nodal_elements/mass_element.h"
@@ -62,6 +62,8 @@
 #include "custom_elements/shell_elements/shell_thick_element_3D3N.hpp"
 #include "custom_elements/shell_elements/cs_dsg3_thick_shell_element_3D3N.h"
 
+/* 0D - Springs elements */
+#include "custom_elements/nodal_elements/nodal_concentrated_element.h"
 
 /* Adding the bushing element */
 #include "custom_elements/nodal_elements/bushing_element.h"
@@ -321,9 +323,7 @@ private:
 
     // Adding the nodal concentrated element
     const NodalConcentratedElement mNodalConcentratedElement2D1N;
-    const NodalConcentratedElement mNodalConcentratedDampedElement2D1N;
     const NodalConcentratedElement mNodalConcentratedElement3D1N;
-    const NodalConcentratedElement mNodalConcentratedDampedElement3D1N;
 
     // Adding the mass elements
     const MassElement mLineMassElement3D2N;
