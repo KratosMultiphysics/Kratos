@@ -16,6 +16,7 @@
 #pragma once
 
 /* Project includes */
+#include "custom_constitutive/p_q.hpp"
 #include "custom_constitutive/principal_stresses.hpp"
 #include "includes/constitutive_law.h"
 #include "includes/define.h"
@@ -59,7 +60,7 @@ public:
     static Geo::SigmaTau TransformPrincipalStressesToSigmaTau(const Geo::PrincipalStresses& rPrincipalStresses);
     static Geo::PrincipalStresses TransformSigmaTauToPrincipalStresses(const Geo::SigmaTau& rSigmaTau,
                                                                        const Geo::PrincipalStresses& rPrincipalStresses);
-    static Vector TransformPrincipalStressesToPandQ(const Vector& rPrincipalStresses);
+    static Geo::PQ TransformPrincipalStressesToPandQ(const Vector& rPrincipalStresses);
 
     /// @brief This function calculates stresses from strains using the constitutive laws.
     /// However, it can also be used to calculate tractions from relative displacements.

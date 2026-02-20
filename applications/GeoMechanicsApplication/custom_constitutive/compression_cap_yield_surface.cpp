@@ -113,17 +113,16 @@ double CompressionCapYieldSurface::GetPreconsolidationStress() const
     return mPreconsolidationStressCalculator(mKappa);
 }
 
-double CompressionCapYieldSurface::YieldFunctionValue(const Vector& rSigmaTau) const
+double CompressionCapYieldSurface::YieldFunctionValue(const Geo::PQ& rPQ) const
 {
-    // rSigmaTau here contains the values of p and q
-    return std::pow(rSigmaTau[1] / GetCapSize(), 2) + rSigmaTau[0] * rSigmaTau[0] -
+    return std::pow(rPQ.Values()[1] / GetCapSize(), 2) + rPQ.Values()[0] * rPQ.Values()[0] -
            std::pow(GetPreconsolidationStress(), 2);
 }
 
-Vector CompressionCapYieldSurface::DerivativeOfFlowFunction(const Vector& rSigmaTau) const
+Vector CompressionCapYieldSurface::DerivativeOfFlowFunction(const Geo::PQ& rPQ) const
 {
-    // rSigmaTau here contains the values of p and q
-    return UblasUtilities::CreateVector({2.0 * rSigmaTau[0], 2.0 * rSigmaTau[1] / std::pow(GetCapSize(), 2)});
+    return UblasUtilities::CreateVector(
+        {2.0 * rPQ.Values()[0], 2.0 * rPQ.Values()[1] / std::pow(GetCapSize(), 2)});
 }
 
 void CompressionCapYieldSurface::InitializeKappaDependentFunctions()

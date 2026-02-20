@@ -25,12 +25,6 @@ TensionCutoff::TensionCutoff(double TensileStrength) : mTensileStrength{TensileS
 
 double TensionCutoff::GetTensileStrength() const { return mTensileStrength; }
 
-// At some point in time we would like to get rid of this API. For now, just forward the request.
-double TensionCutoff::YieldFunctionValue(const Vector& rSigmaTau) const
-{
-    return YieldFunctionValue(Geo::SigmaTau{rSigmaTau});
-}
-
 double TensionCutoff::YieldFunctionValue(const Geo::SigmaTau& rSigmaTau) const
 {
     // Note that we attempt to calculate the principal stress vector (which consists of three values) from the given
