@@ -81,6 +81,7 @@ class TestMaterialPointLocator(KratosUnittest.TestCase):
         KratosMultiphysics.VariableUtils().SetFlag(KratosMultiphysics.BOUNDARY, True, model_part.Conditions)
         for condition in model_part.Conditions:
             condition.SetValue(KratosMPM.MATERIAL_POINTS_PER_CONDITION, 1)
+            condition.SetValue(KratosMPM.MPC_BOUNDARY_CONDITION_TYPE, 1)
 
     def test_FindMaterialPointElement2D(self):
         current_model = KratosMultiphysics.Model()
