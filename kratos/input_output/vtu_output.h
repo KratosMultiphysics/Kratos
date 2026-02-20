@@ -135,7 +135,7 @@ public:
      * @brief Construct a new Vtu Output
      *
      * @param rModelPart                Model part to be used in the vtu output.
-     * @param Configuration             Which nodal positions to be written out.
+     * @param IsInitialConfiguration    Which nodal positions to be written out.
      * @param OutputFormat              The format of the output.
      * @param Precision                 Precision of the double values to be used when writing the doubles as ASCII.
      * @param OutputSubModelParts       To consider all the submodel parts recursively for output.
@@ -144,7 +144,7 @@ public:
      */
     VtuOutput(
         ModelPart& rModelPart,
-        const Globals::Configuration Configuration,
+        const bool IsInitialConfiguration = true,
         const WriterFormat OutputFormat = WriterFormat::COMPRESSED_RAW,
         const IndexType Precision = 9,
         const bool OutputSubModelParts = false,

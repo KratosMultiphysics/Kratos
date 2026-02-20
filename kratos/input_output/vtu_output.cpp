@@ -832,7 +832,7 @@ std::pair<Globals::DataLocation, std::vector<VtuOutput::UnstructuredGridData>::i
 
 VtuOutput::VtuOutput(
     ModelPart& rModelPart,
-    const Globals::Configuration Configuration,
+    const bool IsInitialConfiguration,
     const WriterFormat OutputFormat,
     const IndexType Precision,
     const bool OutputSubModelParts,
@@ -840,7 +840,7 @@ VtuOutput::VtuOutput(
     const IndexType EchoLevel)
     : mIsPVDFileHeaderWritten(false),
       mrModelPart(rModelPart),
-      mConfiguration(Configuration),
+      mConfiguration(IsInitialConfiguration ? Globals::Configuration::Initial : Globals::Configuration::Current),
       mEchoLevel(EchoLevel),
       mOutputFormat(OutputFormat),
       mPrecision(Precision)

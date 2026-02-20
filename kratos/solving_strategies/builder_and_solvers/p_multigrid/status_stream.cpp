@@ -42,7 +42,7 @@ using SingleBnS = PMultigridBuilderAndSolver<TUblasSparseSpace<float>,
 std::unique_ptr<VtuOutput> MakeVtuOutput(ModelPart& rModelPart,
                                          const PointerVectorSet<Dof<double>>& rDofSet)
 {
-    auto p_output = std::make_unique<VtuOutput>(rModelPart, Globals::Configuration::Initial);
+    auto p_output = std::make_unique<VtuOutput>(rModelPart);
 
     KRATOS_TRY
 
