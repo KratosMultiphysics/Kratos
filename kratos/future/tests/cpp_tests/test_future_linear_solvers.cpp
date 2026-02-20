@@ -12,7 +12,11 @@
 
 // Project includes
 #include "testing/testing.h"
+#include "future/containers/define_linear_algebra_serial.h"
+#include "future/containers/linear_system.h"
+#include "future/linear_operators/linear_operator.h"
 #include "future/linear_solvers/amgcl_solver.h"
+#include "future/linear_solvers/cg_solver.h"
 #include "future/linear_solvers/skyline_lu_factorization_solver.h"
 
 namespace Kratos::Testing
@@ -50,30 +54,63 @@ namespace
 KRATOS_TEST_CASE_IN_SUITE(FutureLinearSolversSkylineLUFactorizationSolver, KratosCoreFutureSuite)
 {
     // Set up the system to be solved
-    CsrMatrix<> LHS;
-    SystemVector<> RHS;
-    const std::size_t system_size = SetLinearSystem(LHS, RHS);
+    auto p_LHS = Kratos::make_shared<CsrMatrix<> >();
+    auto p_RHS = Kratos::make_shared<SystemVector<> >();
+    const std::size_t system_size = SetLinearSystem(*p_LHS, *p_RHS);
+    auto p_sol = Kratos::make_shared<SystemVector<> >(system_size);
+    Future::LinearSystem<Future::SerialLinearAlgebraTraits> linear_system(p_LHS, p_RHS, p_sol);
 
     // Set the linear solver to be tested
-    Parameters skyline_lu_settings(R"({
-    })");
-    auto p_linear_solver = Kratos::make_unique<Future::SkylineLUFactorizationSolver<CsrMatrix<>, SystemVector<>>>(skyline_lu_settings);
+    Future::LinearSolver<Future::SerialLinearAlgebraTraits>::UniquePointer p_linear_solver = Kratos::make_unique<Future::SkylineLUFactorizationSolver<Future::SerialLinearAlgebraTraits>>();
 
     // Solve the problem
-    SystemVector<> sol(system_size);
-    p_linear_solver->Solve(LHS, sol, RHS);
+    p_linear_solver->Initialize(linear_system);
+    p_linear_solver->InitializeSolutionStep(linear_system);
+    p_linear_solver->PerformSolutionStep(linear_system);
+    p_linear_solver->FinalizeSolutionStep(linear_system);
 
     // Check the obtained results
     std::vector<double> ref_sol = {0.487946221604, 0.979601298099, 0.836810384794, 0.93973110802, 0.602225312935};
-    KRATOS_EXPECT_VECTOR_NEAR(sol.data(), ref_sol, 1e-12);
+    KRATOS_EXPECT_VECTOR_NEAR(p_sol->data(), ref_sol, 1e-12);
+}
+
+KRATOS_TEST_CASE_IN_SUITE(FutureLinearSolversCGSolver, KratosCoreFutureSuite)
+{
+    // Set up the system to be solved
+    auto p_LHS = Kratos::make_shared<CsrMatrix<> >();
+    auto p_RHS = Kratos::make_shared<SystemVector<> >();
+    const std::size_t system_size = SetLinearSystem(*p_LHS, *p_RHS);
+    auto p_sol = Kratos::make_shared<SystemVector<> >(system_size);
+    p_sol->SetValue(0.0);
+    Future::LinearSystem<Future::SerialLinearAlgebraTraits> linear_system(p_LHS, p_RHS, p_sol);
+
+    // Set the linear solver to be tested
+    Parameters cg_settings(R"({
+        "solver_type" : "CG",
+        "max_iteration" : 100,
+        "tolerance" : 1e-6
+    })");
+    Future::LinearSolver<Future::SerialLinearAlgebraTraits>::UniquePointer p_linear_solver = Kratos::make_unique<Future::CGSolver<Future::SerialLinearAlgebraTraits>>(cg_settings);
+
+    // Solve the problem
+    p_linear_solver->Initialize(linear_system);
+    p_linear_solver->InitializeSolutionStep(linear_system);
+    p_linear_solver->PerformSolutionStep(linear_system);
+    p_linear_solver->FinalizeSolutionStep(linear_system);
+
+    // Check the obtained results
+    std::vector<double> ref_sol = {0.487946221604, 0.979601298099, 0.836810384794, 0.93973110802, 0.602225312935};
+    KRATOS_EXPECT_VECTOR_NEAR(p_sol->data(), ref_sol, 1e-12);
 }
 
 KRATOS_TEST_CASE_IN_SUITE(FutureLinearSolversAmgcl, KratosCoreFutureSuite)
 {
     // Set up the system to be solved
-    CsrMatrix<> LHS;
-    SystemVector<> RHS;
-    const std::size_t system_size = SetLinearSystem(LHS, RHS);
+    auto p_LHS = Kratos::make_shared<CsrMatrix<> >();
+    auto p_RHS = Kratos::make_shared<SystemVector<> >();
+    const std::size_t system_size = SetLinearSystem(*p_LHS, *p_RHS);
+    auto p_sol = Kratos::make_shared<SystemVector<> >(system_size);
+    Future::LinearSystem<Future::SerialLinearAlgebraTraits> linear_system(p_LHS, p_RHS, p_sol);
 
     // Set the linear solver to be tested
     Parameters amgcl_settings(R"({
@@ -82,15 +119,17 @@ KRATOS_TEST_CASE_IN_SUITE(FutureLinearSolversAmgcl, KratosCoreFutureSuite)
         "verbosity"                      : 1,
         "tolerance"                      : 1e-6
     })");
-    auto p_linear_solver = Kratos::make_unique<Future::AMGCLSolver<CsrMatrix<>, SystemVector<>>>(amgcl_settings);
+    Future::LinearSolver<Future::SerialLinearAlgebraTraits>::UniquePointer p_linear_solver = Kratos::make_unique<Future::AMGCLSolver<Future::SerialLinearAlgebraTraits>>(amgcl_settings);
 
     // Solve the problem
-    SystemVector<> sol(system_size);
-    p_linear_solver->Solve(LHS, sol, RHS);
+    p_linear_solver->Initialize(linear_system);
+    p_linear_solver->InitializeSolutionStep(linear_system);
+    p_linear_solver->PerformSolutionStep(linear_system);
+    p_linear_solver->FinalizeSolutionStep(linear_system);
 
     // Check the obtained results
     std::vector<double> ref_sol = {0.487946221604, 0.979601298099, 0.836810384794, 0.93973110802, 0.602225312935};
-    KRATOS_EXPECT_VECTOR_NEAR(sol.data(), ref_sol, 1e-12);
+    KRATOS_EXPECT_VECTOR_NEAR(p_sol->data(), ref_sol, 1e-12);
 }
 
 }

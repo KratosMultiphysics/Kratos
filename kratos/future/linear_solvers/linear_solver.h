@@ -7,9 +7,8 @@
 //  License:         BSD License
 //                   Kratos default license: kratos/license.txt
 //
-//  Main authors:    Pooyan Dadvand
+//  Main authors:    Ruben Zorrilla
 //                   Riccardo Rossi
-//                   Ruben Zorrilla
 //
 
 #pragma once
@@ -20,8 +19,10 @@
 
 // Project includes
 #include "containers/csr_matrix.h"
-#include "containers/system_vector.h"
+#include "future/containers/define_linear_algebra_serial.h"
+#include "future/containers/linear_system.h"
 #include "includes/model_part.h"
+#include "future/linear_operators/sparse_matrix_linear_operator.h"
 
 namespace Kratos::Future
 {
@@ -57,9 +58,10 @@ namespace Kratos::Future
  * @author Riccardo Rossi
  * @author Ruben Zorrilla
  */
-template<class TMatrixType = CsrMatrix<>, class TVectorType= SystemVector<>>
+template<class TLinearAlgebra>
 class LinearSolver
 {
+
 public:
     ///@name Type Definitions
     ///@{
@@ -67,39 +69,29 @@ public:
     /// Pointer definition of LinearSolver
     KRATOS_CLASS_POINTER_DEFINITION(LinearSolver);
 
-    /// Type definition for sparse matrix
-    using SparseMatrixType = TMatrixType;
+    /// Linear system type definition
+    using LinearSystemType = LinearSystem<TLinearAlgebra>;
 
-    /// Type definition for pointer to sparse matrix
-    using SparseMatrixPointerType = typename SparseMatrixType::Pointer;
+    /// Vector type definition from linear algebra template parameter
+    using VectorType = typename TLinearAlgebra::VectorType;
 
-    /// Type definition for vector
-    using VectorType = TVectorType;
-
-    /// Type definition for pointer to vector
-    using VectorPointerType = typename VectorType::Pointer;
+    /// Dense matrix type definition from linear algebra template parameter used for multi-solve and eigenvector storage
+    using DenseMatrixType = typename TLinearAlgebra::DenseMatrixType;
 
     /// Type definition for data
-    using DataType = typename SparseMatrixType::DataType;
-
-    /// Type definition for size
-    using SizeType = typename SparseMatrixType::DataType;
+    using DataType = typename VectorType::DataType;
 
     /// Type definition for index
-    using IndexType = typename SparseMatrixType::IndexType;
-
-    /// Local system matrix type definition
-    using DenseMatrixType = DenseMatrix<DataType>;
-
-    /// Local system vector type definition
-    using DenseVectorType = DenseVector<DataType>;
+    using IndexType = typename VectorType::IndexType;
 
     ///@}
     ///@name Life Cycle
     ///@{
 
     /// Default constructor.
-    LinearSolver() {}
+    LinearSolver(Parameters Settings = Parameters(R"({})"))
+    {
+    }
 
     /// Copy constructor.
     LinearSolver(const LinearSolver& Other) {}
@@ -123,47 +115,39 @@ public:
 
     /**
      * @brief This function is designed to be called as few times as possible.
-     * @details It creates the data structures that only depend on the connectivity of the matrix (and not on its coefficients) so that the memory can be allocated once and expensive operations can be done only when strictly  needed
-     * @param rA. System matrix
-     * @param rX. Solution vector. it's also the initial guess for iterative linear solvers.
-     * @param rB. Right hand side vector.
+     * @details It creates the data structures that only depend on the connectivity of the matrix (and not on its coefficients) so that the memory can be allocated once and expensive operations can be done only when strictly needed
+     * @param rLinearSystem The linear system to be solved
      */
-    virtual void Initialize(SparseMatrixType& rA, VectorType& rX, VectorType& rB)
+    virtual void Initialize(LinearSystemType& rLinearSystem)
     {
     }
 
     /**
      * @brief This function is designed to be called every time the coefficients change in the system that is, normally at the beginning of each solve.
      * @details For example if we are implementing a direct solver, this is the place to do the factorization so that then the backward substitution can be performed effectively more than once
-     * @param rA. System matrix
-     * @param rX. Solution vector. it's also the initial guess for iterative linear solvers.
-     * @param rB. Right hand side vector.
+     * @param rLinearSystem The linear system to be solved
      */
-    virtual void InitializeSolutionStep(SparseMatrixType& rA, VectorType& rX, VectorType& rB)
+    virtual void InitializeSolutionStep(LinearSystemType& rLinearSystem)
     {
     }
 
     /**
      * @brief This function actually performs the solution work, eventually taking advantage of what was done before in the Initialize and InitializeSolutionStep functions.
-     * @param rA. System matrix
-     * @param rX. Solution vector. it's also the initial guess for iterative linear solvers.
-     * @param rB. Right hand side vector.
+     * @param rLinearSystem The linear system to be solved.
      * @return @p true if the provided system was solved successfully satisfying the given requirements, @p false otherwise.
      */
-    virtual bool PerformSolutionStep(SparseMatrixType& rA, VectorType& rX, VectorType& rB)
+    virtual bool PerformSolutionStep(LinearSystemType& rLinearSystem)
     {
-        KRATOS_ERROR << "Calling linear solver base class" << std::endl;
+        KRATOS_ERROR << "Calling linear solver base class." << std::endl;
         return false;
     }
 
     /**
      * @brief This function is designed to be called at the end of the solve step.
      * @details for example this is the place to remove any data that we do not want to save for later
-     * @param rA. System matrix
-     * @param rX. Solution vector. it's also the initial guess for iterative linear solvers.
-     * @param rB. Right hand side vector.
+     * @param rLinearSystem The linear system to be solved.
      */
-    virtual void FinalizeSolutionStep(SparseMatrixType& rA, VectorType& rX, VectorType& rB)
+    virtual void FinalizeSolutionStep(LinearSystemType& rLinearSystem)
     {
     }
 
@@ -176,81 +160,12 @@ public:
     }
 
     /**
-     * @brief Normal solve method.
-     * @details Solves the linear system Ax=b and puts the result on SystemVector& rX. rX is also th initial guess for iterative methods.
-     * @param rA. System matrix
-     * @param rX. Solution vector. it's also the initial
-    guess for iterative linear solvers.
-     * @param rB. Right hand side vector.
+     * @brief This function is designed to prepare the additional data needed by the solver.
+     * @details This function is designed to be called after the Initialize function and before the PerformSolutionStep function.
+     * Note that the additional data is assumed to be already contained within the linear system container (@see LinearSystem)
+     * @param rLinearSystem The linear system to be solved.
      */
-    virtual bool Solve(SparseMatrixType& rA, VectorType& rX, VectorType& rB)
-    {
-        KRATOS_ERROR << "Calling linear solver base class" << std::endl;
-        return false;
-    }
-
-    /**
-     * @brief Multi solve method for solving a set of linear systems with same coefficient matrix.
-     * @details Solves the linear system Ax=b and puts the result on SystemVector& rX. rX is also th initial guess for iterative methods.
-     * @param rA. System matrix
-     * @param rX. Solution vector. it's also the initial
-    guess for iterative linear solvers.
-     * @param rB. Right hand side vector.
-     */
-    virtual bool Solve(SparseMatrixType& rA, DenseMatrixType& rX, DenseMatrixType& rB)
-    {
-        KRATOS_ERROR << "Calling linear solver base class" << std::endl;
-        return false;
-    }
-
-    /**
-     * @brief Eigenvalue and eigenvector solve method for derived eigensolvers
-     * @param K The stiffness matrix
-     * @param M The mass matrix
-     * @param Eigenvalues The vector containing the eigen values
-     * @param Eigenvectors The matrix containing the eigen vectors
-     */
-    virtual  void Solve(SparseMatrixType& K,
-                        SparseMatrixType& M,
-                        DenseVectorType& Eigenvalues,
-                        DenseMatrixType& Eigenvectors)
-    {
-        KRATOS_ERROR << "Calling linear solver base class" << std::endl;
-    }
-
-    /**
-     * @brief Checks if additional physical data is needed by the solver.
-     * @details Some solvers may require a minimum degree of knowledge of the structure of the matrix.
-     * For instance, when solving a mixed u-p problem, it is important to identify the row associated with v and p.
-     * Another example is the automatic prescription of rotation null-space for smoothed-aggregation solvers,
-     * which require knowledge of the spatial position of the nodes associated with a given degree of freedom (DOF).
-     * @return True if additional physical data is needed, false otherwise.
-     */
-    virtual bool AdditionalPhysicalDataIsNeeded()
-    {
-        return false;
-    }
-
-    /**
-     * @brief Provides additional physical data required by the solver.
-     * @details Some solvers may require a minimum degree of knowledge of the structure of the matrix.
-     * For example, when solving a mixed u-p problem, it is important to identify the row associated with v and p.
-     * Another example is the automatic prescription of rotation null-space for smoothed-aggregation solvers,
-     * which require knowledge of the spatial position of the nodes associated with a given degree of freedom (DOF).
-     * This function provides the opportunity to provide such data if needed.
-     * @param rA The sparse matrix.
-     * @param rX The solution vector.
-     * @param rB The right-hand side vector.
-     * @param rDoFSet The set of degrees of freedom.
-     * @param rModelPart The model part.
-     */
-    virtual void ProvideAdditionalData(
-        SparseMatrixType& rA,
-        VectorType& rX,
-        VectorType& rB,
-        typename ModelPart::DofsArrayType& rDoFSet,
-        ModelPart& rModelPart
-        )
+    virtual void PrepareAdditionalData(LinearSystemType& rLinearSystem)
     {
     }
 
@@ -289,85 +204,34 @@ public:
         return 0;
     }
 
+    /**
+     * @brief Get the Default Parameters object
+     * @details This function returns the default parameters for the linear solver. It is meant to be overridden by derived classes with their corresponding defaults.
+     * @return Parameters
+     */
+    virtual Parameters GetDefaultParameters() const
+    {
+        return Parameters(R"({
+            "solver_type" : "linear_solver",
+            "echo_level" : 0
+        })");
+    }
+
     ///@}
     ///@name Inquiry
     ///@{
 
     /**
-     * @brief This method checks if the dimensions of the system of equations are consistent
-     * @param rA The LHS of the system of equations
-     * @param rX The vector containing the unknowns
-     * @param rB The RHS of the system of equations
-     * @return True if consistent, false otherwise
+     * @brief Checks if additional physical data is needed by the solver.
+     * @details Some solvers may require a minimum degree of knowledge of the structure of the matrix.
+     * For instance, when solving a mixed u-p problem, it is important to identify the row associated with v and p.
+     * Another example is the automatic prescription of rotation null-space for smoothed-aggregation solvers,
+     * which require knowledge of the spatial position of the nodes associated with a given degree of freedom (DOF).
+     * @return True if additional physical data is needed, false otherwise.
      */
-    virtual bool IsConsistent(
-        SparseMatrixType& rA,
-        VectorType& rX,
-        VectorType& rB)
+    virtual bool RequiresAdditionalData() const
     {
-        const SizeType size = rA.size1();
-        const SizeType size_a = rA.size2();
-        const SizeType size_x = rX.size();
-        const SizeType size_b = rB.size();
-
-        return ((size ==  size_a) &&
-                (size ==  size_x) &&
-                (size ==  size_b));
-    }
-
-    /**
-     * @brief This method checks if the dimensions of the system of equations are consistent (dense matrix for RHS and unknowns version)
-     * @param rA The LHS of the system of equations
-     * @param rX The matrix containing the unknowns
-     * @param rB The matrix containing the RHSs of the system of equations
-     * @return True if consistent, false otherwise
-     */
-    virtual bool IsConsistent(
-        SparseMatrixType& rA,
-        DenseMatrixType& rX,
-        DenseMatrixType& rB)
-    {
-        const SizeType size = rA.size1();
-        const SizeType size_a = rA.size2();
-        const SizeType size_1_x = rX.size1();
-        const SizeType size_1_b = rB.size1();
-        const SizeType size_2_x = rX.size2();
-        const SizeType size_2_b = rB.size2();
-
-        return ((size ==  size_a) &&
-                (size ==  size_1_x) &&
-                (size ==  size_1_b) &&
-                (size_2_x == size_2_b));
-    }
-
-    /**
-     * @brief This method checks if the dimensions of the system of equations are not consistent
-     * @param rA The LHS of the system of equations
-     * @param rX The vector containing the unknowns
-     * @param rB The RHS of the system of equations
-     * @return False if consistent, true otherwise
-     */
-    virtual bool IsNotConsistent(
-        SparseMatrixType& rA,
-        VectorType& rX,
-        VectorType& rB)
-    {
-        return (!IsConsistent(rA, rX, rB));
-    }
-
-    /**
-     * @brief This method checks if the dimensions of the system of equations are not consistent
-     * @param rA The LHS of the system of equations
-     * @param rX The matrix containing the unknowns
-     * @param rB The matrix containing the RHSs of the system of equations
-     * @return False if consistent, true otherwise
-     */
-    virtual bool IsNotConsistent(
-        SparseMatrixType& rA,
-        DenseMatrixType& rX,
-        DenseMatrixType& rB)
-    {
-        return (!IsConsistent(rA, rX, rB));
+        return false;
     }
 
     ///@}
@@ -377,13 +241,13 @@ public:
     /// Turn back information as a string.
     virtual std::string Info() const
     {
-        return "New linear solver";
+        return "Linear solver base class";
     }
 
     /// Print information about this object.
     virtual void PrintInfo(std::ostream& rOStream) const
     {
-        rOStream << "New linear solver";
+        rOStream << "Linear solver base class";
     }
 
     /// Print object's data.
@@ -403,6 +267,14 @@ protected:
     ///@}
     ///@name Protected member Variables
     ///@{
+
+    bool mMultipleSolve;
+
+    std::string mDxTagString;
+
+    std::string mRhsTagString;
+
+    std::string mLhsTagString;
 
     ///@}
     ///@name Protected Operators
@@ -457,28 +329,28 @@ private:
 };
 
 ///@}
-
 ///@name Type Definitions
 ///@{
+
 
 ///@}
 ///@name Input and output
 ///@{
 
 /// input stream function
-template<class TMatrixType, class TVectorType>
+template<class TLinearAlgebra>
 inline std::istream& operator >> (
     std::istream& IStream,
-    LinearSolver<TMatrixType, TVectorType>& rThis)
+    LinearSolver<TLinearAlgebra>& rThis)
 {
     return IStream;
 }
 
 /// output stream function
-template<class TMatrixType, class TVectorType>
+template<class TLinearAlgebra>
 inline std::ostream& operator << (
     std::ostream& rOStream,
-    const LinearSolver<TMatrixType, TMatrixType>& rThis)
+    const LinearSolver<TLinearAlgebra>& rThis)
 {
     rThis.PrintInfo(rOStream);
     rOStream << std::endl;

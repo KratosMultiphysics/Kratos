@@ -18,19 +18,14 @@
 // External includes
 
 // Project includes
-#include "containers/csr_matrix.h"
-#include "containers/system_vector.h"
-#include "containers/sparse_contiguous_row_graph.h"
 #include "includes/define.h"
 #include "includes/model_part.h"
-#include "utilities/amgcl_csr_conversion_utilities.h"
-#include "utilities/amgcl_csr_spmm_utilities.h"
 #include "utilities/builtin_timer.h"
 #include "utilities/dof_utilities/dof_array_utilities.h"
 #include "utilities/timer.h"
 
 #ifdef KRATOS_USE_FUTURE
-#include "future/containers/linear_system_container.h"
+#include "./future/solving_strategies/strategies/implicit_strategy_data.h"
 #endif
 
 namespace Kratos::Future
@@ -50,7 +45,7 @@ namespace Kratos::Future
  * This class is thought to never be used, but to serve as basis for all the derived build types (e.g., block and elimination)
  * @author Ruben Zorrilla
  */
-template<class TSparseMatrixType, class TSystemVectorType, class TSparseGraphType>
+template<class TLinearAlgebra>
 class Builder
 {
 public:
@@ -61,10 +56,19 @@ public:
     KRATOS_CLASS_POINTER_DEFINITION(Builder);
 
     /// Data type definition from sparse matrix
-    using DataType = typename TSparseMatrixType::DataType;
+    using DataType = typename TLinearAlgebra::DataType;
 
     /// Index type definition from sparse matrix
-    using IndexType = typename TSparseMatrixType::IndexType;
+    using IndexType = typename TLinearAlgebra::IndexType;
+
+    /// Matrix type definition
+    using MatrixType = typename TLinearAlgebra::MatrixType;
+
+    /// Vector type definition
+    using VectorType = typename TLinearAlgebra::VectorType;
+
+    /// Sparse graph type definition
+    using SparseGraphType = typename TLinearAlgebra::SparseGraphType;
 
     /// DOF type definition
     using DofType = Dof<DataType>;
@@ -112,8 +116,8 @@ public:
      * @param pLinearSystemContainer Auxiliary container with the linear system arrays
      */
     virtual void AllocateLinearSystem(
-        const TSparseGraphType& rSparseGraph,
-        LinearSystemContainer<TSparseMatrixType, TSystemVectorType> &rLinearSystemContainer)
+        const SparseGraphType& rSparseGraph,
+        ImplicitStrategyData<TLinearAlgebra> &rLinearSystemContainer)
     {
         KRATOS_ERROR << "Calling base class 'AllocateLinearSystem'." << std::endl;
     }
@@ -124,12 +128,12 @@ public:
      * Note that the sizes of the resultant arrays depend on the build type
      * @param pLinearSystemContainer Auxiliary container with the linear system arrays
      */
-    virtual void AllocateLinearSystem(LinearSystemContainer<TSparseMatrixType, TSystemVectorType> &rLinearSystemContainer)
+    virtual void AllocateLinearSystem(ImplicitStrategyData<TLinearAlgebra> &rLinearSystemContainer)
     {
         // Set up the system sparse matrix graph (note that the sparse graph will be destroyed when leaving this scope)
         BuiltinTimer sparse_matrix_graph_time;
-        auto p_dof_set = rLinearSystemContainer.pDofSet;
-        TSparseGraphType sparse_matrix_graph(p_dof_set->size());
+        auto p_dof_set = rLinearSystemContainer.pGetDofSet();
+        SparseGraphType sparse_matrix_graph(p_dof_set->size());
         this->SetUpSparseMatrixGraph(sparse_matrix_graph);
         KRATOS_INFO_IF("BlockBuilder", this->GetEchoLevel() > 0) << "Set up sparse matrix graph time: " << sparse_matrix_graph_time << std::endl;
 
@@ -143,7 +147,7 @@ public:
      * Note that the sizes of the resultant arrays depend on the build type
      * @param rLinearSystemContainer Auxiliary container with the linear system arrays
      */
-    virtual void AllocateLinearSystemConstraints(LinearSystemContainer<TSparseMatrixType, TSystemVectorType>& rLinearSystemContainer)
+    virtual void AllocateLinearSystemConstraints(ImplicitStrategyData<TLinearAlgebra>& rLinearSystemContainer)
     {
         KRATOS_ERROR << "Calling base class 'AllocateLinearSystemConstraints'." << std::endl;
     }
@@ -154,14 +158,14 @@ public:
      * elements and conditions in the model part the builder refers to
      * @param rSparseGraph The sparse matrix graph to be filled
      */
-    virtual void SetUpSparseMatrixGraph(TSparseGraphType& rSparseGraph)
+    virtual void SetUpSparseMatrixGraph(SparseGraphType& rSparseGraph)
     {
         // Clear the provided sparse matrix graph
         rSparseGraph.Clear();
 
         // Add the elements and conditions DOF equation connectivities
         // Note that we add all the DOFs regardless their fixity status
-        if constexpr (TSparseGraphType::IsThreadSafe) {
+        if constexpr (SparseGraphType::IsThreadSafe) {
             IndexPartition<IndexType>(mpModelPart->NumberOfElements()).for_each([&](IndexType Index) {
                 Element::EquationIdVectorType eq_ids; //TODO: we don't use TLS for this (decide what to do once we finish the parallelism discussion)
                 auto it_elem = mpModelPart->ElementsBegin() + Index;
@@ -200,14 +204,14 @@ public:
     virtual void SetUpMasterSlaveConstraintsGraph(
         const DofsArrayType& rDofSet,
         const DofsArrayType& rEffectiveDofSet,
-        TSparseGraphType& rConstraintsSparseGraph)
+        SparseGraphType& rConstraintsSparseGraph)
     {
         // Check if there are constraints to build the constraints sparse graph
         const std::size_t n_constraints = mpModelPart->NumberOfMasterSlaveConstraints();
         if (n_constraints) { //TODO: Change the way this is checked (w/o the DOFs map)
             // Initialize the constraints matrix sparse graph
             // Note that the number of rows is the size of the standard DOFs arrays (the effective one will be the columns)
-            rConstraintsSparseGraph = std::move(TSparseGraphType(rDofSet.size()));
+            rConstraintsSparseGraph = std::move(SparseGraphType(rDofSet.size()));
 
             // Add all effective DOFs
             // Note that here effective means that the DOF is either a master DOF or a DOF that does not involve any constraint
@@ -219,7 +223,7 @@ public:
             };
 
             const std::size_t n_eff_dof = rEffectiveDofSet.size();
-            if constexpr (TSparseGraphType::IsThreadSafe) {
+            if constexpr (SparseGraphType::IsThreadSafe) {
                 IndexPartition<IndexType>(n_eff_dof).for_each(eff_dof_addition_fn);
             } else {
                 for (IndexType i_dof = 0; i_dof < n_eff_dof; ++i_dof) {
@@ -239,7 +243,7 @@ public:
                 }
             };
 
-            if constexpr (TSparseGraphType::IsThreadSafe) {
+            if constexpr (SparseGraphType::IsThreadSafe) {
                 IndexPartition<IndexType>(n_constraints).for_each(slave_dof_addition_fn);
             } else {
                 for (IndexType i_constraint = 0; i_constraint < n_constraints; ++i_constraint) {
@@ -257,7 +261,7 @@ public:
      * in the derived classes depending on the build type.
      * @param rLinearSystemContainer Auxiliary container with the linear system arrays
      */
-    virtual void ApplyLinearSystemConstraints(LinearSystemContainer<TSparseMatrixType, TSystemVectorType>& rLinearSystemContainer)
+    virtual void ApplyLinearSystemConstraints(ImplicitStrategyData<TLinearAlgebra>& rLinearSystemContainer)
     {
         KRATOS_ERROR << "Calling base class 'ApplyLinearSystemConstraints'." << std::endl;
     }
@@ -277,13 +281,12 @@ public:
      */
     void CalculateSolutionVector(
         const DofsArrayType& rEffectiveDofSet,
-        const TSparseMatrixType& rConstraintsRelationMatrix,
-        const TSystemVectorType& rConstraintsConstantVector,
-        TSystemVectorType& rSolutionVector) const
+        const MatrixType& rConstraintsRelationMatrix,
+        const VectorType& rConstraintsConstantVector,
+        VectorType& rSolutionVector) const
     {
         // Set an auxiliary vector containing the effective solution values
-        const std::size_t n_eff_dofs = rEffectiveDofSet.size();
-        TSystemVectorType y(n_eff_dofs);
+        VectorType y(rEffectiveDofSet.size());
         IndexPartition<IndexType>(rEffectiveDofSet.size()).for_each([&](IndexType Index) {
             // Get effective DOF
             auto p_dof = *(rEffectiveDofSet.ptr_begin() + Index);
@@ -296,7 +299,7 @@ public:
         // Check solution vector size
         const std::size_t aux_size = rConstraintsConstantVector.size();
         if (rSolutionVector.size() != aux_size) {
-            rSolutionVector = TSystemVectorType(aux_size);
+            rSolutionVector = VectorType(aux_size);
         }
 
         // Initialize solution vector with the constaints constant vector values

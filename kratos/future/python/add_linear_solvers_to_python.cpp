@@ -20,6 +20,8 @@
 #include "includes/define_python.h"
 
 // Future Extensions
+#include "future/containers/define_linear_algebra_serial.h"
+#include "future/containers/linear_system.h"
 #include "future/python/add_linear_solvers_to_python.h"
 #include "future/linear_solvers/amgcl_solver.h"
 #include "future/linear_solvers/linear_solver.h"
@@ -33,23 +35,31 @@ namespace py = pybind11;
 
 void AddLinearSolversToPython(py::module& m)
 {
+    using LinearSystemType = Future::LinearSystem<SerialLinearAlgebraTraits>;
 
-    using LinearSolverType = Future::LinearSolver<>;
+    using LinearSolverType = Future::LinearSolver<SerialLinearAlgebraTraits>;
     py::class_<LinearSolverType, typename LinearSolverType::Pointer>(m, "LinearSolver")
         .def(py::init<>())
-        .def("Initialize", &LinearSolverType::Initialize)
+        .def("Initialize", py::overload_cast<LinearSystemType&>(&LinearSolverType::Initialize))
         // .def("__str__", PrintObject<LinearSolverType>)
         .def("GetIterationsNumber", &LinearSolverType::GetIterationsNumber)
     ;
 
-    using DirectSolverType = Future::DirectSolver<>;
+    using DirectSolverType = Future::DirectSolver<SerialLinearAlgebraTraits>;
     py::class_<DirectSolverType, typename DirectSolverType::Pointer, LinearSolverType>(m, "DirectSolver")
         .def(py::init<>())
         .def(py::init<Parameters>())
         // .def("__str__", PrintObject<DirectSolverType>)
     ;
 
-    using SkylineLUFactorizationSolverType = Future::SkylineLUFactorizationSolver<CsrMatrix<>, SystemVector<>>;
+    using IterativeSolverType = Future::IterativeSolver<SerialLinearAlgebraTraits>;
+    py::class_<IterativeSolverType, typename IterativeSolverType::Pointer, LinearSolverType>(m, "IterativeSolver")
+        .def(py::init<>())
+        .def(py::init<Parameters>())
+        // .def("__str__", PrintObject<IterativeSolverType>)
+    ;
+
+    using SkylineLUFactorizationSolverType = Future::SkylineLUFactorizationSolver<SerialLinearAlgebraTraits>;
     py::class_<SkylineLUFactorizationSolverType, SkylineLUFactorizationSolverType::Pointer, DirectSolverType>(m, "SkylineLUFactorizationSolver")
         .def(py::init<>())
         .def(py::init<Parameters>())
@@ -82,7 +92,7 @@ void AddLinearSolversToPython(py::module& m)
         .value("SA_EMIN", SA_EMIN)
     ;
 
-    using AMGCLSolverType = Future::AMGCLSolver<CsrMatrix<>, SystemVector<>>;
+    using AMGCLSolverType = Future::AMGCLSolver<SerialLinearAlgebraTraits>;
     py::class_<AMGCLSolverType, typename AMGCLSolverType::Pointer, LinearSolverType>(m, "AMGCLSolver")
         .def(py::init<AMGCLSmoother, AMGCLIterativeSolverType, double, int, int, int>())
         .def(py::init<AMGCLSmoother, AMGCLIterativeSolverType, AMGCLCoarseningType, double, int, int, int, bool>())
