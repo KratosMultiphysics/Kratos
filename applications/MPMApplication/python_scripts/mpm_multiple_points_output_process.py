@@ -51,12 +51,13 @@ class MPMMultiplePointsOutputProcess(MultiplePointsOutputProcess):
     @staticmethod
     def GetDefaultParameters():
         return KratosMultiphysics.Parameters('''{
-            "model_part_name"   : "",
-            "entity_type"       : "element",
-            "interval"          : [0.0, 1e30],
-            "positions"         : [[]],
-            "output_variables"  : [],
-            "search_tolerance"  : 1e-6,
-            "print_format"      : "",
-            "output_file_settings": {}
+            "model_part_name"       : "",
+            "entity_type"           : "element",
+            "output_control_type"   : "step",
+            "output_interval"       : 1.0,
+            "positions"             : [[]],
+            "output_variables"      : [],
+            "search_tolerance"      : 1e-6,
+            "print_format"          : ".8f",
+            "output_file_settings"  : {}
         }''')
