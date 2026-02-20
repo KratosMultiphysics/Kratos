@@ -149,7 +149,16 @@ Each json object in the list assigned to the `property` field is defined through
     - `constitutive_law`: object containing a string identifying the [constitutive law](../Constitutive_Laws/constitutive_laws);
     - `Variables`: object defining some variables
         * `THICKNESS`: thickness for 2D problems
-        * `MATERIAL_POINTS_PER_ELEMENT`: number of material points to be used on each element of the mesh discretising the submodel part indentified by `model_part_name`. The discretisation of the continuum to simulate by means of material points is discussed in more details [here](./mdpa);
+        * `MATERIAL_POINTS_PER_ELEMENT`: number of material points to be used on each element of the mesh discretising the submodel part indentified by `model_part_name`. The discretisation of the continuum to simulate by means of material points is discussed in more details [here](./mdpa). Depending on the element type, the following number of material points per element can be used:
+
+            | Triangles | Tetrahedra | Quadrilaterals | Hexahedra |
+            | :-------: | :--------: | :------------: | :-------: |
+            |  1        |  1         |  1             |   1       |
+            |  3        |  4         |  4             |   8       |
+            |  4        |  8         |  9             |  27       |
+            |  6        | 14         | 16             |  64       |
+            | 12        | 24         | 25             | 125       |
+
         * other variables depending on the type of constitutive law that has been chosen.
 
 A detailed discussion of the consitutive laws implemented within the `MPMApplication` and the list of variables to be added to the object assigned to the `Variables` attribute can be found [here](../Constitutive_Laws/constitutive_laws).
