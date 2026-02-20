@@ -278,6 +278,27 @@ KRATOS_TEST_CASE_IN_SUITE(Hexahedra3D8PointLocalCoordinates, KratosCoreGeometrie
     KRATOS_EXPECT_NEAR(local_coords_outside_point(2), 1.0, TOLERANCE);
 }
 
+
+/* Checks that the local coordinates are not converged for a point very far from the hexahedron */
+KRATOS_TEST_CASE_IN_SUITE(Hexahedra3D8PointLocalCoordinatesNotConverged, KratosCoreGeometriesFastSuite) 
+{
+    auto p_geom = HexaGeometryPtrType(new HexaGeometryType(
+        GeneratePoint<PointType>(-0.025,      -0.025,      -0.025),
+        GeneratePoint<PointType>(-0.0247076,  -0.025,      -0.025),
+        GeneratePoint<PointType>(-0.0247076,  -0.0247076,  -0.025),
+        GeneratePoint<PointType>(-0.025,      -0.0247076,  -0.025),
+        GeneratePoint<PointType>(-0.025,      -0.025,      -0.0247076),
+        GeneratePoint<PointType>(-0.0247076,  -0.025,      -0.0247076),
+        GeneratePoint<PointType>(-0.0247076,  -0.0247076,  -0.0247076),
+        GeneratePoint<PointType>(-0.025,      -0.0247076,  -0.0247076)
+    ));
+
+    Point PointOutside(0.017500000000000002, 0.0, 0.0);
+    Point LocalCoords;
+    bool converged = p_geom->ComputePointLocalCoordinates(LocalCoords, PointOutside);
+    KRATOS_EXPECT_FALSE(converged);
+}
+
 KRATOS_TEST_CASE_IN_SUITE(Hexahedra3D8ShapeFunctionsValues, KratosCoreGeometriesFastSuite)
 {
     auto geom = GenerateOriginCenterLen2Hexahedra3D8();
