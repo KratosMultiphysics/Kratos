@@ -261,6 +261,7 @@ def get_wall_node_ids():
         8988,
     ]
 
+
 def get_soil_side_node_ids_of_left_interfaces():
     return [
         9424,
@@ -506,6 +507,7 @@ def get_soil_side_node_ids_of_left_interfaces():
         9511,
         9508,
     ]
+
 
 def _extract_x_and_y_from_line(line, index_of_x=0, index_of_y=1, x_transform=None):
     words = line.split(",")
@@ -787,21 +789,28 @@ class KratosGeoMechanicsBuildingPit(KratosUnittest.TestCase):
         abs_tolerance_map = {"BENDING_MOMENT": 100.0}
         for stage_tag, expected_stage_results in expected_results.items():
             stage_base_name = self.stages_info[stage_tag]["base_name"]
-            stage_output = reader.read_output_from(Path(project_path) / f"{stage_base_name}.post.res")
+            stage_output = reader.read_output_from(
+                Path(project_path) / f"{stage_base_name}.post.res"
+            )
             end_time = self.stages_info[stage_tag]["end_time"]
 
-            for result_item_name, node_ids_and_expected_values in expected_stage_results.items():
+            for (
+                result_item_name,
+                node_ids_and_expected_values,
+            ) in expected_stage_results.items():
                 abs_tolerance = abs_tolerance_map[result_item_name]
                 for item in node_ids_and_expected_values:
                     node_id = item["node"]
                     expected_value = item["value"]
-                    actual_value = reader.nodal_values_at_time(result_item_name, end_time, stage_output, node_ids=[node_id])[0]
+                    actual_value = reader.nodal_values_at_time(
+                        result_item_name, end_time, stage_output, node_ids=[node_id]
+                    )[0]
                     self.assertAlmostEqual(
                         actual_value,
                         expected_value,
                         places=None,
                         delta=max(rel_tolerance * expected_value, abs_tolerance),
-                        msg=f"{stage_tag} (time = {end_time}): {result_item_name} at node {node_id}"
+                        msg=f"{stage_tag} (time = {end_time}): {result_item_name} at node {node_id}",
                     )
 
     def get_structural_stages(self):
@@ -833,7 +842,7 @@ class KratosGeoMechanicsBuildingPit(KratosUnittest.TestCase):
             titles=plot_titles,
             xlabel=r"Normal Traction [$\mathrm{kN} / \mathrm{m}^2$]",
             ylabel="y [m]",
-            )
+        )
 
         shear_traction_plot_label = "Shear traction"
         shear_traction_kratos_label = "GEO_EFFECTIVE_TRACTION_VECTOR"
@@ -852,7 +861,7 @@ class KratosGeoMechanicsBuildingPit(KratosUnittest.TestCase):
             titles=plot_titles,
             xlabel=r"Shear Traction [$\mathrm{kN} / \mathrm{m}^2$]",
             ylabel="y [m]",
-            )
+        )
 
     def create_wall_plots(self, project_path):
         structural_stages = self.get_structural_stages()
@@ -923,7 +932,11 @@ class KratosGeoMechanicsBuildingPit(KratosUnittest.TestCase):
         object_name,
         data_point_extractor,
     ):
-        node_ids = get_wall_node_ids() if object_name == "wall" else get_soil_side_node_ids_of_left_interfaces()
+        node_ids = (
+            get_wall_node_ids()
+            if object_name == "wall"
+            else get_soil_side_node_ids_of_left_interfaces()
+        )
 
         # Since the coordinates do not change between stages, we base them on the first stage
         y_coords = self.get_y_coords(
@@ -947,7 +960,9 @@ class KratosGeoMechanicsBuildingPit(KratosUnittest.TestCase):
                 variable_kratos_data = []
                 index = 0 if variable_plot_label == "Normal traction" else 1
                 for node_label in [f"NODE_{node_id}" for node_id in node_ids]:
-                    variable_kratos_data.append(json_data[node_label][kratos_variable_label][0][index])
+                    variable_kratos_data.append(
+                        json_data[node_label][kratos_variable_label][0][index]
+                    )
 
             variable_kratos_data = [
                 unit_to_k_unit(value) for value in variable_kratos_data
@@ -982,7 +997,8 @@ class KratosGeoMechanicsBuildingPit(KratosUnittest.TestCase):
 
     def read_json_output(self, project_path, stage):
         with open(
-                os.path.join(project_path, f"{stage['base_name']}_interface_output.json"), "r"
+            os.path.join(project_path, f"{stage['base_name']}_interface_output.json"),
+            "r",
         ) as output_file:
             return json.load(output_file)
 
@@ -1004,17 +1020,22 @@ class KratosGeoMechanicsBuildingPit(KratosUnittest.TestCase):
         # -10.0    4768
 
         # The expected values have been taken from the comparison data files
-        expected_results = {"wall_installation": {"BENDING_MOMENT": [{"node": 8988, "value": 0.0},
-                                                                           {"node": 8351, "value": 7.03e3},
-                                                                           {"node": 7597, "value": 3.83e3},
-                                                                           {"node": 6867, "value": 0.621e3},
-                                                                           {"node": 6173, "value": -1.58e3},
-                                                                           {"node": 5449, "value": -0.414e3},
-                                                                           {"node": 4768, "value": 0.0},
-                                                                     ]},
-                            "first_excavation": {},
-                            "second_excavation": {},
-                            "third_excavation": {}}
+        expected_results = {
+            "wall_installation": {
+                "BENDING_MOMENT": [
+                    {"node": 8988, "value": 0.0},
+                    {"node": 8351, "value": 7.03e3},
+                    {"node": 7597, "value": 3.83e3},
+                    {"node": 6867, "value": 0.621e3},
+                    {"node": 6173, "value": -1.58e3},
+                    {"node": 5449, "value": -0.414e3},
+                    {"node": 4768, "value": 0.0},
+                ]
+            },
+            "first_excavation": {},
+            "second_excavation": {},
+            "third_excavation": {},
+        }
         self.run_simulation_and_checks("linear_elastic", expected_results)
 
 
