@@ -5,6 +5,7 @@ from pathlib import Path
 
 # Importing the Kratos Library
 import KratosMultiphysics
+import KratosMultiphysics.RomApplication as KratosROM
 from KratosMultiphysics.RomApplication.randomized_singular_value_decomposition import RandomizedSingularValueDecomposition
 
 def Factory(settings, model):
@@ -77,6 +78,12 @@ class CalculateRomBasisOutputProcess(KratosMultiphysics.OutputProcess):
         # Initialize the snapshots data list
         self.snapshots_data_list = []
 
+        # Set the flag indicating to check fixity and remove fixed dofs from the database
+        self.remove_fixed_dofs = settings["remove_fixed_dofs"].GetBool()
+
+        # Initialize the fixity configurations list to None:
+        self.fixity_config_list = None
+
         # Set the flag allowing to run multiple simulations using this process #TODO cope with arbitrarily large cases (parallelism)
         self.rom_manager = settings["rom_manager"].GetBool()
 
@@ -100,10 +107,30 @@ class CalculateRomBasisOutputProcess(KratosMultiphysics.OutputProcess):
             "rom_basis_output_name": "RomParameters",
             "rom_basis_output_folder" : "rom_data",
             "svd_truncation_tolerance": 1.0e-6,
-            "print_singular_values": false
+            "print_singular_values": false,
+            "remove_fixed_dofs": false
         }""")
 
         return default_settings
+    
+    def ExecuteInitializeSolutionStep(self):
+        if self.remove_fixed_dofs:
+            fixity_config_aux = []
+            dof_id=0
+            for node in self.model_part.Nodes:
+                for var in self.snapshot_variables_list:
+                    dof = node.GetDof(var)
+                    if dof.IsFixed():
+                        fixity_config_aux.append(dof_id)
+                    dof_id+=1
+            if self.fixity_config_list is None: 
+                self.fixity_config_list = fixity_config_aux
+            else:
+                # Check that the fixity configuration is always the same. Otherwise raise an error
+                if not self.fixity_config_list == fixity_config_aux:
+                    KratosMultiphysics.Logger.PrintInfo("Different fixities found within the same case. Consider running with 'remove_fixed_dofs': false")
+                    raise NotImplementedError
+
 
     def IsOutputStep(self):
         if self.snapshots_control_is_time:
@@ -133,8 +160,14 @@ class CalculateRomBasisOutputProcess(KratosMultiphysics.OutputProcess):
                     self.next_output += self.snapshots_interval
 
 
+    def _GetFixityConfiguration(self):
+        return numpy.block(self.fixity_config_list)
+
     def _GetSnapshotsMatrix(self):
         return numpy.block(self.snapshots_data_list)
+    
+    def _ApplyFixityOnSnapshotsMatrix(self, fixed_rows, snapshots_matrix):
+        snapshots_matrix[fixed_rows] = 0
 
 
     def _ComputeSVD(self, snapshots_matrix):
@@ -144,7 +177,7 @@ class CalculateRomBasisOutputProcess(KratosMultiphysics.OutputProcess):
         return u, sigma
 
 
-    def _PrintRomBasis(self, u, sigma):
+    def _PrintRomBasis(self, u, sigma, fixed_dofs_list = []):
         # Initialize the Python dictionary with the default settings
         # Note that this order is kept if Python 3.6 onwards is used
         rom_basis_dict = {
@@ -159,7 +192,8 @@ class CalculateRomBasisOutputProcess(KratosMultiphysics.OutputProcess):
             },
             "hrom_settings": {},
             "nodal_modes": {},
-            "elements_and_weights" : {}
+            "elements_and_weights" : {},
+            "fixed_dofs": []
         }
         #TODO: I'd rename elements_and_weights to hrom_weights
 
@@ -188,6 +222,10 @@ class CalculateRomBasisOutputProcess(KratosMultiphysics.OutputProcess):
                 rom_basis_dict["nodal_modes"][node.Id] = u[i:i+n_nodal_unknowns].tolist()
                 i += n_nodal_unknowns
 
+            # Storing fixed dof IDs in JSON format, only if we removed them from the snapshots
+            if self.remove_fixed_dofs:
+                rom_basis_dict["fixed_dofs"] = fixed_dofs_list
+
         elif self.rom_basis_output_format == "numpy":
             # Storing modes in Numpy format
             node_ids = []
@@ -198,6 +236,10 @@ class CalculateRomBasisOutputProcess(KratosMultiphysics.OutputProcess):
             numpy.save(self.rom_basis_output_folder / "NodeIds.npy", node_ids)
             if self.print_singular_values:
                 numpy.save(self.rom_basis_output_folder / "SingularValuesVector.npy", sigma)
+
+            # Storing fixed dofs Ids in Numpy format, only if we removed them from the snapshots
+            if self.remove_fixed_dofs:
+                numpy.save(self.rom_basis_output_folder / "FixedDoFs.npy", numpy.array(fixed_dofs_list))
         else:
             err_msg = "Unsupported output format {}.".format(self.rom_basis_output_format)
             raise Exception(err_msg)
@@ -215,8 +257,11 @@ class CalculateRomBasisOutputProcess(KratosMultiphysics.OutputProcess):
         self.n_nodal_unknowns = len(self.snapshot_variables_list)
 
         if not self.rom_manager:
-            u, sigma = self._ComputeSVD(self._GetSnapshotsMatrix())
-            self._PrintRomBasis(u, sigma)
+            snapshots_matrix = self._GetSnapshotsMatrix()
+            if self.remove_fixed_dofs:
+                self._ApplyFixityOnSnapshotsMatrix(self._GetFixityConfiguration(), snapshots_matrix)
+            u, sigma = self._ComputeSVD(snapshots_matrix)
+            self._PrintRomBasis(u, sigma, self.fixity_config_list)
 
     def __GetPrettyFloat(self, number):
         float_format = "{:.12f}"
