@@ -36,6 +36,8 @@
 #include "tensor_adaptors/geometries_tensor_adaptor.h"
 #include "tensor_adaptors/tensor_adaptor.h"
 #include "tensor_adaptors/variable_tensor_adaptor.h"
+#include "tensor_adaptors/nodal_neighbour_count_tensor_adaptor.h"
+#include "tensor_adaptors/geometry_metrics_tensor_adaptor.h"
 
 // Include base h
 #include "add_tensor_adaptors_to_python.h"
@@ -298,6 +300,43 @@ void AddTensorAdaptorsToPython(pybind11::module& m)
           .def(py::init<const ConnectivityIdsTensorAdaptor::BaseType&, const bool>(),
                py::arg("tensor_adaptor"),
                py::arg("copy") = true);
+
+     py::class_<NodalNeighbourCountTensorAdaptor, NodalNeighbourCountTensorAdaptor::Pointer, NodalNeighbourCountTensorAdaptor::BaseType>(tensor_adaptor_sub_module, "NodalNeighbourCountTensorAdaptor")
+          .def(py::init<const NodalNeighbourCountTensorAdaptor::BaseType&, ModelPart::ConditionsContainerType::Pointer, const bool>(),
+               py::arg("tensor_adaptor"),
+               py::arg("entity_container"),
+               py::arg("copy") = true)
+          .def(py::init<const NodalNeighbourCountTensorAdaptor::BaseType&, ModelPart::ElementsContainerType::Pointer, const bool>(),
+               py::arg("tensor_adaptor"),
+               py::arg("entity_container"),
+               py::arg("copy") = true)
+          .def(py::init<ModelPart::NodesContainerType::Pointer, ModelPart::ConditionsContainerType::Pointer>(),
+               py::arg("nodes_container"),
+               py::arg("entity_container"))
+          .def(py::init<ModelPart::NodesContainerType::Pointer, ModelPart::ElementsContainerType::Pointer>(),
+               py::arg("nodes_container"),
+               py::arg("entity_container"));
+
+     py::class_<GeometryMetricsTensorAdaptor, GeometryMetricsTensorAdaptor::Pointer, GeometryMetricsTensorAdaptor::BaseType> geometric_tensor_adaptor(tensor_adaptor_sub_module, "GeometryMetricsTensorAdaptor");
+
+     py::enum_<GeometryMetricsTensorAdaptor::DatumType>(geometric_tensor_adaptor,"DatumType")
+          .value("DomainSize", GeometryMetricsTensorAdaptor::DatumType::DomainSize)
+          .export_values();
+
+     geometric_tensor_adaptor
+          .def(py::init<const GeometryMetricsTensorAdaptor::BaseType&, GeometryMetricsTensorAdaptor::DatumType, const bool>(),
+               py::arg("tensor_adaptor"),
+               py::arg("datum"),
+               py::arg("copy") = true)
+          .def(py::init<ModelPart::GeometryContainerType::Pointer, GeometryMetricsTensorAdaptor::DatumType>(),
+               py::arg("container"),
+               py::arg("datum"))
+          .def(py::init<ModelPart::ConditionsContainerType::Pointer, GeometryMetricsTensorAdaptor::DatumType>(),
+               py::arg("container"),
+               py::arg("datum"))
+          .def(py::init<ModelPart::ElementsContainerType::Pointer, GeometryMetricsTensorAdaptor::DatumType>(),
+               py::arg("container"),
+               py::arg("datum"));
 }
 
 } // namespace Kratos::Python.

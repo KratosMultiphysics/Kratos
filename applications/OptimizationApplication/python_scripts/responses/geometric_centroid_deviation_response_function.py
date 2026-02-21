@@ -79,24 +79,19 @@ class GeometricCentroidDeviationResponseFunction(ResponseFunction):
         self.value_array = (average_location / number_of_nodes  - self.model_part_center)
         return self.value_array[0] ** 2 + self.value_array[1] ** 2 + self.value_array[2] ** 2
 
-    def CalculateGradient(self, physical_variable_collective_expressions: 'dict[SupportedSensitivityFieldVariableTypes, KratosOA.CollectiveExpression]') -> None:
-        # first merge all the model parts
-        merged_model_part_map = ModelPartUtilities.GetMergedMap(physical_variable_collective_expressions, False)
-
-        # now get the intersected model parts
-        intersected_model_part_map = ModelPartUtilities.GetIntersectedMap(self.model_part, merged_model_part_map, False)
-
+    def CalculateGradient(self, physical_variable_combined_tensor_adaptor: 'dict[SupportedSensitivityFieldVariableTypes, Kratos.TensorAdaptors.DoubleCombinedTensorAdaptor]') -> None:
         number_of_nodes = self.model_part.GetCommunicator().GlobalNumberOfNodes()
 
         # calculate the gradients
-        for physical_variable, merged_model_part in merged_model_part_map.items():
+        for physical_variable, sensitivity_ta in physical_variable_combined_tensor_adaptor.items():
             if physical_variable == KratosOA.SHAPE:
-                Kratos.VariableUtils().SetNonHistoricalVariableToZero(Kratos.SHAPE_SENSITIVITY, merged_model_part.Nodes)
-                Kratos.VariableUtils().SetNonHistoricalVariable(Kratos.SHAPE_SENSITIVITY, 2.0 * self.value_array / number_of_nodes, intersected_model_part_map[physical_variable].Nodes)
-                for container_expression in physical_variable_collective_expressions[physical_variable].GetContainerExpressions():
-                    if isinstance(container_expression, Kratos.Expression.NodalExpression):
-                        Kratos.Expression.VariableExpressionIO.Read(container_expression, Kratos.SHAPE_SENSITIVITY, False)
+                Kratos.VariableUtils().SetNonHistoricalVariableToZero(Kratos.SHAPE_SENSITIVITY, self.model_part.Nodes)
+                Kratos.VariableUtils().SetNonHistoricalVariable(Kratos.SHAPE_SENSITIVITY, 2.0 * self.value_array / number_of_nodes, self.model_part.Nodes)
+                for sub_sensitivity_ta in sensitivity_ta.GetTensorAdaptors():
+                    if isinstance(sub_sensitivity_ta.GetContainer(), Kratos.NodesArray):
+                        Kratos.TensorAdaptors.VariableTensorAdaptor(sub_sensitivity_ta, Kratos.SHAPE_SENSITIVITY, copy=False).CollectData()
                     else:
-                        raise RuntimeError(f"Requesting sensitivity w.r.t. SHAPE for a Container expression which is not a NodalExpression. [ Requested container expression = {container_expression} ].")
+                        raise RuntimeError(f"Requesting sensitivity w.r.t. SHAPE for a non nodal tensor adaptor. [ Requested container tensor adaptor = {sub_sensitivity_ta} ].")
+                sensitivity_ta.CollectData()
             else:
                 raise RuntimeError(f"Unsupported sensitivity w.r.t. {physical_variable.Name()} requested. Followings are supported sensitivity variables:\n\tSHAPE")

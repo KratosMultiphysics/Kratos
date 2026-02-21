@@ -3,7 +3,7 @@ import KratosMultiphysics as Kratos
 # Import KratosUnittest
 import KratosMultiphysics as Kratos
 import KratosMultiphysics.KratosUnittest as kratos_unittest
-import KratosMultiphysics.OptimizationApplication as KratosOA
+import KratosMultiphysics.kratos_utilities as kratos_utilities
 from KratosMultiphysics.OptimizationApplication.responses.response_function import ResponseFunction
 from KratosMultiphysics.OptimizationApplication.controls.control import Control
 from KratosMultiphysics.OptimizationApplication.execution_policies.execution_policy import ExecutionPolicy
@@ -11,9 +11,11 @@ from KratosMultiphysics.OptimizationApplication.processes.optimization_problem_v
 from KratosMultiphysics.OptimizationApplication.utilities.component_data_view import ComponentDataView
 from KratosMultiphysics.OptimizationApplication.utilities.buffered_dict import BufferedDict
 from KratosMultiphysics.OptimizationApplication.utilities.optimization_problem import OptimizationProblem
-from KratosMultiphysics.OptimizationApplication.utilities.union_utilities import ContainerExpressionTypes, SupportedSensitivityFieldVariableTypes
+from KratosMultiphysics.OptimizationApplication.utilities.union_utilities import SupportedSensitivityFieldVariableTypes
 from KratosMultiphysics.compare_two_files_check_process import CompareTwoFilesCheckProcess
 
+
+@kratos_unittest.skipUnless(hasattr(Kratos, "Future"), "Kratos is not compiled with KRATOS_FUTURE = ON.")
 class TestOptimizationProblemVtuOutputProcess(kratos_unittest.TestCase):
     class DummyResponseFunction(ResponseFunction):
         def __init__(self, response_name: str, model_part: Kratos.ModelPart) -> None:
@@ -21,7 +23,7 @@ class TestOptimizationProblemVtuOutputProcess(kratos_unittest.TestCase):
             self.model_part = model_part
         def CalculateValue(self) -> float:
             return 0.0
-        def CalculateGradient(self, physical_variable_collective_expressions: 'dict[SupportedSensitivityFieldVariableTypes, KratosOA.CollectiveExpression]') -> None:
+        def CalculateGradient(self, physical_variable_combined_tensor_adaptors: 'dict[SupportedSensitivityFieldVariableTypes, Kratos.TensorAdaptors.DoubleCombinedTensorAdaptor]') -> None:
             pass
         def Check(self) -> None:
             pass
@@ -44,15 +46,15 @@ class TestOptimizationProblemVtuOutputProcess(kratos_unittest.TestCase):
             pass
         def Finalize(self) -> None:
             pass
-        def GetControlField(self) -> ContainerExpressionTypes:
+        def GetControlField(self) -> Kratos.TensorAdaptors.DoubleTensorAdaptor:
             return None
-        def GetEmptyField(self) -> ContainerExpressionTypes:
+        def GetEmptyField(self) -> Kratos.TensorAdaptors.DoubleTensorAdaptor:
             return None
         def GetPhysicalKratosVariables(self) -> 'list[SupportedSensitivityFieldVariableTypes]':
             return []
-        def MapGradient(self, physical_gradient_variable_container_expression_map: 'dict[SupportedSensitivityFieldVariableTypes, ContainerExpressionTypes]') -> ContainerExpressionTypes:
+        def MapGradient(self, physical_gradient_variable_tensor_adaptor_map: 'dict[SupportedSensitivityFieldVariableTypes, Kratos.TensorAdaptors.DoubleTensorAdaptor]') -> Kratos.TensorAdaptors.DoubleTensorAdaptor:
             return None
-        def Update(self, control_field: ContainerExpressionTypes) -> bool:
+        def Update(self, control_field: Kratos.TensorAdaptors.DoubleTensorAdaptor) -> bool:
             return True
 
     class DummyExecutionPolicy(ExecutionPolicy):
@@ -119,25 +121,34 @@ class TestOptimizationProblemVtuOutputProcess(kratos_unittest.TestCase):
 
     def __AddData(self, buffered_dict: BufferedDict, is_buffered_data: bool, component):
         step_v = self.optimization_problem.GetStep() + 1
+        # purposefully ignored to always overwrite to the same step = 0 file.
+        # self.model_part1.ProcessInfo[Kratos.STEP] = step_v
+        # self.model_part2.ProcessInfo[Kratos.STEP] = step_v
+        self.model_part1.ProcessInfo[Kratos.TIME] = step_v
+        self.model_part2.ProcessInfo[Kratos.TIME] = step_v
 
-        nodal_data = Kratos.Expression.NodalExpression(component.model_part)
-        Kratos.Expression.VariableExpressionIO.Read(nodal_data, Kratos.VELOCITY, False)
-        buffered_dict[f"{component.GetName()}_data_nodal_vel__{is_buffered_data}"] = nodal_data * step_v * 2.3
+        nodal_data = Kratos.TensorAdaptors.VariableTensorAdaptor(component.model_part.Nodes, Kratos.VELOCITY)
+        nodal_data.CollectData()
+        nodal_data.data[:] *= step_v * 2.3
+        buffered_dict[f"{component.GetName()}_data_nodal_vel__{is_buffered_data}"] = nodal_data
 
-        element_data = Kratos.Expression.ElementExpression(component.model_part)
-        Kratos.Expression.VariableExpressionIO.Read(element_data, Kratos.ACCELERATION)
-        buffered_dict[f"{component.GetName()}_data_element_acc_{is_buffered_data}"] = element_data * step_v * 2.3
+        element_data = Kratos.TensorAdaptors.VariableTensorAdaptor(component.model_part.Elements, Kratos.ACCELERATION)
+        element_data.CollectData()
+        element_data.data[:] *= step_v * 2.3
+        buffered_dict[f"{component.GetName()}_data_element_acc_{is_buffered_data}"] = element_data
 
-        collective_data = KratosOA.CollectiveExpression([nodal_data, element_data])
-        collective_data *= 2.0
-        buffered_dict[f"{component.GetName()}_collective_element_{is_buffered_data}"] = collective_data * step_v * 2.3
+        combined_data = Kratos.TensorAdaptors.DoubleCombinedTensorAdaptor([nodal_data, element_data])
+        combined_data.CollectData()
+        combined_data.data[:] *= 2.0 * step_v * 2.3
+        Kratos.TensorAdaptors.DoubleCombinedTensorAdaptor(combined_data, perform_store_data_recursively=False, copy=False).StoreData()
+        buffered_dict[f"{component.GetName()}_combined_element_{is_buffered_data}"] = combined_data
 
     def test_OptimizationProblemVtuOutputProcess(self):
         parameters = Kratos.Parameters(
             """
             {
                 "file_name"                   : "<model_part_full_name>",
-                "file_format"                 : "binary",
+                "file_format"                 : "ascii",
                 "write_deformed_configuration": false,
                 "list_of_output_components"   : ["all"],
                 "output_precision"            : 7,
@@ -147,7 +158,7 @@ class TestOptimizationProblemVtuOutputProcess(kratos_unittest.TestCase):
             """
         )
 
-        process = OptimizationProblemVtuOutputProcess(parameters, self.optimization_problem)
+        process = OptimizationProblemVtuOutputProcess(self.model, parameters, self.optimization_problem)
         process.ExecuteInitialize()
 
         # initialize unbuffered data
@@ -169,7 +180,7 @@ class TestOptimizationProblemVtuOutputProcess(kratos_unittest.TestCase):
             CompareTwoFilesCheckProcess(Kratos.Parameters("""
             {
                 "reference_file_name"   : "test_1_orig.vtu",
-                "output_file_name"      : "Optimization_Results/test_1.vtu",
+                "output_file_name"      : "Optimization_Results/test_1/test_1_elements_0.vtu",
                 "remove_output_file"    : true,
                 "comparison_type"       : "deterministic"
             }""")).Execute()
@@ -177,10 +188,15 @@ class TestOptimizationProblemVtuOutputProcess(kratos_unittest.TestCase):
             CompareTwoFilesCheckProcess(Kratos.Parameters("""
             {
                 "reference_file_name"   : "test_2_orig.vtu",
-                "output_file_name"      : "Optimization_Results/test_2.vtu",
+                "output_file_name"      : "Optimization_Results/test_2/test_2_elements_0.vtu",
                 "remove_output_file"    : true,
                 "comparison_type"       : "deterministic"
             }""")).Execute()
+
+    @classmethod
+    def tearDownClass(cls):
+        with kratos_unittest.WorkFolderScope(".", __file__):
+            kratos_utilities.DeleteDirectoryIfExisting("Optimization_Results")
 
 if __name__ == "__main__":
     kratos_unittest.main()

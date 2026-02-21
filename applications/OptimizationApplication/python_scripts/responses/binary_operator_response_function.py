@@ -2,10 +2,8 @@ from typing import Optional
 from math import log
 
 import KratosMultiphysics as Kratos
-import KratosMultiphysics.OptimizationApplication as KratosOA
 from KratosMultiphysics.OptimizationApplication.responses.response_function import ResponseFunction
 from KratosMultiphysics.OptimizationApplication.responses.response_function import SupportedSensitivityFieldVariableTypes
-from KratosMultiphysics.OptimizationApplication.utilities.union_utilities import SupportedSensitivityFieldVariableTypes
 from KratosMultiphysics.OptimizationApplication.utilities.model_part_utilities import ModelPartOperation
 from KratosMultiphysics.OptimizationApplication.utilities.optimization_problem import OptimizationProblem
 from KratosMultiphysics.OptimizationApplication.utilities.component_data_view import ComponentDataView
@@ -70,24 +68,30 @@ class BinaryOperatorResponseFunction(ResponseFunction):
         elif self.binary_operator == BinaryOperator.POWER:
             return v1 ** v2
 
-    def CalculateGradient(self, physical_variable_collective_expressions: 'dict[SupportedSensitivityFieldVariableTypes, KratosOA.CollectiveExpression]') -> None:
+    def CalculateGradient(self, physical_variable_combined_tensor_adaptor: 'dict[SupportedSensitivityFieldVariableTypes, Kratos.TensorAdaptors.DoubleCombinedTensorAdaptor]') -> None:
         v1 = EvaluateValue(self.response_function_1, self.optimization_problem)
         v2 = EvaluateValue(self.response_function_2, self.optimization_problem)
-        resp_1_physical_variable_collective_expressions = EvaluateGradient(self.response_function_1, physical_variable_collective_expressions, self.optimization_problem)
-        resp_2_physical_variable_collective_expressions = EvaluateGradient(self.response_function_2, physical_variable_collective_expressions, self.optimization_problem)
 
-        for variable, collective_expression in physical_variable_collective_expressions.items():
-            for result, g1, g2 in zip(collective_expression.GetContainerExpressions(), resp_1_physical_variable_collective_expressions[variable].GetContainerExpressions(), resp_2_physical_variable_collective_expressions[variable].GetContainerExpressions()):
-                if self.binary_operator == BinaryOperator.ADD:
-                    result.SetExpression((g1 + g2).GetExpression())
-                elif self.binary_operator == BinaryOperator.SUBTRACT:
-                    result.SetExpression((g1 - g2).GetExpression())
-                elif self.binary_operator == BinaryOperator.MULTIPLY:
-                    result.SetExpression((g1 * v2 + g2 * v1).GetExpression())
-                elif self.binary_operator == BinaryOperator.DIVIDE:
-                    result.SetExpression((g1 / v2 - g2 * (v1 / v2 ** 2)).GetExpression())
-                elif self.binary_operator == BinaryOperator.POWER:
-                    result.SetExpression(((g1 * (v2 / v1) + g2 * log(v1)) * (v1 ** v2)).GetExpression())
+        resp_1_gradients = {variable: Kratos.TensorAdaptors.DoubleCombinedTensorAdaptor(cta) for variable, cta in physical_variable_combined_tensor_adaptor.items()}
+        EvaluateGradient(self.response_function_1, resp_1_gradients, self.optimization_problem)
+
+        resp_2_gradients = {variable: Kratos.TensorAdaptors.DoubleCombinedTensorAdaptor(cta) for variable, cta in physical_variable_combined_tensor_adaptor.items()}
+        EvaluateGradient(self.response_function_2, resp_2_gradients, self.optimization_problem)
+
+        for variable, result_cta in physical_variable_combined_tensor_adaptor.items():
+            g1_cta = resp_1_gradients[variable]
+            g2_cta = resp_2_gradients[variable]
+            if self.binary_operator == BinaryOperator.ADD:
+                result_cta.data = g1_cta.data + g2_cta.data
+            elif self.binary_operator == BinaryOperator.SUBTRACT:
+                result_cta.data = g1_cta.data - g2_cta.data
+            elif self.binary_operator == BinaryOperator.MULTIPLY:
+                result_cta.data = g1_cta.data * v2 + g2_cta.data * v1
+            elif self.binary_operator == BinaryOperator.DIVIDE:
+                result_cta.data = g1_cta.data / v2 - g2_cta.data * (v1 / v2 ** 2)
+            elif self.binary_operator == BinaryOperator.POWER:
+                result_cta.data = (g1_cta.data * (v2 / v1) + g2_cta.data * log(v1)) * (v1 ** v2)
+            Kratos.TensorAdaptors.DoubleCombinedTensorAdaptor(result_cta, perform_store_data_recursively=False, copy=False).StoreData()
 
     def GetChildResponses(self) -> 'list[ResponseFunction]':
         return [self.response_function_1, self.response_function_2]
