@@ -79,6 +79,13 @@ class Optimizer:
             self.optimization_settings["output"]["sensitivity_heatmap"].GetBool():
             self.__AddVariablesToBeUsedBySensitivityHeatmap()
 
+        # water drain response
+        if self.optimization_settings["objectives"][0]["identifier"].GetString() == "water_drain":
+            model_part.AddNodalSolutionStepVariable(KM.NODAL_AREA)
+            model_part.AddNodalSolutionStepVariable(KSO.WATER_LEVEL)
+            model_part.AddNodalSolutionStepVariable(KSO.WATER_VOLUMES)
+
+
     def __AddVariablesToBeUsedByDesignVariables(self):
         if self.optimization_settings["design_variables"]["filter"].Has("in_plane_morphing") and \
             self.optimization_settings["design_variables"]["filter"]["in_plane_morphing"].GetBool():
