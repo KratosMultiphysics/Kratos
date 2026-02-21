@@ -132,7 +132,7 @@ public:
                    const Matrix& rValue,
                    const ProcessInfo& rCurrentProcessInfo );
 */    /**
-     * Material parameters are inizialized
+     * Material parameters are initialized
      */
    /**
      * Computes the material response:
@@ -278,13 +278,13 @@ protected:
      */
     void CalculateAlmansiStrain( const Matrix & rLeftCauchyGreen,
                                          Vector& rStrainVector ) override;
-    /** First and secod term of the CONSISTENT ELASTOPLASTIC MATRIX FOR LARGE DEFORMATIONS
+    /** First and second term of the CONSISTENT ELASTOPLASTIC MATRIX FOR LARGE DEFORMATIONS
         in a pullback fashion
     */
 
 
 
-    /** First and secod term of the CONSISTENT ELASTOPLASTIC MATRIX FOR LARGE DEFORMATIONS
+    /** First and second term of the CONSISTENT ELASTOPLASTIC MATRIX FOR LARGE DEFORMATIONS
         in the actual configuration
     */
 
