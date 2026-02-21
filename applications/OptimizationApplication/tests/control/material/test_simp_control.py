@@ -1,4 +1,5 @@
 
+import numpy
 import KratosMultiphysics as Kratos
 import KratosMultiphysics.OptimizationApplication as KratosOA
 
@@ -86,11 +87,11 @@ class TestSimpControl(kratos_unittest.TestCase):
         Kratos.ReadMaterialsUtility(cls.model).ReadMaterials(material_params)
 
         cls.simp_control.Initialize()
-        cls.initial_density = Kratos.Expression.ElementExpression(cls.model_part)
-        KratosOA.PropertiesVariableExpressionIO.Read(cls.initial_density, Kratos.DENSITY)
+        cls.initial_density = KratosOA.TensorAdaptors.PropertiesVariableTensorAdaptor(cls.model_part.Elements, Kratos.DENSITY)
+        cls.initial_density.CollectData()
 
     def setUp(self) -> None:
-        KratosOA.PropertiesVariableExpressionIO.Write(self.initial_density, Kratos.DENSITY)
+        self.initial_density.StoreData()
 
     @classmethod
     def tearDownClass(cls):
@@ -99,7 +100,7 @@ class TestSimpControl(kratos_unittest.TestCase):
 
     def test_GetControlField(self):
         control_field = self.simp_control.GetControlField()
-        self.assertAlmostEqual(Kratos.Expression.Utils.NormInf(control_field), 0.0, 4)
+        self.assertAlmostEqual(numpy.linalg.norm(control_field.data), 0.0, 10)
 
     def test_MapGradient(self):
         physical_rho_gradient = self.simp_control.GetEmptyField()
@@ -107,39 +108,39 @@ class TestSimpControl(kratos_unittest.TestCase):
         for element in physical_rho_gradient.GetContainer():
             element.SetValue(KratosOA.DENSITY_SENSITIVITY, element.GetGeometry().DomainSize())
             element.SetValue(KratosOA.YOUNG_MODULUS_SENSITIVITY, element.GetGeometry().DomainSize()/1e+10)
-        Kratos.Expression.VariableExpressionIO.Read(physical_rho_gradient, KratosOA.DENSITY_SENSITIVITY)
-        Kratos.Expression.VariableExpressionIO.Read(physical_E_gradient, KratosOA.YOUNG_MODULUS_SENSITIVITY)
+        Kratos.TensorAdaptors.VariableTensorAdaptor(physical_rho_gradient, KratosOA.DENSITY_SENSITIVITY, copy=False).CollectData()
+        Kratos.TensorAdaptors.VariableTensorAdaptor(physical_E_gradient, KratosOA.YOUNG_MODULUS_SENSITIVITY, copy=False).CollectData()
         mapped_gradient = self.simp_control.MapGradient({Kratos.DENSITY: physical_rho_gradient, Kratos.YOUNG_MODULUS: physical_E_gradient})
-        self.assertAlmostEqual(Kratos.Expression.Utils.NormL2(mapped_gradient), 15731.035, 4)
+        self.assertAlmostEqual(numpy.linalg.norm(mapped_gradient.data), 15731.035, 4)
 
     def test_Update(self):
-        rho_field = Kratos.Expression.ElementExpression(self.model_part)
-        KratosOA.PropertiesVariableExpressionIO.Read(rho_field, Kratos.DENSITY)
-        E_field = Kratos.Expression.ElementExpression(self.model_part)
-        KratosOA.PropertiesVariableExpressionIO.Read(E_field, Kratos.YOUNG_MODULUS)
+        rho_field = KratosOA.TensorAdaptors.PropertiesVariableTensorAdaptor(self.model_part.Elements, Kratos.DENSITY)
+        rho_field.CollectData()
+        E_field = KratosOA.TensorAdaptors.PropertiesVariableTensorAdaptor(self.model_part.Elements, Kratos.YOUNG_MODULUS)
+        E_field.CollectData()
 
         # update with empty field
         update_field = self.simp_control.GetEmptyField()
         self.simp_control.Update(update_field)
-        self.assertAlmostEqual(Kratos.Expression.Utils.NormInf(self.simp_control.GetControlField()), 0.0)
-        updated_rho_field = Kratos.Expression.ElementExpression(self.model_part)
-        KratosOA.PropertiesVariableExpressionIO.Read(updated_rho_field, Kratos.DENSITY)
-        updated_E_field = Kratos.Expression.ElementExpression(self.model_part)
-        KratosOA.PropertiesVariableExpressionIO.Read(updated_E_field, Kratos.YOUNG_MODULUS)
-        self.assertAlmostEqual(Kratos.Expression.Utils.NormInf(updated_rho_field - rho_field), 0.0)
-        self.assertAlmostEqual(Kratos.Expression.Utils.NormInf(updated_E_field - E_field), 0.0)
+        self.assertAlmostEqual(numpy.linalg.norm(self.simp_control.GetControlField().data), 0.0)
+        updated_rho_field = KratosOA.TensorAdaptors.PropertiesVariableTensorAdaptor(self.model_part.Elements, Kratos.DENSITY)
+        updated_rho_field.CollectData()
+        updated_E_field = KratosOA.TensorAdaptors.PropertiesVariableTensorAdaptor(self.model_part.Elements, Kratos.YOUNG_MODULUS)
+        updated_E_field.CollectData()
+        self.assertVectorAlmostEqual(updated_rho_field.data, rho_field.data, 9)
+        self.assertVectorAlmostEqual(updated_E_field.data, E_field.data, 9)
 
-        Kratos.Expression.LiteralExpressionIO.SetData(update_field, 0.75)
+        update_field.data[:] = 0.75
         self.simp_control.Update(update_field)
         control_field = self.simp_control.GetControlField()
-        self.assertAlmostEqual(Kratos.Expression.Utils.NormInf(control_field), 0.75, 4)
+        self.assertAlmostEqual(numpy.linalg.norm(control_field.data, ord=numpy.inf), 0.75, 4)
 
-        KratosOA.PropertiesVariableExpressionIO.Read(updated_rho_field, Kratos.DENSITY)
-        KratosOA.PropertiesVariableExpressionIO.Read(updated_E_field, Kratos.YOUNG_MODULUS)
-        self.assertTrue(Kratos.Expression.Utils.NormInf(updated_rho_field - rho_field) > 0.0)
-        self.assertTrue(Kratos.Expression.Utils.NormInf(updated_E_field - E_field) > 0.0)
-        self.assertAlmostEqual(Kratos.Expression.Utils.NormL2(updated_rho_field), 14955.413791112203)
-        self.assertAlmostEqual(Kratos.Expression.Utils.NormL2(updated_E_field), 357673554186.7966)
+        updated_rho_field.CollectData()
+        updated_E_field.CollectData()
+        self.assertTrue(numpy.linalg.norm(updated_rho_field.data - rho_field.data, ord=numpy.inf) > 0.0)
+        self.assertTrue(numpy.linalg.norm(updated_E_field.data - E_field.data, ord=numpy.inf) > 0.0)
+        self.assertAlmostEqual(numpy.linalg.norm(updated_rho_field.data), 14955.413791112203)
+        self.assertAlmostEqual(numpy.linalg.norm(updated_E_field.data), 357673554186.7966)
 
     def test_AdaptiveBeta(self):
         parameters = Kratos.Parameters("""{
@@ -194,8 +195,8 @@ class TestSimpControl(kratos_unittest.TestCase):
         control_field = simp_control.GetControlField()
         simp_control.Update(control_field)
         for i in range(20):
-            control_field *= 1.2
-            simp_control.Update(control_field)
+            control_field.data += 1.2
+            self.assertTrue(simp_control.Update(control_field))
             self.optimization_problem.AdvanceStep()
 
         self.assertAlmostEqual(simp_control.density_projection.beta, 0.01 * (1.05 ** 7))
@@ -253,12 +254,12 @@ class TestSimpControl(kratos_unittest.TestCase):
         control_field = simp_control.GetControlField()
         simp_control.Update(control_field)
         for i in range(20):
-            control_field *= 1.2
-            simp_control.Update(control_field)
+            control_field.data *= 1.2
+            self.assertFalse(simp_control.Update(control_field))
 
-        density = Kratos.Expression.ElementExpression(self.model_part)
-        KratosOA.PropertiesVariableExpressionIO.Read(density, Kratos.DENSITY)
-        self.assertAlmostEqual(Kratos.Expression.Utils.NormL2(density - 3925), 0.0)
+        density = KratosOA.TensorAdaptors.PropertiesVariableTensorAdaptor(self.model_part.Elements, Kratos.DENSITY)
+        density.CollectData()
+        self.assertAlmostEqual(numpy.linalg.norm(density.data - 3925), 0.0)
 
 if __name__ == "__main__":
     kratos_unittest.main()

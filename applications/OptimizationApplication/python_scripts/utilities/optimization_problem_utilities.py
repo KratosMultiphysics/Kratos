@@ -101,19 +101,21 @@ def OutputGradientFields(response: ResponseRoutine, optimization_problem: Optimi
         # save the physical gradients for post processing in unbuffered data container.
         for physical_var, physical_gradient in response.GetRequiredPhysicalGradients().items():
             variable_name = f"d{response.GetResponseName()}_d{physical_var.Name()}"
-            for physical_gradient_expression in physical_gradient.GetContainerExpressions():
-                unbuffered_data.SetValue(variable_name, physical_gradient_expression.Clone(), overwrite=True)
+            for physical_gradient_ta in physical_gradient.GetTensorAdaptors():
+                unbuffered_data.SetValue(variable_name, Kratos.TensorAdaptors.DoubleTensorAdaptor(physical_gradient_ta), overwrite=True)
 
         # save the filtered gradients for post processing in unbuffered data container.
-        for gradient_container_expression, control in zip(response.GetMappedGradients().GetContainerExpressions(), response.GetMasterControl().GetListOfControls()):
+        for gradient_container_ta, control in zip(response.GetMappedGradients().GetTensorAdaptors(), response.GetMasterControl().GetListOfControls()):
             variable_name = f"d{response.GetResponseName()}_d{control.GetName()}"
-            unbuffered_data.SetValue(variable_name, gradient_container_expression.Clone(), overwrite=True)
+            unbuffered_data.SetValue(variable_name, Kratos.TensorAdaptors.DoubleTensorAdaptor(gradient_container_ta), overwrite=True)
     else:
         # save the physical gradients for post processing in unbuffered data container.
         for physical_var, physical_gradient in response.GetRequiredPhysicalGradients().items():
             variable_name = f"d{response.GetResponseName()}_d{physical_var.Name()}"
-            for physical_gradient_expression in physical_gradient.GetContainerExpressions():
-                unbuffered_data.SetValue(variable_name, physical_gradient_expression.Clone() * 0.0, overwrite=True)
+            for physical_gradient_ta in physical_gradient.GetTensorAdaptors():
+                temp_ta = Kratos.TensorAdaptors.DoubleTensorAdaptor(physical_gradient_ta)
+                temp_ta.data[:] = 0.0
+                unbuffered_data.SetValue(variable_name, temp_ta, overwrite=True)
 
         # save the filtered gradients for post processing in unbuffered data container.
         for control in response.GetMasterControl().GetListOfControls():

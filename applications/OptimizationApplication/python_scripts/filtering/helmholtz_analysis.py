@@ -1,10 +1,9 @@
-from typing import Any
+from typing import Any, Optional
 
 # Importing Kratos
 import KratosMultiphysics as KM
 import KratosMultiphysics.OptimizationApplication as KOA
 import KratosMultiphysics.OptimizationApplication.filtering.python_solvers_wrapper_implicit_filters as implicit_filter_solvers
-from KratosMultiphysics.OptimizationApplication.utilities.union_utilities import ContainerExpressionTypes
 
 # Importing the base class
 from KratosMultiphysics.analysis_stage import AnalysisStage
@@ -16,8 +15,8 @@ class HelmholtzAnalysis(AnalysisStage):
     """
     def __init__(self, model: KM.Model, project_parameters: KM.Parameters):
         super().__init__(model, project_parameters)
-        self.__source_data: ContainerExpressionTypes = None
-        self.__neighbour_entities: 'dict[Any, KM.Expression.NodalExpression]' = {}
+        self.__source_data: 'Optional[KM.TensorAdaptors.DoubleTensorAdaptor]' = None
+        self.__neighbour_entities: 'dict[Any, KM.TensorAdaptors.IntTensorAdaptor]' = {}
 
     #### Internal functions ####
     def _CreateSolver(self):
@@ -52,40 +51,39 @@ class HelmholtzAnalysis(AnalysisStage):
         self._GetSolver().SolveSolutionStep()
         self.FinalizeSolutionStep()
 
-    def FilterField(self, unfiltered_field: ContainerExpressionTypes) -> ContainerExpressionTypes:
+    def FilterField(self, unfiltered_field: KM.TensorAdaptors.DoubleTensorAdaptor) -> KM.TensorAdaptors.DoubleTensorAdaptor:
 
-        self.__AssignDataExpressionToNodalSource(unfiltered_field)
+        self.__AssignTensorDataToNodalSource(unfiltered_field)
         self._SetSolverMode(False)
         self._SetHelmHoltzSourceMode(False)
         self.RunSolver()
-        return self.__AssignNodalSolutionToDataExpression()
+        return self.__AssignNodalSolutionToTensorData()
 
-    def FilterIntegratedField(self, unfiltered_field: ContainerExpressionTypes) -> ContainerExpressionTypes:
+    def FilterIntegratedField(self, unfiltered_field: KM.TensorAdaptors.DoubleTensorAdaptor) -> KM.TensorAdaptors.DoubleTensorAdaptor:
 
-        self.__AssignDataExpressionToNodalSource(unfiltered_field)
+        self.__AssignTensorDataToNodalSource(unfiltered_field)
         self._SetSolverMode(False)
         self._SetHelmHoltzSourceMode(True)
         self.RunSolver()
-        return self.__AssignNodalSolutionToDataExpression()
+        return self.__AssignNodalSolutionToTensorData()
 
-    def UnFilterField(self, filtered_field: ContainerExpressionTypes) -> ContainerExpressionTypes:
+    def UnFilterField(self, filtered_field: KM.TensorAdaptors.DoubleTensorAdaptor) -> KM.TensorAdaptors.DoubleTensorAdaptor:
 
-        self.__AssignDataExpressionToNodalSource(filtered_field)
+        self.__AssignTensorDataToNodalSource(filtered_field)
         self._SetSolverMode(True)
         self._SetHelmHoltzSourceMode(False)
         self.RunSolver()
-        return self.__AssignNodalSolutionToDataExpression()
+        return self.__AssignNodalSolutionToTensorData()
 
-    def AssignExpressionDataToNodalSolution(self, data_exp: ContainerExpressionTypes) -> None:
-        mapped_values = KM.Expression.NodalExpression(data_exp.GetModelPart())
-        if isinstance(data_exp, KM.Expression.NodalExpression):
-            mapped_values = data_exp
-        else:
-            KOA.ExpressionUtils.MapContainerVariableToNodalVariable(mapped_values, data_exp)
-        KM.Expression.VariableExpressionIO.Write(mapped_values, self._GetSolver().GetSolvingVariable(), True)
+    def AssignTensorDataToNodalSolution(self, data_exp: KM.TensorAdaptors.DoubleTensorAdaptor) -> None:
+        ta = KM.TensorAdaptors.DoubleTensorAdaptor(data_exp, copy=False)
+        if not isinstance(ta.GetContainer(), KM.NodesArray):
+            neighbours = self.__GetNeighbourEntities(data_exp)
+            ta = KOA.OptimizationUtils.MapContainerDataToNodalData(data_exp, neighbours.GetContainer())
+        KM.TensorAdaptors.HistoricalVariableTensorAdaptor(ta, self._GetSolver().GetSolvingVariable(), copy=False).StoreData()
 
-    def __AssignDataExpressionToNodalSource(self, data_exp: ContainerExpressionTypes):
-        self.__source_data = data_exp
+    def __AssignTensorDataToNodalSource(self, data_exp: KM.TensorAdaptors.DoubleTensorAdaptor):
+        self.__source_data = KM.TensorAdaptors.DoubleTensorAdaptor(data_exp)
 
         # it is better to work on the model part of the data_exp rather than the internal
         # model part created with ConnectivityPreserveModelPart because, then all the outputs will
@@ -93,17 +91,16 @@ class HelmholtzAnalysis(AnalysisStage):
         # the helmholtz model part and the original model part. This is safer because the helmholtz modelpart
         # is created using the ConnectivityPreserveModeller which preserves the same nodes and condition/element
         # data containers.
-        mapped_values = KM.Expression.NodalExpression(data_exp.GetModelPart())
-        if isinstance(data_exp, KM.Expression.NodalExpression):
-            mapped_values = data_exp
-        else:
-            KOA.ExpressionUtils.MapContainerVariableToNodalVariable(mapped_values, data_exp)
 
-        KM.Expression.VariableExpressionIO.Write(mapped_values, self._GetSolver().GetSourceVariable(), False)
+        ta = KM.TensorAdaptors.DoubleTensorAdaptor(data_exp, copy=False)
+        if not isinstance(ta.GetContainer(), KM.NodesArray):
+            neighbours = self.__GetNeighbourEntities(data_exp)
+            ta = KOA.OptimizationUtils.MapContainerDataToNodalData(data_exp, neighbours.GetContainer())
+        KM.TensorAdaptors.VariableTensorAdaptor(ta, self._GetSolver().GetSourceVariable(), copy=False).StoreData()
 
-    def __AssignNodalSolutionToDataExpression(self) -> ContainerExpressionTypes:
+    def __AssignNodalSolutionToTensorData(self) -> KM.TensorAdaptors.DoubleTensorAdaptor:
         if self.__source_data is None:
-            raise RuntimeError("The __AssignDataExpressionToNodalSource should be called first.")
+            raise RuntimeError("The __AssignTensorDataToNodalSource should be called first.")
 
         # it is better to work on the model part of the data_exp rather than the internal
         # model part created with ConnectivityPreserveModelPart because, then all the outputs will
@@ -111,27 +108,29 @@ class HelmholtzAnalysis(AnalysisStage):
         # the helmholtz model part and the original model part. This is safer because the helmholtz modelpart
         # is created using the ConnectivityPreserveModeller which preserves the same nodes and condition/element
         # data containers.
-        nodal_solution_field = KM.Expression.NodalExpression(self.__source_data.GetModelPart())
+        neighbours = self.__GetNeighbourEntities(self.__source_data)
+        solution = KM.TensorAdaptors.HistoricalVariableTensorAdaptor(neighbours.GetContainer(), self._GetSolver().GetSolvingVariable())
+        solution.CollectData()
 
-        KM.Expression.VariableExpressionIO.Read(nodal_solution_field, self._GetSolver().GetSolvingVariable(), True)
-
-        if isinstance(self.__source_data, KM.Expression.NodalExpression):
-            return nodal_solution_field.Clone()
+        if isinstance(self.__source_data.GetContainer(), KM.NodesArray):
+            return KM.TensorAdaptors.DoubleTensorAdaptor(solution, copy=False)
         else:
-            mapped_entity_solution_field = self.__source_data.Clone()
-            KOA.ExpressionUtils.MapNodalVariableToContainerVariable(mapped_entity_solution_field, nodal_solution_field, self.__GetNeighbourEntities(self.__source_data))
-            return mapped_entity_solution_field
+            return KOA.OptimizationUtils.MapNodalDataToContainerData(solution, self.__source_data.GetContainer(), neighbours)
 
-    def __GetNeighbourEntities(self, data_exp: ContainerExpressionTypes) -> ContainerExpressionTypes:
+    def __GetNeighbourEntities(self, data_exp: KM.TensorAdaptors.DoubleTensorAdaptor) -> KM.TensorAdaptors.IntTensorAdaptor:
         # following makes the number of neighbours computation to be executed once
         # per given container, hence if the mesh element/connectivity changes
         # this computation needs to be redone. Especially in the case if MMG is
         # used for re-meshing.
         key = data_exp.GetContainer()
         if key not in  self.__neighbour_entities.keys():
-            self.__neighbour_entities[key] = KM.Expression.NodalExpression(data_exp.GetModelPart())
-            if isinstance(data_exp, KM.Expression.ElementExpression):
-                KOA.ExpressionUtils.ComputeNumberOfNeighbourElements(self.__neighbour_entities[key])
+            if not isinstance(key, KM.NodesArray):
+                ta = KM.TensorAdaptors.NodalNeighbourCountTensorAdaptor(self._GetSolver().GetComputingModelPart().Nodes, data_exp.GetContainer())
+                ta.CollectData()
+                self.__neighbour_entities[key] = ta
             else:
-                KOA.ExpressionUtils.ComputeNumberOfNeighbourConditions(self.__neighbour_entities[key])
+                ta = KM.TensorAdaptors.IntTensorAdaptor(key, KM.IntNDData([len(key)]), copy=False)
+                ta.data[:] = 1
+                self.__neighbour_entities[key] = ta
+
         return self.__neighbour_entities[key]

@@ -9,7 +9,6 @@ from KratosMultiphysics.SystemIdentificationApplication.utilities.data_utils imp
 from KratosMultiphysics.SystemIdentificationApplication.utilities.data_utils import GetParameterToKratosValuesConverter
 from KratosMultiphysics.SystemIdentificationApplication.utilities.data_utils import GetKratosValueToCSVStringConverter
 from KratosMultiphysics.SystemIdentificationApplication.utilities.data_utils import GetNameToCSVString
-from KratosMultiphysics.SystemIdentificationApplication.utilities.expression_utils import GetContainerExpressionType
 from KratosMultiphysics.OptimizationApplication.utilities.component_data_view import ComponentDataView
 
 def CreateSensors(sensor_model_part: Kratos.ModelPart, domain_model_part: Kratos.ModelPart, list_of_parameters: 'list[Kratos.Parameters]') -> 'list[KratosSI.Sensors.Sensor]':

@@ -6,7 +6,6 @@ import KratosMultiphysics.OptimizationApplication as KratosOA
 from KratosMultiphysics.OptimizationApplication.responses.response_function import ResponseFunction
 from KratosMultiphysics.OptimizationApplication.responses.evaluation_response_function import EvaluationResponseFunction
 from KratosMultiphysics.OptimizationApplication.responses.response_function import SupportedSensitivityFieldVariableTypes
-from KratosMultiphysics.OptimizationApplication.utilities.union_utilities import SupportedSensitivityFieldVariableTypes
 from KratosMultiphysics.OptimizationApplication.utilities.optimization_problem import OptimizationProblem
 from KratosMultiphysics.OptimizationApplication.utilities.component_data_view import ComponentDataView
 
@@ -57,36 +56,36 @@ def EvaluateValue(response_function: ResponseFunction, optimization_problem: Opt
     else:
         return response_function.CalculateValue()
 
-def EvaluateGradient(response_function: ResponseFunction, physical_variable_collective_expressions: 'dict[SupportedSensitivityFieldVariableTypes, KratosOA.CollectiveExpression]', optimization_problem: OptimizationProblem) -> 'dict[SupportedSensitivityFieldVariableTypes, KratosOA.CollectiveExpression]':
-    # first get the sub_collective expressions for implemented physical kratos variables
-    resp_physical_variable_collective_expressions: 'dict[SupportedSensitivityFieldVariableTypes, KratosOA.CollectiveExpression]' = {}
-    for variable, collective_expression in physical_variable_collective_expressions.items():
+def EvaluateGradient(response_function: ResponseFunction, physical_variable_combined_tensor_adaptors: 'dict[SupportedSensitivityFieldVariableTypes, Kratos.TensorAdaptors.DoubleCombinedTensorAdaptor]', optimization_problem: OptimizationProblem):
+    # first get the tensor adaptors for implemented physical kratos variables
+    resp_physical_variable_combined_tensor_adaptors: 'dict[SupportedSensitivityFieldVariableTypes, Kratos.TensorAdaptors.DoubleCombinedTensorAdaptor]' = {}
+    for variable, cta in physical_variable_combined_tensor_adaptors.items():
+        temp_cta = Kratos.TensorAdaptors.DoubleCombinedTensorAdaptor(cta, perform_store_data_recursively=False, copy=False)
         if variable in response_function.GetImplementedPhysicalKratosVariables():
-            resp_physical_variable_collective_expressions[variable] = collective_expression.Clone()
+            # if the response function depends on the variable, then add it to the dictionary for future evaluation.
+            resp_physical_variable_combined_tensor_adaptors[variable] = temp_cta
+        else:
+            # if the response function does not depend on the variable, then assign zeros.
+            temp_cta.data[:] = 0.0
+            temp_cta.StoreData() # store the combined ta values to its sub tensor adaptors
 
-    resp_physical_variable_collective_expressions_to_evaluate: 'dict[SupportedSensitivityFieldVariableTypes, KratosOA.CollectiveExpression]' = {}
+    resp_physical_variable_combined_tensor_adaptors_to_evaluate: 'dict[SupportedSensitivityFieldVariableTypes, Kratos.TensorAdaptors.DoubleCombinedTensorAdaptor]' = {}
     response_data = ComponentDataView("evaluated_responses", optimization_problem).GetUnBufferedData()
 
-    for variable, collective_expression in resp_physical_variable_collective_expressions.items():
+    for variable, cta in resp_physical_variable_combined_tensor_adaptors.items():
         # first check whether the gradients have been already evaluated. if so, take the gradients.
         if response_data.HasValue(f"gradients/d{response_function.GetName()}_d{variable.Name()}"):
-            resp_physical_variable_collective_expressions[variable] = response_data.GetValue(f"gradients/d{response_function.GetName()}_d{variable.Name()}")
+            # found already evaluated gradient. Use it.
+            cta.SetData(response_data.GetValue(f"gradients/d{response_function.GetName()}_d{variable.Name()}").data)
+            cta.StoreData() # store the combined ta values to its sub tensor adaptors
         else:
             # gradients have not yet evaluated. put it to the dictionary for later evaluation
-            resp_physical_variable_collective_expressions_to_evaluate[variable] = collective_expression
+            resp_physical_variable_combined_tensor_adaptors_to_evaluate[variable] = cta
 
-    if len(resp_physical_variable_collective_expressions_to_evaluate) != 0:
-        response_function.CalculateGradient(resp_physical_variable_collective_expressions_to_evaluate)
-        for variable, collective_expression in resp_physical_variable_collective_expressions_to_evaluate.items():
-            response_data.SetValue(f"gradients/d{response_function.GetName()}_d{variable.Name()}", collective_expression.Clone())
-            resp_physical_variable_collective_expressions[variable] = collective_expression
-
-    # now add zero values collective expressions to variables for which the response function does not have dependence
-    for variable, collective_expression in physical_variable_collective_expressions.items():
-        if variable not in response_function.GetImplementedPhysicalKratosVariables():
-            resp_physical_variable_collective_expressions[variable] = collective_expression * 0.0
-
-    return resp_physical_variable_collective_expressions
+    if len(resp_physical_variable_combined_tensor_adaptors_to_evaluate) != 0:
+        response_function.CalculateGradient(resp_physical_variable_combined_tensor_adaptors_to_evaluate)
+        for variable, cta in resp_physical_variable_combined_tensor_adaptors_to_evaluate.items():
+            response_data.SetValue(f"gradients/d{response_function.GetName()}_d{variable.Name()}", Kratos.TensorAdaptors.DoubleCombinedTensorAdaptor(cta))
 
 def GetResponseFunction(current_value: str, optimization_problem: OptimizationProblem) -> ResponseFunction:
     from KratosMultiphysics.OptimizationApplication.responses.literal_value_response_function import LiteralValueResponseFunction

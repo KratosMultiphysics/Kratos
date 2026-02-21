@@ -3,7 +3,6 @@ import abc
 from importlib import import_module
 
 import KratosMultiphysics as Kratos
-from KratosMultiphysics.OptimizationApplication.utilities.union_utilities import ContainerExpressionTypes
 from KratosMultiphysics.OptimizationApplication.utilities.union_utilities import SupportedSensitivityFieldVariableTypes
 from KratosMultiphysics.OptimizationApplication.utilities.component_data_view import ComponentDataView
 
@@ -74,62 +73,62 @@ class Filter(abc.ABC):
         pass
 
     @abc.abstractmethod
-    def ForwardFilterField(self, control_field: ContainerExpressionTypes) -> ContainerExpressionTypes:
+    def ForwardFilterField(self, control_field: Kratos.TensorAdaptors.DoubleTensorAdaptor) -> Kratos.TensorAdaptors.DoubleTensorAdaptor:
         """Return the physical field by filtering/smoothing control field
 
         This method filters the passed input field. control_field field is assumed to be a
         mesh-independent field.
 
         Args:
-            control_field (ContainerExpressionTypes): Input control field
+            control_field (Kratos.TensorAdaptors.DoubleTensorAdaptor): Input control field
 
         Returns:
-            ContainerExpressionTypes: Physical field.
+            Kratos.TensorAdaptors.DoubleTensorAdaptor: Physical field.
         """
         pass
 
     @abc.abstractmethod
-    def BackwardFilterField(self, physical_mesh_independent_gradient_field: ContainerExpressionTypes) -> ContainerExpressionTypes:
+    def BackwardFilterField(self, physical_mesh_independent_gradient_field: Kratos.TensorAdaptors.DoubleTensorAdaptor) -> Kratos.TensorAdaptors.DoubleTensorAdaptor:
         """Returns mesh-independent control space gradient from mesh-independent physical space gradient.
 
         This method filters the passed mesh-independent input field. This is not the inverse
         operator, it uses the transpose of the ForwardFilterField matrix.
 
         Args:
-            physical_mesh_independent_gradient_field (ContainerExpressionTypes): Mesh independent gradient field in physical space.
+            physical_mesh_independent_gradient_field (Kratos.TensorAdaptors.DoubleTensorAdaptor): Mesh independent gradient field in physical space.
 
         Returns:
-            ContainerExpressionTypes: Mesh-independent gradient in the control space.
+            Kratos.TensorAdaptors.DoubleTensorAdaptor: Mesh-independent gradient in the control space.
         """
         pass
 
     @abc.abstractmethod
-    def BackwardFilterIntegratedField(self, physical_mesh_dependent_gradient_field: ContainerExpressionTypes) -> ContainerExpressionTypes:
+    def BackwardFilterIntegratedField(self, physical_mesh_dependent_gradient_field: Kratos.TensorAdaptors.DoubleTensorAdaptor) -> Kratos.TensorAdaptors.DoubleTensorAdaptor:
         """Returns mesh-independent control space gradient from mesh-dependent physical space gradient.
 
         This method filters the passed mesh-dependent input field. This is not the inverse
         operator, it uses the transpose of the ForwardFilterField matrix.
 
         Args:
-            physical_mesh_dependent_gradient_field (ContainerExpressionTypes): Mesh dependent gradient field in physical space.
+            physical_mesh_dependent_gradient_field (Kratos.TensorAdaptors.DoubleTensorAdaptor): Mesh dependent gradient field in physical space.
 
         Returns:
-            ContainerExpressionTypes: Mesh-independent gradient in the control space.
+            Kratos.TensorAdaptors.DoubleTensorAdaptor: Mesh-independent gradient in the control space.
         """
         pass
 
     @abc.abstractmethod
-    def UnfilterField(self, physical_field: ContainerExpressionTypes) -> ContainerExpressionTypes:
+    def UnfilterField(self, physical_field: Kratos.TensorAdaptors.DoubleTensorAdaptor) -> Kratos.TensorAdaptors.DoubleTensorAdaptor:
         """Returns control space field from the physical space field using the inverse operator.
 
         This method needs to compute the inverse of the matrix used in ForwardFilterField
         to compute the UnfilteredField of the physical field.
 
         Args:
-            physical_field (ContainerExpressionTypes): Physical field.
+            physical_field (Kratos.TensorAdaptors.DoubleTensorAdaptor): Physical field.
 
         Returns:
-            ContainerExpressionTypes: Control field.
+            Kratos.TensorAdaptors.DoubleTensorAdaptor: Control field.
         """
         pass
 

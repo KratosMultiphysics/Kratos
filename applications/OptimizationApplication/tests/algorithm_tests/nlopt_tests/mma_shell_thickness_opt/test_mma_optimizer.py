@@ -5,9 +5,6 @@ from KratosMultiphysics.OptimizationApplication.optimization_analysis import Opt
 from KratosMultiphysics.compare_two_files_check_process import CompareTwoFilesCheckProcess
 from KratosMultiphysics.kratos_utilities import DeleteFileIfExisting
 
-
-import csv, os
-
 try:
     import nlopt
 except ImportError:

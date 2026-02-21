@@ -19,7 +19,7 @@
 // Project includes
 #include "containers/array_1d.h"
 #include "containers/data_value_container.h"
-#include "expression/container_expression.h"
+#include "tensor_adaptors/tensor_adaptor.h"
 #include "geometries/point.h"
 #include "includes/define.h"
 #include "includes/kratos_parameters.h"
@@ -40,12 +40,6 @@ public:
     ///@{
 
     KRATOS_CLASS_POINTER_DEFINITION(Sensor);
-
-    using ContainerExpressionType = std::variant<
-                                        ContainerExpression<ModelPart::NodesContainerType>::Pointer,
-                                        ContainerExpression<ModelPart::ConditionsContainerType>::Pointer,
-                                        ContainerExpression<ModelPart::ElementsContainerType>::Pointer
-                                        >;
 
     ///@}
     ///@name Life Cycle
@@ -158,39 +152,39 @@ public:
     void SetSensorValue(const double Value);
 
     /**
-     * @brief Adds given container expression
+     * @brief Adds given tensor adaptor
      *
-     * @throws If an expression is found already under the given name.
+     * @throws If an tensor adaptor is found already under the given name.
      *
-     * @param rExpressionName       Name of the container expression.
-     * @param pContainerExpression  Container expression pointer to be added.
+     * @param rTensorAdaptorName       Name of the tensor adaptor.
+     * @param pTensorAdaptor           Tensor adaptor pointer to be added.
      */
-    void AddContainerExpression(
-        const std::string& rExpressionName,
-        ContainerExpressionType pContainerExpression);
+    void AddTensorAdaptor(
+        const std::string& rTensorAdaptorName,
+        TensorAdaptor<double>::Pointer pTensorAdaptor);
 
     /**
-     * @brief Get the Nodal Expression for specified expression name
+     * @brief Get the tensor adaptor for specified tensor adaptor name
      *
-     * @throws If the @ref rExpressionName is not found in the map of container expressions.
+     * @throws If the @ref rTensorAdaptorName is not found in the map of tensor adaptors.
      *
-     * @param rExpressionName            Expression name
-     * @return ContainerExpressionType   Container expression
+     * @param rTensorAdaptorName                Tensor adaptor name
+     * @return TensorAdaptor<double>::Pointer   Tensor adaptor
      */
-    ContainerExpressionType GetContainerExpression(const std::string& rExpressionName) const;
+    TensorAdaptor<double>::Pointer GetTensorAdaptor(const std::string& rTensorAdaptorName) const;
 
     /**
-     * @brief Get the Container Expressions map
+     * @brief Get the tensor adaptors map
      *
-     * @return std::unordered_map<std::string, ContainerExpressionType>   Container expressions map
+     * @return std::unordered_map<std::string, TensorAdaptor<double>::Pointer>   Tensor adaptors map
      */
-    std::unordered_map<std::string, ContainerExpressionType> GetContainerExpressionsMap() const;
+    std::unordered_map<std::string, TensorAdaptor<double>::Pointer> GetTensorAdaptorsMap() const;
 
     /**
-     * @brief Clear container expressions from the sensors.
+     * @brief Clear tensor adaptors from the sensors.
      *
      */
-    void ClearContainerExpressions();
+    void ClearTensorAdaptors();
 
     ///@}
     ///@name Input and output
@@ -216,7 +210,7 @@ private:
 
     double mSensorValue;
 
-    std::unordered_map<std::string, ContainerExpressionType> mContainerExpressions;
+    std::unordered_map<std::string, TensorAdaptor<double>::Pointer> mTensorAdaptorsMap;
 
     ///@}
 };
