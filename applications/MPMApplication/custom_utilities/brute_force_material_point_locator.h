@@ -82,24 +82,6 @@ public:
         ) const;
 
     ///@}
-    ///@name Input and output
-    ///@{
-
-    /// Turn back information as a string.
-    virtual std::string Info() const
-    {
-        std::stringstream buffer;
-        buffer << "BruteForceMaterialPointLocator" ;
-        return buffer.str();
-    }
-
-    /// Print information about this object.
-    virtual void PrintInfo(std::ostream& rOStream) const {rOStream << "BruteForceMaterialPointLocator";}
-
-    /// Print object's data.
-    virtual void PrintData(std::ostream& rOStream) const {}
-
-    ///@}
 
 private:
     ///@name Member Variables
@@ -159,20 +141,6 @@ private:
 
 }; // Class BruteForceMaterialPointLocator
 
-///@}
-///@name Input and output
-///@{
-
-/// output stream function
-inline std::ostream& operator << (std::ostream& rOStream,
-                const BruteForceMaterialPointLocator& rThis)
-{
-    rThis.PrintInfo(rOStream);
-    rOStream << std::endl;
-    rThis.PrintData(rOStream);
-
-    return rOStream;
-}
 ///@}
 
 ///@} addtogroup block
