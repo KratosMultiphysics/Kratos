@@ -1,0 +1,3 @@
+#,type,name,location_0,location_1,location_2,value
+1,temperature_sensor,temp_1,0.75,0.75,0.0,0.15000000000000002
+2,temperature_sensor,temp_2,0.25,0.25,0.0,0.1

@@ -41,9 +41,8 @@ class StructuralMechanicsAdjointStaticSolver(MechanicalSolver):
         super().PrepareModelPart()
         # TODO Why does replacement need to happen after reading materials?
 
-        process_info = self.main_model_part.ProcessInfo
-        if (process_info.Has(StructuralMechanicsApplication.IS_ADJOINT) and
-            process_info.GetValue(StructuralMechanicsApplication.IS_ADJOINT)):
+        if (self.main_model_part.Has(StructuralMechanicsApplication.IS_ADJOINT) and
+            self.main_model_part.GetValue(StructuralMechanicsApplication.IS_ADJOINT)):
             raise RuntimeError("Modelpart '{}' is already adjoint modelpart!".format(self.main_model_part.Name))
 
         # defines how the primal elements should be replaced with their adjoint counterparts
@@ -86,7 +85,7 @@ class StructuralMechanicsAdjointStaticSolver(MechanicalSolver):
         """) # TODO remove "Condition3D" after issue#4439 is resolved; remove SpringDamperElement3D2N, it is deprecated
 
         StructuralMechanicsApplication.ReplaceMultipleElementsAndConditionsProcess(self.main_model_part, replacement_settings).Execute()
-        process_info.SetValue(StructuralMechanicsApplication.IS_ADJOINT, True)
+        self.main_model_part.SetValue(StructuralMechanicsApplication.IS_ADJOINT, True)
 
         KratosMultiphysics.Logger.PrintInfo("::[AdjointMechanicalSolver]:: ", "ModelPart prepared for Solver.")
 

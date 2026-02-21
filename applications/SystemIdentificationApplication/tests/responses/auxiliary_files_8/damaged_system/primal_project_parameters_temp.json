@@ -1,0 +1,17 @@
+{
+    "@include_json": "primal_project_parameters_main.json",
+    "output_processes": {
+        "sensor_output": [
+            {
+                "Parameters": {
+                    "model_part_name": "Structure",
+                    "output_file_name": "../measured_data_temperature.csv",
+                    "@include_json": "../sensor_data_temperature.json"
+                },
+                "kratos_module": "KratosMultiphysics.SystemIdentificationApplication.processes",
+                "process_name": "SensorOutputProcess",
+                "python_module": "sensor_output_process"
+            }
+        ]
+    }
+}
