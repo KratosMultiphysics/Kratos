@@ -106,8 +106,8 @@ class ShellThicknessControl(Control):
         field.data[:] = 0.0
         return field
 
-    def GetControlField(self) -> Kratos.TensorAdaptors.DoubleTensorAdaptor:
-        return Kratos.TensorAdaptors.DoubleTensorAdaptor(self.control_phi_field)
+    def GetControlField(self) -> ContainerExpressionTypes:
+        return self.control_phi_field.Clone()
 
     def GetPhysicalField(self) -> Kratos.TensorAdaptors.DoubleTensorAdaptor:
         physical_thickness_field = KratosOA.TensorAdaptors.PropertiesVariableTensorAdaptor(self.model_part.Elements, Kratos.THICKNESS)
@@ -143,7 +143,7 @@ class ShellThicknessControl(Control):
         if numpy.linalg.norm(update.data) > 1e-15:
             with TimeLogger(self.__class__.__name__, f"Updating {self.GetName()}...", f"Finished updating of {self.GetName()}.",False):
                 # update the control thickness field
-                self.control_phi_field.data[:] = new_control_field.data
+                self.control_phi_field = new_control_field.Clone()
                 # now update the physical field
                 self._UpdateAndOutputFields(update)
 
