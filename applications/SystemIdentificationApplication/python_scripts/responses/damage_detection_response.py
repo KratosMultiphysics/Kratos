@@ -1,13 +1,10 @@
 from typing import Optional
 import csv
-from pathlib import Path
 
 import KratosMultiphysics as Kratos
-import KratosMultiphysics.OptimizationApplication as KratosOA
 import KratosMultiphysics.SystemIdentificationApplication as KratosDT
 from KratosMultiphysics.OptimizationApplication.responses.response_function import ResponseFunction
 from KratosMultiphysics.OptimizationApplication.responses.response_function import SupportedSensitivityFieldVariableTypes
-from KratosMultiphysics.OptimizationApplication.utilities.union_utilities import SupportedSensitivityFieldVariableTypes
 from KratosMultiphysics.OptimizationApplication.utilities.model_part_utilities import ModelPartOperation
 from KratosMultiphysics.OptimizationApplication.execution_policies.execution_policy_decorator import ExecutionPolicyDecorator
 from KratosMultiphysics.OptimizationApplication.utilities.optimization_problem import OptimizationProblem
@@ -134,11 +131,11 @@ class DamageDetectionResponse(ResponseFunction):
 
         return result
 
-    def CalculateGradient(self, physical_variable_collective_expressions: 'dict[SupportedSensitivityFieldVariableTypes, KratosOA.CollectiveExpression]') -> None:
+    def CalculateGradient(self, physical_variable_combined_tensor_adaptor: 'dict[SupportedSensitivityFieldVariableTypes, Kratos.TensorAdaptors.DoubleCombinedTensorAdaptor]') -> None:
         # make everything zeros
-        for physical_variable, collective_expression in physical_variable_collective_expressions.items():
-            for container_expression in collective_expression.GetContainerExpressions():
-                Kratos.Expression.LiteralExpressionIO.SetDataToZero(container_expression, physical_variable)
+        for physical_variable, cta in physical_variable_combined_tensor_adaptor.items():
+            cta.data[:] = 0.0
+            Kratos.TensorAdaptors.DoubleCombinedTensorAdaptor(cta, perform_store_data_recursively=False, copy=False).StoreData()
 
         # now compute sensitivities for each test scenario
         for exec_policy, sensor_measurement_data_file_name, test_case_weight in self.list_of_test_analysis_data:
@@ -150,13 +147,13 @@ class DamageDetectionResponse(ResponseFunction):
             self.adjoint_analysis._GetSolver().GetComputingModelPart().ProcessInfo[Kratos.STEP] = self.optimization_problem.GetStep()
             self.adjoint_analysis.CalculateGradient(self.damage_response_function)
 
-            for physical_variable, collective_expression in physical_variable_collective_expressions.items():
+            for physical_variable, cta in physical_variable_combined_tensor_adaptor.items():
                 sensitivity_variable = Kratos.KratosGlobals.GetVariable(Kratos.SensitivityUtilities.GetSensitivityVariableName(physical_variable))
-                for container_expression in collective_expression.GetContainerExpressions():
-                    current_gradient = container_expression.Clone()
+                for ta in cta.GetTensorAdaptors():
+                    current_gradient = ta.Clone()
                     self.adjoint_analysis.GetGradient(sensitivity_variable, current_gradient)
-                    container_expression.SetExpression((container_expression.GetExpression() - current_gradient.GetExpression() * test_case_weight))
-                    container_expression.SetExpression(Kratos.Expression.Utils.Collapse(container_expression).GetExpression())
+                    ta.data[:] -= current_gradient.data[:] * test_case_weight
+                Kratos.TensorAdaptors.DoubleCombinedTensorAdaptor(cta, perform_collect_data_recursively=False, copy=False).CollectData()
 
     def __GetSensor(self, sensor_name: str) -> KratosDT.Sensors.Sensor:
         return self.sensor_name_dict[sensor_name]

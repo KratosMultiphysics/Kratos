@@ -71,18 +71,18 @@
                         "filter_radius": 0.2
                     }
                 },
-                "penalty_power": 1,
                 "output_all_fields": false,
                 "physical_thicknesses": [
                     0.01,
                     0.1
                 ],
-                "beta_settings": {
+                "thickness_projection_settings": {
+                    "type": "adaptive_sigmoidal_projection",
                     "initial_value": 5,
                     "max_value": 30,
-                    "adaptive": true,
                     "increase_fac": 1.05,
-                    "update_period": 50
+                    "update_period": 50,
+                    "penalty_factor": 1
                 }
             }
         }
@@ -107,7 +107,7 @@
         "constraints": [
             {
                 "response_expression": "strain_energy_shell",
-                "upper_boundary"      : 0.002
+                "upper_boundary": 0.002
             }
         ]
     },

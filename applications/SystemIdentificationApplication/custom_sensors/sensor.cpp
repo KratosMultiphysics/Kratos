@@ -110,31 +110,31 @@ void Sensor::SetSensorValue(const double Value)
     mSensorValue = Value;
 }
 
-void Sensor::AddContainerExpression(
-    const std::string& rExpressionName,
-    ContainerExpressionType pContainerExpression)
+void Sensor::AddTensorAdaptor(
+    const std::string& rTensorAdaptorName,
+    TensorAdaptor<double>::Pointer pTensorAdaptor)
 {
     KRATOS_TRY
 
-    const auto p_itr = mContainerExpressions.find(rExpressionName);
-    KRATOS_ERROR_IF_NOT(p_itr == mContainerExpressions.end())
-        << "A container expression named \"" << rExpressionName << " already exists.";
-    mContainerExpressions[rExpressionName] = pContainerExpression;
+    const auto p_itr = mTensorAdaptorsMap.find(rTensorAdaptorName);
+    KRATOS_ERROR_IF_NOT(p_itr == mTensorAdaptorsMap.end())
+        << "A tensor adaptor named \"" << rTensorAdaptorName << " already exists.";
+    mTensorAdaptorsMap[rTensorAdaptorName] = pTensorAdaptor;
 
     KRATOS_CATCH("");
 }
 
-Sensor::ContainerExpressionType Sensor::GetContainerExpression(const std::string& rExpressionName) const
+TensorAdaptor<double>::Pointer Sensor::GetTensorAdaptor(const std::string& rTensorAdaptorName) const
 {
     KRATOS_TRY
 
-    const auto p_itr = mContainerExpressions.find(rExpressionName);
+    const auto p_itr = mTensorAdaptorsMap.find(rTensorAdaptorName);
 
-    if (p_itr == mContainerExpressions.end()) {
+    if (p_itr == mTensorAdaptorsMap.end()) {
         std::stringstream msg;
-        msg << "A container expression named \"" << rExpressionName << "\" not found in "
+        msg << "A tensor adaptor named \"" << rTensorAdaptorName << "\" not found in "
             << "sensor named \"" << this->GetName() << "\". Followings are available:";
-        for (const auto& r_pair : this->GetContainerExpressionsMap()) {
+        for (const auto& r_pair : this->GetTensorAdaptorsMap()) {
             msg << std::endl << "   "  << r_pair.first;
         }
         KRATOS_ERROR << msg.str();
@@ -145,14 +145,14 @@ Sensor::ContainerExpressionType Sensor::GetContainerExpression(const std::string
     KRATOS_CATCH("");
 }
 
-std::unordered_map<std::string, Sensor::ContainerExpressionType> Sensor::GetContainerExpressionsMap() const
+std::unordered_map<std::string, TensorAdaptor<double>::Pointer> Sensor::GetTensorAdaptorsMap() const
 {
-    return mContainerExpressions;
+    return mTensorAdaptorsMap;
 }
 
-void Sensor::ClearContainerExpressions()
+void Sensor::ClearTensorAdaptors()
 {
-    mContainerExpressions.clear();
+    mTensorAdaptorsMap.clear();
 }
 
 std::string Sensor::Info() const

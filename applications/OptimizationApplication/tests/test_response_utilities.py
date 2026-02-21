@@ -1,8 +1,7 @@
 import numpy as np
-from math import log
+from math import log, fsum
 
 import KratosMultiphysics as Kratos
-import KratosMultiphysics.OptimizationApplication as KratosOA
 from KratosMultiphysics.OptimizationApplication.responses.response_function import ResponseFunction
 from KratosMultiphysics.OptimizationApplication.utilities.optimization_problem import OptimizationProblem
 from KratosMultiphysics.OptimizationApplication.utilities.component_data_view import ComponentDataView
@@ -39,9 +38,9 @@ class TestResponseFunctionWrapper(ResponseFunction):
         self.calculate_value_calls += 1
         return self.response_function.CalculateValue()
 
-    def CalculateGradient(self, physical_variable_collective_expressions: 'dict[SupportedSensitivityFieldVariableTypes, KratosOA.CollectiveExpression]') -> None:
+    def CalculateGradient(self, physical_variable_combined_tensor_adaptor: 'dict[SupportedSensitivityFieldVariableTypes, Kratos.TensorAdaptors.DoubleCombinedTensorAdaptor]') -> None:
         self.calculate_gradient_calls += 1
-        return self.response_function.CalculateGradient(physical_variable_collective_expressions)
+        return self.response_function.CalculateGradient(physical_variable_combined_tensor_adaptor)
 
 class TestResponseUtilities(kratos_unittest.TestCase):
     @classmethod
@@ -94,15 +93,14 @@ class TestResponseUtilities(kratos_unittest.TestCase):
         ref_value = analytical_lambda()
         self.assertAlmostEqual(ref_value, response_function.CalculateValue(), precision)
 
-        physical_variable_collective_expressions: 'dict[SupportedSensitivityFieldVariableTypes, KratosOA.CollectiveExpression]' = {}
+        physical_variable_tensor_adaptors: 'dict[SupportedSensitivityFieldVariableTypes, Kratos.TensorAdaptors.DoubleCombinedTensorAdaptor]' = {}
         fd_gradients: 'dict[SupportedSensitivityFieldVariableTypes, list[float]]' = {}
         for sensitivity_variable in sensitivity_variables:
-            nodal_exp = Kratos.Expression.NodalExpression(self.model_part)
-            Kratos.Expression.LiteralExpressionIO.SetData(nodal_exp, 0.0)
-            physical_variable_collective_expressions[sensitivity_variable] = KratosOA.CollectiveExpression([nodal_exp])
+            ta = Kratos.TensorAdaptors.DoubleTensorAdaptor(Kratos.TensorAdaptors.VariableTensorAdaptor(self.model_part.Nodes, sensitivity_variable), copy=False)
+            physical_variable_tensor_adaptors[sensitivity_variable] = Kratos.TensorAdaptors.DoubleCombinedTensorAdaptor([ta])
             fd_gradients[sensitivity_variable] = []
 
-        response_function.CalculateGradient(physical_variable_collective_expressions)
+        response_function.CalculateGradient(physical_variable_tensor_adaptors)
 
         for node in self.model_part.Nodes:
             for sensitivity_variable in sensitivity_variables:
@@ -111,9 +109,9 @@ class TestResponseUtilities(kratos_unittest.TestCase):
                 node.SetValue(sensitivity_variable, node.GetValue(sensitivity_variable) - delta)
 
         for sensitivity_variable in sensitivity_variables:
-            nodal_exp = Kratos.Expression.NodalExpression(self.model_part)
-            Kratos.Expression.CArrayExpressionIO.Read(nodal_exp, np.array(fd_gradients[sensitivity_variable], np.float64))
-            self.assertAlmostEqual(Kratos.Expression.Utils.NormInf(nodal_exp - physical_variable_collective_expressions[sensitivity_variable].GetContainerExpressions()[0]), 0.0, precision)
+            ta = Kratos.TensorAdaptors.VariableTensorAdaptor(self.model_part.Nodes, sensitivity_variable)
+            ta.data[:] = np.array(fd_gradients[sensitivity_variable], np.float64)
+            self.assertVectorAlmostEqual(ta.data.ravel(), physical_variable_tensor_adaptors[sensitivity_variable].data.ravel(), precision)
 
     def setUp(self) -> None:
         self.optimization_problem = OptimizationProblem()
@@ -258,20 +256,21 @@ class TestResponseUtilities(kratos_unittest.TestCase):
         self.assertEqual(self.r2.calculate_gradient_calls, 1)
 
     def test_CombinedResponseCalculateValue3(self):
-        eval_resp = EvaluateResponseExpression("r1 + r2 + 4.0", self.optimization_problem)
+        eval_resp = EvaluateResponseExpression("(r1 + r2) * 1e+6 + 4.0", self.optimization_problem)
         eval_resp.Initialize()
         eval_value = eval_resp.CalculateValue()
 
         self.assertEqual(self.r1.calculate_value_calls, 1)
         self.assertEqual(self.r2.calculate_value_calls, 1)
 
-        self.assertEqual(eval_value, self.r1.CalculateValue() + self.r2.CalculateValue() + 4.0)
+        self.assertEqual(eval_value, (self.r1.CalculateValue() + self.r2.CalculateValue()) * 1e+6 + 4.0)
 
         # followings are intermediate responses, or leaf responses. Therefore they need to be
         # in the optimization problem
         self.assertTrue(self.optimization_problem.HasResponse("r1"))
         self.assertTrue(self.optimization_problem.HasResponse("r2"))
         self.assertTrue(self.optimization_problem.HasResponse("(r1+r2)"))
+        self.assertTrue(self.optimization_problem.HasResponse("((r1+r2)*1000000.0)"))
         self.assertFalse(self.optimization_problem.HasResponse("4.0"))
 
         # followings are intermediate responses, so Algorithm, ResponseRoutine do not see them. Therefore
@@ -279,6 +278,7 @@ class TestResponseUtilities(kratos_unittest.TestCase):
         self.assertTrue(ComponentDataView("evaluated_responses", self.optimization_problem).GetBufferedData().HasValue("values/r1"))
         self.assertTrue(ComponentDataView("evaluated_responses", self.optimization_problem).GetBufferedData().HasValue("values/r2"))
         self.assertTrue(ComponentDataView("evaluated_responses", self.optimization_problem).GetBufferedData().HasValue("values/(r1+r2)"))
+        self.assertTrue(ComponentDataView("evaluated_responses", self.optimization_problem).GetBufferedData().HasValue("values/((r1+r2)*1000000.0)"))
         self.assertTrue(self.optimization_problem.HasResponse(eval_resp))
         self.assertTrue(self.optimization_problem.HasResponse(eval_resp.GetName()))
 
@@ -286,11 +286,12 @@ class TestResponseUtilities(kratos_unittest.TestCase):
         self.assertFalse(ComponentDataView("evaluated_responses", self.optimization_problem).GetUnBufferedData().HasValue("gradients/dr2_dPRESSURE"))
         self.assertFalse(ComponentDataView("evaluated_responses", self.optimization_problem).GetUnBufferedData().HasValue("gradients/d(r1+r2)_dPRESSURE"))
 
-        self.__CheckGradients([Kratos.PRESSURE], eval_resp, lambda : self.r1.CalculateValue() + self.r2.CalculateValue() + 4.0, 1e-7, 8)
+        self.__CheckGradients([Kratos.PRESSURE], eval_resp, lambda : (self.r1.CalculateValue() + self.r2.CalculateValue()) * 1e+6 + 4.0, 1e-9, 4)
 
         self.assertTrue(ComponentDataView("evaluated_responses", self.optimization_problem).GetUnBufferedData().HasValue("gradients/dr1_dPRESSURE"))
         self.assertTrue(ComponentDataView("evaluated_responses", self.optimization_problem).GetUnBufferedData().HasValue("gradients/dr2_dPRESSURE"))
         self.assertTrue(ComponentDataView("evaluated_responses", self.optimization_problem).GetUnBufferedData().HasValue("gradients/d(r1+r2)_dPRESSURE"))
+        self.assertTrue(ComponentDataView("evaluated_responses", self.optimization_problem).GetUnBufferedData().HasValue("gradients/d((r1+r2)*1000000.0)_dPRESSURE"))
 
         self.assertEqual(self.r1.calculate_gradient_calls, 1)
         self.assertEqual(self.r2.calculate_gradient_calls, 1)

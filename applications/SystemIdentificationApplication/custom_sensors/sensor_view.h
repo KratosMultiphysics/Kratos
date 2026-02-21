@@ -18,7 +18,7 @@
 // External includes
 
 // Project includes
-#include "expression/container_expression.h"
+#include "tensor_adaptors/tensor_adaptor.h"
 #include "includes/define.h"
 
 // Application includes
@@ -28,7 +28,6 @@ namespace Kratos {
 ///@name Kratos Classes
 ///@{
 
-template<class TContainerType>
 class KRATOS_API(SYSTEM_IDENTIFICATION_APPLICATION) SensorView
 {
 public:
@@ -44,7 +43,7 @@ public:
     /// Constructor.
     SensorView(
         Sensor::Pointer pSensor,
-        const std::string& rExpressionName);
+        const std::string& rTensorAdaptorName);
 
     ///@}
     ///@name Public operations
@@ -52,15 +51,15 @@ public:
 
     Sensor::Pointer GetSensor() const;
 
-    typename ContainerExpression<TContainerType>::Pointer GetContainerExpression() const;
+    TensorAdaptor<double>::Pointer GetTensorAdaptor() const;
 
-    std::string GetExpressionName() const;
+    std::string GetTensorAdaptorName() const;
 
-    void  AddAuxiliaryExpression(
+    void  AddAuxiliaryTensorAdaptor(
         const std::string& rSuffix,
-        typename ContainerExpression<TContainerType>::Pointer pContainerExpression);
+        TensorAdaptor<double>::Pointer pTensorAdaptor);
 
-    typename ContainerExpression<TContainerType>::Pointer GetAuxiliaryExpression(const std::string& rSuffix) const;
+    TensorAdaptor<double>::Pointer GetAuxiliaryTensorAdaptor(const std::string& rSuffix) const;
 
     std::vector<std::string> GetAuxiliarySuffixes() const;
 
@@ -82,18 +81,17 @@ private:
 
     Sensor::Pointer mpSensor;
 
-    const std::string mExpressionName;
+    const std::string mTensorAdaptorName;
 
-    typename ContainerExpression<TContainerType>::Pointer mpContainerExpression;
+    TensorAdaptor<double>::Pointer mpTensorAdaptor;
 
     ///@}
 };
 
 /// output stream functions
-template<class TContainerType>
 inline std::ostream& operator<<(
     std::ostream& rOStream,
-    const SensorView<TContainerType>& rThis)
+    const SensorView& rThis)
 {
     rThis.PrintInfo(rOStream);
     rOStream << std::endl;

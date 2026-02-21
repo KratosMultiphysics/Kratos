@@ -1,11 +1,10 @@
+import numpy
 from typing import Optional
 
 import KratosMultiphysics as Kratos
 import KratosMultiphysics.OptimizationApplication as KratosOA
 from KratosMultiphysics.OptimizationApplication.controls.control import Control
-from KratosMultiphysics.OptimizationApplication.utilities.union_utilities import ContainerExpressionTypes
 from KratosMultiphysics.OptimizationApplication.utilities.union_utilities import SupportedSensitivityFieldVariableTypes
-from KratosMultiphysics.OptimizationApplication.utilities.helper_utilities import IsSameContainerExpression
 from KratosMultiphysics.OptimizationApplication.utilities.model_part_utilities import ModelPartOperation
 from KratosMultiphysics.OptimizationApplication.utilities.component_data_view import ComponentDataView
 from KratosMultiphysics.OptimizationApplication.utilities.optimization_problem import OptimizationProblem
@@ -115,44 +114,45 @@ class VertexMorphingShapeControl(Control):
     def GetPhysicalKratosVariables(self) -> 'list[SupportedSensitivityFieldVariableTypes]':
         return [KratosOA.SHAPE]
 
-    def GetEmptyField(self) -> ContainerExpressionTypes:
-        field = Kratos.Expression.NodalExpression(self.__GetPhysicalModelPart())
-        Kratos.Expression.LiteralExpressionIO.SetData(field, [0,0,0])
+    def GetEmptyField(self) -> Kratos.TensorAdaptors.DoubleTensorAdaptor:
+        field = Kratos.TensorAdaptors.VariableTensorAdaptor(self.__GetPhysicalModelPart().Nodes, KratosOA.SHAPE)
+        field.data[:] = 0.0
         return field
 
-    def GetControlField(self) -> ContainerExpressionTypes:
-        return self.control_field
+    def GetControlField(self) -> Kratos.TensorAdaptors.DoubleTensorAdaptor:
+        return Kratos.TensorAdaptors.DoubleTensorAdaptor(self.control_field)
 
-    def GetPhysicalField(self) -> ContainerExpressionTypes:
-        physical_shape_field = Kratos.Expression.NodalExpression(self.__GetPhysicalModelPart())
-        Kratos.Expression.NodalPositionExpressionIO.Read(physical_shape_field, Kratos.Configuration.Initial)
+    def GetPhysicalField(self) -> Kratos.TensorAdaptors.DoubleTensorAdaptor:
+        physical_shape_field = Kratos.TensorAdaptors.NodePositionTensorAdaptor(self.__GetPhysicalModelPart().Nodes, Kratos.Configuration.Initial)
+        physical_shape_field.CollectData()
         return physical_shape_field
 
     @time_decorator(methodName="GetName")
-    def MapGradient(self, physical_gradient_variable_container_expression_map: 'dict[SupportedSensitivityFieldVariableTypes, ContainerExpressionTypes]') -> ContainerExpressionTypes:
-        keys = physical_gradient_variable_container_expression_map.keys()
+    def MapGradient(self, physical_gradient_variable_tensor_adaptor_map: 'dict[SupportedSensitivityFieldVariableTypes, Kratos.TensorAdaptors.DoubleTensorAdaptor]') -> Kratos.TensorAdaptors.DoubleTensorAdaptor:
+        keys = physical_gradient_variable_tensor_adaptor_map.keys()
         if len(keys) != 1:
             raise RuntimeError(f"Provided more than required gradient fields for control \"{self.GetName()}\". Following are the variables:\n\t" + "\n\t".join([k.Name() for k in keys]))
         if KratosOA.SHAPE not in keys:
             raise RuntimeError(f"The required gradient for control \"{self.GetName()}\" w.r.t. {KratosOA.SHAPE.Name()} not found. Followings are the variables:\n\t" + "\n\t".join([k.Name() for k in keys]))
 
-        physical_gradient = physical_gradient_variable_container_expression_map[KratosOA.SHAPE]
-        if not IsSameContainerExpression(physical_gradient, self.GetEmptyField()):
+        physical_gradient = physical_gradient_variable_tensor_adaptor_map[KratosOA.SHAPE]
+        if physical_gradient.GetContainer() != self.__GetPhysicalModelPart().Nodes:
             raise RuntimeError(f"Gradients for the required element container not found for control \"{self.GetName()}\". [ required model part name: {self.model_part.FullName()}, given model part name: {physical_gradient.GetModelPart().FullName()} ]")
 
-        filtered_gradient = self.filter.BackwardFilterIntegratedField(KratosOA.ExpressionUtils.ExtractData(physical_gradient, self.model_part))
+        filtered_gradient = self.filter.BackwardFilterIntegratedField(self.__ExtractTensorData(KratosOA.SHAPE, physical_gradient, self.model_part.Nodes))
 
-        return KratosOA.ExpressionUtils.ExtractData(filtered_gradient, self.__GetPhysicalModelPart())
+        return self.__ExtractTensorData(KratosOA.SHAPE, filtered_gradient, self.__GetPhysicalModelPart().Nodes)
 
     @time_decorator(methodName="GetName")
-    def Update(self, new_control_field: ContainerExpressionTypes) -> bool:
-        if not IsSameContainerExpression(new_control_field, self.GetEmptyField()):
+    def Update(self, new_control_field: Kratos.TensorAdaptors.DoubleTensorAdaptor) -> bool:
+        if new_control_field.GetContainer() != self.__GetPhysicalModelPart().Nodes:
             raise RuntimeError(f"Updates for the required element container not found for control \"{self.GetName()}\". [ required model part name: {self.model_part.FullName()}, given model part name: {new_control_field.GetModelPart().FullName()} ]")
-        diff_norm = Kratos.Expression.Utils.NormL2(self.control_field - new_control_field)
-        if not math.isclose(diff_norm, 0.0, abs_tol=1e-16):
+
+        control_update = Kratos.TensorAdaptors.DoubleTensorAdaptor(new_control_field)
+        control_update.data = new_control_field.data - self.control_field.data
+        if not math.isclose(numpy.linalg.norm(control_update.data), 0.0, abs_tol=1e-16):
             # update the control SHAPE field
-            control_update = new_control_field - self.control_field
-            self.control_field = new_control_field
+            self.control_field.data[:] = new_control_field.data[:]
             # now update the physical field
             self._UpdateAndOutputFields(control_update)
 
@@ -160,27 +160,25 @@ class VertexMorphingShapeControl(Control):
             return True
         return False
 
-    def _UpdateAndOutputFields(self, control_update: ContainerExpressionTypes) -> None:
+    def _UpdateAndOutputFields(self, control_update: Kratos.TensorAdaptors.DoubleTensorAdaptor) -> None:
         # compute the shape update
         if self.mesh_motion_solver_type == "filter_based":
             shape_update = self.filter.ForwardFilterField(control_update)
         else:
-            shape_update = self.filter.ForwardFilterField(KratosOA.ExpressionUtils.ExtractData(control_update, self.model_part))
+            shape_update = self.filter.ForwardFilterField(self.__ExtractTensorData(KratosOA.SHAPE, control_update, self.model_part.Nodes))
 
         # now update the shape
         self._UpdateMesh(shape_update)
 
         # now output the fields
         un_buffered_data = ComponentDataView(self, self.optimization_problem).GetUnBufferedData()
-        un_buffered_data.SetValue("shape_update", shape_update.Clone(),overwrite=True)
+        un_buffered_data.SetValue("shape_update", shape_update,overwrite=True)
         if self.output_all_fields:
-            un_buffered_data.SetValue("shape_control", self.control_field.Clone(),overwrite=True)
-            un_buffered_data.SetValue("shape_control_update", control_update.Clone(),overwrite=True)
+            un_buffered_data.SetValue("shape_control", self.control_field.Clone(), overwrite=True)
+            un_buffered_data.SetValue("shape_control_update", control_update.Clone(), overwrite=True)
 
-    def _UpdateMesh(self, shape_update: ContainerExpressionTypes) -> None:
+    def _UpdateMesh(self, shape_update: Kratos.TensorAdaptors.DoubleTensorAdaptor) -> None:
         if self.mesh_motion_solver_type != "none":
-            mesh_displacement_field = Kratos.Expression.NodalExpression(self.model_part_operation.GetRootModelPart())
-
             if not self.__mesh_moving_analysis is None:
                 mm_computing_model_part: Kratos.ModelPart = self.__mesh_moving_analysis._GetSolver().GetComputingModelPart()
                 time_before_update = mm_computing_model_part.ProcessInfo.GetValue(Kratos.TIME)
@@ -196,7 +194,7 @@ class VertexMorphingShapeControl(Control):
                 Kratos.VariableUtils().SetHistoricalVariableToZero(Kratos.MESH_DISPLACEMENT, mm_computing_model_part.Nodes)
 
                 # assign the design surface MESH_DISPLACEMENTS
-                Kratos.Expression.VariableExpressionIO.Write(shape_update, Kratos.MESH_DISPLACEMENT, True)
+                Kratos.TensorAdaptors.HistoricalVariableTensorAdaptor(shape_update, Kratos.MESH_DISPLACEMENT, copy=False).StoreData()
 
                 # since we know that the nodes in the shape_update model part needs to be fixed to correctly
                 # compute the MESH_DISPLACEMENT. We Only do that in here by first freeing all the MESH_DISPLACEMENT
@@ -208,7 +206,7 @@ class VertexMorphingShapeControl(Control):
                     # first free the mesh displacement component
                     Kratos.VariableUtils().ApplyFixity(mesh_displacement_var, False, mm_computing_model_part.Nodes)
                     # now fix the design surface component
-                    Kratos.VariableUtils().ApplyFixity(mesh_displacement_var, True, shape_update.GetModelPart().Nodes)
+                    Kratos.VariableUtils().ApplyFixity(mesh_displacement_var, True, shape_update.GetContainer())
                     # now fix boundary condition components
                     model_parts = self.filter.GetBoundaryConditions()
                     for model_part in model_parts[i_comp]:
@@ -219,29 +217,31 @@ class VertexMorphingShapeControl(Control):
                     self.__mesh_moving_analysis.end_time += 1
                 self.__mesh_moving_analysis.RunSolutionLoop()
 
-                Kratos.Expression.VariableExpressionIO.Read(mesh_displacement_field, Kratos.MESH_DISPLACEMENT, True)
+                mesh_displacement_field = Kratos.TensorAdaptors.HistoricalVariableTensorAdaptor(self.model_part_operation.GetRootModelPart().Nodes, Kratos.MESH_DISPLACEMENT)
+                mesh_displacement_field.CollectData()
 
                 mm_computing_model_part.ProcessInfo.SetValue(Kratos.STEP, step_before_update)
                 mm_computing_model_part.ProcessInfo.SetValue(Kratos.TIME, time_before_update)
                 mm_computing_model_part.ProcessInfo.SetValue(Kratos.DELTA_TIME, delta_time_before_update)
             else:
                 # filter based mesh motion is used. Hence read the value from the filter. then the shape update is the mesh displacement
-                mesh_displacement_field = shape_update.Clone()
+                mesh_displacement_field = shape_update
 
             # a mesh motion is solved (either by mesh motion solver or the filter), and MESH_DISPLACEMENT variable is filled
             # Hence, update the coords
-            physical_field = Kratos.Expression.NodalExpression(self.model_part_operation.GetRootModelPart())
+            physical_field = Kratos.TensorAdaptors.NodePositionTensorAdaptor(mesh_displacement_field.GetContainer(), Kratos.Configuration.Initial)
+            physical_field.CollectData()
+            physical_field.data += mesh_displacement_field.data
 
-            Kratos.Expression.NodalPositionExpressionIO.Read(physical_field, Kratos.Configuration.Initial)
-
-            Kratos.Expression.NodalPositionExpressionIO.Write(mesh_displacement_field + physical_field, Kratos.Configuration.Initial)
-            Kratos.Expression.NodalPositionExpressionIO.Write(mesh_displacement_field + physical_field, Kratos.Configuration.Current)
+            Kratos.TensorAdaptors.NodePositionTensorAdaptor(physical_field, Kratos.Configuration.Initial, copy=False).StoreData()
+            Kratos.TensorAdaptors.NodePositionTensorAdaptor(physical_field, Kratos.Configuration.Current, copy=False).StoreData()
             Kratos.Logger.PrintInfo(self.__class__.__name__, "Applied MESH_DISPLACEMENT to the mesh.")
         else:
             # no mesh motion is preferred, hence only updating the design field
             physical_field = self.GetPhysicalField()
-            Kratos.Expression.NodalPositionExpressionIO.Write(shape_update + physical_field, Kratos.Configuration.Initial)
-            Kratos.Expression.NodalPositionExpressionIO.Write(shape_update + physical_field, Kratos.Configuration.Current)
+            physical_field.data += shape_update.data
+            Kratos.TensorAdaptors.NodePositionTensorAdaptor(physical_field, Kratos.Configuration.Initial, copy=False).StoreData()
+            Kratos.TensorAdaptors.NodePositionTensorAdaptor(physical_field, Kratos.Configuration.Current, copy=False).StoreData()
 
     def __GetPhysicalModelPart(self) -> Kratos.ModelPart:
         if self.mesh_motion_solver_type == "none":
@@ -255,6 +255,18 @@ class VertexMorphingShapeControl(Control):
             # a surface of the volume domain. hence the physical field should be the whole
             # model part
             return self.model_part.GetRootModelPart()
+
+    def __ExtractTensorData(self, variable, tensor_adaptor: Kratos.TensorAdaptors.DoubleTensorAdaptor, nodes_container: Kratos.NodesArray) -> Kratos.TensorAdaptors.DoubleTensorAdaptor:
+        if nodes_container != tensor_adaptor.GetContainer():
+            Kratos.VariableUtils().SetNonHistoricalVariableToZero(variable, tensor_adaptor.GetContainer())
+            Kratos.VariableUtils().SetNonHistoricalVariableToZero(variable, nodes_container)
+
+            Kratos.TensorAdaptors.VariableTensorAdaptor(tensor_adaptor, variable, copy=False).StoreData()
+            ta = Kratos.TensorAdaptors.VariableTensorAdaptor(nodes_container, variable)
+            ta.CollectData()
+            return ta
+        else:
+            return tensor_adaptor
 
     def __str__(self) -> str:
         return f"Control [type = {self.__class__.__name__}, name = {self.GetName()}, model part name = {self.model_part.FullName()}, control variable = SHAPE ]"

@@ -62,7 +62,7 @@ void AddExplicitDamping(
 
     using explicit_damping_type = ExplicitDamping<TContainerType>;
     py::class_<explicit_damping_type, typename explicit_damping_type::Pointer>(m, (rSuffix + "ExplicitDamping").c_str())
-        .def("SetRadius", &explicit_damping_type::SetRadius, py::arg("radius_expression"))
+        .def("SetRadius", &explicit_damping_type::SetRadius, py::arg("radius_tensor_adaptor"))
         .def("GetRadius", &explicit_damping_type::GetRadius)
         .def("GetStride", &explicit_damping_type::GetStride)
         .def("GetDampedModelParts", &explicit_damping_type::GetDampedModelParts)

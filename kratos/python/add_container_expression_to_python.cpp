@@ -45,7 +45,7 @@ void AddContainerExpressionToPython(pybind11::module& m, const std::string& rNam
         .def("HasExpression", &container_expression_holder_base::HasExpression)
         .def("GetExpression", &container_expression_holder_base::pGetExpression)
         .def("GetModelPart", py::overload_cast<>(&container_expression_holder_base::GetModelPart), py::return_value_policy::reference)
-        .def("GetContainer", py::overload_cast<>(&container_expression_holder_base::GetContainer), py::return_value_policy::reference)
+        .def("GetContainer", &container_expression_holder_base::pGetContainer)
         .def("GetItemShape", &container_expression_holder_base::GetItemShape)
         .def("GetItemComponentCount", &container_expression_holder_base::GetItemComponentCount)
         .def("GetMaxDepth", &container_expression_holder_base::GetMaxDepth)
