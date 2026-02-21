@@ -24,7 +24,7 @@
 #include "linear_solvers/linear_solver.h"
 #include "custom_utilities/material_point_search_utility.h"
 #include "custom_utilities/material_point_generator_utility.cpp"
-
+#include "custom_utilities/brute_force_material_point_locator.h"
 
 namespace Kratos{
 namespace Python{
@@ -67,12 +67,20 @@ namespace Python{
 
     void  AddCustomUtilitiesToPython(pybind11::module& m)
     {
+        namespace py = pybind11;
+
         m.def("SearchElement", SearchElementAccordingToDimension);
         m.def("GenerateMaterialPointElement", GenerateMaterialPointElementAccordingToDimension);
         m.def("GenerateMaterialPointCondition", GenerateMaterialPointConditionAccordingToDimension);
         m.def("GenerateLagrangeNodes", MaterialPointGeneratorUtility::GenerateLagrangeNodes);
+
+        // Brute force material point (element/condition) locator
+        py::class_<BruteForceMaterialPointLocator> (m, "BruteForceMaterialPointLocator")
+            .def(py::init<ModelPart& >())
+            .def("FindElement", &BruteForceMaterialPointLocator::FindElement)
+            .def("FindCondition", &BruteForceMaterialPointLocator::FindCondition)
+            ;
     }
 
 }  // namespace Python.
 } // Namespace Kratos
-
