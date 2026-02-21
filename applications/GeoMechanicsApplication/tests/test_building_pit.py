@@ -1066,6 +1066,10 @@ class KratosGeoMechanicsBuildingPit(KratosUnittest.TestCase):
                 ]
             },
         }
+
+        # Stress-free installation of the strut has no impact on the results with respect to the previous stage
+        expected_results["strut_installation"] = expected_results["first_excavation"]
+
         self.run_simulation_and_checks("linear_elastic", expected_results)
 
 
