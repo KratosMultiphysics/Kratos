@@ -8,6 +8,7 @@
 //                   license: OptimizationApplication/license.txt
 //
 //  Main author:     Reza Najian Asl
+//                   Suneth Warnakulasuriya
 //
 
 // System includes

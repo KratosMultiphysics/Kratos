@@ -7,8 +7,7 @@
 //  License:         BSD License
 //                   license: OptimizationApplication/license.txt
 //
-//  Main author:     Reza Najian Asl,
-//                   Suneth Warnakulasuriya
+//  Main author:     Suneth Warnakulasuriya
 //
 
 // System includes
