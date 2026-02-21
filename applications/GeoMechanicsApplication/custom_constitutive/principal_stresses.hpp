@@ -59,6 +59,10 @@ public:
     [[nodiscard]] const InternalVectorType& Values() const;
     [[nodiscard]] InternalVectorType&       Values();
 
+    PrincipalStresses& operator+=(const PrincipalStresses& rRhs);
+    KRATOS_API(GEO_MECHANICS_APPLICATION)
+    friend PrincipalStresses operator+(PrincipalStresses Lhs, const PrincipalStresses& rRhs);
+
 private:
     InternalVectorType mValues = ZeroVector{msVectorSize};
 };
