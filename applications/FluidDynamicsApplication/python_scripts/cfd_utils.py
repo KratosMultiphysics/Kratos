@@ -141,7 +141,7 @@ class CFDUtils:
 
     def Compute_DN_N(self, N: np.ndarray, DN: np.ndarray, pel: np.ndarray, out: np.ndarray):
         """
-        Computes the term (∇w, p).
+        Computes the term (∇·w, p).
 
         Using Einstein notation: out[e,I,k] = sum_J DN[e,I,k]*pel[e,J]*N[J]
 
@@ -156,7 +156,7 @@ class CFDUtils:
         out : ndarray
             Output array, expected to have shape (Nelem, n_in_el, dim).
         """
-        nelem = out.shape[0]
+        # nelem = out.shape[0]
 
         np.einsum("eIk,J,eJ->eIk",DN,N,pel,out=out)
 
