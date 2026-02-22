@@ -29,6 +29,8 @@
 #include "custom_elements/solid_element.h"
 #include "custom_elements/stokes_element.h"
 #include "custom_elements/gap_sbm_solid_element.h"
+#include "custom_elements/gap_sbm_solid_condition.h"
+#include "custom_elements/gap_sbm_load_solid_condition.h"
 
 //conditions
 #include "custom_conditions/output_condition.h"
@@ -167,6 +169,8 @@ private:
     const LoadSolidCondition mLoadSolidCondition;
     const SbmSolidCondition mSbmSolidCondition;
     const SbmLoadSolidCondition mSbmLoadSolidCondition;
+    const GapSbmSolidCondition mGapSbmSolidCondition;
+    const GapSbmLoadSolidCondition mGapSbmLoadSolidCondition;
     const GapSbmSolidInterfaceCondition mGapSbmSolidInterfaceCondition;
 
 
