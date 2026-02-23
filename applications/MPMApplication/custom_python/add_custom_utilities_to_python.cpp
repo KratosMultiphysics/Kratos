@@ -77,8 +77,8 @@ namespace Python{
         // Brute force material point (element/condition) locator
         py::class_<BruteForceMaterialPointLocator> (m, "BruteForceMaterialPointLocator")
             .def(py::init<ModelPart& >())
-            .def("FindElement", &BruteForceMaterialPointLocator::FindElement)
-            .def("FindCondition", &BruteForceMaterialPointLocator::FindCondition)
+            .def("FindElement", &BruteForceMaterialPointLocator::FindElement, py::arg("point"), py::arg("tolerance"))
+            .def("FindCondition", &BruteForceMaterialPointLocator::FindCondition, py::arg("point"), py::arg("tolerance"))
             ;
     }
 
