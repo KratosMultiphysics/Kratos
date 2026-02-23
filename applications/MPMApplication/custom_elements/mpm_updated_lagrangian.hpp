@@ -306,11 +306,6 @@ public:
     void Initialize(const ProcessInfo& rCurrentProcessInfo) override;
 
     /**
-     * Called at the beginning of each solution step
-     */
-    void InitializeSolutionStep(const ProcessInfo& rCurrentProcessInfo) override;
-
-    /**
      * This is a first and temporary attempt to move Particle to Grid Mapping from InitializeSolutionStep.
      * This will be moved to an utility in the future, after restructuring of MPM's internal variables data structure.
      * this is called at predict before doing the actual predict
@@ -493,12 +488,6 @@ protected:
      * Container for constitutive law instances on each integration point
      */
     ConstitutiveLaw::Pointer mConstitutiveLawVector;
-
-
-    /**
-     * Finalize and Initialize label
-     */
-    bool mFinalizedStep;
 
     ///@}
     ///@name Protected Operators

@@ -56,9 +56,6 @@ MPMUpdatedLagrangian::MPMUpdatedLagrangian( IndexType NewId, GeometryType::Point
     : Element( NewId, pGeometry, pProperties )
     , mMP()
 {
-    mFinalizedStep = true;
-
-
 }
 //******************************COPY CONSTRUCTOR**************************************
 //************************************************************************************
@@ -69,7 +66,6 @@ MPMUpdatedLagrangian::MPMUpdatedLagrangian( MPMUpdatedLagrangian const& rOther)
     ,mDeformationGradientF0(rOther.mDeformationGradientF0)
     ,mDeterminantF0(rOther.mDeterminantF0)
     ,mConstitutiveLawVector(rOther.mConstitutiveLawVector)
-    ,mFinalizedStep(rOther.mFinalizedStep)
 {
 }
 
@@ -817,13 +813,6 @@ void MPMUpdatedLagrangian::CalculateLocalSystem(
         rCurrentProcessInfo, true, true);
 }
 
-//*******************************************************************************************
-//*******************************************************************************************
-void MPMUpdatedLagrangian::InitializeSolutionStep(const ProcessInfo& rCurrentProcessInfo )
-{
-    mFinalizedStep = false; // FIXME: this doesn't seem to be used anywhere
-}
-
 
 void MPMUpdatedLagrangian::AddExplicitContribution(const ProcessInfo& rCurrentProcessInfo)
 {
@@ -913,8 +902,6 @@ void MPMUpdatedLagrangian::FinalizeSolutionStep(const ProcessInfo& rCurrentProce
 
     // Call the element internal variables update
     this->FinalizeStepVariables(Variables, rCurrentProcessInfo);
-
-    mFinalizedStep = true;
 
     KRATOS_CATCH( "" )
 }

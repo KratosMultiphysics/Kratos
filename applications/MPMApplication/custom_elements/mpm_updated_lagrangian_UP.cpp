@@ -53,9 +53,6 @@ MPMUpdatedLagrangianUP::MPMUpdatedLagrangianUP( IndexType NewId, GeometryType::P
     : MPMUpdatedLagrangian( NewId, pGeometry, pProperties )
     , m_mp_pressure(1.0)
 {
-    mFinalizedStep = true;
-
-
 }
 //******************************COPY CONSTRUCTOR**************************************
 //************************************************************************************
@@ -348,8 +345,6 @@ void MPMUpdatedLagrangianUP::AddExplicitContribution(const ProcessInfo& rCurrent
 
     // Calculating shape function
     const Matrix& r_N = GetGeometry().ShapeFunctionsValues();
-
-    mFinalizedStep = false;
 
     array_1d<double,3> nodal_momentum = ZeroVector(3);
     array_1d<double,3> nodal_inertia = ZeroVector(3);

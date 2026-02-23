@@ -44,7 +44,7 @@ MPMUpdatedLagrangianPQ::MPMUpdatedLagrangianPQ( IndexType NewId, GeometryType::P
 
 MPMUpdatedLagrangianPQ::MPMUpdatedLagrangianPQ( IndexType NewId, GeometryType::Pointer pGeometry, PropertiesType::Pointer pProperties )
     : MPMUpdatedLagrangian( NewId, pGeometry, pProperties )
-{ mFinalizedStep = true; }
+{ }
 
 MPMUpdatedLagrangianPQ::MPMUpdatedLagrangianPQ(MPMUpdatedLagrangianPQ const& rOther)
     :MPMUpdatedLagrangian(rOther)
@@ -105,8 +105,6 @@ void MPMUpdatedLagrangianPQ::AddExplicitContribution(const ProcessInfo& rCurrent
     GeometryType& r_geometry = GetGeometry();
     const unsigned int dimension = r_geometry.WorkingSpaceDimension();
     const unsigned int number_of_nodes = r_geometry.PointsNumber();
-
-    mFinalizedStep = false;
 
     // Calculating shape functions
     array_1d<double, 3> nodal_momentum = ZeroVector(3);
