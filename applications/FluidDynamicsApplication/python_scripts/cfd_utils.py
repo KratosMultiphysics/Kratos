@@ -6,7 +6,7 @@ class CFDUtils:
 
     def GetShapeFunctionsOnGaussPoints(self, dim: int, integration_order: int):
         if integration_order == 1:
-            N = np.ones(dim+1) / (dim+1)
+            N = np.array([np.ones(dim+1) / (dim+1)])
         elif integration_order == 2:
             if dim == 2:
                 N = np.array([
@@ -350,7 +350,7 @@ class CFDUtils:
         print(field.ndim)
         raise ValueError("field must have 2 dims (scalar) or 3 dims (vector), Current shape of field is:",field.shape)
 
-    def ComputeConvectiveContribution(self, N: np.ndarray, grad_u: np.ndarray, a: np.ndarray, out: np.ndarray):
+    def ComputeConvectiveContribution(self, N: np.ndarray, grad_u: np.ndarray, a: np.ndarray, rho: float, out: np.ndarray):
         """
         Compute (w,a·∇u) although with the definition we employ for ∇u this is actually (w,∇u·a)
 
@@ -378,12 +378,14 @@ class CFDUtils:
             np.einsum('i,el,el->ei', N, grad_u, a, out=out)
         else:
             raise ValueError("grad_u must have 2 dims (scalar) or 3 dims (vector)")
+        out *= rho
 
-    def ComputeMomentumStabilization(self, N: np.ndarray, DN: np.ndarray, a: np.ndarray, u_elemental: np.ndarray, Pi_elemental: np.ndarray, out: np.ndarray, a_DN: np.ndarray, PiContrib: np.ndarray):
+    def ComputeMomentumStabilization(self, N: np.ndarray, DN: np.ndarray, a: np.ndarray, u_elemental: np.ndarray, Pi_elemental: np.ndarray, rho: float, out: np.ndarray, rho_a_DN: np.ndarray, PiContrib: np.ndarray):
         ##TODO: avoid temporaries!
-        np.einsum("el,eil->ei",a,DN, out=a_DN) #TODO: reuse an auxiliary array
-        np.einsum("eI,eJ,eJk->eIk",a_DN,a_DN,u_elemental,out=out)
-        np.einsum("eI,J,eJk->eIk",a_DN,N,Pi_elemental, out=PiContrib)
+        np.einsum("el,eil->ei",a,DN, out=rho_a_DN) #TODO: reuse an auxiliary array
+        rho_a_DN *= rho
+        np.einsum("eI,eJ,eJk->eIk",rho_a_DN, rho_a_DN, u_elemental,out=out)
+        np.einsum("eI,J,eJk->eIk",rho_a_DN, N, Pi_elemental, out=PiContrib)
         out -= PiContrib
 
     def ComputeDivDivStabilization(self, DN: np.ndarray, Pi_elemental: np.ndarray, out: np.ndarray):
