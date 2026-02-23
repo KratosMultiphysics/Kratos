@@ -1177,28 +1177,25 @@ protected:
         //for (typename ElementsArrayType::ptr_iterator it = pElements.ptr_begin(); it != pElements.ptr_end(); ++it)
 
         const int nelements = static_cast<int>(pElements.size());
-        std::vector<std::string> error_messages;
+        KRATOS_PREPARE_CATCH_THREAD_EXCEPTION
+
         #pragma omp parallel firstprivate(nelements, RHS_Contribution, EquationId)
         {
             #pragma omp for schedule(guided, 512) nowait
             for (int i=0; i<nelements; i++) {
-                if (!error_messages.empty()) continue;
+                KRATOS_TRY
 
-                try {
-                    typename ElementsArrayType::iterator it = pElements.begin() + i;
-                    // If the element is active
-                    if(it->IsActive()) {
-                        //calculate elemental Right Hand Side Contribution
-                        pScheme->CalculateRHSContribution(*it, RHS_Contribution, EquationId, CurrentProcessInfo);
+                typename ElementsArrayType::iterator it = pElements.begin() + i;
+                // If the element is active
+                if(it->IsActive()) {
+                    //calculate elemental Right Hand Side Contribution
+                    pScheme->CalculateRHSContribution(*it, RHS_Contribution, EquationId, CurrentProcessInfo);
 
-                        //assemble the elemental contribution
-                        AssembleRHS(b, RHS_Contribution, EquationId);
-                    }
+                    //assemble the elemental contribution
+                    AssembleRHS(b, RHS_Contribution, EquationId);
                 }
-                catch (const Exception& e) {
-                    const std::lock_guard scope_lock(ParallelUtilities::GetGlobalLock());
-                    error_messages.emplace_back(e.what());
-                }
+
+                KRATOS_CATCH_THREAD_EXCEPTION
             }
 
             LHS_Contribution.resize(0, 0, false);
@@ -1208,27 +1205,23 @@ protected:
             const int nconditions = static_cast<int>(ConditionsArray.size());
             #pragma omp for schedule(guided, 512)
             for (int i = 0; i<nconditions; i++) {
-                if (!error_messages.empty()) continue;
+                KRATOS_TRY
 
-                try {
-                    auto it = ConditionsArray.begin() + i;
-                    // If the condition is active
-                    if(it->IsActive()) {
-                        //calculate elemental contribution
-                        pScheme->CalculateRHSContribution(*it, RHS_Contribution, EquationId, CurrentProcessInfo);
+                auto it = ConditionsArray.begin() + i;
+                // If the condition is active
+                if(it->IsActive()) {
+                    //calculate elemental contribution
+                    pScheme->CalculateRHSContribution(*it, RHS_Contribution, EquationId, CurrentProcessInfo);
 
-                        //assemble the elemental contribution
-                        AssembleRHS(b, RHS_Contribution, EquationId);
-                    }
+                    //assemble the elemental contribution
+                    AssembleRHS(b, RHS_Contribution, EquationId);
                 }
-                catch (const Exception& e) {
-                    const std::lock_guard scope_lock(ParallelUtilities::GetGlobalLock());
-                    error_messages.emplace_back(e.what());
-                }
+
+                KRATOS_CATCH_THREAD_EXCEPTION
             }
         }
-        const auto accumulated_messages = std::accumulate(error_messages.begin(), error_messages.end(), std::string{});
-        KRATOS_ERROR_IF_NOT(error_messages.empty()) << "Error(s) occurred in parallel region: \n" << accumulated_messages << std::endl;
+
+        KRATOS_CHECK_AND_THROW_THREAD_EXCEPTION
 
         KRATOS_CATCH("")
 
