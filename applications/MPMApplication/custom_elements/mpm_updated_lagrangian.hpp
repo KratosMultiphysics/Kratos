@@ -372,11 +372,6 @@ public:
                                 const ProcessInfo& rCurrentProcessInfo) override;
 
 
-    void AddExplicitContribution(const VectorType& rRHSVector,
-                                 const Variable<VectorType>& rRHSVariable,
-                                 const Variable<array_1d<double, 3> >& rDestinationVariable,
-                                 const ProcessInfo& rCurrentProcessInfo) override;
-
     //************************************************************************************
     //************************************************************************************
     /**
@@ -422,10 +417,6 @@ public:
     ///@}
     ///@name Access Get Values
     ///@{
-
-    void CalculateOnIntegrationPoints(const Variable<bool>& rVariable,
-        std::vector<bool>& rValues,
-        const ProcessInfo& rCurrentProcessInfo) override;
 
     void CalculateOnIntegrationPoints(const Variable<int>& rVariable,
         std::vector<int>& rValues,
@@ -567,11 +558,6 @@ protected:
     virtual void CalculateAndAddInternalForces(VectorType& rRightHandSideVector,
             GeneralVariables & rVariables,
             const double& rIntegrationWeight);
-
-    /// Calculation of the Explicit Stresses from velocity gradient.
-    virtual void CalculateExplicitStresses(const ProcessInfo& rCurrentProcessInfo,
-        GeneralVariables& rVariables);
-
 
     /**
      * Set Variables of the Element to the Parameters of the Constitutive Law
