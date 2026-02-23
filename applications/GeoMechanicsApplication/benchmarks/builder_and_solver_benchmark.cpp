@@ -27,7 +27,7 @@ using LinearSolverType = LinearSolver<SparseSpaceType, DenseSpaceType>;
 
 void BenchmarkBuildRHS(benchmark::State& rState)
 {
-    KratosGeoMechanicsApplication application;
+    KratosApplication application("KratosApplication");
     application.Register();
 
     const auto number_of_cores = rState.range();
@@ -46,7 +46,7 @@ void BenchmarkBuildRHS(benchmark::State& rState)
     Quadrilateral2D4<Node> domain_geometry(p_point_1, p_point_2, p_point_3, p_point_4);
 
     Parameters mesher_parameters(R"({
-        "number_of_divisions": 1000,
+        "number_of_divisions": 10,
         "element_name": "Element2D3N",
         "condition_name": "LineCondition",
         "create_skin_sub_model_part": true
