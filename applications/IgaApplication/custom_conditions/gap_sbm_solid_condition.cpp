@@ -323,7 +323,13 @@ void GapSbmSolidCondition::CalculateRightHandSide(
 
     // ASSEMBLE
     //-----------------------------------------------------
+
     Vector u_D = mpSkinProjectionNode->GetValue(DISPLACEMENT);
+
+    // const double x = r_true_geometry.Center().X();
+    // const double y = r_true_geometry.Center().Y();
+    // u_D[0] = -cos(x)*sinh(y);
+    // u_D[1] = sin(x)*cosh(y);
 
     for (IndexType i = 0; i < number_of_control_points; i++) {
             

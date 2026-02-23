@@ -117,6 +117,10 @@ void GapSbmLoadSolidCondition::InitializeSbmMemberVariables()
         
     mDistanceVectorSkin.resize(3);
     noalias(mDistanceVectorSkin) = mpSkinProjectionNode->Coordinates() - r_surrogate_geometry.Center().Coordinates();
+
+    // mDistanceVectorSkin[0] = mDistanceVectorGap[0] + 1e-6;
+    // mDistanceVectorSkin[1] = mDistanceVectorGap[1] + 1e-6;
+
     // mDistanceVectorSkin = mDistanceVectorGap; //FIXME:
     // mTrueNormal = mNormalPhysicalSpace; //FIXME:
 
@@ -124,6 +128,15 @@ void GapSbmLoadSolidCondition::InitializeSbmMemberVariables()
 
     // dot product n dot n_tilde
     mTrueDotSurrogateNormal = inner_prod(mNormalPhysicalSpace, mTrueNormal);
+
+    // if (mTrueDotSurrogateNormal < 0.9)
+    // {
+    //     KRATOS_WATCH("-------------")
+    //     KRATOS_WATCH(r_surrogate_geometry.Center())
+    //     KRATOS_WATCH(r_geometry.Center())
+    //     KRATOS_WATCH(mNormalPhysicalSpace)
+    //     KRATOS_WATCH(mTrueNormal)
+    // }
     // mTrueDotSurrogateNormal = 1.0; //FIXME:
 
     const Point&  p_true = r_geometry.Center();            // true boundary
@@ -339,8 +352,8 @@ void GapSbmLoadSolidCondition::CalculateRightHandSide(
     const double y = mpSkinProjectionNode->Y();
 
     // FIXME:
-    // const double x = r_boundary_geometry.Center().X();
-    // const double y = r_boundary_geometry.Center().Y();
+    // const double x = r_surrogate_geometry.Center().X() + mDistanceVectorSkin[0];
+    // const double y = r_surrogate_geometry.Center().Y() + mDistanceVectorSkin[1];
     // // cosinusoidal
     g_N[0] = E/(1-nu)*(sin(x)*sinh(y)) * mTrueNormal[0]; 
     g_N[1] = E/(1-nu)*(sin(x)*sinh(y)) * mTrueNormal[1]; 

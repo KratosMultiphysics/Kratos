@@ -151,6 +151,13 @@ void NurbsGeometryModelerGapSbm::CreateAndAddRegularGrid2D(
         snake_parameters.AddDouble("number_of_inner_loops", mParameters["number_of_inner_loops"].GetInt());
     if (mParameters.Has("number_internal_divisions"))
         snake_parameters.AddDouble("number_internal_divisions", mParameters["number_internal_divisions"].GetInt());
+    if (mParameters.Has("gap_relative_tolerance_for_subdivisions"))
+        snake_parameters.AddDouble("gap_relative_tolerance_for_subdivisions", mParameters["gap_relative_tolerance_for_subdivisions"].GetDouble());
+    if (mParameters.Has("number_of_interpolation_levels")) {
+        const int interpolation_levels = mParameters["number_of_interpolation_levels"].GetInt();
+        if (interpolation_levels > 0)
+            snake_parameters.AddInt("number_of_interpolation_levels", interpolation_levels);
+    }
     if (mParameters.Has("number_initial_points_if_importing_nurbs"))
         snake_parameters.AddInt("number_initial_points_if_importing_nurbs", mParameters["number_initial_points_if_importing_nurbs"].GetInt());
     if (mParameters.Has("gap_approximation_order"))
@@ -298,6 +305,13 @@ void NurbsGeometryModelerGapSbm::CreateAndAddRegularGrid3D(
         snake_parameters.AddDouble("lambda_outer", mParameters["lambda_outer"].GetDouble());
     if (mParameters.Has("number_of_inner_loops"))
         snake_parameters.AddDouble("number_of_inner_loops", mParameters["number_of_inner_loops"].GetInt());
+    if (mParameters.Has("gap_relative_tolerance_for_subdivisions"))
+        snake_parameters.AddDouble("gap_relative_tolerance_for_subdivisions", mParameters["gap_relative_tolerance_for_subdivisions"].GetDouble());
+    if (mParameters.Has("number_of_interpolation_levels")) {
+        const int interpolation_levels = mParameters["number_of_interpolation_levels"].GetInt();
+        if (interpolation_levels > 0)
+            snake_parameters.AddInt("number_of_interpolation_levels", interpolation_levels);
+    }
     if (mParameters.Has("gap_approximation_order"))
         snake_parameters.AddInt("gap_approximation_order", mParameters["gap_approximation_order"].GetInt());
     
@@ -334,6 +348,8 @@ const Parameters NurbsGeometryModelerGapSbm::GetDefaultParameters() const
         "number_of_inner_loops": 0,
         "number_initial_points_if_importing_nurbs": 100,
         "number_internal_divisions": 1,
+        "number_of_interpolation_levels": 3,
+        "gap_relative_tolerance_for_subdivisions": 0.1,
         "gap_approximation_order": 0,
         "gap_element_name": "",
         "gap_interface_condition_name": "",
@@ -358,6 +374,8 @@ const Parameters NurbsGeometryModelerGapSbm::GetValidParameters() const
         "number_of_inner_loops": 0,
         "number_initial_points_if_importing_nurbs": 100,
         "number_internal_divisions": 1,
+        "number_of_interpolation_levels": 3,
+        "gap_relative_tolerance_for_subdivisions": 0.1,
         "gap_approximation_order": 0,
         "skin_model_part_inner_initial_name": "r_skin_model_part_inner_initial",
         "skin_model_part_outer_initial_name": "r_skin_model_part_outer_initial",

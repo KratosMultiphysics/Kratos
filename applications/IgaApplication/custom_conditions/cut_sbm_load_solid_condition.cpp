@@ -163,7 +163,7 @@ void CutSbmLoadSolidCondition::CalculateRightHandSide(
     Vector N_sum_vec = ZeroVector(number_of_control_points);
     ComputeTaylorExpansionContribution(N_sum_vec);
 
-    // Vector g_N = this->GetValue(FORCE); 
+    // Vector g_N = this->GetValue(FORCE);     
 
     Vector g_N = ZeroVector(3); 
 

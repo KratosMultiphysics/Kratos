@@ -325,8 +325,11 @@ private:
     std::string mGapElementName;
     std::string mGapInterfaceConditionName;
     std::size_t mInternalDivisions;
+    double mGapRelativeToleranceForSubdivisions;
     std::size_t mGapApproximationOrder;
+    std::size_t mNumberOfInterpolationLevels;
     std::size_t mGapInterpolationOrder;
+    bool mHasNumberOfInterpolationLevels = false;
     std::string mGapSbmType;
     bool mUseForMultipatch = false;
 

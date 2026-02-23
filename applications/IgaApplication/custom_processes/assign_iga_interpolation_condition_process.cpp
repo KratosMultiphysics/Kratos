@@ -491,7 +491,8 @@ const Parameters AssignIgaInterpolationConditionProcess::GetDefaultParameters() 
         "echo_level" : 0,
         "model_part_name" : "",
         "reference_model_part_name" : "",
-        "poly_degree": 1
+        "poly_degree": 1,
+        "local_stencil_size": 0
     }
     )");
 
@@ -596,26 +597,44 @@ void AssignIgaInterpolationConditionProcess::AssignInterpolatedValuesToCondition
 
             // Build (t_nodes, nodal_values)
             if (all_nodes_have_value) {
-                // Collapse duplicates on t
-                // std::vector<double> t_unique, v_unique;
-                // CollapseDuplicates(t_nodes, nodal_values, t_unique, v_unique);
-                
-                // // Degree p from parameters, clamped
-                // std::size_t p = t_unique.size()-1;
+                const std::size_t point_count = t_nodes.size();
+                KRATOS_ERROR_IF(point_count == 0)
+                    << "AssignIgaInterpolationConditionProcess: empty interpolation nodes list." << std::endl;
 
-                // const double interpolated_value = PolyInterpDegreeP(t_unique, v_unique, t_center, p);
-                // r_condition.SetValue(*p_variable, interpolated_value);
-                
-                // Use all samples with LSQ and enforce endpoints
-                std::size_t p = round(t_nodes.size()/3)+1; // choose degree; or read from parameters
-                if (mParameters.Has("poly_degree")) {
-                    std::size_t tentative_p = static_cast<std::size_t>(mParameters["poly_degree"].GetInt());
+                std::vector<double> t_unique;
+                std::vector<double> v_unique;
+                CollapseDuplicates(t_nodes, nodal_values, t_unique, v_unique);
 
-                    p = std::min(p, tentative_p);
+                if (t_unique.empty()) {
+                    r_condition.SetValue(*p_variable, 0.0);
+                    continue;
                 }
 
-                const double interpolated_value =
-                    PolyFitConstrainedEval(t_nodes, nodal_values, t_center, p, /*enforce_endpoints=*/true);
+                if (t_unique.size() == 1) {
+                    r_condition.SetValue(*p_variable, v_unique.front());
+                    continue;
+                }
+
+                const auto upper_it = std::lower_bound(t_unique.begin(), t_unique.end(), t_center);
+                if (upper_it == t_unique.begin()) {
+                    r_condition.SetValue(*p_variable, v_unique.front());
+                    continue;
+                }
+                if (upper_it == t_unique.end()) {
+                    r_condition.SetValue(*p_variable, v_unique.back());
+                    continue;
+                }
+
+                const std::size_t upper_idx = static_cast<std::size_t>(upper_it - t_unique.begin());
+                const std::size_t lower_idx = upper_idx - 1;
+
+                const double t_lower = t_unique[lower_idx];
+                const double t_upper = t_unique[upper_idx];
+                const double v_lower = v_unique[lower_idx];
+                const double v_upper = v_unique[upper_idx];
+                const double denom = t_upper - t_lower;
+                const double s = (std::abs(denom) > 1.0e-16) ? (t_center - t_lower) / denom : 0.0;
+                const double interpolated_value = v_lower + s * (v_upper - v_lower);
 
                 r_condition.SetValue(*p_variable, interpolated_value);
 
