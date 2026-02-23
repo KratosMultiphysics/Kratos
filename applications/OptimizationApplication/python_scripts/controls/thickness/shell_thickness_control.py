@@ -106,7 +106,7 @@ class ShellThicknessControl(Control):
         field.data[:] = 0.0
         return field
 
-    def GetControlField(self) -> ContainerExpressionTypes:
+    def GetControlField(self) -> Kratos.TensorAdaptors.DoubleTensorAdaptor:
         return self.control_phi_field.Clone()
 
     def GetPhysicalField(self) -> Kratos.TensorAdaptors.DoubleTensorAdaptor:
