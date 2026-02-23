@@ -11,8 +11,7 @@
 //
 
 
-#if !defined(KRATOS_UPDATED_LAGRANGIAN_UP_H_INCLUDED )
-#define  KRATOS_UPDATED_LAGRANGIAN_UP_H_INCLUDED
+#pragma once
 
 // System includes
 
@@ -463,4 +462,3 @@ private:
 ///@}
 
 } // namespace Kratos.
-#endif // KRATOS_UPDATED_LAGRANGIAN_H_INCLUDED  defined
