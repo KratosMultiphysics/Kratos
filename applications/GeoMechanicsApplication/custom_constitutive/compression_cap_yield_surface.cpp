@@ -115,14 +115,12 @@ double CompressionCapYieldSurface::GetPreconsolidationStress() const
 
 double CompressionCapYieldSurface::YieldFunctionValue(const Geo::PQ& rPQ) const
 {
-    return std::pow(rPQ.Values()[1] / GetCapSize(), 2) + rPQ.Values()[0] * rPQ.Values()[0] -
-           std::pow(GetPreconsolidationStress(), 2);
+    return std::pow(rPQ.Q() / GetCapSize(), 2) + rPQ.P() * rPQ.P() - std::pow(GetPreconsolidationStress(), 2);
 }
 
 Vector CompressionCapYieldSurface::DerivativeOfFlowFunction(const Geo::PQ& rPQ) const
 {
-    return UblasUtilities::CreateVector(
-        {2.0 * rPQ.Values()[0], 2.0 * rPQ.Values()[1] / std::pow(GetCapSize(), 2)});
+    return UblasUtilities::CreateVector({2.0 * rPQ.P(), 2.0 * rPQ.Q() / std::pow(GetCapSize(), 2)});
 }
 
 void CompressionCapYieldSurface::InitializeKappaDependentFunctions()
