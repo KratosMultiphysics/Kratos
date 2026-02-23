@@ -28,14 +28,6 @@
 namespace Kratos
 {
 
-///**
-//* Flags related to the element computation
-//*/
-//KRATOS_CREATE_LOCAL_FLAG( MPMUpdatedLagrangian, COMPUTE_RHS_VECTOR,                 0 );
-//KRATOS_CREATE_LOCAL_FLAG( MPMUpdatedLagrangian, COMPUTE_LHS_MATRIX,                 1 );
-//KRATOS_CREATE_LOCAL_FLAG( MPMUpdatedLagrangian, COMPUTE_RHS_VECTOR_WITH_COMPONENTS, 2 );
-//KRATOS_CREATE_LOCAL_FLAG( MPMUpdatedLagrangian, COMPUTE_LHS_MATRIX_WITH_COMPONENTS, 3 );
-
 //******************************CONSTRUCTOR*******************************************
 //************************************************************************************
 

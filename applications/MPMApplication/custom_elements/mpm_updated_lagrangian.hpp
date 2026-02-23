@@ -74,15 +74,6 @@ public:
 
 protected:
 
-    /**
-     * Flags related to the element computation
-     */
-
-    KRATOS_DEFINE_LOCAL_FLAG( COMPUTE_RHS_VECTOR );
-    KRATOS_DEFINE_LOCAL_FLAG( COMPUTE_LHS_MATRIX );
-    KRATOS_DEFINE_LOCAL_FLAG( COMPUTE_RHS_VECTOR_WITH_COMPONENTS );
-    KRATOS_DEFINE_LOCAL_FLAG( COMPUTE_LHS_MATRIX_WITH_COMPONENTS );
-
     struct MaterialPointVariables
     {
     public:
