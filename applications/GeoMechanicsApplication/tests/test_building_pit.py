@@ -786,7 +786,7 @@ class KratosGeoMechanicsBuildingPit(KratosUnittest.TestCase):
 
         reader = GiDOutputFileReader()
         rel_tolerance = 0.07
-        abs_tolerance_map = {"BENDING_MOMENT": 200.0, "SHEAR_FORCE": 500.0}
+        abs_tolerance_map = {"BENDING_MOMENT": 200.0, "SHEAR_FORCE": 500.0, "AXIAL_FORCE": 2.0e3}
         for stage_tag, expected_stage_results in expected_results.items():
             stage_base_name = self.stages_info[stage_tag]["base_name"]
             stage_output = reader.read_output_from(
@@ -1019,7 +1019,8 @@ class KratosGeoMechanicsBuildingPit(KratosUnittest.TestCase):
         #  -5.0    5449
         # -10.0    4768
 
-        # The expected values have been taken from the comparison data files
+        # The expected values have been taken from the comparison data files (except for the end points, which are
+        # supposed to be zero)
         expected_results = {
             "wall_installation": {
                 "BENDING_MOMENT": [
@@ -1038,6 +1039,15 @@ class KratosGeoMechanicsBuildingPit(KratosUnittest.TestCase):
                     {"node": 6867, "value": 479.0},
                     {"node": 6173, "value": 367.0},
                     {"node": 5449, "value": -81.8},
+                    {"node": 4768, "value": 0.0},
+                ],
+                "AXIAL_FORCE": [
+                    {"node": 8988, "value": 0.0},
+                    {"node": 8351, "value": -52.5e3},
+                    {"node": 7597, "value": -100.0e3},
+                    {"node": 6867, "value": -143.0e3},
+                    {"node": 6173, "value": -181.5e3},
+                    {"node": 5449, "value": -138.0e3},
                     {"node": 4768, "value": 0.0},
                 ]
             },
@@ -1059,6 +1069,15 @@ class KratosGeoMechanicsBuildingPit(KratosUnittest.TestCase):
                     {"node": 6173, "value": 23.7e3},
                     {"node": 5449, "value": -6.96e3},
                     {"node": 4768, "value": 0.0},
+                ],
+                "AXIAL_FORCE": [
+                    {"node": 8988, "value": 0.0},
+                    {"node": 8351, "value": 27.8e3},
+                    {"node": 7597, "value": 59.3e3},
+                    {"node": 6867, "value": 58.1e3},
+                    {"node": 6173, "value": 31.7e3},
+                    {"node": 5449, "value": 20.9e3},
+                    {"node": 4768, "value": 0.0},
                 ]
             },
             "second_excavation": {
@@ -1079,6 +1098,15 @@ class KratosGeoMechanicsBuildingPit(KratosUnittest.TestCase):
                     {"node": 6173, "value": 62.8e3},
                     {"node": 5449, "value": -20.9e3},
                     {"node": 4768, "value": 0.0},
+                ],
+                "AXIAL_FORCE": [
+                    {"node": 8988, "value": 0.0},
+                    {"node": 8351, "value": -51.9e3},
+                    {"node": 7597, "value": -116.5e3},
+                    {"node": 6867, "value": 118.0e3},
+                    {"node": 6173, "value": 164.0e3},
+                    {"node": 5449, "value": 169.0e3},
+                    {"node": 4768, "value": 0.0},
                 ]
             },
             "third_excavation": {
@@ -1098,6 +1126,15 @@ class KratosGeoMechanicsBuildingPit(KratosUnittest.TestCase):
                     {"node": 6867, "value": 140.0e3},
                     {"node": 6173, "value": 463.5e3},
                     {"node": 5449, "value": -122.0e3},
+                    {"node": 4768, "value": 0.0},
+                ],
+                "AXIAL_FORCE": [
+                    {"node": 8988, "value": 0.0},
+                    {"node": 8351, "value": -32.0e3}, # use regression value due to local deviation
+                    {"node": 7597, "value": -87.9e3}, # use regression value due to local deviation
+                    {"node": 6867, "value": -195.5e3}, # use regression value due to local deviation
+                    {"node": 6173, "value": -339.8e3}, # use regression value due to local deviation
+                    {"node": 5449, "value": 65.7e3},
                     {"node": 4768, "value": 0.0},
                 ]
             },
