@@ -14,7 +14,6 @@
 #pragma once
 
 // System includes
-// #include <algorithm>
 
 // Project includes
 #include "includes/model_part.h"
