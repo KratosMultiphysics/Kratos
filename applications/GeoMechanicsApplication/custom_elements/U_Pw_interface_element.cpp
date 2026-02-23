@@ -350,6 +350,7 @@ void UPwInterfaceElement::Calculate(const Variable<Vector>& rVariable, Vector& r
         GeoElementUtilities::AssignUBlockVector(
             rOutput, GeoEquationOfMotionUtilities::CalculateInternalForceVector(
                          local_b_matrices, tractions, integration_coefficients));
+        CalculateAndAssembleUPCouplingForceVector(rOutput);
     } else if (rVariable == EXTERNAL_FORCES_VECTOR) {
         GeoElementUtilities::AssignUBlockVector(rOutput, Vector{NumberOfUDofs(), 0.0});
     }
