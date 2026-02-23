@@ -126,10 +126,11 @@ TEST_P(ParametrizedDerivativeOfFlowFunctionOfTensionCutOff, TensionCutOff_Deriva
     constexpr auto tensile_strength = 2.0;
     const auto     tension_cut_off  = TensionCutoff{tensile_strength};
     const auto&    sigma_tau        = GetParam();
+    const auto averaging_type = Geo::PrincipalStresses::PrincipalStressesAveragingType::NO_AVERAGING;
 
     // Act & Assert
     const auto expected_derivative = UblasUtilities::CreateVector({1.0, 1.0});
-    KRATOS_EXPECT_VECTOR_NEAR(tension_cut_off.DerivativeOfFlowFunction(sigma_tau),
+    KRATOS_EXPECT_VECTOR_NEAR(tension_cut_off.DerivativeOfFlowFunction(sigma_tau, averaging_type),
                               expected_derivative, Defaults::absolute_tolerance);
 }
 
@@ -147,6 +148,7 @@ KRATOS_TEST_CASE_IN_SUITE(TensionCutOff_CanBeSavedAndLoaded, KratosGeoMechanicsF
     constexpr auto tensile_strength = 2.0;
     const auto     tension_cut_off  = TensionCutoff{tensile_strength};
     auto           serializer       = StreamSerializer{};
+    const auto averaging_type = Geo::PrincipalStresses::PrincipalStressesAveragingType::NO_AVERAGING;
 
     // Act
     serializer.save("test_tag"s, tension_cut_off);
@@ -158,7 +160,7 @@ KRATOS_TEST_CASE_IN_SUITE(TensionCutOff_CanBeSavedAndLoaded, KratosGeoMechanicsF
     const auto sigma_tau = StressStrainUtilities::TransformPrincipalStressesToSigmaTau(principal_stresses);
     KRATOS_EXPECT_NEAR(loaded_tension_cut_off.YieldFunctionValue(sigma_tau), 0.0, Defaults::absolute_tolerance);
     const auto expected_derivative = UblasUtilities::CreateVector({1.0, 1.0});
-    KRATOS_EXPECT_VECTOR_NEAR(loaded_tension_cut_off.DerivativeOfFlowFunction(sigma_tau),
+    KRATOS_EXPECT_VECTOR_NEAR(loaded_tension_cut_off.DerivativeOfFlowFunction(sigma_tau, averaging_type),
                               expected_derivative, Defaults::absolute_tolerance);
 }
 

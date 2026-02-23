@@ -14,6 +14,7 @@
 
 #pragma once
 
+#include "custom_constitutive/principal_stresses.hpp"
 #include "custom_constitutive/yield_surface.h"
 
 namespace Kratos
@@ -40,7 +41,21 @@ public:
     [[nodiscard]] double YieldFunctionValue(const Geo::SigmaTau& rSigmaTau) const;
     [[nodiscard]] double YieldFunctionValue(const Geo::PrincipalStresses& rPrincipalStresses) const;
     [[nodiscard]] Vector DerivativeOfFlowFunction(const Vector&) const override;
-    [[nodiscard]] Vector DerivativeOfFlowFunction(const Geo::SigmaTau&) const;
+    [[nodiscard]] Vector DerivativeOfFlowFunction(
+        const Geo::SigmaTau&,
+        Geo::PrincipalStresses::PrincipalStressesAveragingType AveragingType =
+            Geo::PrincipalStresses::PrincipalStressesAveragingType::NO_AVERAGING) const;
+    [[nodiscard]] Vector DerivativeOfFlowFunction(
+        const Geo::PrincipalStresses&,
+        Geo::PrincipalStresses::PrincipalStressesAveragingType AveragingType =
+            Geo::PrincipalStresses::PrincipalStressesAveragingType::NO_AVERAGING) const;
+
+    [[nodiscard]] double CalculatePlasticMultiplier(const Geo::SigmaTau& rTrialSigmaTau,
+                                                    const Vector&        rDerivativeOfFlowFunction,
+                                                    const Matrix&        rElasticMatrix) const;
+    [[nodiscard]] double CalculatePlasticMultiplier(const Geo::PrincipalStresses& rTrialPrincipalStresses,
+                                                    const Vector& rDerivativeOfFlowFunction,
+                                                    const Matrix& rElasticMatrix) const;
 
 private:
     friend class Serializer;
