@@ -342,9 +342,9 @@ void BuildRotationMatrix(
     const array_1d<double, 3>& rv3
     )
 {
-    rRotationMatrix(0, 0) = rv1[0]; rRotationMatrix(0, 1) = rv1[1]; rRotationMatrix(0, 2) = rv1[2];
-    rRotationMatrix(1, 0) = rv2[0]; rRotationMatrix(1, 1) = rv2[1]; rRotationMatrix(1, 2) = rv2[2];
-    rRotationMatrix(2, 0) = rv3[0]; rRotationMatrix(2, 1) = rv3[1]; rRotationMatrix(2, 2) = rv3[2];
+    noalias(row(rRotationMatrix, 0)) = rv1;
+    noalias(row(rRotationMatrix, 1)) = rv2;
+    noalias(row(rRotationMatrix, 2)) = rv3;
 }
 
 /***********************************************************************************/
@@ -391,17 +391,8 @@ void BuildElementSizeRotationMatrixFor2D2NTruss(
 )
 {
     rElementSizeRotationMatrix.clear();
-
-    rElementSizeRotationMatrix(0, 0) = rRotationMatrix(0, 0);
-    rElementSizeRotationMatrix(0, 1) = rRotationMatrix(0, 1);
-    rElementSizeRotationMatrix(1, 0) = rRotationMatrix(1, 0);
-    rElementSizeRotationMatrix(1, 1) = rRotationMatrix(1, 1);
-
-
-    rElementSizeRotationMatrix(2, 2) = rRotationMatrix(0, 0);
-    rElementSizeRotationMatrix(2, 3) = rRotationMatrix(0, 1);
-    rElementSizeRotationMatrix(3, 2) = rRotationMatrix(1, 0);
-    rElementSizeRotationMatrix(3, 3) = rRotationMatrix(1, 1);
+    noalias(project(rElementSizeRotationMatrix, range(0, 2), range(0, 2))) = rRotationMatrix;
+    noalias(project(rElementSizeRotationMatrix, range(2, 4), range(2, 4))) = rRotationMatrix;
 }
 
 /***********************************************************************************/
@@ -414,20 +405,9 @@ void BuildElementSizeRotationMatrixFor2D3NTruss(
 {
     rElementSizeRotationMatrix.clear();
 
-    rElementSizeRotationMatrix(0, 0) = rRotationMatrix(0, 0);
-    rElementSizeRotationMatrix(0, 1) = rRotationMatrix(0, 1);
-    rElementSizeRotationMatrix(1, 0) = rRotationMatrix(1, 0);
-    rElementSizeRotationMatrix(1, 1) = rRotationMatrix(1, 1);
-
-    rElementSizeRotationMatrix(2, 2) = rRotationMatrix(0, 0);
-    rElementSizeRotationMatrix(2, 3) = rRotationMatrix(0, 1);
-    rElementSizeRotationMatrix(3, 2) = rRotationMatrix(1, 0);
-    rElementSizeRotationMatrix(3, 3) = rRotationMatrix(1, 1);
-
-    rElementSizeRotationMatrix(4, 4) = rRotationMatrix(0, 0);
-    rElementSizeRotationMatrix(4, 5) = rRotationMatrix(0, 1);
-    rElementSizeRotationMatrix(5, 4) = rRotationMatrix(1, 0);
-    rElementSizeRotationMatrix(5, 5) = rRotationMatrix(1, 1);
+    noalias(project(rElementSizeRotationMatrix, range(0, 2), range(0, 2))) = rRotationMatrix;
+    noalias(project(rElementSizeRotationMatrix, range(2, 4), range(2, 4))) = rRotationMatrix;
+    noalias(project(rElementSizeRotationMatrix, range(4, 6), range(4, 6))) = rRotationMatrix;
 }
 
 /***********************************************************************************/
@@ -439,29 +419,8 @@ void BuildElementSizeRotationMatrixFor3D2NTruss(
 {
     rElementSizeRotationMatrix.clear();
 
-    rElementSizeRotationMatrix(0, 0) = rRotationMatrix(0, 0);
-    rElementSizeRotationMatrix(0, 1) = rRotationMatrix(0, 1);
-    rElementSizeRotationMatrix(0, 2) = rRotationMatrix(0, 2);
-
-    rElementSizeRotationMatrix(1, 0) = rRotationMatrix(1, 0);
-    rElementSizeRotationMatrix(1, 1) = rRotationMatrix(1, 1);
-    rElementSizeRotationMatrix(1, 2) = rRotationMatrix(1, 2);
-
-    rElementSizeRotationMatrix(2, 0) = rRotationMatrix(2, 0);
-    rElementSizeRotationMatrix(2, 1) = rRotationMatrix(2, 1);
-    rElementSizeRotationMatrix(2, 2) = rRotationMatrix(2, 2);
-
-    rElementSizeRotationMatrix(3, 3) = rRotationMatrix(0, 0);
-    rElementSizeRotationMatrix(3, 4) = rRotationMatrix(0, 1);
-    rElementSizeRotationMatrix(3, 5) = rRotationMatrix(0, 2);
-
-    rElementSizeRotationMatrix(4, 3) = rRotationMatrix(1, 0);
-    rElementSizeRotationMatrix(4, 4) = rRotationMatrix(1, 1);
-    rElementSizeRotationMatrix(4, 5) = rRotationMatrix(1, 2);
-
-    rElementSizeRotationMatrix(5, 3) = rRotationMatrix(2, 0);
-    rElementSizeRotationMatrix(5, 4) = rRotationMatrix(2, 1);
-    rElementSizeRotationMatrix(5, 5) = rRotationMatrix(2, 2);
+    noalias(project(rElementSizeRotationMatrix, range(0, 3), range(0, 3))) = rRotationMatrix;
+    noalias(project(rElementSizeRotationMatrix, range(3, 6), range(3, 6))) = rRotationMatrix;
 }
 
 /***********************************************************************************/
@@ -473,41 +432,9 @@ void BuildElementSizeRotationMatrixFor3D3NTruss(
 {
     rElementSizeRotationMatrix.clear();
 
-    rElementSizeRotationMatrix(0, 0) = rRotationMatrix(0, 0);
-    rElementSizeRotationMatrix(0, 1) = rRotationMatrix(0, 1);
-    rElementSizeRotationMatrix(0, 2) = rRotationMatrix(0, 2);
-
-    rElementSizeRotationMatrix(1, 0) = rRotationMatrix(1, 0);
-    rElementSizeRotationMatrix(1, 1) = rRotationMatrix(1, 1);
-    rElementSizeRotationMatrix(1, 2) = rRotationMatrix(1, 2);
-
-    rElementSizeRotationMatrix(2, 0) = rRotationMatrix(2, 0);
-    rElementSizeRotationMatrix(2, 1) = rRotationMatrix(2, 1);
-    rElementSizeRotationMatrix(2, 2) = rRotationMatrix(2, 2);
-
-    rElementSizeRotationMatrix(3, 3) = rRotationMatrix(0, 0);
-    rElementSizeRotationMatrix(3, 4) = rRotationMatrix(0, 1);
-    rElementSizeRotationMatrix(3, 5) = rRotationMatrix(0, 2);
-
-    rElementSizeRotationMatrix(4, 3) = rRotationMatrix(1, 0);
-    rElementSizeRotationMatrix(4, 4) = rRotationMatrix(1, 1);
-    rElementSizeRotationMatrix(4, 5) = rRotationMatrix(1, 2);
-
-    rElementSizeRotationMatrix(5, 3) = rRotationMatrix(2, 0);
-    rElementSizeRotationMatrix(5, 4) = rRotationMatrix(2, 1);
-    rElementSizeRotationMatrix(5, 5) = rRotationMatrix(2, 2);
-
-    rElementSizeRotationMatrix(6, 6) = rRotationMatrix(0, 0);
-    rElementSizeRotationMatrix(6, 7) = rRotationMatrix(0, 1);
-    rElementSizeRotationMatrix(6, 8) = rRotationMatrix(0, 2);
-
-    rElementSizeRotationMatrix(7, 6) = rRotationMatrix(1, 0);
-    rElementSizeRotationMatrix(7, 7) = rRotationMatrix(1, 1);
-    rElementSizeRotationMatrix(7, 8) = rRotationMatrix(1, 2);
-
-    rElementSizeRotationMatrix(8, 6) = rRotationMatrix(2, 0);
-    rElementSizeRotationMatrix(8, 7) = rRotationMatrix(2, 1);
-    rElementSizeRotationMatrix(8, 8) = rRotationMatrix(2, 2);
+    noalias(project(rElementSizeRotationMatrix, range(0, 3), range(0, 3))) = rRotationMatrix;
+    noalias(project(rElementSizeRotationMatrix, range(3, 6), range(3, 6))) = rRotationMatrix;
+    noalias(project(rElementSizeRotationMatrix, range(6, 9), range(6, 9))) = rRotationMatrix;
 }
 
 /***********************************************************************************/
@@ -561,29 +488,8 @@ void BuildElementSizeRotationMatrixFor2D2NBeam(
 {
     rElementSizeRotationMatrix.clear();
 
-    rElementSizeRotationMatrix(0, 0) = rRotationMatrix(0, 0);
-    rElementSizeRotationMatrix(0, 1) = rRotationMatrix(0, 1);
-    rElementSizeRotationMatrix(0, 2) = rRotationMatrix(0, 2);
-
-    rElementSizeRotationMatrix(1, 0) = rRotationMatrix(1, 0);
-    rElementSizeRotationMatrix(1, 1) = rRotationMatrix(1, 1);
-    rElementSizeRotationMatrix(1, 2) = rRotationMatrix(1, 2);
-
-    rElementSizeRotationMatrix(2, 0) = rRotationMatrix(2, 0);
-    rElementSizeRotationMatrix(2, 1) = rRotationMatrix(2, 1);
-    rElementSizeRotationMatrix(2, 2) = rRotationMatrix(2, 2);
-
-    rElementSizeRotationMatrix(3, 3) = rRotationMatrix(0, 0);
-    rElementSizeRotationMatrix(3, 4) = rRotationMatrix(0, 1);
-    rElementSizeRotationMatrix(3, 5) = rRotationMatrix(0, 2);
-
-    rElementSizeRotationMatrix(4, 3) = rRotationMatrix(1, 0);
-    rElementSizeRotationMatrix(4, 4) = rRotationMatrix(1, 1);
-    rElementSizeRotationMatrix(4, 5) = rRotationMatrix(1, 2);
-
-    rElementSizeRotationMatrix(5, 3) = rRotationMatrix(2, 0);
-    rElementSizeRotationMatrix(5, 4) = rRotationMatrix(2, 1);
-    rElementSizeRotationMatrix(5, 5) = rRotationMatrix(2, 2);
+    noalias(project(rElementSizeRotationMatrix, range(0, 3), range(0, 3))) = rRotationMatrix;
+    noalias(project(rElementSizeRotationMatrix, range(3, 6), range(3, 6))) = rRotationMatrix;
 }
 
 /***********************************************************************************/
@@ -596,41 +502,9 @@ void BuildElementSizeRotationMatrixFor2D3NBeam(
 {
     rElementSizeRotationMatrix.clear();
 
-    rElementSizeRotationMatrix(0, 0) = rRotationMatrix(0, 0);
-    rElementSizeRotationMatrix(0, 1) = rRotationMatrix(0, 1);
-    rElementSizeRotationMatrix(0, 2) = rRotationMatrix(0, 2);
-
-    rElementSizeRotationMatrix(1, 0) = rRotationMatrix(1, 0);
-    rElementSizeRotationMatrix(1, 1) = rRotationMatrix(1, 1);
-    rElementSizeRotationMatrix(1, 2) = rRotationMatrix(1, 2);
-
-    rElementSizeRotationMatrix(2, 0) = rRotationMatrix(2, 0);
-    rElementSizeRotationMatrix(2, 1) = rRotationMatrix(2, 1);
-    rElementSizeRotationMatrix(2, 2) = rRotationMatrix(2, 2);
-
-    rElementSizeRotationMatrix(3, 3) = rRotationMatrix(0, 0);
-    rElementSizeRotationMatrix(3, 4) = rRotationMatrix(0, 1);
-    rElementSizeRotationMatrix(3, 5) = rRotationMatrix(0, 2);
-
-    rElementSizeRotationMatrix(4, 3) = rRotationMatrix(1, 0);
-    rElementSizeRotationMatrix(4, 4) = rRotationMatrix(1, 1);
-    rElementSizeRotationMatrix(4, 5) = rRotationMatrix(1, 2);
-
-    rElementSizeRotationMatrix(5, 3) = rRotationMatrix(2, 0);
-    rElementSizeRotationMatrix(5, 4) = rRotationMatrix(2, 1);
-    rElementSizeRotationMatrix(5, 5) = rRotationMatrix(2, 2);
-
-    rElementSizeRotationMatrix(6, 6) = rRotationMatrix(0, 0);
-    rElementSizeRotationMatrix(6, 7) = rRotationMatrix(0, 1);
-    rElementSizeRotationMatrix(6, 8) = rRotationMatrix(0, 2);
-
-    rElementSizeRotationMatrix(7, 6) = rRotationMatrix(1, 0);
-    rElementSizeRotationMatrix(7, 7) = rRotationMatrix(1, 1);
-    rElementSizeRotationMatrix(7, 8) = rRotationMatrix(1, 2);
-
-    rElementSizeRotationMatrix(8, 6) = rRotationMatrix(2, 0);
-    rElementSizeRotationMatrix(8, 7) = rRotationMatrix(2, 1);
-    rElementSizeRotationMatrix(8, 8) = rRotationMatrix(2, 2);
+    noalias(project(rElementSizeRotationMatrix, range(0, 3), range(0, 3))) = rRotationMatrix;
+    noalias(project(rElementSizeRotationMatrix, range(3, 6), range(3, 6))) = rRotationMatrix;
+    noalias(project(rElementSizeRotationMatrix, range(6, 9), range(6, 9))) = rRotationMatrix;
 }
 
 /***********************************************************************************/
