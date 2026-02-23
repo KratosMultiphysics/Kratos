@@ -30,6 +30,10 @@ void BenchmarkBuildRHS(benchmark::State& rState)
     KratosGeoMechanicsApplication application;
     application.Register();
 
+    const auto number_of_cores = rState.range();
+
+    ParallelUtilities::SetNumThreads(number_of_cores);
+
     // Create the test model part
     Model test_model;
     auto& r_test_model_part = test_model.CreateModelPart("TestModelPart");
@@ -65,7 +69,7 @@ void BenchmarkBuildRHS(benchmark::State& rState)
     }
 }
 
-BENCHMARK(BenchmarkBuildRHS);
+BENCHMARK(BenchmarkBuildRHS)->Arg(1)->Arg(2)->Arg(4)->Arg(8)->Arg(16);
 
 } // namespace Kratos
 
