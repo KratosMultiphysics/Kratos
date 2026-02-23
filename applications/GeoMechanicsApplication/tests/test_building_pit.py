@@ -786,7 +786,7 @@ class KratosGeoMechanicsBuildingPit(KratosUnittest.TestCase):
 
         reader = GiDOutputFileReader()
         rel_tolerance = 0.07
-        abs_tolerance_map = {"BENDING_MOMENT": 200.0}
+        abs_tolerance_map = {"BENDING_MOMENT": 200.0, "SHEAR_FORCE": 500.0}
         for stage_tag, expected_stage_results in expected_results.items():
             stage_base_name = self.stages_info[stage_tag]["base_name"]
             stage_output = reader.read_output_from(
@@ -1030,6 +1030,15 @@ class KratosGeoMechanicsBuildingPit(KratosUnittest.TestCase):
                     {"node": 6173, "value": -1.58e3},
                     {"node": 5449, "value": -0.414e3},
                     {"node": 4768, "value": 0.0},
+                ],
+                "SHEAR_FORCE": [
+                    {"node": 8988, "value": 0.0},
+                    {"node": 8351, "value": -6.1},
+                    {"node": 7597, "value": 816.0},
+                    {"node": 6867, "value": 479.0},
+                    {"node": 6173, "value": 367.0},
+                    {"node": 5449, "value": -81.8},
+                    {"node": 4768, "value": 0.0},
                 ]
             },
             "first_excavation": {
@@ -1040,6 +1049,15 @@ class KratosGeoMechanicsBuildingPit(KratosUnittest.TestCase):
                     {"node": 6867, "value": 57.8e3},
                     {"node": 6173, "value": -51.6e3},
                     {"node": 5449, "value": -9.25e3},
+                    {"node": 4768, "value": 0.0},
+                ],
+                "SHEAR_FORCE": [
+                    {"node": 8988, "value": 0.0},
+                    {"node": 8351, "value": -23.0e3},
+                    {"node": 7597, "value": -1.55e3},
+                    {"node": 6867, "value": 14.8e3},
+                    {"node": 6173, "value": 23.7e3},
+                    {"node": 5449, "value": -6.96e3},
                     {"node": 4768, "value": 0.0},
                 ]
             },
@@ -1052,6 +1070,15 @@ class KratosGeoMechanicsBuildingPit(KratosUnittest.TestCase):
                     {"node": 6173, "value": -179e3},
                     {"node": 5449, "value": -16.1e3},
                     {"node": 4768, "value": 0.0},
+                ],
+                "SHEAR_FORCE": [
+                    {"node": 8988, "value": 0.0},
+                    {"node": 8351, "value": -34.8e3},
+                    {"node": 7597, "value": 141.0e3},
+                    {"node": 6867, "value": 8.63e3},
+                    {"node": 6173, "value": 62.8e3},
+                    {"node": 5449, "value": -20.9e3},
+                    {"node": 4768, "value": 0.0},
                 ]
             },
             "third_excavation": {
@@ -1062,6 +1089,15 @@ class KratosGeoMechanicsBuildingPit(KratosUnittest.TestCase):
                     {"node": 6867, "value": 586e3},
                     {"node": 6173, "value": -885e3},
                     {"node": 5449, "value": -180e3},
+                    {"node": 4768, "value": 0.0},
+                ],
+                "SHEAR_FORCE": [
+                    {"node": 8988, "value": 0.0},
+                    {"node": 8351, "value": -97.0e3},
+                    {"node": 7597, "value": -18.7e3},
+                    {"node": 6867, "value": 140.0e3},
+                    {"node": 6173, "value": 463.5e3},
+                    {"node": 5449, "value": -122.0e3},
                     {"node": 4768, "value": 0.0},
                 ]
             },
