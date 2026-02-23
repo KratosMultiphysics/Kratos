@@ -210,8 +210,8 @@ void MohrCoulombWithTensionCutOff::CalculateMaterialResponseCauchy(ConstitutiveL
         elastic_matrix /= c0;
 
         auto mapped_principal_stresses = mCoulombWithTensionCutOffImpl.DoReturnMapping(
-            trial_principal_stresses,
-            Geo::PrincipalStresses::PrincipalStressesAveragingType::NO_AVERAGING, elastic_matrix);
+            trial_principal_stresses, elastic_matrix,
+            Geo::PrincipalStresses::PrincipalStressesAveragingType::NO_AVERAGING);
 
         // For interchanging principal stresses, retry mapping with averaged principal stresses.
         if (const auto averaging_type = FindAveragingType(mapped_principal_stresses);
@@ -220,7 +220,7 @@ void MohrCoulombWithTensionCutOff::CalculateMaterialResponseCauchy(ConstitutiveL
                 AveragePrincipalStressComponents(trial_principal_stresses, averaging_type);
             mCoulombWithTensionCutOffImpl.RestoreKappaOfCoulombYieldSurface();
             mapped_principal_stresses = mCoulombWithTensionCutOffImpl.DoReturnMapping(
-                averaged_principal_trial_stress_vector, averaging_type, elastic_matrix);
+                averaged_principal_trial_stress_vector, elastic_matrix, averaging_type);
             mapped_principal_stresses.Values()[1] =
                 mapped_principal_stresses.Values()[AveragingTypeToArrayIndex(averaging_type)];
         }

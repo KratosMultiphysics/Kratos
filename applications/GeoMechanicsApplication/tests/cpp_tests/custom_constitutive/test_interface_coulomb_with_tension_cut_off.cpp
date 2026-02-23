@@ -182,7 +182,7 @@ KRATOS_TEST_CASE_IN_SUITE(InterfaceCoulombWithTensionCutOff_CalculateMaterialRes
 
     // Assert
     Vector expected_cauchy_stress_vector(2);
-    expected_cauchy_stress_vector <<= 7.3333333333333333, 2.6666666666666667;
+    expected_cauchy_stress_vector <<= 22.0 / 3.0, 8.0 / 3.0;
     KRATOS_EXPECT_VECTOR_NEAR(parameters.GetStressVector(), expected_cauchy_stress_vector,
                               Defaults::absolute_tolerance);
 }

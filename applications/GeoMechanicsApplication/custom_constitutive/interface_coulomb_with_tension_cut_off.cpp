@@ -149,8 +149,8 @@ void InterfaceCoulombWithTensionCutOff::CalculateMaterialResponseCauchy(Paramete
 
     if (!mCoulombWithTensionCutOffImpl.IsAdmissibleStressState(trial_sigma_tau)) {
         mapped_sigma_tau = mCoulombWithTensionCutOffImpl.DoReturnMapping(
-            trial_sigma_tau, Geo::PrincipalStresses::PrincipalStressesAveragingType::NO_AVERAGING,
-            mpConstitutiveDimension->CalculateElasticMatrix(r_properties));
+            trial_sigma_tau, mpConstitutiveDimension->CalculateElasticMatrix(r_properties),
+            Geo::PrincipalStresses::PrincipalStressesAveragingType::NO_AVERAGING);
         if (negative) mapped_sigma_tau.Tau() *= -1.0;
     }
 

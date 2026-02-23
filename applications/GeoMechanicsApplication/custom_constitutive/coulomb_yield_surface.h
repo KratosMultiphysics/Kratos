@@ -68,12 +68,14 @@ public:
     [[nodiscard]] double CalculatePlasticMultiplier(const Geo::PrincipalStresses& rTrialPrincipalStresses,
                                                     const Vector& rDerivativeOfFlowFunction,
                                                     const Matrix& rElasticMatrix) const;
-    [[nodiscard]] double CalculateEquivalentPlasticStrainIncrement(const Geo::SigmaTau& rTrialSigmaTau,
-                                                                   Geo::PrincipalStresses::PrincipalStressesAveragingType AveragingType,
-                                                                   const Matrix& rElasticMatrix) const;
-    [[nodiscard]] double CalculateEquivalentPlasticStrainIncrement(const Geo::PrincipalStresses& rTrialPrincipalStresses,
-                                                                   Geo::PrincipalStresses::PrincipalStressesAveragingType AveragingType,
-                                                                   const Matrix& rElasticMatrix) const;
+    [[nodiscard]] double CalculateEquivalentPlasticStrainIncrement(
+        const Geo::SigmaTau&                                   rTrialSigmaTau,
+        const Matrix&                                          rElasticMatrix,
+        Geo::PrincipalStresses::PrincipalStressesAveragingType AveragingType) const;
+    [[nodiscard]] double CalculateEquivalentPlasticStrainIncrement(
+        const Geo::PrincipalStresses&                          rTrialPrincipalStresses,
+        const Matrix&                                          rElasticMatrix,
+        Geo::PrincipalStresses::PrincipalStressesAveragingType AveragingType) const;
 
 private:
     void InitializeKappaDependentFunctions();
