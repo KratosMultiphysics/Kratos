@@ -11,8 +11,8 @@
 //
 
 #include "containers/model.h"
-#include "geo_mechanics_application.h"
 #include "geometries/quadrilateral_2d_4.h"
+#include "includes/kratos_application.h"
 #include "linear_solvers/linear_solver.h"
 #include "processes/structured_mesh_generator_process.h"
 #include "solving_strategies/builder_and_solvers/residualbased_block_builder_and_solver.h"
@@ -45,19 +45,17 @@ void BenchmarkBuildRHS(benchmark::State& rState)
     auto                   p_point_4 = Kratos::make_intrusive<Node>(4, 1.0, 0.0, 0.0);
     Quadrilateral2D4<Node> domain_geometry(p_point_1, p_point_2, p_point_3, p_point_4);
 
+    // This mesh results in 2e6 elements
     Parameters mesher_parameters(R"({
-        "number_of_divisions": 10,
+        "number_of_divisions": 1000,
         "element_name": "Element2D3N",
         "condition_name": "LineCondition",
         "create_skin_sub_model_part": true
     })");
     StructuredMeshGeneratorProcess(domain_geometry, r_test_model_part, mesher_parameters).Execute();
-    std::cout << "Number of elements = " << r_test_model_part.Elements().size() << std::endl;
-
 
     ResidualBasedBlockBuilderAndSolver<SparseSpaceType, DenseSpaceType, LinearSolverType> builder_and_solver{};
     Scheme<SparseSpaceType, DenseSpaceType>::Pointer p_scheme = std::make_shared<Scheme<SparseSpaceType, DenseSpaceType>>();
-
 
     ResidualBasedBlockBuilderAndSolver<SparseSpaceType, DenseSpaceType, LinearSolverType>::TSystemVectorPointerType b;
     ResidualBasedBlockBuilderAndSolver<SparseSpaceType, DenseSpaceType, LinearSolverType>::TSystemVectorPointerType Dx;
@@ -69,6 +67,7 @@ void BenchmarkBuildRHS(benchmark::State& rState)
     }
 }
 
+// The arguments represent the number of cores.
 BENCHMARK(BenchmarkBuildRHS)->Arg(1)->Arg(2)->Arg(4)->Arg(8)->Arg(16);
 
 } // namespace Kratos
