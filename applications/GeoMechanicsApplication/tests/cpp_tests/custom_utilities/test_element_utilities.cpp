@@ -24,18 +24,18 @@ namespace
 {
 struct Line2D2NGeometryWithVelocityVectorData {
     Model                          model;
-    ModelPart&                     r_model_part;
-    PointerVector<Node>            nodes;
     std::unique_ptr<Line2D2<Node>> p_geometry;
     array_1d<double, 3>            velocity_vector;
 
     Line2D2NGeometryWithVelocityVectorData()
-        : r_model_part(model.CreateModelPart("Main")), velocity_vector{1.0, 0.5, -0.5}
     {
+        ModelPart& r_model_part = model.CreateModelPart("Main");
         r_model_part.AddNodalSolutionStepVariable(VELOCITY);
+        PointerVector<Node> nodes;
         nodes.push_back(r_model_part.CreateNewNode(1, 0.0, 0.0, 0.0));
         nodes.push_back(r_model_part.CreateNewNode(2, 5.0, 0.0, 0.0));
-        p_geometry = std::make_unique<Line2D2<Node>>(nodes);
+        p_geometry      = std::make_unique<Line2D2<Node>>(nodes);
+        velocity_vector = array_1d<double, 3>{1.0, 0.5, -0.5};
         for (auto& node : *p_geometry) {
             node.FastGetSolutionStepValue(VELOCITY) = velocity_vector;
         }
