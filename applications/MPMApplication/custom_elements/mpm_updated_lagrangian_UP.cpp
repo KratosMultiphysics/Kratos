@@ -351,44 +351,18 @@ void MPMUpdatedLagrangianUP::AddExplicitContribution(const ProcessInfo& rCurrent
 
     mFinalizedStep = false;
 
-    array_1d<double,3> aux_MP_velocity = ZeroVector(3);
-    array_1d<double,3> aux_MP_acceleration = ZeroVector(3);
     array_1d<double,3> nodal_momentum = ZeroVector(3);
     array_1d<double,3> nodal_inertia = ZeroVector(3);
-    double aux_MP_pressure = 0.0;
-
-    for (unsigned int j=0; j<number_of_nodes; j++)
-    {
-        // These are the values of nodal velocity and nodal acceleration evaluated in the initialize solution step
-        array_1d<double, 3 > nodal_acceleration = ZeroVector(3);
-        if (r_geometry[j].SolutionStepsDataHas(ACCELERATION))
-            nodal_acceleration = r_geometry[j].FastGetSolutionStepValue(ACCELERATION,1);
-
-        array_1d<double, 3 > nodal_velocity = ZeroVector(3);
-        if (r_geometry[j].SolutionStepsDataHas(VELOCITY))
-            nodal_velocity = r_geometry[j].FastGetSolutionStepValue(VELOCITY,1);
-
-        // These are the values of nodal pressure evaluated in the initialize solution step
-        const double& nodal_pressure = r_geometry[j].FastGetSolutionStepValue(PRESSURE,1);
-
-        aux_MP_pressure += r_N(0, j) * nodal_pressure;
-
-        for (unsigned int k = 0; k < dimension; k++)
-        {
-            aux_MP_velocity[k] += r_N(0, j) * nodal_velocity[k];
-            aux_MP_acceleration[k] += r_N(0, j) * nodal_acceleration[k];
-        }
-    }
 
     // Here MP contribution in terms of momentum, inertia, mass-pressure and mass are added
     for ( unsigned int i = 0; i < number_of_nodes; i++ )
     {
-        double nodal_mpressure = r_N(0, i) * (m_mp_pressure - aux_MP_pressure) * mMP.mass;
+        double nodal_mpressure = r_N(0, i) * m_mp_pressure * mMP.mass;
 
         for (unsigned int j = 0; j < dimension; j++)
         {
-            nodal_momentum[j] = r_N(0, i) * (mMP.velocity[j] - aux_MP_velocity[j]) * mMP.mass;
-            nodal_inertia[j]  = r_N(0, i) * (mMP.acceleration[j] - aux_MP_acceleration[j]) * mMP.mass;
+            nodal_momentum[j] = r_N(0, i) * mMP.velocity[j] * mMP.mass;
+            nodal_inertia[j]  = r_N(0, i) * mMP.acceleration[j] * mMP.mass;
         }
 
         r_geometry[i].SetLock();
