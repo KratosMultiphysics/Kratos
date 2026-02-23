@@ -14,7 +14,7 @@
 #pragma once
 
 // System includes
-#include <algorithm>
+// #include <algorithm>
 
 // Project includes
 #include "includes/model_part.h"
@@ -329,10 +329,12 @@ private:
     std::string mGapInterfaceConditionName;
     std::size_t mInternalDivisions;
     double mGapRelativeToleranceForSubdivisions = 0.1;
-    std::size_t mNumberOfInterpolationLevels = 3;
-    std::size_t mGapApproximationOrder;
-    std::size_t mGapInterpolationOrder;
-    std::string mGapSbmType;
+    std::size_t mNumberOfInterpolationLevels = 3; // number of additional levels of interpolation for the gap elements (in addition to the corner nodes)
+    std::size_t mGapApproximationOrder; // Order of quadrature of the Gap elemennts and conditions
+    std::size_t mGapInterpolationOrder; // Order of the Gap elements
+    std::string mGapSbmType; // "default" (uses ordered points of the curve) or
+                             // "interpolation" (interpolates the points on the curve -- no assumption on their order)
+                             // "sbm" (uses SBM on top of the "interpolation" approach to further optimize the gap geometry)
     bool mUseForMultipatch = false;
 
     /**
@@ -411,6 +413,7 @@ private:
 
     /**
      * @brief Checks that surrogate boundary vertices lie on the same skin layer.
+     *        Otherwise search in the between the interface vertices for a surrogate vertex that does. 
      * @param rSkinSubModelPart Reference to the skin sub model part containing the layer information.
      * @param pSurrogateNode1 Pointer to the first surrogate vertex to be validated.
      * @param pSurrogateNode2 Pointer to the second surrogate vertex to be validated.

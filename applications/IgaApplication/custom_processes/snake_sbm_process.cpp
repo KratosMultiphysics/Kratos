@@ -901,7 +901,7 @@ void SnakeSbmProcess::SnakeStepNurbs(
                                                          std::pow((xy_true_boundary_split[1] - rConditionCoordinates[1][0]),2)); 
                 
                 // exactly passing trough a diagonal vertex 
-                const double minumum_length = std::min(rKnotStepUV[0]/5000000, rKnotStepUV[1]/5000000); //TODO: to assest in future PR
+                const double minumum_length = std::min(rKnotStepUV[0]/100, rKnotStepUV[1]/100); //TODO: to assest in future PR
                 if (split_segment_length <= minumum_length)
                 {
                     KRATOS_WARNING("[SnakeSbmProcess] :: one skin segment is exactly passing trough a diagonal vertex");
@@ -1191,7 +1191,7 @@ void SnakeSbmProcess::MarkKnotSpansAvailable(
                 // Create 49 "fake" gauss_points to check if the majority are inside or outside
                 const int num_fake_gauss_points = 7;
                 int number_of_inside_gaussian_points = 0;
-                const double tollerance = rKnotStepUV[0]/1e8; // Tolerance to avoid numerical issues
+                const double tollerance = rKnotStepUV[0]/1e4; // Tolerance to avoid numerical issues
                 for (IndexType i_GPx = 0; i_GPx < num_fake_gauss_points; i_GPx++){
                     double x_coord = (j*rKnotStepUV[0]+tollerance) +
                                      (rKnotStepUV[0]-2*tollerance)/(num_fake_gauss_points-1)*(i_GPx) 
@@ -1213,7 +1213,7 @@ void SnakeSbmProcess::MarkKnotSpansAvailable(
                 }
             
                 // Mark the knot span as available or not depending on the number of Gauss Points Inside/Outside
-                if (number_of_inside_gaussian_points < Lambda*num_fake_gauss_points*num_fake_gauss_points) {
+                if (number_of_inside_gaussian_points <= Lambda*num_fake_gauss_points*num_fake_gauss_points) {
                     rKnotSpansAvailable[IdMatrix][i][j] = -1; // Cut knot spans that have been checked
                 }
                 else{

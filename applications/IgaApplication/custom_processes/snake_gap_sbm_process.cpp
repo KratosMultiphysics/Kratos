@@ -1535,12 +1535,7 @@ void SnakeGapSbmProcess::CreateGapAndSkinQuadraturePoints(
                                                                brep_integration_points_list_skin, rIntegrationParameters.CurveIntegrationInfo);
         }
         
-        if (mGapSbmType == "interpolation") {
-            for (auto& quad_geom : brep_quadrature_point_list_skin) {
-                quad_geom.SetValue(INTERPOLATION_NODES_ID, rInterpolationNodes);
-            }
-        }
-        else if (mGapSbmType == "sbm")
+        if (mGapSbmType == "sbm")
         {
             for (auto& quad_geom: brep_quadrature_point_list_skin)
             {
