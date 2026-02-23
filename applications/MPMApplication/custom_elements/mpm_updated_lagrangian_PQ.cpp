@@ -21,6 +21,7 @@
 #include "includes/define.h"
 #include "custom_elements/mpm_updated_lagrangian_PQ.hpp"
 #include "utilities/math_utils.h"
+#include "utilities/atomic_utilities.h"
 #include "includes/constitutive_law.h"
 #include "mpm_application_variables.h"
 #include "includes/checks.h"
@@ -138,12 +139,9 @@ void MPMUpdatedLagrangianPQ::AddExplicitContribution(const ProcessInfo& rCurrent
                     }
                 }
 
-                r_geometry[i].SetLock();
-                r_geometry[i].FastGetSolutionStepValue(NODAL_MOMENTUM, 0) += nodal_momentum;
-                r_geometry[i].FastGetSolutionStepValue(NODAL_INERTIA, 0) += nodal_inertia;
-                r_geometry[i].FastGetSolutionStepValue(NODAL_MASS, 0) += r_geometry.ShapeFunctionValue(int_p, i)
-                    * mMP.mass * weight;
-                r_geometry[i].UnSetLock();
+                AtomicAdd(r_geometry[i].FastGetSolutionStepValue(NODAL_MOMENTUM, 0), nodal_momentum);
+                AtomicAdd(r_geometry[i].FastGetSolutionStepValue(NODAL_INERTIA, 0), nodal_inertia);
+                AtomicAdd(r_geometry[i].FastGetSolutionStepValue(NODAL_MASS, 0), r_geometry.ShapeFunctionValue(int_p, i) * mMP.mass * weight);
             }
         }
     }
