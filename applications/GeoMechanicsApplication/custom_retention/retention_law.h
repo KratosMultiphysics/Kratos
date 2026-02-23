@@ -89,6 +89,10 @@ public:
      */
     double& CalculateValue(Parameters& rParameters, const Variable<double>& rThisVariable, double& rValue) const;
 
+    static std::vector<double> CalculateRelativePermeabilityValues(const std::vector<Pointer>& rRetentionLawVector,
+                                                                   const Properties& rProperties,
+                                                                   const std::vector<double>& rFluidPressures);
+
     virtual double CalculateSaturation(Parameters& rParameters) const = 0;
 
     virtual double CalculateEffectiveSaturation(Parameters& rParameters) const = 0;

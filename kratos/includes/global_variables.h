@@ -51,7 +51,8 @@ namespace Kratos::Globals
         Element,
         Condition,
         ModelPart,
-        ProcessInfo
+        ProcessInfo,
+        NumberOfDataLocations // This needs to be last always, as this is used as a counter for number of DataLocations
     };
 
     ///@}

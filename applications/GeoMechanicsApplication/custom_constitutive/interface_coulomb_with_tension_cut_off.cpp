@@ -108,10 +108,7 @@ void InterfaceCoulombWithTensionCutOff::InitializeMaterial(const Properties& rMa
                                                            const Geometry<Node>&,
                                                            const Vector&)
 {
-    mCoulombWithTensionCutOffImpl = CoulombWithTensionCutOffImpl{
-        MathUtils<>::DegreesToRadians(rMaterialProperties[GEO_FRICTION_ANGLE]), rMaterialProperties[GEO_COHESION],
-        MathUtils<>::DegreesToRadians(rMaterialProperties[GEO_DILATANCY_ANGLE]),
-        rMaterialProperties[GEO_TENSILE_STRENGTH]};
+    mCoulombWithTensionCutOffImpl = CoulombWithTensionCutOffImpl{rMaterialProperties};
 
     mRelativeDisplacementVectorFinalized =
         HasInitialState() ? GetInitialState().GetInitialStrainVector() : ZeroVector{GetStrainSize()};
@@ -142,7 +139,7 @@ void InterfaceCoulombWithTensionCutOff::CalculateMaterialResponseCauchy(Paramete
 
     if (!mCoulombWithTensionCutOffImpl.IsAdmissibleSigmaTau(trial_sigma_tau)) {
         mapped_sigma_tau = mCoulombWithTensionCutOffImpl.DoReturnMapping(
-            r_properties, trial_sigma_tau, CoulombYieldSurface::CoulombAveragingType::NO_AVERAGING);
+            trial_sigma_tau, CoulombYieldSurface::CoulombAveragingType::NO_AVERAGING);
         if (negative) mapped_sigma_tau[1] *= -1.0;
     }
 

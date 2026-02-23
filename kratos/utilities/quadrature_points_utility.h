@@ -192,33 +192,76 @@ namespace Kratos
         }
 
         static GeometryPointerType CreateQuadraturePointCurve(
+            SizeType WorkingSpaceDimension,
+            SizeType LocalSpaceDimension,
             GeometryShapeFunctionContainer<GeometryData::IntegrationMethod>& rShapeFunctionContainer,
-            PointsArrayType rPoints,
+            const PointsArrayType& rPoints,
             double LocalTangentU,
             double LocalTangentV,
             GeometryType* pGeometryParent)
         {
-            return Kratos::make_shared<
-                QuadraturePointCurveGeometry<TPointType>>(
-                    rPoints,
-                    rShapeFunctionContainer,
-                    LocalTangentU,
-                    LocalTangentV,
-                    pGeometryParent);
+            KRATOS_ERROR_IF(LocalSpaceDimension != 1)
+                << "QuadraturePointCurveGeometry expects a single local parameter (LocalSpaceDimension == 1), "
+                << "but received " << LocalSpaceDimension << "." << std::endl;
+
+            switch (WorkingSpaceDimension) {
+                case 2:
+                    return Kratos::make_shared<
+                        QuadraturePointCurveGeometry<TPointType, 2>>(
+                            rPoints,
+                            rShapeFunctionContainer,
+                            LocalTangentU,
+                            LocalTangentV,
+                            pGeometryParent);
+                case 3:
+                    return Kratos::make_shared<
+                        QuadraturePointCurveGeometry<TPointType, 3>>(
+                            rPoints,
+                            rShapeFunctionContainer,
+                            LocalTangentU,
+                            LocalTangentV,
+                            pGeometryParent);
+                default:
+                    KRATOS_ERROR << "Working/Local space dimension combinations are "
+                        << "not provided for QuadraturePointCurveGeometry. WorkingSpaceDimension: "
+                        << WorkingSpaceDimension << ", LocalSpaceDimension: " << LocalSpaceDimension
+                        << std::endl;
+            }
         }
 
         static GeometryPointerType CreateQuadraturePointCurve(
+            SizeType WorkingSpaceDimension,
+            SizeType LocalSpaceDimension,
             GeometryShapeFunctionContainer<GeometryData::IntegrationMethod>& rShapeFunctionContainer,
-            PointsArrayType rPoints,
+            const PointsArrayType& rPoints,
             double LocalTangentU,
             double LocalTangentV)
         {
-            return Kratos::make_shared<
-                QuadraturePointCurveGeometry<TPointType>>(
-                    rPoints,
-                    rShapeFunctionContainer,
-                    LocalTangentU,
-                    LocalTangentV);
+            KRATOS_ERROR_IF(LocalSpaceDimension != 1)
+                << "QuadraturePointCurveGeometry expects a single local parameter (LocalSpaceDimension == 1), "
+                << "but received " << LocalSpaceDimension << "." << std::endl;
+
+            switch (WorkingSpaceDimension) {
+                case 2:
+                    return Kratos::make_shared<
+                        QuadraturePointCurveGeometry<TPointType, 2>>(
+                            rPoints,
+                            rShapeFunctionContainer,
+                            LocalTangentU,
+                            LocalTangentV);
+                case 3:
+                    return Kratos::make_shared<
+                        QuadraturePointCurveGeometry<TPointType, 3>>(
+                            rPoints,
+                            rShapeFunctionContainer,
+                            LocalTangentU,
+                            LocalTangentV);
+                default:
+                    KRATOS_ERROR << "Working/Local space dimension combinations are "
+                        << "not provided for QuadraturePointCurveGeometry. WorkingSpaceDimension: "
+                        << WorkingSpaceDimension << ", LocalSpaceDimension: " << LocalSpaceDimension
+                        << std::endl;
+            }
         }
 
         static GeometryPointerType CreateQuadraturePointSurfaceInVolume(

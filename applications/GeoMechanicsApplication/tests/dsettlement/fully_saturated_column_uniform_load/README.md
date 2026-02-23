@@ -10,10 +10,10 @@ A schematic can be found in the figure below:
 
 The test is performed in 5 stages:
 1. A K0 stage with a linear elastic model, with a Young's modulus of 1 [GPa] and a Poisson's ratio of 0.2.
-2. A settlement stage with abc model (100 days or 8640000 seconds). The keywords "reset_displacement" is set to true here, such that the total displacements start counting from the start of this stage.
-3. Another settlement stage (8.64 seconds), the same uniform load and also the same material as previous stage is applied. The time-step is 0.001 days (8.64 seconds), such that there is horizontal stress distribution by the abc model. 
-4. A second settlement stage (1 day) with a uniform surface load of 20 [kPa] applied in the negative Y direction to the top of the model.
-5. A second settlement stage, such that the total time reaches 10000 days (or 864000000 seconds). The same uniform surface load of 20 [kPa] is applied in the negative Y direction. The time-step is > 0.001 days, such that there is no horizontal stress distribution by the abc model.
+2. A conversion stage to the abc model (Time step 1 second such that there is horizontal stress redistribution by the abc model). Keyword `IGNORE_UNDRAINED` remains `true`, such that water pressures remain hydrostatic.
+3. A settlement stage (100 days or 8640000 seconds), the abc is applied, but the keyword `IGNORE_UNDRAINED` is set to `false` such that settlement may influence water pressures. The keyword `reset_displacement` is set to `true` here, such that the total displacements start counting from the start of this stage.
+4. A loading stage (1 second) with a uniform surface load of 20 [kPa] applied in the negative Y direction to the top of the model. Horizontal stress redistribution takes place.
+5. A second settlement stage, such that the total time reaches 10000 days (or 864000000 seconds). The uniform surface load of 20 [kPa] in the negative Y direction remains active. The time-step is > 0.001 days, such that there is no horizontal stress redistribution by the abc model.
 
 The following common conditions hold for all stages:
   - Displacements on the bottom are fixed in all directions.
@@ -31,3 +31,51 @@ The expected values are based on the analytical solution of a fully saturated co
 For the low-permeability case, the following assertions are made in this test:
 1. The total vertical displacement at the top of the column is expected to be -0.496382 [m] after 100 days (stage 2). This is based on a regression value.
 2. The total vertical displacement at the top of the column is expected to be -8.48 [m] after 10000 days (stage 5). This is based on an analytical value.
+
+## Results
+
+The plots in this section compare results obtained with Kratos and D-Settlement 23.2.1.  The plots show settlement over time as well as the water pressure distribution ($`p_{\mathrm{w}}`$), the vertical effective stress distribution ($`\sigma_{\mathrm{eff, yy}}`$), and the vertical total stress distribution ($`\sigma_{\mathrm{tot, yy}}`$) along the left edge of the soil column at certain times. 
+
+### High permeability
+
+Settlement over time, where nodes 2, 3, and 104 are located at the top edge of the soil column:
+
+![Settlement](high_permeability/test_case_2_settlement_plot.svg)
+
+Stresses at the start of the analysis (after 0 days):
+
+![Stress plot after 0 days](high_permeability/test_case_2_stress_plot_after_0_days.svg)
+
+Stresses after 100 days of settlement under self weight:
+
+![Stress plot after 100 days](high_permeability/test_case_2_stress_plot_after_100_days.svg)
+
+Stresses at 100.1 days after applying the uniform surface load of $`20 [\mathrm{kPa}]`$ at 100 days:
+
+![Stress plot after 100.1 days](high_permeability/test_case_2_stress_plot_after_100.1_days.svg)
+
+Stresses after 10,000 days of settlement:
+
+![Stress plot after 10000 days](high_permeability/test_case_2_stress_plot_after_10000_days.svg)
+
+### Low permeability
+
+Settlement over time, where nodes 2, 3, and 104 are located at the top edge of the soil column:
+
+![Settlement](low_permeability/test_case_4_settlement_plot.svg)
+
+Stresses at the start of the analysis (after 0 days):
+
+![Stress plot after 0 days](low_permeability/test_case_4_stress_plot_after_0_days.svg)
+
+Stresses after 100 days of settlement under self weight:
+
+![Stress plot after 100 days](low_permeability/test_case_4_stress_plot_after_100_days.svg)
+
+Stresses at 100.1 days after applying the uniform surface load of $`20 [\mathrm{kPa}]`$ at 100 days:
+
+![Stress plot after 100.1 days](low_permeability/test_case_4_stress_plot_after_100.1_days.svg)
+
+Stresses after 10,000 days of settlement:
+
+![Stress plot after 10000 days](low_permeability/test_case_4_stress_plot_after_10000_days.svg)

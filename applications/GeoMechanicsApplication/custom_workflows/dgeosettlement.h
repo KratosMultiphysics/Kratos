@@ -77,10 +77,10 @@ private:
     {
         if (!GetComputationalModelPart().HasNodalSolutionStepVariable(rVariable)) return;
 
-        NodeUtilities::AssignUpdatedVectorVariableToNonFixedComponentsOfNodes(
-            GetComputationalModelPart().Nodes(), rVariable, rVariable.Zero(), 0);
-        NodeUtilities::AssignUpdatedVectorVariableToNonFixedComponentsOfNodes(
-            GetComputationalModelPart().Nodes(), rVariable, rVariable.Zero(), 1);
+        NodeUtilities::AssignUpdatedVectorVariableToNodes(GetComputationalModelPart().Nodes(),
+                                                          rVariable, rVariable.Zero(), 0);
+        NodeUtilities::AssignUpdatedVectorVariableToNodes(GetComputationalModelPart().Nodes(),
+                                                          rVariable, rVariable.Zero(), 1);
     }
 
     template <typename ProcessType>
@@ -89,6 +89,14 @@ private:
         return [&model = mModel](const Parameters& rProcessSettings) {
             auto& model_part = model.GetModelPart(rProcessSettings["model_part_name"].GetString());
             return std::make_unique<ProcessType>(model_part, rProcessSettings);
+        };
+    }
+
+    template <typename ProcessType>
+    std::function<ProcessFactory::ProductType(const Parameters&)> MakeCreatorWithModelFor()
+    {
+        return [&model = mModel](const Parameters& rProcessSettings) {
+            return std::make_unique<ProcessType>(model, rProcessSettings);
         };
     }
 

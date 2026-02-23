@@ -193,6 +193,7 @@ if(CMAKE_UNITY_BUILD MATCHES ON)
 
     ## this cannot be compiled with unity build because calculate_discontinuous_distance_to_skin_process.cpp does implicit instantiation before specialization
     set_source_files_properties (${CMAKE_CURRENT_SOURCE_DIR}/processes/find_global_nodal_entity_neighbours_process.cpp PROPERTIES SKIP_UNITY_BUILD_INCLUSION TRUE)
+    set_source_files_properties (${CMAKE_CURRENT_SOURCE_DIR}/linear_solvers/linear_solver_ublas.cpp PROPERTIES SKIP_UNITY_BUILD_INCLUSION TRUE)
 
     ## The following are conflicting due to KratosComponents
     file(GLOB_RECURSE KRATOS_STRATEGIES_SOURCES ${CMAKE_CURRENT_SOURCE_DIR}/solving_strategies/*.cpp)
@@ -221,10 +222,20 @@ if(${INSTALL_TESTING_FILES} MATCHES ON )
         PATTERN "*.cpp" EXCLUDE
         PATTERN "*.hpp" EXCLUDE
     )
+
+    if(${KRATOS_USE_FUTURE} MATCHES ON)
+        install(DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/future/tests DESTINATION kratos/future
+                PATTERN "*.git" EXCLUDE
+                PATTERN "*.c" EXCLUDE
+                PATTERN "*.h" EXCLUDE
+                PATTERN "*.cpp" EXCLUDE
+                PATTERN "*.hpp" EXCLUDE
+            )
+    endif(${KRATOS_USE_FUTURE} MATCHES ON)
 endif(${INSTALL_TESTING_FILES} MATCHES ON)
 
 # Install targets
-install(TARGETS Kratos DESTINATION libs )
+install(TARGETS Kratos DESTINATION libs)
 install(TARGETS KratosCore DESTINATION libs)
 
 # Mpi

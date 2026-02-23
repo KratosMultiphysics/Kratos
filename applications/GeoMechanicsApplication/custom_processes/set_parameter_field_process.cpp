@@ -158,4 +158,5 @@ std::vector<IndexType> SetParameterFieldProcess::GetVectorIndices() const
     return result;
 }
 
+std::string SetParameterFieldProcess::Info() const { return "SetParameterFieldProcess"; }
 } // namespace Kratos.

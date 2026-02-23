@@ -12,7 +12,6 @@
 // External includes
 
 // Project includes
-#include "includes/define.h"
 #include "includes/define_python.h"
 #include "custom_python/add_custom_solvers_to_python.h"
 #include "linear_solvers/linear_solver.h"
@@ -46,8 +45,7 @@
 /* Utilities */
 #include "custom_utilities/feast_condition_number_utility.h"
 
-namespace Kratos {
-namespace Python {
+namespace Kratos::Python {
 
 template <typename SolverType>
 void register_solver(pybind11::module& m, const std::string& name)
@@ -285,6 +283,4 @@ void AddCustomSolversToPython(pybind11::module& m)
         ;
 }
 
-} // namespace Python
-
-} // namespace Kratos
+} // namespace Kratos::Python

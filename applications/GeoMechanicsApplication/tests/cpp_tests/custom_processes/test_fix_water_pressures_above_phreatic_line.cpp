@@ -94,15 +94,15 @@ KRATOS_TEST_CASE_IN_SUITE(TestFixWaterPressureAbovePhreaticLine_ThrowsUponConstr
         FixWaterPressuresAbovePhreaticLineProcess(r_model_part, test_parameters), expected_error_message);
 }
 
-KRATOS_TEST_CASE_IN_SUITE(TestFixWaterPressureAbovePhreaticLine_FixesAllWaterPressuresToZeroWhenAllNodesAbovePhreaticLine,
+KRATOS_TEST_CASE_IN_SUITE(TestFixWaterPressureAbovePhreaticLine_FixesAllWaterPressuresToZeroWhenAllNodesAboveOrOnPhreaticLine,
                           KratosGeoMechanicsFastSuiteWithoutKernel)
 {
     // Arrange
     constexpr auto y_node_1     = 0.0;
-    constexpr auto y_node_2     = -1.0;
+    constexpr auto y_node_2     = -2.0;
     auto           model        = Model{};
     auto&          r_model_part = CreateModelPartWithTwoNodesAtHeights(model, y_node_1, y_node_2);
-    const auto     test_parameters = CreateParametersWithConstantPhreaticLineAtHeight(-2.0);
+    const auto     test_parameters = CreateParametersWithConstantPhreaticLineAtHeight(y_node_2);
     r_model_part.GetNode(1).FastGetSolutionStepValue(WATER_PRESSURE) = 1.0;
     r_model_part.GetNode(2).FastGetSolutionStepValue(WATER_PRESSURE) = 2.0;
     FixWaterPressuresAbovePhreaticLineProcess process(r_model_part, test_parameters);
@@ -239,4 +239,20 @@ KRATOS_TEST_CASE_IN_SUITE(TestFixWaterPressureAbovePhreaticLine_InterpolatesMult
     EXPECT_FALSE(r_model_part.GetNode(2).IsFixed(WATER_PRESSURE));
 }
 
+KRATOS_TEST_CASE_IN_SUITE(CheckInfoFixWaterPressureAbovePhreaticLine, KratosGeoMechanicsFastSuiteWithoutKernel)
+{
+    // Arrange
+    auto       model              = Model{};
+    auto&      r_empty_model_part = model.CreateModelPart("foo");
+    const auto test_parameters    = Parameters{R"(
+            {
+                "model_part_name": "foo",
+                "x_coordinates": [0.0, 1.0],
+                "y_coordinates": [-1.0, 0.0]
+            }  )"};
+    const FixWaterPressuresAbovePhreaticLineProcess process(r_empty_model_part, test_parameters);
+
+    // Act & assert
+    KRATOS_EXPECT_EQ(process.Info(), "FixWaterPressuresAbovePhreaticLineProcess");
+}
 } // namespace Kratos::Testing

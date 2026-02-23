@@ -774,6 +774,10 @@ public:
         const std::vector<std::size_t>& rEquationId
         )
     {
+        // Check for empty contributions
+        if (rLHSContribution.size1() == 0 || rLHSContribution.size2() == 0) return;
+
+        // Get system size
         const unsigned int system_size = Size1(rA);
 
         // Count active indices
@@ -825,6 +829,10 @@ public:
         const std::vector<std::size_t>& rEquationId
         )
     {
+        // Check for empty contributions
+        if (rRHSContribution.size() == 0) return;
+
+        // Get system size
         const unsigned int system_size = Size(rb);
 
         // Count active indices

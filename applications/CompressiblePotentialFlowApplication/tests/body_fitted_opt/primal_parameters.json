@@ -8,7 +8,7 @@
     },
     "solver_settings"                  : {
         "solver_type"            : "potential_flow",
-        "model_part_name" : "MainModelPart",
+        "model_part_name" : "FluidModelPart",
         "domain_size"     : 2,
         "model_import_settings"  : {
             "input_type"     : "use_input_model_part",
@@ -31,24 +31,22 @@
     "processes" : {
         "initial_conditions_process_list"  : [],
         "boundary_conditions_process_list" : [{
-            "python_module" : "apply_far_field_process",
+            "python_module" : "apply_far_field_and_wake_process",
             "kratos_module" : "KratosMultiphysics.CompressiblePotentialFlowApplication",
             "process_name"  : "FarFieldProcess",
             "Parameters"    : {
-                "model_part_name"   : "MainModelPart.PotentialWallCondition2D_Far_field_Auto1",
+                "model_part_name"   : "FluidModelPart.PotentialWallCondition2D_Far_field_Auto1",
                 "angle_of_attack": 0.0,
                 "mach_infinity": 0.2,
                 "free_stream_density": 1.225,
-                "inlet_potential"         : 1.0
-            }
-        },{
-            "python_module" : "define_wake_process_2d",
-            "kratos_module" : "KratosMultiphysics.CompressiblePotentialFlowApplication",
-            "process_name"  : "DefineWakeProcess",
-            "Parameters"    : {
-                "model_part_name" : "MainModelPart.Body2D_Body",
-                "epsilon"         : 1e-9,
-                "echo_level" : 0
+                "inlet_potential"         : 1.0,
+                "define_wake": true,
+                "wake_type"  : "Operations.KratosMultiphysics.CompressiblePotentialFlowApplication.Define2DWakeOperation",
+                "wake_parameters"    : {
+                    "body_model_part_name"    : "FluidModelPart.Body2D_Body",
+                    "wake_distance_tolerance" : 1e-9,
+                    "echo_level"              : 0
+                }
             }
         }],
         "list_other_processes": [
@@ -60,7 +58,7 @@
                 "Parameters"    : {
                     "check_variables"  : ["SHAPE_CHANGE_X","SHAPE_CHANGE_Y","SHAPE_CHANGE_Z"],
                     "input_file_name"  : "airfoil_change_results.json",
-                    "model_part_name"  : "MainModelPart.Body2D_Body",
+                    "model_part_name"  : "FluidModelPart.Body2D_Body",
                     "time_frequency"   : 0.0
                 }
             }
@@ -75,7 +73,7 @@
             "Parameters"    : {
                 "output_variables" : ["SHAPE_CHANGE_X","SHAPE_CHANGE_Y","SHAPE_CHANGE_Z"],
                 "output_file_name" : "airfoil_change_results.json",
-                "model_part_name"  : "MainModelPart.Body2D_Body",
+                "model_part_name"  : "FluidModelPart.Body2D_Body",
                 "time_frequency"   : 0.0
             }
     }]

@@ -1,6 +1,7 @@
 import os
 
 import KratosMultiphysics.KratosUnittest as KratosUnittest
+from KratosMultiphysics.GeoMechanicsApplication.gid_output_file_reader import GiDOutputFileReader
 import test_helper
 
 
@@ -17,7 +18,7 @@ class KratosGeoMechanicsAvoidSmallEndStepTests(KratosUnittest.TestCase):
 
         test_helper.run_kratos(file_path)
 
-        reader = test_helper.GiDOutputFileReader()
+        reader = GiDOutputFileReader()
         simulation_output = reader.read_output_from(os.path.join(file_path, "test_avoid_small_end_step.post.res"))
 
         number_of_steps_taken = len(simulation_output["results"]["DISPLACEMENT"])

@@ -25,50 +25,43 @@ namespace Kratos
 /**
  * @class QuadraturePointGeometry
  * @ingroup KratosCore
- * @brief A single quadrature point, that can be used for geometries without
+ * @brief A single quadrature point for a curve, that can be used for geometries without
  *        a predefined integration scheme, i.e. they can handle material point elements,
  *        isogeometric analysis elements or standard finite elements which are defined
- *        at a single quadrature point.
+ *        at a single quadrature point of a curve.
  *        This point defines a line segment described on a underlying surface.
  *        Shape functions and integration types have to be precomputed and are set from
  *        from outside.
  *        The parent pointer can provide the address to the owner of this quadrature point.
- */
-template<class TPointType>
+ */template<class TPointType,
+    int TWorkingSpaceDimension>
 class QuadraturePointCurveGeometry
-    : public QuadraturePointGeometry<TPointType, 3, 2, 1>
+    : public QuadraturePointGeometry<TPointType, TWorkingSpaceDimension, 1, 1>
 {
 public:
 
     /// Pointer definition of QuadraturePointGeometry
     KRATOS_CLASS_POINTER_DEFINITION(QuadraturePointCurveGeometry);
 
-    typedef QuadraturePointGeometry<TPointType, 3, 2, 1> BaseType;
-    typedef Geometry<TPointType> GeometryType;
+    using BaseType = QuadraturePointGeometry<TPointType, TWorkingSpaceDimension, 1, 1>;
+    using GeometryType = Geometry<TPointType>;
 
-    typedef typename GeometryType::IndexType IndexType;
-    typedef typename GeometryType::SizeType SizeType;
+    using IndexType = typename GeometryType::IndexType;
+    using SizeType = typename GeometryType::SizeType;
 
-    typedef typename GeometryType::PointsArrayType PointsArrayType;
-    typedef typename GeometryType::CoordinatesArrayType CoordinatesArrayType;
+    using PointsArrayType = typename GeometryType::PointsArrayType;
+    using CoordinatesArrayType = typename GeometryType::CoordinatesArrayType;
 
-    typedef typename GeometryType::IntegrationPointType IntegrationPointType;
-    typedef typename GeometryType::IntegrationPointsArrayType IntegrationPointsArrayType;
+    using IntegrationPointType = typename GeometryType::IntegrationPointType;
+    using IntegrationPointsArrayType = typename GeometryType::IntegrationPointsArrayType;
 
-    typedef typename GeometryData::ShapeFunctionsGradientsType ShapeFunctionsGradientsType;
+    using ShapeFunctionsGradientsType = typename GeometryData::ShapeFunctionsGradientsType;
 
-    typedef GeometryShapeFunctionContainer<GeometryData::IntegrationMethod> GeometryShapeFunctionContainerType;
+    using GeometryShapeFunctionContainerType = GeometryShapeFunctionContainer<GeometryData::IntegrationMethod>;
 
-    typedef typename GeometryType::IntegrationPointsContainerType IntegrationPointsContainerType;
-    typedef typename GeometryType::ShapeFunctionsValuesContainerType ShapeFunctionsValuesContainerType;
-    typedef typename GeometryType::ShapeFunctionsLocalGradientsContainerType ShapeFunctionsLocalGradientsContainerType;
-
-    /// using base class functions
-    using BaseType::Jacobian;
-    using BaseType::DeterminantOfJacobian;
-    using BaseType::ShapeFunctionsValues;
-    using BaseType::ShapeFunctionsLocalGradients;
-    using BaseType::InverseOfJacobian;
+    using IntegrationPointsContainerType = typename GeometryType::IntegrationPointsContainerType;
+    using ShapeFunctionsValuesContainerType = typename GeometryType::ShapeFunctionsValuesContainerType;
+    using ShapeFunctionsLocalGradientsContainerType = typename GeometryType::ShapeFunctionsLocalGradientsContainerType;
 
     ///@}
     ///@name Life Cycle
@@ -154,17 +147,6 @@ public:
         }
     }
 
-    /// Calculate with Vector
-    void Calculate(
-        const Variable<Vector>& rVariable,
-        Vector& rOutput) const override
-    {
-        if (rVariable == DETERMINANTS_OF_JACOBIAN_PARENT)
-        {
-            DeterminantOfJacobianParent(rOutput);
-        }
-    }
-
     ///@}
     ///@name Normal
     ///@{
@@ -180,7 +162,7 @@ public:
         GeometryData::IntegrationMethod ThisMethod) const override
     {
         KRATOS_DEBUG_ERROR_IF(IntegrationPointIndex != 0)
-            << "Trying to access Normal of QuadraturePointCurveGeometryOnSurface "
+            << "Trying to access Normal of QuadraturePointCurveGeometry "
             << "with an integration point index != 0." << std::endl;
 
         CoordinatesArrayType normal = ZeroVector(3);
@@ -188,68 +170,6 @@ public:
         normal[1] = -mLocalTangentsU;
 
         return normal;
-    }
-
-    ///@}
-    ///@name Jacobian
-    ///@{
-
-    /*
-    * @brief returns the respective curve length of this
-    *        quadrature point.
-    * @param IntegrationPointIndex index should be always 0.
-    */
-    double DeterminantOfJacobian(
-        IndexType IntegrationPointIndex,
-        GeometryData::IntegrationMethod ThisMethod) const override
-    {
-        KRATOS_DEBUG_ERROR_IF(IntegrationPointIndex != 0)
-            << "Trying to access DeterminantOfJacobian of QuadraturePointCurveGeometryOnSurface "
-            << "with an integration point index != 0." << std::endl;
-
-        Matrix J;
-        this->Jacobian(J, IntegrationPointIndex, ThisMethod);
-
-        array_1d<double, 3> a_1 = column(J, 0);
-        array_1d<double, 3> a_2 = column(J, 1);
-
-        return norm_2(a_1 * mLocalTangentsU + a_2 * mLocalTangentsV);
-    }
-
-    /* @brief returns the respective segment length of this
-     *        quadrature point. Length of vector always 1.
-     * @param rResult vector of results of this quadrature point.
-     */
-    Vector& DeterminantOfJacobian(
-        Vector& rResult,
-        GeometryData::IntegrationMethod ThisMethod) const override
-    {
-        if (rResult.size() != 1)
-            rResult.resize(1, false);
-
-        rResult[0] = this->DeterminantOfJacobian(0, ThisMethod);
-
-        return rResult;
-    }
-
-    /* @brief returns the respective segment length of this
-     *        quadrature point, computed on the parent of this geometry.
-     *        Required for reduced quadrature point geometries (Not all
-     *        nodes are part of this geometry - used for mapping).
-     * @param rResult vector of results of this quadrature point.
-     */
-    Vector& DeterminantOfJacobianParent(
-        Vector& rResult) const
-    {
-        if (rResult.size() != 1)
-            rResult.resize(1, false);
-
-        Matrix J;
-        this->GetGeometryParent(0).Jacobian(J, this->IntegrationPoints()[0]);
-
-        rResult[0] = norm_2(column(J, 0) * mLocalTangentsU + column(J, 1) * mLocalTangentsV);
-
-        return rResult;
     }
 
     ///@}
@@ -273,7 +193,7 @@ public:
      */
     GeometryData::KratosGeometryType GetGeometryType() const override
     {
-        return GeometryData::KratosGeometryType::Kratos_Quadrature_Point_Curve_On_Surface_Geometry;
+        return GeometryData::KratosGeometryType::Kratos_Quadrature_Point_Curve_Geometry;
     }
 
     ///@}
@@ -283,13 +203,13 @@ public:
     /// Turn back information as a string.
     std::string Info() const override
     {
-        return "Quadrature point for a curve on surface.";
+        return "Quadrature point for a curve.";
     }
 
     /// Print information about this object.
     void PrintInfo( std::ostream& rOStream ) const override
     {
-        rOStream << "Quadrature point for a curve on surface.";
+        rOStream << "Quadrature point for a curve.";
     }
 
     /// Print object's data.

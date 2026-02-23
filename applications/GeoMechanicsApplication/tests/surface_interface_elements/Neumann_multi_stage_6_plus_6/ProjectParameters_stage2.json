@@ -26,7 +26,6 @@
         "compute_reactions":                  false,
         "move_mesh_flag":                     false,
         "reform_dofs_at_each_step":           false,
-        "nodal_smoothing":                    false,
         "block_builder":                      false,
         "solution_type":                      "Quasi-Static",
         "scheme_type":                        "Newmark",

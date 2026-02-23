@@ -28,14 +28,10 @@ class CoulombWithTensionCutOffImpl
 {
 public:
     CoulombWithTensionCutOffImpl() = default;
-    CoulombWithTensionCutOffImpl(double FrictionAngleInRadians,
-                                 double Cohesion,
-                                 double DilatancyAngleInRadians,
-                                 double TensileStrength);
+    explicit CoulombWithTensionCutOffImpl(const Properties& rMaterialProperties);
 
     [[nodiscard]] bool   IsAdmissibleSigmaTau(const Vector& rTrialSigmaTau) const;
-    [[nodiscard]] Vector DoReturnMapping(const Properties& rProperties,
-                                         const Vector&     rTrialSigmaTau,
+    [[nodiscard]] Vector DoReturnMapping(const Vector& rTrialSigmaTau,
                                          CoulombYieldSurface::CoulombAveragingType AveragingType) const;
 
 private:

@@ -53,4 +53,10 @@ void CalculateIncrementalMotionProcess::Execute()
                      << " not found in the model part." << std::endl;
     }
 }
+
+std::string CalculateIncrementalMotionProcess::Info() const
+{
+    return "CalculateIncrementalMotionProcess";
+}
+
 } // namespace Kratos

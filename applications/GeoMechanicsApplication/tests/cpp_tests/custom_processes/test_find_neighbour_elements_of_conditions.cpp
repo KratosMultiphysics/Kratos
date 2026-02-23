@@ -11,9 +11,9 @@
 //
 
 #include "custom_processes/find_neighbour_elements_of_conditions_process.h"
+#include "test_setup_utilities/element_setup_utilities.h"
+#include "test_setup_utilities/model_setup_utilities.h"
 #include "tests/cpp_tests/geo_mechanics_fast_suite.h"
-#include "tests/cpp_tests/test_utilities/element_setup_utilities.h"
-#include "tests/cpp_tests/test_utilities/model_setup_utilities.h"
 
 namespace
 {
@@ -195,6 +195,16 @@ TEST_F(KratosGeoMechanicsFastSuiteWithoutKernel, FindNeighboursWithMultipleNeigh
     // Assert
     EXPECT_EQ(p_condition->GetValue(NEIGHBOUR_ELEMENTS).size(), 1);
     EXPECT_EQ(p_condition->GetValue(NEIGHBOUR_ELEMENTS)[0].GetId(), 2);
+}
+
+KRATOS_TEST_CASE_IN_SUITE(CheckInfoFindNeighbourElementsOfConditionsProcess, KratosGeoMechanicsFastSuiteWithoutKernel)
+{
+    // Arrange
+    Model model;
+    auto& r_empty_model_part = model.CreateModelPart("foo");
+    const FindNeighbourElementsOfConditionsProcess process(r_empty_model_part);
+    // Act & assert
+    KRATOS_EXPECT_EQ(process.Info(), "FindNeighbourElementsOfConditionsProcess");
 }
 
 } // namespace Kratos::Testing

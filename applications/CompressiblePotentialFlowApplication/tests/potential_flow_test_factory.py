@@ -13,12 +13,6 @@ from KratosMultiphysics.KratosUnittest import isclose as t_isclose
 import os
 
 try:
-    import stl
-    numpy_stl_is_available = True
-except:
-    numpy_stl_is_available = False
-
-try:
     import KratosMultiphysics.MultilevelMonteCarloApplication
     import xmc
     import exaqute
@@ -161,8 +155,6 @@ class PotentialFlowTests(UnitTest.TestCase):
                     kratos_utilities.DeleteFileIfExisting(file_name)
 
     def test_WakeProcess3DSmall(self):
-        if not numpy_stl_is_available:
-            self.skipTest("Missing required dependency: numpy-stl.")
         # This tests a simple small 3D model
         settings_file_name = "small_3d_parameters.json"
         work_folder = "wake_process_3d_tests/15_elements_small_test"
@@ -175,22 +167,18 @@ class PotentialFlowTests(UnitTest.TestCase):
             self._validateWakeProcess(reference_kutta_elements_id_list, "KUTTA")
 
     def test_WakeProcess3DNodesOnWake(self):
-        if not numpy_stl_is_available:
-            self.skipTest("Missing required dependency: numpy-stl.")
         # This tests a model with nodes laying on the wake
         settings_file_name = "small_3d_parameters.json"
         work_folder = "wake_process_3d_tests/25_elements_nodes_on_wake_test"
 
         with WorkFolderScope(work_folder):
             self._runTest(settings_file_name, initialize_only=True)
-            reference_wake_elements_id_list = [13, 14, 15, 16, 17]
+            reference_wake_elements_id_list = [13, 14, 15, 16, 17, 20, 23]
             self._validateWakeProcess(reference_wake_elements_id_list, "WAKE")
-            reference_kutta_elements_id_list = [18, 19, 20, 21, 22, 23]
+            reference_kutta_elements_id_list = [18, 19, 21, 22]
             self._validateWakeProcess(reference_kutta_elements_id_list, "KUTTA")
 
     def test_WakeProcess3DKuttaNodesAboveTheWake(self):
-        if not numpy_stl_is_available:
-            self.skipTest("Missing required dependency: numpy-stl.")
         # This tests a model with some kutta nodes above the wake
         settings_file_name = "small_3d_parameters.json"
         work_folder = "wake_process_3d_tests/24_elements_kutta_node_above_wake_test"
@@ -202,18 +190,18 @@ class PotentialFlowTests(UnitTest.TestCase):
             reference_kutta_elements_id_list = [10, 11, 12, 13, 14, 15, 18, 23, 24]
             self._validateWakeProcess(reference_kutta_elements_id_list, "KUTTA")
 
-    # def test_Rhombus3DIncompressible(self):
-    #     settings_file_name = "rhombus_3d_parameters.json"
-    #     work_folder = "rhombus_3d"
+    def test_Rhombus3DIncompressible(self):
+        settings_file_name = "rhombus_3d_parameters.json"
+        work_folder = "rhombus_3d"
 
-    #     with WorkFolderScope(work_folder):
-    #         self._runTest(settings_file_name)
-    #         self._check_results(self.main_model_part.ProcessInfo[CPFApp.LIFT_COEFFICIENT], 0.7588610175104619, 0.0, 1e-9)
-    #         self._check_results(self.main_model_part.ProcessInfo[KratosMultiphysics.DRAG_COEFFICIENT], 0.06139132782446192, 0.0, 1e-9)
-    #         self._check_results(self.main_model_part.ProcessInfo[CPFApp.LIFT_COEFFICIENT_JUMP], 0.7517050099908653, 0.0, 1e-9)
-    #         self._check_results(self.main_model_part.ProcessInfo[CPFApp.LIFT_COEFFICIENT_FAR_FIELD], 0.7606633562228483, 0.0, 1e-9)
-    #         self._check_results(self.main_model_part.ProcessInfo[CPFApp.DRAG_COEFFICIENT_FAR_FIELD],0.00934349677648862, 0.0, 1e-9)
-    #         self._check_results(self.main_model_part.GetNode(49).GetValue(CPFApp.POTENTIAL_JUMP), 0.36302216310763125, 0.0, 1e-9)
+        with WorkFolderScope(work_folder):
+            self._runTest(settings_file_name)
+            self._check_results(self.main_model_part.ProcessInfo[CPFApp.LIFT_COEFFICIENT], 0.7588610175104619, 0.0, 1e-9)
+            self._check_results(self.main_model_part.ProcessInfo[KratosMultiphysics.DRAG_COEFFICIENT], 0.06139132782446192, 0.0, 1e-9)
+            self._check_results(self.main_model_part.ProcessInfo[CPFApp.LIFT_COEFFICIENT_JUMP], 0.7517050099908653, 0.0, 1e-9)
+            self._check_results(self.main_model_part.ProcessInfo[CPFApp.LIFT_COEFFICIENT_FAR_FIELD], 0.7606633562228483, 0.0, 1e-9)
+            self._check_results(self.main_model_part.ProcessInfo[CPFApp.DRAG_COEFFICIENT_FAR_FIELD],0.00934349677648862, 0.0, 1e-9)
+            self._check_results(self.main_model_part.GetNode(49).GetValue(CPFApp.POTENTIAL_JUMP), 0.36302216310763125, 0.0, 1e-9)
 
     @UnitTest.skipIfApplicationsNotAvailable("ShapeOptimizationApplication", "LinearSolversApplication", "MeshMovingApplication")
     def test_ShapeOptimizationLiftConstrainedBodyFitted2D(self):
@@ -221,6 +209,9 @@ class PotentialFlowTests(UnitTest.TestCase):
 
         with UnitTest.WorkFolderScope(work_folder, __file__):
             __import__(work_folder+".run_test")
+
+        kratos_utilities.DeleteDirectoryIfExisting(work_folder+"/Optimization_Results")
+        kratos_utilities.DeleteDirectoryIfExisting(work_folder+"/__pycache__")
 
     @UnitTest.skipIfApplicationsNotAvailable("ShapeOptimizationApplication", "LinearSolversApplication", "MeshMovingApplication", "MultilevelMonteCarloApplication", "MappingApplication")
     def test_StochasticShapeOptimizationLiftConstrainedBodyFitted2D(self):
@@ -263,7 +254,7 @@ class PotentialFlowTests(UnitTest.TestCase):
                         "process_name"  : "GiDOutputProcess",
                         "help"          : "This process writes postprocessing files for GiD",
                         "Parameters"    : {
-                            "model_part_name"        : "MainModelPart",
+                            "model_part_name"        : "FluidModelPart",
                             "output_name"            : "naca0012_adjoint",
                             "postprocess_parameters" : {
                                 "result_file_configuration" : {
@@ -275,7 +266,7 @@ class PotentialFlowTests(UnitTest.TestCase):
                                     },
                                     "file_label"          : "step",
                                     "output_control_type" : "step",
-                                    "output_frequency"    : 1,
+                                    "output_interval"     : 1,
                                     "body_output"         : true,
                                     "node_output"         : false,
                                     "skin_output"         : false,
@@ -298,8 +289,8 @@ class PotentialFlowTests(UnitTest.TestCase):
                         "process_name"  : "GiDOutputProcess",
                         "help"          : "This process writes postprocessing files for GiD",
                         "Parameters"    : {
-                            "model_part_name"        : "MainModelPart",
-                            "output_name"            : "naca0012",
+                            "model_part_name"        : "FluidModelPart",
+                            "output_name"            : "gid_output",
                             "postprocess_parameters" : {
                                 "result_file_configuration" : {
                                     "gidpost_flags"       : {
@@ -315,8 +306,10 @@ class PotentialFlowTests(UnitTest.TestCase):
                                     "node_output"         : false,
                                     "skin_output"         : false,
                                     "plane_output"        : [],
-                                    "nodal_results"       : ["VELOCITY_POTENTIAL","AUXILIARY_VELOCITY_POTENTIAL"],
-                                    "nodal_nonhistorical_results": ["TRAILING_EDGE","WAKE_DISTANCE"],
+                                    "nodal_nonhistorical_results": ["PRESSURE_COEFFICIENT","POTENTIAL_JUMP","TRAILING_EDGE","WAKE_DISTANCE",
+                                                                    "WING_TIP","WING_ROOT","UPPER_SURFACE","LOWER_SURFACE",
+                                                                    "VELOCITY","DENSITY","MACH"],
+                                    "nodal_results"       : ["VELOCITY_POTENTIAL", "AUXILIARY_VELOCITY_POTENTIAL"],
                                     "elemental_conditional_flags_results": ["STRUCTURE"],
                                     "gauss_point_results" : ["PRESSURE_COEFFICIENT","VELOCITY","WAKE","WAKE_ELEMENTAL_DISTANCES","KUTTA"]
                                 },
