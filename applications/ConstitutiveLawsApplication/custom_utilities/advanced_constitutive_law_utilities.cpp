@@ -1034,6 +1034,8 @@ BoundedMatrix<double, 3, 3> AdvancedConstitutiveLawUtilities<TVoigtSize>::Calcul
     return P / 3.0;
 }
 
+/***********************************************************************************/
+/***********************************************************************************/
 
 template class AdvancedConstitutiveLawUtilities<3>;
 template class AdvancedConstitutiveLawUtilities<6>;

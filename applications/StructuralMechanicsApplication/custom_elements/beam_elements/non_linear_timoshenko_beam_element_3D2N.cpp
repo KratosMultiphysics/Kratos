@@ -95,7 +95,7 @@ void NonLinearTimoshenkoBeamElement3D2N::CalculateAll(
         noalias(rRHS) = ZeroVector(mat_size);
     }
 
-    // Dummy implementation: no internal computations yet.
+    
 }
 
 /***********************************************************************************/
