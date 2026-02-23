@@ -1,4 +1,4 @@
-#include "custom_utilities/section_properties_utility.h"
+#include "utilities/section_properties_utility.h"
 #include "structural_mechanics_application_variables.h"
 
 namespace Kratos
