@@ -333,13 +333,13 @@ class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) ConstitutiveLawUtilities
     /**
      * @brief This method computes the spin matrix of a rotation vector
      */
-    static BoundedMatrix<double, Dimension, Dimension> CalculateSpinMatrix(
+    static BoundedMatrix<double, 3, 3> CalculateSpinMatrix(
         const array_1d<double, 3> &rRotationsVector);
 
     /**
      * @brief This method computes the rotation matrix from a rotation vector using the Rodrigues formula
      */
-    static BoundedMatrix<double, Dimension, Dimension> CalculateRotationMatrixFromRotationVectorRodrigues(
+    static BoundedMatrix<double, 3, 3> CalculateRotationMatrixFromRotationVectorRodrigues(
         const array_1d<double, 3> &rRotationsVector); // (theta_x, theta_y, theta_z)
 
 }; // class ConstitutiveLawUtilities

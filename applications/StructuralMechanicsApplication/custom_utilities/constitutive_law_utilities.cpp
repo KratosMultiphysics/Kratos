@@ -493,11 +493,11 @@ double ConstitutiveLawUtilities<TVoigtSize>::CalculateShearModulus(
 /***********************************************************************************/
 
 template <SizeType TVoigtSize>
-BoundedMatrix<double, Dimension, Dimension> ConstitutiveLawUtilities<TVoigtSize>::CalculateSpinMatrix(
+BoundedMatrix<double, 3, 3> ConstitutiveLawUtilities<TVoigtSize>::CalculateSpinMatrix(
     const array_1d<double, 3> &rRotationsVector
 )
 {
-    BoundedMatrix<double, Dimension, Dimension> W;
+    BoundedMatrix<double, 3, 3> W;
     W.clear();
 
     W(0, 1) = -rRotationsVector[2];
@@ -514,24 +514,26 @@ BoundedMatrix<double, Dimension, Dimension> ConstitutiveLawUtilities<TVoigtSize>
 /***********************************************************************************/
 
 template <SizeType TVoigtSize>
-BoundedMatrix<double, Dimension, Dimension> ConstitutiveLawUtilities<TVoigtSize>::CalculateRotationMatrixFromRotationVectorRodrigues(
+BoundedMatrix<double, 3, 3> ConstitutiveLawUtilities<TVoigtSize>::
+CalculateRotationMatrixFromRotationVectorRodrigues(
     const array_1d<double, 3> &rRotationsVector
     )
 {
     const double theta = norm_2(rRotationsVector);
-    BoundedMatrix<double, Dimension, Dimension> rotation_matrix;
+    BoundedMatrix<double, 3, 3> rotation_matrix;
     rotation_matrix.clear();
 
-    if (theta < tolerance) {
-        noalias(rotation_matrix) = IdentityMatrix(3);
-        return rotation_matrix;
-    } else {
+    for (IndexType i = 0; i < Dimension; ++i)
+        rotation_matrix(i, i) = 1.0;
+
+    if (theta > tolerance) {
         const double cos_theta = std::cos(theta);
         const double sin_theta = std::sin(theta);
-        const BoundedMatrix<double, Dimension, Dimension> spin_matrix;
+        BoundedMatrix<double, 3, 3> spin_matrix;
         noalias(spin_matrix) = CalculateSpinMatrix(rRotationsVector);
 
-        noalias(rotation_matrix) = IdentityMatrix(3) + (sin_theta / theta) * spin_matrix + ((1.0 - cos_theta) / (theta * theta)) * prod(spin_matrix, spin_matrix);
+        noalias(rotation_matrix) += (sin_theta / theta) * spin_matrix +
+            ((1.0 - cos_theta) / (theta * theta)) * prod(spin_matrix, spin_matrix);
     }
 
     return rotation_matrix;
