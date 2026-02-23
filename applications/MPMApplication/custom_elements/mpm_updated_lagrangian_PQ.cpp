@@ -12,24 +12,22 @@
 
 
 // System includes
-#include <omp.h>
-#include <sstream>
 
 // External includes
 
 // Project includes
 #include "includes/define.h"
-#include "custom_elements/mpm_updated_lagrangian_PQ.hpp"
 #include "utilities/math_utils.h"
 #include "utilities/atomic_utilities.h"
 #include "includes/constitutive_law.h"
-#include "mpm_application_variables.h"
 #include "includes/checks.h"
 
-
+// Application includes
+#include "mpm_application_variables.h"
 #include "custom_utilities/mpm_explicit_utilities.h"
 #include "custom_utilities/mpm_math_utilities.h"
 #include "custom_utilities/mpm_energy_calculation_utility.h"
+#include "custom_elements/mpm_updated_lagrangian_PQ.hpp"
 
 
 namespace Kratos
