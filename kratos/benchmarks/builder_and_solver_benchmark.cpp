@@ -45,7 +45,7 @@ void BenchmarkBuildRHS(benchmark::State& rState)
     auto                   p_point_4 = Kratos::make_intrusive<Node>(4, 1.0, 0.0, 0.0);
     Quadrilateral2D4<Node> domain_geometry(p_point_1, p_point_2, p_point_3, p_point_4);
 
-    // This mesh results in 2e6 elements
+    // This mesher parameters result in 2e6 elements and 4000 conditions
     Parameters mesher_parameters(R"({
         "number_of_divisions": 1000,
         "element_name": "Element2D3N",
