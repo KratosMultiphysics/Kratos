@@ -350,6 +350,27 @@ class CFDUtils:
         print(field.ndim)
         raise ValueError("field must have 2 dims (scalar) or 3 dims (vector), Current shape of field is:",field.shape)
 
+    def ComputeBodyForceContribution(self, N: np.ndarray, b: np.ndarray, out: np.ndarray):
+        """
+        Compute the contribution of the body force to the RHS, that is (w,b)
+
+        this corresponds in einstain notation to
+        out[i,k] = N_i b_k
+        on every element
+
+        Parameters
+        ----------
+        N : (nelem, n_in_el)
+            shape function values at the gauss point
+
+        b: (nelem,ndim)
+            body force on the gauss point
+
+        out: (nelem, n_in_el, ndim)
+
+        """
+        np.einsum('i, ek->eik', N, b, out=out)
+
     def ComputeConvectiveContribution(self, N: np.ndarray, grad_u: np.ndarray, a: np.ndarray, rho: float, out: np.ndarray):
         """
         Compute (w,a·∇u) although with the definition we employ for ∇u this is actually (w,∇u·a)
