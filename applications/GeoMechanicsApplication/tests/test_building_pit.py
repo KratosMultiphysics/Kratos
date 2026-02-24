@@ -1025,6 +1025,7 @@ class KratosGeoMechanicsBuildingPit(KratosUnittest.TestCase):
 
         # The expected values have been taken from the comparison data files (except for the end points, which are
         # supposed to be zero)
+        # units: N, N·m
         expected_results = {
             "wall_installation": {
                 "BENDING_MOMENT": [
