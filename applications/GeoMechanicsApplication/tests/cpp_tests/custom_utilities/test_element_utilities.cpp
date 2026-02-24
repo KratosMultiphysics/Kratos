@@ -25,9 +25,9 @@ namespace
 struct Line2D2NGeometryWithVelocityVectorData {
     Model                          model;
     std::unique_ptr<Line2D2<Node>> p_geometry;
-    array_1d<double, 3>            velocity_vector;
+    array_1d<double, 3>            velocity_vector{1.0, 0.5, -0.5};
 
-    Line2D2NGeometryWithVelocityVectorData() : velocity_vector{1.0, 0.5, -0.5}
+    Line2D2NGeometryWithVelocityVectorData()
     {
         ModelPart& r_model_part = model.CreateModelPart("Main");
         r_model_part.AddNodalSolutionStepVariable(VELOCITY);
