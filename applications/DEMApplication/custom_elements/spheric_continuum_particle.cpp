@@ -506,6 +506,41 @@ namespace Kratos {
                 for(int k=0;k<3;++k){
                     DeltDisp[k] -= un * GlobalJointNormal[k];
                 }
+
+                const double norm = sqrt(GlobalJointNormal[0]*GlobalJointNormal[0] + GlobalJointNormal[1]*GlobalJointNormal[1] + GlobalJointNormal[2]*GlobalJointNormal[2]);
+
+                if (norm > 0.0) {
+                    GlobalJointNormal[0] = GlobalJointNormal[0]/norm;
+                    GlobalJointNormal[1] = GlobalJointNormal[1]/norm;
+                    GlobalJointNormal[2] = GlobalJointNormal[2]/norm;
+                }
+
+                double JointLocal[3][3];
+
+                // ez = joint normal
+                JointLocal[2][0] = GlobalJointNormal[0];
+                JointLocal[2][1] = GlobalJointNormal[1];
+                JointLocal[2][2] = GlobalJointNormal[2];
+
+                // ex = any vector perpendicular to ez (we take the one more perpendicular to ez)
+                double ref[3] = {1.0, 0.0, 0.0};
+                if (fabs(GlobalJointNormal[0]) > 0.9) {
+                    ref[0] = 0.0; ref[1] = 1.0; ref[2] = 0.0;
+                }
+
+                GeometryFunctions::CrossProduct(ref, GlobalJointNormal, JointLocal[0]);
+                GeometryFunctions::normalize(JointLocal[0]);
+
+                // ey = ez × ex
+                GeometryFunctions::CrossProduct(
+                    JointLocal[2],
+                    JointLocal[0],
+                    JointLocal[1]);
+
+                // store the local coordinate system 
+                memcpy(data_buffer.mLocalCoordSystem,
+                    JointLocal,
+                    sizeof(double)*9);
             }
             
             double LocalDeltDisp[3] = {0.0};
