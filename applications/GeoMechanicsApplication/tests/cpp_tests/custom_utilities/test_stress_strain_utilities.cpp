@@ -17,7 +17,6 @@
 #include "tests/cpp_tests/geo_mechanics_fast_suite.h"
 #include "tests/cpp_tests/test_utilities.h"
 #include "utilities/math_utils.h"
-#include <boost/numeric/ublas/assignment.hpp>
 
 using namespace Kratos;
 
@@ -45,36 +44,33 @@ KRATOS_TEST_CASE_IN_SUITE(CheckGreenLagrangeStrainTensor, KratosGeoMechanicsFast
 
 KRATOS_TEST_CASE_IN_SUITE(CheckCalculateVonMisesStressHydrostatic, KratosGeoMechanicsFastSuiteWithoutKernel)
 {
-    Vector stress_vector(4);
-    stress_vector <<= -2.0, -2.0, -2.0, 0.0;
+    auto stress_vector = UblasUtilities::CreateVector({-2.0, -2.0, -2.0, 0.0});
     KRATOS_EXPECT_DOUBLE_EQ(0.0, StressStrainUtilities::CalculateVonMisesStress(stress_vector));
 }
 
 KRATOS_TEST_CASE_IN_SUITE(CheckCalculateVonMisesStressPureShear, KratosGeoMechanicsFastSuiteWithoutKernel)
 {
-    Vector stress_vector(4);
-    stress_vector <<= 0.0, 0.0, 0.0, 2.0;
+    auto stress_vector = UblasUtilities::CreateVector({0.0, 0.0, 0.0, 2.0});
     KRATOS_EXPECT_DOUBLE_EQ(2.0 * std::sqrt(3.0), StressStrainUtilities::CalculateVonMisesStress(stress_vector));
 }
 
 KRATOS_TEST_CASE_IN_SUITE(CheckCalculateLodeAngle, KratosGeoMechanicsFastSuiteWithoutKernel)
 {
-    Vector stress_vector(4);
     // Validate Triaxial Extension (TXE)
-    stress_vector <<= 0.5, -1.0, 0.5, 0.0;
+    auto stress_vector = UblasUtilities::CreateVector({0.5, -1.0, 0.5, 0.0});
     KRATOS_EXPECT_DOUBLE_EQ(MathUtils<>::DegreesToRadians(30.0),
                             StressStrainUtilities::CalculateLodeAngle(stress_vector));
     // Validate Triaxial Compression (TXC)
     KRATOS_EXPECT_DOUBLE_EQ(MathUtils<>::DegreesToRadians(-30.0),
                             StressStrainUtilities::CalculateLodeAngle(-1.0 * stress_vector));
     // Validate Shear (SHR)
-    stress_vector <<= -1.0, 0.0, 1.0, 0.0;
+    stress_vector = UblasUtilities::CreateVector({-1.0, 0.0, 1.0, 0.0});
     KRATOS_EXPECT_DOUBLE_EQ(MathUtils<>::DegreesToRadians(0.0),
                             StressStrainUtilities::CalculateLodeAngle(stress_vector));
 
     // Regression tests with a small perturbation
     constexpr auto perturbation = 1.0e-8;
-    stress_vector <<= 0.5 + perturbation, -1.0, 0.5 + perturbation, 0.0;
+    stress_vector = UblasUtilities::CreateVector({0.5 + perturbation, -1.0, 0.5 + perturbation, 0.0});
     KRATOS_EXPECT_DOUBLE_EQ(MathUtils<>::DegreesToRadians(30.0),
                             StressStrainUtilities::CalculateLodeAngle(stress_vector));
     KRATOS_EXPECT_DOUBLE_EQ(MathUtils<>::DegreesToRadians(-30.0),
@@ -101,9 +97,8 @@ KRATOS_TEST_CASE_IN_SUITE(CheckCalculateMohrCoulombShearCapacityZeroQMCResultsIn
 
 KRATOS_TEST_CASE_IN_SUITE(CheckCalculateMohrCoulombShearCapacityHydrostatic, KratosGeoMechanicsFastSuiteWithoutKernel)
 {
-    Vector stress_vector(4);
-    stress_vector <<= -2.0, -2.0, -2.0, 0.0;
-    constexpr auto cohesion                  = 0.0;
+    auto           stress_vector = UblasUtilities::CreateVector({-2.0, -2.0, -2.0, 0.0});
+    constexpr auto cohesion      = 0.0;
     constexpr auto friction_angle_in_radians = MathUtils<>::DegreesToRadians(90.0);
     KRATOS_EXPECT_DOUBLE_EQ(0.0, StressStrainUtilities::CalculateMohrCoulombShearCapacity(
                                      stress_vector, cohesion, friction_angle_in_radians));
@@ -111,8 +106,7 @@ KRATOS_TEST_CASE_IN_SUITE(CheckCalculateMohrCoulombShearCapacityHydrostatic, Kra
 
 KRATOS_TEST_CASE_IN_SUITE(CheckCalculateMohrCoulombShearCapacityShearOnly, KratosGeoMechanicsFastSuiteWithoutKernel)
 {
-    Vector stress_vector(4);
-    stress_vector <<= -2.0, 0.0, 2.0, 0.0;
+    auto           stress_vector  = UblasUtilities::CreateVector({-2.0, 0.0, 2.0, 0.0});
     constexpr auto cohesion       = 2.0;
     constexpr auto friction_angle = 0.0;
     KRATOS_EXPECT_DOUBLE_EQ(1.0, StressStrainUtilities::CalculateMohrCoulombShearCapacity(
@@ -121,8 +115,7 @@ KRATOS_TEST_CASE_IN_SUITE(CheckCalculateMohrCoulombShearCapacityShearOnly, Krato
 
 KRATOS_TEST_CASE_IN_SUITE(CalculateMohrCoulombShearCapacityThrowsWhenPhiIsOutOfBounds, KratosGeoMechanicsFastSuiteWithoutKernel)
 {
-    Vector stress_vector(4);
-    stress_vector <<= -2.0, 0.0, 2.0, 0.0;
+    auto           stress_vector             = UblasUtilities::CreateVector({-2.0, 0.0, 2.0, 0.0});
     constexpr auto cohesion                  = 2.0;
     auto           friction_angle_in_radians = MathUtils<>::DegreesToRadians(-0.0001);
     KRATOS_EXPECT_EXCEPTION_IS_THROWN(
@@ -145,8 +138,7 @@ KRATOS_TEST_CASE_IN_SUITE(CheckCalculateMohrCoulombPressureCapacityZeroStress, K
 
 KRATOS_TEST_CASE_IN_SUITE(CheckCalculateMohrCoulombPressureCapacityShearOnly, KratosGeoMechanicsFastSuiteWithoutKernel)
 {
-    Vector stress_vector(4);
-    stress_vector <<= -2.0, 0.0, 2.0, 0.0;
+    auto           stress_vector  = UblasUtilities::CreateVector({-2.0, 0.0, 2.0, 0.0});
     const auto     cohesion       = std::sqrt(2.0 * 2.0 * 3.0);
     constexpr auto friction_angle = MathUtils<>::DegreesToRadians(30.0);
     KRATOS_EXPECT_NEAR(3. * std::sin(friction_angle),
@@ -157,38 +149,27 @@ KRATOS_TEST_CASE_IN_SUITE(CheckCalculateMohrCoulombPressureCapacityShearOnly, Kr
 
 KRATOS_TEST_CASE_IN_SUITE(CheckCalculateCauchyStrain, KratosGeoMechanicsFastSuiteWithoutKernel)
 {
-    Matrix B(5, 5);
-    // clang-format off
-    B <<=1.0, 2.0, 3.0, 4.0, 5.0,
-         1.1, 1.2, 1.3, 1.4, 1.5,
-         1.0, 0.9, 0.8, 0.7, 0.6,
-         0.0, 1.0, 2.0, 3.0, 4.0,
-         5.0, 4.0, 3.0, 2.0, 1.0;
-    // clang-format on
+    auto B = UblasUtilities::CreateMatrix({{1.0, 2.0, 3.0, 4.0, 5.0},
+                                           {1.1, 1.2, 1.3, 1.4, 1.5},
+                                           {1.0, 0.9, 0.8, 0.7, 0.6},
+                                           {0.0, 1.0, 2.0, 3.0, 4.0},
+                                           {5.0, 4.0, 3.0, 2.0, 1.0}});
 
-    Vector displacements(5);
-    displacements <<= 0.01, 0.02, 0.03, 0.04, 0.05;
+    auto displacements = UblasUtilities::CreateVector({0.01, 0.02, 0.03, 0.04, 0.05});
 
     const auto strain = StressStrainUtilities::CalculateCauchyStrain(B, displacements);
 
-    Vector expected_strain(5);
-    expected_strain <<= 0.55, 0.205, 0.11, 0.4, 0.35;
+    auto expected_strain = UblasUtilities::CreateVector({0.55, 0.205, 0.11, 0.4, 0.35});
 
     KRATOS_EXPECT_VECTOR_NEAR(strain, expected_strain, Defaults::absolute_tolerance)
 }
 
 KRATOS_TEST_CASE_IN_SUITE(CheckCalculateStrains, KratosGeoMechanicsFastSuiteWithoutKernel)
 {
-    Matrix B(4, 4);
-    // clang-format off
-    B <<=1.0, 2.0, 3.0, 4.0,
-         1.1, 1.2, 1.3, 1.4,
-         1.0, 0.9, 0.8, 0.7,
-         0.0, 1.0, 2.0, 3.0;
-    // clang-format on
+    auto B = UblasUtilities::CreateMatrix(
+        {{1.0, 2.0, 3.0, 4.0}, {1.1, 1.2, 1.3, 1.4}, {1.0, 0.9, 0.8, 0.7}, {0.0, 1.0, 2.0, 3.0}});
 
-    Vector displacements(4);
-    displacements <<= 0.01, 0.02, 0.03, 0.04;
+    auto displacements = UblasUtilities::CreateVector({0.01, 0.02, 0.03, 0.04});
 
     bool        use_hencky_strain = false;
     std::size_t voigt_size        = 4;
@@ -204,8 +185,7 @@ KRATOS_TEST_CASE_IN_SUITE(CheckCalculateStrains, KratosGeoMechanicsFastSuiteWith
 
     auto strains = StressStrainUtilities::CalculateStrains(deformation_gradients, Bs, displacements,
                                                            use_hencky_strain, voigt_size);
-    Vector expected_strain(4);
-    expected_strain <<= 0.3, 0.13, 0.08, 0.2;
+    auto expected_strain = UblasUtilities::CreateVector({0.3, 0.13, 0.08, 0.2});
     std::vector<Vector> expected_strains;
     expected_strains.push_back(expected_strain);
     expected_strains.push_back(expected_strain);
@@ -217,7 +197,7 @@ KRATOS_TEST_CASE_IN_SUITE(CheckCalculateStrains, KratosGeoMechanicsFastSuiteWith
     strains = StressStrainUtilities::CalculateStrains(deformation_gradients, Bs, displacements,
                                                       use_hencky_strain, voigt_size);
 
-    expected_strain <<= 0.549306, 0.549306, 0.549306, 0;
+    expected_strain = UblasUtilities::CreateVector({0.549306, 0.549306, 0.549306, 0});
     expected_strains.clear();
     expected_strains.push_back(expected_strain);
     expected_strains.push_back(expected_strain);
