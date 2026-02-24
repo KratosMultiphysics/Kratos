@@ -353,51 +353,6 @@ void DEM_smooth_joint::CalculateForces(const ProcessInfo& r_process_info,
                             r_process_info,
                             time_steps);
     
-    /*
-    bool is_normal_force_smaller_than_zero = false;
-    if (LocalElasticContactForce[2] < 0.0){
-        is_normal_force_smaller_than_zero = true;
-    }
-
-    double temp_GlobalElasticContactForce[3] = {0.0};
-    GeometryFunctions::VectorLocal2Global(LocalCoordSystem, LocalElasticContactForce, temp_GlobalElasticContactForce);
-
-    double temp_GlobalElasticContactForce_Normal = 0.0;
-    temp_GlobalElasticContactForce_Normal = GeometryFunctions::DotProduct(temp_GlobalElasticContactForce, mGlobalJointNormal);
-
-    double temp_GlobalElasticContactForce_Tangential[2] = {0.0};
-
-    //temp_GlobalElasticContactForce_Tangential[0] = temp_GlobalElasticContactForce[0] - temp_GlobalElasticContactForce_Normal * mGlobalJointNormal[0];
-    //temp_GlobalElasticContactForce_Tangential[1] = temp_GlobalElasticContactForce[2] - temp_GlobalElasticContactForce_Normal * mGlobalJointNormal[2];
-    temp_GlobalElasticContactForce_Tangential[0] = temp_GlobalElasticContactForce[0];
-    temp_GlobalElasticContactForce_Tangential[1] = temp_GlobalElasticContactForce[2];
-
-    //LocalElasticContactForce is already a global vector
-    LocalElasticContactForce[0] = temp_GlobalElasticContactForce_Tangential[0];
-    LocalElasticContactForce[1] = temp_GlobalElasticContactForce_Normal;
-    LocalElasticContactForce[2] = temp_GlobalElasticContactForce_Tangential[1];
-
-    if(calculation_area){
-        contact_sigma = temp_GlobalElasticContactForce_Normal / calculation_area;
-        
-        bool is_global_normal_force_smaller_than_zero = false;
-        if (temp_GlobalElasticContactForce_Normal < 0.0){
-            is_global_normal_force_smaller_than_zero = true;
-        }
-        if ((is_normal_force_smaller_than_zero == false && is_global_normal_force_smaller_than_zero == true) || (is_normal_force_smaller_than_zero == true && is_global_normal_force_smaller_than_zero == false)) {
-            contact_sigma *= -1;
-        }
-    }
-
-    double temp_current_tangential_force_module = 0.0;
-    temp_current_tangential_force_module = sqrt(temp_GlobalElasticContactForce_Tangential[0] * temp_GlobalElasticContactForce_Tangential[0]
-                                                 + temp_GlobalElasticContactForce_Tangential[1] * temp_GlobalElasticContactForce_Tangential[1]);
-
-    if (calculation_area){
-        contact_tau = temp_current_tangential_force_module / calculation_area;
-    }
-    */
-    
     KRATOS_CATCH("") 
 }
 
