@@ -18,6 +18,7 @@
 #include "custom_elements/plane_strain_stress_state.h"
 #include "custom_retention/saturated_law.h"
 #include "custom_utilities/registration_utilities.hpp"
+#include "custom_utilities/ublas_utilities.h"
 #include "includes/variables.h"
 #include "test_setup_utilities/element_setup_utilities.hpp"
 #include "test_setup_utilities/model_setup_utilities.h"
@@ -26,7 +27,6 @@
 #include "tests/cpp_tests/stub_constitutive_law.h"
 #include "tests/cpp_tests/test_utilities.h"
 
-#include <boost/numeric/ublas/assignment.hpp>
 #include <string>
 
 namespace
@@ -138,20 +138,15 @@ auto CreateUPwSmallStrainElementWithUPwDofs(Model& rModel, const Properties::Poi
 
 Matrix ExpectedLeftHandSize()
 {
-    Matrix result(9, 9);
-    // clang-format off
-    result <<= 5000000,       0, -5000000,        0,        0,         0,          0,          0,          0,
-               0,       2500000,  2500000, -2500000, -2500000,         0,          0,          0,          0,
-              -5000000, 2500000,  7500000, -2500000, -2500000,         0,          0,          0,          0,
-               0,      -2500000, -2500000,  7500000,  2500000, -5000000,           0,          0,          0,
-               0,      -2500000, -2500000,  2500000,  2500000,         0,          0,          0,          0,
-               0,             0,        0, -5000000,        0,  5000000,           0,          0,          0,
-               0,             0,        0,        0,        0,         0, -0.0004542,  0.0004542,          0,
-               0,             0,        0,        0,        0,         0,  0.0004542, -0.0009084,  0.0004542,
-               0,             0,        0,        0,        0,         0,          0,  0.0004542, -0.0004542;
-    // clang-format on
-
-    return result;
+    return UblasUtilities::CreateMatrix({{5000000, 0, -5000000, 0, 0, 0, 0, 0, 0},
+                                         {0, 2500000, 2500000, -2500000, -2500000, 0, 0, 0, 0},
+                                         {-5000000, 2500000, 7500000, -2500000, -2500000, 0, 0, 0, 0},
+                                         {0, -2500000, -2500000, 7500000, 2500000, -5000000, 0, 0, 0},
+                                         {0, -2500000, -2500000, 2500000, 2500000, 0, 0, 0, 0},
+                                         {0, 0, 0, -5000000, 0, 5000000, 0, 0, 0},
+                                         {0, 0, 0, 0, 0, 0, -0.0004542, 0.0004542, 0},
+                                         {0, 0, 0, 0, 0, 0, 0.0004542, -0.0009084, 0.0004542},
+                                         {0, 0, 0, 0, 0, 0, 0, 0.0004542, -0.0004542}});
 }
 
 } // namespace
@@ -361,8 +356,7 @@ void CheckValuesCalculatedOnIntegrationPoints(const Element::Pointer& pElement, 
     std::vector<Vector> calculated_values_at_integration_points;
     pElement->CalculateOnIntegrationPoints(CAUCHY_STRESS_VECTOR,
                                            calculated_values_at_integration_points, rProcessInfo);
-    Vector expected_values_at_integration_point(4);
-    expected_values_at_integration_point <<= 300000, 150000, 0, -75000;
+    auto expected_values_at_integration_point = UblasUtilities::CreateVector({300000, 150000, 0, -75000});
     for (const auto& calculated_cauchy_stress_vector : calculated_values_at_integration_points) {
         KRATOS_EXPECT_VECTOR_RELATIVE_NEAR(calculated_cauchy_stress_vector, expected_values_at_integration_point,
                                            Defaults::relative_tolerance);
@@ -370,7 +364,7 @@ void CheckValuesCalculatedOnIntegrationPoints(const Element::Pointer& pElement, 
 
     pElement->CalculateOnIntegrationPoints(TOTAL_STRESS_VECTOR,
                                            calculated_values_at_integration_points, rProcessInfo);
-    expected_values_at_integration_point <<= 310000, 160000, 10000, -75000;
+    expected_values_at_integration_point = UblasUtilities::CreateVector({310000, 160000, 10000, -75000});
     for (const auto& calculated_total_stress_vector : calculated_values_at_integration_points) {
         KRATOS_EXPECT_VECTOR_RELATIVE_NEAR(calculated_total_stress_vector, expected_values_at_integration_point,
                                            Defaults::relative_tolerance);
@@ -378,7 +372,7 @@ void CheckValuesCalculatedOnIntegrationPoints(const Element::Pointer& pElement, 
 
     pElement->CalculateOnIntegrationPoints(ENGINEERING_STRAIN_VECTOR,
                                            calculated_values_at_integration_points, rProcessInfo);
-    expected_values_at_integration_point <<= 0.03, 0.015, 0, -0.015;
+    expected_values_at_integration_point = UblasUtilities::CreateVector({0.03, 0.015, 0, -0.015});
     for (const auto& calculated_engineering_strain_vector : calculated_values_at_integration_points) {
         KRATOS_EXPECT_VECTOR_RELATIVE_NEAR(calculated_engineering_strain_vector,
                                            expected_values_at_integration_point, Defaults::relative_tolerance);
@@ -392,8 +386,7 @@ void CheckValuesCalculatedOnIntegrationPoints(const Element::Pointer& pElement, 
     }
 
     // getting a value from properties
-    Vector initial_strain_vector(4);
-    initial_strain_vector <<= 10000, -10000, 5000, -5000;
+    auto initial_strain_vector = UblasUtilities::CreateVector({10000, -10000, 5000, -5000});
     pElement->GetProperties().SetValue(INITIAL_STRAIN_VECTOR, initial_strain_vector);
     pElement->CalculateOnIntegrationPoints(INITIAL_STRAIN_VECTOR,
                                            calculated_values_at_integration_points, rProcessInfo);
@@ -475,79 +468,78 @@ KRATOS_TEST_CASE_IN_SUITE(UPwSmallStrainElement_CalculateOnIntegrationPointsVari
 
     std::vector<double> calculated_values_at_integration_points;
     p_element->CalculateOnIntegrationPoints(VON_MISES_STRESS, calculated_values_at_integration_points, process_info);
-    Vector expected_values_at_integration_point(3);
-    expected_values_at_integration_point <<= 290474, 290474, 290474;
+    auto expected_values_at_integration_point = UblasUtilities::CreateVector({290474, 290474, 290474});
     KRATOS_EXPECT_VECTOR_RELATIVE_NEAR(calculated_values_at_integration_points,
                                        expected_values_at_integration_point, Defaults::relative_tolerance);
 
     p_element->CalculateOnIntegrationPoints(MEAN_EFFECTIVE_STRESS,
                                             calculated_values_at_integration_points, process_info);
-    expected_values_at_integration_point <<= 150000, 150000, 150000;
+    expected_values_at_integration_point = UblasUtilities::CreateVector({150000, 150000, 150000});
     KRATOS_EXPECT_VECTOR_RELATIVE_NEAR(calculated_values_at_integration_points,
                                        expected_values_at_integration_point, Defaults::relative_tolerance);
 
     p_element->CalculateOnIntegrationPoints(MEAN_STRESS, calculated_values_at_integration_points, process_info);
-    expected_values_at_integration_point <<= 160000, 160000, 160000;
+    expected_values_at_integration_point = UblasUtilities::CreateVector({160000, 160000, 160000});
     KRATOS_EXPECT_VECTOR_RELATIVE_NEAR(calculated_values_at_integration_points,
                                        expected_values_at_integration_point, Defaults::relative_tolerance);
 
     p_element->CalculateOnIntegrationPoints(ENGINEERING_VON_MISES_STRAIN,
                                             calculated_values_at_integration_points, process_info);
-    expected_values_at_integration_point <<= 0.0244949, 0.0244949, 0.0244949;
+    expected_values_at_integration_point = UblasUtilities::CreateVector({0.0244949, 0.0244949, 0.0244949});
     KRATOS_EXPECT_VECTOR_RELATIVE_NEAR(calculated_values_at_integration_points,
                                        expected_values_at_integration_point, Defaults::relative_tolerance);
 
     p_element->CalculateOnIntegrationPoints(ENGINEERING_VOLUMETRIC_STRAIN,
                                             calculated_values_at_integration_points, process_info);
-    expected_values_at_integration_point <<= 0.045, 0.045, 0.045;
+    expected_values_at_integration_point = UblasUtilities::CreateVector({0.045, 0.045, 0.045});
     KRATOS_EXPECT_VECTOR_RELATIVE_NEAR(calculated_values_at_integration_points,
                                        expected_values_at_integration_point, Defaults::relative_tolerance);
 
     p_element->CalculateOnIntegrationPoints(GREEN_LAGRANGE_VON_MISES_STRAIN,
                                             calculated_values_at_integration_points, process_info);
-    expected_values_at_integration_point <<= 0.0244949, 0.0244949, 0.0244949;
+    expected_values_at_integration_point = UblasUtilities::CreateVector({0.0244949, 0.0244949, 0.0244949});
     KRATOS_EXPECT_VECTOR_RELATIVE_NEAR(calculated_values_at_integration_points,
                                        expected_values_at_integration_point, Defaults::relative_tolerance);
 
     p_element->CalculateOnIntegrationPoints(GREEN_LAGRANGE_VOLUMETRIC_STRAIN,
                                             calculated_values_at_integration_points, process_info);
-    expected_values_at_integration_point <<= 0.045, 0.045, 0.045;
+    expected_values_at_integration_point = UblasUtilities::CreateVector({0.045, 0.045, 0.045});
     KRATOS_EXPECT_VECTOR_RELATIVE_NEAR(calculated_values_at_integration_points,
                                        expected_values_at_integration_point, Defaults::relative_tolerance);
 
     p_element->CalculateOnIntegrationPoints(DEGREE_OF_SATURATION,
                                             calculated_values_at_integration_points, process_info);
-    expected_values_at_integration_point <<= 1, 1, 1;
+    expected_values_at_integration_point = UblasUtilities::CreateVector({1, 1, 1});
     KRATOS_EXPECT_VECTOR_RELATIVE_NEAR(calculated_values_at_integration_points,
                                        expected_values_at_integration_point, Defaults::relative_tolerance);
 
     p_element->CalculateOnIntegrationPoints(HYDRAULIC_HEAD, calculated_values_at_integration_points, process_info);
-    expected_values_at_integration_point <<= -0.833333, -0.833333, -0.3333333;
+    expected_values_at_integration_point = UblasUtilities::CreateVector({-0.833333, -0.833333, -0.3333333});
     KRATOS_EXPECT_VECTOR_RELATIVE_NEAR(calculated_values_at_integration_points,
                                        expected_values_at_integration_point, Defaults::relative_tolerance);
 
     p_element->CalculateOnIntegrationPoints(CONFINED_STIFFNESS,
                                             calculated_values_at_integration_points, process_info);
-    expected_values_at_integration_point <<= 1e+07, 1e+07, 1e+07;
+    expected_values_at_integration_point = UblasUtilities::CreateVector({1e+07, 1e+07, 1e+07});
     KRATOS_EXPECT_VECTOR_RELATIVE_NEAR(calculated_values_at_integration_points,
                                        expected_values_at_integration_point, Defaults::relative_tolerance);
 
     p_element->CalculateOnIntegrationPoints(SHEAR_STIFFNESS, calculated_values_at_integration_points, process_info);
-    expected_values_at_integration_point <<= 5e+06, 5e+06, 5e+06;
+    expected_values_at_integration_point = UblasUtilities::CreateVector({5e+06, 5e+06, 5e+06});
     KRATOS_EXPECT_VECTOR_RELATIVE_NEAR(calculated_values_at_integration_points,
                                        expected_values_at_integration_point, Defaults::relative_tolerance);
 
     // get value from properties
     p_element->CalculateOnIntegrationPoints(BULK_MODULUS_FLUID,
                                             calculated_values_at_integration_points, process_info);
-    expected_values_at_integration_point <<= 200, 200, 200;
+    expected_values_at_integration_point = UblasUtilities::CreateVector({200, 200, 200});
     KRATOS_EXPECT_VECTOR_RELATIVE_NEAR(calculated_values_at_integration_points,
                                        expected_values_at_integration_point, Defaults::relative_tolerance);
 
     // get value from constitutive law: currently returns zero values
     calculated_values_at_integration_points.clear();
     p_element->CalculateOnIntegrationPoints(STRAIN_ENERGY, calculated_values_at_integration_points, process_info);
-    expected_values_at_integration_point <<= 0, 0, 0;
+    expected_values_at_integration_point = UblasUtilities::CreateVector({0, 0, 0});
     KRATOS_EXPECT_VECTOR_RELATIVE_NEAR(calculated_values_at_integration_points,
                                        expected_values_at_integration_point, Defaults::relative_tolerance);
 }
@@ -585,8 +577,7 @@ KRATOS_TEST_CASE_IN_SUITE(UPwSmallStrainElement_SetValuesOnIntegrationPointsMatr
     p_element->Initialize(process_info);
 
     // Act
-    Vector cauchy_stress_vector(4);
-    cauchy_stress_vector <<= 1000.0, 2000.0, 3000.0, 4000.0;
+    auto cauchy_stress_vector = UblasUtilities::CreateVector({1000.0, 2000.0, 3000.0, 4000.0});
     std::vector<Vector> cauchy_stress_vectors;
     cauchy_stress_vectors.push_back(cauchy_stress_vector);
     cauchy_stress_vector += Vector(4, 1000.0);
@@ -607,13 +598,12 @@ KRATOS_TEST_CASE_IN_SUITE(UPwSmallStrainElement_SetValuesOnIntegrationPointsMatr
 
     std::vector<Matrix> calculated_tensors;
     p_element->CalculateOnIntegrationPoints(CAUCHY_STRESS_TENSOR, calculated_tensors, process_info);
-    Matrix expected_tensor(3, 3);
-    expected_tensor <<= 1000, 4000, 0, 4000, 2000, 0, 0, 0, 3000;
+    auto expected_tensor = UblasUtilities::CreateMatrix({{1000, 4000, 0}, {4000, 2000, 0}, {0, 0, 3000}});
     std::vector<Matrix> expected_tensors;
     expected_tensors.push_back(expected_tensor);
-    expected_tensor <<= 2000, 5000, 0, 5000, 3000, 0, 0, 0, 4000;
+    expected_tensor = UblasUtilities::CreateMatrix({{2000, 5000, 0}, {5000, 3000, 0}, {0, 0, 4000}});
     expected_tensors.push_back(expected_tensor);
-    expected_tensor <<= 3000, 6000, 0, 6000, 4000, 0, 0, 0, 5000;
+    expected_tensor = UblasUtilities::CreateMatrix({{3000, 6000, 0}, {6000, 4000, 0}, {0, 0, 5000}});
     expected_tensors.push_back(expected_tensor);
     for (auto i = std::size_t{0}; i < calculated_tensors.size(); ++i) {
         KRATOS_EXPECT_MATRIX_RELATIVE_NEAR(calculated_tensors[i], expected_tensors[i], Defaults::relative_tolerance);
@@ -621,18 +611,18 @@ KRATOS_TEST_CASE_IN_SUITE(UPwSmallStrainElement_SetValuesOnIntegrationPointsMatr
 
     p_element->CalculateOnIntegrationPoints(TOTAL_STRESS_TENSOR, calculated_tensors, process_info);
     expected_tensors.clear();
-    expected_tensor <<= 11000, 4000, 0, 4000, 12000, 0, 0, 0, 13000;
+    expected_tensor = UblasUtilities::CreateMatrix({{11000, 4000, 0}, {4000, 12000, 0}, {0, 0, 13000}});
     expected_tensors.push_back(expected_tensor);
-    expected_tensor <<= 12000, 5000, 0, 5000, 13000, 0, 0, 0, 14000;
+    expected_tensor = UblasUtilities::CreateMatrix({{12000, 5000, 0}, {5000, 13000, 0}, {0, 0, 14000}});
     expected_tensors.push_back(expected_tensor);
-    expected_tensor <<= 13000, 6000, 0, 6000, 14000, 0, 0, 0, 15000;
+    expected_tensor = UblasUtilities::CreateMatrix({{13000, 6000, 0}, {6000, 14000, 0}, {0, 0, 15000}});
     expected_tensors.push_back(expected_tensor);
     for (auto i = std::size_t{0}; i < calculated_tensors.size(); ++i) {
         KRATOS_EXPECT_MATRIX_RELATIVE_NEAR(calculated_tensors[i], expected_tensors[i], Defaults::relative_tolerance);
     }
 
     p_element->CalculateOnIntegrationPoints(ENGINEERING_STRAIN_TENSOR, calculated_tensors, process_info);
-    expected_tensor <<= 0.03, -0.0075, 0, -0.0075, 0.015, 0, 0, 0, 0;
+    expected_tensor = UblasUtilities::CreateMatrix({{0.03, -0.0075, 0}, {-0.0075, 0.015, 0}, {0, 0, 0}});
     for (const auto& calculated_engineering_strain_tensor : calculated_tensors) {
         KRATOS_EXPECT_MATRIX_RELATIVE_NEAR(calculated_engineering_strain_tensor, expected_tensor,
                                            Defaults::relative_tolerance);
@@ -645,8 +635,7 @@ KRATOS_TEST_CASE_IN_SUITE(UPwSmallStrainElement_SetValuesOnIntegrationPointsMatr
     }
 
     p_element->CalculateOnIntegrationPoints(PERMEABILITY_MATRIX, calculated_tensors, process_info);
-    Matrix expected_matrix(2, 2);
-    expected_matrix <<= 9.084e-06, 0, 0, 9.084e-06;
+    auto expected_matrix = UblasUtilities::CreateMatrix({{9.084e-06, 0}, {0, 9.084e-06}});
     for (const auto& calculated_permeability_matrix : calculated_tensors) {
         KRATOS_EXPECT_MATRIX_RELATIVE_NEAR(calculated_permeability_matrix, expected_matrix,
                                            Defaults::relative_tolerance);
@@ -654,7 +643,7 @@ KRATOS_TEST_CASE_IN_SUITE(UPwSmallStrainElement_SetValuesOnIntegrationPointsMatr
 
     // returns zero matrix for non-implemented outputs
     p_element->CalculateOnIntegrationPoints(CONSTITUTIVE_MATRIX, calculated_tensors, process_info);
-    expected_matrix <<= 0, 0, 0, 0;
+    expected_matrix = UblasUtilities::CreateMatrix({{0, 0}, {0, 0}});
     for (const auto& calculated_constitutive_matrix : calculated_tensors) {
         KRATOS_EXPECT_MATRIX_RELATIVE_NEAR(calculated_constitutive_matrix, expected_matrix,
                                            Defaults::relative_tolerance);
@@ -674,8 +663,7 @@ KRATOS_TEST_CASE_IN_SUITE(UPwSmallStrainElement_CalculateShearCapacity, KratosGe
     const auto dummy_process_info = ProcessInfo{};
     p_element->Initialize(dummy_process_info);
 
-    auto stress_vector = Vector{4};
-    stress_vector <<= -1.5, 0.0, 1.5, 0.0;
+    auto stress_vector = UblasUtilities::CreateVector({-1.5, 0.0, 1.5, 0.0});
     p_element->SetValuesOnIntegrationPoints(
         CAUCHY_STRESS_VECTOR, std::vector<Vector>{3, stress_vector}, dummy_process_info);
 
