@@ -482,12 +482,15 @@ namespace Kratos {
                     data_buffer.mOtherToMeVector[0] * GlobalJointNormal[0]
                     + data_buffer.mOtherToMeVector[1] * GlobalJointNormal[1]
                     + data_buffer.mOtherToMeVector[2] * GlobalJointNormal[2];
+                
+                const double joint_sign = (joint_gap >= 0.0) ? 1.0 : -1.0;
 
                 if (data_buffer.mTime < (0.0 + 2.0 * data_buffer.mDt)){
                     this->mInitialDistanceJoint[data_buffer.mpOtherParticle->Id()] = std::abs(joint_gap);
                 }
                 
-                indentation = mInitialDistanceJoint[data_buffer.mpOtherParticle->Id()] - std::abs(joint_gap);
+                double indentation_abs = mInitialDistanceJoint[data_buffer.mpOtherParticle->Id()] - std::abs(joint_gap);
+                indentation = joint_sign * indentation_abs;
                 
                 //tangential
                 double vn = RelVel[0] * GlobalJointNormal[0] + RelVel[1] * GlobalJointNormal[1] + RelVel[2] * GlobalJointNormal[2];
