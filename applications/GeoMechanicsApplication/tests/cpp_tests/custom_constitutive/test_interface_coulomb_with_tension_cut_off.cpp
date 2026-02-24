@@ -266,6 +266,8 @@ KRATOS_TEST_CASE_IN_SUITE(InterfaceCoulombWithTensionCutOff_CalculateMaterialRes
 KRATOS_TEST_CASE_IN_SUITE(InterfaceCoulombWithTensionCutOff_Serialization, KratosGeoMechanicsFastSuiteWithoutKernel)
 {
     // Arrange
+    const auto scoped_registration =
+        ScopedSerializerRegistration{std::make_pair("InterfacePlaneStrain"s, InterfacePlaneStrain{})};
     auto properties = Properties{};
     properties.SetValue(GEO_FRICTION_ANGLE, 35.0);
     properties.SetValue(GEO_COHESION, 10.0);

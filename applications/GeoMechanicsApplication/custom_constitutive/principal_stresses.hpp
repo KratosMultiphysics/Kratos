@@ -25,7 +25,7 @@ namespace Kratos::Geo
 class KRATOS_API(GEO_MECHANICS_APPLICATION) PrincipalStresses
 {
 public:
-    enum class PrincipalStressesAveragingType {
+    enum class AveragingType {
         NO_AVERAGING,
         LOWEST_PRINCIPAL_STRESSES,
         HIGHEST_PRINCIPAL_STRESSES

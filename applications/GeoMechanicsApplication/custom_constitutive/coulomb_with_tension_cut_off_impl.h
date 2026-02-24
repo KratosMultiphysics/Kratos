@@ -16,6 +16,7 @@
 #pragma once
 
 #include "coulomb_yield_surface.h"
+#include "custom_constitutive/principal_stresses.hpp"
 #include "tension_cutoff.h"
 
 namespace Kratos
@@ -26,7 +27,6 @@ class Serializer;
 
 namespace Geo
 {
-class PrincipalStresses;
 class SigmaTau;
 } // namespace Geo
 
@@ -41,10 +41,10 @@ public:
 
     [[nodiscard]] Geo::SigmaTau DoReturnMapping(const Geo::SigmaTau& rTrialTraction,
                                                 const Matrix&        rElasticMatrix,
-                                                Geo::PrincipalStresses::PrincipalStressesAveragingType AveragingType);
+                                                Geo::PrincipalStresses::AveragingType AveragingType);
     [[nodiscard]] Geo::PrincipalStresses DoReturnMapping(const Geo::PrincipalStresses& rTrialSigmaTau,
                                                          const Matrix& rElasticMatrix,
-                                                         Geo::PrincipalStresses::PrincipalStressesAveragingType AveragingType);
+                                                         Geo::PrincipalStresses::AveragingType AveragingType);
 
     void SaveKappaOfCoulombYieldSurface();
     void RestoreKappaOfCoulombYieldSurface();
@@ -62,33 +62,31 @@ private:
     [[nodiscard]] StressStateType DoReturnMapping(const StressStateType& rTrialStressState,
                                                   const StressStateToSigmaTauFunctionType& rStressStateToSigmaTau,
                                                   const Matrix& rElasticMatrix,
-                                                  Geo::PrincipalStresses::PrincipalStressesAveragingType AveragingType);
+                                                  Geo::PrincipalStresses::AveragingType AveragingType);
 
     [[nodiscard]] Geo::SigmaTau CalculateCornerPoint(const Geo::SigmaTau&) const;
     [[nodiscard]] Geo::PrincipalStresses CalculateCornerPoint(const Geo::PrincipalStresses& rPrincipalStresses) const;
     [[nodiscard]] bool IsStressAtTensionApexReturnZone(const Geo::SigmaTau& rTrialTraction) const;
     [[nodiscard]] bool IsStressAtTensionCutoffReturnZone(const Geo::SigmaTau& rTrialTraction) const;
     [[nodiscard]] bool IsStressAtCornerReturnZone(const Geo::SigmaTau& rTrialTraction,
-                                                  Geo::PrincipalStresses::PrincipalStressesAveragingType AveragingType) const;
+                                                  Geo::PrincipalStresses::AveragingType AveragingType) const;
 
     [[nodiscard]] Geo::SigmaTau ReturnStressAtTensionApexReturnZone(const Geo::SigmaTau&) const;
     [[nodiscard]] Geo::PrincipalStresses ReturnStressAtTensionApexReturnZone(const Geo::PrincipalStresses& rPrincipalStresses) const;
-    [[nodiscard]] Geo::SigmaTau ReturnStressAtTensionCutoffReturnZone(
-        const Geo::SigmaTau&                                   rTraction,
-        const Matrix&                                          rElasticMatrix,
-        Geo::PrincipalStresses::PrincipalStressesAveragingType AveragingType) const;
+    [[nodiscard]] Geo::SigmaTau ReturnStressAtTensionCutoffReturnZone(const Geo::SigmaTau& rTraction,
+                                                                      const Matrix& rElasticMatrix,
+                                                                      Geo::PrincipalStresses::AveragingType AveragingType) const;
     [[nodiscard]] Geo::PrincipalStresses ReturnStressAtTensionCutoffReturnZone(
         const Geo::PrincipalStresses& rPrincipalStresses,
         const Matrix&                 rElasticMatrix,
-        Geo::PrincipalStresses::PrincipalStressesAveragingType) const;
-    [[nodiscard]] Geo::SigmaTau ReturnStressAtRegularFailureZone(
-        const Geo::SigmaTau&                                   rTraction,
-        const Matrix&                                          rElasticMatrix,
-        Geo::PrincipalStresses::PrincipalStressesAveragingType AveragingType) const;
+        Geo::PrincipalStresses::AveragingType) const;
+    [[nodiscard]] Geo::SigmaTau ReturnStressAtRegularFailureZone(const Geo::SigmaTau& rTraction,
+                                                                 const Matrix& rElasticMatrix,
+                                                                 Geo::PrincipalStresses::AveragingType AveragingType) const;
     [[nodiscard]] Geo::PrincipalStresses ReturnStressAtRegularFailureZone(
-        const Geo::PrincipalStresses&                          rPrincipalStresses,
-        const Matrix&                                          rElasticMatrix,
-        Geo::PrincipalStresses::PrincipalStressesAveragingType AveragingType) const;
+        const Geo::PrincipalStresses&         rPrincipalStresses,
+        const Matrix&                         rElasticMatrix,
+        Geo::PrincipalStresses::AveragingType AveragingType) const;
 
     friend class Serializer;
     void save(Serializer& rSerializer) const;

@@ -29,7 +29,6 @@ class CheckProperties;
 
 namespace Geo
 {
-class PrincipalStresses;
 class SigmaTau;
 } // namespace Geo
 
@@ -52,14 +51,12 @@ public:
     [[nodiscard]] double YieldFunctionValue(const Geo::PrincipalStresses& rPrincipalStresses) const;
 
     [[nodiscard]] Vector DerivativeOfFlowFunction(const Vector&) const override;
-    [[nodiscard]] Vector DerivativeOfFlowFunction(
-        const Geo::SigmaTau&,
-        Geo::PrincipalStresses::PrincipalStressesAveragingType AveragingType =
-            Geo::PrincipalStresses::PrincipalStressesAveragingType::NO_AVERAGING) const;
-    [[nodiscard]] Vector DerivativeOfFlowFunction(
-        const Geo::PrincipalStresses&,
-        Geo::PrincipalStresses::PrincipalStressesAveragingType AveragingType =
-            Geo::PrincipalStresses::PrincipalStressesAveragingType::NO_AVERAGING) const;
+    [[nodiscard]] Vector DerivativeOfFlowFunction(const Geo::SigmaTau&,
+                                                  Geo::PrincipalStresses::AveragingType AveragingType =
+                                                      Geo::PrincipalStresses::AveragingType::NO_AVERAGING) const;
+    [[nodiscard]] Vector DerivativeOfFlowFunction(const Geo::PrincipalStresses&,
+                                                  Geo::PrincipalStresses::AveragingType AveragingType =
+                                                      Geo::PrincipalStresses::AveragingType::NO_AVERAGING) const;
 
     [[nodiscard]] double CalculateApex() const;
     [[nodiscard]] double CalculatePlasticMultiplier(const Geo::SigmaTau& rTrialSigmaTau,
@@ -68,14 +65,12 @@ public:
     [[nodiscard]] double CalculatePlasticMultiplier(const Geo::PrincipalStresses& rTrialPrincipalStresses,
                                                     const Vector& rDerivativeOfFlowFunction,
                                                     const Matrix& rElasticMatrix) const;
-    [[nodiscard]] double CalculateEquivalentPlasticStrainIncrement(
-        const Geo::SigmaTau&                                   rTrialSigmaTau,
-        const Matrix&                                          rElasticMatrix,
-        Geo::PrincipalStresses::PrincipalStressesAveragingType AveragingType) const;
-    [[nodiscard]] double CalculateEquivalentPlasticStrainIncrement(
-        const Geo::PrincipalStresses&                          rTrialPrincipalStresses,
-        const Matrix&                                          rElasticMatrix,
-        Geo::PrincipalStresses::PrincipalStressesAveragingType AveragingType) const;
+    [[nodiscard]] double CalculateEquivalentPlasticStrainIncrement(const Geo::SigmaTau& rTrialSigmaTau,
+                                                                   const Matrix& rElasticMatrix,
+                                                                   Geo::PrincipalStresses::AveragingType AveragingType) const;
+    [[nodiscard]] double CalculateEquivalentPlasticStrainIncrement(const Geo::PrincipalStresses& rTrialPrincipalStresses,
+                                                                   const Matrix& rElasticMatrix,
+                                                                   Geo::PrincipalStresses::AveragingType AveragingType) const;
 
 private:
     void InitializeKappaDependentFunctions();

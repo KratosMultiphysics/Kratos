@@ -46,15 +46,14 @@ double TensionCutoff::YieldFunctionValue(const Geo::PrincipalStresses& rPrincipa
 Vector TensionCutoff::DerivativeOfFlowFunction(const Vector&) const
 {
     const auto unused_sigma_tau = Geo::SigmaTau{};
-    return DerivativeOfFlowFunction(
-        unused_sigma_tau, Geo::PrincipalStresses::PrincipalStressesAveragingType::NO_AVERAGING);
+    return DerivativeOfFlowFunction(unused_sigma_tau);
 }
 
 Vector TensionCutoff::DerivativeOfFlowFunction(const Geo::SigmaTau&,
-                                               Geo::PrincipalStresses::PrincipalStressesAveragingType AveragingType) const
+                                               Geo::PrincipalStresses::AveragingType AveragingType) const
 {
     switch (AveragingType) {
-        using enum Geo::PrincipalStresses::PrincipalStressesAveragingType;
+        using enum Geo::PrincipalStresses::AveragingType;
     case LOWEST_PRINCIPAL_STRESSES:
         return UblasUtilities::CreateVector({0.5, 0.5});
     case NO_AVERAGING:
@@ -67,10 +66,10 @@ Vector TensionCutoff::DerivativeOfFlowFunction(const Geo::SigmaTau&,
 }
 
 Vector TensionCutoff::DerivativeOfFlowFunction(const Geo::PrincipalStresses&,
-                                               Geo::PrincipalStresses::PrincipalStressesAveragingType AveragingType) const
+                                               Geo::PrincipalStresses::AveragingType AveragingType) const
 {
     switch (AveragingType) {
-        using enum Geo::PrincipalStresses::PrincipalStressesAveragingType;
+        using enum Geo::PrincipalStresses::AveragingType;
     case LOWEST_PRINCIPAL_STRESSES:
         return UblasUtilities::CreateVector({0.5, 0.5, 0.0});
     case NO_AVERAGING:

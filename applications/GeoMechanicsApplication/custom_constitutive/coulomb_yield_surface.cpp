@@ -148,16 +148,15 @@ double CoulombYieldSurface::YieldFunctionValue(const Geo::PrincipalStresses& rPr
 
 Vector CoulombYieldSurface::DerivativeOfFlowFunction(const Vector& rSigmaTau) const
 {
-    return DerivativeOfFlowFunction(
-        Geo::SigmaTau{rSigmaTau}, Geo::PrincipalStresses::PrincipalStressesAveragingType::NO_AVERAGING);
+    return DerivativeOfFlowFunction(Geo::SigmaTau{rSigmaTau}, Geo::PrincipalStresses::AveragingType::NO_AVERAGING);
 }
 
 Vector CoulombYieldSurface::DerivativeOfFlowFunction(const Geo::SigmaTau&,
-                                                     Geo::PrincipalStresses::PrincipalStressesAveragingType AveragingType) const
+                                                     Geo::PrincipalStresses::AveragingType AveragingType) const
 {
     const auto sin_psi = std::sin(GetDilatancyAngleInRadians());
     switch (AveragingType) {
-        using enum Geo::PrincipalStresses::PrincipalStressesAveragingType;
+        using enum Geo::PrincipalStresses::AveragingType;
     case LOWEST_PRINCIPAL_STRESSES:
         return UblasUtilities::CreateVector({-(1.0 - 3.0 * sin_psi) / 4.0, (3.0 - sin_psi) / 4.0});
     case NO_AVERAGING:
@@ -170,11 +169,11 @@ Vector CoulombYieldSurface::DerivativeOfFlowFunction(const Geo::SigmaTau&,
 }
 
 Vector CoulombYieldSurface::DerivativeOfFlowFunction(const Geo::PrincipalStresses&,
-                                                     Geo::PrincipalStresses::PrincipalStressesAveragingType AveragingType) const
+                                                     Geo::PrincipalStresses::AveragingType AveragingType) const
 {
     const auto sin_psi = std::sin(GetDilatancyAngleInRadians());
     switch (AveragingType) {
-        using enum Geo::PrincipalStresses::PrincipalStressesAveragingType;
+        using enum Geo::PrincipalStresses::AveragingType;
     case LOWEST_PRINCIPAL_STRESSES:
         return UblasUtilities::CreateVector(
             {(1.0 + sin_psi) / 4.0, (1.0 + sin_psi) / 4.0, (-1.0 + sin_psi) / 2.0});
@@ -221,10 +220,9 @@ double CoulombYieldSurface::CalculatePlasticMultiplier(const Geo::PrincipalStres
     return -YieldFunctionValue(rTrialPrincipalStresses) / (c1 + c2);
 }
 
-double CoulombYieldSurface::CalculateEquivalentPlasticStrainIncrement(
-    const Geo::SigmaTau&                                   rTrialSigmaTau,
-    const Matrix&                                          rElasticMatrix,
-    Geo::PrincipalStresses::PrincipalStressesAveragingType AveragingType) const
+double CoulombYieldSurface::CalculateEquivalentPlasticStrainIncrement(const Geo::SigmaTau& rTrialSigmaTau,
+                                                                      const Matrix& rElasticMatrix,
+                                                                      Geo::PrincipalStresses::AveragingType AveragingType) const
 {
     const auto derivative_of_G_to_sigma = DerivativeOfFlowFunction(rTrialSigmaTau, AveragingType);
     const auto principal_strain_vector  = UblasUtilities::CreateVector(
@@ -240,10 +238,9 @@ double CoulombYieldSurface::CalculateEquivalentPlasticStrainIncrement(
                rTrialSigmaTau, DerivativeOfFlowFunction(rTrialSigmaTau, AveragingType), rElasticMatrix);
 }
 
-double CoulombYieldSurface::CalculateEquivalentPlasticStrainIncrement(
-    const Geo::PrincipalStresses&                          rTrialPrincipalStresses,
-    const Matrix&                                          rElasticMatrix,
-    Geo::PrincipalStresses::PrincipalStressesAveragingType AveragingType) const
+double CoulombYieldSurface::CalculateEquivalentPlasticStrainIncrement(const Geo::PrincipalStresses& rTrialPrincipalStresses,
+                                                                      const Matrix& rElasticMatrix,
+                                                                      Geo::PrincipalStresses::AveragingType AveragingType) const
 {
     const auto derivative_of_G_to_sigma = DerivativeOfFlowFunction(rTrialPrincipalStresses, AveragingType);
     const auto mean = std::accumulate(derivative_of_G_to_sigma.begin(), derivative_of_G_to_sigma.end(), 0.0) /
