@@ -465,11 +465,6 @@ void DEM_smooth_joint::CalculateTangentialForces(double OldLocalElasticContactFo
         }
     }
 
-    if (mGlobalJointNormal[0] == 0.0 && mGlobalJointNormal[1] == 1.0 && mGlobalJointNormal[2] == 0.0) {
-        JointLocalElasticContactForce[0] = 0.0;
-        JointLocalElasticContactForce[1] = 0.0;
-    }
-
     current_tangential_force_module = sqrt(JointLocalElasticContactForce[0] * JointLocalElasticContactForce[0]
                                             + JointLocalElasticContactForce[1] * JointLocalElasticContactForce[1]);
 
