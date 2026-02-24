@@ -14,12 +14,6 @@
 namespace Kratos
 {
 
-enum class CalculationContribution {
-    Permeability,
-    Compressibility,
-    FluidBodyFlow,
-    Stiffness,
-    UPCoupling
-};
+enum class CalculationContribution { Permeability, Compressibility, FluidBodyFlow, Stiffness };
 
 }

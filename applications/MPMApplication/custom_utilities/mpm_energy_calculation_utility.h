@@ -28,15 +28,6 @@ class KRATOS_API(MPM_APPLICATION) MPMEnergyCalculationUtility
 {
 public:
 
-    /// Pointer definition of DragUtilities
-    KRATOS_CLASS_POINTER_DEFINITION(MPMEnergyCalculationUtility);
-
-    /// Constructor
-    MPMEnergyCalculationUtility() {};
-
-    /// Destructor.
-    ~MPMEnergyCalculationUtility() {};
-
     /**
      * @brief Compute the potential energy of a material point element
      * @param rElement The material point element whose potential energy is to be computed
