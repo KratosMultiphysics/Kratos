@@ -1,21 +1,23 @@
 #pragma once
 
-#include "includes/model_part.h"
+#include <vector>
+#include <unordered_map>
+#include <string>
+#include "includes/define.h"
 
 namespace Kratos
 {
 
-class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) SectionPropertiesUtility
+class SectionPropertiesUtility
 {
 public:
 
-    static void InterpretSections(ModelPart& rModelPart);
+    static std::unordered_map<std::string, double>
+    ComputeRectangularSection(const std::vector<double>& rParameters);
+    //ComputeRectangularSection(const std::vector<double>& rParameters);
 
-private:
-
-    static void ComputeRectangularSection(
-        Properties& rProperties,
-        const Vector& rParameters);
+    static std::unordered_map<std::string, double>
+    ComputeISection(const std::vector<double>& rParameters);
 };
 
 } // namespace Kratos

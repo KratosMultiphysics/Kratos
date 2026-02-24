@@ -258,8 +258,9 @@ class MechanicalSolver(PythonSolver):
             self.Clear()
 
         computing_model_part = self.GetComputingModelPart()
-        KratosMultiphysics.StructuralMechanicsApplication.SectionPropertiesUtility.InterpretSections(
-            computing_model_part)
+        #KratosMultiphysics.StructuralMechanicsApplication.SectionPropertiesUtility.InterpretSections(
+        #    computing_model_part)
+        KratosMultiphysics.StructuralMechanicsApplication.CrossSectionInterpretationUtility.AssignSectionProperties(computing_model_part)
         
         mechanical_solution_strategy = self._GetSolutionStrategy()
         mechanical_solution_strategy.SetEchoLevel(self.settings["echo_level"].GetInt())
