@@ -15,7 +15,6 @@
 
 #pragma once
 
-#include "custom_constitutive/p_q.hpp"
 #include "geo_aliases.h"
 #include "includes/properties.h"
 
@@ -23,6 +22,11 @@ namespace Kratos
 {
 
 class CheckProperties;
+
+namespace Geo
+{
+class PQ;
+} // namespace Geo
 
 class KRATOS_API(GEO_MECHANICS_APPLICATION) CompressionCapYieldSurface
 {

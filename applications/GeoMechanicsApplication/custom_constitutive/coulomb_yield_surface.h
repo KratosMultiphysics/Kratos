@@ -54,7 +54,6 @@ public:
     [[nodiscard]] double YieldFunctionValue(const Geo::SigmaTau& rSigmaTau) const;
     [[nodiscard]] double YieldFunctionValue(const Geo::PrincipalStresses& rPrincipalStresses) const;
 
-    [[nodiscard]] Vector DerivativeOfFlowFunction(const Vector&) const;
     [[nodiscard]] Vector DerivativeOfFlowFunction(const Geo::SigmaTau&,
                                                   CoulombAveragingType AveragingType = CoulombAveragingType::NO_AVERAGING) const;
 

@@ -244,10 +244,10 @@ Geo::PrincipalStresses StressStrainUtilities::TransformSigmaTauToPrincipalStress
                                    rSigmaTau.Sigma() - rSigmaTau.Tau()}};
 }
 
-Geo::PQ StressStrainUtilities::TransformPrincipalStressesToPandQ(const Vector& rPrincipalStresses)
+Geo::PQ StressStrainUtilities::TransformPrincipalStressesToPandQ(const Geo::PrincipalStresses& rPrincipalStresses)
 {
     auto stress_vector = Vector(6, 0.0);
-    std::ranges::copy(rPrincipalStresses, stress_vector.begin());
+    std::ranges::copy(rPrincipalStresses.Values(), stress_vector.begin());
     return Geo::PQ{CalculateMeanStress(stress_vector), CalculateVonMisesStress(stress_vector)};
 }
 

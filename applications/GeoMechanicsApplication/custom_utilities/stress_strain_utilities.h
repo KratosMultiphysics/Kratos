@@ -60,7 +60,7 @@ public:
     static Geo::SigmaTau TransformPrincipalStressesToSigmaTau(const Geo::PrincipalStresses& rPrincipalStresses);
     static Geo::PrincipalStresses TransformSigmaTauToPrincipalStresses(const Geo::SigmaTau& rSigmaTau,
                                                                        const Geo::PrincipalStresses& rPrincipalStresses);
-    static Geo::PQ TransformPrincipalStressesToPandQ(const Vector& rPrincipalStresses);
+    static Geo::PQ TransformPrincipalStressesToPandQ(const Geo::PrincipalStresses& rPrincipalStresses);
 
     /// @brief This function calculates stresses from strains using the constitutive laws.
     /// However, it can also be used to calculate tractions from relative displacements.

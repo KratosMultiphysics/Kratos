@@ -141,11 +141,6 @@ double CoulombYieldSurface::YieldFunctionValue(const Geo::PrincipalStresses& rPr
     return YieldFunctionValue(StressStrainUtilities::TransformPrincipalStressesToSigmaTau(rPrincipalStresses));
 }
 
-Vector CoulombYieldSurface::DerivativeOfFlowFunction(const Vector& rSigmaTau) const
-{
-    return DerivativeOfFlowFunction(Geo::SigmaTau{rSigmaTau}, CoulombAveragingType::NO_AVERAGING);
-}
-
 Vector CoulombYieldSurface::DerivativeOfFlowFunction(const Geo::SigmaTau&, CoulombAveragingType AveragingType) const
 {
     const auto sin_psi = std::sin(GetDilatancyAngleInRadians());
