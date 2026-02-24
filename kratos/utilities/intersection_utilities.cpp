@@ -161,25 +161,77 @@ int IntersectionUtilities::ComputeTriangleLineIntersection(
     array_1d<double,3>& rIntersectionPoint,
     const double Epsilon) 
 {
-    // This is the adaption of the implementation provided in:
+    // Optimized implementation based on Tomas Möller & Ben Trumbore (1997)
     // http://www.softsurfer.com/Archive/algorithm_0105/algorithm_0105.htm#intersect_RayTriangle()
     // Based on Tomas Möller & Ben Trumbore (1997) Fast, Minimum Storage Ray-Triangle Intersection, Journal of Graphics Tools, 2:1, 21-28, DOI: 10.1080/10867651.1997.10487468 
+    // Uses direct scalar operations to avoid boost ublas overhead
 
-    // Get triangle edge vectors and plane normal
-    const array_1d<double,3> u = rTrianglePoint2 - rTrianglePoint1;
-    const array_1d<double,3> v = rTrianglePoint3 - rTrianglePoint1;
-    array_1d<double,3> n;
-    MathUtils<double>::CrossProduct<array_1d<double,3>,array_1d<double,3>,array_1d<double,3>>(n,u,v);
+    // Early AABB rejection test - quickly reject obvious non-intersections
+    // Compute triangle AABB
+    double tri_min_x = rTrianglePoint1[0], tri_max_x = rTrianglePoint1[0];
+    double tri_min_y = rTrianglePoint1[1], tri_max_y = rTrianglePoint1[1];
+    double tri_min_z = rTrianglePoint1[2], tri_max_z = rTrianglePoint1[2];
 
-    // Check if the triangle is degenerate (do not deal with this case)
-    if (MathUtils<double>::Norm3(n) < Epsilon) {
+    if (rTrianglePoint2[0] < tri_min_x) tri_min_x = rTrianglePoint2[0];
+    if (rTrianglePoint2[0] > tri_max_x) tri_max_x = rTrianglePoint2[0];
+    if (rTrianglePoint2[1] < tri_min_y) tri_min_y = rTrianglePoint2[1];
+    if (rTrianglePoint2[1] > tri_max_y) tri_max_y = rTrianglePoint2[1];
+    if (rTrianglePoint2[2] < tri_min_z) tri_min_z = rTrianglePoint2[2];
+    if (rTrianglePoint2[2] > tri_max_z) tri_max_z = rTrianglePoint2[2];
+
+    if (rTrianglePoint3[0] < tri_min_x) tri_min_x = rTrianglePoint3[0];
+    if (rTrianglePoint3[0] > tri_max_x) tri_max_x = rTrianglePoint3[0];
+    if (rTrianglePoint3[1] < tri_min_y) tri_min_y = rTrianglePoint3[1];
+    if (rTrianglePoint3[1] > tri_max_y) tri_max_y = rTrianglePoint3[1];
+    if (rTrianglePoint3[2] < tri_min_z) tri_min_z = rTrianglePoint3[2];
+    if (rTrianglePoint3[2] > tri_max_z) tri_max_z = rTrianglePoint3[2];
+
+    // Compute line AABB
+    const double line_min_x = (rLinePoint1[0] < rLinePoint2[0]) ? rLinePoint1[0] : rLinePoint2[0];
+    const double line_max_x = (rLinePoint1[0] > rLinePoint2[0]) ? rLinePoint1[0] : rLinePoint2[0];
+    const double line_min_y = (rLinePoint1[1] < rLinePoint2[1]) ? rLinePoint1[1] : rLinePoint2[1];
+    const double line_max_y = (rLinePoint1[1] > rLinePoint2[1]) ? rLinePoint1[1] : rLinePoint2[1];
+    const double line_min_z = (rLinePoint1[2] < rLinePoint2[2]) ? rLinePoint1[2] : rLinePoint2[2];
+    const double line_max_z = (rLinePoint1[2] > rLinePoint2[2]) ? rLinePoint1[2] : rLinePoint2[2];
+
+    // Check AABB overlap - if no overlap, no intersection possible
+    if (tri_max_x < line_min_x || line_max_x < tri_min_x) return 0;
+    if (tri_max_y < line_min_y || line_max_y < tri_min_y) return 0;
+    if (tri_max_z < line_min_z || line_max_z < tri_min_z) return 0;
+
+    // Compute triangle edge vectors directly (avoid array_1d temporaries)
+    const double u0 = rTrianglePoint2[0] - rTrianglePoint1[0];
+    const double u1 = rTrianglePoint2[1] - rTrianglePoint1[1];
+    const double u2 = rTrianglePoint2[2] - rTrianglePoint1[2];
+
+    const double v0 = rTrianglePoint3[0] - rTrianglePoint1[0];
+    const double v1 = rTrianglePoint3[1] - rTrianglePoint1[1];
+    const double v2 = rTrianglePoint3[2] - rTrianglePoint1[2];
+
+    // Compute plane normal via cross product: n = u x v
+    const double n0 = u1 * v2 - u2 * v1;
+    const double n1 = u2 * v0 - u0 * v2;
+    const double n2 = u0 * v1 - u1 * v0;
+
+    // Check if the triangle is degenerate
+    const double norm_n_sq = n0 * n0 + n1 * n1 + n2 * n2;
+    if (norm_n_sq < Epsilon * Epsilon) {
         return -1;
     }
 
-    const array_1d<double,3> dir = rLinePoint2 - rLinePoint1; // Edge direction vector
-    const array_1d<double,3> w_0 = rLinePoint1 - rTrianglePoint1;
-    const double a = -inner_prod(n,w_0);
-    const double b = inner_prod(n,dir);
+    // Edge direction vector
+    const double dir0 = rLinePoint2[0] - rLinePoint1[0];
+    const double dir1 = rLinePoint2[1] - rLinePoint1[1];
+    const double dir2 = rLinePoint2[2] - rLinePoint1[2];
+
+    // w_0 = rLinePoint1 - rTrianglePoint1
+    const double w0_0 = rLinePoint1[0] - rTrianglePoint1[0];
+    const double w0_1 = rLinePoint1[1] - rTrianglePoint1[1];
+    const double w0_2 = rLinePoint1[2] - rTrianglePoint1[2];
+
+    // a = -inner_prod(n, w_0), b = inner_prod(n, dir)
+    const double a = -(n0 * w0_0 + n1 * w0_1 + n2 * w0_2);
+    const double b = n0 * dir0 + n1 * dir1 + n2 * dir2;
 
     // Check if the ray is parallel to the triangle plane
     if (std::abs(b) < Epsilon) {
@@ -190,21 +242,40 @@ int IntersectionUtilities::ComputeTriangleLineIntersection(
         }
     }
 
-    // If the edge is not parallel, compute the intersection point
+    // Compute intersection parameter
     const double r = a / b;
-    if (r < 0.0) {
-        return 0;    // Edge goes away from triangle
-    } else if (r > 1.0) {
+    if (r < 0.0 || r > 1.0) {
         return 0;    // Edge goes away from triangle
     }
 
-    rIntersectionPoint = rLinePoint1 + r*dir;
+    // Compute intersection point
+    rIntersectionPoint[0] = rLinePoint1[0] + r * dir0;
+    rIntersectionPoint[1] = rLinePoint1[1] + r * dir1;
+    rIntersectionPoint[2] = rLinePoint1[2] + r * dir2;
 
-    // Check if the intersection point is inside the triangle
-    if (PointInTriangle(rTrianglePoint1, rTrianglePoint2, rTrianglePoint3, rIntersectionPoint, Epsilon)) {
-        return 1;
-    }
-    return 0;
+    // Check if the intersection point is inside the triangle using barycentric coordinates
+    // w = intersection_point - rTrianglePoint1
+    const double w0 = rIntersectionPoint[0] - rTrianglePoint1[0];
+    const double w1 = rIntersectionPoint[1] - rTrianglePoint1[1];
+    const double w2 = rIntersectionPoint[2] - rTrianglePoint1[2];
+
+    // Precomputed dot products
+    const double uu = u0 * u0 + u1 * u1 + u2 * u2;
+    const double uv = u0 * v0 + u1 * v1 + u2 * v2;
+    const double vv = v0 * v0 + v1 * v1 + v2 * v2;
+    const double wu = w0 * u0 + w1 * u1 + w2 * u2;
+    const double wv = w0 * v0 + w1 * v1 + w2 * v2;
+    const double denom = uv * uv - uu * vv;
+
+    // Barycentric coordinates
+    const double xi  = (uv * wv - vv * wu) / denom;
+    const double eta = (uv * wu - uu * wv) / denom;
+
+    if (xi < -Epsilon) return 0;
+    if (eta < -Epsilon) return 0;
+    if (xi + eta > 1.0 + Epsilon) return 0;
+
+    return 1;
 }
 
 /***********************************************************************************/
@@ -239,15 +310,24 @@ bool IntersectionUtilities::PointInTriangle(
     const array_1d<double,3>& rPoint,
     const double Tolerance)
 {
-    const array_1d<double,3> u = rVert1 - rVert0;
-    const array_1d<double,3> v = rVert2 - rVert0;
-    const array_1d<double,3> w = rPoint - rVert0;
+    // Optimized version using direct scalar operations to avoid boost ublas overhead
+    const double u0 = rVert1[0] - rVert0[0];
+    const double u1 = rVert1[1] - rVert0[1];
+    const double u2 = rVert1[2] - rVert0[2];
     
-    const double uu = inner_prod(u, u);
-    const double uv = inner_prod(u, v);
-    const double vv = inner_prod(v, v);
-    const double wu = inner_prod(w, u);
-    const double wv = inner_prod(w, v);
+    const double v0 = rVert2[0] - rVert0[0];
+    const double v1 = rVert2[1] - rVert0[1];
+    const double v2 = rVert2[2] - rVert0[2];
+    
+    const double w0 = rPoint[0] - rVert0[0];
+    const double w1 = rPoint[1] - rVert0[1];
+    const double w2 = rPoint[2] - rVert0[2];
+    
+    const double uu = u0 * u0 + u1 * u1 + u2 * u2;
+    const double uv = u0 * v0 + u1 * v1 + u2 * v2;
+    const double vv = v0 * v0 + v1 * v1 + v2 * v2;
+    const double wu = w0 * u0 + w1 * u1 + w2 * u2;
+    const double wv = w0 * v0 + w1 * v1 + w2 * v2;
     const double denom = uv * uv - uu * vv;
 
     const double xi  = (uv * wv - vv * wu) / denom;
