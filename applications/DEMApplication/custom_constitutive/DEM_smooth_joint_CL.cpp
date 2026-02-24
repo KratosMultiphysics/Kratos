@@ -373,28 +373,13 @@ void DEM_smooth_joint::CalculateNormalForces(double LocalElasticContactForce[3],
     KRATOS_TRY
     
     int& failure_type = element1->mIniNeighbourFailureId[i_neighbour_count];
-    array_1d<double, 3> GlobalOtherToMeVector;
-    array_1d<double, 3> LocalOtherToMeVector;
-    noalias(GlobalOtherToMeVector) = element1->GetGeometry()[0].Coordinates() - element2->GetGeometry()[0].Coordinates();
-    double LocalCoordSystem[3][3];
-    double Distance = DEM_MODULUS_3(GlobalOtherToMeVector);
-    GeometryFunctions::ComputeContactLocalCoordSystem(GlobalOtherToMeVector, Distance, LocalCoordSystem);
-    GeometryFunctions::VectorGlobal2Local(LocalCoordSystem, GlobalOtherToMeVector, LocalOtherToMeVector);
-    double temp_CurrentOtherToMeVector[3] = {0.0};
-    temp_CurrentOtherToMeVector[0] = LocalOtherToMeVector[0];
-    temp_CurrentOtherToMeVector[1] = LocalOtherToMeVector[1];
-    temp_CurrentOtherToMeVector[2] = LocalOtherToMeVector[2];
-    double temp_distance = GeometryFunctions::DotProduct(temp_CurrentOtherToMeVector, mLocalJointNormal);
-    const double joint_indentation = mInitialDistanceJoint - std::abs(temp_distance);                                                                                               
 
     double JointLocalElasticContactForce2 = 0.0;
 
-    if (!failure_type){ //if the bond is not broken
-        JointLocalElasticContactForce2 = kn_el * joint_indentation;
-    } else { //else the bond is broken
-        JointLocalElasticContactForce2 = 0.0;
+    if (!failure_type){
+        JointLocalElasticContactForce2 = kn_el * indentation;
     }
-        
+
     if(calculation_area){
         contact_sigma = JointLocalElasticContactForce2 / calculation_area;
     }
@@ -438,12 +423,6 @@ void DEM_smooth_joint::CalculateTangentialForces(double OldLocalElasticContactFo
 
     // bond force for joint contact
     if (!failure_type) {
-        //double JointSlidingLocalVel[3] = {0.0};
-        //double temp_local_vel = GeometryFunctions::DotProduct(LocalRelVel, mLocalJointNormal);
-        //JointSlidingLocalVel[0] =  temp_local_vel * mLocalJointNormal[0];
-        //JointSlidingLocalVel[1] =  temp_local_vel * mLocalJointNormal[1];
-        //LocalDeltSlidingDisp[0] = JointSlidingLocalVel[0] * r_process_info[DELTA_TIME];
-        //LocalDeltSlidingDisp[1] = JointSlidingLocalVel[1] * r_process_info[DELTA_TIME];
         mAccumulatedJointTangentialLocalDisplacement[0] += LocalDeltDisp[0];
         mAccumulatedJointTangentialLocalDisplacement[1] += LocalDeltDisp[1];
         JointLocalElasticContactForce[0] -= kt_el * mAccumulatedJointTangentialLocalDisplacement[0]; // 0: first tangential
@@ -544,40 +523,10 @@ void DEM_smooth_joint::CheckFailure(const int i_neighbour_count,
                 && !(*mpProperties)[IS_UNBREAKABLE]) 
         { //for normal
             failure_type = 4; // failure in tension
-            /*
-            contact_sigma = 0.0;
-            contact_tau = 0.0;
-            LocalElasticContactForce[0] = 0.0;      
-            LocalElasticContactForce[1] = 0.0;      
-            LocalElasticContactForce[2] = 0.0;
-            */
         }
         else if(( std::abs(contact_tau) > bond_current_tau_max) && !(*mpProperties)[IS_UNBREAKABLE]) 
         { //for tangential 
             failure_type = 2; // failure in shear
-            /*
-            contact_sigma = 0.0;
-            contact_tau = 0.0;
-            LocalElasticContactForce[0] = 0.0;
-            LocalElasticContactForce[1] = 0.0;
-            LocalElasticContactForce[2] = 0.0;
-            */
-            /*
-            double current_tangential_force_module = sqrt(LocalElasticContactForce[0] * LocalElasticContactForce[0]
-                                                    + LocalElasticContactForce[1] * LocalElasticContactForce[1]);
-            double friction_force = (*mpProperties)[JOINT_FRICTION_COEFF] * LocalElasticContactForce[2];
-            if (current_tangential_force_module > friction_force){
-                if (current_tangential_force_module > 0.0){
-                    const double fraction = friction_force / current_tangential_force_module;
-                    LocalElasticContactForce[0] *= fraction;
-                    LocalElasticContactForce[1] *= fraction;
-                }
-            } else {
-                LocalElasticContactForce[0] = 0.0;
-                LocalElasticContactForce[1] = 0.0;
-            }
-            LocalElasticContactForce[2] = 0.0;
-            */
         }   
     } 
 
