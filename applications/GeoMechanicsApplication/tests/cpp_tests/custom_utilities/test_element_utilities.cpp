@@ -27,15 +27,14 @@ struct Line2D2NGeometryWithVelocityVectorData {
     std::unique_ptr<Line2D2<Node>> p_geometry;
     array_1d<double, 3>            velocity_vector;
 
-    Line2D2NGeometryWithVelocityVectorData()
+    Line2D2NGeometryWithVelocityVectorData() : velocity_vector{1.0, 0.5, -0.5}
     {
         ModelPart& r_model_part = model.CreateModelPart("Main");
         r_model_part.AddNodalSolutionStepVariable(VELOCITY);
         PointerVector<Node> nodes;
         nodes.push_back(r_model_part.CreateNewNode(1, 0.0, 0.0, 0.0));
         nodes.push_back(r_model_part.CreateNewNode(2, 5.0, 0.0, 0.0));
-        p_geometry      = std::make_unique<Line2D2<Node>>(nodes);
-        velocity_vector = array_1d<double, 3>{1.0, 0.5, -0.5};
+        p_geometry = std::make_unique<Line2D2<Node>>(nodes);
         for (auto& node : *p_geometry) {
             node.FastGetSolutionStepValue(VELOCITY) = velocity_vector;
         }
