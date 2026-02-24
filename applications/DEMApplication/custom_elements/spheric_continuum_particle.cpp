@@ -471,6 +471,43 @@ namespace Kratos {
 
             RelativeDisplacementAndVelocityOfContactPointDueToOtherReasons(r_process_info, DeltDisp, RelVel, data_buffer.mOldLocalCoordSystem, data_buffer.mLocalCoordSystem, neighbour_iterator);
 
+            //TODO: can be a function
+            if (i < (int)mContinuumInitialNeighborsSize && mContinuumConstitutiveLawArray[i]->GetTypeOfLaw() == "smooth_joint_CL") {
+                
+                double GlobalJointNormal[3];
+                mContinuumConstitutiveLawArray[i]->GetGlobalJointNormal(GlobalJointNormal);
+
+                //normal
+                double joint_gap =
+                    data_buffer.mOtherToMeVector[0] * GlobalJointNormal[0]
+                    + data_buffer.mOtherToMeVector[1] * GlobalJointNormal[1]
+                    + data_buffer.mOtherToMeVector[2] * GlobalJointNormal[2];
+
+                if (data_buffer.mTime < (0.0 + 2.0 * data_buffer.mDt)){
+                    this->mInitialDistanceJoint[data_buffer.mpOtherParticle->Id()] = std::abs(joint_gap);
+                }
+                
+                indentation = mInitialDistanceJoint[data_buffer.mpOtherParticle->Id()] - std::abs(joint_gap);
+                
+                //tangential
+                double vn = RelVel[0] * GlobalJointNormal[0] + RelVel[1] * GlobalJointNormal[1] + RelVel[2] * GlobalJointNormal[2];
+
+                double JointRelVel[3];
+                for(int k=0;k<3;++k){
+                    JointRelVel[k] = RelVel[k] - vn * GlobalJointNormal[k];
+                }
+                    
+                RelVel[0] = JointRelVel[0];
+                RelVel[1] = JointRelVel[1];
+                RelVel[2] = JointRelVel[2];
+
+                double un = DeltDisp[0] * GlobalJointNormal[0] + DeltDisp[1] * GlobalJointNormal[1] + DeltDisp[2] * GlobalJointNormal[2];
+
+                for(int k=0;k<3;++k){
+                    DeltDisp[k] -= un * GlobalJointNormal[k];
+                }
+            }
+            
             double LocalDeltDisp[3] = {0.0};
             double LocalElasticContactForce[3] = {0.0}; // 0: first tangential, // 1: second tangential, // 2: normal force
             double LocalElasticExtraContactForce[3] = {0.0};
@@ -556,21 +593,7 @@ namespace Kratos {
             array_1d<double, 3> other_ball_to_ball_forces(3,0.0);
             ComputeOtherBallToBallForces(other_ball_to_ball_forces);
 
-            if (i < (int)mContinuumInitialNeighborsSize && mContinuumConstitutiveLawArray[i]->GetTypeOfLaw() == "smooth_joint_CL") {
-                //double JointLocalCoordSystem[3][3];
-                double GlobalJointNormal[3];
-                mContinuumConstitutiveLawArray[i]->GetGlobalJointNormal(GlobalJointNormal);
-                //GeometryFunctions::RotateCoordToDirection(data_buffer.mLocalCoordSystem, LocalJointNormal, JointLocalCoordSystem);
-                //GeometryFunctions::VectorLocal2Global(JointLocalCoordSystem, LocalElasticContactForce, GlobalElasticContactForce);
-                GeometryFunctions::VectorLocal2Global(data_buffer.mLocalCoordSystem, LocalElasticContactForce, GlobalElasticContactForce);
-                //GlobalElasticContactForce[0] = LocalElasticContactForce[0]; //LocalElasticContactForce is acturlly a global force for "smooth_joint_CL"
-                //GlobalElasticContactForce[1] = LocalElasticContactForce[1];
-                //GlobalElasticContactForce[2] = LocalElasticContactForce[2];
-                GeometryFunctions::RotateVectorToVector(GlobalElasticContactForce, GlobalJointNormal, GlobalElasticContactForce);
-
-            } else {
-                GeometryFunctions::VectorLocal2Global(data_buffer.mLocalCoordSystem, LocalElasticContactForce, GlobalElasticContactForce);
-            }
+            GeometryFunctions::VectorLocal2Global(data_buffer.mLocalCoordSystem, LocalElasticContactForce, GlobalElasticContactForce);
 
             //*******************Add up forces and moments**************
             AddUpForcesAndProjectContinuum(data_buffer.mOldLocalCoordSystem, 

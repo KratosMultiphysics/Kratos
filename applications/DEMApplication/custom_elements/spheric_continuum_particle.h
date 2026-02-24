@@ -182,6 +182,7 @@ namespace Kratos
         std::vector<Kratos::DEMContinuumConstitutiveLaw::Pointer> mContinuumConstitutiveLawArray;
         double mLocalRadiusAmplificationFactor = 1.0;
         //double mLocalJointNormal[3];
+        std::map<int, double> mInitialDistanceJoint;
 
     protected:
 
