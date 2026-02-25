@@ -1,4 +1,4 @@
-import math
+import math, numpy
 
 import KratosMultiphysics as Kratos
 from KratosMultiphysics import IsDistributedRun
@@ -82,17 +82,14 @@ class TestContainerExpressionUtils(kratos_unittest.TestCase):
         neighbour_conditions = Kratos.Expression.NodalExpression(self.model_part)
         mapped_values = Kratos.Expression.NodalExpression(self.model_part)
 
-        KratosOA.ExpressionUtils.ComputeNumberOfNeighbourConditions(neighbour_conditions)
-        Kratos.Expression.VariableExpressionIO.Write(neighbour_conditions, Kratos.YOUNG_MODULUS, False)
-
         Kratos.Expression.VariableExpressionIO.Read(condition_container, Kratos.VELOCITY)
-        KratosOA.ExpressionUtils.MapContainerVariableToNodalVariable(mapped_values, condition_container, neighbour_conditions)
+        KratosOA.ExpressionUtils.MapContainerVariableToNodalVariable(mapped_values, condition_container)
         Kratos.Expression.VariableExpressionIO.Write(mapped_values, Kratos.VELOCITY, False)
 
         Kratos.VariableUtils().SetNonHistoricalVariableToZero(Kratos.ACCELERATION, self.model_part.Nodes)
         for condition in self.model_part.Conditions:
             for node in condition.GetGeometry():
-                node[Kratos.ACCELERATION] += condition.GetValue(Kratos.VELOCITY) / node.GetValue(Kratos.YOUNG_MODULUS)
+                node[Kratos.ACCELERATION] += condition.GetValue(Kratos.VELOCITY) / len(condition.GetGeometry())
 
         communicator.AssembleNonHistoricalData(Kratos.ACCELERATION)
 
@@ -100,13 +97,13 @@ class TestContainerExpressionUtils(kratos_unittest.TestCase):
             self.assertVectorAlmostEqual(node[Kratos.ACCELERATION], node[Kratos.VELOCITY])
 
         Kratos.Expression.VariableExpressionIO.Read(condition_container, Kratos.PRESSURE)
-        KratosOA.ExpressionUtils.MapContainerVariableToNodalVariable(mapped_values, condition_container, neighbour_conditions)
+        KratosOA.ExpressionUtils.MapContainerVariableToNodalVariable(mapped_values, condition_container)
         Kratos.Expression.VariableExpressionIO.Write(mapped_values, Kratos.PRESSURE, False)
 
         Kratos.VariableUtils().SetNonHistoricalVariableToZero(Kratos.DENSITY, self.model_part.Nodes)
         for condition in self.model_part.Conditions:
             for node in condition.GetGeometry():
-                node[Kratos.DENSITY] += condition.GetValue(Kratos.PRESSURE) / node.GetValue(Kratos.YOUNG_MODULUS)
+                node[Kratos.DENSITY] += condition.GetValue(Kratos.PRESSURE) / len(condition.GetGeometry())
 
         communicator.AssembleNonHistoricalData(Kratos.DENSITY)
 
@@ -124,17 +121,14 @@ class TestContainerExpressionUtils(kratos_unittest.TestCase):
         neighbour_elements = Kratos.Expression.NodalExpression(self.model_part)
         mapped_values = Kratos.Expression.NodalExpression(self.model_part)
 
-        KratosOA.ExpressionUtils.ComputeNumberOfNeighbourElements(neighbour_elements)
-        Kratos.Expression.VariableExpressionIO.Write(neighbour_elements, Kratos.YOUNG_MODULUS, False)
-
         Kratos.Expression.VariableExpressionIO.Read(element_container, Kratos.VELOCITY)
-        KratosOA.ExpressionUtils.MapContainerVariableToNodalVariable(mapped_values, element_container, neighbour_elements)
+        KratosOA.ExpressionUtils.MapContainerVariableToNodalVariable(mapped_values, element_container)
         Kratos.Expression.VariableExpressionIO.Write(mapped_values, Kratos.VELOCITY, False)
 
         Kratos.VariableUtils().SetNonHistoricalVariableToZero(Kratos.ACCELERATION, self.model_part.Nodes)
         for element in self.model_part.Elements:
             for node in element.GetGeometry():
-                node[Kratos.ACCELERATION] += element.GetValue(Kratos.VELOCITY) / node.GetValue(Kratos.YOUNG_MODULUS)
+                node[Kratos.ACCELERATION] += element.GetValue(Kratos.VELOCITY) / len(element.GetGeometry())
 
         communicator.AssembleNonHistoricalData(Kratos.ACCELERATION)
 
@@ -142,13 +136,13 @@ class TestContainerExpressionUtils(kratos_unittest.TestCase):
             self.assertVectorAlmostEqual(node[Kratos.ACCELERATION], node[Kratos.VELOCITY])
 
         Kratos.Expression.VariableExpressionIO.Read(element_container, Kratos.PRESSURE)
-        KratosOA.ExpressionUtils.MapContainerVariableToNodalVariable(mapped_values, element_container, neighbour_elements)
+        KratosOA.ExpressionUtils.MapContainerVariableToNodalVariable(mapped_values, element_container)
         Kratos.Expression.VariableExpressionIO.Write(mapped_values, Kratos.PRESSURE, False)
 
         Kratos.VariableUtils().SetNonHistoricalVariableToZero(Kratos.DENSITY, self.model_part.Nodes)
         for element in self.model_part.Elements:
             for node in element.GetGeometry():
-                node[Kratos.DENSITY] += element.GetValue(Kratos.PRESSURE) / node.GetValue(Kratos.YOUNG_MODULUS)
+                node[Kratos.DENSITY] += element.GetValue(Kratos.PRESSURE) / len(element.GetGeometry())
 
         communicator.AssembleNonHistoricalData(Kratos.DENSITY)
 
@@ -156,32 +150,50 @@ class TestContainerExpressionUtils(kratos_unittest.TestCase):
             self.assertEqual(node[Kratos.DENSITY], node[Kratos.PRESSURE])
 
     def test_MapNodalVariableToConditionVariable(self):
+        v = 0
         for node in self.model_part.Nodes:
             node.SetValue(Kratos.VELOCITY, Kratos.Array3([node.Id, node.Id + 1, node.Id + 3]))
             node.SetValue(Kratos.PRESSURE, node.Id + 4)
+            v += node.Id + 4
 
         nodal_container = Kratos.Expression.NodalExpression(self.model_part)
         mapped_value = Kratos.Expression.ConditionExpression(self.model_part)
 
+        neighbours = Kratos.Expression.NodalExpression(self.model_part)
+        KratosOA.ExpressionUtils.ComputeNumberOfNeighbourConditions(neighbours)
+        Kratos.Expression.VariableExpressionIO.Write(neighbours, Kratos.YOUNG_MODULUS, False)
+
         Kratos.Expression.VariableExpressionIO.Read(nodal_container, Kratos.VELOCITY, False)
-        KratosOA.ExpressionUtils.MapNodalVariableToContainerVariable(mapped_value, nodal_container)
+        KratosOA.ExpressionUtils.MapNodalVariableToContainerVariable(mapped_value, nodal_container, neighbours)
         Kratos.Expression.VariableExpressionIO.Write(mapped_value, Kratos.ACCELERATION)
+
+        # self.assertVectorAlmostEqual(
+        #     Kratos.VariableUtils().SumConditionVectorVariable(Kratos.ACCELERATION, self.model_part),
+        #     Kratos.VariableUtils().SumNonHistoricalNodeVectorVariable(Kratos.VELOCITY, self.model_part))
 
         for condition in self.model_part.Conditions:
             v = Kratos.Array3([0, 0, 0])
             for node in condition.GetGeometry():
-                v += node.GetValue(Kratos.VELOCITY)
-            self.assertVectorAlmostEqual(v / 2.0, condition.GetValue(Kratos.ACCELERATION))
+                v += node.GetValue(Kratos.VELOCITY) / node[Kratos.YOUNG_MODULUS]
+            condition[Kratos.VELOCITY] = v
 
         Kratos.Expression.VariableExpressionIO.Read(nodal_container, Kratos.PRESSURE, False)
-        KratosOA.ExpressionUtils.MapNodalVariableToContainerVariable(mapped_value, nodal_container)
+        KratosOA.ExpressionUtils.MapNodalVariableToContainerVariable(mapped_value, nodal_container, neighbours)
         Kratos.Expression.VariableExpressionIO.Write(mapped_value, Kratos.DENSITY)
+
+        # self.assertAlmostEqual(
+        #     Kratos.VariableUtils().SumConditionScalarVariable(Kratos.DENSITY, self.model_part),
+        #     Kratos.VariableUtils().SumNonHistoricalNodeScalarVariable(Kratos.PRESSURE, self.model_part))
 
         for condition in self.model_part.Conditions:
             v = 0.0
             for node in condition.GetGeometry():
-                v += node.GetValue(Kratos.PRESSURE)
-            self.assertEqual(v / 2.0, condition.GetValue(Kratos.DENSITY))
+                v += node.GetValue(Kratos.PRESSURE) / node[Kratos.YOUNG_MODULUS]
+            condition[Kratos.PRESSURE] = v
+
+        for condition in self.model_part.Conditions:
+            self.assertVectorAlmostEqual(condition[Kratos.ACCELERATION], condition[Kratos.VELOCITY])
+            self.assertEqual(condition[Kratos.DENSITY], condition[Kratos.PRESSURE])
 
     def test_ProductWithEntityMatrix(self):
         if (IsDistributedRun()):
