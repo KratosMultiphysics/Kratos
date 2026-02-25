@@ -2304,7 +2304,7 @@ KRATOS_TEST_CASE_IN_SUITE(UPwLineInterfaceElement_3Plus3Element_UPCouplingContri
                                       {0, 0, 0, 0},
                                       {0.053918128, 0.053918128, 0.053918128, 0.053918128}});
     const auto expected_up_block_vector = UblasUtilities::CreateVector(
-{0, 2.7228655, 0, 2.7228655, 0, 10.891462, 0, -2.7228655, 0, -2.7228655, 0, -10.891462, 0, 0, 0, 0});
+        {0, 2.7228655, 0, 2.7228655, 0, 10.891462, 0, -2.7228655, 0, -2.7228655, 0, -10.891462, 0, 0, 0, 0});
     GeneralizedCouplingContributionTest<InterfacePlaneStrain>(
         CreateHorizontalUnitLength3Plus3NodedLineInterfaceElementWithUPwDoF,
         {CalculationContribution::UPCoupling}, IsDiffOrderElement::Yes, 12, 4,
@@ -2334,11 +2334,11 @@ KRATOS_TEST_CASE_IN_SUITE(UPwTriangleInterfaceElement_3Plus3Element_UPCouplingCo
                                       {0, 0, 0, 0, 0, 0},
                                       {0, 0, 0.026959064, 0, 0, 0.026959064}});
     const auto expected_up_block_vector = UblasUtilities::CreateVector(
-{0, 0, 2.7228655,  0, 0, 2.7228655,  0, 0, 2.7228655, 0, 0, -2.7228655,
- 0, 0, -2.7228655, 0, 0, -2.7228655, 0, 0, 0,         0, 0, 0});
+        {0, 0, 2.7228655,  0, 0, 2.7228655,  0, 0, 2.7228655, 0, 0, -2.7228655,
+         0, 0, -2.7228655, 0, 0, -2.7228655, 0, 0, 0,         0, 0, 0});
     GeneralizedCouplingContributionTest<InterfaceThreeDimensionalSurface>(
-            CreateHorizontal3Plus3NodedTriangleInterfaceElementWithUPwDofs, {CalculationContribution::UPCoupling},
-            IsDiffOrderElement::No, 18, 6, expected_up_block_matrix, expected_up_block_vector);
+        CreateHorizontal3Plus3NodedTriangleInterfaceElementWithUPwDofs, {CalculationContribution::UPCoupling},
+        IsDiffOrderElement::No, 18, 6, expected_up_block_matrix, expected_up_block_vector);
 }
 
 KRATOS_TEST_CASE_IN_SUITE(UPwTriangleInterfaceElement_6Plus6Element_UPCouplingContribution,
@@ -2382,10 +2382,10 @@ KRATOS_TEST_CASE_IN_SUITE(UPwTriangleInterfaceElement_6Plus6Element_UPCouplingCo
                                       {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0},
                                       {0, 0, 0, 0, 0, 0.024301128, 0, 0, 0, 0, 0, 0.024301128}});
     const auto expected_up_block_vector = UblasUtilities::CreateVector(
-{0, 0, 0.26845153,  0, 0, 0.26845153, 0, 0, 0.26845153,  0, 0, 2.454414,
- 0, 0, 2.454414,    0, 0, 2.454414,   0, 0, -0.26845153, 0, 0, -0.26845153,
- 0, 0, -0.26845153, 0, 0, -2.454414,  0, 0, -2.454414,   0, 0, -2.454414,
- 0, 0, 0,           0, 0, 0,          0, 0, 0,           0, 0, 0});
+        {0, 0, 0.26845153,  0, 0, 0.26845153, 0, 0, 0.26845153,  0, 0, 2.454414,
+         0, 0, 2.454414,    0, 0, 2.454414,   0, 0, -0.26845153, 0, 0, -0.26845153,
+         0, 0, -0.26845153, 0, 0, -2.454414,  0, 0, -2.454414,   0, 0, -2.454414,
+         0, 0, 0,           0, 0, 0,          0, 0, 0,           0, 0, 0});
     GeneralizedCouplingContributionTest<InterfaceThreeDimensionalSurface>(
         CreateHorizontal6Plus6NodedTriangleInterfaceElementWithUPwDoF, {CalculationContribution::UPCoupling},
         IsDiffOrderElement::No, 36, 12, expected_up_block_matrix, expected_up_block_vector);
@@ -2432,10 +2432,10 @@ KRATOS_TEST_CASE_IN_SUITE(UPwTriangleInterfaceElement_6Plus6Element_UPCouplingCo
                                       {0, 0, 0, 0, 0, 0},
                                       {0.012150564, 0, 0.012150564, 0.012150564, 0, 0.012150564}});
     const auto expected_up_block_vector = UblasUtilities::CreateVector(
-{0, 0, 0.26845153,  0, 0, 0.26845153, 0, 0, 0.26845153,  0, 0, 2.454414,
- 0, 0, 2.454414,    0, 0, 2.454414,   0, 0, -0.26845153, 0, 0, -0.26845153,
- 0, 0, -0.26845153, 0, 0, -2.454414,  0, 0, -2.454414,   0, 0, -2.454414,
- 0, 0, 0,           0, 0, 0});
+        {0, 0, 0.26845153,  0, 0, 0.26845153, 0, 0, 0.26845153,  0, 0, 2.454414,
+         0, 0, 2.454414,    0, 0, 2.454414,   0, 0, -0.26845153, 0, 0, -0.26845153,
+         0, 0, -0.26845153, 0, 0, -2.454414,  0, 0, -2.454414,   0, 0, -2.454414,
+         0, 0, 0,           0, 0, 0});
     GeneralizedCouplingContributionTest<InterfaceThreeDimensionalSurface>(
         CreateHorizontal6Plus6NodedTriangleInterfaceElementWithUPwDoF, {CalculationContribution::UPCoupling},
         IsDiffOrderElement::Yes, 36, 6, expected_up_block_matrix, expected_up_block_vector);
@@ -2536,8 +2536,6 @@ KRATOS_TEST_CASE_IN_SUITE(UPwQuadraliteralInterfaceElement_8Plus8Element_UPCoupl
          0, 0, 3.439409,    0, 0, 3.439409,    0, 0, 3.439409,    0, 0, 3.439409,
          0, 0, -0.64488919, 0, 0, -0.64488919, 0, 0, -0.64488919, 0, 0, -0.64488919,
          0, 0, -3.439409,   0, 0, -3.439409,   0, 0, -3.439409,   0, 0, -3.439409,
-         0, 0, 0.64488919,  0, 0, 0.64488919,  0, 0, 0.64488919,  0, 0, 0.64488919,
-         0, 0, 3.439409,    0, 0, 3.439409,    0, 0, 3.439409,    0, 0, 3.439409,
          0, 0, 0,           0, 0, 0,           0, 0, 0,           0, 0, 0,
          0, 0, 0,           0});
     GeneralizedCouplingContributionTest<InterfaceThreeDimensionalSurface>(
