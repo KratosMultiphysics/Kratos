@@ -24,60 +24,51 @@
 namespace Kratos
 {
 
-class KRATOS_API(MPM_APPLICATION) MPMEnergyCalculationUtility
+class MPMEnergyCalculationUtility
 {
 public:
-
-    /// Pointer definition of DragUtilities
-    KRATOS_CLASS_POINTER_DEFINITION(MPMEnergyCalculationUtility);
-
-    /// Constructor
-    MPMEnergyCalculationUtility() {};
-
-    /// Destructor.
-    ~MPMEnergyCalculationUtility() {};
 
     /**
      * @brief Compute the potential energy of a material point element
      * @param rElement The material point element whose potential energy is to be computed
      * @return The potential energy of the input material point element
      */
-    static double CalculatePotentialEnergy(Element& rElement);
+    static double KRATOS_API(MPM_APPLICATION) CalculatePotentialEnergy(Element& rElement);
 
     /**
      * @brief Compute the potential energy of a model part
      * @param rModelPart The model part whose potential energy is to be computed
      * @return The potential energy of the input model part
      */
-    static double CalculatePotentialEnergy(ModelPart& rModelPart);
+    static double KRATOS_API(MPM_APPLICATION) CalculatePotentialEnergy(ModelPart& rModelPart);
 
     /**
      * @brief Compute the kinetic energy of a material point element
      * @param rElement The material point element whose kinetic energy is to be computed
      * @return The kinetic energy of the input material point element
      */
-    static double CalculateKineticEnergy(Element& rElement);
+    static double KRATOS_API(MPM_APPLICATION) CalculateKineticEnergy(Element& rElement);
 
     /**
      * @brief Compute the kinetic energy of a model part
      * @param rModelPart The model part whose kinetic energy is to be computed
      * @return The kinetic energy of the input model part
      */
-    static double CalculateKineticEnergy(ModelPart& rModelPart);
+    static double KRATOS_API(MPM_APPLICATION) CalculateKineticEnergy(ModelPart& rModelPart);
 
     /**
      * @brief Compute the strain energy of a material point element
      * @param rElement The material point element whose strain energy is to be computed
      * @return The strain energy of the input material point element
      */
-    static double CalculateStrainEnergy(Element& rElement);
+    static double KRATOS_API(MPM_APPLICATION) CalculateStrainEnergy(Element& rElement);
 
     /**
      * @brief Compute the strain energy of a model part
      * @param rModelPart The model part whose strain energy is to be computed
      * @return The strain energy of the input model part
      */
-    static double CalculateStrainEnergy(ModelPart& rModelPart);
+    static double KRATOS_API(MPM_APPLICATION) CalculateStrainEnergy(ModelPart& rModelPart);
 
     /**
      * @brief Compute the total energy of a material point element
@@ -85,7 +76,7 @@ public:
      * @param rElement The material point element whose total energy is to be computed
      * @return The total energy of the input material point element
      */
-    static double CalculateTotalEnergy(Element& rElement);
+    static double KRATOS_API(MPM_APPLICATION) CalculateTotalEnergy(Element& rElement);
 
     /**
      * @brief Compute the total energy of a model part
@@ -93,7 +84,7 @@ public:
      * @param rModelPart The model part whose total energy is to be computed
      * @return The total energy of the input model part
      */
-    static double CalculateTotalEnergy(ModelPart& rModelPart);
+    static double KRATOS_API(MPM_APPLICATION) CalculateTotalEnergy(ModelPart& rModelPart);
 
     /**
      * @brief Compute the kinetic, potential, strain and total energy of a model part
@@ -103,7 +94,7 @@ public:
      * @param rStrainEnergy The strain energy of the input model part
      * @param rTotallEnergy The total energy of the input model part
      */
-    static void CalculateAllEnergies(
+    static void KRATOS_API(MPM_APPLICATION) CalculateAllEnergies(
         ModelPart& rModelPart,
         double& rPotentialEnergy,
         double& rKineticEnergy,
