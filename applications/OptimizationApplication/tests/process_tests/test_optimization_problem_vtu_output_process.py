@@ -181,7 +181,7 @@ class TestOptimizationProblemVtuOutputProcess(kratos_unittest.TestCase):
                 "reference_file_name"   : "test_1_orig.vtu",
                 "output_file_name"      : "Optimization_Results/test_1/test_1_elements_0.vtu",
                 "remove_output_file"    : true,
-                "comparison_type"       : "deterministic"
+                "comparison_type"       : "vtu"
             }""")).Execute()
 
             CompareTwoFilesCheckProcess(Kratos.Parameters("""
@@ -189,7 +189,7 @@ class TestOptimizationProblemVtuOutputProcess(kratos_unittest.TestCase):
                 "reference_file_name"   : "test_2_orig.vtu",
                 "output_file_name"      : "Optimization_Results/test_2/test_2_elements_0.vtu",
                 "remove_output_file"    : true,
-                "comparison_type"       : "deterministic"
+                "comparison_type"       : "vtu"
             }""")).Execute()
 
     @classmethod
