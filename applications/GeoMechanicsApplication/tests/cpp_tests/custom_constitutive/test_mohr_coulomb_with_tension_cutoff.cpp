@@ -658,4 +658,89 @@ KRATOS_TEST_CASE_IN_SUITE(MohrCoulombWithTensionCutOff_CalculateMaterialResponse
                               expected_cauchy_stress_vector, tolerance);
 }
 
+Vector GetStressVectorForCPhiReductionElement8(Vector& rStressVectorFinalized, Vector& rStrainVector, Vector& rStressVector)
+{
+    auto       law = MohrCoulombWithTensionCutOff(std::make_unique<PlaneStrain>());
+    Properties properties;
+    properties.SetValue(GEO_FRICTION_ANGLE, 30.0);
+    properties.SetValue(GEO_COHESION, 1000.0);
+    properties.SetValue(GEO_DILATANCY_ANGLE, 0.0);
+    properties.SetValue(GEO_TENSILE_STRENGTH, 1000.0);
+    properties.SetValue(YOUNG_MODULUS, 30.0e6);
+    properties.SetValue(POISSON_RATIO, 0.2);
+    ConstitutiveLaw::Parameters parameters;
+    parameters.SetMaterialProperties(properties);
+    const auto dummy_element_geometry      = Geometry<Node>{};
+    const auto dummy_shape_function_values = Vector{};
+    law.InitializeMaterial(properties, dummy_element_geometry, dummy_shape_function_values);
+    Vector strain_vector_finalized = ZeroVector(4);
+    parameters.SetStrainVector(strain_vector_finalized);
+    parameters.SetStressVector(rStressVectorFinalized);
+    const auto dummy_process_info = ProcessInfo{};
+    law.SetValue(CAUCHY_STRESS_VECTOR, rStressVectorFinalized, dummy_process_info); // set mStressVector
+    law.FinalizeMaterialResponseCauchy(parameters); // set mStrainVectorFinalized = rValues.GetStrainVector(); and mStressVectorFinalized = mStressVector;
+    parameters.SetStrainVector(rStrainVector);
+    parameters.SetStressVector(rStressVector);
+    law.CalculateMaterialResponseCauchy(parameters);
+    Vector result;
+    law.GetValue(CAUCHY_STRESS_VECTOR, result);
+    return result;
+}
+
+KRATOS_TEST_CASE_IN_SUITE(MohrCoulombWithTensionCutOff_CalculateMaterialResponseCauchyAtElement8Gp0,
+                          KratosGeoMechanicsFastSuiteWithoutKernel)
+{
+    // Arrange
+    auto stress_vector_finalized = UblasUtilities::CreateVector(
+        {-5.1687704591168895e+03, -1.2121212099273185e+04, -5.1687704591168895e+03, 0.0000000000000000e+00});
+    auto strain_vector = UblasUtilities::CreateVector({2.0849072892302034e-04, -5.2137806109330782e-05,
+                                                       0.0000000000000000e+00, 1.3759667604308981e-08});
+    auto stress_vector = UblasUtilities::CreateVector({-5.1687704591168895e+03, -1.2121212099273185e+04,
+                                                       -5.1687704591168895e+03, 0.0000000000000000e+00});
+    // Act
+    const auto result =
+        GetStressVectorForCPhiReductionElement8(stress_vector_finalized, strain_vector, stress_vector);
+    // Assert
+    const auto expected_cauchy_stress_vector = UblasUtilities::CreateVector(
+        {-1.8277939576649439e+03, -8.9474834834880658e+03, -3.8658294356694760e+03, 9.0922402887663303e-02});
+    KRATOS_EXPECT_VECTOR_NEAR(result, expected_cauchy_stress_vector, Defaults::absolute_tolerance);
+}
+
+KRATOS_TEST_CASE_IN_SUITE(MohrCoulombWithTensionCutOff_CalculateMaterialResponseCauchyAtElement8Gp1,
+                          KratosGeoMechanicsFastSuiteWithoutKernel)
+{
+    // Arrange
+    auto stress_vector_finalized = UblasUtilities::CreateVector(
+        {-1.2921926147786228e+03, -3.0303030248168902e+03, -1.2921926147786228e+03, 0.0000000000000000e+00});
+    auto strain_vector = UblasUtilities::CreateVector({2.1223519849231651e-04, -5.3061831008594524e-05,
+                                                       0.0000000000000000e+00, 8.1947498012640424e-09});
+    auto stress_vector = UblasUtilities::CreateVector({-1.2921926147786228e+03, -3.0303030248168902e+03,
+                                                       -1.2921926147786228e+03, 0.0000000000000000e+00});
+    // Act
+    const auto result =
+        GetStressVectorForCPhiReductionElement8(stress_vector_finalized, strain_vector, stress_vector);
+    // Assert
+    const auto expected_cauchy_stress_vector = UblasUtilities::CreateVector(
+        {9.9999999978074175e+02, -4.6410161491849664e+02, 3.4252114252393994e+01, 1.7916932387274317e-02});
+    KRATOS_EXPECT_VECTOR_NEAR(result, expected_cauchy_stress_vector, Defaults::absolute_tolerance);
+}
+
+KRATOS_TEST_CASE_IN_SUITE(MohrCoulombWithTensionCutOff_CalculateMaterialResponseCauchyAtElement8Gp2,
+                          KratosGeoMechanicsFastSuiteWithoutKernel)
+{
+    // Arrange
+    auto stress_vector_finalized = UblasUtilities::CreateVector(
+        {-1.2921926147789015e+03, -3.0303030248175442e+03, -1.2921926147789015e+03, 0.0000000000000000e+00});
+    auto strain_vector = UblasUtilities::CreateVector({2.1221334908075760e-04, -5.3056189639024483e-05,
+                                                       0.0000000000000000e+00, 3.4835553978606573e-08});
+    auto stress_vector = UblasUtilities::CreateVector({-1.2921926147789015e+03, -3.0303030248175442e+03,
+                                                       -1.2921926147789015e+03, 0.0000000000000000e+00});
+    // Act
+    const auto result =
+        GetStressVectorForCPhiReductionElement8(stress_vector_finalized, strain_vector, stress_vector);
+    // Assert
+    const auto expected_cauchy_stress_vector = UblasUtilities::CreateVector(
+        {9.9999999603720642e+02, -4.6410161117496125e+02, 3.4117047235541349e+01, 7.6170417338809082e-02});
+    KRATOS_EXPECT_VECTOR_NEAR(result, expected_cauchy_stress_vector, Defaults::absolute_tolerance);
+}
 } // namespace Kratos::Testing
