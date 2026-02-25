@@ -11,13 +11,13 @@
 //
 
 #include "custom_utilities/constitutive_law_utilities.h"
+#include "custom_utilities/ublas_utilities.h"
 #include "geo_mechanics_application_variables.h"
 #include "includes/checks.h"
 #include "tests/cpp_tests/custom_constitutive/mock_constitutive_law.hpp"
 #include "tests/cpp_tests/geo_mechanics_fast_suite.h"
 #include "tests/cpp_tests/test_utilities.h"
 
-#include <boost/numeric/ublas/assignment.hpp>
 #include <numbers>
 
 using namespace Kratos;
@@ -29,11 +29,9 @@ KRATOS_TEST_CASE_IN_SUITE(SetSixConstitutiveParametersCorrectResults, KratosGeoM
 {
     ConstitutiveLaw::Parameters ConstitutiveParameters;
 
-    Vector strain_vector(3);
-    strain_vector <<= 1.0, 2.0, 3.0;
-    Matrix constitutive_matrix = IdentityMatrix(5, 5);
-    Vector N(3);
-    N <<= 0.1, 0.2, 0.5;
+    auto             strain_vector               = UblasUtilities::CreateVector({1.0, 2.0, 3.0});
+    Matrix           constitutive_matrix         = IdentityMatrix(5, 5);
+    auto             N                           = UblasUtilities::CreateVector({0.1, 0.2, 0.5});
     const Matrix     shape_functions_derivatives = ScalarMatrix(3, 3, 5.0);
     const Matrix     deformation_gradient_F      = ScalarMatrix(3, 3, 10.0);
     constexpr double determinant_of_F            = 10.0;
@@ -66,8 +64,7 @@ KRATOS_TEST_CASE_IN_SUITE(CohesionCanBeFetchedFromGeoCohesionProperty, KratosGeo
 KRATOS_TEST_CASE_IN_SUITE(CohesionCanBeFetchedFromUMatParameters, KratosGeoMechanicsFastSuiteWithoutKernel)
 {
     auto properties      = Properties{};
-    auto umat_parameters = Vector{2};
-    umat_parameters <<= 2.0, 30.0;
+    auto umat_parameters = UblasUtilities::CreateVector({2.0, 30.0});
     properties.SetValue(UMAT_PARAMETERS, umat_parameters);
     properties.SetValue(INDEX_OF_UMAT_C_PARAMETER, 1);
 
@@ -100,8 +97,7 @@ KRATOS_TEST_CASE_IN_SUITE(FrictionAngleCanBeFetchedFromGeoFrictionAngleProperty,
 KRATOS_TEST_CASE_IN_SUITE(FrictionAngleCanBeFetchedFromUMatParameters, KratosGeoMechanicsFastSuiteWithoutKernel)
 {
     auto properties      = Properties{};
-    auto umat_parameters = Vector{2};
-    umat_parameters <<= 2.0, 30.0;
+    auto umat_parameters = UblasUtilities::CreateVector({2.0, 30.0});
     properties.SetValue(UMAT_PARAMETERS, umat_parameters);
     properties.SetValue(INDEX_OF_UMAT_PHI_PARAMETER, 2);
 
@@ -122,8 +118,7 @@ KRATOS_TEST_CASE_IN_SUITE(RaiseADebugErrorWhenIndexInUMatParametersIsOutOfBounds
 #endif
 
     auto properties      = Properties{};
-    auto umat_parameters = Vector{2};
-    umat_parameters <<= 2.0, 30.0;
+    auto umat_parameters = UblasUtilities::CreateVector({2.0, 30.0});
     properties.SetValue(UMAT_PARAMETERS, umat_parameters);
     properties.SetValue(INDEX_OF_UMAT_C_PARAMETER, 0); // 1-based index
 
