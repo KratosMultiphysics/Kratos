@@ -53,7 +53,6 @@ class StructuralMechanicsLoadSteppingAnalysis(StructuralMechanicsAnalysis):
 
             # first try to solve for the final time.
             self.InitializeSolutionStep()
-            self._GetSolver().Predict()
             is_converged = self._GetSolver().SolveSolutionStep()
 
             if not is_converged:
@@ -94,7 +93,6 @@ class StructuralMechanicsLoadSteppingAnalysis(StructuralMechanicsAnalysis):
                     computing_mp.ProcessInfo[Kratos.DELTA_TIME] = self.time - time_begin
 
                 self.InitializeSolutionStep()
-                self._GetSolver().Predict()
                 is_converged = self._GetSolver().SolveSolutionStep()
 
                 current_step_controller_time = self.time
