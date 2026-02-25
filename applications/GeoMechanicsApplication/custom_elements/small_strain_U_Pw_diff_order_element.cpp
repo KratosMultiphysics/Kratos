@@ -831,7 +831,8 @@ void SmallStrainUPwDiffOrderElement::Calculate(const Variable<Vector>& rVariable
 
     auto relative_permeability_values = RetentionLaw::CalculateRelativePermeabilityValues(
         mRetentionLawVector, this->GetProperties(), fluid_pressures);
-    const auto permeability_update_factors = GetOptionalPermeabilityUpdateFactors(strain_vectors, Variables.ConsiderGeometricStiffness);
+    const auto permeability_update_factors =
+        GetOptionalPermeabilityUpdateFactors(strain_vectors, Variables.ConsiderGeometricStiffness);
     std::ranges::transform(permeability_update_factors, relative_permeability_values,
                            relative_permeability_values.begin(), std::multiplies<>{});
     const auto bishop_coefficients = CalculateBishopCoefficients(fluid_pressures);
@@ -985,7 +986,8 @@ void SmallStrainUPwDiffOrderElement::CalculateAll(MatrixType&        rLeftHandSi
         biot_coefficients, degrees_of_saturation, derivatives_of_saturation, r_prop);
     auto relative_permeability_values = RetentionLaw::CalculateRelativePermeabilityValues(
         mRetentionLawVector, this->GetProperties(), fluid_pressures);
-    const auto permeability_update_factors = GetOptionalPermeabilityUpdateFactors(strain_vectors, Variables.ConsiderGeometricStiffness);
+    const auto permeability_update_factors =
+        GetOptionalPermeabilityUpdateFactors(strain_vectors, Variables.ConsiderGeometricStiffness);
     std::ranges::transform(permeability_update_factors, relative_permeability_values,
                            relative_permeability_values.begin(), std::multiplies<>{});
 
@@ -1032,12 +1034,14 @@ void SmallStrainUPwDiffOrderElement::CalculateAll(MatrixType&        rLeftHandSi
     KRATOS_CATCH("")
 }
 
-void SmallStrainUPwDiffOrderElement::CalculateAndAddGeometricStiffnessMatrix(
-    MatrixType& rLeftHandSideMatrix, const Vector& rStressVector, const Matrix& rDNuDx, const double IntegrationCoefficient) const
+void SmallStrainUPwDiffOrderElement::CalculateAndAddGeometricStiffnessMatrix(MatrixType& rLeftHandSideMatrix,
+                                                                             const Vector& rStressVector,
+                                                                             const Matrix& rDNuDx,
+                                                                             const double IntegrationCoefficient) const
 {
     KRATOS_TRY
 
-    const GeometryType& r_geometry      = GetGeometry();
+    const GeometryType& r_geometry  = GetGeometry();
     const SizeType      num_U_nodes = r_geometry.PointsNumber();
     const SizeType      dimension   = r_geometry.WorkingSpaceDimension();
 
@@ -1052,7 +1056,9 @@ void SmallStrainUPwDiffOrderElement::CalculateAndAddGeometricStiffnessMatrix(
 
     KRATOS_CATCH("")
 }
-std::vector<double> SmallStrainUPwDiffOrderElement::GetOptionalPermeabilityUpdateFactors(const std::vector<Vector>& rStrainVectors, bool ConsiderGeometricStiffness) const
+
+std::vector<double> SmallStrainUPwDiffOrderElement::GetOptionalPermeabilityUpdateFactors(
+    const std::vector<Vector>& rStrainVectors, bool ConsiderGeometricStiffness) const
 {
     if (ConsiderGeometricStiffness) return {};
     return GeoTransportEquationUtilities::CalculatePermeabilityUpdateFactors(rStrainVectors, GetProperties());
