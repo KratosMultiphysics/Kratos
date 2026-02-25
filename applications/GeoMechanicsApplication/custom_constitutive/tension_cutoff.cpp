@@ -17,8 +17,6 @@
 #include "custom_utilities/stress_strain_utilities.h"
 #include "includes/serializer.h"
 
-#include <boost/numeric/ublas/assignment.hpp>
-
 namespace Kratos
 {
 TensionCutoff::TensionCutoff(double TensileStrength) : mTensileStrength{TensileStrength} {}
