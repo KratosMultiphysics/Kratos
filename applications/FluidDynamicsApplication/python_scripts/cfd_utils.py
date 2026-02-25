@@ -409,9 +409,9 @@ class CFDUtils:
         np.einsum("eI,J,eJk->eIk",rho_a_DN, N, Pi_elemental, out=PiContrib)
         out -= PiContrib
 
-    def ComputeDivDivStabilization(self, DN: np.ndarray, Pi_elemental: np.ndarray, out: np.ndarray):
-        ##TODO: avoid temporaries!
-        pass
+    # def ComputeDivDivStabilization(self, DN: np.ndarray, div_elemental : np.ndarray, Pi_div_elemental: np.ndarray, elem_scratch : np.array, output: np.ndarray):
+    #     np.subtract(div_elemental, Pi_div_elemental, out=elem_scratch)
+    #     np.einsum("eIk,e->eIk", DN, elem_scratch, out=output)
 
     def ComputePressureStabilization_ProjectionTerm(self, N: np.ndarray, DN: np.ndarray, Pi_press_el: np.ndarray, out: np.ndarray):
         """
