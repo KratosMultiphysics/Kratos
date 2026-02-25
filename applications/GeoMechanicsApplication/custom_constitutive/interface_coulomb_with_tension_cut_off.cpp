@@ -149,8 +149,8 @@ void InterfaceCoulombWithTensionCutOff::CalculateMaterialResponseCauchy(Paramete
 
     if (!mCoulombWithTensionCutOffImpl.IsAdmissibleStressState(trial_sigma_tau)) {
         mapped_sigma_tau = mCoulombWithTensionCutOffImpl.DoReturnMapping(
-            trial_sigma_tau, Geo::PrincipalStresses::PrincipalStressesAveragingType::NO_AVERAGING,
-            mpConstitutiveDimension->CalculateElasticMatrix(r_properties));
+            trial_sigma_tau, mpConstitutiveDimension->CalculateElasticMatrix(r_properties),
+            Geo::PrincipalStresses::AveragingType::NO_AVERAGING);
         if (negative) mapped_sigma_tau.Tau() *= -1.0;
     }
 
@@ -200,6 +200,7 @@ void InterfaceCoulombWithTensionCutOff::save(Serializer& rSerializer) const
     rSerializer.save("RelativeDisplacementVectorFinalized", mRelativeDisplacementVectorFinalized);
     rSerializer.save("CoulombWithTensionCutOffImpl", mCoulombWithTensionCutOffImpl);
     rSerializer.save("IsModelInitialized", mIsModelInitialized);
+    rSerializer.save("ConstitutiveDimension", mpConstitutiveDimension);
 }
 
 void InterfaceCoulombWithTensionCutOff::load(Serializer& rSerializer)
@@ -210,6 +211,7 @@ void InterfaceCoulombWithTensionCutOff::load(Serializer& rSerializer)
     rSerializer.load("RelativeDisplacementVectorFinalized", mRelativeDisplacementVectorFinalized);
     rSerializer.load("CoulombWithTensionCutOffImpl", mCoulombWithTensionCutOffImpl);
     rSerializer.load("IsModelInitialized", mIsModelInitialized);
+    rSerializer.load("ConstitutiveDimension", mpConstitutiveDimension);
 }
 
 } // Namespace Kratos
