@@ -174,56 +174,58 @@ Geo::SigmaTau CoulombWithTensionCutOffImpl::ReturnStressAtTensionApexReturnZone(
     return Geo::SigmaTau{mTensionCutOff.GetTensileStrength(), 0.0};
 }
 
-Geo::PrincipalStresses CoulombWithTensionCutOffImpl::ReturnStressAtTensionApexReturnZone(const Geo::PrincipalStresses& rPrincipalStresses) const
+Geo::PrincipalStresses CoulombWithTensionCutOffImpl::ReturnStressAtTensionApexReturnZone(
+    const Geo::PrincipalStresses& rTrialPrincipalStresses) const
 {
     return StressStrainUtilities::TransformSigmaTauToPrincipalStresses(
         ReturnStressAtTensionApexReturnZone(
-            StressStrainUtilities::TransformPrincipalStressesToSigmaTau(rPrincipalStresses)),
-        rPrincipalStresses);
+            StressStrainUtilities::TransformPrincipalStressesToSigmaTau(rTrialPrincipalStresses)),
+        rTrialPrincipalStresses);
 }
 
 Geo::SigmaTau CoulombWithTensionCutOffImpl::ReturnStressAtTensionCutoffReturnZone(
-    const Geo::SigmaTau& rTraction, const Matrix& rElasticMatrix, Geo::PrincipalStresses::AveragingType AveragingType) const
+    const Geo::SigmaTau& rTrialTraction, const Matrix& rElasticMatrix, Geo::PrincipalStresses::AveragingType AveragingType) const
 {
-    const auto derivative_of_flow_function = mTensionCutOff.DerivativeOfFlowFunction(rTraction, AveragingType);
-    const auto lambda =
-        mTensionCutOff.CalculatePlasticMultiplier(rTraction, derivative_of_flow_function, rElasticMatrix);
-    return rTraction + Geo::SigmaTau{lambda * prod(rElasticMatrix, derivative_of_flow_function)};
+    const auto derivative_of_flow_function =
+        mTensionCutOff.DerivativeOfFlowFunction(rTrialTraction, AveragingType);
+    const auto lambda = mTensionCutOff.CalculatePlasticMultiplier(
+        rTrialTraction, derivative_of_flow_function, rElasticMatrix);
+    return rTrialTraction + Geo::SigmaTau{lambda * prod(rElasticMatrix, derivative_of_flow_function)};
 }
 
 Geo::PrincipalStresses CoulombWithTensionCutOffImpl::ReturnStressAtTensionCutoffReturnZone(
-    const Geo::PrincipalStresses&         rPrincipalStresses,
+    const Geo::PrincipalStresses&         rTrialPrincipalStresses,
     const Matrix&                         rElasticMatrix,
     Geo::PrincipalStresses::AveragingType AveragingType) const
 {
     const auto derivative_of_flow_function =
-        mTensionCutOff.DerivativeOfFlowFunction(rPrincipalStresses, AveragingType);
+        mTensionCutOff.DerivativeOfFlowFunction(rTrialPrincipalStresses, AveragingType);
     const auto lambda = mTensionCutOff.CalculatePlasticMultiplier(
-        rPrincipalStresses, derivative_of_flow_function, rElasticMatrix);
-    return Geo::PrincipalStresses{rPrincipalStresses.Values() +
+        rTrialPrincipalStresses, derivative_of_flow_function, rElasticMatrix);
+    return Geo::PrincipalStresses{rTrialPrincipalStresses.Values() +
                                   lambda * prod(subrange(rElasticMatrix, 0, 3, 0, 3), derivative_of_flow_function)};
 }
 
 Geo::SigmaTau CoulombWithTensionCutOffImpl::ReturnStressAtRegularFailureZone(
-    const Geo::SigmaTau& rTraction, const Matrix& rElasticMatrix, Geo::PrincipalStresses::AveragingType AveragingType) const
+    const Geo::SigmaTau& rTrialTraction, const Matrix& rElasticMatrix, Geo::PrincipalStresses::AveragingType AveragingType) const
 {
     const auto derivative_of_flow_function =
-        mCoulombYieldSurface.DerivativeOfFlowFunction(rTraction, AveragingType);
+        mCoulombYieldSurface.DerivativeOfFlowFunction(rTrialTraction, AveragingType);
     const auto lambda = mCoulombYieldSurface.CalculatePlasticMultiplier(
-        rTraction, derivative_of_flow_function, rElasticMatrix);
-    return rTraction + Geo::SigmaTau{lambda * prod(rElasticMatrix, derivative_of_flow_function)};
+        rTrialTraction, derivative_of_flow_function, rElasticMatrix);
+    return rTrialTraction + Geo::SigmaTau{lambda * prod(rElasticMatrix, derivative_of_flow_function)};
 }
 
 Geo::PrincipalStresses CoulombWithTensionCutOffImpl::ReturnStressAtRegularFailureZone(
-    const Geo::PrincipalStresses&         rPrincipalStresses,
+    const Geo::PrincipalStresses&         rTrialPrincipalStresses,
     const Matrix&                         rElasticMatrix,
     Geo::PrincipalStresses::AveragingType AveragingType) const
 {
     const auto derivative_of_flow_function =
-        mCoulombYieldSurface.DerivativeOfFlowFunction(rPrincipalStresses, AveragingType);
+        mCoulombYieldSurface.DerivativeOfFlowFunction(rTrialPrincipalStresses, AveragingType);
     const auto lambda = mCoulombYieldSurface.CalculatePlasticMultiplier(
-        rPrincipalStresses, derivative_of_flow_function, rElasticMatrix);
-    return Geo::PrincipalStresses{rPrincipalStresses.Values() +
+        rTrialPrincipalStresses, derivative_of_flow_function, rElasticMatrix);
+    return Geo::PrincipalStresses{rTrialPrincipalStresses.Values() +
                                   lambda * prod(subrange(rElasticMatrix, 0, 3, 0, 3), derivative_of_flow_function)};
 }
 
