@@ -168,7 +168,7 @@ void UPwInterfaceElement::CalculateLeftHandSide(MatrixType& rLeftHandSideMatrix,
         switch (contribution) {
             using enum CalculationContribution;
         case Stiffness:
-            CalculateAndAssignStifnessMatrix(rLeftHandSideMatrix, rProcessInfo);
+            CalculateAndAssignStiffnessMatrix(rLeftHandSideMatrix, rProcessInfo);
             break;
         case UPCoupling:
             CalculateAndAssignUPCouplingMatrix(rLeftHandSideMatrix);
@@ -182,8 +182,8 @@ void UPwInterfaceElement::CalculateLeftHandSide(MatrixType& rLeftHandSideMatrix,
     }
 }
 
-void UPwInterfaceElement::CalculateAndAssignStifnessMatrix(Element::MatrixType& rLeftHandSideMatrix,
-                                                           const ProcessInfo&   rProcessInfo)
+void UPwInterfaceElement::CalculateAndAssignStiffnessMatrix(Element::MatrixType& rLeftHandSideMatrix,
+                                                            const ProcessInfo& rProcessInfo)
 {
     switch (NumberOfUDofs()) {
     case 8:
@@ -264,7 +264,7 @@ void UPwInterfaceElement::CalculateRightHandSide(Element::VectorType& rRightHand
         switch (contribution) {
             using enum CalculationContribution;
         case Stiffness:
-            CalculateAndAssignStifnessForceVector(rRightHandSideVector, rProcessInfo);
+            CalculateAndAssembleStiffnessForceVector(rRightHandSideVector, rProcessInfo);
             break;
         case UPCoupling:
             CalculateAndAssembleUPCouplingForceVector(rRightHandSideVector);
@@ -278,27 +278,27 @@ void UPwInterfaceElement::CalculateRightHandSide(Element::VectorType& rRightHand
     }
 }
 
-void UPwInterfaceElement::CalculateAndAssignStifnessForceVector(Element::VectorType& rRightHandSideVector,
-                                                                const ProcessInfo& rProcessInfo)
+void UPwInterfaceElement::CalculateAndAssembleStiffnessForceVector(Element::VectorType& rRightHandSideVector,
+                                                                   const ProcessInfo& rProcessInfo)
 {
     switch (NumberOfUDofs()) {
     case 8:
-        CalculateAndAssignStiffnesForceVector<8>(rRightHandSideVector, rProcessInfo);
+        CalculateAndAssembleStiffnessForceVector<8>(rRightHandSideVector, rProcessInfo);
         break;
     case 12:
-        CalculateAndAssignStiffnesForceVector<12>(rRightHandSideVector, rProcessInfo);
+        CalculateAndAssembleStiffnessForceVector<12>(rRightHandSideVector, rProcessInfo);
         break;
     case 18:
-        CalculateAndAssignStiffnesForceVector<18>(rRightHandSideVector, rProcessInfo);
+        CalculateAndAssembleStiffnessForceVector<18>(rRightHandSideVector, rProcessInfo);
         break;
     case 36:
-        CalculateAndAssignStiffnesForceVector<36>(rRightHandSideVector, rProcessInfo);
+        CalculateAndAssembleStiffnessForceVector<36>(rRightHandSideVector, rProcessInfo);
         break;
     case 24:
-        CalculateAndAssignStiffnesForceVector<24>(rRightHandSideVector, rProcessInfo);
+        CalculateAndAssembleStiffnessForceVector<24>(rRightHandSideVector, rProcessInfo);
         break;
     case 48:
-        CalculateAndAssignStiffnesForceVector<48>(rRightHandSideVector, rProcessInfo);
+        CalculateAndAssembleStiffnessForceVector<48>(rRightHandSideVector, rProcessInfo);
         break;
     default:
         KRATOS_ERROR << "This stiffness force vector size is not supported: " << NumberOfUDofs() << "\n";
@@ -436,11 +436,8 @@ void UPwInterfaceElement::Initialize(const ProcessInfo& rCurrentProcessInfo)
         std::vector<std::optional<Vector>> interface_nodal_cauchy_stresses(interface_node_ids.size());
         auto&               r_neighbour_element = this->GetValue(NEIGHBOUR_ELEMENTS).front();
         std::vector<Vector> neighbour_cauchy_stresses;
-        // Note that the interface elements don't account for water pressures yet. Consequently,
-        // we need to consider the total stresses rather than the effective stresses to calculate
-        // the appropriate prestresses to be applied.
         r_neighbour_element.CalculateOnIntegrationPoints(
-            TOTAL_STRESS_VECTOR, neighbour_cauchy_stresses, rCurrentProcessInfo);
+            CAUCHY_STRESS_VECTOR, neighbour_cauchy_stresses, rCurrentProcessInfo);
         interface_nodal_cauchy_stresses = ExtrapolationUtilities::CalculateNodalVectors(
             interface_node_ids, r_neighbour_element, neighbour_cauchy_stresses);
         InterpolateNodalStressesToInitialTractions(interface_nodal_cauchy_stresses);
@@ -727,10 +724,10 @@ Matrix UPwInterfaceElement::GetNpContainer() const
     auto integration_point_index = std::size_t{0};
     for (auto& r_integration_point : mpIntegrationScheme->GetIntegrationPoints()) {
         auto integration_point_shape_function_values = Vector{};
-        // water pressure shape function values on integration point ( the integration points are shared with the displacement mid geometry )
+        // water pressure shape function values on integration point ( the integration points are shared with the displacement mid-geometry )
         GetWaterPressureMidGeometry().ShapeFunctionsValues(integration_point_shape_function_values,
                                                            r_integration_point);
-        // to interplate nodal values of water pressure on mid geometry, the shape function is split into two equal contributions
+        // to interplate nodal values of water pressure on mid-geometry, the shape function is split into two equal contributions
         noalias(subrange(shape_function_values_interface, 0, number_of_pressure_nodes)) =
             0.5 * integration_point_shape_function_values;
         noalias(subrange(shape_function_values_interface, number_of_pressure_nodes, 2 * number_of_pressure_nodes)) =
@@ -819,10 +816,10 @@ void UPwInterfaceElement::CalculateAndAssignStiffnessMatrix(MatrixType&        r
 }
 
 template <unsigned int MatrixSize>
-void UPwInterfaceElement::CalculateAndAssignStiffnesForceVector(VectorType& rRightHandSideVector,
-                                                                const ProcessInfo& rProcessInfo)
+void UPwInterfaceElement::CalculateAndAssembleStiffnessForceVector(VectorType& rRightHandSideVector,
+                                                                   const ProcessInfo& rProcessInfo)
 {
-    GeoElementUtilities::AssignUBlockVector(
+    GeoElementUtilities::AssembleUBlockVector(
         rRightHandSideVector, CreateStiffnessCalculator<MatrixSize>(rProcessInfo).RHSContribution());
 }
 
@@ -877,8 +874,9 @@ void UPwInterfaceElement::CalculateAndAssignPUCouplingMatrix(MatrixType& rLeftHa
 template <unsigned int NumberOfRows, unsigned int NumberOfColumns>
 void UPwInterfaceElement::CalculateAndAssembleUPCouplingForceVector(VectorType& rRightHandSideVector) const
 {
-    GeoElementUtilities::AssignUBlockVector(
-        rRightHandSideVector, CreateUPCouplingCalculator<NumberOfRows, NumberOfColumns>().RHSContribution());
+    GeoElementUtilities::AssembleUBlockVector(
+        rRightHandSideVector,
+        -1.0 * CreateUPCouplingCalculator<NumberOfRows, NumberOfColumns>().RHSContribution());
 }
 
 template <unsigned int NumberOfRows, unsigned int NumberOfColumns>
