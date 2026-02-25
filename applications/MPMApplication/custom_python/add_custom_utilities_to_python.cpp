@@ -17,7 +17,6 @@
 // External includes
 
 // Project includes
-#include "custom_utilities/mpm_energy_calculation_utility.h"
 #include "includes/define.h"
 #include "processes/process.h"
 #include "custom_python/add_custom_utilities_to_python.h"
@@ -25,7 +24,7 @@
 #include "linear_solvers/linear_solver.h"
 #include "custom_utilities/material_point_search_utility.h"
 #include "custom_utilities/material_point_generator_utility.cpp"
-#include "custom_utilities/mpm_energy_calculation_utility.cpp"
+#include "custom_utilities/mpm_energy_calculation_utility.h"
 
 
 namespace Kratos::Python{
