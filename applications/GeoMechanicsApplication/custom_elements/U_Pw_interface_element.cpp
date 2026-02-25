@@ -162,15 +162,19 @@ void UPwInterfaceElement::CalculateLeftHandSide(MatrixType& rLeftHandSideMatrix,
     const auto number_of_dofs = GetDofs().size();
     rLeftHandSideMatrix       = ZeroMatrix{number_of_dofs, number_of_dofs};
 
-    // Currently, the left-hand side matrix includes the stiffness matrix and U Pw coupling terms.
-    // In the future, it will also include water pressure contributions.
+    // Currently, the left-hand side matrix includes the stiffness matrix and U Pw and Pw U coupling
+    // terms. In the future, it will also include water pressure contributions.
     for (auto contribution : mContributions) {
         switch (contribution) {
-        case CalculationContribution::Stiffness:
+            using enum CalculationContribution;
+        case Stiffness:
             CalculateAndAssignStifnessMatrix(rLeftHandSideMatrix, rProcessInfo);
             break;
-        case CalculationContribution::UPCoupling:
+        case UPCoupling:
             CalculateAndAssignUPCouplingMatrix(rLeftHandSideMatrix);
+            break;
+        case PUCoupling:
+            CalculateAndAssignPUCouplingMatrix(rLeftHandSideMatrix);
             break;
         default:
             KRATOS_ERROR << "This contribution is not supported \n";
@@ -227,20 +231,46 @@ void UPwInterfaceElement::CalculateAndAssignUPCouplingMatrix(MatrixType& rLeftHa
     (this->*dispatch_table.at(key))(rLeftHandSideMatrix);
 }
 
+void UPwInterfaceElement::CalculateAndAssignPUCouplingMatrix(MatrixType& rLeftHandSideMatrix) const
+{
+    using Key  = std::pair<std::size_t, std::size_t>;
+    using Func = void (UPwInterfaceElement::*)(MatrixType&) const;
+
+    static const std::map<Key, Func> dispatch_table = {
+        {{8, 4}, &UPwInterfaceElement::CalculateAndAssignPUCouplingMatrix<4, 8>},
+        {{12, 6}, &UPwInterfaceElement::CalculateAndAssignPUCouplingMatrix<6, 12>},
+        {{12, 4}, &UPwInterfaceElement::CalculateAndAssignPUCouplingMatrix<4, 12>},
+        {{18, 6}, &UPwInterfaceElement::CalculateAndAssignPUCouplingMatrix<6, 18>},
+        {{36, 12}, &UPwInterfaceElement::CalculateAndAssignPUCouplingMatrix<12, 36>},
+        {{36, 6}, &UPwInterfaceElement::CalculateAndAssignPUCouplingMatrix<6, 36>},
+        {{24, 8}, &UPwInterfaceElement::CalculateAndAssignPUCouplingMatrix<8, 24>},
+        {{48, 16}, &UPwInterfaceElement::CalculateAndAssignPUCouplingMatrix<16, 48>},
+        {{48, 8}, &UPwInterfaceElement::CalculateAndAssignPUCouplingMatrix<8, 48>}};
+
+    const auto key = Key{NumberOfUDofs(), GetWaterPressureGeometry().size()};
+    KRATOS_ERROR_IF_NOT(dispatch_table.contains(key))
+        << "This Coupling matrix size is not supported: " << key.first << "x" << key.second << "\n";
+    (this->*dispatch_table.at(key))(rLeftHandSideMatrix);
+}
+
 void UPwInterfaceElement::CalculateRightHandSide(Element::VectorType& rRightHandSideVector,
                                                  const ProcessInfo&   rProcessInfo)
 {
     rRightHandSideVector = ZeroVector{GetDofs().size()};
 
-    // Currently, the right-hand side includes the internal force vector and U Pw coupling terms. In
-    // the future, it will also include water pressure contributions.
+    // Currently, the right-hand side includes the internal force vector and U Pw and Pw U coupling
+    // terms. In the future, it will also include water pressure contributions.
     for (auto contribution : mContributions) {
         switch (contribution) {
-        case CalculationContribution::Stiffness:
+            using enum CalculationContribution;
+        case Stiffness:
             CalculateAndAssignStifnessForceVector(rRightHandSideVector, rProcessInfo);
             break;
-        case CalculationContribution::UPCoupling:
+        case UPCoupling:
             CalculateAndAssembleUPCouplingForceVector(rRightHandSideVector);
+            break;
+        case PUCoupling:
+            CalculateAndAssemblePUCouplingForceVector(rRightHandSideVector);
             break;
         default:
             KRATOS_ERROR << "This contribution is not supported \n";
@@ -290,6 +320,28 @@ void UPwInterfaceElement::CalculateAndAssembleUPCouplingForceVector(Element::Vec
         {{24, 8}, &UPwInterfaceElement::CalculateAndAssembleUPCouplingForceVector<24, 8>},
         {{48, 16}, &UPwInterfaceElement::CalculateAndAssembleUPCouplingForceVector<48, 16>},
         {{48, 8}, &UPwInterfaceElement::CalculateAndAssembleUPCouplingForceVector<48, 8>}};
+
+    const auto key = Key{NumberOfUDofs(), GetWaterPressureGeometry().size()};
+    KRATOS_ERROR_IF_NOT(dispatch_table.contains(key))
+        << "This coupling force vector size is not supported: " << key.first << "x" << key.second << "\n";
+    (this->*dispatch_table.at(key))(rRightHandSideVector);
+}
+
+void UPwInterfaceElement::CalculateAndAssemblePUCouplingForceVector(Element::VectorType& rRightHandSideVector) const
+{
+    using Key  = std::pair<std::size_t, std::size_t>;
+    using Func = void (UPwInterfaceElement::*)(Element::VectorType&) const;
+
+    static const std::map<Key, Func> dispatch_table = {
+        {{8, 4}, &UPwInterfaceElement::CalculateAndAssemblePUCouplingForceVector<4, 8>},
+        {{12, 6}, &UPwInterfaceElement::CalculateAndAssemblePUCouplingForceVector<6, 12>},
+        {{12, 4}, &UPwInterfaceElement::CalculateAndAssemblePUCouplingForceVector<4, 12>},
+        {{18, 6}, &UPwInterfaceElement::CalculateAndAssemblePUCouplingForceVector<6, 18>},
+        {{36, 12}, &UPwInterfaceElement::CalculateAndAssemblePUCouplingForceVector<12, 36>},
+        {{36, 6}, &UPwInterfaceElement::CalculateAndAssemblePUCouplingForceVector<6, 36>},
+        {{24, 8}, &UPwInterfaceElement::CalculateAndAssemblePUCouplingForceVector<8, 24>},
+        {{48, 16}, &UPwInterfaceElement::CalculateAndAssemblePUCouplingForceVector<16, 48>},
+        {{48, 8}, &UPwInterfaceElement::CalculateAndAssemblePUCouplingForceVector<8, 48>}};
 
     const auto key = Key{NumberOfUDofs(), GetWaterPressureGeometry().size()};
     KRATOS_ERROR_IF_NOT(dispatch_table.contains(key))
@@ -710,6 +762,40 @@ Vector UPwInterfaceElement::GetWaterPressureGeometryNodalVariable() const
     return result;
 }
 
+std::function<Vector()> UPwInterfaceElement::CreateNodalVelocitiesGetter() const
+{
+    return [this]() { return this->GetGeometryVelocityValues(); };
+}
+
+Vector UPwInterfaceElement::GetGeometryVelocityValues() const
+{
+    return GeoElementUtilities::GetNodalVariableVector(
+        this->GetGeometry(), VELOCITY, GetDisplacementGeometry().WorkingSpaceDimension(), this->NumberOfUDofs());
+}
+
+std::function<std::vector<double>()> UPwInterfaceElement::CreateDegreesOfSaturationGetter() const
+{
+    return [this]() { return this->GetDegreesOfSaturationValues(); };
+}
+
+std::vector<double> UPwInterfaceElement::GetDegreesOfSaturationValues() const
+{
+    const auto fluid_pressure = CalculateIntegrationPointFluidPressures();
+    KRATOS_ERROR_IF_NOT(fluid_pressure.size() == mRetentionLawVector.size());
+
+    auto retention_law_params = RetentionLaw::Parameters{this->GetProperties()};
+
+    auto result = std::vector<double>{};
+    result.reserve(mRetentionLawVector.size());
+    std::transform(mRetentionLawVector.begin(), mRetentionLawVector.end(), fluid_pressure.begin(),
+                   std::back_inserter(result),
+                   [&retention_law_params](const auto& pRetentionLaw, auto FluidPressure) {
+        retention_law_params.SetFluidPressure(FluidPressure);
+        return pRetentionLaw->CalculateSaturation(retention_law_params);
+    });
+    return result;
+}
+
 template <unsigned int MatrixSize>
 typename StiffnessCalculator<MatrixSize>::InputProvider UPwInterfaceElement::CreateStiffnessInputProvider(const ProcessInfo& rProcessInfo)
 {
@@ -750,10 +836,26 @@ typename UPCouplingCalculator<NumberOfRows, NumberOfColumns>::InputProvider UPwI
 }
 
 template <unsigned int NumberOfRows, unsigned int NumberOfColumns>
+typename PUCouplingCalculator<NumberOfRows, NumberOfColumns>::InputProvider UPwInterfaceElement::CreatePUCouplingInputProvider() const
+{
+    return typename PUCouplingCalculator<NumberOfRows, NumberOfColumns>::InputProvider(
+        CreateNpContainerGetter(), CreateBMatricesGetter(), CreateVoigtVectorGetter(),
+        CreateIntegrationCoefficientsGetter(), CreateBiotCoefficientsGetter(),
+        CreateDegreesOfSaturationGetter(), CreateNodalVelocitiesGetter());
+}
+
+template <unsigned int NumberOfRows, unsigned int NumberOfColumns>
 auto UPwInterfaceElement::CreateUPCouplingCalculator() const
 {
     return UPCouplingCalculator<NumberOfRows, NumberOfColumns>(
         CreateUPCouplingInputProvider<NumberOfRows, NumberOfColumns>());
+}
+
+template <unsigned int NumberOfRows, unsigned int NumberOfColumns>
+auto UPwInterfaceElement::CreatePUCouplingCalculator() const
+{
+    return PUCouplingCalculator<NumberOfRows, NumberOfColumns>(
+        CreatePUCouplingInputProvider<NumberOfRows, NumberOfColumns>());
 }
 
 template <unsigned int NumberOfRows, unsigned int NumberOfColumns>
@@ -765,10 +867,25 @@ void UPwInterfaceElement::CalculateAndAssignUPCouplingMatrix(MatrixType& rLeftHa
 }
 
 template <unsigned int NumberOfRows, unsigned int NumberOfColumns>
+void UPwInterfaceElement::CalculateAndAssignPUCouplingMatrix(MatrixType& rLeftHandSideMatrix) const
+{
+    GeoElementUtilities::AssignPUBlockMatrix(
+        rLeftHandSideMatrix,
+        CreatePUCouplingCalculator<NumberOfRows, NumberOfColumns>().LHSContribution().value());
+}
+
+template <unsigned int NumberOfRows, unsigned int NumberOfColumns>
 void UPwInterfaceElement::CalculateAndAssembleUPCouplingForceVector(VectorType& rRightHandSideVector) const
 {
     GeoElementUtilities::AssignUBlockVector(
         rRightHandSideVector, CreateUPCouplingCalculator<NumberOfRows, NumberOfColumns>().RHSContribution());
+}
+
+template <unsigned int NumberOfRows, unsigned int NumberOfColumns>
+void UPwInterfaceElement::CalculateAndAssemblePUCouplingForceVector(VectorType& rRightHandSideVector) const
+{
+    GeoElementUtilities::AssemblePBlockVector(
+        rRightHandSideVector, CreatePUCouplingCalculator<NumberOfRows, NumberOfColumns>().RHSContribution());
 }
 
 // Instances of this class can not be copied but can be moved. Check that at compile time.

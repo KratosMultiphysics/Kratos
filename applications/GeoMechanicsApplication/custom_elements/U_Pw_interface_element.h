@@ -15,6 +15,7 @@
 
 #include "contribution_calculators/calculation_contribution.h"
 #include "contribution_calculators/stiffness_calculator.hpp"
+#include "custom_elements/contribution_calculators/pu_coupling_calculator.hpp"
 #include "custom_elements/contribution_calculators/up_coupling_calculator.hpp"
 #include "geo_aliases.h"
 #include "includes/element.h"
@@ -68,7 +69,9 @@ public:
     void CalculateAndAssignStifnessForceVector(Element::VectorType& rRightHandSideVector,
                                                const ProcessInfo&   rProcessInfo);
     void CalculateAndAssignUPCouplingMatrix(MatrixType& rLeftHandSideMatrix) const;
+    void CalculateAndAssignPUCouplingMatrix(MatrixType& rLeftHandSideMatrix) const;
     void CalculateAndAssembleUPCouplingForceVector(Element::VectorType& rRightHandSideVector) const;
+    void CalculateAndAssemblePUCouplingForceVector(Element::VectorType& rRightHandSideVector) const;
     void CalculateRightHandSide(VectorType& rRightHandSideVector, const ProcessInfo&) override;
     void CalculateLocalSystem(MatrixType&        rLeftHandSideMatrix,
                               VectorType&        rRightHandSideVector,
@@ -125,12 +128,16 @@ private:
     std::function<std::vector<double>()> CreateBiotCoefficientsGetter() const;
     std::function<std::vector<double>()> CreateBishopCoefficientsGetter() const;
     std::function<Vector()>              CreateNodalPressuresGetter() const;
+    std::function<Vector()>              CreateNodalVelocitiesGetter() const;
+    std::function<std::vector<double>()> CreateDegreesOfSaturationGetter() const;
 
     std::vector<double> CalculateBiotCoefficients() const;
     std::vector<double> CalculateBishopCoefficients() const;
     Vector              CalculateIntegrationPointFluidPressures() const;
     Vector              GetWaterPressureGeometryNodalVariable() const;
+    Vector              GetGeometryVelocityValues() const;
     Matrix              GetNpContainer() const;
+    std::vector<double> GetDegreesOfSaturationValues() const;
 
     template <unsigned int MatrixSize>
     typename StiffnessCalculator<MatrixSize>::InputProvider CreateStiffnessInputProvider(const ProcessInfo& rProcessInfo);
@@ -148,13 +155,25 @@ private:
     typename UPCouplingCalculator<NumberOfRows, NumberOfColumns>::InputProvider CreateUPCouplingInputProvider() const;
 
     template <unsigned int NumberOfRows, unsigned int NumberOfColumns>
+    typename PUCouplingCalculator<NumberOfRows, NumberOfColumns>::InputProvider CreatePUCouplingInputProvider() const;
+
+    template <unsigned int NumberOfRows, unsigned int NumberOfColumns>
     auto CreateUPCouplingCalculator() const;
+
+    template <unsigned int NumberOfRows, unsigned int NumberOfColumns>
+    auto CreatePUCouplingCalculator() const;
 
     template <unsigned int NumberOfRows, unsigned int NumberOfColumns>
     void CalculateAndAssignUPCouplingMatrix(MatrixType& rLeftHandSideMatrix) const;
 
     template <unsigned int NumberOfRows, unsigned int NumberOfColumns>
+    void CalculateAndAssignPUCouplingMatrix(MatrixType& rLeftHandSideMatrix) const;
+
+    template <unsigned int NumberOfRows, unsigned int NumberOfColumns>
     void CalculateAndAssembleUPCouplingForceVector(VectorType& rRightHandSideVector) const;
+
+    template <unsigned int NumberOfRows, unsigned int NumberOfColumns>
+    void CalculateAndAssemblePUCouplingForceVector(VectorType& rRightHandSideVector) const;
 
     std::function<Matrix(const Geometry<Node>&, const array_1d<double, 3>&)> mfpCalculateRotationMatrix;
 
