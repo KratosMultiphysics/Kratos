@@ -159,45 +159,13 @@ int IntersectionUtilities::ComputeTriangleLineIntersection(
     const array_1d<double,3>& rLinePoint1,
     const array_1d<double,3>& rLinePoint2,
     array_1d<double,3>& rIntersectionPoint,
-    const double Epsilon) 
+    const double Epsilon
+    ) 
 {
     // Optimized implementation based on Tomas Möller & Ben Trumbore (1997)
     // http://www.softsurfer.com/Archive/algorithm_0105/algorithm_0105.htm#intersect_RayTriangle()
     // Based on Tomas Möller & Ben Trumbore (1997) Fast, Minimum Storage Ray-Triangle Intersection, Journal of Graphics Tools, 2:1, 21-28, DOI: 10.1080/10867651.1997.10487468 
     // Uses direct scalar operations to avoid boost ublas overhead
-
-    // Early AABB rejection test - quickly reject obvious non-intersections
-    // Compute triangle AABB
-    double tri_min_x = rTrianglePoint1[0], tri_max_x = rTrianglePoint1[0];
-    double tri_min_y = rTrianglePoint1[1], tri_max_y = rTrianglePoint1[1];
-    double tri_min_z = rTrianglePoint1[2], tri_max_z = rTrianglePoint1[2];
-
-    if (rTrianglePoint2[0] < tri_min_x) tri_min_x = rTrianglePoint2[0];
-    if (rTrianglePoint2[0] > tri_max_x) tri_max_x = rTrianglePoint2[0];
-    if (rTrianglePoint2[1] < tri_min_y) tri_min_y = rTrianglePoint2[1];
-    if (rTrianglePoint2[1] > tri_max_y) tri_max_y = rTrianglePoint2[1];
-    if (rTrianglePoint2[2] < tri_min_z) tri_min_z = rTrianglePoint2[2];
-    if (rTrianglePoint2[2] > tri_max_z) tri_max_z = rTrianglePoint2[2];
-
-    if (rTrianglePoint3[0] < tri_min_x) tri_min_x = rTrianglePoint3[0];
-    if (rTrianglePoint3[0] > tri_max_x) tri_max_x = rTrianglePoint3[0];
-    if (rTrianglePoint3[1] < tri_min_y) tri_min_y = rTrianglePoint3[1];
-    if (rTrianglePoint3[1] > tri_max_y) tri_max_y = rTrianglePoint3[1];
-    if (rTrianglePoint3[2] < tri_min_z) tri_min_z = rTrianglePoint3[2];
-    if (rTrianglePoint3[2] > tri_max_z) tri_max_z = rTrianglePoint3[2];
-
-    // Compute line AABB
-    const double line_min_x = (rLinePoint1[0] < rLinePoint2[0]) ? rLinePoint1[0] : rLinePoint2[0];
-    const double line_max_x = (rLinePoint1[0] > rLinePoint2[0]) ? rLinePoint1[0] : rLinePoint2[0];
-    const double line_min_y = (rLinePoint1[1] < rLinePoint2[1]) ? rLinePoint1[1] : rLinePoint2[1];
-    const double line_max_y = (rLinePoint1[1] > rLinePoint2[1]) ? rLinePoint1[1] : rLinePoint2[1];
-    const double line_min_z = (rLinePoint1[2] < rLinePoint2[2]) ? rLinePoint1[2] : rLinePoint2[2];
-    const double line_max_z = (rLinePoint1[2] > rLinePoint2[2]) ? rLinePoint1[2] : rLinePoint2[2];
-
-    // Check AABB overlap - if no overlap, no intersection possible
-    if (tri_max_x < line_min_x || line_max_x < tri_min_x) return 0;
-    if (tri_max_y < line_min_y || line_max_y < tri_min_y) return 0;
-    if (tri_max_z < line_min_z || line_max_z < tri_min_z) return 0;
 
     // Compute triangle edge vectors directly (avoid array_1d temporaries)
     const double u0 = rTrianglePoint2[0] - rTrianglePoint1[0];
