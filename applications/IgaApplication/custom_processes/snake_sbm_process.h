@@ -107,12 +107,6 @@ protected:
     void GenerateOuterInitialFromSurrogateInner();
 
     /**
-     * @brief Create a The Snake Coordinates 2 D object
-     * 
-     */
-   void CreateTheSnakeCoordinates2D(bool RemoveIslands);
-
-    /**
      * @brief Create a The Snake Coordinates object
      * 
      * @tparam TIsInnerLoop 

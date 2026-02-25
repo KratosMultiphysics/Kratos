@@ -69,6 +69,8 @@ from test_prebuckling_analysis import TestPrebucklingAnalysis as TTestPrebucklin
 from test_postprocess_eigenvalues_process import TestPostprocessEigenvaluesProcess as TTestPostprocessEigenvaluesProcess
 # Eigensolver with Constraints test
 from test_eigen_solver_with_constraints import TestEigenSolverWithConstraints
+# Eigensolver with mass matrix normalized eigenmodes
+from test_eigen_solver_with_mass_normalized_eigenmodes import TestEigenSolverWithMassNormalizedEigenmodes
 # Eigensolver with different dofs test
 from test_eigen_solver_different_dofs import TestEigenSolverWithDifferentDofs
 # Custom Scipy Solver test
@@ -327,6 +329,7 @@ def AssembleTestSuites():
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TTestPostprocessEigenvaluesProcess]))
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TestEigenSolverWithConstraints]))
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TestEigenSolverWithDifferentDofs]))
+    smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TestEigenSolverWithMassNormalizedEigenmodes]))
     # Custom Scipy Solver test
     nightSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TestCustomScipyBaseSolver]))
     # local-axis visualization tests

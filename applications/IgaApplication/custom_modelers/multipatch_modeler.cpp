@@ -1176,6 +1176,9 @@ ModelPart& MultipatchModeler::CreateSkinInnerInitialFromRefinementSurrogateOuter
         << "MultipatchModeler: submodelpart 'surrogate_outer' not found in refinement patch '" << patch_suffix << "'." << std::endl;
     const ModelPart& r_surrogate_outer = r_ref_patch.GetSubModelPart("surrogate_outer");
 
+    r_skin.SetValue(KNOT_SPAN_SIZES, r_ref_patch.GetValue(KNOT_SPAN_SIZES)); // pass span sizes to skin for consistent curve generation
+
+
     // Ensure coupling submodelpart exists on the destination skin
     ModelPart& r_coupling_sub = r_skin.HasSubModelPart("CuplingConditions")
         ? r_skin.GetSubModelPart("CuplingConditions")

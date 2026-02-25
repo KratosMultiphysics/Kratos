@@ -89,7 +89,6 @@ void NurbsGeometryModelerGapSbm::CreateAndAddRegularGrid2D(
         CreateBrepsSbmUtilities<Node, Point, false> breps_sbm_utilities(mEchoLevel);
         breps_sbm_utilities.CreateSurrogateBoundary(mpSurface, rPointAUvw, rPointBUvw, rModelPart);
 
-        //TODO: This must be turned to an error once we finish the ongoing SBM BCs development
         KRATOS_WARNING("None of the 'skin_model_part_name' have not been defined ") << 
                         "in the nurbs_geometry_modeler_sbm in the project paramer json" << std::endl;
         return;
@@ -120,11 +119,11 @@ void NurbsGeometryModelerGapSbm::CreateAndAddRegularGrid2D(
         KRATOS_ERROR << "The skin_model_part name '" << skin_model_part_name << "' was not defined in the project parameters.\n" << std::endl;
 
     // inner
-    mpModel->HasModelPart(skin_model_part_inner_initial_name)
+    auto& skin_inner_initial = mpModel->HasModelPart(skin_model_part_inner_initial_name)
         ? mpModel->GetModelPart(skin_model_part_inner_initial_name)
         : mpModel->CreateModelPart(skin_model_part_inner_initial_name);
     // outer
-    mpModel->HasModelPart(skin_model_part_outer_initial_name)
+    auto& skin_outer_initial = mpModel->HasModelPart(skin_model_part_outer_initial_name)
         ? mpModel->GetModelPart(skin_model_part_outer_initial_name)
         : mpModel->CreateModelPart(skin_model_part_outer_initial_name);
     
@@ -132,6 +131,15 @@ void NurbsGeometryModelerGapSbm::CreateAndAddRegularGrid2D(
     ModelPart& r_skin_model_part = mpModel->CreateModelPart(skin_model_part_name);
     r_skin_model_part.CreateSubModelPart("inner");
     r_skin_model_part.CreateSubModelPart("outer");
+
+    r_skin_model_part.GetSubModelPart("inner").SetValue(KNOT_SPAN_SIZES, skin_inner_initial.GetValue(KNOT_SPAN_SIZES)); // pass span sizes to skin for consistent curve generation
+    r_skin_model_part.GetSubModelPart("outer").SetValue(KNOT_SPAN_SIZES, skin_outer_initial.GetValue(KNOT_SPAN_SIZES));
+    r_skin_model_part.SetValue(KNOT_SPAN_SIZES, skin_inner_initial.GetValue(KNOT_SPAN_SIZES));
+
+    KRATOS_WATCH(skin_inner_initial)
+    KRATOS_WATCH(skin_outer_initial)
+    KRATOS_WATCH(r_skin_model_part.GetSubModelPart("inner"))
+    KRATOS_WATCH(r_skin_model_part)
 
     // Create the parameters for the SnakeSbmProcess
     Kratos::Parameters snake_parameters;
@@ -159,6 +167,10 @@ void NurbsGeometryModelerGapSbm::CreateAndAddRegularGrid2D(
         snake_parameters.AddVector("polynomial_order", mParameters["polynomial_order"].GetVector());
     if (mParameters.Has("use_for_multipatch"))
         snake_parameters.AddBool("use_for_multipatch", mParameters["use_for_multipatch"].GetBool());
+    if (mParameters.Has("gap_relative_tolerance_for_subdivisions"))
+        snake_parameters.AddDouble("gap_relative_tolerance_for_subdivisions", mParameters["gap_relative_tolerance_for_subdivisions"].GetDouble());
+    if (mParameters.Has("number_of_interpolation_levels"))
+        snake_parameters.AddInt("number_of_interpolation_levels", mParameters["number_of_interpolation_levels"].GetInt());
 
 
     // Create the surrogate_sub_model_part for inner and outer
@@ -177,6 +189,7 @@ void NurbsGeometryModelerGapSbm::CreateAndAddRegularGrid2D(
         r_iga_model_part);
 
     snake_sbm_process.Execute();
+
 }
 
 // 3D 
@@ -194,127 +207,136 @@ void NurbsGeometryModelerGapSbm::CreateAndAddRegularGrid3D(
     const std::size_t NumKnotSpansW,
     const bool AddVolumeToModelPart)
 {   
+    KRATOS_ERROR<< "CreateAndAddRegularGrid3D is not yet implemented for the NurbsGeometryModelerGapSbm."<<std::endl;
 
-    // Call the CreateAndAddRegularGrid3D method of the base class NurbsGeometryModeler
-    NurbsGeometryModeler::CreateAndAddRegularGrid3D(
-        rModelPart,
-        rPointAXyz,
-        rPointBXyz,
-        rPointAUvw,
-        rPointBUvw,
-        OrderU,
-        OrderV,
-        OrderW,
-        NumKnotSpansU,
-        NumKnotSpansV,
-        NumKnotSpansW,
-        false);
+    // TODO: implement the 3D version of the Gap-SBM modeler (next PR)
+    // // Call the CreateAndAddRegularGrid3D method of the base class NurbsGeometryModeler
+    // NurbsGeometryModeler::CreateAndAddRegularGrid3D(
+    //     rModelPart,
+    //     rPointAXyz,
+    //     rPointBXyz,
+    //     rPointAUvw,
+    //     rPointBUvw,
+    //     OrderU,
+    //     OrderV,
+    //     OrderW,
+    //     NumKnotSpansU,
+    //     NumKnotSpansV,
+    //     NumKnotSpansW,
+    //     false);
              
-    // Create the Domain/Iga Model Part
-    const std::string iga_model_part_name = mParameters["model_part_name"].GetString();
-    ModelPart& r_iga_model_part = mpModel->HasModelPart(iga_model_part_name)
-                                ? mpModel->GetModelPart(iga_model_part_name)
-                                : mpModel->CreateModelPart(iga_model_part_name);
+    // // Create the Domain/Iga Model Part
+    // const std::string iga_model_part_name = mParameters["model_part_name"].GetString();
+    // ModelPart& r_iga_model_part = mpModel->HasModelPart(iga_model_part_name)
+    //                             ? mpModel->GetModelPart(iga_model_part_name)
+    //                             : mpModel->CreateModelPart(iga_model_part_name);
 
-    // Create the True Model Part -> contains all the true boundary features
-    std::string skin_model_part_name;
-    std::string skin_model_part_inner_initial_name = mParameters["skin_model_part_inner_initial_name"].GetString();
-    std::string skin_model_part_outer_initial_name = mParameters["skin_model_part_outer_initial_name"].GetString();
+    // // Create the True Model Part -> contains all the true boundary features
+    // std::string skin_model_part_name;
+    // std::string skin_model_part_inner_initial_name = mParameters["skin_model_part_inner_initial_name"].GetString();
+    // std::string skin_model_part_outer_initial_name = mParameters["skin_model_part_outer_initial_name"].GetString();
 
-    // Create the surrogate sub model parts inner and outer
-    // ModelPart& r_surrogate_sub_model_part_inner = r_iga_model_part.CreateSubModelPart("surrogate_inner");  // uncomment this line (next PR) 
-    // ModelPart& r_surrogate_sub_model_part_outer = r_iga_model_part.CreateSubModelPart("surrogate_outer");  // uncomment this line (next PR)
+    // // Create the surrogate sub model parts inner and outer
+    // // ModelPart& r_surrogate_sub_model_part_inner = r_iga_model_part.CreateSubModelPart("surrogate_inner");  // uncomment this line (next PR) 
+    // // ModelPart& r_surrogate_sub_model_part_outer = r_iga_model_part.CreateSubModelPart("surrogate_outer");  // uncomment this line (next PR)
 
-    // If there is not neither skin_inner nor skin_outer throw a warning since you are using the sbm modeler
-    if (!(mParameters.Has("skin_model_part_inner_initial_name") || mParameters.Has("skin_model_part_outer_initial_name"))){
+    // // If there is not neither skin_inner nor skin_outer throw a warning since you are using the sbm modeler
+    // if (!(mParameters.Has("skin_model_part_inner_initial_name") || mParameters.Has("skin_model_part_outer_initial_name"))){
         
-        // Create the breps for the outer sbm boundary
-        CreateBrepsSbmUtilities<Node, Point> breps_sbm_utilities_3d(mEchoLevel);
-        // TODO: NEXT PR CreateSurrogateBoundary with Volume
-        // breps_sbm_utilities_3d.CreateSurrogateBoundary(mpVolume, rPointAUvw, rPointBUvw, rModelPart);
+    //     // Create the breps for the outer sbm boundary
+    //     CreateBrepsSbmUtilities<Node, Point> breps_sbm_utilities_3d(mEchoLevel);
+    //     // TODO: NEXT PR CreateSurrogateBoundary with Volume
+    //     // breps_sbm_utilities_3d.CreateSurrogateBoundary(mpVolume, rPointAUvw, rPointBUvw, rModelPart);
 
-        KRATOS_WARNING("None of the 'skin_model_part_name' have not been defined ") << 
-                        "in the nurbs_geometry_modeler_sbm in the project paramer json" << std::endl;
-        return;
-    }
+    //     KRATOS_WARNING("None of the 'skin_model_part_name' have not been defined ") << 
+    //                     "in the nurbs_geometry_modeler_sbm in the project paramer json" << std::endl;
+    //     return;
+    // }
     
-    if (mParameters.Has("skin_model_part_name"))
-        skin_model_part_name = mParameters["skin_model_part_name"].GetString();
-    else
-        KRATOS_ERROR << "The skin_model_part name '" << skin_model_part_name << "' was not defined in the project parameters.\n" << std::endl;
+    // if (mParameters.Has("skin_model_part_name"))
+    //     skin_model_part_name = mParameters["skin_model_part_name"].GetString();
+    // else
+    //     KRATOS_ERROR << "The skin_model_part name '" << skin_model_part_name << "' was not defined in the project parameters.\n" << std::endl;
 
-    // inner
-    mpModel->HasModelPart(skin_model_part_inner_initial_name)
-        ? mpModel->GetModelPart(skin_model_part_inner_initial_name)
-        : mpModel->CreateModelPart(skin_model_part_inner_initial_name);
-    // outer
-    mpModel->HasModelPart(skin_model_part_outer_initial_name)
-        ? mpModel->GetModelPart(skin_model_part_outer_initial_name)
-        : mpModel->CreateModelPart(skin_model_part_outer_initial_name);
+    // // inner
+    // mpModel->HasModelPart(skin_model_part_inner_initial_name)
+    //     ? mpModel->GetModelPart(skin_model_part_inner_initial_name)
+    //     : mpModel->CreateModelPart(skin_model_part_inner_initial_name);
+    // // outer
+    // mpModel->HasModelPart(skin_model_part_outer_initial_name)
+    //     ? mpModel->GetModelPart(skin_model_part_outer_initial_name)
+    //     : mpModel->CreateModelPart(skin_model_part_outer_initial_name);
     
-    // Skin model part refined after Snake Process
-    ModelPart& r_skin_model_part = mpModel->CreateModelPart(skin_model_part_name);
-    r_skin_model_part.CreateSubModelPart("inner");
-    r_skin_model_part.CreateSubModelPart("outer");
+    // // Skin model part refined after Snake Process
+    // ModelPart& r_skin_model_part = mpModel->CreateModelPart(skin_model_part_name);
+    // r_skin_model_part.CreateSubModelPart("inner");
+    // r_skin_model_part.CreateSubModelPart("outer");
     
     
-    // compute unique_knot_vector_u
-    Vector unique_knot_vector_u(2+(NumKnotSpansU-1));
-    unique_knot_vector_u[0] = mKnotVectorU[0]; unique_knot_vector_u[NumKnotSpansU] = mKnotVectorU[mKnotVectorU.size()-1];
-    for (std::size_t i_knot_insertion = 0; i_knot_insertion < NumKnotSpansU-1; i_knot_insertion++) {
-        unique_knot_vector_u[i_knot_insertion+1] = mInsertKnotsU[i_knot_insertion];
-    }
+    // // compute unique_knot_vector_u
+    // Vector unique_knot_vector_u(2+(NumKnotSpansU-1));
+    // unique_knot_vector_u[0] = mKnotVectorU[0]; unique_knot_vector_u[NumKnotSpansU] = mKnotVectorU[mKnotVectorU.size()-1];
+    // for (std::size_t i_knot_insertion = 0; i_knot_insertion < NumKnotSpansU-1; i_knot_insertion++) {
+    //     unique_knot_vector_u[i_knot_insertion+1] = mInsertKnotsU[i_knot_insertion];
+    // }
 
-    // compute unique_knot_vector_v
-    Vector unique_knot_vector_v(2+(NumKnotSpansV-1));
-    unique_knot_vector_v[0] = mKnotVectorV[0]; unique_knot_vector_v[NumKnotSpansV] = mKnotVectorV[mKnotVectorV.size()-1];
-    for (std::size_t i_knot_insertion = 0; i_knot_insertion < NumKnotSpansV-1; i_knot_insertion++) {
-        unique_knot_vector_v[i_knot_insertion+1] = mInsertKnotsV[i_knot_insertion];
-    }
+    // // compute unique_knot_vector_v
+    // Vector unique_knot_vector_v(2+(NumKnotSpansV-1));
+    // unique_knot_vector_v[0] = mKnotVectorV[0]; unique_knot_vector_v[NumKnotSpansV] = mKnotVectorV[mKnotVectorV.size()-1];
+    // for (std::size_t i_knot_insertion = 0; i_knot_insertion < NumKnotSpansV-1; i_knot_insertion++) {
+    //     unique_knot_vector_v[i_knot_insertion+1] = mInsertKnotsV[i_knot_insertion];
+    // }
 
-    // compute unique_knot_vector_w
-    Vector unique_knot_vector_w(2+(NumKnotSpansW-1));
-    unique_knot_vector_w[0] = mKnotVectorW[0]; unique_knot_vector_w[NumKnotSpansW] = mKnotVectorW[mKnotVectorW.size()-1];
-    for (std::size_t i_knot_insertion = 0; i_knot_insertion < NumKnotSpansW-1; i_knot_insertion++) {
-        unique_knot_vector_w[i_knot_insertion+1] = mInsertKnotsW[i_knot_insertion];
-    }
+    // // compute unique_knot_vector_w
+    // Vector unique_knot_vector_w(2+(NumKnotSpansW-1));
+    // unique_knot_vector_w[0] = mKnotVectorW[0]; unique_knot_vector_w[NumKnotSpansW] = mKnotVectorW[mKnotVectorW.size()-1];
+    // for (std::size_t i_knot_insertion = 0; i_knot_insertion < NumKnotSpansW-1; i_knot_insertion++) {
+    //     unique_knot_vector_w[i_knot_insertion+1] = mInsertKnotsW[i_knot_insertion];
+    // }
 
-    // Set the value of the knot vectors
-    r_iga_model_part.SetValue(KNOT_VECTOR_U, unique_knot_vector_u);
-    r_iga_model_part.SetValue(KNOT_VECTOR_V, unique_knot_vector_v);
-    r_iga_model_part.SetValue(KNOT_VECTOR_W, unique_knot_vector_w);
+    // // Set the value of the knot vectors
+    // r_iga_model_part.SetValue(KNOT_VECTOR_U, unique_knot_vector_u);
+    // r_iga_model_part.SetValue(KNOT_VECTOR_V, unique_knot_vector_v);
+    // r_iga_model_part.SetValue(KNOT_VECTOR_W, unique_knot_vector_w);
 
-    // Create the parameters for the SnakeSbmProcess
-    Kratos::Parameters snake_parameters;
-    snake_parameters.AddString("model_part_name", iga_model_part_name);
-    snake_parameters.AddString("skin_model_part_name", skin_model_part_name);
-    snake_parameters.AddDouble("echo_level", mEchoLevel);
-    snake_parameters.AddString("skin_model_part_inner_initial_name", skin_model_part_inner_initial_name);
-    snake_parameters.AddString("skin_model_part_outer_initial_name", skin_model_part_outer_initial_name);
-    snake_parameters.AddString("gap_element_name", mParameters["gap_element_name"].GetString());
-    snake_parameters.AddString("gap_interface_condition_name", mParameters["gap_interface_condition_name"].GetString());
-    snake_parameters.AddString("gap_sbm_type", mParameters["gap_sbm_type"].GetString());
-    if (mParameters.Has("lambda_inner"))
-        snake_parameters.AddDouble("lambda_inner", mParameters["lambda_inner"].GetDouble());
-    if (mParameters.Has("lambda_outer"))
-        snake_parameters.AddDouble("lambda_outer", mParameters["lambda_outer"].GetDouble());
-    if (mParameters.Has("number_of_inner_loops"))
-        snake_parameters.AddDouble("number_of_inner_loops", mParameters["number_of_inner_loops"].GetInt());
-    if (mParameters.Has("gap_approximation_order"))
-        snake_parameters.AddInt("gap_approximation_order", mParameters["gap_approximation_order"].GetInt());
+    // // Create the parameters for the SnakeSbmProcess
+    // Kratos::Parameters snake_parameters;
+    // snake_parameters.AddString("model_part_name", iga_model_part_name);
+    // snake_parameters.AddString("skin_model_part_name", skin_model_part_name);
+    // snake_parameters.AddDouble("echo_level", mEchoLevel);
+    // snake_parameters.AddString("skin_model_part_inner_initial_name", skin_model_part_inner_initial_name);
+    // snake_parameters.AddString("skin_model_part_outer_initial_name", skin_model_part_outer_initial_name);
+    // snake_parameters.AddString("gap_element_name", mParameters["gap_element_name"].GetString());
+    // snake_parameters.AddString("gap_interface_condition_name", mParameters["gap_interface_condition_name"].GetString());
+    // snake_parameters.AddString("gap_sbm_type", mParameters["gap_sbm_type"].GetString());
+    // if (mParameters.Has("lambda_inner"))
+    //     snake_parameters.AddDouble("lambda_inner", mParameters["lambda_inner"].GetDouble());
+    // if (mParameters.Has("lambda_outer"))
+    //     snake_parameters.AddDouble("lambda_outer", mParameters["lambda_outer"].GetDouble());
+    // if (mParameters.Has("number_of_inner_loops"))
+    //     snake_parameters.AddDouble("number_of_inner_loops", mParameters["number_of_inner_loops"].GetInt());
+    // if (mParameters.Has("gap_approximation_order"))
+    //     snake_parameters.AddInt("gap_approximation_order", mParameters["gap_approximation_order"].GetInt());
+    // if (mParameters.Has("gap_relative_tolerance_for_subdivisions"))
+    //     snake_parameters.AddDouble("gap_relative_tolerance_for_subdivisions", mParameters["gap_relative_tolerance_for_subdivisions"].GetDouble());
+    // if (mParameters.Has("number_of_interpolation_levels"))
+    //     snake_parameters.AddInt("number_of_interpolation_levels", mParameters["number_of_interpolation_levels"].GetInt());
     
-    KRATOS_ERROR << "The NurbsGeometryModelerGapSbm is not yet implemented for 3D. " 
-        << "Please use the 2D version or implement the 3D version." << std::endl;
+    // if (mParameters.Has("polynomial_order"))
+    //     snake_parameters.AddVector("polynomial_order", mParameters["polynomial_order"].GetVector());
+    
+    // KRATOS_ERROR << "The NurbsGeometryModelerGapSbm is not yet implemented for 3D. " 
+    //     << "Please use the 2D version or implement the 3D version." << std::endl;
 
-    // TODO: NEXT PR SnakeSbmProcess in 3D
-    // // Create the surrogate_sub_model_part for inner and outer // TODO: extend this in 3D
-    // SnakeSbmProcess snake_sbm_process(*mpModel, snake_parameters);
-    // snake_sbm_process.Execute();
+    // // TODO: NEXT PR SnakeSbmProcess in 3D
+    // // // Create the surrogate_sub_model_part for inner and outer // TODO: extend this in 3D
+    // // SnakeSbmProcess snake_sbm_process(*mpModel, snake_parameters);
+    // // snake_sbm_process.Execute();
 
-    // Create the breps for the outer sbm boundary // TODO: extend this in 3D
-    CreateBrepsSbmUtilities<Node, Point> breps_sbm_utilities_3d(mEchoLevel);
-    // TODO: NEXT PR CreateSurrogateBoundary with Volume
-    // breps_sbm_utilities_3d.CreateSurrogateBoundary(mpVolume, r_surrogate_sub_model_part_inner, r_surrogate_sub_model_part_outer, rPointAUvw, rPointBUvw, r_iga_model_part);
+    // // Create the breps for the outer sbm boundary // TODO: extend this in 3D
+    // CreateBrepsSbmUtilities<Node, Point> breps_sbm_utilities_3d(mEchoLevel);
+    // // TODO: NEXT PR CreateSurrogateBoundary with Volume
+    // // breps_sbm_utilities_3d.CreateSurrogateBoundary(mpVolume, r_surrogate_sub_model_part_inner, r_surrogate_sub_model_part_outer, rPointAUvw, rPointBUvw, r_iga_model_part);
 }
 
 
@@ -333,10 +355,12 @@ const Parameters NurbsGeometryModelerGapSbm::GetDefaultParameters() const
         "number_of_inner_loops": 0,
         "number_initial_points_if_importing_nurbs": 100,
         "number_internal_divisions": 1,
+        "gap_relative_tolerance_for_subdivisions": 0.1,
+        "number_of_interpolation_levels": 3,
         "gap_approximation_order": 0,
         "gap_element_name": "",
         "gap_interface_condition_name": "",
-        "gap_sbm_type": "default",
+        "gap_sbm_type": "interpolation",
         "use_for_multipatch": false
     })");
 }
@@ -358,13 +382,15 @@ const Parameters NurbsGeometryModelerGapSbm::GetValidParameters() const
         "number_of_inner_loops": 0,
         "number_initial_points_if_importing_nurbs": 100,
         "number_internal_divisions": 1,
+        "gap_relative_tolerance_for_subdivisions": 0.1,
+        "number_of_interpolation_levels": 3,
         "gap_approximation_order": 0,
         "skin_model_part_inner_initial_name": "r_skin_model_part_inner_initial",
         "skin_model_part_outer_initial_name": "r_skin_model_part_outer_initial",
         "skin_model_part_name": "r_skin_model_part",
         "gap_element_name": "",
         "gap_interface_condition_name": "",
-        "gap_sbm_type": "default",
+        "gap_sbm_type": "interpolation",
         "use_for_multipatch": false
     })");
 }

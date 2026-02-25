@@ -23,9 +23,9 @@
 #include "linear_solvers/bicgstab_solver.h"
 #include "linear_solvers/tfqmr_solver.h"
 #include "includes/dof.h"
-#include "spaces/ublas_space.h"
 #include "includes/ublas_complex_interface.h"
 
+#include "linear_solvers/linear_solver_ublas.h"
 #include "linear_solvers/reorderer.h"
 #include "linear_solvers/direct_solver.h"
 #include "linear_solvers/skyline_lu_factorization_solver.h"
