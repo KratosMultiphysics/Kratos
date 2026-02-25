@@ -282,7 +282,7 @@ class TestExplicitFilterReference(kratos_unittest.TestCase):
                 "reference_file_name"   : "explicit_filter_reference_1.vtu.orig",
                 "output_file_name"      : "explicit_filter_reference.vtu",
                 "remove_output_file"    : true,
-                "comparison_type"       : "deterministic"
+                "comparison_type"       : "vtu"
             }""")
             params["reference_file_name"].SetString(ref_file)
             params["output_file_name"].SetString(f"output_{ref_file[:-4]}/test_elements_0.vtu")

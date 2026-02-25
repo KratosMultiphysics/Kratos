@@ -10,6 +10,7 @@ from KratosMultiphysics.KratosUnittest import isclose as t_isclose
 import filecmp
 import os
 import math
+import xml.etree.ElementTree
 
 def Factory(settings, current_model):
     if not isinstance(settings, KratosMultiphysics.Parameters):
@@ -104,6 +105,8 @@ class CompareTwoFilesCheckProcess(KratosMultiphysics.Process, KratosUnittest.Tes
             self.__CompareDatFileVariablesTimeHistory()
         elif (self.comparison_type == "vtk"):
             self.__CompareVtkFile()
+        elif (self.comparison_type == "vtu") or (self.comparison_type == "xml"):
+            self.__CompareXmlFile()
         else:
             raise NameError('Requested comparison type "' + self.comparison_type + '" not implemented yet')
 
@@ -531,6 +534,32 @@ class CompareTwoFilesCheckProcess(KratosMultiphysics.Process, KratosUnittest.Tes
                 CompareCellTypes(lines_ref, lines_out, line_counter)
             if line_ref.startswith("POINT_DATA") or line_ref.startswith("CELL_DATA"):
                 CompareData(lines_ref, lines_out, line_counter)
+
+    def __CompareXmlFile(self):
+        """This function compares vtu files
+        """
+        if not os.path.isfile(self.reference_file_name):
+            raise RuntimeError(f"The reference file \"{self.reference_file_name}\" is not found.")
+
+        if not os.path.isfile(self.output_file_name):
+            raise RuntimeError(f"The output file \"{self.output_file_name}\" is not found.")
+
+        ref_xml = xml.etree.ElementTree.parse(self.reference_file_name)
+        out_xml = xml.etree.ElementTree.parse(self.output_file_name)
+
+        def check_element(ref_element: xml.etree.ElementTree.Element, out_element: xml.etree.ElementTree.Element):
+            if ref_element.tag != out_element.tag:
+                raise RuntimeError(f"The element tag mismatch [ ref element tag = {ref_element.tag}, output element tag = {out_element.tag} ].")
+
+            if ref_element.attrib != out_element.attrib:
+                raise RuntimeError(f"The element tag mismatch [ ref element tag = {ref_element.tag}, output element tag = {out_element.tag} ].\nRef attribs:\n{ref_element.attrib}\nOut attribs:\n{out_element.attrib}")
+
+            if ref_element.text != out_element.text:
+                raise RuntimeError(f"Data mismatch [ ref element tag = {ref_element.tag}, out element tag = {out_element.tag} ].\nRef attribs:\n{ref_element.attrib}\nRef data:\n{ref_element.text}\nOut attribs:\n{out_element.attrib}\nOut data:\n{out_element.text}")
+
+        check_element(ref_xml.getroot(), out_xml.getroot())
+        for ref_sub_element, out_sub_element in zip(ref_xml.getroot().iter(), out_xml.getroot().iter()):
+            check_element(ref_sub_element, out_sub_element)
 
     def __CheckCloseValues(self, val_a, val_b, additional_info=""):
         isclosethis = t_isclose(val_a, val_b, rel_tol=self.reltol, abs_tol=self.tol)

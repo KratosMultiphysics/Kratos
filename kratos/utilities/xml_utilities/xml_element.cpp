@@ -58,7 +58,7 @@ void XmlElement::WriteElementTagStart(
         rOStream << " " << r_pair.first << "=\"" << r_pair.second << "\"";
     }
 
-    rOStream << ">\n";
+    rOStream << ">" << std::endl;
 }
 
 void XmlElement::WriteElementTagEnd(
@@ -66,7 +66,7 @@ void XmlElement::WriteElementTagEnd(
     const IndexType Level) const
 {
     const std::string tabbing(Level * 3, ' ');
-    rOStream << tabbing << "</" << mTagName << ">\n";
+    rOStream << tabbing << "</" << mTagName << ">" << std::endl;
 }
 void XmlElement::WriteEmptyElementTag(
     std::ostream& rOStream,
@@ -80,7 +80,7 @@ void XmlElement::WriteEmptyElementTag(
         rOStream << " " << r_pair.first << "=\"" << r_pair.second << "\"";
     }
 
-    rOStream << "/>\n";
+    rOStream << "/>" << std::endl;
 }
 
 } // namespace Kratos
