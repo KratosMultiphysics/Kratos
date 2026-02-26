@@ -15,7 +15,6 @@
 // External includes
 
 // Project includes
-#include "includes/define.h"
 #include "input_output/stl_io.h"
 #include "utilities/parallel_utilities.h"
 #include "utilities/reduction_utilities.h"
@@ -67,8 +66,8 @@ StlIO::StlIO(const std::filesystem::path& rFilename, Parameters ThisParameters)
 
 StlIO::StlIO(
     Kratos::shared_ptr<std::iostream> pInputStream,
-    Parameters ThisParameters) 
-    : IO(), 
+    Parameters ThisParameters)
+    : IO(),
       mParameters(ThisParameters),
       mpInputStream(pInputStream)
 {
@@ -151,23 +150,23 @@ void StlIO::WriteModelPart(const ModelPart& rThisModelPart)
     if (r_data_communicator.IsDistributed()) { // MPI
         // Write the elements blocks
         WriteEntityBlockMPI(rThisModelPart.Elements(), r_data_communicator);
-        
+
         // Write the conditions blocks
         WriteEntityBlockMPI(rThisModelPart.Conditions(), r_data_communicator);
-        
+
         // Write the geometries blocks
         WriteGeometryBlockMPI(rThisModelPart.Geometries(), r_data_communicator);
     } else { // Serial
         // Write the elements blocks
         WriteEntityBlock(rThisModelPart.Elements());
-        
+
         // Write the conditions blocks
         WriteEntityBlock(rThisModelPart.Conditions());
-        
+
         // Write the geometries blocks
         WriteGeometryBlock(rThisModelPart.Geometries());
     }
-    
+
     // Write footer of the file
     if (r_data_communicator.Rank() == 0) {
         (*mpInputStream) << "endsolid\n";
@@ -231,7 +230,7 @@ void StlIO::WriteEntityBlockMPI(
     // Sum all partitions
     unsigned int converted_num_degenerate_geometries(num_degenerate_geometries); 
     converted_num_degenerate_geometries = rDataCommunicator.SumAll(converted_num_degenerate_geometries);
-    
+
     KRATOS_WARNING_IF("STL-IO", converted_num_degenerate_geometries > 0) 
         << "Model part contained " << converted_num_degenerate_geometries
         << " geometries with area = 0.0, skipping these geometries." << std::endl;
@@ -279,11 +278,11 @@ void StlIO::WriteGeometryBlockMPI(
             WriteFacet(r_geometry, ss);
         }
     }
-    
+
     // Sum all partitions
     unsigned int converted_num_degenerate_geometries(num_degenerate_geometries); 
     converted_num_degenerate_geometries = rDataCommunicator.SumAll(converted_num_degenerate_geometries);
-    
+
     KRATOS_WARNING_IF("STL-IO", converted_num_degenerate_geometries > 0) 
         << "Model part contained " << converted_num_degenerate_geometries
         << " geometries with area = 0.0, skipping these geometries." << std::endl;

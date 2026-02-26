@@ -13,19 +13,16 @@
 #pragma once
 
 // System includes
-#include <string>
-#include <iostream>
-#include <filesystem>
 
 // External includes
 
 // Project includes
-#include "includes/define.h"
 #include "includes/io.h"
+#include "includes/kratos_filesystem.h"
 
 namespace Kratos
 {
-///@addtogroup ApplicationNameApplication
+///@addtogroup KratosCore
 ///@{
 
 ///@name Kratos Globals
@@ -49,7 +46,7 @@ namespace Kratos
 
 /// This class reads from STL file format and creates triangular elements in given model_part
 /** The current version only reads triangles from the STL and not higher order polygons
- * The nodes corresponging to given vertices are not collapsed
+ * The nodes corresponding to given vertices are not collapsed
  * A SubModelPart for each additional solid block will be created
  * For definition STL format please check https://en.wikipedia.org/wiki/STL_(file_format)
  * A sample file format with 3 triangles:
@@ -101,7 +98,7 @@ public:
     ///@name Life Cycle
     ///@{
 
-    /** 
+    /**
      * @brief Constructs a StlIO object using a filename.
      * @details This constructor will create a StlIO object and open a file with the provided filename and open options. The default open option is read mode.
      * @param rFilename The path of the file to open.
@@ -113,7 +110,7 @@ public:
         Parameters ThisParameters = Parameters()
         );
 
-    /** 
+    /**
      * @brief Constructs a StlIO object using an input/output stream.
      * @details This constructor will create a StlIO object using a provided input/output stream.
      * @param pInputStream A shared pointer to the input/output stream to use.
@@ -394,6 +391,6 @@ inline std::ostream& operator << (std::ostream& rOStream,
 }
 ///@}
 
-///@} addtogroup block
+///@} addtogroup KratosCore
 
 }  // namespace Kratos.
