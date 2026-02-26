@@ -347,10 +347,11 @@ void UPwInterfaceElement::Calculate(const Variable<Vector>& rVariable, Vector& r
         relative_displacements, rProcessInfo, GetProperties(), mConstitutiveLaws);
     const auto integration_coefficients = CalculateIntegrationCoefficients();
     if (rVariable == INTERNAL_FORCES_VECTOR) {
-        GeoElementUtilities::AssignUBlockVector(
+        CalculateAndAssembleUPCouplingForceVector(rOutput);
+        rOutput *= -1.0;
+        GeoElementUtilities::AssembleUBlockVector(
             rOutput, GeoEquationOfMotionUtilities::CalculateInternalForceVector(
                          local_b_matrices, tractions, integration_coefficients));
-        CalculateAndAssembleUPCouplingForceVector(rOutput);
     } else if (rVariable == EXTERNAL_FORCES_VECTOR) {
         GeoElementUtilities::AssignUBlockVector(rOutput, Vector{NumberOfUDofs(), 0.0});
     }
