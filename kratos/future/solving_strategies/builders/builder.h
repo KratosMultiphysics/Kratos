@@ -170,7 +170,7 @@ public:
             });
             IndexPartition<IndexType>(mpModelPart->NumberOfConditions()).for_each([&](IndexType Index) {
                 Condition::EquationIdVectorType eq_ids; //TODO: we don't use TLS for this (decide what to do once we finish the parallelism discussion)
-                auto it_cond = mpModelPart->ElementsBegin() + Index;
+                auto it_cond = mpModelPart->ConditionsBegin() + Index;
                 it_cond->EquationIdVector(eq_ids, mpModelPart->GetProcessInfo());
                 rSparseGraph.AddEntries(eq_ids);
             });

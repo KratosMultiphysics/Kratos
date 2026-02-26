@@ -11,10 +11,13 @@
 //                   Jonathan Nuttall
 
 #include "apply_constant_phreatic_multi_line_pressure_process.h"
+#include "geo_mechanics_application_variables.h"
+#include "includes/kratos_flags.h"
 #include "includes/model_part.h"
 
 namespace Kratos
 {
+using namespace std::string_literals;
 
 ApplyConstantPhreaticMultiLinePressureProcess::ApplyConstantPhreaticMultiLinePressureProcess(ModelPart& model_part,
                                                                                              Parameters rParameters)
@@ -167,7 +170,7 @@ void ApplyConstantPhreaticMultiLinePressureProcess::ExecuteInitialize()
 
 std::string ApplyConstantPhreaticMultiLinePressureProcess::Info() const
 {
-    return "ApplyConstantPhreaticMultiLinePressureProcess";
+    return "ApplyConstantPhreaticMultiLinePressureProcess"s;
 }
 
 void ApplyConstantPhreaticMultiLinePressureProcess::PrintInfo(std::ostream& rOStream) const

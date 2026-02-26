@@ -98,6 +98,7 @@ void  AddSerializerToPython(pybind11::module& m)
     py::class_<FileSerializer, FileSerializer::Pointer, Serializer >(m,"FileSerializer")
     .def(py::init<std::string const&>())
     .def(py::init<std::string const&, Serializer::TraceType>())
+    .def(py::init<std::string const&, Serializer::TraceType, const bool>(), py::arg("tag"), py::arg("trace_type"), py::arg("is_data_only"))
     ;
 
     py::class_<StreamSerializer, StreamSerializer::Pointer, Serializer >(m,"StreamSerializer")

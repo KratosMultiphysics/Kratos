@@ -19,7 +19,7 @@
 #include "geometries/quadrilateral_3d_8.h"
 #include "geometries/triangle_3d_3.h"
 #include "geometries/triangle_3d_6.h"
-#include "test_setup_utilities/element_setup_utilities.h"
+#include "test_setup_utilities/element_setup_utilities.hpp"
 #include "tests/cpp_tests/geo_mechanics_fast_suite.h"
 #include "tests/cpp_tests/test_utilities.h"
 
@@ -835,4 +835,5 @@ KRATOS_TEST_CASE_IN_SUITE(InterfaceGeometry_Throws_WhenCallingFunctionsRelatedTo
     KRATOS_EXPECT_EXCEPTION_IS_THROWN(
         geometry.GlobalSpaceDerivatives(dummy_coordinates, dummy_index, dummy_index), message)
 }
+
 } // namespace Kratos::Testing

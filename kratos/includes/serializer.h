@@ -14,14 +14,18 @@
 #pragma once
 
 // System includes
+#include <iostream>
+#include <vector>
 #include <map>
 #include <set>
 #include <string>
 #include <cstring>
 #include <sstream>
+#include <typeinfo>
 #include <fstream>
-#include <iostream>
+#include <functional>
 #include <unordered_map>
+#include <filesystem>
 #include <unordered_set>
 
 // External includes
@@ -126,6 +130,7 @@ public:
     typedef void* (*ObjectFactoryType)();
 
     typedef std::map<void*, void*> LoadedPointersContainerType;
+    typedef std::map<void*, std::shared_ptr<void>> LoadedSharedPointersContainerType;
 
     typedef std::map<std::string, ObjectFactoryType> RegisteredObjectsContainerType;
 
@@ -140,8 +145,8 @@ public:
     ///@{
 
     /// Default constructor.
-    explicit Serializer(BufferType* pBuffer, TraceType const& rTrace=SERIALIZER_NO_TRACE) :
-        mpBuffer(pBuffer), mTrace(rTrace), mNumberOfLines(0)
+    explicit Serializer(BufferType* pBuffer, TraceType const& rTrace=SERIALIZER_NO_TRACE, const bool DataOnly = false) :
+        mpBuffer(pBuffer), mTrace(rTrace), mNumberOfLines(0), mIsDataOnly(DataOnly)
     {
     }
 
@@ -158,6 +163,8 @@ public:
     /// Sets the Serializer in a state ready to be loaded
     /// Note: If the same object is loaded twice before deleting it from memory all its pointers will be duplicated.
     void SetLoadState();
+
+    bool IsDataOnly() const { return mIsDataOnly; }
 
     ///@}
     ///@name Operations
@@ -200,49 +207,67 @@ public:
     template<class TDataType>
     void load(std::string const & rTag, Kratos::shared_ptr<TDataType>& pValue)
     {
-        PointerType pointer_type = SP_INVALID_POINTER;
-        void* p_pointer;
-        read(pointer_type);
+        if (!mIsDataOnly) {
+            PointerType pointer_type = SP_INVALID_POINTER;
+            void* p_pointer;
+            read(pointer_type);
 
-        if(pointer_type != SP_INVALID_POINTER)
-        {
-            read(p_pointer);
-            LoadedPointersContainerType::iterator i_pointer = mLoadedPointers.find(p_pointer);
-            if(i_pointer == mLoadedPointers.end())
+            if(pointer_type != SP_INVALID_POINTER)
             {
-                if(pointer_type == SP_BASE_CLASS_POINTER)
+                read(p_pointer);
+                LoadedPointersContainerType::iterator i_pointer = mLoadedPointers.find(p_pointer);
+                if(i_pointer == mLoadedPointers.end())
                 {
-                    if constexpr (!std::is_abstract_v<TDataType>) {
-                        if(!pValue) {
-                            pValue = this->MakeShared<TDataType>();
+                    if(pointer_type == SP_BASE_CLASS_POINTER)
+                    {
+                        if constexpr (!std::is_abstract_v<TDataType>) {
+                            if(!pValue) {
+                                pValue = this->MakeShared<TDataType>();
+                            }
+                        }
+                        else {
+                            KRATOS_ERROR << "Cannot instantiate an abstract class\n";
                         }
                     }
-                    else {
-                        KRATOS_ERROR << "Cannot instantiate an abstract class\n";
+                    else if(pointer_type == SP_DERIVED_CLASS_POINTER)
+                    {
+                        std::string object_name;
+                        read(object_name);
+                        typename RegisteredObjectsContainerType::iterator i_prototype =  msRegisteredObjects.find(object_name);
+
+                        KRATOS_ERROR_IF(i_prototype == msRegisteredObjects.end())
+                            << "There is no object registered in Kratos with name : "
+                            << object_name << std::endl;
+
+                        if(!pValue) {
+                            pValue = Kratos::shared_ptr<TDataType>(static_cast<TDataType*>((i_prototype->second)()));
+                        }
                     }
+
+                    // Load the pointer address before loading the content
+                    mLoadedPointers[p_pointer]=pValue.get();
+                    mLoadedSharedPointers[p_pointer] = pValue;
+
+                    load(rTag, *pValue);
                 }
-                else if(pointer_type == SP_DERIVED_CLASS_POINTER)
+                else
                 {
-                    std::string object_name;
-                    read(object_name);
-                    typename RegisteredObjectsContainerType::iterator i_prototype =  msRegisteredObjects.find(object_name);
-
-                    KRATOS_ERROR_IF(i_prototype == msRegisteredObjects.end())
-                        << "There is no object registered in Kratos with name : "
-                        << object_name << std::endl;
-
-                    if(!pValue) {
-                        pValue = Kratos::shared_ptr<TDataType>(static_cast<TDataType*>((i_prototype->second)()));
+                    auto it_shared = mLoadedSharedPointers.find(p_pointer);
+                    if(it_shared != mLoadedSharedPointers.end()) {
+                        pValue = std::static_pointer_cast<TDataType>(it_shared->second);
+                    } else {
+                        pValue.reset(static_cast<TDataType*>((i_pointer->second)));
+                        mLoadedSharedPointers[p_pointer] = pValue;
                     }
                 }
-
-                // Load the pointer address before loading the content
-                mLoadedPointers[p_pointer]=&pValue;
-                load(rTag, *pValue);
             }
-            else
-            {
-                pValue = *static_cast<Kratos::shared_ptr<TDataType>*>((i_pointer->second));
+        } else {
+            if (pValue) {
+                auto itr = mLoadedPointers.find(pValue.get());
+                if (itr == mLoadedPointers.end()) {
+                    mLoadedPointers[pValue.get()]=pValue.get();
+                    load(rTag, *pValue);
+                }
             }
         }
     }
@@ -250,49 +275,59 @@ public:
     template<class TDataType>
     void load(std::string const & rTag, Kratos::intrusive_ptr<TDataType>& pValue)
     {
-        PointerType pointer_type = SP_INVALID_POINTER;
-        void* p_pointer;
-        read(pointer_type);
+        if (!mIsDataOnly) {
+            PointerType pointer_type = SP_INVALID_POINTER;
+            void* p_pointer;
+            read(pointer_type);
 
-        if(pointer_type != SP_INVALID_POINTER)
-        {
-            read(p_pointer);
-            LoadedPointersContainerType::iterator i_pointer = mLoadedPointers.find(p_pointer);
-            if(i_pointer == mLoadedPointers.end())
+            if(pointer_type != SP_INVALID_POINTER)
             {
-                if(pointer_type == SP_BASE_CLASS_POINTER)
+                read(p_pointer);
+                LoadedPointersContainerType::iterator i_pointer = mLoadedPointers.find(p_pointer);
+                if(i_pointer == mLoadedPointers.end())
                 {
-                    if constexpr (!std::is_abstract_v<TDataType>) {
-                        if(!pValue) {
-                            pValue = Kratos::intrusive_ptr<TDataType>(new TDataType);
+                    if(pointer_type == SP_BASE_CLASS_POINTER)
+                    {
+                        if constexpr (!std::is_abstract_v<TDataType>) {
+                            if(!pValue) {
+                                pValue = Kratos::intrusive_ptr<TDataType>(new TDataType);
+                            }
+                        }
+                        else {
+                            KRATOS_ERROR << "Cannot instantiate an abstract class\n";
                         }
                     }
-                    else {
-                        KRATOS_ERROR << "Cannot instantiate an abstract class\n";
+                    else if(pointer_type == SP_DERIVED_CLASS_POINTER)
+                    {
+                        std::string object_name;
+                        read(object_name);
+                        typename RegisteredObjectsContainerType::iterator i_prototype =  msRegisteredObjects.find(object_name);
+
+                        KRATOS_ERROR_IF(i_prototype == msRegisteredObjects.end())
+                            << "There is no object registered in Kratos with name : "
+                            << object_name << std::endl;
+
+                        if(!pValue) {
+                            pValue = Kratos::intrusive_ptr<TDataType>(static_cast<TDataType*>((i_prototype->second)()));
+                        }
                     }
+
+                    // Load the pointer address before loading the content
+                    mLoadedPointers[p_pointer]=pValue.get();
+                    load(rTag, *pValue);
                 }
-                else if(pointer_type == SP_DERIVED_CLASS_POINTER)
+                else
                 {
-                    std::string object_name;
-                    read(object_name);
-                    typename RegisteredObjectsContainerType::iterator i_prototype =  msRegisteredObjects.find(object_name);
-
-                    KRATOS_ERROR_IF(i_prototype == msRegisteredObjects.end())
-                        << "There is no object registered in Kratos with name : "
-                        << object_name << std::endl;
-
-                    if(!pValue) {
-                        pValue = Kratos::intrusive_ptr<TDataType>(static_cast<TDataType*>((i_prototype->second)()));
-                    }
+                    pValue.reset(static_cast<TDataType*>((i_pointer->second)));
                 }
-
-                // Load the pointer address before loading the content
-                mLoadedPointers[p_pointer]=&pValue;
-                load(rTag, *pValue);
             }
-            else
-            {
-                pValue = *static_cast<Kratos::intrusive_ptr<TDataType>*>((i_pointer->second));
+        } else {
+            if (pValue) {
+                auto itr = mLoadedPointers.find(pValue.get());
+                if (itr == mLoadedPointers.end()) {
+                    mLoadedPointers[pValue.get()]=pValue.get();
+                    load(rTag, *pValue);
+                }
             }
         }
     }
@@ -300,49 +335,59 @@ public:
     template<class TDataType>
     void load(std::string const & rTag, Kratos::unique_ptr<TDataType>& pValue)
     {
-        PointerType pointer_type = SP_INVALID_POINTER;
-        void* p_pointer;
-        read(pointer_type);
+        if (!mIsDataOnly) {
+            PointerType pointer_type = SP_INVALID_POINTER;
+            void* p_pointer;
+            read(pointer_type);
 
-        if(pointer_type != SP_INVALID_POINTER)
-        {
-            read(p_pointer);
-            LoadedPointersContainerType::iterator i_pointer = mLoadedPointers.find(p_pointer);
-            if(i_pointer == mLoadedPointers.end())
+            if(pointer_type != SP_INVALID_POINTER)
             {
-                if(pointer_type == SP_BASE_CLASS_POINTER)
+                read(p_pointer);
+                LoadedPointersContainerType::iterator i_pointer = mLoadedPointers.find(p_pointer);
+                if(i_pointer == mLoadedPointers.end())
                 {
-                    if constexpr (!std::is_abstract_v<TDataType>) {
-                        if(!pValue) {
-                            pValue = Kratos::unique_ptr<TDataType>(new TDataType);
+                    if(pointer_type == SP_BASE_CLASS_POINTER)
+                    {
+                        if constexpr (!std::is_abstract_v<TDataType>) {
+                            if(!pValue) {
+                                pValue = Kratos::unique_ptr<TDataType>(new TDataType);
+                            }
+                        }
+                        else {
+                            KRATOS_ERROR << "Cannot instantiate an abstract class\n";
                         }
                     }
-                    else {
-                        KRATOS_ERROR << "Cannot instantiate an abstract class\n";
+                    else if(pointer_type == SP_DERIVED_CLASS_POINTER)
+                    {
+                        std::string object_name;
+                        read(object_name);
+                        typename RegisteredObjectsContainerType::iterator i_prototype =  msRegisteredObjects.find(object_name);
+
+                        KRATOS_ERROR_IF(i_prototype == msRegisteredObjects.end())
+                            << "There is no object registered in Kratos with name : "
+                            << object_name << std::endl;
+
+                        if(!pValue) {
+                            pValue = std::move(Kratos::unique_ptr<TDataType>(static_cast<TDataType*>((i_prototype->second)())));
+                        }
                     }
+
+                    // Load the pointer address before loading the content
+                    mLoadedPointers[p_pointer]=pValue.get();
+                    load(rTag, *pValue);
                 }
-                else if(pointer_type == SP_DERIVED_CLASS_POINTER)
+                else
                 {
-                    std::string object_name;
-                    read(object_name);
-                    typename RegisteredObjectsContainerType::iterator i_prototype =  msRegisteredObjects.find(object_name);
-
-                    KRATOS_ERROR_IF(i_prototype == msRegisteredObjects.end())
-                        << "There is no object registered in Kratos with name : "
-                        << object_name << std::endl;
-
-                    if(!pValue) {
-                        pValue = std::move(Kratos::unique_ptr<TDataType>(static_cast<TDataType*>((i_prototype->second)())));
-                    }
+                    pValue.reset(static_cast<TDataType*>((i_pointer->second)));
                 }
-
-                // Load the pointer address before loading the content
-                mLoadedPointers[p_pointer]=pValue.get();
-                load(rTag, *pValue);
             }
-            else
-            {
-                pValue = std::move(Kratos::unique_ptr<TDataType>(static_cast<TDataType*>((i_pointer->second))));
+        } else {
+            if (pValue) {
+                auto itr = mLoadedPointers.find(pValue.get());
+                if (itr == mLoadedPointers.end()) {
+                    mLoadedPointers[pValue.get()]=pValue.get();
+                    load(rTag, *pValue);
+                }
             }
         }
     }
@@ -350,50 +395,60 @@ public:
     template<class TDataType>
     void load(std::string const & rTag, TDataType*& pValue)
     {
-        PointerType pointer_type = SP_INVALID_POINTER;
-        void* p_pointer;
-        read(pointer_type);
+        if (!mIsDataOnly) {
+            PointerType pointer_type = SP_INVALID_POINTER;
+            void* p_pointer;
+            read(pointer_type);
 
-        if(pointer_type != SP_INVALID_POINTER)
-        {
-            read(p_pointer);
-            LoadedPointersContainerType::iterator i_pointer = mLoadedPointers.find(p_pointer);
-            if(i_pointer == mLoadedPointers.end())
+            if(pointer_type != SP_INVALID_POINTER)
             {
-                if(pointer_type == SP_BASE_CLASS_POINTER)
+                read(p_pointer);
+                LoadedPointersContainerType::iterator i_pointer = mLoadedPointers.find(p_pointer);
+                if(i_pointer == mLoadedPointers.end())
                 {
-                    if constexpr (!std::is_abstract_v<TDataType>) {
-                        if(!pValue) {
-                            pValue = new TDataType;
+                    if(pointer_type == SP_BASE_CLASS_POINTER)
+                    {
+                        if constexpr (!std::is_abstract_v<TDataType>) {
+                            if(!pValue) {
+                                pValue = new TDataType;
+                            }
+                        }
+                        else {
+                            KRATOS_ERROR << "Cannot instantiate an abstract class\n";
                         }
                     }
-                    else {
-                        KRATOS_ERROR << "Cannot instantiate an abstract class\n";
+                    else if(pointer_type == SP_DERIVED_CLASS_POINTER)
+                    {
+                        std::string object_name;
+                        read(object_name);
+                        typename RegisteredObjectsContainerType::iterator i_prototype =  msRegisteredObjects.find(object_name);
+
+                        KRATOS_ERROR_IF(i_prototype == msRegisteredObjects.end())
+                            << "There is no object registered in Kratos with name : "
+                            << object_name << std::endl;
+
+                        if(!pValue) {
+                            pValue = static_cast<TDataType*>((i_prototype->second)());
+                        }
+
                     }
+
+                    // Load the pointer address before loading the content
+                    mLoadedPointers[p_pointer]=pValue;
+                    load(rTag, *pValue);
                 }
-                else if(pointer_type == SP_DERIVED_CLASS_POINTER)
+                else
                 {
-                    std::string object_name;
-                    read(object_name);
-                    typename RegisteredObjectsContainerType::iterator i_prototype =  msRegisteredObjects.find(object_name);
-
-                    KRATOS_ERROR_IF(i_prototype == msRegisteredObjects.end())
-                        << "There is no object registered in Kratos with name : "
-                        << object_name << std::endl;
-
-                    if(!pValue) {
-                        pValue = static_cast<TDataType*>((i_prototype->second)());
-                    }
-
+                    pValue = static_cast<TDataType*>((i_pointer->second));
                 }
-
-                // Load the pointer address before loading the content
-                mLoadedPointers[p_pointer]=&pValue;
-                load(rTag, *pValue);
             }
-            else
-            {
-                pValue = *static_cast<TDataType**>((i_pointer->second));
+        } else {
+            if (pValue) {
+                auto itr = mLoadedPointers.find(pValue);
+                if (itr == mLoadedPointers.end()) {
+                    mLoadedPointers[pValue]=pValue;
+                    load(rTag, *pValue);
+                }
             }
         }
     }
@@ -650,18 +705,28 @@ public:
     template<class TDataType>
     void save(std::string const & rTag, const TDataType * pValue)
     {
-        if(pValue)
-        {
-            if(IsDerived(pValue))
-                write(SP_DERIVED_CLASS_POINTER);
-            else
-                write(SP_BASE_CLASS_POINTER);
+        if (!mIsDataOnly) {
+            if(pValue)
+            {
+                if(IsDerived(pValue))
+                    write(SP_DERIVED_CLASS_POINTER);
+                else
+                    write(SP_BASE_CLASS_POINTER);
 
-            SavePointer(rTag,pValue);
-        }
-        else
-        {
-            write(SP_INVALID_POINTER);
+                SavePointer(rTag,pValue);
+            }
+            else
+            {
+                write(SP_INVALID_POINTER);
+            }
+        } else {
+            if (pValue) {
+                auto itr = mSavedPointers.find(pValue);
+                if (itr == mSavedPointers.end()) {
+                    mSavedPointers.insert(pValue);
+                    save(rTag, *pValue);
+                }
+            }
         }
     }
 
@@ -680,22 +745,32 @@ public:
     template<class TDataType>
     void save(std::string const & rTag, TDataType * pValue)
     {
-        if(pValue)
-        {
-            if(IsDerived(pValue))
+        if (!mIsDataOnly) {
+            if(pValue)
             {
-                write(SP_DERIVED_CLASS_POINTER);
+                if(IsDerived(pValue))
+                {
+                    write(SP_DERIVED_CLASS_POINTER);
+                }
+                else
+                {
+                    write(SP_BASE_CLASS_POINTER);
+                }
+
+                SavePointer(rTag,pValue);
             }
             else
             {
-                write(SP_BASE_CLASS_POINTER);
+                write(SP_INVALID_POINTER);
             }
-
-            SavePointer(rTag,pValue);
-        }
-        else
-        {
-            write(SP_INVALID_POINTER);
+        } else {
+            if (pValue) {
+                auto itr = mSavedPointers.find(pValue);
+                if (itr == mSavedPointers.end()) {
+                    mSavedPointers.insert(pValue);
+                    save(rTag, *pValue);
+                }
+            }
         }
     }
 
@@ -1012,6 +1087,9 @@ private:
 
     SavedPointersContainerType mSavedPointers;
     LoadedPointersContainerType mLoadedPointers;
+    LoadedSharedPointersContainerType mLoadedSharedPointers;
+
+    bool mIsDataOnly;
 
     ///@}
     ///@name Private Operators
@@ -1288,7 +1366,7 @@ private:
 
         for(; First != Last ; First++)
         {
-            mpBuffer->read((char *)First,sizeof(size));
+            mpBuffer->read(reinterpret_cast<char*>(&(*First)), size);
         }
 
         KRATOS_SERIALIZER_MODE_ASCII
@@ -1309,8 +1387,7 @@ private:
 
         for(; First != Last ; First++)
         {
-            const char * data = reinterpret_cast<const char *>(First);
-            mpBuffer->write(data,sizeof(size));
+            mpBuffer->write(reinterpret_cast<const char*>(&(*First)), size);
         }
 
         KRATOS_SERIALIZER_MODE_ASCII

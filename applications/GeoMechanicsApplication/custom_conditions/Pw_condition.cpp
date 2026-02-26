@@ -13,7 +13,7 @@
 
 // Application includes
 #include "custom_conditions/Pw_condition.h"
-#include "custom_utilities/dof_utilities.h"
+#include "custom_utilities/dof_utilities.hpp"
 
 namespace Kratos
 {

@@ -12,12 +12,10 @@
 
 #pragma once
 
-#include "includes/kratos_flags.h"
 #include "includes/kratos_parameters.h"
 #include "processes/process.h"
-#include <algorithm>
 
-#include "geo_mechanics_application_variables.h"
+#include <string>
 
 namespace Kratos
 {
@@ -84,18 +82,5 @@ private:
 
     static void InitializeParameters(Parameters& rParameters);
 }; // Class ApplyConstantPhreaticMultiLinePressureProcess
-
-/// input stream function
-inline std::istream& operator>>(std::istream& rIStream, ApplyConstantPhreaticMultiLinePressureProcess& rThis);
-
-/// output stream function
-inline std::ostream& operator<<(std::ostream& rOStream, const ApplyConstantPhreaticMultiLinePressureProcess& rThis)
-{
-    rThis.PrintInfo(rOStream);
-    rOStream << std::endl;
-    rThis.PrintData(rOStream);
-
-    return rOStream;
-}
 
 } // namespace Kratos.

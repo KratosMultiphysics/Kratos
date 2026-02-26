@@ -79,12 +79,19 @@ public:
         ProcessInfo::Pointer pProcessInfo,
         const bool Copy = true);
 
+    GaussPointVariableTensorAdaptor(const GaussPointVariableTensorAdaptor& rOther) = default;
+
     // Destructor
     ~GaussPointVariableTensorAdaptor() override = default;
 
     ///@}
     ///@name Public operations
     ///@{
+
+    /**
+     * @brief Clones the existing tensor adaptor.
+     */
+    TensorAdaptor::Pointer Clone() const override;
 
     /**
      * @brief Fill the internal data from Kratos data structures

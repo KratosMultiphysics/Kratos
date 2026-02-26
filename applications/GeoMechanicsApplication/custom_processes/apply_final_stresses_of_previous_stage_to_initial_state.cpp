@@ -24,6 +24,7 @@
 
 namespace Kratos
 {
+using namespace std::string_literals;
 
 ApplyFinalStressesOfPreviousStageToInitialState::ApplyFinalStressesOfPreviousStageToInitialState(
     Model& rModel, const Parameters& rProcessSettings)
@@ -92,7 +93,7 @@ void ApplyFinalStressesOfPreviousStageToInitialState::CheckRetrievedElementData(
 
 std::string ApplyFinalStressesOfPreviousStageToInitialState::Info() const
 {
-    return "ApplyFinalStressesOfPreviousStageToInitialState";
+    return "ApplyFinalStressesOfPreviousStageToInitialState"s;
 }
 
 } // namespace Kratos
