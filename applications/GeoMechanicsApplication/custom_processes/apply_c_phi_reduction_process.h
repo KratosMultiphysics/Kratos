@@ -53,8 +53,6 @@ private:
 
     static void SetCPhiAtElement(Element& rElement, double ReducedPhi, double ReducedC);
 
-    static void SetValueAtElement(Element& rElement, const Variable<Vector>& rVariable, const Vector& rValue);
-
     [[nodiscard]] bool IsStepRestarted() const;
 };
 

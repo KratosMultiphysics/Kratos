@@ -147,29 +147,20 @@ double ApplyCPhiReductionProcess::GetAndCheckC(const Properties& rModelPartPrope
 
 void ApplyCPhiReductionProcess::SetCPhiAtElement(Element& rElement, double ReducedPhi, double ReducedC)
 {
-    auto& r_properties = rElement.GetProperties();
+    const auto& r_properties = rElement.GetProperties();
+    Properties::Pointer p_new_properties = Kratos::make_shared<Properties>(r_properties);
 
     if (r_properties.Has(GEO_FRICTION_ANGLE)) {
-        r_properties.SetValue(GEO_FRICTION_ANGLE, ReducedPhi);
-        r_properties.SetValue(GEO_COHESION, ReducedC);
+        p_new_properties->SetValue(GEO_FRICTION_ANGLE, ReducedPhi);
+        p_new_properties->SetValue(GEO_COHESION, ReducedC);
     } else {
         // Overwrite C and Phi in the UMAT_PARAMETERS
         auto Umat_parameters = r_properties[UMAT_PARAMETERS];
         Umat_parameters[r_properties[INDEX_OF_UMAT_PHI_PARAMETER] - 1] = ReducedPhi;
         Umat_parameters[r_properties[INDEX_OF_UMAT_C_PARAMETER] - 1]   = ReducedC;
-
-        SetValueAtElement(rElement, UMAT_PARAMETERS, Umat_parameters);
+        p_new_properties->SetValue(UMAT_PARAMETERS, Umat_parameters);
     }
-}
-
-void ApplyCPhiReductionProcess::SetValueAtElement(Element& rElement, const Variable<Vector>& rVariable, const Vector& rValue)
-{
-    // Copies properties
-    Properties::Pointer p_new_prop = Kratos::make_shared<Properties>(rElement.GetProperties());
-
-    // Adds new properties to the element
-    p_new_prop->SetValue(rVariable, rValue);
-    rElement.SetProperties(p_new_prop);
+    rElement.SetProperties(p_new_properties);
 }
 
 bool ApplyCPhiReductionProcess::IsStepRestarted() const
