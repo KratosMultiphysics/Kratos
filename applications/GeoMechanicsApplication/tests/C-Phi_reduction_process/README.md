@@ -23,9 +23,9 @@ The material is described using:
 -  Cohesion 10 $kPa$
 -  Friction angle 35.0 deg
 
-Two Mohr-Coulomb models are used:
-- implemented using FORTRAN in MohrCoulombModel64,
-- implemented using C++ in Kratos. 
+Two distinct implementations of the Mohr–Coulomb model are employed:
+- one provided by the MohrCoulomb64 library,
+- one implemented internally in Kratos.
  
 The computation is done in two stages. The first stage is a settlement due to the gravitation and it uses K0 procedure. 
 The second stage is $c-\phi$ reduction process and it done only for two time steps. The figure below shows the calculated deformation.
