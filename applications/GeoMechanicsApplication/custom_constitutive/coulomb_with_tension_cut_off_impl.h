@@ -72,19 +72,19 @@ private:
                                                   Geo::PrincipalStresses::AveragingType AveragingType) const;
 
     [[nodiscard]] Geo::SigmaTau ReturnStressAtTensionApexReturnZone(const Geo::SigmaTau&) const;
-    [[nodiscard]] Geo::PrincipalStresses ReturnStressAtTensionApexReturnZone(const Geo::PrincipalStresses& rPrincipalStresses) const;
-    [[nodiscard]] Geo::SigmaTau ReturnStressAtTensionCutoffReturnZone(const Geo::SigmaTau& rTraction,
+    [[nodiscard]] Geo::PrincipalStresses ReturnStressAtTensionApexReturnZone(const Geo::PrincipalStresses& rTrialPrincipalStresses) const;
+    [[nodiscard]] Geo::SigmaTau ReturnStressAtTensionCutoffReturnZone(const Geo::SigmaTau& rTrialTraction,
                                                                       const Matrix& rElasticMatrix,
                                                                       Geo::PrincipalStresses::AveragingType AveragingType) const;
     [[nodiscard]] Geo::PrincipalStresses ReturnStressAtTensionCutoffReturnZone(
-        const Geo::PrincipalStresses& rPrincipalStresses,
+        const Geo::PrincipalStresses& rTrialPrincipalStresses,
         const Matrix&                 rElasticMatrix,
         Geo::PrincipalStresses::AveragingType) const;
-    [[nodiscard]] Geo::SigmaTau ReturnStressAtRegularFailureZone(const Geo::SigmaTau& rTraction,
+    [[nodiscard]] Geo::SigmaTau ReturnStressAtRegularFailureZone(const Geo::SigmaTau& rTrialTraction,
                                                                  const Matrix& rElasticMatrix,
                                                                  Geo::PrincipalStresses::AveragingType AveragingType) const;
     [[nodiscard]] Geo::PrincipalStresses ReturnStressAtRegularFailureZone(
-        const Geo::PrincipalStresses&         rPrincipalStresses,
+        const Geo::PrincipalStresses&         rTrialPrincipalStresses,
         const Matrix&                         rElasticMatrix,
         Geo::PrincipalStresses::AveragingType AveragingType) const;
 
