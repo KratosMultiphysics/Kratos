@@ -1,7 +1,6 @@
 import os
 import typing
 import KratosMultiphysics as Kratos
-import KratosMultiphysics.OptimizationApplication as KratosOA
 import KratosMultiphysics.SystemIdentificationApplication as KratosSI
 from KratosMultiphysics.OptimizationApplication.utilities.optimization_problem import OptimizationProblem
 from KratosMultiphysics.OptimizationApplication.utilities.component_data_view import ComponentDataView
@@ -89,12 +88,10 @@ class MaxSensorErrorCriterion(ConvergenceCriterion):
         return super().Finalize()
 
     def WriteMaxSensorErrorToFile(self) -> None:
-        if not self.__output_to_file:
-            raise RuntimeError("Output to file is disabled. Enable it by setting \"output_to_file\" to true in parameters.")
-        
-        iteration = self.__optimization_problem.GetStep()
-        file_exists = os.path.isfile(self.__sensor_error_output_file_name)
-        with open(self.__sensor_error_output_file_name, "a") as file_output:
-            if not file_exists:
-                file_output.write("iteration,max_sensor_error\n")
-            file_output.write(f"{iteration},{self.__max_sensor_error}\n")
+        if self.__output_to_file:
+            iteration = self.__optimization_problem.GetStep()
+            file_exists = os.path.isfile(self.__sensor_error_output_file_name)
+            with open(self.__sensor_error_output_file_name, "a") as file_output:
+                if not file_exists:
+                    file_output.write("iteration,max_sensor_error\n")
+                file_output.write(f"{iteration},{self.__max_sensor_error}\n")
