@@ -1,6 +1,7 @@
 import os
 
 import KratosMultiphysics.KratosUnittest as KratosUnittest
+from KratosMultiphysics.GeoMechanicsApplication.gid_output_file_reader import GiDOutputFileReader
 import KratosMultiphysics.GeoMechanicsApplication.run_multiple_stages as run_multiple_stages
 import test_helper
 
@@ -20,7 +21,7 @@ class KratosGeoMechanicsLabElementTests(KratosUnittest.TestCase):
         n_stages = 2
         run_multiple_stages.run_stages(project_path, n_stages)
 
-        reader = test_helper.GiDOutputFileReader()
+        reader = GiDOutputFileReader()
 
         # Assert
         output_data = reader.read_output_from(os.path.join(project_path, "triaxial_comp_6n_stage1.post.res"))
@@ -70,19 +71,19 @@ class KratosGeoMechanicsLabElementTests(KratosUnittest.TestCase):
 
         top_node_nbrs = [1, 2]
         output_file_path = os.path.join(project_path, test_name+'.post.res')
-        output_reader = test_helper.GiDOutputFileReader()
+        output_reader = GiDOutputFileReader()
         output_data = output_reader.read_output_from(output_file_path)
-        displacements = test_helper.GiDOutputFileReader.nodal_values_at_time("DISPLACEMENT", 0.1, output_data, node_ids=top_node_nbrs)
+        displacements = GiDOutputFileReader.nodal_values_at_time("DISPLACEMENT", 0.1, output_data, node_ids=top_node_nbrs)
         for displacement in displacements:
             y_displacement = displacement[1]
             self.assertAlmostEqual(-0.00990099, y_displacement, 6)
 
-        displacements = test_helper.GiDOutputFileReader.nodal_values_at_time("DISPLACEMENT", 0.7, output_data, node_ids=top_node_nbrs)
+        displacements = GiDOutputFileReader.nodal_values_at_time("DISPLACEMENT", 0.7, output_data, node_ids=top_node_nbrs)
         for displacement in displacements:
             y_displacement = displacement[1]
             self.assertAlmostEqual(-0.0654206, y_displacement, 6)
 
-        displacements = test_helper.GiDOutputFileReader.nodal_values_at_time("DISPLACEMENT", 1.0, output_data, node_ids=top_node_nbrs)
+        displacements = GiDOutputFileReader.nodal_values_at_time("DISPLACEMENT", 1.0, output_data, node_ids=top_node_nbrs)
         for displacement in displacements:
             y_displacement = displacement[1]
             self.assertAlmostEqual(-0.0909090909516868, y_displacement, 6)

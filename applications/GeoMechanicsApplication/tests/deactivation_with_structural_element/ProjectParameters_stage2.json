@@ -19,7 +19,7 @@
         "domain_size"                        : 2,
         "echo_level"                         : 0,
         "model_import_settings"              : {
-            "input_type"     : "rest"
+            "input_type"     : "use_input_model_part"
         },
         "material_import_settings"           : {
             "materials_filename" : "Materials.json"
@@ -29,7 +29,6 @@
         "compute_reactions"                  : false,
         "move_mesh_flag"                     : false,
         "reform_dofs_at_each_step"           : false,
-        "nodal_smoothing"                    : false,
         "block_builder"                      : true,
         "reset_displacements"                : false,
         "convergence_criterion"              : "residual_criterion",
@@ -47,7 +46,6 @@
         "newmark_gamma"                      : 0.5,
         "newmark_theta"                      : 0.5,
         "problem_domain_sub_model_part_list" : ["Soil","truss"],
-        "processes_sub_model_part_list"      : ["BottomFixed", "NormalLoad"],
         "body_domain_sub_model_part_list"    : ["Soil","truss"],
         "linear_solver_settings"             : {
             "solver_type" : "skyline_lu_factorization",

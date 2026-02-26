@@ -1,0 +1,243 @@
+\documentclass[a4paper,10pt]{article} % article
+
+\usepackage[english]{babel}
+\usepackage{graphicx}
+\usepackage{subfig}
+\usepackage{amsmath}
+\usepackage{amssymb}
+\usepackage{mathtools}
+\usepackage{anysize}
+\marginsize{2cm}{2cm}{2cm}{2cm}
+
+%Highligh code
+% Custom colors
+\usepackage{color}
+\definecolor{deepblue}{rgb}{0,0,0.5}
+\definecolor{deepred}{rgb}{0.6,0,0}
+\definecolor{deepgreen}{rgb}{0,0.5,0}
+\definecolor{codegreen}{rgb}{0,0.5,0.2}
+\definecolor{backcolour}{rgb}{0.95,0.95,0.92}
+
+\usepackage{listings}
+
+\lstdefinestyle{mystyle}{
+    backgroundcolor=\color{backcolour},   
+    commentstyle=\color{deepblue},
+    keywordstyle=\color{codegreen},
+    numberstyle=\tiny\color{deepgreen},
+    stringstyle=\color{deepred},
+    basicstyle=\footnotesize,
+    breakatwhitespace=false,         
+    breaklines=true,                 
+    captionpos=b,                    
+    keepspaces=true,                 
+    numbers=left,                    
+    numbersep=5pt,                  
+    showspaces=false,                
+    showstringspaces=false,
+    showtabs=false,                  
+    tabsize=2
+}
+ 
+\lstset{style=mystyle}
+
+%Font
+\usepackage{avant}
+\usepackage[scaled]{helvet} % ss
+\usepackage[helvet]{sfmath} 
+\normalfont
+\renewcommand*\familydefault{\sfdefault} %% Only if the base font of the document is to be sans serif
+\usepackage[T1]{fontenc}
+\usepackage{type1cm}
+\usepackage{courier}
+\renewcommand{\ttdefault}{pcr}
+\DeclareMathAlphabet\mathbfcal{OMS}{cmsy}{b}{n}
+ 
+ %Head and foot page
+\usepackage{fancyhdr}
+\pagestyle{fancy}
+\fancyhf{}
+\fancyhead[L]{ContactStructuralMechanicsApplication}
+\fancyhead[R]{MeshTyingCondition}
+\fancyfoot[R]{\leftmark}
+\fancyfoot[L]{\thepage}
+\renewcommand{\headrulewidth}{0.4pt}
+\renewcommand{\footrulewidth}{0.4pt}
+% \renewcommand{\headwidth}{17cm} 
+
+\title{Mesh tying formulation with \em{Mortar} integration}
+\author{Vicente Mataix Ferr\'andiz}
+\date{June 2017}
+
+\begin{document}
+
+%%% TODO: Add figures??
+
+\maketitle
+
+\section{Introduction}
+
+The following document presents the formulation employed in the derivation of the mesh tying condition formulation with dual \textit{Lagrange multiplier}, based in the work of \textit{Alexander Popp}\cite{popp1,popp2}. The mesh tying problem is based on the \textbf{IBVP} of non-linear solid mechanics  and the tied contact constraints. After recapitulating some basic notation and the strong formulation, a weak formulation of the mesh tying problem with two subdomains will be introduced. Here, only the interpretation as constrained minimization problem is considered, leading to an indefinite saddle point formulation based on \textit{Lagrange multipliers}.
+
+The motivation for dual \textit{Lagrange multipliers}\cite{wohlmuth} lies in the fact that an extension of the master side basis functions to the slave side of the interface has a global support for standard \textit{Lagrange multipliers}. Based on duality arguments, it is however possible to construct dual shape functions such that the interface coupling subproblem in reduces to a localized form. Unfortunately, despite the dual formulation has been already implemented, the reduction of the system has not being used.
+
+\section{Content}
+
+\subsection{Strong formulation}
+
+On each subdomain $\Omega_0^{(i)}$ , the initial boundary value problem of finite deformation elastodynamics needs to be satisfied, viz \eqref{eq:eq0}.
+
+\begin{subequations}\label{eq:eq0}
+\begin{align}
+ & \text{Div} \mathbf{P}^{(i)}+\hat{\mathbf{b}}_0^{(i)}=\rho_0^{(i)}\ddot{\mathbf{u}}^{(i)} \text{ in } \Omega_0^{(i)} \times [0, T] \label{eq:subeq1}\\
+ & \mathbf{u}^{(i)} = \hat{\mathbf{u}}^{(i)} \text{ on } \Gamma_u^{(i)} \times [0, T] \label{eq:subeq2}\\
+ & \mathbf{P}^{(i)} \cdot \mathbf{N}^{(i)} = \hat{\mathbf{t}}_0^{(i)} \text{ on } \Gamma_\sigma^{(i)} \times [0, T] \label{eq:subeq3} \\
+ & \mathbf{u}^{(i)}\left( \mathbf{X}^{(i)}, 0\right) = \hat{\mathbf{u}}_0^{(i)}\left( \mathbf{X}^{(i)}\right) \text{ in } \Omega_0^{(i)} \label{eq:subeq4} \\
+ & \dot{\mathbf{u}}^{(i)}\left( \mathbf{X}^{(i)}, 0\right) = \hat{\dot{\mathbf{u}}}_0^{(i)}\left( \mathbf{X}^{(i)}\right) \text{ in } \Omega_0^{(i)} \label{eq:subeq5}
+ \end{align}
+\end{subequations}
+
+ The tied contact constraint, also formulated in the reference configuration, is given as \eqref{eq:eq6}.
+ 
+ \begin{equation}\label{eq:eq6}
+\mathbf{u}^{(1)} = \mathbf{u}^{(2)} \text{ on } \Gamma_c^{(i)} \times [0, T]
+ \end{equation}
+
+In the course of deriving a weak formulation, the balance of linear momentum at the mesh tying interface $\Gamma_c^{(i)}$ is typically exploited and a \textit{Lagrange multiplier} vector field $\boldsymbol{\lambda}$ is introduced, thus setting the basis for a mixed variational approach.
+
+\subsection{Weak formulation}
+
+To start the derivation of a weak formulation of \eqref{eq:eq0}, appropriate solution spaces $\mathbfcal{U}^{(i)}$ and
+weighting spaces $\mathbfcal{V}^{(i)}$ need to be defined as \eqref{eq:eq7}.
+
+\begin{equation}\label{eq:eq7}
+ \begin{cases}
+  \mathbfcal{U}^{(i)} = \left\{ \mathbf{u}^{(i)} \in H^1(\Omega) \| \mathbf{u}^{(i)} = \hat{\mathbf{u}}^{(i)} \text{ on } \Gamma_u^{(i)}\right\},\\
+  \mathbfcal{V}^{(i)} = \left\{ \delta\mathbf{u}^{(i)} \in H^1(\Omega) \| \delta\mathbf{u}^{(i)} = \mathbf{0} \text{ on } \Gamma_u^{(i)}\right\}
+ \end{cases}
+\end{equation}
+
+Additionally the \textit{Lagrange multiplier} vector $\boldsymbol{\lambda} = -\mathbf{t}_c^{(1)}$, which enforce the mesh tying constraint\eqref{eq:eq6}, represents the negative slave side contact traction $\mathbf{t}_c^{(1)}$, is chosen from a
+corresponding solution space denoted as $\mathbfcal{M}$.  In terms of its classification in functional analysis, this space represents the dual space of the trace space $\mathbfcal{W}^{(1)}$ of $\mathbfcal{V}^{(1)}$. In the given context, this means that $\mathcal{M} = H^{−1/2} (\Gamma_c)$ and $\mathcal{W}^{(1)} = H^{1/2} (\Gamma_c)$, where $\mathcal{M}$  and $\mathcal{W}^{(1)}$ denote single scalar components of the corresponding vector-valued spaces $\mathbfcal{M}$ and $\mathbfcal{W}$.
+
+Based on these considerations, a saddle point type weak formulation is derived next. This can be done by extending the standard weak formulation of non-linear solid mechanics as defined to two subdomains and combining it with the \textit{Lagrange multiplier} coupling terms introduced in generic form. Find $\mathbf{u}^{(i)} \in \mathbfcal{U}^{(i)}$ and $\boldsymbol{\lambda} \in \mathbfcal{M}$ such that we obtain \eqref{eq:eq8}.
+
+\begin{subequations}
+ \begin{align}
+-\delta \mathcal{W}_{kin}(\mathbf{u}^{(i)},\delta \mathbf{u}^{(i)}) - \delta \mathcal{W}_{int,ext}(\mathbf{u}^{(i)},\delta \mathbf{u}^{(i)}) & - \delta\mathcal{W}_{mnt}(\boldsymbol{\lambda}^{(i)},\delta \mathbf{u}^{(i)}) = 0 \text{ } \forall \delta \mathbf{u}^{(i)} \in  \mathbfcal{V} \label{eq:subeq8} \\ 
+& - \delta\mathcal{W}_{\lambda}(\mathbf{u}^{(i)},\delta \boldsymbol{\lambda}^{(i)}) = 0 \text{ } \forall \delta \boldsymbol{\lambda}^{(i)} \in  \mathbfcal{M} \label{eq:subeq9}
+ \end{align}
+\end{subequations}
+
+Herein, the kinetic contribution $\delta \mathcal{W}_{kin}$ , the internal and external contributions $\delta \mathcal{W}_{int,ext}$ and the mesh tying interface contribution $\delta\mathcal{W}_{mnt}$ to the overall virtual work on the two subdomains, as well as the weak form of the mesh tying constraint $\delta\mathcal{W}_{\lambda}($, have been abbreviated as \eqref{eq:contributions}.
+
+\begin{subequations}\label{eq:contributions}
+ \begin{align}
+  & -\delta \mathcal{W}_{kin} = \sum_{i = 1}^2 \left[\int_{\Omega_0^{(i)}} \rho_0^{(i)} \ddot{\mathbf{u}}^{(i)} \cdot \delta \mathbf{u}^{(i)} \text{d}V_0\right] \label{eq:subeq10} \\
+ & -\delta \mathcal{W}_{int,ext} = \sum_{i = 1}^2 \left[\int_{\Omega_0^{(i)}} \left(\mathbf{S}^{(i)} : \delta \mathbf{E}^{(i)} - \hat{\mathbf{b}}\cdot \delta\mathbf{u}^{(i)} \right) \text{d}V_0 - \int_{\Gamma_\sigma^{(i)}} \hat{\mathbf{t}}_0^{(i)}\cdot\delta\mathbf{u}^{(i)} \text{d}A_0 \right] \label{eq:subeq11} \\
+ & -\delta \mathcal{W}_{mnt} = \sum_{i = 1}^2 \left[\int_{\Gamma_c^{(i)}} \boldsymbol{\lambda} \cdot \left(\delta \mathbf{u}^{(1)} - \delta \mathbf{u}^{(2)}\right) \text{d}A_0\right] \label{eq:subeq12} \\ 
+ & -\delta \mathcal{W}_{\lambda} = \sum_{i = 1}^2 \left[\int_{\Gamma_c^{(i)}} \delta \boldsymbol{\lambda} \cdot \left( \mathbf{u}^{(1)} - \mathbf{u}^{(2)}\right) \text{d}A_0\right] \label{eq:subeq13}
+ \end{align}
+\end{subequations}
+
+The coupling terms on $\Gamma_c$ also allow for a direct interpretation in terms of variational formulations and the principle of virtual work. Whereas the contribution in \eqref{eq:subeq12} represents the virtual work of the unknown interface tractions $\boldsymbol{\lambda} = −\mathbf{t}_c^{(1)} = \mathbf{t}_c^{(2)}$, the contribution in \eqref{eq:subeq13} ensures a weak, variationally consistent enforcement of the tied contact constraint \eqref{eq:eq6}. Nevertheless, the concrete choice of the discrete Lagrange multiplier space $\mathbfcal{M}_h$ in the context of mortar finite element discretisations is decisive for the stability of the method and for optimal a priori error bounds. Finally, it is pointed out that the weak formulation \eqref{eq:subeq8} and \eqref{eq:subeq9} possesses all characteristics of saddle point problems and \textit{Lagrange multiplier} methods.
+
+\subsection{Discretisation and numerical integration}
+
+\subsubsection{Dual Lagrange multipliers}
+
+The discretisations of the displacements correspond with the standard ones in the finite element formulation, for more information check the literature\cite{Zienkiewicz1}. In addition, an adequate discretisation of the Lagrange multiplier vector $\boldsymbol{\lambda}$ is needed, and will be based on a discrete \textit{Lagrange multiplier} space $\mathbfcal{M}_h$ being an approximation of $\mathbfcal{M}$. Thus, we can define the discrete \textit{Lagrange multiplier} as \eqref{eq:eq14}, with the shape functions $\Phi_j$ and the discrete nodal Lagrange multipliers $\boldsymbol{\lambda}_h$.
+
+\begin{equation}\label{eq:eq14}
+ \boldsymbol{\lambda}_h = \sum_{i=1}^{m^{(1)}} \Phi_j\left(\xi^{(1)},\eta^{(1)} \right) \boldsymbol{\lambda}_j
+\end{equation}
+
+Details on how to define dual Lagrange multiplier shape functions $\Phi_j$ using the so-called biorthogonality relationship with the standard displacement shape functions $N_k$ have first been presented in \textit{Wohlmuth}\cite{wohlmuth}. A common notation of the biorthogonality condition is \eqref{eq:eq15}.
+
+\begin{equation}\label{eq:eq15}
+ \int_{\Gamma_{c,h}^{(1)}}\Phi_j N_k^{(1)} \text{d}A_0 = \delta_{jk} \int_{\Gamma_{c,h}^{(1)}} N_k^{(1)} \text{d}A_0 \text{ , } j,k=1,...,m^{(1)}
+\end{equation}
+
+Herein, $\delta_{jk}$ is the \textit{Kronecker} delta, and the most common choice $m^{(1)} = n^{(1)}$ is assumed. For
+practical reasons, the biorthogonality condition is typically applied locally on each slave element $e$, yielding \eqref{eq:eq16}, where $m_e^{(1)}$ represents the number of Lagrange multiplier nodes of the considered slave element.
+
+\begin{equation}\label{eq:eq16}
+ \int_{e}\Phi_j N_k^{(1)} \text{d}e = \delta_{jk} \int_{e} N_k^{(1)} \text{d}e \text{ , } j,k=1,...,m_e^{(1)}
+\end{equation}
+
+Combining the biorthogonality condition in \eqref{eq:eq16} and the partition of unity property of the dual shape functions, it follows that \eqref{eq:eq17}.
+
+\begin{equation}\label{eq:eq17}
+ \int_e \Phi_j de =  \int_e N_j^{(1)} de \text{ , } j=1,...,m_e^{(1)}
+\end{equation}
+
+It is important to point out that the elementwise biorthogonality condition in \eqref{eq:eq16} must be satisfied in the physical space, and not simply in the finite element parameter space. Consequently, a matrix system of size $m_e^{(1)} \times m_e^{(1)}$ must be solved on each slave element. The first step for doing this is to introduce unknown linear coefficients $a_{jk}$ such that \eqref{eq:eq18}.
+
+\begin{equation}\label{eq:eq18}
+ \Phi_j(\xi, \eta) = a_{jk} N_k^{(1)}\left(\xi, \eta \right), \mathbf{A}_e = [a_{jk}] \in \mathbb{R}^{m_e^{(1)} \times m_e^{(1)}}
+ \end{equation}
+ 
+ It can easily be verified that, as second step, insertion of \eqref{eq:eq18} into \eqref{eq:eq16} yields the unknown
+coefficient matrix $\mathbf{A}_e$ as \eqref{eq:eq19}, where $J(\xi, \eta)$ is the slave \textit{Jacobian} determinant.
+
+\begin{equation}\label{eq:eq19}
+\begin{aligned}
+ & \mathbf{A}_e = \mathbf{D}_e\mathbf{M}_e^{-1} \\
+ & \mathbf{D}_e = [d_{jk}] \in \mathbb{R}^{m_e^{(1)} \times m_e^{(1)}}, d_{jk} = \delta_{jk} \int_e N_k^{(1)}(\xi, \eta) J(\xi, \eta) \text{d}e \\
+ & \mathbf{M}_e = [m_{jk}] \in \mathbb{R}^{m_e^{(1)} \times m_e^{(1)}}, m_{jk} = \int_e N_j^{(1)}(\xi, \eta) N_k^{(1)}(\xi, \eta) J(\xi, \eta) \text{d}e
+\end{aligned}
+ \end{equation}
+
+\subsubsection{Mortar operators}
+
+Considering the discrete \textit{Lagrange multiplier}\eqref{eq:eq14} in \eqref{eq:subeq8} we obtain \eqref{eq:eq20}, where $\chi_h$ is the interface mapping.
+
+\begin{equation}\label{eq:eq20}
+ -\delta \mathcal{W}_{mt,h} = \sum_{j=1}^{m^{(1)}}\sum_{k=1}^{n^{(1)}} \boldsymbol{\lambda}_j^T \left(\int_{\Gamma_{c,h}^{(1)}} \Phi_j N_k^{(1)} \text{d}A_0 \right) \delta \mathbf{d}_k^{(1)} -\sum_{j=1}^{m^{(1)}}\sum_{l=1}^{n^{(2)}} \boldsymbol{\lambda}_j^T \left(\int_{\Gamma_{c,h}^{(1)}} \Phi_j \left(N_l^{(2)} \circ \chi_h\right) \text{d}A_0 \right) \delta \mathbf{d}_l^{(2)}
+\end{equation}
+
+Numerical integration of the mortar coupling terms is exclusively performed on the slave side $\Gamma_{c,h}$ of the interface. In \eqref{eq:eq20}, nodal blocks of the two mortar integral matrices commonly denoted as $\mathbf{D}$ and $\mathbf{M}$ can be identified. This leads to the following definitions \eqref{eq:eq21}.
+
+\begin{subequations}\label{eq:eq21}
+ \begin{align}
+ & \mathbf{D}[j,k] = D_{jk} \mathbf{I}_{ndim} = \int_{\Gamma_{c,h}^{(1)}} \Phi_j N_k^{(1)}\text{d}A_0\mathbf{I}_{ndim}\text{ , } j=1,...m^{(1)}\text{ , } k= 1, ...n^{(1)} \\
+ & \mathbf{M}[j,l] = M_{jl} \mathbf{I}_{ndim} = \int_{\Gamma_{c,h}^{(1)}} \Phi_j \left(N_l^{(2)} \circ \chi_h \right)\text{d}A_0\mathbf{I}_{ndim}\text{ , } j=1,...m^{(1)}\text{ , } k= 1, ...n^{(2)}
+ \end{align}
+\end{subequations}
+
+Wit these matrices we can express the functional \eqref{eq:eq20} in the following way \eqref{eq:eq22}.
+
+\begin{equation}\label{eq:eq22}
+ -\delta \mathcal{W}_{mnt,h} = \delta \mathbf{d}_{\mathcal{S}}^T\mathbf{D}^T\boldsymbol{\lambda} - \delta \mathbf{d}_{\mathcal{M}}^T\mathbf{M}^T\boldsymbol{\lambda} = \delta \mathbf{d} \underbrace{\left[\begin{array}{c} \mathbf{0} \\ -\mathbf{M}^T \\ \mathbf{D}^T\end{array} \right]}_{\mathbf{B}^T_{mnt}} \boldsymbol{\lambda} = \delta \mathbf{d}^T \mathbf{f}_{mnt}(\boldsymbol{\lambda})
+\end{equation}
+
+Herein, the discrete mortar mesh tying operator $\mathbf{B}_{mnt}$ and the resulting discrete vector of mesh tying forces $\mathbf{f}_{mnt} (\boldsymbol{\lambda}) = \mathbf{B}_{mnt}\boldsymbol{\lambda}$ acting on the slave and the master side of the interface are introduced. 
+
+To finalize the discretisation of the considered mesh tying problem, a closer look needs to
+be taken at the weak constraint contribution $\delta \mathcal{W}_{\lambda,h} $ in \eqref{eq:subeq9}. Due to the saddle point characteristics and resulting symmetry of the mixed variational formulation in \eqref{eq:subeq8}  and \eqref{eq:subeq9}, all discrete components of $\delta \mathcal{W}_{\lambda,h}$ have already been introduced and the final formulation is given as \eqref{eq:eq23}, with $\mathbf{g}_{mnt}(\mathbf{d}) = \mathbf{B}_{mnt} \mathbf{d}$ representing the discrete mesh tying constraint at the coupling interface.
+
+\begin{equation}\label{eq:eq23}
+ -\delta \mathcal{W}_{\lambda,h} = \delta \boldsymbol{\lambda}^T\mathbf{D}\mathbf{d}_{\mathcal{S}} - \delta \boldsymbol{\lambda}^T\mathbf{M}\mathbf{d}_{\mathcal{M}}= \delta \boldsymbol{\lambda}^T \mathbf{B}_{mnt} \mathbf{d} = \delta \boldsymbol{\lambda}^T \mathbf{g}_{mnt}(\mathbf{d})
+\end{equation}
+
+\subsubsection{Matrix form of the problem}
+
+Finally, once computed the mortar operators, the resulting system for mesh tying corresponds with \eqref{eq:eq24}.
+
+\begin{equation}\label{eq:eq24}
+ \left[ \begin{array}{cccc} \mathbf{K}_{\mathcal{N}\mathcal{N}} &  \mathbf{K}_{\mathcal{N}\mathcal{M}} & \mathbf{K}_{\mathcal{N}\mathcal{S}} & \mathbf{0} \\ \mathbf{K}_{\mathcal{N}\mathcal{N}}  & \mathbf{K}_{\mathcal{M}\mathcal{M}} & \mathbf{0} & -\mathbf{M}^{T} \\ \mathbf{K}_{\mathcal{S}\mathcal{N}} & \mathbf{0} & \mathbf{K}_{\mathcal{S}\mathcal{S}} & \mathbf{D}^T \\ \mathbf{0} & -\mathbf{M} & \mathbf{D} & \mathbf{0}   \end{array} \right] \left[ \begin{array}{c} \Delta\mathbf{d}_{\mathcal{N}} \\ \Delta\mathbf{d}_{\mathcal{M}} \\ \Delta\mathbf{d}_{\mathcal{S}} \\ \Delta\boldsymbol{\lambda} \end{array} \right] = - \left[ \begin{array}{c} \mathbf{r}_{\mathcal{N}} \\ \mathbf{r}_{\mathcal{M}} \\ \mathbf{r}_{\mathcal{S}} \\ \mathbf{r}_{\boldsymbol{\lambda}} \end{array} \right] 
+\end{equation}
+
+\begin{thebibliography}{99}
+
+\bibitem{popp1} Popp, Alexander {\em Mortar Methods for Computational Contact Mechanics and General Interface Problems}  2012.
+
+\bibitem{popp2}  Popp, Alexander and Gitterle, Markus and Gee, Michael W. and Wall, Wolfgang A. {\em A dual mortar approach for 3D finite deformation contact with consistent linearization} 2010: International Journal for Numerical Methods in Engineering
+
+\bibitem{wohlmuth} B. I. Wohlmuth,{\em Discretization methods and iterative solvers based on domain decomposition}, Springer-Verlag Berlin Heidelberg, 2001.
+
+\bibitem{Zienkiewicz1} Zienkiewicz, O. C. and Zhu, J.Z. and Taylor, Robert L.,{\em The Finite Element Method: its Basis and Fundamentals}, Butterworth-Heinemann, 2013.
+
+\end{thebibliography}
+
+\end{document}

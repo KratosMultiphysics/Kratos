@@ -7,10 +7,12 @@ import KratosMultiphysics.KratosUnittest as KratosUnittest
 
 # Import the tests or test_classes to create the suits
 import test_nearest_neighbor_mapper
+import test_nearest_neighbor_mapper_iga
 import test_nearest_element_mapper
 import test_barycentric_mapper
 import test_projection_3d_2d_mapper
 import test_coupling_geometry_mapper
+import test_beam_mapper
 
 from test_patch_test_mappers import TestPatchTestMappers
 
@@ -34,6 +36,8 @@ def AssembleTestSuites():
     smallSuite = suites['small']
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TestPatchTestMappers]))
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([test_coupling_geometry_mapper.TestCouplingGeometryMapper]))
+    smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([test_coupling_geometry_mapper.TestIgaFEMCouplingGeometryMapper]))
+    smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([test_coupling_geometry_mapper.TestDualMortarIgaFEMCouplingGeometryMapper]))
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([test_coupling_geometry_mapper.TestDualMortarCouplingGeometryMapper]))
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([test_coupling_geometry_mapper.TestSlaveOriginCouplingGeometryMapper]))
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([test_coupling_geometry_mapper.TestComputeMappingMatrixCouplingGeometryMapper]))
@@ -43,9 +47,14 @@ def AssembleTestSuites():
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([test_nearest_neighbor_mapper.BladeMapping]))
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([test_nearest_neighbor_mapper.CornerCaseNearestNeighbor]))
 
+    smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([test_nearest_neighbor_mapper_iga.BasicTestsLineMappingIGAFEM]))
+    smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([test_nearest_neighbor_mapper_iga.BasicTestsSurfaceMappingIGAFEM]))
+
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([test_nearest_element_mapper.BasicTestsLine]))
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([test_nearest_element_mapper.BasicTestsVolume]))
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([test_nearest_element_mapper.BladeMapping]))
+    smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([test_nearest_element_mapper.BasicTestsLineMappingIGAFEM]))
+    smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([test_nearest_element_mapper.BasicTestsSurfaceMappingIGAFEM]))
 
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([test_barycentric_mapper.BasicTestsLine]))
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([test_barycentric_mapper.BasicTestsVolume]))
@@ -56,6 +65,8 @@ def AssembleTestSuites():
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([test_projection_3d_2d_mapper.Projection3D2DMapperNearestNeighborDestination2D]))
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([test_projection_3d_2d_mapper.Projection3D2DMapperNearestElementDestination2D]))
 
+    smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([test_beam_mapper.BeamBladeMapping]))
+
     # Create a test suit with the selected tests
     # nightSuite will contain the following tests:
     nightSuite = suites['nightly']
@@ -64,11 +75,16 @@ def AssembleTestSuites():
     nightSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([test_nearest_neighbor_mapper.BasicTestsSurface]))
     nightSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([test_nearest_neighbor_mapper.BasicTestsSurfaceSwitchedSides]))
     nightSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([test_nearest_neighbor_mapper.BasicTestsVolumeSwitchedSides]))
+    
+    nightSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([test_nearest_neighbor_mapper_iga.BasicTestsLineMappingIGAFEM]))
+    nightSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([test_nearest_neighbor_mapper_iga.BasicTestsSurfaceMappingIGAFEM]))
 
     nightSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([test_nearest_element_mapper.BasicTestsLineSwitchedSides]))
     nightSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([test_nearest_element_mapper.BasicTestsSurface]))
     nightSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([test_nearest_element_mapper.BasicTestsSurfaceSwitchedSides]))
     nightSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([test_nearest_element_mapper.BasicTestsVolumeSwitchedSides]))
+    nightSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([test_nearest_element_mapper.BasicTestsLineMappingIGAFEM]))
+    nightSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([test_nearest_element_mapper.BasicTestsSurfaceMappingIGAFEM]))
 
     nightSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([test_barycentric_mapper.BasicTestsLineSwitchedSides]))
     nightSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([test_barycentric_mapper.BasicTestsSurface]))

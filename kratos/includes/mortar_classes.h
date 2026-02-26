@@ -24,7 +24,6 @@
 
 namespace Kratos
 {
-
 ///@name Kratos Globals
 ///@{
 
@@ -32,19 +31,8 @@ namespace Kratos
 ///@name Type Definitions
 ///@{
 
-    // Point and nodes defines
-    using PointType = Point;
-    using GeometryType = Geometry<Node>;
-
-    // Type definition for integration methods
-    using IntegrationPointsType = typename GeometryType::IntegrationPointsArrayType;
-
     /// The definition of the size type
     using SizeType = std::size_t;
-
-    /// The definition of the index type
-    using IndexType = std::size_t;
-
 
 ///@}
 ///@name  Enum's
@@ -358,9 +346,15 @@ public:
     ///@name Life Cycle
     ///@{
 
-    MortarKinematicVariables(){}
+    /// Default constructor
+    MortarKinematicVariables() = default;
 
-    virtual ~MortarKinematicVariables(){}
+    /// Destructor
+    virtual ~MortarKinematicVariables() = default;
+
+    ///@}
+    ///@name Member Variables
+    ///@{
 
     // Shape functions for contact pair
     Vector NMaster = Vector(TNumNodesMaster, 0.0);
@@ -392,51 +386,36 @@ public:
         DetjSlave = 0.0;
     }
 
-    /**
-     * Print information about this object
-     */
-    void PrintInfo(std::ostream& rOStream) const
-    {
-        rOStream << "NSlave:" << NSlave << std::endl;
-        rOStream << "NMaster: " <<NMaster << std::endl;
-        rOStream << "PhiLagrangeMultipliers: "<< PhiLagrangeMultipliers << std::endl;
-        rOStream << "DetjSlave: " << DetjSlave << std::endl;
-    }
-
-    ///@}
-    ///@name Access
-    ///@{
-
-    ///@}
-    ///@name Inquiry
-    ///@{
-
     ///@}
     ///@name Input and output
     ///@{
 
-    ///@}
-    ///@name Friends
-    ///@{
+    /// Turn back information as a string.
+    virtual std::string Info() const
+    {
+        std::stringstream buffer;
+        buffer << "MortarKinematicVariables with " << TNumNodes << " nodes (slave) and " << TNumNodesMaster << " nodes (master)";
+        return buffer.str();
+    }
+
+    /// Print information about this object.
+    virtual void PrintInfo(std::ostream& rOStream) const
+    {
+        rOStream << "MortarKinematicVariables with " << TNumNodes << " nodes (slave) and " << TNumNodesMaster << " nodes (master)" << std::endl;
+    }
+
+    /// Print object's data.
+    virtual void PrintData(std::ostream& rOStream) const
+    {
+        // Print the base class data
+        rOStream << "NSlave:" << NSlave << "\n";
+        rOStream << "NMaster: " <<NMaster << "\n";
+        rOStream << "PhiLagrangeMultipliers: "<< PhiLagrangeMultipliers << "\n";
+        rOStream << "DetjSlave: " << DetjSlave << std::endl;
+    }
 
     ///@}
 private:
-    ///@name Static Member Variables
-    ///@{
-
-    ///@}
-    ///@name Member Variables
-    ///@{
-
-    ///@}
-    ///@name Private Operators
-    ///@{
-
-    ///@}
-    ///@name Private Operations
-    ///@{
-
-    ///@}
     ///@name Serialization
     ///@{
 
@@ -459,19 +438,6 @@ private:
     }
 
     ///@}
-    ///@name Private  Access
-    ///@{
-
-    ///@}
-    ///@name Private Inquiry
-    ///@{
-
-    ///@}
-    ///@name Un accessible methods
-    ///@{
-
-    ///@}
-
 }; // Class MortarKinematicVariables
 
 /**
@@ -502,9 +468,15 @@ public:
     ///@name Life Cycle
     ///@{
 
+    /// Default constructor
     MortarKinematicVariablesWithDerivatives()= default;
 
+    /// Destructor
     ~MortarKinematicVariablesWithDerivatives() override= default;
+
+    ///@}
+    ///@name Member Variables
+    ///@{
 
     // Shape functions local derivatives for contact pair
     Matrix DNDeMaster = ScalarMatrix(TNumNodesMaster, TDim - 1, 0.0);
@@ -542,48 +514,39 @@ public:
         noalias(jMaster) = ZeroMatrix(TDim, TDim - 1);
     }
 
-    /**
-     * Print information about this object
-     */
-    void PrintInfo(std::ostream& rOStream) const
-    {
-        BaseClassType::PrintInfo(rOStream);
-    }
-
-    ///@}
-    ///@name Access
-    ///@{
-
-    ///@}
-    ///@name Inquiry
-    ///@{
-
     ///@}
     ///@name Input and output
     ///@{
 
-    ///@}
-    ///@name Friends
-    ///@{
+    /// Turn back information as a string.
+    std::string Info() const override
+    {
+        std::stringstream buffer;
+        buffer << "MortarKinematicVariablesWithDerivatives with " << TNumNodes << " nodes (slave) and " << TNumNodesMaster << " nodes (master)";
+        return buffer.str();
+    }
+
+    /// Print information about this object.
+    void PrintInfo(std::ostream& rOStream) const override
+    {
+        rOStream << "MortarKinematicVariablesWithDerivatives with " << TNumNodes << " nodes (slave) and " << TNumNodesMaster << " nodes (master)" << std::endl;
+    }
+
+    /// Print object's data.
+    void PrintData(std::ostream& rOStream) const override
+    {
+        // Print the base class data
+        BaseClassType::PrintData(rOStream);
+
+        // Print the additional variables
+        rOStream << "DNDeMaster: " << DNDeMaster << "\n";
+        rOStream << "DNDeSlave: " << DNDeSlave << "\n";
+        rOStream << "jSlave: " << jSlave << "\n";
+        rOStream << "jMaster: " << jMaster << std::endl;
+    }
 
     ///@}
 private:
-    ///@name Static Member Variables
-    ///@{
-
-    ///@}
-    ///@name Member Variables
-    ///@{
-
-    ///@}
-    ///@name Private Operators
-    ///@{
-
-    ///@}
-    ///@name Private Operations
-    ///@{
-
-    ///@}
     ///@name Serialization
     ///@{
 
@@ -608,19 +571,6 @@ private:
     }
 
     ///@}
-    ///@name Private  Access
-    ///@{
-
-    ///@}
-    ///@name Private Inquiry
-    ///@{
-
-    ///@}
-    ///@name Un accessible methods
-    ///@{
-
-    ///@}
-
 }; // Class MortarKinematicVariablesWithDerivatives
 
 /**
@@ -639,6 +589,12 @@ class DerivativeData
 public:
     ///@name Type Definitions
     ///@{
+
+    // Geometry definition
+    using GeometryType = Geometry<Node>;
+
+    /// The definition of the index type
+    using IndexType = std::size_t;
 
     // Auxiliary types
     using DummyBoundedMatrixType = BoundedMatrix<int, 1, 1>;
@@ -672,9 +628,15 @@ public:
     ///@name Life Cycle
     ///@{
 
+    /// Default constructor
     DerivativeData()= default;
 
+    /// Destructor
     virtual ~DerivativeData()= default;
+
+    ///@}
+    ///@name Member Variables
+    ///@{
 
     /// The penalty parameter
     array_1d<double, TNumNodes> PenaltyParameter;
@@ -822,39 +784,53 @@ public:
     }
 
     ///@}
-    ///@name Access
-    ///@{
-
-    ///@}
-    ///@name Inquiry
-    ///@{
-
-    ///@}
     ///@name Input and output
     ///@{
 
-    ///@}
-    ///@name Friends
-    ///@{
+    /// Turn back information as a string.
+    virtual std::string Info() const
+    {
+        std::stringstream buffer;
+        buffer << "DerivativeData " << TDim << "D with " << TNumNodes << " nodes (slave) and " << TNumNodesMaster << " nodes (master)";
+        return buffer.str();
+    }
+
+    /// Print information about this object.
+    virtual void PrintInfo(std::ostream& rOStream) const
+    {
+        rOStream << "DerivativeData " << TDim << "D with " << TNumNodes << " nodes (slave) and " << TNumNodesMaster << " nodes (master)" << std::endl;
+    }
+
+    /// Print object's data.
+    virtual void PrintData(std::ostream& rOStream) const
+    {
+        // Print the base class data
+        rOStream << "PenaltyParameter: " << PenaltyParameter << "\n";
+        rOStream << "ScaleFactor: " << ScaleFactor << "\n";
+        rOStream << "NormalSlave: " << NormalSlave << "\n";
+        rOStream << "NormalMaster: " << NormalMaster << "\n";
+        rOStream << "X1: " << X1 << "\n";
+        rOStream << "u1: " << u1 << "\n";
+        rOStream << "X2: " << X2 << "\n";
+        rOStream << "u2: " << u2 << "\n";
+        for (IndexType i = 0; i < DoFSizeSlaveGeometry; ++i) {
+            rOStream << "DeltaDetjSlave[" << i << "]: " << DeltaDetjSlave[i] << "\n";
+            rOStream << "DeltaPhi[" << i << "]: " << DeltaPhi[i] << "\n";
+            rOStream << "DeltaN1[" << i << "]: " << DeltaN1[i] << "\n";
+            rOStream << "DeltaN2[" << i << "]: " << DeltaN2[i] << "\n";
+            rOStream << "DeltaNormalSlave[" << i << "]: " << DeltaNormalSlave[i] << "\n";
+            rOStream << "DeltaNormalMaster[" << i << "]: " << DeltaNormalMaster[i] << "\n";
+            rOStream << "DeltaCellVertex[" << i << "]: " << DeltaCellVertex[i] << "\n";
+        }
+        rOStream << "Ae: "  << Ae  << "\n";
+        for (IndexType i = 0; i < DoFSizeDerivativesDependence; ++i) {
+            rOStream <<"DeltaAe["<< i<<"]: "<< DeltaAe[i]  << " ";
+        }
+        rOStream << std::endl;
+    }
 
     ///@}
 private:
-    ///@name Static Member Variables
-    ///@{
-
-    ///@}
-    ///@name Member Variables
-    ///@{
-
-    ///@}
-    ///@name Private Operators
-    ///@{
-
-    ///@}
-    ///@name Private Operations
-    ///@{
-
-    ///@}
     ///@name Serialization
     ///@{
 
@@ -903,19 +879,6 @@ private:
     }
 
     ///@}
-    ///@name Private  Access
-    ///@{
-
-    ///@}
-    ///@name Private Inquiry
-    ///@{
-
-    ///@}
-    ///@name Un accessible methods
-    ///@{
-
-    ///@}
-
 };  // Class DerivativeData
 
 /**
@@ -936,6 +899,9 @@ public:
     ///@name Type Definitions
     ///@{
 
+    // Geometry definition
+    using GeometryType = Geometry<Node>;
+
     /// The base class type
     using BaseClassType = DerivativeData<TDim, TNumNodes, TNumNodesMaster>;
 
@@ -954,9 +920,15 @@ public:
     ///@name Life Cycle
     ///@{
 
+    /// Default constructor
     DerivativeDataFrictional()= default;
 
-    virtual ~DerivativeDataFrictional()= default;
+    /// Destructor
+    ~DerivativeDataFrictional() override = default;
+
+    ///@}
+    ///@name Member Variables
+    ///@{
 
     /// The ALM parameters
     double TangentFactor = 0.0;
@@ -1006,39 +978,37 @@ public:
     }
 
     ///@}
-    ///@name Access
-    ///@{
-
-    ///@}
-    ///@name Inquiry
-    ///@{
-
-    ///@}
     ///@name Input and output
     ///@{
 
-    ///@}
-    ///@name Friends
-    ///@{
+    /// Turn back information as a string.
+    std::string Info() const override
+    {
+        std::stringstream buffer;
+        buffer << "DerivativeDataFrictional " << TDim << "D with " << TNumNodes << " nodes (slave) and " << TNumNodesMaster << " nodes (master)";
+        return buffer.str();
+    }
+
+    /// Print information about this object.
+    void PrintInfo(std::ostream& rOStream) const override
+    {
+        rOStream << "DerivativeDataFrictional " << TDim << "D with " << TNumNodes << " nodes (slave) and " << TNumNodesMaster << " nodes (master)" << std::endl;
+    }
+
+    /// Print object's data.
+    void PrintData(std::ostream& rOStream) const override
+    {
+        // Print the base class data
+        BaseClassType::PrintData(rOStream);
+
+        // Print the additional variables
+        rOStream << "TangentFactor: " << TangentFactor << "\n";
+        rOStream << "u1old: " << u1old << "\n";
+        rOStream << "u2old: " << u2old << std::endl;
+    }
 
     ///@}
 private:
-    ///@name Static Member Variables
-    ///@{
-
-    ///@}
-    ///@name Member Variables
-    ///@{
-
-    ///@}
-    ///@name Private Operators
-    ///@{
-
-    ///@}
-    ///@name Private Operations
-    ///@{
-
-    ///@}
     ///@name Serialization
     ///@{
 
@@ -1061,19 +1031,6 @@ private:
     }
 
     ///@}
-    ///@name Private  Access
-    ///@{
-
-    ///@}
-    ///@name Private Inquiry
-    ///@{
-
-    ///@}
-    ///@name Un accessible methods
-    ///@{
-
-    ///@}
-
 };  // Class DerivativeDataFrictional
 
 /**
@@ -1110,9 +1067,15 @@ public:
     ///@name Life Cycle
     ///@{
 
-    MortarOperator(){}
+    /// Default constructor
+    MortarOperator() = default;
 
-    virtual ~MortarOperator(){}
+    /// Destructor
+    virtual ~MortarOperator() = default;
+
+    ///@}
+    ///@name Member Variables
+    ///@{
 
     /// Mortar condition matrices - DOperator and MOperator
     GeometryMatrixSlaveType DOperator;
@@ -1180,49 +1143,34 @@ public:
         return POperator;
     }
 
-    /**
-     * @brief Print information about this object
-     */
-    void PrintInfo(std::ostream& rOStream) const
-    {
-        rOStream << "DOperator: " << DOperator << std::endl;
-        rOStream << "MOperator: " << MOperator << std::endl;
-    }
-
-    ///@}
-    ///@name Access
-    ///@{
-
-    ///@}
-    ///@name Inquiry
-    ///@{
-
     ///@}
     ///@name Input and output
     ///@{
 
-    ///@}
-    ///@name Friends
-    ///@{
+    /// Turn back information as a string.
+    virtual std::string Info() const
+    {
+        std::stringstream buffer;
+        buffer << "MortarOperator with " << TNumNodes << " nodes (slave) and " << TNumNodesMaster << " nodes (master)";
+        return buffer.str();
+    }
+
+    /// Print information about this object.
+    virtual void PrintInfo(std::ostream& rOStream) const
+    {
+        rOStream << "MortarOperator with " << TNumNodes << " nodes (slave) and " << TNumNodesMaster << " nodes (master)" << std::endl;
+    }
+
+    /// Print object's data.
+    virtual void PrintData(std::ostream& rOStream) const
+    {
+        // Print the base class data
+        rOStream << "DOperator: " << DOperator << "\n";
+        rOStream << "MOperator: " << MOperator << std::endl;
+    }
 
     ///@}
 private:
-    ///@name Static Member Variables
-    ///@{
-
-    ///@}
-    ///@name Member Variables
-    ///@{
-
-    ///@}
-    ///@name Private Operators
-    ///@{
-
-    ///@}
-    ///@name Private Operations
-    ///@{
-
-    ///@}
     ///@name Serialization
     ///@{
 
@@ -1241,19 +1189,6 @@ private:
     }
 
     ///@}
-    ///@name Private  Access
-    ///@{
-
-    ///@}
-    ///@name Private Inquiry
-    ///@{
-
-    ///@}
-    ///@name Un accessible methods
-    ///@{
-
-    ///@}
-
 }; // Class MortarOperator
 
 /**
@@ -1274,6 +1209,9 @@ class MortarOperatorWithDerivatives
 public:
     ///@name Type Definitions
     ///@{
+
+    /// The definition of the index type
+    using IndexType = std::size_t;
 
     /// The base class type
     using BaseClassType = MortarOperator<TNumNodes, TNumNodesMaster>;
@@ -1311,9 +1249,15 @@ public:
     ///@name Life Cycle
     ///@{
 
-    MortarOperatorWithDerivatives(){}
+    /// Default constructor
+    MortarOperatorWithDerivatives() = default;
 
-    ~MortarOperatorWithDerivatives() override{}
+    /// Destructor
+    ~MortarOperatorWithDerivatives() override = default;
+
+    ///@}
+    ///@name Member Variables
+    ///@{
 
     // D and M directional derivatives
     array_1d<GeometryMatrixSlaveType, DoFSizePairedGeometry> DeltaDOperator;
@@ -1415,13 +1359,31 @@ public:
         }
     }
 
-    /**
-     * @brief Print information about this object
-     */
-    void PrintInfo(std::ostream& rOStream) const
-    {
-        BaseClassType::PrintInfo(rOStream);
+    ///@}
+    ///@name Input and output
+    ///@{
 
+    /// Turn back information as a string.
+    std::string Info() const override
+    {
+        std::stringstream buffer;
+        buffer << "MortarOperatorWithDerivatives in " << TDim << "D with " << TNumNodes << " nodes (slave) and " << TNumNodesMaster << " nodes (master)";
+        return buffer.str();
+    }
+
+    /// Print information about this object.
+    void PrintInfo(std::ostream& rOStream) const override
+    {
+        rOStream << "MortarOperatorWithDerivatives in " << TDim << "D with " << TNumNodes << " nodes (slave) and " << TNumNodesMaster << " nodes (master)" << std::endl;
+    }
+
+    /// Print object's data.
+    void PrintData(std::ostream& rOStream) const override
+    {
+        // Print the base class data
+        BaseClassType::PrintData(rOStream);
+
+        // Print the additional variables
         for (IndexType i = 0; i < TNumNodes * TDim; ++i) {
             rOStream << "DeltaDOperator_" << i << ": " << DeltaDOperator[i] << std::endl;
             rOStream << "DeltaMOperator_" << i << ": " << DeltaMOperator[i] << std::endl;
@@ -1429,39 +1391,7 @@ public:
     }
 
     ///@}
-    ///@name Access
-    ///@{
-
-    ///@}
-    ///@name Inquiry
-    ///@{
-
-    ///@}
-    ///@name Input and output
-    ///@{
-
-    ///@}
-    ///@name Friends
-    ///@{
-
-    ///@}
 private:
-    ///@name Static Member Variables
-    ///@{
-
-    ///@}
-    ///@name Member Variables
-    ///@{
-
-    ///@}
-    ///@name Private Operators
-    ///@{
-
-    ///@}
-    ///@name Private Operations
-    ///@{
-
-    ///@}
     ///@name Serialization
     ///@{
 
@@ -1482,19 +1412,6 @@ private:
     }
 
     ///@}
-    ///@name Private  Access
-    ///@{
-
-    ///@}
-    ///@name Private Inquiry
-    ///@{
-
-    ///@}
-    ///@name Un accessible methods
-    ///@{
-
-    ///@}
-
 }; // Class MortarOperatorWithDerivatives
 
 /**
@@ -1515,6 +1432,9 @@ public:
     ///@name Type Definitions
     ///@{
 
+    /// The definition of the index type
+    using IndexType = std::size_t;
+
     /// The kinematic variables class
     using KinematicVariables = MortarKinematicVariables<TNumNodes, TNumNodesMaster>;
 
@@ -1528,9 +1448,15 @@ public:
     ///@name Life Cycle
     ///@{
 
-    DualLagrangeMultiplierOperators(){}
+    /// Default constructor
+    DualLagrangeMultiplierOperators() = default;
 
-    virtual ~DualLagrangeMultiplierOperators(){}
+    /// Destructor
+    virtual ~DualLagrangeMultiplierOperators() = default;
+
+    ///@}
+    ///@name Member Variables
+    ///@{
 
     /// The auxiliary operators needed to build the dual LM Ae operator
     GeometryMatrixType Me, De;
@@ -1626,48 +1552,34 @@ public:
         return De;
     }
 
-    /**
-     * @brief Print information about this object
-     */
-    void PrintInfo(std::ostream& rOStream) const {
+    ///@}
+    ///@name Input and output
+    ///@{
+
+    /// Turn back information as a string.
+    virtual std::string Info() const
+    {
+        std::stringstream buffer;
+        buffer << "DualLagrangeMultiplierOperators with " << TNumNodes << " nodes (slave) and " << TNumNodesMaster << " nodes (master)";
+        return buffer.str();
+    }
+
+    /// Print information about this object.
+    virtual void PrintInfo(std::ostream& rOStream) const
+    {
+        rOStream << "DualLagrangeMultiplierOperators with " << TNumNodes << " nodes (slave) and " << TNumNodesMaster << " nodes (master)" << std::endl;
+    }
+
+    /// Print object's data.
+    virtual void PrintData(std::ostream& rOStream) const 
+    {
+        // Print the base class data
         rOStream << "Me: " << Me << std::endl;
         rOStream << "De: " << De << std::endl;
     }
 
     ///@}
-    ///@name Access
-    ///@{
-
-    ///@}
-    ///@name Inquiry
-    ///@{
-
-    ///@}
-    ///@name Input and output
-    ///@{
-
-    ///@}
-    ///@name Friends
-    ///@{
-
-    ///@}
 private:
-    ///@name Static Member Variables
-    ///@{
-
-    ///@}
-    ///@name Member Variables
-    ///@{
-
-    ///@}
-    ///@name Private Operators
-    ///@{
-
-    ///@}
-    ///@name Private Operations
-    ///@{
-
-    ///@}
     ///@name Serialization
     ///@{
 
@@ -1684,18 +1596,6 @@ private:
         rSerializer.load("Me", Me);
         rSerializer.load("De", De);
     }
-
-    ///@}
-    ///@name Private  Access
-    ///@{
-
-    ///@}
-    ///@name Private Inquiry
-    ///@{
-
-    ///@}
-    ///@name Un accessible methods
-    ///@{
 
     ///@}
 
@@ -1719,6 +1619,9 @@ class DualLagrangeMultiplierOperatorsWithDerivatives
 public:
     ///@name Type Definitions
     ///@{
+
+    /// The definition of the index type
+    using IndexType = std::size_t;
 
     /// The base class type
     using BaseClassType = DualLagrangeMultiplierOperators<TNumNodes, TNumNodesMaster>;
@@ -1754,9 +1657,15 @@ public:
     ///@name Life Cycle
     ///@{
 
-    DualLagrangeMultiplierOperatorsWithDerivatives(){}
+    /// Default constructor
+    DualLagrangeMultiplierOperatorsWithDerivatives() = default;
 
-    ~DualLagrangeMultiplierOperatorsWithDerivatives() override{}
+    /// Destructor
+    ~DualLagrangeMultiplierOperatorsWithDerivatives() override = default;
+
+    ///@}
+    ///@name Member Variables
+    ///@{
 
     // Derivatives matrices
     array_1d<GeometryMatrixType, DoFSizeDerivativesDependence> DeltaMe, DeltaDe;
@@ -1854,12 +1763,29 @@ public:
         return true;
     }
 
-    /**
-     * @brief This method prints the current operators
-     */
-    void PrintInfo(std::ostream& rOStream) const
+    ///@}
+    ///@name Input and output
+    ///@{
+
+    /// Turn back information as a string.
+    std::string Info() const override
     {
-        BaseClassType::PrintInfo(rOStream);
+        std::stringstream buffer;
+        buffer << "DualLagrangeMultiplierOperatorsWithDerivatives in " << TDim << "D with " << TNumNodes << " nodes (slave) and " << TNumNodesMaster << " nodes (master). Frictional: " << TFrictional;
+        return buffer.str();
+    }
+
+    /// Print information about this object.
+    void PrintInfo(std::ostream& rOStream) const override
+    {
+        rOStream << "DualLagrangeMultiplierOperatorsWithDerivatives in " << TDim << "D with " << TNumNodes << " nodes (slave) and " << TNumNodesMaster << " nodes (master). Frictional: " << TFrictional << std::endl;
+    }
+
+    /// Print object's data.
+    void PrintData(std::ostream& rOStream) const override
+    {
+        // Print the base class data
+        BaseClassType::PrintData(rOStream);
 
         // Derivatives matrices
         for (IndexType i = 0; i < DoFSizeDerivativesDependence; ++i) {
@@ -1869,39 +1795,7 @@ public:
     }
 
     ///@}
-    ///@name Access
-    ///@{
-
-    ///@}
-    ///@name Inquiry
-    ///@{
-
-    ///@}
-    ///@name Input and output
-    ///@{
-
-    ///@}
-    ///@name Friends
-    ///@{
-
-    ///@}
 private:
-    ///@name Static Member Variables
-    ///@{
-
-    ///@}
-    ///@name Member Variables
-    ///@{
-
-    ///@}
-    ///@name Private Operators
-    ///@{
-
-    ///@}
-    ///@name Private Operations
-    ///@{
-
-    ///@}
     ///@name Serialization
     ///@{
 
@@ -1920,18 +1814,6 @@ private:
         rSerializer.load("DeltaMe", DeltaMe);
         rSerializer.load("DeltaDe", DeltaDe);
     }
-
-    ///@}
-    ///@name Private  Access
-    ///@{
-
-    ///@}
-    ///@name Private Inquiry
-    ///@{
-
-    ///@}
-    ///@name Un accessible methods
-    ///@{
 
     ///@}
 
@@ -1969,10 +1851,12 @@ public:
         Point()
     {}
 
+    /// Constructor with coordinates
     PointBelong(const array_1d<double, 3> Coords):
         Point(Coords)
     {}
 
+    /// Constructor with coordinates and belonging type
     PointBelong(const array_1d<double, 3> Coords, const BelongType& ThisBelongs):
         Point(Coords),
         mBelongs(ThisBelongs)
@@ -2004,50 +1888,228 @@ public:
     {
         return mBelongs;
     }
-private:
-    ///@name Static Member Variables
-    ///@{
+
     ///@}
+    ///@name Input and output
+    ///@{
+
+    /// Turn back information as a string.
+    std::string Info() const override
+    {
+        std::stringstream buffer;
+        buffer << "PointBelong with " << TNumNodes << " nodes (slave) and " << TNumNodesMaster << " nodes (master)";
+        return buffer.str();
+    }
+
+    /// Print information about this object.
+    void PrintInfo(std::ostream& rOStream) const override
+    {
+        rOStream << "PointBelong with " << TNumNodes << " nodes (slave) and " << TNumNodesMaster << " nodes (master)" << std::endl;
+    }
+
+    /// Print object's data.
+    void PrintData(std::ostream& rOStream) const override
+    {
+        // Print the base class data
+        Point::PrintData(rOStream);
+
+        // Print the belonging type
+        rOStream << "BelongType:" << static_cast<int>(mBelongs) << std::endl;
+    }
+
+    ///@}
+private:
     ///@name Member Variables
     ///@{
 
     BelongType mBelongs; /// To know if the point belongs to the master/slave/intersection (just 3D) side
 
     ///@}
-    ///@name Private Operators
-    ///@{
-
-    ///@}
-    ///@name Private Operations
-    ///@{
-
-    ///@}
-    ///@name Private  Access
-    ///@{
-    ///@}
-
-    ///@}
-    ///@name Serialization
-    ///@{
-
-    ///@name Private Inquiry
-    ///@{
-    ///@}
-
-    ///@name Unaccessible methods
-    ///@{
-    ///@}
 }; // Class PointBelong
-
-///@}
-
-///@name Type Definitions
-///@{
 
 ///@}
 ///@name Input and output
 ///@{
 
+// MortarKinematicVariables class
+
+/// input stream function
+template< const SizeType TNumNodes, const SizeType TNumNodesMaster = TNumNodes>
+inline std::istream& operator >> (std::istream& rIStream,
+                                  MortarKinematicVariables<TNumNodes,TNumNodesMaster>& rThis)
+                                  {return rIStream;};
+
+/// output stream function
+template< const SizeType TNumNodes, const SizeType TNumNodesMaster = TNumNodes>
+inline std::ostream& operator << (std::ostream& rOStream,
+                                  const MortarKinematicVariables<TNumNodes,TNumNodesMaster>& rThis)
+{
+    rThis.PrintInfo(rOStream);
+    rOStream << std::endl;
+    rThis.PrintData(rOStream);
+
+    return rOStream;
+}
+
+// MortarKinematicVariablesWithDerivatives class
+
+/// input stream function
+template< const SizeType TNumNodes, const SizeType TNumNodesMaster = TNumNodes>
+inline std::istream& operator >> (std::istream& rIStream,
+                                  MortarKinematicVariablesWithDerivatives<TNumNodes,TNumNodesMaster>& rThis)
+                                  {return rIStream;};
+
+/// output stream function
+template< const SizeType TNumNodes, const SizeType TNumNodesMaster = TNumNodes>
+inline std::ostream& operator << (std::ostream& rOStream,
+                                  const MortarKinematicVariablesWithDerivatives<TNumNodes,TNumNodesMaster>& rThis)
+{
+    rThis.PrintInfo(rOStream);
+    rOStream << std::endl;
+    rThis.PrintData(rOStream);
+
+    return rOStream;
+}
+
+// DerivativeData class
+
+/// input stream function
+template< const SizeType TDim, const SizeType TNumNodes, const SizeType TNumNodesMaster = TNumNodes>
+inline std::istream& operator >> (std::istream& rIStream,
+                                  DerivativeData<TDim,TNumNodes,TNumNodesMaster>& rThis)
+                                  {return rIStream;};
+
+/// output stream function
+template< const SizeType TDim, const SizeType TNumNodes, const SizeType TNumNodesMaster = TNumNodes>
+inline std::ostream& operator << (std::ostream& rOStream,
+                                  const DerivativeData<TDim,TNumNodes,TNumNodesMaster>& rThis)
+{
+    rThis.PrintInfo(rOStream);
+    rOStream << std::endl;
+    rThis.PrintData(rOStream);
+
+    return rOStream;
+}
+
+// DerivativeDataFrictional class
+
+/// input stream function
+template< const SizeType TDim, const SizeType TNumNodes, const SizeType TNumNodesMaster = TNumNodes>
+inline std::istream& operator >> (std::istream& rIStream,
+                                  DerivativeDataFrictional<TDim,TNumNodes,TNumNodesMaster>& rThis)
+                                  {return rIStream;};
+
+/// output stream function
+template< const SizeType TDim, const SizeType TNumNodes, const SizeType TNumNodesMaster = TNumNodes>
+inline std::ostream& operator << (std::ostream& rOStream,
+                                  const DerivativeDataFrictional<TDim,TNumNodes,TNumNodesMaster>& rThis)
+{
+    rThis.PrintInfo(rOStream);
+    rOStream << std::endl;
+    rThis.PrintData(rOStream);
+
+    return rOStream;
+}
+
+// MortarOperator class
+
+/// input stream function
+template< const SizeType TNumNodes, const SizeType TNumNodesMaster = TNumNodes>
+inline std::istream& operator >> (std::istream& rIStream,
+                                  MortarOperator<TNumNodes,TNumNodesMaster>& rThis)
+                                  {return rIStream;};
+
+/// output stream function
+template< const SizeType TNumNodes, const SizeType TNumNodesMaster = TNumNodes>
+inline std::ostream& operator << (std::ostream& rOStream,
+                                  const MortarOperator<TNumNodes,TNumNodesMaster>& rThis)
+{
+    rThis.PrintInfo(rOStream);
+    rOStream << std::endl;
+    rThis.PrintData(rOStream);
+
+    return rOStream;
+}
+
+// MortarOperatorWithDerivatives class
+
+/// input stream function
+template< const SizeType TDim, const SizeType TNumNodes, bool TFrictional, const SizeType TNumNodesMaster = TNumNodes>
+inline std::istream& operator >> (std::istream& rIStream,
+                                  MortarOperatorWithDerivatives<TDim,TNumNodes,TFrictional,TNumNodesMaster>& rThis)
+                                  {return rIStream;};
+
+/// output stream function
+template< const SizeType TDim, const SizeType TNumNodes, bool TFrictional, const SizeType TNumNodesMaster = TNumNodes>
+inline std::ostream& operator << (std::ostream& rOStream,
+                                  const MortarOperatorWithDerivatives<TDim,TNumNodes,TFrictional,TNumNodesMaster>& rThis)
+{
+    rThis.PrintInfo(rOStream);
+    rOStream << std::endl;
+    rThis.PrintData(rOStream);
+
+    return rOStream;
+}
+
+// DualLagrangeMultiplierOperators class
+
+/// input stream function
+template< const SizeType TNumNodes, const SizeType TNumNodesMaster = TNumNodes>
+inline std::istream& operator >> (std::istream& rIStream,
+                                  DualLagrangeMultiplierOperators<TNumNodes,TNumNodesMaster>& rThis)
+                                  {return rIStream;};
+
+/// output stream function
+template< const SizeType TNumNodes, const SizeType TNumNodesMaster = TNumNodes>
+inline std::ostream& operator << (std::ostream& rOStream,
+                                  const DualLagrangeMultiplierOperators<TNumNodes,TNumNodesMaster>& rThis)
+{
+    rThis.PrintInfo(rOStream);
+    rOStream << std::endl;
+    rThis.PrintData(rOStream);
+
+    return rOStream;
+}
+
+// DualLagrangeMultiplierOperatorsWithDerivatives class
+
+/// input stream function
+template< const SizeType TDim, const SizeType TNumNodes, bool TFrictional, const SizeType TNumNodesMaster = TNumNodes>
+inline std::istream& operator >> (std::istream& rIStream,
+                                  DualLagrangeMultiplierOperatorsWithDerivatives<TDim,TNumNodes,TFrictional,TNumNodesMaster>& rThis)
+                                  {return rIStream;};
+
+/// output stream function
+template< const SizeType TDim, const SizeType TNumNodes, bool TFrictional, const SizeType TNumNodesMaster = TNumNodes>
+inline std::ostream& operator << (std::ostream& rOStream,
+                                  const DualLagrangeMultiplierOperatorsWithDerivatives  <TDim,TNumNodes,TFrictional,TNumNodesMaster>& rThis)
+{
+    rThis.PrintInfo(rOStream);
+    rOStream << std::endl;
+    rThis.PrintData(rOStream);
+
+    return rOStream;
+}
+
+// PointBelong class
+
+/// input stream function
+template< const SizeType TNumNodes, const SizeType TNumNodesMaster = TNumNodes>
+inline std::istream& operator >> (std::istream& rIStream,
+                                  PointBelong<TNumNodes,TNumNodesMaster>& rThis)
+                                  {return rIStream;};
+
+/// output stream function
+template< const SizeType TNumNodes, const SizeType TNumNodesMaster = TNumNodes>
+inline std::ostream& operator << (std::ostream& rOStream,
+                                  const PointBelong<TNumNodes,TNumNodesMaster>& rThis)
+{
+    rThis.PrintInfo(rOStream);
+    rOStream << std::endl;
+    rThis.PrintData(rOStream);
+
+    return rOStream;
+}
 ///@}
 
 }// namespace Kratos.

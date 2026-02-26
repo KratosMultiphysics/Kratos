@@ -473,11 +473,15 @@ class MechanicalSolver(PythonSolver):
                 return KratosMultiphysics.ResidualBasedEliminationBuilderAndSolverWithConstraints(linear_solver)
             else:
                 return KratosMultiphysics.ResidualBasedEliminationBuilderAndSolver(linear_solver)
+        elif builder_and_solver_name == "p_multigrid":
+            parameters = self.settings["builder_and_solver_settings"]["advanced_settings"]
+            return KratosMultiphysics.PMultigridBuilderAndSolver(linear_solver, parameters)
         else:
             message: str = f"Invalid type for builder and solver '{builder_and_solver_name}'. Options are:\n"
             message += "'block'\n"
             message += "'block_lagrange'\n"
             message += "'elimination'"
+            message += "'p_multigrid'"
             raise ValueError(message)
 
     def _CreateScheme(self):
@@ -596,10 +600,19 @@ class MechanicalSolver(PythonSolver):
                 settings["solving_strategy_settings"]["type"].SetString("line_search")
             settings.RemoveValue("line_search")
 
-        if settings.Has("builder_and_solver_settings") and not settings["builder_and_solver_settings"].Has("type"):
+        if settings.Has("builder_and_solver_settings") and (not settings["builder_and_solver_settings"].Has("type") or settings["builder_and_solver_settings"].Has("use_block_builder")):
+            # Throw an exception if both old and new settings are provided.
+            if settings["builder_and_solver_settings"].Has("type") and settings["builder_and_solver_settings"].Has("use_block_builder"):
+                use_block_builder: bool = settings["builder_and_solver_settings"]["use_block_builder"].GetBool()
+                builder_and_solver_type = settings["builder_and_solver_settings"]["type"].GetString()
+                if not (use_block_builder and builder_and_solver_type == "block"):
+                    raise ValueError(f"Conflicting settings in \"builder_and_solver_settings\": both \"type\" and \"use_block_builder\" are specified.")
+
+            # Issue a deprecation warning about old settings.
             kratos_utilities.IssueDeprecationWarning(
-                "MechanicalSolver",
+                type(self).__name__,
                 "Using deprecated builder and solver settings. Provide 'type' and 'advanced_settings' in the new system.")
+
             bs_settings = settings["builder_and_solver_settings"]
             updated_bs_settings = KratosMultiphysics.Parameters("""{}""")
             if bs_settings.Has("use_block_builder"):

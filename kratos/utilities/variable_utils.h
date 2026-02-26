@@ -866,6 +866,21 @@ public:
     }
 
     /**
+     * @brief Clears the model parts historical data from nodes
+     * @param rModelPart Reference to the model part
+     */
+    void ClearHistoricalData(ModelPart& rModelPart)
+    {
+        KRATOS_TRY
+
+        block_for_each(rModelPart.Nodes(), [](Node& rNode) {
+                rNode.SolutionStepData().AssignZero();
+            });
+
+        KRATOS_CATCH("")
+    }
+
+    /**
      * @brief Distributes variable values in TContainerType container to nodes
      *
      * This method distributes variables values stored in TContainerType data value container in rModelPart

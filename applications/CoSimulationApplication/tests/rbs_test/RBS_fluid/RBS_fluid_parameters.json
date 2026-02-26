@@ -1,0 +1,150 @@
+{
+    "problem_data" :
+    {
+        "start_time" : 0.0,
+        "end_time" : 0.1,
+        "echo_level" : 0,
+        "print_colors" : true,
+        "parallel_type" : "OpenMP"
+    },
+    "solver_settings" :
+    {
+        "type" : "coupled_solvers.gauss_seidel_weak",
+        "echo_level" : 0,
+        "predictors" : [
+            {
+                "type" : "average_value_based",
+                "solver"         : "fluid",
+                "data_name"      : "reaction"
+            }
+        ],
+        "data_transfer_operators" : {
+            "direct_transfer" : {
+                "type" : "copy_with_empty_ranks"
+            }
+        },
+        "coupling_operations" : {
+            "compute_resultants" : {
+                "type"      : "compute_resultants",
+                "solver"    : "fluid",
+                "data_name" : "force"
+            },
+            "impose_mesh_motion" : {
+                "type"      : "impose_mesh_displacement",
+                "solver"    : "fluid",
+                "data_name" : "disp"
+            }
+        },
+        "coupling_sequence":
+        [
+        {
+            "name": "rigid_body",
+            "input_data_list": [
+                {
+                    "data"              : "force",
+                    "from_solver"       : "fluid",
+                    "from_solver_data"  : "force",
+                    "data_transfer_operator" : "direct_transfer",
+                    "before_data_transfer_operations" : ["compute_resultants"]
+                },
+                {
+                    "data"              : "moment",
+                    "from_solver"       : "fluid",
+                    "from_solver_data"  : "moment",
+                    "data_transfer_operator" : "direct_transfer"
+                }
+            ],
+            "output_data_list": []
+        },
+        {
+            "name": "fluid",
+            "input_data_list": [
+                {
+                    "data"             : "disp",
+                    "from_solver"      : "rigid_body",
+                    "from_solver_data" : "disp",
+                    "data_transfer_operator" : "direct_transfer"
+                },
+                {
+                    "data"             : "rot",
+                    "from_solver"      : "rigid_body",
+                    "from_solver_data" : "rot",
+                    "data_transfer_operator" : "direct_transfer",
+                    "after_data_transfer_operations" : ["impose_mesh_motion"]
+                }
+            ],
+            "output_data_list": []
+        }
+        ],
+        "solvers" :
+        {
+            "fluid":
+            {
+                "type" : "solver_wrappers.kratos.fluid_dynamics_wrapper",
+                "solver_wrapper_settings" : {
+                    "input_file"  : "rbs_test/RBS_fluid/ProjectParametersFluid"
+                },
+                "data" : {
+                    "disp" : {
+                        "model_part_name" : "FluidModelPart.NoSlip2D_Boundary_NoSlipStructure",
+                        "variable_name" : "GLOBAL_DISPLACEMENT",
+                        "dimension" : 3,
+                        "location"      : "model_part"
+                    },
+                    "rot" : {
+                        "model_part_name" : "FluidModelPart.NoSlip2D_Boundary_NoSlipStructure",
+                        "variable_name" : "GLOBAL_ROTATION",
+                        "dimension" : 3,
+                        "location"      : "model_part"
+                    },
+                    "force" : {
+                        "model_part_name" : "FluidModelPart.NoSlip2D_Boundary_NoSlipStructure",
+                        "variable_name" : "RESULTANT_FORCE",
+                        "dimension" : 3,
+                        "location"      : "model_part"
+                    },
+                    "moment" : {
+                        "model_part_name" : "FluidModelPart.NoSlip2D_Boundary_NoSlipStructure",
+                        "variable_name" : "RESULTANT_MOMENT",
+                        "dimension" : 3,
+                        "location"      : "model_part"
+                    },
+                    "reaction" : {
+                        "model_part_name" : "FluidModelPart.NoSlip2D_Boundary_NoSlipStructure",
+                        "variable_name" : "REACTION",
+                        "dimension" : 3
+                    }
+                }
+            },
+            "rigid_body" :
+            {
+                "type" : "solver_wrappers.rigid_body.rigid_body_solver_wrapper",
+                "solver_wrapper_settings" : {
+                    "input_file"  : "rbs_test/RBS_fluid/ProjectParametersRBS"
+                },
+                "data" : {
+                    "disp" : {
+                        "model_part_name" : "Main.RigidBody",
+                        "variable_name" : "DISPLACEMENT",
+                        "dimension" : 3
+                    },
+                    "rot" : {
+                        "model_part_name" : "Main.RigidBody",
+                        "variable_name" : "ROTATION",
+                        "dimension" : 3
+                    },
+                    "force" : {
+                        "model_part_name" : "Main.RigidBody",
+                        "variable_name" : "FORCE",
+                        "dimension" : 3
+                    },
+                    "moment" : {
+                        "model_part_name" : "Main.RigidBody",
+                        "variable_name" : "MOMENT",
+                        "dimension" : 3
+                    }
+                }
+            }
+        }
+    }
+}

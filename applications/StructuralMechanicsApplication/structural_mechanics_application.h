@@ -35,6 +35,7 @@
 #include "custom_elements/truss_elements/truss_element_linear_3D2N.hpp"
 #include "custom_elements/truss_elements/cable_element_3D2N.hpp"
 #include "custom_elements/truss_elements/linear_truss_element.h"
+#include "custom_elements/truss_elements/total_lagrangian_truss_element.h"
 
 /* Adding beam element */
 #include "custom_elements/beam_elements/cr_beam_element_3D2N.hpp"
@@ -59,6 +60,7 @@
 #include "custom_elements/shell_elements/shell_thin_element_3D4N.hpp"
 #include "custom_elements/shell_elements/shell_thin_element_3D3N.hpp"
 #include "custom_elements/shell_elements/shell_thick_element_3D3N.hpp"
+#include "custom_elements/shell_elements/cs_dsg3_thick_shell_element_3D3N.h"
 
 
 /* Adding the bushing element */
@@ -87,11 +89,12 @@
 #include "custom_elements/solid_elements/small_displacement_mixed_volumetric_strain_oss_non_linear_element.h"
 #include "custom_elements/solid_elements/total_lagrangian_mixed_volumetric_strain_element.h"
 #include "custom_elements/solid_elements/total_lagrangian_q1p0_mixed_element.h"
-#include "custom_elements/solid_elements/small_displacement_mixed_strain_displacement_element.h"
+#include "custom_elements/solid_elements/small_displacement_mixed_strain_element.h"
 #include "custom_elements/beam_elements/timoshenko_beam_element_2D2N.h"
 #include "custom_elements/beam_elements/timoshenko_beam_element_3D2N.h"
 #include "custom_elements/beam_elements/timoshenko_beam_element_2D3N.h"
 #include "custom_elements/beam_elements/timoshenko_curved_beam_element_2D3N.h"
+#include "custom_elements/beam_elements/timoshenko_curved_beam_element_3D3N.h"
 
 /* Conditions */
 #include "custom_conditions/base_load_condition.h"
@@ -122,10 +125,12 @@
 #include "custom_constitutive/linear_plane_strain.h"
 #include "custom_constitutive/linear_plane_stress.h"
 #include "custom_constitutive/user_provided_linear_elastic_law.h"
-// Constitutive laws for the Timoshenko beams
+
+// Constitutive laws for the Timoshenko beams and Reissner-Mindlin shells
 #include "custom_constitutive/timoshenko_beam_elastic_constitutive_law.h"
 #include "custom_constitutive/timoshenko_beam_elastic_constitutive_law_3d.h"
 #include "custom_constitutive/timoshenko_plane_strain_beam_elastic_constitutive_law.h"
+#include "custom_constitutive/reissner_mindlin_shell_elastic_constitutive_law.h"
 
 
 namespace Kratos
@@ -280,6 +285,8 @@ private:
     const LinearTrussElement<2, 3> mLinearTrussElement2D3N;
     const LinearTrussElement<3, 2> mLinearTrussElement3D2N;
     const LinearTrussElement<3, 3> mLinearTrussElement3D3N;
+    const TotalLagrangianTrussElement<2> mTotalLagrangianTrussElement2D2N;
+    const TotalLagrangianTrussElement<3> mTotalLagrangianTrussElement3D2N;
 
     // Adding the beam element
     const CrBeamElement3D2N mCrBeamElement3D2N;
@@ -290,6 +297,7 @@ private:
     const LinearTimoshenkoBeamElement3D2N mLinearTimoshenkoBeamElement3D2N;
     const LinearTimoshenkoBeamElement2D3N mLinearTimoshenkoBeamElement2D3N;
     const LinearTimoshenkoCurvedBeamElement2D3N mLinearTimoshenkoCurvedBeamElement2D3N;
+    const LinearTimoshenkoCurvedBeamElement3D3N mLinearTimoshenkoCurvedBeamElement3D3N;
 
 
     // Adding the shells elements
@@ -300,6 +308,8 @@ private:
     const ShellThinElement3D3N<ShellKinematics::LINEAR>                  mShellThinElement3D3N;
     const ShellThinElement3D3N<ShellKinematics::NONLINEAR_COROTATIONAL>  mShellThinCorotationalElement3D3N;
     const ShellThickElement3D3N<ShellKinematics::NONLINEAR_COROTATIONAL> mShellThickCorotationalElement3D3N;
+    const CSDSG3ThickShellElement3D3N<false> mCSDSG3ThickShellLinearElement3D3N;
+    const CSDSG3ThickShellElement3D3N<true> mCSDSG3ThickShellCorotationalElement3D3N;
 
     // Adding the membrane elements
     const MembraneElement mMembraneElement3D4N;
@@ -359,10 +369,10 @@ private:
     const SmallDisplacementMixedVolumetricStrainOssNonLinearElement mSmallDisplacementMixedVolumetricStrainOssNonLinearElement3D4N;
     const SmallDisplacementMixedVolumetricStrainOssNonLinearElement mSmallDisplacementMixedVolumetricStrainOssNonLinearElement3D8N;
 
-    const SmallDisplacementMixedStrainDisplacementElement mSmallDisplacementMixedStrainDisplacementElement2D3N;
-    const SmallDisplacementMixedStrainDisplacementElement mSmallDisplacementMixedStrainDisplacementElement2D4N;
-    const SmallDisplacementMixedStrainDisplacementElement mSmallDisplacementMixedStrainDisplacementElement3D4N;
-    const SmallDisplacementMixedStrainDisplacementElement mSmallDisplacementMixedStrainDisplacementElement3D8N;
+    const SmallDisplacementMixedStrainElement mSmallDisplacementMixedStrainElement2D3N;
+    const SmallDisplacementMixedStrainElement mSmallDisplacementMixedStrainElement2D4N;
+    const SmallDisplacementMixedStrainElement mSmallDisplacementMixedStrainElement3D4N;
+    const SmallDisplacementMixedStrainElement mSmallDisplacementMixedStrainElement3D8N;
 
     const TotalLagrangianMixedVolumetricStrainElement<2> mTotalLagrangianMixedVolumetricStrainElement2D3N;
     const TotalLagrangianMixedVolumetricStrainElement<3> mTotalLagrangianMixedVolumetricStrainElement3D4N;
@@ -534,6 +544,7 @@ private:
     const TimoshenkoBeamElasticConstitutiveLaw mTimoshenkoBeamElasticConstitutiveLaw;
     const TimoshenkoBeamElasticConstitutiveLaw3D mTimoshenkoBeamElasticConstitutiveLaw3D;
     const TimoshenkoBeamPlaneStrainElasticConstitutiveLaw mTimoshenkoBeamPlaneStrainElasticConstitutiveLaw;
+    const ReissnerMindlinShellElasticConstitutiveLaw mReissnerMindlinShellElasticConstitutiveLaw;
 
     ///@}
     ///@name Private Operators

@@ -45,6 +45,7 @@ rm -rf "${KRATOS_BUILD}/${KRATOS_BUILD_TYPE}/CMakeFiles"
 # Configure
 cmake -H"${KRATOS_SOURCE}" -B"${KRATOS_BUILD}/${KRATOS_BUILD_TYPE}" \
 -DUSE_MPI=OFF                                                       \
+-DCMAKE_POLICY_VERSION_MINIMUM=3.5                                  \
 -DUSE_EIGEN_MKL=OFF                                                 \
 -DKRATOS_GENERATE_PYTHON_STUBS=ON
 

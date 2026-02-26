@@ -7,15 +7,13 @@
 //  Author: Thomas Oberbichler
 */
 
-#if !defined(KRATOS_EIGEN_SOLVER_H_INCLUDED)
-#define KRATOS_EIGEN_SOLVER_H_INCLUDED
+#pragma once
 
 // External includes
 #include <Eigen/Core>
 #include <Eigen/Sparse>
 
 // Project includes
-#include "includes/define.h"
 #include "custom_utilities/ublas_wrapper.h"
 #include "factories/standard_linear_solver_factory.h"
 #include "includes/ublas_complex_interface.h"
@@ -110,7 +108,7 @@ public:
      * @param rX Solution vector
      * @param rB Right hand side vector
      */
-    void PerformSolutionStep(SparseMatrixType& rA, VectorType& rX, VectorType& rB) override
+    bool PerformSolutionStep(SparseMatrixType& rA, VectorType& rX, VectorType& rB) override
     {
         Eigen::Map<Kratos::EigenDynamicVector<DataType>> x(rX.data().begin(), rX.size());
         Eigen::Map<Kratos::EigenDynamicVector<DataType>> b(rB.data().begin(), rB.size());
@@ -118,6 +116,7 @@ public:
         const bool success = m_solver.Solve(b, x);
 
         KRATOS_ERROR_IF(!success) << "Solving failed!\n" << m_solver.GetSolverErrorMessages() << std::endl;
+        return success;
     }
 
     /**
@@ -130,9 +129,7 @@ public:
     bool Solve(SparseMatrixType &rA, VectorType &rX, VectorType &rB) override
     {
         InitializeSolutionStep(rA, rX, rB);
-        PerformSolutionStep(rA, rX, rB);
-
-        return true;
+        return PerformSolutionStep(rA, rX, rB);
     }
 
     /**
@@ -204,5 +201,3 @@ inline std::ostream &operator<<(
 }
 
 } // namespace Kratos
-
-#endif // defined(KRATOS_EIGEN_SOLVER_H_INCLUDED)

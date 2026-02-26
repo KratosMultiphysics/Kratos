@@ -16,6 +16,8 @@
 // System includes
 
 // Project includes
+#include "includes/define.h"
+#include "includes/checks.h"
 #include "constitutive_laws_application_variables.h"
 #include "custom_utilities/advanced_constitutive_law_utilities.h"
 
@@ -278,7 +280,7 @@ public:
         }
         if (MaxStress > Sth) { //In those cases with no fatigue in course (MaxStress < Sth), tbe fatigue reduction factor does not evolve.
             rFatigueReductionFactor = std::min(rFatigueReductionFactor, std::exp(-B0 * std::pow(std::log10(static_cast<double>(LocalNumberOfCycles)), FatigueReductionFactorSmoothness * (BETAF * BETAF))));
-            const double min_fatigue_reduction_factor = rMaterialParameters[HIGH_CYCLE_FATIGUE_COEFFICIENTS][0];
+            const double min_fatigue_reduction_factor = rMaterialParameters.Has(MINIMUM_FATIGUE_REDUCTION_FACTOR) ? rMaterialParameters[MINIMUM_FATIGUE_REDUCTION_FACTOR] : rMaterialParameters[HIGH_CYCLE_FATIGUE_COEFFICIENTS][0];
             rFatigueReductionFactor = (rFatigueReductionFactor < min_fatigue_reduction_factor) ? min_fatigue_reduction_factor : rFatigueReductionFactor;
         }
     }
@@ -303,6 +305,18 @@ public:
             }
         }
         return ultimate_stress;
+    }
+
+    /**
+     * @brief This method defines in the CL integrator
+     * @return 0 if OK, 1 otherwise
+     */
+    static int Check(const Properties& rMaterialProperties)
+    {
+        const double min_fatigue_reduction_factor = rMaterialProperties.Has(MINIMUM_FATIGUE_REDUCTION_FACTOR) ? rMaterialProperties[MINIMUM_FATIGUE_REDUCTION_FACTOR] : rMaterialProperties[HIGH_CYCLE_FATIGUE_COEFFICIENTS][0];
+        KRATOS_ERROR_IF(min_fatigue_reduction_factor <= 0.0 || min_fatigue_reduction_factor >= 1.0) << "Minimum fatigue reduction factor must be in (0,1). Provided: " << min_fatigue_reduction_factor << std::endl;
+
+        return 0;
     }
 
     ///@}

@@ -26,7 +26,6 @@
     "clear_storage"                    : false,
     "compute_reactions"                : true,
     "reform_dofs_at_each_step"         : false,
-    "nodal_smoothing"                  : false,
     "block_builder"                    : true,
     "solution_type"                    : "Steady_State_Groundwater_Flow",
     "scheme_type"                      : "Backward_Euler",
@@ -60,7 +59,6 @@
       "scaling"                        : true
     },
     "problem_domain_sub_model_part_list": ["Parts_Solid_Grond"],
-    "processes_sub_model_part_list"     : ["gravity", "WATER_PRESSURE_Initial", "WATER_PRESSURE_Bottom", "WATER_PRESSURE_Top"],
     "body_domain_sub_model_part_list"   : ["Parts_Solid_Grond"],
     "newmark_beta"                     : 0.25,
     "newmark_gamma"                    : 0.5,

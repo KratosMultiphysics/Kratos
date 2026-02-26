@@ -1,0 +1,36 @@
+{
+    "Lines": [
+        {
+            "Layer": "top",
+            "Weights": [1, 1],
+            "CPCoordinates": [[1.0, 1.0, 0.0], [0.0, 1.0, 0.0]],
+            "knotVector": [0.0, 0.0, 1.0, 1.0],
+            "id": 3,
+            "pDegree": 1
+        },
+        {
+            "Layer": "right",
+            "Weights": [1, 1],
+            "CPCoordinates": [[1.0, 0.0, 0.0], [1.0, 1.0, 0.0]],
+            "knotVector": [0.0, 0.0, 1.0, 1.0],
+            "id": 2,
+            "pDegree": 1
+        },
+        {
+            "Layer": "bottom",
+            "Weights": [1, 1],
+            "CPCoordinates": [[0.0, 0.0, 0.0], [1.0, 0.0, 0.0]],
+            "knotVector": [0.0, 0.0, 1.0, 1.0],
+            "id": 1,
+            "pDegree": 1
+        },
+        {
+            "Layer": "left",
+            "Weights": [1, 1],
+            "CPCoordinates": [[0.0, 1.0, 0.0], [0.0, 0.0, 0.0]],
+            "knotVector": [0.0, 0.0, 1.0, 1.0],
+            "id": 4,
+            "pDegree": 1
+        }
+    ]
+}

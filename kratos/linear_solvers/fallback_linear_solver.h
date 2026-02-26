@@ -227,19 +227,14 @@ public:
         GetCurrentSolver()->FinalizeSolutionStep(rA, rX, rB);
     }
 
-    /**
-     * @brief This function actually performs the solution work, eventually taking advantage of what was done before in the Initialize and InitializeSolutionStep functions.
-     * @param rA. System matrix
-     * @param rX. Solution vector. it's also the initial guess for iterative linear solvers.
-     * @param rB. Right hand side vector.
-     */
-    void PerformSolutionStep(
+    /// @copydoc LinearSolver::PerformSolutionStep
+    bool PerformSolutionStep(
         SparseMatrixType& rA,
         VectorType& rX,
         VectorType& rB
         ) override
     {
-        GetCurrentSolver()->PerformSolutionStep(rA, rX, rB);
+        return GetCurrentSolver()->PerformSolutionStep(rA, rX, rB);
     }
 
     /**
@@ -356,7 +351,7 @@ public:
 
     /**
      * @brief Checks if additional physical data is needed by the solver.
-     * @details Some solvers may require a minimum degree of knowledge of the structure of the matrix. 
+     * @details Some solvers may require a minimum degree of knowledge of the structure of the matrix.
      * For instance, when solving a mixed u-p problem, it is important to identify the row associated with v and p.
      * Another example is the automatic prescription of rotation null-space for smoothed-aggregation solvers,
      * which require knowledge of the spatial position of the nodes associated with a given degree of freedom (DOF).

@@ -9,45 +9,68 @@
 #   Author: Thomas Oberbichler
 #
 
+add_library(KratosLinearSolversCore SHARED)
+
 set( CMAKE_INCLUDE_CURRENT_DIR ON )
 
 message( "**** configuring KratosLinearSolversApplication ****" )
 
+# Options.
+option(USE_EIGEN_MKL
+       "Compile the LinearSolversApplication with support for solvers from Intel MKL."
+       OFF)
+
+option(USE_EIGEN_SUITESPARSE
+       "Compile the LinearSolversApplication with support for solvers from SuiteSparse."
+       OFF)
+
 ################### PYBIND11
 include(pybind11Tools)
 
-add_definitions( -DEIGEN_MPL2_ONLY)
-
-include_directories(${KRATOS_SOURCE_DIR}/kratos)
-
-set(KRATOS_LINEAR_SOLVERS_APPLICATION_LIB_INC "external_libraries/eigen3" "external_libraries/spectra1/include")
+target_compile_definitions(KratosLinearSolversCore PUBLIC
+                           EIGEN_MPL2_ONLY)
+target_include_directories(KratosLinearSolversCore
+                           PUBLIC "${KRATOS_SOURCE_DIR}/kratos"
+                           SYSTEM PUBLIC "${CMAKE_CURRENT_SOURCE_DIR}/external_libraries/eigen3"
+                                         "${CMAKE_CURRENT_SOURCE_DIR}/external_libraries/spectra1/include"
+                           INTERFACE "$<INSTALL_INTERFACE:include/kratos>"
+                                     "$<BUILD_INTERFACE:${KRATOS_SOURCE_DIR}/kratos>"
+                           SYSTEM INTERFACE "$<INSTALL_INTERFACE:include/kratos/applications/LinearSolversApplication/external_libraries/eigen3>"
+                                            "$<INSTALL_INTERFACE:include/kratos/applications/LinearSolversApplication/external_libraries/spectra1/include>"
+                                            "$<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/external_libraries/eigen3>"
+                                            "$<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/external_libraries/spectra1/include>")
 
 if( USE_EIGEN_MKL MATCHES ON )
     if( DEFINED ENV{MKLROOT} )
         message( "-- MKLROOT = $ENV{MKLROOT}" )
 
-        set(KRATOS_LINEAR_SOLVERS_APPLICATION_LIB_INC ${KRATOS_LINEAR_SOLVERS_APPLICATION_LIB_INC} $ENV{MKLROOT}/include)
-
-        link_directories("$ENV{MKLROOT}/lib")
+        target_include_directories(KratosLinearSolversCore SYSTEM PUBLIC "$ENV{MKLROOT}/include")
+        target_link_directories(KratosLinearSolversCore PUBLIC "$ENV{MKLROOT}/lib")
 
         if( NOT MSVC )
-            set( CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -m64 -L$ENV{MKLROOT}/lib/intel64 -Wl,--no-as-needed -lpthread -lm -ldl" )
+            target_compile_options(KratosLinearSolversCore PUBLIC "SHELL:${CMAKE_CXX_FLAGS}" "-m64" "-L$ENV{MKLROOT}/lib/intel64" "-Wl,--no-as-needed" "-lpthread" "-lm" "-ldl")
         endif()
     elseif( DEFINED ENV{CONDA_PREFIX} )
         message("-- Found Conda environment: $ENV{CONDA_PREFIX}")
 
         if( WIN32 )
-            set(KRATOS_LINEAR_SOLVERS_APPLICATION_LIB_INC ${KRATOS_LINEAR_SOLVERS_APPLICATION_LIB_INC} $ENV{CONDA_PREFIX}/Library/include)
-            link_directories("$ENV{CONDA_PREFIX}/Library/lib")
+            target_include_directories(KratosLinearSolversCore SYSTEM PUBLIC "$ENV{CONDA_PREFIX}/Library/include")
+            target_link_directories(KratosLinearSolversCore PUBLIC "$ENV{CONDA_PREFIX}/Library/lib")
         else()
-            set(KRATOS_LINEAR_SOLVERS_APPLICATION_LIB_INC ${KRATOS_LINEAR_SOLVERS_APPLICATION_LIB_INC} $ENV{CONDA_PREFIX}/include)
-            link_directories("$ENV{CONDA_PREFIX}/lib")
+            target_include_directories(KratosLinearSolversCore SYSTEM PUBLIC "$ENV{CONDA_PREFIX}/include")
+            target_link_directories(KratosLinearSolversCore PUBLIC "$ENV{CONDA_PREFIX}/lib")
         endif()
     else()
         message( FATAL_ERROR "MKLROOT not defined" )
     endif()
 
-    add_definitions( -DUSE_EIGEN_MKL -DEIGEN_USE_MKL_ALL )
+    target_compile_definitions(KratosLinearSolversCore PUBLIC
+                               USE_EIGEN_MKL EIGEN_USE_MKL_ALL)
+    target_sources(KratosLinearSolversCore PRIVATE
+                   "${CMAKE_CURRENT_SOURCE_DIR}/custom_solvers/mkl_smoother_base.cpp"
+                   "${CMAKE_CURRENT_SOURCE_DIR}/custom_solvers/mkl_ilu.cpp"
+                   "${CMAKE_CURRENT_SOURCE_DIR}/custom_utilities/mkl_utilities.cpp"
+                   )
 endif()
 
 if( USE_EIGEN_FEAST MATCHES ON )
@@ -60,20 +83,30 @@ if( USE_EIGEN_FEAST MATCHES ON )
     include(CMakeAddFortranSubdirectory)
     cmake_add_fortran_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/external_libraries/FEAST NO_EXTERNAL_INSTALL )
     set(FEAST_ROOT ${CMAKE_CURRENT_SOURCE_DIR}/external_libraries/FEAST/4.0 )
-    set(KRATOS_LINEAR_SOLVERS_APPLICATION_LIB_INC ${KRATOS_LINEAR_SOLVERS_APPLICATION_LIB_INC} ${CMAKE_CURRENT_SOURCE_DIR}/external_libraries/FEAST/4.0/include)
-    add_definitions(-DUSE_EIGEN_FEAST)
+
+    target_include_directories(KratosLinearSolversCore
+                               SYSTEM PUBLIC "${CMAKE_CURRENT_SOURCE_DIR}/external_libraries/FEAST/4.0/include"
+                               SYSTEM INTERFACE "$<INSTALL_INTERFACE:include/kratos/applications/LinearSolversApplication/external_libraries/FEAST/4.0/include>"
+                                                "$<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/external_libraries/FEAST/4.0/include")
+    target_compile_definitions(KratosLinearSolversCore PUBLIC "USE_EIGEN_FEAST")
+
     # MKL implements some of FEAST's function. This definition excludes the definitions of MKL's FEAST
     # functions in mkl/include/mkl_solvers_ee.h. Otherwise, some functions are defined multiple times
     # defining both as MKL uses either, depending on the version
-    add_definitions(-D_MKL_SOLVERS_EE_H)
-    add_definitions(-D__MKL_SOLVERS_EE_H)
+    target_compile_definitions(KratosLinearSolversCore PUBLIC "_MKL_SOLVERS_EE_H" "__MKL_SOLVERS_EE_H")
+endif()
+
+if (USE_EIGEN_SUITESPARSE)
+    include("${CMAKE_CURRENT_SOURCE_DIR}/external_libraries/eigen3/cmake/FindCHOLMOD.cmake")
+    include("${CMAKE_CURRENT_SOURCE_DIR}/external_libraries/eigen3/cmake/FindSPQR.cmake")
+    include("${CMAKE_CURRENT_SOURCE_DIR}/external_libraries/eigen3/cmake/FindUMFPACK.cmake")
+    target_compile_definitions(KratosLinearSolversCore PUBLIC KRATOS_USE_EIGEN_SUITESPARSE)
 endif()
 
 ## generate variables with the sources
-set( KRATOS_LINEARSOLVERS_APPLICATION_CORE_SOURCES
-    ${CMAKE_CURRENT_SOURCE_DIR}/linear_solvers_application.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/custom_factories/dense_linear_solver_factory.cpp
-)
+target_sources(KratosLinearSolversCore PRIVATE
+               ${CMAKE_CURRENT_SOURCE_DIR}/linear_solvers_application.cpp
+               ${CMAKE_CURRENT_SOURCE_DIR}/custom_factories/dense_linear_solver_factory.cpp)
 
 # Sources for the Python module
 file(
@@ -84,16 +117,13 @@ file(
 
 ###############################################################
 ## LinearSolversApplication core library (C++ parts)
-add_library( KratosLinearSolversCore SHARED ${KRATOS_LINEARSOLVERS_APPLICATION_CORE_SOURCES} )
-target_link_libraries( KratosLinearSolversCore PUBLIC KratosCore )
-set_target_properties( KratosLinearSolversCore PROPERTIES COMPILE_DEFINITIONS "LINEARSOLVERS_APPLICATION=EXPORT,API")
-
-target_include_directories(KratosLinearSolversCore SYSTEM PUBLIC ${CMAKE_CURRENT_SOURCE_DIR} ${KRATOS_LINEAR_SOLVERS_APPLICATION_LIB_INC})
+target_link_libraries(KratosLinearSolversCore PUBLIC KratosCore)
+target_compile_definitions(KratosLinearSolversCore PRIVATE "LINEARSOLVERS_APPLICATION=EXPORT,API")
 
 ## LinearSolversApplication python module
-pybind11_add_module( KratosLinearSolversApplication MODULE THIN_LTO ${KRATOS_LINEARSOLVERS_APPLICATION_PYTHON_INTERFACE} )
-target_link_libraries( KratosLinearSolversApplication PRIVATE KratosLinearSolversCore )
-set_target_properties( KratosLinearSolversApplication PROPERTIES PREFIX "")
+pybind11_add_module(KratosLinearSolversApplication MODULE THIN_LTO ${KRATOS_LINEARSOLVERS_APPLICATION_PYTHON_INTERFACE} )
+target_link_libraries(KratosLinearSolversApplication PRIVATE KratosLinearSolversCore )
+set_target_properties(KratosLinearSolversApplication PROPERTIES PREFIX "")
 
 # Set batch size in the unity build
 IF(CMAKE_UNITY_BUILD MATCHES ON)
@@ -108,14 +138,25 @@ if( USE_EIGEN_MKL MATCHES ON )
             message( FATAL_ERROR "mkl_rt.lib not found")
         else(NOT MKL_RT_LIB)
             message( "mkl_rt.lib found at: ${MKL_RT_LIB}")
-            target_link_libraries( KratosLinearSolversCore PUBLIC ${MKL_RT_LIB} )
+            target_link_libraries(KratosLinearSolversCore PUBLIC ${MKL_RT_LIB} )
         endif(NOT MKL_RT_LIB)
     else( MSVC )
-        target_link_libraries( KratosLinearSolversCore PUBLIC mkl_rt )
+        target_link_libraries(KratosLinearSolversCore PUBLIC mkl_rt)
         if( USE_EIGEN_FEAST MATCHES ON )
             target_link_libraries(KratosLinearSolversCore PUBLIC feast4 gfortran m)
         endif()
     endif( MSVC )
+endif()
+
+if (USE_EIGEN_SUITESPARSE)
+    target_link_libraries(KratosLinearSolversCore PUBLIC
+                          ${CHOLMOD_LIBRARIES}
+                          ${SPQR_LIBRARIES}
+                          ${UMFPACK_LIBRARIES})
+    target_include_directories(KratosLinearSolversCore PUBLIC
+                               ${CHOLMOD_INCLUDES}
+                               ${SPQR_INCLUDES}
+                               ${UMFPACK_INCLUDES})
 endif()
 
 # changing the .dll suffix to .pyd
@@ -144,8 +185,8 @@ if(${INSTALL_TESTING_FILES} MATCHES ON )
 endif(${INSTALL_TESTING_FILES} MATCHES ON)
 
 # Install targets
-install( TARGETS KratosLinearSolversCore DESTINATION libs )
-install( TARGETS KratosLinearSolversApplication DESTINATION libs )
+install(TARGETS KratosLinearSolversCore DESTINATION libs)
+install(TARGETS KratosLinearSolversApplication DESTINATION libs)
 
 # Define custom targets
 set(KRATOS_KERNEL "${KRATOS_KERNEL};KratosLinearSolversCore" PARENT_SCOPE)

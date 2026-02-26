@@ -279,7 +279,7 @@ public:
                 MPI_Isend(mpi_send_buffer[i],msgSendSize[i],MPI_CHAR,i,0,MPI_COMM_WORLD,&reqs[NumberOfCommunicationEventsIndex++]);
             }
         }
-        //wait untill all communications finish
+        //wait until all communications finish
         MPI_Waitall(NumberOfCommunicationEvents, reqs, stats);
 
         MPI_Barrier(MPI_COMM_WORLD);

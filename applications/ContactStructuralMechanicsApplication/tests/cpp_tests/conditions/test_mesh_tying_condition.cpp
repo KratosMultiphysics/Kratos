@@ -1,7 +1,7 @@
 // KRATOS    ______            __             __  _____ __                  __                   __
 //          / ____/___  ____  / /_____ ______/ /_/ ___// /________  _______/ /___  ___________ _/ /
-//         / /   / __ \/ __ \/ __/ __ `/ ___/ __/\__ \/ __/ ___/ / / / ___/ __/ / / / ___/ __ `/ / 
-//        / /___/ /_/ / / / / /_/ /_/ / /__/ /_ ___/ / /_/ /  / /_/ / /__/ /_/ /_/ / /  / /_/ / /  
+//         / /   / __ \/ __ \/ __/ __ `/ ___/ __/\__ \/ __/ ___/ / / / ___/ __/ / / / ___/ __ `/ /
+//        / /___/ /_/ / / / / /_/ /_/ / /__/ /_ ___/ / /_/ /  / /_/ / /__/ /_/ /_/ / /  / /_/ / /
 //        \____/\____/_/ /_/\__/\__,_/\___/\__//____/\__/_/   \__,_/\___/\__/\__,_/_/   \__,_/_/  MECHANICS
 //
 //  License:         BSD License
@@ -47,7 +47,7 @@
 /* The builder and solvers */
 #include "solving_strategies/builder_and_solvers/residualbased_block_builder_and_solver.h"
 
-namespace Kratos::Testing 
+namespace Kratos::Testing
 {
 
 /// Initial definitons
@@ -60,7 +60,7 @@ using ReordererType = Reorderer<SparseSpaceType,  LocalSpaceType>;
 using DirectSolverType = DirectSolver<SparseSpaceType,  LocalSpaceType, ReordererType>;
 using LinearSolverType = LinearSolver<SparseSpaceType, LocalSpaceType>;
 using SkylineLUFactorizationSolverType = SkylineLUFactorizationSolver<SparseSpaceType,  LocalSpaceType, ReordererType>;
-// using AMGCLSolverType = AMGCLSolver<SparseSpaceType, LocalSpaceType, ReordererType>;
+// using AMGCLSolverType = AMGCLSolver<SparseSpaceType, LocalSpaceType>;
 
 /// The builder and solver type
 using BuilderAndSolverType = BuilderAndSolver<SparseSpaceType, LocalSpaceType, LinearSolverType>;
@@ -140,7 +140,7 @@ void CheckSolution(ModelPart& rModelPart)
 //  */
 // void GenerateReferenceSimplestModelPart(ModelPart& rModelPart)
 // {
-//     // Adding variable 
+//     // Adding variable
 //     rModelPart.AddNodalSolutionStepVariable(NORMAL);
 //     rModelPart.AddNodalSolutionStepVariable(TEMPERATURE);
 //     rModelPart.AddNodalSolutionStepVariable(REACTION_FLUX);
@@ -151,7 +151,7 @@ void CheckSolution(ModelPart& rModelPart)
 //     // Set conductivity
 //     p_prop->SetValue(CONDUCTIVITY, 1.0);
 
-//     // Creating nodes 
+//     // Creating nodes
 //     auto pnode1 = rModelPart.CreateNewNode(1, 0.0, 0.5, 0.0);
 //     auto pnode2 = rModelPart.CreateNewNode(2, 0.5, 0.0, 0.0);
 //     auto pnode3 = rModelPart.CreateNewNode(3, 0.5, 1.0, 0.0);
@@ -189,7 +189,7 @@ void CheckSolution(ModelPart& rModelPart)
 //     // Set conductivity
 //     p_prop->SetValue(CONDUCTIVITY, 1.0);
 
-//     // Creating nodes 
+//     // Creating nodes
 //     auto pnode1 = rModelPart.CreateNewNode(1, 0.0, 0.0, 0.0);
 //     auto pnode2 = rModelPart.CreateNewNode(2, 0.5, 0.0, 0.0);
 //     auto pnode3 = rModelPart.CreateNewNode(3, 0.5, 0.5, 0.0);
@@ -238,7 +238,7 @@ void GenerateMeshTyingSimplestModelPart(ModelPart& rModelPart)
     p_prop->SetValue(CONDUCTIVITY, 1.0);
     p_prop->SetValue(TYING_VARIABLE, "TEMPERATURE");
 
-    // Creating nodes 
+    // Creating nodes
     // First we create first side nodes
     auto pnode1 = rModelPart.CreateNewNode(1, 0.0, 0.5, 0.0);
     auto pnode2 = rModelPart.CreateNewNode(2, 0.5, 0.0, 0.0);
@@ -304,7 +304,7 @@ void GenerateMeshTyingModelPart(ModelPart& rModelPart)
     p_prop->SetValue(CONDUCTIVITY, 1.0);
     p_prop->SetValue(TYING_VARIABLE, "TEMPERATURE");
 
-    // Creating nodes 
+    // Creating nodes
     // First we create first side nodes
     auto pnode1 = rModelPart.CreateNewNode(1, 0.0, 0.0, 0.0);
     auto pnode2 = rModelPart.CreateNewNode(2, 0.5, 0.0, 0.0);
@@ -392,12 +392,12 @@ static void SolveSystem(ModelPart& rModelPart)
 
     // Creating linear strategy
     auto linear_solver = ResidualBasedLinearStrategyType(rModelPart, p_scheme, p_builder_and_solver);
-    
+
     // Solving the system
     linear_solver.Solve();
 }
 
-/** 
+/**
 * Checks the correct work of the mesh tying condition (simplest case)
 */
 KRATOS_TEST_CASE_IN_SUITE(MeshTyingCondition1, KratosContactStructuralMechanicsFastSuite)
@@ -420,7 +420,7 @@ KRATOS_TEST_CASE_IN_SUITE(MeshTyingCondition1, KratosContactStructuralMechanicsF
     CheckSolution(r_model_part);
 }
 
-/** 
+/**
 * Checks the correct work of the mesh tying condition
 */
 KRATOS_TEST_CASE_IN_SUITE(MeshTyingCondition2, KratosContactStructuralMechanicsFastSuite)
