@@ -85,17 +85,17 @@ double TensionCutoff::CalculatePlasticMultiplier(const Geo::SigmaTau& rTrialSigm
                                                  const Vector&        rDerivativeOfFlowFunction,
                                                  const Matrix&        rElasticMatrix) const
 {
-    const auto temp = Vector{prod(rElasticMatrix, rDerivativeOfFlowFunction)};
-    return -YieldFunctionValue(rTrialSigmaTau) / (temp[0] + temp[1]);
+    const auto stress_correction = Vector{prod(rElasticMatrix, rDerivativeOfFlowFunction)};
+    return -YieldFunctionValue(rTrialSigmaTau) / (stress_correction[0] + stress_correction[1]);
 }
 
 double TensionCutoff::CalculatePlasticMultiplier(const Geo::PrincipalStresses& rTrialPrincipalStresses,
                                                  const Vector& rDerivativeOfFlowFunction,
                                                  const Matrix& rElasticMatrix) const
 {
-    const auto elastic_matrix = subrange(rElasticMatrix, 0, 3, 0, 3);
-    const auto temp           = Vector{prod(elastic_matrix, rDerivativeOfFlowFunction)};
-    return -YieldFunctionValue(rTrialPrincipalStresses) / temp[0];
+    const auto elastic_matrix    = subrange(rElasticMatrix, 0, 3, 0, 3);
+    const auto stress_correction = Vector{prod(elastic_matrix, rDerivativeOfFlowFunction)};
+    return -YieldFunctionValue(rTrialPrincipalStresses) / stress_correction[0];
 }
 
 void TensionCutoff::save(Serializer& rSerializer) const

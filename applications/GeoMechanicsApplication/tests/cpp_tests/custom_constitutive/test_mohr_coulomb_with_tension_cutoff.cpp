@@ -632,7 +632,7 @@ KRATOS_TEST_CASE_IN_SUITE(MohrCoulombWithTensionCutOff_CalculateMaterialResponse
     properties.SetValue(GEO_MAX_PLASTIC_ITERATIONS, 100);
     properties.SetValue(GEO_FRICTION_ANGLE_FUNCTION_COEFFICIENTS, UblasUtilities::CreateVector({0.0}));
     properties.SetValue(GEO_COHESION_FUNCTION_COEFFICIENTS,
-                        UblasUtilities::CreateVector({2.5 - std::sqrt(3.0)}));
+                        UblasUtilities::CreateVector({(2.5 - std::sqrt(3.0)) * 1.0e6}));
     properties.SetValue(GEO_DILATANCY_ANGLE_FUNCTION_COEFFICIENTS, UblasUtilities::CreateVector({0.0}));
 
     ConstitutiveLaw::Parameters parameters;
@@ -649,7 +649,7 @@ KRATOS_TEST_CASE_IN_SUITE(MohrCoulombWithTensionCutOff_CalculateMaterialResponse
                               expected_cauchy_stress_vector, tolerance);
 
     // Arrange
-    properties.SetValue(GEO_FRICTION_ANGLE_FUNCTION_COEFFICIENTS, UblasUtilities::CreateVector({0.1}));
+    properties.SetValue(GEO_FRICTION_ANGLE_FUNCTION_COEFFICIENTS, UblasUtilities::CreateVector({1.0e5}));
     properties.SetValue(GEO_COHESION_FUNCTION_COEFFICIENTS, UblasUtilities::CreateVector({0.0}));
     parameters.SetMaterialProperties(properties);
     law.InitializeMaterial(properties, dummy_element_geometry, dummy_shape_function_values);

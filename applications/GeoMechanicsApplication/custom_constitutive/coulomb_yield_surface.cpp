@@ -203,20 +203,20 @@ double CoulombYieldSurface::CalculatePlasticMultiplier(const Geo::SigmaTau& rTri
                                                        const Vector& rDerivativeOfFlowFunction,
                                                        const Matrix& rElasticMatrix) const
 {
-    const auto sin_phi = std::sin(GetFrictionAngleInRadians());
-    const auto temp    = Vector{prod(rElasticMatrix, rDerivativeOfFlowFunction)};
-    return -YieldFunctionValue(rTrialSigmaTau) / (temp[0] * sin_phi + temp[1]);
+    const auto sin_phi           = std::sin(GetFrictionAngleInRadians());
+    const auto stress_correction = Vector{prod(rElasticMatrix, rDerivativeOfFlowFunction)};
+    return -YieldFunctionValue(rTrialSigmaTau) / (stress_correction[0] * sin_phi + stress_correction[1]);
 }
 
 double CoulombYieldSurface::CalculatePlasticMultiplier(const Geo::PrincipalStresses& rTrialPrincipalStresses,
                                                        const Vector& rDerivativeOfFlowFunction,
                                                        const Matrix& rElasticMatrix) const
 {
-    const auto sin_phi        = std::sin(GetFrictionAngleInRadians());
-    const auto elastic_matrix = subrange(rElasticMatrix, 0, 3, 0, 3);
-    const auto temp           = Vector{prod(elastic_matrix, rDerivativeOfFlowFunction)};
-    const auto c1             = (temp[0] - temp[2]) / 2.0;
-    const auto c2             = (temp[0] + temp[2]) * sin_phi / 2.0;
+    const auto sin_phi           = std::sin(GetFrictionAngleInRadians());
+    const auto elastic_matrix    = subrange(rElasticMatrix, 0, 3, 0, 3);
+    const auto stress_correction = Vector{prod(elastic_matrix, rDerivativeOfFlowFunction)};
+    const auto c1                = (stress_correction[0] - stress_correction[2]) / 2.0;
+    const auto c2                = (stress_correction[0] + stress_correction[2]) * sin_phi / 2.0;
     return -YieldFunctionValue(rTrialPrincipalStresses) / (c1 + c2);
 }
 
@@ -243,11 +243,12 @@ double CoulombYieldSurface::CalculateEquivalentPlasticStrainIncrement(const Geo:
                                                                       Geo::PrincipalStresses::AveragingType AveragingType) const
 {
     const auto derivative_of_G_to_sigma = DerivativeOfFlowFunction(rTrialPrincipalStresses, AveragingType);
-    const auto mean = std::accumulate(derivative_of_G_to_sigma.begin(), derivative_of_G_to_sigma.end(), 0.0) /
-                      static_cast<double>(derivative_of_G_to_sigma.size());
+    const auto volumetric_strain =
+        std::accumulate(derivative_of_G_to_sigma.begin(), derivative_of_G_to_sigma.end(), 0.0) /
+        static_cast<double>(derivative_of_G_to_sigma.size());
     auto deviatoric_principle_stress_vector = Vector{3};
     std::ranges::transform(derivative_of_G_to_sigma, deviatoric_principle_stress_vector.begin(),
-                           [mean](auto sigma) { return sigma - mean; });
+                           [volumetric_strain](auto strain) { return strain - volumetric_strain; });
     return -std::sqrt(2.0 / 3.0) * MathUtils<>::Norm(deviatoric_principle_stress_vector) *
            CalculatePlasticMultiplier(rTrialPrincipalStresses, derivative_of_G_to_sigma, rElasticMatrix);
 }
