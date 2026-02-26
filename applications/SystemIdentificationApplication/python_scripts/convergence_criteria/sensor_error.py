@@ -5,6 +5,7 @@ import KratosMultiphysics.SystemIdentificationApplication as KratosSI
 from KratosMultiphysics.OptimizationApplication.utilities.optimization_problem import OptimizationProblem
 from KratosMultiphysics.OptimizationApplication.utilities.component_data_view import ComponentDataView
 from KratosMultiphysics.OptimizationApplication.convergence_criteria.convergence_criterion import ConvergenceCriterion
+from KratosMultiphysics.OptimizationApplication.utilities.optimization_problem_utilities import GetComponentHavingDataByFullName
 from KratosMultiphysics.OptimizationApplication.utilities.logger_utilities import time_decorator
 from KratosMultiphysics.SystemIdentificationApplication.utilities.sensor_utils import GetSensors
 
@@ -41,6 +42,8 @@ class MaxSensorErrorCriterion(ConvergenceCriterion):
         self.__sensor_error_output_file_name = parameters["sensor_error_output_file_name"].GetString()
 
     def Initialize(self):
+        component = GetComponentHavingDataByFullName(self.__component_name, self.__optimization_problem)
+        self.__component_data_view = ComponentDataView(component, self.__optimization_problem)
         if self.__output_to_file:
             with open(self.__sensor_error_output_file_name, "w") as file_output:
                 file_output.write("iteration,max_sensor_error\n")
@@ -64,7 +67,7 @@ class MaxSensorErrorCriterion(ConvergenceCriterion):
         sensor_group_data = ComponentDataView(self.__sensor_group_name, self.__optimization_problem)
         self.list_of_sensors = GetSensors(sensor_group_data)
         
-        max_sensor_error = -float('inf')
+        max_sensor_error = 0.0
         for sensor in self.list_of_sensors:
             max_sensor_error = max(max_sensor_error, abs(sensor.GetNode().GetValue(KratosSI.SENSOR_ERROR)))
         
