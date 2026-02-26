@@ -4,10 +4,13 @@ import KratosMultiphysics as KM
 
 # Configuration flag for backend selection
 # This can be changed to True to use CuPy if available
-USE_CUPY = True
+USE_CUPY = False #True
 
 # Precision configuration
 PRECISION = np.float64
+
+# Einsum optimization configuration
+opt_type = "greedy"
 
 if USE_CUPY:
     try:
@@ -35,7 +38,7 @@ class CFDUtils:
         #allocate auxiliary arrays
         self.aux_array1 = xp.empty(0, dtype=PRECISION)
 
-    def ComputeElementalDivergence(self, DN, uel, out):
+    def ComputeElementalDivergence(self, DN, uel):
         """
         Computes the elemental divergence of a vector field u.
 
@@ -53,14 +56,11 @@ class CFDUtils:
         """
         nelem = DN.shape[0]
 
-        #verify shape of output array
-        if(out.shape != (nelem,)):
-            raise ValueError("Output array has wrong shape")
 
         #store element by element divergence in aux_array1
-        xp.einsum("nij,nij->n", DN, uel, out=out, optimize=True)
+        return xp.einsum("nij,nij->n", DN, uel, optimize=opt_type)
 
-    def ComputeElementwiseNodalDivergence(self, N, DN, uel, out):
+    def ComputeElementwiseNodalDivergence(self, N, DN, uel):
         """
         Computes the nodal weighted divergence of a vector field u.
 
@@ -86,9 +86,9 @@ class CFDUtils:
         if uel.shape != DN.shape:
             raise Exception("wrong size of uel")
 
-        xp.einsum("I,eJk,eJk->eI",N,DN,uel,out=out,optimize=True)
-
-    def Compute_N_DN(self, N, DN, pel, out):
+        return xp.einsum("I,eJk,eJk->eI",N,DN,uel,optimize=opt_type)
+        
+    def Compute_N_DN(self, N, DN, pel):
         """
         Computes the term (w, ∇p).
 
@@ -112,12 +112,9 @@ class CFDUtils:
         if pel.shape != (nelem, n_in_el):
             raise ValueError("pel must have shape (nelem, n_in_el) for scalar case. Current shape is:",field.shape)
 
-        if out.shape != (nelem, n_in_el,ndim):
-            raise ValueError(f"out must have shape (nelem, {ndim}) for scalar case. Current shape is:",out.shape)
+        return xp.einsum("I,eJk,eJ->eIk", N,DN, pel, optimize=opt_type)
 
-        xp.einsum("I,eJk,eJ->eIk", N,DN, pel,  out=out, optimize=True)
-
-    def Compute_DN_N(self, N, DN, pel, out):
+    def Compute_DN_N(self, N, DN, pel):
         """
         Computes the term (∇w, p).
 
@@ -134,9 +131,8 @@ class CFDUtils:
         out : ndarray
             Output array, expected to have shape (Nelem, n_in_el, dim).
         """
-        nelem = out.shape[0]
 
-        xp.einsum("eIk,J,eJ->eIk",DN,N,pel,out=out)
+        return xp.einsum("eIk,J,eJ->eIk",DN,N,pel,optimize=opt_type)
 
         # # aux_array1 must have shape (nelem,)
         # if self.aux_array1.shape != (nelem,):
@@ -149,7 +145,7 @@ class CFDUtils:
         # out[:] = DN
         # out *= self.aux_array1[:, np.newaxis, np.newaxis]
 
-    def ComputeLaplacianMatrix(self, DN, out):
+    def ComputeLaplacianMatrix(self, DN):
         """
         Computes the Laplacian local matrix term (∇N, ∇N).
 
@@ -162,9 +158,9 @@ class CFDUtils:
         out : ndarray
             Output array, expected to have shape (Nelem, n_in_el, n_in_el).
         """
-        xp.einsum("eim,ejm->eij", DN, DN, out=out, optimize=True)
+        return xp.einsum("eim,ejm->eij", DN, DN, optimize=opt_type)
 
-    def ApplyLaplacian(self, DN, field, out):
+    def ApplyLaplacian(self, DN, field):
         """
         Computes the term (∇q, ∇field) - scalar field
                        or (∇w, ∇field) - vector field
@@ -189,14 +185,14 @@ class CFDUtils:
 
         if field.ndim == 2: # scalar case
 
-            xp.einsum("eIm,eJm,eJ->eI", DN, DN, field, out=out)
+            return xp.einsum("eIm,eJm,eJ->eI", DN, DN, field, optimize=opt_type)
 
         elif field.ndim == 3:
 
-            xp.einsum("eIm,eJm,eJk->eIk", DN, DN, field, out=out)
+            return xp.einsum("eIm,eJm,eJk->eIk", DN, DN, field, optimize=opt_type)
 
 
-    def InterpolateValue(self, N, field, out):
+    def InterpolateValue(self, N, field):
         """
         Computes:
             pgauss[e]     = sum_k N[k] * pel[e,k]
@@ -218,22 +214,16 @@ class CFDUtils:
 
         # Scalar case: pel[e,k] → pgauss[e]
         if field.ndim == 2:
-            if out.shape != (nelem,):
-                raise ValueError(f"Output must have shape ({nelem},)")
-
             # pgauss[e] = N[k] * pel[e,k]
-            xp.einsum("k,ek->e", N, field, out=out)
-            return
+            return xp.einsum("k,ek->e", N, field, optimize=opt_type)
+            
 
         # Vector case: vel[e,k,i] → vgauss[e,i]
         if field.ndim == 3:
             dim = field.shape[2]
-            if out.shape != (nelem, dim):
-                raise ValueError(f"Output must have shape ({nelem},{dim})")
 
             # vgauss[e,i] = N[k] * vel[e,k,i]
-            xp.einsum("k,eki->ei", N, field, out=out)
-            return
+            return xp.einsum("k,eki->ei", N, field, optimize=opt_type)
 
         raise ValueError("Field must have shape (nelem,nnode) or (nelem,nnode,dim)")
 
@@ -250,10 +240,9 @@ class CFDUtils:
         out : preallocated array
             Shape must be (conn.max()+1,) or (conn.max()+1, ncomp).
         """
-        ###NOOOOOOOOOOOOOOO
         xp.add.at(out, conn, vals)
 
-    def ComputeElementalGradient(self, DN, field, out):
+    def ComputeElementalGradient(self, DN, field):
         """
         Compute the gradient of a scalar or vector field using element-dependent DN.
         that is for every element we compute:
@@ -298,12 +287,8 @@ class CFDUtils:
             if field.shape != (nelem, nnode):
                 raise ValueError("field must have shape (nelem, nnode) for scalar case. Current shape is:",field.shape)
 
-            if out.shape != (nelem, ndim):
-                raise ValueError(f"out must have shape (nelem, {ndim}) for scalar case. Current shape is:",out.shape)
-
             # grad[e,k] = sum_i field[e,i] * DN[e,i,k]
-            xp.einsum('ei,eik->ek', field, DN, out=out)
-            return
+            return xp.einsum('ei,eik->ek', field, DN, optimize=opt_type)
 
         # ------------------------------
         # Vector field
@@ -314,14 +299,8 @@ class CFDUtils:
 
             ncomp = field.shape[2]
 
-            if out.shape != (nelem, ncomp, ndim):
-                raise ValueError(
-                    f"out must have shape (nelem, {ncomp}, {ndim}) for vector case. Current shape is:",field.shape
-                )
-
             # grad[e,k,l] = sum_i field[e,i,k] * DN[e,i,l]
-            xp.einsum('eik,eil->ekl', field, DN, out=out)
-            return
+            return xp.einsum('eik,eil->ekl', field, DN, optimize=opt_type)
 
         # ------------------------------
         # Invalid field
@@ -329,7 +308,7 @@ class CFDUtils:
         print(field.ndim)
         raise ValueError("field must have 2 dims (scalar) or 3 dims (vector), Current shape of field is:",field.shape)
 
-    def ComputeConvectiveContribution(self, N, grad_u, a, out):
+    def ComputeConvectiveContribution(self, N, grad_u, a):
         """
         Compute (w,a·∇u) although with the definition we employ for ∇u this is actually (w,∇u·a)
 
@@ -352,24 +331,25 @@ class CFDUtils:
 
         """
         if grad_u.ndim == 3: #gradient of a vector function
-            xp.einsum('i,ekl,el->eik', N, grad_u, a, out=out, optimize=True)
+            return xp.einsum('i,ekl,el->eik', N, grad_u, a,  optimize=opt_type)
         elif grad_u.ndim == 2: #gradient of a scalar function
-            xp.einsum('i,el,el->ei', N, grad_u, a, out=out, optimize=True)
+            return xp.einsum('i,el,el->ei', N, grad_u, a, optimize=opt_type)
         else:
             raise ValueError("grad_u must have 2 dims (scalar) or 3 dims (vector)")
 
-    def ComputeMomentumStabilization(self, N, DN, a, u_elemental, Pi_elemental, out, a_DN, PiContrib):
+    def ComputeMomentumStabilization(self, N, DN, a, u_elemental, Pi_elemental):
         ##TODO: avoid temporaries!
-        xp.einsum("el,eil->ei",a,DN, out=a_DN, optimize=True) #TODO: reuse an auxiliary array
-        xp.einsum("eI,eJ,eJk->eIk",a_DN,a_DN,u_elemental,out=out, optimize=True)
-        xp.einsum("eI,J,eJk->eIk",a_DN,N,Pi_elemental, out=PiContrib, optimize=True)
+        a_DN = xp.einsum("el,eil->ei",a,DN, optimize=opt_type) #TODO: reuse an auxiliary array
+        out = xp.einsum("eI,eJ,eJk->eIk",a_DN,a_DN,u_elemental, optimize=opt_type)
+        PiContrib = xp.einsum("eI,J,eJk->eIk",a_DN,N,Pi_elemental, optimize=opt_type)
         out -= PiContrib
+        return out
 
-    def ComputeDivDivStabilization(self, DN, Pi_elemental, out):
+    def ComputeDivDivStabilization(self, DN, Pi_elemental):
         ##TODO: avoid temporaries!
         pass
 
-    def ComputePressureStabilization_ProjectionTerm(self, N, DN, Pi_press_el, out):
+    def ComputePressureStabilization_ProjectionTerm(self, N, DN, Pi_press_el):
         """
         implements (∇q,Pi_pressure)
 
@@ -391,7 +371,7 @@ class CFDUtils:
         out: (nelem, n_in_el, ndim)
 
         """
-        xp.einsum("eIk,J,eJk->eI",DN,N,Pi_press_el,out=out)
+        return xp.einsum("eIk,J,eJk->eI",DN,N,Pi_press_el, optimize=opt_type)
 
     #REMARK: this function has to be run on the cpu AND NOT ON THE GPU - it will return a gpu matrix if that is the case
     def AllocateScalarMatrix(self,conn : np.ndarray): 
