@@ -130,12 +130,6 @@ double CoulombYieldSurface::GetKappa() const { return mKappa; }
 
 void CoulombYieldSurface::SetKappa(double kappa) { mKappa = kappa; }
 
-// At some point in time we would like to get rid of this API. For now, just forward the request.
-double CoulombYieldSurface::YieldFunctionValue(const Vector& rSigmaTau) const
-{
-    return YieldFunctionValue(Geo::SigmaTau{rSigmaTau});
-}
-
 double CoulombYieldSurface::YieldFunctionValue(const Geo::SigmaTau& rSigmaTau) const
 {
     return rSigmaTau.Tau() + rSigmaTau.Sigma() * std::sin(GetFrictionAngleInRadians()) -
@@ -145,11 +139,6 @@ double CoulombYieldSurface::YieldFunctionValue(const Geo::SigmaTau& rSigmaTau) c
 double CoulombYieldSurface::YieldFunctionValue(const Geo::PrincipalStresses& rPrincipalStresses) const
 {
     return YieldFunctionValue(StressStrainUtilities::TransformPrincipalStressesToSigmaTau(rPrincipalStresses));
-}
-
-Vector CoulombYieldSurface::DerivativeOfFlowFunction(const Vector& rSigmaTau) const
-{
-    return DerivativeOfFlowFunction(Geo::SigmaTau{rSigmaTau}, CoulombAveragingType::NO_AVERAGING);
 }
 
 Vector CoulombYieldSurface::DerivativeOfFlowFunction(const Geo::SigmaTau&, CoulombAveragingType AveragingType) const
