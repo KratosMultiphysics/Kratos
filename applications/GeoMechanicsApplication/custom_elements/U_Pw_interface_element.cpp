@@ -28,6 +28,7 @@
 #include "custom_utilities/math_utilities.hpp"
 #include "custom_utilities/stress_strain_utilities.h"
 #include "custom_utilities/ublas_utilities.h"
+#include "custom_utilities/variables_utilities.hpp"
 #include "geo_aliases.h"
 #include "geometries/line_2d_2.h"
 #include "geometries/quadrilateral_3d_4.h"
@@ -763,17 +764,6 @@ Vector UPwInterfaceElement::ConvertLocalStressToTraction(const Matrix& rLocalStr
     return result;
 }
 
-Vector UPwInterfaceElement::GetWaterPressureGeometryNodalVariable(const Variable<double>& rVariable) const
-{
-    Vector result{this->GetWaterPressureGeometry().size()};
-    auto   index = std::size_t{0};
-    for (auto& r_node : this->GetWaterPressureGeometry()) {
-        result[index] = r_node.FastGetSolutionStepValue(rVariable);
-        index++;
-    }
-    return result;
-}
-
 std::vector<double> UPwInterfaceElement::CalculateIntegrationPointFluidPressures() const
 {
     return GeoTransportEquationUtilities::CalculateFluidPressures(
@@ -875,9 +865,7 @@ Geo::IntegrationCoefficientsGetter UPwInterfaceElement::CreateIntegrationCoeffic
 
 Geo::NodalValuesGetter UPwInterfaceElement::CreateWaterPressureGeometryNodalVariableGetter() const
 {
-    return [this](const Variable<double>& rVariable) {
-        return this->GetWaterPressureGeometryNodalVariable(rVariable);
-    };
+    return [this](const Variable<double>&) { return this->GetWaterPressureGeometryNodalVariable(); };
 }
 
 Geo::PropertiesGetter UPwInterfaceElement::CreatePropertiesGetter() const
