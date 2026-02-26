@@ -130,8 +130,8 @@ void AddTensorAdaptorsToPython(pybind11::module& m)
      Detail::AddCombinedTensorAdaptor<double>(tensor_adaptor_sub_module, "DoubleCombinedTensorAdaptor");
 
      auto tensor_adaptor_utils = tensor_adaptor_sub_module.def_submodule("Utils");
-     tensor_adaptor_utils.def("GetNodalConditionNeighboursCountTensorAdaptor", &TensorAdaptorUtils::GetNodalNeighboursCountTensorAdaptor<ModelPart::ConditionsContainerType>, py::arg("model_part"));
-     tensor_adaptor_utils.def("GetNodalElementNeighboursCountTensorAdaptor", &TensorAdaptorUtils::GetNodalNeighboursCountTensorAdaptor<ModelPart::ElementsContainerType>, py::arg("model_part"));
+     tensor_adaptor_utils.def("CreateNodalConditionNeighboursCountTensorAdaptor", &TensorAdaptorUtils::CreateNodalNeighboursCountTensorAdaptor<ModelPart::ConditionsContainerType>, py::arg("model_part"));
+     tensor_adaptor_utils.def("CreateNodalElementNeighboursCountTensorAdaptor", &TensorAdaptorUtils::CreateNodalNeighboursCountTensorAdaptor<ModelPart::ElementsContainerType>, py::arg("model_part"));
 
      py::class_<HistoricalVariableTensorAdaptor, HistoricalVariableTensorAdaptor::Pointer, HistoricalVariableTensorAdaptor::BaseType>(tensor_adaptor_sub_module, "HistoricalVariableTensorAdaptor")
           .def(py::init<ModelPart::NodesContainerType::Pointer, HistoricalVariableTensorAdaptor::VariablePointerType, const int>(),
@@ -303,7 +303,6 @@ void AddTensorAdaptorsToPython(pybind11::module& m)
           .def(py::init<const ConnectivityIdsTensorAdaptor::BaseType&, const bool>(),
                py::arg("tensor_adaptor"),
                py::arg("copy") = true);
-
 }
 
 } // namespace Kratos::Python.

@@ -269,7 +269,7 @@ public:
      * @return TensorAdaptor<int>::Pointer  Tensor adaptor containing the number of neighbours for each node.
      */
     template<class TContainerType>
-    static TensorAdaptor<int>::Pointer GetNodalNeighboursCountTensorAdaptor(ModelPart& rModelPart);
+    static TensorAdaptor<int>::Pointer CreateNodalNeighboursCountTensorAdaptor(ModelPart& rModelPart);
 
     ///@}
 };

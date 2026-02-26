@@ -715,7 +715,7 @@ class TestTensorAdaptors(KratosUnittest.TestCase):
         self.assertAlmostEqual(numpy.linalg.norm(ref_combined_ta.data - combined_ta.data), 0.0)
 
     def test_NodalNeighboursTensorAdaptorCondition(self):
-        ta = Kratos.TensorAdaptors.Utils.GetNodalConditionNeighboursCountTensorAdaptor(self.model_part)
+        ta = Kratos.TensorAdaptors.Utils.CreateNodalConditionNeighboursCountTensorAdaptor(self.model_part)
         for i, v in enumerate(ta.data):
             if (i != 0 or i != ta.data.size - 1):
                 self.assertEqual(v, 2)
@@ -726,7 +726,7 @@ class TestTensorAdaptors(KratosUnittest.TestCase):
             ta.StoreData()
 
     def test_NodalNeighboursTensorAdaptorElement(self):
-        ta = Kratos.TensorAdaptors.Utils.GetNodalElementNeighboursCountTensorAdaptor(self.model_part)
+        ta = Kratos.TensorAdaptors.Utils.CreateNodalElementNeighboursCountTensorAdaptor(self.model_part)
         for i, v in enumerate(ta.data):
             if (i != 0 or i != ta.data.size - 1):
                 self.assertEqual(v, 2)

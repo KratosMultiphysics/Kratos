@@ -26,7 +26,7 @@
 namespace Kratos {
 
 template<class TContainerType>
-TensorAdaptor<int>::Pointer TensorAdaptorUtils::GetNodalNeighboursCountTensorAdaptor(ModelPart& rModelPart)
+TensorAdaptor<int>::Pointer TensorAdaptorUtils::CreateNodalNeighboursCountTensorAdaptor(ModelPart& rModelPart)
 {
     KRATOS_TRY
 
@@ -55,7 +55,7 @@ TensorAdaptor<int>::Pointer TensorAdaptorUtils::GetNodalNeighboursCountTensorAda
 }
 
 // template instantiations
-template KRATOS_API(KRATOS_CORE) TensorAdaptor<int>::Pointer TensorAdaptorUtils::GetNodalNeighboursCountTensorAdaptor<ModelPart::ConditionsContainerType>(ModelPart&);
-template KRATOS_API(KRATOS_CORE) TensorAdaptor<int>::Pointer TensorAdaptorUtils::GetNodalNeighboursCountTensorAdaptor<ModelPart::ElementsContainerType>(ModelPart&);
+template KRATOS_API(KRATOS_CORE) TensorAdaptor<int>::Pointer TensorAdaptorUtils::CreateNodalNeighboursCountTensorAdaptor<ModelPart::ConditionsContainerType>(ModelPart&);
+template KRATOS_API(KRATOS_CORE) TensorAdaptor<int>::Pointer TensorAdaptorUtils::CreateNodalNeighboursCountTensorAdaptor<ModelPart::ElementsContainerType>(ModelPart&);
 
 } // namespace Kratos
