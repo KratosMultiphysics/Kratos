@@ -15,7 +15,6 @@
 
 #pragma once
 
-#include "custom_constitutive/yield_surface.h"
 #include "geo_aliases.h"
 #include "includes/properties.h"
 
@@ -26,7 +25,13 @@ namespace Kratos
 
 class CheckProperties;
 
-class KRATOS_API(GEO_MECHANICS_APPLICATION) CoulombYieldSurface : public YieldSurface
+namespace Geo
+{
+class PrincipalStresses;
+class SigmaTau;
+} // namespace Geo
+
+class KRATOS_API(GEO_MECHANICS_APPLICATION) CoulombYieldSurface
 {
 public:
     KRATOS_CLASS_POINTER_DEFINITION(CoulombYieldSurface);
@@ -46,14 +51,16 @@ public:
     [[nodiscard]] double GetKappa() const;
     void                 SetKappa(double kappa);
 
-    [[nodiscard]] double YieldFunctionValue(const Vector& rSigmaTau) const override;
-    [[nodiscard]] Vector DerivativeOfFlowFunction(const Vector&) const override;
-    [[nodiscard]] Vector DerivativeOfFlowFunction(const Vector&, CoulombAveragingType AveragingType) const;
+    [[nodiscard]] double YieldFunctionValue(const Geo::SigmaTau& rSigmaTau) const;
+    [[nodiscard]] double YieldFunctionValue(const Geo::PrincipalStresses& rPrincipalStresses) const;
+
+    [[nodiscard]] Vector DerivativeOfFlowFunction(const Geo::SigmaTau&,
+                                                  CoulombAveragingType AveragingType = CoulombAveragingType::NO_AVERAGING) const;
 
     [[nodiscard]] double CalculateApex() const;
-    [[nodiscard]] double CalculatePlasticMultiplier(const Vector& rSigmaTau,
+    [[nodiscard]] double CalculatePlasticMultiplier(const Geo::SigmaTau& rSigmaTau,
                                                     const Vector& rDerivativeOfFlowFunction) const;
-    [[nodiscard]] double CalculateEquivalentPlasticStrainIncrement(const Vector& rSigmaTau,
+    [[nodiscard]] double CalculateEquivalentPlasticStrainIncrement(const Geo::SigmaTau& rSigmaTau,
                                                                    CoulombAveragingType AveragingType) const;
 
 private:
@@ -63,8 +70,8 @@ private:
                                     const CheckProperties&  rChecker) const;
 
     friend class Serializer;
-    void save(Serializer& rSerializer) const override;
-    void load(Serializer& rSerializer) override;
+    void save(Serializer& rSerializer) const;
+    void load(Serializer& rSerializer);
 
     double                      mKappa = 0.0;
     Properties                  mMaterialProperties;

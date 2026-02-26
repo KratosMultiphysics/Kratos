@@ -161,17 +161,22 @@ void UPwInterfaceElement::CalculateLeftHandSide(MatrixType& rLeftHandSideMatrix,
         this->GetProperties().Has(IGNORE_UNDRAINED) ? this->GetProperties()[IGNORE_UNDRAINED] : false;
     rLeftHandSideMatrix = ZeroMatrix{number_of_dofs, number_of_dofs};
 
-    // Currently, the left-hand side matrix only includes the stiffness matrix. In the future, it
-    // will also include water pressure contributions and coupling terms.
     for (auto contribution : mContributions) {
         switch (contribution) {
-        case CalculationContribution::Stiffness:
-            CalculateAndAssignStifnessMatrix(rLeftHandSideMatrix, rProcessInfo);
+            using enum CalculationContribution;
+        case Stiffness:
+            CalculateAndAssignStiffnessMatrix(rLeftHandSideMatrix, rProcessInfo);
             break;
-        case CalculationContribution::Permeability:
+        case UPCoupling:
+            CalculateAndAssignUPCouplingMatrix(rLeftHandSideMatrix);
+            break;
+        case PUCoupling:
+            if (!ignore_undrained) CalculateAndAssignPUCouplingMatrix(rLeftHandSideMatrix);
+            break;
+        case Permeability:
             if (!ignore_undrained) CalculateAndAssignPermeabilityMatrix(rLeftHandSideMatrix);
             break;
-        case CalculationContribution::FluidBodyFlow:
+        case FluidBodyFlow:
             break;
         default:
             KRATOS_ERROR << "This contribution is not supported \n";
@@ -179,8 +184,8 @@ void UPwInterfaceElement::CalculateLeftHandSide(MatrixType& rLeftHandSideMatrix,
     }
 }
 
-void UPwInterfaceElement::CalculateAndAssignStifnessMatrix(Element::MatrixType& rLeftHandSideMatrix,
-                                                           const ProcessInfo&   rProcessInfo)
+void UPwInterfaceElement::CalculateAndAssignStiffnessMatrix(Element::MatrixType& rLeftHandSideMatrix,
+                                                            const ProcessInfo& rProcessInfo)
 {
     switch (NumberOfUDofs()) {
     case 8:
@@ -204,6 +209,50 @@ void UPwInterfaceElement::CalculateAndAssignStifnessMatrix(Element::MatrixType& 
     default:
         KRATOS_ERROR << "This stiffness matrix size is not supported: " << NumberOfUDofs() << "\n";
     }
+}
+
+void UPwInterfaceElement::CalculateAndAssignUPCouplingMatrix(MatrixType& rLeftHandSideMatrix) const
+{
+    using Key  = std::pair<std::size_t, std::size_t>;
+    using Func = void (UPwInterfaceElement::*)(MatrixType&) const;
+
+    static const std::map<Key, Func> dispatch_table = {
+        {{8, 4}, &UPwInterfaceElement::CalculateAndAssignUPCouplingMatrix<8, 4>},
+        {{12, 6}, &UPwInterfaceElement::CalculateAndAssignUPCouplingMatrix<12, 6>},
+        {{12, 4}, &UPwInterfaceElement::CalculateAndAssignUPCouplingMatrix<12, 4>},
+        {{18, 6}, &UPwInterfaceElement::CalculateAndAssignUPCouplingMatrix<18, 6>},
+        {{36, 12}, &UPwInterfaceElement::CalculateAndAssignUPCouplingMatrix<36, 12>},
+        {{36, 6}, &UPwInterfaceElement::CalculateAndAssignUPCouplingMatrix<36, 6>},
+        {{24, 8}, &UPwInterfaceElement::CalculateAndAssignUPCouplingMatrix<24, 8>},
+        {{48, 16}, &UPwInterfaceElement::CalculateAndAssignUPCouplingMatrix<48, 16>},
+        {{48, 8}, &UPwInterfaceElement::CalculateAndAssignUPCouplingMatrix<48, 8>}};
+
+    const auto key = Key{NumberOfUDofs(), GetWaterPressureGeometry().size()};
+    KRATOS_ERROR_IF_NOT(dispatch_table.contains(key))
+        << "This Coupling matrix size is not supported: " << key.first << "x" << key.second << "\n";
+    (this->*dispatch_table.at(key))(rLeftHandSideMatrix);
+}
+
+void UPwInterfaceElement::CalculateAndAssignPUCouplingMatrix(MatrixType& rLeftHandSideMatrix) const
+{
+    using Key  = std::pair<std::size_t, std::size_t>;
+    using Func = void (UPwInterfaceElement::*)(MatrixType&) const;
+
+    static const std::map<Key, Func> dispatch_table = {
+        {{8, 4}, &UPwInterfaceElement::CalculateAndAssignPUCouplingMatrix<4, 8>},
+        {{12, 6}, &UPwInterfaceElement::CalculateAndAssignPUCouplingMatrix<6, 12>},
+        {{12, 4}, &UPwInterfaceElement::CalculateAndAssignPUCouplingMatrix<4, 12>},
+        {{18, 6}, &UPwInterfaceElement::CalculateAndAssignPUCouplingMatrix<6, 18>},
+        {{36, 12}, &UPwInterfaceElement::CalculateAndAssignPUCouplingMatrix<12, 36>},
+        {{36, 6}, &UPwInterfaceElement::CalculateAndAssignPUCouplingMatrix<6, 36>},
+        {{24, 8}, &UPwInterfaceElement::CalculateAndAssignPUCouplingMatrix<8, 24>},
+        {{48, 16}, &UPwInterfaceElement::CalculateAndAssignPUCouplingMatrix<16, 48>},
+        {{48, 8}, &UPwInterfaceElement::CalculateAndAssignPUCouplingMatrix<8, 48>}};
+
+    const auto key = Key{NumberOfUDofs(), GetWaterPressureGeometry().size()};
+    KRATOS_ERROR_IF_NOT(dispatch_table.contains(key))
+        << "This Coupling matrix size is not supported: " << key.first << "x" << key.second << "\n";
+    (this->*dispatch_table.at(key))(rLeftHandSideMatrix);
 }
 
 void UPwInterfaceElement::CalculateAndAssignPermeabilityMatrix(Element::MatrixType& rLeftHandSideMatrix)
@@ -238,17 +287,22 @@ void UPwInterfaceElement::CalculateRightHandSide(Element::VectorType& rRightHand
         this->GetProperties().Has(IGNORE_UNDRAINED) ? this->GetProperties()[IGNORE_UNDRAINED] : false;
     rRightHandSideVector = ZeroVector{GetDofs().size()};
 
-    // Currently, the right-hand side only includes the internal force vector. In the future, it
-    // will also include water pressure contributions and coupling terms.
     for (auto contribution : mContributions) {
         switch (contribution) {
-        case CalculationContribution::Stiffness:
-            CalculateAndAssembleStifnessForceVector(rRightHandSideVector, rProcessInfo);
+            using enum CalculationContribution;
+        case Stiffness:
+            CalculateAndAssembleStiffnessForceVector(rRightHandSideVector, rProcessInfo);
             break;
-        case CalculationContribution::Permeability:
+        case UPCoupling:
+            CalculateAndAssembleUPCouplingForceVector(rRightHandSideVector);
+            break;
+        case PUCoupling:
+            if (!ignore_undrained) CalculateAndAssemblePUCouplingForceVector(rRightHandSideVector);
+            break;
+        case Permeability:
             if (!ignore_undrained) CalculateAndAssemblePermeabilityFlowVector(rRightHandSideVector);
             break;
-        case CalculationContribution::FluidBodyFlow:
+        case FluidBodyFlow:
             if (!ignore_undrained) CalculateAndAssembleFluidBodyFlowVector(rRightHandSideVector);
             break;
         default:
@@ -257,31 +311,75 @@ void UPwInterfaceElement::CalculateRightHandSide(Element::VectorType& rRightHand
     }
 }
 
-void UPwInterfaceElement::CalculateAndAssembleStifnessForceVector(Element::VectorType& rRightHandSideVector,
-                                                                  const ProcessInfo& rProcessInfo)
+void UPwInterfaceElement::CalculateAndAssembleStiffnessForceVector(Element::VectorType& rRightHandSideVector,
+                                                                   const ProcessInfo& rProcessInfo)
 {
     switch (NumberOfUDofs()) {
     case 8:
-        CalculateAndAssembleStiffnesForceVector<8>(rRightHandSideVector, rProcessInfo);
+        CalculateAndAssembleStiffnessForceVector<8>(rRightHandSideVector, rProcessInfo);
         break;
     case 12:
-        CalculateAndAssembleStiffnesForceVector<12>(rRightHandSideVector, rProcessInfo);
+        CalculateAndAssembleStiffnessForceVector<12>(rRightHandSideVector, rProcessInfo);
         break;
     case 18:
-        CalculateAndAssembleStiffnesForceVector<18>(rRightHandSideVector, rProcessInfo);
+        CalculateAndAssembleStiffnessForceVector<18>(rRightHandSideVector, rProcessInfo);
         break;
     case 36:
-        CalculateAndAssembleStiffnesForceVector<36>(rRightHandSideVector, rProcessInfo);
+        CalculateAndAssembleStiffnessForceVector<36>(rRightHandSideVector, rProcessInfo);
         break;
     case 24:
-        CalculateAndAssembleStiffnesForceVector<24>(rRightHandSideVector, rProcessInfo);
+        CalculateAndAssembleStiffnessForceVector<24>(rRightHandSideVector, rProcessInfo);
         break;
     case 48:
-        CalculateAndAssembleStiffnesForceVector<48>(rRightHandSideVector, rProcessInfo);
+        CalculateAndAssembleStiffnessForceVector<48>(rRightHandSideVector, rProcessInfo);
         break;
     default:
         KRATOS_ERROR << "This stiffness force vector size is not supported: " << NumberOfUDofs() << "\n";
     }
+}
+
+void UPwInterfaceElement::CalculateAndAssembleUPCouplingForceVector(Element::VectorType& rRightHandSideVector) const
+{
+    using Key  = std::pair<std::size_t, std::size_t>;
+    using Func = void (UPwInterfaceElement::*)(Element::VectorType&) const;
+
+    static const std::map<Key, Func> dispatch_table = {
+        {{8, 4}, &UPwInterfaceElement::CalculateAndAssembleUPCouplingForceVector<8, 4>},
+        {{12, 6}, &UPwInterfaceElement::CalculateAndAssembleUPCouplingForceVector<12, 6>},
+        {{12, 4}, &UPwInterfaceElement::CalculateAndAssembleUPCouplingForceVector<12, 4>},
+        {{18, 6}, &UPwInterfaceElement::CalculateAndAssembleUPCouplingForceVector<18, 6>},
+        {{36, 12}, &UPwInterfaceElement::CalculateAndAssembleUPCouplingForceVector<36, 12>},
+        {{36, 6}, &UPwInterfaceElement::CalculateAndAssembleUPCouplingForceVector<36, 6>},
+        {{24, 8}, &UPwInterfaceElement::CalculateAndAssembleUPCouplingForceVector<24, 8>},
+        {{48, 16}, &UPwInterfaceElement::CalculateAndAssembleUPCouplingForceVector<48, 16>},
+        {{48, 8}, &UPwInterfaceElement::CalculateAndAssembleUPCouplingForceVector<48, 8>}};
+
+    const auto key = Key{NumberOfUDofs(), GetWaterPressureGeometry().size()};
+    KRATOS_ERROR_IF_NOT(dispatch_table.contains(key))
+        << "This coupling force vector size is not supported: " << key.first << "x" << key.second << "\n";
+    (this->*dispatch_table.at(key))(rRightHandSideVector);
+}
+
+void UPwInterfaceElement::CalculateAndAssemblePUCouplingForceVector(Element::VectorType& rRightHandSideVector) const
+{
+    using Key  = std::pair<std::size_t, std::size_t>;
+    using Func = void (UPwInterfaceElement::*)(Element::VectorType&) const;
+
+    static const std::map<Key, Func> dispatch_table = {
+        {{8, 4}, &UPwInterfaceElement::CalculateAndAssemblePUCouplingForceVector<4, 8>},
+        {{12, 6}, &UPwInterfaceElement::CalculateAndAssemblePUCouplingForceVector<6, 12>},
+        {{12, 4}, &UPwInterfaceElement::CalculateAndAssemblePUCouplingForceVector<4, 12>},
+        {{18, 6}, &UPwInterfaceElement::CalculateAndAssemblePUCouplingForceVector<6, 18>},
+        {{36, 12}, &UPwInterfaceElement::CalculateAndAssemblePUCouplingForceVector<12, 36>},
+        {{36, 6}, &UPwInterfaceElement::CalculateAndAssemblePUCouplingForceVector<6, 36>},
+        {{24, 8}, &UPwInterfaceElement::CalculateAndAssemblePUCouplingForceVector<8, 24>},
+        {{48, 16}, &UPwInterfaceElement::CalculateAndAssemblePUCouplingForceVector<16, 48>},
+        {{48, 8}, &UPwInterfaceElement::CalculateAndAssemblePUCouplingForceVector<8, 48>}};
+
+    const auto key = Key{NumberOfUDofs(), GetWaterPressureGeometry().size()};
+    KRATOS_ERROR_IF_NOT(dispatch_table.contains(key))
+        << "This coupling force vector size is not supported: " << key.first << "x" << key.second << "\n";
+    (this->*dispatch_table.at(key))(rRightHandSideVector);
 }
 
 void UPwInterfaceElement::CalculateAndAssemblePermeabilityFlowVector(Element::VectorType& rRightHandSideVector)
@@ -392,6 +490,12 @@ void UPwInterfaceElement::Calculate(const Variable<Vector>& rVariable, Vector& r
     }
 }
 
+const Geometry<Node>& UPwInterfaceElement::GetWaterPressureMidGeometry() const
+{
+    constexpr auto unused_part_index = std::size_t{0};
+    return GetWaterPressureGeometry().GetGeometryPart(unused_part_index);
+}
+
 void UPwInterfaceElement::GetDofList(DofsVectorType& rElementalDofList, const ProcessInfo&) const
 {
     rElementalDofList = GetDofs();
@@ -417,11 +521,8 @@ void UPwInterfaceElement::Initialize(const ProcessInfo& rCurrentProcessInfo)
         std::vector<std::optional<Vector>> interface_nodal_cauchy_stresses(interface_node_ids.size());
         auto&               r_neighbour_element = this->GetValue(NEIGHBOUR_ELEMENTS).front();
         std::vector<Vector> neighbour_cauchy_stresses;
-        // Note that the interface elements don't account for water pressures yet. Consequently,
-        // we need to consider the total stresses rather than the effective stresses to calculate
-        // the appropriate prestresses to be applied.
         r_neighbour_element.CalculateOnIntegrationPoints(
-            TOTAL_STRESS_VECTOR, neighbour_cauchy_stresses, rCurrentProcessInfo);
+            CAUCHY_STRESS_VECTOR, neighbour_cauchy_stresses, rCurrentProcessInfo);
         interface_nodal_cauchy_stresses = ExtrapolationUtilities::CalculateNodalVectors(
             interface_node_ids, r_neighbour_element, neighbour_cauchy_stresses);
         InterpolateNodalStressesToInitialTractions(interface_nodal_cauchy_stresses);
@@ -465,12 +566,6 @@ const Geometry<Node>& UPwInterfaceElement::GetDisplacementMidGeometry() const
 {
     constexpr auto unused_part_index = std::size_t{0};
     return GetDisplacementGeometry().GetGeometryPart(unused_part_index);
-}
-
-const Geometry<Node>& UPwInterfaceElement::GetWaterPressureMidGeometry() const
-{
-    constexpr auto unused_part_index = std::size_t{0};
-    return GetWaterPressureGeometry().GetGeometryPart(unused_part_index);
 }
 
 Element::DofsVectorType UPwInterfaceElement::GetDofs() const
@@ -681,25 +776,8 @@ Vector UPwInterfaceElement::GetWaterPressureGeometryNodalVariable(const Variable
 
 std::vector<double> UPwInterfaceElement::CalculateIntegrationPointFluidPressures() const
 {
-    Matrix n_container{mpIntegrationScheme->GetIntegrationPoints().size(),
-                       GetWaterPressureMidGeometry().PointsNumber()};
-    auto   integration_point_index = std::size_t{0};
-    for (auto& r_integration_point : mpIntegrationScheme->GetIntegrationPoints()) {
-        auto integration_point_shape_function_values = Vector{};
-        // water pressure shape function values on integration point ( the integration points are shared with the displacement mid geometry )
-        GetWaterPressureMidGeometry().ShapeFunctionsValues(integration_point_shape_function_values,
-                                                           r_integration_point);
-        row(n_container, integration_point_index) = integration_point_shape_function_values;
-        integration_point_index++;
-    }
-    auto   nodal_water_pressure = GetWaterPressureGeometryNodalVariable(WATER_PRESSURE);
-    Vector mid_geometry_water_pressures{nodal_water_pressure.size() / 2};
-    for (auto i = std::size_t{0}; i < nodal_water_pressure.size() / 2; ++i) {
-        // this choice of averaging should be different for impermeable interface
-        mid_geometry_water_pressures[i] =
-            (nodal_water_pressure[i] + nodal_water_pressure[i + nodal_water_pressure.size() / 2]) / 2.0;
-    }
-    return GeoTransportEquationUtilities::CalculateFluidPressures(n_container, mid_geometry_water_pressures);
+    return GeoTransportEquationUtilities::CalculateFluidPressures(
+        GetNpContainer(), GetWaterPressureGeometryNodalVariable());
 }
 
 std::vector<Vector> UPwInterfaceElement::CalculateProjectedGravity() const
@@ -807,6 +885,122 @@ Geo::PropertiesGetter UPwInterfaceElement::CreatePropertiesGetter() const
     return [this]() -> const Properties& { return this->GetProperties(); };
 }
 
+std::function<const Matrix()> UPwInterfaceElement::CreateNpContainerGetter() const
+{
+    return [this]() { return this->GetNpContainer(); };
+}
+
+std::function<Vector()> UPwInterfaceElement::CreateVoigtVectorGetter() const
+{
+    return [this]() { return mpStressStatePolicy->GetVoigtVector(); };
+}
+
+std::function<std::vector<double>()> UPwInterfaceElement::CreateBiotCoefficientsGetter() const
+{
+    return [this]() { return this->CalculateBiotCoefficients(); };
+}
+
+std::vector<double> UPwInterfaceElement::CalculateBiotCoefficients() const
+{
+    const auto& r_properties = this->GetProperties();
+    const double biot_coefficient = r_properties.Has(BIOT_COEFFICIENT) ? r_properties[BIOT_COEFFICIENT] : 1.0;
+    const std::size_t n_points = mpIntegrationScheme->GetNumberOfIntegrationPoints();
+    return std::vector<double>(n_points, biot_coefficient);
+}
+
+std::function<std::vector<double>()> UPwInterfaceElement::CreateBishopCoefficientsGetter() const
+{
+    return [this]() { return this->CalculateBishopCoefficients(); };
+}
+
+std::vector<double> UPwInterfaceElement::CalculateBishopCoefficients() const
+{
+    const auto fluid_pressure = CalculateIntegrationPointFluidPressures();
+    KRATOS_ERROR_IF_NOT(fluid_pressure.size() == mRetentionLaws.size());
+
+    auto retention_law_params = RetentionLaw::Parameters{this->GetProperties()};
+
+    auto result = std::vector<double>{};
+    result.reserve(mRetentionLaws.size());
+    std::transform(mRetentionLaws.begin(), mRetentionLaws.end(), fluid_pressure.begin(),
+                   std::back_inserter(result),
+                   [&retention_law_params](const auto& pRetentionLaw, auto FluidPressure) {
+        retention_law_params.SetFluidPressure(FluidPressure);
+        return pRetentionLaw->CalculateBishopCoefficient(retention_law_params);
+    });
+    return result;
+}
+
+Matrix UPwInterfaceElement::GetNpContainer() const
+{
+    const auto total_number_of_nodes    = GetWaterPressureGeometry().size();
+    const auto number_of_pressure_nodes = GetWaterPressureMidGeometry().PointsNumber();
+    Matrix n_container{mpIntegrationScheme->GetIntegrationPoints().size(), total_number_of_nodes};
+    auto   shape_function_values_interface = Vector(total_number_of_nodes, 0.0);
+
+    auto integration_point_index = std::size_t{0};
+    for (auto& r_integration_point : mpIntegrationScheme->GetIntegrationPoints()) {
+        auto integration_point_shape_function_values = Vector{};
+        // water pressure shape function values on integration point ( the integration points are shared with the displacement mid-geometry )
+        GetWaterPressureMidGeometry().ShapeFunctionsValues(integration_point_shape_function_values,
+                                                           r_integration_point);
+        // to interplate nodal values of water pressure on mid-geometry, the shape function is split into two equal contributions
+        noalias(subrange(shape_function_values_interface, 0, number_of_pressure_nodes)) =
+            0.5 * integration_point_shape_function_values;
+        noalias(subrange(shape_function_values_interface, number_of_pressure_nodes, 2 * number_of_pressure_nodes)) =
+            subrange(shape_function_values_interface, 0, number_of_pressure_nodes);
+        row(n_container, integration_point_index) = shape_function_values_interface;
+        integration_point_index++;
+    }
+    return n_container;
+}
+
+std::function<Vector()> UPwInterfaceElement::CreateNodalPressuresGetter() const
+{
+    return [this]() { return this->GetWaterPressureGeometryNodalVariable(); };
+}
+
+Vector UPwInterfaceElement::GetWaterPressureGeometryNodalVariable() const
+{
+    Vector result{this->GetWaterPressureGeometry().size()};
+    VariablesUtilities::GetNodalValues(this->GetWaterPressureGeometry(), WATER_PRESSURE, result.begin());
+    return result;
+}
+
+std::function<Vector()> UPwInterfaceElement::CreateNodalVelocitiesGetter() const
+{
+    return [this]() { return this->GetGeometryVelocityValues(); };
+}
+
+Vector UPwInterfaceElement::GetGeometryVelocityValues() const
+{
+    return GeoElementUtilities::GetNodalVariableVector(
+        this->GetGeometry(), VELOCITY, GetDisplacementGeometry().WorkingSpaceDimension(), this->NumberOfUDofs());
+}
+
+std::function<std::vector<double>()> UPwInterfaceElement::CreateDegreesOfSaturationGetter() const
+{
+    return [this]() { return this->GetDegreesOfSaturationValues(); };
+}
+
+std::vector<double> UPwInterfaceElement::GetDegreesOfSaturationValues() const
+{
+    const auto fluid_pressure = CalculateIntegrationPointFluidPressures();
+    KRATOS_ERROR_IF_NOT(fluid_pressure.size() == mRetentionLaws.size());
+
+    auto retention_law_params = RetentionLaw::Parameters{this->GetProperties()};
+
+    auto result = std::vector<double>{};
+    result.reserve(mRetentionLaws.size());
+    std::transform(mRetentionLaws.begin(), mRetentionLaws.end(), fluid_pressure.begin(),
+                   std::back_inserter(result),
+                   [&retention_law_params](const auto& pRetentionLaw, auto FluidPressure) {
+        retention_law_params.SetFluidPressure(FluidPressure);
+        return pRetentionLaw->CalculateSaturation(retention_law_params);
+    });
+    return result;
+}
+
 Geo::ShapeFunctionGradientsGetter UPwInterfaceElement::CreatePwBMatricesGetter() const
 {
     return [this]() { return this->CalculateLocalPwBMatricesAtIntegrationPoints(); };
@@ -845,11 +1039,74 @@ void UPwInterfaceElement::CalculateAndAssignStiffnessMatrix(MatrixType&        r
 }
 
 template <unsigned int MatrixSize>
-void UPwInterfaceElement::CalculateAndAssembleStiffnesForceVector(VectorType& rRightHandSideVector,
-                                                                  const ProcessInfo& rProcessInfo)
+void UPwInterfaceElement::CalculateAndAssembleStiffnessForceVector(VectorType& rRightHandSideVector,
+                                                                   const ProcessInfo& rProcessInfo)
 {
     GeoElementUtilities::AssembleUBlockVector(
         rRightHandSideVector, CreateStiffnessCalculator<MatrixSize>(rProcessInfo).RHSContribution());
+}
+
+template <unsigned int NumberOfRows, unsigned int NumberOfColumns>
+typename UPCouplingCalculator<NumberOfRows, NumberOfColumns>::InputProvider UPwInterfaceElement::CreateUPCouplingInputProvider() const
+{
+    return typename UPCouplingCalculator<NumberOfRows, NumberOfColumns>::InputProvider(
+        CreateNpContainerGetter(), CreateBMatricesGetter(), CreateVoigtVectorGetter(),
+        CreateIntegrationCoefficientsGetter(), CreateBiotCoefficientsGetter(),
+        CreateBishopCoefficientsGetter(), CreateNodalPressuresGetter());
+}
+
+template <unsigned int NumberOfRows, unsigned int NumberOfColumns>
+typename PUCouplingCalculator<NumberOfRows, NumberOfColumns>::InputProvider UPwInterfaceElement::CreatePUCouplingInputProvider() const
+{
+    return typename PUCouplingCalculator<NumberOfRows, NumberOfColumns>::InputProvider(
+        CreateNpContainerGetter(), CreateBMatricesGetter(), CreateVoigtVectorGetter(),
+        CreateIntegrationCoefficientsGetter(), CreateBiotCoefficientsGetter(),
+        CreateDegreesOfSaturationGetter(), CreateNodalVelocitiesGetter());
+}
+
+template <unsigned int NumberOfRows, unsigned int NumberOfColumns>
+auto UPwInterfaceElement::CreateUPCouplingCalculator() const
+{
+    return UPCouplingCalculator<NumberOfRows, NumberOfColumns>(
+        CreateUPCouplingInputProvider<NumberOfRows, NumberOfColumns>());
+}
+
+template <unsigned int NumberOfRows, unsigned int NumberOfColumns>
+auto UPwInterfaceElement::CreatePUCouplingCalculator() const
+{
+    return PUCouplingCalculator<NumberOfRows, NumberOfColumns>(
+        CreatePUCouplingInputProvider<NumberOfRows, NumberOfColumns>());
+}
+
+template <unsigned int NumberOfRows, unsigned int NumberOfColumns>
+void UPwInterfaceElement::CalculateAndAssignUPCouplingMatrix(MatrixType& rLeftHandSideMatrix) const
+{
+    GeoElementUtilities::AssignUPBlockMatrix(
+        rLeftHandSideMatrix,
+        CreateUPCouplingCalculator<NumberOfRows, NumberOfColumns>().LHSContribution().value());
+}
+
+template <unsigned int NumberOfRows, unsigned int NumberOfColumns>
+void UPwInterfaceElement::CalculateAndAssignPUCouplingMatrix(MatrixType& rLeftHandSideMatrix) const
+{
+    GeoElementUtilities::AssignPUBlockMatrix(
+        rLeftHandSideMatrix,
+        CreatePUCouplingCalculator<NumberOfRows, NumberOfColumns>().LHSContribution().value());
+}
+
+template <unsigned int NumberOfRows, unsigned int NumberOfColumns>
+void UPwInterfaceElement::CalculateAndAssembleUPCouplingForceVector(VectorType& rRightHandSideVector) const
+{
+    GeoElementUtilities::AssembleUBlockVector(
+        rRightHandSideVector,
+        -1.0 * CreateUPCouplingCalculator<NumberOfRows, NumberOfColumns>().RHSContribution());
+}
+
+template <unsigned int NumberOfRows, unsigned int NumberOfColumns>
+void UPwInterfaceElement::CalculateAndAssemblePUCouplingForceVector(VectorType& rRightHandSideVector) const
+{
+    GeoElementUtilities::AssemblePBlockVector(
+        rRightHandSideVector, CreatePUCouplingCalculator<NumberOfRows, NumberOfColumns>().RHSContribution());
 }
 
 template <unsigned int TNumNodes>

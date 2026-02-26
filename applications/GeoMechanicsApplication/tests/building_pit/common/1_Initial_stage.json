@@ -20,7 +20,7 @@
         "echo_level"                        : 1,
         "model_import_settings"             : {
             "input_type"    : "mdpa",
-            "input_filename": "../common/submerged_excavation_gid_project_with_interfaces"
+            "input_filename": "../common/building_pit"
         },
         "material_import_settings"          : {
             "materials_filename": "../common/Linear_Elastic_Materials.json"

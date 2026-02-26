@@ -17,6 +17,8 @@
 #include "contribution_calculators/fluid_body_flow_calculator.hpp"
 #include "contribution_calculators/permeability_calculator.hpp"
 #include "contribution_calculators/stiffness_calculator.hpp"
+#include "custom_elements/contribution_calculators/pu_coupling_calculator.hpp"
+#include "custom_elements/contribution_calculators/up_coupling_calculator.hpp"
 #include "geo_aliases.h"
 #include "includes/element.h"
 #include "includes/ublas_interface.h"
@@ -62,14 +64,17 @@ public:
     Element::Pointer Create(IndexType NewId, GeometryType::Pointer pGeom, PropertiesType::Pointer pProperties) const override;
 
     void EquationIdVector(EquationIdVectorType& rResult, const ProcessInfo&) const override;
-    void CalculateAndAssignStifnessMatrix(Element::MatrixType& rLeftHandSideMatrix, const ProcessInfo& rProcessInfo);
+    void CalculateAndAssignStiffnessMatrix(Element::MatrixType& rLeftHandSideMatrix, const ProcessInfo& rProcessInfo);
     void CalculateAndAssignPermeabilityMatrix(Element::MatrixType& rLeftHandSideMatrix);
     void CalculateLeftHandSide(MatrixType& rLeftHandSideMatrix, const ProcessInfo&) override;
-    void CalculateAndAssembleStifnessForceVector(Element::VectorType& rRightHandSideVector,
-                                                 const ProcessInfo&   rProcessInfo);
+    void CalculateAndAssembleStiffnessForceVector(Element::VectorType& rRightHandSideVector,
+                                                  const ProcessInfo&   rProcessInfo);
+    void CalculateAndAssignUPCouplingMatrix(MatrixType& rLeftHandSideMatrix) const;
+    void CalculateAndAssignPUCouplingMatrix(MatrixType& rLeftHandSideMatrix) const;
+    void CalculateAndAssembleUPCouplingForceVector(Element::VectorType& rRightHandSideVector) const;
+    void CalculateAndAssemblePUCouplingForceVector(Element::VectorType& rRightHandSideVector) const;
     void CalculateAndAssemblePermeabilityFlowVector(Element::VectorType& rRightHandSideVector);
     void CalculateAndAssembleFluidBodyFlowVector(Element::VectorType& rRightHandSideVector);
-
     void CalculateRightHandSide(VectorType& rRightHandSideVector, const ProcessInfo&) override;
     void CalculateLocalSystem(MatrixType&        rLeftHandSideMatrix,
                               VectorType&        rRightHandSideVector,
@@ -122,11 +127,25 @@ private:
     std::vector<double> CalculateIntegrationPointFluidPressures() const;
     std::vector<Vector> CalculateProjectedGravity() const;
 
-    Geo::BMatricesGetter                  CreateBMatricesGetter() const;
-    Geo::StrainVectorsGetter              CreateRelativeDisplacementsGetter() const;
-    Geo::IntegrationCoefficientsGetter    CreateIntegrationCoefficientsGetter() const;
-    Geo::PropertiesGetter                 CreatePropertiesGetter() const;
-    Geo::ConstitutiveLawsGetter           CreateConstitutiveLawsGetter() const;
+    Geo::BMatricesGetter                 CreateBMatricesGetter() const;
+    Geo::StrainVectorsGetter             CreateRelativeDisplacementsGetter() const;
+    Geo::IntegrationCoefficientsGetter   CreateIntegrationCoefficientsGetter() const;
+    Geo::PropertiesGetter                CreatePropertiesGetter() const;
+    Geo::ConstitutiveLawsGetter          CreateConstitutiveLawsGetter() const;
+    std::function<const Matrix()>        CreateNpContainerGetter() const;
+    std::function<Vector()>              CreateVoigtVectorGetter() const;
+    std::function<std::vector<double>()> CreateBiotCoefficientsGetter() const;
+    std::function<std::vector<double>()> CreateBishopCoefficientsGetter() const;
+    std::function<Vector()>              CreateNodalPressuresGetter() const;
+    std::function<Vector()>              CreateNodalVelocitiesGetter() const;
+    std::function<std::vector<double>()> CreateDegreesOfSaturationGetter() const;
+
+    std::vector<double>                   CalculateBiotCoefficients() const;
+    std::vector<double>                   CalculateBishopCoefficients() const;
+    Vector                                GetWaterPressureGeometryNodalVariable() const;
+    Vector                                GetGeometryVelocityValues() const;
+    Matrix                                GetNpContainer() const;
+    std::vector<double>                   GetDegreesOfSaturationValues() const;
     Geo::RetentionLawsGetter              CreateRetentionLawsGetter() const;
     Geo::MaterialPermeabilityMatrixGetter CreateMaterialPermeabilityGetter() const;
     Geo::NodalValuesGetter                CreateWaterPressureGeometryNodalVariableGetter() const;
@@ -144,7 +163,31 @@ private:
     void CalculateAndAssignStiffnessMatrix(MatrixType& rLeftHandSideMatrix, const ProcessInfo& rProcessInfo);
 
     template <unsigned int MatrixSize>
-    void CalculateAndAssembleStiffnesForceVector(VectorType& rRightHandSideVector, const ProcessInfo& rProcessInfo);
+    void CalculateAndAssembleStiffnessForceVector(VectorType& rRightHandSideVector, const ProcessInfo& rProcessInfo);
+
+    template <unsigned int NumberOfRows, unsigned int NumberOfColumns>
+    typename UPCouplingCalculator<NumberOfRows, NumberOfColumns>::InputProvider CreateUPCouplingInputProvider() const;
+
+    template <unsigned int NumberOfRows, unsigned int NumberOfColumns>
+    typename PUCouplingCalculator<NumberOfRows, NumberOfColumns>::InputProvider CreatePUCouplingInputProvider() const;
+
+    template <unsigned int NumberOfRows, unsigned int NumberOfColumns>
+    auto CreateUPCouplingCalculator() const;
+
+    template <unsigned int NumberOfRows, unsigned int NumberOfColumns>
+    auto CreatePUCouplingCalculator() const;
+
+    template <unsigned int NumberOfRows, unsigned int NumberOfColumns>
+    void CalculateAndAssignUPCouplingMatrix(MatrixType& rLeftHandSideMatrix) const;
+
+    template <unsigned int NumberOfRows, unsigned int NumberOfColumns>
+    void CalculateAndAssignPUCouplingMatrix(MatrixType& rLeftHandSideMatrix) const;
+
+    template <unsigned int NumberOfRows, unsigned int NumberOfColumns>
+    void CalculateAndAssembleUPCouplingForceVector(VectorType& rRightHandSideVector) const;
+
+    template <unsigned int NumberOfRows, unsigned int NumberOfColumns>
+    void CalculateAndAssemblePUCouplingForceVector(VectorType& rRightHandSideVector) const;
 
     template <unsigned int TNumNodes>
     typename PermeabilityCalculator<TNumNodes>::InputProvider CreatePermeabilityInputProvider();

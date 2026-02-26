@@ -5,7 +5,7 @@
    viewBox="0 0 838.03595 585.15424"
    version="1.1"
    id="svg294"
-   sodipodi:docname="initial_stage.svg"
+   sodipodi:docname="stage_3.svg"
    inkscape:version="1.4 (86a8ad7, 2024-10-11)"
    xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
    xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
@@ -25,8 +25,8 @@
      inkscape:pagecheckerboard="0"
      inkscape:deskcolor="#d1d1d1"
      inkscape:zoom="2.6116026"
-     inkscape:cx="-0.7658133"
-     inkscape:cy="490.31197"
+     inkscape:cx="104.91642"
+     inkscape:cy="502.94789"
      inkscape:window-width="1920"
      inkscape:window-height="991"
      inkscape:window-x="-9"
@@ -34,7 +34,7 @@
      inkscape:window-maximized="1"
      inkscape:current-layer="svg294" />
   <title
-     id="title1">D:/Checkouts2/KratosProjects/beta/applications/GeoMechanicsApplication/tests/submerged_construction_of_excavation/submerged_excavation_gid_project</title>
+     id="title1"></title>
   <desc
      id="desc1">
 Creator: GiD 17.0.1 + GL2PS 1.3.8, (C) 1999-2012 C. Geuzaine
@@ -43,12 +43,72 @@ CreationDate: Wed Nov 26 16:01:51 2025
 </desc>
   <defs
      id="defs1">
+    <marker
+       style="overflow:visible"
+       id="Triangle"
+       refX="3"
+       refY="0"
+       orient="auto-start-reverse"
+       inkscape:stockid="Triangle arrow"
+       markerWidth="1"
+       markerHeight="1"
+       viewBox="0 0 1 1"
+       inkscape:isstock="true"
+       inkscape:collect="always"
+       preserveAspectRatio="xMidYMid"
+       markerUnits="strokeWidth">
+      <path
+         transform="scale(0.5)"
+         style="fill:context-stroke;fill-rule:evenodd;stroke:context-stroke;stroke-width:1pt"
+         d="M 5.77,0 -2.88,5 V -5 Z"
+         id="path135" />
+    </marker>
+    <marker
+       style="overflow:visible"
+       id="Triangle-1"
+       refX="3"
+       refY="0"
+       orient="auto-start-reverse"
+       inkscape:stockid="Triangle arrow"
+       markerWidth="1"
+       markerHeight="1"
+       viewBox="0 0 1 1"
+       inkscape:isstock="true"
+       inkscape:collect="always"
+       preserveAspectRatio="xMidYMid"
+       markerUnits="strokeWidth">
+      <path
+         transform="scale(0.5)"
+         style="fill:context-stroke;fill-rule:evenodd;stroke:context-stroke;stroke-width:1pt"
+         d="M 5.77,0 -2.88,5 V -5 Z"
+         id="path135-7" />
+    </marker>
+    <marker
+       style="overflow:visible"
+       id="Triangle-1-0"
+       refX="3"
+       refY="0"
+       orient="auto-start-reverse"
+       inkscape:stockid="Triangle arrow"
+       markerWidth="1"
+       markerHeight="1"
+       viewBox="0 0 1 1"
+       inkscape:isstock="true"
+       inkscape:collect="always"
+       preserveAspectRatio="xMidYMid"
+       markerUnits="strokeWidth">
+      <path
+         transform="scale(0.5)"
+         style="fill:context-stroke;fill-rule:evenodd;stroke:context-stroke;stroke-width:1pt"
+         d="M 5.77,0 -2.88,5 V -5 Z"
+         id="path135-7-8" />
+    </marker>
     <pattern
        inkscape:collect="always"
        xlink:href="#pattern32"
        preserveAspectRatio="xMidYMid"
        id="pattern33"
-       patternTransform="scale(1)" />
+       patternTransform="translate(-0.19331487,-0.11399751)" />
     <pattern
        patternUnits="userSpaceOnUse"
        width="256"
@@ -76,12 +136,12 @@ CreationDate: Wed Nov 26 16:01:51 2025
      id="g294"
      transform="translate(-518.66793,-128.83746)">
     <rect
-       style="fill:#9b9b9b;stroke:url(#pattern33);stroke-width:0;stroke-dasharray:none;stroke-dashoffset:0;stroke-opacity:0.116;fill-opacity:1"
+       style="fill:#9b9b9b;fill-opacity:1;stroke:url(#pattern33);stroke-width:0;stroke-dasharray:none;stroke-dashoffset:0;stroke-opacity:0.116"
        id="rect30"
        width="667.14252"
        height="514.43622"
-       x="596.64563"
-       y="179.73956" />
+       x="596.45227"
+       y="179.62556" />
     <circle
        fill="#000000"
        cx="595.11499"
@@ -121,21 +181,51 @@ CreationDate: Wed Nov 26 16:01:51 2025
     <circle
        fill="#000000"
        cx="1110.3199"
+       cy="179.396"
+       r="1.5"
+       id="circle7" />
+    <circle
+       fill="#000000"
+       cx="1110.3199"
+       cy="488.521"
+       r="1.5"
+       id="circle8" />
+    <circle
+       fill="#000000"
+       cx="1110.3199"
        cy="385.479"
        r="1.5"
        id="circle9" />
     <circle
        fill="#000000"
-       cx="1264.89"
-       cy="200.004"
+       cx="1038.1899"
+       cy="179.396"
        r="1.5"
-       id="circle14" />
+       id="circle10" />
     <circle
        fill="#000000"
-       cx="1264.89"
+       cx="1089.71"
+       cy="179.396"
+       r="1.5"
+       id="circle11" />
+    <circle
+       fill="#000000"
+       cx="1110.3199"
+       cy="200.004"
+       r="1.5"
+       id="circle12" />
+    <circle
+       fill="#000000"
+       cx="1110.3199"
        cy="282.43799"
        r="1.5"
-       id="circle15" />
+       id="circle13" />
+    <circle
+       fill="#000000"
+       cx="1110.3199"
+       cy="189.7"
+       r="1.5"
+       id="circle16" />
     <circle
        fill="#000000"
        cx="1110.3199"
@@ -148,12 +238,6 @@ CreationDate: Wed Nov 26 16:01:51 2025
        cy="200.004"
        r="1.5"
        id="circle18" />
-    <circle
-       fill="#000000"
-       cx="1264.89"
-       cy="189.7"
-       r="1.5"
-       id="circle19" />
     <polyline
        fill="none"
        stroke="#5b5ee1"
@@ -189,7 +273,7 @@ CreationDate: Wed Nov 26 16:01:51 2025
        stroke-linecap="round"
        points="1038.19,179.396 1089.71,179.396"
        id="polyline130"
-       style="stroke:#000000;stroke-width:2;stroke-dasharray:none;stroke-opacity:1" />
+       style="stroke:#ff6600;stroke-width:2;stroke-dasharray:none;stroke-opacity:1" />
     <polyline
        fill="none"
        stroke="#5b5ee1"
@@ -199,6 +283,24 @@ CreationDate: Wed Nov 26 16:01:51 2025
        points="595.115,179.396 1038.19,179.396"
        id="polyline131"
        style="stroke:#000000;stroke-width:2;stroke-dasharray:none;stroke-opacity:1" />
+    <polyline
+       fill="none"
+       stroke="#5b5ee1"
+       stroke-width="1"
+       stroke-linejoin="round"
+       stroke-linecap="round"
+       points="1110.32,189.7 1110.32,200.004"
+       id="polyline132"
+       style="stroke:#e10000;stroke-width:4;stroke-dasharray:none;stroke-opacity:1" />
+    <polyline
+       fill="none"
+       stroke="#5b5ee1"
+       stroke-width="1"
+       stroke-linejoin="round"
+       stroke-linecap="round"
+       points="1110.32,179.396 1110.32,189.7"
+       id="polyline133"
+       style="stroke:#e10000;stroke-width:4;stroke-dasharray:none;stroke-opacity:1" />
     <polyline
        fill="none"
        stroke="#5b5ee1"
@@ -241,6 +343,15 @@ CreationDate: Wed Nov 26 16:01:51 2025
        stroke-width="1"
        stroke-linejoin="round"
        stroke-linecap="round"
+       points="1110.32,385.479 1110.32,488.521"
+       id="polyline140"
+       style="stroke:#e10000;stroke-width:4;stroke-dasharray:none;stroke-opacity:1" />
+    <polyline
+       fill="none"
+       stroke="#5b5ee1"
+       stroke-width="1"
+       stroke-linejoin="round"
+       stroke-linecap="round"
        points="1264.89,179.396 1264.89,200.004"
        id="polyline141"
        style="stroke:#000000;stroke-width:2;stroke-dasharray:none;stroke-opacity:1" />
@@ -253,6 +364,24 @@ CreationDate: Wed Nov 26 16:01:51 2025
        points="1264.89,694.604 1264.89,385.479"
        id="polyline142"
        style="stroke:#000000;stroke-width:2;stroke-dasharray:none;stroke-opacity:1" />
+    <polyline
+       fill="none"
+       stroke="#5b5ee1"
+       stroke-width="1"
+       stroke-linejoin="round"
+       stroke-linecap="round"
+       points="1110.32,282.438 1110.32,385.479"
+       id="polyline143"
+       style="stroke:#e10000;stroke-width:4;stroke-dasharray:none;stroke-opacity:1" />
+    <polyline
+       fill="none"
+       stroke="#5b5ee1"
+       stroke-width="1"
+       stroke-linejoin="round"
+       stroke-linecap="round"
+       points="1110.32,200.004 1110.32,282.438"
+       id="polyline144"
+       style="stroke:#e10000;stroke-width:4;stroke-dasharray:none;stroke-opacity:1" />
     <polyline
        fill="none"
        stroke="#5b5ee1"
@@ -290,7 +419,7 @@ CreationDate: Wed Nov 26 16:01:51 2025
     <rdf:RDF>
       <cc:Work
          rdf:about="">
-        <dc:title>D:/Checkouts2/KratosProjects/beta/applications/GeoMechanicsApplication/tests/submerged_construction_of_excavation/submerged_excavation_gid_project</dc:title>
+        <dc:title></dc:title>
       </cc:Work>
     </rdf:RDF>
   </metadata>
@@ -689,10 +818,25 @@ CreationDate: Wed Nov 26 16:01:51 2025
      style="fill:none;stroke:#919191;stroke-width:2.65607;stroke-opacity:1"
      d="m 734.85497,566.7348 -11.4191,17.3598"
      id="path2-8-6-4" />
+  <path
+     style="fill:none;stroke:#ff6600;stroke-width:1;stroke-dasharray:none;stroke-opacity:1;marker-start:url(#Triangle)"
+     d="m 560.27317,48.970907 0.066,-22.48463"
+     id="path4-9"
+     sodipodi:nodetypes="cc" />
+  <path
+     style="fill:none;stroke:#ff6600;stroke-width:1;stroke-dasharray:none;stroke-opacity:1;marker-start:url(#Triangle-1)"
+     d="m 546.57487,49.048827 0.066,-22.48464"
+     id="path4-8"
+     sodipodi:nodetypes="cc" />
+  <path
+     style="fill:#808080;fill-opacity:1;stroke:#ff6600;stroke-width:1;stroke-dasharray:none;stroke-opacity:1;marker-start:url(#Triangle-1-0)"
+     d="m 531.32227,49.161057 0.066,-22.48463"
+     id="path4-8-0" />
   <g
-     id="g8">
+     id="g8"
+     transform="translate(-1.01683,0.76758133)">
     <path
-       style="fill:#000000;stroke:#000000;stroke-width:2;stroke-opacity:1;stroke-dasharray:none;fill-opacity:1"
+       style="fill:#000000;fill-opacity:1;stroke:#000000;stroke-width:2;stroke-dasharray:none;stroke-opacity:1"
        d="m 815.01681,96.492476 0.3829,60.116344"
        id="path1" />
     <path
@@ -721,40 +865,40 @@ CreationDate: Wed Nov 26 16:01:51 2025
        id="path2-1" />
   </g>
   <g
-     id="g8-1"
-     transform="translate(0.53701014,398.06366)">
+     id="g8-3"
+     transform="translate(1.1709023,397.37043)">
     <path
        style="fill:#000000;fill-opacity:1;stroke:#000000;stroke-width:2;stroke-dasharray:none;stroke-opacity:1"
        d="m 815.01681,96.492476 0.3829,60.116344"
-       id="path1-1" />
+       id="path1-41" />
     <path
        style="fill:#000000;fill-opacity:1;stroke:#000000;stroke-width:2;stroke-dasharray:none;stroke-opacity:1"
        d="m 822.77067,97.066836 -7.46668,8.806854"
-       id="path2-52" />
+       id="path2-13" />
     <path
        style="fill:#000000;fill-opacity:1;stroke:#000000;stroke-width:2;stroke-dasharray:none;stroke-opacity:1"
        d="m 822.85679,108.02959 -7.46668,8.80686"
-       id="path2-9-7" />
+       id="path2-9-87" />
     <path
        style="fill:#000000;fill-opacity:1;stroke:#000000;stroke-width:2;stroke-dasharray:none;stroke-opacity:1"
        d="m 822.99525,118.73215 -7.46668,8.80686"
-       id="path2-8-61" />
+       id="path2-8-4" />
     <path
        style="fill:#000000;fill-opacity:1;stroke:#000000;stroke-width:2;stroke-dasharray:none;stroke-opacity:1"
        d="m 823.13371,128.24325 -7.46668,8.80686"
-       id="path2-2-4" />
+       id="path2-2-2" />
     <path
        style="fill:#000000;fill-opacity:1;stroke:#000000;stroke-width:2;stroke-dasharray:none;stroke-opacity:1"
        d="m 822.88926,137.88256 -7.46668,8.80686"
-       id="path2-5-2" />
+       id="path2-5-7" />
     <path
        style="fill:#000000;fill-opacity:1;stroke:#000000;stroke-width:2;stroke-dasharray:none;stroke-opacity:1"
        d="m 822.92174,147.07232 -7.46668,8.80686"
-       id="path2-1-3" />
+       id="path2-1-7" />
   </g>
   <g
      id="g8-15"
-     transform="rotate(180,411.86295,126.586)">
+     transform="rotate(180,411.60806,126.96911)">
     <path
        style="fill:#000000;fill-opacity:1;stroke:#000000;stroke-width:2;stroke-dasharray:none;stroke-opacity:1"
        d="m 815.01681,96.492476 0.3829,60.116344"
@@ -778,19 +922,19 @@ CreationDate: Wed Nov 26 16:01:51 2025
     <path
        style="fill:#000000;fill-opacity:1;stroke:#000000;stroke-width:2;stroke-dasharray:none;stroke-opacity:1"
        d="m 822.88926,137.88256 -7.46668,8.80686"
-       id="path2-5-7" />
+       id="path2-5-7-1" />
     <path
        style="fill:#000000;fill-opacity:1;stroke:#000000;stroke-width:2;stroke-dasharray:none;stroke-opacity:1"
        d="m 822.92174,147.07232 -7.46668,8.80686"
        id="path2-1-2" />
   </g>
   <g
-     id="g8-15-0"
-     transform="rotate(180,411.93712,320.48022)">
+     id="g8-15-9"
+     transform="rotate(180,412.44823,320.03406)">
     <path
        style="fill:#000000;fill-opacity:1;stroke:#000000;stroke-width:2;stroke-dasharray:none;stroke-opacity:1"
        d="m 815.01681,96.492476 0.3829,60.116344"
-       id="path1-42-1" />
+       id="path1-42-9" />
     <path
        style="fill:#000000;fill-opacity:1;stroke:#000000;stroke-width:2;stroke-dasharray:none;stroke-opacity:1"
        d="m 822.77067,97.066836 -7.46668,8.806854"
@@ -798,22 +942,22 @@ CreationDate: Wed Nov 26 16:01:51 2025
     <path
        style="fill:#000000;fill-opacity:1;stroke:#000000;stroke-width:2;stroke-dasharray:none;stroke-opacity:1"
        d="m 822.85679,108.02959 -7.46668,8.80686"
-       id="path2-9-9-5" />
+       id="path2-9-9-8" />
     <path
        style="fill:#000000;fill-opacity:1;stroke:#000000;stroke-width:2;stroke-dasharray:none;stroke-opacity:1"
        d="m 822.99525,118.73215 -7.46668,8.80686"
-       id="path2-8-7-7" />
+       id="path2-8-7-3" />
     <path
        style="fill:#000000;fill-opacity:1;stroke:#000000;stroke-width:2;stroke-dasharray:none;stroke-opacity:1"
        d="m 823.13371,128.24325 -7.46668,8.80686"
-       id="path2-2-3-5" />
+       id="path2-2-3-4" />
     <path
        style="fill:#000000;fill-opacity:1;stroke:#000000;stroke-width:2;stroke-dasharray:none;stroke-opacity:1"
        d="m 822.88926,137.88256 -7.46668,8.80686"
-       id="path2-5-7-4" />
+       id="path2-5-7-8" />
     <path
        style="fill:#000000;fill-opacity:1;stroke:#000000;stroke-width:2;stroke-dasharray:none;stroke-opacity:1"
        d="m 822.92174,147.07232 -7.46668,8.80686"
-       id="path2-1-2-1" />
+       id="path2-1-2-4" />
   </g>
 </svg>
