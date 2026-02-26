@@ -54,7 +54,7 @@ cmake                                                 ^
   -DCMAKE_UNITY_BUILD=ON                                    || goto :error
 
 cmake --build "%KRATOS_BUILD%\%KRATOS_BUILD_TYPE%" --target all || goto :error
-cmake --build "%KRATOS_BUILD%\%KRATOS_BUILD_TYPE%" --target install || goto :error
+cmake --install "%KRATOS_BUILD%\%KRATOS_BUILD_TYPE%" --config %KRATOS_BUILD_TYPE% || goto :error
 
 goto :EOF
 
