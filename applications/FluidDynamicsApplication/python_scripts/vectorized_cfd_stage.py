@@ -69,9 +69,8 @@ class VectorizedCFDStage(analysis_stage.AnalysisStage):
         vavg=np.sum(v_elemental,axis=1) / (self.dim+1.0)
         vnorms = np.linalg.norm(vavg,axis=1)
         tau_1 = 1.0/(rho/dt + c_2*rho*vnorms/h + c_1*viscosity/h**2)
-        # tau_2 = h**2/(c_1 * tau_1)
-        return tau_1
-        # return tau_1, tau_2
+        tau_2 = h**2/(c_1 * tau_1)
+        return tau_1, tau_2
 
     def PrepareModelPart(self):
         super().PrepareModelPart()
@@ -86,8 +85,8 @@ class VectorizedCFDStage(analysis_stage.AnalysisStage):
         self.vol_mp.AddGeometries(vol_geometries)
 
         ##TODO: change viscosity
-        self.nu = 1.0e-1
-        self.rho = 1.0e3
+        self.nu = 1.0e-4
+        self.rho = 1.0e0
         for node in self.model_part.Nodes:
             node.SetSolutionStepValue(KM.BODY_FORCE, 0, np.array([0.0,-10.0, 0.0]))
 
@@ -239,8 +238,8 @@ class VectorizedCFDStage(analysis_stage.AnalysisStage):
         # Preallocate all outputs
         nelem = self.DN.shape[0]
         self.grad_v   = np.empty((nelem, self.dim, self.dim))   # gradient of velocity
-        # self.div_v = np.empty((nelem))                            # divergence of velocity
-        # self.proj_div_v = np.empty((nelem))                            # projeciton of the velocity divergence
+        self.div_v_gauss = np.empty((nelem))                            # divergence of velocity at Gauss point
+        self.proj_div_v_gauss = np.empty((nelem))                            # projeciton of the velocity divergence at Gauss point
         self.v_gauss  = np.empty((nelem, self.dim))      # velocity at Gauss point
         self.b_gauss  = np.empty((nelem, self.dim))      # body force at Gauss point
         self.aux_res_el = np.empty((nelem, self.n_in_el, self.dim))
@@ -268,9 +267,9 @@ class VectorizedCFDStage(analysis_stage.AnalysisStage):
 
         #FIXME: initial conditions for debuggings
         #TODO: hydrostatic pressure initialization for debugging
-        for node in self.model_part.Nodes:
-            node.SetSolutionStepValue(KM.PRESSURE, 0, (2.0-node.Y)*10000) #TODO: remove after debugging
-            node.SetSolutionStepValue(KM.PRESSURE, 1, (2.0-node.Y)*10000) #TODO: remove after debugging
+        # for node in self.model_part.Nodes:
+        #     node.SetSolutionStepValue(KM.PRESSURE, 0, (2.0-node.Y)*10*self.rho) #TODO: remove after debugging
+        #     node.SetSolutionStepValue(KM.PRESSURE, 1, (2.0-node.Y)*10*self.rho) #TODO: remove after debugging
             # node.Fix(KM.PRESSURE) #TODO: remove after debugging
 
     def ComputeVelocityProjection(self, v_elemental, Pi_conv):
@@ -349,8 +348,7 @@ class VectorizedCFDStage(analysis_stage.AnalysisStage):
         self.ElemData(b, self.connectivity, self.vec_elemental_data_b)
         b_el = self.vec_elemental_data_b #no copy ... just renaming for better readability
 
-        self.tau_1 = self.ComputeTau(self.h, vel, self.nu, dt, self.rho)
-        # self.tau_1, self.tau_2 = self.ComputeTau(self.h, vel, self.nu, dt, self.rho)
+        self.tau_1, self.tau_2 = self.ComputeTau(self.h, vel, self.nu, dt, self.rho)
 
         #########################################################
 
@@ -363,7 +361,7 @@ class VectorizedCFDStage(analysis_stage.AnalysisStage):
         for node in self.model_part.Nodes:
             node.SetSolutionStepValue(KM.CONV_PROJ, 0, np.hstack([self.Projection[node.Id-1,:], 0.0])) #TODO: remove after debugging
 
-        self.ComputeDivergenceProjection(vel, self.div_proj) #TODO: actually the vector Projection is not needed after getting the ElemData
+        self.ComputeDivergenceProjection(vel, self.div_proj) #TODO: actually the vector div_proj is not needed after getting the ElemData
         div_proj_el = self.div_proj_el
         self.ElemData(self.div_proj, self.connectivity, div_proj_el)
         #FIXME: remove after debugging
@@ -374,7 +372,7 @@ class VectorizedCFDStage(analysis_stage.AnalysisStage):
         #advance in time by runge kutta
 
         # --- k1 ---
-        k1 = self.ComputeVelocityResidual(vel, pel, b_el, proj_el, self.DN, self.tau_1)
+        k1 = self.ComputeVelocityResidual(vel, pel, b_el, proj_el, div_proj_el, self.DN, self.tau_1)
         k1.reshape(-1)[:] *= (1.0/self.rho) * self.Minv
 
         # --- k2 ---
@@ -382,7 +380,7 @@ class VectorizedCFDStage(analysis_stage.AnalysisStage):
         self.ApplyVelocityDirichletConditions(vold,self.v_end_of_step_dirichlet,0.5,v2)
 
         self.ElemData(v2, self.connectivity, vel)
-        k2 = self.ComputeVelocityResidual(vel, pel, b_el, proj_el, self.DN,self.tau_1)
+        k2 = self.ComputeVelocityResidual(vel, pel, b_el, proj_el, div_proj_el, self.DN,self.tau_1)
         k2.reshape(-1)[:] *= (1.0/self.rho) * self.Minv
 
         # --- k3 ---
@@ -390,7 +388,7 @@ class VectorizedCFDStage(analysis_stage.AnalysisStage):
         self.ApplyVelocityDirichletConditions(vold,self.v_end_of_step_dirichlet,0.5,v3)
 
         self.ElemData(v3, self.connectivity, vel)
-        k3 = self.ComputeVelocityResidual(vel, pel, b_el, proj_el, self.DN,self.tau_1)
+        k3 = self.ComputeVelocityResidual(vel, pel, b_el, proj_el, div_proj_el, self.DN,self.tau_1)
         k3.reshape(-1)[:] *= (1.0/self.rho) * self.Minv
 
         # --- k4 ---
@@ -398,7 +396,7 @@ class VectorizedCFDStage(analysis_stage.AnalysisStage):
         self.ApplyVelocityDirichletConditions(vold,self.v_end_of_step_dirichlet,1.0,v4)
 
         self.ElemData(v4, self.connectivity, vel)
-        k4 = self.ComputeVelocityResidual(vel, pel, b_el, proj_el, self.DN,self.tau_1)
+        k4 = self.ComputeVelocityResidual(vel, pel, b_el, proj_el, div_proj_el, self.DN,self.tau_1)
         k4.reshape(-1)[:] *= (1.0/self.rho) * self.Minv
 
         # --- final RK4 update ---
@@ -445,7 +443,7 @@ class VectorizedCFDStage(analysis_stage.AnalysisStage):
 
         # Assemble pressure LHS (set to zero is done internally)
         self.cfd_utils.ComputeLaplacianMatrix(self.DN, L_el) # elemental laplacian contributions as L_IJ := (∇N_I,∇N_J)
-        L_el *= (dt / self.rho) * self.elemental_volumes[:,np.newaxis,np.newaxis] # scale LHS elemental contributions
+        L_el *= (dt / self.rho + self.tau_1[:,np.newaxis,np.newaxis]) * self.elemental_volumes[:,np.newaxis,np.newaxis] # scale LHS elemental contributions
         self.cfd_utils.AssembleScalarMatrixByCSRIndices(L_el, self.L_assembly_indices, self.L) # assemble the scaled elemental contributions
 
         # -(q,∇·ufrac)
@@ -454,7 +452,7 @@ class VectorizedCFDStage(analysis_stage.AnalysisStage):
 
         # (dt/rho + tau)*(∇q,∇pold) = (dt/rho + tau)*Lij*pj
         self.cfd_utils.ApplyLaplacian(self.DN, pel, aux_scalar)
-        aux_scalar *= (dt / self.rho) + self.tau_1[:,np.newaxis]
+        aux_scalar *= (dt / self.rho)
         rhs_el += aux_scalar
 
         # -tau*(∇q,Pi_pressure)
@@ -523,11 +521,14 @@ class VectorizedCFDStage(analysis_stage.AnalysisStage):
         self.v_end_of_step_dirichlet = v.ravel()[self.fix_vel_indices].copy()
 
         #perform fractional step
+        print("\tSolve step 1 w/ CFL ", self._ComputeCFL(v, dt), " and Fourier ", self._ComputeFourier(dt))
         vfrac = self.SolveStep1(v, vold, pold, b, dt)
         for node in self.model_part.Nodes:
             node.SetSolutionStepValue(KM.DISPLACEMENT, 0, np.hstack([vfrac[node.Id-1,:], 0.0]))
+        print("\tSolve step 2 w/ CFL ", self._ComputeCFL(vfrac, dt), " and Fourier ", self._ComputeFourier(dt))
         p = self.SolveStep2(vfrac, pold, dt)
         delta_p = p - pold #TODO: most probably we could modify p in place
+        print("\tSolve step 3")
         v = self.SolveStep3(v, vfrac, delta_p, dt)
 
         #update Kratos
@@ -538,12 +539,14 @@ class VectorizedCFDStage(analysis_stage.AnalysisStage):
         #value = input("Press Enter to continue...")
 
 
-    def ComputeVelocityResidual(self, v_elemental, p_elemental, b_elemental, proj_el, DN, tau):
+    def ComputeVelocityResidual(self, v_elemental, p_elemental, b_elemental, proj_el, proj_div_el, DN, tau):
         N = self.N
 
         # assign a shorter local name
         grad_v  = self.grad_v
         v_gauss = self.v_gauss
+        div_v_gauss = self.div_v_gauss
+        proj_div_v_gauss = self.proj_div_v_gauss
         grad_v  = self.grad_v
         v_gauss = self.v_gauss
         b_gauss = self.b_gauss
@@ -560,13 +563,15 @@ class VectorizedCFDStage(analysis_stage.AnalysisStage):
         body_force *= self.rho
         res += body_force
 
-        #-(w,rho·a·∇u) - (rho·a·∇w,tau·rho·a·∇u) + (rho·a·∇w,tau·Pi_conv)
-        stabilized_convective = aux_res_el #rename this to make it more readable
-        stabilized_convective.fill(0.0) # initialize this to zero as it will be incremented in the integration points loop below
+        #-(w,rho·a·∇u) - (rho·a·∇w,tau_1·rho·a·∇u) + (rho·a·∇w,tau_1·Pi_conv)
+        convective = aux_res_el #rename this to make it more readable
+        convective.fill(0.0) # initialize this to zero as it will be incremented in the integration points loop below
+        convective_stab = np.zeros_like(aux_res_el) #rename this to make it more readable #FIXME: THIS IS SUBOPTIMAL
+        # convective.fill(0.0) # initialize this to zero as it will be incremented in the integration points loop below
         self.cfd_utils.ComputeElementalGradient(DN, v_elemental, grad_v)
 
-        tmp = np.zeros_like(stabilized_convective)
-        tmp_stab = np.zeros_like(stabilized_convective)
+        tmp = np.empty_like(convective)
+        tmp_stab = np.empty_like(convective_stab)
         det_J_volume_factor = 2.0 if self.dim == 2 else 6.0
         w_gauss_convective = self.cfd_utils.GetGaussIntegrationWeights(self.dim, self.convection_integration_order)
         N_gauss_convective = self.cfd_utils.GetShapeFunctionsOnGaussPoints(self.dim, self.convection_integration_order)
@@ -582,9 +587,11 @@ class VectorizedCFDStage(analysis_stage.AnalysisStage):
 
             # Scale with current integration weight (Jacobian determinant is applied at the end to the entire residual)
             aux_w = w_gauss_convective[i_gauss] * det_J_volume_factor
-            stabilized_convective -= aux_w * tmp
+            convective -= aux_w * tmp
+            convective_stab -= aux_w * tmp_stab
 
-        res += stabilized_convective
+        res += convective
+        res += convective_stab * self.tau_1[:,np.newaxis,np.newaxis]
 
         #-(∇w,∇u)
         viscous = aux_res_el #rename this to make it more readable
@@ -597,10 +604,10 @@ class VectorizedCFDStage(analysis_stage.AnalysisStage):
         self.cfd_utils.Compute_DN_N(N, DN, p_elemental, pressure_term)
         res += pressure_term
 
-        #-(∇·w,tau_1·∇·v) + (∇·w,tau_1·Pi_div)
-        # self.cfd_utils.InterpolateValue(N, proj_div_el, proj_div_v)
-        # self.cfd_utils.ComputeElementalDivergence(DN, v_elemental, div_v)
-        # self.cfd_utils.ComputeDivDivStabilization(DN, div_v, proj_div_v, self.elemental_scratch, div_div_stab)
+        #-(∇·w,tau_2·∇·v) + (∇·w,tau_2·Pi_div)
+        div_div_stab = aux_res_el #rename this to make it more readable
+        aux_res_scratch = np.empty_like(aux_res_el) # auxiliary array to temporarily store the projection contribution #TODO: optimize this
+        self.cfd_utils.ComputeDivDivStabilization(N, DN, v_elemental, proj_div_el, aux_res_scratch, div_div_stab)
         # res -= div_div_stab * self.tau_2[:,np.newaxis,np.newaxis]
 
         #multiply by volume (note that the convective term already includes the corresponding weighting factor to emulate the Jacobian determinant, so we just need to apply the volume here)
@@ -616,6 +623,16 @@ class VectorizedCFDStage(analysis_stage.AnalysisStage):
 
     def GetStep(self):
         return self.model_part.ProcessInfo[KratosMultiphysics.STEP]
+
+    def _ComputeCFL(self, v, dt):
+        self.ElemData(v, self.connectivity, self.vec_elemental_data)
+        v_el = self.vec_elemental_data #no copy ... just renaming for better readability
+        v_el_avg = np.sum(v_el, axis=1) / (self.dim+1.0)
+        v_el_avg_norm = np.linalg.norm(v_el_avg, axis=1)
+        return max(dt * v_el_avg_norm / self.h)
+
+    def _ComputeFourier(self, dt):
+        return max(dt * self.nu / self.rho / self.h**2)
 
     def _ComputeDeltaTime(self):
         if self.automatic_dt:
