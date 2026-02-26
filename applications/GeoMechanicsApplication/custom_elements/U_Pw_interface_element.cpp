@@ -863,11 +863,6 @@ Geo::IntegrationCoefficientsGetter UPwInterfaceElement::CreateIntegrationCoeffic
     return [this]() { return this->CalculateIntegrationCoefficients(); };
 }
 
-Geo::NodalValuesGetter UPwInterfaceElement::CreateWaterPressureGeometryNodalVariableGetter() const
-{
-    return [this](const Variable<double>&) { return this->GetWaterPressureGeometryNodalVariable(); };
-}
-
 Geo::PropertiesGetter UPwInterfaceElement::CreatePropertiesGetter() const
 {
     return [this]() -> const Properties& { return this->GetProperties(); };
@@ -941,6 +936,11 @@ Matrix UPwInterfaceElement::GetNpContainer() const
         integration_point_index++;
     }
     return n_container;
+}
+
+Geo::NodalValuesGetter UPwInterfaceElement::CreateWaterPressureGeometryNodalVariableGetter() const
+{
+    return [this](const Variable<double>&) { return this->GetWaterPressureGeometryNodalVariable(); };
 }
 
 std::function<Vector()> UPwInterfaceElement::CreateNodalPressuresGetter() const

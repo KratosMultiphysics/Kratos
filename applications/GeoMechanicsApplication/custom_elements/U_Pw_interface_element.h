@@ -136,6 +136,7 @@ private:
     std::function<std::vector<double>()> CreateBiotCoefficientsGetter() const;
     std::function<std::vector<double>()> CreateBishopCoefficientsGetter() const;
     std::function<Vector()>              CreateNodalPressuresGetter() const;
+    Geo::NodalValuesGetter               CreateWaterPressureGeometryNodalVariableGetter() const;
     std::function<Vector()>              CreateNodalVelocitiesGetter() const;
     std::function<std::vector<double>()> CreateDegreesOfSaturationGetter() const;
 
@@ -147,7 +148,6 @@ private:
     std::vector<double>                   GetDegreesOfSaturationValues() const;
     Geo::RetentionLawsGetter              CreateRetentionLawsGetter() const;
     Geo::MaterialPermeabilityMatrixGetter CreateMaterialPermeabilityGetter() const;
-    Geo::NodalValuesGetter                CreateWaterPressureGeometryNodalVariableGetter() const;
     Geo::ShapeFunctionGradientsGetter     CreatePwBMatricesGetter() const;
     Geo::IntegrationPointValuesGetter     CreateFluidPressureCalculator() const;
     std::function<std::vector<Vector>()>  CreateProjectedGravityCalculator() const;
