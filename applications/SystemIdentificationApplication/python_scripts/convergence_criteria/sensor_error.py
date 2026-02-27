@@ -5,7 +5,6 @@ import KratosMultiphysics.SystemIdentificationApplication as KratosSI
 from KratosMultiphysics.OptimizationApplication.utilities.optimization_problem import OptimizationProblem
 from KratosMultiphysics.OptimizationApplication.utilities.component_data_view import ComponentDataView
 from KratosMultiphysics.OptimizationApplication.convergence_criteria.convergence_criterion import ConvergenceCriterion
-from KratosMultiphysics.OptimizationApplication.utilities.optimization_problem_utilities import GetComponentHavingDataByFullName
 from KratosMultiphysics.OptimizationApplication.utilities.logger_utilities import time_decorator
 from KratosMultiphysics.SystemIdentificationApplication.utilities.sensor_utils import GetSensors
 
@@ -24,7 +23,6 @@ class MaxSensorErrorCriterion(ConvergenceCriterion):
     @classmethod
     def GetDefaultParameters(cls):
         return Kratos.Parameters("""{
-            "component_name": "algorithm",
             "sensor_group_name": "sensors",
             "tolerance"     : 1e-9,
             "output_to_file" : true,
@@ -33,8 +31,6 @@ class MaxSensorErrorCriterion(ConvergenceCriterion):
 
     def __init__(self, parameters: Kratos.Parameters, optimization_problem: OptimizationProblem):
         parameters.ValidateAndAssignDefaults(self.GetDefaultParameters())
-
-        self.__component_name = parameters["component_name"].GetString()
         self.__sensor_group_name = parameters["sensor_group_name"].GetString()
         self.__tolerance = parameters["tolerance"].GetDouble()
         self.__optimization_problem = optimization_problem
@@ -42,8 +38,6 @@ class MaxSensorErrorCriterion(ConvergenceCriterion):
         self.__sensor_error_output_file_name = parameters["sensor_error_output_file_name"].GetString()
 
     def Initialize(self):
-        component = GetComponentHavingDataByFullName(self.__component_name, self.__optimization_problem)
-        self.__component_data_view = ComponentDataView(component, self.__optimization_problem)
         if self.__output_to_file:
             with open(self.__sensor_error_output_file_name, "w") as file_output:
                 file_output.write("iteration,max_sensor_error\n")
@@ -81,7 +75,6 @@ class MaxSensorErrorCriterion(ConvergenceCriterion):
                     ('type'          , 'sensor_error'),
                     ('max_sensor_error', self.__max_sensor_error),
                     ('tolerance'     , self.__tolerance),
-                    ('component_name', self.__component_name),
                     ('sensor_group_name', self.__sensor_group_name),
                     ('status'        , str("converged" if self.__conv else "not converged"))
                ]
