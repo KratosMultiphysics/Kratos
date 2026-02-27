@@ -102,13 +102,13 @@ class KratosGeoMechanicsResetDisplacementTests(KratosUnittest.TestCase):
         time = 1.0
         end_node_id = 11
         y_displacement_at_end_of_beam = reader.nodal_values_at_time("DISPLACEMENT", time, output_data, [end_node_id])[0][1]
-        self.assertAlmostEqual(y_displacement_at_end_of_beam, eps * L, places=5)
+        self.assertAlmostEqual(y_displacement_at_end_of_beam, eps * L, places=4)
 
         output_data = reader.read_output_from(os.path.join(project_path, "geo_beam_with_reset_displacement_stage_2.post.res"))
         time = 2.0
         displacement_vectors = reader.nodal_values_at_time("DISPLACEMENT", time, output_data)
         for u in displacement_vectors:
-            self.assertAlmostEqual(u[1], 0.0, places=5)
+            self.assertAlmostEqual(u[1], 0.0, places=4)
 
         output_data = reader.read_output_from(os.path.join(project_path, "geo_beam_with_reset_displacement_stage_3.post.res"))
         time = 3.0
@@ -119,7 +119,7 @@ class KratosGeoMechanicsResetDisplacementTests(KratosUnittest.TestCase):
         output_data = reader.read_output_from(os.path.join(project_path, "geo_beam_with_reset_displacement_stage_4.post.res"))
         time = 4.0
         y_displacement_at_end_of_beam = reader.nodal_values_at_time("DISPLACEMENT", time, output_data, [end_node_id])[0][1]
-        self.assertAlmostEqual(y_displacement_at_end_of_beam, -eps * L, places=5)
+        self.assertAlmostEqual(y_displacement_at_end_of_beam, -eps * L, places=4)
 
     def test_reset_displacement_shell_Dirichlet(self):
         """

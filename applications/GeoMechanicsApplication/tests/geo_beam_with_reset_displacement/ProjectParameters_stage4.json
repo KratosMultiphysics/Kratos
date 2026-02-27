@@ -126,7 +126,14 @@
             "value":           [0.0,0.0,0.0],
             "table":           [0,0,0]
         }
-    }],
+    },{
+            "python_module" : "apply_final_stresses_of_previous_stage_to_initial_state",
+            "kratos_module" : "KratosMultiphysics.GeoMechanicsApplication",
+            "process_name"  : "ApplyFinalStressesOfPreviousStageToInitialState",
+            "Parameters"    : {
+                "model_part_name": "PorousDomain.Beam-auto-1"
+            }
+        }],
     "loads_process_list": [{
         "python_module": "apply_vector_constraint_table_process",
         "kratos_module": "KratosMultiphysics.GeoMechanicsApplication",
