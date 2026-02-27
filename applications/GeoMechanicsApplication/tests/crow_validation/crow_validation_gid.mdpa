@@ -1566,44 +1566,44 @@ Begin Elements SmallStrainUPwDiffOrderElement2D6N// GUI group identifier: Soil_T
 End Elements
 
 Begin Elements Geo_ULineInterfacePlaneStrainElement3Plus3N// GUI group identifier: Interfaces_Right
-      542          0   411   435   423 
-      543          0   435   472   454 
-      544          0   472   511   489 
-      545          0   511   544   525 
-      546          0   544   579   560 
-      547          0   579   615   597 
-      548          0   615   648   628 
-      549          0   648   685   663 
-      550          0   685   715   703 
-      551          0   715   758   740 
-      591          0   838   815   825 
-      592          0   815   778   798 
-      593          0   778   758   768 
+      2542          0   411   435   423
+      2543          0   435   472   454
+      2544          0   472   511   489
+      2545          0   511   544   525
+      2546          0   544   579   560
+      2547          0   579   615   597
+      2548          0   615   648   628
+      2549          0   648   685   663
+      2550          0   685   715   703
+      2551          0   715   758   740
+      2591          0   838   815   825
+      2592          0   815   778   798
+      2593          0   778   758   768
 End Elements
 
 Begin Elements Geo_ULineInterfacePlaneStrainElement3Plus3N// GUI group identifier: Interface_Excavated_Soil_1
-      591          0   838   815   825 
-      592          0   815   778   798 
-      593          0   778   758   768 
+      1591          0   838   815   825
+      1592          0   815   778   798
+      1593          0   778   758   768
 End Elements
 
 Begin Elements Geo_ULineInterfacePlaneStrainElement3Plus3N// GUI group identifier: Interface_Excavated_Soil_2
-      549          0   648   685   663 
-      550          0   685   715   703 
-      551          0   715   758   740 
+      1549          0   648   685   663
+      1550          0   685   715   703
+      1551          0   715   758   740
 End Elements
 
 Begin Elements Geo_ULineInterfacePlaneStrainElement3Plus3N// GUI group identifier: Interface_Excavated_Soil_3
-      546          0   544   579   560 
-      547          0   579   615   597 
-      548          0   615   648   628 
+      1546          0   544   579   560
+      1547          0   579   615   597
+      1548          0   615   648   628
 End Elements
 
 Begin Elements Geo_ULineInterfacePlaneStrainElement3Plus3N// GUI group identifier: Interfaces_Bottom_Left
-      542          0   411   435   423 
-      543          0   435   472   454 
-      544          0   472   511   489 
-      545          0   511   544   525 
+      1542          0   411   435   423
+      1543          0   435   472   454
+      1544          0   472   511   489
+      1545          0   511   544   525
 End Elements
 
 Begin Elements Geo_ULineInterfacePlaneStrainElement3Plus3N// GUI group identifier: Beam
@@ -3575,19 +3575,19 @@ Begin SubModelPart Interfaces_Right // Group Interfaces_Right // Subtree Parts_I
           838
     End SubModelPartNodes
     Begin SubModelPartElements
-          542
-          543
-          544
-          545
-          546
-          547
-          548
-          549
-          550
-          551
-          591
-          592
-          593
+          2542
+          2543
+          2544
+          2545
+          2546
+          2547
+          2548
+          2549
+          2550
+          2551
+          2591
+          2592
+          2593
     End SubModelPartElements
 End SubModelPart
 Begin SubModelPart Interface_Excavated_Soil_1 // Group Interface_Excavated_Soil_1 // Subtree Parts_Interface
@@ -3601,9 +3601,9 @@ Begin SubModelPart Interface_Excavated_Soil_1 // Group Interface_Excavated_Soil_
           838
     End SubModelPartNodes
     Begin SubModelPartElements
-          591
-          592
-          593
+          1591
+          1592
+          1593
     End SubModelPartElements
 End SubModelPart
 Begin SubModelPart Interface_Excavated_Soil_2 // Group Interface_Excavated_Soil_2 // Subtree Parts_Interface
@@ -3617,9 +3617,9 @@ Begin SubModelPart Interface_Excavated_Soil_2 // Group Interface_Excavated_Soil_
           758
     End SubModelPartNodes
     Begin SubModelPartElements
-          549
-          550
-          551
+          1549
+          1550
+          1551
     End SubModelPartElements
 End SubModelPart
 Begin SubModelPart Interface_Excavated_Soil_3 // Group Interface_Excavated_Soil_3 // Subtree Parts_Interface
@@ -3633,9 +3633,9 @@ Begin SubModelPart Interface_Excavated_Soil_3 // Group Interface_Excavated_Soil_
           648
     End SubModelPartNodes
     Begin SubModelPartElements
-          546
-          547
-          548
+          1546
+          1547
+          1548
     End SubModelPartElements
 End SubModelPart
 Begin SubModelPart Interfaces_Bottom_Left // Group Interfaces_Bottom_Left // Subtree Parts_Interface
@@ -3651,10 +3651,10 @@ Begin SubModelPart Interfaces_Bottom_Left // Group Interfaces_Bottom_Left // Sub
           544
     End SubModelPartNodes
     Begin SubModelPartElements
-          542
-          543
-          544
-          545
+          1542
+          1543
+          1544
+          1545
     End SubModelPartElements
 End SubModelPart
 Begin SubModelPart Beam // Group Beam // Subtree Parts_Interface
