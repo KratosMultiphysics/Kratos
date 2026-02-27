@@ -328,7 +328,7 @@ std::vector<std::tuple<std::vector<IndexType>, typename ContainerExpression<TCon
 {
     KRATOS_TRY
 
-    using ClusterDataType = std::vector<std::tuple<std::vector<IndexType>, typename ContainerExpression<TContainerType>::Pointer>>
+    using ClusterDataType = std::vector<std::tuple<std::vector<IndexType>, typename ContainerExpression<TContainerType>::Pointer>>;
 
     ClusterDataType cluster_data;
     if (rMasksList.size() == 0) {
