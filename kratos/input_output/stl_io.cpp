@@ -319,7 +319,7 @@ template<class TStreamType>
 void StlIO::WriteFacet(
     const GeometryType& rGeom,
     TStreamType& rStream
-    ) 
+    )
 {
     const auto& r_unit_normal = rGeom.UnitNormal(rGeom.Center());
     rStream << "    facet normal " << r_unit_normal[0] << " " << r_unit_normal[1] << " " << r_unit_normal[2] << "\n";
@@ -353,7 +353,7 @@ void StlIO::PrintData(std::ostream& rOStream) const{
 bool StlIO::IsValidGeometry(
     const Geometry<Node>& rGeometry,
     IndexType& rNumDegenerateGeos
-    ) const 
+    ) const
 {
     // restrict to triangles only for now
     const bool is_triangle = (
@@ -444,6 +444,7 @@ void StlIO::ReadLoop(
     *mpInputStream >> word; // Reading vertex or endloop
 
     NodesArrayType temp_geom_nodes;
+    temp_geom_nodes.reserve(3); // reserving for 3 nodes as STL only supports triangles
     std::array<double, 3> coordinates;
     while(word == "vertex") {
         ReadPoint(coordinates);
@@ -451,7 +452,7 @@ void StlIO::ReadLoop(
         *mpInputStream >> word; // Reading vertex or endloop
     }
     const std::string new_entity_type = mParameters["new_entity_type"].GetString();
-    rCreateEntityFunctor(rThisModelPart,temp_geom_nodes);
+    rCreateEntityFunctor(rThisModelPart, temp_geom_nodes);
     KRATOS_ERROR_IF(word != "endloop") << "Invalid stl file. loop block should be closed with \"endloop\" keyword but \"" << word << "\" was found" << std::endl;
 }
 
