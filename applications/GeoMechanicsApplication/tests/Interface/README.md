@@ -10,7 +10,7 @@ Currently, User Defined Soil Model (UDSM) is used to prescribe the interface pro
 
 ### Setup
 
-This test models the beam movement in the soil. The model consists of 4230 3-noded elements for the soil (using the UPwSmallStrainElement2D3N class), 31 2-noded elements for the beam (GeoCrBeamElementLinear2D2N), and 62 4-noded elements for interfaces (UPwSmallStrainInterfaceElement2D4N) that connect the beam with the soil. A schematic representation can be found in the figure below:
+This test models the beam movement in the soil. The model consists of 4230 3-noded elements for the soil (using the UPwSmallStrainElement2D3N class), 31 2-noded elements for the beam (LinearTimoshenkoBeamElement2D2N), and 62 4-noded elements for interfaces (UPwSmallStrainInterfaceElement2D4N) that connect the beam with the soil. A schematic representation can be found in the figure below:
 
 ![MeshStructure](interface_on_beam.svg)
 
