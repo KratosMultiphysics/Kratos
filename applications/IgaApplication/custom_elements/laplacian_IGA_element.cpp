@@ -250,6 +250,28 @@ int LaplacianIGAElement::Check(const ProcessInfo& rCurrentProcessInfo) const
     return 0;
 }
 
+void LaplacianIGAElement::CalculateOnIntegrationPoints(
+    const Variable<double>& rVariable,
+    std::vector<double>& rValues,
+    const ProcessInfo& rCurrentProcessInfo) 
+{
+    const auto& r_geom = GetGeometry();
+    const auto& r_integration_points = r_geom.IntegrationPoints(GetIntegrationMethod());
+
+    const std::size_t n_gp = r_integration_points.size();
+    if (rValues.size() != n_gp) rValues.resize(n_gp);
+
+    if (rVariable == INTEGRATION_WEIGHT) {
+        for (std::size_t g = 0; g < n_gp; ++g) {
+            rValues[g] = r_integration_points[g].Weight(); // <-- what you want
+        }
+        return;
+    }
+
+    // fallback to base class if not handled
+    Element::CalculateOnIntegrationPoints(rVariable, rValues, rCurrentProcessInfo);
+}
+
 
 Element::IntegrationMethod LaplacianIGAElement::GetIntegrationMethod() const
 {

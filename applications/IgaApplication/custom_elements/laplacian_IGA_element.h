@@ -135,6 +135,11 @@ public:
 
     int Check(const ProcessInfo& rCurrentProcessInfo) const override;
 
+    void CalculateOnIntegrationPoints(
+            const Variable<double>& rVariable,
+            std::vector<double>& rValues,
+            const ProcessInfo& rCurrentProcessInfo) override;
+
     ///@}
     ///@name Access
     ///@{
