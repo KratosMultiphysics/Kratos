@@ -374,8 +374,9 @@ void StlIO::ReadSolid(
     std::string word;
 
     *mpInputStream >> word; // Reading solid or eof
-    if(mpInputStream->eof())
+    if(mpInputStream->eof()) {
         return;
+    }
 
     KRATOS_ERROR_IF(word != "solid") << "Invalid stl file. Solid block should begin with \"solid\" keyword but \"" << word << "\" was found" << std::endl;
     std::getline(*mpInputStream, word); // Reading solid name to be the model part name
@@ -395,8 +396,10 @@ void StlIO::ReadSolid(
         }
     ), word.end());
 
-    if(word == "") // empty solid name is valid in STL format
+    // Empty solid name is valid in STL format
+    if(word == "") {
         word = "main";
+    }
 
     auto& sub_model_part = rThisModelPart.CreateSubModelPart(word);
 
