@@ -328,9 +328,9 @@ std::vector<std::tuple<std::vector<IndexType>, typename ContainerExpression<TCon
 {
     KRATOS_TRY
 
-    using ClusterDataType = std::vector<std::tuple<std::vector<IndexType>, typename ContainerExpression<TContainerType>::Pointer>>;
+    using DataType = std::tuple<std::vector<IndexType>, typename ContainerExpression<TContainerType>::Pointer>;
 
-    ClusterDataType cluster_data;
+    std::vector<DataType> cluster_data;
     if (rMasksList.size() == 0) {
         return cluster_data;
     }
@@ -366,7 +366,7 @@ std::vector<std::tuple<std::vector<IndexType>, typename ContainerExpression<TCon
         std::sort(mask_indices.begin(), mask_indices.end());
 
         /// check against existing mask indices
-        auto p_itr = std::find_if(cluster_data.begin(), cluster_data.end(), [&mask_indices](const auto& rData){ return std::get<0>(rData) == mask_indices; });
+        auto p_itr = std::find_if(cluster_data.begin(), cluster_data.end(), [&mask_indices](const DataType& rData){ return std::get<0>(rData) == mask_indices; });
         if (p_itr == cluster_data.end()) {
             auto p_expression = LiteralFlatExpression<int>::Create(number_of_entities, {});
             IndexPartition<IndexType>(number_of_entities).for_each([&p_expression](const auto Index){
@@ -384,7 +384,7 @@ std::vector<std::tuple<std::vector<IndexType>, typename ContainerExpression<TCon
     // now fill in the cluster masks
     IndexPartition<IndexType>(number_of_entities).for_each([&cluster_data, &domain_mask_indices, &cluster_mask_exps](const IndexType Index) {
         const auto& mask_indices = domain_mask_indices[Index];
-        auto p_itr = std::find_if(cluster_data.begin(), cluster_data.end(), [&mask_indices](const ClusterDataType& rData){ return std::get<0>(rData) == mask_indices; });
+        auto p_itr = std::find_if(cluster_data.begin(), cluster_data.end(), [&mask_indices](const DataType& rData){ return std::get<0>(rData) == mask_indices; });
         const auto cluster_index = std::distance(cluster_data.begin(), p_itr);
         *(cluster_mask_exps[cluster_index]->begin() + Index) = 1;
     });
