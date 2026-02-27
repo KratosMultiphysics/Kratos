@@ -1,8 +1,8 @@
 {
     "problem_data": {
-        "problem_name":         "geo_beam_with_reset_displacement_stage_2",
-        "start_time":           1.0,
-        "end_time":             2.0,
+        "problem_name":         "beam_with_reset_displacement_stage_1",
+        "start_time":           0.0,
+        "end_time":             1.0,
         "echo_level":           1,
         "parallel_type":        "OpenMP",
         "number_of_threads":    1
@@ -12,7 +12,8 @@
         "model_part_name":                    "PorousDomain",
         "domain_size":                        2,
         "model_import_settings":              {
-            "input_type":       "use_input_model_part"
+            "input_type":       "mdpa",
+            "input_filename":   "beam_with_reset_displacement"
         },
         "material_import_settings":              {
             "materials_filename":       "MaterialParameters.json"
@@ -77,7 +78,7 @@
             "process_name": "GiDOutputProcess",
             "Parameters":    {
                 "model_part_name": "PorousDomain.porous_computational_model_part",
-                "output_name": "geo_beam_with_reset_displacement_stage_2",
+                "output_name": "beam_with_reset_displacement_stage_1",
                 "postprocess_parameters": {
                     "result_file_configuration": {
                         "gidpost_flags":       {
@@ -126,14 +127,7 @@
             "value":           [0.0,0.0,0.0],
             "table":           [0,0,0]
         }
-    },{
-            "python_module" : "apply_final_stresses_of_previous_stage_to_initial_state",
-            "kratos_module" : "KratosMultiphysics.GeoMechanicsApplication",
-            "process_name"  : "ApplyFinalStressesOfPreviousStageToInitialState",
-            "Parameters"    : {
-                "model_part_name": "PorousDomain.Beam-auto-1"
-            }
-        }],
+    }],
     "loads_process_list": [{
         "python_module": "apply_vector_constraint_table_process",
         "kratos_module": "KratosMultiphysics.GeoMechanicsApplication",

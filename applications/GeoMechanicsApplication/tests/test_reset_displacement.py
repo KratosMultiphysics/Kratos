@@ -84,7 +84,7 @@ class KratosGeoMechanicsResetDisplacementTests(KratosUnittest.TestCase):
         stage 3: load is applied / reset displacement is false
         stage 4: load is removed / reset displacement is false
         """
-        project_path = test_helper.get_file_path('geo_beam_with_reset_displacement')
+        project_path = test_helper.get_file_path('beam_with_reset_displacement')
         n_stages = 4
         run_multiple_stages.run_stages(project_path, n_stages)
 
@@ -98,25 +98,25 @@ class KratosGeoMechanicsResetDisplacementTests(KratosUnittest.TestCase):
         eps = (F*L**3)/(3*E*I)
 
         reader = GiDOutputFileReader()
-        output_data = reader.read_output_from(os.path.join(project_path, "geo_beam_with_reset_displacement_stage_1.post.res"))
+        output_data = reader.read_output_from(os.path.join(project_path, "beam_with_reset_displacement_stage_1.post.res"))
         time = 1.0
         end_node_id = 11
         y_displacement_at_end_of_beam = reader.nodal_values_at_time("DISPLACEMENT", time, output_data, [end_node_id])[0][1]
         self.assertAlmostEqual(y_displacement_at_end_of_beam, eps * L, places=4)
 
-        output_data = reader.read_output_from(os.path.join(project_path, "geo_beam_with_reset_displacement_stage_2.post.res"))
+        output_data = reader.read_output_from(os.path.join(project_path, "beam_with_reset_displacement_stage_2.post.res"))
         time = 2.0
         displacement_vectors = reader.nodal_values_at_time("DISPLACEMENT", time, output_data)
         for u in displacement_vectors:
             self.assertAlmostEqual(u[1], 0.0, places=4)
 
-        output_data = reader.read_output_from(os.path.join(project_path, "geo_beam_with_reset_displacement_stage_3.post.res"))
+        output_data = reader.read_output_from(os.path.join(project_path, "beam_with_reset_displacement_stage_3.post.res"))
         time = 3.0
         displacement_vectors = reader.nodal_values_at_time("DISPLACEMENT", time, output_data)
         for u in displacement_vectors:
             self.assertAlmostEqual(u[1], 0.0, places=5)
 
-        output_data = reader.read_output_from(os.path.join(project_path, "geo_beam_with_reset_displacement_stage_4.post.res"))
+        output_data = reader.read_output_from(os.path.join(project_path, "beam_with_reset_displacement_stage_4.post.res"))
         time = 4.0
         y_displacement_at_end_of_beam = reader.nodal_values_at_time("DISPLACEMENT", time, output_data, [end_node_id])[0][1]
         self.assertAlmostEqual(y_displacement_at_end_of_beam, -eps * L, places=4)

@@ -1,6 +1,6 @@
 {
     "problem_data": {
-        "problem_name":         "geo_beam_with_reset_displacement_stage_4",
+        "problem_name":         "beam_with_reset_displacement_stage_4",
         "start_time":           3.0,
         "end_time":             4.0,
         "echo_level":           1,
@@ -77,7 +77,7 @@
             "process_name": "GiDOutputProcess",
             "Parameters":    {
                 "model_part_name": "PorousDomain.porous_computational_model_part",
-                "output_name": "geo_beam_with_reset_displacement_stage_4",
+                "output_name": "beam_with_reset_displacement_stage_4",
                 "postprocess_parameters": {
                     "result_file_configuration": {
                         "gidpost_flags":       {
