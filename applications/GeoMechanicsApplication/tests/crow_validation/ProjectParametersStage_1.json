@@ -60,9 +60,9 @@
         "newmark_beta"                       : 0.25,
         "newmark_gamma"                      : 0.5,
         "newmark_theta"                      : 0.5,
-        "problem_domain_sub_model_part_list" : ["Excavated_Soil_1","Excavated_Soil_2","Excavated_Soil_3","Excavated_Soil_4","Soil_Below_Pit","Soil_Bottom_Left","Soil_Bottom_Right","Soil_Middle_Right","Soil_Top_Right","Interfaces_Right","Interface_Excavated_Soil_1","Interface_Excavated_Soil_2","Interface_Excavated_Soil_3","Interfaces_Bottom_Left","Beam"],
+        "problem_domain_sub_model_part_list" : ["Excavated_Soil_1","Excavated_Soil_2","Excavated_Soil_3","Soil_Below_Pit","Soil_Bottom_Left","Soil_Bottom_Right","Soil_Middle_Right","Soil_Top_Right","Interfaces_Right","Interface_Excavated_Soil_1","Interface_Excavated_Soil_2","Interface_Excavated_Soil_3","Interfaces_Bottom_Left","Beam"],
         "processes_sub_model_part_list"      : ["Bottom_Fixed","Side_Rollers","Gravity","Load","Normal_Load_After_First_Excavation","Normal_Load_After_Second_Excavation","Normal_Load_After_Third_Excavation","Normal_Load_After_Last_Excavation"],
-        "body_domain_sub_model_part_list"    : ["Excavated_Soil_1","Excavated_Soil_2","Excavated_Soil_3","Excavated_Soil_4","Soil_Below_Pit","Soil_Bottom_Left","Soil_Bottom_Right","Soil_Middle_Right","Soil_Top_Right","Interfaces_Right","Interface_Excavated_Soil_1","Interface_Excavated_Soil_2","Interface_Excavated_Soil_3","Interfaces_Bottom_Left","Beam"],
+        "body_domain_sub_model_part_list"    : ["Excavated_Soil_1","Excavated_Soil_2","Excavated_Soil_3","Soil_Below_Pit","Soil_Bottom_Left","Soil_Bottom_Right","Soil_Middle_Right","Soil_Top_Right","Interfaces_Right","Interface_Excavated_Soil_1","Interface_Excavated_Soil_2","Interface_Excavated_Soil_3","Interfaces_Bottom_Left","Beam"],
         "linear_solver_settings"             : {
             "solver_type" : "skyline_lu_factorization",
             "scaling"     : true
