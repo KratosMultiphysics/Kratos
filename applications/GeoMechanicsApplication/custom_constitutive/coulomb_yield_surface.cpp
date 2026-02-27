@@ -13,6 +13,7 @@
 //
 
 #include "custom_constitutive/coulomb_yield_surface.h"
+#include "custom_constitutive/principal_stresses.hpp"
 #include "custom_constitutive/sigma_tau.hpp"
 #include "custom_utilities/check_utilities.hpp"
 #include "custom_utilities/constitutive_law_utilities.h"
@@ -129,12 +130,6 @@ double CoulombYieldSurface::GetKappa() const { return mKappa; }
 
 void CoulombYieldSurface::SetKappa(double kappa) { mKappa = kappa; }
 
-// At some point in time we would like to get rid of this API. For now, just forward the request.
-double CoulombYieldSurface::YieldFunctionValue(const Vector& rSigmaTau) const
-{
-    return YieldFunctionValue(Geo::SigmaTau{rSigmaTau});
-}
-
 double CoulombYieldSurface::YieldFunctionValue(const Geo::SigmaTau& rSigmaTau) const
 {
     return rSigmaTau.Tau() + rSigmaTau.Sigma() * std::sin(GetFrictionAngleInRadians()) -
@@ -146,42 +141,17 @@ double CoulombYieldSurface::YieldFunctionValue(const Geo::PrincipalStresses& rPr
     return YieldFunctionValue(StressStrainUtilities::TransformPrincipalStressesToSigmaTau(rPrincipalStresses));
 }
 
-Vector CoulombYieldSurface::DerivativeOfFlowFunction(const Vector& rSigmaTau) const
-{
-    return DerivativeOfFlowFunction(Geo::SigmaTau{rSigmaTau}, Geo::PrincipalStresses::AveragingType::NO_AVERAGING);
-}
-
-Vector CoulombYieldSurface::DerivativeOfFlowFunction(const Geo::SigmaTau&,
-                                                     Geo::PrincipalStresses::AveragingType AveragingType) const
+Vector CoulombYieldSurface::DerivativeOfFlowFunction(const Geo::SigmaTau&, CoulombAveragingType AveragingType) const
 {
     const auto sin_psi = std::sin(GetDilatancyAngleInRadians());
     switch (AveragingType) {
-        using enum Geo::PrincipalStresses::AveragingType;
+        using enum CoulombAveragingType;
     case LOWEST_PRINCIPAL_STRESSES:
         return UblasUtilities::CreateVector({-(1.0 - 3.0 * sin_psi) / 4.0, (3.0 - sin_psi) / 4.0});
     case NO_AVERAGING:
         return UblasUtilities::CreateVector({sin_psi, 1.0});
     case HIGHEST_PRINCIPAL_STRESSES:
         return UblasUtilities::CreateVector({(1.0 + 3.0 * sin_psi) / 4.0, (3.0 + sin_psi) / 4.0});
-    default:
-        KRATOS_ERROR << "Unsupported Averaging Type: " << static_cast<std::size_t>(AveragingType) << "\n";
-    }
-}
-
-Vector CoulombYieldSurface::DerivativeOfFlowFunction(const Geo::PrincipalStresses&,
-                                                     Geo::PrincipalStresses::AveragingType AveragingType) const
-{
-    const auto sin_psi = std::sin(GetDilatancyAngleInRadians());
-    switch (AveragingType) {
-        using enum Geo::PrincipalStresses::AveragingType;
-    case LOWEST_PRINCIPAL_STRESSES:
-        return UblasUtilities::CreateVector(
-            {(1.0 + sin_psi) / 4.0, (1.0 + sin_psi) / 4.0, (-1.0 + sin_psi) / 2.0});
-    case NO_AVERAGING:
-        return UblasUtilities::CreateVector({(1.0 + sin_psi) / 2.0, 0.0, (-1.0 + sin_psi) / 2.0});
-    case HIGHEST_PRINCIPAL_STRESSES:
-        return UblasUtilities::CreateVector(
-            {(1.0 + sin_psi) / 2.0, (-1.0 + sin_psi) / 4.0, (-1.0 + sin_psi) / 4.0});
     default:
         KRATOS_ERROR << "Unsupported Averaging Type: " << static_cast<std::size_t>(AveragingType) << "\n";
     }
@@ -199,57 +169,29 @@ void CoulombYieldSurface::InitializeKappaDependentFunctions()
     mDilatancyAngleCalculator = MakeDilatancyAngleCalculator(mMaterialProperties);
 }
 
-double CoulombYieldSurface::CalculatePlasticMultiplier(const Geo::SigmaTau& rTrialSigmaTau,
-                                                       const Vector& rDerivativeOfFlowFunction,
-                                                       const Matrix& rElasticMatrix) const
+double CoulombYieldSurface::CalculatePlasticMultiplier(const Geo::SigmaTau& rSigmaTau,
+                                                       const Vector& rDerivativeOfFlowFunction) const
 {
-    const auto sin_phi = std::sin(GetFrictionAngleInRadians());
-    const auto temp    = Vector{prod(rElasticMatrix, rDerivativeOfFlowFunction)};
-    return -YieldFunctionValue(rTrialSigmaTau) / (temp[0] * sin_phi + temp[1]);
+    const auto sin_phi   = std::sin(GetFrictionAngleInRadians());
+    const auto numerator = sin_phi * rDerivativeOfFlowFunction[0] + rDerivativeOfFlowFunction[1];
+    return (GetCohesion() * std::cos(GetFrictionAngleInRadians()) - rSigmaTau.Sigma() * sin_phi -
+            rSigmaTau.Tau()) /
+           numerator;
 }
 
-double CoulombYieldSurface::CalculatePlasticMultiplier(const Geo::PrincipalStresses& rTrialPrincipalStresses,
-                                                       const Vector& rDerivativeOfFlowFunction,
-                                                       const Matrix& rElasticMatrix) const
+double CoulombYieldSurface::CalculateEquivalentPlasticStrainIncrement(const Geo::SigmaTau& rSigmaTau,
+                                                                      CoulombAveragingType AveragingType) const
 {
-    const auto sin_phi        = std::sin(GetFrictionAngleInRadians());
-    const auto elastic_matrix = subrange(rElasticMatrix, 0, 3, 0, 3);
-    const auto temp           = Vector{prod(elastic_matrix, rDerivativeOfFlowFunction)};
-    const auto c1             = (temp[0] - temp[2]) / 2.0;
-    const auto c2             = (temp[0] + temp[2]) * sin_phi / 2.0;
-    return -YieldFunctionValue(rTrialPrincipalStresses) / (c1 + c2);
-}
-
-double CoulombYieldSurface::CalculateEquivalentPlasticStrainIncrement(const Geo::SigmaTau& rTrialSigmaTau,
-                                                                      const Matrix& rElasticMatrix,
-                                                                      Geo::PrincipalStresses::AveragingType AveragingType) const
-{
-    const auto derivative_of_G_to_sigma = DerivativeOfFlowFunction(rTrialSigmaTau, AveragingType);
-    const auto principal_strain_vector  = UblasUtilities::CreateVector(
-        {(derivative_of_G_to_sigma[0] + derivative_of_G_to_sigma[1]) / 2.0, 0.0,
-          (derivative_of_G_to_sigma[0] - derivative_of_G_to_sigma[1]) / 2.0});
-    const auto mean = std::accumulate(principal_strain_vector.begin(), principal_strain_vector.end(), 0.0) /
-                      static_cast<double>(principal_strain_vector.size());
-    auto deviatoric_strain_vector = Vector{3};
-    std::ranges::transform(principal_strain_vector, deviatoric_strain_vector.begin(),
-                           [mean](auto sigma) { return sigma - mean; });
-    return -std::sqrt(2.0 / 3.0) * MathUtils<>::Norm(deviatoric_strain_vector) *
-           CalculatePlasticMultiplier(
-               rTrialSigmaTau, DerivativeOfFlowFunction(rTrialSigmaTau, AveragingType), rElasticMatrix);
-}
-
-double CoulombYieldSurface::CalculateEquivalentPlasticStrainIncrement(const Geo::PrincipalStresses& rTrialPrincipalStresses,
-                                                                      const Matrix& rElasticMatrix,
-                                                                      Geo::PrincipalStresses::AveragingType AveragingType) const
-{
-    const auto derivative_of_G_to_sigma = DerivativeOfFlowFunction(rTrialPrincipalStresses, AveragingType);
-    const auto mean = std::accumulate(derivative_of_G_to_sigma.begin(), derivative_of_G_to_sigma.end(), 0.0) /
-                      static_cast<double>(derivative_of_G_to_sigma.size());
+    const auto derivative              = DerivativeOfFlowFunction(rSigmaTau, AveragingType);
+    const auto principal_stress_vector = UblasUtilities::CreateVector(
+        {(derivative[0] + derivative[1]) / 2.0, 0.0, (derivative[0] - derivative[1]) / 2.0});
+    const auto mean = std::accumulate(principal_stress_vector.begin(), principal_stress_vector.end(), 0.0) /
+                      static_cast<double>(principal_stress_vector.size());
     auto deviatoric_principle_stress_vector = Vector{3};
-    std::ranges::transform(derivative_of_G_to_sigma, deviatoric_principle_stress_vector.begin(),
+    std::ranges::transform(principal_stress_vector, deviatoric_principle_stress_vector.begin(),
                            [mean](auto sigma) { return sigma - mean; });
     return -std::sqrt(2.0 / 3.0) * MathUtils<>::Norm(deviatoric_principle_stress_vector) *
-           CalculatePlasticMultiplier(rTrialPrincipalStresses, derivative_of_G_to_sigma, rElasticMatrix);
+           CalculatePlasticMultiplier(rSigmaTau, DerivativeOfFlowFunction(rSigmaTau, AveragingType));
 }
 
 void CoulombYieldSurface::CheckMaterialProperties() const

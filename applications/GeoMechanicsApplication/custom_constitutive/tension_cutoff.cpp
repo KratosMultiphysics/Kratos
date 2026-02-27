@@ -12,13 +12,10 @@
 //
 
 #include "custom_constitutive/tension_cutoff.h"
+#include "custom_constitutive/principal_stresses.hpp"
 #include "custom_constitutive/sigma_tau.hpp"
 #include "custom_utilities/stress_strain_utilities.h"
-#include "custom_utilities/ublas_utilities.h"
-#include "geo_mechanics_application_variables.h"
 #include "includes/serializer.h"
-
-#include <boost/numeric/ublas/assignment.hpp>
 
 namespace Kratos
 {
@@ -26,15 +23,13 @@ TensionCutoff::TensionCutoff(double TensileStrength) : mTensileStrength{TensileS
 
 double TensionCutoff::GetTensileStrength() const { return mTensileStrength; }
 
-// At some point in time we would like to get rid of this API. For now, just forward the request.
-double TensionCutoff::YieldFunctionValue(const Vector& rSigmaTau) const
-{
-    return YieldFunctionValue(Geo::SigmaTau{rSigmaTau});
-}
-
 double TensionCutoff::YieldFunctionValue(const Geo::SigmaTau& rSigmaTau) const
 {
-    return rSigmaTau.Sigma() + rSigmaTau.Tau() - mTensileStrength;
+    // Note that we attempt to calculate the principal stress vector (which consists of three values) from the given
+    // sigma and tau (two values). As a result, the second principal stress cannot be uniquely determined.
+    const auto principal_stress_vector = Geo::PrincipalStresses{};
+    return YieldFunctionValue(StressStrainUtilities::TransformSigmaTauToPrincipalStresses(
+        rSigmaTau, principal_stress_vector));
 }
 
 double TensionCutoff::YieldFunctionValue(const Geo::PrincipalStresses& rPrincipalStresses) const
@@ -42,60 +37,9 @@ double TensionCutoff::YieldFunctionValue(const Geo::PrincipalStresses& rPrincipa
     return rPrincipalStresses.Values()[0] - mTensileStrength;
 }
 
-// At some point in time we would like to get rid of this API. For now, just forward the request.
-Vector TensionCutoff::DerivativeOfFlowFunction(const Vector&) const
+Vector TensionCutoff::DerivativeOfFlowFunction(const Geo::SigmaTau&) const
 {
-    const auto unused_sigma_tau = Geo::SigmaTau{};
-    return DerivativeOfFlowFunction(unused_sigma_tau);
-}
-
-Vector TensionCutoff::DerivativeOfFlowFunction(const Geo::SigmaTau&,
-                                               Geo::PrincipalStresses::AveragingType AveragingType) const
-{
-    switch (AveragingType) {
-        using enum Geo::PrincipalStresses::AveragingType;
-    case LOWEST_PRINCIPAL_STRESSES:
-        return UblasUtilities::CreateVector({0.5, 0.5});
-    case NO_AVERAGING:
-        return UblasUtilities::CreateVector({1.0, 1.0});
-    case HIGHEST_PRINCIPAL_STRESSES:
-        return UblasUtilities::CreateVector({1.0, 1.0});
-    default:
-        KRATOS_ERROR << "Unsupported Averaging Type: " << static_cast<std::size_t>(AveragingType) << "\n";
-    }
-}
-
-Vector TensionCutoff::DerivativeOfFlowFunction(const Geo::PrincipalStresses&,
-                                               Geo::PrincipalStresses::AveragingType AveragingType) const
-{
-    switch (AveragingType) {
-        using enum Geo::PrincipalStresses::AveragingType;
-    case LOWEST_PRINCIPAL_STRESSES:
-        return UblasUtilities::CreateVector({0.5, 0.5, 0.0});
-    case NO_AVERAGING:
-        return UblasUtilities::CreateVector({1.0, 0.0, 0.0});
-    case HIGHEST_PRINCIPAL_STRESSES:
-        return UblasUtilities::CreateVector({1.0, 0.0, 0.0});
-    default:
-        KRATOS_ERROR << "Unsupported Averaging Type: " << static_cast<std::size_t>(AveragingType) << "\n";
-    }
-}
-
-double TensionCutoff::CalculatePlasticMultiplier(const Geo::SigmaTau& rTrialSigmaTau,
-                                                 const Vector&        rDerivativeOfFlowFunction,
-                                                 const Matrix&        rElasticMatrix) const
-{
-    const auto temp = Vector{prod(rElasticMatrix, rDerivativeOfFlowFunction)};
-    return -YieldFunctionValue(rTrialSigmaTau) / (temp[0] + temp[1]);
-}
-
-double TensionCutoff::CalculatePlasticMultiplier(const Geo::PrincipalStresses& rTrialPrincipalStresses,
-                                                 const Vector& rDerivativeOfFlowFunction,
-                                                 const Matrix& rElasticMatrix) const
-{
-    const auto elastic_matrix = subrange(rElasticMatrix, 0, 3, 0, 3);
-    const auto temp           = Vector{prod(elastic_matrix, rDerivativeOfFlowFunction)};
-    return -YieldFunctionValue(rTrialPrincipalStresses) / temp[0];
+    return Vector{ScalarVector{2, 1.0}};
 }
 
 void TensionCutoff::save(Serializer& rSerializer) const

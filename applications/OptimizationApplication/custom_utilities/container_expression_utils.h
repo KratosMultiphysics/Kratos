@@ -174,8 +174,7 @@ public:
     template<class TContainerType>
     static void MapContainerVariableToNodalVariable(
         ContainerExpression<ModelPart::NodesContainerType>& rOutput,
-        const ContainerExpression<TContainerType>& rInput,
-        const ContainerExpression<ModelPart::NodesContainerType>& rNeighbourEntities);
+        const ContainerExpression<TContainerType>& rInput);
 
     /**
      * @brief Maps nodal values to container variable data.
@@ -193,7 +192,8 @@ public:
     template<class TContainerType>
     static void MapNodalVariableToContainerVariable(
         ContainerExpression<TContainerType>& rOutput,
-        const ContainerExpression<ModelPart::NodesContainerType>& rInput);
+        const ContainerExpression<ModelPart::NodesContainerType>& rInput,
+        const ContainerExpression<ModelPart::NodesContainerType>& rNeighbourEntities);
 
     /**
      * @brief Computes nodal and entity wise matrix multiplication.
