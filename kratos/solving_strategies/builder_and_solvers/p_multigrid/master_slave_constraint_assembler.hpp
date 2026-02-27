@@ -85,7 +85,7 @@ public:
     void ComputeDependentSolution(typename TSparse::VectorType& rSolution) const override;
 
     /// @copydoc Base::GetDependentDofs
-    const typename DofSetType& GetDependentDofs(const typename DofSetType& rIndependentDofSet) const noexcept override;
+    const DofSetType& GetDependentDofs(const DofSetType& rIndependentDofSet) const noexcept override;
 
     /// @copydoc Base::Clear
     void Clear() override;
