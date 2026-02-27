@@ -458,10 +458,8 @@ void StlIO::ReadLoop(
 
 void StlIO::ReadPoint(std::array<double, 3>& rCoordinates)
 {
-    std::string word;
-    for(int i = 0 ; i < 3 ; i++){
-        *mpInputStream >> word;
-        rCoordinates[i] = std::stod(word);
+    for (double& r_coordinate : rCoordinates) {
+        *mpInputStream >> r_coordinate;
     }
 }
 
