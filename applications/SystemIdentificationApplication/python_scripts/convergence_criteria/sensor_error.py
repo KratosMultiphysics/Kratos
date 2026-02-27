@@ -81,7 +81,7 @@ class MaxSensorErrorCriterion(ConvergenceCriterion):
         return info
 
     def Finalize(self):
-        return super().Finalize()
+        pass
 
     def WriteMaxSensorErrorToFile(self) -> None:
         if self.__output_to_file:
