@@ -2,6 +2,8 @@ import KratosMultiphysics as KM
 import KratosMultiphysics.analysis_stage as analysis_stage
 import numpy as np
 import KratosMultiphysics.FluidDynamicsApplication.cfd_utils as cfd_utils
+xp = cfd_utils.xp
+USE_CUPY = cfd_utils.USE_CUPY
 import scipy.sparse.linalg
 import KratosMultiphysics.scipy_conversion_tools
 
@@ -46,28 +48,25 @@ class VectorizedCFDStage(analysis_stage.AnalysisStage):
         self.convection_integration_order = 2 # TODO: think on exposing this to the json
 
     def ComputeLumpedMass(self):
-        Mscalar = np.zeros((len(self.model_part.Nodes)))
-        Mel = np.einsum("e,i->ei",self.elemental_volumes,self.N)
-        self.cfd_utils.AssembleVector(self.connectivity,Mel,Mscalar) #here i have one mass per node, but we will need one per component
-        M = np.empty((Mscalar.shape[0],self.dim))
-        for i in range(0,self.dim):
-            M[:,i] = Mscalar[:]
-        M = M.ravel()
-        return M
+        Mscalar = xp.zeros(len(self.model_part.Nodes), dtype=cfd_utils.PRECISION)
+        Mel = xp.einsum("e,i->ei", self.elemental_volumes, self.N)
+        self.cfd_utils.AssembleVector(self.connectivity, Mel, Mscalar)
+        M = xp.tile(Mscalar[:, xp.newaxis], (1, self.dim)) # Broadcast the scalar mass to all velocity components
+        return M.ravel()
 
     def ApplyVelocityDirichletConditions(self, vold, v_end_of_step, dt_factor, v):
         v.ravel()[self.fix_vel_indices] = (1-dt_factor)*vold.ravel()[self.fix_vel_indices] + dt_factor*v_end_of_step
 
     def ComputeH(self,DN):
-        inverse_h2 = np.max(np.linalg.norm(DN,axis=2),axis=1)
-        h = np.sqrt(1./inverse_h2)
+        inverse_h2 = xp.max(xp.linalg.norm(DN,axis=2),axis=1)
+        h = xp.sqrt(1./inverse_h2)
         return h
 
     def ComputeTau(self,h,v_elemental,viscosity,dt,rho):
         c_1 = 4.0
         c_2 = 2.0
-        vavg=np.sum(v_elemental,axis=1) / (self.dim+1.0)
-        vnorms = np.linalg.norm(vavg,axis=1)
+        vavg=xp.sum(v_elemental,axis=1) / (self.dim+1.0)
+        vnorms = xp.linalg.norm(vavg,axis=1)
         tau_1 = 1.0/(rho/dt + c_2*rho*vnorms/h + c_1*viscosity/h**2)
         tau_2 = h**2/(c_1 * tau_1)
         return tau_1, tau_2
@@ -85,10 +84,8 @@ class VectorizedCFDStage(analysis_stage.AnalysisStage):
         self.vol_mp.AddGeometries(vol_geometries)
 
         ##TODO: change viscosity
-        self.nu = 1.0e-4
+        self.nu = 2.0e-3
         self.rho = 1.0e0
-        for node in self.model_part.Nodes:
-            node.SetSolutionStepValue(KM.BODY_FORCE, 0, np.array([0.0,-10.0, 0.0]))
 
     def AddVariables(self):
         self.model_part.AddNodalSolutionStepVariable(KM.VELOCITY)
@@ -160,13 +157,8 @@ class VectorizedCFDStage(analysis_stage.AnalysisStage):
     def _GetSimulationName(self):
         return "Fluid Dynamics Analysis"
 
-
-    def ElemData(self,v,connectivities,out):
-        expected_shape = (*connectivities.shape, *v.shape[1:])
-        if out.shape != expected_shape:
-            raise ValueError(f"Shape of 'out' {out.shape} does not match expected shape {expected_shape}")
-        np.take(v, connectivities,axis=0, out=out)
-        return out
+    def ElemData(self, v, connectivities):
+        return xp.take(v, connectivities,axis=0)
 
     def AdvanceInTime(self):
         dt = self._ComputeDeltaTime()
@@ -278,16 +270,16 @@ class VectorizedCFDStage(analysis_stage.AnalysisStage):
         convective = self.aux_res_el # rename this to make it more readable
         convective.fill(0.0) # initialize this to zero as it will be incremented in the integration points loop below
         tmp = np.zeros_like(convective)
-        self.cfd_utils.ComputeElementalGradient(self.DN, v_elemental, self.grad_v)
+        self.grad_v = self.cfd_utils.ComputeElementalGradient(self.DN, v_elemental)
         det_J_volume_factor = 2.0 if self.dim == 2 else 6.0
         w_gauss_convective = self.cfd_utils.GetGaussIntegrationWeights(self.dim, self.convection_integration_order)
         N_gauss_convective = self.cfd_utils.GetShapeFunctionsOnGaussPoints(self.dim, self.convection_integration_order)
         for i_gauss in range(w_gauss_convective.size):
             # Get elemental velocities at current integration point
-            self.cfd_utils.InterpolateValue(N_gauss_convective[i_gauss,:], v_elemental, self.v_gauss)
+            self.v_gauss = self.cfd_utils.InterpolateValue(N_gauss_convective[i_gauss,:], v_elemental)
 
             # Compute convective contribution at current integration point (w,rho·a·∇u)
-            self.cfd_utils.ComputeConvectiveContribution(N_gauss_convective[i_gauss,:], self.grad_v, self.v_gauss, self.rho, tmp)
+            tmp = self.cfd_utils.ComputeConvectiveContribution(N_gauss_convective[i_gauss,:], self.grad_v, self.v_gauss, self.rho)
 
             # Scale with current integration weight (Jacobian determinant is applied at the end to the entire residual)
             convective += det_J_volume_factor * w_gauss_convective[i_gauss] * tmp
@@ -305,7 +297,7 @@ class VectorizedCFDStage(analysis_stage.AnalysisStage):
     def ComputeDivergenceProjection(self, v_elemental, Pi_div):
         # Calculate the divergence term at the elemental level
         aux_scalar = self.elemental_scalar_scratch # Use this for N_div, Lp, stabilized term (SCALAR)
-        self.cfd_utils.ComputeElementwiseNodalDivergence(self.N, self.DN, v_elemental, aux_scalar)
+        aux_scalar = self.cfd_utils.ComputeElementwiseNodalDivergence(self.N, self.DN, v_elemental)
         aux_scalar *= self.elemental_volumes[:,np.newaxis]
 
         # Do the nodal assembly of the projection elemental contributions
@@ -338,15 +330,9 @@ class VectorizedCFDStage(analysis_stage.AnalysisStage):
 
     def SolveStep1(self,v,vold,p,b,dt):
         ##TODO: a lot of intermediate storage could be avoided reusing vectors
-        self.ElemData(p, self.connectivity, self.scalar_elemental_data)
-        pel = self.scalar_elemental_data #no copy ... just renaming for better readability
-
-        self.ElemData(vold, self.connectivity, self.vec_elemental_data)
-        vel = self.vec_elemental_data #no copy ... just renaming for better readability
-
-        #FIXME: This is only valid for b constant in time...
-        self.ElemData(b, self.connectivity, self.vec_elemental_data_b)
-        b_el = self.vec_elemental_data_b #no copy ... just renaming for better readability
+        pel = self.ElemData(p, self.connectivity)
+        vel = self.ElemData(vold, self.connectivity)
+        b_el = self.ElemData(b, self.connectivity)  #FIXME: This is only valid for b constant in time...
 
         self.tau_1, self.tau_2 = self.ComputeTau(self.h, vel, self.nu, dt, self.rho)
 
@@ -425,7 +411,7 @@ class VectorizedCFDStage(analysis_stage.AnalysisStage):
         Pi_press_nodal = self.nodal_vector_scratch
         Pi_press_el = self.elemental_grad_scratch # REUSE GRAD SCRATCH
 
-        self.cfd_utils.Compute_N_DN(self.N, self.DN, pel, Pi_press_el)
+        Pi_press_el = self.cfd_utils.Compute_N_DN(self.N, self.DN, pel)
         Pi_press_el *= self.elemental_volumes[:,np.newaxis,np.newaxis]
         Pi_press_nodal.fill(0.0)
         self.cfd_utils.AssembleVector(self.connectivity, Pi_press_el, Pi_press_nodal)
@@ -442,21 +428,21 @@ class VectorizedCFDStage(analysis_stage.AnalysisStage):
         ###############################################################
 
         # Assemble pressure LHS (set to zero is done internally)
-        self.cfd_utils.ComputeLaplacianMatrix(self.DN, L_el) # elemental laplacian contributions as L_IJ := (∇N_I,∇N_J)
+        L_el = self.cfd_utils.ComputeLaplacianMatrix(self.DN) # elemental laplacian contributions as L_IJ := (∇N_I,∇N_J)
         L_el *= (dt / self.rho + self.tau_1[:,np.newaxis,np.newaxis]) * self.elemental_volumes[:,np.newaxis,np.newaxis] # scale LHS elemental contributions
         self.cfd_utils.AssembleScalarMatrixByCSRIndices(L_el, self.L_assembly_indices, self.L) # assemble the scaled elemental contributions
 
         # -(q,∇·ufrac)
-        self.cfd_utils.ComputeElementwiseNodalDivergence(self.N, self.DN, vel_frac, aux_scalar)
+        aux_scalar = self.cfd_utils.ComputeElementwiseNodalDivergence(self.N, self.DN, vel_frac)
         np.negative(aux_scalar, out=rhs_el) # Note that this acts as an in-place initialization of the RHS
 
         # (dt/rho + tau)*(∇q,∇pold) = (dt/rho + tau)*Lij*pj
-        self.cfd_utils.ApplyLaplacian(self.DN, pel, aux_scalar)
+        aux_scalar = self.cfd_utils.ApplyLaplacian(self.DN, pel)
         aux_scalar *= (dt / self.rho)
         rhs_el += aux_scalar
 
         # -tau*(∇q,Pi_pressure)
-        self.cfd_utils.ComputePressureStabilization_ProjectionTerm(self.N, self.DN, press_proj_el, aux_scalar) #writes to aux_scalar
+        aux_scalar = self.cfd_utils.ComputePressureStabilization_ProjectionTerm(self.N, self.DN, press_proj_el)
         aux_scalar *= self.tau_1[:,np.newaxis]
         rhs_el -= aux_scalar
 
@@ -485,7 +471,7 @@ class VectorizedCFDStage(analysis_stage.AnalysisStage):
 
         # Calculate the gradient of the pressure increment at the elemental level
         grad_dp_el = self.elemental_grad_scratch
-        self.cfd_utils.Compute_DN_N(self.N, self.DN, delta_pel, grad_dp_el)
+        grad_dp_el = self.cfd_utils.Compute_DN_N(self.N, self.DN, delta_pel)
         grad_dp_el *= self.elemental_volumes[:,np.newaxis,np.newaxis]
 
         # Assemble the gradient contributions at the nodes
@@ -543,8 +529,6 @@ class VectorizedCFDStage(analysis_stage.AnalysisStage):
         N = self.N
 
         # assign a shorter local name
-        grad_v  = self.grad_v
-        v_gauss = self.v_gauss
         div_v_gauss = self.div_v_gauss
         proj_div_v_gauss = self.proj_div_v_gauss
         grad_v  = self.grad_v
@@ -557,9 +541,8 @@ class VectorizedCFDStage(analysis_stage.AnalysisStage):
         res.fill(0.0)
 
         #(w,b) #TODO: we are assuming it constant (put it in the Gauss points loop in the future)
-        body_force = aux_res_el
-        self.cfd_utils.InterpolateValue(N, b_elemental, b_gauss)
-        self.cfd_utils.ComputeBodyForceContribution(N, b_gauss, body_force) #TODO: here we are using the projection as a storage for the body force, which is not ideal
+        b_gauss = self.cfd_utils.InterpolateValue(N, b_elemental) # TODO: most probably we can do this inside ComputeBodyForceContribution
+        body_force = self.cfd_utils.ComputeBodyForceContribution(N, b_gauss)
         body_force *= self.rho
         res += body_force
 
@@ -568,7 +551,7 @@ class VectorizedCFDStage(analysis_stage.AnalysisStage):
         convective.fill(0.0) # initialize this to zero as it will be incremented in the integration points loop below
         convective_stab = np.zeros_like(aux_res_el) #rename this to make it more readable #FIXME: THIS IS SUBOPTIMAL
         # convective.fill(0.0) # initialize this to zero as it will be incremented in the integration points loop below
-        self.cfd_utils.ComputeElementalGradient(DN, v_elemental, grad_v)
+        grad_v = self.cfd_utils.ComputeElementalGradient(DN, v_elemental)
 
         tmp = np.empty_like(convective)
         tmp_stab = np.empty_like(convective_stab)
@@ -577,13 +560,13 @@ class VectorizedCFDStage(analysis_stage.AnalysisStage):
         N_gauss_convective = self.cfd_utils.GetShapeFunctionsOnGaussPoints(self.dim, self.convection_integration_order)
         for i_gauss in range(w_gauss_convective.size):
             # Get elemental velocities at current integration point
-            self.cfd_utils.InterpolateValue(N_gauss_convective[i_gauss,:], v_elemental, v_gauss)
+            v_gauss = self.cfd_utils.InterpolateValue(N_gauss_convective[i_gauss,:], v_elemental)
 
             # Compute convective contribution at current integration point (w,rho·a·∇u)
-            self.cfd_utils.ComputeConvectiveContribution(N_gauss_convective[i_gauss,:], grad_v, v_gauss, self.rho, tmp)
+            tmp = self.cfd_utils.ComputeConvectiveContribution(N_gauss_convective[i_gauss,:], grad_v, v_gauss, self.rho)
 
             # Compute convective stabilization contribution at current integration point (rho·a·∇w,rho·a·∇u) - (rho·a·∇w,Pi_conv)
-            self.cfd_utils.ComputeMomentumStabilization(N_gauss_convective[i_gauss,:], DN, v_gauss, v_elemental, proj_el, self.rho, tmp_stab, self.elemental_scalar_scratch, self.elemental_grad_scratch)
+            tmp_stab = self.cfd_utils.ComputeMomentumStabilization(N_gauss_convective[i_gauss,:], DN, v_gauss, v_elemental, proj_el, self.rho)
 
             # Scale with current integration weight (Jacobian determinant is applied at the end to the entire residual)
             aux_w = w_gauss_convective[i_gauss] * det_J_volume_factor
@@ -594,20 +577,16 @@ class VectorizedCFDStage(analysis_stage.AnalysisStage):
         res += convective_stab * self.tau_1[:,np.newaxis,np.newaxis]
 
         #-(∇w,∇u)
-        viscous = aux_res_el #rename this to make it more readable
-        self.cfd_utils.ApplyLaplacian(DN, v_elemental,viscous)
+        viscous = self.cfd_utils.ApplyLaplacian(DN, v_elemental)
         viscous *= self.nu
         res -= viscous
 
         #+(∇·w,p_gauss)
-        pressure_term = aux_res_el #rename this to make it more readable
-        self.cfd_utils.Compute_DN_N(N, DN, p_elemental, pressure_term)
+        pressure_term = self.cfd_utils.Compute_DN_N(N, DN, p_elemental)
         res += pressure_term
 
         #-(∇·w,tau_2·∇·v) + (∇·w,tau_2·Pi_div)
-        div_div_stab = aux_res_el #rename this to make it more readable
-        aux_res_scratch = np.empty_like(aux_res_el) # auxiliary array to temporarily store the projection contribution #TODO: optimize this
-        self.cfd_utils.ComputeDivDivStabilization(N, DN, v_elemental, proj_div_el, aux_res_scratch, div_div_stab)
+        # div_div_stab = self.cfd_utils.ComputeDivDivStabilization(N, DN, v_elemental, proj_div_el)
         # res -= div_div_stab * self.tau_2[:,np.newaxis,np.newaxis]
 
         #multiply by volume (note that the convective term already includes the corresponding weighting factor to emulate the Jacobian determinant, so we just need to apply the volume here)

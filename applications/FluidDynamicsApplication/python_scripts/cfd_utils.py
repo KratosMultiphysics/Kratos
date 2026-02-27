@@ -2,6 +2,37 @@ from numpy import double
 import numpy as np
 import KratosMultiphysics as KM
 
+# Configuration flag for backend selection
+# This can be changed to True to use CuPy if available
+USE_CUPY = False #True
+
+# Precision configuration
+PRECISION = np.float64
+
+# Einsum optimization configuration
+opt_type = "greedy"
+
+if USE_CUPY:
+    try:
+        import cupy as xp
+        import cupyx.scipy.sparse as sparse
+        import cupyx.scipy.sparse.linalg as sparse_linalg
+        asnumpy = xp.asnumpy
+    except ImportError:
+        print("CuPy not found. Falling back to NumPy.")
+        import numpy as xp
+        import scipy.sparse as sparse
+        import scipy.sparse.linalg as sparse_linalg
+        def asnumpy(x):
+            return np.asarray(x)
+        USE_CUPY = False
+else:
+    import numpy as xp
+    import scipy.sparse as sparse
+    import scipy.sparse.linalg as sparse_linalg
+    def asnumpy(x):
+        return np.asarray(x)
+
 class CFDUtils:
 
     def GetShapeFunctionsOnGaussPoints(self, dim: int, integration_order: int):
@@ -57,7 +88,7 @@ class CFDUtils:
 
         return w
 
-    def ComputeElementalDivergence(self, DN: np.ndarray, uel: np.ndarray, out: np.ndarray):
+    def ComputeElementalDivergence(self, DN: np.ndarray, uel: np.ndarray):
         """
         Computes the elemental divergence of a vector field u.
 
@@ -70,19 +101,10 @@ class CFDUtils:
             Numpy array with shape (Nelem, n_in_el, dim).
         uel : ndarray
             Numpy array with shape (Nelem, n_in_el, dim).
-        out : ndarray
-            Output array, expected to have shape (Nelem,).
         """
-        nelem = DN.shape[0]
+        return xp.einsum("nij,nij->n", DN, uel, optimize=opt_type)
 
-        #verify shape of output array
-        if(out.shape != (nelem,)):
-            raise ValueError("Output array has wrong shape")
-
-        #store element by element divergence in aux_array1
-        np.einsum("nij,nij->n", DN, uel, out=out, optimize=True)
-
-    def ComputeElementwiseNodalDivergence(self, N: np.ndarray, DN: np.ndarray, uel: np.ndarray, out: np.ndarray):
+    def ComputeElementwiseNodalDivergence(self, N: np.ndarray, DN: np.ndarray, uel: np.ndarray):
         """
         Computes the nodal weighted divergence of a vector field u.
 
@@ -100,17 +122,15 @@ class CFDUtils:
         out : ndarray
             Output array, expected to have shape (Nelem, n_in_el).
         """
-        nelem = DN.shape[0]
         n_in_el = DN.shape[1]
-        dim = DN.shape[2]
         if N.shape[0] != n_in_el or N.ndim!=1:
             raise Exception("wrong size of N")
         if uel.shape != DN.shape:
             raise Exception("wrong size of uel")
 
-        np.einsum("I,eJk,eJk->eI",N,DN,uel,out=out,optimize=True)
+        return xp.einsum("I,eJk,eJk->eI",N,DN,uel,optimize=opt_type)
 
-    def Compute_N_DN(self, N: np.ndarray, DN: np.ndarray, pel: np.ndarray, out: np.ndarray):
+    def Compute_N_DN(self, N: np.ndarray, DN: np.ndarray, pel: np.ndarray):
         """
         Computes the term (w, ∇p).
 
@@ -124,22 +144,16 @@ class CFDUtils:
             Numpy array with shape (Nelem, n_in_el, dim).
         pel : ndarray
             Numpy array with shape (Nelem, n_in_el), i.e., one scalar per node of the element.
-        out : ndarray
-            Output array, expected to have shape (Nelem, n_in_el).
         """
         nelem = DN.shape[0]
         n_in_el = DN.shape[1]
-        ndim = DN.shape[2]
 
         if pel.shape != (nelem, n_in_el):
             raise ValueError("pel must have shape (nelem, n_in_el) for scalar case. Current shape is:",field.shape)
 
-        if out.shape != (nelem, n_in_el,ndim):
-            raise ValueError(f"out must have shape (nelem, {ndim}) for scalar case. Current shape is:",out.shape)
+        return xp.einsum("I,eJk,eJ->eIk", N, DN, pel, optimize=opt_type)
 
-        np.einsum("I,eJk,eJ->eIk", N,DN, pel,  out=out, optimize=True)
-
-    def Compute_DN_N(self, N: np.ndarray, DN: np.ndarray, pel: np.ndarray, out: np.ndarray):
+    def Compute_DN_N(self, N: np.ndarray, DN: np.ndarray, pel: np.ndarray):
         """
         Computes the term (∇·w, p).
 
@@ -153,25 +167,10 @@ class CFDUtils:
             Numpy array with shape (Nelem, n_in_el, dim).
         pel : ndarray
             Numpy array with shape (Nelem, n_in_el), i.e., one scalar per node of the element.
-        out : ndarray
-            Output array, expected to have shape (Nelem, n_in_el, dim).
         """
-        # nelem = out.shape[0]
+        return xp.einsum("eIk,J,eJ->eIk", DN, N, pel, optimize=opt_type)
 
-        np.einsum("eIk,J,eJ->eIk",DN,N,pel,out=out)
-
-        # # aux_array1 must have shape (nelem,)
-        # if self.aux_array1.shape != (nelem,):
-        #     self.aux_array1 = np.empty(nelem)
-
-        # # 1) aux[e] = pel[e,k] * N[k]
-        # np.einsum("ek,k->e", pel, N, out=self.aux_array1)
-
-        # # 2) out[e,i,m] = DN[e,i,m] * aux[e]
-        # out[:] = DN
-        # out *= self.aux_array1[:, np.newaxis, np.newaxis]
-
-    def ComputeLaplacianMatrix(self, DN: np.ndarray, out: np.ndarray):
+    def ComputeLaplacianMatrix(self, DN: np.ndarray):
         """
         Computes the Laplacian local matrix term (∇N, ∇N).
 
@@ -184,9 +183,9 @@ class CFDUtils:
         out : ndarray
             Output array, expected to have shape (Nelem, n_in_el, n_in_el).
         """
-        np.einsum("eim,ejm->eij", DN, DN, out=out, optimize=True)
+        return xp.einsum("eim,ejm->eij", DN, DN, optimize=opt_type)
 
-    def ApplyLaplacian(self, DN: np.ndarray, field: np.ndarray, out: np.ndarray):
+    def ApplyLaplacian(self, DN: np.ndarray, field: np.ndarray):
         """
         Computes the term (∇q, ∇field) - scalar field
                        or (∇w, ∇field) - vector field
@@ -210,15 +209,13 @@ class CFDUtils:
         """
 
         if field.ndim == 2: # scalar case
+            return xp.einsum("eIm,eJm,eJ->eI", DN, DN, field, optimize=opt_type)
+        elif field.ndim == 3: # vector case
+            return xp.einsum("eIm,eJm,eJk->eIk", DN, DN, field, optimize=opt_type)
 
-            np.einsum("eIm,eJm,eJ->eI", DN, DN, field, out=out)
+        raise ValueError("Field must have shape (nelem,nnode) or (nelem,nnode,dim)")
 
-        elif field.ndim == 3:
-
-            np.einsum("eIm,eJm,eJk->eIk", DN, DN, field, out=out)
-
-
-    def InterpolateValue(self, N: np.ndarray, field: np.ndarray, out: np.ndarray):
+    def InterpolateValue(self, N: np.ndarray, field: np.ndarray):
         """
         Computes:
             pgauss[e]     = sum_k N[k] * pel[e,k]
@@ -231,31 +228,15 @@ class CFDUtils:
             Shape function values at the Gauss point.
         field : (nelem, nnode) or (nelem, nnode, dim)
             Element field to project (pel or vel).
-        out : preallocated array
-            Must have shape (nelem,) or (nelem, dim) accordingly.
         """
-
-        nelem = field.shape[0]
-        nnode = N.shape[0]
 
         # Scalar case: pel[e,k] → pgauss[e]
         if field.ndim == 2:
-            if out.shape != (nelem,):
-                raise ValueError(f"Output must have shape ({nelem},)")
-
-            # pgauss[e] = N[k] * pel[e,k]
-            np.einsum("k,ek->e", N, field, out=out)
-            return
+            return xp.einsum("k,ek->e", N, field, optimize=opt_type)
 
         # Vector case: vel[e,k,i] → vgauss[e,i]
         if field.ndim == 3:
-            dim = field.shape[2]
-            if out.shape != (nelem, dim):
-                raise ValueError(f"Output must have shape ({nelem},{dim})")
-
-            # vgauss[e,i] = N[k] * vel[e,k,i]
-            np.einsum("k,eki->ei", N, field, out=out)
-            return
+            return xp.einsum("k,eki->ei", N, field, optimize=opt_type)
 
         raise ValueError("Field must have shape (nelem,nnode) or (nelem,nnode,dim)")
 
@@ -272,9 +253,9 @@ class CFDUtils:
         out : preallocated array
             Shape must be (conn.max()+1,) or (conn.max()+1, ncomp).
         """
-        np.add.at(out, conn, vals)
+        xp.add.at(out, conn, vals)
 
-    def ComputeElementalGradient(self, DN: np.ndarray, field: np.ndarray, out: np.ndarray):
+    def ComputeElementalGradient(self, DN: np.ndarray, field: np.ndarray):
         """
         Compute the gradient of a scalar or vector field using element-dependent DN.
         that is for every element we compute:
@@ -290,18 +271,12 @@ class CFDUtils:
             - (nelem, nnode)          for a scalar field
             - (nelem, nnode, ncomp)   for a vector field
 
-        out : array
-            Preallocated output buffer. Must have shape:
-            - (nelem, ndim)           for scalar field
-            - (nelem, ncomp, ndim)    for vector field
-
         Notes
         -----
         Computes:
-            Scalar: out[e,k]      = sum_i field[e,i]      * DN[e,i,k]
-            Vector: out[e,j,k]    = sum_i field[e,i,j]    * DN[e,i,k]
+            Scalar: sum_i field[e,i]      * DN[e,i,k]
+            Vector: sum_i field[e,i,j]    * DN[e,i,k]
 
-        No temporaries are allocated; `out` is written in-place.
         """
 
         # ------------------------------
@@ -319,12 +294,7 @@ class CFDUtils:
             if field.shape != (nelem, nnode):
                 raise ValueError("field must have shape (nelem, nnode) for scalar case. Current shape is:",field.shape)
 
-            if out.shape != (nelem, ndim):
-                raise ValueError(f"out must have shape (nelem, {ndim}) for scalar case. Current shape is:",out.shape)
-
-            # grad[e,k] = sum_i field[e,i] * DN[e,i,k]
-            np.einsum('ei,eik->ek', field, DN, out=out)
-            return
+            return xp.einsum('ei,eik->ek', field, DN, optimize=opt_type)
 
         # ------------------------------
         # Vector field
@@ -333,30 +303,18 @@ class CFDUtils:
             if field.shape[0] != nelem or field.shape[1] != nnode:
                 raise ValueError("field must have shape (nelem, nnode, ncomp). Current shape is:",field.shape)
 
-            ncomp = field.shape[2]
-
-            if out.shape != (nelem, ncomp, ndim):
-                raise ValueError(
-                    f"out must have shape (nelem, {ncomp}, {ndim}) for vector case. Current shape is:",field.shape
-                )
-
-            # grad[e,k,l] = sum_i field[e,i,k] * DN[e,i,l]
-            np.einsum('eik,eil->ekl', field, DN, out=out)
-            return
+            return xp.einsum('eik,eil->ekl', field, DN, optimize=opt_type)
 
         # ------------------------------
         # Invalid field
         # ------------------------------
-        print(field.ndim)
         raise ValueError("field must have 2 dims (scalar) or 3 dims (vector), Current shape of field is:",field.shape)
 
-    def ComputeBodyForceContribution(self, N: np.ndarray, b: np.ndarray, out: np.ndarray):
+    def ComputeBodyForceContribution(self, N: np.ndarray, b: np.ndarray):
         """
         Compute the contribution of the body force to the RHS, that is (w,b)
 
-        this corresponds in einstain notation to
-        out[i,k] = N_i b_k
-        on every element
+        this corresponds in einstain notation to N_i b_k on every element
 
         Parameters
         ----------
@@ -366,12 +324,10 @@ class CFDUtils:
         b: (nelem,ndim)
             body force on the gauss point
 
-        out: (nelem, n_in_el, ndim)
-
         """
-        np.einsum('i, ek->eik', N, b, out=out)
+        return xp.einsum('i, ek->eik', N, b, optimize=opt_type)
 
-    def ComputeConvectiveContribution(self, N: np.ndarray, grad_u: np.ndarray, a: np.ndarray, rho: float, out: np.ndarray):
+    def ComputeConvectiveContribution(self, N: np.ndarray, grad_u: np.ndarray, a: np.ndarray, rho: float):
         """
         Compute (w,a·∇u) although with the definition we employ for ∇u this is actually (w,∇u·a)
 
@@ -389,32 +345,32 @@ class CFDUtils:
 
         a: (nelem,ndim)
             convective velocity on the gauss point
-
-        out: (nelem, n_in_el, ndim)
-
         """
         if grad_u.ndim == 3: #gradient of a vector function
-            np.einsum('i,ekl,el->eik', N, grad_u, a, out=out)
+            out = xp.einsum('i,ekl,el->eik', N, grad_u, a, optimize=opt_type)
         elif grad_u.ndim == 2: #gradient of a scalar function
-            np.einsum('i,el,el->ei', N, grad_u, a, out=out)
+            out = xp.einsum('i,el,el->ei', N, grad_u, a, optimize=opt_type)
         else:
             raise ValueError("grad_u must have 2 dims (scalar) or 3 dims (vector)")
         out *= rho
+        return out
 
-    def ComputeMomentumStabilization(self, N: np.ndarray, DN: np.ndarray, a: np.ndarray, u_elemental: np.ndarray, Pi_elemental: np.ndarray, rho: float, out: np.ndarray, rho_a_DN: np.ndarray, PiContrib: np.ndarray):
+    def ComputeMomentumStabilization(self, N: np.ndarray, DN: np.ndarray, a: np.ndarray, u_elemental: np.ndarray, Pi_elemental: np.ndarray, rho: float):
         ##TODO: avoid temporaries!
-        np.einsum("el,eil->ei",a,DN, out=rho_a_DN) #TODO: reuse an auxiliary array
+        rho_a_DN = xp.einsum("el,eil->ei", a, DN, optimize=opt_type) #TODO: reuse an auxiliary array
         rho_a_DN *= rho
-        np.einsum("eI,eJ,eJk->eIk",rho_a_DN, rho_a_DN, u_elemental,out=out)
-        np.einsum("eI,J,eJk->eIk",rho_a_DN, N, Pi_elemental, out=PiContrib)
+        out = xp.einsum("eI,eJ,eJk->eIk",rho_a_DN, rho_a_DN, u_elemental, optimize=opt_type)
+        PiContrib = xp.einsum("eI,J,eJk->eIk",rho_a_DN, N, Pi_elemental, optimize=opt_type)
         out -= PiContrib
+        return out
 
-    def ComputeDivDivStabilization(self, N: np.array, DN: np.ndarray, u_elemental : np.ndarray, Pi_div_elemental: np.ndarray, elem_scratch : np.array, output: np.ndarray):
-        np.einsum("eik,ejl,ejl->eik", DN, DN, u_elemental, out=output)
-        np.einsum("eik,j,ej->eik", DN, N, Pi_div_elemental, out=elem_scratch)
+    def ComputeDivDivStabilization(self, N: np.array, DN: np.ndarray, u_elemental : np.ndarray, Pi_div_elemental: np.ndarray):
+        output = xp.einsum("eik,ejl,ejl->eik", DN, DN, u_elemental, optimize=opt_type)
+        elem_scratch = xp.einsum("eik,j,ej->eik", DN, N, Pi_div_elemental, optimize=opt_type)
         output -= elem_scratch
+        return output
 
-    def ComputePressureStabilization_ProjectionTerm(self, N: np.ndarray, DN: np.ndarray, Pi_press_el: np.ndarray, out: np.ndarray):
+    def ComputePressureStabilization_ProjectionTerm(self, N: np.ndarray, DN: np.ndarray, Pi_press_el: np.ndarray):
         """
         implements (∇q,Pi_pressure)
 
@@ -436,9 +392,10 @@ class CFDUtils:
         out: (nelem, n_in_el, ndim)
 
         """
-        np.einsum("eIk,J,eJk->eI",DN,N,Pi_press_el,out=out)
+        return xp.einsum("eIk,J,eJk->eI",DN,N,Pi_press_el, optimize=opt_type)
 
-    def AllocateScalarMatrix(self,conn: np.ndarray):
+    #REMARK: this function has to be run on the cpu AND NOT ON THE GPU - it will return a gpu matrix if that is the case
+    def AllocateScalarMatrix(self,conn : np.ndarray):
         #TODO: make it efficient
         size = np.max(conn)+1
         Agraph = KM.SparseContiguousRowGraph(size)
@@ -449,48 +406,75 @@ class CFDUtils:
         #assembling matrix
         A = KM.CsrMatrix(Agraph)
 
-        assembly_indices = A.GetEquationIdCsrIndices(conn)
-        return A,assembly_indices
+        if USE_CUPY:
+            assembly_indices = A.GetEquationIdCsrIndices(conn)
+            A_cu = sparse.csr_matrix((
+                xp.asarray(
+                    A.value_data(), dtype=PRECISION),
+                xp.asarray(
+                    A.index2_data()),
+                xp.asarray(
+                    A.index1_data())),
+                shape=(A.Size1(), A.Size2())
+            )
+            return A_cu,assembly_indices
+        else:
+            assembly_indices = A.GetEquationIdCsrIndices(conn)
+            return A,assembly_indices
 
-    def AssembleScalarMatrix(self,LHSel,conn,A):
+    def AssembleScalarMatrix(self, LHSel, conn, A : KM.CsrMatrix):
         A.SetValue(0.0)
         A.BeginAssemble()
         for e in range(conn.shape[0]):
             A.Assemble(LHSel[e],conn[e])
         A.FinalizeAssemble()
 
-    def AssembleScalarMatrixByCSRIndices(self,LHSel,csr_indices,A):
-        A.value_data().fill(0.0)
-        self.AssembleVector(csr_indices.ravel(), LHSel.ravel(), A.value_data())
+    def AssembleScalarMatrixByCSRIndices(self, LHSel, csr_indices, A):
+        if USE_CUPY:
+            A.data.fill(0.0)
+            self.AssembleVector(csr_indices.ravel(), LHSel.ravel(), A.data)
+        else:
+            A.value_data().fill(0.0)
+            self.AssembleVector(csr_indices.ravel(), LHSel.ravel(), A.value_data())
 
     def ApplyHomogeneousDirichlet(self, fixed_values, LHS, RHS, diag_value=1.0):
         """
         Applies homogeneous Dirichlet BCs (value=0) to a CSR matrix and RHS.
         Maintains symmetry by zeroing both rows and columns of fixed indices.
         """
-        n = LHS.Size1()
+
+        if USE_CUPY:
+            n = LHS.shape[0]
+            data = LHS.data
+            indices = LHS.indices
+            indptr = LHS.indptr
+        else:
+            n = LHS.Size1()
+            data = LHS.value_data()
+            indices = LHS.index2_data()
+            indptr = LHS.index1_data()
 
         # 1. Create a boolean lookup for fixed indices (O(1) lookup speed)
-        is_fixed = np.zeros(n, dtype=bool)
+        is_fixed = xp.zeros(n, dtype=bool)
         is_fixed[fixed_values] = True
 
         # 2. Map every entry in the sparse 'data' array to its row index
         # LHS.indptr tells us where rows start; np.diff tells us how many entries per row
-        diff_array = np.diff(LHS.index1_data()).astype(np.int64)
-        row_map = np.repeat(np.arange(n), diff_array)
+        diff_array = xp.diff(indptr).astype(xp.int64)
+        row_map = xp.repeat(xp.arange(n), diff_array)
 
         # 3. Create masks for entries in fixed rows and fixed columns
         mask_row = is_fixed[row_map]
-        mask_col = is_fixed[LHS.index2_data()]
+        mask_col = is_fixed[indices]
 
         # 4. Zero out the "Symmetry Cross" (all entries in fixed rows OR columns)
         # This is the most expensive step, done in a single vectorized pass
-        LHS.value_data()[mask_row | mask_col] = 0.0
+        data[mask_row | mask_col] = 0.0
 
         # 5. Restore the diagonal for the fixed rows
         # A diagonal entry is where row_index == column_index
-        mask_diag = (row_map == LHS.index2_data()) & mask_row
-        LHS.value_data()[mask_diag] = diag_value
+        mask_diag = (row_map == indices) & mask_row
+        data[mask_diag] = diag_value
 
         # 6. Set RHS to 0 at fixed indices
         RHS[fixed_values] = 0.0
