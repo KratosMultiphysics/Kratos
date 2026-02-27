@@ -89,6 +89,7 @@ class TestSensorErrorConvCriterion(UnitTest.TestCase):
         convergence_criterium = sensor_error.MaxSensorErrorCriterion(param, self.optimization_problem)
         convergence_criterium.Initialize()
         self.assertFalse(convergence_criterium.IsConverged())
+        convergence_criterium.Finalize()
 
     def test_SensorMaxErrorCriterionTrue(self):
         param = Kratos.Parameters("""{
@@ -99,6 +100,7 @@ class TestSensorErrorConvCriterion(UnitTest.TestCase):
         convergence_criterium = sensor_error.MaxSensorErrorCriterion(param, self.optimization_problem)
         convergence_criterium.Initialize()
         self.assertTrue(convergence_criterium.IsConverged())
+        convergence_criterium.Finalize()
 
 
 if __name__ == '__main__':
