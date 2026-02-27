@@ -11,6 +11,8 @@
 //
 
 // System includes
+#include <fstream>
+#include <stdexcept>
 
 // External includes
 #include <benchmark/benchmark.h>
@@ -22,116 +24,38 @@
 namespace Kratos
 {
 
-static void BM_StlIO(benchmark::State& state) {
-    // 1. Prepare the raw data string outside the loop so it's not measured
-    const std::string stl_data = R"input(
-        solid CUBE
-            facet normal 0 0 1
-            outer loop
-                vertex -35 60 20
-                vertex -55 60 20
-                vertex -35 40 20
-            endloop
-            endfacet
-            facet normal 0 0 1
-            outer loop
-                vertex -35 40 20
-                vertex -55 60 20
-                vertex -55 40 20
-            endloop
-            endfacet
-            facet normal 0 0 -1
-            outer loop
-                vertex -35 40 0
-                vertex -55 40 0
-                vertex -35 60 0
-            endloop
-            endfacet
-            facet normal -0 0 -1
-            outer loop
-                vertex -35 60 0
-                vertex -55 40 0
-                vertex -55 60 0
-            endloop
-            endfacet
-            facet normal 0 -1 0
-            outer loop
-                vertex -55 40 20
-                vertex -55 40 0
-                vertex -35 40 20
-            endloop
-            endfacet
-            facet normal 0 -1 -0
-            outer loop
-                vertex -35 40 20
-                vertex -55 40 0
-                vertex -35 40 0
-            endloop
-            endfacet
-            facet normal -1 -0 -0
-            outer loop
-                vertex -55 60 20
-                vertex -55 60 0
-                vertex -55 40 20
-            endloop
-            endfacet
-            facet normal -1 0 0
-            outer loop
-                vertex -55 40 20
-                vertex -55 60 0
-                vertex -55 40 0
-            endloop
-            endfacet
-            facet normal 0 1 0
-            outer loop
-                vertex -35 60 20
-                vertex -35 60 0
-                vertex -55 60 20
-            endloop
-            endfacet
-            facet normal 0 1 0
-            outer loop
-                vertex -55 60 20
-                vertex -35 60 0
-                vertex -55 60 0
-            endloop
-            endfacet
-            facet normal 1 -0 0
-            outer loop
-                vertex -35 40 20
-                vertex -35 40 0
-                vertex -35 60 20
-            endloop
-            endfacet
-            facet normal 1 0 0
-            outer loop
-                vertex -35 60 20
-                vertex -35 40 0
-                vertex -35 60 0
-            endloop
-            endfacet
-        endsolid CUBE
-        )input";
+const std::string file_name = "file.stl";
 
-    Model current_model;
+static void BM_StlIO(benchmark::State& state) {
+    // Reading the file once to ensure it exists and is accessible, and to get past any initial overhead of file access.
+    Kratos::shared_ptr<std::iostream> p_input_file =
+        Kratos::make_shared<std::fstream>(file_name, std::ios::in);
+
+    if (!p_input_file || !(*p_input_file)) {
+        state.SkipWithError("Could not open file.stl in current folder.");
+        return;
+    }
+
+    std::dynamic_pointer_cast<std::fstream>(p_input_file)->close();
+
+    // Settings to read the STL as elements instead of conditions, which is a common use case and more expensive than reading as conditions.
+    Parameters settings(R"({
+        "new_entity_type" : "element"
+    })");
 
     for (auto _ : state) {
-        // 2. Setup that we don't want to profile as "IO Time"
-        state.PauseTiming();
+        // Setup that we don't want to profile as "IO Time"
+        // state.PauseTiming();
         // We create a new ModelPart to ensure we start from a clean slate
         // and aren't measuring the cost of searching through existing nodes.
-        ModelPart& r_model_part = current_model.CreateModelPart("Main_" + std::to_string(state.iterations()));
-        auto p_input = Kratos::make_shared<std::stringstream>(stl_data);
-        StlIO stl_io(p_input);
-        state.ResumeTiming();
+        Model current_model;
+        ModelPart& r_model_part = current_model.CreateModelPart("Main");
 
-        // 3. The actual operation being benchmarked
+        // state.ResumeTiming();
+
+        // The actual operation being benchmarked
+        StlIO stl_io(p_input_file, settings);
         stl_io.ReadModelPart(r_model_part);
-
-        // Cleanup to prevent memory bloat during high-iteration benchmarks
-        state.PauseTiming();
-        current_model.DeleteModelPart("Main_" + std::to_string(state.iterations()));
-        state.ResumeTiming();
     }
 }
 
