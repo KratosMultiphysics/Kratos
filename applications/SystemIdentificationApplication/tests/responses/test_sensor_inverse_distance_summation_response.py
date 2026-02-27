@@ -1,6 +1,5 @@
 import KratosMultiphysics as Kratos
 import KratosMultiphysics.SystemIdentificationApplication as KratosSI
-import KratosMultiphysics.OptimizationApplication as KratosOA
 import KratosMultiphysics.KratosUnittest as UnitTest
 from KratosMultiphysics.SystemIdentificationApplication.utilities.sensor_utils import CreateSensors
 from KratosMultiphysics.SystemIdentificationApplication.utilities.sensor_utils import SetSensors
@@ -127,17 +126,16 @@ class TestSensorInverseDistanceSummationResponse(UnitTest.TestCase):
 
     def test_CalculateGradient(self):
         ref_value = self.response.CalculateValue()
-        collective_exp = KratosOA.CollectiveExpression()
-        collective_exp.Add(Kratos.Expression.NodalExpression(self.sensor_model_part))
-        self.response.CalculateGradient({KratosSI.SENSOR_STATUS: collective_exp})
-        analytical_gradient = collective_exp.GetContainerExpressions()[0].Evaluate()
+        analytical_gradient = Kratos.TensorAdaptors.VariableTensorAdaptor(self.sensor_model_part.Nodes, Kratos.PRESSURE)
+        cta = Kratos.TensorAdaptors.DoubleCombinedTensorAdaptor([analytical_gradient], copy=False)
+        self.response.CalculateGradient({KratosSI.SENSOR_STATUS: cta})
 
         delta = 1e-8
         for i, node in enumerate(self.sensor_model_part.Nodes):
             node.SetValue(KratosSI.SENSOR_STATUS, node.GetValue(KratosSI.SENSOR_STATUS) + delta)
             fd_sensitivity = (self.response.CalculateValue() - ref_value) / delta
             node.SetValue(KratosSI.SENSOR_STATUS, node.GetValue(KratosSI.SENSOR_STATUS) - delta)
-            self.assertAlmostEqual(fd_sensitivity, analytical_gradient[i])
+            self.assertAlmostEqual(fd_sensitivity, analytical_gradient.data[i])
 
 if __name__ == '__main__':
     UnitTest.main()

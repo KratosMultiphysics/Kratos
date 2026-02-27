@@ -1,7 +1,6 @@
 import numpy as np
 import KratosMultiphysics as Kratos
 import KratosMultiphysics.SystemIdentificationApplication as KratosSI
-import KratosMultiphysics.OptimizationApplication as KratosOA
 import KratosMultiphysics.KratosUnittest as UnitTest
 from KratosMultiphysics.OptimizationApplication.utilities.optimization_problem import OptimizationProblem
 from KratosMultiphysics.OptimizationApplication.utilities.component_data_view import ComponentDataView
@@ -112,26 +111,22 @@ class TestSensorLocalizationResponse(UnitTest.TestCase):
         for sensor in cls.sensors:
             sensor.GetNode().SetValue(KratosSI.SENSOR_STATUS, (sensor.GetNode().Id % 2) / 2)
 
-        elem_exp = Kratos.Expression.ElementExpression(cls.domain_model_part)
+        elem_ta = Kratos.TensorAdaptors.VariableTensorAdaptor(cls.domain_model_part.Elements, Kratos.PRESSURE)
 
-        elem_np = np.array([1, 1, 0, 1, 1, 0], dtype=np.float64)
-        Kratos.Expression.CArrayExpressionIO.Read(elem_exp, elem_np)
-        cls.sensors[0].AddContainerExpression("mask_exp", elem_exp.Clone())
+        elem_ta.data[:] = np.array([1, 1, 0, 1, 1, 0], dtype=np.float64)
+        cls.sensors[0].AddTensorAdaptor("mask_exp", elem_ta.Clone())
 
-        elem_np = np.array([1, 1, 0, 1, 0, 1], dtype=np.float64)
-        Kratos.Expression.CArrayExpressionIO.Read(elem_exp, elem_np)
-        cls.sensors[1].AddContainerExpression("mask_exp", elem_exp.Clone())
+        elem_ta.data[:] = np.array([1, 1, 0, 1, 0, 1], dtype=np.float64)
+        cls.sensors[1].AddTensorAdaptor("mask_exp", elem_ta.Clone())
 
-        elem_np = np.array([0, 0, 0, 1, 0, 0], dtype=np.float64)
-        Kratos.Expression.CArrayExpressionIO.Read(elem_exp, elem_np)
-        cls.sensors[2].AddContainerExpression("mask_exp", elem_exp.Clone())
+        elem_ta.data[:] = np.array([0, 0, 0, 1, 0, 0], dtype=np.float64)
+        cls.sensors[2].AddTensorAdaptor("mask_exp", elem_ta.Clone())
 
-        elem_np = np.array([0, 0, 1, 0, 1, 1], dtype=np.float64)
-        Kratos.Expression.CArrayExpressionIO.Read(elem_exp, elem_np)
-        cls.sensors[3].AddContainerExpression("mask_exp", elem_exp.Clone())
+        elem_ta.data[:] = np.array([0, 0, 1, 0, 1, 1], dtype=np.float64)
+        cls.sensors[3].AddTensorAdaptor("mask_exp", elem_ta.Clone())
 
         # add the mask status controller
-        cls.sensor_mask_status = KratosSI.SensorMaskStatus(cls.sensor_model_part, [sensor.GetContainerExpression("mask_exp").Clone() for sensor in cls.sensors], 0)
+        cls.sensor_mask_status = KratosSI.SensorMaskStatus(cls.sensor_model_part, [sensor.GetTensorAdaptor("mask_exp").Clone() for sensor in cls.sensors], 0)
         cls.sensor_mask_status_kd_tree = KratosSI.SensorMaskStatusKDTree(cls.sensor_mask_status, 100, 0)
         AddMaskStatusController(cls.sensor_group_data, "mask_exp", cls.sensor_mask_status)
         AddMaskStatusController(cls.sensor_group_data, "mask_exp", cls.sensor_mask_status_kd_tree)
@@ -172,11 +167,11 @@ class TestSensorLocalizationResponse(UnitTest.TestCase):
         response = SensorLocalizationResponse("test1", self.model, params, self.optimization_problem)
         response.Initialize()
 
-        cluster_size_exp = Kratos.Expression.ElementExpression(self.domain_model_part)
-        cluster_size_clamper = KratosSI.ElementSmoothClamper(0.32, 1.0)
+        cluster_size_ta = Kratos.TensorAdaptors.VariableTensorAdaptor(self.domain_model_part.Elements, Kratos.PRESSURE)
+        cluster_size_clamper = KratosSI.SmoothClamper(0.32, 1.0)
 
-        Kratos.Expression.CArrayExpressionIO.Read(cluster_size_exp, np.array([3, 3, 2, 1, 3, 2]) / 6.0)
-        self.assertAlmostEqual(np.sum((cluster_size_clamper.ProjectForward(cluster_size_exp).Evaluate()) ** 2 - (0.32 ** 2)), response.CalculateValue())
+        cluster_size_ta.data[:] = np.array([3, 3, 2, 1, 3, 2]) / 6.0
+        self.assertAlmostEqual(np.sum((cluster_size_clamper.ProjectForward(cluster_size_ta).data) ** 2 - (0.32 ** 2)), response.CalculateValue())
 
         self.sensor_model_part.GetNode(1).SetValue(KratosSI.SENSOR_STATUS, 1)
         self.sensor_model_part.GetNode(2).SetValue(KratosSI.SENSOR_STATUS, 1)
@@ -204,8 +199,8 @@ class TestSensorLocalizationResponse(UnitTest.TestCase):
         """
 
         self.__UpdateStatusDependents()
-        Kratos.Expression.CArrayExpressionIO.Read(cluster_size_exp, np.array([2, 2, 1, 1, 1, 1]) / 6.0)
-        self.assertAlmostEqual(np.sum((cluster_size_clamper.ProjectForward(cluster_size_exp).Evaluate()) ** 2 - (0.32 ** 2)), response.CalculateValue())
+        cluster_size_ta.data[:] = np.array([2, 2, 1, 1, 1, 1]) / 6.0
+        self.assertAlmostEqual(np.sum((cluster_size_clamper.ProjectForward(cluster_size_ta).data) ** 2 - (0.32 ** 2)), response.CalculateValue())
 
     def test_CalculateValue2(self):
         params = Kratos.Parameters("""{
@@ -273,10 +268,9 @@ class TestSensorLocalizationResponse(UnitTest.TestCase):
         self.__UpdateStatusDependents()
 
         ref_value = response.CalculateValue()
-        collective_exp = KratosOA.CollectiveExpression()
-        collective_exp.Add(Kratos.Expression.NodalExpression(self.sensor_model_part))
-        response.CalculateGradient({KratosSI.SENSOR_STATUS: collective_exp})
-        analytical_gradient = collective_exp.GetContainerExpressions()[0].Evaluate()
+        analytical_gradient = Kratos.TensorAdaptors.VariableTensorAdaptor(self.sensor_model_part.Nodes, Kratos.PRESSURE)
+        cta = Kratos.TensorAdaptors.DoubleCombinedTensorAdaptor([analytical_gradient], perform_collect_data_recursively=False, perform_store_data_recursively=False, copy=False)
+        response.CalculateGradient({KratosSI.SENSOR_STATUS: cta})
 
         delta = 1e-8
         for i, node in enumerate(self.sensor_model_part.Nodes):
@@ -284,7 +278,7 @@ class TestSensorLocalizationResponse(UnitTest.TestCase):
             self.__UpdateStatusDependents()
             fd_sensitivity = (response.CalculateValue() - ref_value) / delta
             node.SetValue(KratosSI.SENSOR_STATUS, node.GetValue(KratosSI.SENSOR_STATUS) - delta)
-            self.assertAlmostEqual(fd_sensitivity, analytical_gradient[i], 5)
+            self.assertAlmostEqual(fd_sensitivity, analytical_gradient.data[i], 5)
 
     def test_CalculateGradient2(self):
         params = Kratos.Parameters("""{
@@ -301,10 +295,9 @@ class TestSensorLocalizationResponse(UnitTest.TestCase):
         self.__UpdateStatusDependents()
 
         ref_value = response.CalculateValue()
-        collective_exp = KratosOA.CollectiveExpression()
-        collective_exp.Add(Kratos.Expression.NodalExpression(self.sensor_model_part))
-        response.CalculateGradient({KratosSI.SENSOR_STATUS: collective_exp})
-        analytical_gradient = collective_exp.GetContainerExpressions()[0].Evaluate()
+        analytical_gradient = Kratos.TensorAdaptors.VariableTensorAdaptor(self.sensor_model_part.Nodes, Kratos.PRESSURE)
+        cta = Kratos.TensorAdaptors.DoubleCombinedTensorAdaptor([analytical_gradient], perform_collect_data_recursively=False, perform_store_data_recursively=False, copy=False)
+        response.CalculateGradient({KratosSI.SENSOR_STATUS: cta})
 
         delta = 1e-8
         for i, node in enumerate(self.sensor_model_part.Nodes):
@@ -312,7 +305,7 @@ class TestSensorLocalizationResponse(UnitTest.TestCase):
             self.__UpdateStatusDependents()
             fd_sensitivity = (response.CalculateValue() - ref_value) / delta
             node.SetValue(KratosSI.SENSOR_STATUS, node.GetValue(KratosSI.SENSOR_STATUS) - delta)
-            self.assertAlmostEqual(fd_sensitivity, analytical_gradient[i], 5)
+            self.assertAlmostEqual(fd_sensitivity, analytical_gradient.data[i], 5)
 
     def __UpdateStatusDependents(self) -> None:
         for mask_status_controller in GetMaskStatusControllers(self.sensor_group_data, "mask_exp"):

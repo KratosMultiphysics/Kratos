@@ -4,9 +4,7 @@ import KratosMultiphysics as Kratos
 import KratosMultiphysics.OptimizationApplication as KratosOA
 from KratosMultiphysics.OptimizationApplication.responses.response_function import ResponseFunction
 from KratosMultiphysics.OptimizationApplication.responses.response_function import SupportedSensitivityFieldVariableTypes
-from KratosMultiphysics.OptimizationApplication.utilities.union_utilities import SupportedSensitivityFieldVariableTypes
 from KratosMultiphysics.OptimizationApplication.utilities.model_part_utilities import ModelPartOperation
-from KratosMultiphysics.OptimizationApplication.utilities.model_part_utilities import ModelPartUtilities
 
 def Factory(model: Kratos.Model, parameters: Kratos.Parameters, _) -> ResponseFunction:
     if not parameters.Has("name"):
@@ -60,20 +58,13 @@ class MassResponseFunction(ResponseFunction):
     def CalculateValue(self) -> float:
         return KratosOA.ResponseUtils.MassResponseUtils.CalculateValue(self.model_part)
 
-    def CalculateGradient(self, physical_variable_collective_expressions: 'dict[SupportedSensitivityFieldVariableTypes, KratosOA.CollectiveExpression]') -> None:
-        # first merge all the model parts
-        merged_model_part_map = ModelPartUtilities.GetMergedMap(physical_variable_collective_expressions, False)
-
-        # now get the intersected model parts
-        intersected_model_part_map = ModelPartUtilities.GetIntersectedMap(self.model_part, merged_model_part_map, False)
-
+    def CalculateGradient(self, physical_variable_combined_tensor_adaptor: 'dict[SupportedSensitivityFieldVariableTypes, Kratos.TensorAdaptors.DoubleCombinedTensorAdaptor]') -> None:
         # calculate the gradients
-        for physical_variable, merged_model_part in merged_model_part_map.items():
+        for physical_variable, cta in physical_variable_combined_tensor_adaptor.items():
             KratosOA.ResponseUtils.MassResponseUtils.CalculateGradient(
                 physical_variable,
-                merged_model_part,
-                intersected_model_part_map[physical_variable],
-                physical_variable_collective_expressions[physical_variable].GetContainerExpressions(),
+                self.model_part,
+                cta,
                 self.perturbation_size)
 
     def __str__(self) -> str:

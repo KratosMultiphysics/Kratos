@@ -15,7 +15,6 @@
 // Project includes
 #include "utilities/parallel_utilities.h"
 #include "utilities/reduction_utilities.h"
-#include "expression/literal_flat_expression.h"
 
 // Application includes
 #include "system_identification_application_variables.h"
@@ -49,17 +48,18 @@ double SensorInverseDistanceSummationResponseUtils::CalculateValue(
     KRATOS_CATCH("");
 }
 
-ContainerExpression<ModelPart::NodesContainerType> SensorInverseDistanceSummationResponseUtils::CalculateGradient(
+TensorAdaptor<double>::Pointer SensorInverseDistanceSummationResponseUtils::CalculateGradient(
     ModelPart &rModelPart,
     const double P,
     const DistanceMatrix &rDistanceMatrix)
 {
     KRATOS_TRY
 
-    auto p_expression = LiteralFlatExpression<double>::Create(rModelPart.NumberOfNodes(), {});
+    auto p_result = Kratos::make_shared<TensorAdaptor<double>>(rModelPart.pNodes(), Kratos::make_shared<NDData<double>>(DenseVector<unsigned int>(1, rModelPart.NumberOfNodes())));
+    auto result_data_view = p_result->ViewData();
 
-    IndexPartition<IndexType>(rModelPart.NumberOfNodes()).for_each([P, &p_expression, &rModelPart, &rDistanceMatrix](const auto k) {
-        double& r_value = *(p_expression->begin() + k);
+    IndexPartition<IndexType>(rModelPart.NumberOfNodes()).for_each([P, &result_data_view, &rModelPart, &rDistanceMatrix](const auto k) {
+        double& r_value = result_data_view[k];
         r_value = 0.0;
         const double coeff = std::pow((rModelPart.NodesBegin() + k)->GetValue(SENSOR_STATUS), P - 1) * P;
         for (IndexType i = 0; i < rModelPart.NumberOfNodes(); ++i) {
@@ -69,9 +69,7 @@ ContainerExpression<ModelPart::NodesContainerType> SensorInverseDistanceSummatio
         }
     });
 
-    ContainerExpression<ModelPart::NodesContainerType> result(rModelPart);
-    result.SetExpression(p_expression);
-    return result;
+    return p_result;
 
     KRATOS_CATCH("");
 }

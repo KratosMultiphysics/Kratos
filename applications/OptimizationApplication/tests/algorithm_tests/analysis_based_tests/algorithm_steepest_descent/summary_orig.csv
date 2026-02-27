@@ -3,6 +3,7 @@
 # Timestamp     : not_specified
 # -----------------------------------------------
 # --------------- Initial values ----------------
+# 	algorithm:
 # 	strain_energy:
 # 		initial_value: 2.045937642e-02
 # ------------ End of initial values ------------

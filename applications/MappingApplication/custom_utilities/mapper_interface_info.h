@@ -25,6 +25,7 @@
 
 namespace Kratos
 {
+
 ///@addtogroup MappingApplication
 ///@{
 
@@ -47,12 +48,15 @@ public:
     /// Pointer definition of MapperInterfaceInfo
     KRATOS_CLASS_POINTER_DEFINITION(MapperInterfaceInfo);
 
-    typedef std::size_t IndexType;
+    using IndexType = std::size_t;
 
-    typedef typename InterfaceObject::CoordinatesArrayType CoordinatesArrayType;
+    using CoordinatesArrayType = typename InterfaceObject::CoordinatesArrayType;
 
-    typedef InterfaceObject::NodeType NodeType;
-    typedef InterfaceObject::GeometryType GeometryType;
+    using NodeType = InterfaceObject::NodeType;
+    using GeometryType = InterfaceObject::GeometryType;
+
+    using MatrixType = Matrix;
+    using VectorType = Vector;
 
     ///@}
     ///@name  Enum's
@@ -115,7 +119,7 @@ public:
     virtual MapperInterfaceInfo::Pointer Create(const CoordinatesArrayType& rCoordinates,
                                                 const IndexType SourceLocalSystemIndex,
                                                 const IndexType SourceRank) const = 0;
-
+                                                
     // needed for serialization
     virtual MapperInterfaceInfo::Pointer Create() const = 0;
 
@@ -156,6 +160,8 @@ public:
     virtual void GetValue(std::vector<double>& rValue, const InfoType ValueType) const { KRATOS_ERROR << "Base class function called!" << std::endl; }
     virtual void GetValue(std::vector<bool>& rValue, const InfoType ValueType) const { KRATOS_ERROR << "Base class function called!" << std::endl; }
     virtual void GetValue(std::vector<GeometryType>& rValue, const InfoType ValueType) const { KRATOS_ERROR << "Base class function called!" << std::endl; }
+    virtual void GetValue(MatrixType& rotMatrixValue, VectorType& transVectorValue, VectorType& linearValue, VectorType& hermitianValue, VectorType& hermitanDerValue) const { KRATOS_ERROR << "Base class function called!" << std::endl; }
+
 
     ///@}
     ///@name Input and output
@@ -172,8 +178,6 @@ public:
 
     /// Print object's data.
     virtual void PrintData(std::ostream& rOStream) const {}
-
-    ///@}
 
 protected:
     ///@name Protected member Variables

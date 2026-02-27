@@ -11,17 +11,13 @@
 //
 
 // System includes
-#include <limits>
-#include <cmath>
 
 // External includes
 
 // Project includes
-#include "expression/literal_flat_expression.h"
+#include "utilities/data_type_traits.h"
 #include "utilities/parallel_utilities.h"
 #include "utilities/reduction_utilities.h"
-#include "utilities/atomic_utilities.h"
-#include "input_output/vtu_output.h"
 
 // Application includes
 #include "custom_utilities/smooth_clamper.h"
@@ -47,26 +43,29 @@ SensorLocalizationResponseUtils::SensorLocalizationResponseUtils(
     std::visit([&](const auto& pContainer) {
         const auto& r_container = *pContainer;
 
-        using container_type = std::decay_t<decltype(r_container)>;
+        using container_type = BareType<decltype(r_container)>;
 
         mDomainSizeRatio.resize(r_container.size());
         mClusterSizes.resize(r_container.size());
         mNeighbourData.resize(r_container.size());
 
         const double local_domain_size = IndexPartition<IndexType>(r_container.size()).for_each<SumReduction<double>>([&](const auto Index) {
-            if constexpr(std::is_same_v<container_type, ModelPart::NodesContainerType>) {
-                KRATOS_ERROR << "NodalContainers are not yet supported.";
-                return 0.0;
-            } else {
+            if constexpr(IsInList<container_type, ModelPart::ConditionsContainerType, ModelPart::ElementsContainerType>) {
                 const double domain_size = (r_container.begin() + Index)->GetGeometry().DomainSize();
                 mDomainSizeRatio[Index] = domain_size;
                 return domain_size;
+            } else {
+                KRATOS_ERROR << "TODO: Fix for other container types except condition and element are required.";
+                return 0.0;
             }
         });
-        const double total_domain_size = pSensorMaskKDTree->GetSensorMaskStatus()->pGetMaskModelPart()->GetCommunicator().GetDataCommunicator().SumAll(local_domain_size);
+
+        const double total_domain_size = pSensorMaskKDTree->GetSensorMaskStatus()->pGetSensorModelPart()->GetCommunicator().GetDataCommunicator().SumAll(local_domain_size);
+
         block_for_each(mDomainSizeRatio, [total_domain_size, AllowedDissimilarity](auto& rValue) {
             rValue /= (total_domain_size * AllowedDissimilarity);
         });
+
     }, mpSensorMaskStatusKDTree->GetSensorMaskStatus()->pGetMaskContainer());
 
     KRATOS_CATCH("");
@@ -76,9 +75,9 @@ double SensorLocalizationResponseUtils::CalculateValue()
 {
     KRATOS_TRY
 
-    SmoothClamper<ModelPart::NodesContainerType> similarity_clamper(0.0, mAllowedDissimilarity);
+    SmoothClamper similarity_clamper(0.0, mAllowedDissimilarity);
 
-    SmoothClamper<ModelPart::ElementsContainerType> cluster_size_clamper(mMinimumClusterSizeRatio, mAllowedDissimilarity);
+    SmoothClamper cluster_size_clamper(mMinimumClusterSizeRatio, mAllowedDissimilarity);
 
     // possible number of maximum clusters is the number of elements.
     const IndexType number_of_elements = mDomainSizeRatio.size();
@@ -89,6 +88,8 @@ double SensorLocalizationResponseUtils::CalculateValue()
     // TODO: this will calculate some repeated cluster sizes. Try to avoid them in future.
     return std::visit([&](const auto& pContainer) {
         const auto& r_container = *pContainer;
+
+        using container_type = BareType<decltype(r_container)>;
 
         return IndexPartition<IndexType>(number_of_elements).for_each<SumReduction<double>>([&](const auto iElement) {
             double& cluster_size = mClusterSizes[iElement];
@@ -107,7 +108,9 @@ double SensorLocalizationResponseUtils::CalculateValue()
                 cluster_size += mDomainSizeRatio[r_neighbour_index] * (mAllowedDissimilarity - similarity_clamper.ProjectForward(r_neighbour_squared_distance));
             }
 
-            (r_container.begin() + iElement)->SetValue(CLUSTER_SIZE, cluster_size);
+            if constexpr(IsInList<container_type, ModelPart::ConditionsContainerType, ModelPart::ElementsContainerType>) {
+                (r_container.begin() + iElement)->SetValue(CLUSTER_SIZE, cluster_size);
+            }
 
             return std::pow(cluster_size_clamper.ProjectForward(cluster_size), mP);
         }) - number_of_elements * std::pow(mMinimumClusterSizeRatio, mP);
@@ -117,7 +120,7 @@ double SensorLocalizationResponseUtils::CalculateValue()
     KRATOS_CATCH("");
 }
 
-ContainerExpression<ModelPart::NodesContainerType> SensorLocalizationResponseUtils::CalculateGradient() const
+TensorAdaptor<double>::Pointer SensorLocalizationResponseUtils::CalculateGradient() const
 {
     KRATOS_TRY
 
@@ -126,12 +129,12 @@ ContainerExpression<ModelPart::NodesContainerType> SensorLocalizationResponseUti
     const auto& r_mask_statuses_gradient = r_mask_status.GetMasks();
     const auto number_of_elements = r_mask_statuses.size1();
 
-    SmoothClamper<ModelPart::NodesContainerType> similarity_clamper(0.0, mAllowedDissimilarity);
+    SmoothClamper similarity_clamper(0.0, mAllowedDissimilarity);
 
-    SmoothClamper<ModelPart::ElementsContainerType> cluster_size_clamper(mMinimumClusterSizeRatio, mAllowedDissimilarity);
+    SmoothClamper cluster_size_clamper(mMinimumClusterSizeRatio, mAllowedDissimilarity);
 
-    auto p_expression = LiteralFlatExpression<double>::Create(r_mask_statuses.size2(), {});
-    auto& r_expression = *p_expression;
+    auto p_result = Kratos::make_shared<TensorAdaptor<double>>(r_mask_status.pGetSensorModelPart()->pNodes(), Kratos::make_shared<NDData<double>>(DenseVector<unsigned int>(1, r_mask_status.GetSensorModelPart().NumberOfNodes())));
+    auto result_data_view = p_result->ViewData();
 
     IndexPartition<IndexType>(r_mask_statuses.size2()).for_each([&](const auto iSensor) {
         double derivative = 0.0;
@@ -150,30 +153,26 @@ ContainerExpression<ModelPart::NodesContainerType> SensorLocalizationResponseUti
             derivative += mP * std::pow(cluster_size_clamper.ProjectForward(cluster_size), mP - 1.0) * cluster_size_clamper.CalculateForwardProjectionGradient(cluster_size) * cluster_size_derivative;
         }
 
-        *(r_expression.begin() + iSensor) = derivative;
+        result_data_view[iSensor] = derivative;
     });
 
-    ContainerExpression<ModelPart::NodesContainerType> result(*r_mask_status.pGetSensorModelPart());
-    result.SetExpression(p_expression);
-    return result;
+    return p_result;
 
     KRATOS_CATCH("");
 }
 
-ContainerExpression<ModelPart::ElementsContainerType> SensorLocalizationResponseUtils::GetClusterSizes() const
+TensorAdaptor<double>::Pointer SensorLocalizationResponseUtils::GetClusterSizes() const
 {
     KRATOS_TRY
 
-    auto p_expression = LiteralFlatExpression<double>::Create(mClusterSizes.size(), {});
-    auto& r_expression = *p_expression;
+    auto p_result = Kratos::make_shared<TensorAdaptor<double>>(mpSensorMaskStatusKDTree->GetSensorMaskStatus()->pGetSensorModelPart()->pNodes(), Kratos::make_shared<NDData<double>>(DenseVector<unsigned int>(1, mpSensorMaskStatusKDTree->GetSensorMaskStatus()->GetSensorModelPart().NumberOfNodes())));
+    auto result_data_view = p_result->ViewData();
 
     IndexPartition<IndexType>(mClusterSizes.size()).for_each([&](const auto Index) {
-        *(r_expression.begin() + Index) = mClusterSizes[Index];
+        result_data_view[Index] = mClusterSizes[Index];
     });
 
-    ContainerExpression<ModelPart::ElementsContainerType> result(*mpSensorMaskStatusKDTree->GetSensorMaskStatus()->pGetSensorModelPart());
-    result.SetExpression(p_expression);
-    return result;
+    return p_result;
 
     KRATOS_CATCH("");
 }

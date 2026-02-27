@@ -51,7 +51,7 @@ void ComputeLaplacianSimplexCondition<TDim,TNumNodes>::GetDofList(DofsVectorType
     }
 }
 
-// protected funcions
+// protected functions
 
 template <>
 void ComputeLaplacianSimplexCondition<2,2>::CalculateNormal(array_1d<double,3>& An)

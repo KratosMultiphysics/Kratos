@@ -14,18 +14,21 @@
 // System includes
 
 // External includes
+#include <pybind11/numpy.h>
 
 // Project includes
 #include "containers/data_value_container.h"
 #include "containers/variables_list_data_value_container.h"
 #include "containers/flags.h"
 #include "containers/variable.h"
+#include "containers/nd_data.h"
 #include "includes/define_python.h"
 #include "includes/kratos_flags.h"
 #include "includes/constitutive_law.h"
 #include "includes/convection_diffusion_settings.h"
 #include "includes/radiation_settings.h"
 #include "utilities/quaternion.h"
+#include "python/numpy_utils.h"
 
 namespace Kratos::Python
 {
@@ -80,6 +83,73 @@ template< class TBinderType, typename TContainerType, typename TVariableType > v
     // Data value container
     VariableIndexingUtility<TBinderType, TContainerType, TVariableType>(binder);
     binder.def("Erase", [](TContainerType& container, const TVariableType& rV){return container.Erase(rV);} );
+}
+
+template<class TDataType>
+void AddNDData(
+    pybind11::module& m,
+    const std::string& rName)
+{
+    py::class_<NDData<TDataType>, typename NDData<TDataType>::Pointer>(m, rName.c_str())
+        .def(py::init<const DenseVector<unsigned int>&>(), py::arg("shape"))
+        .def(py::init<const DenseVector<unsigned int>&, const TDataType>(), py::arg("shape"), py::arg("value"))
+        .def(py::init<const NDData<TDataType>&>(), py::arg("other"))
+        .def(py::init([](py::array& rArray, const bool Copy){
+            KRATOS_TRY
+
+            KRATOS_ERROR_IF_NOT(rArray.flags() & pybind11::detail::npy_api::constants::NPY_ARRAY_C_CONTIGUOUS_)
+                << "Only supports C-style (row-major) arrays from numpy.";
+
+            DenseVector<unsigned int> shape(rArray.ndim());
+            std::copy(rArray.shape(), rArray.shape() + rArray.ndim(), shape.data().begin());
+
+            if (!Copy) {
+                KRATOS_ERROR_IF_NOT(pybind11::isinstance<pybind11::array_t<TDataType>>(rArray))
+                    << "The numpy array needs to be of the same type as internal data to use copy = false [ passed numpy array's dtype = "
+                    << rArray.dtype() << " ].";
+                auto casted_array = rArray.cast<pybind11::array_t<TDataType, pybind11::array::c_style>>();
+                return Kratos::make_shared<NDData<TDataType>>(casted_array.mutable_data(), shape, Copy);
+            } else {
+                auto p_dda = Kratos::make_shared<NDData<TDataType>>(shape);
+                if (!AssignData<
+                        TDataType,
+                        bool,
+                        std::uint8_t,
+                        std::uint16_t,
+                        std::uint32_t,
+                        std::uint64_t,
+                        std::int8_t,
+                        std::int16_t,
+                        std::int32_t,
+                        std::int64_t,
+                        float,
+                        double,
+                        long double>(*p_dda, rArray))
+                {
+                    KRATOS_ERROR
+                        << "NDData cannot be assigned an numpy array with \""
+                        << rArray.dtype() << "\". They can be only set with numpy arrays having following dtypes:"
+                        << "\n\t numpy.bool"
+                        << "\n\t numpy.uint8"
+                        << "\n\t numpy.uint16"
+                        << "\n\t numpy.uint32"
+                        << "\n\t numpy.uint64"
+                        << "\n\t numpy.int8"
+                        << "\n\t numpy.int16"
+                        << "\n\t numpy.int32"
+                        << "\n\t numpy.int64"
+                        << "\n\t numpy.float32"
+                        << "\n\t numpy.float64"
+                        << "\n\t numpy.float128";
+                }
+                return p_dda;
+            }
+
+            KRATOS_CATCH("")
+        }), py::arg("numpy_array").noconvert(), py::arg("copy") = true)
+        .def("to_numpy", &GetPybindArray<TDataType>)
+        .def("__str__", PrintObject<NDData<TDataType>>)
+        ;
 }
 
 void  AddContainersToPython(pybind11::module& m)
@@ -674,5 +744,11 @@ void  AddContainersToPython(pybind11::module& m)
     ;
     KRATOS_REGISTER_IN_PYTHON_VARIABLE(m,CONVECTION_DIFFUSION_SETTINGS)
     KRATOS_REGISTER_IN_PYTHON_VARIABLE(m,RADIATION_SETTINGS)
+
+    AddNDData<unsigned char>(m, "UIntNDData");
+    AddNDData<bool>(m, "BoolNDData");
+    AddNDData<int>(m, "IntNDData");
+    AddNDData<double>(m, "DoubleNDData");
+
 }
 } // namespace Kratos::Python.

@@ -1,6 +1,6 @@
 from abc import ABC, abstractmethod
+import KratosMultiphysics as Kratos
 from KratosMultiphysics.OptimizationApplication.utilities.union_utilities import SupportedSensitivityFieldVariableTypes
-from KratosMultiphysics.OptimizationApplication.utilities.union_utilities import ContainerExpressionTypes
 
 class Control(ABC):
     """Base abstract control class.
@@ -64,67 +64,56 @@ class Control(ABC):
         pass
 
     @abstractmethod
-    def GetEmptyField(self) -> ContainerExpressionTypes:
+    def GetEmptyField(self) -> Kratos.TensorAdaptors.DoubleTensorAdaptor:
         """Returns a new empty data field holder with correct dimensionality information.
 
         This returns a new empty data field holder to give information about on which model part's container
-        this model part is acting on. This has O(1) complexity, hence has the least cost because it does not read
-        any data from respective model part's container.
-
-        Dimensionality information is provided by calling a ContainerExpression::SetData(value). This creates a single
-        memory allocation for whole container with the dimensions of the variable. This operation is cheap in memory and
-        consumes least time.
-
-        Eg:
-            1. If the control field is a scalar, then container_expression.SetData(0.0)
-            2. If the control field is a array3, then container_expression.SetData(Kratos.Array3(0.0))
+        this model part is acting on. It does not read any data from respective model part's container.
 
         Returns:
-            ContainerExpressionTypes: Returns a new empty ContainerExpression corresponding to control's model part's respective container.
+            Kratos.TensorAdaptors.DoubleTensorAdaptor: Returns a new empty @ref Kratos.TensorAdaptor corresponding to control's model part's respective container.
         """
         pass
 
     @abstractmethod
-    def GetControlField(self) -> ContainerExpressionTypes:
+    def GetControlField(self) -> Kratos.TensorAdaptors.DoubleTensorAdaptor:
         """Returns the current control field of the control.
 
         This method returns the control field of the current design.
 
         Returns:
-            ContainerExpressionTypes: Current designs control field.
+            Kratos.TensorAdaptors.DoubleTensorAdaptor: Current designs control field.
         """
         pass
 
     @abstractmethod
-    def MapGradient(self, physical_gradient_variable_container_expression_map: 'dict[SupportedSensitivityFieldVariableTypes, ContainerExpressionTypes]') -> ContainerExpressionTypes:
+    def MapGradient(self, physical_gradient_variable_tensor_adaptor_map: 'dict[SupportedSensitivityFieldVariableTypes, Kratos.TensorAdaptors.DoubleTensorAdaptor]') -> Kratos.TensorAdaptors.DoubleTensorAdaptor:
         """Maps physical space gradients to the control space.
 
         This method is used to map the given physical space gradients to the control space. The input should be as in the following example:
-            physical_gradient_variable_container_expression_map = {
-                Kratos.YOUNG_MODULUS: Kratos.ContainerExpressions.NodalNonHistoricalContainer,
-                Kratos.DENSITY      : Kratos.ContainerExpressions.ElementNonHistoricalContainer,
-                Kratos.SHAPE        : Kratos.ContainerExpressions.ElementNonHistoricalContainer
+            physical_gradient_variable_tensor_adaptor_map = {
+                Kratos.YOUNG_MODULUS: Kratos.DoubleTensorAdaptor,
+                Kratos.DENSITY      : Kratos.DoubleTensorAdaptor,
+                Kratos.SHAPE        : Kratos.DoubleTensorAdaptor
             }
 
-        All the gradients w.r.t. @see GetPhysicalKratosVariables() variables will be given in @ref physical_gradient_variable_container_expression_map.
-        If the response does not depend on some of them or all, then container expressions with ContainerExpression::SetDataToZero() performed will be passed.
-        [ContainerExpression::SetDataToZero() will make the container expression to zero, but will only allocate one double value for the
-        whole container, hence it is cheap in memory and execution.]
+        All the gradients w.r.t. @see GetPhysicalKratosVariables() variables will be given in @ref physical_gradient_variable_tensor_adaptor_map.
+        If the response does not depend on some of them or all, then @ref Kratos.TensorAdaptor with correctly sized zero tensors will be passed.
 
         Args:
-            physical_gradient_variable_container_expression_map (dict[SupportedSensitivityFieldVariableTypes, ContainerExpressionTypes]): Map of physical space variable and ContainerExpression with sensitivities.
+            physical_gradient_variable_tensor_adaptor_map (dict[SupportedSensitivityFieldVariableTypes, Kratos.TensorAdaptors.DoubleTensorAdaptor]): Map of physical space variable and @ref Kratos::TensorAdaptor with sensitivities.
 
         Returns:
-            ContainerExpressionTypes: Gradients mapped in to control space.
+            Kratos.TensorAdaptors.DoubleTensorAdaptor: Gradients mapped in to control space.
         """
         pass
 
     @abstractmethod
-    def Update(self, control_field: ContainerExpressionTypes) -> bool:
+    def Update(self, control_field: Kratos.TensorAdaptors.DoubleTensorAdaptor) -> bool:
         """Modifies the current control with the given control field.
 
         Args:
-            control_field (ContainerExpressionTypes): The control field in control space.
+            control_field (Kratos.TensorAdaptors.DoubleTensorAdaptor): The control field in control space.
 
         Returns:
             bool: True if the control field was applied to obtain a new design, otherwise False

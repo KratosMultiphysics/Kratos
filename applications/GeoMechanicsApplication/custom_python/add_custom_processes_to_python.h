@@ -16,21 +16,12 @@
 
 // System includes
 #include <pybind11/pybind11.h>
-
-// External includes
-
 // Project includes
 #include "includes/define_python.h"
 
-namespace Kratos
+namespace Kratos::Python
 {
-
-namespace Python
-{
-
 void AddCustomProcessesToPython(pybind11::module& m);
-
-} // namespace Python.
-} // namespace Kratos.
+} // namespace Kratos::Python
 
 #endif // KRATOS_ADD_CUSTOM_PROCESSES_TO_PYTHON_H_INCLUDED  defined

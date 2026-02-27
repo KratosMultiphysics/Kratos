@@ -1,11 +1,9 @@
 from typing import Optional
 
 import KratosMultiphysics as Kratos
-import KratosMultiphysics.OptimizationApplication as KratosOA
 import KratosMultiphysics.SystemIdentificationApplication as KratosSI
 from KratosMultiphysics.OptimizationApplication.responses.response_function import ResponseFunction
 from KratosMultiphysics.OptimizationApplication.responses.response_function import SupportedSensitivityFieldVariableTypes
-from KratosMultiphysics.OptimizationApplication.utilities.union_utilities import SupportedSensitivityFieldVariableTypes
 from KratosMultiphysics.OptimizationApplication.utilities.model_part_utilities import ModelPartOperation
 from KratosMultiphysics.OptimizationApplication.utilities.optimization_problem import OptimizationProblem
 from KratosMultiphysics.OptimizationApplication.utilities.component_data_view import ComponentDataView
@@ -47,8 +45,8 @@ class SensorInverseDistanceSummationResponse(ResponseFunction):
         sensor_group_data = ComponentDataView(self.sensor_group_name, self.optimization_problem)
         if not sensor_group_data.GetUnBufferedData().HasValue("distance_matrix"):
             self.distance_matrix = KratosSI.DistanceMatrix()
-            nodal_positions = Kratos.Expression.NodalExpression(self.model_part)
-            Kratos.Expression.NodalPositionExpressionIO.Read(nodal_positions, Kratos.Configuration.Current)
+            nodal_positions = Kratos.TensorAdaptors.NodePositionTensorAdaptor(self.model_part.Nodes, Kratos.Configuration.Current)
+            nodal_positions.CollectData()
             self.distance_matrix.Update(nodal_positions)
             sensor_group_data.GetUnBufferedData().SetValue("distance_matrix", self.distance_matrix)
         else:
@@ -68,13 +66,20 @@ class SensorInverseDistanceSummationResponse(ResponseFunction):
     def CalculateValue(self) -> float:
         return KratosSI.Responses.SensorInverseDistanceSummationResponseUtils.CalculateValue(self.model_part, self.p_coefficient, self.distance_matrix)
 
-    def CalculateGradient(self, physical_variable_collective_expressions: 'dict[SupportedSensitivityFieldVariableTypes, KratosOA.CollectiveExpression]') -> None:
+    def CalculateGradient(self, physical_variable_combined_tensor_adaptor: 'dict[SupportedSensitivityFieldVariableTypes, Kratos.TensorAdaptors.DoubleCombinedTensorAdaptor]') -> None:
         # make everything zeros
-        for physical_variable, collective_expression in physical_variable_collective_expressions.items():
-            for container_expression in collective_expression.GetContainerExpressions():
-                Kratos.Expression.LiteralExpressionIO.SetDataToZero(container_expression, physical_variable)
+        for physical_variable, combined_ta in physical_variable_combined_tensor_adaptor.items():
+            if physical_variable != KratosSI.SENSOR_STATUS:
+                raise RuntimeError(f"Unsupported variable = {physical_variable.Name()}.")
 
-        physical_variable_collective_expressions[KratosSI.SENSOR_STATUS].GetContainerExpressions()[0].SetExpression(KratosSI.Responses.SensorInverseDistanceSummationResponseUtils.CalculateGradient(self.model_part, self.p_coefficient, self.distance_matrix).GetExpression())
+            if len(combined_ta.GetTensorAdaptors()) != 1:
+                raise RuntimeError(f"Currently only supports sensitivities for one model part.")
+
+            if combined_ta.GetTensorAdaptors()[0].GetContainer() != self.model_part.Nodes:
+                raise RuntimeError("Tensor adaptor container and mask status container mismatch.")
+
+            combined_ta.GetTensorAdaptors()[0].data[:] = KratosSI.Responses.SensorInverseDistanceSummationResponseUtils.CalculateGradient(self.model_part, self.p_coefficient, self.distance_matrix).data
+            Kratos.TensorAdaptors.DoubleCombinedTensorAdaptor(combined_ta, perform_collect_data_recursively=False, copy=False).CollectData()
 
     def __str__(self) -> str:
         return f"Response [type = {self.__class__.__name__}, name = {self.GetName()}, model part name = {self.model_part.FullName()}]"

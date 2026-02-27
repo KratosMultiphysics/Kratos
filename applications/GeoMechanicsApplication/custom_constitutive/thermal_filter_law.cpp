@@ -23,4 +23,13 @@ Matrix GeoThermalFilterLaw::CalculateThermalDispersionMatrix(const Properties& r
     return ScalarMatrix(1, 1, rProp[THERMAL_CONDUCTIVITY_WATER]);
 }
 
+void GeoThermalFilterLaw::save(Serializer&) const
+{
+    // Nothing to serialize, since there are no data members, and its base class is abstract
+}
+
+void GeoThermalFilterLaw::load(Serializer&)
+{
+    // Nothing to serialize, since there are no data members, and its base class is abstract
+}
 } // Namespace Kratos

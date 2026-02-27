@@ -24,6 +24,7 @@
 
 #include "integration/integration_info.h"
 #include "spatial_containers/bins_dynamic.h"
+#include "includes/global_pointer_variables.h"
 
 namespace Kratos
 {
@@ -64,6 +65,7 @@ public:
     using DistanceIterator = std::vector<double>::iterator;
     using DynamicBins = BinsDynamic<3, PointType, PointVector, PointTypePointer, PointIterator, DistanceIterator>;
     using PointerType = DynamicBins::PointerType;
+    using NodePointerVector = GlobalPointersVector<NodeType>;
 
     ///@}
     ///@name Life Cycle
@@ -155,6 +157,24 @@ private:
         const Parameters rParameters,
         std::string GeometryType) const;
 
+    
+    /// Creates list of rQuadraturePointGeometryList for Sbm 
+    /// using the condition name of the associated projection on the skin boundary layer
+    void CreateQuadraturePointGeometriesSbmByProjectionLayer(
+        GeometriesArrayType& rQuadraturePointGeometryList,
+        ModelPart& rModelPart,
+        const Parameters rParameters,
+        std::string GeometryType) const;
+
+    /// Creates list of rQuadraturePointGeometryList for Sbm 
+    /// using a fixed condition name for the whole surrogate boundary loop
+    void CreateQuadraturePointGeometriesSbmByFixedConditionName(
+        GeometriesArrayType& rQuadraturePointGeometryList,
+        ModelPart& rModelPart,
+        const Parameters rParameters,
+        std::string GeometryType,
+        std::string ConditionName) const;
+
     ///@}
     ///@name CAD functionalities
     ///@{
@@ -199,6 +219,19 @@ private:
         SizeType& rIdCounter,
         PropertiesPointerType pProperties,
         bool IsInner,
+        const Vector KnotSpanSizes) const;
+    
+    /// Creates conditions from geometries (from skin projection)
+    void CreateConditions(
+        typename GeometriesArrayType::ptr_iterator rGeometriesBegin,
+        typename GeometriesArrayType::ptr_iterator rGeometriesEnd,
+        ModelPart& rModelPart,
+        ModelPart& rSkinModelPart,
+        std::vector<int>& rListIdClosestCondition,
+        std::vector<int>& rListIdSecondClosestCondition,
+        SizeType& rIdCounter,
+        PropertiesPointerType pProperties,
+        const bool IsInner,
         const Vector KnotSpanSizes) const;
 
     ///@}

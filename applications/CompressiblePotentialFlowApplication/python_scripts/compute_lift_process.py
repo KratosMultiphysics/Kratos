@@ -46,8 +46,9 @@ class ComputeLiftProcess(KratosMultiphysics.Process):
         self.mean_aerodynamic_chord = settings["mean_aerodynamic_chord"].GetDouble()
         self.moment_reference_point = settings["moment_reference_point"].GetVector()
         self.is_infinite_wing = settings["is_infinite_wing"].GetBool()
+        self.epsilon = 1e-12
 
-        if not self.reference_area > 0.0 or not self.mean_aerodynamic_chord > 0.0:
+        if not self.reference_area > self.epsilon or not self.mean_aerodynamic_chord > self.epsilon:
             raise Exception('The reference area and mean aerodynamic chord should be larger than 0.')
 
     def ExecuteFinalizeSolutionStep(self):
@@ -68,16 +69,9 @@ class ComputeLiftProcess(KratosMultiphysics.Process):
         self.free_stream_velocity_norm = free_stream_velocity.norm_2()
         self.wake_direction = free_stream_velocity / self.free_stream_velocity_norm
 
-        self.wake_normal = KratosMultiphysics.Vector(3)
-        if(self.fluid_model_part.ProcessInfo[KratosMultiphysics.DOMAIN_SIZE] == 2):
-            self.wake_normal[0] = -self.wake_direction[1]
-            self.wake_normal[1] = self.wake_direction[0]
-            self.wake_normal[2] = 0.0
-        elif(self.fluid_model_part.ProcessInfo[KratosMultiphysics.DOMAIN_SIZE] == 3):
-            # TODO: Read wake normal from wake process
-            self.wake_normal[0] = 0.0
-            self.wake_normal[1] = 0.0
-            self.wake_normal[2] = 1.0
+        self.wake_normal = self.fluid_model_part.ProcessInfo[CPFApp.WAKE_NORMAL]
+        if self.wake_normal.norm_2() < self.epsilon:
+            raise Exception('ComputeLiftProcess: The norm of the wake should be larger than 0. Check your wake process.')
 
         self.span_direction = KratosMultiphysics.Vector(3)
         self.span_direction = _CrossProduct(self.wake_normal, self.wake_direction)
@@ -129,7 +123,7 @@ class ComputeLiftProcess(KratosMultiphysics.Process):
 
         node_velocity_potential_te = self.te.GetSolutionStepValue(CPFApp.VELOCITY_POTENTIAL)
         node_auxiliary_velocity_potential_te = self.te.GetSolutionStepValue(CPFApp.AUXILIARY_VELOCITY_POTENTIAL)
-        if(self.te.GetValue(CPFApp.WAKE_DISTANCE) > 0.0):
+        if(self.te.GetValue(CPFApp.WAKE_DISTANCE) > self.epsilon):
             potential_jump_phi_minus_psi_te = node_velocity_potential_te - node_auxiliary_velocity_potential_te
         else:
             potential_jump_phi_minus_psi_te = node_auxiliary_velocity_potential_te - node_velocity_potential_te
@@ -180,7 +174,7 @@ class ComputeLiftProcess(KratosMultiphysics.Process):
         for cond in self.far_field_model_part.Conditions:
             surface_normal = cond.GetGeometry().Normal()
             norm = surface_normal.norm_2()
-            if abs(norm) < 1e-9:
+            if norm < self.epsilon:
                 raise Exception('The norm of the condition ', cond.Id , ' should be larger than 0.')
             surface_normal_normalized = surface_normal/norm
             span_projection = _DotProduct(surface_normal_normalized, self.span_direction)

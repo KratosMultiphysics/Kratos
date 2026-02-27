@@ -1,6 +1,7 @@
 import os
 
 import KratosMultiphysics.KratosUnittest as KratosUnittest
+from KratosMultiphysics.GeoMechanicsApplication.gid_output_file_reader import GiDOutputFileReader
 import KratosMultiphysics.GeoMechanicsApplication.run_multiple_stages as run_multiple_stages
 import test_helper
 
@@ -32,7 +33,7 @@ class KratosGeoMechanicsDirichletReleaseTests(KratosUnittest.TestCase):
         ]
         output_data = []
 
-        reader = test_helper.GiDOutputFileReader()
+        reader = GiDOutputFileReader()
         for output_file_name in output_file_names:
             output_data.append(reader.read_output_from(output_file_name))
 
@@ -62,7 +63,7 @@ class KratosGeoMechanicsDirichletReleaseTests(KratosUnittest.TestCase):
         time,
     ):
         # displacement of the top node
-        displacement_top_node = test_helper.GiDOutputFileReader.nodal_values_at_time(
+        displacement_top_node = GiDOutputFileReader.nodal_values_at_time(
             "DISPLACEMENT", time, output_data, [3]
         )[0]
         self.assertAlmostEqual(
@@ -71,7 +72,7 @@ class KratosGeoMechanicsDirichletReleaseTests(KratosUnittest.TestCase):
 
         # integration point check in element 1, integration point 4 ( uniform stress and strain so an arbitrary choice )
         green_lagrange_strains_2_4 = (
-            test_helper.GiDOutputFileReader.element_integration_point_values_at_time(
+            GiDOutputFileReader.element_integration_point_values_at_time(
                 "GREEN_LAGRANGE_STRAIN_TENSOR", time, output_data, [1], [3]
             )[0][0]
         )
@@ -80,7 +81,7 @@ class KratosGeoMechanicsDirichletReleaseTests(KratosUnittest.TestCase):
             expected_stage_displacement_and_strain, green_lagrange_strains_2_4_yy, 2
         )
         cauchy_stresses_2_4 = (
-            test_helper.GiDOutputFileReader.element_integration_point_values_at_time(
+            GiDOutputFileReader.element_integration_point_values_at_time(
                 "CAUCHY_STRESS_TENSOR", time, output_data, [1], [3]
             )[0][0]
         )

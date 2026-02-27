@@ -1,0 +1,19 @@
+{
+    "properties": [{
+      "model_part_name":         "PorousDomain.Interfaces",
+      "properties_id":           1,
+      "Material": {
+          "constitutive_law": {
+              "name"             :  "SmallStrainUMAT3DSurfaceInterfaceLaw"
+          },
+          "Variables": {
+              "UDSM_NAME"                :  "../../linear_elastic_with_vertical_tens_cutoff_3d_interface.dll",
+              "IS_FORTRAN_UDSM"          :  false,
+              "UMAT_PARAMETERS"          :  [30000000.0,
+                                             0.0,
+                                             1e10],
+              "STATE_VARIABLES"         :  [0.0]
+         }
+      }
+   }]
+}

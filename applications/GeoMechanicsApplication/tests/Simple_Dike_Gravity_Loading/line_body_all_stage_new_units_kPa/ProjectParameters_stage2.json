@@ -12,8 +12,7 @@
         "model_part_name":                    "PorousDomain",
         "domain_size":                        2,
         "model_import_settings":              {
-            "input_type":       "mdpa",
-            "input_filename":   "line_body_all_stage_new_units_kPa_stage2"
+            "input_type":       "use_input_model_part"
         },
         "material_import_settings":              {
             "materials_filename":       "MaterialParameters_stage2.json"
@@ -27,7 +26,6 @@
         "compute_reactions":                  false,
         "move_mesh_flag":                     false,
         "reform_dofs_at_each_step":           false,
-        "nodal_smoothing":                    false,
         "block_builder":                      false,
         "reset_displacements":                true,
         "solution_type":                      "Quasi-Static",
@@ -63,7 +61,6 @@
             "solver_type":     "LinearSolversApplication.sparse_lu"
         },
         "problem_domain_sub_model_part_list": ["sand","dike"],
-        "processes_sub_model_part_list":      ["Solid_Displacement-auto-1","Solid_Displacement-auto-2","Excavation-auto-1","Body_sand","Body_Dike"],
         "body_domain_sub_model_part_list":    ["sand","dike"]
     },
     "output_processes": {

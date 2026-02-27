@@ -12,12 +12,11 @@
 // System includes
 #include <cmath>
 #include <limits>
+#include <ranges>
 
 // External includes
 
 // Project includes
-#include "expression/literal_expression.h"
-#include "expression/literal_flat_expression.h"
 
 // Application includes
 #include "utilities/parallel_utilities.h"
@@ -28,95 +27,73 @@
 
 namespace Kratos {
 
-template<class TContainerType>
-BoltzmannOperator<TContainerType>::BoltzmannOperator(
-    const double Beta,
-    const double ScalingFactor)
-    : mBeta(Beta),
-      mScalingFactor(ScalingFactor)
+BoltzmannOperator::BoltzmannOperator(const double Beta)
+    : mBeta(Beta)
 {
 }
 
-template<class TContainerType>
-double BoltzmannOperator<TContainerType>::CalculateValue() const
+double BoltzmannOperator::CalculateValue() const
 {
     if (mDenominator > std::numeric_limits<double>::epsilon()) {
-        return mScalingFactor * mNumerator / mDenominator;
+        return mNumerator / mDenominator;
     } else {
         return 0.0;
     }
 }
 
-template<class TContainerType>
-typename ContainerExpression<TContainerType>::Pointer BoltzmannOperator<TContainerType>::CalculateGradient() const
+TensorAdaptor<double>::Pointer BoltzmannOperator::CalculateGradient() const
 {
     KRATOS_TRY
 
-    const auto& r_expression = mpContainerExpression->GetExpression();
-    const IndexType number_of_elements = r_expression.NumberOfEntities();
-    const IndexType number_of_components =  r_expression.GetItemComponentCount();
-
-    auto result = mpContainerExpression->Clone();
+    auto p_result = mpTensorAdaptor->Clone();
+    auto output_data_view = p_result->ViewData();
+    const auto number_of_entities = p_result->Size();
 
     if (mDenominator > std::numeric_limits<double>::epsilon()) {
-        auto p_result_exp = LiteralFlatExpression<double>::Create(number_of_elements, r_expression.GetItemShape());
+        const double denominator_square = mDenominator * mDenominator;
 
-        IndexPartition<IndexType>(number_of_elements).for_each([&](const auto Index) {
-            const IndexType entity_data_begin_index = (Index * number_of_components);
+        IndexPartition<IndexType>(number_of_entities).for_each([this, &output_data_view, denominator_square](const auto Index) {
+            const double value = output_data_view[Index];
 
-            for (IndexType i_comp = 0; i_comp < number_of_components; ++i_comp) {
-                const double value = r_expression.Evaluate(Index, entity_data_begin_index, i_comp) / mScalingFactor;
+            const double exp_beta_x_k = std::exp(this->mBeta * value - this->mExtremeValue);
+            const double numerator_gradient = exp_beta_x_k * (1 + this->mBeta * value);
+            const double denominator_gradient = this->mBeta * exp_beta_x_k;
 
-                const double exp_beta_x_k = std::exp(mBeta * value);
-                const double numerator_gradient = exp_beta_x_k * (1 + mBeta * value);
-                const double denominator_gradient = mBeta * exp_beta_x_k;
-
-                *(p_result_exp->begin() + entity_data_begin_index + i_comp) =
-                    (mDenominator * numerator_gradient - mNumerator * denominator_gradient) / (mDenominator * mDenominator);
-            }
+            output_data_view[Index] = (this->mDenominator * numerator_gradient - this->mNumerator * denominator_gradient) / denominator_square;
 
         });
-        result->SetExpression(p_result_exp);
-
     } else {
-        result->SetExpression(LiteralExpression<double>::Create(0.0, number_of_elements));
+        std::fill(output_data_view.begin(), output_data_view.end(), 0.0);
     }
 
-    return result;
+    return p_result;
 
     KRATOS_CATCH("");
 }
 
-template<class TContainerType>
-void BoltzmannOperator<TContainerType>::Update(typename ContainerExpression<TContainerType>::Pointer pContainerExpression)
+void BoltzmannOperator::Update(const TensorAdaptor<double>& rTensorAdaptor)
 {
     KRATOS_TRY
 
-    mpContainerExpression = pContainerExpression->Clone();
+    KRATOS_ERROR_IF_NOT(rTensorAdaptor.Shape().size() == 1)
+        << "Boltzmann operator can only be used with scalar tensor adaptors [ tensor adaptor = "
+        << rTensorAdaptor << " ].\n";
 
-    const auto& r_expression = mpContainerExpression->GetExpression();
-    const IndexType number_of_elements = r_expression.NumberOfEntities();
-    const IndexType number_of_components =  r_expression.GetItemComponentCount();
+    const auto number_of_entities = rTensorAdaptor.Size();
+    const auto data_view = rTensorAdaptor.ViewData();
 
-    std::tie(mNumerator, mDenominator) = IndexPartition<IndexType>(number_of_elements).for_each<CombinedReduction<SumReduction<double>, SumReduction<double>>>([&](const auto Index) {
-        const IndexType entity_data_begin_index = (Index * number_of_components);
+    // this is identified to avoid std::exp giving inf for intermediate values of the summation.
+    mExtremeValue = (mBeta > 0 ? std::ranges::max(data_view) : std::ranges::min(data_view)) * this->mBeta;
 
-        double numerator{0.0}, denominator{0.0};
-        for (IndexType i_comp = 0; i_comp < number_of_components; ++i_comp) {
-            const double value = r_expression.Evaluate(Index, entity_data_begin_index, i_comp) / mScalingFactor;
-            numerator += value * std::exp(mBeta * value);
-            denominator += std::exp(mBeta * value);
-        }
-
-        return std::make_tuple(numerator, denominator);
+    std::tie(mNumerator, mDenominator) = IndexPartition<IndexType>(number_of_entities).for_each<CombinedReduction<SumReduction<double>, SumReduction<double>>>([this, &data_view](const auto Index) {
+        const auto value = data_view[Index];
+        const double temp = std::exp(this->mBeta * value - this->mExtremeValue);
+        return std::make_tuple(value * temp, temp);
     });
+
+    mpTensorAdaptor = rTensorAdaptor.Clone();
 
     KRATOS_CATCH("");
 }
-
-// template instantiations
-template class BoltzmannOperator<ModelPart::NodesContainerType>;
-template class BoltzmannOperator<ModelPart::ConditionsContainerType>;
-template class BoltzmannOperator<ModelPart::ElementsContainerType>;
 
 } // namespace Kratos

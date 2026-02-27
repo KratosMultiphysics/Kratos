@@ -9,7 +9,7 @@ from KratosMultiphysics.OptimizationApplication.processes.optimization_problem_a
 from KratosMultiphysics.OptimizationApplication.utilities.component_data_view import ComponentDataView
 from KratosMultiphysics.OptimizationApplication.utilities.buffered_dict import BufferedDict
 from KratosMultiphysics.OptimizationApplication.utilities.optimization_problem import OptimizationProblem
-from KratosMultiphysics.OptimizationApplication.utilities.union_utilities import ContainerExpressionTypes, SupportedSensitivityFieldVariableTypes
+from KratosMultiphysics.OptimizationApplication.utilities.union_utilities import SupportedSensitivityFieldVariableTypes
 from KratosMultiphysics.compare_two_files_check_process import CompareTwoFilesCheckProcess
 
 class TestOptimizationProblemAsciiOutputProcess(kratos_unittest.TestCase):
@@ -18,7 +18,7 @@ class TestOptimizationProblemAsciiOutputProcess(kratos_unittest.TestCase):
             super().__init__(response_name)
         def CalculateValue(self) -> float:
             return 0.0
-        def CalculateGradient(self, physical_variable_collective_expressions: 'dict[SupportedSensitivityFieldVariableTypes, KratosOA.CollectiveExpression]') -> None:
+        def CalculateGradient(self, physical_variable_combined_tensor_adaptor: 'dict[SupportedSensitivityFieldVariableTypes, Kratos.TensorAdaptors.DoubleCombinedTensorAdaptor]') -> None:
             pass
         def Check(self) -> None:
             pass
@@ -40,15 +40,15 @@ class TestOptimizationProblemAsciiOutputProcess(kratos_unittest.TestCase):
             pass
         def Finalize(self) -> None:
             pass
-        def GetControlField(self) -> ContainerExpressionTypes:
+        def GetControlField(self) -> Kratos.TensorAdaptors.DoubleTensorAdaptor:
             return None
-        def GetEmptyField(self) -> ContainerExpressionTypes:
+        def GetEmptyField(self) -> Kratos.TensorAdaptors.DoubleTensorAdaptor:
             return None
         def GetPhysicalKratosVariables(self) -> 'list[SupportedSensitivityFieldVariableTypes]':
             return []
-        def MapGradient(self, physical_gradient_variable_container_expression_map: 'dict[SupportedSensitivityFieldVariableTypes, ContainerExpressionTypes]') -> ContainerExpressionTypes:
+        def MapGradient(self, physical_gradient_variable_tensor_adaptor_map: 'dict[SupportedSensitivityFieldVariableTypes, Kratos.TensorAdaptors.DoubleTensorAdaptor]') -> Kratos.TensorAdaptors.DoubleTensorAdaptor:
             return None
-        def Update(self, control_field: ContainerExpressionTypes) -> bool:
+        def Update(self, control_field: Kratos.TensorAdaptors.DoubleTensorAdaptor) -> bool:
             return True
 
     class DummyExecutionPolicy(ExecutionPolicy):

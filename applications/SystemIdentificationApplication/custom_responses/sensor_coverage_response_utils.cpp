@@ -17,9 +17,9 @@
 // External includes
 
 // Project includes
+#include "utilities/data_type_traits.h"
 #include "utilities/parallel_utilities.h"
 #include "utilities/reduction_utilities.h"
-#include "expression/literal_flat_expression.h"
 
 // Application includes
 #include "custom_utilities/smooth_clamper.h"
@@ -35,28 +35,26 @@ double SensorCoverageResponseUtils::CalculateValue(const SensorMaskStatus& rSens
 
     const auto& r_mask_statuses = rSensorMaskStatus.GetMaskStatuses();
 
-    SmoothClamper<ModelPart::NodesContainerType> clamper(0.0, 1.0);
+    SmoothClamper clamper(0.0, 1.0);
 
     std::vector<double> local_values(2, 0.0);
     std::tie(local_values[0], local_values[1]) = std::visit([&r_mask_statuses, &clamper](const auto& pMaskLocalContainer) {
+        using container_type = BareType<decltype(*pMaskLocalContainer)>;
         const auto& r_mask_local_container = *pMaskLocalContainer;
 
         return IndexPartition<IndexType>(r_mask_statuses.size1()).for_each<CombinedReduction<SumReduction<double>, SumReduction<double>>>([&r_mask_local_container, &r_mask_statuses, &clamper](const auto iEntity) {
-                double value = 0.0;
-
                 const Vector& r_sensor_statuses = row(r_mask_statuses, iEntity);
-                for (IndexType i_sensor = 0; i_sensor < r_mask_statuses.size2(); ++i_sensor) {
-                    value += r_sensor_statuses[i_sensor];
-                }
+                const double value = std::accumulate(r_sensor_statuses.begin(), r_sensor_statuses.end(), 0.0, std::plus<double>{});
 
-                if constexpr(std::is_same_v<std::remove_cv_t<std::decay_t<decltype(r_mask_local_container)>>, ModelPart::NodesContainerType>) {
-                    KRATOS_ERROR << "TODO: Fix for nodal expression still required.";
-                    return std::make_tuple(0.0, 0.0);
-                } else {
+                if constexpr(IsInList<container_type, ModelPart::ConditionsContainerType, ModelPart::ElementsContainerType>) {
                     const double domain_size = (r_mask_local_container.begin() + iEntity)->GetGeometry().DomainSize();
                     return std::make_tuple(domain_size * clamper.ProjectForward(value), domain_size);
+                } else {
+                    KRATOS_ERROR << "TODO: Fix for other container types except condition and element are required.";
+                    return std::make_tuple(0.0, 0.0);
                 }
             });
+
     }, rSensorMaskStatus.pGetMaskContainer());
 
     const auto& global_values = rSensorMaskStatus.GetSensorModelPart().GetCommunicator().GetDataCommunicator().SumAll(local_values);
@@ -66,7 +64,7 @@ double SensorCoverageResponseUtils::CalculateValue(const SensorMaskStatus& rSens
     KRATOS_CATCH("");
 }
 
-ContainerExpression<ModelPart::NodesContainerType> SensorCoverageResponseUtils::CalculateGradient(const SensorMaskStatus& rSensorMaskStatus)
+TensorAdaptor<double>::Pointer SensorCoverageResponseUtils::CalculateGradient(const SensorMaskStatus& rSensorMaskStatus)
 {
     KRATOS_TRY
 
@@ -74,28 +72,30 @@ ContainerExpression<ModelPart::NodesContainerType> SensorCoverageResponseUtils::
     const auto& r_mask_statuses_gradient = rSensorMaskStatus.GetMasks();
     const auto& r_data_communicator = rSensorMaskStatus.GetSensorModelPart().GetCommunicator().GetDataCommunicator();
 
-    SmoothClamper<ModelPart::NodesContainerType> clamper(0.0, 1.0);
+    SmoothClamper clamper(0.0, 1.0);
 
     std::vector<std::pair<double, double>> entity_values(r_mask_statuses.size1());
-    const double local_domain_size = std::visit([&r_mask_statuses, &clamper, &entity_values](const auto& pMaskLocalContainer) {
+
+    auto p_result = Kratos::make_shared<TensorAdaptor<double>>(rSensorMaskStatus.pGetSensorModelPart()->pNodes(), Kratos::make_shared<NDData<double>>(DenseVector<unsigned int>{1, static_cast<unsigned int>(rSensorMaskStatus.GetSensorModelPart().NumberOfNodes())}), false);
+
+    const double local_domain_size = std::visit([&r_mask_statuses, &clamper, &entity_values, &p_result](const auto& pMaskLocalContainer) {
+        using container_type = BareType<decltype(*pMaskLocalContainer)>;
+
         const auto& r_mask_local_container = *pMaskLocalContainer;
 
         return IndexPartition<IndexType>(r_mask_statuses.size1()).for_each<SumReduction<double>>([&r_mask_local_container, &r_mask_statuses, &entity_values](const auto iEntity) {
             auto& r_pair = entity_values[iEntity];
-            double& value = std::get<0>(r_pair);
-            value = 0.0;
-            const Vector& r_sensor_statuses = row(r_mask_statuses, iEntity);
-            for (IndexType i_sensor = 0; i_sensor < r_mask_statuses.size2(); ++i_sensor) {
-                value += r_sensor_statuses[i_sensor];
-            }
 
-            if constexpr(std::is_same_v<std::remove_cv_t<std::decay_t<decltype(r_mask_local_container)>>, ModelPart::NodesContainerType>) {
-                KRATOS_ERROR << "TODO: Fix for nodal expression still required.";
-                return 0.0;
-            } else {
+            const Vector& r_sensor_statuses = row(r_mask_statuses, iEntity);
+            std::get<0>(r_pair) = std::accumulate(r_sensor_statuses.begin(), r_sensor_statuses.end(), 0.0, std::plus<double>{});
+
+            if constexpr(IsInList<container_type, ModelPart::ConditionsContainerType, ModelPart::ElementsContainerType>) {
                 const double domain_size = (r_mask_local_container.begin() + iEntity)->GetGeometry().DomainSize();
                 std::get<1>(r_pair) = domain_size;
                 return domain_size;
+            } else {
+                KRATOS_ERROR << "TODO: Fix for other container types except condition and element are required.";
+                return 0.0;
             }
         });
 
@@ -103,14 +103,13 @@ ContainerExpression<ModelPart::NodesContainerType> SensorCoverageResponseUtils::
 
     const double global_domain_size = r_data_communicator.SumAll(local_domain_size);
 
-    auto p_expression = LiteralFlatExpression<double>::Create(r_mask_statuses.size2(), {});
-    auto& r_expression = *p_expression;
+    auto result_data_view = p_result->ViewData();
 
-    std::visit([&r_expression, &r_mask_statuses, &r_mask_statuses_gradient, &clamper, &entity_values, &r_data_communicator, global_domain_size](const auto& pMaskLocalContainer) {
+    std::visit([&result_data_view, &r_mask_statuses, &r_mask_statuses_gradient, &clamper, &entity_values, &r_data_communicator, global_domain_size](const auto& pMaskLocalContainer) {
         const auto& r_mask_local_container = *pMaskLocalContainer;
 
-        IndexPartition<IndexType>(r_mask_statuses.size2()).for_each([&r_expression, &r_mask_statuses, &r_mask_statuses_gradient, &r_mask_local_container, &clamper, &entity_values, &r_data_communicator, global_domain_size](const auto iSensor) {
-            double& value = *(r_expression.begin() + iSensor);
+        IndexPartition<IndexType>(r_mask_statuses.size2()).for_each([&result_data_view, &r_mask_statuses, &r_mask_statuses_gradient, &r_mask_local_container, &clamper, &entity_values, &r_data_communicator, global_domain_size](const auto iSensor) {
+            double& value = result_data_view[iSensor];
             value = 0.0;
             for (IndexType i_entity = 0; i_entity < r_mask_local_container.size(); ++i_entity) {
                 const auto& r_pair = entity_values[i_entity];
@@ -121,9 +120,7 @@ ContainerExpression<ModelPart::NodesContainerType> SensorCoverageResponseUtils::
         });
     }, rSensorMaskStatus.pGetMaskContainer());
 
-    ContainerExpression<ModelPart::NodesContainerType> result(*rSensorMaskStatus.pGetSensorModelPart());
-    result.SetExpression(p_expression);
-    return result;
+    return p_result;
 
     KRATOS_CATCH("");
 }

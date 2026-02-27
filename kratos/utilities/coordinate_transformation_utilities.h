@@ -62,13 +62,7 @@ public:
 	/// Pointer definition of CoordinateTransformationUtils
 	KRATOS_CLASS_POINTER_DEFINITION(CoordinateTransformationUtils);
 
-	typedef Node NodeType;
-
-	typedef Geometry< Node > GeometryType;
-
-//     typedef boost::numeric::ublas::matrix_row<TLocalMatrixType>  LocalRowType;
-//
-//     typedef boost::numeric::ublas::matrix_range<TLocalMatrixType> MatrixBlockType;
+	using GeometryType = Geometry<Node>;
 
 	///@}
 	///@name Life Cycle
@@ -79,13 +73,28 @@ public:
 	 * @param NumRowsPerNode Number of matrix or vector rows associated to each node. Velocity DOFs are assumed to be the first mDomainSize rows in each block of rows.
 	 * @param rSelectionFlag All nodes where the flag given by this argument is set to true will be transformed to a rotated coordinate system.
 	 */
-	CoordinateTransformationUtils(const unsigned int DomainSize,
-			const unsigned int NumRowsPerNode,
-			const Kratos::Flags& rSelectionFlag = SLIP):
-	mDomainSize(DomainSize),
-	mBlockSize(NumRowsPerNode),
-	mrFlag(rSelectionFlag)
-	{}
+	CoordinateTransformationUtils(
+		const unsigned int DomainSize,
+		const unsigned int NumRowsPerNode,
+		const Kratos::Flags& rSelectionFlag = SLIP)
+		: mDomainSize(DomainSize)
+		, mBlockSize(NumRowsPerNode)
+		, mRotationDofPosition(0)
+		, mrFlag(rSelectionFlag)
+	{
+	}
+
+	CoordinateTransformationUtils(
+		const unsigned int DomainSize,
+		const unsigned int NumRowsPerNode,
+		const unsigned int RotationDofPosition,
+		const Kratos::Flags& rSelectionFlag = SLIP)
+		: mDomainSize(DomainSize)
+		, mBlockSize(NumRowsPerNode)
+		, mRotationDofPosition(RotationDofPosition)
+		, mrFlag(rSelectionFlag)
+	{
+	}
 
 	/// Destructor.
 	virtual ~CoordinateTransformationUtils() {}
@@ -101,7 +110,7 @@ public:
     /**
      * @brief Calculates rotation operator for given point
      *
-     * This metod calculates rotation matrix for a given point. Nodal NORMAL variable should be
+     * This metod calculates rotation matrix for a given point. Nodal normal variable should be
      * assigned properly since rotation is calculated based on it.
      *
      * @param rRotationMatrix   Output rotation matrix
@@ -140,7 +149,7 @@ public:
 		const GeometryType::PointType& rThisPoint) const
     {
         // Get the normal evaluated at the node
-        const array_1d<double, 3>& rNormal = rThisPoint.FastGetSolutionStepValue(NORMAL);
+        const array_1d<double, 3>& rNormal = rThisPoint.FastGetSolutionStepValue(mrNodalNormalVariable);
 
         double aux = rNormal[0] * rNormal[0] + rNormal[1] * rNormal[1] +
                      rNormal[2] * rNormal[2];
@@ -187,7 +196,7 @@ public:
 		const GeometryType::PointType& rThisPoint) const
     {
         // Get the normal evaluated at the node
-        const array_1d<double, 3>& rNormal = rThisPoint.FastGetSolutionStepValue(NORMAL);
+        const array_1d<double, 3>& rNormal = rThisPoint.FastGetSolutionStepValue(mrNodalNormalVariable);
 
         double aux = rNormal[0] * rNormal[0] + rNormal[1] * rNormal[1];
         aux = sqrt(aux);
@@ -272,31 +281,31 @@ public:
     {
         KRATOS_TRY
 
-        KRATOS_ERROR_IF(!rThisPoint.SolutionStepsDataHas(NORMAL))
-            << "NORMAL is not found in node at " << rThisPoint.Coordinates() << ".";
-        KRATOS_ERROR_IF(!rThisPoint.Has(NORMAL_SHAPE_DERIVATIVE))
-            << "NORMAL_SHAPE_DERIVATIVE is not found in node [ Node.Id() = "
+        KRATOS_ERROR_IF(!rThisPoint.SolutionStepsDataHas(mrNodalNormalVariable))
+            << mrNodalNormalVariable.Name() << " is not found in node at " << rThisPoint.Coordinates() << ".";
+        KRATOS_ERROR_IF(!rThisPoint.Has(mrNormalShapeDerivativeVariable))
+            << mrNormalShapeDerivativeVariable.Name() << " is not found in node [ Node.Id() = "
             << rThisPoint.Id() << " ] at " << rThisPoint.Coordinates() << ".";
 
         const array_1d<double, 3>& r_nodal_normal =
-            rThisPoint.FastGetSolutionStepValue(NORMAL);
+            rThisPoint.FastGetSolutionStepValue(mrNodalNormalVariable);
         const double nodal_normal_magnitude = norm_2(r_nodal_normal);
 
         KRATOS_ERROR_IF(nodal_normal_magnitude == 0.0)
-            << "NORMAL at node " << rThisPoint.Coordinates()
+            << mrNodalNormalVariable.Name() << " at node " << rThisPoint.Coordinates()
             << " is not properly initialized.";
 
-        const Matrix& r_sensitivity_values = rThisPoint.GetValue(NORMAL_SHAPE_DERIVATIVE);
+        const Matrix& r_sensitivity_values = rThisPoint.GetValue(mrNormalShapeDerivativeVariable);
 
         KRATOS_DEBUG_ERROR_IF(r_sensitivity_values.size2() != 2)
-            << "NORMAL_SHAPE_DERIVATIVE is not properly initialized at node [ Node.Id() = "
+            << mrNormalShapeDerivativeVariable.Name() << " is not properly initialized at node [ Node.Id() = "
             << rThisPoint.Id() << " ] "
             << rThisPoint.Coordinates() << " to calculate 2D rotation operator shape sensitivities. [ required number of columns = 2, available number of columns = "
             << r_sensitivity_values.size2() << " ].";
 
         const std::size_t require_rows = (DerivativeNodeIndex + 1) * 2;
         KRATOS_DEBUG_ERROR_IF(r_sensitivity_values.size1() < require_rows)
-            << "NORMAL_SHAPE_DERIVATIVE is not properly initialized at node [ Node.Id() = "
+            << mrNormalShapeDerivativeVariable.Name() << " is not properly initialized at node [ Node.Id() = "
             << rThisPoint.Id() << " ] "
             << rThisPoint.Coordinates() << " to calculate 2D rotation operator shape sensitivities. [ required number of rows >= "
             << require_rows
@@ -350,30 +359,30 @@ public:
     {
         KRATOS_TRY
 
-        KRATOS_ERROR_IF(!rThisPoint.SolutionStepsDataHas(NORMAL))
-            << "NORMAL is not found in node at " << rThisPoint.Coordinates() << ".";
-        KRATOS_ERROR_IF(!rThisPoint.Has(NORMAL_SHAPE_DERIVATIVE))
-            << "NORMAL_SHAPE_DERIVATIVE is not found in node at "
+        KRATOS_ERROR_IF(!rThisPoint.SolutionStepsDataHas(mrNodalNormalVariable))
+            << mrNodalNormalVariable.Name() << " is not found in node at " << rThisPoint.Coordinates() << ".";
+        KRATOS_ERROR_IF(!rThisPoint.Has(mrNormalShapeDerivativeVariable))
+            << mrNormalShapeDerivativeVariable.Name() << " is not found in node at "
             << rThisPoint.Coordinates() << ".";
 
         const array_1d<double, 3>& r_nodal_normal =
-            rThisPoint.FastGetSolutionStepValue(NORMAL);
+            rThisPoint.FastGetSolutionStepValue(mrNodalNormalVariable);
         const double nodal_normal_magnitude = norm_2(r_nodal_normal);
 
         KRATOS_ERROR_IF(nodal_normal_magnitude == 0.0)
-            << "NORMAL at node " << rThisPoint.Coordinates()
+            << mrNodalNormalVariable.Name() << " at node " << rThisPoint.Coordinates()
             << " is not properly initialized.";
 
-        const Matrix& r_sensitivity_values = rThisPoint.GetValue(NORMAL_SHAPE_DERIVATIVE);
+        const Matrix& r_sensitivity_values = rThisPoint.GetValue(mrNormalShapeDerivativeVariable);
 
         KRATOS_DEBUG_ERROR_IF(r_sensitivity_values.size2() != 3)
-            << "NORMAL_SHAPE_DERIVATIVE is not properly initialized at node "
+            << mrNormalShapeDerivativeVariable.Name() << " is not properly initialized at node "
             << rThisPoint.Coordinates() << " to calculate 3D rotation operator shape sensitivities. [ required number of columns = 3, available number of columns = "
             << r_sensitivity_values.size2() << " ].";
 
         const std::size_t require_rows = (DerivativeNodeIndex + 1) * 3;
         KRATOS_DEBUG_ERROR_IF(r_sensitivity_values.size1() < require_rows)
-            << "NORMAL_SHAPE_DERIVATIVE is not properly initialized at node "
+            << mrNormalShapeDerivativeVariable.Name() << " is not properly initialized at node "
             << rThisPoint.Coordinates() << " to calculate 3D rotation operator shape sensitivities. [ required number of rows >= "
             << require_rows
             << ", available number of rows = " << r_sensitivity_values.size1() << " ].";
@@ -444,21 +453,64 @@ public:
 	 @param rLocalVector Local RHS vector
 	 @param rGeometry A reference to the element's (or condition's) geometry
 	 */
-	virtual void Rotate(TLocalMatrixType& rLocalMatrix,
-			TLocalVectorType& rLocalVector,
-			GeometryType& rGeometry) const
+	virtual void Rotate(
+		TLocalMatrixType& rLocalMatrix,
+		TLocalVectorType& rLocalVector,
+		GeometryType& rGeometry) const
 	{
-		if(mBlockSize != mDomainSize) //Monolithic case
-		{
-			if(mDomainSize == 2) RotateAux<2,3>(rLocalMatrix,rLocalVector,rGeometry);
-			if(mDomainSize == 3) RotateAux<3,4>(rLocalMatrix,rLocalVector,rGeometry);
+		if(mBlockSize != mDomainSize) {
+			if (mDomainSize == 2) {
+				if (mBlockSize == 3) {
+					if (mRotationDofPosition == 0) {
+						RotateAux<2,3,0>(rLocalMatrix,rLocalVector,rGeometry); // Incompressible case (rotation DOF is assumed to be the 1st)
+					} else {
+						KRATOS_ERROR << "Invalid rotation DOF position: " << mRotationDofPosition << ".";
+					}
+				} else if (mBlockSize == 4) {
+					if (mRotationDofPosition == 0) {
+						RotateAux<2,4,0>(rLocalMatrix,rLocalVector,rGeometry); // Compressible case with rotation DOF at position 0
+					} else if (mRotationDofPosition == 1) {
+						RotateAux<2,4,1>(rLocalMatrix,rLocalVector,rGeometry); // Compressible case with rotation DOF at position 1
+					} else if (mRotationDofPosition == 2) {
+						RotateAux<2,4,2>(rLocalMatrix,rLocalVector,rGeometry); // Compressible case with rotation DOF at position 2
+					} else {
+						KRATOS_ERROR << "Invalid rotation DOF position: " << mRotationDofPosition << ".";
+					}
+				} else {
+					KRATOS_ERROR << "Invalid block size: " << mBlockSize << ".";
+				}
+			} else if (mDomainSize == 3) {
+				if (mBlockSize == 4) {
+					if (mRotationDofPosition == 0) {
+						RotateAux<3,4,0>(rLocalMatrix,rLocalVector,rGeometry); // Incompressible case (rotation DOF is assumed to be the 1st)
+					} else {
+						KRATOS_ERROR << "Invalid rotation DOF position: " << mRotationDofPosition << ".";
+					}
+				} else if (mBlockSize == 5) {
+					if (mRotationDofPosition == 0) {
+						RotateAux<3,5,0>(rLocalMatrix,rLocalVector,rGeometry); // Compressible case with rotation DOF at position 0
+					} else if (mRotationDofPosition == 1) {
+						RotateAux<3,5,1>(rLocalMatrix,rLocalVector,rGeometry); // Compressible case with rotation DOF at position 1
+					} else if (mRotationDofPosition == 2) {
+						RotateAux<3,5,2>(rLocalMatrix,rLocalVector,rGeometry); // Compressible case with rotation DOF at position 2
+					} else {
+						KRATOS_ERROR << "Invalid rotation DOF position: " << mRotationDofPosition << ".";
+					}
+				} else {
+					KRATOS_ERROR << "Invalid block size: " << mBlockSize << ".";
+				}
+			} else {
+				KRATOS_ERROR << "Invalid domain size: " << mDomainSize << ".";
+			}
+		} else {
+			if (mDomainSize == 2) {
+				RotateAuxPure<2>(rLocalMatrix,rLocalVector,rGeometry); // Single DOF case (e.g., factional-step)
+			} else if (mDomainSize == 3) {
+				RotateAuxPure<3>(rLocalMatrix,rLocalVector,rGeometry); // Single DOF case (e.g., factional-step)
+			} else {
+				KRATOS_ERROR << "Invalid domain size: " << mDomainSize << ".";
+			}
 		}
-		else //fractional step case
-		{
-			if(mDomainSize == 2) RotateAuxPure<2>(rLocalMatrix,rLocalVector,rGeometry);
-			if(mDomainSize == 3) RotateAuxPure<3>(rLocalMatrix,rLocalVector,rGeometry);
-		}
-
 	}
 
     /**
@@ -507,13 +559,13 @@ public:
 				if( this->IsSlip(rGeometry[itNode]))
 				{
 					// We fix the first dof (normal velocity) for each rotated block
-					unsigned int j = itNode * mBlockSize;
+					unsigned int j = itNode * mBlockSize + mRotationDofPosition;
 					//const double k = rLocalMatrix(j,j)+rLocalMatrix(j,j+1)+rLocalMatrix(j,j+2);
 
 					// If the mesh is moving, we must impose v_normal = vmesh_normal
-					array_1d<double,3> VMesh = rGeometry[itNode].FastGetSolutionStepValue(MESH_VELOCITY);
-					VMesh -= rGeometry[itNode].FastGetSolutionStepValue(VELOCITY);
-					array_1d<double,3> rN = rGeometry[itNode].FastGetSolutionStepValue(NORMAL);
+					array_1d<double,3> VMesh = rGeometry[itNode].FastGetSolutionStepValue(mrMeshVelocityVariable);
+					VMesh -= rGeometry[itNode].FastGetSolutionStepValue(mrRotatedVariable);
+					array_1d<double,3> rN = rGeometry[itNode].FastGetSolutionStepValue(mrNodalNormalVariable);
 					this->Normalize(rN);
 
 					for( unsigned int i = 0; i < j; ++i)// Skip term (i,i)
@@ -545,12 +597,12 @@ public:
 				if( this->IsSlip(rGeometry[itNode]) )
 				{
 					// We fix the first dof (normal velocity) for each rotated block
-					unsigned int j = itNode * mBlockSize;
+					unsigned int j = itNode * mBlockSize + mRotationDofPosition;
 
 					// If the mesh is moving, we must impose v_normal = vmesh_normal
-					array_1d<double,3> VMesh = rGeometry[itNode].FastGetSolutionStepValue(MESH_VELOCITY);
-					VMesh -= rGeometry[itNode].FastGetSolutionStepValue(VELOCITY);
-					array_1d<double,3> rN = rGeometry[itNode].FastGetSolutionStepValue(NORMAL);
+					array_1d<double,3> VMesh = rGeometry[itNode].FastGetSolutionStepValue(mrMeshVelocityVariable);
+					VMesh -= rGeometry[itNode].FastGetSolutionStepValue(mrRotatedVariable);
+					array_1d<double,3> rN = rGeometry[itNode].FastGetSolutionStepValue(mrNodalNormalVariable);
 					this->Normalize(rN);
 
 					rLocalVector[j] = inner_prod(rN,VMesh);
@@ -578,7 +630,7 @@ public:
 					BoundedMatrix<double,3,3> rRot;
 					LocalRotationOperatorPure(rRot,*itNode);
 
-					array_1d<double,3>& rVelocity = itNode->FastGetSolutionStepValue(VELOCITY);
+					array_1d<double,3>& rVelocity = itNode->FastGetSolutionStepValue(mrRotatedVariable);
 					for(unsigned int i = 0; i < 3; i++) Vel[i] = rVelocity[i];
 					noalias(Tmp) = prod(rRot,Vel);
 					for(unsigned int i = 0; i < 3; i++) rVelocity[i] = Tmp[i];
@@ -588,7 +640,7 @@ public:
 					BoundedMatrix<double,2,2> rRot;
 					LocalRotationOperatorPure(rRot,*itNode);
 
-					array_1d<double,3>& rVelocity = itNode->FastGetSolutionStepValue(VELOCITY);
+					array_1d<double,3>& rVelocity = itNode->FastGetSolutionStepValue(mrRotatedVariable);
 					for(unsigned int i = 0; i < 2; i++) Vel[i] = rVelocity[i];
 					noalias(Tmp) = prod(rRot,Vel);
 					for(unsigned int i = 0; i < 2; i++) rVelocity[i] = Tmp[i];
@@ -615,7 +667,7 @@ public:
 					BoundedMatrix<double,3,3> rRot;
 					LocalRotationOperatorPure(rRot,*itNode);
 
-					array_1d<double,3>& rVelocity = itNode->FastGetSolutionStepValue(VELOCITY);
+					array_1d<double,3>& rVelocity = itNode->FastGetSolutionStepValue(mrRotatedVariable);
 					for(unsigned int i = 0; i < 3; i++) Vel[i] = rVelocity[i];
 					noalias(Tmp) = prod(trans(rRot),Vel);
 					for(unsigned int i = 0; i < 3; i++) rVelocity[i] = Tmp[i];
@@ -625,7 +677,7 @@ public:
 					BoundedMatrix<double,2,2> rRot;
 					LocalRotationOperatorPure(rRot,*itNode);
 
-					array_1d<double,3>& rVelocity = itNode->FastGetSolutionStepValue(VELOCITY);
+					array_1d<double,3>& rVelocity = itNode->FastGetSolutionStepValue(mrRotatedVariable);
 					for(unsigned int i = 0; i < 2; i++) Vel[i] = rVelocity[i];
 					noalias(Tmp) = prod(trans(rRot),Vel);
 					for(unsigned int i = 0; i < 2; i++) rVelocity[i] = Tmp[i];
@@ -892,7 +944,7 @@ protected:
 		noalias(rRot) = IdentityMatrix(TBlockSize);
 
 		// Get the normal evaluated at the node
-		const array_1d<double,3>& rNormal = rThisPoint.FastGetSolutionStepValue(NORMAL);
+		const array_1d<double,3>& rNormal = rThisPoint.FastGetSolutionStepValue(mrNodalNormalVariable);
 
 		double aux = rNormal[0]*rNormal[0] + rNormal[1]*rNormal[1];
 		aux = sqrt(aux);
@@ -911,7 +963,7 @@ protected:
 		noalias(rRot) = IdentityMatrix(TBlockSize);
 
 		// Get the normal evaluated at the node
-		const array_1d<double,3>& rNormal = rThisPoint.FastGetSolutionStepValue(NORMAL);
+		const array_1d<double,3>& rNormal = rThisPoint.FastGetSolutionStepValue(mrNodalNormalVariable);
 
 		double aux = rNormal[0]*rNormal[0] + rNormal[1]*rNormal[1] + rNormal[2]*rNormal[2];
 		aux = sqrt(aux);
@@ -975,6 +1027,31 @@ protected:
 		return Norm;
 	}
 
+	//auxiliary functions
+	template< unsigned int TBlockSize >
+	void ReadBlockMatrix( BoundedMatrix<double,TBlockSize, TBlockSize>& block, const Matrix& origin, const unsigned int Ibegin, const unsigned int Jbegin) const
+	{
+		for(unsigned int i=0; i<TBlockSize; i++)
+		{
+			for(unsigned int j=0; j<TBlockSize; j++)
+			{
+				block(i,j) = origin(Ibegin+i, Jbegin+j);
+			}
+		}
+	}
+
+	template< unsigned int TBlockSize >
+	void WriteBlockMatrix( const BoundedMatrix<double,TBlockSize, TBlockSize>& block, Matrix& destination, const unsigned int Ibegin, const unsigned int Jbegin) const
+	{
+		for(unsigned int i=0; i<TBlockSize; i++)
+		{
+			for(unsigned int j=0; j<TBlockSize; j++)
+			{
+				destination(Ibegin+i, Jbegin+j) = block(i,j);
+			}
+		}
+	}
+
 	///@}
 	///@name Protected  Access
 	///@{
@@ -1010,12 +1087,26 @@ private:
 	/// Number of spatial dimensions
 	const unsigned int mDomainSize;
 
-	/// Number of matrix or vector rows associated to each node.
-	/** @note Velocity Dofs are assumed to be the first mDomainSize rows.
-	 */
+	/// Number of matrix or vector rows associated to each node
 	const unsigned int mBlockSize;
 
+	/// Position of the rotation DOFs (note that this refers to the first component)
+	const unsigned int mRotationDofPosition;
+
+	/// Flag to indicate the nodes to be rotated
 	const Kratos::Flags& mrFlag;
+
+	/// Variable to indicate the DOF to be rotated
+	const Variable<array_1d<double,3>>& mrRotatedVariable = VELOCITY;
+
+	/// Variable storing the mesh motion velocity
+	const Variable<array_1d<double,3>>& mrMeshVelocityVariable = MESH_VELOCITY;
+
+	/// Variable storing the nodal normal
+	const Variable<array_1d<double,3>>& mrNodalNormalVariable = NORMAL;
+
+	/// Variable storing the nodal normal shape derivative
+	const Variable<Matrix>& mrNormalShapeDerivativeVariable = NORMAL_SHAPE_DERIVATIVE;
 
 	///@}
 	///@name Private Operators
@@ -1161,7 +1252,7 @@ private:
 //     {
 //         typedef boost::numeric::ublas::matrix_row<TMatrixType> ThisRowType;
 //         // Get the normal evaluated at the node
-//         const array_1d<double,3>& rNormal = rThisPoint.FastGetSolutionStepValue(NORMAL);
+//         const array_1d<double,3>& rNormal = rThisPoint.FastGetSolutionStepValue(mrNodalNormalVariable);
 //
 //         if(mDomainSize == 3)
 //         {
@@ -1284,30 +1375,6 @@ private:
 // //         noalias(rMatrix) = Tmp;
 //     }
 
-	//auxiliary functions
-	template< unsigned int TBlockSize >
-	void ReadBlockMatrix( BoundedMatrix<double,TBlockSize, TBlockSize>& block, const Matrix& origin, const unsigned int Ibegin, const unsigned int Jbegin) const
-	{
-		for(unsigned int i=0; i<TBlockSize; i++)
-		{
-			for(unsigned int j=0; j<TBlockSize; j++)
-			{
-				block(i,j) = origin(Ibegin+i, Jbegin+j);
-			}
-		}
-	}
-
-	template< unsigned int TBlockSize >
-	void WriteBlockMatrix( const BoundedMatrix<double,TBlockSize, TBlockSize>& block, Matrix& destination, const unsigned int Ibegin, const unsigned int Jbegin) const
-	{
-		for(unsigned int i=0; i<TBlockSize; i++)
-		{
-			for(unsigned int j=0; j<TBlockSize; j++)
-			{
-				destination(Ibegin+i, Jbegin+j) = block(i,j);
-			}
-		}
-	}
 
 	///@}
 	///@name Private  Access

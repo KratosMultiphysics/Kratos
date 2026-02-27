@@ -18,8 +18,7 @@
 
 // Project includes
 #include "includes/define.h"
-#include "includes/model_part.h"
-#include "expression/container_expression.h"
+#include "tensor_adaptors/tensor_adaptor.h"
 
 // Application includes
 #include "custom_utilities/sensor_mask_status.h"
@@ -36,7 +35,7 @@ public:
 
     static double CalculateValue(const SensorMaskStatus& rSensorMaskStatus);
 
-    static ContainerExpression<ModelPart::NodesContainerType> CalculateGradient(const SensorMaskStatus& rSensorMaskStatus);
+    static TensorAdaptor<double>::Pointer CalculateGradient(const SensorMaskStatus& rSensorMaskStatus);
 
     ///@}
 };

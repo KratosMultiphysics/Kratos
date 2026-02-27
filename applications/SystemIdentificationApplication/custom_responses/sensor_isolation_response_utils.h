@@ -17,7 +17,7 @@
 // Project includes
 #include "includes/define.h"
 #include "includes/model_part.h"
-#include "expression/container_expression.h"
+#include "tensor_adaptors/tensor_adaptor.h"
 
 // Application includes
 #include "custom_utilities/distance_matrix.h"
@@ -45,7 +45,7 @@ public:
         const double Radius,
         const DistanceMatrix& rDistanceMatrix);
 
-    static ContainerExpression<ModelPart::NodesContainerType> CalculateGradient(
+    static TensorAdaptor<double>::Pointer CalculateGradient(
         ModelPart& rModelPart,
         const double Radius,
         const DistanceMatrix& rDistanceMatrix);

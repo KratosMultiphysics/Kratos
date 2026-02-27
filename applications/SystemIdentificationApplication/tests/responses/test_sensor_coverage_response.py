@@ -2,7 +2,6 @@ import numpy as np
 import KratosMultiphysics as Kratos
 import KratosMultiphysics.SystemIdentificationApplication as KratosSI
 import KratosMultiphysics.KratosUnittest as UnitTest
-import KratosMultiphysics.OptimizationApplication as KratosOA
 from KratosMultiphysics.SystemIdentificationApplication.utilities.sensor_utils import CreateSensors
 from KratosMultiphysics.SystemIdentificationApplication.utilities.sensor_utils import SetSensors
 from KratosMultiphysics.SystemIdentificationApplication.utilities.sensor_utils import AddMaskStatusController
@@ -109,22 +108,21 @@ class TestSensorCoverageResponse(UnitTest.TestCase):
 
         SetSensors(cls.sensor_group_data, cls.sensors)
 
-        exps_list: 'list[Kratos.Expression.ElementExpression]' = []
+        ta_list: 'list[Kratos.TensorAdaptors.DoubleTensorAdaptor]' = []
         for i, sensor in enumerate(cls.sensors):
             node = sensor.GetNode()
             node.SetValue(KratosSI.SENSOR_STATUS, (node.Id % 3) / 2)
 
-            elem_np = np.zeros(cls.domain_model_part.NumberOfElements())
-            for j in range(elem_np.shape[0]):
+            elem_ta = Kratos.TensorAdaptors.VariableTensorAdaptor(cls.domain_model_part.Elements, Kratos.PRESSURE)
+            elem_ta.data[:] = 0.0
+            for j in range(elem_ta.data.shape[0]):
                 if j % (i + 2) == 0:
-                    elem_np[j] = 1
-            elem_exp = Kratos.Expression.ElementExpression(cls.domain_model_part)
-            Kratos.Expression.CArrayExpressionIO.Read(elem_exp, elem_np)
-            sensor.AddContainerExpression("mask_exp", elem_exp)
-            exps_list.append(elem_exp.Clone())
+                    elem_ta.data[j] = 1
+            sensor.AddTensorAdaptor("mask_exp", elem_ta)
+            ta_list.append(elem_ta.Clone())
 
         # add the mask status controller
-        AddMaskStatusController(cls.sensor_group_data, "mask_exp", KratosSI.SensorMaskStatus(cls.sensor_model_part, exps_list, 0))
+        AddMaskStatusController(cls.sensor_group_data, "mask_exp", KratosSI.SensorMaskStatus(cls.sensor_model_part, ta_list, 0))
 
         params = Kratos.Parameters("""{
             "sensor_group_name": "sensors",
@@ -136,32 +134,32 @@ class TestSensorCoverageResponse(UnitTest.TestCase):
         cls.response.Initialize()
 
     def test_CalculateValue(self):
-        domain_size_exp = Kratos.Expression.ElementExpression(self.domain_model_part)
-        Kratos.Expression.DomainSizeExpressionIO.Read(domain_size_exp)
+        domain_size_ta = Kratos.TensorAdaptors.GeometryMetricsTensorAdaptor(self.domain_model_part.Elements, Kratos.TensorAdaptors.GeometryMetricsTensorAdaptor.DomainSize)
+        domain_size_ta.CollectData()
 
-        total_mask = Kratos.Expression.ElementExpression(self.domain_model_part)
-        Kratos.Expression.LiteralExpressionIO.SetData(total_mask, 0)
+        total_mask = Kratos.TensorAdaptors.VariableTensorAdaptor(self.domain_model_part.Elements, Kratos.PRESSURE)
+        total_mask.data[:] = 0.0
         for sensor in self.sensors:
             sensor_status = sensor.GetNode().GetValue(KratosSI.SENSOR_STATUS)
-            mask = sensor.GetContainerExpression("mask_exp")
-            total_mask += mask * sensor_status
+            mask = sensor.GetTensorAdaptor("mask_exp")
+            total_mask.data[:] += mask.data[:] * sensor_status
 
-        total_mask = KratosSI.ElementSmoothClamper(0, 1).ProjectForward(total_mask)
+        total_mask = KratosSI.SmoothClamper(0, 1).ProjectForward(total_mask)
         for mask_status_controller in GetMaskStatusControllers(self.sensor_group_data, "mask_exp"):
             mask_status_controller.Update()
         response_value = self.response.CalculateValue()
         self.assertNotEqual(response_value, 0.0)
-        self.assertAlmostEqual(response_value, Kratos.Expression.Utils.InnerProduct(domain_size_exp, total_mask) / Kratos.Expression.Utils.Sum(domain_size_exp))
+        self.assertAlmostEqual(response_value, np.dot(domain_size_ta.data, total_mask.data) / np.sum(domain_size_ta.data))
 
     def test_CalculateGradient(self):
         for mask_status_controller in GetMaskStatusControllers(self.sensor_group_data, "mask_exp"):
             mask_status_controller.Update()
 
         ref_value = self.response.CalculateValue()
-        collective_exp = KratosOA.CollectiveExpression()
-        collective_exp.Add(Kratos.Expression.NodalExpression(self.sensor_model_part))
-        self.response.CalculateGradient({KratosSI.SENSOR_STATUS: collective_exp})
-        analytical_gradient = collective_exp.GetContainerExpressions()[0].Evaluate()
+        ta = Kratos.TensorAdaptors.VariableTensorAdaptor(self.sensor_model_part.Nodes, Kratos.PRESSURE)
+        combined_ta = Kratos.TensorAdaptors.DoubleCombinedTensorAdaptor([ta], perform_collect_data_recursively=False, perform_store_data_recursively=False, copy=False)
+        self.response.CalculateGradient({KratosSI.SENSOR_STATUS: combined_ta})
+        analytical_gradient = combined_ta.GetTensorAdaptors()[0]
 
         delta = 1e-8
         for i, node in enumerate(self.sensor_model_part.Nodes):
@@ -170,7 +168,7 @@ class TestSensorCoverageResponse(UnitTest.TestCase):
                     mask_status_controller.Update()
             fd_sensitivity = (self.response.CalculateValue() - ref_value) / delta
             node.SetValue(KratosSI.SENSOR_STATUS, node.GetValue(KratosSI.SENSOR_STATUS) - delta)
-            self.assertAlmostEqual(fd_sensitivity, analytical_gradient[i])
+            self.assertAlmostEqual(fd_sensitivity, analytical_gradient.data[i])
 
 if __name__ == '__main__':
     UnitTest.main()

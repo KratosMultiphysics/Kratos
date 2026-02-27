@@ -1,18 +1,16 @@
-import math
+import math, numpy
 from typing import Optional
 
 import KratosMultiphysics as Kratos
 import KratosMultiphysics.OptimizationApplication as KratosOA
 import KratosMultiphysics.SystemIdentificationApplication as KratosSI
 from KratosMultiphysics.OptimizationApplication.controls.control import Control
-from KratosMultiphysics.OptimizationApplication.utilities.union_utilities import ContainerExpressionTypes
 from KratosMultiphysics.OptimizationApplication.utilities.union_utilities import SupportedSensitivityFieldVariableTypes
-from KratosMultiphysics.OptimizationApplication.utilities.helper_utilities import IsSameContainerExpression
 from KratosMultiphysics.OptimizationApplication.utilities.model_part_utilities import ModelPartOperation
 from KratosMultiphysics.OptimizationApplication.utilities.logger_utilities import TimeLogger
 from KratosMultiphysics.OptimizationApplication.utilities.component_data_view import ComponentDataView
 from KratosMultiphysics.OptimizationApplication.utilities.optimization_problem import OptimizationProblem
-from KratosMultiphysics.SystemIdentificationApplication.utilities.expression_utils import ExpressionBoundingManager
+from KratosMultiphysics.SystemIdentificationApplication.utilities.tensor_adaptor_utils import TensorAdaptorBoundingManager
 from KratosMultiphysics.OptimizationApplication.filtering.filter import Factory as FilterFactory
 
 def Factory(model: Kratos.Model, parameters: Kratos.Parameters, optimization_problem: OptimizationProblem) -> Control:
@@ -92,8 +90,8 @@ class MaterialPropertiesControl(Control):
         control_variable_bounds = parameters["control_variable_bounds"].GetVector()
 
         # use the clamper in the unit interval
-        self.interval_bounder = ExpressionBoundingManager(control_variable_bounds)
-        self.clamper = KratosSI.ElementSmoothClamper(0, 1)
+        self.interval_bounder = TensorAdaptorBoundingManager(control_variable_bounds)
+        self.clamper = KratosSI.SmoothClamper(0, 1)
 
     def Initialize(self) -> None:
         self.primal_model_part = self.primal_model_part_operation.GetModelPart()
@@ -118,12 +116,13 @@ class MaterialPropertiesControl(Control):
         physical_field = self.GetPhysicalField()
 
         # get the phi field which is in [0, 1] range
-        self.physical_phi_field = self.clamper.ProjectBackward(self.interval_bounder.GetBoundedExpression(physical_field))
+        self.physical_phi_field = self.clamper.ProjectBackward(self.interval_bounder.GetBoundedTensorAdaptor(physical_field))
 
         # compute the control phi field
         self.control_phi_field = self.filter.UnfilterField(self.physical_phi_field)
 
-        self.physical_phi_derivative_field = self.clamper.CalculateForwardProjectionGradient(self.physical_phi_field) * self.interval_bounder.GetBoundGap()
+        self.physical_phi_derivative_field = self.clamper.CalculateForwardProjectionGradient(self.physical_phi_field)
+        self.physical_phi_derivative_field.data[:] *= self.interval_bounder.GetBoundGap()
 
         self._UpdateAndOutputFields(self.GetEmptyField())
 
@@ -136,44 +135,47 @@ class MaterialPropertiesControl(Control):
     def GetPhysicalKratosVariables(self) -> 'list[SupportedSensitivityFieldVariableTypes]':
         return [self.controlled_physical_variable]
 
-    def GetEmptyField(self) -> ContainerExpressionTypes:
-        field = Kratos.Expression.ElementExpression(self.primal_model_part)
-        Kratos.Expression.LiteralExpressionIO.SetData(field, 0.0)
+    def GetEmptyField(self) -> Kratos.TensorAdaptors.DoubleTensorAdaptor:
+        field = Kratos.TensorAdaptors.VariableTensorAdaptor(self.primal_model_part.Elements, self.controlled_physical_variable)
+        field.data[:] = 0.0
         return field
 
-    def GetControlField(self) -> ContainerExpressionTypes:
-        return self.control_phi_field
+    def GetControlField(self) -> Kratos.TensorAdaptors.DoubleTensorAdaptor:
+        return self.control_phi_field.Clone()
 
-    def GetPhysicalField(self) -> ContainerExpressionTypes:
-        physical_thickness_field = Kratos.Expression.ElementExpression(self.primal_model_part)
-        KratosOA.PropertiesVariableExpressionIO.Read(physical_thickness_field, self.controlled_physical_variable)
+    def GetPhysicalField(self) -> Kratos.TensorAdaptors.DoubleTensorAdaptor:
+        physical_thickness_field = KratosOA.TensorAdaptors.PropertiesVariableTensorAdaptor(self.primal_model_part.Elements, self.controlled_physical_variable)
+        physical_thickness_field.CollectData()
         return physical_thickness_field
 
-    def MapGradient(self, physical_gradient_variable_container_expression_map: 'dict[SupportedSensitivityFieldVariableTypes, ContainerExpressionTypes]') -> ContainerExpressionTypes:
+    def MapGradient(self, physical_gradient_variable_tensor_adaptor_map: 'dict[SupportedSensitivityFieldVariableTypes, Kratos.TensorAdaptors.DoubleTensorAdaptor]') -> Kratos.TensorAdaptors.DoubleTensorAdaptor:
         with TimeLogger("ShellThicknessControl::MapGradient", None, "Finished",False):
-            keys = physical_gradient_variable_container_expression_map.keys()
+            keys = physical_gradient_variable_tensor_adaptor_map.keys()
             if len(keys) != 1:
                 raise RuntimeError(f"Provided more than required gradient fields for control \"{self.GetName()}\". Following are the variables:\n\t" + "\n\t".join([k.Name() for k in keys]))
             if self.controlled_physical_variable not in keys:
                 raise RuntimeError(f"The required gradient for control \"{self.GetName()}\" w.r.t. {self.controlled_physical_variable.Name()} not found. Followings are the variables:\n\t" + "\n\t".join([k.Name() for k in keys]))
 
-            physical_gradient = physical_gradient_variable_container_expression_map[self.controlled_physical_variable]
-            if not IsSameContainerExpression(physical_gradient, self.GetEmptyField()):
-                raise RuntimeError(f"Gradients for the required element container not found for control \"{self.GetName()}\". [ required model part name: {self.primal_model_part.FullName()}, given model part name: {physical_gradient.GetModelPart().FullName()} ]")
+            physical_gradient = physical_gradient_variable_tensor_adaptor_map[self.controlled_physical_variable]
+            if physical_gradient.GetContainer() != self.primal_model_part.Elements:
+                raise RuntimeError(f"Gradients for the required element container not found for control \"{self.GetName()}\". [ required model part name: {self.primal_model_part.FullName()} ]")
 
             # dj/dE -> physical_gradient
             # dj/dphi = dj/dphysical * dphysical/dphi
-            return self.filter.BackwardFilterIntegratedField(physical_gradient * self.physical_phi_derivative_field)
+            dj_dphi = physical_gradient.Clone()
+            dj_dphi.data[:] *= self.physical_phi_derivative_field.data
+            return self.filter.BackwardFilterIntegratedField(dj_dphi)
 
-    def Update(self, new_control_field: ContainerExpressionTypes) -> bool:
-        if not IsSameContainerExpression(new_control_field, self.GetEmptyField()):
-            raise RuntimeError(f"Updates for the required element container not found for control \"{self.GetName()}\". [ required model part name: {self.primal_model_part.FullName()}, given model part name: {control_field.GetModelPart().FullName()} ]")
+    def Update(self, new_control_field: Kratos.TensorAdaptors.DoubleTensorAdaptor) -> bool:
+        if new_control_field.GetContainer() != self.primal_model_part.Elements:
+            raise RuntimeError(f"Updates for the required element container not found for control \"{self.GetName()}\". [ required model part name: {self.primal_model_part.FullName()} ]")
 
-        update = new_control_field - self.control_phi_field
-        if not math.isclose(Kratos.Expression.Utils.NormL2(update), 0.0, abs_tol=1e-16):
+        update = new_control_field.Clone()
+        update.data[:] -= self.control_phi_field.data
+        if not math.isclose(numpy.linalg.norm(update.data), 0.0, abs_tol=1e-16):
             with TimeLogger(self.__class__.__name__, f"Updating {self.GetName()}...", f"Finished updating of {self.GetName()}.",False):
                 # update the control thickness field
-                self.control_phi_field = new_control_field
+                self.control_phi_field.data[:] = new_control_field.data
                 # now update the physical field
                 self._UpdateAndOutputFields(update)
 
@@ -182,22 +184,23 @@ class MaterialPropertiesControl(Control):
                 return True
         return False
 
-    def _UpdateAndOutputFields(self, update: ContainerExpressionTypes) -> None:
+    def _UpdateAndOutputFields(self, update: Kratos.TensorAdaptors.DoubleTensorAdaptor) -> None:
         # filter the control field
         filtered_phi_field_update = self.filter.ForwardFilterField(update)
-        self.physical_phi_field = Kratos.Expression.Utils.Collapse(self.physical_phi_field + filtered_phi_field_update)
+        self.physical_phi_field.data[:] += filtered_phi_field_update.data
 
         # project forward the filtered thickness field to get clamped physical field
-        physical_field = self.interval_bounder.GetUnboundedExpression(self.clamper.ProjectForward(self.physical_phi_field))
+        physical_field = self.interval_bounder.GetUnboundedTensorAdaptor(self.clamper.ProjectForward(self.physical_phi_field))
 
         # now update physical field
-        KratosOA.PropertiesVariableExpressionIO.Write(physical_field, self.controlled_physical_variable)
+        KratosOA.TensorAdaptors.PropertiesVariableTensorAdaptor(physical_field, self.controlled_physical_variable, copy=False).StoreData()
         if self.consider_recursive_property_update:
             KratosOA.OptimizationUtils.UpdatePropertiesVariableWithRootValueRecursively(physical_field.GetContainer(), self.controlled_physical_variable)
 
         # compute and store projection derivatives for consistent filtering of the sensitivities
         # this is dphi/dphysical -> physical_phi_derivative_field
-        self.physical_phi_derivative_field = self.clamper.CalculateForwardProjectionGradient(self.physical_phi_field) * self.interval_bounder.GetBoundGap()
+        self.physical_phi_derivative_field = self.clamper.CalculateForwardProjectionGradient(self.physical_phi_field)
+        self.physical_phi_derivative_field.data[:] *= self.interval_bounder.GetBoundGap()
 
         # now output the fields
         un_buffered_data = ComponentDataView(self, self.optimization_problem).GetUnBufferedData()

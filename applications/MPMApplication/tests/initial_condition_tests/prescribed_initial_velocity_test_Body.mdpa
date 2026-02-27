@@ -1,0 +1,37 @@
+Begin ModelPartData
+//  VARIABLE_NAME value
+End ModelPartData
+
+Begin Properties 0
+End Properties
+Begin Nodes
+    9 0.4 0.4 0.0
+    16 0.6 0.4 0.0
+    17 0.4 0.6 0.0
+    24 0.6 0.6 0.0
+End Nodes
+
+
+Begin Elements MPMUpdatedLagrangian2D4N// GUI group identifier: Material domain Auto1
+       26          0    16    24    17     9 
+End Elements
+
+Begin SubModelPart Parts_Material_domain_Material_domain_Auto1 // Group Material domain Auto1 // Subtree Parts_Material_domain
+    Begin SubModelPartNodes
+            9
+           16
+           17
+           24
+    End SubModelPartNodes
+    Begin SubModelPartElements
+           26
+    End SubModelPartElements
+End SubModelPart
+Begin SubModelPart VELOCITY_Velocity_Auto1 // Group Velocity Auto1 // Subtree VELOCITY
+    Begin SubModelPartNodes
+            9
+           16
+           17
+           24
+    End SubModelPartNodes
+End SubModelPart

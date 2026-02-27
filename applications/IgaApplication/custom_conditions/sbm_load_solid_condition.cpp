@@ -18,6 +18,7 @@
 
 // Project includes
 #include "custom_conditions/sbm_load_solid_condition.h"
+#include "includes/global_pointer_variables.h"
 
 namespace Kratos
 {
@@ -115,7 +116,26 @@ void SbmLoadSolidCondition::InitializeMemberVariables()
 
 void SbmLoadSolidCondition::InitializeSbmMemberVariables()
 {
-    const auto& r_geometry = this->GetGeometry();
+    auto& r_geometry = this->GetGeometry();
+    std::string loopIdentifier = this->GetValue(IDENTIFIER);
+
+    // NURBS case
+    if (this->GetValue(NEIGHBOUR_NODES).size() != 0) 
+    {
+        mpProjectionNode = &r_geometry.GetValue(NEIGHBOUR_NODES)[0];
+
+        mTrueNormal = mpProjectionNode->GetValue(NORMAL);
+
+        if (loopIdentifier == "inner")
+            mTrueNormal = -mTrueNormal;
+            
+        mDistanceVector.resize(3);
+        noalias(mDistanceVector) = mpProjectionNode->Coordinates() - r_geometry.Center().Coordinates();
+
+        // dot product n dot n_tilde
+        mTrueDotSurrogateNormal = inner_prod(mNormalParameterSpace, mTrueNormal);
+        return;
+    }
 
     // Retrieve projection
     Condition candidate_closest_skin_segment_1 = this->GetValue(NEIGHBOUR_CONDITIONS)[0] ;
@@ -139,7 +159,6 @@ void SbmLoadSolidCondition::InitializeSbmMemberVariables()
 
     // calculate the integration weight
     // loopIdentifier is inner or outer
-    std::string loopIdentifier = this->GetValue(IDENTIFIER);
     if (mDim == 2) {
         // Need also the second closest condition in 2D
         Condition candidate_closest_skin_segment_2 = this->GetValue(NEIGHBOUR_CONDITIONS)[1] ;
@@ -272,7 +291,7 @@ void SbmLoadSolidCondition::CalculateLeftHandSide(
 
     // compute Taylor expansion contribution: H_sum_vec
     Matrix grad_H_sum_transposed = ZeroMatrix(3, number_of_control_points);
-    ComputeGradientTaylorExpansionContribution(grad_H_sum_transposed);
+    ComputeGradientTaylorExpansionContribution(mDistanceVector, grad_H_sum_transposed);
 
     Matrix grad_H_sum = trans(grad_H_sum_transposed);
 
@@ -301,7 +320,6 @@ void SbmLoadSolidCondition::CalculateLeftHandSide(
             }
         }
     }
-
 
     KRATOS_CATCH("")
 }
@@ -363,7 +381,7 @@ void SbmLoadSolidCondition::CalculateRightHandSide(
 
     // compute Taylor expansion contribution: H_sum_vec
     Matrix grad_H_sum_transposed = ZeroMatrix(3, number_of_control_points);
-    ComputeGradientTaylorExpansionContribution(grad_H_sum_transposed);
+    ComputeGradientTaylorExpansionContribution(mDistanceVector, grad_H_sum_transposed);
 
     Matrix grad_H_sum = trans(grad_H_sum_transposed);
 
@@ -423,7 +441,6 @@ void SbmLoadSolidCondition::CalculateRightHandSide(
 
             // Residual terms
             // FLUX STANDARD TERM
-            
             rRightHandSideVector(iglob) += r_N(0,i) * normal_stress_old[idim] * int_to_reference_weight;
         
             // // SBM TERM
@@ -563,8 +580,8 @@ void SbmLoadSolidCondition::CalculateRightHandSide(
         r_geometry.Jacobian(J0,this->GetIntegrationMethod());
         double detJ0;
         // MODIFIED
-        Vector old_displacement(mat_size);
-        GetSolutionCoefficientVector(old_displacement);
+        Vector displacement_coefficient_vector(mat_size);
+        GetSolutionCoefficientVector(displacement_coefficient_vector);
         
         Matrix Jacobian = ZeroMatrix(2,2);
         Jacobian(0,0) = J0[0](0,0);
@@ -584,11 +601,11 @@ void SbmLoadSolidCondition::CalculateRightHandSide(
         CalculateB(B, DN_DX);
 
         // GET STRESS VECTOR
-        ConstitutiveLaw::Parameters Values(r_geometry, GetProperties(), rCurrentProcessInfo);
+        ConstitutiveLaw::Parameters values_surrogate(r_geometry, GetProperties(), rCurrentProcessInfo);
 
         const SizeType strain_size = mpConstitutiveLaw->GetStrainSize();
         // Set constitutive law flags:
-        Flags& ConstitutiveLawOptions=Values.GetOptions();
+        Flags& ConstitutiveLawOptions=values_surrogate.GetOptions();
 
         ConstitutiveLawOptions.Set(ConstitutiveLaw::USE_ELEMENT_PROVIDED_STRAIN, true);
         ConstitutiveLawOptions.Set(ConstitutiveLaw::COMPUTE_STRESS, true);
@@ -597,14 +614,14 @@ void SbmLoadSolidCondition::CalculateRightHandSide(
 
         ConstitutiveVariables this_constitutive_variables(strain_size);
 
-        Vector old_strain = prod(B,old_displacement);
+        Vector old_strain = prod(B,displacement_coefficient_vector);
     
-        Values.SetStrainVector(old_strain);
-        Values.SetStressVector(this_constitutive_variables.StressVector);
-        Values.SetConstitutiveMatrix(this_constitutive_variables.D);
-        mpConstitutiveLaw->CalculateMaterialResponse(Values, ConstitutiveLaw::StressMeasure_Cauchy);
+        values_surrogate.SetStrainVector(old_strain);
+        values_surrogate.SetStressVector(this_constitutive_variables.StressVector);
+        values_surrogate.SetConstitutiveMatrix(this_constitutive_variables.D);
+        mpConstitutiveLaw->CalculateMaterialResponse(values_surrogate, ConstitutiveLaw::StressMeasure_Cauchy);
 
-        const Vector sigma = Values.GetStressVector();
+        const Vector sigma = values_surrogate.GetStressVector();
         Vector sigma_n(2);
 
         sigma_n[0] = sigma[0]*mNormalPhysicalSpace[0] + sigma[2]*mNormalPhysicalSpace[1];
@@ -615,7 +632,6 @@ void SbmLoadSolidCondition::CalculateRightHandSide(
         SetValue(CAUCHY_STRESS_XX, sigma[0]);
         SetValue(CAUCHY_STRESS_YY, sigma[1]);
         SetValue(CAUCHY_STRESS_XY, sigma[2]);
-        // //---------------------
     }
 
 void SbmLoadSolidCondition::InitializeSolutionStep(const ProcessInfo& rCurrentProcessInfo){
@@ -628,7 +644,7 @@ void SbmLoadSolidCondition::InitializeSolutionStep(const ProcessInfo& rCurrentPr
 
 }
 
-void SbmLoadSolidCondition::ComputeGradientTaylorExpansionContribution(Matrix& grad_H_sum)
+void SbmLoadSolidCondition::ComputeGradientTaylorExpansionContribution(const Vector& rDistanceVector, Matrix& grad_H_sum)
 {
     const auto& r_geometry = this->GetGeometry();
     const SizeType number_of_control_points = r_geometry.PointsNumber();
@@ -661,13 +677,13 @@ void SbmLoadSolidCondition::ComputeGradientTaylorExpansionContribution(Matrix& g
                     IndexType n_k = n - 1 - k;
                     double derivative = shapeFunctionDerivatives(i,k); 
                     // Compute the Taylor term for this derivative
-                    H_taylor_term_X += ComputeTaylorTerm(derivative, mDistanceVector[0], n_k, mDistanceVector[1], k);
+                    H_taylor_term_X += ComputeTaylorTerm(derivative, rDistanceVector[0], n_k, rDistanceVector[1], k);
                 }
                 for (IndexType k = 0; k <= n-1; k++) {
                     IndexType n_k = n - 1 - k;
                     double derivative = shapeFunctionDerivatives(i,k+1); 
                     // Compute the Taylor term for this derivative
-                    H_taylor_term_Y += ComputeTaylorTerm(derivative, mDistanceVector[0], n_k, mDistanceVector[1], k);
+                    H_taylor_term_Y += ComputeTaylorTerm(derivative, rDistanceVector[0], n_k, rDistanceVector[1], k);
                 }
             }
         } else {
@@ -686,13 +702,13 @@ void SbmLoadSolidCondition::ComputeGradientTaylorExpansionContribution(Matrix& g
                         double derivative = shapeFunctionDerivatives(i,countDerivativeId); 
                         
                         if (k_x >= 1) {
-                            H_taylor_term_X += ComputeTaylorTerm3D(derivative, mDistanceVector[0], k_x-1, mDistanceVector[1], k_y, mDistanceVector[2], k_z);
+                            H_taylor_term_X += ComputeTaylorTerm3D(derivative, rDistanceVector[0], k_x-1, rDistanceVector[1], k_y, rDistanceVector[2], k_z);
                         }
                         if (k_y >= 1) {
-                            H_taylor_term_Y += ComputeTaylorTerm3D(derivative, mDistanceVector[0], k_x, mDistanceVector[1], k_y-1, mDistanceVector[2], k_z);
+                            H_taylor_term_Y += ComputeTaylorTerm3D(derivative, rDistanceVector[0], k_x, rDistanceVector[1], k_y-1, rDistanceVector[2], k_z);
                         }
                         if (k_z >= 1) {
-                            H_taylor_term_Z += ComputeTaylorTerm3D(derivative, mDistanceVector[0], k_x, mDistanceVector[1], k_y, mDistanceVector[2], k_z-1);
+                            H_taylor_term_Z += ComputeTaylorTerm3D(derivative, rDistanceVector[0], k_x, rDistanceVector[1], k_y, rDistanceVector[2], k_z-1);
                         }     
                         countDerivativeId++;
                     }

@@ -81,7 +81,7 @@ Begin Conditions SurfaceCondition3D3N// GUI group identifier: _HIDDEN__SKIN_
     22 0 2 1 5
 End Conditions
 
-Begin SubModelPart MainModelPart // Group Parts Auto1 // Subtree Parts
+Begin SubModelPart FluidModelPart // Group Parts Auto1 // Subtree Parts
     Begin SubModelPartNodes
             1
             2

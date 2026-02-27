@@ -11,8 +11,8 @@
 //
 
 #include "custom_elements/interface_stress_state.h"
-#include "custom_geometries/interface_geometry.h"
-#include "custom_utilities/registration_utilities.h"
+#include "custom_geometries/interface_geometry.hpp"
+#include "custom_utilities/registration_utilities.hpp"
 #include "includes/stream_serializer.h"
 #include "tests/cpp_tests/geo_mechanics_fast_suite.h"
 #include "tests/cpp_tests/test_utilities.h"
@@ -153,8 +153,8 @@ KRATOS_TEST_CASE_IN_SUITE(Line2DInterfaceStressState_CanBeSavedAndLoadedThroughI
                           KratosGeoMechanicsFastSuiteWithoutKernel)
 {
     // Arrange
-    const auto scoped_registration =
-        ScopedSerializerRegistration{"Line2DInterfaceStressState"s, Line2DInterfaceStressState{}};
+    const auto scoped_registration = ScopedSerializerRegistration{
+        std::make_pair("Line2DInterfaceStressState"s, Line2DInterfaceStressState{})};
     const auto p_policy =
         std::unique_ptr<StressStatePolicy>{std::make_unique<Line2DInterfaceStressState>()};
     auto serializer = StreamSerializer{};
@@ -271,8 +271,8 @@ KRATOS_TEST_CASE_IN_SUITE(SurfaceInterfaceStressState_CanBeSavedAndLoadedThrough
                           KratosGeoMechanicsFastSuiteWithoutKernel)
 {
     // Arrange
-    const auto scoped_registration =
-        ScopedSerializerRegistration{"SurfaceInterfaceStressState"s, SurfaceInterfaceStressState{}};
+    const auto scoped_registration = ScopedSerializerRegistration{
+        std::make_pair("SurfaceInterfaceStressState"s, SurfaceInterfaceStressState{})};
     const auto p_policy =
         std::unique_ptr<StressStatePolicy>{std::make_unique<SurfaceInterfaceStressState>()};
     auto serializer = StreamSerializer{};

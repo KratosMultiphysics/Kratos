@@ -1,9 +1,7 @@
 from math import log
 import KratosMultiphysics as Kratos
-import KratosMultiphysics.OptimizationApplication as KratosOA
 from KratosMultiphysics.OptimizationApplication.responses.response_function import ResponseFunction
 from KratosMultiphysics.OptimizationApplication.responses.response_function import SupportedSensitivityFieldVariableTypes
-from KratosMultiphysics.OptimizationApplication.utilities.union_utilities import SupportedSensitivityFieldVariableTypes
 from KratosMultiphysics.OptimizationApplication.utilities.optimization_problem import OptimizationProblem
 from KratosMultiphysics.OptimizationApplication.utilities.response_utilities import EvaluateValue
 from KratosMultiphysics.OptimizationApplication.utilities.response_utilities import EvaluateGradient
@@ -32,13 +30,15 @@ class LogResponseFunction(ResponseFunction):
     def CalculateValue(self) -> float:
         return log(EvaluateValue(self.response_function, self.optimization_problem))
 
-    def CalculateGradient(self, physical_variable_collective_expressions: 'dict[SupportedSensitivityFieldVariableTypes, KratosOA.CollectiveExpression]') -> None:
+    def CalculateGradient(self, physical_variable_combined_tensor_adaptor: 'dict[SupportedSensitivityFieldVariableTypes, Kratos.TensorAdaptors.DoubleCombinedTensorAdaptor]') -> None:
         v = EvaluateValue(self.response_function, self.optimization_problem)
-        resp_physical_variable_collective_expressions = EvaluateGradient(self.response_function, physical_variable_collective_expressions, self.optimization_problem)
 
-        for variable, collective_expression in physical_variable_collective_expressions.items():
-            for result, g in zip(collective_expression.GetContainerExpressions(), resp_physical_variable_collective_expressions[variable].GetContainerExpressions()):
-                result.SetExpression((g / v).GetExpression())
+        resp_gradients = {var: Kratos.TensorAdaptors.DoubleCombinedTensorAdaptor(cta) for var, cta in physical_variable_combined_tensor_adaptor.items()}
+        EvaluateGradient(self.response_function, resp_gradients, self.optimization_problem)
+
+        for variable, cta in physical_variable_combined_tensor_adaptor.items():
+            cta.data = resp_gradients[variable].data / v
+            Kratos.TensorAdaptors.DoubleCombinedTensorAdaptor(cta, perform_collect_data_recursively=False, perform_store_data_recursively=False, copy=False).StoreData()
 
     def GetChildResponses(self) -> 'list[ResponseFunction]':
         return [self.response_function]

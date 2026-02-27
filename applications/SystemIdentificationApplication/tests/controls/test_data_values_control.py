@@ -1,3 +1,4 @@
+import numpy as np
 import KratosMultiphysics as Kratos
 import KratosMultiphysics.StructuralMechanicsApplication as KratosSM
 import KratosMultiphysics.KratosUnittest as kratos_unittest
@@ -71,11 +72,11 @@ class TestDataValuesControl_nodal_historical(kratos_unittest.TestCase):
             node.SetSolutionStepValue(Kratos.TEMPERATURE, -2.5)
 
         cls.temperature_control.Initialize()
-        cls.initial_temperature = Kratos.Expression.NodalExpression(cls.model_part)
-        Kratos.Expression.VariableExpressionIO.Read(cls.initial_temperature, Kratos.TEMPERATURE, 1)
+        cls.initial_temperature = Kratos.TensorAdaptors.HistoricalVariableTensorAdaptor(cls.model_part.Nodes, Kratos.TEMPERATURE)
+        cls.initial_temperature.CollectData()
 
     def setUp(self) -> None:
-        Kratos.Expression.VariableExpressionIO.Write(self.initial_temperature, Kratos.TEMPERATURE, 1)
+        self.initial_temperature.CollectData()
 
     @classmethod
     def tearDownClass(cls):
@@ -88,17 +89,18 @@ class TestDataValuesControl_nodal_historical(kratos_unittest.TestCase):
 
     def test_GetControlField(self):
         control_field = self.temperature_control.GetControlField()
-        self.assertAlmostEqual(Kratos.Expression.Utils.NormInf(control_field), 0.0, 4)
+        self.assertAlmostEqual(np.linalg.norm(control_field.data), 0.0, 4)
 
     def test_GetPhysicalField(self):
         temperature_field = self.temperature_control.GetPhysicalField()
-        self.assertAlmostEqual(Kratos.Expression.Utils.NormL2(temperature_field), 7.5, 4)
+        self.assertAlmostEqual(np.linalg.norm(temperature_field.data), 7.5, 4)
 
     def test_MapGradient(self):
         physical_gradient = self.temperature_control.GetEmptyField()
         for node in physical_gradient.GetContainer():
             node.SetValue(KratosSM.TEMPERATURE_SENSITIVITY, 1)
-        Kratos.Expression.VariableExpressionIO.Read(physical_gradient, KratosSM.TEMPERATURE_SENSITIVITY, 0)
+        Kratos.TensorAdaptors.VariableTensorAdaptor(physical_gradient, KratosSM.TEMPERATURE_SENSITIVITY, copy=False).CollectData()
+
         mapped_gradient = self.temperature_control.MapGradient({Kratos.TEMPERATURE: physical_gradient})
         # physical = -2.5
         # ProjectBackward: phi = 0.5 - sin(asin(1-2*(physical - min)/delta)/3) = 0.3263518223
@@ -107,24 +109,24 @@ class TestDataValuesControl_nodal_historical(kratos_unittest.TestCase):
         # BackwardFilterIntegratedField: d_J/d_physical * d_physical/d_phi -> d_J/d_control (mapped gradient)
         # For Integrated type: domain_size (of node_1) = element_area / num_nodes = 0.125 / 3 = 0.0416667
         # BackwardFilterIntegratedField: (1 * 13.19077862357725) / 0.0416667 = 316.57868697 (mapped gradient)
-        self.assertAlmostEqual(Kratos.Expression.Utils.NormInf(mapped_gradient), 316.57868697, 4)
+        self.assertAlmostEqual(np.linalg.norm(mapped_gradient.data, ord=np.inf), 316.57868697, 4)
 
     def test_Update(self):
         update_field = self.temperature_control.GetEmptyField()
-        Kratos.Expression.LiteralExpressionIO.SetData(update_field, 0.25)
+        update_field.data[:] = 0.25
         temperature_field = self.temperature_control.GetPhysicalField()
         control_field = self.temperature_control.GetControlField()
         self.temperature_control.Update(update_field)
         control_field = self.temperature_control.GetControlField()
         temperature_field = self.temperature_control.GetPhysicalField()
-        self.assertAlmostEqual(Kratos.Expression.Utils.NormInf(control_field), 0.25, 4)
+        self.assertAlmostEqual(np.linalg.norm(control_field.data, ord=np.inf), 0.25, 4)
         # ForwardFilter: control_update -> phi_update (Here, filter radius ~ 0. Therefore, both are the same = 0.25)
         # physical = -2.5
         # phi = 0.5 - sin(asin(1-2*(physical - min)/delta)/3) = 0.3263518223
         # phi_updated = phi_current + phi_update = 0.3263518223 + 0.25 = 0.5763518223
         # ProjectForward: phi_updated -> physical_updated
         # physical_updated = physical_min + phi_updated²*(3 - 2*phi_updated)* delta = 1.136375322
-        self.assertAlmostEqual(Kratos.Expression.Utils.NormInf(temperature_field), 1.136375322, 6)
+        self.assertAlmostEqual(np.linalg.norm(temperature_field.data, ord=np.inf), 1.136375322, 6)
 
 class TestDataValuesControl_condition(kratos_unittest.TestCase):
     @classmethod
@@ -188,11 +190,11 @@ class TestDataValuesControl_condition(kratos_unittest.TestCase):
             condition.SetValue(Kratos.PRESSURE, -2.5)
 
         cls.pressure_control.Initialize()
-        cls.initial_pressure = Kratos.Expression.ConditionExpression(cls.model_part)
-        Kratos.Expression.VariableExpressionIO.Read(cls.initial_pressure, Kratos.PRESSURE)
+        cls.initial_pressure = Kratos.TensorAdaptors.VariableTensorAdaptor(cls.model_part.Conditions, Kratos.PRESSURE)
+        cls.initial_pressure.CollectData()
 
     def setUp(self) -> None:
-        Kratos.Expression.VariableExpressionIO.Write(self.initial_pressure, Kratos.PRESSURE)
+        self.initial_pressure.CollectData()
 
     @classmethod
     def tearDownClass(cls):
@@ -205,17 +207,17 @@ class TestDataValuesControl_condition(kratos_unittest.TestCase):
 
     def test_GetControlField(self):
         control_field = self.pressure_control.GetControlField()
-        self.assertAlmostEqual(Kratos.Expression.Utils.NormInf(control_field), 0.0, 4)
+        self.assertAlmostEqual(np.linalg.norm(control_field.data, ord=np.inf), 0.0, 4)
 
     def test_GetPhysicalField(self):
         pressure_field = self.pressure_control.GetPhysicalField()
-        self.assertAlmostEqual(Kratos.Expression.Utils.NormL2(pressure_field), 3.535533906, 4)
+        self.assertAlmostEqual(np.linalg.norm(pressure_field.data), 3.535533906, 4)
 
     def test_MapGradient(self):
         physical_gradient = self.pressure_control.GetEmptyField()
         for condition in physical_gradient.GetContainer():
             condition.SetValue(KratosSM.PRESSURE_SENSITIVITY, 1)
-        Kratos.Expression.VariableExpressionIO.Read(physical_gradient, KratosSM.PRESSURE_SENSITIVITY)
+        Kratos.TensorAdaptors.VariableTensorAdaptor(physical_gradient, KratosSM.PRESSURE_SENSITIVITY, copy=False).CollectData()
         mapped_gradient = self.pressure_control.MapGradient({Kratos.PRESSURE: physical_gradient})
         # physical = -2.5
         # ProjectBackward: phi = 0.5 - sin(asin(1-2*(physical - min)/delta)/3) = 0.3263518223
@@ -224,24 +226,24 @@ class TestDataValuesControl_condition(kratos_unittest.TestCase):
         # BackwardFilterIntegratedField: d_J/d_physical * d_physical/d_phi -> d_J/d_control (mapped gradient)
         # For Integrated type: domain_size (of condition_1) = condition_area = 0.25
         # BackwardFilterIntegratedField: (1 * 13.19077862357725) / 0.25 = 52.76311449 (mapped gradient)
-        self.assertAlmostEqual(Kratos.Expression.Utils.NormInf(mapped_gradient), 52.76311449, 4)
+        self.assertAlmostEqual(np.linalg.norm(mapped_gradient.data, ord=np.inf), 52.76311449, 4)
 
     def test_Update(self):
         update_field = self.pressure_control.GetEmptyField()
-        Kratos.Expression.LiteralExpressionIO.SetData(update_field, 0.25)
+        update_field.data[:] = 0.25
         pressure_field = self.pressure_control.GetPhysicalField()
         control_field = self.pressure_control.GetControlField()
         self.pressure_control.Update(update_field)
         control_field = self.pressure_control.GetControlField()
         pressure_field = self.pressure_control.GetPhysicalField()
-        self.assertAlmostEqual(Kratos.Expression.Utils.NormInf(control_field), 0.25, 4)
+        self.assertAlmostEqual(np.linalg.norm(control_field.data, ord=np.inf), 0.25, 4)
         # ForwardFilter: control_update -> phi_update (Here, filter radius ~ 0. Therefore, both are the same = 0.25)
         # physical = -2.5
         # phi = 0.5 - sin(asin(1-2*(physical - min)/delta)/3) = 0.3263518223
         # phi_updated = phi_current + phi_update = 0.3263518223 + 0.25 = 0.5763518223
         # ProjectForward: phi_updated -> physical_updated
         # physical_updated = physical_min + phi_updated²*(3 - 2*phi_updated)* delta = 1.136375322
-        self.assertAlmostEqual(Kratos.Expression.Utils.NormInf(pressure_field), 1.136375322, 6)
+        self.assertAlmostEqual(np.linalg.norm(pressure_field.data, ord=np.inf), 1.136375322, 6)
 
 if __name__ == "__main__":
     kratos_unittest.main()

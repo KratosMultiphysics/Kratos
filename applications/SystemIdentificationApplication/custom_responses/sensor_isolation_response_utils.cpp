@@ -15,7 +15,6 @@
 // Project includes
 #include "utilities/parallel_utilities.h"
 #include "utilities/reduction_utilities.h"
-#include "expression/literal_flat_expression.h"
 
 // Application includes
 #include "custom_utilities/smooth_clamper.h"
@@ -37,7 +36,7 @@ double SensorIsolationResponseUtils::CalculateValue(
 {
     KRATOS_TRY
 
-    SmoothClamper<ModelPart::NodesContainerType> clamper(0.0, 1.0);
+    SmoothClamper clamper(0.0, 1.0);
 
     return IndexPartition<IndexType>(rDistanceMatrix.GetEntriesSize()).for_each<SumReduction<double>>([&rModelPart, &rDistanceMatrix, &clamper, Radius](const auto Index) {
         const auto& index_pair = rDistanceMatrix.GetIndexPair(Index);
@@ -51,19 +50,20 @@ double SensorIsolationResponseUtils::CalculateValue(
     KRATOS_CATCH("");
 }
 
-ContainerExpression<ModelPart::NodesContainerType> SensorIsolationResponseUtils::CalculateGradient(
+TensorAdaptor<double>::Pointer SensorIsolationResponseUtils::CalculateGradient(
     ModelPart& rModelPart,
     const double Radius,
     const DistanceMatrix& rDistanceMatrix)
 {
     KRATOS_TRY
 
-    auto p_expression = LiteralFlatExpression<double>::Create(rModelPart.NumberOfNodes(), {});
+    auto p_result = Kratos::make_shared<TensorAdaptor<double>>(rModelPart.pNodes(), Kratos::make_shared<NDData<double>>(DenseVector<unsigned int>(1, rModelPart.NumberOfNodes())));
+    auto result_data_view = p_result->ViewData();
 
-    SmoothClamper<ModelPart::NodesContainerType> clamper(0.0, 1.0);
+    SmoothClamper clamper(0.0, 1.0);
 
-    IndexPartition<IndexType>(rModelPart.NumberOfNodes()).for_each([&p_expression, &rModelPart, &rDistanceMatrix, &clamper, Radius](const auto k) {
-        double& r_value = *(p_expression->begin() + k);
+    IndexPartition<IndexType>(rModelPart.NumberOfNodes()).for_each([&result_data_view, &rModelPart, &rDistanceMatrix, &clamper, Radius](const auto k) {
+        double& r_value = result_data_view[k];
         r_value = 0.0;
         for (IndexType i = 0; i < k; ++i) {
             r_value += (rModelPart.NodesBegin() + i)->GetValue(SENSOR_STATUS) * clamper.ProjectForward(1 - rDistanceMatrix.GetDistance(i, k) / Radius);
@@ -73,9 +73,7 @@ ContainerExpression<ModelPart::NodesContainerType> SensorIsolationResponseUtils:
         }
     });
 
-    ContainerExpression<ModelPart::NodesContainerType> result(rModelPart);
-    result.SetExpression(p_expression);
-    return result;
+    return p_result;
 
     KRATOS_CATCH("");
 }

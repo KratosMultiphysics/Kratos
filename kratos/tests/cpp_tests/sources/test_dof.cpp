@@ -122,6 +122,27 @@ KRATOS_TEST_CASE_IN_SUITE(DofEquationId, KratosCoreFastSuite)
     KRATOS_EXPECT_EQ(eq_id, p_dof->EquationId());
 }
 
+KRATOS_TEST_CASE_IN_SUITE(DofEffectiveEquationId, KratosCoreFastSuite)
+{
+    Model current_model;
+    ModelPart& model_part = current_model.CreateModelPart("TestModelPart");
+
+    model_part.AddNodalSolutionStepVariable(VELOCITY);
+    model_part.AddNodalSolutionStepVariable(REACTION);
+
+    model_part.SetBufferSize(1);
+
+    auto p_node = model_part.CreateNewNode(1, 0.0, 0.0, 0.0);
+
+    auto p_dof = p_node->pAddDof(VELOCITY_Y, REACTION_Y);
+
+    const std::size_t eff_eq_id= 569;
+
+    p_dof->SetEffectiveEquationId(eff_eq_id);
+
+    KRATOS_EXPECT_EQ(eff_eq_id, p_dof->EffectiveEquationId());
+}
+
 KRATOS_TEST_CASE_IN_SUITE(DofId, KratosCoreFastSuite)
 {
     Model current_model;

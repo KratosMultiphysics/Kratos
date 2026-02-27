@@ -1,7 +1,6 @@
 from typing import Optional
 
 import KratosMultiphysics as Kratos
-import KratosMultiphysics.OptimizationApplication as KratosOA
 from KratosMultiphysics.OptimizationApplication.responses.response_function import ResponseFunction
 from KratosMultiphysics.OptimizationApplication.utilities.union_utilities import SupportedSensitivityFieldVariableTypes
 from KratosMultiphysics.OptimizationApplication.utilities.model_part_utilities import ModelPartOperation
@@ -100,31 +99,29 @@ class CombinedResponseFunction(ResponseFunction):
             raise RuntimeError(f"Unsupported combining_method = \"{self.combining_method}\". Followings are supported:\n\tsum")
         return value
 
-    def CalculateGradient(self, physical_variable_collective_expressions: 'dict[SupportedSensitivityFieldVariableTypes, KratosOA.CollectiveExpression]') -> None:
+    def CalculateGradient(self, physical_variable_combined_tensor_adaptor: 'dict[SupportedSensitivityFieldVariableTypes, Kratos.TensorAdaptors.DoubleCombinedTensorAdaptor]') -> None:
         # make everything zeros
-        for physical_variable, collective_expression in physical_variable_collective_expressions.items():
-            for container_expression in collective_expression.GetContainerExpressions():
-                Kratos.Expression.LiteralExpressionIO.SetDataToZero(container_expression, physical_variable)
+        for _, combined_tensor_adaptor in physical_variable_combined_tensor_adaptor.items():
+            combined_tensor_adaptor.data[:] = 0.0
+            Kratos.TensorAdaptors.DoubleCombinedTensorAdaptor(combined_tensor_adaptor, perform_store_data_recursively=False, copy=False).StoreData()
 
         for response_function, weight in self.list_of_responses:
             # get the map for the response function
-            sub_physical_variable_collective_expressions: 'dict[SupportedSensitivityFieldVariableTypes, KratosOA.CollectiveExpression]' = {}
-            for physical_variable, collective_expression in physical_variable_collective_expressions.items():
+            sub_physical_variable_combined_tensor_adaptor: 'dict[SupportedSensitivityFieldVariableTypes, Kratos.TensorAdaptors.DoubleCombinedTensorAdaptor]' = {}
+            for physical_variable, combined_tensor_adaptor in physical_variable_combined_tensor_adaptor.items():
                 if physical_variable in response_function.GetImplementedPhysicalKratosVariables():
-                    sub_physical_variable_collective_expressions[physical_variable] = collective_expression.Clone()
+                    sub_physical_variable_combined_tensor_adaptor[physical_variable] = combined_tensor_adaptor.Clone()
 
             # calculate the gradients
-            response_function.CalculateGradient(sub_physical_variable_collective_expressions)
+            response_function.CalculateGradient(sub_physical_variable_combined_tensor_adaptor)
 
             # now aggregate the gradients
-            for physical_variable, local_collective_expression in sub_physical_variable_collective_expressions.items():
-                self.unbuffered_data.SetValue(f"d{response_function.GetName()}_d{physical_variable.Name()}", local_collective_expression, overwrite=True)
-                combined_collective_expression = physical_variable_collective_expressions[physical_variable]
-                for i, local_container_expression in enumerate(local_collective_expression.GetContainerExpressions()):
-                    local_exp = local_container_expression
-                    combined_container_exp = combined_collective_expression.GetContainerExpressions()[i]
+            for physical_variable, local_combined_tensor_adaptor in sub_physical_variable_combined_tensor_adaptor.items():
+                self.unbuffered_data.SetValue(f"d{response_function.GetName()}_d{physical_variable.Name()}", local_combined_tensor_adaptor.Clone(), overwrite=True)
+                if self.combining_method == "sum":
+                    physical_variable_combined_tensor_adaptor[physical_variable].data[:] += local_combined_tensor_adaptor.data[:] * weight
+                else:
+                    raise RuntimeError(f"Unsupported combining_method = \"{self.combining_method}\". Followings are supported:\n\tsum")
 
-                    if self.combining_method == "sum":
-                        combined_container_exp.SetExpression(Kratos.Expression.Utils.Collapse(combined_container_exp + local_exp * weight).GetExpression())
-                    else:
-                        raise RuntimeError(f"Unsupported combining_method = \"{self.combining_method}\". Followings are supported:\n\tsum")
+        for _, combined_tensor_adaptor in physical_variable_combined_tensor_adaptor.items():
+            Kratos.TensorAdaptors.DoubleCombinedTensorAdaptor(combined_tensor_adaptor, perform_store_data_recursively=False, copy=False).StoreData()

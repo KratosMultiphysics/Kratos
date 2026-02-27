@@ -21,8 +21,7 @@
 #include "includes/define.h"
 #include "includes/ublas_interface.h"
 #include "includes/model_part.h"
-#include "includes/data_communicator.h"
-#include "expression/container_expression.h"
+#include "tensor_adaptors/tensor_adaptor.h"
 
 // Application includes
 
@@ -37,18 +36,6 @@ public:
 
     using IndexType = std::size_t;
 
-    using MasksListType = std::variant<
-                                std::vector<ContainerExpression<ModelPart::NodesContainerType>::Pointer>,
-                                std::vector<ContainerExpression<ModelPart::ConditionsContainerType>::Pointer>,
-                                std::vector<ContainerExpression<ModelPart::ElementsContainerType>::Pointer>
-                            >;
-
-    using MaskContainerPointerType = std::variant<
-                                        ModelPart::NodesContainerType::Pointer,
-                                        ModelPart::ConditionsContainerType::Pointer,
-                                        ModelPart::ElementsContainerType::Pointer
-                                    >;
-
     KRATOS_CLASS_POINTER_DEFINITION(SensorMaskStatus);
 
     ///@}
@@ -57,7 +44,7 @@ public:
 
     SensorMaskStatus(
         ModelPart& rSensorModelPart,
-        const MasksListType& rMaskPointersList,
+        const std::vector<TensorAdaptor<double>::Pointer>& rMaskPointersList,
         const IndexType EchoLevel);
 
     ///@}
@@ -87,11 +74,6 @@ public:
     const ModelPart& GetSensorModelPart() const;
 
     /**
-     * @brief Get the mask model part
-     */
-    ModelPart* pGetMaskModelPart() const;
-
-    /**
      * @brief Get the Sensor Model Part object
      */
     ModelPart* pGetSensorModelPart() const;
@@ -99,7 +81,7 @@ public:
     /**
      * @brief Returns a pointer to the local container of the masks.
      */
-    MaskContainerPointerType pGetMaskContainer() const;
+    TensorAdaptor<double>::ContainerPointerType pGetMaskContainer() const;
 
     /**
      * @brief Updates the masks with the corresponding SENSOR_STATUS.
@@ -114,7 +96,7 @@ private:
 
     ModelPart * const mpSensorModelPart;
 
-    const MasksListType mMaskPointersList;
+    const std::vector<TensorAdaptor<double>::Pointer> mMaskPointersList;
 
     const IndexType mEchoLevel;
 

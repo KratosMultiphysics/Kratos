@@ -23,7 +23,6 @@
     "MPMApplication",
     "ChimeraApplication",
     "StatisticsApplication",
-    "SwimmingDEMApplication",
     "ConstitutiveLawsApplication",
     "RomApplication",
     "ShallowWaterApplication",

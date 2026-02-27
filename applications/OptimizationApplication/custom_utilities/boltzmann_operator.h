@@ -18,7 +18,7 @@
 // Project includes
 #include "includes/define.h"
 #include "includes/model_part.h"
-#include "expression/container_expression.h"
+#include "tensor_adaptors/tensor_adaptor.h"
 
 // Application includes
 
@@ -26,7 +26,6 @@ namespace Kratos {
 ///@name Kratos Classes
 ///@{
 
-template<class TContainerType>
 class BoltzmannOperator
 {
 public:
@@ -35,9 +34,7 @@ public:
 
     KRATOS_CLASS_POINTER_DEFINITION(BoltzmannOperator);
 
-    BoltzmannOperator(
-        const double Beta,
-        const double ScalingFactor);
+    BoltzmannOperator(const double Beta);
 
     ///@}
     ///@name Public operations
@@ -45,9 +42,9 @@ public:
 
     double CalculateValue() const;
 
-    typename ContainerExpression<TContainerType>::Pointer CalculateGradient() const;
+    TensorAdaptor<double>::Pointer CalculateGradient() const;
 
-    void Update(typename ContainerExpression<TContainerType>::Pointer pInputContainerExpression);
+    void Update(const TensorAdaptor<double>& rInputTensorAdaptor);
 
     ///@}
 private:
@@ -57,13 +54,13 @@ private:
 
     double mBeta;
 
-    double mScalingFactor;
-
     double mNumerator;
 
     double mDenominator;
 
-    typename ContainerExpression<TContainerType>::Pointer mpContainerExpression;
+    double mExtremeValue;
+
+    TensorAdaptor<double>::Pointer mpTensorAdaptor;
 
     ///@}
 };

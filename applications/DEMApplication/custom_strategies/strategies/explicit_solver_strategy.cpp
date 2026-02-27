@@ -1327,16 +1327,16 @@ namespace Kratos {
     
     void ExplicitSolverStrategy::SetNormalRadiiOnAllParticles(ModelPart& r_model_part) {
         KRATOS_TRY
-        int number_of_elements = r_model_part.GetCommunicator().LocalMesh().ElementsArray().end() - r_model_part.GetCommunicator().LocalMesh().ElementsArray().begin();
 
-        ProcessInfo& r_process_info = GetModelPart().GetProcessInfo();
-        bool is_radius_expansion = r_process_info[IS_RADIUS_EXPANSION];
-        
+        int number_of_elements = r_model_part.GetCommunicator().LocalMesh().ElementsArray().end() - r_model_part.GetCommunicator().LocalMesh().ElementsArray().begin();
+        bool is_radius_expansion = GetModelPart().GetProcessInfo()[IS_RADIUS_EXPANSION];
+
         if (!is_radius_expansion) {
             IndexPartition<unsigned int>(number_of_elements).for_each([&](unsigned int i){
                 mListOfSphericParticles[i]->SetRadius();
             });
-        } else {
+        }
+        else {
             SetExpandedRadiiOnAllParticles(number_of_elements);
         }
 
@@ -1348,16 +1348,13 @@ namespace Kratos {
 
         ProcessInfo& r_process_info = GetModelPart().GetProcessInfo();
         double radius_expansion_rate = r_process_info[RADIUS_EXPANSION_RATE];
+        double radius_multiplier_start_time = r_process_info[RADIUS_MULTIPLIER_START_TIME];
         double radius_multiplier_max = r_process_info[RADIUS_MULTIPLIER_MAX];
         double radius_multiplier;
         double radius_multiplier_old;
-        
         bool is_radius_expansion = true;
-        CalculateRadiusExpansionVariables(is_radius_expansion, 
-                                        radius_expansion_rate, 
-                                        radius_multiplier_max, 
-                                        radius_multiplier, 
-                                        radius_multiplier_old);
+
+        CalculateRadiusExpansionVariables(is_radius_expansion, radius_expansion_rate, radius_multiplier_start_time, radius_multiplier_max, radius_multiplier, radius_multiplier_old);
 
         IndexPartition<unsigned int>(number_of_elements).for_each([&](unsigned int i){
             mListOfSphericParticles[i]->SetRadius(is_radius_expansion, radius_expansion_rate, radius_multiplier_max, radius_multiplier, radius_multiplier_old);
@@ -1366,11 +1363,12 @@ namespace Kratos {
         KRATOS_CATCH("")
     }
 
-    void ExplicitSolverStrategy::CalculateRadiusExpansionVariables(bool& is_radius_expansion, 
-                                                                double& radius_expansion_rate, 
-                                                                double& radius_multiplier_max, 
-                                                                double& radius_multiplier, 
-                                                                double& radius_multiplier_old) {
+    void ExplicitSolverStrategy::CalculateRadiusExpansionVariables(bool& is_radius_expansion,
+                                                                   double& radius_expansion_rate,
+                                                                   double& radius_multiplier_start_time,
+                                                                   double& radius_multiplier_max,
+                                                                   double& radius_multiplier,
+                                                                   double& radius_multiplier_old) {
         KRATOS_TRY
 
         ProcessInfo& r_process_info = GetModelPart().GetProcessInfo();
@@ -1385,23 +1383,24 @@ namespace Kratos {
             double radius_expansion_rate_old = radius_expansion_rate + radius_expansion_acceleration * (time - delta_time);
             radius_expansion_rate += radius_expansion_acceleration * time;
 
-            if (radius_expansion_rate > radius_expansion_rate_min){
+            if (radius_expansion_rate > radius_expansion_rate_min) {
                 radius_multiplier = 1.0 + time * (radius_expansion_rate + radius_expansion_rate_ini) * 0.5;
                 radius_multiplier_old = 1.0 + (time - delta_time) * (radius_expansion_rate_old + radius_expansion_rate_ini) * 0.5;
-            } else {
+            }
+            else {
                 double time_needed = (radius_expansion_rate_min - radius_expansion_rate_ini) / radius_expansion_acceleration;
                 double radius_multiplier_part_1 = time_needed * (radius_expansion_rate_min + radius_expansion_rate_ini) * 0.5;
                 double radius_multiplier_part_2 = (time - time_needed) * radius_expansion_rate_min;
                 radius_multiplier = 1.0 + radius_multiplier_part_1 + radius_multiplier_part_2;
                 radius_multiplier_old = radius_multiplier - delta_time * radius_expansion_rate_min;
             }
-
-        } else {
+        }
+        else {
             radius_multiplier = 1.0 + time * radius_expansion_rate;
             radius_multiplier_old = 1.0 + (time - delta_time) * radius_expansion_rate;
         }
 
-        if (radius_multiplier > radius_multiplier_max) {
+        if (time < radius_multiplier_start_time || radius_multiplier > radius_multiplier_max) {
             is_radius_expansion = false;
         }
 

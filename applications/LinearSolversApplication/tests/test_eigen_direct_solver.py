@@ -7,11 +7,9 @@ import KratosMultiphysics.KratosUnittest as KratosUnittest
 from KratosMultiphysics.python_linear_solver_factory import ConstructSolver
 
 class TestEigenDirectSolver(KratosUnittest.TestCase):
-    def _execute_eigen_direct_solver_test(self, class_name, solver_type):
-        # check if solver is available
-        if (not hasattr(LinearSolversApplication, class_name)):
-            self.skipTest(class_name + " is not included in the compilation of the LinearSolversApplication")
-
+    def __ExecuteEigenDirectSolverTest(self,
+                                       class_name: str,
+                                       solver_type: str) -> None:
         space = KratosMultiphysics.UblasSparseSpace()
 
         settings = KratosMultiphysics.Parameters('{ "solver_type" : "LinearSolversApplication.' + solver_type + '" }')
@@ -46,11 +44,9 @@ class TestEigenDirectSolver(KratosUnittest.TestCase):
         for i in range(dimension):
             self.assertAlmostEqual(b_act[i], b_exp[i], 7)
 
-    def _execute_eigen_direct_complex_solver_test(self, class_name, solver_type):
-        # check if solver is available
-        if (not hasattr(LinearSolversApplication, class_name)):
-            self.skipTest(class_name + " is not included in the compilation of the LinearSolversApplication")
-
+    def __ExecuteEigenDirectComplexSolverTest(self,
+                                              class_name: str,
+                                              solver_type: str) -> None:
         space = KratosMultiphysics.UblasComplexSparseSpace()
 
         settings = KratosMultiphysics.Parameters('{ "solver_type" : "LinearSolversApplication.' + solver_type + '" }')
@@ -86,35 +82,61 @@ class TestEigenDirectSolver(KratosUnittest.TestCase):
         for i in range(dimension):
             self.assertAlmostEqual(b_act[i], b_exp[i], 7)
 
-    def test_eigen_sparse_lu(self):
-        self._execute_eigen_direct_solver_test('SparseLUSolver', 'sparse_lu')
+    def test_EigenSparseLU(self):
+        self.__ExecuteEigenDirectSolverTest('SparseLUSolver', 'sparse_lu')
 
-    def test_eigen_sparse_cg(self):
-        self._execute_eigen_direct_solver_test('SparseCGSolver', 'sparse_cg')
+    def test_EigenSparseCG(self):
+        self.__ExecuteEigenDirectSolverTest('SparseCGSolver', 'sparse_cg')
 
-    def test_eigen_sparse_qr(self):
-        self._execute_eigen_direct_solver_test('SparseQRSolver', 'sparse_qr')
+    def test_EigenSparseQR(self):
+        self.__ExecuteEigenDirectSolverTest('SparseQRSolver', 'sparse_qr')
 
-    def test_eigen_pardiso_lu(self):
-        self._execute_eigen_direct_solver_test('PardisoLUSolver', 'pardiso_lu')
+    @KratosUnittest.skipIf(not LinearSolversApplication.HasMKL(), "Kratos was compiled without MKL support.")
+    def test_EigenPardisoLU(self):
+        self.__ExecuteEigenDirectSolverTest('PardisoLUSolver', 'pardiso_lu')
 
-    def test_eigen_pardiso_ldlt(self):
-        self._execute_eigen_direct_solver_test('PardisoLDLTSolver', 'pardiso_ldlt')
+    @KratosUnittest.skipIf(not LinearSolversApplication.HasMKL(), "Kratos was compiled without MKL support.")
+    def test_EigenPardisoLDLT(self):
+        self.__ExecuteEigenDirectSolverTest('PardisoLDLTSolver', 'pardiso_ldlt')
 
-    def test_eigen_pardiso_llt(self):
-        self._execute_eigen_direct_solver_test('PardisoLLTSolver', 'pardiso_llt')
+    @KratosUnittest.skipIf(not LinearSolversApplication.HasMKL(), "Kratos was compiled without MKL support.")
+    def test_EigenPardisoLLT(self):
+        self.__ExecuteEigenDirectSolverTest('PardisoLLTSolver', 'pardiso_llt')
 
-    def test_eigen_complex_sparse_lu(self):
-        self._execute_eigen_direct_complex_solver_test('ComplexSparseLUSolver', 'sparse_lu_complex')
+    def test_EigenComplexSparseLU(self):
+        self.__ExecuteEigenDirectComplexSolverTest('ComplexSparseLUSolver', 'sparse_lu_complex')
 
-    def test_eigen_complex_pardiso_lu(self):
-        self._execute_eigen_direct_complex_solver_test('ComplexPardisoLUSolver', 'pardiso_lu_complex')
+    @KratosUnittest.skipIf(not LinearSolversApplication.HasMKL(), "Kratos was compiled without MKL support.")
+    def test_EigenComplexPardisoLU(self):
+        self.__ExecuteEigenDirectComplexSolverTest('ComplexPardisoLUSolver', 'pardiso_lu_complex')
 
-    def test_eigen_complex_pardiso_ldlt(self):
-        self._execute_eigen_direct_complex_solver_test('ComplexPardisoLDLTSolver', 'pardiso_ldlt_complex')
+    @KratosUnittest.skipIf(not LinearSolversApplication.HasMKL(), "Kratos was compiled without MKL support.")
+    def test_EigenComplexPardisoLDLT(self):
+        self.__ExecuteEigenDirectComplexSolverTest('ComplexPardisoLDLTSolver', 'pardiso_ldlt_complex')
 
-    def test_eigen_complex_pardiso_llt(self):
-        self._execute_eigen_direct_complex_solver_test('ComplexPardisoLLTSolver', 'pardiso_llt_complex')
+    @KratosUnittest.skipIf(not LinearSolversApplication.HasMKL(), "Kratos was compiled without MKL support.")
+    def test_EigenComplexPardisoLLT(self):
+        self.__ExecuteEigenDirectComplexSolverTest('ComplexPardisoLLTSolver', 'pardiso_llt_complex')
+
+    @KratosUnittest.skipIf(not LinearSolversApplication.HasSuiteSparse(), "Kratos was compiled without SuiteSparse support.")
+    def test_EigenCholmod(self) -> None:
+        self.__ExecuteEigenDirectSolverTest("CholmodSolver", "cholmod")
+
+    @KratosUnittest.skipIf(not LinearSolversApplication.HasSuiteSparse(), "Kratos was compiled without SuiteSparse support.")
+    def test_EigenUmfPack(self) -> None:
+        self.__ExecuteEigenDirectSolverTest("UmfPackSolver", "umfpack")
+
+    @KratosUnittest.skipIf(not LinearSolversApplication.HasSuiteSparse(), "Kratos was compiled without SuiteSparse support.")
+    def test_EigenSPQR(self) -> None:
+        self.__ExecuteEigenDirectSolverTest("SPQRSolver", "spqr")
+
+    @KratosUnittest.skipIf(not LinearSolversApplication.HasSuiteSparse(), "Kratos was compiled without SuiteSparse support.")
+    def test_ComplexEigenUmfPack(self) -> None:
+        self.__ExecuteEigenDirectComplexSolverTest("ComplexUmfPackSolver", "umfpack_complex")
+
+    @KratosUnittest.skipIf(not LinearSolversApplication.HasSuiteSparse(), "Kratos was compiled without SuiteSparse support.")
+    def test_ComplexEigenSPQR(self) -> None:
+        self.__ExecuteEigenDirectComplexSolverTest("ComplexSPQRSolver", "spqr_complex")
 
 if __name__ == '__main__':
     KratosUnittest.main()

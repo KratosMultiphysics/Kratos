@@ -3,25 +3,31 @@ import abc
 import KratosMultiphysics as Kratos
 
 from KratosMultiphysics.analysis_stage import AnalysisStage
-from KratosMultiphysics.OptimizationApplication.utilities.union_utilities import ContainerExpressionTypes
 from KratosMultiphysics.OptimizationApplication.utilities.union_utilities import SupportedSensitivityFieldVariableTypes
 
 class ResponseSensitivityAnalysis(AnalysisStage, abc.ABC):
     @abc.abstractmethod
-    def CalculateGradient(self, response_function: Kratos.AdjointResponseFunction) -> 'dict[SupportedSensitivityFieldVariableTypes, ContainerExpressionTypes]':
-        """Returns the gradient computed by using the provided adjoint response function.
+    def CalculateGradient(self, response_function: Kratos.AdjointResponseFunction) -> None:
+        """Calculate the gradient using the provided adjoint response function.
 
-        This method returns all the sensitivities computed from the given adjoint response function. The return
-        will be a dictionary having a pair with the variable as the key and a ContainerExpression as the value.
-        ContainerExpression will carry the sensitivity values.
+        This method calculate all the sensitivities using the given adjoint response function.
 
         Args:
             response_function (Kratos.AdjointResponseFunction): Adjoint response function to be used for sensitivity computation
-
-        Returns:
-            dict[str, ContainerExpressionTypes]: Sensitivities dictionary with variable and sensitivities as the pair.
         """
         pass
+
+    def GetGradient(self, sensitivity_variable: SupportedSensitivityFieldVariableTypes, gradient_tensor_adaptor: Kratos.TensorAdaptors.DoubleTensorAdaptor) -> None:
+        """Returns the gradients in the domain represented by gradient_tensor_adaptor tensor adaptor.
+
+        Args:
+            sensitivity_variable (SupportedSensitivityFieldVariableTypes): Sensitivity variable
+            gradient_tensor_adaptor (Kratos.TensorAdaptors.DoubleTensorAdaptor): TensorAdaptor to hold the gradients.
+        """
+        if isinstance(gradient_tensor_adaptor.GetContainer(), Kratos.NodesArray):
+            Kratos.TensorAdaptors.HistoricalVariableTensorAdaptor(gradient_tensor_adaptor, sensitivity_variable, copy=False).CollectData()
+        else:
+            Kratos.TensorAdaptors.VariableTensorAdaptor(gradient_tensor_adaptor, sensitivity_variable, copy=False).CollectData()
 
     def GetProcessesOrder(self) -> 'list[str]':
         """The order of execution of the process categories.

@@ -1,8 +1,6 @@
 import KratosMultiphysics as Kratos
-import KratosMultiphysics.OptimizationApplication as KratosOA
 from KratosMultiphysics.OptimizationApplication.responses.response_function import ResponseFunction
 from KratosMultiphysics.OptimizationApplication.responses.response_function import SupportedSensitivityFieldVariableTypes
-from KratosMultiphysics.OptimizationApplication.utilities.union_utilities import SupportedSensitivityFieldVariableTypes
 from KratosMultiphysics.OptimizationApplication.utilities.component_data_view import ComponentDataView
 from KratosMultiphysics.OptimizationApplication.utilities.optimization_problem import OptimizationProblem
 from KratosMultiphysics.OptimizationApplication.utilities.buffered_dict import BufferedDict
@@ -43,7 +41,7 @@ class EvaluationResponseFunction(ResponseFunction):
         # now calculate
         return self.response_function.CalculateValue()
 
-    def CalculateGradient(self, physical_variable_collective_expressions: 'dict[SupportedSensitivityFieldVariableTypes, KratosOA.CollectiveExpression]') -> None:
+    def CalculateGradient(self, physical_variable_combined_tensor_adaptor: 'dict[SupportedSensitivityFieldVariableTypes, Kratos.TensorAdaptors.DoubleCombinedTensorAdaptor]') -> None:
         # this response is used at the top most level of the evaluated chained responses.
         # so this creates a new data container under the optimization problem to avoid
         # having to compute the same response gradient twice.
@@ -53,7 +51,7 @@ class EvaluationResponseFunction(ResponseFunction):
         # reset data of the evaluation
         self.__ResetEvaluationData(self, unbuffered_data, "gradients")
 
-        return self.response_function.CalculateGradient(physical_variable_collective_expressions)
+        return self.response_function.CalculateGradient(physical_variable_combined_tensor_adaptor)
 
     def GetChildResponses(self) -> 'list[ResponseFunction]':
         return [self.response_function]

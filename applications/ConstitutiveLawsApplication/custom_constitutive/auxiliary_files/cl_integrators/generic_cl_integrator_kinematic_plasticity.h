@@ -87,13 +87,13 @@ class GenericConstitutiveLawIntegratorKinematicPlasticity
     static constexpr SizeType VoigtSize = YieldSurfaceType::VoigtSize;
 
     /// The definition of the Voigt array type
-    typedef array_1d<double, VoigtSize> BoundedArrayType;
+    using BoundedArrayType = array_1d<double, VoigtSize>;
 
     /// The definition of the bounded matrix type
-    typedef BoundedMatrix<double, Dimension, Dimension> BoundedMatrixType;
+    using BoundedMatrixType = BoundedMatrix<double, Dimension, Dimension>;
 
     /// The type of plastic potential
-    typedef typename YieldSurfaceType::PlasticPotentialType PlasticPotentialType;
+    using PlasticPotentialType = typename YieldSurfaceType::PlasticPotentialType;
 
     /// Counted pointer of GenericConstitutiveLawIntegratorKinematicPlasticity
     KRATOS_CLASS_POINTER_DEFINITION(GenericConstitutiveLawIntegratorKinematicPlasticity);

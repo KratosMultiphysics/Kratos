@@ -12,15 +12,11 @@
 #pragma once
 
 // System includes
-#include <vector>
-#include <string>
 
 // External includes
 
 // Project includes
-#include "expression/container_expression.h"
 #include "includes/define.h"
-#include "includes/kratos_parameters.h"
 
 // Application includes
 #include "custom_utilities/sensor_mask_status_kd_tree.h"
@@ -53,9 +49,9 @@ public:
 
     double CalculateValue();
 
-    ContainerExpression<ModelPart::NodesContainerType> CalculateGradient() const;
+    TensorAdaptor<double>::Pointer CalculateGradient() const;
 
-    ContainerExpression<ModelPart::ElementsContainerType> GetClusterSizes() const;
+    TensorAdaptor<double>::Pointer GetClusterSizes() const;
 
     ///@}
 

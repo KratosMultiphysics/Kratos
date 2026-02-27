@@ -3,7 +3,6 @@ import numpy as np
 import KratosMultiphysics as Kratos
 import KratosMultiphysics.KratosUnittest as UnitTest
 import KratosMultiphysics.SystemIdentificationApplication as KratosSI
-from KratosMultiphysics.SystemIdentificationApplication.utilities.expression_utils import ExpressionUnionType
 
 class TestControlUtils(UnitTest.TestCase):
     @classmethod

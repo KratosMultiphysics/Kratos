@@ -12,30 +12,34 @@
 //
 #include "apply_vector_constraint_table_process.h"
 #include "apply_component_table_process.h"
+#include "custom_utilities/process_utilities.h"
 #include "geo_apply_constant_scalar_value_process.h"
 #include "includes/kratos_parameters.h"
 #include "includes/model_part.h"
 
 namespace Kratos
 {
+using namespace std::string_literals;
 
-ApplyVectorConstraintTableProcess::ApplyVectorConstraintTableProcess(Kratos::ModelPart& rModelPart,
-                                                                     const Kratos::Parameters& rSettings)
-    : Process(Flags()), mrModelPart(rModelPart)
+ApplyVectorConstraintTableProcess::ApplyVectorConstraintTableProcess(Model& rModel, const Parameters& rSettings)
+    : Process(Flags())
 {
-    const auto parameters_list = CreateParametersForActiveComponents(rSettings);
-    for (const auto& parameters : parameters_list) {
-        mProcesses.emplace_back(MakeProcessFor(parameters));
+    mrModelParts = ProcessUtilities::GetModelPartsFromSettings(
+        rModel, rSettings, ApplyVectorConstraintTableProcess::Info());
+    for (const auto& r_model_part : mrModelParts) {
+        const auto parameters_list = CreateParametersForActiveComponents(r_model_part, rSettings);
+        for (const auto& parameters : parameters_list) {
+            mProcesses.emplace_back(MakeProcessFor(r_model_part, parameters));
+        }
     }
 }
 
-ApplyVectorConstraintTableProcess::~ApplyVectorConstraintTableProcess() = default;
-
-std::vector<Parameters> ApplyVectorConstraintTableProcess::CreateParametersForActiveComponents(const Parameters& rSettings)
+std::vector<Parameters> ApplyVectorConstraintTableProcess::CreateParametersForActiveComponents(
+    const ModelPart& rModelPart, const Parameters& rSettings)
 {
     std::vector<Parameters> result;
     for (auto component : ActiveComponents(rSettings)) {
-        result.emplace_back(CreateParametersForComponent(rSettings, component));
+        result.emplace_back(CreateParametersForComponent(rModelPart, rSettings, component));
     }
     return result;
 }
@@ -52,16 +56,18 @@ std::vector<char> ApplyVectorConstraintTableProcess::ActiveComponents(const Para
     return result;
 }
 
-Parameters ApplyVectorConstraintTableProcess::CreateParametersForComponent(const Parameters& rSettings, char component)
+Parameters ApplyVectorConstraintTableProcess::CreateParametersForComponent(const ModelPart& rModelPart,
+                                                                           const Parameters& rSettings,
+                                                                           char Component)
 {
     Parameters result;
-    const auto index = ComponentToIndex(component);
-    result.AddValue("model_part_name", rSettings["model_part_name"]);
+    const auto index = ComponentToIndex(Component);
+    result.AddValue("model_part_name", "\"" + rModelPart.Name() + "\"");
     if (rSettings.Has("is_fixed")) {
         result.AddValue("is_fixed", rSettings["is_fixed"][index]);
     }
     result.AddValue("value", rSettings["value"][index]);
-    const auto variable_name = rSettings["variable_name"].GetString() + '_' + component;
+    const auto variable_name = rSettings["variable_name"].GetString() + '_' + Component;
     result.AddEmptyValue("variable_name").SetString(variable_name);
     if (rSettings["table"][index].GetInt() != 0) {
         result.AddValue("table", rSettings["table"][index]);
@@ -86,13 +92,13 @@ std::size_t ApplyVectorConstraintTableProcess::ComponentToIndex(char component)
 }
 
 ApplyVectorConstraintTableProcess::ProcessUniquePointer ApplyVectorConstraintTableProcess::MakeProcessFor(
-    const Parameters& rParameters) const
+    ModelPart& rModelPart, const Parameters& rParameters) const
 {
     if (rParameters.Has("table")) {
-        return std::make_unique<ApplyComponentTableProcess>(mrModelPart, rParameters);
+        return std::make_unique<ApplyComponentTableProcess>(rModelPart, rParameters);
     }
 
-    return std::make_unique<GeoApplyConstantScalarValueProcess>(mrModelPart, rParameters);
+    return std::make_unique<GeoApplyConstantScalarValueProcess>(rModelPart, rParameters);
 }
 
 void ApplyVectorConstraintTableProcess::ExecuteInitialize()
@@ -118,7 +124,7 @@ void ApplyVectorConstraintTableProcess::ExecuteFinalize()
 
 std::string ApplyVectorConstraintTableProcess::Info() const
 {
-    return "ApplyVectorConstraintTableProcess";
+    return "ApplyVectorConstraintTableProcess"s;
 }
 
 } // namespace Kratos

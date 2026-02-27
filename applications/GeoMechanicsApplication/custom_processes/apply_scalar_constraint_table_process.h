@@ -14,6 +14,8 @@
 
 #include "processes/process.h"
 
+#include <string>
+
 namespace Kratos
 {
 
@@ -27,7 +29,7 @@ public:
 
     ApplyScalarConstraintTableProcess(ModelPart& rModelPart, const Parameters& rProcessSettings);
 
-    ~ApplyScalarConstraintTableProcess() override;
+    ~ApplyScalarConstraintTableProcess() override = default;
 
     ApplyScalarConstraintTableProcess(const ApplyScalarConstraintTableProcess&)            = delete;
     ApplyScalarConstraintTableProcess& operator=(const ApplyScalarConstraintTableProcess&) = delete;

@@ -104,6 +104,32 @@ KRATOS_TEST_CASE_IN_SUITE(BackwardEulerUPwSchemePredict_UpdatesVariablesDerivati
                             expected_dt_water_pressure);
 }
 
+KRATOS_TEST_CASE_IN_SUITE(BackwardEulerUPwSchemePredict_UpdatesVariablesDerivatives_AfterSaveAndLoad,
+                          KratosGeoMechanicsFastSuiteWithoutKernel)
+{
+    BackwardEulerQuasiStaticUPwSchemeTester tester;
+
+    ModelPart::DofsArrayType dof_set;
+    CompressedMatrix         A;
+    Vector                   Dx;
+    Vector                   b;
+
+    tester.mScheme.InitializeSolutionStep(tester.GetModelPart(), A, Dx, b); // This is needed to set the time factors
+
+    auto serializer = StreamSerializer{};
+    serializer.save("test_tag", tester.mScheme);
+
+    // Act
+    tester.mScheme = BackwardEulerQuasistaticUPwScheme<SparseSpaceType, LocalSpaceType>();
+    serializer.load("test_tag", tester.mScheme);
+
+    tester.mScheme.Predict(tester.GetModelPart(), dof_set, A, Dx, b);
+
+    constexpr auto expected_dt_water_pressure = 0.25;
+    KRATOS_EXPECT_DOUBLE_EQ(tester.GetModelPart().Nodes()[0].FastGetSolutionStepValue(DT_WATER_PRESSURE, 0),
+                            expected_dt_water_pressure);
+}
+
 KRATOS_TEST_CASE_IN_SUITE(BackwardEulerUPwSchemeUpdate_DoesNotUpdateFixedScalarVariable,
                           KratosGeoMechanicsFastSuiteWithoutKernel)
 {

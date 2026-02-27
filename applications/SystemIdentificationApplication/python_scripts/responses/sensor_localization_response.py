@@ -1,17 +1,13 @@
 from typing import Optional
 
 import KratosMultiphysics as Kratos
-import KratosMultiphysics.OptimizationApplication as KratosOA
 import KratosMultiphysics.SystemIdentificationApplication as KratosSI
 from KratosMultiphysics.OptimizationApplication.responses.response_function import ResponseFunction
 from KratosMultiphysics.OptimizationApplication.responses.response_function import SupportedSensitivityFieldVariableTypes
-from KratosMultiphysics.OptimizationApplication.utilities.union_utilities import SupportedSensitivityFieldVariableTypes
 from KratosMultiphysics.OptimizationApplication.utilities.model_part_utilities import ModelPartOperation
 from KratosMultiphysics.OptimizationApplication.utilities.optimization_problem import OptimizationProblem
 from KratosMultiphysics.OptimizationApplication.utilities.component_data_view import ComponentDataView
 from KratosMultiphysics.SystemIdentificationApplication.utilities.sensor_utils import GetMaskStatusControllers
-from KratosMultiphysics.SystemIdentificationApplication.utilities.sensor_utils import AddMaskStatusController
-from KratosMultiphysics.SystemIdentificationApplication.utilities.sensor_utils import GetSensors
 
 def Factory(model: Kratos.Model, parameters: Kratos.Parameters, optimization_problem: OptimizationProblem) -> ResponseFunction:
     if not parameters.Has("name"):
@@ -78,13 +74,20 @@ class SensorLocalizationResponse(ResponseFunction):
     def CalculateValue(self) -> float:
         return self.utils.CalculateValue()
 
-    def CalculateGradient(self, physical_variable_collective_expressions: 'dict[SupportedSensitivityFieldVariableTypes, KratosOA.CollectiveExpression]') -> None:
+    def CalculateGradient(self, physical_variable_combined_tensor_adaptor: 'dict[SupportedSensitivityFieldVariableTypes, Kratos.TensorAdaptors.DoubleCombinedTensorAdaptor]') -> None:
         # make everything zeros
-        for physical_variable, collective_expression in physical_variable_collective_expressions.items():
-            for container_expression in collective_expression.GetContainerExpressions():
-                Kratos.Expression.LiteralExpressionIO.SetDataToZero(container_expression, physical_variable)
+        for physical_variable, combined_ta in physical_variable_combined_tensor_adaptor.items():
+            if physical_variable != KratosSI.SENSOR_STATUS:
+                raise RuntimeError(f"Unsupported variable = {physical_variable.Name()}.")
 
-        physical_variable_collective_expressions[KratosSI.SENSOR_STATUS].GetContainerExpressions()[0].SetExpression(self.utils.CalculateGradient().GetExpression())
+            if len(combined_ta.GetTensorAdaptors()) != 1:
+                raise RuntimeError(f"Currently only supports sensitivities for one model part.")
+
+            if combined_ta.GetTensorAdaptors()[0].GetContainer() != self.mask_status_kd_tree.GetSensorMaskStatus().GetSensorModelPart().Nodes:
+                raise RuntimeError("Tensor adaptor container and mask status container mismatch.")
+
+            combined_ta.GetTensorAdaptors()[0].data[:] = self.utils.CalculateGradient().data
+            Kratos.TensorAdaptors.DoubleCombinedTensorAdaptor(combined_ta, perform_collect_data_recursively=False, copy=False).CollectData()
 
     def __str__(self) -> str:
         return f"Response [type = {self.__class__.__name__}, name = {self.GetName()}, model part name = {self.model_part.FullName()}]"

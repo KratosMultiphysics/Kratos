@@ -7,7 +7,6 @@ from KratosMultiphysics.OptimizationApplication.controls.control import Control
 from KratosMultiphysics.OptimizationApplication.execution_policies.execution_policy import ExecutionPolicy
 from KratosMultiphysics.OptimizationApplication.utilities.component_data_view import ComponentDataView
 from KratosMultiphysics.OptimizationApplication.utilities.optimization_problem import OptimizationProblem
-from KratosMultiphysics.OptimizationApplication.utilities.buffered_dict import BufferedDict
 from KratosMultiphysics.OptimizationApplication.utilities.optimization_problem_utilities import GetAllComponentFullNamesWithData
 from KratosMultiphysics.OptimizationApplication.utilities.optimization_problem_utilities import GetComponentHavingDataByFullName
 
@@ -92,27 +91,21 @@ class OptimizationProblemAsciiOutputProcess(Kratos.OutputProcess):
             str  : parameters["format_info"]["string_length"].GetInt(),
         }
 
+        self.list_of_component_names = parameters["list_of_output_components"].GetStringArray()
+
         if len(self.format_info[bool]) != 2:
             raise RuntimeError("The \"bool_values\" should have only two strings corresponding to False and True values in the mentioned order.")
 
-        self.list_of_components: 'list[Union[str, ResponseFunction, Control, ExecutionPolicy]]' = []
         self.list_of_headers: 'list[tuple[Any, dict[str, Header]]]' = []
         self.initialized_headers = False
-        self.list_of_component_names = parameters["list_of_output_components"].GetStringArray()
 
     def IsOutputStep(self) -> bool:
         return True
 
     def PrintOutput(self) -> None:
         if not self.initialized_headers:
-            if len(self.list_of_component_names) == 1 and self.list_of_component_names[0] == "all":
-                self.list_of_component_names = GetAllComponentFullNamesWithData(self.optimization_problem)
-
-            for component_name in self.list_of_component_names:
-                self.list_of_components.append(GetComponentHavingDataByFullName(component_name, self.optimization_problem))
-
             # now get the buffered data headers
-            self.list_of_headers = self._GetHeaders(lambda x: x.GetBufferedData() if x.HasDataBuffer() else BufferedDict())
+            self.list_of_headers = self._GetHeaders(lambda x: x.GetBufferedData())
             # write the ehader information
             self._WriteHeaders()
             self.initialized_headers = True
@@ -169,12 +162,10 @@ class OptimizationProblemAsciiOutputProcess(Kratos.OutputProcess):
                     componend_data_view = ComponentDataView(component, self.optimization_problem)
                     buffered_dict = componend_data_view.GetUnBufferedData()
                     component_name = componend_data_view.GetComponentName()
-                    # check if there are values to be written under the component name, if not skip the component.
-                    if len(header_info_dict):
-                        msg_header = f"{msg_header}# \t" + component_name + ":\n"
-                        for k, header in header_info_dict.items():
-                            component_name_header = header.GetHeaderName().strip()[len(component_name)+1:]
-                            msg_header = f"{msg_header}# \t\t" + component_name_header + ": " + header.GetValueStr(buffered_dict[k]).strip() + "\n"
+                    msg_header = f"{msg_header}# \t" + component_name + ":\n"
+                    for k, header in header_info_dict.items():
+                        component_name_header = header.GetHeaderName().strip()[len(component_name)+1:]
+                        msg_header = f"{msg_header}# \t\t" + component_name_header + ": " + header.GetValueStr(buffered_dict[k]).strip() + "\n"
 
                 msg_header = f"{msg_header}# ------------ End of initial values ------------\n"
                 msg_header = f"{msg_header}# -----------------------------------------------\n"
@@ -195,6 +186,16 @@ class OptimizationProblemAsciiOutputProcess(Kratos.OutputProcess):
                 file_output.write(msg_header)
 
     def _GetHeaders(self, dict_getter_method) ->  'list[tuple[Any, dict[str, Header]]]':
+        self.list_of_components: 'list[Union[str, ResponseFunction, Control, ExecutionPolicy]]' = []
+
+        if len(self.list_of_component_names) == 1 and self.list_of_component_names[0] == "all":
+            self.list_of_component_names = GetAllComponentFullNamesWithData(self.optimization_problem)
+
+        for component_name in self.list_of_component_names:
+            component = GetComponentHavingDataByFullName(component_name, self.optimization_problem)
+            if ComponentDataView(component, self.optimization_problem).HasDataBuffer():
+                self.list_of_components.append(component)
+
         list_of_headers: 'list[tuple[Any, dict[str, Header]]]' = []
         for component in self.list_of_components:
             componend_data_view = ComponentDataView(component, self.optimization_problem)
@@ -207,6 +208,5 @@ class OptimizationProblemAsciiOutputProcess(Kratos.OutputProcess):
                     if header_name in [header.GetHeaderName().strip() for header in header_info_dict.values()]:
                         Kratos.Logger.PrintWarning(self.__class__.__name__, "Second value with same header name = \"" + header_name + "\" found.")
                     header_info_dict[k] = Header(header_name, v, self.format_info)
-            if len(header_info_dict):
-                list_of_headers.append([component, header_info_dict])
+            list_of_headers.append([component, header_info_dict])
         return list_of_headers

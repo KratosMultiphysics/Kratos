@@ -3,7 +3,7 @@ import os
 import KratosMultiphysics
 import KratosMultiphysics.KratosUnittest as KratosUnitTest
 
-from KratosMultiphysics.FluidDynamicsApplication.symbolic_generation.compressible_navier_stokes \
+from KratosMultiphysics.FluidDynamicsApplication.compressible_navier_stokes \
     .compressible_navier_stokes_symbolic_generator import CompressibleNavierStokesSymbolicGenerator
 
 import KratosMultiphysics.FluidDynamicsApplication
@@ -62,7 +62,7 @@ class CompressibleNavierStokesSymbolicGeneratorFormulationTest(KratosUnitTest.Te
     @classmethod
     def _ImportSubTestSuite(cls, generated_file_name):
         """Imports the generated code as a sub-testsuite."""
-        module_name = "compressible_symbolic_generation" + "." + generated_file_name[:-3]
+        module_name = "compressible_automatic_differentiation" + "." + generated_file_name[:-3]
 
         try:
             test_module = __import__(module_name, fromlist=module_name)
@@ -93,7 +93,7 @@ class CompressibleNavierStokesSymbolicGeneratorFormulationTest(KratosUnitTest.Te
         - print_results -- Set to `True` to print all results to console
         - cleanup -- Set to `True` in order to remove the generated code files
         """
-        with KratosUnitTest.WorkFolderScope("compressible_symbolic_generation", __file__):
+        with KratosUnitTest.WorkFolderScope("compressible_automatic_differentiation", __file__):
             generated_file = self._Generate(geometry)
 
             if cleanup:

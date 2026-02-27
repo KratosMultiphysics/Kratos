@@ -26,11 +26,7 @@ void NodeUtilities::AssignUpdatedVectorVariableToNonFixedComponents(Node& rNode,
                                                                     IndexType SolutionStepIndex)
 {
     const std::vector<std::string> components = {"X", "Y", "Z"};
-    for (const auto& zipped : boost::combine(rNewValues, components)) {
-        double      new_value = 0.0;
-        std::string component;
-        boost::tie(new_value, component) = zipped;
-
+    for (const auto& [new_value, component] : boost::combine(rNewValues, components)) {
         if (const auto& component_variable =
                 VariablesUtilities::GetComponentFromVectorVariable(rDestinationVariable.Name(), component);
             !rNode.IsFixed(component_variable)) {
@@ -39,14 +35,13 @@ void NodeUtilities::AssignUpdatedVectorVariableToNonFixedComponents(Node& rNode,
     }
 }
 
-void NodeUtilities::AssignUpdatedVectorVariableToNonFixedComponentsOfNodes(
-    const ModelPart::NodesContainerType& rNodes,
-    const Variable<array_1d<double, 3>>& rDestinationVariable,
-    const array_1d<double, 3>&           rNewValues,
-    IndexType                            SolutionStepIndex)
+void NodeUtilities::AssignUpdatedVectorVariableToNodes(const ModelPart::NodesContainerType& rNodes,
+                                                       const Variable<array_1d<double, 3>>& rDestinationVariable,
+                                                       const array_1d<double, 3>& rNewValues,
+                                                       IndexType                  SolutionStepIndex)
 {
     block_for_each(rNodes, [&rDestinationVariable, &rNewValues, SolutionStepIndex](Node& rNode) {
-        AssignUpdatedVectorVariableToNonFixedComponents(rNode, rDestinationVariable, rNewValues, SolutionStepIndex);
+        rNode.FastGetSolutionStepValue(rDestinationVariable, SolutionStepIndex) = rNewValues;
     });
 }
 
@@ -61,5 +56,4 @@ std::map<IndexType, IndexType> NodeUtilities::CreateGlobalToLocalNodeIndexMap(co
 
     return result;
 }
-
 } // namespace Kratos

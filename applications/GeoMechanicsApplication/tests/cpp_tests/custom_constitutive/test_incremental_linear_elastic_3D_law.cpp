@@ -185,10 +185,13 @@ KRATOS_TEST_CASE_IN_SUITE(GeoIncrementalLinearElastic3DLawReturnsExpectedStress_
     KRATOS_EXPECT_VECTOR_RELATIVE_NEAR(expected_stress, stress, 1e-3);
 }
 
-#ifdef KRATOS_DEBUG
-KRATOS_TEST_CASE_IN_SUITE(GeoIncrementalLinearElastic3DLawThrows_WhenElementProvidedStrainIsSetToFalse,
+KRATOS_TEST_CASE_IN_SUITE(GeoIncrementalLinearElastic3DLawRaisesADebugError_WhenElementProvidedStrainIsSetToFalse,
                           KratosGeoMechanicsFastSuiteWithoutKernel)
 {
+#ifndef KRATOS_DEBUG
+    GTEST_SKIP() << "This test requires a debug build";
+#endif
+
     auto law = CreateIncrementalLinearElastic3DLaw();
 
     ConstitutiveLaw::Parameters parameters;
@@ -197,6 +200,5 @@ KRATOS_TEST_CASE_IN_SUITE(GeoIncrementalLinearElastic3DLawThrows_WhenElementProv
     KRATOS_EXPECT_EXCEPTION_IS_THROWN(law.CalculateMaterialResponsePK2(parameters),
                                       "The GeoLinearElasticLaw needs an element provided strain");
 }
-#endif
 
 } // namespace Kratos::Testing

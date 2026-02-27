@@ -1,3 +1,4 @@
+import numpy
 from typing import Optional
 
 import KratosMultiphysics as Kratos
@@ -24,8 +25,7 @@ class DiscreteValueResidualResponseFunction(ResponseFunction):
             ],
             "container_type"         : "node_historical",
             "variable_name"          : "",
-            "beta_coefficient"       : 2.0,
-            "scaling_factor"         : 1.0,
+            "residual_type"          : "exact",
             "list_of_discrete_values": [0.0]
         }""")
         parameters.ValidateAndAssignDefaults(default_settings)
@@ -37,28 +37,23 @@ class DiscreteValueResidualResponseFunction(ResponseFunction):
 
         self.list_of_discrete_values = parameters["list_of_discrete_values"].GetVector()
 
-        self.beta_coefficient = parameters["beta_coefficient"].GetDouble()
-        self.scaling_factor = parameters["scaling_factor"].GetDouble()
+        self.residual_type = parameters["residual_type"].GetString()
+        if self.residual_type  not in ["exact", "logarithm"]:
+            raise RuntimeError(f"Unsupported residual_type = \"{self.residual_type}\" requested. Followings are supported:\n\texact\n\tlogarithm")
 
         container_type = parameters["container_type"].GetString()
-        if container_type == "node_historical" or container_type == "node_non_historical":
-            self.expression_getter = lambda model_part : Kratos.Expression.NodalExpression(model_part)
-            self.expression_reader = lambda exp: Kratos.Expression.VariableExpressionIO.Read(exp, self.variable, container_type == "node_historical")
-            self.boltzmann_operator = KratosOA.NodalBoltzmannOperator(self.beta_coefficient, self.scaling_factor)
-        elif container_type == "condition" or container_type == "condition_properties":
-            self.expression_getter = lambda model_part : Kratos.Expression.ConditionExpression(model_part)
-            if container_type == "condition":
-                self.expression_reader = lambda exp: Kratos.Expression.VariableExpressionIO.Read(exp, self.variable)
-            else:
-                self.expression_reader = lambda exp: KratosOA.PropertiesVariableExpressionIO(exp, self.variable)
-            self.boltzmann_operator = KratosOA.ConditionBoltzmannOperator(self.beta_coefficient, self.scaling_factor)
-        elif container_type == "element" or container_type == "element_properties":
-            self.expression_getter = lambda model_part : Kratos.Expression.ElementExpression(model_part)
-            if container_type == "element":
-                self.expression_reader = lambda exp: Kratos.Expression.VariableExpressionIO.Read(exp, self.variable)
-            else:
-                self.expression_reader = lambda exp: KratosOA.PropertiesVariableExpressionIO(exp, self.variable)
-            self.boltzmann_operator = KratosOA.ElementBoltzmannOperator(self.beta_coefficient, self.scaling_factor)
+        if container_type == "node_historical":
+            self.ta_getter = lambda model_part: Kratos.TensorAdaptors.HistoricalVariableTensorAdaptor(model_part.Nodes, self.variable)
+        elif container_type == "node_non_historical":
+            self.ta_getter = lambda model_part : Kratos.TensorAdaptors.VariableTensorAdaptor(model_part.Nodes, self.variable)
+        elif container_type == "condition":
+            self.ta_getter = lambda model_part : Kratos.TensorAdaptors.VariableTensorAdaptor(model_part.Conditions, self.variable)
+        elif container_type == "condition_properties":
+            self.ta_getter = lambda model_part : KratosOA.TensorAdaptors.PropertiesVariableTensorAdaptor(model_part.Conditions, self.variable)
+        elif container_type == "element":
+            self.ta_getter = lambda model_part : Kratos.TensorAdaptors.VariableTensorAdaptor(model_part.Elements, self.variable)
+        elif container_type == "element_properties":
+            self.ta_getter = lambda model_part : KratosOA.TensorAdaptors.PropertiesVariableTensorAdaptor(model_part.Elements, self.variable)
         else:
             raise RuntimeError(f"Unsupported container_type = \"{container_type}\" requested. Followings are supported:\n\tnode_historical\n\tnode_non_historical\n\tcondition\n\tcondition_properties\n\telement\n\telement_properties")
 
@@ -87,43 +82,50 @@ class DiscreteValueResidualResponseFunction(ResponseFunction):
         pass
 
     def CalculateValue(self) -> float:
-        exp = self.expression_getter(self.model_part)
-        self.expression_reader(exp)
+        ta = self.ta_getter(self.model_part)
+        ta.CollectData()
 
-        resultant = exp.Clone()
+        resultant = Kratos.TensorAdaptors.DoubleTensorAdaptor(ta)
 
-        Kratos.Expression.LiteralExpressionIO.SetData(resultant, 1.0)
+        if self.residual_type == "exact":
+            resultant.data[:] = 1.0
+        elif self.residual_type == "logarithm":
+            resultant.data[:] = 0.0
 
         for value in self.list_of_discrete_values:
-            resultant *= ((exp - value) ** 2)
+            if self.residual_type == "exact":
+                resultant.data[:] *= (ta.data[:] - value) ** 2
+            elif self.residual_type == "logarithm":
+                resultant.data[:] += numpy.log((ta.data[:] - value) ** 2)
 
-        self.boltzmann_operator.Update(resultant)
-        return self.boltzmann_operator.CalculateValue()
+        return numpy.sum(resultant.data)
 
-    def CalculateGradient(self, physical_variable_collective_expressions: 'dict[SupportedSensitivityFieldVariableTypes, KratosOA.CollectiveExpression]') -> None:
-        values = self.expression_getter(self.model_part)
-        self.expression_reader(values)
+    def CalculateGradient(self, physical_variable_combined_tensor_adaptor: 'dict[SupportedSensitivityFieldVariableTypes, Kratos.TensorAdaptors.DoubleCombinedTensorAdaptor]') -> None:
+        values = self.ta_getter(self.model_part)
+        values.CollectData()
 
         # calculate the gradients
-        for physical_variable, collective_expression in physical_variable_collective_expressions.items():
+        for physical_variable, cta in physical_variable_combined_tensor_adaptor.items():
             if physical_variable == self.variable:
-                expressions = collective_expression.GetContainerExpressions()
 
-                # initialize the current expression
-                for exp in expressions:
-                    Kratos.Expression.LiteralExpressionIO.SetData(exp, 0.0)
+                # initialize the current tensor adaptor
+                for ta in cta.GetTensorAdaptors():
+                    ta.data[:] = 0.0
 
-                for exp in expressions:
+                for ta in cta.GetTensorAdaptors():
                     for i, value_i in enumerate(self.list_of_discrete_values):
-                        partial_gradient_exp = exp.Clone()
-                        Kratos.Expression.LiteralExpressionIO.SetData(partial_gradient_exp, 1.0)
-                        for j, value_j in enumerate(self.list_of_discrete_values):
-                            if i == j:
-                                partial_gradient_exp *= (values - value_j) * 2.0
-                            else:
-                                partial_gradient_exp *= (values - value_j) ** 2
-                        exp.SetExpression(exp.GetExpression() + self.boltzmann_operator.CalculateGradient().GetExpression() * partial_gradient_exp.GetExpression())
+                        if self.residual_type == "exact":
+                            partial_gradient_ta = Kratos.TensorAdaptors.DoubleTensorAdaptor(ta)
+                            partial_gradient_ta.data[:] = 1.0
+                            for j, value_j in enumerate(self.list_of_discrete_values):
+                                if i == j:
+                                    partial_gradient_ta.data *= (values.data[:] - value_j) * 2.0
+                                else:
+                                    partial_gradient_ta.data *= (values.data[:] - value_j) ** 2
+                            ta.data[:] += partial_gradient_ta.data
+                        elif self.residual_type == "logarithm":
+                            ta.data[:] += (((values.data - value_i) ** (-2)) * (values.data - value_i) * 2.0)
 
-                    exp.SetExpression(Kratos.Expression.Utils.Collapse(exp).GetExpression())
+                Kratos.TensorAdaptors.DoubleCombinedTensorAdaptor(cta, perform_collect_data_recursively=False, copy=False).CollectData()
             else:
                 raise RuntimeError(f"Unsupported sensitivity w.r.t. {physical_variable.Name()} requested. Followings are supported sensitivity variables:\n\t{self.variable.Name()}")

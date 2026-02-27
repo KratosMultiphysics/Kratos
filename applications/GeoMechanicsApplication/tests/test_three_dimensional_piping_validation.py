@@ -1,6 +1,7 @@
 import os
 
 import KratosMultiphysics.KratosUnittest as KratosUnittest
+from KratosMultiphysics.GeoMechanicsApplication.gid_output_file_reader import GiDOutputFileReader
 import test_helper
 
 
@@ -10,7 +11,7 @@ class KratosGeoMechanicsThreeDimensionalPipingValidation(KratosUnittest.TestCase
         test_helper.run_kratos(file_path)
         result_file_name = os.path.join(file_path, 'Cube_10sS_1.post.res')
 
-        reader = test_helper.GiDOutputFileReader()
+        reader = GiDOutputFileReader()
         actual_data = reader.read_output_from(result_file_name)
 
         pipe_elements = [24001, 24002, 24003, 24004, 24005, 24006, 24007, 24008, 24009, 24010, 24011, 24012, 24013,

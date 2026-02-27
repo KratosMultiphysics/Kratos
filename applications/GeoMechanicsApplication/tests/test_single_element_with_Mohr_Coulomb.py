@@ -1,6 +1,7 @@
 import os
 
 import KratosMultiphysics.KratosUnittest as KratosUnittest
+from KratosMultiphysics.GeoMechanicsApplication.gid_output_file_reader import GiDOutputFileReader
 import test_helper
 
 
@@ -13,7 +14,7 @@ class KratosGeoMechanicsSingleElementWithMohrCoulomb(KratosUnittest.TestCase):
         self, time, output_data, expected_displacement_vectors
     ):
         actual_displacement_vectors = (
-            test_helper.GiDOutputFileReader.nodal_values_at_time(
+            GiDOutputFileReader.nodal_values_at_time(
                 "DISPLACEMENT", time, output_data
             )
         )
@@ -25,7 +26,7 @@ class KratosGeoMechanicsSingleElementWithMohrCoulomb(KratosUnittest.TestCase):
 
     def assert_stress_field(self, time, output_data, expected_stress_tensor):
         actual_stress_tensors = (
-            test_helper.GiDOutputFileReader.element_integration_point_values_at_time(
+            GiDOutputFileReader.element_integration_point_values_at_time(
                 "CAUCHY_STRESS_TENSOR", time, output_data
             )[0]
         )
@@ -34,7 +35,7 @@ class KratosGeoMechanicsSingleElementWithMohrCoulomb(KratosUnittest.TestCase):
 
     def assert_shear_capacity_values(self, time, output_data, expected_values):
         actual_values = (
-            test_helper.GiDOutputFileReader.element_integration_point_values_at_time(
+            GiDOutputFileReader.element_integration_point_values_at_time(
                 "GEO_SHEAR_CAPACITY", time, output_data
             )[0]
         )
@@ -50,7 +51,7 @@ class KratosGeoMechanicsSingleElementWithMohrCoulomb(KratosUnittest.TestCase):
         test_helper.run_kratos(test_dir_path)
 
         output_file_path = os.path.join(test_dir_path, "output.post.res")
-        reader = test_helper.GiDOutputFileReader()
+        reader = GiDOutputFileReader()
         output_data = reader.read_output_from(output_file_path)
         end_time = 1.0
 
@@ -82,7 +83,7 @@ class KratosGeoMechanicsSingleElementWithMohrCoulomb(KratosUnittest.TestCase):
         test_helper.run_kratos(test_dir_path)
 
         output_file_path = os.path.join(test_dir_path, "output.post.res")
-        reader = test_helper.GiDOutputFileReader()
+        reader = GiDOutputFileReader()
         output_data = reader.read_output_from(output_file_path)
         end_time = 1.0
 

@@ -1,0 +1,27 @@
+{
+    "materials" : [{
+        "material_name" : "mat",
+        "material_id"   : 1,
+        "Variables"     : {
+            "PARTICLE_DENSITY"    : 1000.0,
+            "YOUNG_MODULUS"       : 1000000.0,
+            "POISSON_RATIO"       : 0.3,
+            "PARTICLE_SPHERICITY" : 1.0
+        }
+    }],
+    "material_relations" : [{
+        "material_names_list" : ["mat","mat"],
+        "material_ids_list"   : [1,1],
+        "Variables"           : {
+            "DEM_DISCONTINUUM_CONSTITUTIVE_LAW_NAME" : "DEM_D_Hertz_viscous_Coulomb2D",
+            "STATIC_FRICTION"                        : 0.5,
+            "DYNAMIC_FRICTION"                       : 0.4,
+            "FRICTION_DECAY"                         : 500,
+            "COEFFICIENT_OF_RESTITUTION"             : 0.2,
+            "ROLLING_FRICTION"                       : 0.01,
+            "ROLLING_FRICTION_WITH_WALLS"            : 0.02,
+            "DEM_ROLLING_FRICTION_MODEL_NAME"        : "DEMRollingFrictionModelConstantTorque"
+        }
+    }],
+    "material_assignation_table" : [["SpheresPart.DEMParts_Particles","mat"],["RigidFacePart.DEM-FEM-Wall2D_WallX-","mat"],["RigidFacePart.DEM-FEM-Wall2D_WallX+","mat"],["RigidFacePart.DEM-FEM-Wall2D_WallY-","mat"],["RigidFacePart.DEM-FEM-Wall2D_WallY+","mat"]]
+}
