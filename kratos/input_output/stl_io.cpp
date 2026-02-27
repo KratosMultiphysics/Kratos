@@ -105,20 +105,20 @@ void StlIO::ReadModelPart(ModelPart& rThisModelPart)
     if (new_entity_type == "geometry") {
         create_entity_func = [](
             ModelPart& rThisModelPart,
-            NodesArrayType& rIndexes) {
-                rThisModelPart.CreateNewGeometry("Triangle3D3", rIndexes);
+            NodesArrayType& rNodes) {
+                rThisModelPart.CreateNewGeometry("Triangle3D3", rNodes);
             };
     } else if (new_entity_type == "element") {
         create_entity_func = [this](
             ModelPart& rThisModelPart,
-            NodesArrayType& rIndexes) {
-                rThisModelPart.CreateNewElement("Element3D3N", this->mNextElementId++, rIndexes, rThisModelPart.pGetProperties(0));
+            NodesArrayType& rNodes) {
+                rThisModelPart.CreateNewElement("Element3D3N", this->mNextElementId++, rNodes, rThisModelPart.pGetProperties(0));
             };
     } else if (new_entity_type == "condition") {
         create_entity_func = [this](
             ModelPart& rThisModelPart,
-            NodesArrayType& rIndexes) {
-                rThisModelPart.CreateNewCondition("SurfaceCondition3D3N", this->mNextConditionId++, rIndexes, rThisModelPart.pGetProperties(0));
+            NodesArrayType& rNodes) {
+                rThisModelPart.CreateNewCondition("SurfaceCondition3D3N", this->mNextConditionId++, rNodes, rThisModelPart.pGetProperties(0));
             };
     } else  {
         KRATOS_ERROR << "Invalid new entity type " << new_entity_type << std::endl;
