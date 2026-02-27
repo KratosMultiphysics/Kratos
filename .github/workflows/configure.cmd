@@ -53,7 +53,7 @@ cmake                                                 ^
   -DFORCE_LOCAL_ZLIB_COMPILATION=ON                   ^
   -DCMAKE_UNITY_BUILD=ON                                    || goto :error
 
-cmake --build "%KRATOS_BUILD%\%KRATOS_BUILD_TYPE%" --target all install || goto :error
+cmake --build "%KRATOS_BUILD%\%KRATOS_BUILD_TYPE%" && cmake --install "%KRATOS_BUILD%\%KRATOS_BUILD_TYPE%" --config %KRATOS_BUILD_TYPE% || goto :error
 
 goto :EOF
 
