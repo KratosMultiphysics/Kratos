@@ -474,7 +474,7 @@ private:
         Matrix& rMID,
         Matrix& rN_sigma_A,
         Matrix& rN_sigma_B,
-        Matrix& rM) const;
+        Matrix& rM_inv) const;
 
     void CalculateBGeometric(
         const IndexType IntegrationPointIndex,
@@ -535,10 +535,8 @@ private:
 
      void CalculateAndAddKm(
         MatrixType& rKm,
-        const Matrix& rB,
         const Matrix& rD,
-        const Matrix& rMID,
-        const Matrix& rMID_bar  ) const;
+        const Matrix& rBbar  ) const;
     
      void CalculateAndAddKmBd(                                             
         MatrixType& rKd,

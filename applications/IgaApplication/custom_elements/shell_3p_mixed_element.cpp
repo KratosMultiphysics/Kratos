@@ -339,6 +339,8 @@ namespace Kratos
         const SizeType mat_size = number_of_nodes * 3;
         KRATOS_WATCH(number_of_nodes);
         const auto& r_integration_points = r_geometry.IntegrationPoints();
+         KRATOS_WATCH(number_of_nodes);
+
 
         for (IndexType point_number = 0; point_number < r_integration_points.size(); ++point_number) {
             // Compute Kinematics and Metric
@@ -404,7 +406,7 @@ namespace Kratos
                 * GetProperties()[THICKNESS];
             
             KRATOS_WATCH("checkpoint 4")
-
+           
 
             //Transformation Matrix
             Matrix T = ZeroMatrix(mat_size*3, mat_size*3);
@@ -521,6 +523,8 @@ namespace Kratos
                 noalias(rRightHandSideVector) -= integration_weight * prod(trans(BMembrane), constitutive_variables_membrane.StressVector);
                 noalias(rRightHandSideVector) -= integration_weight * prod(trans(BCurvature), constitutive_variables_curvature.StressVector);
                 noalias(rRightHandSideVector) = prod(trans(T),rRightHandSideVector);
+                 KRATOS_WATCH(T);
+                    KRATOS_WATCH(rRightHandSideVector);
                 
             }
         }   KRATOS_WATCH("checkpoint 14")

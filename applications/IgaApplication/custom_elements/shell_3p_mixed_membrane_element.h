@@ -466,7 +466,12 @@ private:
         const ConstitutiveLaw::StressMeasure ThisStressMeasure
     ) const ;
 
-    inline void CalculateAndAddKm(
+    // inline void CalculateAndAddKmMembrane(
+    //     MatrixType& rLeftHandSideMatrix,
+    //     const Matrix& B,
+    //     const Matrix& D,
+    //    const double IntegrationWeight) const;
+    inline void CalculateAndAddKmCurvature(
         MatrixType& rLeftHandSideMatrix,
         const Matrix& B,
         const Matrix& D,
@@ -489,32 +494,32 @@ private:
         const Matrix& C,
         const Matrix& rN_sigma,
         const double IntegrationWeight) const;
-    inline void CalculateAndAddK13(
-        MatrixType& rLeftHandSideMatrix,
-        const Matrix& B_c,
-        const Matrix& C,
-        const Matrix& rN_sigma,
-        const double IntegrationWeight) const;
-    inline void CalculateAndAddK31(
-        MatrixType& rLeftHandSideMatrix,
-        const Matrix& C,
-        const Matrix& rN_sigma,
-        const Matrix& B_c,
-        const double IntegrationWeight) const;
-    
-        inline void CalculateAndAddK33(
-        MatrixType& rLeftHandSideMatrix,
-        const Matrix& C,
-        const Matrix& rN_sigma,
-        const double IntegrationWeight) const;
-    
-    
-
-    // inline void CalculateAndAddNonlinearKm(
-    //     Matrix& rLeftHandSideMatrix,
-    //     const SecondVariations& rSecondVariationsStrain,
-    //     const Vector& rSD,
+    // inline void CalculateAndAddK13(
+    //     MatrixType& rLeftHandSideMatrix,
+    //     const Matrix& B_c,
+    //     const Matrix& C,
+    //     const Matrix& rN_sigma,
     //     const double IntegrationWeight) const;
+    // inline void CalculateAndAddK31(
+    //     MatrixType& rLeftHandSideMatrix,
+    //     const Matrix& C,
+    //     const Matrix& rN_sigma,
+    //     const Matrix& B_c,
+    //     const double IntegrationWeight) const;
+    
+    //     inline void CalculateAndAddK33(
+    //     MatrixType& rLeftHandSideMatrix,
+    //     const Matrix& C,
+    //     const Matrix& rN_sigma,
+    //     const double IntegrationWeight) const;
+    
+    
+    inline void CalculateAndAddNonlinearKm(
+        Matrix& rLeftHandSideMatrix,
+        const SecondVariations& rSecondVariationsStrain,
+        const Vector& rSD,
+        const double IntegrationWeight) const;
+     
 
     // Calculation of the PK2 stress
     void CalculatePK2Stress(

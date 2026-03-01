@@ -128,6 +128,7 @@ public:
         return mShapeFunctionsV.PolynomialDegree();
     }
 
+
     SizeType DerivativeOrder() const
     {
         return mDerivativeOrder;

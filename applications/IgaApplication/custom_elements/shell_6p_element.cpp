@@ -322,8 +322,10 @@ namespace Kratos
                 Vector current_displacement = ZeroVector(6*number_of_nodes);
                 GetValuesVector(current_displacement,0);
 
+
                 strain_cau_cart[Gauss_index] = prod(B, current_displacement);
                 stress_cau_cart[Gauss_index] = prod(constitutive_variables.ConstitutiveMatrix,strain_cau_cart[Gauss_index]);
+         
 
                 CalculateStressMatrix(stress_cau_cart[Gauss_index],stress_matrix);
                 
@@ -337,6 +339,7 @@ namespace Kratos
                 if (CalculateStiffnessMatrixFlag == true)
                 {
                     CalculateAndAddKm(rKm, B, constitutive_variables.ConstitutiveMatrix);
+                    KRATOS_WATCH(rKm);
 
                     CalculateAndAddKmBd(rKd, B_Drill);
 
@@ -351,6 +354,7 @@ namespace Kratos
                 {
                     // operation performed: rRightHandSideVector -= Weight*IntForce
                     noalias(rRightHandSideVector) -= integration_weight * prod(trans(B), stress_cau_cart[Gauss_index]);
+                    
                 }
 
             } 
@@ -609,6 +613,10 @@ namespace Kratos
         array_1d<double, 3> da1_d1;
         array_1d<double, 3> da1_d2; //da1_d2 = da2_d1
         array_1d<double, 3> da2_d2;
+
+        noalias(da1_d1) = ZeroVector(3);
+        noalias(da1_d2) = ZeroVector(3);
+        noalias(da2_d2) = ZeroVector(3);
 
         for (std::size_t i=0;i<number_of_control_points;++i){
             da1_d1[0] += (GetGeometry().GetPoint( i ).X0()) * r_DDN_DDe(i, 0);
@@ -1018,7 +1026,8 @@ namespace Kratos
         const Matrix& rD                                                                                                              
     ) const
     {  
-        noalias(rKm) += prod(trans(rB), Matrix(prod(rD, rB)));                                              
+        noalias(rKm) += prod(trans(rB), Matrix(prod(rD, rB)));
+        KRATOS_WATCH(norm_frobenius(rKm));                                              
     }
 
     
@@ -1073,7 +1082,9 @@ namespace Kratos
             rValues[index + 3] = rotation[0];
             rValues[index + 4] = rotation[1];
             rValues[index + 5] = rotation[2];
+            
         }
+        
     }
 
     // TO DO

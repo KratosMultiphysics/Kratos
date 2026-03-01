@@ -39,19 +39,21 @@ namespace Kratos
         //differential area
         dA = 1.0;
     }
-
+    
     Shell6pBbarElement::ConstitutiveVariables::ConstitutiveVariables(std::size_t StrainSize)
     {
         StrainVector       = ZeroVector(StrainSize);
         StressVector       = ZeroVector(StrainSize);
         ConstitutiveMatrix = ZeroMatrix(StrainSize, StrainSize);
     }
+   
 
     Shell6pBbarElement::SecondVariations::SecondVariations(const int& mat_size)
     {
         B11 = ZeroMatrix(mat_size, mat_size);
         B22 = ZeroMatrix(mat_size, mat_size);
         B12 = ZeroMatrix(mat_size, mat_size);
+   
     }
 
 
@@ -97,7 +99,9 @@ namespace Kratos
         mZeta = 0.0;
 
         KRATOS_CATCH("")
+     
     }
+   
 
     void Shell6pBbarElement::InitializeMaterial()
     {
@@ -161,6 +165,7 @@ namespace Kratos
         // Initialize strain and stress
         std::vector<array_1d<double, 6>> strain_cau_cart(mGaussIntegrationThickness.num_GP_thickness);
         std::vector<array_1d<double, 6>> stress_cau_cart(mGaussIntegrationThickness.num_GP_thickness);
+                   
      
         for (IndexType point_number = 0; point_number < r_integration_points.size(); ++point_number) {
 
@@ -179,7 +184,7 @@ namespace Kratos
 
             constitutive_variables.ConstitutiveMatrix = prod(m_T_vector[point_number], 
                 Matrix(prod(constitutive_variables.ConstitutiveMatrix, trans(m_T_vector[point_number]))));
-              
+            
 
             // Loop for zeta
             for (IndexType Gauss_index = 0; Gauss_index < mGaussIntegrationThickness.num_GP_thickness; Gauss_index++)
@@ -198,6 +203,7 @@ namespace Kratos
                 strain_cau_cart[Gauss_index] = prod(B, current_displacement);
                 stress_cau_cart[Gauss_index] = prod(constitutive_variables.ConstitutiveMatrix,strain_cau_cart[Gauss_index]);
             }
+      
         }
  
         // Cauchy stress at midspan
@@ -233,6 +239,7 @@ namespace Kratos
             else {
                 KRATOS_WATCH("No results for desired variable available in Calculate of Shell6pBbarElement.")
             }
+           
         }   
     }
 
@@ -249,6 +256,7 @@ namespace Kratos
         {
             rOutput.resize(r_integration_points.size());
         }
+       
     }
 
 
@@ -256,7 +264,7 @@ namespace Kratos
     ///@name Assembly
     ///@{
 
-    void Shell6pBbarElement::CalculateAll(
+ void Shell6pBbarElement::CalculateAll(
         MatrixType& rLeftHandSideMatrix,
         VectorType& rRightHandSideVector,
         const ProcessInfo& rCurrentProcessInfo,
@@ -265,7 +273,7 @@ namespace Kratos
     )
     {
         KRATOS_TRY
-
+   
         const GeometryType& r_geometry = GetGeometry();
 
         // definition of problem size
@@ -273,12 +281,79 @@ namespace Kratos
         const std::size_t mat_size = number_of_nodes * 6;
 
         const auto& r_integration_points = r_geometry.IntegrationPoints();
+       
+        
+      Matrix local_M = ZeroMatrix(mat_size, mat_size);
+    Matrix local_R = ZeroMatrix(mat_size, mat_size);
+    
+    // 2. Loop over ALL spatial points first
+    for (IndexType point_number = 0; point_number < r_integration_points.size(); ++point_number) 
+    {
+        // ... Recalculate Kinematics for Pass 1 ...
+        KinematicVariables kinematic_variables(GetGeometry().WorkingSpaceDimension());
+        CalculateKinematics(point_number, kinematic_variables);
+        
+        Matrix MID(6, mat_size);
+        Matrix dummy1(number_of_nodes, 3), dummy2(3, 3), dummy3(3, 3); // Dummies
+        CalculateMID(point_number, MID, dummy1, dummy2, dummy3, kinematic_variables);
+        
+        Matrix T = ZeroMatrix(6,6);
+        CalculateTransformation(kinematic_variables, T);
+
+        Matrix N_A(6, mat_size), N_B(6, mat_size);
+        CalculateN_A(point_number, N_A, kinematic_variables);
+        CalculateN_B(point_number, N_B, kinematic_variables);
+        
+
+        // Calculate R helpers
+        Matrix P = IdentityMatrix(6,6); // Simplified initialization
+        P(2,2)=0.0; P(4,4)=0.0; P(5,5)=0.0; // Adjust based on your P def
+
+        Matrix tempR1 = prod(T, MID);
+        Matrix tempR2 = prod(P, tempR1);
+
+        // Thickness Loop (Accumulate M and R)
+        for (IndexType Gauss_index = 0; Gauss_index < mGaussIntegrationThickness.num_GP_thickness; ++Gauss_index)
+        {
+            mZeta = mGaussIntegrationThickness.zeta(Gauss_index);
+            
+            // Need area for weighting
+            Matrix DN_De_Jn = ZeroMatrix(number_of_nodes, 3);
+            Matrix J_inv = ZeroMatrix(3, 3);
+            Matrix dn = ZeroMatrix(3, 3);
+            double area = 0.0;
+            CalculateJn(point_number, kinematic_variables, mZeta, DN_De_Jn, J_inv, dn, area);
+            
+            double int_w = r_integration_points[point_number].Weight() * area;
+            double zeta_w = mGaussIntegrationThickness.integration_weight_thickness(Gauss_index);
+
+            // Accumulate M
+            Matrix tempM = ZeroMatrix(mat_size, mat_size);
+            CalculateM(int_w, zeta_w, N_A, N_B, tempM);
+            
+            noalias(local_M) += tempM; 
+
+            // Accumulate R
+            noalias(local_R) += int_w * zeta_w * prod(trans(N_B), tempR2);
+        }
+    } 
+    
+    Matrix rM_inv = ZeroMatrix(mat_size, mat_size);
+    double detM = 0.0;
+    
+    // NOW it is safe to invert because local_M contains info from ALL points
+    MathUtils<double>::InvertMatrix(local_M, rM_inv, detM); 
+    
+    Matrix mCoeff = prod(rM_inv, local_R);
+
+      
 
         for (IndexType point_number = 0; point_number < r_integration_points.size(); ++point_number) {
 
             // Compute Kinematics and Metric
             KinematicVariables kinematic_variables(GetGeometry().WorkingSpaceDimension());
             CalculateKinematics(point_number, kinematic_variables);
+      
             
             // Create constitutive law parameters:
             ConstitutiveLaw::Parameters constitutive_law_parameters(
@@ -288,16 +363,25 @@ namespace Kratos
 
             CalculateConstitutiveVariables(point_number, kinematic_variables, constitutive_variables,
                 constitutive_law_parameters, ConstitutiveLaw::StressMeasure_PK2);
+                Matrix MID(6, mat_size);
+        Matrix dummy1(number_of_nodes, 3), dummy2(3, 3), dummy3(3, 3);
+        CalculateMID(point_number, MID, dummy1, dummy2, dummy3, kinematic_variables);
 
-            constitutive_variables.ConstitutiveMatrix = prod(m_T_vector[point_number], 
-                Matrix(prod(constitutive_variables.ConstitutiveMatrix, trans(m_T_vector[point_number]))));
-                
-            // Loop for zeta
+        // Calculate MID_bar using the GLOBAL mCoeff
+        Matrix N_A(6, mat_size);
+        CalculateN_A(point_number, N_A, kinematic_variables);
+        
+       Matrix MID_bar = ZeroMatrix(6, mat_size);
+
+      // Perform (6x54) * (54x54) = (6x54)
+       noalias(MID_bar) = prod(N_A, mCoeff);
+            
+          
             for (IndexType Gauss_index = 0; Gauss_index < mGaussIntegrationThickness.num_GP_thickness; Gauss_index++)
             {            
                 // Initialization
                 Matrix B = ZeroMatrix(6, mat_size);
-                Matrix MID = ZeroMatrix(6, mat_size);
+   
                 Matrix B_Drill = ZeroMatrix(1, mat_size);
                 Matrix B_Geometric = ZeroMatrix(9, mat_size);
                 Matrix dn = ZeroMatrix(3, 3);
@@ -305,31 +389,56 @@ namespace Kratos
                 Matrix DN_De_Jn = ZeroMatrix(number_of_nodes,3);
                 Matrix J_inv = ZeroMatrix(3, 3);
                 double area = 0.0;
-                Matrix N_A = ZeroMatrix(6, mat_size);
-                Matrix N_B = ZeroMatrix(6, mat_size);
-                Matrix rM = ZeroMatrix(mat_size, mat_size);
-                Matrix MID_bar = ZeroMatrix(6, mat_size);
+              
+               
+              
+                Matrix N_A(6,mat_size), N_B(6,mat_size);
+      
+                CalculateN_A(point_number, N_A, kinematic_variables);  
+                CalculateN_B(point_number, N_B, kinematic_variables);
+           
+       
 
                 mZeta = mGaussIntegrationThickness.zeta(Gauss_index);
 
                 CalculateJn(point_number, kinematic_variables, mZeta, DN_De_Jn, J_inv, dn, area);
+              
 
                 CalculateB(point_number, B, mZeta, DN_De_Jn, J_inv, dn, kinematic_variables);
+       
                
                 // Average strain through the thickness- B operator on thickness
-                CalculateMID(point_number, MID, DN_De_Jn, J_inv, dn, kinematic_variables);
-                CalculateN_A(point_number,N_A,kinematic_variables);
-                CalculateN_B(point_number,N_B,kinematic_variables);
+                    
+               double int_w = r_integration_points[point_number].Weight() * area;
+              double zeta_w = mGaussIntegrationThickness.integration_weight_thickness(Gauss_index);
+        
+  
+               
+ 
+                
                 double integration_weight =
                     r_integration_points[point_number].Weight()
                     * area; // * m_dA_vector[point_number]; 
-
-                CalculateM(integration_weight, mGaussIntegrationThickness.integration_weight_thickness(Gauss_index), rM, N_A,N_B);
-                CalculateMID_bar(integration_weight, mGaussIntegrationThickness.integration_weight_thickness(Gauss_index),MID_bar, MID, N_A,N_B,rM);
-                
+               
+            
+                    
+        
+               Matrix Bbar = ZeroMatrix(6, mat_size);
+   
+               noalias(Bbar) = B; 
+               noalias(row(Bbar,0)) = row(B,0) - row(MID,0) + row(MID_bar,0);
+               noalias(row(Bbar,1)) = row(B,1) - row(MID,1) + row(MID_bar,1);
+              
+               noalias(row(Bbar,3)) = row(B,3) - row(MID,3) + row(MID_bar,3);
+         
+               
+  
+             
+        
             
 
                 CalculateBDrill(point_number, B_Drill, DN_De_Jn, kinematic_variables);
+           
 
                 //Geometric stiffness part (TO DO)
                 CalculateBGeometric(point_number, B_Geometric, mZeta, DN_De_Jn, J_inv, dn, kinematic_variables);
@@ -340,36 +449,46 @@ namespace Kratos
                 Vector current_displacement = ZeroVector(6*number_of_nodes);
                 GetValuesVector(current_displacement,0);
 
-                strain_cau_cart[Gauss_index] = prod(B, current_displacement);
+                strain_cau_cart[Gauss_index] = prod(Bbar, current_displacement);
                 stress_cau_cart[Gauss_index] = prod(constitutive_variables.ConstitutiveMatrix,strain_cau_cart[Gauss_index]);
+            
 
                 CalculateStressMatrix(stress_cau_cart[Gauss_index],stress_matrix);
-                
+                 
                 
                 Matrix rKm = ZeroMatrix(mat_size, mat_size);
                 Matrix rKd = ZeroMatrix(mat_size, mat_size);
+            
 
                 if (CalculateStiffnessMatrixFlag == true)
                 {
-                    CalculateAndAddKm(rKm, B, constitutive_variables.ConstitutiveMatrix,MID, MID_bar);
+                    CalculateAndAddKm(rKm, constitutive_variables.ConstitutiveMatrix ,Bbar);
+                     KRATOS_WATCH(norm_frobenius(rKm));
 
                     CalculateAndAddKmBd(rKd, B_Drill);
-
+                     KRATOS_WATCH(norm_frobenius(rKd));
+              
                     CalculateAndAddK(rLeftHandSideMatrix, rKm, rKd, integration_weight,
                         mGaussIntegrationThickness.integration_weight_thickness(Gauss_index));
+               
 
                     CalculateAndAddNonlinearKm(rLeftHandSideMatrix, B_Geometric,stress_matrix,
                        integration_weight, mGaussIntegrationThickness.integration_weight_thickness(Gauss_index));
                 }
-                
+         
                 if (CalculateResidualVectorFlag == true) //calculation of the matrix is required
                 {
                     // operation performed: rRightHandSideVector -= Weight*IntForce
-                    noalias(rRightHandSideVector) -= integration_weight * prod(trans(B), stress_cau_cart[Gauss_index]);
+                    noalias(rRightHandSideVector) -= integration_weight * prod(trans(Bbar), stress_cau_cart[Gauss_index]);
+                    
+
                 }
+                
+                
 
             } 
         }
+    
         KRATOS_CATCH("");
     }
 
@@ -580,6 +699,7 @@ namespace Kratos
         rThisConstitutiveVariables.ConstitutiveMatrix(0, 1) = lambda * nu;
         rThisConstitutiveVariables.ConstitutiveMatrix(1, 0) = lambda * nu;
         rThisConstitutiveVariables.ConstitutiveMatrix(1, 1) = lambda;
+        rThisConstitutiveVariables.ConstitutiveMatrix(2, 2) = 0.0;
         rThisConstitutiveVariables.ConstitutiveMatrix(3, 3) = lambda * (1 - nu) / 2;
         rThisConstitutiveVariables.ConstitutiveMatrix(4, 4) = Gmodul * 5.0 / 6.0;
         rThisConstitutiveVariables.ConstitutiveMatrix(5, 5) = Gmodul * 5.0 / 6.0;
@@ -624,7 +744,9 @@ namespace Kratos
         array_1d<double, 3> da1_d1;
         array_1d<double, 3> da1_d2; //da1_d2 = da2_d1
         array_1d<double, 3> da2_d2;
-
+        noalias(da1_d1) = ZeroVector(3);
+        noalias(da1_d2) = ZeroVector(3);
+        noalias(da2_d2) = ZeroVector(3);
         for (std::size_t i=0;i<number_of_control_points;++i){
             da1_d1[0] += (GetGeometry().GetPoint( i ).X0()) * r_DDN_DDe(i, 0);
             da1_d1[1] += (GetGeometry().GetPoint( i ).Y0()) * r_DDN_DDe(i, 0);
@@ -768,50 +890,51 @@ namespace Kratos
             rB(0, index + 2) = 0;
 
             rB(0, index + 3) = 0;
-            rB(0, index + 4) = (DN_De_Jn_bending(i, 0) * y3) + (r_N(i) * (thickness/2) * (zeta * dy3x + y3 * dzetadx));
-            rB(0, index + 5) = - ((DN_De_Jn_bending(i, 0) * y2) + (r_N(i) * (thickness/2) * (zeta * dy2x + dzetadx * y2)));
+            rB(0, index + 4) = (DN_De_Jn_bending(i, 0) * y3) + (r_N(IntegrationPointIndex, i) * (thickness/2) * (zeta * dy3x + y3 * dzetadx));
+            rB(0, index + 5) = - ((DN_De_Jn_bending(i, 0) * y2) + (r_N(IntegrationPointIndex, i) * (thickness/2) * (zeta * dy2x + dzetadx * y2)));
 
             rB(1, index)     = 0;
             rB(1, index + 1) = DN_De_Jn(i, 1);
             rB(1, index + 2) = 0;
 
-            rB(1, index + 3) = - ((DN_De_Jn_bending(i, 1) * y3) + (r_N(i) * (thickness/2) * (zeta * dy3y + dzetady * y3))); 
+            rB(1, index + 3) = - ((DN_De_Jn_bending(i, 1) * y3) + (r_N(IntegrationPointIndex, i) * (thickness/2) * (zeta * dy3y + dzetady * y3))); 
             rB(1, index + 4) = 0;
-            rB(1, index + 5) = (DN_De_Jn_bending(i, 1) * y1) + (r_N(i) * (thickness/2) * (zeta * dy1y + dzetady * y1)); 
+            rB(1, index + 5) = (DN_De_Jn_bending(i, 1) * y1) + (r_N(IntegrationPointIndex, i) * (thickness/2) * (zeta * dy1y + dzetady * y1)); 
 
             rB(2, index)     = 0;
             rB(2, index + 1) = 0;
             rB(2, index + 2) = DN_De_Jn(i, 2);
 
-            rB(2, index + 3) = (DN_De_Jn_bending(i, 2)   * y2) + (r_N(i)  * (thickness/2) * (zeta * dy2z + dzetadz * y2));  
-            rB(2, index + 4) = - ((DN_De_Jn_bending(i, 2) * y1)  + (r_N(i) * (thickness/2) * (zeta  * dy1z + dzetadz *y1))); 
+            rB(2, index + 3) = (DN_De_Jn_bending(i, 2)   * y2) + (r_N(IntegrationPointIndex, i)  * (thickness/2) * (zeta * dy2z + dzetadz * y2));  
+            rB(2, index + 4) = - ((DN_De_Jn_bending(i, 2) * y1)  + (r_N(IntegrationPointIndex, i) * (thickness/2) * (zeta  * dy1z + dzetadz *y1))); 
             rB(2, index + 5) = 0;
             
             rB(3, index)     = DN_De_Jn(i, 1);                    
             rB(3, index + 1) = DN_De_Jn(i, 0);  
             rB(3, index + 2) = 0;
 
-            rB(3, index + 3) = - ((DN_De_Jn_bending(i, 0) * y3) +(r_N(i) * (thickness/2) * (zeta * dy3x + dzetadx * y3)));
-            rB(3, index + 4) = (DN_De_Jn_bending(i, 1) * y3) +(r_N(i) * (thickness/2) * (zeta * dy3y + dzetady * y3));
-            rB(3, index + 5) = ((DN_De_Jn_bending(i, 0) * y1) + (r_N(i) * (thickness/2) * (zeta * dy1x + dzetadx * y1))) - ((DN_De_Jn_bending(i, 1) * y2)+ (r_N(i) * (thickness/2) *  (zeta * dy2y + dzetady * y2))); 
+            rB(3, index + 3) = - ((DN_De_Jn_bending(i, 0) * y3) +(r_N(IntegrationPointIndex, i) * (thickness/2) * (zeta * dy3x + dzetadx * y3)));
+            rB(3, index + 4) = (DN_De_Jn_bending(i, 1) * y3) +(r_N(IntegrationPointIndex, i) * (thickness/2) * (zeta * dy3y + dzetady * y3));
+            rB(3, index + 5) = ((DN_De_Jn_bending(i, 0) * y1) + (r_N(IntegrationPointIndex, i) * (thickness/2) * (zeta * dy1x + dzetadx * y1))) - ((DN_De_Jn_bending(i, 1) * y2)+ (r_N(IntegrationPointIndex, i) * (thickness/2) *  (zeta * dy2y + dzetady * y2))); 
 
             rB(4, index)     = 0;
             rB(4, index + 1) = DN_De_Jn(i, 2);
             rB(4, index + 2) = DN_De_Jn(i, 1);
 
-            rB(4, index + 3) = ((DN_De_Jn_bending(i, 1) * y2) + (r_N(i) * (thickness/2) * (zeta * dy2y + dzetady * y2)))  - ((DN_De_Jn_bending(i, 2) * y3)+ (r_N (i)  * (thickness/2) * (zeta *dy3z + dzetadz * y3))); 
-            rB(4, index + 4) = - ((DN_De_Jn_bending(i, 1) * y1) + (r_N(i) * (thickness/2) * (zeta * dy1y + dzetady * y1))); 
-            rB(4, index + 5) = (DN_De_Jn_bending(i, 2) *  y1 ) + (r_N (i) * (thickness/2) * (zeta * dy1z + dzetadz * y1)); 
+            rB(4, index + 3) = ((DN_De_Jn_bending(i, 1) * y2) + (r_N(IntegrationPointIndex, i) * (thickness/2) * (zeta * dy2y + dzetady * y2)))  - ((DN_De_Jn_bending(i, 2) * y3)+ (r_N(IntegrationPointIndex, i)  * (thickness/2) * (zeta *dy3z + dzetadz * y3))); 
+            rB(4, index + 4) = - ((DN_De_Jn_bending(i, 1) * y1) + (r_N(IntegrationPointIndex, i) * (thickness/2) * (zeta * dy1y + dzetady * y1))); 
+            rB(4, index + 5) = (DN_De_Jn_bending(i, 2) *  y1 ) + (r_N(IntegrationPointIndex, i) * (thickness/2) * (zeta * dy1z + dzetadz * y1)); 
 
             rB(5, index)   = DN_De_Jn (i,2);                    
             rB(5, index + 1) = 0;  
             rB(5, index + 2) = DN_De_Jn(i, 0);
 
-            rB(5, index + 3) = ((DN_De_Jn_bending(i, 0)  * y2) + (r_N(i) * (thickness/2) * ( zeta * dy2x +  dzetadx * y2)) ); 
-            rB(5, index + 4) = ((DN_De_Jn_bending (i,2)  * y3) + (r_N (i)   * (thickness/2) * ( zeta * dy3z + dzetadz * y3 ))) - ((DN_De_Jn_bending(i, 0) * y1) + (r_N(i) * (thickness/2) * (zeta  * dy1x + dzetadx * y1) )); 
-            rB(5, index + 5) = - ((DN_De_Jn_bending (i,2)  * y2 )+(r_N (i) * (thickness/2) * (zeta * dy2z + dzetadz * y2)));  
+            rB(5, index + 3) = ((DN_De_Jn_bending(i, 0)  * y2) + (r_N(IntegrationPointIndex, i) * (thickness/2) * ( zeta * dy2x +  dzetadx * y2)) ); 
+            rB(5, index + 4) = ((DN_De_Jn_bending (i,2)  * y3) + (r_N(IntegrationPointIndex, i)   * (thickness/2) * ( zeta * dy3z + dzetadz * y3 ))) - ((DN_De_Jn_bending(i, 0) * y1) + (r_N(IntegrationPointIndex, i) * (thickness/2) * (zeta  * dy1x + dzetadx * y1) )); 
+            rB(5, index + 5) = - ((DN_De_Jn_bending (i,2)  * y2 )+(r_N(IntegrationPointIndex, i) * (thickness/2) * (zeta * dy2z + dzetadz * y2)));  
         }
     }
+
      void Shell6pBbarElement::CalculateMID(
         const IndexType IntegrationPointIndex,
         Matrix& rMID,
@@ -827,21 +950,42 @@ namespace Kratos
         rMID.resize(6, mat_size);
         noalias(rMID) = ZeroMatrix(6, mat_size);
 
-        // 2-pt Gauss in zeta (exact if B is at most linear in zeta)
+        // 2-pt Gauss in zeta 
         const double a = 1.0 / std::sqrt(3.0);
         const double zeta_gp[2] = { -a, +a };
         const double w_gp[2]    = {  1.0, 1.0 };
 
         Matrix Bgp; // 
-        Matrix DN_De_Jn_dummy = DN_De_Jn; // 
+        KinematicVariables kinematic_variables = rActualKinematic; 
+      
+        Matrix DNDeJn_k(number_of_control_points, 3);
+        Matrix Jinv_k(3, 3);
+        Matrix dn_k(3, 3);
+        double area_k = 0.0;
 
         for (int k = 0; k < 2; ++k) {
         const double zeta = zeta_gp[k];
-        this->CalculateB(IntegrationPointIndex, Bgp, zeta,
-                         DN_De_Jn_dummy, J_inv, dn, rActualKinematic);
-        noalias(rMID) += 0.5 * w_gp[k] * Bgp; // (1/2) * sum w * B
-       }
+
+        noalias(DNDeJn_k) = ZeroMatrix(number_of_control_points, 3);
+        noalias(Jinv_k)   = ZeroMatrix(3, 3);
+        noalias(dn_k)     = ZeroMatrix(3, 3);
+        area_k = 0.0;
+
+       
+       
+
+        CalculateJn(IntegrationPointIndex, kinematic_variables, zeta, DNDeJn_k, Jinv_k, dn_k, area_k);
+        CalculateB (IntegrationPointIndex, Bgp, zeta, DNDeJn_k, Jinv_k, dn_k, kinematic_variables);
+
+        const double w = 0.5 * w_gp[k]; // average over [-1,1]
+        for (std::size_t j = 0; j < mat_size; ++j) {
+            rMID(0, j) += w * Bgp(0, j);
+            rMID(1, j) += w * Bgp(1, j);
+            rMID(3, j) += w * Bgp(3, j);
+        }
     }
+}
+    
         void Shell6pBbarElement::CalculateN_A(
         const IndexType IntegrationPointIndex,
         Matrix& rN_sigma_A,
@@ -867,13 +1011,14 @@ namespace Kratos
 
         for (IndexType k=0; k<number_of_control_points; ++k) {
         const double Nk = Nbar_A[k];
-        rN_sigma_A(1, 6*k + 0) = Nk;
+        rN_sigma_A(0, 6*k + 0) = Nk;
         rN_sigma_A(1, 6*k + 1) = Nk;
         rN_sigma_A(2, 6*k + 2) = Nk;
         rN_sigma_A(3, 6*k + 3) = Nk;
         rN_sigma_A(4, 6*k + 4) = Nk;
         rN_sigma_A(5, 6*k + 5) = Nk;
         }
+      
         
     }
      void Shell6pBbarElement::CalculateN_B(
@@ -908,41 +1053,38 @@ namespace Kratos
         rN_sigma_B(4, 6*k + 4) = Nk;
         rN_sigma_B(5, 6*k + 5) = Nk;
         }
+
     }
-    // Coefficientmatrix M¯A¯B=( ¯N¯A, ¯N¯B)Ωe 
-     void Shell6pBbarElement::CalculateM(
+    // Coefficientmatrix MÂ¯AÂ¯B=( Â¯NÂ¯A, Â¯NÂ¯B)Î©e 
+     void  Shell6pBbarElement::CalculateM(
         const double IntegrationWeight,
         const double IntegrationWeight_zeta,
         Matrix& rN_sigma_A,
         Matrix& rN_sigma_B,
         Matrix& rM) const
-    {
-        noalias(rM) = IntegrationWeight * IntegrationWeight_zeta *prod(trans(rN_sigma_A), rN_sigma_B) ;
+{
+    
+    const std::size_t number_of_control_points = GetGeometry().size();
+    const std::size_t mat_size = number_of_control_points * 6;
+
+
+    if (rM.size1() != number_of_control_points* 6 || rM.size2() != number_of_control_points* 6) {
+    rM.resize(number_of_control_points* 6, number_of_control_points* 6, false);
+    noalias(rM) = ZeroMatrix(number_of_control_points * 6, number_of_control_points * 6);
+    
+    }
+
+    double w = IntegrationWeight * IntegrationWeight_zeta;
+
+    
+
+    noalias(rM) += w * prod(trans(rN_sigma_A), rN_sigma_B);
+  
+
+ 
     }
     
-        void Shell6pBbarElement::CalculateMID_bar(
-        const double IntegrationWeight,
-        const double IntegrationWeight_zeta,
-        Matrix& rMID_bar,
-        Matrix& rMID,
-        Matrix& rN_sigma_A,
-        Matrix& rN_sigma_B,
-        Matrix& rM) const
-    {
-        const std::size_t number_of_control_points = GetGeometry().size();
-        const std::size_t mat_size = number_of_control_points * 6; 
-        Matrix rM_inv(mat_size, mat_size);
-        double det_rM;
-        MathUtils<double>::InvertMatrix(rM, rM_inv, det_rM);
-        Matrix temp;
-        Matrix temp2;
-        noalias(temp) = IntegrationWeight * IntegrationWeight_zeta *prod(rMID, rN_sigma_B) ;
-        noalias(temp2)= prod(rM_inv, temp);
-        noalias(rMID_bar) = prod(rN_sigma_A, temp2);
-        KRATOS_WATCH(rMID_bar.size1());
-        KRATOS_WATCH(rN_sigma_B.size1());
-         KRATOS_WATCH(rN_sigma_B.size2());
-    }
+      
 
     void Shell6pBbarElement::CalculateBDrill(                                                                                         
         const IndexType IntegrationPointIndex,
@@ -968,11 +1110,11 @@ namespace Kratos
             rBd(0, index + 2) = 0;
             rBd(0, index + 3) = 0;
             rBd(0, index + 4) = 0;
-            rBd(0, index + 5) = - r_N (i);
+            rBd(0, index + 5) = - r_N(IntegrationPointIndex, i);
         }
     }
  
-    void Shell6pBbarElement::CalculateBGeometric(
+        void Shell6pBbarElement::CalculateBGeometric(
         const IndexType IntegrationPointIndex,
         Matrix& rB,
         double zeta,
@@ -1053,67 +1195,66 @@ namespace Kratos
             rB(0, index + 1) = 0;
             rB(0, index + 2) = 0;
             rB(0, index + 3) = 0;
-            rB(0, index + 4) = (DN_De_Jn_bending(i, 0) * y3) + (r_N(i) * (thickness/2) * (zeta * dy3x + y3 * dzetadx));
-            rB(0, index + 5) = - ((DN_De_Jn_bending(i, 0) * y2) + (r_N(i) * (thickness/2) * (zeta * dy2x + dzetadx * y2)));
+            rB(0, index + 4) = (DN_De_Jn_bending(i, 0) * y3) + (r_N(IntegrationPointIndex, i) * (thickness/2) * (zeta * dy3x + y3 * dzetadx));
+            rB(0, index + 5) = - ((DN_De_Jn_bending(i, 0) * y2) + (r_N(IntegrationPointIndex, i) * (thickness/2) * (zeta * dy2x + dzetadx * y2)));
 
             rB(1, index)     = DN_De_Jn(i, 1);
             rB(1, index + 1) = 0;
             rB(1, index + 2) = 0;
             rB(1, index + 3) = 0;
-            rB(1, index + 4) = (DN_De_Jn_bending(i, 1) * y3) + (r_N(i) * (thickness/2) * (zeta * dy3y + y3 * dzetady));
-            rB(1, index + 5) = - ((DN_De_Jn_bending(i, 1) * y2) + (r_N(i) * (thickness/2) * (zeta * dy2y + dzetady * y2)));
+            rB(1, index + 4) = (DN_De_Jn_bending(i, 1) * y3) + (r_N(IntegrationPointIndex, i) * (thickness/2) * (zeta * dy3y + y3 * dzetady));
+            rB(1, index + 5) = - ((DN_De_Jn_bending(i, 1) * y2) + (r_N(IntegrationPointIndex, i) * (thickness/2) * (zeta * dy2y + dzetady * y2)));
 
             rB(2, index)     = DN_De_Jn(i, 2);
             rB(2, index + 1) = 0;
             rB(2, index + 2) = 0;
             rB(2, index + 3) = 0;
-            rB(2, index + 4) = (DN_De_Jn_bending(i, 2) * y3) + (r_N(i) * (thickness/2) * (zeta * dy3z + y3 * dzetadz));
-            rB(2, index + 5) = - ((DN_De_Jn_bending(i, 2) * y2) + (r_N(i) * (thickness/2) * (zeta * dy2z + dzetadz * y2)));
+            rB(2, index + 4) = (DN_De_Jn_bending(i, 2) * y3) + (r_N(IntegrationPointIndex, i) * (thickness/2) * (zeta * dy3z + y3 * dzetadz));
+            rB(2, index + 5) = - ((DN_De_Jn_bending(i, 2) * y2) + (r_N(IntegrationPointIndex, i) * (thickness/2) * (zeta * dy2z + dzetadz * y2)));
 
             rB(3, index)     = 0;
             rB(3, index + 1) = DN_De_Jn(i, 0);
             rB(3, index + 2) = 0;
-            rB(3, index + 3) = - ((DN_De_Jn_bending(i, 0) * y3) + (r_N(i) * (thickness/2) * (zeta * dy3x + dzetadx * y3))); 
+            rB(3, index + 3) = - ((DN_De_Jn_bending(i, 0) * y3) + (r_N(IntegrationPointIndex, i) * (thickness/2) * (zeta * dy3x + dzetadx * y3))); 
             rB(3, index + 4) = 0;
-            rB(3, index + 5) = (DN_De_Jn_bending(i, 0) * y1) + (r_N(i) * (thickness/2) * (zeta * dy1x + dzetadx * y1)); 
+            rB(3, index + 5) = (DN_De_Jn_bending(i, 0) * y1) + (r_N(IntegrationPointIndex, i) * (thickness/2) * (zeta * dy1x + dzetadx * y1)); 
 
             rB(4, index)     = 0;
             rB(4, index + 1) = DN_De_Jn(i, 1);
             rB(4, index + 2) = 0;
-            rB(4, index + 3) = - ((DN_De_Jn_bending(i, 1) * y3) + (r_N(i) * (thickness/2) * (zeta * dy3y + dzetady * y3))); 
+            rB(4, index + 3) = - ((DN_De_Jn_bending(i, 1) * y3) + (r_N(IntegrationPointIndex, i) * (thickness/2) * (zeta * dy3y + dzetady * y3))); 
             rB(4, index + 4) = 0;
-            rB(4, index + 5) = (DN_De_Jn_bending(i, 1) * y1) + (r_N(i) * (thickness/2) * (zeta * dy1y + dzetady * y1)); 
+            rB(4, index + 5) = (DN_De_Jn_bending(i, 1) * y1) + (r_N(IntegrationPointIndex, i) * (thickness/2) * (zeta * dy1y + dzetady * y1)); 
 
             rB(5, index)     = 0;
             rB(5, index + 1) = DN_De_Jn(i, 2);
             rB(5, index + 2) = 0;
-            rB(5, index + 3) = - ((DN_De_Jn_bending(i, 2) * y3) + (r_N(i) * (thickness/2) * (zeta * dy3z + dzetadz * y3))); 
+            rB(5, index + 3) = - ((DN_De_Jn_bending(i, 2) * y3) + (r_N(IntegrationPointIndex, i) * (thickness/2) * (zeta * dy3z + dzetadz * y3))); 
             rB(5, index + 4) = 0;
-            rB(5, index + 5) = (DN_De_Jn_bending(i, 2) * y1) + (r_N(i) * (thickness/2) * (zeta * dy1z + dzetadz * y1)); 
+            rB(5, index + 5) = (DN_De_Jn_bending(i, 2) * y1) + (r_N(IntegrationPointIndex, i) * (thickness/2) * (zeta * dy1z + dzetadz * y1)); 
 
             rB(6, index)     = 0;
             rB(6, index + 1) = 0;
             rB(6, index + 2) = DN_De_Jn(i, 0);
-            rB(6, index + 3) = (DN_De_Jn_bending(i, 0)   * y2) + (r_N(i)  * (thickness/2) * (zeta * dy2x + dzetadx * y2));  
-            rB(6, index + 4) = - ((DN_De_Jn_bending(i, 0) * y1)  + (r_N(i) * (thickness/2) * (zeta  * dy1x + dzetadx *y1))); 
+            rB(6, index + 3) = (DN_De_Jn_bending(i, 0)   * y2) + (r_N(IntegrationPointIndex, i)  * (thickness/2) * (zeta * dy2x + dzetadx * y2));  
+            rB(6, index + 4) = - ((DN_De_Jn_bending(i, 0) * y1)  + (r_N(IntegrationPointIndex, i) * (thickness/2) * (zeta  * dy1x + dzetadx *y1))); 
             rB(6, index + 5) = 0;
 
             rB(7, index)     = 0;
             rB(7, index + 1) = 0;
             rB(7, index + 2) = DN_De_Jn(i, 1);
-            rB(7, index + 3) = (DN_De_Jn_bending(i, 1)   * y2) + (r_N(i)  * (thickness/2) * (zeta * dy2y + dzetady * y2));  
-            rB(7, index + 4) = - ((DN_De_Jn_bending(i, 1) * y1)  + (r_N(i) * (thickness/2) * (zeta  * dy1y + dzetady *y1))); 
+            rB(7, index + 3) = (DN_De_Jn_bending(i, 1)   * y2) + (r_N(IntegrationPointIndex, i)  * (thickness/2) * (zeta * dy2y + dzetady * y2));  
+            rB(7, index + 4) = - ((DN_De_Jn_bending(i, 1) * y1)  + (r_N(IntegrationPointIndex, i) * (thickness/2) * (zeta  * dy1y + dzetady *y1))); 
             rB(7, index + 5) = 0;
 
             rB(8, index)     = 0;
             rB(8, index + 1) = 0;
             rB(8, index + 2) = DN_De_Jn(i, 2);
-            rB(8, index + 3) = (DN_De_Jn_bending(i, 2)   * y2) + (r_N(i)  * (thickness/2) * (zeta * dy2z + dzetadz * y2));  
-            rB(8, index + 4) = - ((DN_De_Jn_bending(i, 2) * y1)  + (r_N(i) * (thickness/2) * (zeta  * dy1z + dzetadz *y1))); 
+            rB(8, index + 3) = (DN_De_Jn_bending(i, 2)   * y2) + (r_N(IntegrationPointIndex, i)  * (thickness/2) * (zeta * dy2z + dzetadz * y2));  
+            rB(8, index + 4) = - ((DN_De_Jn_bending(i, 2) * y1)  + (r_N(IntegrationPointIndex, i) * (thickness/2) * (zeta  * dy1z + dzetadz *y1))); 
             rB(8, index + 5) = 0;
         }
     }
-       
 
     void Shell6pBbarElement::CalculateStressMatrix(
         array_1d<double, 6> stress_vector,
@@ -1155,19 +1296,29 @@ namespace Kratos
         const double IntegrationWeight_zeta 
     ) const
     {
+
+  
         noalias(rLeftHandSideMatrix) +=  IntegrationWeight * IntegrationWeight_zeta * (rKm + rKd );                            
     }
 
  
     inline void Shell6pBbarElement::CalculateAndAddKm(
         MatrixType& rKm,
-        const Matrix& rB,
         const Matrix& rD ,
-        const Matrix& rMID,
-        const Matrix& rMID_bar                                                                                                            
+        const Matrix& rBbar                                                                                                            
     ) const
     {  
-        noalias(rKm) += prod(trans(rB), Matrix(prod(rD, rB)))-prod(trans(rMID), Matrix(prod(rD, rMID)))+prod(trans(rMID_bar), Matrix(prod(rD, rMID_bar)));                                              
+     
+        const std::size_t number_of_control_points = GetGeometry().size();
+        const std::size_t mat_size = number_of_control_points * 6;
+     
+    Matrix tmp1(6, mat_size, false);
+    Matrix tmp2(mat_size, mat_size, false);
+    noalias(tmp1) = prod(rD, rBbar);    
+    noalias(tmp2) = prod(trans(rBbar), tmp1);
+    noalias(rKm) += tmp2;
+    KRATOS_WATCH(rKm);
+       
     }
 
     
@@ -1177,18 +1328,21 @@ namespace Kratos
     ) const
     {
         double E = this->GetProperties().GetValue(YOUNG_MODULUS);
-        noalias(rKd) += 0.05 * E  * prod(trans(rBd), Matrix((rBd)));                  
+        const double t = GetProperties().GetValue(THICKNESS);
+        noalias(rKd) +=  0.000155*E*t * prod(trans(rBd), Matrix((rBd)));
+
     }
 
+    
 
     inline void Shell6pBbarElement::CalculateAndAddNonlinearKm(
         Matrix& rLeftHandSideMatrix,
-        const Matrix& rB,
+        const Matrix& rBbar,
         const Matrix& rD,
         const double IntegrationWeight,
         const double IntegrationWeight_zeta) const
     {
-        noalias(rLeftHandSideMatrix) +=  IntegrationWeight * IntegrationWeight_zeta * prod(trans(rB), Matrix(prod(rD, rB))); 
+      noalias(rLeftHandSideMatrix) +=  IntegrationWeight * IntegrationWeight_zeta * prod(trans(rBbar), Matrix(prod(rD, rBbar))); 
     }
 
 
@@ -1222,7 +1376,9 @@ namespace Kratos
             rValues[index + 3] = rotation[0];
             rValues[index + 4] = rotation[1];
             rValues[index + 5] = rotation[2];
+            
         }
+      
     }
 
     // TO DO
@@ -1394,5 +1550,4 @@ namespace Kratos
     ///@}
 
 } // Namespace Kratos
-
 

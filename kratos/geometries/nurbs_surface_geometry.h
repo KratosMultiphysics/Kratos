@@ -1054,6 +1054,8 @@ public:
             shape_function_container.ComputeBSplineShapeFunctionValues1(mKnotsU, mKnotsV, rCoordinates[0], rCoordinates[1]);
         }
 
+        
+
         if (rResult.size() != shape_function_container.NumberOfNonzeroControlPoints())
             rResult.resize(shape_function_container.NumberOfNonzeroControlPoints());
 
@@ -1077,6 +1079,7 @@ public:
             shape_function_container.ComputeBSplineShapeFunctionValues2(mKnotsU, mKnotsV, rCoordinates[0], rCoordinates[1]);
         }
 
+
         if (rResult.size() != shape_function_container.NumberOfNonzeroControlPoints())
             rResult.resize(shape_function_container.NumberOfNonzeroControlPoints());
 
@@ -1099,6 +1102,8 @@ public:
         else {
             shape_function_container.ComputeBSplineShapeFunctionValuesAll(mKnotsU, mKnotsV, rCoordinates[0], rCoordinates[1]);
         }
+
+      
 
         if (rResult.size() != shape_function_container.NumberOfNonzeroControlPoints())
             rResult.resize(shape_function_container.NumberOfNonzeroControlPoints());
