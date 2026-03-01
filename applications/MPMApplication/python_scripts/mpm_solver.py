@@ -312,19 +312,14 @@ class MPMSolver(PythonSolver):
 
     def _ModelPartReading(self):
         # reading the model part of the background grid
-        if(self.settings["grid_model_import_settings"]["input_type"].GetString() == "mdpa"):
-            self._ImportModelPart(self.grid_model_part, self.settings["grid_model_import_settings"])
-        else:
-            raise Exception("Other input options are not implemented yet.")
+        self._ImportModelPart(self.grid_model_part, self.settings["grid_model_import_settings"])
 
         # reading the model part of the material point
-        if(self.settings["model_import_settings"]["input_type"].GetString() == "mdpa"):
-            self._ImportModelPart(self.initial_mesh_model_part, self.settings["model_import_settings"])
-        elif(self.settings["model_import_settings"]["input_type"].GetString() == "rest"):
+        if (self.settings["model_import_settings"]["input_type"].GetString() == "rest"):
             self.settings["model_import_settings"]["input_filename"].SetString("MPM_Material")
             self._ImportModelPart(self.material_point_model_part, self.settings["model_import_settings"])
         else:
-            raise Exception("Other input options are not implemented yet.")
+            self._ImportModelPart(self.initial_mesh_model_part, self.settings["model_import_settings"])
 
     def _AddDofsToModelPart(self, model_part):
         KratosMultiphysics.VariableUtils().AddDof(KratosMultiphysics.DISPLACEMENT_X, KratosMultiphysics.REACTION_X, model_part)
