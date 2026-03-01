@@ -37,16 +37,16 @@ class CFDUtils:
 
     def GetShapeFunctionsOnGaussPoints(self, dim: int, integration_order: int):
         if integration_order == 1:
-            N = np.array([np.ones(dim+1) / (dim+1)])
+            N = xp.array([xp.ones(dim+1) / (dim+1)])
         elif integration_order == 2:
             if dim == 2:
-                N = np.array([
+                N = xp.array([
                     [2.0/3.0, 1.0/6.0, 1.0/6.0],
                     [1.0/6.0, 2.0/3.0, 1.0/6.0],
                     [1.0/6.0, 1.0/6.0, 2.0/3.0]
                 ])
             elif dim == 3:
-                N = np.array([
+                N = xp.array([
                     [0.5854101966249685, 0.1381966011250105, 0.1381966011250105, 0.1381966011250105],
                     [0.1381966011250105, 0.5854101966249685, 0.1381966011250105, 0.1381966011250105],
                     [0.1381966011250105, 0.1381966011250105, 0.5854101966249685, 0.1381966011250105],
@@ -62,20 +62,20 @@ class CFDUtils:
     def GetGaussIntegrationWeights(self, dim: int, integration_order: int):
         if integration_order == 1:
             if dim == 2:
-                w = np.array([1.0/2.0])
+                w = xp.array([1.0/2.0])
             elif dim == 3:
-                w = np.array([1.0/6.0])
+                w = xp.array([1.0/6.0])
             else:
                 raise Exception("Dimension not supported.")
         elif integration_order == 2:
             if dim == 2:
-                w = np.array([
+                w = xp.array([
                     1.0/6.0,
                     1.0/6.0,
                     1.0/6.0
                 ])
             elif dim == 3:
-                w = np.array([
+                w = xp.array([
                     1.0/24.0,
                     1.0/24.0,
                     1.0/24.0,
