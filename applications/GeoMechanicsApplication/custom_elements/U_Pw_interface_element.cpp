@@ -12,10 +12,6 @@
 //
 #include "U_Pw_interface_element.h"
 
-#include "contribution_calculators/calculation_contribution.h"
-#include "contribution_calculators/fluid_body_flow_calculator.hpp"
-#include "contribution_calculators/permeability_calculator.hpp"
-#include "contribution_calculators/stiffness_calculator.hpp"
 #include "custom_geometries/interface_geometry.hpp"
 #include "custom_retention/retention_law_factory.h"
 #include "custom_utilities/constitutive_law_utilities.h"
@@ -596,8 +592,9 @@ Matrix UPwInterfaceElement::CalculatePwBMatrix(const Geo::IntegrationPointType& 
         result(i, 0)                              = -shape_function_values[i];
         result(i + number_of_pw_dofs_per_side, 0) = shape_function_values[i];
         for (auto j = size_t{1}; j < dim; ++j) {
-            result(i, j) = 0.5 * shape_functions_local_gradient(i, j - 1);
-            result(i + number_of_pw_dofs_per_side, j) = 0.5 * shape_functions_local_gradient(i, j - 1);
+            const auto value = 0.5 * shape_functions_local_gradient(i, j - 1);
+            result(i, j)     = value;
+            result(i + number_of_pw_dofs_per_side, j) = value;
         }
     }
     return result;
