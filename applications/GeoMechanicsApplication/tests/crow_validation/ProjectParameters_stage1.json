@@ -150,7 +150,7 @@
             "kratos_module" : "KratosMultiphysics.GeoMechanicsApplication",
             "process_name"  : "ApplyNormalLoadTableProcess",
             "Parameters"    : {
-                "model_part_name"      : "PorousDomain.Normal_Load_After_Last_Excavation",
+                "model_part_name"      : "PorousDomain.Normal_Load_After_Third_Excavation",
                 "variable_name"        : "NORMAL_CONTACT_STRESS",
                 "active"               : [true,false,0.0],
                 "value"                : [0.0,0.0,0.0],
@@ -161,21 +161,20 @@
                 "table"                : [0,0,0.0]
             }
         }],
-        "list_other_processes"     : []
-    },
-    "auxiliary_process_list"  : [
-        {
-            "python_module": "apply_excavation_process",
-            "kratos_module": "KratosMultiphysics.GeoMechanicsApplication",
-            "process_name" : "ApplyExcavationProcess",
-            "Parameters"   : {
-                "model_part_name_list": [
-                    "PorousDomain.Excavated_Soil_1", "PorousDomain.Excavated_Soil_2", "PorousDomain.Excavated_Soil_3"
-                ],
-                "deactivate_soil_part": true
+        "auxiliary_process_list"  : [
+            {
+                "python_module": "apply_excavation_process",
+                "kratos_module": "KratosMultiphysics.GeoMechanicsApplication",
+                "process_name" : "ApplyExcavationProcess",
+                "Parameters"   : {
+                    "model_part_name_list": [
+                        "PorousDomain.Excavated_Soil_1", "PorousDomain.Excavated_Soil_2", "PorousDomain.Excavated_Soil_3"
+                    ],
+                    "deactivate_soil_part": true
+                }
             }
-        }
-    ],
+        ]
+    },
     "output_processes" : {
         "gid_output" : [{
             "python_module" : "gid_output_process",
@@ -186,7 +185,7 @@
                 "postprocess_parameters" : {
                     "result_file_configuration" : {
                         "gidpost_flags"               : {
-                            "GiDPostMode"           : "GiD_PostBinary",
+                            "GiDPostMode"           : "GiD_PostAscii",
                             "WriteDeformedMeshFlag" : "WriteDeformed",
                             "WriteConditionsFlag"   : "WriteConditions",
                             "MultiFileFlag"         : "SingleFile"

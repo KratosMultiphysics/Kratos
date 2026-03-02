@@ -799,7 +799,6 @@ Begin Nodes
   795 -12.7061022589 -17.2878844602 0.0
   796 -14.8826252536 -26.1804675075 0.0
   797 1.7735987822 0.0 0.0
-  798 -0.5 -1.5 0.0
   799 0.0 -1.125 0.0
   800 -8.7721694419 -9.8349364905 0.0
   801 0.2648792214 -0.9069660241 0.0
@@ -1692,7 +1691,7 @@ Begin Conditions LineNormalLoadDiffOrderCondition2D3N
   41 0 648 685 663
   42 0 685 715 703
   43 0 715 758 740
-  44 0 544 585 563
+  44 0 1059 585 563
   45 0 585 635 614
   46 0 635 697 666
   47 0 697 777 736
@@ -3799,7 +3798,6 @@ End SubModelPart
 Begin SubModelPart Anchor
   Begin SubModelPartNodes
     778
-    798
     815
   End SubModelPartNodes
   Begin SubModelPartElements
