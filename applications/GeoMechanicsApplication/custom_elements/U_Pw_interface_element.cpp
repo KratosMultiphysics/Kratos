@@ -376,26 +376,19 @@ void UPwInterfaceElement::CalculateAndAssemblePUCouplingForceVector(Element::Vec
 
 void UPwInterfaceElement::CalculateAndAssemblePermeabilityFlowVector(Element::VectorType& rRightHandSideVector)
 {
-    switch (GetWaterPressureGeometry().PointsNumber()) {
-    case 4:
-        CalculateAndAssemblePermeabilityFlowVector<4>(rRightHandSideVector);
-        break;
-    case 6:
-        CalculateAndAssemblePermeabilityFlowVector<6>(rRightHandSideVector);
-        break;
-    case 8:
-        CalculateAndAssemblePermeabilityFlowVector<8>(rRightHandSideVector);
-        break;
-    case 12:
-        CalculateAndAssemblePermeabilityFlowVector<12>(rRightHandSideVector);
-        break;
-    case 16:
-        CalculateAndAssemblePermeabilityFlowVector<16>(rRightHandSideVector);
-        break;
-    default:
-        KRATOS_ERROR << "This number of points for the permeability flow vector is not supported: "
-                     << GetWaterPressureGeometry().PointsNumber() << "\n";
-    }
+    using Func = void (UPwInterfaceElement::*)(Element::VectorType&) const;
+
+    static const std::map<std::size_t, Func> dispatch_table = {
+        {4, &UPwInterfaceElement::CalculateAndAssemblePermeabilityFlowVector<4>},
+        {6, &UPwInterfaceElement::CalculateAndAssemblePermeabilityFlowVector<6>},
+        {8, &UPwInterfaceElement::CalculateAndAssemblePermeabilityFlowVector<8>},
+        {12, &UPwInterfaceElement::CalculateAndAssemblePermeabilityFlowVector<12>},
+        {16, &UPwInterfaceElement::CalculateAndAssemblePermeabilityFlowVector<16>}};
+
+    KRATOS_ERROR_IF_NOT(dispatch_table.contains(GetWaterPressureGeometry().PointsNumber()))
+        << "This permeability flow vector size is not supported: "
+        << GetWaterPressureGeometry().PointsNumber() << "\n";
+    (this->*dispatch_table.at(GetWaterPressureGeometry().PointsNumber()))(rRightHandSideVector);
 }
 
 void UPwInterfaceElement::CalculateAndAssembleFluidBodyFlowVector(Element::VectorType& rRightHandSideVector)
@@ -1075,7 +1068,7 @@ void UPwInterfaceElement::CalculateAndAssemblePUCouplingForceVector(VectorType& 
 }
 
 template <unsigned int TNumNodes>
-typename PermeabilityCalculator<TNumNodes>::InputProvider UPwInterfaceElement::CreatePermeabilityInputProvider()
+typename PermeabilityCalculator<TNumNodes>::InputProvider UPwInterfaceElement::CreatePermeabilityInputProvider() const
 {
     return typename PermeabilityCalculator<TNumNodes>::InputProvider(
         CreatePropertiesGetter(), CreateRetentionLawsGetter(), CreateMaterialPermeabilityGetter(),
@@ -1084,7 +1077,7 @@ typename PermeabilityCalculator<TNumNodes>::InputProvider UPwInterfaceElement::C
 }
 
 template <unsigned int TNumNodes>
-auto UPwInterfaceElement::CreatePermeabilityCalculator()
+auto UPwInterfaceElement::CreatePermeabilityCalculator() const
 {
     return PermeabilityCalculator<TNumNodes>(CreatePermeabilityInputProvider<TNumNodes>());
 }
@@ -1097,7 +1090,7 @@ void UPwInterfaceElement::CalculateAndAssignPermeabilityMatrix(MatrixType& rLeft
 }
 
 template <unsigned int TNumNodes>
-void UPwInterfaceElement::CalculateAndAssemblePermeabilityFlowVector(VectorType& rRightHandSideVector)
+void UPwInterfaceElement::CalculateAndAssemblePermeabilityFlowVector(VectorType& rRightHandSideVector) const
 {
     GeoElementUtilities::AssemblePBlockVector(
         rRightHandSideVector, CreatePermeabilityCalculator<TNumNodes>().RHSContribution());

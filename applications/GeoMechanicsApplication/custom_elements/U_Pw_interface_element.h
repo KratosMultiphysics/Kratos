@@ -189,16 +189,16 @@ private:
     void CalculateAndAssemblePUCouplingForceVector(VectorType& rRightHandSideVector) const;
 
     template <unsigned int TNumNodes>
-    typename PermeabilityCalculator<TNumNodes>::InputProvider CreatePermeabilityInputProvider();
+    typename PermeabilityCalculator<TNumNodes>::InputProvider CreatePermeabilityInputProvider() const;
 
     template <unsigned int TNumNodes>
-    auto CreatePermeabilityCalculator();
+    auto CreatePermeabilityCalculator() const;
 
     template <unsigned int TnumNodes>
     void CalculateAndAssignPermeabilityMatrix(MatrixType& rLeftHandSideMatrix);
 
     template <unsigned int TnumNodes>
-    void CalculateAndAssemblePermeabilityFlowVector(VectorType& rRightHandSideVector);
+    void CalculateAndAssemblePermeabilityFlowVector(VectorType& rRightHandSideVector) const;
 
     template <unsigned int TNumNodes>
     typename FluidBodyFlowCalculator<TNumNodes>::InputProvider CreateFluidBodyFlowInputProvider();
