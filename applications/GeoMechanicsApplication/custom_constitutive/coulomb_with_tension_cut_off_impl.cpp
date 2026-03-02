@@ -107,7 +107,7 @@ StressStateType CoulombWithTensionCutOffImpl::DoReturnMapping(const StressStateT
         }
 
         if (IsStressAtCornerReturnZone(trial_traction, AveragingType)) {
-            result = CalculateCornerPoint(rTrialStressState);
+            result = ReturnStressAtCornerPoint(rTrialStressState, AveragingType);
         } else { // Regular failure region
             result = ReturnStressAtRegularFailureZone(rTrialStressState, rElasticMatrix, AveragingType);
         }
@@ -124,7 +124,7 @@ StressStateType CoulombWithTensionCutOffImpl::DoReturnMapping(const StressStateT
     return result;
 }
 
-Geo::SigmaTau CoulombWithTensionCutOffImpl::CalculateCornerPoint(const Geo::SigmaTau&) const
+Geo::SigmaTau CoulombWithTensionCutOffImpl::CalculateCornerPoint() const
 {
     const auto tensile_strength = mTensionCutOff.GetTensileStrength();
     if (const auto apex = mCoulombYieldSurface.CalculateApex(); tensile_strength > apex)
@@ -137,13 +137,6 @@ Geo::SigmaTau CoulombWithTensionCutOffImpl::CalculateCornerPoint(const Geo::Sigm
                          (cohesion * cos_phi - tensile_strength * sin_phi) / (1.0 - sin_phi)};
 }
 
-Geo::PrincipalStresses CoulombWithTensionCutOffImpl::CalculateCornerPoint(const Geo::PrincipalStresses& rPrincipalStresses) const
-{
-    return StressStrainUtilities::TransformSigmaTauToPrincipalStresses(
-        CalculateCornerPoint(StressStrainUtilities::TransformPrincipalStressesToSigmaTau(rPrincipalStresses)),
-        rPrincipalStresses);
-}
-
 bool CoulombWithTensionCutOffImpl::IsStressAtTensionApexReturnZone(const Geo::SigmaTau& rTrialTraction) const
 {
     const auto tensile_strength = mTensionCutOff.GetTensileStrength();
@@ -153,7 +146,7 @@ bool CoulombWithTensionCutOffImpl::IsStressAtTensionApexReturnZone(const Geo::Si
 
 bool CoulombWithTensionCutOffImpl::IsStressAtTensionCutoffReturnZone(const Geo::SigmaTau& rTrialTraction) const
 {
-    const auto corner_point = CalculateCornerPoint(rTrialTraction);
+    const auto corner_point = CalculateCornerPoint();
     return mTensionCutOff.GetTensileStrength() < mCoulombYieldSurface.CalculateApex() &&
            corner_point.Tau() - rTrialTraction.Tau() - corner_point.Sigma() + rTrialTraction.Sigma() > 0.0;
 }
@@ -161,7 +154,7 @@ bool CoulombWithTensionCutOffImpl::IsStressAtTensionCutoffReturnZone(const Geo::
 bool CoulombWithTensionCutOffImpl::IsStressAtCornerReturnZone(const Geo::SigmaTau& rTrialTraction,
                                                               Geo::PrincipalStresses::AveragingType AveragingType) const
 {
-    const auto corner_point = CalculateCornerPoint(rTrialTraction);
+    const auto corner_point = CalculateCornerPoint();
     const auto derivative_of_flow_function =
         mCoulombYieldSurface.DerivativeOfFlowFunction(rTrialTraction, AveragingType);
     return (rTrialTraction.Sigma() - corner_point.Sigma()) * derivative_of_flow_function[1] -
@@ -227,6 +220,24 @@ Geo::PrincipalStresses CoulombWithTensionCutOffImpl::ReturnStressAtRegularFailur
         rTrialPrincipalStresses, derivative_of_flow_function, rElasticMatrix);
     return Geo::PrincipalStresses{rTrialPrincipalStresses.Values() +
                                   lambda * prod(subrange(rElasticMatrix, 0, 3, 0, 3), derivative_of_flow_function)};
+}
+
+Geo::PrincipalStresses CoulombWithTensionCutOffImpl::ReturnStressAtCornerPoint(
+    const Geo::PrincipalStresses& rTrialPrincipalStresses, Geo::PrincipalStresses::AveragingType AveragingType) const
+{
+    // This is still the old (and incorrect) way of returning the stress at the corner point when a trial principal
+    // stress vector is given. (The second component of the mapped principal stress vector is not properly calculated
+    // but taken from the trial principal stress vector.) We'll correct that soon...
+    return StressStrainUtilities::TransformSigmaTauToPrincipalStresses(CalculateCornerPoint(),
+                                                                       rTrialPrincipalStresses);
+}
+
+Geo::SigmaTau CoulombWithTensionCutOffImpl::ReturnStressAtCornerPoint(const Geo::SigmaTau&,
+                                                                      Geo::PrincipalStresses::AveragingType AveragingType) const
+{
+    KRATOS_DEBUG_ERROR_IF(AveragingType != Geo::PrincipalStresses::AveragingType::NO_AVERAGING) << "When returning the traction to the corner point, averaging of principal stresses is not supported\n";
+
+    return CalculateCornerPoint();
 }
 
 void CoulombWithTensionCutOffImpl::save(Serializer& rSerializer) const

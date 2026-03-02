@@ -64,8 +64,7 @@ private:
                                                   const Matrix& rElasticMatrix,
                                                   Geo::PrincipalStresses::AveragingType AveragingType);
 
-    [[nodiscard]] Geo::SigmaTau CalculateCornerPoint(const Geo::SigmaTau&) const;
-    [[nodiscard]] Geo::PrincipalStresses CalculateCornerPoint(const Geo::PrincipalStresses& rPrincipalStresses) const;
+    [[nodiscard]] Geo::SigmaTau CalculateCornerPoint() const;
     [[nodiscard]] bool IsStressAtTensionApexReturnZone(const Geo::SigmaTau& rTrialTraction) const;
     [[nodiscard]] bool IsStressAtTensionCutoffReturnZone(const Geo::SigmaTau& rTrialTraction) const;
     [[nodiscard]] bool IsStressAtCornerReturnZone(const Geo::SigmaTau& rTrialTraction,
@@ -87,6 +86,10 @@ private:
         const Geo::PrincipalStresses&         rTrialPrincipalStresses,
         const Matrix&                         rElasticMatrix,
         Geo::PrincipalStresses::AveragingType AveragingType) const;
+    [[nodiscard]] Geo::PrincipalStresses ReturnStressAtCornerPoint(const Geo::PrincipalStresses& rTrialPrincipalStresses,
+                                                                   Geo::PrincipalStresses::AveragingType AveragingType) const;
+    [[nodiscard]] Geo::SigmaTau ReturnStressAtCornerPoint(const Geo::SigmaTau&,
+                                                          Geo::PrincipalStresses::AveragingType AveragingType) const;
 
     friend class Serializer;
     void save(Serializer& rSerializer) const;
