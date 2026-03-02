@@ -12,7 +12,7 @@
 //
 
 #include "custom_retention/saturated_below_phreatic_level_law.h"
-#include "custom_utilities/check_utilities.h"
+#include "custom_utilities/check_utilities.hpp"
 #include "geo_mechanics_application_variables.h"
 
 #include <string>

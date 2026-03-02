@@ -56,7 +56,7 @@ public:
     ///@{
 
     /// Default constructor.
-    ActivateModelPartOperation() : Operation() {}
+    ActivateModelPartOperation() = default;
 
     /// @brief Model-parameters constructor.
     /// @param rModel Reference to the model container

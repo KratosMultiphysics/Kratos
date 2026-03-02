@@ -29,6 +29,9 @@ ENDIF(NOT TRILINOS_FOUND)
 # Amesos2 is currenlty under development and is disabled by default. This can be removed in the future to enable it by default.
 OPTION ( TRILINOS_EXCLUDE_AMESOS2_SOLVER "Exclude Amesos2 Solver" ON )
 
+# If manually compiling some dependencies like MUMPS, linking to Fortran may be required
+OPTION ( TRILINOS_APPLICATION_LINK_GFORTRAN "Not linking Trilinos application with GFortran" OFF )
+
 if(${TRILINOS_EXCLUDE_AMESOS2_SOLVER} MATCHES ON)
     add_definitions(-DTRILINOS_EXCLUDE_AMESOS2_SOLVER)
     message("**** WARNING: Manually disabled Amesos2-Solver ****")
@@ -67,8 +70,12 @@ endif(${KRATOS_BUILD_TESTING} MATCHES ON)
 
 # ###############################################################
 ## TrilinosApplication core library (C++ parts)
+set(TRILINOS_LINK_LIBS KratosCore KratosMPICore ${TRILINOS_LIBRARIES})
+if (${TRILINOS_APPLICATION_LINK_GFORTRAN})
+    set(TRILINOS_LINK_LIBS ${TRILINOS_LINK_LIBS} -lgfortran)
+endif()
 add_library( KratosTrilinosCore SHARED ${KRATOS_TRILINOS_APPLICATION_CORE_SOURCES} )
-target_link_libraries(KratosTrilinosCore PUBLIC KratosCore KratosMPICore ${TRILINOS_LIBRARIES} )
+target_link_libraries(KratosTrilinosCore PUBLIC ${TRILINOS_LINK_LIBS})
 set_target_properties( KratosTrilinosCore PROPERTIES COMPILE_DEFINITIONS "TRILINOS_APPLICATION=EXPORT,API")
 
 target_include_directories(KratosTrilinosCore SYSTEM PUBLIC ${TRILINOS_INCLUDE_DIR})

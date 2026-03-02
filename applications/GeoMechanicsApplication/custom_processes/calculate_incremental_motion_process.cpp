@@ -11,12 +11,13 @@
 //
 #include "calculate_incremental_motion_process.h"
 #include "geo_mechanics_application_variables.h"
+#include "includes/kratos_parameters.h"
 #include "includes/model_part.h"
 #include "includes/node.h"
-#include "includes/variables.h"
 
 namespace Kratos
 {
+using namespace std::string_literals;
 
 CalculateIncrementalMotionProcess::CalculateIncrementalMotionProcess(ModelPart&        rModelPart,
                                                                      const Parameters& rParameters)
@@ -56,7 +57,7 @@ void CalculateIncrementalMotionProcess::Execute()
 
 std::string CalculateIncrementalMotionProcess::Info() const
 {
-    return "CalculateIncrementalMotionProcess";
+    return "CalculateIncrementalMotionProcess"s;
 }
 
 } // namespace Kratos

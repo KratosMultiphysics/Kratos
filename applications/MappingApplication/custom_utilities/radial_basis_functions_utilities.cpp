@@ -21,7 +21,7 @@ namespace Kratos
 namespace RadialBasisFunctionsUtilities
 {
     // Extracted from: Review of coupling methods for non-matching meshes (https://doi.org/10.1016/j.cma.2006.03.017)
-    double CalculateWendlandC2SupportRadius(const Matrix& rPoints, const double k = 2.5)
+    double CalculateWendlandC2SupportRadius(const Matrix& rPoints, const double k)
     {
         const SizeType n_points = rPoints.size1();
         KRATOS_ERROR_IF(n_points < 2) << "At least two points are required to estimate spacing." << std::endl;

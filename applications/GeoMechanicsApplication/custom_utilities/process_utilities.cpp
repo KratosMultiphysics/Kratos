@@ -62,13 +62,18 @@ std::vector<std::reference_wrapper<ModelPart>> ProcessUtilities::GetModelPartsFr
     const auto model_part_names = GetProcessModelPartNames(rProcessSettings, rProcessInfo);
     KRATOS_ERROR_IF(model_part_names.empty()) << "The parameters 'model_part_name_list' needs "
                                                  "to contain at least one model part name for "
-                                              << rProcessInfo;
+                                              << rProcessInfo << ".";
 
     std::vector<std::reference_wrapper<ModelPart>> result;
     result.reserve(model_part_names.size());
     std::ranges::transform(
         model_part_names, std::back_inserter(result),
         [&rModel](const auto& rName) -> ModelPart& { return rModel.GetModelPart(rName); });
+
+    const std::set<std::string, std::less<>> unique_names(model_part_names.begin(), model_part_names.end());
+    KRATOS_ERROR_IF_NOT(unique_names.size() == model_part_names.size())
+        << "model_part_name_list has duplicated names for " << rProcessInfo << "." << std::endl;
+
     return result;
 }
 

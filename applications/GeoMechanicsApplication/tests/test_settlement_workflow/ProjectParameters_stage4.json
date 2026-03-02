@@ -138,7 +138,7 @@
         "kratos_module": "KratosMultiphysics.GeoMechanicsApplication",
         "process_name":  "ApplyExcavationProcess",
         "Parameters":    {
-            "model_part_name":      "PorousDomain.Excavate_sloot",
+            "model_part_name":      "PorousDomain.Excavated_clay",
             "deactivate_soil_part":             true
         }
     }],
@@ -186,7 +186,7 @@
                 "kratos_module": "KratosMultiphysics.GeoMechanicsApplication",
                 "process_name" :  "GeoExtrapolateIntegrationPointValuesToNodesProcess",
                 "Parameters": {
-                    "model_part_name": "PorousDomain",
+                    "model_part_name": "PorousDomain.Clay_after_excavation",
                     "list_of_variables" : ["TOTAL_STRESS_TENSOR", "CAUCHY_STRESS_TENSOR"]
                 }
             }

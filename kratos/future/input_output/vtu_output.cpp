@@ -470,7 +470,7 @@ void AddFields(
             // all the ranks should have the same number of dimensions, because number of dimensions should not depend
             // on whether the rank is empty or not.
             const auto& ta_shape = pTensorAdaptor->Shape();
-            const auto max_number_of_dimensions = rDataCommunicator.MaxAll(ta_shape.size());
+            const auto max_number_of_dimensions = rDataCommunicator.MaxAll(static_cast<unsigned int>(ta_shape.size()));
 
             KRATOS_ERROR_IF_NOT(max_number_of_dimensions == ta_shape.size())
                 << "The number of dimensions represented by \"" << r_pair.first << "\" tensor adaptor is different in different ranks [ max number of dimensions from all ranks = "
@@ -1711,16 +1711,16 @@ void VtuOutput::PrintData(std::ostream& rOStream) const
 // template instantiations
 #ifndef KRATOS_VTU_OUTPUT_VARIABLE_METHOD_INSTANTIATION
 #define KRATOS_VTU_OUTPUT_VARIABLE_METHOD_INSTANTIATION(...)                                                             \
-    template void VtuOutput::AddVariable(const Variable<__VA_ARGS__>&, const Globals::DataLocation&);                   \
-    template void VtuOutput::AddIntegrationPointVariable(const Variable<__VA_ARGS__>&, const Globals::DataLocation&);   \
+    template KRATOS_API(KRATOS_CORE) void VtuOutput::AddVariable<__VA_ARGS__>(const Variable<__VA_ARGS__>&, const Globals::DataLocation&);                   \
+    template KRATOS_API(KRATOS_CORE) void VtuOutput::AddIntegrationPointVariable<__VA_ARGS__>(const Variable<__VA_ARGS__>&, const Globals::DataLocation&);   \
 
 #endif
 
 #ifndef KRATOS_VTU_OUTPUT_TENSOR_METHOD_INSTANTIATION
 #define KRATOS_VTU_OUTPUT_TENSOR_METHOD_INSTANTIATION(DATA_TYPE)                                            \
-    template void VtuOutput::AddTensorAdaptor(const std::string&, TensorAdaptor<DATA_TYPE>::Pointer);       \
-    template void VtuOutput::ReplaceTensorAdaptor(const std::string&, TensorAdaptor<DATA_TYPE>::Pointer);   \
-    template void VtuOutput::EmplaceTensorAdaptor(const std::string&, TensorAdaptor<DATA_TYPE>::Pointer);   \
+    template KRATOS_API(KRATOS_CORE) void VtuOutput::AddTensorAdaptor<TensorAdaptor<DATA_TYPE>::Pointer>(const std::string&, TensorAdaptor<DATA_TYPE>::Pointer);       \
+    template KRATOS_API(KRATOS_CORE) void VtuOutput::ReplaceTensorAdaptor<TensorAdaptor<DATA_TYPE>::Pointer>(const std::string&, TensorAdaptor<DATA_TYPE>::Pointer);   \
+    template KRATOS_API(KRATOS_CORE) void VtuOutput::EmplaceTensorAdaptor<TensorAdaptor<DATA_TYPE>::Pointer>(const std::string&, TensorAdaptor<DATA_TYPE>::Pointer);   \
 
 #endif
 

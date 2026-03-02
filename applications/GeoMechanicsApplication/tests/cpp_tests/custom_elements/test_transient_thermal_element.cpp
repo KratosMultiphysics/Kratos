@@ -23,9 +23,9 @@ using namespace Kratos;
 namespace Kratos::Testing
 {
 
-void SetProperties(Element::Pointer p_element)
+void SetProperties(const Element::Pointer& rpElement)
 {
-    Properties::Pointer p_properties = p_element->pGetProperties();
+    Properties::Pointer p_properties = rpElement->pGetProperties();
 
     // Please note these are not representative values, it just ensures the values are set
     p_properties->SetValue(DENSITY_WATER, 1.0);
