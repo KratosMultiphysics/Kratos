@@ -17,19 +17,11 @@
 #include "custom_utilities/stress_strain_utilities.h"
 #include "includes/serializer.h"
 
-#include <boost/numeric/ublas/assignment.hpp>
-
 namespace Kratos
 {
 TensionCutoff::TensionCutoff(double TensileStrength) : mTensileStrength{TensileStrength} {}
 
 double TensionCutoff::GetTensileStrength() const { return mTensileStrength; }
-
-// At some point in time we would like to get rid of this API. For now, just forward the request.
-double TensionCutoff::YieldFunctionValue(const Vector& rSigmaTau) const
-{
-    return YieldFunctionValue(Geo::SigmaTau{rSigmaTau});
-}
 
 double TensionCutoff::YieldFunctionValue(const Geo::SigmaTau& rSigmaTau) const
 {
@@ -43,13 +35,6 @@ double TensionCutoff::YieldFunctionValue(const Geo::SigmaTau& rSigmaTau) const
 double TensionCutoff::YieldFunctionValue(const Geo::PrincipalStresses& rPrincipalStresses) const
 {
     return rPrincipalStresses.Values()[0] - mTensileStrength;
-}
-
-// At some point in time we would like to get rid of this API. For now, just forward the request.
-Vector TensionCutoff::DerivativeOfFlowFunction(const Vector&) const
-{
-    const auto unused_sigma_tau = Geo::SigmaTau{};
-    return DerivativeOfFlowFunction(unused_sigma_tau);
 }
 
 Vector TensionCutoff::DerivativeOfFlowFunction(const Geo::SigmaTau&) const
