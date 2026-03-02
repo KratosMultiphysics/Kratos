@@ -57,7 +57,7 @@ class KratosGeoMechanicsBenchmarkSet1(KratosUnittest.TestCase):
         simulation = test_helper.run_kratos(file_path)
 
         # get results
-        moments = [-1.0 * moment for moment in test_helper.get_moment(simulation)]
+        moments = [-1.0 * moment for moment in test_helper.get_bending_moment(simulation)]
         displacements = test_helper.get_displacement(simulation)
 
         max_x_disp = max([abs(displacement[0]) for displacement in displacements])
