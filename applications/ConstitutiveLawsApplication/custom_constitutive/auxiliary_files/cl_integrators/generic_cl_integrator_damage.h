@@ -151,9 +151,6 @@ class GenericConstitutiveLawIntegratorDamage
         case static_cast<int>(SofteningType::CurveFittingDamage):
             CalculateCurveFittingDamage(UniaxialStress, rThreshold, damage_parameter, CharacteristicLength, rValues, rDamage);
             break;
-        case static_cast<int>(SofteningType::DoubleExponentialHardeningDamage):
-            CalculateDoubleExponentialHardeningDamage(UniaxialStress, rThreshold, damage_parameter, CharacteristicLength, rValues, rDamage);
-            break;
         default:
             KRATOS_ERROR << "SOFTENING_TYPE not defined or wrong..." << softening_type << std::endl;
             break;
@@ -229,46 +226,6 @@ class GenericConstitutiveLawIntegratorDamage
         } else {
             rDamage = 1.0 - re / r + Hd * (1.0 - rp / r);
         }
-    }
-
-    /**
-     * @brief This computes the damage variable according to parabolic hardening and exponential
-     * softening
-     * @param UniaxialStress The equivalent uniaxial stress
-     * @param Threshold The maximum uniaxial stress achieved previously
-     * @param rDamage The internal variable of the damage model
-     * @param rValues Parameters of the constitutive law
-     * @param CharacteristicLength The equivalent length of the FE
-     */
-    static void CalculateDoubleExponentialHardeningDamage(
-        const double UniaxialStress,
-        const double Threshold,
-        const double DamageParameter,
-        const double CharacteristicLength,
-        ConstitutiveLaw::Parameters& rValues,
-        double& rDamage
-        )
-    {
-        const auto &r_mat_props = rValues.GetMaterialProperties();
-        const double max_stress = r_mat_props[MAXIMUM_STRESS];
-        const double Gf = r_mat_props[FRACTURE_ENERGY];
-        const double E = r_mat_props[YOUNG_MODULUS];
-        const bool Max_Stress_Satisfied =r_mat_props[SATISFY_MAXIMUM_STRESS];
-
-        double initial_threshold;
-        TYieldSurfaceType::GetInitialUniaxialThreshold(rValues, initial_threshold);
-
-        double X = 0.0;
-        if (Max_Stress_Satisfied) {
-            X = -std::sqrt(max_stress/(max_stress - initial_threshold));
-        } else {
-            X = (std::pow(initial_threshold, 2)/E + Gf + std::sqrt(initial_threshold*initial_threshold/E*(5.0/4.0*initial_threshold*initial_threshold/E+2.0*Gf))) / (0.5*initial_threshold*initial_threshold/E-Gf);
-        }
-
-        const double A = ((3.0*X+1.0)*initial_threshold*(UniaxialStress-initial_threshold))/((X+1.0)*(0.5*initial_threshold*initial_threshold-E*Gf));
-        
-        rDamage = 1-initial_threshold/(UniaxialStress*(X+1.0)) * (2.0*X*std::exp(A/2.0)+(1.0-X)*std::exp(A));
-
     }
 
     /**
