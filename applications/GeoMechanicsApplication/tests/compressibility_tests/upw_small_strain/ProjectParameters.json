@@ -27,7 +27,6 @@
         "compute_reactions":                  true,
         "move_mesh_flag":                     false,
         "reform_dofs_at_each_step":           false,
-        "nodal_smoothing":                    true,
         "block_builder":                      true,
         "solution_type":                      "Quasi-Static",
         "scheme_type":                        "Newmark",
@@ -64,7 +63,6 @@
             "scaling":       true
         },
         "problem_domain_sub_model_part_list": ["Soil"],
-        "processes_sub_model_part_list":      ["BottomFixed","TopLoad","Soil", "Sides"],
         "body_domain_sub_model_part_list":    ["Soil"]
     },
     "output_processes": {

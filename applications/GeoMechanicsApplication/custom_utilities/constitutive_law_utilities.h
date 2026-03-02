@@ -42,6 +42,12 @@ public:
                                                   double      ShearStiffness,
                                                   std::size_t TractionSize,
                                                   std::size_t NumberOfNormalComponents);
+
+    static void CheckStrainSize(const Properties& rProperties, std::size_t ExpectedSize, std::size_t ElementId);
+
+    static void CheckHasStrainMeasure_Infinitesimal(const Properties& rProperties, std::size_t ElementId);
+
+    [[nodiscard]] static double CalculateK0NCFromFrictionAngleInRadians(double FrictionAngleInRadians);
 }; /* Class ConstitutiveLawUtilities*/
 
 } // namespace Kratos

@@ -14,15 +14,17 @@
 #include "custom_constitutive/incremental_linear_elastic_law.h"
 #include "custom_constitutive/plane_strain.h"
 #include "custom_constitutive/small_strain_udsm_law.h"
-#include "custom_elements/U_Pw_small_strain_element.hpp"
+#include "custom_elements/U_Pw_small_strain_element.h"
 #include "custom_elements/plane_strain_stress_state.h"
-#include "custom_utilities/registration_utilities.h"
+#include "custom_retention/saturated_law.h"
+#include "custom_utilities/registration_utilities.hpp"
 #include "includes/variables.h"
+#include "test_setup_utilities/element_setup_utilities.hpp"
+#include "test_setup_utilities/model_setup_utilities.h"
+#include "tests/cpp_tests/custom_constitutive/mock_constitutive_law.hpp"
 #include "tests/cpp_tests/geo_mechanics_fast_suite.h"
 #include "tests/cpp_tests/stub_constitutive_law.h"
 #include "tests/cpp_tests/test_utilities.h"
-#include "tests/cpp_tests/test_utilities/element_setup_utilities.h"
-#include "tests/cpp_tests/test_utilities/model_setup_utilities.h"
 
 #include <boost/numeric/ublas/assignment.hpp>
 #include <string>
@@ -47,7 +49,7 @@ ModelPart& CreateModelPartWithUPwSolutionStepVariables(Model& rModel)
     return r_result;
 }
 
-std::shared_ptr<Properties> CreateProperties()
+std::shared_ptr<Properties> CreatePropertiesForUPwSmallStrainElementTest()
 {
     const auto p_properties = std::make_shared<Properties>();
     p_properties->SetValue(CONSTITUTIVE_LAW, std::make_shared<GeoIncrementalLinearElasticLaw>(
@@ -216,7 +218,8 @@ KRATOS_TEST_CASE_IN_SUITE(UPwSmallStrainElement_CheckDoesNotThrowOnCorrectInput,
 {
     // Arrange
     Model model;
-    auto  p_element = CreateUPwSmallStrainElementWithUPwDofs(model, CreateProperties());
+    auto  p_element =
+        CreateUPwSmallStrainElementWithUPwDofs(model, CreatePropertiesForUPwSmallStrainElementTest());
     SetSolutionStepValuesForGeneralCheck(p_element);
     const auto dummy_process_info = ProcessInfo{};
     p_element->Initialize(dummy_process_info);
@@ -228,7 +231,8 @@ KRATOS_TEST_CASE_IN_SUITE(UPwSmallStrainElement_CalculatesSteadyStateRightHandSi
 {
     // Arrange
     Model model;
-    auto  p_element = CreateUPwSmallStrainElementWithUPwDofs(model, CreateProperties());
+    auto  p_element =
+        CreateUPwSmallStrainElementWithUPwDofs(model, CreatePropertiesForUPwSmallStrainElementTest());
     SetSolutionStepValuesForFluidFluxCheck(p_element);
     const auto process_info = ProcessInfo{};
 
@@ -255,7 +259,8 @@ KRATOS_TEST_CASE_IN_SUITE(UPwSmallStrainElement_CalculatesSteadyStateLeftHandSid
 {
     // Arrange
     Model model;
-    auto  p_element = CreateUPwSmallStrainElementWithUPwDofs(model, CreateProperties());
+    auto  p_element =
+        CreateUPwSmallStrainElementWithUPwDofs(model, CreatePropertiesForUPwSmallStrainElementTest());
     SetSolutionStepValuesForGeneralCheck(p_element);
     const auto process_info = ProcessInfo{};
 
@@ -276,7 +281,8 @@ KRATOS_TEST_CASE_IN_SUITE(UPwSmallStrainElement_CalculatesCorrectLHSAfterSaveAnd
         std::make_pair("PlaneStrainStressState"s, PlaneStrainStressState{}));
 
     Model model;
-    auto  p_element = CreateUPwSmallStrainElementWithUPwDofs(model, CreateProperties());
+    auto  p_element =
+        CreateUPwSmallStrainElementWithUPwDofs(model, CreatePropertiesForUPwSmallStrainElementTest());
     SetSolutionStepValuesForGeneralCheck(p_element);
     const auto process_info = ProcessInfo{};
     p_element->Initialize(process_info);
@@ -303,7 +309,8 @@ KRATOS_TEST_CASE_IN_SUITE(UPwSmallStrainElement_CalculatesCorrectRHSAfterSaveAnd
         std::make_pair("PlaneStrainStressState"s, PlaneStrainStressState{}));
 
     Model model;
-    auto  p_element = CreateUPwSmallStrainElementWithUPwDofs(model, CreateProperties());
+    auto  p_element =
+        CreateUPwSmallStrainElementWithUPwDofs(model, CreatePropertiesForUPwSmallStrainElementTest());
     SetSolutionStepValuesForFluidFluxCheck(p_element);
     const auto process_info = ProcessInfo{};
 
@@ -336,7 +343,8 @@ KRATOS_TEST_CASE_IN_SUITE(UPwSmallStrainElement_InitializeSolutionStep, KratosGe
 {
     // Arrange
     Model model;
-    auto  p_element = CreateUPwSmallStrainElementWithUPwDofs(model, CreateProperties());
+    auto  p_element =
+        CreateUPwSmallStrainElementWithUPwDofs(model, CreatePropertiesForUPwSmallStrainElementTest());
     SetSolutionStepValuesForGeneralCheck(p_element);
     const auto process_info = ProcessInfo{};
     p_element->Initialize(process_info);
@@ -408,7 +416,8 @@ KRATOS_TEST_CASE_IN_SUITE(UPwSmallStrainElement_InitializeNonLinearIterationAndC
 {
     // Arrange
     Model model;
-    auto  p_element = CreateUPwSmallStrainElementWithUPwDofs(model, CreateProperties());
+    auto  p_element =
+        CreateUPwSmallStrainElementWithUPwDofs(model, CreatePropertiesForUPwSmallStrainElementTest());
     p_element->GetProperties().SetValue(BIOT_COEFFICIENT, 1.000000e+00);
     SetSolutionStepValuesForGeneralCheck(p_element);
     const auto process_info = ProcessInfo{};
@@ -430,7 +439,8 @@ KRATOS_TEST_CASE_IN_SUITE(UPwSmallStrainElement_InitializeNonLinearIterationAndC
 
     // Arrange
     Model model;
-    auto  p_element = CreateUPwSmallStrainElementWithUPwDofs(model, CreateProperties());
+    auto  p_element =
+        CreateUPwSmallStrainElementWithUPwDofs(model, CreatePropertiesForUPwSmallStrainElementTest());
     p_element->GetProperties().SetValue(BIOT_COEFFICIENT, 1.000000e+00);
     SetSolutionStepValuesForGeneralCheck(p_element);
     const auto process_info = ProcessInfo{};
@@ -453,7 +463,8 @@ KRATOS_TEST_CASE_IN_SUITE(UPwSmallStrainElement_CalculateOnIntegrationPointsVari
 {
     // Arrange
     Model model;
-    auto  p_element = CreateUPwSmallStrainElementWithUPwDofs(model, CreateProperties());
+    auto  p_element =
+        CreateUPwSmallStrainElementWithUPwDofs(model, CreatePropertiesForUPwSmallStrainElementTest());
     p_element->GetProperties().SetValue(BIOT_COEFFICIENT, 1.000000e+00);
     SetSolutionStepValuesForGeneralCheck(p_element);
     const auto process_info = ProcessInfo{};
@@ -545,7 +556,8 @@ KRATOS_TEST_CASE_IN_SUITE(UPwSmallStrainElement_FinalizeSolutionStep, KratosGeoM
 {
     // Arrange
     Model model;
-    auto  p_element = CreateUPwSmallStrainElementWithUPwDofs(model, CreateProperties());
+    auto  p_element =
+        CreateUPwSmallStrainElementWithUPwDofs(model, CreatePropertiesForUPwSmallStrainElementTest());
     p_element->GetProperties().SetValue(BIOT_COEFFICIENT, 1.000000e+00);
     SetSolutionStepValuesForFluidFluxCheck(p_element);
     const auto process_info = ProcessInfo{};
@@ -565,7 +577,8 @@ KRATOS_TEST_CASE_IN_SUITE(UPwSmallStrainElement_SetValuesOnIntegrationPointsMatr
 {
     // Arrange
     Model model;
-    auto  p_element = CreateUPwSmallStrainElementWithUPwDofs(model, CreateProperties());
+    auto  p_element =
+        CreateUPwSmallStrainElementWithUPwDofs(model, CreatePropertiesForUPwSmallStrainElementTest());
     p_element->GetProperties().SetValue(BIOT_COEFFICIENT, 1.000000e+00);
     SetSolutionStepValuesForGeneralCheck(p_element);
     const auto process_info = ProcessInfo{};
@@ -675,48 +688,6 @@ KRATOS_TEST_CASE_IN_SUITE(UPwSmallStrainElement_CalculateShearCapacity, KratosGe
                               Defaults::absolute_tolerance);
 }
 
-class MockConstitutiveLaw : public ConstitutiveLaw
-{
-public:
-    [[nodiscard]] ConstitutiveLaw::Pointer Clone() const override
-    {
-        return std::make_shared<MockConstitutiveLaw>();
-    }
-
-    void SetValue(const Variable<Vector>& rVariable, const Vector& rValue, const ProcessInfo& rCurrentProcessInfo) override
-    {
-        if (rVariable == STATE_VARIABLES) {
-            mStateVariables = rValue;
-        }
-    }
-
-    using ConstitutiveLaw::SetValue;
-
-    MOCK_METHOD(bool, RequiresInitializeMaterialResponse, (), (override));
-    MOCK_METHOD(void, CalculateMaterialResponseCauchy, (Parameters&), (override));
-    MOCK_METHOD(void, FinalizeMaterialResponseCauchy, (Parameters&), (override));
-
-    Vector& GetValue(const Variable<Vector>& rVariable, Vector& rValue) override
-    {
-        if (rVariable == STATE_VARIABLES) {
-            rValue = mStateVariables;
-        }
-        return rValue;
-    }
-
-    using ConstitutiveLaw::GetValue;
-
-    bool Has(const Variable<Vector>& rThisVariable) override
-    {
-        return rThisVariable == STATE_VARIABLES;
-    }
-
-    using ConstitutiveLaw::Has;
-
-private:
-    Vector mStateVariables;
-};
-
 KRATOS_TEST_CASE_IN_SUITE(UPwSmallStrainElement_InitializeCorrectlySetsStateParameters,
                           KratosGeoMechanicsFastSuiteWithoutKernel)
 {
@@ -754,5 +725,4 @@ KRATOS_TEST_CASE_IN_SUITE(UPwSmallStrainElement_InitializeCorrectlySetsStatePara
                                            Defaults::relative_tolerance);
     }
 }
-
 } // namespace Kratos::Testing

@@ -1,0 +1,62 @@
+//    |  /           |
+//    ' /   __| _` | __|  _ \   __|
+//    . \  |   (   | |   (   |\__ `
+//   _|\_\_|  \__,_|\__|\___/ ____/
+//                   Multi-Physics
+//
+//  License:         BSD License
+//                   Kratos default license: kratos/license.txt
+//
+//  Main authors:    Suneth Warnakulasuriya
+//
+
+#pragma once
+
+// System includes
+#include <string>
+
+// Project includes
+#include "includes/define.h"
+#include "containers/nd_data.h"
+#include "xml_nd_data_element.h"
+
+namespace Kratos::Future {
+
+///@name Kratos Classes
+///@{
+
+template<class TDataType>
+class KRATOS_API(KRATOS_CORE) XmlBase64BinaryNDDataElement : public XmlNDDataElement<TDataType>
+{
+public:
+    ///@name Type definitions
+    ///@{
+
+    using IndexType = std::size_t;
+
+    using BaseType = XmlNDDataElement<TDataType>;
+
+    KRATOS_CLASS_POINTER_DEFINITION(XmlBase64BinaryNDDataElement);
+
+    ///@}
+    ///@name Life cycle
+    ///@{
+
+    XmlBase64BinaryNDDataElement(
+        const std::string& rDataArrayName,
+        typename NDData<TDataType>::Pointer pNDData);
+
+    ///@}
+    ///@name Public operations
+    ///@{
+
+    void Write(
+        std::ostream& rOStream,
+        const IndexType Level = 0) const override;
+
+    ///@}
+};
+
+///@}
+
+} // namespace Kratos::Future

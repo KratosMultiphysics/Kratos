@@ -16,15 +16,13 @@
 
 // Project includes
 #include "set_parameter_field_process.hpp"
-
-#include <utilities/function_parser_utility.h>
-#include <utilities/mortar_utilities.h>
-
 #include "geo_mechanics_application_variables.h"
-#include "utilities/interval_utility.h"
+#include "includes/model_part.h"
+#include <utilities/function_parser_utility.h>
 
 namespace Kratos
 {
+using namespace std::string_literals;
 
 SetParameterFieldProcess::SetParameterFieldProcess(ModelPart& rModelPart, const Parameters& rSettings)
     : Process(), mrModelPart(rModelPart), mParameters(rSettings)
@@ -158,4 +156,5 @@ std::vector<IndexType> SetParameterFieldProcess::GetVectorIndices() const
     return result;
 }
 
+std::string SetParameterFieldProcess::Info() const { return "SetParameterFieldProcess"s; }
 } // namespace Kratos.

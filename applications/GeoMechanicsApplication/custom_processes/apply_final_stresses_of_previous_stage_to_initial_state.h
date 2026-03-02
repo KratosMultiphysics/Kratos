@@ -15,28 +15,29 @@
 #include "includes/constitutive_law.h"
 #include "processes/process.h"
 
+#include <string>
+
 namespace Kratos
 {
-
-class ModelPart;
+class Model;
 class Parameters;
-class Element;
 
 class KRATOS_API(GEO_MECHANICS_APPLICATION) ApplyFinalStressesOfPreviousStageToInitialState : public Process
 {
 public:
     KRATOS_CLASS_POINTER_DEFINITION(ApplyFinalStressesOfPreviousStageToInitialState);
-    ApplyFinalStressesOfPreviousStageToInitialState(ModelPart& rModelPart, const Parameters&);
+    ApplyFinalStressesOfPreviousStageToInitialState(Model& rModel, const Parameters& rProcessSettings);
     ~ApplyFinalStressesOfPreviousStageToInitialState() override = default;
 
     ApplyFinalStressesOfPreviousStageToInitialState(const ApplyFinalStressesOfPreviousStageToInitialState&) = delete;
     ApplyFinalStressesOfPreviousStageToInitialState& operator=(const ApplyFinalStressesOfPreviousStageToInitialState&) = delete;
 
-    void ExecuteInitialize() override;
-    void ExecuteBeforeSolutionLoop() override;
+    void                      ExecuteInitialize() override;
+    void                      ExecuteBeforeSolutionLoop() override;
+    [[nodiscard]] std::string Info() const override;
 
 private:
-    ModelPart& mrModelPart;
+    std::vector<std::reference_wrapper<ModelPart>> mrModelParts;
 
     static void CheckRetrievedElementData(const std::vector<ConstitutiveLaw::Pointer>& rConstitutiveLaws,
                                           const std::vector<Vector>& rStressesOnIntegrationPoints,

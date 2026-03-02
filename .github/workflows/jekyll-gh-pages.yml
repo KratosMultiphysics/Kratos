@@ -28,13 +28,13 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout static page content
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
         with:
           repository: KratosMultiphysics/Documentation
           ref: master
           path: statik_content
       - name: Checkout current branch
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
         with:
           path: main
       - name: Configure page content
@@ -51,7 +51,7 @@ jobs:
           source: ./main/docs
           destination: ./main/docs/_site
       - name: Upload artifact
-        uses: actions/upload-pages-artifact@v3
+        uses: actions/upload-pages-artifact@v4
         with:
           path: ./main/docs/_site
 

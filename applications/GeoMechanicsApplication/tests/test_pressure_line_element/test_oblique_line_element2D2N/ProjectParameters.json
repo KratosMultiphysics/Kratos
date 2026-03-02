@@ -28,7 +28,6 @@
     "compute_reactions"                  : false,
     "move_mesh_flag"                     : false,
     "reform_dofs_at_each_step"           : false,
-    "nodal_smoothing"                    : false,
     "block_builder"                      : true,
     "solution_type"                      : "Transient_Groundwater_Flow",
     "scheme_type"                        : "Backward_Euler",
@@ -65,7 +64,6 @@
       "scaling":       true
     },
     "problem_domain_sub_model_part_list" : ["filter"],
-    "processes_sub_model_part_list"      : ["Start","Gravity","top"],
     "body_domain_sub_model_part_list"    : ["filter"]
   },
   "output_processes" : {

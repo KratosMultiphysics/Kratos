@@ -15,14 +15,14 @@
 #include <boost/range/algorithm/copy.hpp>
 
 #include "containers/model.h"
-#include "custom_elements/U_Pw_small_strain_element.hpp"
+#include "custom_elements/U_Pw_small_strain_element.h"
 #include "custom_elements/plane_strain_stress_state.h"
-#include "custom_utilities/dof_utilities.h"
+#include "custom_utilities/dof_utilities.hpp"
 #include "geo_aliases.h"
 #include "geo_mechanics_application_variables.h"
 #include "includes/element.h"
+#include "test_setup_utilities/model_setup_utilities.h"
 #include "tests/cpp_tests/geo_mechanics_fast_suite.h"
-#include "tests/cpp_tests/test_utilities/model_setup_utilities.h"
 
 namespace
 {

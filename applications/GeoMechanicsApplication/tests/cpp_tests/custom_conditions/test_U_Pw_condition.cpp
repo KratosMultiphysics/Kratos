@@ -11,7 +11,7 @@
 //
 
 // Project includes
-#include "custom_conditions/U_Pw_condition.hpp"
+#include "custom_conditions/U_Pw_condition.h"
 #include "geometries/line_2d_2.h"
 #include "tests/cpp_tests/geo_mechanics_fast_suite.h"
 

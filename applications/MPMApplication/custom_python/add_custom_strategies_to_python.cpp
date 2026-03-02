@@ -37,7 +37,7 @@
 #include "custom_strategies/schemes/mpm_residual_based_BDF_scheme.hpp"
 #include "custom_strategies/schemes/mpm_explicit_scheme.hpp"
 #include "custom_strategies/schemes/mpm_residual_based_simple_steady_velocity_scheme.hpp"
-#include "solving_strategies/schemes/residualbased_incrementalupdate_static_scheme.h"
+#include "custom_strategies/schemes/mpm_residualbased_incrementalupdate_static_scheme.hpp"
 
 
 //---builders and solvers
@@ -61,6 +61,7 @@ namespace Python{
         typedef ImplicitSolvingStrategy< SparseSpaceType, LocalSpaceType, LinearSolverType > BaseSolvingStrategyType;
         typedef BuilderAndSolver< SparseSpaceType, LocalSpaceType, LinearSolverType > BuilderAndSolverType;
         typedef Scheme< SparseSpaceType, LocalSpaceType > BaseSchemeType;
+        typedef ResidualBasedIncrementalUpdateStaticScheme< SparseSpaceType, LocalSpaceType > BaseStaticSchemeType;
         typedef ConvergenceCriteria< SparseSpaceType, LocalSpaceType > ConvergenceCriteriaType;
 
         typedef MPMResidualBasedNewtonRaphsonStrategy< SparseSpaceType, LocalSpaceType, LinearSolverType> MPMResidualBasedNewtonRaphsonStrategyType;
@@ -70,6 +71,7 @@ namespace Python{
         typedef MPMResidualBasedBossakScheme< SparseSpaceType, LocalSpaceType >  MPMResidualBasedBossakSchemeType;
         typedef MPMResidualBasedBDFScheme< SparseSpaceType, LocalSpaceType > MPMResidualBasedBDFSchemeType;
         typedef MPMExplicitScheme< SparseSpaceType, LocalSpaceType >  MPMExplicitSchemeType;
+        typedef MPMResidualBasedIncrementalUpdateStaticScheme< SparseSpaceType, LocalSpaceType >  MPMResidualBasedIncrementalUpdateStaticSchemeType;
         typedef MPMResidualBasedSimpleSteadyVelocityScheme< SparseSpaceType, LocalSpaceType >  MPMResidualBasedSimpleSteadyVelocitySchemeType;
 
         // MPM Residual Based Bossak Scheme Type
@@ -88,6 +90,12 @@ namespace Python{
         py::class_< MPMExplicitSchemeType, typename MPMExplicitSchemeType::Pointer, BaseSchemeType >(m, "MPMExplicitScheme")
             .def(py::init < ModelPart& >())
             .def("Initialize", &MPMExplicitSchemeType::Initialize)
+            ;
+
+        // MPM Static Scheme Type
+        py::class_< MPMResidualBasedIncrementalUpdateStaticSchemeType, typename MPMResidualBasedIncrementalUpdateStaticSchemeType::Pointer, BaseStaticSchemeType >(m, "MPMResidualBasedIncrementalUpdateStaticScheme")
+            .def(py::init < >())
+            .def("Initialize", &MPMResidualBasedIncrementalUpdateStaticSchemeType::Initialize)
             ;
 
         py::class_< MPMResidualBasedSimpleSteadyVelocitySchemeType, typename MPMResidualBasedSimpleSteadyVelocitySchemeType:: Pointer, BaseSchemeType >(m, "MPMResidualBasedSimpleSteadyVelocityScheme")

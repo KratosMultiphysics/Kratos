@@ -851,15 +851,23 @@ void MPMUpdatedLagrangian::CalculateLocalSystem(
 //*******************************************************************************************
 void MPMUpdatedLagrangian::InitializeSolutionStep(const ProcessInfo& rCurrentProcessInfo )
 {
+    mFinalizedStep = false; // FIXME: this doesn't seem to be used anywhere
+}
+
+
+void MPMUpdatedLagrangian::AddExplicitContribution(const ProcessInfo& rCurrentProcessInfo)
+{
     /* NOTE:
-    In the InitializeSolutionStep of each time step the nodal initial conditions are evaluated.
-    This function is called by the base scheme class.*/
+    This is moved from initially InitializeSolutionStep due to #13432 (as per @RiccardoRossi suggestion).
+    This is temporary, and will be moved to an utility in the future, after restructuring of 
+    MPM's internal variables data structure. This function is called during predict in the schemes.
+
+    In the InitializeSolutionStep of each time step the nodal initial conditions are evaluated.*/
+
     GeometryType& r_geometry = GetGeometry();
     const unsigned int dimension = r_geometry.WorkingSpaceDimension();
     const unsigned int number_of_nodes = r_geometry.PointsNumber();
     unsigned int voigt_dimension = 0;
-
-    mFinalizedStep = false;
 
     const bool is_explicit_central_difference = (rCurrentProcessInfo.Has(IS_EXPLICIT_CENTRAL_DIFFERENCE))
         ? rCurrentProcessInfo.GetValue(IS_EXPLICIT_CENTRAL_DIFFERENCE)

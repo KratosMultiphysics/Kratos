@@ -1,5 +1,6 @@
 import matplotlib.pyplot as plt
 import pathlib
+import numpy as np
 
 
 class DataSeries:
@@ -17,11 +18,31 @@ def _make_plot(
     ylabel=None,
     yaxis_inverted=False,
     xscale=None,
+    title=None,
 ):
     figure, axes = plt.subplots(layout="constrained")
     if xscale is not None:
         axes.set_xscale(xscale)
 
+    _plot_data_series_on_axis(axes, data_series_collection)
+    axes.yaxis.set_inverted(yaxis_inverted)
+    if xlabel is not None:
+        axes.set_xlabel(xlabel)
+    if ylabel is not None:
+        axes.set_ylabel(ylabel)
+    figure.legend(loc="outside center right")
+
+    if title is not None:
+        plt.title(title)
+
+    if isinstance(plot_file_path, pathlib.Path):
+        plot_file_path = str(plot_file_path.resolve())
+    print(f"Saving plot to {plot_file_path}")
+    plt.savefig(plot_file_path)
+    plt.close(figure)
+
+
+def _plot_data_series_on_axis(axes, data_series_collection):
     for series in data_series_collection:
         # Unpack the data from pairs into two lists. See
         # https://stackoverflow.com/questions/21519203/plotting-a-list-of-x-y-coordinates for details.
@@ -33,17 +54,40 @@ def _make_plot(
         )
     axes.grid()
     axes.grid(which="minor", color="0.9")
-    axes.yaxis.set_inverted(yaxis_inverted)
-    if xlabel is not None:
-        axes.set_xlabel(xlabel)
-    if ylabel is not None:
-        axes.set_ylabel(ylabel)
-    figure.legend(loc="outside center right")
+
+
+def make_sub_plots(
+    data_series_collections,
+    plot_file_path,
+    titles,
+    xlabel=None,
+    ylabel=None,
+    yaxis_inverted=False,
+    xscale=None,
+):
+    figure, axes = plt.subplots(1, len(data_series_collections), figsize=(20, 6))
+    axes = np.atleast_1d(axes)
+    first_plot = True
+    for ax, collection, title in zip(axes, data_series_collections, titles):
+        _plot_data_series_on_axis(ax, collection)
+        ax.yaxis.set_inverted(yaxis_inverted)
+        if xlabel is not None:
+            ax.set_xlabel(xlabel)
+        if xscale is not None:
+            ax.set_xscale(xscale)
+        ax.set_title(title)
+
+        if first_plot:
+            figure.legend(loc="upper center", bbox_to_anchor=(0.5, 0.0))
+            if ylabel is not None:
+                ax.set_ylabel(ylabel)
+            first_plot = False
 
     if isinstance(plot_file_path, pathlib.Path):
         plot_file_path = str(plot_file_path.resolve())
     print(f"Saving plot to {plot_file_path}")
-    plt.savefig(plot_file_path)
+    plt.savefig(plot_file_path, bbox_inches="tight")
+    plt.close(figure)
 
 
 def make_settlement_history_plot(data_series_collection, plot_file_path):
@@ -57,7 +101,11 @@ def make_settlement_history_plot(data_series_collection, plot_file_path):
     )
 
 
-def make_stress_over_y_plot(data_series_collection, plot_file_path):
+def make_stress_over_y_plot(data_series_collection, plot_file_path, title=None):
     _make_plot(
-        data_series_collection, plot_file_path, xlabel="Stress [kPa]", ylabel=r"$y$ [m]"
+        data_series_collection,
+        plot_file_path,
+        xlabel="Stress [kPa]",
+        ylabel=r"$y$ [m]",
+        title=title,
     )

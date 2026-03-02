@@ -1,9 +1,8 @@
 
 # Importing the Kratos Library
 import KratosMultiphysics
-
-# Import applications and dependencies
 import KratosMultiphysics.MPMApplication as KratosMPM
+
 
 # Importing the base class
 from KratosMultiphysics.MPMApplication.mpm_solver import MPMSolver
@@ -26,6 +25,7 @@ class MPMStaticSolver(MPMSolver):
 
     def _CreateSolutionScheme(self):
         grid_model_part = self.GetGridModelPart()
-        #return KratosMultiphysics.ResidualBasedIncrementalUpdateStaticScheme()
         if self.settings["velocity_formulation"].GetBool():
             return KratosMPM.MPMResidualBasedSimpleSteadyVelocityScheme(grid_model_part)
+        else:
+            return KratosMultiphysics.ResidualBasedIncrementalUpdateStaticScheme()

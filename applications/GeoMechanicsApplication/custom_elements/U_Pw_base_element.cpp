@@ -12,15 +12,50 @@
 //
 
 // Application includes
-#include "custom_elements/U_Pw_base_element.hpp"
-#include "custom_utilities/check_utilities.h"
-#include "custom_utilities/dof_utilities.h"
-#include "custom_utilities/equation_of_motion_utilities.h"
+#include "custom_elements/U_Pw_base_element.h"
+#include "custom_retention/retention_law_factory.h"
+#include "custom_utilities/check_utilities.hpp"
+#include "custom_utilities/dof_utilities.hpp"
+#include "custom_utilities/element_utilities.hpp"
+#include "custom_utilities/equation_of_motion_utilities.hpp"
 #include "includes/serializer.h"
 #include "utilities/geometry_utilities.h"
+#include "utilities/math_utils.h"
 
 namespace Kratos
 {
+UPwBaseElement::UPwBaseElement(IndexType                                       NewId,
+                               const NodesArrayType&                           ThisNodes,
+                               std::unique_ptr<StressStatePolicy>              pStressStatePolicy,
+                               std::unique_ptr<IntegrationCoefficientModifier> pCoefficientModifier)
+    : Element(NewId, ThisNodes),
+      mpStressStatePolicy{std::move(pStressStatePolicy)},
+      mIntegrationCoefficientsCalculator{std::move(pCoefficientModifier)}
+{
+}
+
+UPwBaseElement::UPwBaseElement(IndexType                                       NewId,
+                               GeometryType::Pointer                           pGeometry,
+                               std::unique_ptr<StressStatePolicy>              pStressStatePolicy,
+                               std::unique_ptr<IntegrationCoefficientModifier> pCoefficientModifier)
+    : Element(NewId, pGeometry),
+      mpStressStatePolicy{std::move(pStressStatePolicy)},
+      mIntegrationCoefficientsCalculator{std::move(pCoefficientModifier)}
+{
+}
+
+UPwBaseElement::UPwBaseElement(IndexType                                       NewId,
+                               GeometryType::Pointer                           pGeometry,
+                               PropertiesType::Pointer                         pProperties,
+                               std::unique_ptr<StressStatePolicy>              pStressStatePolicy,
+                               std::unique_ptr<IntegrationCoefficientModifier> pCoefficientModifier)
+    : Element(NewId, pGeometry, pProperties),
+      mpStressStatePolicy{std::move(pStressStatePolicy)},
+      mIntegrationCoefficientsCalculator{std::move(pCoefficientModifier)}
+{
+    // this is needed for interface elements
+    mThisIntegrationMethod = this->GetIntegrationMethod();
+}
 
 int UPwBaseElement::Check(const ProcessInfo& rCurrentProcessInfo) const
 {
@@ -29,8 +64,7 @@ int UPwBaseElement::Check(const ProcessInfo& rCurrentProcessInfo) const
     // Base class checks for positive area and Id > 0
     if (int ierr = Element::Check(rCurrentProcessInfo); ierr != 0) return ierr;
 
-    const PropertiesType& r_properties = this->GetProperties();
-    const GeometryType&   r_geometry   = this->GetGeometry();
+    const auto& r_geometry = this->GetGeometry();
 
     CheckUtilities::CheckHasNodalSolutionStepData(
         r_geometry, {std::cref(DISPLACEMENT), std::cref(VELOCITY), std::cref(ACCELERATION),
@@ -40,8 +74,8 @@ int UPwBaseElement::Check(const ProcessInfo& rCurrentProcessInfo) const
     if (this->GetGeometry().WorkingSpaceDimension() > 2)
         CheckUtilities::CheckHasDofs(r_geometry, {std::cref(DISPLACEMENT_Z)});
 
-    const CheckProperties check_properties(r_properties, "material properties at element",
-                                           this->Id(), CheckProperties::Bounds::AllInclusive);
+    const CheckProperties check_properties(this->GetProperties(), "material properties", this->Id(),
+                                           CheckProperties::Bounds::AllInclusive);
     check_properties.Check(DENSITY_SOLID);
     check_properties.Check(DENSITY_WATER);
     check_properties.Check(BULK_MODULUS_SOLID);
@@ -438,5 +472,18 @@ std::unique_ptr<IntegrationCoefficientModifier> UPwBaseElement::CloneIntegration
 {
     return mIntegrationCoefficientsCalculator.CloneModifier();
 }
+
+std::string UPwBaseElement::Info() const
+{
+    const std::string constitutive_info =
+        !mConstitutiveLawVector.empty() ? mConstitutiveLawVector[0]->Info() : "not defined";
+
+    std::ostringstream oss;
+    oss << "U-Pw Base class Element #" << Id() << "\nConstitutive law: " << constitutive_info;
+
+    return oss.str();
+}
+
+void UPwBaseElement::PrintInfo(std::ostream& rOStream) const { rOStream << Info(); }
 
 } // Namespace Kratos
