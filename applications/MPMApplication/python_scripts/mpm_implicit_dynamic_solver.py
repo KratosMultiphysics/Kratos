@@ -59,9 +59,11 @@ class MPMImplicitDynamicSolver(MPMSolver):
             damp_factor_m = self.settings["damp_factor_m"].GetDouble()
             newmark_beta = self.settings["newmark_beta"].GetDouble()
             grid_model_part.ProcessInfo.SetValue(KratosMPM.IS_DYNAMIC, True)
+        elif(scheme_type == "bdf"):
+            grid_model_part.ProcessInfo.SetValue(KratosMPM.IS_DYNAMIC, True)
         else:
             err_msg = "The requested scheme type \"" + scheme_type + "\" is not available!\n"
-            err_msg += "Available options are: \"newmark\", \"bossak\", \"bossakvelocity\""
+            err_msg += "Available options are: \"newmark\", \"bossak\", \"bossakvelocity\", \"bdf\""
             raise Exception(err_msg)
 
         is_dynamic = self._IsDynamic()
@@ -74,12 +76,17 @@ class MPMImplicitDynamicSolver(MPMSolver):
                                                                 damp_factor_m,
                                                                 newmark_beta
                                                                 )
-        else:
+        elif (scheme_type == "bossak"):
             return KratosMPM.MPMResidualBasedBossakScheme( grid_model_part,
                                                                 domain_size,
                                                                 block_size,
                                                                 damp_factor_m,
                                                                 newmark_beta,
+                                                                is_dynamic)
+        else:
+            return KratosMPM.MPMResidualBasedBDFScheme( grid_model_part,
+                                                                domain_size,
+                                                                block_size,
                                                                 is_dynamic)
     def _IsDynamic(self):
         return True

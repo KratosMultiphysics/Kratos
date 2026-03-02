@@ -219,6 +219,115 @@ public:
     {
         KRATOS_TRY;
 
+        // Start of TEMP: These are moved here to comply to pr #13432
+        // Particle to Grid mapping for elements is done here because predict needs the velocity field (PR #13432)        
+        const ProcessInfo& r_current_process_info = rModelPart.GetProcessInfo();
+        const double delta_time = r_current_process_info[DELTA_TIME];
+
+        // Initializing Bossak constants
+        // This is not related to our change, but related to Bossak temporary fix.
+        // Bossak scheme  
+        mBossak.c0 = ( 1.0 / (mBossak.beta * delta_time * delta_time) );
+        mBossak.c1 = ( mBossak.gamma / (mBossak.beta * delta_time) );
+        mBossak.c2 = ( 1.0 / (mBossak.beta * delta_time) );
+        mBossak.c3 = ( 0.5 / (mBossak.beta) - 1.0 );
+        mBossak.c4 = ( (mBossak.gamma / mBossak.beta) - 1.0  );
+        mBossak.c5 = ( delta_time * 0.5 * ( ( mBossak.gamma / mBossak.beta ) - 2.0 ) );
+
+        // Loop over the grid nodes performed to clear all nodal information
+        block_for_each(rModelPart.Nodes(), [&](Node& rNode)
+		{
+            // Variables to be cleaned
+            double & r_nodal_mass     = rNode.FastGetSolutionStepValue(NODAL_MASS);
+            array_1d<double, 3 > & r_nodal_momentum = rNode.FastGetSolutionStepValue(NODAL_MOMENTUM);
+            array_1d<double, 3 > & r_nodal_inertia  = rNode.FastGetSolutionStepValue(NODAL_INERTIA);
+
+            array_1d<double, 3 > & r_nodal_displacement = rNode.FastGetSolutionStepValue(DISPLACEMENT);
+            array_1d<double, 3 > & r_nodal_velocity     = rNode.FastGetSolutionStepValue(VELOCITY,1);
+            array_1d<double, 3 > & r_nodal_acceleration = rNode.FastGetSolutionStepValue(ACCELERATION,1);
+
+            double & r_nodal_old_pressure = rNode.FastGetSolutionStepValue(PRESSURE,1);
+            double & r_nodal_pressure = rNode.FastGetSolutionStepValue(PRESSURE);
+
+            // Clear
+            r_nodal_mass = 0.0;
+            r_nodal_momentum.clear();
+            r_nodal_inertia.clear();
+
+            r_nodal_displacement.clear();
+            r_nodal_velocity.clear();
+            r_nodal_acceleration.clear();
+            r_nodal_old_pressure = 0.0;
+            r_nodal_pressure = 0.0;
+
+            // Other additional variables
+            if (rNode.SolutionStepsDataHas(NODAL_AREA)){
+                double & r_nodal_area = rNode.FastGetSolutionStepValue(NODAL_AREA);
+                r_nodal_area          = 0.0;
+            }
+            if(rNode.SolutionStepsDataHas(NODAL_MPRESSURE)) {
+                double & r_nodal_mpressure = rNode.FastGetSolutionStepValue(NODAL_MPRESSURE);
+                r_nodal_mpressure = 0.0;
+            }
+
+            // friction-related
+            if(mFrictionIsActive){
+                rNode.FastGetSolutionStepValue(STICK_FORCE).clear();
+                rNode.FastGetSolutionStepValue(FRICTION_STATE) = mRotationTool.GetSlidingState();
+                rNode.SetValue(FRICTION_ASSIGNED, false);
+            }
+		});
+
+        // Extrapolate from Material Point Elements and Conditions (P2G Mapping)
+        const auto &r_elements_array = rModelPart.Elements();
+        const std::size_t n_elems = r_elements_array.size();
+        IndexPartition<std::size_t>(n_elems).for_each([&](std::size_t i_elem) {
+            auto it_elem = r_elements_array.begin() + i_elem;
+
+            it_elem->AddExplicitContribution(r_current_process_info);
+        });
+
+        // Assign nodal variables after extrapolation
+        block_for_each(rModelPart.Nodes(), [&](Node& rNode)
+        {
+            const double & r_nodal_mass = rNode.FastGetSolutionStepValue(NODAL_MASS);
+
+            if (r_nodal_mass > std::numeric_limits<double>::epsilon())
+            {
+                const array_1d<double, 3 > & r_nodal_momentum   = rNode.FastGetSolutionStepValue(NODAL_MOMENTUM);
+                const array_1d<double, 3 > & r_nodal_inertia    = rNode.FastGetSolutionStepValue(NODAL_INERTIA);
+
+                array_1d<double, 3 > & r_previous_velocity     = rNode.FastGetSolutionStepValue(VELOCITY,1);
+                array_1d<double, 3 > & r_previous_acceleration = rNode.FastGetSolutionStepValue(ACCELERATION,1);
+                double & r_previous_pressure = rNode.FastGetSolutionStepValue(PRESSURE,1);
+
+                double delta_nodal_pressure = 0.0;
+
+                // For mixed formulation
+                if (rNode.HasDofFor(PRESSURE) && rNode.SolutionStepsDataHas(NODAL_MPRESSURE))
+                {
+                    double & nodal_mpressure = rNode.FastGetSolutionStepValue(NODAL_MPRESSURE);
+                    delta_nodal_pressure = nodal_mpressure/r_nodal_mass;
+                }
+
+                const array_1d<double, 3 > delta_nodal_velocity = r_nodal_momentum/r_nodal_mass;
+                const array_1d<double, 3 > delta_nodal_acceleration = r_nodal_inertia/r_nodal_mass;
+
+                r_previous_velocity += delta_nodal_velocity;
+                r_previous_acceleration += delta_nodal_acceleration;
+
+                r_previous_pressure += delta_nodal_pressure;
+
+                // mark nodes which have non-zero momentum in the 1st timestep s.t. these nodes can have
+                // an initial friction state of SLIDING instead of STICK
+                if(mFrictionIsActive){
+                    const bool has_initial_momentum = (mGridModelPart.GetProcessInfo()[STEP] ==  1 && norm_2(r_nodal_momentum) > std::numeric_limits<double>::epsilon());
+                    rNode.SetValue(HAS_INITIAL_MOMENTUM, has_initial_momentum);
+                }
+            }
+        });
+        // End of TEMP: These are moved here to comply to pr #13432
+
 		block_for_each(rModelPart.Nodes(), [&](Node& rNode)
 		{
             const array_1d<double, 3 > & r_previous_displacement = rNode.FastGetSolutionStepValue(DISPLACEMENT, 1);
@@ -299,55 +408,6 @@ public:
 
         BossakBaseType::FinalizeNonLinIteration(rModelPart, rA, rDx, rb);
 
-
-        //------------------------------------------------
-
-        ProcessInfo& CurrentProcessInfo = rModelPart.GetProcessInfo();
-        const int number_of_nodes = rModelPart.NumberOfNodes();
-        const int nelements = static_cast<int>(rModelPart.Elements().size());
-        array_1d<double, 3 > output;
-
-        //if orthogonal subscales are computed
-        if (CurrentProcessInfo.GetValue(STABILIZATION_TYPE) == 3) {
-
-        KRATOS_INFO_IF("MPMResidualBasedSimpleSteadyScheme", rModelPart.GetCommunicator().MyPID() == 0)
-            << "Computing OSS projections" << std::endl;
-
-        // Step1 - Inizialize nodal variables:
-        for (int i = 0; i < number_of_nodes; i++) {
-            ModelPart::NodeIterator it_node = rModelPart.NodesBegin() + i;
-            noalias(it_node->FastGetSolutionStepValue(RESPROJ_DISPL)) = ZeroVector(3);
-            it_node->FastGetSolutionStepValue(RESPROJ_PRESS) = 0.0;
-            it_node->FastGetSolutionStepValue(NODAL_AREA) = 0.0;
-        } 
-
-
-        // Step 2 - loop over the mp for computing residuals and interpolate it to the nodes
-       // std::cout << ".............numberofMP" << rModelPart.Elements().size()<<"\n";
-        ModelPart::ElementsContainerType::iterator el_begin = rModelPart.ElementsBegin();
-        for (int k = 0; k < nelements; k++) {
-            auto it_elem = el_begin + k;
-            it_elem->Calculate(RESPROJ_DISPL,output,CurrentProcessInfo); //RESPROJ_DISPL
-        } 
-
-
-
-        for (int i = 0; i < number_of_nodes; i++) {
-        ModelPart::NodeIterator it_node = rModelPart.NodesBegin() + i;
-        if (it_node->FastGetSolutionStepValue(NODAL_AREA) == 0.0)
-          it_node->FastGetSolutionStepValue(NODAL_AREA) = 1.0;
-        const double area_inverse = 1.0 / it_node->FastGetSolutionStepValue(NODAL_AREA);
-        it_node->FastGetSolutionStepValue(RESPROJ_DISPL) *= area_inverse;
-        it_node->FastGetSolutionStepValue(RESPROJ_PRESS) *= area_inverse; 
-
-        }
-        }
-
-
-        if(mFrictionIsActive) {
-            mRotationTool.ComputeFrictionAndResetFlags(rModelPart);
-        }
-
     }
 
     void InitializeNonLinIteration(ModelPart &rModelPart, TSystemMatrixType &rA, TSystemVectorType &rDx,
@@ -380,96 +440,9 @@ public:
         TSystemVectorType& rb) override
     {
         KRATOS_TRY
-
-        // Loop over the grid nodes performed to clear all nodal information
-        block_for_each(rModelPart.Nodes(), [&](Node& rNode)
-		{
-            // Variables to be cleaned            
-            double & r_nodal_mass     = rNode.FastGetSolutionStepValue(NODAL_MASS);
-            array_1d<double, 3 > & r_nodal_momentum = rNode.FastGetSolutionStepValue(NODAL_MOMENTUM);
-            array_1d<double, 3 > & r_nodal_inertia  = rNode.FastGetSolutionStepValue(NODAL_INERTIA);
-            array_1d<double, 3 > & r_nodal_cauchy_stress_vector= rNode.FastGetSolutionStepValue(NODAL_CAUCHY_STRESS_VECTOR);
-
-
-            array_1d<double, 3 > & r_nodal_displacement = rNode.FastGetSolutionStepValue(DISPLACEMENT);
-            array_1d<double, 3 > & r_nodal_velocity     = rNode.FastGetSolutionStepValue(VELOCITY,1);
-            array_1d<double, 3 > & r_nodal_acceleration = rNode.FastGetSolutionStepValue(ACCELERATION,1);
-
-            double & r_nodal_old_pressure = rNode.FastGetSolutionStepValue(PRESSURE,1);
-            double & r_nodal_pressure = rNode.FastGetSolutionStepValue(PRESSURE);
-
-            // Clear
-            r_nodal_mass = 0.0;
-            r_nodal_momentum.clear();
-            r_nodal_inertia.clear();
-            r_nodal_cauchy_stress_vector.clear();
-
-            r_nodal_displacement.clear();
-            r_nodal_velocity.clear();
-            r_nodal_acceleration.clear();
-            r_nodal_old_pressure = 0.0;
-            r_nodal_pressure = 0.0;
-
-            // Other additional variables
-            if (rNode.SolutionStepsDataHas(NODAL_AREA)){
-                double & r_nodal_area = rNode.FastGetSolutionStepValue(NODAL_AREA);
-                r_nodal_area          = 0.0;
-            }
-            if(rNode.SolutionStepsDataHas(NODAL_MPRESSURE)) {
-                double & r_nodal_mpressure = rNode.FastGetSolutionStepValue(NODAL_MPRESSURE);
-                r_nodal_mpressure = 0.0;
-            }
-
-            // friction-related
-            if(mFrictionIsActive){
-                rNode.FastGetSolutionStepValue(STICK_FORCE).clear();
-                rNode.FastGetSolutionStepValue(FRICTION_STATE) = mRotationTool.GetSlidingState();
-                rNode.SetValue(FRICTION_ASSIGNED, false);
-            }
-		});
-
-        // Extrapolate from Material Point Elements and Conditions
+        
+        // Particle to Grid mapping for elements is moved to predict because it needs the velocity field (PR #13432)
         ImplicitBaseType::InitializeSolutionStep(rModelPart,rA,rDx,rb);
-
-        // Assign nodal variables after extrapolation
-        block_for_each(rModelPart.Nodes(), [&](Node& rNode)
-        {
-            const double & r_nodal_mass = rNode.FastGetSolutionStepValue(NODAL_MASS);
-
-            if (r_nodal_mass > std::numeric_limits<double>::epsilon())
-            {
-                const array_1d<double, 3 > & r_nodal_momentum   = rNode.FastGetSolutionStepValue(NODAL_MOMENTUM);
-                const array_1d<double, 3 > & r_nodal_inertia    = rNode.FastGetSolutionStepValue(NODAL_INERTIA);
-
-                array_1d<double, 3 > & r_nodal_velocity     = rNode.FastGetSolutionStepValue(VELOCITY,1);
-                array_1d<double, 3 > & r_nodal_acceleration = rNode.FastGetSolutionStepValue(ACCELERATION,1);
-                double & r_nodal_pressure = rNode.FastGetSolutionStepValue(PRESSURE,1);
-
-                double delta_nodal_pressure = 0.0;
-
-                // For mixed formulation
-                if (rNode.HasDofFor(PRESSURE) && rNode.SolutionStepsDataHas(NODAL_MPRESSURE))
-                {
-                    double & nodal_mpressure = rNode.FastGetSolutionStepValue(NODAL_MPRESSURE);
-                    delta_nodal_pressure = nodal_mpressure/r_nodal_mass;
-                }
-
-                const array_1d<double, 3 > delta_nodal_velocity = r_nodal_momentum/r_nodal_mass;
-                const array_1d<double, 3 > delta_nodal_acceleration = r_nodal_inertia/r_nodal_mass;
-
-                r_nodal_velocity += delta_nodal_velocity;
-                r_nodal_acceleration += delta_nodal_acceleration;
-
-                r_nodal_pressure += delta_nodal_pressure;
-
-                // mark nodes which have non-zero momentum in the 1st timestep s.t. these nodes can have
-                // an initial friction state of SLIDING instead of STICK
-                if(mFrictionIsActive){
-                    const bool has_initial_momentum = (mGridModelPart.GetProcessInfo()[STEP] ==  1 && norm_2(r_nodal_momentum) > std::numeric_limits<double>::epsilon());
-                    rNode.SetValue(HAS_INITIAL_MOMENTUM, has_initial_momentum);
-                }
-            }
-        });
 
         const ProcessInfo& r_current_process_info = rModelPart.GetProcessInfo();
         const double delta_time = r_current_process_info[DELTA_TIME];
@@ -684,8 +657,6 @@ public:
         KRATOS_CATCH( "" )
     }
 
-
-
 protected:
 
     // MPM Background Grid
@@ -701,11 +672,8 @@ protected:
     unsigned int mDomainSize;
     unsigned int mBlockSize;
     MPMBoundaryRotationUtility<LocalSystemMatrixType,LocalSystemVectorType> mRotationTool;
-    
-    //void ClearReactionVariable() // const
 
     void ClearReactionVariable() const
-
     {
         block_for_each(mGridModelPart.Nodes(), [&](Node& rNode)
         {

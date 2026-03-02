@@ -266,6 +266,36 @@ void MPMUpdatedLagrangianVPVMS::GetFirstDerivativesVector( Vector& values, int S
     for ( unsigned int i = 0; i < number_of_nodes; i++ )
     {
         unsigned int index = i * dimension + i;
+        values[index]     = r_geometry[i].FastGetSolutionStepValue( VELOCITY_X, Step );
+        values[index + 1] = r_geometry[i].FastGetSolutionStepValue( VELOCITY_Y, Step );
+        if ( dimension == 3 )
+        {
+            values[index + 2] = r_geometry[i].FastGetSolutionStepValue( VELOCITY_Z, Step );
+            values[index + 3] = 0;
+        }
+        else
+        {
+            values[index + 2] = 0;
+        }
+    }
+}
+
+//************************************************************************************
+//************************************************************************************
+
+void MPMUpdatedLagrangianVPVMS::GetSecondDerivativesVector( Vector& values, int Step ) const
+{
+    
+    const GeometryType& r_geometry = GetGeometry();
+    const unsigned int number_of_nodes = r_geometry.size();
+    const unsigned int dimension       = r_geometry.WorkingSpaceDimension();
+    unsigned int       element_size    = number_of_nodes * dimension + number_of_nodes;
+
+    if ( values.size() != element_size ) values.resize( element_size, false );
+
+    for ( unsigned int i = 0; i < number_of_nodes; i++ )
+    {
+        unsigned int index = i * dimension + i;
         values[index]     = r_geometry[i].FastGetSolutionStepValue( ACCELERATION_X, Step );
         values[index + 1] = r_geometry[i].FastGetSolutionStepValue( ACCELERATION_Y, Step );
         if ( dimension == 3 )
@@ -1027,6 +1057,7 @@ void MPMUpdatedLagrangianVPVMS::CalculateTaus(const int& stabilization_type,
     const double constant2 = rCurrentProcessInfo.GetValue(CONSTANT2);
     double characteristic_element_size;
     ComputeElementSize(characteristic_element_size);
+    // const auto dynamic_viscosity = GetProperties()[DYNAMIC_VISCOSITY];
 
     rVariables.tau1 = constant1 * pow(characteristic_element_size,2) / (rVariables.ShearModulus);
     rVariables.tau2 = constant2 * rVariables.ShearModulus;
@@ -1087,15 +1118,14 @@ void MPMUpdatedLagrangianVPVMS::ComputeDynamicTerms(GeneralVariables& rVariables
 /*
         rVariables.DynamicRHS[idime] -= rVariables.DynamicCoefficient * mMP.displacement[idime];
         rVariables.DynamicRHS[idime] -= coeff1 * mMP.displacement[idime];
-        rVariables.DynamicRHS[idime] += coeff1 * mMP.velocity[idime] + coeff2 * mMP.acceleration[idime];*/
+        rVariables.DynamicRHS[idime] += coeff1 * mMP.velocity[idime] + coeff2 * mMP.acceleration[idime];
+        */
     }
 
 //     rVariables.DynamicCoefficient =0;
 
  KRATOS_CATCH( "" )
 }
-
-
 
 //************************************************************************************
 //************************************************************************************
@@ -1764,8 +1794,11 @@ void MPMUpdatedLagrangianVPVMS::UpdateGaussPoint( GeneralVariables & rVariables,
 
             for ( unsigned int j = 0; j < dimension; j++ )
             {
+                //if (j==1)
+                //{
                 delta_velocity[j] += r_N(0, i) * rVariables.CurrentVel(i,j);
                 MP_acceleration[j] += r_N(0, i) * nodal_acceleration[j];
+                //}
 
                 /* NOTE: The following interpolation techniques have been tried:
                     MP_velocity[j]      += rVariables.N[i] * nodal_velocity[j];
@@ -1777,15 +1810,16 @@ void MPMUpdatedLagrangianVPVMS::UpdateGaussPoint( GeneralVariables & rVariables,
         }
     }
 
-    mMP.xg += delta_time * mMP.velocity + pow(delta_time, 2)/4 * (mMP.acceleration + MP_acceleration);
-    mMP.displacement += delta_time * mMP.velocity + pow(delta_time, 2)/4 * (mMP.acceleration + MP_acceleration);
+    mMP.velocity += delta_velocity;
+
+    mMP.xg += mMP.velocity * delta_time;
+    mMP.displacement += mMP.velocity * delta_time;
 
     // Update the MP Pressure
     m_mp_pressure = MP_pressure;
 
     // Update the MP Position
-    mMP.velocity += delta_velocity;
-
+    
     //Update the MP Acceleration
     mMP.acceleration = MP_acceleration;
 

@@ -50,7 +50,7 @@ class MPMUpdatedLagrangianVPVMS
 {
 public:
     ///@name Type Definitions
-    ///@{
+    ///@{f
     typedef typename GeometryType::CoordinatesArrayType CoordinatesArrayType;
 
     ///base type: Element
@@ -142,7 +142,7 @@ public:
     /**
      * Sets on rValues the nodal accelerations
      */
-    //void GetSecondDerivativesVector(Vector& rValues, int Step = 0) const  override;
+    void GetSecondDerivativesVector(Vector& rValues, int Step = 0) const  override;
 
     //************* STARTING - ENDING  METHODS
 

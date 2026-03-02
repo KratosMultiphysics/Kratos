@@ -34,8 +34,8 @@
 
 //---schemes
 #include "custom_strategies/schemes/mpm_residual_based_bossak_scheme.hpp"
+#include "custom_strategies/schemes/mpm_residual_based_BDF_scheme.hpp"
 #include "custom_strategies/schemes/mpm_explicit_scheme.hpp"
-#include "custom_strategies/schemes/mpm_residual_based_simple_steady_scheme.hpp"
 #include "custom_strategies/schemes/mpm_residual_based_simple_steady_velocity_scheme.hpp"
 #include "solving_strategies/schemes/residualbased_incrementalupdate_static_scheme.h"
 
@@ -68,8 +68,8 @@ namespace Python{
 
         //custom scheme types
         typedef MPMResidualBasedBossakScheme< SparseSpaceType, LocalSpaceType >  MPMResidualBasedBossakSchemeType;
+        typedef MPMResidualBasedBDFScheme< SparseSpaceType, LocalSpaceType > MPMResidualBasedBDFSchemeType;
         typedef MPMExplicitScheme< SparseSpaceType, LocalSpaceType >  MPMExplicitSchemeType;
-        typedef MPMResidualBasedSimpleSteadyScheme< SparseSpaceType, LocalSpaceType >  MPMResidualBasedSimpleSteadySchemeType;
         typedef MPMResidualBasedSimpleSteadyVelocityScheme< SparseSpaceType, LocalSpaceType >  MPMResidualBasedSimpleSteadyVelocitySchemeType;
 
         // MPM Residual Based Bossak Scheme Type
@@ -78,14 +78,16 @@ namespace Python{
             .def("Initialize", &MPMResidualBasedBossakSchemeType::Initialize)
             ;
 
+        // MPM Residual Based BDF Scheme Type
+        py::class_< MPMResidualBasedBDFSchemeType, typename MPMResidualBasedBDFSchemeType::Pointer, BaseSchemeType >(m, "MPMResidualBasedBDFScheme")
+            .def(py::init < ModelPart&, unsigned int, unsigned int, bool>())
+            .def("Initialize", &MPMResidualBasedBDFSchemeType::Initialize)
+            ;
+
         // MPM Explicit Scheme Type
         py::class_< MPMExplicitSchemeType, typename MPMExplicitSchemeType::Pointer, BaseSchemeType >(m, "MPMExplicitScheme")
             .def(py::init < ModelPart& >())
             .def("Initialize", &MPMExplicitSchemeType::Initialize)
-            ;
-
-        py::class_< MPMResidualBasedSimpleSteadySchemeType, typename MPMResidualBasedSimpleSteadySchemeType:: Pointer, BaseSchemeType >(m, "MPMResidualBasedSimpleSteadyScheme")
-            .def(py::init < ModelPart& >())
             ;
 
         py::class_< MPMResidualBasedSimpleSteadyVelocitySchemeType, typename MPMResidualBasedSimpleSteadyVelocitySchemeType:: Pointer, BaseSchemeType >(m, "MPMResidualBasedSimpleSteadyVelocityScheme")
