@@ -136,11 +136,6 @@ void NurbsGeometryModelerGapSbm::CreateAndAddRegularGrid2D(
     r_skin_model_part.GetSubModelPart("outer").SetValue(KNOT_SPAN_SIZES, skin_outer_initial.GetValue(KNOT_SPAN_SIZES));
     r_skin_model_part.SetValue(KNOT_SPAN_SIZES, skin_inner_initial.GetValue(KNOT_SPAN_SIZES));
 
-    KRATOS_WATCH(skin_inner_initial)
-    KRATOS_WATCH(skin_outer_initial)
-    KRATOS_WATCH(r_skin_model_part.GetSubModelPart("inner"))
-    KRATOS_WATCH(r_skin_model_part)
-
     // Create the parameters for the SnakeSbmProcess
     Kratos::Parameters snake_parameters;
     snake_parameters.AddString("model_part_name", iga_model_part_name);

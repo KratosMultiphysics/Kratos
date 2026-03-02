@@ -43,6 +43,7 @@
 #include "custom_conditions/coupling_lagrange_condition.h"
 #include "custom_conditions/coupling_nitsche_condition.h"
 #include "custom_conditions/laplacian_coupling_condition.h"
+#include "custom_conditions/solid_coupling_condition.h"
 #include "custom_conditions/fluid_coupling_condition.h"
 #include "custom_conditions/support_penalty_condition.h"
 #include "custom_conditions/support_lagrange_condition.h"
@@ -61,6 +62,8 @@
 #include "custom_conditions/sbm_load_solid_condition.h"
 // Gap-SBM solid condition
 #include "custom_conditions/gap_sbm_solid_condition.h"
+// Gap-SBM load solid condition
+#include "custom_conditions/gap_sbm_load_solid_condition.h"
 // Gap-SBM solid interface condition
 #include "custom_conditions/gap_sbm_solid_interface_condition.h"
 #include "custom_conditions/gap_sbm_laplacian_interface_condition.h"
@@ -172,6 +175,7 @@ private:
     const CouplingLagrangeCondition mCouplingLagrangeCondition;
     const CouplingNitscheCondition mCouplingNitscheCondition;
     const LaplacianCouplingCondition mLaplacianCouplingCondition;
+    const SolidCouplingCondition mSolidCouplingCondition;
     const FluidCouplingCondition mFluidCouplingCondition;
     const SupportPenaltyCondition mSupportPenaltyCondition;
     const SupportLagrangeCondition mSupportLagrangeCondition;
@@ -187,6 +191,7 @@ private:
     const LoadSolidCondition mLoadSolidCondition;
     const SbmSolidCondition mSbmSolidCondition;
     const SbmLoadSolidCondition mSbmLoadSolidCondition;
+    const GapSbmLoadSolidCondition mGapSbmLoadSolidCondition;
     const GapSbmSolidCondition mGapSbmSolidCondition;
     const GapSbmSolidInterfaceCondition mGapSbmSolidInterfaceCondition;
     const GapSbmLaplacianInterfaceCondition mGapSbmLaplacianInterfaceCondition;

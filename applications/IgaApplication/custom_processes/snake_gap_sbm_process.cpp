@@ -1762,6 +1762,13 @@ void SnakeGapSbmProcess::CreateGapAndSkinQuadraturePoints(
                              std::size_t positive_count,
                              std::size_t negative_count) -> void
     {
+        KRATOS_INFO_IF("SnakeGapSbmProcess", mEchoLevel > 3)
+            << "process_piece: div=" << division_level
+            << " left_id=" << p_left_skin->Id()
+            << " right_id=" << p_right_skin->Id()
+            << " pos=" << positive_count
+            << " neg=" << negative_count << std::endl;
+
         const array_1d<double,3> skin_segment = p_right_skin->Coordinates() - p_left_skin->Coordinates();
         array_1d<double,3> normal_skin_segment;
         normal_skin_segment[0] = skin_segment[1];
@@ -1790,6 +1797,12 @@ void SnakeGapSbmProcess::CreateGapAndSkinQuadraturePoints(
         const double dot_product = inner_prod(projection_delta, normal_skin_segment);
         const double new_piece_contribution_sign = (dot_product >= 0.0) ? 1.0 : -1.0;
 
+        KRATOS_INFO_IF("SnakeGapSbmProcess", mEchoLevel > 3)
+            << "process_piece: proj_id=" << projection_info.ProjectionId
+            << " dist2=" << distance_to_projection_sq
+            << " dot=" << dot_product
+            << " sign=" << new_piece_contribution_sign << std::endl;
+
         bool cut_for_multipatch = false;
         if (mUseForMultipatch)
         {
@@ -1814,8 +1827,19 @@ void SnakeGapSbmProcess::CreateGapAndSkinQuadraturePoints(
             }
         }
 
+        if (reached_max_divisions || degenerate_split) {
+            // Avoid infinite recursion when projection collapses to an endpoint or max divisions reached.
+            cut_for_multipatch = false;
+        }
+
         if ((distance_to_projection_sq <= subdivision_threshold_sq || reached_max_divisions) &&
              !cut_for_multipatch) {
+            KRATOS_INFO_IF("SnakeGapSbmProcess", mEchoLevel > 3)
+                << "process_piece: finalize_piece"
+                << " reached_max=" << reached_max_divisions
+                << " degenerate=" << degenerate_split
+                << " cut_for_multipatch=" << cut_for_multipatch << std::endl;
+
             std::vector<IndexType> interpolation_nodes_id;
             auto p_nurbs_curve_skin = build_skin_curve(p_left_skin->Id(), p_right_skin->Id(), interpolation_nodes_id);
             auto p_brep_curve_skin = Kratos::make_shared<BrepCurveType>(p_nurbs_curve_skin);
@@ -1877,6 +1901,11 @@ void SnakeGapSbmProcess::CreateGapAndSkinQuadraturePoints(
                 new_piece_contribution_sign);
             return;
         } else {
+            KRATOS_INFO_IF("SnakeGapSbmProcess", mEchoLevel > 3)
+                << "process_piece: subdivide"
+                << " reached_max=" << reached_max_divisions
+                << " cut_for_multipatch=" << cut_for_multipatch << std::endl;
+
             const auto p_new_skin_node = rSkinSubModelPart.pGetNode(projection_info.ProjectionId);
 
             std::size_t next_positive_count = positive_count + (new_piece_contribution_sign > 0.0 ? 1 : 0);
@@ -1912,6 +1941,12 @@ void SnakeGapSbmProcess::CreateGapAndSkinQuadraturePoints(
                 skin_right_coords,
                 skin_new_coords,
                 new_piece_contribution_sign);
+
+            KRATOS_INFO_IF("SnakeGapSbmProcess", mEchoLevel > 3)
+                << "process_piece: recurse"
+                << " next_div=" << (division_level + 1)
+                << " next_pos=" << next_positive_count
+                << " next_neg=" << next_negative_count << std::endl;
 
             auto p_nurbs_left_linear = this->CreateBrepCurve(p_left_skin, p_new_skin_node, active_range_knot_vector);
             auto p_nurbs_right_linear = this->CreateBrepCurve(p_new_skin_node, p_right_skin, active_range_knot_vector);
@@ -1989,6 +2024,8 @@ void SnakeGapSbmProcess::CreateConditions(
 
         new_condition_list.GetContainer()[geometry_count]->SetValue(NEIGHBOUR_GEOMETRIES, pSurrogateReferenceGeometries);
         new_condition_list.GetContainer()[geometry_count]->SetValue(CHARACTERISTIC_GEOMETRY_LENGTH, characteristic_length_vector);
+
+        // FIXME: remove (useful for debug)
         if (!pSurrogateReferenceGeometries.empty()) {
             new_condition_list.GetContainer()[geometry_count]->SetValue(
                 PROJECTION_NODE_COORDINATES,
@@ -3331,6 +3368,8 @@ void SnakeGapSbmProcess::CreateInnerSkinMultipatchCouplingConditions(
         auto& r_brep_model_part = mpIgaModelPart->GetParentModelPart();
         auto p_brep_geometry = r_brep_model_part.pGetGeometry(static_cast<IndexType>(brep_id));
         auto p_brep_curve_on_surface = std::dynamic_pointer_cast<BrepCurveOnSurfaceType>(p_brep_geometry);
+        // auto p_brep_curve_on_surface = std::dynamic_pointer_cast< BrepCurveOnSurface<ContainerNodeType, false, ContainerEmbeddedNodeType>>(p_brep_geometry);
+
         KRATOS_ERROR_IF(!p_brep_curve_on_surface)
             << "SnakeGapSbmProcess :: Geometry #" << brep_id << " is not a BrepCurveOnSurfaceType." << std::endl;
 
@@ -3362,7 +3401,7 @@ void SnakeGapSbmProcess::CreateInnerSkinMultipatchCouplingConditions(
 
         p_brep_curve_on_surface->CreateIntegrationPoints(
             brep_integration_points_list, brep_integration_info);
-
+        
         p_brep_curve_on_surface->CreateQuadraturePointGeometries(
             brep_quadrature_point_list,
             /*num shape derivs*/ points_per_span,
