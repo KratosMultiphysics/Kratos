@@ -773,57 +773,43 @@ std::vector<double> UPwInterfaceElement::CalculateIntegrationPointFluidPressures
 std::vector<Vector> UPwInterfaceElement::CalculateProjectedGravity() const
 {
     const auto& r_integration_points = mpIntegrationScheme->GetIntegrationPoints();
-    const auto& r_geometry           = GetWaterPressureMidGeometry();
+    const auto& r_pw_mid_geometry    = GetWaterPressureMidGeometry();
     const auto  shape_function_values_at_integration_points =
-        GeoElementUtilities::EvaluateShapeFunctionsAtIntegrationPoints(r_integration_points, r_geometry);
-    const auto number_integration_points = r_integration_points.size();
-    const auto dimension                 = r_geometry.WorkingSpaceDimension();
+        GeoElementUtilities::EvaluateShapeFunctionsAtIntegrationPoints(r_integration_points, r_pw_mid_geometry);
 
-    // Get volume acceleration from WaterPressureGeometry and average to WaterPressureMidGeometry
-    std::vector<Vector> volume_accelerations;
-    volume_accelerations.reserve(GetWaterPressureGeometry().PointsNumber());
-    for (const auto& r_node : GetWaterPressureGeometry()) {
-        volume_accelerations.emplace_back(r_node.FastGetSolutionStepValue(VOLUME_ACCELERATION));
-    }
+    const auto volume_accelerations =
+        VariablesUtilities::GetNodalValues(GetWaterPressureGeometry(), VOLUME_ACCELERATION);
 
     // average to WaterPressureMidGeometry and sort to element directions
-    std::vector<Vector> mid_volume_accelerations;
-    const auto          number_of_mid_points = r_geometry.PointsNumber();
-    mid_volume_accelerations.reserve(number_of_mid_points);
-    for (auto i = std::size_t{0}; i < number_of_mid_points; ++i) {
-        auto mean_acceleration = Vector{dimension};
-        for (auto idim = std::size_t{0}; idim < dimension; ++idim) {
-            mean_acceleration[idim] =
-                (volume_accelerations[i][idim] + volume_accelerations[i + number_of_mid_points][idim]) / 2.0;
-        }
-        mid_volume_accelerations.emplace_back(mean_acceleration);
-    }
+    auto mid_volume_accelerations = std::vector<array_1d<double, 3>>{};
+    mid_volume_accelerations.reserve(r_pw_mid_geometry.PointsNumber());
+    auto end_of_first_side =
+        volume_accelerations.begin() + static_cast<std::ptrdiff_t>(r_pw_mid_geometry.PointsNumber());
+    auto calculate_mean_acceleration = [](const auto& rAcceleration1, const auto& rAcceleration2) {
+        return array_1d<double, 3>{(rAcceleration1 + rAcceleration2) / 2.0};
+    };
+    std::transform(volume_accelerations.begin(), end_of_first_side, end_of_first_side,
+                   std::back_inserter(mid_volume_accelerations), calculate_mean_acceleration);
 
-    std::vector<Vector> projected_gravity;
-    projected_gravity.reserve(number_integration_points);
-    for (auto integration_point_index = std::size_t{0};
-         integration_point_index < number_integration_points; ++integration_point_index) {
-        auto body_acceleration = Vector{dimension, 0.0};
-        for (auto mid_node_index = std::size_t{0}; mid_node_index < number_of_mid_points; ++mid_node_index) {
-            body_acceleration +=
-                shape_function_values_at_integration_points[integration_point_index][mid_node_index] *
-                mid_volume_accelerations[mid_node_index];
-        }
-        Matrix geometry_to_material_rotation{}; // dit kan buiten de i.p. loop
-        if (r_geometry.GetGeometryFamily() == GeometryData::KratosGeometryFamily::Kratos_Linear) {
-            geometry_to_material_rotation = UblasUtilities::CreateMatrix({{0.0, -1.0}, {1.0, 0.0}});
-        } else {
-            geometry_to_material_rotation =
-                UblasUtilities::CreateMatrix({{0.0, 0.0, -1.0}, {1.0, 0.0, 0.0}, {0.0, -1.0, 0.0}});
-        }
-        auto global_to_geometry_rotation =
-            mfpCalculateRotationMatrix(r_geometry, r_integration_points[integration_point_index]);
-        auto global_to_material_rotation =
+    const auto geometry_to_material_rotation =
+        r_pw_mid_geometry.GetGeometryFamily() == GeometryData::KratosGeometryFamily::Kratos_Linear
+            ? UblasUtilities::CreateMatrix({{0.0, -1.0}, {1.0, 0.0}})
+            : UblasUtilities::CreateMatrix({{0.0, 0.0, -1.0}, {1.0, 0.0, 0.0}, {0.0, -1.0, 0.0}});
+    const auto dimension = r_pw_mid_geometry.WorkingSpaceDimension();
+    auto       result    = std::vector<Vector>{};
+    result.reserve(r_integration_points.size());
+    for (auto i = std::size_t{0}; i < r_integration_points.size(); ++i) {
+        const auto& r_shape_function_values = shape_function_values_at_integration_points[i];
+        const auto  body_acceleration =
+            std::inner_product(r_shape_function_values.begin(), r_shape_function_values.end(),
+                               mid_volume_accelerations.begin(), array_1d<double, 3>(3, 0.0));
+        const auto global_to_geometry_rotation =
+            mfpCalculateRotationMatrix(r_pw_mid_geometry, r_integration_points[i]);
+        const auto global_to_material_rotation =
             Matrix{prod(geometry_to_material_rotation, global_to_geometry_rotation)};
-
-        projected_gravity.emplace_back(prod(global_to_material_rotation, body_acceleration));
+        result.emplace_back(prod(global_to_material_rotation, subrange(body_acceleration, 0, 0 + dimension)));
     }
-    return projected_gravity;
+    return result;
 }
 
 Geo::BMatricesGetter UPwInterfaceElement::CreateBMatricesGetter() const
