@@ -40,10 +40,10 @@ public:
     [[nodiscard]] bool IsAdmissibleStressState(const Geo::PrincipalStresses& rTrialPrincipalStresses) const;
 
     [[nodiscard]] Geo::SigmaTau DoReturnMapping(const Geo::SigmaTau& rTrialTraction,
-                                                const Matrix&        rElasticMatrix,
+                                                const Matrix&        rElasticConstitutiveTensor,
                                                 Geo::PrincipalStresses::AveragingType AveragingType);
     [[nodiscard]] Geo::PrincipalStresses DoReturnMapping(const Geo::PrincipalStresses& rTrialSigmaTau,
-                                                         const Matrix& rElasticMatrix,
+                                                         const Matrix& rElasticConstitutiveTensor,
                                                          Geo::PrincipalStresses::AveragingType AveragingType);
 
     void SaveKappaOfCoulombYieldSurface();
@@ -61,7 +61,7 @@ private:
     template <typename StressStateType, typename StressStateToSigmaTauFunctionType>
     [[nodiscard]] StressStateType DoReturnMapping(const StressStateType& rTrialStressState,
                                                   const StressStateToSigmaTauFunctionType& rStressStateToSigmaTau,
-                                                  const Matrix& rElasticMatrix,
+                                                  const Matrix& rElasticConstitutiveTensor,
                                                   Geo::PrincipalStresses::AveragingType AveragingType);
 
     [[nodiscard]] Geo::SigmaTau CalculateCornerPoint() const;
@@ -73,18 +73,18 @@ private:
     [[nodiscard]] Geo::SigmaTau ReturnStressAtTensionApexReturnZone(const Geo::SigmaTau&) const;
     [[nodiscard]] Geo::PrincipalStresses ReturnStressAtTensionApexReturnZone(const Geo::PrincipalStresses& rTrialPrincipalStresses) const;
     [[nodiscard]] Geo::SigmaTau ReturnStressAtTensionCutoffReturnZone(const Geo::SigmaTau& rTrialTraction,
-                                                                      const Matrix& rElasticMatrix,
+                                                                      const Matrix& rElasticConstitutiveTensor,
                                                                       Geo::PrincipalStresses::AveragingType AveragingType) const;
     [[nodiscard]] Geo::PrincipalStresses ReturnStressAtTensionCutoffReturnZone(
         const Geo::PrincipalStresses& rTrialPrincipalStresses,
-        const Matrix&                 rElasticMatrix,
+        const Matrix&                 rElasticConstitutiveTensor,
         Geo::PrincipalStresses::AveragingType) const;
     [[nodiscard]] Geo::SigmaTau ReturnStressAtRegularFailureZone(const Geo::SigmaTau& rTrialTraction,
-                                                                 const Matrix& rElasticMatrix,
+                                                                 const Matrix& rElasticConstitutiveTensor,
                                                                  Geo::PrincipalStresses::AveragingType AveragingType) const;
     [[nodiscard]] Geo::PrincipalStresses ReturnStressAtRegularFailureZone(
         const Geo::PrincipalStresses&         rTrialPrincipalStresses,
-        const Matrix&                         rElasticMatrix,
+        const Matrix&                         rElasticConstitutiveTensor,
         Geo::PrincipalStresses::AveragingType AveragingType) const;
     [[nodiscard]] Geo::PrincipalStresses ReturnStressAtCornerPoint(const Geo::PrincipalStresses& rTrialPrincipalStresses,
                                                                    Geo::PrincipalStresses::AveragingType AveragingType) const;
