@@ -578,8 +578,8 @@ std::vector<Matrix> UPwInterfaceElement::CalculateLocalBMatricesAtIntegrationPoi
 
 Matrix UPwInterfaceElement::CalculatePwBMatrix(const Geo::IntegrationPointType& rIntegrationPoint) const
 {
-    auto& r_water_pressure_mid_geometry = GetWaterPressureMidGeometry();
-    auto  shape_function_values         = Vector{};
+    const auto& r_water_pressure_mid_geometry = GetWaterPressureMidGeometry();
+    auto        shape_function_values         = Vector{};
     r_water_pressure_mid_geometry.ShapeFunctionsValues(shape_function_values, rIntegrationPoint);
     Matrix shape_functions_local_gradient;
     r_water_pressure_mid_geometry.ShapeFunctionsLocalGradients(shape_functions_local_gradient, rIntegrationPoint);
