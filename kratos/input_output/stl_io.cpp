@@ -411,7 +411,6 @@ void StlIO::ReadSolid(ModelPart& rThisModelPart)
 
     // Add nodes to the model part after reading all facets to avoid searching for existing nodes during the reading process
     const std::size_t num_new_nodes = new_nodes.size();
-    const std::size_t first_node_id = new_nodes[0]->Id();
     NodesContainerType new_nodes_set(new_nodes);
     r_sub_model_part.AddNodes(new_nodes_set.begin(), new_nodes_set.end());
     const std::string new_entity_type = mParameters["new_entity_type"].GetString();
