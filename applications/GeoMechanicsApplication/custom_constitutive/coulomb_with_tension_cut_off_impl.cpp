@@ -109,7 +109,7 @@ StressStateType CoulombWithTensionCutOffImpl::DoReturnMapping(const StressStateT
         }
 
         if (IsStressAtCornerReturnZone(trial_traction, AveragingType)) {
-            result = ReturnStressAtCornerPoint(rTrialStressState, AveragingType);
+            result = ReturnStressAtCornerPoint(rTrialStressState, rElasticConstitutiveTensor, AveragingType);
         } else { // Regular failure region
             result = ReturnStressAtRegularFailureZone(rTrialStressState, rElasticConstitutiveTensor, AveragingType);
         }
@@ -233,7 +233,9 @@ Geo::PrincipalStresses CoulombWithTensionCutOffImpl::ReturnStressAtRegularFailur
 }
 
 Geo::PrincipalStresses CoulombWithTensionCutOffImpl::ReturnStressAtCornerPoint(
-    const Geo::PrincipalStresses& rTrialPrincipalStresses, Geo::PrincipalStresses::AveragingType AveragingType) const
+    const Geo::PrincipalStresses&         rTrialPrincipalStresses,
+    const Matrix&                         rElasticConstitutiveTensor,
+    Geo::PrincipalStresses::AveragingType AveragingType) const
 {
     // This is still the old (and incorrect) way of returning the stress at the corner point when a trial principal
     // stress vector is given. (The second component of the mapped principal stress vector is not properly calculated
@@ -242,8 +244,8 @@ Geo::PrincipalStresses CoulombWithTensionCutOffImpl::ReturnStressAtCornerPoint(
                                                                        rTrialPrincipalStresses);
 }
 
-Geo::SigmaTau CoulombWithTensionCutOffImpl::ReturnStressAtCornerPoint(const Geo::SigmaTau&,
-                                                                      Geo::PrincipalStresses::AveragingType AveragingType) const
+Geo::SigmaTau CoulombWithTensionCutOffImpl::ReturnStressAtCornerPoint(
+    const Geo::SigmaTau&, const Matrix&, Geo::PrincipalStresses::AveragingType AveragingType) const
 {
     KRATOS_DEBUG_ERROR_IF(AveragingType != Geo::PrincipalStresses::AveragingType::NO_AVERAGING) << "When returning the traction to the corner point, averaging of principal stresses is not supported\n";
 

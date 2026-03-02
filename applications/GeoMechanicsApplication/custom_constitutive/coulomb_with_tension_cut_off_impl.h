@@ -87,8 +87,10 @@ private:
         const Matrix&                         rElasticConstitutiveTensor,
         Geo::PrincipalStresses::AveragingType AveragingType) const;
     [[nodiscard]] Geo::PrincipalStresses ReturnStressAtCornerPoint(const Geo::PrincipalStresses& rTrialPrincipalStresses,
+                                                                   const Matrix& rElasticConstitutiveTensor,
                                                                    Geo::PrincipalStresses::AveragingType AveragingType) const;
     [[nodiscard]] Geo::SigmaTau ReturnStressAtCornerPoint(const Geo::SigmaTau&,
+                                                          const Matrix&,
                                                           Geo::PrincipalStresses::AveragingType AveragingType) const;
 
     friend class Serializer;
