@@ -84,10 +84,12 @@ Parameters StlIO::GetDefaultParameters()
 
 void StlIO::ReadModelPart(ModelPart& rThisModelPart)
 {
+    // Ensure the model part has properties
     if(!rThisModelPart.RecursivelyHasProperties(0)) {
         rThisModelPart.CreateNewProperties(0);
     }
 
+    // Compute the next IDs for nodes, elements, and conditions
     mNextNodeId = block_for_each<MaxReduction<std::size_t>>(
         rThisModelPart.GetRootModelPart().Nodes(),
         [](NodeType& rNode) { return rNode.Id();}) + 1;
@@ -100,32 +102,9 @@ void StlIO::ReadModelPart(ModelPart& rThisModelPart)
         rThisModelPart.GetRootModelPart().Conditions(),
         [](Condition& rCondition) { return rCondition.Id();}) + 1;
 
-    std::function<void(ModelPart&, NodesArrayType&)> create_entity_func;
-    const std::string new_entity_type = mParameters["new_entity_type"].GetString();
-    if (new_entity_type == "geometry") {
-        create_entity_func = [](
-            ModelPart& rThisModelPart,
-            NodesArrayType& rNodes) {
-                rThisModelPart.CreateNewGeometry("Triangle3D3", rNodes);
-            };
-    } else if (new_entity_type == "element") {
-        create_entity_func = [this](
-            ModelPart& rThisModelPart,
-            NodesArrayType& rNodes) {
-                rThisModelPart.CreateNewElement("Element3D3N", this->mNextElementId++, rNodes, rThisModelPart.pGetProperties(0));
-            };
-    } else if (new_entity_type == "condition") {
-        create_entity_func = [this](
-            ModelPart& rThisModelPart,
-            NodesArrayType& rNodes) {
-                rThisModelPart.CreateNewCondition("SurfaceCondition3D3N", this->mNextConditionId++, rNodes, rThisModelPart.pGetProperties(0));
-            };
-    } else  {
-        KRATOS_ERROR << "Invalid new entity type " << new_entity_type << std::endl;
-    }
-
+    // Read the file until the end of the file is reached. The ReadSolid function will read one solid at a time, which corresponds to one submodelpart in the model part.
     while(!mpInputStream->eof()) {
-        ReadSolid(rThisModelPart,create_entity_func);
+        ReadSolid(rThisModelPart);
     }
 }
 
@@ -187,7 +166,7 @@ void StlIO::WriteEntityBlock(const TContainerType& rThisEntities)
             WriteFacet(r_geometry, r_stream);
         }
     }
-    KRATOS_WARNING_IF("STL-IO", num_degenerate_geometries > 0) 
+    KRATOS_WARNING_IF("STL-IO", num_degenerate_geometries > 0)
         << "Model part contained " << num_degenerate_geometries
         << " geometries with area = 0.0, skipping these geometries." << std::endl;
 }
@@ -204,7 +183,7 @@ void StlIO::WriteGeometryBlock(const GeometryContainerType& rThisGeometries)
             WriteFacet(r_geometry, r_stream);
         }
     }
-    KRATOS_WARNING_IF("STL-IO", num_degenerate_geometries > 0) 
+    KRATOS_WARNING_IF("STL-IO", num_degenerate_geometries > 0)
         << "Model part contained " << num_degenerate_geometries
         << " geometries with area = 0.0, skipping these geometries." << std::endl;
 }
@@ -228,10 +207,10 @@ void StlIO::WriteEntityBlockMPI(
     }
 
     // Sum all partitions
-    unsigned int converted_num_degenerate_geometries(num_degenerate_geometries); 
+    unsigned int converted_num_degenerate_geometries(num_degenerate_geometries);
     converted_num_degenerate_geometries = rDataCommunicator.SumAll(converted_num_degenerate_geometries);
 
-    KRATOS_WARNING_IF("STL-IO", converted_num_degenerate_geometries > 0) 
+    KRATOS_WARNING_IF("STL-IO", converted_num_degenerate_geometries > 0)
         << "Model part contained " << converted_num_degenerate_geometries
         << " geometries with area = 0.0, skipping these geometries." << std::endl;
 
@@ -366,10 +345,7 @@ bool StlIO::IsValidGeometry(
     return (is_triangle && area_greater_than_zero);
 }
 
-void StlIO::ReadSolid(
-    ModelPart& rThisModelPart,
-    const std::function<void(ModelPart&, NodesArrayType&)>& rCreateEntityFunctor
-    )
+void StlIO::ReadSolid(ModelPart& rThisModelPart)
 {
     std::string word;
 
@@ -377,6 +353,28 @@ void StlIO::ReadSolid(
     if(mpInputStream->eof()) {
         return;
     }
+
+    // Estimate number of lines of the current solid block, then restore stream position
+    const std::streampos initial_position = mpInputStream->tellg();
+    std::size_t num_lines = 0;
+    if (initial_position != std::streampos(-1)) {
+        std::string line;
+        while (std::getline(*mpInputStream, line)) {
+            ++num_lines;
+            if (line.find("endsolid") != std::string::npos) {
+                break;
+            }
+        }
+
+        // Reset stream state/position after counting
+        mpInputStream->clear();
+        mpInputStream->seekg(initial_position);
+        KRATOS_ERROR_IF_NOT(mpInputStream->good()) << "Failed to restore STL stream position after line counting." << std::endl;
+    }
+    const std::size_t estimated_number_of_facets = num_lines / 7; // Each facet block has 7 lines (facet normal, outer loop, 3 vertices, endloop, endfacet)
+    const std::size_t estimated_nodes = estimated_number_of_facets * 3;
+    std::vector<Node::Pointer> new_nodes;
+    new_nodes.reserve(estimated_nodes);
 
     KRATOS_ERROR_IF(word != "solid") << "Invalid stl file. Solid block should begin with \"solid\" keyword but \"" << word << "\" was found" << std::endl;
     std::getline(*mpInputStream, word); // Reading solid name to be the model part name
@@ -401,22 +399,100 @@ void StlIO::ReadSolid(
         word = "main";
     }
 
-    auto& sub_model_part = rThisModelPart.CreateSubModelPart(word);
+    auto& r_sub_model_part = rThisModelPart.CreateSubModelPart(word);
 
     *mpInputStream >> word; // Reading facet or endsolid
 
-    while(word == "facet"){
-        ReadFacet(sub_model_part, rCreateEntityFunctor);
+    while(word == "facet") {
+        ReadFacet(r_sub_model_part, new_nodes);
+
         *mpInputStream >> word; // Reading facet or endsolid
     }
 
-    KRATOS_ERROR_IF(word != "endsolid") << "Invalid stl file. Solid block should be closed with \"endsolid\" keyword but \"" << word << "\" was found" << std::endl;
-    std::getline(*mpInputStream, word); // Reading solid name 
-}
+    // Add nodes to the model part after reading all facets to avoid searching for existing nodes during the reading process
+    const std::size_t num_new_nodes = new_nodes.size();
+    const std::size_t first_node_id = new_nodes[0]->Id();
+    NodesContainerType new_nodes_set(new_nodes);
+    r_sub_model_part.AddNodes(new_nodes_set.begin(), new_nodes_set.end());
+    const std::string new_entity_type = mParameters["new_entity_type"].GetString();
 
+    // Define TLS for parallel execution of entity creation
+    struct TLS {
+        NodesArrayType triangle_nodes;
+        Properties::Pointer p_properties = nullptr;
+
+        TLS(Properties::Pointer pProperties = nullptr) : p_properties(pProperties) {
+            triangle_nodes.reserve(3); // reserving for 3 nodes as STL only supports triangles
+            for (std::size_t i = 0; i < 3; ++i) {
+                triangle_nodes.push_back(nullptr);
+            }
+        }
+    };
+
+    // Create entities in parallel using the created nodes. Each facet corresponds to 3 consecutive nodes in the new_nodes array
+    if (new_entity_type == "geometry") {
+        // const GeometryType& r_clone_geometry = KratosComponents<GeometryType>::Get("Triangle3D3N");
+
+        // // Create geometries in parallel using the created nodes. Each facet corresponds to 3 consecutive nodes in the new_nodes array
+        // const std::vector<GeometryType::Pointer> new_geometries = IndexPartition<IndexType>(num_new_nodes / 3).for_each<AccumReduction<GeometryType::Pointer>>(TLS(), [&, this](const IndexType i, TLS& rTLS) {
+        //     const std::size_t node_index = i * 3;
+        //     std::swap(rTLS.triangle_nodes(0), new_nodes[node_index]);
+        //     std::swap(rTLS.triangle_nodes(1), new_nodes[node_index + 1]);
+        //     std::swap(rTLS.triangle_nodes(2), new_nodes[node_index + 2]);
+        //     return r_clone_geometry.Create(rTLS.triangle_nodes);
+        // });
+
+        // // Add geometries
+        // r_sub_model_part.AddGeometries(new_geometries.begin(), new_geometries.end());
+
+        // Memory issue with parallel creation of geometries, creating geometries sequentially for now with ModelPart's CreateNewGeometry
+        TLS tls;
+         for (IndexType i = 0; i < num_new_nodes; i += 3) {
+            std::swap(tls.triangle_nodes(0), new_nodes[i]);
+            std::swap(tls.triangle_nodes(1), new_nodes[i + 1]);
+            std::swap(tls.triangle_nodes(2), new_nodes[i + 2]);
+            r_sub_model_part.CreateNewGeometry("Triangle3D3", tls.triangle_nodes);
+        }
+    } else if (new_entity_type == "element") {
+        const Element& r_clone_element = KratosComponents<Element>::Get("Element3D3N");
+
+        // Create elements in parallel using the created nodes. Each facet corresponds to 3 consecutive nodes in the new_nodes array
+        const std::vector<Element::Pointer> new_elements = IndexPartition<IndexType>(num_new_nodes / 3).for_each<AccumReduction<Element::Pointer>>(TLS(r_sub_model_part.pGetProperties(0)), [&, this](const IndexType i, TLS& rTLS) {
+            const std::size_t node_index = i * 3;
+            std::swap(rTLS.triangle_nodes(0), new_nodes[node_index]);
+            std::swap(rTLS.triangle_nodes(1), new_nodes[node_index + 1]);
+            std::swap(rTLS.triangle_nodes(2), new_nodes[node_index + 2]);
+            return r_clone_element.Create(mNextElementId + i, rTLS.triangle_nodes, rTLS.p_properties);
+        });
+        mNextElementId += new_elements.size();
+
+        // Add elements
+        r_sub_model_part.AddElements(new_elements.begin(), new_elements.end());
+    } else if (new_entity_type == "condition") {
+        const Condition& r_clone_condition = KratosComponents<Condition>::Get("SurfaceCondition3D3N");
+
+        // Create conditions in parallel using the created nodes. Each facet corresponds to 3 consecutive nodes in the new_nodes array
+        const std::vector<Condition::Pointer> new_conditions = IndexPartition<IndexType>(num_new_nodes / 3).for_each<AccumReduction<Condition::Pointer>>(TLS(r_sub_model_part.pGetProperties(0)), [&, this](const IndexType i, TLS& rTLS) {
+            const std::size_t node_index = i * 3;
+            std::swap(rTLS.triangle_nodes(0), new_nodes[node_index]);
+            std::swap(rTLS.triangle_nodes(1), new_nodes[node_index + 1]);
+            std::swap(rTLS.triangle_nodes(2), new_nodes[node_index + 2]);
+            return r_clone_condition.Create(mNextConditionId + i, rTLS.triangle_nodes, rTLS.p_properties);
+        });
+        mNextConditionId += new_conditions.size();
+
+        // Add conditions
+        r_sub_model_part.AddConditions(new_conditions.begin(), new_conditions.end());
+    } else  {
+        KRATOS_ERROR << "Invalid new entity type " << new_entity_type << std::endl;
+    }
+
+    KRATOS_ERROR_IF(word != "endsolid") << "Invalid stl file. Solid block should be closed with \"endsolid\" keyword but \"" << word << "\" was found" << std::endl;
+    std::getline(*mpInputStream, word); // Reading solid name
+}
 void StlIO::ReadFacet(
     ModelPart& rThisModelPart,
-    const std::function<void(ModelPart&, NodesArrayType&)>& rCreateEntityFunctor
+    std::vector<Node::Pointer>& rNewNodes
     )
 {
     std::string word;
@@ -428,7 +504,7 @@ void StlIO::ReadFacet(
     *mpInputStream >> word; // Reading outer or endfacet
 
     while(word == "outer"){
-        ReadLoop(rThisModelPart, rCreateEntityFunctor);
+        ReadLoop(rThisModelPart, rNewNodes);
         *mpInputStream >> word; // Reading outer or endfacet
     }
 
@@ -437,7 +513,7 @@ void StlIO::ReadFacet(
 
 void StlIO::ReadLoop(
     ModelPart & rThisModelPart,
-    const std::function<void(ModelPart&, NodesArrayType&)>& rCreateEntityFunctor
+    std::vector<Node::Pointer>& rNewNodes
     )
 {
     std::string word;
@@ -446,16 +522,13 @@ void StlIO::ReadLoop(
 
     *mpInputStream >> word; // Reading vertex or endloop
 
-    NodesArrayType temp_geom_nodes;
-    temp_geom_nodes.reserve(3); // reserving for 3 nodes as STL only supports triangles
+    // Adding the nodes array of the facet directly to the provided array
     std::array<double, 3> coordinates;
     while(word == "vertex") {
         ReadPoint(coordinates);
-        temp_geom_nodes.push_back(rThisModelPart.CreateNewNode(mNextNodeId++, coordinates[0], coordinates[1], coordinates[2] ));
+        rNewNodes.push_back(Kratos::make_intrusive<Node>(mNextNodeId++, coordinates[0], coordinates[1], coordinates[2] ));
         *mpInputStream >> word; // Reading vertex or endloop
     }
-    const std::string new_entity_type = mParameters["new_entity_type"].GetString();
-    rCreateEntityFunctor(rThisModelPart, temp_geom_nodes);
     KRATOS_ERROR_IF(word != "endloop") << "Invalid stl file. loop block should be closed with \"endloop\" keyword but \"" << word << "\" was found" << std::endl;
 }
 

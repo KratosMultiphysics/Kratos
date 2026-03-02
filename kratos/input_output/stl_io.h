@@ -82,8 +82,11 @@ public:
     ///@name Type Definitions
     ///@{
 
-    /// Geometries map type definition
-    using GeometryContainerType = ModelPart::GeometryContainerType;
+    /// Definition of the geometry type
+    using GeometryType = Geometry<Node>;
+
+    /// Nodes container type definition
+    using NodesContainerType = ModelPart::NodesContainerType;
 
     /// The nodes array type definition
     using NodesArrayType = Element::NodesArrayType;
@@ -235,35 +238,31 @@ private:
 
     /**
      * @brief Read a solid object from a model part.
-     * @details This function reads a solid object from the given model part using the provided function to create the entity.
+     * @details This function reads a solid object from the given model part.
      * @param rThisModelPart Reference to the model part to read the solid from.
-     * @param rCreateEntityFunctor A functor to create entities.
      */
-    void ReadSolid(
-        ModelPart& rThisModelPart,
-        const std::function<void(ModelPart&, NodesArrayType&)>& rCreateEntityFunctor 
-        );
+    void ReadSolid(ModelPart& rThisModelPart);
 
     /**
      * @brief Read a facet from a model part.
      * @details This function reads a facet from the given model part using the provided function to create the entity.
      * @param rThisModelPart Reference to the model part to read the facet from.
-     * @param rCreateEntityFunctor A functor to create entities.
+     * @param rNewNodes Reference to the container of nodes for the facet.
      */
     void ReadFacet(
         ModelPart& rThisModelPart,
-        const std::function<void(ModelPart&, NodesArrayType&)>& rCreateEntityFunctor
+        std::vector<Node::Pointer>& rNewNodes
         );
 
     /**
      * @brief Read a loop from a model part.
      * @details This function reads a loop from the given model part using the provided function to create the entity.
      * @param rThisModelPart Reference to the model part to read the loop from.
-     * @param rCreateEntityFunctor A functor to create entities.
+     * @param rNewNodes Reference to the container of nodes for the loop.
      */
     void ReadLoop(
         ModelPart& rThisModelPart,
-        const std::function<void(ModelPart&, NodesArrayType&)>& rCreateEntityFunctor
+        std::vector<Node::Pointer>& rNewNodes
         );
 
     /**
