@@ -188,28 +188,19 @@ void UPwInterfaceElement::CalculateLeftHandSide(MatrixType& rLeftHandSideMatrix,
 void UPwInterfaceElement::CalculateAndAssignStiffnessMatrix(Element::MatrixType& rLeftHandSideMatrix,
                                                             const ProcessInfo& rProcessInfo)
 {
-    switch (NumberOfUDofs()) {
-    case 8:
-        CalculateAndAssignStiffnessMatrix<8>(rLeftHandSideMatrix, rProcessInfo);
-        break;
-    case 12:
-        CalculateAndAssignStiffnessMatrix<12>(rLeftHandSideMatrix, rProcessInfo);
-        break;
-    case 18:
-        CalculateAndAssignStiffnessMatrix<18>(rLeftHandSideMatrix, rProcessInfo);
-        break;
-    case 36:
-        CalculateAndAssignStiffnessMatrix<36>(rLeftHandSideMatrix, rProcessInfo);
-        break;
-    case 24:
-        CalculateAndAssignStiffnessMatrix<24>(rLeftHandSideMatrix, rProcessInfo);
-        break;
-    case 48:
-        CalculateAndAssignStiffnessMatrix<48>(rLeftHandSideMatrix, rProcessInfo);
-        break;
-    default:
-        KRATOS_ERROR << "This stiffness matrix size is not supported: " << NumberOfUDofs() << "\n";
-    }
+    using Func = void (UPwInterfaceElement::*)(Element::MatrixType&, const ProcessInfo&) const;
+
+    static const std::map<std::size_t, Func> dispatch_table = {
+        {8, &UPwInterfaceElement::CalculateAndAssignStiffnessMatrix<8>},
+        {12, &UPwInterfaceElement::CalculateAndAssignStiffnessMatrix<12>},
+        {18, &UPwInterfaceElement::CalculateAndAssignStiffnessMatrix<18>},
+        {36, &UPwInterfaceElement::CalculateAndAssignStiffnessMatrix<36>},
+        {24, &UPwInterfaceElement::CalculateAndAssignStiffnessMatrix<24>},
+        {48, &UPwInterfaceElement::CalculateAndAssignStiffnessMatrix<48>}};
+
+    KRATOS_ERROR_IF_NOT(dispatch_table.contains(NumberOfUDofs()))
+        << "This stiffness matrix size is not supported: " << NumberOfUDofs() << "\n";
+    (this->*dispatch_table.at(NumberOfUDofs()))(rLeftHandSideMatrix, rProcessInfo);
 }
 
 void UPwInterfaceElement::CalculateAndAssignUPCouplingMatrix(MatrixType& rLeftHandSideMatrix) const
@@ -975,7 +966,7 @@ auto UPwInterfaceElement::CreateStiffnessCalculator(const ProcessInfo& rProcessI
 
 template <unsigned int MatrixSize>
 void UPwInterfaceElement::CalculateAndAssignStiffnessMatrix(MatrixType&        rLeftHandSideMatrix,
-                                                            const ProcessInfo& rProcessInfo)
+                                                            const ProcessInfo& rProcessInfo) const
 {
     GeoElementUtilities::AssignUUBlockMatrix(
         rLeftHandSideMatrix, CreateStiffnessCalculator<MatrixSize>(rProcessInfo).LHSContribution().value());

@@ -158,7 +158,7 @@ private:
     auto CreateStiffnessCalculator(const ProcessInfo& rProcessInfo) const;
 
     template <unsigned int MatrixSize>
-    void CalculateAndAssignStiffnessMatrix(MatrixType& rLeftHandSideMatrix, const ProcessInfo& rProcessInfo);
+    void CalculateAndAssignStiffnessMatrix(MatrixType& rLeftHandSideMatrix, const ProcessInfo& rProcessInfo) const;
 
     template <unsigned int MatrixSize>
     void CalculateAndAssembleStiffnessForceVector(VectorType&        rRightHandSideVector,
