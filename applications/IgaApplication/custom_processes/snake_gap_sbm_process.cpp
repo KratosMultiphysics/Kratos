@@ -2361,7 +2361,6 @@ void SnakeGapSbmProcess::SetSurrogateToSkinProjections(
                 }
             }
         }
-        // If empty, collect all ids from all nonzeros
         if (candidate_ids.empty()) {
             KRATOS_ERROR << "GapSBMProcess:: Empty point list in normal span search.\n";
         }

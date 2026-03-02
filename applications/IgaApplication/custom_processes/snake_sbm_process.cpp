@@ -901,7 +901,7 @@ void SnakeSbmProcess::SnakeStepNurbs(
                                                          std::pow((xy_true_boundary_split[1] - rConditionCoordinates[1][0]),2)); 
                 
                 // exactly passing trough a diagonal vertex 
-                const double minumum_length = std::min(rKnotStepUV[0]/100, rKnotStepUV[1]/100); //TODO: to assest in future PR
+                const double minumum_length = std::min(rKnotStepUV[0]/100, rKnotStepUV[1]/100); 
                 if (split_segment_length <= minumum_length)
                 {
                     KRATOS_WARNING("[SnakeSbmProcess] :: one skin segment is exactly passing trough a diagonal vertex");
@@ -910,7 +910,6 @@ void SnakeSbmProcess::SnakeStepNurbs(
                     knot_span_v_point_split = rKnotSpansUV[1][1];
 
 
-                    // TODO:: check thorugh diagonal. Assest in future PR 
                     rKnotSpansAvailable[IdMatrix][rKnotSpansUV[1][0]][rKnotSpansUV[0][0]] = 2;
                     rKnotSpansAvailable[IdMatrix][rKnotSpansUV[1][0]][rKnotSpansUV[0][1]] = 2;
                     rKnotSpansAvailable[IdMatrix][rKnotSpansUV[1][1]][rKnotSpansUV[0][0]] = 2;
