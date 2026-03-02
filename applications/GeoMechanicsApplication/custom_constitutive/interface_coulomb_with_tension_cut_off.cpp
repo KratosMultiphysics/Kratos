@@ -14,6 +14,7 @@
 
 // Application includes
 #include "custom_constitutive/interface_coulomb_with_tension_cut_off.h"
+#include "custom_constitutive/constitutive_law_dimension.h"
 #include "custom_constitutive/sigma_tau.hpp"
 #include "custom_utilities/check_utilities.hpp"
 #include "custom_utilities/constitutive_law_utilities.h"
@@ -27,11 +28,19 @@
 namespace Kratos
 {
 
+InterfaceCoulombWithTensionCutOff::InterfaceCoulombWithTensionCutOff(std::unique_ptr<ConstitutiveLawDimension> pConstitutiveDimension)
+    : mpConstitutiveDimension(std::move(pConstitutiveDimension)),
+      mTractionVector(ZeroVector(mpConstitutiveDimension->GetStrainSize())),
+      mTractionVectorFinalized(ZeroVector(mpConstitutiveDimension->GetStrainSize())),
+      mRelativeDisplacementVectorFinalized(ZeroVector(mpConstitutiveDimension->GetStrainSize()))
+{
+}
+
 ConstitutiveLaw::Pointer InterfaceCoulombWithTensionCutOff::Clone() const
 {
-    auto p_result                      = std::make_shared<InterfaceCoulombWithTensionCutOff>(*this);
-    p_result->mTractionVector          = mTractionVector;
-    p_result->mTractionVectorFinalized = mTractionVectorFinalized;
+    auto p_result = std::make_shared<InterfaceCoulombWithTensionCutOff>(mpConstitutiveDimension->Clone());
+    p_result->mTractionVector                      = mTractionVector;
+    p_result->mTractionVectorFinalized             = mTractionVectorFinalized;
     p_result->mRelativeDisplacementVectorFinalized = mRelativeDisplacementVectorFinalized;
     p_result->mCoulombWithTensionCutOffImpl        = mCoulombWithTensionCutOffImpl;
     p_result->mIsModelInitialized                  = mIsModelInitialized;
@@ -140,7 +149,8 @@ void InterfaceCoulombWithTensionCutOff::CalculateMaterialResponseCauchy(Paramete
 
     if (!mCoulombWithTensionCutOffImpl.IsAdmissibleStressState(trial_sigma_tau)) {
         mapped_sigma_tau = mCoulombWithTensionCutOffImpl.DoReturnMapping(
-            trial_sigma_tau, CoulombYieldSurface::CoulombAveragingType::NO_AVERAGING);
+            trial_sigma_tau, mpConstitutiveDimension->CalculateElasticMatrix(r_properties),
+            Geo::PrincipalStresses::AveragingType::NO_AVERAGING);
         if (negative) mapped_sigma_tau.Tau() *= -1.0;
     }
 
@@ -190,6 +200,7 @@ void InterfaceCoulombWithTensionCutOff::save(Serializer& rSerializer) const
     rSerializer.save("RelativeDisplacementVectorFinalized", mRelativeDisplacementVectorFinalized);
     rSerializer.save("CoulombWithTensionCutOffImpl", mCoulombWithTensionCutOffImpl);
     rSerializer.save("IsModelInitialized", mIsModelInitialized);
+    rSerializer.save("ConstitutiveDimension", mpConstitutiveDimension);
 }
 
 void InterfaceCoulombWithTensionCutOff::load(Serializer& rSerializer)
@@ -200,6 +211,7 @@ void InterfaceCoulombWithTensionCutOff::load(Serializer& rSerializer)
     rSerializer.load("RelativeDisplacementVectorFinalized", mRelativeDisplacementVectorFinalized);
     rSerializer.load("CoulombWithTensionCutOffImpl", mCoulombWithTensionCutOffImpl);
     rSerializer.load("IsModelInitialized", mIsModelInitialized);
+    rSerializer.load("ConstitutiveDimension", mpConstitutiveDimension);
 }
 
 } // Namespace Kratos
