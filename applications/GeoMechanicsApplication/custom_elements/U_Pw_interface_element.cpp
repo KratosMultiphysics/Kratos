@@ -315,28 +315,19 @@ void UPwInterfaceElement::CalculateRightHandSide(Element::VectorType& rRightHand
 void UPwInterfaceElement::CalculateAndAssembleStiffnessForceVector(Element::VectorType& rRightHandSideVector,
                                                                    const ProcessInfo& rProcessInfo)
 {
-    switch (NumberOfUDofs()) {
-    case 8:
-        CalculateAndAssembleStiffnessForceVector<8>(rRightHandSideVector, rProcessInfo);
-        break;
-    case 12:
-        CalculateAndAssembleStiffnessForceVector<12>(rRightHandSideVector, rProcessInfo);
-        break;
-    case 18:
-        CalculateAndAssembleStiffnessForceVector<18>(rRightHandSideVector, rProcessInfo);
-        break;
-    case 36:
-        CalculateAndAssembleStiffnessForceVector<36>(rRightHandSideVector, rProcessInfo);
-        break;
-    case 24:
-        CalculateAndAssembleStiffnessForceVector<24>(rRightHandSideVector, rProcessInfo);
-        break;
-    case 48:
-        CalculateAndAssembleStiffnessForceVector<48>(rRightHandSideVector, rProcessInfo);
-        break;
-    default:
-        KRATOS_ERROR << "This stiffness force vector size is not supported: " << NumberOfUDofs() << "\n";
-    }
+    using Func = void (UPwInterfaceElement::*)(Element::VectorType&, const ProcessInfo&) const;
+
+    static const std::map<std::size_t, Func> dispatch_table = {
+        {8, &UPwInterfaceElement::CalculateAndAssembleStiffnessForceVector<8>},
+        {12, &UPwInterfaceElement::CalculateAndAssembleStiffnessForceVector<12>},
+        {18, &UPwInterfaceElement::CalculateAndAssembleStiffnessForceVector<18>},
+        {36, &UPwInterfaceElement::CalculateAndAssembleStiffnessForceVector<36>},
+        {24, &UPwInterfaceElement::CalculateAndAssembleStiffnessForceVector<24>},
+        {48, &UPwInterfaceElement::CalculateAndAssembleStiffnessForceVector<48>}};
+
+    KRATOS_ERROR_IF_NOT(dispatch_table.contains(NumberOfUDofs()))
+        << "This stiffness force vector size is not supported: " << NumberOfUDofs() << "\n";
+    (this->*dispatch_table.at(NumberOfUDofs()))(rRightHandSideVector, rProcessInfo);
 }
 
 void UPwInterfaceElement::CalculateAndAssembleUPCouplingForceVector(Element::VectorType& rRightHandSideVector) const
@@ -990,7 +981,8 @@ std::function<std::vector<Vector>()> UPwInterfaceElement::CreateProjectedGravity
 }
 
 template <unsigned int MatrixSize>
-typename StiffnessCalculator<MatrixSize>::InputProvider UPwInterfaceElement::CreateStiffnessInputProvider(const ProcessInfo& rProcessInfo)
+typename StiffnessCalculator<MatrixSize>::InputProvider UPwInterfaceElement::CreateStiffnessInputProvider(
+    const ProcessInfo& rProcessInfo) const
 {
     return typename StiffnessCalculator<MatrixSize>::InputProvider(
         CreateBMatricesGetter(), CreateRelativeDisplacementsGetter(), CreateIntegrationCoefficientsGetter(),
@@ -998,7 +990,7 @@ typename StiffnessCalculator<MatrixSize>::InputProvider UPwInterfaceElement::Cre
 }
 
 template <unsigned int MatrixSize>
-auto UPwInterfaceElement::CreateStiffnessCalculator(const ProcessInfo& rProcessInfo)
+auto UPwInterfaceElement::CreateStiffnessCalculator(const ProcessInfo& rProcessInfo) const
 {
     return StiffnessCalculator<MatrixSize>(CreateStiffnessInputProvider<MatrixSize>(rProcessInfo));
 }
@@ -1013,7 +1005,7 @@ void UPwInterfaceElement::CalculateAndAssignStiffnessMatrix(MatrixType&        r
 
 template <unsigned int MatrixSize>
 void UPwInterfaceElement::CalculateAndAssembleStiffnessForceVector(VectorType& rRightHandSideVector,
-                                                                   const ProcessInfo& rProcessInfo)
+                                                                   const ProcessInfo& rProcessInfo) const
 {
     GeoElementUtilities::AssembleUBlockVector(
         rRightHandSideVector, CreateStiffnessCalculator<MatrixSize>(rProcessInfo).RHSContribution());

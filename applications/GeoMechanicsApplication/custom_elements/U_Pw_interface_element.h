@@ -152,16 +152,17 @@ private:
     std::function<std::vector<Vector>()>  CreateProjectedGravityCalculator() const;
 
     template <unsigned int MatrixSize>
-    typename StiffnessCalculator<MatrixSize>::InputProvider CreateStiffnessInputProvider(const ProcessInfo& rProcessInfo);
+    typename StiffnessCalculator<MatrixSize>::InputProvider CreateStiffnessInputProvider(const ProcessInfo& rProcessInfo) const;
 
     template <unsigned int MatrixSize>
-    auto CreateStiffnessCalculator(const ProcessInfo& rProcessInfo);
+    auto CreateStiffnessCalculator(const ProcessInfo& rProcessInfo) const;
 
     template <unsigned int MatrixSize>
     void CalculateAndAssignStiffnessMatrix(MatrixType& rLeftHandSideMatrix, const ProcessInfo& rProcessInfo);
 
     template <unsigned int MatrixSize>
-    void CalculateAndAssembleStiffnessForceVector(VectorType& rRightHandSideVector, const ProcessInfo& rProcessInfo);
+    void CalculateAndAssembleStiffnessForceVector(VectorType&        rRightHandSideVector,
+                                                  const ProcessInfo& rProcessInfo) const;
 
     template <unsigned int NumberOfRows, unsigned int NumberOfColumns>
     typename UPCouplingCalculator<NumberOfRows, NumberOfColumns>::InputProvider CreateUPCouplingInputProvider() const;
