@@ -926,12 +926,11 @@ Matrix UPwInterfaceElement::GetNpContainer() const
 
 Geo::NodalValuesGetter UPwInterfaceElement::CreateWaterPressureGeometryNodalVariableGetter() const
 {
-    return [this](const Variable<double>&) { return this->GetWaterPressureGeometryNodalVariable(); };
-}
-
-std::function<Vector()> UPwInterfaceElement::CreateNodalPressuresGetter() const
-{
-    return [this]() { return this->GetWaterPressureGeometryNodalVariable(); };
+    return [this](const Variable<double>& rVariable) {
+        Vector result{this->GetWaterPressureGeometry().size()};
+        VariablesUtilities::GetNodalValues(this->GetWaterPressureGeometry(), rVariable, result.begin());
+        return result;
+    };
 }
 
 Vector UPwInterfaceElement::GetWaterPressureGeometryNodalVariable() const
@@ -1026,7 +1025,7 @@ typename UPCouplingCalculator<NumberOfRows, NumberOfColumns>::InputProvider UPwI
     return typename UPCouplingCalculator<NumberOfRows, NumberOfColumns>::InputProvider(
         CreateNpContainerGetter(), CreateBMatricesGetter(), CreateVoigtVectorGetter(),
         CreateIntegrationCoefficientsGetter(), CreateBiotCoefficientsGetter(),
-        CreateBishopCoefficientsGetter(), CreateNodalPressuresGetter());
+        CreateBishopCoefficientsGetter(), CreateWaterPressureGeometryNodalVariableGetter());
 }
 
 template <unsigned int NumberOfRows, unsigned int NumberOfColumns>

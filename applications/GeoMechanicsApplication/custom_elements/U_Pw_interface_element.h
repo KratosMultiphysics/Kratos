@@ -135,7 +135,6 @@ private:
     std::function<Vector()>              CreateVoigtVectorGetter() const;
     std::function<std::vector<double>()> CreateBiotCoefficientsGetter() const;
     std::function<std::vector<double>()> CreateBishopCoefficientsGetter() const;
-    std::function<Vector()>              CreateNodalPressuresGetter() const;
     Geo::NodalValuesGetter               CreateWaterPressureGeometryNodalVariableGetter() const;
     std::function<Vector()>              CreateNodalVelocitiesGetter() const;
     std::function<std::vector<double>()> CreateDegreesOfSaturationGetter() const;
