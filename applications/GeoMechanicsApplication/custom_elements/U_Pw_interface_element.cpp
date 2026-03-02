@@ -88,6 +88,11 @@ Geo::ProcessInfoGetter CreateProcessInfoGetter(const ProcessInfo& rProcessInfo)
     return [&rProcessInfo]() -> const ProcessInfo& { return rProcessInfo; };
 }
 
+bool GetIgnoreUndrained(const Properties& rProperties)
+{
+    return rProperties.Has(IGNORE_UNDRAINED) ? rProperties[IGNORE_UNDRAINED] : false;
+}
+
 } // namespace
 
 namespace Kratos
@@ -153,10 +158,9 @@ void UPwInterfaceElement::EquationIdVector(EquationIdVectorType& rResult, const 
 
 void UPwInterfaceElement::CalculateLeftHandSide(MatrixType& rLeftHandSideMatrix, const ProcessInfo& rProcessInfo)
 {
-    const auto number_of_dofs = GetDofs().size();
-    const auto ignore_undrained =
-        this->GetProperties().Has(IGNORE_UNDRAINED) ? this->GetProperties()[IGNORE_UNDRAINED] : false;
-    rLeftHandSideMatrix = ZeroMatrix{number_of_dofs, number_of_dofs};
+    const auto number_of_dofs   = GetDofs().size();
+    const auto ignore_undrained = GetIgnoreUndrained(GetProperties());
+    rLeftHandSideMatrix         = ZeroMatrix{number_of_dofs, number_of_dofs};
 
     for (auto contribution : mContributions) {
         switch (contribution) {
@@ -263,9 +267,8 @@ void UPwInterfaceElement::CalculateAndAssignPermeabilityMatrix(Element::MatrixTy
 void UPwInterfaceElement::CalculateRightHandSide(Element::VectorType& rRightHandSideVector,
                                                  const ProcessInfo&   rProcessInfo)
 {
-    const auto ignore_undrained =
-        this->GetProperties().Has(IGNORE_UNDRAINED) ? this->GetProperties()[IGNORE_UNDRAINED] : false;
-    rRightHandSideVector = ZeroVector{GetDofs().size()};
+    const auto ignore_undrained = GetIgnoreUndrained(GetProperties());
+    rRightHandSideVector        = ZeroVector{GetDofs().size()};
 
     for (auto contribution : mContributions) {
         switch (contribution) {
