@@ -2718,7 +2718,7 @@ KRATOS_TEST_CASE_IN_SUITE(UPwLineInterfaceElement_Inclined3DInterfaceFluidBodyFl
     constexpr auto number_of_pw_dofs       = std::size_t{8};
     const auto     expected_u_block_vector = Vector{number_of_u_dofs, 0.0};
     AssertUBlockVectorIsNear(actual_right_hand_side, expected_u_block_vector, number_of_u_dofs, number_of_pw_dofs);
-    auto       flow = (1.0 - 0.5 * sqrt3) * 62.5;
+    const auto flow = (1.0 - 0.5 * sqrt3) * 62.5;
     const auto expected_p_block_vector =
         UblasUtilities::CreateVector({flow, flow, flow, flow, -flow, -flow, -flow, -flow});
     AssertPBlockVectorIsNear(actual_right_hand_side, expected_p_block_vector, number_of_u_dofs, number_of_pw_dofs);
