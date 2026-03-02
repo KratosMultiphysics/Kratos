@@ -28,7 +28,7 @@
       "properties_id":           2,
       "Material": {
           "constitutive_law": {
-              "name"             :  "TimoshenkoBeamElasticConstitutiveLaw"
+              "name"             :  "KratosMultiphysics.StructuralMechanicsApplication.TimoshenkoBeamElasticConstitutiveLaw"
           },
           "Variables": {
               "YOUNG_MODULUS"    :  2.07E+13,
