@@ -201,13 +201,13 @@ private:
     void CalculateAndAssemblePermeabilityFlowVector(VectorType& rRightHandSideVector) const;
 
     template <unsigned int TNumNodes>
-    typename FluidBodyFlowCalculator<TNumNodes>::InputProvider CreateFluidBodyFlowInputProvider();
+    typename FluidBodyFlowCalculator<TNumNodes>::InputProvider CreateFluidBodyFlowInputProvider() const;
 
     template <unsigned int TNumNodes>
-    auto CreateFluidBodyFlowCalculator();
+    auto CreateFluidBodyFlowCalculator() const;
 
     template <unsigned int TnumNodes>
-    void CalculateAndAssembleFluidBodyFlowVector(VectorType& rRightHandSideVector);
+    void CalculateAndAssembleFluidBodyFlowVector(VectorType& rRightHandSideVector) const;
 
     std::function<Matrix(const Geometry<Node>&, const array_1d<double, 3>&)> mfpCalculateRotationMatrix;
 

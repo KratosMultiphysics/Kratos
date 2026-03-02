@@ -393,26 +393,19 @@ void UPwInterfaceElement::CalculateAndAssemblePermeabilityFlowVector(Element::Ve
 
 void UPwInterfaceElement::CalculateAndAssembleFluidBodyFlowVector(Element::VectorType& rRightHandSideVector)
 {
-    switch (GetWaterPressureGeometry().PointsNumber()) {
-    case 4:
-        CalculateAndAssembleFluidBodyFlowVector<4>(rRightHandSideVector);
-        break;
-    case 6:
-        CalculateAndAssembleFluidBodyFlowVector<6>(rRightHandSideVector);
-        break;
-    case 8:
-        CalculateAndAssembleFluidBodyFlowVector<8>(rRightHandSideVector);
-        break;
-    case 12:
-        CalculateAndAssembleFluidBodyFlowVector<12>(rRightHandSideVector);
-        break;
-    case 16:
-        CalculateAndAssembleFluidBodyFlowVector<16>(rRightHandSideVector);
-        break;
-    default:
-        KRATOS_ERROR << "This number of points for the fluid body flow vector is not supported: "
-                     << GetWaterPressureGeometry().PointsNumber() << "\n";
-    }
+    using Func = void (UPwInterfaceElement::*)(Element::VectorType&) const;
+
+    static const std::map<std::size_t, Func> dispatch_table = {
+        {4, &UPwInterfaceElement::CalculateAndAssembleFluidBodyFlowVector<4>},
+        {6, &UPwInterfaceElement::CalculateAndAssembleFluidBodyFlowVector<6>},
+        {8, &UPwInterfaceElement::CalculateAndAssembleFluidBodyFlowVector<8>},
+        {12, &UPwInterfaceElement::CalculateAndAssembleFluidBodyFlowVector<12>},
+        {16, &UPwInterfaceElement::CalculateAndAssembleFluidBodyFlowVector<16>}};
+
+    KRATOS_ERROR_IF_NOT(dispatch_table.contains(GetWaterPressureGeometry().PointsNumber()))
+        << "This fluid body flow vector size is not supported: "
+        << GetWaterPressureGeometry().PointsNumber() << "\n";
+    (this->*dispatch_table.at(GetWaterPressureGeometry().PointsNumber()))(rRightHandSideVector);
 }
 
 void UPwInterfaceElement::CalculateLocalSystem(MatrixType&        rLeftHandSideMatrix,
@@ -1097,7 +1090,7 @@ void UPwInterfaceElement::CalculateAndAssemblePermeabilityFlowVector(VectorType&
 }
 
 template <unsigned int TNumNodes>
-typename FluidBodyFlowCalculator<TNumNodes>::InputProvider UPwInterfaceElement::CreateFluidBodyFlowInputProvider()
+typename FluidBodyFlowCalculator<TNumNodes>::InputProvider UPwInterfaceElement::CreateFluidBodyFlowInputProvider() const
 {
     return typename FluidBodyFlowCalculator<TNumNodes>::InputProvider(
         CreatePropertiesGetter(), CreateRetentionLawsGetter(), CreateMaterialPermeabilityGetter(),
@@ -1106,13 +1099,13 @@ typename FluidBodyFlowCalculator<TNumNodes>::InputProvider UPwInterfaceElement::
 }
 
 template <unsigned int TNumNodes>
-auto UPwInterfaceElement::CreateFluidBodyFlowCalculator()
+auto UPwInterfaceElement::CreateFluidBodyFlowCalculator() const
 {
     return FluidBodyFlowCalculator<TNumNodes>(CreateFluidBodyFlowInputProvider<TNumNodes>());
 }
 
 template <unsigned int TNumNodes>
-void UPwInterfaceElement::CalculateAndAssembleFluidBodyFlowVector(VectorType& rRightHandSideVector)
+void UPwInterfaceElement::CalculateAndAssembleFluidBodyFlowVector(VectorType& rRightHandSideVector) const
 {
     GeoElementUtilities::AssemblePBlockVector(
         rRightHandSideVector, CreateFluidBodyFlowCalculator<TNumNodes>().RHSContribution());
