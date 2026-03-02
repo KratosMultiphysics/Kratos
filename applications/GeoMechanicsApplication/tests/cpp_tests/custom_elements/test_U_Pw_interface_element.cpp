@@ -2519,7 +2519,6 @@ KRATOS_TEST_CASE_IN_SUITE(UPwLineInterfaceElement_Horizontal3D8plus8DiffOrderInt
         {12, array_1d<double, 3>{0.0, 0.0, 0.0}}, {13, array_1d<double, 3>{0.0, 0.0, 0.0}},
         {14, array_1d<double, 3>{0.0, 0.0, 0.0}}, {15, array_1d<double, 3>{0.0, 0.0, 0.0}}};
 
-    // verbeteren, dit zijn indexen en geen knoopnummers
     const auto prescribed_water_pressures = PrescribedWaterPressures{
         {0, 50.0E3},  {1, 50.0E3},  {2, 50.0E3},  {3, 50.0E3}, {4, 50.5E3},  {5, 50.0E3},
         {6, 50.0E3},  {7, 50.0E3},  {8, 40.0E3},  {9, 40.0E3}, {10, 40.0E3}, {11, 40.0E3},
@@ -2554,7 +2553,7 @@ KRATOS_TEST_CASE_IN_SUITE(UPwLineInterfaceElement_Horizontal3D8plus8DiffOrderInt
     constexpr auto number_of_pw_dofs       = std::size_t{8};
     const auto     expected_u_block_vector = Vector{number_of_u_dofs, 0.0};
     AssertUBlockVectorIsNear(actual_right_hand_side, expected_u_block_vector, number_of_u_dofs, number_of_pw_dofs);
-    // The fluid body flow of a vertical interface subjected to vertical gravity should be zero
+    // The fluid body flow of a horizontal interface subjected to vertical gravity should be zero
     const auto expected_p_block_vector = Vector{number_of_pw_dofs, 0.0};
 
     KRATOS_INFO("Actual RHS") << actual_right_hand_side << std::endl;
@@ -2611,7 +2610,6 @@ KRATOS_TEST_CASE_IN_SUITE(UPwLineInterfaceElement_Vertical3D8plus8DiffOrderInter
         {12, array_1d<double, 3>{0.0, 0.0, 0.0}}, {13, array_1d<double, 3>{0.0, 0.0, 0.0}},
         {14, array_1d<double, 3>{0.0, 0.0, 0.0}}, {15, array_1d<double, 3>{0.0, 0.0, 0.0}}};
 
-    // verbeteren, dit zijn indexen en geen knoopnummers
     const auto prescribed_water_pressures = PrescribedWaterPressures{
         {0, 50.0E3},  {1, 50.0E3},  {2, 40.0E3},  {3, 40.0E3}, {4, 50.0E3},  {5, 45.0E3},
         {6, 40.0E3},  {7, 45.0E3},  {8, 50.0E3},  {9, 50.0E3}, {10, 40.0E3}, {11, 40.0E3},
@@ -2703,7 +2701,6 @@ KRATOS_TEST_CASE_IN_SUITE(UPwLineInterfaceElement_Inclined3DInterfaceFluidBodyFl
         {12, array_1d<double, 3>{0.0, 0.0, 0.0}}, {13, array_1d<double, 3>{0.0, 0.0, 0.0}},
         {14, array_1d<double, 3>{0.0, 0.0, 0.0}}, {15, array_1d<double, 3>{0.0, 0.0, 0.0}}};
 
-    // verbeteren, dit zijn indexen en geen knoopnummers
     const auto prescribed_water_pressures = PrescribedWaterPressures{
         {0, 50.0E3},  {1, 45.0E3},  {2, 45.0E3},  {3, 50.0E3}, {4, 47.5E3},  {5, 45.0E3},
         {6, 47.5E3},  {7, 50.0E3},  {8, 40.0E3},  {9, 35.0E3}, {10, 35.0E3}, {11, 40.0E3},
