@@ -411,8 +411,14 @@ void StlIO::ReadSolid(ModelPart& rThisModelPart)
 
     // Add nodes to the model part after reading all facets to avoid searching for existing nodes during the reading process
     const std::size_t num_new_nodes = new_nodes.size();
-    NodesContainerType new_nodes_set(new_nodes);
-    r_sub_model_part.AddNodes(new_nodes_set.begin(), new_nodes_set.end());
+    auto& r_nodes = r_sub_model_part.Nodes();
+    auto& r_nodes_data = r_nodes.GetContainer();
+    r_nodes_data.insert(r_nodes_data.end(), new_nodes.begin(), new_nodes.end());
+    r_nodes.SetSortedPartSize(r_nodes_data.size());
+    auto& r_root_nodes = rThisModelPart.Nodes();
+    auto& r_root_nodes_data = r_root_nodes.GetContainer();
+    r_root_nodes_data.insert(r_root_nodes_data.end(), new_nodes.begin(), new_nodes.end());
+    r_root_nodes.SetSortedPartSize(r_root_nodes_data.size());
     const std::string new_entity_type = mParameters["new_entity_type"].GetString();
 
     // Define TLS for parallel execution of entity creation
