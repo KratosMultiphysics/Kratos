@@ -258,27 +258,19 @@ void UPwInterfaceElement::CalculateAndAssignPUCouplingMatrix(MatrixType& rLeftHa
 
 void UPwInterfaceElement::CalculateAndAssignPermeabilityMatrix(Element::MatrixType& rLeftHandSideMatrix)
 {
-    switch (GetGeometry().PointsNumber()) {
-    case 4:
-        CalculateAndAssignPermeabilityMatrix<4>(rLeftHandSideMatrix);
-        break;
-    case 6:
-        CalculateAndAssignPermeabilityMatrix<6>(rLeftHandSideMatrix);
-        break;
-    case 8:
-        CalculateAndAssignPermeabilityMatrix<8>(rLeftHandSideMatrix);
-        break;
-    case 12:
-        CalculateAndAssignPermeabilityMatrix<12>(rLeftHandSideMatrix);
-        break;
-    case 16:
-        CalculateAndAssignPermeabilityMatrix<16>(rLeftHandSideMatrix);
-        break;
-    default:
-        KRATOS_ERROR
-            << "This number of points is not supported for the permeability matrix calculation: "
-            << GetGeometry().PointsNumber() << "\n";
-    }
+    using Func = void (UPwInterfaceElement::*)(Element::MatrixType&) const;
+
+    static const std::map<std::size_t, Func> dispatch_table = {
+        {4, &UPwInterfaceElement::CalculateAndAssignPermeabilityMatrix<4>},
+        {6, &UPwInterfaceElement::CalculateAndAssignPermeabilityMatrix<6>},
+        {8, &UPwInterfaceElement::CalculateAndAssignPermeabilityMatrix<8>},
+        {12, &UPwInterfaceElement::CalculateAndAssignPermeabilityMatrix<12>},
+        {16, &UPwInterfaceElement::CalculateAndAssignPermeabilityMatrix<16>}};
+
+    KRATOS_ERROR_IF_NOT(dispatch_table.contains(GetWaterPressureGeometry().PointsNumber()))
+        << "This permeability matrix size is not supported: " << GetWaterPressureGeometry().PointsNumber()
+        << "\n";
+    (this->*dispatch_table.at(GetWaterPressureGeometry().PointsNumber()))(rLeftHandSideMatrix);
 }
 
 void UPwInterfaceElement::CalculateRightHandSide(Element::VectorType& rRightHandSideVector,
@@ -1076,7 +1068,7 @@ auto UPwInterfaceElement::CreatePermeabilityCalculator() const
 }
 
 template <unsigned int TNumNodes>
-void UPwInterfaceElement::CalculateAndAssignPermeabilityMatrix(MatrixType& rLeftHandSideMatrix)
+void UPwInterfaceElement::CalculateAndAssignPermeabilityMatrix(MatrixType& rLeftHandSideMatrix) const
 {
     GeoElementUtilities::AssignPPBlockMatrix(
         rLeftHandSideMatrix, CreatePermeabilityCalculator<TNumNodes>().LHSContribution().value());

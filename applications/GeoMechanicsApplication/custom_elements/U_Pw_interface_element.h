@@ -195,7 +195,7 @@ private:
     auto CreatePermeabilityCalculator() const;
 
     template <unsigned int TnumNodes>
-    void CalculateAndAssignPermeabilityMatrix(MatrixType& rLeftHandSideMatrix);
+    void CalculateAndAssignPermeabilityMatrix(MatrixType& rLeftHandSideMatrix) const;
 
     template <unsigned int TnumNodes>
     void CalculateAndAssemblePermeabilityFlowVector(VectorType& rRightHandSideVector) const;
