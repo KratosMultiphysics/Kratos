@@ -214,16 +214,13 @@ class VectorizedCFDStage(analysis_stage.AnalysisStage):
             KM.GeometryData.IntegrationMethod.GI_GAUSS_1)
         geometry_adaptor_DN.CollectData()
 
-        self.DN = np.squeeze(geometry_adaptor_DN.data).copy() #this has shape nel*1*nnodes_in_el*dim - the copy is important as we need to own the data
+        self.DN = xp.squeeze(geometry_adaptor_DN.data).copy() #this has shape nel*1*nnodes_in_el*dim - the copy is important as we need to own the data
 
         #obtain elemental volumes #TODO: an adaptor should be available for these
         vols = []
         for geom in self.vol_mp.Geometries:
             vols.append(geom.DomainSize())
         self.elemental_volumes = xp.array(vols)
-
-        #compute h per every element
-        self.h = self.ComputeH(self.DN)
 
         #compute lumped mass matrix and its inverse
         self.M=self.ComputeLumpedMass() #TODO: decide if we need to store M
@@ -237,11 +234,14 @@ class VectorizedCFDStage(analysis_stage.AnalysisStage):
             aux = self.target_fourier * self.rho / self.nu
             self.dt_fourier = np.min(aux * self.h**2)
 
-        # Move stuff to the gpu
-        self.connectivity = xp.asarray(self.connectivity)
+        # Move stuff to the GPU
         self.DN = xp.asarray(self.DN, dtype=cfd_utils.PRECISION)
         self.N = xp.asarray(self.N, dtype=cfd_utils.PRECISION)
         self.connectivity = xp.asarray(self.connectivity, dtype=xp.int32)
+
+        # Compute h per every element
+        self.h = self.ComputeH(self.DN)
+
         # self.vec_elemental_data = xp.asarray(self.vec_elemental_data, dtype=cfd_utils.PRECISION)
         # self.scalar_elemental_data = xp.asarray(self.scalar_elemental_data, dtype=cfd_utils.PRECISION)
 
@@ -366,7 +366,7 @@ class VectorizedCFDStage(analysis_stage.AnalysisStage):
         conv_proj_el = self.ElemData(conv_proj, self.connectivity)
         #FIXME: remove after debugging
         for node in self.model_part.Nodes:
-            node.SetSolutionStepValue(KM.CONV_PROJ, 0, np.hstack([conv_proj[node.Id-1,:], 0.0])) #TODO: remove after debugging
+            node.SetSolutionStepValue(KM.CONV_PROJ, 0, (xp.hstack([conv_proj[node.Id-1,:], 0.0])).tolist()) #TODO: remove after debugging
 
         # Compute divergence projection
         div_proj = self.ComputeDivergenceProjection(vel)
@@ -421,7 +421,7 @@ class VectorizedCFDStage(analysis_stage.AnalysisStage):
         pres_proj_el = self.ElemData(pres_proj, self.connectivity)
         #FIXME: remove after debugging
         for node in self.model_part.Nodes:
-            node.SetSolutionStepValue(KM.ACCELERATION, 0, np.hstack([pres_proj[node.Id-1,:], 0.0]))
+            node.SetSolutionStepValue(KM.ACCELERATION, 0, (xp.hstack([pres_proj[node.Id-1,:], 0.0])).tolist())
 
         # Assemble pressure LHS (set to zero is done internally)
         L_el = self.cfd_utils.ComputeLaplacianMatrix(self.DN) # elemental laplacian contributions as L_IJ := (∇N_I,∇N_J)
@@ -462,7 +462,7 @@ class VectorizedCFDStage(analysis_stage.AnalysisStage):
                 shape=(self.L.Size1(), self.L.Size2()))
             p, info = cfd_utils.sparse_linalg.cg(A_cu, rhs, rtol=1e-9)
         else:
-            p, info = cfd_utils.sparse_linalg.cg(self.L, rhs, tol=1e-9)
+            p, info = cfd_utils.sparse_linalg.cg(self.L, rhs, rtol=1e-9)
 
         if(info != 0):
             print("CG failed to converge.")
@@ -517,7 +517,7 @@ class VectorizedCFDStage(analysis_stage.AnalysisStage):
         print("\tSolve step 1 w/ CFL ", self._ComputeCFL(v, dt), " and Fourier ", self._ComputeFourier(dt))
         vfrac = self.SolveStep1(v, vold, pold, b, dt)
         for node in self.model_part.Nodes:
-            node.SetSolutionStepValue(KM.DISPLACEMENT, 0, np.hstack([vfrac[node.Id-1,:], 0.0]))
+            node.SetSolutionStepValue(KM.DISPLACEMENT, 0, (xp.hstack([vfrac[node.Id-1,:], 0.0])).tolist())
         print("\tSolve step 2 w/ CFL ", self._ComputeCFL(vfrac, dt), " and Fourier ", self._ComputeFourier(dt))
         p = self.SolveStep2(vfrac, pold, dt)
         delta_p = p - pold #TODO: most probably we could modify p in place
@@ -525,9 +525,9 @@ class VectorizedCFDStage(analysis_stage.AnalysisStage):
         v = self.SolveStep3(v, vfrac, delta_p, dt)
 
         # Update Kratos database
-        self.v_adaptor.data = v
+        self.v_adaptor.data = np.asarray(v.get())
         self.v_adaptor.StoreData()
-        self.p_adaptor.data = p
+        self.p_adaptor.data = np.asarray(p.get())
         self.p_adaptor.StoreData()
 
     def ComputeVelocityResidual(self, v_elemental, p_elemental, b_elemental, proj_el, proj_div_el, DN, tau):
