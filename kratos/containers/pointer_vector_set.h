@@ -20,7 +20,6 @@
 #include <sstream>
 #include <cstddef>
 #include <utility>
-#include <type_traits>
 
 // External includes
 #include <boost/iterator/indirect_iterator.hpp>

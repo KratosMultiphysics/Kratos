@@ -19,8 +19,8 @@
 
 namespace Kratos
 {
-FileSerializer::FileSerializer(std::string const& Filename, Serializer::TraceType const& rTrace) 
-    : Serializer(nullptr, rTrace)
+FileSerializer::FileSerializer(std::string const& Filename, Serializer::TraceType const& rTrace, const bool DataOnly)
+    : Serializer(nullptr, rTrace, DataOnly)
 {
     std::fstream* p_file = new std::fstream(std::string(Filename+".rest").c_str(), std::ios::binary|std::ios::in|std::ios::out);
     if(!(*p_file)) {

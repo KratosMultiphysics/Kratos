@@ -12,7 +12,7 @@
 //
 
 #include "custom_retention/van_genuchten_law.h"
-#include "custom_utilities/check_utilities.h"
+#include "custom_utilities/check_utilities.hpp"
 #include "geo_mechanics_application_variables.h"
 
 #include <string>

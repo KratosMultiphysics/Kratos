@@ -13,49 +13,61 @@
 
 #include "custom_utilities/extrapolation_utilities.h"
 
-#include "custom_utilities/generic_utilities.h"
+#include "custom_elements/U_Pw_interface_element.h"
+#include "custom_utilities/generic_utilities.hpp"
 #include "custom_utilities/linear_nodal_extrapolator.h"
-#include "includes/node.h"
+#include "element_utilities.hpp"
+#include "geometries/geometry.h"
+#include "geometry_utilities.h"
+#include "includes/element.h"
 
 namespace Kratos
 {
 
-Matrix ExtrapolationUtilities::CalculateExtrapolationMatrix(const Geometry<Node>& rGeometry,
-                                                            GeometryData::IntegrationMethod IntegrationMethod,
-                                                            size_t ElementId)
+Matrix ExtrapolationUtilities::CalculateExtrapolationMatrix(const Element& rElement)
 {
-    LinearNodalExtrapolator extrapolator;
-    const auto result = extrapolator.CalculateElementExtrapolationMatrix(rGeometry, IntegrationMethod);
+    auto        p_interface_element = dynamic_cast<const UPwInterfaceElement*>(&rElement);
+    const auto& r_geometry_for_extrapolation =
+        p_interface_element ? p_interface_element->GetDisplacementMidGeometry() : rElement.GetGeometry();
+    const auto integration_points = GeoElementUtilities::GetIntegrationPointsOf(rElement);
 
-    KRATOS_ERROR_IF_NOT(result.size1() == rGeometry.size())
+    const auto extrapolator = LinearNodalExtrapolator{};
+    auto result = extrapolator.CalculateElementExtrapolationMatrix(r_geometry_for_extrapolation, integration_points);
+
+    if (p_interface_element) {
+        // The extrapolation matrix has been calculated for the mid-geometry. Since both sides of
+        // the interface element need to use that matrix, we have to expand the resultant matrix.
+        const auto number_of_rows_per_side = result.size1();
+        result.resize(2 * number_of_rows_per_side, result.size2());
+        subrange(result, number_of_rows_per_side, result.size1(), 0, result.size2()) =
+            subrange(result, 0, number_of_rows_per_side, 0, result.size2());
+    }
+
+    KRATOS_ERROR_IF_NOT(result.size1() == rElement.GetGeometry().PointsNumber())
         << "A number of extrapolation matrix rows " << result.size1() << " is not equal to a number of nodes "
-        << rGeometry.size() << " for element id " << ElementId << std::endl;
+        << rElement.GetGeometry().PointsNumber() << " for element id " << rElement.Id() << std::endl;
 
-    KRATOS_ERROR_IF_NOT(result.size2() == rGeometry.IntegrationPoints(IntegrationMethod).size())
+    KRATOS_ERROR_IF_NOT(result.size2() == integration_points.size())
         << "A number of extrapolation matrix columns " << result.size2()
-        << " is not equal to a number of integration points "
-        << rGeometry.IntegrationPoints(IntegrationMethod).size() << " for element id " << ElementId
-        << std::endl;
+        << " is not equal to a number of integration points " << integration_points.size()
+        << " for element id " << rElement.Id() << std::endl;
 
     return result;
 }
 
 std::vector<std::optional<Vector>> ExtrapolationUtilities::CalculateNodalVectors(
-    const std::vector<std::size_t>& rNodeIds,
-    const Geometry<Node>&           rGeometry,
-    GeometryData::IntegrationMethod IntegrationMethod,
-    const std::vector<Vector>&      rVectorsAtIntegrationPoints,
-    size_t                          ElementId)
+    const std::vector<std::size_t>& rNodeIds, const Element& rElement, const std::vector<Vector>& rVectorsAtIntegrationPoints)
 {
-    const auto element_node_ids = GenericUtilities::GetIdsFromEntityContents(rGeometry);
-    const auto extrapolation_matrix = CalculateExtrapolationMatrix(rGeometry, IntegrationMethod, ElementId);
+    const auto& r_geometry           = rElement.GetGeometry();
+    const auto  element_node_ids     = GenericUtilities::GetIdsFromEntityContents(r_geometry);
+    const auto  extrapolation_matrix = CalculateExtrapolationMatrix(rElement);
 
     KRATOS_ERROR_IF_NOT(extrapolation_matrix.size2() == rVectorsAtIntegrationPoints.size())
         << "An extrapolation matrix size " << extrapolation_matrix.size2()
         << " is not equal to given stress vectors size " << rVectorsAtIntegrationPoints.size()
-        << " for element Id " << ElementId << std::endl;
+        << " for element Id " << rElement.Id() << std::endl;
 
-    const auto          number_of_nodes = rGeometry.size();
+    const auto          number_of_nodes = r_geometry.PointsNumber();
     std::vector<Vector> extrapolated_vectors_at_nodes(
         number_of_nodes, ZeroVector(rVectorsAtIntegrationPoints[0].size()));
     for (unsigned int node_index = 0; node_index < number_of_nodes; ++node_index) {

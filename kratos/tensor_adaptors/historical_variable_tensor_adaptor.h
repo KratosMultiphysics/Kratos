@@ -85,12 +85,19 @@ public:
         const int StepIndex = 0,
         const bool Copy = true);
 
+    HistoricalVariableTensorAdaptor(const HistoricalVariableTensorAdaptor& rOther) = default;
+
     // Destructor
     ~HistoricalVariableTensorAdaptor() override = default;
 
     ///@}
     ///@name Public operations
     ///@{
+
+    /**
+     * @brief Clones the existing tensor adaptor.
+     */
+    TensorAdaptor::Pointer Clone() const override;
 
     /**
      * @brief Checks if the given variable is available and the buffer size is enough in each node.

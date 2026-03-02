@@ -10,7 +10,7 @@
 //  Main authors:    Richard Faasse
 //
 
-#include "custom_geometries/interface_geometry.h"
+#include "custom_geometries/interface_geometry.hpp"
 #include "custom_utilities/geometry_utilities.h"
 #include "geometries/geometry_data.h"
 #include "tests/cpp_tests/geo_mechanics_fast_suite.h"

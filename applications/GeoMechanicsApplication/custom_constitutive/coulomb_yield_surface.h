@@ -10,11 +10,13 @@
 //
 //  Main authors:    Mohamed Nabi,
 //                   Wijtze Pieter Kikstra
+//                   Anne van de Graaf
 //
 
 #pragma once
 
-#include "custom_constitutive/yield_surface.h"
+#include "custom_constitutive/principal_stresses.hpp"
+#include "geo_aliases.h"
 #include "includes/properties.h"
 
 #include <functional>
@@ -24,18 +26,15 @@ namespace Kratos
 
 class CheckProperties;
 
-class KRATOS_API(GEO_MECHANICS_APPLICATION) CoulombYieldSurface : public YieldSurface
+namespace Geo
+{
+class SigmaTau;
+} // namespace Geo
+
+class KRATOS_API(GEO_MECHANICS_APPLICATION) CoulombYieldSurface
 {
 public:
     KRATOS_CLASS_POINTER_DEFINITION(CoulombYieldSurface);
-
-    using KappaDependentFunction = std::function<double(double)>;
-
-    enum class CoulombAveragingType {
-        NO_AVERAGING,
-        LOWEST_PRINCIPAL_STRESSES,
-        HIGHEST_PRINCIPAL_STRESSES
-    };
 
     CoulombYieldSurface();
     explicit CoulombYieldSurface(const Properties& rMaterialProperties);
@@ -46,15 +45,29 @@ public:
     [[nodiscard]] double GetKappa() const;
     void                 SetKappa(double kappa);
 
-    [[nodiscard]] double YieldFunctionValue(const Vector& rSigmaTau) const override;
-    [[nodiscard]] Vector DerivativeOfFlowFunction(const Vector&) const override;
-    [[nodiscard]] Vector DerivativeOfFlowFunction(const Vector&, CoulombAveragingType AveragingType) const;
+    [[nodiscard]] double YieldFunctionValue(const Geo::SigmaTau& rSigmaTau) const;
+    [[nodiscard]] double YieldFunctionValue(const Geo::PrincipalStresses& rPrincipalStresses) const;
+
+    [[nodiscard]] Vector DerivativeOfFlowFunction(const Geo::SigmaTau&,
+                                                  Geo::PrincipalStresses::AveragingType AveragingType =
+                                                      Geo::PrincipalStresses::AveragingType::NO_AVERAGING) const;
+    [[nodiscard]] Vector DerivativeOfFlowFunction(const Geo::PrincipalStresses&,
+                                                  Geo::PrincipalStresses::AveragingType AveragingType =
+                                                      Geo::PrincipalStresses::AveragingType::NO_AVERAGING) const;
 
     [[nodiscard]] double CalculateApex() const;
-    [[nodiscard]] double CalculatePlasticMultiplier(const Vector& rSigmaTau,
-                                                    const Vector& rDerivativeOfFlowFunction) const;
-    [[nodiscard]] double CalculateEquivalentPlasticStrainIncrement(const Vector& rSigmaTau,
-                                                                   CoulombAveragingType AveragingType) const;
+    [[nodiscard]] double CalculatePlasticMultiplier(const Geo::SigmaTau& rTrialSigmaTau,
+                                                    const Vector&        rDerivativeOfFlowFunction,
+                                                    const Matrix&        rElasticMatrix) const;
+    [[nodiscard]] double CalculatePlasticMultiplier(const Geo::PrincipalStresses& rTrialPrincipalStresses,
+                                                    const Vector& rDerivativeOfFlowFunction,
+                                                    const Matrix& rElasticMatrix) const;
+    [[nodiscard]] double CalculateEquivalentPlasticStrainIncrement(const Geo::SigmaTau& rTrialSigmaTau,
+                                                                   const Matrix& rElasticMatrix,
+                                                                   Geo::PrincipalStresses::AveragingType AveragingType) const;
+    [[nodiscard]] double CalculateEquivalentPlasticStrainIncrement(const Geo::PrincipalStresses& rTrialPrincipalStresses,
+                                                                   const Matrix& rElasticMatrix,
+                                                                   Geo::PrincipalStresses::AveragingType AveragingType) const;
 
 private:
     void InitializeKappaDependentFunctions();
@@ -63,14 +76,14 @@ private:
                                     const CheckProperties&  rChecker) const;
 
     friend class Serializer;
-    void save(Serializer& rSerializer) const override;
-    void load(Serializer& rSerializer) override;
+    void save(Serializer& rSerializer) const;
+    void load(Serializer& rSerializer);
 
-    double                 mKappa = 0.0;
-    Properties             mMaterialProperties;
-    KappaDependentFunction mFrictionAngleCalculator;
-    KappaDependentFunction mCohesionCalculator;
-    KappaDependentFunction mDilatancyAngleCalculator;
+    double                      mKappa = 0.0;
+    Properties                  mMaterialProperties;
+    Geo::KappaDependentFunction mFrictionAngleCalculator;
+    Geo::KappaDependentFunction mCohesionCalculator;
+    Geo::KappaDependentFunction mDilatancyAngleCalculator;
 }; // Class CoulombYieldSurface
 
 } // namespace Kratos

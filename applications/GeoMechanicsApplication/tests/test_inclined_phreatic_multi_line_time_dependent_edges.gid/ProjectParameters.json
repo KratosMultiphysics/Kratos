@@ -108,19 +108,7 @@
         "kratos_module": "KratosMultiphysics.GeoMechanicsApplication",
         "process_name":  "ApplyVectorConstraintTableProcess",
         "Parameters":    {
-            "model_part_name": "PorousDomain.Solid_Displacement-auto-2",
-            "variable_name":   "DISPLACEMENT",
-            "active":          [true,true,false],
-            "is_fixed":        [true,true,false],
-            "value":           [0.0,0.0,0.0],
-            "table":           [0,0,0]
-        }
-    },{
-        "python_module": "apply_vector_constraint_table_process",
-        "kratos_module": "KratosMultiphysics.GeoMechanicsApplication",
-        "process_name":  "ApplyVectorConstraintTableProcess",
-        "Parameters":    {
-            "model_part_name": "PorousDomain.Solid_Displacement-auto-3",
+            "model_part_name_list": ["PorousDomain.Solid_Displacement-auto-2","PorousDomain.Solid_Displacement-auto-3"],
             "variable_name":   "DISPLACEMENT",
             "active":          [true,true,false],
             "is_fixed":        [true,true,false],
