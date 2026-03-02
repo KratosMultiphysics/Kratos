@@ -120,8 +120,7 @@ private:
     Matrix RotateStressToLocalCoordinates(const Geo::IntegrationPointType& rIntegrationPoint,
                                           const Vector& rGlobalStressVector) const;
     Vector ConvertLocalStressToTraction(const Matrix& rLocalStress) const;
-    Matrix CalculatePwBMatrix(const Geo::IntegrationPointType& rIntegrationPoint,
-                              const Geometry<Node>&            rWaterPressureGeometry) const;
+    Matrix CalculatePwBMatrix(const Geo::IntegrationPointType& rIntegrationPoint) const;
     Geometry<Node>::ShapeFunctionsGradientsType CalculateLocalPwBMatricesAtIntegrationPoints() const;
     std::vector<double> CalculateIntegrationPointFluidPressures() const;
     std::vector<Vector> CalculateProjectedGravity() const;

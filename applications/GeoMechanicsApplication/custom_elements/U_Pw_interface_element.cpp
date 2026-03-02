@@ -576,8 +576,7 @@ std::vector<Matrix> UPwInterfaceElement::CalculateLocalBMatricesAtIntegrationPoi
     return result;
 }
 
-Matrix UPwInterfaceElement::CalculatePwBMatrix(const Geo::IntegrationPointType& rIntegrationPoint,
-                                               const Geometry<Node>& rWaterPressureGeometry) const
+Matrix UPwInterfaceElement::CalculatePwBMatrix(const Geo::IntegrationPointType& rIntegrationPoint) const
 {
     auto& r_water_pressure_mid_geometry = GetWaterPressureMidGeometry();
     auto  shape_function_values         = Vector{};
@@ -588,7 +587,7 @@ Matrix UPwInterfaceElement::CalculatePwBMatrix(const Geo::IntegrationPointType& 
     shape_functions_local_gradient /= r_water_pressure_mid_geometry.DeterminantOfJacobian(rIntegrationPoint);
 
     const auto dim    = r_water_pressure_mid_geometry.WorkingSpaceDimension();
-    auto       result = Matrix{rWaterPressureGeometry.size(), dim, 0.0};
+    auto       result = Matrix{GetWaterPressureGeometry().size(), dim, 0.0};
 
     auto number_of_pw_dofs_per_side = result.size1() / 2;
     for (auto i = size_t{0}; i < number_of_pw_dofs_per_side; ++i) {
@@ -608,9 +607,8 @@ Geometry<Node>::ShapeFunctionsGradientsType UPwInterfaceElement::CalculateLocalP
     const auto& r_integration_points = mpIntegrationScheme->GetIntegrationPoints();
 
     auto result = Geometry<Node>::ShapeFunctionsGradientsType{r_integration_points.size()};
-    auto calculate_local_b_matrix = [&r_water_pressure_geometry = GetWaterPressureGeometry(),
-                                     this](const auto& rIntegrationPoint) {
-        return CalculatePwBMatrix(rIntegrationPoint, r_water_pressure_geometry);
+    auto calculate_local_b_matrix = [this](const auto& rIntegrationPoint) {
+        return CalculatePwBMatrix(rIntegrationPoint);
     };
     std::ranges::transform(r_integration_points, result.begin(), calculate_local_b_matrix);
     return result;
