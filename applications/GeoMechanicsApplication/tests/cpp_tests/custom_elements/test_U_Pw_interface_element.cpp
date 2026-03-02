@@ -178,9 +178,9 @@ UPwInterfaceElement CreateUnitLengthLineInterfaceElementRotatedBy30DegreesWithUP
 
     PointerVector<Node> nodes;
     nodes.push_back(r_model_part.CreateNewNode(0, 0.0, 0.0, 0.0));
-    nodes.push_back(r_model_part.CreateNewNode(1, 0.5 * std::sqrt(3.0), 0.5, 0.0));
+    nodes.push_back(r_model_part.CreateNewNode(1, 0.5 * sqrt3, 0.5, 0.0));
     nodes.push_back(r_model_part.CreateNewNode(2, 0.0, 0.0, 0.0));
-    nodes.push_back(r_model_part.CreateNewNode(3, 0.5 * std::sqrt(3.0), 0.5, 0.0));
+    nodes.push_back(r_model_part.CreateNewNode(3, 0.5 * sqrt3, 0.5, 0.0));
     const auto p_geometry = std::make_shared<LineInterfaceGeometry2D2Plus2Noded>(nodes);
     return CreateInterfaceElementWithUPwDofs<Interface2D>(rpProperties, p_geometry, IsDiffOrder, rContributions);
 }
@@ -308,11 +308,11 @@ UPwInterfaceElement CreateTriangleInterfaceElementRotatedBy30DegreesWithUPwDoF(
 
     PointerVector<Node> nodes;
     nodes.push_back(r_model_part.CreateNewNode(0, 0.0, 0.0, 0.0));
-    nodes.push_back(r_model_part.CreateNewNode(1, 0.5 * std::sqrt(3.0), 0.5, 0.0));
-    nodes.push_back(r_model_part.CreateNewNode(2, -0.5, 0.5 * std::sqrt(3.0), 0.0));
+    nodes.push_back(r_model_part.CreateNewNode(1, 0.5 * sqrt3, 0.5, 0.0));
+    nodes.push_back(r_model_part.CreateNewNode(2, -0.5, 0.5 * sqrt3, 0.0));
     nodes.push_back(r_model_part.CreateNewNode(3, 0.0, 0.0, 0.0));
-    nodes.push_back(r_model_part.CreateNewNode(4, 0.5 * std::sqrt(3.0), 0.5, 0.0));
-    nodes.push_back(r_model_part.CreateNewNode(5, -0.5, 0.5 * std::sqrt(3.0), 0.0));
+    nodes.push_back(r_model_part.CreateNewNode(4, 0.5 * sqrt3, 0.5, 0.0));
+    nodes.push_back(r_model_part.CreateNewNode(5, -0.5, 0.5 * sqrt3, 0.0));
     const auto p_geometry = std::make_shared<TriangleInterfaceGeometry3D3Plus3Noded>(nodes);
     return CreateInterfaceElementWithUPwDofs<Interface3D>(rpProperties, p_geometry, IsDiffOrder, rContributions);
 }
@@ -327,10 +327,10 @@ UPwInterfaceElement CreateTriangleInterfaceElementRotatedBy30DegreesAboutYAxisWi
 
     PointerVector<Node> nodes;
     nodes.push_back(r_model_part.CreateNewNode(0, 0.0, 0.0, 0.0));
-    nodes.push_back(r_model_part.CreateNewNode(1, 0.5 * std::sqrt(3.0), 0.0, -0.5));
+    nodes.push_back(r_model_part.CreateNewNode(1, 0.5 * sqrt3, 0.0, -0.5));
     nodes.push_back(r_model_part.CreateNewNode(2, 0.0, 1.0, 0.0));
     nodes.push_back(r_model_part.CreateNewNode(3, 0.0, 0.0, 0.0));
-    nodes.push_back(r_model_part.CreateNewNode(4, 0.5 * std::sqrt(3.0), 0.0, -0.5));
+    nodes.push_back(r_model_part.CreateNewNode(4, 0.5 * sqrt3, 0.0, -0.5));
     nodes.push_back(r_model_part.CreateNewNode(5, 0.0, 1.0, 0.0));
     const auto p_geometry = std::make_shared<TriangleInterfaceGeometry3D3Plus3Noded>(nodes);
     return CreateInterfaceElementWithUPwDofs<Interface3D>(rpProperties, p_geometry, IsDiffOrder, rContributions);
@@ -746,7 +746,7 @@ KRATOS_TEST_CASE_IN_SUITE(UPwLineInterfaceElement_LeftHandSideContainsMaterialSt
     ASSERT_EQ(actual_left_hand_side.size1(), number_of_u_dofs + number_of_pw_dofs);
     ASSERT_EQ(actual_left_hand_side.size2(), number_of_u_dofs + number_of_pw_dofs);
 
-    auto expected_stiffness_matrix =
+    const auto expected_stiffness_matrix =
         UblasUtilities::CreateMatrix({{6.25, -2.16506351, 0.0, 0.0, -6.25, 2.16506351, 0.0, 0.0},
                                       {-2.16506351, 8.75, 0.0, 0.0, 2.16506351, -8.75, 0.0, 0.0},
                                       {0.0, 0.0, 6.25, -2.16506351, 0.0, 0.0, -6.25, 2.16506351},
@@ -1466,7 +1466,7 @@ KRATOS_TEST_CASE_IN_SUITE(UPwTriangleInterfaceElement_CalculateRelativeDisplacem
 
     // Assert
     auto expected_relative_displacement =
-        UblasUtilities::CreateVector({-3.0, -0.5 * std::sqrt(3.0) - 1.0, 0.5 - std::sqrt(3)});
+        UblasUtilities::CreateVector({-3.0, -0.5 * sqrt3 - 1.0, 0.5 - sqrt3});
 
     KRATOS_EXPECT_EQ(relative_displacements_at_integration_points.size(), 3);
     for (const auto& r_relative_displacement : relative_displacements_at_integration_points) {
@@ -1597,9 +1597,8 @@ KRATOS_TEST_CASE_IN_SUITE(UPwTriangleInterfaceElement_CalculateEffectiveTraction
                                          tractions_at_integration_points, ProcessInfo{});
 
     // Assert
-    auto expected_traction =
-        UblasUtilities::CreateVector({-3.0 * normal_stiffness, (-0.5 * std::sqrt(3.0) - 1.0) * shear_stiffness,
-                                      (0.5 - std::sqrt(3)) * shear_stiffness});
+    auto expected_traction = UblasUtilities::CreateVector(
+        {-3.0 * normal_stiffness, (-0.5 * sqrt3 - 1.0) * shear_stiffness, (0.5 - sqrt3) * shear_stiffness});
     KRATOS_EXPECT_EQ(tractions_at_integration_points.size(), 3);
     for (const auto& r_traction : tractions_at_integration_points) {
         KRATOS_EXPECT_VECTOR_RELATIVE_NEAR(r_traction, expected_traction, Defaults::relative_tolerance)
@@ -2404,11 +2403,11 @@ KRATOS_TEST_CASE_IN_SUITE(UPwLineInterfaceElement_Inclined2DOpenInterfaceFluidBo
 
     PointerVector<Node> nodes;
     nodes.push_back(r_model_part.CreateNewNode(0, 0.0, 0.0, 0.0));
-    nodes.push_back(r_model_part.CreateNewNode(1, sqrt(3.0) / 2.0, 0.5, 0.0));
-    nodes.push_back(r_model_part.CreateNewNode(2, sqrt(3.0) / 4.0, 0.25, 0.0));
+    nodes.push_back(r_model_part.CreateNewNode(1, sqrt3 / 2.0, 0.5, 0.0));
+    nodes.push_back(r_model_part.CreateNewNode(2, sqrt3 / 4.0, 0.25, 0.0));
     nodes.push_back(r_model_part.CreateNewNode(3, 0.0, 1.0, 0.0));
-    nodes.push_back(r_model_part.CreateNewNode(4, sqrt(3.0) / 2.0, 1.5, 0.0));
-    nodes.push_back(r_model_part.CreateNewNode(5, sqrt(3.0) / 4.0, 1.25, 0.0));
+    nodes.push_back(r_model_part.CreateNewNode(4, sqrt3 / 2.0, 1.5, 0.0));
+    nodes.push_back(r_model_part.CreateNewNode(5, sqrt3 / 4.0, 1.25, 0.0));
 
     const auto p_geometry = std::make_shared<LineInterfaceGeometry2D3Plus3Noded>(nodes);
     auto       element    = CreateInterfaceElementWithUPwDofs<Interface2D>(
@@ -2449,9 +2448,8 @@ KRATOS_TEST_CASE_IN_SUITE(UPwLineInterfaceElement_Inclined2DOpenInterfaceFluidBo
     constexpr auto number_of_pw_dofs       = std::size_t{4};
     const auto     expected_u_block_vector = Vector{number_of_u_dofs, 0.0};
     AssertUBlockVectorIsNear(actual_right_hand_side, expected_u_block_vector, number_of_u_dofs, number_of_pw_dofs);
-    const auto expected_p_block_vector =
-        UblasUtilities::CreateVector({0.5 * sqrt(3.0) * -125.0, 0.5 * sqrt(3.0) * -125.0,
-                                      0.5 * sqrt(3.0) * 125.0, 0.5 * sqrt(3.0) * 125.0});
+    const auto expected_p_block_vector = UblasUtilities::CreateVector(
+        {0.5 * sqrt3 * -125.0, 0.5 * sqrt3 * -125.0, 0.5 * sqrt3 * 125.0, 0.5 * sqrt3 * 125.0});
     AssertPBlockVectorIsNear(actual_right_hand_side, expected_p_block_vector, number_of_u_dofs, number_of_pw_dofs);
 }
 
@@ -2654,20 +2652,20 @@ KRATOS_TEST_CASE_IN_SUITE(UPwLineInterfaceElement_Inclined3DInterfaceFluidBodyFl
 
     PointerVector<Node> nodes;
     nodes.push_back(r_model_part.CreateNewNode(0, 0.0, 0.0, 0.0));
-    nodes.push_back(r_model_part.CreateNewNode(1, sqrt(3.0) / 2.0, 0.0, 1.0 / 2.0));
-    nodes.push_back(r_model_part.CreateNewNode(2, sqrt(3.0) / 2.0, 1.0, 1.0 / 2.0));
+    nodes.push_back(r_model_part.CreateNewNode(1, sqrt3 / 2.0, 0.0, 1.0 / 2.0));
+    nodes.push_back(r_model_part.CreateNewNode(2, sqrt3 / 2.0, 1.0, 1.0 / 2.0));
     nodes.push_back(r_model_part.CreateNewNode(3, 0.0, 1.0, 0.0));
-    nodes.push_back(r_model_part.CreateNewNode(4, sqrt(3.0) / 4.0, 0.0, 1.0 / 4.0));
-    nodes.push_back(r_model_part.CreateNewNode(5, sqrt(3.0) / 2.0, 0.5, 1.0 / 2.0));
-    nodes.push_back(r_model_part.CreateNewNode(6, sqrt(3.0) / 4.0, 1.0, 1.0 / 4.0));
+    nodes.push_back(r_model_part.CreateNewNode(4, sqrt3 / 4.0, 0.0, 1.0 / 4.0));
+    nodes.push_back(r_model_part.CreateNewNode(5, sqrt3 / 2.0, 0.5, 1.0 / 2.0));
+    nodes.push_back(r_model_part.CreateNewNode(6, sqrt3 / 4.0, 1.0, 1.0 / 4.0));
     nodes.push_back(r_model_part.CreateNewNode(7, 0.0, 0.5, 0.0));
     nodes.push_back(r_model_part.CreateNewNode(8, 0.0, 0.0, 1.0));
-    nodes.push_back(r_model_part.CreateNewNode(9, sqrt(3.0) / 2.0, 0.0, 3.0 / 2.0));
-    nodes.push_back(r_model_part.CreateNewNode(10, sqrt(3.0) / 2.0, 1.0, 3.0 / 2.0));
+    nodes.push_back(r_model_part.CreateNewNode(9, sqrt3 / 2.0, 0.0, 3.0 / 2.0));
+    nodes.push_back(r_model_part.CreateNewNode(10, sqrt3 / 2.0, 1.0, 3.0 / 2.0));
     nodes.push_back(r_model_part.CreateNewNode(11, 0.0, 1.0, 1.0));
-    nodes.push_back(r_model_part.CreateNewNode(12, sqrt(3.0) / 4.0, 0.0, 5.0 / 4.0));
-    nodes.push_back(r_model_part.CreateNewNode(13, sqrt(3.0) / 2.0, 0.5, 3.0 / 2.0));
-    nodes.push_back(r_model_part.CreateNewNode(14, sqrt(3.0) / 4.0, 1.0, 5.0 / 4.0));
+    nodes.push_back(r_model_part.CreateNewNode(12, sqrt3 / 4.0, 0.0, 5.0 / 4.0));
+    nodes.push_back(r_model_part.CreateNewNode(13, sqrt3 / 2.0, 0.5, 3.0 / 2.0));
+    nodes.push_back(r_model_part.CreateNewNode(14, sqrt3 / 4.0, 1.0, 5.0 / 4.0));
     nodes.push_back(r_model_part.CreateNewNode(15, 0.0, 0.5, 1.0));
 
     const auto p_geometry = std::make_shared<QuadrilateralInterfaceGeometry3D8Plus8Noded>(nodes);
@@ -2720,7 +2718,7 @@ KRATOS_TEST_CASE_IN_SUITE(UPwLineInterfaceElement_Inclined3DInterfaceFluidBodyFl
     constexpr auto number_of_pw_dofs       = std::size_t{8};
     const auto     expected_u_block_vector = Vector{number_of_u_dofs, 0.0};
     AssertUBlockVectorIsNear(actual_right_hand_side, expected_u_block_vector, number_of_u_dofs, number_of_pw_dofs);
-    auto       flow = (1.0 - 0.5 * sqrt(3.0)) * 62.5;
+    auto       flow = (1.0 - 0.5 * sqrt3) * 62.5;
     const auto expected_p_block_vector =
         UblasUtilities::CreateVector({flow, flow, flow, flow, -flow, -flow, -flow, -flow});
     AssertPBlockVectorIsNear(actual_right_hand_side, expected_p_block_vector, number_of_u_dofs, number_of_pw_dofs);
