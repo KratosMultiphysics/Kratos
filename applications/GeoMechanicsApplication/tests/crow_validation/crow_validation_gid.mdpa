@@ -1656,7 +1656,7 @@ Begin Conditions LineLoadCondition2D3N
   8 0 725 763 750
   9 0 763 797 776
   10 0 797 824 813
-  11 0 824 840 830
+  11 0 824 1085 830
 End Conditions
 
 Begin Conditions LineNormalLoadDiffOrderCondition2D3N
@@ -1719,7 +1719,7 @@ Begin Conditions LineNormalLoadDiffOrderCondition2D3N
   68 0 687 604 647
   69 0 604 532 569
   70 0 532 481 510
-  71 0 481 435 460
+  71 0 481 1068 460
   72 0 778 758 768
 End Conditions
 
