@@ -5369,7 +5369,7 @@ Begin SubModelPart Load
     813
     824
     830
-    840
+    1085
   End SubModelPartNodes
   Begin SubModelPartConditions
     1
@@ -5432,7 +5432,7 @@ End SubModelPart
 
 Begin SubModelPart Normal_Load_After_Last_Excavation
   Begin SubModelPartNodes
-    435
+    1068
     454
     460
     472
