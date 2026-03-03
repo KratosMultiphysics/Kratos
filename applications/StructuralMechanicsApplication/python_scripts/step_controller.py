@@ -2,79 +2,67 @@ from abc import ABC, abstractmethod
 import KratosMultiphysics as Kratos
 
 class StepController(ABC):
-    """
-    Abstract base class for controlling the progression of steps in a simulation.
+    """\
+    @brief Abstract base class for controlling the progression of steps in a simulation.
 
-    Methods
-    -------
-    Initialize(time_begin: float, time_end: float) -> None
-        Prepare the controller for stepping, given the initial and final times.
+    @details
+    Defines the interface used by all step controllers to manage time stepping
+    behaviour during a simulation. Implementations must provide logic for
+    initialization, determining the next step size, and checking completion.
 
-    GetNextStep(current_time: float, is_converged: bool) -> float
-        Determine the next step size based on the current time and convergence status of the current step.
-
-    IsCompleted(current_time: float, is_converged: bool) -> bool
-        Check if the stepping process has been completed.
+    @note
+    This class is not instantiated directly; rather, derived classes implement
+    the required virtual methods.
     """
     @abstractmethod
     def Initialize(self, time_begin: float, time_end: float) -> None:
-        """
-        Initializes the step controller with the specified start and end times for current time step from the solver.
+        """\
+        @brief Set up the controller with the bounds of the current time step.
 
-        Args:
-            time_begin (float): The starting time of the current time step from the solver.
-            time_end (float): The ending time of the current time step from the solver.
+        @param[in] time_begin The starting time of the current time step provided
+                               by the solver.
+        @param[in] time_end   The ending time of the current time step provided
+                               by the solver.
 
-        Returns:
-            None
+        @return Nothing.
         """
         pass
 
     @abstractmethod
     def GetNextStep(self, current_time: float, is_converged: bool) -> float:
-        """
-        Determines and returns the next step based on the current simulation time and convergence status.
+        """\
+        @brief Compute the next stepping time.
 
-        Args:
-            current_time (float): The current time in the simulation.
-            is_converged (bool): Flag indicating whether the previous step has converged.
+        @param[in] current_time The current simulation time.
+        @param[in] is_converged True if the previous step converged successfully.
 
-        Returns:
-            float: The time for the next step.
+        @return The proposed time for the next step.
         """
         pass
 
     @abstractmethod
     def IsCompleted(self, current_time: float, is_converged: bool) -> bool:
-        """
-        Called to check if the stepping process is completed.
+        """\
+        @brief Query whether the stepping procedure has finished.
 
-        Args:
-            current_time (float): The current simulation time.
-            is_converged (bool): Indicates whether the solution has converged at the current step.
+        @param[in] current_time The current simulation time.
+        @param[in] is_converged Flag indicating convergence at the current step.
 
-        Returns:
-            bool: True if the stepping is completed, otherwise false.
+        @return True when no further steps are required, false otherwise.
         """
         pass
 
 class DefaultStepController(StepController):
-    """
-    DefaultStepController is a step controller implementation for Kratos that always returns the final time as the next step,
-    effectively disabling intermediate stepping.
+    """\
+    @brief A trivial controller that jumps directly to the final time.
 
-    Args:
-        parameters (Kratos.Parameters): Configuration parameters for the step controller.
+    @details
+    This step controller ignores intermediate steps and always returns the
+    final simulation time as the next step. It is useful when no sub-stepping
+    behaviour is desired.
 
-    Methods:
-        Initialize(start_time: float, time_end: float) -> None:
-            Initializes the controller with the end time of the simulation.
-
-        GetNextStep(current_time: float, is_converged: bool) -> float:
-            Returns the end time as the next step, regardless of the current time or convergence status.
-
-        IsCompleted(current_time: float, is_converged: bool) -> bool:
-            Always returns True, indicating that stepping is completed.
+    @param[in] parameters Configuration parameters (unused except for type
+                          validation).
     """
     def __init__(self, parameters: Kratos.Parameters) -> None:
         default_parameters = Kratos.Parameters("""{
@@ -92,50 +80,34 @@ class DefaultStepController(StepController):
         return True
 
 class GeometricStepController(StepController):
-    """
-    GeometricStepController implements an adaptive time-stepping controller based on geometric progression for stepping in simulations.
+    """\
+    @brief Adaptive geometric time-step controller.
 
-    This controller adjusts the time increment (`delta_time`) dynamically based on the convergence or divergence of the solution at each step. It increases the time step after a specified number of successful convergences and decreases it after a failed attempt, within user-defined bounds.
+    @details
+    A controller that modifies the time increment according to a geometric
+    progression. When consecutive steps converge, the step size is multiplied
+    by a convergence factor up to a maximum. Conversely, on divergence the step
+    size is scaled down by a divergence factor until a minimum is reached. The
+    controller also tracks the number of sub-steps and failed attempts, throwing
+    runtime errors if limits are exceeded.
 
-    Class Methods:
-        GetDefaultParameters() -> Kratos.Parameters:
-            Returns the default parameters for the controller, including factors for convergence/divergence, initial/min/max time steps, and thresholds for incrementing or terminating the step size.
+    @class GeometricStepController
 
-    Constructor:
-        __init__(settings: Kratos.Parameters):
-            Initializes the controller with user-provided or default settings, validating and storing parameters for each interval.
+    @section parameters Parameters
+    The controller is configured via a `Kratos.Parameters` object containing
+    the following entries:
+      - divergence_factor
+      - convergence_factor
+      - delta_t_init
+      - delta_t_min
+      - delta_t_max
+      - max_number_of_sub_steps
+      - number_of_successful_attempts_for_increment
+      - number_of_failed_attempts_for_termination
 
-    Methods:
-        Initialize(time_begin: float, time_end: float) -> None:
-            Prepares the controller for a new stepping process, resetting counters and setting initial parameters.
-
-        GetNextStep(current_time: float, is_converged: bool) -> float:
-            Determines the next time step based on the convergence status of the current time step. Increments or decrements the time step according to the configured factors and thresholds.
-
-        IsCompleted(current_time: float, is_converged: bool) -> bool:
-            Checks if the stepping process is completed, i.e., the solution has converged and the end time is reached.
-
-        __SetSubSteppingParameters() -> None:
-            Selects and sets the appropriate sub-stepping parameters based on the current interval.
-
-    Attributes:
-        __divergence_factor: Factor by which the time step is reduced after a failed attempt.
-        __convergence_factor: Factor by which the time step is increased after successful attempts.
-        __delta_t_init: Initial time step size.
-        __delta_t_min: Minimum allowed time step size.
-        __delta_t_max: Maximum allowed time step size.
-        __max_number_of_sub_steps: Maximum number of sub-steps allowed.
-        __number_of_successful_attempts_for_increment: Number of successful steps required to increase the time step.
-        __number_of_failed_attempts_for_termination: Number of failed steps allowed before termination.
-        __sub_stepping_iteration: Counter for the current sub-step iteration.
-        __success_full_attempts_count: Counter for successful attempts.
-        __failed_attempts_count: Counter for failed attempts.
-        __delta_time: Current time step size.
-        __time_begin: Start time of the stepping process.
-        __time_end: End time of the stepping process.
-
-    Raises:
-        RuntimeError: If the maximum number of sub-steps or failed attempts is exceeded, or if the minimum allowed time step is reached.
+    @note
+    Detailed behavior is described in the individual member function
+    documentation.
     """
     @classmethod
     def GetDefaultParameters(cls) -> Kratos.Parameters:
