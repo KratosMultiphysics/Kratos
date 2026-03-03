@@ -675,14 +675,16 @@ KRATOS_TEST_CASE_IN_SUITE(MohrCoulombWithTensionCutOff_CalculateMaterialResponse
                               expected_cauchy_stress_vector, tolerance);
 }
 
-Vector ComputeStressVectorUsingCPhiReductionTestData(Vector& rStrainVectorFinalized,
+Vector ComputeStressVectorUsingCPhiReductionTestData(double  Cohesion,
+                                                     double  FrictionAngle,
+                                                     Vector& rStrainVectorFinalized,
                                                      Vector& rStressVectorFinalized,
                                                      Vector& rStrainVector,
                                                      Vector&)
 {
     Properties properties;
-    properties.SetValue(GEO_FRICTION_ANGLE, 30.0);
-    properties.SetValue(GEO_COHESION, 1000.0);
+    properties.SetValue(GEO_COHESION, Cohesion);
+    properties.SetValue(GEO_FRICTION_ANGLE, FrictionAngle);
     properties.SetValue(GEO_DILATANCY_ANGLE, 0.0);
     properties.SetValue(GEO_TENSILE_STRENGTH, 1000.0);
     properties.SetValue(YOUNG_MODULUS, 30.0e6);
@@ -710,24 +712,48 @@ Vector ComputeStressVectorUsingCPhiReductionTestData(Vector& rStrainVectorFinali
     return result;
 }
 
+KRATOS_TEST_CASE_IN_SUITE(MohrCoulombWithTensionCutOff_CalculateMaterialResponseCauchyAtRegularFailureRegion_CPhiVariation,
+                          KratosGeoMechanicsFastSuiteWithoutKernel)
+{
+    // Arrange, data are taken from C-Phi reduction test for GPoint 0 of Element 8
+    constexpr auto cohesion                = 800.0;
+    constexpr auto friction_angle          = 24.79128089714489;
+    auto           strain_vector_finalized = UblasUtilities::CreateVector(
+        {6.9595905431284102e-04, -5.1669244190907055e-04, 0.0000000000000000e+00, 3.6495572640421296e-05});
+    auto stress_vector_finalized = UblasUtilities::CreateVector(
+        {-1.8485198418257996e+03, -7.9720205330738399e+03, -3.6748820224188021e+03, 7.4955824230365451e+01});
+    auto strain_vector = UblasUtilities::CreateVector({6.9595905431284102e-04, -5.1669244190907055e-04,
+                                                       0.0000000000000000e+00, 3.6495572640421296e-05});
+    auto stress_vector = UblasUtilities::CreateVector({-1.8485198418257996e+03, -7.9720205330738399e+03,
+                                                       -3.6748820224188021e+03, 7.4955824230365451e+01});
+    // Act
+    const auto result = ComputeStressVectorUsingCPhiReductionTestData(
+        cohesion, friction_angle, strain_vector_finalized, stress_vector_finalized, strain_vector, stress_vector);
+    // Assert
+    const auto expected_cauchy_stress_vector = UblasUtilities::CreateVector(
+        {-2.1258867028468462e+03, -7.6946536720527947e+03, -3.6748820224188021e+03, 6.8165505185660834e+01});
+    KRATOS_EXPECT_VECTOR_NEAR(result, expected_cauchy_stress_vector, Defaults::relative_tolerance);
+}
+
 KRATOS_TEST_CASE_IN_SUITE(MohrCoulombWithTensionCutOff_CalculateMaterialResponseCauchyAtRegularFailureRegion,
                           KratosGeoMechanicsFastSuiteWithoutKernel)
 {
     // Arrange, data are taken from C-Phi reduction test for GPoint 0 of Element 8
-    auto strain_vector_finalized = UblasUtilities::CreateVector(
-        {5.1240674006010952e-04, -1.2813885490434602e-04, 0.0000000000000000e+00, 3.3817074063116973e-08});
-    auto stress_vector_finalized = UblasUtilities::CreateVector(
-        {-9.2472408036993716e+02, -6.2382738490470620e+03, -6.2382738508471875e+03, 9.7801134443516582e-02});
-    auto strain_vector = UblasUtilities::CreateVector({6.1406046160809554e-04, -4.6132195458284289e-04,
-                                                       0.0000000000000000e+00, 3.0365945945536391e-05});
-    auto stress_vector = UblasUtilities::CreateVector({-2.4452016954275678e+03, -1.0786846623154841e+04,
-                                                       -7.4520839286802693e+03, 1.6379526247560784e+02});
+    constexpr auto cohesion                = 900.0;
+    constexpr auto friction_angle          = 27.457076095938259;
+    auto           strain_vector_finalized = Vector(4, 0.0);
+    auto           stress_vector_finalized = UblasUtilities::CreateVector(
+        {-5.1687704591168895e+03, -1.2121212099273185e+04, -5.1687704591168895e+03, 0.0000000000000000e+00});
+    auto strain_vector = UblasUtilities::CreateVector({2.0849072892302034e-04, -5.2137806109330782e-05,
+                                                       0.0000000000000000e+00, 1.3759667604308981e-08});
+    auto stress_vector = UblasUtilities::CreateVector({-5.1687704591168895e+03, -1.2121212099273185e+04,
+                                                       -5.1687704591168895e+03, 0.0000000000000000e+00});
     // Act
     const auto result = ComputeStressVectorUsingCPhiReductionTestData(
-        strain_vector_finalized, stress_vector_finalized, strain_vector, stress_vector);
+        cohesion, friction_angle, strain_vector_finalized, stress_vector_finalized, strain_vector, stress_vector);
     // Assert
     const auto expected_cauchy_stress_vector = UblasUtilities::CreateVector(
-        {-3.3420455693206914e+03, -1.3468009782200927e+04, -8.1676853352681119e+03, 2.3728091824585522e+02});
+        {-2.1048640257824104e+03, -8.6704134153705982e+03, -3.8658294356694760e+03, 8.3845724538103905e-02});
     KRATOS_EXPECT_VECTOR_NEAR(result, expected_cauchy_stress_vector, Defaults::relative_tolerance);
 }
 
@@ -735,8 +761,10 @@ KRATOS_TEST_CASE_IN_SUITE(MohrCoulombWithTensionCutOff_CalculateMaterialResponse
                           KratosGeoMechanicsFastSuiteWithoutKernel)
 {
     // Arrange, data are taken from C-Phi reduction test for GPoint 1 of Element 8
-    auto strain_vector_finalized = Vector(4, 0.0);
-    auto stress_vector_finalized = UblasUtilities::CreateVector(
+    constexpr auto cohesion                = 900.0;
+    constexpr auto friction_angle          = 27.457076095938259;
+    auto           strain_vector_finalized = Vector(4, 0.0);
+    auto           stress_vector_finalized = UblasUtilities::CreateVector(
         {-1.2921926147786228e+03, -3.0303030248168902e+03, -1.2921926147786228e+03, 0.0000000000000000e+00});
     auto strain_vector = UblasUtilities::CreateVector({2.1223519849231651e-04, -5.3061831008594524e-05,
                                                        0.0000000000000000e+00, 8.1947498012640424e-09});
@@ -744,10 +772,10 @@ KRATOS_TEST_CASE_IN_SUITE(MohrCoulombWithTensionCutOff_CalculateMaterialResponse
                                                        -1.2921926147786228e+03, 0.0000000000000000e+00});
     // Act
     const auto result = ComputeStressVectorUsingCPhiReductionTestData(
-        strain_vector_finalized, stress_vector_finalized, strain_vector, stress_vector);
+        cohesion, friction_angle, strain_vector_finalized, stress_vector_finalized, strain_vector, stress_vector);
     // Assert
     const auto expected_cauchy_stress_vector = UblasUtilities::CreateVector(
-        {9.9999999978074175e+02, -4.6410161491849664e+02, 3.4252114252393994e+01, 1.7916932387274317e-02});
+        {9.9999999981240751e+02, -2.5265113866824933e+02, 3.4252114252393994e+01, 1.5329308790913803e-02});
     KRATOS_EXPECT_VECTOR_NEAR(result, expected_cauchy_stress_vector, Defaults::absolute_tolerance);
 }
 
@@ -755,8 +783,10 @@ KRATOS_TEST_CASE_IN_SUITE(MohrCoulombWithTensionCutOff_CalculateMaterialResponse
                           KratosGeoMechanicsFastSuiteWithoutKernel)
 {
     // Arrange, data are taken from C-Phi reduction test for GPoint 2 of Element 8
-    auto strain_vector_finalized = Vector(4, 0.0);
-    auto stress_vector_finalized = UblasUtilities::CreateVector(
+    constexpr auto cohesion                = 900.0;
+    constexpr auto friction_angle          = 27.457076095938259;
+    auto           strain_vector_finalized = Vector(4, 0.0);
+    auto           stress_vector_finalized = UblasUtilities::CreateVector(
         {-1.2921926147789015e+03, -3.0303030248175442e+03, -1.2921926147789015e+03, 0.0000000000000000e+00});
     auto strain_vector = UblasUtilities::CreateVector({2.1221334908075760e-04, -5.3056189639024483e-05,
                                                        0.0000000000000000e+00, 3.4835553978606573e-08});
@@ -764,10 +794,10 @@ KRATOS_TEST_CASE_IN_SUITE(MohrCoulombWithTensionCutOff_CalculateMaterialResponse
                                                        -1.2921926147789015e+03, 0.0000000000000000e+00});
     // Act
     const auto result = ComputeStressVectorUsingCPhiReductionTestData(
-        strain_vector_finalized, stress_vector_finalized, strain_vector, stress_vector);
+        cohesion, friction_angle, strain_vector_finalized, stress_vector_finalized, strain_vector, stress_vector);
     // Assert
     const auto expected_cauchy_stress_vector = UblasUtilities::CreateVector(
-        {9.9999999603720642e+02, -4.6410161117496125e+02, 3.4117047235541349e+01, 7.6170417338809082e-02});
+        {9.9999999660952608e+02, -2.5265113546536796e+02, 3.4117047235541349e+01, 6.5169629648695174e-02});
     KRATOS_EXPECT_VECTOR_NEAR(result, expected_cauchy_stress_vector, Defaults::absolute_tolerance);
 }
 } // namespace Kratos::Testing
