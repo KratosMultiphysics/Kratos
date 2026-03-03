@@ -13,8 +13,7 @@
               "CROSS_AREA"       :  1.0,
               "I33"              :  1.0,
               "AREA_EFFECTIVE_Y" :  10000.0
-         },
-         "Tables": {}
+         }
       }
    }]
 }

@@ -34,22 +34,15 @@
         "newmark_beta":                       0.25,
         "newmark_gamma":                      0.5,
         "newmark_theta":                      0.5,
-        "rayleigh_m":                         0.0,
-        "rayleigh_k":                         0.0,
         "strategy_type":                      "line_search",
         "convergence_criterion":              "displacement_criterion",
         "displacement_relative_tolerance":    1.0E-6,
         "displacement_absolute_tolerance":    1.0E-12,
-        "residual_relative_tolerance":        1.0E-4,
-        "residual_absolute_tolerance":        1.0E-9,
         "min_iterations":                      1,
         "max_iterations":                      15,
-        "number_cycles":                      100,
+        "number_cycles":                      5,
         "reduction_factor":                   0.5,
         "increase_factor":                    2.0,
-        "desired_iterations":                 4,
-        "max_radius_factor":                  10.0,
-        "min_radius_factor":                  0.1,
         "calculate_reactions":                true,
         "max_line_search_iterations":         5,
         "first_alpha_value":                  0.5,
@@ -93,11 +86,9 @@
                         "body_output":         true,
                         "node_output":         false,
                         "skin_output":         false,
-                        "plane_output":        [],
                         "nodal_results":       ["DISPLACEMENT", "TOTAL_DISPLACEMENT"],
                         "gauss_point_results": []
-                    },
-                    "point_data_configuration":  []
+                    }
                 }
             }
         }]
@@ -110,8 +101,8 @@
         "Parameters":    {
             "model_part_name": "PorousDomain.Solid_Displacement-auto-1",
             "variable_name":   "DISPLACEMENT",
-            "active":          [true,true,true],
-            "is_fixed":        [true,true,true],
+            "active":          [true,true,false],
+            "is_fixed":        [true,true,false],
             "value":           [0.0,0.0,0.0],
             "table":           [0,0,0]
         }
@@ -122,8 +113,8 @@
         "Parameters":    {
             "model_part_name": "PorousDomain.Structural_Rotation-auto-1",
             "variable_name":   "ROTATION",
-            "active":          [true,true,true],
-            "is_fixed":        [true,true,true],
+            "active":          [false,false,true],
+            "is_fixed":        [false,false,true],
             "value":           [0.0,0.0,0.0],
             "table":           [0,0,0]
         }
@@ -135,8 +126,8 @@
         "Parameters":    {
             "model_part_name": "PorousDomain.Load",
             "variable_name":   "POINT_LOAD",
-            "active":          [true,true,true],
-            "value":           [0.0,-1e10,0.0],
+            "active":          [false,true,false],
+            "value":           [0.0,-1.0e10,0.0],
             "table":           [0,0,0]
         }
     }]
