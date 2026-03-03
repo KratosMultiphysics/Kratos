@@ -29,7 +29,7 @@
         "block_builder":                      true,
         "solution_type":                      "Quasi-Static",
         "scheme_type":                        "Newmark",
-        "reset_displacements":                true,
+        "reset_displacements":                false,
         "newmark_beta":                       0.25,
         "newmark_gamma":                      0.5,
         "newmark_theta":                      0.5,
@@ -93,8 +93,8 @@
                         "node_output":         false,
                         "skin_output":         false,
                         "plane_output":        [],
-                        "nodal_results":       ["DISPLACEMENT"],
-                        "gauss_point_results": ["CAUCHY_STRESS_TENSOR"]
+                        "nodal_results":       ["DISPLACEMENT", "TOTAL_DISPLACEMENT"],
+                        "gauss_point_results": []
                     },
                     "point_data_configuration":  []
                 }

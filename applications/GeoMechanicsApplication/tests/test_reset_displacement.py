@@ -101,25 +101,36 @@ class KratosGeoMechanicsResetDisplacementTests(KratosUnittest.TestCase):
         output_data = reader.read_output_from(os.path.join(project_path, "beam_with_reset_displacement_stage_1.post.res"))
         time = 1.0
         end_node_id = 11
-        y_displacement_at_end_of_beam = reader.nodal_values_at_time("DISPLACEMENT", time, output_data, [end_node_id])[0][1]
-        self.assertAlmostEqual(y_displacement_at_end_of_beam, eps * L, places=4)
+        actual_max_deflection = reader.nodal_values_at_time("DISPLACEMENT", time, output_data, [end_node_id])[0][1]
+        rel_tolerance = 1.0e-3
+        expected_max_deflection = eps * L
+        self.assertAlmostEqual(actual_max_deflection, expected_max_deflection, places=None, delta=abs(rel_tolerance * expected_max_deflection))
+        total_max_deflection = reader.nodal_values_at_time("TOTAL_DISPLACEMENT", time, output_data, [end_node_id])[0][1]
+        self.assertAlmostEqual(total_max_deflection, expected_max_deflection, places=None, delta=abs(rel_tolerance * expected_max_deflection))
 
         output_data = reader.read_output_from(os.path.join(project_path, "beam_with_reset_displacement_stage_2.post.res"))
         time = 2.0
         displacement_vectors = reader.nodal_values_at_time("DISPLACEMENT", time, output_data)
-        for u in displacement_vectors:
-            self.assertAlmostEqual(u[1], 0.0, places=4)
+        total_displacement_vectors = reader.nodal_values_at_time("TOTAL_DISPLACEMENT", time, output_data)
+        abs_tolerance = 1.0e-12
+        for u, u_total in zip(displacement_vectors, total_displacement_vectors):
+            self.assertAlmostEqual(u[1], 0.0, places=None, delta=abs_tolerance)
+            self.assertAlmostEqual(u_total[1], 0.0, places=None, delta=abs_tolerance)
 
         output_data = reader.read_output_from(os.path.join(project_path, "beam_with_reset_displacement_stage_3.post.res"))
         time = 3.0
         displacement_vectors = reader.nodal_values_at_time("DISPLACEMENT", time, output_data)
-        for u in displacement_vectors:
-            self.assertAlmostEqual(u[1], 0.0, places=5)
+        total_displacement_vectors = reader.nodal_values_at_time("TOTAL_DISPLACEMENT", time, output_data)
+        for u, u_total in zip(displacement_vectors, total_displacement_vectors):
+            self.assertAlmostEqual(u[1], 0.0, places=None, delta=abs_tolerance)
+            self.assertAlmostEqual(u_total[1], 0.0, places=None, delta=abs_tolerance)
 
         output_data = reader.read_output_from(os.path.join(project_path, "beam_with_reset_displacement_stage_4.post.res"))
         time = 4.0
-        y_displacement_at_end_of_beam = reader.nodal_values_at_time("DISPLACEMENT", time, output_data, [end_node_id])[0][1]
-        self.assertAlmostEqual(y_displacement_at_end_of_beam, -eps * L, places=4)
+        actual_max_deflection = reader.nodal_values_at_time("DISPLACEMENT", time, output_data, [end_node_id])[0][1]
+        self.assertAlmostEqual(actual_max_deflection, -expected_max_deflection, places=None, delta=abs(rel_tolerance * expected_max_deflection))
+        total_max_deflection = reader.nodal_values_at_time("TOTAL_DISPLACEMENT", time, output_data, [end_node_id])[0][1]
+        self.assertAlmostEqual(total_max_deflection, -expected_max_deflection, places=None, delta=abs(rel_tolerance * expected_max_deflection))
 
     def test_reset_displacement_shell_Dirichlet(self):
         """
