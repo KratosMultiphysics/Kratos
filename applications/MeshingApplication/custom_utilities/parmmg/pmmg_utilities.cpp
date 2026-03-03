@@ -1107,20 +1107,20 @@ void ParMmgUtilities<TPMMGLibrary>::GenerateReferenceMaps(
     if (r_conditions_array.size() > 0) {
         const std::string type_name = (Dimension == 2) ? "Condition2D2N" : (TPMMGLibrary == PMMGLibrary::PMMG3D) ? "SurfaceCondition3D3N" : "Condition3D2N";
         Condition const& r_clone_condition = KratosComponents<Condition>::Get(type_name);
-        rRefCondition[0] = r_clone_condition.Create(0, it_cond_begin->pGetGeometry(), it_cond_begin->pGetProperties());
+        rRefCondition[0] = r_clone_condition.Create(0, it_cond_begin->pGetGeometry().Points(), it_cond_begin->pGetProperties());
     }
     if (r_elements_array.size() > 0) {
-        rRefElement[0] = it_elem_begin->Create(0, it_elem_begin->GetGeometry(), it_elem_begin->pGetProperties());
+        rRefElement[0] = it_elem_begin->Create(0, it_elem_begin->GetGeometry().Points(), it_elem_begin->pGetProperties());
     }
 
     // Now we add the reference elements and conditions
     for (auto& ref_cond : rColorMapCondition) {
         Condition::Pointer p_cond = rModelPart.pGetCondition(ref_cond.second);
-        rRefCondition[ref_cond.first] = p_cond->Create(0, p_cond->GetGeometry(), p_cond->pGetProperties());
+        rRefCondition[ref_cond.first] = p_cond->Create(0, p_cond->GetGeometry().Points(), p_cond->pGetProperties());
     }
     for (auto& ref_elem : rColorMapElement) {
         Element::Pointer p_elem = rModelPart.pGetElement(ref_elem.second);
-        rRefElement[ref_elem.first] = p_elem->Create(0, p_elem->GetGeometry(), p_elem->pGetProperties());
+        rRefElement[ref_elem.first] = p_elem->Create(0, p_elem->GetGeometry().Points(), p_elem->pGetProperties());
     }
 }
 
