@@ -731,16 +731,14 @@ public:
             return;
         }
 
-        if (pShapeFunctionDerivatives && DerivativeOrder > 0) {
+        if (DerivativeOrder > 0) {
 
             pShapeFunctionDerivatives->resize(DerivativeOrder);
 
             IndexType shape_derivative_index = 1; // first derivative block starts after values
 
             for (IndexType n = 0; n < DerivativeOrder; ++n) {
-
-                const IndexType order   = n + 1;
-                const IndexType n_terms = order + 1;
+                const IndexType n_terms = n + 2;
 
                 (*pShapeFunctionDerivatives)[n].resize(num_nonzero_cps, n_terms, false);
 

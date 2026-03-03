@@ -373,18 +373,6 @@ void  AddGeometriesToPython(pybind11::module& m)
     using PointContainerType = Kratos::PointerVector<Kratos::Point>;
     using BrepSurfaceType = Kratos::BrepSurface<NodeContainerType, false, PointContainerType>;
     py::class_<BrepSurfaceType, typename BrepSurfaceType::Pointer, GeometryType>(m, "BrepSurface")
-        .def("ProjectionPointGlobalToLocalSpace",
-            [](const BrepSurfaceType& self,
-            const CoordinatesArrayType& rGlobal,
-            CoordinatesArrayType& rLocal,
-            const double tolerance)
-            {
-                return self.ProjectionPointGlobalToLocalSpace(rGlobal, rLocal, tolerance);
-            },
-            py::arg("global_coordinates"),
-            py::arg("local_coordinates"),
-            py::arg("tolerance") = 1e-12
-        )
         .def("EvaluateShapeFunctionsAtLocalCoordinates",
             [](const BrepSurfaceType& self, const CoordinatesArrayType& rLocal, const IndexType derivative_order)
             {
