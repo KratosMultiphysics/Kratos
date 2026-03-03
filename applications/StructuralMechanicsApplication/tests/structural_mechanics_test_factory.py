@@ -275,6 +275,9 @@ class Simple3D2NBeamCrNonLinearTest(StructuralMechanicsTestFactory):
 class Simple3D2NBeamCrDynamicTest(StructuralMechanicsTestFactory):
     file_name = "beam_test/dynamic_3D2NBeamCr_test"
 
+class Simple3D2NBeamCrDynamicPseudoStepTest(StructuralMechanicsTestFactory):
+    file_name = "beam_test/dynamic_3D2NBeamCr_pseudo_step_test"
+
 class Simple2D2NBeamCrTest(StructuralMechanicsTestFactory):
     file_name = "beam_test/nonlinear_2D2NBeamCr_test"
 
