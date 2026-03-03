@@ -56,7 +56,7 @@ rm -rf "${KRATOS_BUILD}/${KRATOS_BUILD_TYPE}/CMakeFiles"
 echo "Kratos build type is ${KRATOS_BUILD_TYPE}"
 
 # Configure
-cmake -H"${KRATOS_SOURCE}" -B"${KRATOS_BUILD}/${KRATOS_BUILD_TYPE}" \
+cmake -H"${KRATOS_SOURCE}" -B"${KRATOS_BUILD}/${KRATOS_BUILD_TYPE}" -G "Ninja" \
 ${KRATOS_CMAKE_OPTIONS_FLAGS} \
 -DUSE_MPI=ON \
 -DPYTHON_EXECUTABLE="/usr/bin/python3.10" \
