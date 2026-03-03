@@ -186,4 +186,25 @@ Vector GeoElementUtilities::EvaluateDeterminantsOfJacobiansAtIntegrationPoints(
     return result;
 }
 
+Vector GeoElementUtilities::GetNodalVariableVector(const Element::GeometryType&         rGeom,
+                                                   const Variable<array_1d<double, 3>>& rVariable,
+                                                   IndexType                            Dimension,
+                                                   IndexType NumberOfDofs)
+{
+    const auto nodal_values = VariablesUtilities::GetNodalValues(rGeom, rVariable);
+    KRATOS_ERROR_IF_NOT(Dimension >= 1 && Dimension <= 3)
+        << "Incorrect dimension value (" << Dimension << ")." << std::endl;
+    KRATOS_ERROR_IF_NOT(nodal_values.size() * Dimension == NumberOfDofs)
+        << "Mismatch between requested number of DOFs (" << NumberOfDofs
+        << ") and computed number of DOFs from nodal values (" << nodal_values.size() * Dimension
+        << ")." << std::endl;
+    auto        result   = Vector(NumberOfDofs);
+    std::size_t position = 0;
+    for (const auto& values : nodal_values) {
+        std::copy(values.begin(), values.begin() + Dimension, result.begin() + position);
+        position += Dimension;
+    }
+    return result;
+}
+
 } // namespace Kratos

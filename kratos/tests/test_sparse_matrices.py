@@ -136,7 +136,7 @@ class TestSparseMatrixInterface(KratosUnittest.TestCase):
         for i in range(y.Size()):
             self.assertEqual(c[i], 5.0)
 
-    def test_get_equation_id_csr_indices(self):
+    def test_get_equation_id_csr_indices_1(self):
         # Create model part
         model = KratosMultiphysics.Model()
         mp = model.CreateModelPart("Main")
@@ -174,6 +174,35 @@ class TestSparseMatrixInterface(KratosUnittest.TestCase):
 
         # Get the elemental contributions CSR indices
         elem_csr_indices = A.GetEquationIdCsrIndices(mp.Elements, mp.ProcessInfo)
+
+        # Check results
+        shape = elem_csr_indices.to_numpy().shape
+        self.assertEqual(shape[0], 2)
+        self.assertEqual(shape[1], 3)
+        self.assertEqual(shape[2], 3)
+
+        data = elem_csr_indices.to_numpy().flatten()
+        expected_data = [0, 1, 2, 3, 4, 5, 7, 8, 9,
+                         4, 6, 5, 11, 13, 12, 8, 10, 9]
+        for i, j in zip(data, expected_data):
+            self.assertEqual(i, j)
+
+    def test_get_equation_id_csr_indices_2(self):
+        # Create elements connectivities
+        connectivities = KratosMultiphysics.IntNDData(np.array([[0,1,2],[1,3,2]]))
+
+        # Build sparse matrix graph
+        connectivities_data = connectivities.to_numpy()
+        graph = KratosMultiphysics.SparseContiguousRowGraph(4)
+        for i in range(connectivities_data.shape[0]):
+            graph.AddEntries(connectivities_data[i], connectivities_data[i])
+        graph.Finalize()
+
+        # Create Matrix
+        A = KratosMultiphysics.CsrMatrix(graph)
+
+        # Get the elemental contributions CSR indices
+        elem_csr_indices = A.GetEquationIdCsrIndices(connectivities)
 
         # Check results
         shape = elem_csr_indices.to_numpy().shape
