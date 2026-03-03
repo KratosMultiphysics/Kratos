@@ -4,7 +4,7 @@ from pathlib import Path
 
 import KratosMultiphysics as Kratos
 import KratosMultiphysics.OptimizationApplication as KratosOA
-import KratosMultiphysics.SystemIdentificationApplication as KratosDT
+import KratosMultiphysics.SystemIdentificationApplication as KratosSI
 from KratosMultiphysics.OptimizationApplication.responses.response_function import ResponseFunction
 from KratosMultiphysics.OptimizationApplication.responses.response_function import SupportedSensitivityFieldVariableTypes
 from KratosMultiphysics.OptimizationApplication.utilities.union_utilities import SupportedSensitivityFieldVariableTypes
@@ -82,7 +82,7 @@ class DamageDetectionResponse(ResponseFunction):
 
         self.adjoint_analysis = SystemIdentificationStaticAnalysis(self.model, parameters["adjoint_parameters"])
 
-        self.sensor_name_dict: 'dict[str, KratosDT.Sensors.Sensor]' = {}
+        self.sensor_name_dict: 'dict[str, KratosSI.Sensors.Sensor]' = {}
         self.optimization_problem = optimization_problem
 
     def GetImplementedPhysicalKratosVariables(self) -> 'list[SupportedSensitivityFieldVariableTypes]':
@@ -94,7 +94,7 @@ class DamageDetectionResponse(ResponseFunction):
 
         self.adjoint_analysis.Initialize()
 
-        self.damage_response_function = KratosDT.Responses.MeasurementResidualResponseFunction(self.p_coefficient)
+        self.damage_response_function = KratosSI.Responses.MeasurementResidualResponseFunction(self.p_coefficient)
 
         if not self.optimization_problem.GetProblemDataContainer()["object"].HasValue(self.sensor_group_name):
             raise RuntimeError(f"The sensor group \"{self.sensor_group_name}\" not found. Followings are available: \n\t" + "\n\t".join(self.optimization_problem.GetProblemDataContainer()["object"].GetSubItems().keys()))
@@ -102,7 +102,7 @@ class DamageDetectionResponse(ResponseFunction):
         sensor_group_data = ComponentDataView(self.sensor_group_name, self.optimization_problem)
         self.list_of_sensors = GetSensors(sensor_group_data)
         for sensor in self.list_of_sensors:
-            sensor.GetNode().SetValue(KratosDT.SENSOR_MEASURED_VALUE, 0.0)
+            sensor.GetNode().SetValue(KratosSI.SENSOR_MEASURED_VALUE, 0.0)
             self.damage_response_function.AddSensor(sensor)
 
         self.damage_response_function.Initialize()
@@ -146,7 +146,7 @@ class DamageDetectionResponse(ResponseFunction):
             self.__SetSensorMeasuredValue(sensor_measurement_data_file_name)
 
             # run a single adjoint for each test scenario
-            self.adjoint_analysis._GetSolver().GetComputingModelPart().ProcessInfo[KratosDT.TEST_ANALYSIS_NAME] = exec_policy.GetName()
+            self.adjoint_analysis._GetSolver().GetComputingModelPart().ProcessInfo[KratosSI.TEST_ANALYSIS_NAME] = exec_policy.GetName()
             self.adjoint_analysis._GetSolver().GetComputingModelPart().ProcessInfo[Kratos.STEP] = self.optimization_problem.GetStep()
             self.adjoint_analysis.CalculateGradient(self.damage_response_function)
 
@@ -158,7 +158,7 @@ class DamageDetectionResponse(ResponseFunction):
                     container_expression.SetExpression((container_expression.GetExpression() - current_gradient.GetExpression() * test_case_weight))
                     container_expression.SetExpression(Kratos.Expression.Utils.Collapse(container_expression).GetExpression())
 
-    def __GetSensor(self, sensor_name: str) -> KratosDT.Sensors.Sensor:
+    def __GetSensor(self, sensor_name: str) -> KratosSI.Sensors.Sensor:
         return self.sensor_name_dict[sensor_name]
 
     def __GetHeaderIndices(self, csv_stream: csv.reader) -> 'tuple[int, int]':
@@ -176,7 +176,7 @@ class DamageDetectionResponse(ResponseFunction):
                 measured_sensor_name = measured_row[measured_name_index].strip()
                 measured_value = float(measured_row[measured_value_index])
                 if measured_sensor_name in self.sensor_name_dict:
-                    self.__GetSensor(measured_sensor_name).GetNode().SetValue(KratosDT.SENSOR_MEASURED_VALUE, measured_value)
+                    self.__GetSensor(measured_sensor_name).GetNode().SetValue(KratosSI.SENSOR_MEASURED_VALUE, measured_value)
 
     def _GetResponsePrefix(self) -> str:
         return "DamageDetectionResponse"
