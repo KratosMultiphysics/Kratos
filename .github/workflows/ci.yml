@@ -389,7 +389,7 @@ jobs:
         source /opt/intel/oneapi/setvars.sh
 
         # Configure
-        cmake -H"${KRATOS_SOURCE}" -B"${KRATOS_BUILD}/${KRATOS_BUILD_TYPE}" \
+        cmake -H"${KRATOS_SOURCE}" -B"${KRATOS_BUILD}/${KRATOS_BUILD_TYPE}" -G "Ninja" \
         -DUSE_MPI=ON \
         -DCMAKE_POLICY_VERSION_MINIMUM=3.5 \
         -DBOOST_ROOT="/workspace/boost/boost_1_87_0" \
