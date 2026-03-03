@@ -24,7 +24,7 @@ The soil is described with GeoLinearElasticPlaneStrain2DLaw:
 -   The dynamic viscosity of water $\mu = 10^{-3} \  \mathrm{[Pa \cdot s]}$ and the intrinsic permeability of the soil $\kappa = 4.5\cdot 10^{-30} \  \mathrm{[m^2]}$.
 
 
-The beam is described with BeamConstitutiveLaw:
+The beam is described with TimoshenkoBeamElasticConstitutiveLaw:
 -   A Young's modulus $E = 2.07e13 \  \mathrm{[Pa]}$ with Poisson's ratio $\nu = 0.29 \  \mathrm{[-]}$.
 -   Density of $7850.0 \  \mathrm{[kg/m^3]}$.
 -   Cross area of $0.01 \  \mathrm{[m^2]}$,
