@@ -1283,15 +1283,12 @@ KRATOS_TEST_CASE_IN_SUITE(UPwTriangleInterfaceElement_LeftHandSideContainsMateri
          {0, 0, 0, 0, 0, 0, 0, -1.6666666666666661, 0, 0, 0, 0, 0, 0, 0, 0, 1.6666666666666661, 0},
          {0, 0, 0, 0, 0, 0, -0.72168783648703216, 0, -2.9166666666666661, 0, 0, 0, 0, 0, 0,
           0.72168783648703216, 0, 2.9166666666666661}});
-    KRATOS_EXPECT_MATRIX_RELATIVE_NEAR(
-        subrange(actual_left_hand_side, 0, 0 + number_of_u_dofs, 0, 0 + number_of_u_dofs),
-        expected_uu_block_matrix, Defaults::relative_tolerance)
     const auto expected_up_block_matrix = Matrix{number_of_u_dofs, number_of_pw_dofs, 0.0};
-    AssertUPBlockMatrixIsNear(actual_left_hand_side, expected_up_block_matrix, number_of_u_dofs, number_of_pw_dofs);
     const auto expected_pu_block_matrix = Matrix{number_of_pw_dofs, number_of_u_dofs, 0.0};
-    AssertPUBlockMatrixIsNear(actual_left_hand_side, expected_pu_block_matrix, number_of_u_dofs, number_of_pw_dofs);
     const auto expected_pp_block_matrix = Matrix{number_of_pw_dofs, number_of_pw_dofs, 0.0};
-    AssertPPBlockMatrixIsNear(actual_left_hand_side, expected_pp_block_matrix, number_of_u_dofs, number_of_pw_dofs);
+    AssertLHSMatrixBlocksAreNear(actual_left_hand_side, expected_uu_block_matrix,
+                                 expected_up_block_matrix, expected_pu_block_matrix,
+                                 expected_pp_block_matrix, number_of_u_dofs, number_of_pw_dofs);
 }
 
 KRATOS_TEST_CASE_IN_SUITE(UPwTriangleInterfaceElement_RightHandSideEqualsMinusInternalForceVector,
@@ -1349,13 +1346,11 @@ KRATOS_TEST_CASE_IN_SUITE(UPwTriangleInterfaceElement_RightHandSideEqualsMinusIn
     ASSERT_EQ(actual_right_hand_side.size(), number_of_u_dofs + number_of_pw_dofs);
 
     const auto expected_u_block_vector = UblasUtilities::CreateVector(
-        {1.66667, 3.33333, 10, 1.66667, 3.33333, 10, 1.66667, 3.33333, 10, -1.66667, -3.33333, -10,
-         -1.66667, -3.33333, -10, -1.66667, -3.33333, -10});
-    constexpr auto tolerance = 1e-5;
-    KRATOS_EXPECT_VECTOR_RELATIVE_NEAR(subrange(actual_right_hand_side, 0, 0 + number_of_u_dofs),
-                                       expected_u_block_vector, tolerance)
+        {5.0 / 3.0, 10.0 / 3.0, 10, 5.0 / 3.0, 10.0 / 3.0, 10, 5.0 / 3.0, 10.0 / 3.0, 10.0, -5.0 / 3.0,
+         -10.0 / 3.0, -10.0, -5.0 / 3.0, -10.0 / 3.0, -10, -5.0 / 3.0, -10.0 / 3.0, -10.0});
     const auto expected_p_block_vector = Vector{number_of_pw_dofs, 0.0};
-    AssertPBlockVectorIsNear(actual_right_hand_side, expected_p_block_vector, number_of_u_dofs, number_of_pw_dofs);
+    AssertRHSVectorBlocksAreNear(actual_right_hand_side, expected_u_block_vector,
+                                 expected_p_block_vector, number_of_u_dofs, number_of_pw_dofs);
 }
 
 KRATOS_TEST_CASE_IN_SUITE(UPwTriangleInterfaceElement_GetInitializedConstitutiveLawsAfterElementInitialization,
@@ -1454,10 +1449,9 @@ KRATOS_TEST_CASE_IN_SUITE(UPwTriangleInterfaceElement_CalculateRelativeDisplacem
     const auto     p_properties = CreateElasticMaterialProperties<InterfaceThreeDimensionalSurface>(
         normal_stiffness, shear_stiffness);
 
-    const auto prescribed_displacements =
-        PrescribedBoundedArrays{{0, array_1d<double, 3>{1.0, 2.0, 3.0}},
-                                {1, array_1d<double, 3>{1.0, 2.0, 3.0}},
-                                {2, array_1d<double, 3>{1.0, 2.0, 3.0}}};
+    const auto first_side_displacement  = array_1d<double, 3>{1.0, 2.0, 3.0};
+    const auto prescribed_displacements = PrescribedBoundedArrays{
+        {0, first_side_displacement}, {1, first_side_displacement}, {2, first_side_displacement}};
     auto element = CreateAndInitializeElement(
         CreateTriangleInterfaceElementRotatedBy30DegreesWithUPwDoF, p_properties,
         IsDiffOrderElement::No, {CalculationContribution::Stiffness}, prescribed_displacements);
@@ -1487,10 +1481,9 @@ KRATOS_TEST_CASE_IN_SUITE(UPwTriangleInterfaceElementHorizontal_CalculateRelativ
     const auto     p_properties = CreateElasticMaterialProperties<InterfaceThreeDimensionalSurface>(
         normal_stiffness, shear_stiffness);
 
-    const auto prescribed_displacements =
-        PrescribedBoundedArrays{{0, array_1d<double, 3>{0.0, 0.0, 1.0}},
-                                {1, array_1d<double, 3>{0.0, 0.0, 1.0}},
-                                {2, array_1d<double, 3>{0.0, 0.0, 1.0}}};
+    const auto first_side_displacement  = array_1d<double, 3>{0.0, 0.0, 1.0};
+    const auto prescribed_displacements = PrescribedBoundedArrays{
+        {0, first_side_displacement}, {1, first_side_displacement}, {2, first_side_displacement}};
     auto element = CreateAndInitializeElement(
         CreateHorizontal3Plus3NodedTriangleInterfaceElementWithUPwDofs, p_properties,
         IsDiffOrderElement::No, {CalculationContribution::Stiffness}, prescribed_displacements);
@@ -1519,10 +1512,9 @@ KRATOS_TEST_CASE_IN_SUITE(UPwTriangleInterfaceElementInYZPlane_CalculateRelative
     const auto     p_properties = CreateElasticMaterialProperties<InterfaceThreeDimensionalSurface>(
         normal_stiffness, shear_stiffness);
 
-    const auto prescribed_displacements =
-        PrescribedBoundedArrays{{3, array_1d<double, 3>{1.0, 0.0, 0.0}},
-                                {4, array_1d<double, 3>{1.0, 0.0, 0.0}},
-                                {5, array_1d<double, 3>{1.0, 0.0, 0.0}}};
+    const auto second_side_displacement = array_1d<double, 3>{1.0, 0.0, 0.0};
+    const auto prescribed_displacements = PrescribedBoundedArrays{
+        {3, second_side_displacement}, {4, second_side_displacement}, {5, second_side_displacement}};
     auto element = CreateAndInitializeElement(
         CreateHorizontal3Plus3NodedTriangleInterfaceYZPlaneElementWithUPwDofs, p_properties,
         IsDiffOrderElement::No, {CalculationContribution::Stiffness}, prescribed_displacements);
@@ -1554,10 +1546,9 @@ KRATOS_TEST_CASE_IN_SUITE(UPwTriangleInterfaceElementInXZPlane_CalculateRelative
     // The prescribed displacements are in the direction of the normal of the interface
     // which is the -y direction. This results in a positive normal relative displacement,
     // since the second side of the interface is moved.
-    const auto prescribed_displacements =
-        PrescribedBoundedArrays{{3, array_1d<double, 3>{0.0, -1.0, 0.0}},
-                                {4, array_1d<double, 3>{0.0, -1.0, 0.0}},
-                                {5, array_1d<double, 3>{0.0, -1.0, 0.0}}};
+    const auto second_side_displacement = array_1d<double, 3>{0.0, -1.0, 0.0};
+    const auto prescribed_displacements = PrescribedBoundedArrays{
+        {3, second_side_displacement}, {4, second_side_displacement}, {5, second_side_displacement}};
     auto element = CreateAndInitializeElement(
         CreateHorizontal3Plus3NodedTriangleInterfaceXZPlaneElementWithUPwDofs, p_properties,
         IsDiffOrderElement::No, {CalculationContribution::Stiffness}, prescribed_displacements);
@@ -1586,10 +1577,9 @@ KRATOS_TEST_CASE_IN_SUITE(UPwTriangleInterfaceElement_CalculateEffectiveTraction
     const auto     p_properties = CreateElasticMaterialProperties<InterfaceThreeDimensionalSurface>(
         normal_stiffness, shear_stiffness);
 
-    const auto prescribed_displacements =
-        PrescribedBoundedArrays{{0, array_1d<double, 3>{1.0, 2.0, 3.0}},
-                                {1, array_1d<double, 3>{1.0, 2.0, 3.0}},
-                                {2, array_1d<double, 3>{1.0, 2.0, 3.0}}};
+    const auto first_side_displacement  = array_1d<double, 3>{1.0, 2.0, 3.0};
+    const auto prescribed_displacements = PrescribedBoundedArrays{
+        {0, first_side_displacement}, {1, first_side_displacement}, {2, first_side_displacement}};
     auto element = CreateAndInitializeElement(
         CreateTriangleInterfaceElementRotatedBy30DegreesWithUPwDoF, p_properties,
         IsDiffOrderElement::No, {CalculationContribution::Stiffness}, prescribed_displacements);
@@ -1617,10 +1607,9 @@ KRATOS_TEST_CASE_IN_SUITE(UPwTriangleInterfaceElement_6Plus6NodedElement_Returns
     const auto     p_properties = CreateElasticMaterialProperties<InterfaceThreeDimensionalSurface>(
         normal_stiffness, shear_stiffness);
 
-    const auto prescribed_displacements =
-        PrescribedBoundedArrays{{3, array_1d<double, 3>{0.2, 0.5, 0.0}},
-                                {4, array_1d<double, 3>{0.2, 0.5, 0.0}},
-                                {5, array_1d<double, 3>{0.2, 0.5, 0.0}}};
+    const auto second_side_displacement = array_1d<double, 3>{0.2, 0.5, 0.0};
+    const auto prescribed_displacements = PrescribedBoundedArrays{
+        {3, second_side_displacement}, {4, second_side_displacement}, {5, second_side_displacement}};
     auto element = CreateAndInitializeElement(
         CreateHorizontal6Plus6NodedTriangleInterfaceElementWithUPwDoF, p_properties,
         IsDiffOrderElement::No, {CalculationContribution::Stiffness}, prescribed_displacements);
@@ -1677,15 +1666,12 @@ KRATOS_TEST_CASE_IN_SUITE(UPwTriangleInterfaceElement_6Plus6NodedElement_Returns
          {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, -3.0046948356807506, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 3.0046948356807506}});
     // clang-format on
 
-    KRATOS_EXPECT_MATRIX_RELATIVE_NEAR(
-        subrange(actual_left_hand_side, 0, 0 + number_of_u_dofs, 0, 0 + number_of_u_dofs),
-        expected_uu_block_matrix, Defaults::relative_tolerance)
     const auto expected_up_block_matrix = Matrix{number_of_u_dofs, number_of_pw_dofs, 0.0};
-    AssertUPBlockMatrixIsNear(actual_left_hand_side, expected_up_block_matrix, number_of_u_dofs, number_of_pw_dofs);
     const auto expected_pu_block_matrix = Matrix{number_of_pw_dofs, number_of_u_dofs, 0.0};
-    AssertPUBlockMatrixIsNear(actual_left_hand_side, expected_pu_block_matrix, number_of_u_dofs, number_of_pw_dofs);
     const auto expected_pp_block_matrix = Matrix{number_of_pw_dofs, number_of_pw_dofs, 0.0};
-    AssertPPBlockMatrixIsNear(actual_left_hand_side, expected_pp_block_matrix, number_of_u_dofs, number_of_pw_dofs);
+    AssertLHSMatrixBlocksAreNear(actual_left_hand_side, expected_uu_block_matrix,
+                                 expected_up_block_matrix, expected_pu_block_matrix,
+                                 expected_pp_block_matrix, number_of_u_dofs, number_of_pw_dofs);
 
     const auto expected_stiffness_force = UblasUtilities::CreateVector(
         {0,         0,         0, 0,         0,         0, 0,         0,         0,
@@ -2139,15 +2125,12 @@ KRATOS_TEST_CASE_IN_SUITE(UPwDiffOrderTriangleInterfaceElement_6Plus6NodedElemen
          {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, -3.0046948356807506, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 3.0046948356807506}});
     // clang-format on
 
-    KRATOS_EXPECT_MATRIX_RELATIVE_NEAR(
-        subrange(actual_left_hand_side, 0, 0 + number_of_u_dofs, 0, 0 + number_of_u_dofs),
-        expected_uu_block_matrix, Defaults::relative_tolerance)
     const auto expected_up_block_matrix = Matrix{number_of_u_dofs, number_of_pw_dofs, 0.0};
-    AssertUPBlockMatrixIsNear(actual_left_hand_side, expected_up_block_matrix, number_of_u_dofs, number_of_pw_dofs);
     const auto expected_pu_block_matrix = Matrix{number_of_pw_dofs, number_of_u_dofs, 0.0};
-    AssertPUBlockMatrixIsNear(actual_left_hand_side, expected_pu_block_matrix, number_of_u_dofs, number_of_pw_dofs);
     const auto expected_pp_block_matrix = Matrix{number_of_pw_dofs, number_of_pw_dofs, 0.0};
-    AssertPPBlockMatrixIsNear(actual_left_hand_side, expected_pp_block_matrix, number_of_u_dofs, number_of_pw_dofs);
+    AssertLHSMatrixBlocksAreNear(actual_left_hand_side, expected_uu_block_matrix,
+                                 expected_up_block_matrix, expected_pu_block_matrix,
+                                 expected_pp_block_matrix, number_of_u_dofs, number_of_pw_dofs);
 
     const auto expected_u_block_vector = UblasUtilities::CreateVector(
         {0.0328638,  0.0821596,  -0, 0.0328638,  0.0821596,  -0, 0.0328638,  0.0821596,  -0,
@@ -2246,15 +2229,12 @@ KRATOS_TEST_CASE_IN_SUITE(UPwDiffOrderQuadrilateraleInterfaceElement_8Plus8Noded
             {0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,-4.2105263157894743,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,4.2105263157894743}});
     // clang-format on
 
-    KRATOS_EXPECT_MATRIX_RELATIVE_NEAR(
-        subrange(actual_left_hand_side, 0, 0 + number_of_u_dofs, 0, 0 + number_of_u_dofs),
-        expected_uu_block_matrix, Defaults::relative_tolerance)
     const auto expected_up_block_matrix = Matrix{number_of_u_dofs, number_of_pw_dofs, 0.0};
-    AssertUPBlockMatrixIsNear(actual_left_hand_side, expected_up_block_matrix, number_of_u_dofs, number_of_pw_dofs);
     const auto expected_pu_block_matrix = Matrix{number_of_pw_dofs, number_of_u_dofs, 0.0};
-    AssertPUBlockMatrixIsNear(actual_left_hand_side, expected_pu_block_matrix, number_of_u_dofs, number_of_pw_dofs);
     const auto expected_pp_block_matrix = Matrix{number_of_pw_dofs, number_of_pw_dofs, 0.0};
-    AssertPPBlockMatrixIsNear(actual_left_hand_side, expected_pp_block_matrix, number_of_u_dofs, number_of_pw_dofs);
+    AssertLHSMatrixBlocksAreNear(actual_left_hand_side, expected_uu_block_matrix,
+                                 expected_up_block_matrix, expected_pu_block_matrix,
+                                 expected_pp_block_matrix, number_of_u_dofs, number_of_pw_dofs);
 
     const auto expected_u_block_vector = UblasUtilities::CreateVector(
         {0.0789474,  0.197368,   -0,        0.0789474,  0.197368,  -0,        0.0789474,  0.197368,
