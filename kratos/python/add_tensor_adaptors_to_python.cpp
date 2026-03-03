@@ -307,22 +307,22 @@ void AddTensorAdaptorsToPython(pybind11::module& m)
 
      py::class_<GeometryMetricsTensorAdaptor, GeometryMetricsTensorAdaptor::Pointer, GeometryMetricsTensorAdaptor::BaseType> geometric_tensor_adaptor(tensor_adaptor_sub_module, "GeometryMetricsTensorAdaptor");
 
-     py::enum_<GeometryMetricsTensorAdaptor::DatumType>(geometric_tensor_adaptor,"DatumType")
-          .value("DomainSize", GeometryMetricsTensorAdaptor::DatumType::DomainSize)
+     py::enum_<GeometryMetricsTensorAdaptor::Metric>(geometric_tensor_adaptor,"Metric")
+          .value("DomainSize", GeometryMetricsTensorAdaptor::Metric::DomainSize)
           .export_values();
 
      geometric_tensor_adaptor
-          .def(py::init<const GeometryMetricsTensorAdaptor::BaseType&, GeometryMetricsTensorAdaptor::DatumType, const bool>(),
+          .def(py::init<const GeometryMetricsTensorAdaptor::BaseType&, GeometryMetricsTensorAdaptor::Metric, const bool>(),
                py::arg("tensor_adaptor"),
                py::arg("datum"),
                py::arg("copy") = true)
-          .def(py::init<ModelPart::GeometryContainerType::Pointer, GeometryMetricsTensorAdaptor::DatumType>(),
+          .def(py::init<ModelPart::GeometryContainerType::Pointer, GeometryMetricsTensorAdaptor::Metric>(),
                py::arg("container"),
                py::arg("datum"))
-          .def(py::init<ModelPart::ConditionsContainerType::Pointer, GeometryMetricsTensorAdaptor::DatumType>(),
+          .def(py::init<ModelPart::ConditionsContainerType::Pointer, GeometryMetricsTensorAdaptor::Metric>(),
                py::arg("container"),
                py::arg("datum"))
-          .def(py::init<ModelPart::ElementsContainerType::Pointer, GeometryMetricsTensorAdaptor::DatumType>(),
+          .def(py::init<ModelPart::ElementsContainerType::Pointer, GeometryMetricsTensorAdaptor::Metric>(),
                py::arg("container"),
                py::arg("datum"));
 }
