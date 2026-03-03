@@ -67,6 +67,12 @@ public:
     /// The definition of the CL base class
     using BaseType = ConstitutiveLaw;
 
+    /// Unhide the base class SetValue overloads
+    using BaseType::SetValue;
+
+    /// Unhide the base class GetValue overloads
+    using BaseType::GetValue;
+
     /// The definition of the size type
     using SizeType = std::size_t;
 

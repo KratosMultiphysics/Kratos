@@ -24,6 +24,7 @@
 #include "python/numpy_utils.h"
 #include "utilities/container_io_utils.h"
 #include "utilities/parallel_utilities.h"
+#include "tensor_adaptors/tensor_adaptor_utils.h"
 
 // Tensor adaptors
 #include "tensor_adaptors/combined_tensor_adaptor.h"
@@ -127,6 +128,10 @@ void AddTensorAdaptorsToPython(pybind11::module& m)
      Detail::AddCombinedTensorAdaptor<bool>(tensor_adaptor_sub_module, "BoolCombinedTensorAdaptor");
      Detail::AddCombinedTensorAdaptor<int>(tensor_adaptor_sub_module, "IntCombinedTensorAdaptor");
      Detail::AddCombinedTensorAdaptor<double>(tensor_adaptor_sub_module, "DoubleCombinedTensorAdaptor");
+
+     auto tensor_adaptor_utils = tensor_adaptor_sub_module.def_submodule("Utils");
+     tensor_adaptor_utils.def("CreateNodalConditionNeighboursCountTensorAdaptor", &TensorAdaptorUtils::CreateNodalNeighboursCountTensorAdaptor<ModelPart::ConditionsContainerType>, py::arg("model_part"));
+     tensor_adaptor_utils.def("CreateNodalElementNeighboursCountTensorAdaptor", &TensorAdaptorUtils::CreateNodalNeighboursCountTensorAdaptor<ModelPart::ElementsContainerType>, py::arg("model_part"));
 
      py::class_<HistoricalVariableTensorAdaptor, HistoricalVariableTensorAdaptor::Pointer, HistoricalVariableTensorAdaptor::BaseType>(tensor_adaptor_sub_module, "HistoricalVariableTensorAdaptor")
           .def(py::init<ModelPart::NodesContainerType::Pointer, HistoricalVariableTensorAdaptor::VariablePointerType, const int>(),
