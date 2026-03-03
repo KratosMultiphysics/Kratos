@@ -2015,13 +2015,10 @@ KRATOS_TEST_CASE_IN_SUITE(ThreePlusThreeDiffOrderLineInterface_ReturnsExpectedLe
 
     // Act
     interface_element.Initialize(ProcessInfo{});
-    const auto prescribed_displacements =
-        PrescribedDisplacements{{3, array_1d<double, 3>{0.2, 0.5, 0.0}},
-                                {4, array_1d<double, 3>{0.2, 0.5, 0.0}},
-                                {5, array_1d<double, 3>{0.2, 0.5, 0.0}}};
-    for (const auto& [idx, disp] : prescribed_displacements) {
-        interface_element.GetGeometry()[idx].FastGetSolutionStepValue(DISPLACEMENT) = disp;
-    }
+    const auto second_side_displacement = array_1d<double, 3>{0.2, 0.5, 0.0};
+    const auto prescribed_displacements = PrescribedDisplacements{
+        {3, second_side_displacement}, {4, second_side_displacement}, {5, second_side_displacement}};
+    SetVariableOnGeometry(interface_element.GetGeometry(), DISPLACEMENT, prescribed_displacements);
 
     Matrix actual_left_hand_side;
     Vector actual_right_hand_side;
@@ -2090,13 +2087,12 @@ KRATOS_TEST_CASE_IN_SUITE(UPwDiffOrderTriangleInterfaceElement_6Plus6NodedElemen
         {CalculationContribution::Stiffness});
     interface_element.Initialize(ProcessInfo{});
 
-    const auto prescribed_displacements = PrescribedDisplacements{
-        {6, array_1d<double, 3>{0.2, 0.5, 0.0}},  {7, array_1d<double, 3>{0.2, 0.5, 0.0}},
-        {8, array_1d<double, 3>{0.2, 0.5, 0.0}},  {9, array_1d<double, 3>{0.2, 0.5, 0.0}},
-        {10, array_1d<double, 3>{0.2, 0.5, 0.0}}, {11, array_1d<double, 3>{0.2, 0.5, 0.0}}};
-    for (const auto& [idx, disp] : prescribed_displacements) {
-        interface_element.GetGeometry()[idx].FastGetSolutionStepValue(DISPLACEMENT) = disp;
-    }
+    const auto second_side_displacement = array_1d<double, 3>{0.2, 0.5, 0.0};
+    const auto prescribed_displacements =
+        PrescribedDisplacements{{6, second_side_displacement},  {7, second_side_displacement},
+                                {8, second_side_displacement},  {9, second_side_displacement},
+                                {10, second_side_displacement}, {11, second_side_displacement}};
+    SetVariableOnGeometry(interface_element.GetGeometry(), DISPLACEMENT, prescribed_displacements);
 
     // Act
     Vector actual_right_hand_side;
@@ -2185,15 +2181,13 @@ KRATOS_TEST_CASE_IN_SUITE(UPwDiffOrderQuadrilateraleInterfaceElement_8Plus8Noded
         model, p_properties, IsDiffOrderElement::Yes, {CalculationContribution::Stiffness});
 
     interface_element.Initialize(ProcessInfo{});
-
-    const auto prescribed_displacements = PrescribedDisplacements{
-        {8, array_1d<double, 3>{0.2, 0.5, 0.0}},  {9, array_1d<double, 3>{0.2, 0.5, 0.0}},
-        {10, array_1d<double, 3>{0.2, 0.5, 0.0}}, {11, array_1d<double, 3>{0.2, 0.5, 0.0}},
-        {12, array_1d<double, 3>{0.2, 0.5, 0.0}}, {13, array_1d<double, 3>{0.2, 0.5, 0.0}},
-        {14, array_1d<double, 3>{0.2, 0.5, 0.0}}, {15, array_1d<double, 3>{0.2, 0.5, 0.0}}};
-    for (const auto& [idx, disp] : prescribed_displacements) {
-        interface_element.GetGeometry()[idx].FastGetSolutionStepValue(DISPLACEMENT) = disp;
-    }
+    const auto second_side_displacement = array_1d<double, 3>{0.2, 0.5, 0.0};
+    const auto prescribed_displacements =
+        PrescribedDisplacements{{8, second_side_displacement},  {9, second_side_displacement},
+                                {12, second_side_displacement}, {13, second_side_displacement},
+                                {14, second_side_displacement}, {15, second_side_displacement},
+                                {10, second_side_displacement}, {11, second_side_displacement}};
+    SetVariableOnGeometry(interface_element.GetGeometry(), DISPLACEMENT, prescribed_displacements);
 
     // Act
     Vector actual_right_hand_side;
@@ -2375,10 +2369,10 @@ KRATOS_TEST_CASE_IN_SUITE(UPwLineInterfaceElement_VerticalInterfaceFluidBodyFlow
     constexpr auto number_of_u_dofs        = std::size_t{4 * 2};
     constexpr auto number_of_pw_dofs       = std::size_t{4};
     const auto     expected_u_block_vector = Vector{number_of_u_dofs, 0.0};
-    AssertUBlockVectorIsNear(actual_right_hand_side, expected_u_block_vector, number_of_u_dofs, number_of_pw_dofs);
     // The fluid body flow of a vertical interface subjected to vertical gravity should be zero
     const auto expected_p_block_vector = Vector{number_of_pw_dofs, 0.0};
-    AssertPBlockVectorIsNear(actual_right_hand_side, expected_p_block_vector, number_of_u_dofs, number_of_pw_dofs);
+    AssertRHSVectorBlocksAreNear(actual_right_hand_side, expected_u_block_vector,
+                                 expected_p_block_vector, number_of_u_dofs, number_of_pw_dofs);
 }
 
 KRATOS_TEST_CASE_IN_SUITE(UPwLineInterfaceElement_Inclined2DOpenInterfaceFluidBodyFlowContributions,
@@ -2435,10 +2429,10 @@ KRATOS_TEST_CASE_IN_SUITE(UPwLineInterfaceElement_Inclined2DOpenInterfaceFluidBo
     constexpr auto number_of_u_dofs        = std::size_t{6 * 2};
     constexpr auto number_of_pw_dofs       = std::size_t{4};
     const auto     expected_u_block_vector = Vector{number_of_u_dofs, 0.0};
-    AssertUBlockVectorIsNear(actual_right_hand_side, expected_u_block_vector, number_of_u_dofs, number_of_pw_dofs);
-    const auto expected_p_block_vector = UblasUtilities::CreateVector(
+    const auto     expected_p_block_vector = UblasUtilities::CreateVector(
         {0.5 * sqrt3 * -125.0, 0.5 * sqrt3 * -125.0, 0.5 * sqrt3 * 125.0, 0.5 * sqrt3 * 125.0});
-    AssertPBlockVectorIsNear(actual_right_hand_side, expected_p_block_vector, number_of_u_dofs, number_of_pw_dofs);
+    AssertRHSVectorBlocksAreNear(actual_right_hand_side, expected_u_block_vector,
+                                 expected_p_block_vector, number_of_u_dofs, number_of_pw_dofs);
 }
 
 KRATOS_TEST_CASE_IN_SUITE(UPwLineInterfaceElement_Horizontal3D8plus8DiffOrderInterfaceFluidBodyFlowAndPermeabilityContributionsCancelForHydrostatic,
@@ -2482,30 +2476,28 @@ KRATOS_TEST_CASE_IN_SUITE(UPwLineInterfaceElement_Horizontal3D8plus8DiffOrderInt
         {CalculationContribution::Permeability, CalculationContribution::FluidBodyFlow});
     element.Initialize(ProcessInfo{});
 
+    const auto zero_displacement        = array_1d<double, 3>{0.0, 0.0, 0.0};
     const auto prescribed_displacements = PrescribedDisplacements{
-        {0, array_1d<double, 3>{0.0, 0.0, 0.0}},  {1, array_1d<double, 3>{0.0, 0.0, 0.0}},
-        {2, array_1d<double, 3>{0.0, 0.0, 0.0}},  {3, array_1d<double, 3>{0.0, 0.0, 0.0}},
-        {4, array_1d<double, 3>{0.0, 0.0, 0.0}},  {5, array_1d<double, 3>{0.0, 0.0, 0.0}},
-        {6, array_1d<double, 3>{0.0, 0.0, 0.0}},  {7, array_1d<double, 3>{0.0, 0.0, 0.0}},
-        {8, array_1d<double, 3>{0.0, 0.0, 0.0}},  {9, array_1d<double, 3>{0.0, 0.0, 0.0}},
-        {10, array_1d<double, 3>{0.0, 0.0, 0.0}}, {11, array_1d<double, 3>{0.0, 0.0, 0.0}},
-        {12, array_1d<double, 3>{0.0, 0.0, 0.0}}, {13, array_1d<double, 3>{0.0, 0.0, 0.0}},
-        {14, array_1d<double, 3>{0.0, 0.0, 0.0}}, {15, array_1d<double, 3>{0.0, 0.0, 0.0}}};
+        {0, zero_displacement},  {1, zero_displacement},  {2, zero_displacement},
+        {3, zero_displacement},  {4, zero_displacement},  {5, zero_displacement},
+        {6, zero_displacement},  {7, zero_displacement},  {8, zero_displacement},
+        {9, zero_displacement},  {10, zero_displacement}, {11, zero_displacement},
+        {12, zero_displacement}, {13, zero_displacement}, {14, zero_displacement},
+        {15, zero_displacement}};
 
     const auto prescribed_water_pressures = PrescribedWaterPressures{
         {0, 50.0E3},  {1, 50.0E3},  {2, 50.0E3},  {3, 50.0E3}, {4, 50.5E3},  {5, 50.0E3},
         {6, 50.0E3},  {7, 50.0E3},  {8, 40.0E3},  {9, 40.0E3}, {10, 40.0E3}, {11, 40.0E3},
         {12, 40.0E3}, {13, 40.0E3}, {14, 40.0E3}, {15, 40.0E3}};
 
+    const auto gravity_acceleration = array_1d<double, 3>{0.0, 0.0, -10.0};
     const auto prescribed_volume_accelerations = std::vector<std::pair<std::size_t, array_1d<double, 3>>>{
-        {0, array_1d<double, 3>{0.0, 0.0, -10.0}},  {1, array_1d<double, 3>{0.0, 0.0, -10.0}},
-        {2, array_1d<double, 3>{0.0, 0.0, -10.0}},  {3, array_1d<double, 3>{0.0, 0.0, -10.0}},
-        {4, array_1d<double, 3>{0.0, 0.0, -10.0}},  {5, array_1d<double, 3>{0.0, 0.0, -10.0}},
-        {6, array_1d<double, 3>{0.0, 0.0, -10.0}},  {7, array_1d<double, 3>{0.0, 0.0, -10.0}},
-        {8, array_1d<double, 3>{0.0, 0.0, -10.0}},  {9, array_1d<double, 3>{0.0, 0.0, -10.0}},
-        {10, array_1d<double, 3>{0.0, 0.0, -10.0}}, {11, array_1d<double, 3>{0.0, 0.0, -10.0}},
-        {12, array_1d<double, 3>{0.0, 0.0, -10.0}}, {13, array_1d<double, 3>{0.0, 0.0, -10.0}},
-        {14, array_1d<double, 3>{0.0, 0.0, -10.0}}, {15, array_1d<double, 3>{0.0, 0.0, -10.0}}};
+        {0, gravity_acceleration},  {1, gravity_acceleration},  {2, gravity_acceleration},
+        {3, gravity_acceleration},  {4, gravity_acceleration},  {5, gravity_acceleration},
+        {6, gravity_acceleration},  {7, gravity_acceleration},  {8, gravity_acceleration},
+        {9, gravity_acceleration},  {10, gravity_acceleration}, {11, gravity_acceleration},
+        {12, gravity_acceleration}, {13, gravity_acceleration}, {14, gravity_acceleration},
+        {15, gravity_acceleration}};
 
     SetVariableOnGeometry(element.GetGeometry(), DISPLACEMENT, prescribed_displacements);
     SetVariableOnGeometry(element.GetGeometry(), WATER_PRESSURE, prescribed_water_pressures);
@@ -2519,11 +2511,10 @@ KRATOS_TEST_CASE_IN_SUITE(UPwLineInterfaceElement_Horizontal3D8plus8DiffOrderInt
     constexpr auto number_of_u_dofs        = std::size_t{16 * 3};
     constexpr auto number_of_pw_dofs       = std::size_t{8};
     const auto     expected_u_block_vector = Vector{number_of_u_dofs, 0.0};
-    AssertUBlockVectorIsNear(actual_right_hand_side, expected_u_block_vector, number_of_u_dofs, number_of_pw_dofs);
     // The fluid body flow of a horizontal interface subjected to vertical gravity should be zero
     const auto expected_p_block_vector = Vector{number_of_pw_dofs, 0.0};
-
-    AssertPBlockVectorIsNear(actual_right_hand_side, expected_p_block_vector, number_of_u_dofs, number_of_pw_dofs);
+    AssertRHSVectorBlocksAreNear(actual_right_hand_side, expected_u_block_vector,
+                                 expected_p_block_vector, number_of_u_dofs, number_of_pw_dofs);
 }
 
 KRATOS_TEST_CASE_IN_SUITE(UPwLineInterfaceElement_Vertical3D8plus8DiffOrderInterfaceFluidBodyFlowIsZeroForHydrostatic,
@@ -2601,11 +2592,10 @@ KRATOS_TEST_CASE_IN_SUITE(UPwLineInterfaceElement_Vertical3D8plus8DiffOrderInter
     constexpr auto number_of_u_dofs        = std::size_t{16 * 3};
     constexpr auto number_of_pw_dofs       = std::size_t{8};
     const auto     expected_u_block_vector = Vector{number_of_u_dofs, 0.0};
-    AssertUBlockVectorIsNear(actual_right_hand_side, expected_u_block_vector, number_of_u_dofs, number_of_pw_dofs);
     // The fluid body flow of a vertical interface subjected to vertical gravity should be zero
     const auto expected_p_block_vector = Vector{number_of_pw_dofs, 0.0};
-
-    AssertPBlockVectorIsNear(actual_right_hand_side, expected_p_block_vector, number_of_u_dofs, number_of_pw_dofs);
+    AssertRHSVectorBlocksAreNear(actual_right_hand_side, expected_u_block_vector,
+                                 expected_p_block_vector, number_of_u_dofs, number_of_pw_dofs);
 }
 
 KRATOS_TEST_CASE_IN_SUITE(UPwLineInterfaceElement_Inclined3DInterfaceFluidBodyFlowAndPermeabilityContributions,
@@ -2683,11 +2673,11 @@ KRATOS_TEST_CASE_IN_SUITE(UPwLineInterfaceElement_Inclined3DInterfaceFluidBodyFl
     constexpr auto number_of_u_dofs        = std::size_t{16 * 3};
     constexpr auto number_of_pw_dofs       = std::size_t{8};
     const auto     expected_u_block_vector = Vector{number_of_u_dofs, 0.0};
-    AssertUBlockVectorIsNear(actual_right_hand_side, expected_u_block_vector, number_of_u_dofs, number_of_pw_dofs);
-    const auto flow = (1.0 - 0.5 * sqrt3) * 62.5;
-    const auto expected_p_block_vector =
+    const auto     flow                    = (1.0 - 0.5 * sqrt3) * 62.5;
+    const auto     expected_p_block_vector =
         UblasUtilities::CreateVector({flow, flow, flow, flow, -flow, -flow, -flow, -flow});
-    AssertPBlockVectorIsNear(actual_right_hand_side, expected_p_block_vector, number_of_u_dofs, number_of_pw_dofs);
+    AssertRHSVectorBlocksAreNear(actual_right_hand_side, expected_u_block_vector,
+                                 expected_p_block_vector, number_of_u_dofs, number_of_pw_dofs);
 }
 
 KRATOS_TEST_CASE_IN_SUITE(UPwLineInterfaceElement_2Plus2Element_UPCouplingContribution,
