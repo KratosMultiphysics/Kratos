@@ -46,6 +46,16 @@ using Interface3D                                 = SurfaceInterfaceStressState;
 using PrescribedDisplacements  = std::vector<std::pair<std::size_t, array_1d<double, 3>>>;
 using PrescribedWaterPressures = std::vector<std::pair<std::size_t, double>>;
 
+template <class VariableType>
+void SetVariableOnGeometry(Geometry<Node>&     rGeometry,
+                           const VariableType& rVariable,
+                           const std::vector<std::pair<std::size_t, typename VariableType::Type>>& rIndicesAndValues)
+{
+    for (const auto& [idx, value] : rIndicesAndValues) {
+        rGeometry[idx].FastGetSolutionStepValue(rVariable) = value;
+    }
+}
+
 PointerVector<Node> CreateNodesFor2Plus2LineInterfaceGeometry()
 {
     PointerVector<Node> result;
@@ -2286,20 +2296,16 @@ KRATOS_TEST_CASE_IN_SUITE(UPwLineInterfaceElement_HorizontalOpenInterfacePermeab
     p_properties->SetValue(RETENTION_LAW, "SaturatedLaw");
     p_properties->SetValue(DENSITY_WATER, 1000.0);
 
-    const auto prescribed_displacements =
-        PrescribedDisplacements{{0, array_1d<double, 3>{0.0, 0.0, 0.0}},
-                                {1, array_1d<double, 3>{0.0, 0.0, 0.0}},
-                                {2, array_1d<double, 3>{0.0, 0.0, 0.0}},
-                                {3, array_1d<double, 3>{0.0, 0.0, 0.0}}};
+    const auto zero_displacement        = array_1d<double, 3>{0.0, 0.0, 0.0};
+    const auto prescribed_displacements = PrescribedDisplacements{
+        {0, zero_displacement}, {1, zero_displacement}, {2, zero_displacement}, {3, zero_displacement}};
 
     const auto prescribed_water_pressures =
         PrescribedWaterPressures{{0, 20.0E3}, {1, 20.0E3}, {2, 10.0E3}, {3, 10.0E3}};
 
+    const auto gravity_acceleration = array_1d<double, 3>{0.0, -10.0, 0.0};
     const auto prescribed_volume_accelerations = std::vector<std::pair<std::size_t, array_1d<double, 3>>>{
-        {0, array_1d<double, 3>{0.0, -10.0, 0.0}},
-        {1, array_1d<double, 3>{0.0, -10.0, 0.0}},
-        {2, array_1d<double, 3>{0.0, -10.0, 0.0}},
-        {3, array_1d<double, 3>{0.0, -10.0, 0.0}}};
+        {0, gravity_acceleration}, {1, gravity_acceleration}, {2, gravity_acceleration}, {3, gravity_acceleration}};
 
     auto element = CreateAndInitializeElement(
         CreateHorizontalOpenUnitLength2Plus2NodedLineInterfaceElementWithUPwDofs, p_properties,
@@ -2311,13 +2317,13 @@ KRATOS_TEST_CASE_IN_SUITE(UPwLineInterfaceElement_HorizontalOpenInterfacePermeab
     element.CalculateRightHandSide(actual_right_hand_side, ProcessInfo{});
 
     // Assert
-    constexpr auto number_of_u_dofs        = std::size_t{4 * 2};
-    constexpr auto number_of_pw_dofs       = std::size_t{4};
-    const auto     expected_u_block_vector = Vector{number_of_u_dofs, 0.0};
-    AssertUBlockVectorIsNear(actual_right_hand_side, expected_u_block_vector, number_of_u_dofs, number_of_pw_dofs);
+    constexpr auto number_of_u_dofs  = std::size_t{4 * 2};
+    constexpr auto number_of_pw_dofs = std::size_t{4};
     // The permeability flow and fluid body flow should cancel each other
+    const auto expected_u_block_vector = Vector{number_of_u_dofs, 0.0};
     const auto expected_p_block_vector = Vector{number_of_pw_dofs, 0.0};
-    AssertPBlockVectorIsNear(actual_right_hand_side, expected_p_block_vector, number_of_u_dofs, number_of_pw_dofs);
+    AssertRHSVectorBlocksAreNear(actual_right_hand_side, expected_u_block_vector,
+                                 expected_p_block_vector, number_of_u_dofs, number_of_pw_dofs);
 }
 
 KRATOS_TEST_CASE_IN_SUITE(UPwLineInterfaceElement_VerticalInterfaceFluidBodyFlowContributionsIsZero,
@@ -2346,30 +2352,20 @@ KRATOS_TEST_CASE_IN_SUITE(UPwLineInterfaceElement_VerticalInterfaceFluidBodyFlow
         p_properties, p_geometry, IsDiffOrderElement::No, {CalculationContribution::FluidBodyFlow});
     element.Initialize(ProcessInfo{});
 
-    const auto prescribed_displacements =
-        PrescribedDisplacements{{0, array_1d<double, 3>{0.0, 0.0, 0.0}},
-                                {1, array_1d<double, 3>{0.0, 0.0, 0.0}},
-                                {2, array_1d<double, 3>{0.0, 0.0, 0.0}},
-                                {3, array_1d<double, 3>{0.0, 0.0, 0.0}}};
+    const auto zero_displacement        = array_1d<double, 3>{0.0, 0.0, 0.0};
+    const auto prescribed_displacements = PrescribedDisplacements{
+        {0, zero_displacement}, {1, zero_displacement}, {2, zero_displacement}, {3, zero_displacement}};
 
     const auto prescribed_water_pressures =
         PrescribedWaterPressures{{0, 10.0E3}, {1, 20.0E3}, {2, 10.0E3}, {3, 20.0E3}};
 
+    const auto gravity_acceleration = array_1d<double, 3>{0.0, -10.0, 0.0};
     const auto prescribed_volume_accelerations = std::vector<std::pair<std::size_t, array_1d<double, 3>>>{
-        {0, array_1d<double, 3>{0.0, -10.0, 0.0}},
-        {1, array_1d<double, 3>{0.0, -10.0, 0.0}},
-        {2, array_1d<double, 3>{0.0, -10.0, 0.0}},
-        {3, array_1d<double, 3>{0.0, -10.0, 0.0}}};
+        {0, gravity_acceleration}, {1, gravity_acceleration}, {2, gravity_acceleration}, {3, gravity_acceleration}};
 
-    for (const auto& [idx, disp] : prescribed_displacements) {
-        element.GetGeometry()[idx].FastGetSolutionStepValue(DISPLACEMENT) = disp;
-    }
-    for (const auto& [idx, p_w] : prescribed_water_pressures) {
-        element.GetGeometry()[idx].FastGetSolutionStepValue(WATER_PRESSURE) = p_w;
-    }
-    for (const auto& [idx, volume_acceleration] : prescribed_volume_accelerations) {
-        element.GetGeometry()[idx].FastGetSolutionStepValue(VOLUME_ACCELERATION) = volume_acceleration;
-    }
+    SetVariableOnGeometry(element.GetGeometry(), DISPLACEMENT, prescribed_displacements);
+    SetVariableOnGeometry(element.GetGeometry(), WATER_PRESSURE, prescribed_water_pressures);
+    SetVariableOnGeometry(element.GetGeometry(), VOLUME_ACCELERATION, prescribed_volume_accelerations);
 
     // Act
     Vector actual_right_hand_side;
@@ -2414,30 +2410,22 @@ KRATOS_TEST_CASE_IN_SUITE(UPwLineInterfaceElement_Inclined2DOpenInterfaceFluidBo
         p_properties, p_geometry, IsDiffOrderElement::Yes, {CalculationContribution::FluidBodyFlow});
     element.Initialize(ProcessInfo{});
 
+    const auto zero_displacement        = array_1d<double, 3>{0.0, 0.0, 0.0};
     const auto prescribed_displacements = PrescribedDisplacements{
-        {0, array_1d<double, 3>{0.0, 0.0, 0.0}}, {1, array_1d<double, 3>{0.0, 0.0, 0.0}},
-        {2, array_1d<double, 3>{0.0, 0.0, 0.0}}, {3, array_1d<double, 3>{0.0, 0.0, 0.0}},
-        {4, array_1d<double, 3>{0.0, 0.0, 0.0}}, {5, array_1d<double, 3>{0.0, 0.0, 0.0}}};
+        {0, zero_displacement}, {1, zero_displacement}, {2, zero_displacement},
+        {3, zero_displacement}, {4, zero_displacement}, {5, zero_displacement}};
 
     const auto prescribed_water_pressures = PrescribedWaterPressures{
         {0, 20.0E3}, {1, 15.0E3}, {2, 17.5E3}, {3, 10.0E3}, {4, 5.0E3}, {5, 7.5E3}};
 
+    const auto gravity_acceleration = array_1d<double, 3>{0.0, -10.0, 0.0};
     const auto prescribed_volume_accelerations = std::vector<std::pair<std::size_t, array_1d<double, 3>>>{
-        {0, array_1d<double, 3>{0.0, -10.0, 0.0}},
-        {1, array_1d<double, 3>{0.0, -10.0, 0.0}},
-        {3, array_1d<double, 3>{0.0, -10.0, 0.0}},
-        {4, array_1d<double, 3>{0.0, -10.0, 0.0}},
-        {5, array_1d<double, 3>{0.0, -10.0, 0.0}}};
+        {0, gravity_acceleration}, {1, gravity_acceleration}, {2, gravity_acceleration},
+        {3, gravity_acceleration}, {4, gravity_acceleration}, {5, gravity_acceleration}};
 
-    for (const auto& [idx, disp] : prescribed_displacements) {
-        element.GetGeometry()[idx].FastGetSolutionStepValue(DISPLACEMENT) = disp;
-    }
-    for (const auto& [idx, p_w] : prescribed_water_pressures) {
-        element.GetGeometry()[idx].FastGetSolutionStepValue(WATER_PRESSURE) = p_w;
-    }
-    for (const auto& [idx, volume_acceleration] : prescribed_volume_accelerations) {
-        element.GetGeometry()[idx].FastGetSolutionStepValue(VOLUME_ACCELERATION) = volume_acceleration;
-    }
+    SetVariableOnGeometry(element.GetGeometry(), DISPLACEMENT, prescribed_displacements);
+    SetVariableOnGeometry(element.GetGeometry(), WATER_PRESSURE, prescribed_water_pressures);
+    SetVariableOnGeometry(element.GetGeometry(), VOLUME_ACCELERATION, prescribed_volume_accelerations);
 
     // Act
     Vector actual_right_hand_side;
@@ -2519,15 +2507,9 @@ KRATOS_TEST_CASE_IN_SUITE(UPwLineInterfaceElement_Horizontal3D8plus8DiffOrderInt
         {12, array_1d<double, 3>{0.0, 0.0, -10.0}}, {13, array_1d<double, 3>{0.0, 0.0, -10.0}},
         {14, array_1d<double, 3>{0.0, 0.0, -10.0}}, {15, array_1d<double, 3>{0.0, 0.0, -10.0}}};
 
-    for (const auto& [idx, disp] : prescribed_displacements) {
-        element.GetGeometry()[idx].FastGetSolutionStepValue(DISPLACEMENT) = disp;
-    }
-    for (const auto& [idx, p_w] : prescribed_water_pressures) {
-        element.GetGeometry()[idx].FastGetSolutionStepValue(WATER_PRESSURE) = p_w;
-    }
-    for (const auto& [idx, volume_acceleration] : prescribed_volume_accelerations) {
-        element.GetGeometry()[idx].FastGetSolutionStepValue(VOLUME_ACCELERATION) = volume_acceleration;
-    }
+    SetVariableOnGeometry(element.GetGeometry(), DISPLACEMENT, prescribed_displacements);
+    SetVariableOnGeometry(element.GetGeometry(), WATER_PRESSURE, prescribed_water_pressures);
+    SetVariableOnGeometry(element.GetGeometry(), VOLUME_ACCELERATION, prescribed_volume_accelerations);
 
     // Act
     Vector actual_right_hand_side;
@@ -2584,40 +2566,32 @@ KRATOS_TEST_CASE_IN_SUITE(UPwLineInterfaceElement_Vertical3D8plus8DiffOrderInter
         p_properties, p_geometry, IsDiffOrderElement::Yes, {CalculationContribution::FluidBodyFlow});
     element.Initialize(ProcessInfo{});
 
+    const auto zero_displacement        = array_1d<double, 3>{0.0, 0.0, 0.0};
     const auto prescribed_displacements = PrescribedDisplacements{
-        {0, array_1d<double, 3>{0.0, 0.0, 0.0}},  {1, array_1d<double, 3>{0.0, 0.0, 0.0}},
-        {2, array_1d<double, 3>{0.0, 0.0, 0.0}},  {3, array_1d<double, 3>{0.0, 0.0, 0.0}},
-        {4, array_1d<double, 3>{0.0, 0.0, 0.0}},  {5, array_1d<double, 3>{0.0, 0.0, 0.0}},
-        {6, array_1d<double, 3>{0.0, 0.0, 0.0}},  {7, array_1d<double, 3>{0.0, 0.0, 0.0}},
-        {8, array_1d<double, 3>{0.0, 0.0, 0.0}},  {9, array_1d<double, 3>{0.0, 0.0, 0.0}},
-        {10, array_1d<double, 3>{0.0, 0.0, 0.0}}, {11, array_1d<double, 3>{0.0, 0.0, 0.0}},
-        {12, array_1d<double, 3>{0.0, 0.0, 0.0}}, {13, array_1d<double, 3>{0.0, 0.0, 0.0}},
-        {14, array_1d<double, 3>{0.0, 0.0, 0.0}}, {15, array_1d<double, 3>{0.0, 0.0, 0.0}}};
+        {0, zero_displacement},  {1, zero_displacement},  {2, zero_displacement},
+        {3, zero_displacement},  {4, zero_displacement},  {5, zero_displacement},
+        {6, zero_displacement},  {7, zero_displacement},  {8, zero_displacement},
+        {9, zero_displacement},  {10, zero_displacement}, {11, zero_displacement},
+        {12, zero_displacement}, {13, zero_displacement}, {14, zero_displacement},
+        {15, zero_displacement}};
 
     const auto prescribed_water_pressures = PrescribedWaterPressures{
         {0, 50.0E3},  {1, 50.0E3},  {2, 40.0E3},  {3, 40.0E3}, {4, 50.0E3},  {5, 45.0E3},
         {6, 40.0E3},  {7, 45.0E3},  {8, 50.0E3},  {9, 50.0E3}, {10, 40.0E3}, {11, 40.0E3},
         {12, 50.0E3}, {13, 45.0E3}, {14, 40.0E3}, {15, 45.0E3}};
 
+    const auto gravity_acceleration = array_1d<double, 3>{0.0, 0.0, -10.0};
     const auto prescribed_volume_accelerations = std::vector<std::pair<std::size_t, array_1d<double, 3>>>{
-        {0, array_1d<double, 3>{0.0, 0.0, -10.0}},  {1, array_1d<double, 3>{0.0, 0.0, -10.0}},
-        {2, array_1d<double, 3>{0.0, 0.0, -10.0}},  {3, array_1d<double, 3>{0.0, 0.0, -10.0}},
-        {4, array_1d<double, 3>{0.0, 0.0, -10.0}},  {5, array_1d<double, 3>{0.0, 0.0, -10.0}},
-        {6, array_1d<double, 3>{0.0, 0.0, -10.0}},  {7, array_1d<double, 3>{0.0, 0.0, -10.0}},
-        {8, array_1d<double, 3>{0.0, 0.0, -10.0}},  {9, array_1d<double, 3>{0.0, 0.0, -10.0}},
-        {10, array_1d<double, 3>{0.0, 0.0, -10.0}}, {11, array_1d<double, 3>{0.0, 0.0, -10.0}},
-        {12, array_1d<double, 3>{0.0, 0.0, -10.0}}, {13, array_1d<double, 3>{0.0, 0.0, -10.0}},
-        {14, array_1d<double, 3>{0.0, 0.0, -10.0}}, {15, array_1d<double, 3>{0.0, 0.0, -10.0}}};
+        {0, gravity_acceleration},  {1, gravity_acceleration},  {2, gravity_acceleration},
+        {3, gravity_acceleration},  {4, gravity_acceleration},  {5, gravity_acceleration},
+        {6, gravity_acceleration},  {7, gravity_acceleration},  {8, gravity_acceleration},
+        {9, gravity_acceleration},  {10, gravity_acceleration}, {11, gravity_acceleration},
+        {12, gravity_acceleration}, {13, gravity_acceleration}, {14, gravity_acceleration},
+        {15, gravity_acceleration}};
 
-    for (const auto& [idx, disp] : prescribed_displacements) {
-        element.GetGeometry()[idx].FastGetSolutionStepValue(DISPLACEMENT) = disp;
-    }
-    for (const auto& [idx, p_w] : prescribed_water_pressures) {
-        element.GetGeometry()[idx].FastGetSolutionStepValue(WATER_PRESSURE) = p_w;
-    }
-    for (const auto& [idx, volume_acceleration] : prescribed_volume_accelerations) {
-        element.GetGeometry()[idx].FastGetSolutionStepValue(VOLUME_ACCELERATION) = volume_acceleration;
-    }
+    SetVariableOnGeometry(element.GetGeometry(), DISPLACEMENT, prescribed_displacements);
+    SetVariableOnGeometry(element.GetGeometry(), WATER_PRESSURE, prescribed_water_pressures);
+    SetVariableOnGeometry(element.GetGeometry(), VOLUME_ACCELERATION, prescribed_volume_accelerations);
 
     // Act
     Vector actual_right_hand_side;
@@ -2674,40 +2648,32 @@ KRATOS_TEST_CASE_IN_SUITE(UPwLineInterfaceElement_Inclined3DInterfaceFluidBodyFl
         {CalculationContribution::Permeability, CalculationContribution::FluidBodyFlow});
     element.Initialize(ProcessInfo{});
 
+    const auto zero_displacement        = array_1d<double, 3>{0.0, 0.0, 0.0};
     const auto prescribed_displacements = PrescribedDisplacements{
-        {0, array_1d<double, 3>{0.0, 0.0, 0.0}},  {1, array_1d<double, 3>{0.0, 0.0, 0.0}},
-        {2, array_1d<double, 3>{0.0, 0.0, 0.0}},  {3, array_1d<double, 3>{0.0, 0.0, 0.0}},
-        {4, array_1d<double, 3>{0.0, 0.0, 0.0}},  {5, array_1d<double, 3>{0.0, 0.0, 0.0}},
-        {6, array_1d<double, 3>{0.0, 0.0, 0.0}},  {7, array_1d<double, 3>{0.0, 0.0, 0.0}},
-        {8, array_1d<double, 3>{0.0, 0.0, 0.0}},  {9, array_1d<double, 3>{0.0, 0.0, 0.0}},
-        {10, array_1d<double, 3>{0.0, 0.0, 0.0}}, {11, array_1d<double, 3>{0.0, 0.0, 0.0}},
-        {12, array_1d<double, 3>{0.0, 0.0, 0.0}}, {13, array_1d<double, 3>{0.0, 0.0, 0.0}},
-        {14, array_1d<double, 3>{0.0, 0.0, 0.0}}, {15, array_1d<double, 3>{0.0, 0.0, 0.0}}};
+        {0, zero_displacement},  {1, zero_displacement},  {2, zero_displacement},
+        {3, zero_displacement},  {4, zero_displacement},  {5, zero_displacement},
+        {6, zero_displacement},  {7, zero_displacement},  {8, zero_displacement},
+        {9, zero_displacement},  {10, zero_displacement}, {11, zero_displacement},
+        {12, zero_displacement}, {13, zero_displacement}, {14, zero_displacement},
+        {15, zero_displacement}};
 
     const auto prescribed_water_pressures = PrescribedWaterPressures{
         {0, 50.0E3},  {1, 45.0E3},  {2, 45.0E3},  {3, 50.0E3}, {4, 47.5E3},  {5, 45.0E3},
         {6, 47.5E3},  {7, 50.0E3},  {8, 40.0E3},  {9, 35.0E3}, {10, 35.0E3}, {11, 40.0E3},
         {12, 37.5E3}, {13, 35.0E3}, {14, 37.5E3}, {15, 40.0E3}};
 
+    const auto gravity_acceleration = array_1d<double, 3>{0.0, 0.0, -10.0};
     const auto prescribed_volume_accelerations = std::vector<std::pair<std::size_t, array_1d<double, 3>>>{
-        {0, array_1d<double, 3>{0.0, 0.0, -10.0}},  {1, array_1d<double, 3>{0.0, 0.0, -10.0}},
-        {2, array_1d<double, 3>{0.0, 0.0, -10.0}},  {3, array_1d<double, 3>{0.0, 0.0, -10.0}},
-        {4, array_1d<double, 3>{0.0, 0.0, -10.0}},  {5, array_1d<double, 3>{0.0, 0.0, -10.0}},
-        {6, array_1d<double, 3>{0.0, 0.0, -10.0}},  {7, array_1d<double, 3>{0.0, 0.0, -10.0}},
-        {8, array_1d<double, 3>{0.0, 0.0, -10.0}},  {9, array_1d<double, 3>{0.0, 0.0, -10.0}},
-        {10, array_1d<double, 3>{0.0, 0.0, -10.0}}, {11, array_1d<double, 3>{0.0, 0.0, -10.0}},
-        {12, array_1d<double, 3>{0.0, 0.0, -10.0}}, {13, array_1d<double, 3>{0.0, 0.0, -10.0}},
-        {14, array_1d<double, 3>{0.0, 0.0, -10.0}}, {15, array_1d<double, 3>{0.0, 0.0, -10.0}}};
+        {0, gravity_acceleration},  {1, gravity_acceleration},  {2, gravity_acceleration},
+        {3, gravity_acceleration},  {4, gravity_acceleration},  {5, gravity_acceleration},
+        {6, gravity_acceleration},  {7, gravity_acceleration},  {8, gravity_acceleration},
+        {9, gravity_acceleration},  {10, gravity_acceleration}, {11, gravity_acceleration},
+        {12, gravity_acceleration}, {13, gravity_acceleration}, {14, gravity_acceleration},
+        {15, gravity_acceleration}};
 
-    for (const auto& [idx, disp] : prescribed_displacements) {
-        element.GetGeometry()[idx].FastGetSolutionStepValue(DISPLACEMENT) = disp;
-    }
-    for (const auto& [idx, p_w] : prescribed_water_pressures) {
-        element.GetGeometry()[idx].FastGetSolutionStepValue(WATER_PRESSURE) = p_w;
-    }
-    for (const auto& [idx, volume_acceleration] : prescribed_volume_accelerations) {
-        element.GetGeometry()[idx].FastGetSolutionStepValue(VOLUME_ACCELERATION) = volume_acceleration;
-    }
+    SetVariableOnGeometry(element.GetGeometry(), DISPLACEMENT, prescribed_displacements);
+    SetVariableOnGeometry(element.GetGeometry(), WATER_PRESSURE, prescribed_water_pressures);
+    SetVariableOnGeometry(element.GetGeometry(), VOLUME_ACCELERATION, prescribed_volume_accelerations);
 
     // Act
     Vector actual_right_hand_side;
