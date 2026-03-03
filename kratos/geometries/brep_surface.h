@@ -402,6 +402,18 @@ public:
             rPointGlobalCoordinates, rProjectedPointLocalCoordinates, Tolerance);
     }
 
+    void EvaluateShapeFunctionsAtLocalCoordinates(
+        const CoordinatesArrayType& rLocalCoordinates,
+        std::vector<IndexType>& rControlPointIndices,
+        Vector& rN,
+        const IndexType DerivativeOrder = 0,
+        Matrix* pDN_De = nullptr
+    ) const
+    {
+        mpNurbsSurface->EvaluateShapeFunctionsAtLocalCoordinates(
+            rLocalCoordinates, rControlPointIndices, rN, DerivativeOrder, pDN_De);
+    }
+
 
 
     /*

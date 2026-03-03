@@ -853,6 +853,58 @@ public:
         return rResult;
     }
 
+    using IndexVectorType = std::vector<IndexType>;
+    using VectorType = Vector; // Kratos Vector (ublas)
+
+    void EvaluateShapeFunctionsAtLocalCoordinates(
+        const CoordinatesArrayType& rLocalCoordinates,   // (u,v,0) or (u,v)
+        IndexVectorType& rControlPointIndices,           // output: global CP ids/indices
+        VectorType& rN,                                  // output: N (size = num_nonzero_cps)
+        const IndexType DerivativeOrder = 0,             // 0=only N, 1=first derivs, ...
+        Matrix* pDN_De = nullptr                         // optional output
+    ) const
+    {
+        const double u = rLocalCoordinates[0];
+        const double v = rLocalCoordinates[1];
+
+        NurbsSurfaceShapeFunction shape_function_container(
+            mPolynomialDegreeU, mPolynomialDegreeV, DerivativeOrder + 1);
+
+        if (mIsRational) {
+            shape_function_container.ComputeNurbsShapeFunctionValues(
+                mKnotsU, mKnotsV, mWeights, u, v);
+        } else {
+            shape_function_container.ComputeBSplineShapeFunctionValues(
+                mKnotsU, mKnotsV, u, v);
+        }
+
+        const SizeType num_nonzero_cps = shape_function_container.NumberOfNonzeroControlPoints();
+
+        // Indices
+        const auto cp_indices_int = shape_function_container.ControlPointIndices(
+                    NumberOfControlPointsU(), NumberOfControlPointsV());
+
+        rControlPointIndices.resize(cp_indices_int.size());
+        for (IndexType i = 0; i < cp_indices_int.size(); ++i) {
+            rControlPointIndices[i] = static_cast<IndexType>(cp_indices_int[i]);
+        }
+
+        // Values
+        if (rN.size() != num_nonzero_cps) rN.resize(num_nonzero_cps, false);
+        for (IndexType j = 0; j < num_nonzero_cps; ++j) {
+            rN[j] = shape_function_container(j, 0);
+        }
+
+        // Optional first derivatives (example for 2D param space: dN/du, dN/dv)
+        if (pDN_De && DerivativeOrder >= 1) {
+            pDN_De->resize(num_nonzero_cps, 2, false);
+            for (IndexType j = 0; j < num_nonzero_cps; ++j) {
+                (*pDN_De)(j, 0) = shape_function_container(j, 1); // dN/du
+                (*pDN_De)(j, 1) = shape_function_container(j, 2); // dN/dv
+            }
+        }
+    }
+
     ///@}
     ///@name Geometry Family
     ///@{
