@@ -43,8 +43,8 @@ using QuadrilateralInterfaceGeometry3D4Plus4Noded = InterfaceGeometry<Quadrilate
 using QuadrilateralInterfaceGeometry3D8Plus8Noded = InterfaceGeometry<Quadrilateral3D8<Node>>;
 using Interface2D                                 = Line2DInterfaceStressState;
 using Interface3D                                 = SurfaceInterfaceStressState;
-using PrescribedDisplacements  = std::vector<std::pair<std::size_t, array_1d<double, 3>>>;
-using PrescribedWaterPressures = std::vector<std::pair<std::size_t, double>>;
+using PrescribedBoundedArrays = std::vector<std::pair<std::size_t, array_1d<double, 3>>>;
+using PrescribedScalars       = std::vector<std::pair<std::size_t, double>>;
 
 template <class VariableType>
 void SetVariableOnGeometry(Geometry<Node>&     rGeometry,
@@ -346,7 +346,7 @@ UPwInterfaceElement CreateTriangleInterfaceElementRotatedBy30DegreesAboutYAxisWi
     return CreateInterfaceElementWithUPwDofs<Interface3D>(rpProperties, p_geometry, IsDiffOrder, rContributions);
 }
 
-UPwInterfaceElement CreateHorizontal4Plus4NodedQuadraliteralInterfaceElementWithUPwDoF(
+UPwInterfaceElement CreateHorizontal4Plus4NodedQuadrilateralInterfaceElementWithUPwDoF(
     Model&,
     const Properties::Pointer&                  rpProperties,
     IsDiffOrderElement                          IsDiffOrder,
@@ -365,7 +365,7 @@ UPwInterfaceElement CreateHorizontal4Plus4NodedQuadraliteralInterfaceElementWith
     return CreateInterfaceElementWithUPwDofs<Interface3D>(rpProperties, p_geometry, IsDiffOrder, rContributions);
 }
 
-UPwInterfaceElement CreateHorizontal8Plus8NodedQuadraliteralInterfaceElementWithUPwDoF(
+UPwInterfaceElement CreateHorizontal8Plus8NodedQuadrilateralInterfaceElementWithUPwDoF(
     Model&,
     const Properties::Pointer&                  rpProperties,
     IsDiffOrderElement                          IsDiffOrder,
@@ -397,22 +397,16 @@ UPwInterfaceElement CreateAndInitializeElement(TElementFactory            Factor
                                                const Properties::Pointer& rpProperties,
                                                IsDiffOrderElement         IsDiffOrder,
                                                const std::vector<CalculationContribution>& rContributions,
-                                               const PrescribedDisplacements&  rDisplacements  = {},
-                                               const PrescribedWaterPressures& rWaterPressures = {},
-                                               const PrescribedDisplacements& rVolumeAcceleractions = {})
+                                               const PrescribedBoundedArrays& rDisplacements  = {},
+                                               const PrescribedScalars&       rWaterPressures = {},
+                                               const PrescribedBoundedArrays& rVolumeAccelerations = {})
 {
     Model model;
     auto  element = Factory(model, rpProperties, IsDiffOrder, rContributions);
     element.Initialize(ProcessInfo{});
-    for (const auto& [idx, disp] : rDisplacements) {
-        element.GetGeometry()[idx].FastGetSolutionStepValue(DISPLACEMENT) = disp;
-    }
-    for (const auto& [idx, p_w] : rWaterPressures) {
-        element.GetGeometry()[idx].FastGetSolutionStepValue(WATER_PRESSURE) = p_w;
-    }
-    for (const auto& [idx, volume_acceleration] : rVolumeAcceleractions) {
-        element.GetGeometry()[idx].FastGetSolutionStepValue(VOLUME_ACCELERATION) = volume_acceleration;
-    }
+    SetVariableOnGeometry(element.GetGeometry(), DISPLACEMENT, rDisplacements);
+    SetVariableOnGeometry(element.GetGeometry(), WATER_PRESSURE, rWaterPressures);
+    SetVariableOnGeometry(element.GetGeometry(), VOLUME_ACCELERATION, rVolumeAccelerations);
     return element;
 }
 
@@ -788,9 +782,9 @@ KRATOS_TEST_CASE_IN_SUITE(UPwLineInterfaceElement_RightHandSideEqualsMinusIntern
     p_properties->SetValue(DYNAMIC_VISCOSITY, 2.0E-1);
     p_properties->SetValue(RETENTION_LAW, "SaturatedLaw");
 
-    const auto prescribed_displacements = PrescribedDisplacements{
+    const auto prescribed_displacements = PrescribedBoundedArrays{
         {2, array_1d<double, 3>{0.2, 0.5, 0.0}}, {3, array_1d<double, 3>{0.2, 0.5, 0.0}}};
-    const auto prescribed_water_pressures = PrescribedWaterPressures{{2, 20.0}, {3, 20.0}};
+    const auto prescribed_water_pressures = PrescribedScalars{{2, 20.0}, {3, 20.0}};
     auto       element                    = CreateAndInitializeElement(
         CreateHorizontalUnitLength2Plus2NodedLineInterfaceElementWithUPwDofs, p_properties,
         IsDiffOrderElement::No, {CalculationContribution::Stiffness, CalculationContribution::Permeability},
@@ -841,7 +835,7 @@ KRATOS_TEST_CASE_IN_SUITE(UPwLineInterfaceElement_RightHandSideEqualsMinusIntern
         CreateElasticMaterialProperties<InterfacePlaneStrain>(normal_stiffness, shear_stiffness);
 
     const auto prescribed_displacements =
-        PrescribedDisplacements{{2, array_1d<double, 3>{-0.07679492, 0.5330127, 0.0}},
+        PrescribedBoundedArrays{{2, array_1d<double, 3>{-0.07679492, 0.5330127, 0.0}},
                                 {3, array_1d<double, 3>{-0.07679492, 0.5330127, 0.0}}};
     auto element = CreateAndInitializeElement(
         CreateUnitLengthLineInterfaceElementRotatedBy30DegreesWithUPwDoF, p_properties,
@@ -920,8 +914,9 @@ KRATOS_TEST_CASE_IN_SUITE(UPwLineInterfaceElement_ReturnsExpectedLeftAndRightHan
     const auto     p_properties =
         CreateElasticMaterialProperties<InterfacePlaneStrain>(normal_stiffness, shear_stiffness);
 
-    const auto prescribed_displacements = PrescribedDisplacements{
-        {2, array_1d<double, 3>{0.2, 0.5, 0.0}}, {3, array_1d<double, 3>{0.2, 0.5, 0.0}}};
+    const auto second_side_displacement = array_1d<double, 3>{0.2, 0.5, 0.0};
+    const auto prescribed_displacements =
+        PrescribedBoundedArrays{{2, second_side_displacement}, {3, second_side_displacement}};
     auto element = CreateAndInitializeElement(
         CreateHorizontalUnitLength2Plus2NodedLineInterfaceElementWithUPwDofs, p_properties,
         IsDiffOrderElement::No, {CalculationContribution::Stiffness}, prescribed_displacements);
@@ -958,9 +953,9 @@ KRATOS_TEST_CASE_IN_SUITE(UPwLineInterfaceElement_CalculateRelativeDisplacementV
     const auto     p_properties =
         CreateElasticMaterialProperties<InterfacePlaneStrain>(normal_stiffness, shear_stiffness);
 
+    const auto second_side_displacement = array_1d<double, 3>{-0.07679492, 0.5330127, 0.0};
     const auto prescribed_displacements =
-        PrescribedDisplacements{{2, array_1d<double, 3>{-0.07679492, 0.5330127, 0.0}},
-                                {3, array_1d<double, 3>{-0.07679492, 0.5330127, 0.0}}};
+        PrescribedBoundedArrays{{2, second_side_displacement}, {3, second_side_displacement}};
     auto element = CreateAndInitializeElement(
         CreateUnitLengthLineInterfaceElementRotatedBy30DegreesWithUPwDoF, p_properties,
         IsDiffOrderElement::No, {CalculationContribution::Stiffness}, prescribed_displacements);
@@ -986,10 +981,9 @@ KRATOS_TEST_CASE_IN_SUITE(UPwLineInterfaceElement_CalculateEffectiveTractionVect
     constexpr auto shear_stiffness  = 10.0;
     const auto     p_properties =
         CreateElasticMaterialProperties<InterfacePlaneStrain>(normal_stiffness, shear_stiffness);
-
+    const auto second_side_displacement = array_1d<double, 3>{-0.07679492, 0.5330127, 0.0};
     const auto prescribed_displacements =
-        PrescribedDisplacements{{2, array_1d<double, 3>{-0.07679492, 0.5330127, 0.0}},
-                                {3, array_1d<double, 3>{-0.07679492, 0.5330127, 0.0}}};
+        PrescribedBoundedArrays{{2, second_side_displacement}, {3, second_side_displacement}};
     auto element = CreateAndInitializeElement(
         CreateUnitLengthLineInterfaceElementRotatedBy30DegreesWithUPwDoF, p_properties,
         IsDiffOrderElement::No, {CalculationContribution::Stiffness}, prescribed_displacements);
@@ -1015,11 +1009,10 @@ KRATOS_TEST_CASE_IN_SUITE(UPwLineInterfaceElement_3Plus3NodedElement_ReturnsExpe
     constexpr auto shear_stiffness  = 10.0;
     const auto     p_properties =
         CreateElasticMaterialProperties<InterfacePlaneStrain>(normal_stiffness, shear_stiffness);
+    const auto second_side_displacement = array_1d<double, 3>{0.2, 0.5, 0.0};
+    const auto prescribed_displacements = PrescribedBoundedArrays{
+        {3, second_side_displacement}, {4, second_side_displacement}, {5, second_side_displacement}};
 
-    const auto prescribed_displacements =
-        PrescribedDisplacements{{3, array_1d<double, 3>{0.2, 0.5, 0.0}},
-                                {4, array_1d<double, 3>{0.2, 0.5, 0.0}},
-                                {5, array_1d<double, 3>{0.2, 0.5, 0.0}}};
     auto element = CreateAndInitializeElement(
         CreateHorizontalUnitLength3Plus3NodedLineInterfaceElementWithUPwDoF, p_properties,
         IsDiffOrderElement::No, {CalculationContribution::Stiffness}, prescribed_displacements);
@@ -1225,7 +1218,7 @@ KRATOS_TEST_CASE_IN_SUITE(UPwTriangleInterfaceElement_LeftHandSideContainsMateri
     constexpr auto number_of_u_dofs  = std::size_t{6 * 3};
     constexpr auto number_of_pw_dofs = std::size_t{6};
     // Since the rotation is about the z-axis (the normal of the triangle) and the two shear
-    // stiffnesses are equal, the stiffness matrix is equal to the stiffness matrix of a
+    // stiffness values are equal, the stiffness matrix is equal to the stiffness matrix of a
     // non-rotated surface interface element.
     const auto expected_uu_block_matrix = ExpectedStiffnessMatrixOfLinearTriangularInterfaceElement();
     const auto expected_up_block_matrix = Matrix{number_of_u_dofs, number_of_pw_dofs, 0.0};
@@ -1310,7 +1303,7 @@ KRATOS_TEST_CASE_IN_SUITE(UPwTriangleInterfaceElement_RightHandSideEqualsMinusIn
     const auto     p_properties = CreateElasticMaterialProperties<InterfaceThreeDimensionalSurface>(
         normal_stiffness, shear_stiffness);
 
-    const auto prescribed_displacements = PrescribedDisplacements{
+    const auto prescribed_displacements = PrescribedBoundedArrays{
         {2, array_1d<double, 3>{0.2, 0.5, 0.0}}, {3, array_1d<double, 3>{0.2, 0.5, 0.0}}};
     auto element = CreateAndInitializeElement(
         CreateHorizontal3Plus3NodedTriangleInterfaceElementWithUPwDofs, p_properties,
@@ -1339,7 +1332,7 @@ KRATOS_TEST_CASE_IN_SUITE(UPwTriangleInterfaceElement_RightHandSideEqualsMinusIn
         normal_stiffness, shear_stiffness);
 
     const auto prescribed_displacements =
-        PrescribedDisplacements{{3, array_1d<double, 3>{1.0, 2.0, 3.0}},
+        PrescribedBoundedArrays{{3, array_1d<double, 3>{1.0, 2.0, 3.0}},
                                 {4, array_1d<double, 3>{1.0, 2.0, 3.0}},
                                 {5, array_1d<double, 3>{1.0, 2.0, 3.0}}};
     auto element = CreateAndInitializeElement(
@@ -1424,7 +1417,7 @@ KRATOS_TEST_CASE_IN_SUITE(UPwTriangleInterfaceElement_ReturnsExpectedLeftAndRigh
     const auto     p_properties = CreateElasticMaterialProperties<InterfaceThreeDimensionalSurface>(
         normal_stiffness, shear_stiffness);
 
-    const auto prescribed_displacements = PrescribedDisplacements{
+    const auto prescribed_displacements = PrescribedBoundedArrays{
         {2, array_1d<double, 3>{0.2, 0.5, 0.0}}, {3, array_1d<double, 3>{0.2, 0.5, 0.0}}};
     auto element = CreateAndInitializeElement(
         CreateHorizontal3Plus3NodedTriangleInterfaceElementWithUPwDofs, p_properties,
@@ -1462,7 +1455,7 @@ KRATOS_TEST_CASE_IN_SUITE(UPwTriangleInterfaceElement_CalculateRelativeDisplacem
         normal_stiffness, shear_stiffness);
 
     const auto prescribed_displacements =
-        PrescribedDisplacements{{0, array_1d<double, 3>{1.0, 2.0, 3.0}},
+        PrescribedBoundedArrays{{0, array_1d<double, 3>{1.0, 2.0, 3.0}},
                                 {1, array_1d<double, 3>{1.0, 2.0, 3.0}},
                                 {2, array_1d<double, 3>{1.0, 2.0, 3.0}}};
     auto element = CreateAndInitializeElement(
@@ -1495,7 +1488,7 @@ KRATOS_TEST_CASE_IN_SUITE(UPwTriangleInterfaceElementHorizontal_CalculateRelativ
         normal_stiffness, shear_stiffness);
 
     const auto prescribed_displacements =
-        PrescribedDisplacements{{0, array_1d<double, 3>{0.0, 0.0, 1.0}},
+        PrescribedBoundedArrays{{0, array_1d<double, 3>{0.0, 0.0, 1.0}},
                                 {1, array_1d<double, 3>{0.0, 0.0, 1.0}},
                                 {2, array_1d<double, 3>{0.0, 0.0, 1.0}}};
     auto element = CreateAndInitializeElement(
@@ -1527,7 +1520,7 @@ KRATOS_TEST_CASE_IN_SUITE(UPwTriangleInterfaceElementInYZPlane_CalculateRelative
         normal_stiffness, shear_stiffness);
 
     const auto prescribed_displacements =
-        PrescribedDisplacements{{3, array_1d<double, 3>{1.0, 0.0, 0.0}},
+        PrescribedBoundedArrays{{3, array_1d<double, 3>{1.0, 0.0, 0.0}},
                                 {4, array_1d<double, 3>{1.0, 0.0, 0.0}},
                                 {5, array_1d<double, 3>{1.0, 0.0, 0.0}}};
     auto element = CreateAndInitializeElement(
@@ -1562,7 +1555,7 @@ KRATOS_TEST_CASE_IN_SUITE(UPwTriangleInterfaceElementInXZPlane_CalculateRelative
     // which is the -y direction. This results in a positive normal relative displacement,
     // since the second side of the interface is moved.
     const auto prescribed_displacements =
-        PrescribedDisplacements{{3, array_1d<double, 3>{0.0, -1.0, 0.0}},
+        PrescribedBoundedArrays{{3, array_1d<double, 3>{0.0, -1.0, 0.0}},
                                 {4, array_1d<double, 3>{0.0, -1.0, 0.0}},
                                 {5, array_1d<double, 3>{0.0, -1.0, 0.0}}};
     auto element = CreateAndInitializeElement(
@@ -1594,7 +1587,7 @@ KRATOS_TEST_CASE_IN_SUITE(UPwTriangleInterfaceElement_CalculateEffectiveTraction
         normal_stiffness, shear_stiffness);
 
     const auto prescribed_displacements =
-        PrescribedDisplacements{{0, array_1d<double, 3>{1.0, 2.0, 3.0}},
+        PrescribedBoundedArrays{{0, array_1d<double, 3>{1.0, 2.0, 3.0}},
                                 {1, array_1d<double, 3>{1.0, 2.0, 3.0}},
                                 {2, array_1d<double, 3>{1.0, 2.0, 3.0}}};
     auto element = CreateAndInitializeElement(
@@ -1625,7 +1618,7 @@ KRATOS_TEST_CASE_IN_SUITE(UPwTriangleInterfaceElement_6Plus6NodedElement_Returns
         normal_stiffness, shear_stiffness);
 
     const auto prescribed_displacements =
-        PrescribedDisplacements{{3, array_1d<double, 3>{0.2, 0.5, 0.0}},
+        PrescribedBoundedArrays{{3, array_1d<double, 3>{0.2, 0.5, 0.0}},
                                 {4, array_1d<double, 3>{0.2, 0.5, 0.0}},
                                 {5, array_1d<double, 3>{0.2, 0.5, 0.0}}};
     auto element = CreateAndInitializeElement(
@@ -2016,7 +2009,7 @@ KRATOS_TEST_CASE_IN_SUITE(ThreePlusThreeDiffOrderLineInterface_ReturnsExpectedLe
     // Act
     interface_element.Initialize(ProcessInfo{});
     const auto second_side_displacement = array_1d<double, 3>{0.2, 0.5, 0.0};
-    const auto prescribed_displacements = PrescribedDisplacements{
+    const auto prescribed_displacements = PrescribedBoundedArrays{
         {3, second_side_displacement}, {4, second_side_displacement}, {5, second_side_displacement}};
     SetVariableOnGeometry(interface_element.GetGeometry(), DISPLACEMENT, prescribed_displacements);
 
@@ -2089,7 +2082,7 @@ KRATOS_TEST_CASE_IN_SUITE(UPwDiffOrderTriangleInterfaceElement_6Plus6NodedElemen
 
     const auto second_side_displacement = array_1d<double, 3>{0.2, 0.5, 0.0};
     const auto prescribed_displacements =
-        PrescribedDisplacements{{6, second_side_displacement},  {7, second_side_displacement},
+        PrescribedBoundedArrays{{6, second_side_displacement},  {7, second_side_displacement},
                                 {8, second_side_displacement},  {9, second_side_displacement},
                                 {10, second_side_displacement}, {11, second_side_displacement}};
     SetVariableOnGeometry(interface_element.GetGeometry(), DISPLACEMENT, prescribed_displacements);
@@ -2177,13 +2170,13 @@ KRATOS_TEST_CASE_IN_SUITE(UPwDiffOrderQuadrilateraleInterfaceElement_8Plus8Noded
     const auto     p_properties = CreateElasticMaterialProperties<InterfaceThreeDimensionalSurface>(
         normal_stiffness, shear_stiffness);
     Model model;
-    auto  interface_element = CreateHorizontal8Plus8NodedQuadraliteralInterfaceElementWithUPwDoF(
+    auto  interface_element = CreateHorizontal8Plus8NodedQuadrilateralInterfaceElementWithUPwDoF(
         model, p_properties, IsDiffOrderElement::Yes, {CalculationContribution::Stiffness});
 
     interface_element.Initialize(ProcessInfo{});
     const auto second_side_displacement = array_1d<double, 3>{0.2, 0.5, 0.0};
     const auto prescribed_displacements =
-        PrescribedDisplacements{{8, second_side_displacement},  {9, second_side_displacement},
+        PrescribedBoundedArrays{{8, second_side_displacement},  {9, second_side_displacement},
                                 {12, second_side_displacement}, {13, second_side_displacement},
                                 {14, second_side_displacement}, {15, second_side_displacement},
                                 {10, second_side_displacement}, {11, second_side_displacement}};
@@ -2291,11 +2284,11 @@ KRATOS_TEST_CASE_IN_SUITE(UPwLineInterfaceElement_HorizontalOpenInterfacePermeab
     p_properties->SetValue(DENSITY_WATER, 1000.0);
 
     const auto zero_displacement        = array_1d<double, 3>{0.0, 0.0, 0.0};
-    const auto prescribed_displacements = PrescribedDisplacements{
+    const auto prescribed_displacements = PrescribedBoundedArrays{
         {0, zero_displacement}, {1, zero_displacement}, {2, zero_displacement}, {3, zero_displacement}};
 
     const auto prescribed_water_pressures =
-        PrescribedWaterPressures{{0, 20.0E3}, {1, 20.0E3}, {2, 10.0E3}, {3, 10.0E3}};
+        PrescribedScalars{{0, 20.0E3}, {1, 20.0E3}, {2, 10.0E3}, {3, 10.0E3}};
 
     const auto gravity_acceleration = array_1d<double, 3>{0.0, -10.0, 0.0};
     const auto prescribed_volume_accelerations = std::vector<std::pair<std::size_t, array_1d<double, 3>>>{
@@ -2347,11 +2340,11 @@ KRATOS_TEST_CASE_IN_SUITE(UPwLineInterfaceElement_VerticalInterfaceFluidBodyFlow
     element.Initialize(ProcessInfo{});
 
     const auto zero_displacement        = array_1d<double, 3>{0.0, 0.0, 0.0};
-    const auto prescribed_displacements = PrescribedDisplacements{
+    const auto prescribed_displacements = PrescribedBoundedArrays{
         {0, zero_displacement}, {1, zero_displacement}, {2, zero_displacement}, {3, zero_displacement}};
 
     const auto prescribed_water_pressures =
-        PrescribedWaterPressures{{0, 10.0E3}, {1, 20.0E3}, {2, 10.0E3}, {3, 20.0E3}};
+        PrescribedScalars{{0, 10.0E3}, {1, 20.0E3}, {2, 10.0E3}, {3, 20.0E3}};
 
     const auto gravity_acceleration = array_1d<double, 3>{0.0, -10.0, 0.0};
     const auto prescribed_volume_accelerations = std::vector<std::pair<std::size_t, array_1d<double, 3>>>{
@@ -2405,12 +2398,12 @@ KRATOS_TEST_CASE_IN_SUITE(UPwLineInterfaceElement_Inclined2DOpenInterfaceFluidBo
     element.Initialize(ProcessInfo{});
 
     const auto zero_displacement        = array_1d<double, 3>{0.0, 0.0, 0.0};
-    const auto prescribed_displacements = PrescribedDisplacements{
+    const auto prescribed_displacements = PrescribedBoundedArrays{
         {0, zero_displacement}, {1, zero_displacement}, {2, zero_displacement},
         {3, zero_displacement}, {4, zero_displacement}, {5, zero_displacement}};
 
-    const auto prescribed_water_pressures = PrescribedWaterPressures{
-        {0, 20.0E3}, {1, 15.0E3}, {2, 17.5E3}, {3, 10.0E3}, {4, 5.0E3}, {5, 7.5E3}};
+    const auto prescribed_water_pressures = PrescribedScalars{{0, 20.0E3}, {1, 15.0E3}, {2, 17.5E3},
+                                                              {3, 10.0E3}, {4, 5.0E3},  {5, 7.5E3}};
 
     const auto gravity_acceleration = array_1d<double, 3>{0.0, -10.0, 0.0};
     const auto prescribed_volume_accelerations = std::vector<std::pair<std::size_t, array_1d<double, 3>>>{
@@ -2477,7 +2470,7 @@ KRATOS_TEST_CASE_IN_SUITE(UPwLineInterfaceElement_Horizontal3D8plus8DiffOrderInt
     element.Initialize(ProcessInfo{});
 
     const auto zero_displacement        = array_1d<double, 3>{0.0, 0.0, 0.0};
-    const auto prescribed_displacements = PrescribedDisplacements{
+    const auto prescribed_displacements = PrescribedBoundedArrays{
         {0, zero_displacement},  {1, zero_displacement},  {2, zero_displacement},
         {3, zero_displacement},  {4, zero_displacement},  {5, zero_displacement},
         {6, zero_displacement},  {7, zero_displacement},  {8, zero_displacement},
@@ -2485,7 +2478,7 @@ KRATOS_TEST_CASE_IN_SUITE(UPwLineInterfaceElement_Horizontal3D8plus8DiffOrderInt
         {12, zero_displacement}, {13, zero_displacement}, {14, zero_displacement},
         {15, zero_displacement}};
 
-    const auto prescribed_water_pressures = PrescribedWaterPressures{
+    const auto prescribed_water_pressures = PrescribedScalars{
         {0, 50.0E3},  {1, 50.0E3},  {2, 50.0E3},  {3, 50.0E3}, {4, 50.5E3},  {5, 50.0E3},
         {6, 50.0E3},  {7, 50.0E3},  {8, 40.0E3},  {9, 40.0E3}, {10, 40.0E3}, {11, 40.0E3},
         {12, 40.0E3}, {13, 40.0E3}, {14, 40.0E3}, {15, 40.0E3}};
@@ -2558,7 +2551,7 @@ KRATOS_TEST_CASE_IN_SUITE(UPwLineInterfaceElement_Vertical3D8plus8DiffOrderInter
     element.Initialize(ProcessInfo{});
 
     const auto zero_displacement        = array_1d<double, 3>{0.0, 0.0, 0.0};
-    const auto prescribed_displacements = PrescribedDisplacements{
+    const auto prescribed_displacements = PrescribedBoundedArrays{
         {0, zero_displacement},  {1, zero_displacement},  {2, zero_displacement},
         {3, zero_displacement},  {4, zero_displacement},  {5, zero_displacement},
         {6, zero_displacement},  {7, zero_displacement},  {8, zero_displacement},
@@ -2566,7 +2559,7 @@ KRATOS_TEST_CASE_IN_SUITE(UPwLineInterfaceElement_Vertical3D8plus8DiffOrderInter
         {12, zero_displacement}, {13, zero_displacement}, {14, zero_displacement},
         {15, zero_displacement}};
 
-    const auto prescribed_water_pressures = PrescribedWaterPressures{
+    const auto prescribed_water_pressures = PrescribedScalars{
         {0, 50.0E3},  {1, 50.0E3},  {2, 40.0E3},  {3, 40.0E3}, {4, 50.0E3},  {5, 45.0E3},
         {6, 40.0E3},  {7, 45.0E3},  {8, 50.0E3},  {9, 50.0E3}, {10, 40.0E3}, {11, 40.0E3},
         {12, 50.0E3}, {13, 45.0E3}, {14, 40.0E3}, {15, 45.0E3}};
@@ -2639,7 +2632,7 @@ KRATOS_TEST_CASE_IN_SUITE(UPwLineInterfaceElement_Inclined3DInterfaceFluidBodyFl
     element.Initialize(ProcessInfo{});
 
     const auto zero_displacement        = array_1d<double, 3>{0.0, 0.0, 0.0};
-    const auto prescribed_displacements = PrescribedDisplacements{
+    const auto prescribed_displacements = PrescribedBoundedArrays{
         {0, zero_displacement},  {1, zero_displacement},  {2, zero_displacement},
         {3, zero_displacement},  {4, zero_displacement},  {5, zero_displacement},
         {6, zero_displacement},  {7, zero_displacement},  {8, zero_displacement},
@@ -2647,7 +2640,7 @@ KRATOS_TEST_CASE_IN_SUITE(UPwLineInterfaceElement_Inclined3DInterfaceFluidBodyFl
         {12, zero_displacement}, {13, zero_displacement}, {14, zero_displacement},
         {15, zero_displacement}};
 
-    const auto prescribed_water_pressures = PrescribedWaterPressures{
+    const auto prescribed_water_pressures = PrescribedScalars{
         {0, 50.0E3},  {1, 45.0E3},  {2, 45.0E3},  {3, 50.0E3}, {4, 47.5E3},  {5, 45.0E3},
         {6, 47.5E3},  {7, 50.0E3},  {8, 40.0E3},  {9, 35.0E3}, {10, 35.0E3}, {11, 40.0E3},
         {12, 37.5E3}, {13, 35.0E3}, {14, 37.5E3}, {15, 40.0E3}};
@@ -2673,7 +2666,7 @@ KRATOS_TEST_CASE_IN_SUITE(UPwLineInterfaceElement_Inclined3DInterfaceFluidBodyFl
     constexpr auto number_of_u_dofs        = std::size_t{16 * 3};
     constexpr auto number_of_pw_dofs       = std::size_t{8};
     const auto     expected_u_block_vector = Vector{number_of_u_dofs, 0.0};
-    const auto     flow                    = (1.0 - 0.5 * sqrt3) * 62.5;
+    constexpr auto flow                    = (1.0 - 0.5 * sqrt3) * 62.5;
     const auto     expected_p_block_vector =
         UblasUtilities::CreateVector({flow, flow, flow, flow, -flow, -flow, -flow, -flow});
     AssertRHSVectorBlocksAreNear(actual_right_hand_side, expected_u_block_vector,
@@ -2881,7 +2874,7 @@ KRATOS_TEST_CASE_IN_SUITE(UPwTriangleInterfaceElement_6Plus6Element_UPCouplingCo
         IsDiffOrderElement::Yes, 36, 6, expected_up_block_matrix, expected_up_block_vector);
 }
 
-KRATOS_TEST_CASE_IN_SUITE(UPwQuadraliteralInterfaceElement_4Plus4Element_UPCouplingContribution,
+KRATOS_TEST_CASE_IN_SUITE(UPwQuadrilateralInterfaceElement_4Plus4Element_UPCouplingContribution,
                           KratosGeoMechanicsFastSuiteWithoutKernel)
 {
     const auto expected_up_block_matrix =
@@ -2914,12 +2907,12 @@ KRATOS_TEST_CASE_IN_SUITE(UPwQuadraliteralInterfaceElement_4Plus4Element_UPCoupl
          0, 0, -4.0842982, 0, 0, -4.0842982, 0, 0, -4.0842982, 0, 0, -4.0842982,
          0, 0, 0,          0, 0, 0,          0, 0});
     GeneralizedCouplingContributionTest<InterfaceThreeDimensionalSurface>(
-        CreateHorizontal4Plus4NodedQuadraliteralInterfaceElementWithUPwDoF,
+        CreateHorizontal4Plus4NodedQuadrilateralInterfaceElementWithUPwDoF,
         {CalculationContribution::UPCoupling}, IsDiffOrderElement::No, 24, 8,
         expected_up_block_matrix, expected_up_block_vector);
 }
 
-KRATOS_TEST_CASE_IN_SUITE(UPwQuadraliteralInterfaceElement_8Plus8Element_UPCouplingContribution,
+KRATOS_TEST_CASE_IN_SUITE(UPwQuadrilateralInterfaceElement_8Plus8Element_UPCouplingContribution,
                           KratosGeoMechanicsFastSuiteWithoutKernel)
 {
     const auto expected_up_block_matrix = UblasUtilities::CreateMatrix(
@@ -2979,12 +2972,12 @@ KRATOS_TEST_CASE_IN_SUITE(UPwQuadraliteralInterfaceElement_8Plus8Element_UPCoupl
          0, 0, 0,           0, 0, 0,           0, 0, 0,           0, 0, 0,
          0, 0, 0,           0});
     GeneralizedCouplingContributionTest<InterfaceThreeDimensionalSurface>(
-        CreateHorizontal8Plus8NodedQuadraliteralInterfaceElementWithUPwDoF,
+        CreateHorizontal8Plus8NodedQuadrilateralInterfaceElementWithUPwDoF,
         {CalculationContribution::UPCoupling}, IsDiffOrderElement::No, 48, 16,
         expected_up_block_matrix, expected_up_block_vector);
 }
 
-KRATOS_TEST_CASE_IN_SUITE(UPwQuadraliteralInterfaceElement_8Plus8Element_UPCouplingContribution_DiffOrder,
+KRATOS_TEST_CASE_IN_SUITE(UPwQuadrilateralInterfaceElement_8Plus8Element_UPCouplingContribution_DiffOrder,
                           KratosGeoMechanicsFastSuiteWithoutKernel)
 {
     const auto expected_up_block_matrix = UblasUtilities::CreateMatrix(
@@ -3044,7 +3037,7 @@ KRATOS_TEST_CASE_IN_SUITE(UPwQuadraliteralInterfaceElement_8Plus8Element_UPCoupl
          0, 0, 0,           0, 0, 0,           0, 0});
 
     GeneralizedCouplingContributionTest<InterfaceThreeDimensionalSurface>(
-        CreateHorizontal8Plus8NodedQuadraliteralInterfaceElementWithUPwDoF,
+        CreateHorizontal8Plus8NodedQuadrilateralInterfaceElementWithUPwDoF,
         {CalculationContribution::UPCoupling}, IsDiffOrderElement::Yes, 48, 8,
         expected_up_block_matrix, expected_up_block_vector);
 }
@@ -3177,7 +3170,7 @@ KRATOS_TEST_CASE_IN_SUITE(UPwTriangleInterfaceElement_6Plus6Element_PUCouplingCo
         IsDiffOrderElement::Yes, 36, 6, expected_pu_block_matrix, expected_p_block_vector);
 }
 
-KRATOS_TEST_CASE_IN_SUITE(UPwQuadraliteralInterfaceElement_4Plus4Element_PUCouplingContribution,
+KRATOS_TEST_CASE_IN_SUITE(UPwQuadrilateralInterfaceElement_4Plus4Element_PUCouplingContribution,
                           KratosGeoMechanicsFastSuiteWithoutKernel)
 {
     const auto expected_pu_block_matrix =
@@ -3201,12 +3194,12 @@ KRATOS_TEST_CASE_IN_SUITE(UPwQuadraliteralInterfaceElement_4Plus4Element_PUCoupl
         UblasUtilities::CreateVector({-0.02284197, -0.02284197, -0.02284197, -0.02284197,
                                       -0.02284197, -0.02284197, -0.02284197, -0.02284197});
     GeneralizedCouplingContributionTest<InterfaceThreeDimensionalSurface>(
-        CreateHorizontal4Plus4NodedQuadraliteralInterfaceElementWithUPwDoF,
+        CreateHorizontal4Plus4NodedQuadrilateralInterfaceElementWithUPwDoF,
         {CalculationContribution::PUCoupling}, IsDiffOrderElement::No, 24, 8,
         expected_pu_block_matrix, expected_p_block_vector);
 }
 
-KRATOS_TEST_CASE_IN_SUITE(UPwQuadraliteralInterfaceElement_8Plus8Element_PUCouplingContribution,
+KRATOS_TEST_CASE_IN_SUITE(UPwQuadrilateralInterfaceElement_8Plus8Element_PUCouplingContribution,
                           KratosGeoMechanicsFastSuiteWithoutKernel)
 {
     const auto expected_pu_block_matrix = UblasUtilities::CreateMatrix(
@@ -3248,12 +3241,12 @@ KRATOS_TEST_CASE_IN_SUITE(UPwQuadraliteralInterfaceElement_8Plus8Element_PUCoupl
          -0.019235343, -0.019235343, -0.019235343, -0.019235343});
 
     GeneralizedCouplingContributionTest<InterfaceThreeDimensionalSurface>(
-        CreateHorizontal8Plus8NodedQuadraliteralInterfaceElementWithUPwDoF,
+        CreateHorizontal8Plus8NodedQuadrilateralInterfaceElementWithUPwDoF,
         {CalculationContribution::PUCoupling}, IsDiffOrderElement::No, 48, 16,
         expected_pu_block_matrix, expected_p_block_vector);
 }
 
-KRATOS_TEST_CASE_IN_SUITE(UPwQuadraliteralInterfaceElement_8Plus8Element_PUCouplingContribution_DiffOrder,
+KRATOS_TEST_CASE_IN_SUITE(UPwQuadrilateralInterfaceElement_8Plus8Element_PUCouplingContribution_DiffOrder,
                           KratosGeoMechanicsFastSuiteWithoutKernel)
 {
     // clang-format off
@@ -3281,7 +3274,7 @@ KRATOS_TEST_CASE_IN_SUITE(UPwQuadraliteralInterfaceElement_8Plus8Element_PUCoupl
                                       -0.02284197, -0.02284197, -0.02284197, -0.02284197});
 
     GeneralizedCouplingContributionTest<InterfaceThreeDimensionalSurface>(
-        CreateHorizontal8Plus8NodedQuadraliteralInterfaceElementWithUPwDoF,
+        CreateHorizontal8Plus8NodedQuadrilateralInterfaceElementWithUPwDoF,
         {CalculationContribution::PUCoupling}, IsDiffOrderElement::Yes, 48, 8,
         expected_pu_block_matrix, expected_p_block_vector);
 }
