@@ -11,6 +11,8 @@
 //
 
 // System includes
+#include <cctype>
+#include <cstdlib>
 
 // External includes
 
@@ -528,23 +530,56 @@ void StlIO::ReadLoop(
     *mpInputStream >> word; // Reading vertex or endloop
 
     // Adding the nodes array of the facet directly to the provided array
+    std::array<double, 3> coordinates;
     while(word == "vertex") {
-        const Point coordinates = ReadPoint();
+        ReadPoint(coordinates);
         rNewNodes.push_back(Kratos::make_intrusive<Node>(mNextNodeId++, coordinates[0], coordinates[1], coordinates[2] ));
         *mpInputStream >> word; // Reading vertex or endloop
     }
     KRATOS_ERROR_IF(word != "endloop") << "Invalid stl file. loop block should be closed with \"endloop\" keyword but \"" << word << "\" was found" << std::endl;
 }
 
-Point StlIO::ReadPoint()
+void StlIO::ReadPoint(std::array<double, 3>& rResult)
 {
-    Point result;
-    std::string word;
-    for(int i = 0 ; i < 3 ; i++){
-        *mpInputStream >> word;
-        result[i] = std::stod(word);
+#ifdef KRATOS_DEBUG
+    std::istream::sentry stream_guard(*mpInputStream, true);
+    KRATOS_ERROR_IF_NOT(stream_guard) << "Invalid stl file. Failed to read point coordinates." << std::endl;
+#endif
+
+    rResult[0] = ReadDoubleFast();
+    rResult[1] = ReadDoubleFast();
+    rResult[2] = ReadDoubleFast();
+}
+
+double StlIO::ReadDoubleFast()
+{
+    std::streambuf* p_buffer = mpInputStream->rdbuf();
+    constexpr std::size_t max_token_size = 64;
+    char token[max_token_size];
+    std::size_t token_size = 0;
+
+    int current = p_buffer->sgetc();
+    while (current != EOF && std::isspace(static_cast<unsigned char>(current))) {
+        p_buffer->sbumpc();
+        current = p_buffer->sgetc();
     }
-    return result;
+
+    KRATOS_DEBUG_ERROR_IF(current == EOF) << "Invalid stl file. Unexpected end of file while reading numeric token." << std::endl;
+
+    while (current != EOF && !std::isspace(static_cast<unsigned char>(current))) {
+        KRATOS_DEBUG_ERROR_IF(token_size + 1 >= max_token_size) << "Invalid stl file. Numeric token is too long." << std::endl;
+        token[token_size++] = static_cast<char>(current);
+        p_buffer->sbumpc();
+        current = p_buffer->sgetc();
+    }
+
+    token[token_size] = '\0';
+
+    char* p_end = nullptr;
+    const double value = std::strtod(token, &p_end);
+    KRATOS_DEBUG_ERROR_IF(p_end == token || *p_end != '\0') << "Invalid stl file. Failed to parse numeric token \"" << token << "\"." << std::endl;
+
+    return value;
 }
 
 void StlIO::ReadKeyword(std::string const& Keyword)
@@ -555,4 +590,4 @@ void StlIO::ReadKeyword(std::string const& Keyword)
     KRATOS_ERROR_IF(word != Keyword) << "Invalid stl file. Looking for  \"" << Keyword << "\" keyword but \"" << word << "\" were found." << std::endl;
 }
 
-}  // namespace Kratos.
+}  // namespace Kratos

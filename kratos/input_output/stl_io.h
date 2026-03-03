@@ -13,6 +13,7 @@
 #pragma once
 
 // System includes
+#include <array>
 
 // External includes
 
@@ -267,9 +268,15 @@ private:
 
     /**
      * @brief Reads a point.
-     * @return A point read from the source.
+     * @param rResult Reference to the point coordinates to fill from the source.
      */
-    Point ReadPoint();
+    void ReadPoint(std::array<double, 3>& rResult);
+
+    /**
+     * @brief Reads a floating-point value from the stream using a fast token parser.
+     * @return Parsed floating-point value.
+     */
+    double ReadDoubleFast();
 
     /**
      * @brief Reads a keyword.
