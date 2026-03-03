@@ -13,9 +13,9 @@ The material is described using:
 -   A cross area of 1.0 m2
 
 The following stages can be distinguished:
-1.  A point load of 1e10 N is applied to node 11 in the negative y-direction. The 'reset_displacement' option is set to true. The beam is expected to bend downwards.
-2.  Essentially the same as stage 1: however, due to the 'reset_displacement' option, the displacement is expected to be 0.0 after this stage.
-3.  The 'reset_displacement' option is set to false. The load is still the same.
+1.  A point load of 1e10 N is applied to node 11 in the negative y-direction. The 'reset_displacement' option is set to false. The beam is expected to bend downwards.
+2.  Essentially the same as stage 1: due to the 'reset_displacement' option being true, the stage displacements as well as the total displacements are expected to be 0.0 after this stage.
+3.  The 'reset_displacement' option is set to false again. The load is still the same. We expect that nothing changes.
 4.  The load is removed and 'reset_displacement' is kept on false. The beam is expected to bend upwards again to the original position.
 
 ## Assertions
