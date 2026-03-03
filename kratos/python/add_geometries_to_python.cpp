@@ -49,6 +49,7 @@
 #include "geometries/nurbs_surface_geometry.h"
 #include "geometries/nurbs_curve_geometry.h"
 #include "geometries/surface_in_nurbs_volume_geometry.h"
+#include "geometries/brep_surface.h" 
 
 namespace Kratos::Python
 {
@@ -153,6 +154,11 @@ void  AddGeometriesToPython(pybind11::module& m)
     // Integration
     .def("IntegrationPointsNumber", [](GeometryType& self)
         { return(self.IntegrationPointsNumber()); })
+    // Convenience: "parent geometry" as BACKGROUND_GEOMETRY_INDEX (common IGA convention)
+    .def("GetGeometryParent", [](GeometryType& self)
+    {
+        return self.GetGeometryPart(GeometryType::BACKGROUND_GEOMETRY_INDEX);
+    }, py::return_value_policy::reference_internal)
     // Quadrature points
     .def("CreateQuadraturePointGeometries", [](GeometryType& self,
         GeometriesArrayType& rResultGeometries, IndexType NumberOfShapeFunctionDerivatives)
@@ -260,6 +266,33 @@ void  AddGeometriesToPython(pybind11::module& m)
     .def("__iter__",    [](GeometryType& self){return py::make_iterator(self.begin(), self.end());},  py::keep_alive<0,1>())
     .def("__len__",     [](GeometryType& self){return self.PointsNumber();} )
     ;
+
+    using PointContainerType = Kratos::PointerVector<Kratos::Point>;
+    using BrepSurfaceType = Kratos::BrepSurface<NodeContainerType, false, PointContainerType>;
+
+    py::class_<BrepSurfaceType, typename BrepSurfaceType::Pointer, GeometryType>(m, "BrepSurface")
+        .def("ProjectionPointGlobalToLocalSpace",
+            [](const BrepSurfaceType& self,
+            const CoordinatesArrayType& rGlobal,
+            CoordinatesArrayType& rLocal,
+            const double Tolerance)
+            {
+                return self.ProjectionPointGlobalToLocalSpace(rGlobal, rLocal, Tolerance);
+            },
+            py::arg("rPointGlobalCoordinates"),
+            py::arg("rProjectedPointLocalCoordinates"),
+            py::arg("Tolerance") = std::numeric_limits<double>::epsilon()
+        )
+        .def("EvaluateShapeFunctionsAtLocalCoordinates",
+            [](const BrepSurfaceType& self, const CoordinatesArrayType& rLocal)
+            {
+                std::vector<typename GeometryType::IndexType> cp_ids;
+                Vector N;
+                self.EvaluateShapeFunctionsAtLocalCoordinates(rLocal, cp_ids, N, 0, nullptr);
+                return py::make_tuple(cp_ids, N);
+            },
+            py::arg("local_coordinates")
+        );
 
     // 2D
     py::class_<Line2D2<NodeType>, Line2D2<NodeType>::Pointer,  GeometryType  >(m,"Line2D2").def(py::init<pNodeType, pNodeType>())
