@@ -528,20 +528,23 @@ void StlIO::ReadLoop(
     *mpInputStream >> word; // Reading vertex or endloop
 
     // Adding the nodes array of the facet directly to the provided array
-    std::array<double, 3> coordinates;
     while(word == "vertex") {
-        ReadPoint(coordinates);
+        const Point coordinates = ReadPoint();
         rNewNodes.push_back(Kratos::make_intrusive<Node>(mNextNodeId++, coordinates[0], coordinates[1], coordinates[2] ));
         *mpInputStream >> word; // Reading vertex or endloop
     }
     KRATOS_ERROR_IF(word != "endloop") << "Invalid stl file. loop block should be closed with \"endloop\" keyword but \"" << word << "\" was found" << std::endl;
 }
 
-void StlIO::ReadPoint(std::array<double, 3>& rCoordinates)
+Point StlIO::ReadPoint()
 {
-    for (double& r_coordinate : rCoordinates) {
-        *mpInputStream >> r_coordinate;
+    Point result;
+    std::string word;
+    for(int i = 0 ; i < 3 ; i++){
+        *mpInputStream >> word;
+        result[i] = std::stod(word);
     }
+    return result;
 }
 
 void StlIO::ReadKeyword(std::string const& Keyword)

@@ -267,9 +267,9 @@ private:
 
     /**
      * @brief Reads a point.
-     * @param rCoordinates Reference to an array to store the coordinates of the point.
+     * @return A point read from the source.
      */
-    void ReadPoint(std::array<double, 3>& rCoordinates);
+    Point ReadPoint();
 
     /**
      * @brief Reads a keyword.
