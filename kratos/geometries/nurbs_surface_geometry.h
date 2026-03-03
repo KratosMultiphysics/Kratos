@@ -731,7 +731,6 @@ public:
             return;
         }
 
-        // --- Derivatives ---
         if (pShapeFunctionDerivatives && DerivativeOrder > 0) {
 
             pShapeFunctionDerivatives->resize(DerivativeOrder);
