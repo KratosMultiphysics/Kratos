@@ -273,12 +273,6 @@ private:
     void ReadPoint(std::array<double, 3>& rResult);
 
     /**
-     * @brief Reads a floating-point value from the stream using a fast token parser.
-     * @return Parsed floating-point value.
-     */
-    double ReadDoubleFast();
-
-    /**
      * @brief Reads a keyword.
      * @param Keyword A string reference containing the keyword to read.
      */

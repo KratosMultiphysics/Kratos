@@ -11,6 +11,7 @@
 //
 
 // System includes
+#include <charconv>
 #include <cctype>
 #include <cstdlib>
 
@@ -23,6 +24,16 @@
 
 namespace Kratos
 {
+
+namespace {
+
+inline bool IsAsciiWhitespace(const int Character)
+{
+    return Character == ' ' || Character == '\n' || Character == '\r' ||
+           Character == '\t' || Character == '\f' || Character == '\v';
+}
+
+} // namespace
 
 StlIO::StlIO(const std::filesystem::path& rFilename, Parameters ThisParameters)
     : mParameters(ThisParameters)
@@ -546,40 +557,38 @@ void StlIO::ReadPoint(std::array<double, 3>& rResult)
     KRATOS_ERROR_IF_NOT(stream_guard) << "Invalid stl file. Failed to read point coordinates." << std::endl;
 #endif
 
-    rResult[0] = ReadDoubleFast();
-    rResult[1] = ReadDoubleFast();
-    rResult[2] = ReadDoubleFast();
-}
+    std::string coordinates_line;
+    std::getline(*mpInputStream, coordinates_line);
 
-double StlIO::ReadDoubleFast()
-{
-    std::streambuf* p_buffer = mpInputStream->rdbuf();
-    constexpr std::size_t max_token_size = 64;
-    char token[max_token_size];
-    std::size_t token_size = 0;
+    const char* p_current = coordinates_line.data();
+    const char* p_last = p_current + coordinates_line.size();
 
-    int current = p_buffer->sgetc();
-    while (current != EOF && std::isspace(static_cast<unsigned char>(current))) {
-        p_buffer->sbumpc();
-        current = p_buffer->sgetc();
+    for (int i = 0; i < 3; ++i) {
+        while (p_current != p_last && IsAsciiWhitespace(*p_current)) {
+            ++p_current;
+        }
+
+        KRATOS_DEBUG_ERROR_IF(p_current == p_last) << "Invalid stl file. Missing coordinate value in vertex line." << std::endl;
+
+#if defined(__cpp_lib_to_chars) && (__cpp_lib_to_chars >= 201611L)
+        const auto conversion_result = std::from_chars(p_current, p_last, rResult[i], std::chars_format::general);
+        KRATOS_DEBUG_ERROR_IF(conversion_result.ec != std::errc()) << "Invalid stl file. Failed to parse coordinate in vertex line: \"" << coordinates_line << "\"." << std::endl;
+        p_current = conversion_result.ptr;
+#else
+        char* p_end = nullptr;
+        rResult[i] = std::strtod(p_current, &p_end);
+        KRATOS_DEBUG_ERROR_IF(p_end == p_current)
+            << "Invalid stl file. Failed to parse coordinate in vertex line: \"" << coordinates_line << "\"." << std::endl;
+        p_current = p_end;
+#endif
     }
 
-    KRATOS_DEBUG_ERROR_IF(current == EOF) << "Invalid stl file. Unexpected end of file while reading numeric token." << std::endl;
-
-    while (current != EOF && !std::isspace(static_cast<unsigned char>(current))) {
-        KRATOS_DEBUG_ERROR_IF(token_size + 1 >= max_token_size) << "Invalid stl file. Numeric token is too long." << std::endl;
-        token[token_size++] = static_cast<char>(current);
-        p_buffer->sbumpc();
-        current = p_buffer->sgetc();
+#ifdef KRATOS_DEBUG
+    while (p_current != p_last && IsAsciiWhitespace(*p_current)) {
+        ++p_current;
     }
-
-    token[token_size] = '\0';
-
-    char* p_end = nullptr;
-    const double value = std::strtod(token, &p_end);
-    KRATOS_DEBUG_ERROR_IF(p_end == token || *p_end != '\0') << "Invalid stl file. Failed to parse numeric token \"" << token << "\"." << std::endl;
-
-    return value;
+    KRATOS_DEBUG_ERROR_IF(p_current != p_last) << "Invalid stl file. Unexpected extra data in vertex line: \"" << coordinates_line << "\"." << std::endl;
+#endif
 }
 
 void StlIO::ReadKeyword(std::string const& Keyword)
