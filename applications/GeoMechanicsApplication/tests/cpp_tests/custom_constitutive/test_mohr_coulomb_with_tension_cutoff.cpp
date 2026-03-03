@@ -724,12 +724,13 @@ KRATOS_TEST_CASE_IN_SUITE(MohrCoulombWithTensionCutOff_CalculateMaterialResponse
     auto strain_vector = UblasUtilities::CreateVector({6.9595905431284102e-04, -5.1669244190907055e-04,
                                                        0.0000000000000000e+00, 3.6495572640421296e-05});
     // Act
-    const auto actual_stress_vector = ComputeStressVectorUsingCPhiReductionTestData(
+    const auto actual_cauchy_stress_vector = ComputeStressVectorUsingCPhiReductionTestData(
         cohesion, friction_angle, strain_vector_finalized, stress_vector_finalized, strain_vector);
     // Assert
     const auto expected_cauchy_stress_vector = UblasUtilities::CreateVector(
         {-2.1258867028468462e+03, -7.6946536720527947e+03, -3.6748820224188021e+03, 6.8165505185660834e+01});
-    KRATOS_EXPECT_VECTOR_NEAR(actual_stress_vector, expected_cauchy_stress_vector, Defaults::relative_tolerance);
+    KRATOS_EXPECT_VECTOR_NEAR(actual_cauchy_stress_vector, expected_cauchy_stress_vector,
+                              Defaults::relative_tolerance);
 }
 
 KRATOS_TEST_CASE_IN_SUITE(MohrCoulombWithTensionCutOff_CalculateMaterialResponseCauchyAtRegularFailureRegion,
@@ -744,12 +745,13 @@ KRATOS_TEST_CASE_IN_SUITE(MohrCoulombWithTensionCutOff_CalculateMaterialResponse
     auto strain_vector = UblasUtilities::CreateVector({2.0849072892302034e-04, -5.2137806109330782e-05,
                                                        0.0000000000000000e+00, 1.3759667604308981e-08});
     // Act
-    const auto actual_stress_vector = ComputeStressVectorUsingCPhiReductionTestData(
+    const auto actual_cauchy_stress_vector = ComputeStressVectorUsingCPhiReductionTestData(
         cohesion, friction_angle, strain_vector_finalized, stress_vector_finalized, strain_vector);
     // Assert
     const auto expected_cauchy_stress_vector = UblasUtilities::CreateVector(
         {-2.1048640257824104e+03, -8.6704134153705982e+03, -3.8658294356694760e+03, 8.3845724538103905e-02});
-    KRATOS_EXPECT_VECTOR_NEAR(actual_stress_vector, expected_cauchy_stress_vector, Defaults::relative_tolerance);
+    KRATOS_EXPECT_VECTOR_NEAR(actual_cauchy_stress_vector, expected_cauchy_stress_vector,
+                              Defaults::relative_tolerance);
 }
 
 KRATOS_TEST_CASE_IN_SUITE(MohrCoulombWithTensionCutOff_CalculateMaterialResponseCauchyAtCornerWithTensionCutoff_1,
@@ -764,12 +766,13 @@ KRATOS_TEST_CASE_IN_SUITE(MohrCoulombWithTensionCutOff_CalculateMaterialResponse
     auto strain_vector = UblasUtilities::CreateVector({2.1223519849231651e-04, -5.3061831008594524e-05,
                                                        0.0000000000000000e+00, 8.1947498012640424e-09});
     // Act
-    const auto actual_stress_vector = ComputeStressVectorUsingCPhiReductionTestData(
+    const auto actual_cauchy_stress_vector = ComputeStressVectorUsingCPhiReductionTestData(
         cohesion, friction_angle, strain_vector_finalized, stress_vector_finalized, strain_vector);
     // Assert
     const auto expected_cauchy_stress_vector = UblasUtilities::CreateVector(
         {9.9999999981240751e+02, -2.5265113866824933e+02, 3.4252114252393994e+01, 1.5329308790913803e-02});
-    KRATOS_EXPECT_VECTOR_NEAR(actual_stress_vector, expected_cauchy_stress_vector, Defaults::absolute_tolerance);
+    KRATOS_EXPECT_VECTOR_NEAR(actual_cauchy_stress_vector, expected_cauchy_stress_vector,
+                              Defaults::absolute_tolerance);
 }
 
 KRATOS_TEST_CASE_IN_SUITE(MohrCoulombWithTensionCutOff_CalculateMaterialResponseCauchyAtCornerWithTensionCutoff_2,
@@ -784,11 +787,12 @@ KRATOS_TEST_CASE_IN_SUITE(MohrCoulombWithTensionCutOff_CalculateMaterialResponse
     auto strain_vector = UblasUtilities::CreateVector({2.1221334908075760e-04, -5.3056189639024483e-05,
                                                        0.0000000000000000e+00, 3.4835553978606573e-08});
     // Act
-    const auto actual_stress_vector = ComputeStressVectorUsingCPhiReductionTestData(
+    const auto actual_cauchy_stress_vector = ComputeStressVectorUsingCPhiReductionTestData(
         cohesion, friction_angle, strain_vector_finalized, stress_vector_finalized, strain_vector);
     // Assert
     const auto expected_cauchy_stress_vector = UblasUtilities::CreateVector(
         {9.9999999660952608e+02, -2.5265113546536796e+02, 3.4117047235541349e+01, 6.5169629648695174e-02});
-    KRATOS_EXPECT_VECTOR_NEAR(actual_stress_vector, expected_cauchy_stress_vector, Defaults::absolute_tolerance);
+    KRATOS_EXPECT_VECTOR_NEAR(actual_cauchy_stress_vector, expected_cauchy_stress_vector,
+                              Defaults::absolute_tolerance);
 }
 } // namespace Kratos::Testing
