@@ -52,7 +52,7 @@ public:
         result.AddNodalSolutionStepVariable(DISPLACEMENT);
         result.AddNodalSolutionStepVariable(VELOCITY);
         result.AddNodalSolutionStepVariable(ACCELERATION);
-		result.AddNodalSolutionStepVariable(TOTAL_DISPLACEMENT);
+        result.AddNodalSolutionStepVariable(TOTAL_DISPLACEMENT);
 
         // add nodes, elements and conditions
         auto       p_node   = result.CreateNewNode(0, 0.0, 0.0, 0.0);
@@ -67,11 +67,9 @@ public:
 
         // add dofs
         p_node->AddDof(DISPLACEMENT_X);
-   //     p_node->AddDof(TOTAL_DISPLACEMENT_X);
         p_node->pGetDof(DISPLACEMENT_X)->SetEquationId(0);
 
         p_node->AddDof(DISPLACEMENT_Y);
-//		p_node->AddDof(TOTAL_DISPLACEMENT_Y);
         p_node->pGetDof(DISPLACEMENT_Y)->SetEquationId(1);
 
         // initialize nodal values
@@ -387,6 +385,286 @@ KRATOS_TEST_CASE_IN_SUITE(NewtonRaphsonLinearElasticDynamicCalculatedInitialAcce
     TestNewtonRaphsonLinearElasticDynamic(delta_time, use_iterations, calculate_initial_acceleration,
                                           use_direct_solver, converge_outside,
                                           expected_displacement_x, expected_displacement_y);
+}
+
+/// <summary>
+/// Tests if initialization is done correctly in case the stiffness, mass and damping matrix have rows with only 0s
+/// </summary>
+/// <param name=""></param>
+/// <param name=""></param>
+KRATOS_TEST_CASE_IN_SUITE(NewtonRaphsonLinearElasticDynamicAllZeroOnRow, KratosGeoMechanicsFastSuite)
+{
+    NewtonRaphsonStrategyLinearElasticDynamicTester tester;
+
+    // set up model and solver
+    ModelPart& model_part = tester.GetModelPart();
+
+    auto& r_current_process_info = model_part.GetProcessInfo();
+
+    r_current_process_info[TIME]       = 0.0;
+    r_current_process_info[DELTA_TIME] = 0.5;
+
+    auto stiffness_matrix  = Matrix(2, 2);
+    stiffness_matrix(0, 0) = 0.0;
+    stiffness_matrix(0, 1) = 0.0;
+    stiffness_matrix(1, 0) = 2.0;
+    stiffness_matrix(1, 1) = 3.0;
+
+    auto mass_matrix  = Matrix(2, 2);
+    mass_matrix(0, 0) = 0.0;
+    mass_matrix(0, 1) = 0.0;
+    mass_matrix(1, 0) = 5.0;
+    mass_matrix(1, 1) = 4.0;
+
+    auto damping_matrix  = Matrix(2, 2);
+    damping_matrix(0, 0) = 0.0;
+    damping_matrix(0, 1) = 0.0;
+    damping_matrix(1, 0) = 6.0;
+    damping_matrix(1, 1) = 7.0;
+
+    auto rhs = Vector(2);
+    rhs(0)   = 0.0;
+    rhs(1)   = 10.0;
+
+    auto& geo_custom_element = dynamic_cast<GeoMockElement&>(model_part.GetElement(0));
+    geo_custom_element.SetLeftHandSide(stiffness_matrix);
+    geo_custom_element.SetMassMatrix(mass_matrix);
+    geo_custom_element.SetDampingMatrix(damping_matrix);
+
+    auto& geo_custom_condition = dynamic_cast<GeoMockCondition&>(model_part.GetCondition(0));
+    geo_custom_condition.SetRightHandSide(rhs);
+
+    // create strategy
+    auto r_solver = NewtonRaphsonStrategyLinearElasticDynamicTester::CreateValidStrategy(
+        model_part, 1e-6, 1e-12, false, false, false);
+    // initialize solver
+    r_solver.Initialize();
+
+    auto& rSystemMatrix = r_solver.GetSystemMatrix();
+
+    auto expected_matrix = Matrix(2, 2);
+
+    double beta       = 0.25;
+    double gamma      = 0.5;
+    double delta_time = r_current_process_info[DELTA_TIME];
+
+    double mass_multiplier    = (1.0 / (beta * delta_time * delta_time));
+    double damping_multiplier = (gamma / (beta * delta_time));
+
+    // the expected matrix has the max stiffness matrix diagonal + max mass matrix diagonal term on the first (row, column), on the other indices,
+    // the expected matrix is a combination of the stiffness, mass and damping matrix terms, as these are added to the system matrix in the builder and solver
+    expected_matrix(0, 0) = stiffness_matrix(1, 1) + mass_multiplier * mass_matrix(1, 1);
+    expected_matrix(0, 1) = 0.0;
+    expected_matrix(1, 0) = stiffness_matrix(1, 0) + mass_multiplier * mass_matrix(1, 0) +
+                            damping_multiplier * damping_matrix(1, 0);
+    expected_matrix(1, 1) = stiffness_matrix(1, 1) + mass_multiplier * mass_matrix(1, 1) +
+                            damping_multiplier * damping_matrix(1, 1);
+
+    KRATOS_EXPECT_MATRIX_NEAR(rSystemMatrix, expected_matrix, 1e-12);
+}
+
+/// <summary>
+/// Tests if initialization is done correctly in case the stiffness, and mass have rows with only 0s; Damping is not present and the mass matrix is lumped.
+/// </summary>
+/// <param name=""></param>
+/// <param name=""></param>
+KRATOS_TEST_CASE_IN_SUITE(NewtonRaphsonLinearElasticDynamicAllZeroDampingAndLumpedMass, KratosGeoMechanicsFastSuite)
+{
+    NewtonRaphsonStrategyLinearElasticDynamicTester tester;
+
+    // set up model and solver
+    ModelPart& model_part = tester.GetModelPart();
+
+    auto& r_current_process_info = model_part.GetProcessInfo();
+
+    r_current_process_info[TIME]       = 0.0;
+    r_current_process_info[DELTA_TIME] = 0.5;
+
+    auto stiffness_matrix  = Matrix(2, 2);
+    stiffness_matrix(0, 0) = 0.0;
+    stiffness_matrix(0, 1) = 0.0;
+    stiffness_matrix(1, 0) = 2.0;
+    stiffness_matrix(1, 1) = 3.0;
+
+    auto mass_matrix  = Matrix(2, 2);
+    mass_matrix(0, 0) = 0.0;
+    mass_matrix(0, 1) = 0.0;
+    mass_matrix(1, 0) = 0.0;
+    mass_matrix(1, 1) = 4.0;
+
+    auto damping_matrix = ZeroMatrix(2, 2);
+
+    auto rhs = Vector(2);
+    rhs(0)   = 0.0;
+    rhs(1)   = 10.0;
+
+    auto& geo_custom_element = dynamic_cast<GeoMockElement&>(model_part.GetElement(0));
+    geo_custom_element.SetLeftHandSide(stiffness_matrix);
+    geo_custom_element.SetMassMatrix(mass_matrix);
+    geo_custom_element.SetDampingMatrix(damping_matrix);
+
+    auto& geo_custom_condition = dynamic_cast<GeoMockCondition&>(model_part.GetCondition(0));
+    geo_custom_condition.SetRightHandSide(rhs);
+
+    // create strategy
+    auto r_solver = NewtonRaphsonStrategyLinearElasticDynamicTester::CreateValidStrategy(
+        model_part, 1e-6, 1e-12, false, false, false);
+    // initialize solver
+    r_solver.Initialize();
+
+    auto& rSystemMatrix = r_solver.GetSystemMatrix();
+
+    auto expected_matrix = Matrix(2, 2);
+
+    double beta       = 0.25;
+    double delta_time = r_current_process_info[DELTA_TIME];
+
+    double mass_multiplier = (1.0 / (beta * delta_time * delta_time));
+
+    // the expected matrix has the max stiffness matrix diagonal + max mass matrix diagonal. No damping terms are added.
+    expected_matrix(0, 0) = stiffness_matrix(1, 1) + mass_multiplier * mass_matrix(1, 1);
+    expected_matrix(0, 1) = 0.0;
+    expected_matrix(1, 0) = stiffness_matrix(1, 0);
+    expected_matrix(1, 1) = stiffness_matrix(1, 1) + mass_multiplier * mass_matrix(1, 1);
+
+    KRATOS_EXPECT_MATRIX_NEAR(rSystemMatrix, expected_matrix, 1e-12);
+}
+
+/// <summary>
+/// Tests if initialization is done correctly in case there is a DOF where there is a stiffness term but no mass term.
+/// </summary>
+/// <param name=""></param>
+/// <param name=""></param>
+KRATOS_TEST_CASE_IN_SUITE(NewtonRaphsonLinearElasticDynamicAllZeroMassOnDof, KratosGeoMechanicsFastSuite)
+{
+    NewtonRaphsonStrategyLinearElasticDynamicTester tester;
+
+    // set up model and solver
+    ModelPart& model_part = tester.GetModelPart();
+
+    auto& r_current_process_info = model_part.GetProcessInfo();
+
+    r_current_process_info[TIME]       = 0.0;
+    r_current_process_info[DELTA_TIME] = 0.5;
+
+    auto stiffness_matrix  = Matrix(2, 2);
+    stiffness_matrix(0, 0) = 1.0;
+    stiffness_matrix(0, 1) = 0.0;
+    stiffness_matrix(1, 0) = 2.0;
+    stiffness_matrix(1, 1) = 3.0;
+
+    auto mass_matrix  = Matrix(2, 2);
+    mass_matrix(0, 0) = 0.0;
+    mass_matrix(0, 1) = 0.0;
+    mass_matrix(1, 0) = 5.0;
+    mass_matrix(1, 1) = 4.0;
+
+    auto damping_matrix  = Matrix(2, 2);
+    damping_matrix(0, 0) = 0.0;
+    damping_matrix(0, 1) = 0.0;
+    damping_matrix(1, 0) = 6.0;
+    damping_matrix(1, 1) = 7.0;
+
+    auto rhs = Vector(2);
+    rhs(0)   = 0.0;
+    rhs(1)   = 10.0;
+
+    auto& geo_custom_element = dynamic_cast<GeoMockElement&>(model_part.GetElement(0));
+    geo_custom_element.SetLeftHandSide(stiffness_matrix);
+    geo_custom_element.SetMassMatrix(mass_matrix);
+    geo_custom_element.SetDampingMatrix(damping_matrix);
+
+    auto& geo_custom_condition = dynamic_cast<GeoMockCondition&>(model_part.GetCondition(0));
+    geo_custom_condition.SetRightHandSide(rhs);
+
+    // create strategy
+    auto r_solver = NewtonRaphsonStrategyLinearElasticDynamicTester::CreateValidStrategy(
+        model_part, 1e-6, 1e-12, false, false, false);
+    // initialize solver
+    KRATOS_EXPECT_EXCEPTION_IS_THROWN(
+        r_solver.Initialize(),
+        "The system matrix and the mass matrix do not have values on the same degrees of freedom, "
+        "the builder and solver cannot be used in this case.");
+}
+
+/// <summary>
+/// Tests if initialization is done correctly in case there is a DOF where there is a stiffness term but no mass term on a fixed DOF.
+/// </summary>
+/// <param name=""></param>
+/// <param name=""></param>
+KRATOS_TEST_CASE_IN_SUITE(NewtonRaphsonLinearElasticDynamicAllZeroMassOnFixedDof, KratosGeoMechanicsFastSuite)
+{
+    NewtonRaphsonStrategyLinearElasticDynamicTester tester;
+
+    // set up model and solver
+    ModelPart& model_part = tester.GetModelPart();
+
+    auto& r_current_process_info = model_part.GetProcessInfo();
+
+    r_current_process_info[TIME]       = 0.0;
+    r_current_process_info[DELTA_TIME] = 0.5;
+
+    auto stiffness_matrix  = Matrix(2, 2);
+    stiffness_matrix(0, 0) = 1.0;
+    stiffness_matrix(0, 1) = 0.0;
+    stiffness_matrix(1, 0) = 2.0;
+    stiffness_matrix(1, 1) = 3.0;
+
+    auto mass_matrix  = Matrix(2, 2);
+    mass_matrix(0, 0) = 0.0;
+    mass_matrix(0, 1) = 0.0;
+    mass_matrix(1, 0) = 5.0;
+    mass_matrix(1, 1) = 4.0;
+
+    auto damping_matrix  = Matrix(2, 2);
+    damping_matrix(0, 0) = 0.0;
+    damping_matrix(0, 1) = 0.0;
+    damping_matrix(1, 0) = 6.0;
+    damping_matrix(1, 1) = 7.0;
+
+    auto rhs = Vector(2);
+    rhs(0)   = 0.0;
+    rhs(1)   = 10.0;
+
+    auto& geo_custom_element = dynamic_cast<GeoMockElement&>(model_part.GetElement(0));
+    geo_custom_element.SetLeftHandSide(stiffness_matrix);
+    geo_custom_element.SetMassMatrix(mass_matrix);
+    geo_custom_element.SetDampingMatrix(damping_matrix);
+
+    auto& geo_custom_condition = dynamic_cast<GeoMockCondition&>(model_part.GetCondition(0));
+    geo_custom_condition.SetRightHandSide(rhs);
+
+    auto p_node      = model_part.pGetNode(0);
+    auto p_first_dof = p_node->pGetDof(DISPLACEMENT_X);
+    p_first_dof->FixDof();
+
+    // create strategy
+    auto r_solver = NewtonRaphsonStrategyLinearElasticDynamicTester::CreateValidStrategy(
+        model_part, 1e-6, 1e-12, false, false, false);
+
+    // no expection is thrown
+    r_solver.Initialize();
+
+    auto& rSystemMatrix = r_solver.GetSystemMatrix();
+
+    auto expected_matrix = Matrix(2, 2);
+
+    double beta       = 0.25;
+    double gamma      = 0.5;
+    double delta_time = r_current_process_info[DELTA_TIME];
+
+    double mass_multiplier    = (1.0 / (beta * delta_time * delta_time));
+    double damping_multiplier = (gamma / (beta * delta_time));
+
+    // A term is added to the mass matrix diagonal for the fixed dof, which is the maximum diagonal term of the mass matrix
+    // row and column belong to the fixed dof are zerod out expect the diagonal term.
+    expected_matrix(0, 0) = stiffness_matrix(0, 0) + mass_multiplier * mass_matrix(1, 1);
+    expected_matrix(0, 1) = 0.0;
+    expected_matrix(1, 0) = 0.0;
+    expected_matrix(1, 1) = stiffness_matrix(1, 1) + mass_multiplier * mass_matrix(1, 1) +
+                            damping_multiplier * damping_matrix(1, 1);
+
+    KRATOS_EXPECT_MATRIX_NEAR(rSystemMatrix, expected_matrix, 1e-12);
 }
 
 } // namespace Kratos::Testing

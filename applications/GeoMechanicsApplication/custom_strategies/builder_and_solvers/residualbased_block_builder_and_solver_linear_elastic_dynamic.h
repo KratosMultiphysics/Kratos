@@ -170,10 +170,15 @@ public:
                 << "Constraints build time: " << timer_constraints << std::endl;
         }
 
+        KRATOS_ERROR_IF_NOT(Geo::SparseSystemUtilities::MatricesHaveSameDiagonalSignature(rA, mMassMatrix, BaseType::mDofSet)) << "The system matrix and the mass matrix do not have values on the same degrees of freedom, the builder and solver cannot be used in this case."
+                                                                                                                                << std::endl;
+
         // apply dirichlet conditions
         BaseType::ApplyDirichletConditions(pScheme, rModelPart, rA, dummy_rDx, rb);
+
+        // mass matrix is considered a primary matrix as there is the posibility to invert this matrix
         BaseType::ApplyDirichletConditions(pScheme, rModelPart, mMassMatrix, dummy_rDx, dummy_b);
-        BaseType::ApplyDirichletConditions(pScheme, rModelPart, mDampingMatrix, dummy_rDx, dummy_b);
+        Geo::SparseSystemUtilities::ApplyDirichletConditionsSecondaryMatrix(BaseType::mDofSet, mDampingMatrix);
 
         if (mCalculateInitialSecondDerivative) {
             this->CalculateInitialSecondDerivative(rModelPart, rA, pScheme);

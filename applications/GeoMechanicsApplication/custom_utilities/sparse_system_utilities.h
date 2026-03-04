@@ -30,6 +30,7 @@ class KRATOS_API(GEO_MECHANICS_APPLICATION) SparseSystemUtilities
 public:
     /// Vector type definition
     using SystemVectorType = UblasSpace<double, CompressedMatrix, Vector>::VectorType;
+    using SystemMatrixType = UblasSpace<double, CompressedMatrix, Vector>::MatrixType;
     /// DoF array type definition
     using DofsArrayType = ModelPart::DofsArrayType;
 
@@ -47,6 +48,26 @@ public:
     static void SetUFirstAndSecondDerivativeVector(const SystemVectorType& rFirstDerivativeVector,
                                                    const SystemVectorType& rSecondDerivativeVector,
                                                    ModelPart&              rModelPart);
+
+    /// <summary>
+    /// In this function, the rows and columns of the secondary matrix corresponding to the fixed DOFs are zeroed,
+    /// the diagonal is kept as it is, as for secondary matrices, zeros are allowed on the diagonal.
+    /// </summary>
+    /// <param name="rDofSet"></param>
+    /// <param name="rSecondaryMatrix"></param>
+    static void ApplyDirichletConditionsSecondaryMatrix(const DofsArrayType& rDofSet,
+                                                        SystemMatrixType&    rSecondaryMatrix);
+
+    /// <summary>
+    /// Checks if the two matrices have the same signature on the diagonal, meaning that they have non-zeros in the same positions on the diagonal.
+    /// </summary>
+    /// <param name="rPrimaryMatrix"></param>
+    /// <param name="rSecondaryMatrix"></param>
+    /// <param name="rDofSet"></param>
+    /// <returns></returns>
+    static bool MatricesHaveSameDiagonalSignature(const SystemMatrixType& rPrimaryMatrix,
+                                                  const SystemMatrixType& rSecondaryMatrix,
+                                                  const DofsArrayType&    rDofSet);
 
 private:
     static void GetDerivativesForOptionalVariable(const Variable<double>& rVariable,
@@ -70,5 +91,18 @@ private:
                                           Node&                   rNode,
                                           const SystemVectorType& rFirstDerivativeVector,
                                           const SystemVectorType& rSecondDerivativeVector);
+
+    /// <summary>
+    /// Checks if current row has a non-zero entry on the diagonal,
+    /// </summary>
+    /// <param name="RowIndex"></param>
+    /// <param name="rCsrIndices1"></param>
+    /// <param name="rCsrIndices2"></param>
+    /// <param name="rCsrValues"></param>
+    /// <returns></returns>
+    static bool HasNonZeroDiagonalEntryOnCurrentRow(const std::size_t RowIndex,
+                                                    const unbounded_array<std::size_t>& rCsrIndices1,
+                                                    const unbounded_array<std::size_t>& rCsrIndices2,
+                                                    const unbounded_array<double> rCsrValues);
 };
 } // namespace Kratos::Geo

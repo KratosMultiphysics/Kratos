@@ -154,7 +154,7 @@ class KratosGeoMechanicsDynamicsTests(KratosUnittest.TestCase):
         with open(os.path.join(file_path, "expected_result.json")) as fp:
             expected_result = json.load(fp)
 
-        self.assertVectorAlmostEqual(calculated_displacement, expected_result[where][what])
+        self.assertVectorAlmostEqual(calculated_displacement, expected_result[where][what], places=12)
 
     def run_wave_through_drained_linear_elastic_soil_test(self, test_name, node_keys):
         """
@@ -181,7 +181,7 @@ class KratosGeoMechanicsDynamicsTests(KratosUnittest.TestCase):
 
         what = "VELOCITY_Y"
         for node_key in node_keys:
-            self.assertVectorAlmostEqual(calculated_result[node_key][what], expected_result[node_key][what])
+            self.assertVectorAlmostEqual(calculated_result[node_key][what], expected_result[node_key][what], places=12)
 
         return simulation
 
@@ -210,7 +210,7 @@ class KratosGeoMechanicsDynamicsTests(KratosUnittest.TestCase):
         nodes = ["NODE_3", "NODE_4"]
         what = "DISPLACEMENT_Y"
         for node in nodes:
-            self.assertVectorAlmostEqual(calculated_result[node][what], expected_result[node][what])
+            self.assertVectorAlmostEqual(calculated_result[node][what], expected_result[node][what], places=12)
 
     def test_gravity_wave_through_drained_linear_elastic_soil_linear_elastic_solver_multi_stage(self):
         """
@@ -248,7 +248,7 @@ class KratosGeoMechanicsDynamicsTests(KratosUnittest.TestCase):
         with open(os.path.join(file_path, "expected_result.json")) as fp:
             expected_result = json.load(fp)
 
-        self.assertVectorAlmostEqual(calculated_displacement, expected_result[where][what])
+        self.assertVectorAlmostEqual(calculated_displacement, expected_result[where][what], places=12)
 
 
 if __name__ == '__main__':

@@ -113,6 +113,92 @@ void SparseSystemUtilities::SetUFirstAndSecondDerivativeVector(const SystemVecto
     KRATOS_CATCH("")
 }
 
+void SparseSystemUtilities::ApplyDirichletConditionsSecondaryMatrix(const DofsArrayType& rDofSet,
+                                                                    SystemMatrixType& rSecondaryMatrix)
+{
+    const std::size_t system_size = rSecondaryMatrix.size1();
+    Vector            scaling_factors(system_size, 1.0);
+
+    const auto it_dof_iterator_begin = rDofSet.begin();
+
+    // NOTE: dofs are assumed to be numbered consecutively in the BlockBuilderAndSolver
+    IndexPartition<std::size_t>(rDofSet.size()).for_each([&](std::size_t Index) {
+        auto it_dof_iterator = it_dof_iterator_begin + Index;
+        if (it_dof_iterator->IsFixed()) {
+            scaling_factors[Index] = 0.0;
+        }
+    });
+
+    double*      Avalues      = rSecondaryMatrix.value_data().begin();
+    std::size_t* Arow_indices = rSecondaryMatrix.index1_data().begin();
+    std::size_t* Acol_indices = rSecondaryMatrix.index2_data().begin();
+
+    IndexPartition<std::size_t>(system_size).for_each([&](std::size_t Index) {
+        const std::size_t col_begin = Arow_indices[Index];
+        const std::size_t col_end   = Arow_indices[Index + 1];
+        const double      k_factor  = scaling_factors[Index];
+        if (k_factor == 0.0) {
+            // Zero out the whole row, except the diagonal
+            for (std::size_t j = col_begin; j < col_end; ++j)
+                if (Acol_indices[j] != Index) Avalues[j] = 0.0;
+        } else {
+            // Zero out the column which is associated with the zero'ed row
+            for (std::size_t j = col_begin; j < col_end; ++j)
+                if (scaling_factors[Acol_indices[j]] == 0) Avalues[j] = 0.0;
+        }
+    });
+}
+
+bool SparseSystemUtilities::HasNonZeroDiagonalEntryOnCurrentRow(const std::size_t RowIndex,
+                                                                const unbounded_array<std::size_t>& rCsrIndices1,
+                                                                const unbounded_array<std::size_t>& rCsrIndices2,
+                                                                const unbounded_array<double> rCsrValues)
+{
+    // Check if there is a non-zero entry on the diagonal for the given row index
+    for (std::size_t k = rCsrIndices1[RowIndex]; k < rCsrIndices1[RowIndex + 1]; ++k) {
+        const std::size_t col = rCsrIndices2[k];
+        if (col == RowIndex) {
+            return (rCsrValues[k] != 0.0);
+        }
+    }
+    return false;
+}
+
+bool SparseSystemUtilities::MatricesHaveSameDiagonalSignature(const SystemMatrixType& rPrimaryMatrix,
+                                                              const SystemMatrixType& rSecondaryMatrix,
+                                                              const DofsArrayType& rDofSet)
+{
+    const std::size_t size1 = rPrimaryMatrix.size1();
+    if (size1 != rSecondaryMatrix.size1() || rPrimaryMatrix.size2() != rSecondaryMatrix.size2()) {
+        return false;
+    }
+
+    const auto& r_primary_index1 = rPrimaryMatrix.index1_data();
+    const auto& r_primary_index2 = rPrimaryMatrix.index2_data();
+    const auto& r_primary_values = rPrimaryMatrix.value_data();
+
+    const auto& r_secondary_index1 = rSecondaryMatrix.index1_data();
+    const auto& r_secondary_index2 = rSecondaryMatrix.index2_data();
+    const auto& r_secondary_values = rSecondaryMatrix.value_data();
+
+    auto dof_iterator_begin = rDofSet.begin();
+
+    for (std::size_t row_index = 0; row_index < size1; ++row_index) {
+        // Find diagonal for Matrix rPrimaryMatrix
+        bool has_primary_diag = SparseSystemUtilities::HasNonZeroDiagonalEntryOnCurrentRow(
+            row_index, r_primary_index1, r_primary_index2, r_primary_values);
+
+        // Find diagonal for Matrix rSecondaryMatrix
+        bool has_secondary_diag = SparseSystemUtilities::HasNonZeroDiagonalEntryOnCurrentRow(
+            row_index, r_secondary_index1, r_secondary_index2, r_secondary_values);
+
+        if (has_primary_diag != has_secondary_diag && !(dof_iterator_begin + row_index)->IsFixed())
+            return false;
+    }
+
+    return true;
+}
+
 void SparseSystemUtilities::GetDerivativesForOptionalVariable(const Variable<double>& rVariable,
                                                               const Node&             rNode,
                                                               SystemVectorType& rFirstDerivativeVector,
