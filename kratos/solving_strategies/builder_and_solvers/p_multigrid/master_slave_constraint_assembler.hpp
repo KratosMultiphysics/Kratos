@@ -25,6 +25,7 @@ class MasterSlaveConstraintAssembler final : public ConstraintAssembler<TSparse,
 {
 public:
     using Base = ConstraintAssembler<TSparse,TDense>;
+    using DofSetType = typename Base::DofSet;
 
     MasterSlaveConstraintAssembler() noexcept;
 
@@ -84,7 +85,7 @@ public:
     void ComputeDependentSolution(typename TSparse::VectorType& rSolution) const override;
 
     /// @copydoc Base::GetDependentDofs
-    const typename Base::DofSet& GetDependentDofs(const typename Base::DofSet& rIndependentDofSet) const noexcept override;
+    const DofSetType& GetDependentDofs(const DofSetType& rIndependentDofSet) const noexcept override;
 
     /// @copydoc Base::Clear
     void Clear() override;
