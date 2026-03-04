@@ -163,6 +163,46 @@ void GapSbmLaplacianElement::CalculateRightHandSide(VectorType& rRightHandSideVe
     noalias(rRightHandSideVector) += weight * H_sum_vec * source;
 }
 
+void GapSbmLaplacianElement::FinalizeSolutionStep(const ProcessInfo& rCurrentProcessInfo)
+{
+    ConvectionDiffusionSettings::Pointer p_settings = rCurrentProcessInfo[CONVECTION_DIFFUSION_SETTINGS];
+    auto& r_settings = *p_settings;
+    const auto& r_unknown_var = r_settings.GetUnknownVariable();
+    const auto& r_gradient_var = r_settings.GetGradientVariable();
+
+    const auto& r_geometry = GetGeometry();
+    const auto& r_integration_points = r_geometry.IntegrationPoints(this->GetIntegrationMethod());
+    SetValue(INTEGRATION_WEIGHT, r_integration_points[0].Weight());
+
+    const auto& r_surrogate_geometry = GetSurrogateGeometry();
+    const unsigned int number_of_points = r_surrogate_geometry.PointsNumber();
+
+    Vector H_sum_vec(number_of_points);
+    ComputeTaylorExpansionContribution(H_sum_vec);
+
+    double gp_value = 0.0;
+    for (IndexType i = 0; i < number_of_points; ++i) {
+        const double u_i = r_surrogate_geometry[i].GetSolutionStepValue(r_unknown_var);
+        gp_value += H_sum_vec[i] * u_i;
+    }
+
+    SetValue(TEMPERATURE, gp_value);
+
+    // gradient using extended basis derivatives
+    Matrix grad_H_sum_T(3, number_of_points);
+    ComputeGradientTaylorExpansionContribution(grad_H_sum_T);
+    Matrix grad_H_sum = trans(grad_H_sum_T); // [n_points x 3]
+
+    array_1d<double,3> grad_unknown = ZeroVector(3);
+    for (IndexType i = 0; i < number_of_points; ++i) {
+        const double u_i = r_surrogate_geometry[i].FastGetSolutionStepValue(r_unknown_var);
+        for (unsigned int d = 0; d < 3; ++d) {
+            grad_unknown[d] += grad_H_sum(i, d) * u_i;
+        }
+    }
+    SetValue(TEMPERATURE_GRADIENT, grad_unknown);
+}
+
 void GapSbmLaplacianElement::EquationIdVector(EquationIdVectorType& rResult, const ProcessInfo& rCurrentProcessInfo) const
 {
     ConvectionDiffusionSettings::Pointer p_settings = rCurrentProcessInfo[CONVECTION_DIFFUSION_SETTINGS];
@@ -347,4 +387,3 @@ double GapSbmLaplacianElement::ComputeTaylorTerm3D(const double derivative, cons
 }
 
 } // namespace Kratos
-

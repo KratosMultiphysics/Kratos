@@ -35,6 +35,8 @@ add_app ${KRATOS_APP_DIR}/LinearSolversApplication
 add_app ${KRATOS_APP_DIR}/StructuralMechanicsApplication
 add_app ${KRATOS_APP_DIR}/FluidDynamicsApplication
 add_app ${KRATOS_APP_DIR}/IgaApplication
+add_app ${KRATOS_APP_DIR}/ConvectionDiffusionApplication
+
 
 # Clean
 clear
@@ -49,4 +51,4 @@ cmake -H"${KRATOS_SOURCE}" -B"${KRATOS_BUILD}/${KRATOS_BUILD_TYPE}" \
 -DKRATOS_GENERATE_PYTHON_STUBS=ON
 
 # Build
-cmake --build "${KRATOS_BUILD}/${KRATOS_BUILD_TYPE}" --target install -- -j$(nproc)
+cmake --build "${KRATOS_BUILD}/${KRATOS_BUILD_TYPE}" --target install -- -j4
