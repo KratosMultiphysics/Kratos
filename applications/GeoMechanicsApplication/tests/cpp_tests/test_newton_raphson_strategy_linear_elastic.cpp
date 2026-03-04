@@ -520,8 +520,7 @@ KRATOS_TEST_CASE_IN_SUITE(NewtonRaphsonLinearElasticDynamicAllZeroDampingAndLump
     double gamma      = 0.5;
     double delta_time = r_current_process_info[DELTA_TIME];
 
-    double mass_multiplier    = (1.0 / (beta * delta_time * delta_time));
-    double damping_multiplier = (gamma / (beta * delta_time));
+    double mass_multiplier = (1.0 / (beta * delta_time * delta_time));
 
     // the expected matrix has the max stiffness matrix diagonal + max mass matrix diagonal. No damping terms are added.
     expected_matrix(0, 0) = stiffness_matrix(1, 1) + mass_multiplier * mass_matrix(1, 1);
