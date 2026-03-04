@@ -13,7 +13,7 @@ class StructuralMechanicsLoadSteppingAnalysis(StructuralMechanicsAnalysis):
         def __get_serializer():
             return Kratos.FileSerializer("serialization", Kratos.SerializerTraceType.SERIALIZER_NO_TRACE, True)
 
-        is_converged = False
+        self.is_converged = False
         while self.KeepAdvancingSolutionLoop():
             time_begin = self.time # current step lower bound
             # current step upper bound.
@@ -33,14 +33,14 @@ class StructuralMechanicsLoadSteppingAnalysis(StructuralMechanicsAnalysis):
 
             # first try to solve for the final time.
             self.InitializeSolutionStep()
-            is_converged = self._GetSolver().SolveSolutionStep()
+            self.is_converged = self._GetSolver().SolveSolutionStep()
 
-            if not is_converged:
+            if not self.is_converged:
                 Kratos.Logger.PrintInfo(self.__class__.__name__, f"Did not converge for time = {self.time}.")
 
             current_step_controller_time = time_begin
-            while not step_controller.IsCompleted(current_step_controller_time, is_converged):
-                if is_converged:
+            while not step_controller.IsCompleted(current_step_controller_time, self.is_converged):
+                if self.is_converged:
                     Kratos.Logger.PrintInfo(self.__class__.__name__, f"Step at time = [{time_begin}, {self.time}] converged.")
                     # so the sub-step converged.
 
@@ -54,7 +54,7 @@ class StructuralMechanicsLoadSteppingAnalysis(StructuralMechanicsAnalysis):
                     # here we will correctly set TIME and DELTA_TIME
                     # and put current values in the previous time step
                     time_begin = self.time
-                    self.time = step_controller.GetNextStep(self.time, is_converged)
+                    self.time = step_controller.GetNextStep(self.time, self.is_converged)
                     computing_mp.CloneTimeStep(self.time)
 
                     # now collect the nodes positions, which may have moved
@@ -68,12 +68,12 @@ class StructuralMechanicsLoadSteppingAnalysis(StructuralMechanicsAnalysis):
 
                     # sub_step did not converge
                     # do not advance in step. get a new sub-step
-                    self.time = step_controller.GetNextStep(time_begin, is_converged)
+                    self.time = step_controller.GetNextStep(time_begin, self.is_converged)
                     computing_mp.ProcessInfo[Kratos.TIME] = self.time
                     computing_mp.ProcessInfo[Kratos.DELTA_TIME] = self.time - time_begin
 
                 self.InitializeSolutionStep()
-                is_converged = self._GetSolver().SolveSolutionStep()
+                self.is_converged = self._GetSolver().SolveSolutionStep()
 
                 current_step_controller_time = self.time
 

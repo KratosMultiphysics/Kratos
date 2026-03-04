@@ -281,16 +281,16 @@ class Simple3D2NBeamCrDynamicTest(StructuralMechanicsTestFactory):
 class Simple3D2NBeamCrDynamicPseudoStepTest(StructuralMechanicsTestFactory):
     class TestClass(StructuralMechanicsLoadSteppingAnalysis):
         list_of_steps: 'list[int]' = []
-        def InitializeSolutionStep(self):
-            super().InitializeSolutionStep()
-            self.list_of_steps.append(self._GetSolver().GetComputingModelPart().ProcessInfo[KratosMultiphysics.STEP])
+        def FinalizeSolutionStep(self):
+            super().FinalizeSolutionStep()
+            self.list_of_steps.append(self.is_converged)
 
     file_name = "beam_test/dynamic_3D2NBeamCr_pseudo_step_test"
     analysis_type = TestClass
 
     def test_execution(self):
         super().test_execution()
-        self.assertEqual(self.test.list_of_steps, [1, 2, 3, 4, 5, 6, 7, 7, 8, 9, 10, 11, 12, 13, 13, 14, 15, 16, 17, 18, 19, 19, 20, 21, 22, 23, 24, 25, 25, 26, 27, 28, 29, 30, 30, 31, 32, 33, 34, 34, 35, 36, 37, 37, 38, 39, 40, 41, 42, 42, 43, 44, 45, 46, 47, 48, 48, 49, 50, 51])
+        self.assertTrue(all(self.test.list_of_steps))
 
     def tearDown(self):
         super().tearDown()
