@@ -582,9 +582,10 @@ void SbmFluidConditionDirichlet::FinalizeSolutionStep(const ProcessInfo& rCurren
         
         // Create a matrix with the same schema used in other IGA fluid conditions
         // [0] w, [1] fx_tot, [2] fy_tot, [3] fx_visc, [4] fy_visc, [5] fx_pres, [6] fy_pres,
-        // [7] nx, [8] ny, [9] x_gp, [10] y_gp
+        // [7] nx, [8] ny, [9] x_gp, [10] y_gp, [11] vx_true, [12] vy_true, [13] vz_true,
+        // [14] z_gp, [15] p_true
         const std::size_t num_results = integration_weight_list_on_true_boundary.size();
-        Matrix integration_results(num_results, 11, 0.0);
+        Matrix integration_results(num_results, 16, 0.0);
 
         double pressure_max_min = 0.0;
 
@@ -606,19 +607,43 @@ void SbmFluidConditionDirichlet::FinalizeSolutionStep(const ProcessInfo& rCurren
 
             // === 1. Pressure at true boundary ===
             double p_true = 0.0;
+            array_1d<double,3> v_true = ZeroVector(3);
             for (IndexType i = 0; i < r_geometry.size(); ++i) {
                 double p_i = r_geometry[i].GetSolutionStepValue(PRESSURE);
+                const array_1d<double,3>& r_vel_i = r_geometry[i].GetSolutionStepValue(VELOCITY);
 
                 double H_taylor = 0.0;
-                for (int n = 1; n <= mBasisFunctionsOrder; ++n) {
-                    Matrix& p_derivatives = mShapeFunctionDerivatives[n - 1];
-                    for (int k = 0; k <= n; ++k) {
-                        int n_k = n - k;
-                        double deriv = p_derivatives(i, k);
-                        H_taylor += ComputeTaylorTerm(deriv, d[0], n_k, d[1], k);
+                if (mDim == 2) {
+                    for (int n = 1; n <= mBasisFunctionsOrder; ++n) {
+                        Matrix& p_derivatives = mShapeFunctionDerivatives[n - 1];
+                        for (int k = 0; k <= n; ++k) {
+                            int n_k = n - k;
+                            double deriv = p_derivatives(i, k);
+                            H_taylor += ComputeTaylorTerm(deriv, d[0], n_k, d[1], k);
+                        }
+                    }
+                } else {
+                    for (int n = 1; n <= mBasisFunctionsOrder; ++n) {
+                        Matrix& p_derivatives = mShapeFunctionDerivatives[n - 1];
+                        int countDerivativeId = 0;
+                        for (int k_x = n; k_x >= 0; k_x--) {
+                            for (int k_y = n - k_x; k_y >= 0; k_y--) {
+                                int k_z = n - k_x - k_y;
+                                double deriv = p_derivatives(i, countDerivativeId);
+                                H_taylor += ComputeTaylorTerm3D(
+                                    deriv,
+                                    d[0], k_x,
+                                    d[1], k_y,
+                                    d[2], k_z);
+                                countDerivativeId++;
+                            }
+                        }
                     }
                 }
                 p_true += (r_N(0, i) + H_taylor) * p_i;
+                v_true[0] += (r_N(0, i) + H_taylor) * r_vel_i[0];
+                v_true[1] += (r_N(0, i) + H_taylor) * r_vel_i[1];
+                v_true[2] += (r_N(0, i) + H_taylor) * r_vel_i[2];
             }
 
             // Andrea's version of the code
@@ -666,6 +691,11 @@ void SbmFluidConditionDirichlet::FinalizeSolutionStep(const ProcessInfo& rCurren
             integration_results(i_gauss, 8)  = true_normal[1];
             integration_results(i_gauss, 9)  = gp[0];
             integration_results(i_gauss, 10) = gp[1];
+            integration_results(i_gauss, 11) = v_true[0];
+            integration_results(i_gauss, 12) = v_true[1];
+            integration_results(i_gauss, 13) = v_true[2];
+            integration_results(i_gauss, 14) = (gp.size() > 2) ? gp[2] : 0.0;
+            integration_results(i_gauss, 15) = p_true;
 
             if (gp[0]>0.2499968 || gp[0]<0.15001)
             {
