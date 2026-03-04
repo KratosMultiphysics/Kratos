@@ -59,6 +59,19 @@ class VectorizedCFDStage(analysis_stage.AnalysisStage):
     def ApplyVelocityDirichletConditions(self, vold, v_end_of_step, dt_factor, v):
         v.ravel()[self.fix_vel_indices] = (1-dt_factor)*vold.ravel()[self.fix_vel_indices] + dt_factor*v_end_of_step
 
+    def ApplyVelocitySlipConditions(self, v, normals):
+        # Get velocity and normal view of slip nodes
+        n_slip_nodes = len(self.slip_vel_indices) // self.dim
+        v_slip = v.ravel()[self.slip_vel_indices].reshape((n_slip_nodes,self.dim)) # shape (num_slip, dim)
+        n_unit = normals.ravel()[self.slip_vel_indices].reshape((n_slip_nodes,self.dim)) # shape (num_slip, dim)
+
+        # Normalize normals
+        n_unit /= xp.linalg.norm(n_unit, axis=1, keepdims=True)
+
+        # Remove normal velocity component
+        v_dot_n = xp.sum(v_slip * n_unit, axis=1, keepdims=True)
+        v.ravel()[self.slip_vel_indices] -= (v_dot_n * n_unit).ravel()
+
     def ComputeH(self,DN):
         inverse_h2 = xp.max(xp.linalg.norm(DN,axis=2),axis=1)
         h = xp.sqrt(1./inverse_h2)
@@ -97,10 +110,6 @@ class VectorizedCFDStage(analysis_stage.AnalysisStage):
         self.model_part.AddNodalSolutionStepVariable(KM.NORMAL)
         self.model_part.AddNodalSolutionStepVariable(KM.BODY_FORCE)
         self.model_part.AddNodalSolutionStepVariable(KM.EXTERNAL_PRESSURE)
-        self.model_part.AddNodalSolutionStepVariable(KM.CONV_PROJ) #FIXME: remove after debugging
-        self.model_part.AddNodalSolutionStepVariable(KM.DIVPROJ) #FIXME: remove after debugging
-        self.model_part.AddNodalSolutionStepVariable(KM.ACCELERATION) #FIXME: remove after debugging
-        self.model_part.AddNodalSolutionStepVariable(KM.DISPLACEMENT) #FIXME: remove after debugging
 
         self.model_part.SetBufferSize(2)
 
@@ -186,6 +195,7 @@ class VectorizedCFDStage(analysis_stage.AnalysisStage):
         self.p_adaptor = KM.TensorAdaptors.HistoricalVariableTensorAdaptor(self.model_part.Nodes,KM.PRESSURE,0)
         self.p_adaptor_n = KM.TensorAdaptors.HistoricalVariableTensorAdaptor(self.model_part.Nodes, KM.PRESSURE, 1) #TODO: most probably this is not required and we can just copy current step data (but just in case while debugging)
         self.b_adaptor = KM.TensorAdaptors.HistoricalVariableTensorAdaptor(self.model_part.Nodes, KM.BODY_FORCE, data_shape=[self.dim], step_index=0)
+        self.normals_adaptor = KM.TensorAdaptors.HistoricalVariableTensorAdaptor(self.model_part.Nodes, KM.NORMAL, data_shape=[self.dim], step_index=0)
 
         self.v_adaptor.CollectData()
         v = self.v_adaptor.data.reshape((len(self.model_part.Nodes),self.dim))
@@ -242,6 +252,17 @@ class VectorizedCFDStage(analysis_stage.AnalysisStage):
 
         # Compute h per every element
         self.h = self.ComputeH(self.DN)
+
+        # Get nodal normals for the slip condition
+        # Note that the normals are already computed by the corresponding process Initialize() method (see base class)
+        self.normals_adaptor.CollectData()
+        self.normals = self.normals_adaptor.data.reshape((len(self.model_part.Nodes),self.dim))
+        self.normals = xp.asarray(self.normals, dtype=cfd_utils.PRECISION)
+
+        # Declare boundary condition arrays
+        self.fix_vel_indices = None
+        self.slip_vel_indices = None
+        self.fix_pres_indices = None
 
         # Compute the Fourier number time step restriction (constant as h, rho and mu are constant in time)
         if self.automatic_dt:
@@ -336,27 +357,38 @@ class VectorizedCFDStage(analysis_stage.AnalysisStage):
         # Return the projection values as a nodal data array (nnodes*dim)
         return pi_press.reshape((self.nnodes, self.dim))
 
-    def GetFixity(self):
-        #obtain fixity
-        #TODO: this should be done with an adaptor
-        self.fix_vel_indices = []
-        self.fix_press_indices = []
-        for node in self.model_part.Nodes:
-            if node.IsFixed(KM.VELOCITY_X):
-                self.fix_vel_indices.append((node.Id-1)*self.dim)
-            if node.IsFixed(KM.VELOCITY_Y):
-                self.fix_vel_indices.append((node.Id-1)*self.dim+1)
-            if self.dim==3 and node.IsFixed(KM.VELOCITY_Z):
-                self.fix_vel_indices.append((node.Id-1)*self.dim+2)
-            if node.IsFixed(KM.PRESSURE):
-                self.fix_press_indices.append(node.Id-1)
+    def GetFixityIndices(self):
+        # Obtain fixity
+        # Note that we only compute this once assuming the fixity to not change in time
+        if self.fix_vel_indices is None or self.fix_press_indices is None:
+            self.fix_vel_indices = []
+            self.fix_press_indices = []
+            for node in self.model_part.Nodes: #FIXME: this should be done with an adaptor
+                if node.IsFixed(KM.VELOCITY_X):
+                    self.fix_vel_indices.append((node.Id-1)*self.dim)
+                if node.IsFixed(KM.VELOCITY_Y):
+                    self.fix_vel_indices.append((node.Id-1)*self.dim+1)
+                if self.dim==3 and node.IsFixed(KM.VELOCITY_Z):
+                    self.fix_vel_indices.append((node.Id-1)*self.dim+2)
+                if node.IsFixed(KM.PRESSURE):
+                    self.fix_press_indices.append(node.Id-1)
 
-        self.fix_vel_indices = xp.array(self.fix_vel_indices, np.int64) #TODO: can we use int32 here?
-        self.fix_press_indices = xp.array(self.fix_press_indices, np.int64) #TODO: can we use int32 here?
+            # Move to device if needed
+            self.fix_vel_indices = xp.array(self.fix_vel_indices, np.int64) #TODO: can we use int32 here?
+            self.fix_press_indices = xp.array(self.fix_press_indices, np.int64) #TODO: can we use int32 here?
 
-        # Move to device if needed
-        self.fix_vel_indices = xp.asarray(self.fix_vel_indices)
-        self.fix_press_indices = xp.asarray(self.fix_press_indices)
+    def GetSlipIndices(self):
+        # Check if slip indices have been computed
+        # Note that we only compute this once assuming the slip to not change in time
+        if self.slip_vel_indices is None:
+            # Get SLIP flag nodal data
+            slip_adaptor = KM.TensorAdaptors.FlagsTensorAdaptor(self.model_part.Nodes, KM.SLIP)
+            slip_adaptor.CollectData()
+            slip_adaptor_data = xp.asarray(slip_adaptor.data, dtype=np.int64) #TODO: can we use int32 here?
+
+            # Compute slip nodes component indices
+            slip_node_ids = xp.where(slip_adaptor_data > 0)[0] # Get the ids of the nodes with SLIP flag
+            self.slip_vel_indices = (slip_node_ids[:, None] * self.dim + xp.arange(self.dim)).ravel() # Broadcast with dimension to get the component indices
 
     def SolveStep1(self,v,vold,p,b,dt):
         # Gather elemental data from the database
@@ -370,16 +402,10 @@ class VectorizedCFDStage(analysis_stage.AnalysisStage):
         # Compute convective projection
         conv_proj = self.ComputeVelocityProjection(vel)
         conv_proj_el = self.ElemData(conv_proj, self.connectivity)
-        #FIXME: remove after debugging
-        for node in self.model_part.Nodes:
-            node.SetSolutionStepValue(KM.CONV_PROJ, 0, (xp.hstack([conv_proj[node.Id-1,:], 0.0])).tolist()) #TODO: remove after debugging
 
         # Compute divergence projection
         div_proj = self.ComputeDivergenceProjection(vel)
         div_proj_el = self.ElemData(div_proj, self.connectivity)
-        #FIXME: remove after debugging
-        for node in self.model_part.Nodes:
-            node.SetSolutionStepValue(KM.DIVPROJ, 0, div_proj[node.Id-1]) #TODO: remove after debugging
 
         # Advance in time by runge kutta
 
@@ -389,6 +415,7 @@ class VectorizedCFDStage(analysis_stage.AnalysisStage):
 
         # --- k2 ---
         v2 = vold + 0.5 * dt * k1
+        self.ApplyVelocitySlipConditions(v2, self.normals)
         self.ApplyVelocityDirichletConditions(vold,self.v_end_of_step_dirichlet,0.5,v2)
 
         vel = self.ElemData(v2, self.connectivity)
@@ -397,6 +424,7 @@ class VectorizedCFDStage(analysis_stage.AnalysisStage):
 
         # --- k3 ---
         v3 = vold + 0.5 * dt * k2
+        self.ApplyVelocitySlipConditions(v3, self.normals)
         self.ApplyVelocityDirichletConditions(vold,self.v_end_of_step_dirichlet,0.5,v3)
 
         vel = self.ElemData(v3, self.connectivity)
@@ -405,6 +433,7 @@ class VectorizedCFDStage(analysis_stage.AnalysisStage):
 
         # --- k4 ---
         v4 = vold + dt * k3
+        self.ApplyVelocitySlipConditions(v4, self.normals)
         self.ApplyVelocityDirichletConditions(vold,self.v_end_of_step_dirichlet,1.0,v4)
 
         vel = self.ElemData(v4, self.connectivity)
@@ -413,6 +442,7 @@ class VectorizedCFDStage(analysis_stage.AnalysisStage):
 
         # --- final RK4 update ---
         vnew = vold + (dt/6.0) * (k1 + 2*k2 + 2*k3 + k4)
+        self.ApplyVelocitySlipConditions(vnew, self.normals)
         self.ApplyVelocityDirichletConditions(vold, self.v_end_of_step_dirichlet,1.0,vnew)
 
         return vnew
@@ -425,9 +455,6 @@ class VectorizedCFDStage(analysis_stage.AnalysisStage):
         # Compute pressure projection
         pres_proj = self.ComputePressureProjection(pel)
         pres_proj_el = self.ElemData(pres_proj, self.connectivity)
-        #FIXME: remove after debugging
-        for node in self.model_part.Nodes:
-            node.SetSolutionStepValue(KM.ACCELERATION, 0, (xp.hstack([pres_proj[node.Id-1,:], 0.0])).tolist())
 
         # Assemble pressure LHS (set to zero is done internally)
         L_el = self.cfd_utils.ComputeLaplacianMatrix(self.DN) # elemental laplacian contributions as L_IJ := (∇N_I,∇N_J)
@@ -444,11 +471,11 @@ class VectorizedCFDStage(analysis_stage.AnalysisStage):
 
         # -tau*(∇q,Pi_pressure)
         aux_scalar = self.cfd_utils.ComputePressureStabilization_ProjectionTerm(self.N, self.DN, pres_proj_el)
-        aux_scalar *= self.tau_1[:,np.newaxis]
+        aux_scalar *= self.tau_1[:,xp.newaxis]
         rhs_el -= aux_scalar
 
         # scale RHS elemental contributions by elemental volumes (integration)
-        rhs_el *= self.elemental_volumes[:,np.newaxis]
+        rhs_el *= self.elemental_volumes[:,xp.newaxis]
 
         # Assemble RHS
         rhs = xp.zeros(vfrac.shape[0], dtype=cfd_utils.PRECISION)
@@ -494,12 +521,15 @@ class VectorizedCFDStage(analysis_stage.AnalysisStage):
 
         # Update the fractional velocity with the pressure gradient contribution
         v.ravel()[:] = vfrac.ravel() + (dt/self.rho) * self.Minv * grad_dp_nodal.ravel()
+        self.ApplyVelocitySlipConditions(v, self.normals)
         self.ApplyVelocityDirichletConditions(vfrac, self.v_end_of_step_dirichlet, 1.0, v)
 
         return v
 
     def SolveSolutionStep(self):
-        self.GetFixity() #TODO: do this only once!
+        # Get boundary condition data
+        self.GetSlipIndices() #TODO: do this only once!
+        self.GetFixityIndices() #TODO: do this only once!
 
         #obtain velocity from Kratos
         self.v_adaptor.CollectData() #new vel
@@ -516,14 +546,13 @@ class VectorizedCFDStage(analysis_stage.AnalysisStage):
 
         dt = self.model_part.ProcessInfo[KM.DELTA_TIME]
 
-        #get dirichlet values
+        # Get Dirichlet velocity values to be enforced
+        # Note that we require a copy here as the original array is modified in the fractional step
         self.v_end_of_step_dirichlet = v.ravel()[self.fix_vel_indices].copy()
 
-        #perform fractional step
+        # Perform fractional step
         print("\tSolve step 1 w/ CFL ", self._ComputeCFL(v, dt), ", CFL advective ", self._ComputeCFLAdvective(v, dt, self.DN), " and Fourier ", self._ComputeFourier(dt))
         vfrac = self.SolveStep1(v, vold, pold, b, dt)
-        for node in self.model_part.Nodes:
-            node.SetSolutionStepValue(KM.DISPLACEMENT, 0, (xp.hstack([vfrac[node.Id-1,:], 0.0])).tolist())
         print("\tSolve step 2 w/ CFL ", self._ComputeCFL(vfrac, dt), ", CFL advective ", self._ComputeCFLAdvective(vfrac, dt, self.DN), " and Fourier ", self._ComputeFourier(dt))
         p = self.SolveStep2(vfrac, pold, dt)
         delta_p = p - pold #TODO: most probably we could modify p in place
@@ -547,7 +576,7 @@ class VectorizedCFDStage(analysis_stage.AnalysisStage):
 
         #-(w,rho·a·∇u) - (rho·a·∇w,tau_1·rho·a·∇u) + (rho·a·∇w,tau_1·Pi_conv)
         convective = xp.zeros_like(res)
-        convective_stab = np.zeros_like(res)
+        convective_stab = xp.zeros_like(res)
         det_J_volume_factor = 2.0 if self.dim == 2 else 6.0
         grad_v = self.cfd_utils.ComputeElementalGradient(DN, v_elemental)
         w_gauss_convective = self.cfd_utils.GetGaussIntegrationWeights(self.dim, self.convection_integration_order)
@@ -586,7 +615,7 @@ class VectorizedCFDStage(analysis_stage.AnalysisStage):
 
         # Multiply by volume
         # Note that the convective term already includes the corresponding weighting factor to emulate the Jacobian determinant, so we just need to apply the volume here)
-        res *= self.elemental_volumes[:,np.newaxis,np.newaxis]
+        res *= self.elemental_volumes[:,xp.newaxis,xp.newaxis]
 
         # Vectorized assembly of the elemental contributions into the nodal residual
         res_assembled = xp.zeros((self.nnodes,self.dim),dtype=res.dtype)
@@ -601,15 +630,15 @@ class VectorizedCFDStage(analysis_stage.AnalysisStage):
 
     def _ComputeCFL(self, v, dt):
         v_el = self.ElemData(v, self.connectivity)
-        v_el_avg = np.sum(v_el, axis=1) / (self.dim+1.0)
-        v_el_avg_norm = np.linalg.norm(v_el_avg, axis=1)
+        v_el_avg = xp.sum(v_el, axis=1) / (self.dim+1.0)
+        v_el_avg_norm = xp.linalg.norm(v_el_avg, axis=1)
         return max(dt * v_el_avg_norm / self.h)
 
     def _ComputeCFLAdvective(self, v, dt, DN):
         v_el = self.ElemData(v, self.connectivity)
-        v_el_mean = np.mean(v_el, axis=1)
-        advective_projection = np.einsum('ek, enk -> en', v_el_mean, DN)
-        return max(np.sum(np.abs(advective_projection), axis=1) * dt)
+        v_el_mean = xp.mean(v_el, axis=1)
+        advective_projection = xp.einsum('ek, enk -> en', v_el_mean, DN)
+        return max(xp.sum(xp.abs(advective_projection), axis=1) * dt)
 
     def _ComputeFourier(self, dt):
         return max(dt * self.nu / self.rho / self.h**2)

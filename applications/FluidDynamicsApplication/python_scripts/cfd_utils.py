@@ -397,7 +397,7 @@ class CFDUtils:
     #REMARK: this function has to be run on the cpu AND NOT ON THE GPU - it will return a gpu matrix if that is the case
     def AllocateScalarMatrix(self,conn : np.ndarray):
         #TODO: make it efficient
-        size = np.max(conn)+1
+        size = xp.max(conn)+1
         Agraph = KM.SparseContiguousRowGraph(size)
         for e in range(conn.shape[0]):
             Agraph.AddEntries(conn[e])
@@ -459,9 +459,9 @@ class CFDUtils:
         is_fixed[fixed_values] = True
 
         # 2. Map every entry in the sparse 'data' array to its row index
-        # LHS.indptr tells us where rows start; np.diff tells us how many entries per row
-        diff_array = xp.diff(indptr).astype(xp.int64)
-        row_map = xp.repeat(xp.arange(n), diff_array)
+        row_start_flags = xp.zeros(data.size, dtype=bool)
+        row_start_flags[indptr[:-1]] = True
+        row_map = xp.cumsum(row_start_flags) - 1
 
         # 3. Create masks for entries in fixed rows and fixed columns
         mask_row = is_fixed[row_map]
