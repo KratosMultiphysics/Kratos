@@ -27,7 +27,6 @@
     "compute_reactions": false,
     "move_mesh_flag": true,
     "reform_dofs_at_each_step": false,
-    "nodal_smoothing": false,
     "block_builder": true,
     "solution_type": "Quasi-Static",
     "scheme_type": "backward_euler",
@@ -59,14 +58,6 @@
     "problem_domain_sub_model_part_list": [
       "Soil-3",
       "Soil-6"
-    ],
-    "processes_sub_model_part_list": [
-      "Displacement_Geometry",
-      "Gravity_Loading-Initial_saturated",
-      "Gravity_Loading-Overburden_1_unsaturated",
-      "Base_Displacement_Fixed",
-      "Fluid_Pressure-Overburden_1_unsaturated",
-      "Lower_Drainage_Fluid_Pressure"
     ],
     "body_domain_sub_model_part_list": [
       "Soil-3",

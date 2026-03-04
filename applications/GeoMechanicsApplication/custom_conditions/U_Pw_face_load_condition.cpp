@@ -13,12 +13,31 @@
 //
 
 // Application includes
-#include "custom_conditions/U_Pw_face_load_condition.hpp"
+#include "custom_conditions/U_Pw_face_load_condition.h"
 #include "custom_utilities/condition_utilities.hpp"
 #include "custom_utilities/element_utilities.hpp"
 
 namespace Kratos
 {
+
+template <unsigned int TDim, unsigned int TNumNodes>
+UPwFaceLoadCondition<TDim, TNumNodes>::UPwFaceLoadCondition() : UPwCondition<TDim, TNumNodes>()
+{
+}
+
+template <unsigned int TDim, unsigned int TNumNodes>
+UPwFaceLoadCondition<TDim, TNumNodes>::UPwFaceLoadCondition(IndexType NewId, GeometryType::Pointer pGeometry)
+    : UPwCondition<TDim, TNumNodes>(NewId, pGeometry)
+{
+}
+
+template <unsigned int TDim, unsigned int TNumNodes>
+UPwFaceLoadCondition<TDim, TNumNodes>::UPwFaceLoadCondition(IndexType               NewId,
+                                                            GeometryType::Pointer   pGeometry,
+                                                            PropertiesType::Pointer pProperties)
+    : UPwCondition<TDim, TNumNodes>(NewId, pGeometry, pProperties)
+{
+}
 
 template <unsigned int TDim, unsigned int TNumNodes>
 Condition::Pointer UPwFaceLoadCondition<TDim, TNumNodes>::Create(IndexType             NewId,
@@ -72,6 +91,18 @@ template <unsigned int TDim, unsigned int TNumNodes>
 std::string UPwFaceLoadCondition<TDim, TNumNodes>::Info() const
 {
     return "UPwFaceLoadCondition";
+}
+
+template <unsigned int TDim, unsigned int TNumNodes>
+void UPwFaceLoadCondition<TDim, TNumNodes>::save(Serializer& rSerializer) const
+{
+    KRATOS_SERIALIZE_SAVE_BASE_CLASS(rSerializer, Condition)
+}
+
+template <unsigned int TDim, unsigned int TNumNodes>
+void UPwFaceLoadCondition<TDim, TNumNodes>::load(Serializer& rSerializer)
+{
+    KRATOS_SERIALIZE_LOAD_BASE_CLASS(rSerializer, Condition)
 }
 
 template class UPwFaceLoadCondition<2, 2>;

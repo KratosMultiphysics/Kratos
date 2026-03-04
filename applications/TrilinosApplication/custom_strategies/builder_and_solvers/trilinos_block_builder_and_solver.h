@@ -89,6 +89,7 @@ public:
 
     /// Definition of the flags
     KRATOS_DEFINE_LOCAL_FLAG( SILENT_WARNINGS );
+    KRATOS_DEFINE_LOCAL_FLAG( CONSTANT_CONSTRAINTS );
 
     /// Definition of the pointer
     KRATOS_CLASS_POINTER_DEFINITION(TrilinosBlockBuilderAndSolver);
@@ -106,9 +107,6 @@ public:
 
     /// Epetra definitions
     using EpetraCommunicatorType = Epetra_MpiComm;
-
-    /// DoF types definition
-    using NodeType = Node;
 
     /// Defining the sparse matrices and vectors
     using TSystemMatrixType = typename BaseType::TSystemMatrixType;
@@ -1049,6 +1047,7 @@ public:
         mInactiveSlaveDofs.clear();
         TSparseSpace::Clear(mpT);
         TSparseSpace::Clear(mpConstantVector);
+        mConstraintsAssembled = false;
     }
 
     /**
@@ -1078,6 +1077,7 @@ public:
             "guess_row_size"                       : 45,
             "block_builder"                        : true,
             "diagonal_values_for_dirichlet_dofs"   : "use_max_diagonal",
+            "constant_constraints"                 : false,
             "silent_warnings"                      : false
         })");
 
@@ -1140,6 +1140,24 @@ public:
         mScaleFactor = ScaleFactor;
     }
 
+    /**
+     * @brief Checks if the 'Constant Constraints' option is enabled.
+     * @return bool True if constant constraints are enabled, false otherwise.
+     */
+    bool IsConstantConstraints()
+    {
+        return mOptions.Is(CONSTANT_CONSTRAINTS);
+    }
+
+    /**
+     * @brief Sets the 'Constant Constraints' option.
+     * @param ConstantConstraints The new state for the option (true to enable, false to disable).
+     */
+    void SetConstantConstraints(const bool ConstantConstraints)
+    {
+        mOptions.Set(CONSTANT_CONSTRAINTS, ConstantConstraints);
+    }
+
     ///@}
     ///@name Inquiry
     ///@{
@@ -1199,6 +1217,7 @@ protected:
     /* Flags */
     SCALING_DIAGONAL mScalingDiagonal = SCALING_DIAGONAL::CONSIDER_MAX_DIAGONAL; /// We identify the scaling considered for the dirichlet dofs
     Flags mOptions;                                                              /// Some flags used internally
+    bool mConstraintsAssembled = false;                                          /// Flag to check if constraints are assembled
 
     ///@}
     ///@name Protected Operators
@@ -1349,6 +1368,9 @@ protected:
             }
             mMasterIds = std::vector<IndexType>(temp_master_ids.begin(), temp_master_ids.end());
 
+            // Reset flag
+            mConstraintsAssembled = false;
+
             STOP_TIMER("ConstraintsRelationMatrixStructure", 0)
         }
     }
@@ -1361,97 +1383,103 @@ protected:
     {
         KRATOS_TRY
 
-        // Reference of the matrix and vector
-        auto& r_T = GetConstraintRelationMatrix();
-        auto& r_constant_vector = GetConstraintConstantVector();
+        // If the constraints were not assembled or if we do not want to consider constant constraints
+        if (!mConstraintsAssembled || mOptions.IsNot(CONSTANT_CONSTRAINTS)) {
+            // Reference of the matrix and vector
+            auto& r_T = GetConstraintRelationMatrix();
+            auto& r_constant_vector = GetConstraintConstantVector();
 
-        TSparseSpace::SetToZero(r_T);
-        TSparseSpace::SetToZero(r_constant_vector);
+            TSparseSpace::SetToZero(r_T);
+            TSparseSpace::SetToZero(r_constant_vector);
 
-        // The current process info
-        const ProcessInfo& r_current_process_info = rModelPart.GetProcessInfo();
+            // The current process info
+            const ProcessInfo& r_current_process_info = rModelPart.GetProcessInfo();
 
-        // Contributions to the system
-        Matrix transformation_matrix = LocalSystemMatrixType(0, 0);
-        Vector constant_vector = LocalSystemVectorType(0);
+            // Contributions to the system
+            Matrix transformation_matrix = LocalSystemMatrixType(0, 0);
+            Vector constant_vector = LocalSystemVectorType(0);
 
-        // Vector containing the localization in the system of the different terms
-        Element::EquationIdVectorType slave_equation_ids, master_equation_ids;
+            // Vector containing the localization in the system of the different terms
+            Element::EquationIdVectorType slave_equation_ids, master_equation_ids;
 
-        // Now prepare the auxiliary ones
-        auto& r_comm = rModelPart.GetCommunicator();
-        const auto& r_data_comm = r_comm.GetDataCommunicator();
-        const int current_rank = r_data_comm.Rank();
-        const int world_size = r_data_comm.Size();
+            // Now prepare the auxiliary ones
+            auto& r_comm = rModelPart.GetCommunicator();
+            const auto& r_data_comm = r_comm.GetDataCommunicator();
+            const int current_rank = r_data_comm.Rank();
+            const int world_size = r_data_comm.Size();
 
-        // Auxiliary inactive slave ids
-        std::vector<std::unordered_set<IndexType>> auxiliary_inactive_slave_ids(world_size);
+            // Auxiliary inactive slave ids
+            std::vector<std::unordered_set<IndexType>> auxiliary_inactive_slave_ids(world_size);
 
-        // We clear the set
-        mInactiveSlaveDofs.clear();
-        std::size_t num_inactive_slave_dofs_other_partitions = 0;
+            // We clear the set
+            mInactiveSlaveDofs.clear();
+            std::size_t num_inactive_slave_dofs_other_partitions = 0;
 
-        // Iterate over the constraints
-        for (auto& r_const : rModelPart.MasterSlaveConstraints()) {
-            r_const.EquationIdVector(slave_equation_ids, master_equation_ids, r_current_process_info);
-            // Detect if the constraint is active or not. If the user did not make any choice the constraint. It is active by default
-            if (r_const.IsActive()) {
-                r_const.CalculateLocalSystem(transformation_matrix, constant_vector, r_current_process_info);
+            // Iterate over the constraints
+            for (auto& r_const : rModelPart.MasterSlaveConstraints()) {
+                r_const.EquationIdVector(slave_equation_ids, master_equation_ids, r_current_process_info);
+                // Detect if the constraint is active or not. If the user did not make any choice the constraint. It is active by default
+                if (r_const.IsActive()) {
+                    r_const.CalculateLocalSystem(transformation_matrix, constant_vector, r_current_process_info);
 
-                TrilinosAssemblingUtilities::AssembleRelationMatrixT(r_T, transformation_matrix, slave_equation_ids, master_equation_ids);
-                TrilinosAssemblingUtilities::AssembleConstantVector(r_constant_vector, constant_vector, slave_equation_ids);
-            } else { // Taking into account inactive constraints
-                // Save the auxiliary ids of the the slave inactive DoFs
-                for (auto slave_id : slave_equation_ids) {
-                    const int index_rank = DeterminePartitionIndex(slave_id);
-                    if (index_rank == current_rank) {
-                        mInactiveSlaveDofs.insert(slave_id);
-                    } else {
-                        auxiliary_inactive_slave_ids[index_rank].insert(slave_id);
-                        ++num_inactive_slave_dofs_other_partitions;
-                    }
-                }
-            }
-        }
-
-        // Compute total number of inactive slave dofs in other partitions
-        num_inactive_slave_dofs_other_partitions = r_data_comm.SumAll(num_inactive_slave_dofs_other_partitions);
-
-        // Now we pass the info between partitions
-        if (num_inactive_slave_dofs_other_partitions > 0) {
-            const int tag_sync_inactive_slave_id = 0;
-            for (int i_rank = 0; i_rank < world_size; ++i_rank) {
-                if (i_rank != current_rank) {
-                    std::vector<IndexType> receive_inactive_slave_ids_vector;
-                    r_data_comm.Recv(receive_inactive_slave_ids_vector, i_rank, tag_sync_inactive_slave_id);
-                    mInactiveSlaveDofs.insert(receive_inactive_slave_ids_vector.begin(), receive_inactive_slave_ids_vector.end());
-                } else {
-                    for (int j_rank = 0; j_rank < world_size; ++j_rank) {
-                        if (j_rank != current_rank) {
-                            const auto& r_inactive_slave_ids = auxiliary_inactive_slave_ids[j_rank];
-                            std::vector<IndexType> send_inactive_slave_ids_vector(r_inactive_slave_ids.begin(), r_inactive_slave_ids.end());
-                            r_data_comm.Send(send_inactive_slave_ids_vector, j_rank, tag_sync_inactive_slave_id);
+                    TrilinosAssemblingUtilities::AssembleRelationMatrixT(r_T, transformation_matrix, slave_equation_ids, master_equation_ids);
+                    TrilinosAssemblingUtilities::AssembleConstantVector(r_constant_vector, constant_vector, slave_equation_ids);
+                } else { // Taking into account inactive constraints
+                    // Save the auxiliary ids of the the slave inactive DoFs
+                    for (auto slave_id : slave_equation_ids) {
+                        const int index_rank = DeterminePartitionIndex(slave_id);
+                        if (index_rank == current_rank) {
+                            mInactiveSlaveDofs.insert(slave_id);
+                        } else {
+                            auxiliary_inactive_slave_ids[index_rank].insert(slave_id);
+                            ++num_inactive_slave_dofs_other_partitions;
                         }
                     }
                 }
             }
-        }
 
-        // Setting the master dofs into the T and C system
-        for (auto eq_id : mMasterIds) {
-            TrilinosAssemblingUtilities::SetGlobalValueWithoutGlobalAssembly(r_constant_vector, eq_id, 0.0);
-            TrilinosAssemblingUtilities::SetGlobalValueWithoutGlobalAssembly(r_T, eq_id, eq_id, 1.0);
-        }
+            // Compute total number of inactive slave dofs in other partitions
+            num_inactive_slave_dofs_other_partitions = r_data_comm.SumAll(num_inactive_slave_dofs_other_partitions);
 
-        // Setting inactive slave dofs in the T and C system
-        for (auto eq_id : mInactiveSlaveDofs) {
-            TrilinosAssemblingUtilities::SetGlobalValueWithoutGlobalAssembly(r_constant_vector, eq_id, 0.0);
-            TrilinosAssemblingUtilities::SetGlobalValueWithoutGlobalAssembly(r_T, eq_id, eq_id, 1.0);
-        }
+            // Now we pass the info between partitions
+            if (num_inactive_slave_dofs_other_partitions > 0) {
+                const int tag_sync_inactive_slave_id = 0;
+                for (int i_rank = 0; i_rank < world_size; ++i_rank) {
+                    if (i_rank != current_rank) {
+                        std::vector<IndexType> receive_inactive_slave_ids_vector;
+                        r_data_comm.Recv(receive_inactive_slave_ids_vector, i_rank, tag_sync_inactive_slave_id);
+                        mInactiveSlaveDofs.insert(receive_inactive_slave_ids_vector.begin(), receive_inactive_slave_ids_vector.end());
+                    } else {
+                        for (int j_rank = 0; j_rank < world_size; ++j_rank) {
+                            if (j_rank != current_rank) {
+                                const auto& r_inactive_slave_ids = auxiliary_inactive_slave_ids[j_rank];
+                                std::vector<IndexType> send_inactive_slave_ids_vector(r_inactive_slave_ids.begin(), r_inactive_slave_ids.end());
+                                r_data_comm.Send(send_inactive_slave_ids_vector, j_rank, tag_sync_inactive_slave_id);
+                            }
+                        }
+                    }
+                }
+            }
 
-        // Finalizing the assembly
-        r_T.GlobalAssemble();
-        r_constant_vector.GlobalAssemble();
+            // Setting the master dofs into the T and C system
+            for (auto eq_id : mMasterIds) {
+                TrilinosAssemblingUtilities::SetGlobalValueWithoutGlobalAssembly(r_constant_vector, eq_id, 0.0);
+                TrilinosAssemblingUtilities::SetGlobalValueWithoutGlobalAssembly(r_T, eq_id, eq_id, 1.0);
+            }
+
+            // Setting inactive slave dofs in the T and C system
+            for (auto eq_id : mInactiveSlaveDofs) {
+                TrilinosAssemblingUtilities::SetGlobalValueWithoutGlobalAssembly(r_constant_vector, eq_id, 0.0);
+                TrilinosAssemblingUtilities::SetGlobalValueWithoutGlobalAssembly(r_T, eq_id, eq_id, 1.0);
+            }
+
+            // Finalizing the assembly
+            r_T.GlobalAssemble();
+            r_constant_vector.GlobalAssemble();
+
+            // Mark constraints as assembled
+            mConstraintsAssembled = true;
+        }
 
         KRATOS_CATCH("")
     }
@@ -1647,6 +1675,7 @@ protected:
             mScalingDiagonal = SCALING_DIAGONAL::CONSIDER_PRESCRIBED_DIAGONAL;
         }
         mOptions.Set(SILENT_WARNINGS, ThisParameters["silent_warnings"].GetBool());
+        mOptions.Set(CONSTANT_CONSTRAINTS, ThisParameters["constant_constraints"].GetBool());
     }
 
     ///@}
@@ -1743,6 +1772,8 @@ private:
 // Here one should use the KRATOS_CREATE_LOCAL_FLAG, but it does not play nice with template parameters
 template<class TSparseSpace, class TDenseSpace, class TLinearSolver>
 const Kratos::Flags TrilinosBlockBuilderAndSolver<TSparseSpace, TDenseSpace, TLinearSolver>::SILENT_WARNINGS(Kratos::Flags::Create(0));
+template<class TSparseSpace, class TDenseSpace, class TLinearSolver>
+const Kratos::Flags TrilinosBlockBuilderAndSolver<TSparseSpace, TDenseSpace, TLinearSolver>::CONSTANT_CONSTRAINTS(Kratos::Flags::Create(1));
 
 ///@}
 

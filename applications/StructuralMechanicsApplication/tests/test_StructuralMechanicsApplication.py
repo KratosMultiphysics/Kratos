@@ -69,6 +69,8 @@ from test_prebuckling_analysis import TestPrebucklingAnalysis as TTestPrebucklin
 from test_postprocess_eigenvalues_process import TestPostprocessEigenvaluesProcess as TTestPostprocessEigenvaluesProcess
 # Eigensolver with Constraints test
 from test_eigen_solver_with_constraints import TestEigenSolverWithConstraints
+# Eigensolver with mass matrix normalized eigenmodes
+from test_eigen_solver_with_mass_normalized_eigenmodes import TestEigenSolverWithMassNormalizedEigenmodes
 # Eigensolver with different dofs test
 from test_eigen_solver_different_dofs import TestEigenSolverWithDifferentDofs
 # Custom Scipy Solver test
@@ -100,10 +102,13 @@ from structural_mechanics_test_factory import SimpleMeshMovingTest as TSimpleMes
 
 ##### NIGHTLY TESTS #####
 # Patch test Small Displacements
+from structural_mechanics_test_factory import CorotationalReissnerMindlinTest as TCorotationalReissnerMindlinTest
+from structural_mechanics_test_factory import LinearReissnerMindlinTest as TLinearReissnerMindlinTest
 from structural_mechanics_test_factory import MixedUEElementTest as TMixedUEElementTest
 from structural_mechanics_test_factory import LinearTruss2D2NTest as TLinearTruss2D2NTest
 from structural_mechanics_test_factory import LinearTruss2D3NTest as TLinearTruss2D3NTest
 from structural_mechanics_test_factory import LinearTruss3DTest as TLinearTruss3DTest
+from structural_mechanics_test_factory import TLTruss3DTest as TTLTruss3DTest
 from structural_mechanics_test_factory import TimoshenkoBeam3D2NTest as TTimoshenkoBeam3D2NTest
 from structural_mechanics_test_factory import TimoshenkoBeam2D2NTest as TTimoshenkoBeam2D2NTest
 from structural_mechanics_test_factory import TimoshenkoBeam2D3NTest as TTimoshenkoBeam2D3NTest
@@ -327,6 +332,7 @@ def AssembleTestSuites():
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TTestPostprocessEigenvaluesProcess]))
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TestEigenSolverWithConstraints]))
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TestEigenSolverWithDifferentDofs]))
+    smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TestEigenSolverWithMassNormalizedEigenmodes]))
     # Custom Scipy Solver test
     nightSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TestCustomScipyBaseSolver]))
     # local-axis visualization tests
@@ -358,10 +364,13 @@ def AssembleTestSuites():
 
     ### Adding Nightly Tests
     # Patch test Small Displacements
+    smallSuite.addTest(TLinearReissnerMindlinTest('test_execution'))
+    smallSuite.addTest(TCorotationalReissnerMindlinTest('test_execution'))
     smallSuite.addTest(TMixedUEElementTest('test_execution'))
     smallSuite.addTest(TLinearTruss2D2NTest('test_execution'))
     smallSuite.addTest(TLinearTruss2D3NTest('test_execution'))
     smallSuite.addTest(TLinearTruss3DTest('test_execution'))
+    smallSuite.addTest(TTLTruss3DTest('test_execution'))
     smallSuite.addTest(TTimoshenkoBeam3D2NTest('test_execution'))
     smallSuite.addTest(TTimoshenkoBeam2D2NTest('test_execution'))
     smallSuite.addTest(TTimoshenkoBeam2D3NTest('test_execution'))

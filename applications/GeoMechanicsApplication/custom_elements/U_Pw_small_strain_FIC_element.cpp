@@ -12,13 +12,60 @@
 //
 
 // Application includes
-#include "custom_elements/U_Pw_small_strain_FIC_element.hpp"
-#include "custom_utilities/equation_of_motion_utilities.h"
-#include "custom_utilities/math_utilities.h"
+#include "custom_elements/U_Pw_small_strain_FIC_element.h"
+#include "custom_utilities/equation_of_motion_utilities.hpp"
+#include "custom_utilities/extrapolation_utilities.h"
+
+#include "custom_utilities/math_utilities.hpp"
+#include "custom_utilities/stress_strain_utilities.h"
 #include "custom_utilities/transport_equation_utilities.hpp"
+#include "geo_mechanics_application_variables.h"
+
+namespace
+{
+auto CalculateSquareExtrapolationMatrix(const Kratos::Element* pElement)
+{
+    const auto extrapolation_matrix = Kratos::ExtrapolationUtilities::CalculateExtrapolationMatrix(*pElement);
+    if (extrapolation_matrix.size1() != extrapolation_matrix.size2()) {
+        KRATOS_ERROR << "Extrapolation matrix is not square for element id " << pElement->Id() << std::endl;
+    }
+    return extrapolation_matrix;
+}
+} // namespace
 
 namespace Kratos
 {
+
+template <unsigned int TDim, unsigned int TNumNodes>
+UPwSmallStrainFICElement<TDim, TNumNodes>::UPwSmallStrainFICElement(IndexType             NewId,
+                                                                    const NodesArrayType& ThisNodes,
+                                                                    std::unique_ptr<StressStatePolicy> pStressStatePolicy,
+                                                                    std::unique_ptr<IntegrationCoefficientModifier> pCoefficientModifier)
+    : UPwSmallStrainElement<TDim, TNumNodes>(
+          NewId, ThisNodes, std::move(pStressStatePolicy), std::move(pCoefficientModifier))
+{
+}
+
+template <unsigned int TDim, unsigned int TNumNodes>
+UPwSmallStrainFICElement<TDim, TNumNodes>::UPwSmallStrainFICElement(IndexType             NewId,
+                                                                    GeometryType::Pointer pGeometry,
+                                                                    std::unique_ptr<StressStatePolicy> pStressStatePolicy,
+                                                                    std::unique_ptr<IntegrationCoefficientModifier> pCoefficientModifier)
+    : UPwSmallStrainElement<TDim, TNumNodes>(
+          NewId, pGeometry, std::move(pStressStatePolicy), std::move(pCoefficientModifier))
+{
+}
+
+template <unsigned int TDim, unsigned int TNumNodes>
+UPwSmallStrainFICElement<TDim, TNumNodes>::UPwSmallStrainFICElement(IndexType             NewId,
+                                                                    GeometryType::Pointer pGeometry,
+                                                                    PropertiesType::Pointer pProperties,
+                                                                    std::unique_ptr<StressStatePolicy> pStressStatePolicy,
+                                                                    std::unique_ptr<IntegrationCoefficientModifier> pCoefficientModifier)
+    : UPwSmallStrainElement<TDim, TNumNodes>(
+          NewId, pGeometry, pProperties, std::move(pStressStatePolicy), std::move(pCoefficientModifier))
+{
+}
 
 template <unsigned int TDim, unsigned int TNumNodes>
 Element::Pointer UPwSmallStrainFICElement<TDim, TNumNodes>::Create(IndexType             NewId,
@@ -47,7 +94,7 @@ void UPwSmallStrainFICElement<TDim, TNumNodes>::Initialize(const ProcessInfo& rC
 
     UPwBaseElement::Initialize(rCurrentProcessInfo);
 
-    auto const VoigtSize = this->GetStressStatePolicy().GetVoigtSize();
+    const auto VoigtSize = this->GetStressStatePolicy().GetVoigtSize();
     for (unsigned int i = 0; i < TDim; ++i) {
         mNodalConstitutiveTensor[i].resize(VoigtSize);
 
@@ -113,7 +160,7 @@ void UPwSmallStrainFICElement<TDim, TNumNodes>::InitializeNonLinearIteration(con
     }
     Matrix DtStressContainer(NumGPoints, TDim);
 
-    auto const VoigtSize = this->GetStressStatePolicy().GetVoigtSize();
+    const auto VoigtSize = this->GetStressStatePolicy().GetVoigtSize();
     Vector     StressVector(VoigtSize);
 
     const auto b_matrices = this->CalculateBMatrices(Variables.DN_DXContainer, Variables.NContainer);
@@ -168,7 +215,7 @@ void UPwSmallStrainFICElement<TDim, TNumNodes>::FinalizeNonLinearIteration(const
     // Containers for extrapolation variables
     Matrix DtStressContainer(NumGPoints, TDim);
 
-    auto const VoigtSize = this->GetStressStatePolicy().GetVoigtSize();
+    const auto VoigtSize = this->GetStressStatePolicy().GetVoigtSize();
     Vector     StressVector(VoigtSize);
 
     const auto b_matrices = this->CalculateBMatrices(Variables.DN_DXContainer, Variables.NContainer);
@@ -256,8 +303,7 @@ void UPwSmallStrainFICElement<2, 3>::ExtrapolateGPConstitutiveTensor(const array
     const SizeType Dim      = 2;
     const SizeType NumNodes = 3;
 
-    BoundedMatrix<double, NumNodes, NumNodes> ExtrapolationMatrix;
-    this->CalculateExtrapolationMatrix(ExtrapolationMatrix);
+    const auto ExtrapolationMatrix = CalculateSquareExtrapolationMatrix(this);
 
     Matrix AuxNodalConstitutiveTensor(NumNodes, this->GetStressStatePolicy().GetVoigtSize());
     for (unsigned int i = 0; i < Dim; ++i) {
@@ -290,10 +336,8 @@ void UPwSmallStrainFICElement<2, 4>::ExtrapolateGPConstitutiveTensor(const array
     const SizeType Dim      = 2;
     const SizeType NumNodes = 4;
 
-    BoundedMatrix<double, NumNodes, NumNodes> ExtrapolationMatrix;
-    this->CalculateExtrapolationMatrix(ExtrapolationMatrix);
-
-    auto const VoigtSize = this->GetStressStatePolicy().GetVoigtSize();
+    const auto ExtrapolationMatrix = CalculateSquareExtrapolationMatrix(this);
+    const auto VoigtSize           = this->GetStressStatePolicy().GetVoigtSize();
     Matrix     AuxNodalConstitutiveTensor(NumNodes, VoigtSize);
 
     for (unsigned int i = 0; i < Dim; ++i) {
@@ -315,10 +359,8 @@ void UPwSmallStrainFICElement<3, 4>::ExtrapolateGPConstitutiveTensor(const array
     const SizeType Dim      = 3;
     const SizeType NumNodes = 4;
 
-    BoundedMatrix<double, NumNodes, NumNodes> ExtrapolationMatrix;
-    this->CalculateExtrapolationMatrix(ExtrapolationMatrix);
-
-    auto const VoigtSize = this->GetStressStatePolicy().GetVoigtSize();
+    const auto ExtrapolationMatrix = CalculateSquareExtrapolationMatrix(this);
+    const auto VoigtSize           = this->GetStressStatePolicy().GetVoigtSize();
     Matrix     AuxNodalConstitutiveTensor(NumNodes, VoigtSize);
 
     for (unsigned int i = 0; i < Dim; ++i) {
@@ -340,10 +382,8 @@ void UPwSmallStrainFICElement<3, 8>::ExtrapolateGPConstitutiveTensor(const array
     const SizeType Dim      = 3;
     const SizeType NumNodes = 8;
 
-    BoundedMatrix<double, NumNodes, NumNodes> ExtrapolationMatrix;
-    this->CalculateExtrapolationMatrix(ExtrapolationMatrix);
-
-    auto const VoigtSize = this->GetStressStatePolicy().GetVoigtSize();
+    const auto ExtrapolationMatrix = CalculateSquareExtrapolationMatrix(this);
+    const auto VoigtSize           = this->GetStressStatePolicy().GetVoigtSize();
     Matrix     AuxNodalConstitutiveTensor(NumNodes, VoigtSize);
 
     for (unsigned int i = 0; i < Dim; ++i) {
@@ -361,9 +401,7 @@ void UPwSmallStrainFICElement<TDim, TNumNodes>::ExtrapolateGPDtStress(const Matr
 {
     KRATOS_TRY
 
-    BoundedMatrix<double, TNumNodes, TNumNodes> ExtrapolationMatrix;
-    this->CalculateExtrapolationMatrix(ExtrapolationMatrix);
-
+    const auto ExtrapolationMatrix = CalculateSquareExtrapolationMatrix(this);
     BoundedMatrix<double, TNumNodes, TDim> AuxNodalDtStress;
     noalias(AuxNodalDtStress) = prod(ExtrapolationMatrix, DtStressContainer);
 
@@ -541,9 +579,7 @@ void UPwSmallStrainFICElement<2, 4>::ExtrapolateShapeFunctionsGradients(
         }
     }
 
-    BoundedMatrix<double, 4, 4> ExtrapolationMatrix;
-    this->CalculateExtrapolationMatrix(ExtrapolationMatrix);
-
+    const auto                  ExtrapolationMatrix = CalculateSquareExtrapolationMatrix(this);
     BoundedMatrix<double, 4, 8> AuxNodalShapeFunctionsGradients;
     noalias(AuxNodalShapeFunctionsGradients) = prod(ExtrapolationMatrix, ShapeFunctionsGradientsContainer);
 
@@ -609,9 +645,7 @@ void UPwSmallStrainFICElement<3, 8>::ExtrapolateShapeFunctionsGradients(
         }
     }
 
-    BoundedMatrix<double, 8, 8> ExtrapolationMatrix;
-    this->CalculateExtrapolationMatrix(ExtrapolationMatrix);
-
+    const auto                   ExtrapolationMatrix = CalculateSquareExtrapolationMatrix(this);
     BoundedMatrix<double, 8, 24> AuxNodalShapeFunctionsGradients;
     noalias(AuxNodalShapeFunctionsGradients) = prod(ExtrapolationMatrix, ShapeFunctionsGradientsContainer);
 
@@ -679,7 +713,7 @@ void UPwSmallStrainFICElement<2, 3>::InitializeSecondOrderTerms(FICElementVariab
 
     const SizeType Dim = 2;
 
-    auto const VoigtSize = this->GetStressStatePolicy().GetVoigtSize();
+    const auto VoigtSize = this->GetStressStatePolicy().GetVoigtSize();
     for (unsigned int i = 0; i < Dim; ++i)
         rFICVariables.ConstitutiveTensorGradients[i].resize(VoigtSize);
 
@@ -696,7 +730,7 @@ void UPwSmallStrainFICElement<2, 4>::InitializeSecondOrderTerms(FICElementVariab
     const SizeType NumNodes = 4;
 
     // Voigt identity matrix
-    auto const VoigtSize = this->GetStressStatePolicy().GetVoigtSize();
+    const auto VoigtSize = this->GetStressStatePolicy().GetVoigtSize();
     rFICVariables.VoigtMatrix.resize(VoigtSize, VoigtSize, false);
     noalias(rFICVariables.VoigtMatrix) = ZeroMatrix(VoigtSize, VoigtSize);
     rFICVariables.VoigtMatrix(0, 0)    = 1.0;
@@ -720,7 +754,7 @@ void UPwSmallStrainFICElement<3, 4>::InitializeSecondOrderTerms(FICElementVariab
     KRATOS_TRY
 
     const SizeType Dim       = 3;
-    auto const     VoigtSize = this->GetStressStatePolicy().GetVoigtSize();
+    const auto     VoigtSize = this->GetStressStatePolicy().GetVoigtSize();
     for (unsigned int i = 0; i < Dim; ++i)
         rFICVariables.ConstitutiveTensorGradients[i].resize(VoigtSize);
 
@@ -738,7 +772,7 @@ void UPwSmallStrainFICElement<3, 8>::InitializeSecondOrderTerms(FICElementVariab
     const SizeType NumNodes = 8;
 
     // Voigt identity matrix
-    auto const VoigtSize = this->GetStressStatePolicy().GetVoigtSize();
+    const auto VoigtSize = this->GetStressStatePolicy().GetVoigtSize();
     rFICVariables.VoigtMatrix.resize(VoigtSize, VoigtSize, false);
     noalias(rFICVariables.VoigtMatrix) = ZeroMatrix(VoigtSize, VoigtSize);
     rFICVariables.VoigtMatrix(0, 0)    = 1.0;
@@ -1395,6 +1429,32 @@ void UPwSmallStrainFICElement<TDim, TNumNodes>::CalculateAndAddPressureGradientF
     GeoElementUtilities::AssemblePBlockVector(rRightHandSideVector, pressure_gradient_flow);
 
     KRATOS_CATCH("")
+}
+
+template <unsigned int TDim, unsigned int TNumNodes>
+std::string UPwSmallStrainFICElement<TDim, TNumNodes>::Info() const
+{
+    const std::string constitutive_info =
+        !mConstitutiveLawVector.empty() ? mConstitutiveLawVector[0]->Info() : "not defined";
+    return "U-Pw smal strain FIC Element #" + std::to_string(this->Id()) + "\nConstitutive law: " + constitutive_info;
+}
+
+template <unsigned int TDim, unsigned int TNumNodes>
+void UPwSmallStrainFICElement<TDim, TNumNodes>::PrintInfo(std::ostream& rOStream) const
+{
+    rOStream << Info();
+}
+
+template <unsigned int TDim, unsigned int TNumNodes>
+void UPwSmallStrainFICElement<TDim, TNumNodes>::save(Serializer& rSerializer) const
+{
+    KRATOS_SERIALIZE_SAVE_BASE_CLASS(rSerializer, Element)
+}
+
+template <unsigned int TDim, unsigned int TNumNodes>
+void UPwSmallStrainFICElement<TDim, TNumNodes>::load(Serializer& rSerializer)
+{
+    KRATOS_SERIALIZE_LOAD_BASE_CLASS(rSerializer, Element)
 }
 
 template class UPwSmallStrainFICElement<2, 3>;

@@ -414,8 +414,8 @@ private:
 
     void AssignInterfaceEquationIds()
     {
-        MapperUtilities::AssignInterfaceEquationIds(mrModelPartOrigin.GetCommunicator());
-        MapperUtilities::AssignInterfaceEquationIds(mrModelPartDestination.GetCommunicator());
+        MapperUtilities::AssignInterfaceEquationIdsToNodes(mrModelPartOrigin.GetCommunicator());
+        MapperUtilities::AssignInterfaceEquationIdsToNodes(mrModelPartDestination.GetCommunicator());
     }
 
     void MapInternal(const Variable<double>& rOriginVariable,

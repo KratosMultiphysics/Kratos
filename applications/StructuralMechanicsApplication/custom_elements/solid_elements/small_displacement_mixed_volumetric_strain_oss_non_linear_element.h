@@ -191,14 +191,26 @@ public:
     std::string Info() const override
     {
         std::stringstream buffer;
-        buffer << "SmallDisplacementMixedVolumetricStrainOssNonLinearElement #" << Id() << "\nConstitutive law: " << mConstitutiveLawVector[0]->Info();
+        buffer << "SmallDisplacementMixedVolumetricStrainOssNonLinearElement #" << Id();
+        if (!BaseType::mConstitutiveLawVector.empty()
+            && BaseType::mConstitutiveLawVector[0] != nullptr) {
+          buffer << "\nConstitutive law: " << BaseType::mConstitutiveLawVector[0]->Info();
+        } else {
+          buffer << " (no constitutive law)";
+        }
         return buffer.str();
     }
 
     /// Print information about this object.
     void PrintInfo(std::ostream& rOStream) const override
     {
-        rOStream << "SmallDisplacementMixedVolumetricStrainOssNonLinearElement #" << Id() << "\nConstitutive law: " << mConstitutiveLawVector[0]->Info();
+        rOStream << "SmallDisplacementMixedVolumetricStrainOssNonLinearElement #" << Id();
+        if (!BaseType::mConstitutiveLawVector.empty()
+            && BaseType::mConstitutiveLawVector[0] != nullptr) {
+          rOStream << "\nConstitutive law: " << BaseType::mConstitutiveLawVector[0]->Info();
+        } else {
+          rOStream << " (no constitutive law)";
+        }
     }
 
     /// Print object's data.

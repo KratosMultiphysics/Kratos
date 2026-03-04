@@ -20,6 +20,10 @@ KratosIgaApplication::KratosIgaApplication()
         new Geometry<Node>(Element::GeometryType::PointsArrayType(1))))
     , mTrussEmbeddedEdgeElement(0, Element::GeometryType::Pointer(
         new Geometry<Node>(Element::GeometryType::PointsArrayType(1))))
+    , mBeamThinElement2D(0, Element::GeometryType::Pointer(
+        new Geometry<Node>(Element::GeometryType::PointsArrayType(1))))
+    , mBeamThickElement2D(0, Element::GeometryType::Pointer(
+        new Geometry<Node>(Element::GeometryType::PointsArrayType(1))))
     , mIgaMembraneElement(0, Element::GeometryType::Pointer(
         new Geometry<Node>(Element::GeometryType::PointsArrayType(1))))
     , mShell3pElement(0, Element::GeometryType::Pointer(
@@ -28,7 +32,7 @@ KratosIgaApplication::KratosIgaApplication()
         new Geometry<Node>(Element::GeometryType::PointsArrayType(1))))
     , mShell5pElement(0, Element::GeometryType::Pointer(
         new Geometry<Node>(Element::GeometryType::PointsArrayType(1))))
-    , mLaplacianIGAElement(0, Element::GeometryType::Pointer(
+    , mLaplacianElement(0, Element::GeometryType::Pointer(
         new Geometry<Node>(Element::GeometryType::PointsArrayType(1))))
     , mSolidElement(0, Element::GeometryType::Pointer(
         new Geometry<Node>(Element::GeometryType::PointsArrayType(1))))
@@ -84,11 +88,13 @@ KRATOS_INFO("") << "    KRATOS  _____ _____\n"
     // ELEMENTS
     KRATOS_REGISTER_ELEMENT("TrussElement", mTrussElement)
     KRATOS_REGISTER_ELEMENT("TrussEmbeddedEdgeElement", mTrussEmbeddedEdgeElement)
+    KRATOS_REGISTER_ELEMENT("BeamThinElement2D", mBeamThinElement2D)
+    KRATOS_REGISTER_ELEMENT("BeamThickElement2D", mBeamThickElement2D)
     KRATOS_REGISTER_ELEMENT("IgaMembraneElement", mIgaMembraneElement)
     KRATOS_REGISTER_ELEMENT("Shell3pElement", mShell3pElement)
     KRATOS_REGISTER_ELEMENT("Shell5pHierarchicElement", mShell5pHierarchicElement)
     KRATOS_REGISTER_ELEMENT("Shell5pElement", mShell5pElement)
-    KRATOS_REGISTER_ELEMENT("LaplacianIGAElement", mLaplacianIGAElement)
+    KRATOS_REGISTER_ELEMENT("LaplacianElement", mLaplacianElement)
     KRATOS_REGISTER_ELEMENT("SolidElement", mSolidElement)
     KRATOS_REGISTER_ELEMENT("StokesElement", mStokesElement)
 
@@ -138,6 +144,8 @@ KRATOS_INFO("") << "    KRATOS  _____ _____\n"
     KRATOS_REGISTER_SYMMETRIC_2D_TENSOR_VARIABLE_WITH_COMPONENTS(PRESTRESS)
     KRATOS_REGISTER_VARIABLE(TANGENTS)
 
+    KRATOS_REGISTER_VARIABLE(CROSS_SECTIONAL_ROTATION)
+
     KRATOS_REGISTER_VARIABLE(FORCE_PK2_1D)
     KRATOS_REGISTER_VARIABLE(FORCE_CAUCHY_1D)
     KRATOS_REGISTER_VARIABLE(PRINCIPAL_STRESS_1)
@@ -164,6 +172,8 @@ KRATOS_INFO("") << "    KRATOS  _____ _____\n"
 
     KRATOS_REGISTER_3D_VARIABLE_WITH_COMPONENTS(DEAD_LOAD)
     KRATOS_REGISTER_VARIABLE(PRESSURE_FOLLOWER_LOAD)
+
+    KRATOS_REGISTER_VARIABLE(CURVATURE)
 
     KRATOS_REGISTER_SYMMETRIC_2D_TENSOR_VARIABLE_WITH_COMPONENTS(PK2_STRESS)
     KRATOS_REGISTER_SYMMETRIC_2D_TENSOR_VARIABLE_WITH_COMPONENTS(CAUCHY_STRESS)
@@ -194,8 +204,14 @@ KRATOS_INFO("") << "    KRATOS  _____ _____\n"
     KRATOS_REGISTER_VARIABLE(LAYER_NAME)
     KRATOS_REGISTER_VARIABLE(KNOT_VECTOR_U)
     KRATOS_REGISTER_VARIABLE(KNOT_VECTOR_V)
+    KRATOS_REGISTER_VARIABLE(KNOT_VECTOR_W)
     KRATOS_REGISTER_VARIABLE(KNOT_SPAN_SIZES)
     KRATOS_REGISTER_VARIABLE(PARAMETER_SPACE_CORNERS)
+    KRATOS_REGISTER_VARIABLE(PROJECTION_NODE)
+    KRATOS_REGISTER_VARIABLE(NEIGHBOUR_GEOMETRIES)
+    KRATOS_REGISTER_VARIABLE(PROJECTION_NODE_ID)
+    KRATOS_REGISTER_VARIABLE(CONNECTED_LAYERS)
+    KRATOS_REGISTER_VARIABLE(CONNECTED_CONDITIONS)
 }
 
 }  // namespace Kratos

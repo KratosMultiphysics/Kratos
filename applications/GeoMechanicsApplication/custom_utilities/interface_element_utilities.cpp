@@ -156,21 +156,4 @@ void InterfaceElementUtilities::CalculateVoigtVector(array_1d<double, 3>& rVoigt
     rVoigtVector[2] = 1.0;
 }
 
-void InterfaceElementUtilities::CalculateLinkPermeabilityMatrix(BoundedMatrix<double, 2, 2>& rPermeabilityMatrix,
-                                                                const double& JointWidth)
-{
-    // Quadrilateral_interface_2d_4
-    rPermeabilityMatrix(0, 0) = JointWidth * JointWidth / 12.0;
-    rPermeabilityMatrix(1, 1) = JointWidth * JointWidth / 12.0;
-}
-
-void InterfaceElementUtilities::CalculateLinkPermeabilityMatrix(BoundedMatrix<double, 3, 3>& rPermeabilityMatrix,
-                                                                const double& JointWidth)
-{
-    // Prism_interface_3d_6 and Hexahedral_interface_3d_8
-    rPermeabilityMatrix(0, 0) = JointWidth * JointWidth / 12.0;
-    rPermeabilityMatrix(1, 1) = JointWidth * JointWidth / 12.0;
-    rPermeabilityMatrix(2, 2) = JointWidth * JointWidth / 12.0;
-}
-
 } /* namespace Kratos.*/

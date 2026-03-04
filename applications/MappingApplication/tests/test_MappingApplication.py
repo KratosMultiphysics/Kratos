@@ -12,6 +12,7 @@ import test_nearest_element_mapper
 import test_barycentric_mapper
 import test_projection_3d_2d_mapper
 import test_coupling_geometry_mapper
+import test_beam_mapper
 
 from test_patch_test_mappers import TestPatchTestMappers
 
@@ -63,6 +64,8 @@ def AssembleTestSuites():
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([test_projection_3d_2d_mapper.Projection3D2DMapperNearestElementOrigin2D]))
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([test_projection_3d_2d_mapper.Projection3D2DMapperNearestNeighborDestination2D]))
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([test_projection_3d_2d_mapper.Projection3D2DMapperNearestElementDestination2D]))
+
+    smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([test_beam_mapper.BeamBladeMapping]))
 
     # Create a test suit with the selected tests
     # nightSuite will contain the following tests:

@@ -63,7 +63,8 @@ public:
         const ModelPart& rModelPart,
         const std::string& rKernelFunctionType,
         const IndexType MaxNumberOfNeighbours,
-        const IndexType EchoLevel);
+        const IndexType EchoLevel,
+        const bool NodeCloudMesh);
 
     ///@}
     ///@name Public operations
@@ -160,11 +161,19 @@ private:
 
     typename KDTree::Pointer mpSearchTree;
 
+    bool mNodeCloudMesh;
+
     ///@}
     ///@name Private operations
     ///@{
 
     void CheckField(const ContainerExpression<TContainerType>& rContainerExpression) const;
+
+    template<class TMeshDependencyType>
+    void GenericGetIntegrationWeights(ContainerExpression<TContainerType>& rContainerExpression) const;
+
+    template<class TMeshDependencyType>
+    ContainerExpression<TContainerType> GenericForwardFilterField(const ContainerExpression<TContainerType>& rContainerExpression) const;
 
     template<class TMeshDependencyType>
     ContainerExpression<TContainerType> GenericBackwardFilterField(const ContainerExpression<TContainerType>& rContainerExpression) const;

@@ -60,7 +60,7 @@ class TestModelersSbm(KratosUnittest.TestCase):
                             "geometry_type": "GeometrySurface",
                             "iga_model_part": "ComputationalDomain",
                             "type": "element",
-                            "name": "LaplacianIGAElement",
+                            "name": "LaplacianElement",
                             "shape_function_derivatives_order": 3,
                             "variables": [
                             {
@@ -105,8 +105,8 @@ class TestModelersSbm(KratosUnittest.TestCase):
         self.assertEqual(support_model_part.GetConditions()[21].Info(), "\"SbmLaplacianConditionDirichlet\" #21")
         self.assertEqual(support_model_part.GetConditions()[80].Info(), "\"SbmLaplacianConditionDirichlet\" #80")
 
-        self.assertEqual(computational_model_part.GetElements()[13].Info(), "LaplacianIgaElement #13")
-        self.assertEqual(computational_model_part.GetElements()[40].Info(), "LaplacianIgaElement #40")
+        self.assertEqual(computational_model_part.GetElements()[13].Info(), "LaplacianElement #13")
+        self.assertEqual(computational_model_part.GetElements()[40].Info(), "LaplacianElement #40")
 
     
     def test_iga_modeler_inner_outer_sbm(self):
@@ -167,7 +167,7 @@ class TestModelersSbm(KratosUnittest.TestCase):
                             "geometry_type": "GeometrySurface",
                             "iga_model_part": "ComputationalDomain",
                             "type": "element",
-                            "name": "LaplacianIGAElement",
+                            "name": "LaplacianElement",
                             "shape_function_derivatives_order": 3,
                             "variables": [
                             {
@@ -213,17 +213,17 @@ class TestModelersSbm(KratosUnittest.TestCase):
         # # Check if all needed node are within the model parts
         self.assertEqual(support_model_part_inner.NumberOfNodes(), 990)
         self.assertEqual(support_model_part_inner.NumberOfConditions(), 110)
-        self.assertEqual(support_model_part_outer.NumberOfNodes(), 2250)
-        self.assertEqual(support_model_part_outer.NumberOfConditions(), 250)
-        self.assertEqual(computational_model_part.NumberOfNodes(), 7371)
+        self.assertEqual(support_model_part_outer.NumberOfNodes(), 2160)
+        self.assertEqual(support_model_part_outer.NumberOfConditions(), 240)
+        self.assertEqual(computational_model_part.NumberOfNodes(), 7290)
         self.assertEqual(computational_model_part.NumberOfConditions(), 0)
-        self.assertEqual(computational_model_part.NumberOfElements(), 819)
+        self.assertEqual(computational_model_part.NumberOfElements(), 810)
         self.assertEqual(support_model_part_inner.GetConditions()[323].Info(), "\"SbmLaplacianConditionDirichlet\" #323")
         self.assertEqual(support_model_part_inner.GetConditions()[411].Info(), "\"SbmLaplacianConditionDirichlet\" #411")
         self.assertEqual(support_model_part_outer.GetConditions()[73].Info(), "\"SbmLaplacianConditionNeumann\" #73")
         self.assertEqual(support_model_part_outer.GetConditions()[301].Info(), "\"SbmLaplacianConditionNeumann\" #301")
-        self.assertEqual(computational_model_part.GetElements()[13].Info(), "LaplacianIgaElement #13")
-        self.assertEqual(computational_model_part.GetElements()[40].Info(), "LaplacianIgaElement #40")
+        self.assertEqual(computational_model_part.GetElements()[13].Info(), "LaplacianElement #13")
+        self.assertEqual(computational_model_part.GetElements()[40].Info(), "LaplacianElement #40")
 
     
     # test the call to the nurbs_geometry_modeler_sbm to create a rectangle + the breps
@@ -631,56 +631,54 @@ class TestModelersSbm(KratosUnittest.TestCase):
         ]
 
         expected_nodes_outer = [
-            [ 0.4  ,  0.6  ,  0.0 ],
-            [ 3.600000000000001  ,  0.6  ,  0.0 ],
-            [ 0.4  ,  1.2  ,  0.0 ],
-            [ 3.400000000000001  ,  1.2  ,  0.0 ],
-            [ 0.6000000000000001  ,  1.7999999999999998  ,  0.0 ],
-            [ 3.400000000000001  ,  1.7999999999999998  ,  0.0 ],
-            [ 0.6000000000000001  ,  2.4  ,  0.0 ],
-            [ 3.400000000000001  ,  2.4  ,  0.0 ],
-            [ 0.6000000000000001  ,  3.0  ,  0.0 ],
-            [ 3.400000000000001  ,  3.0  ,  0.0 ],
-            [ 0.8  ,  3.6  ,  0.0 ],
-            [ 3.400000000000001  ,  3.6  ,  0.0 ],
-            [ 0.8  ,  4.2  ,  0.0 ],
-            [ 3.2000000000000006  ,  4.2  ,  0.0 ],
-            [ 0.8  ,  4.8  ,  0.0 ],
-            [ 3.2000000000000006  ,  4.8  ,  0.0 ],
-            [ 1.0  ,  5.3999999999999995  ,  0.0 ],
-            [ 2.8000000000000003  ,  5.3999999999999995  ,  0.0 ],
-            [ 0.4  ,  0.0  ,  0.0 ],
-            [ 0.4  ,  1.2  ,  0.0 ],
-            [ 0.6000000000000001  ,  0.0  ,  0.0 ],
-            [ 0.6000000000000001  ,  3.0  ,  0.0 ],
-            [ 0.8  ,  0.0  ,  0.0 ],
-            [ 0.8  ,  4.8  ,  0.0 ],
-            [ 1.0  ,  0.0  ,  0.0 ],
-            [ 1.0  ,  5.3999999999999995  ,  0.0 ],
-            [ 1.2  ,  0.0  ,  0.0 ],
-            [ 1.2  ,  5.3999999999999995  ,  0.0 ],
-            [ 1.4  ,  0.0  ,  0.0 ],
-            [ 1.4  ,  5.3999999999999995  ,  0.0 ],
-            [ 1.5999999999999999  ,  0.0  ,  0.0 ],
-            [ 1.5999999999999999  ,  5.3999999999999995  ,  0.0 ],
-            [ 1.7999999999999998  ,  0.0  ,  0.0 ],
-            [ 1.7999999999999998  ,  5.3999999999999995  ,  0.0 ],
-            [ 1.9999999999999998  ,  0.0  ,  0.0 ],
-            [ 1.9999999999999998  ,  5.3999999999999995  ,  0.0 ],
-            [ 2.1999999999999997  ,  0.0  ,  0.0 ],
-            [ 2.1999999999999997  ,  5.3999999999999995  ,  0.0 ],
-            [ 2.4  ,  0.0  ,  0.0 ],
-            [ 2.4  ,  5.3999999999999995  ,  0.0 ],
-            [ 2.6  ,  0.0  ,  0.0 ],
-            [ 2.6  ,  5.3999999999999995  ,  0.0 ],
-            [ 2.8000000000000003  ,  0.0  ,  0.0 ],
-            [ 2.8000000000000003  ,  4.8  ,  0.0 ],
-            [ 3.0000000000000004  ,  0.0  ,  0.0 ],
-            [ 3.0000000000000004  ,  4.8  ,  0.0 ],
-            [ 3.2000000000000006  ,  0.0  ,  0.0 ],
-            [ 3.2000000000000006  ,  3.6  ,  0.0 ],
-            [ 3.400000000000001  ,  0.0  ,  0.0 ],
-            [ 3.400000000000001  ,  0.6  ,  0.0 ]
+            [0.4, 0.6, 0.0],
+            [3.400000000000001, 0.6, 0.0],
+            [0.4, 1.2, 0.0],
+            [3.400000000000001, 1.2, 0.0],
+            [0.6000000000000001, 1.7999999999999998, 0.0],
+            [3.400000000000001, 1.7999999999999998, 0.0],
+            [0.6000000000000001, 2.4, 0.0],
+            [3.400000000000001, 2.4, 0.0],
+            [0.6000000000000001, 3.0, 0.0],
+            [3.400000000000001, 3.0, 0.0],
+            [0.8, 3.6, 0.0],
+            [3.400000000000001, 3.6, 0.0],
+            [0.8, 4.2, 0.0],
+            [3.2000000000000006, 4.2, 0.0],
+            [0.8, 4.8, 0.0],
+            [3.2000000000000006, 4.8, 0.0],
+            [1.0, 5.3999999999999995, 0.0],
+            [2.8000000000000003, 5.3999999999999995, 0.0],
+            [0.4, 0.0, 0.0],
+            [0.4, 1.2, 0.0],
+            [0.6000000000000001, 0.0, 0.0],
+            [0.6000000000000001, 3.0, 0.0],
+            [0.8, 0.0, 0.0],
+            [0.8, 4.8, 0.0],
+            [1.0, 0.0, 0.0],
+            [1.0, 5.3999999999999995, 0.0],
+            [1.2, 0.0, 0.0],
+            [1.2, 5.3999999999999995, 0.0],
+            [1.4, 0.0, 0.0],
+            [1.4, 5.3999999999999995, 0.0],
+            [1.5999999999999999, 0.0, 0.0],
+            [1.5999999999999999, 5.3999999999999995, 0.0],
+            [1.7999999999999998, 0.0, 0.0],
+            [1.7999999999999998, 5.3999999999999995, 0.0],
+            [1.9999999999999998, 0.0, 0.0],
+            [1.9999999999999998, 5.3999999999999995, 0.0],
+            [2.1999999999999997, 0.0, 0.0],
+            [2.1999999999999997, 5.3999999999999995, 0.0],
+            [2.4, 0.0, 0.0],
+            [2.4, 5.3999999999999995, 0.0],
+            [2.6, 0.0, 0.0],
+            [2.6, 5.3999999999999995, 0.0],
+            [2.8000000000000003, 0.0, 0.0],
+            [2.8000000000000003, 4.8, 0.0],
+            [3.0000000000000004, 0.0, 0.0],
+            [3.0000000000000004, 4.8, 0.0],
+            [3.2000000000000006, 0.0, 0.0],
+            [3.2000000000000006, 3.6, 0.0],
         ]
 
         # test surrogate nodes
@@ -703,7 +701,7 @@ class TestModelersSbm(KratosUnittest.TestCase):
             i += 1
 
         # test the creation of the breps
-        self.assertEqual(current_model["IgaModelPart"].NumberOfGeometries(), 73)
+        self.assertEqual(current_model["IgaModelPart"].NumberOfGeometries(), 71)
         self.assertAlmostEqual(current_model["IgaModelPart"].GetGeometry(1).Center().X, 2.0)
         self.assertAlmostEqual(current_model["IgaModelPart"].GetGeometry(1).Center().Y, 3.0)
         self.assertAlmostEqual(current_model["IgaModelPart"].GetGeometry(1).Center().Z, 0.0)
@@ -765,7 +763,7 @@ class TestModelersSbm(KratosUnittest.TestCase):
                             "geometry_type": "GeometrySurface",
                             "iga_model_part": "ComputationalDomain",
                             "type": "element",
-                            "name": "LaplacianIGAElement",
+                            "name": "LaplacianElement",
                             "shape_function_derivatives_order": 3
                         },
                         {
@@ -856,7 +854,7 @@ class TestModelersSbm(KratosUnittest.TestCase):
                             "geometry_type": "GeometrySurface",
                             "iga_model_part": "ComputationalDomain",
                             "type": "element",
-                            "name": "LaplacianIGAElement",
+                            "name": "LaplacianElement",
                             "shape_function_derivatives_order": 3
                         },
                         {
