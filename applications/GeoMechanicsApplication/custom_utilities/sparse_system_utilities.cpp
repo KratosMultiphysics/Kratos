@@ -117,7 +117,7 @@ void SparseSystemUtilities::ApplyDirichletConditionsSecondaryMatrix(const DofsAr
                                                                     SystemMatrixType& rSecondaryMatrix)
 {
     const std::size_t system_size = rSecondaryMatrix.size1();
-    Vector            scaling_factors(system_size);
+    Vector            scaling_factors(system_size, 1.0);
 
     const auto it_dof_iterator_begin = rDofSet.begin();
 
@@ -126,8 +126,6 @@ void SparseSystemUtilities::ApplyDirichletConditionsSecondaryMatrix(const DofsAr
         auto it_dof_iterator = it_dof_iterator_begin + Index;
         if (it_dof_iterator->IsFixed()) {
             scaling_factors[Index] = 0.0;
-        } else {
-            scaling_factors[Index] = 1.0;
         }
     });
 
@@ -151,8 +149,24 @@ void SparseSystemUtilities::ApplyDirichletConditionsSecondaryMatrix(const DofsAr
     });
 }
 
-bool SparseSystemUtilities::MatricesHaveSameSparsityOnDiagonal(const SystemMatrixType& rPrimaryMatrix,
-                                                               const SystemMatrixType& rSecondaryMatrix)
+bool SparseSystemUtilities::HasNonZeroDiagonalEntryOnCurrentRow(const std::size_t RowIndex,
+                                                                const unbounded_array<std::size_t>& rCsrIndices1,
+                                                                const unbounded_array<std::size_t>& rCsrIndices2,
+                                                                const unbounded_array<double> rCsrValues)
+{
+    // Check if there is a non-zero entry on the diagonal for the given row index
+    for (std::size_t k = rCsrIndices1[RowIndex]; k < rCsrIndices1[RowIndex + 1]; ++k) {
+        const std::size_t col = rCsrIndices2[k];
+        if (col == RowIndex) {
+            return (rCsrValues[k] != 0.0);
+        }
+    }
+    return false;
+}
+
+bool SparseSystemUtilities::MatricesHaveSameDiagonalSignature(const SystemMatrixType& rPrimaryMatrix,
+                                                              const SystemMatrixType& rSecondaryMatrix,
+                                                              const DofsArrayType& rDofSet)
 {
     const std::size_t size1 = rPrimaryMatrix.size1();
     if (size1 != rSecondaryMatrix.size1() || rPrimaryMatrix.size2() != rSecondaryMatrix.size2()) {
@@ -167,28 +181,19 @@ bool SparseSystemUtilities::MatricesHaveSameSparsityOnDiagonal(const SystemMatri
     const auto& r_secondary_index2 = rSecondaryMatrix.index2_data();
     const auto& r_secondary_values = rSecondaryMatrix.value_data();
 
-    for (std::size_t i = 0; i < size1; ++i) {
+    auto dof_iterator_begin = rDofSet.begin();
+
+    for (std::size_t row_index = 0; row_index < size1; ++row_index) {
         // Find diagonal for Matrix rPrimaryMatrix
-        bool has_primary_diag = false;
-        for (std::size_t k = r_primary_index1[i]; k < r_primary_index1[i + 1]; ++k) {
-            const std::size_t col = r_primary_index2[k];
-            if (col == i) {
-                has_primary_diag = (r_primary_values[k] != 0.0);
-                break;
-            }
-        }
+        bool has_primary_diag = SparseSystemUtilities::HasNonZeroDiagonalEntryOnCurrentRow(
+            row_index, r_primary_index1, r_primary_index2, r_primary_values);
 
         // Find diagonal for Matrix rSecondaryMatrix
-        bool has_secondary_diag = false;
-        for (std::size_t k = r_secondary_index1[i]; k < r_secondary_index1[i + 1]; ++k) {
-            const std::size_t col = r_secondary_index2[k];
-            if (col == i) {
-                has_secondary_diag = (r_secondary_values[k] != 0.0);
-                break;
-            }
-        }
+        bool has_secondary_diag = SparseSystemUtilities::HasNonZeroDiagonalEntryOnCurrentRow(
+            row_index, r_secondary_index1, r_secondary_index2, r_secondary_values);
 
-        if (has_primary_diag != has_secondary_diag) return false;
+        if (has_primary_diag != has_secondary_diag && !(dof_iterator_begin + row_index)->IsFixed())
+            return false;
     }
 
     return true;

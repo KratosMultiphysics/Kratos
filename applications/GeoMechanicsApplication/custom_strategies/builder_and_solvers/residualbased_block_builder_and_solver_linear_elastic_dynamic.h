@@ -170,8 +170,8 @@ public:
                 << "Constraints build time: " << timer_constraints << std::endl;
         }
 
-        KRATOS_ERROR_IF_NOT(Geo::SparseSystemUtilities::MatricesHaveSameSparsityOnDiagonal(rA, mMassMatrix)) << "The system matrix and the mass matrix do not have values on the same degrees of freedom, the builder and solver cannot be used in this case."
-                                                                                                             << std::endl;
+        KRATOS_ERROR_IF_NOT(Geo::SparseSystemUtilities::MatricesHaveSameDiagonalSignature(rA, mMassMatrix, BaseType::mDofSet)) << "The system matrix and the mass matrix do not have values on the same degrees of freedom, the builder and solver cannot be used in this case."
+                                                                                                                                << std::endl;
 
         // apply dirichlet conditions
         BaseType::ApplyDirichletConditions(pScheme, rModelPart, rA, dummy_rDx, rb);
