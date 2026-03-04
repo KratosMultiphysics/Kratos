@@ -123,5 +123,5 @@ if __name__ == "__main__":
         parameters = Kratos.Parameters(parameter_file.read())
 
     model = Kratos.Model()
-    simulation = StructuralMechanicsAnalysis(model, parameters)
+    simulation = StructuralMechanicsLoadSteppingAnalysis(model, parameters)
     simulation.Run()
