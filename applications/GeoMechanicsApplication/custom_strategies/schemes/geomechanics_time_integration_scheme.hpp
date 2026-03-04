@@ -306,7 +306,6 @@ private:
                 this->CheckSolutionStepsData(r_node, r_second_order_vector_variable.first_time_derivative);
                 this->CheckSolutionStepsData(r_node, r_second_order_vector_variable.second_time_derivative);
 
-                // We don't check for "Z", since it is optional (in case of a 2D problem)
                 std::vector<std::string> components{"X", "Y"};
                 if (rModelPart.GetProcessInfo()[DOMAIN_SIZE] == 3) {
                     components.push_back("Z");
