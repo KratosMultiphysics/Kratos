@@ -84,7 +84,8 @@ class GeometricStepController(StepController):
             "delta_t_max"                                : 1.0,
             "max_number_of_sub_steps"                    : 100,
             "number_of_successful_attempts_for_increment": 2,
-            "number_of_failed_attempts_for_termination"  : 5
+            "number_of_failed_attempts_for_termination"  : 5,
+            "verbosity"                                  : 0
         }""")
 
     def __init__(self, time_begin: float, time_end: float, settings: Kratos.Parameters) -> None:
@@ -97,6 +98,7 @@ class GeometricStepController(StepController):
         self.__delta_t_init = settings["delta_t_init"].GetDouble()
         self.__delta_t_min = settings["delta_t_min"].GetDouble()
         self.__delta_t_max = settings["delta_t_max"].GetDouble()
+        self.__verbosity = settings["verbosity"].GetInt()
         self.__max_number_of_sub_steps = settings["max_number_of_sub_steps"].GetInt()
         self.__number_of_successful_attempts_for_increment = settings["number_of_successful_attempts_for_increment"].GetInt()
         self.__number_of_failed_attempts_for_termination = settings["number_of_failed_attempts_for_termination"].GetInt()
@@ -123,7 +125,8 @@ class GeometricStepController(StepController):
             if self.__success_full_attempts_count > self.__number_of_successful_attempts_for_increment:
                 # now we increment the step
                 self.__delta_time = min(self.__convergence_factor * self.__delta_time, self.__delta_t_max)
-                Kratos.Logger.PrintInfo(self.__class__.__name__, f"Incrementing the delta time to {self.__delta_time}")
+                if self.__verbosity > 0:
+                    Kratos.Logger.PrintInfo(self.__class__.__name__, f"Incrementing the delta time to {self.__delta_time}")
 
             return min(self.__time_end, current_time + self.__delta_time)
         else:
@@ -135,12 +138,14 @@ class GeometricStepController(StepController):
                 raise RuntimeError(f"Reached maximum number of failed attempts [ {self.__failed_attempts_count} / {self.__number_of_failed_attempts_for_termination} ]")
             else:
                 self.__delta_time = self.__divergence_factor * self.__delta_time
-                Kratos.Logger.PrintInfo(self.__class__.__name__, f"Decrementing the delta time to {self.__delta_time}")
+                if self.__verbosity > 0:
+                    Kratos.Logger.PrintInfo(self.__class__.__name__, f"Decrementing the delta time to {self.__delta_time}")
                 if self.__delta_time <= self.__delta_t_min:
                     raise RuntimeError(f"Reached the minimum allowed delta time [ delta_time = {self.__delta_time}, allowed minimum delta_time = {self.__delta_t_min} ]")
 
             new_time = current_time + self.__delta_time
-            Kratos.Logger.PrintInfo(self.__class__.__name__, f"Solving Step {self.__sub_stepping_iteration} for time = {new_time:0.6e}")
+            if self.__verbosity > 0:
+                Kratos.Logger.PrintInfo(self.__class__.__name__, f"Solving Step {self.__sub_stepping_iteration} for time = {new_time:0.6e}")
             return new_time
 
     def IsCompleted(self, current_time: float, is_converged: bool) -> bool:
