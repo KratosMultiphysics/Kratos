@@ -1,14 +1,13 @@
 # Importing the Kratos Library
 import KratosMultiphysics
 import KratosMultiphysics.KratosUnittest as KratosUnittest
-from KratosMultiphysics.StructuralMechanicsApplication.step_controller import DefaultStepController, GeometricStepController
+from KratosMultiphysics.StructuralMechanicsApplication.step_controller import DefaultStepController, GeometricStepController, CompoundStepController
 
 class TestStepControllers(KratosUnittest.TestCase):
     def test_DefaultStepController(self):
         params = KratosMultiphysics.Parameters("""{}""")
-        step_controller = DefaultStepController(params)
+        step_controller = DefaultStepController(10, 15, params)
 
-        step_controller.Initialize(10, 15)
         self.assertTrue(step_controller.IsCompleted(100, False))
         self.assertTrue(step_controller.IsCompleted(100, True))
         self.assertTrue(step_controller.IsCompleted(12, False))
@@ -32,8 +31,7 @@ class TestStepControllers(KratosUnittest.TestCase):
             "number_of_failed_attempts_for_termination"  : 5
         }""")
 
-        step_controller = GeometricStepController(params)
-        step_controller.Initialize(0.2, 10.0)
+        step_controller = GeometricStepController(0.2, 10.0, params)
 
         self.assertFalse(step_controller.IsCompleted(0.1, True))
         self.assertFalse(step_controller.IsCompleted(0.2, True))
@@ -80,13 +78,65 @@ class TestStepControllers(KratosUnittest.TestCase):
             "number_of_failed_attempts_for_termination"  : 2
         }""")
 
-        step_controller = GeometricStepController(params)
-        step_controller.Initialize(0.2, 10.0)
+        step_controller = GeometricStepController(0.2, 10.0, params)
 
         step_controller.GetNextStep(0.3, False)
         step_controller.GetNextStep(0.3, False)
         with self.assertRaises(RuntimeError):
             step_controller.GetNextStep(0.3, False)
+
+    def test_CompoundStepController(self):
+        params = KratosMultiphysics.Parameters("""{
+            "type"                    : "compound_step_controller",
+            "list_of_step_controllers": [
+                {
+                    "interval": [0.1, 0.2],
+                    "settings": {
+                        "type": "default_step_controller"
+                    }
+                },
+                {
+                    "interval": [0.2, 10.0],
+                    "settings": {
+                        "type"                                       : "geometric_step_controller",
+                        "divergence_factor"                          : 0.25,
+                        "convergence_factor"                         : 1.5,
+                        "delta_t_init"                               : 1.1,
+                        "delta_t_min"                                : 0.12,
+                        "delta_t_max"                                : 3.1,
+                        "max_number_of_sub_steps"                    : 25,
+                        "number_of_successful_attempts_for_increment": 2,
+                        "number_of_failed_attempts_for_termination"  : 5
+                    }
+                },
+                {
+                    "interval": [10.2, 20.0],
+                    "settings": {
+                        "type"                                       : "geometric_step_controller",
+                        "divergence_factor"                          : 0.25,
+                        "convergence_factor"                         : 1.5,
+                        "delta_t_init"                               : 1.1,
+                        "delta_t_min"                                : 0.001,
+                        "delta_t_max"                                : 3.1,
+                        "max_number_of_sub_steps"                    : 25,
+                        "number_of_successful_attempts_for_increment": 2,
+                        "number_of_failed_attempts_for_termination"  : 2
+                    }
+                }
+            ]
+        }""")
+
+        step_controller = CompoundStepController(0.1, 0.19, params)
+        self.assertTrue(isinstance(step_controller.step_controller, DefaultStepController))
+
+        step_controller = CompoundStepController(0.2, 0.4, params)
+        self.assertTrue(isinstance(step_controller.step_controller, GeometricStepController))
+
+        step_controller = CompoundStepController(0.4, 10.0, params)
+        self.assertTrue(isinstance(step_controller.step_controller, GeometricStepController))
+
+        with self.assertRaises(RuntimeError):
+            step_controller = CompoundStepController(10.0, 10.19, params)
 
 if __name__ == '__main__':
     KratosMultiphysics.Logger.GetDefaultOutput().SetSeverity(KratosMultiphysics.Logger.Severity.WARNING)

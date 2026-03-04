@@ -6,25 +6,17 @@
         "end_time": 1.0,
         "echo_level": 0
     },
-    "list_of_step_controllers": [
-        {
-            "interval": [
-                0.0,
-                "End"
-            ],
-            "settings": {
-                "type": "geometric_step_controller",
-                "divergence_factor": 0.25,
-                "convergence_factor": 1.5,
-                "delta_t_init": 0.05,
-                "delta_t_min": 1e-5,
-                "delta_t_max": 0.2,
-                "max_number_of_sub_steps": 100,
-                "number_of_successful_attempts_for_increment": 2,
-                "number_of_failed_attempts_for_termination": 5
-            }
-        }
-    ],
+    "step_controller_settings": {
+        "type": "geometric_step_controller",
+        "divergence_factor": 0.25,
+        "convergence_factor": 1.5,
+        "delta_t_init": 0.05,
+        "delta_t_min": 1e-5,
+        "delta_t_max": 0.2,
+        "max_number_of_sub_steps": 100,
+        "number_of_successful_attempts_for_increment": 2,
+        "number_of_failed_attempts_for_termination": 5
+    },
     "solver_settings": {
         "solver_type": "static",
         "model_part_name": "Structure",

@@ -8,25 +8,8 @@ class StepController(ABC):
     @details
     Defines the interface used by all step controllers to manage time stepping
     behaviour during a simulation. Implementations must provide logic for
-    initialization, determining the next step size, and checking completion.
-
-    @note
-    This class is not instantiated directly; rather, derived classes implement
-    the required virtual methods.
+    determining the next step size, and checking completion.
     """
-    @abstractmethod
-    def Initialize(self, time_begin: float, time_end: float) -> None:
-        """\
-        @brief Set up the controller with the bounds of the current time step.
-
-        @param[in] time_begin The starting time of the current time step provided
-                               by the solver.
-        @param[in] time_end   The ending time of the current time step provided
-                               by the solver.
-
-        @return Nothing.
-        """
-        pass
 
     @abstractmethod
     def GetNextStep(self, current_time: float, is_converged: bool) -> float:
@@ -60,17 +43,16 @@ class DefaultStepController(StepController):
     This step controller ignores intermediate steps and always returns the
     final simulation time as the next step. It is useful when no sub-stepping
     behaviour is desired.
-
-    @param[in] parameters Configuration parameters (unused except for type
-                          validation).
     """
-    def __init__(self, parameters: Kratos.Parameters) -> None:
-        default_parameters = Kratos.Parameters("""{
+
+    @classmethod
+    def GetDefaultParameters(cls) -> Kratos.Parameters:
+        return Kratos.Parameters("""{
             "type": "default_step_controller"
         }""")
-        parameters.ValidateAndAssignDefaults(default_parameters)
 
-    def Initialize(self, _: float, time_end: float) -> None:
+    def __init__(self, _: float, time_end: float, parameters: Kratos.Parameters) -> None:
+        parameters.ValidateAndAssignDefaults(self.GetDefaultParameters())
         self.__time_end = time_end
 
     def GetNextStep(self, _: float, __: bool) -> float:
@@ -90,24 +72,6 @@ class GeometricStepController(StepController):
     size is scaled down by a divergence factor until a minimum is reached. The
     controller also tracks the number of sub-steps and failed attempts, throwing
     runtime errors if limits are exceeded.
-
-    @class GeometricStepController
-
-    @section parameters Parameters
-    The controller is configured via a `Kratos.Parameters` object containing
-    the following entries:
-      - divergence_factor
-      - convergence_factor
-      - delta_t_init
-      - delta_t_min
-      - delta_t_max
-      - max_number_of_sub_steps
-      - number_of_successful_attempts_for_increment
-      - number_of_failed_attempts_for_termination
-
-    @note
-    Detailed behavior is described in the individual member function
-    documentation.
     """
     @classmethod
     def GetDefaultParameters(cls) -> Kratos.Parameters:
@@ -123,7 +87,7 @@ class GeometricStepController(StepController):
             "number_of_failed_attempts_for_termination"  : 5
         }""")
 
-    def __init__(self, settings: Kratos.Parameters) -> None:
+    def __init__(self, time_begin: float, time_end: float, settings: Kratos.Parameters) -> None:
         default_parameters = self.GetDefaultParameters()
 
         settings.ValidateAndAssignDefaults(default_parameters)
@@ -137,7 +101,6 @@ class GeometricStepController(StepController):
         self.__number_of_successful_attempts_for_increment = settings["number_of_successful_attempts_for_increment"].GetInt()
         self.__number_of_failed_attempts_for_termination = settings["number_of_failed_attempts_for_termination"].GetInt()
 
-    def Initialize(self, time_begin: float, time_end: float) -> None:
         self.__time_begin = time_begin
         self.__time_end = time_end
 
@@ -183,17 +146,60 @@ class GeometricStepController(StepController):
     def IsCompleted(self, current_time: float, is_converged: bool) -> bool:
         return is_converged and abs(current_time - self.__time_end) <= (self.__time_end - self.__time_begin) * 1e-9
 
-def Factory(parameters: Kratos.Parameters) -> StepController:
+class CompoundStepController(StepController):
+    """\
+    @brief CompoundStepController handles different step controllers over different time intervals.
+
+    @details
+    This class allows for adaptive time stepping strategies that change based on the current
+    time period. It selects the appropriate step controller from a list based on which interval
+    the current time falls within.
+
+    @throws RuntimeError If no step controller is found for the given time period.
+    """
+    @classmethod
+    def GetDefaultParameters(cls) -> Kratos.Parameters:
+        return Kratos.Parameters("""{
+            "type"                    : "compound_step_controller",
+            "list_of_step_controllers": [
+                {
+                    "interval": [0.0, "End"],
+                    "settings": {}
+                }
+            ]
+        }""")
+
+    def __init__(self, time_begin: float, time_end: float, settings: Kratos.Parameters) -> None:
+        settings.ValidateAndAssignDefaults(self.GetDefaultParameters())
+        self.step_controller = None
+        for step_controller_setting in reversed(settings["list_of_step_controllers"].values()):
+            current_settings: Kratos.Parameters = step_controller_setting.Clone()
+            current_settings.ValidateAndAssignDefaults(self.GetDefaultParameters()["list_of_step_controllers"].values()[0])
+            if Kratos.IntervalUtility(current_settings).IsInInterval(time_end):
+                self.step_controller = Factory(time_begin, time_end, current_settings["settings"])
+                break
+
+        if self.step_controller is None:
+            raise RuntimeError(f"No step controller is found for the time period [{time_begin}, {time_end}].")
+
+    def GetNextStep(self, current_time: float, is_converged: bool) -> float:
+        return self.step_controller.GetNextStep(current_time, is_converged)
+
+    def IsCompleted(self, current_time: float, is_converged: bool) -> bool:
+        return self.step_controller.IsCompleted(current_time, is_converged)
+
+def Factory(time_begin: float, time_end: float, parameters: Kratos.Parameters) -> StepController:
     if not parameters.Has("type"):
         parameters.AddString("type", "default_step_controller")
 
     step_controller_map = {
         "default_step_controller": DefaultStepController,
-        "geometric_step_controller": GeometricStepController
+        "geometric_step_controller": GeometricStepController,
+        "compound_step_controller": CompoundStepController
     }
 
     controller_type = parameters["type"].GetString()
     if controller_type not in step_controller_map.keys():
         raise RuntimeError(f"Unsupported controller type = \"{controller_type}\". Followings are supported:\n\t" + "\n\t".join(step_controller_map.keys()))
 
-    return step_controller_map[controller_type](parameters)
+    return step_controller_map[controller_type](time_begin, time_end, parameters)

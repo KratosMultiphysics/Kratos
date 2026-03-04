@@ -8,21 +8,6 @@ class StructuralMechanicsLoadSteppingAnalysis(StructuralMechanicsAnalysis):
         It can be overridden by derived classes
         """
 
-        list_of_step_controllers: 'list[tuple[Kratos.IntervalUtility, StepController]]' = []
-
-        default_step_controller_settings = Kratos.Parameters("""{
-            "interval": [0, "End"],
-            "settings":{}
-        }""")
-
-        if self.project_parameters.Has("list_of_step_controllers"):
-            for step_controller_settings in self.project_parameters["list_of_step_controllers"].values():
-                step_controller_settings.ValidateAndAssignDefaults(default_step_controller_settings)
-                list_of_step_controllers.append((Kratos.IntervalUtility(step_controller_settings), Factory(step_controller_settings["settings"])))
-
-        if len(list_of_step_controllers) == 0:
-            list_of_step_controllers.append((Kratos.IntervalUtility(Kratos.Parameters("""{"interval":[0.0, "End"]}""")), DefaultStepController(Kratos.Parameters("""{}"""))))
-
         computing_mp: Kratos.ModelPart = self._GetSolver().GetComputingModelPart()
 
         def __get_serializer():
@@ -36,16 +21,11 @@ class StructuralMechanicsLoadSteppingAnalysis(StructuralMechanicsAnalysis):
             #   - This sets the DELTA_TIME (time_end - time_begin)
             time_end = self._AdvanceTime()
 
-            # find the appropriate step controller for the given time frame
-            step_controller = None
-            for interval_utility, step_controller in reversed(list_of_step_controllers):
-                if interval_utility.IsInInterval(time_end):
-                    break
-
-            if step_controller is None:
-                raise RuntimeError(f"No step controller is found for the time period [{time_begin}, {time_end}].")
-
-            step_controller.Initialize(time_begin, time_end)
+            # create the appropriate step controller
+            if self.project_parameters.Has("step_controller_settings"):
+                step_controller = Factory(time_begin, time_end, self.project_parameters["step_controller_settings"])
+            else:
+                step_controller = DefaultStepController(time_begin, time_end, Kratos.Parameters("""{}"""))
 
             self.time = time_end
 
