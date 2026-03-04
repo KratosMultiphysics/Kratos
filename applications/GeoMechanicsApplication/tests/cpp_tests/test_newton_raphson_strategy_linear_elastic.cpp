@@ -517,7 +517,6 @@ KRATOS_TEST_CASE_IN_SUITE(NewtonRaphsonLinearElasticDynamicAllZeroDampingAndLump
     auto expected_matrix = Matrix(2, 2);
 
     double beta       = 0.25;
-    double gamma      = 0.5;
     double delta_time = r_current_process_info[DELTA_TIME];
 
     double mass_multiplier = (1.0 / (beta * delta_time * delta_time));
