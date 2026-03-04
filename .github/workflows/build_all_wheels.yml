@@ -33,7 +33,7 @@ jobs:
       KRATOS_VERSION: ${{ steps.set_version.outputs.KRATOS_VERSION }}
     steps:
       - id: set_version
-        run: echo "KRATOS_VERSION=10.3.1.4" >> $GITHUB_OUTPUT
+        run: echo "KRATOS_VERSION=10.3.1.5" >> $GITHUB_OUTPUT
 
 
   windows:
