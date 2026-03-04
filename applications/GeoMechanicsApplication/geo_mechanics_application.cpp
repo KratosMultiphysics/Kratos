@@ -140,6 +140,8 @@ void KratosGeoMechanicsApplication::Register()
     KRATOS_REGISTER_ELEMENT("Geo_USurfaceInterfaceElement4Plus4N", mUPwSurfaceInterfaceElement4Plus4N)
     KRATOS_REGISTER_ELEMENT("Geo_USurfaceInterfaceElement6Plus6N", mUPwSurfaceInterfaceElement6Plus6N)
     KRATOS_REGISTER_ELEMENT("Geo_USurfaceInterfaceElement8Plus8N", mUPwSurfaceInterfaceElement8Plus8N)
+    KRATOS_REGISTER_ELEMENT("Geo_UPwLineInterfacePlaneStrainDiffOrderElement3Plus3N",
+                            mUPwLineInterfacePlaneStrainDiffOrderElement3Plus3N)
 
     // Updated-Lagrangian elements
     KRATOS_REGISTER_ELEMENT("UPwUpdatedLagrangianElement2D3N", mUPwUpdatedLagrangianElement2D3N)

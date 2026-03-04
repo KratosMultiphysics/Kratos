@@ -128,8 +128,7 @@ class HelmholtzSolverBase(PythonSolver):
 
     def Initialize(self) -> None:
         self._GetSolutionStrategy().Initialize()
-        neighbours_ta_int = KratosMultiphysics.TensorAdaptors.NodalNeighbourCountTensorAdaptor(self.helmholtz_model_part.Nodes, self.helmholtz_model_part.Elements)
-        neighbours_ta_int.CollectData()
+        neighbours_ta_int = KratosMultiphysics.TensorAdaptors.Utils.CreateNodalElementNeighboursCountTensorAdaptor(self.helmholtz_model_part)
 
         writing_ta = KratosMultiphysics.TensorAdaptors.VariableTensorAdaptor(neighbours_ta_int.GetContainer(), KratosMultiphysics.NUMBER_OF_NEIGHBOUR_ELEMENTS)
         writing_ta.SetData(neighbours_ta_int.data)
