@@ -308,6 +308,10 @@ private:
 
                 // We don't check for "Z", since it is optional (in case of a 2D problem)
                 std::vector<std::string> components{"X", "Y"};
+                if (rModelPart.GetProcessInfo()[DOMAIN_SIZE] == 3) {
+                    components.push_back("Z");
+                }
+
                 for (const auto& component : components) {
                     const auto& variable_component = VariablesUtilities::GetComponentFromVectorVariable(
                         r_second_order_vector_variable.instance.Name(), component);

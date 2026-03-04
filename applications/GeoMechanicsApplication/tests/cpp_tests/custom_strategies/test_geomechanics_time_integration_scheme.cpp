@@ -10,10 +10,11 @@
 //  Main authors:    Richard Faasse
 //
 
-#include "tests/cpp_tests/geo_mechanics_fast_suite.h"
+#include "tests/cpp_tests/geo_mechanics_fast_suite_without_kernel.h"
 
 #include "containers/model.h"
 #include "custom_strategies/schemes/geomechanics_time_integration_scheme.hpp"
+#include "includes/expect.h"
 #include "spaces/ublas_space.h"
 #include "tests/cpp_tests/test_utilities/spy_condition.h"
 #include "tests/cpp_tests/test_utilities/spy_element.h"
@@ -32,8 +33,11 @@ class ConcreteGeoMechanicsTimeIntegrationScheme
     : public GeoMechanicsTimeIntegrationScheme<SparseSpaceType, LocalSpaceType>
 {
 public:
-    ConcreteGeoMechanicsTimeIntegrationScheme()
-        : GeoMechanicsTimeIntegrationScheme<SparseSpaceType, LocalSpaceType>({}, {})
+    ConcreteGeoMechanicsTimeIntegrationScheme(
+        const std::vector<FirstOrderScalarVariable>&  rFirstOrderScalarVariables  = {},
+        const std::vector<SecondOrderVectorVariable>& rSecondOrderVectorVariables = {})
+        : GeoMechanicsTimeIntegrationScheme<SparseSpaceType, LocalSpaceType>(
+              rFirstOrderScalarVariables, rSecondOrderVectorVariables)
     {
     }
 
@@ -181,20 +185,19 @@ public:
     ModelPart& GetModelPart() { return mModel.GetModelPart("dummy"); }
 };
 
-KRATOS_TEST_CASE_IN_SUITE(FunctionCallsOnAllElements_AreOnlyCalledForActiveElements, KratosGeoMechanicsFastSuiteWithoutKernel)
+TEST_F(KratosGeoMechanicsFastSuiteWithoutKernel, FunctionCallsOnAllElements_AreOnlyCalledForActiveElements)
 {
     GeoMechanicsSchemeTester tester;
     tester.TestFunctionCallOnAllComponents_AreOnlyCalledForActiveComponents<SpyElement>();
 }
 
-KRATOS_TEST_CASE_IN_SUITE(FunctionCallsOnAllConditions_AreOnlyCalledForActiveConditions,
-                          KratosGeoMechanicsFastSuiteWithoutKernel)
+TEST_F(KratosGeoMechanicsFastSuiteWithoutKernel, FunctionCallsOnAllConditions_AreOnlyCalledForActiveConditions)
 {
     GeoMechanicsSchemeTester tester;
     tester.TestFunctionCallOnAllComponents_AreOnlyCalledForActiveComponents<SpyCondition>();
 }
 
-KRATOS_TEST_CASE_IN_SUITE(FunctionCalledOnElement_IsCalledOnActiveAndInactiveElements, KratosGeoMechanicsFastSuiteWithoutKernel)
+TEST_F(KratosGeoMechanicsFastSuiteWithoutKernel, FunctionCalledOnElement_IsCalledOnActiveAndInactiveElements)
 {
     GeoMechanicsSchemeTester tester;
     tester.TestFunctionCalledOnComponent_IsCalledOnActiveAndInactiveComponents<SpyElement>(
@@ -202,8 +205,7 @@ KRATOS_TEST_CASE_IN_SUITE(FunctionCalledOnElement_IsCalledOnActiveAndInactiveEle
         [](auto& rScheme, auto& rModelPart) { rScheme.InitializeElements(rModelPart); });
 }
 
-KRATOS_TEST_CASE_IN_SUITE(FunctionCalledOnCondition_IsCalledOnActiveAndInactiveConditions,
-                          KratosGeoMechanicsFastSuiteWithoutKernel)
+TEST_F(KratosGeoMechanicsFastSuiteWithoutKernel, FunctionCalledOnCondition_IsCalledOnActiveAndInactiveConditions)
 {
     GeoMechanicsSchemeTester tester;
     tester.TestFunctionCalledOnComponent_IsCalledOnActiveAndInactiveComponents<SpyCondition>(
@@ -214,7 +216,7 @@ KRATOS_TEST_CASE_IN_SUITE(FunctionCalledOnCondition_IsCalledOnActiveAndInactiveC
     });
 }
 
-KRATOS_TEST_CASE_IN_SUITE(InitializeConditions_Throws_IfElementsNotInitialized, KratosGeoMechanicsFastSuiteWithoutKernel)
+TEST_F(KratosGeoMechanicsFastSuiteWithoutKernel, InitializeConditions_Throws_IfElementsNotInitialized)
 {
     GeoMechanicsSchemeTester tester;
     tester.Setup();
@@ -222,8 +224,7 @@ KRATOS_TEST_CASE_IN_SUITE(InitializeConditions_Throws_IfElementsNotInitialized, 
     EXPECT_THROW(tester.mScheme.InitializeConditions(model_part), Kratos::Exception);
 }
 
-KRATOS_TEST_CASE_IN_SUITE(ForInvalidBufferSize_CheckGeoMechanicsTimeIntegrationScheme_Throws,
-                          KratosGeoMechanicsFastSuiteWithoutKernel)
+TEST_F(KratosGeoMechanicsFastSuiteWithoutKernel, ForInvalidBufferSize_CheckGeoMechanicsTimeIntegrationScheme_Throws)
 {
     ConcreteGeoMechanicsTimeIntegrationScheme scheme;
 
@@ -277,16 +278,33 @@ void TestUpdateForNumberOfThreads(int NumberOfThreads)
 
     tester.mScheme.Update(tester.GetModelPart(), dofs_array, A, Dx, b);
 
-    KRATOS_EXPECT_DOUBLE_EQ(dofs_array.begin()->GetSolutionStepValue(WATER_PRESSURE, 0), 43.0);
-    KRATOS_EXPECT_DOUBLE_EQ((dofs_array.begin() + 1)->GetSolutionStepValue(DISPLACEMENT_X, 0), 9.41);
-    KRATOS_EXPECT_DOUBLE_EQ((dofs_array.begin() + 2)->GetSolutionStepValue(DISPLACEMENT_Y, 0), 1.0);
+    EXPECT_DOUBLE_EQ(dofs_array.begin()->GetSolutionStepValue(WATER_PRESSURE, 0), 43.0);
+    EXPECT_DOUBLE_EQ((dofs_array.begin() + 1)->GetSolutionStepValue(DISPLACEMENT_X, 0), 9.41);
+    EXPECT_DOUBLE_EQ((dofs_array.begin() + 2)->GetSolutionStepValue(DISPLACEMENT_Y, 0), 1.0);
 }
 
-KRATOS_TEST_CASE_IN_SUITE(GeoMechanicsTimeIntegrationScheme_GivesCorrectDofs_WhenUpdateIsCalled,
-                          KratosGeoMechanicsFastSuiteWithoutKernel)
+TEST_F(KratosGeoMechanicsFastSuiteWithoutKernel, GeoMechanicsTimeIntegrationScheme_GivesCorrectDofs_WhenUpdateIsCalled)
 {
     TestUpdateForNumberOfThreads(1);
     TestUpdateForNumberOfThreads(2);
+}
+
+TEST_F(KratosGeoMechanicsFastSuiteWithoutKernel, GeoMechanicsTimeIntegrationScheme_Throws_WhenZDofIsMissingFor3DModel)
+{
+    ConcreteGeoMechanicsTimeIntegrationScheme test_scheme({}, {SecondOrderVectorVariable(DISPLACEMENT)});
+    Model model;
+    auto& r_model_part = model.CreateModelPart("main");
+    r_model_part.SetBufferSize(2);
+    r_model_part.AddNodalSolutionStepVariable(DISPLACEMENT);
+    r_model_part.AddNodalSolutionStepVariable(VELOCITY);
+    r_model_part.AddNodalSolutionStepVariable(ACCELERATION);
+    r_model_part.GetProcessInfo()[DOMAIN_SIZE] = 3;
+    auto p_node                                = r_model_part.CreateNewNode(1, 0.0, 0.0, 0.0);
+    p_node->AddDof(DISPLACEMENT_X);
+    p_node->AddDof(DISPLACEMENT_Y);
+
+    KRATOS_EXPECT_EXCEPTION_IS_THROWN(test_scheme.Check(r_model_part),
+                                      "missing DISPLACEMENT_Z dof on node 1");
 }
 
 } // namespace Kratos::Testing
