@@ -577,8 +577,7 @@ void StlIO::ReadPoint(std::array<double, 3>& rResult)
 #else
         char* p_end = nullptr;
         rResult[i] = std::strtod(p_current, &p_end);
-        KRATOS_DEBUG_ERROR_IF(p_end == p_current)
-            << "Invalid stl file. Failed to parse coordinate in vertex line: \"" << coordinates_line << "\"." << std::endl;
+        KRATOS_DEBUG_ERROR_IF(p_end == p_current) << "Invalid stl file. Failed to parse coordinate in vertex line: \"" << coordinates_line << "\"." << std::endl;
         p_current = p_end;
 #endif
     }
