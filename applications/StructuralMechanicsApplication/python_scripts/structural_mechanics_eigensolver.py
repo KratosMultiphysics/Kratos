@@ -1,3 +1,4 @@
+
 # Importing the Kratos Library
 import KratosMultiphysics
 
@@ -34,6 +35,7 @@ class EigenSolver(MechanicalSolver):
         this_defaults = KratosMultiphysics.Parameters("""{
             "scheme_type"         : "dynamic",
             "compute_modal_decomposition": false,
+            "normalize_eigenvectors_with_mass_matrix": false,
             "eigensolver_settings" : {
                 "solver_type"           : "spectra_sym_g_eigs_shift",
                 "max_iteration"         : 1000,
@@ -101,4 +103,5 @@ class EigenSolver(MechanicalSolver):
                                                                   builder_and_solver,
                                                                   mass_matrix_diagonal_value,
                                                                   stiffness_matrix_diagonal_value,
-                                                                  self.settings["compute_modal_decomposition"].GetBool())
+                                                                  self.settings["compute_modal_decomposition"].GetBool(),
+                                                                  self.settings["normalize_eigenvectors_with_mass_matrix"].GetBool())
