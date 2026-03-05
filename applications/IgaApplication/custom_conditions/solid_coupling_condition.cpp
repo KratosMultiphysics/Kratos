@@ -92,9 +92,7 @@ void SolidCouplingCondition::InitializeMemberVariables()
     }
     mBasisFunctionsOrder *= 2;
 
-    // KRATOS_ERROR_IF(norm_2(r_geometry_patchA.Center()-r_geometry_patchB.Center()) > 1e-12)
-    //     << "SolidCouplingCondition found non matching geometries." << std::endl;
-    // if (norm_2(r_geometry_patchA.Center()-r_geometry_patchB.Center()) > 1e-1)
+    // if (norm_2(r_geometry_patchA.Center()-r_geometry_patchB.Center()) > 1e-12)
         mIsGapSbmCoupling = true;
 
     mNormalParameterSpaceA = -r_geometry_patchA.Normal(0, GetIntegrationMethod());
@@ -264,15 +262,10 @@ void SolidCouplingCondition::CalculateLeftHandSide(
         KRATOS_ERROR << "KNOT_SPAN_SIZES is not defined in SolidCouplingCondition" << std::endl;
     }
 
+    penalty_factor = penalty_factor / characteristic_length;
+
     Matrix DN_patch_A = rDN_De_A[0];
     Matrix DN_patch_B = rDN_De_B[0];
-
-    if (mIsGapSbmCoupling) {
-        Matrix grad_H_B_T(3, n_patch_B);
-        ComputeGradientTaylorExpansionContribution(r_patch_B, mDistanceVectorB, grad_H_B_T);
-        DN_patch_B = trans(grad_H_B_T); // [n_patch_B x 3]
-    }
-
 
     // compute Taylor expansion contribution: H_sum_vec (only for gap-sbm)
     Vector N_vec_A = row(N_patch_A, 0);
@@ -325,8 +318,8 @@ void SolidCouplingCondition::CalculateLeftHandSide(
     Matrix DB_A = prod(r_D_A, B_A);
     Matrix DB_sum_B = prod(r_D_on_true_B, B_sum_B);
 
-    // ASSEMBLE
-    //-----------------------------------------------------
+    // // ASSEMBLE
+    // //-----------------------------------------------------
     const std::size_t shift_dof = mat_size_A;
     // -w_A * (sigma_A + sigma_B) 
     for (IndexType i = 0; i < n_patch_A; i++) {
@@ -359,8 +352,8 @@ void SolidCouplingCondition::CalculateLeftHandSide(
                     const int jloc = 2*j+jdim;
                     const int jglob = 2*j+jdim + shift_dof;
 
-                    rLeftHandSideMatrix(iglob, jglob) += 0.5*N_vec_A(i)
-                                                    * (DB_sum_B(id1, jloc)* mNormalPhysicalSpaceB[0] + DB_sum_B(id2, jloc)* mNormalPhysicalSpaceB[1]) 
+                    rLeftHandSideMatrix(iglob, jglob) -= 0.5*N_vec_A(i)
+                                                    * (DB_sum_B(id1, jloc)* mNormalPhysicalSpaceA[0] + DB_sum_B(id2, jloc)* mNormalPhysicalSpaceA[1]) 
                                                     * integration_weight;
                 }
             }
@@ -400,8 +393,8 @@ void SolidCouplingCondition::CalculateLeftHandSide(
                     const int jloc = 2*j+jdim;
                     const int jglob = 2*j+jdim + shift_dof;
 
-                    rLeftHandSideMatrix(iglob, jglob) -= 0.5*N_sum_vec_B(i)
-                                                    * (DB_sum_B(id1, jloc)* mNormalPhysicalSpaceB[0] + DB_sum_B(id2, jloc)* mNormalPhysicalSpaceB[1]) 
+                    rLeftHandSideMatrix(iglob, jglob) += 0.5*N_sum_vec_B(i)
+                                                    * (DB_sum_B(id1, jloc)* mNormalPhysicalSpaceA[0] + DB_sum_B(id2, jloc)* mNormalPhysicalSpaceA[1]) 
                                                     * integration_weight;
                 }
             }
@@ -426,7 +419,7 @@ void SolidCouplingCondition::CalculateLeftHandSide(
 
             for (IndexType j = 0; j < n_patch_A; j++) {
                 // PENALTY TERM
-                // rLeftHandSideMatrix(iglob, 2*j+idim) += N_vec_A(i)*N_vec_A(j)* penalty_integration;
+                rLeftHandSideMatrix(iglob, 2*j+idim) += N_vec_A(i)*N_vec_A(j)* penalty_integration;
 
                 for (IndexType jdim = 0; jdim < 2; jdim++) {
                     const int id2 = (id1+2)%3;
@@ -443,7 +436,7 @@ void SolidCouplingCondition::CalculateLeftHandSide(
             // minus side
             for (IndexType j = 0; j < n_patch_B; j++) {
                 // PENALTY TERM
-                // rLeftHandSideMatrix(iglob, 2*j+shift_dof+idim) -= N_vec_A(i)*N_sum_vec_B(j)* penalty_integration;
+                rLeftHandSideMatrix(iglob, 2*j+shift_dof+idim) -= N_vec_A(i)*N_sum_vec_B(j)* penalty_integration;
 
                 for (IndexType jdim = 0; jdim < 2; jdim++) {
                     const int id2 = (id1+2)%3;
@@ -465,12 +458,12 @@ void SolidCouplingCondition::CalculateLeftHandSide(
             const int iglob = 2*i+idim + shift_dof;
 
             Vector Cut_sigma_w_n_B = ZeroVector(3);
-            Cut_sigma_w_n_B[0] = (DB_sum_B(0, iloc)* mNormalPhysicalSpaceB[0] + DB_sum_B(2, iloc)* mNormalPhysicalSpaceB[1]);
-            Cut_sigma_w_n_B[1] = (DB_sum_B(2, iloc)* mNormalPhysicalSpaceB[0] + DB_sum_B(1, iloc)* mNormalPhysicalSpaceB[1]);
+            Cut_sigma_w_n_B[0] = (DB_sum_B(0, iloc)* mNormalPhysicalSpaceA[0] + DB_sum_B(2, iloc)* mNormalPhysicalSpaceA[1]);
+            Cut_sigma_w_n_B[1] = (DB_sum_B(2, iloc)* mNormalPhysicalSpaceA[0] + DB_sum_B(1, iloc)* mNormalPhysicalSpaceA[1]);
 
             for (IndexType j = 0; j < n_patch_A; j++) {
                 // PENALTY TERM
-                // rLeftHandSideMatrix(iglob, 2*j+idim) -= N_sum_vec_B(i)*N_vec_A(j)* penalty_integration;
+                rLeftHandSideMatrix(iglob, 2*j+idim) -= N_sum_vec_B(i)*N_vec_A(j)* penalty_integration;
 
                 for (IndexType jdim = 0; jdim < 2; jdim++) {
                     const int jglob = 2*j+jdim;
@@ -478,7 +471,7 @@ void SolidCouplingCondition::CalculateLeftHandSide(
                     // // PENALTY FREE g_n = 0
                     // // [\sigma_1(w) \dot n] \dot n (-u_1 \dot n)
                     // //*********************************************** */
-                    rLeftHandSideMatrix(iglob, jglob) += 0.5*nitsche_penalty_free*N_vec_A(j)*Cut_sigma_w_n_B[jdim] * integration_weight;
+                    rLeftHandSideMatrix(iglob, jglob) -= 0.5*nitsche_penalty_free*N_vec_A(j)*Cut_sigma_w_n_B[jdim] * integration_weight;
                 }
 
             }
@@ -486,7 +479,7 @@ void SolidCouplingCondition::CalculateLeftHandSide(
             // minus side
             for (IndexType j = 0; j < n_patch_B; j++) {
                 // PENALTY TERM
-                // rLeftHandSideMatrix(iglob, 2*j+shift_dof+idim) += N_sum_vec_B(i)*N_sum_vec_B(j)* penalty_integration;
+                rLeftHandSideMatrix(iglob, 2*j+shift_dof+idim) += N_sum_vec_B(i)*N_sum_vec_B(j)* penalty_integration;
 
                 for (IndexType jdim = 0; jdim < 2; jdim++) {
                     const int jglob = 2*j+jdim + shift_dof;
@@ -494,7 +487,7 @@ void SolidCouplingCondition::CalculateLeftHandSide(
                     // // PENALTY FREE g_n = 0
                     // // [\sigma_1(w) \dot n] \dot n (-u_1 \dot n)
                     // //*********************************************** */
-                    rLeftHandSideMatrix(iglob, jglob) -= 0.5*nitsche_penalty_free*N_sum_vec_B(j)*Cut_sigma_w_n_B[jdim] * integration_weight;
+                    rLeftHandSideMatrix(iglob, jglob) += 0.5*nitsche_penalty_free*N_sum_vec_B(j)*Cut_sigma_w_n_B[jdim] * integration_weight;
                 }
             }
         }
@@ -531,9 +524,8 @@ void SolidCouplingCondition::CalculateRightHandSide(
     }
     noalias(rRightHandSideVector) = -prod(lhs, values);
 
-
+    //TODO: remove
     const auto& r_patch_B = GetGeometryMirror();
-
     const auto& r_patch_A = GetGeometry();
 
     for (unsigned int i = 0; i < r_patch_B.size(); i++) {

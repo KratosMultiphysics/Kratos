@@ -366,6 +366,16 @@ void GapSbmSolidElement::FinalizeSolutionStep(const ProcessInfo& rCurrentProcess
         SetValue(CAUCHY_STRESS_YY, sigma[1]);
         SetValue(CAUCHY_STRESS_XY, sigma[2]);
         // //---------------------
+
+        Vector N_sum_vec = ZeroVector(number_of_control_points);
+        ComputeTaylorExpansionContribution(N_sum_vec);
+
+        array_1d<double, 3> current_displacement = ZeroVector(3);
+        for (IndexType i = 0; i < number_of_control_points; ++i) {
+            current_displacement[0] += N_sum_vec[i] * old_displacement_coefficient_vector[2*i];
+            current_displacement[1] += N_sum_vec[i] * old_displacement_coefficient_vector[2*i + 1];
+        }
+        SetValue(DISPLACEMENT, current_displacement);
 }
 
 void GapSbmSolidElement::InitializeSolutionStep(const ProcessInfo& rCurrentProcessInfo){

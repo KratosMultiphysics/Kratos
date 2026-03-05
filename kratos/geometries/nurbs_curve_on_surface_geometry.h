@@ -351,13 +351,16 @@ public:
             (physical_coord_2[1] - physical_coord_1[1] < 0 )) {
             reverse_order = true;
         }
-        std::vector<double> tempSpans;
-        const double tolerance_orientation = 1e-10;
-        const double tolerance_intersection = 1e-15;
-        
         // Scale factor between surface coordinate and curve one
         double physical_length_segment = norm_2(physical_coord_1-physical_coord_2);
         double parameter_length_segment = norm_2(local_coord_1-local_coord_2);
+        const double range_u = surface_spans_u.empty() ? 0.0 : (surface_spans_u.back() - surface_spans_u.front());
+        const double range_v = surface_spans_v.empty() ? 0.0 : (surface_spans_v.back() - surface_spans_v.front());
+        const double length_scale = std::max(1.0, std::max(physical_length_segment, std::max(range_u, range_v)));
+        std::vector<double> tempSpans;
+        const double tolerance_orientation = 1e-10 * length_scale;
+        const double tolerance_intersection = 1e-15 * length_scale;
+        
         double scale_factor = parameter_length_segment/physical_length_segment;
 
         std::vector<double> knot_interval(2);
@@ -379,7 +382,7 @@ public:
                 if (curr_knot_value > knot_interval[1]) {break;}
                 if (std::abs(curr_knot_value - knot_interval[1]) < tolerance_intersection*10) knot_interval[1] = curr_knot_value;
                 double knot_value_in_curve_parameter = Start + (curr_knot_value-knot_interval[0]) * scale_factor;
-
+                
                 tempSpans.push_back(knot_value_in_curve_parameter);
             }
             
@@ -709,8 +712,32 @@ public:
         // SBM -> check to which axis the brep is aligned
         std::vector<CoordinatesArrayType> first_integration_point(2); // first integration point of the brep in the parameter space
         std::vector<CoordinatesArrayType> last_integration_point(2); // last integration point of the brep in the parameter space
-        mpNurbsCurve->GlobalSpaceDerivatives(first_integration_point,rIntegrationPoints[0],1); 
-        mpNurbsCurve->GlobalSpaceDerivatives(last_integration_point,rIntegrationPoints[rIntegrationPoints.size()-1],1); 
+
+        if (rIntegrationPoints.size() > 3) 
+        {
+            mpNurbsCurve->GlobalSpaceDerivatives(first_integration_point,rIntegrationPoints[1],1); 
+            mpNurbsCurve->GlobalSpaceDerivatives(last_integration_point,rIntegrationPoints[rIntegrationPoints.size()-2],1); 
+        } 
+        else if (rIntegrationPoints.size() == 1)
+        {
+            IntegrationPointsArrayType temp_integration_points_array;
+            CreateIntegrationPoints(temp_integration_points_array, rIntegrationInfo);
+            if (temp_integration_points_array.size() > 3)
+            {
+                mpNurbsCurve->GlobalSpaceDerivatives(first_integration_point,temp_integration_points_array[1],1);
+                mpNurbsCurve->GlobalSpaceDerivatives(last_integration_point,temp_integration_points_array[temp_integration_points_array.size()-2],1);
+            }
+            else
+            {
+                mpNurbsCurve->GlobalSpaceDerivatives(first_integration_point,temp_integration_points_array[0],1);
+                mpNurbsCurve->GlobalSpaceDerivatives(last_integration_point,temp_integration_points_array[temp_integration_points_array.size()-1],1);
+            }
+        }
+        else 
+        {
+            mpNurbsCurve->GlobalSpaceDerivatives(first_integration_point,rIntegrationPoints[0],1); 
+            mpNurbsCurve->GlobalSpaceDerivatives(last_integration_point,rIntegrationPoints[rIntegrationPoints.size()-1],1); 
+        }
 
         // check if the brep is internal (external breps do not need to be computed in a different knot span) 
         is_brep_internal = true; 
@@ -840,59 +867,149 @@ public:
         return mpNurbsSurface->GlobalCoordinates(rResult, result_local);
     }
 
-    /**
-    * @brief This method maps from dimension space to working space and computes the
-    *        number of derivatives at the dimension parameter.
-    * From ANurbs library (https://github.com/oberbichler/ANurbs)
-    * @param LocalCoordinates The local coordinates in dimension space
-    * @param Derivative Number of computed derivatives
-    * @return std::vector<array_1d<double, 3>> with the coordinates in working space
-    * @see PointLocalCoordinates
-    */
-    void GlobalSpaceDerivatives(
-        std::vector<CoordinatesArrayType>& rGlobalSpaceDerivatives,
-        const CoordinatesArrayType& rCoordinates,
-        const SizeType DerivativeOrder) const override
-    {
-        // Check size of output
-        if (rGlobalSpaceDerivatives.size() != DerivativeOrder + 1) {
-            rGlobalSpaceDerivatives.resize(DerivativeOrder + 1);
-        }
+    // /*
+    // * @brief This method maps from dimension space to parameter space.
+    // * @param rResult array_1d<double, 3> with the coordinates in parameter space
+    // * @param LocalCoordinates The local coordinates in dimension space
+    // * @return array_1d<double, 3> with the coordinates in parameter space
+    // * @see PointLocalCoordinates
+    // */
+    // CoordinatesArrayType& LocalCoordinates(
+    //     CoordinatesArrayType& rResult,
+    //     const CoordinatesArrayType& rLocalCoordinates
+    // ) const
+    // {
+    //     // Compute the coordinates of the embedded curve in the parametric space of the surface
+    //     return mpNurbsCurve->GlobalCoordinates(rResult, rLocalCoordinates);
 
-        // Compute the gradients of the embedded curve in the parametric space of the surface
-        std::vector<array_1d<double, 3>> curve_derivatives;
-        mpNurbsCurve->GlobalSpaceDerivatives(curve_derivatives, rCoordinates, DerivativeOrder);
+    // }
 
-        // Compute the gradients of the surface in the geometric space
-        array_1d<double, 3> surface_coordinates =  ZeroVector(3);
-        surface_coordinates[0] = curve_derivatives[0][0];
-        surface_coordinates[1] = curve_derivatives[0][1];
-        std::vector<array_1d<double, 3>> surface_derivatives;
-        mpNurbsSurface->GlobalSpaceDerivatives(surface_derivatives, surface_coordinates, DerivativeOrder);
+    // /**
+    // * @brief This method maps from dimension space to working space and computes the
+    // *        number of derivatives at the dimension parameter.
+    // * From ANurbs library (https://github.com/oberbichler/ANurbs)
+    // * @param LocalCoordinates The local coordinates in dimension space
+    // * @param Derivative Number of computed derivatives
+    // * @return std::vector<array_1d<double, 3>> with the coordinates in working space
+    // * @see PointLocalCoordinates
+    // */
+    // void GlobalSpaceDerivatives(
+    //     std::vector<CoordinatesArrayType>& rGlobalSpaceDerivatives,
+    //     const CoordinatesArrayType& rCoordinates,
+    //     const SizeType DerivativeOrder) const override
+    // {
+    //     // Check size of output
+    //     if (rGlobalSpaceDerivatives.size() != DerivativeOrder + 1) {
+    //         rGlobalSpaceDerivatives.resize(DerivativeOrder + 1);
+    //     }
 
-        std::function<array_1d<double, 3>(int, int, int)> c;
-        c = [&](int DerivativeOrder, int i, int j) -> array_1d<double, 3> {
-            if (DerivativeOrder > 0) {
-                array_1d<double, 3> result = ZeroVector(3);
+    //     // Compute the gradients of the embedded curve in the parametric space of the surface
+    //     std::vector<array_1d<double, 3>> curve_derivatives;
+    //     mpNurbsCurve->GlobalSpaceDerivatives(curve_derivatives, rCoordinates, DerivativeOrder);
 
-                for (int a = 1; a <= DerivativeOrder; a++) {
-                    result += (
-                        c(DerivativeOrder - a, i + 1, j) * curve_derivatives[a][0] +
-                        c(DerivativeOrder - a, i, j + 1) * curve_derivatives[a][1]
-                        ) * NurbsUtilities::GetBinomCoefficient(DerivativeOrder - 1, a - 1);
-                }
+    //     // Compute the gradients of the surface in the geometric space
+    //     array_1d<double, 3> surface_coordinates =  ZeroVector(3);
+    //     surface_coordinates[0] = curve_derivatives[0][0];
+    //     surface_coordinates[1] = curve_derivatives[0][1];
+    //     std::vector<array_1d<double, 3>> surface_derivatives;
+    //     mpNurbsSurface->GlobalSpaceDerivatives(surface_derivatives, surface_coordinates, DerivativeOrder);
 
-                return result;
-            }
-            else {
-                const int index = NurbsSurfaceShapeFunction::IndexOfShapeFunctionRow(i, j);
-                return surface_derivatives[index];
-            }
-        };
-        for (SizeType i = 0; i <= DerivativeOrder; i++) {
-            rGlobalSpaceDerivatives[i] = c(i, 0, 0);
-        }
-    }
+    //     std::function<array_1d<double, 3>(int, int, int)> c;
+    //     c = [&](int DerivativeOrder, int i, int j) -> array_1d<double, 3> {
+    //         if (DerivativeOrder > 0) {
+    //             array_1d<double, 3> result = ZeroVector(3);
+
+    //             for (int a = 1; a <= DerivativeOrder; a++) {
+    //                 result += (
+    //                     c(DerivativeOrder - a, i + 1, j) * curve_derivatives[a][0] +
+    //                     c(DerivativeOrder - a, i, j + 1) * curve_derivatives[a][1]
+    //                     ) * NurbsUtilities::GetBinomCoefficient(DerivativeOrder - 1, a - 1);
+    //             }
+
+    //             return result;
+    //         }
+    //         else {
+    //             const int index = NurbsSurfaceShapeFunction::IndexOfShapeFunctionRow(i, j);
+    //             return surface_derivatives[index];
+    //         }
+    //     };
+    //     for (SizeType i = 0; i <= DerivativeOrder; i++) {
+    //         rGlobalSpaceDerivatives[i] = c(i, 0, 0);
+    //     }
+    // }
+
+    // /**
+    // * @brief This method maps from dimension space to parameter space and computes the
+    // *        number of derivatives at the dimension parameter.
+    // * @param LocalCoordinates The local coordinates in dimension space
+    // * @param Derivative Number of computed derivatives
+    // * @return std::vector<array_1d<double, 3>> with the coordinates in parameter space
+    // * @see PointLocalCoordinates
+    // */
+    // void LocalSpaceDerivatives(
+    //     std::vector<CoordinatesArrayType>& rGlobalSpaceDerivatives,
+    //     const CoordinatesArrayType& rCoordinates,
+    //     const SizeType DerivativeOrder) const 
+    // {
+    //     // Check size of output
+    //     if (rGlobalSpaceDerivatives.size() != DerivativeOrder + 1) {
+    //         rGlobalSpaceDerivatives.resize(DerivativeOrder + 1);
+    //     }
+
+    //     // Compute the gradients of the embedded curve in the parametric space of the surface
+    //     mpNurbsCurve->GlobalSpaceDerivatives(rGlobalSpaceDerivatives, rCoordinates, DerivativeOrder);
+
+    // }
+
+    // /*
+    // * @brief computes the normal of the curve
+    // *        laying on the underlying surface.
+    // * @param rResult Normal to the curve lying on the surface in the physical space.
+    // * @param rLocalCoord local point coordinate in the curve in which compute the normal.
+    // */
+    // array_1d<double, 3> Normal(const CoordinatesArrayType& local_coord) const override
+    // {
+    //     std::vector<CoordinatesArrayType> curve_global_space_derivatives(2);
+    //     this->LocalSpaceDerivatives(
+    //         curve_global_space_derivatives, local_coord, 1);
+
+    //     std::vector<CoordinatesArrayType> surface_global_space_derivatives(2);
+    //     mpNurbsSurface->GlobalSpaceDerivatives(surface_global_space_derivatives, curve_global_space_derivatives[0],2);
+
+    //     // mpNurbsSurface->GlobalSpaceDerivatives()
+    //     Vector local_tangent = curve_global_space_derivatives[1];
+    //     array_1d<double, 3> normal_parameter_space;
+
+    //     double magnitude = 1; //std::sqrt(local_tangent[0] * local_tangent[0] + local_tangent[1] * local_tangent[1]);
+
+    //     normal_parameter_space[0] = + local_tangent[1] / magnitude;
+    //     normal_parameter_space[1] = - local_tangent[0] / magnitude; 
+    //     normal_parameter_space[2] = 0;
+
+
+    //     Matrix Jacobian = ZeroMatrix(3,3);
+    //     Jacobian(0,0) = surface_global_space_derivatives[1][0];
+    //     Jacobian(0,1) = surface_global_space_derivatives[2][0];
+    //     Jacobian(1,0) = surface_global_space_derivatives[1][1];
+    //     Jacobian(1,1) = surface_global_space_derivatives[2][1];
+
+    //     Jacobian(2,2) = 1.0;
+
+    //     array_1d<double, 3> normal_physical_space;
+    //     // normal_physical_space = prod(Jacobian, normal_parameter_space);
+
+    //     //***** */
+    //     Matrix Inv_Jacobian = ZeroMatrix(3,3);
+    //     double detJ;
+    //     MathUtils<double>::InvertMatrix(Jacobian,Inv_Jacobian,detJ);
+
+    //     normal_physical_space = prod(normal_parameter_space, trans(Inv_Jacobian));
+    //     //***** */
+    //     normal_physical_space[2] = 0.0;
+
+    //     return normal_physical_space;
+    // }
+
 
     ///@}
     ///@name Kratos Geometry Families
