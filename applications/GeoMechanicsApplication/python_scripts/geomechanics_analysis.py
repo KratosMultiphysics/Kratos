@@ -136,7 +136,7 @@ class GeoMechanicsAnalysis(AnalysisStage):
                 # do the nonlinear solver iterations
                 self.InitializeSolutionStep()
                 converged = self._GetSolver().SolveSolutionStep()
-                self._GetSolver().solving_strategy.SetStiffnessMatrixIsBuilt(True)
+                # self._GetSolver().solving_strategy.SetStiffnessMatrixIsBuilt(True)
 
                 if converged:
                     # scale next step if desired

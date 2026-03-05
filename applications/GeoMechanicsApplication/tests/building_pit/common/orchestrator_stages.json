@@ -50,6 +50,7 @@
                     "model_part_name": "PorousDomain",
                     "domain_size": 2,
                     "echo_level": 1,
+                    "use_old_stiffness_in_first_iteration": true,
                     "model_import_settings": {
                         "input_type": "use_input_model_part"
                     },
@@ -465,6 +466,7 @@
                     "scheme_type": "newmark",
                     "model_part_name": "PorousDomain",
                     "domain_size": 2,
+                    "use_old_stiffness_in_first_iteration": true,
                     "echo_level": 1,
                     "model_import_settings": {
                         "input_type": "use_input_model_part"
@@ -799,6 +801,7 @@
                     "reform_dofs_at_each_step": false,
                     "block_builder": true,
                     "reset_displacements": false,
+                    "use_old_stiffness_in_first_iteration": true,
                     "convergence_criterion": "residual_criterion",
                     "residual_relative_tolerance": 0.0001,
                     "residual_absolute_tolerance": 1e-09,

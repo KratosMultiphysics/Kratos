@@ -68,7 +68,7 @@ public:
                                       bool ReformDofSetAtEachStep                           = false,
                                       bool MoveMeshFlag                                     = false)
         : ResidualBasedNewtonRaphsonStrategy<TSparseSpace, TDenseSpace, TLinearSolver>(
-              model_part, pScheme, pNewConvergenceCriteria, pNewBuilderAndSolver, MaxIterations, CalculateReactions, ReformDofSetAtEachStep, MoveMeshFlag)
+              model_part, pScheme, pNewConvergenceCriteria, pNewBuilderAndSolver, rParameters)
     {
         // only include validation with c++11 since raw_literals do not exist in c++03
         Parameters default_parameters(R"(
@@ -87,7 +87,7 @@ public:
                 }  )");
 
         // Validate against defaults -- this also ensures no type mismatch
-        rParameters.ValidateAndAssignDefaults(default_parameters);
+        // rParameters.ValidateAndAssignDefaults(default_parameters);
     }
 }; // Class GeoMechanicsNewtonRaphsonStrategy
 

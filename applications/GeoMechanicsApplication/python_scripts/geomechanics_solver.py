@@ -75,6 +75,8 @@ class GeoMechanicalSolver(PythonSolver):
             "rebuild_level": 2,
             "reform_dofs_at_each_step": false,
             "clear_storage": false,
+            "build_level": 2,
+            "use_old_stiffness_in_first_iteration": false,
             "compute_reactions": false,
             "move_mesh_flag": false,
             "reset_displacements":  false,
@@ -98,7 +100,9 @@ class GeoMechanicalSolver(PythonSolver):
             "max_radius_factor"          : 20.0,
             "min_radius_factor"          : 0.5,
             "max_iterations"             : 15,
+            "max_iteration"             : 15,
             "min_iterations"             : 6,
+            "min_iteration"             : 6,
             "number_cycles"              : 5,
             "increase_factor"            : 2.0,
             "reduction_factor"           : 0.5,
@@ -442,7 +446,7 @@ class GeoMechanicalSolver(PythonSolver):
 
     def _CreateBuilderAndSolver(self):
         if (self.settings["block_builder"].GetBool()):
-            return KratosMultiphysics.ResidualBasedBlockBuilderAndSolver(self.linear_solver)
+            return GeoMechanicsApplication.GeoResidualBasedBlockBuilderAndSolver(self.linear_solver)
 
         return KratosMultiphysics.ResidualBasedEliminationBuilderAndSolver(self.linear_solver)
 
@@ -468,6 +472,16 @@ class GeoMechanicalSolver(PythonSolver):
 
         if strategy_type.lower() == "newton_raphson":
             self.strategy_params = KratosMultiphysics.Parameters("{}")
+            self.strategy_params.AddValue("max_iteration", self.settings["max_iterations"])
+            self.strategy_params.AddValue("compute_reactions", self.settings["compute_reactions"])
+            self.strategy_params.AddValue("reform_dofs_at_each_step", self.settings["reform_dofs_at_each_step"])
+            self.strategy_params.AddValue("move_mesh_flag", self.settings["move_mesh_flag"])
+            self.strategy_params.AddValue("use_old_stiffness_in_first_iteration", self.settings["use_old_stiffness_in_first_iteration"])
+            self.strategy_params.AddValue("echo_level", self.settings["echo_level"])
+            self.strategy_params.AddValue("build_level", self.settings["rebuild_level"])
+            self.strategy_params.AddValue("convergence_criteria_settings", KratosMultiphysics.Parameters("{}"))
+            self.strategy_params.AddValue("scheme_settings", KratosMultiphysics.Parameters("{}"))
+            self.strategy_params.AddValue("builder_and_solver_settings", KratosMultiphysics.Parameters("{}"))
             solving_strategy = GeoMechanicsApplication.GeoMechanicsNewtonRaphsonStrategy(self.computing_model_part,
                                                                                          self.scheme,
                                                                                          self.convergence_criterion,
