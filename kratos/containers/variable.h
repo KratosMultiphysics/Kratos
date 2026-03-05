@@ -435,7 +435,7 @@ private:
 
     static const VariableType msStaticObject;               /// Definition of the static variable
 
-    static const  VariableType mZero = VariableType{};
+    static const  TDataType mZero = TDataType{};
 
     ///@}
     ///@name Member Variables
