@@ -61,7 +61,6 @@
 #include "custom_elements/shell_elements/shell_thin_element_3D3N.hpp"
 #include "custom_elements/shell_elements/shell_thick_element_3D3N.hpp"
 #include "custom_elements/shell_elements/cs_dsg3_thick_shell_element_3D3N.h"
-#include "custom_elements/shell_elements/mitc4_andes_shell_thick_element_3D4N.h"
 
 /* Adding the bushing element */
 #include "custom_elements/nodal_elements/bushing_element.h"
@@ -311,8 +310,6 @@ private:
 
     const CSDSG3ThickShellElement3D3N<false> mCSDSG3ThickShellLinearElement3D3N;
     const CSDSG3ThickShellElement3D3N<true> mCSDSG3ThickShellCorotationalElement3D3N;
-    const MITC4AndesShellThickElement3D4N<false> mMITC4AndesShellThickLinearElement3D3N;
-    const MITC4AndesShellThickElement3D4N<true> mMITC4AndesShellThickCorotationalElement3D3N;
 
     // Adding the membrane elements
     const MembraneElement mMembraneElement3D4N;
