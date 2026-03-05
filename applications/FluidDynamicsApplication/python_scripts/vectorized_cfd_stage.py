@@ -360,22 +360,24 @@ class VectorizedCFDStage(analysis_stage.AnalysisStage):
     def GetFixityIndices(self):
         # Obtain fixity
         # Note that we only compute this once assuming the fixity to not change in time
-        if self.fix_vel_indices is None or self.fix_press_indices is None:
-            self.fix_vel_indices = []
-            self.fix_press_indices = []
-            for node in self.model_part.Nodes: #FIXME: this should be done with an adaptor
-                if node.IsFixed(KM.VELOCITY_X):
-                    self.fix_vel_indices.append((node.Id-1)*self.dim)
-                if node.IsFixed(KM.VELOCITY_Y):
-                    self.fix_vel_indices.append((node.Id-1)*self.dim+1)
-                if self.dim==3 and node.IsFixed(KM.VELOCITY_Z):
-                    self.fix_vel_indices.append((node.Id-1)*self.dim+2)
-                if node.IsFixed(KM.PRESSURE):
-                    self.fix_press_indices.append(node.Id-1)
+        if self.fix_vel_indices is None or self.fix_pres_indices is None:
+            # Get fixity nodal data
+            dofs_list = [KM.VELOCITY_X, KM.VELOCITY_Y, KM.VELOCITY_Z, KM.PRESSURE] if self.dim == 3 else [KM.VELOCITY_X, KM.VELOCITY_Y, KM.PRESSURE]
+            fixity_adaptor = KM.TensorAdaptors.FixityTensorAdaptor(self.model_part.Nodes, dofs_list)
+            fixity_adaptor.CollectData()
 
-            # Move to device if needed
-            self.fix_vel_indices = xp.array(self.fix_vel_indices, np.int64) #TODO: can we use int32 here?
-            self.fix_press_indices = xp.array(self.fix_press_indices, np.int64) #TODO: can we use int32 here?
+            # Create a flat array with the DOFs indices from the fixity data
+            n_nodes = fixity_adaptor.data.shape[0]
+            p_eq_indices = xp.arange(n_nodes)
+            v_eq_indices = xp.arange(n_nodes)[:, xp.newaxis] * self.dim + xp.arange(self.dim)
+
+            # Mask where the pressure and velocity is fixed
+            p_fixity_mask = fixity_adaptor.data[:,-1].ravel() == True
+            v_fixity_mask = fixity_adaptor.data[:,:-1].ravel() == True
+
+            # Apply the fixity masks to the DOF equation indices
+            self.fix_pres_indices = xp.asarray(p_eq_indices[p_fixity_mask], dtype=np.int64) #TODO: can we use int32 here?
+            self.fix_vel_indices = xp.asarray(v_eq_indices.ravel()[v_fixity_mask], dtype=np.int64) #TODO: can we use int32 here?
 
     def GetSlipIndices(self):
         # Check if slip indices have been computed
@@ -482,7 +484,7 @@ class VectorizedCFDStage(analysis_stage.AnalysisStage):
         self.cfd_utils.AssembleVector(self.connectivity, rhs_el, rhs)
 
         # Apply pressure BCs
-        self.cfd_utils.ApplyHomogeneousDirichlet(self.fix_press_indices, self.L, rhs)
+        self.cfd_utils.ApplyHomogeneousDirichlet(self.fix_pres_indices, self.L, rhs)
 
         # Solve the system
         ##TODO: use amgcl instead of this one!! ... and also avoid creating temporaries
