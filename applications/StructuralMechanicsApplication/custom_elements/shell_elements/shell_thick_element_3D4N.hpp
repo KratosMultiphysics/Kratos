@@ -96,6 +96,8 @@ public:
 
     using Vector3Type = typename BaseType::Vector3Type;
 
+    static constexpr double drilling_factor = 1.0e-6;
+
     ///@}
 
     ///@name Classes
@@ -380,9 +382,6 @@ private:
 
     void AddBodyForces(const array_1d<double,4>& dA, VectorType& rRightHandSideVector);
 
-    bool TryCalculateOnIntegrationPoints_GeneralizedStrainsOrStresses(const Variable<Matrix>& rVariable,
-            std::vector<Matrix>& rValues,
-            const ProcessInfo& rCurrentProcessInfo);
 
     /**
     * Returns the behavior of this shell (thin/thick)
