@@ -22,10 +22,8 @@
 // Project includes
 #include "includes/registry.h"
 #include "variable_data.h"
-#include "utilities/stl_vector_io.h"
 
-namespace Kratos
-{
+namespace Kratos {
 
 ///@name Kratos Globals
 ///@{
@@ -55,8 +53,7 @@ namespace Kratos
 * @author Pooyan Dadvand
 */
 template<class TDataType>
-class Variable : public VariableData
-{
+class Variable : public VariableData {
 public:
     ///@name Type Definitions
     ///@{
@@ -79,46 +76,46 @@ public:
 
     /**
      * @brief Constructor with specific name and zero value
-     * @param NewName The name to be assigned to the new variable
+     * @param Name The name to be assigned to the new variable
      * @param Zero The value to be assigned to the variable as zero. In case of not definition will take the value given by the constructor of the time
      * @param pTimeDerivativeVariable Pointer to the time derivative variable
      */
     explicit Variable(
-        const std::string& NewName,
+        std::string_view Name,
         const TDataType Zero = TDataType(),
         const VariableType* pTimeDerivativeVariable = nullptr
         )
-        : VariableData(NewName, sizeof(TDataType)),
+        : VariableData(Name, sizeof(TDataType)),
           mZero(Zero),
           mpTimeDerivativeVariable(pTimeDerivativeVariable)
     {}
     /**
      * @brief Constructor with specific name and zero value
-     * @param NewName The name to be assigned to the new variable
+     * @param Name The name to be assigned to the new variable
      * @param pTimeDerivativeVariable Pointer to the time derivative variable
      */
     explicit Variable(
-        const std::string& NewName,
+        std::string_view Name,
         const VariableType* pTimeDerivativeVariable
         )
-        : VariableData(NewName, sizeof(TDataType)),
+        : VariableData(Name, sizeof(TDataType)),
           mZero(TDataType()),
           mpTimeDerivativeVariable(pTimeDerivativeVariable)
     {}
 
     /**
      * @brief Constructor for creating a component of other variable
-     * @param rNewName The name to be assigned to the compoenent
+     * @param Name The name to be assigned to the compoenent
      * @param Zero The value to be assigned to the variable as zero. In case of not definition will take the value given by the constructor of the time
      */
     template<typename TSourceVariableType>
     explicit Variable(
-        const std::string& rNewName,
+        std::string_view Name,
         TSourceVariableType* pSourceVariable,
         char ComponentIndex,
         const TDataType Zero = TDataType()
         )
-        : VariableData(rNewName, sizeof(TDataType), pSourceVariable, ComponentIndex),
+        : VariableData(Name, sizeof(TDataType), pSourceVariable, ComponentIndex),
           mZero(Zero)
     {}
 

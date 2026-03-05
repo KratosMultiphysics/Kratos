@@ -20,8 +20,9 @@
 
 /* Project includes */
 #include "includes/kratos_export_api.h"
-#include "includes/smart_pointers.h"
+#include "containers/array_1d.h"
 #include "includes/exception.h"
+
 
 // Defining the OS
 #if defined(__linux__) || defined(__linux) || defined(linux) || defined(__gnu_linux__)
@@ -112,6 +113,11 @@ catch(...) { Block KRATOS_THROW_ERROR(std::runtime_error, "Unknown error", MoreI
     #define KRATOS_CATCH(MoreInfo) {};
 #endif
 
+#ifdef KRATOS_STRINGIFY
+#undef KRATOS_STRINGIFY
+#endif
+#define KRATOS_STRINGIFY(arg) #arg
+
 //-----------------------------------------------------------------
 //
 // variables
@@ -123,8 +129,9 @@ catch(...) { Block KRATOS_THROW_ERROR(std::runtime_error, "Unknown error", MoreI
 #ifdef KRATOS_DEFINE_VARIABLE_IMPLEMENTATION
 #undef KRATOS_DEFINE_VARIABLE_IMPLEMENTATION
 #endif
-#define KRATOS_DEFINE_VARIABLE_IMPLEMENTATION(module, type, name) \
-    KRATOS_EXPORT_MACRO(module) extern Variable<type > name;
+#define KRATOS_DEFINE_VARIABLE_IMPLEMENTATION(module, type, name)                                   \
+    KRATOS_EXPORT_MACRO(module) extern Kratos::Variable<type > name;                                \
+    inline constexpr Kratos::VariableData name ## _DATA = Kratos::VariableData(#name, sizeof(type));
 
 #ifdef KRATOS_DEFINE_VARIABLE
 #undef KRATOS_DEFINE_VARIABLE
@@ -135,17 +142,22 @@ catch(...) { Block KRATOS_THROW_ERROR(std::runtime_error, "Unknown error", MoreI
 #ifdef KRATOS_DEFINE_APPLICATION_VARIABLE
 #undef KRATOS_DEFINE_APPLICATION_VARIABLE
 #endif
-#define KRATOS_DEFINE_APPLICATION_VARIABLE(application, type, name) \
-    KRATOS_API(application) extern Variable<type > name;
+#define KRATOS_DEFINE_APPLICATION_VARIABLE(application, type, name)                                 \
+    KRATOS_API(application) extern Kratos::Variable<type > name;                                    \
+    inline constexpr Kratos::VariableData name ## _DATA = Kratos::VariableData(#name, sizeof(type));
 
 #ifdef KRATOS_DEFINE_3D_VARIABLE_WITH_COMPONENTS
 #undef KRATOS_DEFINE_3D_VARIABLE_WITH_COMPONENTS
 #endif
-#define KRATOS_DEFINE_3D_VARIABLE_WITH_COMPONENTS_IMPLEMENTATION(module, name) \
-    KRATOS_EXPORT_MACRO(module) extern Kratos::Variable<Kratos::array_1d<double, 3> > name; \
-    KRATOS_EXPORT_MACRO(module) extern Kratos::Variable<double> name##_X;\
-    KRATOS_EXPORT_MACRO(module) extern Kratos::Variable<double> name##_Y;\
-    KRATOS_EXPORT_MACRO(module) extern Kratos::Variable<double> name##_Z;
+#define KRATOS_DEFINE_3D_VARIABLE_WITH_COMPONENTS_IMPLEMENTATION(module, name)                                          \
+    KRATOS_EXPORT_MACRO(module) extern Kratos::Variable<Kratos::array_1d<double, 3> > name;                             \
+    KRATOS_EXPORT_MACRO(module) extern Kratos::Variable<double> name##_X;                                               \
+    KRATOS_EXPORT_MACRO(module) extern Kratos::Variable<double> name##_Y;                                               \
+    KRATOS_EXPORT_MACRO(module) extern Kratos::Variable<double> name##_Z;                                               \
+    inline constexpr Kratos::VariableData name##_DATA(#name, sizeof(Kratos::array_1d<double, 3>));                      \
+    inline constexpr Kratos::VariableData name##_X_DATA(KRATOS_STRINGIFY(name##_X), sizeof(double), &name##_DATA, 0);   \
+    inline constexpr Kratos::VariableData name##_Y_DATA(KRATOS_STRINGIFY(name##_Y), sizeof(double), &name##_DATA, 1);   \
+    inline constexpr Kratos::VariableData name##_Z_DATA(KRATOS_STRINGIFY(name##_Z), sizeof(double), &name##_DATA, 2);
 
 #ifdef KRATOS_DEFINE_3D_VARIABLE_WITH_COMPONENTS
 #undef KRATOS_DEFINE_3D_VARIABLE_WITH_COMPONENTS
@@ -156,11 +168,15 @@ catch(...) { Block KRATOS_THROW_ERROR(std::runtime_error, "Unknown error", MoreI
 #ifdef KRATOS_DEFINE_3D_APPLICATION_VARIABLE_WITH_COMPONENTS
 #undef KRATOS_DEFINE_3D_APPLICATION_VARIABLE_WITH_COMPONENTS
 #endif
-#define KRATOS_DEFINE_3D_APPLICATION_VARIABLE_WITH_COMPONENTS(application, name) \
-  KRATOS_API(application) extern Kratos::Variable<Kratos::array_1d<double, 3> > name; \
-  KRATOS_API(application) extern Kratos::Variable<double> name##_X;\
-  KRATOS_API(application) extern Kratos::Variable<double> name##_Y;\
-  KRATOS_API(application) extern Kratos::Variable<double> name##_Z;
+#define KRATOS_DEFINE_3D_APPLICATION_VARIABLE_WITH_COMPONENTS(application, name)                                        \
+    KRATOS_API(application) extern Kratos::Variable<Kratos::array_1d<double, 3> > name;                                 \
+    KRATOS_API(application) extern Kratos::Variable<double> name##_X;                                                   \
+    KRATOS_API(application) extern Kratos::Variable<double> name##_Y;                                                   \
+    KRATOS_API(application) extern Kratos::Variable<double> name##_Z;                                                   \
+    inline constexpr Kratos::VariableData name##_DATA(#name, sizeof(Kratos::array_1d<double, 3>));                      \
+    inline constexpr Kratos::VariableData name##_X_DATA(KRATOS_STRINGIFY(name##_X), sizeof(double), &name##_DATA, 0);   \
+    inline constexpr Kratos::VariableData name##_Y_DATA(KRATOS_STRINGIFY(name##_Y), sizeof(double), &name##_DATA, 1);   \
+    inline constexpr Kratos::VariableData name##_Z_DATA(KRATOS_STRINGIFY(name##_Z), sizeof(double), &name##_DATA, 2);
 
 #ifdef KRATOS_DEFINE_SYMMETRIC_2D_TENSOR_VARIABLE_WITH_COMPONENTS
 #undef KRATOS_DEFINE_SYMMETRIC_2D_TENSOR_VARIABLE_WITH_COMPONENTS

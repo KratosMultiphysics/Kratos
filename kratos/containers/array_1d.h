@@ -29,8 +29,9 @@
 #include <boost/numeric/ublas/functional.hpp> // For scalar_assign etc.
 
 // Project includes
-#include "includes/define.h"
 #include "includes/ublas_interface.h"
+#include "includes/smart_pointers.h"
+#include "includes/exception.h"
 
 namespace Kratos
 {
@@ -251,7 +252,7 @@ public:
     BOOST_UBLAS_INLINE
     void swap (array_1d &v)
     {
-        if (this !=	&v) 
+        if (this !=	&v)
         {
             data ().swap (v.data ());
         }
@@ -424,7 +425,7 @@ public:
         BOOST_UBLAS_INLINE
         const_iterator &operator = (const const_iterator &it)
         {
-            container_const_reference<self_type>::assign (&it ());
+            boost::numeric::ublas::container_const_reference<self_type>::assign (&it ());
             it_	= it.it_;
             return *this;
         }
@@ -524,7 +525,7 @@ public:
         BOOST_UBLAS_INLINE
         iterator &operator = (const	iterator &it)
         {
-            container_reference<self_type>::assign (&it	());
+            boost::numeric::ublas::container_reference<self_type>::assign (&it	());
             it_	= it.it_;
             return *this;
         }

@@ -15,6 +15,10 @@
 
 #pragma once
 
+// --- STL Includes ---
+#include <string_view>
+
+
 namespace Kratos {
 ///@addtogroup Kratos Core
 ///@{
@@ -59,8 +63,8 @@ public:
     ///@name Operations
     ///@{
 
-    static constexpr HashType CalculateHash(const char *const TheString) {
-        return CalculateHash(mFNV32OfsetBasis, TheString);
+    static constexpr HashType CalculateHash(std::string_view String) noexcept {
+        return FNV1a32Hash::CalculateHash(FNV1a32Hash::mFNV32OfsetBasis, String);
     }
 
     ///@}
@@ -75,12 +79,15 @@ public:
     ///@}
     ///@name Private Operations
     ///@{
-    static constexpr HashType CalculateHash(const HashType Value,
-                                                const char *const TheString) {
-        return (TheString[0] == '\0')
-                ? Value
-                : CalculateHash((Value ^ static_cast<HashType>(TheString[0])) * mFNV32Prime,
-                                TheString + 1);
+
+    static constexpr HashType CalculateHash(HashType Value, std::string_view String) noexcept {
+        if (String.empty()) {
+            return Value;
+        } else {
+            return FNV1a32Hash::CalculateHash(
+                (Value ^ static_cast<HashType>(String.front()) * FNV1a32Hash::mFNV32Prime),
+                std::string_view(String.data() + 1, String.size() - 1));
+        }
     }
 
   ///@}
