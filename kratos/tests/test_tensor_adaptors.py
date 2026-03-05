@@ -71,6 +71,11 @@ class TestTensorAdaptors(KratosUnittest.TestCase):
                 entity.Set(Kratos.SLIP, entity.Id % 2)
                 entity.Set(Kratos.SELECTED, False)
 
+        def fixity_setter(container):
+            for entity in container:
+                entity.Fix(Kratos.NODAL_VAUX_X) if entity.Id % 2 == 0 else entity.Fix(Kratos.NODAL_VAUX_Y)
+                entity.Fix(Kratos.NODAL_VAUX_Z)
+
         value_setter(self.model_part.Nodes, lambda x, y, z: x.SetSolutionStepValue(y, 0, z * 1.5))
         value_setter(self.model_part.Nodes, lambda x, y, z: x.SetSolutionStepValue(y, 1, z * 1.5))
         value_setter(self.model_part.Nodes, lambda x, y, z: x.SetValue(y, z * 2.1))
@@ -81,6 +86,8 @@ class TestTensorAdaptors(KratosUnittest.TestCase):
         flag_setter(self.model_part.Nodes)
         flag_setter(self.model_part.Conditions)
         flag_setter(self.model_part.Elements)
+
+        fixity_setter(self.model_part.Nodes)
 
     def test_HistoricalVariableTensorAdaptorClone(self):
         ta = Kratos.TensorAdaptors.HistoricalVariableTensorAdaptor(self.model_part.Nodes, Kratos.PRESSURE)
@@ -735,6 +742,41 @@ class TestTensorAdaptors(KratosUnittest.TestCase):
 
         with self.assertRaises(RuntimeError):
             ta.StoreData()
+
+    def test_FixityTensorAdaptor1(self):
+        ta = Kratos.TensorAdaptors.FixityTensorAdaptor(self.model_part.Nodes, [Kratos.NODAL_VAUX_X, Kratos.NODAL_VAUX_Y])
+        ta.Check()
+        ta.CollectData()
+        self.assertEqual(ta.data.size, self.model_part.NumberOfNodes() * 2)
+        for i, node in enumerate(self.model_part.Nodes):
+            if node.Id % 2 == 0:
+                self.assertTrue(ta.data[i, 0])
+                self.assertFalse(ta.data[i, 1])
+            else:
+                self.assertFalse(ta.data[i, 0])
+                self.assertTrue(ta.data[i, 1])
+
+    def test_FixityTensorAdaptor2(self):
+        ta = Kratos.TensorAdaptors.FixityTensorAdaptor(self.model_part.Nodes, [Kratos.NODAL_VAUX_Z, Kratos.NODAL_VAUX_Y])
+        ta.Check()
+        ta.CollectData()
+        self.assertEqual(ta.data.size, self.model_part.NumberOfNodes() * 2)
+        for i, node in enumerate(self.model_part.Nodes):
+            self.assertTrue(ta.data[i, 0])
+            if node.Id % 2 == 0:
+                self.assertFalse(ta.data[i, 1])
+            else:
+                self.assertTrue(ta.data[i, 1])
+
+    def test_FixityTensorAdaptor3(self):
+        ta = Kratos.TensorAdaptors.FixityTensorAdaptor(self.model_part.Nodes, [Kratos.NODAL_VAUX_X, Kratos.NODAL_VAUX_Y, Kratos.NODAL_VAUX_Z])
+        ta.Check()
+        ta.data = numpy.ones((self.model_part.NumberOfNodes(), 3), dtype=bool)
+        ta.StoreData()
+        for node in self.model_part.Nodes:
+            self.assertTrue(node.IsFixed(Kratos.NODAL_VAUX_X))
+            self.assertTrue(node.IsFixed(Kratos.NODAL_VAUX_Y))
+            self.assertTrue(node.IsFixed(Kratos.NODAL_VAUX_Z))
 
     def __TestCopyTensorAdaptor(self, tensor_adaptor_type, value_getter):
         var_ta_orig = tensor_adaptor_type(self.model_part.Nodes, Kratos.VELOCITY, data_shape=[2])
