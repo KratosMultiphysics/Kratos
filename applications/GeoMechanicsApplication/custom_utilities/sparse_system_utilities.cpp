@@ -152,7 +152,7 @@ void SparseSystemUtilities::ApplyDirichletConditionsSecondaryMatrix(const DofsAr
 bool SparseSystemUtilities::HasNonZeroDiagonalEntryOnCurrentRow(const std::size_t RowIndex,
                                                                 const unbounded_array<std::size_t>& rCsrIndices1,
                                                                 const unbounded_array<std::size_t>& rCsrIndices2,
-                                                                const unbounded_array<double> rCsrValues)
+                                                                const unbounded_array<double>& rCsrValues)
 {
     // Check if there is a non-zero entry on the diagonal for the given row index
     for (std::size_t k = rCsrIndices1[RowIndex]; k < rCsrIndices1[RowIndex + 1]; ++k) {

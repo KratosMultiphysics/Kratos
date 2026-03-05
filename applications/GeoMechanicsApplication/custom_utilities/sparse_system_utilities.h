@@ -103,6 +103,6 @@ private:
     static bool HasNonZeroDiagonalEntryOnCurrentRow(const std::size_t RowIndex,
                                                     const unbounded_array<std::size_t>& rCsrIndices1,
                                                     const unbounded_array<std::size_t>& rCsrIndices2,
-                                                    const unbounded_array<double> rCsrValues);
+                                                    const unbounded_array<double>& rCsrValues);
 };
 } // namespace Kratos::Geo
