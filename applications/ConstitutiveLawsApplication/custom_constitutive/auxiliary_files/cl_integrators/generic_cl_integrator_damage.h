@@ -232,13 +232,13 @@ class GenericConstitutiveLawIntegratorDamage
     }
 
     /**
-     * @brief This computes the damage variable according to parabolic hardening and exponential
-     * softening
+     * @brief This computes the damage variable according to combined exponential hardening and softening
      * @param UniaxialStress The equivalent uniaxial stress
      * @param Threshold The maximum uniaxial stress achieved previously
      * @param rDamage The internal variable of the damage model
      * @param rValues Parameters of the constitutive law
      * @param CharacteristicLength The equivalent length of the FE
+     * @param SATISFY_MAXIMUM_STRESS Select either maximum stress or tangency at yield point to be satisfied
      */
     static void CalculateDoubleExponentialHardeningDamage(
         const double UniaxialStress,
@@ -262,7 +262,7 @@ class GenericConstitutiveLawIntegratorDamage
         if (Max_Stress_Satisfied) {
             X = -std::sqrt(max_stress/(max_stress - initial_threshold));
         } else {
-            X = (std::pow(initial_threshold, 2)/E + Gf + std::sqrt(initial_threshold*initial_threshold/E*(5.0/4.0*initial_threshold*initial_threshold/E+2.0*Gf))) / (0.5*initial_threshold*initial_threshold/E-Gf);
+            X = (initial_threshold*initial_threshold/E + Gf + std::sqrt(initial_threshold*initial_threshold/E*(5.0/4.0*initial_threshold*initial_threshold/E+2.0*Gf))) / (0.5*initial_threshold*initial_threshold/E-Gf);
         }
 
         const double A = ((3.0*X+1.0)*initial_threshold*(UniaxialStress-initial_threshold))/((X+1.0)*(0.5*initial_threshold*initial_threshold-E*Gf));
