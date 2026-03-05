@@ -359,23 +359,6 @@ private:
     ///@name Private Operations
     ///@{
 
-    void CalculateStressesFromForceResultants(VectorType& rstresses,
-            const double& rthickness);
-
-    void CalculateLaminaStrains(ShellCrossSection::Pointer& section, const Vector& generalizedStrains, std::vector<VectorType>& rlaminateStrains);
-
-    void CalculateLaminaStresses(ShellCrossSection::Pointer& section, ShellCrossSection::SectionParameters parameters, const std::vector<VectorType>& rlaminateStrains, std::vector<VectorType>& rlaminateStresses);
-
-    double CalculateTsaiWuPlaneStress(const std::vector<VectorType>& rlaminateStresses, const Matrix& rLamina_Strengths, const unsigned int& rCurrent_Ply);
-
-    void CalculateVonMisesStress(const Vector& generalizedStresses,
-                                 const Variable<double>& rVariable, double& rVon_Mises_Result);
-
-    void CheckGeneralizedStressOrStrainOutput(const Variable<Matrix>& rVariable,
-            int& iJob, bool& bGlobal);
-
-    double CalculateStenbergShearStabilization(const ShellQ4_LocalCoordinateSystem& refCoordinateSystem, const double& meanThickness);
-
     void CalculateBMatrix(double xi, double eta,
                           const ShellUtilities::JacobianOperator& Jac, const MITC4Params& params,
                           const Vector& N,

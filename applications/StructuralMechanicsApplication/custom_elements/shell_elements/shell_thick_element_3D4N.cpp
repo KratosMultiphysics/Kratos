@@ -18,12 +18,6 @@
 namespace Kratos
 {
 
-// =====================================================================================
-//
-// Class MITC4Params
-//
-// =====================================================================================
-
 /***********************************************************************************/
 /***********************************************************************************/
 
@@ -89,12 +83,6 @@ ShellThickElement3D4N<TKinematics>::MITC4Params::MITC4Params(const ShellQ4_Local
     ShearStrains(3, 21) = ShearStrains(3, 15);
     ShearStrains(3, 22) = ShearStrains(3, 16);
 }
-
-// =====================================================================================
-//
-// Class EASOperatorStorage
-//
-// =====================================================================================
 
 /***********************************************************************************/
 /***********************************************************************************/
@@ -208,12 +196,6 @@ void ShellThickElement3D4N<TKinematics>::EASOperatorStorage::load(Serializer& rS
     rSerializer.load("init", mInitialized);
 }
 
-// =====================================================================================
-//
-// Class EASOperator
-//
-// =====================================================================================
-
 /***********************************************************************************/
 /***********************************************************************************/
 
@@ -262,7 +244,7 @@ ShellThickElement3D4N<TKinematics>::EASOperator::EASOperator(const ShellQ4_Local
     double dummyDet;
     MathUtils<double>::InvertMatrix3(F0, mF0inv, dummyDet);
 
-    // initialize these data to zero because they will
+    // Initialize these data to zero because they will
     // be integrated during the gauss loop
     storage.L.clear();
     storage.Hinv.clear();
@@ -282,18 +264,18 @@ void ShellThickElement3D4N<TKinematics>::EASOperator::GaussPointComputation_Step
 {
     // construct the interpolation matrix in natural coordinate system
     Matrix E(3, 5, 0.0);
-    E(0,0) = xi;
-    E(1,1) = eta;
-    E(2,2) = xi;
-    E(2,3) = eta;
-    E(0,4) = xi*eta;
-    E(1,4) = -xi*eta;
-    E(2,4) = xi*xi - eta*eta;
+    E(0, 0) = xi;
+    E(1, 1) = eta;
+    E(2, 2) = xi;
+    E(2, 3) = eta;
+    E(0, 4) = xi * eta;
+    E(1, 4) = -xi * eta;
+    E(2, 4) = xi * xi - eta * eta;
 
     // construct the interpolation matrix in local coordinate system
     noalias(mG) = mJ0 / jac.Determinant() * prod(mF0inv, E);
 
-    // assuming that the input generalized strains has been already calculated on this
+    // Assuming that the input generalized strains has been already calculated on this
     // integration point, we just need to add the contribution of the enhanced strains
     noalias(mEnhancedStrains) = prod(mG, storage.alpha);
 
@@ -313,16 +295,17 @@ void ShellThickElement3D4N<TKinematics>::EASOperator::GaussPointComputation_Step
     EASOperatorStorage& storage)
 {
     Matrix GTC(5, 3);
-    noalias(GTC)                = prod(trans(mG), project(D, range(0,3), range(0,3)));
-    noalias(storage.Hinv)      += prod(GTC, mG);
-    noalias(storage.residual)  -= prod(trans(mG), project(S, range(0,3)));
+    noalias(GTC) = prod(trans(mG), project(D, range(0, 3), range(0, 3)));
+    noalias(storage.Hinv) += prod(GTC, mG);
+    noalias(storage.residual) -= prod(trans(mG), project(S, range(0, 3)));
 
     // compute L: [G'*Dmm, G'*Dmb, G'*Dms]*[Bm; Bm; Bs]
     int num_stress = D.size2(); // it can be 6 for thin shells or 8 for thick  shells
     Matrix GTD(5, num_stress, 0.0);
     noalias(project(GTD, range::all(), range(0, 3))) = GTC;
     noalias(project(GTD, range::all(), range(3, 6))) = prod(trans(mG), project(D, range(0, 3), range(3, 6)));
-    if (num_stress == 8) {
+    if (num_stress == 8)
+    {
         noalias(project(GTD, range::all(), range(6, 8))) = prod(trans(mG), project(D, range(0, 3), range(6, 8)));
     }
     noalias(storage.L) += prod(GTD, B);
@@ -349,15 +332,9 @@ void ShellThickElement3D4N<TKinematics>::EASOperator::ComputeModfiedTangentAndRe
 
     // modify the stiffness matrix and the residual vector
     // for the static condensation of the enhanced strain parameters
-    noalias(rRightHandSideVector) -= prod(LTHinv, storage.residual);       // R_mod = R - L' * H^-1 * residual
-    noalias(rLeftHandSideMatrix) -= prod(LTHinv, storage.L);               // K_mod = K - L' * H^-1 * L
+    noalias(rRightHandSideVector) -= prod(LTHinv, storage.residual); // R_mod = R - L' * H^-1 * residual
+    noalias(rLeftHandSideMatrix) -= prod(LTHinv, storage.L);         // K_mod = K - L' * H^-1 * L
 }
-
-// =====================================================================================
-//
-// Class ShellThickElement3D4N
-//
-// =====================================================================================
 
 /***********************************************************************************/
 /***********************************************************************************/
@@ -379,8 +356,6 @@ ShellThickElement3D4N<TKinematics>::ShellThickElement3D4N(IndexType NewId,
     : BaseType(NewId, pGeometry, pProperties)
 {
 }
-
-// TODO are the GetIntegrationMethod methods needed (implemented in the other 3 shells)
 
 /***********************************************************************************/
 /***********************************************************************************/
@@ -446,6 +421,7 @@ void ShellThickElement3D4N<TKinematics>::CalculateMaterialResponse(
         const bool CalculateConstitutive,
         const ProcessInfo& rProcessInfo)
 {
+    KRATOS_TRY
     const auto& r_geometry = GetGeometry();
     const auto& r_props = GetProperties();
 
@@ -460,6 +436,8 @@ void ShellThickElement3D4N<TKinematics>::CalculateMaterialResponse(
     cl_values.SetConstitutiveMatrix(rSectionParameters.GetConstitutiveMatrix());
 
     mConstitutiveLawVector[rIntegrationPointNumber]->CalculateMaterialResponseCauchy(cl_values);
+
+    KRATOS_CATCH("CalculateMaterialResponse")
 }
 
 /***********************************************************************************/
@@ -471,6 +449,7 @@ void ShellThickElement3D4N<TKinematics>::FinalizeMaterialResponse(
         const SizeType& rIntegrationPointNumber,
         const ProcessInfo& rProcessInfo)
 {
+    KRATOS_TRY
     const auto& r_geometry = GetGeometry();
     const auto& r_props = GetProperties();
 
@@ -485,6 +464,7 @@ void ShellThickElement3D4N<TKinematics>::FinalizeMaterialResponse(
     cl_values.SetConstitutiveMatrix(rSectionParameters.GetConstitutiveMatrix());
 
     mConstitutiveLawVector[rIntegrationPointNumber]->FinalizeMaterialResponseCauchy(cl_values);
+    KRATOS_CATCH("FinalizeMaterialResponse")
 }
 
 /***********************************************************************************/
@@ -496,6 +476,7 @@ void ShellThickElement3D4N<TKinematics>::InitializeMaterialResponse(
         const SizeType& rIntegrationPointNumber,
         const ProcessInfo& rProcessInfo)
 {
+    KRATOS_TRY
     const auto& r_geometry = GetGeometry();
     const auto& r_props = GetProperties();
 
@@ -510,6 +491,7 @@ void ShellThickElement3D4N<TKinematics>::InitializeMaterialResponse(
     cl_values.SetConstitutiveMatrix(rSectionParameters.GetConstitutiveMatrix());
 
     mConstitutiveLawVector[rIntegrationPointNumber]->InitializeMaterialResponseCauchy(cl_values);
+    KRATOS_CATCH("FinalizeMaterialResponse")
 }
 
 /***********************************************************************************/
@@ -519,6 +501,7 @@ template <ShellKinematics TKinematics>
 void ShellThickElement3D4N<TKinematics>::FinalizeNonLinearIteration(
     const ProcessInfo& rCurrentProcessInfo)
 {
+    KRATOS_TRY
     BaseType::FinalizeNonLinearIteration(rCurrentProcessInfo);
 
     ShellQ4_LocalCoordinateSystem LCS(this->mpCoordinateTransformation->CreateLocalCoordinateSystem());
@@ -527,6 +510,7 @@ void ShellThickElement3D4N<TKinematics>::FinalizeNonLinearIteration(
     Vector localDisplacementVector(this->mpCoordinateTransformation->CalculateLocalDisplacements(LCS, globalDisplacementVector));
 
     mEASStorage.FinalizeNonLinearIteration(localDisplacementVector);
+    KRATOS_CATCH("FinalizeNonLinearIteration")
 }
 
 /***********************************************************************************/
@@ -536,6 +520,7 @@ template <ShellKinematics TKinematics>
 void ShellThickElement3D4N<TKinematics>::InitializeSolutionStep(
     const ProcessInfo& rCurrentProcessInfo)
 {
+    KRATOS_TRY
     bool required = false;
     for (IndexType point_number = 0; point_number < mConstitutiveLawVector.size(); ++point_number) {
         if (mConstitutiveLawVector[point_number]->RequiresInitializeMaterialResponse()) {
@@ -564,14 +549,8 @@ void ShellThickElement3D4N<TKinematics>::InitializeSolutionStep(
         // This is to be done here outside the Gauss Loop.
         MITC4Params shearParameters(referenceCoordinateSystem);
 
-        // Instantiate the Jacobian Operator.
-        // This will store:
-        // the jacobian matrix, its inverse, its determinant
-        // and the derivatives of the shape functions in the local
-        // coordinate system
         ShellUtilities::JacobianOperator jacOp;
         array_1d<double, 4> dArea;
-
 
         // Instantiate all strain-displacement matrices.
         Matrix B(8, 24, 0.0);
@@ -608,10 +587,8 @@ void ShellThickElement3D4N<TKinematics>::InitializeSolutionStep(
         // Gauss Loop.
         for (SizeType integration_point = 0; integration_point < 4; integration_point++) {
 
-            // get a reference of the current integration point and shape functions
-
+            // Get a reference of the current integration point and shape functions
             const GeometryType::IntegrationPointType& ip = r_geom.IntegrationPoints()[integration_point];
-
             noalias(iN) = row(shapeFunctions, integration_point);
 
             // Compute Jacobian, Inverse of Jacobian, Determinant of Jacobian
@@ -636,6 +613,8 @@ void ShellThickElement3D4N<TKinematics>::InitializeSolutionStep(
     }
     BaseType::InitializeSolutionStep(rCurrentProcessInfo);  // TODO remove in the future and move mpCoordinateTransformation->FinalizeSolutionStep();
     mEASStorage.InitializeSolutionStep();
+
+    KRATOS_CATCH("InitializeSolutionStep")
 }
 
 /***********************************************************************************/
@@ -645,6 +624,7 @@ template <ShellKinematics TKinematics>
 void ShellThickElement3D4N<TKinematics>::FinalizeSolutionStep(
     const ProcessInfo& rCurrentProcessInfo)
 {
+    KRATOS_TRY
     bool required = false;
     for (IndexType point_number = 0; point_number < mConstitutiveLawVector.size(); ++point_number) {
         if (mConstitutiveLawVector[point_number]->RequiresFinalizeMaterialResponse()) {
@@ -719,10 +699,8 @@ void ShellThickElement3D4N<TKinematics>::FinalizeSolutionStep(
         // Gauss Loop.
         for (SizeType integration_point = 0; integration_point < 4; integration_point++) {
 
-            // get a reference of the current integration point and shape functions
-
+            // Get a reference of the current integration point and shape functions
             const GeometryType::IntegrationPointType& ip = r_geom.IntegrationPoints()[integration_point];
-
             noalias(iN) = row(shapeFunctions, integration_point);
 
             // Compute Jacobian, Inverse of Jacobian, Determinant of Jacobian
@@ -733,7 +711,6 @@ void ShellThickElement3D4N<TKinematics>::FinalizeSolutionStep(
             CalculateBMatrix(ip.X(), ip.Y(), jacOp, shearParameters, iN, B, Bdrilling);
 
             // Calculate strain vectors in local coordinate system
-
             noalias(generalizedStrains) = prod(B, localDisplacements);
 
             // Apply the EAS method to modify the membrane part of the strains computed above.
@@ -748,16 +725,12 @@ void ShellThickElement3D4N<TKinematics>::FinalizeSolutionStep(
 
     BaseType::FinalizeSolutionStep(rCurrentProcessInfo); // TODO remove in the future and move mpCoordinateTransformation->FinalizeSolutionStep();
     mEASStorage.FinalizeSolutionStep();
+
+    KRATOS_CATCH("FinalizeSolutionStep")
 }
 
 /***********************************************************************************/
 /***********************************************************************************/
-
-// =====================================================================================
-//
-// Class ShellThickElement3D4N - Results on Gauss Points
-//
-// =====================================================================================
 
 template <ShellKinematics TKinematics>
 void ShellThickElement3D4N<TKinematics>::CalculateOnIntegrationPoints(
@@ -765,8 +738,7 @@ void ShellThickElement3D4N<TKinematics>::CalculateOnIntegrationPoints(
     std::vector<double>& rValues,
     const ProcessInfo& rCurrentProcessInfo)
 {
-
-
+    // TODO
 }
 
 /***********************************************************************************/
@@ -778,10 +750,11 @@ int ShellThickElement3D4N<TKinematics>::Check(
 {
     KRATOS_TRY;
 
-    // BaseType::Check(rCurrentProcessInfo);
+    BaseType::Check(rCurrentProcessInfo);
 
     const auto& r_geom = GetGeometry();
     mConstitutiveLawVector[0]->Check(GetProperties(), r_geom, rCurrentProcessInfo);
+
     KRATOS_ERROR_IF_NOT((r_geom.IntegrationPoints(this->GetIntegrationMethod())).size() == 4) << "ShellThickElement3D4N - needs a full integration scheme" << std::endl;
 
     const int points_number = r_geom.PointsNumber();
@@ -790,366 +763,6 @@ int ShellThickElement3D4N<TKinematics>::Check(
     return 0;
 
     KRATOS_CATCH("")
-}
-
-// =====================================================================================
-//
-// Class ShellThickElement3D4N - Private methods
-//
-// =====================================================================================
-
-/***********************************************************************************/
-/***********************************************************************************/
-
-template <ShellKinematics TKinematics>
-void ShellThickElement3D4N<TKinematics>::CalculateStressesFromForceResultants(
-    VectorType& rstresses,
-    const double& rthickness)
-{
-    // // Refer http://www.colorado.edu/engineering/CAS/courses.d/AFEM.d/AFEM.Ch20.d/AFEM.Ch20.pdf
-
-    // // membrane forces -> in-plane stresses (av. across whole thickness)
-    // rstresses[0] /= rthickness;
-    // rstresses[1] /= rthickness;
-    // rstresses[2] /= rthickness;
-
-    // // bending moments -> peak in-plane stresses (@ top and bottom surface)
-    // rstresses[3] *= 6.0 / (rthickness*rthickness);
-    // rstresses[4] *= 6.0 / (rthickness*rthickness);
-    // rstresses[5] *= 6.0 / (rthickness*rthickness);
-
-    // // shear forces -> peak shear stresses (@ midsurface)
-    // rstresses[6] *= 1.5 / rthickness;
-    // rstresses[7] *= 1.5 / rthickness;
-}
-
-/***********************************************************************************/
-/***********************************************************************************/
-
-template <ShellKinematics TKinematics>
-void ShellThickElement3D4N<TKinematics>::CalculateLaminaStrains(
-    ShellCrossSection::Pointer& section,
-    const Vector& generalizedStrains,
-    std::vector<VectorType>& rlaminateStrains)
-{
-    // // Get laminate properties
-    // const auto& r_props = GetProperties();
-    // const double thickness = r_props[THICKNESS];
-    // double z_current = thickness / -2.0; // start from the top of the 1st layer
-
-    // // Establish current strains at the midplane
-    // // (element coordinate system)
-    // double e_x = generalizedStrains[0];
-    // double e_y = generalizedStrains[1];
-    // double e_xy = generalizedStrains[2];	//this is still engineering
-    // //strain (2xtensorial shear)
-    // double kap_x = generalizedStrains[3];
-    // double kap_y = generalizedStrains[4];
-    // double kap_xy = generalizedStrains[5];	//this is still engineering
-
-    // // Get ply thicknesses
-    // Vector ply_thicknesses = Vector(section->NumberOfPlies(), 0.0);
-    // section->GetPlyThicknesses(r_props, ply_thicknesses);
-
-    // // Resize output vector. 2 Surfaces for each ply
-    // rlaminateStrains.resize(2 * section->NumberOfPlies());
-    // for (unsigned int i = 0; i < 2 * section->NumberOfPlies(); i++) {
-    //     rlaminateStrains[i].resize(8, false);
-    //     rlaminateStrains[i].clear();
-    // }
-
-    // // Loop over all plies - start from bottom ply, bottom surface
-    // for (unsigned int plyNumber = 0;
-    //         plyNumber < section->NumberOfPlies(); ++plyNumber) {
-    //     // Calculate strains at top surface, arranged in columns.
-    //     // (element coordinate system)
-    //     rlaminateStrains[2 * plyNumber][0] = e_x + z_current*kap_x;
-    //     rlaminateStrains[2 * plyNumber][1] = e_y + z_current*kap_y;
-    //     rlaminateStrains[2 * plyNumber][2] = e_xy + z_current*kap_xy;
-
-    //     // constant transverse shear strain dist
-    //     rlaminateStrains[2 * plyNumber][6] = generalizedStrains[6];
-    //     rlaminateStrains[2 * plyNumber][7] = generalizedStrains[7];
-
-    //     // Move to bottom surface of current layer
-    //     z_current += ply_thicknesses[plyNumber];
-
-    //     // Calculate strains at bottom surface, arranged in columns
-    //     // (element coordinate system)
-    //     rlaminateStrains[2 * plyNumber + 1][0] = e_x + z_current*kap_x;
-    //     rlaminateStrains[2 * plyNumber + 1][1] = e_y + z_current*kap_y;
-    //     rlaminateStrains[2 * plyNumber + 1][2] = e_xy + z_current*kap_xy;
-
-    //     // constant transverse shear strain dist
-    //     rlaminateStrains[2 * plyNumber + 1][6] = generalizedStrains[6];
-    //     rlaminateStrains[2 * plyNumber + 1][7] = generalizedStrains[7];
-    // }
-}
-
-/***********************************************************************************/
-/***********************************************************************************/
-
-template <ShellKinematics TKinematics>
-void ShellThickElement3D4N<TKinematics>::CalculateLaminaStresses(
-    ShellCrossSection::Pointer& section,
-    ShellCrossSection::SectionParameters parameters,
-    const std::vector<VectorType>& rlaminateStrains,
-    std::vector<VectorType>& rlaminateStresses)
-{
-    // // Setup flag to compute ply constitutive matrices
-    // // (units [Pa] and rotated to element orientation)
-    // section->SetupGetPlyConstitutiveMatrices();
-    // Flags& options = parameters.GetOptions();
-    // options.Set(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR,true);
-    // // section->CalculateSectionResponse(parameters,
-    // //                                   ConstitutiveLaw::StressMeasure_PK2);
-    // CalculateMaterialResponse(parameters, i);
-
-    // // Resize output vector. 2 Surfaces for each ply
-    // rlaminateStresses.resize(2 * section->NumberOfPlies());
-    // for (unsigned int i = 0; i < 2 * section->NumberOfPlies(); i++) {
-    //     rlaminateStresses[i].resize(8, false);
-    //     rlaminateStresses[i].clear();
-    // }
-
-    // // Loop over all plies - start from top ply, top surface
-    // for (unsigned int plyNumber = 0;
-    //         plyNumber < section->NumberOfPlies(); ++plyNumber) {
-    //     // determine stresses at currrent ply, top surface
-    //     // (element coordinate system)
-    //     rlaminateStresses[2 * plyNumber] = prod(
-    //                                            section->GetPlyConstitutiveMatrix(plyNumber),
-    //                                            rlaminateStrains[2 * plyNumber]);
-
-    //     // determine stresses at currrent ply, bottom surface
-    //     // (element coordinate system)
-    //     rlaminateStresses[2 * plyNumber + 1] = prod(
-    //             section->GetPlyConstitutiveMatrix(plyNumber),
-    //             rlaminateStrains[2 * plyNumber + 1]);
-    // }
-}
-
-/***********************************************************************************/
-/***********************************************************************************/
-
-template <ShellKinematics TKinematics>
-double ShellThickElement3D4N<TKinematics>::CalculateTsaiWuPlaneStress(
-    const std::vector<VectorType>& rlaminateStresses,
-    const Matrix& rLamina_Strengths,
-    const unsigned int& rPly)
-{
-    // // Incoming lamina strengths are organized as follows:
-    // // Refer to 'shell_cross_section.cpp' for details.
-    // //
-    // //	|	T1,		C1,		T2	|
-    // //	|	C2,		S12,	S13	|
-    // //	|   S23		0		0	|
-
-    // // Convert raw lamina strengths into tsai strengths F_i and F_ij.
-    // // Refer Reddy (2003) Section 10.9.4 (re-ordered for kratos DOFs).
-    // // All F_i3 components ignored - thin shell theory.
-    // //
-
-    // // Controls F_12
-    // // Should be FALSE unless testing against other programs that ignore it.
-    // bool disable_in_plane_interaction = false;
-
-    // // First, F_i
-    // Vector F_i = Vector(3, 0.0);
-    // F_i[0] = 1.0 / rLamina_Strengths(0, 0) - 1.0 / rLamina_Strengths(0, 1);
-    // F_i[1] = 1.0 / rLamina_Strengths(0, 2) - 1.0 / rLamina_Strengths(1, 0);
-    // F_i[2] = 0.0;
-
-    // // Second, F_ij
-    // Matrix F_ij = Matrix(5, 5, 0.0);
-    // F_ij.clear();
-    // F_ij(0, 0) = 1.0 / rLamina_Strengths(0, 0) / rLamina_Strengths(0, 1);	// 11
-    // F_ij(1, 1) = 1.0 / rLamina_Strengths(0, 2) / rLamina_Strengths(1, 0);	// 22
-    // F_ij(2, 2) = 1.0 / rLamina_Strengths(1, 1) / rLamina_Strengths(1, 1);	// 12
-    // F_ij(0, 1) = F_ij(1, 0) = -0.5 / std::sqrt(rLamina_Strengths(0, 0)*rLamina_Strengths(0, 1)*rLamina_Strengths(0, 2)*rLamina_Strengths(1, 0));
-
-    // if (disable_in_plane_interaction) {
-    //     F_ij(0, 1) = F_ij(1, 0) = 0.0;
-    // }
-
-    // // Third, addditional transverse shear terms
-    // F_ij(3, 3) = 1.0 / rLamina_Strengths(1, 2) / rLamina_Strengths(1, 2);	// 13
-    // F_ij(4, 4) = 1.0 / rLamina_Strengths(2, 0) / rLamina_Strengths(2, 0);	// 23
-
-    // // Evaluate Tsai-Wu @ top surface of current layer
-    // double var_a = 0.0;
-    // double var_b = 0.0;
-    // for (SizeType i = 0; i < 3; i++) {
-    //     var_b += F_i[i] * rlaminateStresses[2 * rPly][i];
-    //     for (SizeType j = 0; j < 3; j++) {
-    //         var_a += F_ij(i, j)*rlaminateStresses[2 * rPly][i] * rlaminateStresses[2 * rPly][j];
-    //     }
-    // }
-    // var_a += F_ij(3, 3)*rlaminateStresses[2 * rPly][6] * rlaminateStresses[2 * rPly][6]; // Transverse shear 13
-    // var_a += F_ij(4, 4)*rlaminateStresses[2 * rPly][7] * rlaminateStresses[2 * rPly][7]; // Transverse shear 23
-
-    // double tsai_reserve_factor_top = (-1.0*var_b + std::sqrt(var_b*var_b + 4.0 * var_a)) / 2.0 / var_a;
-
-    // // Evaluate Tsai-Wu @ bottom surface of current layer
-    // var_a = 0.0;
-    // var_b = 0.0;
-    // for (SizeType i = 0; i < 3; i++) {
-    //     var_b += F_i[i] * rlaminateStresses[2 * rPly + 1][i];
-    //     for (SizeType j = 0; j < 3; j++) {
-    //         var_a += F_ij(i, j)*rlaminateStresses[2 * rPly + 1][i] * rlaminateStresses[2 * rPly + 1][j];
-    //     }
-    // }
-    // var_a += F_ij(3, 3)*rlaminateStresses[2 * rPly + 1][6] * rlaminateStresses[2 * rPly + 1][6]; // Transverse shear 13
-    // var_a += F_ij(4, 4)*rlaminateStresses[2 * rPly + 1][7] * rlaminateStresses[2 * rPly + 1][7]; // Transverse shear 23
-
-    // double tsai_reserve_factor_bottom = (-1.0*var_b + std::sqrt(var_b*var_b + 4.0 * var_a)) / 2.0 / var_a;
-
-    // // Return min of both surfaces as the result for the whole ply
-    // return std::min(tsai_reserve_factor_bottom, tsai_reserve_factor_top);
-
-    return 0.0;
-}
-
-/***********************************************************************************/
-/***********************************************************************************/
-
-template <ShellKinematics TKinematics>
-void ShellThickElement3D4N<TKinematics>::CalculateVonMisesStress(
-    const Vector& generalizedStresses,
-    const Variable<double>& rVariable,
-    double& rVon_Mises_Result)
-{
-    // // calc von mises stresses at top, mid and bottom surfaces for
-    // // thick shell
-    // double sxx, syy, sxy, sxz, syz;
-    // double von_mises_top, von_mises_mid, von_mises_bottom;
-    // // top surface: membrane and +bending contributions
-    // //				(no transverse shear)
-    // sxx = generalizedStresses[0] + generalizedStresses[3];
-    // syy = generalizedStresses[1] + generalizedStresses[4];
-    // sxy = generalizedStresses[2] + generalizedStresses[5];
-    // von_mises_top = sxx*sxx - sxx*syy + syy*syy + 3.0*sxy*sxy;
-
-    // // mid surface: membrane and transverse shear contributions
-    // //				(no bending)
-    // sxx = generalizedStresses[0];
-    // syy = generalizedStresses[1];
-    // sxy = generalizedStresses[2];
-    // sxz = generalizedStresses[6];
-    // syz = generalizedStresses[7];
-    // von_mises_mid = sxx*sxx - sxx*syy + syy*syy +
-    //                 3.0*(sxy*sxy + sxz*sxz + syz*syz);
-
-    // // bottom surface:	membrane and -bending contributions
-    // //					(no transverse shear)
-    // sxx = generalizedStresses[0] - generalizedStresses[3];
-    // syy = generalizedStresses[1] - generalizedStresses[4];
-    // sxy = generalizedStresses[2] - generalizedStresses[5];
-    // von_mises_bottom = sxx*sxx - sxx*syy + syy*syy + 3.0*sxy*sxy;
-
-    // // Output requested quantity
-    // if (rVariable == VON_MISES_STRESS_TOP_SURFACE) {
-    //     rVon_Mises_Result = std::sqrt(von_mises_top);
-    // } else if (rVariable == VON_MISES_STRESS_MIDDLE_SURFACE) {
-    //     rVon_Mises_Result = std::sqrt(von_mises_mid);
-    // } else if (rVariable == VON_MISES_STRESS_BOTTOM_SURFACE) {
-    //     rVon_Mises_Result = std::sqrt(von_mises_bottom);
-    // } else if (rVariable == VON_MISES_STRESS) {
-    //     // take the greatest value and output
-    //     rVon_Mises_Result =
-    //         std::sqrt(std::max(von_mises_top,
-    //                            std::max(von_mises_mid, von_mises_bottom)));
-    // }
-}
-
-/***********************************************************************************/
-/***********************************************************************************/
-
-template <ShellKinematics TKinematics>
-void ShellThickElement3D4N<TKinematics>::CheckGeneralizedStressOrStrainOutput(
-    const Variable<Matrix>& rVariable,
-    int& ijob,
-    bool& bGlobal)
-{
-    // if (rVariable == SHELL_STRAIN) {
-    //     ijob = 1;
-    // } else if (rVariable == SHELL_STRAIN_GLOBAL) {
-    //     ijob = 1;
-    //     bGlobal = true;
-    // } else if (rVariable == SHELL_CURVATURE) {
-    //     ijob = 2;
-    // } else if (rVariable == SHELL_CURVATURE_GLOBAL) {
-    //     ijob = 2;
-    //     bGlobal = true;
-    // } else if (rVariable == SHELL_FORCE) {
-    //     ijob = 3;
-    // } else if (rVariable == SHELL_FORCE_GLOBAL) {
-    //     ijob = 3;
-    //     bGlobal = true;
-    // } else if (rVariable == SHELL_MOMENT) {
-    //     ijob = 4;
-    // } else if (rVariable == SHELL_MOMENT_GLOBAL) {
-    //     ijob = 4;
-    //     bGlobal = true;
-    // } else if (rVariable == SHELL_STRESS_TOP_SURFACE) {
-    //     ijob = 5;
-    // } else if (rVariable == SHELL_STRESS_TOP_SURFACE_GLOBAL) {
-    //     ijob = 5;
-    //     bGlobal = true;
-    // } else if (rVariable == SHELL_STRESS_MIDDLE_SURFACE) {
-    //     ijob = 6;
-    // } else if (rVariable == SHELL_STRESS_MIDDLE_SURFACE_GLOBAL) {
-    //     ijob = 6;
-    //     bGlobal = true;
-    // } else if (rVariable == SHELL_STRESS_BOTTOM_SURFACE) {
-    //     ijob = 7;
-    // } else if (rVariable == SHELL_STRESS_BOTTOM_SURFACE_GLOBAL) {
-    //     ijob = 7;
-    //     bGlobal = true;
-    // } else if (rVariable == SHELL_ORTHOTROPIC_STRESS_BOTTOM_SURFACE) {
-    //     ijob = 8;
-    // } else if (rVariable == SHELL_ORTHOTROPIC_STRESS_BOTTOM_SURFACE_GLOBAL) {
-    //     ijob = 8;
-    //     bGlobal = true;
-    // } else if (rVariable == SHELL_ORTHOTROPIC_STRESS_TOP_SURFACE) {
-    //     ijob = 9;
-    // } else if (rVariable == SHELL_ORTHOTROPIC_STRESS_TOP_SURFACE_GLOBAL) {
-    //     ijob = 9;
-    //     bGlobal = true;
-    // }
-}
-
-/***********************************************************************************/
-/***********************************************************************************/
-
-template <ShellKinematics TKinematics>
-double ShellThickElement3D4N<TKinematics>::CalculateStenbergShearStabilization(
-    const ShellQ4_LocalCoordinateSystem& referenceCoordinateSystem,
-    const double& hMean)
-{
-    // // Calculate Stenberg shear stabilisation as per
-    // // https://doi.org/10.1016/j.cma.2003.12.036 section 3.1
-
-    // // Determine longest element edge
-    // Vector edge_1 = Vector(referenceCoordinateSystem.P1() - referenceCoordinateSystem.P2());
-    // Vector edge_2 = Vector(referenceCoordinateSystem.P2() - referenceCoordinateSystem.P3());
-    // Vector edge_3 = Vector(referenceCoordinateSystem.P3() - referenceCoordinateSystem.P4());
-    // Vector edge_4 = Vector(referenceCoordinateSystem.P4() - referenceCoordinateSystem.P1());
-    // double h_e = inner_prod(edge_1, edge_1);
-    // if (inner_prod(edge_2, edge_2) > h_e) {
-    //     h_e = inner_prod(edge_2, edge_2);
-    // }
-    // if (inner_prod(edge_3, edge_3) > h_e) {
-    //     h_e = inner_prod(edge_3, edge_3);
-    // }
-    // if (inner_prod(edge_4, edge_4) > h_e) {
-    //     h_e = inner_prod(edge_4, edge_4);
-    // }
-    // h_e = std::sqrt(h_e);
-
-    // return ((hMean*hMean) / (hMean*hMean + 0.1*h_e*h_e));
-
-    return 0.0;
 }
 
 /***********************************************************************************/
