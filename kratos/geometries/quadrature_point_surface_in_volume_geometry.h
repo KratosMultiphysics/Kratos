@@ -79,7 +79,7 @@ public:
         mLocalTangents = LocalTangents;
     }
 
-    // COntructor for SBM with the normal
+    // Constructor for SBM with the normal
     QuadraturePointSurfaceInVolumeGeometry(
         const PointsArrayType& ThisPoints,
         GeometryShapeFunctionContainerType& ThisGeometryShapeFunctionContainer,

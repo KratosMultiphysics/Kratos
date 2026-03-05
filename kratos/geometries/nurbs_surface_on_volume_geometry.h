@@ -195,7 +195,7 @@ public:
     ///@name Mathematical Informations
     ///@{
 
-    /// Return polynomial degree of the curve
+    /// Return polynomial degree of the surface
     SizeType PolynomialDegree(IndexType LocalDirectionIndex) const override
     {
         return mpSurface->PolynomialDegree(0) + mpSurface->PolynomialDegree(1);
@@ -538,10 +538,10 @@ public:
         const CoordinatesArrayType& rLocalCoordinates
     ) const override
     {
-        // Compute the coordinates of the embedded curve in the parametric space of the surface
+        // Compute the coordinates of the embedded surface in the parametric space of the volume
         CoordinatesArrayType result_local = mpSurface->GlobalCoordinates(rResult, rLocalCoordinates);
 
-        // Compute and return the coordinates of the surface in the geometric space
+        // Compute and return the coordinates of the volume in the geometric space
         return mpNurbsVolume->GlobalCoordinates(rResult, result_local);
     }
 
@@ -591,7 +591,7 @@ public:
     }
 
 
-    /* @brief  Provides intersections of the nurbs curve with the knots of the surface.
+    /* @brief  Provides intersections of the nurbs surface with the knots of the volume.
      * @return vector of interval limitations.
      */
     void SpansLocalSpace(std::vector<double>& rSpansU, std::vector<double>& rSpansV,
@@ -623,11 +623,11 @@ public:
         mpSurface->GlobalCoordinates(physical_coord_upper_left, local_coord_upper_left);
 
 
-        // Compute the intersection rSpansU and rSpansV
-
-        // LOWER SEGMENT
-        const double toll = 1e-10;
-        const double toll2 = 1e-15;
+        // Compute the intersection rSpansU and rSpansV:  LOWER SEGMENT
+        // Orientation tolerance: decide which coordinate is effectively constant
+        const double tol_orientation = 1e-10;
+        // Intersection/snap tolerance: expand interval and snap near-equal knot values
+        const double tol_intersection = 1e-15;
         
         // Compute constant coordinate -> understand where the face is in volume parameter space
 
@@ -637,51 +637,51 @@ public:
         double scale_factor = parameter_length_segment/physical_length_segment;
 
         std::vector<double> knot_interval(2);
-        if (std::abs(physical_coord_lower_left[0]-physical_coord_lower_right[0]) > toll) {// left or right face
+        if (std::abs(physical_coord_lower_left[0]-physical_coord_lower_right[0]) > tol_orientation) {// left or right face
             // direction_lower_segment = 0; // compare to knot_spans_vector_u
-            knot_interval[0] = physical_coord_lower_left[0]-toll2; 
-            knot_interval[1] = physical_coord_lower_right[0]+toll2;
+            knot_interval[0] = physical_coord_lower_left[0]-tol_intersection; 
+            knot_interval[1] = physical_coord_lower_right[0]+tol_intersection;
             std::sort(knot_interval.begin(), knot_interval.end());
             // Compare with volume_spans_u
             for (IndexType i = 0; i < volume_spans_u.size(); i++) {
                 double curr_knot_value = volume_spans_u[i];
                 if (curr_knot_value < knot_interval[0]) {continue;}
-                if (std::abs(curr_knot_value - knot_interval[0]) < toll2*10) knot_interval[0] = curr_knot_value;
+                if (std::abs(curr_knot_value - knot_interval[0]) < tol_intersection*10) knot_interval[0] = curr_knot_value;
                 if (curr_knot_value > knot_interval[1]) {break;}
-                if (std::abs(curr_knot_value - knot_interval[1]) < toll2*10) knot_interval[1] = curr_knot_value;
+                if (std::abs(curr_knot_value - knot_interval[1]) < tol_intersection*10) knot_interval[1] = curr_knot_value;
                 double knot_value_in_surface_parameter = Start_U + (curr_knot_value-knot_interval[0]) * scale_factor;
                 rSpansU.push_back(knot_value_in_surface_parameter);
                 
             }
             
-        } else if (std::abs(physical_coord_lower_left[1]-physical_coord_lower_right[1]) > toll) {// front or back face
+        } else if (std::abs(physical_coord_lower_left[1]-physical_coord_lower_right[1]) > tol_orientation) {// front or back face
             // direction_lower_segment = 1;
-            knot_interval[0] = physical_coord_lower_left[1]-toll2; 
-            knot_interval[1] = physical_coord_lower_right[1]+toll2;
+            knot_interval[0] = physical_coord_lower_left[1]-tol_intersection; 
+            knot_interval[1] = physical_coord_lower_right[1]+tol_intersection;
             std::sort(knot_interval.begin(), knot_interval.end());
             // Compare with volume_spans_v
             for (IndexType i = 0; i < volume_spans_v.size(); i++) {
                 double curr_knot_value = volume_spans_v[i];
                 if (curr_knot_value < knot_interval[0]) {continue;}
-                if (std::abs(curr_knot_value - knot_interval[0]) < toll2*10) knot_interval[0] = curr_knot_value;
+                if (std::abs(curr_knot_value - knot_interval[0]) < tol_intersection*10) knot_interval[0] = curr_knot_value;
                 if (curr_knot_value > knot_interval[1]) {break;}
-                if (std::abs(curr_knot_value - knot_interval[1]) < toll2*10) knot_interval[1] = curr_knot_value;
+                if (std::abs(curr_knot_value - knot_interval[1]) < tol_intersection*10) knot_interval[1] = curr_knot_value;
                 double knot_value_in_surface_parameter = Start_U + (curr_knot_value-knot_interval[0]) * scale_factor;
                 rSpansU.push_back(knot_value_in_surface_parameter);
                 
             }
-        } else if (std::abs(physical_coord_lower_left[2]-physical_coord_lower_right[2]) > toll) {// bottom or top face
+        } else if (std::abs(physical_coord_lower_left[2]-physical_coord_lower_right[2]) > tol_orientation) {// bottom or top face
             // direction_lower_segment = 2;
-            knot_interval[0] = physical_coord_lower_left[2]-toll2; 
-            knot_interval[1] = physical_coord_lower_right[2]+toll2;
+            knot_interval[0] = physical_coord_lower_left[2]-tol_intersection; 
+            knot_interval[1] = physical_coord_lower_right[2]+tol_intersection;
             std::sort(knot_interval.begin(), knot_interval.end());
             // Compare with volume_spans_w
             for (IndexType i = 0; i < volume_spans_w.size(); i++) {
                 double curr_knot_value = volume_spans_w[i];
                 if (curr_knot_value < knot_interval[0]) {continue;}
-                if (std::abs(curr_knot_value - knot_interval[0]) < toll2*10) knot_interval[0] = curr_knot_value;
+                if (std::abs(curr_knot_value - knot_interval[0]) < tol_intersection*10) knot_interval[0] = curr_knot_value;
                 if (curr_knot_value > knot_interval[1]) {break;}
-                if (std::abs(curr_knot_value - knot_interval[1]) < toll2*10) knot_interval[1] = curr_knot_value;
+                if (std::abs(curr_knot_value - knot_interval[1]) < tol_intersection*10) knot_interval[1] = curr_knot_value;
                 double knot_value_in_surface_parameter = Start_U + (curr_knot_value-knot_interval[0]) * scale_factor;
                 rSpansU.push_back(knot_value_in_surface_parameter);
                 
@@ -699,51 +699,51 @@ public:
         scale_factor = parameter_length_segment/physical_length_segment;
         // int direction_left_segment;
         std::vector<double> intersection_knot_values_in_volume_left ;
-        if (std::abs(physical_coord_lower_left[0]-physical_coord_upper_left[0]) > toll) {// left or right face
+        if (std::abs(physical_coord_lower_left[0]-physical_coord_upper_left[0]) > tol_orientation) {// left or right face
             // direction_left_segment = 0; // compare to knot_spans_vector_u
-            knot_interval[0]  = physical_coord_lower_left[0]-toll2; 
-            knot_interval[1] = physical_coord_upper_left[0]+toll2;
+            knot_interval[0]  = physical_coord_lower_left[0]-tol_intersection; 
+            knot_interval[1] = physical_coord_upper_left[0]+tol_intersection;
             std::sort(knot_interval.begin(), knot_interval.end());
             // Compare with volume_spans_u
             for (IndexType i = 0; i < volume_spans_u.size(); i++) {
                 double curr_knot_value = volume_spans_u[i];
                 if (curr_knot_value < knot_interval[0]) {continue;}
-                if (std::abs(curr_knot_value - knot_interval[0]) < toll2*10) knot_interval[0] = curr_knot_value;
+                if (std::abs(curr_knot_value - knot_interval[0]) < tol_intersection*10) knot_interval[0] = curr_knot_value;
                 if (curr_knot_value > knot_interval[1]) {break;}
-                if (std::abs(curr_knot_value - knot_interval[1]) < toll2*10) knot_interval[1] = curr_knot_value;
+                if (std::abs(curr_knot_value - knot_interval[1]) < tol_intersection*10) knot_interval[1] = curr_knot_value;
                 double knot_value_in_surface_parameter = Start_V + (curr_knot_value-knot_interval[0]) * scale_factor;
                 rSpansV.push_back(knot_value_in_surface_parameter);
                 
             }
             
-        } else if (std::abs(physical_coord_lower_left[1]-physical_coord_upper_left[1]) > toll) {// front or back face
+        } else if (std::abs(physical_coord_lower_left[1]-physical_coord_upper_left[1]) > tol_orientation) {// front or back face
             // direction_left_segment = 1;
-            knot_interval[0] = physical_coord_lower_left[1]-toll2; 
-            knot_interval[1] = physical_coord_upper_left[1]+toll2;
+            knot_interval[0] = physical_coord_lower_left[1]-tol_intersection; 
+            knot_interval[1] = physical_coord_upper_left[1]+tol_intersection;
             std::sort(knot_interval.begin(), knot_interval.end());
             // Compare with volume_spans_v
             for (IndexType i = 0; i < volume_spans_v.size(); i++) {
                 double curr_knot_value = volume_spans_v[i];
                 if (curr_knot_value < knot_interval[0]) {continue;}
-                if (std::abs(curr_knot_value - knot_interval[0]) < toll2*10) knot_interval[0] = curr_knot_value;
+                if (std::abs(curr_knot_value - knot_interval[0]) < tol_intersection*10) knot_interval[0] = curr_knot_value;
                 if (curr_knot_value > knot_interval[1]) {break;}
-                if (std::abs(curr_knot_value - knot_interval[1]) < toll2*10) knot_interval[1] = curr_knot_value;
+                if (std::abs(curr_knot_value - knot_interval[1]) < tol_intersection*10) knot_interval[1] = curr_knot_value;
                 double knot_value_in_surface_parameter = Start_V + (curr_knot_value-knot_interval[0]) * scale_factor;
                 rSpansV.push_back(knot_value_in_surface_parameter);
                 
             }
-        } else if (std::abs(physical_coord_lower_left[2]-physical_coord_upper_left[2]) > toll) {// bottom or top face
+        } else if (std::abs(physical_coord_lower_left[2]-physical_coord_upper_left[2]) > tol_orientation) {// bottom or top face
             // direction_left_segment = 2;
-            knot_interval[0] = physical_coord_lower_left[2]-toll2; 
-            knot_interval[1] = physical_coord_upper_left[2]+toll2;
+            knot_interval[0] = physical_coord_lower_left[2]-tol_intersection; 
+            knot_interval[1] = physical_coord_upper_left[2]+tol_intersection;
             std::sort(knot_interval.begin(), knot_interval.end());
             // Compare with volume_spans_w
             for (IndexType i = 0; i < volume_spans_w.size(); i++) {
                 double curr_knot_value = volume_spans_w[i];
                 if (curr_knot_value < knot_interval[0]) {continue;}
-                if (std::abs(curr_knot_value - knot_interval[0]) < toll2*10) knot_interval[0] = curr_knot_value;
+                if (std::abs(curr_knot_value - knot_interval[0]) < tol_intersection*10) knot_interval[0] = curr_knot_value;
                 if (curr_knot_value > knot_interval[1]) {break;}
-                if (std::abs(curr_knot_value - knot_interval[1]) < toll2*10) knot_interval[1] = curr_knot_value;
+                if (std::abs(curr_knot_value - knot_interval[1]) < tol_intersection*10) knot_interval[1] = curr_knot_value;
                 double knot_value_in_surface_parameter = Start_V + (curr_knot_value-knot_interval[0]) * scale_factor;
                 rSpansV.push_back(knot_value_in_surface_parameter);
                 
