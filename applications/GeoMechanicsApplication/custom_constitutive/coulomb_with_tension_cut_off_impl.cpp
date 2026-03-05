@@ -250,6 +250,10 @@ Geo::PrincipalStresses CoulombWithTensionCutOffImpl::ReturnStressAtCornerPoint(
     const Matrix&                         rElasticConstitutiveTensor,
     Geo::PrincipalStresses::AveragingType AveragingType) const
 {
+    if (const auto apex = mCoulombYieldSurface.CalculateApex(); mTensionCutOff.GetTensileStrength() > apex)
+        return StressStrainUtilities::TransformSigmaTauToPrincipalStresses(Geo::SigmaTau{apex, 0.0},
+                                                                           rTrialPrincipalStresses);
+
     const auto dG_dSigma_Coulomb =
         mCoulombYieldSurface.DerivativeOfFlowFunction(rTrialPrincipalStresses, AveragingType);
     KRATOS_INFO("dG_dSigma_Coulomb") << dG_dSigma_Coulomb << std::endl;

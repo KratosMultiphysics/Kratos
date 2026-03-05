@@ -799,8 +799,7 @@ KRATOS_TEST_CASE_IN_SUITE(MohrCoulombWithTensionCutOff_CalculateMaterialResponse
         cohesion, friction_angle, strain_vector_finalized, stress_vector_finalized, strain_vector);
     // Assert
     const auto expected_cauchy_stress_vector = UblasUtilities::CreateVector(
-        {999.999996609523,-252.651135465368,-252.651138855841,0.065169629648695});
-    //std::cout << "Actual Cauchy stress vector: " << std::setprecision(std::numeric_limits<long double>::digits10) << actual_cauchy_stress_vector << std::endl;
+        {999.999996609523, -252.651135465368, -252.651138855841, 0.065169629648695});
     KRATOS_EXPECT_VECTOR_NEAR(actual_cauchy_stress_vector, expected_cauchy_stress_vector,
                               Defaults::absolute_tolerance);
 }
