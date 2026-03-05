@@ -206,20 +206,12 @@ void MohrCoulombWithTensionCutOff::CalculateMaterialResponseCauchy(ConstitutiveL
         auto mapped_principal_stresses = mCoulombWithTensionCutOffImpl.DoReturnMapping(
             trial_principal_stresses, mpConstitutiveDimension->CalculateElasticMatrix(r_properties),
             Geo::PrincipalStresses::AveragingType::NO_AVERAGING);
-        KRATOS_INFO("MohrCoulombWithTensionCutOff::CalculateMaterialResponseCauchy")
-            << "Mapped principal stress vector: " << mapped_principal_stresses.Values() << std::endl;
 
         // For interchanging principal stresses, retry mapping with averaged principal stresses.
-        KRATOS_INFO("MohrCoulombWithTensionCutOff::CalculateMaterialResponseCauchy")
-            << "Averaging type: " << static_cast<int>(FindAveragingType(mapped_principal_stresses))
-            << std::endl;
         if (const auto averaging_type = FindAveragingType(mapped_principal_stresses);
             averaging_type != Geo::PrincipalStresses::AveragingType::NO_AVERAGING) {
             const auto averaged_principal_trial_stress_vector =
                 AveragePrincipalStressComponents(trial_principal_stresses, averaging_type);
-            KRATOS_INFO("MohrCoulombWithTensionCutOff::CalculateMaterialResponseCauchy")
-                << "Averaged trial principal stress vector: "
-                << averaged_principal_trial_stress_vector.Values() << std::endl;
             mCoulombWithTensionCutOffImpl.RestoreKappaOfCoulombYieldSurface();
             mapped_principal_stresses = mCoulombWithTensionCutOffImpl.DoReturnMapping(
                 averaged_principal_trial_stress_vector,

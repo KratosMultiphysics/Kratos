@@ -215,7 +215,6 @@ KRATOS_TEST_CASE_IN_SUITE(MohrCoulombWithTensionCutOff_CalculateMaterialResponse
     cauchy_stress_vector = UblasUtilities::CreateVector({24.0, -6.0, -8.0, 0.0});
     expected_cauchy_stress_vector =
         UblasUtilities::CreateVector({8.48187256360842, -7.12007108043552, -7.12007108043552, 0});
-    // std::cout << "Mapped stress vector: " << std::setprecision(std::numeric_limits<long double>::digits10) << CalculateMappedStressVector(cauchy_stress_vector, parameters, law) << std::endl;
     KRATOS_EXPECT_VECTOR_NEAR(CalculateMappedStressVector(cauchy_stress_vector, parameters, law),
                               expected_cauchy_stress_vector, Defaults::absolute_tolerance);
 }
