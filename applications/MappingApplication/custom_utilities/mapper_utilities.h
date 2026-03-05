@@ -1,3 +1,4 @@
+
 //    |  /           |
 //    ' /   __| _` | __|  _ \   __|
 //    . \  |   (   | |   (   |\__ `
@@ -193,7 +194,25 @@ void UpdateModelPartFromSystemVector(
 * @param rModelPartCommunicator The Modelpart-Communicator to be used
 * @author Philipp Bucher
 */
-void KRATOS_API(MAPPING_APPLICATION) AssignInterfaceEquationIds(Communicator& rModelPartCommunicator);
+void KRATOS_API(MAPPING_APPLICATION) AssignInterfaceEquationIdsToNodes(Communicator& rModelPartCommunicator);
+
+/**
+* @brief Assigning INTERFACE_EQUATION_IDs to the conditions, with and without MPI
+* This function assigns the INTERFACE_EQUATION_IDs to the conditions, which act as EquationsIds
+* for the MappingMatrix. This work with and without MPI,
+* in MPI a ScanSum is performed with the local number of conditions
+* @param rModelPartCommunicator The Modelpart-Communicator to be used
+*/
+void KRATOS_API(MAPPING_APPLICATION) AssignInterfaceEquationIdsToConditions(Communicator& rModelPartCommunicator);
+
+/**
+* @brief Assigning INTERFACE_EQUATION_IDs to the elements, with and without MPI
+* This function assigns the INTERFACE_EQUATION_IDs to the elements, which act as EquationsIds
+* for the MappingMatrix. This work with and without MPI,
+* in MPI a ScanSum is performed with the local number of elements
+* @param rModelPartCommunicator The Modelpart-Communicator to be used
+*/
+void KRATOS_API(MAPPING_APPLICATION) AssignInterfaceEquationIdsToElements(Communicator& rModelPartCommunicator);
 
 void KRATOS_API(MAPPING_APPLICATION) CreateMapperLocalSystemsFromNodes(const MapperLocalSystem& rMapperLocalSystemPrototype,
                                        const Communicator& rModelPartCommunicator,
@@ -310,7 +329,7 @@ private:
     std::vector<MapperInterfaceInfoPointerType>& mrInterfaceInfos;
     MapperInterfaceInfoPointerType mrpRefInterfaceInfo;
 
-    friend class Kratos::Serializer; // Adding "Kratos::" is nedded bcs of the "MapperUtilities"-namespace
+    friend class Kratos::Serializer; // Adding "Kratos::" is needed bcs of the "MapperUtilities"-namespace
 
     virtual void save(Kratos::Serializer& rSerializer) const;
     virtual void load(Kratos::Serializer& rSerializer);
