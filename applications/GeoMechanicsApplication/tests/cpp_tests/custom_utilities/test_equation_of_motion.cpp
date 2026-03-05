@@ -89,8 +89,7 @@ KRATOS_TEST_CASE_IN_SUITE(CalculateMassMatrix3D4NGivesCorrectResults, KratosGeoM
 
     ProcessInfo process_info;
 
-    auto&       r_element = r_model_part.GetElement(1);
-    const auto& r_geom    = r_element.GetGeometry();
+    auto& r_element = r_model_part.GetElement(1);
     r_element.Initialize(process_info);
 
     Matrix mass_matrix;
