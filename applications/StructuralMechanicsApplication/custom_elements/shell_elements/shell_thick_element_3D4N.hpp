@@ -56,7 +56,7 @@ namespace Kratos
  * but can be used in Geometrically nonlinear problems
  * involving large displacements and rotations
  * using a Corotational Coordinate Transformation.
- * Material nonlinearity is handled by means of the cross section object.
+ * Material nonlinearity is handled by means of the constitutive laws.
  */
 
 template <ShellKinematics TKinematics>
@@ -76,26 +76,16 @@ public:
         ShellQ4_CorotationalCoordinateTransformation,
         ShellQ4_CoordinateTransformation>::type>;
 
-    typedef Quaternion<double> QuaternionType;
-
+    using QuaternionType = Quaternion<double>;
     using GeometryType = Element::GeometryType;
-
     using PropertiesType = Element::PropertiesType;
-
     using NodesArrayType = Element::NodesArrayType;
-
     using MatrixType = Element::MatrixType;
-
     using VectorType = Element::VectorType;
-
     using SizeType = Element::SizeType;
-
     using Element::GetGeometry;
-
     using Element::GetProperties;
-
     using Vector3Type = typename BaseType::Vector3Type;
-
     static constexpr double drilling_factor = 1.0e-6;
 
     ///@}
@@ -163,17 +153,17 @@ public:
 
     private:
 
-        array_1d<double, 5> alpha;              /*!< (trial) vector containing the 5 enhanced strain parameters */
-        array_1d<double, 5> alpha_converged;    /*!< (converged) vector containing the 5 enhanced strain parameters */
+        array_1d<double, 5> alpha;              // (trial) vector containing the 5 enhanced strain parameters
+        array_1d<double, 5> alpha_converged;    // (converged) vector containing the 5 enhanced strain parameters
 
-        array_1d<double, 24> displ;             /*!< (trial) vector containing the displacement vector */
-        array_1d<double, 24> displ_converged;   /*!< (converged) vector containing the displacement vector */
+        array_1d<double, 24> displ;             // (trial) vector containing the displacement vector
+        array_1d<double, 24> displ_converged;   // (converged) vector containing the displacement vector
 
-        array_1d<double, 5>           residual; /*!< vector containing the 5 residuals for the 5 enhanced strain parameters */
-        BoundedMatrix<double, 5, 5>  Hinv;     /*!< 5x5 matrix that stores H^-1 */
-        BoundedMatrix<double, 5, 24> L;        /*!< 5x24 coupling matrix */
+        array_1d<double, 5>           residual; // vector containing the 5 residuals for the 5 enhanced strain parameters
+        BoundedMatrix<double, 5, 5>  Hinv;     // 5x5 matrix that stores H^-1
+        BoundedMatrix<double, 5, 24> L;        // 5x24 coupling matrix
 
-        bool mInitialized;                      /*!< Initialization flag */
+        bool mInitialized;                      // Initialization flag
 
     private:
 
@@ -243,10 +233,10 @@ public:
 
     private:
 
-        Matrix mF0inv;           /*!< 3x3 inverse deformation matrix at the element center */
-        double mJ0;              /*!< determinant of the jacobian at the element center */
-        Vector mEnhancedStrains; /*!< vector of 3 enhanced strains [e.xx, e.yy, 2e.xy] */
-        Matrix mG;               /*!< 3x5 interpolation matrix in cartesian coordinates */
+        Matrix mF0inv;           // 3x3 inverse deformation matrix at the element center
+        double mJ0;              // determinant of the jacobian at the element center
+        Vector mEnhancedStrains; // vector of 3 enhanced strains [e.xx, e.yy, 2e.xy]
+        Matrix mG;               // 3x5 interpolation matrix in cartesian coordinates
     };
 
     ///@}
@@ -261,7 +251,7 @@ public:
                           GeometryType::Pointer pGeometry,
                           PropertiesType::Pointer pProperties);
 
-    ~ShellThickElement3D4N() override = default;
+    // ~ShellThickElement3D4N() override = default;
 
     ///@}
 
@@ -296,6 +286,8 @@ public:
         PropertiesType::Pointer pProperties
     ) const override;
 
+
+
     void Initialize(const ProcessInfo& rCurrentProcessInfo) override;
 
     void FinalizeNonLinearIteration(const ProcessInfo& rCurrentProcessInfo) override;
@@ -310,9 +302,6 @@ public:
 
     void CalculateOnIntegrationPoints(const Variable<double>& rVariable,
                                       std::vector<double>& rOutput, const ProcessInfo& rCurrentProcessInfo) override;
-
-    void CalculateOnIntegrationPoints(const Variable<Matrix>& rVariable,
-                                      std::vector<Matrix>& rOutput, const ProcessInfo& rCurrentProcessInfo) override;
 
     /**
     * This method provides the place to perform checks on the completeness of the input
