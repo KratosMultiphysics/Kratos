@@ -105,9 +105,9 @@ namespace Kratos::Testing
 KRATOS_TEST_CASE_IN_SUITE(ApplyFinalStressesOfPreviousStageToInitialState_SetsInitialStressOfConstitutiveLaws,
                           KratosGeoMechanicsFastSuiteWithoutKernel)
 {
-    Model model;
-    auto& model_part            = CreateModelPartWithAStubElement(model);
-    auto  initial_stress_vector = UblasUtilities::CreateVector({1.0, 2.0, 3.0, 4.0});
+    Model      model;
+    auto&      model_part            = CreateModelPartWithAStubElement(model);
+    const auto initial_stress_vector = UblasUtilities::CreateVector({1.0, 2.0, 3.0, 4.0});
 
     constexpr auto number_of_integration_points = 3;
     const auto     dummy_process_info           = ProcessInfo{};

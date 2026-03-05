@@ -24,12 +24,12 @@ KRATOS_TEST_CASE_IN_SUITE(CalculateCouplingMatrix2D3NGivesCorrectResults, Kratos
     constexpr SizeType size_D = 2;
     constexpr SizeType size_N = 3;
 
-    auto b_matrix     = UblasUtilities::CreateMatrix({{1.0, 2.0, 3.0, 4.0, 5.0, 6.0},
-                                                      {11.0, 12.0, 13.0, 14.0, 15.0, 16.0},
-                                                      {21.0, 22.0, 23.0, 24.0, 25.0, 26.0}});
-    auto voigt_vector = UblasUtilities::CreateVector({1.0, 1.0, 0.0});
+    const auto b_matrix     = UblasUtilities::CreateMatrix({{1.0, 2.0, 3.0, 4.0, 5.0, 6.0},
+                                                            {11.0, 12.0, 13.0, 14.0, 15.0, 16.0},
+                                                            {21.0, 22.0, 23.0, 24.0, 25.0, 26.0}});
+    const auto voigt_vector = UblasUtilities::CreateVector({1.0, 1.0, 0.0});
 
-    auto n_p = UblasUtilities::CreateVector({1.0, 2.0, 3.0});
+    const auto n_p = UblasUtilities::CreateVector({1.0, 2.0, 3.0});
 
     constexpr auto integration_coefficient = 1.0;
     constexpr auto biot_coefficient        = 0.02;
@@ -38,12 +38,12 @@ KRATOS_TEST_CASE_IN_SUITE(CalculateCouplingMatrix2D3NGivesCorrectResults, Kratos
     const auto coupling_matrix = GeoTransportEquationUtilities::CalculateCouplingMatrix<size_D, size_N>(
         b_matrix, voigt_vector, n_p, biot_coefficient, bishop_coefficient, integration_coefficient);
 
-    auto expected_coupling_matrix = UblasUtilities::CreateMatrix({{0.024, 0.048, 0.072},
-                                                                  {0.028, 0.056, 0.084},
-                                                                  {0.032, 0.064, 0.096},
-                                                                  {0.036, 0.072, 0.108},
-                                                                  {0.040, 0.080, 0.120},
-                                                                  {0.044, 0.088, 0.132}});
+    const auto expected_coupling_matrix = UblasUtilities::CreateMatrix({{0.024, 0.048, 0.072},
+                                                                        {0.028, 0.056, 0.084},
+                                                                        {0.032, 0.064, 0.096},
+                                                                        {0.036, 0.072, 0.108},
+                                                                        {0.040, 0.080, 0.120},
+                                                                        {0.044, 0.088, 0.132}});
     // clang-format on
 
     KRATOS_EXPECT_MATRIX_NEAR(coupling_matrix, expected_coupling_matrix, 1e-12)
@@ -54,7 +54,7 @@ KRATOS_TEST_CASE_IN_SUITE(CalculateCouplingMatrix3D4NGivesCorrectResults, Kratos
     constexpr SizeType size_D = 3;
     constexpr SizeType size_N = 4;
 
-    auto b_matrix = UblasUtilities::CreateMatrix(
+    const auto b_matrix = UblasUtilities::CreateMatrix(
         {{1.0, 2.0, 3.0, 4.0, 5.0, 6.0, 7.0, 8.0, 9.0, 10.0, 11.0, 12.0},
          {11.0, 12.0, 13.0, 14.0, 15.0, 16.0, 17.0, 18.0, 19.0, 20.0, 21.0, 22.0},
          {21.0, 22.0, 23.0, 24.0, 25.0, 26.0, 27.0, 28.0, 29.0, 30.0, 31.0, 32.0},
@@ -62,8 +62,8 @@ KRATOS_TEST_CASE_IN_SUITE(CalculateCouplingMatrix3D4NGivesCorrectResults, Kratos
          {41.0, 42.0, 43.0, 44.0, 45.0, 46.0, 47.0, 48.0, 49.0, 50.0, 51.0, 52.0},
          {51.0, 52.0, 53.0, 54.0, 55.0, 56.0, 57.0, 58.0, 59.0, 60.0, 61.0, 62.0}});
 
-    auto voigt_vector = UblasUtilities::CreateVector({1.0, 1.0, 1.0, 0.0, 0.0, 0.0});
-    auto n_p          = UblasUtilities::CreateVector({1.0, 2.0, 3.0, 4.0});
+    const auto voigt_vector = UblasUtilities::CreateVector({1.0, 1.0, 1.0, 0.0, 0.0, 0.0});
+    const auto n_p          = UblasUtilities::CreateVector({1.0, 2.0, 3.0, 4.0});
 
     constexpr auto integration_coefficient = 1.0;
     constexpr auto biot_coefficient        = 0.02;
@@ -74,18 +74,18 @@ KRATOS_TEST_CASE_IN_SUITE(CalculateCouplingMatrix3D4NGivesCorrectResults, Kratos
                                                            n_p, biot_coefficient, bishop_coefficient,
                                                            integration_coefficient);
 
-    auto expected_coupling_matrix = UblasUtilities::CreateMatrix({{0.066, 0.132, 0.198, 0.264},
-                                                                  {0.072, 0.144, 0.216, 0.288},
-                                                                  {0.078, 0.156, 0.234, 0.312},
-                                                                  {0.084, 0.168, 0.252, 0.336},
-                                                                  {0.090, 0.180, 0.270, 0.360},
-                                                                  {0.096, 0.192, 0.288, 0.384},
-                                                                  {0.102, 0.204, 0.306, 0.408},
-                                                                  {0.108, 0.216, 0.324, 0.432},
-                                                                  {0.114, 0.228, 0.342, 0.456},
-                                                                  {0.120, 0.240, 0.360, 0.480},
-                                                                  {0.126, 0.252, 0.378, 0.504},
-                                                                  {0.132, 0.264, 0.396, 0.528}});
+    const auto expected_coupling_matrix = UblasUtilities::CreateMatrix({{0.066, 0.132, 0.198, 0.264},
+                                                                        {0.072, 0.144, 0.216, 0.288},
+                                                                        {0.078, 0.156, 0.234, 0.312},
+                                                                        {0.084, 0.168, 0.252, 0.336},
+                                                                        {0.090, 0.180, 0.270, 0.360},
+                                                                        {0.096, 0.192, 0.288, 0.384},
+                                                                        {0.102, 0.204, 0.306, 0.408},
+                                                                        {0.108, 0.216, 0.324, 0.432},
+                                                                        {0.114, 0.228, 0.342, 0.456},
+                                                                        {0.120, 0.240, 0.360, 0.480},
+                                                                        {0.126, 0.252, 0.378, 0.504},
+                                                                        {0.132, 0.264, 0.396, 0.528}});
 
     KRATOS_EXPECT_MATRIX_NEAR(coupling_matrix, expected_coupling_matrix, 1e-12)
 }

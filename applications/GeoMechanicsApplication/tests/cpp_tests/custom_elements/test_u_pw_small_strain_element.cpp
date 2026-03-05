@@ -386,7 +386,7 @@ void CheckValuesCalculatedOnIntegrationPoints(const Element::Pointer& pElement, 
     }
 
     // getting a value from properties
-    auto initial_strain_vector = UblasUtilities::CreateVector({10000, -10000, 5000, -5000});
+    const auto initial_strain_vector = UblasUtilities::CreateVector({10000, -10000, 5000, -5000});
     pElement->GetProperties().SetValue(INITIAL_STRAIN_VECTOR, initial_strain_vector);
     pElement->CalculateOnIntegrationPoints(INITIAL_STRAIN_VECTOR,
                                            calculated_values_at_integration_points, rProcessInfo);

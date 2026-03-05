@@ -34,15 +34,15 @@ KRATOS_TEST_CASE_IN_SUITE(ThreeDimensionalStressState_CalculateBMatrixReturnsCor
 {
     auto p_stress_state_policy = std::make_unique<ThreeDimensionalStressState>();
 
-    auto Np = UblasUtilities::CreateVector({1.0, 2.0, 3.0, 4.0});
+    const auto Np = UblasUtilities::CreateVector({1.0, 2.0, 3.0, 4.0});
 
-    auto GradNpT = UblasUtilities::CreateMatrix(
+    const auto GradNpT = UblasUtilities::CreateMatrix(
         {{1.0, 2.0, 3.0}, {4.0, 5.0, 6.0}, {7.0, 8.0, 9.0}, {10.0, 11.0, 12.0}});
 
     const auto calculated_matrix = p_stress_state_policy->CalculateBMatrix(
         GradNpT, Np, ModelSetupUtilities::Create3D4NTetrahedraGeometry());
 
-    auto expected_matrix = // This row (INDEX_3D_XX) contains the first column of GradNpT as INDEX_X
+    const auto expected_matrix = // This row (INDEX_3D_XX) contains the first column of GradNpT as INDEX_X
         UblasUtilities::CreateMatrix(
             {{1, 0, 0, 4, 0, 0, 7, 0, 0, 10, 0, 0},
              // This row (INDEX_3D_YY) contains the second column of GradNpT as INDEX_Y
@@ -82,12 +82,12 @@ KRATOS_TEST_CASE_IN_SUITE(ThreeDimensionalStressState_CalculateGreenLagrangeStra
 {
     const auto p_stress_state_policy = std::make_unique<ThreeDimensionalStressState>();
 
-    auto deformation_gradient =
+    const auto deformation_gradient =
         UblasUtilities::CreateMatrix({{1.0, 2.0, 3.0}, {4.0, 5.0, 6.0}, {7.0, 8.0, 9.0}});
 
     // The expected strain is calculated as follows:
     // 0.5 * (F^T * F - I) and then converted to a vector
-    auto expected_vector = UblasUtilities::CreateVector({32.5, 46, 62.5, 78, 108, 90});
+    const auto expected_vector = UblasUtilities::CreateVector({32.5, 46, 62.5, 78, 108, 90});
 
     const auto calculated_vector = p_stress_state_policy->CalculateGreenLagrangeStrain(deformation_gradient);
 
@@ -98,9 +98,9 @@ KRATOS_TEST_CASE_IN_SUITE(ThreeDimensionalStressState_GivesCorrectVoigtVector, K
 {
     const std::unique_ptr<StressStatePolicy> p_stress_state_policy =
         std::make_unique<ThreeDimensionalStressState>();
-    auto voigt_vector = p_stress_state_policy->GetVoigtVector();
+    const auto voigt_vector = p_stress_state_policy->GetVoigtVector();
 
-    auto expected_voigt_vector = UblasUtilities::CreateVector({1.0, 1.0, 1.0, 0.0, 0.0, 0.0});
+    const auto expected_voigt_vector = UblasUtilities::CreateVector({1.0, 1.0, 1.0, 0.0, 0.0, 0.0});
     KRATOS_EXPECT_VECTOR_NEAR(voigt_vector, expected_voigt_vector, 1.E-10)
 }
 
@@ -136,7 +136,7 @@ KRATOS_TEST_CASE_IN_SUITE(ThreeDimensionalStressState_CanBeSavedAndLoadedThrough
     // Assert
     ASSERT_NE(p_loaded_policy, nullptr);
     KRATOS_EXPECT_EQ(p_loaded_policy->GetVoigtSize(), VOIGT_SIZE_3D);
-    auto expected_voigt_vector = UblasUtilities::CreateVector({1.0, 1.0, 1.0, 0.0, 0.0, 0.0});
+    const auto expected_voigt_vector = UblasUtilities::CreateVector({1.0, 1.0, 1.0, 0.0, 0.0, 0.0});
     KRATOS_EXPECT_VECTOR_NEAR(p_loaded_policy->GetVoigtVector(), expected_voigt_vector, Defaults::absolute_tolerance);
 }
 

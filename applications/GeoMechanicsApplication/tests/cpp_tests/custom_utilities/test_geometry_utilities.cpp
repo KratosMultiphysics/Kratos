@@ -51,7 +51,7 @@ KRATOS_TEST_CASE_IN_SUITE(GeometryUtilities_ReturnsCorrectRotationMatrixForIncli
     const auto rotation_matrix =
         GeometryUtilities::Calculate2DRotationMatrixForLineGeometry(geometry, local_coordinate);
 
-    auto expected_rotation_matrix = UblasUtilities::CreateMatrix(
+    const auto expected_rotation_matrix = UblasUtilities::CreateMatrix(
         {{0.5 * sqrt(3), 0.5}, {-0.5, 0.5 * sqrt(3)}}); // Rotation of 30 degrees clockwise
     KRATOS_EXPECT_MATRIX_NEAR(expected_rotation_matrix, rotation_matrix, 1e-6)
 }
@@ -72,7 +72,7 @@ KRATOS_TEST_CASE_IN_SUITE(GeometryUtilities_ReturnsCorrectRotationMatrixForIncli
     const auto rotation_matrix =
         GeometryUtilities::Calculate2DRotationMatrixForLineGeometry(geometry, local_coordinate);
 
-    auto expected_rotation_matrix = UblasUtilities::CreateMatrix(
+    const auto expected_rotation_matrix = UblasUtilities::CreateMatrix(
         {{0.5, 0.5 * sqrt(3)}, {-0.5 * sqrt(3), 0.5}}); // rotation of 60 degrees clockwise
     KRATOS_EXPECT_MATRIX_NEAR(expected_rotation_matrix, rotation_matrix, 1e-6)
 }
@@ -91,7 +91,7 @@ KRATOS_TEST_CASE_IN_SUITE(GeometryUtilities_ReturnsCorrectRotationMatrixForIncli
     const auto rotation_matrix =
         GeometryUtilities::Calculate2DRotationMatrixForLineGeometry(geometry, local_coordinate);
 
-    auto expected_rotation_matrix = UblasUtilities::CreateMatrix(
+    const auto expected_rotation_matrix = UblasUtilities::CreateMatrix(
         {{0.5 * sqrt(3.0), 0.5}, {-0.5, 0.5 * sqrt(3.0)}}); // Rotation of 30 degrees clockwise
     KRATOS_EXPECT_MATRIX_NEAR(expected_rotation_matrix, rotation_matrix, 1e-6)
 }
@@ -110,8 +110,7 @@ KRATOS_TEST_CASE_IN_SUITE(GeometryUtilities_ReturnsCorrectRotationMatrixForVerti
     const auto rotation_matrix =
         GeometryUtilities::Calculate2DRotationMatrixForLineGeometry(geometry, local_coordinate);
 
-    auto expected_rotation_matrix =
-        UblasUtilities::CreateMatrix({{0.0, -1.0}, {1.0, 0.0}}); // Rotation of 90 degrees counterclockwise
+    const auto expected_rotation_matrix = UblasUtilities::CreateMatrix({{0.0, -1.0}, {1.0, 0.0}}); // Rotation of 90 degrees counterclockwise
     KRATOS_EXPECT_MATRIX_NEAR(expected_rotation_matrix, rotation_matrix, 1e-6)
 }
 
@@ -169,7 +168,7 @@ KRATOS_TEST_CASE_IN_SUITE(GeometryUtilities_ReturnsCorrectRotationForInclinedCur
     const auto rotation_matrix =
         GeometryUtilities::Calculate2DRotationMatrixForLineGeometry(geometry, local_coordinate);
 
-    auto expected_rotation_matrix = UblasUtilities::CreateMatrix(
+    const auto expected_rotation_matrix = UblasUtilities::CreateMatrix(
         {{0.5 * sqrt(2.0), 0.5 * sqrt(2.0)}, {-0.5 * sqrt(2.0), 0.5 * sqrt(2.0)}}); // Rotation of 45 degrees clockwise
     KRATOS_EXPECT_MATRIX_NEAR(expected_rotation_matrix, rotation_matrix, 1e-6)
 }
@@ -191,7 +190,7 @@ KRATOS_TEST_CASE_IN_SUITE(GeometryUtilities_ReturnsCorrectRotationAtEdgeOfQuadra
         GeometryUtilities::Calculate2DRotationMatrixForLineGeometry(geometry, local_coordinate);
 
     // Rotation of 63.43 (atan(2)) degrees counterclockwise
-    auto expected_rotation_matrix = UblasUtilities::CreateMatrix(
+    const auto expected_rotation_matrix = UblasUtilities::CreateMatrix(
         {{std::cos(1.1071), -std::sin(1.1071)}, {std::sin(1.1071), std::cos(1.1071)}});
     KRATOS_EXPECT_MATRIX_NEAR(expected_rotation_matrix, rotation_matrix, 1e-3)
 }
@@ -212,7 +211,7 @@ KRATOS_TEST_CASE_IN_SUITE(GeometryUtilities_ReturnsCorrectRotationAtArbitraryXiF
     const auto rotation_matrix =
         GeometryUtilities::Calculate2DRotationMatrixForLineGeometry(geometry, local_coordinate);
 
-    auto expected_rotation_matrix = UblasUtilities::CreateMatrix(
+    const auto expected_rotation_matrix = UblasUtilities::CreateMatrix(
         {{0.5 * sqrt(2.0), 0.5 * sqrt(2.0)}, {-0.5 * sqrt(2.0), 0.5 * sqrt(2.0)}}); // Rotation of 45 degrees clockwise
     // clang-format on
     KRATOS_EXPECT_MATRIX_NEAR(expected_rotation_matrix, rotation_matrix, 1e-3)

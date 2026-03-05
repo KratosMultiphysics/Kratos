@@ -28,7 +28,7 @@ KRATOS_TEST_CASE_IN_SUITE(ExtrapolationUtilities_CalculateNodalVectors, KratosGe
     // Arrange
     const auto p_element = ElementSetupUtilities::Create2D3NElement();
 
-    auto       cauchy_stress = UblasUtilities::CreateVector({1000.0, 2000.0, 3000.0, 4000.0});
+    const auto cauchy_stress = UblasUtilities::CreateVector({1000.0, 2000.0, 3000.0, 4000.0});
     const auto delta_stress  = Vector(4, 1000.0);
     std::vector<Vector> cauchy_stress_vectors;
     cauchy_stress_vectors.push_back(cauchy_stress);
@@ -87,7 +87,7 @@ KRATOS_TEST_CASE_IN_SUITE(ExtrapolationUtilities_CalculateNodalVectorsForTriangl
 {
     const auto p_element = ElementSetupUtilities::Create2D6NElement();
 
-    auto       cauchy_stress = UblasUtilities::CreateVector({1000.0, 2000.0, 3000.0, 4000.0});
+    const auto cauchy_stress = UblasUtilities::CreateVector({1000.0, 2000.0, 3000.0, 4000.0});
     const auto delta_stress  = Vector(4, 1000.0);
     std::vector<Vector> cauchy_stress_vectors;
     cauchy_stress_vectors.push_back(cauchy_stress);

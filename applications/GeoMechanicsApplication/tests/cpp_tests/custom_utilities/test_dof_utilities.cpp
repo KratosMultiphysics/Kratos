@@ -520,7 +520,7 @@ KRATOS_TEST_CASE_IN_SUITE(ExtractingDPwDtValuesFromUPwDofsAlwaysYieldsZeroes, Kr
 
     const auto dofs = Geo::DofUtilities::ExtractDofsFromNodes(r_model_part.Nodes(), r_variable);
 
-    auto       expected_values = UblasUtilities::CreateVector({0.0, 0.0, 0.0});
+    const auto expected_values = UblasUtilities::CreateVector({0.0, 0.0, 0.0});
     const auto abs_tolerance   = 1.0e-8;
     KRATOS_EXPECT_VECTOR_NEAR(Geo::DofUtilities::ExtractFirstTimeDerivativesOfUPwDofs(dofs, current_buffer_index),
                               expected_values, abs_tolerance)
@@ -579,7 +579,7 @@ KRATOS_TEST_CASE_IN_SUITE(ExtractingD2PwDt2ValuesFromUPwDofsAlwaysYieldsZeroes, 
     const auto dofs = Geo::DofUtilities::ExtractDofsFromNodes(r_model_part.Nodes(), r_variable);
 
     const auto current_buffer_index = std::size_t{0};
-    auto       expected_values      = UblasUtilities::CreateVector({0.0, 0.0, 0.0});
+    const auto expected_values      = UblasUtilities::CreateVector({0.0, 0.0, 0.0});
     const auto abs_tolerance        = 1.0e-8;
     KRATOS_EXPECT_VECTOR_NEAR(Geo::DofUtilities::ExtractSecondTimeDerivativesOfUPwDofs(dofs, current_buffer_index),
                               expected_values, abs_tolerance)

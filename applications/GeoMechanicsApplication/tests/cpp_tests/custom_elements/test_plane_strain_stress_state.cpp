@@ -33,14 +33,14 @@ KRATOS_TEST_CASE_IN_SUITE(CalculateBMatrixGivesCorrectResults, KratosGeoMechanic
 {
     auto p_stress_state_policy = std::make_unique<PlaneStrainStressState>();
 
-    auto Np = UblasUtilities::CreateVector({1.0, 2.0, 3.0});
+    const auto Np = UblasUtilities::CreateVector({1.0, 2.0, 3.0});
 
-    auto GradNpT = UblasUtilities::CreateMatrix({{1.0, 2.0}, {3.0, 4.0}, {5.0, 6.0}});
+    const auto GradNpT = UblasUtilities::CreateMatrix({{1.0, 2.0}, {3.0, 4.0}, {5.0, 6.0}});
 
     const auto calculated_matrix = p_stress_state_policy->CalculateBMatrix(
         GradNpT, Np, ModelSetupUtilities::Create2D3NTriangleGeometry());
 
-    auto expected_matrix = UblasUtilities::CreateMatrix(
+    const auto expected_matrix = UblasUtilities::CreateMatrix(
         {{1, 0, 3, 0, 5, 0}, // This row contains the first column of GradNpT on columns 1, 3 and 5
          {0, 2, 0, 4, 0, 6}, // This row contains the second column of GradNpT on columns 2, 4 and 6
          {0, 0, 0, 0, 0, 0}, // This row is not set, so remains 0.

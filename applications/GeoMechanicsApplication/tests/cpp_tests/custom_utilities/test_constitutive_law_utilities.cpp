@@ -31,7 +31,7 @@ KRATOS_TEST_CASE_IN_SUITE(SetSixConstitutiveParametersCorrectResults, KratosGeoM
 
     auto             strain_vector               = UblasUtilities::CreateVector({1.0, 2.0, 3.0});
     Matrix           constitutive_matrix         = IdentityMatrix(5, 5);
-    auto             N                           = UblasUtilities::CreateVector({0.1, 0.2, 0.5});
+    const auto       N                           = UblasUtilities::CreateVector({0.1, 0.2, 0.5});
     const Matrix     shape_functions_derivatives = ScalarMatrix(3, 3, 5.0);
     const Matrix     deformation_gradient_F      = ScalarMatrix(3, 3, 10.0);
     constexpr double determinant_of_F            = 10.0;
@@ -63,8 +63,8 @@ KRATOS_TEST_CASE_IN_SUITE(CohesionCanBeFetchedFromGeoCohesionProperty, KratosGeo
 
 KRATOS_TEST_CASE_IN_SUITE(CohesionCanBeFetchedFromUMatParameters, KratosGeoMechanicsFastSuiteWithoutKernel)
 {
-    auto properties      = Properties{};
-    auto umat_parameters = UblasUtilities::CreateVector({2.0, 30.0});
+    auto       properties      = Properties{};
+    const auto umat_parameters = UblasUtilities::CreateVector({2.0, 30.0});
     properties.SetValue(UMAT_PARAMETERS, umat_parameters);
     properties.SetValue(INDEX_OF_UMAT_C_PARAMETER, 1);
 
@@ -96,8 +96,8 @@ KRATOS_TEST_CASE_IN_SUITE(FrictionAngleCanBeFetchedFromGeoFrictionAngleProperty,
 
 KRATOS_TEST_CASE_IN_SUITE(FrictionAngleCanBeFetchedFromUMatParameters, KratosGeoMechanicsFastSuiteWithoutKernel)
 {
-    auto properties      = Properties{};
-    auto umat_parameters = UblasUtilities::CreateVector({2.0, 30.0});
+    auto       properties      = Properties{};
+    const auto umat_parameters = UblasUtilities::CreateVector({2.0, 30.0});
     properties.SetValue(UMAT_PARAMETERS, umat_parameters);
     properties.SetValue(INDEX_OF_UMAT_PHI_PARAMETER, 2);
 
@@ -117,8 +117,8 @@ KRATOS_TEST_CASE_IN_SUITE(RaiseADebugErrorWhenIndexInUMatParametersIsOutOfBounds
     GTEST_SKIP() << "This test requires a debug build";
 #endif
 
-    auto properties      = Properties{};
-    auto umat_parameters = UblasUtilities::CreateVector({2.0, 30.0});
+    auto       properties      = Properties{};
+    const auto umat_parameters = UblasUtilities::CreateVector({2.0, 30.0});
     properties.SetValue(UMAT_PARAMETERS, umat_parameters);
     properties.SetValue(INDEX_OF_UMAT_C_PARAMETER, 0); // 1-based index
 

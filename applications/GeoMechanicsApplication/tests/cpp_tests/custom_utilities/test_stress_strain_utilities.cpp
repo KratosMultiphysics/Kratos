@@ -44,13 +44,13 @@ KRATOS_TEST_CASE_IN_SUITE(CheckGreenLagrangeStrainTensor, KratosGeoMechanicsFast
 
 KRATOS_TEST_CASE_IN_SUITE(CheckCalculateVonMisesStressHydrostatic, KratosGeoMechanicsFastSuiteWithoutKernel)
 {
-    auto stress_vector = UblasUtilities::CreateVector({-2.0, -2.0, -2.0, 0.0});
+    const auto stress_vector = UblasUtilities::CreateVector({-2.0, -2.0, -2.0, 0.0});
     KRATOS_EXPECT_DOUBLE_EQ(0.0, StressStrainUtilities::CalculateVonMisesStress(stress_vector));
 }
 
 KRATOS_TEST_CASE_IN_SUITE(CheckCalculateVonMisesStressPureShear, KratosGeoMechanicsFastSuiteWithoutKernel)
 {
-    auto stress_vector = UblasUtilities::CreateVector({0.0, 0.0, 0.0, 2.0});
+    const auto stress_vector = UblasUtilities::CreateVector({0.0, 0.0, 0.0, 2.0});
     KRATOS_EXPECT_DOUBLE_EQ(2.0 * std::sqrt(3.0), StressStrainUtilities::CalculateVonMisesStress(stress_vector));
 }
 
@@ -97,7 +97,7 @@ KRATOS_TEST_CASE_IN_SUITE(CheckCalculateMohrCoulombShearCapacityZeroQMCResultsIn
 
 KRATOS_TEST_CASE_IN_SUITE(CheckCalculateMohrCoulombShearCapacityHydrostatic, KratosGeoMechanicsFastSuiteWithoutKernel)
 {
-    auto           stress_vector = UblasUtilities::CreateVector({-2.0, -2.0, -2.0, 0.0});
+    const auto     stress_vector = UblasUtilities::CreateVector({-2.0, -2.0, -2.0, 0.0});
     constexpr auto cohesion      = 0.0;
     constexpr auto friction_angle_in_radians = MathUtils<>::DegreesToRadians(90.0);
     KRATOS_EXPECT_DOUBLE_EQ(0.0, StressStrainUtilities::CalculateMohrCoulombShearCapacity(
@@ -106,7 +106,7 @@ KRATOS_TEST_CASE_IN_SUITE(CheckCalculateMohrCoulombShearCapacityHydrostatic, Kra
 
 KRATOS_TEST_CASE_IN_SUITE(CheckCalculateMohrCoulombShearCapacityShearOnly, KratosGeoMechanicsFastSuiteWithoutKernel)
 {
-    auto           stress_vector  = UblasUtilities::CreateVector({-2.0, 0.0, 2.0, 0.0});
+    const auto     stress_vector  = UblasUtilities::CreateVector({-2.0, 0.0, 2.0, 0.0});
     constexpr auto cohesion       = 2.0;
     constexpr auto friction_angle = 0.0;
     KRATOS_EXPECT_DOUBLE_EQ(1.0, StressStrainUtilities::CalculateMohrCoulombShearCapacity(
@@ -115,7 +115,7 @@ KRATOS_TEST_CASE_IN_SUITE(CheckCalculateMohrCoulombShearCapacityShearOnly, Krato
 
 KRATOS_TEST_CASE_IN_SUITE(CalculateMohrCoulombShearCapacityThrowsWhenPhiIsOutOfBounds, KratosGeoMechanicsFastSuiteWithoutKernel)
 {
-    auto           stress_vector             = UblasUtilities::CreateVector({-2.0, 0.0, 2.0, 0.0});
+    const auto     stress_vector             = UblasUtilities::CreateVector({-2.0, 0.0, 2.0, 0.0});
     constexpr auto cohesion                  = 2.0;
     auto           friction_angle_in_radians = MathUtils<>::DegreesToRadians(-0.0001);
     KRATOS_EXPECT_EXCEPTION_IS_THROWN(
@@ -138,7 +138,7 @@ KRATOS_TEST_CASE_IN_SUITE(CheckCalculateMohrCoulombPressureCapacityZeroStress, K
 
 KRATOS_TEST_CASE_IN_SUITE(CheckCalculateMohrCoulombPressureCapacityShearOnly, KratosGeoMechanicsFastSuiteWithoutKernel)
 {
-    auto           stress_vector  = UblasUtilities::CreateVector({-2.0, 0.0, 2.0, 0.0});
+    const auto     stress_vector  = UblasUtilities::CreateVector({-2.0, 0.0, 2.0, 0.0});
     const auto     cohesion       = std::sqrt(2.0 * 2.0 * 3.0);
     constexpr auto friction_angle = MathUtils<>::DegreesToRadians(30.0);
     KRATOS_EXPECT_NEAR(3. * std::sin(friction_angle),
@@ -149,27 +149,27 @@ KRATOS_TEST_CASE_IN_SUITE(CheckCalculateMohrCoulombPressureCapacityShearOnly, Kr
 
 KRATOS_TEST_CASE_IN_SUITE(CheckCalculateCauchyStrain, KratosGeoMechanicsFastSuiteWithoutKernel)
 {
-    auto B = UblasUtilities::CreateMatrix({{1.0, 2.0, 3.0, 4.0, 5.0},
-                                           {1.1, 1.2, 1.3, 1.4, 1.5},
-                                           {1.0, 0.9, 0.8, 0.7, 0.6},
-                                           {0.0, 1.0, 2.0, 3.0, 4.0},
-                                           {5.0, 4.0, 3.0, 2.0, 1.0}});
+    const auto B = UblasUtilities::CreateMatrix({{1.0, 2.0, 3.0, 4.0, 5.0},
+                                                 {1.1, 1.2, 1.3, 1.4, 1.5},
+                                                 {1.0, 0.9, 0.8, 0.7, 0.6},
+                                                 {0.0, 1.0, 2.0, 3.0, 4.0},
+                                                 {5.0, 4.0, 3.0, 2.0, 1.0}});
 
-    auto displacements = UblasUtilities::CreateVector({0.01, 0.02, 0.03, 0.04, 0.05});
+    const auto displacements = UblasUtilities::CreateVector({0.01, 0.02, 0.03, 0.04, 0.05});
 
     const auto strain = StressStrainUtilities::CalculateCauchyStrain(B, displacements);
 
-    auto expected_strain = UblasUtilities::CreateVector({0.55, 0.205, 0.11, 0.4, 0.35});
+    const auto expected_strain = UblasUtilities::CreateVector({0.55, 0.205, 0.11, 0.4, 0.35});
 
     KRATOS_EXPECT_VECTOR_NEAR(strain, expected_strain, Defaults::absolute_tolerance)
 }
 
 KRATOS_TEST_CASE_IN_SUITE(CheckCalculateStrains, KratosGeoMechanicsFastSuiteWithoutKernel)
 {
-    auto B = UblasUtilities::CreateMatrix(
+    const auto B = UblasUtilities::CreateMatrix(
         {{1.0, 2.0, 3.0, 4.0}, {1.1, 1.2, 1.3, 1.4}, {1.0, 0.9, 0.8, 0.7}, {0.0, 1.0, 2.0, 3.0}});
 
-    auto displacements = UblasUtilities::CreateVector({0.01, 0.02, 0.03, 0.04});
+    const auto displacements = UblasUtilities::CreateVector({0.01, 0.02, 0.03, 0.04});
 
     bool        use_hencky_strain = false;
     std::size_t voigt_size        = 4;

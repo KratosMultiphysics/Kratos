@@ -89,7 +89,7 @@ KRATOS_TEST_CASE_IN_SUITE(CalculateBulkModulus_Throws_WhenConstitutiveMatrixIsEm
 KRATOS_TEST_CASE_IN_SUITE(CalculateBulkModulus_GivesExpectedResult_ForFilledConstitutiveMatrix,
                           KratosGeoMechanicsFastSuiteWithoutKernel)
 {
-    auto constitutive_matrix =
+    const auto constitutive_matrix =
         UblasUtilities::CreateMatrix({{1.0, 2.0, 3.0}, {4.0, 5.0, 6.0}, {7.0, 8.0, 9.0}});
 
     KRATOS_EXPECT_DOUBLE_EQ(GeoTransportEquationUtilities::CalculateBulkModulus(constitutive_matrix), -11.0);
@@ -148,10 +148,10 @@ KRATOS_TEST_CASE_IN_SUITE(CalculateBiotCoefficients_GivesInfResults_ForZeroBulkM
 KRATOS_TEST_CASE_IN_SUITE(EachFluidPressureIsTheInnerProductOfShapeFunctionsAndPressure,
                           KratosGeoMechanicsFastSuiteWithoutKernel)
 {
-    auto shape_function_values =
+    const auto shape_function_values =
         UblasUtilities::CreateMatrix({{0.8, 0.2, 0.3}, {0.1, 0.7, 0.4}, {0.2, 0.5, 0.6}});
 
-    auto pore_water_pressures = UblasUtilities::CreateVector({2.0, 3.0, 4.0});
+    const auto pore_water_pressures = UblasUtilities::CreateVector({2.0, 3.0, 4.0});
 
     const auto expected_fluid_pressures = std::vector<double>{3.4, 3.9, 4.3};
     KRATOS_EXPECT_VECTOR_NEAR(GeoTransportEquationUtilities::CalculateFluidPressures(
@@ -193,8 +193,8 @@ KRATOS_TEST_CASE_IN_SUITE(PermeabilityUpdateFactorEqualsOneWhenChangeInverseFact
 KRATOS_TEST_CASE_IN_SUITE(PermeabilityUpdateFactorIsComputedFromStrainsAndPropertiesWhenChangeInverseFactorIsPositive,
                           KratosGeoMechanicsFastSuiteWithoutKernel)
 {
-    auto test_strains   = UblasUtilities::CreateVector({0.001, 0.002, 0.0});
-    auto strain_vectors = std::vector<Vector>{test_strains, 2.0 * test_strains, 4.0 * test_strains};
+    const auto test_strains = UblasUtilities::CreateVector({0.001, 0.002, 0.0});
+    const auto strain_vectors = std::vector<Vector>{test_strains, 2.0 * test_strains, 4.0 * test_strains};
 
     auto properties                                = Properties{};
     properties[PERMEABILITY_CHANGE_INVERSE_FACTOR] = 0.5;

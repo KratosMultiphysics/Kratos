@@ -25,23 +25,23 @@ namespace Kratos::Testing
 KRATOS_TEST_CASE_IN_SUITE(CheckVectorPermutation, KratosGeoMechanicsFastSuiteWithoutKernel)
 {
     // Arrange
-    auto       vector  = UblasUtilities::CreateVector({1.0, 2.0, 3.0, 4.0, 5.0});
+    const auto vector  = UblasUtilities::CreateVector({1.0, 2.0, 3.0, 4.0, 5.0});
     const auto indices = std::vector<int>{4, 3, 2, 1, 0};
 
     // Act & assert
-    auto expected_result = UblasUtilities::CreateVector({5.0, 4.0, 3.0, 2.0, 1.0});
+    const auto expected_result = UblasUtilities::CreateVector({5.0, 4.0, 3.0, 2.0, 1.0});
     KRATOS_EXPECT_VECTOR_EQ(GenericUtilities::PermutedVector(vector, indices), expected_result);
 }
 
 KRATOS_TEST_CASE_IN_SUITE(CheckMatrixPermutation, KratosGeoMechanicsFastSuiteWithoutKernel)
 {
     // Arrange
-    auto matrix = UblasUtilities::CreateMatrix(
+    const auto matrix = UblasUtilities::CreateMatrix(
         {{1.0, 0.0, 0.0, 0.0}, {0.0, 1.0, 0.0, 0.0}, {0.0, 0.0, 1.0, 0.0}, {0.0, 0.0, 0.0, 1.0}});
     const auto indices = std::vector<int>{3, 2, 1, 0};
 
     // Act & assert
-    auto expected_result = UblasUtilities::CreateMatrix(
+    const auto expected_result = UblasUtilities::CreateMatrix(
         {{0.0, 0.0, 0.0, 1.0}, {0.0, 0.0, 1.0, 0.0}, {0.0, 1.0, 0.0, 0.0}, {1.0, 0.0, 0.0, 0.0}});
     KRATOS_EXPECT_MATRIX_EQ(GenericUtilities::MatrixWithPermutedColumns(matrix, indices), expected_result);
 }

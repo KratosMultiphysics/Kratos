@@ -63,17 +63,18 @@ KRATOS_TEST_CASE_IN_SUITE(Normalized_Throws_WhenInputtingZeroVector, KratosGeoMe
 KRATOS_TEST_CASE_IN_SUITE(CheckRotateTensor, KratosGeoMechanicsFastSuiteWithoutKernel)
 {
     // Arrange
-    auto stress_tensor =
+    const auto stress_tensor =
         UblasUtilities::CreateMatrix({{10.0, 40.0, 0.0}, {40.0, 50.0, 0.0}, {0.0, 0.0, 20.0}});
 
     const auto angle           = MathUtils<>::DegreesToRadians(30.0);
-    auto       rotation_matrix = UblasUtilities::CreateMatrix(
+    const auto rotation_matrix = UblasUtilities::CreateMatrix(
         {{std::cos(angle), -std::sin(angle), 0.0}, {std::sin(angle), std::cos(angle), 0.0}, {0.0, 0.0, 1.0}});
     const auto result = GeoMechanicsMathUtilities::RotateSecondOrderTensor(stress_tensor, rotation_matrix);
 
-    auto expected_result = UblasUtilities::CreateMatrix({{-14.641016151377542, 2.6794919243112303, 0.0},
-                                                         {2.6794919243112303, 74.64101615137753, 0.0},
-                                                         {0.0, 0.0, 20.0}});
+    const auto expected_result =
+        UblasUtilities::CreateMatrix({{-14.641016151377542, 2.6794919243112303, 0.0},
+                                      {2.6794919243112303, 74.64101615137753, 0.0},
+                                      {0.0, 0.0, 20.0}});
 
     KRATOS_EXPECT_MATRIX_NEAR(result, expected_result, Defaults::absolute_tolerance);
 }
@@ -81,10 +82,10 @@ KRATOS_TEST_CASE_IN_SUITE(CheckRotateTensor, KratosGeoMechanicsFastSuiteWithoutK
 KRATOS_TEST_CASE_IN_SUITE(CheckVectorToDiagonalMatrix, KratosGeoMechanicsFastSuiteWithoutKernel)
 {
     // Arrange
-    auto vector = UblasUtilities::CreateVector({3.0, 4.0, 5.0, 6.0});
+    const auto vector = UblasUtilities::CreateVector({3.0, 4.0, 5.0, 6.0});
 
     // Act & assert
-    auto expected_result = UblasUtilities::CreateMatrix(
+    const auto expected_result = UblasUtilities::CreateMatrix(
         {{3.0, 0.0, 0.0, 0.0}, {0.0, 4.0, 0.0, 0.0}, {0.0, 0.0, 5.0, 0.0}, {0.0, 0.0, 0.0, 6.0}});
     KRATOS_EXPECT_MATRIX_EQ(GeoMechanicsMathUtilities::VectorToDiagonalMatrix(vector), expected_result);
 }
