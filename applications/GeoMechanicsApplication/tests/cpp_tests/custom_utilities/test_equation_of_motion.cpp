@@ -28,9 +28,8 @@ KRATOS_TEST_CASE_IN_SUITE(CalculateMassMatrix2D6NDiffOrderGivesCorrectResults, K
     Model model;
     auto& r_model_part = ModelSetupUtilities::CreateModelPartWithASingle2D6NDiffOrderElement(model);
 
-    auto&       r_element   = r_model_part.GetElement(1);
-    const auto& r_geom      = r_element.GetGeometry();
-    auto        p_elem_prop = r_model_part.pGetProperties(0);
+    auto& r_element   = r_model_part.GetElement(1);
+    auto  p_elem_prop = r_model_part.pGetProperties(0);
     p_elem_prop->SetValue(DENSITY_WATER, 1000.0);
     p_elem_prop->SetValue(POROSITY, 0.0);
     p_elem_prop->SetValue(DENSITY_SOLID, 1700.0);
@@ -44,7 +43,7 @@ KRATOS_TEST_CASE_IN_SUITE(CalculateMassMatrix2D6NDiffOrderGivesCorrectResults, K
     Matrix mass_matrix;
     r_element.CalculateMassMatrix(mass_matrix, process_info);
 
-    auto expected_mass_matrix = UblasUtilities::CreateMatrix(
+    const auto expected_mass_matrix = UblasUtilities::CreateMatrix(
         {{0.0524691, 0.0, -0.0262346, 0.0, -0.0262346, 0.0, 0.0262346, 0.0, -0.0524691, 0.0,
           0.0262346, 0.0, 0, 0, 0},
          {0.0, 0.0524691, 0.0, -0.0262346, 0.0, -0.0262346, 0.0, 0.0262346, 0.0, -0.0524691, 0.0,
@@ -97,7 +96,7 @@ KRATOS_TEST_CASE_IN_SUITE(CalculateMassMatrix3D4NGivesCorrectResults, KratosGeoM
     Matrix mass_matrix;
     r_element.CalculateMassMatrix(mass_matrix, process_info);
 
-    auto expected_mass_matrix = UblasUtilities::CreateMatrix(
+    const auto expected_mass_matrix = UblasUtilities::CreateMatrix(
         {{34.1667, 0.0, 0.0, 17.0833, 0.0, 0.0, 17.0833, 0.0, 0.0, 17.0833, 0.0, 0.0, 0, 0, 0, 0},
          {0.0, 34.1667, 0.0, 0.0, 17.0833, 0.0, 0.0, 17.0833, 0.0, 0.0, 17.0833, 0.0, 0, 0, 0, 0},
          {0.0, 0.0, 34.1667, 0.0, 0.0, 17.0833, 0.0, 0.0, 17.0833, 0.0, 0.0, 17.0833, 0, 0, 0, 0},
