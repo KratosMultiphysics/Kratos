@@ -287,19 +287,37 @@ public:
     ) const override;
 
 
-
+    /**
+     * @brief Called to initialize the element.
+     * @warning Must be called before any calculation is done
+     */
     void Initialize(const ProcessInfo& rCurrentProcessInfo) override;
 
+    /**
+     * @brief this is called for non-linear analysis at the end of the iteration process
+     * @param rCurrentProcessInfo the current process info instance
+     */
     void FinalizeNonLinearIteration(const ProcessInfo& rCurrentProcessInfo) override;
 
+    /**
+     * @brief Called at the end of each solution step
+     * @param rCurrentProcessInfo the current process info instance
+     */
     void InitializeSolutionStep(const ProcessInfo& rCurrentProcessInfo) override;
 
+    /**
+     * @brief Called at the end of each solution step
+     * @param rCurrentProcessInfo the current process info instance
+     */
     void FinalizeSolutionStep(const ProcessInfo& rCurrentProcessInfo) override;
 
     // More results calculation on integration points to interface with python
 
     using BaseType::CalculateOnIntegrationPoints;
 
+    /**
+     * @brief Calculate values of type double on integration points (stub)
+     */
     void CalculateOnIntegrationPoints(const Variable<double>& rVariable,
                                       std::vector<double>& rOutput, const ProcessInfo& rCurrentProcessInfo) override;
 
