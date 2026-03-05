@@ -11,7 +11,7 @@
 //  Main authors:    Anne van de Graaf
 //
 
-#include "custom_constitutive/geo_sigma_tau.hpp"
+#include "custom_constitutive/sigma_tau.hpp"
 
 namespace Kratos::Geo
 {
@@ -30,5 +30,17 @@ double& SigmaTau::Sigma() { return mValues[0]; }
 double SigmaTau::Tau() const { return mValues[1]; }
 
 double& SigmaTau::Tau() { return mValues[1]; }
+
+SigmaTau& SigmaTau::operator+=(const SigmaTau& rRhsTraction)
+{
+    std::ranges::transform(mValues, rRhsTraction.mValues, mValues.begin(), std::plus{});
+    return *this;
+}
+
+SigmaTau operator+(SigmaTau LhsTraction, const SigmaTau& rRhsTraction)
+{
+    LhsTraction += rRhsTraction;
+    return LhsTraction;
+}
 
 } // namespace Kratos::Geo

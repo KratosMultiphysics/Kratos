@@ -68,12 +68,20 @@ public:
 
   ConnectivityIdsTensorAdaptor(const BaseType &rOther, const bool Copy = true);
 
+  ConnectivityIdsTensorAdaptor(const ConnectivityIdsTensorAdaptor& rOther) = default;
+
   // Destructor
   ~ConnectivityIdsTensorAdaptor() override = default;
+
 
   ///@}
   ///@name Public operations
   ///@{
+
+  /**
+   * @brief Clones the existing tensor adaptor.
+   */
+  TensorAdaptor::Pointer Clone() const override;
 
   /**
    * @brief Check if the container is valid.

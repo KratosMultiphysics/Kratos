@@ -20,7 +20,6 @@
 
 // STL includes
 #include <vector> // std::vector
-#include <unordered_map> // std::unordered_map
 
 
 namespace Kratos::detail {
@@ -54,7 +53,7 @@ inline void ProcessMasterSlaveConstraint(std::vector<std::size_t>& rConstraintIn
                                          const MasterSlaveConstraint& rConstraint,
                                          const std::vector<std::size_t>& rSlaveDofIds,
                                          const std::vector<std::size_t>& rMasterDofIds,
-                                         const std::unordered_map<std::size_t,std::pair<std::size_t,std::size_t>>& rConstraintIdMap)
+                                         const CSRHashMap<std::size_t,std::pair<std::size_t,std::size_t>>& rConstraintIdMap)
 {
     // Constraint identifiers are the slave DoFs' IDs.
     rConstraintIndices.resize(rSlaveDofIds.size());
@@ -104,7 +103,7 @@ inline void ProcessMultifreedomConstraint(std::vector<std::size_t>& rConstraintI
                                           std::vector<std::size_t>& rDofIds,
                                           const MasterSlaveConstraint& rConstraint,
                                           const std::vector<std::size_t>& rMasterDofIds,
-                                          const std::unordered_map<std::size_t,std::pair<std::size_t,std::size_t>>& rConstraintIdMap)
+                                          const CSRHashMap<std::size_t,std::pair<std::size_t,std::size_t>>& rConstraintIdMap)
 {
     const auto& r_constraint_labels = rConstraint.GetData().GetValue(CONSTRAINT_LABELS);
     rConstraintIndices.resize(r_constraint_labels.size());
@@ -121,11 +120,12 @@ inline void ProcessMultifreedomConstraint(std::vector<std::size_t>& rConstraintI
 
 template <class TSparse, class TDense>
 void MakeRelationTopology(std::size_t SystemSize,
-                          const typename ConstraintAssembler<TSparse,TDense>::ConstraintArray& rConstraints,
+                          typename ConstraintAssembler<TSparse,TDense>::ConstraintArray::const_iterator itConstraintBegin,
+                          typename ConstraintAssembler<TSparse,TDense>::ConstraintArray::const_iterator itConstraintEnd,
                           const ProcessInfo& rProcessInfo,
                           typename TSparse::MatrixType& rRelationMatrix,
                           typename TSparse::VectorType& rConstraintGaps,
-                          std::unordered_map<std::size_t,std::pair<std::size_t,std::size_t>>& rConstraintIdMap)
+                          CSRHashMap<std::size_t,std::pair<std::size_t,std::size_t>>& rConstraintIdMap)
 {
     KRATOS_TRY
 
@@ -136,7 +136,8 @@ void MakeRelationTopology(std::size_t SystemSize,
         MasterSlaveConstraint::IndexType i_constraint = 0;
         MasterSlaveConstraint::EquationIdVectorType constraint_labels, master_ids;
 
-        for (const auto& r_constraint : rConstraints) {
+        for (auto it_constraint=itConstraintBegin; it_constraint!=itConstraintEnd; ++it_constraint) {
+            const auto& r_constraint = *it_constraint;
             r_constraint.EquationIdVector(constraint_labels, master_ids, rProcessInfo);
 
             if (constraint_labels.empty()) {
@@ -158,7 +159,7 @@ void MakeRelationTopology(std::size_t SystemSize,
     }
 
     {
-        std::vector<std::unordered_set<IndexType>> indices(rConstraintIdMap.size());
+        std::vector<CSRHashSet<IndexType>> indices(rConstraintIdMap.size());
         std::vector<LockObject> mutexes(rConstraintIdMap.size());
 
         struct TLS {
@@ -166,7 +167,8 @@ void MakeRelationTopology(std::size_t SystemSize,
             std::vector<std::size_t> constraint_labels;
         };
 
-        block_for_each(rConstraints,
+        block_for_each(itConstraintBegin,
+                       itConstraintEnd,
                        TLS(),
                        [&mutexes, &indices, &rProcessInfo, &rConstraintIdMap](const auto& r_constraint, TLS& r_tls) {
             r_constraint.EquationIdVector(r_tls.slaves, r_tls.masters, rProcessInfo);
@@ -212,7 +214,7 @@ void AssembleRelationMatrix(const typename ConstraintAssembler<TSparse,TDense>::
                             typename TSparse::MatrixType& rRelationMatrix,
                             typename TSparse::MatrixType& rHessian,
                             typename TSparse::VectorType& rConstraintGaps,
-                            std::unordered_map<std::size_t,std::pair<std::size_t,std::size_t>>& rConstraintIdMap)
+                            CSRHashMap<std::size_t,std::pair<std::size_t,std::size_t>>& rConstraintIdMap)
 {
     KRATOS_TRY
 

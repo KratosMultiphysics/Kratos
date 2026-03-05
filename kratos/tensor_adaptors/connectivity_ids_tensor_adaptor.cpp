@@ -114,6 +114,11 @@ void ConnectivityIdsTensorAdaptor::Check() const {
       *mpContainer);
 }
 
+TensorAdaptor<int>::Pointer ConnectivityIdsTensorAdaptor::Clone() const
+{
+    return Kratos::make_shared<ConnectivityIdsTensorAdaptor>(*this);
+}
+
 void ConnectivityIdsTensorAdaptor::CollectData() {
 
   const auto &shape = mpStorage->Shape();

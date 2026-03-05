@@ -547,6 +547,18 @@ public:
         return rResult;
     }
 
+    void ShapeFunctionsValuesAndCPIndices(
+        const CoordinatesArrayType& rCoordinates,
+        std::vector<IndexType>& rControlPointIndices,
+        Vector& rShapeFunctionsValues,
+        const IndexType DerivativeOrder = 0,
+        DenseVector<Matrix>* pShapeFunctionDerivatives = nullptr
+    ) const
+    {
+        mpNurbsSurface->ShapeFunctionsValuesAndCPIndices(
+            rCoordinates, rControlPointIndices, rShapeFunctionsValues, DerivativeOrder, pShapeFunctionDerivatives);
+    }
+
     ///@}
     ///@name Geometry Family
     ///@{
