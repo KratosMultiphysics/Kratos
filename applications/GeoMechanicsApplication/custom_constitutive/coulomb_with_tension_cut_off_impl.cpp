@@ -60,8 +60,6 @@ Geo::PrincipalStresses CoulombWithTensionCutOffImpl::DoReturnMapping(const Geo::
                                                                      const Matrix& rElasticConstitutiveTensor,
                                                                      Geo::PrincipalStresses::AveragingType AveragingType)
 {
-    KRATOS_INFO("CoulombWithTensionCutOffImpl::DoReturnMapping")
-        << "rElasticConstitutiveTensor: " << rElasticConstitutiveTensor << std::endl;
     auto principal_stresses_to_sigma_tau = [](const Geo::PrincipalStresses& rPrincipalStresses) {
         return StressStrainUtilities::TransformPrincipalStressesToSigmaTau(rPrincipalStresses);
     };
@@ -82,18 +80,11 @@ void CoulombWithTensionCutOffImpl::RestoreKappaOfCoulombYieldSurface()
 template <typename StressStateType>
 bool CoulombWithTensionCutOffImpl::IsAdmissibleStressState(const StressStateType& rTrialStressState) const
 {
-    KRATOS_INFO("CoulombWithTensionCutOffImpl::IsAdmissibleStressState")
-        << "rTrialStressState: " << rTrialStressState.Values() << std::endl;
     const auto coulomb_yield_function_value = mCoulombYieldSurface.YieldFunctionValue(rTrialStressState);
     const auto tension_yield_function_value = mTensionCutOff.YieldFunctionValue(rTrialStressState);
-    KRATOS_INFO("CoulombWithTensionCutOffImpl::IsAdmissibleStressState")
-        << "Yield values: " << coulomb_yield_function_value << " and "
-        << tension_yield_function_value << std::endl;
     constexpr auto tolerance         = 1.0e-10;
     const auto     coulomb_tolerance = tolerance * (1.0 + std::abs(coulomb_yield_function_value));
     const auto     tension_tolerance = tolerance * (1.0 + std::abs(tension_yield_function_value));
-    KRATOS_INFO("CoulombWithTensionCutOffImpl::IsAdmissibleStressState")
-        << "Tolerance values: " << coulomb_tolerance << " and " << tension_tolerance << std::endl;
     return coulomb_yield_function_value < coulomb_tolerance && tension_yield_function_value < tension_tolerance;
 }
 
@@ -119,9 +110,6 @@ StressStateType CoulombWithTensionCutOffImpl::DoReturnMapping(const StressStateT
         }
 
         if (IsStressAtCornerReturnZone(trial_traction, AveragingType)) {
-            KRATOS_INFO("Stress state maps to corner point")
-                << "trial_traction: " << trial_traction.Values()
-                << ", rTrialStressState: " << rTrialStressState.Values() << std::endl;
             result = ReturnStressAtCornerPoint(rTrialStressState, rElasticConstitutiveTensor, AveragingType);
         } else { // Regular failure region
             result = ReturnStressAtRegularFailureZone(rTrialStressState, rElasticConstitutiveTensor, AveragingType);
@@ -252,26 +240,17 @@ Geo::PrincipalStresses CoulombWithTensionCutOffImpl::ReturnStressAtCornerPoint(
 {
     const auto dG_dSigma_Coulomb =
         mCoulombYieldSurface.DerivativeOfFlowFunction(rTrialPrincipalStresses, AveragingType);
-    KRATOS_INFO("dG_dSigma_Coulomb") << dG_dSigma_Coulomb << std::endl;
     const auto principal_stress_correction_Coulomb =
         Geo::PrincipalStresses{prod(subrange(rElasticConstitutiveTensor, 0, 3, 0, 3), dG_dSigma_Coulomb)};
-    KRATOS_INFO("principal_stress_correction_Coulomb")
-        << principal_stress_correction_Coulomb.Values() << std::endl;
     const auto traction_correction_Coulomb =
         StressStrainUtilities::TransformPrincipalStressesToSigmaTau(principal_stress_correction_Coulomb);
-    KRATOS_INFO("traction_correction_Coulomb") << traction_correction_Coulomb.Values() << std::endl;
 
     const auto dG_dSigma_tension_cut_off =
         mTensionCutOff.DerivativeOfFlowFunction(rTrialPrincipalStresses, AveragingType);
-    KRATOS_INFO("dG_dSigma_tension_cut_off") << dG_dSigma_tension_cut_off << std::endl;
     const auto principal_stress_correction_tension_cut_off = Geo::PrincipalStresses{
         prod(subrange(rElasticConstitutiveTensor, 0, 3, 0, 3), dG_dSigma_tension_cut_off)};
-    KRATOS_INFO("principal_stress_correction_tension_cut_off")
-        << principal_stress_correction_tension_cut_off.Values() << std::endl;
     const auto traction_correction_tension_cut_off =
         StressStrainUtilities::TransformPrincipalStressesToSigmaTau(principal_stress_correction_tension_cut_off);
-    KRATOS_INFO("traction_correction_tension_cut_off")
-        << traction_correction_tension_cut_off.Values() << std::endl;
 
     const auto v = std::array{std::sin(mCoulombYieldSurface.GetFrictionAngleInRadians()), 1.0};
     const auto A = UblasUtilities::CreateMatrix(
@@ -281,21 +260,15 @@ Geo::PrincipalStresses CoulombWithTensionCutOffImpl::ReturnStressAtCornerPoint(
                              traction_correction_tension_cut_off.Values().end(), v.begin(), 0.0)},
          {principal_stress_correction_Coulomb.Values()[0],
           principal_stress_correction_tension_cut_off.Values()[0]}});
-    KRATOS_INFO("A") << A << std::endl;
 
     auto A_inverse   = Matrix(2, 2);
     auto determinant = 0.0;
     MathUtils<>::InvertMatrix2(A, A_inverse, determinant);
-    KRATOS_INFO("A_inverse") << A_inverse << std::endl;
 
-    KRATOS_INFO("") << "Yield function value (Coulomb) = "
-                    << mCoulombYieldSurface.YieldFunctionValue(rTrialPrincipalStresses) << std::endl;
     const auto b = UblasUtilities::CreateVector(
         {-1.0 * mCoulombYieldSurface.YieldFunctionValue(rTrialPrincipalStresses),
          -1.0 * mTensionCutOff.YieldFunctionValue(rTrialPrincipalStresses)});
-    KRATOS_INFO("b") << b << std::endl;
     const auto plastic_multipliers = Vector{prod(A_inverse, b)};
-    KRATOS_INFO("plastic_multipliers") << plastic_multipliers << std::endl;
 
     return Geo::PrincipalStresses{
         rTrialPrincipalStresses.Values() +
