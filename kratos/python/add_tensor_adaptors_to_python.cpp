@@ -38,6 +38,7 @@
 #include "tensor_adaptors/geometries_tensor_adaptor.h"
 #include "tensor_adaptors/tensor_adaptor.h"
 #include "tensor_adaptors/variable_tensor_adaptor.h"
+#include "tensor_adaptors/geometry_metrics_tensor_adaptor.h"
 
 // Include base h
 #include "add_tensor_adaptors_to_python.h"
@@ -305,6 +306,26 @@ void AddTensorAdaptorsToPython(pybind11::module& m)
                py::arg("tensor_adaptor"),
                py::arg("copy") = true);
 
+     py::class_<GeometryMetricsTensorAdaptor, GeometryMetricsTensorAdaptor::Pointer, GeometryMetricsTensorAdaptor::BaseType> geometric_tensor_adaptor(tensor_adaptor_sub_module, "GeometryMetricsTensorAdaptor");
+
+     py::enum_<GeometryMetricsTensorAdaptor::Metric>(geometric_tensor_adaptor,"Metric")
+          .value("DomainSize", GeometryMetricsTensorAdaptor::Metric::DomainSize)
+          .export_values();
+
+     geometric_tensor_adaptor
+          .def(py::init<const GeometryMetricsTensorAdaptor::BaseType&, GeometryMetricsTensorAdaptor::Metric, const bool>(),
+               py::arg("tensor_adaptor"),
+               py::arg("datum"),
+               py::arg("copy") = true)
+          .def(py::init<ModelPart::GeometryContainerType::Pointer, GeometryMetricsTensorAdaptor::Metric>(),
+               py::arg("container"),
+               py::arg("datum"))
+          .def(py::init<ModelPart::ConditionsContainerType::Pointer, GeometryMetricsTensorAdaptor::Metric>(),
+               py::arg("container"),
+               py::arg("datum"))
+          .def(py::init<ModelPart::ElementsContainerType::Pointer, GeometryMetricsTensorAdaptor::Metric>(),
+               py::arg("container"),
+               py::arg("datum"));
      py::class_<FixityTensorAdaptor, FixityTensorAdaptor::Pointer, FixityTensorAdaptor::BaseType>(tensor_adaptor_sub_module, "FixityTensorAdaptor")
           .def(py::init([](ModelPart::NodesContainerType::Pointer pNodes, py::sequence DofVariableList){
                std::vector<const Variable<double>*> dof_variable_list;
