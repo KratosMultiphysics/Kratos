@@ -10,7 +10,7 @@ import subprocess
 
 from pathlib import Path
 
-KRATOS_VERSION = "10.4.0"
+KRATOS_VERSION = "10.4.1"
 PLATFORM_CONFIG = {
     'Linux': {
         'PYTHONS': ["38", "39", "310", "311", "312", "313", "314"],
