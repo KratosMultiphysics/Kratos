@@ -158,6 +158,23 @@
           "reference_coordinate": -1.5,
           "specific_weight": 10000.0
         }
+      },
+      {
+        "python_module": "assign_master_slave_constraints_to_neighbours_process",
+        "kratos_module": "KratosMultiphysics",
+        "process_name": "AssignMasterSlaveConstraintsToNeighboursUtility",
+        "Parameters": {
+          "model_part_name": "PorousDomain.porous_computational_model_part",
+          "variable_names": [
+            "DISPLACEMENT",
+            "WATER_PRESSURE"
+          ],
+          "minimum_number_of_neighbouring_nodes": 2,
+          "reform_constraints_at_each_step": true,
+          "master_model_part_name": "PorousDomain.Master_side_1",
+          "slave_model_part_name": "PorousDomain.Slave_side_1",
+          "search_radius": 0.01
+        }
       }
     ],
     "loads_process_list": [
