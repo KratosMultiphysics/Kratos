@@ -22,6 +22,7 @@
 #include "geo_mechanics_application_variables.h"
 #include "includes/properties.h"
 #include "includes/serializer.h"
+#include "utilities/math_utils.h"
 
 namespace Kratos
 {
@@ -257,13 +258,11 @@ Geo::PrincipalStresses CoulombWithTensionCutOffImpl::ReturnStressAtCornerPoint(
         StressStrainUtilities::TransformPrincipalStressesToSigmaTau(principal_stress_correction_tension_cut_off);
 
     const auto v = std::array{std::sin(mCoulombYieldSurface.GetFrictionAngleInRadians()), 1.0};
-    const auto A = UblasUtilities::CreateMatrix(
-        {{std::inner_product(traction_correction_Coulomb.Values().begin(),
-                             traction_correction_Coulomb.Values().end(), v.begin(), 0.0),
-          std::inner_product(traction_correction_tension_cut_off.Values().begin(),
-                             traction_correction_tension_cut_off.Values().end(), v.begin(), 0.0)},
-         {principal_stress_correction_Coulomb.Values()[0],
-          principal_stress_correction_tension_cut_off.Values()[0]}});
+    const auto A =
+        UblasUtilities::CreateMatrix({{MathUtils<>::Dot(traction_correction_Coulomb.Values(), v),
+                                       MathUtils<>::Dot(traction_correction_tension_cut_off.Values(), v)},
+                                      {principal_stress_correction_Coulomb.Values()[0],
+                                       principal_stress_correction_tension_cut_off.Values()[0]}});
 
     auto A_inverse   = Matrix(2, 2);
     auto determinant = 0.0;
