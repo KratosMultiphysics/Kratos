@@ -89,7 +89,6 @@ public:
         const VariableType* pTimeDerivativeVariable = nullptr
         )
         : VariableData(NewName, sizeof(TDataType)),
-          mZero(Zero),
           mpTimeDerivativeVariable(pTimeDerivativeVariable)
     {}
     /**
@@ -102,7 +101,6 @@ public:
         const VariableType* pTimeDerivativeVariable
         )
         : VariableData(NewName, sizeof(TDataType)),
-          mZero(TDataType()),
           mpTimeDerivativeVariable(pTimeDerivativeVariable)
     {}
 
@@ -118,8 +116,7 @@ public:
         char ComponentIndex,
         const TDataType Zero = TDataType()
         )
-        : VariableData(rNewName, sizeof(TDataType), pSourceVariable, ComponentIndex),
-          mZero(Zero)
+        : VariableData(rNewName, sizeof(TDataType), pSourceVariable, ComponentIndex)
     {}
 
     /**
@@ -137,7 +134,6 @@ public:
         const TDataType Zero = TDataType()
         )
         : VariableData(rNewName, sizeof(TDataType), pSourceVariable, ComponentIndex),
-          mZero(Zero),
           mpTimeDerivativeVariable(pTimeDerivativeVariable)
     {}
 
@@ -148,7 +144,6 @@ public:
      */
     explicit Variable(const VariableType& rOtherVariable) :
         VariableData(rOtherVariable),
-        mZero(rOtherVariable.mZero),
         mpTimeDerivativeVariable(rOtherVariable.mpTimeDerivativeVariable)
     {
         // Here we don't register as we asume that the origin is already registered
@@ -440,11 +435,11 @@ private:
 
     static const VariableType msStaticObject;               /// Definition of the static variable
 
+    static const  VariableType mZero = VariableType{};
+
     ///@}
     ///@name Member Variables
     ///@{
-
-    TDataType mZero;                                        /// The zero type contains the null value of the current variable type
 
     const VariableType* mpTimeDerivativeVariable = nullptr; /// Definition of the pointer to the variable for the time derivative
 
@@ -485,7 +480,6 @@ private:
     void save(Serializer& rSerializer) const override
     {
         KRATOS_SERIALIZE_SAVE_BASE_CLASS(rSerializer, VariableData );
-        rSerializer.save("Zero",mZero);
         rSerializer.save("TimeDerivativeVariable",mpTimeDerivativeVariable);
     }
 
@@ -496,7 +490,6 @@ private:
     void load(Serializer& rSerializer) override
     {
         KRATOS_SERIALIZE_LOAD_BASE_CLASS(rSerializer, VariableData );
-        rSerializer.load("Zero",mZero);
         rSerializer.load("TimeDerivativeVariable",mpTimeDerivativeVariable);
     }
 
