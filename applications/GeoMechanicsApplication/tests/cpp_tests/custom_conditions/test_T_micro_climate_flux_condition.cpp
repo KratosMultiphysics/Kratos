@@ -389,11 +389,11 @@ KRATOS_TEST_CASE_IN_SUITE(CalculateLocalSystemForThermalMicroClimateCondition2D3
     Vector rhs_vector;
     p_condition->CalculateLocalSystem(lhs_matrix, rhs_vector, r_model_part.GetProcessInfo());
 
-    auto expected_lhs_matrix = UblasUtilities::CreateMatrix(
+    const auto expected_lhs_matrix = UblasUtilities::CreateMatrix(
         {{21.2568, -8.50271, 25.5081}, {-8.50271, 12.7541, 8.50271}, {25.5081, 8.50271, 68.0217}});
     KRATOS_EXPECT_MATRIX_RELATIVE_NEAR(expected_lhs_matrix, lhs_matrix, relative_tolerance)
 
-    auto expected_rhs_vector = UblasUtilities::CreateVector({-76.6356, -25.5452, -204.362});
+    const auto expected_rhs_vector = UblasUtilities::CreateVector({-76.6356, -25.5452, -204.362});
     KRATOS_EXPECT_VECTOR_RELATIVE_NEAR(expected_rhs_vector, rhs_vector, relative_tolerance)
 }
 
@@ -415,7 +415,7 @@ KRATOS_TEST_CASE_IN_SUITE(CalculateLocalSystemForThermalMicroClimateCondition3D6
     Vector rhs_vector;
     p_condition->CalculateLocalSystem(lhs_matrix, rhs_vector, r_model_part.GetProcessInfo());
 
-    auto expected_lhs_matrix =
+    const auto expected_lhs_matrix =
         UblasUtilities::CreateMatrix({{1.95146, -0.975729, -0.975729, 0.975729, -1.95146, 0.975729},
                                       {-0.975729, 1.95146, -0.975729, 0.975729, 0.975729, -1.95146},
                                       {-0.975729, -0.975729, 1.95146, -1.95146, 0.975729, 0.975729},
@@ -424,7 +424,8 @@ KRATOS_TEST_CASE_IN_SUITE(CalculateLocalSystemForThermalMicroClimateCondition3D6
                                       {0.975729, -1.95146, 0.975729, 7.80583, 7.80583, 10.733}});
     KRATOS_EXPECT_MATRIX_RELATIVE_NEAR(expected_lhs_matrix, lhs_matrix, relative_tolerance)
 
-    auto expected_rhs_vector = UblasUtilities::CreateVector({0.0, 0.0, 0.0, -52.7659, -52.7659, -52.7659});
+    const auto expected_rhs_vector =
+        UblasUtilities::CreateVector({0.0, 0.0, 0.0, -52.7659, -52.7659, -52.7659});
     // To compare computed zeros (the first three elements of 'rhs_vector') use an absolute_tolerance
     KRATOS_EXPECT_VECTOR_NEAR(expected_rhs_vector, rhs_vector, absolute_tolerance)
 }
@@ -446,7 +447,7 @@ KRATOS_TEST_CASE_IN_SUITE(CalculateLocalSystemForThermalMicroClimateCondition3D8
     Vector rhs_vector;
     p_condition->CalculateLocalSystem(lhs_matrix, rhs_vector, r_model_part.GetProcessInfo());
 
-    auto expected_lhs_matrix = UblasUtilities::CreateMatrix(
+    const auto expected_lhs_matrix = UblasUtilities::CreateMatrix(
         {{5.26894, 1.75631, 2.63447, 1.75631, -5.26894, -7.02525, -7.02525, -5.26894},
          {1.75631, 5.26894, 1.75631, 2.63447, -5.26894, -5.26894, -7.02525, -7.02525},
          {2.63447, 1.75631, 5.26894, 1.75631, -7.02525, -5.26894, -5.26894, -7.02525},
@@ -458,7 +459,7 @@ KRATOS_TEST_CASE_IN_SUITE(CalculateLocalSystemForThermalMicroClimateCondition3D8
 
     KRATOS_EXPECT_MATRIX_RELATIVE_NEAR(expected_lhs_matrix, lhs_matrix, relative_tolerance)
 
-    auto expected_rhs_vector = UblasUtilities::CreateVector(
+    const auto expected_rhs_vector = UblasUtilities::CreateVector(
         {26.383, 26.383, 26.383, 26.383, -105.532, -105.532, -105.532, -105.532});
     KRATOS_EXPECT_VECTOR_RELATIVE_NEAR(expected_rhs_vector, rhs_vector, relative_tolerance)
 }
