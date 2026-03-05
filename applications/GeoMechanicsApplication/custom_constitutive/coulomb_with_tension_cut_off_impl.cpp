@@ -82,7 +82,7 @@ bool CoulombWithTensionCutOffImpl::IsAdmissibleStressState(const StressStateType
 {
     const auto coulomb_yield_function_value = mCoulombYieldSurface.YieldFunctionValue(rTrialStressState);
     const auto tension_yield_function_value = mTensionCutOff.YieldFunctionValue(rTrialStressState);
-    constexpr auto tolerance         = 1.0e-10;
+    constexpr auto tolerance                = 1.0e-10;
     const auto     coulomb_tolerance = tolerance * (1.0 + std::abs(coulomb_yield_function_value));
     const auto     tension_tolerance = tolerance * (1.0 + std::abs(tension_yield_function_value));
     return coulomb_yield_function_value < coulomb_tolerance && tension_yield_function_value < tension_tolerance;
@@ -238,6 +238,10 @@ Geo::PrincipalStresses CoulombWithTensionCutOffImpl::ReturnStressAtCornerPoint(
     const Matrix&                         rElasticConstitutiveTensor,
     Geo::PrincipalStresses::AveragingType AveragingType) const
 {
+    if (const auto apex = mCoulombYieldSurface.CalculateApex(); mTensionCutOff.GetTensileStrength() > apex)
+        return StressStrainUtilities::TransformSigmaTauToPrincipalStresses(Geo::SigmaTau{apex, 0.0},
+                                                                           rTrialPrincipalStresses);
+
     const auto dG_dSigma_Coulomb =
         mCoulombYieldSurface.DerivativeOfFlowFunction(rTrialPrincipalStresses, AveragingType);
     const auto principal_stress_correction_Coulomb =
