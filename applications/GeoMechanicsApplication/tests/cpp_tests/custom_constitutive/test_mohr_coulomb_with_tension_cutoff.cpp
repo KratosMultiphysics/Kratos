@@ -571,6 +571,36 @@ KRATOS_TEST_CASE_IN_SUITE(MohrCoulombWithTensionCutOff_CalculateMaterialResponse
                               expected_cauchy_stress_vector, Defaults::absolute_tolerance);
 }
 
+KRATOS_TEST_CASE_IN_SUITE(MohrCoulombWithTensionCutOff_TrialStressInDegeneratedTensileApexReturnZoneIsReturnedToApex,
+                          KratosGeoMechanicsFastSuiteWithoutKernel)
+{
+    // Arrange
+    auto           law = MohrCoulombWithTensionCutOff(std::make_unique<PlaneStrain>());
+    Properties     properties;
+    constexpr auto phi_in_degrees = 30.0;
+    properties.SetValue(GEO_FRICTION_ANGLE, phi_in_degrees);
+    constexpr auto cohesion = 10.0;
+    properties.SetValue(GEO_COHESION, cohesion);
+    properties.SetValue(GEO_DILATANCY_ANGLE, 20.0);
+    const auto tensile_strength = cohesion / std::tan(MathUtils<>::DegreesToRadians(phi_in_degrees));
+    properties.SetValue(GEO_TENSILE_STRENGTH, tensile_strength);
+    properties.SetValue(YOUNG_MODULUS, 1.0e6);
+    properties.SetValue(POISSON_RATIO, 0.15);
+    ConstitutiveLaw::Parameters parameters;
+    parameters.SetMaterialProperties(properties);
+    const auto dummy_element_geometry      = Geometry<Node>{};
+    const auto dummy_shape_function_values = Vector{};
+    law.InitializeMaterial(properties, dummy_element_geometry, dummy_shape_function_values);
+
+    // Act and Assert
+    auto cauchy_stress_vector = UblasUtilities::CreateVector(
+        {tensile_strength + 20.0, tensile_strength + 10.0, tensile_strength, 0.0});
+    const auto expected_cauchy_stress_vector =
+        UblasUtilities::CreateVector({tensile_strength, tensile_strength, tensile_strength, 0.0});
+    KRATOS_EXPECT_VECTOR_NEAR(CalculateMappedStressVector(cauchy_stress_vector, parameters, law),
+                              expected_cauchy_stress_vector, Defaults::absolute_tolerance);
+}
+
 KRATOS_TEST_CASE_IN_SUITE(MohrCoulombWithTensionCutOff_CalculateMaterialResponseCauchyAtCornerReturnZoneWithShearComponent,
                           KratosGeoMechanicsFastSuiteWithoutKernel)
 {
