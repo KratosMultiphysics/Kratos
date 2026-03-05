@@ -32,7 +32,6 @@
 
 // Project includes
 #include "includes/define.h"
-#include "includes/ublas_interface.h"
 #include "input_output/logger.h"
 #include "containers/flags.h"
 #include "containers/array_1d.h"
