@@ -289,17 +289,27 @@ TEST_F(KratosGeoMechanicsFastSuiteWithoutKernel, GeoMechanicsTimeIntegrationSche
     TestUpdateForNumberOfThreads(2);
 }
 
-TEST_F(KratosGeoMechanicsFastSuiteWithoutKernel, GeoMechanicsTimeIntegrationScheme_Throws_WhenZDofIsMissingFor3DModel)
+ModelPart& CreateModelPartWithDomainSize(int DomainSize)
 {
-    const ConcreteGeoMechanicsTimeIntegrationScheme test_scheme({}, {SecondOrderVectorVariable(DISPLACEMENT)});
     Model model;
     auto& r_model_part = model.CreateModelPart("main");
     r_model_part.SetBufferSize(2);
     r_model_part.AddNodalSolutionStepVariable(DISPLACEMENT);
     r_model_part.AddNodalSolutionStepVariable(VELOCITY);
     r_model_part.AddNodalSolutionStepVariable(ACCELERATION);
-    r_model_part.GetProcessInfo()[DOMAIN_SIZE] = 3;
-    auto p_node                                = r_model_part.CreateNewNode(1, 0.0, 0.0, 0.0);
+    r_model_part.AddNodalSolutionStepVariable(ROTATION);
+    r_model_part.AddNodalSolutionStepVariable(ANGULAR_VELOCITY);
+    r_model_part.AddNodalSolutionStepVariable(ANGULAR_ACCELERATION);
+    r_model_part.GetProcessInfo()[DOMAIN_SIZE] = DomainSize;
+    return r_model_part;
+}
+
+TEST_F(KratosGeoMechanicsFastSuiteWithoutKernel, GeoMechanicsTimeIntegrationScheme_Throws_WhenZDofIsMissingFor3DModel)
+{
+    const ConcreteGeoMechanicsTimeIntegrationScheme test_scheme({}, {SecondOrderVectorVariable(DISPLACEMENT)});
+    Model model;
+    auto& r_model_part = CreateModelPartWithDomainSize(3);
+    auto  p_node       = r_model_part.CreateNewNode(1, 0.0, 0.0, 0.0);
     p_node->AddDof(DISPLACEMENT_X);
     p_node->AddDof(DISPLACEMENT_Y);
 
@@ -311,13 +321,8 @@ TEST_F(KratosGeoMechanicsFastSuiteWithoutKernel, GeoMechanicsTimeIntegrationSche
 {
     const ConcreteGeoMechanicsTimeIntegrationScheme test_scheme({}, {SecondOrderVectorVariable(DISPLACEMENT)});
     Model model;
-    auto& r_model_part = model.CreateModelPart("main");
-    r_model_part.SetBufferSize(2);
-    r_model_part.AddNodalSolutionStepVariable(DISPLACEMENT);
-    r_model_part.AddNodalSolutionStepVariable(VELOCITY);
-    r_model_part.AddNodalSolutionStepVariable(ACCELERATION);
-    r_model_part.GetProcessInfo()[DOMAIN_SIZE] = 2;
-    auto p_node                                = r_model_part.CreateNewNode(1, 0.0, 0.0, 0.0);
+    auto& r_model_part = CreateModelPartWithDomainSize(2);
+    auto  p_node       = r_model_part.CreateNewNode(1, 0.0, 0.0, 0.0);
     p_node->AddDof(DISPLACEMENT_X);
     p_node->AddDof(DISPLACEMENT_Y);
 
@@ -328,13 +333,8 @@ TEST_F(KratosGeoMechanicsFastSuiteWithoutKernel, GeoMechanicsTimeIntegrationSche
 {
     const ConcreteGeoMechanicsTimeIntegrationScheme test_scheme({}, {SecondOrderVectorVariable(ROTATION)});
     Model model;
-    auto& r_model_part = model.CreateModelPart("main");
-    r_model_part.SetBufferSize(2);
-    r_model_part.AddNodalSolutionStepVariable(ROTATION);
-    r_model_part.AddNodalSolutionStepVariable(ANGULAR_VELOCITY);
-    r_model_part.AddNodalSolutionStepVariable(ANGULAR_ACCELERATION);
-    r_model_part.GetProcessInfo()[DOMAIN_SIZE] = 2;
-    auto p_node                                = r_model_part.CreateNewNode(1, 0.0, 0.0, 0.0);
+    auto& r_model_part = CreateModelPartWithDomainSize(2);
+    auto  p_node       = r_model_part.CreateNewNode(1, 0.0, 0.0, 0.0);
 
     KRATOS_EXPECT_EXCEPTION_IS_THROWN(test_scheme.Check(r_model_part),
                                       "missing ROTATION_Z dof on node 1");
@@ -344,13 +344,8 @@ TEST_F(KratosGeoMechanicsFastSuiteWithoutKernel, GeoMechanicsTimeIntegrationSche
 {
     const ConcreteGeoMechanicsTimeIntegrationScheme test_scheme({}, {SecondOrderVectorVariable(ROTATION)});
     Model model;
-    auto& r_model_part = model.CreateModelPart("main");
-    r_model_part.SetBufferSize(2);
-    r_model_part.AddNodalSolutionStepVariable(ROTATION);
-    r_model_part.AddNodalSolutionStepVariable(ANGULAR_VELOCITY);
-    r_model_part.AddNodalSolutionStepVariable(ANGULAR_ACCELERATION);
-    r_model_part.GetProcessInfo()[DOMAIN_SIZE] = 2;
-    auto p_node                                = r_model_part.CreateNewNode(1, 0.0, 0.0, 0.0);
+    auto& r_model_part = CreateModelPartWithDomainSize(2);
+    auto  p_node       = r_model_part.CreateNewNode(1, 0.0, 0.0, 0.0);
     p_node->AddDof(ROTATION_Z);
 
     EXPECT_NO_THROW(test_scheme.Check(r_model_part));
