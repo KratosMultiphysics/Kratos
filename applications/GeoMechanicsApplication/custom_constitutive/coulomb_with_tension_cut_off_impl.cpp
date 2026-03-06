@@ -148,8 +148,8 @@ StressStateType CoulombWithTensionCutOffImpl::DoReturnMapping(const StressStateT
 Geo::SigmaTau CoulombWithTensionCutOffImpl::CalculateCornerPoint() const
 {
     const auto tensile_strength = mTensionCutOff.GetTensileStrength();
-    if (const auto apex = mCoulombYieldSurface.CalculateApex(); tensile_strength > apex)
-        return Geo::SigmaTau{apex, 0.0};
+    if (const auto apex = mCoulombYieldSurface.CalculateApex(); tensile_strength > apex.Sigma())
+        return apex;
 
     const auto cohesion = mCoulombYieldSurface.GetCohesion();
     const auto sin_phi  = std::sin(mCoulombYieldSurface.GetFrictionAngleInRadians());
@@ -161,14 +161,14 @@ Geo::SigmaTau CoulombWithTensionCutOffImpl::CalculateCornerPoint() const
 bool CoulombWithTensionCutOffImpl::IsStressAtTensionApexReturnZone(const Geo::SigmaTau& rTrialTraction) const
 {
     const auto tensile_strength = mTensionCutOff.GetTensileStrength();
-    return tensile_strength < mCoulombYieldSurface.CalculateApex() &&
+    return tensile_strength < mCoulombYieldSurface.CalculateApex().Sigma() &&
            rTrialTraction.Sigma() - rTrialTraction.Tau() - tensile_strength > 0.0;
 }
 
 bool CoulombWithTensionCutOffImpl::IsStressAtTensionCutoffReturnZone(const Geo::SigmaTau& rTrialTraction) const
 {
     const auto corner_point = CalculateCornerPoint();
-    return mTensionCutOff.GetTensileStrength() < mCoulombYieldSurface.CalculateApex() &&
+    return mTensionCutOff.GetTensileStrength() < mCoulombYieldSurface.CalculateApex().Sigma() &&
            corner_point.Tau() - rTrialTraction.Tau() - corner_point.Sigma() + rTrialTraction.Sigma() > 0.0;
 }
 
@@ -256,9 +256,9 @@ Geo::PrincipalStresses CoulombWithTensionCutOffImpl::ReturnStressAtCornerPoint(
     const Matrix&                         rElasticConstitutiveTensor,
     Geo::PrincipalStresses::AveragingType AveragingType) const
 {
-    if (const auto apex = mCoulombYieldSurface.CalculateApex(); mTensionCutOff.GetTensileStrength() > apex)
-        return StressStrainUtilities::TransformSigmaTauToPrincipalStresses(Geo::SigmaTau{apex, 0.0},
-                                                                           rTrialPrincipalStresses);
+    if (const auto apex = mCoulombYieldSurface.CalculateApex();
+        mTensionCutOff.GetTensileStrength() > apex.Sigma())
+        return StressStrainUtilities::TransformSigmaTauToPrincipalStresses(apex, rTrialPrincipalStresses);
 
     const auto principal_stress_correction_Coulomb = CalculatePrincipalStressCorrection(
         rTrialPrincipalStresses, AveragingType, rElasticConstitutiveTensor, mCoulombYieldSurface);
