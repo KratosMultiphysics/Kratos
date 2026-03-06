@@ -289,10 +289,9 @@ TEST_F(KratosGeoMechanicsFastSuiteWithoutKernel, GeoMechanicsTimeIntegrationSche
     TestUpdateForNumberOfThreads(2);
 }
 
-ModelPart& CreateModelPartWithDomainSize(int DomainSize)
+ModelPart& CreateModelPartWithDomainSize(int DomainSize, Model& rModel)
 {
-    Model model;
-    auto& r_model_part = model.CreateModelPart("main");
+    auto& r_model_part = rModel.CreateModelPart("main");
     r_model_part.SetBufferSize(2);
     r_model_part.AddNodalSolutionStepVariable(DISPLACEMENT);
     r_model_part.AddNodalSolutionStepVariable(VELOCITY);
@@ -308,7 +307,7 @@ TEST_F(KratosGeoMechanicsFastSuiteWithoutKernel, GeoMechanicsTimeIntegrationSche
 {
     const ConcreteGeoMechanicsTimeIntegrationScheme test_scheme({}, {SecondOrderVectorVariable(DISPLACEMENT)});
     Model model;
-    auto& r_model_part = CreateModelPartWithDomainSize(3);
+    auto& r_model_part = CreateModelPartWithDomainSize(3, model);
     auto  p_node       = r_model_part.CreateNewNode(1, 0.0, 0.0, 0.0);
     p_node->AddDof(DISPLACEMENT_X);
     p_node->AddDof(DISPLACEMENT_Y);
@@ -321,7 +320,7 @@ TEST_F(KratosGeoMechanicsFastSuiteWithoutKernel, GeoMechanicsTimeIntegrationSche
 {
     const ConcreteGeoMechanicsTimeIntegrationScheme test_scheme({}, {SecondOrderVectorVariable(DISPLACEMENT)});
     Model model;
-    auto& r_model_part = CreateModelPartWithDomainSize(2);
+    auto& r_model_part = CreateModelPartWithDomainSize(2, model);
     auto  p_node       = r_model_part.CreateNewNode(1, 0.0, 0.0, 0.0);
     p_node->AddDof(DISPLACEMENT_X);
     p_node->AddDof(DISPLACEMENT_Y);
@@ -333,7 +332,7 @@ TEST_F(KratosGeoMechanicsFastSuiteWithoutKernel, GeoMechanicsTimeIntegrationSche
 {
     const ConcreteGeoMechanicsTimeIntegrationScheme test_scheme({}, {SecondOrderVectorVariable(ROTATION)});
     Model model;
-    auto& r_model_part = CreateModelPartWithDomainSize(2);
+    auto& r_model_part = CreateModelPartWithDomainSize(2, model);
     auto  p_node       = r_model_part.CreateNewNode(1, 0.0, 0.0, 0.0);
 
     KRATOS_EXPECT_EXCEPTION_IS_THROWN(test_scheme.Check(r_model_part),
@@ -344,7 +343,7 @@ TEST_F(KratosGeoMechanicsFastSuiteWithoutKernel, GeoMechanicsTimeIntegrationSche
 {
     const ConcreteGeoMechanicsTimeIntegrationScheme test_scheme({}, {SecondOrderVectorVariable(ROTATION)});
     Model model;
-    auto& r_model_part = CreateModelPartWithDomainSize(2);
+    auto& r_model_part = CreateModelPartWithDomainSize(2, model);
     auto  p_node       = r_model_part.CreateNewNode(1, 0.0, 0.0, 0.0);
     p_node->AddDof(ROTATION_Z);
 
