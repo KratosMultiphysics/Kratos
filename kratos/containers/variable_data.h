@@ -2,15 +2,15 @@
 //    ' /   __| _` | __|  _ \   __|
 //    . \  |   (   | |   (   |\__ `
 //   _|\_\_|  \__,_|\__|\___/ ____/
-//                   Multi-Physics 
+//                   Multi-Physics
 //
-//  License:		 BSD License 
+//  License:		 BSD License
 //					 Kratos default license: kratos/license.txt
 //
 //  Main authors:    Pooyan Dadvand
-//                    
 //
-	           
+//
+
 
 
 #if !defined(KRATOS_VARIABLE_DATA_H_INCLUDED )
@@ -31,6 +31,7 @@
 #include "includes/define.h"
 #include "utilities/counter.h"
 #include "includes/serializer.h"
+#include "includes/fnv_1a_hash.h"
 
 
 namespace Kratos
@@ -61,10 +62,17 @@ public:
     ///@{
 
     /// Copy constructor
-    VariableData(const VariableData& rOtherVariable);
+    constexpr VariableData(const VariableData& rOtherVariable)
+        : mName(rOtherVariable.mName),
+          mKey(rOtherVariable.mKey),
+          mSize(rOtherVariable.mSize),
+          mpSourceVariable(rOtherVariable.mpSourceVariable) ,
+          mIsComponent(rOtherVariable.mIsComponent)
+    {}
+
 
     /// Destructor.
-    virtual ~VariableData() {}
+    constexpr virtual ~VariableData() {}
 
 
     ///@}
@@ -81,10 +89,10 @@ public:
     ///@}
     ///@name Operations
     ///@{
-    
+
     /**
-     * Clone creates a copy of the object using a copy constructor of the class. 
-     * It is useful to avoid shallow copying of complex objects and also without 
+     * Clone creates a copy of the object using a copy constructor of the class.
+     * It is useful to avoid shallow copying of complex objects and also without
      * actually having information about the variable type.
      * @param pSource The pointer of the variable to be cloned
      * @return A raw pointer of the variable
@@ -92,8 +100,8 @@ public:
     virtual void* Clone(const void* pSource) const;
 
     /**
-     * Copy is very similar to Clone except that it also the destination 
-     * pointer also passed to it. It is a helpful method specially 
+     * Copy is very similar to Clone except that it also the destination
+     * pointer also passed to it. It is a helpful method specially
      * to create a copy of heterogeneous data arrays
      * @param pSource The pointer of the variable to be copied
      * @param pDestination The pointer of the destination variable
@@ -102,41 +110,41 @@ public:
     virtual void* Copy(const void* pSource, void* pDestination) const;
 
     /**
-     * Assign is very similar to Copy. It just differs in using an assignment 
-     * operator besides the copy constructor. Copy creates a new object while 
-     * Assign does the assignment for two existing objects. 
+     * Assign is very similar to Copy. It just differs in using an assignment
+     * operator besides the copy constructor. Copy creates a new object while
+     * Assign does the assignment for two existing objects.
      * @param pSource The pointer of the value to be assigned
      * @param pDestination The pointer of the destination value
      */
     virtual void Assign(const void* pSource, void* pDestination) const;
 
     /**
-     * AssignZero is a special case of Assign for which variable zero value used as source. 
+     * AssignZero is a special case of Assign for which variable zero value used as source.
      * This method is useful for initializing arrays or resetting values in memory.
      * @param pDestination The pointer of the destination variable
      */
     virtual void AssignZero(void* pDestination) const;
 
     /**
-     *  Delete removes an object of variable type from memory. It calls a 
-     * destructor of objects to prevent memory leak and frees the memory 
+     *  Delete removes an object of variable type from memory. It calls a
+     * destructor of objects to prevent memory leak and frees the memory
      * allocated for this object assuming that the object is allocated in heap.
      * @param pSource The pointer of the variable to be deleted
      */
     virtual void Delete(void* pSource) const;
-    
+
     /**
-     *  Destruct eliminates an object maintaining the memory it is using. 
-     * However, the unlike Delete it does nothing with the memory allocated to it. 
+     *  Destruct eliminates an object maintaining the memory it is using.
+     * However, the unlike Delete it does nothing with the memory allocated to it.
      * So it is very useful in case of reallocating a part of the memory.
      * @param pSource The pointer of the variable to be destructed
      */
     virtual void Destruct(void* pSource) const;
 
     /**
-     *  Print is an auxiliary method to produce output of given variable 
-     * knowing its address. For example writing an heterogenous container 
-     * in an output stream can be done using this method. Point assumes 
+     *  Print is an auxiliary method to produce output of given variable
+     * knowing its address. For example writing an heterogenous container
+     * in an output stream can be done using this method. Point assumes
      * that the streaming operator is defined for the variable type.
      * @param pSource The pointer of the variable to be printed
      * @param rOStream The stream used to print the information
@@ -144,9 +152,9 @@ public:
     virtual void Print(const void* pSource, std::ostream& rOStream) const;
 
     /**
-     * PrintData is an auxiliary method to produce output only the value of given variable 
-     * knowing its address. For example writing an heterogenous container 
-     * in an output stream can be done using this method. Point assumes 
+     * PrintData is an auxiliary method to produce output only the value of given variable
+     * knowing its address. For example writing an heterogenous container
+     * in an output stream can be done using this method. Point assumes
      * that the streaming operator is defined for the variable type.
      * @param pSource The pointer of the variable to be printed
      * @param rOStream The stream used to print the information
@@ -158,7 +166,7 @@ public:
      * @param pData A pointer to the data to be allocated
      */
     virtual void Allocate(void** pData) const;
-    
+
     /**
      * The save operation which backups the data of the class
      * @param rSerializer The serializer used to preserve the information
@@ -184,7 +192,7 @@ public:
         return key;
     }
 
-    KeyType Key() const
+    constexpr KeyType Key() const noexcept
     {
         return mKey;
     }
@@ -198,39 +206,39 @@ public:
     /// to change arbitrary any variable's key
    void SetKey(KeyType NewKey);
 
-    const std::string& Name() const
+    std::string Name() const noexcept
     {
-        return mName;
+        return std::string(mName);
     }
 
-    std::size_t Size() const
+    constexpr std::size_t Size() const noexcept
     {
         return mSize;
     }
 
-    bool IsComponent() const
+    constexpr bool IsComponent() const noexcept
     {
         return mIsComponent;
     }
 
-    bool IsNotComponent() const
+    constexpr bool IsNotComponent() const noexcept
     {
         return !mIsComponent;
     }
 
-    /// Returns the component index. 
+    /// Returns the component index.
     /** Please note that this method don't check if it is a component or not.
      * It uses the key to reterive the compenent index from its first 7 bits.
-     * Component index can be from 0 to 127 at most, because 7 bits are used to store it. 
+     * Component index can be from 0 to 127 at most, because 7 bits are used to store it.
      * So in case of normal variables it returns 0 (like being the first componet)
      **/
-    KeyType GetComponentIndex() const {
+    constexpr KeyType GetComponentIndex() const noexcept {
         constexpr KeyType first_7_bits=127;
         return (mKey & first_7_bits);
     }
 
     const VariableData& GetSourceVariable() const
-    {   
+    {
         KRATOS_DEBUG_ERROR_IF(mpSourceVariable == nullptr) << "No source variable is defined for the component" << std::endl;
         return *mpSourceVariable;
     }
@@ -267,13 +275,29 @@ public:
     - Copyable : if the is a value type and can be copied by memcopy
     - Component: for component of another variables
     - Component index: The index if is component
-    - Size: size of the variable in number of double. 
+    - Size: size of the variable in number of double.
     The order is as follow:
 
     64           size         32-bit hash                comp. index 0
         |-----------|----|---------------------------------------------|-|
     */
-    static KeyType GenerateKey(const std::string& Name, std::size_t Size, bool IsComponent, char ComponentIndex);
+    static constexpr KeyType GenerateKey(
+        const std::string_view& Name,
+        const std::size_t Size,
+        const bool IsComponent,
+        const char ComponentIndex)
+    {
+        std::uint64_t key = Size;
+        key <<= 32;
+        key += FNV1a32Hash::CalculateHash(Name);
+
+        key <<= 1;
+        key += IsComponent;
+        key <<= 7;
+        key += ComponentIndex;
+
+		return key;
+    }
 
     ///@}
     ///@name Friends
@@ -311,15 +335,32 @@ protected:
     ///@{
 
     /// Constructor for variables.
-    VariableData(const std::string& NewName, std::size_t NewSize);
+    constexpr VariableData(
+        const std::string_view& NewName,
+        const std::size_t NewSize)
+        : mName(NewName),
+          mKey(GenerateKey(mName, NewSize, false, 0)),
+          mSize(NewSize),
+          mpSourceVariable(this),
+          mIsComponent(false)
+    {}
 
     /// Constructor for variables components.
-    VariableData(const std::string& NewName, std::size_t NewSize, const VariableData* pSourceVariable, char ComponentIndex);
-
+    constexpr VariableData(
+        const std::string_view& NewName,
+        const std::size_t NewSize,
+        const VariableData* pSourceVariable,
+        const char ComponentIndex)
+        : mName(NewName),
+          mKey(GenerateKey(pSourceVariable->mName, NewSize, true, ComponentIndex)),
+          mSize(NewSize),
+          mpSourceVariable(pSourceVariable),
+          mIsComponent(true)
+    {}
 
     /** default constructor is to be used only with serialization due to the fact that
     each variable must have a name defined.*/
-    VariableData() {}
+    constexpr VariableData() {}
 
     ///@}
 
@@ -327,7 +368,7 @@ private:
     ///@name Member Variables
     ///@{
 
-    std::string mName;
+    std::string_view mName;
 
     /** Key value of this variable. Each variable will be locate by this
     value in each data structure. Variable constructor will initialize it. */
@@ -338,7 +379,7 @@ private:
     const VariableData* mpSourceVariable;
 
     bool mIsComponent;
-    
+
     ///@}
     ///@name Private Operations
     ///@{
@@ -379,6 +420,6 @@ inline std::ostream& operator << (std::ostream& rOStream,
 
 }  // namespace Kratos.
 
-#endif // KRATOS_VARIABLE_DATA_H_INCLUDED  defined 
+#endif // KRATOS_VARIABLE_DATA_H_INCLUDED  defined
 
 

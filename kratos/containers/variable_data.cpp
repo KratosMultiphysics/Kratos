@@ -2,60 +2,30 @@
 //    ' /   __| _` | __|  _ \   __|
 //    . \  |   (   | |   (   |\__ `
 //   _|\_\_|  \__,_|\__|\___/ ____/
-//                   Multi-Physics 
+//                   Multi-Physics
 //
-//  License:		 BSD License 
+//  License:		 BSD License
 //					 Kratos default license: kratos/license.txt
 //
-//  Main authors:    Pooyan Dadvand 
-//                   
+//  Main authors:    Pooyan Dadvand
+//
 //
 
 
 // System includes
 
 
-// External includes 
+// External includes
 
 
 // Project includes
 #include "includes/define.h"
 #include "containers/variable_data.h"
 #include "input_output/logger.h"
-#include "includes/fnv_1a_hash.h"
 
 
 namespace Kratos
 {
-
-    /// Constructor for variables.
-	VariableData::VariableData(const std::string& NewName, std::size_t NewSize) : mName(NewName), mKey(0), mSize(NewSize), mpSourceVariable(this), mIsComponent(false) {
-        mKey = GenerateKey(mName, mSize, mIsComponent, 0);
-    }
-
-    /// Constructor.
-	VariableData::VariableData(const std::string& NewName, std::size_t NewSize, const VariableData* pSourceVariable, char ComponentIndex) : mName(NewName), mKey(0), mSize(NewSize), mpSourceVariable(pSourceVariable), mIsComponent(true) {
-        mKey = GenerateKey(mpSourceVariable->Name(), mSize, mIsComponent, ComponentIndex);
-    }
-
-	/// Copy constructor
-    VariableData::VariableData(const VariableData& rOtherVariable)
-        : mName(rOtherVariable.mName), mKey(rOtherVariable.mKey), mSize(rOtherVariable.mSize),mpSourceVariable(rOtherVariable.mpSourceVariable) , mIsComponent(rOtherVariable.mIsComponent) {}
-
-	VariableData::KeyType VariableData::GenerateKey(const std::string& Name, std::size_t Size, bool IsComponent, char ComponentIndex)
-	{
-        std::uint64_t key = Size;
-        key <<= 32;
-        key += FNV1a32Hash::CalculateHash(Name.c_str());
-
-        key <<= 1;
-        key += IsComponent;
-        key <<= 7;
-        key += ComponentIndex;
-
-		return key;
-
-	}
 
     void* VariableData::Clone(const void* pSource) const
     {
@@ -121,19 +91,19 @@ namespace Kratos
 
     void VariableData::save(Serializer& rSerializer) const
     {
-        rSerializer.save("Name",mName);
+        // rSerializer.save("Name",mName);
         rSerializer.save("Key",mKey);
 		rSerializer.save("IsComponent", mIsComponent);
     }
 
     void VariableData::load(Serializer& rSerializer)
     {
-        rSerializer.load("Name",mName);
+        // rSerializer.load("Name",mName);
         rSerializer.load("Key",mKey);
 		rSerializer.load("IsComponent", mIsComponent);
     }
 
-  
+
 }  // namespace Kratos.
 
 

@@ -15,6 +15,8 @@
 
 #pragma once
 
+#include <string_view>
+
 namespace Kratos {
 ///@addtogroup Kratos Core
 ///@{
@@ -59,7 +61,7 @@ public:
     ///@name Operations
     ///@{
 
-    static constexpr HashType CalculateHash(const char *const TheString) {
+    static constexpr HashType CalculateHash(const std::string_view& TheString) {
         return CalculateHash(mFNV32OfsetBasis, TheString);
     }
 
@@ -75,12 +77,13 @@ public:
     ///@}
     ///@name Private Operations
     ///@{
-    static constexpr HashType CalculateHash(const HashType Value,
-                                                const char *const TheString) {
-        return (TheString[0] == '\0')
+    static constexpr HashType CalculateHash(
+        const HashType Value,
+        const std::string_view& TheString)
+    {
+        return (TheString.empty())
                 ? Value
-                : CalculateHash((Value ^ static_cast<HashType>(TheString[0])) * mFNV32Prime,
-                                TheString + 1);
+                : CalculateHash((Value ^ static_cast<HashType>(TheString[0])) * mFNV32Prime, TheString.substr(1));
     }
 
   ///@}
@@ -125,7 +128,7 @@ public:
     ///@name Operations
     ///@{
 
-    static constexpr HashType CalculateHash(const char *const TheString) {
+    static constexpr HashType CalculateHash(const std::string_view& TheString) {
         return CalculateHash(mFNV64OfsetBasis, TheString);
     }
 
@@ -141,12 +144,13 @@ public:
     ///@}
     ///@name Private Operations
     ///@{
-    static constexpr HashType CalculateHash(const HashType Value,
-                                                const char *const TheString) {
-        return (TheString[0] == '\0')
+    static constexpr HashType CalculateHash(
+        const HashType Value,
+        const std::string_view& TheString)
+    {
+        return (TheString.empty())
                 ? Value
-                : CalculateHash((Value ^ static_cast<HashType>(TheString[0])) * mFNV64Prime,
-                                TheString + 1);
+                : CalculateHash((Value ^ static_cast<HashType>(TheString[0])) * mFNV64Prime, TheString.substr(1));
     }
 
     ///@}
