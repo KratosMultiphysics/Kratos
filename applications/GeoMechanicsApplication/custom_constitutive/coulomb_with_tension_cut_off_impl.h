@@ -17,6 +17,7 @@
 
 #include "coulomb_yield_surface.h"
 #include "custom_constitutive/principal_stresses.hpp"
+#include "geo_mechanics_application_constants.h"
 #include "tension_cutoff.h"
 
 namespace Kratos
@@ -46,8 +47,9 @@ public:
                                                          const Matrix& rElasticConstitutiveTensor,
                                                          Geo::PrincipalStresses::AveragingType AveragingType);
 
-    void SaveKappaOfCoulombYieldSurface();
-    void RestoreKappaOfCoulombYieldSurface();
+    void                           SaveKappaOfCoulombYieldSurface();
+    void                           RestoreKappaOfCoulombYieldSurface();
+    [[nodiscard]] PlasticityStatus GetPlasticityStatus() const;
 
 private:
     CoulombYieldSurface mCoulombYieldSurface;
@@ -55,6 +57,7 @@ private:
     double              mSavedKappaOfCoulombYieldSurface{0.0};
     double              mAbsoluteYieldFunctionValueTolerance{1.0e-8};
     std::size_t         mMaxNumberOfPlasticIterations{100};
+    PlasticityStatus    mPlasticStatus{PlasticityStatus::ELASTIC};
 
     template <typename StressStateType>
     [[nodiscard]] bool IsAdmissibleStressState(const StressStateType& rTrialStressState) const;
