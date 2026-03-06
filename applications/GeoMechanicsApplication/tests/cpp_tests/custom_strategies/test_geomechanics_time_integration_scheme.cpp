@@ -316,6 +316,19 @@ TEST_F(KratosGeoMechanicsFastSuiteWithoutKernel, GeoMechanicsTimeIntegrationSche
                                       "missing DISPLACEMENT_Z dof on node 1");
 }
 
+TEST_F(KratosGeoMechanicsFastSuiteWithoutKernel, GeoMechanicsTimeIntegrationScheme_DoesNotThrow_WhenAllDofArePresentFor3DModel)
+{
+    const ConcreteGeoMechanicsTimeIntegrationScheme test_scheme({}, {SecondOrderVectorVariable(DISPLACEMENT)});
+    Model model;
+    auto& r_model_part = CreateModelPartWithDomainSize(3, model);
+    auto  p_node       = r_model_part.CreateNewNode(1, 0.0, 0.0, 0.0);
+    p_node->AddDof(DISPLACEMENT_X);
+    p_node->AddDof(DISPLACEMENT_Y);
+    p_node->AddDof(DISPLACEMENT_Z);
+
+    EXPECT_NO_THROW(test_scheme.Check(r_model_part));
+}
+
 TEST_F(KratosGeoMechanicsFastSuiteWithoutKernel, GeoMechanicsTimeIntegrationScheme_NoThrow_WhenZDofIsMissingFor2DModel)
 {
     const ConcreteGeoMechanicsTimeIntegrationScheme test_scheme({}, {SecondOrderVectorVariable(DISPLACEMENT)});
