@@ -306,12 +306,10 @@ private:
                 this->CheckSolutionStepsData(r_node, r_second_order_vector_variable.first_time_derivative);
                 this->CheckSolutionStepsData(r_node, r_second_order_vector_variable.second_time_derivative);
 
-                std::vector<std::string> components{"X", "Y"};
-                if (rModelPart.GetProcessInfo()[DOMAIN_SIZE] == 3) {
-                    components.push_back("Z");
-                }
-
-                for (const auto& component : components) {
+                for (const auto  components = rModelPart.GetProcessInfo()[DOMAIN_SIZE] == 3
+                                                  ? std::vector<std::string>{"X", "Y", "Z"}
+                                                  : std::vector<std::string>{"X", "Y"};
+                     const auto& component : components) {
                     const auto& variable_component = VariablesUtilities::GetComponentFromVectorVariable(
                         r_second_order_vector_variable.instance.Name(), component);
                     this->CheckDof(r_node, variable_component);
