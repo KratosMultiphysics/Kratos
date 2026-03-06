@@ -71,6 +71,10 @@ class DEMPropertiesMeasureUtility:
                 angles_xz = []
                 angles_yz = []
 
+                Lx = domain_size[0]
+                Ly = domain_size[1]
+                Lz = domain_size[2]
+
                 for element in self.contact_model_part.Elements:
                     x_0 = element.GetNode(0).X
                     x_1 = element.GetNode(1).X
@@ -80,22 +84,50 @@ class DEMPropertiesMeasureUtility:
                     z_1 = element.GetNode(1).Z
                     r_0 = element.GetNode(0).GetSolutionStepValue(RADIUS)
                     r_1 = element.GetNode(1).GetSolutionStepValue(RADIUS)
+                    #x_contact = 0.5 * (x_0 + x_1)
+                    #y_contact = 0.5 * (y_0 + y_1)
+                    #z_contact = 0.5 * (z_0 + z_1)
+
+                    dx = x_0 - x_1
+                    if dx > 0.5 * Lx:
+                        dx -= Lx
+                    elif dx < -0.5 * Lx:
+                        dx += Lx
+                    
+                    dy = y_0 - y_1
+                    if dy > 0.5 * Ly:
+                        dy -= Ly
+                    elif dy < -0.5 * Ly:
+                        dy += Ly
+
+                    dz = z_0 - z_1
+                    if dz > 0.5 * Lz:
+                        dz -= Lz
+                    elif dz < -0.5 * Lz:
+                        dz += Lz
+
+                    #x_contact = x_0 - 0.5 * dx
+                    #y_contact = y_0 - 0.5 * dy
+                    #z_contact = z_0 - 0.5 * dz
 
                     center_to_sphere_distance_0 = ((x_0 - center_x)**2 + (y_0 - center_y)**2 + (z_0 - center_z)**2)**0.5
                     center_to_sphere_distance_1 = ((x_1 - center_x)**2 + (y_1 - center_y)**2 + (z_1 - center_z)**2)**0.5
+                    #dist = ((x_contact-center_x)**2 + (y_contact-center_y)**2 + (z_contact-center_z)**2)**0.5
 
-                    if center_to_sphere_distance_0 < (radius - r_0) or center_to_sphere_distance_1 < (radius - r_1):
-                        d = ((x_0 - x_1)**2 + (y_0 - y_1)**2 + (z_0 - z_1)**2)**0.5
+                    if 2>1: #(center_to_sphere_distance_0 < radius - r_0 or center_to_sphere_distance_1 < radius - r_1):
+                        d = (dx**2 + dy**2 + dz**2)**0.5
                         if d <= (r_0 + r_1):
-                            a = np.sqrt(4*r_0**2*d**2-(r_0**2+d**2-r_1**2)**2)/(2*d)
+                            arg = 4 * r_0**2 * d**2 - (r_0**2 + d**2 - r_1**2)**2
+                            arg = max(arg, 0.0)
+                            a = np.sqrt(arg) / (2 * d)
                             contact_area = np.pi*a**2
-                            vector1 = np.array([x_1 - x_0 , y_1 - y_0, z_1 - z_0])
+                            vector1 = np.array([dx , dy, dz])
                             v1_norm = np.linalg.norm(vector1)
                             if v1_norm:
                                 vector1_unit = vector1 / v1_norm
-                            theta_xz = np.arctan2((x_0 - x_1),(z_0 - z_1))*180/np.pi
-                            theta_xy = np.arctan2((x_0 - x_1),(y_0 - y_1))*180/np.pi
-                            theta_yz = np.arctan2((y_0 - y_1),(z_0 - z_1))*180/np.pi
+                            theta_xz = np.arctan2(dx, dz)*180/np.pi
+                            theta_xy = np.arctan2(dx, dy)*180/np.pi
+                            theta_yz = np.arctan2(dy, dz)*180/np.pi
                             if theta_yz < 0: theta_yz += 360
                             if theta_xz < 0: theta_xz += 360
                             if theta_xy < 0: theta_xy += 360
@@ -105,15 +137,15 @@ class DEMPropertiesMeasureUtility:
                             angles_yz.append(theta_yz)
                             total_tensor += tensor
                             total_contact_number += 1
-                        else:
-                            continue
 
                 particle_number_inside = self.SphericElementGlobalPhysicsCalculator.CalculateSumOfParticlesWithinSphere(self.spheres_model_part, radius, [center_x, center_y, center_z])
 
+                print(total_contact_number)
+                
                 if total_contact_number:
                     measured_non_homogenized_conductivity_tensor = total_tensor/measure_sphere_volume
                 else:
-                    measured_non_homogenized_conductivity_tensor = np.empty((3, 3))
+                    measured_non_homogenized_conductivity_tensor = np.zeros((3,3))
 
                 conductivity_tensor_trace = (measured_non_homogenized_conductivity_tensor[0][0] + measured_non_homogenized_conductivity_tensor[1][1] + measured_non_homogenized_conductivity_tensor[2][2])/3
 
@@ -219,3 +251,65 @@ class DEMPropertiesMeasureUtility:
     
     def RemoveRigidBodyMotion(self):
         self.SphericElementGlobalPhysicsCalculator.RemoveRigidBodyMotion(self.spheres_model_part)
+
+    def MeasureGlobalConductivityTensor(self, Lx, Ly, Lz):
+        if self.DEM_parameters["ContactMeshOption"].GetBool():
+            bounding_box_volume = Lx * Ly * Lz
+            total_tensor = np.empty((3, 3))
+            total_tensor[:] = 0.0
+            total_contact_number = 0
+
+            for element in self.contact_model_part.Elements:
+                x_0 = element.GetNode(0).X
+                x_1 = element.GetNode(1).X
+                y_0 = element.GetNode(0).Y
+                y_1 = element.GetNode(1).Y
+                z_0 = element.GetNode(0).Z
+                z_1 = element.GetNode(1).Z
+                r_0 = element.GetNode(0).GetSolutionStepValue(RADIUS)
+                r_1 = element.GetNode(1).GetSolutionStepValue(RADIUS)
+
+                dx = x_0 - x_1
+                if dx > 0.5 * Lx:
+                    dx -= Lx
+                elif dx < -0.5 * Lx:
+                    dx += Lx
+                
+                dy = y_0 - y_1
+                if dy > 0.5 * Ly:
+                    dy -= Ly
+                elif dy < -0.5 * Ly:
+                    dy += Ly
+
+                dz = z_0 - z_1
+                if dz > 0.5 * Lz:
+                    dz -= Lz
+                elif dz < -0.5 * Lz:
+                    dz += Lz
+                
+                d = (dx**2 + dy**2 + dz**2)**0.5
+                if d <= (r_0 + r_1):
+                    arg = 4 * r_0**2 * d**2 - (r_0**2 + d**2 - r_1**2)**2
+                    arg = max(arg, 0.0)
+                    a = np.sqrt(arg) / (2 * d)
+                    contact_area = np.pi * a**2
+                    vector1 = np.array([dx, dy, dz])
+                    v1_norm = np.linalg.norm(vector1)
+                    if v1_norm:
+                        vector1_unit = vector1 / v1_norm
+                    tensor = contact_area * d * np.outer(vector1_unit, vector1_unit)
+                    total_tensor += tensor
+                    total_contact_number += 1
+
+            print(total_contact_number)
+            
+            if total_contact_number:
+                measured_non_homogenized_conductivity_tensor = total_tensor/bounding_box_volume
+            else:
+                measured_non_homogenized_conductivity_tensor = np.zeros((3,3))
+
+            conductivity_tensor_trace = (measured_non_homogenized_conductivity_tensor[0][0] + measured_non_homogenized_conductivity_tensor[1][1] + measured_non_homogenized_conductivity_tensor[2][2])/3
+
+            return [measured_non_homogenized_conductivity_tensor[0][0],measured_non_homogenized_conductivity_tensor[1][1],measured_non_homogenized_conductivity_tensor[2][2]], conductivity_tensor_trace
+        else:
+            raise Exception('The \"PostStressStrainOption\" and \"ContactMeshOption\" in the [ProjectParametersDEM.json] should be [True].')

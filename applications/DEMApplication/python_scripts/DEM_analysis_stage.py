@@ -898,6 +898,12 @@ class DEMAnalysisStage(AnalysisStage):
     def RemoveRigidBodyMotion(self):
         self.DEMPropertiesMeasureUtility.RemoveRigidBodyMotion()
 
+    def MeasureGlobalConductivityTensor(self):
+        Lx = self.BoundingBoxMaxX_update - self.BoundingBoxMinX_update
+        Ly = self.BoundingBoxMaxY_update - self.BoundingBoxMinY_update
+        Lz = self.BoundingBoxMaxZ_update - self.BoundingBoxMinZ_update
+        return self.DEMPropertiesMeasureUtility.MeasureGlobalConductivityTensor(Lx, Ly, Lz)
+
 if __name__ == "__main__":
     with open("ProjectParametersDEM.json",'r') as parameter_file:
         project_parameters = KratosMultiphysics.Parameters(parameter_file.read())
