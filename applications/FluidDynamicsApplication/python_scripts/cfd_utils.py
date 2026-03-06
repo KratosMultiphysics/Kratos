@@ -18,6 +18,12 @@ if USE_CUPY:
         import cupyx.scipy.sparse as sparse
         import cupyx.scipy.sparse.linalg as sparse_linalg
         asnumpy = xp.asnumpy
+        try:
+            import pyamgx as linear_solver
+            USE_AMGX = True
+        except ImportError:
+            print("PyAMGx not found. Falling back to CuPy sparse_linalg.")
+            USE_AMGX = False
     except ImportError:
         print("CuPy not found. Falling back to NumPy.")
         import numpy as xp
@@ -420,7 +426,7 @@ class CFDUtils:
             return A_cu,assembly_indices
         else:
             assembly_indices = A.GetEquationIdCsrIndices(conn)
-            return A,assembly_indices
+            return A, assembly_indices
 
     def AssembleScalarMatrix(self, LHSel, conn, A : KM.CsrMatrix):
         A.SetValue(0.0)

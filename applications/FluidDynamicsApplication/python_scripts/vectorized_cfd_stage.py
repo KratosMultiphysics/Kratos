@@ -1,11 +1,15 @@
+import time
+import numpy as np
+
 import KratosMultiphysics as KM
 import KratosMultiphysics.analysis_stage as analysis_stage
-import numpy as np
 import KratosMultiphysics.FluidDynamicsApplication.cfd_utils as cfd_utils
+import KratosMultiphysics.scipy_conversion_tools as scipy_conversion_tools
+import KratosMultiphysics.python_linear_solver_factory as linear_solver_factory
+
 xp = cfd_utils.xp
 USE_CUPY = cfd_utils.USE_CUPY
-import scipy.sparse.linalg
-import KratosMultiphysics.scipy_conversion_tools
+USE_AMGX = cfd_utils.USE_AMGX if USE_CUPY else None
 
 class VectorizedCFDStage(analysis_stage.AnalysisStage):
     def __init__(self, model, project_parameters):
@@ -48,6 +52,9 @@ class VectorizedCFDStage(analysis_stage.AnalysisStage):
             self.dt = settings["time_stepping"]["time_step"].GetDouble()
 
         self.convection_integration_order = 2 # TODO: think on exposing this to the json
+
+        self.pressure_max_iteration = 100 # TODO: think on exposing this to the json
+        self.pressure_tolerance = 1.0e-9 # TODO: think on exposing this to the json
 
     def ComputeLumpedMass(self):
         Mscalar = xp.zeros(len(self.model_part.Nodes), dtype=cfd_utils.PRECISION)
@@ -245,6 +252,9 @@ class VectorizedCFDStage(analysis_stage.AnalysisStage):
         # Allocate the graph of the Laplacian matrix
         self.L, self.L_assembly_indices = self.cfd_utils.AllocateScalarMatrix(self.connectivity)
 
+        # Initialize pressure linear solver
+        self._InitializePressureLinearSolver()
+
         # Move stuff to the GPU
         self.DN = xp.asarray(self.DN, dtype=cfd_utils.PRECISION)
         self.N = xp.asarray(self.N, dtype=cfd_utils.PRECISION)
@@ -268,6 +278,12 @@ class VectorizedCFDStage(analysis_stage.AnalysisStage):
         if self.automatic_dt:
             aux = self.target_fourier * self.rho / self.nu
             self.dt_fourier = np.min(aux * self.h**2)
+
+        #FIXME: remove after developing
+        self.step_1_total_time = 0.0
+        self.step_2_total_time = 0.0
+        self.step_3_total_time = 0.0
+        self.init_time = time.perf_counter()
 
         # self.vec_elemental_data = xp.asarray(self.vec_elemental_data, dtype=cfd_utils.PRECISION)
         # self.scalar_elemental_data = xp.asarray(self.scalar_elemental_data, dtype=cfd_utils.PRECISION)
@@ -294,6 +310,17 @@ class VectorizedCFDStage(analysis_stage.AnalysisStage):
         #     node.SetSolutionStepValue(KM.PRESSURE, 0, (2.0-node.Y)*10*self.rho) #TODO: remove after debugging
         #     node.SetSolutionStepValue(KM.PRESSURE, 1, (2.0-node.Y)*10*self.rho) #TODO: remove after debugging
             # node.Fix(KM.PRESSURE) #TODO: remove after debugging
+
+    def Finalize(self):
+        super().Finalize()
+
+        self._FinalizePressureLinearSolver()
+
+        total_time = time.perf_counter()-self.init_time
+        print(f"\n\nSimulation total time: {total_time}")
+        print(f"Step 1 total time: {self.step_1_total_time} ({round(100.0 * self.step_1_total_time / total_time)}%)")
+        print(f"Step 2 total time: {self.step_2_total_time} ({round(100.0 * self.step_2_total_time / total_time)}%)")
+        print(f"Step 3 total time: {self.step_3_total_time} ({round(100.0 * self.step_3_total_time / total_time)}%)")
 
     def ComputeVelocityProjection(self, v_elemental):
         # Solve (w,pi) = (w,rho·a·∇u)
@@ -489,17 +516,17 @@ class VectorizedCFDStage(analysis_stage.AnalysisStage):
         # Solve the system
         ##TODO: use amgcl instead of this one!! ... and also avoid creating temporaries
         # TODO: I think we can hide this logic in the cfd_utils
-        if type(self.L) == KM.CsrMatrix:
-            A_cu = cfd_utils.sparse.csr_matrix((
-                xp.asarray(self.L.value_data(), dtype=cfd_utils.PRECISION),
-                xp.asarray(self.L.index2_data()),
-                xp.asarray(self.L.index1_data())),
-                shape=(self.L.Size1(), self.L.Size2()))
-            p, info = cfd_utils.sparse_linalg.cg(A_cu, rhs, rtol=1e-9)
-        else:
-            p, info = cfd_utils.sparse_linalg.cg(self.L, rhs, rtol=1e-9)
-
-        if(info != 0):
+        # if type(self.L) == KM.CsrMatrix:
+        #     A_cu = cfd_utils.sparse.csr_matrix((
+        #         xp.asarray(self.L.value_data(), dtype=cfd_utils.PRECISION),
+        #         xp.asarray(self.L.index2_data()),
+        #         xp.asarray(self.L.index1_data())),
+        #         shape=(self.L.Size1(), self.L.Size2()))
+        #     p, info = cfd_utils.sparse_linalg.cg(A_cu, rhs, rtol=1e-9)
+        # else:
+        #     p, info = self._SolvePressure(rhs)
+        p, is_converged = self._SolvePressure(rhs)
+        if not is_converged:
             print("CG failed to converge.")
 
         # Convert p back to xp for next steps
@@ -553,18 +580,30 @@ class VectorizedCFDStage(analysis_stage.AnalysisStage):
         self.v_end_of_step_dirichlet = v.ravel()[self.fix_vel_indices].copy()
 
         # Perform fractional step
+        t0 = time.perf_counter()
         print("\tSolve step 1 w/ CFL ", self._ComputeCFL(v, dt), ", CFL advective ", self._ComputeCFLAdvective(v, dt, self.DN), " and Fourier ", self._ComputeFourier(dt))
         vfrac = self.SolveStep1(v, vold, pold, b, dt)
+        t1 = time.perf_counter()
+        print(f"\tStep 1 solved in {t1-t0}")
+        self.step_1_total_time += t1 - t0
+
         print("\tSolve step 2 w/ CFL ", self._ComputeCFL(vfrac, dt), ", CFL advective ", self._ComputeCFLAdvective(vfrac, dt, self.DN), " and Fourier ", self._ComputeFourier(dt))
         p = self.SolveStep2(vfrac, pold, dt)
         delta_p = p - pold #TODO: most probably we could modify p in place
+        t2 = time.perf_counter()
+        print(f"\tStep 2 solved in {t2-t1}")
+        self.step_2_total_time += t2 - t1
+
         print("\tSolve step 3")
         v = self.SolveStep3(v, vfrac, delta_p, dt)
+        t3 = time.perf_counter()
+        print(f"\tStep 3 solved in {t3-t2}")
+        self.step_3_total_time += t3 - t2
 
         # Update Kratos database
-        self.v_adaptor.data = np.asarray(v.get())
+        self.v_adaptor.data = cfd_utils.asnumpy(v)
         self.v_adaptor.StoreData()
-        self.p_adaptor.data = np.asarray(p.get())
+        self.p_adaptor.data = cfd_utils.asnumpy(p)
         self.p_adaptor.StoreData()
 
     def ComputeVelocityResidual(self, v_elemental, p_elemental, b_elemental, proj_el, proj_div_el, DN, tau):
@@ -628,7 +667,7 @@ class VectorizedCFDStage(analysis_stage.AnalysisStage):
         pass
 
     def GetStep(self):
-        return self.model_part.ProcessInfo[KratosMultiphysics.STEP]
+        return self.model_part.ProcessInfo[KM.STEP]
 
     def _ComputeCFL(self, v, dt):
         v_el = self.ElemData(v, self.connectivity)
@@ -671,6 +710,132 @@ class VectorizedCFDStage(analysis_stage.AnalysisStage):
                 return init_dt_factor * self.dt_max
         else:
             return self.dt
+
+    def _InitializePressureLinearSolver(self):
+        if USE_CUPY:
+            if USE_AMGX:
+
+                cfd_utils.linear_solver.initialize()
+
+                solver_config = {
+                    "config_version": 2,
+                    "solver": {
+                        "solver": "CG",
+                        "max_iters": self.pressure_max_iteration,
+                        "tolerance": self.pressure_tolerance,
+                        "norm": "L2",
+                        "monitor_residual": 1,
+                        "store_res_history": 1,
+                        "print_solve_stats": 0,
+                        "preconditioner": "amg"
+                    }
+                }
+                self.cfg = cfd_utils.linear_solver.Config().create_from_dict(solver_config)
+
+                self.rsrc = cfd_utils.linear_solver.Resources().create_simple(self.cfg)
+
+                self.linear_solver = cfd_utils.linear_solver.Solver().create(self.rsrc, self.cfg)
+
+                self.A_amgx = cfd_utils.linear_solver.Matrix().create(self.rsrc)
+                self.b_amgx = cfd_utils.linear_solver.Vector().create(self.rsrc)
+                self.x_amgx = cfd_utils.linear_solver.Vector().create(self.rsrc)
+
+                # Make sure all arrays are on the GPU
+                indptr = xp.asarray(self.L.indptr, dtype=xp.int32)
+                indices = xp.asarray(self.L.indices, dtype=xp.int32)
+                values = xp.asarray(self.L.data, dtype=cfd_utils.PRECISION)
+
+                # Construct a CuPy CSR matrix
+                A_cu = cfd_utils.sparse.csr_matrix((values, indices, indptr), shape=self.L.shape)
+
+                # Upload to AMGX
+                self.A_amgx.upload_CSR(A_cu)
+
+                # Build AMG hierarchy (only done once as our sparsity never changes here)
+                self.linear_solver.setup(self.A_amgx)
+            else:
+                # Create the standard CuPy CG solver
+                self.linear_solver = cfd_utils.sparse_linalg.cg
+        # else:
+            # pass #FIXME: we need the future linear solvers here
+            # # Set up the AMGCL linear solver
+            # amgcl_settings = KratosMultiphysics.Parameters("""{
+            #     "solver_type"                    : "amgcl",
+            #     "max_iteration"                  : 200,
+            #     "tolerance"                      : 1e-6,
+            #     "provide_coordinates"            : false,
+            #     "smoother_type"                  : "ilu0",
+            #     "krylov_type"                    : "cg",
+            #     "gmres_krylov_space_dimension"   : 100,
+            #     "use_block_matrices_if_possible" : false,
+            #     "coarsening_type"                : "aggregation",
+            #     "scaling"                        : true,
+            #     "verbosity"                      : 0
+            # }""")
+            # self.linear_solver = KM.Future.AMGCL(amgcl_settings)
+
+            # # Initialize the linear solver
+            # b = KM.SystemVector(self.L.Size1()) #FIXME: fake arrays to match the interface
+            # x = KM.SystemVector(self.L.Size1()) #FIXME: fake arrays to match the interface
+            # self.linear_solver.Initialize(self.L, b, x)
+
+    def _SolvePressure(self, rhs):
+        if USE_CUPY:
+            if USE_AMGX:
+                # Update matrix coefficients only
+                values = xp.asarray(self.L.data, dtype=cfd_utils.PRECISION)
+                self.A_amgx.replace_coefficients(values)
+
+                # Upload RHS
+                self.b_amgx.upload(rhs)
+
+                # Optional initial guess
+                self.x_amgx.upload(xp.zeros_like(rhs))
+
+                # Solve and get convergence status
+                self.linear_solver.solve(self.b_amgx, self.x_amgx)
+                is_converged = self.linear_solver.get_residual() <= self.pressure_tolerance
+
+                return self.x_amgx.download(), is_converged
+            else:
+                # Solve and get convergence status
+                sol, status = cfd_utils.sparse_linalg.cg(self.L, rhs, rtol=self.pressure_tolerance)
+                is_converged = status == 0 # Note that the status is 0 if the solver converged
+
+                return sol, is_converged
+        else:
+            A_np = cfd_utils.sparse.csr_matrix((
+                xp.asarray(self.L.value_data(), dtype=cfd_utils.PRECISION),
+                xp.asarray(self.L.index2_data()),
+                xp.asarray(self.L.index1_data())),
+                shape=(self.L.Size1(), self.L.Size2()))
+
+            sol, status = cfd_utils.sparse_linalg.cg(A_np, rhs, rtol=self.pressure_tolerance)
+            is_converged = status == 0 # Note that the status is 0 if the solver converged
+
+            return sol, is_converged
+
+            # pass #FIXME: we need the future linear solvers here
+            # x = KM.SystemVector(self.L.Size1()) #FIXME: fake arrays to match the interface
+            # x.SetValue(0.0)
+            # self.linear_solver.Solve(self.L, rhs, x)
+            # return x, self.linear_solver.IsConverged()
+
+    def _FinalizePressureLinearSolver(self):
+        if USE_CUPY:
+            if USE_AMGX:
+                self.linear_solver.destroy()
+                self.A_amgx.destroy()
+                self.b_amgx.destroy()
+                self.x_amgx.destroy()
+
+                self.rsrc.destroy()
+                self.cfg.destroy()
+
+                cfd_utils.linear_solver.finalize()
+        # else:
+            # pass #FIXME: we need the future linear solvers here
+            # self.linear_solver.Clear()
 
 if __name__ == "__main__":
 
