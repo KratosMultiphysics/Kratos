@@ -34,6 +34,7 @@
 // Application includes
 #include "includes/variables.h"
 #include "includes/kratos_flags.h"
+#include "includes/cfd_variables.h"
 
 namespace Kratos
 {

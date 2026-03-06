@@ -170,7 +170,7 @@ protected:
     ///@{
 
     ModelPart& mThisModelPart;                                  /// The model part to compute
-    Variable<Vector>* mpStressVariable = &CAUCHY_STRESS_VECTOR; /// The stress variable considered
+    const Variable<Vector>* mpStressVariable = &CAUCHY_STRESS_VECTOR; /// The stress variable considered
     SizeType mEchoLevel;                                        /// The echo level
 
     ///@}
