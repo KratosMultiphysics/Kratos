@@ -184,12 +184,12 @@ private:
     ///@name Member Variables
     ///@{
 
-    ModelPart& mrThisModelPart;              /// The main model part
+    ModelPart& mrThisModelPart;                    /// The main model part
     const Variable<double>& mrNodalLengthVariable; /// The variable used to messure the length of the element
-    double mFactorStiffness;                 /// The proportion between stiffness and penalty/scale factor
-    double mPenaltyScale;                    /// The penalty/scale factor proportion
-    bool mComputeScaleFactor;                /// If compute the scale factor
-    bool mComputePenalty;                    /// If compute the penalty
+    double mFactorStiffness;                       /// The proportion between stiffness and penalty/scale factor
+    double mPenaltyScale;                          /// The penalty/scale factor proportion
+    bool mComputeScaleFactor;                      /// If compute the scale factor
+    bool mComputePenalty;                          /// If compute the penalty
 
     ///@}
     ///@name Private Operators
