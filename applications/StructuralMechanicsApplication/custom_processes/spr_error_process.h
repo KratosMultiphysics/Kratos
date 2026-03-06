@@ -169,9 +169,9 @@ protected:
     ///@name Protected member Variables
     ///@{
 
-    ModelPart& mThisModelPart;                                  /// The model part to compute
+    ModelPart& mThisModelPart;                                        /// The model part to compute
     const Variable<Vector>* mpStressVariable = &CAUCHY_STRESS_VECTOR; /// The stress variable considered
-    SizeType mEchoLevel;                                        /// The echo level
+    SizeType mEchoLevel;                                              /// The echo level
 
     ///@}
     ///@name Protected Operators
