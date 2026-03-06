@@ -15,6 +15,7 @@
 
 // External includes
 #include <pybind11/numpy.h>
+#include <pybind11/operators.h>
 
 // Project includes
 #include "containers/data_value_container.h"
@@ -167,6 +168,8 @@ void  AddContainersToPython(pybind11::module& m)
     .def("GetComponentIndex", &VariableData::GetComponentIndex)
     .def("IsComponent", &VariableData::IsComponent)
     .def("__str__", PrintObject<VariableData>)
+    .def(py::self == py::self)
+    .def(py::self != py::self)
     ;
 
     py::class_<Variable<std::string>, VariableData>(m, "StringVariable" )
