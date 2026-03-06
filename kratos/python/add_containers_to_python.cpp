@@ -29,6 +29,7 @@
 #include "includes/radiation_settings.h"
 #include "utilities/quaternion.h"
 #include "python/numpy_utils.h"
+#include "includes/cfd_variables.h"
 
 namespace Kratos::Python
 {
