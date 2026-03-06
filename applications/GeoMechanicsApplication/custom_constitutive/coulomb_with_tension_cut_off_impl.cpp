@@ -219,8 +219,8 @@ Geo::PrincipalStresses CoulombWithTensionCutOffImpl::ReturnStressAtTensionCutoff
         mTensionCutOff.DerivativeOfFlowFunction(rTrialPrincipalStresses, AveragingType);
     const auto lambda = mTensionCutOff.CalculatePlasticMultiplier(
         rTrialPrincipalStresses, derivative_of_flow_function, rElasticConstitutiveTensor);
-    return Geo::PrincipalStresses{rTrialPrincipalStresses.Values() +
-                                  lambda * prod(subrange(rElasticConstitutiveTensor, 0, 3, 0, 3),
+    return rTrialPrincipalStresses +
+           Geo::PrincipalStresses{lambda * prod(subrange(rElasticConstitutiveTensor, 0, 3, 0, 3),
                                                 derivative_of_flow_function)};
 }
 
@@ -246,8 +246,8 @@ Geo::PrincipalStresses CoulombWithTensionCutOffImpl::ReturnStressAtRegularFailur
         mCoulombYieldSurface.DerivativeOfFlowFunction(rTrialPrincipalStresses, AveragingType);
     const auto lambda = mCoulombYieldSurface.CalculatePlasticMultiplier(
         rTrialPrincipalStresses, derivative_of_flow_function, rElasticConstitutiveTensor);
-    return Geo::PrincipalStresses{rTrialPrincipalStresses.Values() +
-                                  lambda * prod(subrange(rElasticConstitutiveTensor, 0, 3, 0, 3),
+    return rTrialPrincipalStresses +
+           Geo::PrincipalStresses{lambda * prod(subrange(rElasticConstitutiveTensor, 0, 3, 0, 3),
                                                 derivative_of_flow_function)};
 }
 
@@ -286,10 +286,10 @@ Geo::PrincipalStresses CoulombWithTensionCutOffImpl::ReturnStressAtCornerPoint(
          -1.0 * mTensionCutOff.YieldFunctionValue(rTrialPrincipalStresses)});
     const auto plastic_multipliers = Vector{prod(A_inverse, b)};
 
-    return Geo::PrincipalStresses{
-        rTrialPrincipalStresses.Values() +
-        plastic_multipliers[0] * principal_stress_correction_Coulomb.Values() +
-        plastic_multipliers[1] * principal_stress_correction_tension_cut_off.Values()};
+    return rTrialPrincipalStresses +
+           Geo::PrincipalStresses{
+               plastic_multipliers[0] * principal_stress_correction_Coulomb.Values() +
+               plastic_multipliers[1] * principal_stress_correction_tension_cut_off.Values()};
 }
 
 Geo::SigmaTau CoulombWithTensionCutOffImpl::ReturnStressAtCornerPoint(
