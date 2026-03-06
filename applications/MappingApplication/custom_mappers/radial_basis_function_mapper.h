@@ -70,6 +70,7 @@ class RBFSupportAccumulator {
             node_candidate.mCoordinates = rCoordinates;
 
             mCandidates.push_back(std::move(node_candidate));
+            mNumNeighbors++;
             mNotOrdered = true;
         }
 
@@ -81,6 +82,7 @@ class RBFSupportAccumulator {
             geometry_candidate.mCoordinates = rCoordinates;
 
             mCandidates.push_back(std::move(geometry_candidate)); 
+            mNumNeighbors++;
             mNotOrdered = true;
         }
 
@@ -89,12 +91,24 @@ class RBFSupportAccumulator {
             if (!mNotOrdered) return;
 
             std::stable_sort(mCandidates.begin(), mCandidates.end(),
-                [](const Candidate& a, const Candidate& b){ return a.mDistance < b.mDistance; });
+                [](const Candidate& a, const Candidate& b){
+                    return a.mDistance < b.mDistance;
+                });
+
+            if (mCandidates.size() > mRequiredRBFSupportPoints) {
+                mCandidates.resize(mRequiredRBFSupportPoints);
+            }
 
             mNumNeighbors = mCandidates.size();
-
             mNotOrdered = false;
         }
+
+        // void Clear()
+        // {
+        //     mCandidates.clear();
+        //     mNumNeighbors = 0;
+        //     mNotOrdered = false;
+        // }
 
         IndexType NumNeighbors() const { return mNumNeighbors; }
 
@@ -194,6 +208,12 @@ public:
                   const InfoType ValueType) const override
     {
         rValue = mRequiredRBFSupportPoints;
+    }
+
+    void ResetSearchResults() override
+    {
+        MapperInterfaceInfo::ResetSearchResults();
+        //mRBFSupportAccumulator.Clear();
     }
 
 private:
@@ -303,7 +323,7 @@ public:
               mOriginIsIga(OriginIsIga),
               mRBFTypeEnum(RBFTypeEnum),
               mPolynomialDegree(PolynomialDegree), 
-              mNumberOfPolynomialTerms((PolynomialDegree + 3) * (PolynomialDegree + 2) * (PolynomialDegree + 1) / 6),
+              mNumberOfPolynomialTerms( (PolynomialDegree + 2) * (PolynomialDegree + 1) / 2),
               mpPolynomialEquationIds(pPolynomialEquationIds){}
 
     // Construct from a node
@@ -314,7 +334,7 @@ public:
              mOriginIsIga(OriginIsIga),
              mRBFTypeEnum(RBFTypeEnum),
              mPolynomialDegree(PolynomialDegree),
-             mNumberOfPolynomialTerms((PolynomialDegree + 3) * (PolynomialDegree + 2) * (PolynomialDegree + 1) / 6),
+             mNumberOfPolynomialTerms((PolynomialDegree + 2) * (PolynomialDegree + 1) / 2),
              mpPolynomialEquationIds(pPolynomialEquationIds){}
 
     // Construct from a geometry (e.g. an integration-point “geometry” in IGA)
@@ -325,7 +345,7 @@ public:
              mOriginIsIga(OriginIsIga),
              mRBFTypeEnum(RBFTypeEnum),
              mPolynomialDegree(PolynomialDegree),
-             mNumberOfPolynomialTerms((PolynomialDegree + 3) * (PolynomialDegree + 2) * (PolynomialDegree + 1) / 6),
+             mNumberOfPolynomialTerms((PolynomialDegree + 2) * (PolynomialDegree + 1) / 2),
              mpPolynomialEquationIds(pPolynomialEquationIds){}
 
     void CalculateAll(MatrixType& rLocalMappingMatrix,
@@ -395,7 +415,7 @@ private:
     IndexType mNumberOfPolynomialTerms;
     const std::vector<IndexType>* mpPolynomialEquationIds; // reference to the polynomial ids
 
-    std::vector<double> EvaluatePolynomialBasis(const CoordinatesArrayType& rCoords, unsigned int degree) const;
+    std::vector<double> EvaluatePolynomialBasis(const CoordinatesArrayType& rCoords, unsigned int degree, unsigned int dimension) const;
 
     void InitializeRBFKernel(const Matrix& coords) const
     {
@@ -780,7 +800,7 @@ private:
     void AssignInterfaceEquationIdsIga()
     {
         MapperUtilities::AssignInterfaceEquationIdsToNodes(mpCouplingInterfaceDestination->GetCommunicator());
-        MapperUtilities::AssignInterfaceEquationIdsToConditions(mpCouplingInterfaceOrigin->GetCommunicator());
+        MapperUtilities::AssignInterfaceEquationIdsToElements(mpCouplingInterfaceOrigin->GetCommunicator());
     }
 
     void MapInternal(const Variable<double>& rOriginVariable,
