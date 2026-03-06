@@ -277,6 +277,12 @@ KRATOS_TEST_CASE_IN_SUITE(MohrCoulombWithTensionCutOff_CalculateMaterialResponse
     expected_cauchy_stress_vector = UblasUtilities::CreateVector({10.0, 10.0, 10.0, 0.0});
     KRATOS_EXPECT_VECTOR_NEAR(CalculateMappedStressVector(cauchy_stress_vector, parameters, law),
                               expected_cauchy_stress_vector, tolerance);
+    // Act
+    int plastic_status;
+    law.GetValue(GEO_PLASTIC_STATUS, plastic_status);
+
+    // Assert
+    KRATOS_EXPECT_EQ(plastic_status, static_cast<int>(PlasticityStatus::TENSION_APEX));
 }
 
 KRATOS_TEST_CASE_IN_SUITE(MohrCoulombWithTensionCutOff_CalculateMaterialResponseCauchyWithLargeTensileStrength,
@@ -776,4 +782,31 @@ KRATOS_TEST_CASE_IN_SUITE(MohrCoulombWithTensionCutOff_CalculateMaterialResponse
     KRATOS_EXPECT_VECTOR_NEAR(actual_cauchy_stress_vector, expected_cauchy_stress_vector,
                               Defaults::absolute_tolerance);
 }
+
+KRATOS_TEST_CASE_IN_SUITE(MohrCoulombWithTensionCutoff_GetValueReturnsPlasticityStatus,
+                          KratosGeoMechanicsFastSuiteWithoutKernel)
+{
+    // Arrange
+    Properties properties;
+    properties.SetValue(GEO_COHESION, 10.0);
+    properties.SetValue(GEO_FRICTION_ANGLE, 30.0);
+    properties.SetValue(GEO_DILATANCY_ANGLE, 0.0);
+    properties.SetValue(GEO_TENSILE_STRENGTH, 1000.0);
+    properties.SetValue(YOUNG_MODULUS, 30.0e6);
+    properties.SetValue(POISSON_RATIO, 0.2);
+
+    auto law = MohrCoulombWithTensionCutOff(std::make_unique<PlaneStrain>());
+
+    const auto dummy_element_geometry      = Geometry<Node>{};
+    const auto dummy_shape_function_values = Vector{};
+    law.InitializeMaterial(properties, dummy_element_geometry, dummy_shape_function_values);
+
+    // Act
+    int plastic_status;
+    law.GetValue(GEO_PLASTIC_STATUS, plastic_status);
+
+    // Assert, plasticity status elastic after initialization
+    KRATOS_EXPECT_EQ(plastic_status, static_cast<int>(PlasticityStatus::ELASTIC));
+}
+
 } // namespace Kratos::Testing

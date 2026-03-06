@@ -99,16 +99,20 @@ StressStateType CoulombWithTensionCutOffImpl::DoReturnMapping(const StressStateT
     auto kappa_start = mCoulombYieldSurface.GetKappa();
     for (auto counter = std::size_t{0}; counter < mMaxNumberOfPlasticIterations; ++counter) {
         if (IsStressAtTensionApexReturnZone(trial_traction)) {
+            mPlasticStatus = PlasticityStatus::TENSION_APEX;
             return ReturnStressAtTensionApexReturnZone(rTrialStressState);
         }
 
         if (IsStressAtTensionCutoffReturnZone(trial_traction)) {
+            mPlasticStatus = PlasticityStatus::TENSION_CUT_0FF;
             return ReturnStressAtTensionCutoffReturnZone(rTrialStressState, rElasticMatrix, AveragingType);
         }
 
         if (IsStressAtCornerReturnZone(trial_traction, AveragingType)) {
-            result = CalculateCornerPoint(rTrialStressState);
+            mPlasticStatus = PlasticityStatus::TENSION_MOHR_COULOMB_CORNER;
+            result         = CalculateCornerPoint(rTrialStressState);
         } else { // Regular failure region
+            mPlasticStatus = PlasticityStatus::MOHR_COULOMB_FAILURE;
             result = ReturnStressAtRegularFailureZone(rTrialStressState, rElasticMatrix, AveragingType);
         }
 
@@ -229,16 +233,25 @@ Geo::PrincipalStresses CoulombWithTensionCutOffImpl::ReturnStressAtRegularFailur
                                   lambda * prod(subrange(rElasticMatrix, 0, 3, 0, 3), derivative_of_flow_function)};
 }
 
+PlasticityStatus CoulombWithTensionCutOffImpl::GetPlasticityStatus() const
+{
+    return mPlasticStatus;
+}
+
 void CoulombWithTensionCutOffImpl::save(Serializer& rSerializer) const
 {
     rSerializer.save("CoulombYieldSurface", mCoulombYieldSurface);
     rSerializer.save("TensionCutOff", mTensionCutOff);
+    rSerializer.save("PlasticStatus", static_cast<int>(mPlasticStatus));
 }
 
 void CoulombWithTensionCutOffImpl::load(Serializer& rSerializer)
 {
     rSerializer.load("CoulombYieldSurface", mCoulombYieldSurface);
     rSerializer.load("TensionCutOff", mTensionCutOff);
+    int int_plasticity_status;
+    rSerializer.load("PlasticStatus", int_plasticity_status);
+    mPlasticStatus = static_cast<PlasticityStatus>(int_plasticity_status);
 }
 
 } // namespace Kratos
