@@ -307,4 +307,21 @@ TEST_F(KratosGeoMechanicsFastSuiteWithoutKernel, GeoMechanicsTimeIntegrationSche
                                       "missing DISPLACEMENT_Z dof on node 1");
 }
 
+TEST_F(KratosGeoMechanicsFastSuiteWithoutKernel, GeoMechanicsTimeIntegrationScheme_NoThrow_WhenZDofIsMissingFor2DModel)
+{
+    ConcreteGeoMechanicsTimeIntegrationScheme test_scheme({}, {SecondOrderVectorVariable(DISPLACEMENT)});
+    Model model;
+    auto& r_model_part = model.CreateModelPart("main");
+    r_model_part.SetBufferSize(2);
+    r_model_part.AddNodalSolutionStepVariable(DISPLACEMENT);
+    r_model_part.AddNodalSolutionStepVariable(VELOCITY);
+    r_model_part.AddNodalSolutionStepVariable(ACCELERATION);
+    r_model_part.GetProcessInfo()[DOMAIN_SIZE] = 2;
+    auto p_node                                = r_model_part.CreateNewNode(1, 0.0, 0.0, 0.0);
+    p_node->AddDof(DISPLACEMENT_X);
+    p_node->AddDof(DISPLACEMENT_Y);
+
+    EXPECT_NO_THROW(test_scheme.Check(r_model_part));
+}
+
 } // namespace Kratos::Testing
