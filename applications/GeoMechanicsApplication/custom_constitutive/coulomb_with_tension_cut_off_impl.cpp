@@ -24,6 +24,23 @@
 #include "includes/serializer.h"
 #include "utilities/math_utils.h"
 
+namespace
+{
+
+using namespace Kratos;
+
+template <typename YieldSurfaceType>
+auto CalculatePrincipalStressCorrection(const Geo::PrincipalStresses& rTrialPrincipalStresses,
+                                        const Geo::PrincipalStresses::AveragingType AveragingType,
+                                        const Matrix&           rElasticConstitutiveTensor,
+                                        const YieldSurfaceType& rYieldSurface)
+{
+    const auto dG_dSigma = rYieldSurface.DerivativeOfFlowFunction(rTrialPrincipalStresses, AveragingType);
+    return Geo::PrincipalStresses{prod(subrange(rElasticConstitutiveTensor, 0, 3, 0, 3), dG_dSigma)};
+}
+
+} // namespace
+
 namespace Kratos
 {
 
@@ -243,17 +260,13 @@ Geo::PrincipalStresses CoulombWithTensionCutOffImpl::ReturnStressAtCornerPoint(
         return StressStrainUtilities::TransformSigmaTauToPrincipalStresses(Geo::SigmaTau{apex, 0.0},
                                                                            rTrialPrincipalStresses);
 
-    const auto dG_dSigma_Coulomb =
-        mCoulombYieldSurface.DerivativeOfFlowFunction(rTrialPrincipalStresses, AveragingType);
-    const auto principal_stress_correction_Coulomb =
-        Geo::PrincipalStresses{prod(subrange(rElasticConstitutiveTensor, 0, 3, 0, 3), dG_dSigma_Coulomb)};
+    const auto principal_stress_correction_Coulomb = CalculatePrincipalStressCorrection(
+        rTrialPrincipalStresses, AveragingType, rElasticConstitutiveTensor, mCoulombYieldSurface);
     const auto traction_correction_Coulomb =
         StressStrainUtilities::TransformPrincipalStressesToSigmaTau(principal_stress_correction_Coulomb);
 
-    const auto dG_dSigma_tension_cut_off =
-        mTensionCutOff.DerivativeOfFlowFunction(rTrialPrincipalStresses, AveragingType);
-    const auto principal_stress_correction_tension_cut_off = Geo::PrincipalStresses{
-        prod(subrange(rElasticConstitutiveTensor, 0, 3, 0, 3), dG_dSigma_tension_cut_off)};
+    const auto principal_stress_correction_tension_cut_off = CalculatePrincipalStressCorrection(
+        rTrialPrincipalStresses, AveragingType, rElasticConstitutiveTensor, mTensionCutOff);
     const auto traction_correction_tension_cut_off =
         StressStrainUtilities::TransformPrincipalStressesToSigmaTau(principal_stress_correction_tension_cut_off);
 
