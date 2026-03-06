@@ -1418,7 +1418,7 @@
                 },
                 "solver_settings": {
                     "time_stepping": {
-                        "time_step": 0.01,
+                        "time_step": 0.05,
                         "max_delta_time_factor": 1000.0
                     },
                     "solver_type": "U_Pw",
@@ -1437,6 +1437,7 @@
                     "buffer_size": 2,
                     "clear_storage": false,
                     "compute_reactions": true,
+                    "use_old_stiffness_in_first_iteration": true,
                     "move_mesh_flag": false,
                     "reform_dofs_at_each_step": false,
                     "block_builder": true,
