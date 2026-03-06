@@ -15,13 +15,12 @@
 #include "custom_elements/contribution_calculators/calculation_contribution.h"
 #include "custom_elements/integration_coefficient_modifier_for_line_element.h"
 #include "custom_retention/saturated_law.h"
+#include "custom_utilities/registration_utilities.hpp"
+#include "custom_utilities/ublas_utilities.h"
 #include "geometries/line_2d_4.h"
 #include "geometries/line_2d_5.h"
 #include "tests/cpp_tests/geo_mechanics_fast_suite.h"
 #include "tests/cpp_tests/test_utilities.h"
-
-#include "custom_utilities/registration_utilities.hpp"
-#include <boost/numeric/ublas/assignment.hpp>
 
 namespace
 {
@@ -250,17 +249,14 @@ KRATOS_TEST_CASE_IN_SUITE(TransientPwLineElement_ReturnsTheExpectedLeftHandSideA
     element.CalculateLeftHandSide(actual_isolated_left_hand_side, process_info);
 
     // Assert
-    // clang-format off
-    auto expected_left_hand_side = Matrix{2, 2};
-    expected_left_hand_side <<= -0.00099588919125952972,  0.00046555910441502474,
-                                 0.00046555910441502474, -0.00099588919125952972;
-    // clang-format on
+    const auto expected_left_hand_side =
+        UblasUtilities::CreateMatrix({{-0.00099588919125952972, 0.00046555910441502474},
+                                      {0.00046555910441502474, -0.00099588919125952972}});
     KRATOS_EXPECT_MATRIX_RELATIVE_NEAR(actual_left_hand_side, expected_left_hand_side, Defaults::relative_tolerance)
     KRATOS_EXPECT_MATRIX_RELATIVE_NEAR(actual_isolated_left_hand_side, expected_left_hand_side,
                                        Defaults::relative_tolerance)
 
-    auto expected_right_hand_side = Vector{2};
-    expected_right_hand_side <<= 6.43131, -6.42813;
+    const auto expected_right_hand_side = UblasUtilities::CreateVector({6.43131, -6.42813});
     KRATOS_EXPECT_VECTOR_RELATIVE_NEAR(actual_right_hand_side, expected_right_hand_side, Defaults::relative_tolerance)
     KRATOS_EXPECT_VECTOR_RELATIVE_NEAR(actual_isolated_right_hand_side, expected_right_hand_side,
                                        Defaults::relative_tolerance)
@@ -735,8 +731,7 @@ KRATOS_TEST_CASE_IN_SUITE(TransientPwLineElement_CalculateOnIntegrationPoints_Ve
 
     // Assert
     KRATOS_EXPECT_EQ(results.size(), number_of_integration_points);
-    Vector expected_results(3);
-    expected_results <<= 1.0, 1.0, 1.0;
+    auto expected_results = UblasUtilities::CreateVector({1.0, 1.0, 1.0});
     KRATOS_EXPECT_VECTOR_EQ(results, expected_results);
 
     // Act
@@ -745,7 +740,6 @@ KRATOS_TEST_CASE_IN_SUITE(TransientPwLineElement_CalculateOnIntegrationPoints_Ve
 
     // Assert
     KRATOS_EXPECT_EQ(results.size(), number_of_integration_points);
-    expected_results <<= 1.0, 1.0, 1.0;
     KRATOS_EXPECT_VECTOR_EQ(results, expected_results);
 
     // Act
@@ -754,7 +748,6 @@ KRATOS_TEST_CASE_IN_SUITE(TransientPwLineElement_CalculateOnIntegrationPoints_Ve
 
     // Assert
     KRATOS_EXPECT_EQ(results.size(), number_of_integration_points);
-    expected_results <<= 1.0, 1.0, 1.0;
     KRATOS_EXPECT_VECTOR_EQ(results, expected_results);
 
     // Act
@@ -763,7 +756,7 @@ KRATOS_TEST_CASE_IN_SUITE(TransientPwLineElement_CalculateOnIntegrationPoints_Ve
 
     // Assert
     KRATOS_EXPECT_EQ(results.size(), number_of_integration_points);
-    expected_results <<= 0.0, 0.0, 0.0;
+    expected_results = UblasUtilities::CreateVector({0.0, 0.0, 0.0});
     KRATOS_EXPECT_VECTOR_EQ(results, expected_results);
 
     // Act
@@ -772,7 +765,7 @@ KRATOS_TEST_CASE_IN_SUITE(TransientPwLineElement_CalculateOnIntegrationPoints_Ve
 
     // Assert
     KRATOS_EXPECT_EQ(results.size(), number_of_integration_points);
-    expected_results <<= 1.0, 1.0, 1.0;
+    expected_results = UblasUtilities::CreateVector({1.0, 1.0, 1.0});
     KRATOS_EXPECT_VECTOR_EQ(results, expected_results);
 
     // Act
@@ -781,8 +774,8 @@ KRATOS_TEST_CASE_IN_SUITE(TransientPwLineElement_CalculateOnIntegrationPoints_Ve
 
     // Assert
     KRATOS_EXPECT_EQ(results.size(), number_of_integration_points);
-    expected_results <<= 0.166667, 0.166667, 0.666667;
-    KRATOS_EXPECT_VECTOR_NEAR(results, expected_results, Defaults::relative_tolerance);
+    expected_results = UblasUtilities::CreateVector({1.0 / 6.0, 1.0 / 6.0, 2.0 / 3.0});
+    KRATOS_EXPECT_VECTOR_EQ(results, expected_results);
 
     // Act
     results.clear();
@@ -790,7 +783,7 @@ KRATOS_TEST_CASE_IN_SUITE(TransientPwLineElement_CalculateOnIntegrationPoints_Ve
 
     // Assert
     KRATOS_EXPECT_EQ(results.size(), number_of_integration_points);
-    expected_results <<= 0.01, 0.01, 0.01;
+    expected_results = UblasUtilities::CreateVector({0.01, 0.01, 0.01});
     KRATOS_EXPECT_VECTOR_EQ(results, expected_results);
 
     // Act
@@ -799,7 +792,7 @@ KRATOS_TEST_CASE_IN_SUITE(TransientPwLineElement_CalculateOnIntegrationPoints_Ve
 
     // Assert
     KRATOS_EXPECT_EQ(results.size(), number_of_integration_points);
-    expected_results <<= 0, 0, 0;
+    expected_results = UblasUtilities::CreateVector({0.0, 0.0, 0.0});
     KRATOS_EXPECT_VECTOR_EQ(results, expected_results);
 }
 
@@ -862,8 +855,7 @@ KRATOS_TEST_CASE_IN_SUITE(TransientPwLineElement_CalculateOnIntegrationPoints_Ma
 
     // Assert
     KRATOS_EXPECT_EQ(results.size(), number_of_integration_points);
-    Matrix expected_nonzero_component(2, 2);
-    expected_nonzero_component <<= 1, 1, 1, 1;
+    const auto expected_nonzero_component = UblasUtilities::CreateMatrix({{1, 1}, {1, 1}});
     for (const auto& component : results) {
         KRATOS_EXPECT_MATRIX_EQ(component, expected_nonzero_component);
     }
@@ -904,16 +896,11 @@ KRATOS_TEST_CASE_IN_SUITE(TransientPwLineElement2D3N_CalculateLocalSystem, Krato
     p_element->CalculateLocalSystem(actual_left_hand_side, actual_right_hand_side, dummy_process_info);
 
     // Assert
-    Matrix expected_left_hand_side(3, 3);
-    // clang-format off
-    expected_left_hand_side <<= -49.999999999999993,0,49.999999999999993,
-                                 0,0,0,
-                                 49.999999999999993,0,-49.999999999999993;
-    // clang-format on
+    const auto expected_left_hand_side = UblasUtilities::CreateMatrix(
+        {{-49.999999999999993, 0, 49.999999999999993}, {0, 0, 0}, {49.999999999999993, 0, -49.999999999999993}});
     KRATOS_EXPECT_MATRIX_RELATIVE_NEAR(actual_left_hand_side, expected_left_hand_side, Defaults::relative_tolerance)
 
-    Vector expected_right_hand_side(3);
-    expected_right_hand_side <<= 500000, 0, -500000;
+    const auto expected_right_hand_side = UblasUtilities::CreateVector({500000, 0, -500000});
     KRATOS_EXPECT_VECTOR_RELATIVE_NEAR(actual_right_hand_side, expected_right_hand_side, Defaults::relative_tolerance)
 }
 
@@ -979,16 +966,15 @@ KRATOS_TEST_CASE_IN_SUITE(TransientPwLineElement2D3N_Case_A1_2D3N, KratosGeoMech
     element.CalculateLocalSystem(actual_left_hand_side, actual_right_hand_side, process_info);
 
     // Assert
-    Matrix expected_left_hand_side(3, 3);
-    // clang-format off
-    expected_left_hand_side <<= -0.000144736222,5.634212252e-05,-3.774083572e-06,
-                                 5.634212252e-05,-0.000127227034,-2.416421349e-05,
-                                 -3.774083572e-06,-2.416421349e-05,-6.942855172e-05;
+    const auto expected_left_hand_side =
+        UblasUtilities::CreateMatrix({{-0.000144736222, 5.634212252e-05, -3.774083572e-06},
+                                      {5.634212252e-05, -0.000127227034, -2.416421349e-05},
+                                      {-3.774083572e-06, -2.416421349e-05, -6.942855172e-05}});
     // clang-format on
     KRATOS_EXPECT_MATRIX_RELATIVE_NEAR(actual_left_hand_side, expected_left_hand_side, Defaults::relative_tolerance)
 
-    Vector expected_right_hand_side(3);
-    expected_right_hand_side <<= 0.0001404394389, -9.276110236e-06, 1.140103478e-05;
+    const auto expected_right_hand_side =
+        UblasUtilities::CreateVector({0.0001404394389, -9.276110236e-06, 1.140103478e-05});
     KRATOS_EXPECT_VECTOR_RELATIVE_NEAR(actual_right_hand_side, expected_right_hand_side, Defaults::relative_tolerance)
 
     // The following tests are from TransientPwLineElement_CalculateOnIntegrationPoints_Vector but
@@ -1002,8 +988,7 @@ KRATOS_TEST_CASE_IN_SUITE(TransientPwLineElement2D3N_Case_A1_2D3N, KratosGeoMech
 
     // Assert
     KRATOS_EXPECT_EQ(results.size(), number_of_integration_points);
-    Vector expected_results(3);
-    expected_results <<= 0.341298621521, 0.352123307571, 0.360698051689;
+    auto expected_results = UblasUtilities::CreateVector({0.341298621521, 0.352123307571, 0.360698051689});
     KRATOS_EXPECT_VECTOR_RELATIVE_NEAR(results, expected_results, Defaults::relative_tolerance);
 
     // Act
@@ -1012,7 +997,7 @@ KRATOS_TEST_CASE_IN_SUITE(TransientPwLineElement2D3N_Case_A1_2D3N, KratosGeoMech
 
     // Assert
     KRATOS_EXPECT_EQ(results.size(), number_of_integration_points);
-    expected_results <<= 0.297737264007, 0.309277810133, 0.318419620765;
+    expected_results = UblasUtilities::CreateVector({0.297737264007, 0.309277810133, 0.318419620765});
     KRATOS_EXPECT_VECTOR_RELATIVE_NEAR(results, expected_results, Defaults::relative_tolerance);
 
     // Act
@@ -1021,7 +1006,7 @@ KRATOS_TEST_CASE_IN_SUITE(TransientPwLineElement2D3N_Case_A1_2D3N, KratosGeoMech
 
     // Assert
     KRATOS_EXPECT_EQ(results.size(), number_of_integration_points);
-    expected_results <<= 0.297737264007, 0.309277810133, 0.318419620765;
+    expected_results = UblasUtilities::CreateVector({0.297737264007, 0.309277810133, 0.318419620765});
     KRATOS_EXPECT_VECTOR_RELATIVE_NEAR(results, expected_results, Defaults::relative_tolerance);
 
     // Act
@@ -1030,7 +1015,7 @@ KRATOS_TEST_CASE_IN_SUITE(TransientPwLineElement2D3N_Case_A1_2D3N, KratosGeoMech
 
     // Assert
     KRATOS_EXPECT_EQ(results.size(), number_of_integration_points);
-    expected_results <<= -0.029823048151, -0.031743614419, -0.033288714765;
+    expected_results = UblasUtilities::CreateVector({-0.029823048151, -0.031743614419, -0.033288714765});
     KRATOS_EXPECT_VECTOR_RELATIVE_NEAR(results, expected_results, Defaults::relative_tolerance);
 
     // Act
@@ -1039,7 +1024,7 @@ KRATOS_TEST_CASE_IN_SUITE(TransientPwLineElement2D3N_Case_A1_2D3N, KratosGeoMech
 
     // Assert
     KRATOS_EXPECT_EQ(results.size(), number_of_integration_points);
-    expected_results <<= 0.004495279802, 0.005166152553, 0.005748179834;
+    expected_results = UblasUtilities::CreateVector({0.004495279802, 0.005166152553, 0.005748179834});
     KRATOS_EXPECT_VECTOR_RELATIVE_NEAR(results, expected_results, Defaults::relative_tolerance);
 
     // Act
@@ -1048,7 +1033,7 @@ KRATOS_TEST_CASE_IN_SUITE(TransientPwLineElement2D3N_Case_A1_2D3N, KratosGeoMech
 
     // Assert
     KRATOS_EXPECT_EQ(results.size(), number_of_integration_points);
-    expected_results <<= 0.871579, 0.907439, 0.924327;
+    expected_results = UblasUtilities::CreateVector({0.871579, 0.907439, 0.924327});
     KRATOS_EXPECT_VECTOR_NEAR(results, expected_results, Defaults::relative_tolerance);
 
     // Act
@@ -1057,7 +1042,7 @@ KRATOS_TEST_CASE_IN_SUITE(TransientPwLineElement2D3N_Case_A1_2D3N, KratosGeoMech
 
     // Assert
     KRATOS_EXPECT_EQ(results.size(), number_of_integration_points);
-    expected_results <<= 0, 0, 0;
+    expected_results = UblasUtilities::CreateVector({0, 0, 0});
     KRATOS_EXPECT_VECTOR_EQ(results, expected_results);
 
     // copy of CalculateOnIntegrationPoints_1DArray
@@ -1094,8 +1079,7 @@ KRATOS_TEST_CASE_IN_SUITE(TransientPwLineElement2D3N_Case_A1_2D3N, KratosGeoMech
 
     // Assert
     KRATOS_EXPECT_EQ(results_m.size(), number_of_integration_points);
-    Matrix expected_nonzero_component_m(2, 2);
-    expected_nonzero_component_m <<= 0.1521, 0.0, 0.0, 0.1521;
+    const auto expected_nonzero_component_m = UblasUtilities::CreateMatrix({{0.1521, 0.0}, {0.0, 0.1521}});
     for (const auto& component : results_m) {
         KRATOS_EXPECT_MATRIX_EQ(component, expected_nonzero_component_m);
     }
@@ -1136,17 +1120,15 @@ KRATOS_TEST_CASE_IN_SUITE(TransientPwLineElement3D4N_CalculateLocalSystem, Krato
     p_element->CalculateLocalSystem(actual_left_hand_side, actual_right_hand_side, dummy_process_info);
 
     // Assert
-    Matrix expected_left_hand_side(4, 4);
-    // clang-format off
-    expected_left_hand_side <<= -16.666666666666664,0,0,16.666666666666664,
-                                 0,0,0,0,
-                                 0,0,0,0,
-                                 16.666666666666664,0,0,-16.666666666666664;
+    const auto expected_left_hand_side =
+        UblasUtilities::CreateMatrix({{-16.666666666666664, 0, 0, 16.666666666666664},
+                                      {0, 0, 0, 0},
+                                      {0, 0, 0, 0},
+                                      {16.666666666666664, 0, 0, -16.666666666666664}});
     // clang-format on
     KRATOS_EXPECT_MATRIX_RELATIVE_NEAR(actual_left_hand_side, expected_left_hand_side, Defaults::relative_tolerance)
 
-    Vector expected_right_hand_side(4);
-    expected_right_hand_side <<= 166666.666, 0, 0, -166666.666;
+    const auto expected_right_hand_side = UblasUtilities::CreateVector({166666.666, 0, 0, -166666.666});
     KRATOS_EXPECT_VECTOR_RELATIVE_NEAR(actual_right_hand_side, expected_right_hand_side, Defaults::relative_tolerance)
 }
 
@@ -1226,17 +1208,14 @@ KRATOS_TEST_CASE_IN_SUITE(TransientPwLineElement2D3N_CalculateLocalSystemWithPre
     p_element->CalculateLocalSystem(actual_left_hand_side, actual_right_hand_side, dummy_process_info);
 
     // Assert
-    Matrix expected_left_hand_side(3, 3);
-    // clang-format off
-    expected_left_hand_side <<= -6.5648064719788994, -0.93782949599698517, 7.5026359679758832,
-                                -0.93782949599698517,-6.5648064719788994,  7.5026359679758832,
-                                 7.5026359679758832,  7.5026359679758832,-15.005271935951766;
-    // clang-format on
+    const auto expected_left_hand_side =
+        UblasUtilities::CreateMatrix({{-6.5648064719788994, -0.93782949599698517, 7.5026359679758832},
+                                      {-0.93782949599698517, -6.5648064719788994, 7.5026359679758832},
+                                      {7.5026359679758832, 7.5026359679758832, -15.005271935951766}});
     KRATOS_EXPECT_EQ(actual_left_hand_side.size1(), expected_left_hand_side.size1());
     KRATOS_EXPECT_MATRIX_RELATIVE_NEAR(actual_left_hand_side, expected_left_hand_side, Defaults::relative_tolerance)
 
-    Vector expected_right_hand_side(3);
-    expected_right_hand_side <<= -28134.9, 28134.9, 0;
+    const auto expected_right_hand_side = UblasUtilities::CreateVector({-28134.9, 28134.9, 0});
     KRATOS_EXPECT_EQ(actual_right_hand_side.size(), expected_right_hand_side.size());
     KRATOS_EXPECT_VECTOR_RELATIVE_NEAR(actual_right_hand_side, expected_right_hand_side, Defaults::relative_tolerance)
 }
