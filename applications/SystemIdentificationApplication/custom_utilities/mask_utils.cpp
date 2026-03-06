@@ -348,7 +348,7 @@ std::vector<std::tuple<std::vector<IndexType>, TensorAdaptor<double>::Pointer>> 
         std::sort(mask_indices.begin(), mask_indices.end());
 
         /// check against existing mask indices
-        auto p_itr = std::find_if(cluster_data.begin(), cluster_data.end(), [&mask_indices](const DataType& rData){ return std::get<0>(rData) == mask_indices; });
+        auto p_itr = std::find_if(cluster_data.begin(), cluster_data.end(), [&mask_indices](const auto& rData){ return std::get<0>(rData) == mask_indices; });
         if (p_itr == cluster_data.end()) {
             auto p_nd_data = Kratos::make_shared<NDData<double>>(Kratos::DenseVector<unsigned int>(1, number_of_entities));
             auto p_nd_data_view = p_nd_data->ViewData();
@@ -363,7 +363,7 @@ std::vector<std::tuple<std::vector<IndexType>, TensorAdaptor<double>::Pointer>> 
     // now fill in the cluster masks
     IndexPartition<IndexType>(number_of_entities).for_each([&cluster_data, &domain_mask_indices, &cluster_mask_nd_data](const auto Index) {
         const auto& mask_indices = domain_mask_indices[Index];
-        auto p_itr = std::find_if(cluster_data.begin(), cluster_data.end(), [&mask_indices](const DataType& rData){ return std::get<0>(rData) == mask_indices; });
+        auto p_itr = std::find_if(cluster_data.begin(), cluster_data.end(), [&mask_indices](const auto& rData){ return std::get<0>(rData) == mask_indices; });
         const auto cluster_index = std::distance(cluster_data.begin(), p_itr);
         cluster_mask_nd_data[cluster_index]->ViewData()[Index] = 1;
     });
