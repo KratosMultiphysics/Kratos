@@ -291,7 +291,7 @@ TEST_F(KratosGeoMechanicsFastSuiteWithoutKernel, GeoMechanicsTimeIntegrationSche
 
 TEST_F(KratosGeoMechanicsFastSuiteWithoutKernel, GeoMechanicsTimeIntegrationScheme_Throws_WhenZDofIsMissingFor3DModel)
 {
-    ConcreteGeoMechanicsTimeIntegrationScheme test_scheme({}, {SecondOrderVectorVariable(DISPLACEMENT)});
+    const ConcreteGeoMechanicsTimeIntegrationScheme test_scheme({}, {SecondOrderVectorVariable(DISPLACEMENT)});
     Model model;
     auto& r_model_part = model.CreateModelPart("main");
     r_model_part.SetBufferSize(2);
@@ -309,7 +309,7 @@ TEST_F(KratosGeoMechanicsFastSuiteWithoutKernel, GeoMechanicsTimeIntegrationSche
 
 TEST_F(KratosGeoMechanicsFastSuiteWithoutKernel, GeoMechanicsTimeIntegrationScheme_NoThrow_WhenZDofIsMissingFor2DModel)
 {
-    ConcreteGeoMechanicsTimeIntegrationScheme test_scheme({}, {SecondOrderVectorVariable(DISPLACEMENT)});
+    const ConcreteGeoMechanicsTimeIntegrationScheme test_scheme({}, {SecondOrderVectorVariable(DISPLACEMENT)});
     Model model;
     auto& r_model_part = model.CreateModelPart("main");
     r_model_part.SetBufferSize(2);
