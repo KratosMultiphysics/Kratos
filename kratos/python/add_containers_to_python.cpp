@@ -168,6 +168,7 @@ void  AddContainersToPython(pybind11::module& m)
     .def("GetComponentIndex", &VariableData::GetComponentIndex)
     .def("IsComponent", &VariableData::IsComponent)
     .def("__str__", PrintObject<VariableData>)
+    .def("__hash__", &VariableData::Key)
     .def(py::self == py::self)
     .def(py::self != py::self)
     ;
