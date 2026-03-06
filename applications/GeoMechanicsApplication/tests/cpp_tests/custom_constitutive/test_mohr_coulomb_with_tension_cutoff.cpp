@@ -20,8 +20,6 @@
 #include "tests/cpp_tests/geo_mechanics_fast_suite.h"
 #include "tests/cpp_tests/test_utilities.h"
 
-#include <boost/numeric/ublas/assignment.hpp>
-
 using namespace Kratos;
 using namespace std::string_literals;
 
@@ -121,15 +119,13 @@ KRATOS_TEST_CASE_IN_SUITE(MohrCoulombWithTensionCutOff_CalculateMaterialResponse
     law.InitializeMaterial(properties, dummy_element_geometry, dummy_shape_function_values);
 
     // Act and Assert
-    Vector cauchy_stress_vector(4);
-    cauchy_stress_vector <<= 6.0, 0.0, -10.0, 0.0;
-    Vector expected_cauchy_stress_vector(4);
-    expected_cauchy_stress_vector <<= 6.0, 0.0, -10.0, 0.0;
+    auto cauchy_stress_vector          = UblasUtilities::CreateVector({6.0, 0.0, -10.0, 0.0});
+    auto expected_cauchy_stress_vector = UblasUtilities::CreateVector({6.0, 0.0, -10.0, 0.0});
     KRATOS_EXPECT_VECTOR_EQ(CalculateMappedStressVector(cauchy_stress_vector, parameters, law),
                             expected_cauchy_stress_vector);
 
-    cauchy_stress_vector <<= 8.0, 6.0, 4.0, 0.0;
-    expected_cauchy_stress_vector <<= 8.0, 6.0, 4.0, 0.0;
+    cauchy_stress_vector          = UblasUtilities::CreateVector({8.0, 6.0, 4.0, 0.0});
+    expected_cauchy_stress_vector = UblasUtilities::CreateVector({8.0, 6.0, 4.0, 0.0});
     KRATOS_EXPECT_VECTOR_EQ(CalculateMappedStressVector(cauchy_stress_vector, parameters, law),
                             expected_cauchy_stress_vector);
 }
@@ -153,27 +149,29 @@ KRATOS_TEST_CASE_IN_SUITE(MohrCoulombWithTensionCutOff_CalculateMaterialResponse
     law.InitializeMaterial(properties, dummy_element_geometry, dummy_shape_function_values);
 
     // Act and Assert
-    Vector cauchy_stress_vector(4);
-    cauchy_stress_vector <<= 8.0, 0.0, -12.0, 0.0;
-    Vector expected_cauchy_stress_vector(4);
-    expected_cauchy_stress_vector <<= 7.338673315592010089, 0.0, -11.338673315592010089, 0.0;
+    auto cauchy_stress_vector = UblasUtilities::CreateVector({8.0, 0.0, -12.0, 0.0});
+    auto expected_cauchy_stress_vector =
+        UblasUtilities::CreateVector({7.338673315592010089, 0.0, -11.338673315592010089, 0.0});
     KRATOS_EXPECT_VECTOR_NEAR(CalculateMappedStressVector(cauchy_stress_vector, parameters, law),
                               expected_cauchy_stress_vector, Defaults::absolute_tolerance);
 
-    cauchy_stress_vector <<= 12.0, 0.0, -16.0, 0.0;
-    expected_cauchy_stress_vector <<= 7.338673315592010089, 0.0, -11.338673315592010089, 0.0;
+    cauchy_stress_vector = UblasUtilities::CreateVector({12.0, 0.0, -16.0, 0.0});
+    expected_cauchy_stress_vector =
+        UblasUtilities::CreateVector({7.338673315592010089, 0.0, -11.338673315592010089, 0.0});
     KRATOS_EXPECT_VECTOR_NEAR(CalculateMappedStressVector(cauchy_stress_vector, parameters, law),
                               expected_cauchy_stress_vector, Defaults::absolute_tolerance);
 
     // LOWEST_PRINCIPAL_STRESSES as averaging type
-    cauchy_stress_vector <<= 12.0, 10.0, -16.0, 0.0;
-    expected_cauchy_stress_vector <<= 7.806379130008, 7.806379130008, -9.61275826001616129, 0.0;
+    cauchy_stress_vector = UblasUtilities::CreateVector({12.0, 10.0, -16.0, 0.0});
+    expected_cauchy_stress_vector =
+        UblasUtilities::CreateVector({7.806379130008, 7.806379130008, -9.61275826001616129, 0.0});
     KRATOS_EXPECT_VECTOR_NEAR(CalculateMappedStressVector(cauchy_stress_vector, parameters, law),
                               expected_cauchy_stress_vector, Defaults::absolute_tolerance * 1.0e3);
 
     // HIGHEST_PRINCIPAL_STRESSES as averaging type
-    cauchy_stress_vector <<= 12.0, -12.0, -16.0, 0.0;
-    expected_cauchy_stress_vector <<= 6.78245195822, -13.3912259791, -13.3912259791, 0.0;
+    cauchy_stress_vector = UblasUtilities::CreateVector({12.0, -12.0, -16.0, 0.0});
+    expected_cauchy_stress_vector =
+        UblasUtilities::CreateVector({6.78245195822, -13.3912259791, -13.3912259791, 0.0});
     KRATOS_EXPECT_VECTOR_NEAR(CalculateMappedStressVector(cauchy_stress_vector, parameters, law),
                               expected_cauchy_stress_vector, Defaults::absolute_tolerance * 1.0e3);
 }
@@ -197,20 +195,18 @@ KRATOS_TEST_CASE_IN_SUITE(MohrCoulombWithTensionCutOff_CalculateMaterialResponse
     law.InitializeMaterial(properties, dummy_element_geometry, dummy_shape_function_values);
 
     // Act and Assert
-    Vector cauchy_stress_vector(4);
-    cauchy_stress_vector <<= 18.0, 8.0, -2.0, 0.0;
-    Vector expected_cauchy_stress_vector(4);
-    expected_cauchy_stress_vector <<= 10.0, 8.0, -1.5179192179966735, 0.0;
+    auto cauchy_stress_vector = UblasUtilities::CreateVector({18.0, 8.0, -2.0, 0.0});
+    auto expected_cauchy_stress_vector = UblasUtilities::CreateVector({10.0, 8.0, -1.5179192179966735, 0.0});
     KRATOS_EXPECT_VECTOR_NEAR(CalculateMappedStressVector(cauchy_stress_vector, parameters, law),
                               expected_cauchy_stress_vector, Defaults::absolute_tolerance);
 
-    cauchy_stress_vector <<= 24.0, 8.0, -8.0, 0.0;
-    expected_cauchy_stress_vector <<= 10.0, 8.0, -1.5179192179966735, 0.0;
+    cauchy_stress_vector = UblasUtilities::CreateVector({24.0, 8.0, -8.0, 0.0});
+    expected_cauchy_stress_vector = UblasUtilities::CreateVector({10.0, 8.0, -1.5179192179966735, 0.0});
     KRATOS_EXPECT_VECTOR_NEAR(CalculateMappedStressVector(cauchy_stress_vector, parameters, law),
                               expected_cauchy_stress_vector, Defaults::absolute_tolerance);
 
-    cauchy_stress_vector <<= 24.0, 22.0, -8.0, 0.0;
-    expected_cauchy_stress_vector <<= 10.0, 10.0, -1.5179192179966735, 0.0;
+    cauchy_stress_vector = UblasUtilities::CreateVector({24.0, 22.0, -8.0, 0.0});
+    expected_cauchy_stress_vector = UblasUtilities::CreateVector({10.0, 10.0, -1.5179192179966735, 0.0});
     constexpr double tolerance = 1.0e-10;
     KRATOS_EXPECT_VECTOR_NEAR(CalculateMappedStressVector(cauchy_stress_vector, parameters, law),
                               expected_cauchy_stress_vector, tolerance);
@@ -235,21 +231,19 @@ KRATOS_TEST_CASE_IN_SUITE(MohrCoulombWithTensionCutOff_CalculateMaterialResponse
     law.InitializeMaterial(properties, dummy_element_geometry, dummy_shape_function_values);
 
     // Act and Assert
-    Vector cauchy_stress_vector(4);
-    cauchy_stress_vector <<= 12.0, 9.0, 8.0, 0.0;
-    Vector expected_cauchy_stress_vector(4);
-    expected_cauchy_stress_vector <<= 10.0, 9.0, 8.0, 0.0;
+    auto cauchy_stress_vector          = UblasUtilities::CreateVector({12.0, 9.0, 8.0, 0.0});
+    auto expected_cauchy_stress_vector = UblasUtilities::CreateVector({10.0, 9.0, 8.0, 0.0});
     KRATOS_EXPECT_VECTOR_NEAR(CalculateMappedStressVector(cauchy_stress_vector, parameters, law),
                               expected_cauchy_stress_vector, Defaults::absolute_tolerance);
 
-    cauchy_stress_vector <<= 14.0, 9.0, 6.0, 0.0;
-    expected_cauchy_stress_vector <<= 10.0, 9.0, 6.0, 0.0;
+    cauchy_stress_vector          = UblasUtilities::CreateVector({14.0, 9.0, 6.0, 0.0});
+    expected_cauchy_stress_vector = UblasUtilities::CreateVector({10.0, 9.0, 6.0, 0.0});
     KRATOS_EXPECT_VECTOR_NEAR(CalculateMappedStressVector(cauchy_stress_vector, parameters, law),
                               expected_cauchy_stress_vector, Defaults::absolute_tolerance);
 
-    cauchy_stress_vector <<= 14.0, 12.0, 6.0, 0.0;
-    expected_cauchy_stress_vector <<= 10.0, 10.0, 6.0, 0.0;
-    constexpr double tolerance = 1.0e-10;
+    cauchy_stress_vector          = UblasUtilities::CreateVector({14.0, 12.0, 6.0, 0.0});
+    expected_cauchy_stress_vector = UblasUtilities::CreateVector({10.0, 10.0, 6.0, 0.0});
+    constexpr double tolerance    = 1.0e-10;
     KRATOS_EXPECT_VECTOR_NEAR(CalculateMappedStressVector(cauchy_stress_vector, parameters, law),
                               expected_cauchy_stress_vector, tolerance);
 }
@@ -274,15 +268,13 @@ KRATOS_TEST_CASE_IN_SUITE(MohrCoulombWithTensionCutOff_CalculateMaterialResponse
     constexpr double tolerance = 1.0e-10;
 
     // Act and Assert
-    Vector cauchy_stress_vector(4);
-    cauchy_stress_vector <<= 19.0, 12.0, 11.0, 0.0;
-    Vector expected_cauchy_stress_vector(4);
-    expected_cauchy_stress_vector <<= 10.0, 10.0, 10.0, 0.0;
+    auto cauchy_stress_vector          = UblasUtilities::CreateVector({19.0, 12.0, 11.0, 0.0});
+    auto expected_cauchy_stress_vector = UblasUtilities::CreateVector({10.0, 10.0, 10.0, 0.0});
     KRATOS_EXPECT_VECTOR_NEAR(CalculateMappedStressVector(cauchy_stress_vector, parameters, law),
                               expected_cauchy_stress_vector, tolerance);
 
-    cauchy_stress_vector <<= 11.5, 10.0, 10.5, 0.0;
-    expected_cauchy_stress_vector <<= 10.0, 10.0, 10.0, 0.0;
+    cauchy_stress_vector          = UblasUtilities::CreateVector({11.5, 10.0, 10.5, 0.0});
+    expected_cauchy_stress_vector = UblasUtilities::CreateVector({10.0, 10.0, 10.0, 0.0});
     KRATOS_EXPECT_VECTOR_NEAR(CalculateMappedStressVector(cauchy_stress_vector, parameters, law),
                               expected_cauchy_stress_vector, tolerance);
 }
@@ -304,10 +296,9 @@ KRATOS_TEST_CASE_IN_SUITE(MohrCoulombWithTensionCutOff_CalculateMaterialResponse
     law.InitializeMaterial(properties, dummy_element_geometry, dummy_shape_function_values);
 
     // Act and Assert
-    Vector cauchy_stress_vector(4);
-    cauchy_stress_vector <<= 22.0, 20.0, 18.0, 0.0;
-    Vector expected_cauchy_stress_vector(4);
-    expected_cauchy_stress_vector <<= 14.2814800674211450, 14.2814800674211450, 14.2814800674211450, 0.0;
+    auto       cauchy_stress_vector = UblasUtilities::CreateVector({22.0, 20.0, 18.0, 0.0});
+    const auto expected_cauchy_stress_vector =
+        UblasUtilities::CreateVector({14.2814800674211450, 14.2814800674211450, 14.2814800674211450, 0.0});
     constexpr double tolerance = 1.0e-10;
     KRATOS_EXPECT_VECTOR_NEAR(CalculateMappedStressVector(cauchy_stress_vector, parameters, law),
                               expected_cauchy_stress_vector, tolerance);
@@ -329,9 +320,8 @@ KRATOS_TEST_CASE_IN_SUITE(MohrCoulombWithTensionCutOff_Serialization, KratosGeoM
     const auto dummy_shape_function_values = Vector{};
     p_law->InitializeMaterial(properties, dummy_element_geometry, dummy_shape_function_values);
 
-    Vector cauchy_stress_vector(4);
-    cauchy_stress_vector <<= 6.0, 0.0, -10.0, 0.0;
-    Vector strain_vector = ZeroVector(4);
+    auto   cauchy_stress_vector = UblasUtilities::CreateVector({6.0, 0.0, -10.0, 0.0});
+    Vector strain_vector        = ZeroVector(4);
     parameters.SetStrainVector(strain_vector);
     parameters.SetStressVector(cauchy_stress_vector);
     const auto dummy_process_info = ProcessInfo{};
@@ -399,13 +389,10 @@ KRATOS_TEST_CASE_IN_SUITE(MohrCoulombWithTensionCutOff_CalculateConstitutiveMatr
     law.CalculateMaterialResponseCauchy(parameters);
 
     // Assert
-    Matrix expected_constitutive_matrix(4, 4);
-    // clang-format off
-    expected_constitutive_matrix <<= 1.35E8, 5.77E7, 5.77E7, 0.,
-                                     5.77E7, 1.35E8, 5.77E7, 0.,
-                                     5.77E7, 5.77E7, 1.35E8, 0.,
-                                     0.,     0.,     0.,     3.85E7;
-    // clang-format on
+    auto expected_constitutive_matrix = UblasUtilities::CreateMatrix({{1.35E8, 5.77E7, 5.77E7, 0.},
+                                                                      {5.77E7, 1.35E8, 5.77E7, 0.},
+                                                                      {5.77E7, 5.77E7, 1.35E8, 0.},
+                                                                      {0., 0., 0., 3.85E7}});
     KRATOS_EXPECT_MATRIX_NEAR(constitutive_matrix, expected_constitutive_matrix, 1.E6);
 }
 
@@ -501,12 +488,11 @@ KRATOS_TEST_CASE_IN_SUITE(MohrCoulombWithTensionCutOff_CalculateMaterialResponse
     law.InitializeMaterial(properties, dummy_element_geometry, dummy_shape_function_values);
 
     // Act and Assert
-    Vector cauchy_stress_vector(4);
-    cauchy_stress_vector <<= -6.0, 0.0, 0.0, 8.0;
+    auto cauchy_stress_vector = UblasUtilities::CreateVector({-6.0, 0.0, 0.0, 8.0});
     KRATOS_EXPECT_VECTOR_NEAR(CalculateMappedStressVector(cauchy_stress_vector, parameters, law),
                               cauchy_stress_vector, Defaults::absolute_tolerance);
 
-    cauchy_stress_vector <<= 8.0, 0.0, 0.0, 3.0;
+    cauchy_stress_vector = UblasUtilities::CreateVector({8.0, 0.0, 0.0, 3.0});
     KRATOS_EXPECT_VECTOR_NEAR(CalculateMappedStressVector(cauchy_stress_vector, parameters, law),
                               cauchy_stress_vector, Defaults::absolute_tolerance);
 }
@@ -530,10 +516,9 @@ KRATOS_TEST_CASE_IN_SUITE(MohrCoulombWithTensionCutOff_CalculateMaterialResponse
     law.InitializeMaterial(properties, dummy_element_geometry, dummy_shape_function_values);
 
     // Act and Assert
-    Vector cauchy_stress_vector(4);
-    cauchy_stress_vector <<= -6.0, 0.0, 0.0, 18.0;
-    Vector expected_cauchy_stress_vector(4);
-    expected_cauchy_stress_vector <<= -4.62956382113722, -1.37043617886278, 0.0, 9.77738292682331;
+    auto       cauchy_stress_vector = UblasUtilities::CreateVector({-6.0, 0.0, 0.0, 18.0});
+    const auto expected_cauchy_stress_vector =
+        UblasUtilities::CreateVector({-4.62956382113722, -1.37043617886278, 0.0, 9.77738292682331});
     KRATOS_EXPECT_VECTOR_NEAR(CalculateMappedStressVector(cauchy_stress_vector, parameters, law),
                               expected_cauchy_stress_vector, Defaults::absolute_tolerance);
 }
@@ -557,10 +542,9 @@ KRATOS_TEST_CASE_IN_SUITE(MohrCoulombWithTensionCutOff_CalculateMaterialResponse
     law.InitializeMaterial(properties, dummy_element_geometry, dummy_shape_function_values);
 
     // Act and Assert
-    Vector cauchy_stress_vector(4);
-    cauchy_stress_vector <<= 18.0, 0.0, 0.0, -2.0;
-    Vector expected_cauchy_stress_vector(4);
-    expected_cauchy_stress_vector <<= 9.87832130144553, -0.0978657587384199, 0.0, -1.10846522890933;
+    auto       cauchy_stress_vector = UblasUtilities::CreateVector({18.0, 0.0, 0.0, -2.0});
+    const auto expected_cauchy_stress_vector =
+        UblasUtilities::CreateVector({9.87832130144553, -0.0978657587384199, 0.0, -1.10846522890933});
     KRATOS_EXPECT_VECTOR_NEAR(CalculateMappedStressVector(cauchy_stress_vector, parameters, law),
                               expected_cauchy_stress_vector, Defaults::absolute_tolerance);
 }
@@ -582,10 +566,9 @@ KRATOS_TEST_CASE_IN_SUITE(MohrCoulombWithTensionCutOff_CalculateMaterialResponse
     law.InitializeMaterial(properties, dummy_element_geometry, dummy_shape_function_values);
 
     // Act and Assert
-    Vector cauchy_stress_vector(4);
-    cauchy_stress_vector <<= 18.0, 0.0, 0.0, -8.0;
-    Vector expected_cauchy_stress_vector(4);
-    expected_cauchy_stress_vector <<= 8.54534046868983, -0.0632596866864992, 0.0, -3.82604451350059;
+    auto       cauchy_stress_vector = UblasUtilities::CreateVector({18.0, 0.0, 0.0, -8.0});
+    const auto expected_cauchy_stress_vector =
+        UblasUtilities::CreateVector({8.54534046868983, -0.0632596866864992, 0.0, -3.82604451350059});
     KRATOS_EXPECT_VECTOR_NEAR(CalculateMappedStressVector(cauchy_stress_vector, parameters, law),
                               expected_cauchy_stress_vector, Defaults::absolute_tolerance);
 }
@@ -607,10 +590,8 @@ KRATOS_TEST_CASE_IN_SUITE(MohrCoulombWithTensionCutOff_CalculateMaterialResponse
     law.InitializeMaterial(properties, dummy_element_geometry, dummy_shape_function_values);
 
     // Act and Assert
-    Vector cauchy_stress_vector(4);
-    cauchy_stress_vector <<= 10.0, 0.0, 0.0, -2.0;
-    Vector expected_cauchy_stress_vector(4);
-    expected_cauchy_stress_vector <<= -1.0, -1.0, -1.0, 0.0;
+    auto cauchy_stress_vector = UblasUtilities::CreateVector({10.0, 0.0, 0.0, -2.0});
+    const auto expected_cauchy_stress_vector = UblasUtilities::CreateVector({-1.0, -1.0, -1.0, 0.0});
     constexpr double tolerance = 1.0e-10;
     KRATOS_EXPECT_VECTOR_NEAR(CalculateMappedStressVector(cauchy_stress_vector, parameters, law),
                               expected_cauchy_stress_vector, tolerance);
