@@ -464,7 +464,6 @@ namespace Kratos
     KRATOS_DEFINE_VARIABLE( PeriodicVariablesContainer, PERIODIC_VARIABLES )
 
     // Variables that should be moved to applications (but have too many dependencies)
-    KRATOS_DEFINE_VARIABLE(int, FRACTIONAL_STEP)
     KRATOS_DEFINE_VARIABLE(double, EQ_STRAIN_RATE)
     KRATOS_DEFINE_VARIABLE(double, POWER_LAW_N)
     KRATOS_DEFINE_VARIABLE(double, POWER_LAW_K)
