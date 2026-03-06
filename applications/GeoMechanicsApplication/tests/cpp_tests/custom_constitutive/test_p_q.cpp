@@ -68,6 +68,20 @@ TEST_F(KratosGeoMechanicsFastSuiteWithoutKernel, PQ_RaisesADebugErrorWhenAttempt
     EXPECT_THROW(Geo::PQ{too_long}, Exception);
 }
 
+TEST_F(KratosGeoMechanicsFastSuiteWithoutKernel, PQ_CanBeConstructedFromAVectorExpression)
+{
+    // Arrange
+    const auto     some_matrix = UblasUtilities::CreateMatrix({{1.0, 2.0}, {3.0, 4.0}});
+    const auto     some_vector = UblasUtilities::CreateVector({2.0, 3.0});
+    constexpr auto some_scalar = 1.5;
+
+    // Act & Assert
+    // The following code won't compile when the template constructor of class `PQ` (which receives
+    // a vector-like object) uses `std::ranges` algorithms when a UBlas vector expression is given.
+    KRATOS_EXPECT_VECTOR_NEAR(Geo::PQ{some_scalar * prod(some_matrix, some_vector)}.Values(),
+                              (std::vector{12.0, 27.0}), Defaults::absolute_tolerance);
+}
+
 TEST_F(KratosGeoMechanicsFastSuiteWithoutKernel, PQ_CanBeConstructedFromFromTwoValues)
 {
     EXPECT_NEAR((Geo::PQ{1.0, 2.0}.P()), 1.0, Defaults::absolute_tolerance);
