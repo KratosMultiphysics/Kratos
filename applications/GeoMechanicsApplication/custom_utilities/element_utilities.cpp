@@ -96,6 +96,14 @@ Matrix GeoElementUtilities::FillPermeabilityMatrix(const Element::PropertiesType
     }
 }
 
+Matrix GeoElementUtilities::FillInterfacePermeabilityMatrix(const Element::PropertiesType& rProperties,
+                                                            std::size_t Dimension)
+{
+    auto result  = Matrix{Dimension, Dimension, 0.0};
+    result(0, 0) = rProperties[TRANSVERSAL_PERMEABILITY];
+    return result;
+}
+
 double GeoElementUtilities::CalculateRadius(const Vector& rN, const GeometryType& rGeometry)
 {
     auto radius = 0.0;
