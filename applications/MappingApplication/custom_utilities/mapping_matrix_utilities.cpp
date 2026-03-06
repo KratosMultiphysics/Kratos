@@ -231,8 +231,9 @@ void MappingMatrixUtilitiesType::BuildMappingMatrixRBFMapper(
 
     const SizeType num_nodes_origin = rModelPartOrigin.NumberOfNodes();
     const SizeType num_conditions_origin = rModelPartOrigin.NumberOfConditions();
+    const SizeType num_elements_origin = rModelPartOrigin.NumberOfElements();
     const SizeType num_nodes_destination = rModelPartDestination.NumberOfNodes();
-    const SizeType num_conditions_destination = rModelPartDestination.NumberOfConditions();
+    const SizeType num_conditions_destination = rModelPartDestination.NumberOfNodes();
 
     IndexType origin_size;
     IndexType destination_size;
@@ -241,10 +242,10 @@ void MappingMatrixUtilitiesType::BuildMappingMatrixRBFMapper(
         origin_size = num_nodes_origin;
         destination_size = num_nodes_destination;
     } else if (OriginIsIga && BuildOriginInterpolationMatrix) {
-        origin_size = num_conditions_origin;
-        destination_size = num_conditions_destination;
+        origin_size = num_elements_origin;
+        destination_size = num_elements_origin;
     } else if (OriginIsIga && !BuildOriginInterpolationMatrix) {
-        origin_size = num_conditions_origin;
+        origin_size = num_elements_origin;
         destination_size = num_nodes_destination;
     }
     

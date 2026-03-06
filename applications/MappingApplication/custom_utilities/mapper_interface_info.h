@@ -96,6 +96,12 @@ public:
     */
     virtual void ProcessSearchResult(const InterfaceObject& rInterfaceObject) = 0;
 
+    virtual void ResetSearchResults()
+    {
+        mLocalSearchWasSuccessful = false;
+        mIsApproximation = false;
+    }
+
     /**
     * @brief Processing the result of the search for computing an approximation
     * This function processes the results of the search for computing an approximation.

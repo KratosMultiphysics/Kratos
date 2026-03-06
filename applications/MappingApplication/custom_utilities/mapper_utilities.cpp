@@ -290,8 +290,8 @@ void CreateMapperLocalSystemsFromGeometries(const MapperLocalSystem& rMapperLoca
                                             const Communicator& rModelPartCommunicator,
                                             std::vector<Kratos::unique_ptr<MapperLocalSystem>>& rLocalSystems)
 {
-    const std::size_t num_conditions = rModelPartCommunicator.LocalMesh().NumberOfConditions();
-    const auto cond_begin = rModelPartCommunicator.LocalMesh().ConditionsBegin();
+    const std::size_t num_conditions = rModelPartCommunicator.LocalMesh().NumberOfElements();
+    const auto cond_begin = rModelPartCommunicator.LocalMesh().ElementsBegin();
 
     if (rLocalSystems.size() != num_conditions) rLocalSystems.resize(num_conditions);
 
