@@ -50,6 +50,7 @@
 #include "geometries/nurbs_curve_geometry.h"
 #include "geometries/surface_in_nurbs_volume_geometry.h"
 #include "geometries/brep_surface.h" 
+#include "geometries/nurbs_curve_on_surface_geometry.h"
 
 namespace Kratos::Python
 {
@@ -408,6 +409,14 @@ void  AddGeometriesToPython(pybind11::module& m)
         .def("IsRational", &NurbsCurveGeometry<2, NodeContainerType>::IsRational)
         .def("Weights", &NurbsCurveGeometry<2, NodeContainerType>::Weights)
         ;
+    
+    //  // BrepSurface
+    // using PointContainerType = Kratos::PointerVector<Kratos::Point>;
+    // using BrepSurfaceType = Kratos::BrepSurface<NodeContainerType, false, PointContainerType>;
+    // py::class_<BrepSurfaceType, typename BrepSurfaceType::Pointer, GeometryType>(m, "BrepSurface")
+    //     .def("KnotsU", &BrepSurfaceType::KnotsU)
+    //     .def("KnotsV", &BrepSurfaceType::KnotsV)
+    //     ;
 
     py::class_<SurfaceInNurbsVolumeGeometry<3, NodeContainerType>, SurfaceInNurbsVolumeGeometry<3, NodeContainerType>::Pointer, GeometryType>(m, "SurfaceInNurbsVolumeGeometry")
         .def(py::init<NurbsVolumeGeometry<NodeContainerType>::Pointer, GeometryType::Pointer>())
