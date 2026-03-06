@@ -144,7 +144,26 @@ public:
      */
     bool Solve(SparseMatrixType &rA, DenseMatrixType &rX, DenseMatrixType &rB) override
     {
-        return false;
+        KRATOS_TRY
+        // typename TSparseSpaceType::VectorType solution, rhs;
+        // TSparseSpaceType::Resize(solution, TSparseSpaceType::Size1(rA));
+        // TSparseSpaceType::Resize(rhs, TSparseSpaceType::Size1(rA));
+
+        // this->InitializeSolutionStep(
+        //     rA, solution, rhs);
+
+        // for (std::size_t i_column=0ul; i_column<TDenseSpaceType::Size2(rX); ++i_column) {
+        //     rhs = column(rB, i_column);
+        //     TSparseSpaceType::SetToZero(solution);
+        //     this->PerformSolutionStep(
+        //         rA, solution, rhs);
+        //     column(rX, i_column) = solution;
+        // } // for i_column in range(TDenseSpaceType::Size2(rX))
+
+        // this->FinalizeSolutionStep(rA, solution, rhs);
+        // return true;
+    
+        KRATOS_CATCH("")
     }
 
     /**
