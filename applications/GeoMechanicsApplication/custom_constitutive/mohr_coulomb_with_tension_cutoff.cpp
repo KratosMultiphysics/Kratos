@@ -235,7 +235,8 @@ void MohrCoulombWithTensionCutOff::CalculateMaterialResponseCauchy(ConstitutiveL
             mpConstitutiveDimension->GetStrainSize());
         mPlasticStatus = mCoulombWithTensionCutOffImpl.GetPlasticityStatus();
     }
-
+    KRATOS_INFO("MohrCoulombWithTensionCutOff::CalculateMaterialResponseCauchy")
+        << "Plasticity status: " << static_cast<int>(mPlasticStatus) << std::endl;
     rParameters.GetStressVector() = mStressVector;
 }
 
