@@ -20,6 +20,10 @@
 #include "mappers/mapper_define.h"
 #include "custom_utilities/mapper_utilities.h"
 
+#include <chrono>
+#include <iostream>
+#include <iomanip>
+
 // External includes
 
 namespace Kratos {
@@ -29,7 +33,7 @@ void RadialBasisFunctionsMapperInterfaceInfoIGA::ProcessSearchResult(const Inter
     KRATOS_TRY
 
     const double distance = MapperUtilities::ComputeDistance(this->Coordinates(), rInterfaceObject.Coordinates());
-    
+
     const auto p_geom = rInterfaceObject.pGetBaseGeometry();
 
     // Add a geometry candidate to the RBF support accumulator
@@ -141,9 +145,9 @@ void RadialBasisFunctionMapperLocalSystem::CalculateAll(MatrixType& rLocalMappin
             );
 
             rLocalMappingMatrix(0, j) = phi;
-        }
+        }   
 
-        const std::vector<double> polynomial = EvaluatePolynomialBasis(this->Coordinates(), mPolynomialDegree);
+        const std::vector<double> polynomial = EvaluatePolynomialBasis(this->Coordinates(), mPolynomialDegree, 2);
 
         for (IndexType k = 0; k < mNumberOfPolynomialTerms; ++k) {
             rLocalMappingMatrix(0, rbf_support_points_number + k) = polynomial[k];
@@ -156,6 +160,14 @@ void RadialBasisFunctionMapperLocalSystem::CalculateAll(MatrixType& rLocalMappin
             // Put P_s[k] in the first polynomial column
             rLocalMappingMatrix(row, 0) = polynomial[k];
         }
+        // for (IndexType j = 0; j < rbf_support_points_number; ++j) {
+        //     const auto poly_j =
+        //         EvaluatePolynomialBasis(rbf_support_points[j].mCoordinates, mPolynomialDegree);
+
+        //     for (IndexType k = 0; k < mNumberOfPolynomialTerms; ++k) {
+        //         rLocalMappingMatrix(1 + k, j) = poly_j[k];
+        //     }
+        // }
     } else{
         // Initialize the local mapping matrix and ids vectors
         const IndexType num_rows = 1 ;
@@ -198,36 +210,72 @@ void RadialBasisFunctionMapperLocalSystem::CalculateAll(MatrixType& rLocalMappin
             rLocalMappingMatrix(0, j) = phi;
         }
 
-        const std::vector<double> polynomial = EvaluatePolynomialBasis(this->Coordinates(), mPolynomialDegree);
+        const std::vector<double> polynomial = EvaluatePolynomialBasis(this->Coordinates(), mPolynomialDegree, 2);
 
         for (IndexType k = 0; k < mNumberOfPolynomialTerms; ++k) {
             rLocalMappingMatrix(0, rbf_support_points_number + k) = polynomial[k];
         }
     }
-
     KRATOS_CATCH("")
 }
 
+// std::vector<double> RadialBasisFunctionMapperLocalSystem::EvaluatePolynomialBasis(
+//     const CoordinatesArrayType& rCoords, 
+//     unsigned int degree) const
+// {
+//     std::vector<double> polynomial_values;
+//     polynomial_values.reserve((degree + 3) * (degree + 2) * (degree + 1) / 6); // number of monomials in 3D
+
+//     const double x = rCoords[0];
+//     const double y = rCoords[1];
+//     const double z = rCoords[2];
+
+//     for (unsigned int n = 0; n <= degree; ++n) {
+//         // i = exponente de x
+//         for (int i = static_cast<int>(n); i >= 0; --i) {
+//             // j = exponente de y
+//             for (int j = static_cast<int>(n - i); j >= 0; --j) {
+//                 unsigned int k = n - i - j; // exponente de z
+//                 polynomial_values.push_back(std::pow(x, i) * std::pow(y, j) * std::pow(z, k));
+//             }
+//         }
+//     }
+
+//     return polynomial_values;
+// }
 std::vector<double> RadialBasisFunctionMapperLocalSystem::EvaluatePolynomialBasis(
-    const CoordinatesArrayType& rCoords, 
-    unsigned int degree) const
+    const CoordinatesArrayType& rCoords,
+    unsigned int degree,
+    unsigned int dimension) const
 {
     std::vector<double> polynomial_values;
-    polynomial_values.reserve((degree + 3) * (degree + 2) * (degree + 1) / 6); // number of monomials in 3D
 
     const double x = rCoords[0];
     const double y = rCoords[1];
     const double z = rCoords[2];
 
-    for (unsigned int n = 0; n <= degree; ++n) {
-        // i = exponente de x
-        for (int i = static_cast<int>(n); i >= 0; --i) {
-            // j = exponente de y
-            for (int j = static_cast<int>(n - i); j >= 0; --j) {
-                unsigned int k = n - i - j; // exponente de z
-                polynomial_values.push_back(std::pow(x, i) * std::pow(y, j) * std::pow(z, k));
+    if (dimension == 2) {
+        polynomial_values.reserve((degree + 2) * (degree + 1) / 2);
+
+        for (unsigned int n = 0; n <= degree; ++n) {
+            for (int i = static_cast<int>(n); i >= 0; --i) {
+                const unsigned int j = n - i;
+                polynomial_values.push_back(std::pow(x, i) * std::pow(y, j));
             }
         }
+    } else if (dimension == 3) {
+        polynomial_values.reserve((degree + 3) * (degree + 2) * (degree + 1) / 6);
+
+        for (unsigned int n = 0; n <= degree; ++n) {
+            for (int i = static_cast<int>(n); i >= 0; --i) {
+                for (int j = static_cast<int>(n - i); j >= 0; --j) {
+                    const unsigned int k = n - i - j;
+                    polynomial_values.push_back(std::pow(x, i) * std::pow(y, j) * std::pow(z, k));
+                }
+            }
+        }
+    } else {
+        KRATOS_ERROR << "Unsupported polynomial dimension: " << dimension << std::endl;
     }
 
     return polynomial_values;
@@ -265,7 +313,7 @@ void RadialBasisFunctionMapper<TSparseSpace, TDenseSpace>::InitializeInterface(K
 {
     const IndexType num_nodes_interface_destination = mpCouplingInterfaceDestination->NumberOfNodes();
     const IndexType num_nodes_interface_origin = mpCouplingInterfaceOrigin->NumberOfNodes();
-    const IndexType num_conditions_interface_origin = mpCouplingInterfaceOrigin->NumberOfConditions();
+    const IndexType num_elements_interface_origin = mpCouplingInterfaceOrigin->NumberOfElements();
     mpMappingMatrix = Kratos::make_unique<MappingMatrixType>(num_nodes_interface_destination, num_nodes_interface_origin);
 
     const bool precompute_mapping_matrix = mMapperSettings["precompute_mapping_matrix"].GetBool();
@@ -291,7 +339,12 @@ void RadialBasisFunctionMapper<TSparseSpace, TDenseSpace>::InitializeInterface(K
 
     // Obtain the polynomial degree and calculate number of polynomial terms
     mPolynomialDegree = mMapperSettings["additional_polynomial_degree"].GetInt();
-    mNumberOfPolynomialTerms = (mPolynomialDegree + 3) * (mPolynomialDegree + 2) * (mPolynomialDegree + 1) / 6;
+    IndexType dimension = 2;
+    if (dimension == 2){
+        mNumberOfPolynomialTerms = (mPolynomialDegree + 2) * (mPolynomialDegree + 1) / 2;
+    } else {
+        mNumberOfPolynomialTerms = (mPolynomialDegree + 3) * (mPolynomialDegree + 2) * (mPolynomialDegree + 1) / 6;
+    }
 
     // Determine whether the destination domain is IGA or not
     const bool destination_is_iga = mMapperSettings["destination_is_iga"].GetBool();
@@ -300,8 +353,10 @@ void RadialBasisFunctionMapper<TSparseSpace, TDenseSpace>::InitializeInterface(K
     KRATOS_ERROR_IF(destination_is_iga)<< "This mapper is not yet available when the destination domain is discretized with IGA" << std::endl;
 
     bool use_all_support_points = false;
-    if (mMapperSettings["search_settings"].Has("use_all_rbf_support_points")) {
-        use_all_support_points = mMapperSettings["use_all_rbf_support_points"].GetBool();
+
+    if (mMapperSettings.Has("use_all_rbf_support_points")) {
+        use_all_support_points =
+            mMapperSettings["use_all_rbf_support_points"].GetBool();
     }
 
     IndexType max_support_points = 0;
@@ -312,13 +367,13 @@ void RadialBasisFunctionMapper<TSparseSpace, TDenseSpace>::InitializeInterface(K
         max_support_points = mMapperSettings["max_support_points"].GetInt();
         mRequiredRBFSupportPoints = max_support_points;
     } else if (use_all_support_points && mOriginIsIga) {
-        mRequiredRBFSupportPoints = num_conditions_interface_origin;
+        mRequiredRBFSupportPoints = num_elements_interface_origin;
     } else {
         mRequiredRBFSupportPoints = num_nodes_interface_origin;
     }
 
     if(mOriginIsIga){
-        KRATOS_ERROR_IF(mRequiredRBFSupportPoints > num_conditions_interface_origin) << 
+        KRATOS_ERROR_IF(mRequiredRBFSupportPoints > num_elements_interface_origin) << 
             "The required support points for the RBF Mapping cannot excede the number of integrations points in the IGA origin domain" << std::endl;
         KRATOS_ERROR_IF(!precompute_mapping_matrix) << 
             "The RBF Mapper for IGA only works by precomputing the mapping matrix" << std::endl;
@@ -387,7 +442,7 @@ void RadialBasisFunctionMapper<TSparseSpace, TDenseSpace>::InitializeInterface(K
                                                       p_ref_interface_info_origin_with_origin);
     p_interface_comm_origin_with_destination->ExchangeInterfaceData(mrModelPartDestination.GetCommunicator(),
                                                       p_ref_interface_info_origin_with_destination);
-    
+                                               
     // Build the origin interpolation matrix
     MappingMatrixUtilities<TSparseSpace, TDenseSpace>::BuildMappingMatrixRBFMapper(
         mpOriginInterpolationMatrix,
@@ -446,10 +501,10 @@ template<class TSparseSpace, class TDenseSpace>
 std::vector<IndexType> RadialBasisFunctionMapper<TSparseSpace, TDenseSpace>::InitializePolynomialEquationIdsIga(const ModelPart* pModelPart)
 {
     // Use the local mesh nodes you already grabbed
-    const auto& r_conditions = pModelPart->GetCommunicator().LocalMesh().Conditions();
+    const auto& r_elements = pModelPart->GetCommunicator().LocalMesh().Elements();
 
-    IndexType max_eq_id = block_for_each<MaxReduction<IndexType>>(r_conditions, 
-        [](const Condition& rCondition){                          
+    IndexType max_eq_id = block_for_each<MaxReduction<IndexType>>(r_elements, 
+        [](const Element& rCondition){                          
             if (rCondition.Has(INTERFACE_EQUATION_ID)) {
                 return rCondition.GetValue(INTERFACE_EQUATION_ID);
             }
@@ -589,6 +644,301 @@ void RadialBasisFunctionMapper<TSparseSpace, TDenseSpace>::MapInternalTranspose(
     }
 }
 
+// template<class TSparseSpace, class TDenseSpace>
+// void RadialBasisFunctionMapper<TSparseSpace, TDenseSpace>::CalculateMappingMatrix()
+// {
+//     KRATOS_DEBUG_ERROR_IF_NOT(mpOriginInterpolationMatrix)
+//         << "CalculateMappingMatrix: mpOriginInterpolationMatrix is nullptr." << std::endl;
+//     KRATOS_DEBUG_ERROR_IF_NOT(mpDestinationEvaluationMatrix)
+//         << "CalculateMappingMatrix: mpDestinationEvaluationMatrix is nullptr." << std::endl;
+
+//     const IndexType system_size = mpOriginInterpolationMatrix->size1(); // n_support + n_poly
+//     const IndexType n_dest      = mpDestinationEvaluationMatrix->size1();
+
+//     // Number of RBF centers (support points) used to build A and B
+//     IndexType n_support = 0;
+//     if (!mOriginIsIga) {
+//         // FEM origin: one center per origin node
+//         n_support = mpInterfaceVectorContainerOrigin->GetVector().size();
+//     } else {
+//         // IGA origin: one center per interface integration point (condition)
+//         n_support = mpCouplingInterfaceOrigin->NumberOfElements();
+//     }
+
+//     // Build GP-based mapping matrix H_tilde: (n_dest x n_support)
+//     auto pMappingMatrixGP = Kratos::make_unique<MappingMatrixType>(n_dest, n_support);
+//     noalias(*pMappingMatrixGP) = ZeroMatrix(n_dest, n_support);
+
+//     Vector rhs(system_size);
+//     Vector solution(system_size);
+//     Vector dest_column(n_dest);
+
+//     using Clock = std::chrono::steady_clock;
+//     using Duration = std::chrono::duration<double>;
+//     double total_rhs_time   = 0.0;
+//     double total_solve_time = 0.0;
+//     double total_mult_time  = 0.0;
+//     double total_copy_time  = 0.0;
+
+//     const auto loop_begin = Clock::now();
+
+//     for (IndexType j = 0; j < n_support; ++j)
+//     {
+//         // -------------------------------------------------
+//         // 1) rhs = [e_j; 0]
+//         // -------------------------------------------------
+//         auto t0 = Clock::now();
+
+//         noalias(rhs) = ZeroVector(system_size);
+//         rhs[j] = 1.0;
+
+//         auto t1 = Clock::now();
+//         total_rhs_time += Duration(t1 - t0).count();
+
+//         // -------------------------------------------------
+//         // 2) Solve A * solution = rhs
+//         // -------------------------------------------------
+//         mpLinearSolver->Solve(*mpOriginInterpolationMatrix, solution, rhs);
+
+//         auto t2 = Clock::now();
+//         total_solve_time += Duration(t2 - t1).count();
+
+//         // -------------------------------------------------
+//         // 3) dest_column = B * solution
+//         // -------------------------------------------------
+//         TSparseSpace::Mult(
+//             *mpDestinationEvaluationMatrix,
+//             solution,
+//             dest_column
+//         );
+
+//         auto t3 = Clock::now();
+//         total_mult_time += Duration(t3 - t2).count();
+
+//         // -------------------------------------------------
+//         // 4) Copy column j into H_tilde
+//         // -------------------------------------------------
+//         for (IndexType i = 0; i < n_dest; ++i) {
+//             (*pMappingMatrixGP)(i, j) = dest_column[i];
+//         }
+
+//         auto t4 = Clock::now();
+//         total_copy_time += Duration(t4 - t3).count();
+
+//         // Optional: print every N iterations
+//         if ((j + 1) % 50 == 0 || j + 1 == n_support) {
+//             std::cout << "RBF mapper progress " << (j + 1) << "/" << n_support
+//                     << " | rhs: "   << total_rhs_time
+//                     << " s | solve: " << total_solve_time
+//                     << " s | mult: "  << total_mult_time
+//                     << " s | copy: "  << total_copy_time
+//                     << " s" << std::endl;
+//         }
+//     }
+
+//     const auto loop_end = Clock::now();
+//     const double total_loop_time = Duration(loop_end - loop_begin).count();
+
+//     std::cout << std::setprecision(6) << std::fixed;
+//     std::cout << "\n=== Timing summary for CalculateMappingMatrix loop ===\n";
+//     std::cout << "Total loop time : " << total_loop_time  << " s\n";
+//     std::cout << "rhs build time  : " << total_rhs_time   << " s\n";
+//     std::cout << "solve time      : " << total_solve_time << " s\n";
+//     std::cout << "mult time       : " << total_mult_time  << " s\n";
+//     std::cout << "copy time       : " << total_copy_time  << " s\n";
+//     std::cout << "other/overhead  : "
+//             << total_loop_time - total_rhs_time - total_solve_time - total_mult_time - total_copy_time
+//             << " s\n";
+
+//     // If IGA origin, project from GP-based to CP-based mapping:
+//     // M = M_tilde * N_reduced
+//     if (mOriginIsIga) {
+//         mpMappingMatrix = ComputeMappingMatrixIgaOnControlPoints(
+//             *pMappingMatrixGP,
+//             this->GetOriginModelPart()
+//         );
+//     } else {
+//         mpMappingMatrix = std::move(pMappingMatrixGP);
+//     }
+// }
+#include <chrono>
+#include <iomanip>
+
+// ...
+
+// template<class TSparseSpace, class TDenseSpace>
+// void RadialBasisFunctionMapper<TSparseSpace, TDenseSpace>::CalculateMappingMatrix()
+// {
+//     KRATOS_DEBUG_ERROR_IF_NOT(mpOriginInterpolationMatrix)
+//         << "CalculateMappingMatrix: mpOriginInterpolationMatrix is nullptr." << std::endl;
+//     KRATOS_DEBUG_ERROR_IF_NOT(mpDestinationEvaluationMatrix)
+//         << "CalculateMappingMatrix: mpDestinationEvaluationMatrix is nullptr." << std::endl;
+
+//     using Clock = std::chrono::steady_clock;
+//     using Duration = std::chrono::duration<double>;
+//     using TempDenseColumnMajorMatrixType =
+//         boost::numeric::ublas::matrix<double, boost::numeric::ublas::column_major>;
+
+//     const auto t_total_begin = Clock::now();
+
+//     const IndexType system_size = mpOriginInterpolationMatrix->size1(); // n_support + n_poly
+//     const IndexType n_dest      = mpDestinationEvaluationMatrix->size1();
+
+//     IndexType n_support = 0;
+//     if (!mOriginIsIga) {
+//         n_support = mpInterfaceVectorContainerOrigin->GetVector().size();
+//     } else {
+//         n_support = mpCouplingInterfaceOrigin->NumberOfElements();
+//     }
+
+//     KRATOS_INFO("RBFMapper") << "system_size = " << system_size
+//                              << ", n_support = " << n_support
+//                              << ", n_dest = " << n_dest << std::endl;
+
+//     // -------------------------------------------------
+//     // Temporary column-major dense matrix for fast column-wise filling
+//     // -------------------------------------------------
+//     const auto t_alloc_begin = Clock::now();
+//     auto pMappingMatrixGPDense =
+//         Kratos::make_unique<TempDenseColumnMajorMatrixType>(n_dest, n_support);
+//     const auto t_alloc_end = Clock::now();
+
+//     Vector rhs(system_size);
+//     Vector solution(system_size);
+//     Vector dest_column(n_dest);
+
+//     double total_rhs_time      = 0.0;
+//     double total_solve_time    = 0.0;
+//     double total_mult_time     = 0.0;
+//     double total_copy_time     = 0.0;
+//     double total_convert_time  = 0.0;
+
+//     const auto t_loop_begin = Clock::now();
+
+//     for (IndexType j = 0; j < n_support; ++j)
+//     {
+//         // -------------------------------------------------
+//         // 1) rhs = [e_j; 0]
+//         // -------------------------------------------------
+//         auto t0 = Clock::now();
+
+//         noalias(rhs) = ZeroVector(system_size);
+//         rhs[j] = 1.0;
+
+//         auto t1 = Clock::now();
+//         total_rhs_time += Duration(t1 - t0).count();
+
+//         // -------------------------------------------------
+//         // 2) Solve A * solution = rhs
+//         // -------------------------------------------------
+//         mpLinearSolver->Solve(*mpOriginInterpolationMatrix, solution, rhs);
+
+//         auto t2 = Clock::now();
+//         total_solve_time += Duration(t2 - t1).count();
+
+//         // -------------------------------------------------
+//         // 3) dest_column = B * solution
+//         // -------------------------------------------------
+//         TSparseSpace::Mult(
+//             *mpDestinationEvaluationMatrix,
+//             solution,
+//             dest_column
+//         );
+
+//         auto t3 = Clock::now();
+//         total_mult_time += Duration(t3 - t2).count();
+
+//         // -------------------------------------------------
+//         // 4) Fill column j into dense column-major matrix
+//         // -------------------------------------------------
+//         for (IndexType i = 0; i < n_dest; ++i) {
+//             (*pMappingMatrixGPDense)(i, j) = dest_column[i];
+//         }
+
+//         auto t4 = Clock::now();
+//         total_copy_time += Duration(t4 - t3).count();
+
+//         if ((j + 1) % 50 == 0 || j + 1 == n_support) {
+//             KRATOS_INFO("RBFMapper")
+//                 << "progress " << (j + 1) << "/" << n_support
+//                 << " | rhs: "     << total_rhs_time
+//                 << " s | solve: " << total_solve_time
+//                 << " s | mult: "  << total_mult_time
+//                 << " s | fill: "  << total_copy_time
+//                 << " s" << std::endl;
+//         }
+//     }
+
+//     const auto t_loop_end = Clock::now();
+
+//     // -------------------------------------------------
+//     // Convert once to the actual sparse MappingMatrixType
+//     // -------------------------------------------------
+//     auto t_conv_0 = Clock::now();
+
+//     auto pMappingMatrixGP = Kratos::make_unique<MappingMatrixType>(n_dest, n_support);
+
+//     for (IndexType i = 0; i < n_dest; ++i) {
+//         for (IndexType j = 0; j < n_support; ++j) {
+//             const double value = (*pMappingMatrixGPDense)(i, j);
+//             if (std::abs(value) > 1e-16) {
+//                 (*pMappingMatrixGP)(i, j) = value;
+//             }
+//         }
+//     }
+
+//     auto t_conv_1 = Clock::now();
+//     total_convert_time += Duration(t_conv_1 - t_conv_0).count();
+
+//     const double total_loop_time = Duration(t_loop_end - t_loop_begin).count();
+//     const double alloc_time      = Duration(t_alloc_end - t_alloc_begin).count();
+
+//     KRATOS_INFO("RBFMapper") << std::fixed << std::setprecision(6)
+//         << "\n=== Timing summary for CalculateMappingMatrix loop ===\n"
+//         << "Allocation time : " << alloc_time << " s\n"
+//         << "Total loop time : " << total_loop_time     << " s\n"
+//         << "rhs build time  : " << total_rhs_time      << " s\n"
+//         << "solve time      : " << total_solve_time    << " s\n"
+//         << "mult time       : " << total_mult_time     << " s\n"
+//         << "fill time       : " << total_copy_time     << " s\n"
+//         << "convert time    : " << total_convert_time  << " s\n"
+//         << "other/overhead  : "
+//         << total_loop_time - total_rhs_time - total_solve_time - total_mult_time - total_copy_time
+//         << " s\n"
+//         << "avg rhs         : " << total_rhs_time   / static_cast<double>(n_support) << " s\n"
+//         << "avg solve       : " << total_solve_time / static_cast<double>(n_support) << " s\n"
+//         << "avg mult        : " << total_mult_time  / static_cast<double>(n_support) << " s\n"
+//         << "avg fill        : " << total_copy_time  / static_cast<double>(n_support) << " s"
+//         << std::endl;
+
+//     // -------------------------------------------------
+//     // Final postprocessing
+//     // -------------------------------------------------
+//     const auto t_post_begin = Clock::now();
+
+//     if (mOriginIsIga) {
+//         mpMappingMatrix = ComputeMappingMatrixIgaOnControlPoints(
+//             *pMappingMatrixGP,
+//             this->GetOriginModelPart()
+//         );
+//     } else {
+//         mpMappingMatrix = std::move(pMappingMatrixGP);
+//     }
+
+//     const auto t_post_end  = Clock::now();
+//     const auto t_total_end = Clock::now();
+
+//     KRATOS_INFO("RBFMapper") << "Postprocessing time : "
+//                              << Duration(t_post_end - t_post_begin).count() << " s" << std::endl;
+
+//     KRATOS_INFO("RBFMapper") << "Total CalculateMappingMatrix time : "
+//                              << Duration(t_total_end - t_total_begin).count() << " s" << std::endl;
+// }
+#include <chrono>
+#include <iomanip>
+
+// ...
+
 template<class TSparseSpace, class TDenseSpace>
 void RadialBasisFunctionMapper<TSparseSpace, TDenseSpace>::CalculateMappingMatrix()
 {
@@ -597,51 +947,119 @@ void RadialBasisFunctionMapper<TSparseSpace, TDenseSpace>::CalculateMappingMatri
     KRATOS_DEBUG_ERROR_IF_NOT(mpDestinationEvaluationMatrix)
         << "CalculateMappingMatrix: mpDestinationEvaluationMatrix is nullptr." << std::endl;
 
+    using Clock = std::chrono::steady_clock;
+    using Duration = std::chrono::duration<double>;
+
+    // Dense matrix type for multi-RHS solve
+    using DenseMatrixType = boost::numeric::ublas::matrix<double>;
+
+    const auto t_total_begin = Clock::now();
+
     const IndexType system_size = mpOriginInterpolationMatrix->size1(); // n_support + n_poly
     const IndexType n_dest      = mpDestinationEvaluationMatrix->size1();
 
-    // Number of RBF centers (support points) used to build A and B
     IndexType n_support = 0;
     if (!mOriginIsIga) {
-        // FEM origin: one center per origin node
         n_support = mpInterfaceVectorContainerOrigin->GetVector().size();
     } else {
-        // IGA origin: one center per interface integration point (condition)
-        n_support = mpCouplingInterfaceOrigin->NumberOfConditions();
+        n_support = mpCouplingInterfaceOrigin->NumberOfElements();
     }
 
-    // Build GP-based mapping matrix H_tilde: (n_dest x n_support)
+    KRATOS_INFO("RBFMapper") << "system_size = " << system_size
+                             << ", n_support = " << n_support
+                             << ", n_dest = " << n_dest << std::endl;
+
+    double alloc_time        = 0.0;
+    double rhs_build_time    = 0.0;
+    double solve_time        = 0.0;
+    double mult_time         = 0.0;
+    double convert_time      = 0.0;
+    double postprocess_time  = 0.0;
+
+    // -------------------------------------------------
+    // 1) Allocate dense RHS and solution matrices
+    // -------------------------------------------------
+    auto t0 = Clock::now();
+
+    DenseMatrixType rhs_mat(system_size, n_support, 0.0);
+    DenseMatrixType sol_mat(system_size, n_support, 0.0);
+
+    auto t1 = Clock::now();
+    alloc_time = Duration(t1 - t0).count();
+
+    // -------------------------------------------------
+    // 2) Build RHS = [I; 0]
+    // -------------------------------------------------
+    auto t2 = Clock::now();
+
+    for (IndexType j = 0; j < n_support; ++j) {
+        rhs_mat(j, j) = 1.0;
+    }
+
+    auto t3 = Clock::now();
+    rhs_build_time = Duration(t3 - t2).count();
+
+    // -------------------------------------------------
+    // 3) Solve A * X = RHS
+    // -------------------------------------------------
+    auto t4 = Clock::now();
+
+    // IMPORTANT:
+    // This requires that the concrete linear solver supports
+    // Solve(SparseMatrixType, DenseMatrixType, DenseMatrixType)
+    mpLinearSolver->Solve(*mpOriginInterpolationMatrix, sol_mat, rhs_mat);
+
+    auto t5 = Clock::now();
+    solve_time = Duration(t5 - t4).count();
+
+    // -------------------------------------------------
+    // 4) Compute H_tilde = B * X
+    // -------------------------------------------------
+    auto t6 = Clock::now();
+
     auto pMappingMatrixGP = Kratos::make_unique<MappingMatrixType>(n_dest, n_support);
-    noalias(*pMappingMatrixGP) = ZeroMatrix(n_dest, n_support);
 
-    Vector rhs(system_size);
-    Vector solution(system_size);
-    Vector dest_column(n_dest);
+    // Since MappingMatrixType is compressed_matrix in your setup,
+    // compute first into a dense matrix and then convert.
+    DenseMatrixType mapping_dense(n_dest, n_support, 0.0);
 
-    for (IndexType j = 0; j < n_support; ++j)
-    {
-        // rhs = [ e_j ; 0 ]
-        noalias(rhs) = ZeroVector(system_size);
-        rhs[j] = 1.0;
+    noalias(mapping_dense) = prod(*mpDestinationEvaluationMatrix, sol_mat);
 
-        // Solve A * solution = rhs
-        mpLinearSolver->Solve(*mpOriginInterpolationMatrix, solution, rhs);
+    auto t7 = Clock::now();
+    mult_time = Duration(t7 - t6).count();
 
-        // dest_column = B * solution
-        TSparseSpace::Mult(
-            *mpDestinationEvaluationMatrix,
-            solution,
-            dest_column
-        );
+    // -------------------------------------------------
+    // 5) Convert dense mapping to MappingMatrixType
+    // -------------------------------------------------
+    auto t8 = Clock::now();
 
-        // Column j of H_tilde
-        for (IndexType i = 0; i < n_dest; ++i) {
-            (*pMappingMatrixGP)(i, j) = dest_column[i];
+    for (IndexType i = 0; i < n_dest; ++i) {
+        for (IndexType j = 0; j < n_support; ++j) {
+            const double value = mapping_dense(i, j);
+            if (std::abs(value) > 1e-16) {
+                (*pMappingMatrixGP)(i, j) = value;
+            }
         }
     }
+    KRATOS_WATCH(*pMappingMatrixGP)
 
-    // If IGA origin, project from GP-based to CP-based mapping:
-    // M = M_tilde * N_reduced
+    auto t9 = Clock::now();
+    convert_time = Duration(t9 - t8).count();
+
+    KRATOS_INFO("RBFMapper") << std::fixed << std::setprecision(6)
+        << "\n=== Timing summary for CalculateMappingMatrix (matrix RHS) ===\n"
+        << "Allocation time   : " << alloc_time       << " s\n"
+        << "RHS build time    : " << rhs_build_time   << " s\n"
+        << "Solve time        : " << solve_time       << " s\n"
+        << "B * X time        : " << mult_time        << " s\n"
+        << "Convert time      : " << convert_time     << " s"
+        << std::endl;
+
+    // -------------------------------------------------
+    // 6) Final postprocessing
+    // -------------------------------------------------
+    auto t10 = Clock::now();
+
     if (mOriginIsIga) {
         mpMappingMatrix = ComputeMappingMatrixIgaOnControlPoints(
             *pMappingMatrixGP,
@@ -650,6 +1068,17 @@ void RadialBasisFunctionMapper<TSparseSpace, TDenseSpace>::CalculateMappingMatri
     } else {
         mpMappingMatrix = std::move(pMappingMatrixGP);
     }
+
+    auto t11 = Clock::now();
+    postprocess_time = Duration(t11 - t10).count();
+
+    const auto t_total_end = Clock::now();
+
+    KRATOS_INFO("RBFMapper") << "Postprocessing time : "
+                             << postprocess_time << " s" << std::endl;
+
+    KRATOS_INFO("RBFMapper") << "Total CalculateMappingMatrix time : "
+                             << Duration(t_total_end - t_total_begin).count() << " s" << std::endl;
 }
 
 template<class TSparseSpace, class TDenseSpace>
@@ -661,7 +1090,7 @@ RadialBasisFunctionMapper<TSparseSpace, TDenseSpace>::ComputeMappingMatrixIgaOnC
     using MappingMatrixType = typename RadialBasisFunctionMapper<TSparseSpace, TDenseSpace>::MappingMatrixType;
 
     // Number of "origin interface objects" = number of GPs (here: 1 GP per condition)
-    const IndexType n_gp = mpCouplingInterfaceOrigin->NumberOfConditions();
+    const IndexType n_gp = mpCouplingInterfaceOrigin->NumberOfElements();
 
     // 1) Build map: NodeId -> local control-point index (column index in N_reduced)
     std::unordered_map<IndexType, IndexType> node_id_to_cp_index;
@@ -678,7 +1107,7 @@ RadialBasisFunctionMapper<TSparseSpace, TDenseSpace>::ComputeMappingMatrixIgaOnC
     noalias(N_reduced) = ZeroMatrix(n_gp, n_cp);
 
     IndexType gp_idx = 0;
-    for (auto& r_cond : mpCouplingInterfaceOrigin->Conditions())
+    for (auto& r_cond : mpCouplingInterfaceOrigin->Elements())
     {
         auto& r_geom = r_cond.GetGeometry();
 
