@@ -418,15 +418,15 @@ class CFDUtils:
                 xp.asarray(
                     A.value_data(), dtype=PRECISION),
                 xp.asarray(
-                    A.index2_data()),
+                    A.index2_data(),dtype=xp.int32),
                 xp.asarray(
-                    A.index1_data())),
+                    A.index1_data(),dtype=xp.int32)),
                 shape=(A.Size1(), A.Size2())
             )
-            return A_cu,assembly_indices
+            return A_cu,xp.asarray(assembly_indices,dtype=xp.int32)
         else:
             assembly_indices = A.GetEquationIdCsrIndices(conn)
-            return A, assembly_indices
+            return A, xp.asarray(assembly_indices,dtype=xp.int32)
 
     def AssembleScalarMatrix(self, LHSel, conn, A : KM.CsrMatrix):
         A.SetValue(0.0)

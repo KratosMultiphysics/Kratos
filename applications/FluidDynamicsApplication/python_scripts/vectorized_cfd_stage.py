@@ -217,11 +217,6 @@ class VectorizedCFDStage(analysis_stage.AnalysisStage):
         self.connectivity = self.connectivity_adaptor.data
         self.connectivity -= 1 #have indices to start in
         self.connectivity = self.connectivity.astype(np.int64) #############OUCH!!! TODO: this by defaults should be probably int64
-        # max_idx = self.connectivity.max()
-        # if max_idx <= np.iinfo(np.int32).max: #use 32 bit integers for connectivities
-        #     self.connectivity = self.connectivity.astype(np.int32)
-        # else:
-        #     print(f"Warning: Max index {max_idx} is too large for uint32. Staying at 64-bit.")
 
         # Preallocation of elemental arrays of velocities, pressures and body force
         self.vec_elemental_data = np.empty((*self.connectivity.shape, v.shape[1]))
@@ -258,6 +253,10 @@ class VectorizedCFDStage(analysis_stage.AnalysisStage):
         # Move stuff to the GPU
         self.DN = xp.asarray(self.DN, dtype=cfd_utils.PRECISION)
         self.N = xp.asarray(self.N, dtype=cfd_utils.PRECISION)
+        max_idx = self.connectivity.max()
+        if max_idx >= np.iinfo(np.int32).max: #use 32 bit integers for connectivities
+            print(f"Warning: Max index {max_idx} is too large for uint32")
+
         self.connectivity = xp.asarray(self.connectivity, dtype=xp.int32)
 
         # Compute h per every element
@@ -310,6 +309,7 @@ class VectorizedCFDStage(analysis_stage.AnalysisStage):
         #     node.SetSolutionStepValue(KM.PRESSURE, 0, (2.0-node.Y)*10*self.rho) #TODO: remove after debugging
         #     node.SetSolutionStepValue(KM.PRESSURE, 1, (2.0-node.Y)*10*self.rho) #TODO: remove after debugging
             # node.Fix(KM.PRESSURE) #TODO: remove after debugging
+        print("Initialize finished")
 
     def Finalize(self):
         super().Finalize()
@@ -799,18 +799,19 @@ class VectorizedCFDStage(analysis_stage.AnalysisStage):
                 return self.x_amgx.download(), is_converged
             else:
                 # Solve and get convergence status
-                sol, status = cfd_utils.sparse_linalg.cg(self.L, rhs, rtol=self.pressure_tolerance)
+                sol, status = cfd_utils.sparse_linalg.cg(self.L, rhs, tol=self.pressure_tolerance)
                 is_converged = status == 0 # Note that the status is 0 if the solver converged
 
                 return sol, is_converged
         else:
+            
             A_np = cfd_utils.sparse.csr_matrix((
                 xp.asarray(self.L.value_data(), dtype=cfd_utils.PRECISION),
                 xp.asarray(self.L.index2_data()),
                 xp.asarray(self.L.index1_data())),
                 shape=(self.L.Size1(), self.L.Size2()))
 
-            sol, status = cfd_utils.sparse_linalg.cg(A_np, rhs, rtol=self.pressure_tolerance)
+            sol, status = cfd_utils.sparse_linalg.cg(A_np, rhs, tol=self.pressure_tolerance)
             is_converged = status == 0 # Note that the status is 0 if the solver converged
 
             return sol, is_converged
