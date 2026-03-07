@@ -139,9 +139,42 @@ public:
      * @param rB Right hand side matrix
      * @return true if solution found, otherwise false
      */
-    bool Solve(SparseMatrixType &rA, DenseMatrixType &rX, DenseMatrixType &rB) override
+    bool Solve(SparseMatrixType& rA, DenseMatrixType& rX, DenseMatrixType& rB) override
     {
-        return false;
+        KRATOS_TRY
+    
+        typename TSparseSpaceType::VectorType solution, rhs;
+        TSparseSpaceType::Resize(solution, TSparseSpaceType::Size1(rA));
+        TSparseSpaceType::Resize(rhs, TSparseSpaceType::Size1(rA));
+    
+        const std::size_t system_size = TSparseSpaceType::Size1(rA);
+        const std::size_t n_rhs = TDenseSpaceType::Size2(rB);
+    
+        KRATOS_ERROR_IF(TDenseSpaceType::Size1(rB) != system_size) << "RHS has wrong number of rows." << std::endl;
+    
+        if (TDenseSpaceType::Size1(rX) != system_size || TDenseSpaceType::Size2(rX) != n_rhs) {
+            TDenseSpaceType::Resize(rX, system_size, n_rhs);
+        }
+    
+        this->InitializeSolutionStep(rA, solution, rhs);
+    
+        bool success = true;
+    
+        for (std::size_t i_column = 0ul; i_column < n_rhs; ++i_column) {
+            noalias(rhs) = column(rB, i_column);
+            TSparseSpaceType::SetToZero(solution);
+    
+            const bool col_success = this->PerformSolutionStep(rA, solution, rhs);
+            success = success && col_success;
+    
+            noalias(column(rX, i_column)) = solution;
+        }
+    
+        this->FinalizeSolutionStep(rA, solution, rhs);
+    
+        return success;
+    
+        KRATOS_CATCH("")
     }
 
     /**
