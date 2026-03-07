@@ -44,6 +44,52 @@ class TestEigenDirectSolver(KratosUnittest.TestCase):
         for i in range(dimension):
             self.assertAlmostEqual(b_act[i], b_exp[i], 7)
 
+    def __ExecuteEigenDirectSolverMatrixRHSTest(self, solver_type: str) -> None:
+        space = KratosMultiphysics.UblasSparseSpace()
+    
+        settings = KratosMultiphysics.Parameters(
+            '{ "solver_type" : "LinearSolversApplication.' + solver_type + '" }'
+        )
+        solver = ConstructSolver(settings)
+    
+        a = KratosMultiphysics.CompressedMatrix()
+    
+        this_file_dir = os.path.dirname(os.path.realpath(__file__))
+        base_dir = os.path.dirname(os.path.dirname(os.path.dirname(this_file_dir)))
+        matrix_file_path = os.path.join(
+            base_dir,
+            "kratos",
+            "tests",
+            "auxiliar_files_for_python_unittest",
+            "sparse_matrix_files",
+            "A.mm"
+        )
+    
+        file_read = KratosMultiphysics.ReadMatrixMarketMatrix(matrix_file_path, a)
+        self.assertTrue(file_read, msg="The MatrixFile could not be read")
+    
+        dimension = a.Size1()
+        self.assertEqual(dimension, 900)
+    
+        num_rhs = 3
+        b_exp = KratosMultiphysics.Matrix(dimension, num_rhs)
+    
+        for i in range(dimension):
+            b_exp[i, 0] = i + 1
+            b_exp[i, 1] = 2 * (i + 1)
+            b_exp[i, 2] = (-1)**i * (i + 1)
+    
+        x = KratosMultiphysics.Matrix(dimension, num_rhs)
+    
+        solver.Solve(a, x, b_exp)
+    
+        b_act = KratosMultiphysics.Matrix(dimension, num_rhs)
+        space.Mult(a, x, b_act)
+    
+        for i in range(dimension):
+            for j in range(num_rhs):
+                self.assertAlmostEqual(b_act[i, j], b_exp[i, j], 7)
+
     def __ExecuteEigenDirectComplexSolverTest(self,
                                               class_name: str,
                                               solver_type: str) -> None:
@@ -85,19 +131,33 @@ class TestEigenDirectSolver(KratosUnittest.TestCase):
     def test_EigenSparseLU(self):
         self.__ExecuteEigenDirectSolverTest('SparseLUSolver', 'sparse_lu')
 
+    def test_EigenSparseLU_MatrixRHS(self):
+        self.__ExecuteEigenDirectSolverMatrixRHSTest('sparse_lu')
+
     def test_EigenSparseCG(self):
         self.__ExecuteEigenDirectSolverTest('SparseCGSolver', 'sparse_cg')
 
     def test_EigenSparseQR(self):
         self.__ExecuteEigenDirectSolverTest('SparseQRSolver', 'sparse_qr')
 
+    def test_EigenSparseQR_MatrixRHS(self):
+        self.__ExecuteEigenDirectSolverMatrixRHSTest('sparse_qr')
+
     @KratosUnittest.skipIf(not LinearSolversApplication.HasMKL(), "Kratos was compiled without MKL support.")
     def test_EigenPardisoLU(self):
         self.__ExecuteEigenDirectSolverTest('PardisoLUSolver', 'pardiso_lu')
 
     @KratosUnittest.skipIf(not LinearSolversApplication.HasMKL(), "Kratos was compiled without MKL support.")
+    def test_EigenPardisoLU_MatrixRHS(self):
+        self.__ExecuteEigenDirectSolverMatrixRHSTest('pardiso_lu')
+
+    @KratosUnittest.skipIf(not LinearSolversApplication.HasMKL(), "Kratos was compiled without MKL support.")
     def test_EigenPardisoLDLT(self):
         self.__ExecuteEigenDirectSolverTest('PardisoLDLTSolver', 'pardiso_ldlt')
+
+    @KratosUnittest.skipIf(not LinearSolversApplication.HasMKL(), "Kratos was compiled without MKL support.")
+    def test_EigenPardisoLDLT_MatrixRHS(self):
+        self.__ExecuteEigenDirectSolverMatrixRHSTest('pardiso_ldlt')
 
     @KratosUnittest.skipIf(not LinearSolversApplication.HasMKL(), "Kratos was compiled without MKL support.")
     def test_EigenPardisoLLT(self):
