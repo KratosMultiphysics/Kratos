@@ -114,7 +114,7 @@ class DEMPropertiesMeasureUtility:
                     center_to_sphere_distance_1 = ((x_1 - center_x)**2 + (y_1 - center_y)**2 + (z_1 - center_z)**2)**0.5
                     #dist = ((x_contact-center_x)**2 + (y_contact-center_y)**2 + (z_contact-center_z)**2)**0.5
 
-                    if 2>1: #(center_to_sphere_distance_0 < radius - r_0 or center_to_sphere_distance_1 < radius - r_1):
+                    if (center_to_sphere_distance_0 < radius + r_0 or center_to_sphere_distance_1 < radius + r_1):
                         d = (dx**2 + dy**2 + dz**2)**0.5
                         if d <= (r_0 + r_1):
                             arg = 4 * r_0**2 * d**2 - (r_0**2 + d**2 - r_1**2)**2
@@ -141,6 +141,7 @@ class DEMPropertiesMeasureUtility:
                 particle_number_inside = self.SphericElementGlobalPhysicsCalculator.CalculateSumOfParticlesWithinSphere(self.spheres_model_part, radius, [center_x, center_y, center_z])
 
                 print(total_contact_number)
+                print(total_tensor)
                 
                 if total_contact_number:
                     measured_non_homogenized_conductivity_tensor = total_tensor/measure_sphere_volume
@@ -302,6 +303,7 @@ class DEMPropertiesMeasureUtility:
                     total_contact_number += 1
 
             print(total_contact_number)
+            print(total_tensor)
             
             if total_contact_number:
                 measured_non_homogenized_conductivity_tensor = total_tensor/bounding_box_volume
