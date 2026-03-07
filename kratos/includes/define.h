@@ -433,7 +433,7 @@ catch(...) { Block KRATOS_THROW_ERROR(std::runtime_error, "Unknown error", MoreI
 #undef KRATOS_DEFINE_LOCAL_APPLICATION_FLAG
 #endif
 #define KRATOS_DEFINE_LOCAL_APPLICATION_FLAG(application, name)		\
-  static const Kratos::Flags name;
+    KRATOS_API(application) static const Kratos::Flags name;
 
 #ifdef KRATOS_CREATE_LOCAL_FLAG
 #undef KRATOS_CREATE_LOCAL_FLAG
