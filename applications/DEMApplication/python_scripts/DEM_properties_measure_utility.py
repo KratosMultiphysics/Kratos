@@ -142,6 +142,7 @@ class DEMPropertiesMeasureUtility:
 
                 print(total_contact_number)
                 print(total_tensor)
+                print("球内平均d:", sum_d_sphere / 9085)
                 
                 if total_contact_number:
                     measured_non_homogenized_conductivity_tensor = total_tensor/measure_sphere_volume
@@ -304,6 +305,7 @@ class DEMPropertiesMeasureUtility:
 
             print(total_contact_number)
             print(total_tensor)
+            print("全局平均d:", sum_d_global / 19366)
             
             if total_contact_number:
                 measured_non_homogenized_conductivity_tensor = total_tensor/bounding_box_volume
