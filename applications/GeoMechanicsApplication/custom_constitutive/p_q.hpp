@@ -59,6 +59,10 @@ public:
         return result;
     }
 
+    PQ& operator+=(const PQ& rRhs);
+    KRATOS_API(GEO_MECHANICS_APPLICATION)
+    friend PQ operator+(PQ Lhs, const PQ& rRhs);
+
 private:
     InternalVectorType mValues = ZeroVector{msVectorSize};
 };

@@ -18,8 +18,6 @@
 #include "includes/ublas_interface.h"
 
 #include <algorithm>
-#include <initializer_list>
-#include <iterator>
 
 namespace Kratos::Geo
 {
@@ -31,19 +29,27 @@ public:
     using InternalVectorType                  = BoundedVector<double, msVectorSize>;
 
     SigmaTau() = default;
+    SigmaTau(double Sigma, double Tau);
 
     template <typename VectorType>
-    explicit SigmaTau(const VectorType& rValues) : SigmaTau{std::begin(rValues), std::end(rValues)}
+    explicit SigmaTau(const VectorType& rValues)
     {
+        // For some reason, the `std::ranges` versions of the below algorithms don't play nicely
+        // with UBlas vector expressions. Therefore, we're using the iterator-style algorithms.
+        auto first = std::begin(rValues);
+        auto last  = std::end(rValues);
+        KRATOS_DEBUG_ERROR_IF(std::distance(first, last) != msVectorSize)
+            << "Cannot construct a SigmaTau instance: expected " << msVectorSize
+            << " values, but got " << std::distance(first, last) << " value(s)\n";
+
+        std::copy(first, last, mValues.begin());
     }
 
-    explicit SigmaTau(const std::initializer_list<double>& rValues);
-
-    [[nodiscard]] const InternalVectorType& Values() const;
-    [[nodiscard]] double                    Sigma() const;
-    double&                                 Sigma();
-    [[nodiscard]] double                    Tau() const;
-    double&                                 Tau();
+    [[nodiscard]] const InternalVectorType& Values() const noexcept;
+    [[nodiscard]] double                    Sigma() const noexcept;
+    double&                                 Sigma() noexcept;
+    [[nodiscard]] double                    Tau() const noexcept;
+    double&                                 Tau() noexcept;
 
     template <typename VectorType>
     VectorType CopyTo() const
@@ -53,21 +59,11 @@ public:
         return result;
     }
 
-    SigmaTau& operator+=(const SigmaTau& rRhsTraction);
+    SigmaTau& operator+=(const SigmaTau& rRhs);
     KRATOS_API(GEO_MECHANICS_APPLICATION)
-    friend SigmaTau operator+(SigmaTau LhsTraction, const SigmaTau& rRhsTraction);
+    friend SigmaTau operator+(SigmaTau Lhs, const SigmaTau& rRhs);
 
 private:
-    template <std::forward_iterator Iter>
-    SigmaTau(Iter First, Iter Last)
-    {
-        KRATOS_DEBUG_ERROR_IF(std::distance(First, Last) != msVectorSize)
-            << "Cannot construct a SigmaTau instance: expected " << msVectorSize
-            << " values, but got " << std::distance(First, Last) << " value(s)\n";
-
-        std::copy(First, Last, mValues.begin());
-    }
-
     InternalVectorType mValues = ZeroVector{msVectorSize};
 };
 

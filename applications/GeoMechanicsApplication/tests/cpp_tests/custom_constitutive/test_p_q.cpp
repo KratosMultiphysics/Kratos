@@ -115,4 +115,25 @@ TYPED_TEST(TestPQFixture, PQ_CanBeCopiedToAnyVectorTypeWithSizeOf2)
     KRATOS_EXPECT_VECTOR_NEAR(stress_state.CopyTo<TypeParam>(), (std::vector{1.0, 2.0}), Defaults::absolute_tolerance);
 }
 
+TEST_F(KratosGeoMechanicsFastSuiteWithoutKernel, PQ_SupportsCompoundAssignment)
+{
+    // Arrange
+    auto stress_state = Geo::PQ{1.0, 2.0};
+
+    // Act
+    stress_state += Geo::PQ{3.0, 4.0};
+
+    // Assert
+    KRATOS_EXPECT_VECTOR_NEAR(stress_state.Values(), (std::vector{4.0, 6.0}), Defaults::absolute_tolerance);
+}
+
+TEST_F(KratosGeoMechanicsFastSuiteWithoutKernel, PQ_SupportsAdditionOfTwoInstances)
+{
+    // Arrange & Act
+    const auto summed_stress_state = Geo::PQ{2.0, 1.0} + Geo::PQ{3.0, 4.0};
+
+    // Assert
+    KRATOS_EXPECT_VECTOR_NEAR(summed_stress_state.Values(), (std::vector{5.0, 5.0}), Defaults::absolute_tolerance);
+}
+
 } // namespace Kratos::Testing

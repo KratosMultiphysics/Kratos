@@ -24,7 +24,7 @@ namespace Kratos::Testing
 
 TEST_F(KratosGeoMechanicsFastSuiteWithoutKernel, SigmaTau_HasZeroesAsValuesWhenDefaultConstructed)
 {
-    KRATOS_EXPECT_VECTOR_NEAR(Geo::SigmaTau().Values(), Vector(2, 0.0), Defaults::absolute_tolerance);
+    KRATOS_EXPECT_VECTOR_NEAR(Geo::SigmaTau().Values(), (std::vector{0.0, 0.0}), Defaults::absolute_tolerance);
     EXPECT_NEAR(Geo::SigmaTau{}.Sigma(), 0.0, Defaults::absolute_tolerance);
     EXPECT_NEAR(Geo::SigmaTau{}.Tau(), 0.0, Defaults::absolute_tolerance);
 }
@@ -69,21 +69,24 @@ TEST_F(KratosGeoMechanicsFastSuiteWithoutKernel,
     EXPECT_THROW(Geo::SigmaTau{too_long}, Exception);
 }
 
-TEST_F(KratosGeoMechanicsFastSuiteWithoutKernel, SigmaTau_CanBeConstructedFromAStdInitializerListWithSize2)
+TEST_F(KratosGeoMechanicsFastSuiteWithoutKernel, SigmaTau_CanBeConstructedFromAVectorExpression)
+{
+    // Arrange
+    const auto     some_matrix = UblasUtilities::CreateMatrix({{1.0, 2.0}, {3.0, 4.0}});
+    const auto     some_vector = UblasUtilities::CreateVector({2.0, 3.0});
+    constexpr auto some_scalar = 1.5;
+
+    // Act & Assert
+    // The following code won't compile when the template constructor of class `SigmaTau` (which receives
+    // a vector-like object) uses `std::ranges` algorithms when a UBlas vector expression is given.
+    KRATOS_EXPECT_VECTOR_NEAR(Geo::SigmaTau{some_scalar * prod(some_matrix, some_vector)}.Values(),
+                              (std::vector{12.0, 27.0}), Defaults::absolute_tolerance);
+}
+
+TEST_F(KratosGeoMechanicsFastSuiteWithoutKernel, SigmaTau_CanBeConstructedFromFromTwoValues)
 {
     EXPECT_NEAR((Geo::SigmaTau{1.0, 2.0}.Sigma()), 1.0, Defaults::absolute_tolerance);
     EXPECT_NEAR((Geo::SigmaTau{1.0, 2.0}.Tau()), 2.0, Defaults::absolute_tolerance);
-}
-
-TEST_F(KratosGeoMechanicsFastSuiteWithoutKernel,
-       SigmaTau_RaisesADebugErrorWhenAttemptingToConstructFromAnStdInitializerListWithSizeUnequalTo2)
-{
-#ifndef KRATOS_DEBUG
-    GTEST_SKIP() << "This test requires a debug build";
-#endif
-
-    EXPECT_THROW(Geo::SigmaTau{1.0}, Exception);
-    EXPECT_THROW((Geo::SigmaTau{2.0, 3.0, 4.0}), Exception);
 }
 
 TEST_F(KratosGeoMechanicsFastSuiteWithoutKernel, SigmaTau_ComponentsCanBeModifiedDirectly)

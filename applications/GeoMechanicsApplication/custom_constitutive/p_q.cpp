@@ -32,4 +32,16 @@ double PQ::Q() const noexcept { return mValues[1]; }
 
 double& PQ::Q() noexcept { return mValues[1]; }
 
+PQ& PQ::operator+=(const PQ& rRhs)
+{
+    std::ranges::transform(mValues, rRhs.mValues, mValues.begin(), std::plus{});
+    return *this;
+}
+
+PQ operator+(PQ Lhs, const PQ& rRhs)
+{
+    Lhs += rRhs;
+    return Lhs;
+}
+
 } // namespace Kratos::Geo
