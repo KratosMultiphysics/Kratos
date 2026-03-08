@@ -16,6 +16,7 @@
 #pragma once
 
 #include "custom_constitutive/principal_stresses.hpp"
+#include "custom_constitutive/sigma_tau.hpp"
 #include "geo_aliases.h"
 #include "includes/properties.h"
 
@@ -25,11 +26,6 @@ namespace Kratos
 {
 
 class CheckProperties;
-
-namespace Geo
-{
-class SigmaTau;
-} // namespace Geo
 
 class KRATOS_API(GEO_MECHANICS_APPLICATION) CoulombYieldSurface
 {
@@ -55,7 +51,8 @@ public:
                                                   Geo::PrincipalStresses::AveragingType AveragingType =
                                                       Geo::PrincipalStresses::AveragingType::NO_AVERAGING) const;
 
-    [[nodiscard]] double CalculateApex() const;
+    [[nodiscard]] Geo::SigmaTau CalculateApex() const;
+
     [[nodiscard]] double CalculatePlasticMultiplier(const Geo::SigmaTau& rTrialSigmaTau,
                                                     const Vector&        rDerivativeOfFlowFunction,
                                                     const Matrix&        rElasticMatrix) const;
