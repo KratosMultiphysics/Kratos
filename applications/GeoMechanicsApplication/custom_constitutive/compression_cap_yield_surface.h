@@ -41,6 +41,7 @@ public:
 
     [[nodiscard]] double YieldFunctionValue(const Geo::PQ& rPQ) const;
     [[nodiscard]] Vector DerivativeOfFlowFunction(const Geo::PQ& rPQ) const;
+    double CalculatePlasticMultiplier(const Geo::PQ& rPQ, const Vector& rDerivativeOfFlowFunction, const Matrix& rElasticMatrix) const;
 
 private:
     void InitializeKappaDependentFunctions();

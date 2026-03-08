@@ -27,6 +27,12 @@ namespace Kratos
 
 class CheckProperties;
 
+namespace Geo
+{
+class SigmaTau;
+class PQ;
+} // namespace Geo
+
 class KRATOS_API(GEO_MECHANICS_APPLICATION) CoulombYieldSurface
 {
 public:
@@ -43,6 +49,7 @@ public:
 
     [[nodiscard]] double YieldFunctionValue(const Geo::SigmaTau& rSigmaTau) const;
     [[nodiscard]] double YieldFunctionValue(const Geo::PrincipalStresses& rPrincipalStresses) const;
+    [[nodiscard]] double YieldFunctionValue(const Geo::PQ& rPQ) const;
 
     [[nodiscard]] Vector DerivativeOfFlowFunction(const Geo::SigmaTau&,
                                                   Geo::PrincipalStresses::AveragingType AveragingType =

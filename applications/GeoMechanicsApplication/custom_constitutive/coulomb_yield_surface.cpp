@@ -14,6 +14,7 @@
 
 #include "custom_constitutive/coulomb_yield_surface.h"
 #include "custom_constitutive/sigma_tau.hpp"
+#include "custom_constitutive/p_q.hpp"
 #include "custom_utilities/check_utilities.hpp"
 #include "custom_utilities/constitutive_law_utilities.h"
 #include "custom_utilities/function_object_utilities.h"
@@ -138,6 +139,12 @@ double CoulombYieldSurface::YieldFunctionValue(const Geo::SigmaTau& rSigmaTau) c
 double CoulombYieldSurface::YieldFunctionValue(const Geo::PrincipalStresses& rPrincipalStresses) const
 {
     return YieldFunctionValue(StressStrainUtilities::TransformPrincipalStressesToSigmaTau(rPrincipalStresses));
+}
+
+double CoulombYieldSurface::YieldFunctionValue(const Geo::PQ& rPQ) const
+{
+    const auto c1 = 6.0 / (3.0 - std::sin(GetFrictionAngleInRadians()));
+    return rPQ.Q() - c1 * (rPQ.P() * std::sin(GetFrictionAngleInRadians()) + GetCohesion() * std::cos(GetFrictionAngleInRadians()));
 }
 
 Vector CoulombYieldSurface::DerivativeOfFlowFunction(const Geo::SigmaTau&,

@@ -147,6 +147,17 @@ void CompressionCapYieldSurface::CheckMaterialProperties() const
     }
 }
 
+double CompressionCapYieldSurface::CalculatePlasticMultiplier(const Geo::PQ& rPQ,
+                                                       const Vector& rDerivativeOfFlowFunction, const Matrix& rElasticMatrix) const
+{
+    const auto temp = Vector{prod(rElasticMatrix, rDerivativeOfFlowFunction)};
+    const auto A = std::pow(temp[1], 2) / std::pow(GetCapSize(), 2) + std::pow(temp[0], 2);
+    const auto B = 2.0 * (temp[1] * rPQ.Q() / std::pow(GetCapSize(), 2) + temp[0] * rPQ.P());
+    const auto C = YieldFunctionValue(rPQ);
+    const auto delta = std::sqrt(B * B - 4.0 * A * C);
+    return std::min((-B + delta) / (2.0 * A), (-B - delta) / (2.0 * A));
+}
+
 void CompressionCapYieldSurface::save(Serializer& rSerializer) const
 {
     rSerializer.save("Kappa", mKappa);
