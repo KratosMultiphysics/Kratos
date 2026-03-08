@@ -84,9 +84,6 @@ class DEMPropertiesMeasureUtility:
                     z_1 = element.GetNode(1).Z
                     r_0 = element.GetNode(0).GetSolutionStepValue(RADIUS)
                     r_1 = element.GetNode(1).GetSolutionStepValue(RADIUS)
-                    #x_contact = 0.5 * (x_0 + x_1)
-                    #y_contact = 0.5 * (y_0 + y_1)
-                    #z_contact = 0.5 * (z_0 + z_1)
 
                     dx = x_0 - x_1
                     if dx > 0.5 * Lx:
@@ -106,15 +103,15 @@ class DEMPropertiesMeasureUtility:
                     elif dz < -0.5 * Lz:
                         dz += Lz
 
-                    #x_contact = x_0 - 0.5 * dx
-                    #y_contact = y_0 - 0.5 * dy
-                    #z_contact = z_0 - 0.5 * dz
+                    x_contact = x_0 - 0.5 * dx
+                    y_contact = y_0 - 0.5 * dy
+                    z_contact = z_0 - 0.5 * dz
 
                     center_to_sphere_distance_0 = ((x_0 - center_x)**2 + (y_0 - center_y)**2 + (z_0 - center_z)**2)**0.5
                     center_to_sphere_distance_1 = ((x_1 - center_x)**2 + (y_1 - center_y)**2 + (z_1 - center_z)**2)**0.5
-                    #dist = ((x_contact-center_x)**2 + (y_contact-center_y)**2 + (z_contact-center_z)**2)**0.5
+                    dist = ((x_contact-center_x)**2 + (y_contact-center_y)**2 + (z_contact-center_z)**2)**0.5
 
-                    if (center_to_sphere_distance_0 < radius + r_0 or center_to_sphere_distance_1 < radius + r_1):
+                    if dist < radius and (center_to_sphere_distance_0 < radius - r_0 or center_to_sphere_distance_1 < radius - r_1):
                         d = (dx**2 + dy**2 + dz**2)**0.5
                         if d <= (r_0 + r_1):
                             arg = 4 * r_0**2 * d**2 - (r_0**2 + d**2 - r_1**2)**2
@@ -140,10 +137,6 @@ class DEMPropertiesMeasureUtility:
 
                 particle_number_inside = self.SphericElementGlobalPhysicsCalculator.CalculateSumOfParticlesWithinSphere(self.spheres_model_part, radius, [center_x, center_y, center_z])
 
-                print(total_contact_number)
-                print(total_tensor)
-                print("球内平均d:", sum_d_sphere / 9085)
-                
                 if total_contact_number:
                     measured_non_homogenized_conductivity_tensor = total_tensor/measure_sphere_volume
                 else:
@@ -303,10 +296,6 @@ class DEMPropertiesMeasureUtility:
                     total_tensor += tensor
                     total_contact_number += 1
 
-            print(total_contact_number)
-            print(total_tensor)
-            print("全局平均d:", sum_d_global / 19366)
-            
             if total_contact_number:
                 measured_non_homogenized_conductivity_tensor = total_tensor/bounding_box_volume
             else:
