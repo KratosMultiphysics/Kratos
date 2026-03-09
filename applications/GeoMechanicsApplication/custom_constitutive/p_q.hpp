@@ -34,11 +34,15 @@ public:
     template <typename VectorType>
     explicit PQ(const VectorType& rValues)
     {
-        KRATOS_DEBUG_ERROR_IF(std::ranges::distance(rValues) != msVectorSize)
+        // For some reason, the `std::ranges` versions of the below algorithms don't play nicely
+        // with UBlas vector expressions. Therefore, we're using the iterator-style algorithms.
+        auto first = std::begin(rValues);
+        auto last  = std::end(rValues);
+        KRATOS_DEBUG_ERROR_IF(std::distance(first, last) != msVectorSize)
             << "Cannot construct a PQ instance: expected " << msVectorSize << " values, but got "
-            << std::ranges::distance(rValues) << " value(s)\n";
+            << std::distance(first, last) << " value(s)\n";
 
-        std::ranges::copy(rValues, mValues.begin());
+        std::copy(first, last, mValues.begin());
     }
 
     [[nodiscard]] const InternalVectorType& Values() const noexcept;
