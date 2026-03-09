@@ -7,7 +7,6 @@
 //
 //  License:         geo_mechanics_application/license.txt
 //
-//
 //  Main authors:    Anne van de Graaf
 //
 
