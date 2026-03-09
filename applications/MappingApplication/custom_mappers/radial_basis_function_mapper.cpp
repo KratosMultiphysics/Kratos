@@ -270,6 +270,10 @@ void RadialBasisFunctionMapper<TSparseSpace, TDenseSpace>::InitializeInterface(K
 
     const bool precompute_mapping_matrix = mMapperSettings["precompute_mapping_matrix"].GetBool();
 
+    // Get the global space dimension
+    const IndexType dimension = mMapperSettings["global_space_dimension"].GetInt();
+    KRATOS_ERROR_IF(dimension > 3) << "global_space_dimension cannot be greater than 3" << std::endl;
+
     // Read the RBF type from the settings
     std::string rbf_type = mMapperSettings["radial_basis_function_type"].GetString();
     std::transform(rbf_type.begin(), rbf_type.end(), rbf_type.begin(), ::tolower);
