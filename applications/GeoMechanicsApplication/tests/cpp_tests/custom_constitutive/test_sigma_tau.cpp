@@ -131,10 +131,10 @@ TEST_F(KratosGeoMechanicsFastSuiteWithoutKernel, SigmaTau_SupportsCompoundAssign
 TEST_F(KratosGeoMechanicsFastSuiteWithoutKernel, SigmaTau_SupportsAdditionOfTwoInstances)
 {
     // Arrange & Act
-    const auto summed_traction = Geo::SigmaTau{2.0, 1.0} + Geo::SigmaTau{3.0, 4.0};
+    const auto summed_traction = Geo::SigmaTau{1.0, 3.0} + Geo::SigmaTau{2.0, 4.0};
 
     // Assert
-    KRATOS_EXPECT_VECTOR_NEAR(summed_traction.Values(), (std::vector{5.0, 5.0}), Defaults::absolute_tolerance);
+    KRATOS_EXPECT_VECTOR_NEAR(summed_traction.Values(), (std::vector{3.0, 7.0}), Defaults::absolute_tolerance);
 }
 
 } // namespace Kratos::Testing

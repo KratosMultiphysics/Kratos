@@ -130,10 +130,10 @@ TEST_F(KratosGeoMechanicsFastSuiteWithoutKernel, PQ_SupportsCompoundAssignment)
 TEST_F(KratosGeoMechanicsFastSuiteWithoutKernel, PQ_SupportsAdditionOfTwoInstances)
 {
     // Arrange & Act
-    const auto summed_stress_state = Geo::PQ{2.0, 1.0} + Geo::PQ{3.0, 4.0};
+    const auto summed_stress_state = Geo::PQ{1.0, 3.0} + Geo::PQ{2.0, 4.0};
 
     // Assert
-    KRATOS_EXPECT_VECTOR_NEAR(summed_stress_state.Values(), (std::vector{5.0, 5.0}), Defaults::absolute_tolerance);
+    KRATOS_EXPECT_VECTOR_NEAR(summed_stress_state.Values(), (std::vector{3.0, 7.0}), Defaults::absolute_tolerance);
 }
 
 } // namespace Kratos::Testing
