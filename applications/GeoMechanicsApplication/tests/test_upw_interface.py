@@ -34,9 +34,6 @@ class KratosGeoMechanicsUPwInterfaceTests(KratosUnittest.TestCase):
         ]
         self.output_reader = GiDOutputFileReader()
 
-    def tearDown(self):
-        pass
-
     def _run_two_stage_case(self, case_path, project_parameters_filenames=None):
         project_parameters_filenames = (
             project_parameters_filenames or self.project_parameters_filenames
@@ -141,14 +138,26 @@ class KratosGeoMechanicsUPwInterfaceTests(KratosUnittest.TestCase):
         return node_id_pairs
 
     @staticmethod
+    def _interface_node_pairs_from_element_line(element_line):
+        columns = element_line.split()
+        if len(columns) < 4:
+            return ()
+
+        element_node_ids = [int(value) for value in columns[2:]]
+        if len(element_node_ids) < 2 or len(element_node_ids) % 2 != 0:
+            return ()
+
+        half = len(element_node_ids) // 2
+        return zip(element_node_ids[:half], element_node_ids[half:])
+
+    @staticmethod
     def _interface_unique_node_id_pairs(mdpa_file_path):
         node_id_pairs = []
         seen_pairs = set()
         reading_interface_elements = False
 
         with open(mdpa_file_path, "r", encoding="utf-8") as mdpa_file:
-            for line in mdpa_file:
-                stripped_line = line.strip()
+            for stripped_line in map(str.strip, mdpa_file):
 
                 if stripped_line.startswith("Begin Elements"):
                     element_name = stripped_line[len("Begin Elements") :].strip()
@@ -159,22 +168,14 @@ class KratosGeoMechanicsUPwInterfaceTests(KratosUnittest.TestCase):
                     reading_interface_elements = False
                     continue
 
-                if not reading_interface_elements or not stripped_line:
+                if not reading_interface_elements:
                     continue
 
-                columns = stripped_line.split()
-                if len(columns) < 4:
-                    continue
-
-                element_node_ids = [int(value) for value in columns[2:]]
-                if len(element_node_ids) < 2 or len(element_node_ids) % 2 != 0:
-                    continue
-
-                half = len(element_node_ids) // 2
-                for node_id_a, node_id_b in zip(
-                    element_node_ids[:half], element_node_ids[half:]
+                for (
+                    pair
+                ) in KratosGeoMechanicsUPwInterfaceTests._interface_node_pairs_from_element_line(
+                    stripped_line
                 ):
-                    pair = (node_id_a, node_id_b)
                     if pair not in seen_pairs:
                         seen_pairs.add(pair)
                         node_id_pairs.append(pair)
