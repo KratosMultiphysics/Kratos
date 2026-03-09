@@ -30,7 +30,9 @@
             },
             "Variables": {
                 "INTERFACE_NORMAL_STIFFNESS":  2.0e3,
-                "INTERFACE_SHEAR_STIFFNESS":   1.0e3
+                "INTERFACE_SHEAR_STIFFNESS" :  1.0e3,
+                "TRANSVERSAL_PERMEABILITY"  :  5.0e-4,
+                "DYNAMIC_VISCOSITY"         :  1.0e-3
             }
         }
     }]
