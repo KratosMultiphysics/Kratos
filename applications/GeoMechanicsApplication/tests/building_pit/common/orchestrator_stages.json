@@ -457,16 +457,16 @@
                 },
                 "solver_settings": {
                     "time_stepping": {
-                        "time_step": 1.0,
+                        "time_step": 0.1,
                         "max_delta_time_factor": 1000.0
                     },
                     "solver_type": "U_Pw",
                     "solution_type": "static",
                     "strategy_type": "newton_raphson",
-                    "scheme_type": "newmark",
+                    "scheme_type": "load_stepping",
                     "model_part_name": "PorousDomain",
                     "domain_size": 2,
-                    "use_old_stiffness_in_first_iteration": true,
+                    "use_old_stiffness_in_first_iteration": false,
                     "echo_level": 1,
                     "model_import_settings": {
                         "input_type": "use_input_model_part"
@@ -687,7 +687,7 @@
                             "kratos_module": "KratosMultiphysics",
                             "process_name": "GiDOutputProcess",
                             "Parameters": {
-                                "model_part_name": "PorousDomain.porous_computational_model_part",
+                                "model_part_name": "PorousDomain.All_Soil",
                                 "postprocess_parameters": {
                                     "result_file_configuration": {
                                         "gidpost_flags": {
@@ -712,7 +712,8 @@
                                         "gauss_point_results": [
                                             "CAUCHY_STRESS_TENSOR",
                                             "TOTAL_STRESS_TENSOR",
-                                            "ENGINEERING_STRAIN_TENSOR"
+                                            "ENGINEERING_STRAIN_TENSOR",
+                                            "GEO_PLASTIC_STATUS"
                                         ]
                                     }
                                 },
@@ -1002,7 +1003,7 @@
                             "kratos_module": "KratosMultiphysics",
                             "process_name": "GiDOutputProcess",
                             "Parameters": {
-                                "model_part_name": "PorousDomain.porous_computational_model_part",
+                                "model_part_name": "PorousDomain.All_Soil",
                                 "postprocess_parameters": {
                                     "result_file_configuration": {
                                         "gidpost_flags": {
@@ -1027,7 +1028,8 @@
                                         "gauss_point_results": [
                                             "CAUCHY_STRESS_TENSOR",
                                             "TOTAL_STRESS_TENSOR",
-                                            "ENGINEERING_STRAIN_TENSOR"
+                                            "ENGINEERING_STRAIN_TENSOR",
+                                            "GEO_PLASTIC_STATUS"
                                         ]
                                     }
                                 },
@@ -1327,7 +1329,7 @@
                             "kratos_module": "KratosMultiphysics",
                             "process_name": "GiDOutputProcess",
                             "Parameters": {
-                                "model_part_name": "PorousDomain.porous_computational_model_part",
+                                "model_part_name": "PorousDomain.All_Soil",
                                 "postprocess_parameters": {
                                     "result_file_configuration": {
                                         "gidpost_flags": {
@@ -1352,7 +1354,8 @@
                                         "gauss_point_results": [
                                             "CAUCHY_STRESS_TENSOR",
                                             "TOTAL_STRESS_TENSOR",
-                                            "ENGINEERING_STRAIN_TENSOR"
+                                            "ENGINEERING_STRAIN_TENSOR",
+                                            "GEO_PLASTIC_STATUS"
                                         ]
                                     }
                                 },
@@ -1418,7 +1421,7 @@
                 },
                 "solver_settings": {
                     "time_stepping": {
-                        "time_step": 0.05,
+                        "time_step": 1.0,
                         "max_delta_time_factor": 1000.0
                     },
                     "solver_type": "U_Pw",
@@ -1443,13 +1446,13 @@
                     "block_builder": true,
                     "reset_displacements": false,
                     "convergence_criterion": "residual_criterion",
-                    "residual_relative_tolerance": 0.01,
+                    "residual_relative_tolerance": 0.02,
                     "residual_absolute_tolerance": 1e-09,
                     "min_iterations": 6,
-                    "max_iterations": 500,
+                    "max_iterations": 1000,
                     "number_cycles": 1,
-                    "reduction_factor": 1.0,
-                    "increase_factor": 1.0,
+                    "reduction_factor": 0.5,
+                    "increase_factor": 2.0,
                     "calculate_reactions": true,
                     "rotation_dofs": true,
                     "newmark_beta": 0.25,
@@ -1662,7 +1665,7 @@
                             "kratos_module": "KratosMultiphysics",
                             "process_name": "GiDOutputProcess",
                             "Parameters": {
-                                "model_part_name": "PorousDomain.porous_computational_model_part",
+                                "model_part_name": "PorousDomain.All_Soil",
                                 "postprocess_parameters": {
                                     "result_file_configuration": {
                                         "gidpost_flags": {
@@ -1687,7 +1690,8 @@
                                         "gauss_point_results": [
                                             "CAUCHY_STRESS_TENSOR",
                                             "TOTAL_STRESS_TENSOR",
-                                            "ENGINEERING_STRAIN_TENSOR"
+                                            "ENGINEERING_STRAIN_TENSOR",
+                                            "GEO_PLASTIC_STATUS"
                                         ]
                                     }
                                 },
@@ -1753,7 +1757,7 @@
                 },
                 "solver_settings": {
                     "time_stepping": {
-                        "time_step": 0.05,
+                        "time_step": 0.1,
                         "max_delta_time_factor": 1000.0
                     },
                     "solver_type": "U_Pw",
@@ -1777,10 +1781,10 @@
                     "block_builder": true,
                     "reset_displacements": false,
                     "convergence_criterion": "residual_criterion",
-                    "residual_relative_tolerance": 0.01,
+                    "residual_relative_tolerance": 0.02,
                     "residual_absolute_tolerance": 1e-09,
                     "min_iterations": 6,
-                    "max_iterations": 500,
+                    "max_iterations": 100,
                     "number_cycles": 1,
                     "reduction_factor": 1.0,
                     "increase_factor": 1.0,
@@ -1995,7 +1999,7 @@
                             "kratos_module": "KratosMultiphysics",
                             "process_name": "GiDOutputProcess",
                             "Parameters": {
-                                "model_part_name": "PorousDomain.porous_computational_model_part",
+                                "model_part_name": "PorousDomain.All_Soil",
                                 "postprocess_parameters": {
                                     "result_file_configuration": {
                                         "gidpost_flags": {
@@ -2020,7 +2024,8 @@
                                         "gauss_point_results": [
                                             "CAUCHY_STRESS_TENSOR",
                                             "TOTAL_STRESS_TENSOR",
-                                            "ENGINEERING_STRAIN_TENSOR"
+                                            "ENGINEERING_STRAIN_TENSOR",
+                                            "GEO_PLASTIC_STATUS"
                                         ]
                                     }
                                 },
