@@ -21,9 +21,12 @@ PrincipalStresses::PrincipalStresses(double Sigma1, double Sigma2, double Sigma3
     mValues[2] = Sigma3;
 }
 
-const PrincipalStresses::InternalVectorType& PrincipalStresses::Values() const { return mValues; }
+const PrincipalStresses::InternalVectorType& PrincipalStresses::Values() const noexcept
+{
+    return mValues;
+}
 
-PrincipalStresses::InternalVectorType& PrincipalStresses::Values() { return mValues; }
+PrincipalStresses::InternalVectorType& PrincipalStresses::Values() noexcept { return mValues; }
 
 PrincipalStresses& PrincipalStresses::operator+=(const PrincipalStresses& rRhs)
 {

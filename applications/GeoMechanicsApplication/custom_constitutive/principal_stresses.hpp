@@ -38,6 +38,8 @@ public:
     template <typename VectorType>
     explicit PrincipalStresses(const VectorType& rStressVector)
     {
+        // For some reason, the `std::ranges` versions of the below algorithms don't play nicely
+        // with UBlas vector expressions. Therefore, we're using the iterator-style algorithms.
         auto first = std::begin(rStressVector);
         auto last  = std::end(rStressVector);
         KRATOS_DEBUG_ERROR_IF(std::distance(first, last) != msVectorSize)
@@ -47,16 +49,16 @@ public:
         std::copy(first, last, mValues.begin());
     }
 
+    [[nodiscard]] const InternalVectorType& Values() const noexcept;
+    [[nodiscard]] InternalVectorType&       Values() noexcept;
+
     template <typename VectorType>
-    VectorType CopyTo()
+    VectorType CopyTo() const
     {
         VectorType result(msVectorSize);
         std::ranges::copy(mValues, result.begin());
         return result;
     }
-
-    [[nodiscard]] const InternalVectorType& Values() const;
-    [[nodiscard]] InternalVectorType&       Values();
 
     PrincipalStresses& operator+=(const PrincipalStresses& rRhs);
     KRATOS_API(GEO_MECHANICS_APPLICATION)
