@@ -32,6 +32,9 @@
 
 namespace Kratos
 {
+
+class Serializer;
+
 class KRATOS_API(GEO_MECHANICS_APPLICATION) UPwInterfaceElement : public Element
 {
 public:
@@ -208,6 +211,10 @@ private:
     template <unsigned int TnumNodes>
     void CalculateAndAssembleFluidBodyFlowVector(VectorType& rRightHandSideVector) const;
 
+    friend Serializer;
+    void save(Serializer& rSerializer) const override;
+    void load(Serializer& rSerializer) override;
+
     std::function<Matrix(const Geometry<Node>&, const array_1d<double, 3>&)> mfpCalculateRotationMatrix;
 
     std::unique_ptr<IntegrationScheme>    mpIntegrationScheme;
@@ -217,7 +224,5 @@ private:
     IntegrationCoefficientsCalculator     mIntegrationCoefficientsCalculator;
     Geo::GeometryUniquePtr                mpOptionalPressureGeometry;
     std::vector<CalculationContribution>  mContributions;
-
-    friend class Serializer;
 };
 } // namespace Kratos

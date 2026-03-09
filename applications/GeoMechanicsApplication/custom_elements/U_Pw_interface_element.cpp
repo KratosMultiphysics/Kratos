@@ -949,6 +949,37 @@ std::function<std::vector<Vector>()> UPwInterfaceElement::CreateProjectedGravity
     return [this]() { return this->CalculateProjectedGravity(); };
 }
 
+void UPwInterfaceElement::save(Serializer& rSerializer) const
+{
+    KRATOS_SERIALIZE_SAVE_BASE_CLASS(rSerializer, Element)
+    // Save the integration scheme here...
+    rSerializer.save("StressStatePolicy", mpStressStatePolicy);
+    rSerializer.save("ConstitutiveLaws", mConstitutiveLaws);
+    rSerializer.save("RetentionLaws", mRetentionLaws);
+    rSerializer.save("IntegrationCoefficientsCalculator", mIntegrationCoefficientsCalculator);
+    rSerializer.save("OptionalPressureGeometry", mpOptionalPressureGeometry);
+    auto contributions = std::vector<int>{};
+    std::ranges::transform(mContributions, std::back_inserter(contributions),
+                           [](auto contribution) { return static_cast<int>(contribution); });
+    rSerializer.save("Contributions", contributions);
+}
+
+void UPwInterfaceElement::load(Serializer& rSerializer)
+{
+    KRATOS_SERIALIZE_LOAD_BASE_CLASS(rSerializer, Element)
+    // Load the integration scheme here...
+    rSerializer.load("StressStatePolicy", mpStressStatePolicy);
+    rSerializer.load("ConstitutiveLaws", mConstitutiveLaws);
+    rSerializer.load("RetentionLaws", mRetentionLaws);
+    rSerializer.load("IntegrationCoefficientsCalculator", mIntegrationCoefficientsCalculator);
+    rSerializer.load("OptionalPressureGeometry", mpOptionalPressureGeometry);
+    auto contributions = std::vector<int>{};
+    rSerializer.load("Contributions", contributions);
+    std::ranges::transform(contributions, std::back_inserter(mContributions), [](auto contribution) {
+        return static_cast<CalculationContribution>(contribution);
+    });
+}
+
 template <unsigned int MatrixSize>
 typename StiffnessCalculator<MatrixSize>::InputProvider UPwInterfaceElement::CreateStiffnessInputProvider(
     const ProcessInfo& rProcessInfo) const
