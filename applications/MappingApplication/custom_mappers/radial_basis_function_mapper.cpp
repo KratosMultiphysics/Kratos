@@ -271,8 +271,15 @@ void RadialBasisFunctionMapper<TSparseSpace, TDenseSpace>::InitializeInterface(K
     const bool precompute_mapping_matrix = mMapperSettings["precompute_mapping_matrix"].GetBool();
 
     // Get the global space dimension
-    const IndexType dimension = mMapperSettings["global_space_dimension"].GetInt();
-    KRATOS_ERROR_IF(dimension > 3) << "global_space_dimension cannot be greater than 3" << std::endl;
+    mDimension = mMapperSettings["global_space_dimension"].GetInt();
+    KRATOS_ERROR_IF(mDimension > 3) << "global_space_dimension cannot be greater than 3" << std::endl;
+
+    // Calculate the number of polynomial terms depending on the dimension
+     if (mDimension == 2){
+        mNumberOfPolynomialTerms = (mPolynomialDegree + 2) * (mPolynomialDegree + 1) / 2;
+    } else {
+        mNumberOfPolynomialTerms = (mPolynomialDegree + 3) * (mPolynomialDegree + 2) * (mPolynomialDegree + 1) / 6;
+    }
 
     // Read the RBF type from the settings
     std::string rbf_type = mMapperSettings["radial_basis_function_type"].GetString();

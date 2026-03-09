@@ -738,6 +738,7 @@ private:
     ModelPart& mrModelPartDestination;
     bool mOriginIsIga = false;
     IndexType mRequiredRBFSupportPoints;
+    IndexType mDimension = 0;
 
     ModelPart* mpCouplingMP = nullptr;
     ModelPart* mpCouplingInterfaceOrigin = nullptr;
