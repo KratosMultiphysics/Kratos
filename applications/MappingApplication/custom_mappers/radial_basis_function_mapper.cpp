@@ -353,8 +353,8 @@ void RadialBasisFunctionMapper<TSparseSpace, TDenseSpace>::InitializeInterface(K
     }
 
     // Create dummy local systems for the origin and destination domains
-    RadialBasisFunctionMapperLocalSystem origin_local_system{nullptr, nullptr, true, mOriginIsIga, mRBFTypeEnum, mPolynomialDegree, &mPolynomialEquationIdsOrigin};
-    RadialBasisFunctionMapperLocalSystem destination_local_system{nullptr, nullptr, false, mOriginIsIga, mRBFTypeEnum, mPolynomialDegree, &mPolynomialEquationIdsOrigin};
+    RadialBasisFunctionMapperLocalSystem origin_local_system{nullptr, nullptr, true, mOriginIsIga, mRBFTypeEnum, mPolynomialDegree, mDimension, &mPolynomialEquationIdsOrigin};
+    RadialBasisFunctionMapperLocalSystem destination_local_system{nullptr, nullptr, false, mOriginIsIga, mRBFTypeEnum, mPolynomialDegree, mDimension, &mPolynomialEquationIdsOrigin};
 
     // Create the local systems for the origin and destination domains
     if (mOriginIsIga) {

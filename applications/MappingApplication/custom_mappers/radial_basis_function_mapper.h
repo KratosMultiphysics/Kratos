@@ -303,35 +303,38 @@ public:
 
     // Construct from a node and a geometry (dummy constructor needed)
     explicit RadialBasisFunctionMapperLocalSystem(NodePointerType pNode, GeometryPointerType pGeometry, bool BuildOriginInterpolationMatrix, bool OriginIsIga, RadialBasisFunctionsUtilities::RBFType RBFTypeEnum, IndexType PolynomialDegree,
-                                                  const std::vector<IndexType>* pPolynomialEquationIds)
+                                                  const IndexType dimension, const std::vector<IndexType>* pPolynomialEquationIds)
             : mpNode(pNode), 
               mpGeometry(pGeometry),
               mBuildOriginInterpolationMatrix(BuildOriginInterpolationMatrix),
               mOriginIsIga(OriginIsIga),
               mRBFTypeEnum(RBFTypeEnum),
               mPolynomialDegree(PolynomialDegree), 
+              mDimension(dimension),
               mNumberOfPolynomialTerms((PolynomialDegree + 3) * (PolynomialDegree + 2) * (PolynomialDegree + 1) / 6),
               mpPolynomialEquationIds(pPolynomialEquationIds){}
 
     // Construct from a node
-    explicit RadialBasisFunctionMapperLocalSystem(NodePointerType pNode, bool BuildOriginInterpolationMatrix, bool OriginIsIga, RadialBasisFunctionsUtilities::RBFType RBFTypeEnum, IndexType PolynomialDegree, const std::vector<IndexType>* pPolynomialEquationIds): 
+    explicit RadialBasisFunctionMapperLocalSystem(NodePointerType pNode, bool BuildOriginInterpolationMatrix, bool OriginIsIga, RadialBasisFunctionsUtilities::RBFType RBFTypeEnum, IndexType PolynomialDegree, const IndexType dimension, const std::vector<IndexType>* pPolynomialEquationIds): 
              mpNode(std::move(pNode)), 
              mpGeometry(nullptr),
              mBuildOriginInterpolationMatrix(BuildOriginInterpolationMatrix),
              mOriginIsIga(OriginIsIga),
              mRBFTypeEnum(RBFTypeEnum),
              mPolynomialDegree(PolynomialDegree),
+             mDimension(dimension),
              mNumberOfPolynomialTerms((PolynomialDegree + 3) * (PolynomialDegree + 2) * (PolynomialDegree + 1) / 6),
              mpPolynomialEquationIds(pPolynomialEquationIds){}
 
     // Construct from a geometry (e.g. an integration-point “geometry” in IGA)
-    explicit RadialBasisFunctionMapperLocalSystem(GeometryPointerType pGeometry, bool BuildOriginInterpolationMatrix, bool OriginIsIga, RadialBasisFunctionsUtilities::RBFType RBFTypeEnum, IndexType PolynomialDegree, const std::vector<IndexType>* pPolynomialEquationIds): 
+    explicit RadialBasisFunctionMapperLocalSystem(GeometryPointerType pGeometry, bool BuildOriginInterpolationMatrix, bool OriginIsIga, RadialBasisFunctionsUtilities::RBFType RBFTypeEnum, IndexType PolynomialDegree, const IndexType dimension, const std::vector<IndexType>* pPolynomialEquationIds): 
              mpNode(nullptr), 
              mpGeometry(std::move(pGeometry)),
              mBuildOriginInterpolationMatrix(BuildOriginInterpolationMatrix),
              mOriginIsIga(OriginIsIga),
              mRBFTypeEnum(RBFTypeEnum),
              mPolynomialDegree(PolynomialDegree),
+             mDimension(dimension),
              mNumberOfPolynomialTerms((PolynomialDegree + 3) * (PolynomialDegree + 2) * (PolynomialDegree + 1) / 6),
              mpPolynomialEquationIds(pPolynomialEquationIds){}
 
@@ -361,13 +364,13 @@ public:
     MapperLocalSystemUniquePointer Create(NodePointerType pNode) const override
     {
        KRATOS_DEBUG_ERROR_IF(!pNode) << "Create(Node) received nullptr" << std::endl;
-       return Kratos::make_unique<RadialBasisFunctionMapperLocalSystem>(pNode, mBuildOriginInterpolationMatrix, mOriginIsIga, mRBFTypeEnum, mPolynomialDegree, mpPolynomialEquationIds);
+       return Kratos::make_unique<RadialBasisFunctionMapperLocalSystem>(pNode, mBuildOriginInterpolationMatrix, mOriginIsIga, mRBFTypeEnum, mPolynomialDegree, mDimension, mpPolynomialEquationIds);
     }
 
     MapperLocalSystemUniquePointer Create(GeometryPointerType pGeometry) const override
     {
         KRATOS_DEBUG_ERROR_IF(!pGeometry) << "Create(Geometry) received nullptr" << std::endl;
-        return Kratos::make_unique<RadialBasisFunctionMapperLocalSystem>(pGeometry, mBuildOriginInterpolationMatrix, mOriginIsIga, mRBFTypeEnum, mPolynomialDegree, mpPolynomialEquationIds);
+        return Kratos::make_unique<RadialBasisFunctionMapperLocalSystem>(pGeometry, mBuildOriginInterpolationMatrix, mOriginIsIga, mRBFTypeEnum, mPolynomialDegree, mDimension, mpPolynomialEquationIds);
     }
 
     void AddInterfaceInfo(MapperInterfaceInfoPointerType pInterfaceInfo) override 
@@ -385,6 +388,7 @@ private:
 
     bool mBuildOriginInterpolationMatrix{};
     bool mOriginIsIga = false;
+    IndexType mDimension = 0;
 
     using RBFVariant = std::variant<
         RadialBasisFunctionsUtilities::InverseMultiquadric,
