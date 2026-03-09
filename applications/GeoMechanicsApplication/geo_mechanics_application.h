@@ -131,7 +131,8 @@ namespace Kratos
 {
 
 static const auto UPwInterfaceElementContributions =
-    std::vector{CalculationContribution::Stiffness, CalculationContribution::UPCoupling};
+    std::vector{CalculationContribution::Stiffness, CalculationContribution::UPCoupling,
+                CalculationContribution::PUCoupling, CalculationContribution::Permeability};
 
 ///@name Kratos Globals
 ///@{

@@ -1,0 +1,111 @@
+Begin ModelPartData
+End ModelPartData
+
+Begin Properties 1
+End Properties
+
+Begin Properties 2
+End Properties
+
+Begin Nodes
+    1 0.0 0.0 0.0
+    2 1.0 0.0 0.0
+    3 1.0 1.0 0.0
+    4 0.0 1.0 0.0
+    5 0.0 2.0 0.0
+    6 1.0 2.0 0.0
+    7 1.0 1.0 0.0
+    8 0.0 1.0 0.0
+End Nodes
+
+Begin Elements UPwSmallStrainElement2D4N
+    1 1 1 2 3 4
+    2 1 8 7 6 5
+End Elements
+
+Begin Elements Geo_ULineInterfacePlaneStrainElement2Plus2N
+    3 2 4 3 8 7
+End Elements
+
+Begin SubModelPart Soil
+  Begin SubModelPartTables
+  End SubModelPartTables
+  Begin SubModelPartNodes
+     1
+     2
+     3
+     4
+     5
+     6
+     7
+     8
+  End SubModelPartNodes
+  Begin SubModelPartElements
+     1
+     2
+  End SubModelPartElements
+  Begin SubModelPartConditions
+  End SubModelPartConditions
+End SubModelPart
+
+Begin SubModelPart Interface
+  Begin SubModelPartTables
+  End SubModelPartTables
+  Begin SubModelPartNodes
+     3
+     4
+     7
+     8
+  End SubModelPartNodes
+  Begin SubModelPartElements
+     3
+  End SubModelPartElements
+  Begin SubModelPartConditions
+  End SubModelPartConditions
+End SubModelPart
+  
+Begin SubModelPart Bottom
+  Begin SubModelPartNodes
+      1
+      2
+  End SubModelPartNodes
+End SubModelPart
+
+Begin SubModelPart LeftSide
+  Begin SubModelPartNodes
+      1
+      4
+      5
+      8
+  End SubModelPartNodes
+End SubModelPart
+
+Begin SubModelPart RightSide
+  Begin SubModelPartNodes
+      2
+      3
+      6
+      7
+  End SubModelPartNodes
+End SubModelPart
+
+Begin Table 1 X LINE_LOAD_Y
+    0.0000000000 -2000000.0000000000 
+    1.0000000000 -2000000.0000000000 
+End Table
+
+Begin Table 2 TIME WATER_PRESSURE
+    0.0000000000 0.0000000000
+    1.0000000000 1000.0000000000
+End Table
+
+Begin SubModelPart Top
+  Begin SubModelPartTables
+     1
+     2
+  End SubModelPartTables
+  Begin SubModelPartNodes
+     5
+     6
+  End SubModelPartNodes
+End SubModelPart
