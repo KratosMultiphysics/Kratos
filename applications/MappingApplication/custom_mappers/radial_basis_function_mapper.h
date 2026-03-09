@@ -388,7 +388,6 @@ private:
 
     bool mBuildOriginInterpolationMatrix{};
     bool mOriginIsIga = false;
-    IndexType mDimension = 0;
 
     using RBFVariant = std::variant<
         RadialBasisFunctionsUtilities::InverseMultiquadric,
@@ -403,10 +402,11 @@ private:
 
     RadialBasisFunctionsUtilities::RBFType mRBFTypeEnum;
     IndexType mPolynomialDegree = 0;
+    IndexType mDimension = 0;
     IndexType mNumberOfPolynomialTerms;
     const std::vector<IndexType>* mpPolynomialEquationIds; // reference to the polynomial ids
 
-    std::vector<double> EvaluatePolynomialBasis(const CoordinatesArrayType& rCoords, unsigned int degree) const;
+    std::vector<double> EvaluatePolynomialBasis(const CoordinatesArrayType& rCoords, unsigned int degree, const IndexType dimension) const;
 
     void InitializeRBFKernel(const Matrix& coords) const
     {
