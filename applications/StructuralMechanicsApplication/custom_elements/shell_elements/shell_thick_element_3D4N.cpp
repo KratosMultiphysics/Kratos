@@ -669,7 +669,6 @@ void ShellThickElement3D4N<TKinematics>::FinalizeSolutionStep(
 
         // // Instantiate all section tangent matrices.
         Matrix D(8, 8, 0.0);
-        // double Ddrilling = 0.0;
 
         // Instantiate strain and stress-resultant vectors
         Vector generalizedStrains(8);
@@ -922,7 +921,6 @@ void ShellThickElement3D4N<TKinematics>::CalculateAll(
 
     // Instantiate all section tangent matrices.
     Matrix D(8, 8, 0.0);
-    double Ddrilling = 0.0;
 
     // Instantiate strain and stress-resultant vectors
     Vector generalizedStrains(8);
@@ -958,18 +956,14 @@ void ShellThickElement3D4N<TKinematics>::CalculateAll(
     for (SizeType integration_point = 0; integration_point < 4; integration_point++) {
 
         // get a reference of the current integration point and shape functions
-
         const GeometryType::IntegrationPointType& ip = r_geom.IntegrationPoints()[integration_point];
-
         noalias(iN) = row(shapeFunctions, integration_point);
 
         // Compute Jacobian, Inverse of Jacobian, Determinant of Jacobian
         // and Shape functions derivatives in the local coordinate system
-
         jacOp.Calculate(referenceCoordinateSystem, r_geom.ShapeFunctionLocalGradient(integration_point));
 
         // compute the 'area' of the current integration point
-
         const double dA = ip.Weight() * jacOp.Determinant();
         dArea[integration_point] = dA;
 
@@ -978,12 +972,10 @@ void ShellThickElement3D4N<TKinematics>::CalculateAll(
         CalculateBMatrix(ip.X(), ip.Y(), jacOp, shearParameters, iN, B, Bdrilling);
 
         // Calculate strain vectors in local coordinate system
-
         noalias(generalizedStrains) = prod(B, localDisplacements);
         const double drillingStrain = inner_prod(Bdrilling, localDisplacements);
 
         // Apply the EAS method to modify the membrane part of the strains computed above.
-
         EASOp.GaussPointComputation_Step1(ip.X(), ip.Y(), jacOp, generalizedStrains, mEASStorage);
 
         // Calculate the response of the Cross Section
@@ -991,11 +983,9 @@ void ShellThickElement3D4N<TKinematics>::CalculateAll(
         parameters.SetShapeFunctionsDerivatives(jacOp.XYDerivatives());
         CalculateMaterialResponse(parameters, integration_point, CalculateResidualVectorFlag, CalculateStiffnessMatrixFlag, rCurrentProcessInfo);
 
-        Ddrilling = D(2, 2) * drilling_factor;
-
         // multiply the section tangent matrices and stress resultants by 'dA'
         D *= dA;
-        Ddrilling *= dA;
+        double Ddrilling = D(2, 2) * (r_props.Has(STABILIZATION_FACTOR) ? r_props[STABILIZATION_FACTOR] : drilling_factor); // drilling stiffness
         generalizedStresses *= dA;
         const double drillingStress = Ddrilling * drillingStrain; // already multiplied by 'dA'
 
@@ -1022,13 +1012,14 @@ void ShellThickElement3D4N<TKinematics>::CalculateAll(
     // Let the CoordinateTransformation finalize the calculation.
     // This will handle the transformation of the local matrices/vectors to
     // the global coordinate system.
-    this->mpCoordinateTransformation->FinalizeCalculations(localCoordinateSystem,
-            globalDisplacements,
-            localDisplacements,
-            rLeftHandSideMatrix,
-            rRightHandSideVector,
-            CalculateResidualVectorFlag,
-            CalculateStiffnessMatrixFlag);
+    this->mpCoordinateTransformation->FinalizeCalculations(
+        localCoordinateSystem,
+        globalDisplacements,
+        localDisplacements,
+        rLeftHandSideMatrix,
+        rRightHandSideVector,
+        CalculateResidualVectorFlag,
+        CalculateStiffnessMatrixFlag);
     // Add body forces contributions. This doesn't depend on the coordinate system
     AddBodyForces(dArea, rRightHandSideVector);
 }
