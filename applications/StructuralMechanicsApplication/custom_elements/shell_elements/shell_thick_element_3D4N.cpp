@@ -799,7 +799,7 @@ int ShellThickElement3D4N<TKinematics>::Check(
 
     return 0;
 
-    KRATOS_CATCH("")
+    KRATOS_CATCH("Check")
 }
 
 /***********************************************************************************/
@@ -815,6 +815,8 @@ void ShellThickElement3D4N<TKinematics>::CalculateBMatrix(
     Matrix& B,
     Vector& Bdrill)
 {
+    KRATOS_TRY
+
     const Matrix& dNxy = Jac.XYDerivatives();
 
     // Membrane
@@ -905,6 +907,8 @@ void ShellThickElement3D4N<TKinematics>::CalculateBMatrix(
     // Since in Kratos the strain vector is assumed to be : [e.xx, e.yy, e.zz, 2 e.xy, 2 e.YZ, 2 e.XZ],
     // I had to "virtually" swap the 2 rows of the matrix B before the assignment from the product on the Right-Hand-Side.
     // In this way the matrix B is consistent with the notation used in Kratos without recoding all the MITC stuff.
+
+    KRATOS_CATCH("CalculateBMatrix")
 }
 
 /***********************************************************************************/
@@ -918,6 +922,8 @@ void ShellThickElement3D4N<TKinematics>::CalculateAll(
     const bool CalculateStiffnessMatrixFlag,
     const bool CalculateResidualVectorFlag)
 {
+    KRATOS_TRY
+
     if ((rLeftHandSideMatrix.size1() != 24) || (rLeftHandSideMatrix.size2() != 24)) {
         rLeftHandSideMatrix.resize(24, 24, false);
     }
@@ -1062,6 +1068,8 @@ void ShellThickElement3D4N<TKinematics>::CalculateAll(
         CalculateStiffnessMatrixFlag);
     // Add body forces contributions. This doesn't depend on the coordinate system
     AddBodyForces(dArea, rRightHandSideVector);
+
+    KRATOS_CATCH("CalculateAll")
 }
 
 /***********************************************************************************/
