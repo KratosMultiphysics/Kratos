@@ -17,8 +17,6 @@
 #include "includes/ublas_interface.h"
 
 #include <algorithm>
-#include <initializer_list>
-#include <iterator>
 
 namespace Kratos::Geo
 {
@@ -39,18 +37,14 @@ public:
 
     template <typename VectorType>
     explicit PrincipalStresses(const VectorType& rStressVector)
-        : PrincipalStresses{std::begin(rStressVector), std::end(rStressVector)}
     {
-    }
-
-    template <std::forward_iterator InputIt>
-    PrincipalStresses(InputIt First, InputIt Last)
-    {
-        KRATOS_DEBUG_ERROR_IF(std::distance(First, Last) != msVectorSize)
+        auto first = std::begin(rStressVector);
+        auto last  = std::end(rStressVector);
+        KRATOS_DEBUG_ERROR_IF(std::distance(first, last) != msVectorSize)
             << "Cannot construct a PrincipalStresses instance: expected " << msVectorSize
-            << " values, but got " << std::distance(First, Last) << " value(s)\n";
+            << " values, but got " << std::distance(first, last) << " value(s)\n";
 
-        std::copy(First, Last, mValues.begin());
+        std::copy(first, last, mValues.begin());
     }
 
     template <typename VectorType>
