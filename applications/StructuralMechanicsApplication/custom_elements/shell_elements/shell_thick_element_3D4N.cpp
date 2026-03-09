@@ -750,8 +750,6 @@ int ShellThickElement3D4N<TKinematics>::Check(
 {
     KRATOS_TRY;
 
-    BaseType::Check(rCurrentProcessInfo);
-
     const auto& r_geom = GetGeometry();
     mConstitutiveLawVector[0]->Check(GetProperties(), r_geom, rCurrentProcessInfo);
 
