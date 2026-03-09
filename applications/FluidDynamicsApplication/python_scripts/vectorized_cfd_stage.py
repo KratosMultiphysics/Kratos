@@ -99,10 +99,10 @@ class VectorizedCFDStage(analysis_stage.AnalysisStage):
 
         vol_geometries = []
         for g in self.model_part.Geometries:
-            if(len(g) == 3):
+            if(len(g) == self.dim + 1):
                 vol_geometries.append(g.Id)
 
-        self.vol_mp = self.model_part.CreateSubModelPart("fluid_computational_model_part")
+        self.vol_mp = self.model_part.CreateSubModelPart("fluid_computational_model_part") #TODO: I think we don't really need this. We can simply take the one defined in the json.
         self.vol_mp.AddGeometries(vol_geometries)
 
         ##TODO: change viscosity
@@ -179,14 +179,8 @@ class VectorizedCFDStage(analysis_stage.AnalysisStage):
         return xp.take(v, connectivities,axis=0)
 
     def AdvanceInTime(self):
-        # Get velocity data
-        # Note that we take the velocity at the current step as the CloneTimeStep is done after the calculation of the time step
-        self.v_adaptor.CollectData()
-        v = xp.asarray(self.v_adaptor.data.reshape((len(self.model_part.Nodes),self.dim)))
-
-        # Compute time step and advance in time
-        self.dt = self._ComputeDeltaTime(v)
-        self.time += self.dt
+        # Get time step and advance in time
+        self.time += self.dt # Note that the time step is computed after the previous solve
         self.model_part.CloneTimeStep(self.time)
         self.model_part.ProcessInfo[KM.STEP] += 1
 
@@ -277,6 +271,10 @@ class VectorizedCFDStage(analysis_stage.AnalysisStage):
         if self.automatic_dt:
             aux = self.target_fourier * self.rho / self.nu
             self.dt_fourier = np.min(aux * self.h**2)
+
+        # Initialize delta time for the very first time step
+        # Note that we pass None velocity data as in this point we have zeros in the database
+        self.dt = self._ComputeDeltaTime(None) #TODO: discuss if how we initialize dt (should we directly ask for the first one in the json?)
 
         #FIXME: remove after developing
         self.step_1_total_time = 0.0
@@ -557,10 +555,10 @@ class VectorizedCFDStage(analysis_stage.AnalysisStage):
 
     def SolveSolutionStep(self):
         # Get boundary condition data
-        self.GetSlipIndices() #TODO: do this only once!
-        self.GetFixityIndices() #TODO: do this only once!
+        self.GetSlipIndices()
+        self.GetFixityIndices()
 
-        #obtain velocity from Kratos
+        # Obtain nodal data from Kratos
         self.v_adaptor.CollectData() #new vel
         v = xp.asarray(self.v_adaptor.data.reshape((len(self.model_part.Nodes),self.dim)), dtype=cfd_utils.PRECISION)
 
@@ -599,6 +597,10 @@ class VectorizedCFDStage(analysis_stage.AnalysisStage):
         t3 = time.perf_counter()
         print(f"\tStep 3 solved in {t3-t2}")
         self.step_3_total_time += t3 - t2
+
+        # Calculate the next step delta time
+        # Note that this is done in here to avoid the overhead of collecting and copying the velocity data at the beginning of next step
+        self.dt = self._ComputeDeltaTime(v)
 
         # Update Kratos database
         self.v_adaptor.data = cfd_utils.asnumpy(v)
@@ -804,14 +806,14 @@ class VectorizedCFDStage(analysis_stage.AnalysisStage):
 
                 return sol, is_converged
         else:
-            
+
             A_np = cfd_utils.sparse.csr_matrix((
                 xp.asarray(self.L.value_data(), dtype=cfd_utils.PRECISION),
                 xp.asarray(self.L.index2_data()),
                 xp.asarray(self.L.index1_data())),
                 shape=(self.L.Size1(), self.L.Size2()))
 
-            sol, status = cfd_utils.sparse_linalg.cg(A_np, rhs, tol=self.pressure_tolerance)
+            sol, status = cfd_utils.sparse_linalg.cg(A_np, rhs, rtol=self.pressure_tolerance)
             is_converged = status == 0 # Note that the status is 0 if the solver converged
 
             return sol, is_converged
