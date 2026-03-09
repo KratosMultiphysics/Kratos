@@ -235,7 +235,6 @@ void MohrCoulombWithTensionCutOff::CalculateMaterialResponseCauchy(ConstitutiveL
             mpConstitutiveDimension->GetStrainSize());
         mPlasticStatus = mCoulombWithTensionCutOffImpl.GetPlasticityStatus();
     }
-
     rParameters.GetStressVector() = mStressVector;
 }
 

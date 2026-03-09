@@ -50,6 +50,7 @@ public:
                                                               const Vector&         rShapeFunctionsValues) override;
     void    InitializeMaterialResponseCauchy(Parameters& rConstitutiveLawParameters) override;
     Vector& GetValue(const Variable<Vector>& rVariable, Vector& rValue) override;
+    int&    GetValue(const Variable<int>& rVariable, int& rValue) override;
     using ConstitutiveLaw::GetValue;
     void SetValue(const Variable<Vector>& rVariable, const Vector& rValue, const ProcessInfo& rCurrentProcessInfo) override;
     using ConstitutiveLaw::SetValue;
@@ -70,6 +71,7 @@ private:
     Vector                                    mRelativeDisplacementVectorFinalized;
     CoulombWithTensionCutOffImpl              mCoulombWithTensionCutOffImpl;
     bool                                      mIsModelInitialized = false;
+    PlasticityStatus                          mPlasticStatus      = PlasticityStatus::ELASTIC;
 
     [[nodiscard]] Geo::SigmaTau CalculateTrialTractionVector(const Vector& rRelativeDisplacementVector,
                                                              double NormalStiffness,
