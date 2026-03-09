@@ -578,25 +578,18 @@ class VectorizedCFDStage(analysis_stage.AnalysisStage):
         self.v_end_of_step_dirichlet = v.ravel()[self.fix_vel_indices].copy()
 
         # Perform fractional step
-        t0 = time.perf_counter()
-        print("\tSolve step 1 w/ CFL ", self._ComputeCFL(v, dt), ", CFL advective ", self._ComputeCFLAdvective(v, dt, self.DN), " and Fourier ", self._ComputeFourier(dt))
-        vfrac = self.SolveStep1(v, vold, pold, b, dt)
         t1 = time.perf_counter()
-        print(f"\tStep 1 solved in {t1-t0}")
-        self.step_1_total_time += t1 - t0
+        vfrac = self.SolveStep1(v, vold, pold, b, dt)
+        self.step_1_total_time += t1 - time.perf_counter()
 
-        print("\tSolve step 2 w/ CFL ", self._ComputeCFL(vfrac, dt), ", CFL advective ", self._ComputeCFLAdvective(vfrac, dt, self.DN), " and Fourier ", self._ComputeFourier(dt))
+        t2 = time.perf_counter()
         p = self.SolveStep2(vfrac, pold, dt)
         delta_p = p - pold #TODO: most probably we could modify p in place
-        t2 = time.perf_counter()
-        print(f"\tStep 2 solved in {t2-t1}")
-        self.step_2_total_time += t2 - t1
+        self.step_2_total_time += t2 - time.perf_counter()
 
-        print("\tSolve step 3")
-        v = self.SolveStep3(v, vfrac, delta_p, dt)
         t3 = time.perf_counter()
-        print(f"\tStep 3 solved in {t3-t2}")
-        self.step_3_total_time += t3 - t2
+        v = self.SolveStep3(v, vfrac, delta_p, dt)
+        self.step_3_total_time += t3 - time.perf_counter()
 
         # Calculate the next step delta time
         # Note that this is done in here to avoid the overhead of collecting and copying the velocity data at the beginning of next step
@@ -675,16 +668,16 @@ class VectorizedCFDStage(analysis_stage.AnalysisStage):
         v_el = self.ElemData(v, self.connectivity)
         v_el_avg = xp.sum(v_el, axis=1) / (self.dim+1.0)
         v_el_avg_norm = xp.linalg.norm(v_el_avg, axis=1)
-        return max(dt * v_el_avg_norm / self.h)
+        return xp.max(dt * v_el_avg_norm / self.h)
 
     def _ComputeCFLAdvective(self, v, dt, DN):
         v_el = self.ElemData(v, self.connectivity)
         v_el_mean = xp.mean(v_el, axis=1)
         advective_projection = xp.einsum('ek, enk -> en', v_el_mean, DN)
-        return max(xp.sum(xp.abs(advective_projection), axis=1) * dt)
+        return xp.max(xp.sum(xp.abs(advective_projection), axis=1) * dt)
 
     def _ComputeFourier(self, dt):
-        return max(dt * self.nu / self.rho / self.h**2)
+        return xp.max(dt * self.nu / self.rho / self.h**2)
 
     def _ComputeDeltaTime(self, v):
         if self.automatic_dt:
