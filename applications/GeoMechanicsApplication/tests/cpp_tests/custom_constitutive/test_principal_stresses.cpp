@@ -11,9 +11,12 @@
 //
 
 #include "custom_constitutive/principal_stresses.hpp"
+#include "custom_utilities/ublas_utilities.h"
 #include "includes/expect.h"
 #include "tests/cpp_tests/geo_mechanics_fast_suite_without_kernel.h"
 #include "tests/cpp_tests/test_utilities.h"
+
+#include <vector>
 
 namespace Kratos::Testing
 {
@@ -49,10 +52,25 @@ TEST_F(KratosGeoMechanicsFastSuiteWithoutKernel, PrincipalStresses_ThrowsWhenSiz
     GTEST_SKIP() << "This test requires a debug build";
 #endif
 
-    const auto too_short = {2.0, 1.0};
-    const auto too_long  = {4.0, 3.0, 2.0, 1.0};
+    const auto too_short = UblasUtilities::CreateVector({2.0, 1.0});
+    const auto too_long  = UblasUtilities::CreateVector({4.0, 3.0, 2.0, 1.0});
     EXPECT_THROW(Geo::PrincipalStresses{too_long}, Exception);
     EXPECT_THROW(Geo::PrincipalStresses{too_short}, Exception);
+}
+
+TEST_F(KratosGeoMechanicsFastSuiteWithoutKernel, PrincipalStresses_CanBeConstructedFromAVectorExpression)
+{
+    // Arrange
+    const auto some_matrix =
+        UblasUtilities::CreateMatrix({{1.0, 2.0, 3.0}, {2.0, 3.0, 1.0}, {3.0, 1.0, 2.0}});
+    const auto     some_vector = UblasUtilities::CreateVector({2.0, 3.0, 4.0});
+    constexpr auto some_scalar = 1.5;
+
+    // Act & Assert
+    // The following code won't compile when the template constructor of class `PrincipalStresses` (which receives
+    // a vector-like object) uses `std::ranges` algorithms when a UBlas vector expression is given.
+    KRATOS_EXPECT_VECTOR_NEAR(Geo::PrincipalStresses{some_scalar * prod(some_matrix, some_vector)}.Values(),
+                              (std::vector{30.0, 25.5, 25.5}), Defaults::absolute_tolerance);
 }
 
 TEST_F(KratosGeoMechanicsFastSuiteWithoutKernel, PrincipalStresses_CanBeConstructedFromAStdInitializerListWithSize3)
