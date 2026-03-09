@@ -84,8 +84,20 @@ class TestEigenDirectSolver(KratosUnittest.TestCase):
         solver.Solve(a, x, b_exp)
     
         b_act = KratosMultiphysics.Matrix(dimension, num_rhs)
-        space.Mult(a, x, b_act)
-    
+
+        for j in range(num_rhs):
+            x_col = KratosMultiphysics.Vector(dimension)
+            b_col = KratosMultiphysics.Vector(dimension)
+
+            for i in range(dimension):
+                x_col[i] = x[i, j]
+
+            space.Mult(a, x_col, b_col)
+
+            for i in range(dimension):
+                b_act[i, j] = b_col[i]
+
+        # check solution
         for i in range(dimension):
             for j in range(num_rhs):
                 self.assertAlmostEqual(b_act[i, j], b_exp[i, j], 7)
