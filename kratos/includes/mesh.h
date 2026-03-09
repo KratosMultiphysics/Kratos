@@ -1151,11 +1151,18 @@ private:
     {
         KRATOS_SERIALIZE_SAVE_BASE_CLASS(rSerializer, DataValueContainer );
         KRATOS_SERIALIZE_SAVE_BASE_CLASS(rSerializer, Flags );
+        KRATOS_INFO("Mesh::save") << "Saving mesh..." << std::endl;
+        KRATOS_INFO("Mesh::save") << "About to save nodes\n";
         rSerializer.save("Nodes",mpNodes);
+        KRATOS_INFO("Mesh::save") << "About to save properties\n";
         rSerializer.save("Properties",mpProperties);
+        KRATOS_INFO("Mesh::save") << "About to save elements\n";
         rSerializer.save("Elements",mpElements);
+        KRATOS_INFO("Mesh::save") << "About to save conditions\n";
         rSerializer.save("Conditions",mpConditions);
+        KRATOS_INFO("Mesh::save") << "About to save geometries\n";
         rSerializer.save("Geometries",mpGeometries);
+        KRATOS_INFO("Mesh::save") << "About to save master-slave constraints\n";
         rSerializer.save("Constraints",mpMasterSlaveConstraints);
     }
 
