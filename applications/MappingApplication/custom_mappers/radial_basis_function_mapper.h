@@ -70,6 +70,7 @@ class RBFSupportAccumulator {
             node_candidate.mCoordinates = rCoordinates;
 
             mCandidates.push_back(std::move(node_candidate));
+            mNumNeighbors++;
             mNotOrdered = true;
         }
 
@@ -81,6 +82,7 @@ class RBFSupportAccumulator {
             geometry_candidate.mCoordinates = rCoordinates;
 
             mCandidates.push_back(std::move(geometry_candidate)); 
+            mNumNeighbors++;
             mNotOrdered = true;
         }
 
@@ -89,10 +91,15 @@ class RBFSupportAccumulator {
             if (!mNotOrdered) return;
 
             std::stable_sort(mCandidates.begin(), mCandidates.end(),
-                [](const Candidate& a, const Candidate& b){ return a.mDistance < b.mDistance; });
+                [](const Candidate& a, const Candidate& b){
+                    return a.mDistance < b.mDistance;
+                });
+
+            if (mCandidates.size() > mRequiredRBFSupportPoints) {
+                mCandidates.resize(mRequiredRBFSupportPoints);
+            }
 
             mNumNeighbors = mCandidates.size();
-
             mNotOrdered = false;
         }
 
