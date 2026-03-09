@@ -10,7 +10,7 @@
 //                   Alejandro Cornejo
 //
 
-#include "shell_thick_element_3D4N.hpp"
+#include "mitc_thick_shell_element_3D4N.hpp"
 
 #include <string>
 #include <iomanip>
@@ -22,7 +22,7 @@ namespace Kratos
 /***********************************************************************************/
 
 template <ShellKinematics TKinematics>
-ShellThickElement3D4N<TKinematics>::MITC4Params::MITC4Params(const ShellQ4_LocalCoordinateSystem& LCS)
+MITCThickShellElement3D4N<TKinematics>::MITC4Params::MITC4Params(const ShellQ4_LocalCoordinateSystem& LCS)
     : Transformation(2, 2)
     , ShearStrains(4, 24, 0.0)
 {
@@ -88,7 +88,7 @@ ShellThickElement3D4N<TKinematics>::MITC4Params::MITC4Params(const ShellQ4_Local
 /***********************************************************************************/
 
 template <ShellKinematics TKinematics>
-ShellThickElement3D4N<TKinematics>::EASOperatorStorage::EASOperatorStorage()
+MITCThickShellElement3D4N<TKinematics>::EASOperatorStorage::EASOperatorStorage()
     : mInitialized(false)
 {
 }
@@ -97,7 +97,7 @@ ShellThickElement3D4N<TKinematics>::EASOperatorStorage::EASOperatorStorage()
 /***********************************************************************************/
 
 template <ShellKinematics TKinematics>
-void ShellThickElement3D4N<TKinematics>::EASOperatorStorage::Initialize(const GeometryType& geom)
+void MITCThickShellElement3D4N<TKinematics>::EASOperatorStorage::Initialize(const GeometryType& geom)
 {
     if (!mInitialized) {
         noalias(alpha) = ZeroVector(5);
@@ -132,7 +132,7 @@ void ShellThickElement3D4N<TKinematics>::EASOperatorStorage::Initialize(const Ge
 /***********************************************************************************/
 
 template <ShellKinematics TKinematics>
-void ShellThickElement3D4N<TKinematics>::EASOperatorStorage::InitializeSolutionStep()
+void MITCThickShellElement3D4N<TKinematics>::EASOperatorStorage::InitializeSolutionStep()
 {
     noalias(displ) = displ_converged;
     noalias(alpha) = alpha_converged;
@@ -142,7 +142,7 @@ void ShellThickElement3D4N<TKinematics>::EASOperatorStorage::InitializeSolutionS
 /***********************************************************************************/
 
 template <ShellKinematics TKinematics>
-void ShellThickElement3D4N<TKinematics>::EASOperatorStorage::FinalizeSolutionStep()
+void MITCThickShellElement3D4N<TKinematics>::EASOperatorStorage::FinalizeSolutionStep()
 {
     noalias(displ_converged) = displ;
     noalias(alpha_converged) = alpha;
@@ -152,7 +152,7 @@ void ShellThickElement3D4N<TKinematics>::EASOperatorStorage::FinalizeSolutionSte
 /***********************************************************************************/
 
 template <ShellKinematics TKinematics>
-void ShellThickElement3D4N<TKinematics>::EASOperatorStorage::FinalizeNonLinearIteration(const Vector& displacementVector)
+void MITCThickShellElement3D4N<TKinematics>::EASOperatorStorage::FinalizeNonLinearIteration(const Vector& displacementVector)
 {
     array_1d<double, 24> incrementalDispl;
     noalias(incrementalDispl) = displacementVector - displ;
@@ -168,7 +168,7 @@ void ShellThickElement3D4N<TKinematics>::EASOperatorStorage::FinalizeNonLinearIt
 /***********************************************************************************/
 
 template <ShellKinematics TKinematics>
-void ShellThickElement3D4N<TKinematics>::EASOperatorStorage::save(Serializer& rSerializer) const
+void MITCThickShellElement3D4N<TKinematics>::EASOperatorStorage::save(Serializer& rSerializer) const
 {
     rSerializer.save("A0", alpha);
     rSerializer.save("A1", alpha_converged);
@@ -184,7 +184,7 @@ void ShellThickElement3D4N<TKinematics>::EASOperatorStorage::save(Serializer& rS
 /***********************************************************************************/
 
 template <ShellKinematics TKinematics>
-void ShellThickElement3D4N<TKinematics>::EASOperatorStorage::load(Serializer& rSerializer)
+void MITCThickShellElement3D4N<TKinematics>::EASOperatorStorage::load(Serializer& rSerializer)
 {
     rSerializer.load("A0", alpha);
     rSerializer.load("A1", alpha_converged);
@@ -200,7 +200,7 @@ void ShellThickElement3D4N<TKinematics>::EASOperatorStorage::load(Serializer& rS
 /***********************************************************************************/
 
 template <ShellKinematics TKinematics>
-ShellThickElement3D4N<TKinematics>::EASOperator::EASOperator(const ShellQ4_LocalCoordinateSystem& LCS, EASOperatorStorage& storage)
+MITCThickShellElement3D4N<TKinematics>::EASOperator::EASOperator(const ShellQ4_LocalCoordinateSystem& LCS, EASOperatorStorage& storage)
     : mF0inv(3, 3)
     , mEnhancedStrains(3)
     , mG(3, 5)
@@ -255,7 +255,7 @@ ShellThickElement3D4N<TKinematics>::EASOperator::EASOperator(const ShellQ4_Local
 /***********************************************************************************/
 
 template <ShellKinematics TKinematics>
-void ShellThickElement3D4N<TKinematics>::EASOperator::GaussPointComputation_Step1(
+void MITCThickShellElement3D4N<TKinematics>::EASOperator::GaussPointComputation_Step1(
     double xi,
     double eta,
     const ShellUtilities::JacobianOperator& jac,
@@ -288,7 +288,7 @@ void ShellThickElement3D4N<TKinematics>::EASOperator::GaussPointComputation_Step
 /***********************************************************************************/
 
 template <ShellKinematics TKinematics>
-void ShellThickElement3D4N<TKinematics>::EASOperator::GaussPointComputation_Step2(
+void MITCThickShellElement3D4N<TKinematics>::EASOperator::GaussPointComputation_Step2(
     const Matrix& D,
     const Matrix& B,
     const Vector& S,
@@ -315,7 +315,7 @@ void ShellThickElement3D4N<TKinematics>::EASOperator::GaussPointComputation_Step
 /***********************************************************************************/
 
 template <ShellKinematics TKinematics>
-void ShellThickElement3D4N<TKinematics>::EASOperator::ComputeModfiedTangentAndResidual(Matrix& rLeftHandSideMatrix,
+void MITCThickShellElement3D4N<TKinematics>::EASOperator::ComputeModfiedTangentAndResidual(Matrix& rLeftHandSideMatrix,
         Vector& rRightHandSideVector,
         EASOperatorStorage& storage)
 {
@@ -340,7 +340,7 @@ void ShellThickElement3D4N<TKinematics>::EASOperator::ComputeModfiedTangentAndRe
 /***********************************************************************************/
 
 template <ShellKinematics TKinematics>
-ShellThickElement3D4N<TKinematics>::ShellThickElement3D4N(IndexType NewId,
+MITCThickShellElement3D4N<TKinematics>::MITCThickShellElement3D4N(IndexType NewId,
         GeometryType::Pointer pGeometry)
     : BaseType(NewId, pGeometry)
 {
@@ -350,7 +350,7 @@ ShellThickElement3D4N<TKinematics>::ShellThickElement3D4N(IndexType NewId,
 /***********************************************************************************/
 
 template <ShellKinematics TKinematics>
-ShellThickElement3D4N<TKinematics>::ShellThickElement3D4N(IndexType NewId,
+MITCThickShellElement3D4N<TKinematics>::MITCThickShellElement3D4N(IndexType NewId,
         GeometryType::Pointer pGeometry,
         PropertiesType::Pointer pProperties)
     : BaseType(NewId, pGeometry, pProperties)
@@ -361,26 +361,26 @@ ShellThickElement3D4N<TKinematics>::ShellThickElement3D4N(IndexType NewId,
 /***********************************************************************************/
 
 template <ShellKinematics TKinematics>
-Element::Pointer ShellThickElement3D4N<TKinematics>::Create(IndexType NewId, NodesArrayType const& ThisNodes, PropertiesType::Pointer pProperties) const
+Element::Pointer MITCThickShellElement3D4N<TKinematics>::Create(IndexType NewId, NodesArrayType const& ThisNodes, PropertiesType::Pointer pProperties) const
 {
     GeometryType::Pointer newGeom(GetGeometry().Create(ThisNodes));
-    return Kratos::make_intrusive< ShellThickElement3D4N >(NewId, newGeom, pProperties);
+    return Kratos::make_intrusive< MITCThickShellElement3D4N >(NewId, newGeom, pProperties);
 }
 
 /***********************************************************************************/
 /***********************************************************************************/
 
 template <ShellKinematics TKinematics>
-Element::Pointer ShellThickElement3D4N<TKinematics>::Create(IndexType NewId, GeometryType::Pointer pGeom, PropertiesType::Pointer pProperties) const
+Element::Pointer MITCThickShellElement3D4N<TKinematics>::Create(IndexType NewId, GeometryType::Pointer pGeom, PropertiesType::Pointer pProperties) const
 {
-    return Kratos::make_intrusive< ShellThickElement3D4N >(NewId, pGeom, pProperties);
+    return Kratos::make_intrusive< MITCThickShellElement3D4N >(NewId, pGeom, pProperties);
 }
 
 /***********************************************************************************/
 /***********************************************************************************/
 
 template <ShellKinematics TKinematics>
-void ShellThickElement3D4N<TKinematics>::Initialize(const ProcessInfo& rCurrentProcessInfo)
+void MITCThickShellElement3D4N<TKinematics>::Initialize(const ProcessInfo& rCurrentProcessInfo)
 {
     KRATOS_TRY
 
@@ -414,7 +414,7 @@ void ShellThickElement3D4N<TKinematics>::Initialize(const ProcessInfo& rCurrentP
 /***********************************************************************************/
 
 template <ShellKinematics TKinematics>
-void ShellThickElement3D4N<TKinematics>::CalculateMaterialResponse(
+void MITCThickShellElement3D4N<TKinematics>::CalculateMaterialResponse(
         ShellCrossSection::SectionParameters& rSectionParameters,
         const SizeType& rIntegrationPointNumber,
         const bool CalculateStress,
@@ -444,7 +444,7 @@ void ShellThickElement3D4N<TKinematics>::CalculateMaterialResponse(
 /***********************************************************************************/
 
 template <ShellKinematics TKinematics>
-void ShellThickElement3D4N<TKinematics>::FinalizeMaterialResponse(
+void MITCThickShellElement3D4N<TKinematics>::FinalizeMaterialResponse(
         ShellCrossSection::SectionParameters& rSectionParameters,
         const SizeType& rIntegrationPointNumber,
         const ProcessInfo& rProcessInfo)
@@ -471,7 +471,7 @@ void ShellThickElement3D4N<TKinematics>::FinalizeMaterialResponse(
 /***********************************************************************************/
 
 template <ShellKinematics TKinematics>
-void ShellThickElement3D4N<TKinematics>::InitializeMaterialResponse(
+void MITCThickShellElement3D4N<TKinematics>::InitializeMaterialResponse(
         ShellCrossSection::SectionParameters& rSectionParameters,
         const SizeType& rIntegrationPointNumber,
         const ProcessInfo& rProcessInfo)
@@ -498,7 +498,7 @@ void ShellThickElement3D4N<TKinematics>::InitializeMaterialResponse(
 /***********************************************************************************/
 
 template <ShellKinematics TKinematics>
-void ShellThickElement3D4N<TKinematics>::FinalizeNonLinearIteration(
+void MITCThickShellElement3D4N<TKinematics>::FinalizeNonLinearIteration(
     const ProcessInfo& rCurrentProcessInfo)
 {
     KRATOS_TRY
@@ -517,7 +517,7 @@ void ShellThickElement3D4N<TKinematics>::FinalizeNonLinearIteration(
 /***********************************************************************************/
 
 template <ShellKinematics TKinematics>
-void ShellThickElement3D4N<TKinematics>::InitializeSolutionStep(
+void MITCThickShellElement3D4N<TKinematics>::InitializeSolutionStep(
     const ProcessInfo& rCurrentProcessInfo)
 {
     KRATOS_TRY
@@ -621,7 +621,7 @@ void ShellThickElement3D4N<TKinematics>::InitializeSolutionStep(
 /***********************************************************************************/
 
 template <ShellKinematics TKinematics>
-void ShellThickElement3D4N<TKinematics>::FinalizeSolutionStep(
+void MITCThickShellElement3D4N<TKinematics>::FinalizeSolutionStep(
     const ProcessInfo& rCurrentProcessInfo)
 {
     KRATOS_TRY
@@ -732,7 +732,7 @@ void ShellThickElement3D4N<TKinematics>::FinalizeSolutionStep(
 /***********************************************************************************/
 
 template <ShellKinematics TKinematics>
-void ShellThickElement3D4N<TKinematics>::CalculateOnIntegrationPoints(
+void MITCThickShellElement3D4N<TKinematics>::CalculateOnIntegrationPoints(
     const Variable<double>& rVariable,
     std::vector<double>& rOutput,
     const ProcessInfo& rCurrentProcessInfo)
@@ -751,14 +751,14 @@ void ShellThickElement3D4N<TKinematics>::CalculateOnIntegrationPoints(
         CalculateOnConstitutiveLaw(rVariable, rOutput, rCurrentProcessInfo);
     }
 
-    KRATOS_CATCH("ShellThickElement3D4N::CalculateOnIntegrationPoints")
+    KRATOS_CATCH("MITCThickShellElement3D4N::CalculateOnIntegrationPoints")
 }
 
 /***********************************************************************************/
 /***********************************************************************************/
 
 template <ShellKinematics TKinematics>
-void ShellThickElement3D4N<TKinematics>::CalculateOnIntegrationPoints(
+void MITCThickShellElement3D4N<TKinematics>::CalculateOnIntegrationPoints(
     const Variable<Vector>& rVariable,
     std::vector<Vector>& rOutput,
     const ProcessInfo& rCurrentProcessInfo)
@@ -777,14 +777,14 @@ void ShellThickElement3D4N<TKinematics>::CalculateOnIntegrationPoints(
         CalculateOnConstitutiveLaw(rVariable, rOutput, rCurrentProcessInfo);
     }
 
-    KRATOS_CATCH("ShellThickElement3D4N::CalculateOnIntegrationPoints")
+    KRATOS_CATCH("MITCThickShellElement3D4N::CalculateOnIntegrationPoints")
 }
 
 /***********************************************************************************/
 /***********************************************************************************/
 
 template <ShellKinematics TKinematics>
-int ShellThickElement3D4N<TKinematics>::Check(
+int MITCThickShellElement3D4N<TKinematics>::Check(
     const ProcessInfo& rCurrentProcessInfo) const
 {
     KRATOS_TRY;
@@ -792,10 +792,10 @@ int ShellThickElement3D4N<TKinematics>::Check(
     const auto& r_geom = GetGeometry();
     mConstitutiveLawVector[0]->Check(GetProperties(), r_geom, rCurrentProcessInfo);
 
-    KRATOS_ERROR_IF_NOT((r_geom.IntegrationPoints(this->GetIntegrationMethod())).size() == 4) << "ShellThickElement3D4N - needs a full integration scheme" << std::endl;
+    KRATOS_ERROR_IF_NOT((r_geom.IntegrationPoints(this->GetIntegrationMethod())).size() == 4) << "MITCThickShellElement3D4N - needs a full integration scheme" << std::endl;
 
     const int points_number = r_geom.PointsNumber();
-    KRATOS_ERROR_IF_NOT(points_number == 4) << "ShellThickElement3D4N - Wrong number of nodes" << points_number << std::endl;
+    KRATOS_ERROR_IF_NOT(points_number == 4) << "MITCThickShellElement3D4N - Wrong number of nodes" << points_number << std::endl;
 
     return 0;
 
@@ -806,7 +806,7 @@ int ShellThickElement3D4N<TKinematics>::Check(
 /***********************************************************************************/
 
 template <ShellKinematics TKinematics>
-void ShellThickElement3D4N<TKinematics>::CalculateBMatrix(
+void MITCThickShellElement3D4N<TKinematics>::CalculateBMatrix(
     double xi,
     double eta,
     const ShellUtilities::JacobianOperator& Jac,
@@ -915,7 +915,7 @@ void ShellThickElement3D4N<TKinematics>::CalculateBMatrix(
 /***********************************************************************************/
 
 template <ShellKinematics TKinematics>
-void ShellThickElement3D4N<TKinematics>::CalculateAll(
+void MITCThickShellElement3D4N<TKinematics>::CalculateAll(
     MatrixType& rLeftHandSideMatrix,
     VectorType& rRightHandSideVector,
     const ProcessInfo& rCurrentProcessInfo,
@@ -1076,7 +1076,7 @@ void ShellThickElement3D4N<TKinematics>::CalculateAll(
 /***********************************************************************************/
 
 template <ShellKinematics TKinematics>
-void ShellThickElement3D4N<TKinematics>::AddBodyForces(const array_1d<double,4>& dA, VectorType& rRightHandSideVector)
+void MITCThickShellElement3D4N<TKinematics>::AddBodyForces(const array_1d<double,4>& dA, VectorType& rRightHandSideVector)
 {
     KRATOS_TRY
     const auto& r_geometry = GetGeometry();
@@ -1120,14 +1120,14 @@ void ShellThickElement3D4N<TKinematics>::AddBodyForces(const array_1d<double,4>&
             rRightHandSideVector[index + 2] += iN * bf[2];
         }
     }
-    KRATOS_CATCH("ShellThickElement3D4N::AddBodyForces")
+    KRATOS_CATCH("MITCThickShellElement3D4N::AddBodyForces")
 }
 
 /***********************************************************************************/
 /***********************************************************************************/
 
 template <ShellKinematics TKinematics>
-ShellCrossSection::SectionBehaviorType ShellThickElement3D4N<TKinematics>::GetSectionBehavior() const
+ShellCrossSection::SectionBehaviorType MITCThickShellElement3D4N<TKinematics>::GetSectionBehavior() const
 {
     return ShellCrossSection::Thick;
 }
@@ -1136,7 +1136,7 @@ ShellCrossSection::SectionBehaviorType ShellThickElement3D4N<TKinematics>::GetSe
 /***********************************************************************************/
 
 template <ShellKinematics TKinematics>
-void ShellThickElement3D4N<TKinematics>::save(Serializer& rSerializer) const
+void MITCThickShellElement3D4N<TKinematics>::save(Serializer& rSerializer) const
 {
     KRATOS_SERIALIZE_SAVE_BASE_CLASS(rSerializer, BaseType);
     rSerializer.save("EAS", mEASStorage);
@@ -1147,7 +1147,7 @@ void ShellThickElement3D4N<TKinematics>::save(Serializer& rSerializer) const
 /***********************************************************************************/
 
 template <ShellKinematics TKinematics>
-void ShellThickElement3D4N<TKinematics>::load(Serializer& rSerializer)
+void MITCThickShellElement3D4N<TKinematics>::load(Serializer& rSerializer)
 {
     KRATOS_SERIALIZE_LOAD_BASE_CLASS(rSerializer, BaseType);
     rSerializer.load("EAS", mEASStorage);
@@ -1157,8 +1157,8 @@ void ShellThickElement3D4N<TKinematics>::load(Serializer& rSerializer)
 /***********************************************************************************/
 /***********************************************************************************/
 
-template class ShellThickElement3D4N<ShellKinematics::LINEAR>;
-template class ShellThickElement3D4N<ShellKinematics::NONLINEAR_COROTATIONAL>;
+template class MITCThickShellElement3D4N<ShellKinematics::LINEAR>;
+template class MITCThickShellElement3D4N<ShellKinematics::NONLINEAR_COROTATIONAL>;
 
 /***********************************************************************************/
 /***********************************************************************************/
