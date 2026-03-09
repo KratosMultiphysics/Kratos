@@ -14,9 +14,11 @@
 
 namespace Kratos::Geo
 {
-PrincipalStresses::PrincipalStresses(const std::initializer_list<double>& rValues)
-    : PrincipalStresses{std::begin(rValues), std::end(rValues)}
+PrincipalStresses::PrincipalStresses(double Sigma1, double Sigma2, double Sigma3)
 {
+    mValues[0] = Sigma1;
+    mValues[1] = Sigma2;
+    mValues[2] = Sigma3;
 }
 
 const PrincipalStresses::InternalVectorType& PrincipalStresses::Values() const { return mValues; }

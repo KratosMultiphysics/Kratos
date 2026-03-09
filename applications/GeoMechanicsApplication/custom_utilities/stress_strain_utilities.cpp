@@ -240,8 +240,8 @@ Geo::SigmaTau StressStrainUtilities::TransformPrincipalStressesToSigmaTau(const 
 Geo::PrincipalStresses StressStrainUtilities::TransformSigmaTauToPrincipalStresses(
     const Geo::SigmaTau& rSigmaTau, const Geo::PrincipalStresses& rPrincipalStresses)
 {
-    return Geo::PrincipalStresses{{rSigmaTau.Sigma() + rSigmaTau.Tau(), rPrincipalStresses.Values()[1],
-                                   rSigmaTau.Sigma() - rSigmaTau.Tau()}};
+    return Geo::PrincipalStresses{rSigmaTau.Sigma() + rSigmaTau.Tau(), rPrincipalStresses.Values()[1],
+                                  rSigmaTau.Sigma() - rSigmaTau.Tau()};
 }
 
 Geo::PQ StressStrainUtilities::TransformPrincipalStressesToPandQ(const Geo::PrincipalStresses& rPrincipalStresses)

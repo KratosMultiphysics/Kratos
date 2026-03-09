@@ -35,6 +35,7 @@ public:
     using InternalVectorType                  = BoundedVector<double, msVectorSize>;
 
     PrincipalStresses() = default;
+    PrincipalStresses(double Sigma1, double Sigma2, double Sigma3);
 
     template <typename VectorType>
     explicit PrincipalStresses(const VectorType& rStressVector)
@@ -51,8 +52,6 @@ public:
 
         std::copy(First, Last, mValues.begin());
     }
-
-    explicit PrincipalStresses(const std::initializer_list<double>& rValues);
 
     template <typename VectorType>
     VectorType CopyTo()

@@ -73,26 +73,15 @@ TEST_F(KratosGeoMechanicsFastSuiteWithoutKernel, PrincipalStresses_CanBeConstruc
                               (std::vector{30.0, 25.5, 25.5}), Defaults::absolute_tolerance);
 }
 
-TEST_F(KratosGeoMechanicsFastSuiteWithoutKernel, PrincipalStresses_CanBeConstructedFromAStdInitializerListWithSize3)
+TEST_F(KratosGeoMechanicsFastSuiteWithoutKernel, PrincipalStresses_CanBeConstructedFromFromThreeValues)
 {
     KRATOS_EXPECT_VECTOR_NEAR((Geo::PrincipalStresses{3.0, 2.0, 1.0}.Values()),
                               (std::vector{3.0, 2.0, 1.0}), Defaults::absolute_tolerance);
 }
 
-TEST_F(KratosGeoMechanicsFastSuiteWithoutKernel,
-       PrincipalStress_RaisesADebugErrorWhenAttemptingToConstructFromANonEmptyStdInitializerListWithSizeUnequalTo3)
-{
-#ifndef KRATOS_DEBUG
-    GTEST_SKIP() << "This test requires a debug build";
-#endif
-
-    EXPECT_THROW((Geo::PrincipalStresses{2.0, 1.0}), Exception);
-    EXPECT_THROW((Geo::PrincipalStresses{4.0, 3.0, 2.0, 1.0}), Exception);
-}
-
 TYPED_TEST(TestPrincipalStressFixture, PrincipalStressesCanBeCopiedToAnyVectorWithSize3)
 {
-    Geo::PrincipalStresses principal_stresses{std::vector{3.0, 2.0, 1.0}};
+    Geo::PrincipalStresses principal_stresses{3.0, 2.0, 1.0};
 
     const auto copied_vector = principal_stresses.CopyTo<TypeParam>();
 
