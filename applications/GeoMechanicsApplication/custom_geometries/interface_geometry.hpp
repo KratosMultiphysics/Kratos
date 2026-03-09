@@ -16,6 +16,7 @@
 #include "custom_utilities/geometry_utilities.h"
 #include "geometries/geometry.h"
 #include "includes/node.h"
+#include "includes/serializer.h"
 
 #include <algorithm>
 
@@ -331,6 +332,20 @@ private:
     {
         return "This Geometry type does not support functionality related to integration "
                "schemes.\n";
+    }
+
+    friend Serializer;
+
+    void save(Serializer& rSerializer) const override
+    {
+        KRATOS_SERIALIZE_SAVE_BASE_CLASS(rSerializer, BaseType)
+        rSerializer.save("MidGeometry", mpMidGeometry);
+    }
+
+    void load(Serializer& rSerializer) override
+    {
+        KRATOS_SERIALIZE_LOAD_BASE_CLASS(rSerializer, BaseType)
+        rSerializer.load("MidGeometry", mpMidGeometry);
     }
 
     std::shared_ptr<BaseType> mpMidGeometry;

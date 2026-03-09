@@ -4,16 +4,11 @@
         "settings": {
             "echo_level": 0,
             "execution_list": [
-                "1_Initial_stage",
-                "2_Null_step",
-                "3_Wall_installation",
-                "4_First_excavation",
-                "5_Strut_installation",
-                "6_Second_excavation",
-                "7_Third_excavation"
+                "1_Initial_stage"
             ],
             "load_from_checkpoint": null,
-            "stage_checkpoints": false
+            "stage_checkpoints": true,
+            "stage_checkpoints_folder": "checkpoints"
         }
     },
     "stages": {

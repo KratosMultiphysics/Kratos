@@ -38,6 +38,10 @@ void KratosGeoMechanicsApplication::Register()
                     << " ((____/ / ((____   ((___/ /  MECHANICS\n"
                     << " Initializing KratosGeoMechanicsApplication..." << std::endl;
 
+    // Register custom geometries
+    KRATOS_REGISTER_GEOMETRY("LineInterfaceGeometryInPlaneStrain2Plus2N", mLineInterfaceGeometryInPlaneStrain2Plus2N)
+    KRATOS_REGISTER_GEOMETRY("LineInterfaceGeometryInPlaneStrain3Plus3N", mLineInterfaceGeometryInPlaneStrain3Plus3N)
+
     // Register Elements
     //  transient one-phase flow elements:
     KRATOS_REGISTER_ELEMENT("TransientPwElement2D3N", mTransientPwElement2D3N)

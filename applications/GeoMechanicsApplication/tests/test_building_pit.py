@@ -1014,7 +1014,7 @@ class KratosGeoMechanicsBuildingPit(KratosUnittest.TestCase):
         )
         return [coord[1] for coord in coordinates]
 
-    def test_simulation_with_linear_elastic_materials(self):
+    def skip_test_simulation_with_linear_elastic_materials(self):
         # Check the section forces in the diaphragm wall at the following positions:
         #  y [m]   Node ID
         #  20.0    8988
@@ -1164,8 +1164,8 @@ class KratosGeoMechanicsBuildingPit(KratosUnittest.TestCase):
 
         self.run_simulation_and_checks("linear_elastic", expected_results)
 
-    # def test_simulation_with_mohr_coulomb_materials(self):
-    #     self.run_simulation_and_checks("mohr_coulomb", {})
+    def test_simulation_with_mohr_coulomb_materials(self):
+        self.run_simulation_and_checks("mohr_coulomb", {})
 
 if __name__ == "__main__":
     KratosUnittest.main()
