@@ -257,6 +257,24 @@ class VertexMorphingShapeControl(Control):
             return self.model_part.GetRootModelPart()
 
     def __ExtractTensorData(self, variable, tensor_adaptor: Kratos.TensorAdaptors.DoubleTensorAdaptor, nodes_container: Kratos.NodesArray) -> Kratos.TensorAdaptors.DoubleTensorAdaptor:
+        """\
+        @brief This method is used to extract data from model part to @ref TensorAdaptor.
+
+        @details If the nodes container used in the @p tensor_adaptor is different from the @p nodes_container
+                 then, this method extracts values from the nodes of the container in the @p tensor_adaptor
+                 to a @ref TensorAdaptor having @p nodes_container as the nodes.
+
+                 Eg:
+                 This is required, if mesh motion based filters are used in the filtering, then
+                 smoothened update from filtering will be computed on the whole domain including the design surface.
+                 But, for computation of the shape_update and checking it if it actually changes the design surface, first
+                 we need to get only the design surface update. Hence, this method is used.
+
+        @param variable (_type_): variable to use in the data transferring [ This variable is only used to data transfer ]
+        @param tensor_adaptor (Kratos.TensorAdaptors.DoubleTensorAdaptor): @ref TensorAdaptor with the data.
+        @param nodes_container (Kratos.NodesArray): list of nodes on which you needs data transferred.
+        @returns: @ref TensorAdaptor having the @p nodes_container as the container, having values extracted from corresponding nodes in the container of @p tensor_adaptor .
+        """
         if nodes_container != tensor_adaptor.GetContainer():
             Kratos.VariableUtils().SetNonHistoricalVariableToZero(variable, tensor_adaptor.GetContainer())
             Kratos.VariableUtils().SetNonHistoricalVariableToZero(variable, nodes_container)
