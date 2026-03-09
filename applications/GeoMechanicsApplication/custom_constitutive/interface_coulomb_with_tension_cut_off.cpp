@@ -32,7 +32,8 @@ InterfaceCoulombWithTensionCutOff::InterfaceCoulombWithTensionCutOff(std::unique
     : mpConstitutiveDimension(std::move(pConstitutiveDimension)),
       mTractionVector(ZeroVector(mpConstitutiveDimension->GetStrainSize())),
       mTractionVectorFinalized(ZeroVector(mpConstitutiveDimension->GetStrainSize())),
-      mRelativeDisplacementVectorFinalized(ZeroVector(mpConstitutiveDimension->GetStrainSize()))
+      mRelativeDisplacementVectorFinalized(ZeroVector(mpConstitutiveDimension->GetStrainSize())),
+      mPlasticStatus(PlasticityStatus::ELASTIC)
 {
 }
 
@@ -44,6 +45,7 @@ ConstitutiveLaw::Pointer InterfaceCoulombWithTensionCutOff::Clone() const
     p_result->mRelativeDisplacementVectorFinalized = mRelativeDisplacementVectorFinalized;
     p_result->mCoulombWithTensionCutOffImpl        = mCoulombWithTensionCutOffImpl;
     p_result->mIsModelInitialized                  = mIsModelInitialized;
+    p_result->mPlasticStatus                       = mPlasticStatus;
     return p_result;
 }
 
@@ -53,6 +55,14 @@ Vector& InterfaceCoulombWithTensionCutOff::GetValue(const Variable<Vector>& rVar
         rValue = mTractionVector;
     } else {
         rValue = ConstitutiveLaw::GetValue(rVariable, rValue);
+    }
+    return rValue;
+}
+
+int& InterfaceCoulombWithTensionCutOff::GetValue(const Variable<int>& rVariable, int& rValue)
+{
+    if (rVariable == GEO_PLASTIC_STATUS) {
+        rValue = static_cast<int>(mPlasticStatus);
     }
     return rValue;
 }
@@ -147,11 +157,14 @@ void InterfaceCoulombWithTensionCutOff::CalculateMaterialResponseCauchy(Paramete
     const auto negative   = std::signbit(trial_sigma_tau.Tau());
     trial_sigma_tau.Tau() = std::abs(trial_sigma_tau.Tau());
 
-    if (!mCoulombWithTensionCutOffImpl.IsAdmissibleStressState(trial_sigma_tau)) {
+    if (mCoulombWithTensionCutOffImpl.IsAdmissibleStressState(trial_sigma_tau)) {
+        mPlasticStatus = PlasticityStatus::ELASTIC;
+    } else {
         mapped_sigma_tau = mCoulombWithTensionCutOffImpl.DoReturnMapping(
             trial_sigma_tau, mpConstitutiveDimension->CalculateElasticMatrix(r_properties),
             Geo::PrincipalStresses::AveragingType::NO_AVERAGING);
         if (negative) mapped_sigma_tau.Tau() *= -1.0;
+        mPlasticStatus = mCoulombWithTensionCutOffImpl.GetPlasticityStatus();
     }
 
     mTractionVector                              = mapped_sigma_tau.CopyTo<Vector>();
@@ -195,23 +208,27 @@ Matrix& InterfaceCoulombWithTensionCutOff::CalculateValue(Parameters& rConstitut
 void InterfaceCoulombWithTensionCutOff::save(Serializer& rSerializer) const
 {
     KRATOS_SERIALIZE_SAVE_BASE_CLASS(rSerializer, ConstitutiveLaw)
+    rSerializer.save("ConstitutiveDimension", mpConstitutiveDimension);
     rSerializer.save("TractionVector", mTractionVector);
     rSerializer.save("TractionVectorFinalized", mTractionVectorFinalized);
     rSerializer.save("RelativeDisplacementVectorFinalized", mRelativeDisplacementVectorFinalized);
     rSerializer.save("CoulombWithTensionCutOffImpl", mCoulombWithTensionCutOffImpl);
     rSerializer.save("IsModelInitialized", mIsModelInitialized);
-    rSerializer.save("ConstitutiveDimension", mpConstitutiveDimension);
+    rSerializer.save("PlasticStatus", static_cast<int>(mPlasticStatus));
 }
 
 void InterfaceCoulombWithTensionCutOff::load(Serializer& rSerializer)
 {
     KRATOS_SERIALIZE_LOAD_BASE_CLASS(rSerializer, ConstitutiveLaw)
+    rSerializer.load("ConstitutiveDimension", mpConstitutiveDimension);
     rSerializer.load("TractionVector", mTractionVector);
     rSerializer.load("TractionVectorFinalized", mTractionVectorFinalized);
     rSerializer.load("RelativeDisplacementVectorFinalized", mRelativeDisplacementVectorFinalized);
     rSerializer.load("CoulombWithTensionCutOffImpl", mCoulombWithTensionCutOffImpl);
     rSerializer.load("IsModelInitialized", mIsModelInitialized);
-    rSerializer.load("ConstitutiveDimension", mpConstitutiveDimension);
+    int int_plasticity_status;
+    rSerializer.load("PlasticStatus", int_plasticity_status);
+    mPlasticStatus = static_cast<PlasticityStatus>(int_plasticity_status);
 }
 
 } // Namespace Kratos

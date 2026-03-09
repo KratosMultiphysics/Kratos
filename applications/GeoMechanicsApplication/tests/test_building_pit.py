@@ -796,7 +796,7 @@ class KratosGeoMechanicsBuildingPit(KratosUnittest.TestCase):
         for stage_tag, expected_stage_results in expected_results.items():
             stage_base_name = self.stages_info[stage_tag]["base_name"]
             stage_output = reader.read_output_from(
-                Path(project_path) / f"{stage_base_name}.post.res"
+                Path(project_path) / f"{stage_base_name}_wall.post.res"
             )
             end_time = self.stages_info[stage_tag]["end_time"]
 
@@ -944,6 +944,8 @@ class KratosGeoMechanicsBuildingPit(KratosUnittest.TestCase):
             else get_soil_side_node_ids_of_left_interfaces()
         )
 
+        post_fix = "_wall" if object_name == "wall" else ""
+
         # Since the coordinates do not change between stages, we base them on the first stage
         y_coords = self.get_y_coords(
             project_path, structural_stages[0]["base_name"], node_ids
@@ -952,7 +954,7 @@ class KratosGeoMechanicsBuildingPit(KratosUnittest.TestCase):
         variable_data_collections = []
         for stage in structural_stages:
             output_data = GiDOutputFileReader().read_output_from(
-                os.path.join(project_path, f"{stage['base_name']}.post.res")
+                os.path.join(project_path, f"{stage['base_name']}{post_fix}.post.res")
             )
             if object_name == "wall":
                 variable_kratos_data = GiDOutputFileReader.nodal_values_at_time(

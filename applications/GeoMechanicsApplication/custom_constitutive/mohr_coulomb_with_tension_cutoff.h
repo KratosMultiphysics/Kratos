@@ -15,6 +15,7 @@
 #pragma once
 
 #include "custom_constitutive/coulomb_with_tension_cut_off_impl.h"
+#include "geo_mechanics_application_constants.h"
 #include "includes/constitutive_law.h"
 
 namespace Kratos
@@ -51,6 +52,7 @@ public:
     void    InitializeMaterialResponseCauchy(Parameters& rValues) override;
     void    GetLawFeatures(Features& rFeatures) override;
     Vector& GetValue(const Variable<Vector>& rVariable, Vector& rValue) override;
+    int&    GetValue(const Variable<int>& rVariable, int& rValue) override;
     using ConstitutiveLaw::GetValue;
     void SetValue(const Variable<Vector>& rVariable, const Vector& rValue, const ProcessInfo& rCurrentProcessInfo) override;
     using ConstitutiveLaw::SetValue;
@@ -67,6 +69,7 @@ private:
     Vector                                    mStrainVectorFinalized;
     CoulombWithTensionCutOffImpl              mCoulombWithTensionCutOffImpl;
     bool                                      mIsModelInitialized = false;
+    PlasticityStatus                          mPlasticStatus      = PlasticityStatus::ELASTIC;
 
     [[nodiscard]] Vector CalculateTrialStressVector(const Vector& rStrainVector, const Properties& rProperties) const;
 

@@ -82,7 +82,8 @@ MohrCoulombWithTensionCutOff::MohrCoulombWithTensionCutOff(std::unique_ptr<Const
     : mpConstitutiveDimension(std::move(pConstitutiveDimension)),
       mStressVector(ZeroVector(mpConstitutiveDimension->GetStrainSize())),
       mStressVectorFinalized(ZeroVector(mpConstitutiveDimension->GetStrainSize())),
-      mStrainVectorFinalized(ZeroVector(mpConstitutiveDimension->GetStrainSize()))
+      mStrainVectorFinalized(ZeroVector(mpConstitutiveDimension->GetStrainSize())),
+      mPlasticStatus(PlasticityStatus::ELASTIC)
 {
 }
 
@@ -93,6 +94,7 @@ ConstitutiveLaw::Pointer MohrCoulombWithTensionCutOff::Clone() const
     p_result->mStressVectorFinalized        = mStressVectorFinalized;
     p_result->mStrainVectorFinalized        = mStrainVectorFinalized;
     p_result->mCoulombWithTensionCutOffImpl = mCoulombWithTensionCutOffImpl;
+    p_result->mPlasticStatus                = mPlasticStatus;
     return p_result;
 }
 
@@ -102,6 +104,14 @@ Vector& MohrCoulombWithTensionCutOff::GetValue(const Variable<Vector>& rVariable
         rValue = mStressVector;
     } else {
         rValue = ConstitutiveLaw::GetValue(rVariable, rValue);
+    }
+    return rValue;
+}
+
+int& MohrCoulombWithTensionCutOff::GetValue(const Variable<int>& rVariable, int& rValue)
+{
+    if (rVariable == GEO_PLASTIC_STATUS) {
+        rValue = static_cast<int>(mPlasticStatus);
     }
     return rValue;
 }
@@ -195,12 +205,15 @@ void MohrCoulombWithTensionCutOff::CalculateMaterialResponseCauchy(ConstitutiveL
         rParameters.GetConstitutiveMatrix() = mpConstitutiveDimension->CalculateElasticMatrix(r_properties);
     }
 
+    if (!rParameters.GetOptions().Is(ConstitutiveLaw::COMPUTE_STRESS)) return;
+
     const auto trial_stress_vector = CalculateTrialStressVector(rParameters.GetStrainVector(), r_properties);
     const auto& [trial_principal_stresses, rotation_matrix] =
         StressStrainUtilities::CalculatePrincipalStressesAndRotationMatrix(trial_stress_vector);
 
     if (mCoulombWithTensionCutOffImpl.IsAdmissibleStressState(trial_principal_stresses)) {
-        mStressVector = trial_stress_vector;
+        mStressVector  = trial_stress_vector;
+        mPlasticStatus = PlasticityStatus::ELASTIC;
     } else {
         mCoulombWithTensionCutOffImpl.SaveKappaOfCoulombYieldSurface();
         auto mapped_principal_stresses = mCoulombWithTensionCutOffImpl.DoReturnMapping(
@@ -222,8 +235,8 @@ void MohrCoulombWithTensionCutOff::CalculateMaterialResponseCauchy(ConstitutiveL
         mStressVector = StressStrainUtilities::RotatePrincipalStresses(
             mapped_principal_stresses.CopyTo<Vector>(), rotation_matrix,
             mpConstitutiveDimension->GetStrainSize());
+        mPlasticStatus = mCoulombWithTensionCutOffImpl.GetPlasticityStatus();
     }
-
     rParameters.GetStressVector() = mStressVector;
 }
 
@@ -249,6 +262,7 @@ void MohrCoulombWithTensionCutOff::save(Serializer& rSerializer) const
     rSerializer.save("StrainVectorFinalized", mStrainVectorFinalized);
     rSerializer.save("CoulombWithTensionCutOffImpl", mCoulombWithTensionCutOffImpl);
     rSerializer.save("IsModelInitialized", mIsModelInitialized);
+    rSerializer.save("PlasticStatus", static_cast<int>(mPlasticStatus));
 }
 
 void MohrCoulombWithTensionCutOff::load(Serializer& rSerializer)
@@ -260,6 +274,9 @@ void MohrCoulombWithTensionCutOff::load(Serializer& rSerializer)
     rSerializer.load("StrainVectorFinalized", mStrainVectorFinalized);
     rSerializer.load("CoulombWithTensionCutOffImpl", mCoulombWithTensionCutOffImpl);
     rSerializer.load("IsModelInitialized", mIsModelInitialized);
+    int int_plasticity_status;
+    rSerializer.load("PlasticStatus", int_plasticity_status);
+    mPlasticStatus = static_cast<PlasticityStatus>(int_plasticity_status);
 }
 
 } // Namespace Kratos

@@ -102,4 +102,12 @@ enum class indexThermalFlux : int { X, Y, Z };
 
 enum class IsDiffOrderElement : int { Yes, No };
 
+enum class PlasticityStatus : int {
+    ELASTIC,
+    TENSION_APEX,
+    TENSION_CUT_0FF,
+    TENSION_MOHR_COULOMB_CORNER,
+    MOHR_COULOMB_FAILURE
+};
+
 } // namespace Kratos
