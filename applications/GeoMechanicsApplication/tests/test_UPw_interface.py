@@ -7,7 +7,10 @@ from pathlib import Path
 import KratosMultiphysics.KratosUnittest as KratosUnittest
 import test_helper
 import KratosMultiphysics.GeoMechanicsApplication.run_geo_settlement as run_geo_settlement
-from KratosMultiphysics.GeoMechanicsApplication.gid_output_file_reader import GiDOutputFileReader
+from KratosMultiphysics.GeoMechanicsApplication.gid_output_file_reader import (
+    GiDOutputFileReader,
+)
+
 
 class KratosGeoMechanicsUPwInterfaceTests(KratosUnittest.TestCase):
     """
@@ -18,7 +21,8 @@ class KratosGeoMechanicsUPwInterfaceTests(KratosUnittest.TestCase):
     def setUp(self):
         self.n_stages = 2
         self.project_parameters_filenames = [
-            os.path.join(f"ProjectParameters_stage{i+1}.json") for i in range(self.n_stages)
+            os.path.join(f"ProjectParameters_stage{i+1}.json")
+            for i in range(self.n_stages)
         ]
         self.interface_project_parameters_filenames = [
             os.path.join("..", "common", f"ProjectParameters_interface_stage{i+1}.json")
@@ -104,14 +108,26 @@ class KratosGeoMechanicsUPwInterfaceTests(KratosUnittest.TestCase):
 
     @staticmethod
     def _shared_unique_node_id_pairs(first_mdpa_file_path, second_mdpa_file_path):
-        first_nodes = KratosGeoMechanicsNewInterfaceTests._read_mdpa_nodes(first_mdpa_file_path)
-        second_nodes = KratosGeoMechanicsNewInterfaceTests._read_mdpa_nodes(second_mdpa_file_path)
+        first_nodes = KratosGeoMechanicsNewInterfaceTests._read_mdpa_nodes(
+            first_mdpa_file_path
+        )
+        second_nodes = KratosGeoMechanicsNewInterfaceTests._read_mdpa_nodes(
+            second_mdpa_file_path
+        )
 
-        first_coordinate_to_node_ids_map = KratosGeoMechanicsNewInterfaceTests._coordinate_to_node_ids_map(first_nodes)
-        second_coordinate_to_node_ids_map = KratosGeoMechanicsNewInterfaceTests._coordinate_to_node_ids_map(second_nodes)
+        first_coordinate_to_node_ids_map = (
+            KratosGeoMechanicsNewInterfaceTests._coordinate_to_node_ids_map(first_nodes)
+        )
+        second_coordinate_to_node_ids_map = (
+            KratosGeoMechanicsNewInterfaceTests._coordinate_to_node_ids_map(
+                second_nodes
+            )
+        )
 
         shared_coordinates = sorted(
-            set(first_coordinate_to_node_ids_map.keys()).intersection(second_coordinate_to_node_ids_map.keys())
+            set(first_coordinate_to_node_ids_map.keys()).intersection(
+                second_coordinate_to_node_ids_map.keys()
+            )
         )
 
         node_id_pairs = []
@@ -155,7 +171,9 @@ class KratosGeoMechanicsUPwInterfaceTests(KratosUnittest.TestCase):
                     continue
 
                 half = len(element_node_ids) // 2
-                for node_id_a, node_id_b in zip(element_node_ids[:half], element_node_ids[half:]):
+                for node_id_a, node_id_b in zip(
+                    element_node_ids[:half], element_node_ids[half:]
+                ):
                     pair = (node_id_a, node_id_b)
                     if pair not in seen_pairs:
                         seen_pairs.add(pair)
@@ -165,10 +183,10 @@ class KratosGeoMechanicsUPwInterfaceTests(KratosUnittest.TestCase):
 
     def _run_interface_and_soil_cases(self, interface_case_name, soil_case_name):
         interface_path = test_helper.get_file_path(
-            os.path.join('UPw_interface', interface_case_name)
+            os.path.join("UPw_interface", interface_case_name)
         )
         soil_path = test_helper.get_file_path(
-            os.path.join('UPw_interface', soil_case_name)
+            os.path.join("UPw_interface", soil_case_name)
         )
 
         interface_output = self._run_two_stage_interface_case(interface_path)
@@ -177,7 +195,14 @@ class KratosGeoMechanicsUPwInterfaceTests(KratosUnittest.TestCase):
         interface_time = self._last_time(interface_output)
         soil_time = self._last_time(soil_output)
 
-        return interface_path, soil_path, interface_output, soil_output, interface_time, soil_time
+        return (
+            interface_path,
+            soil_path,
+            interface_output,
+            soil_output,
+            interface_time,
+            soil_time,
+        )
 
     def _shared_unique_node_ids(self, interface_path, soil_path, min_pairs):
         node_id_pairs = self._shared_unique_node_id_pairs(
@@ -195,14 +220,18 @@ class KratosGeoMechanicsUPwInterfaceTests(KratosUnittest.TestCase):
         interface_mdpa_file_path = os.path.join(interface_path, "column.mdpa")
         soil_mdpa_file_path = os.path.join(soil_path, "column.mdpa")
 
-        interface_node_id_pairs = self._interface_unique_node_id_pairs(interface_mdpa_file_path)
+        interface_node_id_pairs = self._interface_unique_node_id_pairs(
+            interface_mdpa_file_path
+        )
         self.assertGreaterEqual(len(interface_node_id_pairs), min_pairs)
 
-        interface_node_ids = list(dict.fromkeys(
-            node_id
-            for interface_node_id_pair in interface_node_id_pairs
-            for node_id in interface_node_id_pair
-        ))
+        interface_node_ids = list(
+            dict.fromkeys(
+                node_id
+                for interface_node_id_pair in interface_node_id_pairs
+                for node_id in interface_node_id_pair
+            )
+        )
 
         interface_nodes = self._read_mdpa_nodes(interface_mdpa_file_path)
         soil_nodes = self._read_mdpa_nodes(soil_mdpa_file_path)
@@ -212,8 +241,12 @@ class KratosGeoMechanicsUPwInterfaceTests(KratosUnittest.TestCase):
         for interface_node_id in interface_node_ids:
             self.assertIn(interface_node_id, interface_nodes)
 
-            coordinate_key = tuple(round(value, 12) for value in interface_nodes[interface_node_id])
-            matching_soil_node_ids = soil_coordinate_to_node_ids_map.get(coordinate_key, [])
+            coordinate_key = tuple(
+                round(value, 12) for value in interface_nodes[interface_node_id]
+            )
+            matching_soil_node_ids = soil_coordinate_to_node_ids_map.get(
+                coordinate_key, []
+            )
             self.assertEqual(
                 len(matching_soil_node_ids),
                 1,
@@ -267,7 +300,9 @@ class KratosGeoMechanicsUPwInterfaceTests(KratosUnittest.TestCase):
         )
         max_pressure_difference = max(
             abs(interface_pressure - soil_pressure)
-            for interface_pressure, soil_pressure in zip(interface_pressures, soil_pressures)
+            for interface_pressure, soil_pressure in zip(
+                interface_pressures, soil_pressures
+            )
         )
         self.assertLess(max_pressure_difference, pressure_tolerance)
 
@@ -291,29 +326,38 @@ class KratosGeoMechanicsUPwInterfaceTests(KratosUnittest.TestCase):
         self.assertGreater(max_interface_displacement_jump_y, min_jump)
 
     def test_horizontal_interface(self):
-        file_path = test_helper.get_file_path(os.path.join('UPw_interface', 'column'))
+        file_path = test_helper.get_file_path(os.path.join("UPw_interface", "column"))
         output_data = self._run_two_stage_soil_case(file_path)
         self.assertTrue(output_data.get("results"))
 
     def test_horizontal_interface_diff_order(self):
-        file_path = test_helper.get_file_path(os.path.join('UPw_interface', 'column_diff_order_elements'))
+        file_path = test_helper.get_file_path(
+            os.path.join("UPw_interface", "column_diff_order_elements")
+        )
         output_data = self._run_two_stage_soil_case(file_path)
         self.assertTrue(output_data.get("results"))
 
     def test_vertical_interface(self):
-        file_path = test_helper.get_file_path(os.path.join('UPw_interface', 'column_vertical_interface'))
+        file_path = test_helper.get_file_path(
+            os.path.join("UPw_interface", "column_vertical_interface")
+        )
         output_data = self._run_two_stage_interface_case(file_path)
         self.assertTrue(output_data.get("results"))
 
     def test_vertical_interface_matches_column_on_shared_unique_nodes(self):
-        interface_path, soil_path, interface_output, soil_output, interface_time, soil_time = self._run_interface_and_soil_cases(
-            'column_vertical_interface', 'column'
-        )
+        (
+            interface_path,
+            soil_path,
+            interface_output,
+            soil_output,
+            interface_time,
+            soil_time,
+        ) = self._run_interface_and_soil_cases("column_vertical_interface", "column")
         interface_node_ids, soil_node_ids = self._all_interface_to_soil_node_ids(
             interface_path, soil_path, min_pairs=3
         )
-        shared_unique_interface_node_ids, shared_unique_soil_node_ids = self._shared_unique_node_ids(
-            interface_path, soil_path, min_pairs=3
+        shared_unique_interface_node_ids, shared_unique_soil_node_ids = (
+            self._shared_unique_node_ids(interface_path, soil_path, min_pairs=3)
         )
 
         self._assert_nodal_match(
@@ -339,14 +383,19 @@ class KratosGeoMechanicsUPwInterfaceTests(KratosUnittest.TestCase):
         )
 
     def test_horizontal_interface_matches_column_on_shared_nodes(self):
-        interface_path, soil_path, interface_output, soil_output, interface_time, soil_time = self._run_interface_and_soil_cases(
-            'column_horizontal_interface', 'column'
-        )
+        (
+            interface_path,
+            soil_path,
+            interface_output,
+            soil_output,
+            interface_time,
+            soil_time,
+        ) = self._run_interface_and_soil_cases("column_horizontal_interface", "column")
         interface_node_ids, soil_node_ids = self._all_interface_to_soil_node_ids(
             interface_path, soil_path, min_pairs=2
         )
-        shared_unique_interface_node_ids, shared_unique_soil_node_ids = self._shared_unique_node_ids(
-            interface_path, soil_path, min_pairs=4
+        shared_unique_interface_node_ids, shared_unique_soil_node_ids = (
+            self._shared_unique_node_ids(interface_path, soil_path, min_pairs=4)
         )
         side_a_node_ids, side_b_node_ids = self._interface_node_ids_by_side(
             interface_path, min_pairs=2
@@ -383,15 +432,23 @@ class KratosGeoMechanicsUPwInterfaceTests(KratosUnittest.TestCase):
         )
 
     def test_horizontal_interface_diff_order_matches_column_diff_order(self):
-        interface_path, soil_path, interface_output, soil_output, interface_time, soil_time = self._run_interface_and_soil_cases(
-            'column_horizontal_interface_diff_order_elements', 'column_diff_order_elements'
+        (
+            interface_path,
+            soil_path,
+            interface_output,
+            soil_output,
+            interface_time,
+            soil_time,
+        ) = self._run_interface_and_soil_cases(
+            "column_horizontal_interface_diff_order_elements",
+            "column_diff_order_elements",
         )
 
         interface_node_ids, soil_node_ids = self._all_interface_to_soil_node_ids(
             interface_path, soil_path, min_pairs=3
         )
-        shared_unique_interface_node_ids, shared_unique_soil_node_ids = self._shared_unique_node_ids(
-            interface_path, soil_path, min_pairs=10
+        shared_unique_interface_node_ids, shared_unique_soil_node_ids = (
+            self._shared_unique_node_ids(interface_path, soil_path, min_pairs=10)
         )
         side_a_node_ids, side_b_node_ids = self._interface_node_ids_by_side(
             interface_path, min_pairs=3
@@ -428,7 +485,9 @@ class KratosGeoMechanicsUPwInterfaceTests(KratosUnittest.TestCase):
         )
 
     def test_top_pressure_table_changes_interface_water_pressure(self):
-        file_path = test_helper.get_file_path(os.path.join('UPw_interface', 'column_horizontal_interface'))
+        file_path = test_helper.get_file_path(
+            os.path.join("UPw_interface", "column_horizontal_interface")
+        )
 
         baseline_output = self._run_two_stage_interface_case(file_path)
         baseline_time = self._last_time(baseline_output)
@@ -444,7 +503,8 @@ class KratosGeoMechanicsUPwInterfaceTests(KratosUnittest.TestCase):
             source_common_dir = source_upw_interface_dir / "common"
             for stage_index in range(1, self.n_stages + 1):
                 shutil.copyfile(
-                    source_common_dir / f"ProjectParameters_interface_stage{stage_index}.json",
+                    source_common_dir
+                    / f"ProjectParameters_interface_stage{stage_index}.json",
                     tmp_case / f"ProjectParameters_stage{stage_index}.json",
                 )
 
@@ -476,6 +536,6 @@ class KratosGeoMechanicsUPwInterfaceTests(KratosUnittest.TestCase):
         self.assertGreater(baseline_top_pressure - no_pressure_top_pressure, 900.0)
         self.assertAlmostEqual(no_pressure_top_pressure, 0.0, delta=1.0)
 
-if __name__ == '__main__':
+
+if __name__ == "__main__":
     KratosUnittest.main()
-    
