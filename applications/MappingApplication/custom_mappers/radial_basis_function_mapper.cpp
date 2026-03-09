@@ -300,7 +300,7 @@ void RadialBasisFunctionMapper<TSparseSpace, TDenseSpace>::InitializeInterface(K
     KRATOS_ERROR_IF(destination_is_iga)<< "This mapper is not yet available when the destination domain is discretized with IGA" << std::endl;
 
     bool use_all_support_points = false;
-    if (mMapperSettings["search_settings"].Has("use_all_rbf_support_points")) {
+    if (mMapperSettings.Has("use_all_rbf_support_points")) {
         use_all_support_points = mMapperSettings["use_all_rbf_support_points"].GetBool();
     }
 
