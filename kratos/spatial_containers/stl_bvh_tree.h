@@ -45,7 +45,7 @@ class GeometricalObject; // forward declaration to reduce compile time
  *          Morton codes are used to sort primitives before building for spatial coherence.
  *          The tree is immutable after construction.
  */
-class StlBvhTree
+class KRATOS_API(KRATOS_CORE) StlBvhTree
 {
 public:
     ///@name Type Definitions
