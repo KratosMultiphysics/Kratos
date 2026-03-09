@@ -12,10 +12,11 @@
 //
 
 #include "custom_constitutive/tension_cutoff.h"
+#include "custom_constitutive/sigma_tau.hpp"
 #include "custom_utilities/stress_strain_utilities.h"
+#include "custom_utilities/ublas_utilities.h"
+#include "geo_mechanics_application_variables.h"
 #include "includes/serializer.h"
-
-#include <boost/numeric/ublas/assignment.hpp>
 
 namespace Kratos
 {
@@ -23,17 +24,63 @@ TensionCutoff::TensionCutoff(double TensileStrength) : mTensileStrength{TensileS
 
 double TensionCutoff::GetTensileStrength() const { return mTensileStrength; }
 
-double TensionCutoff::YieldFunctionValue(const Vector& rSigmaTau) const
+double TensionCutoff::YieldFunctionValue(const Geo::SigmaTau& rSigmaTau) const
 {
-    auto principal_stress_vector = Vector{ZeroVector{3}};
-    principal_stress_vector =
-        StressStrainUtilities::TransformSigmaTauToPrincipalStresses(rSigmaTau, principal_stress_vector);
-    return principal_stress_vector[0] - mTensileStrength;
+    return rSigmaTau.Sigma() + rSigmaTau.Tau() - mTensileStrength;
 }
 
-Vector TensionCutoff::DerivativeOfFlowFunction(const Vector&) const
+double TensionCutoff::YieldFunctionValue(const Geo::PrincipalStresses& rPrincipalStresses) const
 {
-    return Vector{ScalarVector{2, 1.0}};
+    return rPrincipalStresses.Values()[0] - mTensileStrength;
+}
+
+Vector TensionCutoff::DerivativeOfFlowFunction(const Geo::SigmaTau&,
+                                               Geo::PrincipalStresses::AveragingType AveragingType) const
+{
+    switch (AveragingType) {
+        using enum Geo::PrincipalStresses::AveragingType;
+    case LOWEST_PRINCIPAL_STRESSES:
+        return UblasUtilities::CreateVector({0.5, 0.5});
+    case NO_AVERAGING:
+        return UblasUtilities::CreateVector({1.0, 1.0});
+    case HIGHEST_PRINCIPAL_STRESSES:
+        return UblasUtilities::CreateVector({1.0, 1.0});
+    default:
+        KRATOS_ERROR << "Unsupported Averaging Type: " << static_cast<std::size_t>(AveragingType) << "\n";
+    }
+}
+
+Vector TensionCutoff::DerivativeOfFlowFunction(const Geo::PrincipalStresses&,
+                                               Geo::PrincipalStresses::AveragingType AveragingType) const
+{
+    switch (AveragingType) {
+        using enum Geo::PrincipalStresses::AveragingType;
+    case LOWEST_PRINCIPAL_STRESSES:
+        return UblasUtilities::CreateVector({0.5, 0.5, 0.0});
+    case NO_AVERAGING:
+        return UblasUtilities::CreateVector({1.0, 0.0, 0.0});
+    case HIGHEST_PRINCIPAL_STRESSES:
+        return UblasUtilities::CreateVector({1.0, 0.0, 0.0});
+    default:
+        KRATOS_ERROR << "Unsupported Averaging Type: " << static_cast<std::size_t>(AveragingType) << "\n";
+    }
+}
+
+double TensionCutoff::CalculatePlasticMultiplier(const Geo::SigmaTau& rTrialSigmaTau,
+                                                 const Vector&        rDerivativeOfFlowFunction,
+                                                 const Matrix&        rElasticMatrix) const
+{
+    const auto stress_correction = Vector{prod(rElasticMatrix, rDerivativeOfFlowFunction)};
+    return -YieldFunctionValue(rTrialSigmaTau) / (stress_correction[0] + stress_correction[1]);
+}
+
+double TensionCutoff::CalculatePlasticMultiplier(const Geo::PrincipalStresses& rTrialPrincipalStresses,
+                                                 const Vector& rDerivativeOfFlowFunction,
+                                                 const Matrix& rElasticMatrix) const
+{
+    const auto elastic_matrix    = subrange(rElasticMatrix, 0, 3, 0, 3);
+    const auto stress_correction = Vector{prod(elastic_matrix, rDerivativeOfFlowFunction)};
+    return -YieldFunctionValue(rTrialPrincipalStresses) / stress_correction[0];
 }
 
 void TensionCutoff::save(Serializer& rSerializer) const

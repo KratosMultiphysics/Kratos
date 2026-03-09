@@ -1099,7 +1099,7 @@ void UPwSmallStrainElement<TDim, TNumNodes>::CalculateAndAddCouplingTerms(Vector
             rVariables.BiotCoefficient, rVariables.DegreeOfSaturation, rVariables.IntegrationCoefficient);
         const array_1d<double, TNumNodes> coupling_flow =
             PORE_PRESSURE_SIGN_FACTOR * prod(trans(p_coupling_matrix), rVariables.VelocityVector);
-        GeoElementUtilities::AssemblePBlockVector(rRightHandSideVector, (-1.0) * coupling_flow);
+        GeoElementUtilities::AssemblePBlockVector(rRightHandSideVector, -1.0 * coupling_flow);
     }
 
     KRATOS_CATCH("")
@@ -1257,7 +1257,7 @@ void UPwSmallStrainElement<TDim, TNumNodes>::InitializeNodalPorePressureVariable
 {
     KRATOS_TRY
 
-    const GeometryType& r_geometry = this->GetGeometry();
+    const auto& r_geometry = this->GetGeometry();
     VariablesUtilities::GetNodalValues(r_geometry, WATER_PRESSURE, rVariables.PressureVector.begin());
     VariablesUtilities::GetNodalValues(r_geometry, DT_WATER_PRESSURE, rVariables.DtPressureVector.begin());
 
@@ -1269,7 +1269,7 @@ void UPwSmallStrainElement<TDim, TNumNodes>::InitializeNodalDisplacementVariable
 {
     KRATOS_TRY
 
-    const GeometryType& r_geometry = this->GetGeometry();
+    const auto& r_geometry = this->GetGeometry();
 
     // Nodal variables
     GeoElementUtilities::GetNodalVariableVector<TDim, TNumNodes>(rVariables.DisplacementVector,
