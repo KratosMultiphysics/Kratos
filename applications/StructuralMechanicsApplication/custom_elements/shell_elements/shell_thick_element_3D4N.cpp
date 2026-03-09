@@ -734,10 +734,50 @@ void ShellThickElement3D4N<TKinematics>::FinalizeSolutionStep(
 template <ShellKinematics TKinematics>
 void ShellThickElement3D4N<TKinematics>::CalculateOnIntegrationPoints(
     const Variable<double>& rVariable,
-    std::vector<double>& rValues,
+    std::vector<double>& rOutput,
     const ProcessInfo& rCurrentProcessInfo)
 {
-    // TODO
+    KRATOS_TRY
+
+    const auto& r_integration_points = GetGeometry().IntegrationPoints();
+    const SizeType number_of_integration_points = r_integration_points.size();
+
+    // Provide a default empty implementation: resize and set zeros
+    rOutput.assign(number_of_integration_points, 0.0);
+
+    if (mConstitutiveLawVector[0]->Has(rVariable)) {
+        GetValueOnConstitutiveLaw(rVariable, rOutput);
+    } else {
+        CalculateOnConstitutiveLaw(rVariable, rOutput, rCurrentProcessInfo);
+    }
+
+    KRATOS_CATCH("ShellThickElement3D4N::CalculateOnIntegrationPoints")
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+template <ShellKinematics TKinematics>
+void ShellThickElement3D4N<TKinematics>::CalculateOnIntegrationPoints(
+    const Variable<Vector>& rVariable,
+    std::vector<Vector>& rOutput,
+    const ProcessInfo& rCurrentProcessInfo)
+{
+    KRATOS_TRY
+
+    const auto& r_integration_points = GetGeometry().IntegrationPoints();
+    const SizeType number_of_integration_points = r_integration_points.size();
+
+    // Provide a default empty implementation: resize and set zeros
+    rOutput.assign(number_of_integration_points, ZeroVector(3)); // plane stress components
+
+    if (mConstitutiveLawVector[0]->Has(rVariable)) {
+        GetValueOnConstitutiveLaw(rVariable, rOutput);
+    } else {
+        CalculateOnConstitutiveLaw(rVariable, rOutput, rCurrentProcessInfo);
+    }
+
+    KRATOS_CATCH("ShellThickElement3D4N::CalculateOnIntegrationPoints")
 }
 
 /***********************************************************************************/

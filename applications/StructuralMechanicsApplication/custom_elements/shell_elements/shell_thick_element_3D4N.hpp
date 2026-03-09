@@ -318,8 +318,18 @@ public:
     /**
      * @brief Calculate values of type double on integration points (stub)
      */
-    void CalculateOnIntegrationPoints(const Variable<double>& rVariable,
-                                      std::vector<double>& rOutput, const ProcessInfo& rCurrentProcessInfo) override;
+    void CalculateOnIntegrationPoints(
+        const Variable<double>& rVariable,
+        std::vector<double>& rOutput,
+        const ProcessInfo& rCurrentProcessInfo) override;
+
+    /**
+     * @brief Calculate values of type Vector on integration points (stub)
+     */
+    void CalculateOnIntegrationPoints(
+        const Variable<Vector>& rVariable,
+        std::vector<Vector>& rOutput,
+        const ProcessInfo& rCurrentProcessInfo) override;
 
     /**
     * This method provides the place to perform checks on the completeness of the input
@@ -332,6 +342,132 @@ public:
     */
     int Check(const ProcessInfo& rCurrentProcessInfo) const override;
 
+
+    /**
+     * @brief This method gets a value directly in the CL
+     * @details Avoids code repetition
+     * @param rVariable The variable we want to get
+     * @param rOutput The values obtained in the integration points
+     * @tparam TType The type considered
+     */
+    template <class TType>
+    void GetValueOnConstitutiveLaw(
+        const Variable<TType> &rVariable,
+        std::vector<TType> &rOutput)
+    {
+        const auto& r_integration_points = GetGeometry().IntegrationPoints();
+
+        for (IndexType point_number = 0; point_number < r_integration_points.size(); ++point_number) {
+            mConstitutiveLawVector[point_number]->GetValue(rVariable, rOutput[point_number]);
+        }
+    }
+
+    /**
+     * @brief This method computes directly in the CL
+     * @details Avoids code repetition
+     * @param rVariable The variable we want to get
+     * @param rOutput The values obtained in the integration points
+     * @param rProcessInfo the current process info instance
+     * @tparam TType The type considered
+     */
+    template<class TType>
+    void CalculateOnConstitutiveLaw(
+        const Variable<TType>& rVariable,
+        std::vector<TType>& rOutput,
+        const ProcessInfo& rCurrentProcessInfo
+        )
+    {
+        const auto& r_props = GetProperties();
+        const auto& r_geom = GetGeometry();
+        const Matrix& shapeFunctions = r_geom.ShapeFunctionsValues();
+        const double thickness = r_props[THICKNESS];
+        Vector iN(shapeFunctions.size2());
+
+        // Compute the local coordinate system.
+        ShellQ4_LocalCoordinateSystem localCoordinateSystem(
+            this->mpCoordinateTransformation->CreateLocalCoordinateSystem());
+
+        ShellQ4_LocalCoordinateSystem referenceCoordinateSystem(
+            this->mpCoordinateTransformation->CreateReferenceCoordinateSystem());
+
+        // Prepare all the parameters needed for the MITC formulation.
+        // This is to be done here outside the Gauss Loop.
+        MITC4Params shearParameters(referenceCoordinateSystem);
+
+        // Instantiate the Jacobian Operator.
+        // This will store:
+        // the jacobian matrix, its inverse, its determinant
+        // and the derivatives of the shape functions in the local
+        // coordinate system
+        ShellUtilities::JacobianOperator jacOp;
+        array_1d<double, 4> dArea;
+
+        // Instantiate all strain-displacement matrices.
+
+        Matrix B(8, 24, 0.0);
+        Vector Bdrilling(24, 0.0);
+
+        // Instantiate all section tangent matrices.
+        Matrix D(8, 8, 0.0);
+
+        // Instantiate strain and stress-resultant vectors
+        Vector generalizedStrains(8);
+        Vector generalizedStresses(8);
+
+        // Get the current displacements in global coordinate system
+
+        Vector globalDisplacements(24);
+        this->GetValuesVector(globalDisplacements, 0);
+
+        // Get the current displacements in local coordinate system
+        Vector localDisplacements(this->mpCoordinateTransformation->CalculateLocalDisplacements(localCoordinateSystem, globalDisplacements));
+
+        // Instantiate the EAS Operator.
+        // This will apply the Enhanced Assumed Strain Method for the calculation
+        // of the membrane contribution.
+        EASOperator EASOp(referenceCoordinateSystem, mEASStorage);
+
+        // Initialize parameters for the cross section calculation
+        ShellCrossSection::SectionParameters parameters(r_geom, r_props, rCurrentProcessInfo);
+        parameters.SetGeneralizedStrainVector(generalizedStrains);
+        parameters.SetGeneralizedStressVector(generalizedStresses);
+        parameters.SetConstitutiveMatrix(D);
+        Flags& r_options = parameters.GetOptions();
+        r_options.Set(ConstitutiveLaw::COMPUTE_STRESS, true);
+        r_options.Set(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR, false);
+
+        // Gauss Loop.
+        for (SizeType integration_point = 0; integration_point < 4; integration_point++) {
+
+            // get a reference of the current integration point and shape functions
+            const GeometryType::IntegrationPointType& ip = r_geom.IntegrationPoints()[integration_point];
+            noalias(iN) = row(shapeFunctions, integration_point);
+
+            // Compute Jacobian, Inverse of Jacobian, Determinant of Jacobian
+            // and Shape functions derivatives in the local coordinate system
+            jacOp.Calculate(referenceCoordinateSystem, r_geom.ShapeFunctionLocalGradient(integration_point));
+
+            // Compute all strain-displacement matrices
+            CalculateBMatrix(ip.X(), ip.Y(), jacOp, shearParameters, iN, B, Bdrilling);
+
+            // Calculate strain vectors in local coordinate system
+            noalias(generalizedStrains) = prod(B, localDisplacements);
+
+            // Apply the EAS method to modify the membrane part of the strains computed above.
+            EASOp.GaussPointComputation_Step1(ip.X(), ip.Y(), jacOp, generalizedStrains, mEASStorage);
+
+            // Calculate the response of the Cross Section
+            parameters.SetShapeFunctionsValues(iN);
+            parameters.SetShapeFunctionsDerivatives(jacOp.XYDerivatives());
+
+            ConstitutiveLaw::Parameters cl_values(r_geom, r_props, rCurrentProcessInfo);
+            cl_values.SetStrainVector(generalizedStrains);
+            cl_values.SetStressVector(generalizedStresses);
+            cl_values.SetConstitutiveMatrix(D);
+
+            mConstitutiveLawVector[integration_point]->CalculateValue(cl_values, rVariable, rOutput[integration_point]);
+        }
+    }
 
     ///@}
 
