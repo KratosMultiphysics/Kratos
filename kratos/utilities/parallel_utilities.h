@@ -10,21 +10,19 @@
 //  Main authors:    Riccardo Rossi
 //                   Denis Demidov
 //                   Philipp Bucher (https://github.com/philbucher)
+//                   Vicente Mataix Ferrandiz
 //
 
 #pragma once
 
 // System includes
-#include <iostream>
 #include <array>
 #include <iterator>
-#include <vector>
 #include <tuple>
 #include <cmath>
 #include <limits>
 #include <future>
 #include <thread>
-#include <mutex>
 
 // External includes
 #ifdef KRATOS_SMP_OPENMP
@@ -63,6 +61,9 @@ KRATOS_ERROR_IF_NOT(err_msg.empty()) << "The following errors occured in a paral
 namespace Kratos
 {
 ///@addtogroup KratosCore
+
+/// Maximum number of chunks for parallel loops
+static int ParallelUtilitiesMaxNumberOfChunks = 128;
 
 /// Shared memory parallelism related helper class
 /** Provides access to functionalities for shared memory parallelism
@@ -133,7 +134,6 @@ private:
     ///@}
 }; // Class ParallelUtilities
 
-
 //***********************************************************************************
 //***********************************************************************************
 //***********************************************************************************
@@ -151,7 +151,7 @@ public:
      */
     BlockPartition(TIterator it_begin,
                    TIterator it_end,
-                   int Nchunks = ParallelUtilities::GetNumThreads())
+                   const int Nchunks = ParallelUtilitiesMaxNumberOfChunks)
     {
         static_assert(
             std::is_same_v<typename std::iterator_traits<TIterator>::iterator_category, std::random_access_iterator_tag>,
@@ -183,7 +183,7 @@ public:
     {
         KRATOS_PREPARE_CATCH_THREAD_EXCEPTION
 
-        #pragma omp parallel for
+        #pragma omp parallel for schedule(dynamic)
         for (int i=0; i<mNchunks; ++i) {
             KRATOS_TRY
             for (auto it = mBlockPartition[i]; it != mBlockPartition[i+1]; ++it) {
@@ -206,7 +206,7 @@ public:
         KRATOS_PREPARE_CATCH_THREAD_EXCEPTION
 
         TReducer global_reducer;
-        #pragma omp parallel for
+        #pragma omp parallel for schedule(dynamic)
         for (int i=0; i<mNchunks; ++i) {
             KRATOS_TRY
             TReducer local_reducer;
@@ -238,7 +238,7 @@ public:
             // copy the prototype to create the thread local storage
             TThreadLocalStorage thread_local_storage(rThreadLocalStoragePrototype);
 
-            #pragma omp for
+            #pragma omp for schedule(dynamic)
             for(int i=0; i<mNchunks; ++i){
                 KRATOS_TRY
                 for (auto it = mBlockPartition[i]; it != mBlockPartition[i+1]; ++it){
@@ -270,7 +270,7 @@ public:
             // copy the prototype to create the thread local storage
             TThreadLocalStorage thread_local_storage(rThreadLocalStoragePrototype);
 
-            #pragma omp for
+            #pragma omp for schedule(dynamic)
             for (int i=0; i<mNchunks; ++i) {
                 KRATOS_TRY
                 TReducer local_reducer;
@@ -460,7 +460,7 @@ public:
  *  @param Nchunks - number of threads to be used in the loop (must be lower than TMaxThreads)
  */
     IndexPartition(TIndexType Size,
-                   int Nchunks = ParallelUtilities::GetNumThreads())
+                   const int Nchunks = ParallelUtilitiesMaxNumberOfChunks)
     {
         KRATOS_ERROR_IF(Nchunks < 1) << "Number of chunks must be > 0 (and not " << Nchunks << ")" << std::endl;
 
@@ -519,7 +519,7 @@ public:
     {
         KRATOS_PREPARE_CATCH_THREAD_EXCEPTION
 
-        #pragma omp parallel for
+        #pragma omp parallel for schedule(dynamic)
         for (int i=0; i<mNchunks; ++i) {
             KRATOS_TRY
             for (auto k = mBlockPartition[i]; k < mBlockPartition[i+1]; ++k) {
@@ -541,7 +541,7 @@ public:
         KRATOS_PREPARE_CATCH_THREAD_EXCEPTION
 
         TReducer global_reducer;
-        #pragma omp parallel for
+        #pragma omp parallel for schedule(dynamic)
         for (int i=0; i<mNchunks; ++i) {
             KRATOS_TRY
             TReducer local_reducer;
@@ -572,7 +572,7 @@ public:
             // copy the prototype to create the thread local storage
             TThreadLocalStorage thread_local_storage(rThreadLocalStoragePrototype);
 
-            #pragma omp for
+            #pragma omp for schedule(dynamic)
             for (int i=0; i<mNchunks; ++i) {
                 KRATOS_TRY
                 for (auto k = mBlockPartition[i]; k < mBlockPartition[i+1]; ++k) {
@@ -604,7 +604,7 @@ public:
             // copy the prototype to create the thread local storage
             TThreadLocalStorage thread_local_storage(rThreadLocalStoragePrototype);
 
-            #pragma omp for
+            #pragma omp for schedule(dynamic)
             for (int i=0; i<mNchunks; ++i) {
                 KRATOS_TRY
                 TReducer local_reducer;

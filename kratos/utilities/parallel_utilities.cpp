@@ -21,7 +21,6 @@
 // Project includes
 #include "parallel_utilities.h"
 #include "input_output/logger.h"
-#include "includes/lock_object.h"
 
 
 namespace Kratos {
@@ -111,6 +110,12 @@ int ParallelUtilities::InitializeNumberOfThreads()
     }
 
     num_threads = std::max(1, num_threads);
+
+    // Intialize ParallelUtilitiesMaxNumberOfChunks from the environment variable if it is set, otherwise keep the default value
+    const char* env_parallel_max_chunks = std::getenv("KRATOS_PARALLEL_MAX_CHUNKS");
+    if (env_parallel_max_chunks) {
+        ParallelUtilitiesMaxNumberOfChunks = std::atoi(env_parallel_max_chunks);
+    }
 
 #ifdef KRATOS_SMP_OPENMP
     // external libraries included in Kratos still use OpenMP (such as AMGCL)
