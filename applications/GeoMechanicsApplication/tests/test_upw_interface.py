@@ -108,18 +108,18 @@ class KratosGeoMechanicsUPwInterfaceTests(KratosUnittest.TestCase):
 
     @staticmethod
     def _shared_unique_node_id_pairs(first_mdpa_file_path, second_mdpa_file_path):
-        first_nodes = KratosGeoMechanicsNewInterfaceTests._read_mdpa_nodes(
+        first_nodes = KratosGeoMechanicsUPwInterfaceTests._read_mdpa_nodes(
             first_mdpa_file_path
         )
-        second_nodes = KratosGeoMechanicsNewInterfaceTests._read_mdpa_nodes(
+        second_nodes = KratosGeoMechanicsUPwInterfaceTests._read_mdpa_nodes(
             second_mdpa_file_path
         )
 
         first_coordinate_to_node_ids_map = (
-            KratosGeoMechanicsNewInterfaceTests._coordinate_to_node_ids_map(first_nodes)
+            KratosGeoMechanicsUPwInterfaceTests._coordinate_to_node_ids_map(first_nodes)
         )
         second_coordinate_to_node_ids_map = (
-            KratosGeoMechanicsNewInterfaceTests._coordinate_to_node_ids_map(
+            KratosGeoMechanicsUPwInterfaceTests._coordinate_to_node_ids_map(
                 second_nodes
             )
         )
