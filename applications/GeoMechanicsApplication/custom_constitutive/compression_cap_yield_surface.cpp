@@ -17,6 +17,7 @@
 #include "custom_utilities/check_utilities.hpp"
 #include "custom_utilities/constitutive_law_utilities.h"
 #include "custom_utilities/function_object_utilities.h"
+#include "custom_utilities/stress_strain_utilities.h"
 #include "custom_utilities/string_utilities.h"
 #include "custom_utilities/ublas_utilities.h"
 #include "geo_mechanics_application_variables.h"
@@ -119,6 +120,18 @@ double CompressionCapYieldSurface::YieldFunctionValue(const Geo::PQ& rPQ) const
     return std::pow(rPQ.Q() / GetCapSize(), 2) + rPQ.P() * rPQ.P() - std::pow(GetPreconsolidationStress(), 2);
 }
 
+double CompressionCapYieldSurface::YieldFunctionValue(const Geo::PrincipalStresses& rPrincipalStresses) const
+{
+    const auto p_q = StressStrainUtilities::TransformPrincipalStressesToPandQ(rPrincipalStresses);
+    return YieldFunctionValue(p_q);
+}
+
+double CompressionCapYieldSurface::YieldFunctionValue(const Geo::SigmaTau&) const
+{
+    KRATOS_ERROR << "CompressionCapYieldSurface::YieldFunctionValue(const Geo::SigmaTau&) is not "
+                    "implemented\n";
+}
+
 Vector CompressionCapYieldSurface::DerivativeOfFlowFunction(const Geo::PQ& rPQ) const
 {
     return UblasUtilities::CreateVector({2.0 * rPQ.P(), 2.0 * rPQ.Q() / std::pow(GetCapSize(), 2)});
@@ -148,12 +161,13 @@ void CompressionCapYieldSurface::CheckMaterialProperties() const
 }
 
 double CompressionCapYieldSurface::CalculatePlasticMultiplier(const Geo::PQ& rPQ,
-                                                       const Vector& rDerivativeOfFlowFunction, const Matrix& rElasticMatrix) const
+                                                              const Vector& rDerivativeOfFlowFunction,
+                                                              const Matrix& rElasticMatrix) const
 {
-    const auto temp = Vector{prod(rElasticMatrix, rDerivativeOfFlowFunction)};
-    const auto A = std::pow(temp[1], 2) / std::pow(GetCapSize(), 2) + std::pow(temp[0], 2);
-    const auto B = 2.0 * (temp[1] * rPQ.Q() / std::pow(GetCapSize(), 2) + temp[0] * rPQ.P());
-    const auto C = YieldFunctionValue(rPQ);
+    const auto temp  = Vector{prod(rElasticMatrix, rDerivativeOfFlowFunction)};
+    const auto A     = std::pow(temp[1], 2) / std::pow(GetCapSize(), 2) + std::pow(temp[0], 2);
+    const auto B     = 2.0 * (temp[1] * rPQ.Q() / std::pow(GetCapSize(), 2) + temp[0] * rPQ.P());
+    const auto C     = YieldFunctionValue(rPQ);
     const auto delta = std::sqrt(B * B - 4.0 * A * C);
     return std::min((-B + delta) / (2.0 * A), (-B - delta) / (2.0 * A));
 }

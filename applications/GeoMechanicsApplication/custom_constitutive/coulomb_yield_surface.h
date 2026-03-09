@@ -57,6 +57,8 @@ public:
     [[nodiscard]] Vector DerivativeOfFlowFunction(const Geo::PrincipalStresses&,
                                                   Geo::PrincipalStresses::AveragingType AveragingType =
                                                       Geo::PrincipalStresses::AveragingType::NO_AVERAGING) const;
+    [[nodiscard]] Vector DerivativeOfFlowFunction(const Geo::PQ& rPQ,
+                                                  Geo::PrincipalStresses::AveragingType AveragingType) const;
 
     [[nodiscard]] Geo::SigmaTau CalculateApex() const;
 
