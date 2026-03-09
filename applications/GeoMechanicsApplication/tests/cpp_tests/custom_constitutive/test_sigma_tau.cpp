@@ -33,8 +33,9 @@ class TestSigmaTauFixture : public ::testing::Test
 {
 };
 
-using TestVectorTypes = ::testing::Types<Vector, BoundedVector<double, 2>, std::vector<double>>;
-TYPED_TEST_SUITE(TestSigmaTauFixture, TestVectorTypes);
+using VectorTypesForTypedSigmaTauTest =
+    ::testing::Types<Vector, BoundedVector<double, 2>, std::vector<double>>;
+TYPED_TEST_SUITE(TestSigmaTauFixture, VectorTypesForTypedSigmaTauTest);
 
 TYPED_TEST(TestSigmaTauFixture, SigmaTau_CanBeConstructedFromAnyVectorWithSizeOf2)
 {

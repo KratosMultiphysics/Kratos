@@ -30,9 +30,9 @@ class TestPrincipalStressFixture : public ::testing::Test
 {
 };
 
-using TestVectorTypesPrincipalStress =
+using VectorTypesForTypedPrincipalStressesTest =
     ::testing::Types<Vector, BoundedVector<double, 3>, std::vector<double>>;
-TYPED_TEST_SUITE(TestPrincipalStressFixture, TestVectorTypesPrincipalStress);
+TYPED_TEST_SUITE(TestPrincipalStressFixture, VectorTypesForTypedPrincipalStressesTest);
 
 TYPED_TEST(TestPrincipalStressFixture, PrincipalStresses_CanBeConstructedFromAnyVectorWithSizeOf3)
 {

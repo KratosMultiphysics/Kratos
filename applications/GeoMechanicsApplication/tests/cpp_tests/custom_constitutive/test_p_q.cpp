@@ -33,8 +33,8 @@ class TestPQFixture : public ::testing::Test
 {
 };
 
-using TestVectorTypes = ::testing::Types<Vector, BoundedVector<double, 2>, std::vector<double>>;
-TYPED_TEST_SUITE(TestPQFixture, TestVectorTypes);
+using VectorTypesForTypedPQTest = ::testing::Types<Vector, BoundedVector<double, 2>, std::vector<double>>;
+TYPED_TEST_SUITE(TestPQFixture, VectorTypesForTypedPQTest);
 
 TYPED_TEST(TestPQFixture, PQ_CanBeConstructedFromAnyVectorWithSizeOf2)
 {
