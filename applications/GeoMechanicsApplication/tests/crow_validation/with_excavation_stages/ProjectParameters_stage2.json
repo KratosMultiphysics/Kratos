@@ -22,7 +22,7 @@
       "input_type": "use_input_model_part"
     },
     "material_import_settings": {
-      "materials_filename": "Stage_1_Materials.json"
+      "materials_filename": "linear_elastic_material.json"
     },
     "buffer_size": 2,
     "clear_storage": false,

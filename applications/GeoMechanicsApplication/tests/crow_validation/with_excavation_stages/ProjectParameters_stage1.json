@@ -12,7 +12,7 @@
       "max_delta_time_factor": 1000.0
     },
     "solver_type": "U_Pw",
-    "solution_type": "Quasi-static",
+    "solution_type": "static",
     "strategy_type": "newton_raphson",
     "scheme_type": "newmark",
     "model_part_name": "PorousDomain",
@@ -23,7 +23,7 @@
       "input_filename": "crow_validation_gid"
     },
     "material_import_settings": {
-      "materials_filename": "Stage_1_Materials.json"
+      "materials_filename": "linear_elastic_material.json"
     },
     "buffer_size": 2,
     "clear_storage": false,
