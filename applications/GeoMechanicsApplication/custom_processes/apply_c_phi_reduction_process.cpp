@@ -156,10 +156,10 @@ void ApplyCPhiReductionProcess::SetCPhiAtElement(Element& rElement, double Reduc
         p_new_properties->SetValue(GEO_COHESION, ReducedC);
     } else {
         // Overwrite C and Phi in the UMAT_PARAMETERS
-        auto Umat_parameters = r_properties[UMAT_PARAMETERS];
-        Umat_parameters[r_properties[INDEX_OF_UMAT_PHI_PARAMETER] - 1] = ReducedPhi;
-        Umat_parameters[r_properties[INDEX_OF_UMAT_C_PARAMETER] - 1]   = ReducedC;
-        p_new_properties->SetValue(UMAT_PARAMETERS, Umat_parameters);
+        auto umat_parameters = r_properties[UMAT_PARAMETERS];
+        umat_parameters[r_properties[INDEX_OF_UMAT_PHI_PARAMETER] - 1] = ReducedPhi;
+        umat_parameters[r_properties[INDEX_OF_UMAT_C_PARAMETER] - 1]   = ReducedC;
+        p_new_properties->SetValue(UMAT_PARAMETERS, umat_parameters);
     }
     rElement.SetProperties(p_new_properties);
 
