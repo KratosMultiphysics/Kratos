@@ -3,6 +3,7 @@ import KratosMultiphysics
 from KratosMultiphysics import IsDistributedRun
 import KratosMultiphysics.kratos_utilities as kratos_utils
 from KratosMultiphysics.StructuralMechanicsApplication.structural_mechanics_analysis import StructuralMechanicsAnalysis
+from KratosMultiphysics.StructuralMechanicsApplication.structural_mechanics_load_stepping_analysis import StructuralMechanicsLoadSteppingAnalysis
 
 # Import KratosUnittest
 import KratosMultiphysics.KratosUnittest as KratosUnittest
@@ -37,6 +38,8 @@ def SelectAndVerifyLinearSolver(settings, skiptest):
 
 
 class StructuralMechanicsTestFactory(KratosUnittest.TestCase):
+    analysis_type = StructuralMechanicsAnalysis
+
     def setUp(self):
         # Within this location context:
         with KratosUnittest.WorkFolderScope(".", __file__):
@@ -57,7 +60,7 @@ class StructuralMechanicsTestFactory(KratosUnittest.TestCase):
 
             # Creating the test
             model = KratosMultiphysics.Model()
-            self.test = StructuralMechanicsAnalysis(model, ProjectParameters)
+            self.test = self.analysis_type(model, ProjectParameters)
             self.test.Initialize()
 
     def modify_parameters(self, project_parameters):
@@ -274,6 +277,24 @@ class Simple3D2NBeamCrNonLinearTest(StructuralMechanicsTestFactory):
 
 class Simple3D2NBeamCrDynamicTest(StructuralMechanicsTestFactory):
     file_name = "beam_test/dynamic_3D2NBeamCr_test"
+
+class Simple3D2NBeamCrDynamicPseudoStepTest(StructuralMechanicsTestFactory):
+    class TestClass(StructuralMechanicsLoadSteppingAnalysis):
+        list_of_steps: 'list[int]' = []
+        def FinalizeSolutionStep(self):
+            super().FinalizeSolutionStep()
+            self.list_of_steps.append(self.is_converged)
+
+    file_name = "beam_test/dynamic_3D2NBeamCr_pseudo_step_test"
+    analysis_type = TestClass
+
+    def test_execution(self):
+        super().test_execution()
+        self.assertTrue(all(self.test.list_of_steps))
+
+    def tearDown(self):
+        super().tearDown()
+        kratos_utils.DeleteFileIfExisting("serialization.rest")
 
 class Simple2D2NBeamCrTest(StructuralMechanicsTestFactory):
     file_name = "beam_test/nonlinear_2D2NBeamCr_test"
