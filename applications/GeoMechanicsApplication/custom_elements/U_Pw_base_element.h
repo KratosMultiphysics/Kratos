@@ -124,6 +124,8 @@ public:
                                       const std::vector<Matrix>& rValues,
                                       const ProcessInfo&         rCurrentProcessInfo) override;
 
+    void InitializeParametersForInternalMohrCoulombModel();
+
     using Element::SetValuesOnIntegrationPoints;
 
     std::string Info() const override;

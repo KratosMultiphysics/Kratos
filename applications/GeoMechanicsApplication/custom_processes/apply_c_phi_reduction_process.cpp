@@ -14,6 +14,7 @@
 
 // Project includes
 #include "custom_processes/apply_c_phi_reduction_process.h"
+#include "custom_elements/U_Pw_base_element.h"
 #include "containers/model.h"
 #include "custom_utilities/check_utilities.hpp"
 #include "custom_utilities/constitutive_law_utilities.h"
@@ -161,6 +162,10 @@ void ApplyCPhiReductionProcess::SetCPhiAtElement(Element& rElement, double Reduc
         p_new_properties->SetValue(UMAT_PARAMETERS, Umat_parameters);
     }
     rElement.SetProperties(p_new_properties);
+
+    if (auto p_upw_base_element = dynamic_cast<UPwBaseElement*>(&rElement)) {
+        p_upw_base_element->InitializeParametersForInternalMohrCoulombModel();
+    }
 }
 
 bool ApplyCPhiReductionProcess::IsStepRestarted() const

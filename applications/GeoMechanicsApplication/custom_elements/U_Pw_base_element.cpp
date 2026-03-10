@@ -13,6 +13,7 @@
 
 // Application includes
 #include "custom_elements/U_Pw_base_element.h"
+#include "custom_constitutive/mohr_coulomb_with_tension_cutoff.h"
 #include "custom_retention/retention_law_factory.h"
 #include "custom_utilities/check_utilities.hpp"
 #include "custom_utilities/dof_utilities.hpp"
@@ -298,6 +299,24 @@ void UPwBaseElement::SetValuesOnIntegrationPoints(const Variable<double>&    rVa
 
     for (unsigned int i = 0; i < mConstitutiveLawVector.size(); ++i) {
         mConstitutiveLawVector[i]->SetValue(rVariable, rValues[i], rCurrentProcessInfo);
+    }
+
+    KRATOS_CATCH("")
+}
+
+void UPwBaseElement::InitializeParametersForInternalMohrCoulombModel()
+{
+    KRATOS_TRY
+
+    const auto& properties = this->GetProperties();
+    const auto dummy_geometry              = Geometry<Node>{};
+    const auto dummy_vector = Vector();
+    for (unsigned int i = 0; i < mConstitutiveLawVector.size(); ++i) {
+        if (auto p_mohr_coulomb = dynamic_cast<MohrCoulombWithTensionCutOff*>(mConstitutiveLawVector[i].get())) {
+            std::cout << "InitializeParametersForInternalMohrCoulombModel" << std::endl;
+            p_mohr_coulomb->InitializeMaterial(
+                properties, dummy_geometry, dummy_vector);
+        }
     }
 
     KRATOS_CATCH("")
