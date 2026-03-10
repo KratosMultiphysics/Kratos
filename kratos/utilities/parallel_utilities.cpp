@@ -115,6 +115,8 @@ int ParallelUtilities::InitializeNumberOfThreads()
     const char* env_parallel_max_chunks = std::getenv("KRATOS_PARALLEL_MAX_CHUNKS");
     if (env_parallel_max_chunks) {
         ParallelUtilitiesMaxNumberOfChunks = std::atoi(env_parallel_max_chunks);
+    } else { // If not set, we set it to 4 times the number of threads, which is a good default value for many cases
+        ParallelUtilitiesMaxNumberOfChunks = std::min(num_threads * 4, ParallelUtilitiesMaxNumberOfChunks);
     }
 
 #ifdef KRATOS_SMP_OPENMP
