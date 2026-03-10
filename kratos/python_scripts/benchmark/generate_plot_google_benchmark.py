@@ -231,7 +231,7 @@ def plot_benchmarks(df: pd.DataFrame, filenames: list[str],
 
     # ── Legend ─────────────────────────────────────────────────────────
     ax.legend(
-        loc="upper right",
+        loc="upper left",
         fontsize=8,
         framealpha=0.9,
         edgecolor="#CCCCCC",
@@ -239,7 +239,7 @@ def plot_benchmarks(df: pd.DataFrame, filenames: list[str],
         title_fontsize=8,
     )
 
-    # ── Context info box (bottom-left) ─────────────────────────────────
+    # ── Context info box (upper center) ────────────────────────────────
     info_lines = [f"Generated: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}"]
     for filename, ctx in contexts.items():
         short = os.path.basename(filename)
@@ -249,10 +249,11 @@ def plot_benchmarks(df: pd.DataFrame, filenames: list[str],
         )
 
     ax.text(
-        0.01, 0.01, "\n".join(info_lines),
+        0.5, 0.99, "\n".join(info_lines),
         transform=ax.transAxes,
         fontsize=6.5, color="#555555",
-        verticalalignment="bottom",
+        verticalalignment="top",
+        horizontalalignment="center",
         bbox=dict(boxstyle="round,pad=0.4", facecolor="white",
                   edgecolor="#CCCCCC", alpha=0.8),
     )
