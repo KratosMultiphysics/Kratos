@@ -29,6 +29,14 @@ namespace
 
 using namespace Kratos;
 
+std::optional<CompressionCapYieldSurface> CreateOptionalCompressionCap(const Properties& rMaterialProperties)
+{
+    if (!rMaterialProperties.Has(GEO_ENABLE_COMPRESSION_CAP) || !rMaterialProperties[GEO_ENABLE_COMPRESSION_CAP])
+        return std::nullopt;
+
+    return std::make_optional<CompressionCapYieldSurface>(rMaterialProperties);
+}
+
 template <typename YieldSurfaceType>
 auto CalculatePrincipalStressCorrection(const Geo::PrincipalStresses& rTrialPrincipalStresses,
                                         const Geo::PrincipalStresses::AveragingType AveragingType,
@@ -45,7 +53,9 @@ namespace Kratos
 {
 
 CoulombWithTensionCutOffImpl::CoulombWithTensionCutOffImpl(const Properties& rMaterialProperties)
-    : mCoulombYieldSurface{rMaterialProperties}, mTensionCutOff{rMaterialProperties[GEO_TENSILE_STRENGTH]}
+    : mCoulombYieldSurface{rMaterialProperties},
+      mTensionCutOff{rMaterialProperties[GEO_TENSILE_STRENGTH]},
+      mCompressionCapYieldSurface{CreateOptionalCompressionCap(rMaterialProperties)}
 {
     if (rMaterialProperties.Has(GEO_ABS_YIELD_FUNCTION_TOLERANCE)) {
         mAbsoluteYieldFunctionValueTolerance = rMaterialProperties[GEO_ABS_YIELD_FUNCTION_TOLERANCE];
