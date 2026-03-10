@@ -22,6 +22,8 @@
 namespace Kratos
 {
 
+class Serializer;
+
 namespace Geo
 {
 class PrincipalStresses;
