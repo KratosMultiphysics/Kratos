@@ -67,7 +67,7 @@
                         "node_output":         true,
                         "skin_output":         false,
                         "nodal_results":       ["DISPLACEMENT","REACTION"],
-                        "gauss_point_results": ["CAUCHY_STRESS_TENSOR", "ENGINEERING_STRAIN_TENSOR"]
+                        "gauss_point_results": ["CAUCHY_STRESS_TENSOR", "ENGINEERING_STRAIN_TENSOR","GEO_PLASTIC_STATUS"]
                     }
                 }
             }
