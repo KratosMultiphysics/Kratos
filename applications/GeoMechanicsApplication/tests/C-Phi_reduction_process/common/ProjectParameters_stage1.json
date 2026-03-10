@@ -22,9 +22,6 @@
         "displacement_relative_tolerance": 0.0001,
         "domain_size": 2,
         "echo_level": 1,
-        "first_alpha_value": 0.5,
-        "increase_factor": 1.0,
-        "line_search_tolerance": 0.5,
         "linear_solver_settings": {
             "scaling": true,
             "solver_type": "LinearSolversApplication.sparse_lu"
@@ -40,7 +37,7 @@
         "min_iterations": 6,
         "min_radius_factor": 0.1,
         "model_import_settings": {
-            "input_filename": "../mesh",
+            "input_filename": "../common/mesh",
             "input_type": "mdpa"
         },
         "model_part_name": "PorousDomain",
@@ -50,9 +47,6 @@
         "newmark_theta": 0.5,
         "number_cycles": 1,
         "problem_domain_sub_model_part_list": ["Material_1"],
-        "rayleigh_k": 0.0,
-        "rayleigh_m": 0.0,
-        "reduction_factor": 0.5,
         "reform_dofs_at_each_step": false,
         "reset_displacements": true,
         "residual_absolute_tolerance": 1e-09,
@@ -66,9 +60,7 @@
         "time_stepping": {
             "max_delta_time_factor": 1000,
             "time_step": 1e-06
-        },
-        "water_pressure_absolute_tolerance": 1e-09,
-        "water_pressure_relative_tolerance": 0.0001
+        }
     },
     "processes": {
         "auxiliary_process_list": [
@@ -84,8 +76,8 @@
         "constraints_process_list": [
             {
                 "Parameters": {
-                    "active": [ true, false, true ],
-                    "is_fixed": [ true, false, true ],
+                    "active": [ true, false, false ],
+                    "is_fixed": [ true, false, false ],
                     "model_part_name": "PorousDomain.Side_Nodes",
                     "table": [ 0, 0, 0 ],
                     "value": [ 0.0, 0.0, 0.0 ],
@@ -97,8 +89,8 @@
             },
             {
                 "Parameters": {
-                    "active": [ true, true, true ],
-                    "is_fixed": [ true, true, true ],
+                    "active": [ true, true, false ],
+                    "is_fixed": [ true, true, false ],
                     "model_part_name": "PorousDomain.Base_Nodes",
                     "table": [ 0, 0, 0 ],
                     "value": [ 0.0, 0.0, 0.0 ],
@@ -165,8 +157,7 @@
                         "node_output":         false,
                         "skin_output":         false,
                         "plane_output":        []
-                    },
-                    "point_data_configuration":  []
+                    }
                 }
             }
         }]
