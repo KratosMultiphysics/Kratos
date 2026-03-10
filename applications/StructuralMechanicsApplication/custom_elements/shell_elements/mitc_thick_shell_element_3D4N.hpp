@@ -85,7 +85,7 @@ public:
     using Element::GetGeometry;
     using Element::GetProperties;
     using Vector3Type = typename BaseType::Vector3Type;
-    static constexpr double drilling_factor = 1.0e-3;
+    static constexpr double drilling_factor = 1.0e-2;
 
     ///@}
 
