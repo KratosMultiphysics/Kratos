@@ -261,7 +261,7 @@ class VertexMorphingShapeControl(Control):
         @brief This method is used to extract data from model part to @ref TensorAdaptor.
 
         @details If the nodes container used in the @p tensor_adaptor is different from the @p nodes_container
-                 then, this method extracts values from the nodes of the container in the @p tensor_adaptor
+                 then, this method extracts values from the nodes of the container into the @p tensor_adaptor
                  to a @ref TensorAdaptor having @p nodes_container as the nodes.
 
                  Eg:
