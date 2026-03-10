@@ -160,14 +160,26 @@ void CompressionCapYieldSurface::CheckMaterialProperties() const
     }
 }
 
-double CompressionCapYieldSurface::CalculatePlasticMultiplier(const Geo::PQ& rPQ,
+double CompressionCapYieldSurface::CalculatePlasticMultiplier(const Geo::PrincipalStresses& rPrincipalStresses,
                                                               const Vector& rDerivativeOfFlowFunction,
                                                               const Matrix& rElasticMatrix) const
 {
-    const auto temp  = Vector{prod(rElasticMatrix, rDerivativeOfFlowFunction)};
-    const auto A     = std::pow(temp[1], 2) / std::pow(GetCapSize(), 2) + std::pow(temp[0], 2);
-    const auto B     = 2.0 * (temp[1] * rPQ.Q() / std::pow(GetCapSize(), 2) + temp[0] * rPQ.P());
-    const auto C     = YieldFunctionValue(rPQ);
+    const auto principals =
+        UblasUtilities::CreateVector({rPrincipalStresses.Values()[0] - rPrincipalStresses.Values()[1],
+                                      rPrincipalStresses.Values()[1] - rPrincipalStresses.Values()[2],
+                                      rPrincipalStresses.Values()[2] - rPrincipalStresses.Values()[0]});
+    const auto elastic_matrix    = subrange(rElasticMatrix, 0, 3, 0, 3);
+    const auto stress_correction = Vector{prod(elastic_matrix, rDerivativeOfFlowFunction)};
+    const auto temp = UblasUtilities::CreateVector({stress_correction[0] - stress_correction[1],
+                                                    stress_correction[1] - stress_correction[2],
+                                                    stress_correction[2] - stress_correction[0]});
+    const auto A    = inner_prod(temp, temp) / (2.0 * std::pow(GetCapSize(), 2)) +
+                   std::pow((stress_correction[0] + stress_correction[1] + stress_correction[2]) / 3.0, 2);
+    const auto B =
+        inner_prod(principals, temp) / std::pow(GetCapSize(), 2) +
+        (rPrincipalStresses.Values()[0] + rPrincipalStresses.Values()[1] + rPrincipalStresses.Values()[2]) *
+            (stress_correction[0] + stress_correction[1] + stress_correction[2]) * 2.0 / 9.0;
+    const auto C     = YieldFunctionValue(rPrincipalStresses);
     const auto delta = std::sqrt(B * B - 4.0 * A * C);
     return std::min((-B + delta) / (2.0 * A), (-B - delta) / (2.0 * A));
 }

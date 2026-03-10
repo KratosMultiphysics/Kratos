@@ -371,9 +371,9 @@ Geo::PrincipalStresses CoulombWithTensionCutOffImpl::ReturnStressAtCompressionCa
     const auto trial_pq = StressStrainUtilities::TransformPrincipalStressesToPandQ(rTrialPrincipalStresses);
     const auto derivative_of_flow_function = mCompressionCapYieldSurface->DerivativeOfFlowFunction(trial_pq);
     const auto lambda = mCompressionCapYieldSurface->CalculatePlasticMultiplier(
-        trial_pq, derivative_of_flow_function, rElasticMatrix);
+        rTrialPrincipalStresses, derivative_of_flow_function, rElasticMatrix);
     return rTrialPrincipalStresses +
-           Geo::PrincipalStresses{lambda * prod(subrange(rElasticMatrix, 0, 2, 0, 2), derivative_of_flow_function)};
+           Geo::PrincipalStresses{lambda * prod(subrange(rElasticMatrix, 0, 3, 0, 3), derivative_of_flow_function)};
 }
 
 Geo::SigmaTau CoulombWithTensionCutOffImpl::ReturnStressAtCompressionCapZone(const Geo::SigmaTau& rTrialSigmaTau,
