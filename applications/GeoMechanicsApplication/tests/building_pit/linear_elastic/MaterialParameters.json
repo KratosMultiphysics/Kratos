@@ -188,8 +188,7 @@
                 "SATURATED_SATURATION"          : 1.0,
                 "RESIDUAL_SATURATION"           : 1e-10,
                 "MINIMUM_RELATIVE_PERMEABILITY" : 0.0001,
-                "TRANSVERSAL_PERMEABILITY"      : 5.0e-4,
-                "DYNAMIC_VISCOSITY"             : 1.0e-3
+                "IGNORE_UNDRAINED"              : true
             }
         }
     },{
@@ -207,8 +206,7 @@
                 "SATURATED_SATURATION"          : 1.0,
                 "RESIDUAL_SATURATION"           : 1e-10,
                 "MINIMUM_RELATIVE_PERMEABILITY" : 0.0001,
-                "TRANSVERSAL_PERMEABILITY"      : 5.0e-4,
-                "DYNAMIC_VISCOSITY"             : 1.0e-3
+                "IGNORE_UNDRAINED"              : true
             }
         }
     },{
@@ -226,8 +224,7 @@
                 "SATURATED_SATURATION"          : 1.0,
                 "RESIDUAL_SATURATION"           : 1e-10,
                 "MINIMUM_RELATIVE_PERMEABILITY" : 0.0001,
-                "TRANSVERSAL_PERMEABILITY"      : 5.0e-4,
-                "DYNAMIC_VISCOSITY"             : 1.0e-3
+                "IGNORE_UNDRAINED"              : true
             }
         }
     },{
@@ -245,8 +242,7 @@
                 "SATURATED_SATURATION"          : 1.0,
                 "RESIDUAL_SATURATION"           : 1e-10,
                 "MINIMUM_RELATIVE_PERMEABILITY" : 0.0001,
-                "TRANSVERSAL_PERMEABILITY"      : 5.0e-4,
-                "DYNAMIC_VISCOSITY"             : 1.0e-3
+                "IGNORE_UNDRAINED"              : true
             }
         }
     },{
@@ -264,8 +260,7 @@
                 "SATURATED_SATURATION"          : 1.0,
                 "RESIDUAL_SATURATION"           : 1e-10,
                 "MINIMUM_RELATIVE_PERMEABILITY" : 0.0001,
-                "TRANSVERSAL_PERMEABILITY"      : 5.0e-4,
-                "DYNAMIC_VISCOSITY"             : 1.0e-3
+                "IGNORE_UNDRAINED"              : true
             }
         }
     },{
@@ -283,8 +278,7 @@
                 "SATURATED_SATURATION"          : 1.0,
                 "RESIDUAL_SATURATION"           : 1e-10,
                 "MINIMUM_RELATIVE_PERMEABILITY" : 0.0001,
-                "TRANSVERSAL_PERMEABILITY"      : 5.0e-4,
-                "DYNAMIC_VISCOSITY"             : 1.0e-3
+                "IGNORE_UNDRAINED"              : true
             }
         }
     },{
