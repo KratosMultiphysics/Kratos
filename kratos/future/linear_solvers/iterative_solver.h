@@ -25,7 +25,7 @@
 #include "future/containers/linear_system_tags.h"
 #include "future/linear_operators/linear_operator.h"
 #include "future/linear_solvers/linear_solver.h"
-#include "future/linear_solvers/preconditioner.h"
+#include "future/preconditioners/preconditioner.h"
 
 namespace Kratos::Future
 {
@@ -170,44 +170,26 @@ public:
 
     void Initialize(LinearSystem<TLinearAlgebra>& rLinearSystem) override
     {
-        // Get sparse matrix and dense vector tags from strings
-        const auto dx_tag = LinearSystemTags::DenseVectorTagFromString(BaseType::mDxTagString);
-        const auto rhs_tag = LinearSystemTags::DenseVectorTagFromString(BaseType::mRhsTagString);
-        const auto lhs_tag = LinearSystemTags::SparseMatrixTagFromString(BaseType::mLhsTagString);
-
         // Call the preconditioner initialize
+        const auto lhs_tag = LinearSystemTags::SparseMatrixTagFromString(BaseType::mLhsTagString);
         const auto& rp_lhs_lin_op = rLinearSystem.pGetLinearOperator(lhs_tag);
-        auto p_rhs = rLinearSystem.pGetVector(rhs_tag);
-        auto p_dx = rLinearSystem.pGetVector(dx_tag);
-        this->GetPreconditioner()->Initialize(rp_lhs_lin_op, p_rhs, p_dx);
+        this->GetPreconditioner()->Initialize(rp_lhs_lin_op);
     }
 
     void InitializeSolutionStep(LinearSystem<TLinearAlgebra>& rLinearSystem) override
     {
-        // Get sparse matrix and dense vector tags from strings
-        const auto dx_tag = LinearSystemTags::DenseVectorTagFromString(BaseType::mDxTagString);
-        const auto rhs_tag = LinearSystemTags::DenseVectorTagFromString(BaseType::mRhsTagString);
+        // Call the preconditioner initialize solution step
         const auto lhs_tag = LinearSystemTags::SparseMatrixTagFromString(BaseType::mLhsTagString);
-
-        // Call the preconditioner initialize
         const auto& rp_lhs_lin_op = rLinearSystem.pGetLinearOperator(lhs_tag);
-        auto p_rhs = rLinearSystem.pGetVector(rhs_tag);
-        auto p_dx = rLinearSystem.pGetVector(dx_tag);
-        this->GetPreconditioner()->InitializeSolutionStep(rp_lhs_lin_op, p_rhs, p_dx);
+        this->GetPreconditioner()->InitializeSolutionStep(rp_lhs_lin_op);
     }
 
     void FinalizeSolutionStep(LinearSystem<TLinearAlgebra>& rLinearSystem) override
     {
-        // Get sparse matrix and dense vector tags from strings
-        const auto dx_tag = LinearSystemTags::DenseVectorTagFromString(BaseType::mDxTagString);
-        const auto rhs_tag = LinearSystemTags::DenseVectorTagFromString(BaseType::mRhsTagString);
+        // Call the preconditioner finalize solution step
         const auto lhs_tag = LinearSystemTags::SparseMatrixTagFromString(BaseType::mLhsTagString);
-
-        // Call the preconditioner finalize
         const auto& rp_lhs_lin_op = rLinearSystem.pGetLinearOperator(lhs_tag);
-        auto p_rhs = rLinearSystem.pGetVector(rhs_tag);
-        auto p_dx = rLinearSystem.pGetVector(dx_tag);
-        this->GetPreconditioner()->FinalizeSolutionStep(rp_lhs_lin_op, p_rhs, p_dx);
+        this->GetPreconditioner()->FinalizeSolutionStep(rp_lhs_lin_op);
     }
 
     void Clear() override
