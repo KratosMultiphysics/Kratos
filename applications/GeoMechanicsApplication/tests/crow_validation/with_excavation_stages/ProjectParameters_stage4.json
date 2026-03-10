@@ -193,6 +193,21 @@
           "value"          : [0.0, -20000.0, 0.0],
           "table"          : [0, 0, 0]
         }
+      },{
+        "python_module": "apply_normal_load_table_process",
+        "kratos_module": "KratosMultiphysics.GeoMechanicsApplication",
+        "process_name" : "apply_normal_load_table_process",
+        "Parameters"   : {
+          "model_part_name"     : "PorousDomain.Normal_Load_After_First_Excavation",
+          "variable_name"       : "NORMAL_CONTACT_STRESS",
+          "active"              : [true, false],
+          "value"               : [0.0, 0.0],
+          "fluid_pressure_type" : "Hydrostatic",
+          "gravity_direction"   : 1,
+          "reference_coordinate": -1.5,
+          "specific_weight"     : 10000.0,
+          "table"               : [0, 0]
+        }
       }
     ],
     "auxiliary_process_list"  : [
@@ -214,7 +229,6 @@
         "Parameters"   : {
           "model_part_name_list": [
             "PorousDomain.Interfaces_Right",
-            "PorousDomain.Interface_Excavated_Soil_1",
             "PorousDomain.Interface_Excavated_Soil_2",
             "PorousDomain.Interface_Excavated_Soil_3",
             "PorousDomain.Interfaces_Bottom_Left",
