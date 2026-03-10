@@ -36,12 +36,12 @@ public:
     PrincipalStresses(double Sigma1, double Sigma2, double Sigma3);
 
     template <typename VectorType>
-    explicit PrincipalStresses(const VectorType& rStressVector)
+    explicit PrincipalStresses(const VectorType& rValues)
     {
         // For some reason, the `std::ranges` versions of the below algorithms don't play nicely
         // with UBlas vector expressions. Therefore, we're using the iterator-style algorithms.
-        auto first = std::begin(rStressVector);
-        auto last  = std::end(rStressVector);
+        auto first = std::begin(rValues);
+        auto last  = std::end(rValues);
         KRATOS_DEBUG_ERROR_IF(std::distance(first, last) != msVectorSize)
             << "Cannot construct a PrincipalStresses instance: expected " << msVectorSize
             << " values, but got " << std::distance(first, last) << " value(s)\n";
