@@ -342,15 +342,16 @@ private:
  *  @param itBegin: iterator to the first item in the container to loop on.
  *  @param itEnd: iterator past the last item in the container.
  *  @param rFunction: function to execute on each item.
+ *  @param N - number of chunks or chunk size, depending on the partitioning scheme.
  *  @tparam TPartitioningScheme: scheme to partition the iteration space.
  */
 template <class TIterator,
           class TFunction,
           ChunkPartitioningScheme TPartitioningScheme = ChunkPartitioningScheme::DIVIDE_BY_NUMBER_OF_CHUNKS,
           std::enable_if_t<std::is_base_of_v<std::input_iterator_tag, typename std::iterator_traits<TIterator>::iterator_category>,bool> = true>
-void block_for_each(TIterator itBegin, TIterator itEnd, TFunction&& rFunction)
+void block_for_each(TIterator itBegin, TIterator itEnd, TFunction&& rFunction, int N = -1)
 {
-    BlockPartition<TIterator, TPartitioningScheme>(itBegin, itEnd).for_each(std::forward<TFunction>(rFunction));
+    BlockPartition<TIterator, TPartitioningScheme>(itBegin, itEnd, N).for_each(std::forward<TFunction>(rFunction));
 }
 
 /** @brief Execute a functor on all items of a range in parallel, and perform a reduction.
@@ -360,6 +361,7 @@ void block_for_each(TIterator itBegin, TIterator itEnd, TFunction&& rFunction)
  *  @param itBegin: iterator to the first item in the container to loop on.
  *  @param itEnd: iterator past the last item in the container.
  *  @param rFunction: function to execute on each item.
+ *  @param N - number of chunks or chunk size, depending on the partitioning scheme.
  *  @tparam TPartitioningScheme: scheme to partition the iteration space.
  */
 template <class TReduction,
@@ -367,9 +369,9 @@ template <class TReduction,
           class TFunction,
           ChunkPartitioningScheme TPartitioningScheme = ChunkPartitioningScheme::DIVIDE_BY_NUMBER_OF_CHUNKS,
           std::enable_if_t<std::is_base_of_v<std::input_iterator_tag, typename std::iterator_traits<TIterator>::iterator_category>,bool> = true>
-[[nodiscard]] typename TReduction::return_type block_for_each(TIterator itBegin, TIterator itEnd, TFunction&& rFunction)
+[[nodiscard]] typename TReduction::return_type block_for_each(TIterator itBegin, TIterator itEnd, TFunction&& rFunction, int N = -1)
 {
-    return  BlockPartition<TIterator, TPartitioningScheme>(itBegin, itEnd).template for_each<TReduction>(std::forward<TFunction>(std::forward<TFunction>(rFunction)));
+    return  BlockPartition<TIterator, TPartitioningScheme>(itBegin, itEnd, N).template for_each<TReduction>(std::forward<TFunction>(std::forward<TFunction>(rFunction)));
 }
 
 /** @brief Execute a functor with thread local storage on all items of a range in parallel.
@@ -381,15 +383,16 @@ template <class TReduction,
  *  @param itEnd: iterator past the last item in the container.
  *  @param rTLS: thread local storage
  *  @param rFunction: function to execute on each item.
+ *  @param N - number of chunks or chunk size, depending on the partitioning scheme.
  */
 template <class TIterator,
           class TTLS,
           class TFunction, 
           ChunkPartitioningScheme TPartitioningScheme = ChunkPartitioningScheme::DIVIDE_BY_NUMBER_OF_CHUNKS,
           std::enable_if_t<std::is_base_of_v<std::input_iterator_tag, typename std::iterator_traits<TIterator>::iterator_category>,bool> = true>
-void block_for_each(TIterator itBegin, TIterator itEnd, const TTLS& rTLS, TFunction &&rFunction)
+void block_for_each(TIterator itBegin, TIterator itEnd, const TTLS& rTLS, TFunction &&rFunction, int N = -1)
 {
-     BlockPartition<TIterator, TPartitioningScheme>(itBegin, itEnd).for_each(rTLS, std::forward<TFunction>(rFunction));
+     BlockPartition<TIterator, TPartitioningScheme>(itBegin, itEnd, N).for_each(rTLS, std::forward<TFunction>(rFunction));
 }
 
 /** @brief Execute a functor with thread local storage on all items of a range in parallel, and perform a reduction.
@@ -402,6 +405,7 @@ void block_for_each(TIterator itBegin, TIterator itEnd, const TTLS& rTLS, TFunct
  *  @param itEnd: iterator past the last item in the container.
  *  @param rTLS: thread local storage
  *  @param rFunction: function to execute on each item.
+ *  @param N - number of chunks or chunk size, depending on the partitioning scheme.
  */
 template <class TReduction,
           class TIterator,
@@ -409,9 +413,9 @@ template <class TReduction,
           class TFunction, 
           ChunkPartitioningScheme TPartitioningScheme = ChunkPartitioningScheme::DIVIDE_BY_NUMBER_OF_CHUNKS,
           std::enable_if_t<std::is_base_of_v<std::input_iterator_tag, typename std::iterator_traits<TIterator>::iterator_category>,bool> = true>
-[[nodiscard]] typename TReduction::return_type block_for_each(TIterator itBegin, TIterator itEnd, const TTLS& tls, TFunction&& rFunction)
+[[nodiscard]] typename TReduction::return_type block_for_each(TIterator itBegin, TIterator itEnd, const TTLS& tls, TFunction&& rFunction, int N = -1)
 {
-    return BlockPartition<TIterator, TPartitioningScheme>(itBegin, itEnd).template for_each<TReduction>(tls, std::forward<TFunction>(std::forward<TFunction>(rFunction)));
+    return BlockPartition<TIterator, TPartitioningScheme>(itBegin, itEnd, N).template for_each<TReduction>(tls, std::forward<TFunction>(std::forward<TFunction>(rFunction)));
 }
 
 /** @brief simplified version of the basic loop (without reduction) to enable template type deduction
@@ -427,9 +431,9 @@ template <class TContainerType,
             void
           >, bool> = true
          >
-void block_for_each(TContainerType &&v, TFunctionType &&func)
+void block_for_each(TContainerType &&v, TFunctionType &&func, int N = -1)
 {
-    block_for_each(v.begin(), v.end(), std::forward<TFunctionType>(func));
+    block_for_each(v.begin(), v.end(), std::forward<TFunctionType>(func), N);
 }
 
 /** @brief simplified version of the basic loop with reduction to enable template type deduction
@@ -438,6 +442,7 @@ void block_for_each(TContainerType &&v, TFunctionType &&func)
  *  @tparam TFunctionType Functor operating on @a TContainerType::value_type.
  *  @param v - containers to be looped upon
  *  @param func - must be a unary function accepting as input TContainerType::value_type&
+ *  @param N - number of chunks or chunk size, depending on the partitioning scheme.
  */
 template <class TReducer,
           class TContainerType,
@@ -447,9 +452,9 @@ template <class TReducer,
             void
           >, bool> = true
          >
-[[nodiscard]] typename TReducer::return_type block_for_each(TContainerType &&v, TFunctionType &&func)
+[[nodiscard]] typename TReducer::return_type block_for_each(TContainerType &&v, TFunctionType &&func, int N = -1)
 {
-    return block_for_each<TReducer>(v.begin(), v.end(), std::forward<TFunctionType>(func));
+    return block_for_each<TReducer>(v.begin(), v.end(), std::forward<TFunctionType>(func), N);
 }
 
 /** @brief simplified version of the basic loop with thread local storage (TLS) to enable template type deduction
@@ -459,6 +464,7 @@ template <class TReducer,
  *  @param v - containers to be looped upon
  *  @param tls - thread local storage
  *  @param func - must be a function accepting as input TContainerType::value_type& and the thread local storage
+ *  @param N - number of chunks or chunk size, depending on the partitioning scheme.
  */
 template <class TContainerType,
           class TThreadLocalStorage,
@@ -468,9 +474,9 @@ template <class TContainerType,
             void
           >, bool> = true
          >
-void block_for_each(TContainerType &&v, const TThreadLocalStorage& tls, TFunctionType &&func)
+void block_for_each(TContainerType &&v, const TThreadLocalStorage& tls, TFunctionType &&func, int N = -1)
 {
-    block_for_each(v.begin(), v.end(), tls, std::forward<TFunctionType>(func));
+    block_for_each(v.begin(), v.end(), tls, std::forward<TFunctionType>(func), N);
 }
 
 /** @brief simplified version of the basic loop with reduction and thread local storage (TLS) to enable template type deduction
@@ -481,6 +487,7 @@ void block_for_each(TContainerType &&v, const TThreadLocalStorage& tls, TFunctio
  *  @param v - containers to be looped upon
  *  @param tls - thread local storage
  *  @param func - must be a function accepting as input TContainerType::value_type& and the thread local storage
+ *  @param N - number of chunks or chunk size, depending on the partitioning scheme.
  */
 template <class TReducer,
           class TContainerType,
@@ -491,9 +498,9 @@ template <class TReducer,
             void
           >, bool> = true
          >
-[[nodiscard]] typename TReducer::return_type block_for_each(TContainerType &&v, const TThreadLocalStorage& tls, TFunctionType &&func)
+[[nodiscard]] typename TReducer::return_type block_for_each(TContainerType &&v, const TThreadLocalStorage& tls, TFunctionType &&func, int N = -1)
 {
-    return block_for_each<TReducer>(v.begin(), v.end(), tls, std::forward<TFunctionType>(func));
+    return block_for_each<TReducer>(v.begin(), v.end(), tls, std::forward<TFunctionType>(func), N);
 }
 
 //***********************************************************************************
