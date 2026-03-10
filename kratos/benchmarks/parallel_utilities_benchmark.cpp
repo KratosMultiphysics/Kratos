@@ -111,9 +111,9 @@ static void BM_ThreadLocalStorage(benchmark::State& state) {
 }
 
 // Register benchmarks and provide input size as a command-line option
-BENCHMARK(BM_VectorPower)->Arg(1e3)->Arg(1e5)->Arg(1e6)->Arg(1e8);
-BENCHMARK(BM_VectorReduction)->Arg(1e3)->Arg(1e5)->Arg(1e6)->Arg(1e8);
-BENCHMARK(BM_ThreadLocalStorage)->Arg(1e3)->Arg(1e5)->Arg(1e6)->Arg(1e8);
+BENCHMARK(BM_VectorPower)->Arg(1e3)->Arg(1e5)->Arg(1e6);
+BENCHMARK(BM_VectorReduction)->Arg(1e3)->Arg(1e5)->Arg(1e6);
+BENCHMARK(BM_ThreadLocalStorage)->Arg(1e3)->Arg(1e5)->Arg(1e6);
 
 }  // namespace Kratos
 
