@@ -14,13 +14,12 @@
 
 #pragma once
 
+#include "custom_constitutive/constitutive_law_dimension.h"
 #include "custom_constitutive/coulomb_with_tension_cut_off_impl.h"
 #include "includes/constitutive_law.h"
 
 namespace Kratos
 {
-
-class ConstitutiveLawDimension;
 
 class KRATOS_API(GEO_MECHANICS_APPLICATION) MohrCoulombWithTensionCutOff : public ConstitutiveLaw
 {
