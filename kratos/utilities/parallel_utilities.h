@@ -63,7 +63,7 @@ namespace Kratos
 ///@addtogroup KratosCore
 
 /// Maximum number of chunks for parallel loops
-static int ParallelUtilitiesMaxNumberOfChunks = 128;
+static int ParallelUtilitiesMaxNumberOfChunks = Globals::MaxAllowedThreads;
 
 /// Shared memory parallelism related helper class
 /** Provides access to functionalities for shared memory parallelism
