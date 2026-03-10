@@ -84,12 +84,6 @@ enum class ChunkPartitioningScheme
     DIVIDE_BY_NUMBER_OF_CHUNKS
 };
 
-/// Maximum size of a chunk for parallel loops. This is used to avoid creating too many chunks which can lead to overhead in the parallelization.
-static int ParallelUtilitiesMaxChunkSize = 1024;
-
-/// Maximum number of chunks for parallel loops
-static int ParallelUtilitiesMaxNumberOfChunks = Globals::MaxAllowedThreads;
-
 /// Shared memory parallelism related helper class
 /** Provides access to functionalities for shared memory parallelism
  * such as the number of threads in usa.
@@ -129,14 +123,51 @@ public:
     [[nodiscard]] static LockObject& GetGlobalLock();
 
     ///@}
+    ///@name Access
+    ///@{
 
+    /** 
+     * @brief Sets the maximum size of a chunk for parallel loops
+     * @param MaxChunkSize - the maximum chunk size
+     */
+    static void SetMaxChunkSize(const int MaxChunkSize);
+
+    /** 
+     * @brief Sets the maximum number of chunks for parallel loops
+     * @param MaxNumberOfChunks - the maximum number of chunks
+     */
+    static void SetMaxNumberOfChunks(const int MaxNumberOfChunks);
+
+    /** 
+     * @brief Returns the maximum size of a chunk for parallel loops
+     * This is used to avoid creating too many chunks which can lead to overhead in the parallelization.
+     * @return maximum chunk size
+     */
+    static int GetMaxChunkSize();
+
+    /** 
+     * @brief Returns the maximum number of chunks for parallel loops
+     * This is used to avoid creating too many chunks which can lead to overhead in the parallelization.
+     * @return maximum number of chunks
+     */
+    static int GetMaxNumberOfChunks();
+    
+    ///@}
 private:
     ///@name Static Member Variables
     ///@{
 
+    /// Pointer to the global lock object. This is initialized in a thread safe way in GetGlobalLock() using the call_once mechanism.
     static LockObject* mspGlobalLock;
 
+    /// Pointer to the number of threads to be used in parallel regions. This is initialized in a thread safe way in GetNumberOfThreads() using the InitializeNumberOfThreads() function.
     static int* mspNumThreads;
+
+    /// Maximum size of a chunk for parallel loops. This is used to avoid creating too many chunks which can lead to overhead in the parallelization.
+    static int mParallelUtilitiesMaxChunkSize;
+
+    /// Maximum number of chunks for parallel loops
+    static int mParallelUtilitiesMaxNumberOfChunks;
 
     ///@}
     ///@name Private Operations
@@ -181,9 +212,9 @@ public:
     {
         // Determine the number of chunks based on the partitioning scheme and the input parameter N
         if constexpr (TPartitioningScheme == ChunkPartitioningScheme::DIVIDE_BY_CHUNK_SIZE) {
-            N = N > 0 ? N : ParallelUtilitiesMaxChunkSize;
+            N = N > 0 ? N : ParallelUtilities::GetMaxChunkSize();
         } else if constexpr (TPartitioningScheme == ChunkPartitioningScheme::DIVIDE_BY_NUMBER_OF_CHUNKS) {
-            N = N > 0 ? N : ParallelUtilitiesMaxNumberOfChunks;
+            N = N > 0 ? N : ParallelUtilities::GetMaxNumberOfChunks();
         } else {
             static_assert(TPartitioningScheme == ChunkPartitioningScheme::DIVIDE_BY_CHUNK_SIZE || TPartitioningScheme == ChunkPartitioningScheme::DIVIDE_BY_NUMBER_OF_CHUNKS, "Unsupported partitioning scheme");
         }
@@ -526,9 +557,9 @@ public:
     {
         // Determine the number of chunks based on the partitioning scheme and the input parameter N
         if constexpr (TPartitioningScheme == ChunkPartitioningScheme::DIVIDE_BY_CHUNK_SIZE) {
-            N = N > 0 ? N : ParallelUtilitiesMaxChunkSize;
+            N = N > 0 ? N : ParallelUtilities::GetMaxChunkSize();
         } else if constexpr (TPartitioningScheme == ChunkPartitioningScheme::DIVIDE_BY_NUMBER_OF_CHUNKS) {
-            N = N > 0 ? N : ParallelUtilitiesMaxNumberOfChunks;
+            N = N > 0 ? N : ParallelUtilities::GetMaxNumberOfChunks();
         } else {
             static_assert(TPartitioningScheme == ChunkPartitioningScheme::DIVIDE_BY_CHUNK_SIZE || TPartitioningScheme == ChunkPartitioningScheme::DIVIDE_BY_NUMBER_OF_CHUNKS, "Unsupported partitioning scheme");
         }
