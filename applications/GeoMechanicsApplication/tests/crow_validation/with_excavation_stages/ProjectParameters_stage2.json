@@ -238,14 +238,11 @@
                 "TOTAL_STRESS_TENSOR",
                 "ENGINEERING_STRAIN_TENSOR"
               ]
-            },
-            "point_data_configuration": []
+            }
           },
           "output_name": "gid_output/crow_validation_gid_Stage_2"
         }
       }
-    ],
-    "vtk_output": []
-  },
-  "analysis_stage": "KratosMultiphysics.GeoMechanicsApplication.staged_geo_mechanics_analysis"
+    ]
+  }
 }
