@@ -25,7 +25,7 @@ namespace HDF5
 
 namespace Internals
 {
-std::string AddMissingAndGetPrefix(Parameters Settings)
+std::string AddMissingAndGetPrefix(Parameters & Settings)
 {
     Parameters default_params(R"(
         {
@@ -44,7 +44,7 @@ VertexContainerCoordinateIO::VertexContainerCoordinateIO(
 {
     KRATOS_TRY
 
-    const std::string prefix = Settings["prefix"].Get<std::string>();
+    const std::string prefix = Settings["prefix"].GetString();
     KRATOS_ERROR_IF(!prefix.empty() && prefix.back() == '/')
         << "The prefix for vertex coordinates assumed to be a group hence no need to have an ending \"/\" [ prefix = \""
         << Settings["prefix"].GetString() << "\" ].\n";

@@ -32,7 +32,7 @@ public:
     // Counted pointer of RetentionLaw
     KRATOS_CLASS_POINTER_DEFINITION(RetentionLaw);
 
-    class Parameters
+    class KRATOS_API(GEO_MECHANICS_APPLICATION) Parameters
     {
         KRATOS_CLASS_POINTER_DEFINITION(Parameters);
 
@@ -41,27 +41,14 @@ public:
          */
 
     public:
-        explicit Parameters(const Properties& rMaterialProperties)
-            : mrMaterialProperties(rMaterialProperties)
-        {
-        }
-
+        explicit Parameters(const Properties& rMaterialProperties);
         ~Parameters() = default;
 
-        void SetFluidPressure(double FluidPressure) { mFluidPressure = FluidPressure; };
+        void SetFluidPressure(double FluidPressure);
 
-        [[nodiscard]] double GetFluidPressure() const
-        {
-            KRATOS_ERROR_IF_NOT(mFluidPressure.has_value())
-                << "Fluid pressure is not yet set in the retention "
-                   "law when trying to retrieve it, aborting.\n";
-            return mFluidPressure.value();
-        }
+        [[nodiscard]] double GetFluidPressure() const;
 
-        [[nodiscard]] const Properties& GetMaterialProperties() const
-        {
-            return mrMaterialProperties;
-        }
+        [[nodiscard]] const Properties& GetMaterialProperties() const;
 
     private:
         std::optional<double> mFluidPressure;
@@ -115,38 +102,13 @@ public:
 
     static int Check(const std::vector<RetentionLaw::Pointer>& rRetentionLawVector,
                      const Properties&                         rProperties,
-                     const ProcessInfo&                        rCurrentProcessInfo)
-    {
-        KRATOS_ERROR_IF(rRetentionLawVector.empty()) << "A retention law has to be provided." << std::endl;
+                     const ProcessInfo&                        rCurrentProcessInfo);
 
-        return rRetentionLawVector[0]->Check(rProperties, rCurrentProcessInfo);
-    }
+    [[nodiscard]] virtual std::string Info() const;
 
-    /**
-     * @brief This method is used to check that two Retention Laws are the same type (references)
-     * @param rLHS The first argument
-     * @param rRHS The second argument
-     */
-    inline static bool HasSameType(const RetentionLaw& rLHS, const RetentionLaw& rRHS)
-    {
-        return (typeid(rLHS) == typeid(rRHS));
-    }
+    virtual void PrintInfo(std::ostream& rOStream) const;
 
-    /**
-     * @brief This method is used to check that tow Retention Laws are the same type (pointers)
-     * @param rLHS The first argument
-     * @param rRHS The second argument
-     */
-    inline static bool HasSameType(const RetentionLaw* rLHS, const RetentionLaw* rRHS)
-    {
-        return HasSameType(*rLHS, *rRHS);
-    }
-
-    [[nodiscard]] virtual std::string Info() const { return "RetentionLaw"; }
-
-    virtual void PrintInfo(std::ostream& rOStream) const { rOStream << Info(); }
-
-    virtual void PrintData(std::ostream& rOStream) const { rOStream << "RetentionLaw has no data"; }
+    virtual void PrintData(std::ostream& rOStream) const;
 
 private:
     friend class Serializer;

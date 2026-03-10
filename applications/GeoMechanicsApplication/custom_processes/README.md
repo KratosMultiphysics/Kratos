@@ -39,14 +39,14 @@ $$\alpha = \frac{c_c}{c} = \frac{\tan \phi_c}{\tan \phi}$$
 The `GeoExtrapolateIntegrationPointValuesToNodesProcess` can be used as a post-processing step to acquire nodal data for variables that are stored at the integration points. This is useful for visualization services which expect nodal data.
 
 Conceptually the process consists of the following steps:
-1. Determine a count for each node, to keep track of how many elements will contribute to the nodal value.
+1. Determine a count for each node, to keep track of how many elements will contribute to the nodal value.  Note that only the elements of the given model part(s) are considered!
 2. Calculate the extrapolation matrix, to distribute the integration values to the nodes.
 3. Calculate the integration point values of the variables of interest, by using the `CalculateOnIntegrationPoints` function of the `Element` class.
 4. For each element, distribute the integration point values to their respective nodes by multiplying the extrapolation matrix with the integration point values.
 5. Divide the nodal values by the count to get the average value.
 
-### Restrictions
-Currently, this process is only implemented for 3-noded or 6-noded `Triangle` and 4-noded or 8-noded `Quadrilateral` elements in 2D. The extrapolation is always done linearly. For the higher order 6-noded and 8-noded elements, this means the corner nodes are extrapolated as usual, but the mid-side nodes are extrapolated using linear combinations of the extrapolation contributions for the corner nodes.
+### Limitations
+The process supports floating-point scalar, vector, and matrix variables.  The supported element shapes include lines, triangles, quadrilaterals, tetrahedra, and hexahedra as well as line and plane interfaces.  Furthermore, the order of the element's shape functions must be either linear or quadratic.  The extrapolation is always done linearly.  For the quadratic elements, this means the corner nodes are extrapolated as usual, but the mid-side nodes are extrapolated using linear combinations of the extrapolation contributions for the corner nodes.
 
 ### Usage
 The process is defined as follows in json (also found in some of the [integration tests](../tests/test_integration_node_extrapolation)):
@@ -61,7 +61,7 @@ The process is defined as follows in json (also found in some of the [integratio
   }
 }
 ```
-Where the `model_part_name` should contain the name of the model part where the extrapolation is to be performed for the variables in `list_of_variables`. These variables could be of any type, as long as the `Element` class has an implementation of the `CalculateOnIntegrationPoints` function for them.
+The process receives either a single model part name (when using `model_part_name`) or a list of model part names (when using `model_part_name_list`).  Note that any elements that are not part of the given model part(s) are **not** considered by the extrapolation process.  Inactive elements are automatically discarded by the process.  In general, the variables that are to be extrapolated (supplied through `list_of_variables`) should be valid for all elements of the supplied model part(s), or else errors may occur.  For instance, extrapolation of bending moments only makes sense for structural elements that have curvatures.  Similarly, extrapolation of traction vectors only makes sense in the context of interface elements.  Therefore, it is recommended to have one extrapolation process per group of variables that can be calculated for all of the elements of the given model part(s).  As mentioned in the [Section Limitations](#limitations), these variables could be of any type, as long as the `Element` class has an implementation of the `CalculateOnIntegrationPoints` function for them.
 
 
 When this process is added to the `ProjectParameters.json`, the variables specified in `list_of_variables` can be exported as nodal output (e.g. as `nodal_results` in the `GiDOutputProcess`). 

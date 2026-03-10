@@ -63,6 +63,8 @@ public:
 
     using Base = LinearSolver<TSparse,TDense>;
 
+    using Base::Solve;
+
     using SparseMatrix = typename TSparse::MatrixType;
 
     using Vector = typename TSparse::VectorType;

@@ -12,11 +12,13 @@
 //
 
 // Application includes
-#include "custom_elements/U_Pw_small_strain_interface_element.hpp"
-#include "custom_utilities/check_utilities.h"
+#include "custom_elements/U_Pw_small_strain_interface_element.h"
+#include "custom_utilities/check_utilities.hpp"
 #include "custom_utilities/constitutive_law_utilities.h"
+#include "custom_utilities/interface_element_utilities.h"
 #include "custom_utilities/stress_strain_utilities.h"
 #include "custom_utilities/transport_equation_utilities.hpp"
+#include "geo_mechanics_application_variables.h"
 #include "includes/cfd_variables.h"
 
 namespace Kratos
@@ -37,6 +39,39 @@ void SetConstitutiveParameters(ConstitutiveLaw::Parameters& rConstitutiveParamet
     rConstitutiveParameters.SetDeterminantF(rDetF);
     rConstitutiveParameters.SetDeformationGradientF(rF);
     rConstitutiveParameters.Set(ConstitutiveLaw::COMPUTE_STRESS);
+}
+
+template <unsigned int TDim, unsigned int TNumNodes>
+UPwSmallStrainInterfaceElement<TDim, TNumNodes>::UPwSmallStrainInterfaceElement(
+    IndexType                                       NewId,
+    const NodesArrayType&                           ThisNodes,
+    std::unique_ptr<StressStatePolicy>              pStressStatePolicy,
+    std::unique_ptr<IntegrationCoefficientModifier> pCoefficientModifier)
+    : UPwBaseElement(NewId, ThisNodes, std::move(pStressStatePolicy), std::move(pCoefficientModifier))
+{
+}
+
+template <unsigned int TDim, unsigned int TNumNodes>
+UPwSmallStrainInterfaceElement<TDim, TNumNodes>::UPwSmallStrainInterfaceElement(
+    IndexType                                       NewId,
+    GeometryType::Pointer                           pGeometry,
+    std::unique_ptr<StressStatePolicy>              pStressStatePolicy,
+    std::unique_ptr<IntegrationCoefficientModifier> pCoefficientModifier)
+    : UPwBaseElement(NewId, pGeometry, std::move(pStressStatePolicy), std::move(pCoefficientModifier))
+{
+}
+
+template <unsigned int TDim, unsigned int TNumNodes>
+UPwSmallStrainInterfaceElement<TDim, TNumNodes>::UPwSmallStrainInterfaceElement(
+    IndexType                                       NewId,
+    GeometryType::Pointer                           pGeometry,
+    PropertiesType::Pointer                         pProperties,
+    std::unique_ptr<StressStatePolicy>              pStressStatePolicy,
+    std::unique_ptr<IntegrationCoefficientModifier> pCoefficientModifier)
+    : UPwBaseElement(NewId, pGeometry, pProperties, std::move(pStressStatePolicy), std::move(pCoefficientModifier))
+{
+    /// Lobatto integration method with the integration points located at the "mid plane nodes" of the interface
+    mThisIntegrationMethod = GeometryData::IntegrationMethod::GI_GAUSS_1;
 }
 
 template <unsigned int TDim, unsigned int TNumNodes>
@@ -1885,6 +1920,18 @@ void UPwSmallStrainInterfaceElement<TDim, TNumNodes>::InitializeBiotCoefficients
     rVariables.BiotModulusInverse -= rVariables.DerivativeOfSaturation * r_properties[POROSITY];
 
     KRATOS_CATCH("")
+}
+
+template <unsigned int TDim, unsigned int TNumNodes>
+void UPwSmallStrainInterfaceElement<TDim, TNumNodes>::save(Serializer& rSerializer) const
+{
+    KRATOS_SERIALIZE_SAVE_BASE_CLASS(rSerializer, Element)
+}
+
+template <unsigned int TDim, unsigned int TNumNodes>
+void UPwSmallStrainInterfaceElement<TDim, TNumNodes>::load(Serializer& rSerializer)
+{
+    KRATOS_SERIALIZE_LOAD_BASE_CLASS(rSerializer, Element)
 }
 
 template <>

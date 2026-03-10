@@ -82,12 +82,19 @@ public:
         const Flags& rFlags,
         const bool Copy = true);
 
+    FlagsTensorAdaptor(const FlagsTensorAdaptor& rOther) = default;
+
     // Destructor
     ~FlagsTensorAdaptor() override = default;
 
     ///@}
     ///@name Public operations
     ///@{
+
+    /**
+     * @brief Clones the existing tensor adaptor.
+     */
+    TensorAdaptor::Pointer Clone() const override;
 
     void Check() const override;
 
