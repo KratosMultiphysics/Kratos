@@ -111,6 +111,12 @@ int ParallelUtilities::InitializeNumberOfThreads()
 
     num_threads = std::max(1, num_threads);
 
+    // Intialize ParallelUtilitiesMaxChunkSize from the environment variable if it is set, otherwise keep the default value
+    const char* env_parallel_max_chunk_size = std::getenv("KRATOS_PARALLEL_MAX_CHUNK_SIZE");
+    if (env_parallel_max_chunk_size) {
+        ParallelUtilitiesMaxChunkSize = std::atoi(env_parallel_max_chunk_size);
+    }
+
     // Intialize ParallelUtilitiesMaxNumberOfChunks from the environment variable if it is set, otherwise keep the default value
     const char* env_parallel_max_chunks = std::getenv("KRATOS_PARALLEL_MAX_CHUNKS");
     if (env_parallel_max_chunks) {
