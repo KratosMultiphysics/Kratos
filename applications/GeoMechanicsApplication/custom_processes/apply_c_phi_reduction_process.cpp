@@ -15,6 +15,7 @@
 // Project includes
 #include "custom_processes/apply_c_phi_reduction_process.h"
 #include "containers/model.h"
+#include "custom_constitutive/small_strain_udsm_law.h"
 #include "custom_elements/U_Pw_base_element.h"
 #include "custom_utilities/check_utilities.hpp"
 #include "custom_utilities/constitutive_law_utilities.h"
@@ -26,6 +27,21 @@
 namespace Kratos
 {
 using namespace std::string_literals;
+
+namespace
+{
+
+bool IsUdsmModel(const Properties& rProperties)
+{
+    if (!rProperties.Has(CONSTITUTIVE_LAW)) {
+        return false;
+    }
+
+    const auto& p_constitutive_law = rProperties[CONSTITUTIVE_LAW];
+    return dynamic_cast<const SmallStrainUDSMLaw*>(p_constitutive_law.get()) != nullptr;
+}
+
+} // namespace
 
 ApplyCPhiReductionProcess::ApplyCPhiReductionProcess(Model& rModel, const Parameters& rProcessSettings)
 {
@@ -99,15 +115,15 @@ int ApplyCPhiReductionProcess::Check()
             auto                  r_properties = r_element.GetProperties();
             const CheckProperties check_properties(r_properties, "model part property",
                                                    CheckProperties::Bounds::AllInclusive);
-            if (r_properties.Has(GEO_COHESION)) {
-                check_properties.Check(GEO_COHESION);
-                check_properties.Check(GEO_FRICTION_ANGLE);
-            } else {
+            if (IsUdsmModel(r_properties)) {
                 check_properties.CheckAvailability(UMAT_PARAMETERS);
                 check_properties.Check(INDEX_OF_UMAT_PHI_PARAMETER, 1,
                                        static_cast<int>(r_properties[UMAT_PARAMETERS].size()));
                 check_properties.Check(INDEX_OF_UMAT_C_PARAMETER, 1,
                                        static_cast<int>(r_properties[UMAT_PARAMETERS].size()));
+            } else {
+                check_properties.Check(GEO_COHESION);
+                check_properties.Check(GEO_FRICTION_ANGLE);
             }
         }
     }
@@ -151,15 +167,15 @@ void ApplyCPhiReductionProcess::SetCPhiAtElement(Element& rElement, double Reduc
     const auto&         r_properties     = rElement.GetProperties();
     Properties::Pointer p_new_properties = Kratos::make_shared<Properties>(r_properties);
 
-    if (r_properties.Has(GEO_FRICTION_ANGLE)) {
-        p_new_properties->SetValue(GEO_FRICTION_ANGLE, ReducedPhi);
-        p_new_properties->SetValue(GEO_COHESION, ReducedC);
-    } else {
+    if (IsUdsmModel(r_properties)) {
         // Overwrite C and Phi in the UMAT_PARAMETERS
         auto umat_parameters = r_properties[UMAT_PARAMETERS];
         umat_parameters[r_properties[INDEX_OF_UMAT_PHI_PARAMETER] - 1] = ReducedPhi;
         umat_parameters[r_properties[INDEX_OF_UMAT_C_PARAMETER] - 1]   = ReducedC;
         p_new_properties->SetValue(UMAT_PARAMETERS, umat_parameters);
+    } else {
+        p_new_properties->SetValue(GEO_FRICTION_ANGLE, ReducedPhi);
+        p_new_properties->SetValue(GEO_COHESION, ReducedC);
     }
     rElement.SetProperties(p_new_properties);
 
