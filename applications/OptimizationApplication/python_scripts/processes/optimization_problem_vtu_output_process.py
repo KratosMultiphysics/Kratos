@@ -10,54 +10,13 @@ from KratosMultiphysics.OptimizationApplication.utilities.optimization_problem i
 from KratosMultiphysics.OptimizationApplication.utilities.component_data_view import ComponentDataView
 from KratosMultiphysics.OptimizationApplication.utilities.optimization_problem_utilities import GetAllComponentFullNamesWithData
 from KratosMultiphysics.OptimizationApplication.utilities.optimization_problem_utilities import GetComponentHavingDataByFullName
+from KratosMultiphysics.OptimizationApplication.utilities.optimization_problem_utilities import TensorAdaptorData
+from KratosMultiphysics.OptimizationApplication.utilities.optimization_problem_utilities import CombinedTensorAdaptorData
 
 def Factory(model: Kratos.Model, parameters: Kratos.Parameters, optimization_problem: OptimizationProblem) -> Any:
     if not parameters.Has("settings"):
         raise RuntimeError(f"OptimizationProblemVtuOutputProcess instantiation requires a \"settings\" in parameters [ parameters = {parameters}].")
     return OptimizationProblemVtuOutputProcess(model, parameters["settings"], optimization_problem)
-
-class TensorAdaptorData:
-    def __init__(self, tensor_adaptor_path: str, tensor_adaptor: Kratos.TensorAdaptors.DoubleTensorAdaptor) -> None:
-        self.tensor_adaptor_path = tensor_adaptor_path
-        self.container = tensor_adaptor.GetContainer()
-
-    def GetTensorAdaptorName(self) -> str:
-        return self.tensor_adaptor_path[self.tensor_adaptor_path.rfind("/")+1:]
-
-    def GetTensorAdaptorPath(self) -> str:
-        return self.tensor_adaptor_path
-
-    def GetContainer(self):
-        return self.container
-
-    def GetTensorAdaptor(self, optimization_problem: OptimizationProblem) -> Kratos.TensorAdaptors.DoubleTensorAdaptor:
-        data = optimization_problem.GetProblemDataContainer()[self.tensor_adaptor_path]
-
-        if not isinstance(data, Kratos.TensorAdaptors.DoubleTensorAdaptor):
-            raise RuntimeError(f"The data type at \"{self.tensor_adaptor_path}\" changed from {Kratos.TensorAdaptors.DoubleTensorAdaptor.__name__} to {type(data).__class__.__name__}. Found data = {data}")
-        if not data.HasContainer():
-            raise RuntimeError(f"The data at \"{self.tensor_adaptor_path}\" does not represent a {Kratos.TensorAdaptors.DoubleTensorAdaptor.__name__} with a container. Found data = {data}")
-        if data.GetContainer() != self.container:
-            raise RuntimeError(f"The container at \"{self.tensor_adaptor_path}\" mismatch with the original container. Found data = {data}")
-
-        return data
-
-class CombinedTensorAdaptorData(TensorAdaptorData):
-    def __init__(self, combined_tensor_adaptor_path: str, combined_tensor_adaptor: Kratos.TensorAdaptors.DoubleCombinedTensorAdaptor, tensor_adaptor_index: int) -> None:
-        super().__init__(combined_tensor_adaptor_path, combined_tensor_adaptor.GetTensorAdaptors()[tensor_adaptor_index])
-        self.tensor_adaptor_index = tensor_adaptor_index
-
-    def GetTensorAdaptor(self, optimization_problem: OptimizationProblem) -> Kratos.TensorAdaptors.DoubleTensorAdaptor:
-        data = optimization_problem.GetProblemDataContainer()[self.tensor_adaptor_path]
-
-        if not isinstance(data, Kratos.TensorAdaptors.DoubleCombinedTensorAdaptor):
-            raise RuntimeError(f"The data type at \"{self.tensor_adaptor_path}\" changed from {Kratos.TensorAdaptors.DoubleCombinedTensorAdaptor.__name__} to {type(data).__class__.__name__}. Found data = {data}")
-        if not data.GetTensorAdaptors()[self.tensor_adaptor_index].HasContainer():
-            raise RuntimeError(f"The tensor adaptor at \"{self.tensor_adaptor_path}\" with index = {self.tensor_adaptor_index} does not represent a {Kratos.TensorAdaptors.DoubleTensorAdaptor.__name__} with a container. Found data = {data}")
-        if data.GetTensorAdaptors()[self.tensor_adaptor_index].GetContainer() != self.container:
-            raise RuntimeError(f"The container from tensor adaptor \"{self.tensor_adaptor_path}\" with index = {self.tensor_adaptor_index} mismatch with the original container. Found data = {data}")
-
-        return data.GetTensorAdaptors()[self.tensor_adaptor_index]
 
 class TensorAdaptorVtuOutput:
     def __init__(self, parameters: 'dict[str, Any]', model_part: Kratos.ModelPart, optimization_problem: OptimizationProblem):
