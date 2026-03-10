@@ -301,11 +301,11 @@ private:
 
     // Adding the shells elements
     const IsotropicShellElement mIsotropicShellElement3D3N;
-    const MITCThickShellElement3D4N<ShellKinematics::LINEAR>                 mMITCThickShellElement3D4N;
-    const MITCThickShellElement3D4N<ShellKinematics::NONLINEAR_COROTATIONAL> mShellThickCorotationalElement3D4N;
-    const ShellThinElement3D4N<ShellKinematics::NONLINEAR_COROTATIONAL>  mShellThinCorotationalElement3D4N;
-    const ShellThinElement3D3N<ShellKinematics::LINEAR>                  mShellThinElement3D3N;
-    const ShellThinElement3D3N<ShellKinematics::NONLINEAR_COROTATIONAL>  mShellThinCorotationalElement3D3N;
+    const MITCThickShellElement3D4N<ShellKinematics::LINEAR> mMITCThickShellElement3D4N;
+    const MITCThickShellElement3D4N<ShellKinematics::NONLINEAR_COROTATIONAL> mMITCThickShellCorotationalElement3D4N;
+    const ShellThinElement3D4N<ShellKinematics::NONLINEAR_COROTATIONAL> mShellThinCorotationalElement3D4N;
+    const ShellThinElement3D3N<ShellKinematics::LINEAR> mShellThinElement3D3N;
+    const ShellThinElement3D3N<ShellKinematics::NONLINEAR_COROTATIONAL> mShellThinCorotationalElement3D3N;
     const ShellThickElement3D3N<ShellKinematics::NONLINEAR_COROTATIONAL> mShellThickCorotationalElement3D3N;
 
     const CSDSG3ThickShellElement3D3N<false> mCSDSG3ThickShellLinearElement3D3N;
