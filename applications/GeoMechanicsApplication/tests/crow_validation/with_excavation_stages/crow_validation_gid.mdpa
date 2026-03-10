@@ -5666,3 +5666,9 @@ Begin SubModelPart Slave_side_1
   End SubModelPartNodes
 End SubModelPart
 
+Begin SubModelPart Strut_Support
+  Begin SubModelPartNodes
+    815
+  End SubModelPartNodes
+End SubModelPart
+
