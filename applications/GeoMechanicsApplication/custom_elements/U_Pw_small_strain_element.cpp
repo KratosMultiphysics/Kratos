@@ -1099,7 +1099,7 @@ void UPwSmallStrainElement<TDim, TNumNodes>::CalculateAndAddCouplingTerms(Vector
             rVariables.BiotCoefficient, rVariables.DegreeOfSaturation, rVariables.IntegrationCoefficient);
         const array_1d<double, TNumNodes> coupling_flow =
             PORE_PRESSURE_SIGN_FACTOR * prod(trans(p_coupling_matrix), rVariables.VelocityVector);
-        GeoElementUtilities::AssemblePBlockVector(rRightHandSideVector, (-1.0) * coupling_flow);
+        GeoElementUtilities::AssemblePBlockVector(rRightHandSideVector, -1.0 * coupling_flow);
     }
 
     KRATOS_CATCH("")
