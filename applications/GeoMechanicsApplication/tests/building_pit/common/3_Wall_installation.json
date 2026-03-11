@@ -32,7 +32,7 @@
         "block_builder"                     : true,
         "reset_displacements"               : true,
         "convergence_criterion"             : "residual_criterion",
-        "residual_relative_tolerance"       : 0.0001,
+        "residual_relative_tolerance"       : 0.01,
         "residual_absolute_tolerance"       : 1e-09,
         "min_iterations"                    : 6,
         "max_iterations"                    : 50,
