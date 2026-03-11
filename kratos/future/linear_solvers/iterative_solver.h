@@ -94,21 +94,21 @@ public:
     ///@{
 
     /// Default constructor.
-    IterativeSolver(Parameters Settings = Parameters(R"({})"))
+    IterativeSolver() = default;
+
+    /// Constructor with parameters
+    IterativeSolver(Parameters Settings)
         : BaseType(Settings)
     {
+        std::cout << "iterative_solver constructor w/ parameters" << std::endl;
+
         // Validate and assign default parameters
-        Settings.ValidateAndAssignDefaults(this->GetDefaultParameters());
+        Settings.ValidateAndAssignDefaults(GetDefaultParameters());
 
         // Assign input settings to member variables
         mTolerance = Settings["tolerance"].GetDouble();
         mMaxIterationsNumber = Settings["max_iteration"].GetInt();
         mpPreconditioner = Kratos::make_shared<Preconditioner<TLinearAlgebra>>(); //TODO: implement preconditioner by leveraging the registry
-
-        // Assign the linear system tags to be used
-        this->mDxTagString = Settings["dx_tag"].GetString();
-        this->mRhsTagString = Settings["rhs_tag"].GetString();
-        this->mLhsTagString = Settings["lhs_tag"].GetString();
     }
 
     /// Constructor with preconditioner.
@@ -117,39 +117,9 @@ public:
         PreconditionerPointerType pPreconditioner)
         : BaseType(Settings)
     {
-        Settings.ValidateAndAssignDefaults(this->GetDefaultParameters());
+        Settings.ValidateAndAssignDefaults(GetDefaultParameters());
         SetPreconditioner(pPreconditioner);
     }
-
-    // IterativeSolver(Parameters settings,
-    //                 typename TPreconditionerType::Pointer pNewPreconditioner = Kratos::make_shared<TPreconditionerType>()
-    //                ):
-    //     mResidualNorm(0),
-    //     mIterationsNumber(0),
-    //     mBNorm(0),
-    //     mpPreconditioner(pNewPreconditioner)
-    // {
-    //     KRATOS_TRY
-
-    //     Parameters default_parameters( R"(
-    //     {
-    //     "solver_type": "IterativeSolver",
-    //     "tolerance" : 1.0e-6,
-    //     "max_iteration" : 200,
-    //     "preconditioner_type": "none",
-    //     "scaling":false
-    //     }  )" );
-
-    //     //now validate agains defaults -- this also ensures no type mismatch
-    //     settings.ValidateAndAssignDefaults(default_parameters);
-
-    //     this->SetTolerance( settings["tolerance"].GetDouble() );
-    //     this->SetMaxIterationsNumber( settings["max_iteration"].GetInt() );
-
-
-    //     KRATOS_CATCH("")
-    // }
-
 
     /// Copy constructor.
     IterativeSolver(const IterativeSolver& Other) = delete;
@@ -262,16 +232,22 @@ public:
 
     Parameters GetDefaultParameters() const override
     {
+        std::cout << "iterative_solver GetDefaultParameters" << std::endl;
+        std::cout << "iterative_solver GetDefaultParameters" << std::endl;
+        std::cout << "iterative_solver GetDefaultParameters" << std::endl;
+        std::cout << "iterative_solver GetDefaultParameters" << std::endl;
+        std::cout << "iterative_solver GetDefaultParameters" << std::endl;
+
         Parameters default_parameters( R"({
             "solver_type" : "iterative_solver",
-            "dx_tag" : "Dx",
-            "rhs_tag" : "RHS",
-            "lhs_tag" : "LHS",
             "tolerance" : 1e-6,
             "max_iteration" : 100,
-            "multiple_solve" : false
+            "preconditioner_type" : "none"
         })");
+        KRATOS_WATCH(default_parameters)
+
         default_parameters.AddMissingParameters(BaseType::GetDefaultParameters());
+        KRATOS_WATCH(default_parameters)
         return default_parameters;
     }
 
@@ -318,13 +294,13 @@ public:
     /// Print object's data.
     void PrintData(std::ostream& rOStream) const override
     {
-        if (mBNorm == 0.00)
-            if (mResidualNorm != 0.00)
+        if (mBNorm < std::numeric_limits<double>::epsilon()) {
+            if (mResidualNorm > std::numeric_limits<double>::epsilon()) {
                 rOStream << "    Residual ratio : infinite" << std::endl;
-            else
-                rOStream << "    Residual ratio : 0" << std::endl;
-        else
-        {
+            } else {
+                rOStream << "    Residual ratio : 0.0" << std::endl;
+            }
+        } else {
             rOStream << "    Initial Residual ratio : " << mBNorm << std::endl;
             rOStream << "    Final Residual ratio : " << mResidualNorm << std::endl;
             rOStream << "    Residual ratio : " << mResidualNorm / mBNorm << std::endl;
@@ -333,9 +309,8 @@ public:
 
         rOStream << "    Tolerance : " << mTolerance << std::endl;
         rOStream << "    Number of iterations : " << mIterationsNumber << std::endl;
-        rOStream << "    Maximum number of iterations : " << mMaxIterationsNumber;
-        if (mMaxIterationsNumber == mIterationsNumber)
-            rOStream << std::endl << "!!!!!!!!!!!! ITERATIVE SOLVER NON CONVERGED !!!!!!!!!!!!" << mMaxIterationsNumber;
+        rOStream << "    Maximum number of iterations : " << mMaxIterationsNumber << std::endl;
+        KRATOS_WARNING_IF("IterativeSolver", mMaxIterationsNumber == mIterationsNumber) << "Iterative solver non converged! " << std::endl;
     }
 
 

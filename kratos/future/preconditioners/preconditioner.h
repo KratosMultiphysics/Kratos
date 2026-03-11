@@ -45,30 +45,40 @@ namespace Kratos::Future
 ///@name Kratos Classes
 ///@{
 
-/// Preconditioner class.
-/** Base class for preconditioners for linesr system solvers which defining
-    standard interface for all the preconditioners derived from it.
-
-    Considering a linear solver FooSolver with a method FooSolver::Solve.
-    A typical code using this type of Preconditioners would be:
-
-    \begin{verbatim}
-     FooSolver::Solve(A,b,x,preconditioner)
-     {
-        preconditioner.Initialize(A,x,b);
-    ...
-    ...
-    while(...) // Start iteration.
-    {
-            preconditioner.ApplyLeft(x);
-        mult(a,x)
-        preconditioner.ApplyRight(x)
-    } // End iteration
-
-    preconditioner.Finalize(A,x,b);
-     }
-     \end{verbatim}
-*/
+/**
+ * @class Preconditioner
+ * @ingroup KratosCore
+ * @brief Base class for preconditioners for linear system solvers.
+ * @details This class defines the standard interface for all the preconditioners derived from it.
+ *          Considering an iterative linear solver `FooSolver` with a method `FooSolver::Solve`,
+ *          a typical code using this type of Preconditioner would be:
+ * 
+ * \code{.cpp}
+ * FooSolver::Solve(rpLinearOperator, rB, rX)
+ * {
+ *     // Set up the preconditioner
+ *     mpPreconditioner->Initialize(rpLinearOperator);
+ *     ...
+ *     mpPreconditioner->InitializeSolutionStep(rpLinearOperator);
+ *     ...
+ *     // Start iteration
+ *     while(...) {
+ *         ...
+ *         // Apply the preconditioner (e.g. y = M^{-1} x)
+ *         mpPreconditioner->Apply(rX, rY);
+ *         ...
+ *         // Apply the transposed preconditioner if required (e.g. y = M^{-T} x)
+ *         mpPreconditioner->ApplyTranspose(rX, rY);
+ *         ...
+ *     } // End iteration
+ *     ...
+ *     mpPreconditioner->FinalizeSolutionStep(rpLinearOperator);
+ *     ...
+ *     mpPreconditioner->Clear();
+ * }
+ * \endcode
+ * @tparam TLinearAlgebra Type of the linear algebra used (e.g. CSR space, dense space).
+ */
 template<class TLinearAlgebra>
 class Preconditioner
 {
@@ -149,6 +159,7 @@ public:
         const VectorType& rX,
         VectorType& rY)
     {
+        rY = rX;
     }
 
     /**
@@ -161,6 +172,7 @@ public:
         const VectorType& rX,
         VectorType& rY)
     {
+        rY = rX;
     }
 
     /**

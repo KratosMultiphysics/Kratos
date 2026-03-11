@@ -89,8 +89,29 @@ public:
     ///@{
 
     /// Default constructor.
-    LinearSolver(Parameters Settings = Parameters(R"({})"))
+    LinearSolver() = default;
+
+    /// Constructor with parameters.
+    LinearSolver(Parameters Settings)
     {
+        std::cout << "linear_solver constructor" << std::endl;
+        std::cout << "linear_solver constructor" << std::endl;
+        std::cout << "linear_solver constructor" << std::endl;
+        std::cout << "linear_solver constructor" << std::endl;
+
+
+        KRATOS_WATCH(Settings)
+
+        // Validate and assign default parameters
+        Settings.ValidateAndAssignDefaults(GetDefaultParameters());
+
+        // Assign the multiple solve flag
+        mMultipleSolve = Settings["multiple_solve"].GetBool();
+
+        // Assign the linear system tags to be used
+        mDxTagString = Settings["dx_tag"].GetString();
+        mRhsTagString = Settings["rhs_tag"].GetString();
+        mLhsTagString = Settings["lhs_tag"].GetString();
     }
 
     /// Copy constructor.
@@ -211,8 +232,14 @@ public:
      */
     virtual Parameters GetDefaultParameters() const
     {
+        std::cout << "LINEAR SOLVER GETDEFAULTS" << std::endl;
+
         return Parameters(R"({
             "solver_type" : "linear_solver",
+            "dx_tag" : "Dx",
+            "rhs_tag" : "RHS",
+            "lhs_tag" : "LHS",
+            "multiple_solve" : false,
             "echo_level" : 0
         })");
     }

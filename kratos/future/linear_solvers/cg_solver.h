@@ -7,8 +7,7 @@
 //  License:		 BSD License
 //					 Kratos default license: kratos/license.txt
 //
-//  Main authors:    Pooyan Dadvand
-//                   Riccardo Rossi
+//  Main authors:    Ruben Zorrilla
 //
 
 #pragma once
@@ -45,11 +44,16 @@ namespace Kratos::Future
 ///@name Kratos Classes
 ///@{
 
-/// Short class definition.
-/** Detail class definition.
-*/
+/**
+ * @class CGSolver
+ * @ingroup KratosCore
+ * @brief Preconditioned Conjugate Gradient (PCG) linear solver.
+ * @details This class implements the Preconditioned Conjugate Gradient (PCG) iterative method for solving linear systems.
+ *          It is derived from the IterativeSolver base class.
+ * @tparam TLinearAlgebra Type of the linear algebra used (e.g. CSR space, dense space).
+ */
 template<class TLinearAlgebra>
-class CGSolver : public IterativeSolver<TLinearAlgebra>
+class CGSolver : public Future::IterativeSolver<TLinearAlgebra>
 {
 public:
     ///@name Type Definitions
@@ -59,7 +63,7 @@ public:
     KRATOS_CLASS_POINTER_DEFINITION(CGSolver);
 
     /// Base type iterative solver definition
-    using BaseType = IterativeSolver<TLinearAlgebra>;
+    using BaseType = Future::IterativeSolver<TLinearAlgebra>;
 
     /// Sparse matrix type definition from linear algebra traits
     using MatrixType = typename TLinearAlgebra::MatrixType;
@@ -87,6 +91,13 @@ public:
     CGSolver(Parameters Settings = Parameters(R"({})"))
         : BaseType(Settings)
     {
+        std::cout << "CG constructor" << std::endl;
+        KRATOS_WATCH(Settings)
+        // Validate and assign default parameters
+        Settings.ValidateAndAssignDefaults(BaseType::GetDefaultParameters());
+        KRATOS_WATCH(Settings)
+
+
     }
 
     /// Constructor with preconditioner.
@@ -116,7 +127,7 @@ public:
 
     bool PerformSolutionStep(LinearSystemType& rLinearSystem) override
     {
-        bool is_solved = false;
+        bool is_solved;
         if (!this->mMultipleSolve) {
             // Get sparse matrix and dense vector tags from strings
             const auto dx_tag = LinearSystemTags::DenseVectorTagFromString(BaseType::mDxTagString);
@@ -134,17 +145,9 @@ public:
             auto& r_rhs = *(rLinearSystem.pGetVector(rhs_tag));
             const auto& rp_lhs_lin_op = rLinearSystem.pGetLinearOperator(lhs_tag);
 
-            // Apply preconditioner
-            auto p_preconditioner = this->GetPreconditioner();
-            p_preconditioner->ApplyInverseRight(r_dx);
-            p_preconditioner->ApplyLeft(r_rhs);
-
+            // Call CG implementation
             is_solved = IterativeSolve(rp_lhs_lin_op, r_rhs, r_dx);
-
             KRATOS_WARNING_IF("CGSolver", !is_solved) << "Non converged linear solution. ["<< BaseType::GetResidualNorm() / BaseType::mBNorm << " > "<<  BaseType::GetTolerance() << "]" << std::endl;
-
-            // BaseType::GetPreconditioner()->Finalize(rX);
-
 
         } else {
             // Get sparse matrix and dense matrices tags from strings
@@ -152,84 +155,42 @@ public:
             const auto rhs_tag = LinearSystemTags::DenseMatrixTagFromString(BaseType::mRhsTagString);
             const auto lhs_tag = LinearSystemTags::SparseMatrixTagFromString(BaseType::mLhsTagString);
 
+            // Get arrays from linear system container
+            auto& r_dx = *(rLinearSystem.pGetMatrix(dx_tag));
+            const auto& r_rhs = *(rLinearSystem.pGetMatrix(rhs_tag));
+            const auto& rp_lhs_lin_op = rLinearSystem.pGetLinearOperator(lhs_tag);
+
             // Check if the linear system is consistent
             if(!rLinearSystem.IsConsistent(lhs_tag, rhs_tag, dx_tag)) {
                 KRATOS_WARNING("CGSolver") << "Linear system is not consistent. PerformSolutionStep cannot be performed." << std::endl;
                 return false;
             }
 
-            KRATOS_ERROR << "Multiple solve not implemented for CG solver" << std::endl;
+            // Perform the columnwise solve
+            is_solved = true;
+            VectorType aux_dx(r_rhs.size1()); // Auxiliary update vector
+            VectorType aux_rhs(r_rhs.size1()); // Auxiliary residual vector
+            const std::size_t n_problems = r_rhs.size2();
+            for (std::size_t i = 0; i < n_problems; ++i) {
+                // Get current residual column
+                IndexPartition<IndexType>(aux_rhs.size()).for_each([i, &r_rhs, &aux_rhs](const auto Index) {
+                    aux_rhs[Index] = r_rhs(i, Index);
+                });
+
+                // Call CG implementation
+                const bool aux_is_solved = IterativeSolve(rp_lhs_lin_op, aux_rhs, aux_dx);
+                KRATOS_WARNING_IF("CGSolver", !aux_is_solved) << "Non converged linear solution for column " << i << ". ["<< BaseType::GetResidualNorm() / BaseType::mBNorm << " > "<<  BaseType::GetTolerance() << "]" << std::endl;
+                is_solved &= aux_is_solved;
+
+                // Set current solution update
+                IndexPartition<IndexType>(aux_dx.size()).for_each([i, &r_dx, &aux_dx](const auto Index) {
+                    r_dx(Index, i) = aux_dx[Index];
+                });
+            }
         }
 
         return is_solved;
     }
-
-
-//     /** Normal solve method.
-//     Solves the linear system Ax=b and puts the result on SystemVector& rX.
-//     rX is also th initial guess for iterative methods.
-//     @param rA. System matrix
-//     @param rX. Solution vector. it's also the initial
-//     guess for iterative linear solvers.
-//     @param rB. Right hand side vector.
-//     */
-//     bool Solve(MatrixType& rA, VectorType& rX, VectorType& rB) override
-//     {
-//         if(this->IsNotConsistent(rA, rX, rB))
-//             return false;
-
-// // 	  GetTimeTable()->Start(Info());
-
-//         BaseType::GetPreconditioner()->Initialize(rA,rX,rB);
-//         BaseType::GetPreconditioner()->ApplyInverseRight(rX);
-//         BaseType::GetPreconditioner()->ApplyLeft(rB);
-
-//         bool is_solved = IterativeSolve(rA,rX,rB);
-
-//         KRATOS_WARNING_IF("CG Linear Solver", !is_solved)<<"Non converged linear solution. ["<< BaseType::GetResidualNorm()/BaseType::mBNorm << " > "<<  BaseType::GetTolerance() << "]" << std::endl;
-
-//         BaseType::GetPreconditioner()->Finalize(rX);
-
-// // 	  GetTimeTable()->Stop(Info());
-
-//         return is_solved;
-//     }
-
-
-//     /** Multi solve method for solving a set of linear systems with same coefficient matrix.
-//     Solves the linear system Ax=b and puts the result on SystemVector& rX.
-//     rX is also th initial guess for iterative methods.
-//     @param rA. System matrix
-//     @param rX. Solution vector. it's also the initial
-//     guess for iterative linear solvers.
-//     @param rB. Right hand side vector.
-//     */
-//     bool Solve(MatrixType& rA, DenseMatrixType& rX, DenseMatrixType& rB) override
-//     {
-// // 	  GetTimeTable()->Start(Info());
-
-//         BaseType::GetPreconditioner()->Initialize(rA,rX,rB);
-
-//         bool is_solved = true;
-//         VectorType x(TDenseSpaceType::Size1(rX));
-//         VectorType b(TDenseSpaceType::Size1(rB));
-//         for(unsigned int i = 0 ; i < TDenseSpaceType::Size2(rX) ; i++)
-//         {
-//             TDenseSpaceType::GetColumn(i,rX, x);
-//             TDenseSpaceType::GetColumn(i,rB, b);
-
-//             BaseType::GetPreconditioner()->ApplyInverseRight(x);
-//             BaseType::GetPreconditioner()->ApplyLeft(b);
-
-//             is_solved &= IterativeSolve(rA,x,b);
-
-//             BaseType::GetPreconditioner()->Finalize(x);
-//         }
-
-// // 	  GetTimeTable()->Stop(Info());
-
-//         return is_solved;
-//     }
 
     ///@}
     ///@name Access
@@ -290,56 +251,78 @@ private:
         const VectorType& rB,
         VectorType& rX)
     {
-        const int size = rX.size();
-
+        // Initialize variables
+        const int size = rX.size(); // Size of the system
+        BaseType::mBNorm = rB.Norm(); // Note that this will be used to compute the relative residual (@see BaseType::IterationNeeded)
         BaseType::mIterationsNumber = 0;
 
+        // r = rB - A * rX
         VectorType r(size);
-        this->PreconditionedMult(rpLinearOperator, rX, r);
+        r.SetValue(0.0);
+        rpLinearOperator->SpMV(rX, r);
         r *= -1.0;
         r += rB;
+        BaseType::mResidualNorm = r.Norm();
 
-        BaseType::mBNorm = rB.Norm();
+        // z = M^{-1} * r
+        VectorType z(size);
+        z.SetValue(0.0);
+        this->GetPreconditioner()->Apply(r, z);
 
-        VectorType p(r);
+        // Initialize iteration variables
+        VectorType p(z);
         VectorType q(size);
         q.SetValue(0.0);
 
-        double roh0 = r.Dot(r);
-        double roh1 = roh0;
-        double beta = 0.0;
+        double rho_0 = r.Dot(z);
+        double rho_1 = rho_0;
 
-        if(std::abs(roh0) < std::numeric_limits<double>::epsilon()) {
-            return false;
+        // Early return condition for zero residual
+        if (std::abs(rho_0) < std::numeric_limits<double>::epsilon()) {
+            return true;
         }
 
-        do
-        {
-            this->PreconditionedMult(rpLinearOperator, p, q);
+        // Main loop
+        while(BaseType::IterationNeeded() && (std::abs(rho_0) > std::numeric_limits<double>::epsilon())) {
 
-            double pq = p.Dot(q);
+            // q = A * p
+            q.SetValue(0.0);
+            rpLinearOperator->SpMV(p, q);
 
-            if(std::abs(pq) < std::numeric_limits<double>::epsilon()) {
+            // pq = p^{T} * A * p
+            const double pq = p.Dot(q);
+            if (std::abs(pq) < std::numeric_limits<double>::epsilon()) {
                 break;
             }
 
-            double alpha = roh0 / pq;
+            // alpha: step length along the conjugate direction p
+            const double alpha = rho_0 / pq;
 
+            // dx = dx + alpha * p
             rX.Add(alpha, p);
+
+            // r = r - alpha * q
             r.Add(-alpha, q);
+            BaseType::mResidualNorm = r.Norm(); // Update residual norm for convergence check (@see BaseType::IterationNeeded)
 
-            roh1 = r.Dot(r);
+            // z = M^{-1} * r
+            z.SetValue(0.0);
+            this->GetPreconditioner()->Apply(r, z);
 
-            beta = (roh1 / roh0);
+            // rho_1 = r^{T} * z
+            rho_1 = r.Dot(z);
+
+            // beta: coefficient to build the next conjugate search direction
+            const double beta = (rho_1 / rho_0);
+
+            // p = z + beta * p
             p *= beta;
-            p.Add(1.0, r);
+            p.Add(1.0, z);
 
-            roh0 = roh1;
-
-            BaseType::mResidualNorm = std::sqrt(roh1);
-            BaseType::mIterationsNumber++;
+            // Next iteration update
+            rho_0 = rho_1;
+            BaseType::mIterationsNumber++; // Update iterations counter for convergence check (@see BaseType::IterationNeeded)
         }
-        while(BaseType::IterationNeeded() && (std::abs(roh0) > std::numeric_limits<double>::epsilon()));
 
         return BaseType::IsConverged();
     }
