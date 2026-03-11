@@ -13,7 +13,6 @@
 
 // Application includes
 #include "custom_elements/U_Pw_base_element.h"
-#include "custom_constitutive/mohr_coulomb_with_tension_cutoff.h"
 #include "custom_retention/retention_law_factory.h"
 #include "custom_utilities/check_utilities.hpp"
 #include "custom_utilities/dof_utilities.hpp"
