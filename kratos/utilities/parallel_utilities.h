@@ -195,7 +195,7 @@ private:
 /** @tparam TIterator - type of iterator (must be a random access iterator)
  *  @tparam TPartitioningScheme: scheme to partition the iteration space.
  */
-template<class TIterator, ChunkPartitioningScheme TPartitioningScheme = ChunkPartitioningScheme::DIVIDE_BY_NUMBER_OF_CHUNKS>
+template<class TIterator, ChunkPartitioningScheme TPartitioningScheme = ChunkPartitioningScheme::DIVIDE_BY_CHUNK_SIZE>
 class BlockPartition
 {
 public:
@@ -376,7 +376,7 @@ private:
  */
 template <class TIterator,
           class TFunction,
-          ChunkPartitioningScheme TPartitioningScheme = ChunkPartitioningScheme::DIVIDE_BY_NUMBER_OF_CHUNKS,
+          ChunkPartitioningScheme TPartitioningScheme = ChunkPartitioningScheme::DIVIDE_BY_CHUNK_SIZE,
           std::enable_if_t<std::is_base_of_v<std::input_iterator_tag, typename std::iterator_traits<TIterator>::iterator_category>,bool> = true>
 void block_for_each(TIterator itBegin, TIterator itEnd, TFunction&& rFunction, int N = -1)
 {
@@ -396,7 +396,7 @@ void block_for_each(TIterator itBegin, TIterator itEnd, TFunction&& rFunction, i
 template <class TReduction,
           class TIterator,
           class TFunction,
-          ChunkPartitioningScheme TPartitioningScheme = ChunkPartitioningScheme::DIVIDE_BY_NUMBER_OF_CHUNKS,
+          ChunkPartitioningScheme TPartitioningScheme = ChunkPartitioningScheme::DIVIDE_BY_CHUNK_SIZE,
           std::enable_if_t<std::is_base_of_v<std::input_iterator_tag, typename std::iterator_traits<TIterator>::iterator_category>,bool> = true>
 [[nodiscard]] typename TReduction::return_type block_for_each(TIterator itBegin, TIterator itEnd, TFunction&& rFunction, int N = -1)
 {
@@ -417,7 +417,7 @@ template <class TReduction,
 template <class TIterator,
           class TTLS,
           class TFunction, 
-          ChunkPartitioningScheme TPartitioningScheme = ChunkPartitioningScheme::DIVIDE_BY_NUMBER_OF_CHUNKS,
+          ChunkPartitioningScheme TPartitioningScheme = ChunkPartitioningScheme::DIVIDE_BY_CHUNK_SIZE,
           std::enable_if_t<std::is_base_of_v<std::input_iterator_tag, typename std::iterator_traits<TIterator>::iterator_category>,bool> = true>
 void block_for_each(TIterator itBegin, TIterator itEnd, const TTLS& rTLS, TFunction &&rFunction, int N = -1)
 {
@@ -440,7 +440,7 @@ template <class TReduction,
           class TIterator,
           class TTLS,
           class TFunction, 
-          ChunkPartitioningScheme TPartitioningScheme = ChunkPartitioningScheme::DIVIDE_BY_NUMBER_OF_CHUNKS,
+          ChunkPartitioningScheme TPartitioningScheme = ChunkPartitioningScheme::DIVIDE_BY_CHUNK_SIZE,
           std::enable_if_t<std::is_base_of_v<std::input_iterator_tag, typename std::iterator_traits<TIterator>::iterator_category>,bool> = true>
 [[nodiscard]] typename TReduction::return_type block_for_each(TIterator itBegin, TIterator itEnd, const TTLS& tls, TFunction&& rFunction, int N = -1)
 {
@@ -539,7 +539,7 @@ template <class TReducer,
  *  @tparam TIndexType type of index to be used in the loop
  *  @tparam TPartitioningScheme scheme to partition the iteration space.
  */
-template<class TIndexType=std::size_t, ChunkPartitioningScheme TPartitioningScheme = ChunkPartitioningScheme::DIVIDE_BY_NUMBER_OF_CHUNKS>
+template<class TIndexType=std::size_t, ChunkPartitioningScheme TPartitioningScheme = ChunkPartitioningScheme::DIVIDE_BY_CHUNK_SIZE>
 class IndexPartition
 {
 public:
