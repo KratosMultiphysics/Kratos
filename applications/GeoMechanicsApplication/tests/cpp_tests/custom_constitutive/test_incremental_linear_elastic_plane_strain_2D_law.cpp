@@ -12,9 +12,9 @@
 
 #include "custom_constitutive/incremental_linear_elastic_law.h"
 #include "custom_constitutive/plane_strain.h"
+#include "custom_utilities/ublas_utilities.h"
 #include "includes/expect.h"
 #include "tests/cpp_tests/geo_mechanics_fast_suite_without_kernel.h"
-#include "custom_utilities/ublas_utilities.h"
 
 namespace
 {

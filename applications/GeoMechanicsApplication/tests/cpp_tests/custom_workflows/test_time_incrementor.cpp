@@ -417,8 +417,7 @@ TEST_F(KratosGeoMechanicsFastSuiteWithoutKernel, ScaleIncrementToAvoidExtraSmall
     KRATOS_EXPECT_DOUBLE_EQ(8.0, time_incrementor.GetIncrement());
 }
 
-KRATOS_TEST_CASE_IN_SUITE(ThrowExceptionUponConstructionWhenDeltaTimeSmallerThanTheLimit,
-                          KratosGeoMechanicsFastSuiteWithoutKernel)
+TEST_F(KratosGeoMechanicsFastSuiteWithoutKernel, ThrowExceptionUponConstructionWhenDeltaTimeSmallerThanTheLimit)
 {
     AdaptiveTimeIncrementorSettings settings; // with EndTime = 8.0
     settings.StartTime = 7.9999999;
@@ -428,8 +427,7 @@ KRATOS_TEST_CASE_IN_SUITE(ThrowExceptionUponConstructionWhenDeltaTimeSmallerThan
         "Delta time (1e-07) is smaller than the given minimum allowable value 1e-06");
 }
 
-KRATOS_TEST_CASE_IN_SUITE(ThrowExceptionWhenDeltaTimeSmallerThanTheLimitAfterAvoidingSmallNextStep,
-                          KratosGeoMechanicsFastSuiteWithoutKernel)
+TEST_F(KratosGeoMechanicsFastSuiteWithoutKernel, ThrowExceptionWhenDeltaTimeSmallerThanTheLimitAfterAvoidingSmallNextStep)
 {
     AdaptiveTimeIncrementorSettings settings; // with EndTime = 8.0
     settings.StartTime = 7.5;
@@ -442,7 +440,7 @@ KRATOS_TEST_CASE_IN_SUITE(ThrowExceptionWhenDeltaTimeSmallerThanTheLimitAfterAvo
         "Delta time (0.5) is smaller than the given minimum allowable value 1");
 }
 
-KRATOS_TEST_CASE_IN_SUITE(ThrowExceptionWhenDeltaTimeSmallerThanTheLimit, KratosGeoMechanicsFastSuiteWithoutKernel)
+TEST_F(KratosGeoMechanicsFastSuiteWithoutKernel, ThrowExceptionWhenDeltaTimeSmallerThanTheLimit)
 {
     AdaptiveTimeIncrementorSettings settings; // with EndTime = 8.0
     settings.StartTime        = 5.0;

@@ -11,8 +11,8 @@
 //                   Gennady Markelov
 //
 
-#include "tests/cpp_tests/geo_mechanics_fast_suite_without_kernel.h"
 #include "custom_elements/integration_coefficients_calculator.hpp"
+#include "tests/cpp_tests/geo_mechanics_fast_suite_without_kernel.h"
 #include "tests/cpp_tests/test_utilities.h"
 
 using namespace Kratos;

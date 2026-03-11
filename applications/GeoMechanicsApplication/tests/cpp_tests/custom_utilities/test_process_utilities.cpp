@@ -20,6 +20,7 @@
 #include "custom_processes/geo_extrapolate_integration_point_values_to_nodes_process.hpp"
 #include "custom_utilities/process_utilities.h"
 #include "includes/checks.h"
+#include "includes/expect.h"
 #include "tests/cpp_tests/geo_mechanics_fast_suite_without_kernel.h"
 
 namespace Kratos::Testing
@@ -65,7 +66,7 @@ TEST_F(KratosGeoMechanicsFastSuiteWithoutKernel, GetModelPartsFromSettings_ListO
     EXPECT_EQ(model_parts[1].get().Name(), "Part2");
 }
 
-KRATOS_TEST_CASE_IN_SUITE(GetModelPartsFromSettings_CheckForDuplicatedNames, KratosGeoMechanicsFastSuiteWithoutKernel)
+TEST_F(KratosGeoMechanicsFastSuiteWithoutKernel, GetModelPartsFromSettings_CheckForDuplicatedNames)
 {
     // Arrange
     Model model;
@@ -174,8 +175,7 @@ static const std::vector<NamedFactory> ProcessesAndOperations = {
 
 INSTANTIATE_TEST_SUITE_P(ProcessAndOperationUtilitiesTests, ModelPartsTest, ::testing::ValuesIn(ProcessesAndOperations));
 
-KRATOS_TEST_CASE_IN_SUITE(AddProcessesSubModelPartList_AddsEmptyListWhenThereAreNoProcesses,
-                          KratosGeoMechanicsFastSuiteWithoutKernel)
+TEST_F(KratosGeoMechanicsFastSuiteWithoutKernel, AddProcessesSubModelPartList_AddsEmptyListWhenThereAreNoProcesses)
 {
     // Arrange
     const auto project_parameters = Parameters{};
@@ -193,8 +193,8 @@ KRATOS_TEST_CASE_IN_SUITE(AddProcessesSubModelPartList_AddsEmptyListWhenThereAre
     KRATOS_EXPECT_TRUE(solver_settings["processes_sub_model_part_list"].size() == 0)
 }
 
-KRATOS_TEST_CASE_IN_SUITE(AddProcessesSubModelPartList_AddsFilledListBasedOnConstraintsLoadsAndAuxiliaryProcessesOnly,
-                          KratosGeoMechanicsFastSuiteWithoutKernel)
+TEST_F(KratosGeoMechanicsFastSuiteWithoutKernel,
+       AddProcessesSubModelPartList_AddsFilledListBasedOnConstraintsLoadsAndAuxiliaryProcessesOnly)
 {
     // Arrange
     const Parameters project_parameters(R"(

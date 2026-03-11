@@ -63,7 +63,7 @@ INSTANTIATE_TEST_SUITE_P(
                       std::make_tuple(Geo::PrincipalStresses{1.7071067811865475, 1.0, 0.2928932188134525}, 0.0),
                       std::make_tuple(Geo::PrincipalStresses{0.1715728752538099, -1.0, -1.8284271247461901}, -1.0)));
 
-KRATOS_TEST_CASE_IN_SUITE(CoulombYieldSurface_CanBeSavedAndLoaded, KratosGeoMechanicsFastSuiteWithoutKernel)
+TEST_F(KratosGeoMechanicsFastSuiteWithoutKernel, CoulombYieldSurface_CanBeSavedAndLoaded)
 {
     // Arrange
     const auto scoped_registration =
@@ -139,7 +139,7 @@ INSTANTIATE_TEST_SUITE_P(KratosGeoMechanicsFastSuiteWithoutKernel,
                                            Geo::SigmaTau{0.0, 2.0},
                                            Geo::SigmaTau{1.0, -3.0}));
 
-KRATOS_TEST_CASE_IN_SUITE(TensionCutOff_CanBeSavedAndLoaded, KratosGeoMechanicsFastSuiteWithoutKernel)
+TEST_F(KratosGeoMechanicsFastSuiteWithoutKernel, TensionCutOff_CanBeSavedAndLoaded)
 {
     // Arrange
     const auto scoped_registration =
@@ -162,7 +162,7 @@ KRATOS_TEST_CASE_IN_SUITE(TensionCutOff_CanBeSavedAndLoaded, KratosGeoMechanicsF
                               expected_derivative, Defaults::absolute_tolerance);
 }
 
-KRATOS_TEST_CASE_IN_SUITE(CoulombYieldSurface_Check, KratosGeoMechanicsFastSuiteWithoutKernel)
+TEST_F(KratosGeoMechanicsFastSuiteWithoutKernel, CoulombYieldSurface_Check)
 {
     // Arrange
     Properties properties(3);
@@ -226,7 +226,7 @@ KRATOS_TEST_CASE_IN_SUITE(CoulombYieldSurface_Check, KratosGeoMechanicsFastSuite
         "Error: Entry 0 in GEO_DILATANCY_ANGLE_FUNCTION_COEFFICIENTS out of range. Value: -1")
 }
 
-KRATOS_TEST_CASE_IN_SUITE(TestCompressionCapYieldSurface, KratosGeoMechanicsFastSuiteWithoutKernel)
+TEST_F(KratosGeoMechanicsFastSuiteWithoutKernel, TestCompressionCapYieldSurface)
 {
     auto material_properties                    = Properties{};
     material_properties[GEO_CAP_HARDENING_TYPE] = "None";
@@ -261,8 +261,7 @@ KRATOS_TEST_CASE_IN_SUITE(TestCompressionCapYieldSurface, KratosGeoMechanicsFast
                               Defaults::absolute_tolerance);
 }
 
-KRATOS_TEST_CASE_IN_SUITE(CompressionCapYieldSurface_CanBeSavedAndLoadedThroughInterface,
-                          KratosGeoMechanicsFastSuiteWithoutKernel)
+TEST_F(KratosGeoMechanicsFastSuiteWithoutKernel, CompressionCapYieldSurface_CanBeSavedAndLoadedThroughInterface)
 {
     // Arrange
     const auto scoped_registration = ScopedSerializerRegistration{
@@ -290,7 +289,7 @@ KRATOS_TEST_CASE_IN_SUITE(CompressionCapYieldSurface_CanBeSavedAndLoadedThroughI
                               expected_derivative, Defaults::absolute_tolerance);
 }
 
-KRATOS_TEST_CASE_IN_SUITE(CompressionCapYieldSurface_Check, KratosGeoMechanicsFastSuiteWithoutKernel)
+TEST_F(KratosGeoMechanicsFastSuiteWithoutKernel, CompressionCapYieldSurface_Check)
 {
     // Arrange
     Properties material_properties(3);

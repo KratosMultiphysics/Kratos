@@ -12,10 +12,10 @@
 
 #include "containers/model.h"
 #include "custom_utilities/transport_equation_utilities.hpp"
-#include "includes/checks.h"
-#include "tests/cpp_tests/geo_mechanics_fast_suite_without_kernel.h"
 #include "custom_utilities/ublas_utilities.h"
+#include "includes/checks.h"
 #include "tests/cpp_tests/geo_mechanics_fast_suite.h"
+#include "tests/cpp_tests/geo_mechanics_fast_suite_without_kernel.h"
 
 using namespace Kratos;
 

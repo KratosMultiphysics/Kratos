@@ -12,9 +12,9 @@
 
 #include "containers/model.h"
 #include "custom_elements/geo_steady_state_Pw_piping_element.h"
+#include "geo_mechanics_application_variables.h"
 #include "geometries/line_2d_2.h"
 #include "tests/cpp_tests/geo_mechanics_fast_suite_without_kernel.h"
-#include "geo_mechanics_application_variables.h"
 
 namespace Kratos::Testing
 {

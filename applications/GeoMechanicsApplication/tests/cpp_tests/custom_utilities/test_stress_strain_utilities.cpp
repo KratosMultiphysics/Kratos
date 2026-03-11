@@ -13,9 +13,9 @@
 
 #include "custom_utilities/math_utilities.hpp"
 #include "custom_utilities/stress_strain_utilities.h"
+#include "custom_utilities/ublas_utilities.h"
 #include "includes/expect.h"
 #include "tests/cpp_tests/geo_mechanics_fast_suite_without_kernel.h"
-#include "custom_utilities/ublas_utilities.h"
 #include "tests/cpp_tests/test_utilities.h"
 #include "utilities/math_utils.h"
 
@@ -60,22 +60,21 @@ TEST_F(KratosGeoMechanicsFastSuiteWithoutKernel, CheckCalculateLodeAngle)
     // Validate Triaxial Extension (TXE)
     auto stress_vector = UblasUtilities::CreateVector({0.5, -1.0, 0.5, 0.0});
     EXPECT_DOUBLE_EQ(MathUtils<>::DegreesToRadians(30.0),
-                            StressStrainUtilities::CalculateLodeAngle(stress_vector));
+                     StressStrainUtilities::CalculateLodeAngle(stress_vector));
     // Validate Triaxial Compression (TXC)
     EXPECT_DOUBLE_EQ(MathUtils<>::DegreesToRadians(-30.0),
                      StressStrainUtilities::CalculateLodeAngle(-1.0 * stress_vector));
     // Validate Shear (SHR)
     stress_vector = UblasUtilities::CreateVector({-1.0, 0.0, 1.0, 0.0});
-    EXPECT_DOUBLE_EQ(MathUtils<>::DegreesToRadians(0.0),
-                            StressStrainUtilities::CalculateLodeAngle(stress_vector));
+    EXPECT_DOUBLE_EQ(MathUtils<>::DegreesToRadians(0.0), StressStrainUtilities::CalculateLodeAngle(stress_vector));
 
     // Regression tests with a small perturbation
     constexpr auto perturbation = 1.0e-8;
     stress_vector = UblasUtilities::CreateVector({0.5 + perturbation, -1.0, 0.5 + perturbation, 0.0});
     EXPECT_DOUBLE_EQ(MathUtils<>::DegreesToRadians(30.0),
-                            StressStrainUtilities::CalculateLodeAngle(stress_vector));
+                     StressStrainUtilities::CalculateLodeAngle(stress_vector));
     EXPECT_DOUBLE_EQ(MathUtils<>::DegreesToRadians(-30.0),
-                            StressStrainUtilities::CalculateLodeAngle(-1.0 * stress_vector));
+                     StressStrainUtilities::CalculateLodeAngle(-1.0 * stress_vector));
 }
 
 TEST_F(KratosGeoMechanicsFastSuiteWithoutKernel, CheckCalculateMohrCoulombShearCapacityZeroStress)

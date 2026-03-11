@@ -13,9 +13,9 @@
 //
 
 #include "custom_elements/integration_coefficient_modifier_for_axisymmetric_element.h"
+#include "includes/expect.h"
 #include "test_setup_utilities/element_setup_utilities.hpp"
 #include "tests/cpp_tests/geo_mechanics_fast_suite.h"
-#include "includes/expect.h"
 #include "tests/cpp_tests/geo_mechanics_fast_suite_without_kernel.h"
 #include "tests/cpp_tests/test_utilities.h"
 

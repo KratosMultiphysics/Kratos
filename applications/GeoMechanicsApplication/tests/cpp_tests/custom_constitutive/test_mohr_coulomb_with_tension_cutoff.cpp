@@ -552,8 +552,8 @@ TEST_F(KratosGeoMechanicsFastSuiteWithoutKernel,
                               expected_cauchy_stress_vector, Defaults::absolute_tolerance);
 }
 
-KRATOS_TEST_CASE_IN_SUITE(MohrCoulombWithTensionCutOff_TrialStressInDegeneratedTensileApexReturnZoneIsReturnedToApex,
-                          KratosGeoMechanicsFastSuiteWithoutKernel)
+TEST_F(KratosGeoMechanicsFastSuiteWithoutKernel,
+       MohrCoulombWithTensionCutOff_TrialStressInDegeneratedTensileApexReturnZoneIsReturnedToApex)
 {
     // Arrange
     auto           law = MohrCoulombWithTensionCutOff(std::make_unique<PlaneStrain>());
@@ -582,8 +582,8 @@ KRATOS_TEST_CASE_IN_SUITE(MohrCoulombWithTensionCutOff_TrialStressInDegeneratedT
                               expected_cauchy_stress_vector, Defaults::absolute_tolerance);
 }
 
-KRATOS_TEST_CASE_IN_SUITE(MohrCoulombWithTensionCutOff_CalculateMaterialResponseCauchyAtCornerReturnZoneWithShearComponent,
-                          KratosGeoMechanicsFastSuiteWithoutKernel)
+TEST_F(KratosGeoMechanicsFastSuiteWithoutKernel,
+       MohrCoulombWithTensionCutOff_CalculateMaterialResponseCauchyAtCornerReturnZoneWithShearComponent)
 {
     // Arrange
     auto       law = MohrCoulombWithTensionCutOff(std::make_unique<PlaneStrain>());
@@ -633,8 +633,8 @@ TEST_F(KratosGeoMechanicsFastSuiteWithoutKernel,
                               expected_cauchy_stress_vector, tolerance);
 }
 
-KRATOS_TEST_CASE_IN_SUITE(MohrCoulombWithTensionCutOff_CalculateMaterialResponseCauchyAtRegularFailureZoneWithLinearHardening,
-                          KratosGeoMechanicsFastSuiteWithoutKernel)
+TEST_F(KratosGeoMechanicsFastSuiteWithoutKernel,
+       MohrCoulombWithTensionCutOff_CalculateMaterialResponseCauchyAtRegularFailureZoneWithLinearHardening)
 {
     // Arrange
     auto       law = MohrCoulombWithTensionCutOff(std::make_unique<PlaneStrain>());
@@ -728,8 +728,8 @@ Vector ComputeStressVectorUsingCPhiReductionTestData(double  Cohesion,
     return result;
 }
 
-KRATOS_TEST_CASE_IN_SUITE(MohrCoulombWithTensionCutOff_CalculateMaterialResponseCauchyAtRegularFailureRegion_CPhiVariation,
-                          KratosGeoMechanicsFastSuiteWithoutKernel)
+TEST_F(KratosGeoMechanicsFastSuiteWithoutKernel,
+       MohrCoulombWithTensionCutOff_CalculateMaterialResponseCauchyAtRegularFailureRegion_CPhiVariation)
 {
     // Arrange, data are taken from C-Phi reduction test for GPoint 0 of Element 8
     constexpr auto cohesion                = 800.0;
@@ -750,8 +750,8 @@ KRATOS_TEST_CASE_IN_SUITE(MohrCoulombWithTensionCutOff_CalculateMaterialResponse
                               Defaults::relative_tolerance);
 }
 
-KRATOS_TEST_CASE_IN_SUITE(MohrCoulombWithTensionCutOff_CalculateMaterialResponseCauchyAtRegularFailureRegion,
-                          KratosGeoMechanicsFastSuiteWithoutKernel)
+TEST_F(KratosGeoMechanicsFastSuiteWithoutKernel,
+       MohrCoulombWithTensionCutOff_CalculateMaterialResponseCauchyAtRegularFailureRegion)
 {
     // Arrange, data are taken from C-Phi reduction test for GPoint 0 of Element 8
     constexpr auto cohesion                = 900.0;
@@ -771,8 +771,8 @@ KRATOS_TEST_CASE_IN_SUITE(MohrCoulombWithTensionCutOff_CalculateMaterialResponse
                               Defaults::relative_tolerance);
 }
 
-KRATOS_TEST_CASE_IN_SUITE(MohrCoulombWithTensionCutOff_CalculateMaterialResponseCauchyAtCornerWithTensionCutoff_1,
-                          KratosGeoMechanicsFastSuiteWithoutKernel)
+TEST_F(KratosGeoMechanicsFastSuiteWithoutKernel,
+       MohrCoulombWithTensionCutOff_CalculateMaterialResponseCauchyAtCornerWithTensionCutoff_1)
 {
     // Arrange, data are taken from C-Phi reduction test for GPoint 1 of Element 8
     constexpr auto cohesion                = 900.0;
@@ -792,8 +792,8 @@ KRATOS_TEST_CASE_IN_SUITE(MohrCoulombWithTensionCutOff_CalculateMaterialResponse
                               Defaults::absolute_tolerance);
 }
 
-KRATOS_TEST_CASE_IN_SUITE(MohrCoulombWithTensionCutOff_CalculateMaterialResponseCauchyAtCornerWithTensionCutoff_2,
-                          KratosGeoMechanicsFastSuiteWithoutKernel)
+TEST_F(KratosGeoMechanicsFastSuiteWithoutKernel,
+       MohrCoulombWithTensionCutOff_CalculateMaterialResponseCauchyAtCornerWithTensionCutoff_2)
 {
     // Arrange, data are taken from C-Phi reduction test for GPoint 2 of Element 8
     constexpr auto cohesion                = 900.0;

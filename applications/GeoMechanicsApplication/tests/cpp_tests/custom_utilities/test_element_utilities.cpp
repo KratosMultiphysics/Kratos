@@ -15,6 +15,7 @@
 #include "custom_utilities/element_utilities.hpp"
 #include "custom_utilities/ublas_utilities.h"
 #include "geometries/line_2d_2.h"
+#include "includes/expect.h"
 #include "includes/node.h"
 #include "tests/cpp_tests/geo_mechanics_fast_suite_without_kernel.h"
 #include "tests/cpp_tests/test_utilities.h"
@@ -61,7 +62,7 @@ struct Line2D2NGeometryWithVelocityVectorData {
 
 namespace Kratos::Testing
 {
-TEST_F(                          KratosGeoMechanicsFastSuiteWithoutKernel, ElementUtilities_ReturnsCorrectListOfShapeFunctionsValuesAtIntegrationPoints)
+TEST_F(KratosGeoMechanicsFastSuiteWithoutKernel, ElementUtilities_ReturnsCorrectListOfShapeFunctionsValuesAtIntegrationPoints)
 {
     PointerVector<Node> nodes;
     nodes.push_back(Kratos::make_intrusive<Node>(1, 0.0, 0.0, 0.0));
@@ -100,7 +101,7 @@ TEST_F(KratosGeoMechanicsFastSuiteWithoutKernel, ElementUtilities_GetNodalVariab
                               Testing::Defaults::relative_tolerance)
 }
 
-KRATOS_TEST_CASE_IN_SUITE(ElementUtilities_GetNodalVariableVector_Returns3DFlatVector, KratosGeoMechanicsFastSuiteWithoutKernel)
+TEST_F(KratosGeoMechanicsFastSuiteWithoutKernel, ElementUtilities_GetNodalVariableVector_Returns3DFlatVector)
 {
     // Arrange
     const auto     test_data       = Line2D2NGeometryWithVelocityVectorData();
@@ -116,7 +117,7 @@ KRATOS_TEST_CASE_IN_SUITE(ElementUtilities_GetNodalVariableVector_Returns3DFlatV
                               Testing::Defaults::relative_tolerance)
 }
 
-KRATOS_TEST_CASE_IN_SUITE(ElementUtilities_GetNodalVariableVector_Returns2DFlatArray, KratosGeoMechanicsFastSuiteWithoutKernel)
+TEST_F(KratosGeoMechanicsFastSuiteWithoutKernel, ElementUtilities_GetNodalVariableVector_Returns2DFlatArray)
 {
     // Arrange
     const auto     test_data       = Line2D2NGeometryWithVelocityVectorData();
@@ -134,7 +135,7 @@ KRATOS_TEST_CASE_IN_SUITE(ElementUtilities_GetNodalVariableVector_Returns2DFlatA
                               Testing::Defaults::relative_tolerance)
 }
 
-KRATOS_TEST_CASE_IN_SUITE(ElementUtilities_GetNodalVariableVector_Returns3DFlatArray, KratosGeoMechanicsFastSuiteWithoutKernel)
+TEST_F(KratosGeoMechanicsFastSuiteWithoutKernel, ElementUtilities_GetNodalVariableVector_Returns3DFlatArray)
 {
     // Arrange
     const auto     test_data       = Line2D2NGeometryWithVelocityVectorData();
@@ -152,7 +153,7 @@ KRATOS_TEST_CASE_IN_SUITE(ElementUtilities_GetNodalVariableVector_Returns3DFlatA
                               Testing::Defaults::relative_tolerance)
 }
 
-KRATOS_TEST_CASE_IN_SUITE(ElementUtilities_GetNodalVariableVector_ChecksDimension, KratosGeoMechanicsFastSuiteWithoutKernel)
+TEST_F(KratosGeoMechanicsFastSuiteWithoutKernel, ElementUtilities_GetNodalVariableVector_ChecksDimension)
 {
     // Arrange
     const auto     test_data       = Line2D2NGeometryWithVelocityVectorData();
@@ -164,7 +165,7 @@ KRATOS_TEST_CASE_IN_SUITE(ElementUtilities_GetNodalVariableVector_ChecksDimensio
                                       "Incorrect dimension value (4).");
 }
 
-KRATOS_TEST_CASE_IN_SUITE(ElementUtilities_GetNodalVariableVector_ChecksDOFs, KratosGeoMechanicsFastSuiteWithoutKernel)
+TEST_F(KratosGeoMechanicsFastSuiteWithoutKernel, ElementUtilities_GetNodalVariableVector_ChecksDOFs)
 {
     // Arrange
     const auto     test_data       = Line2D2NGeometryWithVelocityVectorData();

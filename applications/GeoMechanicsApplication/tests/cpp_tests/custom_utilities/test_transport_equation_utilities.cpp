@@ -11,9 +11,9 @@
 //
 
 #include "custom_utilities/transport_equation_utilities.hpp"
+#include "custom_utilities/ublas_utilities.h"
 #include "includes/expect.h"
 #include "tests/cpp_tests/geo_mechanics_fast_suite_without_kernel.h"
-#include "custom_utilities/ublas_utilities.h"
 
 namespace
 {

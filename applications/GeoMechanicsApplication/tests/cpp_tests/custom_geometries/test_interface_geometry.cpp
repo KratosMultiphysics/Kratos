@@ -21,8 +21,8 @@
 #include "geometries/triangle_3d_3.h"
 #include "geometries/triangle_3d_6.h"
 #include "includes/expect.h"
-#include "tests/cpp_tests/geo_mechanics_fast_suite_without_kernel.h"
 #include "test_setup_utilities/element_setup_utilities.hpp"
+#include "tests/cpp_tests/geo_mechanics_fast_suite_without_kernel.h"
 #include "tests/cpp_tests/test_utilities.h"
 
 namespace
@@ -198,8 +198,8 @@ TEST_F(KratosGeoMechanicsFastSuiteWithoutKernel, InterfaceGeometry_Create_Create
                      GeometryData::KratosGeometryOrderType::Kratos_Linear_Order);
 }
 
-KRATOS_TEST_CASE_IN_SUITE(InterfaceGeometry_CreateWithId_CreatesNewInstanceOfCorrectTypeAndIdForLinearLineMidGeometry,
-                          KratosGeoMechanicsFastSuiteWithoutKernel)
+TEST_F(KratosGeoMechanicsFastSuiteWithoutKernel,
+       InterfaceGeometry_CreateWithId_CreatesNewInstanceOfCorrectTypeAndIdForLinearLineMidGeometry)
 {
     const auto          geometry = InterfaceGeometry<Line2D2<Node>>();
     PointerVector<Node> nodes;
@@ -222,8 +222,8 @@ KRATOS_TEST_CASE_IN_SUITE(InterfaceGeometry_CreateWithId_CreatesNewInstanceOfCor
                      GeometryData::KratosGeometryOrderType::Kratos_Linear_Order);
 }
 
-KRATOS_TEST_CASE_IN_SUITE(InterfaceGeometry_CreateWithId_CreatesNewInstanceOfCorrectTypeAndIdForQuadraticTriangularMidGeometry,
-                          KratosGeoMechanicsFastSuiteWithoutKernel)
+TEST_F(KratosGeoMechanicsFastSuiteWithoutKernel,
+       InterfaceGeometry_CreateWithId_CreatesNewInstanceOfCorrectTypeAndIdForQuadraticTriangularMidGeometry)
 {
     const auto geometry = InterfaceGeometry<Triangle3D6<Node>>();
 
@@ -256,8 +256,7 @@ TEST_F(KratosGeoMechanicsFastSuiteWithoutKernel, CreatingInterfaceWithThreeNodes
                                       "Number of nodes must be 2+2, 3+3, 6+6, 4+4 or 8+8")
 }
 
-KRATOS_TEST_CASE_IN_SUITE(MidGeometryOf2Plus2LineInterfaceIsDefinedByMidPointsOfNodePairs,
-                          KratosGeoMechanicsFastSuiteWithoutKernel)
+TEST_F(KratosGeoMechanicsFastSuiteWithoutKernel, MidGeometryOf2Plus2LineInterfaceIsDefinedByMidPointsOfNodePairs)
 {
     const auto nodes = ElementSetupUtilities::GenerateNodes(
         {{0.0, 0.0, 0.0}, {5.0, 0.0, 0.0}, {-1.0, 0.2, 0.0}, {7.0, 0.2, 0.0}});
@@ -270,8 +269,7 @@ KRATOS_TEST_CASE_IN_SUITE(MidGeometryOf2Plus2LineInterfaceIsDefinedByMidPointsOf
     ExpectPointsAreNear(r_mid_geometry.Points(), expected_mid_points);
 }
 
-KRATOS_TEST_CASE_IN_SUITE(MidGeometryOf3Plus3LineInterfaceIsDefinedByMidPointsOfNodePairs,
-                          KratosGeoMechanicsFastSuiteWithoutKernel)
+TEST_F(KratosGeoMechanicsFastSuiteWithoutKernel, MidGeometryOf3Plus3LineInterfaceIsDefinedByMidPointsOfNodePairs)
 {
     const auto nodes = ElementSetupUtilities::GenerateNodes(
         {{0.0, 0.0, 0.0}, {5.0, 0.0, 0.0}, {2.5, 0.0, 0.0}, {-1.0, 0.2, 0.0}, {7.0, 0.2, 0.0}, {3.5, 0.4, 0.0}});
@@ -284,8 +282,7 @@ KRATOS_TEST_CASE_IN_SUITE(MidGeometryOf3Plus3LineInterfaceIsDefinedByMidPointsOf
     ExpectPointsAreNear(r_mid_geometry.Points(), expected_mid_points);
 }
 
-KRATOS_TEST_CASE_IN_SUITE(MidGeometryOf3Plus3TriangularInterfaceIsDefinedByMidPointsOfNodePairs,
-                          KratosGeoMechanicsFastSuiteWithoutKernel)
+TEST_F(KratosGeoMechanicsFastSuiteWithoutKernel, MidGeometryOf3Plus3TriangularInterfaceIsDefinedByMidPointsOfNodePairs)
 {
     const auto nodes = ElementSetupUtilities::GenerateNodes(
         {{0.0, 0.0, 0.0}, {1.0, 0.0, 0.0}, {1.0, 1.0, 0.0}, {0.5, 0.5, 0.5}, {1.5, 0.5, 0.5}, {1.5, 1.5, 0.5}});
@@ -299,8 +296,7 @@ KRATOS_TEST_CASE_IN_SUITE(MidGeometryOf3Plus3TriangularInterfaceIsDefinedByMidPo
     ExpectPointsAreNear(r_mid_geometry.Points(), expected_mid_points);
 }
 
-KRATOS_TEST_CASE_IN_SUITE(MidGeometryOf6Plus6TriangularInterfaceIsDefinedByMidPointsOfNodePairs,
-                          KratosGeoMechanicsFastSuiteWithoutKernel)
+TEST_F(KratosGeoMechanicsFastSuiteWithoutKernel, MidGeometryOf6Plus6TriangularInterfaceIsDefinedByMidPointsOfNodePairs)
 {
     const auto nodes = ElementSetupUtilities::GenerateNodes({{0.0, 0.0, 0.0},
                                                              {1.0, 0.0, 0.0},
@@ -326,8 +322,7 @@ KRATOS_TEST_CASE_IN_SUITE(MidGeometryOf6Plus6TriangularInterfaceIsDefinedByMidPo
     ExpectPointsAreNear(r_mid_geometry.Points(), expected_mid_points);
 }
 
-KRATOS_TEST_CASE_IN_SUITE(MidGeometryOf4Plus4QuadrilateralInterfaceIsDefinedByMidPointsOfNodePairs,
-                          KratosGeoMechanicsFastSuiteWithoutKernel)
+TEST_F(KratosGeoMechanicsFastSuiteWithoutKernel, MidGeometryOf4Plus4QuadrilateralInterfaceIsDefinedByMidPointsOfNodePairs)
 {
     const auto     nodes          = ElementSetupUtilities::GenerateNodes({{0.0, 0.0, 0.0},
                                                                           {1.0, 0.0, 0.0},
@@ -347,8 +342,7 @@ KRATOS_TEST_CASE_IN_SUITE(MidGeometryOf4Plus4QuadrilateralInterfaceIsDefinedByMi
     ExpectPointsAreNear(r_mid_geometry.Points(), expected_mid_points);
 }
 
-KRATOS_TEST_CASE_IN_SUITE(MidGeometryOf8Plus8QuadrilateralInterfaceIsDefinedByMidPointsOfNodePairs,
-                          KratosGeoMechanicsFastSuiteWithoutKernel)
+TEST_F(KratosGeoMechanicsFastSuiteWithoutKernel, MidGeometryOf8Plus8QuadrilateralInterfaceIsDefinedByMidPointsOfNodePairs)
 {
     const auto     nodes          = ElementSetupUtilities::GenerateNodes({{0.0, 0.0, 0.0},
                                                                           {1.0, 0.0, 0.0},
@@ -377,8 +371,8 @@ KRATOS_TEST_CASE_IN_SUITE(MidGeometryOf8Plus8QuadrilateralInterfaceIsDefinedByMi
     ExpectPointsAreNear(r_mid_geometry.Points(), expected_mid_points);
 }
 
-KRATOS_TEST_CASE_IN_SUITE(InterfaceGeometry_ReturnsCorrectShapeFunctionValuesInNodes_ForTwoPlusTwoNodedGeometry,
-                          KratosGeoMechanicsFastSuiteWithoutKernel)
+TEST_F(KratosGeoMechanicsFastSuiteWithoutKernel,
+       InterfaceGeometry_ReturnsCorrectShapeFunctionValuesInNodes_ForTwoPlusTwoNodedGeometry)
 {
     const auto geometry = CreateTwoPlusTwoNoded2DLineInterfaceGeometry();
     const auto xi_start = array_1d<double, 3>{-1.0, 0.0, 0.0};

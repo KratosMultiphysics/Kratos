@@ -13,11 +13,13 @@
 //                   Gennady Markelov
 //
 
-#include "includes/expect.h"
-#include "tests/cpp_tests/geo_mechanics_fast_suite_without_kernel.h"
+#include "containers/pointer_vector.h"
 #include "custom_utilities/generic_utilities.hpp"
 #include "custom_utilities/ublas_utilities.h"
-#include "tests/cpp_tests/geo_mechanics_fast_suite.h"
+#include "geometries/geometry.h"
+#include "includes/expect.h"
+#include "includes/node.h"
+#include "tests/cpp_tests/geo_mechanics_fast_suite_without_kernel.h"
 
 using namespace Kratos;
 
@@ -48,14 +50,14 @@ TEST_F(KratosGeoMechanicsFastSuiteWithoutKernel, CheckMatrixPermutation)
     KRATOS_EXPECT_MATRIX_EQ(GenericUtilities::MatrixWithPermutedColumns(matrix, indices), expected_result);
 }
 
-KRATOS_TEST_CASE_IN_SUITE(GetIdsFromEntityContents_ReturnsEmptyListForEmptyGeometry, KratosGeoMechanicsFastSuiteWithoutKernel)
+TEST_F(KratosGeoMechanicsFastSuiteWithoutKernel, GetIdsFromEntityContents_ReturnsEmptyListForEmptyGeometry)
 {
     const auto node_ids = GenericUtilities::GetIdsFromEntityContents(Geometry<Node>{});
 
     KRATOS_EXPECT_TRUE(node_ids.empty())
 }
 
-KRATOS_TEST_CASE_IN_SUITE(GetIdsFromEntityContents_ReturnsCorrectNodeIds, KratosGeoMechanicsFastSuiteWithoutKernel)
+TEST_F(KratosGeoMechanicsFastSuiteWithoutKernel, GetIdsFromEntityContents_ReturnsCorrectNodeIds)
 {
     // Arange
     PointerVector<Node> nodes;

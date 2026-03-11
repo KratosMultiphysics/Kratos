@@ -12,8 +12,6 @@
 //
 
 #include "custom_utilities/linear_nodal_extrapolator.h"
-#include "geometries/hexahedra_3d_20.h"
-#include "geometries/hexahedra_3d_8.h"
 #include "custom_utilities/ublas_utilities.h"
 #include "geometries/hexahedra_3d_20.h"
 #include "geometries/hexahedra_3d_8.h"
@@ -22,14 +20,12 @@
 #include "geometries/quadrilateral_2d_4.h"
 #include "geometries/quadrilateral_2d_8.h"
 #include "geometries/tetrahedra_3d_10.h"
-#include "geometries/tetrahedra_3d_10.h"
 #include "geometries/tetrahedra_3d_4.h"
 #include "geometries/triangle_2d_3.h"
 #include "geometries/triangle_2d_6.h"
 #include "includes/expect.h"
-#include "tests/cpp_tests/geo_mechanics_fast_suite_without_kernel.h"
 #include "test_setup_utilities/element_setup_utilities.hpp"
-#include "tests/cpp_tests/geo_mechanics_fast_suite.h"
+#include "tests/cpp_tests/geo_mechanics_fast_suite_without_kernel.h"
 #include "tests/cpp_tests/test_utilities.h"
 
 #include <numbers>
@@ -39,8 +35,7 @@ namespace Kratos::Testing
 
 using namespace Kratos;
 
-KRATOS_TEST_CASE_IN_SUITE(NodalExtrapolator_GivesCorrectExtrapolationMatrix_For2D2NLine,
-                          KratosGeoMechanicsFastSuiteWithoutKernel)
+TEST_F(KratosGeoMechanicsFastSuiteWithoutKernel, NodalExtrapolator_GivesCorrectExtrapolationMatrix_For2D2NLine)
 {
     const auto nodes    = ElementSetupUtilities::GenerateNodes({{0.0, 0.0, 0.0}, {1.0, 0.0, 0.0}});
     const auto geometry = Line2D2<Node>{nodes};
@@ -59,8 +54,7 @@ KRATOS_TEST_CASE_IN_SUITE(NodalExtrapolator_GivesCorrectExtrapolationMatrix_For2
     KRATOS_EXPECT_MATRIX_NEAR(extrapolation_matrix, expected_extrapolation_matrix, Defaults::absolute_tolerance)
 }
 
-KRATOS_TEST_CASE_IN_SUITE(NodalExtrapolator_GivesCorrectExtrapolationMatrix_For2D3NLine,
-                          KratosGeoMechanicsFastSuiteWithoutKernel)
+TEST_F(KratosGeoMechanicsFastSuiteWithoutKernel, NodalExtrapolator_GivesCorrectExtrapolationMatrix_For2D3NLine)
 {
     const auto nodes =
         ElementSetupUtilities::GenerateNodes({{0.0, 0.0, 0.0}, {1.0, 0.0, 0.0}, {0.5, 0.0, 0.0}});
@@ -81,8 +75,7 @@ KRATOS_TEST_CASE_IN_SUITE(NodalExtrapolator_GivesCorrectExtrapolationMatrix_For2
     KRATOS_EXPECT_MATRIX_NEAR(extrapolation_matrix, expected_extrapolation_matrix, Defaults::absolute_tolerance)
 }
 
-KRATOS_TEST_CASE_IN_SUITE(NodalExtrapolator_GivesCorrectExtrapolationMatrix_For2D3NTriangle,
-                          KratosGeoMechanicsFastSuiteWithoutKernel)
+TEST_F(KratosGeoMechanicsFastSuiteWithoutKernel, NodalExtrapolator_GivesCorrectExtrapolationMatrix_For2D3NTriangle)
 {
     const auto nodes =
         ElementSetupUtilities::GenerateNodes({{0.0, 0.0, 0.0}, {1.0, 0.0, 0.0}, {0.0, 1.0, 0.0}});

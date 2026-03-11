@@ -11,12 +11,12 @@
 //
 
 #include "custom_elements/interface_stress_state.h"
-#include "geometries/line_2d_3.h"
-#include "geometries/triangle_3d_3.h"
-#include "includes/expect.h"
 #include "custom_geometries/interface_geometry.hpp"
 #include "custom_utilities/registration_utilities.hpp"
 #include "custom_utilities/ublas_utilities.h"
+#include "geometries/line_2d_3.h"
+#include "geometries/triangle_3d_3.h"
+#include "includes/expect.h"
 #include "includes/stream_serializer.h"
 #include "tests/cpp_tests/geo_mechanics_fast_suite_without_kernel.h"
 #include "tests/cpp_tests/test_utilities.h"

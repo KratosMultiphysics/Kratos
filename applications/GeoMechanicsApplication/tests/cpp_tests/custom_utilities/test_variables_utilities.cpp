@@ -30,7 +30,7 @@ TEST_F(KratosGeoMechanicsFastSuiteWithoutKernel,
     VariablesUtilities::GetComponentFromVectorVariable(ACCELERATION.Name(), "?"),
     "Error: The component \"ACCELERATION_?\" is not registered!")}
 
-KRATOS_TEST_CASE_IN_SUITE(GeometryUtilities_ReturnsGetNodalValues, KratosGeoMechanicsFastSuiteWithoutKernel)
+TEST_F(KratosGeoMechanicsFastSuiteWithoutKernel, GeometryUtilities_ReturnsGetNodalValues)
 {
     // Arrange
     Model model;

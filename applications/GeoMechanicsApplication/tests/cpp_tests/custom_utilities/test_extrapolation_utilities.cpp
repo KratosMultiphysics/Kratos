@@ -15,9 +15,8 @@
 #include "custom_utilities/nodal_extrapolator.h"
 #include "custom_utilities/ublas_utilities.h"
 #include "includes/checks.h"
-#include "test_setup_utilities/element_setup_utilities.hpp"
-#include "tests/cpp_tests/geo_mechanics_fast_suite.h"
 #include "includes/expect.h"
+#include "test_setup_utilities/element_setup_utilities.hpp"
 #include "tests/cpp_tests/geo_mechanics_fast_suite_without_kernel.h"
 #include "tests/cpp_tests/test_utilities.h"
 
@@ -115,8 +114,8 @@ TEST_F(KratosGeoMechanicsFastSuiteWithoutKernel, ExtrapolationUtilities_Calculat
     }
 }
 
-KRATOS_TEST_CASE_IN_SUITE(ExtrapolationUtilities_CalculateExtrapolationMatrixOf2Plus2LineInterfaceElement,
-                          KratosGeoMechanicsFastSuiteWithoutKernel)
+TEST_F(KratosGeoMechanicsFastSuiteWithoutKernel,
+       ExtrapolationUtilities_CalculateExtrapolationMatrixOf2Plus2LineInterfaceElement)
 {
     const auto nodes = ElementSetupUtilities::GenerateNodes(
         {{0.0, 0.0, 0.0}, {1.0, 0.0, 0.0}, {0.0, 0.0, 0.5}, {1.0, 0.0, 0.5}});
@@ -138,8 +137,8 @@ KRATOS_TEST_CASE_IN_SUITE(ExtrapolationUtilities_CalculateExtrapolationMatrixOf2
     KRATOS_EXPECT_MATRIX_NEAR(extrapolation_matrix, expected_extrapolation_matrix, Defaults::absolute_tolerance)
 }
 
-KRATOS_TEST_CASE_IN_SUITE(ExtrapolationUtilities_CalculateExtrapolationMatrixOf3Plus3TriangularInterfaceElement,
-                          KratosGeoMechanicsFastSuiteWithoutKernel)
+TEST_F(KratosGeoMechanicsFastSuiteWithoutKernel,
+       ExtrapolationUtilities_CalculateExtrapolationMatrixOf3Plus3TriangularInterfaceElement)
 {
     const auto nodes = ElementSetupUtilities::GenerateNodes(
         {{0.0, 0.0, 0.0}, {1.0, 0.0, 0.0}, {0.0, 1.0, 0.0}, {0.0, 0.0, 0.1}, {1.0, 0.0, 0.1}, {0.0, 1.0, 0.1}});
@@ -163,8 +162,8 @@ KRATOS_TEST_CASE_IN_SUITE(ExtrapolationUtilities_CalculateExtrapolationMatrixOf3
     KRATOS_EXPECT_MATRIX_NEAR(extrapolation_matrix, expected_extrapolation_matrix, Defaults::absolute_tolerance)
 }
 
-KRATOS_TEST_CASE_IN_SUITE(ExtrapolationUtilities_CalculateExtrapolationMatrixOf4Plus4QuadrilateralInterfaceElement,
-                          KratosGeoMechanicsFastSuiteWithoutKernel)
+TEST_F(KratosGeoMechanicsFastSuiteWithoutKernel,
+       ExtrapolationUtilities_CalculateExtrapolationMatrixOf4Plus4QuadrilateralInterfaceElement)
 {
     const auto nodes = ElementSetupUtilities::GenerateNodes({{0.0, 0.0, 0.0},
                                                              {1.0, 0.0, 0.0},

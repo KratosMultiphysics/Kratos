@@ -20,10 +20,10 @@
 #include "geo_mechanics_application_variables.h"
 #include "geometries/line_2d_2.h"
 #include "includes/checks.h"
+#include "includes/expect.h"
 #include "includes/serializer.h"
 #include "tests/cpp_tests/geo_mechanics_fast_suite_without_kernel.h"
 #include "tests/cpp_tests/test_utilities.h"
-#include "includes/expect.h"
 
 #include <sstream>
 #include <string>
