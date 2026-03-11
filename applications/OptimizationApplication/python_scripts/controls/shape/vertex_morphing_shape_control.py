@@ -139,9 +139,9 @@ class VertexMorphingShapeControl(Control):
         if physical_gradient.GetContainer() != self.__GetPhysicalModelPart().Nodes:
             raise RuntimeError(f"Gradients for the required element container not found for control \"{self.GetName()}\". [ required model part name: {self.model_part.FullName()}, given model part name: {physical_gradient.GetModelPart().FullName()} ]")
 
-        filtered_gradient = self.filter.BackwardFilterIntegratedField(self.__ExtractTensorData(KratosOA.SHAPE, physical_gradient, self.model_part.Nodes))
+        filtered_gradient = self.filter.BackwardFilterIntegratedField(self.__ExtractDesignSurfaceData(KratosOA.SHAPE, physical_gradient, self.model_part.Nodes))
 
-        return self.__ExtractTensorData(KratosOA.SHAPE, filtered_gradient, self.__GetPhysicalModelPart().Nodes)
+        return self.__ExtractDesignSurfaceData(KratosOA.SHAPE, filtered_gradient, self.__GetPhysicalModelPart().Nodes)
 
     @time_decorator(methodName="GetName")
     def Update(self, new_control_field: Kratos.TensorAdaptors.DoubleTensorAdaptor) -> bool:
@@ -165,7 +165,7 @@ class VertexMorphingShapeControl(Control):
         if self.mesh_motion_solver_type == "filter_based":
             shape_update = self.filter.ForwardFilterField(control_update)
         else:
-            shape_update = self.filter.ForwardFilterField(self.__ExtractTensorData(KratosOA.SHAPE, control_update, self.model_part.Nodes))
+            shape_update = self.filter.ForwardFilterField(self.__ExtractDesignSurfaceData(KratosOA.SHAPE, control_update, self.model_part.Nodes))
 
         # now update the shape
         self._UpdateMesh(shape_update)
@@ -256,7 +256,7 @@ class VertexMorphingShapeControl(Control):
             # model part
             return self.model_part.GetRootModelPart()
 
-    def __ExtractTensorData(self, variable, tensor_adaptor: Kratos.TensorAdaptors.DoubleTensorAdaptor, nodes_container: Kratos.NodesArray) -> Kratos.TensorAdaptors.DoubleTensorAdaptor:
+    def __ExtractDesignSurfaceData(self, tensor_adaptor: Kratos.TensorAdaptors.DoubleTensorAdaptor, nodes_container: Kratos.NodesArray) -> Kratos.TensorAdaptors.DoubleTensorAdaptor:
         """\
         @brief This method is used to extract data from model part to @ref TensorAdaptor.
 
@@ -270,17 +270,16 @@ class VertexMorphingShapeControl(Control):
                  But, for computation of the shape_update and checking it if it actually changes the design surface, first
                  we need to get only the design surface update. Hence, this method is used.
 
-        @param variable (_type_): variable to use in the data transferring [ This variable is only used to data transfer ]
         @param tensor_adaptor (Kratos.TensorAdaptors.DoubleTensorAdaptor): @ref TensorAdaptor with the data.
         @param nodes_container (Kratos.NodesArray): list of nodes on which you needs data transferred.
         @returns: @ref TensorAdaptor having the @p nodes_container as the container, having values extracted from corresponding nodes in the container of @p tensor_adaptor .
         """
         if nodes_container != tensor_adaptor.GetContainer():
-            Kratos.VariableUtils().SetNonHistoricalVariableToZero(variable, tensor_adaptor.GetContainer())
-            Kratos.VariableUtils().SetNonHistoricalVariableToZero(variable, nodes_container)
+            Kratos.VariableUtils().SetNonHistoricalVariableToZero(KratosOA.SHAPE, tensor_adaptor.GetContainer())
+            Kratos.VariableUtils().SetNonHistoricalVariableToZero(KratosOA.SHAPE, nodes_container)
 
-            Kratos.TensorAdaptors.VariableTensorAdaptor(tensor_adaptor, variable, copy=False).StoreData()
-            ta = Kratos.TensorAdaptors.VariableTensorAdaptor(nodes_container, variable)
+            Kratos.TensorAdaptors.VariableTensorAdaptor(tensor_adaptor, KratosOA.SHAPE, copy=False).StoreData()
+            ta = Kratos.TensorAdaptors.VariableTensorAdaptor(nodes_container, KratosOA.SHAPE)
             ta.CollectData()
             return ta
         else:
