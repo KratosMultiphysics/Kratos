@@ -22,6 +22,7 @@
 // Project includes
 #include "parallel_utilities.h"
 #include "input_output/logger.h"
+#include "includes/global_variables.h"
 
 namespace Kratos {
 
@@ -188,7 +189,7 @@ int ParallelUtilities::GetMaxNumberOfChunks()
 
 LockObject* ParallelUtilities::mspGlobalLock = nullptr;
 int* ParallelUtilities::mspNumThreads = nullptr;
-int ParallelUtilities::mParallelUtilitiesMaxChunkSize = 1024;
+int ParallelUtilities::mParallelUtilitiesMaxChunkSize = 256;
 int ParallelUtilities::mParallelUtilitiesMaxNumberOfChunks = Globals::MaxAllowedThreads;
 
 }  // namespace Kratos.

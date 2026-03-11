@@ -31,7 +31,6 @@
 
 // Project includes
 #include "includes/define.h"
-#include "includes/global_variables.h"
 #include "includes/lock_object.h"
 
 #define KRATOS_CRITICAL_SECTION const std::lock_guard scope_lock(ParallelUtilities::GetGlobalLock());
@@ -195,10 +194,8 @@ private:
 //***********************************************************************************
 /** @tparam TIterator - type of iterator (must be a random access iterator)
  *  @tparam TPartitioningScheme: scheme to partition the iteration space.
- *  @tparam TMaxThreads - maximum number of threads allowed in the partitioning.
- *                       must be known at compile time to avoid heap allocations in the partitioning
  */
-template<class TIterator, ChunkPartitioningScheme TPartitioningScheme = ChunkPartitioningScheme::DIVIDE_BY_NUMBER_OF_CHUNKS, int TMaxThreads=Globals::MaxAllowedThreads>
+template<class TIterator, ChunkPartitioningScheme TPartitioningScheme = ChunkPartitioningScheme::DIVIDE_BY_NUMBER_OF_CHUNKS>
 class BlockPartition
 {
 public:
@@ -240,8 +237,9 @@ public:
         } else {
             static_assert(TPartitioningScheme == ChunkPartitioningScheme::DIVIDE_BY_CHUNK_SIZE || TPartitioningScheme == ChunkPartitioningScheme::DIVIDE_BY_NUMBER_OF_CHUNKS, "Unsupported partitioning scheme");
         }
-        // We also check that we do not create more chunks than the maximum allowed number of chunks to avoid overhead in the parallelization
-        mNchunks = std::min(mNchunks, TMaxThreads);
+
+        // We resize the partition vector to hold the partition indices. We need mNchunks+1 entries to store the start and end indices of each chunk.
+        mBlockPartition.resize(mNchunks + 1);
 
         // Finally we create the partition based on the number of chunks determined
         const std::ptrdiff_t block_partition_size = size_container / mNchunks;
@@ -364,7 +362,7 @@ public:
 
 private:
     int mNchunks;
-    std::array<TIterator, TMaxThreads> mBlockPartition;
+    std::vector<TIterator> mBlockPartition;
 };
 
 /** @brief Execute a functor on all items of a range in parallel.
@@ -540,10 +538,8 @@ template <class TReducer,
 /** @brief This class is useful for index iteration over containers
  *  @tparam TIndexType type of index to be used in the loop
  *  @tparam TPartitioningScheme scheme to partition the iteration space.
- *  @tparam TMaxThreads - maximum number of threads allowed in the partitioning.
- *                       must be known at compile time to avoid heap allocations in the partitioning
  */
-template<class TIndexType=std::size_t, ChunkPartitioningScheme TPartitioningScheme = ChunkPartitioningScheme::DIVIDE_BY_NUMBER_OF_CHUNKS, int TMaxThreads=Globals::MaxAllowedThreads>
+template<class TIndexType=std::size_t, ChunkPartitioningScheme TPartitioningScheme = ChunkPartitioningScheme::DIVIDE_BY_NUMBER_OF_CHUNKS>
 class IndexPartition
 {
 public:
@@ -578,8 +574,8 @@ public:
             static_assert(TPartitioningScheme == ChunkPartitioningScheme::DIVIDE_BY_CHUNK_SIZE || TPartitioningScheme == ChunkPartitioningScheme::DIVIDE_BY_NUMBER_OF_CHUNKS, "Unsupported partitioning scheme");
         }
 
-        // We also check that we do not create more chunks than the maximum allowed number of chunks to avoid overhead in the parallelization
-        mNchunks = std::min(mNchunks, TMaxThreads);
+        // We resize the partition vector to hold the partition indices. We need mNchunks+1 entries to store the start and end indices of each chunk.
+        mBlockPartition.resize(mNchunks + 1);
 
         // Finally we create the partition based on the number of chunks determined
         const int block_partition_size = Size / mNchunks;
@@ -733,7 +729,7 @@ public:
 
 private:
     int mNchunks;
-    std::array<TIndexType, TMaxThreads> mBlockPartition;
+    std::vector<TIndexType> mBlockPartition;
 };
 
 } // namespace Kratos.
