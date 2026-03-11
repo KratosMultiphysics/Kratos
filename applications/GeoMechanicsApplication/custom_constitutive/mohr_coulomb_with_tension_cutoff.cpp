@@ -14,6 +14,7 @@
 
 // Application includes
 #include "custom_constitutive/mohr_coulomb_with_tension_cutoff.h"
+#include "custom_constitutive/constitutive_law_dimension.h"
 #include "custom_constitutive/principal_stresses.hpp"
 #include "custom_utilities/check_utilities.hpp"
 #include "custom_utilities/constitutive_law_utilities.h"

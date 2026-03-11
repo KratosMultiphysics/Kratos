@@ -15,6 +15,7 @@
 // Project includes
 #include "custom_processes/apply_c_phi_reduction_process.h"
 #include "containers/model.h"
+#include "custom_constitutive/constitutive_law_dimension.h"
 #include "custom_constitutive/mohr_coulomb_with_tension_cutoff.h"
 #include "custom_utilities/check_utilities.hpp"
 #include "custom_utilities/constitutive_law_utilities.h"
