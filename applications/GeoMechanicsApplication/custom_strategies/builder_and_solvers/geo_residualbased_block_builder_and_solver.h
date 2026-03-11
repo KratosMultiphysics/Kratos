@@ -477,7 +477,10 @@ public:
         }
 
         ApplyDirichletConditions(pScheme, rModelPart, A, Dx, b);
-
+        if (rModelPart.GetProcessInfo()[NL_ITERATION_NUMBER] > 1) {
+            KRATOS_INFO("Let's multiply\n");
+            TSparseSpace::InplaceMult(b, 1.5);
+        }
         KRATOS_INFO_IF("ResidualBasedBlockBuilderAndSolver", (this->GetEchoLevel() == 3))
             << "Before the solution of the system" << "\nSystem Matrix = " << A
             << "\nUnknowns vector = " << Dx << "\nRHS vector = " << b << std::endl;
@@ -672,7 +675,7 @@ public:
 
         if (rModelPart.GetProcessInfo()[NL_ITERATION_NUMBER] > 1) {
             KRATOS_INFO("Let's multiply\n");
-            TSparseSpace::InplaceMult(rb, 1.25);
+            TSparseSpace::InplaceMult(rb, 1.5);
         }
 
         const auto timer = BuiltinTimer();

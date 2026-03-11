@@ -50,7 +50,7 @@
                     "model_part_name": "PorousDomain",
                     "domain_size": 2,
                     "echo_level": 1,
-                    "use_old_stiffness_in_first_iteration": true,
+                    "use_old_stiffness_in_first_iteration": false,
                     "model_import_settings": {
                         "input_type": "use_input_model_part"
                     },
@@ -457,7 +457,7 @@
                 },
                 "solver_settings": {
                     "time_stepping": {
-                        "time_step": 0.1,
+                        "time_step": 1.0,
                         "max_delta_time_factor": 1000.0
                     },
                     "solver_type": "U_Pw",
@@ -487,8 +487,8 @@
                     "min_iterations": 6,
                     "max_iterations": 50,
                     "number_cycles": 1,
-                    "reduction_factor": 0.5,
-                    "increase_factor": 2.0,
+                    "reduction_factor": 1.0,
+                    "increase_factor": 1.0,
                     "calculate_reactions": true,
                     "rotation_dofs": true,
                     "newmark_beta": 0.25,
@@ -779,7 +779,7 @@
                 },
                 "solver_settings": {
                     "time_stepping": {
-                        "time_step": 0.1,
+                        "time_step": 1.0,
                         "max_delta_time_factor": 1000.0
                     },
                     "solver_type": "U_Pw",
@@ -847,8 +847,7 @@
                         "Diaphragm_Wall"
                     ],
                     "linear_solver_settings": {
-                        "solver_type": "LinearSolversApplication.sparse_lu",
-                        "scaling": true
+                        "solver_type": "LinearSolversApplication.sparse_lu"
                     }
                 },
                 "processes": {
@@ -1449,7 +1448,7 @@
                     "residual_relative_tolerance": 0.02,
                     "residual_absolute_tolerance": 1e-09,
                     "min_iterations": 6,
-                    "max_iterations": 1000,
+                    "max_iterations": 500,
                     "number_cycles": 1,
                     "reduction_factor": 0.5,
                     "increase_factor": 2.0,
@@ -1757,7 +1756,7 @@
                 },
                 "solver_settings": {
                     "time_stepping": {
-                        "time_step": 0.1,
+                        "time_step": 0.25,
                         "max_delta_time_factor": 1000.0
                     },
                     "solver_type": "U_Pw",
@@ -1783,8 +1782,9 @@
                     "convergence_criterion": "residual_criterion",
                     "residual_relative_tolerance": 0.02,
                     "residual_absolute_tolerance": 1e-09,
+                    "use_old_stiffness_in_first_iteration": true,
                     "min_iterations": 6,
-                    "max_iterations": 100,
+                    "max_iterations": 250,
                     "number_cycles": 1,
                     "reduction_factor": 1.0,
                     "increase_factor": 1.0,
