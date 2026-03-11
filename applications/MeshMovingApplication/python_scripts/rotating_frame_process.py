@@ -1,5 +1,4 @@
 import KratosMultiphysics as KM
-import KratosMultiphysics.MeshMovingApplication as KratosMeshMoving
 import numpy as np
 import time
 
@@ -31,7 +30,6 @@ class RotatingFrameProcess(KM.Process):
             "axis_of_rotation": [1.0, 0.0, 0.0],
             "target_angular_velocity_radians": 0.0,
             "acceleration_time": 0.0,
-            "implementation": "cpp",
             "echo_level": 0,
             "fix_mesh_displacement": false,
             "fix_velocity": false
@@ -76,14 +74,6 @@ class RotatingFrameProcess(KM.Process):
         if self.acceleration_time < 0.0:
             raise Exception("The 'acceleration_time' parameter must be non-negative.")
 
-        self.implementation = settings["implementation"].GetString().strip().lower()
-        if self.implementation in ("c++", "cxx"):
-            self.implementation = "cpp"
-        if self.implementation not in ("cpp", "python"):
-            raise Exception(
-                f"Unsupported 'implementation': '{self.implementation}'. Use 'cpp' or 'python'."
-            )
-
         self.echo_level = settings["echo_level"].GetInt()
         if self.echo_level < 0:
             raise Exception("The 'echo_level' parameter must be >= 0.")
@@ -97,42 +87,20 @@ class RotatingFrameProcess(KM.Process):
 
         theta, omega = self._GetThetaAndOmega(current_time)
 
-        if self.implementation == "cpp":
-            t0 = time.perf_counter()
-            KratosMeshMoving.RotatingFrameUtility.ApplyRotationAndMeshDisplacement(
-                self.rotating_frame_model_part,
-                self.axis_of_rotation,
-                theta,
-                self.center_of_rotation
-            )
-            rot_time = time.perf_counter() - t0
+        if not self._python_cache_initialized:
+            self._InitializePythonBackendCaches()
 
-            t0 = time.perf_counter()
-            KratosMeshMoving.RotatingFrameUtility.AssignRotationalVelocity(
-                self.rotating_object_model_part,
-                self.axis_of_rotation,
-                omega,
-                self.center_of_rotation
-            )
-            vel_time = time.perf_counter() - t0
-        else:
-            if not self._python_cache_initialized:
-                self._InitializePythonBackendCaches()
+        t0 = time.perf_counter()
+        self._ApplyRotationAndMeshDisplacementPython(theta)
+        rot_time = time.perf_counter() - t0
 
-            t0 = time.perf_counter()
-            self._ApplyRotationAndMeshDisplacementPython(theta)
-            rot_time = time.perf_counter() - t0
-
-            t0 = time.perf_counter()
-            self._AssignRotationalVelocityPython(omega)
-            vel_time = time.perf_counter() - t0
+        t0 = time.perf_counter()
+        self._AssignRotationalVelocityPython(omega)
+        vel_time = time.perf_counter() - t0
 
         if self.echo_level > 0:
             KM.Logger.PrintInfo(
-                "RotatingFrameProcess",
-                f"[implementation={self.implementation}] "
-                f"rotation={rot_time*1.0e3:.3f} ms, "
-                f"velocity={vel_time*1.0e3:.3f} ms"
+                "RotatingFrameProcess", f" rotation={rot_time*1.0e3:.3f} ms, velocity={vel_time*1.0e3:.3f} ms"
             )
 
         if self.fix_mesh_displacement:
@@ -219,12 +187,14 @@ class RotatingFrameProcess(KM.Process):
         rot_matrix[2, 1] = 2.0 * (c * d + a * b)
         rot_matrix[2, 2] = a * a + d * d - b * b - c * c
 
+        # Rotate reference coordinates around the center:
+        # x = (x0 - c) @ R + c
         current_positions = self._rf_current_pos_ta.data
-        np.subtract(self._rf_initial_positions, self.center_of_rotation, out=current_positions)
-        current_positions[:] = current_positions @ rot_matrix
+        current_positions[:] = (self._rf_initial_positions - self.center_of_rotation) @ rot_matrix
         current_positions += self.center_of_rotation
 
-        np.subtract(current_positions, self._rf_initial_positions, out=self._rf_mesh_disp_ta.data)
+        # Mesh displacement from reference configuration: u_mesh = x - x0
+        self._rf_mesh_disp_ta.data[:] = current_positions - self._rf_initial_positions
 
         self._rf_mesh_disp_ta.StoreData()
         self._rf_current_pos_ta.StoreData()
@@ -233,11 +203,7 @@ class RotatingFrameProcess(KM.Process):
         angular_velocity_vector = omega * self.axis_of_rotation
 
         self._ro_current_pos_ta.CollectData()
-        np.subtract(
-            self._ro_current_pos_ta.data,
-            self.center_of_rotation,
-            out=self._ro_relative_positions
-        )
+        self._ro_relative_positions[:] = self._ro_current_pos_ta.data - self.center_of_rotation
 
         # v = omega x r, matching C++ MathUtils<double>::CrossProduct(omega, r)
         v = self._ro_velocity_ta.data
