@@ -53,8 +53,8 @@ class VectorizedCFDStage(analysis_stage.AnalysisStage):
 
         self.convection_integration_order = 2 # TODO: think on exposing this to the json
 
-        self.pressure_max_iteration = 100 # TODO: think on exposing this to the json
-        self.pressure_tolerance = 1.0e-9 # TODO: think on exposing this to the json
+        self.pressure_max_iteration = 500 # TODO: think on exposing this to the json
+        self.pressure_tolerance = 1.0e-6 # TODO: think on exposing this to the json
 
     def ComputeLumpedMass(self):
         Mscalar = xp.zeros(len(self.model_part.Nodes), dtype=cfd_utils.PRECISION)
@@ -266,6 +266,10 @@ class VectorizedCFDStage(analysis_stage.AnalysisStage):
         self.fix_vel_indices = None
         self.slip_vel_indices = None
         self.fix_pres_indices = None
+
+        # Declare boundary conditions masks
+        self.csr_data_indices = None
+        self.csr_diag_indices = None
 
         # Compute the Fourier number time step restriction (constant as h, rho and mu are constant in time)
         if self.automatic_dt:
@@ -485,7 +489,8 @@ class VectorizedCFDStage(analysis_stage.AnalysisStage):
 
         # Assemble pressure LHS (set to zero is done internally)
         L_el = self.cfd_utils.ComputeLaplacianMatrix(self.DN) # elemental laplacian contributions as L_IJ := (∇N_I,∇N_J)
-        L_el *= (dt / self.rho + self.tau_1[:,xp.newaxis,xp.newaxis]) * self.elemental_volumes[:,xp.newaxis,xp.newaxis] # scale LHS elemental contributions
+        coef = (dt / self.rho + self.tau_1) * self.elemental_volumes
+        L_el *= coef[:, None, None] # scale LHS elemental contributions
         self.cfd_utils.AssembleScalarMatrixByCSRIndices(L_el, self.L_assembly_indices, self.L) # assemble the scaled elemental contributions
 
         # -(q,∇·ufrac)
@@ -509,7 +514,7 @@ class VectorizedCFDStage(analysis_stage.AnalysisStage):
         self.cfd_utils.AssembleVector(self.connectivity, rhs_el, rhs)
 
         # Apply pressure BCs
-        self.cfd_utils.ApplyHomogeneousDirichlet(self.fix_pres_indices, self.L, rhs)
+        self.cfd_utils.ApplyHomogeneousDirichlet(self.fix_pres_indices, self.csr_data_indices, self.csr_diag_indices, self.L, rhs)
 
         # Solve the system
         ##TODO: use amgcl instead of this one!! ... and also avoid creating temporaries
@@ -558,6 +563,10 @@ class VectorizedCFDStage(analysis_stage.AnalysisStage):
         self.GetSlipIndices()
         self.GetFixityIndices()
 
+        # Get boundary condition masks
+        if (self.csr_data_indices is None or self.csr_diag_indices is None):
+            self.csr_data_indices, self.csr_diag_indices = self.cfd_utils.GetScalarMatrixDirichletIndices(self.fix_pres_indices, self.L)
+
         # Obtain nodal data from Kratos
         self.v_adaptor.CollectData() #new vel
         v = xp.asarray(self.v_adaptor.data.reshape((len(self.model_part.Nodes),self.dim)), dtype=cfd_utils.PRECISION)
@@ -580,16 +589,16 @@ class VectorizedCFDStage(analysis_stage.AnalysisStage):
         # Perform fractional step
         t1 = time.perf_counter()
         vfrac = self.SolveStep1(v, vold, pold, b, dt)
-        self.step_1_total_time += t1 - time.perf_counter()
+        self.step_1_total_time += time.perf_counter() - t1
 
         t2 = time.perf_counter()
         p = self.SolveStep2(vfrac, pold, dt)
         delta_p = p - pold #TODO: most probably we could modify p in place
-        self.step_2_total_time += t2 - time.perf_counter()
+        self.step_2_total_time += time.perf_counter() - t2
 
         t3 = time.perf_counter()
         v = self.SolveStep3(v, vfrac, delta_p, dt)
-        self.step_3_total_time += t3 - time.perf_counter()
+        self.step_3_total_time += time.perf_counter() - t3
 
         # Calculate the next step delta time
         # Note that this is done in here to avoid the overhead of collecting and copying the velocity data at the beginning of next step
@@ -712,6 +721,37 @@ class VectorizedCFDStage(analysis_stage.AnalysisStage):
 
                 cfd_utils.linear_solver.initialize()
 
+                # solver_config = {
+                #     "config_version": 2,
+                #     "solver": {
+                #         "solver": "CG",
+                #         "tolerance": self.pressure_tolerance,
+                #         "max_iters": self.pressure_max_iteration,
+                #         "norm": "L2",
+                #         "monitor_residual": 1,
+                #         "store_res_history": 1,
+                #         "print_solve_stats": 1,
+                #         "preconditioner": {
+                #             "solver": "AMG",
+                #             "algorithm": "CLASSICAL",
+                #             "cycle": "V",
+                #             "selector": "PMIS",
+                #             "strength": "AHAT",
+                #             "strength_threshold": 0.25,
+                #             "max_levels": 10,
+                #             "presweeps": 1,
+                #             "postsweeps": 1,
+                #             "smoother": {
+                #                 "scope": "jacobi",
+                #                 "solver": "BLOCK_JACOBI"
+                #             },
+                #             "coarse_solver": {
+                #                 "solver": "DENSE_LU_SOLVER"
+                #             }
+                #         }
+                #     }
+                # }
+
                 solver_config = {
                     "config_version": 2,
                     "solver": {
@@ -720,9 +760,24 @@ class VectorizedCFDStage(analysis_stage.AnalysisStage):
                         "tolerance": self.pressure_tolerance,
                         "norm": "L2",
                         "monitor_residual": 1,
-                        "store_res_history": 1,
-                        "print_solve_stats": 0,
-                        "preconditioner": "amg"
+                        "store_res_history" : 1,
+                        "print_solve_stats": 1,
+                        "preconditioner": {
+                            "solver": "AMG",
+                            "algorithm": "AGGREGATION",
+                            "cycle": "V",
+                            "max_levels": 10,
+                            "min_coarse_rows": 32,
+                            "presweeps": 1,
+                            "postsweeps": 1,
+                            "smoother": {
+                                "scope" : "jacobi",
+                                "solver": "BLOCK_JACOBI"
+                            },
+                            "coarse_solver": {
+                                "solver": "DENSE_LU_SOLVER"
+                            }
+                        }
                     }
                 }
                 self.cfg = cfd_utils.linear_solver.Config().create_from_dict(solver_config)
@@ -735,16 +790,16 @@ class VectorizedCFDStage(analysis_stage.AnalysisStage):
                 self.b_amgx = cfd_utils.linear_solver.Vector().create(self.rsrc)
                 self.x_amgx = cfd_utils.linear_solver.Vector().create(self.rsrc)
 
-                # Make sure all arrays are on the GPU
-                indptr = xp.asarray(self.L.indptr, dtype=xp.int32)
-                indices = xp.asarray(self.L.indices, dtype=xp.int32)
-                values = xp.asarray(self.L.data, dtype=cfd_utils.PRECISION)
+                # # Make sure all arrays are on the GPU
+                # indptr = xp.asarray(self.L.indptr, dtype=xp.int32)
+                # indices = xp.asarray(self.L.indices, dtype=xp.int32)
+                # values = xp.asarray(self.L.data, dtype=cfd_utils.PRECISION)
 
-                # Construct a CuPy CSR matrix
-                A_cu = cfd_utils.sparse.csr_matrix((values, indices, indptr), shape=self.L.shape)
+                # # Construct a CuPy CSR matrix
+                # A_cu = cfd_utils.sparse.csr_matrix((values, indices, indptr), shape=self.L.shape)
 
                 # Upload to AMGX
-                self.A_amgx.upload_CSR(A_cu)
+                self.A_amgx.upload_CSR(self.L)
 
                 # Build AMG hierarchy (only done once as our sparsity never changes here)
                 self.linear_solver.setup(self.A_amgx)
@@ -788,13 +843,15 @@ class VectorizedCFDStage(analysis_stage.AnalysisStage):
                 self.x_amgx.upload(xp.zeros_like(rhs))
 
                 # Solve and get convergence status
+                self.A_amgx.upload_CSR(self.L)
+                self.linear_solver.setup(self.A_amgx)
                 self.linear_solver.solve(self.b_amgx, self.x_amgx)
                 is_converged = self.linear_solver.get_residual() <= self.pressure_tolerance
 
                 return self.x_amgx.download(), is_converged
             else:
                 # Solve and get convergence status
-                sol, status = cfd_utils.sparse_linalg.cg(self.L, rhs, tol=self.pressure_tolerance)
+                sol, status = cfd_utils.sparse_linalg.cg(self.L, rhs, rtol=self.pressure_tolerance)
                 is_converged = status == 0 # Note that the status is 0 if the solver converged
 
                 return sol, is_converged

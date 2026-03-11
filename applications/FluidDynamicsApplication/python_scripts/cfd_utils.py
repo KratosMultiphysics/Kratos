@@ -4,7 +4,7 @@ import KratosMultiphysics as KM
 
 # Configuration flag for backend selection
 # This can be changed to True to use CuPy if available
-USE_CUPY = False #True
+USE_CUPY = True 
 
 # Precision configuration
 PRECISION = np.float64
@@ -443,12 +443,13 @@ class CFDUtils:
             A.value_data().fill(0.0)
             self.AssembleVector(csr_indices.ravel(), LHSel.ravel(), A.value_data())
 
-    def ApplyHomogeneousDirichlet(self, fixed_values, LHS, RHS, diag_value=1.0):
+    def GetScalarMatrixDirichletIndices(self, fixed_values, LHS):
         """
-        Applies homogeneous Dirichlet BCs (value=0) to a CSR matrix and RHS.
-        Maintains symmetry by zeroing both rows and columns of fixed indices.
+        Returns the indices to apply the sparse matrix BCs
+        Note that BCs are applied in a block-based manner
         """
 
+        # Get sparse matrix vectors
         if USE_CUPY:
             n = LHS.shape[0]
             data = LHS.data
@@ -473,16 +474,36 @@ class CFDUtils:
         mask_row = is_fixed[row_map]
         mask_col = is_fixed[indices]
 
-        # 4. Zero out the "Symmetry Cross" (all entries in fixed rows OR columns)
+        # 4. Get the indices of the fixed entries (all entries in fixed rows or columns)
         # This is the most expensive step, done in a single vectorized pass
-        data[mask_row | mask_col] = 0.0
+        csr_data_mask = mask_row | mask_col
+        csr_data_indices = xp.nonzero(csr_data_mask)[0].astype(xp.int32)
+        
+        # 5. Get the indices of the diagonal entries (only the indices in the fixed rows diagonal)
+        csr_diag_mask = (row_map == indices) & mask_row
+        csr_diag_indices = xp.nonzero(csr_diag_mask)[0].astype(xp.int32)
 
-        # 5. Restore the diagonal for the fixed rows
-        # A diagonal entry is where row_index == column_index
-        mask_diag = (row_map == indices) & mask_row
-        data[mask_diag] = diag_value
+        return csr_data_indices, csr_diag_indices
 
-        # 6. Set RHS to 0 at fixed indices
-        RHS[fixed_values] = 0.0
+    def ApplyHomogeneousDirichlet(self, fixed_values, csr_data_indices, csr_diag_indices, LHS, RHS, diag_value=1.0):
+        """
+        Applies homogeneous Dirichlet BCs (value=0) to a CSR matrix and RHS.
+        Maintains symmetry by zeroing both rows and columns of fixed indices.
+        """
+
+        # Get sparse matrix value vector
+        if USE_CUPY:
+            data = LHS.data
+        else:
+            data = LHS.value_data()
+
+        # Make zero all fixed value entries
+        xp.put(data, csr_data_indices, 0.0)
+
+        # Restore the diagonal for the fixed rows
+        xp.put(data, csr_diag_indices, diag_value)
+
+        # Set RHS to 0 at fixed indices
+        xp.put(RHS, fixed_values, 0.0)
 
         return LHS, RHS
