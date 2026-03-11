@@ -90,7 +90,7 @@
         "kratos_module": "KratosMultiphysics.GeoMechanicsApplication",
         "process_name": "ApplyVectorConstraintTableProcess",
         "Parameters": {
-          "model_part_name": ["PorousDomain.Bottom_Fixed", "PorousDomain.Strut_Support"],
+          "model_part_name_list": ["PorousDomain.Bottom_Fixed", "PorousDomain.Strut_Support"],
           "variable_name": "DISPLACEMENT",
           "active": [
             true,

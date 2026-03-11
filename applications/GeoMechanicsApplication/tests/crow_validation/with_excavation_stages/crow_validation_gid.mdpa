@@ -1659,7 +1659,7 @@ Begin Conditions LineLoadCondition2D3N
 End Conditions
 
 Begin Conditions LineNormalLoadDiffOrderCondition2D3N
-  12 0 758 783 770
+  12 0 1050 783 770
   13 0 783 819 802
   14 0 819 847 831
   15 0 847 877 863
@@ -1683,7 +1683,7 @@ Begin Conditions LineNormalLoadDiffOrderCondition2D3N
   33 0 834 771 811
   34 0 771 712 748
   35 0 712 676 696
-  36 0 676 648 659
+  36 0 676 1054 659
   37 0 778 758 768
   38 0 544 579 560
   39 0 579 615 597
@@ -5413,6 +5413,7 @@ Begin SubModelPart Normal_Load_After_First_Excavation
     1033
     1038
     1042
+    1050
   End SubModelPartNodes
   Begin SubModelPartConditions
     12
@@ -5526,6 +5527,7 @@ Begin SubModelPart Normal_Load_After_Second_Excavation
     1021
     1029
     1035
+    1054
   End SubModelPartNodes
   Begin SubModelPartConditions
     24
