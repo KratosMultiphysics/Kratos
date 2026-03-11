@@ -201,7 +201,7 @@ void ApplyCPhiReductionProcess::InitializeParametersForInternalMohrCoulombModel(
     const auto  dummy_geometry = Geometry<Node>{};
     const auto  dummy_vector   = Vector();
     for (auto& p_law : constitutive_laws) {
-        if (auto p_mohr_coulomb = dynamic_cast<MohrCoulombWithTensionCutOff*>(p_law.get())) {
+        if (const auto p_mohr_coulomb = dynamic_cast<MohrCoulombWithTensionCutOff*>(p_law.get())) {
             p_mohr_coulomb->InitializeMaterial(r_properties, dummy_geometry, dummy_vector);
         }
     }
