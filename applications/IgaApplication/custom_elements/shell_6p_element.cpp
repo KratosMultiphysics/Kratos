@@ -343,8 +343,8 @@ namespace Kratos
                     CalculateAndAddK(rLeftHandSideMatrix, rKm, rKd, integration_weight,
                         mGaussIntegrationThickness.integration_weight_thickness(Gauss_index));
 
-                    CalculateAndAddNonlinearKm(rLeftHandSideMatrix, B_Geometric,stress_matrix,
-                       integration_weight, mGaussIntegrationThickness.integration_weight_thickness(Gauss_index));
+                    // CalculateAndAddNonlinearKm(rLeftHandSideMatrix, B_Geometric,stress_matrix,
+                    //    integration_weight, mGaussIntegrationThickness.integration_weight_thickness(Gauss_index));
                 }
                 
                 if (CalculateResidualVectorFlag == true) //calculation of the matrix is required
