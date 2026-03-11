@@ -57,7 +57,7 @@ auto CreateThreePlusThreeSurfaceInterfaceGeometry()
 
 namespace Kratos::Testing
 {
-KRATOS_TEST_CASE_IN_SUITE(Line2DInterfaceStressState_CloneCreatesCorrectInstance, KratosGeoMechanicsFastSuiteWithoutKernel)
+TEST_F(KratosGeoMechanicsFastSuiteWithoutKernel, Line2DInterfaceStressState_CloneCreatesCorrectInstance)
 {
     const std::unique_ptr<StressStatePolicy> p_stress_state_policy =
         std::make_unique<Line2DInterfaceStressState>();

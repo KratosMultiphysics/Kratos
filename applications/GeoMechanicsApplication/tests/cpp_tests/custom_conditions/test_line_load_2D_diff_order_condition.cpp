@@ -17,10 +17,11 @@
 #include "geometries/line_2d_3.h"
 #include "includes/stream_serializer.h"
 #include "test_setup_utilities/element_setup_utilities.hpp"
-#include "tests/cpp_tests/geo_mechanics_fast_suite.h"
 #include "tests/cpp_tests/geo_mechanics_fast_suite_without_kernel.h"
 
 #include <string>
+
+#include "custom_conditions/line_load_2D_diff_order_condition.h"
 
 using namespace std::string_literals;
 
