@@ -31,7 +31,7 @@ class ResponseRoutine:
         """
         # create the required physical control fields to compute gradients
         self.__response.Initialize()
-        self.__required_physical_gradients = self.__master_control.GetPhysicalKratosVariableCombinedTensorAdaptorsMap()
+        self.__required_physical_gradients = self.__master_control.GetPhysicalKratosVariableMap()
 
         # now check which are the dependent physical space variables for the response, if not then remove
         # that variable
