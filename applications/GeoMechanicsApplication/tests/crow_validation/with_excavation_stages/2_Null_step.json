@@ -3,8 +3,8 @@
     "problem_name": "crow_validation_gid",
     "parallel_type": "OpenMP",
     "echo_level": 1,
-    "start_time": 3.0,
-    "end_time": 4.0
+    "start_time": -1.0,
+    "end_time": 0.0
   },
   "solver_settings": {
     "time_stepping": {
@@ -90,7 +90,7 @@
         "kratos_module": "KratosMultiphysics.GeoMechanicsApplication",
         "process_name": "ApplyVectorConstraintTableProcess",
         "Parameters": {
-          "model_part_name": ["PorousDomain.Bottom_Fixed", "PorousDomain.Strut_Support"],
+          "model_part_name": "PorousDomain.Bottom_Fixed",
           "variable_name": "DISPLACEMENT",
           "active": [
             true,
@@ -157,108 +157,36 @@
           "reference_coordinate": -1.5,
           "specific_weight": 10000.0
         }
+      },
+      {
+        "python_module": "assign_master_slave_constraints_to_neighbours_process",
+        "kratos_module": "KratosMultiphysics",
+        "process_name": "AssignMasterSlaveConstraintsToNeighboursUtility",
+        "Parameters": {
+          "model_part_name": "PorousDomain.porous_computational_model_part",
+          "variable_names": [
+            "DISPLACEMENT",
+            "WATER_PRESSURE"
+          ],
+          "minimum_number_of_neighbouring_nodes": 2,
+          "reform_constraints_at_each_step": true,
+          "master_model_part_name": "PorousDomain.Master_side_1",
+          "slave_model_part_name": "PorousDomain.Slave_side_1",
+          "search_radius": 0.01
+        }
       }
     ],
     "loads_process_list": [
       {
-        "python_module": "assign_vector_by_direction_process",
-        "kratos_module": "KratosMultiphysics",
-        "check": "DirectorVectorNonZero direction",
-        "process_name": "AssignVectorByDirectionProcess",
-        "Parameters": {
-          "model_part_name": "PorousDomain.Gravity",
-          "variable_name": "VOLUME_ACCELERATION",
-          "active": [
-            false,
-            true,
-            false
-          ],
-          "value": [
-            0.0,
-            -9.81,
-            0.0
-          ],
-          "table": [
-            0,
-            0,
-            0
-          ]
-        }
-      },{
         "python_module": "apply_vector_constraint_table_process",
         "kratos_module": "KratosMultiphysics.GeoMechanicsApplication",
         "process_name" : "ApplyVectorConstraintTableProcess",
         "Parameters"   : {
-          "model_part_name": "PorousDomain.Load",
-          "variable_name"  : "LINE_LOAD",
+          "model_part_name": "PorousDomain.Gravity",
+          "variable_name"  : "VOLUME_ACCELERATION",
           "active"         : [false, true, false],
-          "value"          : [0.0, -20000.0, 0.0],
+          "value"          : [0.0, -9.81, 0.0],
           "table"          : [0, 0, 0]
-        }
-      },{
-        "python_module": "apply_normal_load_table_process",
-        "kratos_module": "KratosMultiphysics.GeoMechanicsApplication",
-        "process_name" : "apply_normal_load_table_process",
-        "Parameters"   : {
-          "model_part_name"     : "PorousDomain.Normal_Load_After_Second_Excavation",
-          "variable_name"       : "NORMAL_CONTACT_STRESS",
-          "active"              : [true, false],
-          "value"               : [0.0, 0.0],
-          "fluid_pressure_type" : "Hydrostatic",
-          "gravity_direction"   : 1,
-          "reference_coordinate": -1.5,
-          "specific_weight"     : 10000.0,
-          "table"               : [0, 0]
-        }
-      }
-    ],
-    "auxiliary_process_list"  : [
-      {
-        "python_module": "apply_excavation_process",
-        "kratos_module": "KratosMultiphysics.GeoMechanicsApplication",
-        "process_name" : "apply_excavation_process",
-        "Parameters"   : {
-          "model_part_name_list": [
-            "PorousDomain.Excavated_Soil_2",
-            "PorousDomain.Interface_Excavated_Soil_2"
-          ],
-          "deactivate_soil_part": true
-        }
-      },{
-        "python_module": "apply_final_stresses_of_previous_stage_to_initial_state",
-        "kratos_module": "KratosMultiphysics.GeoMechanicsApplication",
-        "process_name" : "ApplyFinalStressesOfPreviousStageToInitialState",
-        "Parameters"   : {
-          "model_part_name_list": [
-            "PorousDomain.Interfaces_Right",
-            "PorousDomain.Interface_Excavated_Soil_3",
-            "PorousDomain.Interfaces_Bottom_Left",
-            "PorousDomain.Beam"
-          ]
-        }
-      },
-      {
-        "python_module": "geo_extrapolate_integration_point_values_to_nodes_process",
-        "kratos_module": "KratosMultiphysics.GeoMechanicsApplication",
-        "process_name": "GeoExtrapolateIntegrationPointValuesToNodesProcess",
-        "Parameters": {
-          "model_part_name": "PorousDomain.Beam",
-          "list_of_variables": [
-            "AXIAL_FORCE",
-            "BENDING_MOMENT",
-            "SHEAR_FORCE"
-          ]
-        }
-      },
-      {
-        "python_module": "geo_extrapolate_integration_point_values_to_nodes_process",
-        "kratos_module": "KratosMultiphysics.GeoMechanicsApplication",
-        "process_name": "GeoExtrapolateIntegrationPointValuesToNodesProcess",
-        "Parameters": {
-          "model_part_name_list": [
-            "PorousDomain.Interfaces_Right"
-          ],
-          "list_of_variables": ["GEO_EFFECTIVE_TRACTION_VECTOR"]
         }
       }
     ]
@@ -289,24 +217,17 @@
               "nodal_results": [
                 "DISPLACEMENT",
                 "TOTAL_DISPLACEMENT",
-                "ROTATION",
                 "WATER_PRESSURE",
-                "REACTION",
-                "AXIAL_FORCE",
-                "BENDING_MOMENT",
-                "SHEAR_FORCE"
+                "REACTION"
               ],
               "gauss_point_results": [
                 "CAUCHY_STRESS_TENSOR",
                 "TOTAL_STRESS_TENSOR",
-                "ENGINEERING_STRAIN_TENSOR",
-                "AXIAL_FORCE",
-                "BENDING_MOMENT",
-                "SHEAR_FORCE"
+                "ENGINEERING_STRAIN_TENSOR"
               ]
             }
           },
-          "output_name": "gid_output/crow_validation_gid_Stage_6"
+          "output_name": "gid_output/crow_validation_gid_Stage_2"
         }
       }
     ]

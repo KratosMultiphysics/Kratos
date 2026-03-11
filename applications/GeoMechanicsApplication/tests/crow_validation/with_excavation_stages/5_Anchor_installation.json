@@ -161,28 +161,15 @@
     ],
     "loads_process_list": [
       {
-        "python_module": "assign_vector_by_direction_process",
-        "kratos_module": "KratosMultiphysics",
-        "check": "DirectorVectorNonZero direction",
-        "process_name": "AssignVectorByDirectionProcess",
-        "Parameters": {
+        "python_module": "apply_vector_constraint_table_process",
+        "kratos_module": "KratosMultiphysics.GeoMechanicsApplication",
+        "process_name" : "ApplyVectorConstraintTableProcess",
+        "Parameters"   : {
           "model_part_name": "PorousDomain.Gravity",
-          "variable_name": "VOLUME_ACCELERATION",
-          "active": [
-            false,
-            true,
-            false
-          ],
-          "value": [
-            0.0,
-            -9.81,
-            0.0
-          ],
-          "table": [
-            0,
-            0,
-            0
-          ]
+          "variable_name"  : "VOLUME_ACCELERATION",
+          "active"         : [false, true, false],
+          "value"          : [0.0, -9.81, 0.0],
+          "table"          : [0, 0, 0]
         }
       },{
         "python_module": "apply_vector_constraint_table_process",
