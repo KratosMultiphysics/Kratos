@@ -128,14 +128,14 @@ class VertexMorphingShapeControl(Control):
         return physical_shape_field
 
     @time_decorator(methodName="GetName")
-    def MapGradient(self, physical_gradient_variable_tensor_adaptor_map: 'dict[SupportedSensitivityFieldVariableTypes, Kratos.TensorAdaptors.DoubleTensorAdaptor]') -> Kratos.TensorAdaptors.DoubleTensorAdaptor:
-        keys = physical_gradient_variable_tensor_adaptor_map.keys()
+    def MapGradient(self, physical_variable_gradient_map: 'dict[SupportedSensitivityFieldVariableTypes, Kratos.TensorAdaptors.DoubleTensorAdaptor]') -> Kratos.TensorAdaptors.DoubleTensorAdaptor:
+        keys = physical_variable_gradient_map.keys()
         if len(keys) != 1:
             raise RuntimeError(f"Provided more than required gradient fields for control \"{self.GetName()}\". Following are the variables:\n\t" + "\n\t".join([k.Name() for k in keys]))
         if KratosOA.SHAPE not in keys:
             raise RuntimeError(f"The required gradient for control \"{self.GetName()}\" w.r.t. {KratosOA.SHAPE.Name()} not found. Followings are the variables:\n\t" + "\n\t".join([k.Name() for k in keys]))
 
-        physical_gradient = physical_gradient_variable_tensor_adaptor_map[KratosOA.SHAPE]
+        physical_gradient = physical_variable_gradient_map[KratosOA.SHAPE]
         if physical_gradient.GetContainer() != self.__GetPhysicalModelPart().Nodes:
             raise RuntimeError(f"Gradients for the required element container not found for control \"{self.GetName()}\". [ required model part name: {self.model_part.FullName()}, given model part name: {physical_gradient.GetModelPart().FullName()} ]")
 

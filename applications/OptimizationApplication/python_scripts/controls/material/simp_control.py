@@ -161,18 +161,18 @@ class SimpControl(Control):
     def GetControlField(self) -> Kratos.TensorAdaptors.DoubleTensorAdaptor:
         return Kratos.TensorAdaptors.DoubleTensorAdaptor(self.control_phi) # returning a copy
 
-    def MapGradient(self, physical_gradient_variable_tensor_adaptor_map: 'dict[SupportedSensitivityFieldVariableTypes, Kratos.TensorAdaptors.DoubleTensorAdaptor]') -> Kratos.TensorAdaptors.DoubleTensorAdaptor:
-        keys = physical_gradient_variable_tensor_adaptor_map.keys()
+    def MapGradient(self, physical_variable_gradient_map: 'dict[SupportedSensitivityFieldVariableTypes, Kratos.TensorAdaptors.DoubleTensorAdaptor]') -> Kratos.TensorAdaptors.DoubleTensorAdaptor:
+        keys = physical_variable_gradient_map.keys()
         if len(keys) != 2:
             raise RuntimeError(f"Not provided required gradient fields for control \"{self.GetName()}\". Following are the variables:\n\t" + "\n\t".join([k.Name() for k in keys]))
         if  Kratos.DENSITY not in keys or Kratos.YOUNG_MODULUS not in keys:
             raise RuntimeError(f"The required gradient for control \"{self.GetName()}\" w.r.t. DENSITY or YOUNG_MODULUS not found. Followings are the variables:\n\t" + "\n\t".join([k.Name() for k in keys]))
 
         # first calculate the density partial sensitivity of the response function
-        d_j_d_density = physical_gradient_variable_tensor_adaptor_map[Kratos.DENSITY]
+        d_j_d_density = physical_variable_gradient_map[Kratos.DENSITY]
 
         # second calculate the young modulus partial sensitivity of the response function
-        d_j_d_youngs = physical_gradient_variable_tensor_adaptor_map[Kratos.YOUNG_MODULUS]
+        d_j_d_youngs = physical_variable_gradient_map[Kratos.YOUNG_MODULUS]
 
         # now compute response function total sensitivity w.r.t. phi
         d_j_d_phi = Kratos.TensorAdaptors.DoubleTensorAdaptor(d_j_d_density)
