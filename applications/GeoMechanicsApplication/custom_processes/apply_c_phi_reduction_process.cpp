@@ -15,8 +15,8 @@
 // Project includes
 #include "custom_processes/apply_c_phi_reduction_process.h"
 #include "containers/model.h"
+#include "custom_constitutive/mohr_coulomb_with_tension_cutoff.h"
 #include "custom_constitutive/small_strain_udsm_law.h"
-#include "custom_elements/U_Pw_base_element.h"
 #include "custom_utilities/check_utilities.hpp"
 #include "custom_utilities/constitutive_law_utilities.h"
 #include "custom_utilities/process_utilities.h"
@@ -31,16 +31,23 @@ using namespace std::string_literals;
 namespace
 {
 
-bool IsUdsmModel(const Properties& rProperties)
+bool UsesUmatParameters(const Properties& rProperties)
 {
-    if (!rProperties.Has(CONSTITUTIVE_LAW)) {
-        return false;
-    }
+    KRATOS_ERROR_IF_NOT(rProperties.Has(CONSTITUTIVE_LAW))
+        << "Properties do not have CONSTITUTIVE_LAW" << std::endl;
 
-    const auto& p_constitutive_law = rProperties[CONSTITUTIVE_LAW];
-    return dynamic_cast<const SmallStrainUDSMLaw*>(p_constitutive_law.get()) != nullptr;
+    const auto law_name = rProperties[CONSTITUTIVE_LAW]->Info();
+    return law_name.find("UMAT") != std::string::npos || law_name.find("UDSM") != std::string::npos;
 }
 
+bool UsesInternalMohrCoulombModel(const Element& rElement)
+{
+    KRATOS_ERROR_IF_NOT(rElement.GetProperties().Has(CONSTITUTIVE_LAW))
+        << "Properties do not have CONSTITUTIVE_LAW" << std::endl;
+
+    return dynamic_cast<const MohrCoulombWithTensionCutOff*>(
+               rElement.GetProperties()[CONSTITUTIVE_LAW].get()) != nullptr;
+}
 } // namespace
 
 ApplyCPhiReductionProcess::ApplyCPhiReductionProcess(Model& rModel, const Parameters& rProcessSettings)
@@ -115,7 +122,7 @@ int ApplyCPhiReductionProcess::Check()
             auto                  r_properties = r_element.GetProperties();
             const CheckProperties check_properties(r_properties, "model part property",
                                                    CheckProperties::Bounds::AllInclusive);
-            if (IsUdsmModel(r_properties)) {
+            if (UsesUmatParameters(r_properties)) {
                 check_properties.CheckAvailability(UMAT_PARAMETERS);
                 check_properties.Check(INDEX_OF_UMAT_PHI_PARAMETER, 1,
                                        static_cast<int>(r_properties[UMAT_PARAMETERS].size()));
@@ -167,7 +174,7 @@ void ApplyCPhiReductionProcess::SetCPhiAtElement(Element& rElement, double Reduc
     const auto&         r_properties     = rElement.GetProperties();
     Properties::Pointer p_new_properties = Kratos::make_shared<Properties>(r_properties);
 
-    if (IsUdsmModel(r_properties)) {
+    if (UsesUmatParameters(r_properties)) {
         // Overwrite C and Phi in the UMAT_PARAMETERS
         auto umat_parameters = r_properties[UMAT_PARAMETERS];
         umat_parameters[r_properties[INDEX_OF_UMAT_PHI_PARAMETER] - 1] = ReducedPhi;
@@ -179,15 +186,26 @@ void ApplyCPhiReductionProcess::SetCPhiAtElement(Element& rElement, double Reduc
     }
     rElement.SetProperties(p_new_properties);
 
-    InitializeParametersForInternalMohrCoulombModel(rElement);
+    if (UsesInternalMohrCoulombModel(rElement))
+        InitializeParametersForInternalMohrCoulombModel(rElement);
 }
 
 void ApplyCPhiReductionProcess::InitializeParametersForInternalMohrCoulombModel(Element& rElement)
 {
-    // Due to current implementation of the internal Mohr-Coulomb model, this function initializes material properties in it.
-    if (auto p_upw_base_element = dynamic_cast<UPwBaseElement*>(&rElement)) {
-        p_upw_base_element->InitializeParametersForInternalMohrCoulombModel();
+    KRATOS_TRY
+    // Due to current implementation of the internal Mohr-Coulomb model, this function re-initializes material properties in it.
+    std::vector<ConstitutiveLaw::Pointer> constitutive_laws;
+    const ProcessInfo                     dummy_process_info;
+    rElement.CalculateOnIntegrationPoints(CONSTITUTIVE_LAW, constitutive_laws, dummy_process_info);
+    const auto& r_properties   = rElement.GetProperties();
+    const auto  dummy_geometry = Geometry<Node>{};
+    const auto  dummy_vector   = Vector();
+    for (auto& p_law : constitutive_laws) {
+        if (auto p_mohr_coulomb = dynamic_cast<MohrCoulombWithTensionCutOff*>(p_law.get())) {
+            p_mohr_coulomb->InitializeMaterial(r_properties, dummy_geometry, dummy_vector);
+        }
     }
+    KRATOS_CATCH("")
 }
 
 bool ApplyCPhiReductionProcess::IsStepRestarted() const

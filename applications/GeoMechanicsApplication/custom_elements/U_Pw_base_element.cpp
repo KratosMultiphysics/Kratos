@@ -304,24 +304,6 @@ void UPwBaseElement::SetValuesOnIntegrationPoints(const Variable<double>&    rVa
     KRATOS_CATCH("")
 }
 
-void UPwBaseElement::InitializeParametersForInternalMohrCoulombModel()
-{
-    // this function is used in ApplyCPhiReductionProcess to update material properties in the internal Mohr-Coulomb model
-    KRATOS_TRY
-
-    const auto& properties     = this->GetProperties();
-    const auto  dummy_geometry = Geometry<Node>{};
-    const auto  dummy_vector   = Vector();
-    for (unsigned int i = 0; i < mConstitutiveLawVector.size(); ++i) {
-        if (auto p_mohr_coulomb =
-                dynamic_cast<MohrCoulombWithTensionCutOff*>(mConstitutiveLawVector[i].get())) {
-            p_mohr_coulomb->InitializeMaterial(properties, dummy_geometry, dummy_vector);
-        }
-    }
-
-    KRATOS_CATCH("")
-}
-
 void UPwBaseElement::CalculateOnIntegrationPoints(const Variable<ConstitutiveLaw::Pointer>& rVariable,
                                                   std::vector<ConstitutiveLaw::Pointer>& rValues,
                                                   const ProcessInfo& rCurrentProcessInfo)
