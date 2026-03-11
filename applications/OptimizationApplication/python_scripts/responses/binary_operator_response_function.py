@@ -68,17 +68,17 @@ class BinaryOperatorResponseFunction(ResponseFunction):
         elif self.binary_operator == BinaryOperator.POWER:
             return v1 ** v2
 
-    def CalculateGradient(self, physical_variable_combined_tensor_adaptor: 'dict[SupportedSensitivityFieldVariableTypes, Kratos.TensorAdaptors.DoubleCombinedTensorAdaptor]') -> None:
+    def CalculateGradient(self, physical_variable_gradient_map: 'dict[SupportedSensitivityFieldVariableTypes, Kratos.TensorAdaptors.DoubleCombinedTensorAdaptor]') -> None:
         v1 = EvaluateValue(self.response_function_1, self.optimization_problem)
         v2 = EvaluateValue(self.response_function_2, self.optimization_problem)
 
-        resp_1_gradients = {variable: Kratos.TensorAdaptors.DoubleCombinedTensorAdaptor(cta) for variable, cta in physical_variable_combined_tensor_adaptor.items()}
+        resp_1_gradients = {variable: Kratos.TensorAdaptors.DoubleCombinedTensorAdaptor(cta) for variable, cta in physical_variable_gradient_map.items()}
         EvaluateGradient(self.response_function_1, resp_1_gradients, self.optimization_problem)
 
-        resp_2_gradients = {variable: Kratos.TensorAdaptors.DoubleCombinedTensorAdaptor(cta) for variable, cta in physical_variable_combined_tensor_adaptor.items()}
+        resp_2_gradients = {variable: Kratos.TensorAdaptors.DoubleCombinedTensorAdaptor(cta) for variable, cta in physical_variable_gradient_map.items()}
         EvaluateGradient(self.response_function_2, resp_2_gradients, self.optimization_problem)
 
-        for variable, result_cta in physical_variable_combined_tensor_adaptor.items():
+        for variable, result_cta in physical_variable_gradient_map.items():
             g1_cta = resp_1_gradients[variable]
             g2_cta = resp_2_gradients[variable]
             if self.binary_operator == BinaryOperator.ADD:

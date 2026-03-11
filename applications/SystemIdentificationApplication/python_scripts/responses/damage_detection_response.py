@@ -131,9 +131,9 @@ class DamageDetectionResponse(ResponseFunction):
 
         return result
 
-    def CalculateGradient(self, physical_variable_combined_tensor_adaptor: 'dict[SupportedSensitivityFieldVariableTypes, Kratos.TensorAdaptors.DoubleCombinedTensorAdaptor]') -> None:
+    def CalculateGradient(self, physical_variable_gradient_map: 'dict[SupportedSensitivityFieldVariableTypes, Kratos.TensorAdaptors.DoubleCombinedTensorAdaptor]') -> None:
         # make everything zeros
-        for physical_variable, cta in physical_variable_combined_tensor_adaptor.items():
+        for physical_variable, cta in physical_variable_gradient_map.items():
             cta.data[:] = 0.0
             Kratos.TensorAdaptors.DoubleCombinedTensorAdaptor(cta, perform_store_data_recursively=False, copy=False).StoreData()
 
@@ -147,7 +147,7 @@ class DamageDetectionResponse(ResponseFunction):
             self.adjoint_analysis._GetSolver().GetComputingModelPart().ProcessInfo[Kratos.STEP] = self.optimization_problem.GetStep()
             self.adjoint_analysis.CalculateGradient(self.damage_response_function)
 
-            for physical_variable, cta in physical_variable_combined_tensor_adaptor.items():
+            for physical_variable, cta in physical_variable_gradient_map.items():
                 sensitivity_variable = Kratos.KratosGlobals.GetVariable(Kratos.SensitivityUtilities.GetSensitivityVariableName(physical_variable))
                 for ta in cta.GetTensorAdaptors():
                     current_gradient = ta.Clone()

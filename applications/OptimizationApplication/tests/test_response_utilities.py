@@ -38,9 +38,9 @@ class TestResponseFunctionWrapper(ResponseFunction):
         self.calculate_value_calls += 1
         return self.response_function.CalculateValue()
 
-    def CalculateGradient(self, physical_variable_combined_tensor_adaptor: 'dict[SupportedSensitivityFieldVariableTypes, Kratos.TensorAdaptors.DoubleCombinedTensorAdaptor]') -> None:
+    def CalculateGradient(self, physical_variable_gradient_map: 'dict[SupportedSensitivityFieldVariableTypes, Kratos.TensorAdaptors.DoubleCombinedTensorAdaptor]') -> None:
         self.calculate_gradient_calls += 1
-        return self.response_function.CalculateGradient(physical_variable_combined_tensor_adaptor)
+        return self.response_function.CalculateGradient(physical_variable_gradient_map)
 
 class TestResponseUtilities(kratos_unittest.TestCase):
     @classmethod
