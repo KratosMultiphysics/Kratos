@@ -175,8 +175,7 @@ TEST_F(KratosGeoMechanicsFastSuiteWithoutKernel, ConstitutiveLawUtilities_CheckS
     EXPECT_NO_THROW(ConstitutiveLawUtilities::CheckHasStrainMeasure_Infinitesimal(properties, element_id));
 }
 
-KRATOS_TEST_CASE_IN_SUITE(ConstitutiveLawUtilities_CalculateK0NCFromFrictionAngleInDegrees,
-                          KratosGeoMechanicsFastSuiteWithoutKernel)
+TEST_F(KratosGeoMechanicsFastSuiteWithoutKernel, ConstitutiveLawUtilities_CalculateK0NCFromFrictionAngleInDegrees)
 {
     EXPECT_NEAR(ConstitutiveLawUtilities::CalculateK0NCFromFrictionAngleInRadians(MathUtils<>::DegreesToRadians(30.0)),
                 0.5, Defaults::absolute_tolerance);

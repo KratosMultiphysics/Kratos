@@ -15,6 +15,7 @@
 #include "geo_mechanics_application_variables.h"
 #include "geometries/line_2d_2.h"
 #include "geometries/line_3d_2.h"
+#include "includes/cfd_variables.h"
 #include "includes/expect.h"
 #include "includes/model_part.h"
 #include "tests/cpp_tests/geo_mechanics_fast_suite_without_kernel.h"

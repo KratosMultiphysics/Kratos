@@ -228,7 +228,7 @@ TEST_F(KratosGeoMechanicsFastSuiteWithoutKernel, CheckCalculatePrincipalStresses
     KRATOS_EXPECT_MATRIX_NEAR(actual_rotation_matrix, expected_rotation_matrix, Defaults::absolute_tolerance)
 }
 
-KRATOS_TEST_CASE_IN_SUITE(CheckCalculatePrincipalStressesAndRotationMatrix, KratosGeoMechanicsFastSuiteWithoutKernel)
+TEST_F(KratosGeoMechanicsFastSuiteWithoutKernel, CheckCalculatePrincipalStressesAndRotationMatrix)
 {
     // Arrange
     const auto cauchy_stresses = UblasUtilities::CreateVector({80.0, 50.0, 20.0, 40.0, 35.0, 45.0});
@@ -250,7 +250,7 @@ KRATOS_TEST_CASE_IN_SUITE(CheckCalculatePrincipalStressesAndRotationMatrix, Krat
     KRATOS_EXPECT_MATRIX_NEAR(actual_rotation_matrix, expected_rotation_matrix, Defaults::absolute_tolerance)
 }
 
-KRATOS_TEST_CASE_IN_SUITE(CheckTransformPrincipalStressesToPandQ, KratosGeoMechanicsFastSuiteWithoutKernel)
+TEST_F(KratosGeoMechanicsFastSuiteWithoutKernel, CheckTransformPrincipalStressesToPandQ)
 {
     const auto principal_stresses = Geo::PrincipalStresses{30.0, 20.0, 10.0};
     const auto p_q = StressStrainUtilities::TransformPrincipalStressesToPandQ(principal_stresses);
