@@ -45,6 +45,8 @@ public:
     [[nodiscard]] double YieldFunctionValue(const Geo::PrincipalStresses& rPrincipalStresses) const;
     [[nodiscard]] double YieldFunctionValue(const Geo::SigmaTau&) const;
     [[nodiscard]] Vector DerivativeOfFlowFunction(const Geo::PQ& rPQ) const;
+    [[nodiscard]] Vector DerivativeOfFlowFunction(const Geo::PrincipalStresses& rPrincipalStresses) const;
+
     double CalculatePlasticMultiplier(const Geo::PrincipalStresses& rPrincipalStresses,
                                       const Vector&                 rDerivativeOfFlowFunction,
                                       const Matrix&                 rElasticMatrix) const;

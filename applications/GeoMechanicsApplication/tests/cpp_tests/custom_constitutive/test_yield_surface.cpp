@@ -238,6 +238,10 @@ KRATOS_TEST_CASE_IN_SUITE(TestCompressionCapYieldSurface, KratosGeoMechanicsFast
     KRATOS_EXPECT_NEAR(CompressionCapYieldSurface{material_properties}.YieldFunctionValue(p_q),
                        18.75, Defaults::absolute_tolerance);
 
+    principal_stress = Geo::PrincipalStresses{30.0, 20.0, 10.0};
+    KRATOS_EXPECT_NEAR(CompressionCapYieldSurface{material_properties}.YieldFunctionValue(principal_stress),
+                       18.75, Defaults::absolute_tolerance);
+
     material_properties[K0_NC] = 1.0 / 25.0; // overrule the compression cap size calculated from the friction angle
     principal_stress = Geo::PrincipalStresses{20.0, 15.0, 10.0};
     p_q              = StressStrainUtilities::TransformPrincipalStressesToPandQ(principal_stress);
@@ -258,6 +262,11 @@ KRATOS_TEST_CASE_IN_SUITE(TestCompressionCapYieldSurface, KratosGeoMechanicsFast
     p_q              = StressStrainUtilities::TransformPrincipalStressesToPandQ(principal_stress);
     expected_derivative = UblasUtilities::CreateVector({0.0, 11.25});
     KRATOS_EXPECT_VECTOR_NEAR(cap_yield_surface.DerivativeOfFlowFunction(p_q), expected_derivative,
+                              Defaults::absolute_tolerance);
+
+    principal_stress = Geo::PrincipalStresses{10, 0.0, -10};
+    expected_derivative = UblasUtilities::CreateVector({1.875, 0.0, -1.875});
+    KRATOS_EXPECT_VECTOR_NEAR(cap_yield_surface.DerivativeOfFlowFunction(principal_stress), expected_derivative,
                               Defaults::absolute_tolerance);
 }
 
