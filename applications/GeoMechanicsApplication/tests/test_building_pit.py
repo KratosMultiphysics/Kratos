@@ -705,7 +705,7 @@ class KratosGeoMechanicsBuildingPit(KratosUnittest.TestCase):
             delta=rel_tolerance * expected_total_vertical_reaction,
         )
 
-    def run_simulation_and_checks(self, sub_directory_name, expected_results):
+    def run_simulation_and_checks(self, sub_directory_name):
         project_path = test_helper.get_file_path(
             os.path.join("building_pit", sub_directory_name)
         )
@@ -783,6 +783,13 @@ class KratosGeoMechanicsBuildingPit(KratosUnittest.TestCase):
             self.stages_info["third_excavation"],
             expected_total_vertical_reaction,
         )
+
+        # Check some more expected results
+        with open(Path(project_path) / "expected_results.json") as f:
+            expected_results = json.load(f)["expected_results"]
+
+        # Stress-free installation of the strut has no impact on the results with respect to the previous stage
+        expected_results["strut_installation"] = expected_results["first_excavation"]
 
         reader = GiDOutputFileReader()
         rel_tolerance = 0.07
@@ -1013,154 +1020,7 @@ class KratosGeoMechanicsBuildingPit(KratosUnittest.TestCase):
         return [coord[1] for coord in coordinates]
 
     def test_simulation_with_linear_elastic_materials(self):
-        # Check the section forces in the diaphragm wall at the following positions:
-        #  y [m]   Node ID
-        #  20.0    8988
-        #  15.0    8351
-        #  10.0    7597
-        #   5.0    6867
-        #   0.0    6173
-        #  -5.0    5449
-        # -10.0    4768
-
-        # The expected values have been taken from the comparison data files (except for the end points, which are
-        # supposed to be zero)
-        # units: N, N·m
-        expected_results = {
-            "wall_installation": {
-                "BENDING_MOMENT": [
-                    {"node": 8988, "value": 0.0},
-                    {"node": 8351, "value": 7.03e3},
-                    {"node": 7597, "value": 3.83e3},
-                    {"node": 6867, "value": 0.621e3},
-                    {"node": 6173, "value": -1.58e3},
-                    {"node": 5449, "value": -0.414e3},
-                    {"node": 4768, "value": 0.0},
-                ],
-                "SHEAR_FORCE": [
-                    {"node": 8988, "value": 0.0},
-                    {"node": 8351, "value": -6.1},
-                    {"node": 7597, "value": 816.0},
-                    {"node": 6867, "value": 479.0},
-                    {"node": 6173, "value": 367.0},
-                    {"node": 5449, "value": -81.8},
-                    {"node": 4768, "value": 0.0},
-                ],
-                "AXIAL_FORCE": [
-                    {"node": 8988, "value": 0.0},
-                    {"node": 8351, "value": -52.5e3},
-                    {"node": 7597, "value": -100.0e3},
-                    {"node": 6867, "value": -143.0e3},
-                    {"node": 6173, "value": -181.5e3},
-                    {"node": 5449, "value": -138.0e3},
-                    {"node": 4768, "value": 0.0},
-                ],
-            },
-            "first_excavation": {
-                "BENDING_MOMENT": [
-                    {"node": 8988, "value": 0.0},
-                    {"node": 8351, "value": 30.5e3},
-                    {"node": 7597, "value": 91.8e3},
-                    {"node": 6867, "value": 57.8e3},
-                    {"node": 6173, "value": -51.6e3},
-                    {"node": 5449, "value": -9.25e3},
-                    {"node": 4768, "value": 0.0},
-                ],
-                "SHEAR_FORCE": [
-                    {"node": 8988, "value": 0.0},
-                    {"node": 8351, "value": -23.0e3},
-                    {"node": 7597, "value": -1.55e3},
-                    {"node": 6867, "value": 14.8e3},
-                    {"node": 6173, "value": 23.7e3},
-                    {"node": 5449, "value": -6.96e3},
-                    {"node": 4768, "value": 0.0},
-                ],
-                "AXIAL_FORCE": [
-                    {"node": 8988, "value": 0.0},
-                    {"node": 8351, "value": 27.8e3},
-                    {"node": 7597, "value": 59.3e3},
-                    {"node": 6867, "value": 58.1e3},
-                    {"node": 6173, "value": 31.7e3},
-                    {"node": 5449, "value": 20.9e3},
-                    {"node": 4768, "value": 0.0},
-                ],
-            },
-            "second_excavation": {
-                "BENDING_MOMENT": [
-                    {"node": 8988, "value": 0.0},
-                    {"node": 8351, "value": 309e3},
-                    {"node": 7597, "value": 91.6e3},
-                    {"node": 6867, "value": 49.0e3},
-                    {"node": 6173, "value": -179e3},
-                    {"node": 5449, "value": -16.1e3},
-                    {"node": 4768, "value": 0.0},
-                ],
-                "SHEAR_FORCE": [
-                    {"node": 8988, "value": 0.0},
-                    {"node": 8351, "value": -34.8e3},
-                    {"node": 7597, "value": 141.0e3},
-                    {"node": 6867, "value": 8.63e3},
-                    {"node": 6173, "value": 62.8e3},
-                    {"node": 5449, "value": -20.9e3},
-                    {"node": 4768, "value": 0.0},
-                ],
-                "AXIAL_FORCE": [
-                    {"node": 8988, "value": 0.0},
-                    {"node": 8351, "value": -51.9e3},
-                    {"node": 7597, "value": -116.5e3},
-                    {"node": 6867, "value": 118.0e3},
-                    {"node": 6173, "value": 164.0e3},
-                    {"node": 5449, "value": 169.0e3},
-                    {"node": 4768, "value": 0.0},
-                ],
-            },
-            "third_excavation": {
-                "BENDING_MOMENT": [
-                    {"node": 8988, "value": 0.0},
-                    {"node": 8351, "value": 533e3},
-                    {"node": 7597, "value": 828e3},
-                    {"node": 6867, "value": 586e3},
-                    {"node": 6173, "value": -885e3},
-                    {"node": 5449, "value": -180e3},
-                    {"node": 4768, "value": 0.0},
-                ],
-                "SHEAR_FORCE": [
-                    {"node": 8988, "value": 0.0},
-                    {"node": 8351, "value": -97.0e3},
-                    {"node": 7597, "value": -18.7e3},
-                    {"node": 6867, "value": 140.0e3},
-                    {"node": 6173, "value": 463.5e3},
-                    {"node": 5449, "value": -122.0e3},
-                    {"node": 4768, "value": 0.0},
-                ],
-                "AXIAL_FORCE": [
-                    {"node": 8988, "value": 0.0},
-                    {
-                        "node": 8351,
-                        "value": -32.0e3,
-                    },  # use regression value due to local deviation
-                    {
-                        "node": 7597,
-                        "value": -87.9e3,
-                    },  # use regression value due to local deviation
-                    {
-                        "node": 6867,
-                        "value": -195.5e3,
-                    },  # use regression value due to local deviation
-                    {
-                        "node": 6173,
-                        "value": -339.8e3,
-                    },  # use regression value due to local deviation
-                    {"node": 5449, "value": 65.7e3},
-                    {"node": 4768, "value": 0.0},
-                ],
-            },
-        }
-
-        # Stress-free installation of the strut has no impact on the results with respect to the previous stage
-        expected_results["strut_installation"] = expected_results["first_excavation"]
-
-        self.run_simulation_and_checks("linear_elastic", expected_results)
+        self.run_simulation_and_checks("linear_elastic")
 
 
 if __name__ == "__main__":
