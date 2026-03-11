@@ -11,8 +11,8 @@
 //                   Richard Faasse
 
 #include "containers/model.h"
-#include "test_setup_utilities/element_setup_utilities.h"
 #include "tests/cpp_tests/geo_mechanics_fast_suite_without_kernel.h"
+#include "test_setup_utilities/element_setup_utilities.hpp"
 
 namespace Kratos::Testing
 {

@@ -14,9 +14,8 @@
 
 // External includes
 
-#include "custom_constitutive/small_strain_umat_law.hpp"
-#include "constitutive_law_dimension.h"
-#include "custom_utilities/check_utilities.h"
+#include "custom_constitutive/small_strain_umat_law.h"
+#include "custom_utilities/check_utilities.hpp"
 #include "custom_utilities/constitutive_law_utilities.h"
 
 #ifdef KRATOS_COMPILED_IN_WINDOWS
@@ -29,6 +28,7 @@
 
 namespace Kratos
 {
+using namespace std::string_literals;
 
 #ifdef KRATOS_COMPILED_IN_WINDOWS
 using f_UMATMod = void(__stdcall*)(double*       STRESS,
@@ -111,16 +111,10 @@ using f_UMATMod = void (*)(double*       STRESS,
 #endif
 
 template <SizeType TVoigtSize>
-SmallStrainUMATLaw<TVoigtSize>::SmallStrainUMATLaw() = default;
-
-template <SizeType TVoigtSize>
 SmallStrainUMATLaw<TVoigtSize>::SmallStrainUMATLaw(std::unique_ptr<ConstitutiveLawDimension> pConstitutiveDimension)
     : ConstitutiveLaw{}, mpConstitutiveDimension(std::move(pConstitutiveDimension))
 {
 }
-
-template <SizeType TVoigtSize>
-SmallStrainUMATLaw<TVoigtSize>::~SmallStrainUMATLaw() = default;
 
 template <SizeType TVoigtSize>
 SmallStrainUMATLaw<TVoigtSize>::SmallStrainUMATLaw(const SmallStrainUMATLaw& rOther)
@@ -214,6 +208,27 @@ template <SizeType TVoigtSize>
 SizeType SmallStrainUMATLaw<TVoigtSize>::WorkingSpaceDimension()
 {
     return mpConstitutiveDimension->GetDimension();
+}
+
+template <SizeType TVoigtSize>
+SizeType SmallStrainUMATLaw<TVoigtSize>::GetStrainSize() const
+{
+    // In other constitutive laws, we use mpConstitutiveDimension->GetStrainSize() here, but
+    // due to the C/Fortran interface, we need the VoigtSize to be known compile time.
+    // Therefore, we return the template argument TVoigtSize here.
+    return TVoigtSize;
+}
+
+template <SizeType TVoigtSize>
+ConstitutiveLaw::StrainMeasure SmallStrainUMATLaw<TVoigtSize>::GetStrainMeasure()
+{
+    return StrainMeasure_Infinitesimal;
+}
+
+template <SizeType TVoigtSize>
+ConstitutiveLaw::StressMeasure SmallStrainUMATLaw<TVoigtSize>::GetStressMeasure()
+{
+    return StressMeasure_Cauchy;
 }
 
 template <SizeType TVoigtSize>
@@ -775,6 +790,24 @@ template <SizeType TVoigtSize>
 bool SmallStrainUMATLaw<TVoigtSize>::Has(const Variable<Vector>& rVariable)
 {
     return rVariable == STATE_VARIABLES || rVariable == CAUCHY_STRESS_VECTOR;
+}
+
+template <SizeType TVoigtSize>
+[[nodiscard]] std::string SmallStrainUMATLaw<TVoigtSize>::Info() const
+{
+    return "SmallStrainUMATLaw"s;
+}
+
+template <SizeType TVoigtSize>
+void SmallStrainUMATLaw<TVoigtSize>::PrintInfo(std::ostream& rOStream) const
+{
+    rOStream << Info();
+}
+
+template <SizeType TVoigtSize>
+void SmallStrainUMATLaw<TVoigtSize>::PrintData(std::ostream& rOStream) const
+{
+    rOStream << "SmallStrainUMATLaw Data";
 }
 
 template class SmallStrainUMATLaw<VOIGT_SIZE_3D>;

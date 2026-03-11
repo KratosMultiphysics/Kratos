@@ -12,9 +12,9 @@
 
 #include "containers/model.h"
 #include "custom_utilities/transport_equation_utilities.hpp"
+#include "custom_utilities/ublas_utilities.h"
 #include "includes/checks.h"
 #include "tests/cpp_tests/geo_mechanics_fast_suite_without_kernel.h"
-#include <boost/numeric/ublas/assignment.hpp>
 
 using namespace Kratos;
 
@@ -23,45 +23,34 @@ namespace Kratos::Testing
 
 TEST_F(KratosGeoMechanicsFastSuiteWithoutKernel, Calculatecompressibility_matrix2D3NGivesCorrectResults)
 {
-    Vector n_p(3);
-    n_p <<= 1.0, 2.0, 3.0;
+    const auto n_p = UblasUtilities::CreateVector({1.0, 2.0, 3.0});
 
     BoundedMatrix<double, 3, 3> compressibility_matrix  = ZeroMatrix(3, 3);
-    const double                integration_coefficient = 1.0;
-    const double                biot_modulus_inverse    = 0.02;
+    constexpr auto              integration_coefficient = 1.0;
+    constexpr auto              biot_modulus_inverse    = 0.02;
     compressibility_matrix = GeoTransportEquationUtilities::CalculateCompressibilityMatrix<3>(
         n_p, biot_modulus_inverse, integration_coefficient);
 
-    BoundedMatrix<double, 3, 3> expected_compressibility_matrix;
-    // clang-format off
-    expected_compressibility_matrix <<= -0.02,-0.04,-0.06,
-                                        -0.04,-0.08,-0.12,
-                                        -0.06,-0.12,-0.18;
-    // clang-format on
+    const auto expected_compressibility_matrix =
+        UblasUtilities::CreateMatrix({{-0.02, -0.04, -0.06}, {-0.04, -0.08, -0.12}, {-0.06, -0.12, -0.18}});
 
     KRATOS_CHECK_MATRIX_NEAR(compressibility_matrix, expected_compressibility_matrix, 1e-12)
 }
 
 TEST_F(KratosGeoMechanicsFastSuiteWithoutKernel, Calculatecompressibility_matrix3D4NGivesCorrectResults)
 {
-    Vector n_p(4);
-    n_p <<= 1.0, 2.0, 3.0, 3.0;
+    const auto n_p = UblasUtilities::CreateVector({1.0, 2.0, 3.0, 3.0});
 
     BoundedMatrix<double, 4, 4> compressibility_matrix = ZeroMatrix(4, 4);
     BoundedMatrix<double, 3, 3> material_compressibility_matrix;
 
-    const double integration_coefficient = 1.0;
-    const double biot_modulus_inverse    = 0.1;
+    constexpr auto integration_coefficient = 1.0;
+    constexpr auto biot_modulus_inverse    = 0.1;
     compressibility_matrix = GeoTransportEquationUtilities::CalculateCompressibilityMatrix<4>(
         n_p, biot_modulus_inverse, integration_coefficient);
 
-    BoundedMatrix<double, 4, 4> expected_compressibility_matrix;
-    // clang-format off
-    expected_compressibility_matrix <<= -0.1,-0.2,-0.3,-0.3,
-                                        -0.2,-0.4,-0.6,-0.6,
-                                        -0.3,-0.6,-0.9,-0.9,
-                                        -0.3,-0.6,-0.9,-0.9;
-    // clang-format on
+    const auto expected_compressibility_matrix = UblasUtilities::CreateMatrix(
+        {{-0.1, -0.2, -0.3, -0.3}, {-0.2, -0.4, -0.6, -0.6}, {-0.3, -0.6, -0.9, -0.9}, {-0.3, -0.6, -0.9, -0.9}});
 
     KRATOS_CHECK_MATRIX_NEAR(compressibility_matrix, expected_compressibility_matrix, 1e-12)
 }

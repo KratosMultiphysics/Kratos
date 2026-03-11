@@ -55,7 +55,6 @@ class GeoMechanicsAnalysis(AnalysisStage):
         self.ResetIfHasNodalSolutionStepVariable(KratosMultiphysics.DISPLACEMENT)
         self.ResetIfHasNodalSolutionStepVariable(KratosMultiphysics.ROTATION)
 
-        self._GetSolver().main_model_part.ProcessInfo[KratosGeo.RESET_DISPLACEMENTS] = self.reset_displacements
         if self.reset_displacements:
             self.ResetIfHasNodalSolutionStepVariable(KratosGeo.TOTAL_DISPLACEMENT)
             self.ResetIfHasNodalSolutionStepVariable(KratosGeo.TOTAL_ROTATION)
@@ -136,7 +135,6 @@ class GeoMechanicsAnalysis(AnalysisStage):
 
                 # do the nonlinear solver iterations
                 self.InitializeSolutionStep()
-                self._GetSolver().Predict()
                 converged = self._GetSolver().SolveSolutionStep()
                 self._GetSolver().solving_strategy.SetStiffnessMatrixIsBuilt(True)
 

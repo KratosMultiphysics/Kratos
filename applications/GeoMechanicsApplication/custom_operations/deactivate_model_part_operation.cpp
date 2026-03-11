@@ -27,7 +27,6 @@
 
 namespace Kratos
 {
-
 DeactivateModelPartOperation::DeactivateModelPartOperation(Model& rModel, const Parameters& rSettings)
 {
     mrModelParts = ProcessUtilities::GetModelPartsFromSettings(rModel, rSettings, "DeactivateModelPartOperation");

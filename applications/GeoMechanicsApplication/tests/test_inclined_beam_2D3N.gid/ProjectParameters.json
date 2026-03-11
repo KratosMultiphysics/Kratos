@@ -69,7 +69,6 @@
             "preconditioner_type": "ilu0"
         },
         "problem_domain_sub_model_part_list": ["Soil","Beam"],
-        "processes_sub_model_part_list":      ["Base","lateral","fix","exc","point_load"],
         "body_domain_sub_model_part_list":    ["Soil","Beam"]
     },
     "output_processes": {
@@ -109,19 +108,7 @@
         "kratos_module": "KratosMultiphysics.GeoMechanicsApplication",
         "process_name":  "ApplyVectorConstraintTableProcess",
         "Parameters":    {
-            "model_part_name": "PorousDomain.Base",
-            "variable_name":   "DISPLACEMENT",
-            "active":          [true,true,false],
-            "is_fixed":        [true,true,false],
-            "value":           [0.0,0.0,0.0],
-            "table":           [0,0,0]
-        }
-    },{
-        "python_module": "apply_vector_constraint_table_process",
-        "kratos_module": "KratosMultiphysics.GeoMechanicsApplication",
-        "process_name":  "ApplyVectorConstraintTableProcess",
-        "Parameters":    {
-            "model_part_name": "PorousDomain.lateral",
+            "model_part_name_list": ["PorousDomain.Base","PorousDomain.lateral"],
             "variable_name":   "DISPLACEMENT",
             "active":          [true,true,false],
             "is_fixed":        [true,true,false],

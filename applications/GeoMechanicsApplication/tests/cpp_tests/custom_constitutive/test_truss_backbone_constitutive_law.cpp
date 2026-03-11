@@ -10,9 +10,8 @@
 //  Main authors:    Anne van de Graaf
 //
 
-#include <boost/numeric/ublas/assignment.hpp>
-
 #include "custom_constitutive/truss_backbone_constitutive_law.h"
+#include "custom_utilities/ublas_utilities.h"
 #include "geo_mechanics_application_variables.h"
 #include "includes/expect.h"
 #include "tests/cpp_tests/geo_mechanics_fast_suite_without_kernel.h"
@@ -96,8 +95,7 @@ TEST_F(KratosGeoMechanicsFastSuiteWithoutKernel, CheckOfBackboneLawThrowsWhenStr
     const auto backbone_law = TrussBackboneConstitutiveLaw{};
     auto       properties   = Properties{};
     properties.SetValue(YOUNG_MODULUS, 100.0);
-    auto strains = Vector(3);
-    strains <<= 0.01, 0.03, 0.02;
+    auto strains = UblasUtilities::CreateVector({0.01, 0.03, 0.02});
     properties.SetValue(STRAINS_OF_PIECEWISE_LINEAR_LAW, strains);
     properties.SetValue(STRESSES_OF_PIECEWISE_LINEAR_LAW, ScalarVector(3, 2.0));
     const auto geometry     = Geometry<Node>{};
@@ -111,11 +109,9 @@ TEST_F(KratosGeoMechanicsFastSuiteWithoutKernel, CheckOfBackboneLawThrowsWhenYou
     const auto backbone_law = TrussBackboneConstitutiveLaw{};
     auto       properties   = Properties{};
     properties.SetValue(YOUNG_MODULUS, 100.0);
-    auto strains = Vector(3);
-    strains <<= 0.0, 0.01, 0.03;
+    auto strains = UblasUtilities::CreateVector({0.0, 0.01, 0.03});
     properties.SetValue(STRAINS_OF_PIECEWISE_LINEAR_LAW, strains);
-    auto stresses = Vector(3);
-    stresses <<= 0.0, 0.5, 4.5;
+    auto stresses = UblasUtilities::CreateVector({0.0, 0.5, 4.5});
     properties.SetValue(STRESSES_OF_PIECEWISE_LINEAR_LAW, stresses);
     const auto geometry     = Geometry<Node>{};
     const auto process_info = ProcessInfo{};

@@ -10,14 +10,15 @@
 //  Main authors:    Anne van de Graaf
 //
 #include "containers/variables_list.h"
-#include "custom_conditions/line_load_2D_diff_order_condition.hpp"
-#include "custom_utilities/registration_utilities.h"
+#include "custom_conditions/general_U_Pw_diff_order_condition.h"
+#include "custom_utilities/registration_utilities.hpp"
 #include "geo_aliases.h"
 #include "geometries/line_2d_2.h"
 #include "geometries/line_2d_3.h"
 #include "includes/stream_serializer.h"
-#include "test_setup_utilities/element_setup_utilities.h"
 #include "tests/cpp_tests/geo_mechanics_fast_suite_without_kernel.h"
+#include "test_setup_utilities/element_setup_utilities.hpp"
+#include "tests/cpp_tests/geo_mechanics_fast_suite.h"
 
 #include <string>
 

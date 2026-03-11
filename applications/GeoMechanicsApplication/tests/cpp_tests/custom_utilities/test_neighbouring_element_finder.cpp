@@ -12,7 +12,7 @@
 
 #include "containers/model.h"
 #include "custom_utilities/neighbouring_element_finder.hpp"
-#include "test_setup_utilities/element_setup_utilities.h"
+#include "test_setup_utilities/element_setup_utilities.hpp"
 #include "test_setup_utilities/model_setup_utilities.h"
 #include "tests/cpp_tests/geo_mechanics_fast_suite_without_kernel.h"
 

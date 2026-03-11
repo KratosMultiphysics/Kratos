@@ -30,7 +30,7 @@ TEST_F(KratosGeoMechanicsFastSuiteWithoutKernel,
     VariablesUtilities::GetComponentFromVectorVariable(ACCELERATION.Name(), "?"),
     "Error: The component \"ACCELERATION_?\" is not registered!")}
 
-TEST_F(KratosGeoMechanicsFastSuiteWithoutKernel, GeometryUtilities_ReturnsGetNodalValuesOf)
+KRATOS_TEST_CASE_IN_SUITE(GeometryUtilities_ReturnsGetNodalValues, KratosGeoMechanicsFastSuiteWithoutKernel)
 {
     // Arrange
     Model model;
@@ -46,10 +46,17 @@ TEST_F(KratosGeoMechanicsFastSuiteWithoutKernel, GeometryUtilities_ReturnsGetNod
     }
 
     // Act
-    const auto temperatures = VariablesUtilities::GetNodalValuesOf<2>(TEMPERATURE, geometry);
+    const auto temperatures = VariablesUtilities::GetNodalValues<2>(geometry, TEMPERATURE);
 
     // Assert
-    KRATOS_EXPECT_VECTOR_EQ(temperatures, std::vector({4.5, 4.5}));
+    auto expected_temperatures = std::vector({4.5, 4.5});
+    KRATOS_EXPECT_VECTOR_EQ(temperatures, expected_temperatures);
+
+    // Act
+    const auto more_temperatures = VariablesUtilities::GetNodalValues(r_model_part.Nodes(), TEMPERATURE);
+
+    // Assert
+    KRATOS_EXPECT_VECTOR_EQ(temperatures, expected_temperatures);
 }
 
 } // namespace Kratos::Testing

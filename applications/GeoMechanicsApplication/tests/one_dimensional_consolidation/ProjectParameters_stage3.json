@@ -58,7 +58,6 @@
             "scaling":         false
         },
         "problem_domain_sub_model_part_list": ["Soil_two_phase"],
-        "processes_sub_model_part_list":      ["Bottom","Side","Fluid_pressure","Line_load"],
         "body_domain_sub_model_part_list":    ["Soil_two_phase"]
     },
     "output_processes": {

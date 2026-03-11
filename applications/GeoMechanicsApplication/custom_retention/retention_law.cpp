@@ -14,9 +14,12 @@
 #include "custom_retention/retention_law.h"
 #include "geo_mechanics_application_variables.h"
 
+#include <string>
+
+using namespace std::string_literals;
+
 namespace Kratos
 {
-
 double& RetentionLaw::CalculateValue(Parameters& rParameters, const Variable<double>& rThisVariable, double& rValue) const
 {
     if (rThisVariable == DEGREE_OF_SATURATION) {
@@ -61,6 +64,47 @@ void RetentionLaw::save(Serializer& rSerializer) const
 void RetentionLaw::load(Serializer& rSerializer)
 {
     // there is no member variables to be loaded
+}
+
+int RetentionLaw::Check(const std::vector<RetentionLaw::Pointer>& rRetentionLawVector,
+                        const Properties&                         rProperties,
+                        const ProcessInfo&                        rCurrentProcessInfo)
+{
+    KRATOS_ERROR_IF(rRetentionLawVector.empty()) << "A retention law has to be provided." << std::endl;
+
+    return rRetentionLawVector[0]->Check(rProperties, rCurrentProcessInfo);
+}
+
+std::string RetentionLaw::Info() const { return "RetentionLaw"s; }
+
+void RetentionLaw::PrintInfo(std::ostream& rOStream) const { rOStream << Info(); }
+
+void RetentionLaw::PrintData(std::ostream& rOStream) const
+{
+    rOStream << "RetentionLaw has no data";
+}
+
+RetentionLaw::Parameters::Parameters(const Properties& rMaterialProperties)
+    : mrMaterialProperties(rMaterialProperties)
+{
+}
+
+void RetentionLaw::Parameters::SetFluidPressure(double FluidPressure)
+{
+    mFluidPressure = FluidPressure;
+};
+
+double RetentionLaw::Parameters::GetFluidPressure() const
+{
+    KRATOS_ERROR_IF_NOT(mFluidPressure.has_value())
+        << "Fluid pressure is not yet set in the retention "
+           "law when trying to retrieve it, aborting.\n";
+    return mFluidPressure.value();
+}
+
+const Properties& RetentionLaw::Parameters::GetMaterialProperties() const
+{
+    return mrMaterialProperties;
 }
 
 } // namespace Kratos

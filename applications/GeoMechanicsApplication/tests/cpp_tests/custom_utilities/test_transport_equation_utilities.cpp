@@ -13,7 +13,7 @@
 #include "custom_utilities/transport_equation_utilities.hpp"
 #include "includes/expect.h"
 #include "tests/cpp_tests/geo_mechanics_fast_suite_without_kernel.h"
-#include <boost/numeric/ublas/assignment.hpp>
+#include "custom_utilities/ublas_utilities.h"
 
 namespace
 {
@@ -88,8 +88,8 @@ TEST_F(KratosGeoMechanicsFastSuiteWithoutKernel, CalculateBulkModulus_Throws_Whe
 
 TEST_F(KratosGeoMechanicsFastSuiteWithoutKernel, CalculateBulkModulus_GivesExpectedResult_ForFilledConstitutiveMatrix)
 {
-    Matrix constitutive_matrix(3, 3);
-    constitutive_matrix <<= 1.0, 2.0, 3.0, 4.0, 5.0, 6.0, 7.0, 8.0, 9.0;
+    const auto constitutive_matrix =
+        UblasUtilities::CreateMatrix({{1.0, 2.0, 3.0}, {4.0, 5.0, 6.0}, {7.0, 8.0, 9.0}});
 
     KRATOS_EXPECT_DOUBLE_EQ(GeoTransportEquationUtilities::CalculateBulkModulus(constitutive_matrix), -11.0);
 }
@@ -144,15 +144,10 @@ TEST_F(KratosGeoMechanicsFastSuiteWithoutKernel, CalculateBiotCoefficients_Gives
 
 TEST_F(KratosGeoMechanicsFastSuiteWithoutKernel, EachFluidPressureIsTheInnerProductOfShapeFunctionsAndPressure)
 {
-    auto shape_function_values = Matrix{3, 3, 0.0};
-    // clang-format off
-    shape_function_values <<= 0.8, 0.2, 0.3,
-                              0.1, 0.7, 0.4,
-                              0.2, 0.5, 0.6;
-    // clang-format on
+    const auto shape_function_values =
+        UblasUtilities::CreateMatrix({{0.8, 0.2, 0.3}, {0.1, 0.7, 0.4}, {0.2, 0.5, 0.6}});
 
-    auto pore_water_pressures = Vector(3);
-    pore_water_pressures <<= 2.0, 3.0, 4.0;
+    const auto pore_water_pressures = UblasUtilities::CreateVector({2.0, 3.0, 4.0});
 
     const auto expected_fluid_pressures = std::vector<double>{3.4, 3.9, 4.3};
     KRATOS_EXPECT_VECTOR_NEAR(GeoTransportEquationUtilities::CalculateFluidPressures(
@@ -192,9 +187,8 @@ TEST_F(KratosGeoMechanicsFastSuiteWithoutKernel, PermeabilityUpdateFactorEqualsO
 TEST_F(KratosGeoMechanicsFastSuiteWithoutKernel,
        PermeabilityUpdateFactorIsComputedFromStrainsAndPropertiesWhenChangeInverseFactorIsPositive)
 {
-    auto test_strains = Vector{3};
-    test_strains <<= 0.001, 0.002, 0.0;
-    auto strain_vectors = std::vector<Vector>{test_strains, 2.0 * test_strains, 4.0 * test_strains};
+    const auto test_strains = UblasUtilities::CreateVector({0.001, 0.002, 0.0});
+    const auto strain_vectors = std::vector<Vector>{test_strains, 2.0 * test_strains, 4.0 * test_strains};
 
     auto properties                                = Properties{};
     properties[PERMEABILITY_CHANGE_INVERSE_FACTOR] = 0.5;

@@ -12,7 +12,7 @@
 //
 
 #include "containers/model.h"
-#include "custom_utilities/check_utilities.h"
+#include "custom_utilities/check_utilities.hpp"
 #include "geo_mechanics_application_variables.h"
 #include "geometries/line_2d_2.h"
 #include "geometries/tetrahedra_3d_4.h"

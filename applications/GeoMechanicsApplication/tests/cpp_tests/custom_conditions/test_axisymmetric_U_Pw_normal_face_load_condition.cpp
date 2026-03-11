@@ -11,7 +11,7 @@
 //
 
 #include "containers/model.h"
-#include "custom_conditions/axisymmetric_U_Pw_normal_face_load_condition.hpp"
+#include "custom_conditions/axisymmetric_U_Pw_normal_face_load_condition.h"
 #include "geometries/line_2d_2.h"
 #include "geometries/line_2d_3.h"
 #include "geometries/line_2d_4.h"

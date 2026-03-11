@@ -15,8 +15,7 @@
 #include "custom_constitutive/three_dimensional.h"
 #include "includes/expect.h"
 #include "tests/cpp_tests/geo_mechanics_fast_suite_without_kernel.h"
-
-#include <boost/numeric/ublas/assignment.hpp>
+#include "custom_utilities/ublas_utilities.h"
 
 namespace
 {
@@ -97,8 +96,8 @@ TEST_F(KratosGeoMechanicsFastSuiteWithoutKernel, GeoIncrementalLinearElastic3DLa
 
     const auto stress = Calculate3DStress(law);
 
-    Vector expected_stress{6};
-    expected_stress <<= 2.5e+07, 2.5e+07, 2.5e+07, 3.84615e+06, 3.84615e+06, 3.84615e+06;
+    const auto expected_stress =
+        UblasUtilities::CreateVector({2.5e+07, 2.5e+07, 2.5e+07, 3.84615e+06, 3.84615e+06, 3.84615e+06});
     KRATOS_EXPECT_VECTOR_RELATIVE_NEAR(expected_stress, stress, 1e-3);
 }
 
@@ -110,8 +109,8 @@ TEST_F(KratosGeoMechanicsFastSuiteWithoutKernel,
 
     const auto stress = Calculate3DStress(law);
 
-    Vector expected_stress{6};
-    expected_stress <<= 1.34615e+07, 1.34615e+07, 1.34615e+07, 0, 0, 0;
+    const auto expected_stress =
+        UblasUtilities::CreateVector({1.34615e+07, 1.34615e+07, 1.34615e+07, 0, 0, 0});
     KRATOS_EXPECT_VECTOR_RELATIVE_NEAR(expected_stress, stress, 1e-3);
 }
 
@@ -129,8 +128,8 @@ TEST_F(KratosGeoMechanicsFastSuiteWithoutKernel,
 
     const auto stress = Calculate3DStress(law);
 
-    Vector expected_stress{6};
-    expected_stress <<= 1.35e+07, 1.35e+07, 1.35e+07, 2.92308e+06, 2.92308e+06, 2.92308e+06;
+    const auto expected_stress =
+        UblasUtilities::CreateVector({1.35e+07, 1.35e+07, 1.35e+07, 2.92308e+06, 2.92308e+06, 2.92308e+06});
     KRATOS_EXPECT_VECTOR_RELATIVE_NEAR(expected_stress, stress, 1e-3);
 }
 
@@ -154,8 +153,8 @@ TEST_F(KratosGeoMechanicsFastSuiteWithoutKernel,
     law.FinalizeMaterialResponseCauchy(final_parameters);
     stress = Calculate3DStress(law);
 
-    Vector expected_stress{6};
-    expected_stress <<= 6e+06, 6e+06, 6e+06, 1.76923e+06, 1.76923e+06, 1.76923e+06;
+    const auto expected_stress =
+        UblasUtilities::CreateVector({6e+06, 6e+06, 6e+06, 1.76923e+06, 1.76923e+06, 1.76923e+06});
     KRATOS_EXPECT_VECTOR_RELATIVE_NEAR(expected_stress, stress, 1e-3);
 }
 
@@ -179,8 +178,8 @@ TEST_F(KratosGeoMechanicsFastSuiteWithoutKernel,
 
     auto stress = Calculate3DStress(law);
 
-    Vector expected_stress{6};
-    expected_stress <<= 2.5e+07, 2.5e+07, 2.5e+07, 3.84615e+06, 3.84615e+06, 3.84615e+06;
+    const auto expected_stress =
+        UblasUtilities::CreateVector({2.5e+07, 2.5e+07, 2.5e+07, 3.84615e+06, 3.84615e+06, 3.84615e+06});
     KRATOS_EXPECT_VECTOR_RELATIVE_NEAR(expected_stress, stress, 1e-3);
 }
 

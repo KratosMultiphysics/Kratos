@@ -11,13 +11,13 @@
 //                   Richard Faasse
 //
 
-#include <boost/numeric/ublas/assignment.hpp>
 #include <boost/range/algorithm/copy.hpp>
 
 #include "containers/model.h"
-#include "custom_elements/U_Pw_small_strain_element.hpp"
+#include "custom_elements/U_Pw_small_strain_element.h"
 #include "custom_elements/plane_strain_stress_state.h"
-#include "custom_utilities/dof_utilities.h"
+#include "custom_utilities/dof_utilities.hpp"
+#include "custom_utilities/ublas_utilities.h"
 #include "geo_aliases.h"
 #include "geo_mechanics_application_variables.h"
 #include "includes/element.h"
@@ -323,9 +323,8 @@ TEST_F(KratosGeoMechanicsFastSuiteWithoutKernel, ExtractingValuesFromDofsYieldsN
 
     const auto dofs = Geo::DofUtilities::ExtractDofsFromNodes(r_model_part.Nodes(), r_variable);
 
-    auto expected_values = Vector(3);
-    expected_values <<= 1.0, 2.0, 3.0;
-    const auto abs_tolerance = 1.0e-8;
+    auto       expected_values = UblasUtilities::CreateVector({1.0, 2.0, 3.0});
+    const auto abs_tolerance   = 1.0e-8;
     KRATOS_EXPECT_VECTOR_NEAR(Geo::DofUtilities::ExtractSolutionStepValues(dofs, current_buffer_index),
                               expected_values, abs_tolerance)
 
@@ -357,9 +356,8 @@ TEST_F(KratosGeoMechanicsFastSuiteWithoutKernel, ExtractingFirstDerivativeValues
 
     const auto dofs = Geo::DofUtilities::ExtractDofsFromNodes(r_model_part.Nodes(), r_variable);
 
-    auto expected_values = Vector(3);
-    expected_values <<= 1.0, 2.0, 3.0;
-    const auto abs_tolerance = 1.0e-8;
+    auto       expected_values = UblasUtilities::CreateVector({1.0, 2.0, 3.0});
+    const auto abs_tolerance   = 1.0e-8;
     KRATOS_EXPECT_VECTOR_NEAR(Geo::DofUtilities::ExtractFirstTimeDerivatives(dofs, current_buffer_index),
                               expected_values, abs_tolerance)
 
@@ -392,9 +390,8 @@ TEST_F(KratosGeoMechanicsFastSuiteWithoutKernel, ExtractingSecondDerivativeValue
 
     const auto dofs = Geo::DofUtilities::ExtractDofsFromNodes(r_model_part.Nodes(), r_variable);
 
-    auto expected_values = Vector(3);
-    expected_values <<= 1.0, 2.0, 3.0;
-    const auto abs_tolerance = 1.0e-8;
+    auto       expected_values = UblasUtilities::CreateVector({1.0, 2.0, 3.0});
+    const auto abs_tolerance   = 1.0e-8;
     KRATOS_EXPECT_VECTOR_NEAR(Geo::DofUtilities::ExtractSecondTimeDerivatives(dofs, current_buffer_index),
                               expected_values, abs_tolerance)
 
@@ -422,9 +419,8 @@ TEST_F(KratosGeoMechanicsFastSuiteWithoutKernel, ExtractingValuesFromUPwDofsNotB
 
     const auto dofs = Geo::DofUtilities::ExtractDofsFromNodes(r_model_part.Nodes(), r_variable);
 
-    auto expected_values = Vector(3);
-    expected_values <<= 1.0, 2.0, 3.0;
-    const auto abs_tolerance = 1.0e-8;
+    auto       expected_values = UblasUtilities::CreateVector({1.0, 2.0, 3.0});
+    const auto abs_tolerance   = 1.0e-8;
     KRATOS_EXPECT_VECTOR_NEAR(Geo::DofUtilities::ExtractSolutionStepValuesOfUPwDofs(dofs, current_buffer_index),
                               expected_values, abs_tolerance)
 
@@ -452,9 +448,8 @@ TEST_F(KratosGeoMechanicsFastSuiteWithoutKernel, ExtractingPwValuesFromUPwDofsAl
 
     const auto dofs = Geo::DofUtilities::ExtractDofsFromNodes(r_model_part.Nodes(), r_variable);
 
-    auto expected_values = Vector(3);
-    expected_values <<= 0.0, 0.0, 0.0;
-    const auto abs_tolerance = 1.0e-8;
+    auto       expected_values = UblasUtilities::CreateVector({0.0, 0.0, 0.0});
+    const auto abs_tolerance   = 1.0e-8;
     KRATOS_EXPECT_VECTOR_NEAR(Geo::DofUtilities::ExtractSolutionStepValuesOfUPwDofs(dofs, current_buffer_index),
                               expected_values, abs_tolerance)
 
@@ -485,9 +480,8 @@ TEST_F(KratosGeoMechanicsFastSuiteWithoutKernel, ExtractingFirstDerivativesFromU
 
     const auto dofs = Geo::DofUtilities::ExtractDofsFromNodes(r_model_part.Nodes(), r_variable);
 
-    auto expected_values = Vector(3);
-    expected_values <<= 1.0, 2.0, 3.0;
-    const auto abs_tolerance = 1.0e-8;
+    auto       expected_values = UblasUtilities::CreateVector({1.0, 2.0, 3.0});
+    const auto abs_tolerance   = 1.0e-8;
     KRATOS_EXPECT_VECTOR_NEAR(Geo::DofUtilities::ExtractFirstTimeDerivativesOfUPwDofs(dofs, current_buffer_index),
                               expected_values, abs_tolerance)
 
@@ -519,9 +513,8 @@ TEST_F(KratosGeoMechanicsFastSuiteWithoutKernel, ExtractingDPwDtValuesFromUPwDof
 
     const auto dofs = Geo::DofUtilities::ExtractDofsFromNodes(r_model_part.Nodes(), r_variable);
 
-    auto expected_values = Vector(3);
-    expected_values <<= 0.0, 0.0, 0.0;
-    const auto abs_tolerance = 1.0e-8;
+    const auto expected_values = UblasUtilities::CreateVector({0.0, 0.0, 0.0});
+    const auto abs_tolerance   = 1.0e-8;
     KRATOS_EXPECT_VECTOR_NEAR(Geo::DofUtilities::ExtractFirstTimeDerivativesOfUPwDofs(dofs, current_buffer_index),
                               expected_values, abs_tolerance)
 
@@ -553,9 +546,8 @@ TEST_F(KratosGeoMechanicsFastSuiteWithoutKernel, ExtractingSecondDerivativesFrom
 
     const auto dofs = Geo::DofUtilities::ExtractDofsFromNodes(r_model_part.Nodes(), r_variable);
 
-    auto expected_values = Vector(3);
-    expected_values <<= 1.0, 2.0, 3.0;
-    const auto abs_tolerance = 1.0e-8;
+    auto       expected_values = UblasUtilities::CreateVector({1.0, 2.0, 3.0});
+    const auto abs_tolerance   = 1.0e-8;
     KRATOS_EXPECT_VECTOR_NEAR(Geo::DofUtilities::ExtractSecondTimeDerivativesOfUPwDofs(dofs, current_buffer_index),
                               expected_values, abs_tolerance)
 
@@ -579,9 +571,8 @@ TEST_F(KratosGeoMechanicsFastSuiteWithoutKernel, ExtractingD2PwDt2ValuesFromUPwD
     const auto dofs = Geo::DofUtilities::ExtractDofsFromNodes(r_model_part.Nodes(), r_variable);
 
     const auto current_buffer_index = std::size_t{0};
-    auto       expected_values      = Vector(3);
-    expected_values <<= 0.0, 0.0, 0.0;
-    const auto abs_tolerance = 1.0e-8;
+    const auto expected_values      = UblasUtilities::CreateVector({0.0, 0.0, 0.0});
+    const auto abs_tolerance        = 1.0e-8;
     KRATOS_EXPECT_VECTOR_NEAR(Geo::DofUtilities::ExtractSecondTimeDerivativesOfUPwDofs(dofs, current_buffer_index),
                               expected_values, abs_tolerance)
 

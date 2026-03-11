@@ -23,7 +23,6 @@
 #endif
 
 /* Project includes */
-#include "includes/define.h"
 #include "solving_strategies/builder_and_solvers/builder_and_solver.h"
 #include "includes/model_part.h"
 #include "includes/key_hash.h"
@@ -1074,6 +1073,24 @@ public:
         mScaleFactor = ScaleFactor;
     }
 
+    /**
+     * @brief Checks if the 'Constant Constraints' option is enabled.
+     * @return bool True if constant constraints are enabled, false otherwise.
+     */
+    bool IsConstantConstraints()
+    {
+        return mOptions.Is(CONSTANT_CONSTRAINTS);
+    }
+
+    /**
+     * @brief Sets the 'Constant Constraints' option.
+     * @param ConstantConstraints The new state for the option (true to enable, false to disable).
+     */
+    void SetConstantConstraints(const bool ConstantConstraints)
+    {
+        mOptions.Set(CONSTANT_CONSTRAINTS, ConstantConstraints);
+    }
+
     ///@}
     ///@name Inquiry
     ///@{
@@ -1160,10 +1177,14 @@ protected:
         //for (typename ElementsArrayType::ptr_iterator it = pElements.ptr_begin(); it != pElements.ptr_end(); ++it)
 
         const int nelements = static_cast<int>(pElements.size());
+        KRATOS_PREPARE_CATCH_THREAD_EXCEPTION
+
         #pragma omp parallel firstprivate(nelements, RHS_Contribution, EquationId)
         {
             #pragma omp for schedule(guided, 512) nowait
             for (int i=0; i<nelements; i++) {
+                KRATOS_TRY
+
                 typename ElementsArrayType::iterator it = pElements.begin() + i;
                 // If the element is active
                 if(it->IsActive()) {
@@ -1173,6 +1194,8 @@ protected:
                     //assemble the elemental contribution
                     AssembleRHS(b, RHS_Contribution, EquationId);
                 }
+
+                KRATOS_CATCH_THREAD_EXCEPTION
             }
 
             LHS_Contribution.resize(0, 0, false);
@@ -1182,6 +1205,8 @@ protected:
             const int nconditions = static_cast<int>(ConditionsArray.size());
             #pragma omp for schedule(guided, 512)
             for (int i = 0; i<nconditions; i++) {
+                KRATOS_TRY
+
                 auto it = ConditionsArray.begin() + i;
                 // If the condition is active
                 if(it->IsActive()) {
@@ -1191,8 +1216,12 @@ protected:
                     //assemble the elemental contribution
                     AssembleRHS(b, RHS_Contribution, EquationId);
                 }
+
+                KRATOS_CATCH_THREAD_EXCEPTION
             }
         }
+
+        KRATOS_CHECK_AND_THROW_THREAD_EXCEPTION
 
         KRATOS_CATCH("")
 

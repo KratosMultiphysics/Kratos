@@ -220,7 +220,7 @@ namespace Kratos::MaterialPointGeneratorUtility
         std::vector<array_1d<double, 3>> point_load = { ZeroVector(3) };
 
         std::vector<double> mpc_area(1);
-        std::vector<double> mpc_penalty_factor(1);
+        std::vector<double> mpc_penalty_coefficient(1);
         PointerVector<Condition> MaterialPointConditions;
 
         // Determine condition index: This convention is done in order for the purpose of visualization in GiD
@@ -372,8 +372,8 @@ namespace Kratos::MaterialPointGeneratorUtility
                             mpc_imposed_velocity[0] = r_cond.GetValue(VELOCITY);
                         if (r_cond.Has(ACCELERATION))
                             mpc_imposed_acceleration[0] = r_cond.GetValue(ACCELERATION);
-                        if (r_cond.Has(PENALTY_FACTOR))
-                            mpc_penalty_factor[0] = r_cond.GetValue(PENALTY_FACTOR);
+                        if (r_cond.Has(PENALTY_COEFFICIENT))
+                            mpc_penalty_coefficient[0] = r_cond.GetValue(PENALTY_COEFFICIENT);
 
                         const bool is_slip = r_cond.Is(SLIP);
                         const bool is_contact = r_cond.Is(CONTACT);
@@ -529,7 +529,7 @@ namespace Kratos::MaterialPointGeneratorUtility
 
                                     if (boundary_condition_type == 1 || boundary_condition_type == 2 || boundary_condition_type == 3)
                                     {
-                                        p_condition->SetValuesOnIntegrationPoints(PENALTY_FACTOR, mpc_penalty_factor , process_info);
+                                        p_condition->SetValuesOnIntegrationPoints(PENALTY_COEFFICIENT, mpc_penalty_coefficient , process_info);
                                     }
 
                                     if (is_slip)
@@ -570,15 +570,15 @@ namespace Kratos::MaterialPointGeneratorUtility
 
         }
 
-        // Scale TANGENTIAL_PENALTY_FACTOR by NODAL_AREA (in effect incorporating the integration weight)
+        // Scale TANGENTIAL_PENALTY_COEFFICIENT by NODAL_AREA (in effect incorporating the integration weight)
         block_for_each(rBackgroundGridModelPart.Nodes(), [&](Node& rNode)
         {
             const Node& rConstNode = rNode; // const Node reference to avoid issues with previously unset GetValue()
-            double modified_factor;
+            double modified_tangential_penalty_coefficient;
 
             if (rNode.Is(SLIP)){
-                modified_factor = rConstNode.GetValue(NODAL_AREA) * rConstNode.GetValue(TANGENTIAL_PENALTY_FACTOR);
-                rNode.SetValue(TANGENTIAL_PENALTY_FACTOR, modified_factor);
+                modified_tangential_penalty_coefficient = rConstNode.GetValue(NODAL_AREA) * rConstNode.GetValue(TANGENTIAL_PENALTY_COEFFICIENT);
+                rNode.SetValue(TANGENTIAL_PENALTY_COEFFICIENT, modified_tangential_penalty_coefficient);
             }
         });
 

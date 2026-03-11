@@ -59,7 +59,6 @@
             "scaling":         false
         },
         "problem_domain_sub_model_part_list": ["drained_el"],
-        "processes_sub_model_part_list":      ["Solid_Displacement-auto-1","bottom","middle","top_phreatic_line"],
         "body_domain_sub_model_part_list":    ["drained_el"]
     },
     "output_processes": {

@@ -57,7 +57,6 @@
             "preconditioner_type": "ilu0"
         },
         "problem_domain_sub_model_part_list": ["soil"],
-        "processes_sub_model_part_list":      ["no_disp","load","parameter_field"],
         "body_domain_sub_model_part_list":    ["soil"]
     },
     "output_processes": {

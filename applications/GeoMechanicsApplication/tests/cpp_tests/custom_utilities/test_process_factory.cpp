@@ -11,9 +11,9 @@
 //                   Anne van de Graaf
 //
 
-#include "custom_utilities/process_factory.hpp"
 #include "includes/expect.h"
 #include "tests/cpp_tests/geo_mechanics_fast_suite_without_kernel.h"
+#include "custom_utilities/process_factory.h"
 
 using namespace Kratos;
 

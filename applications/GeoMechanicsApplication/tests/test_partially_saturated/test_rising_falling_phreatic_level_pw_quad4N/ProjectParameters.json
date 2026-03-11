@@ -45,18 +45,8 @@
       "solver_type": "LinearSolversApplication.sparse_lu",
       "scaling": true
     },
-    "problem_domain_sub_model_part_list": [
-      "Soil"
-    ],
-    "processes_sub_model_part_list": [
-      "gravity",
-      "TopWaterPressure",
-      "BottomWaterPressure",
-      "InitialWaterPressure"
-    ],
-    "body_domain_sub_model_part_list": [
-      "Soil"
-    ]
+    "problem_domain_sub_model_part_list": ["Soil"],
+    "body_domain_sub_model_part_list"   : ["Soil"]
   },
   "output_processes": {
     "gid_output": [

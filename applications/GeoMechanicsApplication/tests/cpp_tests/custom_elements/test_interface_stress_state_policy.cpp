@@ -11,16 +11,16 @@
 //
 
 #include "custom_elements/interface_stress_state.h"
-#include "custom_geometries/interface_geometry.h"
-#include "custom_utilities/registration_utilities.h"
 #include "geometries/line_2d_3.h"
 #include "geometries/triangle_3d_3.h"
 #include "includes/expect.h"
+#include "custom_geometries/interface_geometry.hpp"
+#include "custom_utilities/registration_utilities.hpp"
+#include "custom_utilities/ublas_utilities.h"
 #include "includes/stream_serializer.h"
 #include "tests/cpp_tests/geo_mechanics_fast_suite_without_kernel.h"
 #include "tests/cpp_tests/test_utilities.h"
 
-#include <boost/numeric/ublas/assignment.hpp>
 #include <string>
 
 using namespace Kratos;
@@ -57,8 +57,7 @@ auto CreateThreePlusThreeSurfaceInterfaceGeometry()
 
 namespace Kratos::Testing
 {
-
-TEST_F(KratosGeoMechanicsFastSuiteWithoutKernel, Line2DInterfaceStressState_CloneCreatesCorrectInstance)
+KRATOS_TEST_CASE_IN_SUITE(Line2DInterfaceStressState_CloneCreatesCorrectInstance, KratosGeoMechanicsFastSuiteWithoutKernel)
 {
     const std::unique_ptr<StressStatePolicy> p_stress_state_policy =
         std::make_unique<Line2DInterfaceStressState>();
@@ -83,8 +82,7 @@ TEST_F(KratosGeoMechanicsFastSuiteWithoutKernel,
     const auto stress_state_policy = Line2DInterfaceStressState{};
     const auto geometry            = CreateThreePlusThree2DLineInterfaceGeometry();
 
-    Vector shape_function_values(2);
-    shape_function_values <<= 1.0, 0.0;
+    const auto shape_function_values = UblasUtilities::CreateVector({1.0, 0.0});
 
     KRATOS_EXPECT_EXCEPTION_IS_THROWN(
         [[maybe_unused]] const auto b_matrix =
@@ -106,8 +104,7 @@ TEST_F(KratosGeoMechanicsFastSuiteWithoutKernel, Line2DInterfaceStressState_Retu
 
     const auto& r_voigt_vector = stress_state_policy.GetVoigtVector();
 
-    Vector expected_voigt_vector(2);
-    expected_voigt_vector <<= 1.0, 0.0;
+    const auto expected_voigt_vector = UblasUtilities::CreateVector({1.0, 0.0});
     KRATOS_EXPECT_VECTOR_NEAR(expected_voigt_vector, r_voigt_vector, Defaults::absolute_tolerance)
 }
 
@@ -116,17 +113,14 @@ TEST_F(KratosGeoMechanicsFastSuiteWithoutKernel, Line2DInterfaceStressState_Retu
     const auto stress_state_policy = Line2DInterfaceStressState{};
     const auto geometry            = CreateThreePlusThree2DLineInterfaceGeometry();
 
-    Vector shape_function_values(3);
-    shape_function_values <<= -0.125, 0.375, 0.75; // Shape function values for xi = 0.5
+    const auto shape_function_values =
+        UblasUtilities::CreateVector({-0.125, 0.375, 0.75}); // Shape function values for xi = 0.5
 
     const auto b_matrix = stress_state_policy.CalculateBMatrix({}, shape_function_values, geometry);
 
-    // clang-format off
-    Matrix expected_b_matrix(2, 12);
-    expected_b_matrix <<= 0,   0.125, 0, -0.375, 0, -0.75, 0, -0.125, 0, 0.375, 0, 0.75,
-                          0.125, 0, -0.375, 0, -0.75, 0, -0.125, 0, 0.375, 0, 0.75, 0;
-    // clang-format on
-
+    const auto expected_b_matrix =
+        UblasUtilities::CreateMatrix({{0, 0.125, 0, -0.375, 0, -0.75, 0, -0.125, 0, 0.375, 0, 0.75},
+                                      {0.125, 0, -0.375, 0, -0.75, 0, -0.125, 0, 0.375, 0, 0.75, 0}});
     KRATOS_EXPECT_MATRIX_NEAR(b_matrix, expected_b_matrix, Defaults::absolute_tolerance)
 }
 
@@ -166,8 +160,7 @@ TEST_F(KratosGeoMechanicsFastSuiteWithoutKernel, Line2DInterfaceStressState_CanB
     // Assert
     ASSERT_NE(p_loaded_policy, nullptr);
     KRATOS_EXPECT_EQ(p_loaded_policy->GetVoigtSize(), VOIGT_SIZE_2D_INTERFACE);
-    auto expected_voigt_vector = Vector{2};
-    expected_voigt_vector <<= 1.0, 0.0;
+    const auto expected_voigt_vector = UblasUtilities::CreateVector({1.0, 0.0});
     KRATOS_EXPECT_VECTOR_NEAR(p_loaded_policy->GetVoigtVector(), expected_voigt_vector, Defaults::absolute_tolerance);
 }
 
@@ -196,8 +189,7 @@ TEST_F(KratosGeoMechanicsFastSuiteWithoutKernel,
     const auto stress_state_policy = SurfaceInterfaceStressState{};
     const auto geometry            = CreateThreePlusThreeSurfaceInterfaceGeometry();
 
-    Vector shape_function_values(2);
-    shape_function_values <<= 1.0, 0.0;
+    const auto shape_function_values = UblasUtilities::CreateVector({1.0, 0.0});
 
     KRATOS_EXPECT_EXCEPTION_IS_THROWN(
         [[maybe_unused]] const auto b_matrix =
@@ -219,8 +211,7 @@ TEST_F(KratosGeoMechanicsFastSuiteWithoutKernel, SurfaceInterfaceStressState_Ret
 
     const auto& r_voigt_vector = stress_state_policy.GetVoigtVector();
 
-    Vector expected_voigt_vector(3);
-    expected_voigt_vector <<= 1.0, 0.0, 0.0;
+    const auto expected_voigt_vector = UblasUtilities::CreateVector({1.0, 0.0, 0.0});
     KRATOS_EXPECT_VECTOR_NEAR(expected_voigt_vector, r_voigt_vector, Defaults::absolute_tolerance)
 }
 
@@ -230,18 +221,14 @@ TEST_F(KratosGeoMechanicsFastSuiteWithoutKernel,
     const auto stress_state_policy = SurfaceInterfaceStressState{};
     const auto geometry            = CreateThreePlusThreeSurfaceInterfaceGeometry();
 
-    Vector shape_function_values(3);
-    shape_function_values <<= -0.125, 0.375, 0.75;
+    const auto shape_function_values = UblasUtilities::CreateVector({-0.125, 0.375, 0.75});
 
     const auto b_matrix = stress_state_policy.CalculateBMatrix({}, shape_function_values, geometry);
 
-    // clang-format off
-    Matrix expected_b_matrix(3, 18);
-    expected_b_matrix <<= 0.0,   0.0,   0.125,  0.0,    0.0,   -0.375,  0.0,   0.0,  -0.75,  0.0,    0.0,   -0.125, 0.0,   0.0,   0.375, 0.0,  0.0,  0.75,
-                          0.125, 0.0,   0.0,   -0.375,  0.0,    0.0,   -0.75,  0.0,   0.0,  -0.125,  0.0,    0.0,   0.375, 0.0,   0.0,   0.75, 0.0,  0.0,
-                          0.0,   0.125, 0.0,    0.0,   -0.375,  0.0,    0.0,  -0.75,  0.0,   0.0,   -0.125,  0.0,   0.0,   0.375, 0.0,   0.0,  0.75, 0.0;
-    // clang-format on
-
+    const auto expected_b_matrix = UblasUtilities::CreateMatrix(
+        {{0.0, 0.0, 0.125, 0.0, 0.0, -0.375, 0.0, 0.0, -0.75, 0.0, 0.0, -0.125, 0.0, 0.0, 0.375, 0.0, 0.0, 0.75},
+         {0.125, 0.0, 0.0, -0.375, 0.0, 0.0, -0.75, 0.0, 0.0, -0.125, 0.0, 0.0, 0.375, 0.0, 0.0, 0.75, 0.0, 0.0},
+         {0.0, 0.125, 0.0, 0.0, -0.375, 0.0, 0.0, -0.75, 0.0, 0.0, -0.125, 0.0, 0.0, 0.375, 0.0, 0.0, 0.75, 0.0}});
     KRATOS_EXPECT_MATRIX_NEAR(b_matrix, expected_b_matrix, Defaults::absolute_tolerance)
 }
 
@@ -281,8 +268,7 @@ TEST_F(KratosGeoMechanicsFastSuiteWithoutKernel, SurfaceInterfaceStressState_Can
     // Assert
     ASSERT_NE(p_loaded_policy, nullptr);
     KRATOS_EXPECT_EQ(p_loaded_policy->GetVoigtSize(), VOIGT_SIZE_3D_INTERFACE);
-    auto expected_voigt_vector = Vector{3};
-    expected_voigt_vector <<= 1.0, 0.0, 0.0;
+    const auto expected_voigt_vector = UblasUtilities::CreateVector({1.0, 0.0, 0.0});
     KRATOS_EXPECT_VECTOR_NEAR(p_loaded_policy->GetVoigtVector(), expected_voigt_vector, Defaults::absolute_tolerance);
 }
 

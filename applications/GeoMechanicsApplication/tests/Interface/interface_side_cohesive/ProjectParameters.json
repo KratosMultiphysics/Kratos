@@ -69,7 +69,6 @@
             "scaling":         false
         },
         "problem_domain_sub_model_part_list": ["Soil_drained-auto-1","Interface"],
-        "processes_sub_model_part_list":      ["fixity_left","vertical_movement_top","vertical_movement_bottom","load_right"],
         "body_domain_sub_model_part_list":    ["Soil_drained-auto-1"]
     },
     "output_processes": {

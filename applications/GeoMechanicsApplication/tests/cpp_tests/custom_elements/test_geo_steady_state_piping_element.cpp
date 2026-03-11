@@ -17,6 +17,7 @@
 #include "includes/expect.h"
 #include "includes/model_part.h"
 #include "tests/cpp_tests/geo_mechanics_fast_suite_without_kernel.h"
+#include "geo_mechanics_application_variables.h"
 #include "tests/cpp_tests/test_utilities.h"
 
 namespace
@@ -32,7 +33,7 @@ PointerVector<Node> CreateTwoNodes()
     return result;
 }
 
-PointerVector<Node> CreateNodesOnModelPart(ModelPart& rModelPart)
+PointerVector<Node> CreateNodesOnModelPartForPipingElementTest(ModelPart& rModelPart)
 {
     PointerVector<Node> result;
     result.push_back(rModelPart.CreateNewNode(1, 1.0, 0.0, 0.0));
@@ -89,7 +90,8 @@ intrusive_ptr<GeoSteadyStatePwPipingElement<3, 2>> CreateGeoSteadyStatePwPipingE
 intrusive_ptr<GeoSteadyStatePwPipingElement<2, 2>> CreateHorizontalUnitLengthGeoSteadyStatePwPipingElementWithPWDofs(
     ModelPart& rModelPart, const Properties::Pointer& rProperties)
 {
-    const auto p_geometry = std::make_shared<Line2D2<Node>>(CreateNodesOnModelPart(rModelPart));
+    const auto p_geometry =
+        std::make_shared<Line2D2<Node>>(CreateNodesOnModelPartForPipingElementTest(rModelPart));
     auto p_element = CreateGeoSteadyStatePwPipingElementWithPWDofs(rModelPart, rProperties, p_geometry);
 
     rModelPart.AddElement(p_element);
@@ -99,7 +101,8 @@ intrusive_ptr<GeoSteadyStatePwPipingElement<2, 2>> CreateHorizontalUnitLengthGeo
 intrusive_ptr<GeoSteadyStatePwPipingElement<3, 2>> CreateHorizontalUnitLengthGeoSteadyStatePwPipingElement3D2NWithPWDofs(
     ModelPart& rModelPart, const Properties::Pointer& rProperties)
 {
-    const auto p_geometry = std::make_shared<Line3D2<Node>>(CreateNodesOnModelPart(rModelPart));
+    const auto p_geometry =
+        std::make_shared<Line3D2<Node>>(CreateNodesOnModelPartForPipingElementTest(rModelPart));
     auto p_element = CreateGeoSteadyStatePwPipingElement3D2NWithPWDofs(rModelPart, rProperties, p_geometry);
 
     rModelPart.AddElement(p_element);
@@ -109,8 +112,9 @@ intrusive_ptr<GeoSteadyStatePwPipingElement<3, 2>> CreateHorizontalUnitLengthGeo
 intrusive_ptr<GeoSteadyStatePwPipingElement<2, 2>> CreateHorizontalUnitLengthGeoSteadyStatePwPipingElementWithoutPWDofs(
     ModelPart& rModelPart, const Properties::Pointer& rProperties)
 {
-    const auto p_geometry = std::make_shared<Line2D2<Node>>(CreateNodesOnModelPart(rModelPart));
-    auto       p_element  = make_intrusive<GeoSteadyStatePwPipingElement<2, 2>>(
+    const auto p_geometry =
+        std::make_shared<Line2D2<Node>>(CreateNodesOnModelPartForPipingElementTest(rModelPart));
+    auto p_element = make_intrusive<GeoSteadyStatePwPipingElement<2, 2>>(
         NextElementNumber(rModelPart), p_geometry, rProperties);
 
     rModelPart.AddElement(p_element);
