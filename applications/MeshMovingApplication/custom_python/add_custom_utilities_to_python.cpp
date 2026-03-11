@@ -27,6 +27,7 @@
 #include "custom_utilities/move_mesh_utilities.h"
 #include "custom_utilities/affine_transform.h"
 #include "custom_utilities/parametric_affine_transform.h"
+#include "custom_utilities/rotating_frame_utility.h"
 
 namespace Kratos {
 namespace Python {
@@ -59,6 +60,11 @@ void AddCustomUtilitiesToPython(pybind11::module& m) {
         .def(py::init<const Parameters, const Parameters, const Parameters, const Parameters>())
         .def(py::init<const Parameters, const Parameters, const Parameters>())
         .def("Apply", &ParametricAffineTransform::Apply)
+        ;
+    
+    py::class_<RotatingFrameUtility>(m, "RotatingFrameUtility")
+        .def_static("AssignRotationalVelocity", &RotatingFrameUtility::AssignRotationalVelocity)
+        .def_static("ApplyRotationAndMeshDisplacement", &RotatingFrameUtility::ApplyRotationAndMeshDisplacement)
         ;
 
     void (*CalculateMeshVelocitiesBDF1)(ModelPart&, const TimeDiscretization::BDF1&) = &MeshVelocityCalculation::CalculateMeshVelocities;
