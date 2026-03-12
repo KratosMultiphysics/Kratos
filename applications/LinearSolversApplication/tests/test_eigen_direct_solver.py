@@ -1,4 +1,4 @@
-
+from pathlib import Path
 import os
 import KratosMultiphysics
 
@@ -18,11 +18,18 @@ class TestEigenDirectSolver(KratosUnittest.TestCase):
 
         a = KratosMultiphysics.CompressedMatrix()
 
-        this_file_dir = os.path.dirname(os.path.realpath(__file__))
-        base_dir = os.path.dirname(os.path.dirname(os.path.dirname(this_file_dir)))
-        matrix_file_path = os.path.join(base_dir, "kratos", "tests", "auxiliar_files_for_python_unittest", "sparse_matrix_files", "A.mm")
+        base_dir = Path(__file__).resolve().parents[3]
 
-        file_read = KratosMultiphysics.ReadMatrixMarketMatrix(matrix_file_path, a) # symmetric test matrix
+        matrix_file_path = (
+            base_dir
+            / "kratos"
+            / "tests"
+            / "auxiliar_files_for_python_unittest"
+            / "sparse_matrix_files"
+            / "A.mm"
+        )
+
+        file_read = KratosMultiphysics.ReadMatrixMarketMatrix(str(matrix_file_path), a)
         self.assertTrue(file_read, msg="The MatrixFile could not be read")
 
         dimension = a.Size1()

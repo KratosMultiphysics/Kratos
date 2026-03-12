@@ -9,6 +9,9 @@
 
 #pragma once
 
+// System includes
+#include <format>
+
 // External includes
 #include <Eigen/Core>
 #include <Eigen/Sparse>
@@ -150,11 +153,11 @@ public:
         TSparseSpaceType::Resize(solution, TSparseSpaceType::Size1(rA));
         TSparseSpaceType::Resize(rhs, TSparseSpaceType::Size1(rA));
     
-        KRATOS_ERROR_IF(TDenseSpaceType::Size1(rB) != system_size) << "RHS has wrong number of rows." << std::endl;
+        KRATOS_ERROR_IF(TDenseSpaceType::Size1(rB) != system_size) << std::format(
+            "expecting the right hand side matrix to have {} rows, but it has {}",
+            system_size, TDenseSpaceType::Size1(rB));
     
-        if (TDenseSpaceType::Size1(rX) != system_size || TDenseSpaceType::Size2(rX) != n_rhs) {
-            TDenseSpaceType::Resize(rX, system_size, n_rhs);
-        }
+        TDenseSpaceType::Resize(rX, system_size, n_rhs);
 
         rhs = column(rB, 0);
         this->InitializeSolutionStep(rA, solution, rhs);
