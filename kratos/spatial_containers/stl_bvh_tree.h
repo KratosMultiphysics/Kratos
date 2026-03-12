@@ -225,9 +225,9 @@ private:
         t.e2[0] = static_cast<float>(p2[0] - p0[0]);
         t.e2[1] = static_cast<float>(p2[1] - p0[1]);
         t.e2[2] = static_cast<float>(p2[2] - p0[2]);
-        t.centroid[0] = (t.v0[0] + t.v0[0] + t.e1[0] + t.v0[0] + t.e2[0]) / 3.0f;
-        t.centroid[1] = (t.v0[1] + t.v0[1] + t.e1[1] + t.v0[1] + t.e2[1]) / 3.0f;
-        t.centroid[2] = (t.v0[2] + t.v0[2] + t.e1[2] + t.v0[2] + t.e2[2]) / 3.0f;
+        t.centroid[0] = t.v0[0] + (t.e1[0] + t.e2[0]) / 3.0f;
+        t.centroid[1] = t.v0[1] + (t.e1[1] + t.e2[1]) / 3.0f;
+        t.centroid[2] = t.v0[2] + (t.e1[2] + t.e2[2]) / 3.0f;
         t.p_object = pObj;
         return t;
     }
@@ -339,9 +339,9 @@ private:
         float lx, float ly, float lz,
         float ux, float uy, float uz)
     {
-        float dx = std::max(lx - cx, std::max(0.0f, cx - ux));
-        float dy = std::max(ly - cy, std::max(0.0f, cy - uy));
-        float dz = std::max(lz - cz, std::max(0.0f, cz - uz));
+        const float dx = std::max(0.0f, std::max(lx - cx, cx - ux));
+        const float dy = std::max(0.0f, std::max(ly - cy, cy - uy));
+        const float dz = std::max(0.0f, std::max(lz - cz, cz - uz));
         return dx*dx + dy*dy + dz*dz;
     }
 
