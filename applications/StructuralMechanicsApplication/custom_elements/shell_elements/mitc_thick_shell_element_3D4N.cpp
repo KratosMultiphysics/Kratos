@@ -1031,7 +1031,7 @@ void MITCThickShellElement3D4N<TKinematics>::CalculateAll(
 
         // multiply the section tangent matrices and stress resultants by 'dA'
         D *= dA;
-        double Ddrilling = D(2, 2) * (r_props.Has(STABILIZATION_FACTOR) ? r_props[STABILIZATION_FACTOR] : drilling_factor); // drilling stiffness
+        double Ddrilling = CalculateEquivalentShearModulus(D) * (r_props.Has(STABILIZATION_FACTOR) ? r_props[STABILIZATION_FACTOR] : drilling_factor); // drilling stiffness
         generalizedStresses *= dA;
         const double drillingStress = Ddrilling * drillingStrain; // already multiplied by 'dA'
 
@@ -1130,6 +1130,17 @@ template <ShellKinematics TKinematics>
 ShellCrossSection::SectionBehaviorType MITCThickShellElement3D4N<TKinematics>::GetSectionBehavior() const
 {
     return ShellCrossSection::Thick;
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+template <ShellKinematics TKinematics>
+double MITCThickShellElement3D4N<TKinematics>::CalculateEquivalentShearModulus(
+    const Matrix& rConstitutiveMatrix // Original 8x8 constitutive matrix
+)
+{
+    return 0.2 * (rConstitutiveMatrix(0, 0) - 2.0 * rConstitutiveMatrix(0, 1) + rConstitutiveMatrix(1, 1) + rConstitutiveMatrix(2, 2));
 }
 
 /***********************************************************************************/

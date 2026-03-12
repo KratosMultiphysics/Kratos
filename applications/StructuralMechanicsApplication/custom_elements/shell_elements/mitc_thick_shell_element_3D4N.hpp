@@ -119,7 +119,6 @@ public:
         Matrix ShearStrains;
 
         MITC4Params(const ShellQ4_LocalCoordinateSystem& LCS);
-
     };
 
     class EASOperator; // forward declaration
@@ -468,6 +467,14 @@ public:
         }
     }
 
+    /**
+     * @brief This method calculates the shear modulus to be used.
+     * In elasticity the shear modulus is G = E / (2*(1+nu)).
+     * However, in some cases, such as in plasticity, the constitutive matrix may not have this form.
+     * In nonlinear cases, we compute an equvalent isotropic D and retrieve its shear modulus.
+    */
+    double CalculateEquivalentShearModulus(const Matrix& rConstitutiveMatrix);
+
     ///@}
 
     ///@name Public specialized Access - Temporary
@@ -494,17 +501,26 @@ private:
     ///@name Private Operations
     ///@{
 
+    /**
+     * @brief This method calculates the B matrix for the bending, shear and membrane behavior of the element
+     */
     void CalculateBMatrix(double xi, double eta,
                           const ShellUtilities::JacobianOperator& Jac, const MITC4Params& params,
                           const Vector& N,
                           Matrix& B, Vector& Bdrill);
 
+    /**
+     * @brief This method computes the element stiffness matrix and residual vector
+     */
     void CalculateAll(MatrixType& rLeftHandSideMatrix,
                       VectorType& rRightHandSideVector,
                       const ProcessInfo& rCurrentProcessInfo,
                       const bool CalculateStiffnessMatrixFlag,
                       const bool CalculateResidualVectorFlag) override;
 
+    /**
+     * @brief This method computes the body forces contribution to the right hand side vector
+     */
     void AddBodyForces(const array_1d<double,4>& dA, VectorType& rRightHandSideVector);
 
 
@@ -515,7 +531,9 @@ private:
     ShellCrossSection::SectionBehaviorType GetSectionBehavior() const override;
 
 
-
+    /**
+     * @brief This method gets a calculates the material response directly in the CL
+     */
     void CalculateMaterialResponse(
         ShellCrossSection::SectionParameters& rSectionParameters,
         const SizeType& rPointNumber,
@@ -523,12 +541,17 @@ private:
         const bool CalculateConstitutive,
         const ProcessInfo& rProcessInfo);
 
+    /**
+     * @brief This method gets a Finalizes the material response directly in the CL
+     */
     void FinalizeMaterialResponse(
         ShellCrossSection::SectionParameters& rSectionParameters,
         const SizeType& rPointNumber,
         const ProcessInfo& rProcessInfo);
 
-
+    /**
+     * @brief This method gets a Initializes the material response directly in the CL
+     */
     void InitializeMaterialResponse(
         ShellCrossSection::SectionParameters& rSectionParameters,
         const SizeType& rPointNumber,
