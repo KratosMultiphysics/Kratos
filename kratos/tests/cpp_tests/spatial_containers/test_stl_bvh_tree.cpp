@@ -91,4 +91,43 @@ KRATOS_TEST_CASE_IN_SUITE(StlBvhTreeEmptyModelPart, KratosCoreFastSuite)
     KRATOS_EXPECT_EQ(visits, 0);
 }
 
+/** Checks StlBvhTree SearchNearest returns the closest triangle and correct distance
+*/
+KRATOS_TEST_CASE_IN_SUITE(StlBvhTreeSearchNearest, KratosCoreFastSuite)
+{
+    constexpr double tolerance = 1e-5; // float-precision BVH, so tolerance is relaxed vs double bins
+
+    Model current_model;
+
+    // Cube half-extents: x=0.6, y=0.9, z=0.3  ->  nearest face to the origin is at z=0.3
+    const double cube_z = 0.3;
+    ModelPart& r_skin_part = CppTestsUtilities::CreateCubeSkinModelPart(current_model, 0.6, 0.9, cube_z);
+
+    StlBvhTree bvh(r_skin_part.ElementsBegin(), r_skin_part.ElementsEnd());
+
+    const double epsilon = 1.0e-6;
+    array_1d<double, 3> near_point{epsilon, epsilon, epsilon};
+
+    auto result = bvh.SearchNearest(near_point);
+
+    KRATOS_EXPECT_NE(result.p_object, nullptr);
+    KRATOS_EXPECT_NEAR(result.Distance, cube_z - epsilon, tolerance);
+}
+
+/** Checks StlBvhTree SearchNearest on an empty tree returns no object
+*/
+KRATOS_TEST_CASE_IN_SUITE(StlBvhTreeSearchNearestEmpty, KratosCoreFastSuite)
+{
+    Model current_model;
+    ModelPart& r_empty = current_model.CreateModelPart("Empty");
+
+    StlBvhTree bvh(r_empty.ElementsBegin(), r_empty.ElementsEnd());
+
+    array_1d<double, 3> center{0.0, 0.0, 0.0};
+    auto result = bvh.SearchNearest(center);
+
+    KRATOS_EXPECT_EQ(result.p_object, nullptr);
+    KRATOS_EXPECT_EQ(result.Distance, std::numeric_limits<double>::max());
+}
+
 } // namespace Kratos::Testing
