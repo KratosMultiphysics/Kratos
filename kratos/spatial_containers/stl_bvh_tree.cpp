@@ -33,7 +33,7 @@ StlBvhTree::BuildResult StlBvhTree::BuildNodeInternal(int pack_begin, int pack_e
         result.ref = PackRef(pack_begin);
         // Compute pack AABB inline
         for (int k = 0; k < 3; ++k) { result.lo[k] =  FLT_MAX; result.hi[k] = -FLT_MAX; }
-        const TriPack4& p = mPacks[pack_begin];
+        const TrianglePack4& p = mPacks[pack_begin];
         for (int j = 0; j < p.count; ++j) {
             const float vx[3] = {p.v0x[j], p.v0x[j]+p.e1x[j], p.v0x[j]+p.e2x[j]};
             const float vy[3] = {p.v0y[j], p.v0y[j]+p.e1y[j], p.v0y[j]+p.e2y[j]};
@@ -70,7 +70,7 @@ StlBvhTree::BuildResult StlBvhTree::BuildNodeInternal(int pack_begin, int pack_e
     BvhNode& node = mNodes[node_idx];
     for (int k = 0; k < 3; ++k) {
         node.base[k] = lo[k];
-        node.step[k] = std::max((hi[k] - lo[k]) / 255.0f, 1e-10f);
+        node.extent[k] = std::max((hi[k] - lo[k]) / 255.0f, 1e-10f);
     }
 
     // Quantize each child's AABB relative to the parent
@@ -79,9 +79,9 @@ StlBvhTree::BuildResult StlBvhTree::BuildNodeInternal(int pack_begin, int pack_e
     for (int c = 0; c < 2; ++c) {
         for (int k = 0; k < 3; ++k) {
             node.lo[c][k] = static_cast<uint8_t>(
-                std::clamp((child_lo[c][k] - lo[k]) / node.step[k], 0.0f, 255.0f));
+                std::clamp((child_lo[c][k] - lo[k]) / node.extent[k], 0.0f, 255.0f));
             node.hi[c][k] = static_cast<uint8_t>(
-                std::clamp((child_hi[c][k] - lo[k]) / node.step[k], 0.0f, 255.0f));
+                std::clamp((child_hi[c][k] - lo[k]) / node.extent[k], 0.0f, 255.0f));
         }
     }
     node.child[0] = left.ref;
@@ -133,7 +133,7 @@ void StlBvhTree::Build(std::vector<TriangleData>& rRawTris)
     mPacks.resize(n_packs);
 
     for (int i = 0; i < n_packs; ++i) {
-        TriPack4& pack     = mPacks[i];
+        TrianglePack4& pack     = mPacks[i];
         const int count    = std::min(4, n_tris - i * 4);
         pack.count         = count;
 
@@ -159,7 +159,7 @@ void StlBvhTree::Build(std::vector<TriangleData>& rRawTris)
         BvhNode& root = mNodes[0];
         float lo[3] = { FLT_MAX,  FLT_MAX,  FLT_MAX};
         float hi[3] = {-FLT_MAX, -FLT_MAX, -FLT_MAX};
-        const TriPack4& p0 = mPacks[0];
+        const TrianglePack4& p0 = mPacks[0];
         for (int j = 0; j < p0.count; ++j) {
             const float vx[3] = {p0.v0x[j], p0.v0x[j]+p0.e1x[j], p0.v0x[j]+p0.e2x[j]};
             const float vy[3] = {p0.v0y[j], p0.v0y[j]+p0.e1y[j], p0.v0y[j]+p0.e2y[j]};
@@ -172,7 +172,7 @@ void StlBvhTree::Build(std::vector<TriangleData>& rRawTris)
         }
         for (int k = 0; k < 3; ++k) {
             root.base[k] = lo[k];
-            root.step[k] = std::max((hi[k] - lo[k]) / 255.0f, 1e-10f);
+            root.extent[k] = std::max((hi[k] - lo[k]) / 255.0f, 1e-10f);
             root.lo[0][k] = 0;
             root.hi[0][k] = 255;
         }

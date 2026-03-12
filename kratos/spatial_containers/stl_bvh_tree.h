@@ -115,28 +115,28 @@ public:
         while (top > 0) {
             const BvhNode& node = mNodes[stack[--top]];
 
-            for (int c = 0; c < 2; ++c) {
-                const int32_t slot = node.child[c];
+            for (int child_index = 0; child_index < 2; ++child_index) {
+                const int32_t slot = node.child[child_index];
                 if (slot == kEmptySlot) continue;
 
                 // Dequantize child AABB
-                const float lx = node.base[0] + node.lo[c][0] * node.step[0];
-                const float ly = node.base[1] + node.lo[c][1] * node.step[1];
-                const float lz = node.base[2] + node.lo[c][2] * node.step[2];
-                const float ux = node.base[0] + node.hi[c][0] * node.step[0];
-                const float uy = node.base[1] + node.hi[c][1] * node.step[1];
-                const float uz = node.base[2] + node.hi[c][2] * node.step[2];
+                const float lx = node.base[0] + node.lo[child_index][0] * node.extent[0];
+                const float ly = node.base[1] + node.lo[child_index][1] * node.extent[1];
+                const float lz = node.base[2] + node.lo[child_index][2] * node.extent[2];
+                const float ux = node.base[0] + node.hi[child_index][0] * node.extent[0];
+                const float uy = node.base[1] + node.hi[child_index][1] * node.extent[1];
+                const float uz = node.base[2] + node.hi[child_index][2] * node.extent[2];
 
-                if (AABBSphereDistSq(cx, cy, cz, lx, ly, lz, ux, uy, uz) > r2) continue;
+                if (AABBSphereDistance2(cx, cy, cz, lx, ly, lz, ux, uy, uz) > r2) continue;
 
                 if (slot < 0) {
                     // Leaf: test exact point-triangle distance for each triangle in pack
-                    const TriPack4& pack = mPacks[PackIndex(slot)];
+                    const TrianglePack4& pack = mPacks[PackIndex(slot)];
                     for (int j = 0; j < pack.count; ++j) {
                         const float v0[3] = {pack.v0x[j], pack.v0y[j], pack.v0z[j]};
                         const float e1[3] = {pack.e1x[j], pack.e1y[j], pack.e1z[j]};
                         const float e2[3] = {pack.e2x[j], pack.e2y[j], pack.e2z[j]};
-                        if (PointTriDist2(cx, cy, cz, v0, e1, e2) <= r2) {
+                        if (PointTriangleDistance2(cx, cy, cz, v0, e1, e2) <= r2) {
                             if (!rFunction(*pack.objects[j])) return;
                         }
                     }
@@ -163,29 +163,29 @@ private:
     /// Intermediate data per triangle, used during construction only
     struct TriangleData {
         float v0[3];
-        float e1[3]; ///< edge1 = v1 - v0
-        float e2[3]; ///< edge2 = v2 - v0
+        float e1[3]; /// edge1 = v1 - v0
+        float e2[3]; /// edge2 = v2 - v0
         float centroid[3];
         GeometricalObject* p_object;
     };
 
     /// Four triangles packed in SOA layout for vectorized leaf queries
-    struct alignas(64) TriPack4 {
+    struct alignas(64) TrianglePack4 {
         float v0x[4], v0y[4], v0z[4];
         float e1x[4], e1y[4], e1z[4];
         float e2x[4], e2y[4], e2z[4];
         GeometricalObject* objects[4];
-        int count; ///< number of valid triangles (1-4)
+        int count; /// number of valid triangles (1-4)
     };
 
     /// Quantized BVH2 node: stores AABB bounds for 2 children, fits in one 64-byte cache line
     struct alignas(64) BvhNode {
-        float   base[3];    ///< 12 bytes – origin for child AABB dequantization
-        float   step[3];    ///< 12 bytes – (aabb_extent / 255) per axis
-        uint8_t lo[2][3];   ///<  6 bytes – quantized lower bounds for children 0 and 1
-        uint8_t hi[2][3];   ///<  6 bytes – quantized upper bounds for children 0 and 1
-        int32_t child[2];   ///<  8 bytes – >=0: inner node index; <0: leaf pack; kEmptySlot: unused
-        uint8_t pad[20];    ///< 20 bytes – padding to reach 64 bytes
+        float   base[3];    /// 12 bytes – origin for child AABB dequantization
+        float   extent[3];    /// 12 bytes – (aabb_extent / 255) per axis
+        uint8_t lo[2][3];   ///  6 bytes – quantized lower bounds for children 0 and 1
+        uint8_t hi[2][3];   ///  6 bytes – quantized upper bounds for children 0 and 1
+        int32_t child[2];   ///  8 bytes – >=0: inner node index; <0: leaf pack; kEmptySlot: unused
+        uint8_t pad[20];    /// 20 bytes – padding to reach 64 bytes
         //                                 12+12+6+6+8+20 = 64 bytes
     };
 
@@ -202,7 +202,7 @@ private:
     ///@{
 
     std::vector<BvhNode>  mNodes;
-    std::vector<TriPack4> mPacks;
+    std::vector<TrianglePack4> mPacks;
 
     ///@}
     ///@name Private Helpers (inline)
@@ -247,7 +247,7 @@ private:
 
     /// Squared distance from point (px,py,pz) to nearest point on triangle V0, V0+e1, V0+e2.
     /// Implements the Ericson closest-point-on-triangle method.
-    static float PointTriDist2(
+    static float PointTriangleDistance2(
         float px, float py, float pz,
         const float v0[3],
         const float e1[3],
@@ -334,7 +334,7 @@ private:
     }
 
     /// Squared distance from point to an AABB (0 if point is inside)
-    static float AABBSphereDistSq(
+    static float AABBSphereDistance2(
         float cx, float cy, float cz,
         float lx, float ly, float lz,
         float ux, float uy, float uz)
