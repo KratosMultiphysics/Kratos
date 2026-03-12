@@ -147,7 +147,7 @@
                 "kratos_module": "KratosMultiphysics.GeoMechanicsApplication",
                 "process_name": "ApplyVectorConstraintTableProcess",
                 "Parameters": {
-                    "model_part_name": "PorousDomain.Gravity",
+                    "model_part_name": "PorousDomain.porous_computational_model_part",
                     "variable_name": "VOLUME_ACCELERATION",
                     "active": [false, true, false],
                     "value": [0.0, -9.81, 0.0],
