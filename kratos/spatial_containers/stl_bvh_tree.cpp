@@ -57,7 +57,53 @@ StlBvhTree::BuildResult StlBvhTree::BuildNodeInternal(int pack_begin, int pack_e
     mNodes.emplace_back(BvhNode{});
     // Reserve has been called in Build(), so emplace_back won't reallocate
 
-    const int mid = (pack_begin + pack_end) / 2;
+    // --- Longest-axis centroid split ---
+    // Compute centroid AABB over all packs in range.
+    // Pack centroid = average of its triangle centroids = v0 + (e1 + e2) / 3 per triangle.
+    float c_lo[3] = { FLT_MAX,  FLT_MAX,  FLT_MAX};
+    float c_hi[3] = {-FLT_MAX, -FLT_MAX, -FLT_MAX};
+    for (int i = pack_begin; i < pack_end; ++i) {
+        const TrianglePack4& p = mPacks[i];
+        for (int j = 0; j < p.count; ++j) {
+            const float cx = p.v0x[j] + (p.e1x[j] + p.e2x[j]) / 3.0f;
+            const float cy = p.v0y[j] + (p.e1y[j] + p.e2y[j]) / 3.0f;
+            const float cz = p.v0z[j] + (p.e1z[j] + p.e2z[j]) / 3.0f;
+            c_lo[0] = std::min(c_lo[0], cx); c_hi[0] = std::max(c_hi[0], cx);
+            c_lo[1] = std::min(c_lo[1], cy); c_hi[1] = std::max(c_hi[1], cy);
+            c_lo[2] = std::min(c_lo[2], cz); c_hi[2] = std::max(c_hi[2], cz);
+        }
+    }
+
+    // Select the axis with the largest centroid spread
+    int axis = 0;
+    float best_span = c_hi[0] - c_lo[0];
+    for (int k = 1; k < 3; ++k) {
+        const float span = c_hi[k] - c_lo[k];
+        if (span > best_span) { best_span = span; axis = k; }
+    }
+
+    // Partition packs: those whose centroid is below the midpoint go to the left half
+    const float split = (c_lo[axis] + c_hi[axis]) * 0.5f;
+
+    // std::partition reorders mPacks[pack_begin..pack_end) in place
+    auto pack_iter_begin = mPacks.begin() + pack_begin;
+    auto pack_iter_end   = mPacks.begin() + pack_end;
+    auto partition_point = std::partition(pack_iter_begin, pack_iter_end,
+        [&](const TrianglePack4& p) {
+            float sum = 0.0f;
+            for (int j = 0; j < p.count; ++j)
+                sum += (axis == 0) ? p.v0x[j] + (p.e1x[j] + p.e2x[j]) / 3.0f
+                     : (axis == 1) ? p.v0y[j] + (p.e1y[j] + p.e2y[j]) / 3.0f
+                                   : p.v0z[j] + (p.e1z[j] + p.e2z[j]) / 3.0f;
+            return (sum / static_cast<float>(p.count)) < split;
+        });
+
+    int mid = static_cast<int>(partition_point - mPacks.begin());
+
+    // Degenerate partition fallback: split evenly
+    if (mid == pack_begin || mid == pack_end)
+        mid = (pack_begin + pack_end) / 2;
+
     const BuildResult left  = BuildNodeInternal(pack_begin, mid);
     const BuildResult right = BuildNodeInternal(mid, pack_end);
 
