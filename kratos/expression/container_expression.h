@@ -211,8 +211,6 @@ public:
      */
     TContainerType& GetContainer();
 
-    typename TContainerType::Pointer pGetContainer();
-
     /**
      * @brief Get the Container of the model part
      *

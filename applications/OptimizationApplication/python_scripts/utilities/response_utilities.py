@@ -56,10 +56,10 @@ def EvaluateValue(response_function: ResponseFunction, optimization_problem: Opt
     else:
         return response_function.CalculateValue()
 
-def EvaluateGradient(response_function: ResponseFunction, physical_variable_combined_tensor_adaptors: 'dict[SupportedSensitivityFieldVariableTypes, Kratos.TensorAdaptors.DoubleCombinedTensorAdaptor]', optimization_problem: OptimizationProblem):
+def EvaluateGradient(response_function: ResponseFunction, physical_variable_gradient_map: 'dict[SupportedSensitivityFieldVariableTypes, Kratos.TensorAdaptors.DoubleCombinedTensorAdaptor]', optimization_problem: OptimizationProblem):
     # first get the tensor adaptors for implemented physical kratos variables
     resp_physical_variable_combined_tensor_adaptors: 'dict[SupportedSensitivityFieldVariableTypes, Kratos.TensorAdaptors.DoubleCombinedTensorAdaptor]' = {}
-    for variable, cta in physical_variable_combined_tensor_adaptors.items():
+    for variable, cta in physical_variable_gradient_map.items():
         temp_cta = Kratos.TensorAdaptors.DoubleCombinedTensorAdaptor(cta, perform_store_data_recursively=False, copy=False)
         if variable in response_function.GetImplementedPhysicalKratosVariables():
             # if the response function depends on the variable, then add it to the dictionary for future evaluation.

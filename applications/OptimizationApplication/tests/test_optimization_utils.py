@@ -237,8 +237,7 @@ class TestOptimizationUtils(kratos_unittest.TestCase):
         nodal_ta_p = Kratos.TensorAdaptors.VariableTensorAdaptor(self.model_part.Nodes, Kratos.PRESSURE)
         nodal_ta_p.CollectData()
 
-        neighbour_count_ta = Kratos.TensorAdaptors.NodalNeighbourCountTensorAdaptor(self.model_part.Nodes, self.model_part.Conditions)
-        neighbour_count_ta.CollectData()
+        neighbour_count_ta = Kratos.TensorAdaptors.Utils.CreateNodalConditionNeighboursCountTensorAdaptor(self.model_part)
         for i, node in enumerate(neighbour_count_ta.GetContainer()):
             node[Kratos.YOUNG_MODULUS] = neighbour_count_ta.data[i]
 
@@ -272,8 +271,7 @@ class TestOptimizationUtils(kratos_unittest.TestCase):
         nodal_ta_p = Kratos.TensorAdaptors.VariableTensorAdaptor(self.model_part.Nodes, Kratos.PRESSURE)
         nodal_ta_p.CollectData()
 
-        neighbour_count_ta = Kratos.TensorAdaptors.NodalNeighbourCountTensorAdaptor(self.model_part.Nodes, self.model_part.Elements)
-        neighbour_count_ta.CollectData()
+        neighbour_count_ta = Kratos.TensorAdaptors.Utils.CreateNodalElementNeighboursCountTensorAdaptor(self.model_part)
         for i, node in enumerate(neighbour_count_ta.GetContainer()):
             node[Kratos.YOUNG_MODULUS] = neighbour_count_ta.data[i]
 

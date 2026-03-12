@@ -128,20 +128,20 @@ class VertexMorphingShapeControl(Control):
         return physical_shape_field
 
     @time_decorator(methodName="GetName")
-    def MapGradient(self, physical_gradient_variable_tensor_adaptor_map: 'dict[SupportedSensitivityFieldVariableTypes, Kratos.TensorAdaptors.DoubleTensorAdaptor]') -> Kratos.TensorAdaptors.DoubleTensorAdaptor:
-        keys = physical_gradient_variable_tensor_adaptor_map.keys()
+    def MapGradient(self, physical_variable_gradient_map: 'dict[SupportedSensitivityFieldVariableTypes, Kratos.TensorAdaptors.DoubleTensorAdaptor]') -> Kratos.TensorAdaptors.DoubleTensorAdaptor:
+        keys = physical_variable_gradient_map.keys()
         if len(keys) != 1:
             raise RuntimeError(f"Provided more than required gradient fields for control \"{self.GetName()}\". Following are the variables:\n\t" + "\n\t".join([k.Name() for k in keys]))
         if KratosOA.SHAPE not in keys:
             raise RuntimeError(f"The required gradient for control \"{self.GetName()}\" w.r.t. {KratosOA.SHAPE.Name()} not found. Followings are the variables:\n\t" + "\n\t".join([k.Name() for k in keys]))
 
-        physical_gradient = physical_gradient_variable_tensor_adaptor_map[KratosOA.SHAPE]
+        physical_gradient = physical_variable_gradient_map[KratosOA.SHAPE]
         if physical_gradient.GetContainer() != self.__GetPhysicalModelPart().Nodes:
             raise RuntimeError(f"Gradients for the required element container not found for control \"{self.GetName()}\". [ required model part name: {self.model_part.FullName()}, given model part name: {physical_gradient.GetModelPart().FullName()} ]")
 
-        filtered_gradient = self.filter.BackwardFilterIntegratedField(self.__ExtractTensorData(KratosOA.SHAPE, physical_gradient, self.model_part.Nodes))
+        filtered_gradient = self.filter.BackwardFilterIntegratedField(self.__ExtractDesignSurfaceData(physical_gradient, self.model_part.Nodes))
 
-        return self.__ExtractTensorData(KratosOA.SHAPE, filtered_gradient, self.__GetPhysicalModelPart().Nodes)
+        return self.__ExtractDesignSurfaceData(filtered_gradient, self.__GetPhysicalModelPart().Nodes)
 
     @time_decorator(methodName="GetName")
     def Update(self, new_control_field: Kratos.TensorAdaptors.DoubleTensorAdaptor) -> bool:
@@ -165,7 +165,7 @@ class VertexMorphingShapeControl(Control):
         if self.mesh_motion_solver_type == "filter_based":
             shape_update = self.filter.ForwardFilterField(control_update)
         else:
-            shape_update = self.filter.ForwardFilterField(self.__ExtractTensorData(KratosOA.SHAPE, control_update, self.model_part.Nodes))
+            shape_update = self.filter.ForwardFilterField(self.__ExtractDesignSurfaceData(control_update, self.model_part.Nodes))
 
         # now update the shape
         self._UpdateMesh(shape_update)
@@ -256,13 +256,30 @@ class VertexMorphingShapeControl(Control):
             # model part
             return self.model_part.GetRootModelPart()
 
-    def __ExtractTensorData(self, variable, tensor_adaptor: Kratos.TensorAdaptors.DoubleTensorAdaptor, nodes_container: Kratos.NodesArray) -> Kratos.TensorAdaptors.DoubleTensorAdaptor:
-        if nodes_container != tensor_adaptor.GetContainer():
-            Kratos.VariableUtils().SetNonHistoricalVariableToZero(variable, tensor_adaptor.GetContainer())
-            Kratos.VariableUtils().SetNonHistoricalVariableToZero(variable, nodes_container)
+    def __ExtractDesignSurfaceData(self, tensor_adaptor: Kratos.TensorAdaptors.DoubleTensorAdaptor, nodes_container: Kratos.NodesArray) -> Kratos.TensorAdaptors.DoubleTensorAdaptor:
+        """\
+        @brief This method is used to extract data from model part to @ref TensorAdaptor.
 
-            Kratos.TensorAdaptors.VariableTensorAdaptor(tensor_adaptor, variable, copy=False).StoreData()
-            ta = Kratos.TensorAdaptors.VariableTensorAdaptor(nodes_container, variable)
+        @details If the nodes container used in the @p tensor_adaptor is different from the @p nodes_container
+                 then, this method extracts values from the nodes of the container into the @p tensor_adaptor
+                 to a @ref TensorAdaptor having @p nodes_container as the nodes.
+
+                 Eg:
+                 This is required, if mesh motion based filters are used in the filtering, then
+                 smoothened update from filtering will be computed on the whole domain including the design surface.
+                 But, for computation of the shape_update and checking it if it actually changes the design surface, first
+                 we need to get only the design surface update. Hence, this method is used.
+
+        @param tensor_adaptor (Kratos.TensorAdaptors.DoubleTensorAdaptor): @ref TensorAdaptor with the data.
+        @param nodes_container (Kratos.NodesArray): list of nodes on which you needs data transferred.
+        @returns: @ref TensorAdaptor having the @p nodes_container as the container, having values extracted from corresponding nodes in the container of @p tensor_adaptor .
+        """
+        if nodes_container != tensor_adaptor.GetContainer():
+            Kratos.VariableUtils().SetNonHistoricalVariableToZero(KratosOA.SHAPE, tensor_adaptor.GetContainer())
+            Kratos.VariableUtils().SetNonHistoricalVariableToZero(KratosOA.SHAPE, nodes_container)
+
+            Kratos.TensorAdaptors.VariableTensorAdaptor(tensor_adaptor, KratosOA.SHAPE, copy=False).StoreData()
+            ta = Kratos.TensorAdaptors.VariableTensorAdaptor(nodes_container, KratosOA.SHAPE)
             ta.CollectData()
             return ta
         else:

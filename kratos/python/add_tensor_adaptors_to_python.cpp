@@ -24,6 +24,7 @@
 #include "python/numpy_utils.h"
 #include "utilities/container_io_utils.h"
 #include "utilities/parallel_utilities.h"
+#include "tensor_adaptors/tensor_adaptor_utils.h"
 
 // Tensor adaptors
 #include "tensor_adaptors/combined_tensor_adaptor.h"
@@ -36,7 +37,6 @@
 #include "tensor_adaptors/geometries_tensor_adaptor.h"
 #include "tensor_adaptors/tensor_adaptor.h"
 #include "tensor_adaptors/variable_tensor_adaptor.h"
-#include "tensor_adaptors/nodal_neighbour_count_tensor_adaptor.h"
 #include "tensor_adaptors/geometry_metrics_tensor_adaptor.h"
 
 // Include base h
@@ -129,6 +129,10 @@ void AddTensorAdaptorsToPython(pybind11::module& m)
      Detail::AddCombinedTensorAdaptor<bool>(tensor_adaptor_sub_module, "BoolCombinedTensorAdaptor");
      Detail::AddCombinedTensorAdaptor<int>(tensor_adaptor_sub_module, "IntCombinedTensorAdaptor");
      Detail::AddCombinedTensorAdaptor<double>(tensor_adaptor_sub_module, "DoubleCombinedTensorAdaptor");
+
+     auto tensor_adaptor_utils = tensor_adaptor_sub_module.def_submodule("Utils");
+     tensor_adaptor_utils.def("CreateNodalConditionNeighboursCountTensorAdaptor", &TensorAdaptorUtils::CreateNodalNeighboursCountTensorAdaptor<ModelPart::ConditionsContainerType>, py::arg("model_part"));
+     tensor_adaptor_utils.def("CreateNodalElementNeighboursCountTensorAdaptor", &TensorAdaptorUtils::CreateNodalNeighboursCountTensorAdaptor<ModelPart::ElementsContainerType>, py::arg("model_part"));
 
      py::class_<HistoricalVariableTensorAdaptor, HistoricalVariableTensorAdaptor::Pointer, HistoricalVariableTensorAdaptor::BaseType>(tensor_adaptor_sub_module, "HistoricalVariableTensorAdaptor")
           .def(py::init<ModelPart::NodesContainerType::Pointer, HistoricalVariableTensorAdaptor::VariablePointerType, const int>(),
@@ -301,40 +305,24 @@ void AddTensorAdaptorsToPython(pybind11::module& m)
                py::arg("tensor_adaptor"),
                py::arg("copy") = true);
 
-     py::class_<NodalNeighbourCountTensorAdaptor, NodalNeighbourCountTensorAdaptor::Pointer, NodalNeighbourCountTensorAdaptor::BaseType>(tensor_adaptor_sub_module, "NodalNeighbourCountTensorAdaptor")
-          .def(py::init<const NodalNeighbourCountTensorAdaptor::BaseType&, ModelPart::ConditionsContainerType::Pointer, const bool>(),
-               py::arg("tensor_adaptor"),
-               py::arg("entity_container"),
-               py::arg("copy") = true)
-          .def(py::init<const NodalNeighbourCountTensorAdaptor::BaseType&, ModelPart::ElementsContainerType::Pointer, const bool>(),
-               py::arg("tensor_adaptor"),
-               py::arg("entity_container"),
-               py::arg("copy") = true)
-          .def(py::init<ModelPart::NodesContainerType::Pointer, ModelPart::ConditionsContainerType::Pointer>(),
-               py::arg("nodes_container"),
-               py::arg("entity_container"))
-          .def(py::init<ModelPart::NodesContainerType::Pointer, ModelPart::ElementsContainerType::Pointer>(),
-               py::arg("nodes_container"),
-               py::arg("entity_container"));
-
      py::class_<GeometryMetricsTensorAdaptor, GeometryMetricsTensorAdaptor::Pointer, GeometryMetricsTensorAdaptor::BaseType> geometric_tensor_adaptor(tensor_adaptor_sub_module, "GeometryMetricsTensorAdaptor");
 
-     py::enum_<GeometryMetricsTensorAdaptor::DatumType>(geometric_tensor_adaptor,"DatumType")
-          .value("DomainSize", GeometryMetricsTensorAdaptor::DatumType::DomainSize)
+     py::enum_<GeometryMetricsTensorAdaptor::Metric>(geometric_tensor_adaptor,"Metric")
+          .value("DomainSize", GeometryMetricsTensorAdaptor::Metric::DomainSize)
           .export_values();
 
      geometric_tensor_adaptor
-          .def(py::init<const GeometryMetricsTensorAdaptor::BaseType&, GeometryMetricsTensorAdaptor::DatumType, const bool>(),
+          .def(py::init<const GeometryMetricsTensorAdaptor::BaseType&, GeometryMetricsTensorAdaptor::Metric, const bool>(),
                py::arg("tensor_adaptor"),
                py::arg("datum"),
                py::arg("copy") = true)
-          .def(py::init<ModelPart::GeometryContainerType::Pointer, GeometryMetricsTensorAdaptor::DatumType>(),
+          .def(py::init<ModelPart::GeometryContainerType::Pointer, GeometryMetricsTensorAdaptor::Metric>(),
                py::arg("container"),
                py::arg("datum"))
-          .def(py::init<ModelPart::ConditionsContainerType::Pointer, GeometryMetricsTensorAdaptor::DatumType>(),
+          .def(py::init<ModelPart::ConditionsContainerType::Pointer, GeometryMetricsTensorAdaptor::Metric>(),
                py::arg("container"),
                py::arg("datum"))
-          .def(py::init<ModelPart::ElementsContainerType::Pointer, GeometryMetricsTensorAdaptor::DatumType>(),
+          .def(py::init<ModelPart::ElementsContainerType::Pointer, GeometryMetricsTensorAdaptor::Metric>(),
                py::arg("container"),
                py::arg("datum"));
 }

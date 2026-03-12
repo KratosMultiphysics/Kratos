@@ -148,15 +148,15 @@ class MaterialPropertiesControl(Control):
         physical_thickness_field.CollectData()
         return physical_thickness_field
 
-    def MapGradient(self, physical_gradient_variable_tensor_adaptor_map: 'dict[SupportedSensitivityFieldVariableTypes, Kratos.TensorAdaptors.DoubleTensorAdaptor]') -> Kratos.TensorAdaptors.DoubleTensorAdaptor:
+    def MapGradient(self, physical_variable_gradient_map: 'dict[SupportedSensitivityFieldVariableTypes, Kratos.TensorAdaptors.DoubleTensorAdaptor]') -> Kratos.TensorAdaptors.DoubleTensorAdaptor:
         with TimeLogger("ShellThicknessControl::MapGradient", None, "Finished",False):
-            keys = physical_gradient_variable_tensor_adaptor_map.keys()
+            keys = physical_variable_gradient_map.keys()
             if len(keys) != 1:
                 raise RuntimeError(f"Provided more than required gradient fields for control \"{self.GetName()}\". Following are the variables:\n\t" + "\n\t".join([k.Name() for k in keys]))
             if self.controlled_physical_variable not in keys:
                 raise RuntimeError(f"The required gradient for control \"{self.GetName()}\" w.r.t. {self.controlled_physical_variable.Name()} not found. Followings are the variables:\n\t" + "\n\t".join([k.Name() for k in keys]))
 
-            physical_gradient = physical_gradient_variable_tensor_adaptor_map[self.controlled_physical_variable]
+            physical_gradient = physical_variable_gradient_map[self.controlled_physical_variable]
             if physical_gradient.GetContainer() != self.primal_model_part.Elements:
                 raise RuntimeError(f"Gradients for the required element container not found for control \"{self.GetName()}\". [ required model part name: {self.primal_model_part.FullName()} ]")
 

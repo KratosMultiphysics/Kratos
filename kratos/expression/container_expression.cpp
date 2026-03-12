@@ -73,9 +73,6 @@ const ModelPart::MeshType& GetMesh<MeshType::Interface>(const ModelPart& rModelP
 template <class TContainerType>
 TContainerType& GetContainer(ModelPart::MeshType &rMesh);
 
-template <class TContainerType>
-typename TContainerType::Pointer pGetContainer(ModelPart::MeshType &rMesh);
-
 template<>
 ModelPart::NodesContainerType& GetContainer<ModelPart::NodesContainerType>(ModelPart::MeshType& rMesh)
 {
@@ -92,24 +89,6 @@ template<>
 ModelPart::ElementsContainerType& GetContainer<ModelPart::ElementsContainerType>(ModelPart::MeshType& rMesh)
 {
     return rMesh.Elements();
-}
-
-template<>
-ModelPart::NodesContainerType::Pointer pGetContainer<ModelPart::NodesContainerType>(ModelPart::MeshType& rMesh)
-{
-    return rMesh.pNodes();
-}
-
-template<>
-ModelPart::ConditionsContainerType::Pointer pGetContainer<ModelPart::ConditionsContainerType>(ModelPart::MeshType& rMesh)
-{
-    return rMesh.pConditions();
-}
-
-template<>
-ModelPart::ElementsContainerType::Pointer pGetContainer<ModelPart::ElementsContainerType>(ModelPart::MeshType& rMesh)
-{
-    return rMesh.pElements();
 }
 
 template <class TContainerType>
@@ -242,12 +221,6 @@ template <class TContainerType, MeshType TMeshType>
 TContainerType& ContainerExpression<TContainerType, TMeshType>::GetContainer()
 {
     return ContainerExpressionHelperUtilities::GetContainer<TContainerType>(ContainerExpressionHelperUtilities::GetMesh<TMeshType>(*mpModelPart));
-}
-
-template <class TContainerType, MeshType TMeshType>
-typename TContainerType::Pointer ContainerExpression<TContainerType, TMeshType>::pGetContainer()
-{
-    return ContainerExpressionHelperUtilities::pGetContainer<TContainerType>(ContainerExpressionHelperUtilities::GetMesh<TMeshType>(*mpModelPart));
 }
 
 template <class TContainerType, MeshType TMeshType>

@@ -87,21 +87,21 @@ class Control(ABC):
         pass
 
     @abstractmethod
-    def MapGradient(self, physical_gradient_variable_tensor_adaptor_map: 'dict[SupportedSensitivityFieldVariableTypes, Kratos.TensorAdaptors.DoubleTensorAdaptor]') -> Kratos.TensorAdaptors.DoubleTensorAdaptor:
+    def MapGradient(self, physical_variable_gradient_map: 'dict[SupportedSensitivityFieldVariableTypes, Kratos.TensorAdaptors.DoubleTensorAdaptor]') -> Kratos.TensorAdaptors.DoubleTensorAdaptor:
         """Maps physical space gradients to the control space.
 
         This method is used to map the given physical space gradients to the control space. The input should be as in the following example:
-            physical_gradient_variable_tensor_adaptor_map = {
+            physical_variable_gradient_map = {
                 Kratos.YOUNG_MODULUS: Kratos.DoubleTensorAdaptor,
                 Kratos.DENSITY      : Kratos.DoubleTensorAdaptor,
                 Kratos.SHAPE        : Kratos.DoubleTensorAdaptor
             }
 
-        All the gradients w.r.t. @see GetPhysicalKratosVariables() variables will be given in @ref physical_gradient_variable_tensor_adaptor_map.
+        All the gradients w.r.t. @see GetPhysicalKratosVariables() variables will be given in @ref physical_variable_gradient_map.
         If the response does not depend on some of them or all, then @ref Kratos.TensorAdaptor with correctly sized zero tensors will be passed.
 
         Args:
-            physical_gradient_variable_tensor_adaptor_map (dict[SupportedSensitivityFieldVariableTypes, Kratos.TensorAdaptors.DoubleTensorAdaptor]): Map of physical space variable and @ref Kratos::TensorAdaptor with sensitivities.
+            physical_variable_gradient_map (dict[SupportedSensitivityFieldVariableTypes, Kratos.TensorAdaptors.DoubleTensorAdaptor]): Map of physical space variable and @ref Kratos::TensorAdaptor with sensitivities.
 
         Returns:
             Kratos.TensorAdaptors.DoubleTensorAdaptor: Gradients mapped in to control space.

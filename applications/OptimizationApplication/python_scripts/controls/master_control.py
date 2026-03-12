@@ -34,7 +34,7 @@ class MasterControl:
         """
         return self.__list_of_controls
 
-    def GetPhysicalKratosVariableCombinedTensorAdaptorsMap(self) -> 'dict[SupportedSensitivityFieldVariableTypes, Kratos.TensorAdaptors.DoubleCombinedTensorAdaptor]':
+    def GetPhysicalKratosVariableMap(self) -> 'dict[SupportedSensitivityFieldVariableTypes, Kratos.TensorAdaptors.DoubleCombinedTensorAdaptor]':
         """Returns map of physical variables and @ref Kratos::CombinedTensorAdaptor from each control.
 
         This returns a map of physical control variables and a @ref Kratos::CombinedTensorAdaptor. The @ref Kratos::CombinedTensorAdaptor will contain

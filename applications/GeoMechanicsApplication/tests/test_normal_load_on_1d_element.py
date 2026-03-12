@@ -35,7 +35,7 @@ class KratosGeoMechanicsNormalLoad1DTests(KratosUnittest.TestCase):
 
         # get parameters
         E = properties[Kratos.YOUNG_MODULUS]
-        I = properties[KratosStruct.I22]
+        I = properties[KratosStruct.I33]
 
         # discretise x coordinate
         coords = [i * L/n_elem for i in range(n_elem + 1)]

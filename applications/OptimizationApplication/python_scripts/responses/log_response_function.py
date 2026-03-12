@@ -30,13 +30,13 @@ class LogResponseFunction(ResponseFunction):
     def CalculateValue(self) -> float:
         return log(EvaluateValue(self.response_function, self.optimization_problem))
 
-    def CalculateGradient(self, physical_variable_combined_tensor_adaptor: 'dict[SupportedSensitivityFieldVariableTypes, Kratos.TensorAdaptors.DoubleCombinedTensorAdaptor]') -> None:
+    def CalculateGradient(self, physical_variable_gradient_map: 'dict[SupportedSensitivityFieldVariableTypes, Kratos.TensorAdaptors.DoubleCombinedTensorAdaptor]') -> None:
         v = EvaluateValue(self.response_function, self.optimization_problem)
 
-        resp_gradients = {var: Kratos.TensorAdaptors.DoubleCombinedTensorAdaptor(cta) for var, cta in physical_variable_combined_tensor_adaptor.items()}
+        resp_gradients = {var: Kratos.TensorAdaptors.DoubleCombinedTensorAdaptor(cta) for var, cta in physical_variable_gradient_map.items()}
         EvaluateGradient(self.response_function, resp_gradients, self.optimization_problem)
 
-        for variable, cta in physical_variable_combined_tensor_adaptor.items():
+        for variable, cta in physical_variable_gradient_map.items():
             cta.data = resp_gradients[variable].data / v
             Kratos.TensorAdaptors.DoubleCombinedTensorAdaptor(cta, perform_collect_data_recursively=False, perform_store_data_recursively=False, copy=False).StoreData()
 

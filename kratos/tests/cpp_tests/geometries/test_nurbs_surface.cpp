@@ -779,5 +779,97 @@ namespace Testing {
         KRATOS_EXPECT_VECTOR_NEAR(derivatives[26], gradient26, TOLERANCE);
         KRATOS_EXPECT_VECTOR_NEAR(derivatives[27], gradient27, TOLERANCE);
     }
+
+    KRATOS_TEST_CASE_IN_SUITE(NurbsSurfaceShapeFunctionsValuesAndDerivativesAndCPIndices, KratosCoreNurbsGeometriesFastSuite)
+    {
+        using SurfaceType =  NurbsSurfaceGeometry<3, PointerVector<Point>>;
+        using IntegrationPointsArrayType = typename SurfaceType::IntegrationPointsArrayType;
+        using GeometriesArrayType        = typename SurfaceType::GeometriesArrayType;
+
+        // Get the NURBS Surface
+        auto surface = GenerateReferenceQuarterSphereGeometry();
+
+        // Pick an interior parametric point 
+        array_1d<double, 3> local_coords(0.0);
+        local_coords[0] = 0.25;
+        local_coords[1] = 0.75;
+
+        IntegrationPointsArrayType integration_points;
+        integration_points.push_back(typename SurfaceType::IntegrationPointType(
+            local_coords[0], local_coords[1], 1.0));
+
+        IntegrationInfo dummy_info = surface.GetDefaultIntegrationInfo();
+
+        GeometriesArrayType qps;
+        surface.CreateQuadraturePointGeometries(qps, 3, integration_points, dummy_info);
+
+        KRATOS_EXPECT_EQ(qps.size(), 1);
+
+        const auto& r_qp_geom = qps[0];
+        KRATOS_EXPECT_EQ(r_qp_geom.LocalSpaceDimension(), 2);
+
+        // Call the new function
+        std::vector<IndexType> cp_indices;
+        Vector ShapeFunctions;
+        DenseVector<Matrix> Derivatives; 
+
+        surface.ShapeFunctionsValuesAndCPIndices(
+            local_coords,
+            cp_indices,
+            ShapeFunctions,
+            2,
+            &Derivatives);
+
+        // Basic sanity
+        KRATOS_EXPECT_GT(cp_indices.size(), 0);
+        KRATOS_EXPECT_EQ(ShapeFunctions.size(), cp_indices.size());
+        KRATOS_EXPECT_EQ(Derivatives.size(), 2); 
+
+       // Compare shape function values
+        const Matrix& rShapeFunctionsValues_ref = r_qp_geom.ShapeFunctionsValues();
+        KRATOS_EXPECT_EQ(rShapeFunctionsValues_ref.size1(), 1);
+        KRATOS_EXPECT_EQ(rShapeFunctionsValues_ref.size2(), ShapeFunctions.size());
+
+        for (IndexType j = 0; j < ShapeFunctions.size(); ++j) {
+            KRATOS_EXPECT_NEAR(ShapeFunctions[j], rShapeFunctionsValues_ref(0, j), TOLERANCE);
+        }
+
+        // Compare 1st derivatives (
+        const Matrix& rFirstDerivativeValues_ref = r_qp_geom.ShapeFunctionLocalGradient(0);
+        KRATOS_EXPECT_EQ(rFirstDerivativeValues_ref.size1(), ShapeFunctions.size());
+        KRATOS_EXPECT_EQ(rFirstDerivativeValues_ref.size2(), 2);
+
+        KRATOS_EXPECT_EQ(Derivatives[0].size1(), ShapeFunctions.size());
+        KRATOS_EXPECT_EQ(Derivatives[0].size2(), 2);
+
+        for (IndexType j = 0; j < ShapeFunctions.size(); ++j) {
+            KRATOS_EXPECT_NEAR(Derivatives[0](j, 0), rFirstDerivativeValues_ref(j, 0), TOLERANCE); // dN/du
+            KRATOS_EXPECT_NEAR(Derivatives[0](j, 1), rFirstDerivativeValues_ref(j, 1), TOLERANCE); // dN/dv
+        }
+
+        // Compare 2nd derivatives
+        const Matrix& rSecondDerivativeValues_ref = r_qp_geom.ShapeFunctionDerivatives(2, 0); 
+        KRATOS_EXPECT_EQ(rSecondDerivativeValues_ref.size1(), ShapeFunctions.size());
+        KRATOS_EXPECT_EQ(rSecondDerivativeValues_ref.size2(), 3);
+
+        KRATOS_EXPECT_EQ(Derivatives[1].size1(), ShapeFunctions.size());
+        KRATOS_EXPECT_EQ(Derivatives[1].size2(), 3);
+
+        for (IndexType j = 0; j < ShapeFunctions.size(); ++j) {
+            KRATOS_EXPECT_NEAR(Derivatives[1](j, 0), rSecondDerivativeValues_ref(j, 0), TOLERANCE); // dN/duu
+            KRATOS_EXPECT_NEAR(Derivatives[1](j, 1), rSecondDerivativeValues_ref(j, 1), TOLERANCE); // dN/duv
+            KRATOS_EXPECT_NEAR(Derivatives[1](j, 2), rSecondDerivativeValues_ref(j, 2), TOLERANCE); // dN/dvv
+        }
+
+        // CP-index consistency check
+        KRATOS_EXPECT_EQ(r_qp_geom.PointsNumber(), cp_indices.size());
+        for (IndexType j = 0; j < cp_indices.size(); ++j) {
+            const auto& P_qp   = r_qp_geom[j];
+            const auto& P_surf = surface.pGetPoint(cp_indices[j]);
+            KRATOS_EXPECT_NEAR(P_qp.X(), P_surf->X(), TOLERANCE);
+            KRATOS_EXPECT_NEAR(P_qp.Y(), P_surf->Y(), TOLERANCE);
+            KRATOS_EXPECT_NEAR(P_qp.Z(), P_surf->Z(), TOLERANCE);
+        }
+    }
 } // namespace Testing.
 } // namespace Kratos.

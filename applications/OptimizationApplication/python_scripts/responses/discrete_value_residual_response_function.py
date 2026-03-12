@@ -100,12 +100,12 @@ class DiscreteValueResidualResponseFunction(ResponseFunction):
 
         return numpy.sum(resultant.data)
 
-    def CalculateGradient(self, physical_variable_combined_tensor_adaptor: 'dict[SupportedSensitivityFieldVariableTypes, Kratos.TensorAdaptors.DoubleCombinedTensorAdaptor]') -> None:
+    def CalculateGradient(self, physical_variable_gradient_map: 'dict[SupportedSensitivityFieldVariableTypes, Kratos.TensorAdaptors.DoubleCombinedTensorAdaptor]') -> None:
         values = self.ta_getter(self.model_part)
         values.CollectData()
 
         # calculate the gradients
-        for physical_variable, cta in physical_variable_combined_tensor_adaptor.items():
+        for physical_variable, cta in physical_variable_gradient_map.items():
             if physical_variable == self.variable:
 
                 # initialize the current tensor adaptor

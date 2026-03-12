@@ -174,6 +174,7 @@ from structural_mechanics_test_factory import Simple3D2NBeamCrNonLinearTest as T
 from structural_mechanics_test_factory import Simple3D2NBeamCrLinearTest as T3D2NBeamCrLinearTest
 from structural_mechanics_test_factory import SimpleSemiRigid3D2NBeamCrLinearTest as T3D2NBeamCrLinearSemiRigidTest
 from structural_mechanics_test_factory import Simple3D2NBeamCrDynamicTest as T3D2NBeamCrDynamicTest
+from structural_mechanics_test_factory import Simple3D2NBeamCrDynamicPseudoStepTest as T3D2NBeamCrDynamicPseudoStepTest
 from structural_mechanics_test_factory import Simple2D2NBeamCrTest as T2D2NBeamCrTest
 from structural_mechanics_test_factory import Simple3D2NTrussNonLinearSnapthroughDisplacementControlTest as T3D2NNLDispCtrlTest
 # Shell tests
@@ -247,6 +248,7 @@ from structural_mechanics_test_factory import ShellT3AndQ4NonLinearDynamicUnstru
 from restart_tests import TestSmallDisplacement2D4N  as TTestSmallDisplacement2D4N
 from restart_tests import TestTotalLagrangian2D3N    as TTestTotalLagrangian2D3N
 from restart_tests import TestUpdatedLagrangian3D8N  as TTestUpdatedLagrangian3D8N
+from test_step_controller import TestStepControllers as TTestStepControllers
 
 ##### RESPONSE_FUNCTION #####
 from structural_response_function_test_factory import TestAdjointStrainEnergyResponseFunction as TTestAdjointStrainEnergyResponseFunction
@@ -377,6 +379,7 @@ def AssembleTestSuites():
     smallSuite.addTest(TTimoshenkoCurvedBeam2D3NTest('test_execution'))
     smallSuite.addTest(TTimoshenkoCurvedBeam3D3NTest('test_execution'))
     smallSuite.addTest(TAutomatedInitialVariableProcessTest('test_execution'))
+    smallSuite.addTest(T3D2NBeamCrDynamicPseudoStepTest('test_execution'))
     nightSuite.addTest(TSDTwoDShearQuaPatchTest('test_execution'))
     nightSuite.addTest(TSDTwoDShearTriPatchTest('test_execution'))
     nightSuite.addTest(TSDTwoDTensionQuaPatchTest('test_execution'))
@@ -459,6 +462,7 @@ def AssembleTestSuites():
             print("FEAST not available in LinearSolversApplication")
 
     nightSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([THarmonicAnalysisTestsWithHDF5]))
+    nightSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TTestStepControllers]))
 
     nightSuite.addTest(TTestAdjointSensitivityAnalysisBeamStructureLocalStress('test_execution'))
     nightSuite.addTest(TTestAdjointSensitivityAnalysisBeamStructureNodalDisplacement('test_execution'))
