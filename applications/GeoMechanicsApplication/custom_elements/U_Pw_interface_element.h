@@ -106,6 +106,8 @@ public:
 private:
     UPwInterfaceElement() = default;
 
+    void InitializeRotationMatrixCalculator();
+
     Element::DofsVectorType GetDofs() const;
 
     const GeometryType&       GetDisplacementGeometry() const;
@@ -116,7 +118,7 @@ private:
     std::vector<double> CalculateIntegrationCoefficients() const;
     std::vector<Vector> CalculateRelativeDisplacementsAtIntegrationPoints(const std::vector<Matrix>& rLocalBMatrices) const;
     void ApplyRotationToBMatrix(Matrix& rBMatrix, const Matrix& rRotationMatrix) const;
-    void MakeIntegrationSchemeAndAssignFunction();
+    void MakeIntegrationScheme();
     void InterpolateNodalStressesToInitialTractions(const std::vector<std::optional<Vector>>& rInterfaceNodalCauchyStresses) const;
     Vector InterpolateNodalStressToIntegrationPoints(const Geo::IntegrationPointType& rIntegrationPoint,
                                                      const std::vector<Vector>& rNodalStresses) const;
