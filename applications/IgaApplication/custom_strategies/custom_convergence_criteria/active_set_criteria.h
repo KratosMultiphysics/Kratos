@@ -303,7 +303,7 @@ public:
             {
                 if (i_cond->GetValue(ACTIVATION_LEVEL) > 0)
                 {
-                    toll_gap = -1e-4;
+                    toll_gap = 0;
                     break;
                 }
             }
@@ -461,8 +461,8 @@ public:
                         }
                     }
                 } 
-                else if (sigma_nn_master/young_modulus_master > 0)
-                // else if (normal_gap_master*2E5 < -1e-1)
+                // else if (sigma_nn_master/young_modulus_master > 0)
+                else if (normal_gap_master*2E5 < -1e-1)
                 {
                     // if (check_value_slave >= toll_gap && tangent_gap_slave < toll_tangent_distance) //ONLY SLAVE ACTIVE
                     // {

@@ -330,18 +330,7 @@ void GapSbmLoadSolidCondition::CalculateRightHandSide(
     double E = this->GetProperties().GetValue(YOUNG_MODULUS);
     Vector g_N = ZeroVector(3);
 
-    // const double x = mpSkinProjectionNode->X();
-    // const double y = mpSkinProjectionNode->Y();
-
-    const double x = r_surrogate_geometry.Center().X() + mDistanceVectorSkin[0];
-    const double y = r_surrogate_geometry.Center().Y() + mDistanceVectorSkin[1];
-
-    // // cosinusoidal
-    g_N[0] = E/(1-nu)*(sin(x)*sinh(y)) * mTrueNormal[0]; 
-    g_N[1] = E/(1-nu)*(sin(x)*sinh(y)) * mTrueNormal[1]; 
-
-
-    // g_N = mpSkinProjectionNode->GetValue(FORCE);
+    g_N = mpSkinProjectionNode->GetValue(FORCE);
 
     for (IndexType i = 0; i < number_of_control_points; ++i) {
         for (IndexType idim = 0; idim < mDim; ++idim) {

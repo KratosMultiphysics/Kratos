@@ -1534,6 +1534,10 @@ void SnakeGapSbmProcess::CreateGapAndSkinQuadraturePoints(
             p_brep_curve_skin->CreateQuadraturePointGeometries(brep_quadrature_point_list_skin, rIntegrationParameters.NumberOfShapeFunctionsDerivatives, 
                                                                brep_integration_points_list_skin, rIntegrationParameters.CurveIntegrationInfo);
         }
+
+        for (auto& quad_geom : brep_quadrature_point_list_skin) {
+            quad_geom.SetValue(NEIGHBOUR_GEOMETRIES, neighbour_geometries_skin1_skin2);
+        }
         
         if (mGapSbmType == "sbm")
         {
@@ -1619,6 +1623,20 @@ void SnakeGapSbmProcess::CreateGapAndSkinQuadraturePoints(
                 brep_quadrature_point_list_skin.ptr_begin(), brep_quadrature_point_list_skin.ptr_end(),
                 r_layer_model_part, condition_name, id, PropertiesPointerType(), rIntegrationParameters.rKnotSpanSizes,
                 neighbour_geometries_skin1_skin2, characteristic_condition_length);
+
+            
+            if (condition_name == "GapSbmContactCondition") {
+                ModelPart& r_contact_sub_model_part = r_layer_model_part.HasSubModelPart("contact") ?
+                                                        r_layer_model_part.GetSubModelPart("contact") :
+                                                        r_layer_model_part.CreateSubModelPart("contact");
+                auto& r_root_model_part = r_layer_model_part.GetRootModelPart();
+                if (p_brep_curve_skin->Id() == 0 || r_root_model_part.HasGeometry(p_brep_curve_skin->Id())) {
+                    const IndexType new_geom_id = r_root_model_part.NumberOfGeometries() > 0 ?
+                        (r_root_model_part.GeometriesEnd() - 1)->Id() + 1 : 1;
+                    p_brep_curve_skin->SetId(new_geom_id);
+                }
+                r_contact_sub_model_part.AddGeometry(p_brep_curve_skin);
+            }
         }
     };
 
@@ -1925,6 +1943,9 @@ void SnakeGapSbmProcess::CreateConditions(
 
         new_condition_list.GetContainer()[geometry_count]->SetValue(NEIGHBOUR_GEOMETRIES, pSurrogateReferenceGeometries);
         new_condition_list.GetContainer()[geometry_count]->SetValue(CHARACTERISTIC_GEOMETRY_LENGTH, characteristic_length_vector);
+        if (rConditionName == "GapSbmContactCondition") {
+            new_condition_list.GetContainer()[geometry_count]->SetValue(IDENTIFIER, "INACTIVE");
+        }
 
         rIdCounter++;
         geometry_count++;
