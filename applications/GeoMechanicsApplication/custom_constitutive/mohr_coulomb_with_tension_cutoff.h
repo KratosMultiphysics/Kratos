@@ -69,7 +69,7 @@ private:
     Vector                                    mStrainVectorFinalized;
     CoulombWithTensionCutOffImpl              mCoulombWithTensionCutOffImpl;
     bool                                      mIsModelInitialized = false;
-    PlasticityStatus                          mPlasticStatus      = PlasticityStatus::ELASTIC;
+    PlasticityStatus                          mPlasticityStatus   = PlasticityStatus::ELASTIC;
 
     [[nodiscard]] Vector CalculateTrialStressVector(const Vector& rStrainVector, const Properties& rProperties) const;
 

@@ -119,21 +119,21 @@ StressStateType CoulombWithTensionCutOffImpl::DoReturnMapping(const StressStateT
     auto kappa_start = mCoulombYieldSurface.GetKappa();
     for (auto counter = std::size_t{0}; counter < mMaxNumberOfPlasticIterations; ++counter) {
         if (IsStressAtTensionApexReturnZone(trial_traction)) {
-            mPlasticStatus = PlasticityStatus::TENSION_APEX;
+            mPlasticityStatus = PlasticityStatus::TENSION_APEX;
             return ReturnStressAtTensionApexReturnZone(rTrialStressState);
         }
 
         if (IsStressAtTensionCutoffReturnZone(trial_traction)) {
-            mPlasticStatus = PlasticityStatus::TENSION_CUT_0FF;
+            mPlasticityStatus = PlasticityStatus::TENSION_CUT_0FF;
             return ReturnStressAtTensionCutoffReturnZone(rTrialStressState,
                                                          rElasticConstitutiveTensor, AveragingType);
         }
 
         if (IsStressAtCornerReturnZone(trial_traction, AveragingType)) {
-            mPlasticStatus = PlasticityStatus::TENSION_MOHR_COULOMB_CORNER;
+            mPlasticityStatus = PlasticityStatus::TENSION_MOHR_COULOMB_CORNER;
             result = ReturnStressAtCornerPoint(rTrialStressState, rElasticConstitutiveTensor, AveragingType);
         } else { // Regular failure region
-            mPlasticStatus = PlasticityStatus::MOHR_COULOMB_FAILURE;
+            mPlasticityStatus = PlasticityStatus::MOHR_COULOMB_FAILURE;
             result = ReturnStressAtRegularFailureZone(rTrialStressState, rElasticConstitutiveTensor, AveragingType);
         }
 
@@ -306,14 +306,14 @@ Geo::SigmaTau CoulombWithTensionCutOffImpl::ReturnStressAtCornerPoint(
 
 PlasticityStatus CoulombWithTensionCutOffImpl::GetPlasticityStatus() const
 {
-    return mPlasticStatus;
+    return mPlasticityStatus;
 }
 
 void CoulombWithTensionCutOffImpl::save(Serializer& rSerializer) const
 {
     rSerializer.save("CoulombYieldSurface", mCoulombYieldSurface);
     rSerializer.save("TensionCutOff", mTensionCutOff);
-    rSerializer.save("PlasticStatus", static_cast<int>(mPlasticStatus));
+    rSerializer.save("PlasticStatus", static_cast<int>(mPlasticityStatus));
 }
 
 void CoulombWithTensionCutOffImpl::load(Serializer& rSerializer)
@@ -322,7 +322,7 @@ void CoulombWithTensionCutOffImpl::load(Serializer& rSerializer)
     rSerializer.load("TensionCutOff", mTensionCutOff);
     int int_plasticity_status;
     rSerializer.load("PlasticStatus", int_plasticity_status);
-    mPlasticStatus = static_cast<PlasticityStatus>(int_plasticity_status);
+    mPlasticityStatus = static_cast<PlasticityStatus>(int_plasticity_status);
 }
 
 } // namespace Kratos

@@ -57,7 +57,7 @@ private:
     double              mSavedKappaOfCoulombYieldSurface{0.0};
     double              mAbsoluteYieldFunctionValueTolerance{1.0e-8};
     std::size_t         mMaxNumberOfPlasticIterations{100};
-    PlasticityStatus    mPlasticStatus{PlasticityStatus::ELASTIC};
+    PlasticityStatus    mPlasticityStatus{PlasticityStatus::ELASTIC};
 
     template <typename StressStateType>
     [[nodiscard]] bool IsAdmissibleStressState(const StressStateType& rTrialStressState) const;
