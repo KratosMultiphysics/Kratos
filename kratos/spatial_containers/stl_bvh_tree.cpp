@@ -91,8 +91,10 @@ StlBvhTree::NearestResult StlBvhTree::SearchNearest(const PointType& rCenter) co
                 if (d2 < best_dist2) {
                     best_dist2 = d2;
                     result.p_object = pack.objects[j];
+                    if (best_dist2 == 0.0f) break; // point lies on a triangle
                 }
             }
+            if (best_dist2 == 0.0f) top = 0; // skip step 2 entirely
             break;
         }
 
@@ -115,8 +117,10 @@ StlBvhTree::NearestResult StlBvhTree::SearchNearest(const PointType& rCenter) co
                 if (d2 < best_dist2) {
                     best_dist2 = d2;
                     result.p_object = pack.objects[j];
+                    if (best_dist2 == 0.0f) break; // point lies on a triangle
                 }
             }
+            if (best_dist2 == 0.0f) break; // exit step 2 loop entirely
         } else {
             // Inner node: compute AABB distance for both children, then push farther
             // child first and nearer child last so the LIFO order pops the nearer child
