@@ -21,6 +21,7 @@ namespace Kratos
 class KRATOS_API(GEO_MECHANICS_APPLICATION) LobattoIntegrationScheme : public IntegrationScheme
 {
 public:
+    LobattoIntegrationScheme() = default;
     explicit LobattoIntegrationScheme(std::size_t NumberOfPoints);
     ~LobattoIntegrationScheme() override = default;
 

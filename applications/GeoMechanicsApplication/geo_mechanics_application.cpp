@@ -14,6 +14,8 @@
 
 // Application includes
 #include "geo_mechanics_application.h"
+#include "custom_elements/lobatto_integration_scheme.h"
+#include "custom_elements/lumped_integration_scheme.h"
 #include "custom_retention/saturated_below_phreatic_level_law.h"
 
 namespace Kratos
@@ -610,5 +612,8 @@ void KratosGeoMechanicsApplication::Register()
     Serializer::Register("Line2DInterfaceStressState", Line2DInterfaceStressState{});
     Serializer::Register("InterfacePlaneStrain", InterfacePlaneStrain{});
     Serializer::Register("SaturatedBelowPhreaticLevelLaw", SaturatedBelowPhreaticLevelLaw{});
+
+    Serializer::Register("LobattoIntegrationScheme", LobattoIntegrationScheme{});
+    Serializer::Register("LumpedIntegrationScheme", LumpedIntegrationScheme{});
 }
 } // namespace Kratos.

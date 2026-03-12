@@ -952,7 +952,7 @@ std::function<std::vector<Vector>()> UPwInterfaceElement::CreateProjectedGravity
 void UPwInterfaceElement::save(Serializer& rSerializer) const
 {
     KRATOS_SERIALIZE_SAVE_BASE_CLASS(rSerializer, Element)
-    // Save the integration scheme here...
+    rSerializer.save("IntegrationScheme", mpIntegrationScheme);
     rSerializer.save("StressStatePolicy", mpStressStatePolicy);
     rSerializer.save("ConstitutiveLaws", mConstitutiveLaws);
     rSerializer.save("RetentionLaws", mRetentionLaws);
@@ -967,7 +967,7 @@ void UPwInterfaceElement::save(Serializer& rSerializer) const
 void UPwInterfaceElement::load(Serializer& rSerializer)
 {
     KRATOS_SERIALIZE_LOAD_BASE_CLASS(rSerializer, Element)
-    // Load the integration scheme here...
+    rSerializer.load("IntegrationScheme", mpIntegrationScheme);
     rSerializer.load("StressStatePolicy", mpStressStatePolicy);
     rSerializer.load("ConstitutiveLaws", mConstitutiveLaws);
     rSerializer.load("RetentionLaws", mRetentionLaws);

@@ -26,6 +26,7 @@ namespace Kratos
 class KRATOS_API(GEO_MECHANICS_APPLICATION) LumpedIntegrationScheme : public IntegrationScheme
 {
 public:
+    LumpedIntegrationScheme() = default;
     explicit LumpedIntegrationScheme(std::size_t NumberOfPoints);
     ~LumpedIntegrationScheme() override = default;
 
