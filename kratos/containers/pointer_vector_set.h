@@ -1288,6 +1288,7 @@ private:
     virtual void save(Serializer& rSerializer) const
     {
         size_type local_size = mData.size();
+        KRATOS_INFO("PointerVectorSet::save") << "About to save " << local_size << " element(s)\n";
 
         rSerializer.save("size", local_size);
 

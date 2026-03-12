@@ -301,7 +301,10 @@ private:
         auto begin_of_first_side  = points.ptr_begin();
         auto begin_of_second_side = begin_of_first_side + number_of_mid_geometry_nodes;
         auto make_mid_point       = [](const auto& pPoint1, const auto& pPoint2) {
-            return make_intrusive<Node>(pPoint1->Id(), Point{(*pPoint1 + *pPoint2) / 2});
+            auto p_result = make_intrusive<Node>(pPoint1->Id(), Point{(*pPoint1 + *pPoint2) / 2});
+            // Serialization of the mid-geometry requires the nodes to have a non-empty variables list
+            p_result->SetSolutionStepVariablesList(pPoint1->pGetVariablesList());
+            return p_result;
         };
         std::transform(begin_of_first_side, begin_of_second_side, begin_of_second_side,
                        result.ptr_begin(), make_mid_point);

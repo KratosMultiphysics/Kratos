@@ -951,16 +951,25 @@ std::function<std::vector<Vector>()> UPwInterfaceElement::CreateProjectedGravity
 
 void UPwInterfaceElement::save(Serializer& rSerializer) const
 {
+    KRATOS_INFO("UPwInterfaceElement::save") << "About to save U-Pw interface element " << Id() << std::endl;
+
     KRATOS_SERIALIZE_SAVE_BASE_CLASS(rSerializer, Element)
     // Save the integration scheme here...
+    KRATOS_INFO("UPwInterfaceElement::save") << "About to save stress state policy\n";
     rSerializer.save("StressStatePolicy", mpStressStatePolicy);
+    KRATOS_INFO("UPwInterfaceElement::save") << "About to save constitutive laws\n";
     rSerializer.save("ConstitutiveLaws", mConstitutiveLaws);
+    KRATOS_INFO("UPwInterfaceElement::save") << "About to save retention laws\n";
     rSerializer.save("RetentionLaws", mRetentionLaws);
+    KRATOS_INFO("UPwInterfaceElement::save")
+        << "About to save integration coefficient calculator\n";
     rSerializer.save("IntegrationCoefficientsCalculator", mIntegrationCoefficientsCalculator);
+    KRATOS_INFO("UPwInterfaceElement::save") << "About to save (optional) pressure geometry\n";
     rSerializer.save("OptionalPressureGeometry", mpOptionalPressureGeometry);
     auto contributions = std::vector<int>{};
     std::ranges::transform(mContributions, std::back_inserter(contributions),
                            [](auto contribution) { return static_cast<int>(contribution); });
+    KRATOS_INFO("UPwInterfaceElement::save") << "About to save contributions\n";
     rSerializer.save("Contributions", contributions);
 }
 
