@@ -9,9 +9,6 @@
 
 #pragma once
 
-// System includes
-#include <format>
-
 // External includes
 #include <Eigen/Core>
 #include <Eigen/Sparse>
@@ -153,9 +150,11 @@ public:
         TSparseSpaceType::Resize(solution, TSparseSpaceType::Size1(rA));
         TSparseSpaceType::Resize(rhs, TSparseSpaceType::Size1(rA));
     
-        KRATOS_ERROR_IF(TDenseSpaceType::Size1(rB) != system_size) << std::format(
-            "expecting the right hand side matrix to have {} rows, but it has {}",
-            system_size, TDenseSpaceType::Size1(rB));
+        KRATOS_ERROR_IF(TDenseSpaceType::Size1(rB) != system_size)
+            << "Expecting the right hand side matrix to have "
+            << system_size
+            << " rows, but it has "
+            << TDenseSpaceType::Size1(rB) << ".";
     
         TDenseSpaceType::Resize(rX, system_size, n_rhs);
 
