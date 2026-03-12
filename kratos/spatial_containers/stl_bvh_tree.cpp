@@ -73,8 +73,9 @@ StlBvhTree::NearestResult StlBvhTree::SearchNearest(const PointType& rCenter) co
             }
         }
 
-        // Push the farther sibling for later verification (step 2)
-        if (far_slot != kEmptySlot)
+        // Push the farther sibling for later verification (step 2),
+        // but only if its AABB is already closer than the current best.
+        if (far_slot != kEmptySlot && far_d2 < best_dist2)
             stack[top++] = far_slot;
 
         if (near_slot == kEmptySlot) break; // degenerate node
