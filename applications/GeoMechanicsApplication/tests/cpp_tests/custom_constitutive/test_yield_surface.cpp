@@ -264,10 +264,10 @@ KRATOS_TEST_CASE_IN_SUITE(TestCompressionCapYieldSurface, KratosGeoMechanicsFast
     KRATOS_EXPECT_VECTOR_NEAR(cap_yield_surface.DerivativeOfFlowFunction(p_q), expected_derivative,
                               Defaults::absolute_tolerance);
 
-    principal_stress = Geo::PrincipalStresses{10, 0.0, -10};
+    principal_stress    = Geo::PrincipalStresses{10, 0.0, -10};
     expected_derivative = UblasUtilities::CreateVector({1.875, 0.0, -1.875});
-    KRATOS_EXPECT_VECTOR_NEAR(cap_yield_surface.DerivativeOfFlowFunction(principal_stress), expected_derivative,
-                              Defaults::absolute_tolerance);
+    KRATOS_EXPECT_VECTOR_NEAR(cap_yield_surface.DerivativeOfFlowFunction(principal_stress),
+                              expected_derivative, Defaults::absolute_tolerance);
 }
 
 KRATOS_TEST_CASE_IN_SUITE(CompressionCapYieldSurface_CanBeSavedAndLoadedThroughInterface,

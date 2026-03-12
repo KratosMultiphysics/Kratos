@@ -104,6 +104,13 @@ private:
                                                                           const Matrix& rElasticMatrix) const;
     [[nodiscard]] Geo::SigmaTau ReturnStressAtCompressionCapZone(const Geo::SigmaTau& rTrialSigmaTau,
                                                                  const Matrix& rElasticMatrix) const;
+    [[nodiscard]] Geo::PrincipalStresses ReturnStressAtCapCornerZone(
+        const Geo::PrincipalStresses&         rTrialPrincipalStresses,
+        const Matrix&                         rElasticConstitutiveTensor,
+        Geo::PrincipalStresses::AveragingType AveragingType) const;
+    [[nodiscard]] Geo::SigmaTau ReturnStressAtCapCornerZone(const Geo::SigmaTau& rTrialSigmaTau,
+                                                            const Matrix& rElasticConstitutiveTensor,
+                                                            Geo::PrincipalStresses::AveragingType AveragingType) const;
 
     friend class Serializer;
     void save(Serializer& rSerializer) const;

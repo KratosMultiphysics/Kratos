@@ -15,6 +15,7 @@
 
 #pragma once
 
+#include "custom_constitutive/principal_stresses.hpp"
 #include "geo_aliases.h"
 #include "includes/properties.h"
 

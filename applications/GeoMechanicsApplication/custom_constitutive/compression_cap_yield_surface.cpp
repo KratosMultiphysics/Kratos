@@ -140,13 +140,16 @@ Vector CompressionCapYieldSurface::DerivativeOfFlowFunction(const Geo::PQ& rPQ) 
 Vector CompressionCapYieldSurface::DerivativeOfFlowFunction(const Geo::PrincipalStresses& rPrincipalStresses) const
 {
     const auto p_q = StressStrainUtilities::TransformPrincipalStressesToPandQ(rPrincipalStresses);
-    auto derivative_pq = DerivativeOfFlowFunction(p_q);
-    const auto c1 = derivative_pq[0] / 3.0;
-    const auto c2 = derivative_pq[1] / (2.0 * p_q.Q());
-    Vector result = Vector(3, 0.0);
-    result[0] = c1 + c2 * (2.0 * rPrincipalStresses.Values()[0] - rPrincipalStresses.Values()[1] - rPrincipalStresses.Values()[2]);
-    result[1] = c1 + c2 * (2.0 * rPrincipalStresses.Values()[1] - rPrincipalStresses.Values()[2] - rPrincipalStresses.Values()[0]);
-    result[2] = c1 + c2 * (2.0 * rPrincipalStresses.Values()[2] - rPrincipalStresses.Values()[0] - rPrincipalStresses.Values()[1]);
+    auto       derivative_pq = DerivativeOfFlowFunction(p_q);
+    const auto c1            = derivative_pq[0] / 3.0;
+    const auto c2            = derivative_pq[1] / (2.0 * p_q.Q());
+    Vector     result        = Vector(3, 0.0);
+    result[0] = c1 + c2 * (2.0 * rPrincipalStresses.Values()[0] - rPrincipalStresses.Values()[1] -
+                           rPrincipalStresses.Values()[2]);
+    result[1] = c1 + c2 * (2.0 * rPrincipalStresses.Values()[1] - rPrincipalStresses.Values()[2] -
+                           rPrincipalStresses.Values()[0]);
+    result[2] = c1 + c2 * (2.0 * rPrincipalStresses.Values()[2] - rPrincipalStresses.Values()[0] -
+                           rPrincipalStresses.Values()[1]);
     return result;
 }
 
@@ -194,7 +197,7 @@ double CompressionCapYieldSurface::CalculatePlasticMultiplier(const Geo::Princip
             (stress_correction[0] + stress_correction[1] + stress_correction[2]) * 2.0 / 9.0;
     const auto C     = YieldFunctionValue(rPrincipalStresses);
     const auto delta = std::sqrt(B * B - 4.0 * A * C);
-    return std::min((-B + delta) / (2.0 * A), (-B - delta) / (2.0 * A));
+    return std::max((-B + delta) / (2.0 * A), (-B - delta) / (2.0 * A));
 }
 
 void CompressionCapYieldSurface::save(Serializer& rSerializer) const
