@@ -599,7 +599,7 @@ void KratosGeoMechanicsApplication::Register()
     KRATOS_REGISTER_VARIABLE(INTERFACE_SHEAR_STIFFNESS)
 
     KRATOS_REGISTER_VARIABLE(GEO_SHEAR_CAPACITY)
-    KRATOS_REGISTER_VARIABLE(GEO_PLASTIC_STATUS)
+    KRATOS_REGISTER_VARIABLE(GEO_PLASTICITY_STATUS)
 
     Serializer::Register("PlaneStrain", PlaneStrain{});
     Serializer::Register("PlaneStrainStressState", PlaneStrainStressState{});

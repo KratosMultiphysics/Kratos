@@ -122,7 +122,7 @@ KRATOS_TEST_CASE_IN_SUITE(MohrCoulombWithTensionCutOff_CalculateMaterialResponse
     auto cauchy_stress_vector = UblasUtilities::CreateVector({6.0, 0.0, -10.0, 0.0});
     auto resulting_cauchy_stress_vector = CalculateMappedStressVector(cauchy_stress_vector, parameters, law);
     int plastic_status;
-    law.GetValue(GEO_PLASTIC_STATUS, plastic_status);
+    law.GetValue(GEO_PLASTICITY_STATUS, plastic_status);
     // Assert
     auto expected_cauchy_stress_vector = UblasUtilities::CreateVector({6.0, 0.0, -10.0, 0.0});
     KRATOS_EXPECT_VECTOR_EQ(resulting_cauchy_stress_vector, expected_cauchy_stress_vector);
@@ -131,7 +131,7 @@ KRATOS_TEST_CASE_IN_SUITE(MohrCoulombWithTensionCutOff_CalculateMaterialResponse
     // Act
     cauchy_stress_vector = UblasUtilities::CreateVector({8.0, 6.0, 4.0, 0.0});
     resulting_cauchy_stress_vector = CalculateMappedStressVector(cauchy_stress_vector, parameters, law);
-    law.GetValue(GEO_PLASTIC_STATUS, plastic_status);
+    law.GetValue(GEO_PLASTICITY_STATUS, plastic_status);
     // Assert
     expected_cauchy_stress_vector = UblasUtilities::CreateVector({8.0, 6.0, 4.0, 0.0});
     KRATOS_EXPECT_VECTOR_EQ(resulting_cauchy_stress_vector, expected_cauchy_stress_vector);
@@ -160,7 +160,7 @@ KRATOS_TEST_CASE_IN_SUITE(MohrCoulombWithTensionCutOff_CalculateMaterialResponse
     auto cauchy_stress_vector = UblasUtilities::CreateVector({8.0, 0.0, -12.0, 0.0});
     auto resulting_cauchy_stress_vector = CalculateMappedStressVector(cauchy_stress_vector, parameters, law);
     int plastic_status;
-    law.GetValue(GEO_PLASTIC_STATUS, plastic_status);
+    law.GetValue(GEO_PLASTICITY_STATUS, plastic_status);
     // Assert
     auto expected_cauchy_stress_vector =
         UblasUtilities::CreateVector({7.338673315592010089, 0.0, -11.338673315592010089, 0.0});
@@ -171,7 +171,7 @@ KRATOS_TEST_CASE_IN_SUITE(MohrCoulombWithTensionCutOff_CalculateMaterialResponse
     // Act
     cauchy_stress_vector = UblasUtilities::CreateVector({12.0, 0.0, -16.0, 0.0});
     resulting_cauchy_stress_vector = CalculateMappedStressVector(cauchy_stress_vector, parameters, law);
-    law.GetValue(GEO_PLASTIC_STATUS, plastic_status);
+    law.GetValue(GEO_PLASTICITY_STATUS, plastic_status);
     // Assert
     expected_cauchy_stress_vector =
         UblasUtilities::CreateVector({7.338673315592010089, 0.0, -11.338673315592010089, 0.0});
@@ -183,7 +183,7 @@ KRATOS_TEST_CASE_IN_SUITE(MohrCoulombWithTensionCutOff_CalculateMaterialResponse
     // LOWEST_PRINCIPAL_STRESSES as averaging type
     cauchy_stress_vector = UblasUtilities::CreateVector({12.0, 10.0, -16.0, 0.0});
     resulting_cauchy_stress_vector = CalculateMappedStressVector(cauchy_stress_vector, parameters, law);
-    law.GetValue(GEO_PLASTIC_STATUS, plastic_status);
+    law.GetValue(GEO_PLASTICITY_STATUS, plastic_status);
     // Assert
     expected_cauchy_stress_vector =
         UblasUtilities::CreateVector({7.806379130008, 7.806379130008, -9.61275826001616129, 0.0});
@@ -195,7 +195,7 @@ KRATOS_TEST_CASE_IN_SUITE(MohrCoulombWithTensionCutOff_CalculateMaterialResponse
     // HIGHEST_PRINCIPAL_STRESSES as averaging type
     cauchy_stress_vector = UblasUtilities::CreateVector({12.0, -12.0, -16.0, 0.0});
     resulting_cauchy_stress_vector = CalculateMappedStressVector(cauchy_stress_vector, parameters, law);
-    law.GetValue(GEO_PLASTIC_STATUS, plastic_status);
+    law.GetValue(GEO_PLASTICITY_STATUS, plastic_status);
     // Assert
     expected_cauchy_stress_vector =
         UblasUtilities::CreateVector({7.259759295835, -11.6298796479175, -11.6298796479175, 0.0});
@@ -227,7 +227,7 @@ KRATOS_TEST_CASE_IN_SUITE(MohrCoulombWithTensionCutOff_CalculateMaterialResponse
     auto cauchy_stress_vector = UblasUtilities::CreateVector({18.0, 8.0, -2.0, 0.0});
     auto resulting_cauchy_stress_vector = CalculateMappedStressVector(cauchy_stress_vector, parameters, law);
     int plastic_status;
-    law.GetValue(GEO_PLASTIC_STATUS, plastic_status);
+    law.GetValue(GEO_PLASTICITY_STATUS, plastic_status);
     // Assert
     auto expected_cauchy_stress_vector =
         UblasUtilities::CreateVector({10.0, 6.12052019550083, -1.5179192179966735, 0.0});
@@ -239,7 +239,7 @@ KRATOS_TEST_CASE_IN_SUITE(MohrCoulombWithTensionCutOff_CalculateMaterialResponse
     // The following stress vector will exercise the "lowest averaging" type
     cauchy_stress_vector = UblasUtilities::CreateVector({24.0, 22.0, -8.0, 0.0});
     resulting_cauchy_stress_vector = CalculateMappedStressVector(cauchy_stress_vector, parameters, law);
-    law.GetValue(GEO_PLASTIC_STATUS, plastic_status);
+    law.GetValue(GEO_PLASTICITY_STATUS, plastic_status);
     // Assert
     expected_cauchy_stress_vector = UblasUtilities::CreateVector({10.0, 10.0, -1.5179192179966735, 0.0});
     KRATOS_EXPECT_VECTOR_NEAR(resulting_cauchy_stress_vector, expected_cauchy_stress_vector,
@@ -280,7 +280,7 @@ KRATOS_TEST_CASE_IN_SUITE(MohrCoulombWithTensionCutOff_CalculateMaterialResponse
     auto expected_cauchy_stress_vector = UblasUtilities::CreateVector({10.0, 9.0, 8.0, 0.0});
     auto resulting_cauchy_stress_vector = CalculateMappedStressVector(cauchy_stress_vector, parameters, law);
     int plastic_status;
-    law.GetValue(GEO_PLASTIC_STATUS, plastic_status);
+    law.GetValue(GEO_PLASTICITY_STATUS, plastic_status);
     // Assert
     KRATOS_EXPECT_VECTOR_NEAR(resulting_cauchy_stress_vector, expected_cauchy_stress_vector,
                               Defaults::absolute_tolerance);
@@ -289,7 +289,7 @@ KRATOS_TEST_CASE_IN_SUITE(MohrCoulombWithTensionCutOff_CalculateMaterialResponse
     // Act
     cauchy_stress_vector = UblasUtilities::CreateVector({14.0, 9.0, 6.0, 0.0});
     resulting_cauchy_stress_vector = CalculateMappedStressVector(cauchy_stress_vector, parameters, law);
-    law.GetValue(GEO_PLASTIC_STATUS, plastic_status);
+    law.GetValue(GEO_PLASTICITY_STATUS, plastic_status);
     expected_cauchy_stress_vector = UblasUtilities::CreateVector({10.0, 9.0, 6.0, 0.0});
     // Assert
     KRATOS_EXPECT_VECTOR_NEAR(resulting_cauchy_stress_vector, expected_cauchy_stress_vector,
@@ -299,7 +299,7 @@ KRATOS_TEST_CASE_IN_SUITE(MohrCoulombWithTensionCutOff_CalculateMaterialResponse
     // Act
     cauchy_stress_vector = UblasUtilities::CreateVector({14.0, 12.0, 6.0, 0.0});
     resulting_cauchy_stress_vector = CalculateMappedStressVector(cauchy_stress_vector, parameters, law);
-    law.GetValue(GEO_PLASTIC_STATUS, plastic_status);
+    law.GetValue(GEO_PLASTICITY_STATUS, plastic_status);
     // Assert
     expected_cauchy_stress_vector = UblasUtilities::CreateVector({10.0, 10.0, 6.0, 0.0});
     KRATOS_EXPECT_VECTOR_NEAR(resulting_cauchy_stress_vector, expected_cauchy_stress_vector,
@@ -329,7 +329,7 @@ KRATOS_TEST_CASE_IN_SUITE(MohrCoulombWithTensionCutOff_CalculateMaterialResponse
     auto cauchy_stress_vector = UblasUtilities::CreateVector({19.0, 12.0, 11.0, 0.0});
     auto resulting_cauchy_stress_vector = CalculateMappedStressVector(cauchy_stress_vector, parameters, law);
     int plastic_status;
-    law.GetValue(GEO_PLASTIC_STATUS, plastic_status);
+    law.GetValue(GEO_PLASTICITY_STATUS, plastic_status);
     // Assert
     const auto expected_cauchy_stress_vector = UblasUtilities::CreateVector({10.0, 10.0, 10.0, 0.0});
     KRATOS_EXPECT_VECTOR_NEAR(resulting_cauchy_stress_vector, expected_cauchy_stress_vector,
@@ -339,7 +339,7 @@ KRATOS_TEST_CASE_IN_SUITE(MohrCoulombWithTensionCutOff_CalculateMaterialResponse
     // Act, sligthly different start stress, projecting to tension cut-off ending in same point.
     cauchy_stress_vector = UblasUtilities::CreateVector({11.5, 10.0, 10.5, 0.0});
     resulting_cauchy_stress_vector = CalculateMappedStressVector(cauchy_stress_vector, parameters, law);
-    law.GetValue(GEO_PLASTIC_STATUS, plastic_status);
+    law.GetValue(GEO_PLASTICITY_STATUS, plastic_status);
     // Assert
     KRATOS_EXPECT_VECTOR_NEAR(resulting_cauchy_stress_vector, expected_cauchy_stress_vector,
                               Defaults::absolute_tolerance * 1.0e3);
@@ -647,7 +647,7 @@ KRATOS_TEST_CASE_IN_SUITE(MohrCoulombWithTensionCutOff_TrialStressInDegeneratedT
     const auto resulting_cauchy_stress_vector =
         CalculateMappedStressVector(cauchy_stress_vector, parameters, law);
     auto plastic_status = 0;
-    law.GetValue(GEO_PLASTIC_STATUS, plastic_status);
+    law.GetValue(GEO_PLASTICITY_STATUS, plastic_status);
 
     // Assert
     const auto expected_cauchy_stress_vector =
@@ -680,7 +680,7 @@ KRATOS_TEST_CASE_IN_SUITE(MohrCoulombWithTensionCutOff_CalculateMaterialResponse
     auto cauchy_stress_vector = UblasUtilities::CreateVector({18.0, 0.0, 0.0, -8.0});
     auto resulting_cauchy_stress_vector = CalculateMappedStressVector(cauchy_stress_vector, parameters, law);
     auto plastic_status = 0;
-    law.GetValue(GEO_PLASTIC_STATUS, plastic_status);
+    law.GetValue(GEO_PLASTICITY_STATUS, plastic_status);
 
     // Assert
     const auto expected_cauchy_stress_vector = UblasUtilities::CreateVector(
@@ -914,7 +914,7 @@ KRATOS_TEST_CASE_IN_SUITE(MohrCoulombWithTensionCutoff_GetValueReturnsPlasticity
 
     // Act
     int plastic_status;
-    law.GetValue(GEO_PLASTIC_STATUS, plastic_status);
+    law.GetValue(GEO_PLASTICITY_STATUS, plastic_status);
 
     // Assert, plasticity status elastic after initialization
     KRATOS_EXPECT_EQ(plastic_status, static_cast<int>(PlasticityStatus::ELASTIC));

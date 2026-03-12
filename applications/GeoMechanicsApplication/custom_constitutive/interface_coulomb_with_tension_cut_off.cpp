@@ -61,7 +61,7 @@ Vector& InterfaceCoulombWithTensionCutOff::GetValue(const Variable<Vector>& rVar
 
 int& InterfaceCoulombWithTensionCutOff::GetValue(const Variable<int>& rVariable, int& rValue)
 {
-    if (rVariable == GEO_PLASTIC_STATUS) {
+    if (rVariable == GEO_PLASTICITY_STATUS) {
         rValue = static_cast<int>(mPlasticStatus);
     }
     return rValue;

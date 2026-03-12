@@ -84,7 +84,7 @@ KRATOS_TEST_CASE_IN_SUITE(InterfaceCoulombWithTensionCutOff_CalculateMaterialRes
     law.CalculateMaterialResponseCauchy(parameters);
     auto resulting_traction = parameters.GetStressVector();
     int  plastic_status;
-    law.GetValue(GEO_PLASTIC_STATUS, plastic_status);
+    law.GetValue(GEO_PLASTICITY_STATUS, plastic_status);
 
     // Assert
     KRATOS_EXPECT_VECTOR_NEAR(resulting_traction, initial_traction_vector, Defaults::absolute_tolerance);
@@ -98,7 +98,7 @@ KRATOS_TEST_CASE_IN_SUITE(InterfaceCoulombWithTensionCutOff_CalculateMaterialRes
     // Act
     law.CalculateMaterialResponseCauchy(parameters);
     resulting_traction = parameters.GetStressVector();
-    law.GetValue(GEO_PLASTIC_STATUS, plastic_status);
+    law.GetValue(GEO_PLASTICITY_STATUS, plastic_status);
 
     // Assert
     KRATOS_EXPECT_VECTOR_NEAR(resulting_traction, traction_vector, Defaults::absolute_tolerance);
@@ -112,7 +112,7 @@ KRATOS_TEST_CASE_IN_SUITE(InterfaceCoulombWithTensionCutOff_CalculateMaterialRes
     // Act
     law.CalculateMaterialResponseCauchy(parameters);
     resulting_traction = parameters.GetStressVector();
-    law.GetValue(GEO_PLASTIC_STATUS, plastic_status);
+    law.GetValue(GEO_PLASTICITY_STATUS, plastic_status);
 
     // Assert
     KRATOS_EXPECT_VECTOR_NEAR(resulting_traction, traction_vector, Defaults::absolute_tolerance);
@@ -149,7 +149,7 @@ KRATOS_TEST_CASE_IN_SUITE(InterfaceCoulombWithTensionCutOff_CalculateMaterialRes
     law.CalculateMaterialResponseCauchy(parameters);
     auto resulting_traction = parameters.GetStressVector();
     int  plastic_status;
-    law.GetValue(GEO_PLASTIC_STATUS, plastic_status);
+    law.GetValue(GEO_PLASTICITY_STATUS, plastic_status);
 
     // Assert
     const auto expected_traction = UblasUtilities::CreateVector({10.0, 0.0});
@@ -189,7 +189,7 @@ KRATOS_TEST_CASE_IN_SUITE(InterfaceCoulombWithTensionCutOff_CalculateMaterialRes
     law.CalculateMaterialResponseCauchy(parameters);
     auto resulting_traction = parameters.GetStressVector();
     int  plastic_status;
-    law.GetValue(GEO_PLASTIC_STATUS, plastic_status);
+    law.GetValue(GEO_PLASTICITY_STATUS, plastic_status);
 
     // Assert
     const auto expected_traction = UblasUtilities::CreateVector({22.0 / 3.0, 8.0 / 3.0});
@@ -227,7 +227,7 @@ KRATOS_TEST_CASE_IN_SUITE(InterfaceCoulombWithTensionCutOff_CalculateMaterialRes
     law.CalculateMaterialResponseCauchy(parameters);
     auto resulting_traction = parameters.GetStressVector();
     int  plastic_status;
-    law.GetValue(GEO_PLASTIC_STATUS, plastic_status);
+    law.GetValue(GEO_PLASTICITY_STATUS, plastic_status);
 
     // Assert
     const auto expected_traction = UblasUtilities::CreateVector({4.2410403910016600, 5.7589596089983400});
@@ -267,7 +267,7 @@ KRATOS_TEST_CASE_IN_SUITE(InterfaceCoulombWithTensionCutOff_CalculateMaterialRes
     law.CalculateMaterialResponseCauchy(parameters);
     auto resulting_traction = parameters.GetStressVector();
     int  plastic_status;
-    law.GetValue(GEO_PLASTIC_STATUS, plastic_status);
+    law.GetValue(GEO_PLASTICITY_STATUS, plastic_status);
 
     // Assert
     const auto expected_traction = UblasUtilities::CreateVector({-5.0, 11.059402624645148377});

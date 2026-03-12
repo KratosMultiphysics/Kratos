@@ -17,7 +17,7 @@ class KratosGeoMechanicsMohrCoulombWithTensionTests(KratosUnittest.TestCase):
         sig_xx = sig_integrationpoint1_element1[0,0]
         index = dimension - 1
         sig_yy_or_zz = sig_integrationpoint1_element1[index,index]
-        plastic_status_ips = test_helper.get_on_integration_points(simulation, KratosGeo.GEO_PLASTIC_STATUS)
+        plastic_status_ips = test_helper.get_on_integration_points(simulation, KratosGeo.GEO_PLASTICITY_STATUS)
         return sig_xx, sig_yy_or_zz, plastic_status_ips[0][0]
 
     def test_dirichlet_corner_return_zone_2d(self):

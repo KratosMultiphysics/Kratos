@@ -110,7 +110,7 @@ Vector& MohrCoulombWithTensionCutOff::GetValue(const Variable<Vector>& rVariable
 
 int& MohrCoulombWithTensionCutOff::GetValue(const Variable<int>& rVariable, int& rValue)
 {
-    if (rVariable == GEO_PLASTIC_STATUS) {
+    if (rVariable == GEO_PLASTICITY_STATUS) {
         rValue = static_cast<int>(mPlasticityStatus);
     }
     return rValue;
