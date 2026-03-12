@@ -813,23 +813,7 @@ void SbmContact2DCondition::CalculateLocalSystem(
                 }
             }
         }
-        
-
-        for (unsigned int i = 0; i < number_of_nodes_slave; i++) {
-
-            std::ofstream outputFile("txt_files/Id_active_control_points_condition.txt", std::ios::app);
-            outputFile << r_geometry_slave[i].GetId() << "  " <<r_geometry_slave[i].GetDof(DISPLACEMENT_X).EquationId() <<"\n";
-            
-            outputFile.close();
-        }
-
-        for (unsigned int i = 0; i < number_of_nodes_master; i++) {
-
-            std::ofstream outputFile("txt_files/Id_active_control_points_condition.txt", std::ios::app);
-            outputFile << r_geometry_master[i].GetId() << "  " <<r_geometry_master[i].GetDof(DISPLACEMENT_X).EquationId() <<"\n";
-
-            outputFile.close();
-        }
+    
 
     //     // /////////////////////////////////////////////////////////////////////////////////////////
      
