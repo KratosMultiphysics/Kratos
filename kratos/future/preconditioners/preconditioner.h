@@ -46,38 +46,12 @@ namespace Kratos::Future
 ///@{
 
 /**
- * @class Preconditioner
- * @ingroup KratosCore
- * @brief Base class for preconditioners for linear system solvers.
- * @details This class defines the standard interface for all the preconditioners derived from it.
- *          Considering an iterative linear solver `FooSolver` with a method `FooSolver::Solve`,
- *          a typical code using this type of Preconditioner would be:
- * 
- * \code{.cpp}
- * FooSolver::Solve(rpLinearOperator, rB, rX)
- * {
- *     // Set up the preconditioner
- *     mpPreconditioner->Initialize(rpLinearOperator);
- *     ...
- *     mpPreconditioner->InitializeSolutionStep(rpLinearOperator);
- *     ...
- *     // Start iteration
- *     while(...) {
- *         ...
- *         // Apply the preconditioner (e.g. y = M^{-1} x)
- *         mpPreconditioner->Apply(rX, rY);
- *         ...
- *         // Apply the transposed preconditioner if required (e.g. y = M^{-T} x)
- *         mpPreconditioner->ApplyTranspose(rX, rY);
- *         ...
- *     } // End iteration
- *     ...
- *     mpPreconditioner->FinalizeSolutionStep(rpLinearOperator);
- *     ...
- *     mpPreconditioner->Clear();
- * }
- * \endcode
- * @tparam TLinearAlgebra Type of the linear algebra used (e.g. CSR space, dense space).
+ * @brief Base class for preconditioners
+ * @details This class defines the interface for preconditioners to be used in iterative linear solvers.
+ * It provides virtual methods for initialization, application, and finalization of the preconditioner.
+ * If additional data is required (i.e., reference model part and DOFs container), methods to set it are also provided.
+ * The actual implementation of the preconditioner must be done in derived classes as this is a do nothing implementation.
+ * @tparam TLinearAlgebra The struct containing the linear algebra types
  */
 template<class TLinearAlgebra>
 class Preconditioner
@@ -265,7 +239,6 @@ public:
     {
     }
 
-
     ///@}
     ///@name Friends
     ///@{
@@ -307,42 +280,6 @@ protected:
 
     ///@}
     ///@name Protected LifeCycle
-    ///@{
-
-
-    ///@}
-private:
-    ///@name Static Member Variables
-    ///@{
-
-
-    ///@}
-    ///@name Member Variables
-    ///@{
-
-
-    ///@}
-    ///@name Private Operators
-    ///@{
-
-
-    ///@}
-    ///@name Private Operations
-    ///@{
-
-
-    ///@}
-    ///@name Private  Access
-    ///@{
-
-
-    ///@}
-    ///@name Private Inquiry
-    ///@{
-
-
-    ///@}
-    ///@name Un accessible methods
     ///@{
 
 
