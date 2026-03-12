@@ -65,7 +65,7 @@ class TestMassterControl(kratos_unittest.TestCase):
         self.assertEqual([self.properties_control_1, self.properties_control_2, self.properties_control_3, self.properties_control_4], self.master_control.GetListOfControls())
 
     def test_GetPhysicalKratosVariableCombinedTensorAdaptorsMap(self):
-        result = self.master_control.GetPhysicalKratosVariableCombinedTensorAdaptorsMap()
+        result = self.master_control.GetPhysicalKratosVariableMap()
         self.assertEqual([Kratos.DENSITY, Kratos.THICKNESS], list(result.keys()))
 
         density_cta = result[Kratos.DENSITY]
@@ -101,7 +101,7 @@ class TestMassterControl(kratos_unittest.TestCase):
             containers)
 
     def test_MapGradient(self):
-        result = self.master_control.GetPhysicalKratosVariableCombinedTensorAdaptorsMap()
+        result = self.master_control.GetPhysicalKratosVariableMap()
         mapped_gradients = self.master_control.MapGradient(result)
 
         for i, control in enumerate(self.master_control.GetListOfControls()):

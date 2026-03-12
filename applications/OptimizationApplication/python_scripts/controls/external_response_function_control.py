@@ -87,15 +87,15 @@ class ExternalResponseFunctionControl(Control):
     def GetControlField(self) -> Kratos.TensorAdaptors.DoubleTensorAdaptor:
         return self.control_phi_field.Clone()
 
-    def MapGradient(self, physical_gradient_variable_tensor_adaptor_map: 'dict[SupportedSensitivityFieldVariableTypes, Kratos.TensorAdaptors.DoubleTensorAdaptor]') -> Kratos.TensorAdaptors.DoubleTensorAdaptor:
+    def MapGradient(self, physical_variable_gradient_map: 'dict[SupportedSensitivityFieldVariableTypes, Kratos.TensorAdaptors.DoubleTensorAdaptor]') -> Kratos.TensorAdaptors.DoubleTensorAdaptor:
         with TimeLogger("ExternalResponseFunctionControl::MapGradient", None, "Finished",False):
-            keys = physical_gradient_variable_tensor_adaptor_map.keys()
+            keys = physical_variable_gradient_map.keys()
             if len(keys) != 1:
                 raise RuntimeError(f"Provided more than required gradient fields for control \"{self.GetName()}\". Following are the variables:\n\t" + "\n\t".join([k.Name() for k in keys]))
             if self.design_variable not in keys:
                 raise RuntimeError(f"The required gradient for control \"{self.GetName()}\" w.r.t. {self.design_variable.Name()} not found. Followings are the variables:\n\t" + "\n\t".join([k.Name() for k in keys]))
 
-            physical_gradient = physical_gradient_variable_tensor_adaptor_map[self.design_variable]
+            physical_gradient = physical_variable_gradient_map[self.design_variable]
             if physical_gradient.GetContainer() != self.model_part.Nodes:
                 raise RuntimeError(f"Gradients for the required container not found for control \"{self.GetName()}\". [ required model part name: {self.model_part.FullName()}, given model part name: {physical_gradient.GetModelPart().FullName()} ]")
 

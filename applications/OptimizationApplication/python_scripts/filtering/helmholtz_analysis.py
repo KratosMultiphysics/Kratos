@@ -125,9 +125,12 @@ class HelmholtzAnalysis(AnalysisStage):
         key = data_exp.GetContainer()
         if key not in  self.__neighbour_entities.keys():
             if not isinstance(key, KM.NodesArray):
-                ta = KM.TensorAdaptors.NodalNeighbourCountTensorAdaptor(self._GetSolver().GetComputingModelPart().Nodes, data_exp.GetContainer())
-                ta.CollectData()
-                self.__neighbour_entities[key] = ta
+                if isinstance(data_exp.GetContainer(), KM.ConditionsArray):
+                    self.__neighbour_entities[key] = KM.TensorAdaptors.Utils.CreateNodalConditionNeighboursCountTensorAdaptor(self._GetSolver().GetComputingModelPart())
+                elif isinstance(data_exp.GetContainer(), KM.ElementsArray):
+                    self.__neighbour_entities[key] = KM.TensorAdaptors.Utils.CreateNodalElementNeighboursCountTensorAdaptor(self._GetSolver().GetComputingModelPart())
+                else:
+                    raise RuntimeError(f"Unsupported tensor adaptor container. Only supports neighbour computation for condition or element containers [ tensor adaptor = {data_exp} ]." )
             else:
                 ta = KM.TensorAdaptors.IntTensorAdaptor(key, KM.IntNDData([len(key)]), copy=False)
                 ta.data[:] = 1

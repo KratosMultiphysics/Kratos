@@ -59,9 +59,9 @@ class LinearStrainEnergyResponseFunction(ResponseFunction):
         self.primal_analysis_execution_policy_decorator.Execute()
         return KratosOA.ResponseUtils.LinearStrainEnergyResponseUtils.CalculateValue(self.model_part)
 
-    def CalculateGradient(self, physical_variable_combined_tensor_adaptor: 'dict[SupportedSensitivityFieldVariableTypes, Kratos.TensorAdaptors.DoubleCombinedTensorAdaptor]') -> None:
+    def CalculateGradient(self, physical_variable_gradient_map: 'dict[SupportedSensitivityFieldVariableTypes, Kratos.TensorAdaptors.DoubleCombinedTensorAdaptor]') -> None:
         # calculate the gradients
-        for physical_variable, cta in physical_variable_combined_tensor_adaptor.items():
+        for physical_variable, cta in physical_variable_gradient_map.items():
             KratosOA.ResponseUtils.LinearStrainEnergyResponseUtils.CalculateGradient(
                 physical_variable,
                 self.GetInfluencingModelPart(),

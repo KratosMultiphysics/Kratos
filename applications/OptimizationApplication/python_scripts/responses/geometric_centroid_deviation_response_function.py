@@ -79,11 +79,11 @@ class GeometricCentroidDeviationResponseFunction(ResponseFunction):
         self.value_array = (average_location / number_of_nodes  - self.model_part_center)
         return self.value_array[0] ** 2 + self.value_array[1] ** 2 + self.value_array[2] ** 2
 
-    def CalculateGradient(self, physical_variable_combined_tensor_adaptor: 'dict[SupportedSensitivityFieldVariableTypes, Kratos.TensorAdaptors.DoubleCombinedTensorAdaptor]') -> None:
+    def CalculateGradient(self, physical_variable_gradient_map: 'dict[SupportedSensitivityFieldVariableTypes, Kratos.TensorAdaptors.DoubleCombinedTensorAdaptor]') -> None:
         number_of_nodes = self.model_part.GetCommunicator().GlobalNumberOfNodes()
 
         # calculate the gradients
-        for physical_variable, sensitivity_ta in physical_variable_combined_tensor_adaptor.items():
+        for physical_variable, sensitivity_ta in physical_variable_gradient_map.items():
             if physical_variable == KratosOA.SHAPE:
                 Kratos.VariableUtils().SetNonHistoricalVariableToZero(Kratos.SHAPE_SENSITIVITY, self.model_part.Nodes)
                 Kratos.VariableUtils().SetNonHistoricalVariable(Kratos.SHAPE_SENSITIVITY, 2.0 * self.value_array / number_of_nodes, self.model_part.Nodes)

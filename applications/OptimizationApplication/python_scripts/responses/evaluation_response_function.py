@@ -41,7 +41,7 @@ class EvaluationResponseFunction(ResponseFunction):
         # now calculate
         return self.response_function.CalculateValue()
 
-    def CalculateGradient(self, physical_variable_combined_tensor_adaptor: 'dict[SupportedSensitivityFieldVariableTypes, Kratos.TensorAdaptors.DoubleCombinedTensorAdaptor]') -> None:
+    def CalculateGradient(self, physical_variable_gradient_map: 'dict[SupportedSensitivityFieldVariableTypes, Kratos.TensorAdaptors.DoubleCombinedTensorAdaptor]') -> None:
         # this response is used at the top most level of the evaluated chained responses.
         # so this creates a new data container under the optimization problem to avoid
         # having to compute the same response gradient twice.
@@ -51,7 +51,7 @@ class EvaluationResponseFunction(ResponseFunction):
         # reset data of the evaluation
         self.__ResetEvaluationData(self, unbuffered_data, "gradients")
 
-        return self.response_function.CalculateGradient(physical_variable_combined_tensor_adaptor)
+        return self.response_function.CalculateGradient(physical_variable_gradient_map)
 
     def GetChildResponses(self) -> 'list[ResponseFunction]':
         return [self.response_function]

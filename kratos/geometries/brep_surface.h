@@ -340,6 +340,22 @@ public:
         return mpNurbsSurface->PolynomialDegree(LocalDirectionIndex);
     }
 
+    /// Return knot spans in U-direction
+    std::vector<double> KnotsU() const
+    {
+        std::vector<double> spans_u;
+        mpNurbsSurface->SpansLocalSpace(spans_u, 0);
+        return spans_u;
+    }
+
+    /// Return knot spans in V-direction
+    std::vector<double> KnotsV() const
+    {
+        std::vector<double> spans_v;
+        mpNurbsSurface->SpansLocalSpace(spans_v, 1);
+        return spans_v;
+    }
+
     ///@}
     ///@name Information
     ///@{
@@ -545,6 +561,18 @@ public:
         mpNurbsSurface->ShapeFunctionsLocalGradients(rResult, rCoordinates);
 
         return rResult;
+    }
+
+    void ShapeFunctionsValuesAndCPIndices(
+        const CoordinatesArrayType& rCoordinates,
+        std::vector<IndexType>& rControlPointIndices,
+        Vector& rShapeFunctionsValues,
+        const IndexType DerivativeOrder = 0,
+        DenseVector<Matrix>* pShapeFunctionDerivatives = nullptr
+    ) const
+    {
+        mpNurbsSurface->ShapeFunctionsValuesAndCPIndices(
+            rCoordinates, rControlPointIndices, rShapeFunctionsValues, DerivativeOrder, pShapeFunctionDerivatives);
     }
 
     ///@}

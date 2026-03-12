@@ -20,6 +20,7 @@ import test_distance_matrix
 import test_sensor_utils
 import test_control_utils
 import test_sensor_generator_analysis
+import test_convergence_criterion
 
 def AssembleTestSuites():
     suites = KratosUnittest.KratosSuites
@@ -48,6 +49,7 @@ def AssembleTestSuites():
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([responses.test_pressure_response.TestPressureDetectionResponseStrainSensor]))
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([controls.test_data_values_control.TestDataValuesControl_nodal_historical]))
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([controls.test_data_values_control.TestDataValuesControl_condition]))
+    smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([test_convergence_criterion.TestSensorErrorConvCriterion]))
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([responses.test_sensor_count_response.TestSensorCountResponse]))
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([responses.test_sensor_coverage_response.TestSensorCoverageResponse]))
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([responses.test_sensor_localization_response.TestSensorLocalizationResponse]))

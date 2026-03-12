@@ -110,7 +110,8 @@ public:
     /**
      * @brief Maps container data to nodal data
      *
-     * This method returns a mapped container data given in @p rInput to nodal given by @p pNodes.
+     * @details This method returns a mapped container data given in @p rInput to nodal given by @p pNodes .
+     *          It distributes the each entity's data to its nodes equally.
      *
      * @throws std::runtime_error if the container in @p rInput is not of type conditions or elements.
      * @throws std::runtime_error if the entities in @p rInput 's container contain nodes which are not found in the @p pNodes.
@@ -126,7 +127,9 @@ public:
     /**
      * @brief Maps nodal data to a specific container data
      *
-     * This method returns a mapped nodal data given in @p rInput to container given by @p pEntities.
+     * @details This method returns a mapped nodal data given in @p rInput to container given by @p pEntities .
+     *          It first divide each node's value by number of neighour entities and adds that value to each neighbouring
+     *          entity.
      *
      * @throws std::runtime_error if the container in @p rInput is not a nodal container.
      * @throws std::runtime_error if the nodal container in @p rInput is not same as nodal container in @p rNeighbourCount .

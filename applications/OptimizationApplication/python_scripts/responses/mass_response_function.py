@@ -58,9 +58,9 @@ class MassResponseFunction(ResponseFunction):
     def CalculateValue(self) -> float:
         return KratosOA.ResponseUtils.MassResponseUtils.CalculateValue(self.model_part)
 
-    def CalculateGradient(self, physical_variable_combined_tensor_adaptor: 'dict[SupportedSensitivityFieldVariableTypes, Kratos.TensorAdaptors.DoubleCombinedTensorAdaptor]') -> None:
+    def CalculateGradient(self, physical_variable_gradient_map: 'dict[SupportedSensitivityFieldVariableTypes, Kratos.TensorAdaptors.DoubleCombinedTensorAdaptor]') -> None:
         # calculate the gradients
-        for physical_variable, cta in physical_variable_combined_tensor_adaptor.items():
+        for physical_variable, cta in physical_variable_gradient_map.items():
             KratosOA.ResponseUtils.MassResponseUtils.CalculateGradient(
                 physical_variable,
                 self.model_part,
