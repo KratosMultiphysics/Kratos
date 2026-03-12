@@ -31,8 +31,8 @@
         "reset_displacements": false,
         "strategy_type": "line_search",
         "convergence_criterion": "displacement_criterion",
-        "displacement_relative_tolerance": 1e-03,
-        "displacement_absolute_tolerance": 1e-09,
+        "displacement_relative_tolerance": 1.0e-03,
+        "displacement_absolute_tolerance": 1.0e-09,
         "min_iterations": 6,
         "max_iterations": 30,
         "number_cycles": 5,
@@ -132,7 +132,7 @@
                     "x_coordinates": [0, 1],
                     "y_coordinates": [40, 40],
                     "z_coordinates": [0, 0],
-                    "specific_weight": 1e+04
+                    "specific_weight": 1.0e+04
                 }
             },
             {
@@ -150,7 +150,7 @@
                     "x_coordinates": [0, 1],
                     "y_coordinates": [40, 40],
                     "z_coordinates": [0, 0],
-                    "specific_weight": 1e+04
+                    "specific_weight": 1.0e+04
                 }
             }
         ],

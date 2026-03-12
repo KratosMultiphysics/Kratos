@@ -13,7 +13,7 @@
                     "DENSITY_SOLID": 2.242609582059123e+03,
                     "DENSITY_WATER": 1.019367991845056e+03,
                     "POROSITY": 0.5,
-                    "BULK_MODULUS_SOLID": 2e+10,
+                    "BULK_MODULUS_SOLID": 2.0e+10,
                     "BULK_MODULUS_FLUID": 2.2e+09,
                     "PERMEABILITY_XX": 1.5041e-12,
                     "PERMEABILITY_YY": 1.5041e-12,
@@ -22,10 +22,10 @@
                     "RETENTION_LAW": "SaturatedBelowPhreaticLevelLaw",
                     "RESIDUAL_SATURATION": 0.0,
                     "SATURATED_SATURATION": 1.0,
-                    "MINIMUM_RELATIVE_PERMEABILITY": 1e-04,
+                    "MINIMUM_RELATIVE_PERMEABILITY": 1.0e-04,
                     "K0_MAIN_DIRECTION": 1,
                     "K0_NC": 0.6,
-                    "YOUNG_MODULUS": 1e+09,
+                    "YOUNG_MODULUS": 1.0e+09,
                     "POISSON_RATIO": 0.2
                 }
             }
