@@ -40,7 +40,11 @@ void AddPreconditionersToPython(py::module& m)
         .def("ApplyTranspose", &PreconditionerType::ApplyTranspose)
         .def("FinalizeSolutionStep", &PreconditionerType::FinalizeSolutionStep)
         .def("Clear", &PreconditionerType::Clear)
-        ;
+        .def("SetAdditionalData", &PreconditionerType::SetAdditionalData)
+        .def("RequiresAdditionalData", &PreconditionerType::RequiresAdditionalData)
+        .def("HasAdditionalData", &PreconditionerType::HasAdditionalData)
+        .def("Info", &PreconditionerType::Info)
+        .def("__str__", PrintObject<PreconditionerType>);
 }
 
 } // namespace Kratos::Future::Python
