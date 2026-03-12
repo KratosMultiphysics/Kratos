@@ -18,6 +18,11 @@
 #include "geometries/triangle_2d_3.h"
 #include "geometries/triangle_2d_6.h"
 #include "includes/node.h"
+#include "includes/serializer.h"
+
+#include <string>
+
+using namespace std::string_literals;
 
 namespace
 {
@@ -97,6 +102,16 @@ Geo::IntegrationPointVectorType LumpedIntegrationScheme::CreateIntegrationPoints
         KRATOS_ERROR << "Can't construct Lumped integration scheme: no support for "
                      << NumberOfPoints << " point(s)" << std::endl;
     }
+}
+
+void LumpedIntegrationScheme::save(Serializer& rSerializer) const
+{
+    rSerializer.save("IntegrationPoints"s, mIntegrationPoints);
+}
+
+void LumpedIntegrationScheme::load(Serializer& rSerializer)
+{
+    rSerializer.load("IntegrationPoints"s, mIntegrationPoints);
 }
 
 } // namespace Kratos

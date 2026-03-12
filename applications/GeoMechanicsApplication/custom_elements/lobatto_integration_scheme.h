@@ -30,6 +30,10 @@ public:
 private:
     static Geo::IntegrationPointVectorType CreateIntegrationPoints(std::size_t NumberOfPoints);
 
+    friend Serializer;
+    void save(Serializer& rSerializer) const override;
+    void load(Serializer& rSerializer) override;
+
     Geo::IntegrationPointVectorType mIntegrationPoints;
 };
 
