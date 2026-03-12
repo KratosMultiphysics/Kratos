@@ -14,6 +14,9 @@
 // System includes
 #include <numeric>
 
+// External includes
+#include "nanoflann.hpp"
+
 // Project includes
 #include "includes/model_part.h"
 #include "expression/literal_flat_expression.h"
@@ -41,10 +44,13 @@ IntegratedNearestEntityExplicitDamping<TContainerType>::IntegratedNearestEntityE
         "damping_type"               : "integrated_nearest_entity",
         "damping_function_type"      : "cosine",
         "damping_distance_multiplier": 100.0,
+        "damping_max_items_in_bucket": 10,
         "damped_model_part_settings" : {}
     })" );
 
     Settings.ValidateAndAssignDefaults(defaults);
+
+    mLeafMaxSize = Settings["damping_max_items_in_bucket"].GetInt();
 
     mpKernelFunction = Kratos::make_unique<DampingFunction>(Settings["damping_function_type"].GetString(), Settings["damping_distance_multiplier"].GetDouble());
     mComponentWiseDampedModelParts = OptimizationUtils::GetComponentWiseModelParts(rModel, Settings["damped_model_part_settings"]);
@@ -60,8 +66,7 @@ IntegratedNearestEntityExplicitDamping<TContainerType>::IntegratedNearestEntityE
 
     // initialize the KDTrees with nullptr
     mComponentWiseKDTrees.resize(mStride, nullptr);
-
-    mComponentWiseEntityPoints.resize(mStride);
+    mComponentWisePositionAdapters.resize(mStride);
 
     KRATOS_CATCH("");
 }
@@ -99,26 +104,15 @@ void IntegratedNearestEntityExplicitDamping<TContainerType>::Update()
 
     for (IndexType i_comp = 0; i_comp < stride; ++i_comp) {
         auto& r_damped_model_parts = mComponentWiseDampedModelParts[i_comp];
-        auto& r_entity_points = mComponentWiseEntityPoints[i_comp];
 
-        r_entity_points.resize(std::accumulate(
-            r_damped_model_parts.begin(), r_damped_model_parts.end(), 0UL,
-            [](const IndexType Value, const auto& pModelPart) {
-                return Value + ModelPartUtils::GetContainer<TContainerType>(*pModelPart).size();
-            }));
+        mComponentWisePositionAdapters[i_comp] = Kratos::make_shared<PositionAdapter>(r_damped_model_parts);
 
-        IndexType local_start = 0;
-        for (const auto& p_model_part : r_damped_model_parts) {
-            const auto& r_damping_container = ModelPartUtils::GetContainer<TContainerType>(*p_model_part);
-            IndexPartition<IndexType>(r_damping_container.size()).for_each([&r_entity_points, &r_damping_container, local_start](const auto Index) {
-                *(r_entity_points.begin() + local_start + Index) =  Kratos::make_shared<EntityPointType>(*(r_damping_container.begin() + Index), Index);
-            });
-            local_start += r_damping_container.size();
-        }
-
-        if (!r_entity_points.empty()) {
+        if (!mComponentWisePositionAdapters[i_comp]->kdtree_get_point_count()) {
             // now construct the kd tree
-            mComponentWiseKDTrees[i_comp] =  Kratos::make_shared<KDTree>(r_entity_points.begin(), r_entity_points.end(), mBucketSize);
+            mComponentWiseKDTrees[i_comp] =  Kratos::make_shared<KDTreeIndexType>(
+                3, *mComponentWisePositionAdapters[i_comp],
+                nanoflann::KDTreeSingleIndexAdaptorParams(mLeafMaxSize));
+            mComponentWiseKDTrees[i_comp]->buildIndex();
         }
     }
 
@@ -135,16 +129,21 @@ void IntegratedNearestEntityExplicitDamping<TContainerType>::IntegratedNearestEn
 {
     KRATOS_TRY
 
+    const IndexType stride = this->GetStride();
+
+    rDampedWeights.resize(stride, std::vector<double>(rNeighbours.size()));
+
     const auto radius = mpDampingRadius->GetExpression().Evaluate(Index, Index, 0);
 
-    for (IndexType i_comp = 0; i_comp < this->GetStride(); ++i_comp) {
+    for (IndexType i_comp = 0; i_comp < stride; ++i_comp) {
         auto& r_damped_weights = rDampedWeights[i_comp];
-
-        if (mComponentWiseKDTrees[i_comp]) {
+        r_damped_weights.resize(rNeighbours.size());
+        if (mComponentWiseKDTrees[i_comp].get()) {
             for (IndexType i_neighbour = 0; i_neighbour < NumberOfNeighbours; ++i_neighbour) {
 
                 double squared_distance;
-                auto p_nearest_damped_entity_point = mComponentWiseKDTrees[i_comp]->SearchNearestPoint(*rNeighbours[i_neighbour], squared_distance);
+                unsigned int global_index;
+                mComponentWiseKDTrees[i_comp]->knnSearch(OptimizationUtils::GetEntityPosition(*rNeighbours[i_neighbour]).data().begin(), 1, &global_index, &squared_distance);
 
                 r_damped_weights[i_neighbour] = rWeights[i_neighbour] * mpKernelFunction->ComputeWeight(radius, std::sqrt(squared_distance));
             }
@@ -163,8 +162,6 @@ void IntegratedNearestEntityExplicitDamping<TContainerType>::IntegratedNearestEn
 {
     KRATOS_TRY
 
-    using tls = OptimizationUtils::KDTreeThreadLocalStorage<typename EntityPointType::Pointer>;
-
     const auto stride = this->GetStride();
     const auto& r_radius_exp = mpDampingRadius->GetExpression();
     const auto& r_container = mpDampingRadius->GetContainer();
@@ -180,48 +177,50 @@ void IntegratedNearestEntityExplicitDamping<TContainerType>::IntegratedNearestEn
 
     rOutput.clear();
 
-    if (mComponentWiseKDTrees[ComponentIndex].get() == nullptr) {
+    if (!mComponentWiseKDTrees[ComponentIndex].get()) {
         // kd tree is not constructed. then there are no damped model parts
         // hence returning a Identity matrix.
         IndexPartition<IndexType>(number_of_entities).for_each([&rOutput, number_of_entities](const auto Index) {
             *(rOutput.data().begin() + Index * number_of_entities + Index) = 1.0;
         });
     } else {
-        // now fill the points vector
-        EntityPointVector domain_entities(r_container.size());
-        IndexPartition<IndexType>(r_container.size()).for_each([&domain_entities, &r_container](const IndexType Index) {
-            domain_entities[Index] = Kratos::make_shared<EntityPoint<EntityType>>(*(r_container.begin() + Index), Index);
-        });
+
+        using search_adapter_type = NanoFlannSingleContainerPositionAdapter<TContainerType>;
+
+        using search_distance_metric_type = typename nanoflann::metric_L2_Simple::traits<double, search_adapter_type>::distance_t;
+
+        using search_tree_type = nanoflann::KDTreeSingleIndexAdaptor<search_distance_metric_type, search_adapter_type, 3>;
+
+        // create the adapter
+        search_adapter_type adapter(&r_container);
 
         // create domain search tree
-        KDTree search_tree(domain_entities.begin(), domain_entities.end(), mBucketSize);
+        search_tree_type search_tree(3, adapter, nanoflann::KDTreeSingleIndexAdaptorParams(mLeafMaxSize));
+        search_tree.buildIndex();
+
         auto& comp_search_tree = *mComponentWiseKDTrees[ComponentIndex];
         auto& kernel_function = *mpKernelFunction;
 
-        IndexPartition<IndexType>(number_of_entities).for_each(tls(1000, 1), [&rOutput, &r_container, &r_radius_exp, &search_tree, &comp_search_tree, &kernel_function, number_of_entities](const auto Index, auto& rTLS) {
+        IndexPartition<IndexType>(number_of_entities).for_each(NanoFlannKDTreeThreadLocalStorage<typename search_adapter_type::PointerVectorType>(), [&rOutput, &r_container, &r_radius_exp, &search_tree, &comp_search_tree, &kernel_function, &adapter, number_of_entities](const auto Index, auto& rTLS) {
             const auto radius = r_radius_exp.Evaluate(Index, Index, 0);
-            EntityPoint<EntityType> entity_point(*(r_container.begin() + Index), Index);
-            const auto number_of_neighbors = search_tree.SearchInRadius(
-                                                entity_point,
-                                                radius,
-                                                rTLS.mNeighbourEntityPoints.begin(),
-                                                rTLS.mResultingSquaredDistances.begin(),
-                                                1000);
 
-            KRATOS_ERROR_IF(number_of_neighbors >= 1000)
-                << "Maximum number of allowed neighbours reached when "
-                   "searching for neighbours with radii = "
-                << radius << " [ max number of allowed neighbours = 1000 ].\n";
+            // search for entities within radius
+            search_tree.radiusSearch(OptimizationUtils::GetEntityPosition(*(r_container.begin() + Index)).data().begin(), radius * radius, rTLS.mNeighbourIndicesAndSquaredDistances, nanoflann::SearchParams());
+
+            // update the neighbour entities from found indices
+            const IndexType number_of_neighbors = rTLS.mNeighbourIndicesAndSquaredDistances.size();
+            adapter.GetResultingEntityPointersVector(rTLS.mNeighbourEntityPoints, rTLS.mNeighbourIndicesAndSquaredDistances);
 
             for (IndexType i_neighbour = 0; i_neighbour < number_of_neighbors; ++i_neighbour) {
                 const auto& r_neighbour_point = *rTLS.mNeighbourEntityPoints[i_neighbour];
 
                 double squared_distance;
-                auto p_nearest_damped_entity_point = comp_search_tree.SearchNearestPoint(r_neighbour_point, squared_distance);
+                unsigned int global_index;
+                comp_search_tree.knnSearch(OptimizationUtils::GetEntityPosition(r_neighbour_point).data().begin(), 1, &global_index, &squared_distance);
 
                 const double weight = kernel_function.ComputeWeight(radius, std::sqrt(squared_distance));
 
-                *(rOutput.data().begin() + Index * number_of_entities + r_neighbour_point.Id()) = weight;
+                *(rOutput.data().begin() + Index * number_of_entities + rTLS.mNeighbourIndicesAndSquaredDistances[i_neighbour].first) = weight;
             }
 
         });

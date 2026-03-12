@@ -177,6 +177,8 @@ namespace Kratos
 
     // for custom solvers
     KRATOS_DEFINE_APPLICATION_VARIABLE(OPTIMIZATION_APPLICATION, double, CUSTOM_DESIGN_VARIABLE);
+    // For filtering
+    KRATOS_DEFINE_APPLICATION_VARIABLE(OPTIMIZATION_APPLICATION, double, NODAL_DOMAIN_SIZE);
 
     // do not expose the following variables to python. They are used
     // as temporary data holders. They can be changed

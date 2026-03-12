@@ -218,8 +218,8 @@ class TestExplicitFilterReference(kratos_unittest.TestCase):
         settings = Kratos.Parameters("""{
             "filter_type"               : "explicit_filter",
             "filter_function_type"      : "linear",
-            "max_nodes_in_filter_radius": 100000,
-            "node_cloud_mesh": false,
+            "max_items_in_bucket"       : 10,
+            "node_cloud_mesh"           : false,
             "echo_level"                : 0,
             "filter_radius_settings":{
                 "filter_radius_type": "constant",

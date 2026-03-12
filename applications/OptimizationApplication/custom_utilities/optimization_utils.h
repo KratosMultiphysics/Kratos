@@ -15,6 +15,7 @@
 // System includes
 #include <string>
 #include <vector>
+#include <algorithm>
 
 // Project includes
 #include "includes/define.h"
@@ -40,29 +41,23 @@ public:
     using IndexType = std::size_t;
 
     ///@}
-    ///@name Public classes
-    ///@{
-
-    template<class TEntityPointType>
-    struct KDTreeThreadLocalStorage
-    {
-        explicit KDTreeThreadLocalStorage(const IndexType MaxNumberOfNeighbors, const IndexType Stride)
-        {
-            mNeighbourEntityPoints.resize(MaxNumberOfNeighbors);
-            mResultingSquaredDistances.resize(MaxNumberOfNeighbors);
-            mListOfWeights.resize(MaxNumberOfNeighbors);
-            mListOfDampedWeights.resize(Stride, std::vector<double>(MaxNumberOfNeighbors));
-        }
-
-        std::vector<TEntityPointType> mNeighbourEntityPoints;
-        std::vector<double> mResultingSquaredDistances;
-        std::vector<double> mListOfWeights;
-        std::vector<std::vector<double>> mListOfDampedWeights;
-    };
-
-    ///@}
     ///@name Static operations
     ///@{
+
+    template<class TEntity>
+    inline static const array_1d<double, 3> GetEntityPosition(const TEntity& rEntity)
+    {
+        if constexpr(std::is_same_v<TEntity, ModelPart::NodeType>) {
+            return rEntity.Coordinates();
+        } else if constexpr(std::is_same_v<TEntity, ModelPart::ConditionType>) {
+            return rEntity.GetGeometry().Center();
+        } else if constexpr(std::is_same_v<TEntity, ModelPart::ElementType>) {
+            return rEntity.GetGeometry().Center();
+        } else {
+            static_assert(!std::is_same_v<TEntity, TEntity>, "Unsupported entity type.");
+            return array_1d<double, 3>(0.0);
+        }
+    }
 
     template<class TContainerType>
     static GeometryData::KratosGeometryType GetContainerEntityGeometryType(
