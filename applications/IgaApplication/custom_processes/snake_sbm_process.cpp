@@ -1863,7 +1863,6 @@ void SnakeSbmProcess::CreateTheSnakeCoordinates3D(
     }
     
     int id_matrix_knot_spans_available = 0;
-    IndexType id_first_node;
     bool new_inner_loop = true;
     
     if (EchoLevel >  0)
@@ -1885,7 +1884,6 @@ void SnakeSbmProcess::CreateTheSnakeCoordinates3D(
         for (auto &i_cond : rSkinModelPartInitial.Conditions()) {  
 
             if (new_inner_loop) {
-                id_first_node = i_cond.GetGeometry()[0].Id();
                 new_inner_loop = false;
             }
             // Collect the coordinates of the points of the i_cond (3-node surface condition)
