@@ -13,6 +13,8 @@
 // System includes
 #include <cstring>    // memset
 #include <cfloat>     // FLT_MAX
+#include <execution>
+
 
 // Project includes
 #include "includes/geometrical_object.h"
@@ -122,7 +124,7 @@ void StlBvhTree::Build(std::vector<TriangleData>& rRawTris)
         return EncodeMorton3(x, y, z);
     };
 
-    std::sort(rRawTris.begin(), rRawTris.end(),
+    std::sort(std::execution::par, rRawTris.begin(), rRawTris.end(),
         [&](const TriangleData& a, const TriangleData& b) {
             return morton_key(a) < morton_key(b);
         });
