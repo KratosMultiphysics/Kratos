@@ -26,28 +26,35 @@ namespace Kratos {
 ///@{
 
 /**
- * @class GeometryMetricsTensorAdaptor
  * @ingroup TensorAdaptors
- * @brief Adaptor class for calculating neighbour entities for nodes.
+ * @brief Adaptor class for calculating geometry metrics.
  *
- * @details This class provides an interface to calculate neighbour entities ( @p pEntityContainer i.e. conditions / elements) for a given specific
- *          @p pNodes. tensor data associated with Kratos entities' property variables. This @ref TensorAdaptor only implements
- *          the @ref CollectData method.
+ * @details This class provides an interface to calculate geometry metrics for given entity container pointer @p pContainer .
+ *          This @ref TensorAdaptor only implements the @ref CollectData method. Following geometry metrics are supported.
+ *                  - @ref GeometryMetricsTensorAdaptor::DomainSize
  *
- * @section NodalNeighbourCountTensorAdaptor_supported_container Supported entity container types
+ * @section GeometryMetricsTensorAdaptor_supported_container Supported entity container types
+ * - @ref ModelPart::GeometryContainerType
  * - @ref ModelPart::ConditionsContainerType
  * - @ref ModelPart::ElementsContainerType
  *
- * @section NodalNeighbourCountTensorAdaptor_usage Usage
- * - Use @ref Check to verify that the variable exists and they are holding unique memory locations in the entities' properties before collecting/storing data.
- * - Use @ref CollectData to fill internal data with the number of neighbouring entities.
+ * @section GeometryMetricsTensorAdaptor_usage Usage
+ * - Use @ref CollectData to fill internal data with the metric from each entity given by the container pointer @p pContainer .
  *
  * @author Suneth Warnakulasuriya
  * @see @ref TensorAdaptor                  Base class.
  */
 class KRATOS_API(KRATOS_CORE) GeometryMetricsTensorAdaptor: public TensorAdaptor<double> {
 public:
+    ///@name Enums
+    ///@{
 
+    enum class Metric
+    {
+        DomainSize
+    };
+
+    ///@}
     ///@name Type definitions
     ///@{
 
@@ -55,14 +62,7 @@ public:
 
     using BaseType = TensorAdaptor<double>;
 
-    ///@}
-    ///@name Enums
-    ///@{
-
-    enum DatumType
-    {
-        DomainSize
-    };
+    using enum Metric;
 
     ///@}
     ///@name Life cycle
@@ -71,14 +71,12 @@ public:
     template<class TContainerPointerType>
     GeometryMetricsTensorAdaptor(
         TContainerPointerType pContainer,
-        const DatumType Datum);
+        const Metric Datum);
 
     GeometryMetricsTensorAdaptor(
         const TensorAdaptor& rOther,
-        const DatumType Datum,
+        const Metric Datum,
         const bool Copy = true);
-
-    GeometryMetricsTensorAdaptor(const GeometryMetricsTensorAdaptor& rOther) = default;
 
     // Destructor
     ~GeometryMetricsTensorAdaptor() override = default;
@@ -93,9 +91,7 @@ public:
     TensorAdaptor::Pointer Clone() const override;
 
     /**
-     * @brief Fill the internal data with number of neightour entities of nodes
-     * @details This will fill the internal data for each node with its available number of entities (i.e. conditions / elements).
-     * @throws std::runtime_error if there is an entity having a node with id which is not present in the provided @p pNodes when this object is constructed.
+     * @brief Fill the internal data with metric of the entities in the container.
      */
     void CollectData() override;
 
@@ -117,7 +113,7 @@ private:
     ///@name Private member variables
     ///@{
 
-    DatumType mDatum;
+    Metric mMetric;
 
     ///@}
 };

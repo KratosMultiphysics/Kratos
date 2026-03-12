@@ -75,7 +75,7 @@ class ResponseFunction(ABC):
         pass
 
     @abstractmethod
-    def CalculateGradient(self, physical_variable_combined_tensor_adaptor: 'dict[SupportedSensitivityFieldVariableTypes, Kratos.TensorAdaptors.DoubleCombinedTensorAdaptor]') -> None:
+    def CalculateGradient(self, physical_variable_gradient_map: 'dict[SupportedSensitivityFieldVariableTypes, Kratos.TensorAdaptors.DoubleCombinedTensorAdaptor]') -> None:
         """Calculate gradient w.r.t. given physical variables.
 
         This method should always calculate the sensitivities w.r.t. requested physical variables on the given @ref  Kratos::TensorAdaptor
@@ -84,12 +84,12 @@ class ResponseFunction(ABC):
 
         This method should always calculate the sensitivities assuming the domain has changed.
 
-        physical_variable_combined_tensor_adaptor is a map of physical variables, and their domains. The domains are represented by a @ref Kratos::CombinedTensorAdaptor
+        physical_variable_gradient_map is a map of physical variables, and their domains. The domains are represented by a @ref Kratos::CombinedTensorAdaptor
         which contains list of empty @ref Kratos::TensorAdaptor. Each empty Kratos::TensorAdaptor contains details of the model part's nodes/conditions/element/properties
         container for which the sensitivities w.r.t. physical variable requested.
 
         Args:
-            physical_variable_combined_tensor_adaptor (dict[SupportedSensitivityFieldVariableTypes, Kratos.TensorAdaptors.DoubleCombinedTensorAdaptor]): Output containing calculated sensitivities w.r.t. requested physical variables.
+            physical_variable_gradient_map (dict[SupportedSensitivityFieldVariableTypes, Kratos.TensorAdaptors.DoubleCombinedTensorAdaptor]): Output containing calculated sensitivities w.r.t. requested physical variables.
         """
         pass
 

@@ -28,10 +28,10 @@ namespace GeometryMetricsTensorAdaptorHelperUtils {
 
 DenseVector<unsigned int> GetShape(
     const unsigned int NumberOfEntities,
-    GeometryMetricsTensorAdaptor::DatumType Datum)
+    const GeometryMetricsTensorAdaptor::Metric CurrentMetric)
 {
-    switch (Datum) {
-        case GeometryMetricsTensorAdaptor::DatumType::DomainSize:
+    switch (CurrentMetric) {
+        case GeometryMetricsTensorAdaptor::DomainSize:
             return DenseVector<unsigned int>(1, NumberOfEntities);
     }
 
@@ -61,11 +61,11 @@ void FillDomainSize(
 template<class TContainerType>
 void FillData(
     Kratos::span<double> DataSpan,
-    const GeometryMetricsTensorAdaptor::DatumType Datum,
+    const GeometryMetricsTensorAdaptor::Metric CurrentMetric,
     const TContainerType& rContainer)
 {
-    switch (Datum) {
-        case GeometryMetricsTensorAdaptor::DatumType::DomainSize:
+    switch (CurrentMetric) {
+        case GeometryMetricsTensorAdaptor::DomainSize:
             FillDomainSize(DataSpan, rContainer);
             break;
     }
@@ -76,8 +76,8 @@ void FillData(
 template<class TContainerPointerType>
 GeometryMetricsTensorAdaptor::GeometryMetricsTensorAdaptor(
     TContainerPointerType pContainer,
-    const DatumType Datum)
-    : mDatum(Datum)
+    const Metric CurrentMetric)
+    : mMetric(CurrentMetric)
 {
     this->mpContainer = pContainer;
     this->mpStorage = Kratos::make_shared<Storage>(DenseVector<unsigned int>(1, pContainer->size()));
@@ -85,10 +85,10 @@ GeometryMetricsTensorAdaptor::GeometryMetricsTensorAdaptor(
 
 GeometryMetricsTensorAdaptor::GeometryMetricsTensorAdaptor(
     const TensorAdaptor& rOther,
-    const DatumType Datum,
+    const Metric CurrentMetric,
     const bool Copy)
     : BaseType(rOther, Copy),
-      mDatum(Datum)
+      mMetric(CurrentMetric)
 {
     KRATOS_TRY
 
@@ -102,7 +102,7 @@ GeometryMetricsTensorAdaptor::GeometryMetricsTensorAdaptor(
 
     KRATOS_ERROR_IF(current_shape.size() < 1) << "Tensor data's first dimension should represent number of entities [ tensor adaptor = " << *this << " ].\n";
 
-    const auto& required_shape = GeometryMetricsTensorAdaptorHelperUtils::GetShape(current_shape[0], Datum);
+    const auto& required_shape = GeometryMetricsTensorAdaptorHelperUtils::GetShape(current_shape[0], CurrentMetric);
 
     for (IndexType i = 0; i < required_shape.size(); ++i) {
         KRATOS_ERROR_IF_NOT(current_shape[i] == required_shape[i])
@@ -125,7 +125,7 @@ void GeometryMetricsTensorAdaptor::CollectData()
     std::visit([this](auto pContainer) {
         using container_type = BareType<decltype(*pContainer)>;
         if constexpr(IsInList<container_type, ModelPart::GeometryContainerType, ModelPart::ConditionsContainerType, ModelPart::ElementsContainerType>) {
-            GeometryMetricsTensorAdaptorHelperUtils::FillData(this->ViewData(), this->mDatum, *pContainer);
+            GeometryMetricsTensorAdaptorHelperUtils::FillData(this->ViewData(), this->mMetric, *pContainer);
         }
 
     }, this->GetContainer());
@@ -141,16 +141,18 @@ void GeometryMetricsTensorAdaptor::StoreData()
 std::string GeometryMetricsTensorAdaptor::Info() const
 {
     std::stringstream info;
-    // info << "GeometryMetricsTensorAdaptor:";
-    // std::visit([&info](auto pContainer) {
-    //     info << " number of  " << ModelPart::Container<BareType<decltype(*pContainer)>>::GetEntityName() << " = " << pContainer->size();
-    // }, this->mpEntityContainer);
-    // info << ", " << BaseType::Info();
+
+    info << "GeometryMetricsTensorAdaptor:";
+    info << " Metric = ";
+    switch (mMetric) {
+        case DomainSize: info << "DomainSize"; break;
+    }
+    info << ", " << BaseType::Info();
     return info.str();
 }
 
-template KRATOS_API(KRATOS_CORE) GeometryMetricsTensorAdaptor::GeometryMetricsTensorAdaptor(ModelPart::GeometryContainerType::Pointer, GeometryMetricsTensorAdaptor::DatumType);
-template KRATOS_API(KRATOS_CORE) GeometryMetricsTensorAdaptor::GeometryMetricsTensorAdaptor(ModelPart::ConditionsContainerType::Pointer, GeometryMetricsTensorAdaptor::DatumType);
-template KRATOS_API(KRATOS_CORE) GeometryMetricsTensorAdaptor::GeometryMetricsTensorAdaptor(ModelPart::ElementsContainerType::Pointer, GeometryMetricsTensorAdaptor::DatumType);
+template KRATOS_API(KRATOS_CORE) GeometryMetricsTensorAdaptor::GeometryMetricsTensorAdaptor(ModelPart::GeometryContainerType::Pointer, GeometryMetricsTensorAdaptor::Metric);
+template KRATOS_API(KRATOS_CORE) GeometryMetricsTensorAdaptor::GeometryMetricsTensorAdaptor(ModelPart::ConditionsContainerType::Pointer, GeometryMetricsTensorAdaptor::Metric);
+template KRATOS_API(KRATOS_CORE) GeometryMetricsTensorAdaptor::GeometryMetricsTensorAdaptor(ModelPart::ElementsContainerType::Pointer, GeometryMetricsTensorAdaptor::Metric);
 
 } // namespace Kratos

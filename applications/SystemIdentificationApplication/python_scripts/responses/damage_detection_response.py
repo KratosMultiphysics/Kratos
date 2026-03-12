@@ -2,7 +2,7 @@ from typing import Optional
 import csv
 
 import KratosMultiphysics as Kratos
-import KratosMultiphysics.SystemIdentificationApplication as KratosDT
+import KratosMultiphysics.SystemIdentificationApplication as KratosSI
 from KratosMultiphysics.OptimizationApplication.responses.response_function import ResponseFunction
 from KratosMultiphysics.OptimizationApplication.responses.response_function import SupportedSensitivityFieldVariableTypes
 from KratosMultiphysics.OptimizationApplication.utilities.model_part_utilities import ModelPartOperation
@@ -79,7 +79,7 @@ class DamageDetectionResponse(ResponseFunction):
 
         self.adjoint_analysis = SystemIdentificationStaticAnalysis(self.model, parameters["adjoint_parameters"])
 
-        self.sensor_name_dict: 'dict[str, KratosDT.Sensors.Sensor]' = {}
+        self.sensor_name_dict: 'dict[str, KratosSI.Sensors.Sensor]' = {}
         self.optimization_problem = optimization_problem
 
     def GetImplementedPhysicalKratosVariables(self) -> 'list[SupportedSensitivityFieldVariableTypes]':
@@ -91,7 +91,7 @@ class DamageDetectionResponse(ResponseFunction):
 
         self.adjoint_analysis.Initialize()
 
-        self.damage_response_function = KratosDT.Responses.MeasurementResidualResponseFunction(self.p_coefficient)
+        self.damage_response_function = KratosSI.Responses.MeasurementResidualResponseFunction(self.p_coefficient)
 
         if not self.optimization_problem.GetProblemDataContainer()["object"].HasValue(self.sensor_group_name):
             raise RuntimeError(f"The sensor group \"{self.sensor_group_name}\" not found. Followings are available: \n\t" + "\n\t".join(self.optimization_problem.GetProblemDataContainer()["object"].GetSubItems().keys()))
@@ -99,7 +99,7 @@ class DamageDetectionResponse(ResponseFunction):
         sensor_group_data = ComponentDataView(self.sensor_group_name, self.optimization_problem)
         self.list_of_sensors = GetSensors(sensor_group_data)
         for sensor in self.list_of_sensors:
-            sensor.GetNode().SetValue(KratosDT.SENSOR_MEASURED_VALUE, 0.0)
+            sensor.GetNode().SetValue(KratosSI.SENSOR_MEASURED_VALUE, 0.0)
             self.damage_response_function.AddSensor(sensor)
 
         self.damage_response_function.Initialize()
@@ -131,9 +131,9 @@ class DamageDetectionResponse(ResponseFunction):
 
         return result
 
-    def CalculateGradient(self, physical_variable_combined_tensor_adaptor: 'dict[SupportedSensitivityFieldVariableTypes, Kratos.TensorAdaptors.DoubleCombinedTensorAdaptor]') -> None:
+    def CalculateGradient(self, physical_variable_gradient_map: 'dict[SupportedSensitivityFieldVariableTypes, Kratos.TensorAdaptors.DoubleCombinedTensorAdaptor]') -> None:
         # make everything zeros
-        for physical_variable, cta in physical_variable_combined_tensor_adaptor.items():
+        for physical_variable, cta in physical_variable_gradient_map.items():
             cta.data[:] = 0.0
             Kratos.TensorAdaptors.DoubleCombinedTensorAdaptor(cta, perform_store_data_recursively=False, copy=False).StoreData()
 
@@ -143,11 +143,11 @@ class DamageDetectionResponse(ResponseFunction):
             self.__SetSensorMeasuredValue(sensor_measurement_data_file_name)
 
             # run a single adjoint for each test scenario
-            self.adjoint_analysis._GetSolver().GetComputingModelPart().ProcessInfo[KratosDT.TEST_ANALYSIS_NAME] = exec_policy.GetName()
+            self.adjoint_analysis._GetSolver().GetComputingModelPart().ProcessInfo[KratosSI.TEST_ANALYSIS_NAME] = exec_policy.GetName()
             self.adjoint_analysis._GetSolver().GetComputingModelPart().ProcessInfo[Kratos.STEP] = self.optimization_problem.GetStep()
             self.adjoint_analysis.CalculateGradient(self.damage_response_function)
 
-            for physical_variable, cta in physical_variable_combined_tensor_adaptor.items():
+            for physical_variable, cta in physical_variable_gradient_map.items():
                 sensitivity_variable = Kratos.KratosGlobals.GetVariable(Kratos.SensitivityUtilities.GetSensitivityVariableName(physical_variable))
                 for ta in cta.GetTensorAdaptors():
                     current_gradient = ta.Clone()
@@ -155,7 +155,7 @@ class DamageDetectionResponse(ResponseFunction):
                     ta.data[:] -= current_gradient.data[:] * test_case_weight
                 Kratos.TensorAdaptors.DoubleCombinedTensorAdaptor(cta, perform_collect_data_recursively=False, copy=False).CollectData()
 
-    def __GetSensor(self, sensor_name: str) -> KratosDT.Sensors.Sensor:
+    def __GetSensor(self, sensor_name: str) -> KratosSI.Sensors.Sensor:
         return self.sensor_name_dict[sensor_name]
 
     def __GetHeaderIndices(self, csv_stream: csv.reader) -> 'tuple[int, int]':
@@ -173,7 +173,7 @@ class DamageDetectionResponse(ResponseFunction):
                 measured_sensor_name = measured_row[measured_name_index].strip()
                 measured_value = float(measured_row[measured_value_index])
                 if measured_sensor_name in self.sensor_name_dict:
-                    self.__GetSensor(measured_sensor_name).GetNode().SetValue(KratosDT.SENSOR_MEASURED_VALUE, measured_value)
+                    self.__GetSensor(measured_sensor_name).GetNode().SetValue(KratosSI.SENSOR_MEASURED_VALUE, measured_value)
 
     def _GetResponsePrefix(self) -> str:
         return "DamageDetectionResponse"
