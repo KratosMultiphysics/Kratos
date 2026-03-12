@@ -14,7 +14,6 @@
 #pragma once
 
 // System includes
-// #include <algorithm>
 
 // Project includes
 #include "includes/model_part.h"
@@ -350,7 +349,7 @@ private:
      */
     template <bool TIsInnerLoop>
     void CreateSbmExtendedGeometries(
-        const ModelPart& rSkinSubModelPart,
+        ModelPart& rSkinSubModelPart,
         const ModelPart& rSurrogateSubModelPart);
 
     /**
@@ -372,7 +371,7 @@ private:
         const Node::Pointer& pSurrogateNode2, 
         const GeometryType::Pointer& rSurrogateBrepMiddleGeometry,
         ModelPart& rIgaModelPart,
-        const ModelPart& rSkinSubModelPart);
+        ModelPart& rSkinSubModelPart);
 
     /**
      * @brief Adds extra gap elements for curve intersections between surrogate1-skin1 and skin1-skin2.

@@ -1012,8 +1012,8 @@ namespace Kratos
 
 
     // Obtain the slave skin model part //TODO: read from input
-    std::string slave_skin_model_part_name = "skin_Body1.outer.ContactSide";
     std::string master_skin_model_part_name = "skin_Body2.outer.ContactSide_1";
+    std::string slave_skin_model_part_name = "skin_Body1.outer.ContactSide";
 
     // std::string master_skin_model_part_name = "skin_Body1.outer.Bottom";
     // std::string slave_skin_model_part_name = "skin_Body2.outer.Top_1";
