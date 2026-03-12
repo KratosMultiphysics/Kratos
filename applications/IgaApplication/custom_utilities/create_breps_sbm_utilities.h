@@ -383,6 +383,13 @@ private:
                     first_point = second_point;
                     second_point = temp;
                 }
+
+                p_cond->SetValue(BREP_ID, static_cast<int>(id_brep_curve_on_surface));
+                auto& r_geom_cond = p_cond->GetGeometry();
+                if (r_geom_cond.size() >= 2) {
+                    r_geom_cond[0].SetValue(BREP_ID, static_cast<int>(id_brep_curve_on_surface));
+                    r_geom_cond[1].SetValue(BREP_ID, static_cast<int>(id_brep_curve_on_surface));
+                }
                 
                 Point::Pointer p_first_brep_point = Kratos::make_shared<Point>(first_point[0], first_point[1], 0.0);
                 Point::Pointer p_second_brep_point = Kratos::make_shared<Point>(second_point[0], second_point[1], 0.0);

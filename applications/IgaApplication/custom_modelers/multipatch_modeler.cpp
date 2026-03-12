@@ -35,6 +35,46 @@ constexpr std::size_t U_MAX = 1;
 constexpr std::size_t V_MIN = 2;
 constexpr std::size_t V_MAX = 3;
 
+enum class GeometryModelerType
+{
+    Sbm,
+    GapSbm
+};
+
+GeometryModelerType GetGeometryModelerType(const Parameters& rParameters)
+{
+    if (rParameters.Has("geometry_modeler_type") && rParameters["geometry_modeler_type"].IsString()) {
+        const std::string t = rParameters["geometry_modeler_type"].GetString();
+        if (t == "gap-sbm" || t == "gap_sbm" || t == "gapsbm") {
+            return GeometryModelerType::GapSbm;
+        }
+    }
+    return GeometryModelerType::Sbm;
+}
+
+void ConfigureGapSbmParams(Parameters& rParams)
+{
+    // Ensure fast NURBS import: use a small number of initial points
+    if (rParams.Has("number_initial_points_if_importing_nurbs")) {
+        rParams["number_initial_points_if_importing_nurbs"].SetInt(2);
+    } else {
+        rParams.AddEmptyValue("number_initial_points_if_importing_nurbs").SetInt(2);
+    }
+    // Mark parameters as coming from multipatch workflow
+    if (rParams.Has("use_for_multipatch")) {
+        rParams["use_for_multipatch"].SetBool(true);
+    } else {
+        rParams.AddEmptyValue("use_for_multipatch").SetBool(true);
+    }
+}
+
+void EnsureGapKeyFromBase(Parameters& rGapParams, const Parameters& rGeometryBase, const std::string& rKey)
+{
+    if (!rGapParams.Has(rKey) && rGeometryBase.Has(rKey)) {
+        rGapParams.AddValue(rKey, rGeometryBase[rKey]);
+    }
+}
+
 RectangleType ClipRectangle(const RectangleType& rRectangle, const RectangleType& rBounds)
 {
     RectangleType result;
@@ -79,63 +119,131 @@ void MultipatchModeler::SetupModelPart()
         analysis_target_submodel_parts,
         condition_name_to_model_parts);
 
+        KRATOS_WATCH(mEchoLevel)
+
+    KRATOS_INFO_IF("MultipatchModeler", mEchoLevel > 0)
+        << "SetupModelPart begin for model_part_name='"
+        << r_parameters["model_part_name"].GetString() << "'" << std::endl;
+
     // If no geometry parameters were provided, the original code returns early.
     const bool has_geometry_params =
         r_parameters.Has("geometry_parameters") &&
         r_parameters["geometry_parameters"].Has("model_part_name");
     if (!has_geometry_params) {
+        KRATOS_INFO_IF("MultipatchModeler", mEchoLevel > 0)
+            << "No geometry_parameters provided; skipping geometry generation." << std::endl;
         return;
     }
 
     // Select coupling type from project parameters: "body-fitted" (default) or "gap-sbm"
     bool body_fitted_coupling = true; // default
-    bool no_inner_loop = false;
+    bool no_immersed_loop = false;
     if (mParameters.Has("coupling_type") && mParameters["coupling_type"].IsString()) {
         const std::string coupling_type = mParameters["coupling_type"].GetString();
         if (coupling_type == "gap-sbm" || coupling_type == "gap_sbm" || coupling_type == "gapsbm") {
             body_fitted_coupling = false;
         } else if (coupling_type == "solo-gap-sbm" || coupling_type == "solo_gap_sbm" || coupling_type == "sologapsbm") {
             body_fitted_coupling = false;
-            no_inner_loop = true;
+            no_immersed_loop = true;
         }
         else {
             body_fitted_coupling = true;
         }
     }
 
+    const bool use_gap_sbm_geometry_modeler =
+        (GetGeometryModelerType(mParameters) == GeometryModelerType::GapSbm);
+
     const std::string prefix = r_parameters["child_patch_prefix"].GetString();
     ModelPart& r_parent_model_part = r_model_part;
 
+    KRATOS_INFO_IF("MultipatchModeler", mEchoLevel > 0)
+        << "Coupling type: " << (body_fitted_coupling ? "body-fitted" : "gap-sbm")
+        << " | geometry_modeler_type: " << (use_gap_sbm_geometry_modeler ? "gap-sbm" : "sbm")
+        << " | child_patch_prefix: '" << prefix << "'" << std::endl;
+
+
+    // check if there are immersed boundaries
+    std::string skin_model_part_inner_initial_name = "****not_defined";
+    std::string skin_model_part_outer_initial_name = "****not_defined";
+    if (geometry_base.Has("skin_model_part_inner_initial_name"))
+        skin_model_part_inner_initial_name = geometry_base["skin_model_part_inner_initial_name"].GetString();
+    if (geometry_base.Has("skin_model_part_outer_initial_name")) 
+        skin_model_part_outer_initial_name = geometry_base["skin_model_part_outer_initial_name"].GetString();
+
+    const bool is_immersed_inner = mpModel->HasModelPart(skin_model_part_inner_initial_name);
+    const bool is_immersed_outer = mpModel->HasModelPart(skin_model_part_outer_initial_name);
     
     if (!body_fitted_coupling) {
+        KRATOS_INFO_IF("MultipatchModeler", mEchoLevel > 0)
+            << "Entering GAP-SBM coupling path." << std::endl;
         // Refinement patch
         //----------------------------------------------------------------------------------------------------------------------------------------------
         Parameters patch_geometry_refinement_patch = geometry_base.Clone();
         // Remove GAP-SBM specific keys from the generic patch geometry,
         // so that when used with NurbsGeometryModelerSbm (e.g. for refinement patch),
         // it doesn't carry GAP-only options.
-        const std::array<const char*, 5> gap_only_keys = {
-            "gap_approximation_order",
-            "number_internal_divisions",
-            "gap_sbm_type",
-            "gap_element_name",
-            "gap_interface_condition_name"
-        };
-        for (const char* key : gap_only_keys) {
-            if (patch_geometry_refinement_patch.Has(key)) {
-                patch_geometry_refinement_patch.RemoveValue(key);
+
+        if (!use_gap_sbm_geometry_modeler)
+        {
+            const std::array<const char*, 5> gap_only_keys = {
+                "gap_approximation_order",
+                "number_internal_divisions",
+                "gap_sbm_type",
+                "gap_element_name",
+                "gap_interface_condition_name"
+            };
+            for (const char* key : gap_only_keys) {
+                if (patch_geometry_refinement_patch.Has(key)) {
+                    patch_geometry_refinement_patch.RemoveValue(key);
+                }
+            }
+        } else{
+            Vector geometry_refinement_patch_degrees = r_parameters["refinement_regions"][0]["polynomial_order"].GetVector();
+            const SizeType degree_size = geometry_refinement_patch_degrees.size();
+            double min_degree = geometry_refinement_patch_degrees[0];
+            if (degree_size > 1 && geometry_refinement_patch_degrees[1] < min_degree) {
+                min_degree = geometry_refinement_patch_degrees[1];
+            }
+            if (degree_size > 2 && geometry_refinement_patch_degrees[2] < min_degree) {
+                min_degree = geometry_refinement_patch_degrees[2];
+            }
+            const int min_degree_int = static_cast<int>(min_degree);
+            patch_geometry_refinement_patch["number_internal_divisions"].SetInt(min_degree_int);
+            patch_geometry_refinement_patch["gap_approximation_order"].SetInt(min_degree_int);  
+        }  
+
+        // One between inner and outer must be true
+        std::string skin_model_part_inner_initial_name = "****not_defined";
+        std::string skin_model_part_outer_initial_name = "****not_defined";
+        if (patch_geometry_refinement_patch.Has("skin_model_part_inner_initial_name"))
+            skin_model_part_inner_initial_name = patch_geometry_refinement_patch["skin_model_part_inner_initial_name"].GetString();
+        if (patch_geometry_refinement_patch.Has("skin_model_part_outer_initial_name")) 
+            skin_model_part_outer_initial_name = patch_geometry_refinement_patch["skin_model_part_outer_initial_name"].GetString();
+
+        if (is_immersed_inner && is_immersed_outer)
+            KRATOS_ERROR << "::[MultipatchModeler]:: simoultaneous inner/outer loop not implemented yet. Need to" <<
+                                "create two different refinement patches." << std::endl;
+                      
+        if (is_immersed_inner)
+        {
+            if (patch_geometry_refinement_patch.Has("create_surr_outer_from_surr_inner")) {
+                patch_geometry_refinement_patch["create_surr_outer_from_surr_inner"].SetBool(true);
+            } else {
+                patch_geometry_refinement_patch.AddEmptyValue("create_surr_outer_from_surr_inner").SetBool(true);
+            }
+        }
+        else if (is_immersed_outer) 
+        {
+            if (patch_geometry_refinement_patch.Has("create_surr_inner_from_surr_outer")) {
+                patch_geometry_refinement_patch["create_surr_inner_from_surr_outer"].SetBool(true);
+            } else {
+                patch_geometry_refinement_patch.AddEmptyValue("create_surr_inner_from_surr_outer").SetBool(true);
             }
         }
 
-        // With inner loop this must be true
-        if (patch_geometry_refinement_patch.Has("create_surr_outer_from_surr_inner")) {
-            patch_geometry_refinement_patch["create_surr_outer_from_surr_inner"].SetBool(true);
-        } else {
-            patch_geometry_refinement_patch.AddEmptyValue("create_surr_outer_from_surr_inner").SetBool(true);
-        }
-
         // for only coupling (STUPID)
-        if (no_inner_loop) {
+        if (no_immersed_loop) {
             if (patch_geometry_refinement_patch.Has("skin_model_part_inner_initial_name")) {
                 patch_geometry_refinement_patch.RemoveValue("skin_model_part_inner_initial_name");
             }
@@ -148,7 +256,7 @@ void MultipatchModeler::SetupModelPart()
             const std::string inner_initial_mp_name = "initial_skin_model_part_in";
             const std::string outer_initial_mp_name = "initial_skin_model_part_out";
             if (mpModel->HasModelPart(inner_initial_mp_name)) {
-                ModelPart& r_inner_initial = mpModel->GetModelPart(inner_initial_mp_name);
+                ModelPart& r_immersed_initial = mpModel->GetModelPart(inner_initial_mp_name);
                 ModelPart& r_outer_initial = mpModel->HasModelPart(outer_initial_mp_name)
                     ? mpModel->GetModelPart(outer_initial_mp_name)
                     : mpModel->CreateModelPart(outer_initial_mp_name);
@@ -156,10 +264,9 @@ void MultipatchModeler::SetupModelPart()
                 r_outer_initial.Geometries().clear();
 
                 r_outer_initial.AddGeometries(
-                    r_inner_initial.GeometriesBegin(),
-                    r_inner_initial.GeometriesEnd());
-            }
-            
+                    r_immersed_initial.GeometriesBegin(),
+                    r_immersed_initial.GeometriesEnd());
+            }  
         } 
 
         // Call NurbsGeometryModelerSbm for the refinement patch 
@@ -168,12 +275,8 @@ void MultipatchModeler::SetupModelPart()
             // Inside it calls the NurbsGeometryModelerSbm and the IgaModeler
             ProcessRefPatch(ref_rect, patch_geometry_refinement_patch, analysis_base, r_parent_model_part, prefix);
         }
+    
     }
-
-
-    
-
-    
 
 
     // Base domain
@@ -183,27 +286,33 @@ void MultipatchModeler::SetupModelPart()
     // Create skin_coupling_model_part initial loops:
     // - inner: union of refinement rectangles
     // - outer: base rectangle
-    const std::string inner_initial_name = "skin_coupling_model_part_initial";
+    const std::string immersed_initial_name = "skin_coupling_model_part_initial";
     const std::string skin_name          = "skin_coupling_model_part";
 
     
     // Build inner loop:
     // - body-fitted: from refinement regions (rectangular loops)
     // - GAP-SBM: from refinement patch surrogate outer as NURBS curves
-    ModelPart* p_inner_initial = nullptr;
+    ModelPart* p_immersed_initial = nullptr;
+    KRATOS_WATCH(is_immersed_inner)
     if (body_fitted_coupling) {
-        p_inner_initial = &CreateSkinCouplingModelPartForRefinements(inner_initial_name);
+        p_immersed_initial = &CreateSkinCouplingModelPartForRefinements(immersed_initial_name);
     } else {
-        p_inner_initial = &CreateSkinInnerInitialFromRefinementSurrogateOuter(inner_initial_name);
+        if (is_immersed_inner)
+            p_immersed_initial = &CreateSkinInnerInitialFromRefinementSurrogateOuter(immersed_initial_name);
+        else if (is_immersed_outer)
+            p_immersed_initial = &CreateSkinOuterInitialFromRefinementSurrogateInner(immersed_initial_name);
+        else 
+            KRATOS_ERROR << "::[MultipatchModeler]:: Simoultaneous inner/outer loop not implemented." << std::endl;
     }
-    ModelPart& r_inner_initial = *p_inner_initial;
+    ModelPart& r_immersed_initial = *p_immersed_initial;
 
 
 
 
     KRATOS_INFO_IF("MultipatchModeler", mEchoLevel > 1)
-        << "Built inner initial skin '" << inner_initial_name << "' with "
-        << r_inner_initial.NumberOfConditions() << " conditions." << std::endl;
+        << "Built inner initial skin '" << immersed_initial_name << "' with "
+        << r_immersed_initial.NumberOfConditions() << " conditions." << std::endl;
 
     // Note: do NOT set coupling skin names on geometry_base.
     // Base patch will use these names directly in its local patch_geometry.
@@ -216,6 +325,9 @@ void MultipatchModeler::SetupModelPart()
         : r_parent_model_part.CreateSubModelPart(patch_suffix);
     const std::string patch_full_name = r_patch_model_part.FullName();
 
+    KRATOS_INFO_IF("MultipatchModeler", mEchoLevel > 1)
+        << "Processing base patch '" << patch_full_name << "'" << std::endl;
+
     if (mEchoLevel > 2) {
         KRATOS_INFO("MultipatchModeler") << "-- Created " << patch_full_name << std::endl;
     }
@@ -227,7 +339,12 @@ void MultipatchModeler::SetupModelPart()
     // For base patch, enforce use of the coupling skin we just created
     if (patch_geometry.Has("skin_model_part_inner_initial_name")) patch_geometry.RemoveValue("skin_model_part_inner_initial_name");
     if (patch_geometry.Has("skin_model_part_name")) patch_geometry.RemoveValue("skin_model_part_name");
-    patch_geometry.AddEmptyValue("skin_model_part_inner_initial_name").SetString(inner_initial_name);
+
+    if (is_immersed_inner)
+        patch_geometry.AddEmptyValue("skin_model_part_inner_initial_name").SetString(immersed_initial_name);
+    else if (is_immersed_outer)
+        patch_geometry.AddEmptyValue("skin_model_part_outer_initial_name").SetString(immersed_initial_name);
+
     patch_geometry.AddEmptyValue("skin_model_part_name").SetString(skin_name);
 
     // Skin model parts are prepared in SetupModelPart; read skin name if present
@@ -277,28 +394,47 @@ void MultipatchModeler::SetupModelPart()
 
 
     if (body_fitted_coupling) {
-        // Prepare patch bounds, mappings, spans and per-patch values
-        const auto prep = PreparePatchGeometryAndData(
-            r_patch_model_part,
-            patch_geometry,
-            geometry_base,
-            mBaseRect,
-            use_sbm_for_this_patch,
-            patch_full_name,
-            true);
+        if (use_gap_sbm_geometry_modeler) {
+            KRATOS_INFO_IF("MultipatchModeler", mEchoLevel > 1)
+                << "Preparing GAP-SBM geometry for base patch '" << patch_full_name << "'" << std::endl;
+            const auto prep = PreparePatchGeometryAndDataGapSbm(
+                r_patch_model_part,
+                patch_geometry,
+                geometry_base,
+                mBaseRect,
+                use_sbm_for_this_patch,
+                patch_full_name,
+                true);
 
-        patch_geometry_ids_before = prep.GeometryIdsBefore;
-        patch_geometry_for_sbm_coupling = prep.PatchGeometryForSbmCoupling;
+            patch_geometry_ids_before = prep.GeometryIdsBefore;
+            patch_geometry_for_sbm_coupling = prep.PatchGeometryForSbmCoupling;
+        } else {
+            KRATOS_INFO_IF("MultipatchModeler", mEchoLevel > 1)
+                << "Preparing SBM geometry for base patch '" << patch_full_name << "'" << std::endl;
+            // Prepare patch bounds, mappings, spans and per-patch values
+            const auto prep = PreparePatchGeometryAndData(
+                r_patch_model_part,
+                patch_geometry,
+                geometry_base,
+                mBaseRect,
+                use_sbm_for_this_patch,
+                patch_full_name,
+                true);
 
-        // Generate geometry for this patch using the adjusted parameters
-        {
-            NurbsGeometryModelerSbm geometry_modeler(*mpModel, patch_geometry_for_sbm_coupling);
-            geometry_modeler.SetupGeometryModel();
-            geometry_modeler.PrepareGeometryModel();
-            geometry_modeler.SetupModelPart();
+            patch_geometry_ids_before = prep.GeometryIdsBefore;
+            patch_geometry_for_sbm_coupling = prep.PatchGeometryForSbmCoupling;
+
+            // Generate geometry for this patch using the adjusted parameters
+            {
+                NurbsGeometryModelerSbm geometry_modeler(*mpModel, patch_geometry_for_sbm_coupling);
+                geometry_modeler.SetupGeometryModel();
+                geometry_modeler.PrepareGeometryModel();
+                geometry_modeler.SetupModelPart();
+            }
         }
-        
     } else {
+        KRATOS_INFO_IF("MultipatchModeler", mEchoLevel > 1)
+            << "Preparing GAP-SBM geometry for base patch '" << patch_full_name << "'" << std::endl;
         // GAP-SBM coupling path: prepare geometry and run GAP-SBM modeler inside helper
         const auto prep = PreparePatchGeometryAndDataGapSbm(
             r_patch_model_part,
@@ -310,7 +446,6 @@ void MultipatchModeler::SetupModelPart()
             true);
         patch_geometry_ids_before = prep.GeometryIdsBefore;
         patch_geometry_for_sbm_coupling = prep.PatchGeometryForSbmCoupling;
-        
         // Remove GAP-SBM specific keys from the generic patch geometry,
         // so that when used with NurbsGeometryModelerSbm (e.g. for refinement patch),
         // it doesn't carry GAP-only options.
@@ -350,6 +485,9 @@ void MultipatchModeler::SetupModelPart()
             }
         }
 
+        if (is_immersed_outer) {
+            patch_analysis["element_condition_list"] = reduced;
+        } else {
         // --- pick ONE external and ONE internal template from the original list
         auto is_edge_cond = [](const Parameters& c)->bool {
             return c.Has("type") && c["type"].IsString() && c["type"].GetString() == "condition";
@@ -456,6 +594,7 @@ void MultipatchModeler::SetupModelPart()
             set_brep_ids(in, internal_ids);
         }
         patch_analysis["element_condition_list"] = reduced;
+        }
         
     }
 
@@ -508,9 +647,10 @@ void MultipatchModeler::SetupModelPart()
         }
     }
 
+    KRATOS_INFO_IF("MultipatchModeler", mEchoLevel > 0)
+        << "SetupModelPart end for model_part_name='"
+        << r_parameters["model_part_name"].GetString() << "'" << std::endl;
     
-
-
 }
 
 void MultipatchModeler::ProcessRefPatch(
@@ -520,6 +660,9 @@ void MultipatchModeler::ProcessRefPatch(
     ModelPart& r_parent_model_part,
     const std::string& prefix)
 {
+    KRATOS_INFO_IF("MultipatchModeler", mEchoLevel > 1)
+        << "ProcessRefPatch begin for rect " << RectangleToString(rect) << std::endl;
+
     const std::string patch_suffix = prefix + std::to_string(2);
     ModelPart& r_patch_model_part = r_parent_model_part.HasSubModelPart(patch_suffix)
         ? r_parent_model_part.GetSubModelPart(patch_suffix)
@@ -573,6 +716,9 @@ void MultipatchModeler::ProcessRefPatch(
             << (skin_fully_inside_ref ? "inside" : "outside") << std::endl;
     }
     const bool use_sbm_for_ref_patch = has_skin_data && skin_fully_inside_ref;
+    KRATOS_INFO_IF("MultipatchModeler", mEchoLevel > 1)
+        << "[RefPatch] use_sbm_for_ref_patch=" << (use_sbm_for_ref_patch ? "true" : "false")
+        << " | has_skin_data=" << (has_skin_data ? "true" : "false") << std::endl;
 
     // If not using SBM, strip skin keys so body-fitted path is used
     if (!use_sbm_for_ref_patch) {
@@ -663,10 +809,26 @@ void MultipatchModeler::ProcessRefPatch(
 
     // Create geometry
     {
-        NurbsGeometryModelerSbm geometry_modeler(*mpModel, patch_geometry);
-        geometry_modeler.SetupGeometryModel();
-        geometry_modeler.PrepareGeometryModel();
-        geometry_modeler.SetupModelPart();
+        const bool use_gap_sbm_geometry_modeler =
+            (GetGeometryModelerType(mParameters) == GeometryModelerType::GapSbm);
+        if (use_gap_sbm_geometry_modeler) {
+            Parameters gap_params = patch_geometry.Clone();
+
+            KRATOS_INFO_IF("MultipatchModeler", mEchoLevel > 1)
+                << "[RefPatch] Running NurbsGeometryModelerGapSbm for '" << patch_full_name << "'" << std::endl;
+
+            NurbsGeometryModelerGapSbm geometry_modeler(*mpModel, gap_params);
+            geometry_modeler.SetupGeometryModel();
+            geometry_modeler.PrepareGeometryModel();
+            geometry_modeler.SetupModelPart();
+        } else {
+            KRATOS_INFO_IF("MultipatchModeler", mEchoLevel > 1)
+                << "[RefPatch] Running NurbsGeometryModelerSbm for '" << patch_full_name << "'" << std::endl;
+            NurbsGeometryModelerSbm geometry_modeler(*mpModel, patch_geometry);
+            geometry_modeler.SetupGeometryModel();
+            geometry_modeler.PrepareGeometryModel();
+            geometry_modeler.SetupModelPart();
+        }
     }
 
     // KRATOS_WATCH("nurbs Geom Modeler for ref patch END!!")
@@ -713,6 +875,9 @@ void MultipatchModeler::ProcessRefPatch(
     } else {
         KRATOS_ERROR << "MultipatchModeler: missing analysis parameters in input." << std::endl;
     }
+
+    KRATOS_INFO_IF("MultipatchModeler", mEchoLevel > 1)
+        << "ProcessRefPatch end for '" << patch_full_name << "'" << std::endl;
 }
 
 // Validates inputs, prepares defaults, gathers analysis targets,
@@ -747,6 +912,9 @@ ModelPart& MultipatchModeler::InitializeSetup(
     // Echo level
     const int echo_level_input = r_parameters["echo_level"].GetInt();
     mEchoLevel = static_cast<SizeType>(echo_level_input);
+    KRATOS_INFO_IF("MultipatchModeler", mEchoLevel > 0)
+        << "InitializeSetup for model_part_name='" << model_part_name
+        << "' | echo_level=" << mEchoLevel << std::endl;
 
     // Presence flags for geometry/analysis blocks
     const bool has_geometry_params =
@@ -760,6 +928,10 @@ ModelPart& MultipatchModeler::InitializeSetup(
     // Copy base parameter blocks as working templates
     if (has_geometry_params) rGeometryBaseOut = r_parameters["geometry_parameters"];
     if (has_analysis_params) rAnalysisBaseOut = r_parameters["analysis_parameters"];
+
+    KRATOS_INFO_IF("MultipatchModeler", mEchoLevel > 1)
+        << "has_geometry_params=" << (has_geometry_params ? "true" : "false")
+        << " | has_analysis_params=" << (has_analysis_params ? "true" : "false") << std::endl;
 
     // Small utility: set default vector if missing or empty
     const auto assign_default_vector = [](Parameters& p, const std::string& key, const Vector& def) {
@@ -875,6 +1047,9 @@ ModelPart& MultipatchModeler::InitializeSetup(
     }
     r_model_part.SetValue(PARAMETER_SPACE_CORNERS, rectangles_data);
 
+    KRATOS_INFO_IF("MultipatchModeler", mEchoLevel > 0)
+        << "InitializeSetup completed. Subdomains=" << mSubdomains.size() << std::endl;
+
     return r_model_part;
 }
 
@@ -889,6 +1064,11 @@ MultipatchModeler::PatchPreparationResult MultipatchModeler::PreparePatchGeometr
     const bool is_base_patch) const
 {
     PatchPreparationResult result;
+
+    KRATOS_INFO_IF("MultipatchModeler", mEchoLevel > 1)
+        << "PreparePatchGeometryAndData for '" << patch_full_name
+        << "' | use_sbm_for_this_patch=" << (use_sbm_for_this_patch ? "true" : "false")
+        << " | rect=" << RectangleToString(rect) << std::endl;
 
     // Snapshot geometry IDs before generation (to detect new ones)
     result.GeometryIdsBefore.reserve(r_patch_model_part.NumberOfGeometries());
@@ -972,6 +1152,10 @@ MultipatchModeler::PatchPreparationResult MultipatchModeler::PreparePatchGeometr
         r_patch_model_part.SetValue(KNOT_SPAN_SIZES, patch_span_sizes);
     }
 
+    KRATOS_INFO_IF("MultipatchModeler", mEchoLevel > 2)
+        << "Patch spans: [" << patch_spans[0] << ", " << patch_spans[1]
+        << "] | KNOT_SPAN_SIZES set on '" << patch_full_name << "'" << std::endl;
+
     // Write PARAMETER_SPACE_CORNERS for this patch (vector and matrix forms)
     std::vector<Vector> patch_parameter_corners(2);
     patch_parameter_corners[0].resize(2);
@@ -1021,6 +1205,9 @@ MultipatchModeler::PatchPreparationResult MultipatchModeler::PreparePatchGeometr
     const std::string& patch_full_name,
     const bool is_base_patch) const
 {
+    KRATOS_INFO_IF("MultipatchModeler", mEchoLevel > 1)
+        << "PreparePatchGeometryAndDataGapSbm for '" << patch_full_name << "'" << std::endl;
+
     // Reuse standard preparation to compute bounds, spans and ids
     auto prep = PreparePatchGeometryAndData(
         r_patch_model_part,
@@ -1034,28 +1221,19 @@ MultipatchModeler::PatchPreparationResult MultipatchModeler::PreparePatchGeometr
     // Build parameters for GAP-SBM modeler from prepared geometry
     Parameters gap_params = prep.PatchGeometryForSbmCoupling.Clone();
 
-    // Delete // TODO: modify this, it is artificial
-    if (gap_params.Has("skin_model_part_outer_initial_name")) gap_params.RemoveValue("skin_model_part_outer_initial_name");
-    
-    // Ensure fast NURBS import: use a single initial point
-    if (gap_params.Has("number_initial_points_if_importing_nurbs")) {
-        gap_params["number_initial_points_if_importing_nurbs"].SetInt(2);
-    } else {
-        gap_params.AddEmptyValue("number_initial_points_if_importing_nurbs").SetInt(2);
-    }
-    // Add parameter "use_for_multipatch" and set it to true
-    if (gap_params.Has("use_for_multipatch")) {
-        gap_params["use_for_multipatch"].SetBool(true);
-    } else {
-        gap_params.AddEmptyValue("use_for_multipatch").SetBool(true);
-    }
-    
-    // KRATOS_WATCH("start NurbsGeometryModelerGapSbm")
+    // Ensure GAP-SBM-specific keys are forwarded if they exist on base geometry
+    EnsureGapKeyFromBase(gap_params, r_geometry_base, "gap_sbm_type");
+    EnsureGapKeyFromBase(gap_params, r_geometry_base, "gap_interface_condition_name");
+    EnsureGapKeyFromBase(gap_params, r_geometry_base, "gap_element_name");
+    EnsureGapKeyFromBase(gap_params, r_geometry_base, "gap_approximation_order");
+    EnsureGapKeyFromBase(gap_params, r_geometry_base, "number_internal_divisions");
 
-    // KRATOS_WATCH(gap_params)
-    // exit(0);
+    ConfigureGapSbmParams(gap_params);
+    
     // Run GAP-SBM geometry modeler
     {
+        KRATOS_INFO_IF("MultipatchModeler", mEchoLevel > 1)
+            << "Running NurbsGeometryModelerGapSbm for '" << patch_full_name << "'" << std::endl;
         NurbsGeometryModelerGapSbm geometry_modeler(*mpModel, gap_params);
         geometry_modeler.SetupGeometryModel();
         geometry_modeler.PrepareGeometryModel();
@@ -1149,10 +1327,17 @@ void MultipatchModeler::AppendRectangleSkinLoop(ModelPart& rModelPart, const Rec
 ModelPart& MultipatchModeler::CreateSkinCouplingModelPartForRefinements(const std::string& rSkinModelPartName) const
 {
     ModelPart& r_skin = CreateOrResetModelPart_(rSkinModelPartName);
+    KRATOS_INFO_IF("MultipatchModeler", mEchoLevel > 1)
+        << "CreateSkinCouplingModelPartForRefinements -> '" << rSkinModelPartName
+        << "' | regions=" << mRefinementRegions.size() << std::endl;
     // Create one rectangular loop per refinement region
     for (const auto& r_reg : mRefinementRegions) {
         AppendRectangleSkinLoop(r_skin, r_reg.Rectangle);
     }
+    KRATOS_INFO_IF("MultipatchModeler", mEchoLevel > 2)
+        << "Created skin coupling model part '" << rSkinModelPartName
+        << "' with geometries=" << r_skin.NumberOfGeometries()
+        << ", conditions=" << r_skin.NumberOfConditions() << std::endl;
     return r_skin;
 }
 
@@ -1160,6 +1345,8 @@ ModelPart& MultipatchModeler::CreateSkinInnerInitialFromRefinementSurrogateOuter
 {
     // Prepare/clear target skin model part
     ModelPart& r_skin = CreateOrResetModelPart_(rSkinModelPartName);
+    KRATOS_INFO_IF("MultipatchModeler", mEchoLevel > 1)
+        << "CreateSkinInnerInitialFromRefinementSurrogateOuter -> '" << rSkinModelPartName << "'" << std::endl;
 
     // Locate the refinement patch (assumed suffix "<prefix>2") and its surrogate outer loop
     const std::string root_name = mParameters["model_part_name"].GetString();
@@ -1177,7 +1364,6 @@ ModelPart& MultipatchModeler::CreateSkinInnerInitialFromRefinementSurrogateOuter
     const ModelPart& r_surrogate_outer = r_ref_patch.GetSubModelPart("surrogate_outer");
 
     r_skin.SetValue(KNOT_SPAN_SIZES, r_ref_patch.GetValue(KNOT_SPAN_SIZES)); // pass span sizes to skin for consistent curve generation
-
 
     // Ensure coupling submodelpart exists on the destination skin
     ModelPart& r_coupling_sub = r_skin.HasSubModelPart("CuplingConditions")
@@ -1209,8 +1395,13 @@ ModelPart& MultipatchModeler::CreateSkinInnerInitialFromRefinementSurrogateOuter
         const auto& g = r_cond.GetGeometry();
         if (g.size() != 2) continue;
         const int brep_id = r_cond.GetValue(BREP_ID);
+
         segments.push_back({g[0].X(), g[0].Y(), g[1].X(), g[1].Y(), brep_id});
     }
+
+    KRATOS_INFO_IF("MultipatchModeler", mEchoLevel > 2)
+        << "Surrogate outer conditions=" << r_surrogate_outer.NumberOfConditions()
+        << " | segments=" << segments.size() << std::endl;
 
     // Order segments to form a continuous loop and enforce clockwise orientation
     std::vector<Segment> ordered;
@@ -1321,6 +1512,163 @@ ModelPart& MultipatchModeler::CreateSkinInnerInitialFromRefinementSurrogateOuter
     //     }
     // }
 
+    KRATOS_INFO_IF("MultipatchModeler", mEchoLevel > 2)
+        << "Created skin inner initial '" << rSkinModelPartName
+        << "' with geometries=" << r_skin.NumberOfGeometries()
+        << ", conditions=" << r_skin.NumberOfConditions() << std::endl;
+
+    return r_skin;
+}
+
+ModelPart& MultipatchModeler::CreateSkinOuterInitialFromRefinementSurrogateInner(const std::string& rSkinModelPartName) const
+{
+    ModelPart& r_skin = CreateOrResetModelPart_(rSkinModelPartName);
+    KRATOS_INFO_IF("MultipatchModeler", mEchoLevel > 1)
+        << "CreateSkinOuterInitialFromRefinementSurrogateInner -> '" << rSkinModelPartName << "'" << std::endl;
+
+    const std::string root_name = mParameters["model_part_name"].GetString();
+    const std::string prefix = mParameters["child_patch_prefix"].GetString();
+    const std::string patch_suffix = prefix + std::to_string(2);
+
+    KRATOS_ERROR_IF_NOT(mpModel->HasModelPart(root_name))
+        << "MultipatchModeler: root model part '" << root_name << "' not found." << std::endl;
+    ModelPart& r_root = mpModel->GetModelPart(root_name);
+    KRATOS_ERROR_IF_NOT(r_root.HasSubModelPart(patch_suffix))
+        << "MultipatchModeler: refinement patch '" << patch_suffix << "' not found under '" << root_name << "'." << std::endl;
+    ModelPart& r_ref_patch = r_root.GetSubModelPart(patch_suffix);
+    KRATOS_ERROR_IF_NOT(r_ref_patch.HasSubModelPart("surrogate_inner"))
+        << "MultipatchModeler: submodelpart 'surrogate_inner' not found in refinement patch '" << patch_suffix << "'." << std::endl;
+    const ModelPart& r_surrogate_inner = r_ref_patch.GetSubModelPart("surrogate_inner");
+
+    r_skin.SetValue(KNOT_SPAN_SIZES, r_ref_patch.GetValue(KNOT_SPAN_SIZES));
+
+    ModelPart& r_coupling_sub = r_skin.HasSubModelPart("CuplingConditions")
+        ? r_skin.GetSubModelPart("CuplingConditions")
+        : r_skin.CreateSubModelPart("CuplingConditions");
+
+    const int degree = 1;
+    const int ncp = 2;
+    Vector weights(ncp);
+    weights[0] = 1.0; weights[1] = 1.0;
+    auto make_knots = [&]() {
+        Vector kv(ncp + degree + 1);
+        kv[0] = 0.0; kv[1] = 0.0; kv[2] = 1.0; kv[3] = 1.0;
+        return kv;
+    };
+
+    std::string cond_name;
+    if (mParameters.Has("coupling_conditions_name") && mParameters["coupling_conditions_name"].IsString()) {
+        cond_name = mParameters["coupling_conditions_name"].GetString();
+    }
+
+    struct Segment { double x0, y0, x1, y1; int brep_id; bool has_brep_id; };
+    std::vector<Segment> segments;
+    segments.reserve(r_surrogate_inner.NumberOfConditions());
+    for (const auto& r_cond : r_surrogate_inner.Conditions()) {
+        const auto& g = r_cond.GetGeometry();
+        if (g.size() != 2) continue;
+        const bool has_brep_id = r_cond.Has(BREP_ID);
+        const int brep_id = has_brep_id ? r_cond.GetValue(BREP_ID) : 0;
+        segments.push_back({g[0].X(), g[0].Y(), g[1].X(), g[1].Y(), brep_id, has_brep_id});
+    }
+
+    KRATOS_INFO_IF("MultipatchModeler", mEchoLevel > 2)
+        << "Surrogate inner conditions=" << r_surrogate_inner.NumberOfConditions()
+        << " | segments=" << segments.size() << std::endl;
+
+    std::vector<Segment> ordered;
+    ordered.reserve(segments.size());
+    if (!segments.empty()) {
+        const auto same_point = [](double ax, double ay, double bx, double by) {
+            const double tol = 1e-10;
+            return std::abs(ax - bx) <= tol * (1.0 + std::max(std::abs(ax), std::abs(bx))) &&
+                   std::abs(ay - by) <= tol * (1.0 + std::max(std::abs(ay), std::abs(by)));
+        };
+
+        std::size_t start_idx = 0; bool start_is_first = true;
+        double best_y = segments[0].y0, best_x = segments[0].x0;
+        auto consider = [&](std::size_t idx, bool first){
+            const double xx = first ? segments[idx].x0 : segments[idx].x1;
+            const double yy = first ? segments[idx].y0 : segments[idx].y1;
+            if (yy < best_y || (yy == best_y && xx < best_x)) {
+                best_y = yy; best_x = xx; start_idx = idx; start_is_first = first;
+            }
+        };
+        for (std::size_t i = 0; i < segments.size(); ++i) { consider(i, true); consider(i, false); }
+
+        std::vector<char> used(segments.size(), 0);
+        Segment s0 = segments[start_idx];
+        if (!start_is_first) std::swap(s0.x0, s0.x1), std::swap(s0.y0, s0.y1);
+        ordered.push_back(s0);
+        used[start_idx] = 1;
+
+        double cx = s0.x1, cy = s0.y1;
+        for (std::size_t k = 1; k < segments.size(); ++k) {
+            std::size_t next_idx = segments.size();
+            bool flip = false;
+            for (std::size_t j = 0; j < segments.size(); ++j) {
+                if (used[j]) continue;
+                const auto& sj = segments[j];
+                if (same_point(cx, cy, sj.x0, sj.y0)) { next_idx = j; flip = false; break; }
+                if (same_point(cx, cy, sj.x1, sj.y1)) { next_idx = j; flip = true;  break; }
+            }
+            if (next_idx == segments.size()) break;
+            Segment sj = segments[next_idx];
+            if (flip) std::swap(sj.x0, sj.x1), std::swap(sj.y0, sj.y1);
+            ordered.push_back(sj);
+            used[next_idx] = 1;
+            cx = sj.x1; cy = sj.y1;
+        }
+
+        if (!ordered.empty()) {
+            double area = 0.0;
+            double px = ordered.front().x0, py = ordered.front().y0;
+            for (const auto& s : ordered) {
+                const double qx = s.x1, qy = s.y1;
+                area += px * qy - qx * py;
+                px = qx; py = qy;
+            }
+            if (area < 0.0) {
+                std::reverse(ordered.begin(), ordered.end());
+                for (auto& s : ordered) {
+                    std::swap(s.x0, s.x1);
+                    std::swap(s.y0, s.y1);
+                }
+            }
+        }
+    }
+
+    for (const auto& s : ordered) {
+        PointerVector<Node> control_points;
+        control_points.reserve(ncp);
+        {
+            Vector xyz(3); xyz[0] = s.x0; xyz[1] = s.y0; xyz[2] = 0.0;
+            control_points.push_back(Kratos::make_intrusive<Node>(0, xyz));
+        }
+        {
+            Vector xyz(3); xyz[0] = s.x1; xyz[1] = s.y1; xyz[2] = 0.0;
+            control_points.push_back(Kratos::make_intrusive<Node>(0, xyz));
+        }
+
+        Vector kv = make_knots();
+        using CurveType = NurbsCurveGeometry<2, PointerVector<Node>>;
+        CurveType::Pointer p_curve(new CurveType(control_points, degree, kv, weights));
+        if (s.has_brep_id) {
+            p_curve->SetValue(BREP_ID, s.brep_id);
+        }
+        p_curve->SetValue(IDENTIFIER, "Layer1");
+        if (!cond_name.empty()) {
+            p_curve->SetValue(CONDITION_NAME, cond_name);
+        }
+        p_curve->SetId(static_cast<unsigned>(r_skin.NumberOfGeometries()));
+        r_coupling_sub.AddGeometry(p_curve);
+    }
+
+    KRATOS_INFO_IF("MultipatchModeler", mEchoLevel > 2)
+        << "Created skin outer initial '" << rSkinModelPartName
+        << "' with geometries=" << r_skin.NumberOfGeometries()
+        << ", conditions=" << r_skin.NumberOfConditions() << std::endl;
+
     return r_skin;
 }
 
@@ -1350,6 +1698,7 @@ const Parameters MultipatchModeler::GetDefaultParameters() const
         "analysis_parameters" : {},
         "coupling_conditions_name": "",
         "coupling_type": "body-fitted" ,
+        "geometry_modeler_type": "sbm",
         "echo_level" : 0
     })");
 }
@@ -1375,6 +1724,8 @@ const std::vector<MultipatchModeler::RectangleType>& MultipatchModeler::GetSubdo
 
 void MultipatchModeler::GenerateSubdivision()
 {
+    KRATOS_INFO_IF("MultipatchModeler", mEchoLevel > 1)
+        << "GenerateSubdivision begin" << std::endl;
     // New strategy:
     // - Always create ONE external patch equal to the base domain
     // - For each refinement region, create ONE body-fitted patch equal to the region (clipped to base)
@@ -1469,6 +1820,10 @@ void MultipatchModeler::GenerateSubdivision()
                 << "  Patch[" << i << "] = " << RectangleToString(mSubdomains[i]) << std::endl;
         }
     }
+
+    KRATOS_INFO_IF("MultipatchModeler", mEchoLevel > 1)
+        << "GenerateSubdivision end | subdomains=" << mSubdomains.size()
+        << " | refinement_regions=" << mRefinementRegions.size() << std::endl;
 }
 
 bool MultipatchModeler::IsSkinFullyInsidePatch(

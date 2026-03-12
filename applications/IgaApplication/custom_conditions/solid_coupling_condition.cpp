@@ -82,15 +82,27 @@ void SolidCouplingCondition::InitializeMemberVariables()
     const auto& r_geometry_patchB = GetGeometryMirror();
 
     // Basis function order of the Taylor expansion is decided by the r_geometry_patchB
-    const auto& r_DN_De = r_geometry_patchB.ShapeFunctionsLocalGradients(r_geometry_patchB.GetDefaultIntegrationMethod());
-    mDim = r_DN_De[0].size2();
+    const auto& r_DN_De_B = r_geometry_patchB.ShapeFunctionsLocalGradients(r_geometry_patchB.GetDefaultIntegrationMethod());
+    KRATOS_ERROR_IF(r_DN_De_B.empty()) << "SolidCouplingCondition requires gradients on the surrogate patch." << std::endl;
+    mDim = r_DN_De_B[0].size2();
     KRATOS_ERROR_IF(mDim != 2) << "SolidCouplingCondition momentarily only supports 2D conditions, but the current dimension is " << mDim << std::endl;
     if (mDim == 3) {
-        mBasisFunctionsOrder = std::cbrt(r_DN_De[0].size1()) - 1;
+        mBasisFunctionsOrder = std::cbrt(r_DN_De_B[0].size1()) - 1;
     } else {
-        mBasisFunctionsOrder = std::sqrt(r_DN_De[0].size1()) - 1;
+        mBasisFunctionsOrder = std::sqrt(r_DN_De_B[0].size1()) - 1;
     }
     mBasisFunctionsOrder *= 2;
+
+    const auto& r_DN_De_A = r_geometry_patchA.ShapeFunctionsLocalGradients(r_geometry_patchA.GetDefaultIntegrationMethod());
+    KRATOS_ERROR_IF(r_DN_De_A.empty()) << "SolidCouplingCondition requires gradients on the true patch." << std::endl;
+    IndexType basis_order_A = 0;
+    if (mDim == 3) {
+        basis_order_A = std::cbrt(r_DN_De_A[0].size1()) - 1;
+    } else {
+        basis_order_A = std::sqrt(r_DN_De_A[0].size1()) - 1;
+    }
+    basis_order_A *= 2;
+    mBasisFunctionsOrder = std::min(mBasisFunctionsOrder, basis_order_A);
 
     // if (norm_2(r_geometry_patchA.Center()-r_geometry_patchB.Center()) > 1e-12)
         mIsGapSbmCoupling = true;
@@ -401,7 +413,6 @@ void SolidCouplingCondition::CalculateLeftHandSide(
         }
     }
 
-
     // // // CONTINUITY TERMS
     // // // Differential area
     double penalty_integration = penalty_factor * integration_weight;
@@ -523,20 +534,6 @@ void SolidCouplingCondition::CalculateRightHandSide(
         rRightHandSideVector.resize(size, false);
     }
     noalias(rRightHandSideVector) = -prod(lhs, values);
-
-    //TODO: remove
-    const auto& r_patch_B = GetGeometryMirror();
-    const auto& r_patch_A = GetGeometry();
-
-    for (unsigned int i = 0; i < r_patch_B.size(); i++) {
-    
-        std::ofstream outputFile("txt_files/Id_active_control_points_condition.txt", std::ios::app);
-        // outputFile << r_patch_B[i].GetId() << "  " <<r_patch_B[i].GetDof(DISPLACEMENT_X).EquationId() <<"\n";
-
-
-        outputFile << r_patch_A[i].GetId() << "  " <<r_patch_A[i].GetDof(DISPLACEMENT_X).EquationId() <<"\n";
-        outputFile.close();
-    }
 }
 
 void SolidCouplingCondition::EquationIdVector(

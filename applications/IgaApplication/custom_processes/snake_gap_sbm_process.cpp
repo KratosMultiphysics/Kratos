@@ -524,7 +524,7 @@ void SnakeGapSbmProcess::CreateSbmExtendedGeometries(
         first_condition_id = rSurrogateSubModelPart.pGetElement(element_id)->GetGeometry()[0].Id();
         last_condition_id = rSurrogateSubModelPart.pGetElement(element_id)->GetGeometry()[1].Id();
         size_surrogate_loop = last_condition_id - first_condition_id + 1;
-        if (mpSkinModelPartOuterInitial->NumberOfNodes() > 0 || mpSkinModelPartOuterInitial->NumberOfGeometries() > 0) 
+        if (mpIgaModelPart->GetSubModelPart("surrogate_outer").NumberOfConditions() > 0) //TODO: check 
         {
             starting_brep_id = 2 + mpIgaModelPart->GetSubModelPart("surrogate_outer").NumberOfConditions(); //1 surface + outer surrogate loop
         }
@@ -682,6 +682,12 @@ void SnakeGapSbmProcess::CreateSbmExtendedGeometries(
         const IndexType projection_id_1_base = p_surrogate_node_1->GetValue(PROJECTION_NODE_ID);
         const IndexType projection_id_2_base = p_surrogate_node_2->GetValue(PROJECTION_NODE_ID);
 
+        KRATOS_ERROR_IF(projection_id_1_base == 0 || projection_id_2_base == 0)
+            << "::[SnakeGapSbmProcess]::SetSurrogateToSkinProjections: PROJECTION_NODE_ID not set for surrogate nodes "
+            << p_surrogate_node_1->Id() << " and/or " << p_surrogate_node_2->Id()
+            << p_surrogate_node_1->Coordinates() << " and/or " << p_surrogate_node_2->Coordinates()
+            << " | ids=" << projection_id_1_base << "," << projection_id_2_base << std::endl;
+
         auto have_common_layer = [](const NodeType& rFirstProjection, const NodeType& rSecondProjection) {
             const auto& layers_1 = rFirstProjection.GetValue(CONNECTED_LAYERS);
             const auto& layers_2 = rSecondProjection.GetValue(CONNECTED_LAYERS);
@@ -697,6 +703,10 @@ void SnakeGapSbmProcess::CreateSbmExtendedGeometries(
         // creates intermediate skin nodes to jump continously between non connected layers
         auto create_projected_clone = [&](const Node::Pointer& rBaseNode, const IndexType projection_id) {
             Node::Pointer p_clone = Node::Pointer(new Node(0, rBaseNode->Coordinates()));
+            KRATOS_ERROR_IF(projection_id == 0 || !rSkinSubModelPart.HasNode(projection_id))
+                << "::[SnakeGapSbmProcess]::SetSurrogateToSkinProjections: invalid PROJECTION_NODE_ID="
+                << projection_id << " for surrogate node " << rBaseNode->Id()
+                << " | coords=" << rBaseNode->Coordinates() << std::endl;
             const auto& r_projection_node = rSkinSubModelPart.GetNode(projection_id);
             p_clone->SetValue(PROJECTION_NODE_ID, projection_id);
             p_clone->SetValue(CONNECTED_LAYERS, r_projection_node.GetValue(CONNECTED_LAYERS));
@@ -1124,13 +1134,11 @@ void SnakeGapSbmProcess::CreateSbmExtendedGeometries(
     }
     
     // For the inner loop, create multipatch coupling conditions on the skin
-    if constexpr (TIsInnerLoop) {
-        if (mUseForMultipatch) {
-            CreateInnerSkinMultipatchCouplingConditions(
-                rSkinSubModelPart,
-                knot_span_sizes,
-                p_nurbs_surface);
-        }
+    if (mUseForMultipatch) {
+        CreateInnerSkinMultipatchCouplingConditions(
+            rSkinSubModelPart,
+            knot_span_sizes,
+            p_nurbs_surface);
     }
 }
 
@@ -1208,7 +1216,6 @@ void SnakeGapSbmProcess::CreateGapAndSkinQuadraturePoints(
     const double subdivision_threshold = rIntegrationParameters.rKnotSpanSizes[0] * mGapRelativeToleranceForSubdivisions;
     const double subdivision_threshold_sq = subdivision_threshold * subdivision_threshold;
     const std::size_t max_internal_divisions = mInternalDivisions > 0 ? static_cast<std::size_t>(mInternalDivisions) : 0;
-
     auto build_skin_curve = [&](IndexType left_id,
                                 IndexType right_id,
                                 std::vector<IndexType>& rInterpolationNodes) {
@@ -1686,7 +1693,7 @@ void SnakeGapSbmProcess::CreateGapAndSkinQuadraturePoints(
     const double initial_distance_to_projection_sq = inner_prod(initial_projection_delta, initial_projection_delta);
     const bool initial_reached_max_divisions = (max_internal_divisions == 0) ? true : (0 >= max_internal_divisions);
     const bool initial_degenerate_split = initial_projection_info.ProjectionId == p_skin_node_1->Id() || initial_projection_info.ProjectionId == p_skin_node_2->Id();
-
+    
     if ((initial_distance_to_projection_sq <= subdivision_threshold_sq || initial_reached_max_divisions || initial_degenerate_split)) {
         std::vector<IndexType> interpolation_nodes_id;
         auto p_nurbs_curve_skin = build_skin_curve(p_skin_node_1->Id(), p_skin_node_2->Id(), interpolation_nodes_id);
@@ -1998,7 +2005,6 @@ void SnakeGapSbmProcess::CreateGapAndSkinQuadraturePoints(
 
     if (!(initial_distance_to_projection_sq <= subdivision_threshold_sq || initial_reached_max_divisions || initial_degenerate_split)
         || cut_for_multipatch) {
-
             process_piece(process_piece, p_skin_node_1, p_skin_node_2, p_brep_curve_skin1_skin2_linear, 0, 0, 0);
     }
 }
@@ -2679,6 +2685,22 @@ void SnakeGapSbmProcess::SetSurrogateToSkinProjections(
         }
     }
 
+    // FIXME: remove
+    // for (auto& r_surrogate_condition : rSurrogateSubModelPart.Conditions())
+    // {
+    //     is_entering = !is_entering;
+
+    //     Node::Pointer p_surrogate_node_1 = r_surrogate_condition.pGetGeometry()->pGetPoint(0);
+    //     Node::Pointer p_surrogate_node_2 = r_surrogate_condition.pGetGeometry()->pGetPoint(1);
+
+    //     KRATOS_WATCH(*p_surrogate_node_1)
+
+    //     KRATOS_WATCH(*p_surrogate_node_2)
+    //     KRATOS_WATCH(  p_surrogate_node_1->GetValue(PROJECTION_NODE_ID)) 
+    //     KRATOS_WATCH(  p_surrogate_node_2->GetValue(PROJECTION_NODE_ID))
+    //     KRATOS_WATCH("----------------")
+        
+    // }
     KRATOS_ERROR_IF(iter_check == max_iter_check) << "::[SnakeSbmProcess]:: Maximum iteration reached when checking intersections between projections. Please check the input data." << std::endl;
 
 }

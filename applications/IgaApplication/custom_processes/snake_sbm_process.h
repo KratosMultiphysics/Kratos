@@ -87,6 +87,7 @@ public:
             "skin_model_part_outer_initial_name" : "SkinModelPartOuterInitial",
             "skin_model_part_name" : "SkinModelPart",
             "create_surr_outer_from_surr_inner": false,
+            "create_surr_inner_from_surr_outer": false,
             "echo_level" : 0,
             "lambda_inner" : 0.5,
             "lambda_outer" : 0.5,
@@ -125,7 +126,9 @@ protected:
         ModelPart& rIgaModelPart,
         ModelPart& rSkinModelPart,
         const int NumberInitialPointsIfImportingNurbs,
-        bool RemoveIslands = false
+        bool RemoveIslands = false,
+        bool CreateOuterFromInner = false,
+        bool CreateInnerFromOuter = false
         );
 
 
@@ -137,6 +140,7 @@ protected:
     std::size_t mNumberOfInnerLoops;
     int mNumberInitialPointsIfImportingNurbs;
     bool mCreateSurrOuterFromSurrInner;
+    bool mCreateSurrInnerFromSurrOuter;
     ModelPart* mpIgaModelPart = nullptr; 
     ModelPart* mpSkinModelPartInnerInitial = nullptr; 
     ModelPart* mpSkinModelPartOuterInitial = nullptr; 
@@ -352,6 +356,44 @@ private:
         const Vector& rStartingPositionUV,
         std::vector<std::vector<std::vector<int>>>& rKnotSpansAvailable,
         ModelPart& rSurrogateModelPartOuter
+        );
+
+    /**
+     * @brief Generates outer knot spans from inner knot spans (2D), merging all inner loops on the first dimension.
+     */
+    static std::vector<std::vector<int>> GenerateOuterSurrogateFromInnerKnotSpansAvailable(
+        const std::vector<std::vector<std::vector<int>>>& rInnerKnotSpansAvailable
+        );
+
+    /**
+     * @brief Generates inner knot spans from outer knot spans (2D), merging all outer loops on the first dimension.
+     */
+    static std::vector<std::vector<int>> GenerateInnerSurrogateFromOuterKnotSpansAvailable(
+        const std::vector<std::vector<std::vector<int>>>& rOuterKnotSpansAvailable
+        );
+
+    /**
+     * @brief Creates the outer surrogate boundary from a precomputed 2D knot-spans matrix.
+     * This version does not perform geometric inside/outside checks.
+     */
+    static void CreateSurrogateBuondaryFromSnakeOuterWithoutBoundaryCheck(
+        const std::vector<int>& rNumberKnotSpans,
+        const Vector& rKnotVectorU,
+        const Vector& rKnotVectorV,
+        std::vector<std::vector<int>>& rKnotSpansAvailable,
+        ModelPart& rSurrogateModelPartOuter
+        );
+
+    /**
+     * @brief Creates the inner surrogate boundary from a precomputed 2D knot-spans matrix.
+     * This version does not perform geometric inside/outside checks.
+     */
+    static void CreateSurrogateBuondaryFromSnakeInnerWithoutBoundaryCheck(
+        const std::vector<int>& rNumberKnotSpans,
+        const Vector& rKnotVectorU,
+        const Vector& rKnotVectorV,
+        const std::vector<std::vector<int>>& rKnotSpansAvailable,
+        ModelPart& rSurrogateModelPartInner
         );
     
     /**

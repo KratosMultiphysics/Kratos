@@ -158,6 +158,8 @@ void NurbsGeometryModelerSbm::CreateAndAddRegularGrid2D(
         snake_parameters.AddInt("number_initial_points_if_importing_nurbs", mParameters["number_initial_points_if_importing_nurbs"].GetInt());
     if (mParameters.Has("create_surr_outer_from_surr_inner"))
         snake_parameters.AddBool("create_surr_outer_from_surr_inner", mParameters["create_surr_outer_from_surr_inner"].GetBool());
+    if (mParameters.Has("create_surr_inner_from_surr_outer"))
+        snake_parameters.AddBool("create_surr_inner_from_surr_outer", mParameters["create_surr_inner_from_surr_outer"].GetBool());
 
     // Create the surrogate_sub_model_part for inner and outer
     SnakeSbmProcess snake_sbm_process(*mpModel, snake_parameters);
@@ -323,6 +325,7 @@ const Parameters NurbsGeometryModelerSbm::GetDefaultParameters() const
         "polynomial_order" : [2, 2],
         "number_of_knot_spans" : [10, 10],
         "create_surr_outer_from_surr_inner": false,
+        "create_surr_inner_from_surr_outer": false,
         "lambda_inner": 0.5,
         "lambda_outer": 0.5,
         "number_of_inner_loops": 0
@@ -342,6 +345,7 @@ const Parameters NurbsGeometryModelerSbm::GetValidParameters() const
         "polynomial_order" : [2, 2],
         "number_of_knot_spans" : [10, 10],
         "create_surr_outer_from_surr_inner": false,
+        "create_surr_inner_from_surr_outer": false,
         "lambda_inner": 0.5,
         "lambda_outer": 0.5,
         "number_of_inner_loops": 0,

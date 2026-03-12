@@ -38,6 +38,7 @@ SnakeSbmProcess::SnakeSbmProcess(
     mNumberOfInnerLoops = mThisParameters["number_of_inner_loops"].GetInt();
     mNumberInitialPointsIfImportingNurbs = mThisParameters["number_initial_points_if_importing_nurbs"].GetInt();
     mCreateSurrOuterFromSurrInner = mThisParameters["create_surr_outer_from_surr_inner"].GetBool();
+    mCreateSurrInnerFromSurrOuter = mThisParameters["create_surr_inner_from_surr_outer"].GetBool();
 
     std::string iga_model_part_name = mThisParameters["model_part_name"].GetString();
     std::string skin_model_part_inner_initial_name = mThisParameters["skin_model_part_inner_initial_name"].GetString();
@@ -70,21 +71,21 @@ void SnakeSbmProcess::CreateTheSnakeCoordinates(bool RemoveIslands)
         if (!mpSkinModelPartInnerInitial->HasProperties(0)) mpSkinModelPartInnerInitial->CreateNewProperties(0);
         if (!mpSkinModelPart->HasProperties(0)) mpSkinModelPart->CreateNewProperties(0);
         // template argument IsInnerLoop set true
-        CreateTheSnakeCoordinates<true>(*mpSkinModelPartInnerInitial, mNumberOfInnerLoops, mLambdaInner, mEchoLevel, *mpIgaModelPart, *mpSkinModelPart, mNumberInitialPointsIfImportingNurbs, RemoveIslands);
-            
+        CreateTheSnakeCoordinates<true>(*mpSkinModelPartInnerInitial, mNumberOfInnerLoops, mLambdaInner, mEchoLevel, *mpIgaModelPart, *mpSkinModelPart, mNumberInitialPointsIfImportingNurbs, 
+                                         RemoveIslands, mCreateSurrOuterFromSurrInner, false);            
     }
 
-    if (mCreateSurrOuterFromSurrInner) {
-        GenerateOuterInitialFromSurrogateInner();
-    } else {
+    // if (mCreateSurrOuterFromSurrInner) {
+    //     GenerateOuterInitialFromSurrogateInner();
+    // } else {
         // Normal case sbm from imported skin
         if (mpSkinModelPartOuterInitial->NumberOfNodes()>0 || mpSkinModelPartOuterInitial->NumberOfGeometries()>0) {
             if (!mpSkinModelPartOuterInitial->HasProperties(0)) mpSkinModelPartOuterInitial->CreateNewProperties(0);
             if (!mpSkinModelPart->HasProperties(0)) mpSkinModelPart->CreateNewProperties(0);
             // template argument IsInnerLoop set false
-            CreateTheSnakeCoordinates<false>(*mpSkinModelPartOuterInitial, 1, mLambdaOuter, mEchoLevel, *mpIgaModelPart, *mpSkinModelPart, mNumberInitialPointsIfImportingNurbs, false);
+            CreateTheSnakeCoordinates<false>(*mpSkinModelPartOuterInitial, 1, mLambdaOuter, mEchoLevel, *mpIgaModelPart, *mpSkinModelPart, mNumberInitialPointsIfImportingNurbs, false, false, mCreateSurrInnerFromSurrOuter);
         }
-    }
+    // }
 }    
 
 // void SnakeSbmProcess::GenerateOuterInitialFromSurrogateInner()
@@ -235,7 +236,7 @@ void SnakeSbmProcess::GenerateOuterInitialFromSurrogateInner()
         else step_v = std::abs(knot_v[iv] - knot_v[iv - 1]);
     }
 
-    const double s = 2.0 * std::max(step_u, step_v);
+    const double s = 3.0 * std::max(step_u, step_v);
 
     std::vector<std::array<double,4>> segs;
     segs.reserve(r_inner.NumberOfConditions());
@@ -388,7 +389,7 @@ void SnakeSbmProcess::GenerateOuterInitialFromSurrogateInner()
     if (pSkinModelPartOuterInitialFromOuter->NumberOfNodes()>0 || pSkinModelPartOuterInitialFromOuter->NumberOfGeometries()>0) {
         if (!pSkinModelPartOuterInitialFromOuter->HasProperties(0)) pSkinModelPartOuterInitialFromOuter->CreateNewProperties(0);
         if (!mpSkinModelPart->HasProperties(0)) mpSkinModelPart->CreateNewProperties(0);
-        CreateTheSnakeCoordinates<false>(*pSkinModelPartOuterInitialFromOuter, 1, mLambdaOuter, mEchoLevel, *mpIgaModelPart, *mpSkinModelPart, mNumberInitialPointsIfImportingNurbs, false);
+        CreateTheSnakeCoordinates<false>(*pSkinModelPartOuterInitialFromOuter, 1, mLambdaOuter, mEchoLevel, *mpIgaModelPart, *mpSkinModelPart, mNumberInitialPointsIfImportingNurbs, false, false, false);
     }
 }
 
@@ -601,7 +602,9 @@ void SnakeSbmProcess::CreateTheSnakeCoordinates(
     ModelPart& rIgaModelPart,
     ModelPart& rSkinModelPart,
     const int NumberInitialPointsIfImportingNurbs,
-    bool RemoveIslands) 
+    bool RemoveIslands,
+    bool CreateOuterFromInner,
+    bool CreateInnerFromOuter) 
 { 
     KRATOS_ERROR_IF(rIgaModelPart.GetValue(KNOT_VECTOR_U).size() == 0) << "::[SnakeSbmProcess]::" 
                 << "The iga model part has KNOT_VECTOR_U of size 0" << std::endl;
@@ -627,6 +630,10 @@ void SnakeSbmProcess::CreateTheSnakeCoordinates(
     
     ModelPart& r_skin_sub_model_part = rSkinModelPart.GetSubModelPart(skin_sub_model_part_name);
     ModelPart& r_surrogate_sub_model_part = rIgaModelPart.GetSubModelPart(surrogate_sub_model_part_name);
+
+    // TODO: uniform the notation (avoid using two separate variables)
+    ModelPart& r_surrogate_sub_model_part_inner = rIgaModelPart.GetSubModelPart("surrogate_inner");
+    ModelPart& r_surrogate_sub_model_part_outer = rIgaModelPart.GetSubModelPart("surrogate_outer");
 
     array_1d<double, 2> knot_step_uv(2);
     knot_step_uv[0] = std::abs(knot_vector_u[std::ceil(knot_vector_u.size()/2) +1]  - knot_vector_u[std::ceil(knot_vector_u.size()/2)] ) ;
@@ -1049,6 +1056,17 @@ void SnakeSbmProcess::CreateTheSnakeCoordinates(
                 CreateSurrogateBuondaryFromSnakeInner(id_inner_loop, *p_skin_sub_model_part_loop, points_bin, n_knot_spans_uv, 
                                                         knot_vector_u, knot_vector_v, starting_pos_uv, knot_spans_available, r_surrogate_sub_model_part);
             
+            if (CreateOuterFromInner) {
+
+                auto outer_knot_spans_available = GenerateOuterSurrogateFromInnerKnotSpansAvailable(knot_spans_available);
+                
+                CreateSurrogateBuondaryFromSnakeOuterWithoutBoundaryCheck(
+                    n_knot_spans_uv,
+                    knot_vector_u,
+                    knot_vector_v,
+                    outer_knot_spans_available,
+                    r_surrogate_sub_model_part_outer);    
+            }
             if (EchoLevel >  0)
                 KRATOS_INFO("::[SnakeSbmProcess]::") << "Inner :: Snake process has finished" << std::endl;
         }
@@ -1059,7 +1077,15 @@ void SnakeSbmProcess::CreateTheSnakeCoordinates(
             else
                 CreateSurrogateBuondaryFromSnakeOuter(id_inner_loop, *p_skin_sub_model_part_loop, points_bin, n_knot_spans_uv, knot_vector_u,
                                                     knot_vector_v, starting_pos_uv, knot_spans_available, r_surrogate_sub_model_part);
-            
+            if (CreateInnerFromOuter) {
+                auto inner_knot_spans_available = GenerateInnerSurrogateFromOuterKnotSpansAvailable(knot_spans_available);
+                CreateSurrogateBuondaryFromSnakeInnerWithoutBoundaryCheck(
+                    n_knot_spans_uv,
+                    knot_vector_u,
+                    knot_vector_v,
+                    inner_knot_spans_available,
+                    r_surrogate_sub_model_part_inner);
+            }
             if (EchoLevel >  0)
                 KRATOS_INFO("::[SnakeSbmProcess]::") << "Outer :: Snake process has finished" << std::endl;
         }
@@ -1915,6 +1941,438 @@ void SnakeSbmProcess::CreateSurrogateBuondaryFromSnakeOuter(
     }
 }
 
+std::vector<std::vector<int>> SnakeSbmProcess::GenerateOuterSurrogateFromInnerKnotSpansAvailable(
+    const std::vector<std::vector<std::vector<int>>>& rInnerKnotSpansAvailable)
+{
+    if (rInnerKnotSpansAvailable.empty()) {
+        return {};
+    }
+
+    const std::size_t row_count = rInnerKnotSpansAvailable.front().size();
+    if (row_count == 0) {
+        return {};
+    }
+
+    const std::size_t column_count = rInnerKnotSpansAvailable.front().front().size();
+    std::vector<std::vector<int>> merged_inner(row_count, std::vector<int>(column_count, 0));
+
+    for (const auto& r_loop_matrix : rInnerKnotSpansAvailable) {
+        KRATOS_ERROR_IF(r_loop_matrix.size() != row_count)
+            << "[SnakeSbmProcess]:: Inconsistent inner knot spans row size while merging loops." << std::endl;
+        for (std::size_t row = 0; row < row_count; ++row) {
+            KRATOS_ERROR_IF(r_loop_matrix[row].size() != column_count)
+                << "[SnakeSbmProcess]:: Inconsistent inner knot spans column size while merging loops." << std::endl;
+            for (std::size_t column = 0; column < column_count; ++column) {
+                const int current_value = merged_inner[row][column];
+                const int candidate_value = r_loop_matrix[row][column];
+                if (current_value == candidate_value) {
+                    continue;
+                }
+                if (candidate_value == 1 || current_value == 1) {
+                    merged_inner[row][column] = 1;
+                } else if (candidate_value == -1 || current_value == -1) {
+                    merged_inner[row][column] = -1;
+                } else {
+                    merged_inner[row][column] = 0;
+                }
+            }
+        }
+    }
+
+    constexpr int refinement_patch_size = 3;
+    std::vector<std::vector<int>> outer_knot_spans(row_count, std::vector<int>(column_count, 0));
+
+    auto set_one = [&outer_knot_spans](const std::size_t row, const std::size_t column) {
+        outer_knot_spans[row][column] = 1;
+    };
+
+    auto set_minus_one = [&outer_knot_spans](const std::size_t row, const std::size_t column) {
+        int& r_value = outer_knot_spans[row][column];
+        if (r_value == 1) {
+            return;
+        }
+        r_value = 0;
+    };
+
+
+    // Sweep rows from left to right.
+    for (std::size_t row = 0; row < row_count; ++row) {
+        bool found_one = false;
+        for (std::size_t column = 0; column < column_count; ++column) {
+            const int inner_value = merged_inner[row][column];
+
+            if (inner_value == 1) {
+                found_one = true;
+                set_one(row, column);
+                const bool is_opening = merged_inner[row][column - 1] != 1;
+                if (is_opening) {
+                    for (int offset_row = -refinement_patch_size; offset_row <= refinement_patch_size; ++offset_row) {
+                        for (int offset = 0; offset <= refinement_patch_size; ++offset) {
+                            if (column >= static_cast<std::size_t>(offset)) {
+                                set_one(row+offset_row, column - static_cast<std::size_t>(offset));
+                            }
+                        }
+                    }
+                }
+            } else if (inner_value == 0 && found_one) {
+                found_one = false;
+                for (int offset_row = -refinement_patch_size; offset_row <= refinement_patch_size; ++offset_row) {
+                    for (int offset = 0; offset < refinement_patch_size; ++offset) {
+                        if (column >= static_cast<std::size_t>(offset)) {
+                            set_one(row+offset_row, column + static_cast<std::size_t>(offset));
+                        }
+                    }
+                }
+                set_minus_one(row, column);
+            }
+        }
+    }
+
+    // Sweep columns from bottom to top.
+    for (std::size_t column = 0; column < column_count; ++column) {
+        bool found_one = false;
+        for (int row = 0; row < row_count; ++row) {
+            const int inner_value = merged_inner[static_cast<std::size_t>(row)][column];
+
+            if (inner_value == 1) {
+                found_one = true;
+                set_one(static_cast<std::size_t>(row), column);
+                const bool is_opening = merged_inner[static_cast<std::size_t>(row - 1)][column] != 1;
+                if (is_opening) {
+                    for (int offset_col = -refinement_patch_size; offset_col <= refinement_patch_size; ++offset_col) {
+                        for (int offset = 0; offset <= refinement_patch_size; ++offset) {
+                            if (column >= static_cast<std::size_t>(offset)) {
+                                set_one(row - offset, column + static_cast<std::size_t>(offset_col));
+                            }
+                        }
+                    }
+                }
+            } else if (inner_value == 0 && found_one) {
+                found_one = false;
+                for (int offset_col = -refinement_patch_size; offset_col <= refinement_patch_size; ++offset_col) {
+                    for (int offset = 0; offset < refinement_patch_size; ++offset) {
+                        if (column >= static_cast<std::size_t>(offset)) {
+                            set_one(row + offset, column + static_cast<std::size_t>(offset_col));
+                        }
+                    }
+                }
+                set_minus_one(static_cast<std::size_t>(row), column);
+            }
+        }
+    }
+
+    return outer_knot_spans;
+}
+
+std::vector<std::vector<int>> SnakeSbmProcess::GenerateInnerSurrogateFromOuterKnotSpansAvailable(
+    const std::vector<std::vector<std::vector<int>>>& rOuterKnotSpansAvailable)
+{
+    if (rOuterKnotSpansAvailable.empty()) {
+        return {};
+    }
+
+    const std::size_t row_count = rOuterKnotSpansAvailable.front().size();
+    if (row_count == 0) {
+        return {};
+    }
+
+    const std::size_t column_count = rOuterKnotSpansAvailable.front().front().size();
+    std::vector<std::vector<int>> merged_outer = rOuterKnotSpansAvailable.front();
+
+    constexpr int refinement_patch_size = 1;
+    std::vector<std::vector<int>> inner_knot_spans(row_count, std::vector<int>(column_count, 0));
+
+    auto set_one = [&inner_knot_spans](const std::size_t row, const std::size_t column) {
+        int& r_value = inner_knot_spans[row][column];
+        if (r_value == -1) {
+            return;
+        }
+        inner_knot_spans[row][column] = 1;
+    };
+
+    auto set_minus_one = [&inner_knot_spans](const std::size_t row, const std::size_t column) {
+        inner_knot_spans[row][column] = -1;
+    };
+
+    // Sweep rows from left to right.
+    for (std::size_t row = 0; row < row_count; ++row) {
+        bool found_one = false;
+        for (std::size_t column = 0; column < column_count; ++column) {
+            const int outer_value = merged_outer[row][column];
+
+            if (outer_value == 1) {
+                found_one = true;
+                set_one(row, column);
+                const bool is_opening = merged_outer[row][column - 1] != 1;
+                if (is_opening) {
+                    for (int offset_row = -refinement_patch_size; offset_row <= refinement_patch_size; ++offset_row) {
+                        for (int offset = 0; offset <= refinement_patch_size; ++offset) {
+                            if (column >= static_cast<std::size_t>(offset)) {
+                                set_minus_one(row + offset_row, column + static_cast<std::size_t>(offset));
+                            }
+                        }
+                    }
+                }
+            } else if (outer_value != 1 && found_one) {
+                found_one = false;
+                for (int offset_row = -refinement_patch_size; offset_row <= refinement_patch_size; ++offset_row) {
+                    for (int offset = 0; offset <= refinement_patch_size+1; ++offset) {
+                        if (column >= static_cast<std::size_t>(offset)) {
+                            set_minus_one(row + offset_row, column - static_cast<std::size_t>(offset));
+                        }
+                    }
+                }
+                set_minus_one(row, column);
+            }
+        }
+    }
+
+    // Sweep columns from bottom to top.
+    for (std::size_t column = 0; column < column_count; ++column) {
+        bool found_one = false;
+        for (int row = 0; row < row_count; ++row) {
+            const int outer_value = merged_outer[static_cast<std::size_t>(row)][column];
+
+            if (outer_value == 1) {
+                found_one = true;
+                set_one(static_cast<std::size_t>(row), column);
+                const bool is_opening = merged_outer[static_cast<std::size_t>(row - 1)][column] != 1;
+                if (is_opening) {
+                    for (int offset_col = -refinement_patch_size; offset_col <= refinement_patch_size; ++offset_col) {
+                        for (int offset = 0; offset <= refinement_patch_size; ++offset) {
+                            if (column >= static_cast<std::size_t>(offset)) {
+                                set_minus_one(row + offset, column + static_cast<std::size_t>(offset_col));
+                            }
+                        }
+                    }
+                }
+            } else if (outer_value != 1 && found_one) {
+                found_one = false;
+                for (int offset_col = -refinement_patch_size; offset_col <= refinement_patch_size; ++offset_col) {
+                    for (int offset = 0; offset <= refinement_patch_size+1; ++offset) {
+                        if (column >= static_cast<std::size_t>(offset)) {
+                            set_minus_one(row - offset, column + static_cast<std::size_t>(offset_col));
+                        }
+                    }
+                }
+                set_minus_one(static_cast<std::size_t>(row), column);
+            }
+        }
+    }
+
+    return inner_knot_spans;
+}
+
+void SnakeSbmProcess::CreateSurrogateBuondaryFromSnakeInnerWithoutBoundaryCheck(
+    const std::vector<int>& rNumberKnotSpans,
+    const Vector& rKnotVectorU,
+    const Vector& rKnotVectorV,
+    const std::vector<std::vector<int>>& rKnotSpansAvailable,
+    ModelPart& rSurrogateModelPartInner)
+{
+    IndexType id_surrogate_first_node;
+    if (rSurrogateModelPartInner.NumberOfNodes() == 0) {
+        id_surrogate_first_node = rSurrogateModelPartInner.GetRootModelPart().NumberOfNodes() + 1;
+        IndexType idSurrogateNode = id_surrogate_first_node;
+        for (int j = 0; j < rNumberKnotSpans[1]; j++) {
+            for (int i = 0; i < rNumberKnotSpans[0]; i++) {
+                rSurrogateModelPartInner.CreateNewNode(idSurrogateNode, rKnotVectorU[i], rKnotVectorV[j], 0.0);
+                idSurrogateNode++;
+            }
+        }
+    } else {
+        id_surrogate_first_node = rSurrogateModelPartInner.GetRootModelPart().NumberOfNodes() -
+                                  rNumberKnotSpans[1]*rNumberKnotSpans[0] + 1;
+    }
+
+    auto p_cond_prop = rSurrogateModelPartInner.pGetProperties(0);
+
+    // Direction parallel to x
+    IndexType id_surrogate_condition = rSurrogateModelPartInner.GetRootModelPart().NumberOfConditions() + 1;
+    IndexType id_surrogate_first_condition = id_surrogate_condition;
+    for (int j = 0; j < rNumberKnotSpans[1]; j++) {
+        bool check_next_point = false;
+        for (int i = 0; i < rNumberKnotSpans[0]; i++) {
+            if (check_next_point) {
+                if (rKnotSpansAvailable[j][i] != 1) {
+                    int node1_i = i; int node1_j = j;
+                    int node2_i = i; int node2_j = j+1;
+
+                    IndexType id_node_1 = id_surrogate_first_node + node1_i + node1_j*rNumberKnotSpans[0];
+                    IndexType id_node_2 = id_surrogate_first_node + node2_i + node2_j*rNumberKnotSpans[0];
+
+                    auto p_condition = rSurrogateModelPartInner.CreateNewCondition("LineCondition2D2N", id_surrogate_condition, {{id_node_2, id_node_1}}, p_cond_prop );
+                    p_condition->Set(BOUNDARY, false);
+                    id_surrogate_condition++;
+                    check_next_point = false;
+                }
+            }
+            else if (rKnotSpansAvailable[j][i] == 1) {
+                int node1_i = i; int node1_j = j;
+                int node2_i = i; int node2_j = j+1;
+
+                IndexType id_node_1 = id_surrogate_first_node + node1_i + node1_j*rNumberKnotSpans[0];
+                IndexType id_node_2 = id_surrogate_first_node + node2_i + node2_j*rNumberKnotSpans[0];
+
+                auto p_condition = rSurrogateModelPartInner.CreateNewCondition("LineCondition2D2N", id_surrogate_condition, {{id_node_2, id_node_1}}, p_cond_prop );
+                p_condition->Set(BOUNDARY, true);
+                id_surrogate_condition++;
+                check_next_point = true;
+            }
+        }
+    }
+
+    // Direction parallel to y
+    for (int i = 0; i < rNumberKnotSpans[0]; i++) {
+        bool check_next_point = false;
+        for (int j = 0; j < rNumberKnotSpans[1]; j++) {
+            if (check_next_point) {
+                if (rKnotSpansAvailable[j][i] != 1) {
+                    int node1_i = i;   int node1_j = j;
+                    int node2_i = i+1; int node2_j = j;
+
+                    IndexType id_node_1 = id_surrogate_first_node + node1_i + node1_j*rNumberKnotSpans[0];
+                    IndexType id_node_2 = id_surrogate_first_node + node2_i + node2_j*rNumberKnotSpans[0];
+
+                    auto p_condition = rSurrogateModelPartInner.CreateNewCondition("LineCondition2D2N", id_surrogate_condition, {{id_node_1, id_node_2}}, p_cond_prop );
+                    p_condition->Set(BOUNDARY, false);
+                    id_surrogate_condition++;
+                    check_next_point = false;
+                }
+            }
+            else if (rKnotSpansAvailable[j][i] == 1) {
+                int node1_i = i;   int node1_j = j;
+                int node2_i = i+1; int node2_j = j;
+
+                IndexType id_node_1 = id_surrogate_first_node + node1_i + node1_j*rNumberKnotSpans[0];
+                IndexType id_node_2 = id_surrogate_first_node + node2_i + node2_j*rNumberKnotSpans[0];
+
+                auto p_condition = rSurrogateModelPartInner.CreateNewCondition("LineCondition2D2N", id_surrogate_condition, {{id_node_1, id_node_2}}, p_cond_prop );
+                p_condition->Set(BOUNDARY, true);
+                id_surrogate_condition++;
+                check_next_point = true;
+            }
+        }
+    }
+
+    IndexType elem_id = rSurrogateModelPartInner.GetRootModelPart().NumberOfElements() + 1;
+    IndexType id_surrogate_last_condition = id_surrogate_condition - 1;
+    std::vector<ModelPart::IndexType> elem_nodes{id_surrogate_first_condition, id_surrogate_last_condition};
+    rSurrogateModelPartInner.CreateNewElement("Element2D2N", elem_id, elem_nodes, p_cond_prop);
+}
+
+void SnakeSbmProcess::CreateSurrogateBuondaryFromSnakeOuterWithoutBoundaryCheck(
+    const std::vector<int>& rNumberKnotSpans,
+    const Vector& rKnotVectorU,
+    const Vector& rKnotVectorV,
+    std::vector<std::vector<int>>& rKnotSpansAvailable,
+    ModelPart& rSurrogateModelPartOuter)
+{
+    IndexType id_surrogate_first_node = rSurrogateModelPartOuter.GetRootModelPart().NumberOfNodes() + 1;
+    IndexType idSurrogateNode = id_surrogate_first_node;
+    for (int j = 0; j < rNumberKnotSpans[1]+1; j++) {
+        for (int i = 0; i < rNumberKnotSpans[0]+1; i++) {
+            rSurrogateModelPartOuter.CreateNewNode(idSurrogateNode, rKnotVectorU[i], rKnotVectorV[j], 0.0);
+            idSurrogateNode++;
+        }
+    }
+
+    IndexType id_surrogate_condition = rSurrogateModelPartOuter.GetRootModelPart().NumberOfConditions() + 1;
+    auto p_cond_prop = rSurrogateModelPartOuter.pGetProperties(0);
+
+    // Sweep in x direction.
+    for (int j = 0; j < rNumberKnotSpans[1]; j++) {
+        bool check_next_point = false;
+        for (int i = 0; i < rNumberKnotSpans[0]; i++) {
+            if (check_next_point) {
+                if (rKnotSpansAvailable[j][i] != 1) {
+                    int node1_i = i; int node1_j = j;
+                    int node2_i = i; int node2_j = j+1;
+
+                    IndexType id_node_1 = id_surrogate_first_node + node1_i + node1_j*(rNumberKnotSpans[0]+1);
+                    IndexType id_node_2 = id_surrogate_first_node + node2_i + node2_j*(rNumberKnotSpans[0]+1);
+
+                    auto p_condition = rSurrogateModelPartOuter.CreateNewCondition("LineCondition2D2N", id_surrogate_condition, {{id_node_1, id_node_2}}, p_cond_prop);
+                    p_condition->Set(BOUNDARY, false);
+
+                    id_surrogate_condition++;
+                    check_next_point = false;
+                }
+            }
+            else if (rKnotSpansAvailable[j][i] == 1) {
+                int node1_i = i; int node1_j = j;
+                int node2_i = i; int node2_j = j+1;
+
+                IndexType id_node_1 = id_surrogate_first_node + node1_i + node1_j*(rNumberKnotSpans[0]+1);
+                IndexType id_node_2 = id_surrogate_first_node + node2_i + node2_j*(rNumberKnotSpans[0]+1);
+
+                auto p_condition = rSurrogateModelPartOuter.CreateNewCondition("LineCondition2D2N", id_surrogate_condition, {{id_node_1, id_node_2}}, p_cond_prop);
+                id_surrogate_condition++;
+                check_next_point = true;
+                p_condition->Set(BOUNDARY, true);
+            }
+
+            if (rKnotSpansAvailable[j][i] == 1 && i == rNumberKnotSpans[0]-1) {
+                int node1_i = i+1; int node1_j = j;
+                int node2_i = i+1; int node2_j = j+1;
+
+                IndexType id_node_1 = id_surrogate_first_node + node1_i + node1_j*(rNumberKnotSpans[0]+1);
+                IndexType id_node_2 = id_surrogate_first_node + node2_i + node2_j*(rNumberKnotSpans[0]+1);
+
+                auto p_condition = rSurrogateModelPartOuter.CreateNewCondition("LineCondition2D2N", id_surrogate_condition, {{id_node_1, id_node_2}}, p_cond_prop);
+                p_condition->Set(BOUNDARY, false);
+                id_surrogate_condition++;
+                check_next_point = false;
+            }
+        }
+    }
+
+    // Sweep in y direction.
+    for (int i = 0; i < rNumberKnotSpans[0]; i++) {
+        bool check_next_point = false;
+        for (int j = 0; j < rNumberKnotSpans[1]; j++) {
+            if (check_next_point) {
+                if (rKnotSpansAvailable[j][i] != 1) {
+                    int node1_i = i;   int node1_j = j;
+                    int node2_i = i+1; int node2_j = j;
+
+                    IndexType id_node_1 = id_surrogate_first_node + node1_i + node1_j*(rNumberKnotSpans[0]+1);
+                    IndexType id_node_2 = id_surrogate_first_node + node2_i + node2_j*(rNumberKnotSpans[0]+1);
+
+                    auto p_condition = rSurrogateModelPartOuter.CreateNewCondition("LineCondition2D2N", id_surrogate_condition, {{id_node_2, id_node_1}}, p_cond_prop);
+                    p_condition->Set(BOUNDARY, false);
+                    id_surrogate_condition++;
+                    check_next_point = false;
+                }
+            }
+            else if (rKnotSpansAvailable[j][i] == 1) {
+                int node1_i = i;   int node1_j = j;
+                int node2_i = i+1; int node2_j = j;
+
+                IndexType id_node_1 = id_surrogate_first_node + node1_i + node1_j*(rNumberKnotSpans[0]+1);
+                IndexType id_node_2 = id_surrogate_first_node + node2_i + node2_j*(rNumberKnotSpans[0]+1);
+                auto p_condition = rSurrogateModelPartOuter.CreateNewCondition("LineCondition2D2N", id_surrogate_condition, {{id_node_2, id_node_1}}, p_cond_prop);
+                id_surrogate_condition++;
+                check_next_point = true;
+                p_condition->Set(BOUNDARY, true);
+            }
+
+            if (rKnotSpansAvailable[j][i] == 1 && j == rNumberKnotSpans[1]-1) {
+                int node1_i = i;   int node1_j = j+1;
+                int node2_i = i+1; int node2_j = j+1;
+
+                IndexType id_node_1 = id_surrogate_first_node + node1_i + node1_j*(rNumberKnotSpans[0]+1);
+                IndexType id_node_2 = id_surrogate_first_node + node2_i + node2_j*(rNumberKnotSpans[0]+1);
+
+                auto p_condition = rSurrogateModelPartOuter.CreateNewCondition("LineCondition2D2N", id_surrogate_condition, {{id_node_2, id_node_1}}, p_cond_prop);
+                p_condition->Set(BOUNDARY, false);
+                id_surrogate_condition++;
+                check_next_point = false;
+            }
+        }
+    }
+}
+
 bool SnakeSbmProcess::IsInside(
     const std::vector<std::vector<int>>& rKnotSpanUV,
     const std::vector<int>& rNumberKnotSpansUV) 
@@ -2102,16 +2560,10 @@ void SnakeSbmProcess::CreateTheSnakeCoordinates3D(
     ModelPart& r_surrogate_sub_model_part = rIgaModelPart.GetSubModelPart(surrogate_sub_model_part_name);
 
     array_1d<double, 3> knot_step_uvw;
-    KRATOS_WATCH(knot_vector_u)
     knot_step_uvw[0] = std::abs(knot_vector_u[std::ceil(knot_vector_u.size()/2) + 1] - knot_vector_u[std::ceil(knot_vector_u.size()/2)]);
-    KRATOS_WATCH(knot_vector_v)
     knot_step_uvw[1] = std::abs(knot_vector_v[std::ceil(knot_vector_v.size()/2) + 1] - knot_vector_v[std::ceil(knot_vector_v.size()/2)]);
-    KRATOS_WATCH(knot_vector_w)
     knot_step_uvw[2] = std::abs(knot_vector_w[std::ceil(knot_vector_w.size()/2) + 1] - knot_vector_w[std::ceil(knot_vector_w.size()/2)]);
 
-    KRATOS_WATCH(knot_step_uvw)
-
-    KRATOS_WATCH("1")
 
     // Set KNOT_SPAN_SIZES
     Vector mesh_sizes_uvw(3);
@@ -2127,7 +2579,6 @@ void SnakeSbmProcess::CreateTheSnakeCoordinates3D(
     starting_pos_uvw[0] = knot_vector_u[0];
     starting_pos_uvw[1] = knot_vector_v[0];
     starting_pos_uvw[2] = knot_vector_w[0];
-    KRATOS_WATCH(starting_pos_uvw)
 
     // Set PARAMETER_SPACE_CORNERS
     std::vector<Vector> parameter_external_coordinates(3);
@@ -2144,7 +2595,6 @@ void SnakeSbmProcess::CreateTheSnakeCoordinates3D(
 
     surrogate_model_part.GetParentModelPart().SetValue(PARAMETER_SPACE_CORNERS, parameter_external_coordinates);
 
-    KRATOS_WATCH("2")
 
     // Create the matrix of active/inactive knot spans, one for inner and one for outer loop
     std::vector<int> n_knot_spans_uvw(3);
@@ -2178,7 +2628,6 @@ void SnakeSbmProcess::CreateTheSnakeCoordinates3D(
     KRATOS_WARNING_IF("::[SnakeSbmProcess]::", rSkinModelPartInitial.NumberOfConditions() == 0) 
                     << "Reference Skin model part for SBM has no conditions." << std::endl;
     
-    KRATOS_WATCH("3")
     if (rSkinModelPartInitial.NumberOfConditions()> 0) {
         
         // Copy all the nodes of the initial_skin_model_part to the skin_model_part

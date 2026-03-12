@@ -132,15 +132,21 @@ void NurbsGeometryModelerGapSbm::CreateAndAddRegularGrid2D(
     r_skin_model_part.CreateSubModelPart("inner");
     r_skin_model_part.CreateSubModelPart("outer");
 
-    r_skin_model_part.GetSubModelPart("inner").SetValue(KNOT_SPAN_SIZES, skin_inner_initial.GetValue(KNOT_SPAN_SIZES)); // pass span sizes to skin for consistent curve generation
-    r_skin_model_part.GetSubModelPart("outer").SetValue(KNOT_SPAN_SIZES, skin_outer_initial.GetValue(KNOT_SPAN_SIZES));
-    r_skin_model_part.SetValue(KNOT_SPAN_SIZES, skin_inner_initial.GetValue(KNOT_SPAN_SIZES));
+    const auto& r_inner_sizes = skin_inner_initial.GetValue(KNOT_SPAN_SIZES);
+    const auto& r_outer_sizes = skin_outer_initial.GetValue(KNOT_SPAN_SIZES);
+    const bool inner_has_sizes = r_inner_sizes.size() >= 2;
+    const bool outer_has_sizes = r_outer_sizes.size() >= 2;
+
+    const Vector& r_fallback_sizes = inner_has_sizes ? r_inner_sizes : r_outer_sizes;
+    r_skin_model_part.GetSubModelPart("inner").SetValue(KNOT_SPAN_SIZES, r_fallback_sizes); // pass span sizes to skin for consistent curve generation
+    r_skin_model_part.GetSubModelPart("outer").SetValue(KNOT_SPAN_SIZES, r_fallback_sizes);
+    r_skin_model_part.SetValue(KNOT_SPAN_SIZES, r_fallback_sizes);
 
     // Create the parameters for the SnakeSbmProcess
     Kratos::Parameters snake_parameters;
     snake_parameters.AddString("model_part_name", iga_model_part_name);
     snake_parameters.AddString("skin_model_part_name", skin_model_part_name);
-    snake_parameters.AddDouble("echo_level", mEchoLevel);
+    snake_parameters.AddDouble("echo_level", mEchoLevel); //FIXME:
     snake_parameters.AddString("skin_model_part_inner_initial_name", skin_model_part_inner_initial_name);
     snake_parameters.AddString("skin_model_part_outer_initial_name", skin_model_part_outer_initial_name);
     snake_parameters.AddString("gap_element_name", mParameters["gap_element_name"].GetString());
@@ -166,6 +172,10 @@ void NurbsGeometryModelerGapSbm::CreateAndAddRegularGrid2D(
         snake_parameters.AddDouble("gap_relative_tolerance_for_subdivisions", mParameters["gap_relative_tolerance_for_subdivisions"].GetDouble());
     if (mParameters.Has("number_of_interpolation_levels"))
         snake_parameters.AddInt("number_of_interpolation_levels", mParameters["number_of_interpolation_levels"].GetInt());
+    if (mParameters.Has("create_surr_outer_from_surr_inner"))
+        snake_parameters.AddBool("create_surr_outer_from_surr_inner", mParameters["create_surr_outer_from_surr_inner"].GetBool());
+    if (mParameters.Has("create_surr_inner_from_surr_outer"))
+        snake_parameters.AddBool("create_surr_inner_from_surr_outer", mParameters["create_surr_inner_from_surr_outer"].GetBool());
 
 
     // Create the surrogate_sub_model_part for inner and outer
@@ -356,6 +366,8 @@ const Parameters NurbsGeometryModelerGapSbm::GetDefaultParameters() const
         "gap_element_name": "",
         "gap_interface_condition_name": "",
         "gap_sbm_type": "interpolation",
+        "create_surr_outer_from_surr_inner": false,
+        "create_surr_inner_from_surr_outer": false,
         "use_for_multipatch": false
     })");
 }
@@ -386,6 +398,8 @@ const Parameters NurbsGeometryModelerGapSbm::GetValidParameters() const
         "gap_element_name": "",
         "gap_interface_condition_name": "",
         "gap_sbm_type": "interpolation",
+        "create_surr_outer_from_surr_inner": false,
+        "create_surr_inner_from_surr_outer": false,
         "use_for_multipatch": false
     })");
 }
