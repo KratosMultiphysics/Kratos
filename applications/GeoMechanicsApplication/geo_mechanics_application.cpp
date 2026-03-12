@@ -607,6 +607,7 @@ void KratosGeoMechanicsApplication::Register()
 
     Serializer::Register("PlaneStrain", PlaneStrain{});
     Serializer::Register("PlaneStrainStressState", PlaneStrainStressState{});
+    Serializer::Register("Line2DInterfaceStressState", Line2DInterfaceStressState{});
     Serializer::Register("InterfacePlaneStrain", InterfacePlaneStrain{});
     Serializer::Register("SaturatedBelowPhreaticLevelLaw", SaturatedBelowPhreaticLevelLaw{});
 }
