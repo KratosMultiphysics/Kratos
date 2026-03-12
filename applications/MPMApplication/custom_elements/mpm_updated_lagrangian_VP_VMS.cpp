@@ -1602,6 +1602,8 @@ void MPMUpdatedLagrangianVPVMS::CalculateKinematics(GeneralVariables& rVariables
     // Compute the deformation matrix B
     this->CalculateDeformationMatrix(rVariables.B, rVariables.F, rVariables.DN_DX);
 
+    KRATOS_WATCH(rVariables.detF);
+
     KRATOS_CATCH( "" )
 }
 //************************************************************************************
@@ -1673,11 +1675,13 @@ Matrix& MPMUpdatedLagrangianVPVMS::CalculateCurrentDisp(Matrix & rCurrentDisp, c
 
     for ( unsigned int i = 0; i < number_of_nodes; i++ )
     {
-        const array_1d<double, 3 > & current_displacement  = r_geometry[i].FastGetSolutionStepValue(DISPLACEMENT);
+        const array_1d<double, 3 > & prev_displacement  = r_geometry[i].FastGetSolutionStepValue(DISPLACEMENT, 1);
+        const array_1d<double, 3 > & current_velocity = r_geometry[i].FastGetSolutionStepValue(VELOCITY);
+        const double delta_time = rCurrentProcessInfo[DELTA_TIME];
 
         for ( unsigned int j = 0; j < dimension; j++ )
         {
-            rCurrentDisp(i,j) = current_displacement[j];
+            rCurrentDisp(i,j) = prev_displacement[j] + current_velocity[j]*delta_time;
         }
     }
 

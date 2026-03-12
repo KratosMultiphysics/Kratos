@@ -182,15 +182,17 @@ public:
             const array_1d<double, 3 > & r_current_velocity = rNode.FastGetSolutionStepValue(VELOCITY); // !!
             const array_1d<double, 3 > & r_previous_velocity = rNode.FastGetSolutionStepValue(VELOCITY, 1);
             
-            
+            array_1d<double, 3 > & r_current_displacement = rNode.FastGetSolutionStepValue(DISPLACEMENT);
+            const array_1d<double, 3 > & r_previous_displacement = rNode.FastGetSolutionStepValue(DISPLACEMENT, 1);
+
+            r_current_displacement = r_previous_displacement + r_current_velocity * mDeltaTime;
+            //KRATOS_WATCH(r_previous_velocity);
+            //KRATOS_WATCH(r_previous_displacement);
             array_1d<double, 3>& r_current_acceleration = rNode.FastGetSolutionStepValue(ACCELERATION);
+            
 
             if (mIsDynamic){
-                r_current_acceleration = (r_current_velocity) / mDeltaTime; // !! dev'essere  
-                KRATOS_WATCH(r_current_velocity);
-                printf("\n");
-                KRATOS_WATCH(r_current_acceleration);
-                printf("==============================\n");
+                r_current_acceleration = (r_current_velocity) / mDeltaTime;
             }
         });
 
