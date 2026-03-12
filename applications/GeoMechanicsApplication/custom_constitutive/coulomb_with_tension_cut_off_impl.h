@@ -37,8 +37,8 @@ public:
     CoulombWithTensionCutOffImpl() = default;
     explicit CoulombWithTensionCutOffImpl(const Properties& rMaterialProperties);
 
-    [[nodiscard]] bool IsAdmissibleStressState(const Geo::SigmaTau& rTrialTraction) const;
-    [[nodiscard]] bool IsAdmissibleStressState(const Geo::PrincipalStresses& rTrialPrincipalStresses) const;
+    [[nodiscard]] bool IsAdmissibleStressState(const Geo::SigmaTau& rTrialTraction);
+    [[nodiscard]] bool IsAdmissibleStressState(const Geo::PrincipalStresses& rTrialPrincipalStresses);
 
     [[nodiscard]] Geo::SigmaTau DoReturnMapping(const Geo::SigmaTau& rTrialTraction,
                                                 const Matrix&        rElasticConstitutiveTensor,
@@ -60,7 +60,7 @@ private:
     PlasticityStatus    mPlasticityStatus{PlasticityStatus::ELASTIC};
 
     template <typename StressStateType>
-    [[nodiscard]] bool IsAdmissibleStressState(const StressStateType& rTrialStressState) const;
+    [[nodiscard]] bool IsAdmissibleStressState(const StressStateType& rTrialStressState);
     template <typename StressStateType, typename StressStateToSigmaTauFunctionType>
     [[nodiscard]] StressStateType DoReturnMapping(const StressStateType& rTrialStressState,
                                                   const StressStateToSigmaTauFunctionType& rStressStateToSigmaTau,

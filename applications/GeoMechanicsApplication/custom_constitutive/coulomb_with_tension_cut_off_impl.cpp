@@ -56,12 +56,12 @@ CoulombWithTensionCutOffImpl::CoulombWithTensionCutOffImpl(const Properties& rMa
     }
 }
 
-bool CoulombWithTensionCutOffImpl::IsAdmissibleStressState(const Geo::SigmaTau& rTrialTraction) const
+bool CoulombWithTensionCutOffImpl::IsAdmissibleStressState(const Geo::SigmaTau& rTrialTraction)
 {
     return IsAdmissibleStressState<>(rTrialTraction);
 }
 
-bool CoulombWithTensionCutOffImpl::IsAdmissibleStressState(const Geo::PrincipalStresses& rTrialPrincipalStresses) const
+bool CoulombWithTensionCutOffImpl::IsAdmissibleStressState(const Geo::PrincipalStresses& rTrialPrincipalStresses)
 {
     return IsAdmissibleStressState<>(rTrialPrincipalStresses);
 }
@@ -96,14 +96,18 @@ void CoulombWithTensionCutOffImpl::RestoreKappaOfCoulombYieldSurface()
 }
 
 template <typename StressStateType>
-bool CoulombWithTensionCutOffImpl::IsAdmissibleStressState(const StressStateType& rTrialStressState) const
+bool CoulombWithTensionCutOffImpl::IsAdmissibleStressState(const StressStateType& rTrialStressState)
 {
     const auto coulomb_yield_function_value = mCoulombYieldSurface.YieldFunctionValue(rTrialStressState);
     const auto tension_yield_function_value = mTensionCutOff.YieldFunctionValue(rTrialStressState);
     constexpr auto tolerance                = 1.0e-10;
     const auto     coulomb_tolerance = tolerance * (1.0 + std::abs(coulomb_yield_function_value));
     const auto     tension_tolerance = tolerance * (1.0 + std::abs(tension_yield_function_value));
-    return coulomb_yield_function_value < coulomb_tolerance && tension_yield_function_value < tension_tolerance;
+
+    const auto admissible_state = coulomb_yield_function_value < coulomb_tolerance &&
+                                  tension_yield_function_value < tension_tolerance;
+    if (admissible_state) mPlasticityStatus = PlasticityStatus::ELASTIC;
+    return admissible_state;
 }
 
 template <typename StressStateType, typename StressStateToSigmaTauFunctionType>
