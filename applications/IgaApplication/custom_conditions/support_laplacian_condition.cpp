@@ -76,6 +76,9 @@ void SupportLaplacianCondition::CalculateLeftHandSide(
     array_1d<double, 3> normal_parameter_space;
 
     normal_parameter_space = - r_geometry.Normal(0, GetIntegrationMethod());
+    if(dim == 3) {
+        r_geometry.Calculate(NORMAL, normal_parameter_space);
+    }
     normal_parameter_space = normal_parameter_space / MathUtils<double>::Norm(normal_parameter_space);
 
     normal_physical_space = normal_parameter_space; // prod(trans(J0[0]),normal_parameter_space);
@@ -88,18 +91,33 @@ void SupportLaplacianCondition::CalculateLeftHandSide(
     GeometryType::JacobiansType J0;
     r_geometry.Jacobian(J0,r_geometry.GetDefaultIntegrationMethod());
     // Jacobian matrix cause J0 is  3x2 and we need 3x3
-    Matrix jacobian_matrix = ZeroMatrix(3,3);
-    jacobian_matrix(0,0) = J0[0](0,0);
-    jacobian_matrix(0,1) = J0[0](0,1);
-    jacobian_matrix(1,0) = J0[0](1,0);
-    jacobian_matrix(1,1) = J0[0](1,1);
-    jacobian_matrix(2,2) = 1.0; // 2D case
+    Matrix Jacobian = ZeroMatrix(3,3);
+    Jacobian(0,0) = J0[0](0,0);
+    Jacobian(0,1) = J0[0](0,1);
+    Jacobian(1,0) = J0[0](1,0);
+    Jacobian(1,1) = J0[0](1,1);
+    Jacobian(2,2) = 1.0; // 2D case
 
     array_1d<double, 3> tangent_parameter_space;
     r_geometry.Calculate(LOCAL_TANGENT, tangent_parameter_space); // Gives the result in the parameter space !!
-    Vector determinant_factor = prod(jacobian_matrix, tangent_parameter_space);
+    Vector determinant_factor = prod(Jacobian, tangent_parameter_space);
     determinant_factor[2] = 0.0; // 2D case
-    const double det_J0 = norm_2(determinant_factor);
+    double det_J0 = norm_2(determinant_factor);
+
+    if (dim == 3) {
+        Matrix tangent_matrix;
+        r_geometry.Calculate(LOCAL_TANGENT_MATRIX, tangent_matrix);  // 3x2
+        
+        array_1d<double,3> t1, t2;
+        for (std::size_t i = 0; i < 3; ++i) {
+            t1[i] = tangent_matrix(i, 0);
+            t2[i] = tangent_matrix(i, 1);
+        }
+        // Cross product of the two tangents
+        array_1d<double, 3> det_vector = MathUtils<double>::CrossProduct(t1, t2);
+        // Norm gives the surface integration factor
+        det_J0 = norm_2(det_vector);
+    }
     
     Matrix H = ZeroMatrix(1, number_of_nodes);
     Matrix DN_dot_n = ZeroMatrix(1, number_of_nodes);
@@ -161,9 +179,11 @@ void SupportLaplacianCondition::CalculateRightHandSide(
     array_1d<double, 3> normal_parameter_space;
 
     normal_parameter_space = - r_geometry.Normal(0, GetIntegrationMethod());
+    if(dim == 3) {
+        r_geometry.Calculate(NORMAL, normal_parameter_space);
+    }
     normal_parameter_space = normal_parameter_space / MathUtils<double>::Norm(normal_parameter_space);
-
-    normal_physical_space = normal_parameter_space; // prod(trans(J0[0]),normal_parameter_space);
+    normal_physical_space = normal_parameter_space;
     
     const Matrix& N = r_geometry.ShapeFunctionsValues();
 
@@ -173,18 +193,33 @@ void SupportLaplacianCondition::CalculateRightHandSide(
     GeometryType::JacobiansType J0;
     r_geometry.Jacobian(J0,r_geometry.GetDefaultIntegrationMethod());
     // Jacobian matrix cause J0 is  3x2 and we need 3x3
-    Matrix jacobian_matrix = ZeroMatrix(3,3);
-    jacobian_matrix(0,0) = J0[0](0,0);
-    jacobian_matrix(0,1) = J0[0](0,1);
-    jacobian_matrix(1,0) = J0[0](1,0);
-    jacobian_matrix(1,1) = J0[0](1,1);
-    jacobian_matrix(2,2) = 1.0; // 2D case
+    Matrix Jacobian = ZeroMatrix(3,3);
+    Jacobian(0,0) = J0[0](0,0);
+    Jacobian(0,1) = J0[0](0,1);
+    Jacobian(1,0) = J0[0](1,0);
+    Jacobian(1,1) = J0[0](1,1);
+    Jacobian(2,2) = 1.0; // 2D case
 
     array_1d<double, 3> tangent_parameter_space;
     r_geometry.Calculate(LOCAL_TANGENT, tangent_parameter_space); // Gives the result in the parameter space !!
-    Vector determinant_factor = prod(jacobian_matrix, tangent_parameter_space);
+    Vector determinant_factor = prod(Jacobian, tangent_parameter_space);
     determinant_factor[2] = 0.0; // 2D case
-    const double det_J0 = norm_2(determinant_factor);
+    double det_J0 = norm_2(determinant_factor);
+
+    if (dim == 3) {
+        Matrix tangent_matrix;
+        r_geometry.Calculate(LOCAL_TANGENT_MATRIX, tangent_matrix);  // 3x2
+
+        array_1d<double,3> t1, t2;
+        for (std::size_t i = 0; i < 3; ++i) {
+            t1[i] = tangent_matrix(i, 0);
+            t2[i] = tangent_matrix(i, 1);
+        }
+        // Cross product of the two tangents
+        array_1d<double, 3> det_vector = MathUtils<double>::CrossProduct(t1, t2);
+        // Norm gives the surface integration factor
+        det_J0 = norm_2(det_vector);
+    }
     
     Vector DN_dot_n_vec = ZeroVector(number_of_nodes);
     Vector H_vector = ZeroVector(number_of_nodes);
