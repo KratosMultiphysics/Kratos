@@ -55,6 +55,7 @@
 #include "custom_conditions/cut_sbm_solid_interface_condition.h"
 #include "custom_conditions/gap_sbm_solid_condition.h"
 #include "custom_conditions/gap_sbm_load_solid_condition.h"
+#include "custom_conditions/gap_sbm_contact_condition.h"
 // SBM contact condition
 #include "custom_conditions/sbm_contact_2D_condition.h"
 
@@ -178,6 +179,7 @@ private:
     const CutSbmSolidInterfaceCondition mCutSbmSolidInterfaceCondition;
     const GapSbmSolidCondition mGapSbmSolidCondition;
     const GapSbmLoadSolidCondition mGapSbmLoadSolidCondition;
+    const GapSbmContactCondition mGapSbmContactCondition;
     const SbmContact2DCondition mSbmContact2DCondition;
 
 
