@@ -117,8 +117,15 @@ StlBvhTree::NearestResult StlBvhTree::SearchNearest(const PointType& rCenter) co
                 }
             }
         } else {
-            // Inner node: expand children, pruning those already farther than best
+            // Inner node: compute AABB distance for both children, then push farther
+            // child first and nearer child last so the LIFO order pops the nearer child
+            // first, tightening best_dist2 faster and pruning more of the remaining stack.
             const BvhNode& node = mNodes[entry];
+
+            int32_t slot0 = kEmptySlot, slot1 = kEmptySlot;
+            float   d2_0  = std::numeric_limits<float>::max();
+            float   d2_1  = std::numeric_limits<float>::max();
+
             for (int child_index = 0; child_index < 2; ++child_index) {
                 const int32_t slot = node.child[child_index];
                 if (slot == kEmptySlot) continue;
@@ -129,10 +136,19 @@ StlBvhTree::NearestResult StlBvhTree::SearchNearest(const PointType& rCenter) co
                 const float ux = node.base[0] + node.hi[child_index][0] * node.extent[0];
                 const float uy = node.base[1] + node.hi[child_index][1] * node.extent[1];
                 const float uz = node.base[2] + node.hi[child_index][2] * node.extent[2];
+                const float d2 = AABBSphereDistance2(cx, cy, cz, lx, ly, lz, ux, uy, uz);
 
-                if (AABBSphereDistance2(cx, cy, cz, lx, ly, lz, ux, uy, uz) >= best_dist2) continue;
+                if (child_index == 0) { slot0 = slot; d2_0 = d2; }
+                else                  { slot1 = slot; d2_1 = d2; }
+            }
 
-                stack[top++] = slot;
+            // Push order: farther first, nearer last (nearer will be popped first)
+            if (d2_0 <= d2_1) {
+                if (slot1 != kEmptySlot && d2_1 < best_dist2) stack[top++] = slot1;
+                if (slot0 != kEmptySlot && d2_0 < best_dist2) stack[top++] = slot0;
+            } else {
+                if (slot0 != kEmptySlot && d2_0 < best_dist2) stack[top++] = slot0;
+                if (slot1 != kEmptySlot && d2_1 < best_dist2) stack[top++] = slot1;
             }
         }
     }
