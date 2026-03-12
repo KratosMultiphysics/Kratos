@@ -176,10 +176,9 @@ void ApplyCPhiReductionProcess::SetCPhiAtElement(Element& rElement, double Reduc
 
     if (UsesUmatParameters(r_properties)) {
         // Overwrite C and Phi in the UMAT_PARAMETERS
-        auto umat_parameters = r_properties[UMAT_PARAMETERS];
-        umat_parameters[r_properties[INDEX_OF_UMAT_PHI_PARAMETER] - 1] = ReducedPhi;
-        umat_parameters[r_properties[INDEX_OF_UMAT_C_PARAMETER] - 1]   = ReducedC;
-        p_new_properties->SetValue(UMAT_PARAMETERS, umat_parameters);
+        auto& r_updated_umat_parameters = p_new_properties->GetValue(UMAT_PARAMETERS);
+        r_updated_umat_parameters[r_properties[INDEX_OF_UMAT_PHI_PARAMETER] - 1] = ReducedPhi;
+        r_updated_umat_parameters[r_properties[INDEX_OF_UMAT_C_PARAMETER] - 1]   = ReducedC;
     } else {
         p_new_properties->SetValue(GEO_FRICTION_ANGLE, ReducedPhi);
         p_new_properties->SetValue(GEO_COHESION, ReducedC);
@@ -192,8 +191,8 @@ void ApplyCPhiReductionProcess::SetCPhiAtElement(Element& rElement, double Reduc
 
 void ApplyCPhiReductionProcess::InitializeParametersForInternalMohrCoulombModel(Element& rElement)
 {
-    KRATOS_TRY
     // Due to current implementation of the internal Mohr-Coulomb model, this function re-initializes material properties in it.
+    // This approach discards kappa value and removes the history. It shall be changed in future.
     std::vector<ConstitutiveLaw::Pointer> constitutive_laws;
     const ProcessInfo                     dummy_process_info;
     rElement.CalculateOnIntegrationPoints(CONSTITUTIVE_LAW, constitutive_laws, dummy_process_info);
@@ -205,7 +204,6 @@ void ApplyCPhiReductionProcess::InitializeParametersForInternalMohrCoulombModel(
             p_mohr_coulomb->InitializeMaterial(r_properties, dummy_geometry, dummy_vector);
         }
     }
-    KRATOS_CATCH("")
 }
 
 bool ApplyCPhiReductionProcess::IsStepRestarted() const

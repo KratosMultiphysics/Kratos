@@ -27,7 +27,7 @@
             "solver_type": "LinearSolversApplication.sparse_lu"
         },
         "material_import_settings": {
-            "materials_filename": "MaterialParameters_stage1.json"
+            "materials_filename": "../common/MaterialParameters_stage1.json"
         },
         "max_alpha": 2.0,
         "max_iterations": 15,
