@@ -301,6 +301,9 @@ void CoulombWithTensionCutOffImpl::save(Serializer& rSerializer) const
 {
     rSerializer.save("CoulombYieldSurface", mCoulombYieldSurface);
     rSerializer.save("TensionCutOff", mTensionCutOff);
+    rSerializer.save("SavedKappaOfCoulombYieldSurface", mSavedKappaOfCoulombYieldSurface);
+    rSerializer.save("AbsoluteYieldFunctionValueTolerance", mAbsoluteYieldFunctionValueTolerance);
+    rSerializer.save("MaxNumberOfPlasticIterations", mMaxNumberOfPlasticIterations);
     rSerializer.save("PlasticStatus", static_cast<int>(mPlasticStatus));
 }
 
@@ -308,6 +311,9 @@ void CoulombWithTensionCutOffImpl::load(Serializer& rSerializer)
 {
     rSerializer.load("CoulombYieldSurface", mCoulombYieldSurface);
     rSerializer.load("TensionCutOff", mTensionCutOff);
+    rSerializer.load("SavedKappaOfCoulombYieldSurface", mSavedKappaOfCoulombYieldSurface);
+    rSerializer.load("AbsoluteYieldFunctionValueTolerance", mAbsoluteYieldFunctionValueTolerance);
+    rSerializer.load("MaxNumberOfPlasticIterations", mMaxNumberOfPlasticIterations);
     int int_plasticity_status;
     rSerializer.load("PlasticStatus", int_plasticity_status);
     mPlasticStatus = static_cast<PlasticityStatus>(int_plasticity_status);
