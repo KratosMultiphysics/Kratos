@@ -143,7 +143,7 @@ void RadialBasisFunctionMapperLocalSystem::CalculateAll(MatrixType& rLocalMappin
             rLocalMappingMatrix(0, j) = phi;
         }
 
-        const std::vector<double> polynomial = EvaluatePolynomialBasis(this->Coordinates(), mPolynomialDegree);
+        const std::vector<double> polynomial = EvaluatePolynomialBasis(this->Coordinates(), mPolynomialDegree, mDimension);
 
         for (IndexType k = 0; k < mNumberOfPolynomialTerms; ++k) {
             rLocalMappingMatrix(0, rbf_support_points_number + k) = polynomial[k];
@@ -198,7 +198,7 @@ void RadialBasisFunctionMapperLocalSystem::CalculateAll(MatrixType& rLocalMappin
             rLocalMappingMatrix(0, j) = phi;
         }
 
-        const std::vector<double> polynomial = EvaluatePolynomialBasis(this->Coordinates(), mPolynomialDegree);
+        const std::vector<double> polynomial = EvaluatePolynomialBasis(this->Coordinates(), mPolynomialDegree, mDimension);
 
         for (IndexType k = 0; k < mNumberOfPolynomialTerms; ++k) {
             rLocalMappingMatrix(0, rbf_support_points_number + k) = polynomial[k];
@@ -210,25 +210,39 @@ void RadialBasisFunctionMapperLocalSystem::CalculateAll(MatrixType& rLocalMappin
 
 std::vector<double> RadialBasisFunctionMapperLocalSystem::EvaluatePolynomialBasis(
     const CoordinatesArrayType& rCoords, 
-    unsigned int degree) const
+    unsigned int degree,
+    const IndexType dimension) const
 {
     std::vector<double> polynomial_values;
-    polynomial_values.reserve((degree + 3) * (degree + 2) * (degree + 1) / 6); // number of monomials in 3D
+    IndexType number_of_polynomial_terms = 0;
+    if (dimension == 2){
+        number_of_polynomial_terms = (degree + 2) * (degree + 1) / 2;
+    } else{
+        number_of_polynomial_terms = (degree + 3) * (degree + 2) * (degree + 1) / 6;
+    }
+    polynomial_values.reserve(number_of_polynomial_terms); // number of monomials in either 2D or 3D
 
     const double x = rCoords[0];
     const double y = rCoords[1];
     const double z = rCoords[2];
 
-    for (unsigned int n = 0; n <= degree; ++n) {
-        // i = exponente de x
-        for (int i = static_cast<int>(n); i >= 0; --i) {
-            // j = exponente de y
-            for (int j = static_cast<int>(n - i); j >= 0; --j) {
-                unsigned int k = n - i - j; // exponente de z
-                polynomial_values.push_back(std::pow(x, i) * std::pow(y, j) * std::pow(z, k));
+    if (dimension == 2) {
+        for (unsigned int n = 0; n <= degree; ++n) {
+            for (int i = static_cast<int>(n); i >= 0; --i) {
+                const unsigned int j = n - i;
+                polynomial_values.push_back(std::pow(x, i) * std::pow(y, j));
             }
         }
-    }
+    } else if (dimension == 3) {
+        for (unsigned int n = 0; n <= degree; ++n) {
+            for (int i = static_cast<int>(n); i >= 0; --i) {
+                for (int j = static_cast<int>(n - i); j >= 0; --j) {
+                    const unsigned int k = n - i - j;
+                    polynomial_values.push_back(std::pow(x, i) * std::pow(y, j) * std::pow(z, k));
+                }
+            }
+        }
+    } 
 
     return polynomial_values;
 }
@@ -289,9 +303,17 @@ void RadialBasisFunctionMapper<TSparseSpace, TDenseSpace>::InitializeInterface(K
 
     mRBFTypeEnum = it->second;
 
-    // Obtain the polynomial degree and calculate number of polynomial terms
+    // Obtain the polynomial degree and the dimension and calculate number of polynomial terms 
     mPolynomialDegree = mMapperSettings["additional_polynomial_degree"].GetInt();
-    mNumberOfPolynomialTerms = (mPolynomialDegree + 3) * (mPolynomialDegree + 2) * (mPolynomialDegree + 1) / 6;
+    mDimension = mMapperSettings["global_space_dimension"].GetInt();
+    KRATOS_ERROR_IF(mDimension > 3) << "global_space_dimension cannot be greater than 3" << std::endl;
+
+    // Calculate the number of polynomial terms depending on the dimension
+     if (mDimension == 2){
+        mNumberOfPolynomialTerms = (mPolynomialDegree + 2) * (mPolynomialDegree + 1) / 2;
+    } else {
+        mNumberOfPolynomialTerms = (mPolynomialDegree + 3) * (mPolynomialDegree + 2) * (mPolynomialDegree + 1) / 6;
+    }
 
     // Determine whether the destination domain is IGA or not
     const bool destination_is_iga = mMapperSettings["destination_is_iga"].GetBool();
@@ -300,7 +322,7 @@ void RadialBasisFunctionMapper<TSparseSpace, TDenseSpace>::InitializeInterface(K
     KRATOS_ERROR_IF(destination_is_iga)<< "This mapper is not yet available when the destination domain is discretized with IGA" << std::endl;
 
     bool use_all_support_points = false;
-    if (mMapperSettings["search_settings"].Has("use_all_rbf_support_points")) {
+    if (mMapperSettings.Has("use_all_rbf_support_points")) {
         use_all_support_points = mMapperSettings["use_all_rbf_support_points"].GetBool();
     }
 
@@ -342,8 +364,8 @@ void RadialBasisFunctionMapper<TSparseSpace, TDenseSpace>::InitializeInterface(K
     }
 
     // Create dummy local systems for the origin and destination domains
-    RadialBasisFunctionMapperLocalSystem origin_local_system{nullptr, nullptr, true, mOriginIsIga, mRBFTypeEnum, mPolynomialDegree, &mPolynomialEquationIdsOrigin};
-    RadialBasisFunctionMapperLocalSystem destination_local_system{nullptr, nullptr, false, mOriginIsIga, mRBFTypeEnum, mPolynomialDegree, &mPolynomialEquationIdsOrigin};
+    RadialBasisFunctionMapperLocalSystem origin_local_system{nullptr, nullptr, true, mOriginIsIga, mRBFTypeEnum, mPolynomialDegree, mDimension, &mPolynomialEquationIdsOrigin};
+    RadialBasisFunctionMapperLocalSystem destination_local_system{nullptr, nullptr, false, mOriginIsIga, mRBFTypeEnum, mPolynomialDegree, mDimension, &mPolynomialEquationIdsOrigin};
 
     // Create the local systems for the origin and destination domains
     if (mOriginIsIga) {
