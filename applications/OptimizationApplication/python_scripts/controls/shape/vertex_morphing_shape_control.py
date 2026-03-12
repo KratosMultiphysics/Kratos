@@ -139,9 +139,9 @@ class VertexMorphingShapeControl(Control):
         if physical_gradient.GetContainer() != self.__GetPhysicalModelPart().Nodes:
             raise RuntimeError(f"Gradients for the required element container not found for control \"{self.GetName()}\". [ required model part name: {self.model_part.FullName()}, given model part name: {physical_gradient.GetModelPart().FullName()} ]")
 
-        filtered_gradient = self.filter.BackwardFilterIntegratedField(self.__ExtractDesignSurfaceData(KratosOA.SHAPE, physical_gradient, self.model_part.Nodes))
+        filtered_gradient = self.filter.BackwardFilterIntegratedField(self.__ExtractDesignSurfaceData(physical_gradient, self.model_part.Nodes))
 
-        return self.__ExtractDesignSurfaceData(KratosOA.SHAPE, filtered_gradient, self.__GetPhysicalModelPart().Nodes)
+        return self.__ExtractDesignSurfaceData(filtered_gradient, self.__GetPhysicalModelPart().Nodes)
 
     @time_decorator(methodName="GetName")
     def Update(self, new_control_field: Kratos.TensorAdaptors.DoubleTensorAdaptor) -> bool:
@@ -165,7 +165,7 @@ class VertexMorphingShapeControl(Control):
         if self.mesh_motion_solver_type == "filter_based":
             shape_update = self.filter.ForwardFilterField(control_update)
         else:
-            shape_update = self.filter.ForwardFilterField(self.__ExtractDesignSurfaceData(KratosOA.SHAPE, control_update, self.model_part.Nodes))
+            shape_update = self.filter.ForwardFilterField(self.__ExtractDesignSurfaceData(control_update, self.model_part.Nodes))
 
         # now update the shape
         self._UpdateMesh(shape_update)
