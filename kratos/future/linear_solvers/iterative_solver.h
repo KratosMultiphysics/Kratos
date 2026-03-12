@@ -49,18 +49,15 @@ namespace Kratos::Future
 ///@name Kratos Classes
 ///@{
 
-/// Base class for all the iterative solvers in Kratos.
-/** This class define the general interface for the iterative solvers in Kratos.
-    iterative solver is a template class with this parameter:
-    - TSparseSpaceType which specify type
-      of the unknowns, coefficients, sparse matrix, vector of
-  unknowns, right hand side vector and their respective operators.
-    - TDenseMatrixType which specify type of the
-      matrices used as temporary matrices or multi solve unknowns and
-  right hand sides and their operators.
-    - TPreconditionerType  which specify type of the preconditioner to be used.
-    - TStopCriteriaType for specifying type of the object which control the stop criteria for iteration loop.
-*/
+/**
+ * @class IterativeSolver
+ * @ingroup KratosCore
+ * @brief Base class for iterative linear solvers.
+ * @details This class serves as a base for all iterative linear solvers.
+ * It defines the common interface and data members for iterative solvers,
+ * such as the tolerance, maximum number of iterations, and preconditioner.
+ * @tparam TLinearAlgebra Type of the linear algebra used.
+ */
 template<class TLinearAlgebra>
 class IterativeSolver : public Future::LinearSolver<TLinearAlgebra>
 {
@@ -73,9 +70,6 @@ public:
 
     /// The base class definition
     using BaseType = Future::LinearSolver<TLinearAlgebra>;
-
-    /// Type definition for data
-    using DataType = typename TLinearAlgebra::DataType;
 
     /// Type definition for index
     using IndexType = typename TLinearAlgebra::IndexType;
@@ -94,32 +88,9 @@ public:
     ///@{
 
     /// Default constructor.
-    IterativeSolver() = default;
-
-    /// Constructor with parameters
-    IterativeSolver(Parameters Settings)
-        : BaseType(Settings)
-    {
-        std::cout << "iterative_solver constructor w/ parameters" << std::endl;
-
-        // Validate and assign default parameters
-        Settings.ValidateAndAssignDefaults(GetDefaultParameters());
-
-        // Assign input settings to member variables
-        mTolerance = Settings["tolerance"].GetDouble();
-        mMaxIterationsNumber = Settings["max_iteration"].GetInt();
-        mpPreconditioner = Kratos::make_shared<Preconditioner<TLinearAlgebra>>(); //TODO: implement preconditioner by leveraging the registry
-    }
-
-    /// Constructor with preconditioner.
-    IterativeSolver(
-        Parameters Settings,
-        PreconditionerPointerType pPreconditioner)
-        : BaseType(Settings)
-    {
-        Settings.ValidateAndAssignDefaults(GetDefaultParameters());
-        SetPreconditioner(pPreconditioner);
-    }
+    IterativeSolver()
+        : BaseType()
+    {}
 
     /// Copy constructor.
     IterativeSolver(const IterativeSolver& Other) = delete;
@@ -152,6 +123,76 @@ public:
         const auto lhs_tag = LinearSystemTags::SparseMatrixTagFromString(BaseType::mLhsTagString);
         const auto& rp_lhs_lin_op = rLinearSystem.pGetLinearOperator(lhs_tag);
         this->GetPreconditioner()->InitializeSolutionStep(rp_lhs_lin_op);
+    }
+
+    bool PerformSolutionStep(LinearSystem<TLinearAlgebra>& rLinearSystem) override
+    {
+        bool is_solved;
+        if (!this->mMultipleSolve) {
+            // Get sparse matrix and dense vector tags from strings
+            const auto dx_tag = LinearSystemTags::DenseVectorTagFromString(BaseType::mDxTagString);
+            const auto rhs_tag = LinearSystemTags::DenseVectorTagFromString(BaseType::mRhsTagString);
+            const auto lhs_tag = LinearSystemTags::SparseMatrixTagFromString(BaseType::mLhsTagString);
+
+            // Check if the linear system is consistent
+            if(!rLinearSystem.IsConsistent(lhs_tag, rhs_tag, dx_tag)) {
+                KRATOS_WARNING("IterativeSolver") << "Linear system is not consistent. PerformSolutionStep cannot be performed." << std::endl;
+                return false;
+            }
+
+            // Get arrays from linear system container
+            auto& r_dx = *(rLinearSystem.pGetVector(dx_tag));
+            auto& r_rhs = *(rLinearSystem.pGetVector(rhs_tag));
+            const auto& rp_lhs_lin_op = rLinearSystem.pGetLinearOperator(lhs_tag);
+
+            // Call CG implementation
+            is_solved = this->IterativeSolve(rp_lhs_lin_op, r_rhs, r_dx);
+            KRATOS_WARNING_IF("IterativeSolver", !is_solved) << "Non converged linear solution. ["<< GetResidualNorm() / mBNorm << " > "<<  GetTolerance() << "]" << std::endl;
+
+        } else {
+            // Get sparse matrix and dense matrices tags from strings
+            const auto dx_tag = LinearSystemTags::DenseMatrixTagFromString(BaseType::mDxTagString);
+            const auto rhs_tag = LinearSystemTags::DenseMatrixTagFromString(BaseType::mRhsTagString);
+            const auto lhs_tag = LinearSystemTags::SparseMatrixTagFromString(BaseType::mLhsTagString);
+
+            // Get arrays from linear system container
+            auto& r_dx = *(rLinearSystem.pGetMatrix(dx_tag));
+            const auto& r_rhs = *(rLinearSystem.pGetMatrix(rhs_tag));
+            const auto& rp_lhs_lin_op = rLinearSystem.pGetLinearOperator(lhs_tag);
+
+            // Check if the linear system is consistent
+            if(!rLinearSystem.IsConsistent(lhs_tag, rhs_tag, dx_tag)) {
+                KRATOS_WARNING("IterativeSolver") << "Linear system is not consistent. PerformSolutionStep cannot be performed." << std::endl;
+                return false;
+            }
+
+            // Perform the columnwise solve
+            is_solved = true;
+            VectorType aux_dx(r_rhs.size1()); // Auxiliary update vector
+            VectorType aux_rhs(r_rhs.size1()); // Auxiliary residual vector
+            const std::size_t n_problems = r_rhs.size2();
+
+            KRATOS_WATCH(r_rhs.size1())
+            KRATOS_WATCH(r_rhs.size2())
+            for (std::size_t i = 0; i < n_problems; ++i) {
+                // Get current residual column
+                IndexPartition<IndexType>(aux_rhs.size()).for_each([i, &r_rhs, &aux_rhs](const IndexType Index) {
+                    aux_rhs[Index] = r_rhs(Index, i);
+                });
+
+                // Call CG implementation
+                const bool aux_is_solved = this->IterativeSolve(rp_lhs_lin_op, aux_rhs, aux_dx);
+                KRATOS_WARNING_IF("IterativeSolver", !aux_is_solved) << "Non converged linear solution for column " << i << ". ["<< GetResidualNorm() / mBNorm << " > "<<  GetTolerance() << "]" << std::endl;
+                is_solved &= aux_is_solved;
+
+                // Set current solution update
+                IndexPartition<IndexType>(aux_dx.size()).for_each([i, &r_dx, &aux_dx](const IndexType Index) {
+                    r_dx(Index, i) = aux_dx[Index];
+                });
+            }
+        }
+
+        return is_solved;
     }
 
     void FinalizeSolutionStep(LinearSystem<TLinearAlgebra>& rLinearSystem) override
@@ -232,22 +273,14 @@ public:
 
     Parameters GetDefaultParameters() const override
     {
-        std::cout << "iterative_solver GetDefaultParameters" << std::endl;
-        std::cout << "iterative_solver GetDefaultParameters" << std::endl;
-        std::cout << "iterative_solver GetDefaultParameters" << std::endl;
-        std::cout << "iterative_solver GetDefaultParameters" << std::endl;
-        std::cout << "iterative_solver GetDefaultParameters" << std::endl;
-
         Parameters default_parameters( R"({
             "solver_type" : "iterative_solver",
             "tolerance" : 1e-6,
             "max_iteration" : 100,
             "preconditioner_type" : "none"
         })");
-        KRATOS_WATCH(default_parameters)
-
         default_parameters.AddMissingParameters(BaseType::GetDefaultParameters());
-        KRATOS_WATCH(default_parameters)
+
         return default_parameters;
     }
 
@@ -347,20 +380,23 @@ protected:
     ///@name Protected Operations
     ///@{
 
-    void PreconditionedMult(
+    virtual bool IterativeSolve(
         const typename LinearOperatorType::UniquePointer& rpLinearOperator,
-        const VectorType& rX,
-        VectorType& rY)
+        const VectorType& rB,
+        VectorType& rX)
     {
-        GetPreconditioner()->Mult(rpLinearOperator, rX, rY);
+        KRATOS_ERROR << "Calling IterativeSolve in IterativeSolver base class. Implement it in derived class." << std::endl;
+        return false;
     }
 
-    void PreconditionedTransposeMult(
-        const typename LinearOperatorType::UniquePointer& rpLinearOperator,
-        const VectorType& rX,
-        VectorType& rY)
+    void AssignSettings(const Parameters& Settings) override
     {
-        GetPreconditioner()->TransposeMult(rpLinearOperator, rX, rY);
+        // Assign base class settings
+        BaseType::AssignSettings(Settings);
+
+        // Assign input settings to member variables
+        mTolerance = Settings["tolerance"].GetDouble();
+        mMaxIterationsNumber = Settings["max_iteration"].GetInt();
     }
 
     ///@}

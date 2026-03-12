@@ -50,13 +50,9 @@ namespace Kratos::Future
  * @ingroup KratosCore
  * @brief Base class for all the linear solvers in Kratos.
  * @details This class define the general interface for the linear solvers in Kratos.
- * @tparam TSparseSpaceType which specify type of the unknowns, coefficients, sparse matrix, vector of unknowns, right hand side vector and their respective operators.
- * @tparam TDenseMatrixType which specify type of the matrices used as temporary matrices or multi solve unknowns and right hand sides and their operators.
- * @see SparseSpace
- * @see DenseSpace
- * @author Pooyan Dadvand
- * @author Riccardo Rossi
+ * @tparam TLinearAlgebra The version of the linear algebra to be used.
  * @author Ruben Zorrilla
+ * @author Riccardo Rossi
  */
 template<class TLinearAlgebra>
 class LinearSolver
@@ -94,14 +90,6 @@ public:
     /// Constructor with parameters.
     LinearSolver(Parameters Settings)
     {
-        std::cout << "linear_solver constructor" << std::endl;
-        std::cout << "linear_solver constructor" << std::endl;
-        std::cout << "linear_solver constructor" << std::endl;
-        std::cout << "linear_solver constructor" << std::endl;
-
-
-        KRATOS_WATCH(Settings)
-
         // Validate and assign default parameters
         Settings.ValidateAndAssignDefaults(GetDefaultParameters());
 
@@ -232,8 +220,6 @@ public:
      */
     virtual Parameters GetDefaultParameters() const
     {
-        std::cout << "LINEAR SOLVER GETDEFAULTS" << std::endl;
-
         return Parameters(R"({
             "solver_type" : "linear_solver",
             "dx_tag" : "Dx",
@@ -262,7 +248,7 @@ public:
     }
 
     ///@}
-    ///@name Input and output
+    ///@name Input and outputprote
     ///@{
 
     /// Turn back information as a string.
@@ -283,10 +269,6 @@ public:
     }
 
     ///@}
-    ///@name Friends
-    ///@{
-
-    ///@}
 protected:
     ///@name Protected static Member Variables
     ///@{
@@ -296,6 +278,8 @@ protected:
     ///@{
 
     bool mMultipleSolve;
+
+    unsigned int mEchoLevel;
 
     std::string mDxTagString;
 
@@ -311,46 +295,34 @@ protected:
     ///@name Protected Operations
     ///@{
 
+    /**
+     * @brief Assigns the settings to the linear solver internal variables
+     * @param Settings The parameters to assign
+     */
+    virtual void AssignSettings(const Parameters& Settings)
+    {
+        // Assign input settings to member variables
+        mMultipleSolve = Settings["multiple_solve"].GetBool();
+        mEchoLevel = Settings["echo_level"].GetInt();
+        mDxTagString = Settings["dx_tag"].GetString();
+        mRhsTagString = Settings["rhs_tag"].GetString();
+        mLhsTagString = Settings["lhs_tag"].GetString();
+    }
+
     ///@}
     ///@name Protected  Access
     ///@{
+
 
     ///@}
     ///@name Protected Inquiry
     ///@{
 
+
     ///@}
     ///@name Protected LifeCycle
     ///@{
 
-    ///@}
-private:
-    ///@name Static Member Variables
-    ///@{
-
-    ///@}
-    ///@name Member Variables
-    ///@{
-
-    ///@}
-    ///@name Private Operators
-    ///@{
-
-    ///@}
-    ///@name Private Operations
-    ///@{
-
-    ///@}
-    ///@name Private  Access
-    ///@{
-
-    ///@}
-    ///@name Private Inquiry
-    ///@{
-
-    ///@}
-    ///@name Un accessible methods
-    ///@{
 
     ///@}
 };

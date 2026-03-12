@@ -7,8 +7,7 @@
 //  License:		 BSD License
 //					 Kratos default license: kratos/license.txt
 //
-//  Main authors:    Pooyan Dadvand
-//                   Ruben Zorrilla
+//  Main authors:    Ruben Zorrilla
 //
 
 #pragma once
@@ -31,12 +30,11 @@ namespace Kratos::Future
  * @ingroup KratosCore
  * @brief Base class for all direct solvers in Kratos.
  * @details This class defines the general interface for direct solvers in Kratos.
- * @tparam TVectorType The vector type used in the linear system.
- * @author Pooyan Dadvand
+ * @tparam TLinearAlgebra The version of the linear algebra to be used.
  * @author Ruben Zorrilla
  */
-template<class TVectorType = SystemVector<>>
-class DirectSolver : public Future::LinearSolver<TVectorType>
+template<class TLinearAlgebra>
+class DirectSolver : public Future::LinearSolver<TLinearAlgebra>
 {
 public:
     ///@name Type Definitions
@@ -46,7 +44,7 @@ public:
     KRATOS_CLASS_POINTER_DEFINITION(DirectSolver);
 
     /// Base type definition
-    using BaseType = Future::LinearSolver<TVectorType>;
+    using BaseType = Future::LinearSolver<TLinearAlgebra>;
 
     ///@}
     ///@name Life Cycle
@@ -54,19 +52,10 @@ public:
 
     /**
      * @brief Default constructor.
-     * @param Settings The settings for the direct solver.
      */
-    DirectSolver(Parameters Settings = Parameters(R"({})"))
-        : BaseType(Settings)
-    {
-        // Validate and assign default parameters
-        Settings.ValidateAndAssignDefaults(this->GetDefaultParameters());
-
-        // Assign the linear system tags to be used
-        this->mDxTagString = Settings["dx_tag"].GetString();
-        this->mRhsTagString = Settings["rhs_tag"].GetString();
-        this->mLhsTagString = Settings["lhs_tag"].GetString();
-    }
+    DirectSolver()
+        : BaseType()
+    {}
 
     /// Destructor.
     ~DirectSolver() override = default;
@@ -85,23 +74,20 @@ public:
     ///@name Operations
     ///@{
 
+    Parameters GetDefaultParameters() const override
+    {
+        Parameters default_parameters(R"({
+            "solver_type" : "direct_solver"
+        })");
+        default_parameters.AddMissingParameters(BaseType::GetDefaultParameters());
+
+        return default_parameters;
+    }
 
     ///@}
     ///@name Inquiry
     ///@{
 
-    Parameters GetDefaultParameters() const override
-    {
-        Parameters default_parameters( R"({
-            "solver_type" : "direct_solver",
-            "dx_tag" : "Dx",
-            "rhs_tag" : "RHS",
-            "lhs_tag" : "LHS",
-            "multiple_solve" : false
-        })");
-        default_parameters.AddMissingParameters(BaseType::GetDefaultParameters());
-        return default_parameters;
-    }
 
     ///@}
     ///@name Input and output
@@ -141,10 +127,10 @@ public:
  * @param rIStream The input stream.
  * @param rThis The object relative to the input stream.
  */
-template<class TVectorType>
+template<class TLinearAlgebra>
 inline std::istream& operator >> (
     std::istream& rIStream,
-    DirectSolver<TVectorType>& rThis)
+    DirectSolver<TLinearAlgebra>& rThis)
 {
     return rIStream;
 }
@@ -154,10 +140,10 @@ inline std::istream& operator >> (
  * @param rOStream The output stream.
  * @param rThis The object relative to the output stream.
  */
-template<class TVectorType>
+template<class TLinearAlgebra>
 inline std::ostream& operator << (
     std::ostream& rOStream,
-    const DirectSolver<TVectorType>& rThis)
+    const DirectSolver<TLinearAlgebra>& rThis)
 {
     rThis.PrintInfo(rOStream);
     rOStream << std::endl;

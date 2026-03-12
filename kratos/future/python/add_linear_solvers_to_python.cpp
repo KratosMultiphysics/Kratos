@@ -24,6 +24,7 @@
 #include "future/containers/linear_system.h"
 #include "future/python/add_linear_solvers_to_python.h"
 #include "future/linear_solvers/amgcl_solver.h"
+#include "future/linear_solvers/cg_solver.h"
 #include "future/linear_solvers/linear_solver.h"
 #include "future/linear_solvers/iterative_solver.h"
 #include "future/linear_solvers/skyline_lu_factorization_solver.h"
@@ -42,20 +43,19 @@ void AddLinearSolversToPython(py::module& m)
         .def(py::init<>())
         .def("Initialize", py::overload_cast<LinearSystemType&>(&LinearSolverType::Initialize))
         // .def("__str__", PrintObject<LinearSolverType>)
+        .def("GetTolerance", &LinearSolverType::GetTolerance)
         .def("GetIterationsNumber", &LinearSolverType::GetIterationsNumber)
     ;
 
     using DirectSolverType = Future::DirectSolver<SerialLinearAlgebraTraits>;
     py::class_<DirectSolverType, typename DirectSolverType::Pointer, LinearSolverType>(m, "DirectSolver")
         .def(py::init<>())
-        .def(py::init<Parameters>())
         // .def("__str__", PrintObject<DirectSolverType>)
     ;
 
     using IterativeSolverType = Future::IterativeSolver<SerialLinearAlgebraTraits>;
     py::class_<IterativeSolverType, typename IterativeSolverType::Pointer, LinearSolverType>(m, "IterativeSolver")
         .def(py::init<>())
-        .def(py::init<Parameters>())
         // .def("__str__", PrintObject<IterativeSolverType>)
     ;
 
@@ -64,6 +64,13 @@ void AddLinearSolversToPython(py::module& m)
         .def(py::init<>())
         .def(py::init<Parameters>())
         // .def("__str__", PrintObject<SkylineLUFactorizationSolverType>)
+    ;
+
+    using CGSolverType = Future::CGSolver<SerialLinearAlgebraTraits>;
+    py::class_<CGSolverType, CGSolverType::Pointer, IterativeSolverType>(m, "CGSolver")
+        .def(py::init<>())
+        .def(py::init<Parameters>())
+        // .def("__str__", PrintObject<CGSolverType>)
     ;
 
     py::enum_<Future::AMGCLSmoother>(m, "AMGCLSmoother")

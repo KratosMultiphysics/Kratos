@@ -65,17 +65,8 @@ public:
     /// Base type iterative solver definition
     using BaseType = Future::IterativeSolver<TLinearAlgebra>;
 
-    /// Sparse matrix type definition from linear algebra traits
-    using MatrixType = typename TLinearAlgebra::MatrixType;
-
     /// Dense vector type definition from linear algebra traits
     using VectorType = typename TLinearAlgebra::VectorType;
-
-    /// Dense matrix type definition from linear algebra traits
-    using DenseMatrixType = typename TLinearAlgebra::DenseMatrixType;
-
-    /// Linear system container type definition
-    using LinearSystemType = LinearSystem<TLinearAlgebra>;
 
     /// Linear operator type definition
     using LinearOperatorType = LinearOperator<TLinearAlgebra>;
@@ -87,25 +78,19 @@ public:
     ///@name Life Cycle
     ///@{
 
-    /// Default constructor.
+    /// Constructor with parameters
     CGSolver(Parameters Settings = Parameters(R"({})"))
-        : BaseType(Settings)
+        : BaseType()
     {
-        std::cout << "CG constructor" << std::endl;
-        KRATOS_WATCH(Settings)
         // Validate and assign default parameters
-        Settings.ValidateAndAssignDefaults(BaseType::GetDefaultParameters());
-        KRATOS_WATCH(Settings)
+        Settings.ValidateAndAssignDefaults(GetDefaultParameters());
 
+        // Assign the validated settings
+        this->AssignSettings(Settings);
 
-    }
-
-    /// Constructor with preconditioner.
-    CGSolver(
-        Parameters Settings,
-        PreconditionerPointerType pPreconditioner)
-        : BaseType(Settings, pPreconditioner)
-    {
+        // Create and set preconditioner
+        PreconditionerPointerType p_preconditioner = Kratos::make_shared<Preconditioner<TLinearAlgebra>>(); // TODO: implement preconditioner by leveraging the registry
+        this->SetPreconditioner(p_preconditioner);
     }
 
     /// Copy constructor.
@@ -125,71 +110,14 @@ public:
     ///@name Operations
     ///@{
 
-    bool PerformSolutionStep(LinearSystemType& rLinearSystem) override
+    Parameters GetDefaultParameters() const override
     {
-        bool is_solved;
-        if (!this->mMultipleSolve) {
-            // Get sparse matrix and dense vector tags from strings
-            const auto dx_tag = LinearSystemTags::DenseVectorTagFromString(BaseType::mDxTagString);
-            const auto rhs_tag = LinearSystemTags::DenseVectorTagFromString(BaseType::mRhsTagString);
-            const auto lhs_tag = LinearSystemTags::SparseMatrixTagFromString(BaseType::mLhsTagString);
+        Parameters default_parameters( R"({
+            "solver_type" : "cg_solver"
+        })");
+        default_parameters.AddMissingParameters(BaseType::GetDefaultParameters());
 
-            // Check if the linear system is consistent
-            if(!rLinearSystem.IsConsistent(lhs_tag, rhs_tag, dx_tag)) {
-                KRATOS_WARNING("CGSolver") << "Linear system is not consistent. PerformSolutionStep cannot be performed." << std::endl;
-                return false;
-            }
-
-            // Get arrays from linear system container
-            auto& r_dx = *(rLinearSystem.pGetVector(dx_tag));
-            auto& r_rhs = *(rLinearSystem.pGetVector(rhs_tag));
-            const auto& rp_lhs_lin_op = rLinearSystem.pGetLinearOperator(lhs_tag);
-
-            // Call CG implementation
-            is_solved = IterativeSolve(rp_lhs_lin_op, r_rhs, r_dx);
-            KRATOS_WARNING_IF("CGSolver", !is_solved) << "Non converged linear solution. ["<< BaseType::GetResidualNorm() / BaseType::mBNorm << " > "<<  BaseType::GetTolerance() << "]" << std::endl;
-
-        } else {
-            // Get sparse matrix and dense matrices tags from strings
-            const auto dx_tag = LinearSystemTags::DenseMatrixTagFromString(BaseType::mDxTagString);
-            const auto rhs_tag = LinearSystemTags::DenseMatrixTagFromString(BaseType::mRhsTagString);
-            const auto lhs_tag = LinearSystemTags::SparseMatrixTagFromString(BaseType::mLhsTagString);
-
-            // Get arrays from linear system container
-            auto& r_dx = *(rLinearSystem.pGetMatrix(dx_tag));
-            const auto& r_rhs = *(rLinearSystem.pGetMatrix(rhs_tag));
-            const auto& rp_lhs_lin_op = rLinearSystem.pGetLinearOperator(lhs_tag);
-
-            // Check if the linear system is consistent
-            if(!rLinearSystem.IsConsistent(lhs_tag, rhs_tag, dx_tag)) {
-                KRATOS_WARNING("CGSolver") << "Linear system is not consistent. PerformSolutionStep cannot be performed." << std::endl;
-                return false;
-            }
-
-            // Perform the columnwise solve
-            is_solved = true;
-            VectorType aux_dx(r_rhs.size1()); // Auxiliary update vector
-            VectorType aux_rhs(r_rhs.size1()); // Auxiliary residual vector
-            const std::size_t n_problems = r_rhs.size2();
-            for (std::size_t i = 0; i < n_problems; ++i) {
-                // Get current residual column
-                IndexPartition<IndexType>(aux_rhs.size()).for_each([i, &r_rhs, &aux_rhs](const auto Index) {
-                    aux_rhs[Index] = r_rhs(i, Index);
-                });
-
-                // Call CG implementation
-                const bool aux_is_solved = IterativeSolve(rp_lhs_lin_op, aux_rhs, aux_dx);
-                KRATOS_WARNING_IF("CGSolver", !aux_is_solved) << "Non converged linear solution for column " << i << ". ["<< BaseType::GetResidualNorm() / BaseType::mBNorm << " > "<<  BaseType::GetTolerance() << "]" << std::endl;
-                is_solved &= aux_is_solved;
-
-                // Set current solution update
-                IndexPartition<IndexType>(aux_dx.size()).for_each([i, &r_dx, &aux_dx](const auto Index) {
-                    r_dx(Index, i) = aux_dx[Index];
-                });
-            }
-        }
-
-        return is_solved;
+        return default_parameters;
     }
 
     ///@}
@@ -227,29 +155,30 @@ public:
     }
 
     ///@}
-private:
-    ///@name Static Member Variables
+
+protected:
+    ///@name Protected static Member Variables
     ///@{
 
 
     ///@}
-    ///@name Member Variables
+    ///@name Protected member Variables
     ///@{
 
 
     ///@}
-    ///@name Private Operators
+    ///@name Protected Operators
     ///@{
 
 
     ///@}
-    ///@name Private Operations
+    ///@name Protected Operations
     ///@{
 
     bool IterativeSolve(
         const typename LinearOperatorType::UniquePointer& rpLinearOperator,
         const VectorType& rB,
-        VectorType& rX)
+        VectorType& rX) override
     {
         // Initialize variables
         const int size = rX.size(); // Size of the system
@@ -326,6 +255,43 @@ private:
 
         return BaseType::IsConverged();
     }
+
+    ///@}
+    ///@name Protected  Access
+    ///@{
+
+
+    ///@}
+    ///@name Protected Inquiry
+    ///@{
+
+
+    ///@}
+    ///@name Protected LifeCycle
+    ///@{
+
+
+    ///@}
+
+private:
+    ///@name Static Member Variables
+    ///@{
+
+
+    ///@}
+    ///@name Member Variables
+    ///@{
+
+
+    ///@}
+    ///@name Private Operators
+    ///@{
+
+
+    ///@}
+    ///@name Private Operations
+    ///@{
+
 
     ///@}
     ///@name Private  Access

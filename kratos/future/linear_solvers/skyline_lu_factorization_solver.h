@@ -490,6 +490,9 @@ class SkylineLUFactorizationSolver : public Future::DirectSolver<TLinearAlgebra>
 {
 public:
 
+    ///@name Type Definitions
+    ///@{
+
     /// Counted pointer of SkylineLUFactorizationSolver
     KRATOS_CLASS_POINTER_DEFINITION(SkylineLUFactorizationSolver);
 
@@ -501,9 +504,9 @@ public:
 
     using VectorType = typename TLinearAlgebra::VectorType;
 
-    using DataType = typename VectorType::DataType;
+    using DataType = typename TLinearAlgebra::DataType;
 
-    using IndexType = typename VectorType::IndexType;
+    using IndexType = typename TLinearAlgebra::IndexType;
 
     using LinearSystemType = LinearSystem<TLinearAlgebra>;
 
@@ -511,20 +514,37 @@ public:
 
     using SparseMatrixTag = typename LinearSystemTags::SparseMatrixTag;
 
+    ///@}
+    ///@name Life Cycle
+    ///@{
+
     /// Default constructor
     SkylineLUFactorizationSolver(Parameters Settings = Parameters(R"({})"))
-        : BaseType(Settings)
+        : BaseType()
     {
+        // Validate and assign default parameters
+        Settings.ValidateAndAssignDefaults(GetDefaultParameters());
+
+        // Assign the validated settings
+        this->AssignSettings(Settings);
     }
 
     /// Copy constructor
     SkylineLUFactorizationSolver(const SkylineLUFactorizationSolver& Other) = delete;
 
+    /// Destructor.
+    ~SkylineLUFactorizationSolver() override = default;
+
+    ///@}
+    ///@name Operators
+    ///@{
+
     /// Assignment operator
     SkylineLUFactorizationSolver& operator=(const SkylineLUFactorizationSolver& Other) = delete;
 
-    /// Destructor.
-    ~SkylineLUFactorizationSolver() override = default;
+    ///@}
+    ///@name Operations
+    ///@{
 
     //TODO: This Solve method should be split into Initialize, InitializeSolutionStep, SolveSolutionStep, FinalizeSolutionStep, ...
     bool PerformSolutionStep(LinearSystemType& rLinearSystem) override
@@ -601,6 +621,31 @@ public:
     //     return is_solved;
     // }
 
+    Parameters GetDefaultParameters() const override
+    {
+        Parameters default_parameters( R"({
+            "solver_type" : "skyline_lu_factorization",
+            "factorize_at_each_step" : true
+        })");
+        default_parameters.AddMissingParameters(BaseType::GetDefaultParameters());
+
+        return default_parameters;
+    }
+
+    ///@}
+    ///@name Access
+    ///@{
+
+
+    ///@}
+    ///@name Inquiry
+    ///@{
+
+
+    ///@}
+    ///@name Input and output
+    ///@{
+
     /// Print information about this object.
     void  PrintInfo(std::ostream& rOStream) const override
     {
@@ -612,6 +657,90 @@ public:
     {
     }
 
+    ///@}
+
+protected:
+    ///@name Protected static Member Variables
+    ///@{
+
+
+    ///@}
+    ///@name Protected member Variables
+    ///@{
+
+
+    ///@}
+    ///@name Protected Operators
+    ///@{
+
+
+    ///@}
+    ///@name Protected Operations
+    ///@{
+
+    void AssignSettings(const Parameters& Settings) override
+    {
+        // Assign base class settings
+        BaseType::AssignSettings(Settings);
+
+        // Assign input settings to member variables
+        mFactorizeAtEachStep = Settings["factorize_at_each_step"].GetBool();
+    }
+
+    ///@}
+    ///@name Protected  Access
+    ///@{
+
+
+    ///@}
+    ///@name Protected Inquiry
+    ///@{
+
+
+    ///@}
+    ///@name Protected LifeCycle
+    ///@{
+
+
+    ///@}
+
+private:
+    ///@name Static Member Variables
+    ///@{
+
+
+    ///@}
+    ///@name Member Variables
+    ///@{
+
+    bool mFactorizeAtEachStep;
+
+    ///@}
+    ///@name Private Operators
+    ///@{
+
+
+    ///@}
+    ///@name Private Operations
+    ///@{
+
+
+    ///@}
+    ///@name Private  Access
+    ///@{
+
+
+    ///@}
+    ///@name Private Inquiry
+    ///@{
+
+
+    ///@}
+    ///@name Un accessible methods
+    ///@{
+
+
+    ///@}
 }; // Class SkylineLUFactorizationSolver
 
 
