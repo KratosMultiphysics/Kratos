@@ -46,7 +46,10 @@ class TestRelaxedGradientProjectionAnalysis(KratosUnittest.TestCase):
             value = constraint.CalculateStandardizedValue(control_field)
             w = constraint.ComputeW()
             self.assertAlmostEqual(w, 1.0)
-            value = constraint.CalculateStandardizedValue(control_field * 2)
+            cta = Kratos.TensorAdaptors.DoubleCombinedTensorAdaptor(control_field, perform_store_data_recursively=False)
+            cta.data[:] *= 2.0
+            cta.StoreData()
+            value = constraint.CalculateStandardizedValue(cta)
             constraint.UpdateBufferSize()
             w = constraint.ComputeW()
             self.assertAlmostEqual(w, 0.0)
@@ -58,7 +61,10 @@ class TestRelaxedGradientProjectionAnalysis(KratosUnittest.TestCase):
             self.assertAlmostEqual(constraint.CF, 1)
 
             algorithm._optimization_problem.AdvanceStep()
-            value = constraint.CalculateStandardizedValue(control_field*0.001)
+            cta = Kratos.TensorAdaptors.DoubleCombinedTensorAdaptor(control_field, perform_store_data_recursively=False)
+            cta.data[:] *= 0.001
+            cta.StoreData()
+            value = constraint.CalculateStandardizedValue(cta)
             constraint.UpdateBufferSize()
             w = constraint.ComputeW()
             self.assertAlmostEqual(w, 0.6714966387273962)

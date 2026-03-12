@@ -15,7 +15,6 @@
 
 // Project includes
 #include "includes/model_part.h"
-#include "expression/literal_flat_expression.h"
 #include "utilities/model_part_utils.h"
 
 // Application includes
@@ -60,13 +59,21 @@ NearestEntityExplicitDamping<TContainerType>::NearestEntityExplicitDamping(
 }
 
 template <class TContainerType>
-void NearestEntityExplicitDamping<TContainerType>::SetRadius(const ContainerExpression<TContainerType>& rDampingRadiusExpression)
+void NearestEntityExplicitDamping<TContainerType>::SetRadius(TensorAdaptor<double>::Pointer pDampingRadiusTensorAdaptor)
 {
-    mpDampingRadius = rDampingRadiusExpression.Clone();
+    KRATOS_TRY
+
+    KRATOS_ERROR_IF_NOT(std::holds_alternative<typename TContainerType::Pointer>(pDampingRadiusTensorAdaptor->GetContainer()))
+        << "Radius container type and the explicit damping type container mismatch [ "
+        << "tensor adaptor = " << *pDampingRadiusTensorAdaptor << " ].\n";
+
+    mpDampingRadius = pDampingRadiusTensorAdaptor;
+
+    KRATOS_CATCH("");
 }
 
 template <class TContainerType>
-typename ContainerExpression<TContainerType>::Pointer NearestEntityExplicitDamping<TContainerType>::GetRadius() const
+TensorAdaptor<double>::Pointer NearestEntityExplicitDamping<TContainerType>::GetRadius() const
 {
     return mpDampingRadius;
 }
@@ -89,16 +96,10 @@ void NearestEntityExplicitDamping<TContainerType>::Update()
     KRATOS_TRY
 
     const auto stride = this->GetStride();
-    auto& r_container = mpDampingRadius->GetContainer();
-    const auto& r_damping_radius = mpDampingRadius->GetExpression();
+    auto& r_container = *(std::get<typename TContainerType::Pointer>(mpDampingRadius->GetContainer()));
+    const auto radius_view = mpDampingRadius->ViewData();
 
-    // first create the output expression with correct required shape
-    LiteralFlatExpression<double>::Pointer p_output_expression;
-    if (stride == 1) {
-        p_output_expression = LiteralFlatExpression<double>::Create(r_container.size(), {});
-    } else {
-        p_output_expression = LiteralFlatExpression<double>::Create(r_container.size(), {stride});
-    }
+    mDampingCoefficients.resize(radius_view.size(), stride);
 
     for (IndexType i_comp = 0; i_comp < stride; ++i_comp) {
         auto& r_damped_model_parts = mComponentWiseDampedModelParts[i_comp];
@@ -120,8 +121,8 @@ void NearestEntityExplicitDamping<TContainerType>::Update()
         }
 
         if (damped_entities.empty()) {
-            IndexPartition<IndexType>(r_container.size()).for_each([&p_output_expression, stride, i_comp](const auto Index) {
-                *(p_output_expression->begin() + Index * stride + i_comp) = 1.0;
+            IndexPartition<IndexType>(r_container.size()).for_each([this, i_comp](const auto Index) {
+                this->mDampingCoefficients(Index, i_comp) = 1.0;
             });
         } else {
             // now construct the kd tree
@@ -129,21 +130,17 @@ void NearestEntityExplicitDamping<TContainerType>::Update()
             const auto& kernel_function = *mpKernelFunction;
 
             // now calculate the damping for each entity
-            IndexPartition<IndexType>(r_container.size()).for_each([&p_output_expression, &r_container, &p_search_tree, &kernel_function, &r_damping_radius, stride, i_comp](const auto Index){
+            IndexPartition<IndexType>(r_container.size()).for_each([this, &r_container, &p_search_tree, &kernel_function, &radius_view, i_comp](const auto Index){
                 EntityPointType entity_point(*(r_container.begin() + Index), Index);
-                const auto data_begin_index = Index * stride;
-                const auto radius = r_damping_radius.Evaluate(Index, Index, 0);
+                const auto radius = radius_view[Index];
 
                 double squared_distance;
                 auto p_nearest_damped_entity_point = p_search_tree->SearchNearestPoint(entity_point, squared_distance);
 
-                double& value = *(p_output_expression->begin() + data_begin_index + i_comp);
-                value = 1.0 - kernel_function.ComputeWeight(radius, std::sqrt(squared_distance));
+                this->mDampingCoefficients(Index, i_comp) = 1.0 - kernel_function.ComputeWeight(radius, std::sqrt(squared_distance));
             });
         }
     }
-
-    mpDampingCoefficients = p_output_expression;
 
     KRATOS_CATCH("");
 }
@@ -158,12 +155,10 @@ void NearestEntityExplicitDamping<TContainerType>::NearestEntityExplicitDamping:
 {
     KRATOS_TRY
 
-    const auto data_begin_index = Index * this->GetStride();
-
     for (IndexType i_comp = 0; i_comp < this->GetStride(); ++i_comp) {
         auto& r_damped_weights = rDampedWeights[i_comp];
         for (IndexType i_neighbour = 0; i_neighbour < NumberOfNeighbours; ++i_neighbour) {
-            r_damped_weights[i_neighbour] = rWeights[i_neighbour] * mpDampingCoefficients->Evaluate(Index, data_begin_index,  i_comp);
+            r_damped_weights[i_neighbour] = rWeights[i_neighbour] * mDampingCoefficients(Index, i_comp);
         }
     }
 
@@ -178,8 +173,7 @@ void NearestEntityExplicitDamping<TContainerType>::NearestEntityExplicitDamping:
     KRATOS_TRY
 
     const auto stride = this->GetStride();
-    const auto& r_expression = *mpDampingCoefficients;
-    const auto number_of_entities = r_expression.NumberOfEntities();
+    const auto number_of_entities = mDampingCoefficients.size1();
 
     KRATOS_ERROR_IF_NOT(ComponentIndex < stride)
         << "Invalid component index [ component index = " << ComponentIndex
@@ -191,8 +185,8 @@ void NearestEntityExplicitDamping<TContainerType>::NearestEntityExplicitDamping:
 
     rOutput.clear();
 
-    IndexPartition<IndexType>(number_of_entities).for_each([&rOutput, &r_expression, stride, ComponentIndex, number_of_entities](const auto Index) {
-        *(rOutput.data().begin() + Index * number_of_entities + Index) = r_expression.Evaluate(Index, Index * stride, ComponentIndex);
+    IndexPartition<IndexType>(number_of_entities).for_each([this, &rOutput, ComponentIndex, number_of_entities](const auto Index) {
+        *(rOutput.data().begin() + Index * number_of_entities + Index) = this->mDampingCoefficients(Index, ComponentIndex);
     });
 
     KRATOS_CATCH("");
