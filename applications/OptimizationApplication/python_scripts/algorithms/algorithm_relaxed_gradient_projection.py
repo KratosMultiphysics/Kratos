@@ -1,5 +1,5 @@
+import numpy
 import KratosMultiphysics as Kratos
-import KratosMultiphysics.OptimizationApplication as KratosOA
 from KratosMultiphysics.OptimizationApplication.utilities.optimization_problem import OptimizationProblem
 from KratosMultiphysics.OptimizationApplication.algorithms.standardized_objective import StandardizedObjective
 from KratosMultiphysics.OptimizationApplication.controls.master_control import MasterControl
@@ -10,8 +10,6 @@ from KratosMultiphysics.OptimizationApplication.algorithms.standardized_rgp_cons
 from KratosMultiphysics.LinearSolversApplication.dense_linear_solver_factory import ConstructSolver
 from KratosMultiphysics.OptimizationApplication.utilities.logger_utilities import time_decorator
 from KratosMultiphysics.OptimizationApplication.utilities.logger_utilities import OptimizationAlgorithmTimeLogger
-from KratosMultiphysics.OptimizationApplication.utilities.list_collective_expression_utilities import CollectiveListCollectiveProduct
-from KratosMultiphysics.OptimizationApplication.utilities.list_collective_expression_utilities import CollectiveListVectorProduct
 from KratosMultiphysics.OptimizationApplication.utilities.logger_utilities import ListLogger
 import math
 
@@ -94,36 +92,42 @@ class AlgorithmRelaxedGradientProjection(AlgorithmGradientProjection):
         return self.history_size
 
     @time_decorator()
-    def ComputeSearchDirection(self, obj_grad: KratosOA.CollectiveExpression, constr_grad: 'list[KratosOA.CollectiveExpression]', w_r: Kratos.Vector, w_c: Kratos.Vector) -> KratosOA.CollectiveExpression:
+    def ComputeSearchDirection(self, obj_grad: Kratos.TensorAdaptors.DoubleCombinedTensorAdaptor, constr_grad: 'list[Kratos.TensorAdaptors.DoubleCombinedTensorAdaptor]', w_r: Kratos.Vector, w_c: Kratos.Vector) -> Kratos.TensorAdaptors.DoubleCombinedTensorAdaptor:
         active_constraints_list = self.GetActiveConstraintsList()
         number_of_active_constraints = len(active_constraints_list)
+
+        search_direction = Kratos.TensorAdaptors.DoubleCombinedTensorAdaptor(obj_grad, perform_collect_data_recursively=False, perform_store_data_recursively=False)
+        correction = Kratos.TensorAdaptors.DoubleCombinedTensorAdaptor(search_direction)
+        projected_direction = Kratos.TensorAdaptors.DoubleCombinedTensorAdaptor(search_direction)
+
         if not number_of_active_constraints:
-            search_direction = obj_grad * -1.0
-            correction = obj_grad * 0.0
-            projected_direction = obj_grad * 0.0
+            search_direction.data[:] = obj_grad.data * -1.0
+            correction.data[:] = 0.0
+            projected_direction.data[:] = 0.0
         else:
             # scaling obj gradients
-            obj_norm = KratosOA.ExpressionUtils.NormInf(obj_grad)
+            obj_norm = numpy.linalg.norm(obj_grad.data.ravel(), ord=numpy.inf)
+            scaled_obj_grad = Kratos.TensorAdaptors.DoubleCombinedTensorAdaptor(obj_grad, perform_collect_data_recursively=False, perform_store_data_recursively=False)
             if not math.isclose(obj_norm, 0.0, abs_tol=1e-16):
-                scalled_obj_grad = obj_grad / obj_norm
-            else:
-                scalled_obj_grad = obj_grad
+                scaled_obj_grad.data[:] /= obj_norm
+                scaled_obj_grad.StoreData()
 
-            scaled_constr_grad: list[KratosOA.CollectiveExpression] = list()
+            scaled_constr_grad: 'list[Kratos.TensorAdaptors.DoubleCombinedTensorAdaptor]' = []
             lagrangian_multiplier = Kratos.Vector(number_of_active_constraints)
             for i in range(number_of_active_constraints):
                 # scaling constraints grad
-                norm = KratosOA.ExpressionUtils.NormInf(constr_grad[i])
+                norm = numpy.linalg.norm(constr_grad[i].data.ravel(), ord=numpy.inf)
+                ta = Kratos.TensorAdaptors.DoubleCombinedTensorAdaptor(constr_grad[i], perform_collect_data_recursively=False, perform_store_data_recursively=False)
+                scaled_constr_grad.append(ta)
                 if not math.isclose(norm, 0.0, abs_tol=1e-16):
-                    scaled_constr_grad.append( constr_grad[i] / norm )
-                else:
-                    scaled_constr_grad.append( constr_grad[i] )
+                    ta.data[:] /= norm
+                    ta.StoreData()
 
             # compute the projected search direction and correction
             ntn = Kratos.Matrix(number_of_active_constraints, number_of_active_constraints)
             for i in range(number_of_active_constraints):
                 for j in range(i, number_of_active_constraints):
-                    ntn[i, j] = KratosOA.ExpressionUtils.InnerProduct(scaled_constr_grad[i], scaled_constr_grad[j])
+                    ntn[i, j] = numpy.dot(scaled_constr_grad[i].data.ravel(), scaled_constr_grad[j].data.ravel())
                     ntn[j, i] = ntn[i, j]
 
             # get the inverse of ntn
@@ -137,18 +141,18 @@ class AlgorithmRelaxedGradientProjection(AlgorithmGradientProjection):
             # solve for inverse of ntn
             self.linear_solver.Solve(ntn, ntn_inverse, identity_matrix)
 
-            lagrangian_multiplier = ntn_inverse * CollectiveListCollectiveProduct(scaled_constr_grad, scalled_obj_grad)
+            lagrangian_multiplier = ntn_inverse * self._CollectiveListCollectiveProduct(scaled_constr_grad, scaled_obj_grad)
             for i in range(number_of_active_constraints):
                 if lagrangian_multiplier[i] > 0.0:
                     lagrangian_multiplier[i] = 0.0
                 else:
                     lagrangian_multiplier[i] *= w_r[i]
-            projected_direction = - (scalled_obj_grad - CollectiveListVectorProduct(scaled_constr_grad, lagrangian_multiplier))
-            correction = - CollectiveListVectorProduct(scaled_constr_grad, w_c)
-            search_direction = projected_direction + correction
-        self.algorithm_data.GetBufferedData().SetValue("search_direction", search_direction.Clone(), overwrite=True)
-        self.algorithm_data.GetBufferedData().SetValue("correction", correction.Clone(), overwrite=True)
-        self.algorithm_data.GetBufferedData().SetValue("projected_direction", projected_direction.Clone(), overwrite=True)
+            projected_direction.data[:] = - (scaled_obj_grad.data - self._CollectiveListVectorProduct(scaled_constr_grad, lagrangian_multiplier).data)
+            correction.data[:] = - self._CollectiveListVectorProduct(scaled_constr_grad, w_c).data
+            search_direction.data[:] = projected_direction.data + correction.data
+        self.algorithm_data.GetBufferedData().SetValue("search_direction", search_direction, overwrite=True)
+        self.algorithm_data.GetBufferedData().SetValue("correction", correction, overwrite=True)
+        self.algorithm_data.GetBufferedData().SetValue("projected_direction", projected_direction, overwrite=True)
 
     def ComputeBufferCoefficients(self):
         active_constraints_list = self.GetActiveConstraintsList()
@@ -166,17 +170,19 @@ class AlgorithmRelaxedGradientProjection(AlgorithmGradientProjection):
             return w_r, w_c
 
     @time_decorator()
-    def ComputeControlUpdate(self, alpha) -> KratosOA.CollectiveExpression:
-        search_direction = self.algorithm_data.GetBufferedData()["search_direction"]
-        update = KratosOA.ExpressionUtils.Scale(search_direction, alpha)
-        self.algorithm_data.GetBufferedData().SetValue("control_field_update", update.Clone(), overwrite=True)
+    def ComputeControlUpdate(self, alpha: Kratos.TensorAdaptors.DoubleCombinedTensorAdaptor) -> Kratos.TensorAdaptors.DoubleCombinedTensorAdaptor:
+        search_direction: Kratos.TensorAdaptors.DoubleCombinedTensorAdaptor = self.algorithm_data.GetBufferedData()["search_direction"]
+        update = Kratos.TensorAdaptors.DoubleCombinedTensorAdaptor(search_direction, perform_collect_data_recursively=False, perform_store_data_recursively=False)
+        update.data[:] = search_direction.data * alpha.data
+        update.StoreData()
+        self.algorithm_data.GetBufferedData().SetValue("control_field_update", update, overwrite=True)
         return update
 
-    def CheckLinearizedConstraints(self, active_constr_grad: 'list[KratosOA.CollectiveExpression]', update: KratosOA.CollectiveExpression, w_r, w_c) -> bool:
+    def CheckLinearizedConstraints(self, active_constr_grad: 'list[Kratos.TensorAdaptors.DoubleCombinedTensorAdaptor]', update: Kratos.TensorAdaptors.DoubleCombinedTensorAdaptor, w_r, w_c) -> bool:
         all_feasible = True
         active_constraints_list = self.GetActiveConstraintsList()
         for i, constraint in enumerate(active_constraints_list):
-            predicted_value = constraint.GetStandardizedValue() + KratosOA.ExpressionUtils.InnerProduct(active_constr_grad[i], update)
+            predicted_value = constraint.GetStandardizedValue() + numpy.dot(active_constr_grad[i].data.ravel(), update.data.ravel())
             print(f"RGP Constraint {constraint.GetResponseName()}:: predicted g_i {predicted_value}")
             if not constraint.IsSatisfied(predicted_value):
                 all_feasible = False
