@@ -292,24 +292,24 @@ public:
     ///@name Type Definitions
     ///@{
 
-    /// Index definition
-    typedef std::size_t IndexType;
-
-    /// Size definition
-    typedef std::size_t SizeType;
-
     /// Pointer definition of MmgProcess
     KRATOS_CLASS_POINTER_DEFINITION(Parameters);
+
+    /// Index definition
+    using IndexType = std::size_t;
+
+    /// Size definition
+    using SizeType = std::size_t;
 
     /// Definition of the iterators
     using iterator = iterator_adaptor;
     using const_iterator = const_iterator_adaptor;
 
     /// Iterators from nlohmann::json
-    typedef nlohmann::detail::iter_impl<nlohmann::json> json_iterator;
-    typedef nlohmann::detail::iter_impl<const nlohmann::json> json_const_iterator;
-    typedef nlohmann::detail::iteration_proxy<json_iterator> json_iteration_proxy;
-    typedef nlohmann::detail::iteration_proxy<json_const_iterator> json_const_iteration_proxy;
+    using json_iterator = nlohmann::detail::iter_impl<nlohmann::json>;
+    using json_const_iterator = nlohmann::detail::iter_impl<const nlohmann::json>;
+    using json_iteration_proxy = nlohmann::detail::iteration_proxy<json_iterator>;
+    using json_const_iteration_proxy = nlohmann::detail::iteration_proxy<json_const_iterator>;
 
     ///@}
     ///@name Life Cycle
@@ -924,6 +924,15 @@ public:
      */
     void RecursivelyValidateDefaults(const Parameters& rDefaultParameters) const;
 
+    /**
+     * @brief Validates the current parameters against a given JSON schema.
+     * @details This method uses the nlohmann JSON schema validator to check if the
+     * current Parameters object conforms to the structure, types, and constraints
+     * defined in the provided schema. It throws a detailed error if the validation fails.
+     * @param rSchema The Parameters object containing the JSON schema definition.
+     */
+    void Validate(const Parameters& rSchema) const;
+
     ///@}
     ///@name Access
     ///@{
@@ -931,7 +940,6 @@ public:
     ///@}
     ///@name Inquiry
     ///@{
-
 
     ///@}
     ///@name Input and output
