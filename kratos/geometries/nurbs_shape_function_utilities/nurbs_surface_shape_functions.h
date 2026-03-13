@@ -791,7 +791,7 @@ public:
         const IndexType SpanU = NurbsUtilities::GetLowerSpan(PolynomialDegreeU(), rKnotsU, ParameterU);
         const IndexType SpanV = NurbsUtilities::GetLowerSpan(PolynomialDegreeV(), rKnotsV, ParameterV);
 
-        ComputeNurbsShapeFunctionValuesAtSpan(
+        ComputeNurbsShapeFunctionValuesAtSpan1(
             rKnotsU, rKnotsV, SpanU, SpanV, Weights, ParameterU, ParameterV);
     }
 
@@ -805,7 +805,7 @@ public:
         const IndexType SpanU = NurbsUtilities::GetLowerSpan(PolynomialDegreeU(), rKnotsU, ParameterU);
         const IndexType SpanV = NurbsUtilities::GetLowerSpan(PolynomialDegreeV(), rKnotsV, ParameterV);
 
-        ComputeNurbsShapeFunctionValuesAtSpan(
+        ComputeNurbsShapeFunctionValuesAtSpan2(
             rKnotsU, rKnotsV, SpanU, SpanV, Weights, ParameterU, ParameterV);
     }
 
@@ -819,7 +819,7 @@ public:
         const IndexType SpanU = NurbsUtilities::GetLowerSpan(PolynomialDegreeU(), rKnotsU, ParameterU);
         const IndexType SpanV = NurbsUtilities::GetLowerSpan(PolynomialDegreeV(), rKnotsV, ParameterV);
 
-        ComputeNurbsShapeFunctionValuesAtSpan(
+        ComputeNurbsShapeFunctionValuesAtSpanAll(
             rKnotsU, rKnotsV, SpanU, SpanV, Weights, ParameterU, ParameterV);
     }
 
