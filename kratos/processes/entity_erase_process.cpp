@@ -167,8 +167,8 @@ const Parameters EntitiesEraseProcess<TEntity>::GetDefaultParameters() const
 /***********************************************************************************/
 /***********************************************************************************/
 
-template class EntitiesEraseProcess<Node>;
-template class EntitiesEraseProcess<Element>;
-template class EntitiesEraseProcess<Condition>;
-template class EntitiesEraseProcess<MasterSlaveConstraint>;
+template class KRATOS_API(KRATOS_CORE) EntitiesEraseProcess<Node>;
+template class KRATOS_API(KRATOS_CORE) EntitiesEraseProcess<Element>;
+template class KRATOS_API(KRATOS_CORE) EntitiesEraseProcess<Condition>;
+template class KRATOS_API(KRATOS_CORE) EntitiesEraseProcess<MasterSlaveConstraint>;
 }

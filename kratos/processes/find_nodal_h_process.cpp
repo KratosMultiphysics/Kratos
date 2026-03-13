@@ -96,7 +96,7 @@ double& FindNodalHProcess<false>::GetHValue(NodeType& rNode)
 /***********************************************************************************/
 /***********************************************************************************/
 
-template class FindNodalHProcess<true>;
-template class FindNodalHProcess<false>;
+template class KRATOS_API(KRATOS_CORE) FindNodalHProcess<true>;
+template class KRATOS_API(KRATOS_CORE) FindNodalHProcess<false>;
 
 } // namespace Kratos

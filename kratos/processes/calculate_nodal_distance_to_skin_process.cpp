@@ -49,8 +49,8 @@ double& NodalValueRetriever<false>::GetValue(
 /***********************************************************************************/
 /***********************************************************************************/
 
-template class NodalValueRetriever<true>;
-template class NodalValueRetriever<false>;
+template class KRATOS_API(KRATOS_CORE) NodalValueRetriever<true>;
+template class KRATOS_API(KRATOS_CORE) NodalValueRetriever<false>;
 
 /***********************************************************************************/
 /***********************************************************************************/

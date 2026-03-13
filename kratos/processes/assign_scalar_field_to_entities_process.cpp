@@ -633,9 +633,9 @@ PointerVectorSet<Element, IndexedObject>& AssignScalarFieldToEntitiesProcess<Ele
 /***********************************************************************************/
 /***********************************************************************************/
 
-template class AssignScalarFieldToEntitiesProcess<Node, AssignScalarFieldToEntitiesProcessSettings::SaveAsNonHistoricalVariable>;
-template class AssignScalarFieldToEntitiesProcess<Node, AssignScalarFieldToEntitiesProcessSettings::SaveAsHistoricalVariable>;
-template class AssignScalarFieldToEntitiesProcess<Condition>;
-template class AssignScalarFieldToEntitiesProcess<Element>;
+template class KRATOS_API(KRATOS_CORE) AssignScalarFieldToEntitiesProcess<Node, AssignScalarFieldToEntitiesProcessSettings::SaveAsNonHistoricalVariable>;
+template class KRATOS_API(KRATOS_CORE) AssignScalarFieldToEntitiesProcess<Node, AssignScalarFieldToEntitiesProcessSettings::SaveAsHistoricalVariable>;
+template class KRATOS_API(KRATOS_CORE) AssignScalarFieldToEntitiesProcess<Condition>;
+template class KRATOS_API(KRATOS_CORE) AssignScalarFieldToEntitiesProcess<Element>;
 
 }  // namespace Kratos.

@@ -659,9 +659,9 @@ void AssignScalarInputToEntitiesProcess<TEntity, THistorical>::InternalAssignVal
 /***********************************************************************************/
 /***********************************************************************************/
 
-template class AssignScalarInputToEntitiesProcess<Node, AssignScalarInputToEntitiesProcessSettings::SaveAsNonHistoricalVariable>;
-template class AssignScalarInputToEntitiesProcess<Node, AssignScalarInputToEntitiesProcessSettings::SaveAsHistoricalVariable>;
-template class AssignScalarInputToEntitiesProcess<Condition>;
-template class AssignScalarInputToEntitiesProcess<Element>;
+template class KRATOS_API(KRATOS_CORE) AssignScalarInputToEntitiesProcess<Node, AssignScalarInputToEntitiesProcessSettings::SaveAsNonHistoricalVariable>;
+template class KRATOS_API(KRATOS_CORE) AssignScalarInputToEntitiesProcess<Node, AssignScalarInputToEntitiesProcessSettings::SaveAsHistoricalVariable>;
+template class KRATOS_API(KRATOS_CORE) AssignScalarInputToEntitiesProcess<Condition>;
+template class KRATOS_API(KRATOS_CORE) AssignScalarInputToEntitiesProcess<Element>;
 
 }  // namespace Kratos.
