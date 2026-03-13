@@ -245,7 +245,7 @@ namespace Kratos
             const ProcessInfo& rCurrentProcessInfo);
 
         /**
-         * @brief This function calculates the current nodal postion for the transformation matrix
+         * @brief This function calculates the current nodal position for the transformation matrix
          * @param rReferenceCoordinates The current coordinates
          */
         virtual void WriteTransformationCoordinates(

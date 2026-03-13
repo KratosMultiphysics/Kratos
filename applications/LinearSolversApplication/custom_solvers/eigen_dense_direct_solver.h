@@ -84,7 +84,7 @@ public:
      * @param rX Solution vector
      * @param rB Right hand side vector
      */
-    void PerformSolutionStep(MatrixType& rA, VectorType& rX, VectorType& rB) override
+    bool PerformSolutionStep(MatrixType& rA, VectorType& rX, VectorType& rB) override
     {
         Eigen::Map<Kratos::EigenDynamicVector<DataType>> x(rX.data().begin(), rX.size());
         Eigen::Map<Kratos::EigenDynamicVector<DataType>> b(rB.data().begin(), rB.size());
@@ -92,6 +92,7 @@ public:
         const bool success = m_solver.Solve(b, x);
 
         KRATOS_ERROR_IF(!success) << "Solving failed!\n" << m_solver.GetSolverErrorMessages() << std::endl;
+        return success;
     }
 
     /**
@@ -104,9 +105,7 @@ public:
     bool Solve(MatrixType &rA, VectorType &rX, VectorType &rB) override
     {
         InitializeSolutionStep(rA, rX, rB);
-        PerformSolutionStep(rA, rX, rB);
-
-        return true;
+        return PerformSolutionStep(rA, rX, rB);
     }
 
     /** Multi solve method for solving a set of linear systems with same coefficient matrix.

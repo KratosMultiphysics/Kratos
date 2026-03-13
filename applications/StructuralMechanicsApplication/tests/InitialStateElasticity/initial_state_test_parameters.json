@@ -61,7 +61,6 @@
             "kratos_module" : "KratosMultiphysics",
             "process_name"  : "set_initial_state_process",
             "Parameters"    : {
-            "mesh_id"         : 0,
             "model_part_name" : "Structure",
             "dimension"       : 3,
             "imposed_strain"  : [0.1,0,0,0,0,0],

@@ -28,6 +28,7 @@ public:
 
     MOCK_METHOD(void, EquationIdVector, (EquationIdVectorType&, const ProcessInfo&), (const, override));
     MOCK_METHOD(void, GetDofList, (DofsVectorType&, const ProcessInfo&), (const, override));
+    MOCK_METHOD(void, Initialize, (const ProcessInfo&), (override));
 
     bool IsSolutionStepInitialized() const;
     bool IsSolutionStepFinalized() const;

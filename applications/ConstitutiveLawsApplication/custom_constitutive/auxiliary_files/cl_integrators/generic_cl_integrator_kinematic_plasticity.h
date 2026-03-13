@@ -87,13 +87,13 @@ class GenericConstitutiveLawIntegratorKinematicPlasticity
     static constexpr SizeType VoigtSize = YieldSurfaceType::VoigtSize;
 
     /// The definition of the Voigt array type
-    typedef array_1d<double, VoigtSize> BoundedArrayType;
+    using BoundedArrayType = array_1d<double, VoigtSize>;
 
     /// The definition of the bounded matrix type
-    typedef BoundedMatrix<double, Dimension, Dimension> BoundedMatrixType;
+    using BoundedMatrixType = BoundedMatrix<double, Dimension, Dimension>;
 
     /// The type of plastic potential
-    typedef typename YieldSurfaceType::PlasticPotentialType PlasticPotentialType;
+    using PlasticPotentialType = typename YieldSurfaceType::PlasticPotentialType;
 
     /// Counted pointer of GenericConstitutiveLawIntegratorKinematicPlasticity
     KRATOS_CLASS_POINTER_DEFINITION(GenericConstitutiveLawIntegratorKinematicPlasticity);
@@ -154,7 +154,7 @@ class GenericConstitutiveLawIntegratorKinematicPlasticity
     ///@{
 
     /**
-     * @brief This method integrates the predictive stress vector with the CL using differents evolution laws using the backward euler scheme
+     * @brief This method integrates the predictive stress vector with the CL using different evolution laws using the backward euler scheme
      * @param rPredictiveStressVector The predictive stress vector S = C:(E-Ep)
      * @param rStrainVector The equivalent strain vector of that integration point
      * @param rUniaxialStress The equivalent uniaxial stress

@@ -12,11 +12,10 @@
 
 #include "containers/model.h"
 #include "custom_conditions/T_microclimate_flux_condition.h"
+#include "custom_utilities/ublas_utilities.h"
 #include "geometries/line_2d_4.h"
 #include "geometries/line_2d_5.h"
 #include "tests/cpp_tests/geo_mechanics_fast_suite.h"
-
-#include <boost/numeric/ublas/assignment.hpp>
 
 using namespace Kratos;
 using namespace boost::numeric::ublas;
@@ -122,12 +121,13 @@ ModelPart& CreateDummyModelPartWithNodes(Model& rModel, const std::function<void
     return r_result;
 }
 
-intrusive_ptr<Condition> CreateMicroClimateCondition(ModelPart&             rModelPart,
-                                                     shared_ptr<Properties> pProperties,
-                                                     std::size_t            DimensionSize)
+intrusive_ptr<Condition> CreateMicroClimateCondition(ModelPart&                    rModelPart,
+                                                     const shared_ptr<Properties>& rpProperties,
+                                                     std::size_t                   DimensionSize)
 {
     auto r_nodes  = rModelPart.Nodes();
     auto node_ids = std::vector<ModelPart::IndexType>{};
+    node_ids.reserve(r_nodes.size());
     std::transform(r_nodes.begin(), r_nodes.end(), std::back_inserter(node_ids),
                    [](const auto& node) { return node.Id(); });
 
@@ -138,31 +138,31 @@ intrusive_ptr<Condition> CreateMicroClimateCondition(ModelPart&             rMod
     Condition::Pointer condition = nullptr;
     if (DimensionSize == 2 && node_ids.size() == 2) {
         condition = make_intrusive<GeoTMicroClimateFluxCondition<2, 2>>(
-            1, Kratos::make_shared<Line2D2<Node>>(node_pointers), pProperties);
+            1, Kratos::make_shared<Line2D2<Node>>(node_pointers), rpProperties);
     } else if (DimensionSize == 2 && node_ids.size() == 3) {
         condition = make_intrusive<GeoTMicroClimateFluxCondition<2, 3>>(
-            1, Kratos::make_shared<Line2D3<Node>>(node_pointers), pProperties);
+            1, Kratos::make_shared<Line2D3<Node>>(node_pointers), rpProperties);
     } else if (DimensionSize == 2 && node_ids.size() == 4) {
         condition = make_intrusive<GeoTMicroClimateFluxCondition<2, 4>>(
-            1, Kratos::make_shared<Line2D4<Node>>(node_pointers), pProperties);
+            1, Kratos::make_shared<Line2D4<Node>>(node_pointers), rpProperties);
     } else if (DimensionSize == 2 && node_ids.size() == 5) {
         condition = make_intrusive<GeoTMicroClimateFluxCondition<2, 5>>(
-            1, Kratos::make_shared<Line2D5<Node>>(node_pointers), pProperties);
+            1, Kratos::make_shared<Line2D5<Node>>(node_pointers), rpProperties);
     } else if (DimensionSize == 3 && node_ids.size() == 3) {
         condition = make_intrusive<GeoTMicroClimateFluxCondition<3, 3>>(
-            1, Kratos::make_shared<Triangle3D3<Node>>(node_pointers), pProperties);
+            1, Kratos::make_shared<Triangle3D3<Node>>(node_pointers), rpProperties);
     } else if (DimensionSize == 3 && node_ids.size() == 6) {
         condition = make_intrusive<GeoTMicroClimateFluxCondition<3, 6>>(
-            1, Kratos::make_shared<Triangle3D6<Node>>(node_pointers), pProperties);
+            1, Kratos::make_shared<Triangle3D6<Node>>(node_pointers), rpProperties);
     } else if (DimensionSize == 3 && node_ids.size() == 4) {
         condition = make_intrusive<GeoTMicroClimateFluxCondition<3, 4>>(
-            1, Kratos::make_shared<Quadrilateral3D4<Node>>(node_pointers), pProperties);
+            1, Kratos::make_shared<Quadrilateral3D4<Node>>(node_pointers), rpProperties);
     } else if (DimensionSize == 3 && node_ids.size() == 8) {
         condition = make_intrusive<GeoTMicroClimateFluxCondition<3, 8>>(
-            1, Kratos::make_shared<Quadrilateral3D8<Node>>(node_pointers), pProperties);
+            1, Kratos::make_shared<Quadrilateral3D8<Node>>(node_pointers), rpProperties);
     } else if (DimensionSize == 3 && node_ids.size() == 9) {
         condition = make_intrusive<GeoTMicroClimateFluxCondition<3, 9>>(
-            1, Kratos::make_shared<Quadrilateral3D9<Node>>(node_pointers), pProperties);
+            1, Kratos::make_shared<Quadrilateral3D9<Node>>(node_pointers), rpProperties);
     }
 
     KRATOS_ERROR_IF_NOT(condition) << "Condition could not be created" << std::endl;
@@ -171,10 +171,10 @@ intrusive_ptr<Condition> CreateMicroClimateCondition(ModelPart&             rMod
     return condition;
 }
 
-std::string ExecuteInitializeSolutionStep(intrusive_ptr<Condition> pCondition, const ProcessInfo& rProcessInfo)
+std::string ExecuteInitializeSolutionStep(const intrusive_ptr<Condition>& rpCondition, const ProcessInfo& rProcessInfo)
 {
     try {
-        pCondition->InitializeSolutionStep(rProcessInfo);
+        rpCondition->InitializeSolutionStep(rProcessInfo);
     } catch (const Exception& e) {
         return e.what();
     }
@@ -389,16 +389,11 @@ KRATOS_TEST_CASE_IN_SUITE(CalculateLocalSystemForThermalMicroClimateCondition2D3
     Vector rhs_vector;
     p_condition->CalculateLocalSystem(lhs_matrix, rhs_vector, r_model_part.GetProcessInfo());
 
-    auto expected_lhs_matrix = Matrix{3, 3, 0.0};
-    // clang-format off
-    expected_lhs_matrix <<= 21.2568,  -8.50271, 25.5081,
-                            -8.50271, 12.7541,   8.50271,
-                            25.5081,   8.50271, 68.0217;
-    // clang-format on
+    const auto expected_lhs_matrix = UblasUtilities::CreateMatrix(
+        {{21.2568, -8.50271, 25.5081}, {-8.50271, 12.7541, 8.50271}, {25.5081, 8.50271, 68.0217}});
     KRATOS_EXPECT_MATRIX_RELATIVE_NEAR(expected_lhs_matrix, lhs_matrix, relative_tolerance)
 
-    auto expected_rhs_vector = Vector{3, 0.0};
-    expected_rhs_vector <<= -76.6356, -25.5452, -204.362;
+    const auto expected_rhs_vector = UblasUtilities::CreateVector({-76.6356, -25.5452, -204.362});
     KRATOS_EXPECT_VECTOR_RELATIVE_NEAR(expected_rhs_vector, rhs_vector, relative_tolerance)
 }
 
@@ -420,19 +415,17 @@ KRATOS_TEST_CASE_IN_SUITE(CalculateLocalSystemForThermalMicroClimateCondition3D6
     Vector rhs_vector;
     p_condition->CalculateLocalSystem(lhs_matrix, rhs_vector, r_model_part.GetProcessInfo());
 
-    auto expected_lhs_matrix = Matrix{6, 6, 0.0};
-    // clang-format off
-    expected_lhs_matrix <<= 1.95146,  -0.975729, -0.975729,  0.975729, -1.95146,   0.975729,
-                           -0.975729,  1.95146,  -0.975729,  0.975729,  0.975729, -1.95146,
-                           -0.975729, -0.975729,  1.95146,  -1.95146,   0.975729,  0.975729,
-                            0.975729,  0.975729, -1.95146,  10.733,     7.80583,   7.80583,
-                           -1.95146,   0.975729,  0.975729,  7.80583,  10.733,     7.80583,
-                            0.975729, -1.95146,   0.975729,  7.80583,   7.80583,  10.733;
-    // clang-format on
+    const auto expected_lhs_matrix =
+        UblasUtilities::CreateMatrix({{1.95146, -0.975729, -0.975729, 0.975729, -1.95146, 0.975729},
+                                      {-0.975729, 1.95146, -0.975729, 0.975729, 0.975729, -1.95146},
+                                      {-0.975729, -0.975729, 1.95146, -1.95146, 0.975729, 0.975729},
+                                      {0.975729, 0.975729, -1.95146, 10.733, 7.80583, 7.80583},
+                                      {-1.95146, 0.975729, 0.975729, 7.80583, 10.733, 7.80583},
+                                      {0.975729, -1.95146, 0.975729, 7.80583, 7.80583, 10.733}});
     KRATOS_EXPECT_MATRIX_RELATIVE_NEAR(expected_lhs_matrix, lhs_matrix, relative_tolerance)
 
-    auto expected_rhs_vector = Vector{6, 0.0};
-    expected_rhs_vector <<= 0.0, 0.0, 0.0, -52.7659, -52.7659, -52.7659;
+    const auto expected_rhs_vector =
+        UblasUtilities::CreateVector({0.0, 0.0, 0.0, -52.7659, -52.7659, -52.7659});
     // To compare computed zeros (the first three elements of 'rhs_vector') use an absolute_tolerance
     KRATOS_EXPECT_VECTOR_NEAR(expected_rhs_vector, rhs_vector, absolute_tolerance)
 }
@@ -454,22 +447,20 @@ KRATOS_TEST_CASE_IN_SUITE(CalculateLocalSystemForThermalMicroClimateCondition3D8
     Vector rhs_vector;
     p_condition->CalculateLocalSystem(lhs_matrix, rhs_vector, r_model_part.GetProcessInfo());
 
-    auto expected_lhs_matrix = Matrix{8, 8, 0.0};
-    // clang-format off
-    expected_lhs_matrix <<= 5.26894,  1.75631,  2.63447,  1.75631, -5.26894, -7.02525, -7.02525, -5.26894,
-                            1.75631,  5.26894,  1.75631,  2.63447, -5.26894, -5.26894, -7.02525, -7.02525,
-                            2.63447,  1.75631,  5.26894,  1.75631, -7.02525, -5.26894, -5.26894, -7.02525,
-                            1.75631,  2.63447,  1.75631,  5.26894, -7.02525, -7.02525, -5.26894, -5.26894,
-                           -5.26894, -5.26894, -7.02525, -7.02525, 28.101,   17.5631,  14.0505,  17.5631,
-                           -7.02525, -5.26894, -5.26894, -7.02525, 17.5631,  28.101,   17.5631,  14.0505,
-                           -7.02525, -7.02525, -5.26894, -5.26894, 14.0505,  17.5631,  28.101,   17.5631,
-                           -5.26894, -7.02525, -7.02525, -5.26894, 17.5631,  14.0505,  17.5631,  28.101;
-    // clang-format on
+    const auto expected_lhs_matrix = UblasUtilities::CreateMatrix(
+        {{5.26894, 1.75631, 2.63447, 1.75631, -5.26894, -7.02525, -7.02525, -5.26894},
+         {1.75631, 5.26894, 1.75631, 2.63447, -5.26894, -5.26894, -7.02525, -7.02525},
+         {2.63447, 1.75631, 5.26894, 1.75631, -7.02525, -5.26894, -5.26894, -7.02525},
+         {1.75631, 2.63447, 1.75631, 5.26894, -7.02525, -7.02525, -5.26894, -5.26894},
+         {-5.26894, -5.26894, -7.02525, -7.02525, 28.101, 17.5631, 14.0505, 17.5631},
+         {-7.02525, -5.26894, -5.26894, -7.02525, 17.5631, 28.101, 17.5631, 14.0505},
+         {-7.02525, -7.02525, -5.26894, -5.26894, 14.0505, 17.5631, 28.101, 17.5631},
+         {-5.26894, -7.02525, -7.02525, -5.26894, 17.5631, 14.0505, 17.5631, 28.101}});
 
     KRATOS_EXPECT_MATRIX_RELATIVE_NEAR(expected_lhs_matrix, lhs_matrix, relative_tolerance)
 
-    auto expected_rhs_vector = Vector{8, 0.0};
-    expected_rhs_vector <<= 26.383, 26.383, 26.383, 26.383, -105.532, -105.532, -105.532, -105.532;
+    const auto expected_rhs_vector = UblasUtilities::CreateVector(
+        {26.383, 26.383, 26.383, 26.383, -105.532, -105.532, -105.532, -105.532});
     KRATOS_EXPECT_VECTOR_RELATIVE_NEAR(expected_rhs_vector, rhs_vector, relative_tolerance)
 }
 

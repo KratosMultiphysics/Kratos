@@ -28,7 +28,6 @@
         "compute_reactions":                  false,
         "move_mesh_flag":                     false,
         "reform_dofs_at_each_step":           false,
-        "nodal_smoothing":                    false,
         "block_builder":                      true,
         "solution_type":                      "Quasi-static",
         "scheme_type":                        "Backward_Euler",
@@ -61,7 +60,6 @@
             "scaling":       true
         },
         "problem_domain_sub_model_part_list": ["soil"],
-        "processes_sub_model_part_list":      ["Body_Acceleration-auto-1","Top","Base"],
         "body_domain_sub_model_part_list":    ["soil"]
     },
     "output_processes": {
@@ -150,7 +148,7 @@
             "table":           [0,0,0]
         }
     }],
-        "auxiliar_process_list": [
+        "auxiliary_process_list": [
       {
         "python_module": "geo_extrapolate_integration_point_values_to_nodes_process",
         "kratos_module": "KratosMultiphysics.GeoMechanicsApplication",

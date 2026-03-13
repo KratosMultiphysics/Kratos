@@ -26,6 +26,7 @@
 #include "includes/model_part.h"
 #include "response_functions/adjoint_response_function.h"
 #include "solving_strategies/schemes/sensitivity_builder_scheme.h"
+#include "utilities/sensitivity_utilities.h"
 
 namespace Kratos
 {
@@ -67,18 +68,10 @@ public:
         explicit SensitivityVariables(const std::string& rName)
         {
             KRATOS_TRY;
-            const std::string output_suffix = "_SENSITIVITY";
+
             pDesignVariable = &KratosComponents<Variable<TDataType>>::Get(rName);
-            if (rName.size() > output_suffix.size() &&
-                std::equal(output_suffix.rbegin(), output_suffix.rend(), rName.rbegin()))
-            {
-                pOutputVariable = pDesignVariable;
-            }
-            else
-            {
-                pOutputVariable =
-                    &KratosComponents<Variable<TDataType>>::Get(rName + output_suffix);
-            }
+            pOutputVariable = &KratosComponents<Variable<TDataType>>::Get(SensitivityUtilities::GetSensitivityVariableName(*pDesignVariable));
+            
             KRATOS_CATCH("");
         }
     };

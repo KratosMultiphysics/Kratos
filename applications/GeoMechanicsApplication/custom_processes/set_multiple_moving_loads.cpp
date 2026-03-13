@@ -10,12 +10,15 @@
 //  Main authors:    Jonathan Nuttall
 //
 #include "set_multiple_moving_loads.h"
-#include "includes/variables.h"
+#include "includes/kratos_parameters.h"
+#include "includes/model_part.h"
 
 namespace Kratos
 {
-SetMultipleMovingLoadsProcess::SetMultipleMovingLoadsProcess(ModelPart& rModelPart, const Parameters& rSettings)
-    : mrModelPart(rModelPart), mParameters(rSettings)
+using namespace std::string_literals;
+
+SetMultipleMovingLoadsProcess::SetMultipleMovingLoadsProcess(ModelPart& rModelPart, const Parameters& rProcessSettings)
+    : mrModelPart(rModelPart), mParameters(rProcessSettings)
 {
     Parameters default_parameters(R"(
         {
@@ -135,4 +138,6 @@ void SetMultipleMovingLoadsProcess::ExecuteFinalizeSolutionStep()
         rMovingPointLoad->ExecuteFinalizeSolutionStep();
     }
 }
+
+std::string SetMultipleMovingLoadsProcess::Info() const { return "SetMultipleMovingLoadsProcess"s; }
 } // namespace Kratos

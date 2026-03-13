@@ -219,6 +219,115 @@ public:
     {
         KRATOS_TRY;
 
+        // Start of TEMP: These are moved here to comply to pr #13432
+        // Particle to Grid mapping for elements is done here because predict needs the velocity field (PR #13432)        
+        const ProcessInfo& r_current_process_info = rModelPart.GetProcessInfo();
+        const double delta_time = r_current_process_info[DELTA_TIME];
+
+        // Initializing Bossak constants
+        // This is not related to our change, but related to Bossak temporary fix.
+        // Bossak scheme  
+        mBossak.c0 = ( 1.0 / (mBossak.beta * delta_time * delta_time) );
+        mBossak.c1 = ( mBossak.gamma / (mBossak.beta * delta_time) );
+        mBossak.c2 = ( 1.0 / (mBossak.beta * delta_time) );
+        mBossak.c3 = ( 0.5 / (mBossak.beta) - 1.0 );
+        mBossak.c4 = ( (mBossak.gamma / mBossak.beta) - 1.0  );
+        mBossak.c5 = ( delta_time * 0.5 * ( ( mBossak.gamma / mBossak.beta ) - 2.0 ) );
+
+        // Loop over the grid nodes performed to clear all nodal information
+        block_for_each(rModelPart.Nodes(), [&](Node& rNode)
+		{
+            // Variables to be cleaned
+            double & r_nodal_mass     = rNode.FastGetSolutionStepValue(NODAL_MASS);
+            array_1d<double, 3 > & r_nodal_momentum = rNode.FastGetSolutionStepValue(NODAL_MOMENTUM);
+            array_1d<double, 3 > & r_nodal_inertia  = rNode.FastGetSolutionStepValue(NODAL_INERTIA);
+
+            array_1d<double, 3 > & r_nodal_displacement = rNode.FastGetSolutionStepValue(DISPLACEMENT);
+            array_1d<double, 3 > & r_nodal_velocity     = rNode.FastGetSolutionStepValue(VELOCITY,1);
+            array_1d<double, 3 > & r_nodal_acceleration = rNode.FastGetSolutionStepValue(ACCELERATION,1);
+
+            double & r_nodal_old_pressure = rNode.FastGetSolutionStepValue(PRESSURE,1);
+            double & r_nodal_pressure = rNode.FastGetSolutionStepValue(PRESSURE);
+
+            // Clear
+            r_nodal_mass = 0.0;
+            r_nodal_momentum.clear();
+            r_nodal_inertia.clear();
+
+            r_nodal_displacement.clear();
+            r_nodal_velocity.clear();
+            r_nodal_acceleration.clear();
+            r_nodal_old_pressure = 0.0;
+            r_nodal_pressure = 0.0;
+
+            // Other additional variables
+            if (rNode.SolutionStepsDataHas(NODAL_AREA)){
+                double & r_nodal_area = rNode.FastGetSolutionStepValue(NODAL_AREA);
+                r_nodal_area          = 0.0;
+            }
+            if(rNode.SolutionStepsDataHas(NODAL_MPRESSURE)) {
+                double & r_nodal_mpressure = rNode.FastGetSolutionStepValue(NODAL_MPRESSURE);
+                r_nodal_mpressure = 0.0;
+            }
+
+            // friction-related
+            if(mFrictionIsActive){
+                rNode.FastGetSolutionStepValue(STICK_FORCE).clear();
+                rNode.FastGetSolutionStepValue(FRICTION_STATE) = mRotationTool.GetSlidingState();
+                rNode.SetValue(FRICTION_ASSIGNED, false);
+            }
+		});
+
+        // Extrapolate from Material Point Elements and Conditions (P2G Mapping)
+        const auto &r_elements_array = rModelPart.Elements();
+        const std::size_t n_elems = r_elements_array.size();
+        IndexPartition<std::size_t>(n_elems).for_each([&](std::size_t i_elem) {
+            auto it_elem = r_elements_array.begin() + i_elem;
+
+            it_elem->AddExplicitContribution(r_current_process_info);
+        });
+
+        // Assign nodal variables after extrapolation
+        block_for_each(rModelPart.Nodes(), [&](Node& rNode)
+        {
+            const double & r_nodal_mass = rNode.FastGetSolutionStepValue(NODAL_MASS);
+
+            if (r_nodal_mass > std::numeric_limits<double>::epsilon())
+            {
+                const array_1d<double, 3 > & r_nodal_momentum   = rNode.FastGetSolutionStepValue(NODAL_MOMENTUM);
+                const array_1d<double, 3 > & r_nodal_inertia    = rNode.FastGetSolutionStepValue(NODAL_INERTIA);
+
+                array_1d<double, 3 > & r_previous_velocity     = rNode.FastGetSolutionStepValue(VELOCITY,1);
+                array_1d<double, 3 > & r_previous_acceleration = rNode.FastGetSolutionStepValue(ACCELERATION,1);
+                double & r_previous_pressure = rNode.FastGetSolutionStepValue(PRESSURE,1);
+
+                double delta_nodal_pressure = 0.0;
+
+                // For mixed formulation
+                if (rNode.HasDofFor(PRESSURE) && rNode.SolutionStepsDataHas(NODAL_MPRESSURE))
+                {
+                    double & nodal_mpressure = rNode.FastGetSolutionStepValue(NODAL_MPRESSURE);
+                    delta_nodal_pressure = nodal_mpressure/r_nodal_mass;
+                }
+
+                const array_1d<double, 3 > delta_nodal_velocity = r_nodal_momentum/r_nodal_mass;
+                const array_1d<double, 3 > delta_nodal_acceleration = r_nodal_inertia/r_nodal_mass;
+
+                r_previous_velocity += delta_nodal_velocity;
+                r_previous_acceleration += delta_nodal_acceleration;
+
+                r_previous_pressure += delta_nodal_pressure;
+
+                // mark nodes which have non-zero momentum in the 1st timestep s.t. these nodes can have
+                // an initial friction state of SLIDING instead of STICK
+                if(mFrictionIsActive){
+                    const bool has_initial_momentum = (mGridModelPart.GetProcessInfo()[STEP] ==  1 && norm_2(r_nodal_momentum) > std::numeric_limits<double>::epsilon());
+                    rNode.SetValue(HAS_INITIAL_MOMENTUM, has_initial_momentum);
+                }
+            }
+        });
+        // End of TEMP: These are moved here to comply to pr #13432
+
 		block_for_each(rModelPart.Nodes(), [&](Node& rNode)
 		{
             const array_1d<double, 3 > & r_previous_displacement = rNode.FastGetSolutionStepValue(DISPLACEMENT, 1);
@@ -273,23 +382,41 @@ public:
     void FinalizeNonLinIteration(ModelPart &rModelPart, TSystemMatrixType &rA, TSystemVectorType &rDx,
                                    TSystemVectorType &rb) override {
 
-        // clear any nodal reaction values for conforming friction (needed in current penalty-based formulation)
-        ClearConformingFrictionReaction();
+        // Special treatment of particle based dirichlet conditions to calculate the reaction forces at the boundary particles
+        // ***
+        const ProcessInfo& r_current_process_info = rModelPart.GetProcessInfo();
+        
+        // clear any nodal reaction values
+        ClearReactionVariable();
+        
+        // Calculating as an intermediate step the nodal reaction forces due to the boundary particles
+        block_for_each(rModelPart.Conditions(), std::vector<bool>(), [&r_current_process_info](Condition& rCondition, auto& r_dummy)
+        {  
+            rCondition.CalculateOnIntegrationPoints(MPC_CALCULATE_NODAL_REACTIONS, r_dummy, r_current_process_info);
+        });
+        
+        // Calculating the reaction forces at the boundary particles due to the nodal reaction forces
+        block_for_each(rModelPart.Conditions(), std::vector<bool>(), [&r_current_process_info](Condition& rCondition, auto& r_dummy)
+        {  
+            rCondition.CalculateOnIntegrationPoints(MPC_CALCULATE_CONTACT_FORCE, r_dummy, r_current_process_info);
+        });  
+
+        // clear nodal reaction values again
+        ClearReactionVariable();    
+        
+        // *** 
 
         BossakBaseType::FinalizeNonLinIteration(rModelPart, rA, rDx, rb);
 
-        // modify reaction forces for material point particle slip conditions (Penalty)
-        mRotationTool.CalculateReactionForces(mGridModelPart);
-
-        if(mFrictionIsActive) {
-            mRotationTool.ComputeFrictionAndResetFlags(rModelPart);
-        }
     }
 
     void InitializeNonLinIteration(ModelPart &rModelPart, TSystemMatrixType &rA, TSystemVectorType &rDx,
                                  TSystemVectorType &rb) override {
 
         BossakBaseType::InitializeNonLinIteration(rModelPart, rA, rDx, rb);
+
+        // clear nodal reaction values again
+        ClearReactionVariable();
 
         if(mFrictionIsActive) {
             mRotationTool.ComputeFrictionAndResetFlags(rModelPart);
@@ -313,93 +440,9 @@ public:
         TSystemVectorType& rb) override
     {
         KRATOS_TRY
-
-        // Loop over the grid nodes performed to clear all nodal information
-        block_for_each(rModelPart.Nodes(), [&](Node& rNode)
-		{
-            // Variables to be cleaned
-            double & r_nodal_mass     = rNode.FastGetSolutionStepValue(NODAL_MASS);
-            array_1d<double, 3 > & r_nodal_momentum = rNode.FastGetSolutionStepValue(NODAL_MOMENTUM);
-            array_1d<double, 3 > & r_nodal_inertia  = rNode.FastGetSolutionStepValue(NODAL_INERTIA);
-
-            array_1d<double, 3 > & r_nodal_displacement = rNode.FastGetSolutionStepValue(DISPLACEMENT);
-            array_1d<double, 3 > & r_nodal_velocity     = rNode.FastGetSolutionStepValue(VELOCITY,1);
-            array_1d<double, 3 > & r_nodal_acceleration = rNode.FastGetSolutionStepValue(ACCELERATION,1);
-
-            double & r_nodal_old_pressure = rNode.FastGetSolutionStepValue(PRESSURE,1);
-            double & r_nodal_pressure = rNode.FastGetSolutionStepValue(PRESSURE);
-
-            // Clear
-            r_nodal_mass = 0.0;
-            r_nodal_momentum.clear();
-            r_nodal_inertia.clear();
-
-            r_nodal_displacement.clear();
-            r_nodal_velocity.clear();
-            r_nodal_acceleration.clear();
-            r_nodal_old_pressure = 0.0;
-            r_nodal_pressure = 0.0;
-
-            // Other additional variables
-            if (rNode.SolutionStepsDataHas(NODAL_AREA)){
-                double & r_nodal_area = rNode.FastGetSolutionStepValue(NODAL_AREA);
-                r_nodal_area          = 0.0;
-            }
-            if(rNode.SolutionStepsDataHas(NODAL_MPRESSURE)) {
-                double & r_nodal_mpressure = rNode.FastGetSolutionStepValue(NODAL_MPRESSURE);
-                r_nodal_mpressure = 0.0;
-            }
-
-            // friction-related
-            if(mFrictionIsActive){
-                rNode.FastGetSolutionStepValue(STICK_FORCE).clear();
-                rNode.FastGetSolutionStepValue(FRICTION_STATE) = mRotationTool.GetSlidingState();
-                rNode.SetValue(FRICTION_ASSIGNED, false);
-            }
-		});
-
-        // Extrapolate from Material Point Elements and Conditions
+        
+        // Particle to Grid mapping for elements is moved to predict because it needs the velocity field (PR #13432)
         ImplicitBaseType::InitializeSolutionStep(rModelPart,rA,rDx,rb);
-
-        // Assign nodal variables after extrapolation
-        block_for_each(rModelPart.Nodes(), [&](Node& rNode)
-        {
-            const double & r_nodal_mass = rNode.FastGetSolutionStepValue(NODAL_MASS);
-
-            if (r_nodal_mass > std::numeric_limits<double>::epsilon())
-            {
-                const array_1d<double, 3 > & r_nodal_momentum   = rNode.FastGetSolutionStepValue(NODAL_MOMENTUM);
-                const array_1d<double, 3 > & r_nodal_inertia    = rNode.FastGetSolutionStepValue(NODAL_INERTIA);
-
-                array_1d<double, 3 > & r_nodal_velocity     = rNode.FastGetSolutionStepValue(VELOCITY,1);
-                array_1d<double, 3 > & r_nodal_acceleration = rNode.FastGetSolutionStepValue(ACCELERATION,1);
-                double & r_nodal_pressure = rNode.FastGetSolutionStepValue(PRESSURE,1);
-
-                double delta_nodal_pressure = 0.0;
-
-                // For mixed formulation
-                if (rNode.HasDofFor(PRESSURE) && rNode.SolutionStepsDataHas(NODAL_MPRESSURE))
-                {
-                    double & nodal_mpressure = rNode.FastGetSolutionStepValue(NODAL_MPRESSURE);
-                    delta_nodal_pressure = nodal_mpressure/r_nodal_mass;
-                }
-
-                const array_1d<double, 3 > delta_nodal_velocity = r_nodal_momentum/r_nodal_mass;
-                const array_1d<double, 3 > delta_nodal_acceleration = r_nodal_inertia/r_nodal_mass;
-
-                r_nodal_velocity += delta_nodal_velocity;
-                r_nodal_acceleration += delta_nodal_acceleration;
-
-                r_nodal_pressure += delta_nodal_pressure;
-
-                // mark nodes which have non-zero momentum in the 1st timestep s.t. these nodes can have
-                // an initial friction state of SLIDING instead of STICK
-                if(mFrictionIsActive){
-                    const bool has_initial_momentum = (mGridModelPart.GetProcessInfo()[STEP] ==  1 && norm_2(r_nodal_momentum) > std::numeric_limits<double>::epsilon());
-                    rNode.SetValue(HAS_INITIAL_MOMENTUM, has_initial_momentum);
-                }
-            }
-        });
 
         const ProcessInfo& r_current_process_info = rModelPart.GetProcessInfo();
         const double delta_time = r_current_process_info[DELTA_TIME];
@@ -429,19 +472,27 @@ public:
         TSystemVectorType& rb) override
     {
         BossakBaseType::FinalizeSolutionStep(rModelPart, rA, rDx, rb);
-
+        
         if(mFrictionIsActive) {
-            block_for_each(mGridModelPart.Nodes(), [&](Node& rNode) {
+            block_for_each(mGridModelPart.Nodes(), [&](Node& rNode)
+            {
                 const Node& rConstNode = rNode; // const Node reference to avoid issues with previously unset GetValue()
-
-                const double mu = rConstNode.GetValue(FRICTION_COEFFICIENT);
-
-                // rotate friction forces stored in REACTION to global coordinates on conforming boundaries
-                if (mRotationTool.IsConformingSlip(rNode) && mu > 0) {
-                    mRotationTool.RotateVector(rNode.FastGetSolutionStepValue(REACTION), rNode, true);
-                }
+                if( mRotationTool.IsConformingSlip(rConstNode) && rConstNode.GetValue(FRICTION_COEFFICIENT) > 0 )
+                    rNode.FastGetSolutionStepValue(REACTION).clear();       
             });
+            
+            mRotationTool.ComputeFrictionAndResetFlags(rModelPart);
         }
+
+        block_for_each(mGridModelPart.Nodes(), [&](Node& rNode) {
+            const Node& rConstNode = rNode; // const Node reference to avoid issues with previously unset GetValue()
+
+            // rotate forces stored in REACTION to global coordinates on conforming boundaries
+            if (mRotationTool.IsConformingSlip(rConstNode) ) {
+                mRotationTool.RotateVector(rNode.FastGetSolutionStepValue(REACTION), rConstNode, true);
+            }
+        });
+        
     }
 
     /**
@@ -622,14 +673,11 @@ protected:
     unsigned int mBlockSize;
     MPMBoundaryRotationUtility<LocalSystemMatrixType,LocalSystemVectorType> mRotationTool;
 
-    void ClearConformingFrictionReaction() const
+    void ClearReactionVariable() const
     {
         block_for_each(mGridModelPart.Nodes(), [&](Node& rNode)
         {
-            const Node& rConstNode = rNode; // const Node reference to avoid issues with previously unset GetValue()
-
-            if( mRotationTool.IsConformingSlip(rConstNode) && rConstNode.GetValue(FRICTION_COEFFICIENT) > 0 )
-                rNode.FastGetSolutionStepValue(REACTION).clear();
+            rNode.FastGetSolutionStepValue(REACTION).clear();
         });
     }
 

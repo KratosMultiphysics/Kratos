@@ -1,0 +1,19 @@
+@INCLUDE               = ../../../documents/doxyfile
+PROJECT_NAME           = KratosMultiphysics - FEM to DEM Coupling
+PROJECT_BRIEF          =
+PROJECT_LOGO           = ../../../documents/kratos_small.png
+LAYOUT_FILE            = ../../../html_layout.xml
+INPUT                  = ..                             \
+                         ../README.md
+EXCLUDE_PATTERNS       = */external_libraries/*         \
+                         */custom_external_libraries/*  \
+                         */tests/* *_test* *test_*
+HTML_EXTRA_STYLESHEET  = ../../../documents/doxygen-awesome.css
+TAGFILES               = ../../../documents/KratosCore.tag=../../../../documents/html \
+                         ../../PfemFluidDynamicsApplication/documents/PfemFluidDynamicsApplication.tag=../../../PfemFluidDynamicsApplication/documents/html \
+                         ../../DEMApplication/documents/DEMApplication.tag=../../../DEMApplication/documents/html \
+                         ../../DemStructuresCouplingApplication/documents/DemStructuresCouplingApplication.tag=../../../DemStructuresCouplingApplication/documents/html \
+                         ../../StructuralMechanicsApplication/documents/StructuralMechanicsApplication.tag=../../../StructuralMechanicsApplication/documents/html \
+                         ../../ConstitutiveLawsApplication/documents/ConstitutiveLawsApplication.tag=../../../ConstitutiveLawsApplication/documents/html
+GENERATE_TAGFILE       = FemToDemApplication.tag
+

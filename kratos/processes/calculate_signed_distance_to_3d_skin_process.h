@@ -437,7 +437,7 @@ public:
                     ModelPart::NodesContainerType::iterator iparticle = mrSkinModelPart.NodesBegin() + i;
                     Node ::Pointer p_structure_node = *(iparticle.base());
 
-                    //here we store the number of neigbor nodes that were given the pressure in the previous loop (i.e. were found)
+                    //here we store the number of neighbor nodes that were given the pressure in the previous loop (i.e. were found)
                     if (p_structure_node->IsNot(VISITED)) {
                         int n_good_neighbors = 0;
                         double pos_pres = 0.0;
@@ -534,11 +534,6 @@ public:
                                             array_1d<double,4>& Npos,
                                             array_1d<double,4>& Nneg)
     {
-        //count positives
-        int n_positives = 0;
-        for(unsigned int i=0; i<distances.size(); i++)
-            if(distances[i]>0) n_positives++;
-
         //generate the points on the edges at the zero of the distance function
         //generate "father nodes", defined as the end nodes of the edge on which the local point is located
         std::vector< Point > edge_points;
@@ -1847,7 +1842,7 @@ public:
         Timer::Start("Calculate Distances2");
         ModelPart::NodesContainerType::ContainerType& nodes = mrFluidModelPart.NodesArray();
         int nodes_size = nodes.size();
-        //         // first of all we reset the node distance to 1.00 which is the maximum distnace in our normalized space.
+        //         // first of all we reset the node distance to 1.00 which is the maximum distance in our normalized space.
         //#pragma omp parallel for firstprivate(nodes_size)
         //         for(int i = 0 ; i < nodes_size ; i++)
         //             nodes[i]->GetSolutionStepValue(DISTANCE) = 1.00;
@@ -1877,7 +1872,7 @@ public:
     //         Timer::Start("Calculate Distances2");
     //         ModelPart::NodesContainerType::ContainerType& nodes = mrFluidModelPart.NodesArray();
     //         int nodes_size = nodes.size();
-    ////         // first of all we reset the node distance to 1.00 which is the maximum distnace in our normalized space.
+    ////         // first of all we reset the node distance to 1.00 which is the maximum distance in our normalized space.
     //#pragma omp parallel for firstprivate(nodes_size)
     //         for(int i = 0 ; i < nodes_size ; i++)
     //             nodes[i]->GetSolutionStepValue(DISTANCE) = 1.00;
@@ -1922,7 +1917,7 @@ public:
         Timer::Start("Calculate Distances");
         DistanceSpatialContainersConfigure::data_type& nodes = mOctreeNodes;
         int nodes_size = nodes.size();
-        // first of all we reste the node distance to 1.00 which is the maximum distnace in our normalized space.
+        // first of all we reste the node distance to 1.00 which is the maximum distance in our normalized space.
 #pragma omp parallel for firstprivate(nodes_size)
         for(int i = 0 ; i < nodes_size ; i++)
             nodes[i]->Distance() = 1.00;

@@ -357,6 +357,20 @@ namespace Kratos {
             // if (rModelPart.GetCommunicator().MyPID() == 0)
             //     std::cout << "prediction" << std::endl;
 
+            ProcessInfo& CurrentProcessInfo = rModelPart.GetProcessInfo();
+
+            double DeltaTime = CurrentProcessInfo[DELTA_TIME];
+            KRATOS_ERROR_IF(DeltaTime < 1.0e-12) << "Detected delta_time = 0 in the Bossak scheme. Check if the time step is created correctly for the current model part" << std::endl;
+
+            //initializing constants
+            ma0 = 1.0 / (mGammaNewmark * DeltaTime);
+            ma1 = DeltaTime * mBetaNewmark / mGammaNewmark;
+            ma2 = (-1 + mGammaNewmark) / mGammaNewmark;
+            ma3 = DeltaTime;
+            ma4 = pow(DeltaTime, 2)*(-2.0 * mBetaNewmark + 1.0) / 2.0;
+            ma5 = pow(DeltaTime, 2) * mBetaNewmark;
+            mam = (1.0 - mAlphaBossak) / (mGammaNewmark * DeltaTime);
+
             int NumThreads = ParallelUtilities::GetNumThreads();
             OpenMPUtils::PartitionVector NodePartition;
             OpenMPUtils::DivideInPartitions(rModelPart.Nodes().size(), NumThreads, NodePartition);
@@ -908,7 +922,7 @@ namespace Kratos {
                               const ProcessInfo& CurrentProcessInfo)
         {
 
-            //multipling time scheme factor
+            //multiplying time scheme factor
             LHS_Contribution *= ma1;
 
             // adding mass contribution to the dynamic stiffness

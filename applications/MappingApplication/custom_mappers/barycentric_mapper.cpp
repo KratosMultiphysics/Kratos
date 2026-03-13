@@ -262,7 +262,7 @@ void BarycentricLocalSystem::CalculateAll(MatrixType& rLocalMappingMatrix,
 {
     KRATOS_TRY
 
-    KRATOS_DEBUG_ERROR_IF_NOT(mpNode) << "Members are not intitialized!" << std::endl;
+    KRATOS_DEBUG_ERROR_IF_NOT(mpNode) << "Members are not initialized!" << std::endl;
 
     if (mInterfaceInfos.size() < 1) {
         ResizeToZero(rLocalMappingMatrix, rOriginIds, rDestinationIds, rPairingStatus);
@@ -332,7 +332,7 @@ void BarycentricLocalSystem::CalculateAll(MatrixType& rLocalMappingMatrix,
 
 void BarycentricLocalSystem::PairingInfo(std::ostream& rOStream, const int EchoLevel) const
 {
-    KRATOS_DEBUG_ERROR_IF_NOT(mpNode) << "Members are not intitialized!" << std::endl;
+    KRATOS_DEBUG_ERROR_IF_NOT(mpNode) << "Members are not initialized!" << std::endl;
 
     rOStream << "BarycentricLocalSystem based on " << mpNode->Info();
     if (EchoLevel > 3) {

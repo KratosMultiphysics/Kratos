@@ -1165,7 +1165,7 @@ namespace Kratos
         else
         {
 
-          // standart case no radius is needed
+          // standard case no radius is needed
           // if( ResultDistance > list_of_distances[candidate] ){
           // 	result_id = (*(list_of_points_in_radius.begin()+candidate))->Id();
           // 	on_connectivities += 1;
@@ -1243,7 +1243,7 @@ namespace Kratos
       }
 
       //***************************************************
-      // CREATE ELEMENT WITH THE TRANSFERED VALUES :: START
+      // CREATE ELEMENT WITH THE TRANSFERRED VALUES :: START
 
       // check size and id
       if (i_center->Id() - 1 >= list_of_new_vertices.size())
@@ -1347,7 +1347,7 @@ namespace Kratos
       // setting new elements
       (rModelPart.Elements()).push_back(new_element);
 
-      // CREATE ELEMENT WITH THE TRANSFERED VALUES :: END
+      // CREATE ELEMENT WITH THE TRANSFERRED VALUES :: END
       //***************************************************
 
       // ELEMENT TRANSFER CHECK//

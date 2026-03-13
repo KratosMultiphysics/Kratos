@@ -69,7 +69,6 @@ KRATOS_CREATE_VARIABLE(VorticityInducedLiftLaw::Pointer, SDEM_VORTICITY_INDUCED_
 KRATOS_CREATE_VARIABLE(RotationInducedLiftLaw::Pointer, SDEM_ROTATION_INDUCED_LIFT_LAW_POINTER)
 KRATOS_CREATE_VARIABLE(SteadyViscousTorqueLaw::Pointer, SDEM_STEADY_VISCOUS_TORQUE_LAW_POINTER)
 
-
 KratosSwimmingDEMApplication::KratosSwimmingDEMApplication():
   KratosApplication("SwimmingDEMApplication"),
   mMonolithicDEMCoupled2D(0, Element::GeometryType::Pointer(new Triangle2D3<Node >(Element::GeometryType::PointsArrayType(3)))),

@@ -10,9 +10,11 @@
 //  Main authors:    Richard Faasse
 //
 
-#include "custom_utilities/math_utilities.h"
+#include "custom_utilities/math_utilities.hpp"
+#include "custom_utilities/ublas_utilities.h"
 #include "includes/checks.h"
 #include "tests/cpp_tests/geo_mechanics_fast_suite.h"
+#include "tests/cpp_tests/test_utilities.h"
 
 namespace Kratos::Testing
 {
@@ -38,24 +40,66 @@ KRATOS_TEST_CASE_IN_SUITE(CalculateDeterminants_ReturnsEmptyVectorForEmptyInput,
 
 KRATOS_TEST_CASE_IN_SUITE(Normalized_ReturnsNormalizedVector, KratosGeoMechanicsFastSuiteWithoutKernel)
 {
-    const Vector vector = ScalarVector(3, 2.0);
+    const auto vector = Vector{ScalarVector(3, 2.0)};
     KRATOS_EXPECT_VECTOR_NEAR(GeoMechanicsMathUtilities::Normalized(vector),
                               Vector{ScalarVector(3, 1 / std::sqrt(3))}, 1.0e-6);
 }
 
 KRATOS_TEST_CASE_IN_SUITE(Normalized_ReturnsNormalizedVector_ForAllNegativeVector, KratosGeoMechanicsFastSuiteWithoutKernel)
 {
-    const Vector vector = ScalarVector(3, -2.0);
+    const auto vector = Vector{ScalarVector(3, -2.0)};
     KRATOS_EXPECT_VECTOR_NEAR(GeoMechanicsMathUtilities::Normalized(vector),
                               Vector{ScalarVector(3, -1 / std::sqrt(3))}, 1.0e-6);
 }
 
 KRATOS_TEST_CASE_IN_SUITE(Normalized_Throws_WhenInputtingZeroVector, KratosGeoMechanicsFastSuiteWithoutKernel)
 {
-    const Vector vector = ZeroVector(3);
+    const auto vector = Vector{ZeroVector(3)};
     KRATOS_EXPECT_EXCEPTION_IS_THROWN(
         [[maybe_unused]] const auto normalized = GeoMechanicsMathUtilities::Normalized(vector),
         "A zero vector cannot be normalized")
 }
 
+KRATOS_TEST_CASE_IN_SUITE(CheckRotateTensor, KratosGeoMechanicsFastSuiteWithoutKernel)
+{
+    // Arrange
+    const auto stress_tensor =
+        UblasUtilities::CreateMatrix({{10.0, 40.0, 0.0}, {40.0, 50.0, 0.0}, {0.0, 0.0, 20.0}});
+
+    const auto angle           = MathUtils<>::DegreesToRadians(30.0);
+    const auto rotation_matrix = UblasUtilities::CreateMatrix(
+        {{std::cos(angle), -std::sin(angle), 0.0}, {std::sin(angle), std::cos(angle), 0.0}, {0.0, 0.0, 1.0}});
+    const auto result = GeoMechanicsMathUtilities::RotateSecondOrderTensor(stress_tensor, rotation_matrix);
+
+    const auto expected_result =
+        UblasUtilities::CreateMatrix({{-14.641016151377542, 2.6794919243112303, 0.0},
+                                      {2.6794919243112303, 74.64101615137753, 0.0},
+                                      {0.0, 0.0, 20.0}});
+
+    KRATOS_EXPECT_MATRIX_NEAR(result, expected_result, Defaults::absolute_tolerance);
+}
+
+KRATOS_TEST_CASE_IN_SUITE(CheckVectorToDiagonalMatrix, KratosGeoMechanicsFastSuiteWithoutKernel)
+{
+    // Arrange
+    const auto vector = UblasUtilities::CreateVector({3.0, 4.0, 5.0, 6.0});
+
+    // Act & assert
+    const auto expected_result = UblasUtilities::CreateMatrix(
+        {{3.0, 0.0, 0.0, 0.0}, {0.0, 4.0, 0.0, 0.0}, {0.0, 0.0, 5.0, 0.0}, {0.0, 0.0, 0.0, 6.0}});
+    KRATOS_EXPECT_MATRIX_EQ(GeoMechanicsMathUtilities::VectorToDiagonalMatrix(vector), expected_result);
+}
+
+KRATOS_TEST_CASE_IN_SUITE(CheckDiagonalMatrixToVector, KratosGeoMechanicsFastSuiteWithoutKernel)
+{
+    // Arrange
+    auto matrix = UblasUtilities::CreateMatrix({{10.0, 40.0, 0.0}, {40.0, 50.0, 0.0}, {0.0, 0.0, 20.0}});
+
+    // Act & assert
+    auto expected_result = UblasUtilities::CreateVector({10.0, 50.0, 20.0});
+    KRATOS_EXPECT_VECTOR_EQ(GeoMechanicsMathUtilities::DiagonalOfMatrixToVector(matrix), expected_result);
+
+    KRATOS_EXPECT_EXCEPTION_IS_THROWN(
+        [[maybe_unused]] const auto unused = GeoMechanicsMathUtilities::DiagonalOfMatrixToVector(Matrix(3, 2)), "Error: Attempting to convert diagonal of matrix to vector, but matrix has fewer columns than rows");
+}
 } // namespace Kratos::Testing

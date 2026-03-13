@@ -50,7 +50,6 @@ AssignScalarVariableToEntitiesProcess<TEntity, THistorical>::AssignScalarVariabl
     const Parameters default_parameters = GetDefaultParameters();
     ThisParameters.ValidateAndAssignDefaults(default_parameters);
 
-    mMeshId       = ThisParameters["mesh_id"].GetInt();
     mVariableName = ThisParameters["variable_name"].GetString();
 
     if( KratosComponents<Variable<double>>::Has( mVariableName )) { //case of double variable
@@ -64,6 +63,18 @@ AssignScalarVariableToEntitiesProcess<TEntity, THistorical>::AssignScalarVariabl
     }
 
     KRATOS_CATCH("");
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+template<class TEntity, bool THistorical>
+Process::Pointer AssignScalarVariableToEntitiesProcess<TEntity, THistorical>::Create(
+    Model& rModel,
+    Parameters ThisParameters
+    )
+{
+    return Kratos::make_shared<AssignScalarVariableToEntitiesProcess<TEntity, THistorical>>(rModel, ThisParameters);
 }
 
 /***********************************************************************************/
@@ -96,7 +107,6 @@ const Parameters AssignScalarVariableToEntitiesProcess<TEntity, THistorical>::Ge
     const Parameters default_parameters( R"(
     {
         "model_part_name" : "PLEASE_SPECIFY_MODEL_PART_NAME",
-        "mesh_id"         : 0,
         "variable_name"   : "VARIABLE_NAME",
         "value"           : 1.0
     }  )" );
@@ -109,7 +119,7 @@ const Parameters AssignScalarVariableToEntitiesProcess<TEntity, THistorical>::Ge
 template<>
 PointerVectorSet<Node, IndexedObject>& AssignScalarVariableToEntitiesProcess<Node, AssignScalarVariableToEntitiesProcessSettings::SaveAsNonHistoricalVariable>::GetEntitiesContainer()
 {
-    return mrModelPart.GetMesh(mMeshId).Nodes();
+    return mrModelPart.Nodes();
 }
 
 /***********************************************************************************/
@@ -118,7 +128,7 @@ PointerVectorSet<Node, IndexedObject>& AssignScalarVariableToEntitiesProcess<Nod
 template<>
 PointerVectorSet<Node, IndexedObject>& AssignScalarVariableToEntitiesProcess<Node, AssignScalarVariableToEntitiesProcessSettings::SaveAsHistoricalVariable>::GetEntitiesContainer()
 {
-    return mrModelPart.GetMesh(mMeshId).Nodes();
+    return mrModelPart.Nodes();
 }
 
 /***********************************************************************************/
@@ -127,7 +137,7 @@ PointerVectorSet<Node, IndexedObject>& AssignScalarVariableToEntitiesProcess<Nod
 template<>
 PointerVectorSet<Condition, IndexedObject>& AssignScalarVariableToEntitiesProcess<Condition>::GetEntitiesContainer()
 {
-    return mrModelPart.GetMesh(mMeshId).Conditions();
+    return mrModelPart.Conditions();
 }
 
 /***********************************************************************************/
@@ -136,7 +146,7 @@ PointerVectorSet<Condition, IndexedObject>& AssignScalarVariableToEntitiesProces
 template<>
 PointerVectorSet<Element, IndexedObject>& AssignScalarVariableToEntitiesProcess<Element>::GetEntitiesContainer()
 {
-    return mrModelPart.GetMesh(mMeshId).Elements();
+    return mrModelPart.Elements();
 }
 
 /***********************************************************************************/
@@ -145,7 +155,7 @@ PointerVectorSet<Element, IndexedObject>& AssignScalarVariableToEntitiesProcess<
 template<>
 PointerVectorSet<MasterSlaveConstraint, IndexedObject>& AssignScalarVariableToEntitiesProcess<MasterSlaveConstraint>::GetEntitiesContainer()
 {
-    return mrModelPart.GetMesh(mMeshId).MasterSlaveConstraints();
+    return mrModelPart.MasterSlaveConstraints();
 }
 
 /***********************************************************************************/

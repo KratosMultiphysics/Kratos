@@ -125,6 +125,12 @@ public:
     ///@name Operations
     ///@{
 
+    /// @copydoc Process::Create
+    Process::Pointer Create(
+        Model& rModel,
+        Parameters ThisParameters
+        ) override;
+
     /**
      * @brief Initialize method
      * This method calls the base discontinuous distance process initialize method
@@ -136,7 +142,7 @@ public:
      * @brief Computes the nodal (continuous) distance field
      * This method firstly computes the elemental distances, getting the
      * minimum absolute value between the neighbouring elements for each node.
-     * Finally, a raycasting operation is performed to distingish between positive
+     * Finally, a raycasting operation is performed to distinguish between positive
      * and negative distance values thanks to the obtained signed ray distance.
      * @param rIntersectedObjects array containing pointers to the intersecting objects
      */

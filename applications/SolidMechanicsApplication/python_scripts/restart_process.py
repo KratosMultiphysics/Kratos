@@ -33,7 +33,7 @@ class RestartProcess(KratosMultiphysics.Process):
         self.settings = custom_settings
 
         # Warning: we may be changing the parameters object here:
-        self.TranslateLegacyVariablesAccordingToCurrentStandard(param)
+        self.TranslateLegacyVariablesAccordingToCurrentStandard(self.settings)
 
         self.settings.ValidateAndAssignDefaults(default_settings)
 

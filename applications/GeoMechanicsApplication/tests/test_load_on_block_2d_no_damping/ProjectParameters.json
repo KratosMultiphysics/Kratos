@@ -30,7 +30,6 @@
         "compute_reactions": false,
         "move_mesh_flag": false,
         "reform_dofs_at_each_step": false,
-        "nodal_smoothing": true,
         "block_builder": true,
         "rebuild_level": 0,
         "prebuild_dynamics": true,
@@ -57,17 +56,8 @@
             "tolerance": 1e-06,
             "max_iteration": 1000
         },
-        "problem_domain_sub_model_part_list": [
-            "soil"
-        ],
-        "processes_sub_model_part_list": [
-            "load",
-            "bottom",
-            "sides"
-        ],
-        "body_domain_sub_model_part_list": [
-            "soil"
-        ]
+        "problem_domain_sub_model_part_list": ["soil"],
+        "body_domain_sub_model_part_list"   : ["soil"]
     },
     "output_processes": {},
     "processes": {
@@ -94,28 +84,12 @@
                 "kratos_module": "KratosMultiphysics.GeoMechanicsApplication",
                 "process_name": "ApplyVectorConstraintTableProcess",
                 "Parameters": {
-                    "active": [
-                        true,
-                        true,
-                        false
-                    ],
-                    "is_fixed": [
-                        true,
-                        true,
-                        false
-                    ],
-                    "value": [
-                        0.0,
-                        0.0,
-                        0.0
-                    ],
+                    "active": [true, true, false],
+                    "is_fixed": [true, true, false],
+                    "value": [0.0, 0.0, 0.0],
                     "model_part_name": "PorousDomain.bottom",
                     "variable_name": "DISPLACEMENT",
-                    "table": [
-                        0,
-                        0,
-                        0
-                    ]
+                    "table": [0, 0, 0]
                 }
             },
             {
@@ -123,28 +97,12 @@
                 "kratos_module": "KratosMultiphysics.GeoMechanicsApplication",
                 "process_name": "ApplyVectorConstraintTableProcess",
                 "Parameters": {
-                    "active": [
-                        true,
-                        false,
-                        false
-                    ],
-                    "is_fixed": [
-                        true,
-                        false,
-                        false
-                    ],
-                    "value": [
-                        0.0,
-                        0.0,
-                        0.0
-                    ],
+                    "active": [true, false, false],
+                    "is_fixed": [true, false, false],
+                    "value": [0.0, 0.0, 0.0],
                     "model_part_name": "PorousDomain.sides",
                     "variable_name": "DISPLACEMENT",
-                    "table": [
-                        0,
-                        0,
-                        0
-                    ]
+                    "table": [0, 0, 0]
                 }
             }
         ],
@@ -154,26 +112,13 @@
                 "kratos_module": "KratosMultiphysics.GeoMechanicsApplication",
                 "process_name": "ApplyVectorConstraintTableProcess",
                 "Parameters": {
-                    "active": [
-                        false,
-                        true,
-                        false
-                    ],
-                    "value": [
-                        0.0,
-                        -10.0,
-                        0.0
-                    ],
+                    "active": [false, true, false],
+                    "value": [0.0, -10.0, 0.0],
                     "model_part_name": "PorousDomain.load",
                     "variable_name": "LINE_LOAD",
-                    "table": [
-                        0,
-                        0,
-                        0
-                    ]
+                    "table": [0, 0, 0]
                 }
             }
-        ],
-        "auxiliary_process_list": []
+        ]
     }
 }

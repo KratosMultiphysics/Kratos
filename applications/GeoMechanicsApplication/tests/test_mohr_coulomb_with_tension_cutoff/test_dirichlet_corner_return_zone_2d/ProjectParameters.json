@@ -1,0 +1,139 @@
+{
+    "problem_data": {
+        "problem_name":         "test_dirichlet_corner_return_zone",
+        "start_time":           0.0,
+        "end_time":             1.0,
+        "echo_level":           1,
+        "parallel_type":        "OpenMP",
+        "number_of_threads":    1
+    },
+    "solver_settings": {
+        "solver_type":                        "U_Pw",
+        "model_part_name":                    "PorousDomain",
+        "domain_size":                        2,
+        "model_import_settings":              {
+            "input_type":       "mdpa",
+            "input_filename":   "../common/mesh2D"
+        },
+        "material_import_settings":              {
+            "materials_filename":       "../common/MaterialParameters2D.json"
+        },
+        "time_stepping":              {
+            "time_step":                1.0,
+            "max_delta_time_factor":    1
+        },
+        "echo_level":                         1,
+        "compute_reactions":                  true,
+        "solution_type":                      "Quasi-Static",
+        "scheme_type":                        "Backward_Euler",
+        "reset_displacements":                false,
+        "strategy_type":                      "newton_raphson",
+        "convergence_criterion":              "residual_criterion",
+        "residual_relative_tolerance":        1.0E-4,
+        "residual_absolute_tolerance":        1.0E-9,
+        "min_iterations":                     6,
+        "max_iterations":                     15,
+        "number_cycles":                      10,
+        "reduction_factor":                   1.0,
+        "increase_factor":                    1.0,
+        "calculate_reactions":                true,
+        "linear_solver_settings":             {
+              "solver_type"                    : "LinearSolversApplication.sparse_lu",
+              "scaling": true
+        },
+        "problem_domain_sub_model_part_list": ["soil"],
+        "body_domain_sub_model_part_list":    ["soil"]
+    },
+    "output_processes": {
+        "gid_output": [{
+            "python_module": "gid_output_process",
+            "kratos_module": "KratosMultiphysics",
+            "process_name": "GiDOutputProcess",
+            "Parameters":    {
+                "model_part_name": "PorousDomain.porous_computational_model_part",
+                "output_name": "test_dirichlet_corner_return_zone",
+                "postprocess_parameters": {
+                    "result_file_configuration": {
+                        "gidpost_flags":       {
+                            "WriteDeformedMeshFlag": "WriteUndeformed",
+                            "WriteConditionsFlag":   "WriteElementsOnly",
+                            "GiDPostMode":           "GiD_PostAscii",
+                            "MultiFileFlag":         "SingleFile"
+                        },
+                        "file_label":          "step",
+                        "output_control_type": "step",
+                        "output_interval":     1,
+                        "body_output":         true,
+                        "node_output":         true,
+                        "skin_output":         false,
+                        "nodal_results":       ["DISPLACEMENT","REACTION"],
+                        "gauss_point_results": ["CAUCHY_STRESS_TENSOR", "ENGINEERING_STRAIN_TENSOR"]
+                    }
+                }
+            }
+        }]
+    },
+    "processes": {
+        "constraints_process_list": [{
+        "python_module": "apply_scalar_constraint_table_process",
+        "kratos_module": "KratosMultiphysics.GeoMechanicsApplication",
+        "process_name":  "ApplyScalarConstraintTableProcess",
+        "Parameters":    {
+            "model_part_name":      "PorousDomain.Init",
+            "variable_name":        "WATER_PRESSURE",
+            "is_fixed":             true,
+            "fluid_pressure_type": "Uniform",
+            "value":                0.0,
+            "table":                0
+        }
+    },{
+        "python_module": "apply_vector_constraint_table_process",
+        "kratos_module": "KratosMultiphysics.GeoMechanicsApplication",
+        "process_name":  "ApplyVectorConstraintTableProcess",
+        "Parameters":    {
+            "model_part_name": "PorousDomain.SideLeft",
+            "variable_name":   "DISPLACEMENT",
+            "active":          [true,false,false],
+            "is_fixed":        [true,false,false],
+            "value":           [0.0,0.0,0.0],
+            "table":           [0,0,0]
+        }
+    },{
+        "python_module": "apply_vector_constraint_table_process",
+        "kratos_module": "KratosMultiphysics.GeoMechanicsApplication",
+        "process_name":  "ApplyVectorConstraintTableProcess",
+        "Parameters":    {
+            "model_part_name": "PorousDomain.SideBottom",
+            "variable_name":   "DISPLACEMENT",
+            "active":          [false,true,false],
+            "is_fixed":        [false,true,false],
+            "value":           [0.0,0.0,0.0],
+            "table":           [0,0,0]
+        }
+    },{
+        "python_module": "apply_vector_constraint_table_process",
+        "kratos_module": "KratosMultiphysics.GeoMechanicsApplication",
+        "process_name":  "ApplyVectorConstraintTableProcess",
+        "Parameters":    {
+            "model_part_name": "PorousDomain.SideRight",
+            "variable_name":   "DISPLACEMENT",
+            "active":          [true,false,false],
+            "is_fixed":        [true,false,false],
+            "value":           [0.022,0.0,0.0],
+            "table":           [0,0,0]
+        }
+    },{
+        "python_module": "apply_vector_constraint_table_process",
+        "kratos_module": "KratosMultiphysics.GeoMechanicsApplication",
+        "process_name":  "ApplyVectorConstraintTableProcess",
+        "Parameters":    {
+            "model_part_name": "PorousDomain.SideTop",
+            "variable_name":   "DISPLACEMENT",
+            "active":          [false,true,false],
+            "is_fixed":        [false,true,false],
+            "value":           [0.0,-0.002,0.0],
+            "table":           [0,0,0]
+        }
+    }]
+    }
+}

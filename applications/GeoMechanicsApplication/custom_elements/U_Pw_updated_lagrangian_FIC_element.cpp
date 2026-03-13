@@ -13,14 +13,57 @@
 // External includes
 
 // Project includes
-#include "custom_elements/U_Pw_updated_lagrangian_FIC_element.hpp"
-#include "custom_utilities/equation_of_motion_utilities.h"
-#include "custom_utilities/math_utilities.h"
+#include "custom_elements/U_Pw_updated_lagrangian_FIC_element.h"
+#include "custom_utilities/element_utilities.hpp"
+#include "custom_utilities/equation_of_motion_utilities.hpp"
+#include "custom_utilities/math_utilities.hpp"
+#include "custom_utilities/stress_strain_utilities.h"
 #include "custom_utilities/transport_equation_utilities.hpp"
+#include "geo_mechanics_application_variables.h"
 #include "utilities/math_utils.h"
 
 namespace Kratos
 {
+
+template <unsigned int TDim, unsigned int TNumNodes>
+UPwUpdatedLagrangianFICElement<TDim, TNumNodes>::UPwUpdatedLagrangianFICElement(IndexType NewId)
+    : UPwSmallStrainFICElement<TDim, TNumNodes>(NewId)
+{
+}
+
+template <unsigned int TDim, unsigned int TNumNodes>
+UPwUpdatedLagrangianFICElement<TDim, TNumNodes>::UPwUpdatedLagrangianFICElement(
+    IndexType                                       NewId,
+    const NodesArrayType&                           ThisNodes,
+    std::unique_ptr<StressStatePolicy>              pStressStatePolicy,
+    std::unique_ptr<IntegrationCoefficientModifier> pCoefficientModifier)
+    : UPwSmallStrainFICElement<TDim, TNumNodes>(
+          NewId, ThisNodes, std::move(pStressStatePolicy), std::move(pCoefficientModifier))
+{
+}
+
+template <unsigned int TDim, unsigned int TNumNodes>
+UPwUpdatedLagrangianFICElement<TDim, TNumNodes>::UPwUpdatedLagrangianFICElement(
+    IndexType                                       NewId,
+    GeometryType::Pointer                           pGeometry,
+    std::unique_ptr<StressStatePolicy>              pStressStatePolicy,
+    std::unique_ptr<IntegrationCoefficientModifier> pCoefficientModifier)
+    : UPwSmallStrainFICElement<TDim, TNumNodes>(
+          NewId, pGeometry, std::move(pStressStatePolicy), std::move(pCoefficientModifier))
+{
+}
+
+template <unsigned int TDim, unsigned int TNumNodes>
+UPwUpdatedLagrangianFICElement<TDim, TNumNodes>::UPwUpdatedLagrangianFICElement(
+    IndexType                                       NewId,
+    GeometryType::Pointer                           pGeometry,
+    PropertiesType::Pointer                         pProperties,
+    std::unique_ptr<StressStatePolicy>              pStressStatePolicy,
+    std::unique_ptr<IntegrationCoefficientModifier> pCoefficientModifier)
+    : UPwSmallStrainFICElement<TDim, TNumNodes>(
+          NewId, pGeometry, pProperties, std::move(pStressStatePolicy), std::move(pCoefficientModifier))
+{
+}
 
 template <unsigned int TDim, unsigned int TNumNodes>
 Element::Pointer UPwUpdatedLagrangianFICElement<TDim, TNumNodes>::Create(IndexType NewId,
@@ -28,7 +71,8 @@ Element::Pointer UPwUpdatedLagrangianFICElement<TDim, TNumNodes>::Create(IndexTy
                                                                          PropertiesType::Pointer pProperties) const
 {
     return Element::Pointer(new UPwUpdatedLagrangianFICElement(
-        NewId, this->GetGeometry().Create(ThisNodes), pProperties, this->GetStressStatePolicy().Clone()));
+        NewId, this->GetGeometry().Create(ThisNodes), pProperties,
+        this->GetStressStatePolicy().Clone(), this->CloneIntegrationCoefficientModifier()));
 }
 
 template <unsigned int TDim, unsigned int TNumNodes>
@@ -37,7 +81,8 @@ Element::Pointer UPwUpdatedLagrangianFICElement<TDim, TNumNodes>::Create(IndexTy
                                                                          PropertiesType::Pointer pProperties) const
 {
     return Element::Pointer(new UPwUpdatedLagrangianFICElement(
-        NewId, pGeom, pProperties, this->GetStressStatePolicy().Clone()));
+        NewId, pGeom, pProperties, this->GetStressStatePolicy().Clone(),
+        this->CloneIntegrationCoefficientModifier()));
 }
 
 template <unsigned int TDim, unsigned int TNumNodes>
@@ -47,7 +92,7 @@ void UPwUpdatedLagrangianFICElement<TDim, TNumNodes>::CalculateAll(MatrixType& r
                                                                    bool CalculateStiffnessMatrixFlag,
                                                                    bool CalculateResidualVectorFlag)
 {
-    KRATOS_TRY;
+    KRATOS_TRY
 
     const PropertiesType&                           Prop = this->GetProperties();
     const GeometryType&                             Geom = this->GetGeometry();
@@ -176,14 +221,48 @@ void UPwUpdatedLagrangianFICElement<TDim, TNumNodes>::CalculateOnIntegrationPoin
         rOutput = this->CalculateDeformationGradients();
     } else if (rVariable == GREEN_LAGRANGE_STRAIN_TENSOR) {
         const auto deformation_gradients = this->CalculateDeformationGradients();
-        std::transform(deformation_gradients.begin(), deformation_gradients.end(), rOutput.begin(),
-                       [this](const Matrix& rDeformationGradient) {
+        std::ranges::transform(deformation_gradients, rOutput.begin(), [this](const Matrix& rDeformationGradient) {
             return MathUtils<>::StrainVectorToTensor(this->CalculateGreenLagrangeStrain(rDeformationGradient));
         });
     } else {
         UPwSmallStrainFICElement<TDim, TNumNodes>::CalculateOnIntegrationPoints(
             rVariable, rOutput, rCurrentProcessInfo);
     }
+}
+
+template <unsigned int TDim, unsigned int TNumNodes>
+std::string UPwUpdatedLagrangianFICElement<TDim, TNumNodes>::Info() const
+{
+    const std::string constitutive_info =
+        !mConstitutiveLawVector.empty() ? mConstitutiveLawVector[0]->Info() : "not defined";
+    return "Updated Lagrangian U-Pw FIC Element #" + std::to_string(this->Id()) +
+           "\nConstitutive law: " + constitutive_info;
+}
+
+/// Print information about this object.
+template <unsigned int TDim, unsigned int TNumNodes>
+void UPwUpdatedLagrangianFICElement<TDim, TNumNodes>::PrintInfo(std::ostream& rOStream) const
+{
+    rOStream << Info();
+}
+
+/// Print object's data.
+template <unsigned int TDim, unsigned int TNumNodes>
+void UPwUpdatedLagrangianFICElement<TDim, TNumNodes>::PrintData(std::ostream& rOStream) const
+{
+    this->pGetGeometry()->PrintData(rOStream);
+}
+
+template <unsigned int TDim, unsigned int TNumNodes>
+void UPwUpdatedLagrangianFICElement<TDim, TNumNodes>::save(Serializer& rSerializer) const
+{
+    KRATOS_SERIALIZE_SAVE_BASE_CLASS(rSerializer, BaseType)
+}
+
+template <unsigned int TDim, unsigned int TNumNodes>
+void UPwUpdatedLagrangianFICElement<TDim, TNumNodes>::load(Serializer& rSerializer)
+{
+    KRATOS_SERIALIZE_LOAD_BASE_CLASS(rSerializer, BaseType)
 }
 
 template class UPwUpdatedLagrangianFICElement<2, 3>;

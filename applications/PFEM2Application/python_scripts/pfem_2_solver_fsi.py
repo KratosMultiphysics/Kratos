@@ -212,7 +212,7 @@ class PFEM2Solver:
         #delta_velocity= Velocity(final) - MeshVelocity(from the particles), so we add to the particles the correction done in the mesh.
         (self.moveparticles).CalculateDeltaVelocity();
 
-        #transfering the information to the particles:
+        #transferring the information to the particles:
         (self.moveparticles).AccelerateParticlesWithoutMovingUsingDeltaVelocity(add_gravity);
         t12 = timer.time()
 

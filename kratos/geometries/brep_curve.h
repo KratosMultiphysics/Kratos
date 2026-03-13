@@ -141,7 +141,7 @@ public:
     /**
     * @brief This function returns the pointer of the geometry
     *        which is corresponding to the index.
-    *        Curve of the geometry is accessable with GeometryType::BACKGROUND_GEOMETRY_INDEX.
+    *        Curve of the geometry is accessible with GeometryType::BACKGROUND_GEOMETRY_INDEX.
     * @param Index: trim_index or GeometryType::BACKGROUND_GEOMETRY_INDEX.
     * @return pointer of geometry, corresponding to the index.
     */
@@ -155,7 +155,7 @@ public:
     /**
     * @brief This function returns the pointer of the geometry
     *        which is corresponding to the trim index.
-    *        Curve of the geometry is accessable with GeometryType::BACKGROUND_GEOMETRY_INDEX.
+    *        Curve of the geometry is accessible with GeometryType::BACKGROUND_GEOMETRY_INDEX.
     * @param Index: trim_index or GeometryType::BACKGROUND_GEOMETRY_INDEX.
     * @return pointer of geometry, corresponding to the index.
     */

@@ -5,15 +5,13 @@
 //   _|\_\_|  \__,_|\__|\___/ ____/
 //                   Multi-Physics
 //
-//  License:		 BSD License
-//					 Kratos default license: kratos/license.txt
+//  License:         BSD License
+//                   Kratos default license: kratos/license.txt
 //
 //  Main authors:    Riccardo Rossi
 //
-//
 
-#if !defined(KRATOS_CSR_SPMM_UTILITIES_H_INCLUDED)
-#define  KRATOS_CSR_SPMM_UTILITIES_H_INCLUDED
+#pragma once
 
 // System includes
 
@@ -68,5 +66,3 @@ public:
 };
 
 }
-
-#endif // KRATOS_CSR_SPMM_UTILITIES_H_INCLUDED

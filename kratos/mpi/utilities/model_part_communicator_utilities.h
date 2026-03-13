@@ -10,15 +10,13 @@
 //  Main author:     Jordi Cotela
 //
 
-#ifndef KRATOS_MODEL_PART_COMMUNICATOR_UTILITIES_H_INCLUDED
-#define	KRATOS_MODEL_PART_COMMUNICATOR_UTILITIES_H_INCLUDED
+#pragma once
 
 // System includes
 
 // External includes
 
 // Project includes
-#include "includes/define.h"
 #include "includes/model_part.h"
 #include "mpi/includes/mpi_communicator.h"
 
@@ -97,6 +95,4 @@ public:
 ///@}
 
 }  // namespace Kratos.
-
-#endif	/* KRATOS_MODEL_PART_COMMUNICATOR_UTILITIES_H_INCLUDED */
 

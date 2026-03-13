@@ -529,7 +529,7 @@ private:
         kd_tree nodes_tree1(list_of_nodes.begin(), list_of_nodes.end(), bucket_size);
 
         unsigned int n_points_in_radius;
-        double radius; //radius means the distance, closer than which no node shall be allowd. if closer -> mark for erasing
+        double radius; //radius means the distance, closer than which no node shall be allowed. if closer -> mark for erasing
         Node work_point(0,0.0,0.0,0.0);
         for (ModelPart::NodesContainerType::iterator in = ThisModelPart.NodesBegin();
                 in != ThisModelPart.NodesEnd(); in++)

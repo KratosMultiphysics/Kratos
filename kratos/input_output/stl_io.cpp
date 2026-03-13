@@ -193,7 +193,7 @@ void StlIO::WriteEntityBlock(const TContainerType& rThisEntities)
         << " geometries with area = 0.0, skipping these geometries." << std::endl;
 }
 
-void StlIO::WriteGeometryBlock(const GeometriesMapType& rThisGeometries)
+void StlIO::WriteGeometryBlock(const GeometryContainerType& rThisGeometries)
 {
     // Retrieve reference of the stream
     auto& r_stream = *mpInputStream;
@@ -265,7 +265,7 @@ void StlIO::WriteEntityBlockMPI(
 }
 
 void StlIO::WriteGeometryBlockMPI(
-    const GeometriesMapType& rThisGeometries,
+    const GeometryContainerType& rThisGeometries,
     const DataCommunicator& rDataCommunicator
     )
 {

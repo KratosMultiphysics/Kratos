@@ -4,15 +4,14 @@
 //   _|\_\_|  \__,_|\__|\___/ ____/
 //                   Multi-Physics
 //
-//  License:		 BSD License
-//					 Kratos default license: kratos/license.txt
+//  License:         BSD License
+//                   Kratos default license: kratos/license.txt
 //
 //  Main authors:    Riccardo Rossi
 //
 //
 
-#if !defined(KRATOS_RESIDUALBASED_LINEAR_STRATEGY )
-#define  KRATOS_RESIDUALBASED_LINEAR_STRATEGY
+#pragma once
 
 // System includes
 
@@ -442,6 +441,10 @@ public:
             if (p_scheme->ConditionsAreInitialized() == false)
                 p_scheme->InitializeConditions(BaseType::GetModelPart());
 
+            if (!p_scheme->ConstraintsAreInitialized()) {
+                p_scheme->InitializeConstraints(this->GetModelPart());
+            }
+
             mInitializeWasPerformed = true;
         }
 
@@ -808,9 +811,7 @@ public:
     ///@name Friends
     ///@{
 
-
     ///@}
-
 protected:
     ///@name Protected static Member Variables
     ///@{
@@ -862,7 +863,6 @@ protected:
     ///@{
 
     ///@}
-
 private:
     ///@name Static Member Variables
     ///@{
@@ -959,14 +959,9 @@ private:
 }; /* Class ResidualBasedLinearStrategy */
 
 ///@}
-
 ///@name Type Definitions */
 ///@{
-
 
 ///@}
 
 } /* namespace Kratos.*/
-
-#endif /* KRATOS_RESIDUALBASED_LINEAR_STRATEGY  defined */
-

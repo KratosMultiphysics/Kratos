@@ -142,7 +142,7 @@ class GenericConstitutiveLawIntegratorPlasticity
     ///@{
 
     /**
-     * @brief This method integrates the predictive stress vector with the CL using differents evolution laws using the backward euler scheme
+     * @brief This method integrates the predictive stress vector with the CL using different evolution laws using the backward euler scheme
      * @param rPredictiveStressVector The predictive stress vector S = C:(E-Ep)
      * @param rStrainVector The equivalent strain vector of that integration point
      * @param rUniaxialStress The equivalent uniaxial stress
@@ -736,7 +736,7 @@ class GenericConstitutiveLawIntegratorPlasticity
         if (PlasticDissipation <= segment_threshold) {
             const double Eps = EquivalentPlasticStrain;
 
-            if (EquivalentPlasticStrain < plastic_strain_indicator_1) { // Polinomial region
+            if (EquivalentPlasticStrain < plastic_strain_indicator_1) { // Polynomial region
                 double S_Ep = curve_fitting_parameters[0];
                 double dS_dEp = 0.0;
                 for (IndexType i = 1; i < order_polinomial; ++i) {
@@ -999,9 +999,23 @@ class GenericConstitutiveLawIntegratorPlasticity
     static int Check(const Properties& rMaterialProperties)
     {
         // Checking is defined
-        KRATOS_ERROR_IF_NOT(rMaterialProperties.Has(YOUNG_MODULUS)) << "HARDENING_CURVE is not a defined value" << std::endl;
+        KRATOS_ERROR_IF_NOT(rMaterialProperties.Has(YOUNG_MODULUS)) << "YOUNG_MODULUS is not a defined value" << std::endl;
         KRATOS_ERROR_IF_NOT(rMaterialProperties.Has(HARDENING_CURVE)) << "HARDENING_CURVE is not a defined value" << std::endl;
         KRATOS_ERROR_IF_NOT(rMaterialProperties.Has(FRACTURE_ENERGY)) << "FRACTURE_ENERGY is not a defined value" << std::endl;
+
+        if (!rMaterialProperties.Has(YIELD_STRESS)) {
+            KRATOS_ERROR_IF_NOT(rMaterialProperties.Has(YIELD_STRESS_TENSION)) << "YIELD_STRESS_TENSION is not a defined value" << std::endl;
+            KRATOS_ERROR_IF_NOT(rMaterialProperties.Has(YIELD_STRESS_COMPRESSION)) << "YIELD_STRESS_COMPRESSION is not a defined value" << std::endl;
+
+            const double yield_compression = rMaterialProperties[YIELD_STRESS_COMPRESSION];
+            const double yield_tension = rMaterialProperties[YIELD_STRESS_TENSION];
+
+            KRATOS_ERROR_IF(yield_compression < tolerance) << "Yield stress in compression almost zero or negative, include YIELD_STRESS_COMPRESSION in definition" << std::endl;
+            KRATOS_ERROR_IF(yield_tension < tolerance) << "Yield stress in tension almost zero or negative, include YIELD_STRESS_TENSION in definition" << std::endl;
+        } else {
+            const double yield_stress = rMaterialProperties[YIELD_STRESS];
+            KRATOS_ERROR_IF(yield_stress < tolerance) << "Yield stress almost zero or negative, include YIELD_STRESS in definition" << std::endl;
+        }
 
         // Checking curves
         const int curve_type = rMaterialProperties[HARDENING_CURVE];
@@ -1011,25 +1025,36 @@ class GenericConstitutiveLawIntegratorPlasticity
         } else if (static_cast<HardeningCurveType>(curve_type) == HardeningCurveType::CurveFittingHardening) {
             KRATOS_ERROR_IF_NOT(rMaterialProperties.Has(CURVE_FITTING_PARAMETERS)) << "CURVE_FITTING_PARAMETERS is not a defined value" << std::endl;
             KRATOS_ERROR_IF_NOT(rMaterialProperties.Has(PLASTIC_STRAIN_INDICATORS)) << "PLASTIC_STRAIN_INDICATORS is not a defined value" << std::endl;
-        }
+        } else if (static_cast<HardeningCurveType>(curve_type) == HardeningCurveType::CurveDefinedByPoints) {
+            KRATOS_ERROR_IF_NOT(rMaterialProperties.Has(EQUIVALENT_STRESS_VECTOR_PLASTICITY_POINT_CURVE))
+                << "EQUIVALENT_STRESS_VECTOR_PLASTICITY_POINT_CURVE is required when using HARDENING_CURVE = CurveDefinedByPoints." << std::endl;
 
-        if (!rMaterialProperties.Has(YIELD_STRESS)) {
-            KRATOS_ERROR_IF_NOT(rMaterialProperties.Has(YIELD_STRESS_TENSION)) << "YIELD_STRESS_TENSION is not a defined value" << std::endl;
-            KRATOS_ERROR_IF_NOT(rMaterialProperties.Has(YIELD_STRESS_COMPRESSION)) << "YIELD_STRESS_COMPRESSION is not a defined value" << std::endl;
+            const bool has_plastic_strain = rMaterialProperties.Has(PLASTIC_STRAIN_VECTOR_PLASTICITY_POINT_CURVE);
+            const Vector& stress = rMaterialProperties[EQUIVALENT_STRESS_VECTOR_PLASTICITY_POINT_CURVE];
+            const Vector& strain = has_plastic_strain ? rMaterialProperties[PLASTIC_STRAIN_VECTOR_PLASTICITY_POINT_CURVE] : rMaterialProperties[TOTAL_STRAIN_VECTOR_PLASTICITY_POINT_CURVE];
 
-            const double yield_compression = rMaterialProperties[YIELD_STRESS_COMPRESSION];
-            const double yield_tension = rMaterialProperties[YIELD_STRESS_TENSION];
+            KRATOS_ERROR_IF(stress.size() != strain.size()) << "Bad definition of CurveDefinedByPoints curve: inconsistent dimensions. stress.size()=" << stress.size()
+                << ", strain.size()=" << strain.size() << std::endl;
+            KRATOS_ERROR_IF(stress.size() < 2)
+                << "Bad definition of CurveDefinedByPoints curve: at least 2 points are required." << std::endl;
 
-            KRATOS_ERROR_IF(yield_compression < tolerance) << "Yield stress in compression almost zero or negative, include YIELD_STRESS_COMPRESSION in definition";
-            KRATOS_ERROR_IF(yield_tension < tolerance) << "Yield stress in tension almost zero or negative, include YIELD_STRESS_TENSION in definition";
-        } else {
-            const double yield_stress = rMaterialProperties[YIELD_STRESS];
+            for (SizeType i = 1; i < strain.size(); ++i) {
+                KRATOS_ERROR_IF(strain[i] <= strain[i-1] + tolerance) << "Bad definition of CurveDefinedByPoints curve: strain must be strictly increasing." << std::endl;
+            }
 
-            KRATOS_ERROR_IF(yield_stress < tolerance) << "Yield stress almost zero or negative, include YIELD_STRESS in definition";
+            const bool has_yield_stress = rMaterialProperties.Has(YIELD_STRESS);
+            const double yield_stress = has_yield_stress ? rMaterialProperties[YIELD_STRESS] : rMaterialProperties[YIELD_STRESS_TENSION];
+            const double stress_tolerance = tolerance * yield_stress;
+            KRATOS_ERROR_IF(std::abs(stress[0] - yield_stress) > stress_tolerance) << "Bad definition of EQUIVALENT_STRESS_VECTOR_PLASTICITY_POINT_CURVE: first stress point must match yield stress." << std::endl;
+            if (has_plastic_strain) {
+                // Plastic strain curve must start with plastic strain = 0 and stress = yield
+                KRATOS_ERROR_IF(std::abs(strain[0]) > tolerance) << "Bad definition of PLASTIC_STRAIN_VECTOR_PLASTICITY_POINT_CURVE: first value must be 0. Provided: " << strain[0] << std::endl;
+            }
         }
 
         return TYieldSurfaceType::Check(rMaterialProperties);
     }
+
 
     ///@}
     ///@name Access

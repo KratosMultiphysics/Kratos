@@ -105,6 +105,7 @@ KRATOS_TEST_CASE_IN_SUITE(ElementTwoFluidNavierStokesFractional2D3N, FluidDynami
         it_node->FastGetSolutionStepValue(DENSITY) = pElemProp->GetValue(DENSITY);
         it_node->FastGetSolutionStepValue(DYNAMIC_VISCOSITY) = pElemProp->GetValue(DYNAMIC_VISCOSITY);
         it_node->FastGetSolutionStepValue(BODY_FORCE_Z) = -9.81;
+      
     }
 
     for(unsigned int i=0; i<3; i++){
@@ -133,10 +134,18 @@ KRATOS_TEST_CASE_IN_SUITE(ElementTwoFluidNavierStokesFractional2D3N, FluidDynami
     pElement->Initialize(r_process_info); // Initialize the element to initialize the constitutive law
     pElement->CalculateLocalSystem(LHS, RHS, r_process_info);
 
+    // Computing artificial viscosity for 2D element
+    pElement->SetValue(ARTIFICIAL_DYNAMIC_VISCOSITY,0.0);
+    double artificial_viscosity = 0.0;
+    pElement->Calculate(ARTIFICIAL_DYNAMIC_VISCOSITY, artificial_viscosity, r_process_info);
+
     // Check the RHS values (the RHS is computed as the LHS x previous_solution,
     // hence, it is assumed that if the RHS is correct, the LHS is correct as well)
     const std::vector<double> rhs_ref = {285.327812743,-75.7286708218,0.678487936315,-758.586246712,-529.046820664,-0.808596445975,-549.320499823,-931.191955616,-0.0198914903401};
     KRATOS_EXPECT_VECTOR_NEAR(RHS, rhs_ref, 1.0e-7);
+
+    // Check the artificial viscosity
+    KRATOS_EXPECT_NEAR(artificial_viscosity, 2320.1304331285937, 1.0e-7);
 
 }
 
@@ -236,10 +245,19 @@ KRATOS_TEST_CASE_IN_SUITE(ElementTwoFluidNavierStokesFractionalCut3D4N, FluidDyn
     const auto& r_process_info = modelPart.GetProcessInfo();
     pElement->Initialize(r_process_info); // Initialize the element to initialize the constitutive law
     pElement->CalculateLocalSystem(LHS, RHS, r_process_info);
+
+    // Computing artificial viscosity for 3D cut element 
+    pElement->SetValue(ARTIFICIAL_DYNAMIC_VISCOSITY,0.0);
+    double artificial_viscosity = 0.0;
+    pElement->Calculate(ARTIFICIAL_DYNAMIC_VISCOSITY, artificial_viscosity, r_process_info);
+
     // Check the RHS values (the RHS is computed as the LHS x previous_solution,
     // hence, it is assumed that if the RHS is correct, the LHS is correct as well)
     const std::vector<double> rhs_ref = {-182.780712656374,-5.97373013000447,-366.425812873773,0.13618045150788,-65.5996318561992,-195.157657104678,-732.899349900163,0.228653068676312,-30.1350973710576,-309.557107994407,-744.055344313566,-0.182507276303036,4.70728308941767,-259.815870552732,-872.015239241193,-0.282326243881156};
     KRATOS_EXPECT_VECTOR_NEAR(RHS, rhs_ref, 1.0e-7);
+    
+    // Check artificial viscosity
+    KRATOS_EXPECT_NEAR(artificial_viscosity, 4534.5923125998024, 1.0e-7);
 }
 
 

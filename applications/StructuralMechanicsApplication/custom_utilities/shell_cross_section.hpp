@@ -478,7 +478,7 @@ public:
             const double offset = GetOffset(rProps);
 
             for (int i=0; i<mPlyIndex+1; ++i) {
-                double ply_thickness = GetThickness(rProps);
+                double ply_thickness = ShellUtilities::GetThickness(rProps, i);
                 my_location = current_location - ply_thickness*0.5 - offset;
                 current_location -= ply_thickness;
             }
@@ -694,7 +694,7 @@ public:
 
     /**
     * Returns the string containing a detailed description of this object.
-    * @return the string with informations
+    * @return the string with information
     */
     virtual std::string GetInfo(const Properties& rProps);
 
@@ -1199,8 +1199,8 @@ public:
     }
 
     /**
-    * Calculates the avarage mass density of this cross section.
-    * @return the avarage mass density
+    * Calculates the average mass density of this cross section.
+    * @return the average mass density
     */
     inline double CalculateAvarageDensity(const Properties& rProps) const
     {
@@ -1394,7 +1394,7 @@ private:
 
 };
 
-///@name Input/Output funcitons
+///@name Input/Output functions
 ///@{
 
 inline std::istream& operator >> (std::istream& rIStream, ShellCrossSection& rThis);

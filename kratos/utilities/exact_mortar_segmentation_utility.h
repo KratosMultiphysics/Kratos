@@ -5,13 +5,13 @@
 //   _|\_\_|  \__,_|\__|\___/ ____/
 //                   Multi-Physics
 //
-//  License:		 BSD License
-//					 Kratos default license: kratos/license.txt
+//  License:         BSD License
+//                   Kratos default license: kratos/license.txt
 //
 //  Main authors:    Vicente Mataix Ferrandiz
 //
-#if !defined(KRATOS_EXACT_MORTAR_INTEGRATION_UTILITY_H_INCLUDED)
-#define KRATOS_EXACT_MORTAR_INTEGRATION_UTILITY_H_INCLUDED
+
+#pragma once
 
 // System includes
 #include <iostream>
@@ -47,19 +47,8 @@ namespace Kratos {
 ///@name Type Definitions
 ///@{
 
-    /// Geometric definitions
-    typedef Point PointType;
-    typedef Node NodeType;
-    typedef Geometry<NodeType> GeometryType;
-    typedef Geometry<PointType> GeometryPointType;
-
-    ///Type definition for integration methods
-    typedef GeometryData::IntegrationMethod IntegrationMethod;
-    typedef IntegrationPoint<2> IntegrationPointType;
-    typedef GeometryType::IntegrationPointsArrayType IntegrationPointsType;
-
     /// The definition of the size type
-    typedef std::size_t SizeType;
+    using SizeType = std::size_t;
 
 ///@}
 ///@name  Enum's
@@ -91,50 +80,70 @@ public:
     ///@name Type Definitions
     ///@{
 
-    /// The type of points belongfs to be considered
-    typedef typename std::conditional<TNumNodes == 2, PointBelongsLine2D2N, typename std::conditional<TNumNodes == 3, typename std::conditional<TNumNodesMaster == 3, PointBelongsTriangle3D3N, PointBelongsTriangle3D3NQuadrilateral3D4N>::type, typename std::conditional<TNumNodesMaster == 3, PointBelongsQuadrilateral3D4NTriangle3D3N, PointBelongsQuadrilateral3D4N>::type>::type>::type BelongType;
+    /// The definition of the class
+    using ClassType = ExactMortarIntegrationUtility<TDim, TNumNodes, TBelong, TNumNodesMaster>;
+    
+    /// Geometric definitions
+    using GeometryType = Geometry<Node>;
+    using GeometryPointType = Geometry<Point>;
+
+    /// Type definition for integration methods
+    using IntegrationMethod = GeometryData::IntegrationMethod;
+    using IntegrationPointType = IntegrationPoint<2>;
+    using IntegrationPointsType = GeometryType::IntegrationPointsArrayType;
+
+    /// The type of points to be considered
+    using BelongType = typename std::conditional<TNumNodes == 2,
+        PointBelongsLine2D2N,
+        typename std::conditional<TNumNodes == 3,
+            typename std::conditional<TNumNodesMaster == 3,
+                PointBelongsTriangle3D3N,
+                PointBelongsTriangle3D3NQuadrilateral3D4N>::type,
+            typename std::conditional<TNumNodesMaster == 3,
+                PointBelongsQuadrilateral3D4NTriangle3D3N,
+                PointBelongsQuadrilateral3D4N>::type>::type>::type;
 
     /// The definition of the point with belonging
-    typedef PointBelong<TNumNodes, TNumNodesMaster> PointBelongType;
+    using PointBelongType = PointBelong<TNumNodes, TNumNodesMaster>;
 
-    /// An array of points belong
-    typedef std::vector<array_1d<PointBelongType, TDim>> VectorArrayPointsBelong;
-
-    /// A vector of points
-    typedef std::vector<array_1d<PointType, TDim>> VectorArrayPoints;
-
-    /// The type of array of points to be considered depending if we are interested in derivatives or not
-    typedef typename std::conditional<TBelong, VectorArrayPointsBelong,VectorArrayPoints>::type ConditionArrayListType;
-
-    /// A vector of points for derivatives
-    typedef std::vector<PointBelongType> VectorPointsBelong;
+    /// An array of points with belonging
+    using VectorArrayPointsBelong = std::vector<array_1d<PointBelongType, TDim>>;
 
     /// A vector of normal points
-    typedef std::vector<PointType> VectorPoints;
+    using VectorArrayPoints = std::vector<array_1d<Point, TDim>>;
+
+    /// The type of array of points to be considered depending if we are interested in derivatives or not
+    using ConditionArrayListType = typename std::conditional<TBelong, VectorArrayPointsBelong, VectorArrayPoints>::type;
+
+    /// A vector of points for derivatives
+    using VectorPointsBelong = std::vector<PointBelongType>;
+
+    /// A vector of normal points
+    using VectorPoints = std::vector<Point>;
 
     /// The type of vector of points to be considered depending if we are interested in define derivatives or not
-    typedef typename std::conditional<TBelong, VectorPointsBelong, VectorPoints>::type PointListType;
+    using PointListType = typename std::conditional<TBelong, VectorPointsBelong, VectorPoints>::type;
 
-    /// An array of points belong
-    typedef array_1d<PointBelongType, 3> ArrayPointsBelong;
+    /// An array of points with belonging
+    using ArrayPointsBelong = array_1d<PointBelongType, 3>;
 
     /// An array of normal points
-    typedef array_1d<PointType, 3> ArrayPoints;
+    using ArrayPoints = array_1d<Point, 3>;
 
-    /// The type of arrayt of points to be used depending if we are interested in derivatives or not
-    typedef typename std::conditional<TBelong, ArrayPointsBelong, ArrayPoints>::type ArrayTriangleType;
+    /// The type of array of points to be used depending if we are interested in derivatives or not
+    using ArrayTriangleType = typename std::conditional<TBelong, ArrayPointsBelong, ArrayPoints>::type;
 
     /// The points line geometry
-    typedef Line2D2<Point> LineType;
+    using LineType = Line2D2<Point>;
 
     /// The points triangle geometry
-    typedef Triangle3D3<Point> TriangleType;
+    using TriangleType = Triangle3D3<Point>;
 
     /// The geometry that will be considered for decomposition
-    typedef typename std::conditional<TDim == 2, LineType, TriangleType>::type DecompositionType;
+    using DecompositionType = typename std::conditional<TDim == 2, LineType, TriangleType>::type;
 
     /// The definition of the index type
-    typedef std::size_t IndexType;
+    using IndexType = std::size_t;
 
     /// Definition of epsilon
     static constexpr double ZeroTolerance = std::numeric_limits<double>::epsilon();
@@ -434,11 +443,11 @@ protected:
      * @return True if there is a intersection point, false otherwise
      */
     static inline bool Clipping2D(
-        PointType& rPointIntersection,
-        const PointType& rPointOrig1,
-        const PointType& rPointOrig2,
-        const PointType& rPointDest1,
-        const PointType& rPointDest2
+        Point& rPointIntersection,
+        const Point& rPointOrig1,
+        const Point& rPointOrig2,
+        const Point& rPointDest1,
+        const Point& rPointDest2
         )
     {
         const array_1d<double, 3>& r_coord_point_orig1 = rPointOrig1.Coordinates();
@@ -501,8 +510,8 @@ protected:
      * @return angle The angle formed
      */
     static inline double AnglePoints(
-        const PointType& rPointOrig1,
-        const PointType& rPointOrig2,
+        const Point& rPointOrig1,
+        const Point& rPointOrig2,
         const array_1d<double, 3>& rAxis1,
         const array_1d<double, 3>& rAxis2
         )
@@ -524,8 +533,8 @@ protected:
      * @return check The check done
      */
     static inline bool CheckPoints(
-        const PointType& rPointOrig,
-        const PointType& rPointDest
+        const Point& rPointOrig,
+        const Point& rPointDest
         )
     {
 //         const double tolerance = std::numeric_limits<double>::epsilon(); // NOTE: Giving some problems, too tight
@@ -541,9 +550,9 @@ protected:
      * @return The DetJ
      */
     static inline double FastTriagleCheck2D(
-        const PointType& rPointOrig1,
-        const PointType& rPointOrig2,
-        const PointType& rPointOrig3
+        const Point& rPointOrig1,
+        const Point& rPointOrig2,
+        const Point& rPointOrig3
         )
     {
         const double x10 = rPointOrig2.X() - rPointOrig1.X();
@@ -660,7 +669,7 @@ protected:
         PointListType& rPointList,
         const GeometryPointType& rSlaveGeometry,
         const GeometryPointType& rMasterGeometry,
-        const PointType& rRefCenter
+        const Point& rRefCenter
         );
 
     /**
@@ -684,7 +693,7 @@ protected:
         const GeometryPointType& rMasterGeometry,
         const array_1d<double, 3>& rSlaveTangentXi,
         const array_1d<double, 3>& rSlaveTangentEta,
-        const PointType& rRefCenter,
+        const Point& rRefCenter,
         const bool IsAllInside = false
         );
 
@@ -700,21 +709,7 @@ protected:
         );
 
     ///@}
-    ///@name Protected  Access
-    ///@{
-
-    ///@}
-    ///@name Protected Inquiry
-    ///@{
-
-    ///@}
-    ///@name Protected LifeCycle
-    ///@{
-    ///@}
 private:
-    ///@name Static Member Variables
-    ///@{
-    ///@}
     ///@name Member Variables
     ///@{
 
@@ -726,29 +721,5 @@ private:
     bool mConsiderDelaunator;                /// If consider the DelaunatorUtilities in 3D in order to construct the triangles
 
     ///@}
-    ///@name Private Operators
-    ///@{
-
-    ///@}
-    ///@name Private Operations
-    ///@{
-
-    ///@}
-    ///@name Private  Access
-    ///@{
-    ///@}
-
-    ///@}
-    ///@name Serialization
-    ///@{
-
-    ///@name Private Inquiry
-    ///@{
-    ///@}
-
-    ///@name Unaccessible methods
-    ///@{
-    ///@}
 };  // Class ExactMortarIntegrationUtility
 }
-#endif /* KRATOS_EXACT_MORTAR_INTEGRATION_UTILITY_H_INCLUDED defined */

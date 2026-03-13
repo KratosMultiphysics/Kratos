@@ -11,8 +11,8 @@
 //
 
 // Project includes
-#include "custom_conditions/U_Pw_condition.hpp"
-
+#include "custom_conditions/U_Pw_condition.h"
+#include "geometries/line_2d_2.h"
 #include "tests/cpp_tests/geo_mechanics_fast_suite.h"
 
 using namespace Kratos;
@@ -20,17 +20,11 @@ using namespace Kratos;
 namespace Kratos::Testing
 {
 
-KRATOS_TEST_CASE_IN_SUITE(CalculateLeftHandSideUPwCondition_ReturnsEmptyMatrix, KratosGeoMechanicsFastSuite)
+KRATOS_TEST_CASE_IN_SUITE(CalculateLeftHandSideUPwCondition_ReturnsEmptyMatrix, KratosGeoMechanicsFastSuiteWithoutKernel)
 {
-    Model current_model;
-    auto& r_model_part = current_model.CreateModelPart("ModelPart", 1);
-
-    // create geometry as UPwCondition needs a geometry to be initialized
-    auto                              node = r_model_part.CreateNewNode(1, 0.0, 0.0, 0.0);
-    std::vector<ModelPart::IndexType> element_nodes{1};
-    auto p_geometry = r_model_part.CreateNewGeometry("Point2D", element_nodes);
-
-    auto cond = UPwCondition<2, 2>(1, p_geometry, nullptr);
+    auto p_line_geometry = std::make_shared<Line2D2<Node>>(make_intrusive<Node>(1, 0.0, 0.0, 0.0),
+                                                           make_intrusive<Node>(2, 1.0, 0.0, 0.0));
+    auto cond            = UPwCondition<2, 2>(1, p_line_geometry, nullptr);
 
     Matrix left_hand_side_matrix = ZeroMatrix(6, 6);
     cond.CalculateLeftHandSide(left_hand_side_matrix, ProcessInfo{});

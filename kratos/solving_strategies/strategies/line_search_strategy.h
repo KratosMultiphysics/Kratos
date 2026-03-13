@@ -4,15 +4,13 @@
 //   _|\_\_|  \__,_|\__|\___/ ____/
 //                   Multi-Physics
 //
-//  License:		 BSD License
-//					 Kratos default license: kratos/license.txt
+//  License:         BSD License
+//                   Kratos default license: kratos/license.txt
 //
 //  Main authors:    Riccardo Rossi
 //
 
-
-#if !defined(KRATOS_LINE_SEARCH_STRATEGY )
-#define  KRATOS_LINE_SEARCH_STRATEGY
+#pragma once
 
 // System includes
 
@@ -23,58 +21,44 @@
 #include "includes/model_part.h"
 #include "solving_strategies/strategies/residualbased_newton_raphson_strategy.h"
 
-
 namespace Kratos
 {
-
 ///@name Kratos Globals
 ///@{
-
 
 ///@}
 ///@name Type Definitions
 ///@{
 
 ///@}
-
-
 ///@name  Enum's
 ///@{
-
 
 ///@}
 ///@name  Functions
 ///@{
 
-
-
 ///@}
 ///@name Kratos Classes
 ///@{
 
-/// Short class definition.
-
-/// Detail class definition.
-
-//URL[Example of use html]{ extended_documentation/no_ex_of_use.html}
-
-//URL[Example of use pdf]{ extended_documentation/no_ex_of_use.pdf}
-
-//URL[Example of use doc]{ extended_documentation/no_ex_of_use.doc}
-
-//URL[Example of use ps]{ extended_documentation/no_ex_of_use.ps}
-
-
-//URL[Extended documentation html]{ extended_documentation/no_ext_doc.html}
-
-//URL[Extended documentation pdf]{ extended_documentation/no_ext_doc.pdf}
-
-//URL[Extended documentation doc]{ extended_documentation/no_ext_doc.doc}
-
-//URL[Extended documentation ps]{ extended_documentation/no_ext_doc.ps}
-
-
-
+/**
+ * @class LineSearchStrategy
+ * @ingroup KratosCore
+ * @brief This strategy extends the standard Newton-Raphson method by incorporating a line search algorithm to improve convergence.
+ * @details The Line Search strategy is a variant of the Newton-Raphson method that aims to enhance convergence for highly non-linear problems.
+ * In each non-linear iteration, after computing the search direction (the solution increment) $\Delta\mathbf{u}$, this strategy finds an optimal scaling factor $\alpha$ to update the solution. The update is performed as:
+ * $$
+ * \mathbf{u}_{k+1} = \mathbf{u}_k + \alpha \cdot \Delta\mathbf{u}_k
+ * $$
+ * The goal of the line search is to determine an $\alpha$ that minimizes the energy potential (or equivalently, the component of the residual) along the search direction $\Delta\mathbf{u}_k$. This is achieved by an iterative procedure that approximates the minimum.
+ * This approach can prevent divergence in cases where the full Newton step ($\alpha=1$) would be too large, significantly improving the robustness and stability of the non-linear solution process. The behavior of the line search is controlled by several parameters, such as the maximum number of line search iterations, initial guesses for alpha, and the desired tolerance.
+ * @see ResidualBasedNewtonRaphsonStrategy
+ * @author Riccardo Rossi
+ * @tparam TSparseSpace The sparse space definition
+ * @tparam TDenseSpace The dense space definition
+ * @tparam TLinearSolver The linear solver definition
+ */
 template<class TSparseSpace,
          class TDenseSpace, // = DenseSpace<double>,
          class TLinearSolver //= LinearSolver<TSparseSpace,TDenseSpace>
@@ -276,10 +260,8 @@ public:
     {
     }
 
-
     ///@}
     ///@name Operators
-
     ///@{
 
     ///@}
@@ -366,13 +348,10 @@ public:
     ///@name Friends
     ///@{
 
-
     ///@}
-
 private:
     ///@name Protected static Member Variables
     ///@{
-
 
     ///@}
     ///@name Protected member Variables
@@ -389,12 +368,9 @@ private:
     ///@name Protected Operators
     ///@{
 
-
     ///@}
     ///@name Protected Operations
     ///@{
-
-
 
     ///@}
     ///@name Protected  Access
@@ -404,24 +380,18 @@ private:
     ///@name Protected Inquiry
     ///@{
 
-
     ///@}
     ///@name Protected LifeCycle
     ///@{
 
-
-
     ///@}
-
 protected:
     ///@name Static Member Variables
     ///@{
 
-
     ///@}
     ///@name Member Variables
     ///@{
-
 
     ///@}
     ///@name Private Operators
@@ -571,16 +541,13 @@ protected:
     ///@name Private Operations
     ///@{
 
-
     ///@}
     ///@name Private  Access
     ///@{
 
-
     ///@}
     ///@name Private Inquiry
     ///@{
-
 
     ///@}
     ///@name Un accessible methods
@@ -594,9 +561,7 @@ protected:
     {
     };
 
-
     ///@}
-
 }; /* Class LineSearchStrategy */
 
 ///@}
@@ -608,5 +573,3 @@ protected:
 ///@}
 
 } /* namespace Kratos. */
-
-#endif /* KRATOS_LINE_SEARCH_STRATEGY  defined */

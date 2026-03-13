@@ -13,12 +13,34 @@
 //
 
 // Application includes
-#include "custom_conditions/U_Pw_normal_face_load_condition.hpp"
+#include "custom_conditions/U_Pw_normal_face_load_condition.h"
 #include "custom_utilities/element_utilities.hpp"
-#include <custom_utilities/variables_utilities.hpp>
+#include "custom_utilities/variables_utilities.hpp"
+
+#include <numeric>
 
 namespace Kratos
 {
+
+template <unsigned int TDim, unsigned int TNumNodes>
+UPwNormalFaceLoadCondition<TDim, TNumNodes>::UPwNormalFaceLoadCondition()
+    : UPwCondition<TDim, TNumNodes>()
+{
+}
+
+template <unsigned int TDim, unsigned int TNumNodes>
+UPwNormalFaceLoadCondition<TDim, TNumNodes>::UPwNormalFaceLoadCondition(IndexType NewId, GeometryType::Pointer pGeometry)
+    : UPwCondition<TDim, TNumNodes>(NewId, pGeometry)
+{
+}
+
+template <unsigned int TDim, unsigned int TNumNodes>
+UPwNormalFaceLoadCondition<TDim, TNumNodes>::UPwNormalFaceLoadCondition(IndexType NewId,
+                                                                        GeometryType::Pointer pGeometry,
+                                                                        PropertiesType::Pointer pProperties)
+    : UPwCondition<TDim, TNumNodes>(NewId, pGeometry, pProperties)
+{
+}
 
 template <unsigned int TDim, unsigned int TNumNodes>
 Condition::Pointer UPwNormalFaceLoadCondition<TDim, TNumNodes>::Create(IndexType NewId,
@@ -86,12 +108,16 @@ void UPwNormalFaceLoadCondition<TDim, TNumNodes>::CalculateTractionVector(array_
                                                                           const NormalFaceLoadVariables& Variables,
                                                                           const unsigned int& GPoint)
 {
-    const auto normal_stress = MathUtils<>::Dot(row(NContainer, GPoint), Variables.NormalStressVector);
+    const auto shape_function_values = row(NContainer, GPoint);
+    const auto normal_stress =
+        std::inner_product(shape_function_values.begin(), shape_function_values.end(),
+                           Variables.NormalStressVector.begin(), 0.0);
 
     Vector normal_vector = ZeroVector(3);
     if constexpr (TDim == 2) {
         const auto tangential_stress =
-            MathUtils<>::Dot(row(NContainer, GPoint), Variables.TangentialStressVector);
+            std::inner_product(shape_function_values.begin(), shape_function_values.end(),
+                               Variables.TangentialStressVector.begin(), 0.0);
 
         Vector tangential_vector = ZeroVector(3);
         std::copy_n(column(Jacobian, 0).begin(), TDim, tangential_vector.begin());
@@ -119,11 +145,24 @@ std::string UPwNormalFaceLoadCondition<TDim, TNumNodes>::Info() const
     return "UPwNormalFaceLoadCondition";
 }
 
+template <unsigned int TDim, unsigned int TNumNodes>
+void UPwNormalFaceLoadCondition<TDim, TNumNodes>::save(Serializer& rSerializer) const
+{
+    KRATOS_SERIALIZE_SAVE_BASE_CLASS(rSerializer, Condition)
+}
+
+template <unsigned int TDim, unsigned int TNumNodes>
+void UPwNormalFaceLoadCondition<TDim, TNumNodes>::load(Serializer& rSerializer)
+{
+    KRATOS_SERIALIZE_LOAD_BASE_CLASS(rSerializer, Condition)
+}
 template class UPwNormalFaceLoadCondition<2, 2>;
 template class UPwNormalFaceLoadCondition<2, 3>;
 template class UPwNormalFaceLoadCondition<2, 4>;
 template class UPwNormalFaceLoadCondition<2, 5>;
 template class UPwNormalFaceLoadCondition<3, 3>;
 template class UPwNormalFaceLoadCondition<3, 4>;
+template class UPwNormalFaceLoadCondition<3, 6>;
+template class UPwNormalFaceLoadCondition<3, 8>;
 
 } // Namespace Kratos.

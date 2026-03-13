@@ -80,7 +80,7 @@ public:
     ///@name Life Cycle
     ///@{
     //Constructors.
-    /// Default constuctor.
+    /// Default constructor.
     /**
      * @param NewId Index number of the new element (optional)
      */
@@ -106,7 +106,7 @@ public:
         ElementBaseType(NewId, pGeometry)
     {
     }
-    /// Constuctor using geometry and properties.
+    /// Constructor using geometry and properties.
     /**
      * @param NewId Index of the new element
      * @param pGeometry Pointer to a geometry object
@@ -154,7 +154,7 @@ public:
         return Kratos::make_intrusive< DPGVMS >(NewId,pGeom,pProperties);
     }
 
-    /// Call at teh begining of each step, ita decides if element is cutted or no!
+    /// Call at the beginning of each step, it decides if element is cut or not!
     /**
       */
     void InitializeSolutionStep(const ProcessInfo &rCurrentProcessInfo) override
@@ -165,7 +165,7 @@ public:
 // 	}
     }
 
-    /// Call at teh begining of each iteration, ita decides if element is cutted or no!
+    /// Call at the beginning of each iteration, it decides if element is cut or not!
     /**
       */
     void InitializeNonLinearIteration(const ProcessInfo& rCurrentProcessInfo) override
@@ -394,7 +394,7 @@ public:
             // Calculate this element's fluid properties
             double Density;
             this->EvaluateInPoint(Density, DENSITY, N);
-            // Consisten Mass Matrix
+            // Consistent Mass Matrix
             this->AddConsistentMassMatrixContribution(rMassMatrix, N, Density, wGauss);
         }
         this->LumpMassMatrix(rMassMatrix);
@@ -450,16 +450,17 @@ public:
 	    ElementBaseType::CalculateLocalVelocityContribution(rDampingMatrix, rRightHandSideVector, rCurrentProcessInfo);
 
 	    //compute boundary term
-	    int boundary_nodes = 0;
+	    // int boundary_nodes = 0;
 	    //unsigned int inside_index = -1;
-	    for (unsigned int i = 0; i < TNumNodes; i++)
-	    {
-	      double nd_flag = this->GetGeometry()[i].FastGetSolutionStepValue(FLAG_VARIABLE);
-	      if (nd_flag == 5.0)
-		boundary_nodes++;
-	      //else
-		//inside_index = i;
-	    }
+        
+	    // for (unsigned int i = 0; i < TNumNodes; i++)
+	    // {
+	    //   double nd_flag = this->GetGeometry()[i].FastGetSolutionStepValue(FLAG_VARIABLE);
+	    //   if (nd_flag == 5.0)
+		// boundary_nodes++;
+	    //   //else
+		// //inside_index = i;
+	    // }
 
 
 	/*  if(boundary_nodes == TDim)
@@ -715,7 +716,7 @@ public:
       }
 
       /*call Residual vector for condensation, it is filled in the
-      schme and consists of last row of LHS plus last member of RHS*/
+      scheme and consists of last row of LHS plus last member of RHS*/
        VectorType residual_enr_vector = ZeroVector(LocalSize + 2);
        residual_enr_vector = this->GetValue(GAPS);
 
@@ -724,7 +725,7 @@ public:
        for (unsigned int ii = 0; ii < LocalSize; ++ii)
 	  C_Dup += residual_enr_vector[ii]*DU[ii];
 
-       //take the value of enriched pressure from the last step and add teh increment
+       //take the value of enriched pressure from the last step and add the increment
        double enr_p =  this->GetValue(AUX_INDEX);
        if( residual_enr_vector[LocalSize] == 0.0 )
 	 KRATOS_THROW_ERROR(std::invalid_argument,"Diagonla member of enriched RES is zero !!!!!","")
@@ -761,7 +762,7 @@ public:
 		values[index + 3] = this->GetGeometry()[i].GetSolutionStepValue(PRESSURE, Step);
 
 	    }
-	    //add teh enriched component
+	    //add the enriched component
 	    int last_index = (TDim + 1) * TNumNodes;
 	    values[last_index] = this->GetValue(PRESSUREAUX);
 	  }
@@ -789,7 +790,7 @@ public:
 	      values[index + 2] = this->GetGeometry()[i].GetSolutionStepValue(ACCELERATION_Z, Step);
 	      values[index + 3] = 0.0;
 	  }
-	   //add teh enriched component
+	   //add the enriched component
 	    int last_index = (TDim + 1) * TNumNodes;
 	    values[last_index] = 0.0;
 	}
@@ -1165,7 +1166,7 @@ protected:
         if(navg != 0)
             value /= navg;
         else
-            KRATOS_THROW_ERROR(std::invalid_argument,"IT IS A CUTTED ELEMENT navg MUST BE NON ZERO !!!!","");
+            KRATOS_THROW_ERROR(std::invalid_argument,"IT IS A CUT ELEMENT navg MUST BE NON ZERO !!!!","");
         rResult = value;
 //            if(rVariable==DENSITY)
 //                KRATOS_WATCH(rResult)
@@ -1238,13 +1239,13 @@ protected:
      /// Add mass-like stabilization terms to LHS.
     /**
      * This function is only used in ASGS. For OSS, we avoid computing these
-     * terms, as they shoud cancel out with the dynamic part of the projection
+     * terms, as they should cancel out with the dynamic part of the projection
      * (which is not computed either)
      * @param rLHSMatrix Left hand side of the velocity-pressure system
      * @param Density Density on integration point
      * @param rAdvVel Advective velocity on integration point
      * @param TauOne Stabilization parameter for momentum equation
-     * @param rShapeFunc Shape funcitions evaluated on integration point
+     * @param rShapeFunc Shape functions evaluated on integration point
      * @param rShapeDeriv Shape function derivatives evaluated on integration point
      * @param Weight Area (or volume) times integration point weight
      */
@@ -1326,7 +1327,7 @@ protected:
         double K, G, PDivV, L, qF; // Temporary results
 
         // Note that we iterate first over columns, then over rows to read the Body Force only once per node
-        for (unsigned int j = 0; j < TNumNodes; ++j) // iterate over colums
+        for (unsigned int j = 0; j < TNumNodes; ++j) // iterate over columns
         {
             // Get Body Force
             const array_1d<double, 3 > & rBodyForce = this->GetGeometry()[j].FastGetSolutionStepValue(BODY_FORCE);
@@ -1399,7 +1400,7 @@ protected:
 
 
 	//add enrichment terms
-	for (unsigned int j = 0; j < TNumNodes; ++j) // iterate over colums
+	for (unsigned int j = 0; j < TNumNodes; ++j) // iterate over columns
         {
             // Get Body Force
             const array_1d<double, 3 > & rBodyForce = this->GetGeometry()[j].FastGetSolutionStepValue(BODY_FORCE);

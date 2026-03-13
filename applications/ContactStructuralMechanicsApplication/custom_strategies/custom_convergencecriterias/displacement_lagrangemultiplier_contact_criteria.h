@@ -263,20 +263,20 @@ public:
                 return std::make_tuple(0.0,0.0,0.0,0.0,0.0,0.0,0,0,0);
             });
 
-            if(disp_increase_norm < Tolerance) disp_increase_norm = 1.0;
-            if(rot_increase_norm < Tolerance) rot_increase_norm = 1.0;
-            if(lm_increase_norm < Tolerance) lm_increase_norm = 1.0;
-            if(disp_solution_norm < Tolerance) disp_solution_norm = 1.0;
+            if (disp_increase_norm < Tolerance) disp_increase_norm = 1.0;
+            if (rot_increase_norm < Tolerance) rot_increase_norm = 1.0;
+            if (lm_increase_norm < Tolerance) lm_increase_norm = 1.0;
+            if (disp_solution_norm < Tolerance) disp_solution_norm = 1.0;
 
             KRATOS_ERROR_IF(mOptions.Is(DisplacementLagrangeMultiplierContactCriteria::ENSURE_CONTACT) && lm_solution_norm < Tolerance) << "WARNING::CONTACT LOST::ARE YOU SURE YOU ARE SUPPOSED TO HAVE CONTACT?" << std::endl;
 
             const double disp_ratio = std::sqrt(disp_increase_norm/disp_solution_norm);
             const double rot_ratio = std::sqrt(rot_increase_norm/rot_solution_norm);
-            const double lm_ratio = lm_solution_norm > Tolerance ? std::sqrt(lm_increase_norm/lm_solution_norm) : 0.0;
+            const double lm_ratio = (lm_solution_norm > Tolerance) ? std::sqrt(lm_increase_norm/lm_solution_norm) : 0.0;
 
-            const double disp_abs = std::sqrt(disp_increase_norm)/static_cast<double>(disp_dof_num);
-            const double rot_abs = std::sqrt(rot_increase_norm)/static_cast<double>(rot_dof_num);
-            const double lm_abs = std::sqrt(lm_increase_norm)/static_cast<double>(lm_dof_num);
+            const double disp_abs = (disp_dof_num > 0) ? std::sqrt(disp_increase_norm)/static_cast<double>(disp_dof_num) : 0.0;
+            const double rot_abs = (rot_dof_num > 0) ? std::sqrt(rot_increase_norm)/static_cast<double>(rot_dof_num) : 0.0;
+            const double lm_abs = (lm_dof_num > 0) ? std::sqrt(lm_increase_norm)/static_cast<double>(lm_dof_num) : 0.0;
 
             // The process info of the model part
             ProcessInfo& r_process_info = rModelPart.GetProcessInfo();
@@ -352,9 +352,9 @@ public:
                 }
                 return false;
             }
-        }
-        else // In this case all the displacements are imposed!
+        } else { // In this case all the displacements are imposed!
             return true;
+        }
     }
 
     /**
@@ -448,7 +448,7 @@ public:
     }
 
     ///@}
-    ///@name Acces
+    ///@name Access
     ///@{
 
     ///@}

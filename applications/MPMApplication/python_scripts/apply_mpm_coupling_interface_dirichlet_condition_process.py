@@ -16,18 +16,24 @@ class ApplyMPMCouplingInterfaceDirichletConditionProcess(ApplyMPMParticleDirichl
 
         default_parameters = KratosMultiphysics.Parameters( """
             {
-                "model_part_name"           : "PLEASE_SPECIFY_MODEL_PART_NAME",
-                "material_points_per_condition"   : 0,
-                "imposition_type"           : "penalty",
-                "penalty_factor"            : 0,
-                "constrained"               : "fixed",
-                "option"                    : "",
-                "is_equal_distributed"      : false
+                "model_part_name"               : "PLEASE_SPECIFY_MODEL_PART_NAME",
+                "material_points_per_condition" : 0,
+                "imposition_type"               : "penalty",
+                "penalty_coefficient"           : 0,
+                "constrained"                   : "fixed",
+                "option"                        : "",
+                "is_equal_distributed"          : false
             }  """ )
 
         context_string = type(self).__name__
         old_name = 'particles_per_condition'
         new_name = 'material_points_per_condition'
+        if DeprecationManager.HasDeprecatedVariable(context_string, settings, old_name, new_name):
+            DeprecationManager.ReplaceDeprecatedVariableName(settings, old_name, new_name)
+
+        context_string = type(self).__name__
+        old_name = 'penalty_factor'
+        new_name = 'penalty_coefficient'
         if DeprecationManager.HasDeprecatedVariable(context_string, settings, old_name, new_name):
             DeprecationManager.ReplaceDeprecatedVariableName(settings, old_name, new_name)
 
@@ -48,6 +54,14 @@ class ApplyMPMCouplingInterfaceDirichletConditionProcess(ApplyMPMParticleDirichl
             self.model_part_name = self.model_part_name.replace('Background_Grid.','')
         mpm_material_model_part_name = "MPM_Material." + self.model_part_name
         self.model_part = self.model[mpm_material_model_part_name]
+
+        # Create additional nodes for Lagrange dofs in case of Lagrange or Perturbed Lagranian method
+        if self.boundary_condition_type==2 or self.boundary_condition_type==3:
+            is_restarted = self.model_part.ProcessInfo[KratosMultiphysics.IS_RESTARTED]
+            if not is_restarted:
+                grid_model_part=self.model.GetModelPart("Background_Grid")
+                
+                KratosMPM.GenerateLagrangeNodes(grid_model_part)
 
         ### Translate conditions with INTERFACE flag into a new model part "MPM_Coupling_Dirichlet_Interface" responsible for coupling with structure
         # Create coupling model part

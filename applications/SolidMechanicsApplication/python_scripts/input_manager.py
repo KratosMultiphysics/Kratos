@@ -79,7 +79,7 @@ class InputManager(object):
             if project_parameters["model_settings"].Has("model_name"):
                 model_name = project_parameters["model_settings"]["model_name"].GetString()
 
-        for material in material_parameters["material_models_list"]:
+        for material in material_parameters["material_models_list"].values():
             self._set_model_part_name(material, model_name)
 
     def _set_model_name(self, project_parameters):
@@ -92,7 +92,7 @@ class InputManager(object):
         if project_parameters.Has("solver_settings"):
             solver_parameters = project_parameters["solver_settings"]["Parameters"]
             if solver_parameters.Has("solvers"):
-                for solver in solver_parameters["solvers"]:
+                for solver in solver_parameters["solvers"].values():
                     solver_parameters = solver["Parameters"]
                     self._set_solving_model_part_name(solver_parameters, model_name)
                     if solver.Has("processes"):
@@ -107,7 +107,7 @@ class InputManager(object):
         process_lists = ["constraints_process_list","loads_process_list","problem_process_list","output_process_list","check_process_list"]
         for list_name in process_lists:
             if project_parameters.Has(list_name):
-                for process in project_parameters[list_name]:
+                for process in project_parameters[list_name].values():
                     self._set_model_part_name(process, model_name)
 
     def _set_solving_model_part_name(self, solver_parameters, model_name):

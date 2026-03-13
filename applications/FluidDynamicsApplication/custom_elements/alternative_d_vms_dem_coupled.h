@@ -106,7 +106,7 @@ public:
 
     //Constructors.
 
-    /// Default constuctor.
+    /// Default constructor.
     /**
      * @param NewId Index number of the new element (optional)
      */
@@ -126,7 +126,7 @@ public:
      */
     AlternativeDVMSDEMCoupled(IndexType NewId, GeometryType::Pointer pGeometry);
 
-    /// Constuctor using geometry and properties.
+    /// Constructor using geometry and properties.
     /**
      * @param NewId Index of the new element
      * @param pGeometry Pointer to a geometry object
@@ -164,7 +164,7 @@ public:
     /**
      * Returns a pointer to a new AlternativeDVMSDEMCoupled element, created using given input
      * @param NewId the ID of the new element
-     * @param pGeom a pointer to the geomerty to be used to create the element
+     * @param pGeom a pointer to the geometry to be used to create the element
      * @param pProperties the properties assigned to the new element
      * @return a Pointer to the new element
      */
@@ -176,8 +176,6 @@ public:
     void Initialize(const ProcessInfo& rCurrentProcessInfo) override;
 
     void FinalizeSolutionStep(const ProcessInfo& rCurrentProcessInfo) override;
-
-    void InitializeNonLinearIteration(const ProcessInfo& rCurrentProcessInfo) override;
 
     void FinalizeNonLinearIteration(const ProcessInfo& rCurrentProcessInfo) override;
 
@@ -218,7 +216,12 @@ protected:
     DenseVector< array_1d<double,Dim> > mOldSubscaleVelocity;
     DenseVector< array_1d<double,Dim> > mPreviousVelocity;
     DenseVector <BoundedMatrix<double,Dim,Dim>> mViscousResistanceTensor;
+    DenseVector <double> mPreviousPressure;
     int mInterpolationOrder = 1;
+    std::vector<double> mPorosity;
+    std::vector<double> mPorosityRate;
+    std::vector<Vector> mPorosityGradient;
+    std::vector<Vector> mBodyForce;
 
     ///@}
     ///@name Protected Operators
@@ -272,13 +275,16 @@ protected:
         BoundedMatrix<double,NumNodes*(Dim+1),NumNodes*(Dim+1)>& rLHS,
         VectorType& rLocalRHS);
 
-
     void AddViscousTerm(
         const TElementData& rData,
         BoundedMatrix<double,LocalSize,LocalSize>& rLHS,
         VectorType& rRHS) override;
 
     void CalculateProjections(const ProcessInfo &rCurrentProcessInfo) override;
+
+    void Calculate(
+        const Variable<Matrix>& rVariable,
+        Matrix& rOutput, const ProcessInfo& rCurrentProcessInfo) override;
 
     void UpdateIntegrationPointDataSecondDerivatives(
         TElementData& rData,
@@ -331,8 +337,10 @@ protected:
 
     void CalculateOnIntegrationPoints(
         Variable<Matrix> const& rVariable,
-        std::vector<Matrix>& rValues,
+        std::vector<Matrix>& rOutput,
         ProcessInfo const& rCurrentProcessInfo) override;
+
+    void InitializeNonLinearIteration(const ProcessInfo& rCurrentProcessInfo) override;
 
     GeometryData::IntegrationMethod GetIntegrationMethod() const override;
 

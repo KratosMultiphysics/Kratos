@@ -299,7 +299,7 @@ public:
     unsigned int* pGetCurrentMaxNodeId();
     void SetMaxNodeId(unsigned int id);
 
-    /// Turn back information as a stemplate<class T, std::size_t dim> tring.
+    /// Turn back information as a stemplate<class T, std::size_t dim> string.
     virtual std::string Info() const;
 
     /// Print information about this object.

@@ -28,7 +28,6 @@
     "compute_reactions":                  false,
     "move_mesh_flag":                     false,
     "reform_dofs_at_each_step":           false,
-    "nodal_smoothing":                    false,
     "block_builder":                      false,
     "prebuild_dynamics":                  false,
     "solution_type":                      "Dynamic",
@@ -68,7 +67,6 @@
       "scaling":     true
     },
     "problem_domain_sub_model_part_list": ["Soil_two_phase"],
-    "processes_sub_model_part_list":      ["Bottom", "Side", "Line_velocity", "Soil_two_phase"],
     "body_domain_sub_model_part_list":    ["Soil_two_phase"]
   },
   "output_processes": {
@@ -111,19 +109,7 @@
         "kratos_module": "KratosMultiphysics.GeoMechanicsApplication",
         "process_name":  "ApplyVectorConstraintTableProcess",
         "Parameters":    {
-          "model_part_name": "PorousDomain.Bottom",
-          "variable_name":   "DISPLACEMENT",
-          "active":          [false, true, false],
-          "is_fixed":        [false, true, false],
-          "value":           [0.0, 0.0, 0.0],
-          "table":           [0, 0, 0]
-        }
-      }, {
-        "python_module": "apply_vector_constraint_table_process",
-        "kratos_module": "KratosMultiphysics.GeoMechanicsApplication",
-        "process_name":  "ApplyVectorConstraintTableProcess",
-        "Parameters":    {
-          "model_part_name": "PorousDomain.Side",
+          "model_part_name_list": ["PorousDomain.Bottom","PorousDomain.Side"],
           "variable_name":   "DISPLACEMENT",
           "active":          [false, true, false],
           "is_fixed":        [false, true, false],
@@ -141,6 +127,18 @@
           "is_fixed":        true,
           "value":           0.0,
           "table":           0
+        }
+      }, {
+        "python_module": "apply_vector_constraint_table_process",
+        "kratos_module": "KratosMultiphysics.GeoMechanicsApplication",
+        "process_name":  "ApplyVectorConstraintTableProcess",
+        "Parameters":    {
+          "model_part_name": "PorousDomain.Line_velocity",
+          "variable_name":   "DISPLACEMENT",
+          "active":          [true, false, false],
+          "is_fixed":        [true, false, false],
+          "value":           [0.0, 0.0, 0.0],
+          "table":           [0, 0, 0]
         }
       }
     ],

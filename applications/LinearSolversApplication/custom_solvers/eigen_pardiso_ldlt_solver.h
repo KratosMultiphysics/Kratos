@@ -7,20 +7,22 @@
 //  Author: Thomas Oberbichler
 */
 
-#if !defined(KRATOS_EIGEN_PARDISO_LDLT_SOLVER_H_INCLUDED)
-#define KRATOS_EIGEN_PARDISO_LDLT_SOLVER_H_INCLUDED
+#pragma once
+
+// System includes
+#include <optional>
 
 // External includes
 #include <Eigen/Sparse>
 #include <Eigen/PardisoSupport>
 
 // Project includes
-#include "includes/define.h"
 #include "linear_solvers_define.h"
 #include "linear_solvers/direct_solver.h"
 #include "spaces/ublas_space.h"
 #include "includes/ublas_interface.h"
 #include "includes/ublas_complex_interface.h"
+#include "custom_utilities/mkl_utilities.h"
 
 namespace Kratos {
 
@@ -43,11 +45,16 @@ public:
 
     void Initialize(Parameters settings)
     {
+        // Compute the number of MKL threads
+        mNumberOfMKLThreads = MKLUtilities::ComputeMKLThreadCount(settings);
     }
 
     bool Compute(Eigen::Map<const SparseMatrix> a)
     {
+        const int previous_threads = MKLUtilities::GetNumThreads();
+        if (mNumberOfMKLThreads) MKLUtilities::SetNumThreads(*mNumberOfMKLThreads);
         m_solver.compute(a);
+        if (mNumberOfMKLThreads) MKLUtilities::SetNumThreads(previous_threads);
 
         const bool success = m_solver.info() == Eigen::Success;
 
@@ -56,7 +63,10 @@ public:
 
     bool Solve(Eigen::Ref<const Vector> b, Eigen::Ref<Vector> x) const
     {
+        const int previous_threads = MKLUtilities::GetNumThreads();
+        if (mNumberOfMKLThreads) MKLUtilities::SetNumThreads(*mNumberOfMKLThreads);
         x = m_solver.solve(b);
+        if (mNumberOfMKLThreads) MKLUtilities::SetNumThreads(previous_threads);
 
         const bool success = m_solver.info() == Eigen::Success;
 
@@ -72,8 +82,14 @@ public:
     {
         return "No additional information";
     }
+
+private:
+    ///@name Private Member Variables
+    ///@{
+
+    std::optional<int> mNumberOfMKLThreads = std::nullopt; /// The number of MKL threads to be used
+
+    ///@}
 };
 
 } // namespace Kratos
-
-#endif // defined(KRATOS_EIGEN_PARDISO_LDLT_SOLVER_H_INCLUDED)

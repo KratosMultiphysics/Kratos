@@ -48,7 +48,7 @@ namespace Kratos
  * @ingroup KratosCore
  * @brief The base class for assigning a value to scalar variables or array_1d components processes in Kratos.
  * @details This function assigns a value to a variable belonging to all of the nodes in a given mesh
- * @note If the MODIFIED flag is set it will create new entities, copying the geometry and data, instead of just transfering
+ * @note If the MODIFIED flag is set it will create new entities, copying the geometry and data, instead of just transferring
  * @author Vicente Mataix Ferrandiz
 */
 class KRATOS_API(KRATOS_CORE) FastTransferBetweenModelPartsProcess
@@ -66,7 +66,7 @@ public:
     typedef ModelPart::ConditionsContainerType                       ConditionsArrayType;
     typedef ModelPart::ElementsContainerType                           ElementsArrayType;
     typedef ModelPart::MasterSlaveConstraintContainerType MasterSlaveConstraintArrayType;
-    typedef ModelPart::GeometriesMapType                               GeometriesMapType;
+    typedef ModelPart::GeometryContainerType                         GeometriesArrayType;
 
     /// The type used to identify the size
     typedef std::size_t SizeType;
@@ -105,7 +105,7 @@ public:
      * @param rOriginModelPart The origin model part
      * @param Entity The elements to transfer
      * @param Flag The flag used to differentiate between elements to transfer
-     * @param ReplicateEntities  If the entities are replicated or transfered
+     * @param ReplicateEntities  If the entities are replicated or transferred
      */
     FastTransferBetweenModelPartsProcess(
         ModelPart& rDestinationModelPart,
@@ -211,7 +211,7 @@ private:
     
     const EntityTransfered mEntity;    /// The entity to transfer
 
-    const Flags mFlag;                 /// A flag in order to tranfer only components with that flag
+    const Flags mFlag;                 /// A flag in order to transfer only components with that flag
     
     ///@}
     ///@name Private Operators

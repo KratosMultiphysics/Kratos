@@ -28,12 +28,10 @@ import responses_tests.test_standardized_responses
 import responses_tests.test_geometric_centroid_deviation_response_function
 import responses_tests.test_combined_response_function
 import responses_tests.test_discrete_value_residual_response_function
+import test_external_response_function
 import test_model_part_utils
 import test_model_part_controllers
 import test_connectivity_preserving_model_part_controller
-import test_container_expression_utils
-import test_container_expression
-import test_collective_expressions
 import test_sigmoidal_projection
 import test_buffered_dict
 import control.test_master_control
@@ -67,8 +65,8 @@ import algorithm_tests.nlopt_tests.mma_shell_thickness_opt.test_mma_optimizer
 def AssembleTestSuites():
     ''' Populates the test suites to run.
 
-    Populates the test suites to run. At least, it should pupulate the suites:
-    "small", "nighlty" and "all"
+    Populates the test suites to run. At least, it should populate the suites:
+    "small", "nightly" and "all"
 
     Return
     ------
@@ -89,7 +87,6 @@ def AssembleTestSuites():
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([test_model_part_utils.TestOptAppModelPartUtils]))
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([test_model_part_utils.TestModelPartUtilities]))
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([test_response_utilities.TestResponseUtilities]))
-    smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([test_container_expression_utils.TestContainerExpressionUtils]))
 
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([responses_tests.test_response_routine.TestResponseRoutine]))
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([responses_tests.test_standardized_responses.TestStandardizedObjective]))
@@ -103,10 +100,7 @@ def AssembleTestSuites():
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([responses_tests.test_combined_response_function.TestCombinedResponseFunction]))
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([responses_tests.test_discrete_value_residual_response_function.TestDiscreteValueResidualResponseFunctionExact]))
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([responses_tests.test_discrete_value_residual_response_function.TestDiscreteValueResidualResponseFunctionLogarithm]))
-
-    smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([test_container_expression.TestConditionPropertiesExpression]))
-    smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([test_container_expression.TestElementPropertiesExpression]))
-    smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([test_collective_expressions.TestCollectiveExpressions]))
+    smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([test_external_response_function.TestExternalResponseFunction]))
 
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([test_sigmoidal_projection.TestSigmoidalProjection]))
 

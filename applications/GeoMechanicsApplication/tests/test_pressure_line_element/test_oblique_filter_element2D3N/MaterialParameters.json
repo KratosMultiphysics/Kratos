@@ -1,0 +1,24 @@
+{
+  "properties": [{
+    "model_part_name"                      : "PorousDomain.filter",
+    "properties_id"                        : 1,
+    "Material" : { 
+      "constitutive_law" : {
+        "name"                             : "GeoLinearElasticPlaneStrain2DLaw"
+      },
+      "Variables" : {
+        "DENSITY_SOLID"                    : 2.650000e+03,
+        "DENSITY_WATER"                    : 1.000000e+03,
+        "POROSITY"                         : 1.000000e-01,
+        "BULK_MODULUS_SOLID"               : 9.000000e+19,
+        "BULK_MODULUS_FLUID"               : 1.000000e+20,
+        "PERMEABILITY_XX"                  : 9.084000e-06,
+        "DYNAMIC_VISCOSITY"                : 1.000000e-03,
+        "BIOT_COEFFICIENT"                 : 1.000000e+00,
+        "RETENTION_LAW"                    : "PressureFilterLaw",
+        "CROSS_AREA"                       : 1.0,
+        "FILTER_LENGTH"                    : 3.0
+      }
+    }
+  }]
+}

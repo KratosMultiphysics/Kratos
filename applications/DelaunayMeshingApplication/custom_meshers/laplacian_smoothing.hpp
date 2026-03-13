@@ -333,7 +333,7 @@ namespace Kratos
 	  }
 
 
-	//defintions for spatial search
+	//definitions for spatial search
 	typedef Node                                  PointType;
 	typedef Node::Pointer                  PointPointerType;
 	typedef std::vector<PointPointerType>          PointVector;
@@ -343,7 +343,7 @@ namespace Kratos
 
 	typedef Bucket<3, PointType, PointVector, PointPointerType, PointIterator, DistanceIterator > BucketType;
 	typedef Tree< KDTreePartition<BucketType> >     KdtreeType; //Kdtree
-	//defintions for spatial search
+	//definitions for spatial search
 
 	unsigned int  bucket_size = 20;
 	KdtreeType    NodesTree(list_of_nodes.begin(),list_of_nodes.end(),bucket_size);

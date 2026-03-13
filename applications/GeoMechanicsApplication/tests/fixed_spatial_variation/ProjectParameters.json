@@ -28,7 +28,6 @@
         "compute_reactions":                  false,
         "move_mesh_flag":                     false,
         "reform_dofs_at_each_step":           false,
-        "nodal_smoothing":                    false,
         "block_builder":                      true,
         "solution_type":                      "Quasi-static",
         "scheme_type":                        "Backward_Euler",
@@ -61,7 +60,6 @@
             "scaling":       true
         },
         "problem_domain_sub_model_part_list": ["soil"],
-        "processes_sub_model_part_list":      ["Body_Acceleration-auto-1","Top","Base", "soil"],
         "body_domain_sub_model_part_list":    ["soil"]
     },
     "output_processes": {
@@ -156,7 +154,6 @@
             "value":           [0.0,-10,0.0],
             "table":           [0,0,0]
         }
-    }],
-        "auxiliar_process_list": []
+    }]
     }
 }

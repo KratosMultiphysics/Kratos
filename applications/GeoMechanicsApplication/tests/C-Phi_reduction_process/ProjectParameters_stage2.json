@@ -12,8 +12,7 @@
         "model_part_name":                    "PorousDomain",
         "domain_size":                        2,
         "model_import_settings":              {
-            "input_type":       "mdpa",
-            "input_filename":   "mesh"
+            "input_type":       "use_input_model_part"
         },
         "material_import_settings":              {
             "materials_filename":       "MaterialParameters_stage2.json"
@@ -28,7 +27,6 @@
         "compute_reactions":                  false,
         "move_mesh_flag":                     false,
         "reform_dofs_at_each_step":           false,
-        "nodal_smoothing":                    false,
         "block_builder":                      true,
         "solution_type":                      "Quasi-Static",
         "scheme_type":                        "Backward_Euler",
@@ -66,18 +64,8 @@
             "solver_type":   "LinearSolversApplication.sparse_lu",
             "scaling":       true
         },
-        "body_domain_sub_model_part_list": [
-            "Material_1"
-        ],
-        "problem_domain_sub_model_part_list": [
-            "Material_1"
-        ],
-        "processes_sub_model_part_list": [
-            "Main",
-            "All_Nodes",
-            "Side_Nodes",
-            "Base_Nodes"
-        ]
+        "body_domain_sub_model_part_list"   : ["Material_1"],
+        "problem_domain_sub_model_part_list": ["Material_1"]
     },
     "output_processes": {
         "gid_output": [{
@@ -172,7 +160,6 @@
             "value":           [0.0,-9.81,0.0],
             "table":           [0,0,0]
         }
-    }],
-        "auxiliar_process_list": []
+    }]
     }
 }

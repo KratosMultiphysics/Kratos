@@ -27,6 +27,7 @@
 #include "utilities/geometry_utilities.h"
 #include "utilities/integration_utilities.h"
 #include "integration/tetrahedron_gauss_legendre_integration_points.h"
+#include "integration/tetrahedron_gauss_lobatto_integration_points.h"
 
 namespace Kratos
 {
@@ -235,7 +236,7 @@ public:
      * Copy constructor from a geometry with other point type.
      * Construct this geometry as a copy of given geometry which
      * has different type of points. The given goemetry's
-     * TOtherPointType* must be implicity convertible to this
+     * TOtherPointType* must be implicitly convertible to this
      * geometry PointType.
      *
      * @note This copy constructor don't copy the points and new
@@ -407,7 +408,7 @@ public:
 
     /**
      * This method calculates and returns area or surface area of
-     * this geometry depending to it's dimension. For one dimensional
+     * this geometry depending on its dimension. For one dimensional
      * geometry it returns zero, for two dimensional it gives area
      * and for three dimensional geometries it gives surface area.
      *
@@ -425,7 +426,7 @@ public:
     }
 
     /**
-     * @brief This method calculate and return volume of this geometry.
+     * @brief This method calculates and returns volume of this geometry.
      * @details For one and two dimensional geometry it returns zero and for three dimensional it gives volume of geometry.
      * @return double value contains volume.
      * @see Length()
@@ -438,8 +439,8 @@ public:
     }
 
     /**
-     * This method calculate and return length, area or volume of
-     * this geometry depending to it's dimension. For one dimensional
+     * This method calculates and returns length, area or volume of
+     * this geometry depending on its dimension. For one dimensional
      * geometry it returns its length, for two dimensional it gives area
      * and for three dimensional geometries it gives its volume.
      *
@@ -508,7 +509,7 @@ public:
     /**
      * @brief This method gives you number of all edges of this geometry.
      * @details For example, for a hexahedron, this would be 12
-     * @return SizeType containes number of this geometry edges.
+     * @return SizeType contains number of this geometry edges.
      * @see EdgesNumber()
      * @see Edges()
      * @see GenerateEdges()
@@ -525,7 +526,7 @@ public:
      * @brief This method gives you all edges of this geometry.
      * @details This method will gives you all the edges with one dimension less than this geometry.
      * For example a triangle would return three lines as its edges or a tetrahedral would return four triangle as its edges but won't return its six edge lines by this method.
-     * @return GeometriesArrayType containes this geometry edges.
+     * @return GeometriesArrayType contains this geometry edges.
      * @see EdgesNumber()
      * @see Edge()
      */
@@ -580,7 +581,7 @@ public:
     /**
      * @brief Returns all faces of the current geometry.
      * @details This is only implemented for 3D geometries, since 2D geometries only have edges but no faces
-     * @return GeometriesArrayType containes this geometry faces.
+     * @return GeometriesArrayType contains this geometry faces.
      * @see EdgesNumber
      * @see GenerateEdges
      * @see FacesNumber
@@ -904,6 +905,12 @@ public:
     ///@name Input and output
     ///@{
 
+    /// @copydoc Geometry::Name
+    std::string Name() const override
+    {
+        return "Tetrahedra3D10N";
+    }
+
     /**
      * Turn back information as a string.
      *
@@ -1114,6 +1121,8 @@ private:
                 3, IntegrationPoint<3> >::GenerateIntegrationPoints(),
                 Quadrature < TetrahedronGaussLegendreIntegrationPoints5,
                 3, IntegrationPoint<3> >::GenerateIntegrationPoints(),
+                Quadrature < TetrahedronGaussLobattoIntegrationPoints1,
+                3, IntegrationPoint<3> >::GenerateIntegrationPoints()
             }
         };
         return integration_points;
@@ -1133,7 +1142,9 @@ private:
                 Tetrahedra3D10<TPointType>::CalculateShapeFunctionsIntegrationPointsValues(
                     GeometryData::IntegrationMethod::GI_GAUSS_4 ),
                 Tetrahedra3D10<TPointType>::CalculateShapeFunctionsIntegrationPointsValues(
-                    GeometryData::IntegrationMethod::GI_GAUSS_5 )
+                    GeometryData::IntegrationMethod::GI_GAUSS_5 ),
+                Tetrahedra3D10<TPointType>::CalculateShapeFunctionsIntegrationPointsValues(
+                    GeometryData::IntegrationMethod::GI_LOBATTO_1 )
             }
         };
         return shape_functions_values;
@@ -1154,7 +1165,9 @@ private:
                 Tetrahedra3D10<TPointType>::CalculateShapeFunctionsIntegrationPointsLocalGradients(
                     GeometryData::IntegrationMethod::GI_GAUSS_4 ),
                 Tetrahedra3D10<TPointType>::CalculateShapeFunctionsIntegrationPointsLocalGradients(
-                    GeometryData::IntegrationMethod::GI_GAUSS_5 )
+                    GeometryData::IntegrationMethod::GI_GAUSS_5 ),
+                Tetrahedra3D10<TPointType>::CalculateShapeFunctionsIntegrationPointsLocalGradients(
+                    GeometryData::IntegrationMethod::GI_LOBATTO_1 )
             }
         };
         return shape_functions_local_gradients;

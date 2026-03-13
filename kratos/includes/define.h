@@ -16,7 +16,6 @@
 #include <stdexcept>
 #include <sstream>
 
-
 /* External includes */
 
 /* Project includes */
@@ -316,7 +315,7 @@ catch(...) { Block KRATOS_THROW_ERROR(std::runtime_error, "Unknown error", MoreI
 #undef KRATOS_CREATE_SYMMETRIC_2D_TENSOR_VARIABLE_WITH_THIS_COMPONENTS
 #endif
 #define KRATOS_CREATE_SYMMETRIC_2D_TENSOR_VARIABLE_WITH_THIS_COMPONENTS(name, component1, component2, component3) \
-    /*const*/ Kratos::Variable<Kratos::array_1d<double, 3> > name(#name, Kratos::zero_vector<double>(3)); \
+    /*const*/ Kratos::Variable<Kratos::array_1d<double, 3> > name(#name, Kratos::ZeroVector(3)); \
 \
     /*const*/ Kratos::Variable<double> \
                   component1(#component1, &name, 0); \
@@ -337,7 +336,7 @@ catch(...) { Block KRATOS_THROW_ERROR(std::runtime_error, "Unknown error", MoreI
 #undef KRATOS_CREATE_SYMMETRIC_3D_TENSOR_VARIABLE_WITH_THIS_COMPONENTS
 #endif
 #define KRATOS_CREATE_SYMMETRIC_3D_TENSOR_VARIABLE_WITH_THIS_COMPONENTS(name, component1, component2, component3, component4, component5, component6) \
-    /*const*/ Kratos::Variable<Kratos::array_1d<double, 6> > name(#name, Kratos::zero_vector<double>(6)); \
+    /*const*/ Kratos::Variable<Kratos::array_1d<double, 6> > name(#name, Kratos::ZeroVector(6)); \
 \
     /*const*/ Kratos::Variable<double> \
                   component1(#component1, &name, 0); \
@@ -367,7 +366,7 @@ catch(...) { Block KRATOS_THROW_ERROR(std::runtime_error, "Unknown error", MoreI
 #undef KRATOS_CREATE_2D_TENSOR_VARIABLE_WITH_THIS_COMPONENTS
 #endif
 #define KRATOS_CREATE_2D_TENSOR_VARIABLE_WITH_THIS_COMPONENTS(name, component1, component2, component3, component4) \
-    /*const*/ Kratos::Variable<Kratos::array_1d<double, 4> > name(#name, Kratos::zero_vector<double>(4)); \
+    /*const*/ Kratos::Variable<Kratos::array_1d<double, 4> > name(#name, Kratos::ZeroVector(4)); \
 \
     /*const*/ Kratos::Variable<double> \
                   component1(#component1, &name, 0); \
@@ -391,7 +390,7 @@ catch(...) { Block KRATOS_THROW_ERROR(std::runtime_error, "Unknown error", MoreI
 #undef KRATOS_CREATE_3D_TENSOR_VARIABLE_WITH_THIS_COMPONENTS
 #endif
 #define KRATOS_CREATE_3D_TENSOR_VARIABLE_WITH_THIS_COMPONENTS(name, component1, component2, component3, component4, component5, component6, component7, component8, component9) \
-    /*const*/ Kratos::Variable<Kratos::array_1d<double, 9> > name(#name, Kratos::zero_vector<double>(9)); \
+    /*const*/ Kratos::Variable<Kratos::array_1d<double, 9> > name(#name, Kratos::ZeroVector(9)); \
 \
     /*const*/ Kratos::Variable<double> \
                   component1(#component1, &name, 0); \
@@ -526,7 +525,7 @@ catch(...) { Block KRATOS_THROW_ERROR(std::runtime_error, "Unknown error", MoreI
 #undef KRATOS_CREATE_SYMMETRIC_2D_TENSOR_VARIABLE_WITH_THIS_COMPONENTS_WITH_TIME_DERIVATIVE
 #endif
 #define KRATOS_CREATE_SYMMETRIC_2D_TENSOR_VARIABLE_WITH_THIS_COMPONENTS_WITH_TIME_DERIVATIVE(name, component1, component2, component3, variable_derivative) \
-    /*const*/ Kratos::Variable<Kratos::array_1d<double, 3> > name(#name, Kratos::zero_vector<double>(3), &variable_derivative); \
+    /*const*/ Kratos::Variable<Kratos::array_1d<double, 3> > name(#name, Kratos::ZeroVector(3), &variable_derivative); \
 \
     /*const*/ Kratos::Variable<double> \
                   component1(#component1, &name, 0, &variable_derivative##_XX); \
@@ -547,7 +546,7 @@ catch(...) { Block KRATOS_THROW_ERROR(std::runtime_error, "Unknown error", MoreI
 #undef KRATOS_CREATE_SYMMETRIC_3D_TENSOR_VARIABLE_WITH_THIS_COMPONENTS_WITH_TIME_DERIVATIVE
 #endif
 #define KRATOS_CREATE_SYMMETRIC_3D_TENSOR_VARIABLE_WITH_THIS_COMPONENTS_WITH_TIME_DERIVATIVE(name, component1, component2, component3, component4, component5, component6, variable_derivative) \
-    /*const*/ Kratos::Variable<Kratos::array_1d<double, 6> > name(#name, Kratos::zero_vector<double>(6), &variable_derivative); \
+    /*const*/ Kratos::Variable<Kratos::array_1d<double, 6> > name(#name, Kratos::ZeroVector(6), &variable_derivative); \
 \
     /*const*/ Kratos::Variable<double> \
                   component1(#component1, &name, 0, &variable_derivative##_XX); \
@@ -577,7 +576,7 @@ catch(...) { Block KRATOS_THROW_ERROR(std::runtime_error, "Unknown error", MoreI
 #undef KRATOS_CREATE_2D_TENSOR_VARIABLE_WITH_THIS_COMPONENTS_WITH_TIME_DERIVATIVE
 #endif
 #define KRATOS_CREATE_2D_TENSOR_VARIABLE_WITH_THIS_COMPONENTS_WITH_TIME_DERIVATIVE(name, component1, component2, component3, component4, variable_derivative) \
-    /*const*/ Kratos::Variable<Kratos::array_1d<double, 4> > name(#name, Kratos::zero_vector<double>(4), &variable_derivative); \
+    /*const*/ Kratos::Variable<Kratos::array_1d<double, 4> > name(#name, Kratos::ZeroVector(4), &variable_derivative); \
 \
     /*const*/ Kratos::Variable<double> \
                   component1(#component1, &name, 0, &variable_derivative##_XX); \
@@ -601,7 +600,7 @@ catch(...) { Block KRATOS_THROW_ERROR(std::runtime_error, "Unknown error", MoreI
 #undef KRATOS_CREATE_3D_TENSOR_VARIABLE_WITH_THIS_COMPONENTS_WITH_TIME_DERIVATIVE
 #endif
 #define KRATOS_CREATE_3D_TENSOR_VARIABLE_WITH_THIS_COMPONENTS_WITH_TIME_DERIVATIVE(name, component1, component2, component3, component4, component5, component6, component7, component8, component9, variable_derivative) \
-    /*const*/ Kratos::Variable<Kratos::array_1d<double, 9> > name(#name, Kratos::zero_vector<double>(9), &variable_derivative); \
+    /*const*/ Kratos::Variable<Kratos::array_1d<double, 9> > name(#name, Kratos::ZeroVector(9), &variable_derivative); \
 \
     /*const*/ Kratos::Variable<double> \
                   component1(#component1, &name, 0, &variable_derivative##_XX); \

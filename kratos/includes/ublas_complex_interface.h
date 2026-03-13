@@ -4,14 +4,13 @@
 //   _|\_\_|  \__,_|\__|\___/ ____/
 //                   Multi-Physics
 //
-//  License:		 BSD License
-//					 Kratos default license: kratos/license.txt
+//  License:         BSD License
+//                   Kratos default license: kratos/license.txt
 //
 //  Main authors:    Michael Andre
 //
 
-#if !defined(KRATOS_UBLAS_COMPLEX_INTERFACE_H_INCLUDED )
-#define  KRATOS_UBLAS_COMPLEX_INTERFACE_H_INCLUDED
+#pragma once
 
 // System includes
 #include <string>
@@ -76,5 +75,3 @@ typedef matrix_slice<ComplexMatrix> ComplexMatrixSlice;
 ///@}
 
 }  // namespace Kratos.
-
-#endif // KRATOS_UBLAS_COMPLEX_INTERFACE_H_INCLUDED  defined

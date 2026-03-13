@@ -86,6 +86,7 @@ kratos_python_install(${INSTALL_PYTHON_USING_LINKS} ${CMAKE_CURRENT_SOURCE_DIR}/
 # Install python files
 get_filename_component (CURRENT_DIR_NAME ${CMAKE_CURRENT_SOURCE_DIR} NAME)
 kratos_python_install_directory(${INSTALL_PYTHON_USING_LINKS} ${CMAKE_CURRENT_SOURCE_DIR}/python_scripts KratosMultiphysics/${CURRENT_DIR_NAME} )
+kratos_python_install_directory(${INSTALL_PYTHON_USING_LINKS} ${CMAKE_CURRENT_SOURCE_DIR}/automatic_differentiation KratosMultiphysics/${CURRENT_DIR_NAME} )
 
 # Kratos Testing. Install everything except sources to ensure that reference and configuration files are copied.
 if(${INSTALL_TESTING_FILES} MATCHES ON )
@@ -102,7 +103,7 @@ endif(${INSTALL_TESTING_FILES} MATCHES ON)
 install(TARGETS KratosFluidDynamicsCore DESTINATION libs )
 install(TARGETS KratosFluidDynamicsApplication DESTINATION libs )
 
-## If trilinos is avaliable, switch on the Fluid trilinos extension
+## If trilinos is available, switch on the Fluid trilinos extension
 if((${USE_MPI} MATCHES ON) AND (${TRILINOS_FOUND}))
   message(STATUS "Enabling trilinos extension for KratosFluidDynamicsApplication")
   add_subdirectory(trilinos_extension)

@@ -22,6 +22,8 @@
 #include "includes/stream_serializer.h"
 #include "geometries/point.h"
 
+#include "tests/test_utilities/serializer_testing_utilities.h"
+
 namespace Kratos::Testing 
 {
 
@@ -87,6 +89,11 @@ void FillMatrixWithValues(TObjectType& rObject)
             rObject(i,j) = i*j - 51.21;
         }
     }
+}
+
+std::ostream& operator<<(std::ostream& rOStream, const AbstractTestClass&)
+{
+    return rOStream;
 }
 
 /*********************************************************************/
@@ -171,6 +178,42 @@ KRATOS_TEST_CASE_IN_SUITE(SerializerLongLong, KratosCoreFastSuite)
 /* Testing the Datatypes that have a specific save/load implementation */
 /*********************************************************************/
 
+KRATOS_TEST_CASE_IN_SUITE(SerializerRawOwningPointerToAbstractBase, KratosCoreFastSuiteWithoutKernel)
+{
+    StreamSerializer serializer;
+    ScopedTestClassRegistration scoped_registration;
+
+    const std::string tag_string("TestString");
+    const AbstractTestClass* p_instance = new DerivedTestClass{42};
+    serializer.save(tag_string, p_instance);
+    delete p_instance;
+    p_instance = nullptr; // Avoid having a dangling pointer
+
+    AbstractTestClass* p_loaded_instance = nullptr;
+    serializer.load(tag_string, p_loaded_instance);
+
+    ASSERT_NE(p_loaded_instance, nullptr);
+    KRATOS_EXPECT_EQ(p_loaded_instance->foo(), 42);
+
+    delete p_loaded_instance;
+}
+
+KRATOS_TEST_CASE_IN_SUITE(SerializerKratosUniquePtrToAbstractBase, KratosCoreFastSuiteWithoutKernel)
+{
+    StreamSerializer serializer;
+    ScopedTestClassRegistration scoped_registration;
+
+    const std::string tag_string("TestString");
+    const Kratos::unique_ptr<AbstractTestClass> p_instance = Kratos::make_unique<DerivedTestClass>(42);
+    serializer.save(tag_string, p_instance);
+
+    Kratos::unique_ptr<AbstractTestClass> p_loaded_instance;
+    serializer.load(tag_string, p_loaded_instance);
+
+    ASSERT_NE(p_loaded_instance, nullptr);
+    KRATOS_EXPECT_EQ(p_loaded_instance->foo(), 42);
+}
+
 KRATOS_TEST_CASE_IN_SUITE(SerializerKratosSharedPtr, KratosCoreFastSuite)
 {
     StreamSerializer serializer;
@@ -193,6 +236,38 @@ KRATOS_TEST_CASE_IN_SUITE(SerializerKratosSharedPtr, KratosCoreFastSuite)
     KRATOS_EXPECT_EQ(*p_point, *p_loaded_point);
     for (std::size_t i=0; i<(*p_array).size(); ++i)
         KRATOS_EXPECT_EQ((*p_loaded_array)[i], (*p_array)[i]);
+}
+
+KRATOS_TEST_CASE_IN_SUITE(SerializerKratosSharedPtrToAbstractBase, KratosCoreFastSuiteWithoutKernel)
+{
+    StreamSerializer serializer;
+    ScopedTestClassRegistration scoped_registration;
+
+    const std::string tag_string("TestString");
+    const Kratos::shared_ptr<AbstractTestClass> p_instance = Kratos::make_shared<DerivedTestClass>(42);
+    serializer.save(tag_string, p_instance);
+
+    Kratos::shared_ptr<AbstractTestClass> p_loaded_instance;
+    serializer.load(tag_string, p_loaded_instance);
+
+    ASSERT_NE(p_loaded_instance, nullptr);
+    KRATOS_EXPECT_EQ(p_loaded_instance->foo(), 42);
+}
+
+KRATOS_TEST_CASE_IN_SUITE(SerializerKratosIntrusivePtrToAbstractBase, KratosCoreFastSuiteWithoutKernel)
+{
+    StreamSerializer serializer;
+    ScopedTestClassRegistration scoped_registration;
+
+    const std::string tag_string("TestString");
+    const Kratos::intrusive_ptr<AbstractTestClass> p_instance = Kratos::make_intrusive<DerivedTestClass>(42);
+    serializer.save(tag_string, p_instance);
+
+    Kratos::intrusive_ptr<AbstractTestClass> p_loaded_instance;
+    serializer.load(tag_string, p_loaded_instance);
+
+    ASSERT_NE(p_loaded_instance, nullptr);
+    KRATOS_EXPECT_EQ(p_loaded_instance->foo(), 42);
 }
 
 KRATOS_TEST_CASE_IN_SUITE(SerializerStdArray, KratosCoreFastSuite)
@@ -321,6 +396,82 @@ KRATOS_TEST_CASE_IN_SUITE(SerializerBoundedMatrix, KratosCoreFastSuite)
 
     TestObjectSerializationComponentwise2D(object_to_be_saved_1, object_to_be_loaded_1);
     TestObjectSerializationComponentwise2D(object_to_be_saved_2, object_to_be_loaded_2);
+}
+
+
+KRATOS_TEST_CASE_IN_SUITE(SerializerSharedPtrAliasingWithRaw, KratosCoreFastSuiteWithoutKernel)
+{
+    StreamSerializer serializer;
+    ScopedTestClassRegistration scoped_registration;
+    const std::string tag_string("Shared");
+    const std::string tag_raw("Raw");
+
+    // Save
+    {
+        Kratos::shared_ptr<AbstractTestClass> p_shared = Kratos::make_shared<DerivedTestClass>(88);
+        AbstractTestClass* p_raw = p_shared.get();
+
+        serializer.save(tag_string, p_shared);
+        serializer.save(tag_raw, p_raw);
+    }
+
+    // Load
+    {
+        Kratos::shared_ptr<AbstractTestClass> p_shared_loaded;
+        AbstractTestClass* p_raw_loaded = nullptr;
+
+        serializer.SetLoadState();
+        
+        serializer.load(tag_string, p_shared_loaded);
+        serializer.load(tag_raw, p_raw_loaded);
+
+        KRATOS_EXPECT_NE(p_shared_loaded, nullptr);
+        KRATOS_EXPECT_EQ(p_shared_loaded->foo(), 88);
+
+        // Check aliasing
+        KRATOS_EXPECT_EQ(p_raw_loaded, p_shared_loaded.get());
+        if(p_raw_loaded) {
+             KRATOS_EXPECT_EQ(p_raw_loaded->foo(), 88);
+        }
+    }
+}
+
+KRATOS_TEST_CASE_IN_SUITE(SerializerUniquePtrAliasingWithRaw, KratosCoreFastSuiteWithoutKernel)
+{
+    StreamSerializer serializer;
+    ScopedTestClassRegistration scoped_registration;
+    const std::string tag_string("Unique");
+    const std::string tag_raw("Raw");
+
+    // Save
+    {
+        Kratos::unique_ptr<AbstractTestClass> p_unique = Kratos::make_unique<DerivedTestClass>(99);
+        AbstractTestClass* p_raw = p_unique.get();
+
+        serializer.save(tag_string, p_unique);
+        serializer.save(tag_raw, p_raw);
+    }
+
+    // Load
+    {
+        Kratos::unique_ptr<AbstractTestClass> p_unique_loaded;
+        AbstractTestClass* p_raw_loaded = nullptr;
+
+        serializer.SetLoadState();
+        
+        serializer.load(tag_string, p_unique_loaded);
+        serializer.load(tag_raw, p_raw_loaded);
+
+        KRATOS_EXPECT_NE(p_unique_loaded, nullptr);
+        KRATOS_EXPECT_EQ(p_unique_loaded->foo(), 99);
+
+        // Check aliasing
+        // This is expected to FAIL with current implementation
+        KRATOS_EXPECT_EQ(p_raw_loaded, p_unique_loaded.get());
+        if(p_raw_loaded) {
+             KRATOS_EXPECT_EQ(p_raw_loaded->foo(), 99);
+        }
+    }
 }
 
 }  // namespace Kratos::Testing.

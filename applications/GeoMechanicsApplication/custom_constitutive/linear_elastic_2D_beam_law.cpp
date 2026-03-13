@@ -44,6 +44,10 @@ void LinearElastic2DBeamLaw::GetLawFeatures(Features& rFeatures)
     rFeatures.mSpaceDimension = WorkingSpaceDimension();
 }
 
+SizeType LinearElastic2DBeamLaw::WorkingSpaceDimension() { return N_DIM_2D; }
+
+SizeType LinearElastic2DBeamLaw::GetStrainSize() const { return VOIGT_SIZE_2D_PLANE_STRESS; }
+
 void LinearElastic2DBeamLaw::CalculateElasticMatrix(Matrix& C, ConstitutiveLaw::Parameters& rValues)
 {
     KRATOS_TRY
@@ -90,4 +94,13 @@ void LinearElastic2DBeamLaw::CalculatePK2Stress(const Vector&                rSt
     KRATOS_CATCH("")
 }
 
+void LinearElastic2DBeamLaw::save(Serializer& rSerializer) const
+{
+    KRATOS_SERIALIZE_SAVE_BASE_CLASS(rSerializer, BaseType)
+}
+
+void LinearElastic2DBeamLaw::load(Serializer& rSerializer)
+{
+    KRATOS_SERIALIZE_LOAD_BASE_CLASS(rSerializer, BaseType)
+}
 } // namespace Kratos

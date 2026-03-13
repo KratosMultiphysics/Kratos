@@ -542,6 +542,35 @@ public:
 
         KRATOS_TRY
 
+        double DeltaTime = CurrentProcessInfo[DELTA_TIME];
+
+        if (DeltaTime == 0)
+            KRATOS_THROW_ERROR(std::logic_error, "detected delta_time = 0 in the Solution Scheme ... check if the time step is created correctly for the current model part", "" )
+
+        //Set Newmark coefficients
+
+        if( mNewmark.static_dynamic != 0 ) {
+          CurrentProcessInfo[NEWMARK_BETA]  = mNewmark.beta;
+          CurrentProcessInfo[NEWMARK_GAMMA] = mNewmark.gamma;
+          CurrentProcessInfo[BOSSAK_ALPHA]  = mAlpha.m;
+          CurrentProcessInfo[COMPUTE_DYNAMIC_TANGENT] = true;
+        }
+
+        //initializing Newmark constants
+        mNewmark.deltatime = DeltaTime;
+
+        mNewmark.c0 = ( mNewmark.gamma / ( DeltaTime * mNewmark.beta ) );
+        mNewmark.c1 = ( 1.0 / ( DeltaTime * DeltaTime * mNewmark.beta ) );
+
+        mNewmark.c2 = ( DeltaTime * ( 1.0 - mNewmark.gamma ) );
+        mNewmark.c3 = ( DeltaTime * mNewmark.gamma );
+        mNewmark.c4 = ( DeltaTime / mNewmark.beta );
+        mNewmark.c5 = ( DeltaTime * DeltaTime * ( 0.5 - mNewmark.beta ) / mNewmark.beta );
+
+        //extra
+        mNewmark.c6 = ( 1.0 / (mNewmark.beta * DeltaTime) );
+        mNewmark.c7 = ( 0.5 / (mNewmark.beta) - 1.0 );
+
         //std::cout << " Prediction " << std::endl;
 
         //double DeltaTime = r_model_part.GetProcessInfo()[DELTA_TIME];
@@ -689,7 +718,7 @@ public:
         KRATOS_TRY
 
         if(this->mElementsAreInitialized==false)
-            KRATOS_THROW_ERROR( std::logic_error, "Before initilizing Conditions, initialize Elements FIRST", "" )
+            KRATOS_THROW_ERROR( std::logic_error, "Before initializing Conditions, initialize Elements FIRST", "" )
 
         int NumThreads = OpenMPUtils::GetNumThreads();
 
@@ -1775,7 +1804,7 @@ protected:
         {
             noalias(LHS_Contribution) += M * mNewmark.static_dynamic;
 
-            //std::cout<<" Mass Matrix "<<M<<" coeficient "<<mNewmark.c0<<std::endl;
+            //std::cout<<" Mass Matrix "<<M<<" coefficient "<<mNewmark.c0<<std::endl;
         }
 
         //adding  damping contribution

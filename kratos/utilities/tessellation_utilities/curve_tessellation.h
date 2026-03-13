@@ -103,8 +103,8 @@ public:
         Tessellate(
             rGeometry,
             span_intervals,
-            NumberOfGuessesPerInterval,
             Tolerance,
+            NumberOfGuessesPerInterval,
             ToSurfaceParameter);
     }
 

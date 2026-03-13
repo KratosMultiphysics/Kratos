@@ -19,7 +19,7 @@
 // Project includes
 #include "python/add_other_utilities_to_python.h"
 #include "spaces/ublas_space.h"
-#include "linear_solvers/linear_solver.h"
+#include "linear_solvers/linear_solver_ublas.h"
 #include "includes/define_python.h"
 #include "processes/process.h"
 #include "includes/fill_communicator.h"
@@ -253,8 +253,6 @@ void AddOtherUtilitiesToPython(pybind11::module &m)
         .def_static("GetTime", &Timer::GetTime)
         .def_static("SetOutputFile", &Timer::SetOutputFile)
         .def_static("CloseOutputFile", &Timer::CloseOutputFile)
-        .def_static("SetOuputFile", &Timer::SetOuputFile) // TODO: Remove this line eventually, it is a typo
-        .def_static("CloseOuputFile", &Timer::CloseOuputFile) // TODO: Remove this line eventually, it is a typo
         .def_static("GetPrintOnScreen", &Timer::GetPrintOnScreen)
         .def_static("SetPrintOnScreen", &Timer::SetPrintOnScreen)
         .def_static("GetPrintIntervalInformation", &Timer::GetPrintIntervalInformation)
@@ -558,10 +556,18 @@ void AddOtherUtilitiesToPython(pybind11::module &m)
         ;
 
     //Sensitivity utilities
-    py::class_<SensitivityUtilities>(m,"SensitivityUtilities")
-        .def_static("AssignConditionDerivativesToNodes", &SensitivityUtilities::AssignEntityDerivativesToNodes<ModelPart::ConditionsContainerType>)
-        .def_static("AssignElementDerivativesToNodes", &SensitivityUtilities::AssignEntityDerivativesToNodes<ModelPart::ElementsContainerType>)
-        ;
+    auto sensitivity_utilities = m.def_submodule("SensitivityUtilities");
+    sensitivity_utilities.def("AssignConditionDerivativesToNodes", &SensitivityUtilities::AssignEntityDerivativesToNodes<ModelPart::ConditionsContainerType>);
+    sensitivity_utilities.def("AssignElementDerivativesToNodes", &SensitivityUtilities::AssignEntityDerivativesToNodes<ModelPart::ElementsContainerType>);
+    sensitivity_utilities.def("GetSensitivityVariableName", &SensitivityUtilities::GetSensitivityVariableName<Variable<bool>>, py::arg("variable"));
+    sensitivity_utilities.def("GetSensitivityVariableName", &SensitivityUtilities::GetSensitivityVariableName<Variable<int>>, py::arg("variable"));
+    sensitivity_utilities.def("GetSensitivityVariableName", &SensitivityUtilities::GetSensitivityVariableName<Variable<double>>, py::arg("variable"));
+    sensitivity_utilities.def("GetSensitivityVariableName", &SensitivityUtilities::GetSensitivityVariableName<Variable<array_1d<double, 3>>>, py::arg("variable"));
+    sensitivity_utilities.def("GetSensitivityVariableName", &SensitivityUtilities::GetSensitivityVariableName<Variable<array_1d<double, 4>>>, py::arg("variable"));
+    sensitivity_utilities.def("GetSensitivityVariableName", &SensitivityUtilities::GetSensitivityVariableName<Variable<array_1d<double, 6>>>, py::arg("variable"));
+    sensitivity_utilities.def("GetSensitivityVariableName", &SensitivityUtilities::GetSensitivityVariableName<Variable<array_1d<double, 9>>>, py::arg("variable"));
+    sensitivity_utilities.def("GetSensitivityVariableName", &SensitivityUtilities::GetSensitivityVariableName<Variable<Vector>>, py::arg("variable"));
+    sensitivity_utilities.def("GetSensitivityVariableName", &SensitivityUtilities::GetSensitivityVariableName<Variable<Matrix>>, py::arg("variable"));
 
     //OpenMP utilities
     py::class_<OpenMPUtils >(m,"OpenMPUtils")

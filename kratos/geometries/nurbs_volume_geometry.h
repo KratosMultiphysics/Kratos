@@ -8,10 +8,11 @@
 //                   Kratos default license: kratos/license.txt
 //
 //  Main authors:    Manuel Messmer
+//                   Nicolò Antonelli
+//                   Andrea Gorgi
 //
 
-#if !defined(KRATOS_NURBS_VOLUME_GEOMETRY_H_INCLUDED )
-#define  KRATOS_NURBS_VOLUME_GEOMETRY_H_INCLUDED
+#pragma once
 
 // System includes
 
@@ -75,7 +76,7 @@ public:
     ///@name Life Cycle
     ///@{
 
-    /// Conctructor for B-Spline volumes
+    /// Constructor for B-Spline volumes
     NurbsVolumeGeometry(
         const PointsArrayType& rThisPoints,
         const SizeType PolynomialDegreeU,
@@ -93,10 +94,11 @@ public:
         , mKnotsW(rKnotsW)
     {
         CheckAndFitKnotVectors();
+        CheckIsRationalOnlyOnce();
     }
 
-    /// Attention: Weigths are not yet implemented!
-    /// Conctructor for NURBS volumes
+    /// Attention: Weights are not yet implemented!
+    /// Constructor for NURBS volumes
     // NurbsVolumeGeometry(
     //     const PointsArrayType& rThisPoints,
     //     const SizeType PolynomialDegreeU,
@@ -135,7 +137,9 @@ public:
         , mKnotsU(rOther.mKnotsU)
         , mKnotsV(rOther.mKnotsV)
         , mKnotsW(rOther.mKnotsW)
+        , mpGeometryParent(rOther.mpGeometryParent)
     {
+        CheckIsRationalOnlyOnce();
     }
 
     /// Copy constructor from a geometry with different point type.
@@ -148,6 +152,7 @@ public:
         , mKnotsU(rOther.mKnotsU)
         , mKnotsV(rOther.mKnotsV)
         , mKnotsW(rOther.mKnotsW)
+        , mpGeometryParent(rOther.mpGeometryParent)
     {
     }
 
@@ -168,6 +173,7 @@ public:
         mKnotsU = rOther.mKnotsU;
         mKnotsV = rOther.mKnotsV;
         mKnotsW = rOther.mKnotsW;
+        mpGeometryParent = rOther.mpGeometryParent;
         return *this;
     }
 
@@ -183,6 +189,7 @@ public:
         mKnotsU = rOther.mKnotsU;
         mKnotsV = rOther.mKnotsV;
         mKnotsW = rOther.mKnotsW;
+        mpGeometryParent = rOther.mpGeometryParent;
         return *this;
     }
 
@@ -194,6 +201,20 @@ public:
         PointsArrayType const& ThisPoints) const override
     {
         return Kratos::make_shared<NurbsVolumeGeometry>(ThisPoints);
+    }
+
+    ///@}
+    ///@name Parent
+    ///@{
+
+    BaseType& GetGeometryParent(IndexType Index) const override
+    {
+        return *mpGeometryParent;
+    }
+
+    void SetGeometryParent(BaseType* pGeometryParent) override
+    {
+        mpGeometryParent = pGeometryParent;
     }
 
     ///@}
@@ -341,6 +362,23 @@ public:
         return mKnotsW.size();
     }
 
+    /* Checks if shape functions are rational or not.
+     * @mRational is true if NURBS, false if B-Splines only (all weights are considered as 1) */
+    void CheckIsRationalOnlyOnce()
+    {
+        if (mWeights.size() == 0)
+            mIsRational = false;
+        else {
+            mIsRational = false;
+            for (IndexType i = 0; i < mWeights.size(); ++i) {
+                if (std::abs(mWeights[i] - 1.0) > 1e-8) {
+                    mIsRational = true;
+                    break;
+                }
+            }
+        }
+    }
+
     /**
      * @brief Checks if shape functions are rational or not.
      * @return False. Weights are not yet considered.
@@ -416,6 +454,54 @@ public:
                 << DirectionIndex << " not available. Options are: 0, 1 and 2." << std::endl;
         }
         return knot_span_counter;
+    }
+
+    /* @brief Provides all knot spans within direction u.
+     * @param return vector of span intervals.
+     * @param index of direction: 0: U; 1: V.
+     */
+    void SpansLocalSpace(
+        std::vector<double>& rSpans, 
+        IndexType DirectionIndex
+    ) const override
+    {
+        rSpans.resize(this->NumberOfKnotSpans(DirectionIndex) + 1);
+
+        if (DirectionIndex == 0) {
+            rSpans[0] = mKnotsU[0];
+
+            IndexType counter = 1;
+            for (IndexType i = 0; i < mKnotsU.size() - 1; i++) {
+                if (std::abs(mKnotsU[i] - mKnotsU[i + 1]) > 1e-6) {
+                    rSpans[counter] = mKnotsU[i + 1];
+                    counter++;
+                }
+            }
+        }
+        else if (DirectionIndex == 1) {
+            rSpans[0] = mKnotsV[0];
+
+            IndexType counter = 1;
+            for (IndexType i = 0; i < mKnotsV.size() - 1; i++) {
+                if (std::abs(mKnotsV[i] - mKnotsV[i + 1]) > 1e-6) {
+                    rSpans[counter] = mKnotsV[i + 1];
+                    counter++;
+                }
+            }
+        } else if (DirectionIndex == 2) {
+            rSpans[0] = mKnotsW[0];
+
+            IndexType counter = 1;
+            for (IndexType i = 0; i < mKnotsW.size() - 1; i++) {
+                if (std::abs(mKnotsW[i] - mKnotsW[i + 1]) > 1e-6) {
+                    rSpans[counter] = mKnotsW[i + 1];
+                    counter++;
+                }
+            }
+        } else {
+            KRATOS_ERROR << "NurbsVolumeGeometry::Spans: Direction index: "
+                << DirectionIndex << " not available. Options are: 0, 1 and 2." << std::endl;
+        }
     }
 
     /**
@@ -644,7 +730,7 @@ public:
      * @brief Computes jacobian matrix at the given coordinates.
      * @param rCoordinates Coordinates to be evaluated.
      * @return Matrix of double which is jacobian matrix \f$ J \f$ in given point.
-     * @todo Refactor such that addional 'ComputeBSplineShapeFunctionValues'-call can be omitted. Here it is only called to
+     * @todo Refactor such that additional 'ComputeBSplineShapeFunctionValues'-call can be omitted. Here it is only called to
      *       find the correct knotspans and to set the shape_function_member variables 'mFirstNonzeroControlPointU,-V,-W'.
      * @note This function is only required to compute e.g. the volume of the geometry. During an IGA-Analysis the corresponding function
      *       of the base class is called.
@@ -709,7 +795,7 @@ public:
         // Makes sure we use assembly Option 2 in CreateQuadraturePointGeometries().
         IntegrationInfo integration_info(
             { PolynomialDegreeU() + 1, PolynomialDegreeV() + 1, PolynomialDegreeW() + 1 },
-            { IntegrationInfo::QuadratureMethod::EXTENDED_GAUSS, IntegrationInfo::QuadratureMethod::EXTENDED_GAUSS, IntegrationInfo::QuadratureMethod::EXTENDED_GAUSS });
+            { IntegrationInfo::QuadratureMethod::CUSTOM, IntegrationInfo::QuadratureMethod::CUSTOM, IntegrationInfo::QuadratureMethod::CUSTOM });
 
         this->CreateQuadraturePointGeometries(
             rResultGeometries,
@@ -817,7 +903,7 @@ public:
                 this->WorkingSpaceDimension(), 3, data_container, nonzero_control_points, this);
         }
         // Option 2: A list of QuadraturePointGeometry is created, one for each integration points.
-        else if ( IntegrationInfo::QuadratureMethod::EXTENDED_GAUSS == rIntegrationInfo.GetQuadratureMethod(0) ) {
+        else if ( IntegrationInfo::QuadratureMethod::CUSTOM == rIntegrationInfo.GetQuadratureMethod(0) ) {
             // Shape function container.
             NurbsVolumeShapeFunction shape_function_container(
                 mPolynomialDegreeU, mPolynomialDegreeV, mPolynomialDegreeW, NumberOfShapeFunctionDerivatives);
@@ -1173,7 +1259,11 @@ private:
     Vector mKnotsU;
     Vector mKnotsV;
     Vector mKnotsW;
-    // Vector mWeights;
+    Vector mWeights;
+    bool mIsRational;
+
+    /// A NurbsSurface may refer to the BrepSurface as geometry parent.
+    BaseType* mpGeometryParent = nullptr;
 
     ///@}
     ///@name Private Operations
@@ -1242,7 +1332,8 @@ private:
         rSerializer.save("KnotsU", mKnotsU);
         rSerializer.save("KnotsV", mKnotsV);
         rSerializer.save("KnotsW", mKnotsW);
-        // rSerializer.save("Weights", mWeights);
+        rSerializer.save("Weights", mWeights);
+        rSerializer.save("pGeometryParent", mpGeometryParent);
     }
 
     void load(Serializer& rSerializer) override
@@ -1254,7 +1345,8 @@ private:
         rSerializer.load("KnotsU", mKnotsU);
         rSerializer.load("KnotsV", mKnotsV);
         rSerializer.load("KnotsW", mKnotsW);
-        // rSerializer.load("Weights", mWeights);
+        rSerializer.load("Weights", mWeights);
+        rSerializer.load("pGeometryParent", mpGeometryParent);
     }
 
     NurbsVolumeGeometry() : BaseType(PointsArrayType(), &msGeometryData) {};
@@ -1295,5 +1387,3 @@ template<class TPointType>
 const GeometryDimension NurbsVolumeGeometry<TPointType>::msGeometryDimension(3, 3);
 
 } // namespace Kratos
-
-#endif // KRATOS_NURBS_VOLUME_GEOMETRY_H_INCLUDED defined

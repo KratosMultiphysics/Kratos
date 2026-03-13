@@ -32,6 +32,9 @@ class MpmAnalysis(AnalysisStage):
         # add auxiliary variables required by friction automatically to the project_parameters
         self._AddFrictionAuxiliaryVariables(project_parameters)
 
+        # add auxiliary variables required for Lagrange condition automatically to the project_parameters
+        self._AddLagrangeAuxiliaryVariables(project_parameters)
+
         super(MpmAnalysis, self).__init__(model, project_parameters)
 
     #### Internal functions ####
@@ -44,7 +47,7 @@ class MpmAnalysis(AnalysisStage):
         friction_active = False
 
         for proc_list in project_parameters["processes"].values():
-            for proc in proc_list:
+            for proc in proc_list.values():
                 if proc.Has("process_name") and proc["process_name"].GetString() == "ApplyMPMSlipBoundaryProcess":
                     proc_params = proc["Parameters"]
 
@@ -59,9 +62,46 @@ class MpmAnalysis(AnalysisStage):
 
             project_parameters["solver_settings"]["auxiliary_variables_list"].SetStringArray(aux_var_list_new)
 
+    def _AddLagrangeAuxiliaryVariables(self, project_parameters):
+        """ Adds nodal variables required of Lagrange condition to auxiliary variable list, if needed """
+        aux_var_lagrange = ["WEIGHTED_VECTOR_RESIDUAL", "VECTOR_LAGRANGE_MULTIPLIER", "NODAL_AREA"]
+        aux_dofs_lagrange = ["VECTOR_LAGRANGE_MULTIPLIER"]
+        aux_reaction_lagrange = ["WEIGHTED_VECTOR_RESIDUAL"]
+
+        # check if Lagrange condition is set
+        lagrange_condition = False
+
+        for proc_list in project_parameters["processes"].values():
+            for proc in proc_list.values():
+                if proc.Has("python_module") and (proc["python_module"].GetString() == "apply_mpm_particle_dirichlet_condition_process" or proc["python_module"].GetString() == "apply_mpm_coupling_interface_dirichlet_condition_process"):
+                    proc_params = proc["Parameters"]
+                    if proc_params.Has("imposition_type") and (proc_params["imposition_type"].GetString() == "lagrange" or proc_params["imposition_type"].GetString() == "perturbed_lagrange"):
+                        lagrange_condition = True
+                        break
+
+        if lagrange_condition:
+            aux_var_list = project_parameters["solver_settings"]["auxiliary_variables_list"].GetStringArray()
+            aux_var_list_new = list(set(aux_var_list + aux_var_lagrange))
+            project_parameters["solver_settings"]["auxiliary_variables_list"].SetStringArray(aux_var_list_new)
+
+            if project_parameters["solver_settings"].Has("auxiliary_dofs_list"):
+                aux_dof_list = project_parameters["solver_settings"]["auxiliary_dofs_list"].GetStringArray()
+                aux_dofs_list_new = list(set(aux_dof_list + aux_dofs_lagrange))
+            else:
+                project_parameters["solver_settings"].AddEmptyValue("auxiliary_dofs_list").SetStringArray([])
+                aux_dofs_list_new = list(set(aux_dofs_lagrange))
+            project_parameters["solver_settings"]["auxiliary_dofs_list"].SetStringArray(aux_dofs_list_new)
+            
+            if project_parameters["solver_settings"].Has("auxiliary_reaction_list"):
+                aux_reaction_list = project_parameters["solver_settings"]["auxiliary_reaction_list"].GetStringArray()
+                aux_reaction_list_new = list(set(aux_reaction_list + aux_reaction_lagrange))
+            else:
+                project_parameters["solver_settings"].AddEmptyValue("auxiliary_reaction_list").SetStringArray([])
+                aux_reaction_list_new = list(set(aux_reaction_lagrange))
+            project_parameters["solver_settings"]["auxiliary_reaction_list"].SetStringArray(aux_reaction_list_new)
 
     def _CreateSolver(self):
-        """ Create the Solver (and create and import the ModelPart if it is not alread in the model) """
+        """ Create the Solver (and create and import the ModelPart if it is not already in the model) """
         ## Solver construction
         return CreateSolver(self.model, self.project_parameters)
 

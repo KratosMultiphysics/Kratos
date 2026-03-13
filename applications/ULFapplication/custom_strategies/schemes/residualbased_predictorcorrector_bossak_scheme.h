@@ -283,6 +283,18 @@ public:
         array_1d<double, 3 > DeltaDisp;
         double DeltaTime = r_model_part.GetProcessInfo()[DELTA_TIME];
 
+        if (DeltaTime == 0)
+            KRATOS_THROW_ERROR(std::logic_error, "detected delta_time = 0 in the Bossak Scheme ... check if the time step is created correctly for the current model part", "");
+
+        //initializing constants
+        ma0 = 1.0 / (mBetaNewmark * pow(DeltaTime, 2));
+        ma1 = mGammaNewmark / (mBetaNewmark * DeltaTime);
+        ma2 = 1.0 / (mBetaNewmark * DeltaTime);
+        ma3 = 1.0 / (2.0 * mBetaNewmark) - 1.0;
+        ma4 = mGammaNewmark / mBetaNewmark - 1.0;
+        ma5 = DeltaTime * 0.5 * (mGammaNewmark / mBetaNewmark - 2.0);
+        mam = (1.0 - mAlphaBossak) / (mBetaNewmark * pow(DeltaTime, 2));
+
 
         for (ModelPart::NodeIterator i = r_model_part.NodesBegin();
                 i != r_model_part.NodesEnd(); ++i)

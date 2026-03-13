@@ -15,7 +15,6 @@
 // External includes
 
 // Project includes
-#include "expression/literal_flat_expression.h"
 #include "utilities/parallel_utilities.h"
 
 // Application includes
@@ -25,12 +24,12 @@
 
 namespace Kratos {
 
-template<class TContainerType>
-SmoothClamper<TContainerType>::SmoothClamper(
+SmoothClamper::SmoothClamper(
     const double Min,
     const double Max)
     : mMin(Min),
-      mMax(Max)
+      mMax(Max),
+      mDelta(mMax - mMin)
 {
     KRATOS_TRY
 
@@ -39,47 +38,52 @@ SmoothClamper<TContainerType>::SmoothClamper(
     KRATOS_CATCH("");
 }
 
-template<class TContainerType>
-ContainerExpression<TContainerType> SmoothClamper<TContainerType>::ProjectForward(const ContainerExpression<TContainerType>& rInput) const
+double SmoothClamper::ProjectForward(const double X) const
+{
+    const double x_tilde = std::clamp((X - mMin) / mDelta, 0.0, 1.0);
+    return mMin + x_tilde * x_tilde * (3.0 - 2.0 * x_tilde) * mDelta;
+}
+
+double SmoothClamper::CalculateForwardProjectionGradient(const double X) const
+{
+    const double x_tilde = std::clamp((X - mMin) / mDelta, 0.0, 1.0);
+    return 6 * x_tilde - 6 * x_tilde * x_tilde;
+}
+
+double SmoothClamper::ProjectBackward(const double Y) const
+{
+    double x_tilde;
+    if (Y < mMin) {
+        x_tilde = 0;
+    } else if (Y > mMax) {
+        x_tilde = 1.0;
+    } else {
+        const double y = (Y - mMin) / mDelta;
+        x_tilde = 0.5 - std::sin(std::asin(1.0 - 2.0 * y) / 3.0);
+    }
+    return mMin + x_tilde * mDelta;
+}
+
+TensorAdaptor<double>::Pointer SmoothClamper::ProjectForward(const TensorAdaptor<double>& rInput) const
 {
     KRATOS_TRY
 
     // x*x*(3.0-2.0*x);
 
-    const auto min = mMin;
-    const auto max = mMax;
-    const auto delta = mMax - mMin;
-    const auto& r_input_exp = rInput.GetExpression();
-    const auto number_of_entities = r_input_exp.NumberOfEntities();
-    const auto stride = r_input_exp.GetItemComponentCount();
+    auto p_output = rInput.Clone();
+    auto input_data_view = rInput.ViewData();
+    auto output_data_view = p_output->ViewData();
 
-    KRATOS_ERROR_IF_NOT(stride == 1)
-        << "SmoothClamper only supports scalar expressions. [ Expression stride = " << stride << " ].\n";
-
-    auto p_result_exp = LiteralFlatExpression<double>::Create(number_of_entities, {});
-
-    IndexPartition<IndexType>(number_of_entities).for_each([&p_result_exp, &r_input_exp, min, max, delta](const auto Index) {
-        const double x = r_input_exp.Evaluate(Index, Index, 0);
-        double& value = *(p_result_exp->begin() + Index);
-        if (x < 0.0) {
-            value = min;
-        } else if (x > 1.0) {
-            value = max;
-        } else {
-            const double y = x * x * (3.0 - 2.0 * x);
-            value = min + y * delta;
-        }
+    IndexPartition<IndexType>(rInput.Size()).for_each([this, &output_data_view, &input_data_view](const auto Index) {
+        output_data_view[Index]= this->ProjectForward(input_data_view[Index]);
     });
 
-    auto result = rInput;
-    result.SetExpression(p_result_exp);
-    return result;
+    return p_output;
 
     KRATOS_CATCH("");
 }
 
-template<class TContainerType>
-ContainerExpression<TContainerType> SmoothClamper<TContainerType>::CalculateForwardProjectionGradient(const ContainerExpression<TContainerType>& rInput) const
+TensorAdaptor<double>::Pointer SmoothClamper::CalculateForwardProjectionGradient(const TensorAdaptor<double>& rInput) const
 {
     KRATOS_TRY
 
@@ -87,76 +91,35 @@ ContainerExpression<TContainerType> SmoothClamper<TContainerType>::CalculateForw
     // y = 3x^2 - 2x^3
     // dy/dx = 3.2.x - 2.3.x^2
 
-    const auto delta = mMax - mMin;
-    const auto& r_input_exp = rInput.GetExpression();
-    const auto number_of_entities = r_input_exp.NumberOfEntities();
-    const auto stride = r_input_exp.GetItemComponentCount();
+    auto p_output = rInput.Clone();
+    auto input_data_view = rInput.ViewData();
+    auto output_data_view = p_output->ViewData();
 
-    KRATOS_ERROR_IF_NOT(stride == 1)
-        << "SmoothClamper only supports scalar expressions. [ Expression stride = " << stride << " ].\n";
-
-    auto p_result_exp = LiteralFlatExpression<double>::Create(number_of_entities, {});
-
-    IndexPartition<IndexType>(number_of_entities).for_each([&p_result_exp, &r_input_exp, delta](const auto Index) {
-        const double x = r_input_exp.Evaluate(Index, Index, 0);
-        double& value = *(p_result_exp->begin() + Index);
-        if (x < 0.0) {
-            value = 0.0;
-        } else if (x > 1.0) {
-            value = 0.0;
-        } else {
-            value = (6 * x - 6 * x * x) * delta;
-        }
+    IndexPartition<IndexType>(rInput.Size()).for_each([this, &output_data_view, &input_data_view](const auto Index) {
+        output_data_view[Index]= this->CalculateForwardProjectionGradient(input_data_view[Index]);
     });
 
-    auto result = rInput;
-    result.SetExpression(p_result_exp);
-    return result;
+    return p_output;
 
     KRATOS_CATCH("");
 }
 
-template<class TContainerType>
-ContainerExpression<TContainerType> SmoothClamper<TContainerType>::ProjectBackward(const ContainerExpression<TContainerType>& rInput) const
+TensorAdaptor<double>::Pointer SmoothClamper::ProjectBackward(const TensorAdaptor<double>& rInput) const
 {
     KRATOS_TRY
 
-    const auto min = mMin;
-    const auto max = mMax;
-    const auto delta = mMax - mMin;
-    const auto& r_input_exp = rInput.GetExpression();
-    const auto number_of_entities = r_input_exp.NumberOfEntities();
-    const auto stride = r_input_exp.GetItemComponentCount();
+    auto p_output = rInput.Clone();
+    auto input_data_view = rInput.ViewData();
+    auto output_data_view = p_output->ViewData();
 
-    KRATOS_ERROR_IF_NOT(stride == 1)
-        << "SmoothClamper only supports scalar expressions. [ Expression stride = " << stride << " ].\n";
-
-    auto p_result_exp = LiteralFlatExpression<double>::Create(number_of_entities, {});
-
-    IndexPartition<IndexType>(number_of_entities).for_each([&p_result_exp, &r_input_exp, min, delta, max](const auto Index) {
-        const double value = r_input_exp.Evaluate(Index, Index, 0);
-        double& x = *(p_result_exp->begin() + Index);
-        if (value < min) {
-            x = 0.0;
-        } else if (value > max) {
-            x = 1.0;
-        } else {
-            const double y = (value - min) / delta;
-            x = 0.5 - std::sin(std::asin(1.0 - 2.0 * y) / 3.0);
-        }
+    IndexPartition<IndexType>(rInput.Size()).for_each([this, &output_data_view, &input_data_view](const auto Index) {
+        output_data_view[Index]= this->ProjectBackward(input_data_view[Index]);
     });
 
-    auto result = rInput;
-    result.SetExpression(p_result_exp);
-    return result;
+
+    return p_output;
 
     KRATOS_CATCH("");
 }
-
-
-// template instantiations
-template class SmoothClamper<ModelPart::NodesContainerType>;
-template class SmoothClamper<ModelPart::ConditionsContainerType>;
-template class SmoothClamper<ModelPart::ElementsContainerType>;
 
 } /* namespace Kratos.*/

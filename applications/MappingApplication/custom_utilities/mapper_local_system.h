@@ -94,14 +94,14 @@ public:
                               EquationIdVectorType& rDestinationIds) const
     {
         if (mIsComputed) {
-            // This will be called if the EquationIdVectors have been querried before
+            // This will be called if the EquationIdVectors have been queried before
             // i.e. matrix-based mapping
             rLocalMappingMatrix = mLocalMappingMatrix;
             rOriginIds      = mOriginIds;
             rDestinationIds = mDestinationIds;
         }
         else {
-            // This will be called if the EquationIdVectors have NOT been querried before
+            // This will be called if the EquationIdVectors have NOT been queried before
             // i.e. matrix-free mapping
             CalculateAll(rLocalMappingMatrix, rOriginIds, rDestinationIds, mPairingStatus);
         }
@@ -111,7 +111,7 @@ public:
     * @brief Resizing the output if no InterfaceInfo is available
     * This function resizes the system vectors to zero and also sets that no valid
     * Information from the other side could be found to compute the local system
-    * @param rLocalMappingMatrix The vector conatining the mapping weights
+    * @param rLocalMappingMatrix The vector containing the mapping weights
     * @param rOriginIds The vector containing the ids on the origin
     * @param rDestinationIds The vector containing the ids on the destination
     * @param rPairingStatus The pairingstatus of the MapperLocalSystem
@@ -133,7 +133,7 @@ public:
     virtual CoordinatesArrayType& Coordinates() const = 0;
 
 
-    void AddInterfaceInfo(MapperInterfaceInfoPointerType pInterfaceInfo) // TODO pass by const ref?
+    virtual void AddInterfaceInfo(MapperInterfaceInfoPointerType pInterfaceInfo) // TODO pass by const ref?
     {
         mInterfaceInfos.push_back(pInterfaceInfo);
     }

@@ -226,7 +226,7 @@ class ModelManager(object):
 
 
     def _set_input_variables(self):
-        for variable in self.settings["variables"]:
+        for variable in self.settings["variables"].values():
             self.nodal_variables.append(variable.GetString())
 
     #

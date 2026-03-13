@@ -42,7 +42,7 @@ void FluidTestUtilities::AssignRandomValues(
     std::seed_seq seed(rSeed.begin(), rSeed.end());
 
     // using the following specific generator to have consistent random numbers
-    // generator accross different platforms. No c++ distributions should be used
+    // generator across different platforms. No c++ distributions should be used
     // because they does not guarantee the multi-platform consistency.
     std::mt19937 generator(seed);
     rValue = MinValue + (generator() - generator.min()) * (MaxValue - MinValue) / (generator.max() - generator.min());

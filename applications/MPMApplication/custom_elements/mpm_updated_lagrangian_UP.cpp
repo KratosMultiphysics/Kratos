@@ -76,7 +76,7 @@ MPMUpdatedLagrangianUP::MPMUpdatedLagrangianUP( MPMUpdatedLagrangianUP const& rO
 {
 }
 
-//*******************************ASSIGMENT OPERATOR***********************************
+//******************************ASSIGNMENT OPERATOR***********************************
 //************************************************************************************
 
 MPMUpdatedLagrangianUP&  MPMUpdatedLagrangianUP::operator=(MPMUpdatedLagrangianUP const& rOther)
@@ -343,7 +343,7 @@ void MPMUpdatedLagrangianUP::CalculateDeformationMatrix(Matrix& rB,
 ////************************************************************************************
 ////************************************************************************************
 
-void MPMUpdatedLagrangianUP::InitializeSolutionStep(const ProcessInfo& rCurrentProcessInfo )
+void MPMUpdatedLagrangianUP::AddExplicitContribution(const ProcessInfo& rCurrentProcessInfo )
 {
     /* NOTE:
     In the InitializeSolutionStep of each time step the nodal initial conditions are evaluated.
@@ -592,9 +592,9 @@ void MPMUpdatedLagrangianUP::CalculateAndAddStabilizedPressure(VectorType& rRigh
         const double& poisson_ratio = GetProperties()[POISSON_RATIO];
         const double& shear_modulus = young_modulus / (2.0 * (1.0 + poisson_ratio));
 
-        double factor_value = 8.0; //JMR deffault value
+        double factor_value = 8.0; //JMR default value
         if (dimension == 3)
-            factor_value = 10.0; //JMC deffault value
+            factor_value = 10.0; //JMC default value
 
     	alpha_stabilization = alpha_stabilization * factor_value / shear_modulus;
     }
@@ -880,9 +880,9 @@ void MPMUpdatedLagrangianUP::CalculateAndAddKppStab (MatrixType& rLeftHandSideMa
         const double& poisson_ratio = GetProperties()[POISSON_RATIO];
         const double& shear_modulus = young_modulus / (2.0 * (1.0 + poisson_ratio));
 
-        double factor_value = 8.0; //JMR deffault value
+        double factor_value = 8.0; //JMR default value
         if (dimension == 3)
-            factor_value = 10.0; //JMC deffault value
+            factor_value = 10.0; //JMC default value
 
         alpha_stabilization = alpha_stabilization * factor_value / shear_modulus;
     }

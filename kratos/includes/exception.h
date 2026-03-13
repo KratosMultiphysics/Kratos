@@ -11,15 +11,12 @@
 //
 //
 
-#if !defined(KRATOS_EXCEPTION_H_INCLUDED )
-#define  KRATOS_EXCEPTION_H_INCLUDED
+#pragma once
 
 // System includes
 #include <stdexcept>
 #include <string>
-#include <iostream>
 #include <sstream>
-#include <vector>
 
 // External includes
 
@@ -67,7 +64,6 @@ public:
 
     /// Destructor.
     ~Exception() noexcept override;
-
 
     ///@}
     ///@name Operators
@@ -189,5 +185,3 @@ KRATOS_API(KRATOS_CORE) std::ostream& operator << (std::ostream& rOStream, const
 ///@} addtogroup block
 
 }  // namespace Kratos.
-
-#endif // KRATOS_EXCEPTION_H_INCLUDED  defined

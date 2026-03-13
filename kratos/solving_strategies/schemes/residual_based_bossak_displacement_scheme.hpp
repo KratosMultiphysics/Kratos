@@ -236,6 +236,14 @@ public:
         const ProcessInfo& r_current_process_info = rModelPart.GetProcessInfo();
         const double delta_time = r_current_process_info[DELTA_TIME];
 
+        // Initializing Bossak constants
+        mBossak.c0 = ( 1.0 / (mBossak.beta * delta_time * delta_time) );
+        mBossak.c1 = ( mBossak.gamma / (mBossak.beta * delta_time) );
+        mBossak.c2 = ( 1.0 / (mBossak.beta * delta_time) );
+        mBossak.c3 = ( 0.5 / (mBossak.beta) - 1.0 );
+        mBossak.c4 = ( (mBossak.gamma / mBossak.beta) - 1.0  );
+        mBossak.c5 = ( delta_time * 0.5 * ( ( mBossak.gamma / mBossak.beta ) - 2.0 ) );
+
         // Updating time derivatives (nodally for efficiency)
         if (rModelPart.Nodes().size() > 0) {
             const auto it_node_begin = rModelPart.Nodes().begin();
@@ -251,7 +259,7 @@ public:
             const std::size_t dimension = r_current_process_info.Has(DOMAIN_SIZE) ? r_current_process_info.GetValue(DOMAIN_SIZE) : 3;
 
             // Auxiliar variables
-            array_1d<double, 3 > delta_displacement;
+            array_1d<double, 3 > delta_displacement = ZeroVector(3);
             std::array<bool, 3> predicted = {false, false, false};
             const std::array<const Variable<ComponentType>*, 3> disp_components = {&DISPLACEMENT_X, &DISPLACEMENT_Y, &DISPLACEMENT_Z};
             const std::array<const Variable<ComponentType>*, 3> vel_components = {&VELOCITY_X, &VELOCITY_Y, &VELOCITY_Z};

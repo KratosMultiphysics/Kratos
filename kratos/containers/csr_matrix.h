@@ -10,9 +10,7 @@
 //  Main authors:    Riccardo Rossi
 //
 
-#if !defined(KRATOS_CSR_MATRIX_H_INCLUDED )
-#define  KRATOS_CSR_MATRIX_H_INCLUDED
-
+#pragma once
 
 // System includes
 #include <iostream>
@@ -61,12 +59,19 @@ class CsrMatrix final
 public:
     ///@name Type Definitions
     ///@{
-    typedef TIndexType IndexType;
-    typedef std::unordered_map<std::pair<IndexType, IndexType>,
-            double,
-            PairHasher<IndexType, IndexType>,
-            PairComparor<IndexType, IndexType>
-            > MatrixMapType;
+
+    using DataType = TDataType;
+
+    using SizeType = TIndexType;
+
+    using IndexType = TIndexType;
+
+    using MatrixMapType = std::unordered_map<
+        std::pair<IndexType, IndexType>,
+        TDataType,
+        PairHasher<IndexType, IndexType>,
+        PairComparor<IndexType, IndexType>
+        >;
 
     /// Pointer definition of CsrMatrix
     KRATOS_CLASS_POINTER_DEFINITION(CsrMatrix);
@@ -108,23 +113,36 @@ public:
         SetValue(0.0);
     }
 
-    CsrMatrix(const MatrixMapType& matrix_map)
+    CsrMatrix(const MatrixMapType& rMatrixMap)
     {
+        // Set sparse graph from matrix map
         SparseGraph<TIndexType> Agraph;
-        for(const auto& item : matrix_map){
+        for (const auto& item : rMatrixMap) {
             IndexType I = item.first.first;
             IndexType J = item.first.second;
             Agraph.AddEntry(I,J);
         }
         Agraph.Finalize();
 
+        // Set up CSR matrix arrays and sizes from sparse graph
+        TIndexType row_data_size = 0;
+        TIndexType col_data_size = 0;
+        Agraph.ExportCSRArrays(mpRowIndicesData, row_data_size, mpColIndicesData, col_data_size);
+        mRowIndices = Kratos::span<TIndexType>(mpRowIndicesData, row_data_size);
+        mColIndices = Kratos::span<TIndexType>(mpColIndicesData, col_data_size);
+        mNrows = size1();
+        ComputeColSize();
+        ResizeValueData(mColIndices.size());
+        SetValue(0.0);
+
+        // Assemble data from matrix map
         this->BeginAssemble();
-        for(const auto item : matrix_map){
+        for (const auto item : rMatrixMap) {
             IndexType I = item.first.first;
             IndexType J = item.first.second;
             TDataType value = item.second;
             this->AssembleEntry(value,I,J);
-        }        
+        }
         this->FinalizeAssemble();
     }
 
@@ -154,9 +172,10 @@ public:
         });
     }
 
-    //move constructor
+    /// Move constructor
     CsrMatrix(CsrMatrix<TDataType,TIndexType>&& rOtherMatrix)
     {
+        mpComm = rOtherMatrix.mpComm;
         mIsOwnerOfData=rOtherMatrix.mIsOwnerOfData;
         rOtherMatrix.mIsOwnerOfData=false;
 
@@ -186,7 +205,7 @@ public:
     /// Assignment operator.
     CsrMatrix& operator=(CsrMatrix const& rOtherMatrix) = delete; //i really think this should not be allowed, too risky
 
-    //move assignement operator
+    /// Move assignment operator
     CsrMatrix& operator=(CsrMatrix&& rOtherMatrix)
     {
         mpComm = rOtherMatrix.mpComm;
@@ -369,8 +388,6 @@ public:
         mValuesVector = Kratos::span<TDataType>(mpValuesVectorData, DataSize);
     }
 
-
-
     void CheckColSize()
     {
         IndexType max_col = 0;
@@ -380,29 +397,30 @@ public:
             KRATOS_ERROR << " max column index : " << max_col << " exceeds mNcols :" << mNcols << std::endl;
     }
 
-    TDataType& operator()(IndexType I, IndexType J)
+    IndexType FindValueIndex(IndexType I, IndexType J) const
     {
         const IndexType row_begin = index1_data()[I];
         const IndexType row_end = index1_data()[I+1];
-        IndexType k = BinarySearch(index2_data(), row_begin, row_end, J);
+        return BinarySearch(index2_data(), row_begin, row_end, J);
+    }
+
+    TDataType& operator()(IndexType I, IndexType J)
+    {
+        const IndexType k = FindValueIndex(I,J);
         KRATOS_DEBUG_ERROR_IF(k==std::numeric_limits<IndexType>::max()) << "local indices I,J : " << I << " " << J << " not found in matrix" << std::endl;
         return value_data()[k];
     }
 
     const TDataType& operator()(IndexType I, IndexType J) const
     {
-        const IndexType row_begin = index1_data()[I];
-        const IndexType row_end = index1_data()[I+1];
-        IndexType k = BinarySearch(index2_data(), row_begin, row_end, J);
+        const IndexType k = FindValueIndex(I,J);
         KRATOS_DEBUG_ERROR_IF(k==std::numeric_limits<IndexType>::max()) << "local indices I,J : " << I << " " << J << " not found in matrix" << std::endl;
         return value_data()[k];
     }
 
     bool Has(IndexType I, IndexType J) const
     {
-        const IndexType row_begin = index1_data()[I];
-        const IndexType row_end = index1_data()[I+1];
-        IndexType k = BinarySearch(index2_data(), row_begin, row_end, J);
+        const IndexType k = FindValueIndex(I,J);
         return k != std::numeric_limits<IndexType>::max();
     }
 
@@ -427,7 +445,7 @@ public:
         }
     }
 
-    //y = alpha*y + beta*A*x
+    // y = alpha*A*x + beta*y
     template<class TInputVectorType, class TOutputVectorType>
     void SpMV(const TDataType alpha,
               const TInputVectorType& x,
@@ -468,7 +486,7 @@ public:
         });
     }
 
-    //y = alpha*y + beta*A^t*x
+    // y = alpha*A^t*x + beta*y
     template<class TInputVectorType, class TOutputVectorType>
     void TransposeSpMV(const TDataType alpha,
                        const TInputVectorType& x,
@@ -543,7 +561,6 @@ public:
 
     void FinalizeAssemble() {} //the SMP version does nothing. This function is there to be implemented in the MPI case
 
-
     template<class TMatrixType, class TIndexVectorType >
     void Assemble(
         const TMatrixType& rMatrixInput,
@@ -583,6 +600,53 @@ public:
                 AtomicAdd(value_data()[k], rMatrixInput(i_local,j_local));
 
                 lastJ = J;
+            }
+        }
+    }
+
+    template<class TMatrixType, class TIndexVectorType >
+    void SafeAssemble(
+        const TMatrixType& rMatrixInput,
+        const TIndexVectorType& EquationId
+    )
+    {
+        KRATOS_DEBUG_ERROR_IF(rMatrixInput.size1() != EquationId.size()) << "sizes of matrix and equation id do not match in Assemble" << std::endl;
+        KRATOS_DEBUG_ERROR_IF(rMatrixInput.size2() != EquationId.size()) << "sizes of matrix and equation id do not match in Assemble" << std::endl;
+
+        const unsigned int local_size = rMatrixInput.size1();
+
+        for (unsigned int i_local = 0; i_local < local_size; ++i_local) {
+            const IndexType I = EquationId[i_local];
+            if (I < size1()) {
+                const IndexType row_begin = index1_data()[I];
+                const IndexType row_end = index1_data()[I+1];
+
+                //find first entry (note that we know it exists since local_size > 0)
+                IndexType J = EquationId[0];
+                if (J < size2()) {
+                    IndexType k = BinarySearch(index2_data(), row_begin, row_end, EquationId[0]);
+                    IndexType lastJ = J;
+
+                    AtomicAdd(value_data()[k], rMatrixInput(i_local,0));
+
+                    //now find other entries. note that we assume that it is probably that next entries immediately follow in the ordering
+                    for(unsigned int j_local=1; j_local<local_size; ++j_local) {
+                        J = EquationId[j_local];
+
+                        if(k+1<row_end && index2_data()[k+1] == J) {
+                            k = k+1;
+                        } else if(J > lastJ) { //note that the case k+2 >= index2_data().size() should be impossible
+                            k = BinarySearch(index2_data(), k+2, row_end, J);
+                        } else if(J < lastJ) {
+                            k = BinarySearch(index2_data(), row_begin, k-1, J);
+                        }
+                        //the last missing case is J == lastJ, which should never happen in FEM. If that happens we can reuse k
+
+                        AtomicAdd(value_data()[k], rMatrixInput(i_local,j_local));
+
+                        lastJ = J;
+                    }
+                }
             }
         }
     }
@@ -677,8 +741,49 @@ public:
         }
     }
 
-    //TODO
-    //NormFrobenius
+    TDataType NormDiagonal() const
+    {
+        const TDataType diagonal_norm = IndexPartition<IndexType>(size1()).template for_each<SumReduction<TDataType>>([&](IndexType Index) {
+            const IndexType row_begin = index1_data()[Index];
+            const IndexType row_end = index1_data()[Index+1];
+            for (IndexType k = row_begin; k < row_end; ++k) {
+                if (index2_data()[k] == Index) {
+                    return std::pow(value_data()[k], 2);
+                }
+            }
+            return 0.0;
+        });
+
+        return std::sqrt(diagonal_norm);
+    }
+
+    TDataType MaxDiagonal() const
+    {
+        return IndexPartition<IndexType>(size1()).template for_each<MaxReduction<TDataType>>([&](IndexType Index) {
+            const IndexType row_begin = index1_data()[Index];
+            const IndexType row_end = index1_data()[Index+1];
+            for (IndexType k = row_begin; k < row_end; ++k) {
+                if (index2_data()[k] == Index) {
+                    return std::abs(value_data()[k]);
+                }
+            }
+            return std::numeric_limits<TDataType>::lowest();
+        });
+    }
+
+    TDataType MinDiagonal() const
+    {
+        return IndexPartition<IndexType>(size1()).template for_each<MinReduction<TDataType>>([&](IndexType Index) {
+            const IndexType row_begin = index1_data()[Index];
+            const IndexType row_end = index1_data()[Index+1];
+            for (IndexType k = row_begin; k < row_end; ++k) {
+                if (index2_data()[k] == Index) {
+                    return std::abs(value_data()[k]);
+                }
+            }
+            return std::numeric_limits<TDataType>::max();
+        });
+    }
 
     ///@}
     ///@name Access
@@ -938,5 +1043,3 @@ inline std::ostream& operator << (std::ostream& rOStream,
 ///@} addtogroup block
 
 }  // namespace Kratos.
-
-#endif // KRATOS_CSR_MATRIX_H_INCLUDED  defined

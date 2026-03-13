@@ -10,10 +10,11 @@
 //  Main authors:    Richard Faasse
 //
 
-#include "tests/cpp_tests/geo_mechanics_fast_suite.h"
+#include "tests/cpp_tests/geo_mechanics_fast_suite_without_kernel.h"
 
 #include "containers/model.h"
 #include "custom_strategies/schemes/geomechanics_time_integration_scheme.hpp"
+#include "includes/expect.h"
 #include "spaces/ublas_space.h"
 #include "tests/cpp_tests/test_utilities/spy_condition.h"
 #include "tests/cpp_tests/test_utilities/spy_element.h"
@@ -32,8 +33,11 @@ class ConcreteGeoMechanicsTimeIntegrationScheme
     : public GeoMechanicsTimeIntegrationScheme<SparseSpaceType, LocalSpaceType>
 {
 public:
-    ConcreteGeoMechanicsTimeIntegrationScheme()
-        : GeoMechanicsTimeIntegrationScheme<SparseSpaceType, LocalSpaceType>({}, {})
+    ConcreteGeoMechanicsTimeIntegrationScheme(
+        const std::vector<FirstOrderScalarVariable>&  rFirstOrderScalarVariables  = {},
+        const std::vector<SecondOrderVectorVariable>& rSecondOrderVectorVariables = {})
+        : GeoMechanicsTimeIntegrationScheme<SparseSpaceType, LocalSpaceType>(
+              rFirstOrderScalarVariables, rSecondOrderVectorVariables)
     {
     }
 
@@ -53,8 +57,10 @@ public:
         mModel.CreateModelPart("dummy", 2);
     }
 
-    template <class T>
-    void TestFunctionCalledOnComponent_IsCalledOnActiveAndInactiveComponents()
+    template <class T, typename AddComponentToModelPartCallable, typename InitializeComponentsInModelPartCallable>
+    void TestFunctionCalledOnComponent_IsCalledOnActiveAndInactiveComponents(
+        const AddComponentToModelPartCallable&         rAddComponentTo,
+        const InitializeComponentsInModelPartCallable& rInitializeComponentsInModelPart)
     {
         typename T::EquationIdVectorType r_equation_id_vector;
         ProcessInfo                      r_process_info;
@@ -69,6 +75,10 @@ public:
         inactive_component->SetId(1);
         inactive_component->Set(ACTIVE, false);
 
+        auto& r_model_part = mModel.GetModelPart("dummy");
+        rAddComponentTo(r_model_part, active_component);
+        rAddComponentTo(r_model_part, inactive_component);
+
         EXPECT_CALL(*active_component, EquationIdVector(testing::_, testing::_)).Times(1);
         mScheme.EquationId(*active_component.get(), r_equation_id_vector, r_process_info);
 
@@ -80,6 +90,10 @@ public:
 
         EXPECT_CALL(*inactive_component, GetDofList(testing::_, testing::_)).Times(1);
         mScheme.GetDofList(*inactive_component.get(), r_dofs_vector, r_process_info);
+
+        EXPECT_CALL(*inactive_component, Initialize(testing::_)).Times(1);
+        EXPECT_CALL(*active_component, Initialize(testing::_)).Times(1);
+        rInitializeComponentsInModelPart(mScheme, r_model_part);
     }
 
     template <class T>
@@ -134,20 +148,20 @@ public:
         };
 
         // Create functions that check if the previously mentioned functions have been called
-        auto finalize_function_check = [](const Kratos::intrusive_ptr<T> rElement) {
-            return rElement->IsSolutionStepFinalized();
+        auto finalize_function_check = [](const intrusive_ptr<T>& rpElement) {
+            return rpElement->IsSolutionStepFinalized();
         };
 
-        auto initialize_function_check = [](const Kratos::intrusive_ptr<T> rElement) {
-            return rElement->IsSolutionStepInitialized();
+        auto initialize_function_check = [](const intrusive_ptr<T>& rpElement) {
+            return rpElement->IsSolutionStepInitialized();
         };
 
-        auto initialize_non_linear_iteration_check = [](const Kratos::intrusive_ptr<T> rCondition) {
-            return rCondition->IsNonLinIterationInitialized();
+        auto initialize_non_linear_iteration_check = [](const intrusive_ptr<T>& rpCondition) {
+            return rpCondition->IsNonLinIterationInitialized();
         };
 
-        auto finalize_non_linear_iteration_check = [](const Kratos::intrusive_ptr<T> rCondition) {
-            return rCondition->IsNonLinIterationFinalized();
+        auto finalize_non_linear_iteration_check = [](const intrusive_ptr<T>& rpCondition) {
+            return rpCondition->IsNonLinIterationFinalized();
         };
 
         functions_and_checks.push_back({finalize_solution_step, finalize_function_check});
@@ -160,45 +174,57 @@ public:
 
     void AddComponent(ModelPart::ElementType::Pointer element)
     {
-        GetModelPart().AddElement(element);
+        GetModelPart().AddElement(std::move(element));
     }
 
     void AddComponent(ModelPart::ConditionType::Pointer condition)
     {
-        GetModelPart().AddCondition(condition);
+        GetModelPart().AddCondition(std::move(condition));
     }
 
     ModelPart& GetModelPart() { return mModel.GetModelPart("dummy"); }
 };
 
-KRATOS_TEST_CASE_IN_SUITE(FunctionCallsOnAllElements_AreOnlyCalledForActiveElements, KratosGeoMechanicsFastSuiteWithoutKernel)
+TEST_F(KratosGeoMechanicsFastSuiteWithoutKernel, FunctionCallsOnAllElements_AreOnlyCalledForActiveElements)
 {
     GeoMechanicsSchemeTester tester;
     tester.TestFunctionCallOnAllComponents_AreOnlyCalledForActiveComponents<SpyElement>();
 }
 
-KRATOS_TEST_CASE_IN_SUITE(FunctionCallsOnAllConditions_AreOnlyCalledForActiveConditions,
-                          KratosGeoMechanicsFastSuiteWithoutKernel)
+TEST_F(KratosGeoMechanicsFastSuiteWithoutKernel, FunctionCallsOnAllConditions_AreOnlyCalledForActiveConditions)
 {
     GeoMechanicsSchemeTester tester;
     tester.TestFunctionCallOnAllComponents_AreOnlyCalledForActiveComponents<SpyCondition>();
 }
 
-KRATOS_TEST_CASE_IN_SUITE(FunctionCalledOnCondition_IsCalledOnActiveAndInactiveConditions,
-                          KratosGeoMechanicsFastSuiteWithoutKernel)
+TEST_F(KratosGeoMechanicsFastSuiteWithoutKernel, FunctionCalledOnElement_IsCalledOnActiveAndInactiveElements)
 {
     GeoMechanicsSchemeTester tester;
-    tester.TestFunctionCalledOnComponent_IsCalledOnActiveAndInactiveComponents<SpyCondition>();
+    tester.TestFunctionCalledOnComponent_IsCalledOnActiveAndInactiveComponents<SpyElement>(
+        [](auto& rModelPart, auto& rElement) { rModelPart.AddElement(rElement); },
+        [](auto& rScheme, auto& rModelPart) { rScheme.InitializeElements(rModelPart); });
 }
 
-KRATOS_TEST_CASE_IN_SUITE(FunctionCalledOnElement_IsCalledOnActiveAndInactiveElements, KratosGeoMechanicsFastSuiteWithoutKernel)
+TEST_F(KratosGeoMechanicsFastSuiteWithoutKernel, FunctionCalledOnCondition_IsCalledOnActiveAndInactiveConditions)
 {
     GeoMechanicsSchemeTester tester;
-    tester.TestFunctionCalledOnComponent_IsCalledOnActiveAndInactiveComponents<SpyElement>();
+    tester.TestFunctionCalledOnComponent_IsCalledOnActiveAndInactiveComponents<SpyCondition>(
+        [](auto& rModelPart, auto& rCondition) { rModelPart.AddCondition(rCondition); },
+        [](auto& rScheme, auto& rModelPart) {
+        rScheme.SetElementsAreInitialized(); // Precondition for initializing the conditions
+        rScheme.InitializeConditions(rModelPart);
+    });
 }
 
-KRATOS_TEST_CASE_IN_SUITE(ForInvalidBufferSize_CheckGeoMechanicsTimeIntegrationScheme_Throws,
-                          KratosGeoMechanicsFastSuiteWithoutKernel)
+TEST_F(KratosGeoMechanicsFastSuiteWithoutKernel, InitializeConditions_Throws_IfElementsNotInitialized)
+{
+    GeoMechanicsSchemeTester tester;
+    tester.Setup();
+    auto& model_part = tester.GetModelPart();
+    EXPECT_THROW(tester.mScheme.InitializeConditions(model_part), Kratos::Exception);
+}
+
+TEST_F(KratosGeoMechanicsFastSuiteWithoutKernel, ForInvalidBufferSize_CheckGeoMechanicsTimeIntegrationScheme_Throws)
 {
     ConcreteGeoMechanicsTimeIntegrationScheme scheme;
 
@@ -238,10 +264,10 @@ void TestUpdateForNumberOfThreads(int NumberOfThreads)
     Dx[0] = 1.0; // Meaning the updated value = 42.0 + 1.0 = 43.0
 
     auto dof_displacement                                     = p_node->pGetDof(DISPLACEMENT_X);
-    dof_displacement->GetSolutionStepValue(DISPLACEMENT_X, 0) = 3.14;
+    dof_displacement->GetSolutionStepValue(DISPLACEMENT_X, 0) = 3.41;
     dof_displacement->SetEquationId(1);
     dofs_array.push_back(dof_displacement);
-    Dx[1] = 6.0; // Meaning the updated value = 3.14 + 6.0 = 9.14
+    Dx[1] = 6.0; // Meaning the updated value = 3.41 + 6.0 = 9.41
 
     auto dof_inactive_displacement = p_node->pGetDof(DISPLACEMENT_Y);
     dof_inactive_displacement->GetSolutionStepValue(DISPLACEMENT_Y, 0) = 1.0;
@@ -252,16 +278,89 @@ void TestUpdateForNumberOfThreads(int NumberOfThreads)
 
     tester.mScheme.Update(tester.GetModelPart(), dofs_array, A, Dx, b);
 
-    KRATOS_EXPECT_DOUBLE_EQ(dofs_array.begin()->GetSolutionStepValue(WATER_PRESSURE, 0), 43.0);
-    KRATOS_EXPECT_DOUBLE_EQ((dofs_array.begin() + 1)->GetSolutionStepValue(DISPLACEMENT_X, 0), 9.14);
-    KRATOS_EXPECT_DOUBLE_EQ((dofs_array.begin() + 2)->GetSolutionStepValue(DISPLACEMENT_Y, 0), 1.0);
+    EXPECT_DOUBLE_EQ(dofs_array.begin()->GetSolutionStepValue(WATER_PRESSURE, 0), 43.0);
+    EXPECT_DOUBLE_EQ((dofs_array.begin() + 1)->GetSolutionStepValue(DISPLACEMENT_X, 0), 9.41);
+    EXPECT_DOUBLE_EQ((dofs_array.begin() + 2)->GetSolutionStepValue(DISPLACEMENT_Y, 0), 1.0);
 }
 
-KRATOS_TEST_CASE_IN_SUITE(GeoMechanicsTimeIntegrationScheme_GivesCorrectDofs_WhenUpdateIsCalled,
-                          KratosGeoMechanicsFastSuiteWithoutKernel)
+TEST_F(KratosGeoMechanicsFastSuiteWithoutKernel, GeoMechanicsTimeIntegrationScheme_GivesCorrectDofs_WhenUpdateIsCalled)
 {
     TestUpdateForNumberOfThreads(1);
     TestUpdateForNumberOfThreads(2);
+}
+
+ModelPart& CreateModelPartWithDomainSize(int DomainSize, Model& rModel)
+{
+    auto& r_model_part = rModel.CreateModelPart("main");
+    r_model_part.SetBufferSize(2);
+    r_model_part.AddNodalSolutionStepVariable(DISPLACEMENT);
+    r_model_part.AddNodalSolutionStepVariable(VELOCITY);
+    r_model_part.AddNodalSolutionStepVariable(ACCELERATION);
+    r_model_part.AddNodalSolutionStepVariable(ROTATION);
+    r_model_part.AddNodalSolutionStepVariable(ANGULAR_VELOCITY);
+    r_model_part.AddNodalSolutionStepVariable(ANGULAR_ACCELERATION);
+    r_model_part.GetProcessInfo()[DOMAIN_SIZE] = DomainSize;
+    return r_model_part;
+}
+
+TEST_F(KratosGeoMechanicsFastSuiteWithoutKernel, GeoMechanicsTimeIntegrationScheme_Throws_WhenZDofIsMissingFor3DModel)
+{
+    const ConcreteGeoMechanicsTimeIntegrationScheme test_scheme({}, {SecondOrderVectorVariable(DISPLACEMENT)});
+    Model model;
+    auto& r_model_part = CreateModelPartWithDomainSize(3, model);
+    auto  p_node       = r_model_part.CreateNewNode(1, 0.0, 0.0, 0.0);
+    p_node->AddDof(DISPLACEMENT_X);
+    p_node->AddDof(DISPLACEMENT_Y);
+
+    KRATOS_EXPECT_EXCEPTION_IS_THROWN(test_scheme.Check(r_model_part),
+                                      "missing DISPLACEMENT_Z dof on node 1");
+}
+
+TEST_F(KratosGeoMechanicsFastSuiteWithoutKernel, GeoMechanicsTimeIntegrationScheme_DoesNotThrow_WhenAllDofArePresentFor3DModel)
+{
+    const ConcreteGeoMechanicsTimeIntegrationScheme test_scheme({}, {SecondOrderVectorVariable(DISPLACEMENT)});
+    Model model;
+    auto& r_model_part = CreateModelPartWithDomainSize(3, model);
+    auto  p_node       = r_model_part.CreateNewNode(1, 0.0, 0.0, 0.0);
+    p_node->AddDof(DISPLACEMENT_X);
+    p_node->AddDof(DISPLACEMENT_Y);
+    p_node->AddDof(DISPLACEMENT_Z);
+
+    EXPECT_NO_THROW(test_scheme.Check(r_model_part));
+}
+
+TEST_F(KratosGeoMechanicsFastSuiteWithoutKernel, GeoMechanicsTimeIntegrationScheme_NoThrow_WhenZDofIsMissingFor2DModel)
+{
+    const ConcreteGeoMechanicsTimeIntegrationScheme test_scheme({}, {SecondOrderVectorVariable(DISPLACEMENT)});
+    Model model;
+    auto& r_model_part = CreateModelPartWithDomainSize(2, model);
+    auto  p_node       = r_model_part.CreateNewNode(1, 0.0, 0.0, 0.0);
+    p_node->AddDof(DISPLACEMENT_X);
+    p_node->AddDof(DISPLACEMENT_Y);
+
+    EXPECT_NO_THROW(test_scheme.Check(r_model_part));
+}
+
+TEST_F(KratosGeoMechanicsFastSuiteWithoutKernel, GeoMechanicsTimeIntegrationScheme_Throws_WhenRotationZDofIsMissingFor2DModel)
+{
+    const ConcreteGeoMechanicsTimeIntegrationScheme test_scheme({}, {SecondOrderVectorVariable(ROTATION)});
+    Model model;
+    auto& r_model_part = CreateModelPartWithDomainSize(2, model);
+    auto  p_node       = r_model_part.CreateNewNode(1, 0.0, 0.0, 0.0);
+
+    KRATOS_EXPECT_EXCEPTION_IS_THROWN(test_scheme.Check(r_model_part),
+                                      "missing ROTATION_Z dof on node 1");
+}
+
+TEST_F(KratosGeoMechanicsFastSuiteWithoutKernel, GeoMechanicsTimeIntegrationScheme_OnlyNeedsZRotationDof_For2DModel)
+{
+    const ConcreteGeoMechanicsTimeIntegrationScheme test_scheme({}, {SecondOrderVectorVariable(ROTATION)});
+    Model model;
+    auto& r_model_part = CreateModelPartWithDomainSize(2, model);
+    auto  p_node       = r_model_part.CreateNewNode(1, 0.0, 0.0, 0.0);
+    p_node->AddDof(ROTATION_Z);
+
+    EXPECT_NO_THROW(test_scheme.Check(r_model_part));
 }
 
 } // namespace Kratos::Testing

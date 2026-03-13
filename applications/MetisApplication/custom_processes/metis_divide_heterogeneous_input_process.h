@@ -1,3 +1,18 @@
+//    |  /           |
+//    ' /   __| _` | __|  _ \   __|
+//    . \  |   (   | |   (   |\__ `
+//   _|\_\_|  \__,_|\__|\___/ ____/
+//                   Multi-Physics
+//
+//  License:         BSD License
+//                   Kratos default license: kratos/license.txt
+//
+//  Main authors:    Pooyan Dadvand
+//                   Jordi Cotela
+//                   Carlos Roig
+//                   Vicente Mataix Ferrandiz
+//
+
 #pragma once
 
 // External includes
@@ -183,6 +198,13 @@ protected:
                        const IO::ConnectivitiesContainerType& rElemConnectivities,
                        std::vector<idxtype>& rElemPartition);
 
+    /// Partition the geometries such that boundary geometries are always assigned the majority partition.
+    void PartitionGeometriesSynchronous(
+        const std::vector<idxtype>& rNodePartition,
+        const IO::ConnectivitiesContainerType& rGeometryConnectivities,
+        std::vector<idxtype>& rGeometryPartition
+        );
+
     /// Partition the elements such that boundary elements are always assigned the majority partition.
     void PartitionElementsSynchronous(std::vector<idxtype> const& NodePartition,
                        const IO::ConnectivitiesContainerType& rElemConnectivities,
@@ -195,12 +217,49 @@ protected:
 			     const IO::ConnectivitiesContainerType& rElemConnectivities,
 			     std::vector<idxtype>& rCondPartition);
 
+    /// Partition the constraint such that boundary constraints are always assigned the majority partition.
+    void PartitionConstraintsSynchronous(
+        const std::vector<idxtype>& NodePartition,
+        const IO::ConnectivitiesContainerType& rConstraintConnectivities,
+        std::vector<idxtype>& rConstraintPartition
+        );
+
+    /**
+     * @brief Redistribute hanging nodes among the partitions including geometries and master-slave constraints.
+     * @details This function adjusts the node partitioning by redistributing hanging nodes 
+     * based on the partition information provided for elements, conditions, geometries, and master-slave constraints,
+     * as well as their connectivity data. The redistribution ensures consistent partitioning 
+     * across the computational domain.
+     * @param rNodePartition A reference to the vector storing the partition indices for nodes.
+     *                       The vector will be updated with new partition assignment for hanging nodes.
+     * @param rGeometryPartition A const reference to the vector holding partition indices for geometries.
+     *                           This is used to propagate partitioning information from geometries.
+     * @param rGeometryConnectivities A const reference to the container with connectivity data
+     *                                for geometries.
+     * @param rElementPartition A const reference to the vector holding partition indices for elements.
+     *                          This is used to propagate partitioning information to the nodes.
+     * @param rElementConnectivities A const reference to the container with connectivity 
+     *                               data for elements. This helps determine node associations from elements.
+     * @param rConditionPartition A const reference to the vector containing partition indices for conditions.
+     *                            Condition partitioning is used to manage nodes associated with conditions.
+     * @param rConditionConnectivities A const reference to the container with connectivity data
+     *                                 for conditions. This is used to correctly assign node partitions based on condition connectivity.
+     * @param rConstraintPartition A const reference to the vector holding partition indices for master-slave constraints.
+     *                                          This is used to propagate partitioning information from master-slave constraints.
+     * @param rConstraintConnectivities A const reference to the container with connectivity data
+     *                                             for master-slave constraints.
+     */
     void RedistributeHangingNodes(
             std::vector<idxtype>& rNodePartition,
+            std::vector<idxtype> const& rGeometryPartition,
+            const IO::ConnectivitiesContainerType& rGeometryConnectivities,
             std::vector<idxtype> const& rElementPartition,
             const IO::ConnectivitiesContainerType& rElementConnectivities,
             std::vector<idxtype> const& rConditionPartition,
-            const IO::ConnectivitiesContainerType& rConditionConnectivities);
+            const IO::ConnectivitiesContainerType& rConditionConnectivities,
+            std::vector<idxtype> const& rConstraintPartition,
+            const IO::ConnectivitiesContainerType& rConstraintConnectivities
+            );
 
     SizeType FindMax(SizeType NumTerms, const std::vector<int>& rVect);
 

@@ -4,21 +4,17 @@
 //   _|\_\_|  \__,_|\__|\___/ ____/
 //                   Multi-Physics
 //
-//  License:		 BSD License
-//					 Kratos default license: kratos/license.txt
+//  License:         BSD License
+//                   Kratos default license: kratos/license.txt
 //
 //  Main authors:    Pooyan Dadvand
 //
 
-
-#if !defined(KRATOS_UBLAS_INTERFACE_H_INCLUDED )
-#define  KRATOS_UBLAS_INTERFACE_H_INCLUDED
-
+#pragma once
 
 // System includes
 #include <string>
 #include <iostream>
-
 
 // External includes
 #include <boost/numeric/ublas/matrix.hpp>
@@ -40,7 +36,6 @@
 
 // Project includes
 #include "includes/define.h"
-
 
 namespace Kratos
 {
@@ -115,9 +110,5 @@ namespace Kratos
 ///@name Input and output
 ///@{
 
+///@}
 }  // namespace Kratos.
-
-#endif // KRATOS_UBLAS_INTERFACE_H_INCLUDED  defined
-
-
-

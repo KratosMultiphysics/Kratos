@@ -76,14 +76,12 @@ public:
      * @param rModelPart Reference to the model part.
      * @param rVariable Reference to the double variable.
      * @param DoubleValue The double value to apply.
-     * @param MeshId ID of the mesh.
      * @param Options Flags specifying additional options.
      */
     ApplyConstantScalarValueProcess(
         ModelPart& rModelPart,
         const Variable<double>& rVariable,
         const double DoubleValue,
-        std::size_t MeshId,
         const Flags Options
         );
 
@@ -92,14 +90,12 @@ public:
      * @param rModelPart Reference to the model part.
      * @param rVariable Reference to the integer variable.
      * @param IntValue The integer value to apply.
-     * @param MeshId ID of the mesh.
      * @param options Flags specifying additional options.
      */
     ApplyConstantScalarValueProcess(
         ModelPart& rModelPart,
         const Variable<int>& rVariable,
         const int IntValue,
-        std::size_t MeshId,
         const Flags options
         );
 
@@ -108,14 +104,12 @@ public:
      * @param rModelPart Reference to the model part.
      * @param rVariable Reference to the boolean variable.
      * @param BoolValue The boolean value to apply.
-     * @param MeshId ID of the mesh.
      * @param options Flags specifying additional options.
      */
     ApplyConstantScalarValueProcess(
         ModelPart& rModelPart,
         const Variable<bool>& rVariable,
         const bool BoolValue,
-        std::size_t MeshId,
         const Flags options
         );
 
@@ -135,6 +129,12 @@ public:
     ///@}
     ///@name Operations
     ///@{
+
+    /// @copydoc Process::Create
+    Process::Pointer Create(
+        Model& rModel,
+        Parameters ThisParameters
+        ) override;
 
     /**
      * @brief This function is designed for being called at the beginning of the computations
@@ -190,7 +190,6 @@ protected:
     double mDoubleValue = 0.0; /// Double value.
     int mIntValue = 0;         /// Integer value.
     bool mBoolValue = false;   /// Boolean value.
-    std::size_t mMeshId = 0;   /// Mesh ID.
 
     ///@}
 private:

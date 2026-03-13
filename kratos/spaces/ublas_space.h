@@ -341,12 +341,12 @@ public:
         return aux_sum;
     }
 
-    static void Mult(const Matrix& rA, VectorType& rX, VectorType& rY)
+    static void Mult(const Matrix& rA, const VectorType& rX, VectorType& rY)
     {
         axpy_prod(rA, rX, rY, true);
     }
 
-    static void Mult(const compressed_matrix<TDataType>& rA, VectorType& rX, VectorType& rY)
+    static void Mult(const compressed_matrix<TDataType>& rA, const VectorType& rX, VectorType& rY)
     {
 #ifndef _OPENMP
         axpy_prod(rA, rX, rY, true);
@@ -356,9 +356,9 @@ public:
     }
 
     template< class TOtherMatrixType >
-    static void TransposeMult(TOtherMatrixType& rA, VectorType& rX, VectorType& rY)
+    static void TransposeMult(const TOtherMatrixType& rA, const VectorType& rX, VectorType& rY)
     {
-		boost::numeric::ublas::axpy_prod(rX, rA, rY, true);
+        boost::numeric::ublas::axpy_prod(rX, rA, rY, true);
     } // rY = rAT * rX
 
     static inline SizeType GraphDegree(IndexType i, TMatrixType& A)
@@ -943,14 +943,14 @@ public:
     }
 
     template< class TOtherMatrixType >
-    static bool WriteMatrixMarketMatrix(const char* pFileName, /*const*/ TOtherMatrixType& rM, const bool Symmetric)
+    static bool WriteMatrixMarketMatrix(const char* pFileName, const TOtherMatrixType& rM, const bool Symmetric)
     {
         // Use full namespace in call to make sure we are not calling this function recursively
         return Kratos::WriteMatrixMarketMatrix(pFileName, rM, Symmetric);
     }
 
     template< class VectorType >
-    static bool WriteMatrixMarketVector(const char* pFileName, /*const*/ VectorType& rV)
+    static bool WriteMatrixMarketVector(const char* pFileName, const VectorType& rV)
     {
         // Use full namespace in call to make sure we are not calling this function recursively
         return Kratos::WriteMatrixMarketVector(pFileName, rV);

@@ -3,6 +3,7 @@ import KratosMultiphysics
 from KratosMultiphysics import IsDistributedRun
 import KratosMultiphysics.kratos_utilities as kratos_utils
 from KratosMultiphysics.StructuralMechanicsApplication.structural_mechanics_analysis import StructuralMechanicsAnalysis
+from KratosMultiphysics.StructuralMechanicsApplication.structural_mechanics_load_stepping_analysis import StructuralMechanicsLoadSteppingAnalysis
 
 # Import KratosUnittest
 import KratosMultiphysics.KratosUnittest as KratosUnittest
@@ -37,6 +38,8 @@ def SelectAndVerifyLinearSolver(settings, skiptest):
 
 
 class StructuralMechanicsTestFactory(KratosUnittest.TestCase):
+    analysis_type = StructuralMechanicsAnalysis
+
     def setUp(self):
         # Within this location context:
         with KratosUnittest.WorkFolderScope(".", __file__):
@@ -57,7 +60,7 @@ class StructuralMechanicsTestFactory(KratosUnittest.TestCase):
 
             # Creating the test
             model = KratosMultiphysics.Model()
-            self.test = StructuralMechanicsAnalysis(model, ProjectParameters)
+            self.test = self.analysis_type(model, ProjectParameters)
             self.test.Initialize()
 
     def modify_parameters(self, project_parameters):
@@ -76,6 +79,15 @@ class StructuralMechanicsTestFactory(KratosUnittest.TestCase):
         with KratosUnittest.WorkFolderScope(".", __file__):
             self.test.Finalize()
 
+class LinearReissnerMindlinTest(StructuralMechanicsTestFactory):
+    file_name = "reissner_mindlin_shells/3_noded/linear/hook_triangles_test"
+
+class CorotationalReissnerMindlinTest(StructuralMechanicsTestFactory):
+    file_name = "reissner_mindlin_shells/3_noded/corotational/hook_triangles_test"
+
+class MixedUEElementTest(StructuralMechanicsTestFactory):
+    file_name = "mixed_u_E_test/mixed_u_E_element_test"
+
 class LinearTruss2D2NTest(StructuralMechanicsTestFactory):
     file_name = "LinearTruss2D/2D2N/linear_truss_2d2N_test"
 
@@ -85,6 +97,12 @@ class LinearTruss2D3NTest(StructuralMechanicsTestFactory):
 class LinearTruss3DTest(StructuralMechanicsTestFactory):
     file_name = "LinearTruss3D/linear_3d_truss_test"
 
+class TLTruss3DTest(StructuralMechanicsTestFactory):
+    file_name = "TLTruss3D/tl_3d_truss_test"
+
+class TimoshenkoBeam3D2NTest(StructuralMechanicsTestFactory):
+    file_name = "TimoshenkoBeams/3D2N_straight/timoshenko_beam_3d2N_test"
+
 class TimoshenkoBeam2D2NTest(StructuralMechanicsTestFactory):
     file_name = "TimoshenkoBeams/2D2N/timoshenko_beam_2d2N_test"
 
@@ -93,6 +111,9 @@ class TimoshenkoBeam2D3NTest(StructuralMechanicsTestFactory):
 
 class TimoshenkoCurvedBeam2D3NTest(StructuralMechanicsTestFactory):
     file_name = "TimoshenkoBeams/2D3N_curved/timoshenko_curved_beam_2d3N_test"
+
+class TimoshenkoCurvedBeam3D3NTest(StructuralMechanicsTestFactory):
+    file_name = "TimoshenkoBeams/3D3N_curved/timoshenko_curved_beam_3d3N_test"
 
 class AutomatedInitialVariableProcessTest(StructuralMechanicsTestFactory):
     file_name = "automated_initial_variable_process_test/automated_initial_variable_process_test"
@@ -256,6 +277,24 @@ class Simple3D2NBeamCrNonLinearTest(StructuralMechanicsTestFactory):
 
 class Simple3D2NBeamCrDynamicTest(StructuralMechanicsTestFactory):
     file_name = "beam_test/dynamic_3D2NBeamCr_test"
+
+class Simple3D2NBeamCrDynamicPseudoStepTest(StructuralMechanicsTestFactory):
+    class TestClass(StructuralMechanicsLoadSteppingAnalysis):
+        list_of_steps: 'list[int]' = []
+        def FinalizeSolutionStep(self):
+            super().FinalizeSolutionStep()
+            self.list_of_steps.append(self.is_converged)
+
+    file_name = "beam_test/dynamic_3D2NBeamCr_pseudo_step_test"
+    analysis_type = TestClass
+
+    def test_execution(self):
+        super().test_execution()
+        self.assertTrue(all(self.test.list_of_steps))
+
+    def tearDown(self):
+        super().tearDown()
+        kratos_utils.DeleteFileIfExisting("serialization.rest")
 
 class Simple2D2NBeamCrTest(StructuralMechanicsTestFactory):
     file_name = "beam_test/nonlinear_2D2NBeamCr_test"

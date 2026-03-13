@@ -97,7 +97,7 @@ public:
     /// Constructor to use the formulation combined with a turbulence model.
     /**
      * The turbulence model is assumed to be implemented as a Kratos::Process.
-     * The model's Execute() method wil be called at the start of each
+     * The model's Execute() method will be called at the start of each
      * non-linear iteration.
      * @param pTurbulenceModel pointer to the turbulence model
      */
@@ -301,6 +301,7 @@ public:
     {
         KRATOS_TRY
 
+        BaseType::InitializeNonLinIteration(rModelPart, A, Dx, b);
         if (mpTurbulenceModel != 0) mpTurbulenceModel->Execute();
 
         const ProcessInfo& CurrentProcessInfo = rModelPart.GetProcessInfo();

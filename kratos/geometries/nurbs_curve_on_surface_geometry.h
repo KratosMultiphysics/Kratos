@@ -282,7 +282,7 @@ public:
             rSpans,
             *(mpNurbsCurve.get()), Start, End,
             surface_spans_u, surface_spans_v,
-            1e-6);
+            1e-11);
     }
 
     /* @brief  Provides intersections of the nurbs curve with the knots of the surface in the SBM case.
@@ -477,7 +477,7 @@ public:
     ///@name ClosestPoint
     ///@{
 
-    /* @brief Makes a check if the provided paramater rPointLocalCoordinates[0]
+    /* @brief Makes a check if the provided parameter rPointLocalCoordinates[0]
      *        is inside the curve, or on the boundary or if it lays outside.
      *        If it is outside, it is set to the boundary which is closer to it.
      * @return if rPointLocalCoordinates[0] was before the projection:
@@ -706,7 +706,7 @@ public:
         IndexType InternalBrepSpanU;
         IndexType InternalBrepSpanV;
 
-        // SBM -> check to which axis the brep is alligned
+        // SBM -> check to which axis the brep is aligned
         std::vector<CoordinatesArrayType> first_integration_point(2); // first integration point of the brep in the parameter space
         std::vector<CoordinatesArrayType> last_integration_point(2); // last integration point of the brep in the parameter space
         mpNurbsCurve->GlobalSpaceDerivatives(first_integration_point,rIntegrationPoints[0],1); 

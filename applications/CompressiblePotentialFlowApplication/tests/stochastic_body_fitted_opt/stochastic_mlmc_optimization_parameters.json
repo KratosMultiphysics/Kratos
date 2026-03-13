@@ -2,7 +2,7 @@
     "optimization_settings" : {
         "model_settings" : {
             "domain_size"           : 2,
-            "model_part_name"       : "MainModelPart",
+            "model_part_name"       : "FluidModelPart",
             "model_import_settings" : {
                 "input_type"     : "mdpa",
                 "input_filename" : "../naca0012_small_mdpa/naca0012_small"
@@ -12,7 +12,7 @@
                 "apply_mesh_solver" : true,
                 "solver_settings" : {
                     "solver_type": "structural_similarity",
-                    "model_part_name"    : "MainModelPart",
+                    "model_part_name"    : "FluidModelPart",
                     "model_import_settings"              : {
                         "input_type"     : "use_input_model_part"
                     },
@@ -29,7 +29,7 @@
                         "help"          : "This process fixes the selected components of a given vector variable without modifying the value of the variable.",
                         "process_name"  : "FixVectorVariableProcess",
                         "Parameters"    : {
-                            "model_part_name"      : "MainModelPart.Body2D_Body",
+                            "model_part_name"      : "FluidModelPart.Body2D_Body",
                             "variable_name"        : "MESH_DISPLACEMENT",
                             "constrained"          : [true,true,true]
                         }
@@ -39,8 +39,7 @@
                         "help"          : "This process fixes the selected components of a given vector variable",
                         "process_name"  : "AssignVectorVariableProcess",
                         "Parameters"    : {
-                            "mesh_id"         : 0,
-                            "model_part_name" : "MainModelPart.PotentialWallCondition2D_Far_field_Auto1",
+                            "model_part_name" : "FluidModelPart.PotentialWallCondition2D_Far_field_Auto1",
                             "variable_name"   : "MESH_DISPLACEMENT",
                             "value"           : [0.0,0.0,0.0]
                         }
@@ -70,8 +69,8 @@
             "analyzer" : "kratos",
             "response_settings":{
                 "response_type"          : "airfoil_angle_of_attack",
-                "trailing_edge_model_part" : "MainModelPart.TrailingEdgeNode",
-                "leading_edge_model_part" : "MainModelPart.LeadingEdgeNode"
+                "trailing_edge_model_part" : "FluidModelPart.TrailingEdgeNode",
+                "leading_edge_model_part" : "FluidModelPart.LeadingEdgeNode"
             },
             "project_gradient_on_surface_normals" : false
         },{
@@ -81,8 +80,8 @@
             "analyzer" : "kratos",
             "response_settings":{
                 "response_type"          : "airfoil_chord_length",
-                "trailing_edge_model_part" : "MainModelPart.TrailingEdgeNode",
-                "leading_edge_model_part" : "MainModelPart.LeadingEdgeNode"
+                "trailing_edge_model_part" : "FluidModelPart.TrailingEdgeNode",
+                "leading_edge_model_part" : "FluidModelPart.LeadingEdgeNode"
             },
             "project_gradient_on_surface_normals" : false
         },{
@@ -92,7 +91,7 @@
             "analyzer" : "kratos",
             "response_settings":{
                 "response_type"          : "airfoil_perimeter",
-                "model_part_name"        : "MainModelPart.Body2D_Body"
+                "model_part_name"        : "FluidModelPart.Body2D_Body"
             },
             "project_gradient_on_surface_normals" : false
         }],

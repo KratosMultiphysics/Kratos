@@ -1,0 +1,14 @@
+@INCLUDE               = ../../../documents/doxyfile
+PROJECT_NAME           = KratosMultiphysics - Free Surface
+PROJECT_BRIEF          =
+PROJECT_LOGO           = ../../../documents/kratos_small.png
+LAYOUT_FILE            = ../../../html_layout.xml
+INPUT                  = ..                             \
+                         ../README.md
+EXCLUDE_PATTERNS       = */external_libraries/*         \
+                         */custom_external_libraries/*  \
+                         */tests/* *_test* *test_*
+HTML_EXTRA_STYLESHEET  = ../../../documents/doxygen-awesome.css
+TAGFILES               = ../../../documents/KratosCore.tag=../../../../documents/html
+GENERATE_TAGFILE       = FreeSurfaceApplication.tag
+

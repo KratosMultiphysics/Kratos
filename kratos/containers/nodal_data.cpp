@@ -44,14 +44,6 @@ namespace Kratos
 
     }
 
-    /// Assignment operator.
-    NodalData& NodalData::operator=(NodalData const& rOther){
-        mId = rOther.mId;
-        mSolutionStepsNodalData = rOther.mSolutionStepsNodalData;
-
-        return *this;
-    }
-
     /// Turn back information as a string.
     std::string NodalData::Info() const
     {

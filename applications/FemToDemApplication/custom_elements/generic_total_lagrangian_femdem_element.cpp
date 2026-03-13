@@ -223,11 +223,11 @@ void GenericTotalLagrangianFemDemElement<TDim,TyieldSurf>::InitializeNonLinearIt
         // Compute element kinematics B, F, DN_DX ...
         CalculateKinematicVariables(this_kinematic_variables, point_number, mThisIntegrationMethod);
 
-        // Compute material reponse
+        // Compute material response
         this->CalculateConstitutiveVariables(this_kinematic_variables, this_constitutive_variables, cl_values, point_number, integration_points, this->GetStressMeasure());
     }
-    this->SetValue(STRESS_VECTOR, this_constitutive_variables.StressVector);
-    this->SetValue(STRAIN_VECTOR, this_constitutive_variables.StrainVector);
+    this->SetValue(FEMDEM_STRESS_VECTOR, this_constitutive_variables.StressVector);
+    this->SetValue(FEMDEM_STRAIN_VECTOR, this_constitutive_variables.StrainVector);
 
     KRATOS_CATCH("")
 }
@@ -301,7 +301,7 @@ void GenericTotalLagrangianFemDemElement<TDim,TyieldSurf>::CalculateAll(
         // Compute element kinematics B, F, DN_DX ...
         this->CalculateKinematicVariables(this_kinematic_variables, point_number, this->GetIntegrationMethod());
 
-        // Compute material reponse
+        // Compute material response
         this->CalculateConstitutiveVariables(this_kinematic_variables, this_constitutive_variables, cl_values, point_number, integration_points, this->GetStressMeasure());
 
         // Calculating weights for integration on the reference configuration
@@ -398,7 +398,7 @@ void GenericTotalLagrangianFemDemElement<TDim,TyieldSurf>::FinalizeSolutionStep(
         // Compute element kinematics B, F, DN_DX ...
         this->CalculateKinematicVariables(this_kinematic_variables, point_number, this->GetIntegrationMethod());
 
-        // Compute material reponse
+        // Compute material response
         this->CalculateConstitutiveVariables(this_kinematic_variables, this_constitutive_variables, cl_values, point_number, integration_points, this->GetStressMeasure());
 
         // Call the constitutive law to update material variables
@@ -840,8 +840,8 @@ Vector GenericTotalLagrangianFemDemElement<TDim,TyieldSurf>::IntegrateSmoothedCo
         for (unsigned int edge = 0; edge < NumberOfEdges; edge++) {
             noalias(average_stress_edge) = rThisConstVars.StressVector;
             noalias(average_strain_edge) = rThisConstVars.StrainVector;
-            this->CalculateAverageVariableOnEdge(this, STRESS_VECTOR, average_stress_edge, edge);
-            this->CalculateAverageVariableOnEdge(this, STRAIN_VECTOR, average_strain_edge, edge);
+            this->CalculateAverageVariableOnEdge(this, FEMDEM_STRESS_VECTOR, average_stress_edge, edge);
+            this->CalculateAverageVariableOnEdge(this, FEMDEM_STRAIN_VECTOR, average_strain_edge, edge);
 
             if (!SaveIntVars) {
                 damages_edges[edge] = mDamages[edge];
@@ -1890,8 +1890,8 @@ void GenericTotalLagrangianFemDemElement<TDim,TyieldSurf>::IntegratePerturbedStr
     for (unsigned int edge = 0; edge < NumberOfEdges; edge++) {
         average_stress_edge = r_perturbed_predictive_stress;
         average_strain_edge = rPerturbedStrainVector;
-        this->CalculateAverageVariableOnEdge(this, STRESS_VECTOR, average_stress_edge, edge);
-        this->CalculateAverageVariableOnEdge(this, STRAIN_VECTOR, average_strain_edge, edge);
+        this->CalculateAverageVariableOnEdge(this, FEMDEM_STRESS_VECTOR, average_stress_edge, edge);
+        this->CalculateAverageVariableOnEdge(this, FEMDEM_STRAIN_VECTOR, average_strain_edge, edge);
 
         double damage_edge = mDamages[edge];
         double threshold = mThresholds[edge];
@@ -2078,7 +2078,7 @@ void GenericTotalLagrangianFemDemElement<TDim,TyieldSurf>::CalculateOnIntegratio
             CalculateKinematicVariables(this_kinematic_variables, point_number, this->GetIntegrationMethod());
 
             //call the constitutive law to update material variables
-            // Compute material reponse
+            // Compute material response
             CalculateConstitutiveVariables(this_kinematic_variables, this_constitutive_variables, cl_values, point_number, integration_points, ConstitutiveLaw::StressMeasure_Cauchy);
 
             if ( rOutput[point_number].size() != strain_size )

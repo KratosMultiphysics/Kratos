@@ -11,9 +11,7 @@
 //
 //
 
-
-#if !defined(KRATOS_FIXED_SIZE_MEMORY_POOL_H_INCLUDED )
-#define  KRATOS_FIXED_SIZE_MEMORY_POOL_H_INCLUDED
+#pragma once
 
 #include <vector>
 #include <list>
@@ -223,5 +221,3 @@ namespace Kratos
   ///@} addtogroup block
 
 }  // namespace Kratos.
-
-#endif // KRATOS_FIXED_SIZE_MEMORY_POOL_H_INCLUDED  defined

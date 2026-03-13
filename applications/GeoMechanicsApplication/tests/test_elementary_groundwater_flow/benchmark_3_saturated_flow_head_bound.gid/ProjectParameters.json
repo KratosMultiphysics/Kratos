@@ -28,7 +28,6 @@
         "compute_reactions":                  false,
         "move_mesh_flag":                     false,
         "reform_dofs_at_each_step":           false,
-        "nodal_smoothing":                    false,
         "block_builder":                      true,
         "solution_type":                      "Steady_State_Groundwater_Flow",
         "scheme_type":                        "Backward_Euler",
@@ -68,7 +67,6 @@
             "preconditioner_type": "ilu0"
         },
         "problem_domain_sub_model_part_list": ["soil"],
-        "processes_sub_model_part_list":      ["Fluid_Pressure-auto-1","Fluid_Pressure-auto-2","Body_Acceleration-auto-1"],
         "body_domain_sub_model_part_list":    ["soil"]
     },
     "output_processes": {
@@ -145,7 +143,6 @@
             "value":           [0.0,-10,0.0],
             "table":           [0,0,0]
         }
-    }],
-        "auxiliar_process_list": []
+    }]
     }
 }

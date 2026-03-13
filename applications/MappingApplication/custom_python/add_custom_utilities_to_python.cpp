@@ -23,6 +23,7 @@
 #include "custom_python/add_custom_utilities_to_python.h"
 #include "custom_utilities/mapper_utilities.h"
 #include "custom_utilities/mapping_intersection_utilities.h"
+#include "custom_utilities/iga_mapping_intersection_utilities.h"
 
 
 namespace Kratos {
@@ -34,6 +35,7 @@ void  AddCustomUtilitiesToPython(pybind11::module& m)
 
     auto m_mapper_utilities = m.def_submodule("MapperUtilities");
     auto m_mapping_intersection_utils = m.def_submodule("MappingIntersectionUtilities");
+    auto m_iga_mapping_intersection_utils = m.def_submodule("IgaMappingIntersectionUtilities");
 
     m_mapper_utilities.def("SaveCurrentConfiguration", &MapperUtilities::SaveCurrentConfiguration);
     m_mapper_utilities.def("RestoreCurrentConfiguration", &MapperUtilities::RestoreCurrentConfiguration);

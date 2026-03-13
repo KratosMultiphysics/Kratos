@@ -10,8 +10,7 @@
 //  Main author:     Máté Kelemen
 //
 
-#ifndef KRATOS_HDF5_APPLICATION_VERTEX_H
-#define KRATOS_HDF5_APPLICATION_VERTEX_H
+#pragma once
 
 //  Project includes
 #include "vertex_utilities.h"
@@ -46,13 +45,10 @@ public:
      *  @param rPosition position attribute
      *  @param rLocator point locator exposing a FindElement member
      *  @param id vertex identifier (should be unique, but no checks are performed)
-     *  @param isHistorical decides whether historical or non-historical nodal variables
-     *  are used for interpolation.
      */
     Vertex(const array_1d<double,3>& rPosition,
            const PointLocatorAdaptor& rLocator,
-           std::size_t id,
-           bool isHistorical = true);
+           std::size_t id);
 
     /** Default constructor required by PointerVector
      *  @note this constructor does not locate the vertex and must
@@ -73,17 +69,19 @@ public:
      */
     static Vertex::Pointer MakeShared(const array_1d<double,3>& rPosition,
                                       const PointLocatorAdaptor& rLocator,
-                                      std::size_t id,
-                                      bool isHistorical);
+                                      std::size_t id);
 
     std::size_t GetID() const;
 
     /** Interpolate the requested variable
      *  @param rVariable variable to interpolate
+     *  @param rVariableGetter is an object having a method @ref GetValue(const Vertex&, const Variable<TValue>&, TLS&)
      *  @note throws an exception if the vertex was not located successfully upon construction
      */
-    template <class TValue>
-    TValue GetValue(const Variable<TValue>& rVariable) const;
+    template <class TValue, class TVariableGetterType>
+    TValue GetValue(
+        const Variable<TValue>& rVariable,
+        const TVariableGetterType& rVariableGetter) const;
 
     /** Check whether the vertex was located successfully on construction
      *  @details calling @ref{GetValue} or @ref{GetSolutionStepValue} will result
@@ -96,13 +94,7 @@ private:
 
     const Element::WeakPointer mpContainingElement;
 
-    const NodalVariableGetter* mpVariableGetter;
-
     Kratos::Vector mShapeFunctionValues;
-
-    static const NodalVariableGetter::UniquePointer mpHistoricalVariableGetter;
-
-    static const NodalVariableGetter::UniquePointer mpNonHistoricalVariableGetter;
 };
 
 
@@ -117,5 +109,3 @@ using VertexContainerType = PointerVector<Vertex,
 
 // Template implementations
 #include "vertex_impl.h"
-
-#endif

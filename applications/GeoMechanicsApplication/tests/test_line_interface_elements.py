@@ -1,6 +1,7 @@
 import os
 
 import KratosMultiphysics as Kratos
+import KratosMultiphysics.GeoMechanicsApplication as KratosGeo
 import KratosMultiphysics.KratosUnittest as KratosUnittest
 import test_helper
 
@@ -27,6 +28,14 @@ class KratosGeoMechanicsInterfaceElementTests(KratosUnittest.TestCase):
         simulation = self.run_simulation('Dirichlet')
         self.assert_outputs_for_3_plus_3_line_interface_element(simulation)
 
+    def test_3_plus_3_line_interface_element_with_neumann_conditions_umat(self):
+        """
+        This test is equivalent to 'test_3_plus_3_line_interface_element_with_neumann_conditions',
+        except that it uses a linear elastic interface UMAT for the constitutive law.
+        """
+        file_path = test_helper.get_file_path(os.path.join('line_interface_elements', 'Neumann_single_stage_umat'))
+        simulation = test_helper.run_kratos(file_path)
+        self.assert_outputs_for_3_plus_3_line_interface_element(simulation)
 
     @staticmethod
     def run_simulation(condition_type):
@@ -47,13 +56,13 @@ class KratosGeoMechanicsInterfaceElementTests(KratosUnittest.TestCase):
             self.assertAlmostEqual(displacements[index][0], expected_horizontal_displacement)
             self.assertAlmostEqual(displacements[index][1], expected_vertical_displacement)
 
-        tractions = test_helper.get_on_integration_points(simulation, Kratos.CAUCHY_STRESS_VECTOR)
+        tractions = test_helper.get_on_integration_points(simulation, KratosGeo.GEO_EFFECTIVE_TRACTION_VECTOR)
         tractions_horizontal_element = tractions[0]
         for index in range(3):
             self.assertAlmostEqual(tractions_horizontal_element[index][0], -normal_traction)
             self.assertAlmostEqual(tractions_horizontal_element[index][1], -shear_traction)
 
-        relative_displacements = test_helper.get_on_integration_points(simulation, Kratos.STRAIN)
+        relative_displacements = test_helper.get_on_integration_points(simulation, KratosGeo.GEO_RELATIVE_DISPLACEMENT_VECTOR)
         relative_displacements_horizontal_element = relative_displacements[0]
         for index in range(3):
             # Notice the first index is the normal displacement (which is vertical for this horizontally oriented
@@ -93,12 +102,12 @@ class KratosGeoMechanicsInterfaceElementTests(KratosUnittest.TestCase):
         expected_normal_relative_displacement = displacement_vector[1]
         expected_tangential_relative_displacement = displacement_vector[0]
         expected_relative_displacement_vectors = [[expected_normal_relative_displacement, expected_tangential_relative_displacement]] * 3
-        self.assertVectorsAlmostEqual(test_helper.get_on_integration_points(stage, Kratos.STRAIN)[0],
+        self.assertVectorsAlmostEqual(test_helper.get_on_integration_points(stage, KratosGeo.GEO_RELATIVE_DISPLACEMENT_VECTOR)[0],
                                       expected_relative_displacement_vectors)
 
         expected_traction_vectors = [[self.normal_stiffness * expected_normal_relative_displacement,
                                       self.shear_stiffness * expected_tangential_relative_displacement]] * 3
-        self.assertVectorsAlmostEqual(test_helper.get_on_integration_points(stage, Kratos.CAUCHY_STRESS_VECTOR)[0],
+        self.assertVectorsAlmostEqual(test_helper.get_on_integration_points(stage, KratosGeo.GEO_EFFECTIVE_TRACTION_VECTOR)[0],
                                       expected_traction_vectors)
 
 
@@ -135,6 +144,26 @@ class KratosGeoMechanicsInterfaceElementTests(KratosUnittest.TestCase):
 
         os.chdir(initial_cwd)
 
+    def test_multi_stage_3_plus_3_line_interface_element_with_neumann_conditions_umat(self):
+        """
+        This test is equivalent to 'test_multi_stage_3_plus_3_line_interface_element_with_neumann_conditions',
+        except that it uses a linear elastic interface UMAT for the constitutive law.
+        """
+        file_path = test_helper.get_file_path(os.path.join('line_interface_elements', 'Neumann_multi_stage_umat'))
+
+        initial_cwd = os.getcwd()
+        os.chdir(file_path)
+
+        project_parameters_file_names = ['ProjectParameters_stage1.json', 'ProjectParameters_stage2.json']
+        expected_displacement_vectors_of_loaded_side = [[-8.8933333333333332e-5, -2.22e-5, 0.0], [-2.0e-4, -4.44e-5, 0.0]]
+        for file_name, displacement_vector in zip(project_parameters_file_names, expected_displacement_vectors_of_loaded_side):
+            stage = test_helper.make_geomechanics_analysis(self.model, os.path.join(file_path, file_name))
+            stage.Run()
+
+            self.assert_results_of_multi_stage_test(stage, displacement_vector)
+
+        os.chdir(initial_cwd)
+
     def assert_results_of_multi_stage_test_with_reset_displacement(self, stage, displacement_vector):
         expected_displacement_vectors = [[0.0, 0.0, 0.0]] * 3  # the first three nodes have been fixed
         expected_displacement_vectors += [displacement_vector] * 3  # the last three nodes have prescribed non-zero displacements
@@ -143,7 +172,7 @@ class KratosGeoMechanicsInterfaceElementTests(KratosUnittest.TestCase):
         expected_normal_relative_displacement = displacement_vector[1]
         expected_tangential_relative_displacement = displacement_vector[0]
         expected_relative_displacement_vectors = [[expected_normal_relative_displacement, expected_tangential_relative_displacement]] * 3
-        self.assertVectorsAlmostEqual(test_helper.get_on_integration_points(stage, Kratos.STRAIN)[0],
+        self.assertVectorsAlmostEqual(test_helper.get_on_integration_points(stage, KratosGeo.GEO_RELATIVE_DISPLACEMENT_VECTOR)[0],
                                       expected_relative_displacement_vectors)
 
     def test_multi_stage_3_plus_3_line_interface_element_with_neumann_conditions_and_reset_displacements(self):
