@@ -50,7 +50,7 @@ else:
 
 from KratosMultiphysics import DataCommunicator
 
-class FluidTransportTopologyOptimizationAnalysisTime(TransportTopologyOptimizationAnalysis):
+class FluidTransportTopologyOptimizationAnalysis(TransportTopologyOptimizationAnalysis):
     def __init__(self,model,parameters):
         super().__init__(model,parameters) 
 
