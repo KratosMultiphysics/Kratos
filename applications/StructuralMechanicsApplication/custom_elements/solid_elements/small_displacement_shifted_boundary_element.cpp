@@ -405,7 +405,7 @@ void SmallDisplacementShiftedBoundaryElement<TDim>::CalculateCBProjectionLineari
     }
 }
 
-template class KRATOS_API(KRATOS_STRUCTURAL_MECHANICS_APPLICATION) SmallDisplacementShiftedBoundaryElement<2>;
-template class KRATOS_API(KRATOS_STRUCTURAL_MECHANICS_APPLICATION) SmallDisplacementShiftedBoundaryElement<3>;
+template class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) SmallDisplacementShiftedBoundaryElement<2>;
+template class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) SmallDisplacementShiftedBoundaryElement<3>;
 
 } // Namespace Kratos

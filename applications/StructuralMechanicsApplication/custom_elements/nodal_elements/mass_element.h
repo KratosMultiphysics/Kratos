@@ -23,7 +23,7 @@ namespace Kratos
 ///@name Kratos Classes
 ///@{
 
-class KRATOS_API(KRATOS_STRUCTURAL_MECHANICS_APPLICATION) MassElement : public Element
+class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) MassElement : public Element
 {
 public:
 

@@ -43,7 +43,7 @@ namespace Kratos
 ///@{
 
 template <typename TPrimalCondition>
-class KRATOS_API(KRATOS_STRUCTURAL_MECHANICS_APPLICATION) AdjointSemiAnalyticPointLoadCondition
+class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) AdjointSemiAnalyticPointLoadCondition
     : public AdjointSemiAnalyticBaseCondition<TPrimalCondition>
 {
 public:

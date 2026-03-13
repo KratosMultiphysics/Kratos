@@ -24,7 +24,7 @@ namespace Kratos
  * sensitivity analysis.
  */
 template <typename TPrimalElement>
-class KRATOS_API(KRATOS_STRUCTURAL_MECHANICS_APPLICATION) AdjointFiniteDifferenceTrussElement
+class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) AdjointFiniteDifferenceTrussElement
     : public AdjointFiniteDifferencingBaseElement<TPrimalElement>
 {
 public:
