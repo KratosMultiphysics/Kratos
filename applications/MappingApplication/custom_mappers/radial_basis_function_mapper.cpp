@@ -614,6 +614,9 @@ void RadialBasisFunctionMapper<TSparseSpace, TDenseSpace>::MapInternalTranspose(
 template<class TSparseSpace, class TDenseSpace>
 void RadialBasisFunctionMapper<TSparseSpace, TDenseSpace>::CalculateMappingMatrix()
 {
+    // Dense matrix type for multi-RHS solve
+    using DenseMatrixType = boost::numeric::ublas::matrix<double>;
+
     KRATOS_DEBUG_ERROR_IF_NOT(mpOriginInterpolationMatrix)
         << "CalculateMappingMatrix: mpOriginInterpolationMatrix is nullptr." << std::endl;
     KRATOS_DEBUG_ERROR_IF_NOT(mpDestinationEvaluationMatrix)
@@ -632,36 +635,32 @@ void RadialBasisFunctionMapper<TSparseSpace, TDenseSpace>::CalculateMappingMatri
         n_support = mpCouplingInterfaceOrigin->NumberOfConditions();
     }
 
-    // Build GP-based mapping matrix H_tilde: (n_dest x n_support)
-    auto pMappingMatrixGP = Kratos::make_unique<MappingMatrixType>(n_dest, n_support);
-    noalias(*pMappingMatrixGP) = ZeroMatrix(n_dest, n_support);
+    // Allocate dense RHS and solution matrices
+    DenseMatrixType rhs_mat(system_size, n_support, 0.0);
+    DenseMatrixType sol_mat(system_size, n_support, 0.0);
 
-    Vector rhs(system_size);
-    Vector solution(system_size);
-    Vector dest_column(n_dest);
-
-    for (IndexType j = 0; j < n_support; ++j)
-    {
-        // rhs = [ e_j ; 0 ]
-        noalias(rhs) = ZeroVector(system_size);
-        rhs[j] = 1.0;
-
-        // Solve A * solution = rhs
-        mpLinearSolver->Solve(*mpOriginInterpolationMatrix, solution, rhs);
-
-        // dest_column = B * solution
-        TSparseSpace::Mult(
-            *mpDestinationEvaluationMatrix,
-            solution,
-            dest_column
-        );
-
-        // Column j of H_tilde
-        for (IndexType i = 0; i < n_dest; ++i) {
-            (*pMappingMatrixGP)(i, j) = dest_column[i];
-        }
+    // Build RHS matrix with identity in the RBF part and zeros in the polynomial part
+    for (IndexType j = 0; j < n_support; ++j) {
+        rhs_mat(j, j) = 1.0;
     }
 
+    // This requires that the concrete linear solver supports
+    // Solve(SparseMatrixType, DenseMatrixType, DenseMatrixType)
+    mpLinearSolver->Solve(*mpOriginInterpolationMatrix, sol_mat, rhs_mat);
+
+    auto pMappingMatrixGP = Kratos::make_unique<MappingMatrixType>(n_dest, n_support);
+    DenseMatrixType mapping_dense(n_dest, n_support, 0.0);
+    noalias(mapping_dense) = prod(*mpDestinationEvaluationMatrix, sol_mat);
+
+    for (IndexType i = 0; i < n_dest; ++i) {
+        for (IndexType j = 0; j < n_support; ++j) {
+            const double value = mapping_dense(i, j);
+            if (std::abs(value) > 1e-16) {
+                (*pMappingMatrixGP)(i, j) = value;
+            }
+        }
+    }
+    
     // If IGA origin, project from GP-based to CP-based mapping:
     // M = M_tilde * N_reduced
     if (mOriginIsIga) {
@@ -741,13 +740,41 @@ RadialBasisFunctionMapper<TSparseSpace, TDenseSpace>::ComputeMappingMatrixIgaOnC
 template<class TSparseSpace, class TDenseSpace>
 void RadialBasisFunctionMapper<TSparseSpace, TDenseSpace>::CreateLinearSolver()
 {
+    // Create the linear solver factory
+    LinearSolverFactory<TSparseSpace, TDenseSpace> solver_factory;
+
     if (mMapperSettings["linear_solver_settings"].Has("solver_type")) {
-        mpLinearSolver = LinearSolverFactory<TSparseSpace, TDenseSpace>().Create(mMapperSettings["linear_solver_settings"]);
+        const std::string solver_type =
+            mMapperSettings["linear_solver_settings"]["solver_type"].GetString();
+
+        KRATOS_INFO("Radial Basis Functions Mapper")
+            << "Using specified linear solver: " << solver_type << std::endl;
+
+        mpLinearSolver = solver_factory.Create(mMapperSettings["linear_solver_settings"]);
     }
     else {
-        // TODO - replicate 'get fastest solver'
-        mMapperSettings.AddString("solver_type", "pardiso_lu");
-        mpLinearSolver = LinearSolverFactory<TSparseSpace, TDenseSpace>().Create(mMapperSettings);
+        if (solver_factory.Has("pardiso_lu")) {
+            KRATOS_INFO("Radial Basis Functions Mapper")
+                << "No linear solver specified. Using PardisoLU." << std::endl;
+
+            Parameters default_settings(R"(
+            {
+                "solver_type": "pardiso_lu"
+            })");
+
+            mpLinearSolver = solver_factory.Create(default_settings);
+        }
+        else {
+            KRATOS_WARNING("Radial Basis Functions Mapper")
+                << "PardisoLU not available. Falling back to skyline_lu_factorization." << std::endl;
+
+            Parameters default_settings(R"(
+            {
+                "solver_type": "skyline_lu_factorization"
+            })");
+
+            mpLinearSolver = solver_factory.Create(default_settings);
+        }
     }
 }
 
