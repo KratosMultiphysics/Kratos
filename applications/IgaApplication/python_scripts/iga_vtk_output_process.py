@@ -1,7 +1,10 @@
-# Importing the Kratos Library
+# --- Kratos Imports --
 import KratosMultiphysics as KM
 import KratosMultiphysics.IgaApplication
 import KratosMultiphysics.kratos_utilities
+
+# --- STD Imports ---
+import typing
 
 VTK_QUAD = 9
 VERSION = (2, 4)
@@ -23,13 +26,15 @@ def Factory(settings, model):
 
 class IgaVTKOutputProcess(KratosMultiphysics.Process):
 
-    def __init__(self, model, params):
+    def __init__(self,
+                 model: KratosMultiphysics.Model,
+                 params: KratosMultiphysics.Parameters):
         KratosMultiphysics.Process.__init__(self)
 
         ## Settings string in json format
         default_parameters = KratosMultiphysics.Parameters("""{
             "output_file_name"          : "",
-            "brep_surface_ids"          : [],                              
+            "brep_surface_ids"          : [],
             "model_part_name"           : "",
             "file_label"                : "step",
             "output_control_type"       : "step",
@@ -52,7 +57,7 @@ class IgaVTKOutputProcess(KratosMultiphysics.Process):
         self.output_file_name = self.params["output_file_name"].GetString()
         if not self.output_file_name.endswith(".vtkhdf"):
             self.output_file_name += ".vtkhdf"
-        
+
         # self.nodal_results_scalar, self.nodal_results_vector = \
         #     CreateVariablesListFromInput(self.params["nodal_results"])
 
@@ -93,23 +98,25 @@ class IgaVTKOutputProcess(KratosMultiphysics.Process):
         time = GetPrettyTime(self.model_part.ProcessInfo[KratosMultiphysics.TIME])
         self.printed_step_count += 1
         self.model_part.ProcessInfo[KratosMultiphysics.PRINTED_STEP] = self.printed_step_count
+        label: typing.Union[int,str,float]
         if self.output_label_is_time:
             label = time
         else:
             label = self.printed_step_count
 
         #TODO: write vtkhdf output
-        file = h5.File(self.output_file_name, "w")
-        root = file.create_group("VTKHDF", track_order=True)
+        file: h5.File = h5.File(self.output_file_name, "w")
+        root: h5.Group = file.create_group("VTKHDF", track_order=True)
         root.attrs["Version"] = VERSION
         root.attrs["Type"] = GLOBAL_TYPE
 
-        assembly = root.create_group("Assembly", track_order=True)
+        assembly: h5.Group = root.create_group("Assembly", track_order=True)
 
         # Output subgroup for each brep
         index = 0
+
         for brep_id in self.brep_surface_ids:
-            brep_surface = self.model_part.GetGeometry(brep_id)
+            brep_surface: KratosMultiphysics.Geometry = self.model_part.GetGeometry(brep_id)
             group_name = f"brep_surface_{brep_id}"
             surface_group = root.create_group(group_name)
             surface_group.attrs["Version"] = VERSION
@@ -117,12 +124,12 @@ class IgaVTKOutputProcess(KratosMultiphysics.Process):
             self.__write_out_surface(surface_group, brep_surface)
 
             # ---- Assembly ----
-            assem_group = assembly.create_group(f"brep_{brep_id}")
-            #assem_group.attrs['Index'] = index
+            assem_group = assembly.create_group(f"brep_{brep_id}", track_order=True)
+            assem_group.attrs['Index'] = index
             assem_group[group_name] = h5.SoftLink(f"/VTKHDF/{group_name}")
-            assem_group[group_name].attrs['Index'] = index
+            assem_group[group_name].attrs['Index'] = index + 1
 
-            index += 1
+            index += 3
 
         # Schedule next output
         if self.output_frequency > 0.0: # Note: if == 0, we'll just always print
@@ -165,7 +172,7 @@ class IgaVTKOutputProcess(KratosMultiphysics.Process):
                 grid_points[idx, 0] = local_coord[0]
                 grid_points[idx, 1] = local_coord[1]
                 grid_points[idx, 2] = local_coord[2]
-        
+
         # get the Types
         cell_types = [VTK_QUAD] * num_cells
 
@@ -188,7 +195,7 @@ class IgaVTKOutputProcess(KratosMultiphysics.Process):
                 connectivity[conn_idx + 2] = n2
                 connectivity[conn_idx + 3] = n3
 
-                offsets[cell_idx] = conn_idx  
+                offsets[cell_idx] = conn_idx
                 conn_idx += 4
                 cell_idx += 1
 
