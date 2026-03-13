@@ -80,8 +80,8 @@ class VectorizedCFDStage(analysis_stage.AnalysisStage):
         v.ravel()[self.slip_vel_indices] -= (v_dot_n * n_unit).ravel()
 
     def ComputeH(self,DN):
-        inverse_h2 = xp.max(xp.linalg.norm(DN,axis=2),axis=1)
-        h = xp.sqrt(1./inverse_h2)
+        inverse_h = xp.average(xp.linalg.norm(DN,axis=2),axis=1)
+        h = 1.0/inverse_h
         return h
 
     def ComputeTau(self,h,v_elemental,viscosity,dt,rho):
@@ -89,7 +89,7 @@ class VectorizedCFDStage(analysis_stage.AnalysisStage):
         c_2 = 2.0
         vavg=xp.sum(v_elemental,axis=1) / (self.dim+1.0)
         vnorms = xp.linalg.norm(vavg,axis=1)
-        tau_1 = 1.0/(rho/dt + c_2*rho*vnorms/h + c_1*viscosity/h**2)
+        tau_1 = 1.0/(0.01*rho/dt + c_2*rho*vnorms/h + c_1*viscosity/h**2)
         tau_2 = h**2/(c_1 * tau_1)
         return tau_1, tau_2
 
@@ -673,17 +673,17 @@ class VectorizedCFDStage(analysis_stage.AnalysisStage):
     def GetStep(self):
         return self.model_part.ProcessInfo[KM.STEP]
 
-    def _ComputeCFL(self, v, dt):
-        v_el = self.ElemData(v, self.connectivity)
-        v_el_avg = xp.sum(v_el, axis=1) / (self.dim+1.0)
-        v_el_avg_norm = xp.linalg.norm(v_el_avg, axis=1)
-        return xp.max(dt * v_el_avg_norm / self.h)
+    # def _ComputeCFL(self, v, dt):
+    #     v_el = self.ElemData(v, self.connectivity)
+    #     v_el_avg = xp.sum(v_el, axis=1) / (self.dim+1.0)
+    #     v_el_avg_norm = xp.linalg.norm(v_el_avg, axis=1)
+    #     return xp.max(dt * v_el_avg_norm / self.h)
 
-    def _ComputeCFLAdvective(self, v, dt, DN):
-        v_el = self.ElemData(v, self.connectivity)
-        v_el_mean = xp.mean(v_el, axis=1)
-        advective_projection = xp.einsum('ek, enk -> en', v_el_mean, DN)
-        return xp.max(xp.sum(xp.abs(advective_projection), axis=1) * dt)
+    # def _ComputeCFLAdvective(self, v, dt, DN):
+    #     v_el = self.ElemData(v, self.connectivity)
+    #     v_el_mean = xp.mean(v_el, axis=1)
+    #     advective_projection = xp.einsum('ek, enk -> en', v_el_mean, DN)
+    #     return xp.max(xp.sum(xp.abs(advective_projection), axis=1) * dt) #FIXME: do the same as we did in computedeltatime
 
     def _ComputeFourier(self, dt):
         return xp.max(dt * self.nu / self.rho / self.h**2)
@@ -705,7 +705,8 @@ class VectorizedCFDStage(analysis_stage.AnalysisStage):
                 inv_dt_conv = xp.sum(xp.abs(advective_projection), axis=1)
 
                 # Compute local time step
-                dt_cfl = xp.min(self.target_cfl / (inv_dt_conv + 1.0e-15))
+                # Note that we divide by the number of nodes here in order to account for the elemental averaging of the 1/h coming from the gradients
+                dt_cfl = xp.min(self.target_cfl / (inv_dt_conv + 1.0e-15)) / self.n_in_el
 
                 # Return the most restrictive time step
                 return min(min(dt_cfl, self.dt_fourier), self.dt_max)
@@ -761,7 +762,7 @@ class VectorizedCFDStage(analysis_stage.AnalysisStage):
                         "norm": "L2",
                         "monitor_residual": 1,
                         "store_res_history" : 1,
-                        "print_solve_stats": 1,
+                        "print_solve_stats": 0,
                         "preconditioner": {
                             "solver": "AMG",
                             "algorithm": "AGGREGATION",
