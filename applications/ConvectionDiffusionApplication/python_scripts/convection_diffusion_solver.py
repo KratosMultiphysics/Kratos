@@ -154,7 +154,7 @@ class ConvectionDiffusionSolver(PythonSolver):
             "processes_sub_model_part_list": [""],
             "auxiliary_variables_list" : [],
             "assign_neighbour_elements_to_conditions" : true,
-            "skip_fem_model_part_preparation_for_iga" : false
+            "skip_entities_replace_and_check" : false
         }
         """)
         default_settings.AddMissingParameters(super().GetDefaultParameters())
@@ -310,7 +310,7 @@ class ConvectionDiffusionSolver(PythonSolver):
 
     def PrepareModelPart(self):
         assign_neighbour_elements = self.settings["assign_neighbour_elements_to_conditions"].GetBool()
-        skip_fem_model_part_preparation = self.settings["skip_fem_model_part_preparation_for_iga"].GetBool()
+        skip_entities_replace_and_check = self.settings["skip_entities_replace_and_check"].GetBool()
         if not self.is_restarted():
             # Import material properties
             materials_imported = self.import_materials()
@@ -319,10 +319,10 @@ class ConvectionDiffusionSolver(PythonSolver):
             else:
                 KratosMultiphysics.Logger.PrintInfo("::[ConvectionDiffusionSolver]:: ", "Materials were not imported.")
 
-            if skip_fem_model_part_preparation:
+            if skip_entities_replace_and_check:
                 KratosMultiphysics.Logger.PrintInfo(
                     "::[ConvectionDiffusionSolver]:: ",
-                    "Skipping FEM model-part preparation (ReplaceElementsAndConditionsProcess and TetrahedralMeshOrientationCheck).")
+                    "Skipping entities model part replace and check (ReplaceElementsAndConditionsProcess and TetrahedralMeshOrientationCheck).")
             else:
                 KratosMultiphysics.ReplaceElementsAndConditionsProcess(
                     self.main_model_part,
