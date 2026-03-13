@@ -7,7 +7,7 @@
 //  License:         BSD License
 //                   Kratos default license: kratos/license.txt
 //
-//  Main authors:    Altair Engineering
+//  Main authors:    Pooyan Dadvand
 //
 
 #pragma once
@@ -20,7 +20,6 @@
 #include <cmath>
 
 // Project includes
-#include "includes/define.h"
 #include "geometries/geometry_data.h"
 
 namespace Kratos
@@ -203,7 +202,7 @@ private:
     /// Quantized BVH2 node: stores AABB bounds for 2 children, fits in one 64-byte cache line
     struct alignas(64) BvhNode {
         float   base[3];    /// 12 bytes – origin for child AABB dequantization
-        float   extent[3];    /// 12 bytes – (aabb_extent / 255) per axis
+        float   extent[3];  /// 12 bytes – (aabb_extent / 255) per axis
         uint8_t lo[2][3];   ///  6 bytes – quantized lower bounds for children 0 and 1
         uint8_t hi[2][3];   ///  6 bytes – quantized upper bounds for children 0 and 1
         int32_t child[2];   ///  8 bytes – >=0: inner node index; <0: leaf pack; kEmptySlot: unused

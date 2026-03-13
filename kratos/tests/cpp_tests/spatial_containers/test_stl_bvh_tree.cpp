@@ -7,7 +7,7 @@
 //  License:         BSD License
 //                   Kratos default license: kratos/license.txt
 //
-//  Main authors:    Altair Engineering
+//  Main authors:    Pooyan Dadvand
 //
 
 // System includes

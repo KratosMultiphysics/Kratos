@@ -7,7 +7,7 @@
 //  License:         BSD License
 //                   Kratos default license: kratos/license.txt
 //
-//  Main authors:    Altair Engineering
+//  Main authors:    Pooyan Dadvand
 //
 
 // System includes
@@ -166,15 +166,15 @@ StlBvhTree::NearestResult StlBvhTree::SearchNearest(const PointType& rCenter) co
 ///@name StlBvhTree Private Methods
 ///@{
 
-StlBvhTree::BuildResult StlBvhTree::BuildNodeInternal(int pack_begin, int pack_end)
+StlBvhTree::BuildResult StlBvhTree::BuildNodeInternal(int PackBegin, int PackEnd)
 {
     // Base case: single pack becomes a leaf child reference (no node created)
-    if (pack_end - pack_begin == 1) {
+    if (PackEnd - PackBegin == 1) {
         BuildResult result;
-        result.ref = PackRef(pack_begin);
+        result.ref = PackRef(PackBegin);
         // Compute pack AABB inline
         for (int k = 0; k < 3; ++k) { result.lo[k] =  FLT_MAX; result.hi[k] = -FLT_MAX; }
-        const TrianglePack4& p = mPacks[pack_begin];
+        const TrianglePack4& p = mPacks[PackBegin];
         for (int j = 0; j < p.count; ++j) {
             const float vx[3] = {p.v0x[j], p.v0x[j]+p.e1x[j], p.v0x[j]+p.e2x[j]};
             const float vy[3] = {p.v0y[j], p.v0y[j]+p.e1y[j], p.v0y[j]+p.e2y[j]};
@@ -201,7 +201,7 @@ StlBvhTree::BuildResult StlBvhTree::BuildNodeInternal(int pack_begin, int pack_e
     // Pack centroid = average of its triangle centroids = v0 + (e1 + e2) / 3 per triangle.
     float c_lo[3] = { FLT_MAX,  FLT_MAX,  FLT_MAX};
     float c_hi[3] = {-FLT_MAX, -FLT_MAX, -FLT_MAX};
-    for (int i = pack_begin; i < pack_end; ++i) {
+    for (int i = PackBegin; i < PackEnd; ++i) {
         const TrianglePack4& p = mPacks[i];
         for (int j = 0; j < p.count; ++j) {
             const float cx = p.v0x[j] + (p.e1x[j] + p.e2x[j]) / 3.0f;
@@ -224,9 +224,9 @@ StlBvhTree::BuildResult StlBvhTree::BuildNodeInternal(int pack_begin, int pack_e
     // Partition packs: those whose centroid is below the midpoint go to the left half
     const float split = (c_lo[axis] + c_hi[axis]) * 0.5f;
 
-    // std::partition reorders mPacks[pack_begin..pack_end) in place
-    auto pack_iter_begin = mPacks.begin() + pack_begin;
-    auto pack_iter_end   = mPacks.begin() + pack_end;
+    // std::partition reorders mPacks[PackBegin..PackEnd) in place
+    auto pack_iter_begin = mPacks.begin() + PackBegin;
+    auto pack_iter_end   = mPacks.begin() + PackEnd;
     auto partition_point = std::partition(pack_iter_begin, pack_iter_end,
         [&](const TrianglePack4& p) {
             float sum = 0.0f;
@@ -240,11 +240,11 @@ StlBvhTree::BuildResult StlBvhTree::BuildNodeInternal(int pack_begin, int pack_e
     int mid = static_cast<int>(partition_point - mPacks.begin());
 
     // Degenerate partition fallback: split evenly
-    if (mid == pack_begin || mid == pack_end)
-        mid = (pack_begin + pack_end) / 2;
+    if (mid == PackBegin || mid == PackEnd)
+        mid = (PackBegin + PackEnd) / 2;
 
-    const BuildResult left  = BuildNodeInternal(pack_begin, mid);
-    const BuildResult right = BuildNodeInternal(mid, pack_end);
+    const BuildResult left  = BuildNodeInternal(PackBegin, mid);
+    const BuildResult right = BuildNodeInternal(mid, PackEnd);
 
     // Parent AABB = union of children AABBs
     float lo[3], hi[3];
