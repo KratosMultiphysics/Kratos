@@ -89,9 +89,6 @@ void SbmLaplacianConditionDirichlet::InitializeMemberVariables()
     }
     // Compute the normals
     mNormalParameterSpace = - r_geometry.Normal(0, GetIntegrationMethod());
-    if(mDim == 3) {
-        r_geometry.Calculate(NORMAL, mNormalParameterSpace);
-    }
     mNormalParameterSpace = mNormalParameterSpace / MathUtils<double>::Norm(mNormalParameterSpace);
     mNormalPhysicalSpace = mNormalParameterSpace;
 }
@@ -162,23 +159,7 @@ void SbmLaplacianConditionDirichlet::CalculateLeftHandSide(
     r_geometry.Calculate(LOCAL_TANGENT, tangent_parameter_space); // Gives the result in the parameter space !!
     Vector determinant_factor = prod(jacobian_matrix, tangent_parameter_space);
     determinant_factor[2] = 0.0; // 2D case
-
-    double det_J0 = norm_2(determinant_factor);
-    if (mDim == 3) {
-        Matrix tangent_matrix;
-        r_geometry.Calculate(LOCAL_TANGENT_MATRIX, tangent_matrix);  // 3x2
-        
-        array_1d<double,3> t1, t2;
-        for (std::size_t i = 0; i < 3; ++i) {
-            t1[i] = tangent_matrix(i, 0);
-            t2[i] = tangent_matrix(i, 1);
-        }
-        // Cross product of the two tangents
-        array_1d<double, 3> det_vector = MathUtils<double>::CrossProduct(t1, t2);
-        // Norm gives the surface integration factor
-        det_J0 = norm_2(det_vector);
-    }
-
+    const double det_J0 = norm_2(determinant_factor);
 
     Matrix DN_dot_n = ZeroMatrix(1, number_of_nodes);
     Vector DN_dot_n_vec = ZeroVector(number_of_nodes);
@@ -244,23 +225,7 @@ void SbmLaplacianConditionDirichlet::CalculateRightHandSide(
     r_geometry.Calculate(LOCAL_TANGENT, tangent_parameter_space); // Gives the result in the parameter space !!
     Vector determinant_factor = prod(jacobian_matrix, tangent_parameter_space);
     determinant_factor[2] = 0.0; // 2D case
-    
-    double det_J0 = norm_2(determinant_factor);
-    if (mDim == 3) {
-        Matrix tangent_matrix;
-        r_geometry.Calculate(LOCAL_TANGENT_MATRIX, tangent_matrix);  // 3x2
-
-        array_1d<double,3> t1, t2;
-        for (std::size_t i = 0; i < 3; ++i) {
-            t1[i] = tangent_matrix(i, 0);
-            t2[i] = tangent_matrix(i, 1);
-        }
-        // Cross product of the two tangents
-        array_1d<double, 3> det_vector = MathUtils<double>::CrossProduct(t1, t2);
-        // Norm gives the surface integration factor
-        det_J0 = norm_2(det_vector);
-    }
-    
+    const double det_J0 = norm_2(determinant_factor);
 
     // Differential area
     double penalty_integration = mPenalty * r_integration_points[0].Weight();
@@ -347,17 +312,15 @@ void SbmLaplacianConditionDirichlet::ComputeTaylorExpansionContribution(Vector& 
                 
                 int countDerivativeId = 0;
                 // Loop over blocks of derivatives in x
-                for (int k_x = static_cast<int>(n); k_x >= 0; --k_x) {
+                for (IndexType k_x = n; k_x >= 0; k_x--) {
                     // Loop over the possible derivatives in y
-                    for (int k_y = static_cast<int>(n) - k_x; k_y >= 0; --k_y) {
+                    for (IndexType k_y = n - k_x; k_y >= 0; k_y--) {
                         
                         // derivatives in z
-                        int k_z = static_cast<int>(n) - k_x - k_y;
+                        IndexType k_z = n - k_x - k_y;
                         double derivative = r_shape_function_derivatives(i,countDerivativeId); 
 
-                        H_taylor_term += ComputeTaylorTerm3D(derivative, mDistanceVector[0], static_cast<IndexType>(k_x),
-                                                             mDistanceVector[1], static_cast<IndexType>(k_y),
-                                                             mDistanceVector[2], static_cast<IndexType>(k_z));
+                        H_taylor_term += ComputeTaylorTerm3D(derivative, mDistanceVector[0], k_x, mDistanceVector[1], k_y, mDistanceVector[2], k_z);
                         countDerivativeId++;
                     }
                 }
