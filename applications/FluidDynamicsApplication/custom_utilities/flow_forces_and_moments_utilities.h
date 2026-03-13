@@ -10,8 +10,7 @@
 //  Main author:     Ruben Zorrilla
 //
 
-#if !defined(KRATOS_FLOW_FORCES_UTILITIES_H_INCLUDED )
-#define  KRATOS_FLOW_FORCES_UTILITIES_H_INCLUDED
+#pragma once
 
 // System includes
 #include <string>
@@ -209,5 +208,3 @@ inline std::ostream& operator << (
 ///@} addtogroup block
 
 }  // namespace Kratos.
-
-#endif // KRATOS_FLOW_FORCES_UTILITIES_H_INCLUDED  defined
