@@ -506,7 +506,7 @@ int UPwInterfaceElement::Check(const ProcessInfo& rCurrentProcessInfo) const
             << "Number of integration points (" << mpIntegrationScheme->GetNumberOfIntegrationPoints()
             << ") and constitutive laws (" << mConstitutiveLaws.size() << ") do not match.\n";
 
-        const auto r_properties = GetProperties();
+        const auto r_properties  = GetProperties();
         const auto expected_size = mpStressStatePolicy->GetVoigtSize();
         ConstitutiveLawUtilities::CheckStrainSize(r_properties, expected_size, Id());
 
