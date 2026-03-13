@@ -75,7 +75,7 @@ class TensorAdaptorVtuOutput:
         else:
             self.output_path = Path(".")
 
-        self.vtu_output: Kratos.Future.VtuOutput = Kratos.Future.VtuOutput(model_part, parameters["configuration"], parameters["writer_format"], parameters["precision"], output_sub_model_parts=True, echo_level=parameters["echo_level"], write_ids=parameters["write_ids"])
+        self.vtu_output: Kratos.VtuOutput = Kratos.VtuOutput(model_part, parameters["is_initial_configuration"], parameters["writer_format"], parameters["precision"], output_sub_model_parts=True, echo_level=parameters["echo_level"], write_ids=parameters["write_ids"])
         self.list_of_tensor_adaptor_data: 'list[TensorAdaptorData]' = []
 
     def AddTensorAdaptorData(self, tensor_adaptor_data: TensorAdaptorData) -> bool:
@@ -128,20 +128,17 @@ class OptimizationProblemVtuOutputProcess(Kratos.OutputProcess):
         self.write_ids = parameters["write_ids"].GetBool()
         file_format = parameters["file_format"].GetString()
         if file_format == "ascii":
-            self.writer_format = Kratos.Future.VtuOutput.ASCII
+            self.writer_format = Kratos.VtuOutput.ASCII
         elif file_format == "binary":
-            self.writer_format = Kratos.Future.VtuOutput.BINARY
+            self.writer_format = Kratos.VtuOutput.BINARY
         elif file_format == "raw":
-            self.writer_format = Kratos.Future.VtuOutput.RAW
+            self.writer_format = Kratos.VtuOutput.RAW
         elif file_format == "compressed_raw":
-            self.writer_format = Kratos.Future.VtuOutput.COMPRESSED_RAW
+            self.writer_format = Kratos.VtuOutput.COMPRESSED_RAW
         else:
             raise RuntimeError(f"Only supports \"ascii\", \"binary\", \"raw\", and \"compressed_raw\" file_format. [ provided file_format = \"{file_format}\" ].")
 
-        if parameters["write_deformed_configuration"].GetBool():
-            self.configuration = Kratos.Configuration.Current
-        else:
-            self.configuration = Kratos.Configuration.Initial
+        self.is_initial_configuration = not parameters["write_deformed_configuration"].GetBool()
 
         self.list_of_component_names = parameters["list_of_output_components"].GetStringArray()
         self.list_of_tensor_adaptor_vtu_outputs: 'list[TensorAdaptorVtuOutput]' = []
@@ -194,7 +191,7 @@ class OptimizationProblemVtuOutputProcess(Kratos.OutputProcess):
         if not found_vtu_output:
             vtu_parameters = {
                 "output_file_name_prefix": self.file_name,
-                "configuration": self.configuration,
+                "is_initial_configuration": self.is_initial_configuration,
                 "writer_format": self.writer_format,
                 "precision": self.output_precision,
                 "save_output_files_in_folder": self.save_output_files_in_folder,

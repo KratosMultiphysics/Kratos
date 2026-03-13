@@ -15,7 +15,6 @@ from KratosMultiphysics.OptimizationApplication.utilities.union_utilities import
 from KratosMultiphysics.compare_two_files_check_process import CompareTwoFilesCheckProcess
 
 
-@kratos_unittest.skipUnless(hasattr(Kratos, "Future"), "Kratos is not compiled with KRATOS_FUTURE = ON.")
 class TestOptimizationProblemVtuOutputProcess(kratos_unittest.TestCase):
     class DummyResponseFunction(ResponseFunction):
         def __init__(self, response_name: str, model_part: Kratos.ModelPart) -> None:
@@ -182,7 +181,7 @@ class TestOptimizationProblemVtuOutputProcess(kratos_unittest.TestCase):
                 "reference_file_name"   : "test_1_orig.vtu",
                 "output_file_name"      : "Optimization_Results/test_1/test_1_elements_0.vtu",
                 "remove_output_file"    : true,
-                "comparison_type"       : "deterministic"
+                "comparison_type"       : "vtu"
             }""")).Execute()
 
             CompareTwoFilesCheckProcess(Kratos.Parameters("""
@@ -190,7 +189,7 @@ class TestOptimizationProblemVtuOutputProcess(kratos_unittest.TestCase):
                 "reference_file_name"   : "test_2_orig.vtu",
                 "output_file_name"      : "Optimization_Results/test_2/test_2_elements_0.vtu",
                 "remove_output_file"    : true,
-                "comparison_type"       : "deterministic"
+                "comparison_type"       : "vtu"
             }""")).Execute()
 
     @classmethod
