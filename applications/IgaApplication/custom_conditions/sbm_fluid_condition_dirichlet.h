@@ -260,6 +260,32 @@ namespace Kratos
             double derivative, 
             double dx, IndexType k, 
             double dy, IndexType n_k);
+
+        /**
+         * @brief compute the Taylor expansion for apply the Shifted Boundary Method in 3D
+         * @param derivative
+         * @param dx
+         * @param k_x
+         * @param dy
+         * @param k_y
+         * @param dz
+         * @param k_z
+         * @return double
+         */
+        double ComputeTaylorTerm3D(
+            double derivative,
+            double dx, int k_x,
+            double dy, int k_y,
+            double dz, int k_z);
+
+        /**
+         * @brief 
+         * 
+         * @param grad_H_sum 
+         */
+        void ComputeGradientTaylorExpansionContribution(Matrix& grad_H_sum);
+
+        void FinalizeSolutionStep(const ProcessInfo& rCurrentProcessInfo) override;
     
     private:
         ///@name Serialization
@@ -287,6 +313,20 @@ namespace Kratos
             const Matrix& rB, 
             ConstitutiveLaw::Parameters& rValues,
             ConstitutiveVariables& rConstitutiveVariables) const;
+        
+        /**
+         * @brief Compute the constitutive law response for the given strain vector.
+         * 
+         * @param matSize 
+         * @param rStrain 
+         * @param rValues 
+         * @param rConstitutiVariables 
+         */
+        void ApplyConstitutiveLawTrue(
+                SizeType matSize, 
+                Vector& rStrain, 
+                ConstitutiveLaw::Parameters& rValues,
+                ConstitutiveVariables& rConstitutiVariables);
 
         void CalculateB(
             Matrix& rB,

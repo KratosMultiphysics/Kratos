@@ -262,6 +262,28 @@ namespace Kratos
                         << WorkingSpaceDimension << ", LocalSpaceDimension: " << LocalSpaceDimension
                         << std::endl;
             }
+
+            return CreateQuadraturePoint(
+                WorkingSpaceDimension,
+                LocalSpaceDimension,
+                rShapeFunctionContainer,
+                rPoints);
+        }
+
+        static GeometryPointerType CreateQuadraturePointSurfaceInVolume(
+            GeometryShapeFunctionContainer<GeometryData::IntegrationMethod>& rShapeFunctionContainer,
+            PointsArrayType rPoints,
+            Matrix LocalTangentMatrix,
+            Vector Normal,
+            GeometryType* pGeometryParent)
+        {
+            return Kratos::make_shared<
+                QuadraturePointSurfaceInVolumeGeometry<TPointType>>(
+                    rPoints,
+                    rShapeFunctionContainer,
+                    LocalTangentMatrix,
+                    pGeometryParent,
+                    Normal);
         }
 
         static GeometryPointerType CreateQuadraturePointSurfaceInVolume(

@@ -75,6 +75,7 @@ void SbmLaplacianConditionDirichlet::InitializeMemberVariables()
     } else {
         mBasisFunctionsOrder = std::sqrt(r_DN_De[0].size1()) - 1;
     }
+    mBasisFunctionsOrder *= 2;
 
     double penalty = GetProperties()[PENALTY_FACTOR];
     // Modify the penalty factor: p^2 * penalty / h (NITSCHE APPROACH)
@@ -91,6 +92,9 @@ void SbmLaplacianConditionDirichlet::InitializeMemberVariables()
     }
     // Compute the normals
     mNormalParameterSpace = - r_geometry.Normal(0, GetIntegrationMethod());
+    if(mDim == 3) {
+        r_geometry.Calculate(NORMAL, mNormalParameterSpace);
+    }
     mNormalParameterSpace = mNormalParameterSpace / MathUtils<double>::Norm(mNormalParameterSpace);
     mNormalPhysicalSpace = mNormalParameterSpace;
 }
@@ -153,18 +157,33 @@ void SbmLaplacianConditionDirichlet::CalculateLeftHandSide(
     GeometryType::JacobiansType J0;
     r_geometry.Jacobian(J0,r_geometry.GetDefaultIntegrationMethod());
     // Jacobian matrix cause J0 is  3x2 and we need 3x3
-    Matrix jacobian_matrix = ZeroMatrix(3,3);
-    jacobian_matrix(0,0) = J0[0](0,0);
-    jacobian_matrix(0,1) = J0[0](0,1);
-    jacobian_matrix(1,0) = J0[0](1,0);
-    jacobian_matrix(1,1) = J0[0](1,1);
-    jacobian_matrix(2,2) = 1.0; // 2D case
+    Matrix Jacobian = ZeroMatrix(3,3);
+    Jacobian(0,0) = J0[0](0,0);
+    Jacobian(0,1) = J0[0](0,1);
+    Jacobian(1,0) = J0[0](1,0);
+    Jacobian(1,1) = J0[0](1,1);
+    Jacobian(2,2) = 1.0; // 2D case
 
     array_1d<double, 3> tangent_parameter_space;
     r_geometry.Calculate(LOCAL_TANGENT, tangent_parameter_space); // Gives the result in the parameter space !!
-    Vector determinant_factor = prod(jacobian_matrix, tangent_parameter_space);
+    Vector determinant_factor = prod(Jacobian, tangent_parameter_space);
     determinant_factor[2] = 0.0; // 2D case
-    const double det_J0 = norm_2(determinant_factor);
+
+    double det_J0 = norm_2(determinant_factor);
+    if (mDim == 3) {
+        Matrix tangent_matrix;
+        r_geometry.Calculate(LOCAL_TANGENT_MATRIX, tangent_matrix);  // 3x2
+        
+        array_1d<double,3> t1, t2;
+        for (std::size_t i = 0; i < 3; ++i) {
+            t1[i] = tangent_matrix(i, 0);
+            t2[i] = tangent_matrix(i, 1);
+        }
+        // Cross product of the two tangents
+        array_1d<double, 3> det_vector = MathUtils<double>::CrossProduct(t1, t2);
+        // Norm gives the surface integration factor
+        det_J0 = norm_2(det_vector);
+    }
 
     Matrix DN_dot_n = ZeroMatrix(1, number_of_control_points);
     Vector DN_dot_n_vec = ZeroVector(number_of_control_points);
@@ -219,18 +238,33 @@ void SbmLaplacianConditionDirichlet::CalculateRightHandSide(
     GeometryType::JacobiansType J0;
     r_geometry.Jacobian(J0,r_geometry.GetDefaultIntegrationMethod());
     // Jacobian matrix cause J0 is  3x2 and we need 3x3
-    Matrix jacobian_matrix = ZeroMatrix(3,3);
-    jacobian_matrix(0,0) = J0[0](0,0);
-    jacobian_matrix(0,1) = J0[0](0,1);
-    jacobian_matrix(1,0) = J0[0](1,0);
-    jacobian_matrix(1,1) = J0[0](1,1);
-    jacobian_matrix(2,2) = 1.0; // 2D case
+    Matrix Jacobian = ZeroMatrix(3,3);
+    Jacobian(0,0) = J0[0](0,0);
+    Jacobian(0,1) = J0[0](0,1);
+    Jacobian(1,0) = J0[0](1,0);
+    Jacobian(1,1) = J0[0](1,1);
+    Jacobian(2,2) = 1.0; // 2D case
 
     array_1d<double, 3> tangent_parameter_space;
     r_geometry.Calculate(LOCAL_TANGENT, tangent_parameter_space); // Gives the result in the parameter space !!
-    Vector determinant_factor = prod(jacobian_matrix, tangent_parameter_space);
+    Vector determinant_factor = prod(Jacobian, tangent_parameter_space);
     determinant_factor[2] = 0.0; // 2D case
-    const double det_J0 = norm_2(determinant_factor);
+    
+    double det_J0 = norm_2(determinant_factor);
+    if (mDim == 3) {
+        Matrix tangent_matrix;
+        r_geometry.Calculate(LOCAL_TANGENT_MATRIX, tangent_matrix);  // 3x2
+
+        array_1d<double,3> t1, t2;
+        for (std::size_t i = 0; i < 3; ++i) {
+            t1[i] = tangent_matrix(i, 0);
+            t2[i] = tangent_matrix(i, 1);
+        }
+        // Cross product of the two tangents
+        array_1d<double, 3> det_vector = MathUtils<double>::CrossProduct(t1, t2);
+        // Norm gives the surface integration factor
+        det_J0 = norm_2(det_vector);
+    }
 
     // Differential area
     double penalty_integration = mPenalty * r_integration_points[0].Weight();
@@ -316,17 +350,17 @@ void SbmLaplacianConditionDirichlet::ComputeTaylorExpansionContribution(Vector& 
             }
         } else {
             // 3D
-            for (IndexType n = 1; n <= mBasisFunctionsOrder; n++) {
+            for (int n = 1; n <= int(mBasisFunctionsOrder); n++) {
                 Matrix& r_shape_function_derivatives = shape_function_derivatives[n-1];
                 
                 int countDerivativeId = 0;
                 // Loop over blocks of derivatives in x
-                for (IndexType k_x = n; k_x >= 0; k_x--) {
+                for (int k_x = n; k_x >= 0; k_x--) {
                     // Loop over the possible derivatives in y
-                    for (IndexType k_y = n - k_x; k_y >= 0; k_y--) {
+                    for (int k_y = n - k_x; k_y >= 0; k_y--) {
                         
                         // derivatives in z
-                        IndexType k_z = n - k_x - k_y;
+                        int k_z = n - k_x - k_y;
                         double derivative = r_shape_function_derivatives(i,countDerivativeId); 
 
                         H_taylor_term += ComputeTaylorTerm3D(derivative, mDistanceVector[0], k_x, mDistanceVector[1], k_y, mDistanceVector[2], k_z);
@@ -353,11 +387,11 @@ double SbmLaplacianConditionDirichlet::ComputeTaylorTerm(
 double SbmLaplacianConditionDirichlet::ComputeTaylorTerm3D(
     const double derivative, 
     const double dx, 
-    const IndexType k_x, 
+    const int k_x, 
     const double dy, 
-    const IndexType k_y, 
+    const int k_y, 
     const double dz, 
-    const IndexType k_z)
+    const int k_z)
 {   
     return derivative * std::pow(dx, k_x) * std::pow(dy, k_y) * std::pow(dz, k_z) / (MathUtils<double>::Factorial(k_x) * MathUtils<double>::Factorial(k_y) * MathUtils<double>::Factorial(k_z));    
 }
@@ -406,6 +440,18 @@ void SbmLaplacianConditionDirichlet::GetDofList(
         const auto& r_node = r_geometry[i];
         rElementalDofList.push_back(r_node.pGetDof(r_unknown_var));
     }
+}
+
+
+void SbmLaplacianConditionDirichlet::FinalizeSolutionStep(const ProcessInfo& rCurrentProcessInfo)
+{
+    // SetValue(NORMAL_TO_WALL, mNormalParameterSpace);
+
+    // // TODO: delete
+    // // Print on external file the projection coordinates (projection[0],projection[1]) -> For PostProcess
+    // std::ofstream outputFile("txt_files/Projection_Coordinates.txt", std::ios::app);
+    // outputFile << mpProjectionNode->X() << " " << mpProjectionNode->Y() << " " << mpProjectionNode->Z() << " " << GetGeometry().Center().X() << " " << GetGeometry().Center().Y() << " " << GetGeometry().Center().Z() <<"\n";
+    // outputFile.close();
 }
 
 } // Namespace Kratos

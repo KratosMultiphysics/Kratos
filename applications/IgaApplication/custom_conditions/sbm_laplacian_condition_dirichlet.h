@@ -96,6 +96,8 @@ public:
 
     void Initialize(const ProcessInfo& rCurrentProcessInfo) override;
 
+    void FinalizeSolutionStep(const ProcessInfo& rCurrentProcessInfo) override;
+
     /**
     * @brief This is called during the assembling process in order
     *        to calculate the condition right hand side matrix
@@ -238,10 +240,10 @@ private:
      * @return double 
      */
     double ComputeTaylorTerm3D(
-        double derivative, 
-        double dx, IndexType k_x, 
-        double dy, IndexType k_y, 
-        double dz, IndexType k_z);
+        const double derivative, 
+        const double dx, const int k_x, 
+        const double dy, const int k_y, 
+        const double dz, const int k_z);
 
     // sbm variables
     array_1d<double, 3> mNormalParameterSpace;

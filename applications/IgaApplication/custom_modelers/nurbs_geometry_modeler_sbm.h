@@ -34,8 +34,17 @@ public:
     using SizeType = NurbsGeometryModeler::SizeType;
     using NodeType = NurbsGeometryModeler::NodeType;
 
-    using GeometryType = NurbsGeometryModeler::GeometryType;
-    using GeometryPointerType = NurbsGeometryModeler::GeometryPointerType;
+    using GeometryType = Geometry<NodeType>;
+    using GeometryPointerType = GeometryType::Pointer;
+
+    using NurbsSurfaceGeometryType = NurbsSurfaceGeometry<3, PointerVector<NodeType>>;
+    using NurbsSurfaceGeometryPointerType = NurbsSurfaceGeometryType::Pointer;
+
+    using NurbsVolumeGeometryType = NurbsVolumeGeometry<PointerVector<NodeType>>;
+    using NurbsVolumeGeometryPointerType = NurbsVolumeGeometryType::Pointer;
+
+    using ContainerNodeType = PointerVector<Node>;
+    using ContainerEmbeddedNodeType = PointerVector<Point>;
 
     ///@}
     ///@name Life Cycle
@@ -99,13 +108,22 @@ protected:
         const bool AddSurfaceToModelPart) override;
 
     /**
-     * @brief Creates a regular grid composed out of bivariant B-splines.
-     * @param PointA Lower point of bounding 3D box.
-     * @param PointB Upper point of bounding 3D box.
-     * @param Order  Polynomial degree in each direction u,v,w.
-     * @param NumKnotSpans Number of equidistant elements/knot spans in each direction u,v,w.
-     * @note The CP'S are defined as nodes and added to the rModelPart.
-     **/
+     * @brief Create a And Add Regular Grid 3 D object
+     * 
+     * @param rModelPart 
+     * @param A_xyz 
+     * @param B_xyz 
+     * @param A_uvw 
+     * @param B_uvw 
+     * @param OrderU 
+     * @param OrderV 
+     * @param OrderW 
+     * @param NumKnotSpansU 
+     * @param NumKnotSpansV 
+     * @param NumKnotSpansW 
+     * @param AddVolumeToModelPart 
+     * @return * void 
+     */
     void CreateAndAddRegularGrid3D(
         ModelPart& rModelPart, 
         const Point& A_xyz, 

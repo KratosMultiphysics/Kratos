@@ -87,6 +87,7 @@ public:
             "skin_model_part_outer_initial_name" : "SkinModelPartOuterInitial",
             "skin_model_part_name" : "SkinModelPart",
             "create_surr_outer_from_surr_inner": false,
+            "create_surr_inner_from_surr_outer": false,
             "echo_level" : 0,
             "lambda_inner" : 0.5,
             "lambda_outer" : 0.5,
@@ -125,7 +126,9 @@ protected:
         ModelPart& rIgaModelPart,
         ModelPart& rSkinModelPart,
         const int NumberInitialPointsIfImportingNurbs,
-        bool RemoveIslands = false
+        bool RemoveIslands = false,
+        bool CreateOuterFromInner = false,
+        bool CreateInnerFromOuter = false
         );
 
 
@@ -137,6 +140,7 @@ protected:
     std::size_t mNumberOfInnerLoops;
     int mNumberInitialPointsIfImportingNurbs;
     bool mCreateSurrOuterFromSurrInner;
+    bool mCreateSurrInnerFromSurrOuter;
     ModelPart* mpIgaModelPart = nullptr; 
     ModelPart* mpSkinModelPartInnerInitial = nullptr; 
     ModelPart* mpSkinModelPartOuterInitial = nullptr; 
@@ -353,6 +357,44 @@ private:
         std::vector<std::vector<std::vector<int>>>& rKnotSpansAvailable,
         ModelPart& rSurrogateModelPartOuter
         );
+
+    /**
+     * @brief Generates outer knot spans from inner knot spans (2D), merging all inner loops on the first dimension.
+     */
+    static std::vector<std::vector<int>> GenerateOuterSurrogateFromInnerKnotSpansAvailable(
+        const std::vector<std::vector<std::vector<int>>>& rInnerKnotSpansAvailable
+        );
+
+    /**
+     * @brief Generates inner knot spans from outer knot spans (2D), merging all outer loops on the first dimension.
+     */
+    static std::vector<std::vector<int>> GenerateInnerSurrogateFromOuterKnotSpansAvailable(
+        const std::vector<std::vector<std::vector<int>>>& rOuterKnotSpansAvailable
+        );
+
+    /**
+     * @brief Creates the outer surrogate boundary from a precomputed 2D knot-spans matrix.
+     * This version does not perform geometric inside/outside checks.
+     */
+    static void CreateSurrogateBuondaryFromSnakeOuterWithoutBoundaryCheck(
+        const std::vector<int>& rNumberKnotSpans,
+        const Vector& rKnotVectorU,
+        const Vector& rKnotVectorV,
+        std::vector<std::vector<int>>& rKnotSpansAvailable,
+        ModelPart& rSurrogateModelPartOuter
+        );
+
+    /**
+     * @brief Creates the inner surrogate boundary from a precomputed 2D knot-spans matrix.
+     * This version does not perform geometric inside/outside checks.
+     */
+    static void CreateSurrogateBuondaryFromSnakeInnerWithoutBoundaryCheck(
+        const std::vector<int>& rNumberKnotSpans,
+        const Vector& rKnotVectorU,
+        const Vector& rKnotVectorV,
+        const std::vector<std::vector<int>>& rKnotSpansAvailable,
+        ModelPart& rSurrogateModelPartInner
+        );
     
     /**
      * @brief Checks if the knot span is at the border of the parameter sapce
@@ -367,6 +409,157 @@ private:
         const std::vector<int> &rNumberKnotSpansUV
         ); 
 
+    /**
+     * @brief Create a The Snake Coordinates 3 D object
+     * 
+     */
+   void CreateTheSnakeCoordinates3D();
+
+
+   /**
+     * @brief Create a The Snake Coordinates object
+     * 
+     * @tparam TIsInnerLoop 
+     * @param rIgaModelPart 
+     * @param rSkinModelPartInitial 
+     * @param rSkinModelPart 
+     * @param NumberOfInnerLoops 
+     * @param Lambda 
+     */
+    template <bool TIsInnerLoop>
+    static void CreateTheSnakeCoordinates3D(
+        const ModelPart& rSkinModelPartInitial,
+        const std::size_t NumberOfInnerLoops,
+        const double Lambda,
+        IndexType EchoLevel,
+        ModelPart& rIgaModelPart,
+        ModelPart& rSkinModelPart 
+        );
+    
+    /**
+     * @brief Checks if the knot span is at the border of the parameter sapce
+     * 
+     * @param rKnotSpanUV 
+     * @param rNumberKnotSpansUV 
+     * @return true 
+     * @return false 
+     */
+    static bool IsInside3D(
+        const std::vector<std::vector<int>> & rKnotSpanUV,
+        const std::vector<int> &rNumberKnotSpansUV
+        ); 
+
+    
+    /**
+     * @brief Performs a single step in the snake algorithm for 3D models.
+     * 
+     * @param IdMatrixKnotSpansAvailable ID of the matrix tracking available knot spans.
+     * @param rKnotSpansUV Knot spans in UV coordinates.
+     * @param ConditionCoords XY coordinates of control points.
+     * @param KnotStepUV Step size in UV space.
+     * @param StartingPositionUV Starting position in UV space.
+     * @param rSkinModelPart The skin model part to be updated.
+     * @param rKnotSpansAvailable Knot spans available for the snake.
+     */
+    static void SnakeStep3D(
+        const int IdMatrixKnotSpansAvailable, 
+        const std::vector<std::vector<int>>& rKnotSpansUV, 
+        const std::vector<std::vector<double>>& ConditionCoords, 
+        const Vector KnotStepUV, 
+        const Vector StartingPositionUV,
+        ModelPart& rSkinModelPart, 
+        std::vector<std::vector<std::vector<std::vector<int>>>> & rKnotSpansAvailable,
+        array_1d<IndexType, 3>& ordered_ids
+        );
+
+    /**
+     * @brief Marks the knot spans as available for the snake algorithm.
+     * @param IdMatrix ID of the matrix being updated.
+     * @param rPointsBin Spatial bins to search for nearby points.
+     * @param rSkinModelPart Skin model part being analyzed.
+     * @param Lambda Relaxation parameter.
+     * @param rNumberKnotSpansUV Number of knot spans in UV directions.
+     * @param rKnotStepUV Step size in UV space.
+     * @param rStartingPositionUV Starting position in UV space.
+     * @param rKnotSpansAvailable Reference to the knot spans availability matrix.
+     */
+    static void MarkKnotSpansAvailable3D(
+        const int IdMatrix,
+        DynamicBins& rPointsBin, 
+        const ModelPart& rSkinModelPart, 
+        const double Lambda, 
+        const std::vector<int>& rNumberKnotSpansUVW, 
+        const array_1d<double, 3>& rKnotStepUVW, 
+        const Vector& rStartingPositionUV,
+        std::vector<std::vector<std::vector<std::vector<int>>>> & rKnotSpansAvailable
+        );
+
+    /**
+     * @brief Checks if a point is inside the given skin boundary.
+     * @param rPointToSearch The point to be checked.
+     * @param rPointsBin Spatial bins to search for nearby points.
+     * @param rSkinModelPartIn Input skin model part.
+     * @return True if the point is inside the boundary, false otherwise.
+     */
+    static bool IsPointInsideSkinBoundary3D(
+        const Point& rPointToSearch, 
+        DynamicBins& rPointsBin,
+        const ModelPart& rSkinModelPartIn
+        );
+
+    
+    /**
+     * @brief Create a Surrogate Buondary From Snake Inner 3 D object
+     * 
+     * @param IdMatrix 
+     * @param SkinModelPartInner 
+     * @param rPointsBinInner 
+     * @param rNumberKnotSpans 
+     * @param rKnotVectorU 
+     * @param rKnotVectorV 
+     * @param rKnotVectorW 
+     * @param rKnotSpansAvailable 
+     * @param rSurrogateModelPartInner 
+     */
+    static void CreateSurrogateBuondaryFromSnakeInner3D(
+        const int IdMatrix,
+        const ModelPart& SkinModelPartInner,
+        DynamicBins& rPointsBinInner,
+        const std::vector<int>& rNumberKnotSpans,
+        const Vector& rKnotVectorU,
+        const Vector& rKnotVectorV,
+        const Vector& rKnotVectorW,
+        const Vector& rStartingPositionUVW,
+        std::vector<std::vector<std::vector<std::vector<int>>>> & rKnotSpansAvailable,
+        ModelPart& rSurrogateModelPartInner
+        );
+
+    /**
+     * @brief Create a Surrogate Buondary From Snake Outer 3 D object
+     * 
+     * @param IdMatrix 
+     * @param SkinModelPartOuter 
+     * @param rPointsBinOuter 
+     * @param rNumberKnotSpans 
+     * @param rKnotVectorU 
+     * @param rKnotVectorV 
+     * @param rKnotVectorW 
+     * @param rStartingPositionUVW 
+     * @param rKnotSpansAvailable 
+     * @param rSurrogateModelPartOuter 
+     */
+    static void CreateSurrogateBuondaryFromSnakeOuter3D(
+        const int IdMatrix,
+        const ModelPart& SkinModelPartOuter,
+        DynamicBins& rPointsBinOuter,
+        const std::vector<int>& rNumberKnotSpans,
+        const Vector& rKnotVectorU,
+        const Vector& rKnotVectorV,
+        const Vector& rKnotVectorW,
+        const Vector& rStartingPositionUVW,
+        std::vector<std::vector<std::vector<std::vector<int>>>> & rKnotSpansAvailable,
+        ModelPart& rSurrogateModelPartOuter
+        );
     
     /**
      * @brief Remove the islands surrogate domain disconnected from the main one

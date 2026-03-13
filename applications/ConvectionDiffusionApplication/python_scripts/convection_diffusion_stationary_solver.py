@@ -51,3 +51,70 @@ class ConvectionDiffusionStationarySolver(convection_diffusion_solver.Convection
             convection_diffusion_scheme = KratosTrilinos.TrilinosResidualBasedIncrementalUpdateStaticScheme()
 
         return convection_diffusion_scheme
+    
+    def FinalizeSolutionStep(self):
+        super().FinalizeSolutionStep()
+        # self.printDofsAndCPs() # Print control points and dofs
+    
+
+    def printDofsAndCPs(self) :
+        import numpy as np
+        import matplotlib.pyplot as plt
+        import os
+
+        free_node_x = []
+        free_node_y = []
+        free_node_z = []
+        fixed_node_x = []
+        fixed_node_y = []
+        fixed_node_z = []
+        dof = []
+
+        z_ref = 1.0
+        # Set Free the active ones
+        if os.path.exists("txt_files/Id_active_control_points.txt"):
+            with open('txt_files/Id_active_control_points.txt', 'r') as file:
+                lines = file.readlines()
+            for line in lines:
+                numbers = line.split()
+                node = self.main_model_part.GetNode(int(numbers[0]))
+                node.Free(KratosMultiphysics.TEMPERATURE)
+                node.Set(KratosMultiphysics.VISITED, False)
+
+
+                if (node.Z > 0.2): continue 
+                free_node_x.append(node.X)
+                free_node_y.append(node.Y)
+                free_node_z.append(node.Z)
+                dof.append(numbers[1])
+        
+        dof2 = []
+        free_node_x2 = []
+        free_node_y2= []
+        free_node_z2= []
+        # Set Free the active ones
+        if os.path.exists("txt_files/Id_active_control_points_condition.txt"):
+            with open('txt_files/Id_active_control_points_condition.txt', 'r') as file:
+                lines = file.readlines()
+            for line in lines:
+                numbers = line.split()
+                node = self.main_model_part.GetNode(int(numbers[0]))
+
+                if (node.Z > 0.2): continue 
+                free_node_x2.append(node.X)
+                free_node_y2.append(node.Y)
+                free_node_z2.append(node.Z)
+                dof2.append(numbers[1])
+
+        
+        fig = plt.figure()
+        ax = fig.add_subplot(111, projection='3d')
+
+        # Cerchi grandi verdi
+        ax.scatter(free_node_x2, free_node_y2, free_node_z2, marker='o', color='green', s=200, label='Free Nodes')
+
+        # Croci rosse
+        ax.scatter(free_node_x, free_node_y, free_node_z, marker='x', color='red', s=50, label='Free Nodes')
+
+
+        plt.show()

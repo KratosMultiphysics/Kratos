@@ -16,6 +16,7 @@ from test_beam_IGA_element import BeamIGAElementTests as TBeamIGAElementTests
 from test_solid_IGA_element import SolidIGAElementTests as TSolidIGAElementTests
 # Sbm Structural Elements test
 from sbm_solid_tests import SbmSolidTests as TSbmSolidTests
+from test_gap_sbm_modeler import GapSbmModelerTests as TGapSbmModelerTests
 
 # Membrane tests
 from iga_test_factory import MembraneSinglePatchFourPointSailLinearStatic as MembraneSinglePatchFourPointSailLinearStatic
@@ -87,6 +88,7 @@ def AssembleTestSuites():
         TSolidIGAElementTests,
         # Sbm Elements tests
         TSbmSolidTests,
+        TGapSbmModelerTests,
         # Membrane tests
         MembraneSinglePatchFourPointSailLinearStatic,
         MembraneSinglePatchFourPointSailNonLinearStatic,

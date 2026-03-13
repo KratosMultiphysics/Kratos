@@ -97,7 +97,6 @@ protected:
      **/
     virtual void CreateAndAddRegularGrid2D( ModelPart& r_model_part, const Point& A_xyz, const Point& B_xyz, const Point& A_uvw, const Point& B_uvw,
         SizeType OrderU, SizeType OrderV, SizeType NumKnotSpansU, SizeType NumKnotSpansV, bool add_surface_to_model_part = true);
-
     
     /**
      * @brief Creates a cartesian grid composed out of trivariant B-spline cubes.
@@ -127,7 +126,7 @@ private:
     ///@{
 
     ///@}
-    ///@name Private Operations
+    ///@name Private Operations    
     
 };
 

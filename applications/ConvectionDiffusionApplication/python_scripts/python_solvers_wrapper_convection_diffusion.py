@@ -56,6 +56,9 @@ def CreateSolverByParameters(model, solver_settings, parallelism):
         # Steady adjoints solver
         elif solver_type == "adjoint_stationary":
             solver_module_name = "adjoint_diffusion_solver"
+        # Steady state eigenvalue solver
+        elif solver_type == "eigen_value":
+            solver_module_name = "convection_diffusion_eigensolver"
         # Wrong solver check
         else:
             err_msg =  "The requested solver type {} is not in the python solvers wrapper\n".format(solver_type)

@@ -233,10 +233,10 @@ public:
             TSparseSpaceType::Assign(y_old, 1.0, y);
         }
 
-        if (mEchoLevel > 0) {
-            KRATOS_INFO("rho: ") << rho << std::endl;
-            KRATOS_INFO("y: ") << y << std::endl;
-        }
+        // if (mEchoLevel > 0) {
+        //     KRATOS_INFO("rho: ") << rho << std::endl;
+        //     KRATOS_INFO("y: ") << y << std::endl;
+        // }
 
         Eigenvalues[0] = rho;
 

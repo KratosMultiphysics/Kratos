@@ -161,6 +161,13 @@ private:
         const double& value,
         Condition::Pointer p_condition);
 
+    
+    /** Expands entries with "apply_to_all_patches": true into one
+     *  concrete entry per existing Patch* submodelpart, replacing
+     *  iga_model_part with "<root>.<PatchN>.<iga_model_part_suffix>".
+     */
+    void ExpandElementConditionList();
+
     ///@}
     ///@name Input and output
     ///@{

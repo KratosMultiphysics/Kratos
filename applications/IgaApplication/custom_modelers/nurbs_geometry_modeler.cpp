@@ -105,8 +105,17 @@ namespace Kratos
     ///@}
     ///@name Private Operations
     ///@{
-    void NurbsGeometryModeler::CreateAndAddRegularGrid2D( ModelPart& r_model_part, const Point& A_xyz, const Point& B_xyz,
-        const Point& A_uvw, const Point& B_uvw, SizeType OrderU, SizeType OrderV,SizeType NumKnotSpansU, SizeType NumKnotSpansV, bool AddSurfaceToModelPart)
+    void NurbsGeometryModeler::CreateAndAddRegularGrid2D( 
+        ModelPart& r_model_part, 
+        const Point& A_xyz, 
+        const Point& B_xyz,
+        const Point& A_uvw, 
+        const Point& B_uvw, 
+        SizeType OrderU, 
+        SizeType OrderV,
+        SizeType NumKnotSpansU,
+        SizeType NumKnotSpansV,
+        bool AddSurfaceToModelPart)
     {
         KRATOS_ERROR_IF( B_xyz.X() <= A_xyz.X() || B_xyz.Y() <= A_xyz.Y() ) << "NurbsGeometryModeler: "
             << "The two Points A_xyz and B_xyz must meet the following requirement: (B_xyz-A_xyz) > (0,0,0). However, (B_xyz-A_xyz)=" << B_xyz-A_xyz << std::endl;
@@ -224,9 +233,8 @@ namespace Kratos
                 WeightsRefined);
         }
 
-        // Determine next node id from the root model part to avoid collisions
-        IndexType node_id = 1;
         ModelPart& r_root_model_part = r_model_part.GetRootModelPart();
+        IndexType node_id = 1;
         if (r_root_model_part.NumberOfNodes() > 0) {
             node_id = (r_root_model_part.NodesEnd() - 1)->Id() + 1;
         }
@@ -252,8 +260,19 @@ namespace Kratos
     }
 
 
-    void NurbsGeometryModeler::CreateAndAddRegularGrid3D(ModelPart& r_model_part, const Point& A_xyz, const Point& B_xyz, const Point& A_uvw, const Point& B_uvw,
-        SizeType OrderU, SizeType OrderV, SizeType OrderW, SizeType NumKnotSpansU, SizeType NumKnotSpansV, SizeType NumKnotSpansW, bool AddVolumeToModelPart)
+    void NurbsGeometryModeler::CreateAndAddRegularGrid3D( 
+        ModelPart& r_model_part,
+        const Point& A_xyz,
+        const Point& B_xyz,
+        const Point& A_uvw,
+        const Point& B_uvw,
+        SizeType OrderU,
+        SizeType OrderV,
+        SizeType OrderW,
+        SizeType NumKnotSpansU,
+        SizeType NumKnotSpansV,
+        SizeType NumKnotSpansW,
+        bool AddVolumeToModelPart)
     {
         KRATOS_ERROR_IF( B_xyz.X() <= A_xyz.X() || B_xyz.Y() <= A_xyz.Y() || B_xyz.Z() <= A_xyz.Z() ) << "NurbsGeometryModeler: "
             << "The two Points A_xyz and B_xyz must meet the following requirement: (B_xyz-A_xyz) > (0,0,0). However, (B_xyz-A_xyz)=" << B_xyz-A_xyz << std::endl;
@@ -372,6 +391,8 @@ namespace Kratos
             p_volume_geometry->SetInternals(PointsRefined,
                 p_volume_geometry->PolynomialDegreeU(), p_volume_geometry->PolynomialDegreeV(), p_volume_geometry->PolynomialDegreeW(),
                 KnotsURefined, p_volume_geometry->KnotsV(), p_volume_geometry->KnotsW());
+
+                KRATOS_WATCH(KnotsURefined)
         }
         if( NumKnotSpansV > 1) {
             Vector KnotsVRefined;
@@ -383,6 +404,8 @@ namespace Kratos
             p_volume_geometry->SetInternals(PointsRefined,
                 p_volume_geometry->PolynomialDegreeU(), p_volume_geometry->PolynomialDegreeV(), p_volume_geometry->PolynomialDegreeW(),
                 p_volume_geometry->KnotsU(), KnotsVRefined, p_volume_geometry->KnotsW());
+
+                KRATOS_WATCH(KnotsVRefined)
         }
         if( NumKnotSpansW > 1) {
             Vector KnotsWRefined;
@@ -394,11 +417,13 @@ namespace Kratos
             p_volume_geometry->SetInternals(PointsRefined,
                 p_volume_geometry->PolynomialDegreeU(), p_volume_geometry->PolynomialDegreeV(), p_volume_geometry->PolynomialDegreeW(),
                 p_volume_geometry->KnotsU(), p_volume_geometry->KnotsV(), KnotsWRefined);
+
+                KRATOS_WATCH(KnotsWRefined)
         }
 
-        // Add nodes to model part. Use root model part numbering to avoid collisions across sub-modelparts.
-        IndexType node_id = 1;
+        // Add nodes to model part
         ModelPart& r_root_model_part = r_model_part.GetRootModelPart();
+        IndexType node_id = 1;
         if (r_root_model_part.NumberOfNodes() > 0) {
             node_id = (r_root_model_part.NodesEnd() - 1)->Id() + 1;
         }

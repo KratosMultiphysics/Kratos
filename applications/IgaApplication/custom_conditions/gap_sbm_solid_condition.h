@@ -22,7 +22,6 @@
 // Project includes
 #include "iga_application_variables.h"
 #include "includes/constitutive_law.h"
-#include "includes/global_pointer_variables.h"
 
 namespace Kratos
 {
@@ -38,9 +37,7 @@ public:
     KRATOS_CLASS_INTRUSIVE_POINTER_DEFINITION(GapSbmSolidCondition);
 
     /// Size types
-    using SizeType = std::size_t;
     using IndexType = std::size_t;
-    using NodeType = typename GeometryType::PointType;
 
     ///@}
     ///@name Life Cycle
@@ -211,7 +208,7 @@ struct ConstitutiveVariables
      * The default constructor
      * @param StrainSize The size of the strain vector in Voigt notation
      */
-    ConstitutiveVariables(const SizeType StrainSize)
+    ConstitutiveVariables(const std::size_t StrainSize)
     {
         if (StrainVector.size() != StrainSize)
             StrainVector.resize(StrainSize);
@@ -269,7 +266,7 @@ void CalculateB(
  * @param rConstitutiVariables 
  */
 void ApplyConstitutiveLaw(
-        SizeType matSize, 
+        std::size_t matSize, 
         Vector& rStrain, 
         ConstitutiveLaw::Parameters& rValues,
         ConstitutiveVariables& rConstitutiVariables);
@@ -280,7 +277,6 @@ void ApplyConstitutiveLaw(
  * @param H_sum_vec 
  */
 void ComputeTaylorExpansionContribution(Vector& H_sum_vec);
-void ComputeTaylorExpansionContribution(Vector& H_sum_vec, const Vector& rDistanceVector);
 
 /**
  * @brief 
@@ -288,7 +284,6 @@ void ComputeTaylorExpansionContribution(Vector& H_sum_vec, const Vector& rDistan
  * @param grad_H_sum 
  */
 void ComputeGradientTaylorExpansionContribution(Matrix& grad_H_sum);
-void ComputeGradientTaylorExpansionContribution(Matrix& grad_H_sum, const Vector& rDistanceVector);
 
 /**
  * @brief compute the Taylor expansion for apply the Shifted Boundary Method in 2D
@@ -326,8 +321,6 @@ double ComputeTaylorTerm3D(
     array_1d<double, 3> mNormalParameterSpace;
     array_1d<double, 3> mNormalPhysicalSpace;
     Vector mDistanceVector;
-    Vector mDistanceVectorSkin;
-    NodeType* mpSkinProjectionNode = nullptr;
     unsigned int mDim;
     double mPenalty;
     double mNitschePenalty;

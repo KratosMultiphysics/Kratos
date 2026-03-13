@@ -22,7 +22,6 @@
 // Project includes
 #include "iga_application_variables.h"
 #include "includes/constitutive_law.h"
-#include "includes/global_pointer_variables.h"
 
 namespace Kratos
 {
@@ -163,13 +162,6 @@ public:
 
 
     ///@}
-    ///@name Check
-    ///@{
-
-    /// Performs check if Penalty factor is provided.
-    int Check(const ProcessInfo& rCurrentProcessInfo) const override;
-
-    ///@}
     ///@name Input and output
     ///@{
 
@@ -278,14 +270,14 @@ void ApplyConstitutiveLaw(
  * 
  * @param H_sum_vec 
  */
-void ComputeTaylorExpansionContribution(Vector& H_sum_vec, Vector& rDistanceVector);
+void ComputeTaylorExpansionContribution(Vector& H_sum_vec);
 
 /**
  * @brief 
  * 
  * @param grad_H_sum 
  */
-void ComputeGradientTaylorExpansionContribution(Matrix& grad_H_sum, Vector& rDistanceVector);
+void ComputeGradientTaylorExpansionContribution(Matrix& grad_H_sum);
 
 /**
  * @brief compute the Taylor expansion for apply the Shifted Boundary Method in 2D
@@ -322,21 +314,23 @@ double ComputeTaylorTerm3D(
     // sbm variables
     array_1d<double, 3> mNormalParameterSpace;
     array_1d<double, 3> mNormalPhysicalSpace;
-    array_1d<double, 3> mTrueNormal;
-    double mTrueDotSurrogateNormal;
-    Vector mDistanceVectorSkin;
-    NodeType* mpSkinProjectionNode; 
-    Vector mDistanceVectorGap;
+    Vector mDistanceVector;
     unsigned int mDim;
+    double mPenalty;
+    double mNitschePenalty;
     IndexType mBasisFunctionsOrder;
-    
-    
-    
-    
 
 ///@}
 
 private:
+
+    ///@name Operations
+    ///@{
+    const GeometryType& GetSurrogateGeometry() const
+    {
+        return *this->GetValue(NEIGHBOUR_GEOMETRIES)[0];
+    }
+    ///@}
     ///@name Serialization
     ///@{
 

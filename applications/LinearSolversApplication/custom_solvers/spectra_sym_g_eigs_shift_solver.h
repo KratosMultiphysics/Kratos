@@ -89,17 +89,22 @@ class SpectraSymGEigsShiftSolver
         const int max_iteration = BaseType::GetMaxIterationsNumber();
         const int echo_level = mParam["echo_level"].GetInt();
         const double shift = mParam["shift"].GetDouble();
+        
+       
+        // --- timer
+        const auto timer = BuiltinTimer();
+        // If the eigenvalue solution is not sough after return trivial solution of zeros
 
+        Eigen::Map<vector_t> eigvals (rEigenvalues.data().begin(), rEigenvalues.size());
+        Eigen::Map<matrix_t> eigvecs (rEigenvectors.data().begin(), rEigenvectors.size1(), rEigenvectors.size2());
+if (nroot !=0){
         // --- wrap ublas matrices
-
         UblasWrapper<scalar_t> a_wrapper(rK);
         UblasWrapper<scalar_t> b_wrapper(rM);
 
         const auto& a = a_wrapper.matrix();
         const auto& b = b_wrapper.matrix();
 
-        // --- timer
-        const auto timer = BuiltinTimer();
 
         KRATOS_INFO_IF("SpectraSymGEigsShiftSolver:", echo_level > 0) << "Start"  << std::endl;
 
@@ -131,8 +136,6 @@ class SpectraSymGEigsShiftSolver
             rEigenvectors.resize(nroot, rK.size1());
         }
 
-        Eigen::Map<vector_t> eigvals (rEigenvalues.data().begin(), rEigenvalues.size());
-        Eigen::Map<matrix_t> eigvecs (rEigenvectors.data().begin(), rEigenvectors.size1(), rEigenvectors.size2());
 
         // Spectra::SortRule::LargestAlge results in values being in descending order
         eigvals = eigs.eigenvalues().reverse();
@@ -153,7 +156,17 @@ class SpectraSymGEigsShiftSolver
                 KRATOS_INFO_IF("SpectraSymGEigsShiftSolver:", echo_level > 0) << "Eigenvector " << i+1 << " is normalized - used factor: " << factor << std::endl;
             }
         }
-
+    }
+    else{
+        if (static_cast<int>(rEigenvalues.size()) != nroot) {
+            rEigenvalues.resize(nroot);
+        }
+        if (static_cast<int>(rEigenvectors.size1()) != nroot || rEigenvectors.size2() != rK.size1()) {
+            rEigenvectors.resize(nroot, rK.size1());
+        }
+        eigvals.setZero();
+        eigvecs.setZero();
+    }
         // --- output
         if (echo_level > 0) {
             Eigen::IOFormat fmt(Eigen::StreamPrecision, Eigen::DontAlignCols, ", ", ", ", "", "", "[ ", " ]");

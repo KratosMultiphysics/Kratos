@@ -251,7 +251,7 @@ void SbmSolidCondition::CalculateLeftHandSide(
     double penalty_integration = mPenalty * int_to_reference_weight;
 
     // Collins, Lozinsky & Scovazzi innovation
-    double nitsche_penalty = -1.0;  // = 1 -> Penalty approach
+    double nitsche_penalty = 1.0;  // = 1 -> Penalty approach
                                         // = -1 -> Free-penalty approach
     if (mPenalty == -1.0) {
         penalty_integration = 0.0;
@@ -419,7 +419,7 @@ void SbmSolidCondition::CalculateRightHandSide(
     double penalty_integration = mPenalty * int_to_reference_weight;
 
     // Collins, Lozinsky & Scovazzi innovation
-    double nitsche_penalty = -1.0;  // = 1 -> Penalty approach
+    double nitsche_penalty = 1.0;  // = 1 -> Penalty approach
                                         // = -1 -> Free-penalty approach
     if (mPenalty == -1.0) {
         penalty_integration = 0.0;

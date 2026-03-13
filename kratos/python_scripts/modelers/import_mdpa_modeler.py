@@ -46,12 +46,6 @@ class ImportMDPAModeler(KratosMultiphysics.Modeler):
         #     self.settings,
         #     input_type)
 
-    def PrepareGeometryModel(self):
-        super().PrepareGeometryModel()
-
-    def SetupModelPart(self):
-        super().SetupModelPart()
-
     @classmethod
     def __GetDefaultSettings(cls):
         default_settings = KratosMultiphysics.Parameters('''{

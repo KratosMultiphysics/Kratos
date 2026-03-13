@@ -7,9 +7,7 @@ else(${USE_TRIANGLE_NONFREE_TPL} MATCHES ON )
 endif(${USE_TRIANGLE_NONFREE_TPL} MATCHES ON )
 include_directories( ${KRATOS_SOURCE_DIR}/external_libraries/tinyexpr )
 
-SET(LIST_FOLDER sources conditions constraints containers elements factories geometries includes integration linear_solvers mappers modeler modified_shape_functions operations processes controllers response_functions solving_strategies spaces spatial_containers utilities)
-SET(LIST_FUTURE future)
-SET(LIST_LEGACY legacy)
+SET(ListFolders sources conditions constraints containers elements factories geometries includes integration linear_solvers mappers modeler modified_shape_functions operations processes controllers response_functions solving_strategies spaces spatial_containers utilities)
 
 ## Kratos main source code
 SET(LIST_OF_SOURCE_EXCEPTIONS
@@ -20,9 +18,26 @@ SET(LIST_OF_SOURCE_EXCEPTIONS
     ${CMAKE_CURRENT_SOURCE_DIR}/modeler/cad_tessellation_modeler.cpp
 )
 
-## Kratos python interface code
-FILE(GLOB_RECURSE KRATOS_PYTHON_SOURCES "python/*.cpp")
+FOREACH(subFolder ${ListFolders})
+    FILE(GLOB_RECURSE ${subFolder}Sources "${subFolder}/*.cpp" "${subFolder}/*.c") #all .cpp and .c
 
+    # Auxiliar list
+    SET(AUXILIAR_CORE_SOURCES "")
+    FOREACH(file ${${subFolder}Sources})
+        SET(EXCEPTION_CHECK 0)
+        FOREACH(exception ${LIST_OF_SOURCE_EXCEPTIONS})
+            IF(${file} STREQUAL ${exception})
+                SET(EXCEPTION_CHECK 1)
+            ENDIF(${file} STREQUAL ${exception})
+        ENDFOREACH(exception ${LIST_OF_SOURCE_EXCEPTIONS})
+        IF (${EXCEPTION_CHECK} EQUAL 0)
+            LIST(APPEND AUXILIAR_CORE_SOURCES ${file})
+        ENDIF(${EXCEPTION_CHECK} EQUAL 0)
+    ENDFOREACH(file ${${subFolder}Sources})
+
+    # Append to final list
+    LIST(APPEND KRATOS_CORE_SOURCES ${AUXILIAR_CORE_SOURCES})
+ENDFOREACH(subFolder ${ListFolders})
 kratos_add_sources(KRATOS_CORE_SOURCES SOURCE_DIRS "${LIST_FOLDER}" EXCEPTIONS "${LIST_OF_SOURCE_EXCEPTIONS}")
 if(${KRATOS_USE_FUTURE} MATCHES ON)
     add_definitions( -DKRATOS_USE_FUTURE )
@@ -46,6 +61,9 @@ if(${USE_TRIANGLE_NONFREE_TPL} MATCHES ON )
         ${CMAKE_CURRENT_SOURCE_DIR}/modeler/cad_tessellation_modeler.cpp
     )
 endif(${USE_TRIANGLE_NONFREE_TPL} MATCHES ON )
+
+## Kratos python interface code
+FILE(GLOB_RECURSE KRATOS_PYTHON_SOURCES "python/*.cpp")
 
 ## Kratos Version
 set( KRATOS_VERSION_SOURCES
@@ -117,8 +135,11 @@ target_compile_definitions(KratosVersion PRIVATE
 ## Define library KratosCore to be included in all of the others
 add_library(KratosCore SHARED ${KRATOS_CORE_SOURCES} ${KRATOS_CORE_INPUT_OUTPUT_SOURCES} ${KRATOS_EXPRESSION_SOURCES} ${KRATOS_TENSOR_ADAPTOR_SOURCES} ${KRATOS_TPL_SOURCES} $<TARGET_OBJECTS:KratosVersion>)
 
+find_package(Eigen3 3.3 REQUIRED NO_MODULE)
+include_directories(${EIGEN3_INCLUDE_DIR})
 # Set the shared external libraries for kratos (gidpost, tyniexpr, json, etc...)
-set(KRATOS_EXTERNAL_LIBRARIES gidpost tinyexpr clipper)
+set(KRATOS_EXTERNAL_LIBRARIES gidpost tinyexpr clipper Eigen3::Eigen)
+target_link_libraries(KratosCore PUBLIC ${KRATOS_EXTERNAL_LIBRARIES})
 
 # Set the TPL libraries if enabled (triangle, tetgen, etc...)
 if(${USE_TRIANGLE_NONFREE_TPL} MATCHES ON )

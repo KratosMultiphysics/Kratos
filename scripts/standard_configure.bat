@@ -21,15 +21,17 @@ rem set KRATOS_INSTALL_PYTHON_USING_LINKS=ON
 
 rem Set basic configuration
 if not defined KRATOS_BUILD_TYPE set KRATOS_BUILD_TYPE=Release
-if not defined BOOST_ROOT set BOOST_ROOT=C:\CompiledLibs\boost_1_67_0
-if not defined PYTHON_EXECUTABLE set PYTHON_EXECUTABLE=C:\Windows\py.exe
+if not defined BOOST_ROOT set BOOST_ROOT=C:\Users\u0170108\Downloads\boost_1_86_0\boost_1_86_0
+if not defined PYTHON_EXECUTABLE set PYTHON_EXECUTABLE=C:\Users\u0170108\AppData\Local\Programs\Python\Python311\python.exe
 
 rem Set applications to compile
 set KRATOS_APP_DIR=applications
 set KRATOS_APPLICATIONS=
+CALL :add_app %KRATOS_APP_DIR%\ConvectionDiffusionApplication;
 CALL :add_app %KRATOS_APP_DIR%\LinearSolversApplication;
+CALL :add_app %KRATOS_APP_DIR%\IgaApplication;
 CALL :add_app %KRATOS_APP_DIR%\StructuralMechanicsApplication;
-CALL :add_app %KRATOS_APP_DIR%\FluidDynamicsApplication;
+
 
 rem Clean
 del /F /Q "%KRATOS_BUILD%\%KRATOS_BUILD_TYPE%\cmake_install.cmake"
@@ -37,11 +39,11 @@ del /F /Q "%KRATOS_BUILD%\%KRATOS_BUILD_TYPE%\CMakeCache.txt"
 del /F /Q "%KRATOS_BUILD%\%KRATOS_BUILD_TYPE%\CMakeFiles"
 
 rem Enable this if your build is slow and you have a multi-core machine
-rem set KRATOS_PARALLEL_BUILD_FLAG=/MP4
+set KRATOS_PARALLEL_BUILD_FLAG=/MP12
 
 rem Configure
 @echo on
-cmake -G"Visual Studio 16 2019" -H"%KRATOS_SOURCE%" -B"%KRATOS_BUILD%\%KRATOS_BUILD_TYPE%"          ^
+cmake -G"Visual Studio 17 2022" -H"%KRATOS_SOURCE%" -B"%KRATOS_BUILD%\%KRATOS_BUILD_TYPE%"          ^
 -DUSE_EIGEN_MKL=OFF                                                                                 ^
 -DCMAKE_CXX_FLAGS=" %KRATOS_PARALLEL_BUILD_FLAG% "                                                  ^
 -DKRATOS_GENERATE_PYTHON_STUBS=ON

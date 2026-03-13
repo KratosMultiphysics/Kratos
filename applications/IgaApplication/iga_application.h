@@ -26,9 +26,14 @@
 #include "custom_elements/shell_5p_hierarchic_element.h"
 #include "custom_elements/shell_5p_element.h"
 #include "custom_elements/laplacian_element.h"
+#include "custom_elements/gap_sbm_laplacian_element.h"
 #include "custom_elements/solid_element.h"
 #include "custom_elements/stokes_element.h"
-#include "custom_elements/cut_sbm_solid_element.h"
+#include "custom_elements/navier_stokes_element.h"
+
+// Gap-SBM solid element
+#include "custom_elements/gap_sbm_solid_element.h"
+
 
 //conditions
 #include "custom_conditions/output_condition.h"
@@ -37,27 +42,36 @@
 #include "custom_conditions/coupling_penalty_condition.h"
 #include "custom_conditions/coupling_lagrange_condition.h"
 #include "custom_conditions/coupling_nitsche_condition.h"
+#include "custom_conditions/laplacian_coupling_condition.h"
+#include "custom_conditions/solid_coupling_condition.h"
+#include "custom_conditions/fluid_coupling_condition.h"
 #include "custom_conditions/support_penalty_condition.h"
 #include "custom_conditions/support_lagrange_condition.h"
 #include "custom_conditions/support_nitsche_condition.h"
 #include "custom_conditions/support_laplacian_condition.h"
 #include "custom_conditions/sbm_laplacian_condition_neumann.h"
 #include "custom_conditions/sbm_laplacian_condition_dirichlet.h"
+#include "custom_conditions/gap_sbm_laplacian_condition.h"
 #include "custom_conditions/support_fluid_condition.h"
+#include "custom_conditions/support_pressure_condition.h"
 #include "custom_conditions/sbm_fluid_condition_dirichlet.h"
 #include "custom_conditions/support_pressure_condition.h"
 #include "custom_conditions/support_solid_condition.h"
 #include "custom_conditions/load_solid_condition.h"
 #include "custom_conditions/sbm_solid_condition.h"
 #include "custom_conditions/sbm_load_solid_condition.h"
-#include "custom_conditions/cut_sbm_solid_condition.h"
-#include "custom_conditions/cut_sbm_load_solid_condition.h"
-#include "custom_conditions/cut_sbm_solid_interface_condition.h"
 #include "custom_conditions/gap_sbm_solid_condition.h"
 #include "custom_conditions/gap_sbm_load_solid_condition.h"
 #include "custom_conditions/gap_sbm_contact_condition.h"
 // SBM contact condition
 #include "custom_conditions/sbm_contact_2D_condition.h"
+// Gap-SBM solid condition
+#include "custom_conditions/gap_sbm_solid_condition.h"
+// Gap-SBM load solid condition
+#include "custom_conditions/gap_sbm_load_solid_condition.h"
+// Gap-SBM solid interface condition
+#include "custom_conditions/gap_sbm_solid_interface_condition.h"
+#include "custom_conditions/gap_sbm_laplacian_interface_condition.h"
 
 
 //modelers
@@ -68,6 +82,8 @@
 #include "custom_modelers/nurbs_geometry_modeler_sbm.h"
 #include "custom_modelers/nurbs_geometry_modeler_gap_sbm.h"
 #include "custom_modelers/import_nurbs_sbm_modeler.h"
+#include "custom_modelers/patch_subdivision_modeler.h"
+#include "custom_modelers/multipatch_modeler.h"
 
 namespace Kratos {
 
@@ -150,9 +166,11 @@ private:
     const Shell5pHierarchicElement mShell5pHierarchicElement;
     const Shell5pElement mShell5pElement;
     const LaplacianElement mLaplacianElement;
+    const GapSbmLaplacianElement mGapSbmLaplacianElement;
     const SolidElement mSolidElement;
     const StokesElement mStokesElement;
-    const CutSbmSolidElement mCutSbmSolidElement;
+    const NavierStokesElement mNavierStokesElement;
+    const GapSbmSolidElement mGapSbmSolidElement;
 
     //Conditions
     const OutputCondition mOutputCondition;
@@ -161,11 +179,15 @@ private:
     const CouplingPenaltyCondition mCouplingPenaltyCondition;
     const CouplingLagrangeCondition mCouplingLagrangeCondition;
     const CouplingNitscheCondition mCouplingNitscheCondition;
+    const LaplacianCouplingCondition mLaplacianCouplingCondition;
+    const SolidCouplingCondition mSolidCouplingCondition;
+    const FluidCouplingCondition mFluidCouplingCondition;
     const SupportPenaltyCondition mSupportPenaltyCondition;
     const SupportLagrangeCondition mSupportLagrangeCondition;
     const SupportNitscheCondition mSupportNitscheCondition;
     const SupportLaplacianCondition mSupportLaplacianCondition;
     const SbmLaplacianConditionDirichlet mSbmLaplacianConditionDirichlet;
+    const GapSbmLaplacianCondition mGapSbmLaplacianCondition;
     const SbmLaplacianConditionNeumann mSbmLaplacianConditionNeumann;
     const SupportFluidCondition mSupportFluidCondition;
     const SupportPressureCondition mSupportPressureCondition;
@@ -174,13 +196,14 @@ private:
     const LoadSolidCondition mLoadSolidCondition;
     const SbmSolidCondition mSbmSolidCondition;
     const SbmLoadSolidCondition mSbmLoadSolidCondition;
-    const CutSbmSolidCondition mCutSbmSolidCondition;
-    const CutSbmLoadSolidCondition mCutSbmLoadSolidCondition;
-    const CutSbmSolidInterfaceCondition mCutSbmSolidInterfaceCondition;
     const GapSbmSolidCondition mGapSbmSolidCondition;
     const GapSbmLoadSolidCondition mGapSbmLoadSolidCondition;
     const GapSbmContactCondition mGapSbmContactCondition;
     const SbmContact2DCondition mSbmContact2DCondition;
+    const GapSbmLoadSolidCondition mGapSbmLoadSolidCondition;
+    const GapSbmSolidCondition mGapSbmSolidCondition;
+    const GapSbmSolidInterfaceCondition mGapSbmSolidInterfaceCondition;
+    const GapSbmLaplacianInterfaceCondition mGapSbmLaplacianInterfaceCondition;
 
 
     // Modelers
@@ -191,6 +214,8 @@ private:
     const NurbsGeometryModelerSbm mNurbsGeometryModelerSbm;
     const NurbsGeometryModelerGapSbm mNurbsGeometryModelerGapSbm;
     const ImportNurbsSbmModeler mImportNurbsSbmModeler;
+    const PatchSubdivisionModeler mPatchSubdivisionModeler;
+    const MultipatchModeler mMultipatchModeler;
 
     ///@}
     ///@name Private methods

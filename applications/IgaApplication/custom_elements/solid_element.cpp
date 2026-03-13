@@ -273,6 +273,14 @@ void SolidElement::CalculateRightHandSide(VectorType& rRightHandSideVector,
     // RHS = ExtForces - K*temp;
     noalias(rRightHandSideVector) -= int_to_reference_weight * prod(trans(B), r_stress_vector); 
 
+
+    // for (unsigned int i = 0; i < r_geometry.size(); i++) {
+    
+    //     std::ofstream outputFile("txt_files/Id_active_control_points.txt", std::ios::app);
+    //     outputFile << r_geometry[i].GetId() << "  " <<r_geometry[i].GetDof(DISPLACEMENT_X).EquationId() <<"\n";
+    //     outputFile.close();
+    // }
+
     KRATOS_CATCH("")
 }
 
