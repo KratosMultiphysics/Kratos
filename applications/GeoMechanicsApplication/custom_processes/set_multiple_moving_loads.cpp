@@ -90,7 +90,7 @@ ModelPart& SetMultipleMovingLoadsProcess::CloneMovingConditionInComputeModelPart
     for (auto& moving_load_condition : mrModelPart.Conditions()) {
         index++;
         const Condition::Pointer CloneCondition =
-            moving_load_condition.Clone(index, moving_load_condition.GetGeometry());
+            moving_load_condition.Clone(index, moving_load_condition.GetGeometry().Points());
         new_model_part.AddCondition(CloneCondition);
     }
     return new_model_part;

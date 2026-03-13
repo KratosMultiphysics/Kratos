@@ -4113,27 +4113,27 @@ void MmgUtilities<TMMGLibrary>::GenerateReferenceMaps(
     if (r_conditions_array.size() > 0) {
         const std::string type_name = (Dimension == 2) ? "LineCondition2D2N" : (TMMGLibrary == MMGLibrary::MMG3D) ? "SurfaceCondition3D3N" : "LineCondition3D2N";
         Condition const& r_clone_condition = KratosComponents<Condition>::Get(type_name);
-        rRefCondition[0] = r_clone_condition.Create(0, it_cond_begin->GetGeometry(), it_cond_begin->pGetProperties());
+        rRefCondition[0] = r_clone_condition.Create(0, it_cond_begin->GetGeometry().Points(), it_cond_begin->pGetProperties());
     }
     if (r_elements_array.size() > 0) {
-        rRefElement[0] = it_elem_begin->Create(0, it_elem_begin->GetGeometry(), it_elem_begin->pGetProperties());
+        rRefElement[0] = it_elem_begin->Create(0, it_elem_begin->GetGeometry().Points(), it_elem_begin->pGetProperties());
     }
 
     // Now we add the reference elements and conditions
     for (auto& ref_cond : rColorMapCondition) {
         Condition::Pointer p_cond = rModelPart.pGetCondition(ref_cond.second);
         if (p_cond->GetGeometry().size() > 0) {
-            rRefCondition[ref_cond.first] = p_cond->Create(0, p_cond->GetGeometry(), p_cond->pGetProperties());
+            rRefCondition[ref_cond.first] = p_cond->Create(0, p_cond->GetGeometry().Points(), p_cond->pGetProperties());
         } else {
-            rRefCondition[ref_cond.first] = p_cond->Create(0, rRefCondition[0]->GetGeometry(), p_cond->pGetProperties());
+            rRefCondition[ref_cond.first] = p_cond->Create(0, rRefCondition[0]->GetGeometry().Points(), p_cond->pGetProperties());
         }
     }
     for (auto& ref_elem : rColorMapElement) {
         Element::Pointer p_elem = rModelPart.pGetElement(ref_elem.second);
         if (p_elem->GetGeometry().size() > 0) {
-            rRefElement[ref_elem.first] = p_elem->Create(0, p_elem->GetGeometry(), p_elem->pGetProperties());
+            rRefElement[ref_elem.first] = p_elem->Create(0, p_elem->GetGeometry().Points(), p_elem->pGetProperties());
         } else {
-            rRefElement[ref_elem.first] = p_elem->Create(0, rRefElement[0]->GetGeometry(), p_elem->pGetProperties());
+            rRefElement[ref_elem.first] = p_elem->Create(0, rRefElement[0]->GetGeometry().Points(), p_elem->pGetProperties());
         }
     }
 
@@ -4144,8 +4144,8 @@ void MmgUtilities<TMMGLibrary>::GenerateReferenceMaps(
         rRefCondition[10] = r_clone_condition.Create(0, r_clone_condition.pGetGeometry(), it_cond_begin->pGetProperties());
 
         // Inside outside elements
-        rRefElement[2] = it_elem_begin->Create(0, it_elem_begin->GetGeometry(), it_elem_begin->pGetProperties());
-        rRefElement[3] = it_elem_begin->Create(0, it_elem_begin->GetGeometry(), it_elem_begin->pGetProperties());
+        rRefElement[2] = it_elem_begin->Create(0, it_elem_begin->GetGeometry().Points(), it_elem_begin->pGetProperties());
+        rRefElement[3] = it_elem_begin->Create(0, it_elem_begin->GetGeometry().Points(), it_elem_begin->pGetProperties());
     }
 
     KRATOS_CATCH("");
