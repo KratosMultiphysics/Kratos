@@ -127,7 +127,7 @@ StressStateType CoulombWithTensionCutOffImpl::DoReturnMapping(const StressStateT
         }
 
         if (IsStressAtTensionCutoffReturnZone(trial_traction)) {
-            mPlasticityStatus = PlasticityStatus::TENSION_CUT_0FF;
+            mPlasticityStatus = PlasticityStatus::TENSION_CUT_OFF;
             return ReturnStressAtTensionCutoffReturnZone(rTrialStressState,
                                                          rElasticConstitutiveTensor, AveragingType);
         }

@@ -194,7 +194,7 @@ KRATOS_TEST_CASE_IN_SUITE(InterfaceCoulombWithTensionCutOff_CalculateMaterialRes
     // Assert
     const auto expected_traction = UblasUtilities::CreateVector({22.0 / 3.0, 8.0 / 3.0});
     KRATOS_EXPECT_VECTOR_NEAR(r_resulting_traction, expected_traction, Defaults::absolute_tolerance);
-    KRATOS_EXPECT_EQ(plasticity_status, static_cast<int>(PlasticityStatus::TENSION_CUT_0FF));
+    KRATOS_EXPECT_EQ(plasticity_status, static_cast<int>(PlasticityStatus::TENSION_CUT_OFF));
 }
 
 KRATOS_TEST_CASE_IN_SUITE(InterfaceCoulombWithTensionCutOff_CalculateMaterialResponseCauchyAtCornerReturnZone,

@@ -285,7 +285,7 @@ KRATOS_TEST_CASE_IN_SUITE(MohrCoulombWithTensionCutOff_CalculateMaterialResponse
     // Assert
     KRATOS_EXPECT_VECTOR_NEAR(resulting_cauchy_stress_vector, expected_cauchy_stress_vector,
                               Defaults::absolute_tolerance);
-    KRATOS_EXPECT_EQ(plasticity_status, static_cast<int>(PlasticityStatus::TENSION_CUT_0FF));
+    KRATOS_EXPECT_EQ(plasticity_status, static_cast<int>(PlasticityStatus::TENSION_CUT_OFF));
 
     // Act
     cauchy_stress_vector = UblasUtilities::CreateVector({14.0, 9.0, 6.0, 0.0});
@@ -295,7 +295,7 @@ KRATOS_TEST_CASE_IN_SUITE(MohrCoulombWithTensionCutOff_CalculateMaterialResponse
     // Assert
     KRATOS_EXPECT_VECTOR_NEAR(resulting_cauchy_stress_vector, expected_cauchy_stress_vector,
                               Defaults::absolute_tolerance);
-    KRATOS_EXPECT_EQ(plasticity_status, static_cast<int>(PlasticityStatus::TENSION_CUT_0FF));
+    KRATOS_EXPECT_EQ(plasticity_status, static_cast<int>(PlasticityStatus::TENSION_CUT_OFF));
 
     // Act
     cauchy_stress_vector = UblasUtilities::CreateVector({14.0, 12.0, 6.0, 0.0});
@@ -305,7 +305,7 @@ KRATOS_TEST_CASE_IN_SUITE(MohrCoulombWithTensionCutOff_CalculateMaterialResponse
     expected_cauchy_stress_vector = UblasUtilities::CreateVector({10.0, 10.0, 6.0, 0.0});
     KRATOS_EXPECT_VECTOR_NEAR(resulting_cauchy_stress_vector, expected_cauchy_stress_vector,
                               Defaults::absolute_tolerance * 1.0e3);
-    KRATOS_EXPECT_EQ(plasticity_status, static_cast<int>(PlasticityStatus::TENSION_CUT_0FF));
+    KRATOS_EXPECT_EQ(plasticity_status, static_cast<int>(PlasticityStatus::TENSION_CUT_OFF));
 }
 
 KRATOS_TEST_CASE_IN_SUITE(MohrCoulombWithTensionCutOff_CalculateMaterialResponseCauchyAtTensionApexReturnZone,
@@ -344,7 +344,7 @@ KRATOS_TEST_CASE_IN_SUITE(MohrCoulombWithTensionCutOff_CalculateMaterialResponse
     // Assert
     KRATOS_EXPECT_VECTOR_NEAR(resulting_cauchy_stress_vector, expected_cauchy_stress_vector,
                               Defaults::absolute_tolerance * 1.0e3);
-    KRATOS_EXPECT_EQ(plasticity_status, static_cast<int>(PlasticityStatus::TENSION_CUT_0FF));
+    KRATOS_EXPECT_EQ(plasticity_status, static_cast<int>(PlasticityStatus::TENSION_CUT_OFF));
 }
 
 KRATOS_TEST_CASE_IN_SUITE(MohrCoulombWithTensionCutOff_CalculateMaterialResponseCauchyWithLargeTensileStrength,

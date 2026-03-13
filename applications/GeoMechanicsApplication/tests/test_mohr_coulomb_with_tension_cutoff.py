@@ -33,13 +33,13 @@ class KratosGeoMechanicsMohrCoulombWithTensionTests(KratosUnittest.TestCase):
         self.assertEqual(plastic_status, 0)
 
     def test_dirichlet_regular_failure_zone_2d(self):
-        sig_xx, sig_yy,plastic_status = self.simulate_mohr_coulomb('test_dirichlet_regular_failure_zone_2d', 2)
+        sig_xx, sig_yy, plastic_status = self.simulate_mohr_coulomb('test_dirichlet_regular_failure_zone_2d', 2)
         self.assertAlmostEqual(sig_xx, 3.430712712091948)
         self.assertAlmostEqual(sig_yy, -25.759721409731483)
         self.assertEqual(plastic_status, 4)
 
     def test_dirichlet_tension_apex_return_zone_2d(self):
-        # tension apex could not be reached without Poissons ratio, so a different material file is used here
+        # tension apex could not be reached without Poisson's ratio, so a different material file is used here
         sig_xx, sig_yy, plastic_status = self.simulate_mohr_coulomb('test_dirichlet_tension_apex_return_zone_2d', 2)
         self.assertAlmostEqual(sig_xx, 10.0)
         self.assertAlmostEqual(sig_yy, 10.0)
