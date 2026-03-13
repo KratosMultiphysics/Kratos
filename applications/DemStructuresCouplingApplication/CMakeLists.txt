@@ -36,7 +36,7 @@ set(KRATOS_DEM_STRUCTURES_COUPLING_APPLICATION_PYTHON_INTERFACE
 
 add_library(KratosDemStructuresCouplingCore SHARED ${KRATOS_DEM_STRUCTURES_COUPLING_APPLICATION_CORE})
 target_link_libraries(KratosDemStructuresCouplingCore PUBLIC KratosDEMCore KratosStructuralMechanicsCore KratosCore KratosPoromechanicsCore)
-set_target_properties(KratosDemStructuresCouplingCore PROPERTIES COMPILE_DEFINITIONS "DEM_STRUCTURES_COUPLING_APPLICATION=EXPORT,API")
+set_target_properties(KratosDemStructuresCouplingCore PROPERTIES CXX_VISIBILITY_PRESET hidden VISIBILITY_INLINES_HIDDEN ON COMPILE_DEFINITIONS "DEM_STRUCTURES_COUPLING_APPLICATION=EXPORT,API")
 
 ###############################################################
 ## define library Kratos which defines the basic python interface

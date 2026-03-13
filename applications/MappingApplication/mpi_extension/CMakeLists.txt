@@ -28,7 +28,7 @@ file(
 add_library(KratosMappingMPICore SHARED ${KRATOS_MAPPING_MPI_EXTENSION_CORE_SOURCES})
 target_include_directories(KratosMappingMPICore SYSTEM PUBLIC ${TRILINOS_INCLUDE_DIR})
 target_link_libraries(KratosMappingMPICore PUBLIC KratosMPICore KratosCore KratosMappingCore KratosTrilinosCore ${MPI_LIBRARIES} ${TRILINOS_LIBRARIES} )
-set_target_properties(KratosMappingMPICore PROPERTIES COMPILE_DEFINITIONS "MAPPING_MPI_APPLICATION=EXPORT,API")
+set_target_properties(KratosMappingMPICore PROPERTIES CXX_VISIBILITY_PRESET hidden VISIBILITY_INLINES_HIDDEN ON COMPILE_DEFINITIONS "MAPPING_MPI_APPLICATION=EXPORT,API")
 
 ## Python module
 pybind11_add_module( KratosMappingMPIExtension MODULE THIN_LTO ${KRATOS_MAPPING_MPI_EXTENSION_PYTHON_INTERFACE_SOURCES} )

@@ -42,7 +42,7 @@ set( KRATOS_WRAPPER_SOURCES_PYTHON_INTERFACE
 
 add_library(KratosCSharpWrapperCore SHARED ${KRATOS_WRAPPER_SOURCES_CORE})
 target_link_libraries(KratosCSharpWrapperCore PUBLIC KratosCore KratosStructuralMechanicsCore)
-set_target_properties(KratosCSharpWrapperCore PROPERTIES COMPILE_DEFINITIONS "CSHARP_WRAPPER_APPLICATION=EXPORT,API")
+set_target_properties(KratosCSharpWrapperCore PROPERTIES CXX_VISIBILITY_PRESET hidden VISIBILITY_INLINES_HIDDEN ON COMPILE_DEFINITIONS "CSHARP_WRAPPER_APPLICATION=EXPORT,API")
 
 ###############################################################
 ## define library Kratos which defines the basic python interface

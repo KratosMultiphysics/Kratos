@@ -37,7 +37,7 @@ endif(${KRATOS_BUILD_TESTING} MATCHES ON)
 ## FluidDynamicsBiomedicalApplication core library (C++ parts)
 add_library(KratosFluidDynamicsHydraulicsCore SHARED ${KRATOS_FLUID_DYNAMICS_HYDRAULICS_APPLICATION_CORE_SOURCES})
 target_link_libraries(KratosFluidDynamicsHydraulicsCore PUBLIC KratosCore KratosFluidDynamicsCore)
-set_target_properties(KratosFluidDynamicsHydraulicsCore PROPERTIES COMPILE_DEFINITIONS "FLUID_DYNAMICS_HYDRAULICS_APPLICATION=EXPORT,API")
+set_target_properties(KratosFluidDynamicsHydraulicsCore PROPERTIES CXX_VISIBILITY_PRESET hidden VISIBILITY_INLINES_HIDDEN ON COMPILE_DEFINITIONS "FLUID_DYNAMICS_HYDRAULICS_APPLICATION=EXPORT,API")
 
 ## define library Kratos which defines the basic python interface
 pybind11_add_module(KratosFluidDynamicsHydraulicsApplication MODULE THIN_LTO ${KRATOS_FLUID_DYNAMICS_HYDRAULICS_APPLICATION_PYTHON_INTERFACE})

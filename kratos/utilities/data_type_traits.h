@@ -325,6 +325,8 @@ private:
     ///@name Private static operations
     ///@{
 
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wtautological-compare"
     template<unsigned int TCheckIndex, unsigned int TCurrentIndex = 0>
     static constexpr bool IsDimensionDynamicImpl()
     {
@@ -334,6 +336,7 @@ private:
             static_assert(TCheckIndex != TCheckIndex, "Invalid dimension index.");
         }
     }
+#pragma GCC diagnostic pop
 
     ///@}
     ///@name Friends
@@ -1915,6 +1918,8 @@ private:
     ///@name Private static operations
     ///@{
 
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wtautological-compare"
     template<unsigned int TCheckIndex, unsigned int TCurrentIndex>
     static constexpr bool IsDimensionDynamicImpl()
     {
@@ -1924,6 +1929,7 @@ private:
             static_assert(TCheckIndex != TCheckIndex, "Invalid dimension index.");
         }
     }
+#pragma GCC diagnostic pop
 
     ///@}
     ///@name Friends

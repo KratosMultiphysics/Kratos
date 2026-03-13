@@ -1996,6 +1996,6 @@ void ShellThinElement3D4N<TKinematics>::load(Serializer& rSerializer)
     KRATOS_SERIALIZE_LOAD_BASE_CLASS(rSerializer, BaseType);
 }
 
-template class ShellThinElement3D4N<ShellKinematics::NONLINEAR_COROTATIONAL>;
+template class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) ShellThinElement3D4N<ShellKinematics::NONLINEAR_COROTATIONAL>;
 
 }

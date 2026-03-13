@@ -182,8 +182,8 @@ std::string MmgIO<TMMGLibrary>::GetMmgVersion()
 /***********************************************************************************/
 /***********************************************************************************/
 
-template class MmgIO<MMGLibrary::MMG2D>;
-template class MmgIO<MMGLibrary::MMG3D>;
-template class MmgIO<MMGLibrary::MMGS>;
+template class KRATOS_API(MESHING_APPLICATION) MmgIO<MMGLibrary::MMG2D>;
+template class KRATOS_API(MESHING_APPLICATION) MmgIO<MMGLibrary::MMG3D>;
+template class KRATOS_API(MESHING_APPLICATION) MmgIO<MMGLibrary::MMGS>;
 
 }// namespace Kratos.

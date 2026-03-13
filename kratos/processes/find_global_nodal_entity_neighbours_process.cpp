@@ -33,28 +33,28 @@
 namespace Kratos
 {
 
-template <>
-ModelPart::ConditionsContainerType& FindGlobalNodalEntityNeighboursProcess<ModelPart::ConditionsContainerType>::GetContainer(ModelPart& rModelPart)
+template <class TContainerType>
+TContainerType& FindGlobalNodalEntityNeighboursProcess<TContainerType>::GetContainer(ModelPart& rModelPart)
 {
-    return rModelPart.Conditions();
+    if constexpr (std::is_same_v<TContainerType, ModelPart::ElementsContainerType>) {
+        return rModelPart.Elements();
+    } else if constexpr (std::is_same_v<TContainerType, ModelPart::ConditionsContainerType>) {
+        return rModelPart.Conditions();
+    } else {
+        KRATOS_ERROR << "Unsupported container type" << std::endl;
+    }
 }
 
-template <>
-ModelPart::ElementsContainerType& FindGlobalNodalEntityNeighboursProcess<ModelPart::ElementsContainerType>::GetContainer(ModelPart& rModelPart)
+template <class TContainerType>
+const Variable<typename FindGlobalNodalEntityNeighboursProcess<TContainerType>::GlobalEntityPointersVectorType>& FindGlobalNodalEntityNeighboursProcess<TContainerType>::GetDefaultOutputVariable()
 {
-    return rModelPart.Elements();
-}
-
-template <>
-const Variable<FindGlobalNodalEntityNeighboursProcess<ModelPart::ConditionsContainerType>::GlobalEntityPointersVectorType>& FindGlobalNodalEntityNeighboursProcess<ModelPart::ConditionsContainerType>::GetDefaultOutputVariable()
-{
-    return NEIGHBOUR_CONDITIONS;
-}
-
-template <>
-const Variable<FindGlobalNodalEntityNeighboursProcess<ModelPart::ElementsContainerType>::GlobalEntityPointersVectorType>& FindGlobalNodalEntityNeighboursProcess<ModelPart::ElementsContainerType>::GetDefaultOutputVariable()
-{
-    return NEIGHBOUR_ELEMENTS;
+    if constexpr (std::is_same_v<TContainerType, ModelPart::ElementsContainerType>) {
+        return NEIGHBOUR_ELEMENTS;
+    } else if constexpr (std::is_same_v<TContainerType, ModelPart::ConditionsContainerType>) {
+        return NEIGHBOUR_CONDITIONS;
+    } else {
+        KRATOS_ERROR << "Unsupported container type" << std::endl;
+    }
 }
 
 template<class TContainerType>
@@ -95,6 +95,14 @@ FindGlobalNodalEntityNeighboursProcess<ModelPart::ElementsContainerType>::FindGl
       mrOutputVariable(NEIGHBOUR_ELEMENTS)
 {
     mModelPartName = rModelPart.FullName();
+}
+
+template<class TContainerType>
+FindGlobalNodalEntityNeighboursProcess<TContainerType>::FindGlobalNodalEntityNeighboursProcess(
+    ModelPart& rModelPart)
+    : mrModel(rModelPart.GetModel())
+{
+    KRATOS_ERROR << "Invalid Container" << std::endl;
 }
 
 template<class TContainerType>
