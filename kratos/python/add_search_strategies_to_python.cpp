@@ -68,7 +68,8 @@ void CopyRadiusArrayToPython(
 
     // Create the radius array
     rRadiusArray.resize(size_array);
-    IndexPartition<std::size_t>(size_array).for_each([&](std::size_t i) {
+    const int num_threads = ParallelUtilities::GetNumThreads();
+    IndexPartition<std::size_t, ChunkPartitioningScheme::DIVIDE_BY_NUMBER_OF_CHUNKS>(size_array, num_threads).for_each([&](std::size_t i) {
         rRadiusArray[i] = rListOfRadius[i].cast<double>();
         //rRadiusArray[i] = rListOfRadius[i];
     });
