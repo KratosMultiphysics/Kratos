@@ -50,6 +50,7 @@
 #include "geometries/nurbs_curve_geometry.h"
 #include "geometries/nurbs_curve_on_surface_geometry.h"
 #include "geometries/surface_in_nurbs_volume_geometry.h"
+#include "geometries/brep_surface.h" 
 
 namespace Kratos::Python
 {
@@ -368,6 +369,31 @@ void  AddGeometriesToPython(pybind11::module& m)
             NurbsCurveOnSurfaceGeometry3DType::NurbsCurveType::Pointer>())
         ;
 
+    // BrepSurface
+    using PointContainerType = Kratos::PointerVector<Kratos::Point>;
+    using BrepSurfaceType = Kratos::BrepSurface<NodeContainerType, false, PointContainerType>;
+    py::class_<BrepSurfaceType, typename BrepSurfaceType::Pointer, GeometryType>(m, "BrepSurface")
+        .def("EvaluateShapeFunctionsAtLocalCoordinates",
+            [](const BrepSurfaceType& self, const CoordinatesArrayType& rLocal, const IndexType derivative_order)
+            {
+                std::vector<IndexType> cp_ids;
+                Vector shape_functions_values;
+                self.ShapeFunctionsValuesAndCPIndices(rLocal, cp_ids, shape_functions_values, derivative_order, nullptr);
+                return py::make_tuple(cp_ids, shape_functions_values);
+            },
+            py::arg("local_coordinates"),
+            py::arg("derivative_order") = 0
+        )
+        .def("KnotsU", [](const BrepSurfaceType& self)
+            {
+                return self.KnotsU();
+            }
+        )
+        .def("KnotsV", [](const BrepSurfaceType& self)
+        {
+            return self.KnotsV();
+        }
+        );
 
     py::class_<SurfaceInNurbsVolumeGeometry<3, NodeContainerType>, SurfaceInNurbsVolumeGeometry<3, NodeContainerType>::Pointer, GeometryType>(m, "SurfaceInNurbsVolumeGeometry")
         .def(py::init<NurbsVolumeGeometry<NodeContainerType>::Pointer, GeometryType::Pointer>())

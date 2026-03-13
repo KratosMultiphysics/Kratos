@@ -581,8 +581,8 @@ void MasterSlaveConstraintAssembler<TSparse,TDense>::ComputeDependentSolution(ty
 
 
 template <class TSparse, class TDense>
-const typename MasterSlaveConstraintAssembler<TSparse,TDense>::Base::DofSet&
-MasterSlaveConstraintAssembler<TSparse,TDense>::GetDependentDofs(const typename Base::DofSet& rIndependentDofSet) const noexcept
+const typename MasterSlaveConstraintAssembler<TSparse,TDense>::DofSetType&
+MasterSlaveConstraintAssembler<TSparse,TDense>::GetDependentDofs(const typename MasterSlaveConstraintAssembler<TSparse,TDense>::DofSetType& rIndependentDofSet) const noexcept
 {
     return mpImpl->mDependentSystem.value().mDofSet;
 }

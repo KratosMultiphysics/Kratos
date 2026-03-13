@@ -74,9 +74,9 @@ public:
      * Note that this constructor is only enabled when a CSR matrix type is provided.
      * @param rA Reference to the CSR matrix
      */
-    SparseMatrixLinearOperator(MatrixType& rA)
-        : LinearOperator<TLinearAlgebra>(std::make_pair(rA.size1(), rA.size2()))
-        , mrCsrMatrix(rA)
+    SparseMatrixLinearOperator(typename MatrixType::Pointer pA)
+        : LinearOperator<TLinearAlgebra>(std::make_pair(pA->size1(), pA->size2()))
+        , mpCsrMatrix(pA)
     {
     }
 
@@ -107,14 +107,14 @@ public:
         const VectorType& rX,
         VectorType& rY) const override
     {
-        mrCsrMatrix.SpMV(rX, rY);
+        mpCsrMatrix->SpMV(rX, rY);
     }
 
     void TransposeSpMV(
         const VectorType& rX,
         VectorType& rY) const override
     {
-        mrCsrMatrix.TransposeSpMV(rX, rY);
+        mpCsrMatrix->TransposeSpMV(rX, rY);
     }
 
     ///@}
@@ -123,12 +123,22 @@ public:
 
     MatrixType& GetMatrix() override
     {
-        return mrCsrMatrix;
+        return *mpCsrMatrix;
     }
 
     const MatrixType& GetMatrix() const override
     {
-        return mrCsrMatrix;
+        return *mpCsrMatrix;
+    }
+
+    typename MatrixType::Pointer pGetMatrix() override
+    {
+        return mpCsrMatrix;
+    }
+
+    const typename MatrixType::Pointer pGetMatrix() const override
+    {
+        return mpCsrMatrix;
     }
 
     ///@}
@@ -146,8 +156,8 @@ public:
     ///@name Member Variables
     ///@{
 
-    /// Reference to the CSR matrix
-    MatrixType& mrCsrMatrix;
+    /// Pointer to the CSR matrix
+    typename MatrixType::Pointer mpCsrMatrix = nullptr;
 
     ///@}
 }; // class SparseMatrixLinearOperator
