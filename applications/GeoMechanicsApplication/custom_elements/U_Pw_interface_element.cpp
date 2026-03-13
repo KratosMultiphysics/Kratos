@@ -510,9 +510,6 @@ int UPwInterfaceElement::Check(const ProcessInfo& rCurrentProcessInfo) const
         const auto r_properties = GetProperties();
 
         if (!GetIgnoreUndrained(r_properties)) {
-            const auto check_properties =
-                CheckProperties(r_properties, "property", Id(), CheckProperties::Bounds::AllInclusive);
-
             const auto has_permeability_contribution =
                 std::ranges::find(mContributions, CalculationContribution::Permeability) !=
                 mContributions.end();
@@ -520,6 +517,9 @@ int UPwInterfaceElement::Check(const ProcessInfo& rCurrentProcessInfo) const
                 std::ranges::find(mContributions, CalculationContribution::FluidBodyFlow) !=
                 mContributions.end();
             if (has_permeability_contribution || has_fluid_body_flow_contribution) {
+                const auto check_properties =
+                    CheckProperties(r_properties, "material properties at interface element", Id(),
+                                    CheckProperties::Bounds::AllInclusive);
                 check_properties.Check(TRANSVERSAL_PERMEABILITY);
                 check_properties.Check(DYNAMIC_VISCOSITY);
 
