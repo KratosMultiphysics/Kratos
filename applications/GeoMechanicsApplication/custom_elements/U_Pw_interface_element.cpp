@@ -14,7 +14,6 @@
 
 #include "custom_geometries/interface_geometry.hpp"
 #include "custom_retention/retention_law_factory.h"
-#include "custom_utilities/check_utilities.hpp"
 #include "custom_utilities/constitutive_law_utilities.h"
 #include "custom_utilities/dof_utilities.hpp"
 #include "custom_utilities/element_utilities.hpp"
@@ -508,26 +507,6 @@ int UPwInterfaceElement::Check(const ProcessInfo& rCurrentProcessInfo) const
             << ") and constitutive laws (" << mConstitutiveLaws.size() << ") do not match.\n";
 
         const auto r_properties = GetProperties();
-
-        if (!GetIgnoreUndrained(r_properties)) {
-            const auto has_permeability_contribution =
-                std::ranges::find(mContributions, CalculationContribution::Permeability) !=
-                mContributions.end();
-            const auto has_fluid_body_flow_contribution =
-                std::ranges::find(mContributions, CalculationContribution::FluidBodyFlow) !=
-                mContributions.end();
-            if (has_permeability_contribution || has_fluid_body_flow_contribution) {
-                const auto check_properties =
-                    CheckProperties(r_properties, "material properties at interface element", Id(),
-                                    CheckProperties::Bounds::AllInclusive);
-                check_properties.Check(TRANSVERSAL_PERMEABILITY);
-                check_properties.Check(DYNAMIC_VISCOSITY);
-
-                if (has_fluid_body_flow_contribution) {
-                    check_properties.Check(DENSITY_WATER);
-                }
-            }
-        }
         const auto expected_size = mpStressStatePolicy->GetVoigtSize();
         ConstitutiveLawUtilities::CheckStrainSize(r_properties, expected_size, Id());
 
