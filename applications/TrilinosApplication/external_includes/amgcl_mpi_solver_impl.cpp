@@ -33,7 +33,6 @@
 #include "trilinos_space.h"
 #include "amgcl_mpi_solver.h"
 #include "custom_utilities/trilinos_solver_utilities.h"
-#include "external_includes/amgcl_mpi_solve_functions.h"
 
 #define KRATOS_AMGCL_MPI // <= avoid including mpi.h in KratosCore
 #include "linear_solvers/amgcl_solver_impl.hpp"
