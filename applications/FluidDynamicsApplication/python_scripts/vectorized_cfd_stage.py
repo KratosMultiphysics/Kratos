@@ -101,7 +101,7 @@ class VectorizedCFDStage(analysis_stage.AnalysisStage):
         v.ravel()[self.slip_vel_indices] -= (v_dot_n * n_unit).ravel()
 
     def ComputeH(self,DN):
-        inverse_h = xp.average(xp.linalg.norm(DN,axis=2),axis=1)
+        inverse_h = xp.mean(xp.linalg.norm(DN,axis=2),axis=1)
         h = 1.0/inverse_h
         return h
 
