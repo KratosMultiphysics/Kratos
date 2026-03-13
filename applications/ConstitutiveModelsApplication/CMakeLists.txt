@@ -75,7 +75,7 @@ set( KRATOS_CONSTITUTIVE_MODELS_APPLICATION_PYTHON_INTERFACE
 
 add_library(KratosConstitutiveModelsCore SHARED ${KRATOS_CONSTITUTIVE_MODELS_APPLICATION_CORE})
 target_link_libraries(KratosConstitutiveModelsCore PUBLIC KratosCore)
-set_target_properties(KratosConstitutiveModelsCore PROPERTIES COMPILE_DEFINITIONS "CONSTITUTIVE_MODELS_APPLICATION=EXPORT,API")
+set_target_properties(KratosConstitutiveModelsCore PROPERTIES CXX_VISIBILITY_PRESET hidden VISIBILITY_INLINES_HIDDEN ON COMPILE_DEFINITIONS "CONSTITUTIVE_MODELS_APPLICATION=EXPORT,API")
 
 ###############################################################
 ## define library Kratos which defines the basic python interface

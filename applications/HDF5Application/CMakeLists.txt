@@ -95,7 +95,7 @@ if(USE_MPI)
 else(USE_MPI)
   target_link_libraries(KratosHDF5Core PUBLIC KratosCore ${HDF5_C_LIBRARIES} ${KRATOS_HDF5_APPLICATION_EXTRA_LIBS})
 endif(USE_MPI)
-set_target_properties(KratosHDF5Core PROPERTIES COMPILE_DEFINITIONS "HDF5_APPLICATION=EXPORT,API")
+set_target_properties(KratosHDF5Core PROPERTIES CXX_VISIBILITY_PRESET hidden VISIBILITY_INLINES_HIDDEN ON COMPILE_DEFINITIONS "HDF5_APPLICATION=EXPORT,API")
 
 # define library Kratos which defines the basic python interface
 pybind11_add_module(KratosHDF5Application MODULE THIN_LTO ${KRATOS_HDF5_APPLICATION_PYTHON_INTERFACE})

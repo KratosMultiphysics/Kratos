@@ -28,7 +28,7 @@ endif(${KRATOS_BUILD_TESTING} MATCHES ON)
 ## FSIApplication core library (C++ parts)
 add_library( KratosFSICore SHARED ${KRATOS_FSI_APPLICATION_CORE_SOURCES})
 target_link_libraries( KratosFSICore PUBLIC KratosCore)
-set_target_properties( KratosFSICore PROPERTIES COMPILE_DEFINITIONS "FSI_APPLICATION=EXPORT,API")
+set_target_properties( KratosFSICore PROPERTIES CXX_VISIBILITY_PRESET hidden VISIBILITY_INLINES_HIDDEN ON COMPILE_DEFINITIONS "FSI_APPLICATION=EXPORT,API")
 
 ## FSIApplication python module
 pybind11_add_module( KratosFSIApplication MODULE THIN_LTO ${KRATOS_FSI_APPLICATION_PYTHON_INTERFACE_SOURCES} )

@@ -138,7 +138,7 @@ set(KRATOS_DEM_APPLICATION_PYTHON_INTERFACE
 
 add_library(KratosDEMCore SHARED ${KRATOS_DEM_APPLICATION_CORE})
 target_link_libraries(KratosDEMCore PUBLIC KratosCore)
-set_target_properties(KratosDEMCore PROPERTIES COMPILE_DEFINITIONS "DEM_APPLICATION=EXPORT,API")
+set_target_properties(KratosDEMCore PROPERTIES CXX_VISIBILITY_PRESET hidden VISIBILITY_INLINES_HIDDEN ON COMPILE_DEFINITIONS "DEM_APPLICATION=EXPORT,API")
 
 ###############################################################
 ## define library Kratos which defines the basic python interface

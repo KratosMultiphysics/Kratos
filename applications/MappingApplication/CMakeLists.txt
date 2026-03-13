@@ -28,7 +28,7 @@ file(GLOB_RECURSE KRATOS_MAPPING_APPLICATION_PYTHON_INTERFACE ${CMAKE_CURRENT_SO
 
 add_library(KratosMappingCore SHARED ${KRATOS_MAPPING_APPLICATION_CORE})
 target_link_libraries(KratosMappingCore PUBLIC KratosCore )
-set_target_properties(KratosMappingCore PROPERTIES COMPILE_DEFINITIONS "MAPPING_APPLICATION=EXPORT,API")
+set_target_properties(KratosMappingCore PROPERTIES CXX_VISIBILITY_PRESET hidden VISIBILITY_INLINES_HIDDEN ON COMPILE_DEFINITIONS "MAPPING_APPLICATION=EXPORT,API")
 
 ###############################################################
 ## define library Kratos which defines the basic python interface
