@@ -264,7 +264,7 @@ bool CoulombWithTensionCutOffImpl::IsStressAtCapCornerReturnZone(const Geo::PQ& 
     const auto derivative_of_mc_flow_function =
         mCoulombYieldSurface.DerivativeOfFlowFunction(rTrialPQ, AveragingType);
     const auto cof = derivative_of_mc_flow_function[0] / derivative_of_mc_flow_function[1];
-    return rTrialPQ.Q() - cap_corner_point.Q() - cof * (rTrialPQ.P() - cap_corner_point.P()) < 0.0;
+    return rTrialPQ.P() - cap_corner_point.P() - cof * (rTrialPQ.Q() - cap_corner_point.Q()) < 0.0;
 }
 
 Geo::SigmaTau CoulombWithTensionCutOffImpl::ReturnStressAtTensionApexReturnZone(const Geo::SigmaTau&) const
@@ -417,28 +417,36 @@ Geo::PrincipalStresses CoulombWithTensionCutOffImpl::ReturnStressAtCapCornerZone
         StressStrainUtilities::TransformPrincipalStressesToPandQ(principal_stress_correction_cap);
 
     const auto p_q = StressStrainUtilities::TransformPrincipalStressesToPandQ(rTrialPrincipalStresses);
-    const auto c0 = 6.0 / (3.0 - mCoulombYieldSurface.GetFrictionAngleInRadians());
+    const auto sin_phi         = std::sin(mCoulombYieldSurface.GetFrictionAngleInRadians());
+    const auto cap_size_square = std::pow(mCompressionCapYieldSurface->GetCapSize(), 2);
+
+    const auto c0 = 6.0 * sin_phi / (3.0 - sin_phi);
     const auto c1 = pq_correction_Coulomb.Q() + c0 * pq_correction_Coulomb.P();
     const auto c2 = pq_correction_cap.Q() + c0 * pq_correction_cap.P();
     const auto c3 = -mCoulombYieldSurface.YieldFunctionValue(rTrialPrincipalStresses);
 
-    const auto c4 = MathUtils<>::Dot(pq_correction_Coulomb.Values(), pq_correction_Coulomb.Values());
-    const auto c5 = MathUtils<>::Dot(pq_correction_cap.Values(), pq_correction_cap.Values());
-    const auto c6 = 2.0 * MathUtils<>::Dot(p_q.Values(), pq_correction_Coulomb.Values());
-    const auto c7 = 2.0 * MathUtils<>::Dot(p_q.Values(), pq_correction_cap.Values());
-    const auto c8 = 2.0 * MathUtils<>::Dot(pq_correction_Coulomb.Values(), pq_correction_cap.Values());
+    const auto c4 = std::pow(pq_correction_Coulomb.Q(), 2) / cap_size_square +
+                    std::pow(pq_correction_Coulomb.P(), 2);
+    const auto c5 =
+        std::pow(pq_correction_cap.Q(), 2) / cap_size_square + std::pow(pq_correction_cap.P(), 2);
+    const auto c6 = 2.0 * (p_q.Q() * pq_correction_Coulomb.Q() / cap_size_square +
+                           p_q.P() * pq_correction_Coulomb.P());
+    const auto c7 =
+        2.0 * (p_q.Q() * pq_correction_cap.Q() / cap_size_square + p_q.P() * pq_correction_cap.P());
+    const auto c8 = 2.0 * (pq_correction_Coulomb.Q() * pq_correction_cap.Q() / cap_size_square +
+                           pq_correction_Coulomb.P() * pq_correction_cap.P());
     const auto c9 = -mCompressionCapYieldSurface->YieldFunctionValue(rTrialPrincipalStresses);
 
     const auto A = c2 / c1 * (c2 * c4 / c1 - c8) + c5;
     const auto B = (-2.0 * c2 * c3 * c4 / c1 - c2 * c6 + c3 * c8) / c1 + c7;
     const auto C = (c3 * c4 / c1 + c6) * c3 / c1 - c9;
 
-    const auto delta          = B * B - 4.0 * A * C;
-    auto       lambda_Coulomb = 0.0;
+    const auto delta      = B * B - 4.0 * A * C;
+    auto       lambda_cap = 0.0;
     if (delta > 0.0) {
-        lambda_Coulomb = std::min((-B - std::sqrt(delta)) / (2.0 * A), (-B + std::sqrt(delta)) / (2.0 * A));
+        lambda_cap = (-B + std::sqrt(delta)) / (2.0 * A);
     }
-    auto lambda_cap = (c3 - c2 * lambda_Coulomb) / c1;
+    auto lambda_Coulomb = (c3 - c2 * lambda_cap) / c1;
 
     return rTrialPrincipalStresses +
            Geo::PrincipalStresses{lambda_Coulomb * principal_stress_correction_Coulomb.Values() +
