@@ -104,6 +104,9 @@ public:
 
     QuadratureMethod GetQuadratureMethod(IndexType DimensionIndex) const
     {
+        if (DimensionIndex == 0)
+            return QuadratureMethod::GAUSS;
+
         return mQuadratureMethodVector[DimensionIndex];
     }
 
