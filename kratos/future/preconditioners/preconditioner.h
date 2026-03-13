@@ -13,13 +13,10 @@
 #pragma once
 
 // System includes
-#include <string>
-#include <iostream>
 
 // External includes
 
 // Project includes
-#include "includes/define.h"
 #include "includes/model_part.h"
 #include "future/linear_operators/linear_operator.h"
 
@@ -190,7 +187,6 @@ public:
         mpModelPart = &rModelPart;
     }
 
-
     ///@}
     ///@name Inquiry
     ///@{
@@ -243,12 +239,10 @@ public:
     ///@name Friends
     ///@{
 
-
     ///@}
 protected:
     ///@name Protected static Member Variables
     ///@{
-
 
     ///@}
     ///@name Protected member Variables
@@ -262,26 +256,21 @@ protected:
     ///@name Protected Operators
     ///@{
 
-
     ///@}
     ///@name Protected Operations
     ///@{
-
 
     ///@}
     ///@name Protected  Access
     ///@{
 
-
     ///@}
     ///@name Protected Inquiry
     ///@{
 
-
     ///@}
     ///@name Protected LifeCycle
     ///@{
-
 
     ///@}
 }; // Class Preconditioner
