@@ -6,9 +6,9 @@ import KratosMultiphysics.OptimizationApplication as KOA
 import KratosMultiphysics.OptimizationApplication.filtering.python_solvers_wrapper_implicit_filters as implicit_filter_solvers
 
 # Importing the base class
-from KratosMultiphysics.analysis_stage import AnalysisStage
+from KratosMultiphysics.analysis_stage_with_solver import AnalysisStageWithSolver
 
-class HelmholtzAnalysis(AnalysisStage):
+class HelmholtzAnalysis(AnalysisStageWithSolver):
     """
     This class is the main-script of the implicit filtering analysis
     It can be imported and used as "black-box"

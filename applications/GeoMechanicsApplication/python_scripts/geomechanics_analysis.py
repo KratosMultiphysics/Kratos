@@ -8,11 +8,11 @@ import KratosMultiphysics as Kratos
 import KratosMultiphysics.StructuralMechanicsApplication
 import KratosMultiphysics.GeoMechanicsApplication as KratosGeo
 
-from KratosMultiphysics.analysis_stage import AnalysisStage
+from KratosMultiphysics.analysis_stage_with_solver import AnalysisStageWithSolver
 from KratosMultiphysics.GeoMechanicsApplication import geomechanics_solvers_wrapper
 
 
-class GeoMechanicsAnalysis(AnalysisStage):
+class GeoMechanicsAnalysis(AnalysisStageWithSolver):
     def __init__(self, model, project_parameters):
         # Time monitoring
         KratosMultiphysics.Logger.PrintInfo(self._GetSimulationName(),timer.ctime())

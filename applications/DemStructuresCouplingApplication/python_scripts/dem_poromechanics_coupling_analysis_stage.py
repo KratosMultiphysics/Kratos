@@ -1,6 +1,6 @@
 import KratosMultiphysics as Kratos
 from KratosMultiphysics.python_solver import PythonSolver
-import KratosMultiphysics.analysis_stage
+import KratosMultiphysics.analysis_stage_with_solver
 
 import KratosMultiphysics.DEMApplication as DEM
 import KratosMultiphysics.PoromechanicsApplication as Poromechanics
@@ -11,7 +11,7 @@ from KratosMultiphysics.DEMApplication.DEM_analysis_stage import DEMAnalysisStag
 import os
 import math
 
-class PoroMechanicsCouplingWithDemRadialMultiDofsControlModuleAnalysisStage(Kratos.analysis_stage.AnalysisStage):
+class PoroMechanicsCouplingWithDemRadialMultiDofsControlModuleAnalysisStage(Kratos.analysis_stage_with_solver.AnalysisStageWithSolver):
     def __init__(self, model, parameters):
 
         self.parameters = parameters
