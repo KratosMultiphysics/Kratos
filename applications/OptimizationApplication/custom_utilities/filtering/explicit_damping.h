@@ -17,8 +17,7 @@
 
 // Project includes
 #include "includes/define.h"
-#include "expression/expression.h"
-#include "expression/container_expression.h"
+#include "tensor_adaptors/tensor_adaptor.h"
 
 // Application includes
 #include "entity_point.h"
@@ -61,15 +60,15 @@ class KRATOS_API(OPTIMIZATION_APPLICATION) ExplicitDamping
     /**
      * @brief Set the damping radius
      */
-    virtual void SetRadius(const ContainerExpression<TContainerType>& rExpression)
+    virtual void SetRadius(TensorAdaptor<double>::Pointer pTensorAdaptor)
     {
         KRATOS_ERROR << "Calling base class ExplicitDamping::SetRadius. This should be implemented in the derived class.";
     }
 
     /**
-     * @brief Get the used damping radius expression
+     * @brief Get the used damping radius tensor adaptor
      */
-    virtual typename ContainerExpression<TContainerType>::Pointer GetRadius() const
+    virtual TensorAdaptor<double>::Pointer GetRadius() const
     {
         KRATOS_ERROR << "Calling base class ExplicitDamping::GetRadius. This should be implemented in the derived class.";
         return nullptr;

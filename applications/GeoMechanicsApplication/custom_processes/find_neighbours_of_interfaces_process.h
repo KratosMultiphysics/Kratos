@@ -1,0 +1,49 @@
+// KRATOS___
+//     //   ) )
+//    //         ___      ___
+//   //  ____  //___) ) //   ) )
+//  //    / / //       //   / /
+// ((____/ / ((____   ((___/ /  MECHANICS
+//
+//  License:         geo_mechanics_application/license.txt
+//
+//  Main authors:    Anne van de Graaf
+//                   Richard Faasse
+//
+
+#pragma once
+
+#include "includes/kratos_export_api.h"
+#include "processes/process.h"
+
+#include <functional>
+#include <string>
+#include <vector>
+
+namespace Kratos
+{
+
+class Model;
+class Parameters;
+
+class KRATOS_API(GEO_MECHANICS_APPLICATION) FindNeighboursOfInterfacesProcess : public Process
+{
+public:
+    KRATOS_CLASS_POINTER_DEFINITION(FindNeighboursOfInterfacesProcess);
+
+    FindNeighboursOfInterfacesProcess(Model& rModel, const Parameters& rProcessSettings);
+
+    void ExecuteInitialize() override;
+    void ExecuteFinalize() override;
+
+    [[nodiscard]] std::string Info() const override;
+
+private:
+    void FindAllNeighboursOfElements();
+    void RemoveNeighboursWithoutHigherLocalDimension() const;
+
+    std::vector<std::reference_wrapper<ModelPart>> mrInterfaceModelParts;
+    ModelPart&                                     mrModelPartWithCandidateNeighbours;
+};
+
+} // namespace Kratos

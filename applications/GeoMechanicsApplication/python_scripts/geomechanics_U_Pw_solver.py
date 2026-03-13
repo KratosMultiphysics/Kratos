@@ -42,7 +42,6 @@ class UPwSolver(GeoSolver):
             "clear_storage": false,
             "compute_reactions": false,
             "move_mesh_flag": false,
-            "nodal_smoothing": false,
             "solution_type": "quasi_static",
             "scheme_type": "Newmark",
             "newmark_beta": 0.25,

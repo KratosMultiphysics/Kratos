@@ -10,7 +10,6 @@
 //  Main authors:    Wijtze Pieter Kikstra
 //                   Richard Faasse
 
-#include "constitutive_law_dimension.h"
 #include "custom_constitutive/incremental_linear_elastic_law.h"
 #include "geo_mechanics_application_variables.h"
 
@@ -49,8 +48,6 @@ void SetShearEntriesToZero(Matrix& rMatrix, std::size_t NumberOfNormalComponents
 namespace Kratos
 {
 
-GeoIncrementalLinearElasticLaw::GeoIncrementalLinearElasticLaw() = default;
-
 GeoIncrementalLinearElasticLaw::GeoIncrementalLinearElasticLaw(std::unique_ptr<ConstitutiveLawDimension> pConstitutiveDimension)
     : GeoLinearElasticLaw{},
       mpConstitutiveDimension(std::move(pConstitutiveDimension)),
@@ -86,10 +83,6 @@ GeoIncrementalLinearElasticLaw& GeoIncrementalLinearElasticLaw::operator=(const 
 
     return *this;
 }
-
-GeoIncrementalLinearElasticLaw::GeoIncrementalLinearElasticLaw(GeoIncrementalLinearElasticLaw&& rOther) noexcept = default;
-GeoIncrementalLinearElasticLaw& GeoIncrementalLinearElasticLaw::operator=(GeoIncrementalLinearElasticLaw&& rOther) noexcept = default;
-GeoIncrementalLinearElasticLaw::~GeoIncrementalLinearElasticLaw() = default;
 
 ConstitutiveLaw::Pointer GeoIncrementalLinearElasticLaw::Clone() const
 {

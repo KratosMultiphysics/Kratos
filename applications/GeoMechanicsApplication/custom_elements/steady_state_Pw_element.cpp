@@ -11,13 +11,43 @@
 //
 
 // Application includes
-#include "custom_elements/steady_state_Pw_element.hpp"
-#include "custom_utilities/check_utilities.h"
+#include "custom_elements/steady_state_Pw_element.h"
+#include "custom_utilities/check_utilities.hpp"
+#include "custom_utilities/element_utilities.hpp"
+#include "custom_utilities/stress_strain_utilities.h"
 #include "custom_utilities/transport_equation_utilities.hpp"
+#include "geo_mechanics_application_variables.h"
 #include "includes/cfd_variables.h"
 
 namespace Kratos
 {
+template <unsigned int TDim, unsigned int TNumNodes>
+SteadyStatePwElement<TDim, TNumNodes>::SteadyStatePwElement(IndexType             NewId,
+                                                            const NodesArrayType& ThisNodes,
+                                                            std::unique_ptr<StressStatePolicy> pStressStatePolicy,
+                                                            std::unique_ptr<IntegrationCoefficientModifier> pCoefficientModifier)
+    : BaseType(NewId, ThisNodes, std::move(pStressStatePolicy), std::move(pCoefficientModifier))
+{
+}
+
+template <unsigned int TDim, unsigned int TNumNodes>
+SteadyStatePwElement<TDim, TNumNodes>::SteadyStatePwElement(IndexType             NewId,
+                                                            GeometryType::Pointer pGeometry,
+                                                            std::unique_ptr<StressStatePolicy> pStressStatePolicy,
+                                                            std::unique_ptr<IntegrationCoefficientModifier> pCoefficientModifier)
+    : BaseType(NewId, pGeometry, std::move(pStressStatePolicy), std::move(pCoefficientModifier))
+{
+}
+
+template <unsigned int TDim, unsigned int TNumNodes>
+SteadyStatePwElement<TDim, TNumNodes>::SteadyStatePwElement(IndexType               NewId,
+                                                            GeometryType::Pointer   pGeometry,
+                                                            PropertiesType::Pointer pProperties,
+                                                            std::unique_ptr<StressStatePolicy> pStressStatePolicy,
+                                                            std::unique_ptr<IntegrationCoefficientModifier> pCoefficientModifier)
+    : BaseType(NewId, pGeometry, pProperties, std::move(pStressStatePolicy), std::move(pCoefficientModifier))
+{
+}
 
 template <unsigned int TDim, unsigned int TNumNodes>
 Element::Pointer SteadyStatePwElement<TDim, TNumNodes>::Create(IndexType             NewId,
@@ -44,8 +74,8 @@ int SteadyStatePwElement<TDim, TNumNodes>::Check(const ProcessInfo& rCurrentProc
 {
     KRATOS_TRY
 
-    const PropertiesType& r_properties = this->GetProperties();
-    const GeometryType&   r_geometry   = this->GetGeometry();
+    const auto& r_properties = this->GetProperties();
+    const auto& r_geometry   = this->GetGeometry();
 
     CheckUtilities::CheckDomainSize(r_geometry.DomainSize(), this->Id());
 
@@ -53,72 +83,20 @@ int SteadyStatePwElement<TDim, TNumNodes>::Check(const ProcessInfo& rCurrentProc
         r_geometry, {std::cref(WATER_PRESSURE), std::cref(VOLUME_ACCELERATION)});
     CheckUtilities::CheckHasDofs(r_geometry, {std::cref(WATER_PRESSURE)});
 
-    // Verify properties
-    if (!r_properties.Has(DENSITY_WATER) || r_properties[DENSITY_WATER] < 0.0)
-        KRATOS_ERROR << "DENSITY_WATER does not exist in the material "
-                        "properties or has an invalid value at element"
-                     << this->Id() << std::endl;
+    const CheckProperties check_properties(r_properties, "material properties",
+                                           CheckProperties::Bounds::AllExclusive);
+    check_properties.SingleUseBounds(CheckProperties::Bounds::AllInclusive).Check(DENSITY_WATER);
+    constexpr auto max_value_porosity = 1.0;
+    check_properties.Check(POROSITY, max_value_porosity);
+    check_properties.Check(DYNAMIC_VISCOSITY);
 
-    if (!r_properties.Has(POROSITY) || r_properties[POROSITY] < 0.0 || r_properties[POROSITY] > 1.0)
-        KRATOS_ERROR << "POROSITY does not exist in the material properties or "
-                        "has an invalid value at element"
-                     << this->Id() << std::endl;
+    if constexpr (TDim == 2) CheckUtilities::CheckForNonZeroZCoordinateIn2D(r_geometry);
 
-    if (TDim == 2) {
-        // If this is a 2D problem, nodes must be in XY plane
-        for (unsigned int i = 0; i < TNumNodes; ++i) {
-            if (r_geometry[i].Z() != 0.0)
-                KRATOS_ERROR << " Node with non-zero Z coordinate found. Id: " << r_geometry[i].Id()
-                             << std::endl;
-        }
-    }
-
-    // Verify specific properties
-    if (!r_properties.Has(DYNAMIC_VISCOSITY) || r_properties[DYNAMIC_VISCOSITY] < 0.0)
-        KRATOS_ERROR << "DYNAMIC_VISCOSITY does not exist in the material "
-                        "properties or has an invalid value at element"
-                     << this->Id() << std::endl;
-
-    if (!r_properties.Has(PERMEABILITY_XX) || r_properties[PERMEABILITY_XX] < 0.0)
-        KRATOS_ERROR << "PERMEABILITY_XX does not exist in the material "
-                        "properties or has an invalid value at element"
-                     << this->Id() << std::endl;
-
-    if (!r_properties.Has(PERMEABILITY_YY) || r_properties[PERMEABILITY_YY] < 0.0)
-        KRATOS_ERROR << "PERMEABILITY_YY does not exist in the material "
-                        "properties or has an invalid value at element"
-                     << this->Id() << std::endl;
-
-    if (!r_properties.Has(PERMEABILITY_XY) || r_properties[PERMEABILITY_XY] < 0.0)
-        KRATOS_ERROR << "PERMEABILITY_XY does not exist in the material "
-                        "properties or has an invalid value at element"
-                     << this->Id() << std::endl;
-
-    if constexpr (TDim > 2) {
-        if (!r_properties.Has(PERMEABILITY_ZZ) || r_properties[PERMEABILITY_ZZ] < 0.0)
-            KRATOS_ERROR << "PERMEABILITY_ZZ does not exist in the material "
-                            "properties or has an invalid value at element"
-                         << this->Id() << std::endl;
-
-        if (!r_properties.Has(PERMEABILITY_YZ) || r_properties[PERMEABILITY_YZ] < 0.0)
-            KRATOS_ERROR << "PERMEABILITY_YZ does not exist in the material "
-                            "properties or has an invalid value at element"
-                         << this->Id() << std::endl;
-
-        if (!r_properties.Has(PERMEABILITY_ZX) || r_properties[PERMEABILITY_ZX] < 0.0)
-            KRATOS_ERROR << "PERMEABILITY_ZX does not exist in the material "
-                            "properties or has an invalid value at element"
-                         << this->Id() << std::endl;
-    }
+    check_properties.CheckPermeabilityProperties(TDim);
 
     // Verify that the constitutive law has the correct dimension
 
-    // Check constitutive law
-    if (!mRetentionLawVector.empty()) {
-        return mRetentionLawVector[0]->Check(r_properties, rCurrentProcessInfo);
-    }
-
-    return 0;
+    return RetentionLaw::Check(mRetentionLawVector, r_properties, rCurrentProcessInfo);
 
     KRATOS_CATCH("")
 }
@@ -197,6 +175,31 @@ void SteadyStatePwElement<TDim, TNumNodes>::CalculateAndAddRHS(VectorType& rRigh
     this->CalculateAndAddFluidBodyFlow(rRightHandSideVector, rVariables);
 
     KRATOS_CATCH("")
+}
+
+template <unsigned int TDim, unsigned int TNumNodes>
+std::string SteadyStatePwElement<TDim, TNumNodes>::Info() const
+{
+    const std::string retention_info = !mRetentionLawVector.empty() ? mRetentionLawVector[0]->Info() : "not defined";
+    return "steady-state Pw flow Element #" + std::to_string(this->Id()) + "\nRetention law: " + retention_info;
+}
+
+template <unsigned int TDim, unsigned int TNumNodes>
+void SteadyStatePwElement<TDim, TNumNodes>::PrintInfo(std::ostream& rOStream) const
+{
+    rOStream << this->Info();
+}
+
+template <unsigned int TDim, unsigned int TNumNodes>
+void SteadyStatePwElement<TDim, TNumNodes>::save(Serializer& rSerializer) const
+{
+    KRATOS_SERIALIZE_SAVE_BASE_CLASS(rSerializer, Element)
+}
+
+template <unsigned int TDim, unsigned int TNumNodes>
+void SteadyStatePwElement<TDim, TNumNodes>::load(Serializer& rSerializer)
+{
+    KRATOS_SERIALIZE_LOAD_BASE_CLASS(rSerializer, Element)
 }
 
 template class SteadyStatePwElement<2, 3>;

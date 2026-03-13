@@ -12,20 +12,20 @@
 
 #include "containers/model.h"
 #include "custom_elements/transient_thermal_element.h"
+#include "custom_utilities/ublas_utilities.h"
 #include "geo_mechanics_application_variables.h"
 #include "geometries/triangle_2d_10.h"
 #include "geometries/triangle_2d_15.h"
 #include "tests/cpp_tests/geo_mechanics_fast_suite.h"
-#include <boost/numeric/ublas/assignment.hpp>
 
 using namespace Kratos;
 
 namespace Kratos::Testing
 {
 
-void SetProperties(Element::Pointer p_element)
+void SetProperties(const Element::Pointer& rpElement)
 {
-    Properties::Pointer p_properties = p_element->pGetProperties();
+    Properties::Pointer p_properties = rpElement->pGetProperties();
 
     // Please note these are not representative values, it just ensures the values are set
     p_properties->SetValue(DENSITY_WATER, 1.0);
@@ -127,7 +127,7 @@ KRATOS_TEST_CASE_IN_SUITE(CheckElement_Throws_WhenTemperatureIsMissing, KratosGe
     const ProcessInfo& r_current_process_info = model_part.GetProcessInfo();
 
     KRATOS_EXPECT_EXCEPTION_IS_THROWN(p_element->Check(r_current_process_info),
-                                      "Missing variable TEMPERATURE on node 1")
+                                      "Missing variable TEMPERATURE on nodes 1 2 3")
 }
 
 KRATOS_TEST_CASE_IN_SUITE(CheckElement_Throws_WhenDtTemperatureIsMissing, KratosGeoMechanicsFastSuiteWithoutKernel)
@@ -141,7 +141,7 @@ KRATOS_TEST_CASE_IN_SUITE(CheckElement_Throws_WhenDtTemperatureIsMissing, Kratos
     const ProcessInfo& r_current_process_info = model_part.GetProcessInfo();
 
     KRATOS_EXPECT_EXCEPTION_IS_THROWN(p_element->Check(r_current_process_info),
-                                      "Missing variable DT_TEMPERATURE on node 1")
+                                      "Missing variable DT_TEMPERATURE on nodes 1 2 3")
 }
 
 KRATOS_TEST_CASE_IN_SUITE(CheckElement_Throws_WhenTemperatureDofIsMissing, KratosGeoMechanicsFastSuiteWithoutKernel)
@@ -156,7 +156,7 @@ KRATOS_TEST_CASE_IN_SUITE(CheckElement_Throws_WhenTemperatureDofIsMissing, Krato
     const ProcessInfo& r_current_process_info = model_part.GetProcessInfo();
 
     KRATOS_EXPECT_EXCEPTION_IS_THROWN(p_element->Check(r_current_process_info),
-                                      "Missing degree of freedom for TEMPERATURE on node 1")
+                                      "Missing the DoF for the variable TEMPERATURE on nodes 1 2 3")
 }
 
 KRATOS_TEST_CASE_IN_SUITE(CheckElement_Throws_WhenPropertyIsMissing, KratosGeoMechanicsFastSuiteWithoutKernel)
@@ -175,7 +175,7 @@ KRATOS_TEST_CASE_IN_SUITE(CheckElement_Throws_WhenPropertyIsMissing, KratosGeoMe
 
     KRATOS_EXPECT_EXCEPTION_IS_THROWN(
         p_element->Check(r_current_process_info),
-        "DENSITY_WATER does not exist in the thermal element's properties")
+        "DENSITY_WATER does not exist in the properties with Id 0 at element with Id 1.")
 }
 
 void GenerateTransientThermalElement2D3NWithNonZeroZ(ModelPart& rModelPart)
@@ -201,7 +201,7 @@ KRATOS_TEST_CASE_IN_SUITE(CheckElement_Throws_When2DElementHasNonZeroZValue, Kra
 
     const ProcessInfo& r_current_process_info = model_part.GetProcessInfo();
     KRATOS_EXPECT_EXCEPTION_IS_THROWN(model_part.GetElement(1).Check(r_current_process_info),
-                                      "Node with non-zero Z coordinate found. Id: 1")
+                                      "Node with Id: 1 has non-zero Z coordinate.")
 }
 
 KRATOS_TEST_CASE_IN_SUITE(CheckElement_Returns0_When2DElementIsCorrectlySet, KratosGeoMechanicsFastSuiteWithoutKernel)
@@ -253,18 +253,12 @@ KRATOS_TEST_CASE_IN_SUITE(ThermalElement_ReturnsExpectedMatrixAndVector_WhenCalc
     Vector right_hand_side;
     p_element->CalculateLocalSystem(left_hand_side_matrix, right_hand_side, r_current_process_info);
 
-    Matrix expected_matrix(3, 3);
-    // clang-format off
-    expected_matrix <<=  5, -5,    0,
-                        -5,  5.5, -0.5,
-                         0, -0.5,  0.5;
-    // clang-format on
+    const auto expected_matrix = UblasUtilities::CreateMatrix({{5, -5, 0}, {-5, 5.5, -0.5}, {0, -0.5, 0.5}});
     ExpectDoubleMatrixEqual(expected_matrix, left_hand_side_matrix);
 
     // Calculated by hand (matrix multiplication between the
     // lhs and the temperature vector, which is 0.0, 1.0, 2.0)
-    Vector expected_vector(3);
-    expected_vector <<= 5, -4.5, -0.5;
+    const auto expected_vector = UblasUtilities::CreateVector({5, -4.5, -0.5});
     ExpectDoubleVectorEqual(expected_vector, right_hand_side);
 }
 
@@ -500,7 +494,8 @@ KRATOS_TEST_CASE_IN_SUITE(CheckElement_Throws_When3DPropertyHasInvalidValue, Kra
     const ProcessInfo& r_current_process_info = model_part.GetProcessInfo();
     KRATOS_EXPECT_EXCEPTION_IS_THROWN(
         p_element->Check(r_current_process_info),
-        "THERMAL_CONDUCTIVITY_SOLID_ZZ has an invalid value at element 1")
+        "THERMAL_CONDUCTIVITY_SOLID_ZZ in the properties with Id 0 at element with Id 1 has an "
+        "invalid value: -5 is out of the range [0, -).")
 }
 
 KRATOS_TEST_CASE_IN_SUITE(EquationIdVectorTransientThermalElement3D4N, KratosGeoMechanicsFastSuiteWithoutKernel)

@@ -13,8 +13,8 @@
 #include <algorithm>
 #include <type_traits>
 
-#include "custom_constitutive/constitutive_law_dimension.h"
 #include "custom_constitutive/small_strain_udsm_law.h"
+#include "custom_utilities/check_utilities.hpp"
 #include "custom_utilities/constitutive_law_utilities.h"
 
 #ifdef KRATOS_COMPILED_IN_WINDOWS
@@ -29,6 +29,7 @@ namespace
 {
 
 using namespace Kratos;
+using namespace std::string_literals;
 
 constexpr auto index_of_is_non_symmetric_flag    = 0;
 constexpr auto index_of_is_stress_dependent_flag = 1;
@@ -153,8 +154,6 @@ using f_UserMod          = void (*)(int*,
 
 using SizeType = std::size_t;
 
-SmallStrainUDSMLaw::~SmallStrainUDSMLaw() = default;
-
 SmallStrainUDSMLaw::SmallStrainUDSMLaw(std::unique_ptr<ConstitutiveLawDimension> pDimension)
     : mpDimension(std::move(pDimension))
 {
@@ -217,18 +216,10 @@ int SmallStrainUDSMLaw::Check(const Properties&   rMaterialProperties,
 {
     KRATOS_TRY
 
-    // Verify Properties variables
-    KRATOS_ERROR_IF(!rMaterialProperties.Has(UDSM_NAME) || rMaterialProperties[UDSM_NAME].empty())
-        << "UDSM_NAME has Key zero, is not defined or has an invalid value for property"
-        << rMaterialProperties.Id() << std::endl;
-
-    KRATOS_ERROR_IF(!rMaterialProperties.Has(UDSM_NUMBER) || rMaterialProperties[UDSM_NUMBER] <= 0)
-        << "UDSM_NUMBER has Key zero, is not defined or has an invalid value for property"
-        << rMaterialProperties.Id() << std::endl;
-
-    KRATOS_ERROR_IF_NOT(rMaterialProperties.Has(IS_FORTRAN_UDSM))
-        << "IS_FORTRAN_UDSM has Key zero, is not defined or has an invalid value for property"
-        << rMaterialProperties.Id() << std::endl;
+    const CheckProperties check_properties(rMaterialProperties, "property", CheckProperties::Bounds::AllExclusive);
+    check_properties.CheckAvailabilityAndNotEmpty(UDSM_NAME);
+    check_properties.Check(UDSM_NUMBER);
+    check_properties.CheckAvailability(IS_FORTRAN_UDSM);
 
     return 0;
     KRATOS_CATCH("")
@@ -934,7 +925,7 @@ bool SmallStrainUDSMLaw::Has(const Variable<Vector>& rThisVariable)
     return rThisVariable == STATE_VARIABLES || rThisVariable == CAUCHY_STRESS_VECTOR;
 }
 
-std::string SmallStrainUDSMLaw::Info() const { return "SmallStrainUDSMLaw"; }
+std::string SmallStrainUDSMLaw::Info() const { return "SmallStrainUDSMLaw"s; }
 
 void SmallStrainUDSMLaw::PrintInfo(std::ostream& rOStream) const { rOStream << Info(); }
 

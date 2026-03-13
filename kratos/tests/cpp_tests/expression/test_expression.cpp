@@ -310,7 +310,8 @@ void ExecuteWriteTest(
     IndexType number_of_entities = rContainer.size();
     IndexType number_of_integration_points = 10;
 
-    std::vector<double> values(number_of_integration_points * number_of_entities * 12);
+    std::size_t values_size = number_of_integration_points * number_of_entities * 12;
+    std::vector<double> values(values_size ? values_size : 1);
     std::iota(values.begin(), values.end(), 1);
 
     ContainerExpression<TContainerType> double_exp(rModelPart);

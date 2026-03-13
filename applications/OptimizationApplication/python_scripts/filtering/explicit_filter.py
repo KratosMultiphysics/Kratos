@@ -6,7 +6,6 @@ import KratosMultiphysics.OptimizationApplication as KratosOA
 from KratosMultiphysics.OptimizationApplication.filtering.filter import Filter
 from KratosMultiphysics.OptimizationApplication.filtering.filter_utils import FilterRadiusFactory
 from KratosMultiphysics.OptimizationApplication.filtering.filter_utils import ExplicitFilterDampingFactory
-from KratosMultiphysics.OptimizationApplication.utilities.union_utilities import ContainerExpressionTypes
 from KratosMultiphysics.OptimizationApplication.utilities.union_utilities import SupportedSensitivityFieldVariableTypes
 
 def Factory(model: Kratos.Model, filtering_model_part_name: str, filtering_variable: SupportedSensitivityFieldVariableTypes, data_location: Kratos.Globals.DataLocation, parameters: Kratos.Parameters) -> Filter:
@@ -17,6 +16,7 @@ class ExplicitFilter(Filter):
     def GetDefaultParameters(cls) -> Kratos.Parameters:
         return Kratos.Parameters("""{
             "filter_type"               : "explicit_filter",
+            "node_cloud_mesh"           : false,
             "filter_function_type"      : "linear",
             "max_nodes_in_filter_radius": 100000,
             "echo_level"                : 0,
@@ -67,11 +67,16 @@ class ExplicitFilter(Filter):
         filter_function_type = self.parameters["filter_function_type"].GetString()
         max_nodes_in_filter_radius = self.parameters["max_nodes_in_filter_radius"].GetInt()
         echo_level = self.parameters["echo_level"].GetInt()
+        node_cloud_mesh = self.parameters["node_cloud_mesh"].GetBool()
         if self.data_location in [Kratos.Globals.DataLocation.NodeHistorical, Kratos.Globals.DataLocation.NodeNonHistorical]:
-            self.filter_utils = KratosOA.NodeExplicitFilterUtils(self.model_part, filter_function_type, max_nodes_in_filter_radius, echo_level)
+            self.filter_utils = KratosOA.NodeExplicitFilterUtils(self.model_part, filter_function_type, max_nodes_in_filter_radius, echo_level, node_cloud_mesh)
         elif self.data_location == Kratos.Globals.DataLocation.Condition:
+            if node_cloud_mesh:
+                raise RuntimeError("\"node_cloud_mesh\" flag can be only used for filtering meshes with nodes.")
             self.filter_utils = KratosOA.ConditionExplicitFilterUtils(self.model_part, filter_function_type, max_nodes_in_filter_radius, echo_level)
         elif self.data_location == Kratos.Globals.DataLocation.Element:
+            if node_cloud_mesh:
+                raise RuntimeError("\"node_cloud_mesh\" flag can be only used for filtering meshes with nodes.")
             self.filter_utils = KratosOA.ElementExplicitFilterUtils(self.model_part, filter_function_type, max_nodes_in_filter_radius, echo_level)
 
         self.Update()
@@ -80,7 +85,7 @@ class ExplicitFilter(Filter):
         # now set the filter radius. Can be changed in future to support adaptive radius methods.
         filter_radius = FilterRadiusFactory(self.model_part, self.data_location, self.parameters["filter_radius_settings"])
         self.filter_utils.SetRadius(filter_radius)
-        self.GetComponentDataView().GetUnBufferedData().SetValue("filter_radius", filter_radius.Clone(), overwrite=True)
+        self.GetComponentDataView().GetUnBufferedData().SetValue("filter_radius", filter_radius, overwrite=True)
 
         # now set the damping
         stride = max(enumerate(accumulate(self.filter_variable_shape, operator.mul, initial=1)))[1]
@@ -98,18 +103,20 @@ class ExplicitFilter(Filter):
     def Finalize(self) -> None:
         pass
 
-    def ForwardFilterField(self, control_field: ContainerExpressionTypes) -> ContainerExpressionTypes:
+    def ForwardFilterField(self, control_field: Kratos.TensorAdaptors.DoubleTensorAdaptor) -> Kratos.TensorAdaptors.DoubleTensorAdaptor:
         return self.filter_utils.ForwardFilterField(control_field)
 
-    def BackwardFilterField(self, physical_mesh_independent_gradient_field: ContainerExpressionTypes) -> ContainerExpressionTypes:
+    def BackwardFilterField(self, physical_mesh_independent_gradient_field: Kratos.TensorAdaptors.DoubleTensorAdaptor) -> Kratos.TensorAdaptors.DoubleTensorAdaptor:
         return self.filter_utils.BackwardFilterField(physical_mesh_independent_gradient_field)
 
-    def BackwardFilterIntegratedField(self, physical_mesh_dependent_gradient_field: ContainerExpressionTypes) -> ContainerExpressionTypes:
+    def BackwardFilterIntegratedField(self, physical_mesh_dependent_gradient_field: Kratos.TensorAdaptors.DoubleTensorAdaptor) -> Kratos.TensorAdaptors.DoubleTensorAdaptor:
         return self.filter_utils.BackwardFilterIntegratedField(physical_mesh_dependent_gradient_field)
 
-    def UnfilterField(self, filtered_field: ContainerExpressionTypes) -> ContainerExpressionTypes:
-         # WARNING: In general explicit VM doesn't need unfiltered field because it works with changes. Hence, it returns zeros and optimization runs correctly.
-        return Kratos.Expression.Utils.Collapse(filtered_field * 0.0)
+    def UnfilterField(self, filtered_field: Kratos.TensorAdaptors.DoubleTensorAdaptor) -> Kratos.TensorAdaptors.DoubleTensorAdaptor:
+        # WARNING: In general explicit VM doesn't need unfiltered field because it works with changes. Hence, it returns zeros and optimization runs correctly.
+        result = Kratos.TensorAdaptors.DoubleTensorAdaptor(filtered_field)
+        result.data[:] = 0.0
+        return result
 
     def GetBoundaryConditions(self) -> 'list[list[Kratos.ModelPart]]':
         return self.damping.GetDampedModelParts()

@@ -17,6 +17,7 @@
 #include "fluid_dynamics_application_variables.h"
 #include "compressible_potential_flow_application_variables.h"
 #include "custom_operations/potential_to_compressible_navier_stokes_operation.h"
+#include "custom_operations/define_2d_wake_operation.h"
 
 namespace Kratos::Testing {
 
@@ -165,4 +166,47 @@ KRATOS_TEST_CASE_IN_SUITE(PotentialToCompressibleNavierStokesOperation, Compress
       KRATOS_EXPECT_NEAR(r_nodal_total_energy, density * energy, 1e-9);
     }
 }
+
+KRATOS_TEST_CASE_IN_SUITE(Define2DWakeOperation, CompressiblePotentialApplicationFastSuite)
+{
+  // Create model_part
+  Model this_model;
+  ModelPart& model_part = this_model.CreateModelPart("Main", 3);
+
+  // Set model_part properties
+  BoundedVector<double, 3> free_stream_velocity_direction = ZeroVector(3);
+  free_stream_velocity_direction(0) = 1.0;
+  model_part.GetProcessInfo()[FREE_STREAM_VELOCITY_DIRECTION] = free_stream_velocity_direction;
+
+  // Create nodes
+  model_part.CreateNewNode(1, 2.0, 0.0, 0.0);
+  model_part.CreateNewNode(2, 2.0, 2.0, 0.0);
+  ModelPart::NodeType::Pointer pNode = model_part.CreateNewNode(3, 0.0, 1.0, 0.0);
+
+  // Create element
+  model_part.CreateNewProperties(0);
+  Properties::Pointer pElemProp = model_part.pGetProperties(0);
+  std::vector<ModelPart::IndexType> elemNodes{ 1, 2, 3 };
+  ModelPart::ElementType::Pointer p_element = model_part.CreateNewElement("IncompressiblePotentialFlowElement2D3N", 1, elemNodes, pElemProp);
+
+  // Create body sub_model_part
+  ModelPart& body_model_part = model_part.CreateSubModelPart("body_model_part");
+  body_model_part.AddNode(pNode);
+
+  // Set Parameters
+  const Parameters test_parameters = Parameters(R"({
+      "body_model_part_name"           : "Main.body_model_part",
+      "wake_distance_tolerance"        : 1e-9
+  })");
+
+  // Construct the Define2DWakeOperation
+  Define2DWakeOperation Define2DWakeOperation(this_model, test_parameters);
+
+  // Execute the Define2DWakeOperation
+  Define2DWakeOperation.Execute();
+
+  const int wake = p_element->GetValue(WAKE);
+  KRATOS_EXPECT_NEAR(wake, 1, 1e-6);
+}
+
 } // namespace Kratos::Testing

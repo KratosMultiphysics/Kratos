@@ -22,7 +22,7 @@
 #include "includes/define.h"
 #include "includes/model_part.h"
 #include "spatial_containers/spatial_containers.h"
-#include "expression/container_expression.h"
+#include "tensor_adaptors/tensor_adaptor.h"
 
 // Application includes
 #include "entity_point.h"
@@ -63,19 +63,20 @@ public:
         const ModelPart& rModelPart,
         const std::string& rKernelFunctionType,
         const IndexType MaxNumberOfNeighbours,
-        const IndexType EchoLevel);
+        const IndexType EchoLevel,
+        const bool NodeCloudMesh);
 
     ///@}
     ///@name Public operations
 
-    void SetRadius(const ContainerExpression<TContainerType>& rContainerExpression);
+    void SetRadius(TensorAdaptor<double>::Pointer pTensorAdaptor);
 
-    ContainerExpression<TContainerType> GetRadius() const;
+    TensorAdaptor<double>::Pointer GetRadius() const;
 
     void SetDamping(typename ExplicitDamping<TContainerType>::Pointer pExplicitDamping);
 
     /**
-     * @brief Updates the internal KD trees or searching neghbours
+     * @brief Updates the internal KD trees or searching neighbours
      *
      */
     void Update();
@@ -90,35 +91,35 @@ public:
      *              \Delta \underline{s} = \mathbf{D}\mathbf{A}\Delta \tilde{\underline{s}}
      *          \f]
      *
-     * @param rContainerExpression  mesh-independent update field in control space.
-     * @return ContainerExpression<TContainerType> Filtered/Smoothened mesh-independent update field in physical space
+     * @param rTensorAdaptor  mesh-independent update field in control space.
+     * @return TensorAdaptor<double>::Pointer Filtered/Smoothened mesh-independent update field in physical space
      */
-    ContainerExpression<TContainerType> ForwardFilterField(const ContainerExpression<TContainerType>& rContainerExpression) const;
+    TensorAdaptor<double>::Pointer ForwardFilterField(const TensorAdaptor<double>& rTensorAdaptor) const;
 
     /**
      * @brief Filters the given mesh-independent physical space gradients to mesh-independent control space gradients.
      * @details This method transforms physical space gradients to control space gradients
      *          by using the transpose of the @ref ForwardFilterField method.
      *
-     * @param rContainerExpression  Mesh-independent physical space gradient.
-     * @return ContainerExpression<TContainerType> Mesh-independent control space gradient.
+     * @param rTensorAdaptor  Mesh-independent physical space gradient.
+     * @return TensorAdaptor<double>::Pointer Mesh-independent control space gradient.
      */
-    ContainerExpression<TContainerType> BackwardFilterField(const ContainerExpression<TContainerType>& rContainerExpression) const;
+    TensorAdaptor<double>::Pointer BackwardFilterField(const TensorAdaptor<double>& rTensorAdaptor) const;
 
     /**
      * @brief Filters the given mesh-dependent physical space gradients to mesh-independent control space gradients.
      * @details This method transforms physical space gradients to control space gradients
      *          by using the transpose of the @ref ForwardFilterField method.
      *
-     * @param rContainerExpression  Mesh-dependent physical space gradient.
-     * @return ContainerExpression<TContainerType> Mesh-independent control space gradient.
+     * @param rTensorAdaptor  Mesh-dependent physical space gradient.
+     * @return TensorAdaptor<double>::Pointer Mesh-independent control space gradient.
      */
-    ContainerExpression<TContainerType> BackwardFilterIntegratedField(const ContainerExpression<TContainerType>& rContainerExpression) const;
+    TensorAdaptor<double>::Pointer BackwardFilterIntegratedField(const TensorAdaptor<double>& rTensorAdaptor) const;
 
     /**
      * @brief Get the Integration Weights object
      */
-    void GetIntegrationWeights(ContainerExpression<TContainerType>& rContainerExpression) const;
+    void GetIntegrationWeights(TensorAdaptor<double>& rTensorAdaptor) const;
 
     /**
      * @brief Calculates the filtering matrix used in this filter.
@@ -144,11 +145,11 @@ private:
 
     FilterFunction::UniquePointer mpKernelFunction;
 
-    typename ContainerExpression<TContainerType>::Pointer mpFilterRadiusContainer;
+    TensorAdaptor<double>::Pointer mpFilterRadiusTensorAdaptor;
 
     typename ExplicitDamping<TContainerType>::Pointer mpDamping;
 
-    Expression::ConstPointer mpNodalDomainSizeExpression;
+    std::vector<double> mNodalDomainSizes;
 
     EntityPointVector mEntityPointVector;
 
@@ -160,14 +161,22 @@ private:
 
     typename KDTree::Pointer mpSearchTree;
 
+    bool mNodeCloudMesh;
+
     ///@}
     ///@name Private operations
     ///@{
 
-    void CheckField(const ContainerExpression<TContainerType>& rContainerExpression) const;
+    void CheckField(const TensorAdaptor<double>& rTensorAdaptor) const;
 
     template<class TMeshDependencyType>
-    ContainerExpression<TContainerType> GenericBackwardFilterField(const ContainerExpression<TContainerType>& rContainerExpression) const;
+    void GenericGetIntegrationWeights(TensorAdaptor<double>& rTensorAdapto) const;
+
+    template<class TMeshDependencyType>
+    TensorAdaptor<double>::Pointer GenericForwardFilterField(const TensorAdaptor<double>& rTensorAdaptor) const;
+
+    template<class TMeshDependencyType>
+    TensorAdaptor<double>::Pointer GenericBackwardFilterField(const TensorAdaptor<double>& rTensorAdaptor) const;
 
     ///@}
 };

@@ -371,6 +371,11 @@ void ModelPartIO::WriteSubModelParts(
 
 void ModelPartIO::ReadSubModelParts(ModelPart& rModelPart, const std::string& rPath)
 {
+    KRATOS_TRY
+
+    KRATOS_ERROR_IF(rPath.rfind("/") == std::string::npos)
+        << "The rPath = \"" << rPath << "\" is not a valid hdf5 path. HDF5 path should always start with \"/\"\n.";
+
     auto& r_sub_model_part = rModelPart.CreateSubModelPart(rPath.substr(rPath.rfind("/") + 1));
 
     const auto &group_names = mpFile->GetGroupNames(rPath);
@@ -392,6 +397,8 @@ void ModelPartIO::ReadSubModelParts(ModelPart& rModelPart, const std::string& rP
             ReadSubModelParts(r_sub_model_part, current_path);
         }
     }
+
+    KRATOS_CATCH("");
 }
 
 } // namespace HDF5.

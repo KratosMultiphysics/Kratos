@@ -13,6 +13,7 @@
 #include "containers/model.h"
 #include "containers/variable.h"
 #include "custom_processes/apply_final_stresses_of_previous_stage_to_initial_state.h"
+#include "custom_utilities/ublas_utilities.h"
 #include "geometries/triangle_2d_3.h"
 #include "includes/constitutive_law.h"
 #include "includes/element.h"
@@ -22,20 +23,13 @@
 #include "includes/process_info.h"
 #include "includes/ublas_interface.h"
 #include "includes/variables.h"
+#include "tests/cpp_tests/custom_constitutive/mock_constitutive_law.hpp"
 #include "tests/cpp_tests/geo_mechanics_fast_suite.h"
-
-#include <boost/numeric/ublas/assignment.hpp>
 
 namespace
 {
 
 using namespace Kratos;
-
-class StubConstitutiveLaw : public ConstitutiveLaw
-{
-public:
-    [[nodiscard]] SizeType GetStrainSize() const override { return 4; }
-};
 
 class StubElementForResetDisplacementTest : public Element
 {
@@ -45,12 +39,14 @@ public:
     StubElementForResetDisplacementTest(IndexType NewId, const GeometryType::Pointer& pGeometry)
         : Element(NewId, pGeometry, std::make_shared<Properties>())
     {
-        mConstitutiveLaws = std::vector<ConstitutiveLaw::Pointer>(3, make_shared<StubConstitutiveLaw>());
+        mConstitutiveLaws =
+            std::vector<ConstitutiveLaw::Pointer>(3, make_shared<Testing::MockConstitutiveLaw>());
     }
 
     void Initialize(const ProcessInfo& rCurrentProcessInfo) override
     {
-        mConstitutiveLaws = std::vector<ConstitutiveLaw::Pointer>(3, make_shared<StubConstitutiveLaw>());
+        mConstitutiveLaws =
+            std::vector<ConstitutiveLaw::Pointer>(3, make_shared<Testing::MockConstitutiveLaw>());
     }
 
     void CalculateOnIntegrationPoints(const Variable<ConstitutiveLaw::Pointer>&,
@@ -109,10 +105,9 @@ namespace Kratos::Testing
 KRATOS_TEST_CASE_IN_SUITE(ApplyFinalStressesOfPreviousStageToInitialState_SetsInitialStressOfConstitutiveLaws,
                           KratosGeoMechanicsFastSuiteWithoutKernel)
 {
-    Model  model;
-    auto&  model_part = CreateModelPartWithAStubElement(model);
-    Vector initial_stress_vector(4);
-    initial_stress_vector <<= 1.0, 2.0, 3.0, 4.0;
+    Model      model;
+    auto&      model_part            = CreateModelPartWithAStubElement(model);
+    const auto initial_stress_vector = UblasUtilities::CreateVector({1.0, 2.0, 3.0, 4.0});
 
     constexpr auto number_of_integration_points = 3;
     const auto     dummy_process_info           = ProcessInfo{};
@@ -120,9 +115,9 @@ KRATOS_TEST_CASE_IN_SUITE(ApplyFinalStressesOfPreviousStageToInitialState_SetsIn
         PK2_STRESS_VECTOR, std::vector<Vector>(number_of_integration_points, initial_stress_vector),
         dummy_process_info);
 
-    const auto dummy_parameters = Parameters{};
+    const auto parameters = Parameters{R"({"model_part_name" : "MainModelPart"})"};
     ApplyFinalStressesOfPreviousStageToInitialState apply_final_stresses_of_previous_stage_to_initial_state(
-        model_part, dummy_parameters);
+        model, parameters);
 
     // This is also the order in which these functions are called in an analysis
     // which is why we emulate exactly this order here.
@@ -149,8 +144,8 @@ KRATOS_TEST_CASE_IN_SUITE(ApplyFinalStressesOfPreviousStageToInitialState_Throws
     Model model;
     auto& model_part = CreateModelPartWithAStubElement(model);
 
-    const auto                                      dummy_parameters = Parameters{};
-    ApplyFinalStressesOfPreviousStageToInitialState process(model_part, dummy_parameters);
+    const auto parameters = Parameters{R"({"model_part_name" : "MainModelPart"})"};
+    ApplyFinalStressesOfPreviousStageToInitialState process(model, parameters);
 
     const auto dummy_process_info          = ProcessInfo{};
     const auto empty_constitutive_law_list = std::vector<ConstitutiveLaw::Pointer>{};
@@ -165,10 +160,10 @@ KRATOS_TEST_CASE_IN_SUITE(ApplyFinalStressesOfPreviousStageToInitialState_Throws
                           KratosGeoMechanicsFastSuiteWithoutKernel)
 {
     Model model;
-    auto& model_part = CreateModelPartWithAStubElement(model);
+    CreateModelPartWithAStubElement(model);
 
-    const auto                                      dummy_parameters = Parameters{};
-    ApplyFinalStressesOfPreviousStageToInitialState process(model_part, dummy_parameters);
+    const auto parameters = Parameters{R"({"model_part_name_list" : ["MainModelPart"]})"};
+    ApplyFinalStressesOfPreviousStageToInitialState process(model, parameters);
 
     KRATOS_EXPECT_EXCEPTION_IS_THROWN(
         process.ExecuteInitialize(),
@@ -184,12 +179,21 @@ KRATOS_TEST_CASE_IN_SUITE(ApplyFinalStressesOfPreviousStageToInitialState_Throws
     model_part.Elements()[1].SetValuesOnIntegrationPoints(
         PK2_STRESS_VECTOR, std::vector<Vector>(2, ScalarVector(4, 1.0)), dummy_process_info);
 
-    const auto                                      dummy_parameters = Parameters{};
-    ApplyFinalStressesOfPreviousStageToInitialState process(model_part, dummy_parameters);
+    const auto parameters = Parameters{R"({"model_part_name_list" : ["MainModelPart"]})"};
+    ApplyFinalStressesOfPreviousStageToInitialState process(model, parameters);
 
     KRATOS_EXPECT_EXCEPTION_IS_THROWN(process.ExecuteInitialize(),
                                       "Number of retrieved stress vectors (2) does not match the "
                                       "number of constitutive laws (3) for element 1")
+}
+
+KRATOS_TEST_CASE_IN_SUITE(CheckInfoApplyFinalStressesOfPreviousStageToInitialState, KratosGeoMechanicsFastSuiteWithoutKernel)
+{
+    Model model;
+    model.CreateModelPart("foo");
+    const auto parameters = Parameters{R"({"model_part_name" : "foo"})"};
+    const ApplyFinalStressesOfPreviousStageToInitialState process(model, parameters);
+    KRATOS_EXPECT_EQ(process.Info(), "ApplyFinalStressesOfPreviousStageToInitialState");
 }
 
 } // namespace Kratos::Testing

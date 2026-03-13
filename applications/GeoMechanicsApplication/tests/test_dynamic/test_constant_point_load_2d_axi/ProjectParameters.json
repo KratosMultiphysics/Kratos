@@ -30,7 +30,6 @@
         "compute_reactions"                : false,
         "move_mesh_flag"                   : false,
         "reform_dofs_at_each_step"         : false,
-        "nodal_smoothing"                  : true,
         "block_builder"                    : true,
         "rebuild_level"                    : 0,
         "prebuild_dynamics"                : true,
@@ -58,7 +57,6 @@
             "max_iteration"                : 1000
         },
         "problem_domain_sub_model_part_list" : ["soil_block"],
-        "processes_sub_model_part_list"      : ["load","base_fixed","side_rollers","zero_water_pressure"],
         "body_domain_sub_model_part_list"    : ["soil_block"]
     },
     "output_processes": {},

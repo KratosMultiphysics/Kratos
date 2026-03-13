@@ -444,6 +444,8 @@ public:
 
                             // Transfer condition variables
                             pcond->GetData() = it->GetData();
+                            // Transfer condition flags
+                            pcond->SetFlags(it->GetFlags());
                             pcond->GetValue(SPLIT_ELEMENT) = false;
                             NewConditions.push_back(pcond);
 

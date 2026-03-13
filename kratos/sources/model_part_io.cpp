@@ -289,7 +289,7 @@ void ModelPartIO::WriteGeometries(GeometryContainerType const& rThisGeometries)
         (*mpStream) << "Begin Geometries\t" << geometry_name << std::endl;
         const auto it_geom_begin = rThisGeometries.begin();
         (*mpStream) << "\t" << it_geom_begin->Id() << "\t";
-        auto& r_geometry = *it_geom_begin;
+        const auto& r_geometry = *it_geom_begin;
         for (std::size_t i_node = 0; i_node < r_geometry.size(); i_node++)
             (*mpStream) << r_geometry[i_node].Id() << "\t";
         (*mpStream) << std::endl;
@@ -301,11 +301,11 @@ void ModelPartIO::WriteGeometries(GeometryContainerType const& rThisGeometries)
 
         // Now we iterate over all the geometries
         for(std::size_t i = 1; i < rThisGeometries.size(); i++) {
+            const auto& r_current_geometry = *it_geom_current;
             if(GeometryType::IsSame(*it_geom_previous, *it_geom_current)) {
                 (*mpStream) << "\t" << it_geom_current->Id() << "\t";
-                r_geometry = *it_geom_current;
-                for (std::size_t i_node = 0; i_node < r_geometry.size(); i_node++)
-                    (*mpStream) << r_geometry[i_node].Id() << "\t";
+                for (std::size_t i_node = 0; i_node < r_current_geometry.size(); i_node++)
+                    (*mpStream) << r_current_geometry[i_node].Id() << "\t";
                 (*mpStream) << std::endl;
             } else {
                 (*mpStream) << "End Geometries" << std::endl << std::endl;
@@ -314,9 +314,8 @@ void ModelPartIO::WriteGeometries(GeometryContainerType const& rThisGeometries)
 
                 (*mpStream) << "Begin Geometries\t" << geometry_name << std::endl;
                 (*mpStream) << "\t" << it_geom_current->Id() << "\t";
-                r_geometry = *it_geom_current;
-                for (std::size_t i_node = 0; i_node < r_geometry.size(); i_node++)
-                    (*mpStream) << r_geometry[i_node].Id() << "\t";
+                for (std::size_t i_node = 0; i_node < r_current_geometry.size(); i_node++)
+                    (*mpStream) << r_current_geometry[i_node].Id() << "\t";
                 (*mpStream) << std::endl;
             }
 
@@ -2547,7 +2546,7 @@ void ModelPartIO::ReadConstraintsBlock(
         for(SizeType i = 0 ; i < number_of_master_dofs ; i++) {
             word = words[number_of_words - (number_of_master_dofs - i)]; // Reading master id
             ExtractValue(word, node_id);
-            temp_master_nodes[i] = *(FindKey(rThisNodes, ReorderedNodeId(node_id), "Node").base());
+            temp_master_nodes.push_back(*(FindKey(rThisNodes, ReorderedNodeId(node_id), "Node").base()));
         }
 
         // Now with the nodes and the variables we can create the dofs

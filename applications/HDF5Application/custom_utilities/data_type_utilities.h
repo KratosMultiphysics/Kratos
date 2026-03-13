@@ -39,11 +39,14 @@ namespace Internals
 {
 
 // H5 data types
-template <class TDataType> hid_t GetPrimitiveH5Type()
+template <class TDataType>
+hid_t GetPrimitiveH5Type()
 {
     using primitive_type = typename DataTypeTraits<TDataType>::PrimitiveType;
 
-    if constexpr(std::is_same_v<primitive_type, bool>) {
+    if constexpr(std::is_same_v<primitive_type, unsigned char>) {
+        return H5T_NATIVE_UCHAR;
+    } else if constexpr(std::is_same_v<primitive_type, bool>) {
         return H5T_NATIVE_HBOOL;
     } else if constexpr(std::is_same_v<primitive_type, char>) {
         return H5T_NATIVE_CHAR;
