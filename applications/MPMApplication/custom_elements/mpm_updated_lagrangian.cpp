@@ -12,32 +12,25 @@
 
 
 // System includes
-#include <omp.h>
-#include <sstream>
 
 // External includes
 
 // Project includes
 #include "includes/define.h"
-#include "custom_elements/mpm_updated_lagrangian.hpp"
 #include "utilities/math_utils.h"
+#include "utilities/atomic_utilities.h"
 #include "includes/constitutive_law.h"
-#include "mpm_application_variables.h"
 #include "includes/checks.h"
+
+// Application includes
+#include "mpm_application_variables.h"
 #include "custom_utilities/mpm_energy_calculation_utility.h"
 #include "custom_utilities/mpm_explicit_utilities.h"
 #include "custom_utilities/mpm_math_utilities.h"
+#include "custom_elements/mpm_updated_lagrangian.hpp"
 
 namespace Kratos
 {
-
-/**
- * Flags related to the element computation
- */
-KRATOS_CREATE_LOCAL_FLAG( MPMUpdatedLagrangian, COMPUTE_RHS_VECTOR,                 0 );
-KRATOS_CREATE_LOCAL_FLAG( MPMUpdatedLagrangian, COMPUTE_LHS_MATRIX,                 1 );
-KRATOS_CREATE_LOCAL_FLAG( MPMUpdatedLagrangian, COMPUTE_RHS_VECTOR_WITH_COMPONENTS, 2 );
-KRATOS_CREATE_LOCAL_FLAG( MPMUpdatedLagrangian, COMPUTE_LHS_MATRIX_WITH_COMPONENTS, 3 );
 
 //******************************CONSTRUCTOR*******************************************
 //************************************************************************************
@@ -64,9 +57,6 @@ MPMUpdatedLagrangian::MPMUpdatedLagrangian( IndexType NewId, GeometryType::Point
     : Element( NewId, pGeometry, pProperties )
     , mMP()
 {
-    mFinalizedStep = true;
-
-
 }
 //******************************COPY CONSTRUCTOR**************************************
 //************************************************************************************
@@ -77,7 +67,6 @@ MPMUpdatedLagrangian::MPMUpdatedLagrangian( MPMUpdatedLagrangian const& rOther)
     ,mDeformationGradientF0(rOther.mDeformationGradientF0)
     ,mDeterminantF0(rOther.mDeterminantF0)
     ,mConstitutiveLawVector(rOther.mConstitutiveLawVector)
-    ,mFinalizedStep(rOther.mFinalizedStep)
 {
 }
 
@@ -825,13 +814,6 @@ void MPMUpdatedLagrangian::CalculateLocalSystem(
         rCurrentProcessInfo, true, true);
 }
 
-//*******************************************************************************************
-//*******************************************************************************************
-void MPMUpdatedLagrangian::InitializeSolutionStep(const ProcessInfo& rCurrentProcessInfo )
-{
-    mFinalizedStep = false; // FIXME: this doesn't seem to be used anywhere
-}
-
 
 void MPMUpdatedLagrangian::AddExplicitContribution(const ProcessInfo& rCurrentProcessInfo)
 {
@@ -874,11 +856,9 @@ void MPMUpdatedLagrangian::AddExplicitContribution(const ProcessInfo& rCurrentPr
             }
         }
 
-        r_geometry[i].SetLock();
-        r_geometry[i].FastGetSolutionStepValue(NODAL_MOMENTUM, 0) += nodal_momentum;
-        r_geometry[i].FastGetSolutionStepValue(NODAL_INERTIA, 0)  += nodal_inertia;
-        r_geometry[i].FastGetSolutionStepValue(NODAL_MASS, 0) += r_N(0, i) * mMP.mass;
-        r_geometry[i].UnSetLock();
+        AtomicAdd(r_geometry[i].FastGetSolutionStepValue(NODAL_MOMENTUM, 0), nodal_momentum);
+        AtomicAdd(r_geometry[i].FastGetSolutionStepValue(NODAL_INERTIA, 0), nodal_inertia);
+        AtomicAdd(r_geometry[i].FastGetSolutionStepValue(NODAL_MASS, 0), r_N(0, i)*mMP.mass);
     }
 }
 
@@ -921,8 +901,6 @@ void MPMUpdatedLagrangian::FinalizeSolutionStep(const ProcessInfo& rCurrentProce
 
     // Call the element internal variables update
     this->FinalizeStepVariables(Variables, rCurrentProcessInfo);
-
-    mFinalizedStep = true;
 
     KRATOS_CATCH( "" )
 }
